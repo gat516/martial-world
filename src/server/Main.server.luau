@@ -28,6 +28,8 @@ local Analytics = require(script.Parent.Analytics)
 local WeatherService = require(script.Parent.WeatherService)
 local Meditation = require(script.Parent.Meditation)
 local Inventory = require(script.Parent.Inventory)
+local Admin = require(script.Parent.Admin)
+local WorldEvents = require(script.Parent.WorldEvents)
 local Treasures = require(script.Parent.Treasures)
 local Settings = require(script.Parent.Settings)
 
@@ -88,6 +90,7 @@ local function applyTestKit(data: PlayerData.Data)
 end
 
 local function onPlayerAdded(player: Player)
+	Admin.mark(player)
 	local peak = Peaks.assign(player)
 	player.CharacterAdded:Connect(function(character)
 		task.defer(sendHome, player, character)
@@ -202,8 +205,10 @@ Inventory.start()
 Treasures.start()
 WeatherService.start()
 Garden.start()
+WorldEvents.init()
 table.insert(EnemyService.onKill, Garden.onKill);
 
 (remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(Garden.handle);
+(remotes.AdminAction :: RemoteFunction).OnServerInvoke = guarded(Admin.handle);
 
 (remotes.InventoryAction :: RemoteFunction).OnServerInvoke = guarded(Inventory.handle)

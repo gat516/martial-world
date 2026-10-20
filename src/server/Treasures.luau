@@ -37,7 +37,7 @@ local function pickTreasure(): Items.Item
 end
 
 -- A random spot on the ground inside one of the wilds' enemy zones.
-local function randomSpot(): Vector3?
+function Treasures.randomSpot(): Vector3?
 	local zones = {}
 	for _, zone in (wilds:FindFirstChild("Zones") :: Instance):GetChildren() do
 		if zone:IsA("BasePart") then
@@ -78,7 +78,7 @@ local function fadeOut(model: Model)
 end
 
 local function spawnOne(): boolean
-	local spot = randomSpot()
+	local spot = Treasures.randomSpot()
 	if not spot then
 		return false
 	end

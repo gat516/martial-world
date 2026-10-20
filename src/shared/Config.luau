@@ -313,6 +313,11 @@ return {
 		DAILY_QI_SHARE = 0.5, -- first login of a day: this share of the dantian as raw qi
 	},
 
+	-- Admins (AdminPanel): the creator, these user ids, and anyone in Studio.
+	Admin = {
+		USER_IDS = {} :: { number },
+	},
+
 	-- Studio playtests only: topped up on join so systems can be tried right away.
 	TestKit = {
 		ENABLED = true,

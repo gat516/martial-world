@@ -2,6 +2,8 @@
  <Item class="Folder" referent="RBX1"><Properties><string name="Name">Remotes</string></Properties>
   <Item class="RemoteFunction" referent="RBX2"><Properties><string name="Name">BuildAction</string></Properties>
   </Item>
+  <Item class="RemoteFunction" referent="RBX18"><Properties><string name="Name">AdminAction</string></Properties>
+  </Item>
   <Item class="RemoteFunction" referent="RBX3"><Properties><string name="Name">GardenAction</string></Properties>
   </Item>
   <Item class="RemoteFunction" referent="RBX4"><Properties><string name="Name">InventoryAction</string></Properties>

@@ -46,5 +46,7 @@
   "gear_icon.png": "rbxassetid://88035444387370",
   "slider_knob.png": "rbxassetid://121519577233293",
   "toggle_off.png": "rbxassetid://101309096517631",
-  "toggle_on.png": "rbxassetid://111663747587047"
+  "toggle_on.png": "rbxassetid://111663747587047",
+  "cursor_arrow.png": "rbxassetid://96712021684899",
+  "cursor_hover.png": "rbxassetid://134487250595279"
 }

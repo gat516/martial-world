@@ -77,6 +77,18 @@ return {
 		CLOCK_SLACK = 0.1, -- and lead it
 		COOLDOWN_SLACK = 0.9, -- swings may be this fraction of SWING_SECONDS apart
 		HITBOX_SLACK = 4, -- studs added to each side of the hitbox for movement and lag
+		AREA_SLACK = 3, -- studs added to technique areas on the server
+
+		-- Dodge: a flying-sword dash with brief invulnerability
+		DODGE_COOLDOWN = 1.2,
+		DODGE_SPEED = 75, -- studs per second during the dash
+		DODGE_SECONDS = 0.22,
+		IFRAME_SECONDS = 0.35, -- invulnerable this long from the dodge's timestamp
+		IFRAME_SLACK = 0.1, -- extra server-side allowance for latency
+		PERFECT_WINDOW = 0.2, -- dodging this close before a hit lands is a perfect dodge
+		PERFECT_REFUND = 1.5, -- seconds taken off every technique cooldown
+
+		IN_COMBAT_SECONDS = 6, -- after being hurt, travel is blocked this long
 	},
 
 	Spawn = {
@@ -88,6 +100,7 @@ return {
 		ENABLED = true,
 		HERBS_EACH = 5, -- every herb type
 		SEEDS_EACH = 5, -- every seed type
+		ALL_TECHNIQUES = true, -- own every technique (manuals aren't in yet)
 		FILL_DANTIAN = true, -- no combat yet, so this is the only steady raw qi source
 	},
 }

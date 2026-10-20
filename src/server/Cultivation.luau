@@ -104,6 +104,7 @@ function Cultivation.pushState(player: Player)
 	publish(player, data)
 	stateRemote:FireClient(player, {
 		insight = data.insight,
+		techniques = data.techniques,
 		rate = Cultivation.rate(data, now),
 		aura = Cultivation.aura(data, now),
 		herbs = data.herbs,

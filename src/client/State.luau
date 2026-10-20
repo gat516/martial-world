@@ -4,8 +4,10 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 export type Buff = { source: string, kind: string, amount: number, expires: number }
+export type Technique = { level: number, xp: number }
 export type Snapshot = {
 	insight: number,
+	techniques: { owned: { [string]: Technique }, slots: { string } },
 	rate: number,
 	aura: number,
 	herbs: { [string]: number },
@@ -18,6 +20,7 @@ local State = {}
 
 State.current = {
 	insight = 0,
+	techniques = { owned = {}, slots = { "", "", "" } },
 	rate = 0,
 	aura = 0,
 	herbs = {},

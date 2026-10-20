@@ -18,6 +18,7 @@ export type Placed = { u: string, i: string, x: number, y: number, z: number, r:
 export type Plot = { herb: string, planted: number }
 export type ActiveBuff = { source: string, kind: string, amount: number, expires: number }
 export type Technique = { level: number, xp: number }
+-- techniques.slots always has 3 entries; "" is an empty slot
 export type Data = {
 	v: number,
 	realm: { major: string, minor: number },
@@ -51,7 +52,7 @@ local function default(): Data
 		cultivation = 0,
 		rawQi = Config.STARTING_RAW_QI,
 		insight = 0,
-		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } }, slots = { "SwordQiWave" } },
+		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } }, slots = { "SwordQiWave", "", "" } },
 		firstKills = {},
 		onboardingStep = 0,
 		lastLogoutUnix = 0,
@@ -106,6 +107,10 @@ local function reconcile(saved: any): Data
 	end
 	saved.v = SCHEMA_VERSION
 	fillMissing(saved, default())
+	-- slots is a fixed-length array; "" marks an empty slot (DataStores drop nil holes)
+	for i = 1, 3 do
+		saved.techniques.slots[i] = saved.techniques.slots[i] or ""
+	end
 	return saved
 end
 
@@ -141,7 +146,7 @@ local function claim(player: Player): (boolean, any)
 	while true do
 		local blocked = false
 		local ok, result = pcall(function()
-			return store:UpdateAsync(key(player), function(stored)
+			return store:UpdateAsync(key(player), function(stored): any
 				local record = toRecord(stored)
 				local s = record.session
 				local stale = s == nil or os.time() - s.t > Config.LOCK_STALE_SECONDS
@@ -203,7 +208,7 @@ function PlayerData.save(player: Player, release: boolean?)
 	end
 	local lost = false
 	local ok, err = pcall(function()
-		store:UpdateAsync(key(player), function(stored)
+		store:UpdateAsync(key(player), function(stored): any
 			if p.releasing and not release then
 				return nil -- an autosave landing after the release would re-lock it
 			end

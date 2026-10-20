@@ -8,6 +8,7 @@ local RunService = game:GetService("RunService")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
+local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local Cultivation = require(script.Parent.Cultivation)
@@ -38,6 +39,15 @@ local function applyTestKit(data: PlayerData.Data)
 	for _, id in Herbs.Order do
 		data.herbs[id] = math.max(data.herbs[id] or 0, kit.HERBS_EACH)
 		data.seeds[id] = math.max(data.seeds[id] or 0, kit.SEEDS_EACH)
+	end
+	if kit.ALL_TECHNIQUES then
+		for _, id in Techniques.Order do
+			data.techniques.owned[id] = data.techniques.owned[id] or { level = 1, xp = 0 }
+		end
+		local slots = data.techniques.slots
+		if slots[2] == "" and slots[3] == "" then
+			slots[2], slots[3] = "PalmStrike", "LightningTalisman"
+		end
 	end
 	if kit.FILL_DANTIAN then
 		data.rawQi = math.max(data.rawQi, Realms.get(data.realm.major, data.realm.minor).dantian)
@@ -98,6 +108,8 @@ end
 (remotes.BuildAction :: RemoteFunction).OnServerInvoke = guarded(Build.handle);
 (remotes.CultivationAction :: RemoteFunction).OnServerInvoke = guarded(Circulation.handle);
 (remotes.Attack :: RemoteEvent).OnServerEvent:Connect(Combat.swing);
+(remotes.Dodge :: RemoteEvent).OnServerEvent:Connect(Combat.dodge);
+(remotes.Cast :: RemoteEvent).OnServerEvent:Connect(Combat.cast);
 
 (remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(function(player, action, plotId, herbId)
 	if action == "plant" then

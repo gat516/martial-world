@@ -16,5 +16,11 @@
   </Item>
   <Item class="RemoteEvent" referent="RBX9"><Properties><string name="Name">Attack</string></Properties>
   </Item>
+  <Item class="RemoteEvent" referent="RBX10"><Properties><string name="Name">Dodge</string></Properties>
+  </Item>
+  <Item class="RemoteEvent" referent="RBX11"><Properties><string name="Name">Cast</string></Properties>
+  </Item>
+  <Item class="RemoteEvent" referent="RBX12"><Properties><string name="Name">Effect</string></Properties>
+  </Item>
  </Item>
 </roblox>

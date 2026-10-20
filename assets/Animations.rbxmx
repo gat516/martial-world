@@ -12,5 +12,13 @@
    <Item class="Animation" referent="RBX7"><Properties><string name="Name">5</string><Content name="AnimationId"><url>rbxassetid://84167899415639</url></Content></Properties>
    </Item>
   </Item>
+  <Item class="Folder" referent="RBX8"><Properties><string name="Name">Meditate</string></Properties>
+   <Item class="Animation" referent="RBX9"><Properties><string name="Name">Sit</string><Content name="AnimationId"><url>rbxassetid://76808937936968</url></Content></Properties>
+   </Item>
+   <Item class="Animation" referent="RBX10"><Properties><string name="Name">Loop</string><Content name="AnimationId"><url>rbxassetid://110054098987663</url></Content></Properties>
+   </Item>
+   <Item class="Animation" referent="RBX11"><Properties><string name="Name">GetUp</string><Content name="AnimationId"><url>rbxassetid://116159163837100</url></Content></Properties>
+   </Item>
+  </Item>
  </Item>
 </roblox>

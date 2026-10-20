@@ -25,6 +25,7 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local CombatEffects = require(script.Parent.CombatEffects)
 local Hud = require(script.Parent.Hud)
+local Meditation = require(script.Parent.Meditation)
 local State = require(script.Parent.State)
 
 local remotes = ReplicatedStorage.Remotes
@@ -109,7 +110,7 @@ end
 local function myRoot(): BasePart?
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if not humanoid or humanoid.Health <= 0 or CirculationMinigame.isRunning() then
+	if not humanoid or humanoid.Health <= 0 or CirculationMinigame.isRunning() or Meditation.isActive() then
 		return nil
 	end
 	return (character :: Model):FindFirstChild("HumanoidRootPart") :: BasePart?

@@ -14,6 +14,7 @@ export type Snapshot = {
 	seeds: { [string]: number },
 	buffs: { Buff },
 	decor: { [string]: number }?,
+	meditation: { multiplier: number, place: string }?, -- nil when not meditating
 }
 
 local State = {}

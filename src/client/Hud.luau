@@ -146,7 +146,8 @@ function Hud.init(screenGui: ScreenGui)
 	local insightLabel = panel:FindFirstChild("InsightLabel") :: TextLabel
 	State.onChanged(function(s)
 		local aura = if s.aura > 0 then `  (garden +{math.floor(s.aura * 100 + 0.5)}%)` else ""
-		rateLabel.Text = string.format("+%.2f/s passive", s.rate) .. aura
+		local meditating = if s.meditation then `  meditating ×{s.meditation.multiplier}` else ""
+		rateLabel.Text = string.format("+%.2f/s passive", s.rate) .. aura .. meditating
 		insightLabel.Text = if s.insight > 0 then `Insight {s.insight}` else ""
 		renderBuffs()
 	end)

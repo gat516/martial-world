@@ -46,6 +46,19 @@ return {
 		FIRST_RUN_BAND_BONUS = 0.1, -- ...and its band is this much wider
 	},
 
+	-- Meditation (M / the Meditate button): sit still and passive cultivation is
+	-- multiplied by where you sit. Seats and artifacts on your own peak add their
+	-- bonus when you meditate within ITEM_RANGE of them (the best one counts).
+	Meditation = {
+		ANYWHERE = 1.5, -- passive multiplier meditating anywhere
+		ON_PEAK = 2.5, -- on your own spirit peak (within Circulation.PEAK_RADIUS)
+		ITEM_RANGE = 6, -- studs from a seat or artifact for its bonus to count
+		ITEMS = { -- ItemId -> bonus added to the multiplier, and its name in the HUD
+			MeditationCushion = { bonus = 1.5, name = "meditation cushion" },
+		} :: { [string]: { bonus: number, name: string } },
+		MAX_DRIFT = 4, -- studs from where you sat down before the server stands you up
+	},
+
 	Build = {
 		RADIUS = 47, -- studs from the plateau centre, horizontally
 		MIN_Y = -30, -- down to the abode hall floor (-25)

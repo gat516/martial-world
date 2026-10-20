@@ -1,7 +1,7 @@
 --!strict
 -- Client entry: wires the HUD, circulation minigame, breakthroughs, combat (with
 -- telegraphs and enemy health bars), travel, herb pouch,
--- seed picker, garden view and build mode.
+-- seed picker, garden view, build mode and meditation.
 
 local Players = game:GetService("Players")
 
@@ -21,6 +21,7 @@ local HerbPouch = require(script.Parent.HerbPouch)
 local SeedPicker = require(script.Parent.SeedPicker)
 local GardenView = require(script.Parent.GardenView)
 local BuildMode = require(script.Parent.BuildMode)
+local Meditation = require(script.Parent.Meditation)
 
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
@@ -40,3 +41,4 @@ HerbPouch.init(gui)
 SeedPicker.init(gui)
 GardenView.init()
 BuildMode.init(gui)
+Meditation.init(gui)

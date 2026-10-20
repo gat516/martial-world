@@ -24,6 +24,7 @@ local Tribulation = require(script.Parent.Tribulation)
 local Quests = require(script.Parent.Quests)
 local Analytics = require(script.Parent.Analytics)
 local WeatherService = require(script.Parent.WeatherService)
+local Meditation = require(script.Parent.Meditation)
 
 local joinedAt: { [Player]: number } = {}
 local lastBreakthroughAt: { [Player]: number } = {}
@@ -132,6 +133,7 @@ Players.PlayerRemoving:Connect(function(player)
 	EnemyService.forget(player)
 	Tribulation.forget(player)
 	Quests.forget(player)
+	Meditation.forget(player)
 	Cultivation.forget(player)
 end)
 
@@ -151,6 +153,7 @@ end
 (remotes.Attack :: RemoteEvent).OnServerEvent:Connect(Combat.swing);
 (remotes.Dodge :: RemoteEvent).OnServerEvent:Connect(Combat.dodge);
 (remotes.Cast :: RemoteEvent).OnServerEvent:Connect(Combat.cast);
+(remotes.Meditate :: RemoteEvent).OnServerEvent:Connect(Meditation.handle);
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);
 (remotes.TechniqueAction :: RemoteFunction).OnServerInvoke = guarded(Progression.handle);
 

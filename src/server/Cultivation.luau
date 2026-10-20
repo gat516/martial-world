@@ -1,7 +1,8 @@
 --!strict
 -- Passive cultivation fills the realm bar every second at the realm's slow rate,
--- boosted by eaten-herb buffs and by the spirit aura of mature herbs left growing in
--- the player's beds. It stops at a full bar; breakthroughs move the player on.
+-- boosted by eaten-herb buffs, by the spirit aura of mature herbs left growing in
+-- the player's beds, and by meditating (Meditation.luau). It stops at a full bar;
+-- breakthroughs move the player on.
 -- Also owns breakthroughs, qi deviation, the passive-progress warnings, per-realm
 -- character stats and the PlayerState push the HUD renders from.
 
@@ -81,12 +82,18 @@ function Cultivation.stage(data: PlayerData.Data): Realms.Stage
 	return Realms.get(data.realm.major, data.realm.minor)
 end
 
+-- Set by Meditation: where the player is meditating and its passive multiplier,
+-- or nil when they aren't.
+Cultivation.meditation = nil :: ((Player) -> { multiplier: number, place: string }?)?
+
 -- Passive cultivation per second.
-function Cultivation.rate(data: PlayerData.Data, now: number): number
+function Cultivation.rate(data: PlayerData.Data, now: number, player: Player?): number
+	local spot = if player and Cultivation.meditation then Cultivation.meditation(player) else nil
 	return Cultivation.stage(data).passive
 		* (1 + buffTotal(data, "QiRate"))
 		* (1 + Cultivation.aura(data, now))
 		* (1 + WeatherService.bonus("passive"))
+		* (if spot then spot.multiplier else 1)
 end
 
 -- Mirror the numbers that change every second (and that other players may show,
@@ -110,8 +117,9 @@ function Cultivation.pushState(player: Player)
 	stateRemote:FireClient(player, {
 		insight = data.insight,
 		techniques = data.techniques,
-		rate = Cultivation.rate(data, now),
+		rate = Cultivation.rate(data, now, player),
 		aura = Cultivation.aura(data, now),
+		meditation = if Cultivation.meditation then Cultivation.meditation(player) else nil,
 		herbs = data.herbs,
 		seeds = data.seeds,
 		buffs = data.buffs,
@@ -326,7 +334,7 @@ task.spawn(function()
 					end
 				end
 				local bar = Cultivation.stage(data).bar
-				local rate = if Cultivation.deviated(player) then 0 else Cultivation.rate(data, now)
+				local rate = if Cultivation.deviated(player) then 0 else Cultivation.rate(data, now, player)
 				data.cultivation = math.min(bar, data.cultivation + rate * dt)
 				publish(player, data)
 				local s = session(player)

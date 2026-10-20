@@ -13,16 +13,15 @@
 -- run ends on a graded result.
 
 local HapticService = game:GetService("HapticService")
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
+local Controls = require(script.Parent.Controls)
 local Hud = require(script.Parent.Hud)
 
 local remote = ReplicatedStorage.Remotes.CultivationAction :: RemoteFunction
-local player = Players.LocalPlayer
 
 -- Feel. These are client-only, so they don't affect the server's scoring rules.
 local PATH_RADIUS = 0.42 -- of the meridian frame
@@ -55,13 +54,6 @@ local CirculationMinigame = {}
 
 local overlay: Frame
 local running = false
-
-local function controls(): any?
-	local ok, module = pcall(function()
-		return require((player:WaitForChild("PlayerScripts") :: any).PlayerModule)
-	end)
-	return if ok then (module :: any):GetControls() else nil
-end
 
 local function pathPoint(fraction: number): UDim2
 	local a = fraction * 2 * math.pi
@@ -348,10 +340,7 @@ function CirculationMinigame.start()
 		return
 	end
 
-	local ctl = controls()
-	if ctl then
-		ctl:Disable()
-	end
+	Controls.lock("Circulation")
 	overlay.Visible = true
 	countIn()
 	local accuracy, purged = play(info)
@@ -369,9 +358,7 @@ function CirculationMinigame.start()
 		showResult(result or "The run fizzled")
 	end
 	overlay.Visible = false
-	if ctl then
-		ctl:Enable()
-	end
+	Controls.unlock("Circulation")
 	running = false
 end
 

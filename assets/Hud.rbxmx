@@ -246,7 +246,7 @@
   <Item class="Frame" referent="RBX11"><Properties>
    <string name="Name">Buttons</string>
    <UDim2 name="Position"><XS>1</XS><XO>-12</XO><YS>0</YS><YO>12</YO></UDim2>
-   <UDim2 name="Size"><XS>0</XS><XO>328</XO><YS>0</YS><YO>56</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>396</XO><YS>0</YS><YO>56</YO></UDim2>
    <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
   </Properties>
@@ -257,6 +257,35 @@
     <token name="HorizontalAlignment">2</token>
     <token name="SortOrder">2</token>
    </Properties>
+   </Item>
+   <Item class="TextButton" referent="RBXMED1"><Properties>
+    <string name="Name">MeditateButton</string>
+    <string name="Text">Meditate</string>
+    <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
+    <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
+    <Color3 name="TextColor3"><R>0.91</R><G>0.75</G><B>0.36</B></Color3>
+    <float name="TextSize">10</float>
+    <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+    <int name="LayoutOrder">-1</int>
+   </Properties>
+    <Item class="UIGradient" referent="RBXMED2"><Properties>
+     <string name="Name">Theme</string>
+     <ColorSequence name="Color">0 0.133 0.173 0.188 0 1 0.047 0.063 0.075 0 </ColorSequence>
+     <float name="Rotation">90</float>
+    </Properties>
+    </Item>
+    <Item class="UIStroke" referent="RBXMED3"><Properties>
+     <string name="Name">Trim</string>
+     <Color3 name="Color"><R>0.8039</R><G>0.6667</G><B>0.3725</B></Color3>
+     <float name="Transparency">0.45</float>
+     <float name="Thickness">1.2</float>
+     <token name="ApplyStrokeMode">1</token>
+    </Properties>
+    </Item>
+    <Item class="UICorner" referent="RBXMED4"><Properties>
+     <string name="Name">UICorner</string>
+    </Properties>
+    </Item>
    </Item>
    <Item class="TextButton" referent="RBXC1"><Properties>
     <string name="Name">CirculateButton</string>

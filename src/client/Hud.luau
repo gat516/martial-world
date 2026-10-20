@@ -110,10 +110,6 @@ function Hud.init(screenGui: ScreenGui)
 	local dantianBar = vitals:FindFirstChild("DantianBar") :: Frame
 	local cultivationBar = vitals:FindFirstChild("CultivationBar") :: Frame
 	local healthText = vitals:FindFirstChild("HealthText") :: TextLabel
-	-- the bars speak for themselves; their numeric readouts are hidden
-	for _, name in { "QiText", "CultivationText" } do
-		(vitals:FindFirstChild(name) :: TextLabel).Visible = false
-	end
 	local insightText = ""
 
 	local function showCultivation()

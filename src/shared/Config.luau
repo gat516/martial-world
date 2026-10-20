@@ -166,7 +166,7 @@ return {
 	},
 
 	Spawn = {
-		HEIGHT = 4, -- studs above a peak's spawn pad
+		HEIGHT = 4, -- studs above a peak's teleport array when you arrive home
 		-- after dying you reform at the main peak (the respawn hub), not on your peak
 		RESPAWN_AT_HUB = true,
 	},

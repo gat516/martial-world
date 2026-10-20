@@ -6,6 +6,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
+local Config = require(ReplicatedStorage.Shared.Config)
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -50,6 +51,17 @@ function Peaks.ownerOf(peak: Model): Player?
 		end
 	end
 	return nil
+end
+
+-- Where you arrive home: standing on the peak's teleport array, facing the plateau.
+function Peaks.homeCFrame(peak: Model): CFrame?
+	local array = peak:FindFirstChild("TeleportArray") :: Model?
+	if not array then
+		return nil
+	end
+	local at = array:GetPivot().Position + Vector3.new(0, Config.Spawn.HEIGHT, 0)
+	local centre = Peak.frame(peak).Position
+	return CFrame.lookAt(at, Vector3.new(centre.X, at.Y, centre.Z))
 end
 
 function Peaks.starter(peak: Model, id: string): Starter?

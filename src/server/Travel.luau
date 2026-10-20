@@ -18,8 +18,7 @@ local Travel = {}
 local function destination(player: Player, where: any): CFrame?
 	if where == "Peak" then
 		local peak = Peaks.ownedBy(player)
-		local pad = peak and peak:FindFirstChild("SpawnLocation") :: BasePart?
-		return pad and pad.CFrame + Vector3.new(0, Config.Spawn.HEIGHT, 0)
+		return peak and Peaks.homeCFrame(peak)
 	elseif where == "MainPeak" then
 		return CFrame.new(Config.Travel.MAIN_PEAK)
 	elseif where == "SectGate" then

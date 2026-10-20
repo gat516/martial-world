@@ -14,6 +14,7 @@ local UserInputService = game:GetService("UserInputService")
 local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
+local BuildMode = require(script.Parent.BuildMode)
 local CombatController = require(script.Parent.CombatController)
 local Hud = require(script.Parent.Hud)
 local Menus = require(script.Parent.Menus)
@@ -84,6 +85,10 @@ end
 function HotbarView.toggleHold(id: string)
 	local h = humanoid()
 	if not h or h.Health <= 0 then
+		return
+	end
+	if BuildMode.isActive() then
+		Hud.toast("Hands are empty while building.")
 		return
 	end
 	local held = HotbarView.held()

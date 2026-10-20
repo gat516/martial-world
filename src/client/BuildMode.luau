@@ -1021,6 +1021,17 @@ function BuildMode.open()
 	showArea()
 	watchPeak()
 	table.insert(conns, RunService.RenderStepped:Connect(onStep))
+	-- Hands stay empty while building: put away what's held and anything equipped later.
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if character and humanoid then
+		humanoid:UnequipTools()
+		table.insert(conns, character.ChildAdded:Connect(function(child)
+			if child:IsA("Tool") then
+				task.defer(humanoid.UnequipTools, humanoid)
+			end
+		end))
+	end
 	session = "idle"
 	building = true
 	BuildCatalog.open("build")

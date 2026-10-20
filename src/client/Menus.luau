@@ -7,11 +7,12 @@
 --
 -- What shows while something is open (one rule, applied here):
 --   Always: toasts, banners, the window itself.
---   A window: the top-right tiles stay (to switch or close; on touch a window
---     that covers them, the inventory, hides them and closes by its seal); the gameplay HUD
---     goes (Play: touch cluster, buffs, objective, elder line; the vitals; the
---     seat pills and Break Through; world prompts). The hotbar stays only for
---     windows that drop onto it (the inventory).
+--   A window: the top-right tiles stay on PC (to switch or close); on touch the
+--     windows that fill the screen (inventory, Spirit Market, Herbalist) hide
+--     them and close by their own seal. The gameplay HUD goes (Play: touch
+--     cluster, buffs, objective, elder line; the vitals; the Dash and Strike
+--     cooldown chips; the seat pills and Break Through; world prompts). The
+--     hotbar stays only for windows that drop onto it (the inventory).
 --   A minigame: everything but the minigame, tiles included.
 
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -36,6 +37,7 @@ local play: GuiObject
 local vitals: GuiObject
 local hotbar: GuiObject
 local tiles: GuiObject
+local chips: GuiObject -- PC only: Dash and Strike cooldown chips over the hotbar
 
 local function update()
 	local entry = current and entries[current]
@@ -43,6 +45,7 @@ local function update()
 	play.Visible = not any
 	vitals.Visible = not any
 	hotbar.Visible = not any or (entry :: Options).keepHotbar == true
+	chips.Visible = not any and not Platform.isTouch()
 	tiles.Visible = not (entry and (entry.minigame or (entry.coversTiles and Platform.isTouch())))
 	ProximityPromptService.Enabled = not any
 	for _, fn in listeners do
@@ -125,6 +128,7 @@ function Menus.init(gui: ScreenGui)
 	vitals = stack:FindFirstChild("Vitals") :: Frame
 	hotbar = stack:FindFirstChild("Hotbar") :: Frame
 	tiles = gui:FindFirstChild("Buttons") :: Frame
+	chips = stack:FindFirstChild("Cooldowns") :: Frame
 	update()
 end
 

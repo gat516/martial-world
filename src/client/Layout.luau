@@ -67,9 +67,8 @@ function Layout.apply()
 	end
 
 	-- touch: the big Dash and Strike buttons show their own cooldowns, so the mini
-	-- chips go and the vitals sit down closer to the hotbar in the gap they leave
-	local chips = stack:FindFirstChild("Cooldowns") :: GuiObject
-	chips.Visible = not touch
+	-- chips go (Menus shows them on PC) and the vitals sit down closer to the
+	-- hotbar in the gap they leave
 	local vitals = stack:FindFirstChild("Vitals") :: GuiObject
 	vitalsY = vitalsY or vitals.Position.Y
 	local y = vitalsY :: UDim

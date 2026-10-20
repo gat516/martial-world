@@ -199,16 +199,14 @@ local function onSecondary()
 	end
 end
 
--- On touch the window sits high so the hotbar (drawn over it) stays a drop target.
+-- PC: the window keeps its authored place, centred on screen. Touch: the hotbar
+-- stays up as a drop target (drawn over the window), so the window fills the
+-- space above it instead, which keeps it centred in the free area.
 local function layout()
 	if Platform.isTouch() then
 		window.AnchorPoint = Vector2.new(0.5, 0)
 		window.Position = UDim2.new(0.5, 0, 0, 8)
 		window.Size = UDim2.new(0.94, 0, 1, -70)
-	else
-		window.AnchorPoint = Vector2.new(0.5, 0.5)
-		window.Position = UDim2.fromScale(0.5, 0.48)
-		window.Size = UDim2.fromScale(0.94, 0.8)
 	end
 end
 

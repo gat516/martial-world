@@ -58,6 +58,7 @@ local category = "All"
 local ownedOnly = false
 local selected: string? = nil
 local handingOff = false
+local shopPlace: { anchor: Vector2, position: UDim2, size: UDim2 } -- authored: centred
 local busy = false
 local tiles: { [string]: GuiButton } = {}
 local tabs: { [string]: GuiButton } = {}
@@ -433,6 +434,15 @@ function BuildCatalog.open(m: Mode)
 	if ownedToggle then
 		ownedToggle.Visible = true
 	end
+	-- the shop sits centred (as authored); in build mode the window sits low,
+	-- under the build banner, whose tabs stay usable
+	if m == "shop" then
+		bar.AnchorPoint, bar.Position, bar.Size = shopPlace.anchor, shopPlace.position, shopPlace.size
+	else
+		bar.AnchorPoint = Vector2.new(0.5, 1)
+		bar.Position = UDim2.new(0.5, 0, 1, -8)
+		bar.Size = UDim2.new(shopPlace.size.X, UDim.new(0.8, 0))
+	end
 	BuildCatalog.refresh()
 	Menus.open(bar)
 end
@@ -463,8 +473,10 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 	ownedToggle = find(bar, "OwnedToggle")
 	local well = find(detail, "Well") :: Instance?
 	detailViewport = well and well:FindFirstChild("Preview") :: ViewportFrame?
+	shopPlace = { anchor = bar.AnchorPoint, position = bar.Position, size = bar.Size }
 
 	Menus.register(bar, {
+		coversTiles = true,
 		close = function()
 			Motion.close(bar)
 			if handingOff then
@@ -473,7 +485,10 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 				handlers.closed()
 			end
 		end,
-	})
+	});
+	(bar:FindFirstChild("Close") :: GuiButton).Activated:Connect(function()
+		Menus.close(bar)
+	end)
 
 	-- category tabs
 	local tabTemplate = find(bar, "TabTemplate") :: GuiButton

@@ -6,8 +6,11 @@ cursor, settings and the admin panel.
 
 ## Design intent
 - Mobile-first and one layout per session (`Platform` decides touch vs mouse once).
-- One menu at a time (`Menus`); opening a window hides the gameplay HUD, keeping
-  the top-right tiles to switch or close. The top-left is always Roblox's chat.
+- One menu at a time (`Menus`); opening a window hides the gameplay HUD (touch
+  combat cluster, PC cooldown chips, vitals, hotbar; the inventory keeps the
+  hotbar as a drop target). Windows sit centred with their own close seal; on
+  PC the top-right tiles stay to switch, on touch the big windows hide them.
+  The top-left is always Roblox's chat.
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
 - World prompts are drawn in our own style, one target in focus at a time: on their
   target with mouse, keyboard or gamepad; on touch in a fixed column above the right

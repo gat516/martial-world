@@ -49,6 +49,7 @@ local Thread = {}
 
 Thread.TITLE = "Thread the Meridian"
 Thread.HINT = "Put your cursor on the qi and guide it along the meridian without touching the walls. Brush purple impurities to purge them."
+Thread.TOUCH_HINT = "Drag anywhere to guide the qi along the meridian without touching the walls. Brush purple impurities to purge them."
 
 local function toUDim(p: Vector2): UDim2
 	return UDim2.fromScale(p.X / ASPECT, p.Y)
@@ -199,6 +200,7 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	local frozenUntil = 0
 	local joltUntil = 0
 	local nextLevelAt: number? = nil
+	local veilAt: number? = nil -- when the veil starts to fall over a cleared level
 	local pending = Vector2.zero -- drag movement not yet applied, in field heights
 	local grabbed = false -- the mouse cursor is holding the bead
 
@@ -249,7 +251,8 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 				Feel.pop(field, toUDim(pos), LIT, 140)
 				Feel.buzz(0.5, 0.12)
 				frozenUntil = math.huge
-				nextLevelAt = t + NEXT_PAUSE
+				veilAt = t + NEXT_PAUSE
+				nextLevelAt = t + NEXT_PAUSE + Feel.VEIL_IN
 				pending = Vector2.zero
 				ui.flow.Text = `Meridian {cleared} cleared`
 				task.delay(NEXT_PAUSE + 0.6, function()
@@ -259,6 +262,9 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 			end
 		end
 	end
+
+	newLevel()
+	ui.ready()
 
 	local touches: { [InputObject]: Vector3 } = {}
 	local connections: { RBXScriptConnection } = {}
@@ -271,9 +277,8 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		local from: Vector3?
 		if input.UserInputType == Enum.UserInputType.Touch then
 			from = touches[input]
-			if from then
-				touches[input] = input.Position
-			end
+			-- a thumb already down through the count-in takes hold where it is
+			touches[input] = input.Position
 		end
 		if from and t >= frozenUntil then
 			local delta = input.Position - from
@@ -308,7 +313,7 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		return (m - field.AbsolutePosition) / math.max(1, field.AbsoluteSize.Y)
 	end
 
-	newLevel()
+	local beadStroke = bead:FindFirstChildOfClass("UIStroke") :: UIStroke
 	local finished = false
 	table.insert(connections, RunService.RenderStepped:Connect(function(dt)
 		if finished then
@@ -317,11 +322,17 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		dt = math.min(dt, 0.1)
 		t += dt
 
+		local veil = veilAt
+		if veil and t >= veil then
+			veilAt = nil
+			Feel.veilIn(field)
+		end
 		local due = nextLevelAt
 		if due and t >= due then
 			nextLevelAt = nil
 			frozenUntil = 0
 			newLevel()
+			Feel.veilOut(field)
 		end
 		if t >= frozenUntil then
 			-- a flick can't fling the bead: it travels at most MAX_SPEED, and drag
@@ -353,6 +364,9 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		end
 		bead.Position = toUDim(pos)
 		bead.BackgroundColor3 = if t < joltUntil then JOLT elseif nextLevelAt then LIT else QI
+		-- with a mouse, the bead breathes until the cursor takes hold of it
+		local waiting = not grabbed and next(touches) == nil and UserInputService.MouseEnabled and t >= frozenUntil
+		beadStroke.Thickness = if waiting then 2 + 2.5 * (0.5 + 0.5 * math.sin(t * 7)) else 2
 
 		Feel.timer(ui.timer, t, info.duration)
 		ui.score.Text = `Meridians {cleared} / {math.ceil(goal)}`
@@ -372,9 +386,14 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	end
 	-- partial credit for how far along the current level you got
 	local along = if nextLevelAt then 0 else math.clamp(best / math.max(0.001, level.length), 0, 1)
-	clear()
-	bead.Visible = false
-	goalMark.Visible = false
+	ui.hold(function()
+		clear()
+		bead.Visible = false
+		goalMark.Visible = false
+		beadStroke.Thickness = 2
+		local veil = field:FindFirstChild("Veil") :: Frame
+		veil.BackgroundTransparency = 1
+	end)
 	return math.min(1, (cleared + along) / goal), purged
 end
 

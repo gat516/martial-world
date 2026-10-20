@@ -14,6 +14,12 @@ qi deviation.
   purging them is part of the score.
 - The very first run is always a short, easier-than-easy Maze that the elder explains.
 - Difficulty rises with the realm stage, reaching `hard` at FE1.
+- One shared frame (`StarterGui.Hud.Circulation`): a header (title, hint), the
+  game's board sized to fit what's left (`Column.Arena`, flex-filled and capped
+  at 600px tall), and a stats row (score, timer, flow) under it, so nothing
+  overlaps the board on a phone. Each game draws its first board, then calls
+  `ui.ready()` for the 3-2-1 count-in over it; the final board stays under the
+  result card and is cleared through `ui.hold`.
 
 ## Key files
 - `src/server/Circulation.luau`: start/finish, game pick, where runs may happen

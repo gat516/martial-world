@@ -20,8 +20,9 @@ local KEY_SPEED = 6 -- cells per second while an arrow key is held
 local DRAG_GAIN = 1 -- spark pixels per dragged pixel
 local CORNER = 0.4 -- pushing across a corridor this close (in cells) to a turning takes it
 local EPS = 1e-4
-local WALL_PX = 4
-local TRAIL_PX = 5
+local WALL_SHARE = 0.1 -- wall thickness as a share of a cell, in even pixels within WALL_PX
+local WALL_PX = { 4, 8 }
+local TRAIL_EXTRA = 2 -- pixels the trail is thicker than the walls
 local NEXT_PAUSE = 0.35 -- seconds between escaping and the next maze
 local MIN_SIZE = 4
 
@@ -215,11 +216,20 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		table.clear(made)
 	end
 
+	-- line widths in even whole pixels (centred on a grid line without landing on
+	-- half a pixel), so every wall reads crisp and the same at any board size
+	local wallPx, trailPx = WALL_PX[1], WALL_PX[1] + TRAIL_EXTRA
+	local function measure()
+		local cellPx = board.AbsoluteSize.X / n
+		wallPx = math.clamp(2 * math.round(cellPx * WALL_SHARE / 2), WALL_PX[1], WALL_PX[2])
+		trailPx = wallPx + TRAIL_EXTRA
+	end
+
 	local function wall(x0: number, y0: number, x1: number, y1: number)
 		local frame = wallTemplate:Clone()
 		frame.Name = "Wall"
-		frame.Position = UDim2.new(x0 / n, -WALL_PX / 2, y0 / n, -WALL_PX / 2)
-		frame.Size = UDim2.new((x1 - x0) / n, WALL_PX, (y1 - y0) / n, WALL_PX)
+		frame.Position = UDim2.new(x0 / n, -wallPx / 2, y0 / n, -wallPx / 2)
+		frame.Size = UDim2.new((x1 - x0) / n, wallPx, (y1 - y0) / n, wallPx)
 		frame.Visible = true
 		frame.Parent = board
 		table.insert(made, frame)
@@ -268,10 +278,11 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		local frame = trailTemplate:Clone()
 		frame.Name = "Trail"
 		frame.Position = UDim2.fromScale((math.min(ax, bx) + 0.5) / n, (math.min(ay, by) + 0.5) / n)
-			- UDim2.fromOffset(TRAIL_PX / 2, TRAIL_PX / 2)
-		frame.Size = UDim2.new(math.abs(bx - ax) / n, TRAIL_PX, math.abs(by - ay) / n, TRAIL_PX)
+			- UDim2.fromOffset(trailPx / 2, trailPx / 2)
+		frame.Size = UDim2.new(math.abs(bx - ax) / n, trailPx, math.abs(by - ay) / n, trailPx)
 		frame.Visible = true
 		frame.Parent = board
+		Feel.fadeIn(frame, 0.12)
 		table.insert(made, frame)
 	end
 
@@ -290,6 +301,7 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		grid = generate(n, rng)
 		px, py = xyOf(n, grid.start)
 		table.clear(walked)
+		measure()
 		drawWalls(grid)
 		local count = math.ceil(impuritiesLeft / math.max(1, mazesLeft))
 		mazesLeft -= 1
@@ -313,6 +325,7 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 	end
 
 	local pauseUntil = 0
+	local veilAt: number? = nil -- when the veil starts to fall over an escaped maze
 	local t, solved, purged, nudge = 0, 0, 0, 0
 
 	local function isOpen(x: number, y: number, dir: number): boolean
@@ -343,9 +356,12 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 			Feel.pop(board, center(to), EXIT, 140)
 			Feel.buzz(0.5, 0.12)
 			ui.flow.Text = "Escaped!"
-			pauseUntil = t + NEXT_PAUSE
-			task.delay(NEXT_PAUSE, function()
-				ui.flow.Text = ""
+			veilAt = t + NEXT_PAUSE
+			pauseUntil = t + NEXT_PAUSE + Feel.VEIL_IN
+			task.delay(NEXT_PAUSE + Feel.VEIL_IN + 0.4, function()
+				if ui.flow.Text == "Escaped!" then
+					ui.flow.Text = ""
+				end
 			end)
 		end
 	end
@@ -421,6 +437,9 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		end
 	end
 
+	newMaze()
+	ui.ready()
+
 	local held: { number } = {} -- held arrow keys' directions, latest last
 	local lasts: { [InputObject]: Vector3 } = {} -- each drag's last position
 	local connections: { RBXScriptConnection } = {}
@@ -442,13 +461,22 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 	table.insert(connections, UserInputService.InputChanged:Connect(function(input)
 		local key: InputObject? = input
 		if input.UserInputType == Enum.UserInputType.MouseMovement then
-			-- the held mouse button's InputObject carries the drag
+			-- the held mouse button's InputObject carries the drag; one whose
+			-- release we missed (let go outside the window) is dropped
 			key = nil
 			for down in lasts do
 				if down.UserInputType == Enum.UserInputType.MouseButton1 then
-					key = down
+					if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+						key = down
+					else
+						lasts[down] = nil
+					end
 				end
 			end
+		elseif input.UserInputType == Enum.UserInputType.Touch and not lasts[input] then
+			-- a thumb already down through the count-in takes hold where it is
+			lasts[input] = input.Position
+			return
 		end
 		local last = key and lasts[key]
 		if not (key and last) then
@@ -470,7 +498,6 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		end
 	end))
 
-	newMaze()
 	local finished = false
 	table.insert(connections, RunService.RenderStepped:Connect(function(dt)
 		if finished then
@@ -479,9 +506,15 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		dt = math.min(dt, 0.1)
 		t += dt
 
+		local veil = veilAt
+		if veil and t >= veil then
+			veilAt = nil
+			Feel.veilIn(field)
+		end
 		local ex, ey = xyOf(n, grid.exit)
 		if t >= pauseUntil and math.abs(px - ex) < EPS and math.abs(py - ey) < EPS then
 			newMaze()
+			Feel.veilOut(field)
 		end
 		-- held keys: the latest wins, an earlier one carries on until it can turn
 		local latest, earlier = held[#held], held[#held - 1]
@@ -522,9 +555,13 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		local total = grid.toExit[grid.start]
 		along = math.clamp(1 - grid.toExit[cell] / math.max(1, total), 0, 1)
 	end
-	clear()
-	spark.Visible = false
-	exitMark.Visible = false
+	ui.hold(function()
+		clear()
+		spark.Visible = false
+		exitMark.Visible = false
+		local veil = field:FindFirstChild("Veil") :: Frame
+		veil.BackgroundTransparency = 1
+	end)
 	return math.min(1, (solved + along) / goal), purged
 end
 

@@ -28,6 +28,7 @@ local IMPURE_FILL = Color3.fromRGB(70, 30, 90)
 local PERFECT = Color3.fromRGB(255, 225, 140)
 local GOOD = Color3.fromRGB(150, 245, 200)
 local MISS = Color3.fromRGB(255, 110, 100)
+local STRAY = Color3.fromRGB(200, 170, 165)
 
 type Beat = { at: number, spot: UDim2, impure: boolean, note: Frame?, judged: boolean }
 
@@ -132,8 +133,15 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 		end
 		strays += 1
 		combo = 0
+		-- an off-beat tap: the core flinches so the cost is felt, not just counted
+		Feel.judge(judgeTemplate, UDim2.fromScale(0.5, 0.36), "Off beat", STRAY)
+		core.Size = UDim2.fromScale(0.21, 0.21)
+		TweenService:Create(core, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Size = UDim2.fromScale(0.24, 0.24),
+		}):Play()
 	end
 
+	ui.ready()
 	local finished = false
 	local connections: { RBXScriptConnection } = {}
 	table.insert(connections, UserInputService.InputBegan:Connect(function(input)
@@ -205,10 +213,12 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 	for _, c in connections do
 		c:Disconnect()
 	end
-	for _, inst in made do
-		inst:Destroy()
-	end
-	core.Size = UDim2.fromScale(0.24, 0.24)
+	ui.hold(function()
+		for _, inst in made do
+			inst:Destroy()
+		end
+		core.Size = UDim2.fromScale(0.24, 0.24)
+	end)
 	-- beats never reached (none, if the chart fits the run) count as misses
 	for _, beat in beats do
 		if not beat.judged and not beat.impure then

@@ -18,12 +18,23 @@ export type Info = {
 	seed: number,
 }
 
--- The overlay labels shared by all games.
-export type Ui = { timer: TextLabel, score: TextLabel, flow: TextLabel }
+-- What the runner hands each game: the overlay's labels, plus
+--   ready(): call once the first board is drawn; it plays the 3-2-1 count-in
+--     (so the board is already there to look at) and returns when play starts.
+--   hold(clear): the game's own cleanup; the runner calls it once the result
+--     card has gone, so the final board stays under the result.
+export type Ui = {
+	timer: TextLabel,
+	score: TextLabel,
+	flow: TextLabel,
+	ready: () -> (),
+	hold: (clear: () -> ()) -> (),
+}
 
 export type Game = {
 	TITLE: string,
 	HINT: string,
+	TOUCH_HINT: string?, -- shown instead of HINT on touch screens
 	-- Plays a run on its stage and returns accuracy (0-1) and impurities purged.
 	play: (stage: Frame, info: Info, ui: Ui) -> (number, number),
 }
@@ -84,13 +95,54 @@ function Feel.judge(template: TextLabel, at: UDim2, text: string, color: Color3)
 	label.Name = "Judge"
 	label.Text = text
 	label.TextColor3 = color
-	label.Position = at - UDim2.fromOffset(0, 30)
+	-- rises from just above the point, staying close so it never drifts out of
+	-- the field into the header
+	label.Position = at - UDim2.fromOffset(0, 8)
 	label.Visible = true
 	label.Parent = template.Parent
 	local info = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-	TweenService:Create(label, info, { Position = at - UDim2.fromOffset(0, 60), TextTransparency = 1, TextStrokeTransparency = 1 })
+	TweenService:Create(label, info, { Position = at - UDim2.fromOffset(0, 30), TextTransparency = 1, TextStrokeTransparency = 1 })
 		:Play()
 	task.delay(0.65, label.Destroy, label)
+end
+
+-- Swapping one board for the next (a maze escaped, a meridian cleared): the
+-- field's Veil darkens over VEIL_IN seconds, the game swaps the board while it's
+-- dark, then the Veil lifts.
+Feel.VEIL_IN = 0.15
+local VEIL_OUT = 0.22
+
+function Feel.veilIn(field: GuiObject)
+	local veil = field:FindFirstChild("Veil") :: Frame?
+	if veil then
+		TweenService:Create(veil, TweenInfo.new(Feel.VEIL_IN, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+			BackgroundTransparency = 0,
+		}):Play()
+	end
+end
+
+function Feel.veilOut(field: GuiObject)
+	local veil = field:FindFirstChild("Veil") :: Frame?
+	if veil then
+		veil.BackgroundTransparency = 0
+		TweenService:Create(veil, TweenInfo.new(VEIL_OUT, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			BackgroundTransparency = 1,
+		}):Play()
+	end
+end
+
+-- Fade a freshly spawned piece in from nothing (its fill and its outline).
+function Feel.fadeIn(frame: Frame, seconds: number)
+	local info = TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local fill = frame.BackgroundTransparency
+	frame.BackgroundTransparency = 1
+	TweenService:Create(frame, info, { BackgroundTransparency = fill }):Play()
+	local stroke = frame:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		local line = stroke.Transparency
+		stroke.Transparency = 1
+		TweenService:Create(stroke, info, { Transparency = line }):Play()
+	end
 end
 
 return Feel

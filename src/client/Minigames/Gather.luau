@@ -24,6 +24,7 @@ local IMPURE_SIZE = 28
 local QI = Color3.fromRGB(200, 255, 230)
 local IMPURE = Color3.fromRGB(190, 90, 220)
 local JOLT = Color3.fromRGB(255, 110, 100)
+local MISSED = Color3.fromRGB(120, 150, 140)
 
 type Mote = { spawn: number, x: number, impure: boolean, frame: Frame?, done: boolean }
 
@@ -73,26 +74,20 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		return math.clamp((screenX - field.AbsolutePosition.X) / math.max(1, field.AbsoluteSize.X), bowlWidth / 2, 1 - bowlWidth / 2)
 	end
 
-	local touches: { [InputObject]: boolean } = {}
 	local connections: { RBXScriptConnection } = {}
 	table.insert(connections, UserInputService.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.Touch then
-			touches[input] = true
-			target = fieldX(input.Position.X)
-		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+		local kind = input.UserInputType
+		if kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseButton1 then
 			target = fieldX(input.Position.X)
 		end
 	end))
 	table.insert(connections, UserInputService.InputChanged:Connect(function(input)
 		local kind = input.UserInputType
-		if (kind == Enum.UserInputType.Touch and touches[input]) or kind == Enum.UserInputType.MouseMovement then
+		-- any moving thumb steers, including one already down through the count-in
+		if kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseMovement then
 			target = fieldX(input.Position.X)
 		end
 	end))
-	table.insert(connections, UserInputService.InputEnded:Connect(function(input)
-		touches[input] = nil
-	end))
-
 	local function keyAxis(): number
 		local axis = 0
 		if UserInputService:IsKeyDown(Enum.KeyCode.A) or UserInputService:IsKeyDown(Enum.KeyCode.Left) then
@@ -110,6 +105,7 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		TweenService:Create(glow, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
 	end
 
+	ui.ready()
 	local finished = false
 	ui.score.Text = "Caught 0%"
 	table.insert(connections, RunService.RenderStepped:Connect(function(dt)
@@ -141,6 +137,7 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 				frame.Name = "Mote"
 				frame.Visible = true
 				frame.Parent = field
+				Feel.fadeIn(frame, 0.2)
 				table.insert(made, frame)
 				mote.frame = frame
 			end
@@ -166,7 +163,9 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 					Feel.pop(field, at, QI, 70)
 					flashGlow(QI)
 				else
+					-- a mote let fall: a faint ripple where it left
 					combo = 0
+					Feel.pop(field, UDim2.fromScale(mote.x, 1), MISSED, 40)
 				end
 				frame:Destroy()
 			end
@@ -186,12 +185,14 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	for _, c in connections do
 		c:Disconnect()
 	end
-	for _, inst in made do
-		if inst.Parent then
-			inst:Destroy()
+	ui.hold(function()
+		for _, inst in made do
+			if inst.Parent then
+				inst:Destroy()
+			end
 		end
-	end
-	bowl.Position = UDim2.new(0.5, 0, 1, -BOWL_LIFT)
+		bowl.Position = UDim2.new(0.5, 0, 1, -BOWL_LIFT)
+	end)
 	return if qiCount > 0 then caught / qiCount else 1, purged
 end
 

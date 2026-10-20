@@ -5,11 +5,13 @@ return {
 	Data = {
 		STORE_NAME = "PlayerData_v1",
 		AUTOSAVE_SECONDS = 120,
+		LOCK_STALE_SECONDS = 360, -- a lock not refreshed this long belongs to a dead server
+		LOCK_WAIT_SECONDS = 15, -- wait this long for another server to release, then take over
+		LOCK_RETRY_SECONDS = 3,
 		STARTING_SEEDS = { SpiritGrass = 6 },
 	},
 
 	Cultivation = {
-		BASE_RATE = 1, -- Qi per second before buffs and garden aura
 		BASE_WALKSPEED = 16,
 		STATE_REFRESH_SECONDS = 10, -- full HUD state push even when nothing expired
 	},

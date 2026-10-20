@@ -1,20 +1,34 @@
 --!strict
 -- Loads, caches and saves each player's profile in a DataStore.
--- If a load fails the player still plays, but their profile is never saved,
--- so a DataStore outage can't overwrite real progress with an empty profile.
+-- Profiles are session-locked: a server claims the record on load and only that
+-- server may save it, so two servers can't overwrite each other's progress when a
+-- player hops. If a load fails the player still plays, but their profile is never
+-- saved, so a DataStore outage can't overwrite real progress with an empty profile.
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Data
+local Realms = require(ReplicatedStorage.Shared.Realms)
+
+local SCHEMA_VERSION = 2
 
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number }
 export type Plot = { herb: string, planted: number }
 export type ActiveBuff = { source: string, kind: string, amount: number, expires: number }
+export type Technique = { level: number, xp: number }
 export type Data = {
 	v: number,
-	qi: number,
+	realm: { major: string, minor: number },
+	cultivation: number, -- progress in the current realm bar
+	rawQi: number, -- held in the dantian, refined by circulation runs
+	insight: number,
+	techniques: { owned: { [string]: Technique }, slots: { string } },
+	firstKills: { [string]: boolean },
+	onboardingStep: number,
+	lastLogoutUnix: number,
+	stats: { breakthroughs: number, circulationRuns: number, kills: number },
 	herbs: { [string]: number },
 	seeds: { [string]: number },
 	buffs: { ActiveBuff },
@@ -26,10 +40,22 @@ export type Data = {
 	},
 }
 
+-- What's actually stored under a player's key: the profile plus who holds it.
+type Session = { job: string, t: number }
+type Record = { data: any, session: Session? }
+
 local function default(): Data
 	return {
-		v = 1,
-		qi = 0,
+		v = SCHEMA_VERSION,
+		realm = { major = "QiCondensation", minor = 1 },
+		cultivation = 0,
+		rawQi = 0,
+		insight = 0,
+		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } }, slots = { "SwordQiWave" } },
+		firstKills = {},
+		onboardingStep = 0,
+		lastLogoutUnix = 0,
+		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0 },
 		herbs = {},
 		seeds = table.clone(Config.STARTING_SEEDS),
 		buffs = {},
@@ -38,29 +64,69 @@ local function default(): Data
 	}
 end
 
+-- Step a saved profile up one schema version at a time.
+local migrations: { [number]: (any) -> () } = {
+	-- v1 had one passively-accrued qi pool; it becomes raw qi, capped to a QC1 dantian
+	[1] = function(d)
+		d.rawQi = math.min(math.floor(d.qi or 0), Realms.Stages[1].dantian)
+		d.qi = nil
+	end,
+}
+
+-- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
+-- player-owned maps where a missing key means zero, not "use the default".
+local NESTED = { "realm", "techniques", "stats", "peak" }
+
+local function fillMissing(target: any, fresh: any)
+	for k, v in fresh do
+		if target[k] == nil then
+			target[k] = v
+		end
+	end
+	for _, k in NESTED do
+		for nk, nv in fresh[k] do
+			if target[k][nk] == nil then
+				target[k][nk] = nv
+			end
+		end
+	end
+end
+
 local function reconcile(saved: any): Data
-	local fresh = default()
 	if type(saved) ~= "table" then
-		return fresh
+		return default()
 	end
-	for k, v in (fresh :: any) do
-		if saved[k] == nil then
-			saved[k] = v
+	local v = saved.v or 1
+	while v < SCHEMA_VERSION do
+		local step = migrations[v]
+		if step then
+			step(saved)
 		end
+		v += 1
 	end
-	for k, v in (fresh.peak :: any) do
-		if saved.peak[k] == nil then
-			saved.peak[k] = v
-		end
-	end
+	saved.v = SCHEMA_VERSION
+	fillMissing(saved, default())
 	return saved
+end
+
+-- v1 stored the profile bare; v2 wraps it with the session lock.
+local function toRecord(stored: any): Record
+	if type(stored) ~= "table" then
+		return { data = nil, session = nil }
+	end
+	if stored.data == nil and stored.v ~= nil then
+		return { data = stored, session = nil }
+	end
+	return stored
 end
 
 local okStore, store = pcall(function()
 	return DataStoreService:GetDataStore(Config.STORE_NAME)
 end)
 
-local profiles: { [Player]: { data: Data, canSave: boolean } } = {}
+local jobId = if game.JobId ~= "" then game.JobId else "studio"
+
+local profiles: { [Player]: { data: Data, canSave: boolean, releasing: boolean? } } = {}
 
 local PlayerData = {}
 
@@ -68,13 +134,44 @@ local function key(player: Player): string
 	return "u_" .. player.UserId
 end
 
+-- Claim the record for this server. Waits for another server's lock to clear,
+-- and takes it over once it has gone stale (that server likely crashed).
+local function claim(player: Player): (boolean, any)
+	local waited = 0
+	while true do
+		local blocked = false
+		local ok, result = pcall(function()
+			return store:UpdateAsync(key(player), function(stored)
+				local record = toRecord(stored)
+				local s = record.session
+				local stale = s == nil or os.time() - s.t > Config.LOCK_STALE_SECONDS
+				if s and s.job ~= jobId and not stale and waited < Config.LOCK_WAIT_SECONDS then
+					blocked = true
+					return nil
+				end
+				record.session = { job = jobId, t = os.time() }
+				return record, { player.UserId }
+			end)
+		end)
+		if not ok then
+			return false, result
+		end
+		if not blocked then
+			return true, toRecord(result).data
+		end
+		if player.Parent == nil then
+			return false, "player left while waiting for the session lock"
+		end
+		task.wait(Config.LOCK_RETRY_SECONDS)
+		waited += Config.LOCK_RETRY_SECONDS
+	end
+end
+
 function PlayerData.load(player: Player): Data
 	local data, canSave = default(), false
 	if okStore then
 		for attempt = 1, 3 do
-			local ok, result = pcall(function()
-				return store:GetAsync(key(player))
-			end)
+			local ok, result = claim(player)
 			if ok then
 				data, canSave = reconcile(result), true
 				break
@@ -98,21 +195,46 @@ function PlayerData.get(player: Player): Data?
 	return p and p.data
 end
 
-function PlayerData.save(player: Player)
+-- Write the profile if this server still holds the lock; `release` drops the lock.
+function PlayerData.save(player: Player, release: boolean?)
 	local p = profiles[player]
 	if not (p and p.canSave) then
 		return
 	end
+	local lost = false
 	local ok, err = pcall(function()
-		store:SetAsync(key(player), p.data, { player.UserId })
+		store:UpdateAsync(key(player), function(stored)
+			if p.releasing and not release then
+				return nil -- an autosave landing after the release would re-lock it
+			end
+			local s = toRecord(stored).session
+			if s and s.job ~= jobId then
+				lost = true
+				return nil
+			end
+			local session = if release then nil else { job = jobId, t = os.time() }
+			return { data = p.data, session = session }, { player.UserId }
+		end)
 	end)
 	if not ok then
 		warn(`PlayerData: save failed for {player.Name}: {err}`)
+	elseif lost then
+		-- another server took the profile over; never save from here again
+		p.canSave = false
+		warn(`PlayerData: {player.Name}'s profile is now held by another server`)
+		if player.Parent then
+			player:Kick("Your profile was opened on another server. Please rejoin.")
+		end
 	end
 end
 
 function PlayerData.release(player: Player)
-	PlayerData.save(player)
+	local p = profiles[player]
+	if p then
+		p.releasing = true
+		p.data.lastLogoutUnix = os.time()
+	end
+	PlayerData.save(player, true)
 	profiles[player] = nil
 end
 
@@ -130,7 +252,7 @@ game:BindToClose(function()
 	for player in profiles do
 		pending += 1
 		task.spawn(function()
-			PlayerData.save(player)
+			PlayerData.release(player)
 			pending -= 1
 		end)
 	end

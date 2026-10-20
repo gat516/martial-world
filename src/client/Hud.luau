@@ -1,7 +1,9 @@
 --!strict
--- Qi readout, active buffs with countdowns, and toast messages.
+-- Status panel (realm, cultivation bar, dantian, health), active buffs with
+-- countdowns, and toast messages.
 
 local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
@@ -30,7 +32,7 @@ function Hud.toast(message: string)
 	end)
 end
 
-local function formatQi(n: number): string
+local function formatNumber(n: number): string
 	if n >= 1e6 then
 		return string.format("%.2fM", n / 1e6)
 	elseif n >= 1e4 then
@@ -71,21 +73,59 @@ local function renderBuffs()
 	end
 end
 
+local function setBar(bar: Frame, value: number, max: number, text: string)
+	local fill = bar:FindFirstChild("Fill") :: Frame
+	fill.Size = UDim2.fromScale(if max > 0 then math.clamp(value / max, 0, 1) else 0, 1)
+	fill.Visible = value > 0
+	(bar:FindFirstChild("Label") :: TextLabel).Text = text
+end
+
+-- Mirror the character's health; the default Roblox health bar is hidden in its favor.
+local function watchHealth(bar: Frame, character: Model)
+	local humanoid = character:WaitForChild("Humanoid") :: Humanoid
+	local function show()
+		local hp, max = math.ceil(humanoid.Health), humanoid.MaxHealth
+		setBar(bar, hp, max, `{hp} / {math.floor(max)}`)
+	end
+	humanoid.HealthChanged:Connect(show)
+	humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(show)
+	show()
+end
+
 function Hud.init(screenGui: ScreenGui)
 	gui = screenGui
-	local panel = gui:FindFirstChild("QiPanel") :: Frame
-	local qiLabel = panel:FindFirstChild("QiLabel") :: TextLabel
+	local panel = gui:FindFirstChild("StatusPanel") :: Frame
+	local realmLabel = panel:FindFirstChild("RealmLabel") :: TextLabel
+	local cultivationBar = panel:FindFirstChild("CultivationBar") :: Frame
 	local rateLabel = panel:FindFirstChild("RateLabel") :: TextLabel
+	local dantianBar = panel:FindFirstChild("DantianBar") :: Frame
+	local healthBar = panel:FindFirstChild("HealthBar") :: Frame
 
-	local function showQi()
-		qiLabel.Text = `Qi {formatQi(player:GetAttribute("Qi") or 0)}`
+	local function showCultivation()
+		realmLabel.Text = player:GetAttribute("Realm") or ""
+		local value, max = player:GetAttribute("Cultivation") or 0, player:GetAttribute("CultivationMax") or 0
+		setBar(cultivationBar, value, max, `{formatNumber(value)} / {formatNumber(max)}`)
+		local qi, cap = player:GetAttribute("RawQi") or 0, player:GetAttribute("DantianCap") or 0
+		setBar(dantianBar, qi, cap, `Dantian {formatNumber(qi)} / {formatNumber(cap)}`)
 	end
-	player:GetAttributeChangedSignal("Qi"):Connect(showQi)
-	showQi()
+	for _, attr in { "Realm", "Cultivation", "CultivationMax", "RawQi", "DantianCap" } do
+		player:GetAttributeChangedSignal(attr):Connect(showCultivation)
+	end
+	showCultivation()
+
+	pcall(function()
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
+	end)
+	player.CharacterAdded:Connect(function(character)
+		watchHealth(healthBar, character)
+	end)
+	if player.Character then
+		task.spawn(watchHealth, healthBar, player.Character)
+	end
 
 	State.onChanged(function(s)
-		local aura = if s.aura > 0 then `  (garden aura +{math.floor(s.aura * 100 + 0.5)}%)` else ""
-		rateLabel.Text = string.format("+%.1f Qi/s", s.rate) .. aura
+		local aura = if s.aura > 0 then `  (garden +{math.floor(s.aura * 100 + 0.5)}%)` else ""
+		rateLabel.Text = string.format("+%.2f/s passive", s.rate) .. aura
 		renderBuffs()
 	end)
 

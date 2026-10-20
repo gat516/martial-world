@@ -30,6 +30,7 @@ local Peaks = require(script.Parent.Peaks)
 local Cultivation = require(script.Parent.Cultivation)
 local Inventory = require(script.Parent.Inventory)
 local WeatherService = require(script.Parent.WeatherService)
+local Receipts = require(script.Parent.Receipts)
 
 local herbModels = ReplicatedStorage:WaitForChild("HerbModels")
 local kit = ReplicatedStorage:WaitForChild("GardenKit")
@@ -248,6 +249,72 @@ function Garden.uproot(player: Player, plotId: any, plantId: any): (boolean, str
 	end
 	mirror(plot, plants)
 	return true, `Uprooted the {Herbs.title(plant)}`
+end
+
+--[[ Grow now (Robux) ]]
+
+-- The growing plant each player last pressed Grow now on, and the product they
+-- were offered for it. Only this plant is finished when the receipt arrives.
+type GrowTarget = { plotId: string, u: string, productId: number }
+local growTargets: { [Player]: GrowTarget } = {}
+
+local function tierRobux(productId: number): number?
+	for _, tier in Config.GROW_NOW do
+		if tier.productId == productId then
+			return tier.robux
+		end
+	end
+	return nil
+end
+
+-- The player pressed Grow now on a growing plant of theirs. Remember it and
+-- return the product id to prompt (the tier for its time left, priced here so
+-- the client can't pick a cheaper one). 0 means the product isn't set up yet.
+function Garden.growTarget(player: Player, plotId: any, plantId: any): (boolean, any)
+	local data, plot = ownPlot(player, plotId)
+	local plants = data and data.peak.plots[plotId]
+	local plant = if plants then findPlant(plants, plantId) else nil
+	if not (data and plot and plant) then
+		return false, "That plant isn't yours"
+	end
+	local left = Herbs.secondsLeft(plant, os.time())
+	if left <= 0 then
+		return false, "It's already ready"
+	end
+	local tier = Herbs.growNowTier(left)
+	growTargets[player] = { plotId = plotId :: string, u = plant.u, productId = tier.productId }
+	return true, tier.productId
+end
+
+-- Receipt handler for every Grow now product: finish the targeted plant. It
+-- must still be on a plot of the buyer's own peak; if it ripened on its own
+-- while they paid, it is already finished and the purchase is granted as is.
+-- Anything else (gone, uprooted, no target) leaves the receipt unprocessed.
+local function growNow(player: Player, data: PlayerData.Data, info: any): boolean
+	local target = growTargets[player]
+	local peak = Peaks.ownedBy(player)
+	local plot = if peak and target then findPlot(peak, target.plotId) else nil
+	local plants = if target then data.peak.plots[target.plotId] else nil
+	local plant = if plants and target then findPlant(plants, target.u) else nil
+	if not (target and plot and plants and plant) then
+		warn(`Grow now: {player.Name} paid for product {info.ProductId} but their target plant is gone`)
+		return false
+	end
+	local now = os.time()
+	local left = Herbs.secondsLeft(plant, now)
+	local paid = tierRobux(info.ProductId) or 0
+	if left > 0 and paid < Herbs.growNowTier(left).robux then
+		warn(`Grow now: {player.Name} bought product {info.ProductId}, too cheap for that plant`)
+		return false
+	end
+	growTargets[player] = nil
+	if left > 0 then
+		plant.b += left
+		mirror(plot, plants)
+		Cultivation.pushState(player)
+	end
+	Cultivation.notify(player, `Your {Herbs.title(plant)} is ready to harvest`)
+	return true
 end
 
 --[[ Weather and garden pieces ]]
@@ -608,6 +675,8 @@ function Garden.handle(player: Player, action: any, ...: any): (boolean, string?
 		return Garden.plant(player, ...)
 	elseif action == "harvest" then
 		return Garden.harvest(player, ...)
+	elseif action == "growTarget" then
+		return Garden.growTarget(player, ...)
 	elseif action == "uproot" then
 		return Garden.uproot(player, ...)
 	elseif action == "buySeed" then
@@ -621,6 +690,14 @@ function Garden.handle(player: Player, action: any, ...: any): (boolean, string?
 end
 
 function Garden.start()
+	for _, tier in Config.GROW_NOW do
+		if tier.productId ~= 0 then
+			Receipts.register(tier.productId, growNow)
+		end
+	end
+	Players.PlayerRemoving:Connect(function(player)
+		growTargets[player] = nil
+	end)
 	table.insert(WeatherService.onChanged, onWeather)
 	task.spawn(function()
 		while true do

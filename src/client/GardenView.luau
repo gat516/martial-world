@@ -3,10 +3,14 @@
 -- sends only the plot's Plants JSON) as they grow, swell and mutate, gives each
 -- of the owner's ripe plants a Harvest prompt, and shows a PlantTag card over the
 -- plant under the pointer or, failing that, the nearest one. The plot's own Plant
--- prompt starts planting (Planting.luau sets GardenView.onTend).
+-- prompt starts planting (Planting.luau sets GardenView.onTend). Bed and ripe
+-- plants share F (the nearest one shows). Each of the owner's growing plants also
+-- gets a "Grow now (N R$)" prompt on G, which buys the Robux product for its tier;
+-- the server remembers the target and finishes that plant when the receipt lands.
 
 local CollectionService = game:GetService("CollectionService")
 local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
@@ -15,6 +19,7 @@ local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local Hud = require(script.Parent.Hud)
 local MyPeak = require(script.Parent.MyPeak)
+local State = require(script.Parent.State)
 local PlantTag = require(script.Parent.PlantTag)
 
 local gardenRemote = ReplicatedStorage.Remotes.GardenAction :: RemoteFunction
@@ -24,6 +29,8 @@ local kit = ReplicatedStorage:WaitForChild("GardenKit")
 local SCALE_STEP = 0.03 -- only rescale a plant when its size moves this much (share)
 local TAG_RANGE = 14 -- studs: the nearest plant within this gets the tag on touch
 local TICK = 0.25
+local HARVEST_RANGE = 10 -- studs; ScaleTo scales a prompt's range with the plant, so we pin it
+local TEND_OFFSET = Vector2.new(0, 64) -- keeps the bed's prompt clear of a plant's Grow now prompt
 
 type PlantView = {
 	plant: Herbs.Plant,
@@ -33,6 +40,7 @@ type PlantView = {
 	scale: number,
 	mutations: string,
 	prompt: ProximityPrompt,
+	grow: ProximityPrompt,
 }
 type PlotView = { json: string?, plants: { [string]: PlantView }, list: { Herbs.Plant } }
 
@@ -138,6 +146,27 @@ local function harvest(plot: Instance, u: string)
 	end
 end
 
+-- Grow now: ask the server which product this plant's time left costs (it also
+-- remembers the plant), then open Roblox's purchase dialog for it.
+local function growNow(plot: Instance, u: string)
+	local plotId = plot:GetAttribute("PlotId")
+	if type(plotId) ~= "string" then
+		return
+	end
+	local ok, result = gardenRemote:InvokeServer("growTarget", plotId, u)
+	if not ok then
+		if type(result) == "string" then
+			Hud.toast(result)
+		end
+		return
+	end
+	if type(result) ~= "number" or result <= 0 then
+		warn("Grow now: no developer product id set for this tier (Config.Garden.GROW_NOW); skipping the purchase")
+		return
+	end
+	MarketplaceService:PromptProductPurchase(Players.LocalPlayer, result)
+end
+
 local function addPlant(plot: Instance, anchor: BasePart, plant: Herbs.Plant): PlantView?
 	local template = herbModels:FindFirstChild(plant.h) :: Model?
 	if not template then
@@ -155,6 +184,8 @@ local function addPlant(plot: Instance, anchor: BasePart, plant: Herbs.Plant): P
 	local root = largestPart(model) :: BasePart
 	local prompt = (kit:FindFirstChild("PlantPrompt") :: ProximityPrompt):Clone()
 	prompt.Parent = root
+	local grow = (kit:FindFirstChild("GrowPrompt") :: ProximityPrompt):Clone()
+	grow.Parent = root
 	local view: PlantView = {
 		plant = plant,
 		model = model,
@@ -163,9 +194,13 @@ local function addPlant(plot: Instance, anchor: BasePart, plant: Herbs.Plant): P
 		scale = 0,
 		mutations = "",
 		prompt = prompt,
+		grow = grow,
 	}
 	prompt.Triggered:Connect(function()
 		harvest(plot, view.plant.u)
+	end)
+	grow.Triggered:Connect(function()
+		growNow(plot, view.plant.u)
 	end)
 	model.Parent = plot
 	return view
@@ -188,10 +223,20 @@ local function update(plot: Instance, view: PlotView)
 			pv.model:ScaleTo(target)
 			pv.scale = target
 		end
+		pv.prompt.MaxActivationDistance = HARVEST_RANGE
+		pv.grow.MaxActivationDistance = HARVEST_RANGE
 		setMutations(pv)
-		local ready = Herbs.progress(pv.plant, now()) >= 1
-		pv.prompt.Enabled = mine and ready
-		pv.prompt.ObjectText = Herbs.title(pv.plant)
+		local left = Herbs.secondsLeft(pv.plant, now())
+		local title = Herbs.title(pv.plant)
+		pv.prompt.Enabled = mine and left <= 0
+		pv.prompt.ObjectText = title
+		local herb = Herbs.Defs[pv.plant.h]
+		pv.prompt.ActionText = if herb and herb.regrowSeconds then "Pick" else "Harvest"
+		pv.grow.Enabled = mine and left > 0
+		if left > 0 then
+			pv.grow.ObjectText = title
+			pv.grow.ActionText = `Grow now ({Herbs.growNowTier(left).robux} R$)`
+		end
 	end
 end
 
@@ -233,9 +278,27 @@ end
 local function refreshTendPrompt(plot: Instance)
 	local anchor = GardenView.anchorOf(plot)
 	local prompt = anchor and anchor:FindFirstChild("Tend") :: ProximityPrompt?
-	if prompt then
-		prompt.Enabled = MyPeak.owns(Peak.of(plot))
+	if not prompt then
+		return
 	end
+	-- Owner only. It says what is in the bed's soil, and hints when there is
+	-- nothing to plant, so the F button is never a dead end.
+	local soil = GardenView.soilOf(plot)
+	local seeds = State.current.seeds or {}
+	local have = false
+	for id, count in seeds do
+		local herb = Herbs.Defs[id]
+		if herb and herb.soil == soil and count > 0 then
+			have = true
+			break
+		end
+	end
+	local info = (Herbs.Soils :: any)[soil]
+	prompt.Enabled = MyPeak.owns(Peak.of(plot))
+	prompt.ActionText = if have then "Plant" else "No seeds"
+	prompt.ObjectText = if info then info.name else "Plot"
+	prompt.UIOffset = TEND_OFFSET
+	prompt.MaxActivationDistance = 12
 end
 
 local function track(plot: Instance)

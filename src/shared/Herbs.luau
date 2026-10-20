@@ -55,6 +55,8 @@ export type Herb = {
 export type Plant = { u: string, h: string, x: number, z: number, p: number, b: number, n: number, s: number, m: { string }? }
 export type Mutation = { name: string, color: Color3, bonus: number }
 
+local Config = require(script.Parent.Config)
+
 local Herbs = {}
 
 Herbs.Soils = {
@@ -311,6 +313,18 @@ function Herbs.cycleSeconds(plant: Plant): number
 		return math.huge
 	end
 	return if plant.n > 0 and herb.regrowSeconds then herb.regrowSeconds else herb.growSeconds
+end
+
+-- The Grow now tier (Config.Garden.GROW_NOW) for a plant with this long left.
+-- Server and client both use it, so the price shown is the price charged.
+function Herbs.growNowTier(secondsLeft: number): { upTo: number, robux: number, productId: number }
+	local tiers = Config.Garden.GROW_NOW
+	for _, tier in tiers do
+		if secondsLeft <= tier.upTo then
+			return tier
+		end
+	end
+	return tiers[#tiers]
 end
 
 -- 0..1 through the current cycle; 1 is ready to harvest.

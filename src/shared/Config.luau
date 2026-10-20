@@ -179,6 +179,17 @@ return {
 		BOSS_SEEDS = { 2, 4 }, -- bosses always drop this many
 		BEAST_SEEDS = { "SpiritGrass", "CloudMint", "JadeLotus", "PurpleBamboo", "BloodGinseng" },
 		BEAST_SEED_WEIGHTS = { 40, 25, 15, 15, 5 },
+		-- "Grow now": a Robux developer product that finishes one growing plant.
+		-- A product has a fixed price, so there is one per tier; the tier is picked
+		-- by the seconds the plant has left (first tier whose upTo covers it).
+		-- TODO: create the three developer products (3, 6 and 9 Robux) in the
+		-- Creator Dashboard and paste their ids here. 0 is a placeholder: the
+		-- prompt still shows, but pressing it only warns in the output.
+		GROW_NOW = {
+			{ upTo = 5 * 60, robux = 3, productId = 0 }, -- almost done
+			{ upTo = 30 * 60, robux = 6, productId = 0 },
+			{ upTo = math.huge, robux = 9, productId = 0 }, -- just planted, or a long grower
+		},
 	},
 
 	Combat = {

@@ -45,6 +45,7 @@ export type Data = {
 	seeds: { [string]: number },
 	buffs: { ActiveBuff },
 	decor: { [string]: number }, -- stored build items, by catalog id
+	receipts: { [string]: number }, -- Robux purchases already granted: PurchaseId -> os.time()
 	settings: Settings,
 	peak: {
 		removed: { [string]: boolean },
@@ -79,6 +80,7 @@ local function default(): Data
 		seeds = table.clone(Config.STARTING_SEEDS),
 		buffs = {},
 		decor = {},
+		receipts = {},
 		settings = { music = 1, sfx = 1, autoAttack = true, lockHint = true },
 		peak = { removed = {}, placed = {}, plots = {} },
 	}

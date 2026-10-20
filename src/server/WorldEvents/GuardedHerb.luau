@@ -63,6 +63,7 @@ function GuardedHerb.start(run: any): boolean
 	local label = beacon:FindFirstChildWhichIsA("TextLabel", true) :: TextLabel?
 	prompt.ActionText = "Gather"
 	prompt.ObjectText = herb.name
+	prompt.KeyboardKeyCode = Enum.KeyCode.F -- gathering is F everywhere, like herb beds
 	prompt.HoldDuration = def.gatherSeconds
 	prompt.Enabled = false
 	if label then

@@ -6,6 +6,7 @@
    <string name="Name">WildPrompt</string>
    <string name="ActionText">Gather</string>
    <string name="ObjectText">Wild Herb</string>
+   <token name="KeyboardKeyCode">102</token>
    <float name="HoldDuration">0.6</float>
    <bool name="RequiresLineOfSight">false</bool>
   </Properties>
@@ -15,7 +16,19 @@
    <bool name="Enabled">false</bool>
    <string name="ActionText">Harvest</string>
    <string name="ObjectText">Herb</string>
+   <token name="KeyboardKeyCode">102</token>
    <float name="MaxActivationDistance">8</float>
+   <bool name="RequiresLineOfSight">false</bool>
+  </Properties>
+  </Item>
+  <Item class="ProximityPrompt" referent="GK16"><Properties>
+   <string name="Name">GrowPrompt</string>
+   <bool name="Enabled">false</bool>
+   <string name="ActionText">Grow now</string>
+   <string name="ObjectText">Herb</string>
+   <token name="KeyboardKeyCode">103</token>
+   <token name="GamepadKeyCode">1001</token>
+   <float name="MaxActivationDistance">10</float>
    <bool name="RequiresLineOfSight">false</bool>
   </Properties>
   </Item>

@@ -29,6 +29,7 @@ local WeatherService = require(script.Parent.WeatherService)
 local Meditation = require(script.Parent.Meditation)
 local Inventory = require(script.Parent.Inventory)
 local Treasures = require(script.Parent.Treasures)
+local Settings = require(script.Parent.Settings)
 
 local joinedAt: { [Player]: number } = {}
 local lastBreakthroughAt: { [Player]: number } = {}
@@ -171,6 +172,7 @@ end
 (remotes.Cast :: RemoteEvent).OnServerEvent:Connect(Combat.cast);
 (remotes.Meditate :: RemoteEvent).OnServerEvent:Connect(Meditation.handle);
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);
+(remotes.SaveSettings :: RemoteEvent).OnServerEvent:Connect(Settings.save);
 
 QiNodes.start()
 table.insert(EnemyService.onKill, Progression.onKill)

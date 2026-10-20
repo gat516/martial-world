@@ -30,5 +30,9 @@
   </Item>
   <Item class="RemoteEvent" referent="RBX17"><Properties><string name="Name">Meditate</string></Properties>
   </Item>
+  <Item class="RemoteEvent" referent="RBXS1"><Properties>
+   <string name="Name">SaveSettings</string>
+  </Properties>
+  </Item>
  </Item>
 </roblox>

@@ -17,6 +17,7 @@ export type Snapshot = {
 	buffs: { Buff },
 	decor: { [string]: number }?,
 	meditation: { multiplier: number, place: string }?, -- nil when not meditating
+	settings: { music: number, sfx: number, autoAttack: boolean, lockHint: boolean }?,
 }
 
 local State = {}

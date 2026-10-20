@@ -22,6 +22,8 @@ export type Placed = { u: string, i: string, x: number, y: number, z: number, r:
 export type Plot = { herb: string, planted: number }
 export type ActiveBuff = { source: string, kind: string, amount: number, expires: number }
 export type Technique = { level: number, xp: number }
+-- Player preferences (the Settings window): volumes 0..1, and toggles
+export type Settings = { music: number, sfx: number, autoAttack: boolean, lockHint: boolean }
 -- hotbar always has Hotbar.SIZE entries: a technique id, an item id, or "" (empty)
 export type Data = {
 	v: number,
@@ -44,6 +46,7 @@ export type Data = {
 	seeds: { [string]: number },
 	buffs: { ActiveBuff },
 	decor: { [string]: number }, -- stored build items, by catalog id
+	settings: Settings,
 	peak: {
 		removed: { [string]: boolean },
 		placed: { Placed },
@@ -77,6 +80,7 @@ local function default(): Data
 		seeds = table.clone(Config.STARTING_SEEDS),
 		buffs = {},
 		decor = {},
+		settings = { music = 1, sfx = 1, autoAttack = true, lockHint = true },
 		peak = { removed = {}, placed = {}, plots = {} },
 	}
 end
@@ -110,7 +114,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

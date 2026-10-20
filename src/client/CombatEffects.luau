@@ -2,7 +2,9 @@
 -- Short-lived combat visuals: technique casts, damage numbers, dash afterimages,
 -- and hit flashes. Everything here is cosmetic and cleans itself up.
 
+local CollectionService = game:GetService("CollectionService")
 local Debris = game:GetService("Debris")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -54,12 +56,34 @@ local function beam(color: Color3, a: Vector3, b: Vector3, width: number): Part
 	return part(color, Vector3.new(width, width, math.max(length, 0.1)), CFrame.lookAt((a + b) / 2, b), nil)
 end
 
+-- Ground rays skip effects, every player character and every enemy: callers
+-- pass root or body positions, and a ray from there would otherwise land on
+-- the caster's (or target's) own body and put the effect at torso height.
+-- The filter is rebuilt at most twice a second (markTarget calls this per frame).
+local groundParams = RaycastParams.new()
+groundParams.FilterType = Enum.RaycastFilterType.Exclude
+local groundFilterAt = -math.huge
+local function groundFilter(): RaycastParams
+	local now = os.clock()
+	if now - groundFilterAt > 0.5 then
+		groundFilterAt = now
+		local list: { Instance } = { folder }
+		for _, other in Players:GetPlayers() do
+			if other.Character then
+				table.insert(list, other.Character)
+			end
+		end
+		for _, enemy in CollectionService:GetTagged("Enemy") do
+			table.insert(list, enemy)
+		end
+		groundParams.FilterDescendantsInstances = list
+	end
+	return groundParams
+end
+
 -- Ground height under a point (falls back to 3 studs below it).
 local function groundBelow(position: Vector3): number
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = { folder }
-	local hit = workspace:Raycast(position + Vector3.new(0, 2, 0), Vector3.new(0, -20, 0), params)
+	local hit = workspace:Raycast(position + Vector3.new(0, 2, 0), Vector3.new(0, -24, 0), groundFilter())
 	return if hit then hit.Position.Y + 0.1 else position.Y - 3
 end
 

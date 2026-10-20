@@ -346,7 +346,7 @@ local function releaseTechnique(player: Player, id: string, aim: Vector3)
 	-- the caster already showed it; everyone else sees it now
 	for _, other in Players:GetPlayers() do
 		if other ~= player then
-			effectRemote:FireClient(other, "cast", player, id, origin, dir, chain)
+			effectRemote:FireClient(other, "cast", player, id, origin, dir, level, chain)
 		end
 	end
 end

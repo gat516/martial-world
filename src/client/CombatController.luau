@@ -404,7 +404,8 @@ local function release(current: Runtime)
 	})
 	local origin, direction = current.root.Position, current.direction
 	local chain = if def.kind == "chain" then predictChain(origin, def) else nil
-	CombatEffects.cast(current.character, def.id, origin, direction, chain)
+	local owned = State.current.techniques.owned[def.id]
+	CombatEffects.cast(current.character, def.id, origin, direction, chain, if owned then owned.level else 1)
 	if chain then
 		for _, model in chain do CombatEffects.flash(model, def.color) end
 	end
@@ -738,7 +739,8 @@ local function onEffect(kind: string, ...: any)
 		CombatEffects.storm(args[1], nil)
 	elseif kind == "cast" then
 		local caster = args[1] :: Player
-		CombatEffects.cast(caster.Character, args[2], args[3], args[4], args[5])
+		-- payload: caster, id, origin, dir, level, chain
+		CombatEffects.cast(caster.Character, args[2], args[3], args[4], args[6], args[5])
 	end
 end
 

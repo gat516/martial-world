@@ -34,7 +34,7 @@ AGENTS.md, "Studio instances".
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
 | Knockback / stagger | `src/shared/Knockback.luau` |
-| Techniques | `src/shared/Techniques.luau` |
+| Techniques (and their visual tiers, `VISUAL_TIERS`) | `src/shared/Techniques.luau` |
 | Herbs and plants | `src/shared/Herbs.luau` |
 | Consumables (cores, treasures) | `src/shared/Items.luau` |
 | Build items | `src/shared/BuildItems.luau` |
@@ -82,6 +82,10 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only) | AdminPanel |
 | Dodge, Cast | Event | - | unused (combat moved onto Attack) | - |
+
+`Effect "cast"` is relayed by `Combat.releaseTechnique` to every client except the
+caster as `(caster, id, origin, dir, level, chain)`; `level` is the caster's
+technique level at cast time (picks the visual tier), `chain` the chain targets or nil.
 
 Besides remotes, the server publishes fast-changing values as attributes:
 player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`,

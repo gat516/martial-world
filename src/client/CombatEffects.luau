@@ -79,11 +79,14 @@ local function burst(position: Vector3, props: { [string]: any }, count: number,
 end
 
 -- `chain` lists the chain technique's targets, in order (nil for other kinds).
-function CombatEffects.cast(character: Model?, id: string, origin: Vector3, dir: Vector3, chain: { Model }?)
+-- `level` is the caster's technique level at cast time; it picks the visual tier
+-- (Techniques.visualTier) once a technique's templates exist in Effects.
+function CombatEffects.cast(character: Model?, id: string, origin: Vector3, dir: Vector3, chain: { Model }?, level: number?)
 	local def = Techniques.Defs[id]
 	if not def then
 		return
 	end
+	level = math.clamp(if type(level) == "number" then level else 1, 1, Techniques.MAX_LEVEL)
 	Sfx.play(def.id, origin) -- each technique's sound is named after its id
 	local color = def.color
 	if def.kind == "line" then

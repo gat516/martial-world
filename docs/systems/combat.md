@@ -34,6 +34,17 @@ scales all player damage.
 - `src/client/ActionState.luau`: local predicted action state.
 - `src/client/LockOn.luau`, `Sprint.luau`, `ShiftLock.luau` (Alt), `HeadLook.luau`.
 - `src/client/CombatEffects.luau`, `Telegraphs.luau`: cosmetic effects and ground warnings.
+- `src/client/TechniqueVFX.luau`: plays technique effect templates
+  (`ReplicatedStorage.Effects.<Id>.<Id>_T<tier>`) through the vfxia Game Module
+  (`ReplicatedStorage.vfx`, plugin-owned, not mapped); falls back to plain
+  `ParticleEmitter:Emit` with a warning while the module is missing.
+
+## Technique visuals
+Casts are drawn on every client: the caster draws its own at release, the server
+relays `Effect "cast"` with the caster's technique level to everyone else, and
+`CombatEffects.cast(character, id, origin, dir, chain, level)` plays the tier
+template for that level. Visuals must match the gameplay shape (line length and
+width, circle radius, chain jumps, zone radius and seconds, buff seconds).
 
 ## Data flow
 Client presses -> `ActionRules` decides if legal -> plays locally and sends
@@ -48,6 +59,8 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   (`DODGE_*`, `IFRAME_*`, `PERFECT_*`), hitbox and server slack, lock-on and
   auto ranges, `IN_COMBAT_SECONDS`.
 - `Techniques.luau`: per-technique damage, cooldown, shape, cast timing.
+  `VISUAL_TIERS` maps levels to the four visual tiers (I 1-3, II 4-6, III 7-9,
+  IV 10); `TechniqueVFX.STEP_COUNT` is the extra particle count per level inside a tier.
 - `Knockback.luau`: `REALM_EXPONENT`, `MIN_DISTANCE`, `ARMOR_BREAK`, stun, base pushes.
 - Per stage (`Pacing.luau`): player `power` and `health` (curve and Adjust).
 

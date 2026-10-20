@@ -133,4 +133,21 @@ function Techniques.damage(def: Def, level: number): number
 	return def.damage * (1 + Techniques.DAMAGE_PER_LEVEL * (level - 1))
 end
 
+-- Visuals tuning knob: the highest level of each visual tier. A technique's cast
+-- plays template `<Id>_T<tier>` from ReplicatedStorage.Effects.<Id>; levels
+-- inside a tier step up its particle counts a little (see TechniqueVFX).
+Techniques.VISUAL_TIERS = { 3, 6, 9, 10 } -- I: 1-3, II: 4-6, III: 7-9, IV: 10 (mastery)
+
+-- (tier, step): step is how many levels above the tier's first level.
+function Techniques.visualTier(level: number): (number, number)
+	local first = 1
+	for tier, last in Techniques.VISUAL_TIERS do
+		if level <= last then
+			return tier, math.max(0, level - first)
+		end
+		first = last + 1
+	end
+	return #Techniques.VISUAL_TIERS, 0
+end
+
 return Techniques

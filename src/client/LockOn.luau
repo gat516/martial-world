@@ -71,9 +71,10 @@ local cameraFrame: CFrame? = nil -- our smoothed camera, while locked
 local baseFov: number? = nil -- the field of view before the lock narrowed it
 local releaseFrom: CFrame? = nil -- the lock's last framing, blended out of on release
 local releaseLeft = 0
--- PC: the mouse mode before the lock held it centred. Roblox's camera only resets
--- the mouse when shift lock or first person changes, so the release puts it back.
-local mouseBefore: Enum.MouseBehavior? = nil
+-- PC: the camera's mouse mode underneath this frame's lock-on override. Restore
+-- it before the next camera update so Alt/zoom/RMB can change the native mode
+-- without the camera mistaking our temporary LockCenter for its own state.
+local mouseOverrideFrom: Enum.MouseBehavior? = nil
 
 local reticle: ImageLabel
 local reticleScale: UIScale?
@@ -193,6 +194,14 @@ local function snapReticle()
 	Motion.tween(reticle, { ImageTransparency = 0 }, TweenInfo.new(0.12))
 end
 
+local function releaseMouse()
+	local previous = mouseOverrideFrom
+	mouseOverrideFrom = nil
+	if previous and UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
+		UserInputService.MouseBehavior = previous
+	end
+end
+
 local function setTarget(model: Model?)
 	if model == target then
 		return
@@ -207,9 +216,6 @@ local function setTarget(model: Model?)
 			cameraFrame = camera.CFrame
 			releaseLeft = 0
 			baseFov = baseFov or camera.FieldOfView
-			if not Platform.isTouch() then
-				mouseBefore = UserInputService.MouseBehavior
-			end
 			Motion.tween(camera, { FieldOfView = (baseFov :: number) - LOCK_FOV_NARROW }, FOV_TWEEN)
 		end
 		snapReticle()
@@ -222,10 +228,7 @@ local function setTarget(model: Model?)
 			Motion.tween(camera, { FieldOfView = baseFov }, FOV_TWEEN)
 			baseFov = nil
 		end
-		if mouseBefore then
-			UserInputService.MouseBehavior = mouseBefore
-			mouseBefore = nil
-		end
+		releaseMouse()
 	end
 end
 
@@ -410,6 +413,7 @@ local function updateCamera(dt: number, root: BasePart, current: Model)
 
 	-- PC: the mouse stays put while locked so flicks can switch (ShiftLock hides the cursor)
 	if not Platform.isTouch() then
+		mouseOverrideFrom = UserInputService.MouseBehavior
 		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
 		local delta = UserInputService:GetMouseDelta()
 		flick = flick * math.exp(-8 * dt) + delta.X
@@ -582,6 +586,10 @@ function LockOn.init(gui: ScreenGui)
 	player.CharacterAdded:Connect(function()
 		setTarget(nil)
 	end)
+	-- Give the native camera back its latest mode before it processes this
+	-- frame's shift lock / first-person / mouse-drag state. Lock-on reapplies
+	-- its override afterwards; unlocking never restores a lock-start snapshot.
+	RunService:BindToRenderStep("LockOnMouseRelease", Enum.RenderPriority.Camera.Value - 1, releaseMouse)
 	-- after Roblox's camera module (Camera), before the hit shake (Camera + 2)
 	RunService:BindToRenderStep("LockOn", Enum.RenderPriority.Camera.Value + 1, step)
 end

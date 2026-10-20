@@ -21,7 +21,7 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
   4. Destroy the staging copy. Rojo patches its own instance from the file, so only one copy ever exists. If Rojo isn't connected, have the user connect it; don't rebuild the change by hand.
 
   Never leave a staging copy behind (StarterGui copies them into every player). Changing properties of existing managed instances in place is fine, as is writing property changes straight into the `.rbxmx`.
-- `tools/find_duplicates.luau` (through `execute_luau`) must return `clean` before committing. It's a check, not a routine step. If it finds duplicates, something was built by hand in a managed spot: have the user reconnect Rojo (Disconnect, then Connect and accept), which rebuilds the tree from disk, and run it again.
+- Run `tools/find_duplicates.luau` (through `execute_luau`) only when the user explicitly asks for a duplicate check. It is not a prerequisite for committing.
 
 ## Luau pitfalls
 

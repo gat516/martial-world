@@ -22,7 +22,7 @@ TOP_Z = -1.5                 # walkable top (world y 552)
 DEPTH = 562.0                # down to the ground ring (world y -10)
 SPLIT_H = 176.0              # upper/lower mesh split, just under the cloud deck (world y ~376)
 TILE = 12.0                  # studs per UV unit, for Roblox material tiling
-SEG = 128
+SEG = 192
 
 # Abode hall carved into the pillar (elliptical footprint, domed ceiling)
 HALL = dict(cx=0.0, cy=6.0, ax=31.0, ay=27.0, floor=-24.5, wall_top=-15.0, apex=-7.5)  # floor surface = floor - 0.5
@@ -38,6 +38,8 @@ STAIR_RISE = (TOP_Z - PORCH_TOP) / STAIR_N   # ~1.47, walkable without jumping
 STAIR_IN, STAIR_OUT = 5.0, 3.9               # tread extent inside/outside the stair line radius
 
 MIN_LAWN = 60.0  # studs^2; up-facing patches smaller than this are rock bumps, not lawn
+LIP = 1.3        # depth of the lawn's green side (and of the turf wrapped over the cliff ledges)
+SLOPE_H = 1.4    # the lawn's bevelled edge drops this far while reaching out by rim_out() (like the cliff ledges)
 
 # Cliff ledges: (angle deg, 90 = outward; depth below top; radius; protrusion)
 OUTCROPS = [(20, 36, 11, 7), (205, 50, 13, 8), (322, 74, 10, 6), (158, 96, 12, 7),
@@ -101,11 +103,9 @@ def boolean(target, other, op):
 # --- rock column -------------------------------------------------------------
 
 def profile(h):
-    if h < 10: return 50.0
-    if h < 24: return 50.0 - (h - 10) / 14 * 4.0
-    if h < 100: return 46.0 - (h - 24) / 76 * 6.0
-    if h < SPLIT_H: return 40.0 - (h - 100) / (SPLIT_H - 100) * 1.0
-    if h < 512: return 39.0 + (h - SPLIT_H) / (512 - SPLIT_H) * 46.0   # widens toward the ground
+    # the lawn on top is the narrowest part: the cliff flares out steadily below it, then on toward the ground
+    if h < SPLIT_H: return 50.0 + 12.0 * smoothstep(0.0, 140.0, h)
+    if h < 512: return 62.0 + (h - SPLIT_H) / (512 - SPLIT_H) * 23.0
     return 85.0 + (h - 512) / (DEPTH - 512) * 11.0
 
 
@@ -133,7 +133,10 @@ def chunk(pos, s):
 
 
 def ring_depths():
-    hs, h = [], 0.0
+    # bevelled lawn edge, then the green side one ring tall, then the wedge underside
+    # (the wedge under the overhang is one straight face: no rings inside it)
+    e = SLOPE_H + LIP
+    hs, h = [0.0, SLOPE_H, e], e + 1.2
     while h < DEPTH:
         hs.append(h)
         h += 1.2 if h < SPLIT_H else 3.5
@@ -141,10 +144,67 @@ def ring_depths():
     return hs
 
 
+def columns(th, h):
+    """Stone columns: 2D Voronoi cells around the pillar (so they run straight down), each pushed out by its
+    own amount and split into stacked segments every 25-60 studs. Returns (outward offset, cell id)."""
+    s = detail_scale(h)
+    d2 = Vector((math.cos(th), math.sin(th), 0)) * 55.0
+    d, pts = noise.voronoi(Vector((d2.x / (9.0 * s), d2.y / (9.0 * s), 0.0)), distance_metric='DISTANCE')
+    cell = pts[0]
+    seg_len = 25.0 + 35.0 * cell_hash(cell + Vector((3.1, 0, 0)))
+    k = math.floor((h + seg_len * cell_hash(cell + Vector((0, 7.7, 0)))) / seg_len)
+    out = (1.0 + 5.0 * cell_hash(cell + Vector((0, 0, k * 1.37)))) * s
+    crack = smoothstep(0.0, 0.12, d[1] - d[0])  # cells meet in a narrow groove
+    return out * (0.35 + 0.65 * crack), cell
+
+
 def surface_radius(th, h):
     dirv = Vector((math.cos(th), math.sin(th), 0))
     base = profile(h) * (1.0 + 0.12 * noise.noise(Vector((dirv.x * 1.1, dirv.y * 1.1, 5.1 + h * 0.003))))
-    return base, base + min(1.0, h / 4.0) * chunk(dirv * base + Vector((0, 0, TOP_Z - h)), detail_scale(h))
+    # the lawn is the narrowest part: below its green side the rock starts flush with its edge and only
+    # widens. Each column begins a little lower than its neighbours (a broken crown under the turf) and
+    # steps out over a short bevel.
+    e = SLOPE_H + LIP
+    floor = rim_radius(th) + rim_out(th) - 0.1 + (profile(h) - profile(0.0))
+    out, cell = columns(th, h)
+    top = e + 0.5 + 6.0 * cell_hash(cell + Vector((5.3, 1.1, 0)))
+    return base, floor + out * smoothstep(top, top + 2.5, h)
+
+
+def rim_corners(n):
+    """(top outline radius, overhang) at facet corner n."""
+    a = 2 * math.pi * (n % RIM_FACETS) / RIM_FACETS
+    d = Vector((math.cos(a), math.sin(a), 0))
+    base = profile(0) * (1.0 + 0.12 * noise.noise(Vector((d.x * 1.1, d.y * 1.1, 5.1))))
+    # points and bulges only ever push outward, so nothing already on the lawn ends up over the edge
+    bulge = 0.10 * max(0.0, noise.noise(Vector((d.x * 2.6, d.y * 2.6, 6.4))))
+    top = base * 0.985 * (1.0 + bulge + 0.03 * abs(noise.noise(Vector((n * 1.7, 0.3, 8.8)))))
+    out = 0.6 + 0.9 * smoothstep(-0.6, 0.6, noise.noise(Vector((d.x * 1.8, d.y * 1.8, 2.7))))
+    return top, out
+
+
+def facet(th, i):
+    k = th / (2 * math.pi) * RIM_FACETS
+    n, t = int(math.floor(k)), k - math.floor(k)
+    return rim_corners(n)[i] + (rim_corners(n + 1)[i] - rim_corners(n)[i]) * t
+
+
+def rim_out(th):
+    """How far the bevelled lip reaches past the flat top (0.6..1.5 studs), straight between facet corners."""
+    return facet(th, 1)
+
+
+def edge_radius(th, h):
+    """Lawn edge profile: flat top at rim_radius, a bevel down and out, then straight down LIP."""
+    return rim_radius(th) + rim_out(th) * min(1.0, h / SLOPE_H)
+
+
+RIM_FACETS = 22
+
+
+def rim_radius(th):
+    """Outline of the flat lawn: straight facets between jittered corners, like the cliff ledges."""
+    return facet(th, 0)
 
 
 def top_height(x, y, f):
@@ -161,8 +221,8 @@ def build_column():
         for i in range(SEG):
             th = 2 * math.pi * i / SEG
             base, r = surface_radius(th, h)
-            if h == 0:
-                r = base * 0.985
+            if h <= SLOPE_H + LIP:
+                r = edge_radius(th, h)
             v = Vector((math.cos(th) * r, math.sin(th) * r, z))
             if h == 0:
                 v.z = top_height(v.x, v.y, 1.0)
@@ -189,8 +249,14 @@ def build_column():
     bm.faces.new(list(reversed(grid[-1])))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     obj = link("PeakPillar", bm)
-    sm = obj.modifiers.new("Smooth", 'SMOOTH'); sm.factor = 0.6; sm.iterations = 2
+    # smoothing and decimation leave the lawn slab alone, so its edge stays crisp and on its outline
+    rim = obj.vertex_groups.new(name="Rim")
+    rim.add([v.index for v in obj.data.vertices if v.co.z > TOP_Z - SLOPE_H - LIP - 0.01],
+            1.0, 'REPLACE')  # the lawn's edge
+    sm = obj.modifiers.new("Smooth", 'SMOOTH'); sm.factor = 0.25; sm.iterations = 1  # just the voxel jaggies
+    sm.vertex_group, sm.invert_vertex_group = "Rim", True
     dec = obj.modifiers.new("Decimate", 'DECIMATE'); dec.ratio = 0.2
+    dec.vertex_group, dec.invert_vertex_group = "Rim", True
     apply_all(obj)
     return obj
 
@@ -474,13 +540,17 @@ def in_abode(c, h):
 
 def is_grass(f, h):
     c = f.calc_center_median()
-    # the rolling lawn may slope; below it only near-flat ledges count, so sloped bumps under the rim stay rock
-    return f.normal.z > (0.6 if c.z > TOP_Z - 2.0 else 0.85) and not in_cut(c, h)
+    if in_cut(c, h):
+        return False
+    if c.z > TOP_Z - SLOPE_H - 0.01:
+        return f.normal.z > 0.0  # the lawn and its rolled edge (the green side below is wrapped by the cut)
+    # below it only near-flat ledges count, so sloped bumps under the rim stay rock
+    return f.normal.z > 0.85
 
 
-def lawns(faces):
-    """Keep only connected up-facing patches of at least MIN_LAWN, so bumps on the cliff stay rock."""
-    cand, seen, keep = set(faces), set(), []
+def patches(faces):
+    """Connected groups of the given faces."""
+    cand, seen, out = set(faces), set(), []
     for f in cand:
         if f in seen:
             continue
@@ -494,41 +564,57 @@ def lawns(faces):
                     if n in cand and n not in seen:
                         seen.add(n)
                         stack.append(n)
-        if sum(g.calc_area() for g in patch) >= MIN_LAWN:
-            keep.extend(patch)
-    return keep
+        out.append(patch)
+    return out
 
 
-def add_skirt(bm, skip=lambda co: False):
-    """Turf folding over every open edge of the lawn: one continuous band, each vertex dropped by a
-    smooth noise amount, so the rim reads as a soft overhang instead of loose triangles."""
+def rim_level(patch):
+    """Median height of a patch's edge, so one low dip doesn't drag the whole lip down the cliff."""
+    inside = set(patch)
+    zs = sorted(v.co.z for f in patch for e in f.edges
+                if sum(n in inside for n in e.link_faces) == 1 for v in e.verts)
+    return zs[len(zs) // 2]
+
+
+def lawn_faces(bm, is_seed, keep, skip=lambda c: False):
+    """Grass = the kept up-facing patches, wrapped LIP studs down over their edges. Each patch's edge is first
+    sliced level LIP below its edge's median height, so the turf ends on one clean contour instead of following
+    the zigzag of decimated triangles."""
+    def seeds():
+        return [p for p in patches([f for f in bm.faces if is_seed(f)]) if keep(p)]
+
+    cuts = []
+    for p in seeds():
+        z = rim_level(p) - LIP
+        cuts.append(z)
+        xs = [v.co.x for f in p for v in f.verts]
+        ys = [v.co.y for f in p for v in f.verts]
+        near = [f for f in bm.faces if min(xs) - 4 < f.calc_center_median().x < max(xs) + 4
+                and min(ys) - 4 < f.calc_center_median().y < max(ys) + 4
+                and abs(f.calc_center_median().z - z) < 6]
+        geom = list({x for f in near for x in list(f.verts) + list(f.edges)}) + near
+        bmesh.ops.bisect_plane(bm, geom=geom, plane_co=(0, 0, z), plane_no=(0, 0, 1))
+    bmesh.ops.triangulate(bm, faces=bm.faces[:])
     bm.normal_update()
-    edges = [e for e in bm.edges if len(e.link_faces) == 1]
-    push = {}
-    for e in edges:
-        a, b = e.verts
-        d = b.co - a.co
-        n = Vector((d.y, -d.x, 0))
-        if n.length < 1e-6:
-            continue
-        n.normalize()
-        if n.dot(e.link_faces[0].calc_center_median() - (a.co + b.co) / 2) > 0:
-            n = -n  # away from the lawn
-        for v in (a, b):
-            push[v] = push.get(v, Vector()) + n
-    low = {}
-    for v, n in push.items():
-        if skip(v.co):
-            continue
-        n = n.normalized() if n.length > 1e-6 else n
-        drop = 1.0 + 0.8 * (noise.noise(Vector((v.co.x / 7.0, v.co.y / 7.0, 4.1))) + 1.0)
-        low[v] = bm.verts.new(v.co + n * 0.5 - Vector((0, 0, drop)))
-    for e in edges:
-        a, b = e.verts
-        if a in low and b in low:
-            l = next(l for l in e.link_faces[0].loops if l.edge == e)
-            x, y = l.vert, l.link_loop_next.vert  # lawn winding along this edge; the skirt runs the other way
-            bm.faces.new((y, x, low[x], low[y]))
+    out = set()
+    for p in seeds():
+        # the cut made for this patch (slicing can nudge its rim level a hair)
+        floor = min(cuts, key=lambda z: abs(z - (rim_level(p) - LIP))) - 0.01
+        top = [f for f in p if min(v.co.z for v in f.verts) >= floor]  # steep seeds below the cut stay rock
+        out.update(top)
+        stack = top
+        while stack:  # grow downhill only, so walls rising behind a lawn stay rock
+            f = stack.pop()
+            fz = f.calc_center_median().z
+            for e in f.edges:
+                for n in e.link_faces:
+                    if n in out:
+                        continue
+                    c = n.calc_center_median()
+                    if c.z <= fz + 0.05 and min(v.co.z for v in n.verts) >= floor and not skip(c):
+                        out.add(n)
+                        stack.append(n)
+    return list(out), cuts
 
 
 def extract(bm, faces):
@@ -547,13 +633,14 @@ def extract(bm, faces):
     return out
 
 
-SHARP_ANGLE = math.radians(40)
+SHARP_ANGLE = math.radians(28)
 
 
 def smooth_by_angle(bm):
     """Smooth shading so decimation facets don't show; creases sharper than SHARP_ANGLE stay crisp."""
     for f in bm.faces:
-        f.smooth = True
+        # the lawn's bevelled edge and green side are flat shaded so their facets read crisp
+        f.smooth = not (f.normal.z < 0.98 and f.calc_center_median().z > TOP_Z - SLOPE_H - LIP - 0.5)
     for e in bm.edges:
         if not e.is_manifold or e.calc_face_angle(0.0) > SHARP_ANGLE:
             e.smooth = False
@@ -587,8 +674,17 @@ def split_and_export(pillar, h, anchors, stairs):
     bm.verts.index_update()
     floor_bm = extract(bm, [f for f in bm.faces if in_abode(f.calc_center_median(), h) and f.normal.z > 0.82])
     walls_bm = extract(bm, [f for f in bm.faces if in_abode(f.calc_center_median(), h)])
-    grass_bm = extract(bm, lawns([f for f in bm.faces if is_grass(f, h)]))
-    add_skirt(grass_bm, skip=lambda co: -27 < co.x < 14 and co.y > 40)  # not over the abode facade
+    def keep(p):
+        # the top lawn, and the cliff ledges decor stands on; other shelves on the cliff stay rock
+        if sum(f.calc_area() for f in p) < MIN_LAWN:
+            return False
+        if rim_level(p) > TOP_Z - SLOPE_H - 1.0:
+            return True
+        c = p[0].calc_center_median()
+        return any(math.hypot(c.x - a["x"], c.y - a["y"]) < a["size"] + 6 and abs(c.z - a["z"]) < 4 for a in anchors)
+
+    lawn, cuts = lawn_faces(bm, lambda f: is_grass(f, h), keep, skip=lambda c: in_cut(c, h))
+    grass_bm = extract(bm, lawn)
     base_bm = extract(bm, [f for f in bm.faces if f.calc_center_median().z < TOP_Z - SPLIT_H])
     for b in (bm, base_bm, grass_bm, walls_bm, floor_bm):  # drop loose verts left behind by extraction
         bmesh.ops.delete(b, geom=[e for e in b.edges if not e.link_faces], context='EDGES')

@@ -18,13 +18,14 @@ local STAGES = _G.MAIN_PEAK_STAGES or { place = true, collision = true, terrain 
 
 -- BEGIN MESHES (generated from MainPeakRock.json)
 local MESHES = {
-	MainRockSpire = { center = { 1.075, 93.074, 731.234 }, size = { 176.716, 111.076, 162.069 } }, -- 11161 tris
-	MainRockMesa = { center = { -1.047, 13.164, 617.914 }, size = { 261.215, 279.722, 71.251 } }, -- 11077 tris
-	MainRockCliffA = { center = { 60.076, -24.905, 496.933 }, size = { 259.092, 334.085, 173.866 } }, -- 7390 tris
-	MainRockCliffB = { center = { -31.943, -38.861, 496.843 }, size = { 315.137, 290.118, 173.686 } }, -- 7639 tris
-	MainRockCliffC = { center = { 0.39, 35.611, 496.845 }, size = { 335.321, 304.35, 173.69 } }, -- 7085 tris
-	MainRockBase = { center = { 1.851, 3.227, 209.007 }, size = { 472.997, 469.427, 435.775 } }, -- 6000 tris
-	MainGrass = { center = { -2.211, -2.159, 533.419 }, size = { 375.337, 379.576, 166.77 } }, -- 3901 tris
+	MainRockSpire = { center = { 0.483, 100.339, 731.196 }, size = { 161.428, 111.935, 162.202 } }, -- 11764 tris
+	MainRockMesa = { center = { 0.62, 18.419, 618.177 }, size = { 257.781, 281.449, 71.077 } }, -- 19061 tris
+	MainRockCliffA = { center = { 80.459, -41.061, 496.549 }, size = { 202.89, 284.757, 173.303 } }, -- 12650 tris
+	MainRockCliffB = { center = { -64.951, -42.276, 496.588 }, size = { 234.942, 281.043, 173.223 } }, -- 13326 tris
+	MainRockCliffC = { center = { -1.009, 111.903, 496.59 }, size = { 326.284, 140.411, 173.22 } }, -- 13141 tris
+	MainRockBase = { center = { 1.584, -1.396, 215.232 }, size = { 455.577, 458.339, 450.522 } }, -- 11999 tris
+	MainGrass = { center = { -0.251, -1.149, 537.004 }, size = { 364.4, 366.516, 162.008 } }, -- 19314 tris
+	MainLedges = { center = { -4.343, -7.281, 501.54 }, size = { 348.926, 354.25, 111.12 } }, -- 672 tris
 	MainPath = { center = { -0.097, 0.097, 581.91 }, size = { 331.778, 331.743, 0.42 } }, -- 2880 tris
 }
 -- END MESHES

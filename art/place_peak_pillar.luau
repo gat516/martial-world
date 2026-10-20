@@ -17,14 +17,14 @@ CFrame = CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy).
 
 -- BEGIN MESHES (generated from SpiritPeakPillar.json)
 local MESHES = {
-	PeakRock = { center = { -1.552, 3.292, -89.342 }, size = { 119.144, 125.416, 176.316 } }, -- 9544 tris
-	PeakRockBase = { center = { 3.071, -6.655, -370.442 }, size = { 201.442, 214.075, 385.884 } }, -- 7296 tris
-	PeakGrass = { center = { -2.845, 1.717, -212.531 }, size = { 149.838, 120.792, 422.734 } }, -- 883 tris
-	AbodeWalls = { center = { 0.04, 16.581, -16.25 }, size = { 62.543, 75.837, 17.5 } }, -- 458 tris
-	AbodeFloor = { center = { 0.0, 15.87, -25.0 }, size = { 62.0, 73.74, 0.0 } }, -- 68 tris
-	PeakStairs = { center = { -38.058, 25.974, -15.116 }, size = { 32.445, 39.778, 24.305 } }, -- 247 tris
-	PeakStairsRail = { center = { -40.479, 26.853, -12.359 }, size = { 26.907, 36.169, 25.681 } }, -- 430 tris
-	PeakStairsRamp = { center = { -37.872, 25.407, -13.95 }, size = { 32.913, 41.149, 24.1 } }, -- 222 tris
+	PeakRock = { center = { 5.232, -0.768, -90.51 }, size = { 152.267, 143.797, 173.98 } }, -- 8165 tris
+	PeakRockBase = { center = { -0.25, 0.606, -370.505 }, size = { 214.559, 212.153, 386.011 } }, -- 13079 tris
+	PeakGrass = { center = { -5.35, 3.369, -211.962 }, size = { 177.62, 151.409, 421.653 } }, -- 4353 tris
+	AbodeWalls = { center = { 0.04, 16.581, -16.25 }, size = { 62.543, 75.837, 17.5 } }, -- 461 tris
+	AbodeFloor = { center = { 0.0, 16.75, -25.0 }, size = { 62.0, 75.5, 0.0 } }, -- 48 tris
+	PeakStairs = { center = { -39.385, 28.288, -15.116 }, size = { 29.803, 44.402, 24.305 } }, -- 247 tris
+	PeakStairsRail = { center = { -41.85, 29.071, -12.359 }, size = { 24.19, 40.601, 25.681 } }, -- 430 tris
+	PeakStairsRamp = { center = { -39.165, 27.738, -13.95 }, size = { 30.331, 45.811, 24.1 } }, -- 222 tris
 }
 -- END MESHES
 

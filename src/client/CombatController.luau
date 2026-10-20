@@ -308,7 +308,8 @@ local function bindButtons(gui: ScreenGui)
 		for slot, button in buttons do
 			local def = Techniques.Defs[s.techniques.slots[slot] or ""]
 			local label = button:FindFirstChild("NameLabel") :: TextLabel
-			label.Text = if def then def.name else ""
+			label.Text = if def then def.name else "Empty"
+			label.TextColor3 = if def then Color3.fromRGB(236, 242, 236) else Color3.fromRGB(120, 130, 130)
 			local glyph = button:FindFirstChild("GlyphLabel") :: TextLabel
 			glyph.Text = if def then def.glyph else "·"
 			glyph.TextColor3 = if def then def.color:Lerp(Color3.new(1, 1, 1), 0.35) else Color3.fromRGB(90, 100, 100)

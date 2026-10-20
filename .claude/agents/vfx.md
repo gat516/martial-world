@@ -88,6 +88,22 @@ fx.sample(sequence, t, seed?)    -- value of a Number/ColorSequence at t
 fx.pool.new(template, expansion?):expand(n) -- :take() / :give(obj)
 ```
 
+### Editor tools (for the user) and their scripted equivalents
+
+The plugin's editing windows are for a human at the mouse. You produce the
+same results as data. Know what each one does, so you can tell the user which
+to reach for when they tweak your work:
+
+| Tool | What it does | Your equivalent |
+|---|---|---|
+| Sliders (hue, saturation, lightness, Scale, Retime) | recolour, scale and retime a selected effect | `fx.recolor` / `fx.rescale` / `fx.retime`, or set the values directly |
+| Curve Editor | edits NumberSequences (curve or sequence mode, Envelope, Floor/Ceiling, presets) | write the `NumberSequence` yourself, shaped like its presets: sine, quad, cubic, exponential, linear, wave, V |
+| Copier | copies and pastes properties between instances | copy properties in Luau, or build every tier from one builder |
+| Path visualizer / Splines | draws spline paths and particle spawn shapes in the viewport | the Splines add-on's attributes. The plugin's `DrawSplines` / `DrawParticles` settings (`shared.fx.settings.set`) may make them show in your `screen_capture` while previewing (untested); turn them off afterwards |
+| Trail preview | plays a trail along a test shape (circle, ...) | preview the real effect with `tools/vfx_preview.luau` |
+| Emit panel, R / T | emit / enable the selection | `fx.emit` / `fx.enable` |
+| Presets menu (`~`) | saved presets and commands (Beam Circle, Charging Particle, Toggle Loop, Sync Beams, Clear TempVFX, ...) | ask the user to drop a preset in if one fits a beat, then build from it |
+
 ### Add-ons
 
 Each add-on is driven by its own tag plus attributes on the effect, and its

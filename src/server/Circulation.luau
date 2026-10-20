@@ -14,6 +14,7 @@ local Realms = require(ReplicatedStorage.Shared.Realms)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
+local WeatherService = require(script.Parent.WeatherService)
 
 type Run = { id: string, started: number, duration: number, impurities: number, stageIndex: number }
 
@@ -121,7 +122,8 @@ function Circulation.finish(player: Player, id: any, accuracy: any, purged: any)
 	local acc = if type(accuracy) == "number" and accuracy == accuracy then math.clamp(accuracy, 0, 1) else 0
 	local purgedShare = if type(purged) == "number" then math.clamp(math.floor(purged), 0, run.impurities) / run.impurities else 0
 	local score = acc * Config.ACCURACY_WEIGHT + purgedShare * (1 - Config.ACCURACY_WEIGHT)
-	local efficiency = Config.EFFICIENCY_MIN + (Config.EFFICIENCY_MAX - Config.EFFICIENCY_MIN) * score
+	local efficiency = (Config.EFFICIENCY_MIN + (Config.EFFICIENCY_MAX - Config.EFFICIENCY_MIN) * score)
+		* (1 + WeatherService.bonus("circulation"))
 
 	-- spend only what fills the bar; the rest stays in the dantian
 	local qi = math.min(data.rawQi, fullRunQi(stage))

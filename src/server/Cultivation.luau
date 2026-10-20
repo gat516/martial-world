@@ -14,6 +14,7 @@ local LoginConfig = require(ReplicatedStorage.Shared.Config).Login
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local PlayerData = require(script.Parent.PlayerData)
+local WeatherService = require(script.Parent.WeatherService)
 
 local remotes = ReplicatedStorage.Remotes
 local stateRemote = remotes.PlayerState :: RemoteEvent
@@ -82,7 +83,10 @@ end
 
 -- Passive cultivation per second.
 function Cultivation.rate(data: PlayerData.Data, now: number): number
-	return Cultivation.stage(data).passive * (1 + buffTotal(data, "QiRate")) * (1 + Cultivation.aura(data, now))
+	return Cultivation.stage(data).passive
+		* (1 + buffTotal(data, "QiRate"))
+		* (1 + Cultivation.aura(data, now))
+		* (1 + WeatherService.bonus("passive"))
 end
 
 -- Mirror the numbers that change every second (and that other players may show,

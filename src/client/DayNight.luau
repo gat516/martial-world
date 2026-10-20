@@ -4,13 +4,15 @@
 -- grading blend between keyframes: an indigo, moonlit night; a rose dawn; the
 -- place's own clear afternoon; a gold-and-crimson sunset; a violet dusk.
 -- Lanterns glow brighter after dark, and motes drift around the camera: peach
--- petals by day, fireflies and spirit motes by night.
+-- petals by day, fireflies and spirit motes by night. Weather events lean the
+-- look through WeatherFX.adjust.
 
 local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Ambience
+local WeatherFX = require(script.Parent.WeatherFX)
 
 local DayNight = {}
 
@@ -118,6 +120,7 @@ function DayNight.init()
 	RunService.RenderStepped:Connect(function()
 		local hour = DayNight.hour()
 		local k = sample(hour)
+		WeatherFX.adjust(k)
 		Lighting.ClockTime = hour
 		Lighting.Brightness = k.brightness
 		Lighting.Ambient = k.ambient

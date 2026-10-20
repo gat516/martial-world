@@ -23,6 +23,7 @@ local Progression = require(script.Parent.Progression)
 local Tribulation = require(script.Parent.Tribulation)
 local Quests = require(script.Parent.Quests)
 local Analytics = require(script.Parent.Analytics)
+local WeatherService = require(script.Parent.WeatherService)
 
 local joinedAt: { [Player]: number } = {}
 local lastBreakthroughAt: { [Player]: number } = {}
@@ -176,7 +177,8 @@ table.insert(Cultivation.onBreakthrough, function(player)
 	end
 end)
 EnemyService.start()
-Quests.start();
+Quests.start()
+WeatherService.start();
 
 (remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(function(player, action, plotId, herbId)
 	if action == "plant" then

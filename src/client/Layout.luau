@@ -22,6 +22,7 @@ local player = Players.LocalPlayer
 local Layout = {}
 
 local gui: ScreenGui
+local clusterShown = true -- false while seated (Meditation)
 
 local function find(name: string): GuiObject
 	return gui:FindFirstChild(name, true) :: GuiObject
@@ -63,7 +64,8 @@ function Layout.apply()
 	end
 
 	local strike, jump, dodge = find("AttackButton"), find("JumpButton"), find("DodgeButton")
-	strike.Visible, jump.Visible, dodge.Visible = touch, touch, touch
+	local cluster = touch and clusterShown
+	strike.Visible, jump.Visible, dodge.Visible = cluster, cluster, cluster
 	if touch then
 		-- reach past the right inset: Strike in the corner, Jump left of it, Dash above it
 		local camera = workspace.CurrentCamera
@@ -74,13 +76,26 @@ function Layout.apply()
 		dodge.Position = UDim2.new(1, right - 35, 1, -EDGE - 80)
 		hideDefaultJump()
 	end
-	local key = dodge:FindFirstChild("KeyLabel") :: GuiObject?
-	if key then
-		key.Visible = not touch
+	-- key hints are for keyboards only
+	for _, button in { dodge, find("CultivateButton") } do
+		local key = button:FindFirstChild("KeyLabel") :: GuiObject?
+		if key then
+			key.Visible = not touch
+		end
 	end
 	local tiles = find("Buttons"):FindFirstChildOfClass("UIScale")
 	if tiles then
 		tiles.Scale = if Platform.isSmall() then 0.75 else 0.85
+	end
+end
+
+-- The touch combat cluster steps aside while seated (getting up is the move).
+function Layout.showCluster(shown: boolean)
+	if shown ~= clusterShown then
+		clusterShown = shown
+		if gui then
+			Layout.apply()
+		end
 	end
 end
 

@@ -8,6 +8,7 @@
 --          again (or Store) to put it in your inventory. On desktop, pieces glow
 --          faintly as you hover over them. Stored items show first in the bar.
 -- A ring marks how far from the plateau centre you can build.
+-- The Build tile only shows on (or over) your own peak, where it does something.
 
 local CollectionService = game:GetService("CollectionService")
 local Debris = game:GetService("Debris")
@@ -18,6 +19,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Build
+local PEAK_RADIUS = require(ReplicatedStorage.Shared.Config).Circulation.PEAK_RADIUS
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local Hud = require(script.Parent.Hud)
 local Menus = require(script.Parent.Menus)
@@ -492,6 +494,16 @@ function BuildMode.init(gui: ScreenGui)
 		end
 	end)
 	button("DoneButton").Activated:Connect(BuildMode.close)
+	task.spawn(function()
+		while true do
+			local frame = MyPeak.frame()
+			local character = Players.LocalPlayer.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			local offset = frame and root and root.Position - frame.Position
+			toggle.Visible = active or (offset ~= nil and Vector2.new(offset.X, offset.Z).Magnitude <= PEAK_RADIUS)
+			task.wait(0.5)
+		end
+	end)
 	button("RotateButton").Activated:Connect(function()
 		rotate(false)
 	end)

@@ -198,7 +198,7 @@ function CombatController.dodge()
 		root:ApplyImpulse((change + Vector3.yAxis * rise) * mass)
 	end
 	steer(Config.DODGE_SPEED * 2)
-	CombatEffects.flyingSword(root, Config.DODGE_SECONDS)
+	CombatEffects.dashTrail(player.Character :: Model, root, Config.DODGE_SECONDS)
 
 	local started = os.clock()
 	local connection
@@ -403,8 +403,9 @@ local function onEffect(kind: string, ...: any)
 		for id, t in readyAt do
 			readyAt[id] = t - refund
 		end
-		if root then
-			CombatEffects.number(root.Position, "Perfect dodge!", Color3.fromRGB(170, 225, 255), 20)
+		if character and root then
+			CombatEffects.perfectDodge(character, root)
+			CombatEffects.number(root.Position, "Perfect dodge!", Color3.fromRGB(255, 224, 150), 20)
 		end
 	elseif kind == "qi" then
 		CombatEffects.number(args[1], `+{args[2]} qi`, Color3.fromRGB(120, 235, 180), 20)

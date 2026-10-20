@@ -1,6 +1,6 @@
 --!strict
--- Short-lived combat visuals: technique casts, damage numbers, the dodge's flying
--- sword, and hit flashes. Everything here is cosmetic and cleans itself up.
+-- Short-lived combat visuals: technique casts, damage numbers, dash afterimages,
+-- and hit flashes. Everything here is cosmetic and cleans itself up.
 
 local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -283,22 +283,98 @@ function CombatEffects.flash(model: Instance, color: Color3?)
 	Debris:AddItem(highlight, 0.12)
 end
 
--- The dodge's flying sword: a blade under the feet for the length of the dash.
-function CombatEffects.flyingSword(root: BasePart, seconds: number)
-	local blade = part(Color3.fromRGB(170, 225, 255), Vector3.new(0.5, 0.2, 5), root.CFrame * CFrame.new(0, -3, 0))
-	blade.Transparency = 0.2
+-- One afterimage: a frozen, glowing copy of the character's current pose. Body
+-- parts are cloned bare (meshes kept, joints/decals/clothing dropped) so the copy
+-- can't weld itself to the live rig.
+local function afterimage(character: Model, color: Color3, transparency: number, seconds: number, grow: number?)
+	for _, source in character:GetDescendants() do
+		if not source:IsA("BasePart") or source.Name == "HumanoidRootPart" or source.Transparency >= 1 then
+			continue
+		end
+		local ghost = source:Clone()
+		if not ghost then
+			continue
+		end
+		for _, child in ghost:GetChildren() do
+			if not child:IsA("DataModelMesh") then
+				child:Destroy()
+			end
+		end
+		if ghost:IsA("MeshPart") then
+			ghost.TextureID = ""
+		end
+		ghost.Anchored, ghost.CanCollide, ghost.CanQuery, ghost.CanTouch, ghost.CastShadow = true, false, false, false, false
+		ghost.Massless = true
+		ghost.Material = Enum.Material.Neon
+		ghost.Color = color
+		ghost.Transparency = transparency
+		ghost.Parent = folder
+		fade(ghost, seconds, if grow then { Size = ghost.Size * grow } else nil)
+	end
+end
+
+-- The dash: a trail of pale afterimages dropped along the path, plus a gust at
+-- the feet where it started.
+function CombatEffects.dashTrail(character: Model, root: BasePart, seconds: number)
+	local color = Color3.fromRGB(150, 210, 255)
+	burst(Vector3.new(root.Position.X, groundBelow(root.Position), root.Position.Z), {
+		Texture = SMOKE,
+		Color = ColorSequence.new(Color3.fromRGB(220, 235, 245)),
+		Transparency = NumberSequence.new(0.5, 1),
+		Size = NumberSequence.new(1.2, 3),
+		Lifetime = NumberRange.new(0.3, 0.45),
+		Speed = NumberRange.new(6, 10),
+		SpreadAngle = Vector2.new(180, 10),
+		Drag = 5,
+	}, 8, 1)
 	local started = os.clock()
+	local nextGhost = 0
 	local connection
 	connection = RunService.RenderStepped:Connect(function()
-		if os.clock() - started > seconds or not root.Parent then
+		local t = os.clock() - started
+		if t > seconds or not root.Parent then
 			connection:Disconnect()
-			fade(blade, 0.15)
 			return
 		end
-		local flat = root.AssemblyLinearVelocity * Vector3.new(1, 0, 1)
-		local facing = if flat.Magnitude > 1 then CFrame.lookAt(root.Position, root.Position + flat) else root.CFrame
-		blade.CFrame = facing * CFrame.new(0, -3, 0)
+		if t >= nextGhost then
+			nextGhost += 0.04
+			-- earlier ghosts start fainter, so the trail thickens toward the player
+			afterimage(character, color, 0.45 + 0.3 * (1 - t / seconds), 0.28)
+		end
 	end)
+end
+
+-- A perfect dodge: a golden afterimage left where the blow would have landed,
+-- a shockwave ring, sparks, and a brief warm flash of the whole screen.
+function CombatEffects.perfectDodge(character: Model, root: BasePart)
+	local gold = Color3.fromRGB(255, 214, 120)
+	afterimage(character, gold, 0.15, 0.6, 1.15)
+	local ground = groundBelow(root.Position)
+	local ring = disc(gold, Vector3.new(root.Position.X, ground + 0.05, root.Position.Z), 1.5, 0.15)
+	ring.Transparency = 0.1
+	fade(ring, 0.45, { Size = Vector3.new(0.15, 22, 22) })
+	burst(root.Position, {
+		Texture = SPARKLE,
+		Color = ColorSequence.new(gold),
+		LightEmission = 1,
+		Size = NumberSequence.new(0.9, 0),
+		Lifetime = NumberRange.new(0.3, 0.55),
+		Speed = NumberRange.new(14, 24),
+		SpreadAngle = Vector2.new(180, 180),
+		Drag = 5,
+	}, 24, 1.2)
+	local grade = Instance.new("ColorCorrectionEffect")
+	grade.TintColor = Color3.fromRGB(255, 236, 190)
+	grade.Brightness = 0.12
+	grade.Saturation = -0.35
+	grade.Parent = folder
+	TweenService:Create(grade, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		TintColor = Color3.new(1, 1, 1),
+		Brightness = 0,
+		Saturation = 0,
+	}):Play()
+	Debris:AddItem(grade, 0.5)
+	CombatEffects.shake(0.2)
 end
 
 -- A jagged lightning bolt from high in the sky down to `ground`, with a flash.

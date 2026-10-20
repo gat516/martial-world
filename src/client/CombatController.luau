@@ -1,7 +1,7 @@
 --!strict
 -- The player's combat kit: fist basic attack, three technique slots and dodge.
 --
--- Basic attack: a four-hit chain played from ReplicatedStorage.Animations.Fists.
+-- Basic attack: a five-hit chain played from ReplicatedStorage.Animations.Fists.
 -- Swings come from the Strike button, or on their own while an enemy is in range
 -- (auto-attack). Soft auto-aim turns the character toward the target; tapping or
 -- clicking an enemy makes it the target.

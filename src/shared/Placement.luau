@@ -79,9 +79,12 @@ function Placement.boxes(inst: Instance, def: BuildItems.Def): { Box }
 		end
 	else
 		local pivot = pivotOf(inst)
-		local cf, size = if inst:IsA("Model")
-			then inst:GetBoundingBox()
-			else (inst :: BasePart).CFrame, (inst :: BasePart).Size
+		local cf: CFrame, size: Vector3
+		if inst:IsA("Model") then
+			cf, size = inst:GetBoundingBox()
+		else
+			cf, size = (inst :: BasePart).CFrame, (inst :: BasePart).Size
+		end
 		-- axis-aligned box in pivot space around the (possibly rotated) bounding box
 		local lo, hi = Vector3.one * math.huge, -Vector3.one * math.huge
 		for _, sx in { -1, 1 } do

@@ -1401,6 +1401,175 @@
 </Item>
 </Item>
 </Item>
+<Item class="Frame" referent="RBXTH1"><Properties>
+<string name="Name">Thread</string>
+<bool name="Visible">false</bool>
+<UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+<float name="BackgroundTransparency">1</float>
+<int name="ZIndex">10</int>
+</Properties>
+<Item class="TextButton" referent="RBXTH2"><Properties>
+<string name="Name">InputArea</string>
+<string name="Text"></string>
+<bool name="AutoButtonColor">false</bool>
+<UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+<Color3 name="BackgroundColor3"><R>0.0235</R><G>0.0392</G><B>0.0549</B></Color3>
+<float name="BackgroundTransparency">0.3</float>
+<int name="ZIndex">10</int>
+</Properties>
+</Item>
+<Item class="Frame" referent="RBXTH3"><Properties>
+<string name="Name">Field</string>
+<Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+<UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.56</YS><YO>0</YO></UDim2>
+<UDim2 name="Size"><XS>0.9</XS><XO>0</XO><YS>0.62</YS><YO>0</YO></UDim2>
+<Color3 name="BackgroundColor3"><R>0.0392</R><G>0.0863</G><B>0.0863</B></Color3>
+<float name="BackgroundTransparency">0.45</float>
+<int name="ZIndex">11</int>
+</Properties>
+<Item class="UIAspectRatioConstraint" referent="RBXTH4"><Properties>
+<string name="Name">UIAspectRatioConstraint</string>
+<float name="AspectRatio">1.6</float>
+</Properties>
+</Item>
+<Item class="UICorner" referent="RBXTH5"><Properties>
+<string name="Name">UICorner</string>
+<UDim name="CornerRadius"><S>0</S><O>14</O></UDim>
+</Properties>
+</Item>
+<Item class="UIStroke" referent="RBXTH6"><Properties>
+<string name="Name">UIStroke</string>
+<Color3 name="Color"><R>0.8039</R><G>0.6667</G><B>0.3725</B></Color3>
+<float name="Thickness">1.5</float>
+<float name="Transparency">0.55</float>
+</Properties>
+</Item>
+<Item class="Frame" referent="RBXTH7"><Properties>
+<string name="Name">WallTemplate</string>
+<bool name="Visible">false</bool>
+<Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+<Color3 name="BackgroundColor3"><R>0.8039</R><G>0.6667</G><B>0.3725</B></Color3>
+<float name="BackgroundTransparency">0.15</float>
+<int name="BorderSizePixel">0</int>
+<int name="ZIndex">11</int>
+</Properties>
+</Item>
+<Item class="Frame" referent="RBXTH8"><Properties>
+<string name="Name">WallJointTemplate</string>
+<bool name="Visible">false</bool>
+<Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+<Color3 name="BackgroundColor3"><R>0.8039</R><G>0.6667</G><B>0.3725</B></Color3>
+<float name="BackgroundTransparency">0.15</float>
+<int name="BorderSizePixel">0</int>
+<int name="ZIndex">11</int>
+</Properties>
+<Item class="UICorner" referent="RBXTH9"><Properties>
+<string name="Name">UICorner</string>
+<UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
+</Properties>
+</Item>
+</Item>
+<Item class="Frame" referent="RBXTH10"><Properties>
+<string name="Name">ChannelTemplate</string>
+<bool name="Visible">false</bool>
+<Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+<Color3 name="BackgroundColor3"><R>0.0549</R><G>0.1608</G><B>0.1412</B></Color3>
+<int name="BorderSizePixel">0</int>
+<int name="ZIndex">12</int>
+</Properties>
+</Item>
+<Item class="Frame" referent="RBXTH11"><Properties>
+<string name="Name">ChannelJointTemplate</string>
+<bool name="Visible">false</bool>
+<Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+<Color3 name="BackgroundColor3"><R>0.0549</R><G>0.1608</G><B>0.1412</B></Color3>
+<int name="BorderSizePixel">0</int>
+<int name="ZIndex">12</int>
+</Properties>
+<Item class="UICorner" referent="RBXTH12"><Properties>
+<string name="Name">UICorner</string>
+<UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
+</Properties>
+</Item>
+</Item>
+<Item class="Frame" referent="RBXTH13"><Properties>
+<string name="Name">AcupointTemplate</string>
+<bool name="Visible">false</bool>
+<Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+<Color3 name="BackgroundColor3"><R>0.3451</R><G>0.7686</G><B>0.6118</B></Color3>
+<float name="BackgroundTransparency">0.35</float>
+<int name="BorderSizePixel">0</int>
+<int name="ZIndex">13</int>
+</Properties>
+<Item class="UICorner" referent="RBXTH14"><Properties>
+<string name="Name">UICorner</string>
+<UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
+</Properties>
+</Item>
+</Item>
+<Item class="Frame" referent="RBXTH15"><Properties>
+<string name="Name">Goal</string>
+<bool name="Visible">false</bool>
+<Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+<Color3 name="BackgroundColor3"><R>1</R><G>0.8824</G><B>0.549</B></Color3>
+<float name="BackgroundTransparency">0.5</float>
+<int name="BorderSizePixel">0</int>
+<int name="ZIndex">13</int>
+</Properties>
+<Item class="UICorner" referent="RBXTH16"><Properties>
+<string name="Name">UICorner</string>
+<UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
+</Properties>
+</Item>
+<Item class="UIStroke" referent="RBXTH17"><Properties>
+<string name="Name">UIStroke</string>
+<Color3 name="Color"><R>1</R><G>0.8824</G><B>0.549</B></Color3>
+<float name="Thickness">2</float>
+</Properties>
+</Item>
+</Item>
+<Item class="Frame" referent="RBXTH18"><Properties>
+<string name="Name">ImpurityTemplate</string>
+<bool name="Visible">false</bool>
+<Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+<Color3 name="BackgroundColor3"><R>0.7451</R><G>0.3529</G><B>0.8627</B></Color3>
+<int name="BorderSizePixel">0</int>
+<int name="ZIndex">14</int>
+</Properties>
+<Item class="UICorner" referent="RBXTH19"><Properties>
+<string name="Name">UICorner</string>
+<UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
+</Properties>
+</Item>
+<Item class="UIStroke" referent="RBXTH20"><Properties>
+<string name="Name">UIStroke</string>
+<Color3 name="Color"><R>0.8627</R><G>0.6275</G><B>1</B></Color3>
+<float name="Thickness">2</float>
+</Properties>
+</Item>
+</Item>
+<Item class="Frame" referent="RBXTH21"><Properties>
+<string name="Name">Bead</string>
+<bool name="Visible">false</bool>
+<Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+<Color3 name="BackgroundColor3"><R>0.7843</R><G>1</G><B>0.902</B></Color3>
+<int name="BorderSizePixel">0</int>
+<int name="ZIndex">15</int>
+</Properties>
+<Item class="UICorner" referent="RBXTH22"><Properties>
+<string name="Name">UICorner</string>
+<UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
+</Properties>
+</Item>
+<Item class="UIStroke" referent="RBXTH23"><Properties>
+<string name="Name">UIStroke</string>
+<Color3 name="Color"><R>0.8039</R><G>0.6667</G><B>0.3725</B></Color3>
+<float name="Thickness">2</float>
+</Properties>
+</Item>
+</Item>
+</Item>
+</Item>
 <Item class="Frame" referent="RBXMG21"><Properties>
 <string name="Name">Pulse</string>
 <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>

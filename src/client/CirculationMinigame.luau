@@ -1,6 +1,6 @@
 --!strict
 -- Circulation runs, full screen and one thumb. The server picks which minigame
--- each run plays (Minigames/: Maze, Pulse, Gather), along with its length,
+-- each run plays (Minigames/: Maze, Thread, Pulse, Gather), along with its length,
 -- difficulty and impurity count; this runs the shared frame around it: the
 -- overlay with the game's title and hint, a 3-2-1 count-in, the game itself on
 -- its own stage, and a graded result once the server has scored the report.
@@ -16,6 +16,7 @@ local remote = ReplicatedStorage.Remotes.CultivationAction :: RemoteFunction
 
 local GAMES: { [string]: Feel.Game } = {
 	Maze = require(script.Parent.Minigames.Maze),
+	Thread = require(script.Parent.Minigames.Thread),
 	Pulse = require(script.Parent.Minigames.Pulse),
 	Gather = require(script.Parent.Minigames.Gather),
 }

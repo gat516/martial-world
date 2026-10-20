@@ -60,6 +60,16 @@ return {
 				},
 				hard = { size = 9, par = 14 },
 			},
+			-- Thread the Meridian: drag a bead along a winding channel without touching its walls.
+			Thread = {
+				weight = 1,
+				easy = {
+					width = 0.09, -- channel half-width on level 1, share of the field height
+					bends = 3, -- turns on level 1 (each later level adds one)
+					par = 9, -- seconds per level for full accuracy
+				},
+				hard = { width = 0.055, bends = 5, par = 11 },
+			},
 			-- Meridian Pulse: tap anywhere as each ring closes on its acupoint.
 			Pulse = {
 				weight = 1,

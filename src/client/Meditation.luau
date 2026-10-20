@@ -51,7 +51,7 @@ local function refresh()
 	local trim = button:FindFirstChild("Trim") :: UIStroke
 	trim.Thickness = if active then 2.5 else 1.2
 	trim.Transparency = if active then 0 else 0.45
-	row.Visible = seated and not Menus.isOpen()
+	row.Visible = seated and not Menus.isOpen();
 	-- a full bar has nothing to circulate into; Break Through shows instead
 	(row:FindFirstChild("Circulate") :: GuiObject).Visible = not barFull()
 	Layout.showCluster(not active)

@@ -46,7 +46,7 @@ return {
 		FIRST_RUN_BAND_BONUS = 0.1, -- ...and its band is this much wider
 	},
 
-	-- Meditation (M / the Meditate button): sit still and passive cultivation is
+	-- Meditation (M / the Cultivate tile, then Meditate): sit still and passive cultivation is
 	-- multiplied by where you sit. Seats and artifacts on your own peak add their
 	-- bonus when you meditate within ITEM_RANGE of them (the best one counts).
 	Meditation = {

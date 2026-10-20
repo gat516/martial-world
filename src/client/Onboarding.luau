@@ -16,11 +16,11 @@ local PULSE_COLOR = Color3.fromRGB(120, 96, 36)
 
 -- Which button each beat is about.
 local FOCUS = {
-	Circulate = "CirculateButton",
+	Circulate = "CultivateButton",
 	Breakthrough = "BreakthroughButton",
 	Gate = "TravelButton",
 	FirstKill = "AttackButton",
-	Refine = "CirculateButton",
+	Refine = "CultivateButton",
 }
 
 local Onboarding = {}

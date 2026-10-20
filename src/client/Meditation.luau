@@ -1,6 +1,8 @@
 --!strict
--- Meditation: M or the Meditate button (above Dash) sits the character down; M
--- or the button (now "Rise", lit gold) stands them back up. Plays
+-- Cultivation seat: M or the Cultivate tile (top right) sits the character down
+-- and asks how to cultivate: Meditate (idle, safe to leave running), Circulate
+-- (an active minigame, played seated) or Rise. Tapping the tile while seated
+-- brings the choice back; M while seated stands you up. Plays
 -- Animations.Meditate: Sit once, Loop while seated, GetUp to stand. Movement is
 -- locked while seated, taking damage stands you up, and the server
 -- (Meditation.luau) can end it too. Where you sit sets the passive multiplier;
@@ -10,6 +12,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local Controls = require(script.Parent.Controls)
 local Hud = require(script.Parent.Hud)
 local State = require(script.Parent.State)
@@ -27,17 +30,16 @@ local phase: Phase = "idle"
 local token = 0 -- bumped on every sit and stand, so stale callbacks do nothing
 local tracks: { [string]: AnimationTrack } = {}
 local button: TextButton
-
-local IDLE_FILL = Color3.fromRGB(35, 29, 16)
-local ACTIVE_FILL = Color3.fromRGB(110, 84, 30)
+local prompt: Frame
 
 local function refresh()
 	local active = phase ~= "idle"
-	button.Text = if active then "Rise" else "Meditate"
-	button.BackgroundColor3 = if active then ACTIVE_FILL else IDLE_FILL
-	local stroke = button:FindFirstChildOfClass("UIStroke")
-	if stroke then
-		stroke.Thickness = if active then 3 else 2
+	(button:FindFirstChild("Caption") :: TextLabel).Text = if active then "Seated" else "Cultivate"
+	local trim = button:FindFirstChild("Trim") :: UIStroke
+	trim.Thickness = if active then 2.5 else 1.2
+	trim.Transparency = if active then 0 else 0.45
+	if not active then
+		prompt.Visible = false
 	end
 end
 
@@ -106,10 +108,35 @@ function Meditation.stand(fromServer: boolean?)
 	refresh()
 end
 
+local function showPrompt()
+	if phase == "sitting" or phase == "seated" then
+		prompt.Visible = true
+	end
+end
+
+-- Circulate from the seat, then offer the choice again if still seated.
+local function circulate()
+	prompt.Visible = false
+	CirculationMinigame.start()
+	showPrompt()
+end
+
+-- The tile: sit and choose, or bring the choice back (or put it away) while seated.
+local function onTile()
+	if phase == "idle" then
+		Meditation.sit()
+		showPrompt()
+	elseif not CirculationMinigame.isRunning() then
+		prompt.Visible = not prompt.Visible and phase ~= "rising"
+	end
+end
+
+-- M: sit and choose, or stand straight back up.
 function Meditation.toggle()
 	if phase == "idle" then
 		Meditation.sit()
-	else
+		showPrompt()
+	elseif not CirculationMinigame.isRunning() then
 		Meditation.stand()
 	end
 end
@@ -138,8 +165,20 @@ local function onCharacter(character: Model)
 end
 
 function Meditation.init(gui: ScreenGui)
-	button = gui:FindFirstChild("MeditateButton") :: TextButton
-	button.Activated:Connect(Meditation.toggle)
+	button = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("CultivateButton") :: TextButton
+	button.Activated:Connect(onTile)
+	prompt = gui:FindFirstChild("CultivatePrompt") :: Frame
+	local options = prompt:FindFirstChild("Options") :: Frame
+	local idle = options:FindFirstChild("Idle") :: TextButton
+	idle.Activated:Connect(function()
+		prompt.Visible = false
+	end);
+	(options:FindFirstChild("Active") :: TextButton).Activated:Connect(function()
+		task.spawn(circulate)
+	end);
+	(options:FindFirstChild("Rise") :: TextButton).Activated:Connect(function()
+		Meditation.stand()
+	end)
 	ContextActionService:BindAction("Meditate", function(_, inputState)
 		if inputState == Enum.UserInputState.Begin then
 			Meditation.toggle()
@@ -166,6 +205,10 @@ function Meditation.init(gui: ScreenGui)
 			Hud.toast(`Meditating{where}: passive cultivation ×{spot.multiplier}`)
 		end
 		shown = multiplier
+		local detail = idle:FindFirstChild("Detail") :: TextLabel
+		detail.Text = if spot
+			then `Passive cultivation ×{spot.multiplier}. Safe to leave running.`
+			else "Sit in stillness. Safe to leave running."
 	end)
 end
 

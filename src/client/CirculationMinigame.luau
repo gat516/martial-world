@@ -366,12 +366,9 @@ function CirculationMinigame.isRunning(): boolean
 	return running
 end
 
+-- Started from the cultivation seat (Meditation.luau), never on its own.
 function CirculationMinigame.init(gui: ScreenGui)
 	overlay = gui:FindFirstChild("Circulation") :: Frame
-	local button = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("CirculateButton") :: TextButton
-	button.Activated:Connect(function()
-		task.spawn(CirculationMinigame.start)
-	end)
 end
 
 return CirculationMinigame

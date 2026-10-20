@@ -528,10 +528,31 @@ local function bindButtons(gui: ScreenGui)
 	local dodgeButton = gui:FindFirstChild("DodgeButton", true) :: TextButton
 	dodgeButton.Activated:Connect(CombatController.dodge)
 	local overlay = dodgeButton:FindFirstChild("Cooldown") :: Frame
+	-- mini chips between the vitals and the hotbar: each grays out and drains
+	-- while its cooldown runs (Strike's is the finished M1 string's)
+	local chips = gui:FindFirstChild("Cooldowns", true) :: Frame
+	local dashChip = chips:FindFirstChild("Dash") :: Frame
+	local strikeChip = chips:FindFirstChild("Strike") :: Frame
+	local strikeReady, strikeTotal = 0, 1
+	local function drain(chip: Frame, remaining: number, total: number)
+		local cover = chip:FindFirstChild("Cooldown") :: Frame
+		cover.Visible = remaining > 0
+		cover.Size = UDim2.fromScale(1, math.clamp(remaining / total, 0, 1))
+		local icon = chip:FindFirstChild("Icon") :: ImageLabel
+		icon.ImageColor3 = if remaining > 0 then Color3.fromRGB(120, 120, 120) else Color3.fromRGB(236, 242, 236)
+	end
 	RunService.RenderStepped:Connect(function()
-		local remaining = ActionState.current.dodgeReady - workspace:GetServerTimeNow()
+		local now = workspace:GetServerTimeNow()
+		local remaining = ActionState.current.dodgeReady - now
 		overlay.Visible = remaining > 0
 		overlay.Size = UDim2.fromScale(1, math.clamp(remaining / Config.DODGE_COOLDOWN, 0, 1))
+		drain(dashChip, remaining, Config.DODGE_COOLDOWN)
+		-- comboReady is set when the final hit starts; time the drain from there
+		local comboReady = ActionState.current.comboReady
+		if comboReady ~= strikeReady then
+			strikeReady, strikeTotal = comboReady, math.max(comboReady - now, 0.01)
+		end
+		drain(strikeChip, comboReady - now, strikeTotal)
 	end)
 end
 

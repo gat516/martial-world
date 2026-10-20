@@ -1,8 +1,9 @@
 --!strict
 -- Build mode on your own peak.
---   Place: pick a catalog item; a ghost follows the mouse (or your last tap on touch).
+--   Place: pick an item; a ghost follows the mouse (or your last tap on touch).
 --          Click (desktop) or Place (any device) to build it; R / Rotate turns it.
---   Delete: tap or click any placed item or starter piece, then Remove.
+--   Store: tap or click anything on your peak to select it, then tap it again (or Store)
+--          to put it in your inventory. Stored items show first in the bar with a count.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -14,20 +15,22 @@ local Config = require(ReplicatedStorage.Shared.Config).Build
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local Hud = require(script.Parent.Hud)
 local MyPeak = require(script.Parent.MyPeak)
+local State = require(script.Parent.State)
 
 local buildRemote = ReplicatedStorage.Remotes.BuildAction :: RemoteFunction
 local catalog = ReplicatedStorage:WaitForChild("BuildCatalog")
-local player = Players.LocalPlayer
 
 local VALID_COLOR = Color3.fromRGB(90, 220, 150)
 local INVALID_COLOR = Color3.fromRGB(230, 80, 80)
 local GHOST_TRANSPARENCY = 0.45
 local RAY_LENGTH = 600
 
+type Mode = "idle" | "place" | "store"
+
 local HINTS = {
-	idle = "Pick an item below, or Delete to clear things away",
+	idle = "Pick an item below, or Store to pack things away",
 	place = "Tap where it goes, then Place. R or Rotate turns it",
-	delete = "Tap something on your peak, then Remove",
+	store = "Tap something on your peak, then tap it again to store it",
 }
 
 local BuildMode = {}
@@ -36,29 +39,36 @@ local bar: Frame
 local actions: Frame
 local hint: TextLabel
 local active = false
-local mode: "idle" | "place" | "delete" = "idle"
+local mode: Mode = "idle"
 local selectedId: string? = nil
-local selectedButton: GuiButton? = nil
+local selectedTile: GuiButton? = nil
 local yaw = 0
 local ghost: Model? = nil
 local ghostHighlight: Highlight? = nil
 local aim: Vector3? = nil -- peak-local snapped position of the ghost
 local aimValid = false
-local deleteTarget: Instance? = nil
-local deleteBox: SelectionBox? = nil
+local storeTarget: Instance? = nil
+local storeBox: SelectionBox? = nil
 local stepConn: RBXScriptConnection? = nil
+local tiles: { [string]: GuiButton } = {}
 
 local function button(name: string): TextButton
 	return actions:FindFirstChild(name) :: TextButton
 end
 
-local function setMode(m: "idle" | "place" | "delete")
+local function setMode(m: Mode)
 	mode = m
 	hint.Text = HINTS[m]
-	button("PlaceButton").Text = if m == "delete" then "Remove" else "Place"
+	button("PlaceButton").Text = if m == "store" then "Store" else "Place"
 	button("PlaceButton").Visible = m ~= "idle"
 	button("RotateButton").Visible = m == "place"
-	button("DeleteButton").Text = if m == "delete" then "Cancel" else "Delete"
+	button("DeleteButton").Text = if m == "store" then "Cancel" else "Store"
+end
+
+local function stripTags(model: Instance)
+	for _, tag in CollectionService:GetTags(model) do
+		model:RemoveTag(tag)
+	end
 end
 
 -- Ghost ---------------------------------------------------------------------
@@ -77,9 +87,7 @@ local function makeGhost(itemId: string)
 		return
 	end
 	local g = template:Clone()
-	for _, tag in CollectionService:GetTags(g) do
-		g:RemoveTag(tag)
-	end
+	stripTags(g)
 	for _, d in g:GetDescendants() do
 		if d:IsA("BasePart") then
 			d.Anchored = true
@@ -100,11 +108,13 @@ local function makeGhost(itemId: string)
 	ghost, ghostHighlight = g, h
 end
 
-local function raycastFrom(screenPos: Vector2): RaycastResult?
+-- inViewport: true for UserInputService:GetMouseLocation() (includes the top-bar inset),
+-- false for InputObject positions (which don't).
+local function raycastFrom(screenPos: Vector2, inViewport: boolean): RaycastResult?
 	local camera = workspace.CurrentCamera
-	local ray = camera:ViewportPointToRay(screenPos.X, screenPos.Y)
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
+	local ray = if inViewport
+		then camera:ViewportPointToRay(screenPos.X, screenPos.Y)
+		else camera:ScreenPointToRay(screenPos.X, screenPos.Y)
 	local ignore: { Instance } = {}
 	for _, p in Players:GetPlayers() do
 		if p.Character then
@@ -114,13 +124,15 @@ local function raycastFrom(screenPos: Vector2): RaycastResult?
 	if ghost then
 		table.insert(ignore, ghost)
 	end
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
 	params.FilterDescendantsInstances = ignore
 	return workspace:Raycast(ray.Origin, ray.Direction * RAY_LENGTH, params)
 end
 
-local function aimAt(screenPos: Vector2)
+local function aimAt(screenPos: Vector2, inViewport: boolean)
 	local frame, peak = MyPeak.frame(), MyPeak.model()
-	local hit = raycastFrom(screenPos)
+	local hit = raycastFrom(screenPos, inViewport)
 	if not (frame and peak and hit) then
 		return
 	end
@@ -139,22 +151,28 @@ local function updateGhost()
 	ghostHighlight.OutlineColor = ghostHighlight.FillColor
 end
 
--- Delete selection ------------------------------------------------------------
+-- Store selection -------------------------------------------------------------
 
-local function selectForDelete(screenPos: Vector2)
-	local hit = raycastFrom(screenPos)
+local function setStoreTarget(piece: Instance?)
+	storeTarget = piece
+	if storeBox then
+		storeBox.Adornee = piece :: PVInstance?
+	end
+end
+
+-- Returns true when the tap landed on the piece that was already selected.
+local function selectForStore(screenPos: Vector2, inViewport: boolean): boolean
+	local hit = raycastFrom(screenPos, inViewport)
 	local piece = hit and Peak.pieceOf(hit.Instance)
 	if piece and Peak.of(piece) == MyPeak.model() then
-		deleteTarget = piece
-		if deleteBox then
-			deleteBox.Adornee = piece :: PVInstance
+		if piece == storeTarget then
+			return true
 		end
+		setStoreTarget(piece)
 	else
-		deleteTarget = nil
-		if deleteBox then
-			deleteBox.Adornee = nil
-		end
+		setStoreTarget(nil)
 	end
+	return false
 end
 
 -- Actions -------------------------------------------------------------------
@@ -169,15 +187,12 @@ local function confirm()
 		if not ok and message then
 			Hud.toast(message)
 		end
-	elseif mode == "delete" and deleteTarget then
-		local ok, message = buildRemote:InvokeServer("remove", { target = deleteTarget })
+	elseif mode == "store" and storeTarget then
+		local ok, message = buildRemote:InvokeServer("store", { target = storeTarget })
 		if not ok and message then
 			Hud.toast(message)
 		end
-		deleteTarget = nil
-		if deleteBox then
-			deleteBox.Adornee = nil
-		end
+		setStoreTarget(nil)
 	end
 end
 
@@ -186,62 +201,85 @@ local function rotate()
 	updateGhost()
 end
 
-local function selectItem(itemId: string, tile: GuiButton)
-	if selectedButton then
-		((selectedButton :: GuiButton):FindFirstChild("Selected") :: UIStroke).Enabled = false
+local function highlightTile(tile: GuiButton?, on: boolean)
+	if tile then
+		(tile:FindFirstChild("Selected") :: UIStroke).Enabled = on
 	end
-	selectedId, selectedButton = itemId, tile;
-	(tile:FindFirstChild("Selected") :: UIStroke).Enabled = true
-	deleteTarget = nil
+end
+
+local function selectItem(itemId: string, tile: GuiButton)
+	highlightTile(selectedTile, false)
+	selectedId, selectedTile = itemId, tile
+	highlightTile(tile, true)
+	setStoreTarget(nil)
 	makeGhost(itemId)
 	setMode("place")
+end
+
+local function deselectItem()
+	highlightTile(selectedTile, false)
+	selectedId, selectedTile = nil, nil
+	clearGhost()
 end
 
 -- Catalog -------------------------------------------------------------------
 
 local function previewInto(viewport: ViewportFrame, template: Model)
 	local model = template:Clone()
-	for _, tag in CollectionService:GetTags(model) do
-		model:RemoveTag(tag)
-	end
+	stripTags(model)
 	model.Parent = viewport
 	local cf, size = model:GetBoundingBox()
 	local camera = Instance.new("Camera")
 	camera.FieldOfView = 40
-	local distance = size.Magnitude * 1.25
-	camera.CFrame = CFrame.lookAt(cf.Position + Vector3.new(1, 0.8, 1).Unit * distance, cf.Position)
+	camera.CFrame = CFrame.lookAt(cf.Position + Vector3.new(1, 0.8, 1).Unit * size.Magnitude * 1.25, cf.Position)
 	camera.Parent = viewport
 	viewport.CurrentCamera = camera
+end
+
+-- Stored items first (with a count), then free catalog items; anything else is hidden.
+local function refreshCatalog()
+	local decor = State.current.decor or {}
+	for itemId, tile in tiles do
+		local item = catalog:FindFirstChild(itemId)
+		local owned = decor[itemId] or 0
+		local order = (item and item:GetAttribute("Order") or 99) :: number
+		tile.Visible = owned > 0 or (item ~= nil and item:GetAttribute("Free") == true)
+		tile.LayoutOrder = if owned > 0 then order else 1000 + order
+		local count = tile:FindFirstChild("CountLabel") :: TextLabel
+		count.Text = `x{owned}`
+		count.Visible = owned > 0
+		if not tile.Visible and selectedId == itemId then
+			deselectItem()
+			setMode("idle")
+		end
+	end
 end
 
 local function buildCatalog()
 	local list = bar:FindFirstChild("Catalog") :: ScrollingFrame
 	local template = list:FindFirstChild("ItemTemplate") :: TextButton
-	local items = catalog:GetChildren()
-	table.sort(items, function(a, b)
-		return (a:GetAttribute("Order") or 99) < (b:GetAttribute("Order") or 99)
-	end)
-	for i, item in items do
+	for _, item in catalog:GetChildren() do
 		if item:IsA("Model") then
 			local tile = template:Clone()
-			tile.Name = item.Name
-			tile.LayoutOrder = i
-			tile.Visible = true;
+			tile.Name = item.Name;
 			(tile:FindFirstChild("NameLabel") :: TextLabel).Text = item:GetAttribute("DisplayName") or item.Name
 			previewInto(tile:FindFirstChild("Preview") :: ViewportFrame, item)
 			tile.Activated:Connect(function()
 				selectItem(item.Name, tile)
 			end)
 			tile.Parent = list
+			tiles[item.Name] = tile
 		end
 	end
+	refreshCatalog()
+	State.onChanged(refreshCatalog)
 end
 
 -- Open / close ----------------------------------------------------------------
 
 local function onStep()
 	if mode == "place" and UserInputService.MouseEnabled and not UserInputService.TouchEnabled then
-		aimAt(UserInputService:GetMouseLocation())
+		aimAt(UserInputService:GetMouseLocation(), true)
 	end
 	updateGhost()
 end
@@ -255,24 +293,21 @@ function BuildMode.open()
 	bar.Visible = true
 	setMode("idle")
 	local box = Instance.new("SelectionBox")
-	box.Color3 = INVALID_COLOR
+	box.Color3 = VALID_COLOR
 	box.LineThickness = 0.08
 	box.Parent = workspace.CurrentCamera
-	deleteBox = box
+	storeBox = box
 	stepConn = RunService.RenderStepped:Connect(onStep)
 end
 
 function BuildMode.close()
 	active = false
 	bar.Visible = false
-	clearGhost()
-	if selectedButton then
-		((selectedButton :: GuiButton):FindFirstChild("Selected") :: UIStroke).Enabled = false
-	end
-	selectedId, selectedButton, deleteTarget = nil, nil, nil
-	if deleteBox then
-		deleteBox:Destroy()
-		deleteBox = nil
+	deselectItem()
+	setStoreTarget(nil)
+	if storeBox then
+		storeBox:Destroy()
+		storeBox = nil
 	end
 	if stepConn then
 		stepConn:Disconnect()
@@ -298,9 +333,9 @@ function BuildMode.init(gui: ScreenGui)
 	button("RotateButton").Activated:Connect(rotate)
 	button("PlaceButton").Activated:Connect(confirm)
 	button("DeleteButton").Activated:Connect(function()
-		clearGhost()
-		deleteTarget = nil
-		setMode(if mode == "delete" then "idle" else "delete")
+		deselectItem()
+		setStoreTarget(nil)
+		setMode(if mode == "store" then "idle" else "store")
 	end)
 
 	UserInputService.InputBegan:Connect(function(input, processed)
@@ -312,17 +347,17 @@ function BuildMode.init(gui: ScreenGui)
 		elseif input.UserInputType == Enum.UserInputType.Touch then
 			local pos = Vector2.new(input.Position.X, input.Position.Y)
 			if mode == "place" then
-				aimAt(pos)
-			elseif mode == "delete" then
-				selectForDelete(pos)
+				aimAt(pos, false)
+			elseif mode == "store" and selectForStore(pos, false) then
+				confirm()
 			end
 		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
 			local pos = UserInputService:GetMouseLocation()
 			if mode == "place" then
-				aimAt(pos)
+				aimAt(pos, true)
 				confirm()
-			elseif mode == "delete" then
-				selectForDelete(pos)
+			elseif mode == "store" and selectForStore(pos, true) then
+				confirm()
 			end
 		end
 	end)

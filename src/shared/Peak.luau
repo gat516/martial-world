@@ -22,27 +22,33 @@ function Peak.snap(n: number, step: number): number
 	return math.floor(n / step + 0.5) * step
 end
 
--- The peak model an instance belongs to (peaks carry a PeakIndex attribute).
+-- Peaks are the direct children of this folder. (Their sub-models also carry a
+-- PeakIndex attribute, so that attribute can't identify a peak.)
+local PEAKS_FOLDER = "SpiritPeaks"
+
+local function isPeak(node: Instance): boolean
+	local parent = node.Parent
+	return node:IsA("Model") and parent ~= nil and parent.Name == PEAKS_FOLDER
+end
+
+-- The peak model an instance belongs to.
 function Peak.of(inst: Instance): Model?
 	local node: Instance? = inst
 	while node do
-		if node:IsA("Model") and node:GetAttribute("PeakIndex") ~= nil then
-			return node
+		if isPeak(node) then
+			return node :: Model
 		end
 		node = node.Parent
 	end
 	return nil
 end
 
--- The deletable unit an instance is part of: a placed item or a starter piece.
+-- The storable unit an instance is part of: a placed item or a starter piece.
 function Peak.pieceOf(inst: Instance): Instance?
 	local node: Instance? = inst
-	while node do
+	while node and not isPeak(node) do
 		if node:GetAttribute("PlacedId") ~= nil or node:GetAttribute("StarterId") ~= nil then
 			return node
-		end
-		if node:GetAttribute("PeakIndex") ~= nil then
-			return nil
 		end
 		node = node.Parent
 	end

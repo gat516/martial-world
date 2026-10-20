@@ -52,6 +52,7 @@ function Cultivation.pushState(player: Player)
 		herbs = data.herbs,
 		seeds = data.seeds,
 		buffs = data.buffs,
+		decor = data.decor,
 	})
 end
 

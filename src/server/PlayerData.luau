@@ -18,6 +18,7 @@ export type Data = {
 	herbs: { [string]: number },
 	seeds: { [string]: number },
 	buffs: { ActiveBuff },
+	decor: { [string]: number }, -- stored build items, by catalog id
 	peak: {
 		removed: { [string]: boolean },
 		placed: { Placed },
@@ -32,6 +33,7 @@ local function default(): Data
 		herbs = {},
 		seeds = table.clone(Config.STARTING_SEEDS),
 		buffs = {},
+		decor = {},
 		peak = { removed = {}, placed = {}, plots = {} },
 	}
 end
@@ -78,6 +80,10 @@ function PlayerData.load(player: Player): Data
 				break
 			end
 			warn(`PlayerData: load {attempt}/3 failed for {player.Name}: {result}`)
+			if string.find(tostring(result), "Studio access to APIs", 1, true) then
+				warn("PlayerData: Studio API access is off, so this is an unsaved test session")
+				break -- retrying can't help
+			end
 			task.wait(attempt)
 		end
 	else

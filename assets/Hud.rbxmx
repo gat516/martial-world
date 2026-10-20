@@ -509,7 +509,7 @@
     </Item>
     <Item class="TextButton" referent="RBX64"><Properties>
      <string name="Name">DeleteButton</string>
-     <string name="Text">Delete</string>
+     <string name="Text">Store</string>
      <UDim2 name="Size"><XS>0</XS><XO>92</XO><YS>0</YS><YO>40</YO></UDim2>
      <Color3 name="BackgroundColor3"><R>0.588235</R><G>0.235294</G><B>0.235294</B></Color3>
      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
@@ -574,6 +574,25 @@
       <float name="Thickness">2</float>
       <bool name="Enabled">false</bool>
      </Properties>
+     </Item>
+     <Item class="TextLabel" referent="RBX75"><Properties>
+      <string name="Name">CountLabel</string>
+      <string name="Text">x0</string>
+      <bool name="Visible">false</bool>
+      <UDim2 name="Position"><XS>1</XS><XO>-4</XO><YS>0</YS><YO>4</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>0</YS><YO>18</YO></UDim2>
+      <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+      <Color3 name="BackgroundColor3"><R>0.345098</R><G>0.768627</G><B>0.611765</B></Color3>
+      <Color3 name="TextColor3"><R>0.0627451</R><G>0.0941176</G><B>0.109804</B></Color3>
+      <float name="TextSize">12</float>
+      <int name="ZIndex">2</int>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+      <Item class="UICorner" referent="RBX76"><Properties>
+       <string name="Name">UICorner</string>
+       <UDim name="CornerRadius"><S>0</S><O>9</O></UDim>
+      </Properties>
+      </Item>
      </Item>
      <Item class="ViewportFrame" referent="RBX73"><Properties>
       <string name="Name">Preview</string>

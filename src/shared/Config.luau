@@ -33,4 +33,11 @@ return {
 	Spawn = {
 		HEIGHT = 4, -- studs above a peak's spawn pad
 	},
+
+	-- Studio playtests only: topped up on join so systems can be tried right away.
+	TestKit = {
+		ENABLED = true,
+		HERBS_EACH = 5, -- every herb type
+		SEEDS_EACH = 5, -- every seed type
+	},
 }

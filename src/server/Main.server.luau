@@ -3,8 +3,10 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local Cultivation = require(script.Parent.Cultivation)
@@ -23,6 +25,19 @@ local function sendHome(player: Player, character: Model)
 	end
 end
 
+-- Studio playtests: top every herb and seed up to the test-kit amount (never above it,
+-- so repeated sessions don't inflate a saved profile).
+local function applyTestKit(data: PlayerData.Data)
+	local kit = Config.TestKit
+	if not (kit.ENABLED and RunService:IsStudio()) then
+		return
+	end
+	for _, id in Herbs.Order do
+		data.herbs[id] = math.max(data.herbs[id] or 0, kit.HERBS_EACH)
+		data.seeds[id] = math.max(data.seeds[id] or 0, kit.SEEDS_EACH)
+	end
+end
+
 local function onPlayerAdded(player: Player)
 	local peak = Peaks.assign(player)
 	player.CharacterAdded:Connect(function(character)
@@ -34,6 +49,7 @@ local function onPlayerAdded(player: Player)
 	Cultivation.watch(player)
 
 	local data = PlayerData.load(player)
+	applyTestKit(data)
 	if player.Parent == nil then
 		PlayerData.release(player)
 		Peaks.release(player)

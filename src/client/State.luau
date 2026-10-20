@@ -11,6 +11,7 @@ export type Snapshot = {
 	herbs: { [string]: number },
 	seeds: { [string]: number },
 	buffs: { Buff },
+	decor: { [string]: number }?,
 }
 
 local State = {}
@@ -22,6 +23,7 @@ State.current = {
 	herbs = {},
 	seeds = {},
 	buffs = {},
+	decor = {},
 } :: Snapshot
 
 local listeners: { (Snapshot) -> () } = {}

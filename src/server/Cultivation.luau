@@ -230,7 +230,7 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 		return false, "The heavens are silent."
 	end
 	Cultivation.advance(player)
-	return true, `Breakthrough! You reached {nextStage.name}.`
+	return true, nil -- the client shows its own title card
 end
 
 -- The flavor line for a player whose passive progress has fallen far behind what

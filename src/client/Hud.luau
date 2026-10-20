@@ -9,7 +9,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local State = require(script.Parent.State)
 
-local TOAST_SECONDS = 3.5
+local TOAST_SECONDS = 3.2
+local TOAST_QUEUE_MAX = 4 -- older pending toasts are dropped past this
 local BUFF_LABELS = { QiRate = "cultivation", WalkSpeed = "speed" }
 
 local player = Players.LocalPlayer
@@ -17,18 +18,33 @@ local player = Players.LocalPlayer
 local Hud = {}
 
 local gui: ScreenGui
-local toastToken = 0
+local queue: { string } = {}
+local showing = false
 
+-- Toasts queue up instead of overwriting each other, so simultaneous news (an
+-- insight and a manual from one kill) are all readable. Repeats are skipped.
 function Hud.toast(message: string)
-	local label = gui:FindFirstChild("Toast") :: TextLabel
-	toastToken += 1
-	local token = toastToken
-	label.Text = message
-	label.Visible = true
-	task.delay(TOAST_SECONDS, function()
-		if token == toastToken then
-			label.Visible = false
+	if queue[#queue] == message then
+		return
+	end
+	table.insert(queue, message)
+	while #queue > TOAST_QUEUE_MAX do
+		table.remove(queue, 1)
+	end
+	if showing then
+		return
+	end
+	showing = true
+	task.spawn(function()
+		local label = gui:FindFirstChild("Toast") :: TextLabel
+		while #queue > 0 do
+			label.Text = table.remove(queue, 1) :: string
+			label.Visible = true
+			-- longer messages stay up a little longer
+			task.wait(TOAST_SECONDS + math.min(2, #label.Text / 60))
 		end
+		label.Visible = false
+		showing = false
 	end)
 end
 

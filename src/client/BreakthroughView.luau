@@ -9,6 +9,8 @@ local TweenService = game:GetService("TweenService")
 
 local Hud = require(script.Parent.Hud)
 
+local SPARKLE = "rbxasset://textures/particles/sparkles_main.dds"
+
 local remotes = ReplicatedStorage.Remotes
 local player = Players.LocalPlayer
 
@@ -54,6 +56,52 @@ local function playEffect(who: Player, major: boolean)
 	TweenService:Create(ring, info, { Transparency = 1, Size = Vector3.new(0.3, 40, 40) }):Play()
 	Debris:AddItem(column, FADE_SECONDS + 0.2)
 	Debris:AddItem(ring, FADE_SECONDS + 0.2)
+
+	-- motes rising up the column
+	local motes = Instance.new("ParticleEmitter")
+	motes.Texture = SPARKLE
+	motes.Color = ColorSequence.new(color)
+	motes.LightEmission = 1
+	motes.Size = NumberSequence.new(0.9, 0)
+	motes.Lifetime = NumberRange.new(1, 1.6)
+	motes.Speed = NumberRange.new(14, 26)
+	motes.SpreadAngle = Vector2.new(25, 25)
+	motes.EmissionDirection = Enum.NormalId.Right -- the column's local X is world up
+	motes.Rate = 0
+	motes.Parent = column
+	motes:Emit(if major then 90 else 45)
+end
+
+-- The local player's moment: a soft flash and the new realm's name on a title card.
+local function titleCard(gui: ScreenGui, stageName: string, major: boolean)
+	local flash = gui:FindFirstChild("Flash") :: Frame
+	flash.BackgroundTransparency = if major then 0.15 else 0.45
+	flash.Visible = true
+	TweenService:Create(flash, TweenInfo.new(0.8), { BackgroundTransparency = 1 }):Play()
+	task.delay(0.85, function()
+		flash.Visible = false
+	end)
+
+	local banner = gui:FindFirstChild("Banner") :: Frame
+	local title = banner:FindFirstChild("Title") :: TextLabel
+	local kicker = banner:FindFirstChild("Kicker") :: TextLabel
+	local rule = banner:FindFirstChild("Rule") :: Frame
+	kicker.Text = if major then "MAJOR BREAKTHROUGH" else "BREAKTHROUGH"
+	title.Text = stageName
+	for _, label in { title, kicker } do
+		label.TextTransparency = 1
+		TweenService:Create(label, TweenInfo.new(0.5), { TextTransparency = 0 }):Play()
+	end
+	rule.Size = UDim2.fromOffset(0, 2)
+	TweenService:Create(rule, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(0.5, 0, 0, 2) }):Play()
+	banner.Visible = true
+	task.delay(if major then 4 else 2.6, function()
+		for _, label in { title, kicker } do
+			TweenService:Create(label, TweenInfo.new(0.6), { TextTransparency = 1 }):Play()
+		end
+		task.wait(0.65)
+		banner.Visible = false
+	end)
 end
 
 function BreakthroughView.init(gui: ScreenGui)
@@ -83,7 +131,9 @@ function BreakthroughView.init(gui: ScreenGui)
 	local breakthroughRemote = remotes.Breakthrough :: RemoteEvent
 	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean)
 		playEffect(who, major)
-		if who ~= player and major then
+		if who == player then
+			titleCard(gui, stageName, major)
+		elseif major then
 			Hud.toast(`{who.DisplayName} broke through to {stageName}!`)
 		end
 	end)

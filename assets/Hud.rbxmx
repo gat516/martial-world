@@ -2183,5 +2183,67 @@
    </Properties>
    </Item>
   </Item>
+  <Item class="Frame" referent="RBXBN1"><Properties>
+   <string name="Name">Flash</string>
+   <bool name="Visible">false</bool>
+   <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+   <Color3 name="BackgroundColor3"><R>1.000000</R><G>0.960784</G><B>0.862745</B></Color3>
+   <float name="BackgroundTransparency">1</float>
+   <int name="ZIndex">30</int>
+  </Properties>
+  </Item>
+  <Item class="Frame" referent="RBXBN2"><Properties>
+   <string name="Name">Banner</string>
+   <bool name="Visible">false</bool>
+   <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+   <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.38</YS><YO>0</YO></UDim2>
+   <UDim2 name="Size"><XS>0.9</XS><XO>0</XO><YS>0</YS><YO>120</YO></UDim2>
+   <float name="BackgroundTransparency">1</float>
+   <int name="ZIndex">31</int>
+  </Properties>
+   <Item class="TextLabel" referent="RBXBN3"><Properties>
+    <string name="Name">Kicker</string>
+    <string name="Text">BREAKTHROUGH</string>
+    <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>26</YO></UDim2>
+    <float name="BackgroundTransparency">1</float>
+    <Color3 name="TextColor3"><R>0.909804</R><G>0.745098</G><B>0.360784</B></Color3>
+    <float name="TextSize">18</float>
+    <bool name="TextWrapped">true</bool>
+    <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+    <int name="ZIndex">32</int>
+    <float name="TextStrokeTransparency">0.4</float>
+   </Properties>
+   </Item>
+   <Item class="TextLabel" referent="RBXBN4"><Properties>
+    <string name="Name">Title</string>
+    <string name="Text"></string>
+    <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>26</YO></UDim2>
+    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>64</YO></UDim2>
+    <float name="BackgroundTransparency">1</float>
+    <Color3 name="TextColor3"><R>1.000000</R><G>0.964706</G><B>0.882353</B></Color3>
+    <float name="TextSize">48</float>
+    <bool name="TextScaled">true</bool>
+    <float name="TextStrokeTransparency">0.3</float>
+    <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+    <int name="ZIndex">32</int>
+   </Properties>
+    <Item class="UITextSizeConstraint" referent="RBXBN5"><Properties>
+     <string name="Name">UITextSizeConstraint</string>
+     <float name="MaxTextSize">52</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Frame" referent="RBXBN6"><Properties>
+    <string name="Name">Rule</string>
+    <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
+    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>96</YO></UDim2>
+    <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>2</YO></UDim2>
+    <Color3 name="BackgroundColor3"><R>0.909804</R><G>0.745098</G><B>0.360784</B></Color3>
+    <int name="BorderSizePixel">0</int>
+    <int name="ZIndex">32</int>
+   </Properties>
+   </Item>
+  </Item>
  </Item>
 </roblox>

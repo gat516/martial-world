@@ -1,12 +1,13 @@
 --!strict
 -- Qi nodes in the wilds (parts tagged "QiNode" with a GatherPrompt): holding the
--- prompt pours raw qi into the dantian, once per node per player every so often.
+-- prompt pours raw qi into the dantian (and drops a few Spirit Stones), once per node per player every so often.
 -- Circulation runs are also allowed within a node's Radius (see Circulation.luau).
 
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Wilds
+local Economy = require(ReplicatedStorage.Shared.Config).Economy
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -39,9 +40,12 @@ local function gather(node: BasePart, player: Player)
 	byPlayer[player] = now
 	local amount = math.min(room, math.floor(stage.dantian * Config.NODE_SHARE))
 	data.rawQi += amount
+	local stones = math.random(Economy.NODE_STONES[1], Economy.NODE_STONES[2])
+	data.stones += stones
 	Cultivation.markActive(player)
 	Cultivation.pushState(player)
 	effectRemote:FireClient(player, "qi", node.Position, amount)
+	effectRemote:FireClient(player, "stones", node.Position + Vector3.new(0, 2, 0), stones)
 end
 
 local function watch(node: Instance)

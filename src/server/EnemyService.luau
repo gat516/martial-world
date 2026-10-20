@@ -234,11 +234,14 @@ function EnemyService.died(enemy: Enemy)
 			local amount = math.min(qiFor(enemy.def, data), cap - data.rawQi)
 			data.rawQi += math.max(0, amount)
 			data.stats.kills += 1
+			local stones = math.random(enemy.def.stones[1], enemy.def.stones[2])
+			data.stones += stones
 			Cultivation.markActive(player)
 			for _, fn in EnemyService.onKill do
 				task.spawn(fn, player, enemy.def, enemy.model)
 			end
 			Cultivation.pushState(player)
+			effectRemote:FireClient(player, "stones", position, stones)
 			if amount > 0 then
 				effectRemote:FireClient(player, "qi", position, amount)
 			else

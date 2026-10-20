@@ -486,6 +486,8 @@ local function onEffect(kind: string, ...: any)
 		end
 	elseif kind == "qi" then
 		CombatEffects.number(args[1], `+{args[2]} qi`, Color3.fromRGB(120, 235, 180), 20)
+	elseif kind == "stones" then
+		CombatEffects.number(args[1] + Vector3.new(0, 1.5, 0), `+{args[2]} spirit stones`, Color3.fromRGB(225, 240, 255), 18)
 	elseif kind == "insight" then
 		Hud.toast(`+{args[1]} insight: {args[2]}`)
 	elseif kind == "manual" then

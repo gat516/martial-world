@@ -41,6 +41,7 @@ export type Def = {
 	qiDrop: number,
 	respawn: number, -- seconds before a replacement spawns
 	drops: { Drop }?,
+	stones: { number }, -- Spirit Stones each damager gets on a kill (min, max)
 	boss: boolean?,
 	attack: Attack, -- the only attack, or the opener of a boss pattern
 	pattern: { Attack }?, -- bosses: attacks used in rotation after `attack`
@@ -59,6 +60,7 @@ Enemies.Defs = {
 		aggro = 40,
 		leash = 90,
 		qiDrop = 14,
+		stones = { 3, 6 },
 		respawn = 20,
 		drops = { { item = "LesserSpiritCore", chance = 0.2 } },
 		attack = {
@@ -82,6 +84,7 @@ Enemies.Defs = {
 		aggro = 35,
 		leash = 90,
 		qiDrop = 24,
+		stones = { 5, 9 },
 		respawn = 30,
 		drops = { { item = "LesserSpiritCore", chance = 0.35 } },
 		attack = {
@@ -106,6 +109,7 @@ Enemies.Defs = {
 		leash = 80,
 		keepAway = 12,
 		qiDrop = 20,
+		stones = { 4, 8 },
 		respawn = 25,
 		drops = { { item = "LesserSpiritCore", chance = 0.25 } },
 		attack = {
@@ -128,6 +132,7 @@ Enemies.Defs = {
 		aggro = 55,
 		leash = 95,
 		qiDrop = 160,
+		stones = { 60, 90 },
 		respawn = 180,
 		drops = { { item = "GreaterSpiritCore", chance = 1 }, { item = "LesserSpiritCore", chance = 1 } },
 		summonAt = { 0.66, 0.33 },

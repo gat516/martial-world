@@ -10,6 +10,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Data
+local Economy = require(ReplicatedStorage.Shared.Config).Economy
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
@@ -26,6 +27,7 @@ export type Data = {
 	realm: { major: string, minor: number },
 	cultivation: number, -- progress in the current realm bar
 	rawQi: number, -- held in the dantian, refined by circulation runs
+	stones: number, -- Spirit Stones, spent at the Spirit Market
 	insight: number,
 	techniques: { owned: { [string]: Technique } },
 	hotbar: { string },
@@ -58,6 +60,7 @@ local function default(): Data
 		realm = { major = "QiCondensation", minor = 1 },
 		cultivation = 0,
 		rawQi = Config.STARTING_RAW_QI,
+		stones = Economy.STARTING_STONES,
 		insight = 0,
 		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } } },
 		hotbar = Hotbar.empty({ "SwordQiWave" }),

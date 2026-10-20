@@ -109,6 +109,7 @@ local function publish(player: Player, data: PlayerData.Data)
 	player:SetAttribute("CultivationMax", stage.bar)
 	player:SetAttribute("RawQi", math.floor(data.rawQi))
 	player:SetAttribute("DantianCap", stage.dantian)
+	player:SetAttribute("Stones", data.stones)
 end
 
 -- Called with (player, data) after every state push (Inventory syncs tools from it).

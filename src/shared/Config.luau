@@ -124,6 +124,13 @@ return {
 		MIN_INTERVAL = 0.15, -- seconds between build requests per player
 	},
 
+	-- Spirit Stones: the currency build items are bought with at the Spirit Market
+	-- on the main peak. Beasts drop them (Enemies.luau `stones`), and so do qi nodes.
+	Economy = {
+		STARTING_STONES = 150,
+		NODE_STONES = { 4, 8 }, -- per qi node gather (min, max)
+	},
+
 	Garden = {
 		SEEDS_BACK = { 1, 2 }, -- seeds returned per harvest (min, max)
 		PLANT_SPOTS = { -4, 0, 4 }, -- plant offsets along a bed's long axis

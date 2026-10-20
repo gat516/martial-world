@@ -40,7 +40,7 @@ function Layout.apply()
 	local scale = math.clamp((room - 24) / STACK_WIDTH, 0.5, 1)
 	local centre = if touch then UDim.new(0, room / 2) else UDim.new(0.5, 0)
 	hotbar.Position = UDim2.new(centre, UDim.new(1, -10 * scale))
-	vitals.Position = UDim2.new(centre, UDim.new(1, -70 * scale))
+	vitals.Position = UDim2.new(centre, UDim.new(1, -83 * scale))
 	setScale(hotbar, scale)
 	setScale(vitals, scale)
 

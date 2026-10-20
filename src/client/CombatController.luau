@@ -380,10 +380,8 @@ local function flashArea(def: Techniques.Def, origin: Vector3, dir: Vector3)
 		local length = def.length :: number
 		cframe = CFrame.lookAt(origin, origin + dir) * CFrame.new(0, 0, -length / 2)
 		size = Vector3.new(def.width :: number, 12, length)
-	elseif def.kind == "circle" then
-		local r = def.radius :: number
-		cframe, size = CFrame.new(origin), Vector3.new(r * 2, 16, r * 2)
 	else
+		-- circle hits flash when Palm Strike's wave reaches them (CombatEffects)
 		return
 	end
 	for _, model in Hitbox.enemiesIn(cframe, size, excludeMe(), origin) do
@@ -490,6 +488,10 @@ local function tryStart(kind: string, id: string?): boolean
 	else
 		current.track = tracks[action.profile.animation]
 		if kind == "basic" then playActionSound(current, "Swing") end
+		if kind == "cast" and id then
+			local owned = State.current.techniques.owned[id]
+			CombatEffects.windup(character, id, if owned then owned.level else 1)
+		end
 	end
 	local track = current.track
 	if track then

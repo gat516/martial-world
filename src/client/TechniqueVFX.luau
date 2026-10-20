@@ -180,6 +180,34 @@ function TechniqueVFX.cleanup(inst: Instance, extra: number?)
 	end)
 end
 
+-- Fit authored timing to the live action timeline. Emitters whose `Phase`
+-- attribute matches `phase` (or all emitters when `phase` is nil) get their
+-- Lifetime and EmitDelay multiplied by `actual / authored`, where `authored`
+-- is the seconds the template was timed for (e.g. its `AuthoredActive`
+-- attribute) and `actual` comes from ActionRules.castProfile. Aftermath
+-- emitters carry no Phase and keep their authored fade.
+function TechniqueVFX.fit(inst: Instance, phase: string?, authored: number?, actual: number)
+	if type(authored) ~= "number" or authored <= 0 or actual <= 0 then
+		return
+	end
+	local k = actual / authored
+	if math.abs(k - 1) < 1e-3 then
+		return
+	end
+	local list = inst:GetDescendants()
+	table.insert(list, inst)
+	for _, d in list do
+		if not d:IsA("ParticleEmitter") or (phase and d:GetAttribute("Phase") ~= phase) then
+			continue
+		end
+		d.Lifetime = NumberRange.new(d.Lifetime.Min * k, d.Lifetime.Max * k)
+		local delay = d:GetAttribute("EmitDelay")
+		if type(delay) == "number" then
+			d:SetAttribute("EmitDelay", delay * k)
+		end
+	end
+end
+
 -- The template for a technique at a level, or nil if it hasn't been authored.
 function TechniqueVFX.template(id: string, level: number): (Instance?, number, number)
 	local tier, step = Techniques.visualTier(level)
@@ -216,6 +244,21 @@ function TechniqueVFX.spawn(id: string, level: number, cframe: CFrame): (Model?,
 	copy:PivotTo(cframe)
 	copy.Parent = TechniqueVFX.folder
 	return copy, tier
+end
+
+-- A stepped copy of one named part of the tier template (e.g. "Windup"), placed
+-- and parented but not emitted. Cheaper than spawning the whole template.
+function TechniqueVFX.part(id: string, level: number, name: string, cframe: CFrame): BasePart?
+	local template, _, step = TechniqueVFX.template(id, level)
+	local source = template and template:FindFirstChild(name)
+	if not (source and source:IsA("BasePart")) then
+		return nil
+	end
+	local copy = source:Clone()
+	stepCounts(copy, step)
+	copy.CFrame = cframe
+	copy.Parent = TechniqueVFX.folder
+	return copy
 end
 
 -- Detach a named child part (e.g. "Impact") from a spawned copy so it can be

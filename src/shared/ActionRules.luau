@@ -105,6 +105,20 @@ function Rules.cancel(s: State, now: number, preserveCombo: boolean?)
 	end
 end
 
+-- A technique cast's timeline. Playback speed is rescaled so release (Hit)
+-- lands on the source animation's Hit pose; active runs Hit -> Hit Stop.
+-- Effects read it too, so visuals follow retuned timings.
+function Rules.castProfile(def: Techniques.Def): Profile
+	local source = Config.FIST_STEPS[def.animation]
+	local speed = source.hit / def.cast.windup
+	return {
+		animation = def.animation, speed = speed, windup = def.cast.windup,
+		active = (source.hitStop - source.hit) / speed, recovery = def.cast.recovery,
+		moveMultiplier = def.cast.moveMultiplier, recoveryMoveMultiplier = def.cast.recoveryMoveMultiplier,
+		dodgeBeforeHit = def.cast.dodgeBeforeHit,
+	}
+end
+
 function Rules.start(s: State, kind: string, id: string?, now: number, sequence: number): Action?
 	if not Rules.canTransition(s.action, kind, now) then
 		return nil
@@ -128,14 +142,7 @@ function Rules.start(s: State, kind: string, id: string?, now: number, sequence:
 		if not def or now < (s.ready[def.id] or 0) then
 			return nil
 		end
-		local source = Config.FIST_STEPS[def.animation]
-		local speed = source.hit / def.cast.windup
-		profile = {
-			animation = def.animation, speed = speed, windup = def.cast.windup,
-			active = (source.hitStop - source.hit) / speed, recovery = def.cast.recovery,
-			moveMultiplier = def.cast.moveMultiplier, recoveryMoveMultiplier = def.cast.recoveryMoveMultiplier,
-			dodgeBeforeHit = def.cast.dodgeBeforeHit,
-		}
+		profile = Rules.castProfile(def)
 	elseif kind == "dodge" then
 		if now < s.dodgeReady then
 			return nil

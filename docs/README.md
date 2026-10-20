@@ -19,7 +19,8 @@ Entry points: `src/server/Main.server.luau` (requires every server module, loads
 profiles, wires remotes and hooks) and `src/client/Main.client.luau` (inits every
 client module against `StarterGui.Hud`).
 
-Mapped assets: `Remotes`, `Animations`, `Ambience`, `BuildKit`, `GardenKit`
+Mapped assets: `Remotes`, `Animations`, `Ambience`, `Effects` (binary
+`assets/Effects.rbxm`, VFX templates with plugin attributes), `BuildKit`, `GardenKit`
 (ReplicatedStorage); `Hud`, `Rewards`, `Prompts` (StarterGui); `Music`, `SFX`
 (SoundService); `Wilds`, `Hub` (Workspace); `Enemies`, `PeakTiers`,
 `ItemTemplates` (ServerStorage). Never restructure these by hand in Studio: see

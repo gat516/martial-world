@@ -46,6 +46,26 @@ relays `Effect "cast"` with the caster's technique level to everyone else, and
 template for that level. Visuals must match the gameplay shape (line length and
 width, circle radius, chain jumps, zone radius and seconds, buff seconds).
 
+Timing follows the cast's action timeline (`ActionRules.castProfile`, built
+from `Config.Combat.FIST_STEPS` for the technique's animation): a template's
+`Windup` part plays from cast start to Hit (`CombatEffects.windup`, caster
+only), `cast()` runs at Hit, emitters tagged `Phase = "active"` are fitted to
+Hit -> Hit Stop (`TechniqueVFX.fit` against the root's `AuthoredActive`), and
+untagged aftermath keeps its authored fade through recovery.
+
+Templates (`ReplicatedStorage.Effects`, `assets/Effects.rbxm`, built from the
+vfxia Asset Library):
+- **Palm Strike** (`PalmStrike_T1..T4`, authored at radius 9, rescaled to
+  `def.radius`): a gold ground shockwave from the caster's feet to the radius
+  by Hit Stop, dust kicked out along the ground, a palm flash at hand height,
+  and an impact on each enemy inside the radius as the front reaches it (star
+  flash, spiky hit ring, sparks, drawn in front of the target with ZOffset).
+  The impact also fires `CombatEffects.flash` (the caster's release-time flash
+  for circles moved here). II adds an echo ring, centre rays and impact dust;
+  III a rotating seal, ground cracks, debris and a wind swirl; IV a crater, a
+  golden halo behind the caster, one point light and a second shake on the
+  first impact. Windup: qi motes gather into the palm (III+ a closing seal).
+
 ## Data flow
 Client presses -> `ActionRules` decides if legal -> plays locally and sends
 `Attack { begin }`; hit reports follow as `Attack { hit, targets }` -> server
@@ -65,6 +85,10 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
 - Per stage (`Pacing.luau`): player `power` and `health` (curve and Adjust).
 
 ## Known gaps
+- Palm Strike plays Fists.4, whose `Hit Stop` marker is at 0.45 s, but
+  `Config.Combat.FIST_STEPS[4].hitStop` is 0.50: the hitbox window (and the
+  effect's active phase, which follows Config) runs ~0.05 s of source time past
+  the animation's marker. Effects follow Config until the two are aligned.
 - Enemy hits don't knock players back or stagger them yet.
 - An interrupted enemy windup's telegraph still plays out on clients.
 - `Dodge` and `Cast` remotes in `assets/Remotes.rbxmx` are unused.

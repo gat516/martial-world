@@ -7,8 +7,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
+local Rules = require(ReplicatedStorage.Shared.ActionRules)
+local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Sfx = require(script.Parent.Sfx)
+local TechniqueVFX = require(script.Parent.TechniqueVFX)
 
 local CombatEffects = {}
 
@@ -78,6 +81,145 @@ local function burst(position: Vector3, props: { [string]: any }, count: number,
 	Debris:AddItem(anchor, life or 2)
 end
 
+-- Seconds after emit until a flat ring emitter's front reaches `frac` of its
+-- final radius (its Size curve is the ring radius over its lifetime).
+local function frontTime(ring: ParticleEmitter, frac: number): number
+	local kps = ring.Size.Keypoints
+	local final = kps[#kps].Value
+	local want = frac * final
+	for i = 2, #kps do
+		local a, b = kps[i - 1], kps[i]
+		if want <= b.Value then
+			local t = (want - a.Value) / math.max(b.Value - a.Value, 1e-3)
+			return (a.Time + (b.Time - a.Time) * math.clamp(t, 0, 1)) * ring.Lifetime.Max
+		end
+	end
+	return ring.Lifetime.Max
+end
+
+local function nearCamera(position: Vector3, studs: number): boolean
+	return (workspace.CurrentCamera.CFrame.Position - position).Magnitude <= studs
+end
+
+local SHAKE_BY_TIER = { 0.14, 0.2, 0.28, 0.38 }
+
+-- Palm Strike from its tier template (ReplicatedStorage.Effects.PalmStrike):
+-- a ground wave from the caster's feet out to the gameplay radius, and an
+-- impact on every enemy the front reaches, timed to when it gets there.
+-- Returns false when the template is missing so the old drawing still plays.
+local function palmStrike(def: Techniques.Def, level: number, character: Model?, origin: Vector3, dir: Vector3): boolean
+	local radius = def.radius :: number
+	local ground = Vector3.new(origin.X, groundBelow(origin), origin.Z)
+	local copy, tier = TechniqueVFX.spawn(def.id, level, CFrame.lookAt(ground, ground + dir))
+	if not copy then
+		return false
+	end
+	local authored = copy:GetAttribute("AuthoredRadius")
+	local scale = if type(authored) == "number" and authored > 0 then radius / authored else 1
+	TechniqueVFX.rescale(copy, scale)
+	-- cast() runs at Hit: the wave reaches the radius by Hit Stop, so every
+	-- impact lands inside the active window; aftermath keeps its authored fade
+	local timeline = Rules.castProfile(def)
+	TechniqueVFX.fit(copy, "active", copy:GetAttribute("AuthoredActive"), timeline.active)
+	local impact = TechniqueVFX.take(copy, "Impact")
+	local windup = TechniqueVFX.take(copy, "Windup")
+	if windup then
+		windup:Destroy() -- played at cast start (CombatEffects.windup)
+	end
+	-- hand-height parts follow the caster's root, not the template's guess
+	local palm = copy:FindFirstChild("Palm") :: BasePart?
+	if palm then
+		palm.CFrame = CFrame.lookAt(origin + dir * 1.6, origin + dir * 2.6)
+	end
+	local halo = copy:FindFirstChild("Halo") :: BasePart?
+	if halo then
+		local at = origin - dir * 1.2 + Vector3.new(0, 0.6, 0)
+		halo.CFrame = CFrame.lookAt(at, at + dir)
+	end
+	TechniqueVFX.emit(copy)
+
+	local swirl = copy:FindFirstChild("Swirl") :: BasePart?
+	if swirl then
+		local reach = radius * 2 * 1.05
+		swirl.Transparency = 0.3
+		TweenService:Create(swirl, TweenInfo.new(timeline.active + 0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = Vector3.new(reach, swirl.Size.Y * 2, reach),
+			Transparency = 1,
+			CFrame = swirl.CFrame * CFrame.Angles(0, math.rad(140), 0),
+		}):Play()
+	end
+	local light = palm and palm:FindFirstChildOfClass("PointLight")
+	if light then
+		light.Brightness = 3
+		TweenService:Create(light, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Brightness = 0 }):Play()
+	end
+	if nearCamera(origin, 45) then
+		CombatEffects.shake(SHAKE_BY_TIER[tier] or 0.2)
+	end
+	TechniqueVFX.cleanup(copy, 0.2)
+
+	-- impacts: every enemy inside the radius, hit as the wave front reaches it
+	local ring = copy:FindFirstChild("WaveFront", true)
+	if not (impact and ring and ring:IsA("ParticleEmitter")) then
+		return true
+	end
+	local params = OverlapParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { folder, character :: Instance? }
+	local box = Vector3.new(radius * 2 + 2, 16, radius * 2 + 2)
+	local hits = 0
+	for _, model in Hitbox.enemiesIn(CFrame.new(origin), box, params, origin) do
+		if hits >= 6 then
+			break
+		end
+		local cf, size = model:GetBoundingBox()
+		local p = cf.Position
+		local flat = Vector3.new(p.X - ground.X, 0, p.Z - ground.Z)
+		local distance = flat.Magnitude
+		if distance > radius + 1.5 then
+			continue
+		end
+		hits += 1
+		local index = hits
+		local toward = if distance > 0.01 then flat.Unit else dir
+		-- the near side of the target, where the front meets it
+		local near = math.max(distance - math.min(size.X, size.Z) * 0.4, 1)
+		local at = Vector3.new(ground.X, 0, ground.Z) + toward * near
+		local feet = Vector3.new(at.X, groundBelow(Vector3.new(at.X, p.Y, at.Z)) + 0.15, at.Z)
+		task.delay(frontTime(ring, math.clamp(near / radius, 0, 1)), function()
+			local burst = TechniqueVFX.burstAt(impact, CFrame.lookAt(feet, feet + toward))
+			local body = burst:FindFirstChild("Body")
+			if body and body:IsA("Attachment") then
+				body.Position = Vector3.new(0, math.max(p.Y - feet.Y, 1), 0)
+			end
+			if model.Parent then
+				CombatEffects.flash(model)
+			end
+			if index == 1 and tier >= 4 and nearCamera(feet, 45) then
+				CombatEffects.shake(0.25) -- the mastery strike lands twice: release, then the first impact
+			end
+		end)
+	end
+	return true
+end
+
+-- Anticipation while a cast winds up (the caster's own client only, from
+-- cast start to Hit): plays the tier template's Windup part in front of the
+-- caster, if it has one. Observers only receive the cast at release.
+function CombatEffects.windup(character: Model, id: string, level: number)
+	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not root or not Techniques.Defs[id] then
+		return
+	end
+	local p = TechniqueVFX.part(id, level, "Windup", root.CFrame * CFrame.new(0, 0, -1.2))
+	if p then
+		-- the charge fills the windup exactly, peaking at Hit when cast() takes over
+		TechniqueVFX.fit(p, nil, p:GetAttribute("AuthoredWindup"), Rules.castProfile(Techniques.Defs[id]).windup)
+		TechniqueVFX.emit(p)
+		TechniqueVFX.cleanup(p)
+	end
+end
+
 -- `chain` lists the chain technique's targets, in order (nil for other kinds).
 -- `level` is the caster's technique level at cast time; it picks the visual tier
 -- (Techniques.visualTier) once a technique's templates exist in Effects.
@@ -108,6 +250,8 @@ function CombatEffects.cast(character: Model?, id: string, origin: Vector3, dir:
 		trail.Parent = blade
 		TweenService:Create(blade, TweenInfo.new(0.3, Enum.EasingStyle.Linear), { CFrame = goal }):Play()
 		task.delay(0.2, fade, blade, 0.15)
+	elseif def.kind == "circle" and palmStrike(def, level :: number, character, origin, dir) then
+		return
 	elseif def.kind == "circle" then
 		local ground = Vector3.new(origin.X, groundBelow(origin), origin.Z)
 		local ring = disc(color, ground, 1, 0.4)

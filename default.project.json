@@ -15,6 +15,9 @@
       "Ambience": {
         "$path": "assets/Ambience.rbxmx"
       },
+      "Effects": {
+        "$path": "assets/Effects.rbxm"
+      },
       "BuildKit": {
         "$path": "assets/BuildKit.rbxmx"
       },

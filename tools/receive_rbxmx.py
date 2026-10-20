@@ -4,6 +4,7 @@
 # this script; wrap it in <roblox version="4">...</roblox> to make an .rbxmx.
 import http.server, os, re
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frag")
+os.makedirs(OUT, exist_ok=True)
 class H(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         name = re.sub(r"[^A-Za-z0-9_]", "", self.path.strip("/")) or "out"

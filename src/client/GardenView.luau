@@ -12,6 +12,7 @@ local CollectionService = game:GetService("CollectionService")
 local HttpService = game:GetService("HttpService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
@@ -310,15 +311,17 @@ local function track(plot: Instance)
 	plot:GetAttributeChangedSignal("Plants"):Connect(function()
 		sync(plot)
 	end)
-	local anchor = GardenView.anchorOf(plot)
-	local prompt = anchor and anchor:FindFirstChild("Tend") :: ProximityPrompt?
-	if prompt then
-		prompt.Triggered:Connect(function()
-			if GardenView.onTend then
-				GardenView.onTend(plot)
+	-- With streaming the bed's Model arrives at join but its anchor only when
+	-- you come near, so draw the plants once it lands.
+	plot.ChildAdded:Connect(function(child)
+		if child.Name == "PlotAnchor" then
+			local view = views[plot]
+			if view then
+				view.json = nil
 			end
-		end)
-	end
+			sync(plot)
+		end
+	end)
 	sync(plot)
 	refreshTendPrompt(plot)
 end
@@ -418,6 +421,20 @@ function GardenView.init()
 	for _, plot in CollectionService:GetTagged("HerbPlot") do
 		track(plot)
 	end
+	-- A bed's Plant prompt, found by where it is rather than connected when the
+	-- bed is tracked: the anchor that holds it may not have streamed in yet.
+	ProximityPromptService.PromptTriggered:Connect(function(prompt)
+		if prompt.Name ~= "Tend" then
+			return
+		end
+		local node: Instance? = prompt.Parent
+		while node and not views[node] do
+			node = node.Parent
+		end
+		if node and GardenView.onTend then
+			GardenView.onTend(node)
+		end
+	end)
 	-- a focused plant brings its bed's Plant prompt along
 	WorldPrompts.companionOf = function(target)
 		local node: Instance? = target

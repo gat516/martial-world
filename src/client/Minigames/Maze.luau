@@ -275,6 +275,10 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		table.insert(made, frame)
 	end
 
+	-- The spark sits on a corridor's centre line, at (px, py) in cells (cell
+	-- centres are whole numbers).
+	local px, py = 0, 0
+	local walked: { [string]: boolean } = {} -- corridors already trailed
 	local impuritiesLeft = info.impurities
 	local mazesLeft = math.ceil(goal)
 	local grid: Grid
@@ -308,10 +312,6 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		spark.Visible = true
 	end
 
-	-- The spark sits on a corridor's centre line, at (px, py) in cells (cell
-	-- centres are whole numbers).
-	local px, py = 0, 0
-	local walked: { [string]: boolean } = {} -- corridors already trailed
 	local pauseUntil = 0
 	local t, solved, purged, nudge = 0, 0, 0, 0
 

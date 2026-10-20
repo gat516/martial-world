@@ -121,7 +121,9 @@ function Hud.init(screenGui: ScreenGui)
 	local function showCultivation()
 		realmLabel.Text = player:GetAttribute("Realm") or ""
 		local value, max = player:GetAttribute("Cultivation") or 0, player:GetAttribute("CultivationMax") or 0
-		setBar(cultivationBar, value, max, `{formatNumber(value)} / {formatNumber(max)}`)
+		-- negative after a forced breakthrough: qi debt to pay off first
+		local text = if value < 0 then `Qi debt {formatNumber(-value)}` else `{formatNumber(value)} / {formatNumber(max)}`
+		setBar(cultivationBar, value, max, text)
 		local qi, cap = player:GetAttribute("RawQi") or 0, player:GetAttribute("DantianCap") or 0
 		setBar(dantianBar, qi, cap, `Dantian {formatNumber(qi)} / {formatNumber(cap)}`)
 	end

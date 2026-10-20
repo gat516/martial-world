@@ -2,7 +2,8 @@
 -- Passive cultivation fills the realm bar every second at the realm's slow rate,
 -- boosted by eaten-herb buffs, by the spirit aura of mature herbs left growing in
 -- the player's beds, and by meditating (Meditation.luau). It stops at a full bar;
--- breakthroughs move the player on.
+-- breakthroughs move the player on. Cultivation goes negative after a forced
+-- breakthrough: that qi debt is paid off by the same sources before the bar fills.
 -- Also owns breakthroughs, qi deviation, the passive-progress warnings, per-realm
 -- character stats and the PlayerState push the HUD renders from.
 
@@ -85,6 +86,9 @@ end
 -- Set by Meditation: where the player is meditating and its passive multiplier,
 -- or nil when they aren't.
 Cultivation.meditation = nil :: ((Player) -> { multiplier: number, place: string }?)?
+
+-- Set by Combat: whether the player was hurt recently.
+Cultivation.inCombat = nil :: ((Player) -> boolean)?
 
 -- Passive cultivation per second.
 function Cultivation.rate(data: PlayerData.Data, now: number, player: Player?): number
@@ -179,8 +183,9 @@ end
 -- Set by Tribulation: starts the tribulation a major breakthrough needs.
 Cultivation.startTribulation = nil :: ((Player) -> (boolean, string?))?
 
--- Move the player up to the next stage. Major breakthroughs are announced to everyone.
-function Cultivation.advance(player: Player)
+-- Move the player up to the next stage, starting `debt` cultivation in the hole
+-- (a forced breakthrough). Major breakthroughs are announced to everyone.
+function Cultivation.advance(player: Player, debt: number?)
 	local data = PlayerData.get(player)
 	if not data then
 		return
@@ -192,7 +197,7 @@ function Cultivation.advance(player: Player)
 	end
 	local major = nextStage.major ~= stage.major
 	data.realm = { major = nextStage.major, minor = nextStage.minor }
-	data.cultivation = 0
+	data.cultivation = -(debt or 0)
 	data.rawQi = math.min(data.rawQi, nextStage.dantian)
 	data.stats.breakthroughs += 1
 	local s = session(player)
@@ -213,8 +218,19 @@ end
 -- Called with (player, newStage, major) after every breakthrough.
 Cultivation.onBreakthrough = {} :: { (Player, Realms.Stage, boolean) -> () }
 
--- Minor breakthroughs (within a major realm) happen at once on a full bar.
--- Major ones need insight and survive a tribulation first.
+-- In combat, badly hurt, with the bar nearly full: a breakthrough can be forced.
+function Cultivation.canForce(player: Player, data: PlayerData.Data): boolean
+	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	if not (humanoid and humanoid.Health > 0 and Cultivation.inCombat and Cultivation.inCombat(player)) then
+		return false
+	end
+	return humanoid.Health <= humanoid.MaxHealth * Config.FORCE_HEALTH_SHARE
+		and data.cultivation >= Cultivation.stage(data).bar * Config.FORCE_BAR_SHARE
+end
+
+-- Breakthroughs happen seated in meditation on a full bar: minor ones at once,
+-- major ones need insight and survive a tribulation first. A minor one can also
+-- be forced in combat (canForce), leaving the new realm in qi debt.
 function Cultivation.breakthrough(player: Player): (boolean, string?)
 	local data = PlayerData.get(player)
 	if not data then
@@ -225,13 +241,27 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 	if not nextStage then
 		return false, "You stand at the peak of this world's cultivation, for now."
 	end
-	if data.cultivation < stage.bar then
-		return false, "Your realm bar isn't full yet."
-	end
 	if data.insight < stage.insight then
 		return false, "You feel as if you need more insight."
 	end
-	if nextStage.major ~= stage.major then
+	local major = nextStage.major ~= stage.major
+	local seated = Cultivation.meditation ~= nil and Cultivation.meditation(player) ~= nil
+	if not seated then
+		if not Cultivation.canForce(player, data) then
+			return false, "Sit and meditate to break through."
+		end
+		if major then
+			return false, "A major breakthrough can't be forced. Face the heavens calmly."
+		end
+		local debt = (stage.bar - math.min(data.cultivation, stage.bar)) + nextStage.bar * Config.FORCE_DEBT_SHARE
+		Cultivation.advance(player, debt)
+		Cultivation.notify(player, `You forced the breakthrough! Your foundation is unstable: {math.ceil(debt)} qi owed.`)
+		return true, nil
+	end
+	if data.cultivation < stage.bar then
+		return false, "Your realm bar isn't full yet."
+	end
+	if major then
 		if Cultivation.startTribulation then
 			return Cultivation.startTribulation(player)
 		end
@@ -252,7 +282,7 @@ local function warning(player: Player, data: PlayerData.Data, rate: number): str
 		if data.insight < stage.insight then
 			return "You feel as if you need more insight."
 		end
-		return if first then "Your meridians brim with qi. Break through!" else nil
+		return if first then "Your meridians brim with qi. Sit and meditate to break through." else nil
 	end
 	if os.clock() - s.lastActive < Config.WARN_IDLE_SECONDS then
 		return nil

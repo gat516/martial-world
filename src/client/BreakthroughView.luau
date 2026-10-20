@@ -1,6 +1,8 @@
 --!strict
--- The Break Through button (shown when the realm bar is full) and the breakthrough
--- effect: a column of light on whoever broke through, seen by everyone nearby.
+-- The Break Through button and the breakthrough effect: a column of light on
+-- whoever broke through, seen by everyone nearby. The button shows while seated in
+-- meditation with a full bar, or as Force Breakthrough when badly hurt with the
+-- bar nearly full (the server also checks you're in combat, see Cultivation.luau).
 
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
@@ -8,6 +10,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local Hud = require(script.Parent.Hud)
+local State = require(script.Parent.State)
+local Config = require(ReplicatedStorage.Shared.Config).Cultivation
 
 local SPARKLE = "rbxasset://textures/particles/sparkles_main.dds"
 
@@ -109,11 +113,27 @@ function BreakthroughView.init(gui: ScreenGui)
 
 	local function refresh()
 		local value, max = player:GetAttribute("Cultivation") or 0, player:GetAttribute("CultivationMax") or 0
-		button.Visible = max > 0 and value >= max
+		local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		local seated = State.current.meditation ~= nil
+		local hurt = humanoid ~= nil and humanoid.Health > 0 and humanoid.Health <= humanoid.MaxHealth * Config.FORCE_HEALTH_SHARE
+		local forcible = hurt and max > 0 and value >= max * Config.FORCE_BAR_SHARE
+		button.Visible = if seated then max > 0 and value >= max else forcible
+		button.Text = if seated then "Break Through" else "Force Breakthrough"
 	end
 	player:GetAttributeChangedSignal("Cultivation"):Connect(refresh)
 	player:GetAttributeChangedSignal("CultivationMax"):Connect(refresh)
-	refresh()
+	State.onChanged(function()
+		refresh()
+	end)
+	local function watch(character: Model)
+		local humanoid = character:WaitForChild("Humanoid") :: Humanoid
+		humanoid.HealthChanged:Connect(refresh)
+		refresh()
+	end
+	player.CharacterAdded:Connect(watch)
+	if player.Character then
+		task.spawn(watch, player.Character)
+	end
 
 	local busy = false
 	button.Activated:Connect(function()

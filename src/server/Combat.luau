@@ -368,4 +368,6 @@ function Combat.forget(player: Player)
 	states[player] = nil
 end
 
+Cultivation.inCombat = Combat.inCombat
+
 return Combat

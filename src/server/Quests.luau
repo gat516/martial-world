@@ -66,8 +66,8 @@ Quests.Beats = {
 	},
 	{
 		id = "Breakthrough",
-		elder = "Good. Your meridians brim with qi. Break through!",
-		objective = "Fill your realm bar and tap Break Through",
+		elder = "Good. Your meridians brim with qi. Sit in meditation and break through!",
+		objective = "Fill your realm bar, then meditate and tap Break Through",
 		done = function(_, data)
 			return data.stats.breakthroughs >= 1
 		end,

@@ -21,6 +21,12 @@ return {
 		WARN_RATIO = 5,
 		WARN_IDLE_SECONDS = 180, -- no runs or breakthroughs for this long
 		WARN_INTERVAL = 240, -- at most one warning this often
+		-- Breakthroughs happen seated in meditation. In combat, at low health, one can
+		-- be forced early; the new realm then starts in qi debt (negative cultivation)
+		-- that peaceful cultivation has to pay off before the bar fills again.
+		FORCE_BAR_SHARE = 0.9, -- the bar must be at least this full to force it
+		FORCE_HEALTH_SHARE = 0.35, -- and health at most this share of max, in combat
+		FORCE_DEBT_SHARE = 0.5, -- debt: the bar's shortfall plus this share of the new bar
 	},
 
 	Circulation = {

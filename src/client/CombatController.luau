@@ -48,7 +48,7 @@ local KEYS = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three }
 local CombatController = {}
 
 local tracks: { AnimationTrack } = {}
-local dashTracks: { [string]: AnimationTrack } = {} -- "Back" / "Left" / "Right"
+local dashTracks: { [string]: AnimationTrack } = {} -- "Forward" / "Back" / "Left" / "Right"
 local playing: AnimationTrack?
 local chainIndex = 0
 local lastSwing = -math.huge
@@ -72,7 +72,8 @@ local function loadTracks(character: Model)
 	end
 	table.clear(dashTracks)
 	for _, animation in dashAnimations:GetChildren() do
-		if animation:IsA("Animation") then
+		-- an Animation left without an id is a placeholder; skip it
+		if animation:IsA("Animation") and animation.AnimationId ~= "" then
 			local track = animator:LoadAnimation(animation)
 			track.Priority = Enum.AnimationPriority.Action2
 			track.Looped = false
@@ -255,7 +256,8 @@ function CombatController.dodge()
 
 	local humanoid = (player.Character :: Model):FindFirstChildOfClass("Humanoid") :: Humanoid
 	local move = humanoid.MoveDirection * Vector3.new(1, 0, 1)
-	local dir = if move.Magnitude > 0.1 then move.Unit else (root.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
+	-- standing still dashes backward, away from whatever's in front
+	local dir = if move.Magnitude > 0.1 then move.Unit else -(root.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
 
 	-- Impulses are mass * change in velocity, so read the mass instead of guessing a
 	-- force: one kick to full speed, then small capped top-ups each frame against
@@ -275,12 +277,16 @@ function CombatController.dodge()
 	steer(Config.DODGE_SPEED * 2)
 	CombatEffects.dashTrail(player.Character :: Model, root, Config.DODGE_SECONDS)
 
-	-- Back/side dashes play their animation and hold the facing for the dash, so the
-	-- humanoid doesn't swing round to face the way it's going. Forward has none yet.
-	local forward = root.CFrame.LookVector:Dot(dir)
+	-- Pick the animation from the dash direction relative to facing; any sideways
+	-- lean (diagonals included) counts as a side dash. The facing is held for the
+	-- dash so the humanoid doesn't swing round to face the way it's going.
 	local right = root.CFrame.RightVector:Dot(dir)
-	local side = if forward < -0.7 then "Back" elseif right > 0.7 then "Right" elseif right < -0.7 then "Left" else nil
-	local dashTrack = side and dashTracks[side]
+	local side = if right > 0.38
+		then "Right"
+		elseif right < -0.38 then "Left"
+		elseif root.CFrame.LookVector:Dot(dir) < 0 then "Back"
+		else "Forward"
+	local dashTrack = dashTracks[side]
 	if dashTrack then
 		dashTrack:Play(0.05)
 		humanoid.AutoRotate = false

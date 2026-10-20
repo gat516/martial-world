@@ -23,7 +23,9 @@
   <Item class="Folder" referent="RBX12"><Properties><string name="Name">Dash</string></Properties>
    <Item class="Animation" referent="RBX13"><Properties><string name="Name">Back</string><Content name="AnimationId"><url>rbxassetid://75338907283865</url></Content></Properties>
    </Item>
-   <Item class="Animation" referent="RBX14"><Properties><string name="Name">Left</string><Content name="AnimationId"><url>rbxassetid://75338907283865</url></Content></Properties>
+   <Item class="Animation" referent="RBX14"><Properties><string name="Name">Left</string><Content name="AnimationId"><url>rbxassetid://96415359360010</url></Content></Properties>
+   </Item>
+   <Item class="Animation" referent="RBX16"><Properties><string name="Name">Forward</string><Content name="AnimationId"><null></null></Content></Properties>
    </Item>
    <Item class="Animation" referent="RBX15"><Properties><string name="Name">Right</string><Content name="AnimationId"><url>rbxassetid://97389453311989</url></Content></Properties>
    </Item>

@@ -347,11 +347,6 @@ end
 
 type Support = { ok: boolean, reason: string?, piece: Instance?, part: Instance? }
 
-local function nameOf(piece: Instance): string
-	local def = Placement.defOf(piece)
-	return if def then def.name else piece.Name
-end
-
 local function floorSupport(ctx: Context, def: BuildItems.Def, pivot: CFrame, lo: Vector3, hi: Vector3, skip: { [Instance]: boolean }): Support
 	local reach = RAY_IN + RAY_GAP + (def.lift or 0)
 	local cx, cz = (lo.X + hi.X) / 2, (lo.Z + hi.Z) / 2
@@ -534,7 +529,8 @@ export type Result = { ok: boolean, reason: string?, support: Instance? }
 -- `self` is the piece being moved, if any (it's in ctx.ignore too).
 function Placement.check(ctx: Context, def: BuildItems.Def, boxes: { Box }, pivot: CFrame, mode: Mode, self: Instance?): Result
 	if not Placement.allowsMode(def, mode) then
-		return { ok = false, reason = `{def.name} can't go there` }
+		local where = { floor = "on the ground", wall = "on a wall", ceiling = "on a ceiling", socket = "there" }
+		return { ok = false, reason = `The {def.name} can't go {where[mode]}` }
 	end
 	local world = Placement.worldBoxes(pivot, boxes)
 	if not inArea(ctx.frame, world) then

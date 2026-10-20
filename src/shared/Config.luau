@@ -115,12 +115,15 @@ return {
 		MIN_Y = -30, -- down to the abode hall floor (-25)
 		MAX_Y = 30,
 		MAX_ITEMS = 120,
-		GRID = 0.5, -- finest placement snap, studs (the server snaps to this)
-		GRID_SIZES = { 1, 2, 4, 0.5 }, -- the Grid button cycles these
-		ROTATE_STEP = 45, -- degrees per R / Rotate
-		FINE_ROTATE_STEP = 15, -- degrees per Shift+R (the server snaps to this)
+		-- Precision presets the Grid button / G cycles: grid snap (studs) and rotation
+		-- step (degrees). The server keeps positions to 0.05 studs and yaw to 1 degree.
+		PRECISION = {
+			{ grid = 1, rotate = 45 },
+			{ grid = 2, rotate = 90 },
+			{ grid = 4, rotate = 90 },
+			{ grid = 0.5, rotate = 15 },
+		} :: { { grid: number, rotate: number } },
 		MIN_INTERVAL = 0.15, -- seconds between build requests per player
-		ROTATE_STEPS = { 45, 90, 15 }, -- rotation increments the player can pick (Placement uses yaw only)
 		MAX_CLEARANCE = 2, -- the largest `clearance` any build item has (widens neighbour queries)
 		-- Natural ground: peak children whose surfaces count as terrain (items whose
 		-- `on` is only "terrain" need these underneath)

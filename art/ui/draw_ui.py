@@ -484,8 +484,109 @@ def note_panel():
     finish(img, "note_panel.png")
 
 
+# ---------------------------------------------------------------- build window
+
+def build_tile():
+    """A catalog card for the build window, 256px: dark jade lacquer, a gold rim
+    and a lozenge stud in each corner, with a lighter display well up top.
+    9-slice with SliceCenter Rect(56, 56, 200, 200), SliceScale ~0.36."""
+    S = 256
+    img = canvas(S, S)
+    m = 8 * SS
+    box = [m, m, S * SS - m, S * SS - m]
+    gradient_rect(img, box, (34, 52, 54), (12, 18, 22), radius=14 * SS)
+    vignette(img, box, strength=80, blur=0.1)
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle(box, radius=14 * SS, outline=GOLD_LO, width=5 * SS)
+    d.rounded_rectangle([m + 2 * SS, m + 2 * SS, S * SS - m - 2 * SS, S * SS - m - 2 * SS], radius=13 * SS, outline=(214, 172, 92, 200), width=2 * SS)
+    for x in (m + 20 * SS, S * SS - m - 20 * SS):
+        for y in (m + 20 * SS, S * SS - m - 20 * SS):
+            lozenge(d, x, y, 7 * SS, 3 * SS)
+    finish(img, "build_tile.png")
+
+
+def tile_select():
+    """The selected-card ring, 256px, white so it can be tinted (gold): a crisp
+    rim with a soft glow inside. Same geometry as build_tile, so it uses the same
+    SliceCenter Rect(56, 56, 200, 200) and SliceScale."""
+    S = 256
+    img = canvas(S, S)
+    m = 8 * SS
+    glow = Image.new("L", img.size, 0)
+    ImageDraw.Draw(glow).rounded_rectangle([m, m, S * SS - m, S * SS - m], radius=14 * SS, outline=255, width=12 * SS)
+    glow = glow.filter(ImageFilter.GaussianBlur(7 * SS))
+    clip = Image.new("L", img.size, 0)
+    ImageDraw.Draw(clip).rounded_rectangle([m, m, S * SS - m, S * SS - m], radius=14 * SS, fill=255)
+    from PIL import ImageChops
+
+    glow = ImageChops.multiply(glow, clip).point(lambda v: v * 150 // 255)
+    rim = Image.new("L", img.size, 0)
+    ImageDraw.Draw(rim).rounded_rectangle([m, m, S * SS - m, S * SS - m], radius=14 * SS, outline=255, width=5 * SS)
+    mask = ImageChops.lighter(glow, rim)
+    white = Image.new("RGBA", img.size, (255, 255, 255, 255))
+    white.putalpha(mask)
+    finish(white, "tile_select.png")
+
+
+def field_inset():
+    """A recessed text field (search box), 512x128: near-black well, an inner
+    shadow along the top and a thin bronze rim. 9-slice with SliceCenter
+    Rect(48, 48, 464, 80), SliceScale ~0.28."""
+    W, H = 512, 128
+    img = canvas(W, H)
+    m = 8 * SS
+    box = [m, m, W * SS - m, H * SS - m]
+    gradient_rect(img, box, (6, 9, 11), (16, 22, 25), radius=12 * SS)
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle(box, radius=12 * SS, outline=(120, 92, 48, 255), width=4 * SS)
+    d.rounded_rectangle([m + 4 * SS, m + 4 * SS, W * SS - m - 4 * SS, H * SS - m - 4 * SS], radius=9 * SS, outline=(0, 0, 0, 120), width=3 * SS)
+    finish(img, "field_inset.png")
+
+
+def stone_icon():
+    """A spirit stone, 128px: a pale jade hexagonal crystal with facets, an ink
+    outline and one highlight. Stretched, used at 16-24px beside prices."""
+    S = 128
+    N = S * SS
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    cx = N / 2
+    top, bot = 14 * SS, 114 * SS
+    wl, wr = 22 * SS, 106 * SS
+    sh = 38 * SS  # shoulder height from the tips
+    outline = [(cx, top), (wr, top + sh), (wr, bot - sh), (cx, bot), (wl, bot - sh), (wl, top + sh)]
+    d = ImageDraw.Draw(img)
+    d.polygon(outline, fill=INK)
+    k = 6 * SS
+    inner = [(cx, top + k), (wr - k, top + sh + 2 * SS), (wr - k, bot - sh - 2 * SS), (cx, bot - k), (wl + k, bot - sh - 2 * SS), (wl + k, top + sh + 2 * SS)]
+    # facets: left face light, right face mid, centre ridge pale
+    a, b, c, e, f, g = inner
+    mid_t = (cx, top + sh + 6 * SS)
+    mid_b = (cx, bot - sh - 6 * SS)
+    d.polygon([a, g, f, e, mid_b, mid_t], fill=(196, 238, 214, 255))
+    d.polygon([a, b, c, e, mid_b, mid_t], fill=(104, 186, 150, 255))
+    d.polygon([g, mid_t, mid_b, f], fill=(150, 220, 186, 255))
+    d.polygon([mid_t, b, c, mid_b], fill=(70, 150, 118, 255))
+    d.line([mid_t, mid_b], fill=(236, 252, 244, 255), width=2 * SS)
+    # highlight
+    hx = wl + k + 8 * SS
+    d.polygon([(hx, top + sh + 4 * SS), (cx - 10 * SS, top + k + 14 * SS), (cx - 6 * SS, top + k + 20 * SS), (hx + 5 * SS, top + sh + 10 * SS)], fill=(255, 255, 255, 230))
+    finish(shadow_under(img, blur=3, offset=2, alpha=120), "stone_icon.png")
+
+
+def build_art():
+    plaque_button("button_jade.png", (62, 150, 112), (22, 82, 60), GOLD_HI)
+    plaque_button("button_red.png", (170, 46, 36), (96, 20, 16), GOLD)
+    build_tile()
+    tile_select()
+    field_inset()
+    stone_icon()
+
+
 if __name__ == "__main__":
     import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "build":
+        build_art()
+        sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "window":
         plaque_button("button_lacquer.png", (36, 50, 54), (12, 18, 22), GOLD)
         plaque_button("button_gold.png", (190, 146, 64), (112, 76, 28), GOLD_HI)

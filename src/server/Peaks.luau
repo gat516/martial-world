@@ -85,6 +85,7 @@ function Peaks.spawnPlaced(peak: Model, rec: PlayerData.Placed): Instance?
 	item:PivotTo(Peak.frame(peak) * CFrame.new(rec.x, rec.y, rec.z) * CFrame.Angles(0, math.rad(rec.r), 0))
 	item:SetAttribute("PlacedId", rec.u)
 	item:SetAttribute("ItemId", rec.i)
+	item:SetAttribute("PlaceMode", rec.m) -- wall, ceiling or socket (nil: floor), for clients
 	if item:HasTag("HerbPlot") then
 		item:SetAttribute("PlotId", rec.u)
 	end

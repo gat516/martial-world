@@ -193,6 +193,7 @@ local function setPivot(data: PlayerData.Data, peak: Model, frame: CFrame, piece
 		rec.x, rec.y, rec.z, rec.r = l.X, l.Y, l.Z, yaw
 		if mode then
 			rec.m = if mode == "floor" then nil else mode
+			piece:SetAttribute("PlaceMode", rec.m)
 		end
 		(piece :: Model):PivotTo(pivot)
 		return

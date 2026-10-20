@@ -8,6 +8,7 @@ local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Items = require(ReplicatedStorage.Shared.Items)
+local Motion = require(script.Parent.Motion)
 local State = require(script.Parent.State)
 
 local TOAST_SECONDS = 3.2
@@ -83,7 +84,7 @@ end
 
 local function setBar(bar: Frame, value: number, max: number, label: TextLabel?, text: string?)
 	local fill = bar:FindFirstChild("Fill") :: Frame
-	fill.Size = UDim2.fromScale(if max > 0 then math.clamp(value / max, 0, 1) else 0, 1)
+	Motion.ease(fill, { Size = UDim2.fromScale(if max > 0 then math.clamp(value / max, 0, 1) else 0, 1) })
 	fill.Visible = value > 0
 	if label and text then
 		label.Text = text

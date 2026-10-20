@@ -5,15 +5,14 @@
 -- the formation is taught, and the quest board window.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 
 local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
+local Motion = require(script.Parent.Motion)
 
 local questRemote = ReplicatedStorage.Remotes.QuestState :: RemoteEvent
 
 local ELDER_SECONDS = 7
-local PULSE_SCALE = 1.12
 
 -- Which button each beat is about.
 local FOCUS = {
@@ -30,31 +29,23 @@ local gui: ScreenGui
 local lastBeat: string? = nil
 local lastElder = ""
 local elderToken = 0
-local pulsing: { button: GuiButton, scale: UIScale, tween: Tween }? = nil
+local pulsing: GuiButton? = nil
 local goals: { any } = {}
 
 local function findButton(name: string): GuiButton?
 	return gui:FindFirstChild(name, true) :: GuiButton?
 end
 
--- A gentle swell on the button the current beat is about (a short-lived UIScale,
--- since the buttons are art rather than coloured backgrounds).
+-- A gentle swell on the button the current beat is about.
 local function pulse(name: string?)
 	if pulsing then
-		pulsing.tween:Cancel()
-		pulsing.scale:Destroy()
+		Motion.stopPulse(pulsing)
 		pulsing = nil
 	end
 	local button = name and findButton(name)
 	if button then
-		local scale = Instance.new("UIScale")
-		scale.Name = "OnboardingPulse"
-		scale.Parent = button
-		local tween = TweenService:Create(scale, TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
-			Scale = PULSE_SCALE,
-		})
-		pulsing = { button = button, scale = scale, tween = tween }
-		tween:Play()
+		Motion.pulse(button)
+		pulsing = button
 	end
 end
 

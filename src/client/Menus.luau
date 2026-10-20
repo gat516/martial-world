@@ -15,6 +15,8 @@
 
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
+local Motion = require(script.Parent.Motion)
+
 local Menus = {}
 
 export type Options = {
@@ -50,7 +52,7 @@ local function closeFrame(frame: GuiObject)
 	if entry and entry.close then
 		entry.close()
 	else
-		frame.Visible = false
+		Motion.close(frame)
 	end
 end
 
@@ -67,6 +69,7 @@ function Menus.register(frame: GuiObject, options: Options?)
 				return
 			end
 			current = frame
+			Motion.popWindow(frame)
 			if previous then
 				closeFrame(previous)
 			end
@@ -83,7 +86,7 @@ function Menus.register(frame: GuiObject, options: Options?)
 end
 
 function Menus.open(frame: GuiObject)
-	frame.Visible = true
+	Motion.open(frame)
 end
 
 function Menus.close(frame: GuiObject)

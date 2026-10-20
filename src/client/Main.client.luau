@@ -19,6 +19,7 @@ local WeatherFX = require(script.Parent.WeatherFX)
 local HotbarView = require(script.Parent.HotbarView)
 local Layout = require(script.Parent.Layout)
 local Menus = require(script.Parent.Menus)
+local Motion = require(script.Parent.Motion)
 local Inventory = require(script.Parent.Inventory)
 local SeedPicker = require(script.Parent.SeedPicker)
 local GardenView = require(script.Parent.GardenView)
@@ -29,6 +30,10 @@ local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") ::
 
 Hud.init(gui)
 Menus.init(gui) -- before anything registers a window
+Motion.buttons(gui)
+for _, name in { "CultivatePrompt", "BreakthroughButton", "Toast", "ElderLine", "Objective" } do
+	Motion.appear(gui:FindFirstChild(name, true) :: GuiObject)
+end
 CirculationMinigame.init(gui)
 BreakthroughView.init(gui)
 CombatController.init(gui)

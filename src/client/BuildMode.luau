@@ -23,6 +23,7 @@ local PEAK_RADIUS = require(ReplicatedStorage.Shared.Config).Circulation.PEAK_RA
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local Hud = require(script.Parent.Hud)
 local Menus = require(script.Parent.Menus)
+local Motion = require(script.Parent.Motion)
 local MyPeak = require(script.Parent.MyPeak)
 local State = require(script.Parent.State)
 
@@ -435,7 +436,7 @@ function BuildMode.open()
 		return
 	end
 	active = true
-	bar.Visible = true
+	Motion.open(bar)
 	setMode("idle")
 	local selected = Instance.new("Highlight")
 	selected.FillColor = STORE_COLOR
@@ -458,7 +459,7 @@ end
 
 function BuildMode.close()
 	active = false
-	bar.Visible = false
+	Motion.close(bar)
 	deselectItem()
 	setStoreTarget(nil)
 	for _, h in { storeHighlight, hoverHighlight } do

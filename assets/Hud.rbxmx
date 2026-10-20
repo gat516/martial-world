@@ -46,6 +46,10 @@
     <Vector2 name="MaxSize"><X>460</X><Y>200</Y></Vector2>
    </Properties>
    </Item>
+   <Item class="UIScale" referent="RBX536"><Properties>
+    <string name="Name">Motion</string>
+   </Properties>
+   </Item>
   </Item>
   <Item class="Frame" referent="RBX7"><Properties>
    <string name="Name">Buttons</string>
@@ -147,6 +151,10 @@
      <Content name="Image"><url>rbxassetid://105430031679063</url></Content>
     </Properties>
     </Item>
+    <Item class="UIScale" referent="RBX537"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
+    </Item>
    </Item>
    <Item class="TextButton" referent="RBX19"><Properties>
     <string name="Name">TravelButton</string>
@@ -231,6 +239,10 @@
      <UDim2 name="Size"><XS>1.3</XS><XO>0</XO><YS>1.3</YS><YO>0</YO></UDim2>
      <int name="ZIndex">0</int>
      <Content name="Image"><url>rbxassetid://105430031679063</url></Content>
+    </Properties>
+    </Item>
+    <Item class="UIScale" referent="RBX538"><Properties>
+     <string name="Name">Motion</string>
     </Properties>
     </Item>
    </Item>
@@ -343,6 +355,10 @@
      <Content name="Image"><url>rbxassetid://105430031679063</url></Content>
     </Properties>
     </Item>
+    <Item class="UIScale" referent="RBX539"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
+    </Item>
    </Item>
    <Item class="TextButton" referent="RBX42"><Properties>
     <string name="Name">InventoryButton</string>
@@ -428,6 +444,10 @@
      <Content name="Image"><url>rbxassetid://105430031679063</url></Content>
     </Properties>
     </Item>
+    <Item class="UIScale" referent="RBX540"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
+    </Item>
    </Item>
    <Item class="UIScale" referent="RBX52"><Properties>
     <string name="Name">UIScale</string>
@@ -485,6 +505,10 @@
    </Properties>
     <Item class="UICorner" referent="RBX59"><Properties>
      <string name="Name">UICorner</string>
+    </Properties>
+    </Item>
+    <Item class="UIScale" referent="RBX541"><Properties>
+     <string name="Name">Motion</string>
     </Properties>
     </Item>
    </Item>
@@ -580,6 +604,10 @@
        <string name="Name">UICorner</string>
       </Properties>
       </Item>
+      <Item class="UIScale" referent="RBX542"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
     </Item>
    </Item>
@@ -600,6 +628,10 @@
     <token name="ScaleType">1</token>
     <Rect2D name="SliceCenter"><min><X>200</X><Y>200</Y></min><max><X>824</X><Y>824</Y></max></Rect2D>
     <float name="SliceScale">0.26</float>
+   </Properties>
+   </Item>
+   <Item class="UIScale" referent="RBX543"><Properties>
+    <string name="Name">Motion</string>
    </Properties>
    </Item>
   </Item>
@@ -667,6 +699,10 @@
       <string name="Name">UICorner</string>
      </Properties>
      </Item>
+     <Item class="UIScale" referent="RBX544"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
     </Item>
     <Item class="TextButton" referent="RBX82"><Properties>
      <string name="Name">PlaceButton</string>
@@ -680,6 +716,10 @@
     </Properties>
      <Item class="UICorner" referent="RBX83"><Properties>
       <string name="Name">UICorner</string>
+     </Properties>
+     </Item>
+     <Item class="UIScale" referent="RBX545"><Properties>
+      <string name="Name">Motion</string>
      </Properties>
      </Item>
     </Item>
@@ -697,6 +737,10 @@
       <string name="Name">UICorner</string>
      </Properties>
      </Item>
+     <Item class="UIScale" referent="RBX546"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
     </Item>
     <Item class="TextButton" referent="RBX86"><Properties>
      <string name="Name">DoneButton</string>
@@ -712,6 +756,10 @@
       <string name="Name">UICorner</string>
      </Properties>
      </Item>
+     <Item class="UIScale" referent="RBX547"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
     </Item>
     <Item class="TextButton" referent="RBX88"><Properties>
      <string name="Name">GridButton</string>
@@ -724,6 +772,10 @@
     </Properties>
      <Item class="UICorner" referent="RBX89"><Properties>
       <string name="Name">UICorner</string>
+     </Properties>
+     </Item>
+     <Item class="UIScale" referent="RBX548"><Properties>
+      <string name="Name">Motion</string>
      </Properties>
      </Item>
     </Item>
@@ -804,12 +856,20 @@
       </Properties>
       </Item>
      </Item>
+     <Item class="UIScale" referent="RBX549"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
     </Item>
    </Item>
    <Item class="UIGradient" referent="RBX99"><Properties>
     <string name="Name">Theme</string>
     <float name="Rotation">90</float>
     <ColorSequence name="Color">0 0.102 0.133 0.149 0 1 0.035 0.047 0.059 0 </ColorSequence>
+   </Properties>
+   </Item>
+   <Item class="UIScale" referent="RBX550"><Properties>
+    <string name="Name">Motion</string>
    </Properties>
    </Item>
   </Item>
@@ -1177,6 +1237,10 @@
        </Properties>
        </Item>
       </Item>
+      <Item class="UIScale" referent="RBX551"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
      <Item class="TextButton" referent="RBX147"><Properties>
       <string name="Name">Slot1</string>
@@ -1345,6 +1409,10 @@
         <int name="MaxTextSize">11</int>
        </Properties>
        </Item>
+      </Item>
+      <Item class="UIScale" referent="RBX552"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
       </Item>
      </Item>
      <Item class="TextButton" referent="RBX162"><Properties>
@@ -1515,6 +1583,10 @@
        </Properties>
        </Item>
       </Item>
+      <Item class="UIScale" referent="RBX553"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
      <Item class="TextButton" referent="RBX177"><Properties>
       <string name="Name">Slot3</string>
@@ -1683,6 +1755,10 @@
         <int name="MaxTextSize">11</int>
        </Properties>
        </Item>
+      </Item>
+      <Item class="UIScale" referent="RBX554"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
       </Item>
      </Item>
      <Item class="TextButton" referent="RBX192"><Properties>
@@ -1853,6 +1929,10 @@
        </Properties>
        </Item>
       </Item>
+      <Item class="UIScale" referent="RBX555"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
      <Item class="TextButton" referent="RBX207"><Properties>
       <string name="Name">Slot5</string>
@@ -2021,6 +2101,10 @@
         <int name="MaxTextSize">11</int>
        </Properties>
        </Item>
+      </Item>
+      <Item class="UIScale" referent="RBX556"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
       </Item>
      </Item>
      <Item class="TextButton" referent="RBX222"><Properties>
@@ -2191,6 +2275,10 @@
        </Properties>
        </Item>
       </Item>
+      <Item class="UIScale" referent="RBX557"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
      <Item class="TextButton" referent="RBX237"><Properties>
       <string name="Name">Slot7</string>
@@ -2359,6 +2447,10 @@
         <int name="MaxTextSize">11</int>
        </Properties>
        </Item>
+      </Item>
+      <Item class="UIScale" referent="RBX558"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
       </Item>
      </Item>
      <Item class="TextButton" referent="RBX252"><Properties>
@@ -2529,6 +2621,10 @@
        </Properties>
        </Item>
       </Item>
+      <Item class="UIScale" referent="RBX559"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
      <Item class="TextButton" referent="RBX267"><Properties>
       <string name="Name">Slot9</string>
@@ -2698,6 +2794,10 @@
        </Properties>
        </Item>
       </Item>
+      <Item class="UIScale" referent="RBX560"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
     </Item>
    </Item>
@@ -2754,6 +2854,10 @@
       </Properties>
       </Item>
      </Item>
+     <Item class="UIScale" referent="RBX561"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
     </Item>
     <Item class="ImageButton" referent="RBX288"><Properties>
      <string name="Name">Rise</string>
@@ -2790,6 +2894,14 @@
       </Properties>
       </Item>
      </Item>
+     <Item class="UIScale" referent="RBX562"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="UIScale" referent="RBX563"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
     </Item>
    </Item>
    <Item class="ImageButton" referent="RBX292"><Properties>
@@ -2828,6 +2940,10 @@
       <UDim name="PaddingBottom"><S>0.2</S><O>0</O></UDim>
      </Properties>
      </Item>
+    </Item>
+    <Item class="UIScale" referent="RBX564"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
     </Item>
    </Item>
   </Item>
@@ -3589,6 +3705,10 @@
      <token name="ApplyStrokeMode">1</token>
     </Properties>
     </Item>
+    <Item class="UIScale" referent="RBX565"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
+    </Item>
    </Item>
    <Item class="Frame" referent="RBX390"><Properties>
     <string name="Name">Tabs</string>
@@ -3627,6 +3747,10 @@
       <token name="ApplyStrokeMode">1</token>
      </Properties>
      </Item>
+     <Item class="UIScale" referent="RBX566"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
     </Item>
     <Item class="TextButton" referent="RBX395"><Properties>
      <string name="Name">ArtsTab</string>
@@ -3649,6 +3773,10 @@
       <float name="Thickness">1.2</float>
       <float name="Transparency">0.2</float>
       <token name="ApplyStrokeMode">1</token>
+     </Properties>
+     </Item>
+     <Item class="UIScale" referent="RBX567"><Properties>
+      <string name="Name">Motion</string>
      </Properties>
      </Item>
     </Item>
@@ -3817,6 +3945,10 @@
       </Properties>
       </Item>
      </Item>
+     <Item class="UIScale" referent="RBX568"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
     </Item>
    </Item>
    <Item class="TextLabel" referent="RBX413"><Properties>
@@ -3982,6 +4114,10 @@
        </Properties>
        </Item>
       </Item>
+      <Item class="UIScale" referent="RBX569"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
      <Item class="Frame" referent="RBX429"><Properties>
       <string name="Name">Spacer</string>
@@ -4091,6 +4227,10 @@
        <token name="ApplyStrokeMode">1</token>
       </Properties>
       </Item>
+      <Item class="UIScale" referent="RBX570"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
      <Item class="TextButton" referent="RBX439"><Properties>
       <string name="Name">Secondary</string>
@@ -4116,8 +4256,16 @@
        <token name="ApplyStrokeMode">1</token>
       </Properties>
       </Item>
+      <Item class="UIScale" referent="RBX571"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
     </Item>
+   </Item>
+   <Item class="UIScale" referent="RBX572"><Properties>
+    <string name="Name">Motion</string>
+   </Properties>
    </Item>
   </Item>
   <Item class="Frame" referent="RBX442"><Properties>
@@ -4170,6 +4318,10 @@
      <string name="Name">UICorner</string>
     </Properties>
     </Item>
+    <Item class="UIScale" referent="RBX573"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
+    </Item>
    </Item>
    <Item class="Frame" referent="RBX448"><Properties>
     <string name="Name">List</string>
@@ -4197,6 +4349,10 @@
       <string name="Name">UICorner</string>
      </Properties>
      </Item>
+     <Item class="UIScale" referent="RBX574"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
     </Item>
     <Item class="TextButton" referent="RBX452"><Properties>
      <string name="Name">MainPeak</string>
@@ -4212,6 +4368,10 @@
       <string name="Name">UICorner</string>
      </Properties>
      </Item>
+     <Item class="UIScale" referent="RBX575"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
     </Item>
     <Item class="TextButton" referent="RBX454"><Properties>
      <string name="Name">SectGate</string>
@@ -4225,6 +4385,10 @@
     </Properties>
      <Item class="UICorner" referent="RBX455"><Properties>
       <string name="Name">UICorner</string>
+     </Properties>
+     </Item>
+     <Item class="UIScale" referent="RBX576"><Properties>
+      <string name="Name">Motion</string>
      </Properties>
      </Item>
     </Item>
@@ -4246,6 +4410,10 @@
     <token name="ScaleType">1</token>
     <Rect2D name="SliceCenter"><min><X>200</X><Y>200</Y></min><max><X>824</X><Y>824</Y></max></Rect2D>
     <float name="SliceScale">0.26</float>
+   </Properties>
+   </Item>
+   <Item class="UIScale" referent="RBX577"><Properties>
+    <string name="Name">Motion</string>
    </Properties>
    </Item>
   </Item>
@@ -4308,6 +4476,10 @@
    </Properties>
     <Item class="UICorner" referent="RBX465"><Properties>
      <string name="Name">UICorner</string>
+    </Properties>
+    </Item>
+    <Item class="UIScale" referent="RBX578"><Properties>
+     <string name="Name">Motion</string>
     </Properties>
     </Item>
    </Item>
@@ -4403,6 +4575,10 @@
        <string name="Name">UICorner</string>
       </Properties>
       </Item>
+      <Item class="UIScale" referent="RBX579"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
      </Item>
     </Item>
    </Item>
@@ -4423,6 +4599,10 @@
     <token name="ScaleType">1</token>
     <Rect2D name="SliceCenter"><min><X>200</X><Y>200</Y></min><max><X>824</X><Y>824</Y></max></Rect2D>
     <float name="SliceScale">0.26</float>
+   </Properties>
+   </Item>
+   <Item class="UIScale" referent="RBX580"><Properties>
+    <string name="Name">Motion</string>
    </Properties>
    </Item>
   </Item>
@@ -4567,6 +4747,10 @@
      <Content name="Image"><url>rbxassetid://114126112350808</url></Content>
     </Properties>
     </Item>
+    <Item class="UIScale" referent="RBX581"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
+    </Item>
    </Item>
    <Item class="TextButton" referent="RBX494"><Properties>
     <string name="Name">DodgeButton</string>
@@ -4693,6 +4877,10 @@
      <Content name="Image"><url>rbxassetid://114126112350808</url></Content>
     </Properties>
     </Item>
+    <Item class="UIScale" referent="RBX582"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
+    </Item>
    </Item>
    <Item class="TextButton" referent="RBX508"><Properties>
     <string name="Name">JumpButton</string>
@@ -4776,6 +4964,10 @@
      <Content name="Image"><url>rbxassetid://114126112350808</url></Content>
     </Properties>
     </Item>
+    <Item class="UIScale" referent="RBX583"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
+    </Item>
    </Item>
    <Item class="Frame" referent="RBX517"><Properties>
     <string name="Name">Buffs</string>
@@ -4857,6 +5049,10 @@
      <string name="Name">Theme</string>
      <float name="Rotation">90</float>
      <ColorSequence name="Color">0 0.102 0.133 0.149 0 1 0.035 0.047 0.059 0 </ColorSequence>
+    </Properties>
+    </Item>
+    <Item class="UIScale" referent="RBX584"><Properties>
+     <string name="Name">Motion</string>
     </Properties>
     </Item>
    </Item>
@@ -4945,6 +5141,10 @@
      <string name="Name">Theme</string>
      <float name="Rotation">90</float>
      <ColorSequence name="Color">0 0.102 0.133 0.149 0 1 0.035 0.047 0.059 0 </ColorSequence>
+    </Properties>
+    </Item>
+    <Item class="UIScale" referent="RBX585"><Properties>
+     <string name="Name">Motion</string>
     </Properties>
     </Item>
    </Item>

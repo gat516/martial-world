@@ -264,10 +264,27 @@
     <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
     <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
     <Color3 name="TextColor3"><R>0.345098</R><G>0.768627</G><B>0.611765</B></Color3>
-    <float name="TextSize">11</float>
+    <float name="TextSize">10</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     <int name="LayoutOrder">0</int>
+    <token name="TextYAlignment">2</token>
    </Properties>
+    <Item class="ImageLabel" referent="RBXICOCIRCULATE"><Properties>
+     <string name="Name">Icon</string>
+     <Content name="Image"><url>rbxassetid://93704955488570</url></Content>
+     <Color3 name="ImageColor3"><R>0.345098</R><G>0.768627</G><B>0.611765</B></Color3>
+     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
+     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>7</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>0</YS><YO>30</YO></UDim2>
+     <float name="BackgroundTransparency">1</float>
+     <token name="ScaleType">3</token>
+    </Properties>
+    </Item>
+    <Item class="UIPadding" referent="RBXPADCIRCULATE"><Properties>
+     <string name="Name">UIPadding</string>
+     <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
+    </Properties>
+    </Item>
     <Item class="UIGradient" referent="RBXTH13"><Properties>
      <string name="Name">Theme</string>
      <ColorSequence name="Color">0 0.133 0.173 0.188 0 1 0.047 0.063 0.075 0 </ColorSequence>
@@ -293,10 +310,27 @@
     <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
     <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
     <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
-    <float name="TextSize">13</float>
+    <float name="TextSize">10</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     <int name="LayoutOrder">1</int>
+    <token name="TextYAlignment">2</token>
    </Properties>
+    <Item class="ImageLabel" referent="RBXICOBAG"><Properties>
+     <string name="Name">Icon</string>
+     <Content name="Image"><url>rbxassetid://130364495792133</url></Content>
+     <Color3 name="ImageColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
+     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
+     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>7</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>0</YS><YO>30</YO></UDim2>
+     <float name="BackgroundTransparency">1</float>
+     <token name="ScaleType">3</token>
+    </Properties>
+    </Item>
+    <Item class="UIPadding" referent="RBXPADBAG"><Properties>
+     <string name="Name">UIPadding</string>
+     <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
+    </Properties>
+    </Item>
     <Item class="UIGradient" referent="RBXTH15"><Properties>
      <string name="Name">Theme</string>
      <ColorSequence name="Color">0 0.133 0.173 0.188 0 1 0.047 0.063 0.075 0 </ColorSequence>
@@ -322,10 +356,27 @@
     <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
     <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
     <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
-    <float name="TextSize">13</float>
+    <float name="TextSize">10</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     <int name="LayoutOrder">2</int>
+    <token name="TextYAlignment">2</token>
    </Properties>
+    <Item class="ImageLabel" referent="RBXICOBUILD"><Properties>
+     <string name="Name">Icon</string>
+     <Content name="Image"><url>rbxassetid://125043885705391</url></Content>
+     <Color3 name="ImageColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
+     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
+     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>7</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>0</YS><YO>30</YO></UDim2>
+     <float name="BackgroundTransparency">1</float>
+     <token name="ScaleType">3</token>
+    </Properties>
+    </Item>
+    <Item class="UIPadding" referent="RBXPADBUILD"><Properties>
+     <string name="Name">UIPadding</string>
+     <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
+    </Properties>
+    </Item>
     <Item class="UIGradient" referent="RBXTH17"><Properties>
      <string name="Name">Theme</string>
      <ColorSequence name="Color">0 0.133 0.173 0.188 0 1 0.047 0.063 0.075 0 </ColorSequence>
@@ -351,10 +402,27 @@
     <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
     <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
     <Color3 name="TextColor3"><R>0.745098</R><G>0.823529</G><B>1.000000</B></Color3>
-    <float name="TextSize">13</float>
+    <float name="TextSize">10</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     <int name="LayoutOrder">4</int>
+    <token name="TextYAlignment">2</token>
    </Properties>
+    <Item class="ImageLabel" referent="RBXICOTRAVEL"><Properties>
+     <string name="Name">Icon</string>
+     <Content name="Image"><url>rbxassetid://136931524828358</url></Content>
+     <Color3 name="ImageColor3"><R>0.745098</R><G>0.823529</G><B>1.000000</B></Color3>
+     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
+     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>7</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>0</YS><YO>30</YO></UDim2>
+     <float name="BackgroundTransparency">1</float>
+     <token name="ScaleType">3</token>
+    </Properties>
+    </Item>
+    <Item class="UIPadding" referent="RBXPADTRAVEL"><Properties>
+     <string name="Name">UIPadding</string>
+     <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
+    </Properties>
+    </Item>
     <Item class="UIGradient" referent="RBXTH19"><Properties>
      <string name="Name">Theme</string>
      <ColorSequence name="Color">0 0.133 0.173 0.188 0 1 0.047 0.063 0.075 0 </ColorSequence>
@@ -381,10 +449,27 @@
     <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
     <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
     <Color3 name="TextColor3"><R>1</R><G>0.86</G><B>0.6</B></Color3>
-    <float name="TextSize">13</float>
+    <float name="TextSize">10</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     <int name="LayoutOrder">5</int>
+    <token name="TextYAlignment">2</token>
    </Properties>
+    <Item class="ImageLabel" referent="RBXICOARTS"><Properties>
+     <string name="Name">Icon</string>
+     <Content name="Image"><url>rbxassetid://92046027354918</url></Content>
+     <Color3 name="ImageColor3"><R>1</R><G>0.86</G><B>0.6</B></Color3>
+     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
+     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>7</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>0</YS><YO>30</YO></UDim2>
+     <float name="BackgroundTransparency">1</float>
+     <token name="ScaleType">3</token>
+    </Properties>
+    </Item>
+    <Item class="UIPadding" referent="RBXPADARTS"><Properties>
+     <string name="Name">UIPadding</string>
+     <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
+    </Properties>
+    </Item>
     <Item class="UIGradient" referent="RBXTH21"><Properties>
      <string name="Name">Theme</string>
      <ColorSequence name="Color">0 0.133 0.173 0.188 0 1 0.047 0.063 0.075 0 </ColorSequence>

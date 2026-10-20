@@ -31,6 +31,7 @@ local CombatEffects = require(script.Parent.CombatEffects)
 local Hud = require(script.Parent.Hud)
 local Meditation = require(script.Parent.Meditation)
 local Platform = require(script.Parent.Platform)
+local Sfx = require(script.Parent.Sfx)
 local State = require(script.Parent.State)
 
 local remotes = ReplicatedStorage.Remotes
@@ -210,6 +211,7 @@ function CombatController.swing()
 	lastSwing = now
 	faceTarget(root)
 	local track = playAnimation(chainIndex)
+	Sfx.play("Swing")
 
 	-- The hitbox is cast every frame from "Hit" to "Hit Stop"; the swing is reported
 	-- once, as soon as it's hit all it can or when the window closes.
@@ -239,6 +241,8 @@ function CombatController.swing()
 			if not table.find(hits, model) then
 				table.insert(hits, model)
 				CombatEffects.flash(model)
+				-- on contact, not when the server's damage number arrives a ping later
+				Sfx.play("Hit", nil, 0.05)
 			end
 		end
 		if #hits >= Config.MAX_TARGETS then
@@ -285,6 +289,7 @@ function CombatController.dodge()
 		root:ApplyImpulse((change + Vector3.yAxis * rise) * mass)
 	end
 	steer(Config.DODGE_SPEED * 2)
+	Sfx.play("Dodge")
 	CombatEffects.dashTrail(player.Character :: Model, root, Config.DODGE_SECONDS)
 
 	-- Pick the animation from the dash direction relative to facing; any sideways
@@ -482,6 +487,7 @@ local function onEffect(kind: string, ...: any)
 			CombatEffects.flash(character, HURT_COLOR)
 			CombatEffects.number(root.Position, `-{args[1]}`, HURT_COLOR, 18)
 			CombatEffects.shake(0.35)
+			Sfx.play("Hurt")
 		end
 	elseif kind == "perfect" then
 		local refund = args[1] :: number
@@ -490,12 +496,14 @@ local function onEffect(kind: string, ...: any)
 		end
 		if character and root then
 			CombatEffects.perfectDodge(character, root)
+			Sfx.play("PerfectDodge")
 			CombatEffects.number(root.Position, "Perfect dodge!", Color3.fromRGB(255, 224, 150), 20)
 		end
 	elseif kind == "qi" then
 		CombatEffects.number(args[1], `+{args[2]} qi`, Color3.fromRGB(120, 235, 180), 20)
 	elseif kind == "stones" then
 		CombatEffects.number(args[1] + Vector3.new(0, 1.5, 0), `+{args[2]} spirit stones`, Color3.fromRGB(225, 240, 255), 18)
+		Sfx.play("Pickup", nil, 0.1)
 	elseif kind == "insight" then
 		Hud.toast(`+{args[1]} insight: {args[2]}`)
 	elseif kind == "manual" then
@@ -512,6 +520,7 @@ local function onEffect(kind: string, ...: any)
 			if at then
 				CombatEffects.number(at, `+{args[2]} {item.name}`, Items.rarityColor(item), 20)
 			end
+			Sfx.play("Pickup", nil, 0.1)
 			if (Items.Rarities[item.rarity] or { order = 0 }).order >= 4 then
 				Hud.toast(`You obtained a {item.name}!`)
 			end

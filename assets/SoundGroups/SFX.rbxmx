@@ -1,0 +1,201 @@
+<roblox version="4">
+ <Item class="SoundGroup" referent="SGSFX1"><Properties>
+  <string name="Name">SFX</string>
+  <float name="Volume">1</float>
+ </Properties>
+  <Item class="Sound" referent="SGSFX2"><Properties>
+   <string name="Name">Dodge</string>
+   <Content name="SoundId"><url>rbxassetid://136880713327520</url></Content>
+   <float name="Volume">0.5</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Folder" referent="SGSFX3"><Properties>
+   <string name="Name">Enemies</string>
+  </Properties>
+   <Item class="Folder" referent="SGSFX4"><Properties>
+    <string name="Name">ElderWolfKing</string>
+   </Properties>
+    <Item class="Sound" referent="SGSFX5"><Properties>
+     <string name="Name">Aggro</string>
+     <Content name="SoundId"><url>rbxassetid://9120790529</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFX6"><Properties>
+     <string name="Name">Attack</string>
+     <Content name="SoundId"><url>rbxassetid://9120788662</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFX7"><Properties>
+     <string name="Name">Death</string>
+     <Content name="SoundId"><url>rbxassetid://89079094196786</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="SGSFX8"><Properties>
+    <string name="Name">SpiritWolf</string>
+   </Properties>
+    <Item class="Sound" referent="SGSFX9"><Properties>
+     <string name="Name">Aggro</string>
+     <Content name="SoundId"><url>rbxassetid://9120788137</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFX10"><Properties>
+     <string name="Name">Attack</string>
+     <Content name="SoundId"><url>rbxassetid://97491288736522</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFX11"><Properties>
+     <string name="Name">Death</string>
+     <Content name="SoundId"><url>rbxassetid://77414722255060</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="SGSFX12"><Properties>
+    <string name="Name">StoneBoar</string>
+   </Properties>
+    <Item class="Sound" referent="SGSFX13"><Properties>
+     <string name="Name">Aggro</string>
+     <Content name="SoundId"><url>rbxassetid://9117344368</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFX14"><Properties>
+     <string name="Name">Attack</string>
+     <Content name="SoundId"><url>rbxassetid://9117370218</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.75</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFX15"><Properties>
+     <string name="Name">Death</string>
+     <Content name="SoundId"><url>rbxassetid://9117369876</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="SGSFX16"><Properties>
+    <string name="Name">VenomSerpent</string>
+   </Properties>
+    <Item class="Sound" referent="SGSFX17"><Properties>
+     <string name="Name">Aggro</string>
+     <Content name="SoundId"><url>rbxassetid://125555063571186</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFX18"><Properties>
+     <string name="Name">Attack</string>
+     <Content name="SoundId"><url>rbxassetid://9120049821</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFX19"><Properties>
+     <string name="Name">Death</string>
+     <Content name="SoundId"><url>rbxassetid://131702952954629</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+   </Item>
+  </Item>
+  <Item class="Sound" referent="SGSFX20"><Properties>
+   <string name="Name">FireSeal</string>
+   <Content name="SoundId"><url>rbxassetid://7106659874</url></Content>
+   <float name="Volume">0.8</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGSFX21"><Properties>
+   <string name="Name">Hit</string>
+   <Content name="SoundId"><url>rbxassetid://132504023010884</url></Content>
+   <float name="Volume">0.7</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGSFX22"><Properties>
+   <string name="Name">Hurt</string>
+   <Content name="SoundId"><url>rbxassetid://82235785832022</url></Content>
+   <float name="Volume">0.8</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGSFX23"><Properties>
+   <string name="Name">IronSkin</string>
+   <Content name="SoundId"><url>rbxassetid://134397657804669</url></Content>
+   <float name="Volume">0.6</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGSFX24"><Properties>
+   <string name="Name">LightningTalisman</string>
+   <Content name="SoundId"><url>rbxassetid://8952019380</url></Content>
+   <float name="Volume">0.7</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGSFX25"><Properties>
+   <string name="Name">PalmStrike</string>
+   <Content name="SoundId"><url>rbxassetid://74149238738530</url></Content>
+   <float name="Volume">0.8</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGSFX26"><Properties>
+   <string name="Name">PerfectDodge</string>
+   <Content name="SoundId"><url>rbxassetid://135385970610304</url></Content>
+   <float name="Volume">0.8</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGSFX27"><Properties>
+   <string name="Name">Pickup</string>
+   <Content name="SoundId"><url>rbxassetid://113730061669739</url></Content>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGSFX28"><Properties>
+   <string name="Name">Swing</string>
+   <Content name="SoundId"><url>rbxassetid://123796710194563</url></Content>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGSFX29"><Properties>
+   <string name="Name">SwordQiWave</string>
+   <Content name="SoundId"><url>rbxassetid://137628815514180</url></Content>
+   <float name="Volume">0.8</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGSFX30"><Properties>
+   <string name="Name">Thunder</string>
+   <Content name="SoundId"><url>rbxassetid://118195482769396</url></Content>
+   <float name="Volume">0.9</float>
+   <float name="RollOffMaxDistance">1500</float>
+   <float name="RollOffMinDistance">80</float>
+  </Properties>
+  </Item>
+ </Item>
+</roblox>

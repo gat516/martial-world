@@ -37,6 +37,7 @@ local PROPS = {
 	"StudsOffset", "StudsOffsetWorldSpace", "AlwaysOnTop", "MaxDistance", "Adornee", "SizeOffset",
 	"Part0", "Part1", "MeshType", "PrimaryPart", "AnimationId",
 	"FillColor", "OutlineColor", "FillTransparency", "OutlineTransparency", "DepthMode",
+	"SoundId", "Volume", "Looped", "PlaybackSpeed", "RollOffMaxDistance", "RollOffMinDistance",
 }
 
 local INT = {
@@ -44,7 +45,7 @@ local INT = {
 	DisplayOrder = true, FillDirectionMaxCells = true, Segments = true, MaxTextSize = true,
 	MinTextSize = true,
 }
-local CONTENT = { Image = true, Texture = true, TextureId = true, AnimationId = true }
+local CONTENT = { Image = true, Texture = true, TextureId = true, AnimationId = true, SoundId = true }
 local RENAME = { Size = "size", Shape = "shape" } -- on parts only
 
 local function num(n: number): string

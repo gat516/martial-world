@@ -1,7 +1,7 @@
 --!strict
 -- Client entry: wires the HUD, circulation minigame, breakthroughs, combat (with
 -- telegraphs and enemy health bars), travel, the hotbar, the inventory
--- (items and arts), seed picker, garden view, build mode and meditation.
+-- (items and arts), seed picker, garden view, build mode, meditation, zone music and beast sounds.
 
 local Players = game:GetService("Players")
 
@@ -26,6 +26,8 @@ local GardenView = require(script.Parent.GardenView)
 local BuildMode = require(script.Parent.BuildMode)
 local Meditation = require(script.Parent.Meditation)
 local Rewards = require(script.Parent.Rewards)
+local Music = require(script.Parent.Music)
+local EnemySounds = require(script.Parent.EnemySounds)
 
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
@@ -53,3 +55,5 @@ GardenView.init()
 BuildMode.init(gui)
 Meditation.init(gui)
 Rewards.init()
+Music.init()
+EnemySounds.init()

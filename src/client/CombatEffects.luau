@@ -8,6 +8,7 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
+local Sfx = require(script.Parent.Sfx)
 
 local CombatEffects = {}
 
@@ -83,6 +84,7 @@ function CombatEffects.cast(character: Model?, id: string, origin: Vector3, dir:
 	if not def then
 		return
 	end
+	Sfx.play(def.id, origin) -- each technique's sound is named after its id
 	local color = def.color
 	if def.kind == "line" then
 		local length = def.length :: number
@@ -391,6 +393,7 @@ function CombatEffects.bolt(ground: Vector3)
 		table.insert(points, p + Vector3.new(math.random() * 2 - 1, 0, math.random() * 2 - 1) * jitter)
 	end
 	table.insert(points, ground)
+	Sfx.play("Thunder", ground)
 	for i = 1, #points - 1 do
 		local seg = beam(color, points[i], points[i + 1], if i > segments - 3 then 0.9 else 1.6)
 		seg.Transparency = 0

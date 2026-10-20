@@ -39,6 +39,14 @@
         }
       }
     },
+    "SoundService": {
+      "Music": {
+        "$path": "assets/SoundGroups/Music.rbxmx"
+      },
+      "SFX": {
+        "$path": "assets/SoundGroups/SFX.rbxmx"
+      }
+    },
     "Workspace": {
       "Wilds": {
         "$path": "assets/Wilds.rbxmx"

@@ -1,0 +1,42 @@
+<roblox version="4">
+ <Item class="SoundGroup" referent="SGMusic1"><Properties>
+  <string name="Name">Music</string>
+  <float name="Volume">1</float>
+ </Properties>
+  <Item class="Sound" referent="SGMusic2"><Properties>
+   <string name="Name">Boss</string>
+   <Content name="SoundId"><url>rbxassetid://1841476670</url></Content>
+   <float name="Volume">0.35</float>
+   <bool name="Looped">true</bool>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGMusic3"><Properties>
+   <string name="Name">MainPeak</string>
+   <Content name="SoundId"><url>rbxassetid://109698226401874</url></Content>
+   <float name="Volume">0.35</float>
+   <bool name="Looped">true</bool>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGMusic4"><Properties>
+   <string name="Name">Marsh</string>
+   <Content name="SoundId"><url>rbxassetid://121313056401224</url></Content>
+   <float name="Volume">0.35</float>
+   <bool name="Looped">true</bool>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGMusic5"><Properties>
+   <string name="Name">MyPeak</string>
+   <Content name="SoundId"><url>rbxassetid://115335972203212</url></Content>
+   <float name="Volume">0.35</float>
+   <bool name="Looped">true</bool>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="SGMusic6"><Properties>
+   <string name="Name">Wilds</string>
+   <Content name="SoundId"><url>rbxassetid://85580887354297</url></Content>
+   <float name="Volume">0.35</float>
+   <bool name="Looped">true</bool>
+  </Properties>
+  </Item>
+ </Item>
+</roblox>

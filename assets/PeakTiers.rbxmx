@@ -1,0 +1,1325 @@
+<roblox version="4">
+ <Item class="Folder" referent="RBXP1"><Properties>
+  <string name="Name">PeakTiers</string>
+ </Properties>
+  <Item class="Model" referent="RBXP2"><Properties>
+   <string name="Name">Foundation</string>
+   <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgJgAAAARm91bmRhdGlvbiBwZWFrIHRpZXI6IHJlcGxhY2UgdGhlIGZsb2F0aW5nIHBhdmlsaW9uLCByaW5nIGFuZCBsYW50ZXJucyB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
+  </Properties>
+   <Item class="Part" referent="RBXP3"><Properties>
+    <string name="Name">Ring1</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0.0</X><Y>1.6</Y><Z>49.0</Z><R00>0.000000</R00><R01>0.000000</R01><R02>1.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-1.000000</R20><R21>0.000000</R21><R22>0.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP4"><Properties>
+    <string name="Name">Ring2</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>9.559425778790285</X><Y>1.6</Y><Z>48.05847873975829</Z><R00>-0.195090</R00><R01>0.000000</R01><R02>0.980785</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.980785</R20><R21>0.000000</R21><R22>-0.195090</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP5"><Properties>
+    <string name="Name">Ring3</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>18.7514881858894</X><Y>1.6</Y><Z>45.27009709305305</Z><R00>-0.382683</R00><R01>0.000000</R01><R02>0.923880</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.923880</R20><R21>0.000000</R21><R22>-0.382683</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP6"><Properties>
+    <string name="Name">Ring4</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>27.222941417960506</X><Y>1.6</Y><Z>40.74201100282472</Z><R00>-0.555570</R00><R01>0.000000</R01><R02>0.831470</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.831470</R20><R21>0.000000</R21><R22>-0.555570</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP7"><Properties>
+    <string name="Name">Ring5</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>34.648232278140824</X><Y>1.6</Y><Z>34.64823227814083</Z><R00>-0.707107</R00><R01>0.000000</R01><R02>0.707107</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.707107</R20><R21>0.000000</R21><R22>-0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP8"><Properties>
+    <string name="Name">Ring6</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>40.74201100282472</X><Y>1.6</Y><Z>27.222941417960513</Z><R00>-0.831470</R00><R01>0.000000</R01><R02>0.555570</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.555570</R20><R21>0.000000</R21><R22>-0.831470</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP9"><Properties>
+    <string name="Name">Ring7</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>45.27009709305305</X><Y>1.6</Y><Z>18.751488185889404</Z><R00>-0.923880</R00><R01>0.000000</R01><R02>0.382683</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.382683</R20><R21>0.000000</R21><R22>-0.923880</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP10"><Properties>
+    <string name="Name">Ring8</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>48.05847873975829</X><Y>1.6</Y><Z>9.559425778790288</Z><R00>-0.980785</R00><R01>0.000000</R01><R02>0.195090</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.195090</R20><R21>0.000000</R21><R22>-0.980785</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP11"><Properties>
+    <string name="Name">Ring9</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>49.0</X><Y>1.6</Y><Z>3.0003846579110155e-15</Z><R00>-1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.000000</R20><R21>0.000000</R21><R22>-1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP12"><Properties>
+    <string name="Name">Ring10</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>48.05847873975829</X><Y>1.6</Y><Z>-9.559425778790281</Z><R00>-0.980785</R00><R01>0.000000</R01><R02>-0.195090</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.195090</R20><R21>0.000000</R21><R22>-0.980785</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP13"><Properties>
+    <string name="Name">Ring11</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>45.27009709305305</X><Y>1.6</Y><Z>-18.751488185889396</Z><R00>-0.923880</R00><R01>0.000000</R01><R02>-0.382683</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.382683</R20><R21>0.000000</R21><R22>-0.923880</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP14"><Properties>
+    <string name="Name">Ring12</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>40.74201100282471</X><Y>1.6</Y><Z>-27.222941417960513</Z><R00>-0.831470</R00><R01>0.000000</R01><R02>-0.555570</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.555570</R20><R21>0.000000</R21><R22>-0.831470</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP15"><Properties>
+    <string name="Name">Ring13</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>34.64823227814083</X><Y>1.6</Y><Z>-34.648232278140824</Z><R00>-0.707107</R00><R01>0.000000</R01><R02>-0.707107</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.707107</R20><R21>0.000000</R21><R22>-0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP16"><Properties>
+    <string name="Name">Ring14</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>27.222941417960506</X><Y>1.6</Y><Z>-40.742011002824725</Z><R00>-0.555570</R00><R01>0.000000</R01><R02>-0.831470</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.831470</R20><R21>0.000000</R21><R22>-0.555570</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP17"><Properties>
+    <string name="Name">Ring15</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>18.751488185889404</X><Y>1.6</Y><Z>-45.27009709305305</Z><R00>-0.382683</R00><R01>0.000000</R01><R02>-0.923880</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.923880</R20><R21>0.000000</R21><R22>-0.382683</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP18"><Properties>
+    <string name="Name">Ring16</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>9.55942577879028</X><Y>1.6</Y><Z>-48.05847873975829</Z><R00>-0.195090</R00><R01>0.000000</R01><R02>-0.980785</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.980785</R20><R21>0.000000</R21><R22>-0.195090</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP19"><Properties>
+    <string name="Name">Ring17</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>6.000769315822031e-15</X><Y>1.6</Y><Z>-49.0</Z><R00>-0.000000</R00><R01>0.000000</R01><R02>-1.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>1.000000</R20><R21>0.000000</R21><R22>-0.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP20"><Properties>
+    <string name="Name">Ring18</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-9.55942577879029</X><Y>1.6</Y><Z>-48.05847873975829</Z><R00>0.195090</R00><R01>0.000000</R01><R02>-0.980785</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.980785</R20><R21>0.000000</R21><R22>0.195090</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP21"><Properties>
+    <string name="Name">Ring19</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-18.751488185889393</X><Y>1.6</Y><Z>-45.27009709305305</Z><R00>0.382683</R00><R01>0.000000</R01><R02>-0.923880</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.923880</R20><R21>0.000000</R21><R22>0.382683</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP22"><Properties>
+    <string name="Name">Ring20</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-27.222941417960513</X><Y>1.6</Y><Z>-40.74201100282472</Z><R00>0.555570</R00><R01>0.000000</R01><R02>-0.831470</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.831470</R20><R21>0.000000</R21><R22>0.555570</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP23"><Properties>
+    <string name="Name">Ring21</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-34.648232278140824</X><Y>1.6</Y><Z>-34.64823227814084</Z><R00>0.707107</R00><R01>0.000000</R01><R02>-0.707107</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.707107</R20><R21>0.000000</R21><R22>0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP24"><Properties>
+    <string name="Name">Ring22</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-40.74201100282472</X><Y>1.6</Y><Z>-27.222941417960506</Z><R00>0.831470</R00><R01>0.000000</R01><R02>-0.555570</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.555570</R20><R21>0.000000</R21><R22>0.831470</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP25"><Properties>
+    <string name="Name">Ring23</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-45.27009709305305</X><Y>1.6</Y><Z>-18.751488185889386</Z><R00>0.923880</R00><R01>0.000000</R01><R02>-0.382683</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.382683</R20><R21>0.000000</R21><R22>0.923880</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP26"><Properties>
+    <string name="Name">Ring24</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-48.058478739758286</X><Y>1.6</Y><Z>-9.559425778790304</Z><R00>0.980785</R00><R01>0.000000</R01><R02>-0.195090</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.195090</R20><R21>0.000000</R21><R22>0.980785</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP27"><Properties>
+    <string name="Name">Ring25</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-49.0</X><Y>1.6</Y><Z>-9.001153973733046e-15</Z><R00>1.000000</R00><R01>0.000000</R01><R02>-0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP28"><Properties>
+    <string name="Name">Ring26</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-48.05847873975829</X><Y>1.6</Y><Z>9.559425778790287</Z><R00>0.980785</R00><R01>0.000000</R01><R02>0.195090</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.195090</R20><R21>0.000000</R21><R22>0.980785</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP29"><Properties>
+    <string name="Name">Ring27</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-45.270097093053046</X><Y>1.6</Y><Z>18.75148818588941</Z><R00>0.923880</R00><R01>0.000000</R01><R02>0.382683</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.382683</R20><R21>0.000000</R21><R22>0.923880</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP30"><Properties>
+    <string name="Name">Ring28</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-40.742011002824725</X><Y>1.6</Y><Z>27.22294141796049</Z><R00>0.831470</R00><R01>0.000000</R01><R02>0.555570</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.555570</R20><R21>0.000000</R21><R22>0.831470</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP31"><Properties>
+    <string name="Name">Ring29</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-34.64823227814084</X><Y>1.6</Y><Z>34.64823227814082</Z><R00>0.707107</R00><R01>0.000000</R01><R02>0.707107</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.707107</R20><R21>0.000000</R21><R22>0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP32"><Properties>
+    <string name="Name">Ring30</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-27.222941417960506</X><Y>1.6</Y><Z>40.74201100282472</Z><R00>0.555570</R00><R01>0.000000</R01><R02>0.831470</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.831470</R20><R21>0.000000</R21><R22>0.555570</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP33"><Properties>
+    <string name="Name">Ring31</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-18.75148818588939</X><Y>1.6</Y><Z>45.27009709305305</Z><R00>0.382683</R00><R01>0.000000</R01><R02>0.923880</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.923880</R20><R21>0.000000</R21><R22>0.382683</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP34"><Properties>
+    <string name="Name">Ring32</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>10.021127501618741</X><Y>0.3</Y><Z>0.7</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-9.559425778790308</X><Y>1.6</Y><Z>48.058478739758286</Z><R00>0.195090</R00><R01>0.000000</R01><R02>0.980785</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.980785</R20><R21>0.000000</R21><R22>0.195090</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.15</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP35"><Properties>
+    <string name="Name">Rune1</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>8.779064490725771</X><Y>1.5</Y><Z>44.13533761814537</Z><R00>0.555570</R00><R01>0.000000</R01><R02>0.831470</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.831470</R20><R21>0.000000</R21><R22>0.555570</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP36"><Properties>
+    <string name="Name">Rune2</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>25.000660485882097</X><Y>1.5</Y><Z>37.41613255361454</Z><R00>0.195090</R00><R01>0.000000</R01><R02>0.980785</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.980785</R20><R21>0.000000</R21><R22>0.195090</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP37"><Properties>
+    <string name="Name">Rune3</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>37.41613255361454</X><Y>1.5</Y><Z>25.000660485882104</Z><R00>-0.195090</R00><R01>0.000000</R01><R02>0.980785</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.980785</R20><R21>0.000000</R21><R22>-0.195090</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP38"><Properties>
+    <string name="Name">Rune4</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>44.13533761814537</X><Y>1.5</Y><Z>8.779064490725775</Z><R00>-0.555570</R00><R01>0.000000</R01><R02>0.831470</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.831470</R20><R21>0.000000</R21><R22>-0.555570</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP39"><Properties>
+    <string name="Name">Rune5</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>44.13533761814537</X><Y>1.5</Y><Z>-8.77906449072577</Z><R00>-0.831470</R00><R01>0.000000</R01><R02>0.555570</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.555570</R20><R21>0.000000</R21><R22>-0.831470</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP40"><Properties>
+    <string name="Name">Rune6</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>37.41613255361453</X><Y>1.5</Y><Z>-25.000660485882104</Z><R00>-0.980785</R00><R01>0.000000</R01><R02>0.195090</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.195090</R20><R21>0.000000</R21><R22>-0.980785</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP41"><Properties>
+    <string name="Name">Rune7</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>25.000660485882097</X><Y>1.5</Y><Z>-37.41613255361454</Z><R00>-0.980785</R00><R01>0.000000</R01><R02>-0.195090</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.195090</R20><R21>0.000000</R21><R22>-0.980785</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP42"><Properties>
+    <string name="Name">Rune8</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>8.779064490725768</X><Y>1.5</Y><Z>-44.13533761814537</Z><R00>-0.831470</R00><R01>0.000000</R01><R02>-0.555570</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.555570</R20><R21>0.000000</R21><R22>-0.831470</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP43"><Properties>
+    <string name="Name">Rune9</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-8.779064490725776</X><Y>1.5</Y><Z>-44.13533761814537</Z><R00>-0.555570</R00><R01>0.000000</R01><R02>-0.831470</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.831470</R20><R21>0.000000</R21><R22>-0.555570</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP44"><Properties>
+    <string name="Name">Rune10</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-25.000660485882104</X><Y>1.5</Y><Z>-37.41613255361454</Z><R00>-0.195090</R00><R01>0.000000</R01><R02>-0.980785</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.980785</R20><R21>0.000000</R21><R22>-0.195090</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP45"><Properties>
+    <string name="Name">Rune11</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-37.41613255361454</X><Y>1.5</Y><Z>-25.000660485882097</Z><R00>0.195090</R00><R01>0.000000</R01><R02>-0.980785</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.980785</R20><R21>0.000000</R21><R22>0.195090</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP46"><Properties>
+    <string name="Name">Rune12</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-44.135337618145364</X><Y>1.5</Y><Z>-8.77906449072579</Z><R00>0.555570</R00><R01>0.000000</R01><R02>-0.831470</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.831470</R20><R21>0.000000</R21><R22>0.555570</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP47"><Properties>
+    <string name="Name">Rune13</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-44.13533761814537</X><Y>1.5</Y><Z>8.779064490725773</Z><R00>0.831470</R00><R01>0.000000</R01><R02>-0.555570</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.555570</R20><R21>0.000000</R21><R22>0.831470</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP48"><Properties>
+    <string name="Name">Rune14</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-37.416132553614545</X><Y>1.5</Y><Z>25.000660485882083</Z><R00>0.980785</R00><R01>0.000000</R01><R02>-0.195090</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.195090</R20><R21>0.000000</R21><R22>0.980785</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP49"><Properties>
+    <string name="Name">Rune15</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-25.000660485882097</X><Y>1.5</Y><Z>37.41613255361454</Z><R00>0.980785</R00><R01>0.000000</R01><R02>0.195090</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.195090</R20><R21>0.000000</R21><R22>0.980785</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP50"><Properties>
+    <string name="Name">Rune16</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>0.2</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-8.779064490725792</X><Y>1.5</Y><Z>44.135337618145364</Z><R00>0.831470</R00><R01>0.000000</R01><R02>0.555570</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>-0.555570</R20><R21>0.000000</R21><R22>0.831470</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP51"><Properties>
+    <string name="Name">Lantern1</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>1.4</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>17.98612132115922</X><Y>7</Y><Z>43.422338028030474</Z><R00>0.707107</R00><R01>-0.707107</R01><R02>0.000000</R02><R10>0.500000</R10><R11>0.500000</R11><R12>-0.707107</R12><R20>0.500000</R20><R21>0.500000</R21><R22>0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+    <Item class="PointLight" referent="RBXP52"><Properties>
+     <string name="Name">Light</string>
+     <Color3 name="Color"><R>1.000000</R><G>0.803922</G><B>0.431373</B></Color3>
+     <float name="Brightness">1.2</float>
+     <float name="Range">12</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Part" referent="RBXP53"><Properties>
+    <string name="Name">Lantern2</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>1.4</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>43.422338028030474</X><Y>7</Y><Z>17.98612132115922</Z><R00>0.707107</R00><R01>-0.707107</R01><R02>0.000000</R02><R10>0.500000</R10><R11>0.500000</R11><R12>-0.707107</R12><R20>0.500000</R20><R21>0.500000</R21><R22>0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+    <Item class="PointLight" referent="RBXP54"><Properties>
+     <string name="Name">Light</string>
+     <Color3 name="Color"><R>1.000000</R><G>0.803922</G><B>0.431373</B></Color3>
+     <float name="Brightness">1.2</float>
+     <float name="Range">12</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Part" referent="RBXP55"><Properties>
+    <string name="Name">Lantern3</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>1.4</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>43.422338028030474</X><Y>7</Y><Z>-17.986121321159217</Z><R00>0.707107</R00><R01>-0.707107</R01><R02>0.000000</R02><R10>0.500000</R10><R11>0.500000</R11><R12>-0.707107</R12><R20>0.500000</R20><R21>0.500000</R21><R22>0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+    <Item class="PointLight" referent="RBXP56"><Properties>
+     <string name="Name">Light</string>
+     <Color3 name="Color"><R>1.000000</R><G>0.803922</G><B>0.431373</B></Color3>
+     <float name="Brightness">1.2</float>
+     <float name="Range">12</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Part" referent="RBXP57"><Properties>
+    <string name="Name">Lantern4</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>1.4</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>17.986121321159224</X><Y>7</Y><Z>-43.422338028030474</Z><R00>0.707107</R00><R01>-0.707107</R01><R02>0.000000</R02><R10>0.500000</R10><R11>0.500000</R11><R12>-0.707107</R12><R20>0.500000</R20><R21>0.500000</R21><R22>0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+    <Item class="PointLight" referent="RBXP58"><Properties>
+     <string name="Name">Light</string>
+     <Color3 name="Color"><R>1.000000</R><G>0.803922</G><B>0.431373</B></Color3>
+     <float name="Brightness">1.2</float>
+     <float name="Range">12</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Part" referent="RBXP59"><Properties>
+    <string name="Name">Lantern5</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>1.4</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-17.986121321159214</X><Y>7</Y><Z>-43.42233802803048</Z><R00>0.707107</R00><R01>-0.707107</R01><R02>0.000000</R02><R10>0.500000</R10><R11>0.500000</R11><R12>-0.707107</R12><R20>0.500000</R20><R21>0.500000</R21><R22>0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+    <Item class="PointLight" referent="RBXP60"><Properties>
+     <string name="Name">Light</string>
+     <Color3 name="Color"><R>1.000000</R><G>0.803922</G><B>0.431373</B></Color3>
+     <float name="Brightness">1.2</float>
+     <float name="Range">12</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Part" referent="RBXP61"><Properties>
+    <string name="Name">Lantern6</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>1.4</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-43.42233802803047</X><Y>7</Y><Z>-17.986121321159246</Z><R00>0.707107</R00><R01>-0.707107</R01><R02>0.000000</R02><R10>0.500000</R10><R11>0.500000</R11><R12>-0.707107</R12><R20>0.500000</R20><R21>0.500000</R21><R22>0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+    <Item class="PointLight" referent="RBXP62"><Properties>
+     <string name="Name">Light</string>
+     <Color3 name="Color"><R>1.000000</R><G>0.803922</G><B>0.431373</B></Color3>
+     <float name="Brightness">1.2</float>
+     <float name="Range">12</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Part" referent="RBXP63"><Properties>
+    <string name="Name">Lantern7</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>1.4</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-43.422338028030474</X><Y>7</Y><Z>17.98612132115923</Z><R00>0.707107</R00><R01>-0.707107</R01><R02>0.000000</R02><R10>0.500000</R10><R11>0.500000</R11><R12>-0.707107</R12><R20>0.500000</R20><R21>0.500000</R21><R22>0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+    <Item class="PointLight" referent="RBXP64"><Properties>
+     <string name="Name">Light</string>
+     <Color3 name="Color"><R>1.000000</R><G>0.803922</G><B>0.431373</B></Color3>
+     <float name="Brightness">1.2</float>
+     <float name="Range">12</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Part" referent="RBXP65"><Properties>
+    <string name="Name">Lantern8</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>1.4</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-17.98612132115925</X><Y>7</Y><Z>43.42233802803047</Z><R00>0.707107</R00><R01>-0.707107</R01><R02>0.000000</R02><R10>0.500000</R10><R11>0.500000</R11><R12>-0.707107</R12><R20>0.500000</R20><R21>0.500000</R21><R22>0.707107</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+    <Item class="PointLight" referent="RBXP66"><Properties>
+     <string name="Name">Light</string>
+     <Color3 name="Color"><R>1.000000</R><G>0.803922</G><B>0.431373</B></Color3>
+     <float name="Brightness">1.2</float>
+     <float name="Range">12</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Part" referent="RBXP67"><Properties>
+    <string name="Name">Island</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>2.5</X><Y>20</Y><Z>20</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>29</Y><Z>0</Z><R00>0.000000</R00><R01>-1.000000</R01><R02>0.000000</R02><R10>1.000000</R10><R11>0.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4292334792</Color3uint8>
+    <token name="Material">800</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <token name="shape">2</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP68"><Properties>
+    <string name="Name">IslandGlow</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.3</X><Y>16</Y><Z>16</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>27.6</Y><Z>0</Z><R00>0.000000</R00><R01>-1.000000</R01><R02>0.000000</R02><R10>1.000000</R10><R11>0.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <token name="shape">2</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.3</float>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP69"><Properties>
+    <string name="Name">Floor</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>15</X><Y>0.8</Y><Z>15</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>30.6</Y><Z>0</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4286072370</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP70"><Properties>
+    <string name="Name">Pillar1</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.9</X><Y>7</Y><Z>0.9</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-6</X><Y>34.4</Y><Z>-6</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4289341476</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP71"><Properties>
+    <string name="Name">Pillar2</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.9</X><Y>7</Y><Z>0.9</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>6</X><Y>34.4</Y><Z>-6</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4289341476</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP72"><Properties>
+    <string name="Name">Pillar3</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.9</X><Y>7</Y><Z>0.9</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-6</X><Y>34.4</Y><Z>6</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4289341476</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP73"><Properties>
+    <string name="Name">Pillar4</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.9</X><Y>7</Y><Z>0.9</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>6</X><Y>34.4</Y><Z>6</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4289341476</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP74"><Properties>
+    <string name="Name">RoofLow</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>18</X><Y>1.0</Y><Z>18</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>38.3</Y><Z>0</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4280436296</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP75"><Properties>
+    <string name="Name">RoofLowTrim</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>18.6</X><Y>0.4</Y><Z>18.6</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>37.7</Y><Z>0</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP76"><Properties>
+    <string name="Name">RoofHigh</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>11</X><Y>1.0</Y><Z>11</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>40.2</Y><Z>0</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4280436296</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP77"><Properties>
+    <string name="Name">RoofCap</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>5</X><Y>1.2</Y><Z>5</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>41.6</Y><Z>0</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4280436296</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP78"><Properties>
+    <string name="Name">Finial</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.4</X><Y>1.4</Y><Z>1.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>43.2</Y><Z>0</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <token name="shape">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP79"><Properties>
+    <string name="Name">Eave1</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.6</X><Y>0.6</Y><Z>2.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-9</X><Y>38.9</Y><Z>-9</Z><R00>0.707107</R00><R01>0.000000</R01><R02>0.707107</R02><R10>0.298836</R10><R11>0.906308</R11><R12>-0.298836</R12><R20>-0.640856</R20><R21>0.422618</R21><R22>0.640856</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP80"><Properties>
+    <string name="Name">Eave2</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.6</X><Y>0.6</Y><Z>2.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>9</X><Y>38.9</Y><Z>-9</Z><R00>0.707107</R00><R01>0.000000</R01><R02>-0.707107</R02><R10>-0.298836</R10><R11>0.906308</R11><R12>-0.298836</R12><R20>0.640856</R20><R21>0.422618</R21><R22>0.640856</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP81"><Properties>
+    <string name="Name">Eave3</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.6</X><Y>0.6</Y><Z>2.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-9</X><Y>38.9</Y><Z>9</Z><R00>-0.707107</R00><R01>0.000000</R01><R02>0.707107</R02><R10>0.298836</R10><R11>0.906308</R11><R12>0.298836</R12><R20>-0.640856</R20><R21>0.422618</R21><R22>-0.640856</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP82"><Properties>
+    <string name="Name">Eave4</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.6</X><Y>0.6</Y><Z>2.4</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>9</X><Y>38.9</Y><Z>9</Z><R00>-0.707107</R00><R01>0.000000</R01><R02>-0.707107</R02><R10>-0.298836</R10><R11>0.906308</R11><R12>0.298836</R12><R20>0.640856</R20><R21>0.422618</R21><R22>-0.640856</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294954350</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXP83"><Properties>
+    <string name="Name">SkyBeam</string>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>300</X><Y>3</Y><Z>3</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>194</Y><Z>0</Z><R00>0.000000</R00><R01>-1.000000</R01><R02>0.000000</R02><R10>1.000000</R10><R11>0.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <token name="shape">2</token>
+    <bool name="CanQuery">false</bool>
+    <bool name="CastShadow">false</bool>
+    <float name="Transparency">0.82</float>
+   </Properties>
+   </Item>
+  </Item>
+  <Item class="BillboardGui" referent="RBXP84"><Properties>
+   <string name="Name">OwnerSign</string>
+   <UDim2 name="Size"><XS>0</XS><XO>220</XO><YS>0</YS><YO>54</YO></UDim2>
+   <Vector3 name="StudsOffset"><X>0</X><Y>9</Y><Z>0</Z></Vector3>
+   <float name="MaxDistance">600</float>
+   <bool name="AlwaysOnTop">false</bool>
+   <token name="LightInfluence">0</token>
+  </Properties>
+   <Item class="TextLabel" referent="RBXP85"><Properties>
+    <string name="Name">NameLabel</string>
+    <string name="Text"></string>
+    <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>30</YO></UDim2>
+    <float name="BackgroundTransparency">1</float>
+    <Color3 name="TextColor3"><R>1.000000</R><G>0.941176</G><B>0.823529</B></Color3>
+    <float name="TextSize">24</float>
+    <bool name="TextWrapped">true</bool>
+    <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+    <float name="TextStrokeTransparency">0.4</float>
+    <bool name="TextScaled">false</bool>
+   </Properties>
+   </Item>
+   <Item class="TextLabel" referent="RBXP86"><Properties>
+    <string name="Name">RealmLabel</string>
+    <string name="Text"></string>
+    <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>30</YO></UDim2>
+    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>22</YO></UDim2>
+    <float name="BackgroundTransparency">1</float>
+    <Color3 name="TextColor3"><R>0.588235</R><G>0.921569</G><B>0.784314</B></Color3>
+    <float name="TextSize">17</float>
+    <bool name="TextWrapped">true</bool>
+    <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>600</Weight><Style>Normal</Style></Font>
+    <float name="TextStrokeTransparency">0.5</float>
+   </Properties>
+   </Item>
+  </Item>
+ </Item>
+</roblox>

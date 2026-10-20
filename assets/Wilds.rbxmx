@@ -130,6 +130,7 @@
   </Properties>
    <Item class="Model" referent="RBXE171"><Properties>
     <string name="Name">QiNode1</string>
+    <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
    </Properties>
     <Item class="Part" referent="RBXE172"><Properties>
      <string name="Name">Base</string>
@@ -194,6 +195,7 @@
    </Item>
    <Item class="Model" referent="RBXE176"><Properties>
     <string name="Name">QiNode2</string>
+    <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
    </Properties>
     <Item class="Part" referent="RBXE177"><Properties>
      <string name="Name">Base</string>
@@ -258,6 +260,7 @@
    </Item>
    <Item class="Model" referent="RBXE181"><Properties>
     <string name="Name">QiNode3</string>
+    <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
    </Properties>
     <Item class="Part" referent="RBXE182"><Properties>
      <string name="Name">Base</string>
@@ -322,6 +325,7 @@
    </Item>
    <Item class="Model" referent="RBXE186"><Properties>
     <string name="Name">QiNode4</string>
+    <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
    </Properties>
     <Item class="Part" referent="RBXE187"><Properties>
      <string name="Name">Base</string>
@@ -386,6 +390,7 @@
    </Item>
    <Item class="Model" referent="RBXE191"><Properties>
     <string name="Name">QiNode5</string>
+    <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
    </Properties>
     <Item class="Part" referent="RBXE192"><Properties>
      <string name="Name">Base</string>

@@ -12,6 +12,11 @@ local PlayerData = require(script.Parent.PlayerData)
 local peaksFolder = workspace.Map.Sect.SpiritPeaks
 local stashFolder = ServerStorage.PeakStash
 local catalog = ReplicatedStorage.BuildCatalog
+local tiers = ServerStorage.PeakTiers
+local Realms = require(ReplicatedStorage.Shared.Realms)
+
+-- Peak visuals per major realm, beyond the bare rock every peak starts with.
+local TIER_BY_MAJOR = { Foundation = "Foundation" }
 
 type Starter = { inst: Instance, parent: Instance }
 
@@ -104,6 +109,51 @@ function Peaks.applyLayout(player: Player, data: PlayerData.Data)
 	end
 end
 
+-- The owner's realm on their peak: a floating name sign over the stele, and the
+-- major realm's tier (Foundation: hovering formation ring, lanterns, floating
+-- pavilion and a sky beam), so everyone can see who is strongest from afar.
+function Peaks.applyRealm(player: Player, data: PlayerData.Data)
+	local peak = owners[player]
+	if not peak then
+		return
+	end
+	local stage = Realms.get(data.realm.major, data.realm.minor)
+	local stele = peak:FindFirstChild("NameStele")
+	local cap = stele and stele:FindFirstChild("Cap") :: BasePart?
+	if cap then
+		local sign = cap:FindFirstChild("OwnerSign") :: BillboardGui?
+		if not sign then
+			local made = (tiers:FindFirstChild("OwnerSign") :: BillboardGui):Clone()
+			made.Parent = cap
+			sign = made
+		end
+		local nameLabel = (sign :: BillboardGui):FindFirstChild("NameLabel") :: TextLabel
+		local realmLabel = (sign :: BillboardGui):FindFirstChild("RealmLabel") :: TextLabel
+		nameLabel.Text = player.DisplayName
+		realmLabel.Text = stage.name
+	end
+
+	local wanted = TIER_BY_MAJOR[stage.major]
+	local current = peak:FindFirstChild("RealmTier")
+	if current and current:GetAttribute("Tier") ~= wanted then
+		current:Destroy()
+		current = nil
+	end
+	if wanted and not current then
+		local tier = (tiers:FindFirstChild(wanted) :: Model):Clone()
+		-- the template is authored in peak-local coordinates around the plateau
+		local frame = Peak.frame(peak)
+		for _, d in tier:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.CFrame = frame:ToWorldSpace(d.CFrame)
+			end
+		end
+		tier.Name = "RealmTier"
+		tier:SetAttribute("Tier", wanted)
+		tier.Parent = peak
+	end
+end
+
 -- Undo the owner's layout so the peak is back to its default for the next player.
 function Peaks.release(player: Player)
 	local peak = owners[player]
@@ -123,6 +173,15 @@ function Peaks.release(player: Player)
 				s.inst:SetAttribute(attr, nil)
 			end
 		end
+	end
+	local tier = peak:FindFirstChild("RealmTier")
+	if tier then
+		tier:Destroy()
+	end
+	local stele = peak:FindFirstChild("NameStele")
+	local sign = stele and stele:FindFirstChild("OwnerSign", true)
+	if sign then
+		sign:Destroy()
 	end
 	peak:SetAttribute("Owner", "")
 	peak:SetAttribute("OwnerName", "")

@@ -78,6 +78,7 @@ local function onPlayerAdded(player: Player)
 	end
 	if peak then
 		Peaks.applyLayout(player, data)
+		Peaks.applyRealm(player, data)
 		Garden.apply(player, data)
 	else
 		warn(`No free peak for {player.Name}; all peaks are taken`)
@@ -124,6 +125,12 @@ end
 
 QiNodes.start()
 table.insert(EnemyService.onKill, Progression.onKill)
+table.insert(Cultivation.onBreakthrough, function(player)
+	local data = PlayerData.get(player)
+	if data then
+		Peaks.applyRealm(player, data)
+	end
+end)
 EnemyService.start();
 
 (remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(function(player, action, plotId, herbId)

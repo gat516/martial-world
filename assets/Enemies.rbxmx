@@ -6,6 +6,7 @@
    <string name="Name">SpiritWolf</string>
    <Ref name="PrimaryPart">RBXE1</Ref>
    <token name="ModelStreamingMode">1</token>
+   <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgJOAAAAU3Bpcml0V29sZjogcGFydC1idWlsdCBzdGFuZC1pbjsgcmVwbGFjZSB3aXRoIGEgcmlnZ2VkLCBhbmltYXRlZCBCbGVuZGVyIG1vZGVs</BinaryString>
   </Properties>
    <Item class="Part" referent="RBXE1"><Properties>
     <string name="Name">HumanoidRootPart</string>
@@ -354,6 +355,7 @@
    <string name="Name">StoneBoar</string>
    <Ref name="PrimaryPart">RBXE16</Ref>
    <token name="ModelStreamingMode">1</token>
+   <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgJNAAAAU3RvbmVCb2FyOiBwYXJ0LWJ1aWx0IHN0YW5kLWluOyByZXBsYWNlIHdpdGggYSByaWdnZWQsIGFuaW1hdGVkIEJsZW5kZXIgbW9kZWw=</BinaryString>
   </Properties>
    <Item class="Part" referent="RBXE16"><Properties>
     <string name="Name">HumanoidRootPart</string>
@@ -702,6 +704,7 @@
    <string name="Name">VenomSerpent</string>
    <Ref name="PrimaryPart">RBXE31</Ref>
    <token name="ModelStreamingMode">1</token>
+   <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgJQAAAAVmVub21TZXJwZW50OiBwYXJ0LWJ1aWx0IHN0YW5kLWluOyByZXBsYWNlIHdpdGggYSByaWdnZWQsIGFuaW1hdGVkIEJsZW5kZXIgbW9kZWw=</BinaryString>
   </Properties>
    <Item class="Part" referent="RBXE31"><Properties>
     <string name="Name">HumanoidRootPart</string>
@@ -1100,6 +1103,7 @@
    <string name="Name">ElderWolfKing</string>
    <Ref name="PrimaryPart">RBXE48</Ref>
    <token name="ModelStreamingMode">1</token>
+   <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgJRAAAARWxkZXJXb2xmS2luZzogcGFydC1idWlsdCBzdGFuZC1pbjsgcmVwbGFjZSB3aXRoIGEgcmlnZ2VkLCBhbmltYXRlZCBCbGVuZGVyIG1vZGVs</BinaryString>
   </Properties>
    <Item class="Part" referent="RBXE48"><Properties>
     <string name="Name">HumanoidRootPart</string>

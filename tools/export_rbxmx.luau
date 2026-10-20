@@ -35,6 +35,7 @@ local PROPS = {
 	"KeyboardKeyCode", "UIOffset", "Exclusivity",
 	"StudsOffset", "StudsOffsetWorldSpace", "AlwaysOnTop", "MaxDistance", "Adornee", "SizeOffset",
 	"Part0", "Part1", "MeshType", "PrimaryPart", "AnimationId",
+	"FillColor", "OutlineColor", "FillTransparency", "OutlineTransparency", "DepthMode",
 }
 
 local INT = {

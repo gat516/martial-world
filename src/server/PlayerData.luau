@@ -17,7 +17,8 @@ local Herbs = require(ReplicatedStorage.Shared.Herbs)
 
 local SCHEMA_VERSION = 3
 
-export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number }
+-- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
+export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number, m: string? }
 export type Plot = { herb: string, planted: number }
 export type ActiveBuff = { source: string, kind: string, amount: number, expires: number }
 export type Technique = { level: number, xp: number }

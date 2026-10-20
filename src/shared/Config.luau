@@ -120,6 +120,28 @@ return {
 		ROTATE_STEP = 45, -- degrees per R / Rotate
 		FINE_ROTATE_STEP = 15, -- degrees per Shift+R (the server snaps to this)
 		MIN_INTERVAL = 0.15, -- seconds between build requests per player
+		ROTATE_STEPS = { 45, 90, 15 }, -- rotation increments the player can pick (Placement uses yaw only)
+		MAX_CLEARANCE = 2, -- the largest `clearance` any build item has (widens neighbour queries)
+		-- Natural ground: peak children whose surfaces count as terrain (items whose
+		-- `on` is only "terrain" need these underneath)
+		GROUND = { "Plateau", "Pillar" },
+		-- Kept clear of building, around these peak children (radius in studs, and
+		-- how far above and below the anchor the zone reaches)
+		RESERVED = {
+			{ anchor = "TeleportArray", name = "the teleport array", radius = 9, above = 14, below = 4 },
+			{ anchor = "BridgeGate", name = "the bridge gate", radius = 9, above = 16, below = 6 },
+			{ anchor = "AbodeEntrance", name = "the abode entrance", radius = 7, above = 12, below = 4 },
+		} :: { { anchor: string, name: string, radius: number, above: number, below: number } },
+		-- What placement says blocks it, by the peak child the restricted part is in
+		RESTRICTED_NAMES = {
+			Bridge = "the bridge",
+			BridgeGate = "the bridge gate",
+			CaveAbode = "the cave walls",
+			NameStele = "the name stele",
+			TeleportArray = "the teleport array",
+			Pillar = "the rock",
+			Garden = "the garden",
+		} :: { [string]: string },
 		MARKET_RANGE = 24, -- studs from the Spirit Market stall to buy there
 		MAX_BUY = 10, -- items per purchase
 	},

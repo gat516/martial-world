@@ -1,0 +1,142 @@
+<roblox version="4">
+ <Item class="Folder" referent="RBXK1"><Properties>
+  <string name="Name">BuildKit</string>
+ </Properties>
+  <Item class="Part" referent="RBXK2"><Properties>
+   <string name="Name">Probe</string>
+   <bool name="Anchored">true</bool>
+   <bool name="CanCollide">false</bool>
+   <bool name="CanQuery">false</bool>
+   <bool name="CanTouch">false</bool>
+   <bool name="CastShadow">false</bool>
+   <token name="TopSurface">0</token>
+   <token name="BottomSurface">0</token>
+   <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+   <Vector3 name="size"><X>1</X><Y>1</Y><Z>1</Z></Vector3>
+   <float name="Transparency">1</float>
+  </Properties>
+  </Item>
+  <Item class="Part" referent="RBXK3"><Properties>
+   <string name="Name">GridLine</string>
+   <bool name="Anchored">true</bool>
+   <bool name="CanCollide">false</bool>
+   <bool name="CanQuery">false</bool>
+   <bool name="CanTouch">false</bool>
+   <bool name="CastShadow">false</bool>
+   <token name="Material">288</token>
+   <token name="TopSurface">0</token>
+   <token name="BottomSurface">0</token>
+   <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+   <Vector3 name="size"><X>0.06</X><Y>0.06</Y><Z>1</Z></Vector3>
+   <Color3uint8 name="Color3uint8">4288080840</Color3uint8>
+   <float name="Transparency">0.6</float>
+  </Properties>
+  </Item>
+  <Item class="Part" referent="RBXK4"><Properties>
+   <string name="Name">RingSegment</string>
+   <bool name="Anchored">true</bool>
+   <bool name="CanCollide">false</bool>
+   <bool name="CanQuery">false</bool>
+   <bool name="CanTouch">false</bool>
+   <bool name="CastShadow">false</bool>
+   <token name="Material">288</token>
+   <token name="TopSurface">0</token>
+   <token name="BottomSurface">0</token>
+   <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+   <Vector3 name="size"><X>0.15</X><Y>0.15</Y><Z>6</Z></Vector3>
+   <Color3uint8 name="Color3uint8">4288080840</Color3uint8>
+   <float name="Transparency">0.5</float>
+  </Properties>
+  </Item>
+  <Item class="Part" referent="RBXK5"><Properties>
+   <string name="Name">Burst</string>
+   <bool name="Anchored">true</bool>
+   <bool name="CanCollide">false</bool>
+   <bool name="CanQuery">false</bool>
+   <bool name="CanTouch">false</bool>
+   <bool name="CastShadow">false</bool>
+   <token name="Material">288</token>
+   <token name="shape">2</token>
+   <token name="TopSurface">0</token>
+   <token name="BottomSurface">0</token>
+   <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+   <Vector3 name="size"><X>0.2</X><Y>1</Y><Z>1</Z></Vector3>
+   <Color3uint8 name="Color3uint8">4284144790</Color3uint8>
+   <float name="Transparency">0.2</float>
+  </Properties>
+  </Item>
+  <Item class="Part" referent="RBXK6"><Properties>
+   <string name="Name">SnapMarker</string>
+   <bool name="Anchored">true</bool>
+   <bool name="CanCollide">false</bool>
+   <bool name="CanQuery">false</bool>
+   <bool name="CanTouch">false</bool>
+   <bool name="CastShadow">false</bool>
+   <token name="Material">288</token>
+   <token name="shape">0</token>
+   <token name="TopSurface">0</token>
+   <token name="BottomSurface">0</token>
+   <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+   <Vector3 name="size"><X>0.7</X><Y>0.7</Y><Z>0.7</Z></Vector3>
+   <Color3uint8 name="Color3uint8">4294956664</Color3uint8>
+   <float name="Transparency">0.25</float>
+  </Properties>
+  </Item>
+  <Item class="Part" referent="RBXK7"><Properties>
+   <string name="Name">ReservedZone</string>
+   <bool name="Anchored">true</bool>
+   <bool name="CanCollide">false</bool>
+   <bool name="CanQuery">false</bool>
+   <bool name="CanTouch">false</bool>
+   <bool name="CastShadow">false</bool>
+   <token name="Material">288</token>
+   <token name="shape">2</token>
+   <token name="TopSurface">0</token>
+   <token name="BottomSurface">0</token>
+   <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+   <Vector3 name="size"><X>0.12</X><Y>18</Y><Z>18</Z></Vector3>
+   <Color3uint8 name="Color3uint8">4293283920</Color3uint8>
+   <float name="Transparency">0.75</float>
+  </Properties>
+  </Item>
+  <Item class="Highlight" referent="RBXK8"><Properties>
+   <string name="Name">GhostHighlight</string>
+   <bool name="Enabled">false</bool>
+   <Color3 name="FillColor"><R>0.352941</R><G>0.862745</G><B>0.588235</B></Color3>
+   <Color3 name="OutlineColor"><R>0.352941</R><G>0.862745</G><B>0.588235</B></Color3>
+   <float name="FillTransparency">0.6</float>
+   <float name="OutlineTransparency">0.2</float>
+   <token name="DepthMode">1</token>
+  </Properties>
+  </Item>
+  <Item class="Highlight" referent="RBXK9"><Properties>
+   <string name="Name">SelectHighlight</string>
+   <bool name="Enabled">false</bool>
+   <Color3 name="FillColor"><R>1</R><G>0.745098</G><B>0.352941</B></Color3>
+   <Color3 name="OutlineColor"><R>1</R><G>0.745098</G><B>0.352941</B></Color3>
+   <float name="FillTransparency">0.55</float>
+   <float name="OutlineTransparency">0</float>
+   <token name="DepthMode">1</token>
+  </Properties>
+  </Item>
+  <Item class="Highlight" referent="RBXK10"><Properties>
+   <string name="Name">DependentHighlight</string>
+   <bool name="Enabled">false</bool>
+   <Color3 name="FillColor"><R>1</R><G>0.588235</G><B>0.27451</B></Color3>
+   <Color3 name="OutlineColor"><R>1</R><G>0.588235</G><B>0.27451</B></Color3>
+   <float name="FillTransparency">0.75</float>
+   <float name="OutlineTransparency">0.3</float>
+   <token name="DepthMode">1</token>
+  </Properties>
+  </Item>
+  <Item class="Highlight" referent="RBXK11"><Properties>
+   <string name="Name">HoverHighlight</string>
+   <bool name="Enabled">false</bool>
+   <Color3 name="FillColor"><R>1</R><G>1</G><B>1</B></Color3>
+   <float name="FillTransparency">0.85</float>
+   <float name="OutlineTransparency">0.4</float>
+   <token name="DepthMode">1</token>
+  </Properties>
+  </Item>
+ </Item>
+</roblox>

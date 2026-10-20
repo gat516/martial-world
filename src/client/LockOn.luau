@@ -69,6 +69,9 @@ local cameraFrame: CFrame? = nil -- our smoothed camera, while locked
 local baseFov: number? = nil -- the field of view before the lock narrowed it
 local releaseFrom: CFrame? = nil -- the lock's last framing, blended out of on release
 local releaseLeft = 0
+-- PC: the mouse mode before the lock held it centred. Roblox's camera only resets
+-- the mouse when shift lock or first person changes, so the release puts it back.
+local mouseBefore: Enum.MouseBehavior? = nil
 
 local reticle: ImageLabel
 local reticleScale: UIScale?
@@ -202,6 +205,9 @@ local function setTarget(model: Model?)
 			cameraFrame = camera.CFrame
 			releaseLeft = 0
 			baseFov = baseFov or camera.FieldOfView
+			if not Platform.isTouch() then
+				mouseBefore = UserInputService.MouseBehavior
+			end
 			Motion.tween(camera, { FieldOfView = (baseFov :: number) - LOCK_FOV_NARROW }, FOV_TWEEN)
 		end
 		snapReticle()
@@ -213,6 +219,10 @@ local function setTarget(model: Model?)
 		if baseFov then
 			Motion.tween(camera, { FieldOfView = baseFov }, FOV_TWEEN)
 			baseFov = nil
+		end
+		if mouseBefore then
+			UserInputService.MouseBehavior = mouseBefore
+			mouseBefore = nil
 		end
 		local humanoid = myHumanoid()
 		if humanoid then

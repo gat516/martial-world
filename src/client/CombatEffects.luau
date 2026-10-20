@@ -156,4 +156,64 @@ function CombatEffects.flyingSword(root: BasePart, seconds: number)
 	end)
 end
 
+-- A jagged lightning bolt from high in the sky down to `ground`, with a flash.
+-- Drawn tall and bright so it reads from every peak.
+function CombatEffects.bolt(ground: Vector3)
+	local color = Color3.fromRGB(205, 215, 255)
+	local top = ground + Vector3.new(math.random(-12, 12), 260, math.random(-12, 12))
+	local points = { top }
+	local segments = 9
+	for i = 1, segments - 1 do
+		local t = i / segments
+		local p = top:Lerp(ground, t)
+		local jitter = 10 * (1 - t) + 2
+		table.insert(points, p + Vector3.new(math.random() * 2 - 1, 0, math.random() * 2 - 1) * jitter)
+	end
+	table.insert(points, ground)
+	for i = 1, #points - 1 do
+		local seg = beam(color, points[i], points[i + 1], if i > segments - 3 then 0.9 else 1.6)
+		seg.Transparency = 0
+		fade(seg, 0.35)
+	end
+	local flash = part(color, Vector3.new(1, 1, 1), CFrame.new(ground + Vector3.new(0, 2, 0)))
+	flash.Transparency = 1
+	local light = Instance.new("PointLight")
+	light.Color = color
+	light.Brightness = 8
+	light.Range = 40
+	light.Parent = flash
+	TweenService:Create(light, TweenInfo.new(0.4), { Brightness = 0 }):Play()
+	Debris:AddItem(flash, 0.5)
+	local scorch = disc(Color3.fromRGB(150, 170, 255), ground + Vector3.new(0, 0.12, 0), 4, 0.2)
+	scorch.Transparency = 0.2
+	fade(scorch, 0.6, { Size = Vector3.new(0.2, 12, 12) })
+end
+
+-- Storm clouds over the tribulation platform while it lasts.
+local storms: { [Player]: { Part } } = {}
+function CombatEffects.storm(who: Player, center: Vector3?)
+	local old = storms[who]
+	if old then
+		for _, p in old do
+			fade(p, 1.5)
+		end
+	end
+	storms[who] = nil
+	if not center then
+		return
+	end
+	local parts = {}
+	for i = 1, 14 do
+		local a = i / 14 * math.pi * 2
+		local r = 30 + math.random() * 30
+		local size = 30 + math.random() * 25
+		local cloud = part(Color3.fromRGB(38, 36, 52), Vector3.new(size, size * 0.5, size), CFrame.new(center + Vector3.new(math.cos(a) * r, 120 + math.random() * 20, math.sin(a) * r)), Enum.PartType.Ball)
+		cloud.Material = Enum.Material.SmoothPlastic
+		cloud.Transparency = 1
+		TweenService:Create(cloud, TweenInfo.new(2), { Transparency = 0.15 }):Play()
+		table.insert(parts, cloud)
+	end
+	storms[who] = parts
+end
+
 return CombatEffects

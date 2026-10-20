@@ -163,8 +163,45 @@ function Cultivation.eat(player: Player, herbId: string): (boolean, string?)
 	return true, `Ate {herb.name}: {herb.blurb}`
 end
 
+-- Set by Tribulation: starts the tribulation a major breakthrough needs.
+Cultivation.startTribulation = nil :: ((Player) -> (boolean, string?))?
+
+-- Move the player up to the next stage. Major breakthroughs are announced to everyone.
+function Cultivation.advance(player: Player)
+	local data = PlayerData.get(player)
+	if not data then
+		return
+	end
+	local stage = Cultivation.stage(data)
+	local nextStage = Realms.after(stage.major, stage.minor)
+	if not nextStage then
+		return
+	end
+	local major = nextStage.major ~= stage.major
+	data.realm = { major = nextStage.major, minor = nextStage.minor }
+	data.cultivation = 0
+	data.rawQi = math.min(data.rawQi, nextStage.dantian)
+	data.stats.breakthroughs += 1
+	local s = session(player)
+	s.fullNoticed = false
+	s.lastActive = os.clock()
+	applyStats(player, data)
+	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	if humanoid and humanoid.Health > 0 then
+		humanoid.Health = humanoid.MaxHealth
+	end
+	Cultivation.pushState(player)
+	breakthroughRemote:FireAllClients(player, nextStage.name, major)
+	for _, fn in Cultivation.onBreakthrough do
+		task.spawn(fn, player, nextStage, major)
+	end
+end
+
+-- Called with (player, newStage, major) after every breakthrough.
+Cultivation.onBreakthrough = {} :: { (Player, Realms.Stage, boolean) -> () }
+
 -- Minor breakthroughs (within a major realm) happen at once on a full bar.
--- Major ones need insight and a tribulation, which doesn't exist yet.
+-- Major ones need insight and survive a tribulation first.
 function Cultivation.breakthrough(player: Player): (boolean, string?)
 	local data = PlayerData.get(player)
 	if not data then
@@ -182,23 +219,12 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 		return false, "You feel as if you need more insight."
 	end
 	if nextStage.major ~= stage.major then
-		return false, "The heavens are silent. Tribulation will come in a later update."
+		if Cultivation.startTribulation then
+			return Cultivation.startTribulation(player)
+		end
+		return false, "The heavens are silent."
 	end
-
-	data.realm = { major = nextStage.major, minor = nextStage.minor }
-	data.cultivation = 0
-	data.rawQi = math.min(data.rawQi, nextStage.dantian)
-	data.stats.breakthroughs += 1
-	local s = session(player)
-	s.fullNoticed = false
-	s.lastActive = os.clock()
-	applyStats(player, data)
-	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-	if humanoid and humanoid.Health > 0 then
-		humanoid.Health = humanoid.MaxHealth
-	end
-	Cultivation.pushState(player)
-	breakthroughRemote:FireAllClients(player, nextStage.name, false)
+	Cultivation.advance(player)
 	return true, `Breakthrough! You reached {nextStage.name}.`
 end
 

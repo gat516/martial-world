@@ -20,6 +20,7 @@ local Travel = require(script.Parent.Travel)
 local QiNodes = require(script.Parent.QiNodes)
 local EnemyService = require(script.Parent.EnemyService)
 local Progression = require(script.Parent.Progression)
+local Tribulation = require(script.Parent.Tribulation)
 
 local remotes = ReplicatedStorage.Remotes
 
@@ -98,6 +99,7 @@ Players.PlayerRemoving:Connect(function(player)
 	Travel.forget(player)
 	QiNodes.forget(player)
 	EnemyService.forget(player)
+	Tribulation.forget(player)
 	Cultivation.forget(player)
 end)
 

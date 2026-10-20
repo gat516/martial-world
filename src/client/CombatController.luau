@@ -385,6 +385,12 @@ local function onEffect(kind: string, ...: any)
 				then `Manual found: {def.name}! It's in your technique slots.`
 				else `Manual found: {def.name}! Equip it from Arts.`)
 		end
+	elseif kind == "bolt" then
+		CombatEffects.bolt(args[1])
+	elseif kind == "tribulationStart" then
+		CombatEffects.storm(args[1], args[2])
+	elseif kind == "tribulationEnd" then
+		CombatEffects.storm(args[1], nil)
 	elseif kind == "cast" then
 		local caster = args[1] :: Player
 		CombatEffects.cast(caster.Character, args[2], args[3], args[4], args[5])

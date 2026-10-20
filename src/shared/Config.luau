@@ -118,6 +118,21 @@ return {
 		},
 	},
 
+	-- The heavenly tribulation before Foundation Establishment
+	Tribulation = {
+		CENTER = Vector3.new(2, 857, -86), -- on the main peak's tribulation platform
+		ARENA_RADIUS = 34, -- stepping farther out than this fails the tribulation
+		SECONDS = 30,
+		STRIKE_RADIUS = 5,
+		WINDUP_START = 1.2, -- seconds a strike's telegraph shows, at the start...
+		WINDUP_END = 0.7, -- ...and by the end
+		INTERVAL_START = 1.3, -- seconds between strikes, at the start...
+		INTERVAL_END = 0.5, -- ...and by the end
+		SCATTER = 9, -- strikes land up to this far from the player
+		DAMAGE_SHARE = 0.22, -- of max health per strike
+		FAIL_COOLDOWN = 120, -- seconds before trying again
+	},
+
 	Spawn = {
 		HEIGHT = 4, -- studs above a peak's spawn pad
 	},

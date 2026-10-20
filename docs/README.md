@@ -13,7 +13,7 @@ This page says where everything lives. Each system has a short design doc in
 | `src/client/` | `StarterPlayerScripts.Client` | input, prediction, HUD, effects |
 | `assets/*.rbxmx` | mapped instances | MCP-authored Studio instances (GUIs, remotes, templates, the map) |
 | `art/` | - | Blender sources and UI art scripts (not synced) |
-| `tools/` | - | `check.sh` (luau-lsp), rbxmx export/receive, duplicate finder |
+| `tools/` | - | `check.sh` (luau-lsp), rbxmx export/receive, rbxm export (keeps attributes, for VFX), duplicate finder |
 
 Entry points: `src/server/Main.server.luau` (requires every server module, loads
 profiles, wires remotes and hooks) and `src/client/Main.client.luau` (inits every

@@ -16,6 +16,11 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 
 - For any UI work (look, layout, flow, icons, HUD, windows), spawn the `ui-designer` subagent unless it is already running for this task. Don't do the UI work inline.
 
+## VFX work
+
+- For visual effects (casts, hits, auras, breakthroughs, ambient and world effects), spawn the `vfx` subagent unless it is already running for this task. It builds them with the user's VFX plugin (vfxia) and its Game Module.
+- Effects keep their plugin settings in attributes, so export them with `tools/export_rbxm.luau` (binary, keeps attributes and tags), not `tools/export_rbxmx.luau`.
+
 ## Studio instances
 
 - Create persistent instances (RemoteEvents, GUIs, parts, folders, templates) with the Roblox Studio MCP in edit mode. Game scripts reference them; don't build them at runtime with `Instance.new` or "create if missing" fallbacks.

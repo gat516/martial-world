@@ -1,9 +1,10 @@
 --!strict
--- Meditation: M or the Meditate button sits the character down; M or the button
--- (now "Rise") stands them back up. Plays Animations.Meditate: Sit once, Loop
--- while seated, GetUp to stand. Movement is locked while seated, taking damage
--- stands you up, and the server (Meditation.luau) can end it too. Where you sit
--- sets the passive multiplier; a toast says what it is whenever it changes.
+-- Meditation: M or the Meditate button (above Dash) sits the character down; M
+-- or the button (now "Rise", lit gold) stands them back up. Plays
+-- Animations.Meditate: Sit once, Loop while seated, GetUp to stand. Movement is
+-- locked while seated, taking damage stands you up, and the server
+-- (Meditation.luau) can end it too. Where you sit sets the passive multiplier;
+-- a toast says what it is whenever it changes.
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -27,8 +28,17 @@ local token = 0 -- bumped on every sit and stand, so stale callbacks do nothing
 local tracks: { [string]: AnimationTrack } = {}
 local button: TextButton
 
+local IDLE_FILL = Color3.fromRGB(35, 29, 16)
+local ACTIVE_FILL = Color3.fromRGB(110, 84, 30)
+
 local function refresh()
-	button.Text = if phase == "idle" then "Meditate" else "Rise"
+	local active = phase ~= "idle"
+	button.Text = if active then "Rise" else "Meditate"
+	button.BackgroundColor3 = if active then ACTIVE_FILL else IDLE_FILL
+	local stroke = button:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		stroke.Thickness = if active then 3 else 2
+	end
 end
 
 -- Call fn BLEND seconds before a non-looped track ends, so the next pose fades in
@@ -128,7 +138,7 @@ local function onCharacter(character: Model)
 end
 
 function Meditation.init(gui: ScreenGui)
-	button = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("MeditateButton") :: TextButton
+	button = gui:FindFirstChild("MeditateButton") :: TextButton
 	button.Activated:Connect(Meditation.toggle)
 	ContextActionService:BindAction("Meditate", function(_, inputState)
 		if inputState == Enum.UserInputState.Begin then

@@ -217,18 +217,19 @@ def slot_select():
 # ---------------------------------------------------------------- window frame
 
 def panel_frame():
-    """A 9-slice window frame: SliceCenter is Rect(96, 96, 416, 416)."""
-    S = 512
+    """A 9-slice window frame, 1024px. SliceCenter is Rect(200, 200, 824, 824):
+    every ornament sits inside the 200px corners and the edges between them are
+    plain lines, so stretching a window never distorts the art."""
+    S = 1024
     img = canvas(S, S)
-    m = 26 * SS
+    m = 40 * SS
     box = [m, m, S * SS - m, S * SS - m]
-    gradient_rect(img, box, (24, 36, 40), (9, 13, 17), radius=12 * SS)
-    vignette(img, box, strength=120, blur=0.06)
+    gradient_rect(img, box, (22, 33, 37), (11, 16, 20), radius=20 * SS)
     d = ImageDraw.Draw(img)
-    bevel_border(d, box, 7 * SS, radius=12 * SS)
-    inset = 14 * SS
-    d.rounded_rectangle([m + inset, m + inset, S * SS - m - inset, S * SS - m - inset], radius=6 * SS, outline=(205, 170, 95, 140), width=2 * SS)
-    four_corners(img, corner_layer(img.size, m + 6 * SS, m + 6 * SS, SS * 1.35))
+    bevel_border(d, box, 10 * SS, radius=20 * SS)
+    inset = 24 * SS
+    d.rounded_rectangle([m + inset, m + inset, S * SS - m - inset, S * SS - m - inset], radius=10 * SS, outline=(205, 170, 95, 140), width=3 * SS)
+    four_corners(img, corner_layer(img.size, m + 8 * SS, m + 8 * SS, SS * 1.6))
     finish(img, "panel_frame.png")
 
 

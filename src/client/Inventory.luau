@@ -83,6 +83,7 @@ local function renderDetail()
 	primary.Visible = any
 	secondary.Visible = item ~= nil
 	SlotArt.paint(preview, if any then selected else nil, nil, "")
+	preview.Visible = any
 	if item then
 		local count = Items.count(s, item.id)
 		label("NameLabel").Text = item.name

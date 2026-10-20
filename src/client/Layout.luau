@@ -8,6 +8,7 @@
 -- Strike in the corner, Jump to its left, Dash above it. The stack shrinks until
 -- it clears the cluster, the vitals more on short screens, and slots drop their
 -- names for a bigger icon or glyph.
+-- Pop-ups that sit over the stack (the Cultivate prompt) are placed above it.
 -- Everything stays inside the device's safe area except the cluster, which
 -- reaches past the right inset to the screen edge.
 -- The top-left corner is always left to Roblox's chat.
@@ -19,6 +20,7 @@ local Platform = require(script.Parent.Platform)
 
 local STACK_WIDTH = 560 -- the vitals mount and hotbar row at full size, with margin
 local HOTBAR_WIDTH = 508
+local PROMPT_HEIGHT = 236 -- the Cultivate prompt at full size
 local TOUCH_VITALS_HEIGHT = 0.2 -- touch: the vitals mount's height as a share of the screen's
 local EDGE = 12 -- touch: the cluster's gap from the screen edge
 local STRIKE, SMALL, GAP = 70, 50, 10 -- touch: Strike's size, Jump and Dash's size, gap between
@@ -80,6 +82,11 @@ function Layout.apply()
 	vitals.Position = UDim2.new(0.5, 0, 1, -10 * barScale - 60 * barScale - 13 * vitalsScale)
 	setScale(hotbar, barScale)
 	setScale(vitals, vitalsScale)
+	-- the Cultivate prompt rises above the stack (crest included), shrinking to fit short screens
+	local stackTop = 70 * barScale + 81 * vitalsScale
+	local prompt = find("CultivatePrompt")
+	prompt.Position = UDim2.new(0.5, 0, 1, -stackTop - 8)
+	setScale(prompt, math.clamp((height - stackTop - 24) / PROMPT_HEIGHT, 0.6, 1))
 	-- on touch the slots are too small for names: a bigger icon or glyph instead
 	for _, slot in (hotbar:FindFirstChild("Slots") :: Instance):GetChildren() do
 		local name = slot:FindFirstChild("NameLabel") :: GuiObject?

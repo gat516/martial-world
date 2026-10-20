@@ -1,6 +1,6 @@
 --!strict
 -- The vitals mount at the bottom (segmented health, qi and cultivation bars, the
--- realm crest above it, and qi / cultivation readouts under it), active buffs
+-- realm crest above it), active buffs
 -- with countdowns, and toasts. The top-left corner is left to Roblox's chat.
 
 local Players = game:GetService("Players")
@@ -49,15 +49,6 @@ function Hud.toast(message: string)
 	end)
 end
 
-local function formatNumber(n: number): string
-	if n >= 1e6 then
-		return string.format("%.2fM", n / 1e6)
-	elseif n >= 1e4 then
-		return string.format("%.1fK", n / 1e3)
-	end
-	return tostring(math.floor(n))
-end
-
 local function formatTime(seconds: number): string
 	seconds = math.max(0, math.floor(seconds))
 	return string.format("%d:%02d", seconds // 60, seconds % 60)
@@ -90,11 +81,13 @@ local function renderBuffs()
 	end
 end
 
-local function setBar(bar: Frame, value: number, max: number, label: TextLabel, text: string)
+local function setBar(bar: Frame, value: number, max: number, label: TextLabel?, text: string?)
 	local fill = bar:FindFirstChild("Fill") :: Frame
 	fill.Size = UDim2.fromScale(if max > 0 then math.clamp(value / max, 0, 1) else 0, 1)
 	fill.Visible = value > 0
-	label.Text = text
+	if label and text then
+		label.Text = text
+	end
 end
 
 -- Mirror the character's health; the default Roblox health bar is hidden in its favor.
@@ -117,20 +110,17 @@ function Hud.init(screenGui: ScreenGui)
 	local dantianBar = vitals:FindFirstChild("DantianBar") :: Frame
 	local cultivationBar = vitals:FindFirstChild("CultivationBar") :: Frame
 	local healthText = vitals:FindFirstChild("HealthText") :: TextLabel
-	local qiText = vitals:FindFirstChild("QiText") :: TextLabel
-	local cultivationText = vitals:FindFirstChild("CultivationText") :: TextLabel
-	local rateText, insightText = "", ""
+	-- the bars speak for themselves; their numeric readouts are hidden
+	for _, name in { "QiText", "CultivationText" } do
+		(vitals:FindFirstChild(name) :: TextLabel).Visible = false
+	end
+	local insightText = ""
 
 	local function showCultivation()
 		realmLabel.Text = (player:GetAttribute("Realm") or "") .. insightText
 		local value, max = player:GetAttribute("Cultivation") or 0, player:GetAttribute("CultivationMax") or 0
-		-- negative after a forced breakthrough: qi debt to pay off first
-		local text = if value < 0
-			then `Qi debt {formatNumber(-value)}`
-			else `Cultivation {formatNumber(value)} / {formatNumber(max)}`
-		setBar(cultivationBar, value, max, cultivationText, text .. rateText)
-		local qi, cap = player:GetAttribute("RawQi") or 0, player:GetAttribute("DantianCap") or 0
-		setBar(dantianBar, qi, cap, qiText, `Qi {formatNumber(qi)} / {formatNumber(cap)}`)
+		setBar(cultivationBar, value, max)
+		setBar(dantianBar, player:GetAttribute("RawQi") or 0, player:GetAttribute("DantianCap") or 0)
 	end
 	for _, attr in { "Realm", "Cultivation", "CultivationMax", "RawQi", "DantianCap" } do
 		player:GetAttributeChangedSignal(attr):Connect(showCultivation)
@@ -154,8 +144,6 @@ function Hud.init(screenGui: ScreenGui)
 	notifyRemote.OnClientEvent:Connect(Hud.toast)
 
 	State.onChanged(function(s)
-		local meditating = if s.meditation then ` ×{s.meditation.multiplier}` else ""
-		rateText = string.format("  ·  +%.2f/s", s.rate) .. meditating
 		insightText = if s.insight > 0 then `  ·  Insight {s.insight}` else ""
 		showCultivation()
 		renderBuffs()

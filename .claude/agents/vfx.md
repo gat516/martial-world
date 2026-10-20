@@ -111,6 +111,25 @@ user to install one if an effect needs it.
 - LightEmission and Brightness sparingly; additive white-out on bright skies
   and the cloud sea looks flat. Check against day and night (`DayNight.luau`).
 
+## Combat timing (Hit and Hit Stop)
+
+- Every basic attack and technique cast plays one of the Fists chain
+  animations, which carry "Hit" and "Hit Stop" markers. Their source times
+  live in `Config.Combat` (`src/shared/Config.luau`, the chain table's
+  `hit`/`hitStop`/`speed`). `src/shared/ActionRules.luau` turns them into the
+  action profile: windup (start to Hit), active (Hit to Hit Stop, the hitbox
+  window), recovery. `Rules.hitAt(action)` is the Hit moment. Casts rescale
+  playback so release lands on the source Hit pose.
+- Sync effects to those phases: anticipation and charge during windup, release
+  and the impact burst exactly at Hit, the strongest part through the active
+  window to Hit Stop, aftermath fading during recovery.
+- Derive the times from ActionRules/Config (pass them in from
+  CombatController/CombatEffects or compute them in `TechniqueVFX`), never
+  hard-coded delays, so effects stay in sync when timings are retuned.
+- Hits already have feedback: `CombatEffects.shake` (tiered by
+  `SHAKE_BY_TIER`), hit flashes, damage numbers and `Sfx.play("Hit")`. Build
+  on them instead of doubling them up.
+
 ## Budget (mobile first)
 
 - Most players are on phones. Per burst, aim for tens of particles, not

@@ -8,6 +8,10 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 - The user playtests. Don't write or run tests, start play sessions, or verify through the MCP unless explicitly asked. Note what's untested instead of claiming it works.
 - Commit each finished feature as one revertible commit, staging only that feature's files. Don't split a feature into tiny commits or lump several features together. The message's subject says what changed; its body says why, plus anything left unfinished or next.
 
+## UI work
+
+- For any UI work (look, layout, flow, icons, HUD, windows), spawn the `ui-designer` subagent unless it is already running for this task. Don't do the UI work inline.
+
 ## Studio instances
 
 - Create persistent instances (RemoteEvents, GUIs, parts, folders, templates) with the Roblox Studio MCP in edit mode. Game scripts reference them; don't build them at runtime with `Instance.new` or "create if missing" fallbacks.

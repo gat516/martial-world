@@ -84,19 +84,25 @@ function Rules.movement(action: Action?, now: number): (number, boolean)
 	return if phase == "recovery" then action.profile.recoveryMoveMultiplier else action.profile.moveMultiplier, true
 end
 
-function Rules.cancel(s: State, now: number)
+function Rules.cancel(s: State, now: number, preserveCombo: boolean?)
 	local action = s.action
 	if action and Rules.phase(action, now) == "windup" then
 		if action.kind == "cast" and action.id then
 			s.ready[action.id] = math.min(s.ready[action.id] or 0, now + Config.CANCEL_RETRY)
-		elseif action.kind == "basic" and action.step == #Config.FIST_STEPS then
-			-- A feinted finisher never completed the string.
-			s.comboReady = 0
+		elseif action.kind == "basic" then
+			-- A punch cancelled before Hit hasn't spent its place in the string.
+			if preserveCombo then s.comboIndex = action.step - 1 end
+			if action.step == #Config.FIST_STEPS then
+				-- A feinted finisher never completed the string.
+				s.comboReady = 0
+			end
 		end
 	end
 	s.action = nil
-	s.comboIndex = 0
-	s.comboExpires = 0
+	if not preserveCombo then
+		s.comboIndex = 0
+		s.comboExpires = 0
+	end
 end
 
 function Rules.start(s: State, kind: string, id: string?, now: number, sequence: number): Action?
@@ -142,8 +148,12 @@ function Rules.start(s: State, kind: string, id: string?, now: number, sequence:
 	else
 		return nil
 	end
+	-- The inactivity clock starts after recovery, including an intervening
+	-- dodge/cast. Subtract that action's remaining duration before pausing it.
+	local idleFrom = if s.action then math.max(now, Rules.endAt(s.action)) else now
+	local comboRemaining = s.comboExpires - idleFrom
 	if Rules.phase(s.action, now) ~= "free" then
-		Rules.cancel(s, now)
+		Rules.cancel(s, now, true)
 	end
 	local action: Action = { sequence = sequence, kind = kind, id = id, step = step, started = now, profile = profile }
 	s.action = action
@@ -154,7 +164,13 @@ function Rules.start(s: State, kind: string, id: string?, now: number, sequence:
 			s.comboReady = Rules.stopAt(action) + Config.CHAIN_COOLDOWN
 		end
 	else
-		s.comboIndex, s.comboExpires = 0, 0
+		-- Dodge/cast time doesn't consume the remaining combo continuation
+		-- window. Two punches -> dodge -> punch three, even through a long cast.
+		if s.comboIndex > 0 and comboRemaining > 0 then
+			s.comboExpires = Rules.endAt(action) + comboRemaining
+		else
+			s.comboIndex, s.comboExpires = 0, 0
+		end
 		if kind == "cast" and id then
 			s.ready[id] = now + Techniques.Defs[id].cooldown
 		else

@@ -2,19 +2,57 @@
 -- Passive cultivation fills the realm bar every second at the realm's slow rate,
 -- boosted by eaten-herb buffs and by the spirit aura of mature herbs left growing in
 -- the player's beds. It stops at a full bar; breakthroughs move the player on.
--- Also owns per-realm character stats and the PlayerState push the HUD renders from.
+-- Also owns breakthroughs, qi deviation, the passive-progress warnings, per-realm
+-- character stats and the PlayerState push the HUD renders from.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Cultivation
+local CirculationConfig = require(ReplicatedStorage.Shared.Config).Circulation
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local PlayerData = require(script.Parent.PlayerData)
 
-local stateRemote = ReplicatedStorage.Remotes.PlayerState :: RemoteEvent
+local remotes = ReplicatedStorage.Remotes
+local stateRemote = remotes.PlayerState :: RemoteEvent
+local notifyRemote = remotes.Notify :: RemoteEvent
+local breakthroughRemote = remotes.Breakthrough :: RemoteEvent
 
 local Cultivation = {}
+
+-- Per-session state that isn't saved.
+type Session = { deviationUntil: number, lastActive: number, lastWarned: number, fullNoticed: boolean }
+local sessions: { [Player]: Session } = {}
+
+local function session(player: Player): Session
+	local s = sessions[player]
+	if not s then
+		s = { deviationUntil = 0, lastActive = os.clock(), lastWarned = -math.huge, fullNoticed = false }
+		sessions[player] = s
+	end
+	return s
+end
+
+function Cultivation.notify(player: Player, message: string)
+	notifyRemote:FireClient(player, message)
+end
+
+-- Something active happened (a run, a breakthrough, later a kill): hold off the
+-- "go and experience the world" warnings.
+function Cultivation.markActive(player: Player)
+	session(player).lastActive = os.clock()
+end
+
+function Cultivation.deviated(player: Player): boolean
+	return os.clock() < session(player).deviationUntil
+end
+
+function Cultivation.deviate(player: Player, seconds: number)
+	local s = session(player)
+	s.deviationUntil = os.clock() + seconds
+	player:SetAttribute("DeviationUntil", workspace:GetServerTimeNow() + seconds)
+end
 
 function Cultivation.aura(data: PlayerData.Data, now: number): number
 	local total = 0
@@ -124,6 +162,76 @@ function Cultivation.eat(player: Player, herbId: string): (boolean, string?)
 	return true, `Ate {herb.name}: {herb.blurb}`
 end
 
+-- Minor breakthroughs (within a major realm) happen at once on a full bar.
+-- Major ones need insight and a tribulation, which doesn't exist yet.
+function Cultivation.breakthrough(player: Player): (boolean, string?)
+	local data = PlayerData.get(player)
+	if not data then
+		return false, "Still loading"
+	end
+	local stage = Cultivation.stage(data)
+	local nextStage = Realms.after(stage.major, stage.minor)
+	if not nextStage then
+		return false, "You stand at the peak of this world's cultivation, for now."
+	end
+	if data.cultivation < stage.bar then
+		return false, "Your realm bar isn't full yet."
+	end
+	if data.insight < stage.insight then
+		return false, "You feel as if you need more insight."
+	end
+	if nextStage.major ~= stage.major then
+		return false, "The heavens are silent. Tribulation will come in a later update."
+	end
+
+	data.realm = { major = nextStage.major, minor = nextStage.minor }
+	data.cultivation = 0
+	data.rawQi = math.min(data.rawQi, nextStage.dantian)
+	data.stats.breakthroughs += 1
+	local s = session(player)
+	s.fullNoticed = false
+	s.lastActive = os.clock()
+	applyStats(player, data)
+	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	if humanoid and humanoid.Health > 0 then
+		humanoid.Health = humanoid.MaxHealth
+	end
+	Cultivation.pushState(player)
+	breakthroughRemote:FireAllClients(player, nextStage.name, false)
+	return true, `Breakthrough! You reached {nextStage.name}.`
+end
+
+-- The flavor line for a player whose passive progress has fallen far behind what
+-- active play would give, or nil when there's nothing to say.
+local function warning(player: Player, data: PlayerData.Data, rate: number): string?
+	local stage = Cultivation.stage(data)
+	local s = session(player)
+	if data.cultivation >= stage.bar then
+		local first = not s.fullNoticed
+		s.fullNoticed = true
+		if data.insight < stage.insight then
+			return "You feel as if you need more insight."
+		end
+		return if first then "Your meridians brim with qi. Break through!" else nil
+	end
+	if os.clock() - s.lastActive < Config.WARN_IDLE_SECONDS then
+		return nil
+	end
+	local activeRate = stage.passive / Config.PASSIVE_SHARE
+	if rate > 0 and activeRate / rate < Config.WARN_RATIO then
+		return nil
+	end
+	local runQi = stage.dantian / CirculationConfig.RUNS_PER_DANTIAN * CirculationConfig.MIN_RUN_FRACTION
+	if data.rawQi >= runQi then
+		return "Qi stirs in your dantian. Circulate to refine it."
+	end
+	return "You must go out and experience the world."
+end
+
+function Cultivation.forget(player: Player)
+	sessions[player] = nil
+end
+
 function Cultivation.watch(player: Player)
 	player.CharacterAdded:Connect(function()
 		local data = PlayerData.get(player)
@@ -150,8 +258,17 @@ task.spawn(function()
 					end
 				end
 				local bar = Cultivation.stage(data).bar
-				data.cultivation = math.min(bar, data.cultivation + Cultivation.rate(data, now) * dt)
+				local rate = if Cultivation.deviated(player) then 0 else Cultivation.rate(data, now)
+				data.cultivation = math.min(bar, data.cultivation + rate * dt)
 				publish(player, data)
+				local s = session(player)
+				if os.clock() - s.lastWarned >= Config.WARN_INTERVAL or (data.cultivation >= bar and not s.fullNoticed) then
+					local message = warning(player, data, rate)
+					if message then
+						s.lastWarned = os.clock()
+						Cultivation.notify(player, message)
+					end
+				end
 				if expired then
 					applyStats(player, data)
 				end

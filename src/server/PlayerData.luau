@@ -49,7 +49,7 @@ local function default(): Data
 		v = SCHEMA_VERSION,
 		realm = { major = "QiCondensation", minor = 1 },
 		cultivation = 0,
-		rawQi = 0,
+		rawQi = Config.STARTING_RAW_QI,
 		insight = 0,
 		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } }, slots = { "SwordQiWave" } },
 		firstKills = {},

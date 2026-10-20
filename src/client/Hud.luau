@@ -123,6 +123,8 @@ function Hud.init(screenGui: ScreenGui)
 		task.spawn(watchHealth, healthBar, player.Character)
 	end
 
+	(ReplicatedStorage.Remotes.Notify :: RemoteEvent).OnClientEvent:Connect(Hud.toast)
+
 	State.onChanged(function(s)
 		local aura = if s.aura > 0 then `  (garden +{math.floor(s.aura * 100 + 0.5)}%)` else ""
 		rateLabel.Text = string.format("+%.2f/s passive", s.rate) .. aura

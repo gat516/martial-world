@@ -7,11 +7,13 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Realms = require(ReplicatedStorage.Shared.Realms)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local Cultivation = require(script.Parent.Cultivation)
 local Garden = require(script.Parent.Garden)
 local Build = require(script.Parent.Build)
+local Circulation = require(script.Parent.Circulation)
 
 local remotes = ReplicatedStorage.Remotes
 
@@ -25,8 +27,8 @@ local function sendHome(player: Player, character: Model)
 	end
 end
 
--- Studio playtests: top every herb and seed up to the test-kit amount (never above it,
--- so repeated sessions don't inflate a saved profile).
+-- Studio playtests: top every herb and seed up to the test-kit amount, and fill the
+-- dantian (never above that, so repeated sessions don't inflate a saved profile).
 local function applyTestKit(data: PlayerData.Data)
 	local kit = Config.TestKit
 	if not (kit.ENABLED and RunService:IsStudio()) then
@@ -35,6 +37,9 @@ local function applyTestKit(data: PlayerData.Data)
 	for _, id in Herbs.Order do
 		data.herbs[id] = math.max(data.herbs[id] or 0, kit.HERBS_EACH)
 		data.seeds[id] = math.max(data.seeds[id] or 0, kit.SEEDS_EACH)
+	end
+	if kit.FILL_DANTIAN then
+		data.rawQi = math.max(data.rawQi, Realms.get(data.realm.major, data.realm.minor).dantian)
 	end
 end
 
@@ -73,10 +78,12 @@ Players.PlayerRemoving:Connect(function(player)
 	PlayerData.release(player)
 	Peaks.release(player)
 	Build.forget(player)
+	Circulation.forget(player)
+	Cultivation.forget(player)
 end)
 
-local function guarded(fn: (Player, ...any) -> (boolean, string?))
-	return function(player: Player, ...): (boolean, string?)
+local function guarded(fn: (Player, ...any) -> (boolean, any))
+	return function(player: Player, ...): (boolean, any)
 		local ok, success, message = pcall(fn, player, ...)
 		if not ok then
 			warn(`Remote error for {player.Name}: {success}`)
@@ -87,6 +94,7 @@ local function guarded(fn: (Player, ...any) -> (boolean, string?))
 end
 
 (remotes.BuildAction :: RemoteFunction).OnServerInvoke = guarded(Build.handle);
+(remotes.CultivationAction :: RemoteFunction).OnServerInvoke = guarded(Circulation.handle);
 
 (remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(function(player, action, plotId, herbId)
 	if action == "plant" then

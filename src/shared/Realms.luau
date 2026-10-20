@@ -26,15 +26,15 @@ local MAJOR_NAMES = {
 
 local rows: { { any } } = {
 	-- major, minor, bar, dantian, passive, health, power, insight
-	{ "QiCondensation", 1, 100, 120, 0.20, 100, 1.00, 0 },
-	{ "QiCondensation", 2, 160, 180, 0.25, 120, 1.10, 0 },
-	{ "QiCondensation", 3, 260, 260, 0.32, 140, 1.20, 0 },
-	{ "QiCondensation", 4, 420, 380, 0.40, 165, 1.32, 0 },
-	{ "QiCondensation", 5, 680, 540, 0.50, 190, 1.45, 0 },
-	{ "QiCondensation", 6, 1100, 760, 0.62, 220, 1.60, 0 },
-	{ "QiCondensation", 7, 1800, 1050, 0.78, 255, 1.76, 0 },
-	{ "QiCondensation", 8, 2900, 1450, 0.95, 290, 1.94, 0 },
-	{ "QiCondensation", 9, 4700, 2000, 1.15, 330, 2.13, 3 },
+	{ "QiCondensation", 1, 40, 120, 0.20, 100, 1.00, 0 },
+	{ "QiCondensation", 2, 110, 180, 0.25, 120, 1.10, 0 },
+	{ "QiCondensation", 3, 200, 260, 0.32, 140, 1.20, 0 },
+	{ "QiCondensation", 4, 340, 380, 0.40, 165, 1.32, 0 },
+	{ "QiCondensation", 5, 560, 540, 0.50, 190, 1.45, 0 },
+	{ "QiCondensation", 6, 900, 760, 0.62, 220, 1.60, 0 },
+	{ "QiCondensation", 7, 1450, 1050, 0.78, 255, 1.76, 0 },
+	{ "QiCondensation", 8, 2300, 1450, 0.95, 290, 1.94, 0 },
+	{ "QiCondensation", 9, 3700, 2000, 1.15, 330, 2.13, 3 },
 	{ "Foundation", 1, 12000, 4000, 2.00, 500, 3.00, 0 },
 }
 

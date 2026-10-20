@@ -8,5 +8,11 @@
   </Item>
   <Item class="RemoteEvent" referent="RBX5"><Properties><string name="Name">PlayerState</string></Properties>
   </Item>
+  <Item class="RemoteFunction" referent="RBX6"><Properties><string name="Name">CultivationAction</string></Properties>
+  </Item>
+  <Item class="RemoteEvent" referent="RBX7"><Properties><string name="Name">Breakthrough</string></Properties>
+  </Item>
+  <Item class="RemoteEvent" referent="RBX8"><Properties><string name="Name">Notify</string></Properties>
+  </Item>
  </Item>
 </roblox>

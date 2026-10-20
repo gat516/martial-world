@@ -1,9 +1,10 @@
 --!strict
 -- Maze Formation. Your qi is caught in a maze formation; find the way out, like
--- the maze on a cereal box. Swipe anywhere (or press WASD / the arrows) and the
--- spark slides that way, following the corridor round its bends until the next
--- junction or dead end; a swipe made while it slides is taken at the next turn,
--- and swiping back reverses it on the spot. Escape and a new maze forms, as many
+-- the maze on a cereal box. Drag anywhere and the spark moves with your finger
+-- (relative, so the finger never hides it), held to the corridors; hold WASD /
+-- the arrows to walk it. It only moves while you drag or hold, and stops when you
+-- stop. Pushing across a corridor near a turning takes the turning, so corners
+-- don't need pixel-perfect drags. Escape and a new maze forms, as many
 -- as the run allows. Purple impurities sit in dead ends off the way out: detour
 -- through one to purge it. Accuracy is mazes escaped (plus how far along the
 -- current one) against the run's par.
@@ -15,8 +16,10 @@ local UserInputService = game:GetService("UserInputService")
 
 local Feel = require(script.Parent.Feel)
 
-local SLIDE_SPEED = 11 -- cells per second
-local SWIPE_PX = 26 -- drag this far to count as a swipe; keep dragging to swipe again
+local KEY_SPEED = 6 -- cells per second while an arrow key is held
+local DRAG_GAIN = 1 -- spark pixels per dragged pixel
+local CORNER = 0.4 -- pushing across a corridor this close (in cells) to a turning takes it
+local EPS = 1e-4
 local WALL_PX = 4
 local TRAIL_PX = 5
 local NEXT_PAUSE = 0.35 -- seconds between escaping and the next maze
@@ -57,7 +60,7 @@ type Grid = {
 local Maze = {}
 
 Maze.TITLE = "Maze Formation"
-Maze.HINT = "Swipe to slide your qi through the formation and find the way out. Detour through purple impurities to purge them."
+Maze.HINT = "Drag to guide your qi through the formation and find the way out. Detour through purple impurities to purge them."
 
 local function cellOf(n: number, x: number, y: number): number
 	return y * n + x + 1
@@ -275,14 +278,14 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 	local impuritiesLeft = info.impurities
 	local mazesLeft = math.ceil(goal)
 	local grid: Grid
-	local cell: number
 	local impurities: { [number]: Frame } = {}
 
 	local function newMaze()
 		clear()
 		table.clear(impurities)
 		grid = generate(n, rng)
-		cell = grid.start
+		px, py = xyOf(n, grid.start)
+		table.clear(walked)
 		drawWalls(grid)
 		local count = math.ceil(impuritiesLeft / math.max(1, mazesLeft))
 		mazesLeft -= 1
@@ -300,136 +303,171 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		exitMark.Position = center(grid.exit)
 		exitMark.Size = UDim2.fromScale(0.8 / n, 0.8 / n)
 		exitMark.Visible = true
-		spark.Position = center(cell)
+		spark.Position = center(grid.start)
 		spark.Size = UDim2.fromScale(0.55 / n, 0.55 / n)
 		spark.Visible = true
 	end
 
-	-- the slide in progress: from `cell` toward `to` along `dir`
-	local moving: { dir: number, to: number, progress: number }? = nil
-	local wanted: number? = nil
+	-- The spark sits on a corridor's centre line, at (px, py) in cells (cell
+	-- centres are whole numbers).
+	local px, py = 0, 0
+	local walked: { [string]: boolean } = {} -- corridors already trailed
 	local pauseUntil = 0
 	local t, solved, purged, nudge = 0, 0, 0, 0
 
-	local function tryStart(dir: number): boolean
-		if grid.open[cell][dir] then
-			local x, y = xyOf(n, cell)
-			moving = { dir = dir, to = cellOf(n, x + DX[dir], y + DY[dir]), progress = 0 }
-			return true
-		end
-		return false
+	local function isOpen(x: number, y: number, dir: number): boolean
+		return grid.open[cellOf(n, x, y)][dir]
 	end
 
-	local function want(dir: number)
-		if t < pauseUntil then
-			return
-		end
-		local slide = moving
-		if slide and dir == opposite(slide.dir) then
-			-- turn back on the spot
-			cell, slide.to = slide.to, cell
-			slide.dir = dir
-			slide.progress = 1 - slide.progress
-			wanted = nil
-		elseif slide then
-			wanted = dir
-		elseif not tryStart(dir) then
-			nudge = 0.12
-			Feel.buzz(0.15, 0.05)
-		end
+	local function shrink(v: number, by: number): number
+		return if v > 0 then math.max(0, v - by) else math.min(0, v + by)
 	end
 
-	local function heldKey(): number?
-		for key, dir in KEYS do
-			if UserInputService:IsKeyDown(key) then
-				return dir
-			end
+	-- Reached the centre of `to` from `from`: trail, purge, escape.
+	local function arrive(from: number, to: number)
+		local key = `{math.min(from, to)}:{math.max(from, to)}`
+		if not walked[key] then
+			walked[key] = true
+			trail(from, to)
 		end
-		return nil
-	end
-
-	-- Arrived at a cell: purge, escape, or decide whether to keep sliding.
-	local function arrive(dir: number)
-		local frame = impurities[cell]
+		local frame = impurities[to]
 		if frame then
-			impurities[cell] = nil
+			impurities[to] = nil
 			purged += 1
-			Feel.pop(board, center(cell), IMPURE)
+			Feel.pop(board, center(to), IMPURE)
 			Feel.buzz(0.3, 0.08)
 			frame:Destroy()
 		end
-		if cell == grid.exit then
-			moving = nil
-			wanted = nil
+		if to == grid.exit then
 			solved += 1
-			Feel.pop(board, center(cell), EXIT, 140)
+			Feel.pop(board, center(to), EXIT, 140)
 			Feel.buzz(0.5, 0.12)
 			ui.flow.Text = "Escaped!"
 			pauseUntil = t + NEXT_PAUSE
 			task.delay(NEXT_PAUSE, function()
 				ui.flow.Text = ""
 			end)
-			return
 		end
-		if wanted and wanted ~= opposite(dir) and tryStart(wanted) then
-			wanted = nil
-			return
-		end
-		local onward = {}
-		for d = 1, 4 do
-			if d ~= opposite(dir) and grid.open[cell][d] then
-				table.insert(onward, d)
+	end
+
+	-- Move the spark by (dx, dy) cells along the corridors; walls stop it. Pushing
+	-- across a corridor just short of or past a turning slides it to the turning.
+	local function move(dx: number, dy: number)
+		for _ = 1, 64 do
+			if t < pauseUntil then
+				return
 			end
-		end
-		if #onward == 1 then
-			tryStart(onward[1])
-		else
-			moving = nil
-			local queued = wanted
-			wanted = nil
-			if queued then
-				want(queued)
+			local cx, cy = math.round(px), math.round(py)
+			local onRow, onColumn = math.abs(py - cy) < EPS, math.abs(px - cx) < EPS
+			local dir: number? = nil
+			local amount, byX = 0, true
+			if onRow and onColumn then
+				px, py = cx, cy
+				local horiz, vert = if dx > 0 then 2 else 4, if dy > 0 then 3 else 1
+				local xFirst = math.abs(dx) >= math.abs(dy)
+				for _, useX in { xFirst, not xFirst } do
+					local want = math.abs(if useX then dx else dy)
+					local d = if useX then horiz else vert
+					if want > EPS and isOpen(cx, cy, d) then
+						dir, amount, byX = d, want, useX
+						break
+					end
+				end
+			else
+				-- along this corridor, and across it
+				local along, across = if onRow then dx else dy, if onRow then dy else dx
+				local pos, near = if onRow then px else py, if onRow then cx else cy
+				local acrossDir = if onRow then (if dy > 0 then 3 else 1) else (if dx > 0 then 2 else 4)
+				local fwd, back = if onRow then 2 else 3, if onRow then 4 else 1
+				if
+					math.abs(across) > math.abs(along)
+					and math.abs(across) > EPS
+					and math.abs(pos - near) <= CORNER
+					and isOpen(if onRow then near else cx, if onRow then cy else near, acrossDir)
+				then
+					dir, amount, byX = if near > pos then fwd else back, math.abs(across), not onRow
+				elseif math.abs(along) > EPS then
+					dir, amount, byX = if along > 0 then fwd else back, math.abs(along), onRow
+				end
+			end
+			if not dir then
+				return
+			end
+			-- the next cell centre that way
+			local tx, ty = px, py
+			if dir == 2 then
+				tx = math.floor(px + EPS) + 1
+			elseif dir == 4 then
+				tx = math.ceil(px - EPS) - 1
+			elseif dir == 3 then
+				ty = math.floor(py + EPS) + 1
+			else
+				ty = math.ceil(py - EPS) - 1
+			end
+			local gap = math.abs(tx - px) + math.abs(ty - py)
+			local step = math.min(amount, gap)
+			if byX then
+				dx = shrink(dx, step)
+			else
+				dy = shrink(dy, step)
+			end
+			if step >= gap - EPS then
+				px, py = tx, ty
+				arrive(cellOf(n, tx - DX[dir], ty - DY[dir]), cellOf(n, tx, ty))
+			else
+				px += DX[dir] * step
+				py += DY[dir] * step
 			end
 		end
 	end
 
-	local anchors: { [InputObject]: Vector3 } = {}
+	local held: { number } = {} -- held arrow keys' directions, latest last
+	local lasts: { [InputObject]: Vector3 } = {} -- each drag's last position
 	local connections: { RBXScriptConnection } = {}
 	table.insert(connections, UserInputService.InputBegan:Connect(function(input)
 		local kind = input.UserInputType
 		if kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseButton1 then
-			anchors[input] = input.Position
+			lasts[input] = input.Position
 		elseif KEYS[input.KeyCode] then
-			want(KEYS[input.KeyCode])
+			local dir = KEYS[input.KeyCode]
+			table.insert(held, dir)
+			local cx, cy = math.round(px), math.round(py)
+			local atCentre = math.abs(px - cx) < EPS and math.abs(py - cy) < EPS
+			if atCentre and t >= pauseUntil and not isOpen(cx, cy, dir) then
+				nudge = 0.12
+				Feel.buzz(0.15, 0.05)
+			end
 		end
 	end))
 	table.insert(connections, UserInputService.InputChanged:Connect(function(input)
 		local key: InputObject? = input
 		if input.UserInputType == Enum.UserInputType.MouseMovement then
-			-- the held mouse button's InputObject carries the anchor
+			-- the held mouse button's InputObject carries the drag
 			key = nil
-			for held in anchors do
-				if held.UserInputType == Enum.UserInputType.MouseButton1 then
-					key = held
+			for down in lasts do
+				if down.UserInputType == Enum.UserInputType.MouseButton1 then
+					key = down
 				end
 			end
 		end
-		local anchor = key and anchors[key]
-		if not (key and anchor) then
+		local last = key and lasts[key]
+		if not (key and last) then
 			return
 		end
-		local delta = input.Position - anchor
-		if delta.Magnitude >= SWIPE_PX then
-			anchors[key] = input.Position
-			if math.abs(delta.X) > math.abs(delta.Y) then
-				want(if delta.X > 0 then 2 else 4)
-			else
-				want(if delta.Y > 0 then 3 else 1)
-			end
-		end
+		lasts[key] = input.Position
+		local cellPx = math.max(1, board.AbsoluteSize.X / n)
+		local delta = (input.Position - last) * DRAG_GAIN / cellPx
+		move(delta.X, delta.Y)
 	end))
 	table.insert(connections, UserInputService.InputEnded:Connect(function(input)
-		anchors[input] = nil
+		lasts[input] = nil
+		local dir = KEYS[input.KeyCode]
+		if dir then
+			local at = table.find(held, dir)
+			if at then
+				table.remove(held, at)
+			end
+		end
 	end))
 
 	newMaze()
@@ -441,34 +479,22 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		dt = math.min(dt, 0.1)
 		t += dt
 
-		if t >= pauseUntil and cell == grid.exit then
+		local ex, ey = xyOf(n, grid.exit)
+		if t >= pauseUntil and math.abs(px - ex) < EPS and math.abs(py - ey) < EPS then
 			newMaze()
 		end
-		if t >= pauseUntil and not moving then
-			local key = heldKey()
-			if key then
-				tryStart(key)
+		-- held keys: the latest wins, an earlier one carries on until it can turn
+		local latest, earlier = held[#held], held[#held - 1]
+		if latest then
+			local step = KEY_SPEED * dt
+			local dx, dy = DX[latest] * step, DY[latest] * step
+			if earlier and earlier ~= latest then
+				dx += DX[earlier] * step * 0.99
+				dy += DY[earlier] * step * 0.99
 			end
+			move(dx, dy)
 		end
-		local slide = moving
-		if slide then
-			slide.progress += SLIDE_SPEED * dt
-			while slide and slide.progress >= 1 do
-				local carry = slide.progress - 1
-				trail(cell, slide.to)
-				cell = slide.to
-				arrive(slide.dir)
-				slide = moving
-				if slide then
-					slide.progress = carry
-				end
-			end
-		end
-		local at = center(cell)
-		if slide then
-			local to = center(slide.to)
-			at = at:Lerp(to, slide.progress)
-		end
+		local at = UDim2.fromScale((px + 0.5) / n, (py + 0.5) / n)
 		if nudge > 0 then
 			nudge = math.max(0, nudge - dt)
 			at += UDim2.fromOffset(math.sin(t * 90) * 3, 0)
@@ -491,6 +517,7 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 	end
 	-- partial credit for how far along the current maze you got
 	local along = 0
+	local cell = cellOf(n, math.round(px), math.round(py))
 	if cell ~= grid.exit then
 		local total = grid.toExit[grid.start]
 		along = math.clamp(1 - grid.toExit[cell] / math.max(1, total), 0, 1)

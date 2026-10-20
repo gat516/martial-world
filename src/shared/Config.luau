@@ -62,7 +62,7 @@ return {
 		DIFFICULTY = 1,
 		DIFFICULTY_STAGES = 9,
 		Games = {
-			-- Maze Formation: swipe to slide your qi out of maze after maze.
+			-- Maze Formation: drag your qi through the corridors, out of maze after maze.
 			Maze = {
 				weight = 1,
 				easy = {

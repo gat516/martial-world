@@ -109,7 +109,8 @@ local function titleCard(gui: ScreenGui, stageName: string, major: boolean)
 end
 
 function BreakthroughView.init(gui: ScreenGui)
-	local button = gui:FindFirstChild("BreakthroughButton") :: TextButton
+	local button = (gui:FindFirstChild("Stack") :: Frame):FindFirstChild("BreakthroughButton") :: ImageButton
+	local label = button:FindFirstChild("Label") :: TextLabel
 
 	local function refresh()
 		local value, max = player:GetAttribute("Cultivation") or 0, player:GetAttribute("CultivationMax") or 0
@@ -118,7 +119,7 @@ function BreakthroughView.init(gui: ScreenGui)
 		local hurt = humanoid ~= nil and humanoid.Health > 0 and humanoid.Health <= humanoid.MaxHealth * Config.FORCE_HEALTH_SHARE
 		local forcible = hurt and max > 0 and value >= max * Config.FORCE_BAR_SHARE
 		button.Visible = if seated then max > 0 and value >= max else forcible
-		button.Text = if seated then "Break Through" else "Force Breakthrough"
+		label.Text = if seated then "Break Through" else "Force Breakthrough"
 	end
 	player:GetAttributeChangedSignal("Cultivation"):Connect(refresh)
 	player:GetAttributeChangedSignal("CultivationMax"):Connect(refresh)

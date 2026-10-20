@@ -1,10 +1,10 @@
 --!strict
--- The hotbar: nine slots of techniques and items (Hotbar.luau), cloned from
--- Hotbar.Slots.SlotTemplate. Keys 1-9 or tapping a slot cast its technique or
+-- The hotbar: nine slots of techniques and items (Hotbar.luau), Stack.Hotbar.Slots
+-- Slot1-9 (SlotTemplate is the drag ghost). Keys 1-9 or tapping a slot cast its technique or
 -- hold out its item (a real Tool from the Backpack; activate it to use it).
 -- Anything can be dragged: from the Inventory onto a slot, between slots to swap
 -- them, or off the bar to clear a slot.
--- One row along the bottom on every device; Layout.luau scales and places it.
+-- One row along the bottom on every device; the Stack frame sizes it.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -241,14 +241,11 @@ end
 
 function HotbarView.init(screenGui: ScreenGui)
 	gui = screenGui
-	bar = gui:FindFirstChild("Hotbar") :: Frame
+	bar = (gui:FindFirstChild("Stack") :: Frame):FindFirstChild("Hotbar") :: Frame
 	local holder = bar:FindFirstChild("Slots") :: Frame
 	template = holder:FindFirstChild("SlotTemplate") :: TextButton
 	for i = 1, Hotbar.SIZE do
-		local slot = template:Clone()
-		slot.Name = `Slot{i}`
-		slot.LayoutOrder = i
-		slot.Visible = true
+		local slot = holder:FindFirstChild(`Slot{i}`) :: TextButton
 		local key = slot:FindFirstChild("KeyLabel") :: TextLabel
 		key.Text = tostring(i)
 		key.Visible = not Platform.isTouch()
@@ -260,7 +257,6 @@ function HotbarView.init(screenGui: ScreenGui)
 		HotbarView.draggable(slot, function()
 			return State.current.hotbar[i]
 		end, i)
-		slot.Parent = holder
 		slots[i] = slot
 	end
 	UserInputService.InputBegan:Connect(function(input, processed)

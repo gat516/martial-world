@@ -70,7 +70,7 @@ local function buffText(b: State.Buff, now: number): string
 end
 
 local function renderBuffs()
-	local list = gui:FindFirstChild("Buffs") :: Frame
+	local list = gui:FindFirstChild("Buffs", true) :: Frame
 	local template = list:FindFirstChild("BuffTemplate") :: TextLabel
 	for _, child in list:GetChildren() do
 		if child:IsA("TextLabel") and child ~= template then
@@ -111,7 +111,7 @@ end
 
 function Hud.init(screenGui: ScreenGui)
 	gui = screenGui
-	local vitals = gui:FindFirstChild("Vitals") :: Frame
+	local vitals = (gui:FindFirstChild("Stack") :: Frame):FindFirstChild("Vitals") :: Frame
 	local realmLabel = (vitals:FindFirstChild("Crest") :: Frame):FindFirstChild("RealmText") :: TextLabel
 	local healthBar = vitals:FindFirstChild("HealthBar") :: Frame
 	local dantianBar = vitals:FindFirstChild("DantianBar") :: Frame

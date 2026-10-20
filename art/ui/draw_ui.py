@@ -303,6 +303,29 @@ def slot_simple():
     finish(img, "slot_simple.png")
 
 
+def pill(name, top, bottom, rim, inner):
+    """A pill button, 512x128. 9-slice with SliceCenter Rect(72, 40, 440, 88):
+    the rounded ends and their lozenges stay in the side slices, and the top and
+    bottom margins keep Roblox's slicer from clipping the art."""
+    W, H = 512, 128
+    img = canvas(W, H)
+    m = 10 * SS
+    box = [m, m, W * SS - m, H * SS - m]
+    r = (H * SS - 2 * m) // 2
+    gradient_rect(img, box, top, bottom, radius=r)
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle(box, radius=r, outline=GOLD_LO, width=7 * SS)
+    d.rounded_rectangle([m + 2 * SS, m + 2 * SS, W * SS - m - 2 * SS, H * SS - m - 2 * SS], radius=r, outline=rim, width=4 * SS)
+    i = 14 * SS
+    d.rounded_rectangle([m + i, m + i, W * SS - m - i, H * SS - m - i], radius=r - i, outline=inner, width=2 * SS)
+    gloss = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(gloss).rounded_rectangle([m + 24 * SS, m + 10 * SS, W * SS - m - 24 * SS, m + 30 * SS], radius=10 * SS, fill=(255, 255, 255, 34))
+    img.alpha_composite(gloss)
+    for side in (-1, 1):
+        lozenge(d, W * SS / 2 + side * (W / 2 - 40) * SS, H * SS / 2, 11 * SS, 3 * SS)
+    finish(img, name)
+
+
 # ---------------------------------------------------------------- vitals mount
 
 # Windows in the vitals mount, in image pixels (the game lays its fills behind these).
@@ -384,6 +407,8 @@ def vitals_frame():
 
 
 if __name__ == "__main__":
+    pill("pill_lacquer.png", (34, 44, 48), (12, 16, 20), GOLD, (205, 170, 95, 110))
+    pill("pill_gold.png", (196, 150, 66), (120, 82, 30), GOLD_HI, (255, 236, 180, 120))
     slot_simple()
     vitals_frame()
     round_frame()

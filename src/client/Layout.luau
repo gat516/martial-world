@@ -1,16 +1,12 @@
 --!strict
--- Places the HUD for the device. Every device gets the same bottom stack, always
--- centred: the vitals mount (health, qi, cultivation, realm crest) over one row of
--- hotbar slots. The top-right tiles run compact.
--- PC: the stack shrinks only on narrow windows; there are no touch buttons
--- (M1 swings, Q dashes, Space jumps).
--- Touch: our own cluster at the bottom right replaces Roblox's jump button:
--- Strike in the corner, Jump to its left, Dash above it. The stack shrinks until
--- it clears the cluster, the vitals more on short screens, and slots drop their
+-- The HUD sizes itself: the Stack frame (vitals, hotbar, seat pills, Break Through)
+-- fits the screen with aspect and size constraints, so Studio's edit view shows
+-- what players see. This only flips what differs by device:
+-- PC: no touch buttons (M1 swings, Q dashes, Space jumps); the stack may use the
+-- full width; slots show their names.
+-- Touch: our own Strike, Jump and Dash cluster replaces Roblox's jump button and
+-- reaches past the right safe-area inset to the screen edge; slots drop their
 -- names for a bigger icon or glyph.
--- Pop-ups that sit over the stack (the Cultivate prompt) are placed above it.
--- Everything stays inside the device's safe area except the cluster, which
--- reaches past the right inset to the screen edge.
 -- The top-left corner is always left to Roblox's chat.
 
 local Players = game:GetService("Players")
@@ -18,13 +14,8 @@ local RunService = game:GetService("RunService")
 
 local Platform = require(script.Parent.Platform)
 
-local STACK_WIDTH = 560 -- the vitals mount and hotbar row at full size, with margin
-local HOTBAR_WIDTH = 508
-local PROMPT_HEIGHT = 236 -- the Cultivate prompt at full size
-local TOUCH_VITALS_HEIGHT = 0.2 -- touch: the vitals mount's height as a share of the screen's
+local CLUSTER_ROOM = 320 -- touch: width the stack leaves free (twice the cluster, so it stays centred)
 local EDGE = 12 -- touch: the cluster's gap from the screen edge
-local STRIKE, SMALL, GAP = 70, 50, 10 -- touch: Strike's size, Jump and Dash's size, gap between
-local CLUSTER_WIDTH = EDGE + STRIKE + GAP + SMALL + GAP -- bottom-row room the cluster takes
 
 local player = Players.LocalPlayer
 
@@ -33,14 +24,7 @@ local Layout = {}
 local gui: ScreenGui
 
 local function find(name: string): GuiObject
-	return gui:FindFirstChild(name) :: GuiObject
-end
-
-local function setScale(object: GuiObject, scale: number)
-	local ui = object:FindFirstChildOfClass("UIScale")
-	if ui then
-		ui.Scale = scale
-	end
+	return gui:FindFirstChild(name, true) :: GuiObject
 end
 
 -- Roblox's own touch jump button; ours replaces it.
@@ -59,69 +43,45 @@ local function hideDefaultJump()
 end
 
 function Layout.apply()
-	local camera = workspace.CurrentCamera
-	local viewport = if camera then camera.ViewportSize else Vector2.new(1280, 720)
-	-- the Hud's area inside the safe-area insets, and how far the right inset reaches
-	local width, height = gui.AbsoluteSize.X, gui.AbsoluteSize.Y
-	local rightInset = math.max(0, viewport.X - (gui.AbsolutePosition.X + width))
 	local touch = Platform.isTouch()
-	local vitals = find("Vitals")
-	local hotbar = find("Hotbar")
-	local dodge = find("DodgeButton")
-	local strike = find("AttackButton")
-	local jump = find("JumpButton")
+	local stack = find("Stack")
+	stack.Size = UDim2.new(1, if touch then -CLUSTER_ROOM else -24, 0.45, 0)
 
-	local scale = math.clamp((width - 24) / STACK_WIDTH, 0.5, 1)
-	local barScale, vitalsScale = scale, scale
-	if touch then
-		-- centred, the hotbar's right end must clear the cluster
-		barScale = math.clamp((width - 2 * CLUSTER_WIDTH) / HOTBAR_WIDTH, 0.5, 1)
-		vitalsScale = math.clamp(math.min(barScale, height * TOUCH_VITALS_HEIGHT / 52), 0.5, 1)
-	end
-	hotbar.Position = UDim2.new(0.5, 0, 1, -10 * barScale)
-	vitals.Position = UDim2.new(0.5, 0, 1, -10 * barScale - 60 * barScale - 13 * vitalsScale)
-	setScale(hotbar, barScale)
-	setScale(vitals, vitalsScale)
-	-- the Cultivate prompt rises above the stack (crest included), shrinking to fit short screens
-	local stackTop = 70 * barScale + 81 * vitalsScale
-	local prompt = find("CultivatePrompt")
-	prompt.Position = UDim2.new(0.5, 0, 1, -stackTop - 8)
-	setScale(prompt, math.clamp((height - stackTop - 24) / PROMPT_HEIGHT, 0.6, 1))
 	-- on touch the slots are too small for names: a bigger icon or glyph instead
-	for _, slot in (hotbar:FindFirstChild("Slots") :: Instance):GetChildren() do
+	local slots = (stack:FindFirstChild("Hotbar") :: Instance):FindFirstChild("Slots") :: Instance
+	for _, slot in slots:GetChildren() do
 		local name = slot:FindFirstChild("NameLabel") :: GuiObject?
 		if name and slot.Name ~= "SlotTemplate" then
 			name.Visible = not touch
 			local icon = slot:FindFirstChild("Icon") :: GuiObject
 			local glyph = slot:FindFirstChild("Glyph") :: GuiObject
-			icon.Size = if touch then UDim2.fromScale(0.62, 0.62) else UDim2.fromScale(0.5, 0.5)
-			icon.Position = if touch then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 0.36)
+			icon.Size = if touch then UDim2.fromScale(0.62, 0.62) else UDim2.fromScale(0.52, 0.52)
+			icon.Position = if touch then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 0.42)
 			glyph.Size = if touch then UDim2.fromScale(0.58, 0.58) else UDim2.fromScale(0.46, 0.46)
 			glyph.Position = if touch then UDim2.fromScale(0.5, 0.48) else UDim2.fromScale(0.5, 0.34)
 		end
 	end
 
-	dodge.Visible = touch
-	strike.Visible = touch
-	jump.Visible = touch
+	local strike, jump, dodge = find("AttackButton"), find("JumpButton"), find("DodgeButton")
+	strike.Visible, jump.Visible, dodge.Visible = touch, touch, touch
 	if touch then
-		local right = rightInset - EDGE
-		strike.AnchorPoint = Vector2.new(1, 1)
+		-- reach past the right inset: Strike in the corner, Jump left of it, Dash above it
+		local camera = workspace.CurrentCamera
+		local viewport = if camera then camera.ViewportSize.X else gui.AbsoluteSize.X
+		local right = math.max(0, viewport - (gui.AbsolutePosition.X + gui.AbsoluteSize.X)) - EDGE
 		strike.Position = UDim2.new(1, right, 1, -EDGE)
-		strike.Size = UDim2.fromOffset(STRIKE, STRIKE)
-		jump.AnchorPoint = Vector2.new(1, 0.5)
-		jump.Position = UDim2.new(1, right - STRIKE - GAP, 1, -EDGE - STRIKE / 2)
-		jump.Size = UDim2.fromOffset(SMALL, SMALL)
-		dodge.AnchorPoint = Vector2.new(0.5, 1)
-		dodge.Position = UDim2.new(1, right - STRIKE / 2, 1, -EDGE - STRIKE - GAP)
-		dodge.Size = UDim2.fromOffset(SMALL, SMALL)
+		jump.Position = UDim2.new(1, right - 80, 1, -EDGE - 35)
+		dodge.Position = UDim2.new(1, right - 35, 1, -EDGE - 80)
 		hideDefaultJump()
 	end
 	local key = dodge:FindFirstChild("KeyLabel") :: GuiObject?
 	if key then
 		key.Visible = not touch
 	end
-	setScale(find("Buttons"), if Platform.isSmall() then 0.75 else 0.85)
+	local tiles = find("Buttons"):FindFirstChildOfClass("UIScale")
+	if tiles then
+		tiles.Scale = if Platform.isSmall() then 0.75 else 0.85
+	end
 end
 
 -- Our Jump button: jumps while held, like Roblox's.
@@ -154,7 +114,6 @@ function Layout.init(screenGui: ScreenGui)
 	bindJump(find("JumpButton") :: GuiButton)
 	Layout.apply()
 	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(Layout.apply)
-	Platform.onChanged(Layout.apply)
 	-- Roblox builds (and re-shows) its jump button with each character; keep it hidden
 	local playerGui = player:WaitForChild("PlayerGui")
 	local function watch(button: Instance)

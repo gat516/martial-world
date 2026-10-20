@@ -406,7 +406,7 @@ end
 
 -- The Dash button and its cooldown overlay.
 local function bindButtons(gui: ScreenGui)
-	local dodgeButton = gui:FindFirstChild("DodgeButton") :: TextButton
+	local dodgeButton = gui:FindFirstChild("DodgeButton", true) :: TextButton
 	dodgeButton.Activated:Connect(CombatController.dodge)
 	local overlay = dodgeButton:FindFirstChild("Cooldown") :: Frame
 	RunService.RenderStepped:Connect(function()
@@ -530,7 +530,7 @@ function CombatController.init(gui: ScreenGui)
 		task.spawn(loadTracks, player.Character)
 	end
 
-	local strike = gui:FindFirstChild("AttackButton") :: TextButton
+	local strike = gui:FindFirstChild("AttackButton", true) :: TextButton
 	strike.Activated:Connect(CombatController.swing)
 	bindButtons(gui)
 	bindTapTargeting()

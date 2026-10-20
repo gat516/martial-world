@@ -38,7 +38,8 @@ return {
 		MIN_DURATION_FRACTION = 0.9, -- a run reported sooner than this is rejected
 		RUN_TIMEOUT_GRACE = 15, -- seconds past the duration before a run is dropped
 		PEAK_RADIUS = 60, -- studs from your plateau centre that count as on your peak
-		FIRST_RUN_DURATION = 15, -- the very first run is short, always the Circuit...
+		FIRST_RUN_GAME = "Maze", -- the very first run is always this game...
+		FIRST_RUN_DURATION = 15, -- ...short...
 		FIRST_RUN_DIFFICULTY = -0.5, -- ...and easier than `easy` (below 0 blends past it)
 
 		-- Minigame difficulty. Each run gets a difficulty from 0 (easy) to 1 (hard):
@@ -50,15 +51,14 @@ return {
 		DIFFICULTY = 1,
 		DIFFICULTY_STAGES = 9,
 		Games = {
-			-- Small Heavenly Circuit: hold to keep the pressure needle in a drifting band.
-			Circuit = {
+			-- Maze Formation: swipe to slide your qi out of maze after maze.
+			Maze = {
 				weight = 1,
 				easy = {
-					band = 0.34, -- green band height, share of the gauge
-					drift = 0.9, -- how fast the band wanders
-					loops = 2, -- orb laps per run (impurities come faster with more)
+					size = 5, -- cells per side (at least 4)
+					par = 8, -- seconds per maze for full accuracy
 				},
-				hard = { band = 0.14, drift = 1.4, loops = 3 },
+				hard = { size = 9, par = 14 },
 			},
 			-- Meridian Pulse: tap anywhere as each ring closes on its acupoint.
 			Pulse = {

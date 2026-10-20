@@ -59,7 +59,7 @@ Quests.Beats = {
 	{
 		id = "Circulate",
 		elder = "Welcome home, disciple. This peak is yours. Circulate the qi already stirring in your dantian.",
-		objective = "Tap Cultivate, then Circulate, and keep the needle in the green band",
+		objective = "Tap Cultivate, then Circulate, and guide your qi out of the maze",
 		done = function(_, data)
 			return data.stats.circulationRuns >= 1
 		end,

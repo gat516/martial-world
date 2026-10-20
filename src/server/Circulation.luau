@@ -42,7 +42,7 @@ local function pickGame(player: Player): string
 		end
 	end
 	if total == 0 then
-		return lastGame[player] or "Circuit"
+		return lastGame[player] or Config.FIRST_RUN_GAME
 	end
 	table.sort(pool) -- pairs order isn't stable; keep the roll reproducible
 	local roll = math.random() * total
@@ -111,7 +111,7 @@ function Circulation.start(player: Player): (boolean, any)
 		-- the onboarding run: short, forgiving, and the game the elder explains
 		duration = Config.FIRST_RUN_DURATION
 		difficulty = Config.FIRST_RUN_DIFFICULTY
-		minigame = "Circuit"
+		minigame = Config.FIRST_RUN_GAME
 	end
 	lastGame[player] = minigame
 	local run = {

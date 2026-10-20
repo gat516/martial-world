@@ -1,6 +1,6 @@
 --!strict
 -- Circulation runs, full screen and one thumb. The server picks which minigame
--- each run plays (Minigames/: Circuit, Pulse, Gather), along with its length,
+-- each run plays (Minigames/: Maze, Pulse, Gather), along with its length,
 -- difficulty and impurity count; this runs the shared frame around it: the
 -- overlay with the game's title and hint, a 3-2-1 count-in, the game itself on
 -- its own stage, and a graded result once the server has scored the report.
@@ -15,7 +15,7 @@ local Feel = require(script.Parent.Minigames.Feel)
 local remote = ReplicatedStorage.Remotes.CultivationAction :: RemoteFunction
 
 local GAMES: { [string]: Feel.Game } = {
-	Circuit = require(script.Parent.Minigames.Circuit),
+	Maze = require(script.Parent.Minigames.Maze),
 	Pulse = require(script.Parent.Minigames.Pulse),
 	Gather = require(script.Parent.Minigames.Gather),
 }
@@ -53,8 +53,8 @@ end
 
 -- Shows the picked game's stage and labels, counts in, and plays it.
 local function play(info: Feel.Info): (number, number)
-	local minigame = GAMES[info.game] or GAMES.Circuit
-	local stageName = if GAMES[info.game] then info.game else "Circuit"
+	local minigame = GAMES[info.game] or GAMES.Maze
+	local stageName = if GAMES[info.game] then info.game else "Maze"
 	for name in GAMES do
 		(overlay:FindFirstChild(name) :: Frame).Visible = name == stageName
 	end

@@ -34,5 +34,9 @@
    <string name="Name">SaveSettings</string>
   </Properties>
   </Item>
+  <Item class="RemoteEvent" referent="RBXR18"><Properties>
+   <string name="Name">Sprint</string>
+  </Properties>
+  </Item>
  </Item>
 </roblox>

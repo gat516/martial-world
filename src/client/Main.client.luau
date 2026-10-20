@@ -31,6 +31,7 @@ local ShiftLock = require(script.Parent.ShiftLock)
 local Settings = require(script.Parent.Settings)
 local Music = require(script.Parent.Music)
 local EnemySounds = require(script.Parent.EnemySounds)
+local Sprint = require(script.Parent.Sprint)
 
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
@@ -54,6 +55,7 @@ HotbarView.init(gui)
 Layout.init(gui)
 LockOn.init(gui)
 ShiftLock.init(gui)
+Sprint.init()
 Settings.init(gui)
 Inventory.init(gui)
 SeedPicker.init(gui)

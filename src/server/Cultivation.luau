@@ -13,6 +13,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config).Cultivation
 local CirculationConfig = require(ReplicatedStorage.Shared.Config).Circulation
 local LoginConfig = require(ReplicatedStorage.Shared.Config).Login
+local MovementConfig = require(ReplicatedStorage.Shared.Config).Movement
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local PlayerData = require(script.Parent.PlayerData)
@@ -144,7 +145,8 @@ end
 function Cultivation.applyStats(player: Player, data: PlayerData.Data)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 	if humanoid then
-		humanoid.WalkSpeed = Config.BASE_WALKSPEED + buffTotal(data, "WalkSpeed")
+		local walkSpeed = Config.BASE_WALKSPEED + buffTotal(data, "WalkSpeed")
+		humanoid.WalkSpeed = walkSpeed + (if humanoid:GetAttribute("Running") then MovementConfig.RUN_BONUS else 0)
 		local maxHealth = Cultivation.stage(data).health
 		if humanoid.MaxHealth ~= maxHealth then
 			local fraction = humanoid.Health / humanoid.MaxHealth
@@ -152,6 +154,24 @@ function Cultivation.applyStats(player: Player, data: PlayerData.Data)
 			humanoid.Health = maxHealth * fraction
 		end
 	end
+end
+
+-- Running is character state, so it resets on respawn and survives stat refreshes.
+function Cultivation.setRunning(player: Player, on: any)
+	if typeof(on) ~= "boolean" then
+		return
+	end
+	local data = PlayerData.get(player)
+	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	if not data or not humanoid then
+		return
+	end
+	local running = on and humanoid.Health > 0 and not humanoid.Sit
+	if humanoid:GetAttribute("Running") == running then
+		return
+	end
+	humanoid:SetAttribute("Running", running)
+	Cultivation.applyStats(player, data)
 end
 
 -- Add a timed buff from `source` (an item id). Using the same item again

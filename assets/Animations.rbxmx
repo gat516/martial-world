@@ -30,5 +30,10 @@
    <Item class="Animation" referent="RBX15"><Properties><string name="Name">Right</string><Content name="AnimationId"><url>rbxassetid://97389453311989</url></Content></Properties>
    </Item>
   </Item>
+  <Item class="Animation" referent="RBXR17"><Properties>
+   <string name="Name">Run</string>
+   <Content name="AnimationId"><url>rbxassetid://81617655199380</url></Content>
+  </Properties>
+  </Item>
  </Item>
 </roblox>

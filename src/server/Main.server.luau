@@ -171,6 +171,7 @@ end
 (remotes.Dodge :: RemoteEvent).OnServerEvent:Connect(Combat.dodge);
 (remotes.Cast :: RemoteEvent).OnServerEvent:Connect(Combat.cast);
 (remotes.Meditate :: RemoteEvent).OnServerEvent:Connect(Meditation.handle);
+(remotes.Sprint :: RemoteEvent).OnServerEvent:Connect(Cultivation.setRunning);
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);
 (remotes.SaveSettings :: RemoteEvent).OnServerEvent:Connect(Settings.save);
 

@@ -12,6 +12,11 @@ return {
 		STARTING_RAW_QI = 60, -- half a QC1 dantian: enough for the first circulation run
 	},
 
+	Movement = {
+		RUN_BONUS = 10, -- added to walking speed, including herb buffs (16 -> 26)
+		RUN_ANIMATION_SPEED = 26, -- studs/s at the run animation's original playback rate
+	},
+
 	Cultivation = {
 		BASE_WALKSPEED = 16,
 		STATE_REFRESH_SECONDS = 10, -- full HUD state push even when nothing expired

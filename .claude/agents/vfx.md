@@ -260,6 +260,27 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
 - Impacts go on the target's near side at body height with ZOffset 2-3. At the
   target's centre the burst is hidden inside its mesh.
 
+### Anchor effects to the body
+
+- Effects come from the body part that performs the move: a palm strike's
+  release from the striking hand, a kick from the foot, a sword wave from the
+  blade's arc. Find that part on the live character at runtime (for observers
+  too), using the rig's hands/grip attachments, and place the release there at
+  the release marker. Never use an offset guessed from the root. If the
+  animation data doesn't show which limb strikes, load the track on a rig in
+  Edit mode, sample the limb CFrames at the marker's TimePosition, or report
+  it.
+- Charge gathers into that limb during windup, and the release visibly travels
+  from it to where the gameplay shape starts (e.g. hand → ground → ring).
+  Gameplay shapes stay centred where the hitbox is (circles on the caster's
+  feet).
+- Ground raycasts must exclude characters. A ray down from the caster's root
+  (or a target's centre) otherwise hits that body first, and the "ground"
+  becomes torso height. Exclude the caster and targets, or all characters.
+- Preview through the real call path (`CombatEffects.cast` with a real
+  character's root position), not hand-placed pivots, so placement bugs show
+  up in Edit mode.
+
 ### Particle gotchas
 
 - `ParticleEmitter.Size` is a radius (half-width). A ring that must reach

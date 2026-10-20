@@ -88,12 +88,63 @@ fx.sample(sequence, t, seed?)    -- value of a Number/ColorSequence at t
 fx.pool.new(template, expansion?):expand(n) -- :take() / :give(obj)
 ```
 
-Add-ons (Splines, Movers, Screen Effects, Debris, Lightning Beams, Simple Mesh
-VFX, Sequencer, Ground Craters) are installed by the user in Manage Add-ons
-and live in `ServerStorage.vfx_addons`; each is driven by its own tag plus
-attributes on the effect. Their doc pages are empty, so before using one, read
-the installed add-on's `game` module to learn its tag and attributes. Ask the
-user to install one if an effect needs it.
+### Add-ons
+
+Each add-on is driven by its own tag plus attributes on the effect, and its
+`game` module syncs into the Game Module's add-ons folder (so in-game use
+needs the Game Module in the place). Their doc pages are empty, so read the
+source before using one.
+
+- Installed in the user's plugin: **LightningBeams**, **Craters** (ground
+  craters/rock rings), **ScreenEffects** (camera shake, screen flashes and
+  overlays), **SimpleMeshVFX** (mesh shells, rings, spikes), **Splines**
+  (bezier paths with trails/particles), **AnimationUtil**.
+- `python3 tools/vfx_addons.py` unpacks them from the plugin settings into
+  `tools/frag/addons/<Name>.rbxmx` (gitignored). Read each `game` module there
+  for its tag, attributes and what `emit`/`enable` do.
+- Also listed on the docs site but not installed: Movers, Debris (physics
+  rocks), Sequencer (tweens). Ask the user to install one if a plan needs it.
+- `ServerStorage.vfx_addons` only exists once the user installs an add-on in
+  this place, through Manage Add-ons.
+
+## Plan before you build
+
+Start every effect with a written plan, and send it in your report before
+building anything unless the task says to go straight on. Describe it
+vividly, the way a VFX artist pitches a shot:
+
+- **Per tier/level, beat by beat:**
+  - The **body part** that performs it (for example, the striking hand), and
+    how qi gathers into it during windup.
+  - The **release** at the marker: what flashes, where, and its colour.
+  - How the force **travels** (hand → ground → ring, blade arc → wave).
+  - The **impact** on each target.
+  - The **aftermath**: what lingers, how long, and how it fades.
+  - Say what's new at each tier so the progression reads at a glance.
+- **Timeline:** map each beat to the animation's markers and the cast profile.
+- **Toolbox:** for each beat, name the plugin feature that delivers it. Use
+  the whole kit, not just particles:
+  - **Emitters and beams:** ParticleEmitters and Beams with Emit attributes
+    (EmitDelay to sequence beats, EmitRepeat for pulses, EmitDuration for
+    sustained parts).
+  - **Curve Editor:** sequence presets (sine/quad/exponential) for size and
+    transparency curves.
+  - **Mesh flipbooks:** for bursts and fire.
+  - **Add-ons:**
+    - **Craters:** ground breaks and rock rings, instead of hand-built debris.
+    - **SimpleMeshVFX:** shockwave shells and rings.
+    - **ScreenEffects:** camera shake and screen flash on mastery hits. Fold in
+      or replace `CombatEffects.shake`; don't double it.
+    - **Splines:** curved qi paths into the hand.
+    - **LightningBeams:** the lightning technique.
+  - **Tags:** `ColorVFX`/`ScaleVFX` for colour and scale variants.
+  - **Game Module API:** `fx.retime`/`rescale`/`recolor` for per-level steps,
+    and `fx.pool` for frequent bursts.
+  - **Library assets:** name the ids or search words for each beat.
+- **Budget:** particle counts per beat at the top tier, and the one light if
+  there is one.
+- **Open questions:** missing animation events, add-ons to install, assets the
+  library lacks.
 
 ## Style
 

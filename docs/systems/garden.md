@@ -47,7 +47,8 @@ through `InventoryAction("use")`.
 - `Items.luau`: core and treasure effects, `treasureWeight`, `USE_COOLDOWN`.
 - `Config.Garden`: seeds back, tick, aura cap, wild sprouts, beast seed drops, Grow now tiers.
 - `Weather.luau` `garden`: growth speed, mutation and chance per weather.
-- `Config.Economy`: starting stones; `Config.Build.MARKET_RANGE`.
+- `Config.Economy`: starting stones; `Config.Build.MARKET_RANGE` (also how far you can walk
+  before the Herbalist window closes, via `MarketRange.luau`).
 
 ## Known gaps
 - Grow now product ids are placeholders (0) until the products are created.

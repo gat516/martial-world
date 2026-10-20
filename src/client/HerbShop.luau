@@ -6,7 +6,7 @@
 --               plus Sell everything in the footer
 -- The Spirit Stones total sits in the header. Rows rebuild whenever State or the
 -- Stones attribute changes. The server checks range and prices; its message is
--- toasted either way.
+-- toasted either way. Walking out of range of the stall closes the window.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -15,6 +15,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Hud = require(script.Parent.Hud)
+local MarketRange = require(script.Parent.MarketRange)
 local Menus = require(script.Parent.Menus)
 local SeedPicker = require(script.Parent.SeedPicker)
 local State = require(script.Parent.State)
@@ -210,6 +211,11 @@ function HerbShop.init(gui: ScreenGui)
 		if window.Visible then
 			HerbShop.refresh()
 		end
+	end)
+	MarketRange.watch(function()
+		return window.Visible
+	end, function()
+		Menus.close(window)
 	end)
 	ProximityPromptService.PromptTriggered:Connect(function(prompt, who)
 		if who == player and prompt.Name == "Herbalist" then

@@ -51,7 +51,7 @@ AGENTS.md, "Studio instances".
 | Combat and action states | [combat](systems/combat.md) | Combat, Movement | ActionRules, Hitbox, Techniques, Knockback, Config.Combat | CombatController, ActionState, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |
 | Enemies, spawning, regions | [enemies](systems/enemies.md) | EnemyService, Spawner | Enemies, Spawns, Regions, Knockback | EnemyAnimator, EnemyBars, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
-| Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak |
+| Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
 | Weather, world events, treasures | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures | Weather, WorldEvents | WeatherFX, DayNight, Music |
 | Onboarding, quests, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Config.Travel | Onboarding, TravelMenu |
 | UI and HUD | [ui](systems/ui.md) | - | - | Hud, Menus, Layout, Motion, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |

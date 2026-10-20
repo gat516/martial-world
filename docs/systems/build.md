@@ -25,7 +25,9 @@ benefits (meditation seats, garden plots, garden boosters).
 - `src/server/Peaks.luau`: peak assignment, layout apply/undo, the owner sign and
   realm tier (`applyRealm`).
 - Client: `BuildMode.luau` (placing, moving, storing, input per device),
-  `BuildCatalog.luau` (catalog / Spirit Market shop), `MyPeak.luau`.
+  `BuildCatalog.luau` (catalog / Spirit Market shop), `MyPeak.luau`,
+  `MarketRange.luau` (closes the market windows once you walk out of
+  `MARKET_RANGE` of the stall).
 - Models: `ReplicatedStorage.BuildKit`, `ServerStorage.PeakTiers`.
 
 ## Data flow

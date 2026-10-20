@@ -3,7 +3,8 @@
 --   build  on your peak (the Place tab of build mode): pick an item and Place it.
 --          Items you own none of show their cost and the main button reads
 --          "Buy & Place": it buys one (anywhere) and goes straight to placing.
---   shop   from the Spirit Market stall on the main peak: Buy only.
+--   shop   from the Spirit Market stall on the main peak: Buy only. Closes when
+--          you walk out of range of the stall.
 -- Both list every item (BuildItems.Order) with category tabs, a search box and an
 -- Owned filter. Each tile shows a 3D preview, its owned count, how many are placed
 -- (and the limit), its cost, a badge for its main benefit, and a lock with the
@@ -22,6 +23,7 @@ local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Config = require(ReplicatedStorage.Shared.Config).Build
 local Hud = require(script.Parent.Hud)
+local MarketRange = require(script.Parent.MarketRange)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local MyPeak = require(script.Parent.MyPeak)
@@ -575,7 +577,10 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 		camera.CFrame = CFrame.lookAt(detailFocus + offset, detailFocus)
 	end)
 
-	-- the Spirit Market stall on the main peak opens the shop
+	-- the Spirit Market stall on the main peak opens the shop; leaving it closes it
+	MarketRange.watch(function()
+		return mode == "shop" and BuildCatalog.isOpen()
+	end, BuildCatalog.close)
 	ProximityPromptService.PromptTriggered:Connect(function(prompt, who)
 		if who == player and prompt.Name == "MarketPrompt" then
 			BuildCatalog.open("shop")

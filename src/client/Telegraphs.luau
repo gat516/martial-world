@@ -94,6 +94,17 @@ function Telegraphs.show(shape: any, seconds: number)
 		local grow = part(Vector3.new(THICKNESS * 1.2, 0.1, 0.1), rotated, 0.35, Enum.PartType.Cylinder)
 		TweenService:Create(grow, TweenInfo.new(seconds, Enum.EasingStyle.Linear), { Size = Vector3.new(THICKNESS * 1.2, r * 2, r * 2) }):Play()
 		table.insert(fill, grow)
+	elseif shape.kind == "howl" then
+		-- a summon: a pale ring that swells around the caster (no damage)
+		local center = shape.center + lift
+		local ring = part(Vector3.new(THICKNESS, 2, 2), CFrame.new(center) * CFrame.Angles(0, 0, math.rad(90)), 0.4, Enum.PartType.Cylinder)
+		ring.Color = Color3.fromRGB(255, 220, 150)
+		local r = (shape.radius :: number) * 3
+		TweenService:Create(ring, TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = Vector3.new(THICKNESS, r * 2, r * 2),
+			Transparency = 0.9,
+		}):Play()
+		table.insert(outline, ring)
 	elseif shape.kind == "cone" then
 		local look = (shape.cframe :: CFrame).LookVector
 		for _, p in cone(shape.center + lift, look, shape.radius, shape.size.X, 0.6) do

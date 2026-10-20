@@ -1,8 +1,8 @@
 <roblox version="4">
- <Item class="Folder" referent="RBXE48"><Properties>
+ <Item class="Folder" referent="RBXE66"><Properties>
   <string name="Name">Enemies</string>
  </Properties>
-  <Item class="Model" referent="RBXE49"><Properties>
+  <Item class="Model" referent="RBXE67"><Properties>
    <string name="Name">SpiritWolf</string>
    <Ref name="PrimaryPart">RBXE1</Ref>
    <token name="ModelStreamingMode">1</token>
@@ -21,7 +21,7 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
    </Properties>
-    <Item class="BillboardGui" referent="RBXE50"><Properties>
+    <Item class="BillboardGui" referent="RBXE68"><Properties>
      <string name="Name">HealthBar</string>
      <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>9</YO></UDim2>
      <Vector3 name="StudsOffset"><X>0</X><Y>3.2</Y><Z>0</Z></Vector3>
@@ -30,25 +30,25 @@
      <token name="LightInfluence">0</token>
      <bool name="Enabled">true</bool>
     </Properties>
-     <Item class="Frame" referent="RBXE51"><Properties>
+     <Item class="Frame" referent="RBXE69"><Properties>
       <string name="Name">Back</string>
       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
       <Color3 name="BackgroundColor3"><R>0.078431</R><G>0.062745</G><B>0.062745</B></Color3>
       <float name="BackgroundTransparency">0.2</float>
       <int name="BorderSizePixel">0</int>
      </Properties>
-      <Item class="UICorner" referent="RBXE52"><Properties>
+      <Item class="UICorner" referent="RBXE70"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
       </Properties>
       </Item>
-      <Item class="Frame" referent="RBXE53"><Properties>
+      <Item class="Frame" referent="RBXE71"><Properties>
        <string name="Name">Fill</string>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <Color3 name="BackgroundColor3"><R>0.862745</R><G>0.274510</G><B>0.235294</B></Color3>
        <int name="BorderSizePixel">0</int>
       </Properties>
-       <Item class="UICorner" referent="RBXE54"><Properties>
+       <Item class="UICorner" referent="RBXE72"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
        </Properties>
@@ -56,92 +56,92 @@
       </Item>
      </Item>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE55"><Properties>
+    <Item class="WeldConstraint" referent="RBXE73"><Properties>
      <string name="Name">Weld_Body</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE2</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE56"><Properties>
+    <Item class="WeldConstraint" referent="RBXE74"><Properties>
      <string name="Name">Weld_Chest</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE3</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE57"><Properties>
+    <Item class="WeldConstraint" referent="RBXE75"><Properties>
      <string name="Name">Weld_Head</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE4</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE58"><Properties>
+    <Item class="WeldConstraint" referent="RBXE76"><Properties>
      <string name="Name">Weld_Snout</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE5</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE59"><Properties>
+    <Item class="WeldConstraint" referent="RBXE77"><Properties>
      <string name="Name">Weld_EarL</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE6</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE60"><Properties>
+    <Item class="WeldConstraint" referent="RBXE78"><Properties>
      <string name="Name">Weld_EarR</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE7</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE61"><Properties>
+    <Item class="WeldConstraint" referent="RBXE79"><Properties>
      <string name="Name">Weld_EyeL</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE8</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE62"><Properties>
+    <Item class="WeldConstraint" referent="RBXE80"><Properties>
      <string name="Name">Weld_EyeR</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE9</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE63"><Properties>
+    <Item class="WeldConstraint" referent="RBXE81"><Properties>
      <string name="Name">Weld_Mane</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE10</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE64"><Properties>
+    <Item class="WeldConstraint" referent="RBXE82"><Properties>
      <string name="Name">Weld_Tail</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE11</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE65"><Properties>
+    <Item class="WeldConstraint" referent="RBXE83"><Properties>
      <string name="Name">Weld_Leg1</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE12</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE66"><Properties>
+    <Item class="WeldConstraint" referent="RBXE84"><Properties>
      <string name="Name">Weld_Leg2</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE13</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE67"><Properties>
+    <Item class="WeldConstraint" referent="RBXE85"><Properties>
      <string name="Name">Weld_Leg3</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE14</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE68"><Properties>
+    <Item class="WeldConstraint" referent="RBXE86"><Properties>
      <string name="Name">Weld_Leg4</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE15</Ref>
     </Properties>
     </Item>
    </Item>
-   <Item class="Humanoid" referent="RBXE69"><Properties>
+   <Item class="Humanoid" referent="RBXE87"><Properties>
     <string name="Name">Humanoid</string>
     <float name="HipHeight">1.6</float>
     <token name="RigType">1</token>
@@ -350,7 +350,7 @@
    </Properties>
    </Item>
   </Item>
-  <Item class="Model" referent="RBXE70"><Properties>
+  <Item class="Model" referent="RBXE88"><Properties>
    <string name="Name">StoneBoar</string>
    <Ref name="PrimaryPart">RBXE16</Ref>
    <token name="ModelStreamingMode">1</token>
@@ -369,7 +369,7 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
    </Properties>
-    <Item class="BillboardGui" referent="RBXE71"><Properties>
+    <Item class="BillboardGui" referent="RBXE89"><Properties>
      <string name="Name">HealthBar</string>
      <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>9</YO></UDim2>
      <Vector3 name="StudsOffset"><X>0</X><Y>4.2</Y><Z>0</Z></Vector3>
@@ -378,25 +378,25 @@
      <token name="LightInfluence">0</token>
      <bool name="Enabled">true</bool>
     </Properties>
-     <Item class="Frame" referent="RBXE72"><Properties>
+     <Item class="Frame" referent="RBXE90"><Properties>
       <string name="Name">Back</string>
       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
       <Color3 name="BackgroundColor3"><R>0.078431</R><G>0.062745</G><B>0.062745</B></Color3>
       <float name="BackgroundTransparency">0.2</float>
       <int name="BorderSizePixel">0</int>
      </Properties>
-      <Item class="UICorner" referent="RBXE73"><Properties>
+      <Item class="UICorner" referent="RBXE91"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
       </Properties>
       </Item>
-      <Item class="Frame" referent="RBXE74"><Properties>
+      <Item class="Frame" referent="RBXE92"><Properties>
        <string name="Name">Fill</string>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <Color3 name="BackgroundColor3"><R>0.862745</R><G>0.274510</G><B>0.235294</B></Color3>
        <int name="BorderSizePixel">0</int>
       </Properties>
-       <Item class="UICorner" referent="RBXE75"><Properties>
+       <Item class="UICorner" referent="RBXE93"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
        </Properties>
@@ -404,92 +404,92 @@
       </Item>
      </Item>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE76"><Properties>
+    <Item class="WeldConstraint" referent="RBXE94"><Properties>
      <string name="Name">Weld_Body</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE17</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE77"><Properties>
+    <Item class="WeldConstraint" referent="RBXE95"><Properties>
      <string name="Name">Weld_Plate1</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE18</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE78"><Properties>
+    <Item class="WeldConstraint" referent="RBXE96"><Properties>
      <string name="Name">Weld_Plate2</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE19</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE79"><Properties>
+    <Item class="WeldConstraint" referent="RBXE97"><Properties>
      <string name="Name">Weld_Plate3</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE20</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE80"><Properties>
+    <Item class="WeldConstraint" referent="RBXE98"><Properties>
      <string name="Name">Weld_Head</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE21</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE81"><Properties>
+    <Item class="WeldConstraint" referent="RBXE99"><Properties>
      <string name="Name">Weld_Snout</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE22</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE82"><Properties>
+    <Item class="WeldConstraint" referent="RBXE100"><Properties>
      <string name="Name">Weld_TuskL</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE23</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE83"><Properties>
+    <Item class="WeldConstraint" referent="RBXE101"><Properties>
      <string name="Name">Weld_TuskR</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE24</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE84"><Properties>
+    <Item class="WeldConstraint" referent="RBXE102"><Properties>
      <string name="Name">Weld_EyeL</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE25</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE85"><Properties>
+    <Item class="WeldConstraint" referent="RBXE103"><Properties>
      <string name="Name">Weld_EyeR</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE26</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE86"><Properties>
+    <Item class="WeldConstraint" referent="RBXE104"><Properties>
      <string name="Name">Weld_Leg1</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE27</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE87"><Properties>
+    <Item class="WeldConstraint" referent="RBXE105"><Properties>
      <string name="Name">Weld_Leg2</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE28</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE88"><Properties>
+    <Item class="WeldConstraint" referent="RBXE106"><Properties>
      <string name="Name">Weld_Leg3</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE29</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE89"><Properties>
+    <Item class="WeldConstraint" referent="RBXE107"><Properties>
      <string name="Name">Weld_Leg4</string>
      <Ref name="Part0">RBXE16</Ref>
      <Ref name="Part1">RBXE30</Ref>
     </Properties>
     </Item>
    </Item>
-   <Item class="Humanoid" referent="RBXE90"><Properties>
+   <Item class="Humanoid" referent="RBXE108"><Properties>
     <string name="Name">Humanoid</string>
     <float name="HipHeight">1.6</float>
     <token name="RigType">1</token>
@@ -698,7 +698,7 @@
    </Properties>
    </Item>
   </Item>
-  <Item class="Model" referent="RBXE91"><Properties>
+  <Item class="Model" referent="RBXE109"><Properties>
    <string name="Name">VenomSerpent</string>
    <Ref name="PrimaryPart">RBXE31</Ref>
    <token name="ModelStreamingMode">1</token>
@@ -717,7 +717,7 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
    </Properties>
-    <Item class="BillboardGui" referent="RBXE92"><Properties>
+    <Item class="BillboardGui" referent="RBXE110"><Properties>
      <string name="Name">HealthBar</string>
      <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>9</YO></UDim2>
      <Vector3 name="StudsOffset"><X>0</X><Y>4.6</Y><Z>0</Z></Vector3>
@@ -726,25 +726,25 @@
      <token name="LightInfluence">0</token>
      <bool name="Enabled">true</bool>
     </Properties>
-     <Item class="Frame" referent="RBXE93"><Properties>
+     <Item class="Frame" referent="RBXE111"><Properties>
       <string name="Name">Back</string>
       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
       <Color3 name="BackgroundColor3"><R>0.078431</R><G>0.062745</G><B>0.062745</B></Color3>
       <float name="BackgroundTransparency">0.2</float>
       <int name="BorderSizePixel">0</int>
      </Properties>
-      <Item class="UICorner" referent="RBXE94"><Properties>
+      <Item class="UICorner" referent="RBXE112"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
       </Properties>
       </Item>
-      <Item class="Frame" referent="RBXE95"><Properties>
+      <Item class="Frame" referent="RBXE113"><Properties>
        <string name="Name">Fill</string>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <Color3 name="BackgroundColor3"><R>0.862745</R><G>0.274510</G><B>0.235294</B></Color3>
        <int name="BorderSizePixel">0</int>
       </Properties>
-       <Item class="UICorner" referent="RBXE96"><Properties>
+       <Item class="UICorner" referent="RBXE114"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
        </Properties>
@@ -752,104 +752,104 @@
       </Item>
      </Item>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE97"><Properties>
+    <Item class="WeldConstraint" referent="RBXE115"><Properties>
      <string name="Name">Weld_Coil1</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE32</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE98"><Properties>
+    <Item class="WeldConstraint" referent="RBXE116"><Properties>
      <string name="Name">Weld_Coil2</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE33</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE99"><Properties>
+    <Item class="WeldConstraint" referent="RBXE117"><Properties>
      <string name="Name">Weld_Coil3</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE34</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE100"><Properties>
+    <Item class="WeldConstraint" referent="RBXE118"><Properties>
      <string name="Name">Weld_Coil4</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE35</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE101"><Properties>
+    <Item class="WeldConstraint" referent="RBXE119"><Properties>
      <string name="Name">Weld_Coil5</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE36</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE102"><Properties>
+    <Item class="WeldConstraint" referent="RBXE120"><Properties>
      <string name="Name">Weld_Coil6</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE37</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE103"><Properties>
+    <Item class="WeldConstraint" referent="RBXE121"><Properties>
      <string name="Name">Weld_Coil7</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE38</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE104"><Properties>
+    <Item class="WeldConstraint" referent="RBXE122"><Properties>
      <string name="Name">Weld_Neck1</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE39</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE105"><Properties>
+    <Item class="WeldConstraint" referent="RBXE123"><Properties>
      <string name="Name">Weld_Neck2</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE40</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE106"><Properties>
+    <Item class="WeldConstraint" referent="RBXE124"><Properties>
      <string name="Name">Weld_Neck3</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE41</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE107"><Properties>
+    <Item class="WeldConstraint" referent="RBXE125"><Properties>
      <string name="Name">Weld_Hood</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE42</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE108"><Properties>
+    <Item class="WeldConstraint" referent="RBXE126"><Properties>
      <string name="Name">Weld_Head</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE43</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE109"><Properties>
+    <Item class="WeldConstraint" referent="RBXE127"><Properties>
      <string name="Name">Weld_EyeL</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE44</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE110"><Properties>
+    <Item class="WeldConstraint" referent="RBXE128"><Properties>
      <string name="Name">Weld_EyeR</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE45</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE111"><Properties>
+    <Item class="WeldConstraint" referent="RBXE129"><Properties>
      <string name="Name">Weld_Spot1</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE46</Ref>
     </Properties>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE112"><Properties>
+    <Item class="WeldConstraint" referent="RBXE130"><Properties>
      <string name="Name">Weld_Spot2</string>
      <Ref name="Part0">RBXE31</Ref>
      <Ref name="Part1">RBXE47</Ref>
     </Properties>
     </Item>
    </Item>
-   <Item class="Humanoid" referent="RBXE113"><Properties>
+   <Item class="Humanoid" referent="RBXE131"><Properties>
     <string name="Name">Humanoid</string>
     <float name="HipHeight">0.5</float>
     <token name="RigType">1</token>
@@ -1090,6 +1090,414 @@
     <Vector3 name="size"><X>0.5</X><Y>0.2</Y><Z>0.5</Z></Vector3>
     <CoordinateFrame name="CFrame"><X>-1.3</X><Y>1.75</Y><Z>-0.1</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
     <Color3uint8 name="Color3uint8">4289396560</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+  </Item>
+  <Item class="Model" referent="RBXE132"><Properties>
+   <string name="Name">ElderWolfKing</string>
+   <Ref name="PrimaryPart">RBXE48</Ref>
+   <token name="ModelStreamingMode">1</token>
+  </Properties>
+   <Item class="Part" referent="RBXE48"><Properties>
+    <string name="Name">HumanoidRootPart</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">true</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">false</bool>
+    <Vector3 name="size"><X>4.8</X><Y>4.8</Y><Z>9.6</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>6.24</Y><Z>0</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294967295</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <float name="Transparency">1</float>
+   </Properties>
+    <Item class="BillboardGui" referent="RBXE133"><Properties>
+     <string name="Name">HealthBar</string>
+     <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>9</YO></UDim2>
+     <Vector3 name="StudsOffset"><X>0</X><Y>8.16</Y><Z>0</Z></Vector3>
+     <float name="MaxDistance">90</float>
+     <bool name="AlwaysOnTop">true</bool>
+     <token name="LightInfluence">0</token>
+     <bool name="Enabled">true</bool>
+    </Properties>
+     <Item class="Frame" referent="RBXE134"><Properties>
+      <string name="Name">Back</string>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Color3 name="BackgroundColor3"><R>0.078431</R><G>0.062745</G><B>0.062745</B></Color3>
+      <float name="BackgroundTransparency">0.2</float>
+      <int name="BorderSizePixel">0</int>
+     </Properties>
+      <Item class="UICorner" referent="RBXE135"><Properties>
+       <string name="Name">UICorner</string>
+       <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
+      </Properties>
+      </Item>
+      <Item class="Frame" referent="RBXE136"><Properties>
+       <string name="Name">Fill</string>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+       <Color3 name="BackgroundColor3"><R>0.862745</R><G>0.274510</G><B>0.235294</B></Color3>
+       <int name="BorderSizePixel">0</int>
+      </Properties>
+       <Item class="UICorner" referent="RBXE137"><Properties>
+        <string name="Name">UICorner</string>
+        <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
+       </Properties>
+       </Item>
+      </Item>
+     </Item>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE138"><Properties>
+     <string name="Name">Weld_Body</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE49</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE139"><Properties>
+     <string name="Name">Weld_Chest</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE50</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE140"><Properties>
+     <string name="Name">Weld_Head</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE51</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE141"><Properties>
+     <string name="Name">Weld_Snout</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE52</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE142"><Properties>
+     <string name="Name">Weld_EarL</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE53</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE143"><Properties>
+     <string name="Name">Weld_EarR</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE54</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE144"><Properties>
+     <string name="Name">Weld_EyeL</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE55</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE145"><Properties>
+     <string name="Name">Weld_EyeR</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE56</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE146"><Properties>
+     <string name="Name">Weld_Mane</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE57</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE147"><Properties>
+     <string name="Name">Weld_Tail</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE58</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE148"><Properties>
+     <string name="Name">Weld_Leg1</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE59</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE149"><Properties>
+     <string name="Name">Weld_Leg2</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE60</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE150"><Properties>
+     <string name="Name">Weld_Leg3</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE61</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE151"><Properties>
+     <string name="Name">Weld_Leg4</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE62</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE152"><Properties>
+     <string name="Name">Weld_Crown1</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE63</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE153"><Properties>
+     <string name="Name">Weld_Crown2</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE64</Ref>
+    </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="RBXE154"><Properties>
+     <string name="Name">Weld_Crown3</string>
+     <Ref name="Part0">RBXE48</Ref>
+     <Ref name="Part1">RBXE65</Ref>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Humanoid" referent="RBXE155"><Properties>
+    <string name="Name">Humanoid</string>
+    <float name="HipHeight">3.84</float>
+    <token name="RigType">1</token>
+    <token name="DisplayDistanceType">2</token>
+    <token name="HealthDisplayType">2</token>
+    <float name="MaxHealth">100</float>
+    <bool name="AutoRotate">true</bool>
+    <bool name="BreakJointsOnDeath">false</bool>
+    <bool name="RequiresNeck">false</bool>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE49"><Properties>
+    <string name="Name">Body</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>5.28</X><Y>4.8</Y><Z>10.56</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0.0</X><Y>6.72</Y><Z>0.48</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4293717220</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE50"><Properties>
+    <string name="Name">Chest</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>6.0</X><Y>5.76</Y><Z>4.32</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0.0</X><Y>7.199999999999999</Y><Z>-3.84</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4293717220</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE51"><Properties>
+    <string name="Name">Head</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>3.84</X><Y>3.5999999999999996</Y><Z>4.32</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0.0</X><Y>8.88</Y><Z>-7.199999999999999</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4293717220</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE52"><Properties>
+    <string name="Name">Snout</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>2.16</X><Y>1.92</Y><Z>3.12</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0.0</X><Y>8.16</Y><Z>-10.319999999999999</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4290685560</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE53"><Properties>
+    <string name="Name">EarL</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.96</X><Y>1.92</Y><Z>0.84</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-1.2</X><Y>11.52</Y><Z>-6.72</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4290685560</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE54"><Properties>
+    <string name="Name">EarR</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.96</X><Y>1.92</Y><Z>0.84</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>1.2</X><Y>11.52</Y><Z>-6.72</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4290685560</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE55"><Properties>
+    <string name="Name">EyeL</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.72</X><Y>0.528</Y><Z>0.24</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-1.08</X><Y>9.36</Y><Z>-9.408</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294953050</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE56"><Properties>
+    <string name="Name">EyeR</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.72</X><Y>0.528</Y><Z>0.24</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>1.08</X><Y>9.36</Y><Z>-9.408</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294953050</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE57"><Properties>
+    <string name="Name">Mane</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.2</X><Y>0.84</Y><Z>8.16</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0.0</X><Y>9.6</Y><Z>-1.44</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294953050</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE58"><Properties>
+    <string name="Name">Tail</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.2</X><Y>1.2</Y><Z>5.28</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0.0</X><Y>8.64</Y><Z>7.4399999999999995</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>0.866025</R11><R12>-0.500000</R12><R20>0.000000</R20><R21>0.500000</R21><R22>0.866025</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4290685560</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE59"><Properties>
+    <string name="Name">Leg1</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.44</X><Y>4.56</Y><Z>1.44</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-1.68</X><Y>2.28</Y><Z>-3.84</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4290685560</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE60"><Properties>
+    <string name="Name">Leg2</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.44</X><Y>4.56</Y><Z>1.44</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>1.68</X><Y>2.28</Y><Z>-3.84</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4290685560</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE61"><Properties>
+    <string name="Name">Leg3</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.44</X><Y>4.56</Y><Z>1.44</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-1.68</X><Y>2.28</Y><Z>4.08</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4290685560</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE62"><Properties>
+    <string name="Name">Leg4</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>1.44</X><Y>4.56</Y><Z>1.44</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>1.68</X><Y>2.28</Y><Z>4.08</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4290685560</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE63"><Properties>
+    <string name="Name">Crown1</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.72</X><Y>2.16</Y><Z>0.72</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>0</X><Y>12.239999999999998</Y><Z>-6.96</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294953050</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE64"><Properties>
+    <string name="Name">Crown2</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.6</X><Y>1.68</Y><Z>0.6</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-1.08</X><Y>11.88</Y><Z>-6.6</Z><R00>0.965926</R00><R01>0.258819</R01><R02>0.000000</R02><R10>-0.258819</R10><R11>0.965926</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294953050</Color3uint8>
+    <token name="Material">288</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXE65"><Properties>
+    <string name="Name">Crown3</string>
+    <bool name="Anchored">false</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>0.6</X><Y>1.68</Y><Z>0.6</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>1.08</X><Y>11.88</Y><Z>-6.6</Z><R00>0.965926</R00><R01>-0.258819</R01><R02>0.000000</R02><R10>0.258819</R10><R11>0.965926</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4294953050</Color3uint8>
     <token name="Material">288</token>
     <token name="TopSurface">0</token>
     <token name="BottomSurface">0</token>

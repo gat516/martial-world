@@ -4,10 +4,13 @@
 --   lunge   a short line in front (box), then a quick dash along it
 --   charge  a long lane (box), then a fast charge down it
 --   spit    a circle on the target's position
+--   cone    a wide cone in front (bite)
+--   slam    a circle around the attacker
+--   summon  no area; calls `count` more of `summons` to its side
 -- qiDrop is raw qi at QC1; it scales with the receiving player's dantian.
 
 export type Attack = {
-	kind: string, -- "lunge" | "charge" | "spit"
+	kind: string, -- "lunge" | "charge" | "spit" | "cone" | "slam" | "summon"
 	damage: number,
 	range: number, -- start the attack when the target is this close
 	windup: number, -- seconds the telegraph shows before it resolves
@@ -17,6 +20,10 @@ export type Attack = {
 	width: number?, -- box: how wide
 	radius: number?, -- circle
 	dashSpeed: number?, -- lunge/charge: studs per second along the box
+	angle: number?, -- cone: degrees
+	summons: string?, -- summon: enemy id
+	count: number?, -- summon: how many
+	maxAlive: number?, -- summon: skip if this many summons are still alive
 }
 
 export type Def = {
@@ -31,7 +38,9 @@ export type Def = {
 	qiDrop: number,
 	respawn: number, -- seconds before a replacement spawns
 	boss: boolean?,
-	attack: Attack,
+	attack: Attack, -- the only attack, or the opener of a boss pattern
+	pattern: { Attack }?, -- bosses: attacks used in rotation after `attack`
+	summonAt: { number }?, -- bosses: health fractions that trigger a summon
 }
 
 local Enemies = {}
@@ -101,6 +110,72 @@ Enemies.Defs = {
 			cooldown = 2.6,
 			radius = 5.5,
 		},
+	},
+	ElderWolfKing = {
+		id = "ElderWolfKing",
+		name = "Elder Wolf King",
+		boss = true,
+		health = 1500,
+		walkSpeed = 8,
+		runSpeed = 16,
+		aggro = 55,
+		leash = 95,
+		qiDrop = 160,
+		respawn = 180,
+		summonAt = { 0.66, 0.33 },
+		attack = {
+			kind = "cone",
+			damage = 30,
+			range = 14,
+			windup = 1.1,
+			recover = 0.8,
+			cooldown = 2.2,
+			radius = 17,
+			angle = 100,
+		},
+		pattern = {
+			{
+				kind = "charge",
+				damage = 32,
+				range = 28,
+				windup = 1.1,
+				recover = 1.0,
+				cooldown = 2.4,
+				length = 30,
+				width = 7,
+				dashSpeed = 60,
+			},
+			{
+				kind = "slam",
+				damage = 36,
+				range = 12,
+				windup = 1.3,
+				recover = 1.0,
+				cooldown = 2.6,
+				radius = 14,
+			},
+			{
+				kind = "cone",
+				damage = 30,
+				range = 14,
+				windup = 1.0,
+				recover = 0.8,
+				cooldown = 2.2,
+				radius = 17,
+				angle = 100,
+			},
+			{
+				kind = "summon",
+				damage = 0,
+				range = 60,
+				windup = 1.2,
+				recover = 0.6,
+				cooldown = 2.0,
+				summons = "SpiritWolf",
+				count = 2,
+				maxAlive = 4,
+			},
+		} :: { Attack },
 	},
 } :: { [string]: Def }
 

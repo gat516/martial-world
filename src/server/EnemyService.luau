@@ -58,6 +58,11 @@ type Enemy = {
 	shape: Shape?,
 	dashTo: Vector3?,
 	damagers: { [Player]: boolean },
+	attack: Enemies.Attack, -- the attack in progress, or the next one to use
+	patternIndex: number,
+	summonsDone: { [number]: boolean }, -- summonAt thresholds already used
+	summoned: { Model }, -- live summons (bosses)
+	respawns: boolean,
 }
 
 local enemies: { [Model]: Enemy } = {}
@@ -143,7 +148,8 @@ end
 
 --[[ Spawning ]]
 
-function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?): Model?
+-- `respawns` false: a one-off (boss summons), not refilled when it dies.
+function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?, respawns: boolean?): Model?
 	local def = Enemies.Defs[id]
 	local template = templates:FindFirstChild(id) :: Model?
 	if not (def and template) then
@@ -181,6 +187,11 @@ function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?): Model?
 		shape = nil,
 		dashTo = nil,
 		damagers = {},
+		attack = def.attack,
+		patternIndex = 0,
+		summonsDone = {},
+		summoned = {},
+		respawns = respawns ~= false,
 	}
 	enemies[model] = enemy
 	humanoid.Died:Connect(function()
@@ -245,7 +256,18 @@ function EnemyService.died(enemy: Enemy)
 	task.delay(1.2, function()
 		enemy.model:Destroy()
 	end)
-	if enemy.zone ~= enemy.root then
+	if enemy.def.boss then
+		local names = {}
+		for player in enemy.damagers do
+			if player.Parent then
+				table.insert(names, player.DisplayName)
+			end
+		end
+		if #names > 0 then
+			remotes.Notify:FireAllClients(`{table.concat(names, ", ")} defeated the {enemy.def.name}!`)
+		end
+	end
+	if enemy.respawns and enemy.zone ~= enemy.root then
 		local spread = 1 + (math.random() * 2 - 1) * Config.RESPAWN_SPREAD
 		task.delay(enemy.def.respawn * spread, spawnInZone, enemy.zone)
 	end
@@ -308,8 +330,8 @@ local function pickTarget(enemy: Enemy): (Player?, BasePart?)
 	return best, bestRoot
 end
 
-local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number)
-	local attack = enemy.def.attack
+local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, attack: Enemies.Attack)
+	enemy.attack = attack
 	stop(enemy)
 	enemy.humanoid.AutoRotate = false
 	face(enemy, targetRoot.Position)
@@ -320,6 +342,18 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number)
 	local shape: Shape
 	if attack.kind == "spit" then
 		shape = { kind = "circle", center = groundAt(targetRoot.Position), radius = attack.radius }
+	elseif attack.kind == "slam" then
+		shape = { kind = "circle", center = ground, radius = attack.radius }
+	elseif attack.kind == "cone" then
+		shape = {
+			kind = "cone",
+			center = ground,
+			cframe = CFrame.lookAt(ground, ground + dir),
+			radius = attack.radius,
+			size = Vector2.new(attack.angle :: number, 0),
+		}
+	elseif attack.kind == "summon" then
+		shape = { kind = "howl", center = ground, radius = 8 }
 	else
 		local length = attack.length :: number
 		shape = {
@@ -336,13 +370,49 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number)
 	telegraphRemote:FireAllClients(shape, attack.windup)
 end
 
+local function summon(enemy: Enemy, attack: Enemies.Attack)
+	for i = #enemy.summoned, 1, -1 do
+		local m = enemy.summoned[i]
+		local h = m:FindFirstChildOfClass("Humanoid")
+		if not (m.Parent and h and h.Health > 0) then
+			table.remove(enemy.summoned, i)
+		end
+	end
+	local room = (attack.maxAlive or 4) - #enemy.summoned
+	for _ = 1, math.min(attack.count or 1, room) do
+		local a = math.random() * math.pi * 2
+		local at = enemy.root.Position + Vector3.new(math.cos(a), 0, math.sin(a)) * 8
+		local model = EnemyService.spawn(attack.summons :: string, at, enemy.zone, false)
+		if model then
+			table.insert(enemy.summoned, model)
+			local spawned = enemies[model]
+			if spawned then
+				spawned.target = enemy.target
+			end
+		end
+	end
+end
+
+-- Bosses go through their pattern in order; everyone else repeats one attack.
+local function advancePattern(enemy: Enemy)
+	local pattern = enemy.def.pattern
+	if pattern then
+		enemy.patternIndex = enemy.patternIndex % #pattern + 1
+		enemy.attack = pattern[enemy.patternIndex]
+	end
+end
+
 local function resolveAttack(enemy: Enemy, now: number)
-	local attack = enemy.def.attack
+	local attack = enemy.attack
 	local shape = enemy.shape :: Shape
-	for _, player in Players:GetPlayers() do
-		local root = playerRoot(player)
-		if root and EnemyService.inside(shape, root.Position) then
-			Combat.hurt(player, attack.damage)
+	if attack.kind == "summon" then
+		summon(enemy, attack)
+	else
+		for _, player in Players:GetPlayers() do
+			local root = playerRoot(player)
+			if root and EnemyService.inside(shape, root.Position) then
+				Combat.hurt(player, attack.damage)
+			end
 		end
 	end
 	enemy.shape = nil
@@ -356,6 +426,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 		enemy.state = "recover"
 		enemy.stateUntil = now + attack.recover
 	end
+	advancePattern(enemy)
 end
 
 local function think(enemy: Enemy, now: number)
@@ -370,6 +441,7 @@ local function think(enemy: Enemy, now: number)
 	elseif enemy.state == "dash" then
 		if now >= enemy.stateUntil then
 			stop(enemy)
+			humanoid.WalkSpeed = def.runSpeed
 			enemy.state = "recover"
 			enemy.stateUntil = now + def.attack.recover
 		end
@@ -414,13 +486,31 @@ local function think(enemy: Enemy, now: number)
 	enemy.state = "chase"
 	humanoid.WalkSpeed = def.runSpeed
 	local distance = flat(targetRoot.Position - position).Magnitude
+
+	-- bosses summon when their health crosses a threshold, whatever comes next
+	if def.summonAt and def.pattern and now >= enemy.nextAttack then
+		local fraction = humanoid.Health / humanoid.MaxHealth
+		for i, at in def.summonAt do
+			if fraction <= at and not enemy.summonsDone[i] then
+				enemy.summonsDone[i] = true
+				for _, a in def.pattern do
+					if a.kind == "summon" then
+						startAttack(enemy, targetRoot, now, a)
+						return
+					end
+				end
+			end
+		end
+	end
+
+	local attack = enemy.attack
 	if def.keepAway and distance < def.keepAway then
 		local away = flat(position - targetRoot.Position)
 		away = if away.Magnitude > 0.1 then away.Unit else Vector3.xAxis
 		humanoid:MoveTo(position + away * 10)
-	elseif distance <= def.attack.range and now >= enemy.nextAttack then
-		startAttack(enemy, targetRoot, now)
-	elseif distance > def.attack.range * 0.7 then
+	elseif distance <= attack.range and now >= enemy.nextAttack then
+		startAttack(enemy, targetRoot, now, attack)
+	elseif distance > math.min(attack.range, 20) * 0.7 then
 		humanoid:MoveTo(targetRoot.Position)
 	else
 		stop(enemy)

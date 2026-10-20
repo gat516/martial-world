@@ -38,6 +38,7 @@ type State = {
 	ironSkinUntil: number,
 	ironSkinReduction: number,
 	lastHurt: number,
+	lastHurtBy: string,
 }
 local states: { [Player]: State } = {}
 
@@ -57,6 +58,7 @@ local function state(player: Player): State
 			ironSkinUntil = 0,
 			ironSkinReduction = 0,
 			lastHurt = -math.huge,
+			lastHurtBy = "Unknown",
 		}
 		states[player] = s
 	end
@@ -109,7 +111,8 @@ export type HurtResult = "hit" | "dodged" | "perfect" | "none"
 
 -- Damage a player from an enemy attack or hazard that resolves now. Dodging
 -- shortly before negates it; Iron Skin reduces it. `nonLethal` leaves them at 1.
-function Combat.hurt(player: Player, amount: number, nonLethal: boolean?): (HurtResult, number)
+-- `source` names what hit them (an enemy id, "Tribulation"), for death analytics.
+function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source: string?): (HurtResult, number)
 	local _, humanoid = livingRoot(player)
 	if not humanoid then
 		return "none", 0
@@ -134,10 +137,15 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?): (Hurt
 	if nonLethal then
 		amount = math.min(amount, math.max(0, humanoid.Health - 1))
 	end
+	s.lastHurtBy = source or "Unknown"
 	humanoid:TakeDamage(amount)
 	s.lastHurt = os.clock()
 	effectRemote:FireClient(player, "hurt", amount)
 	return "hit", amount
+end
+
+function Combat.lastHurtBy(player: Player): string
+	return state(player).lastHurtBy
 end
 
 function Combat.inCombat(player: Player): boolean

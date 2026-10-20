@@ -22,6 +22,10 @@ local EnemyService = require(script.Parent.EnemyService)
 local Progression = require(script.Parent.Progression)
 local Tribulation = require(script.Parent.Tribulation)
 local Quests = require(script.Parent.Quests)
+local Analytics = require(script.Parent.Analytics)
+
+local joinedAt: { [Player]: number } = {}
+local lastBreakthroughAt: { [Player]: number } = {}
 
 local remotes = ReplicatedStorage.Remotes
 
@@ -72,6 +76,7 @@ local function onPlayerAdded(player: Player)
 		local humanoid = character:WaitForChild("Humanoid") :: Humanoid
 		humanoid.Died:Connect(function()
 			player:SetAttribute("Died", true)
+			Analytics.event(player, "Death", 1, Combat.lastHurtBy(player))
 		end)
 	end)
 	if player.Character then
@@ -81,7 +86,15 @@ local function onPlayerAdded(player: Player)
 
 	local data = PlayerData.load(player)
 	applyTestKit(data)
-	Cultivation.claimLogin(player, data)
+	local offline = Cultivation.claimLogin(player, data)
+	joinedAt[player] = os.clock()
+	lastBreakthroughAt[player] = os.clock()
+	if data.onboardingStep == 0 and data.stats.circulationRuns == 0 then
+		Analytics.funnel(player, 1)
+	end
+	if offline > 0 then
+		Analytics.event(player, "OfflineQiClaimed", offline)
+	end
 	if player.Parent == nil then
 		PlayerData.release(player)
 		Peaks.release(player)
@@ -103,6 +116,11 @@ for _, player in Players:GetPlayers() do
 end
 
 Players.PlayerRemoving:Connect(function(player)
+	if joinedAt[player] then
+		Analytics.event(player, "SessionLength", math.floor(os.clock() - joinedAt[player]))
+	end
+	joinedAt[player] = nil
+	lastBreakthroughAt[player] = nil
 	PlayerData.release(player)
 	Peaks.release(player)
 	Build.forget(player)
@@ -137,6 +155,20 @@ end
 
 QiNodes.start()
 table.insert(EnemyService.onKill, Progression.onKill)
+table.insert(Quests.onBeat, function(player, index)
+	Analytics.funnel(player, index + 1)
+end)
+table.insert(Circulation.onFinished, function(player, score)
+	Analytics.event(player, "CirculationScore", math.floor(score * 100 + 0.5))
+end)
+table.insert(Cultivation.onBreakthrough, function(player, stage)
+	local since = os.clock() - (lastBreakthroughAt[player] or os.clock())
+	lastBreakthroughAt[player] = os.clock()
+	Analytics.event(player, "Breakthrough", math.floor(since), stage.name)
+end)
+table.insert(Tribulation.onFinished, function(player, survived)
+	Analytics.event(player, "TribulationResult", if survived then 1 else 0)
+end)
 table.insert(Cultivation.onBreakthrough, function(player)
 	local data = PlayerData.get(player)
 	if data then

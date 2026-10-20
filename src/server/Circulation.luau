@@ -21,6 +21,9 @@ local runs: { [Player]: Run } = {}
 
 local Circulation = {}
 
+-- Called with (player, score 0-1) after every scored run, for analytics.
+Circulation.onFinished = {} :: { (Player, number) -> () }
+
 local function fullRunQi(stage: Realms.Stage): number
 	return math.floor(stage.dantian / Config.RUNS_PER_DANTIAN)
 end
@@ -131,6 +134,9 @@ function Circulation.finish(player: Player, id: any, accuracy: any, purged: any)
 	local deviation = score < Config.DEVIATION_SCORE
 	if deviation then
 		Cultivation.deviate(player, Config.DEVIATION_SECONDS)
+	end
+	for _, fn in Circulation.onFinished do
+		task.spawn(fn, player, score)
 	end
 	Cultivation.markActive(player)
 	Cultivation.pushState(player)

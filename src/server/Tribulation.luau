@@ -37,8 +37,14 @@ local function humanoidOf(player: Player): (Humanoid?, BasePart?)
 	return nil, nil
 end
 
+-- Called with (player, survived) when a tribulation ends, for analytics.
+Tribulation.onFinished = {} :: { (Player, boolean) -> () }
+
 local function finish(player: Player, survived: boolean)
 	active[player] = nil
+	for _, fn in Tribulation.onFinished do
+		task.spawn(fn, player, survived)
+	end
 	effectRemote:FireAllClients("tribulationEnd", player, survived)
 	if player.Parent == nil then
 		return
@@ -99,7 +105,7 @@ local function run(player: Player)
 		local ground = Vector3.new(center.X + flat.X, floor, center.Z + flat.Y)
 		local damage = humanoid.MaxHealth * Config.DAMAGE_SHARE
 		task.spawn(function()
-			EnemyService.strike({ kind = "circle", center = ground, radius = Config.STRIKE_RADIUS }, windup, damage, true, player)
+			EnemyService.strike({ kind = "circle", center = ground, radius = Config.STRIKE_RADIUS }, windup, damage, true, player, "Tribulation")
 			effectRemote:FireAllClients("bolt", ground)
 		end)
 		task.wait(interval)

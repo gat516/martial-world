@@ -130,14 +130,14 @@ end
 
 -- Show an area to every client for `seconds`, then hurt every player in it.
 -- Returns the players it hit.
-function EnemyService.strike(shape: Shape, seconds: number, damage: number, nonLethal: boolean?, only: Player?): { Player }
+function EnemyService.strike(shape: Shape, seconds: number, damage: number, nonLethal: boolean?, only: Player?, source: string?): { Player }
 	telegraphRemote:FireAllClients(shape, seconds)
 	task.wait(seconds)
 	local hit = {}
 	for _, player in Players:GetPlayers() do
 		local root = playerRoot(player)
 		if root and (only == nil or only == player) and EnemyService.inside(shape, root.Position) then
-			local result = Combat.hurt(player, damage, nonLethal)
+			local result = Combat.hurt(player, damage, nonLethal, source)
 			if result == "hit" then
 				table.insert(hit, player)
 			end
@@ -411,7 +411,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 		for _, player in Players:GetPlayers() do
 			local root = playerRoot(player)
 			if root and EnemyService.inside(shape, root.Position) then
-				Combat.hurt(player, attack.damage)
+				Combat.hurt(player, attack.damage, false, enemy.def.id)
 			end
 		end
 	end

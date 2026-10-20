@@ -38,7 +38,7 @@ function Travel.go(player: Player, where: any): (boolean, string?)
 	if data and not Quests.travelUnlocked(data) then
 		return false, "The elder hasn't taught you the teleport formation yet."
 	end
-	if Combat.inCombat(player) then
+	if humanoid:GetAttribute("ActionBusy") or Combat.inCombat(player) then
 		return false, "You can't form the array mid-fight."
 	end
 	local now = os.clock()

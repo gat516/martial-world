@@ -1,20 +1,8 @@
 --!strict
--- The player's combat kit: fist basic attack, techniques (cast from the hotbar,
--- HotbarView.luau) and dodge.
---
--- Basic attack: a five-hit chain played from ReplicatedStorage.Animations.Fists.
--- PC swings on M1 (unless an item is held out: then M1 uses it). Touch swings
--- from the Strike button, or on its own in Auto mode while the target is in range
--- (auto-attack, LockOn.luau). The locked enemy (LockOn) is always the target;
--- without one, soft auto-aim turns the character toward the nearest enemy, and
--- tapping or clicking an enemy makes it the target.
--- Everything is predicted: the animation, dash and effects play at once, and the
--- client reports each action with its server-clock timestamp (GetServerTimeNow).
--- Impacts are timed by animation markers: a swing's hitbox is live from the "Hit"
--- marker to the "Hit Stop" marker, and a technique goes off at "Hit". The client
--- flashes what it hit; the server re-checks hits and owns damage (Combat.luau).
--- PC: hotbar keys for techniques, Q to dash, click an enemy to target it.
--- Mobile: hotbar slots for techniques, the Dash button beside Strike.
+-- Predicted combat driven by the shared ActionRules state machine. Holding M1
+-- requests another swing when legal; one short input buffer prioritises dodge,
+-- then a technique, then a tapped basic. The Attack remote carries ordered
+-- action starts and hit reports; the server uses the same action timelines.
 
 local CollectionService = game:GetService("CollectionService")
 local ContextActionService = game:GetService("ContextActionService")
@@ -24,9 +12,13 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Combat
+local Rules = require(ReplicatedStorage.Shared.ActionRules)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
+local ActionState = require(script.Parent.ActionState)
+local Controls = require(script.Parent.Controls)
+local Menus = require(script.Parent.Menus)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local BuildMode = require(script.Parent.BuildMode)
 local CombatEffects = require(script.Parent.CombatEffects)
@@ -35,13 +27,10 @@ local LockOn = require(script.Parent.LockOn)
 local Meditation = require(script.Parent.Meditation)
 local Platform = require(script.Parent.Platform)
 local Sfx = require(script.Parent.Sfx)
-local Sprint = require(script.Parent.Sprint)
 local State = require(script.Parent.State)
 
 local remotes = ReplicatedStorage.Remotes
 local attackRemote = remotes.Attack :: RemoteEvent
-local dodgeRemote = remotes.Dodge :: RemoteEvent
-local castRemote = remotes.Cast :: RemoteEvent
 local effectRemote = remotes.Effect :: RemoteEvent
 local animations = ReplicatedStorage:WaitForChild("Animations") :: Folder
 local fistAnimations = animations:WaitForChild("Fists") :: Folder
@@ -57,85 +46,99 @@ local CombatController = {}
 
 local tracks: { AnimationTrack } = {}
 local dashTracks: { [string]: AnimationTrack } = {} -- "Forward" / "Back" / "Left" / "Right"
-local playing: AnimationTrack?
-local chainIndex = 0
-local lastSwing = -math.huge
-local lastDodge = -math.huge
-local readyAt: { [string]: number } = {} -- technique id -> os.clock() it's off cooldown
-local target: Model? -- picked by tapping/clicking; cleared when it dies or leaves range
+type Runtime = {
+	action: Rules.Action,
+	root: BasePart,
+	character: Model,
+	direction: Vector3,
+	track: AnimationTrack?,
+	stopped: RBXScriptConnection?,
+	released: boolean,
+	reported: boolean,
+	suppressed: boolean,
+	steer: ((number) -> ())?,
+	finishDash: (() -> ())?,
+}
+local runtime: Runtime?
+local sequence = 0
+local readyCharacter: Model?
+local synced = false
+local focused = true
+local held: { [InputObject]: boolean } = {}
+local pending: { kind: string, id: string?, expires: number }?
+local target: Model?
+local advanceRuntime: (number) -> ()
+local request: (string, string?) -> ()
+
+local function clearInputs()
+	table.clear(held)
+	pending = nil
+	ActionState.basicHeld = false
+end
+
+local function stopRuntime(suppress: boolean)
+	local old = runtime
+	runtime = nil
+	if not old then
+		return
+	end
+	if suppress then
+		attackRemote:FireServer({ op = "cancel", character = old.character, sequence = old.action.sequence })
+	end
+	if old.stopped then
+		old.stopped:Disconnect()
+	end
+	if old.track then
+		old.track:Stop(0.08)
+	end
+	if old.finishDash then
+		old.finishDash()
+	end
+end
 
 local function loadTracks(character: Model)
-	table.clear(tracks)
-	playing = nil
+	clearInputs()
+	stopRuntime(true)
+	readyCharacter, synced = nil, false
+	ActionState.current = Rules.new()
 	local humanoid = character:WaitForChild("Humanoid") :: Humanoid
 	local animator = humanoid:WaitForChild("Animator") :: Animator
-	for i = 1, #Config.FIST_DAMAGE do
+	local nextTracks: { AnimationTrack } = {}
+	local nextDashes: { [string]: AnimationTrack } = {}
+	for i = 1, #Config.FIST_STEPS do
 		local animation = fistAnimations:FindFirstChild(tostring(i)) :: Animation?
 		if animation then
 			local track = animator:LoadAnimation(animation)
 			track.Priority = Enum.AnimationPriority.Action
 			track.Looped = false
-			tracks[i] = track
+			nextTracks[i] = track
 		end
 	end
-	table.clear(dashTracks)
 	for _, animation in dashAnimations:GetChildren() do
-		-- an Animation left without an id is a placeholder; skip it
 		if animation:IsA("Animation") and animation.AnimationId ~= "" then
 			local track = animator:LoadAnimation(animation)
 			track.Priority = Enum.AnimationPriority.Action2
 			track.Looped = false
-			dashTracks[animation.Name] = track
+			nextDashes[animation.Name] = track
 		end
 	end
-end
-
-local function playAnimation(index: number): AnimationTrack?
-	if playing then
-		playing:Stop(0.05)
-	end
-	local track = tracks[index]
-	if track then
-		track:Play(0.05)
-		playing = track
-	end
-	return track
-end
-
--- Runs `hit` at the track's "Hit" marker and `stop` at its "Hit Stop" marker. If
--- the track ends or is cut off first, whatever hasn't run yet runs then, so an
--- attack is never lost (and an animation without markers lands when it ends).
-local function onMarkers(track: AnimationTrack?, hit: () -> (), stop: (() -> ())?)
-	local stage = 0
-	local connections: { RBXScriptConnection } = {}
-	local function advance(to: number)
-		while stage < to do
-			stage += 1
-			if stage == 1 then
-				hit()
-			elseif stop then
-				stop()
-			end
-		end
-		if stage >= 2 then
-			for _, connection in connections do
-				connection:Disconnect()
-			end
-		end
-	end
-	if not track then
-		advance(2)
+	if player.Character ~= character then
+		for _, track in nextTracks do track:Destroy() end
+		for _, track in nextDashes do track:Destroy() end
 		return
 	end
-	table.insert(connections, track:GetMarkerReachedSignal("Hit"):Connect(function()
-		advance(1)
-	end))
-	table.insert(connections, track:GetMarkerReachedSignal("Hit Stop"):Connect(function()
-		advance(2)
-	end))
-	table.insert(connections, track.Stopped:Connect(function()
-		advance(2)
-	end))
+	for _, track in tracks do track:Destroy() end
+	for _, track in dashTracks do track:Destroy() end
+	tracks, dashTracks = nextTracks, nextDashes
+	readyCharacter = character
+	humanoid.Died:Connect(function()
+		if readyCharacter == character then
+			clearInputs()
+			stopRuntime(true)
+			readyCharacter, synced = nil, false
+		end
+	end)
+	attackRemote:FireServer({ op = "sync", character = character })
 end
 
 local function rootOf(model: Model): BasePart?
@@ -177,7 +180,13 @@ local function myRoot(): BasePart?
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if
 		not humanoid
+		or character ~= readyCharacter
+		or not synced
+		or not focused
 		or humanoid.Health <= 0
+		or humanoid.Sit
+		or Menus.isOpen()
+		or UserInputService:GetFocusedTextBox() ~= nil
 		or CirculationMinigame.isRunning()
 		or Meditation.isActive()
 		or BuildMode.isActive()
@@ -208,141 +217,45 @@ local function excludeMe(): OverlapParams
 	return params
 end
 
---[[ Basic attack ]]
-
-function CombatController.swing()
-	local now = os.clock()
-	local root = myRoot()
-	if now - lastSwing < Config.SWING_SECONDS or not root then
-		return
-	end
-	chainIndex = if now - lastSwing > Config.CHAIN_RESET then 1 else chainIndex % #Config.FIST_DAMAGE + 1
-	lastSwing = now
-	Sprint.pauseTurning(Config.SWING_SECONDS)
-	faceTarget(root)
-	local track = playAnimation(chainIndex)
-	Sfx.play("Swing")
-
-	-- The hitbox is cast every frame from "Hit" to "Hit Stop"; the swing is reported
-	-- once, as soon as it's hit all it can or when the window closes.
-	local swingTime = workspace:GetServerTimeNow()
-	local hits: { Model } = {}
-	local reported = false
-	local window: RBXScriptConnection?
-	local function report()
-		if window then
-			window:Disconnect()
-			window = nil
-		end
-		if not reported then
-			reported = true
-			attackRemote:FireServer(swingTime, hits)
-		end
-	end
-	local function sweep()
-		if not (root.Parent and myRoot()) then
-			return
-		end
-		local cframe, size = Hitbox.box(root)
-		for _, model in Hitbox.enemiesIn(cframe, size, excludeMe(), root.Position) do
-			if #hits >= Config.MAX_TARGETS then
-				break
-			end
-			if not table.find(hits, model) then
-				table.insert(hits, model)
-				CombatEffects.flash(model)
-				-- on contact, not when the server's damage number arrives a ping later
-				Sfx.play("Hit", nil, 0.05)
-			end
-		end
-		if #hits >= Config.MAX_TARGETS then
-			report()
-		end
-	end
-	onMarkers(track, function()
-		sweep()
-		if not reported then
-			window = RunService.Heartbeat:Connect(sweep)
-		end
-	end, report)
-end
-
---[[ Dodge ]]
-
-function CombatController.dodge()
-	local now = os.clock()
-	local root = myRoot()
-	if now - lastDodge < Config.DODGE_COOLDOWN or not root then
-		return
-	end
-	lastDodge = now
-	Sprint.pauseTurning(Config.DODGE_SECONDS)
-	LockOn.noteDodge()
-	dodgeRemote:FireServer(workspace:GetServerTimeNow())
-
-	local humanoid = (player.Character :: Model):FindFirstChildOfClass("Humanoid") :: Humanoid
+-- Dash direction is captured when the buffered action actually starts.
+local function startDash(current: Runtime)
+	local root = current.root
+	local humanoid = current.character:FindFirstChildOfClass("Humanoid") :: Humanoid
 	local move = humanoid.MoveDirection * Vector3.new(1, 0, 1)
-	-- standing still dashes backward, away from whatever's in front
-	local dir = if move.Magnitude > 0.1 then move.Unit else -(root.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
-
-	-- Impulses are mass * change in velocity, so read the mass instead of guessing a
-	-- force: one kick to full speed, then small capped top-ups each frame against
-	-- the humanoid's ground friction. Upward speed is capped so a slope or an
-	-- enemy's collider can't turn the dash into a launch.
-	local want = dir * Config.DODGE_SPEED
+	local input = Controls.moveVector()
+	local camera = workspace.CurrentCamera
+	if move.Magnitude < 0.1 and input.Magnitude > 0.1 and camera then
+		move = camera.CFrame:VectorToWorldSpace(input) * Vector3.new(1, 0, 1)
+	end
+	local direction = if move.Magnitude > 0.1 then move.Unit else -ActionState.facing
+	local want = direction * Config.DODGE_SPEED
 	local function steer(maxChange: number)
-		local mass = root.AssemblyMass
-		local v = root.AssemblyLinearVelocity
-		local change = want - v * Vector3.new(1, 0, 1)
-		if change.Magnitude > maxChange then
-			change = change.Unit * maxChange
-		end
-		local rise = math.min(0, Config.DODGE_MAX_RISE - v.Y)
-		root:ApplyImpulse((change + Vector3.yAxis * rise) * mass)
+		if not root.Parent then return end
+		local velocity = root.AssemblyLinearVelocity
+		local change = want - velocity * Vector3.new(1, 0, 1)
+		if change.Magnitude > maxChange then change = change.Unit * maxChange end
+		local rise = math.min(0, Config.DODGE_MAX_RISE - velocity.Y)
+		root:ApplyImpulse((change + Vector3.yAxis * rise) * root.AssemblyMass)
 	end
-	steer(Config.DODGE_SPEED * 2)
-	Sfx.play("Dodge")
-	CombatEffects.dashTrail(player.Character :: Model, root, Config.DODGE_SECONDS)
-
-	-- Pick the animation from the dash direction relative to facing; any sideways
-	-- lean (diagonals included) counts as a side dash. The facing is held for the
-	-- dash so the humanoid doesn't swing round to face the way it's going.
-	local right = root.CFrame.RightVector:Dot(dir)
-	local side = if right > 0.38
-		then "Right"
-		elseif right < -0.38 then "Left"
-		elseif root.CFrame.LookVector:Dot(dir) < 0 then "Back"
-		else "Forward"
-	local dashTrack = dashTracks[side]
-	if dashTrack then
-		dashTrack:Play(0.05)
-		humanoid.AutoRotate = false
-	end
-
-	local started = os.clock()
-	local connection
-	connection = RunService.Heartbeat:Connect(function(dt)
-		if not root.Parent then
-			connection:Disconnect()
-			return
-		end
-		if os.clock() - started < Config.DODGE_SECONDS then
-			steer(Config.DODGE_ACCEL * dt)
-			return
-		end
-		connection:Disconnect()
-		if dashTrack then
-			humanoid.AutoRotate = true
-		end
-		-- bleed off the leftover speed so the dash doesn't carry into a slide
-		local v = root.AssemblyLinearVelocity
-		local flat = v * Vector3.new(1, 0, 1)
+	local right = root.CFrame.RightVector:Dot(direction)
+	local side = if right > 0.38 then "Right" elseif right < -0.38 then "Left"
+		elseif root.CFrame.LookVector:Dot(direction) < 0 then "Back" else "Forward"
+	current.track = dashTracks[side]
+	current.steer = steer
+	current.finishDash = function()
+		current.steer, current.finishDash = nil, nil
+		if not root.Parent then return end
+		local velocity = root.AssemblyLinearVelocity
+		local flat = velocity * Vector3.new(1, 0, 1)
 		if flat.Magnitude > Config.DODGE_EXIT_SPEED then
 			local excess = flat - flat.Unit * Config.DODGE_EXIT_SPEED
-			local rise = math.min(0, Config.DODGE_MAX_RISE - v.Y)
-			root:ApplyImpulse((Vector3.yAxis * rise - excess) * root.AssemblyMass)
+			root:ApplyImpulse(-excess * root.AssemblyMass)
 		end
-	end)
+	end
+	steer(Config.DODGE_SPEED * 2)
+	LockOn.noteDodge()
+	Sfx.play("Dodge")
+	CombatEffects.dashTrail(current.character, root, Config.DODGE_SECONDS)
 end
 
 --[[ Techniques ]]
@@ -390,53 +303,140 @@ local function flashArea(def: Techniques.Def, origin: Vector3, dir: Vector3)
 	end
 end
 
--- Seconds left on a technique's cooldown, and its full length.
-function CombatController.cooldown(id: string): (number, number)
-	local def = Techniques.Defs[id]
-	if not def then
-		return 0, 1
+-- Timelines mirror the authored markers, including explicit windows for the
+-- animations without markers. Stopping a track never advances its timeline.
+local function release(current: Runtime)
+	current.released = true
+	if current.action.kind ~= "cast" or not current.action.id then return end
+	local def = Techniques.Defs[current.action.id]
+	attackRemote:FireServer({
+		op = "hit", character = current.character, sequence = current.action.sequence,
+		time = math.clamp(workspace:GetServerTimeNow(), Rules.hitAt(current.action), Rules.stopAt(current.action)),
+	})
+	local origin, direction = current.root.Position, current.direction
+	local chain = if def.kind == "chain" then predictChain(origin, def) else nil
+	CombatEffects.cast(current.character, def.id, origin, direction, chain)
+	if chain then
+		for _, model in chain do CombatEffects.flash(model, def.color) end
 	end
-	return math.max(0, (readyAt[id] or 0) - os.clock()), def.cooldown
+	flashArea(def, origin, direction)
 end
 
-function CombatController.cast(id: string)
-	local def = Techniques.Defs[id]
-	if not (def and State.current.techniques.owned[id]) then
+local function sweep(current: Runtime, now: number)
+	if current.reported then return end
+	local root = current.root
+	local cframe, size = Hitbox.box(root)
+	local hits: { Model } = {}
+	for _, model in Hitbox.enemiesIn(cframe, size, excludeMe(), root.Position) do
+		if #hits >= Config.MAX_TARGETS then break end
+		table.insert(hits, model)
+		CombatEffects.flash(model)
+		Sfx.play("Hit", nil, 0.05)
+	end
+	if #hits > 0 then
+		current.reported = true
+		attackRemote:FireServer({
+			op = "hit", character = current.character, sequence = current.action.sequence,
+			time = math.clamp(now, Rules.hitAt(current.action), Rules.stopAt(current.action)), targets = hits,
+		})
+	end
+end
+
+advanceRuntime = function(now: number)
+	local current = runtime
+	if not current then return end
+	if not current.root.Parent or current.character ~= player.Character then
+		stopRuntime(true)
 		return
 	end
-	local root = myRoot()
-	local now = os.clock()
-	if not root or now < (readyAt[def.id] or 0) then
-		return
-	end
-	readyAt[def.id] = now + def.cooldown
-	Sprint.pauseTurning(Config.SWING_SECONDS)
-	local dir = faceTarget(root)
-	-- the technique goes off at the animation's "Hit" marker, from where you stand then
-	onMarkers(playAnimation(def.animation), function()
-		if not root.Parent then
-			return
-		end
-		local origin = root.Position
-		local chain = if def.kind == "chain" then predictChain(origin, def) else nil
-		CombatEffects.cast(player.Character, def.id, origin, dir, chain)
-		if chain then
-			for _, model in chain do
-				CombatEffects.flash(model, def.color)
+	local action = current.action
+	if not current.suppressed and action.kind ~= "dodge" then
+		if now >= Rules.hitAt(action) then
+			-- If a slow frame crosses the whole hit window, take one final sweep.
+			local first = not current.released
+			if first then release(current) end
+			if action.kind == "basic" and (first or now <= Rules.stopAt(action)) then
+				sweep(current, now)
 			end
 		end
-		flashArea(def, origin, dir)
-		castRemote:FireServer(def.id, workspace:GetServerTimeNow(), dir)
-	end)
+	end
+	if now >= Rules.stopAt(action) and current.finishDash then current.finishDash() end
+	if now >= Rules.endAt(action) then stopRuntime(false) end
 end
 
--- The Dash button and its cooldown overlay.
+local function tryStart(kind: string, id: string?): boolean
+	local root = myRoot()
+	if not root then return false end
+	local character = player.Character :: Model
+	if kind == "basic" and character:FindFirstChildOfClass("Tool") then return false end
+	if kind == "cast" and (not id or not State.current.techniques.owned[id] or not table.find(State.current.hotbar, id)) then
+		return false
+	end
+	local now = workspace:GetServerTimeNow()
+	advanceRuntime(now)
+	local action = Rules.start(ActionState.current, kind, id, now, sequence + 1)
+	if not action then return false end
+	sequence += 1
+	stopRuntime(false)
+	local direction = if kind == "dodge" then root.CFrame.LookVector * Vector3.new(1, 0, 1) else faceTarget(root)
+	direction = if direction.Magnitude > 0.01 then direction.Unit else Vector3.zAxis
+	ActionState.facing = direction
+	local current: Runtime = {
+		action = action, root = root, character = character, direction = direction,
+		released = false, reported = false, suppressed = false,
+	}
+	runtime = current
+	attackRemote:FireServer({
+		op = "begin", character = character, sequence = sequence, time = now,
+		kind = kind, id = id, aim = direction,
+	})
+	if kind == "dodge" then
+		startDash(current)
+	else
+		current.track = tracks[action.profile.animation]
+		if kind == "basic" then Sfx.play("Swing") end
+	end
+	local track = current.track
+	if track then
+		track:Play(0.05, 1, action.profile.speed)
+		current.stopped = track.Stopped:Connect(function()
+			if runtime == current then
+				current.suppressed = true
+				attackRemote:FireServer({ op = "cancel", character = character, sequence = action.sequence })
+			end
+		end)
+	end
+	return true
+end
+
+local priorities = { basic = 1, cast = 2, dodge = 3 }
+request = function(kind: string, id: string?)
+	if not myRoot() then return end
+	local now = workspace:GetServerTimeNow()
+	if pending and pending.expires > now and priorities[pending.kind] > priorities[kind] then return end
+	if tryStart(kind, id) then
+		pending = nil
+	else
+		pending = { kind = kind, id = id, expires = now + Config.INPUT_BUFFER }
+	end
+end
+
+function CombatController.swing() request("basic", nil) end
+function CombatController.dodge() request("dodge", nil) end
+function CombatController.cast(id: string) request("cast", id) end
+
+function CombatController.cooldown(id: string): (number, number)
+	local def = Techniques.Defs[id]
+	if not def then return 0, 1 end
+	return math.max(0, (ActionState.current.ready[id] or 0) - workspace:GetServerTimeNow()), def.cooldown
+end
+
 local function bindButtons(gui: ScreenGui)
 	local dodgeButton = gui:FindFirstChild("DodgeButton", true) :: TextButton
 	dodgeButton.Activated:Connect(CombatController.dodge)
 	local overlay = dodgeButton:FindFirstChild("Cooldown") :: Frame
 	RunService.RenderStepped:Connect(function()
-		local remaining = lastDodge + Config.DODGE_COOLDOWN - os.clock()
+		local remaining = ActionState.current.dodgeReady - workspace:GetServerTimeNow()
 		overlay.Visible = remaining > 0
 		overlay.Size = UDim2.fromScale(1, math.clamp(remaining / Config.DODGE_COOLDOWN, 0, 1))
 	end)
@@ -444,8 +444,8 @@ end
 
 --[[ Targeting by tap/click ]]
 
--- Tap or click an enemy to make it the target (and swing at it).
-local function pickAt(position: Vector2)
+-- Pick before starting an attack so its windup faces the clicked enemy.
+local function pickAt(position: Vector2): boolean
 	local camera = workspace.CurrentCamera
 	local ray = camera:ViewportPointToRay(position.X, position.Y)
 	local params = RaycastParams.new()
@@ -456,34 +456,45 @@ local function pickAt(position: Vector2)
 	if model then
 		target = model
 		LockOn.pick(model)
-		CombatController.swing()
+		return true
 	end
+	return false
 end
 
 local function bindTapTargeting()
 	local pressStarts: { [InputObject]: { at: number, position: Vector3 } } = {}
 	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed then return end
 		local kind = input.UserInputType
-		if not processed and (kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch) then
+		if kind == Enum.UserInputType.Touch then
 			pressStarts[input] = { at = os.clock(), position = input.Position }
-		end
-		-- PC: M1 swings, unless an item in hand takes the click
-		local holding = player.Character and player.Character:FindFirstChildOfClass("Tool")
-		if not processed and kind == Enum.UserInputType.MouseButton1 and not holding then
-			CombatController.swing()
+		elseif kind == Enum.UserInputType.MouseButton1 then
+			local holding = player.Character and player.Character:FindFirstChildOfClass("Tool")
+			if not holding and myRoot() then
+				pickAt(Vector2.new(input.Position.X, input.Position.Y))
+				held[input] = true
+				ActionState.basicHeld = true
+				CombatController.swing()
+			end
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
+		held[input] = nil
+		ActionState.basicHeld = next(held) ~= nil
 		local start = pressStarts[input]
 		pressStarts[input] = nil
-		if
-			start
-			and os.clock() - start.at <= TAP_MAX_SECONDS
-			and (input.Position - start.position).Magnitude <= TAP_MAX_PIXELS
-		then
-			pickAt(Vector2.new(input.Position.X, input.Position.Y))
+		if start and myRoot() and os.clock() - start.at <= TAP_MAX_SECONDS
+			and (input.Position - start.position).Magnitude <= TAP_MAX_PIXELS then
+			if pickAt(Vector2.new(input.Position.X, input.Position.Y)) then CombatController.swing() end
 		end
 	end)
+	UserInputService.WindowFocusReleased:Connect(function()
+		focused = false
+		table.clear(pressStarts)
+		clearInputs()
+		stopRuntime(true)
+	end)
+	UserInputService.WindowFocused:Connect(function() focused = true end)
 end
 
 --[[ Server effects ]]
@@ -492,7 +503,20 @@ local function onEffect(kind: string, ...: any)
 	local args = { ... }
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	if kind == "damage" then
+	if kind == "action" then
+		local serverCharacter, acknowledged, accepted, snapshot = args[1], args[2], args[3], args[4]
+		if serverCharacter ~= player.Character or serverCharacter ~= readyCharacter then return end
+		if acknowledged == 0 then
+			ActionState.current = snapshot
+			synced = true
+		elseif acknowledged == sequence then
+			if not accepted then
+				stopRuntime(false)
+				pending = nil
+			end
+			ActionState.current = snapshot
+		end
+	elseif kind == "damage" then
 		CombatEffects.number(args[1], tostring(args[2]), DAMAGE_COLOR)
 		CombatEffects.sparks(args[1])
 		CombatEffects.shake(0.12)
@@ -505,8 +529,8 @@ local function onEffect(kind: string, ...: any)
 		end
 	elseif kind == "perfect" then
 		local refund = args[1] :: number
-		for id, t in readyAt do
-			readyAt[id] = t - refund
+		for id, t in ActionState.current.ready do
+			ActionState.current.ready[id] = t - refund
 		end
 		if character and root then
 			CombatEffects.perfectDodge(character, root)
@@ -564,7 +588,19 @@ function CombatController.init(gui: ScreenGui)
 	end
 
 	local strike = gui:FindFirstChild("AttackButton", true) :: TextButton
-	strike.Activated:Connect(CombatController.swing)
+	strike.InputBegan:Connect(function(input)
+		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and myRoot() then
+			held[input] = true
+			ActionState.basicHeld = true
+			CombatController.swing()
+		end
+	end)
+	strike.Activated:Connect(function(input)
+		-- Gamepad activation has no matching touch/mouse hold.
+		if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
+			CombatController.swing()
+		end
+	end)
 	bindButtons(gui)
 	bindTapTargeting()
 
@@ -580,17 +616,42 @@ function CombatController.init(gui: ScreenGui)
 	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.Q, Enum.KeyCode.ButtonB)
 	effectRemote.OnClientEvent:Connect(onEffect)
 
-	RunService.Heartbeat:Connect(function()
+	player.CharacterRemoving:Connect(function()
+		clearInputs()
+		stopRuntime(true)
+		readyCharacter, synced = nil, false
+		ActionState.current = Rules.new()
+	end)
+	RunService.Heartbeat:Connect(function(dt)
+		local now = workspace:GetServerTimeNow()
 		local root = myRoot()
-		local aimed = root and currentTarget(root.Position)
-		-- the lock-on reticle replaces the soft-aim ring
-		CombatEffects.markTarget(if LockOn.target() then nil else aimed)
-		-- auto-attack is touch Auto mode; PC swings on M1
-		if not Config.AUTO_ATTACK or not root or not (Platform.isTouch() and LockOn.isAuto()) then
+		ActionState.blocked = root == nil
+		if not root then
+			clearInputs()
+			stopRuntime(true)
+			CombatEffects.markTarget(nil)
 			return
 		end
-		if aimed and distanceTo(aimed, root.Position) <= Config.AUTO_RANGE then
-			CombatController.swing()
+		local holding = player.Character and player.Character:FindFirstChildOfClass("Tool")
+		if holding then
+			clearInputs()
+			if runtime and runtime.action.kind == "basic" then stopRuntime(true) end
+		end
+		advanceRuntime(now)
+		if runtime and runtime.steer then runtime.steer(Config.DODGE_ACCEL * dt) end
+		local aimed = currentTarget(root.Position)
+		CombatEffects.markTarget(if LockOn.target() then nil else aimed)
+		if pending then
+			if pending.expires < now then
+				pending = nil
+			elseif tryStart(pending.kind, pending.id) then
+				pending = nil
+			end
+		end
+		local autoAttack = Config.AUTO_ATTACK and Platform.isTouch() and LockOn.isAuto()
+			and aimed ~= nil and distanceTo(aimed :: Model, root.Position) <= Config.AUTO_RANGE
+		if not pending and not holding and (ActionState.basicHeld or autoAttack) then
+			tryStart("basic", nil)
 		end
 	end)
 end

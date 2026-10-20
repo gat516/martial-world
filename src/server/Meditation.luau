@@ -85,6 +85,11 @@ end
 
 local function start(player: Player)
 	local root = rootOf(player)
+	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	if humanoid and humanoid:GetAttribute("ActionBusy") then
+		meditateRemote:FireClient(player, false)
+		return
+	end
 	if not root or sessions[player] then
 		meditateRemote:FireClient(player, sessions[player] ~= nil)
 		return

@@ -167,9 +167,7 @@ end
 
 (remotes.BuildAction :: RemoteFunction).OnServerInvoke = guarded(Build.handle);
 (remotes.CultivationAction :: RemoteFunction).OnServerInvoke = guarded(Circulation.handle);
-(remotes.Attack :: RemoteEvent).OnServerEvent:Connect(Combat.swing);
-(remotes.Dodge :: RemoteEvent).OnServerEvent:Connect(Combat.dodge);
-(remotes.Cast :: RemoteEvent).OnServerEvent:Connect(Combat.cast);
+(remotes.Attack :: RemoteEvent).OnServerEvent:Connect(Combat.action);
 (remotes.Meditate :: RemoteEvent).OnServerEvent:Connect(Meditation.handle);
 (remotes.Sprint :: RemoteEvent).OnServerEvent:Connect(Cultivation.setRunning);
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);

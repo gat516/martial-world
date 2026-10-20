@@ -1,41 +1,31 @@
 --!strict
--- The player's combat kit on the server: basic attack, techniques and dodge, plus
--- the one path all damage takes (to enemies and to players).
---
--- Basic attacks are predicted by the client and checked here. The client swings,
--- casts its hitbox between the animation's "Hit" and "Hit Stop" markers, shows the
--- hit at once, and reports the swing's server-clock timestamp (GetServerTimeNow)
--- plus the enemies it hit. The server:
---   - rejects timestamps too old, from the future, or closer together than the
---     swing cooldown (so spam can't outpace the animation);
---   - works out the chain step itself from the timestamps, so damage can't be
---     inflated by always claiming the finisher;
---   - re-casts the hitbox (GetPartBoundsInBox) at the attacker's current position,
---     grown by HITBOX_SLACK, and only damages claimed enemies that overlap it.
--- Techniques: the client plays the cast at the animation's "Hit" marker and sends
--- its timestamp and aim; the server checks the technique is slotted and off
--- cooldown, then finds what it hits itself from the caster's position.
--- Dodge: the client dashes at once and sends its timestamp; the server grants
--- invulnerability from that moment, and a hit that lands just after the dodge
--- started is a perfect dodge, which takes time off every technique cooldown.
--- Enemies are models tagged "Enemy" with a Humanoid.
+-- Shared action timelines govern attacks, casts, dodges and movement on both
+-- sides. Attack is the ordered action transport (begin/hit/cancel/sync); Effect
+-- acknowledges predictions. Damage and cooldown authority stay on the server.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Combat
+local Rules = require(ReplicatedStorage.Shared.ActionRules)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
+local Movement = require(script.Parent.Movement)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 
 type State = {
-	lastSwing: number,
-	chainIndex: number,
+	character: Model?,
+	actions: Rules.State,
+	sequence: number,
+	released: boolean,
+	suppressed: boolean,
+	aim: Vector3,
+	perfectUsed: boolean,
 	lastDodge: number,
-	ready: { [string]: number }, -- technique id -> server time it's off cooldown
 	ironSkinUntil: number,
 	ironSkinReduction: number,
 	lastHurt: number,
@@ -52,16 +42,28 @@ local function state(player: Player): State
 	local s = states[player]
 	if not s then
 		s = {
-			lastSwing = -math.huge,
-			chainIndex = 0,
+			character = player.Character,
+			actions = Rules.new(),
+			sequence = 0,
+			released = false,
+			suppressed = false,
+			aim = Vector3.zAxis,
+			perfectUsed = false,
 			lastDodge = -math.huge,
-			ready = {},
 			ironSkinUntil = 0,
 			ironSkinReduction = 0,
 			lastHurt = -math.huge,
 			lastHurtBy = "Unknown",
 		}
 		states[player] = s
+	end
+	if s.character ~= player.Character then
+		local ready, dodgeReady = s.actions.ready, s.actions.dodgeReady
+		s.character = player.Character
+		s.actions = Rules.new()
+		s.actions.ready, s.actions.dodgeReady = ready, dodgeReady
+		s.lastDodge, s.ironSkinUntil = -math.huge, 0
+		s.released, s.suppressed = false, false
 	end
 	return s
 end
@@ -122,9 +124,10 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source
 	local now = workspace:GetServerTimeNow()
 	local sinceDodge = now - s.lastDodge
 	if sinceDodge >= 0 and sinceDodge <= Config.IFRAME_SECONDS + Config.IFRAME_SLACK then
-		if sinceDodge <= Config.PERFECT_WINDOW + Config.IFRAME_SLACK then
-			for id, readyAt in s.ready do
-				s.ready[id] = readyAt - Config.PERFECT_REFUND
+		if not s.perfectUsed and sinceDodge <= Config.PERFECT_WINDOW + Config.IFRAME_SLACK then
+			s.perfectUsed = true
+			for id, readyAt in s.actions.ready do
+				s.actions.ready[id] = readyAt - Config.PERFECT_REFUND
 			end
 			effectRemote:FireClient(player, "perfect", Config.PERFECT_REFUND)
 			return "perfect", 0
@@ -155,18 +158,7 @@ end
 
 --[[ Basic attack ]]
 
-function Combat.swing(player: Player, swingTime: any, claimed: any)
-	if not validTime(swingTime) or type(claimed) ~= "table" then
-		return
-	end
-	local s = state(player)
-	local since = swingTime - s.lastSwing
-	if since < Config.SWING_SECONDS * Config.COOLDOWN_SLACK then
-		return
-	end
-	s.chainIndex = if since > Config.CHAIN_RESET then 1 else s.chainIndex % #Config.FIST_DAMAGE + 1
-	s.lastSwing = swingTime
-
+local function damageSwing(player: Player, action: Rules.Action, claimed: { any })
 	local root = livingRoot(player)
 	if not root then
 		return
@@ -175,7 +167,10 @@ function Combat.swing(player: Player, swingTime: any, claimed: any)
 	-- claimed enemies, deduplicated and capped
 	local targets: { Model } = {}
 	local seen: { [Instance]: boolean } = {}
-	for _, model in claimed do
+	for index, model in ipairs(claimed) do
+		if index > Config.MAX_TARGETS * 4 then
+			break
+		end
 		if #targets >= Config.MAX_TARGETS then
 			break
 		end
@@ -192,23 +187,10 @@ function Combat.swing(player: Player, swingTime: any, claimed: any)
 	local params = OverlapParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = targets :: { any }
-	local damage = Config.FIST_DAMAGE[s.chainIndex] * Combat.power(player)
+	local damage = Config.FIST_STEPS[action.step].damage * Combat.power(player)
 	for _, model in Hitbox.enemiesIn(cframe, size, params, root.Position) do
 		Combat.damageEnemy(player, model, damage)
 	end
-end
-
---[[ Dodge ]]
-
-function Combat.dodge(player: Player, dodgeTime: any)
-	if not validTime(dodgeTime) then
-		return
-	end
-	local s = state(player)
-	if dodgeTime - s.lastDodge < Config.DODGE_COOLDOWN * Config.COOLDOWN_SLACK then
-		return
-	end
-	s.lastDodge = dodgeTime
 end
 
 --[[ Techniques ]]
@@ -288,24 +270,14 @@ local function grantXp(player: Player, id: string)
 	end
 end
 
-function Combat.cast(player: Player, id: any, castTime: any, aim: any)
-	local def = if type(id) == "string" then Techniques.Defs[id] else nil
+local function releaseTechnique(player: Player, id: string, aim: Vector3)
+	local def = Techniques.Defs[id]
 	local data = PlayerData.get(player)
-	if not (def and data and validTime(castTime)) then
-		return
-	end
-	if not table.find(data.hotbar, id) or not data.techniques.owned[id] then
+	local root = livingRoot(player)
+	if not (def and data and root and data.techniques.owned[id] and table.find(data.hotbar, id)) then
 		return
 	end
 	local s = state(player)
-	if castTime < (s.ready[id] or -math.huge) - def.cooldown * (1 - Config.COOLDOWN_SLACK) then
-		return
-	end
-	local root = livingRoot(player)
-	if not root then
-		return
-	end
-	s.ready[id] = castTime + def.cooldown
 
 	local dir = root.CFrame.LookVector
 	if typeof(aim) == "Vector3" and aim == aim then
@@ -363,6 +335,125 @@ function Combat.cast(player: Player, id: any, castTime: any, aim: any)
 		end
 	end
 end
+
+-- Time advances movement even when the client stops sending inputs. Effects
+-- resolve only on ordered hit reports, so a delayed pre-Hit dodge can cancel
+-- its cast before the release report instead of racing a server-side timer.
+local function advance(player: Player, s: State, now: number)
+	local _, humanoid = livingRoot(player)
+	if not humanoid then
+		Rules.cancel(s.actions, now)
+		s.lastDodge, s.ironSkinUntil = -math.huge, 0
+		return
+	end
+	local action = s.actions.action
+	local multiplier, busy = Rules.movement(action, now)
+	Movement.action(humanoid, multiplier, busy)
+end
+
+local function reply(player: Player, s: State, sequence: number, accepted: boolean)
+	effectRemote:FireClient(player, "action", player.Character, sequence, accepted, s.actions)
+end
+
+-- All action messages share one RemoteEvent so a hit report cannot be overtaken
+-- by its dodge cancel. Character + sequence reject old respawn callbacks/replays.
+function Combat.action(player: Player, message: any)
+	if type(message) ~= "table" or message.character ~= player.Character then
+		return
+	end
+	local s = state(player)
+	local now = workspace:GetServerTimeNow()
+	if message.op == "sync" then
+		advance(player, s, now)
+		reply(player, s, 0, false)
+		return
+	end
+	local sequence = message.sequence
+	if type(sequence) ~= "number" or sequence ~= sequence or sequence % 1 ~= 0 or sequence < 1 or sequence > 2147483647 then
+		return
+	end
+	local action = s.actions.action
+	if message.op == "cancel" then
+		if action and action.sequence == sequence then
+			-- Menus/focus loss may suppress remaining damage, but cannot shorten
+			-- commitment or bypass cooldowns by issuing arbitrary cancel messages.
+			s.suppressed = true
+		end
+		return
+	end
+	local t = message.time
+	if not validTime(t) then
+		if message.op == "begin" then
+			reply(player, s, sequence, false)
+		end
+		return
+	end
+	if message.op == "hit" then
+		if not action or action.sequence ~= sequence or action.kind == "dodge" or s.released or s.suppressed then
+			return
+		end
+		if t < Rules.hitAt(action) - Config.HIT_TIME_SLACK or t > Rules.stopAt(action) + Config.HIT_TIME_SLACK then
+			return
+		end
+		if action.kind == "basic" and type(message.targets) ~= "table" then
+			return
+		end
+		s.released = true
+		if action.kind == "basic" then
+			damageSwing(player, action, message.targets)
+		elseif action.id then
+			releaseTechnique(player, action.id, s.aim)
+		end
+		return
+	end
+	if message.op ~= "begin" or sequence <= s.sequence then
+		return
+	end
+	s.sequence = sequence
+	-- Evaluate the previous action at the input time: a delayed pre-Hit dodge
+	-- must not accidentally release the cast it was cancelling.
+	local root, humanoid = livingRoot(player)
+	local data = PlayerData.get(player)
+	if not root or not humanoid or humanoid.Sit or not data or (Cultivation.meditation and Cultivation.meditation(player)) then
+		reply(player, s, sequence, false)
+		return
+	end
+	if action and (t < action.started or (s.released and t < Rules.hitAt(action))) then
+		reply(player, s, sequence, false)
+		return
+	end
+	local kind, id = message.kind, message.id
+	if kind == "cast" and (type(id) ~= "string" or not data.techniques.owned[id] or not table.find(data.hotbar, id)) then
+		reply(player, s, sequence, false)
+		return
+	end
+	local nextAction = Rules.start(s.actions, kind, id, t, sequence)
+	if not nextAction then
+		reply(player, s, sequence, false)
+		return
+	end
+	s.released, s.suppressed = false, false
+	s.aim = root.CFrame.LookVector
+	local aim = message.aim
+	if typeof(aim) == "Vector3" then
+		local flat = aim * Vector3.new(1, 0, 1)
+		if flat.Magnitude > 0.01 and flat.Magnitude < math.huge then
+			s.aim = flat.Unit
+		end
+	end
+	if kind == "dodge" then
+		s.lastDodge, s.perfectUsed = t, false
+	end
+	advance(player, s, now)
+	reply(player, s, sequence, true)
+end
+
+RunService.Heartbeat:Connect(function()
+	local now = workspace:GetServerTimeNow()
+	for player in states do
+		advance(player, state(player), now)
+	end
+end)
 
 function Combat.forget(player: Player)
 	states[player] = nil

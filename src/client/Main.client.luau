@@ -33,6 +33,7 @@ local Music = require(script.Parent.Music)
 local EnemySounds = require(script.Parent.EnemySounds)
 local Sprint = require(script.Parent.Sprint)
 local HeadLook = require(script.Parent.HeadLook)
+local Movement = require(script.Parent.Movement)
 
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
@@ -57,6 +58,7 @@ Layout.init(gui)
 LockOn.init(gui)
 ShiftLock.init(gui)
 Sprint.init()
+Movement.init()
 HeadLook.init()
 Settings.init(gui)
 Inventory.init(gui)

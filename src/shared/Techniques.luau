@@ -8,6 +8,16 @@
 --   buff   reduction, seconds      damage taken is cut by `reduction`
 -- damage is per hit (per tick for zones), before realm power and technique level.
 
+-- Windup changes playback speed so release still coincides with the source Hit
+-- pose. Movement is a fraction of buffed walking speed; zero roots the caster.
+export type Cast = {
+	windup: number,
+	recovery: number,
+	moveMultiplier: number,
+	recoveryMoveMultiplier: number,
+	dodgeBeforeHit: boolean,
+}
+
 export type Def = {
 	id: string,
 	name: string,
@@ -17,6 +27,7 @@ export type Def = {
 	color: Color3,
 	blurb: string,
 	animation: number, -- which Fists chain animation the cast plays
+	cast: Cast,
 	icon: string, -- the image on its HUD button; names only show in the Arts window
 	length: number?,
 	width: number?,
@@ -45,6 +56,7 @@ Techniques.Defs = {
 		color = Color3.fromRGB(150, 230, 255),
 		blurb = "A blade of qi that cuts through every enemy in a line.",
 		animation = 3,
+		cast = { windup = 0.32, recovery = 0.16, moveMultiplier = 0.35, recoveryMoveMultiplier = 0.7, dodgeBeforeHit = true },
 	},
 	PalmStrike = {
 		id = "PalmStrike",
@@ -57,6 +69,7 @@ Techniques.Defs = {
 		color = Color3.fromRGB(255, 210, 120),
 		blurb = "A palm of force that blasts everything around you.",
 		animation = 4,
+		cast = { windup = 0.38, recovery = 0.18, moveMultiplier = 0, recoveryMoveMultiplier = 0.6, dodgeBeforeHit = true },
 	},
 	LightningTalisman = {
 		id = "LightningTalisman",
@@ -71,6 +84,7 @@ Techniques.Defs = {
 		color = Color3.fromRGB(200, 180, 255),
 		blurb = "Lightning that leaps between nearby enemies.",
 		animation = 2,
+		cast = { windup = 0.25, recovery = 0.12, moveMultiplier = 0.5, recoveryMoveMultiplier = 0.8, dodgeBeforeHit = true },
 	},
 	IronSkin = {
 		id = "IronSkin",
@@ -84,6 +98,7 @@ Techniques.Defs = {
 		color = Color3.fromRGB(230, 190, 90),
 		blurb = "Harden your body: half damage for a few seconds.",
 		animation = 1,
+		cast = { windup = 0.20, recovery = 0.10, moveMultiplier = 0.6, recoveryMoveMultiplier = 0.8, dodgeBeforeHit = true },
 	},
 	FireSeal = {
 		id = "FireSeal",
@@ -99,6 +114,7 @@ Techniques.Defs = {
 		color = Color3.fromRGB(255, 120, 60),
 		blurb = "Seal the ground ahead in flame that burns whoever stands in it.",
 		animation = 4,
+		cast = { windup = 0.50, recovery = 0.20, moveMultiplier = 0, recoveryMoveMultiplier = 0.6, dodgeBeforeHit = true },
 	},
 } :: { [string]: Def }
 

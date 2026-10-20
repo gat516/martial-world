@@ -13,7 +13,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config).Cultivation
 local CirculationConfig = require(ReplicatedStorage.Shared.Config).Circulation
 local LoginConfig = require(ReplicatedStorage.Shared.Config).Login
-local MovementConfig = require(ReplicatedStorage.Shared.Config).Movement
+local Movement = require(script.Parent.Movement)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local PlayerData = require(script.Parent.PlayerData)
@@ -146,7 +146,8 @@ function Cultivation.applyStats(player: Player, data: PlayerData.Data)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 	if humanoid then
 		local walkSpeed = Config.BASE_WALKSPEED + buffTotal(data, "WalkSpeed")
-		humanoid.WalkSpeed = walkSpeed + (if humanoid:GetAttribute("Running") then MovementConfig.RUN_BONUS else 0)
+		humanoid:SetAttribute("BaseWalkSpeed", walkSpeed)
+		Movement.apply(humanoid)
 		local maxHealth = Cultivation.stage(data).health
 		if humanoid.MaxHealth ~= maxHealth then
 			local fraction = humanoid.Health / humanoid.MaxHealth
@@ -166,7 +167,7 @@ function Cultivation.setRunning(player: Player, on: any)
 	if not data or not humanoid then
 		return
 	end
-	local running = on and humanoid.Health > 0 and not humanoid.Sit
+	local running = on and humanoid.Health > 0 and not humanoid.Sit and not humanoid:GetAttribute("ActionBusy")
 	if humanoid:GetAttribute("Running") == running then
 		return
 	end

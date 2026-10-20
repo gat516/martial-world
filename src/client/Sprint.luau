@@ -7,6 +7,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Movement
+local ActionState = require(script.Parent.ActionState)
 local BuildMode = require(script.Parent.BuildMode)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local LockOn = require(script.Parent.LockOn)
@@ -14,7 +15,6 @@ local Meditation = require(script.Parent.Meditation)
 local Menus = require(script.Parent.Menus)
 
 local player = Players.LocalPlayer
-local gameSettings = UserSettings():GetService("UserGameSettings")
 local remote = ReplicatedStorage.Remotes:WaitForChild("Sprint") :: RemoteEvent
 local animation = ReplicatedStorage:WaitForChild("Animations"):WaitForChild("Run") :: Animation
 local BLEND = 0.15
@@ -25,24 +25,8 @@ local humanoid: Humanoid? = nil
 local root: BasePart? = nil
 local track: AnimationTrack? = nil
 local running = false
-local movementFacing = false
-local turningPausedUntil = 0
-
-local function setMovementFacing(on: boolean)
-	if movementFacing == on then
-		return
-	end
-	movementFacing = on
-	LockOn.setMovementFacing(on)
-	if not on and humanoid then
-		humanoid.AutoRotate = LockOn.target() == nil
-	end
-end
-
--- Give an attack or directional dash control of facing until its movement ends.
-function Sprint.pauseTurning(seconds: number)
-	turningPausedUntil = math.max(turningPausedUntil, os.clock() + seconds)
-	setMovementFacing(false)
+function Sprint.isRunning(): boolean
+	return running
 end
 
 local function setRunning(on: boolean)
@@ -50,9 +34,7 @@ local function setRunning(on: boolean)
 		return
 	end
 	running = on
-	if not on then
-		setMovementFacing(false)
-	end
+	LockOn.setMovementFacing(on)
 	remote:FireServer(on)
 	if not on and track then
 		track:Stop(BLEND)
@@ -66,7 +48,6 @@ local function onCharacter(character: Model)
 		track = nil
 	end
 	humanoid, root = nil, nil
-	turningPausedUntil = 0
 	local nextHumanoid = character:WaitForChild("Humanoid") :: Humanoid
 	local nextRoot = character:WaitForChild("HumanoidRootPart") :: BasePart
 	local animator = nextHumanoid:WaitForChild("Animator") :: Animator
@@ -93,6 +74,7 @@ local function step()
 		or state == Enum.HumanoidStateType.Freefall
 	local direction = h.MoveDirection * Vector3.new(1, 0, 1)
 	local on = next(held) ~= nil
+		and ActionState.canSprint()
 		and h.Health > 0
 		and r.Parent ~= nil
 		and not h.Sit
@@ -104,7 +86,6 @@ local function step()
 		and not Meditation.isActive()
 		and not CirculationMinigame.isRunning()
 	setRunning(on)
-	setMovementFacing(on and os.clock() >= turningPausedUntil)
 	if not on then
 		return
 	end
@@ -143,21 +124,6 @@ function Sprint.init()
 	end
 	-- Decide before the camera/lock-on so they see who owns facing this frame.
 	RunService:BindToRenderStep("SprintState", Enum.RenderPriority.Input.Value + 1, step)
-	RunService:BindToRenderStep("SprintFacing", Enum.RenderPriority.Camera.Value + 4, function()
-		local camera = workspace.CurrentCamera
-		local firstPerson = camera ~= nil and (camera.CFrame.Position - camera.Focus.Position).Magnitude <= 1.5
-		local freeCamera = UserInputService.MouseBehavior ~= Enum.MouseBehavior.LockCenter
-			and not firstPerson
-			and LockOn.target() == nil
-		-- Alt can change during a run. Use the current camera mode instead of restoring
-		-- a saved CameraRelative value that would leave normal movement camera-facing.
-		if movementFacing or freeCamera then
-			gameSettings.RotationType = Enum.RotationType.MovementRelative
-		end
-		if movementFacing and humanoid then
-			humanoid.AutoRotate = true
-		end
-	end)
 end
 
 return Sprint

@@ -171,9 +171,23 @@ return {
 		-- Fist basic attack: a five-hit chain (ReplicatedStorage.Animations.Fists.1-5).
 		-- The client predicts hits, casting the hitbox from each animation's "Hit"
 		-- marker to its "Hit Stop" marker; the server checks them (see Combat.luau).
-		FIST_DAMAGE = { 8, 8, 10, 12, 18 }, -- per chain hit, before the realm's power
-		SWING_SECONDS = 0.42, -- time between swings
-		CHAIN_RESET = 1.0, -- idle seconds before the chain starts over at hit 1
+		-- Hit/Hit Stop times in the source animations, before playback speed.
+		-- Animations 4 and 5 have no markers: their explicit windows below are
+		-- the fallback. Never resolve a hit just because an animation stopped.
+		FIST_STEPS = {
+			{ damage = 8, hit = 0.35, hitStop = 0.50, speed = 1.25, recovery = 0.07 },
+			{ damage = 8, hit = 0.35, hitStop = 13 / 30, speed = 1.25, recovery = 0.07 },
+			{ damage = 10, hit = 0.35, hitStop = 14 / 30, speed = 1.25, recovery = 0.07 },
+			{ damage = 12, hit = 0.35, hitStop = 0.50, speed = 1.25, recovery = 0.07 },
+			{ damage = 18, hit = 0.35, hitStop = 16 / 30, speed = 1.15, recovery = 0.10 },
+		},
+		CHAIN_RESET = 0.85, -- idle time after recovery before returning to hit 1
+		CHAIN_COOLDOWN = 0.45, -- final Hit Stop -> earliest next string; survives a dodge
+		ATTACK_MOVE_MULTIPLIER = 0.6,
+		ATTACK_RECOVERY_MULTIPLIER = 0.8,
+		INPUT_BUFFER = 0.20, -- one pending press; dodge takes priority over offense
+		CANCEL_RETRY = 0.25, -- technique retry delay if dodged before release
+		HIT_TIME_SLACK = 0.04,
 		HITBOX = Vector3.new(5, 5, 6), -- width, height, reach in front of the root
 		MAX_TARGETS = 1, -- fists hit one enemy per swing (the nearest in the box)
 		AIM_RANGE = 14, -- soft auto-aim and auto-attack pick targets this close
@@ -182,7 +196,6 @@ return {
 		-- server checks
 		MAX_LAG = 1.0, -- seconds a swing's timestamp may trail the server clock
 		CLOCK_SLACK = 0.1, -- and lead it
-		COOLDOWN_SLACK = 0.9, -- swings may be this fraction of SWING_SECONDS apart
 		HITBOX_SLACK = 4, -- studs added to each side of the hitbox for movement and lag
 		AREA_SLACK = 3, -- studs added to technique areas on the server
 
@@ -192,6 +205,7 @@ return {
 		DODGE_COOLDOWN = 1.2,
 		DODGE_SPEED = 75, -- studs per second during the dash
 		DODGE_SECONDS = 0.32,
+		DODGE_RECOVERY = 0.06,
 		DODGE_ACCEL = 600, -- studs/s² the dash may correct per second after the first kick
 		DODGE_MAX_RISE = 6, -- upward speed cap while dashing, so ramps don't fling you
 		DODGE_EXIT_SPEED = 24, -- horizontal speed left when the dash ends

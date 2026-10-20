@@ -36,6 +36,7 @@ local UserInputService = game:GetService("UserInputService")
 local Config = require(ReplicatedStorage.Shared.Config).Combat
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
+local ActionState = require(script.Parent.ActionState)
 local Controls = require(script.Parent.Controls)
 local Layout = require(script.Parent.Layout)
 local Meditation = require(script.Parent.Meditation)
@@ -225,10 +226,6 @@ local function setTarget(model: Model?)
 			UserInputService.MouseBehavior = mouseBefore
 			mouseBefore = nil
 		end
-		local humanoid = myHumanoid()
-		if humanoid then
-			humanoid.AutoRotate = true
-		end
 	end
 end
 
@@ -364,7 +361,7 @@ end
 -- Auto: walk in to striking range when the player isn't steering, unless the
 -- target is winding up (that's the cue to dash) or a dash just ended.
 local function approach(root: BasePart, humanoid: Humanoid, current: Model)
-	if not auto or os.clock() - lastDodge < Config.AUTO_APPROACH_PAUSE then
+	if not auto or not ActionState.canApproach() or os.clock() - lastDodge < Config.AUTO_APPROACH_PAUSE then
 		return
 	end
 	local state = current:GetAttribute("AIState")
@@ -405,14 +402,9 @@ local function updateCamera(dt: number, root: BasePart, current: Model)
 	end
 	camera.CFrame = final
 
-	-- face the target: you strafe around it
+	-- Movement owns character facing. Auto approach also respects action locks.
 	local humanoid = myHumanoid()
 	if humanoid and not movementFacing then
-		humanoid.AutoRotate = false
-		local look = Vector3.new(chest.X, root.Position.Y, chest.Z)
-		if (look - root.Position).Magnitude > 0.5 then
-			root.CFrame = CFrame.lookAt(root.Position, look)
-		end
 		approach(root, humanoid, current)
 	end
 

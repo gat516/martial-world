@@ -3,8 +3,8 @@
 -- vitals mount (health, qi, cultivation, realm crest) over one row of hotbar
 -- slots, scaled down to fit narrow screens. The top-right tiles run compact.
 -- PC: the stack is centred; there's no Strike or Dash button (M1 swings, Q dashes).
--- Touch: Strike and Dash sit at the far right around Roblox's jump button, and
--- the stack is centred in the space left of them, scaled for short screens too.
+-- Touch: Strike and Dash sit side by side above Roblox's jump button at the far
+-- right; the stack stays centred unless it would reach the jump button.
 -- Everything stays inside the device's safe area except Strike and Dash, which
 -- reach past the right inset to the screen edge.
 -- The top-left corner is always left to Roblox's chat.
@@ -12,8 +12,9 @@
 local Platform = require(script.Parent.Platform)
 
 local STACK_WIDTH = 560 -- the vitals mount and hotbar row at full size, with margin
-local STACK_HEIGHT_ROOM = 560 -- touch screens shorter than this scale the stack down
-local TOUCH_CLUSTER = 180 -- room kept at the right for Strike, Dash and jump
+local TOUCH_HOTBAR_MIN = 0.75 -- touch: the hotbar never shrinks past this (thumb targets)
+local TOUCH_VITALS_HEIGHT = 0.2 -- touch: the vitals mount's height as a share of the screen's
+local JUMP_ROOM = 104 -- touch: Roblox's jump button owns this much of the bottom right
 
 local Layout = {}
 
@@ -42,27 +43,50 @@ function Layout.apply()
 	local dodge = find("DodgeButton")
 	local strike = find("AttackButton")
 
-	local room = if touch then width - TOUCH_CLUSTER else width
-	local scale = math.clamp((room - 24) / STACK_WIDTH, 0.5, 1)
+	local scale = math.clamp((width - 24) / STACK_WIDTH, 0.5, 1)
+	local barScale, vitalsScale = scale, scale
 	if touch then
-		scale = math.clamp(math.min(scale, height / STACK_HEIGHT_ROOM), 0.5, 1)
+		-- short screens: the hotbar keeps thumb-sized slots, the vitals give way
+		barScale = math.max(scale, TOUCH_HOTBAR_MIN)
+		vitalsScale = math.clamp(math.min(scale, height * TOUCH_VITALS_HEIGHT / 52), 0.55, 1)
 	end
-	local centre = if touch then UDim.new(0, room / 2) else UDim.new(0.5, 0)
-	hotbar.Position = UDim2.new(centre, UDim.new(1, -10 * scale))
-	vitals.Position = UDim2.new(centre, UDim.new(1, -83 * scale))
-	setScale(hotbar, scale)
-	setScale(vitals, scale)
+	local centre = UDim.new(0.5, 0)
+	if touch then
+		local half = STACK_WIDTH * barScale / 2
+		centre = UDim.new(0, math.min(width / 2, width - JUMP_ROOM - half))
+	end
+	hotbar.Position = UDim2.new(centre, UDim.new(1, -10 * barScale))
+	vitals.Position = UDim2.new(centre, UDim.new(1, -10 * barScale - 60 * barScale - 13 * vitalsScale))
+	setScale(hotbar, barScale)
+	setScale(vitals, vitalsScale)
+	-- on touch the slots are too small for names: a bigger icon or glyph instead
+	for _, slot in (hotbar:FindFirstChild("Slots") :: Instance):GetChildren() do
+		local name = slot:FindFirstChild("NameLabel") :: GuiObject?
+		if name and slot.Name ~= "SlotTemplate" then
+			name.Visible = not touch
+			local icon = slot:FindFirstChild("Icon") :: GuiObject
+			local glyph = slot:FindFirstChild("Glyph") :: GuiObject
+			icon.Size = if touch then UDim2.fromScale(0.62, 0.62) else UDim2.fromScale(0.5, 0.5)
+			icon.Position = if touch then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 0.36)
+			glyph.Size = if touch then UDim2.fromScale(0.58, 0.58) else UDim2.fromScale(0.46, 0.46)
+			glyph.Position = if touch then UDim2.fromScale(0.5, 0.48) else UDim2.fromScale(0.5, 0.34)
+		end
+	end
 
 	dodge.Visible = touch
 	strike.Visible = touch
 	if touch then
-		-- around the jump button (bottom right): Strike above it, Dash beside it
+		-- above the jump button (bottom right): Strike at the edge, Dash beside it
 		strike.AnchorPoint = Vector2.new(1, 1)
-		strike.Position = UDim2.new(1, rightInset - 10, 1, -100)
-		strike.Size = UDim2.fromOffset(76, 76)
-		dodge.AnchorPoint = Vector2.new(1, 1)
-		dodge.Position = UDim2.new(1, rightInset - 100, 1, -20)
-		dodge.Size = UDim2.fromOffset(60, 60)
+		strike.Position = UDim2.new(1, rightInset - 12, 1, -92)
+		strike.Size = UDim2.fromOffset(64, 64)
+		dodge.AnchorPoint = Vector2.new(1, 0.5)
+		dodge.Position = UDim2.new(1, rightInset - 86, 1, -124)
+		dodge.Size = UDim2.fromOffset(50, 50)
+	end
+	local key = dodge:FindFirstChild("KeyLabel") :: GuiObject?
+	if key then
+		key.Visible = not touch
 	end
 	setScale(find("Buttons"), if Platform.isSmall() then 0.75 else 0.85)
 end

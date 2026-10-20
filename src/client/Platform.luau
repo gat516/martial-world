@@ -6,17 +6,17 @@ local UserInputService = game:GetService("UserInputService")
 
 local Platform = {}
 
--- Studio's device emulator reports a mouse too, so this asks what the player
--- prefers (PreferredInput) where the engine has it, and falls back to "touch
--- screen with no keyboard".
+-- A touch screen with no keyboard, or a player whose preferred input is touch
+-- (PreferredInput, where the engine has it). Studio's device emulator reports a
+-- mouse too, and only prefers touch once tapped, so both are checked.
 function Platform.isTouch(): boolean
+	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+		return true
+	end
 	local ok, preferred = pcall(function()
 		return (UserInputService :: any).PreferredInput
 	end)
-	if ok and preferred ~= nil then
-		return preferred == (Enum :: any).PreferredInput.Touch
-	end
-	return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	return ok and preferred ~= nil and preferred == (Enum :: any).PreferredInput.Touch
 end
 
 -- Calls fn whenever the answer to isTouch might have changed.

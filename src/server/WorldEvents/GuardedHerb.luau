@@ -49,7 +49,8 @@ function GuardedHerb.start(run: any): boolean
 	site.Name = def.id
 	local beacon = beaconTemplate:Clone()
 	beacon:ScaleTo(def.beaconScale)
-	beacon:PivotTo(CFrame.new(spot))
+	-- keep the template's authored pivot rotation, or its pillar lies on its side
+	beacon:PivotTo(CFrame.new(spot) * beaconTemplate:GetPivot().Rotation)
 	tint(beacon, herb.color)
 	beacon.Parent = site
 	local plant = template:Clone()

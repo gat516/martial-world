@@ -1,8 +1,10 @@
 --!strict
 -- Thread the Meridian. A bead of qi must travel a winding meridian without
 -- touching its walls, level after level, each one narrower and twistier. Drag
--- anywhere to steer it (it moves with your thumb, not under it), move the mouse,
--- or hold WASD / the arrows. Touch a wall and the qi scatters back to the last
+-- anywhere to steer it (it moves with your thumb, not under it), or hold
+-- WASD / the arrows. With a mouse the cursor locks onto the bead: put the cursor
+-- on it to take hold and the bead follows the cursor exactly (outrun it, or
+-- scatter, and you must put the cursor back on the bead). Touch a wall and the qi scatters back to the last
 -- acupoint you lit. Purple impurities hug the walls: brush through one to purge
 -- it, if you dare. Accuracy is levels cleared (plus how far along the current
 -- one) against the run's par.
@@ -12,6 +14,7 @@
 
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
 
 local Feel = require(script.Parent.Feel)
 
@@ -27,6 +30,8 @@ local STEP = 0.006 -- collision sub-step
 local SCATTER_SECONDS = 0.45 -- frozen after touching a wall
 local IMPURITY_RADIUS = 0.016
 local NEXT_PAUSE = 0.35
+local GRAB_RADIUS = 0.05 -- the cursor must be this close to the bead to take hold of it
+local LOSE_RADIUS = 0.09 -- ...and outrunning the bead by this much lets go
 
 local QI = Color3.fromRGB(200, 255, 230)
 local IMPURE = Color3.fromRGB(220, 160, 255)
@@ -43,7 +48,7 @@ type Level = {
 local Thread = {}
 
 Thread.TITLE = "Thread the Meridian"
-Thread.HINT = "Drag to guide your qi along the meridian without touching the walls. Brush purple impurities to purge them."
+Thread.HINT = "Put your cursor on the qi and guide it along the meridian without touching the walls. Brush purple impurities to purge them."
 
 local function toUDim(p: Vector2): UDim2
 	return UDim2.fromScale(p.X / ASPECT, p.Y)
@@ -195,6 +200,7 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	local joltUntil = 0
 	local nextLevelAt: number? = nil
 	local pending = Vector2.zero -- drag movement not yet applied, in field heights
+	local grabbed = false -- the mouse cursor is holding the bead
 
 	local function scatter()
 		Feel.pop(field, toUDim(pos), JOLT)
@@ -205,6 +211,7 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		joltUntil = frozenUntil
 		streak = 0
 		pending = Vector2.zero
+		grabbed = false
 	end
 
 	-- Moves the bead toward pos + delta in small steps, stopping at a wall.
@@ -254,7 +261,6 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	end
 
 	local touches: { [InputObject]: Vector3 } = {}
-	local lastMouse: Vector3? = nil
 	local connections: { RBXScriptConnection } = {}
 	table.insert(connections, UserInputService.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.Touch then
@@ -268,9 +274,6 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 			if from then
 				touches[input] = input.Position
 			end
-		elseif input.UserInputType == Enum.UserInputType.MouseMovement and UserInputService.MouseEnabled then
-			from = lastMouse
-			lastMouse = input.Position
 		end
 		if from and t >= frozenUntil then
 			local delta = input.Position - from
@@ -299,6 +302,12 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		return if v.Magnitude > 0 then v.Unit else v
 	end
 
+	-- the mouse cursor in field coordinates (field heights from its top-left)
+	local function cursor(): Vector2
+		local m = UserInputService:GetMouseLocation() - GuiService:GetGuiInset()
+		return (m - field.AbsolutePosition) / math.max(1, field.AbsoluteSize.Y)
+	end
+
 	newLevel()
 	local finished = false
 	table.insert(connections, RunService.RenderStepped:Connect(function(dt)
@@ -319,6 +328,19 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 			-- beyond that is dropped rather than saved up
 			local delta = pending + keyAxis() * KEY_SPEED * dt
 			pending = Vector2.zero
+			if next(touches) == nil and UserInputService.MouseEnabled then
+				local to = cursor() - pos
+				if not grabbed and to.Magnitude <= GRAB_RADIUS then
+					grabbed = true
+				end
+				if grabbed then
+					if to.Magnitude > LOSE_RADIUS then
+						grabbed = false
+					else
+						delta += to
+					end
+				end
+			end
 			local limit = MAX_SPEED * dt
 			if delta.Magnitude > limit then
 				delta = delta.Unit * limit

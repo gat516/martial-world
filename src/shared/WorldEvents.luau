@@ -44,6 +44,17 @@ WorldEvents.Defs = {
 		gatherSeconds = 3, -- hold to gather
 		seeds = 1, -- seeds the gatherer also gets
 	},
+	-- A storm stirs the beasts: everyone roaming the open wilds runs into packs
+	-- far more often, and bigger ones, until it passes.
+	BeastSurge = {
+		id = "BeastSurge",
+		name = "Beast Surge",
+		kind = "BeastSurge",
+		minutes = 6,
+		triggers = { Storm = 0.4 },
+		rate = 3, -- ambient encounters come this many times as often (Spawner.boost)
+		extra = 1, -- beasts added to each pack
+	},
 } :: { [string]: Def }
 
 WorldEvents.MAX_RUNNING = 2 -- at most this many events at once

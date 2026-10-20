@@ -1,10 +1,11 @@
 --!strict
--- Wilds enemies: spawning per zone, a simple state machine per enemy, telegraphed
--- attacks, kill rewards and respawns.
+-- Wilds enemies: a simple state machine per enemy, telegraphed attacks and kill
+-- rewards. Where and when they appear is Spawner.luau's job; this module only
+-- spawns one on request and tells EnemyService.onRemoved when it's gone.
 --
--- Zones are parts in Workspace.Wilds.Zones with Enemy / Count / Radius attributes.
 -- Enemies are cloned from ServerStorage.Enemies, tagged "Enemy", and walk with
--- their Humanoid (server-owned physics, so clients see smooth movement).
+-- their Humanoid (server-owned physics, so clients see smooth movement). Each
+-- has a home it wanders around (`roam` studs) and leashes back to.
 --
 -- States: idle (wander near home) -> chase -> windup (telegraph on the ground)
 -- -> dash (lunge/charge only) -> recover -> chase. Past its leash an enemy
@@ -19,6 +20,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Wilds
+local DEFAULT_ROAM = 15 -- studs an enemy wanders from home unless told otherwise
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Realms = require(ReplicatedStorage.Shared.Realms)
@@ -50,7 +52,8 @@ type Enemy = {
 	def: Enemies.Def,
 	humanoid: Humanoid,
 	root: BasePart,
-	zone: BasePart,
+	home: Vector3,
+	roam: number,
 	rootHeight: number,
 	state: string,
 	stateUntil: number,
@@ -64,7 +67,6 @@ type Enemy = {
 	patternIndex: number,
 	summonsDone: { [number]: boolean }, -- summonAt thresholds already used
 	summoned: { Model }, -- live summons (bosses)
-	respawns: boolean,
 	staggerImmuneUntil: number,
 }
 
@@ -74,6 +76,14 @@ local EnemyService = {}
 
 -- Called with (player, def, model) for each player credited with a kill.
 EnemyService.onKill = {} :: { (Player, Enemies.Def, Model) -> () }
+-- Called with (model, killed) when an enemy leaves: killed, or despawned.
+EnemyService.onRemoved = {} :: { (Model, boolean) -> () }
+
+export type SpawnOptions = {
+	home: Vector3?, -- where it wanders and leashes back to (default: where it spawns)
+	roam: number?, -- studs it wanders from home
+	target: Player?, -- comes straight for this player
+}
 
 local function groundParams(): RaycastParams
 	local params = RaycastParams.new()
@@ -151,8 +161,8 @@ end
 
 --[[ Spawning ]]
 
--- `respawns` false: a one-off (boss summons), not refilled when it dies.
-function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?, respawns: boolean?): Model?
+function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Model?
+	local opts: SpawnOptions = options or {}
 	local def = Enemies.Defs[id]
 	local template = templates:FindFirstChild(id) :: Model?
 	if not (def and template) then
@@ -182,11 +192,12 @@ function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?, respawns: 
 		def = def,
 		humanoid = humanoid,
 		root = root,
-		zone = zone or root,
+		home = opts.home or ground,
+		roam = opts.roam or DEFAULT_ROAM,
 		rootHeight = rootHeight,
 		state = "idle",
 		stateUntil = 0,
-		target = nil,
+		target = opts.target,
 		nextAttack = 0,
 		nextWander = os.clock() + math.random() * 3,
 		shape = nil,
@@ -196,7 +207,6 @@ function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?, respawns: 
 		patternIndex = 0,
 		summonsDone = {},
 		summoned = {},
-		respawns = respawns ~= false,
 		staggerImmuneUntil = 0,
 	}
 	enemies[model] = enemy
@@ -206,17 +216,44 @@ function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?, respawns: 
 	return model
 end
 
-local function randomPointIn(zone: BasePart, share: number): Vector3
-	local radius = ((zone:GetAttribute("Radius") :: number?) or 20) * share
+local function randomPointNear(center: Vector3, radius: number): Vector3
 	local a, r = math.random() * math.pi * 2, math.sqrt(math.random()) * radius
-	return zone.Position + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r)
+	return center + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r)
 end
 
-local function spawnInZone(zone: BasePart)
-	local id = zone:GetAttribute("Enemy")
-	if type(id) == "string" then
-		EnemyService.spawn(id, randomPointIn(zone, 0.8), zone)
+local function fadeAway(enemy: Enemy)
+	enemy.root.Anchored = true
+	for _, d in enemy.model:GetDescendants() do
+		if d:IsA("BasePart") and d ~= enemy.root then
+			TweenService:Create(d, TweenInfo.new(1), { Transparency = 1 }):Play()
+		end
 	end
+	task.delay(1.2, function()
+		enemy.model:Destroy()
+	end)
+end
+
+-- Remove an enemy without rewards (an event ended, nobody's near it).
+function EnemyService.despawn(model: Model)
+	local enemy = enemies[model]
+	if not enemy then
+		return
+	end
+	enemies[model] = nil
+	fadeAway(enemy)
+	for _, fn in EnemyService.onRemoved do
+		task.spawn(fn, model, false)
+	end
+end
+
+function EnemyService.isAlive(model: Model): boolean
+	return enemies[model] ~= nil
+end
+
+-- The player it's after, if any.
+function EnemyService.targetOf(model: Model): Player?
+	local enemy = enemies[model]
+	return enemy and enemy.target
 end
 
 --[[ Death and rewards ]]
@@ -259,16 +296,7 @@ function EnemyService.died(enemy: Enemy)
 		end
 	end
 
-	-- fade out, then respawn in the same zone after a while
-	enemy.root.Anchored = true
-	for _, d in enemy.model:GetDescendants() do
-		if d:IsA("BasePart") and d ~= enemy.root then
-			TweenService:Create(d, TweenInfo.new(1), { Transparency = 1 }):Play()
-		end
-	end
-	task.delay(1.2, function()
-		enemy.model:Destroy()
-	end)
+	fadeAway(enemy)
 	if enemy.def.boss then
 		local names = {}
 		for player in enemy.damagers do
@@ -280,16 +308,15 @@ function EnemyService.died(enemy: Enemy)
 			remotes.Notify:FireAllClients(`{table.concat(names, ", ")} defeated the {enemy.def.name}!`)
 		end
 	end
-	if enemy.respawns and enemy.zone ~= enemy.root then
-		local spread = 1 + (math.random() * 2 - 1) * Config.RESPAWN_SPREAD
-		task.delay(enemy.def.respawn * spread, spawnInZone, enemy.zone)
+	for _, fn in EnemyService.onRemoved do
+		task.spawn(fn, enemy.model, true)
 	end
 end
 
 --[[ AI ]]
 
 local function home(enemy: Enemy): Vector3
-	return enemy.zone.Position
+	return enemy.home
 end
 
 local function face(enemy: Enemy, toward: Vector3)
@@ -454,7 +481,7 @@ local function summon(enemy: Enemy, attack: Enemies.Attack)
 	for _ = 1, math.min(attack.count or 1, room) do
 		local a = math.random() * math.pi * 2
 		local at = enemy.root.Position + Vector3.new(math.cos(a), 0, math.sin(a)) * 8
-		local model = EnemyService.spawn(attack.summons :: string, at, enemy.zone, false)
+		local model = EnemyService.spawn(attack.summons :: string, at, { home = enemy.home, roam = enemy.roam })
 		if model then
 			table.insert(enemy.summoned, model)
 			local spawned = enemies[model]
@@ -550,7 +577,7 @@ local function think(enemy: Enemy, now: number)
 		humanoid.WalkSpeed = def.walkSpeed
 		if now >= enemy.nextWander then
 			enemy.nextWander = now + 4 + math.random() * 4
-			humanoid:MoveTo(randomPointIn(enemy.zone, 0.6))
+			humanoid:MoveTo(randomPointNear(enemy.home, enemy.roam))
 		end
 		return
 	end
@@ -591,14 +618,6 @@ local function think(enemy: Enemy, now: number)
 end
 
 function EnemyService.start()
-	local zones = wilds:WaitForChild("Zones")
-	for _, zone in zones:GetChildren() do
-		if zone:IsA("BasePart") then
-			for _ = 1, zone:GetAttribute("Count") or 0 do
-				spawnInZone(zone)
-			end
-		end
-	end
 	task.spawn(function()
 		while true do
 			task.wait(Config.AI_TICK)

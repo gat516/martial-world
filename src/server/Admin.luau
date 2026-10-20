@@ -101,7 +101,7 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		for i = 1, count do
 			local a = (i / count) * math.pi * 2
 			local at = (root.CFrame * CFrame.new(math.cos(a) * 4, 0, -14 + math.sin(a) * 4)).Position
-			EnemyService.spawn(id, at, nil, false)
+			EnemyService.spawn(id, at)
 		end
 		return true, `Spawned {count} {Enemies.Defs[id].name}`
 	end,

@@ -71,7 +71,7 @@ function GuardedHerb.start(run: any): boolean
 	end
 	site.Parent = wilds
 
-	local guardian = EnemyService.spawn(def.guardian, spot + Vector3.new(8, 0, 0), nil, false)
+	local guardian = EnemyService.spawn(def.guardian, spot + Vector3.new(8, 0, 0), { home = spot, roam = 10 })
 	local function unguard()
 		if run.ended then
 			return
@@ -103,9 +103,8 @@ function GuardedHerb.start(run: any): boolean
 
 	run.onEnd(function(reason)
 		site:Destroy()
-		local h = guardian and guardian:FindFirstChildOfClass("Humanoid")
-		if reason ~= "resolved" and h and h.Health > 0 then
-			h.Health = 0 -- it dies through EnemyService, which tidies it away
+		if reason ~= "resolved" and guardian then
+			EnemyService.despawn(guardian) -- no kill rewards for a guardian left standing
 		end
 		if reason == "expired" then
 			run.announce(`The {herb.name} withered back into the earth, unclaimed.`)

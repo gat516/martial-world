@@ -1,5 +1,6 @@
 --!strict
--- Client entry: wires the HUD, circulation minigame, breakthroughs, combat, travel, herb pouch,
+-- Client entry: wires the HUD, circulation minigame, breakthroughs, combat (with
+-- telegraphs and enemy health bars), travel, herb pouch,
 -- seed picker, garden view and build mode.
 
 local Players = game:GetService("Players")
@@ -9,6 +10,8 @@ local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local BreakthroughView = require(script.Parent.BreakthroughView)
 local CombatController = require(script.Parent.CombatController)
 local TravelMenu = require(script.Parent.TravelMenu)
+local Telegraphs = require(script.Parent.Telegraphs)
+local EnemyBars = require(script.Parent.EnemyBars)
 local HerbPouch = require(script.Parent.HerbPouch)
 local SeedPicker = require(script.Parent.SeedPicker)
 local GardenView = require(script.Parent.GardenView)
@@ -21,6 +24,8 @@ CirculationMinigame.init(gui)
 BreakthroughView.init(gui)
 CombatController.init(gui)
 TravelMenu.init(gui)
+Telegraphs.init()
+EnemyBars.init()
 HerbPouch.init(gui)
 SeedPicker.init(gui)
 GardenView.init()

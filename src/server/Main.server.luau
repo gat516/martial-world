@@ -18,6 +18,7 @@ local Circulation = require(script.Parent.Circulation)
 local Combat = require(script.Parent.Combat)
 local Travel = require(script.Parent.Travel)
 local QiNodes = require(script.Parent.QiNodes)
+local EnemyService = require(script.Parent.EnemyService)
 
 local remotes = ReplicatedStorage.Remotes
 
@@ -95,6 +96,7 @@ Players.PlayerRemoving:Connect(function(player)
 	Combat.forget(player)
 	Travel.forget(player)
 	QiNodes.forget(player)
+	EnemyService.forget(player)
 	Cultivation.forget(player)
 end)
 
@@ -116,7 +118,8 @@ end
 (remotes.Cast :: RemoteEvent).OnServerEvent:Connect(Combat.cast);
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);
 
-QiNodes.start();
+QiNodes.start()
+EnemyService.start();
 
 (remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(function(player, action, plotId, herbId)
 	if action == "plant" then

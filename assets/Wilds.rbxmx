@@ -432,5 +432,9 @@
     </Item>
    </Item>
   </Item>
+  <Item class="Folder" referent="RBXE153"><Properties>
+   <string name="Name">Enemies</string>
+  </Properties>
+  </Item>
  </Item>
 </roblox>

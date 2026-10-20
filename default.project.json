@@ -34,6 +34,11 @@
       "Wilds": {
         "$path": "assets/Wilds.rbxmx"
       }
+    },
+    "ServerStorage": {
+      "Enemies": {
+        "$path": "assets/Enemies.rbxmx"
+      }
     }
   }
 }

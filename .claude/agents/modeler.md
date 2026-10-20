@@ -80,9 +80,16 @@ pattern.
   undoes it. Assert loudly if an expected mesh is missing or imported twice.
 - Small held items and effects (ServerStorage.ItemTemplates, enemy models) are
   built from Parts in Studio through the MCP, then exported to assets/ with
-  `tools/export_rbxmx.luau` and `tools/receive_rbxmx.py`. After writing an
-  .rbxmx, follow AGENTS.md's Rojo duplicates rule (reconnect Rojo after
-  structural changes, then `tools/find_duplicates.luau` must return `clean`).
+  `tools/export_rbxmx.luau` and `tools/receive_rbxmx.py`.
+- Never build inside a Rojo-managed instance (anything mapped in
+  `default.project.json`, such as ServerStorage.ItemTemplates,
+  ServerStorage.Enemies or Workspace.Wilds). Rojo adds its own copy next to
+  anything built there by hand. Use AGENTS.md's staging steps: build and
+  preview in an unmapped clone (e.g. `ServerStorage._StagingItemTemplates`),
+  export it, rename its root back in the XML, write the `.rbxmx`, then destroy
+  the clone and let Rojo apply the file. A placement script that builds a
+  template in a mapped folder must target the staging clone, not the real one.
+  `tools/find_duplicates.luau` must still return `clean` before you commit.
 - Placed world geometry outside Rojo's mapped folders lives only in the place
   file. Say in the commit message what was changed Studio-side.
 - Check the result with `screen_capture` from several camera angles

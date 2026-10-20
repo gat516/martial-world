@@ -14,7 +14,14 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 - Runtime cloning of MCP-authored templates and short-lived effects is fine.
 - Rojo doesn't write Studio edits back to disk. To keep MCP-authored instances in git, export them to `.rbxmx` under `assets/` and map them in `default.project.json`.
 - Edit scripts on disk under `src/`, not in Studio.
-- Rojo duplicates: when a mapped `.rbxmx` changes on disk, Rojo's live sync adds instances from the file next to copies built by hand in Studio, and a destroyed-and-rebuilt instance leaves Rojo patching a stale one. Scripts then find the wrong copy with `FindFirstChild` (e.g. `Hud:110: attempt to index nil`). Prevent it by editing existing instances' properties in place rather than rebuilding them. After any structural change (create, delete, rename, reparent) and export, have the user reconnect Rojo (Disconnect, then Connect and accept), which rebuilds the tree from disk. Then run `tools/find_duplicates.luau` through `execute_luau`; it must return `clean` before committing.
+- Never create, delete, rename or reparent anything inside a Rojo-managed instance (anything mapped in `default.project.json`). Rojo only tracks the instances it made, so when the exported `.rbxmx` syncs it adds its own copy next to one built by hand, and scripts find the wrong one with `FindFirstChild` (e.g. `Hud:110: attempt to index nil`). Structural changes go through staging instead:
+  1. Clone the managed root to an unmapped sibling (e.g. `StarterGui._StagingHud`, `ServerStorage._StagingItemTemplates`). Hide the real one while previewing if it's visible (`Enabled = false`), and restore it afterwards.
+  2. Make and preview the changes in the staging copy.
+  3. Export the staging copy, rename its root back to the real name in the XML, and write the `.rbxmx`.
+  4. Destroy the staging copy. Rojo patches its own instance from the file, so only one copy ever exists. If Rojo isn't connected, have the user connect it; don't rebuild the change by hand.
+
+  Never leave a staging copy behind (StarterGui copies them into every player). Changing properties of existing managed instances in place is fine, as is writing property changes straight into the `.rbxmx`.
+- `tools/find_duplicates.luau` (through `execute_luau`) must return `clean` before committing. It's a check, not a routine step. If it finds duplicates, something was built by hand in a managed spot: have the user reconnect Rojo (Disconnect, then Connect and accept), which rebuilds the tree from disk, and run it again.
 
 ## Luau pitfalls
 

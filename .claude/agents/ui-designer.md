@@ -131,6 +131,13 @@ into Studio without duplicating anything.
 - Build and edit instances with `execute_luau` in the **Edit** datamodel. If the
   user is in a playtest, Edit is unavailable: write code meanwhile and say what
   waits on Edit mode. Never stop their playtest.
+- **Never create, delete, rename or reparent anything inside a Rojo-managed
+  instance** (anything mapped in `default.project.json`: `StarterGui.Hud`,
+  `StarterGui.Rewards`, `ReplicatedStorage.Remotes`, ...). Rojo only tracks the
+  instances it made; one you build there by hand is invisible to it, so when the
+  exported file syncs, Rojo adds its own copy next to yours and scripts grab the
+  wrong one. Structural work goes through a staging clone (see "Staging" below);
+  in the managed tree you may only change properties of existing instances.
 - Preview with temporary clones named `__P...` (sample icons, names, fills),
   `screen_capture`, then delete them before exporting.
 - `screen_capture` captures the viewport as it is, including the device emulator
@@ -145,6 +152,35 @@ into Studio without duplicating anything.
   `LogService:GetLogHistory()` for errors and warnings (skip UIBlox and
   CorePackages noise).
 
+## Staging
+
+The `.rbxmx` on disk is the only thing that changes Rojo's tree structurally.
+For any create, delete, rename or reparent:
+
+1. Clone the managed root into an unmapped staging copy beside it:
+   `local s = StarterGui.Hud:Clone(); s.Name = "_StagingHud"; s.Parent = StarterGui`.
+   Set the real `Hud.Enabled = false` while you work so only the staging copy
+   shows (put it back to `true` before you finish).
+2. Make every structural change, and preview it, in `_StagingHud`.
+3. Export `_StagingHud` (see "Saving to assets/"). In the XML, rename the root
+   item's `Name` from `_StagingHud` back to `Hud`, then write it to
+   `assets/Hud.rbxmx`.
+4. Destroy `_StagingHud` and set `Hud.Enabled = true`. Rojo sees the file change
+   and patches its own `Hud` to match: one copy, nothing to deduplicate.
+5. Check that the real `Hud` now has your change. If Rojo isn't connected, ask
+   the user to connect it (Connect and accept); don't build the change by hand.
+
+Never leave a staging copy behind: StarterGui copies it into every player's
+PlayerGui. Property-only edits (restyling, retexturing, resizing an existing
+instance) can be made in place on the managed tree, or written straight into
+the `.rbxmx`.
+
+`tools/find_duplicates.luau` (run with `execute_luau`; must return `clean`)
+stays as a check before you commit, not a step you should ever need. If it does
+find duplicates, something was built by hand in a managed spot: have the user
+reconnect Rojo (Disconnect, then Connect and accept), which rebuilds the tree
+from disk, and rerun it.
+
 ## Saving to assets/
 
 1. In Studio, install the exporter once per session: run the contents of
@@ -152,21 +188,12 @@ into Studio without duplicating anything.
 2. Start the receiver in the background:
    `timeout 150 python3 tools/receive_rbxmx.py` (loopback only; a port-in-use exit
    means one is already running).
-3. In Studio: `game:GetService("HttpService"):PostAsync("http://127.0.0.1:8766/Hud", _G.exportRbxmx("StarterGui.Hud"))`.
+3. In Studio: `game:GetService("HttpService"):PostAsync("http://127.0.0.1:8766/Hud", _G.exportRbxmx("StarterGui._StagingHud"))`
+   (or `"StarterGui.Hud"` after property-only edits).
 4. The XML lands in `tools/frag/Hud.xml`. Wrap it in `<roblox version="4">` and
    `</roblox>` and write it to `assets/Hud.rbxmx` (and likewise for other mapped
    assets). Read the `git diff`: it should only show what you meant to change.
-5. Rojo's live sync adds instances from the file **next to** any copies you built
-   by hand, and a destroyed-and-rebuilt instance leaves Rojo patching a stale one.
-   Scripts then grab the wrong copy with `FindFirstChild` and the client breaks
-   on load. So: edit properties of existing instances in place, and don't
-   destroy and rebuild a subtree when you can restyle it. After any structural
-   change (create, delete, rename, reparent), write the file and then ask the
-   user to reconnect Rojo (Disconnect, then Connect and accept in the Rojo
-   plugin), which rebuilds the tree from disk. Then run
-   `tools/find_duplicates.luau` with `execute_luau`; it must return `clean`
-   before you commit.
-6. The exporter skips attributes and tags; check the target has none
+5. The exporter skips attributes and tags; check the target has none
    (`AttributesSerialize`, `Tags`) before exporting it whole.
 
 ## Code you'll touch

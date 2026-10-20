@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Cultivation
 local CirculationConfig = require(ReplicatedStorage.Shared.Config).Circulation
+local LoginConfig = require(ReplicatedStorage.Shared.Config).Login
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local PlayerData = require(script.Parent.PlayerData)
@@ -253,6 +254,42 @@ local function warning(player: Player, data: PlayerData.Data, rate: number): str
 		return "Qi stirs in your dantian. Circulate to refine it."
 	end
 	return "You must go out and experience the world."
+end
+
+-- On login: cultivation gathered while away (passive rate, up to the bar and the
+-- offline cap), and the first-login-of-the-day raw qi bonus. Returns what was
+-- claimed, for the caller to report.
+function Cultivation.claimLogin(player: Player, data: PlayerData.Data): (number, number)
+	local now = os.time()
+	local stage = Cultivation.stage(data)
+	local offline = 0
+	if data.lastLogoutUnix > 0 then
+		local away = math.clamp(now - data.lastLogoutUnix, 0, LoginConfig.OFFLINE_MAX_HOURS * 3600)
+		offline = math.min(stage.passive * LoginConfig.OFFLINE_RATE * away, stage.bar - data.cultivation)
+		offline = math.max(0, math.floor(offline))
+		data.cultivation += offline
+	end
+	local daily = 0
+	local today = now // 86400
+	if data.lastDailyDay ~= today then
+		data.lastDailyDay = today
+		daily = math.min(math.floor(stage.dantian * LoginConfig.DAILY_QI_SHARE), stage.dantian - data.rawQi)
+		daily = math.max(0, daily)
+		data.rawQi += daily
+	end
+	task.delay(4, function()
+		if player.Parent == nil then
+			return
+		end
+		if offline > 0 then
+			Cultivation.notify(player, `While you were away, your qi circulated on its own: +{offline} cultivation.`)
+		end
+		if daily > 0 then
+			task.wait(if offline > 0 then 4 else 0)
+			Cultivation.notify(player, `A new day on the mountain: +{daily} raw qi.`)
+		end
+	end)
+	return offline, daily
 end
 
 function Cultivation.forget(player: Player)

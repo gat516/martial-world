@@ -135,6 +135,14 @@ return {
 
 	Spawn = {
 		HEIGHT = 4, -- studs above a peak's spawn pad
+		-- after dying you reform at the main peak (the respawn hub), not on your peak
+		RESPAWN_AT_HUB = true,
+	},
+
+	Login = {
+		OFFLINE_MAX_HOURS = 12, -- offline cultivation counts at most this long
+		OFFLINE_RATE = 1, -- share of the online passive rate while away
+		DAILY_QI_SHARE = 0.5, -- first login of a day: this share of the dantian as raw qi
 	},
 
 	-- Studio playtests only: topped up on join so systems can be tried right away.

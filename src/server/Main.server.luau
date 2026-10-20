@@ -27,6 +27,11 @@ local remotes = ReplicatedStorage.Remotes
 -- Peak spawn pads are disabled so nobody spawns on someone else's peak;
 -- move each character home ourselves instead.
 local function sendHome(player: Player, character: Model)
+	if Config.Spawn.RESPAWN_AT_HUB and player:GetAttribute("Died") then
+		player:SetAttribute("Died", nil)
+		character:PivotTo(CFrame.new(Config.Travel.MAIN_PEAK + Vector3.new(0, Config.Spawn.HEIGHT, 0)))
+		return
+	end
 	local peak = Peaks.ownedBy(player)
 	local pad = peak and peak:FindFirstChild("SpawnLocation") :: BasePart?
 	if pad then
@@ -63,6 +68,10 @@ local function onPlayerAdded(player: Player)
 	local peak = Peaks.assign(player)
 	player.CharacterAdded:Connect(function(character)
 		task.defer(sendHome, player, character)
+		local humanoid = character:WaitForChild("Humanoid") :: Humanoid
+		humanoid.Died:Connect(function()
+			player:SetAttribute("Died", true)
+		end)
 	end)
 	if player.Character then
 		task.defer(sendHome, player, player.Character)
@@ -71,6 +80,7 @@ local function onPlayerAdded(player: Player)
 
 	local data = PlayerData.load(player)
 	applyTestKit(data)
+	Cultivation.claimLogin(player, data)
 	if player.Parent == nil then
 		PlayerData.release(player)
 		Peaks.release(player)

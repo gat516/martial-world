@@ -30,6 +30,7 @@ export type Data = {
 	milestones: { [string]: boolean }, -- kill milestones claimed, by kill count
 	onboardingStep: number,
 	lastLogoutUnix: number,
+	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
 	stats: { breakthroughs: number, circulationRuns: number, kills: number, bossKills: number },
 	herbs: { [string]: number },
 	seeds: { [string]: number },
@@ -58,6 +59,7 @@ local function default(): Data
 		milestones = {},
 		onboardingStep = 0,
 		lastLogoutUnix = 0,
+		lastDailyDay = 0,
 		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0 },
 		herbs = {},
 		seeds = table.clone(Config.STARTING_SEEDS),

@@ -6,7 +6,8 @@
 -- full width; slots show their names.
 -- Touch: our own Strike, Jump and Dash cluster replaces Roblox's jump button and
 -- reaches past the right safe-area inset to the screen edge; slots drop their
--- names for a bigger icon or glyph.
+-- names for a bigger icon or glyph. The mini cooldown chips over the hotbar are
+-- PC and gamepad only (Dash and Strike show their own), and the vitals close up.
 -- The top-left corner is always left to Roblox's chat.
 
 local Players = game:GetService("Players")
@@ -16,6 +17,7 @@ local Platform = require(script.Parent.Platform)
 
 local CLUSTER_ROOM = 320 -- touch: width the stack leaves free (twice the cluster, so it stays centred)
 local EDGE = 12 -- touch: the cluster's gap from the screen edge
+local TOUCH_VITALS_DROP = 0.1 -- touch: how far the vitals move down the stack (share of its height)
 
 local player = Players.LocalPlayer
 
@@ -23,6 +25,7 @@ local Layout = {}
 
 local gui: ScreenGui
 local clusterShown = true -- false while seated (Meditation)
+local vitalsY: UDim? = nil -- the vitals' authored height in the stack
 
 local function find(name: string): GuiObject
 	return gui:FindFirstChild(name, true) :: GuiObject
@@ -62,6 +65,15 @@ function Layout.apply()
 			glyph.Position = if touch then UDim2.fromScale(0.5, 0.48) else UDim2.fromScale(0.5, 0.34)
 		end
 	end
+
+	-- touch: the big Dash and Strike buttons show their own cooldowns, so the mini
+	-- chips go and the vitals sit down closer to the hotbar in the gap they leave
+	local chips = stack:FindFirstChild("Cooldowns") :: GuiObject
+	chips.Visible = not touch
+	local vitals = stack:FindFirstChild("Vitals") :: GuiObject
+	vitalsY = vitalsY or vitals.Position.Y
+	local y = vitalsY :: UDim
+	vitals.Position = UDim2.new(vitals.Position.X, if touch then UDim.new(y.Scale + TOUCH_VITALS_DROP, y.Offset) else y)
 
 	local strike, jump, dodge = find("AttackButton"), find("JumpButton"), find("DodgeButton")
 	local cluster = touch and clusterShown

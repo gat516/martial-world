@@ -9,6 +9,9 @@
 --   summon  no area; calls `count` more of `summons` to its side
 -- qiDrop is raw qi at QC1; it scales with the receiving player's dantian.
 -- drops: items (Items.luau) each damager may get on a kill, rolled separately.
+-- realm: the demon beast's cultivation, on the same ladder as players (Realms.luau).
+-- weight: how hard it is to shove (1 = a wolf). Realm and weight together set how
+-- far player hits knock it back (Knockback.luau).
 
 export type Attack = {
 	kind: string, -- "lunge" | "charge" | "spit" | "cone" | "slam" | "summon"
@@ -43,6 +46,8 @@ export type Def = {
 	drops: { Drop }?,
 	stones: { number }, -- Spirit Stones each damager gets on a kill (min, max)
 	boss: boolean?,
+	realm: { any }, -- { major, minor } on the Realms ladder
+	weight: number,
 	attack: Attack, -- the only attack, or the opener of a boss pattern
 	pattern: { Attack }?, -- bosses: attacks used in rotation after `attack`
 	summonAt: { number }?, -- bosses: health fractions that trigger a summon
@@ -54,6 +59,8 @@ Enemies.Defs = {
 	SpiritWolf = {
 		id = "SpiritWolf",
 		name = "Spirit Wolf",
+		realm = { "QiCondensation", 2 },
+		weight = 1,
 		health = 60,
 		walkSpeed = 8,
 		runSpeed = 18,
@@ -78,6 +85,8 @@ Enemies.Defs = {
 	StoneBoar = {
 		id = "StoneBoar",
 		name = "Stone Boar",
+		realm = { "QiCondensation", 4 },
+		weight = 2.5,
 		health = 160,
 		walkSpeed = 6,
 		runSpeed = 12,
@@ -102,6 +111,8 @@ Enemies.Defs = {
 	VenomSerpent = {
 		id = "VenomSerpent",
 		name = "Venom Serpent",
+		realm = { "QiCondensation", 3 },
+		weight = 0.8,
 		health = 80,
 		walkSpeed = 5,
 		runSpeed = 9,
@@ -125,6 +136,8 @@ Enemies.Defs = {
 	ElderWolfKing = {
 		id = "ElderWolfKing",
 		name = "Elder Wolf King",
+		realm = { "QiCondensation", 9 },
+		weight = 7,
 		boss = true,
 		health = 1500,
 		walkSpeed = 8,

@@ -10,6 +10,7 @@ local RunService = game:GetService("RunService")
 local Config = require(ReplicatedStorage.Shared.Config).Combat
 local Rules = require(ReplicatedStorage.Shared.ActionRules)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
+local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
@@ -36,8 +37,9 @@ local states: { [Player]: State } = {}
 
 local Combat = {}
 
--- Set by Enemies: called whenever a player damages an enemy.
-Combat.onEnemyDamaged = nil :: ((model: Model, player: Player, amount: number) -> ())?
+-- Set by Enemies: called whenever a player damages an enemy. `push` is the hit's
+-- knockback: flat direction times base studs (Knockback.luau), before realm and weight.
+Combat.onEnemyDamaged = nil :: ((model: Model, player: Player, amount: number, push: Vector3?) -> ())?
 
 local function state(player: Player): State
 	local s = states[player]
@@ -91,7 +93,8 @@ local function livingRoot(player: Player): (BasePart?, Humanoid?)
 end
 
 -- Damage an enemy on a player's behalf. Every player-caused hit goes through here.
-function Combat.damageEnemy(player: Player, model: Model, amount: number)
+-- `push`, if any, knocks it back (see Combat.onEnemyDamaged).
+function Combat.damageEnemy(player: Player, model: Model, amount: number, push: Vector3?)
 	local humanoid = model:FindFirstChildOfClass("Humanoid")
 	if not (humanoid and humanoid.Health > 0) then
 		return
@@ -102,7 +105,7 @@ function Combat.damageEnemy(player: Player, model: Model, amount: number)
 	effectRemote:FireClient(player, "damage", model:GetPivot().Position, amount)
 	Cultivation.markActive(player)
 	if Combat.onEnemyDamaged then
-		Combat.onEnemyDamaged(model, player, amount)
+		Combat.onEnemyDamaged(model, player, amount, push)
 	end
 end
 
@@ -161,6 +164,12 @@ end
 
 --[[ Basic attack ]]
 
+-- Flat direction from `from` to the enemy times `studs`, for a knockback push.
+local function pushFrom(from: Vector3, model: Model, studs: number, fallback: Vector3): Vector3
+	local offset = (model:GetPivot().Position - from) * Vector3.new(1, 0, 1)
+	return (if offset.Magnitude > 0.1 then offset.Unit else fallback) * studs
+end
+
 local function damageSwing(player: Player, action: Rules.Action, claimed: { any })
 	local root = livingRoot(player)
 	if not root then
@@ -191,8 +200,10 @@ local function damageSwing(player: Player, action: Rules.Action, claimed: { any 
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = targets :: { any }
 	local damage = Config.FIST_STEPS[action.step].damage * Combat.power(player)
+	local studs = Knockback.FIST_STEPS[action.step] or 0
+	local facing = root.CFrame.LookVector * Vector3.new(1, 0, 1)
 	for _, model in Hitbox.enemiesIn(cframe, size, params, root.Position) do
-		Combat.damageEnemy(player, model, damage)
+		Combat.damageEnemy(player, model, damage, pushFrom(root.Position, model, studs, facing.Unit))
 	end
 end
 
@@ -294,22 +305,23 @@ local function releaseTechnique(player: Player, id: string, aim: Vector3)
 	local damage = Techniques.damage(def, level) * Combat.power(player)
 	local slack = Config.AREA_SLACK
 	local chain: { Model }? = nil
+	local studs = Knockback.TECHNIQUES[id] or 0
 
 	if def.kind == "line" then
 		local length = (def.length :: number) + slack
 		local cframe = CFrame.lookAt(origin, origin + dir) * CFrame.new(0, 0, -length / 2)
 		local size = Vector3.new((def.width :: number) + slack * 2, 12, length)
 		for _, model in Hitbox.enemiesIn(cframe, size, enemyParams(), origin) do
-			Combat.damageEnemy(player, model, damage)
+			Combat.damageEnemy(player, model, damage, dir * studs)
 		end
 	elseif def.kind == "circle" then
 		for _, model in enemiesNear(origin, (def.radius :: number) + slack) do
-			Combat.damageEnemy(player, model, damage)
+			Combat.damageEnemy(player, model, damage, pushFrom(origin, model, studs, dir))
 		end
 	elseif def.kind == "chain" then
 		chain = Combat.chainTargets(origin, dir, def)
 		for _, model in chain :: { Model } do
-			Combat.damageEnemy(player, model, damage)
+			Combat.damageEnemy(player, model, damage, pushFrom(origin, model, studs, dir))
 		end
 	elseif def.kind == "zone" then
 		local center = origin + dir * (def.offset :: number)

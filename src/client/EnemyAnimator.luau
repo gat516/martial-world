@@ -6,6 +6,7 @@
 --   idle     slow breathing, ears-up head, a lazy tail wag
 --   windup   crouched: head low, legs braced, tail stiff and high
 --   dash     stretched out: front legs reaching, back legs pushing
+--   stagger  knocked back: head thrown up, legs splayed, tail down
 -- Enemies far from the camera aren't animated.
 
 local CollectionService = game:GetService("CollectionService")
@@ -97,6 +98,11 @@ local function step(dt: number)
 			legFront, legBack = -0.75, 0.75
 			headPitch = 0.1
 			tailPitch, tailYaw = 0.25, 0
+			swing = 0
+		elseif state == "stagger" then
+			legFront, legBack = 0.45, -0.35
+			headPitch = 0.45
+			tailPitch, tailYaw = 0.4, 0
 			swing = 0
 		elseif state == "chase" then
 			tailPitch = -0.35

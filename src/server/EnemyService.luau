@@ -8,7 +8,8 @@
 --
 -- States: idle (wander near home) -> chase -> windup (telegraph on the ground)
 -- -> dash (lunge/charge only) -> recover -> chase. Past its leash an enemy
--- returns home and heals. Every attack that hurts shows its exact area to all
+-- returns home and heals. Player hits can knock it back into "stagger" for a
+-- moment, depending on realm and weight (Knockback.luau). Every attack that hurts shows its exact area to all
 -- clients first (Telegraph remote) and resolves on the server through Combat.hurt,
 -- so dodging through it negates the hit.
 
@@ -19,6 +20,7 @@ local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Wilds
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
+local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Combat = require(script.Parent.Combat)
 local Cultivation = require(script.Parent.Cultivation)
@@ -63,6 +65,7 @@ type Enemy = {
 	summonsDone: { [number]: boolean }, -- summonAt thresholds already used
 	summoned: { Model }, -- live summons (bosses)
 	respawns: boolean,
+	staggerImmuneUntil: number,
 }
 
 local enemies: { [Model]: Enemy } = {}
@@ -169,6 +172,7 @@ function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?, respawns: 
 	model:PivotTo(CFrame.new(ground + Vector3.new(0, rootHeight, 0)) * CFrame.Angles(0, math.random() * math.pi * 2, 0))
 	model:SetAttribute("EnemyType", id)
 	model:SetAttribute("RunSpeed", def.runSpeed)
+	model:SetAttribute("Realm", Realms.get(def.realm[1], def.realm[2]).name)
 	model:AddTag("Enemy")
 	model.Parent = liveFolder
 	root:SetNetworkOwner(nil)
@@ -193,6 +197,7 @@ function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?, respawns: 
 		summonsDone = {},
 		summoned = {},
 		respawns = respawns ~= false,
+		staggerImmuneUntil = 0,
 	}
 	enemies[model] = enemy
 	humanoid.Died:Connect(function()
@@ -281,17 +286,6 @@ function EnemyService.died(enemy: Enemy)
 	end
 end
 
--- Damage from players: remember who to credit, and turn on them if idle.
-Combat.onEnemyDamaged = function(model: Model, player: Player, _amount: number)
-	local enemy = enemies[model]
-	if enemy then
-		enemy.damagers[player] = true
-		if not enemy.target and enemy.state ~= "return" then
-			enemy.target = player
-		end
-	end
-end
-
 --[[ AI ]]
 
 local function home(enemy: Enemy): Vector3
@@ -308,6 +302,76 @@ end
 
 local function stop(enemy: Enemy)
 	enemy.humanoid:MoveTo(enemy.root.Position)
+end
+
+local function setState(enemy: Enemy, state: string)
+	enemy.state = state
+	-- clients animate from this (crouch on windup, stretch on dash)
+	if enemy.model:GetAttribute("AIState") ~= state then
+		enemy.model:SetAttribute("AIState", state)
+	end
+end
+
+-- Shove the enemy `distance` studs along `dir` over Knockback.PUSH_SECONDS.
+local function shove(enemy: Enemy, dir: Vector3, distance: number)
+	local attachment = Instance.new("Attachment")
+	attachment.Parent = enemy.root
+	local mover = Instance.new("LinearVelocity")
+	mover.Attachment0 = attachment
+	mover.RelativeTo = Enum.ActuatorRelativeTo.World
+	mover.ForceLimitMode = Enum.ForceLimitMode.PerAxis
+	mover.MaxAxesForce = Vector3.new(1, 0, 1) * enemy.root.AssemblyMass * 2000
+	mover.VectorVelocity = dir * (distance / Knockback.PUSH_SECONDS)
+	mover.Parent = enemy.root
+	task.delay(Knockback.PUSH_SECONDS, function()
+		attachment:Destroy()
+		mover:Destroy()
+		-- plant it where it landed, not back where it was told to walk
+		if enemy.state == "stagger" and enemy.model.Parent then
+			stop(enemy)
+		end
+	end)
+end
+
+-- A player hit with a push: knock the enemy back and stagger it if the
+-- player's realm against its realm and weight is enough to move it at all.
+local function knock(enemy: Enemy, player: Player, push: Vector3)
+	local base = push.Magnitude
+	if base < 0.01 or enemy.state == "return" then
+		return
+	end
+	local distance = Knockback.distance(base, Combat.power(player), enemy.def)
+	local committed = enemy.state == "windup" or enemy.state == "dash"
+	if distance <= 0 or (committed and distance < Knockback.ARMOR_BREAK) then
+		return
+	end
+	shove(enemy, push.Unit, distance)
+	local now = os.clock()
+	if now < enemy.staggerImmuneUntil and not committed then
+		return
+	end
+	-- a windup broken here never resolves; its telegraph just fades
+	enemy.shape, enemy.dashTo = nil, nil
+	enemy.humanoid.WalkSpeed = enemy.def.runSpeed
+	enemy.humanoid.AutoRotate = false
+	setState(enemy, "stagger")
+	enemy.stateUntil = now + Knockback.stun(distance)
+	enemy.staggerImmuneUntil = enemy.stateUntil + Knockback.RESTAGGER
+end
+
+-- Damage from players: remember who to credit, turn on them if idle, and
+-- take the hit's knockback.
+Combat.onEnemyDamaged = function(model: Model, player: Player, _amount: number, push: Vector3?)
+	local enemy = enemies[model]
+	if enemy then
+		enemy.damagers[player] = true
+		if not enemy.target and enemy.state ~= "return" then
+			enemy.target = player
+		end
+		if push and enemy.humanoid.Health > 0 then
+			knock(enemy, player, push)
+		end
+	end
 end
 
 -- Keep the current target while it's alive and not too far, else find the nearest.
@@ -454,7 +518,7 @@ local function think(enemy: Enemy, now: number)
 			enemy.stateUntil = now + def.attack.recover
 		end
 		return
-	elseif enemy.state == "recover" then
+	elseif enemy.state == "recover" or enemy.state == "stagger" then
 		if now < enemy.stateUntil then
 			return
 		end
@@ -545,10 +609,7 @@ function EnemyService.start()
 					if not ok then
 						warn(`EnemyService: {enemy.def.id} errored: {err}`)
 					end
-					-- clients animate from this (crouch on windup, stretch on dash)
-					if enemy.model:GetAttribute("AIState") ~= enemy.state then
-						enemy.model:SetAttribute("AIState", enemy.state)
-					end
+					setState(enemy, enemy.state)
 				end
 			end
 		end

@@ -1073,8 +1073,8 @@
    <string name="Name">Vitals</string>
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
-   <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-104</YO></UDim2>
-   <UDim2 name="Size"><XS>0</XS><XO>520</XO><YS>0</YS><YO>52</YO></UDim2>
+   <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-64</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>460</XO><YS>0</YS><YO>46</YO></UDim2>
    <int name="ZIndex">5</int>
   </Properties>
    <Item class="Frame" referent="RBX130"><Properties>
@@ -1184,35 +1184,37 @@
     <int name="ZIndex">6</int>
     <string name="Text">100 / 100</string>
     <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
-    <float name="TextSize">11</float>
+    <float name="TextSize">10</float>
     <float name="TextStrokeTransparency">0.35</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
    <Item class="TextLabel" referent="RBX147"><Properties>
     <string name="Name">QiText</string>
+    <Vector2 name="AnchorPoint"><X>1</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.15</XS><XO>0</XO><YS>1</YS><YO>2</YO></UDim2>
-    <UDim2 name="Size"><XS>0.3325</XS><XO>0</XO><YS>0</YS><YO>14</YO></UDim2>
+    <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0.63125</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0</XS><XO>110</XO><YS>0</YS><YO>12</YO></UDim2>
     <int name="ZIndex">6</int>
     <string name="Text">Qi 0 / 120</string>
     <Color3 name="TextColor3"><R>0.588235</R><G>0.784314</G><B>1</B></Color3>
-    <float name="TextSize">10</float>
-    <token name="TextXAlignment">0</token>
+    <float name="TextSize">9</float>
+    <token name="TextXAlignment">1</token>
     <float name="TextStrokeTransparency">0.35</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
    <Item class="TextLabel" referent="RBX148"><Properties>
     <string name="Name">CultivationText</string>
+    <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.5175</XS><XO>0</XO><YS>1</YS><YO>2</YO></UDim2>
-    <UDim2 name="Size"><XS>0.3325</XS><XO>0</XO><YS>0</YS><YO>14</YO></UDim2>
+    <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>0.63125</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0</XS><XO>170</XO><YS>0</YS><YO>12</YO></UDim2>
     <int name="ZIndex">6</int>
     <string name="Text">Cultivation 0 / 100</string>
     <Color3 name="TextColor3"><R>0.980392</R><G>0.839216</G><B>0.470588</B></Color3>
-    <float name="TextSize">10</float>
-    <token name="TextXAlignment">1</token>
+    <float name="TextSize">9</float>
+    <token name="TextXAlignment">0</token>
     <float name="TextStrokeTransparency">0.35</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
@@ -1221,8 +1223,8 @@
     <string name="Name">Crest</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>12</YO></UDim2>
-    <UDim2 name="Size"><XS>0</XS><XO>240</XO><YS>0</YS><YO>30</YO></UDim2>
+    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>10</YO></UDim2>
+    <UDim2 name="Size"><XS>0</XS><XO>208</XO><YS>0</YS><YO>26</YO></UDim2>
     <int name="ZIndex">4</int>
     <Content name="Image"><url>rbxassetid://102415598703650</url></Content>
    </Properties>
@@ -1233,7 +1235,7 @@
      <int name="ZIndex">5</int>
      <string name="Text">Qi Condensation 1</string>
      <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
-     <float name="TextSize">12</float>
+     <float name="TextSize">11</float>
      <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     </Properties>
     </Item>
@@ -2040,182 +2042,6 @@
    </Item>
   </Item>
   <Item class="Frame" referent="RBX250"><Properties>
-   <string name="Name">Hotbar</string>
-   <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
-   <float name="BackgroundTransparency">1</float>
-   <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-14</YO></UDim2>
-   <UDim2 name="Size"><XS>0</XS><XO>524</XO><YS>0</YS><YO>60</YO></UDim2>
-   <int name="ZIndex">9</int>
-  </Properties>
-   <Item class="Frame" referent="RBX251"><Properties>
-    <string name="Name">Slots</string>
-    <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-    <int name="ZIndex">2</int>
-   </Properties>
-    <Item class="UIGridLayout" referent="RBX252"><Properties>
-     <string name="Name">UIGridLayout</string>
-     <token name="HorizontalAlignment">0</token>
-     <token name="VerticalAlignment">2</token>
-     <token name="SortOrder">2</token>
-     <UDim2 name="CellSize"><XS>0</XS><XO>52</XO><YS>0</YS><YO>52</YO></UDim2>
-     <UDim2 name="CellPadding"><XS>0</XS><XO>7</XO><YS>0</YS><YO>7</YO></UDim2>
-     <int name="FillDirectionMaxCells">9</int>
-    </Properties>
-    </Item>
-    <Item class="TextButton" referent="RBX253"><Properties>
-     <string name="Name">SlotTemplate</string>
-     <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Size"><XS>0</XS><XO>52</XO><YS>0</YS><YO>52</YO></UDim2>
-     <bool name="Visible">false</bool>
-     <bool name="AutoButtonColor">false</bool>
-     <string name="Text"></string>
-    </Properties>
-     <Item class="ImageLabel" referent="RBX254"><Properties>
-      <string name="Name">Halo</string>
-      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
-      <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.55</XS><XO>0</XO><YS>1.55</YS><YO>0</YO></UDim2>
-      <bool name="Visible">false</bool>
-      <Content name="Image"><url>rbxassetid://121653816158247</url></Content>
-      <Color3 name="ImageColor3"><R>1</R><G>0.839216</G><B>0.470588</B></Color3>
-     </Properties>
-     </Item>
-     <Item class="ImageLabel" referent="RBX255"><Properties>
-      <string name="Name">Frame</string>
-      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
-      <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.3</XS><XO>0</XO><YS>1.3</YS><YO>0</YO></UDim2>
-      <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://102954604847130</url></Content>
-     </Properties>
-     </Item>
-     <Item class="ImageLabel" referent="RBX256"><Properties>
-      <string name="Name">Glow</string>
-      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
-      <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1.3</XS><XO>0</XO><YS>1.3</YS><YO>0</YO></UDim2>
-      <bool name="Visible">false</bool>
-      <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://126230159457255</url></Content>
-      <float name="ImageTransparency">0.1</float>
-     </Properties>
-     </Item>
-     <Item class="ImageLabel" referent="RBX257"><Properties>
-      <string name="Name">Icon</string>
-      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
-      <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.36</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <int name="ZIndex">4</int>
-     </Properties>
-     </Item>
-     <Item class="TextLabel" referent="RBX258"><Properties>
-      <string name="Name">Glyph</string>
-      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
-      <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.34</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.46</XS><XO>0</XO><YS>0.46</YS><YO>0</YO></UDim2>
-      <int name="ZIndex">4</int>
-      <string name="Text"></string>
-      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
-      <bool name="TextScaled">true</bool>
-      <bool name="TextWrapped">true</bool>
-      <float name="TextStrokeTransparency">0.4</float>
-      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
-     </Properties>
-     </Item>
-     <Item class="Frame" referent="RBX259"><Properties>
-      <string name="Name">Cooldown</string>
-      <Vector2 name="AnchorPoint"><X>0</X><Y>1</Y></Vector2>
-      <Color3 name="BackgroundColor3"><R>0</R><G>0</G><B>0</B></Color3>
-      <float name="BackgroundTransparency">0.4</float>
-      <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <bool name="Visible">false</bool>
-      <int name="ZIndex">5</int>
-     </Properties>
-     </Item>
-     <Item class="TextLabel" referent="RBX260"><Properties>
-      <string name="Name">CooldownLabel</string>
-      <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <bool name="Visible">false</bool>
-      <int name="ZIndex">7</int>
-      <string name="Text"></string>
-      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
-      <float name="TextSize">18</float>
-      <float name="TextStrokeTransparency">0.3</float>
-      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
-     </Properties>
-     </Item>
-     <Item class="TextLabel" referent="RBX261"><Properties>
-      <string name="Name">CountLabel</string>
-      <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
-      <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Position"><XS>1</XS><XO>-3</XO><YS>0</YS><YO>2</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>0</YS><YO>14</YO></UDim2>
-      <int name="ZIndex">6</int>
-      <string name="Text"></string>
-      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
-      <float name="TextSize">12</float>
-      <token name="TextXAlignment">1</token>
-      <float name="TextStrokeTransparency">0.2</float>
-      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
-     </Properties>
-     </Item>
-     <Item class="TextLabel" referent="RBX262"><Properties>
-      <string name="Name">KeyLabel</string>
-      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
-      <Color3 name="BackgroundColor3"><R>0.0470588</R><G>0.0627451</G><B>0.0745098</B></Color3>
-      <float name="BackgroundTransparency">0.1</float>
-      <UDim2 name="Position"><XS>0</XS><XO>4</XO><YS>0</YS><YO>4</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>16</XO><YS>0</YS><YO>16</YO></UDim2>
-      <int name="ZIndex">6</int>
-      <string name="Text">1</string>
-      <Color3 name="TextColor3"><R>0.909804</R><G>0.752941</G><B>0.360784</B></Color3>
-      <float name="TextSize">10</float>
-      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
-     </Properties>
-      <Item class="UICorner" referent="RBX263"><Properties>
-       <string name="Name">UICorner</string>
-       <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
-      </Properties>
-      </Item>
-      <Item class="UIStroke" referent="RBX264"><Properties>
-       <string name="Name">UIStroke</string>
-       <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
-      </Properties>
-      </Item>
-     </Item>
-     <Item class="TextLabel" referent="RBX265"><Properties>
-      <string name="Name">NameLabel</string>
-      <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
-      <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-3</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>-6</XO><YS>0.42</YS><YO>0</YO></UDim2>
-      <int name="ZIndex">6</int>
-      <string name="Text"></string>
-      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
-      <float name="TextSize">9</float>
-      <bool name="TextWrapped">true</bool>
-      <token name="TextYAlignment">2</token>
-      <float name="TextStrokeTransparency">0.3</float>
-      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
-     </Properties>
-     </Item>
-    </Item>
-   </Item>
-   <Item class="UIScale" referent="RBX266"><Properties>
-    <string name="Name">UIScale</string>
-   </Properties>
-   </Item>
-  </Item>
-  <Item class="Frame" referent="RBX267"><Properties>
    <string name="Name">Inventory</string>
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
@@ -2224,12 +2050,12 @@
    <bool name="Visible">false</bool>
    <int name="ZIndex">8</int>
   </Properties>
-   <Item class="UISizeConstraint" referent="RBX268"><Properties>
+   <Item class="UISizeConstraint" referent="RBX251"><Properties>
     <string name="Name">UISizeConstraint</string>
     <Vector2 name="MaxSize"><X>700</X><Y>450</Y></Vector2>
    </Properties>
    </Item>
-   <Item class="ImageLabel" referent="RBX269"><Properties>
+   <Item class="ImageLabel" referent="RBX252"><Properties>
     <string name="Name">Backdrop</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -2239,7 +2065,7 @@
     <float name="SliceScale">0.55</float>
    </Properties>
    </Item>
-   <Item class="ImageLabel" referent="RBX270"><Properties>
+   <Item class="ImageLabel" referent="RBX253"><Properties>
     <string name="Name">TitlePlaque</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
@@ -2250,7 +2076,7 @@
     <Rect2D name="SliceCenter"><min><X>160</X><Y>0</Y></min><max><X>864</X><Y>128</Y></max></Rect2D>
     <float name="SliceScale">0.36</float>
    </Properties>
-    <Item class="TextLabel" referent="RBX271"><Properties>
+    <Item class="TextLabel" referent="RBX254"><Properties>
      <string name="Name">Title</string>
      <float name="BackgroundTransparency">1</float>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -2262,7 +2088,7 @@
     </Properties>
     </Item>
    </Item>
-   <Item class="TextButton" referent="RBX272"><Properties>
+   <Item class="TextButton" referent="RBX255"><Properties>
     <string name="Name">Close</string>
     <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
     <Color3 name="BackgroundColor3"><R>0.0941176</R><G>0.133333</G><B>0.14902</B></Color3>
@@ -2274,12 +2100,12 @@
     <float name="TextSize">16</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
-    <Item class="UICorner" referent="RBX273"><Properties>
+    <Item class="UICorner" referent="RBX256"><Properties>
      <string name="Name">UICorner</string>
      <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
     </Properties>
     </Item>
-    <Item class="UIStroke" referent="RBX274"><Properties>
+    <Item class="UIStroke" referent="RBX257"><Properties>
      <string name="Name">UIStroke</string>
      <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
      <float name="Thickness">1.2</float>
@@ -2288,21 +2114,21 @@
     </Properties>
     </Item>
    </Item>
-   <Item class="Frame" referent="RBX275"><Properties>
+   <Item class="Frame" referent="RBX258"><Properties>
     <string name="Name">Tabs</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>22</XO><YS>0</YS><YO>30</YO></UDim2>
     <UDim2 name="Size"><XS>0.58</XS><XO>-30</XO><YS>0</YS><YO>30</YO></UDim2>
     <int name="ZIndex">3</int>
    </Properties>
-    <Item class="UIListLayout" referent="RBX276"><Properties>
+    <Item class="UIListLayout" referent="RBX259"><Properties>
      <string name="Name">UIListLayout</string>
      <token name="FillDirection">0</token>
      <token name="SortOrder">2</token>
      <UDim name="Padding"><S>0</S><O>8</O></UDim>
     </Properties>
     </Item>
-    <Item class="TextButton" referent="RBX277"><Properties>
+    <Item class="TextButton" referent="RBX260"><Properties>
      <string name="Name">PouchTab</string>
      <Color3 name="BackgroundColor3"><R>0.0941176</R><G>0.133333</G><B>0.14902</B></Color3>
      <int name="LayoutOrder">1</int>
@@ -2313,11 +2139,11 @@
      <float name="TextSize">15</float>
      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     </Properties>
-     <Item class="UICorner" referent="RBX278"><Properties>
+     <Item class="UICorner" referent="RBX261"><Properties>
       <string name="Name">UICorner</string>
      </Properties>
      </Item>
-     <Item class="UIStroke" referent="RBX279"><Properties>
+     <Item class="UIStroke" referent="RBX262"><Properties>
       <string name="Name">UIStroke</string>
       <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
       <float name="Thickness">1.2</float>
@@ -2326,7 +2152,7 @@
      </Properties>
      </Item>
     </Item>
-    <Item class="TextButton" referent="RBX280"><Properties>
+    <Item class="TextButton" referent="RBX263"><Properties>
      <string name="Name">ArtsTab</string>
      <Color3 name="BackgroundColor3"><R>0.0941176</R><G>0.133333</G><B>0.14902</B></Color3>
      <int name="LayoutOrder">2</int>
@@ -2337,11 +2163,11 @@
      <float name="TextSize">15</float>
      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     </Properties>
-     <Item class="UICorner" referent="RBX281"><Properties>
+     <Item class="UICorner" referent="RBX264"><Properties>
       <string name="Name">UICorner</string>
      </Properties>
      </Item>
-     <Item class="UIStroke" referent="RBX282"><Properties>
+     <Item class="UIStroke" referent="RBX265"><Properties>
       <string name="Name">UIStroke</string>
       <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
       <float name="Thickness">1.2</float>
@@ -2351,7 +2177,7 @@
      </Item>
     </Item>
    </Item>
-   <Item class="ScrollingFrame" referent="RBX283"><Properties>
+   <Item class="ScrollingFrame" referent="RBX266"><Properties>
     <string name="Name">Grid</string>
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
@@ -2364,14 +2190,14 @@
     <Color3 name="ScrollBarImageColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
     <token name="ScrollingDirection">2</token>
    </Properties>
-    <Item class="UIGridLayout" referent="RBX284"><Properties>
+    <Item class="UIGridLayout" referent="RBX267"><Properties>
      <string name="Name">UIGridLayout</string>
      <token name="SortOrder">2</token>
      <UDim2 name="CellSize"><XS>0</XS><XO>58</XO><YS>0</YS><YO>58</YO></UDim2>
      <UDim2 name="CellPadding"><XS>0</XS><XO>16</XO><YS>0</YS><YO>16</YO></UDim2>
     </Properties>
     </Item>
-    <Item class="UIPadding" referent="RBX285"><Properties>
+    <Item class="UIPadding" referent="RBX268"><Properties>
      <string name="Name">UIPadding</string>
      <UDim name="PaddingTop"><S>0</S><O>12</O></UDim>
      <UDim name="PaddingBottom"><S>0</S><O>12</O></UDim>
@@ -2379,7 +2205,7 @@
      <UDim name="PaddingRight"><S>0</S><O>8</O></UDim>
     </Properties>
     </Item>
-    <Item class="TextButton" referent="RBX286"><Properties>
+    <Item class="TextButton" referent="RBX269"><Properties>
      <string name="Name">CellTemplate</string>
      <float name="BackgroundTransparency">1</float>
      <UDim2 name="Size"><XS>0</XS><XO>52</XO><YS>0</YS><YO>52</YO></UDim2>
@@ -2387,7 +2213,7 @@
      <bool name="AutoButtonColor">false</bool>
      <string name="Text"></string>
     </Properties>
-     <Item class="ImageLabel" referent="RBX287"><Properties>
+     <Item class="ImageLabel" referent="RBX270"><Properties>
       <string name="Name">Halo</string>
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
@@ -2398,7 +2224,7 @@
       <Color3 name="ImageColor3"><R>1</R><G>0.839216</G><B>0.470588</B></Color3>
      </Properties>
      </Item>
-     <Item class="ImageLabel" referent="RBX288"><Properties>
+     <Item class="ImageLabel" referent="RBX271"><Properties>
       <string name="Name">Frame</string>
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
@@ -2408,7 +2234,7 @@
       <Content name="Image"><url>rbxassetid://102954604847130</url></Content>
      </Properties>
      </Item>
-     <Item class="ImageLabel" referent="RBX289"><Properties>
+     <Item class="ImageLabel" referent="RBX272"><Properties>
       <string name="Name">Glow</string>
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
@@ -2420,7 +2246,7 @@
       <float name="ImageTransparency">0.1</float>
      </Properties>
      </Item>
-     <Item class="ImageLabel" referent="RBX290"><Properties>
+     <Item class="ImageLabel" referent="RBX273"><Properties>
       <string name="Name">Icon</string>
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
@@ -2429,7 +2255,7 @@
       <int name="ZIndex">4</int>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="RBX291"><Properties>
+     <Item class="TextLabel" referent="RBX274"><Properties>
       <string name="Name">Glyph</string>
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
@@ -2444,7 +2270,7 @@
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="RBX292"><Properties>
+     <Item class="TextLabel" referent="RBX275"><Properties>
       <string name="Name">CountLabel</string>
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
@@ -2459,7 +2285,7 @@
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="RBX293"><Properties>
+     <Item class="TextLabel" referent="RBX276"><Properties>
       <string name="Name">KeyLabel</string>
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <Color3 name="BackgroundColor3"><R>0.0470588</R><G>0.0627451</G><B>0.0745098</B></Color3>
@@ -2473,18 +2299,18 @@
       <float name="TextSize">10</float>
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
-      <Item class="UICorner" referent="RBX294"><Properties>
+      <Item class="UICorner" referent="RBX277"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIStroke" referent="RBX295"><Properties>
+      <Item class="UIStroke" referent="RBX278"><Properties>
        <string name="Name">UIStroke</string>
        <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
       </Properties>
       </Item>
      </Item>
-     <Item class="TextLabel" referent="RBX296"><Properties>
+     <Item class="TextLabel" referent="RBX279"><Properties>
       <string name="Name">NameLabel</string>
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
@@ -2502,7 +2328,7 @@
      </Item>
     </Item>
    </Item>
-   <Item class="TextLabel" referent="RBX297"><Properties>
+   <Item class="TextLabel" referent="RBX280"><Properties>
     <string name="Name">Empty</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>28</XO><YS>0</YS><YO>110</YO></UDim2>
@@ -2516,7 +2342,7 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>500</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="Frame" referent="RBX298"><Properties>
+   <Item class="Frame" referent="RBX281"><Properties>
     <string name="Name">Divider</string>
     <Color3 name="BackgroundColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
     <float name="BackgroundTransparency">0.6</float>
@@ -2526,14 +2352,14 @@
     <int name="ZIndex">3</int>
    </Properties>
    </Item>
-   <Item class="Frame" referent="RBX299"><Properties>
+   <Item class="Frame" referent="RBX282"><Properties>
     <string name="Name">Detail</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0.58</XS><XO>8</XO><YS>0</YS><YO>34</YO></UDim2>
     <UDim2 name="Size"><XS>0.42</XS><XO>-30</XO><YS>1</YS><YO>-52</YO></UDim2>
     <int name="ZIndex">3</int>
    </Properties>
-    <Item class="ScrollingFrame" referent="RBX300"><Properties>
+    <Item class="ScrollingFrame" referent="RBX283"><Properties>
      <string name="Name">Info</string>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
@@ -2544,21 +2370,21 @@
      <int name="ScrollBarThickness">3</int>
      <Color3 name="ScrollBarImageColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
     </Properties>
-     <Item class="UIListLayout" referent="RBX301"><Properties>
+     <Item class="UIListLayout" referent="RBX284"><Properties>
       <string name="Name">UIListLayout</string>
       <token name="HorizontalAlignment">0</token>
       <token name="SortOrder">2</token>
       <UDim name="Padding"><S>0</S><O>4</O></UDim>
      </Properties>
      </Item>
-     <Item class="UIPadding" referent="RBX302"><Properties>
+     <Item class="UIPadding" referent="RBX285"><Properties>
       <string name="Name">UIPadding</string>
       <UDim name="PaddingTop"><S>0</S><O>14</O></UDim>
       <UDim name="PaddingLeft"><S>0</S><O>4</O></UDim>
       <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
      </Properties>
      </Item>
-     <Item class="TextButton" referent="RBX303"><Properties>
+     <Item class="TextButton" referent="RBX286"><Properties>
       <string name="Name">Preview</string>
       <float name="BackgroundTransparency">1</float>
       <int name="LayoutOrder">1</int>
@@ -2567,7 +2393,7 @@
       <bool name="AutoButtonColor">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="ImageLabel" referent="RBX304"><Properties>
+      <Item class="ImageLabel" referent="RBX287"><Properties>
        <string name="Name">Halo</string>
        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
@@ -2578,7 +2404,7 @@
        <Color3 name="ImageColor3"><R>1</R><G>0.839216</G><B>0.470588</B></Color3>
       </Properties>
       </Item>
-      <Item class="ImageLabel" referent="RBX305"><Properties>
+      <Item class="ImageLabel" referent="RBX288"><Properties>
        <string name="Name">Frame</string>
        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
@@ -2588,7 +2414,7 @@
        <Content name="Image"><url>rbxassetid://102954604847130</url></Content>
       </Properties>
       </Item>
-      <Item class="ImageLabel" referent="RBX306"><Properties>
+      <Item class="ImageLabel" referent="RBX289"><Properties>
        <string name="Name">Glow</string>
        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
@@ -2601,7 +2427,7 @@
        <float name="ImageTransparency">0.1</float>
       </Properties>
       </Item>
-      <Item class="ImageLabel" referent="RBX307"><Properties>
+      <Item class="ImageLabel" referent="RBX290"><Properties>
        <string name="Name">Icon</string>
        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
@@ -2610,7 +2436,7 @@
        <int name="ZIndex">4</int>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="RBX308"><Properties>
+      <Item class="TextLabel" referent="RBX291"><Properties>
        <string name="Name">Glyph</string>
        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
@@ -2625,7 +2451,7 @@
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="RBX309"><Properties>
+      <Item class="TextLabel" referent="RBX292"><Properties>
        <string name="Name">CountLabel</string>
        <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
@@ -2640,7 +2466,7 @@
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="RBX310"><Properties>
+      <Item class="TextLabel" referent="RBX293"><Properties>
        <string name="Name">KeyLabel</string>
        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
        <Color3 name="BackgroundColor3"><R>0.0470588</R><G>0.0627451</G><B>0.0745098</B></Color3>
@@ -2654,26 +2480,26 @@
        <float name="TextSize">10</float>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="UICorner" referent="RBX311"><Properties>
+       <Item class="UICorner" referent="RBX294"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIStroke" referent="RBX312"><Properties>
+       <Item class="UIStroke" referent="RBX295"><Properties>
         <string name="Name">UIStroke</string>
         <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
        </Properties>
        </Item>
       </Item>
      </Item>
-     <Item class="Frame" referent="RBX313"><Properties>
+     <Item class="Frame" referent="RBX296"><Properties>
       <string name="Name">Spacer</string>
       <float name="BackgroundTransparency">1</float>
       <int name="LayoutOrder">2</int>
       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>6</YO></UDim2>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="RBX314"><Properties>
+     <Item class="TextLabel" referent="RBX297"><Properties>
       <string name="Name">NameLabel</string>
       <token name="AutomaticSize">2</token>
       <float name="BackgroundTransparency">1</float>
@@ -2687,7 +2513,7 @@
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="RBX315"><Properties>
+     <Item class="TextLabel" referent="RBX298"><Properties>
       <string name="Name">KindLabel</string>
       <float name="BackgroundTransparency">1</float>
       <int name="LayoutOrder">4</int>
@@ -2699,7 +2525,7 @@
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="RBX316"><Properties>
+     <Item class="TextLabel" referent="RBX299"><Properties>
       <string name="Name">Blurb</string>
       <token name="AutomaticSize">2</token>
       <float name="BackgroundTransparency">1</float>
@@ -2713,7 +2539,7 @@
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>500</Weight><Style>Normal</Style></Font>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="RBX317"><Properties>
+     <Item class="TextLabel" referent="RBX300"><Properties>
       <string name="Name">Lore</string>
       <token name="AutomaticSize">2</token>
       <float name="BackgroundTransparency">1</float>
@@ -2727,7 +2553,7 @@
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>400</Weight><Style>Italic</Style></Font>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="RBX318"><Properties>
+     <Item class="TextLabel" referent="RBX301"><Properties>
       <string name="Name">Hint</string>
       <token name="AutomaticSize">2</token>
       <float name="BackgroundTransparency">1</float>
@@ -2742,7 +2568,7 @@
      </Properties>
      </Item>
     </Item>
-    <Item class="Frame" referent="RBX319"><Properties>
+    <Item class="Frame" referent="RBX302"><Properties>
      <string name="Name">Actions</string>
      <Vector2 name="AnchorPoint"><X>0</X><Y>1</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
@@ -2750,7 +2576,7 @@
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>38</YO></UDim2>
      <int name="ZIndex">3</int>
     </Properties>
-     <Item class="TextButton" referent="RBX320"><Properties>
+     <Item class="TextButton" referent="RBX303"><Properties>
       <string name="Name">Primary</string>
       <Vector2 name="AnchorPoint"><X>0</X><Y>1</Y></Vector2>
       <Color3 name="BackgroundColor3"><R>0.588235</R><G>0.431373</G><B>0.156863</B></Color3>
@@ -2762,11 +2588,11 @@
       <float name="TextSize">15</float>
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
-      <Item class="UICorner" referent="RBX321"><Properties>
+      <Item class="UICorner" referent="RBX304"><Properties>
        <string name="Name">UICorner</string>
       </Properties>
       </Item>
-      <Item class="UIStroke" referent="RBX322"><Properties>
+      <Item class="UIStroke" referent="RBX305"><Properties>
        <string name="Name">UIStroke</string>
        <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
        <float name="Thickness">1.2</float>
@@ -2775,7 +2601,7 @@
       </Properties>
       </Item>
      </Item>
-     <Item class="TextButton" referent="RBX323"><Properties>
+     <Item class="TextButton" referent="RBX306"><Properties>
       <string name="Name">Secondary</string>
       <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
       <Color3 name="BackgroundColor3"><R>0.0941176</R><G>0.133333</G><B>0.14902</B></Color3>
@@ -2787,11 +2613,11 @@
       <float name="TextSize">15</float>
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
-      <Item class="UICorner" referent="RBX324"><Properties>
+      <Item class="UICorner" referent="RBX307"><Properties>
        <string name="Name">UICorner</string>
       </Properties>
       </Item>
-      <Item class="UIStroke" referent="RBX325"><Properties>
+      <Item class="UIStroke" referent="RBX308"><Properties>
        <string name="Name">UIStroke</string>
        <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
        <float name="Thickness">1.2</float>
@@ -2803,7 +2629,7 @@
     </Item>
    </Item>
   </Item>
-  <Item class="TextButton" referent="RBX326"><Properties>
+  <Item class="TextButton" referent="RBX309"><Properties>
    <string name="Name">DodgeButton</string>
    <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
    <Color3 name="BackgroundColor3"><R>0.078431</R><G>0.172549</G><B>0.235294</B></Color3>
@@ -2818,12 +2644,12 @@
    <token name="TextYAlignment">2</token>
    <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
   </Properties>
-   <Item class="UICorner" referent="RBX327"><Properties>
+   <Item class="UICorner" referent="RBX310"><Properties>
     <string name="Name">UICorner</string>
     <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
    </Properties>
    </Item>
-   <Item class="UIStroke" referent="RBX328"><Properties>
+   <Item class="UIStroke" referent="RBX311"><Properties>
     <string name="Name">UIStroke</string>
     <Color3 name="Color"><R>0.470588</R><G>0.745098</G><B>0.941176</B></Color3>
     <float name="Thickness">2</float>
@@ -2831,7 +2657,7 @@
     <bool name="Enabled">false</bool>
    </Properties>
    </Item>
-   <Item class="Frame" referent="RBX329"><Properties>
+   <Item class="Frame" referent="RBX312"><Properties>
     <string name="Name">Cooldown</string>
     <Vector2 name="AnchorPoint"><X>0</X><Y>1</Y></Vector2>
     <Color3 name="BackgroundColor3"><R>0</R><G>0</G><B>0</B></Color3>
@@ -2842,13 +2668,13 @@
     <bool name="Visible">false</bool>
     <int name="ZIndex">8</int>
    </Properties>
-    <Item class="UICorner" referent="RBX330"><Properties>
+    <Item class="UICorner" referent="RBX313"><Properties>
      <string name="Name">UICorner</string>
      <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
     </Properties>
     </Item>
    </Item>
-   <Item class="TextLabel" referent="RBX331"><Properties>
+   <Item class="TextLabel" referent="RBX314"><Properties>
     <string name="Name">GlyphLabel</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0.08</YS><YO>0</YO></UDim2>
@@ -2860,7 +2686,7 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="TextLabel" referent="RBX332"><Properties>
+   <Item class="TextLabel" referent="RBX315"><Properties>
     <string name="Name">Caption</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
     <token name="AutomaticSize">1</token>
@@ -2874,18 +2700,18 @@
     <float name="TextSize">11</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
-    <Item class="UIPadding" referent="RBX333"><Properties>
+    <Item class="UIPadding" referent="RBX316"><Properties>
      <string name="Name">UIPadding</string>
      <UDim name="PaddingLeft"><S>0</S><O>7</O></UDim>
      <UDim name="PaddingRight"><S>0</S><O>7</O></UDim>
     </Properties>
     </Item>
-    <Item class="UICorner" referent="RBX334"><Properties>
+    <Item class="UICorner" referent="RBX317"><Properties>
      <string name="Name">UICorner</string>
      <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
     </Properties>
     </Item>
-    <Item class="UIStroke" referent="RBX335"><Properties>
+    <Item class="UIStroke" referent="RBX318"><Properties>
      <string name="Name">UIStroke</string>
      <Color3 name="Color"><R>0.8039</R><G>0.6667</G><B>0.3725</B></Color3>
      <float name="Transparency">0.4</float>
@@ -2893,7 +2719,7 @@
     </Properties>
     </Item>
    </Item>
-   <Item class="TextLabel" referent="RBX336"><Properties>
+   <Item class="TextLabel" referent="RBX319"><Properties>
     <string name="Name">KeyLabel</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
     <Color3 name="BackgroundColor3"><R>0.047</R><G>0.063</G><B>0.075</B></Color3>
@@ -2906,12 +2732,12 @@
     <float name="TextSize">11</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
-    <Item class="UICorner" referent="RBX337"><Properties>
+    <Item class="UICorner" referent="RBX320"><Properties>
      <string name="Name">UICorner</string>
      <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
     </Properties>
     </Item>
-    <Item class="UIStroke" referent="RBX338"><Properties>
+    <Item class="UIStroke" referent="RBX321"><Properties>
      <string name="Name">UIStroke</string>
      <Color3 name="Color"><R>0.8039</R><G>0.6667</G><B>0.3725</B></Color3>
      <float name="Transparency">0.4</float>
@@ -2919,7 +2745,7 @@
     </Properties>
     </Item>
    </Item>
-   <Item class="ImageLabel" referent="RBX339"><Properties>
+   <Item class="ImageLabel" referent="RBX322"><Properties>
     <string name="Name">Ring</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
@@ -2930,7 +2756,7 @@
    </Properties>
    </Item>
   </Item>
-  <Item class="Frame" referent="RBX340"><Properties>
+  <Item class="Frame" referent="RBX323"><Properties>
    <string name="Name">TravelMenu</string>
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
    <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
@@ -2940,19 +2766,19 @@
    <bool name="Visible">false</bool>
    <int name="ZIndex">6</int>
   </Properties>
-   <Item class="UICorner" referent="RBX341"><Properties>
+   <Item class="UICorner" referent="RBX324"><Properties>
     <string name="Name">UICorner</string>
     <UDim name="CornerRadius"><S>0</S><O>12</O></UDim>
    </Properties>
    </Item>
-   <Item class="UIStroke" referent="RBX342"><Properties>
+   <Item class="UIStroke" referent="RBX325"><Properties>
     <string name="Name">UIStroke</string>
     <Color3 name="Color"><R>0.470588</R><G>0.627451</G><B>0.901961</B></Color3>
     <float name="Transparency">0.4</float>
     <bool name="Enabled">false</bool>
    </Properties>
    </Item>
-   <Item class="TextLabel" referent="RBX343"><Properties>
+   <Item class="TextLabel" referent="RBX326"><Properties>
     <string name="Name">Title</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>16</XO><YS>0</YS><YO>10</YO></UDim2>
@@ -2965,7 +2791,7 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="TextButton" referent="RBX344"><Properties>
+   <Item class="TextButton" referent="RBX327"><Properties>
     <string name="Name">Close</string>
     <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
     <Color3 name="BackgroundColor3"><R>0.196078</R><G>0.117647</G><B>0.117647</B></Color3>
@@ -2976,24 +2802,24 @@
     <float name="TextSize">16</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
-    <Item class="UICorner" referent="RBX345"><Properties>
+    <Item class="UICorner" referent="RBX328"><Properties>
      <string name="Name">UICorner</string>
     </Properties>
     </Item>
    </Item>
-   <Item class="Frame" referent="RBX346"><Properties>
+   <Item class="Frame" referent="RBX329"><Properties>
     <string name="Name">List</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>16</XO><YS>0</YS><YO>56</YO></UDim2>
     <UDim2 name="Size"><XS>1</XS><XO>-32</XO><YS>1</YS><YO>-68</YO></UDim2>
    </Properties>
-    <Item class="UIListLayout" referent="RBX347"><Properties>
+    <Item class="UIListLayout" referent="RBX330"><Properties>
      <string name="Name">UIListLayout</string>
      <token name="SortOrder">2</token>
      <UDim name="Padding"><S>0</S><O>10</O></UDim>
     </Properties>
     </Item>
-    <Item class="TextButton" referent="RBX348"><Properties>
+    <Item class="TextButton" referent="RBX331"><Properties>
      <string name="Name">Peak</string>
      <Color3 name="BackgroundColor3"><R>0.109804</R><G>0.156863</G><B>0.188235</B></Color3>
      <int name="LayoutOrder">1</int>
@@ -3003,12 +2829,12 @@
      <float name="TextSize">17</float>
      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>600</Weight><Style>Normal</Style></Font>
     </Properties>
-     <Item class="UICorner" referent="RBX349"><Properties>
+     <Item class="UICorner" referent="RBX332"><Properties>
       <string name="Name">UICorner</string>
      </Properties>
      </Item>
     </Item>
-    <Item class="TextButton" referent="RBX350"><Properties>
+    <Item class="TextButton" referent="RBX333"><Properties>
      <string name="Name">MainPeak</string>
      <Color3 name="BackgroundColor3"><R>0.109804</R><G>0.156863</G><B>0.188235</B></Color3>
      <int name="LayoutOrder">2</int>
@@ -3018,12 +2844,12 @@
      <float name="TextSize">17</float>
      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>600</Weight><Style>Normal</Style></Font>
     </Properties>
-     <Item class="UICorner" referent="RBX351"><Properties>
+     <Item class="UICorner" referent="RBX334"><Properties>
       <string name="Name">UICorner</string>
      </Properties>
      </Item>
     </Item>
-    <Item class="TextButton" referent="RBX352"><Properties>
+    <Item class="TextButton" referent="RBX335"><Properties>
      <string name="Name">SectGate</string>
      <Color3 name="BackgroundColor3"><R>0.109804</R><G>0.156863</G><B>0.188235</B></Color3>
      <int name="LayoutOrder">3</int>
@@ -3033,19 +2859,19 @@
      <float name="TextSize">17</float>
      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>600</Weight><Style>Normal</Style></Font>
     </Properties>
-     <Item class="UICorner" referent="RBX353"><Properties>
+     <Item class="UICorner" referent="RBX336"><Properties>
       <string name="Name">UICorner</string>
      </Properties>
      </Item>
     </Item>
    </Item>
-   <Item class="UIGradient" referent="RBX354"><Properties>
+   <Item class="UIGradient" referent="RBX337"><Properties>
     <string name="Name">Theme</string>
     <float name="Rotation">90</float>
     <ColorSequence name="Color">0 0.102 0.133 0.149 0 1 0.035 0.047 0.059 0 </ColorSequence>
    </Properties>
    </Item>
-   <Item class="ImageLabel" referent="RBX355"><Properties>
+   <Item class="ImageLabel" referent="RBX338"><Properties>
     <string name="Name">Backdrop</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
@@ -3059,7 +2885,7 @@
    </Properties>
    </Item>
   </Item>
-  <Item class="Frame" referent="RBX356"><Properties>
+  <Item class="Frame" referent="RBX339"><Properties>
    <string name="Name">Flash</string>
    <Color3 name="BackgroundColor3"><R>1</R><G>0.960784</G><B>0.862745</B></Color3>
    <float name="BackgroundTransparency">1</float>
@@ -3068,7 +2894,7 @@
    <int name="ZIndex">30</int>
   </Properties>
   </Item>
-  <Item class="Frame" referent="RBX357"><Properties>
+  <Item class="Frame" referent="RBX340"><Properties>
    <string name="Name">Objective</string>
    <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
    <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
@@ -3076,20 +2902,20 @@
    <UDim2 name="Position"><XS>1</XS><XO>-12</XO><YS>0</YS><YO>92</YO></UDim2>
    <UDim2 name="Size"><XS>0</XS><XO>240</XO><YS>0</YS><YO>54</YO></UDim2>
    <bool name="Visible">false</bool>
-   <Ref name="Text">RBX358</Ref>
+   <Ref name="Text">RBX341</Ref>
   </Properties>
-   <Item class="UICorner" referent="RBX359"><Properties>
+   <Item class="UICorner" referent="RBX342"><Properties>
     <string name="Name">UICorner</string>
     <UDim name="CornerRadius"><S>0</S><O>10</O></UDim>
    </Properties>
    </Item>
-   <Item class="UIStroke" referent="RBX360"><Properties>
+   <Item class="UIStroke" referent="RBX343"><Properties>
     <string name="Name">UIStroke</string>
     <Color3 name="Color"><R>0.909804</R><G>0.745098</G><B>0.360784</B></Color3>
     <float name="Transparency">0.55</float>
    </Properties>
    </Item>
-   <Item class="TextLabel" referent="RBX361"><Properties>
+   <Item class="TextLabel" referent="RBX344"><Properties>
     <string name="Name">Title</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>12</XO><YS>0</YS><YO>5</YO></UDim2>
@@ -3102,7 +2928,7 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="TextLabel" referent="RBX358"><Properties>
+   <Item class="TextLabel" referent="RBX341"><Properties>
     <string name="Name">Text</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>12</XO><YS>0</YS><YO>20</YO></UDim2>
@@ -3116,14 +2942,14 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>600</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="UIGradient" referent="RBX362"><Properties>
+   <Item class="UIGradient" referent="RBX345"><Properties>
     <string name="Name">Theme</string>
     <float name="Rotation">90</float>
     <ColorSequence name="Color">0 0.102 0.133 0.149 0 1 0.035 0.047 0.059 0 </ColorSequence>
    </Properties>
    </Item>
   </Item>
-  <Item class="Frame" referent="RBX363"><Properties>
+  <Item class="Frame" referent="RBX346"><Properties>
    <string name="Name">ElderLine</string>
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
    <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
@@ -3133,36 +2959,36 @@
    <bool name="Visible">false</bool>
    <int name="ZIndex">4</int>
   </Properties>
-   <Item class="UICorner" referent="RBX364"><Properties>
+   <Item class="UICorner" referent="RBX347"><Properties>
     <string name="Name">UICorner</string>
     <UDim name="CornerRadius"><S>0</S><O>12</O></UDim>
    </Properties>
    </Item>
-   <Item class="UIStroke" referent="RBX365"><Properties>
+   <Item class="UIStroke" referent="RBX348"><Properties>
     <string name="Name">UIStroke</string>
     <Color3 name="Color"><R>0.8039</R><G>0.6667</G><B>0.3725</B></Color3>
     <float name="Transparency">0.45</float>
    </Properties>
    </Item>
-   <Item class="Frame" referent="RBX366"><Properties>
+   <Item class="Frame" referent="RBX349"><Properties>
     <string name="Name">Portrait</string>
     <Color3 name="BackgroundColor3"><R>0.172549</R><G>0.243137</G><B>0.439216</B></Color3>
     <UDim2 name="Position"><XS>0</XS><XO>10</XO><YS>0.5</YS><YO>-23</YO></UDim2>
     <UDim2 name="Size"><XS>0</XS><XO>46</XO><YS>0</YS><YO>46</YO></UDim2>
     <int name="ZIndex">5</int>
    </Properties>
-    <Item class="UICorner" referent="RBX367"><Properties>
+    <Item class="UICorner" referent="RBX350"><Properties>
      <string name="Name">UICorner</string>
      <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
     </Properties>
     </Item>
-    <Item class="UIStroke" referent="RBX368"><Properties>
+    <Item class="UIStroke" referent="RBX351"><Properties>
      <string name="Name">UIStroke</string>
      <Color3 name="Color"><R>0.909804</R><G>0.745098</G><B>0.360784</B></Color3>
      <float name="Thickness">2</float>
     </Properties>
     </Item>
-    <Item class="TextLabel" referent="RBX369"><Properties>
+    <Item class="TextLabel" referent="RBX352"><Properties>
      <string name="Name">Glyph</string>
      <float name="BackgroundTransparency">1</float>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -3175,7 +3001,7 @@
     </Properties>
     </Item>
    </Item>
-   <Item class="TextLabel" referent="RBX370"><Properties>
+   <Item class="TextLabel" referent="RBX353"><Properties>
     <string name="Name">Speaker</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>66</XO><YS>0</YS><YO>6</YO></UDim2>
@@ -3189,7 +3015,7 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="TextLabel" referent="RBX371"><Properties>
+   <Item class="TextLabel" referent="RBX354"><Properties>
     <string name="Name">Line</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>66</XO><YS>0</YS><YO>22</YO></UDim2>
@@ -3204,14 +3030,14 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>500</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="UIGradient" referent="RBX372"><Properties>
+   <Item class="UIGradient" referent="RBX355"><Properties>
     <string name="Name">Theme</string>
     <float name="Rotation">90</float>
     <ColorSequence name="Color">0 0.102 0.133 0.149 0 1 0.035 0.047 0.059 0 </ColorSequence>
    </Properties>
    </Item>
   </Item>
-  <Item class="Frame" referent="RBX373"><Properties>
+  <Item class="Frame" referent="RBX356"><Properties>
    <string name="Name">QuestBoardWindow</string>
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
    <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
@@ -3220,23 +3046,23 @@
    <UDim2 name="Size"><XS>0</XS><XO>360</XO><YS>0</YS><YO>400</YO></UDim2>
    <bool name="Visible">false</bool>
   </Properties>
-   <Item class="UICorner" referent="RBX374"><Properties>
+   <Item class="UICorner" referent="RBX357"><Properties>
     <string name="Name">UICorner</string>
     <UDim name="CornerRadius"><S>0</S><O>14</O></UDim>
    </Properties>
    </Item>
-   <Item class="UIStroke" referent="RBX375"><Properties>
+   <Item class="UIStroke" referent="RBX358"><Properties>
     <string name="Name">UIStroke</string>
     <Color3 name="Color"><R>0.8039</R><G>0.6667</G><B>0.3725</B></Color3>
     <float name="Transparency">0.6</float>
     <bool name="Enabled">false</bool>
    </Properties>
    </Item>
-   <Item class="UISizeConstraint" referent="RBX376"><Properties>
+   <Item class="UISizeConstraint" referent="RBX359"><Properties>
     <string name="Name">UISizeConstraint</string>
    </Properties>
    </Item>
-   <Item class="TextLabel" referent="RBX377"><Properties>
+   <Item class="TextLabel" referent="RBX360"><Properties>
     <string name="Name">Title</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>16</XO><YS>0</YS><YO>10</YO></UDim2>
@@ -3248,7 +3074,7 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="TextButton" referent="RBX378"><Properties>
+   <Item class="TextButton" referent="RBX361"><Properties>
     <string name="Name">Close</string>
     <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
     <Color3 name="BackgroundColor3"><R>0.0941176</R><G>0.133333</G><B>0.14902</B></Color3>
@@ -3259,12 +3085,12 @@
     <float name="TextSize">16</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
-    <Item class="UICorner" referent="RBX379"><Properties>
+    <Item class="UICorner" referent="RBX362"><Properties>
      <string name="Name">UICorner</string>
     </Properties>
     </Item>
    </Item>
-   <Item class="ScrollingFrame" referent="RBX380"><Properties>
+   <Item class="ScrollingFrame" referent="RBX363"><Properties>
     <string name="Name">List</string>
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
@@ -3274,36 +3100,36 @@
     <token name="AutomaticCanvasSize">2</token>
     <int name="ScrollBarThickness">4</int>
    </Properties>
-    <Item class="UIListLayout" referent="RBX381"><Properties>
+    <Item class="UIListLayout" referent="RBX364"><Properties>
      <string name="Name">UIListLayout</string>
      <token name="SortOrder">2</token>
      <UDim name="Padding"><S>0</S><O>6</O></UDim>
     </Properties>
     </Item>
-    <Item class="Frame" referent="RBX382"><Properties>
+    <Item class="Frame" referent="RBX365"><Properties>
      <string name="Name">ItemTemplate</string>
      <Color3 name="BackgroundColor3"><R>0.0941176</R><G>0.133333</G><B>0.14902</B></Color3>
      <UDim2 name="Size"><XS>1</XS><XO>-6</XO><YS>0</YS><YO>56</YO></UDim2>
      <bool name="Visible">false</bool>
     </Properties>
-     <Item class="UICorner" referent="RBX383"><Properties>
+     <Item class="UICorner" referent="RBX366"><Properties>
       <string name="Name">UICorner</string>
       <UDim name="CornerRadius"><S>0</S><O>10</O></UDim>
      </Properties>
      </Item>
-     <Item class="Frame" referent="RBX384"><Properties>
+     <Item class="Frame" referent="RBX367"><Properties>
       <string name="Name">Swatch</string>
       <Color3 name="BackgroundColor3"><R>0.345098</R><G>0.768627</G><B>0.611765</B></Color3>
       <UDim2 name="Position"><XS>0</XS><XO>10</XO><YS>0</YS><YO>10</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>36</XO><YS>0</YS><YO>36</YO></UDim2>
      </Properties>
-      <Item class="UICorner" referent="RBX385"><Properties>
+      <Item class="UICorner" referent="RBX368"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>18</O></UDim>
       </Properties>
       </Item>
      </Item>
-     <Item class="TextLabel" referent="RBX386"><Properties>
+     <Item class="TextLabel" referent="RBX369"><Properties>
       <string name="Name">NameLabel</string>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0</XS><XO>56</XO><YS>0</YS><YO>6</YO></UDim2>
@@ -3315,7 +3141,7 @@
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="RBX387"><Properties>
+     <Item class="TextLabel" referent="RBX370"><Properties>
       <string name="Name">Detail</string>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0</XS><XO>56</XO><YS>0</YS><YO>28</YO></UDim2>
@@ -3328,7 +3154,7 @@
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>500</Weight><Style>Normal</Style></Font>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="RBX388"><Properties>
+     <Item class="TextLabel" referent="RBX371"><Properties>
       <string name="Name">CountLabel</string>
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
@@ -3341,7 +3167,7 @@
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>500</Weight><Style>Normal</Style></Font>
      </Properties>
      </Item>
-     <Item class="TextButton" referent="RBX389"><Properties>
+     <Item class="TextButton" referent="RBX372"><Properties>
       <string name="Name">EatButton</string>
       <Vector2 name="AnchorPoint"><X>1</X><Y>0.5</Y></Vector2>
       <Color3 name="BackgroundColor3"><R>0.345098</R><G>0.768627</G><B>0.611765</B></Color3>
@@ -3352,20 +3178,20 @@
       <float name="TextSize">16</float>
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
-      <Item class="UICorner" referent="RBX390"><Properties>
+      <Item class="UICorner" referent="RBX373"><Properties>
        <string name="Name">UICorner</string>
       </Properties>
       </Item>
      </Item>
     </Item>
    </Item>
-   <Item class="UIGradient" referent="RBX391"><Properties>
+   <Item class="UIGradient" referent="RBX374"><Properties>
     <string name="Name">Theme</string>
     <float name="Rotation">90</float>
     <ColorSequence name="Color">0 0.102 0.133 0.149 0 1 0.035 0.047 0.059 0 </ColorSequence>
    </Properties>
    </Item>
-   <Item class="ImageLabel" referent="RBX392"><Properties>
+   <Item class="ImageLabel" referent="RBX375"><Properties>
     <string name="Name">Backdrop</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
@@ -3379,7 +3205,7 @@
    </Properties>
    </Item>
   </Item>
-  <Item class="Frame" referent="RBX393"><Properties>
+  <Item class="Frame" referent="RBX376"><Properties>
    <string name="Name">Banner</string>
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
@@ -3388,7 +3214,7 @@
    <bool name="Visible">false</bool>
    <int name="ZIndex">31</int>
   </Properties>
-   <Item class="TextLabel" referent="RBX394"><Properties>
+   <Item class="TextLabel" referent="RBX377"><Properties>
     <string name="Name">Kicker</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>26</YO></UDim2>
@@ -3401,7 +3227,7 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="TextLabel" referent="RBX395"><Properties>
+   <Item class="TextLabel" referent="RBX378"><Properties>
     <string name="Name">Title</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>26</YO></UDim2>
@@ -3415,13 +3241,13 @@
     <float name="TextStrokeTransparency">0.3</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
-    <Item class="UITextSizeConstraint" referent="RBX396"><Properties>
+    <Item class="UITextSizeConstraint" referent="RBX379"><Properties>
      <string name="Name">UITextSizeConstraint</string>
      <int name="MaxTextSize">52</int>
     </Properties>
     </Item>
    </Item>
-   <Item class="Frame" referent="RBX397"><Properties>
+   <Item class="Frame" referent="RBX380"><Properties>
     <string name="Name">Rule</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
     <Color3 name="BackgroundColor3"><R>0.909804</R><G>0.745098</G><B>0.360784</B></Color3>
@@ -3429,6 +3255,182 @@
     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>96</YO></UDim2>
     <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>2</YO></UDim2>
     <int name="ZIndex">32</int>
+   </Properties>
+   </Item>
+  </Item>
+  <Item class="Frame" referent="RBX381"><Properties>
+   <string name="Name">Hotbar</string>
+   <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
+   <float name="BackgroundTransparency">1</float>
+   <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-10</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>462</XO><YS>0</YS><YO>54</YO></UDim2>
+   <int name="ZIndex">9</int>
+  </Properties>
+   <Item class="Frame" referent="RBX382"><Properties>
+    <string name="Name">Slots</string>
+    <float name="BackgroundTransparency">1</float>
+    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+    <int name="ZIndex">2</int>
+   </Properties>
+    <Item class="UIGridLayout" referent="RBX383"><Properties>
+     <string name="Name">UIGridLayout</string>
+     <token name="HorizontalAlignment">0</token>
+     <token name="VerticalAlignment">2</token>
+     <token name="SortOrder">2</token>
+     <UDim2 name="CellSize"><XS>0</XS><XO>46</XO><YS>0</YS><YO>46</YO></UDim2>
+     <UDim2 name="CellPadding"><XS>0</XS><XO>6</XO><YS>0</YS><YO>6</YO></UDim2>
+     <int name="FillDirectionMaxCells">9</int>
+    </Properties>
+    </Item>
+    <Item class="TextButton" referent="RBX384"><Properties>
+     <string name="Name">SlotTemplate</string>
+     <float name="BackgroundTransparency">1</float>
+     <UDim2 name="Size"><XS>0</XS><XO>46</XO><YS>0</YS><YO>46</YO></UDim2>
+     <bool name="Visible">false</bool>
+     <bool name="AutoButtonColor">false</bool>
+     <string name="Text"></string>
+    </Properties>
+     <Item class="ImageLabel" referent="RBX385"><Properties>
+      <string name="Name">Halo</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1.55</XS><XO>0</XO><YS>1.55</YS><YO>0</YO></UDim2>
+      <bool name="Visible">false</bool>
+      <Content name="Image"><url>rbxassetid://121653816158247</url></Content>
+      <Color3 name="ImageColor3"><R>1</R><G>0.839216</G><B>0.470588</B></Color3>
+     </Properties>
+     </Item>
+     <Item class="ImageLabel" referent="RBX386"><Properties>
+      <string name="Name">Frame</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1.3</XS><XO>0</XO><YS>1.3</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">2</int>
+      <Content name="Image"><url>rbxassetid://102954604847130</url></Content>
+     </Properties>
+     </Item>
+     <Item class="ImageLabel" referent="RBX387"><Properties>
+      <string name="Name">Glow</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1.3</XS><XO>0</XO><YS>1.3</YS><YO>0</YO></UDim2>
+      <bool name="Visible">false</bool>
+      <int name="ZIndex">3</int>
+      <Content name="Image"><url>rbxassetid://126230159457255</url></Content>
+      <float name="ImageTransparency">0.1</float>
+     </Properties>
+     </Item>
+     <Item class="ImageLabel" referent="RBX388"><Properties>
+      <string name="Name">Icon</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.36</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">4</int>
+     </Properties>
+     </Item>
+     <Item class="TextLabel" referent="RBX389"><Properties>
+      <string name="Name">Glyph</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.34</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.46</XS><XO>0</XO><YS>0.46</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">4</int>
+      <string name="Text"></string>
+      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
+      <bool name="TextScaled">true</bool>
+      <bool name="TextWrapped">true</bool>
+      <float name="TextStrokeTransparency">0.4</float>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+     <Item class="Frame" referent="RBX390"><Properties>
+      <string name="Name">Cooldown</string>
+      <Vector2 name="AnchorPoint"><X>0</X><Y>1</Y></Vector2>
+      <Color3 name="BackgroundColor3"><R>0</R><G>0</G><B>0</B></Color3>
+      <float name="BackgroundTransparency">0.4</float>
+      <int name="BorderSizePixel">0</int>
+      <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+      <bool name="Visible">false</bool>
+      <int name="ZIndex">5</int>
+     </Properties>
+     </Item>
+     <Item class="TextLabel" referent="RBX391"><Properties>
+      <string name="Name">CooldownLabel</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <bool name="Visible">false</bool>
+      <int name="ZIndex">7</int>
+      <string name="Text"></string>
+      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
+      <float name="TextSize">15</float>
+      <float name="TextStrokeTransparency">0.3</float>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+     <Item class="TextLabel" referent="RBX392"><Properties>
+      <string name="Name">CountLabel</string>
+      <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>1</XS><XO>-3</XO><YS>0</YS><YO>2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>0</YS><YO>14</YO></UDim2>
+      <int name="ZIndex">6</int>
+      <string name="Text"></string>
+      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
+      <float name="TextSize">10</float>
+      <token name="TextXAlignment">1</token>
+      <float name="TextStrokeTransparency">0.2</float>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+     <Item class="TextLabel" referent="RBX393"><Properties>
+      <string name="Name">KeyLabel</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <Color3 name="BackgroundColor3"><R>0.0470588</R><G>0.0627451</G><B>0.0745098</B></Color3>
+      <float name="BackgroundTransparency">0.1</float>
+      <UDim2 name="Position"><XS>0</XS><XO>4</XO><YS>0</YS><YO>4</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>14</XO><YS>0</YS><YO>14</YO></UDim2>
+      <int name="ZIndex">6</int>
+      <string name="Text">1</string>
+      <Color3 name="TextColor3"><R>0.909804</R><G>0.752941</G><B>0.360784</B></Color3>
+      <float name="TextSize">9</float>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+      <Item class="UICorner" referent="RBX394"><Properties>
+       <string name="Name">UICorner</string>
+       <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
+      </Properties>
+      </Item>
+      <Item class="UIStroke" referent="RBX395"><Properties>
+       <string name="Name">UIStroke</string>
+       <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
+      </Properties>
+      </Item>
+     </Item>
+     <Item class="TextLabel" referent="RBX396"><Properties>
+      <string name="Name">NameLabel</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-3</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-6</XO><YS>0.42</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">6</int>
+      <string name="Text"></string>
+      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
+      <float name="TextSize">9</float>
+      <bool name="TextWrapped">true</bool>
+      <token name="TextYAlignment">2</token>
+      <float name="TextStrokeTransparency">0.3</float>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+    </Item>
+   </Item>
+   <Item class="UIScale" referent="RBX397"><Properties>
+    <string name="Name">UIScale</string>
    </Properties>
    </Item>
   </Item>

@@ -9,7 +9,7 @@
 
 local Platform = require(script.Parent.Platform)
 
-local STACK_WIDTH = 560 -- the vitals mount and hotbar row at full size, with margin
+local STACK_WIDTH = 500 -- the vitals mount and hotbar row at full size, with margin
 local TOUCH_CLUSTER = 180 -- room kept at the right for Strike, Dash and jump
 
 local Layout = {}
@@ -39,8 +39,8 @@ function Layout.apply()
 	local room = if touch then width - TOUCH_CLUSTER else width
 	local scale = math.clamp((room - 24) / STACK_WIDTH, 0.5, 1)
 	local centre = if touch then UDim.new(0, room / 2) else UDim.new(0.5, 0)
-	hotbar.Position = UDim2.new(centre, UDim.new(1, -14 * scale))
-	vitals.Position = UDim2.new(centre, UDim.new(1, -104 * scale))
+	hotbar.Position = UDim2.new(centre, UDim.new(1, -10 * scale))
+	vitals.Position = UDim2.new(centre, UDim.new(1, -64 * scale))
 	setScale(hotbar, scale)
 	setScale(vitals, scale)
 

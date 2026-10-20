@@ -11,6 +11,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
@@ -31,13 +32,7 @@ local function stageIndex(data: PlayerData.Data): number
 end
 
 local function slotted(data: PlayerData.Data): number
-	local n = 0
-	for _, id in data.techniques.slots do
-		if id ~= "" then
-			n += 1
-		end
-	end
-	return n
+	return Hotbar.techniqueCount(data.hotbar)
 end
 
 local function nearGate(player: Player): boolean

@@ -1,86 +1,114 @@
 --!strict
--- The Inventory window, with a tab each for herbs (eat them) and arts (every
--- technique you own, its level and XP, and a button to equip it into a free
--- slot or unequip it). Technique names live here; the HUD slots show only icons.
+-- The Inventory window (the Inventory tile, or ` on a keyboard): a grid of
+-- everything you carry (Pouch) or know (Arts), and a detail pane for the chosen
+-- one. Items can be used or held out; arts added to or taken off the hotbar.
+-- Anything in the grid can be dragged onto the hotbar (HotbarView).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
-local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
+local HotbarView = require(script.Parent.HotbarView)
 local Hud = require(script.Parent.Hud)
 local ListWindow = require(script.Parent.ListWindow)
+local Platform = require(script.Parent.Platform)
+local SlotArt = require(script.Parent.SlotArt)
 local State = require(script.Parent.State)
 
 local inventoryRemote = ReplicatedStorage.Remotes.InventoryAction :: RemoteFunction
-local techniqueRemote = ReplicatedStorage.Remotes.TechniqueAction :: RemoteFunction
 
-type Tab = "Herbs" | "Arts"
+type Tab = "Pouch" | "Arts"
 
-local TAB_ON = { fill = Color3.fromRGB(232, 192, 92), text = Color3.fromRGB(16, 24, 28) }
+local TAB_ON = { fill = Color3.fromRGB(150, 110, 40), text = Color3.fromRGB(255, 244, 214) }
 local TAB_OFF = { fill = Color3.fromRGB(24, 34, 38), text = Color3.fromRGB(160, 182, 176) }
 local EMPTY: { [Tab]: string } = {
-	Herbs = "Your pouch is empty. Harvest herbs from your beds.",
+	Pouch = "Your pouch is empty. Harvest herbs, hunt spirit beasts for their cores, and watch the skies for heavenly treasures.",
 	Arts = "You know no arts yet. Beasts in the wilds sometimes drop manuals.",
 }
 
 local Inventory = {}
 
 local window: Frame
+local grid: ScrollingFrame
+local cellTemplate: TextButton
+local info: ScrollingFrame
+local primary: TextButton
+local secondary: TextButton
 local tabButtons: { [Tab]: TextButton } = {}
-local tab: Tab = "Herbs"
+local tab: Tab = "Pouch"
+local selected: string? = nil
 
-local function herbRows(): { ListWindow.Row }
-	local rows: { ListWindow.Row } = {}
-	for _, id in Herbs.Order do
-		local count = State.current.herbs[id] or 0
-		if count > 0 then
-			local herb = Herbs.Defs[id]
-			table.insert(rows, {
-				color = herb.color,
-				name = herb.name,
-				detail = herb.blurb,
-				count = count,
-				buttonText = "Eat",
-				onPress = function()
-					local _, message = inventoryRemote:InvokeServer("eat", id)
-					if message then
-						Hud.toast(message)
-					end
-				end,
-			})
-		end
+local function invoke(...: any)
+	local ok, message = inventoryRemote:InvokeServer(...)
+	if message and (not ok or ... == "use") then
+		Hud.toast(message)
 	end
-	return rows
 end
 
-local function artRows(): { ListWindow.Row }
-	local s = State.current.techniques
-	local rows: { ListWindow.Row } = {}
-	for _, id in Techniques.Order do
-		local owned = s.owned[id]
-		if owned then
-			local def = Techniques.Defs[id]
-			local slot = table.find(s.slots, id)
-			local xp = if owned.level >= Techniques.MAX_LEVEL
-				then "max level"
-				else `{owned.xp}/{Techniques.xpToNext(owned.level)} xp`
-			table.insert(rows, {
-				color = def.color,
-				name = if slot then `{def.name}  [{slot}]` else def.name,
-				detail = `{def.blurb}  ({xp}, {def.cooldown}s)`,
-				count = owned.level,
-				countText = `Lv {owned.level}`,
-				buttonText = if slot then "Unequip" else "Equip",
-				onPress = function()
-					local ok, message = techniqueRemote:InvokeServer(if slot then "unequip" else "equip", id)
-					if not ok and message then
-						Hud.toast(message)
-					end
-				end,
-			})
+local function entries(): { string }
+	local list = {}
+	local s = State.current
+	if tab == "Pouch" then
+		for _, id in Items.Order do
+			if Items.count(s, id) > 0 then
+				table.insert(list, id)
+			end
+		end
+	else
+		for _, id in Techniques.Order do
+			if s.techniques.owned[id] then
+				table.insert(list, id)
+			end
 		end
 	end
-	return rows
+	return list
+end
+
+local function label(name: string): TextLabel
+	return info:FindFirstChild(name) :: TextLabel
+end
+
+local function renderDetail()
+	local s = State.current
+	local preview = info:FindFirstChild("Preview") :: TextButton
+	local item = selected and Items.Defs[selected]
+	local technique = selected and Techniques.Defs[selected]
+	local owned = technique and s.techniques.owned[technique.id]
+	if item and Items.count(s, item.id) <= 0 then
+		item = nil
+	end
+	local any = item ~= nil or owned ~= nil
+	label("Hint").Visible = not any
+	primary.Visible = any
+	secondary.Visible = item ~= nil
+	SlotArt.paint(preview, if any then selected else nil, nil, "")
+	if item then
+		local count = Items.count(s, item.id)
+		label("NameLabel").Text = item.name
+		label("KindLabel").Text = `{item.rarity} {string.lower(Items.CategoryNames[item.category])} · x{count}`
+		label("KindLabel").TextColor3 = Items.rarityColor(item)
+		label("Blurb").Text = item.blurb
+		label("Lore").Text = item.lore or ""
+		primary.Text = if item.category == "Herb" then "Eat" else "Use"
+		local held = HotbarView.held()
+		secondary.Text = if held and held:GetAttribute("ItemId") == item.id then "Put away" else "Hold"
+	elseif technique and owned then
+		local xp = if owned.level >= Techniques.MAX_LEVEL
+			then "max level"
+			else `{owned.xp}/{Techniques.xpToNext(owned.level)} xp`
+		label("NameLabel").Text = technique.name
+		label("KindLabel").Text = `Technique · Lv {owned.level} · {xp} · {technique.cooldown}s`
+		label("KindLabel").TextColor3 = technique.color:Lerp(Color3.new(1, 1, 1), 0.3)
+		label("Blurb").Text = technique.blurb
+		label("Lore").Text = ""
+		primary.Text = if table.find(s.hotbar, technique.id) then "Remove from hotbar" else "Add to hotbar"
+	else
+		label("NameLabel").Text = ""
+		label("KindLabel").Text = ""
+		label("Blurb").Text = ""
+		label("Lore").Text = ""
+	end
 end
 
 local function render()
@@ -89,30 +117,120 @@ local function render()
 		button.BackgroundColor3 = style.fill
 		button.TextColor3 = style.text
 	end
-	local rows = if tab == "Herbs" then herbRows() else artRows()
-	ListWindow.fill(window, "ItemTemplate", "EatButton", rows)
+	for _, child in grid:GetChildren() do
+		if child:IsA("GuiButton") and child ~= cellTemplate then
+			child:Destroy()
+		end
+	end
+	local s = State.current
+	local list = entries()
+	for i, id in list do
+		local cell = cellTemplate:Clone()
+		cell.Name = id
+		cell.LayoutOrder = i
+		cell.Visible = true
+		if Techniques.Defs[id] then
+			SlotArt.paint(cell, id, nil, `Lv {s.techniques.owned[id].level}`)
+		else
+			SlotArt.paint(cell, id, Items.count(s, id))
+		end
+		local onBar = table.find(s.hotbar, id)
+		local key = cell:FindFirstChild("KeyLabel") :: TextLabel
+		key.Visible = onBar ~= nil
+		key.Text = if onBar then tostring(onBar) else ""
+		local halo = cell:FindFirstChild("Halo") :: GuiObject
+		halo.Visible = id == selected
+		cell.Activated:Connect(function()
+			if not HotbarView.justDragged() then
+				selected = id
+				render()
+			end
+		end)
+		HotbarView.draggable(cell, function()
+			return id
+		end)
+		cell.Parent = grid
+	end
 	local empty = window:FindFirstChild("Empty") :: TextLabel
 	empty.Text = EMPTY[tab]
-	empty.Visible = #rows == 0
+	empty.Visible = #list == 0
+	renderDetail()
+end
+
+local function onPrimary()
+	local id = selected
+	if not id then
+		return
+	end
+	if Items.Defs[id] then
+		invoke("use", id)
+	elseif Techniques.Defs[id] then
+		local at = table.find(State.current.hotbar, id)
+		if at then
+			invoke("clear", at)
+		else
+			invoke("slot", id)
+		end
+	end
+end
+
+local function onSecondary()
+	if selected and Items.Defs[selected] then
+		HotbarView.toggleHold(selected)
+		task.defer(renderDetail)
+	end
+end
+
+-- On touch the window sits high so the hotbar (drawn over it) stays a drop target.
+local function layout()
+	if Platform.isTouch() then
+		window.AnchorPoint = Vector2.new(0.5, 0)
+		window.Position = UDim2.new(0.5, 0, 0, 8)
+		window.Size = UDim2.new(0.94, 0, 1, -70)
+	else
+		window.AnchorPoint = Vector2.new(0.5, 0.5)
+		window.Position = UDim2.fromScale(0.5, 0.48)
+		window.Size = UDim2.fromScale(0.94, 0.8)
+	end
+end
+
+local function setOpen(open: boolean)
+	window.Visible = open
+	if open then
+		layout()
+		render()
+	end
 end
 
 function Inventory.init(gui: ScreenGui)
 	window = gui:FindFirstChild("Inventory") :: Frame
+	grid = window:FindFirstChild("Grid") :: ScrollingFrame
+	cellTemplate = grid:FindFirstChild("CellTemplate") :: TextButton
+	local detail = window:FindFirstChild("Detail") :: Frame
+	info = detail:FindFirstChild("Info") :: ScrollingFrame
+	local actions = detail:FindFirstChild("Actions") :: Frame
+	primary = actions:FindFirstChild("Primary") :: TextButton
+	secondary = actions:FindFirstChild("Secondary") :: TextButton
+	primary.Activated:Connect(onPrimary)
+	secondary.Activated:Connect(onSecondary)
 	ListWindow.bindClose(window)
 	local tabs = window:FindFirstChild("Tabs") :: Frame
-	for _, name: Tab in { "Herbs" :: Tab, "Arts" :: Tab } do
+	for _, name: Tab in { "Pouch" :: Tab, "Arts" :: Tab } do
 		local button = tabs:FindFirstChild(`{name}Tab`) :: TextButton
 		tabButtons[name] = button
 		button.Activated:Connect(function()
 			tab = name
+			selected = nil
 			render()
 		end)
 	end
 	local button = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("InventoryButton") :: TextButton
 	button.Activated:Connect(function()
-		window.Visible = not window.Visible
-		if window.Visible then
-			render()
+		setOpen(not window.Visible)
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if not processed and input.KeyCode == Enum.KeyCode.Backquote then
+			setOpen(not window.Visible)
 		end
 	end)
 	State.onChanged(function()

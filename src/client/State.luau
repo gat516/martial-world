@@ -7,10 +7,12 @@ export type Buff = { source: string, kind: string, amount: number, expires: numb
 export type Technique = { level: number, xp: number }
 export type Snapshot = {
 	insight: number,
-	techniques: { owned: { [string]: Technique }, slots: { string } },
+	techniques: { owned: { [string]: Technique } },
+	hotbar: { string }, -- technique id, item id or "" per slot
 	rate: number,
 	aura: number,
 	herbs: { [string]: number },
+	items: { [string]: number },
 	seeds: { [string]: number },
 	buffs: { Buff },
 	decor: { [string]: number }?,
@@ -21,10 +23,12 @@ local State = {}
 
 State.current = {
 	insight = 0,
-	techniques = { owned = {}, slots = { "", "", "" } },
+	techniques = { owned = {} },
+	hotbar = { "", "", "", "", "", "", "", "", "" },
 	rate = 0,
 	aura = 0,
 	herbs = {},
+	items = {},
 	seeds = {},
 	buffs = {},
 	decor = {},

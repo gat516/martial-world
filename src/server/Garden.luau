@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Garden
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
@@ -104,6 +105,7 @@ function Garden.harvest(player: Player, plotId: any): (boolean, string?)
 	end
 	local count = rng:NextInteger(herb.yield[1], herb.yield[2])
 	data.herbs[plot.herb] = (data.herbs[plot.herb] or 0) + count
+	Hotbar.place(data.hotbar, plot.herb)
 	local seeds = rng:NextInteger(Config.SEEDS_BACK[1], Config.SEEDS_BACK[2])
 	data.seeds[plot.herb] = (data.seeds[plot.herb] or 0) + seeds
 	local message = `Harvested {count} {herb.name} (+{seeds} seeds)`

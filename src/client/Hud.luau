@@ -1,12 +1,13 @@
 --!strict
--- Status panel (realm, cultivation bar, dantian, health), active buffs with
--- countdowns, and toast messages.
+-- The vitals mount at the bottom (segmented health, qi and cultivation bars, the
+-- realm crest above it, and qi / cultivation readouts under it), active buffs
+-- with countdowns, and toasts. The top-left corner is left to Roblox's chat.
 
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Items = require(ReplicatedStorage.Shared.Items)
 local State = require(script.Parent.State)
 
 local TOAST_SECONDS = 3.2
@@ -63,9 +64,9 @@ local function formatTime(seconds: number): string
 end
 
 local function buffText(b: State.Buff, now: number): string
-	local herb = Herbs.Defs[b.source]
+	local item = Items.Defs[b.source]
 	local amount = if b.kind == "QiRate" then `+{math.floor(b.amount * 100 + 0.5)}%` else `+{b.amount}`
-	return `{herb and herb.name or b.source}: {amount} {BUFF_LABELS[b.kind] or b.kind}  {formatTime(b.expires - now)}`
+	return `{item and item.name or b.source}: {amount} {BUFF_LABELS[b.kind] or b.kind}  {formatTime(b.expires - now)}`
 end
 
 local function renderBuffs()
@@ -89,20 +90,19 @@ local function renderBuffs()
 	end
 end
 
-local function setBar(bar: Frame, value: number, max: number, text: string)
+local function setBar(bar: Frame, value: number, max: number, label: TextLabel, text: string)
 	local fill = bar:FindFirstChild("Fill") :: Frame
 	fill.Size = UDim2.fromScale(if max > 0 then math.clamp(value / max, 0, 1) else 0, 1)
 	fill.Visible = value > 0
-	local label = bar:FindFirstChild("Label") :: TextLabel
 	label.Text = text
 end
 
 -- Mirror the character's health; the default Roblox health bar is hidden in its favor.
-local function watchHealth(bar: Frame, character: Model)
+local function watchHealth(bar: Frame, label: TextLabel, character: Model)
 	local humanoid = character:WaitForChild("Humanoid") :: Humanoid
 	local function show()
 		local hp, max = math.ceil(humanoid.Health), humanoid.MaxHealth
-		setBar(bar, hp, max, `{hp} / {math.floor(max)}`)
+		setBar(bar, hp, max, label, `{hp} / {math.floor(max)}`)
 	end
 	humanoid.HealthChanged:Connect(show)
 	humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(show)
@@ -111,46 +111,53 @@ end
 
 function Hud.init(screenGui: ScreenGui)
 	gui = screenGui
-	local panel = gui:FindFirstChild("StatusPanel") :: Frame
-	local realmLabel = panel:FindFirstChild("RealmLabel") :: TextLabel
-	local cultivationBar = panel:FindFirstChild("CultivationBar") :: Frame
-	local rateLabel = panel:FindFirstChild("RateLabel") :: TextLabel
-	local dantianBar = panel:FindFirstChild("DantianBar") :: Frame
-	local healthBar = panel:FindFirstChild("HealthBar") :: Frame
+	local vitals = gui:FindFirstChild("Vitals") :: Frame
+	local realmLabel = (vitals:FindFirstChild("Crest") :: Frame):FindFirstChild("RealmText") :: TextLabel
+	local healthBar = vitals:FindFirstChild("HealthBar") :: Frame
+	local dantianBar = vitals:FindFirstChild("DantianBar") :: Frame
+	local cultivationBar = vitals:FindFirstChild("CultivationBar") :: Frame
+	local healthText = vitals:FindFirstChild("HealthText") :: TextLabel
+	local qiText = vitals:FindFirstChild("QiText") :: TextLabel
+	local cultivationText = vitals:FindFirstChild("CultivationText") :: TextLabel
+	local rateText, insightText = "", ""
 
 	local function showCultivation()
-		realmLabel.Text = player:GetAttribute("Realm") or ""
+		realmLabel.Text = (player:GetAttribute("Realm") or "") .. insightText
 		local value, max = player:GetAttribute("Cultivation") or 0, player:GetAttribute("CultivationMax") or 0
 		-- negative after a forced breakthrough: qi debt to pay off first
-		local text = if value < 0 then `Qi debt {formatNumber(-value)}` else `{formatNumber(value)} / {formatNumber(max)}`
-		setBar(cultivationBar, value, max, text)
+		local text = if value < 0
+			then `Qi debt {formatNumber(-value)}`
+			else `Cultivation {formatNumber(value)} / {formatNumber(max)}`
+		setBar(cultivationBar, value, max, cultivationText, text .. rateText)
 		local qi, cap = player:GetAttribute("RawQi") or 0, player:GetAttribute("DantianCap") or 0
-		setBar(dantianBar, qi, cap, `Dantian {formatNumber(qi)} / {formatNumber(cap)}`)
+		setBar(dantianBar, qi, cap, qiText, `Qi {formatNumber(qi)} / {formatNumber(cap)}`)
 	end
 	for _, attr in { "Realm", "Cultivation", "CultivationMax", "RawQi", "DantianCap" } do
 		player:GetAttributeChangedSignal(attr):Connect(showCultivation)
 	end
 	showCultivation()
 
+	-- the HUD draws its own health bar and hotbar (HotbarView); no leaderboard
 	pcall(function()
 		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
 	end)
 	player.CharacterAdded:Connect(function(character)
-		watchHealth(healthBar, character)
+		watchHealth(healthBar, healthText, character)
 	end)
 	if player.Character then
-		task.spawn(watchHealth, healthBar, player.Character)
+		task.spawn(watchHealth, healthBar, healthText, player.Character)
 	end
 
 	local notifyRemote = ReplicatedStorage.Remotes.Notify :: RemoteEvent
 	notifyRemote.OnClientEvent:Connect(Hud.toast)
 
-	local insightLabel = panel:FindFirstChild("InsightLabel") :: TextLabel
 	State.onChanged(function(s)
-		local aura = if s.aura > 0 then `  (garden +{math.floor(s.aura * 100 + 0.5)}%)` else ""
-		local meditating = if s.meditation then `  meditating ×{s.meditation.multiplier}` else ""
-		rateLabel.Text = string.format("+%.2f/s passive", s.rate) .. aura .. meditating
-		insightLabel.Text = if s.insight > 0 then `Insight {s.insight}` else ""
+		local meditating = if s.meditation then ` ×{s.meditation.multiplier}` else ""
+		rateText = string.format("  ·  +%.2f/s", s.rate) .. meditating
+		insightText = if s.insight > 0 then `  ·  Insight {s.insight}` else ""
+		showCultivation()
 		renderBuffs()
 	end)
 

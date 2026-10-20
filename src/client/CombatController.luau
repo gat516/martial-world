@@ -1,17 +1,18 @@
 --!strict
--- The player's combat kit: fist basic attack, three technique slots and dodge.
+-- The player's combat kit: fist basic attack, techniques (cast from the hotbar,
+-- HotbarView.luau) and dodge.
 --
 -- Basic attack: a five-hit chain played from ReplicatedStorage.Animations.Fists.
--- Swings come from the Strike button, or on their own while an enemy is in range
--- (auto-attack). Soft auto-aim turns the character toward the target; tapping or
+-- PC swings on M1 (unless an item is held out: then M1 uses it). Touch swings
+-- from the Strike button, or on its own while an enemy is in range (auto-attack). Soft auto-aim turns the character toward the target; tapping or
 -- clicking an enemy makes it the target.
 -- Everything is predicted: the animation, dash and effects play at once, and the
 -- client reports each action with its server-clock timestamp (GetServerTimeNow).
 -- Impacts are timed by animation markers: a swing's hitbox is live from the "Hit"
 -- marker to the "Hit Stop" marker, and a technique goes off at "Hit". The client
 -- flashes what it hit; the server re-checks hits and owns damage (Combat.luau).
--- PC: 1/2/3 for techniques, Q to dash, click an enemy to target it.
--- Mobile: the Dash button beside Strike.
+-- PC: hotbar keys for techniques, Q to dash, click an enemy to target it.
+-- Mobile: hotbar slots for techniques, the Dash button beside Strike.
 
 local CollectionService = game:GetService("CollectionService")
 local ContextActionService = game:GetService("ContextActionService")
@@ -22,11 +23,13 @@ local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Combat
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
+local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local CombatEffects = require(script.Parent.CombatEffects)
 local Hud = require(script.Parent.Hud)
 local Meditation = require(script.Parent.Meditation)
+local Platform = require(script.Parent.Platform)
 local State = require(script.Parent.State)
 
 local remotes = ReplicatedStorage.Remotes
@@ -43,7 +46,6 @@ local TAP_MAX_PIXELS = 12 -- a press that moves further is a drag (camera, thumb
 local TAP_MAX_SECONDS = 0.35
 local DAMAGE_COLOR = Color3.fromRGB(255, 240, 200)
 local HURT_COLOR = Color3.fromRGB(255, 90, 80)
-local KEYS = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three }
 
 local CombatController = {}
 
@@ -363,11 +365,18 @@ local function flashArea(def: Techniques.Def, origin: Vector3, dir: Vector3)
 	end
 end
 
-function CombatController.cast(slot: number)
-	local id = State.current.techniques.slots[slot]
-	local def = id and Techniques.Defs[id]
+-- Seconds left on a technique's cooldown, and its full length.
+function CombatController.cooldown(id: string): (number, number)
+	local def = Techniques.Defs[id]
 	if not def then
-		Hud.toast("This slot is empty. Learn techniques from manuals.")
+		return 0, 1
+	end
+	return math.max(0, (readyAt[id] or 0) - os.clock()), def.cooldown
+end
+
+function CombatController.cast(id: string)
+	local def = Techniques.Defs[id]
+	if not (def and State.current.techniques.owned[id]) then
 		return
 	end
 	local root = myRoot()
@@ -395,50 +404,15 @@ function CombatController.cast(slot: number)
 	end)
 end
 
--- Icons, colors and cooldown overlays for the technique and dodge buttons.
+-- The Dash button and its cooldown overlay.
 local function bindButtons(gui: ScreenGui)
-	local buttons: { TextButton } = {}
-	for slot = 1, Techniques.SLOTS do
-		local button = gui:FindFirstChild(`Technique{slot}`) :: TextButton
-		buttons[slot] = button
-		button.Activated:Connect(function()
-			CombatController.cast(slot)
-		end)
-	end
-	State.onChanged(function(s)
-		for slot, button in buttons do
-			local def = Techniques.Defs[s.techniques.slots[slot] or ""]
-			local icon = button:FindFirstChild("Icon") :: ImageLabel
-			icon.Image = if def then def.icon else ""
-			icon.ImageColor3 = if def then def.color:Lerp(Color3.new(1, 1, 1), 0.35) else Color3.new(1, 1, 1)
-			local stroke = button:FindFirstChildOfClass("UIStroke") :: UIStroke
-			stroke.Color = if def then def.color else Color3.fromRGB(70, 80, 80)
-		end
-	end)
 	local dodgeButton = gui:FindFirstChild("DodgeButton") :: TextButton
 	dodgeButton.Activated:Connect(CombatController.dodge)
-
-	local function showCooldown(button: GuiObject, remaining: number, total: number)
-		local overlay = button:FindFirstChild("Cooldown") :: Frame
-		overlay.Visible = remaining > 0
-		overlay.Size = UDim2.fromScale(1, math.clamp(remaining / total, 0, 1))
-		local text = button:FindFirstChild("CooldownLabel") :: TextLabel?
-		if text then
-			text.Visible = remaining > 0
-			text.Text = string.format("%d", math.ceil(remaining))
-		end
-	end
+	local overlay = dodgeButton:FindFirstChild("Cooldown") :: Frame
 	RunService.RenderStepped:Connect(function()
-		local now = os.clock()
-		for slot, button in buttons do
-			local def = Techniques.Defs[State.current.techniques.slots[slot] or ""]
-			if def then
-				showCooldown(button, (readyAt[def.id] or 0) - now, def.cooldown)
-			else
-				showCooldown(button, 0, 1)
-			end
-		end
-		showCooldown(dodgeButton, lastDodge + Config.DODGE_COOLDOWN - now, Config.DODGE_COOLDOWN)
+		local remaining = lastDodge + Config.DODGE_COOLDOWN - os.clock()
+		overlay.Visible = remaining > 0
+		overlay.Size = UDim2.fromScale(1, math.clamp(remaining / Config.DODGE_COOLDOWN, 0, 1))
 	end)
 end
 
@@ -465,6 +439,11 @@ local function bindTapTargeting()
 		local kind = input.UserInputType
 		if not processed and (kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch) then
 			pressStarts[input] = { at = os.clock(), position = input.Position }
+		end
+		-- PC: M1 swings, unless an item in hand takes the click
+		local holding = player.Character and player.Character:FindFirstChildOfClass("Tool")
+		if not processed and kind == Enum.UserInputType.MouseButton1 and not holding then
+			CombatController.swing()
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
@@ -513,8 +492,25 @@ local function onEffect(kind: string, ...: any)
 		local def = Techniques.Defs[args[1]]
 		if def then
 			Hud.toast(if args[2]
-				then `Manual found: {def.name}! It's in your technique slots.`
-				else `Manual found: {def.name}! Equip it from your Inventory.`)
+				then `Manual found: {def.name}! It's on your hotbar.`
+				else `Manual found: {def.name}! Drag it onto your hotbar from the Inventory.`)
+		end
+	elseif kind == "loot" then
+		local item = Items.Defs[args[1]]
+		if item then
+			local at = args[3] or (root and root.Position)
+			if at then
+				CombatEffects.number(at, `+{args[2]} {item.name}`, Items.rarityColor(item), 20)
+			end
+			if (Items.Rarities[item.rarity] or { order = 0 }).order >= 4 then
+				Hud.toast(`You obtained a {item.name}!`)
+			end
+		end
+	elseif kind == "used" then
+		local item = Items.Defs[args[1]]
+		if item and root then
+			CombatEffects.sparks(root.Position)
+			CombatEffects.number(root.Position, item.name, item.color, 16)
 		end
 	elseif kind == "bolt" then
 		CombatEffects.bolt(args[1])
@@ -539,30 +535,21 @@ function CombatController.init(gui: ScreenGui)
 	bindButtons(gui)
 	bindTapTargeting()
 
-	-- Q dashes (Space stays jump; touch uses the Dash button); 1/2/3 cast
+	-- Q dashes (Space stays jump; touch uses the Dash button)
 	ContextActionService:BindActionAtPriority("Dodge", function(_, inputState)
 		if inputState == Enum.UserInputState.Begin then
 			CombatController.dodge()
 		end
 		return Enum.ContextActionResult.Sink
 	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.Q, Enum.KeyCode.ButtonB)
-	UserInputService.InputBegan:Connect(function(input, processed)
-		if processed then
-			return
-		end
-		local slot = table.find(KEYS, input.KeyCode)
-		if slot then
-			CombatController.cast(slot)
-		end
-	end)
-
 	effectRemote.OnClientEvent:Connect(onEffect)
 
 	RunService.Heartbeat:Connect(function()
 		local root = myRoot()
 		local aimed = root and currentTarget(root.Position)
 		CombatEffects.markTarget(aimed)
-		if not Config.AUTO_ATTACK or not root then
+		-- auto-attack is for touch; PC swings on M1
+		if not Config.AUTO_ATTACK or not root or not Platform.isTouch() then
 			return
 		end
 		if aimed and distanceTo(aimed, root.Position) <= Config.AUTO_RANGE then

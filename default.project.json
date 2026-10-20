@@ -47,6 +47,9 @@
       },
       "PeakTiers": {
         "$path": "assets/PeakTiers.rbxmx"
+      },
+      "ItemTemplates": {
+        "$path": "assets/ItemTemplates.rbxmx"
       }
     }
   }

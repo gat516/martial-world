@@ -8,6 +8,7 @@
 --   slam    a circle around the attacker
 --   summon  no area; calls `count` more of `summons` to its side
 -- qiDrop is raw qi at QC1; it scales with the receiving player's dantian.
+-- drops: items (Items.luau) each damager may get on a kill, rolled separately.
 
 export type Attack = {
 	kind: string, -- "lunge" | "charge" | "spit" | "cone" | "slam" | "summon"
@@ -26,6 +27,8 @@ export type Attack = {
 	maxAlive: number?, -- summon: skip if this many summons are still alive
 }
 
+export type Drop = { item: string, chance: number }
+
 export type Def = {
 	id: string,
 	name: string,
@@ -37,6 +40,7 @@ export type Def = {
 	keepAway: number?, -- backs off when a player is closer than this
 	qiDrop: number,
 	respawn: number, -- seconds before a replacement spawns
+	drops: { Drop }?,
 	boss: boolean?,
 	attack: Attack, -- the only attack, or the opener of a boss pattern
 	pattern: { Attack }?, -- bosses: attacks used in rotation after `attack`
@@ -56,6 +60,7 @@ Enemies.Defs = {
 		leash = 90,
 		qiDrop = 14,
 		respawn = 20,
+		drops = { { item = "LesserSpiritCore", chance = 0.2 } },
 		attack = {
 			kind = "lunge",
 			damage = 12,
@@ -78,6 +83,7 @@ Enemies.Defs = {
 		leash = 90,
 		qiDrop = 24,
 		respawn = 30,
+		drops = { { item = "LesserSpiritCore", chance = 0.35 } },
 		attack = {
 			kind = "charge",
 			damage = 26,
@@ -101,6 +107,7 @@ Enemies.Defs = {
 		keepAway = 12,
 		qiDrop = 20,
 		respawn = 25,
+		drops = { { item = "LesserSpiritCore", chance = 0.25 } },
 		attack = {
 			kind = "spit",
 			damage = 16,
@@ -122,6 +129,7 @@ Enemies.Defs = {
 		leash = 95,
 		qiDrop = 160,
 		respawn = 180,
+		drops = { { item = "GreaterSpiritCore", chance = 1 }, { item = "LesserSpiritCore", chance = 1 } },
 		summonAt = { 0.66, 0.33 },
 		attack = {
 			kind = "cone",

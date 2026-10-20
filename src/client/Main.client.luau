@@ -1,7 +1,7 @@
 --!strict
 -- Client entry: wires the HUD, circulation minigame, breakthroughs, combat (with
--- telegraphs and enemy health bars), travel, the inventory
--- (herbs and arts), seed picker, garden view, build mode and meditation.
+-- telegraphs and enemy health bars), travel, the hotbar, the inventory
+-- (items and arts), seed picker, garden view, build mode and meditation.
 
 local Players = game:GetService("Players")
 
@@ -16,6 +16,8 @@ local EnemyAnimator = require(script.Parent.EnemyAnimator)
 local Onboarding = require(script.Parent.Onboarding)
 local DayNight = require(script.Parent.DayNight)
 local WeatherFX = require(script.Parent.WeatherFX)
+local HotbarView = require(script.Parent.HotbarView)
+local Layout = require(script.Parent.Layout)
 local Inventory = require(script.Parent.Inventory)
 local SeedPicker = require(script.Parent.SeedPicker)
 local GardenView = require(script.Parent.GardenView)
@@ -35,6 +37,8 @@ EnemyAnimator.init()
 Onboarding.init(gui)
 DayNight.init()
 WeatherFX.init()
+HotbarView.init(gui)
+Layout.init(gui)
 Inventory.init(gui)
 SeedPicker.init(gui)
 GardenView.init()

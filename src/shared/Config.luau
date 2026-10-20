@@ -235,6 +235,7 @@ return {
 		ENABLED = true,
 		HERBS_EACH = 5, -- every herb type
 		SEEDS_EACH = 5, -- every seed type
+		ITEMS_EACH = 2, -- every spirit core and treasure
 		ALL_TECHNIQUES = false, -- own every technique, to test them without earning manuals
 		FILL_DANTIAN = true, -- no combat yet, so this is the only steady raw qi source
 	},

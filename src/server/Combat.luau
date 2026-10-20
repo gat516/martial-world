@@ -294,7 +294,7 @@ function Combat.cast(player: Player, id: any, castTime: any, aim: any)
 	if not (def and data and validTime(castTime)) then
 		return
 	end
-	if not table.find(data.techniques.slots, id) or not data.techniques.owned[id] then
+	if not table.find(data.hotbar, id) or not data.techniques.owned[id] then
 		return
 	end
 	local s = state(player)

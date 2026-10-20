@@ -6,6 +6,7 @@
 --   minutes   how long it lasts (min, max)
 --   announce  told to everyone when it starts (nil: says nothing)
 --   bonus     { kind = "passive" | "circulation", amount } while it lasts
+--   treasures how many heavenly treasures fall in the wilds as it starts (Treasures.luau)
 -- Visuals (client): rain / wind / mist particle rates, lightning (seconds between
 -- distant strikes), aurora, and lighting changes (brightness scale, extra
 -- atmosphere density and haze, and a tint the color grade leans toward).
@@ -16,6 +17,7 @@ export type Def = {
 	minutes: { number },
 	announce: string?,
 	bonus: { kind: string, amount: number }?,
+	treasures: number?,
 	rain: number?,
 	wind: number?,
 	mist: number?,
@@ -71,6 +73,7 @@ Weather.Defs = {
 		minutes = { 3, 4 },
 		announce = "An auspicious violet mist descends! Passive cultivation +50% while it lingers.",
 		bonus = { kind = "passive", amount = 0.5 },
+		treasures = 3,
 		mist = 18,
 		density = 0.1,
 		haze = 1.4,
@@ -83,6 +86,7 @@ Weather.Defs = {
 		minutes = { 2, 3 },
 		announce = "Rainbow light spans the heavens! Circulation is 20% more efficient while it shines.",
 		bonus = { kind = "circulation", amount = 0.2 },
+		treasures = 2,
 		aurora = true,
 		brightness = 1.05,
 		tint = Color3.fromRGB(255, 244, 250),

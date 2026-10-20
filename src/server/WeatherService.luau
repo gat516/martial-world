@@ -38,12 +38,18 @@ local function pick(): Weather.Def
 	return Weather.Defs.Clear
 end
 
+-- Called with (def, seconds) whenever the weather changes.
+WeatherService.onChanged = {} :: { (Weather.Def, number) -> () }
+
 function WeatherService.set(def: Weather.Def, seconds: number)
 	current = def
 	workspace:SetAttribute("Weather", def.id)
 	workspace:SetAttribute("WeatherEnds", workspace:GetServerTimeNow() + seconds)
 	if def.announce then
 		notifyRemote:FireAllClients(def.announce)
+	end
+	for _, fn in WeatherService.onChanged do
+		task.spawn(fn, def, seconds)
 	end
 end
 

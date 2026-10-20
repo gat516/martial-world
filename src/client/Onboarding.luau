@@ -1,5 +1,5 @@
 --!strict
--- Onboarding and quest board UI: the objective tracker under the status panel,
+-- Onboarding and quest board UI: the objective tracker under the top-right tiles,
 -- the elder's one-line guidance (shown once per beat, never blocking), a gentle
 -- pulse on the button the current beat is about, the Travel button appearing when
 -- the formation is taught, and the quest board window.

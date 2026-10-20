@@ -1,10 +1,9 @@
 --!strict
--- Insight and technique manuals: what kills earn beyond raw qi, and slotting the
--- techniques you own.
+-- Insight and technique manuals: what kills earn beyond raw qi.
 --   - the first kill of each enemy type: insight
 --   - every boss kill: insight; the first one also drops a manual
 --   - total-kill milestones: insight and/or a manual, once each
--- A new manual goes into the first empty technique slot.
+-- A new manual goes onto the hotbar if there's room (Inventory.slotTechnique).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -37,7 +36,10 @@ function Progression.grantInsight(player: Player, amount: number, reason: string
 	earned(player, "insight", reason)
 end
 
--- Learn a technique (if new) and slot it into the first empty slot.
+-- Set by Inventory: puts a technique on the hotbar if there's room for it.
+Progression.slotTechnique = nil :: ((PlayerData.Data, string) -> boolean)?
+
+-- Learn a technique (if new) and put it on the hotbar if there's room.
 function Progression.grantManual(player: Player, id: string)
 	local data = PlayerData.get(player)
 	local def = Techniques.Defs[id]
@@ -45,12 +47,8 @@ function Progression.grantManual(player: Player, id: string)
 		return
 	end
 	data.techniques.owned[id] = { level = 1, xp = 0 }
-	local slots = data.techniques.slots
-	local free = table.find(slots, "")
-	if free then
-		slots[free] = id
-	end
-	effectRemote:FireClient(player, "manual", id, free ~= nil)
+	local slotted = Progression.slotTechnique ~= nil and Progression.slotTechnique(data, id)
+	effectRemote:FireClient(player, "manual", id, slotted)
 	earned(player, "manual", id)
 end
 
@@ -83,33 +81,6 @@ function Progression.onKill(player: Player, def: Enemies.Def, _model: Model)
 		end
 	end
 	Cultivation.pushState(player)
-end
-
--- Equip or unequip an owned technique.
-function Progression.handle(player: Player, action: any, id: any): (boolean, string?)
-	local data = PlayerData.get(player)
-	if not data or type(id) ~= "string" or not data.techniques.owned[id] then
-		return false, "You don't know that technique"
-	end
-	local slots = data.techniques.slots
-	local at = table.find(slots, id)
-	if action == "unequip" then
-		if at then
-			slots[at] = ""
-		end
-	elseif action == "equip" then
-		if not at then
-			local free = table.find(slots, "")
-			if not free then
-				return false, "All slots are full. Unequip one first."
-			end
-			slots[free] = id
-		end
-	else
-		return false, "Unknown action"
-	end
-	Cultivation.pushState(player)
-	return true, nil
 end
 
 return Progression

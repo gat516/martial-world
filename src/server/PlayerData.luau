@@ -11,21 +11,24 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Data
 local Realms = require(ReplicatedStorage.Shared.Realms)
+local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
+local Herbs = require(ReplicatedStorage.Shared.Herbs)
 
-local SCHEMA_VERSION = 2
+local SCHEMA_VERSION = 3
 
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number }
 export type Plot = { herb: string, planted: number }
 export type ActiveBuff = { source: string, kind: string, amount: number, expires: number }
 export type Technique = { level: number, xp: number }
--- techniques.slots always has 3 entries; "" is an empty slot
+-- hotbar always has Hotbar.SIZE entries: a technique id, an item id, or "" (empty)
 export type Data = {
 	v: number,
 	realm: { major: string, minor: number },
 	cultivation: number, -- progress in the current realm bar
 	rawQi: number, -- held in the dantian, refined by circulation runs
 	insight: number,
-	techniques: { owned: { [string]: Technique }, slots: { string } },
+	techniques: { owned: { [string]: Technique } },
+	hotbar: { string },
 	firstKills: { [string]: boolean },
 	milestones: { [string]: boolean }, -- kill milestones claimed, by kill count
 	onboardingStep: number, -- onboarding beats completed (Quests.Beats)
@@ -34,6 +37,7 @@ export type Data = {
 	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
 	stats: { breakthroughs: number, circulationRuns: number, kills: number, bossKills: number },
 	herbs: { [string]: number },
+	items: { [string]: number }, -- spirit cores and treasures (herbs stay in herbs)
 	seeds: { [string]: number },
 	buffs: { ActiveBuff },
 	decor: { [string]: number }, -- stored build items, by catalog id
@@ -55,7 +59,8 @@ local function default(): Data
 		cultivation = 0,
 		rawQi = Config.STARTING_RAW_QI,
 		insight = 0,
-		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } }, slots = { "SwordQiWave", "", "" } },
+		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } } },
+		hotbar = Hotbar.empty({ "SwordQiWave" }),
 		firstKills = {},
 		milestones = {},
 		onboardingStep = 0,
@@ -64,6 +69,7 @@ local function default(): Data
 		lastDailyDay = 0,
 		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0 },
 		herbs = {},
+		items = {},
 		seeds = table.clone(Config.STARTING_SEEDS),
 		buffs = {},
 		decor = {},
@@ -77,6 +83,24 @@ local migrations: { [number]: (any) -> () } = {
 	[1] = function(d)
 		d.rawQi = math.min(math.floor(d.qi or 0), Realms.Stages[1].dantian)
 		d.qi = nil
+	end,
+	-- v2 had three technique slots; they open the free-form hotbar, with the
+	-- herbs already in the pouch placed after them
+	[2] = function(d)
+		local start = {}
+		for i = 1, 3 do
+			local id = d.techniques and d.techniques.slots and d.techniques.slots[i]
+			start[i] = if type(id) == "string" then id else ""
+		end
+		d.hotbar = Hotbar.empty(start)
+		for _, id in Herbs.Order do
+			if (d.herbs and d.herbs[id] or 0) > 0 then
+				Hotbar.place(d.hotbar, id)
+			end
+		end
+		if d.techniques then
+			d.techniques.slots = nil
+		end
 	end,
 }
 
@@ -113,9 +137,9 @@ local function reconcile(saved: any): Data
 	end
 	saved.v = SCHEMA_VERSION
 	fillMissing(saved, default())
-	-- slots is a fixed-length array; "" marks an empty slot (DataStores drop nil holes)
-	for i = 1, 3 do
-		saved.techniques.slots[i] = saved.techniques.slots[i] or ""
+	-- the hotbar is a fixed-length array; "" marks an empty slot (DataStores drop nil holes)
+	for i = 1, Hotbar.SIZE do
+		saved.hotbar[i] = saved.hotbar[i] or ""
 	end
 	return saved
 end

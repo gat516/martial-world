@@ -7,6 +7,8 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
+local Items = require(ReplicatedStorage.Shared.Items)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local PlayerData = require(script.Parent.PlayerData)
@@ -25,6 +27,8 @@ local Quests = require(script.Parent.Quests)
 local Analytics = require(script.Parent.Analytics)
 local WeatherService = require(script.Parent.WeatherService)
 local Meditation = require(script.Parent.Meditation)
+local Inventory = require(script.Parent.Inventory)
+local Treasures = require(script.Parent.Treasures)
 
 local joinedAt: { [Player]: number } = {}
 local lastBreakthroughAt: { [Player]: number } = {}
@@ -46,8 +50,8 @@ local function sendHome(player: Player, character: Model)
 	end
 end
 
--- Studio playtests: top every herb and seed up to the test-kit amount, and fill the
--- dantian (never above that, so repeated sessions don't inflate a saved profile).
+-- Studio playtests: top every herb, seed and item up to the test-kit amount, and fill
+-- the dantian (never above that, so repeated sessions don't inflate a saved profile).
 local function applyTestKit(data: PlayerData.Data)
 	local kit = Config.TestKit
 	if not (kit.ENABLED and RunService:IsStudio()) then
@@ -57,13 +61,23 @@ local function applyTestKit(data: PlayerData.Data)
 		data.herbs[id] = math.max(data.herbs[id] or 0, kit.HERBS_EACH)
 		data.seeds[id] = math.max(data.seeds[id] or 0, kit.SEEDS_EACH)
 	end
+	for _, id in Items.Order do
+		local bag = Items.bag(data, id)
+		if not Herbs.Defs[id] then
+			bag[id] = math.max(bag[id] or 0, kit.ITEMS_EACH)
+		end
+		if bag[id] then
+			Hotbar.place(data.hotbar, id)
+		end
+	end
 	if kit.ALL_TECHNIQUES then
 		for _, id in Techniques.Order do
 			data.techniques.owned[id] = data.techniques.owned[id] or { level = 1, xp = 0 }
 		end
-		local slots = data.techniques.slots
-		if slots[2] == "" and slots[3] == "" then
-			slots[2], slots[3] = "PalmStrike", "LightningTalisman"
+		for _, id in { "PalmStrike", "LightningTalisman" } do
+			if Hotbar.techniqueCount(data.hotbar) < Hotbar.MAX_TECHNIQUES then
+				Hotbar.place(data.hotbar, id)
+			end
 		end
 	end
 	if kit.FILL_DANTIAN then
@@ -134,6 +148,7 @@ Players.PlayerRemoving:Connect(function(player)
 	Tribulation.forget(player)
 	Quests.forget(player)
 	Meditation.forget(player)
+	Inventory.forget(player)
 	Cultivation.forget(player)
 end)
 
@@ -155,10 +170,10 @@ end
 (remotes.Cast :: RemoteEvent).OnServerEvent:Connect(Combat.cast);
 (remotes.Meditate :: RemoteEvent).OnServerEvent:Connect(Meditation.handle);
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);
-(remotes.TechniqueAction :: RemoteFunction).OnServerInvoke = guarded(Progression.handle);
 
 QiNodes.start()
 table.insert(EnemyService.onKill, Progression.onKill)
+table.insert(EnemyService.onKill, Inventory.onKill)
 table.insert(Quests.onBeat, function(player, index)
 	Analytics.funnel(player, index + 1)
 end)
@@ -181,6 +196,8 @@ table.insert(Cultivation.onBreakthrough, function(player)
 end)
 EnemyService.start()
 Quests.start()
+Inventory.start()
+Treasures.start()
 WeatherService.start();
 
 (remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(function(player, action, plotId, herbId)
@@ -192,9 +209,4 @@ WeatherService.start();
 	return false, "Unknown action"
 end);
 
-(remotes.InventoryAction :: RemoteFunction).OnServerInvoke = guarded(function(player, action, herbId)
-	if action == "eat" and type(herbId) == "string" then
-		return Cultivation.eat(player, herbId)
-	end
-	return false, "Unknown action"
-end)
+(remotes.InventoryAction :: RemoteFunction).OnServerInvoke = guarded(Inventory.handle)

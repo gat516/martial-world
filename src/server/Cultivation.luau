@@ -111,6 +111,9 @@ local function publish(player: Player, data: PlayerData.Data)
 	player:SetAttribute("DantianCap", stage.dantian)
 end
 
+-- Called with (player, data) after every state push (Inventory syncs tools from it).
+Cultivation.onPush = {} :: { (Player, PlayerData.Data) -> () }
+
 function Cultivation.pushState(player: Player)
 	local data = PlayerData.get(player)
 	if not data then
@@ -125,13 +128,18 @@ function Cultivation.pushState(player: Player)
 		aura = Cultivation.aura(data, now),
 		meditation = if Cultivation.meditation then Cultivation.meditation(player) else nil,
 		herbs = data.herbs,
+		items = data.items,
+		hotbar = data.hotbar,
 		seeds = data.seeds,
 		buffs = data.buffs,
 		decor = data.decor,
 	})
+	for _, fn in Cultivation.onPush do
+		task.spawn(fn, player, data)
+	end
 end
 
-local function applyStats(player: Player, data: PlayerData.Data)
+function Cultivation.applyStats(player: Player, data: PlayerData.Data)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 	if humanoid then
 		humanoid.WalkSpeed = Config.BASE_WALKSPEED + buffTotal(data, "WalkSpeed")
@@ -144,40 +152,17 @@ local function applyStats(player: Player, data: PlayerData.Data)
 	end
 end
 
--- Eat a herb from the pouch: raw Qi now, plus its timed buffs.
-function Cultivation.eat(player: Player, herbId: string): (boolean, string?)
-	local data = PlayerData.get(player)
-	local herb = Herbs.Defs[herbId]
-	if not (data and herb) then
-		return false, "Unknown herb"
-	end
-	if (data.herbs[herbId] or 0) < 1 then
-		return false, "You have none left"
-	end
-	data.herbs[herbId] -= 1
-	if data.herbs[herbId] <= 0 then
-		data.herbs[herbId] = nil
-	end
-	local cap = Cultivation.stage(data).dantian
-	data.rawQi = math.min(cap, data.rawQi + (herb.eat.qi or 0))
+-- Add a timed buff from `source` (an item id). Using the same item again
+-- refreshes its buff instead of stacking it.
+function Cultivation.addBuff(data: PlayerData.Data, source: string, kind: string, amount: number, seconds: number)
 	local now = os.time()
-	for _, b in herb.eat.buffs or {} do
-		-- eating the same herb again refreshes its buff instead of stacking it
-		local existing
-		for _, active in data.buffs do
-			if active.source == herbId and active.kind == b.kind then
-				existing = active
-			end
-		end
-		if existing then
-			existing.expires = math.max(existing.expires, now + b.seconds)
-		else
-			table.insert(data.buffs, { source = herbId, kind = b.kind, amount = b.amount, expires = now + b.seconds })
+	for _, active in data.buffs do
+		if active.source == source and active.kind == kind then
+			active.expires = math.max(active.expires, now + seconds)
+			return
 		end
 	end
-	applyStats(player, data)
-	Cultivation.pushState(player)
-	return true, `Ate {herb.name}: {herb.blurb}`
+	table.insert(data.buffs, { source = source, kind = kind, amount = amount, expires = now + seconds })
 end
 
 -- Set by Tribulation: starts the tribulation a major breakthrough needs.
@@ -203,7 +188,7 @@ function Cultivation.advance(player: Player, debt: number?)
 	local s = session(player)
 	s.fullNoticed = false
 	s.lastActive = os.clock()
-	applyStats(player, data)
+	Cultivation.applyStats(player, data)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 	if humanoid and humanoid.Health > 0 then
 		humanoid.Health = humanoid.MaxHealth
@@ -342,7 +327,7 @@ function Cultivation.watch(player: Player)
 	player.CharacterAdded:Connect(function()
 		local data = PlayerData.get(player)
 		if data then
-			task.defer(applyStats, player, data)
+			task.defer(Cultivation.applyStats, player, data)
 		end
 	end)
 end
@@ -376,7 +361,7 @@ task.spawn(function()
 					end
 				end
 				if expired then
-					applyStats(player, data)
+					Cultivation.applyStats(player, data)
 				end
 				if expired or sinceRefresh >= Config.STATE_REFRESH_SECONDS then
 					Cultivation.pushState(player)

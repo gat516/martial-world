@@ -51,8 +51,10 @@ return {
 		MIN_Y = -30, -- down to the abode hall floor (-25)
 		MAX_Y = 30,
 		MAX_ITEMS = 120,
-		GRID = 0.5, -- placement snap, studs
-		ROTATE_STEP = 45, -- degrees
+		GRID = 0.5, -- finest placement snap, studs (the server snaps to this)
+		GRID_SIZES = { 1, 2, 4, 0.5 }, -- the Grid button cycles these
+		ROTATE_STEP = 45, -- degrees per R / Rotate
+		FINE_ROTATE_STEP = 15, -- degrees per Shift+R (the server snaps to this)
 		MIN_INTERVAL = 0.15, -- seconds between build requests per player
 	},
 

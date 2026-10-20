@@ -58,7 +58,7 @@ local function place(player: Player, data: PlayerData.Data, peak: Model, args: a
 		x = Peak.snap(pos.X, Config.GRID),
 		y = Peak.snap(pos.Y, 0.05),
 		z = Peak.snap(pos.Z, Config.GRID),
-		r = Peak.snap(yaw, Config.ROTATE_STEP) % 360,
+		r = Peak.snap(yaw, Config.FINE_ROTATE_STEP) % 360,
 	}
 	if not Peaks.spawnPlaced(peak, rec) then
 		return false, "Couldn't place that"

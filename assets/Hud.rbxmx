@@ -672,6 +672,21 @@
      </Properties>
      </Item>
     </Item>
+    <Item class="TextButton" referent="RBXBG1"><Properties>
+     <string name="Name">GridButton</string>
+     <string name="Text">Grid 1</string>
+     <UDim2 name="Size"><XS>0</XS><XO>80</XO><YS>0</YS><YO>40</YO></UDim2>
+     <Color3 name="BackgroundColor3"><R>0.0941176</R><G>0.133333</G><B>0.14902</B></Color3>
+     <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
+     <float name="TextSize">16</float>
+     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     <int name="LayoutOrder">0</int>
+    </Properties>
+     <Item class="UICorner" referent="RBXBG2"><Properties>
+      <string name="Name">UICorner</string>
+     </Properties>
+     </Item>
+    </Item>
     <Item class="TextButton" referent="RBX62"><Properties>
      <string name="Name">PlaceButton</string>
      <string name="Text">Place</string>

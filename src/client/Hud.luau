@@ -77,7 +77,8 @@ local function setBar(bar: Frame, value: number, max: number, text: string)
 	local fill = bar:FindFirstChild("Fill") :: Frame
 	fill.Size = UDim2.fromScale(if max > 0 then math.clamp(value / max, 0, 1) else 0, 1)
 	fill.Visible = value > 0
-	(bar:FindFirstChild("Label") :: TextLabel).Text = text
+	local label = bar:FindFirstChild("Label") :: TextLabel
+	label.Text = text
 end
 
 -- Mirror the character's health; the default Roblox health bar is hidden in its favor.
@@ -123,7 +124,8 @@ function Hud.init(screenGui: ScreenGui)
 		task.spawn(watchHealth, healthBar, player.Character)
 	end
 
-	(ReplicatedStorage.Remotes.Notify :: RemoteEvent).OnClientEvent:Connect(Hud.toast)
+	local notifyRemote = ReplicatedStorage.Remotes.Notify :: RemoteEvent
+	notifyRemote.OnClientEvent:Connect(Hud.toast)
 
 	State.onChanged(function(s)
 		local aura = if s.aura > 0 then `  (garden +{math.floor(s.aura * 100 + 0.5)}%)` else ""

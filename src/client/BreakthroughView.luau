@@ -80,7 +80,8 @@ function BreakthroughView.init(gui: ScreenGui)
 		busy = false
 	end)
 
-	(remotes.Breakthrough :: RemoteEvent).OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean)
+	local breakthroughRemote = remotes.Breakthrough :: RemoteEvent
+	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean)
 		playEffect(who, major)
 		if who ~= player and major then
 			Hud.toast(`{who.DisplayName} broke through to {stageName}!`)

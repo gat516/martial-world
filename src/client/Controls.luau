@@ -39,4 +39,10 @@ function Controls.unlock(reason: string)
 	apply()
 end
 
+-- What the player is steering with (thumbstick or keys), whatever else moves them.
+function Controls.moveVector(): Vector3
+	local ctl = controls()
+	return if ctl then ctl:GetMoveVector() else Vector3.zero
+end
+
 return Controls

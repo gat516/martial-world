@@ -74,6 +74,8 @@ function Layout.apply()
 		strike.Position = UDim2.new(1, right, 1, -EDGE)
 		jump.Position = UDim2.new(1, right - 80, 1, -EDGE - 35)
 		dodge.Position = UDim2.new(1, right - 35, 1, -EDGE - 80)
+		-- Lock on the arc between Jump and Dash (LockOn shows it when there's something to lock)
+		find("LockButton").Position = UDim2.new(1, right - 95, 1, -EDGE - 100)
 		hideDefaultJump()
 	end
 	-- key hints are for keyboards only
@@ -98,6 +100,10 @@ function Layout.showCluster(shown: boolean)
 			Layout.apply()
 		end
 	end
+end
+
+function Layout.clusterShown(): boolean
+	return clusterShown
 end
 
 -- Our Jump button: jumps while held, like Roblox's.

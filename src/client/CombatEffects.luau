@@ -236,7 +236,8 @@ function CombatEffects.shake(strength: number)
 	shakeStrength = math.max(shakeStrength * (shakeLeft / 0.2), strength)
 	shakeLeft = 0.2
 end
-RunService:BindToRenderStep("CombatShake", Enum.RenderPriority.Camera.Value + 1, function(dt: number)
+-- after LockOn writes the camera (Camera + 1)
+RunService:BindToRenderStep("CombatShake", Enum.RenderPriority.Camera.Value + 2, function(dt: number)
 	if shakeLeft <= 0 then
 		return
 	end

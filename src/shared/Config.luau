@@ -196,6 +196,17 @@ return {
 		PERFECT_REFUND = 1.5, -- seconds taken off every technique cooldown
 
 		IN_COMBAT_SECONDS = 6, -- after being hurt, travel is blocked this long
+
+		-- Lock-on (client, LockOn.luau): a hard lock the camera and facing follow.
+		LOCK_RANGE = 45, -- enemies this close can be locked
+		LOCK_BREAK_RANGE = 60, -- the lock lets go past this
+		LOCK_LOS_SECONDS = 2.5, -- or once the target has been out of sight this long
+		LOCK_FLICK_PIXELS = 90, -- PC: mouse travel that switches target
+		LOCK_SWIPE_PIXELS = 60, -- touch: swipe length that switches target
+		-- Touch Auto mode: lock the nearest enemy, close in and strike by itself,
+		-- so the player only dashes and casts.
+		AUTO_LOCK_RANGE = 22,
+		AUTO_APPROACH_PAUSE = 1.0, -- seconds after a dash before it closes in again
 	},
 
 	-- Teleport formations between your peak, the main peak and the sect gate

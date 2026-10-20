@@ -4,8 +4,10 @@
 --
 -- Basic attack: a five-hit chain played from ReplicatedStorage.Animations.Fists.
 -- PC swings on M1 (unless an item is held out: then M1 uses it). Touch swings
--- from the Strike button, or on its own while an enemy is in range (auto-attack). Soft auto-aim turns the character toward the target; tapping or
--- clicking an enemy makes it the target.
+-- from the Strike button, or on its own in Auto mode while the target is in range
+-- (auto-attack, LockOn.luau). The locked enemy (LockOn) is always the target;
+-- without one, soft auto-aim turns the character toward the nearest enemy, and
+-- tapping or clicking an enemy makes it the target.
 -- Everything is predicted: the animation, dash and effects play at once, and the
 -- client reports each action with its server-clock timestamp (GetServerTimeNow).
 -- Impacts are timed by animation markers: a swing's hitbox is live from the "Hit"
@@ -29,6 +31,7 @@ local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local BuildMode = require(script.Parent.BuildMode)
 local CombatEffects = require(script.Parent.CombatEffects)
 local Hud = require(script.Parent.Hud)
+local LockOn = require(script.Parent.LockOn)
 local Meditation = require(script.Parent.Meditation)
 local Platform = require(script.Parent.Platform)
 local Sfx = require(script.Parent.Sfx)
@@ -143,8 +146,13 @@ local function distanceTo(model: Model, from: Vector3): number
 	return if root then (root.Position - from).Magnitude else math.huge
 end
 
--- The picked target if it's still alive and near, otherwise the nearest enemy.
+-- The locked enemy; else the picked target if it's still alive and near;
+-- otherwise the nearest enemy.
 local function currentTarget(from: Vector3): Model?
+	local locked = LockOn.target()
+	if locked and Hitbox.alive(locked) then
+		return locked
+	end
 	if target and Hitbox.alive(target) and distanceTo(target, from) <= Config.AIM_RANGE then
 		return target
 	end
@@ -266,6 +274,7 @@ function CombatController.dodge()
 		return
 	end
 	lastDodge = now
+	LockOn.noteDodge()
 	dodgeRemote:FireServer(workspace:GetServerTimeNow())
 
 	local humanoid = (player.Character :: Model):FindFirstChildOfClass("Humanoid") :: Humanoid
@@ -442,6 +451,7 @@ local function pickAt(position: Vector2)
 	local model = hit and Hitbox.enemyOf(hit.Instance)
 	if model then
 		target = model
+		LockOn.pick(model)
 		CombatController.swing()
 	end
 end
@@ -569,9 +579,10 @@ function CombatController.init(gui: ScreenGui)
 	RunService.Heartbeat:Connect(function()
 		local root = myRoot()
 		local aimed = root and currentTarget(root.Position)
-		CombatEffects.markTarget(aimed)
-		-- auto-attack is for touch; PC swings on M1
-		if not Config.AUTO_ATTACK or not root or not Platform.isTouch() then
+		-- the lock-on reticle replaces the soft-aim ring
+		CombatEffects.markTarget(if LockOn.target() then nil else aimed)
+		-- auto-attack is touch Auto mode; PC swings on M1
+		if not Config.AUTO_ATTACK or not root or not (Platform.isTouch() and LockOn.isAuto()) then
 			return
 		end
 		if aimed and distanceTo(aimed, root.Position) <= Config.AUTO_RANGE then

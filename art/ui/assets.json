@@ -35,5 +35,12 @@
   "build_tile.png": "rbxassetid://123928102392718",
   "tile_select.png": "rbxassetid://113082075870070",
   "field_inset.png": "rbxassetid://101285289335891",
-  "stone_icon.png": "rbxassetid://76970260045954"
+  "stone_icon.png": "rbxassetid://76970260045954",
+  "lock_reticle.png": "rbxassetid://108734890499239",
+  "lock_ring.png": "rbxassetid://137081332702081",
+  "lock_face.png": "rbxassetid://99615368081781",
+  "lock_face_on.png": "rbxassetid://121449842597463",
+  "bar_rim.png": "rbxassetid://84962649927985",
+  "bar_cap.png": "rbxassetid://119479898808804",
+  "shiftlock_reticle.png": "rbxassetid://98514000831046"
 }

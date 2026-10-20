@@ -22,38 +22,55 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
    </Properties>
-    <Item class="BillboardGui" referent="RBXE108"><Properties>
+    <Item class="BillboardGui" referent="HBSpir1"><Properties>
      <string name="Name">HealthBar</string>
-     <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>9</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>86</XO><YS>0</YS><YO>16</YO></UDim2>
+     <token name="ZIndexBehavior">1</token>
      <Vector3 name="StudsOffset"><X>0</X><Y>3.4</Y><Z>0</Z></Vector3>
-     <float name="MaxDistance">90</float>
      <bool name="AlwaysOnTop">true</bool>
-     <token name="LightInfluence">0</token>
-     <bool name="Enabled">true</bool>
+     <float name="MaxDistance">90</float>
+     <float name="LightInfluence">0</float>
     </Properties>
-     <Item class="Frame" referent="RBXE109"><Properties>
+     <Item class="Frame" referent="HBSpir2"><Properties>
       <string name="Name">Back</string>
-      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Color3 name="BackgroundColor3"><R>0.078431</R><G>0.062745</G><B>0.062745</B></Color3>
-      <float name="BackgroundTransparency">0.2</float>
+      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0470588</G><B>0.0470588</B></Color3>
+      <float name="BackgroundTransparency">0.15</float>
       <int name="BorderSizePixel">0</int>
+      <UDim2 name="Position"><XS>0</XS><XO>4</XO><YS>0</YS><YO>4</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-8</XO><YS>1</YS><YO>-8</YO></UDim2>
      </Properties>
-      <Item class="UICorner" referent="RBXE110"><Properties>
-       <string name="Name">UICorner</string>
-       <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
-      </Properties>
-      </Item>
-      <Item class="Frame" referent="RBXE111"><Properties>
+      <Item class="Frame" referent="HBSpir3"><Properties>
        <string name="Name">Fill</string>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Color3 name="BackgroundColor3"><R>0.862745</R><G>0.274510</G><B>0.235294</B></Color3>
+       <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
        <int name="BorderSizePixel">0</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+       <int name="ZIndex">2</int>
       </Properties>
-       <Item class="UICorner" referent="RBXE112"><Properties>
-        <string name="Name">UICorner</string>
-        <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
+       <Item class="UIGradient" referent="HBSpir4"><Properties>
+        <string name="Name">UIGradient</string>
+        <float name="Rotation">90</float>
+        <ColorSequence name="Color">0 0.807843 0.188235 0.156863 0 1 0.462745 0.0627451 0.0784314 0 </ColorSequence>
        </Properties>
        </Item>
+      </Item>
+      <Item class="Frame" referent="HBSpir5"><Properties>
+       <string name="Name">Trail</string>
+       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.776471</G><B>0.470588</B></Color3>
+       <int name="BorderSizePixel">0</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      </Properties>
+      </Item>
+      <Item class="ImageLabel" referent="HBSpir6"><Properties>
+       <string name="Name">Rim</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>0</YS><YO>-4</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>8</XO><YS>1</YS><YO>8</YO></UDim2>
+       <int name="ZIndex">3</int>
+       <Content name="Image"><url>rbxassetid://84962649927985</url></Content>
+       <token name="ScaleType">1</token>
+       <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
+       <float name="SliceScale">0.166667</float>
+      </Properties>
       </Item>
      </Item>
     </Item>
@@ -723,38 +740,55 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
    </Properties>
-    <Item class="BillboardGui" referent="RBXE146"><Properties>
+    <Item class="BillboardGui" referent="HBSton1"><Properties>
      <string name="Name">HealthBar</string>
-     <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>9</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>86</XO><YS>0</YS><YO>16</YO></UDim2>
+     <token name="ZIndexBehavior">1</token>
      <Vector3 name="StudsOffset"><X>0</X><Y>4.4</Y><Z>0</Z></Vector3>
-     <float name="MaxDistance">90</float>
      <bool name="AlwaysOnTop">true</bool>
-     <token name="LightInfluence">0</token>
-     <bool name="Enabled">true</bool>
+     <float name="MaxDistance">90</float>
+     <float name="LightInfluence">0</float>
     </Properties>
-     <Item class="Frame" referent="RBXE147"><Properties>
+     <Item class="Frame" referent="HBSton2"><Properties>
       <string name="Name">Back</string>
-      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Color3 name="BackgroundColor3"><R>0.078431</R><G>0.062745</G><B>0.062745</B></Color3>
-      <float name="BackgroundTransparency">0.2</float>
+      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0470588</G><B>0.0470588</B></Color3>
+      <float name="BackgroundTransparency">0.15</float>
       <int name="BorderSizePixel">0</int>
+      <UDim2 name="Position"><XS>0</XS><XO>4</XO><YS>0</YS><YO>4</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-8</XO><YS>1</YS><YO>-8</YO></UDim2>
      </Properties>
-      <Item class="UICorner" referent="RBXE148"><Properties>
-       <string name="Name">UICorner</string>
-       <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
-      </Properties>
-      </Item>
-      <Item class="Frame" referent="RBXE149"><Properties>
+      <Item class="Frame" referent="HBSton3"><Properties>
        <string name="Name">Fill</string>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Color3 name="BackgroundColor3"><R>0.862745</R><G>0.274510</G><B>0.235294</B></Color3>
+       <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
        <int name="BorderSizePixel">0</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+       <int name="ZIndex">2</int>
       </Properties>
-       <Item class="UICorner" referent="RBXE150"><Properties>
-        <string name="Name">UICorner</string>
-        <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
+       <Item class="UIGradient" referent="HBSton4"><Properties>
+        <string name="Name">UIGradient</string>
+        <float name="Rotation">90</float>
+        <ColorSequence name="Color">0 0.807843 0.188235 0.156863 0 1 0.462745 0.0627451 0.0784314 0 </ColorSequence>
        </Properties>
        </Item>
+      </Item>
+      <Item class="Frame" referent="HBSton5"><Properties>
+       <string name="Name">Trail</string>
+       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.776471</G><B>0.470588</B></Color3>
+       <int name="BorderSizePixel">0</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      </Properties>
+      </Item>
+      <Item class="ImageLabel" referent="HBSton6"><Properties>
+       <string name="Name">Rim</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>0</YS><YO>-4</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>8</XO><YS>1</YS><YO>8</YO></UDim2>
+       <int name="ZIndex">3</int>
+       <Content name="Image"><url>rbxassetid://84962649927985</url></Content>
+       <token name="ScaleType">1</token>
+       <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
+       <float name="SliceScale">0.166667</float>
+      </Properties>
       </Item>
      </Item>
     </Item>
@@ -1202,38 +1236,55 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
    </Properties>
-    <Item class="BillboardGui" referent="RBXE173"><Properties>
+    <Item class="BillboardGui" referent="HBVeno1"><Properties>
      <string name="Name">HealthBar</string>
-     <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>9</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>86</XO><YS>0</YS><YO>16</YO></UDim2>
+     <token name="ZIndexBehavior">1</token>
      <Vector3 name="StudsOffset"><X>0</X><Y>4.6</Y><Z>0</Z></Vector3>
-     <float name="MaxDistance">90</float>
      <bool name="AlwaysOnTop">true</bool>
-     <token name="LightInfluence">0</token>
-     <bool name="Enabled">true</bool>
+     <float name="MaxDistance">90</float>
+     <float name="LightInfluence">0</float>
     </Properties>
-     <Item class="Frame" referent="RBXE174"><Properties>
+     <Item class="Frame" referent="HBVeno2"><Properties>
       <string name="Name">Back</string>
-      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Color3 name="BackgroundColor3"><R>0.078431</R><G>0.062745</G><B>0.062745</B></Color3>
-      <float name="BackgroundTransparency">0.2</float>
+      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0470588</G><B>0.0470588</B></Color3>
+      <float name="BackgroundTransparency">0.15</float>
       <int name="BorderSizePixel">0</int>
+      <UDim2 name="Position"><XS>0</XS><XO>4</XO><YS>0</YS><YO>4</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-8</XO><YS>1</YS><YO>-8</YO></UDim2>
      </Properties>
-      <Item class="UICorner" referent="RBXE175"><Properties>
-       <string name="Name">UICorner</string>
-       <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
-      </Properties>
-      </Item>
-      <Item class="Frame" referent="RBXE176"><Properties>
+      <Item class="Frame" referent="HBVeno3"><Properties>
        <string name="Name">Fill</string>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Color3 name="BackgroundColor3"><R>0.862745</R><G>0.274510</G><B>0.235294</B></Color3>
+       <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
        <int name="BorderSizePixel">0</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+       <int name="ZIndex">2</int>
       </Properties>
-       <Item class="UICorner" referent="RBXE177"><Properties>
-        <string name="Name">UICorner</string>
-        <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
+       <Item class="UIGradient" referent="HBVeno4"><Properties>
+        <string name="Name">UIGradient</string>
+        <float name="Rotation">90</float>
+        <ColorSequence name="Color">0 0.807843 0.188235 0.156863 0 1 0.462745 0.0627451 0.0784314 0 </ColorSequence>
        </Properties>
        </Item>
+      </Item>
+      <Item class="Frame" referent="HBVeno5"><Properties>
+       <string name="Name">Trail</string>
+       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.776471</G><B>0.470588</B></Color3>
+       <int name="BorderSizePixel">0</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      </Properties>
+      </Item>
+      <Item class="ImageLabel" referent="HBVeno6"><Properties>
+       <string name="Name">Rim</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>0</YS><YO>-4</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>8</XO><YS>1</YS><YO>8</YO></UDim2>
+       <int name="ZIndex">3</int>
+       <Content name="Image"><url>rbxassetid://84962649927985</url></Content>
+       <token name="ScaleType">1</token>
+       <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
+       <float name="SliceScale">0.166667</float>
+      </Properties>
       </Item>
      </Item>
     </Item>
@@ -1601,38 +1652,55 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
    </Properties>
-    <Item class="BillboardGui" referent="RBXE196"><Properties>
+    <Item class="BillboardGui" referent="HBElde1"><Properties>
      <string name="Name">HealthBar</string>
-     <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>9</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>86</XO><YS>0</YS><YO>16</YO></UDim2>
+     <token name="ZIndexBehavior">1</token>
      <Vector3 name="StudsOffset"><X>0</X><Y>8.64</Y><Z>0</Z></Vector3>
-     <float name="MaxDistance">90</float>
      <bool name="AlwaysOnTop">true</bool>
-     <token name="LightInfluence">0</token>
-     <bool name="Enabled">true</bool>
+     <float name="MaxDistance">90</float>
+     <float name="LightInfluence">0</float>
     </Properties>
-     <Item class="Frame" referent="RBXE197"><Properties>
+     <Item class="Frame" referent="HBElde2"><Properties>
       <string name="Name">Back</string>
-      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Color3 name="BackgroundColor3"><R>0.078431</R><G>0.062745</G><B>0.062745</B></Color3>
-      <float name="BackgroundTransparency">0.2</float>
+      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0470588</G><B>0.0470588</B></Color3>
+      <float name="BackgroundTransparency">0.15</float>
       <int name="BorderSizePixel">0</int>
+      <UDim2 name="Position"><XS>0</XS><XO>4</XO><YS>0</YS><YO>4</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-8</XO><YS>1</YS><YO>-8</YO></UDim2>
      </Properties>
-      <Item class="UICorner" referent="RBXE198"><Properties>
-       <string name="Name">UICorner</string>
-       <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
-      </Properties>
-      </Item>
-      <Item class="Frame" referent="RBXE199"><Properties>
+      <Item class="Frame" referent="HBElde3"><Properties>
        <string name="Name">Fill</string>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Color3 name="BackgroundColor3"><R>0.862745</R><G>0.274510</G><B>0.235294</B></Color3>
+       <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
        <int name="BorderSizePixel">0</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+       <int name="ZIndex">2</int>
       </Properties>
-       <Item class="UICorner" referent="RBXE200"><Properties>
-        <string name="Name">UICorner</string>
-        <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
+       <Item class="UIGradient" referent="HBElde4"><Properties>
+        <string name="Name">UIGradient</string>
+        <float name="Rotation">90</float>
+        <ColorSequence name="Color">0 0.807843 0.188235 0.156863 0 1 0.462745 0.0627451 0.0784314 0 </ColorSequence>
        </Properties>
        </Item>
+      </Item>
+      <Item class="Frame" referent="HBElde5"><Properties>
+       <string name="Name">Trail</string>
+       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.776471</G><B>0.470588</B></Color3>
+       <int name="BorderSizePixel">0</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      </Properties>
+      </Item>
+      <Item class="ImageLabel" referent="HBElde6"><Properties>
+       <string name="Name">Rim</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>0</YS><YO>-4</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>8</XO><YS>1</YS><YO>8</YO></UDim2>
+       <int name="ZIndex">3</int>
+       <Content name="Image"><url>rbxassetid://84962649927985</url></Content>
+       <token name="ScaleType">1</token>
+       <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
+       <float name="SliceScale">0.166667</float>
+      </Properties>
       </Item>
      </Item>
     </Item>

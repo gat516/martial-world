@@ -20,6 +20,7 @@ local UserInputService = game:GetService("UserInputService")
 local Config = require(ReplicatedStorage.Shared.Config).Build
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local Hud = require(script.Parent.Hud)
+local Menus = require(script.Parent.Menus)
 local MyPeak = require(script.Parent.MyPeak)
 local State = require(script.Parent.State)
 
@@ -477,6 +478,7 @@ end
 
 function BuildMode.init(gui: ScreenGui)
 	bar = gui:FindFirstChild("BuildBar") :: Frame
+	Menus.register(bar, { close = BuildMode.close })
 	actions = bar:FindFirstChild("Actions") :: Frame
 	hint = bar:FindFirstChild("Hint") :: TextLabel
 	buildCatalog()

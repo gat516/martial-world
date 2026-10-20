@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local Hud = require(script.Parent.Hud)
+local Menus = require(script.Parent.Menus)
 local State = require(script.Parent.State)
 local Config = require(ReplicatedStorage.Shared.Config).Cultivation
 
@@ -118,9 +119,10 @@ function BreakthroughView.init(gui: ScreenGui)
 		local seated = State.current.meditation ~= nil
 		local hurt = humanoid ~= nil and humanoid.Health > 0 and humanoid.Health <= humanoid.MaxHealth * Config.FORCE_HEALTH_SHARE
 		local forcible = hurt and max > 0 and value >= max * Config.FORCE_BAR_SHARE
-		button.Visible = if seated then max > 0 and value >= max else forcible
+		button.Visible = (if seated then max > 0 and value >= max else forcible) and not Menus.isOpen()
 		label.Text = if seated then "Break Through" else "Force Breakthrough"
 	end
+	Menus.onChanged(refresh)
 	player:GetAttributeChangedSignal("Cultivation"):Connect(refresh)
 	player:GetAttributeChangedSignal("CultivationMax"):Connect(refresh)
 	State.onChanged(function()

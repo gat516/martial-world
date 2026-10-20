@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Hud = require(script.Parent.Hud)
 local ListWindow = require(script.Parent.ListWindow)
+local Menus = require(script.Parent.Menus)
 
 local remote = ReplicatedStorage.Remotes.TravelAction :: RemoteFunction
 
@@ -12,10 +13,11 @@ local TravelMenu = {}
 
 function TravelMenu.init(gui: ScreenGui)
 	local window = gui:FindFirstChild("TravelMenu") :: Frame
+	Menus.register(window)
 	ListWindow.bindClose(window)
 	local button = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("TravelButton") :: TextButton
 	button.Activated:Connect(function()
-		window.Visible = not window.Visible
+		Menus.toggle(window)
 	end)
 	local list = window:FindFirstChild("List") :: Frame
 	for _, where in { "Peak", "MainPeak", "SectGate" } do
@@ -23,7 +25,7 @@ function TravelMenu.init(gui: ScreenGui)
 		destination.Activated:Connect(function()
 			local ok, message = remote:InvokeServer(where)
 			if ok then
-				window.Visible = false
+				Menus.close(window)
 			elseif message then
 				Hud.toast(message)
 			end

@@ -28,6 +28,7 @@ local Meditation = require(script.Parent.Meditation)
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
 Hud.init(gui)
+Menus.init(gui) -- before anything registers a window
 CirculationMinigame.init(gui)
 BreakthroughView.init(gui)
 CombatController.init(gui)
@@ -40,7 +41,6 @@ DayNight.init()
 WeatherFX.init()
 HotbarView.init(gui)
 Layout.init(gui)
-Menus.init(gui)
 Inventory.init(gui)
 SeedPicker.init(gui)
 GardenView.init()

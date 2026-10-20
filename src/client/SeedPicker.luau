@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Hud = require(script.Parent.Hud)
 local ListWindow = require(script.Parent.ListWindow)
+local Menus = require(script.Parent.Menus)
 local State = require(script.Parent.State)
 
 local gardenRemote = ReplicatedStorage.Remotes.GardenAction :: RemoteFunction
@@ -33,7 +34,7 @@ function SeedPicker.open(plotId: string)
 				detail = `{herb.rarity} · grows in {growLabel(herb.growSeconds)}`,
 				count = count,
 				onPress = function()
-					window.Visible = false
+					Menus.close(window)
 					local _, message = gardenRemote:InvokeServer("plant", plotId, id)
 					if message then
 						Hud.toast(message)
@@ -47,11 +48,12 @@ function SeedPicker.open(plotId: string)
 		return
 	end
 	ListWindow.fill(window, "SeedTemplate", "PlantButton", rows)
-	window.Visible = true
+	Menus.open(window)
 end
 
 function SeedPicker.init(gui: ScreenGui)
 	window = gui:FindFirstChild("SeedPicker") :: Frame
+	Menus.register(window)
 	ListWindow.bindClose(window)
 end
 

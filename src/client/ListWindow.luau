@@ -1,6 +1,8 @@
 --!strict
 -- Shared behaviour for the pop-up list windows (inventory, seed picker, travel, quest board):
--- open/close, and rebuilding rows from a hidden template row.
+-- the close button (through Menus), and rebuilding rows from a hidden template row.
+
+local Menus = require(script.Parent.Menus)
 
 local ListWindow = {}
 
@@ -16,8 +18,8 @@ export type Row = {
 }
 
 function ListWindow.bindClose(window: Frame)
-	(window:FindFirstChild("Close") :: TextButton).Activated:Connect(function()
-		window.Visible = false
+	(window:FindFirstChild("Close") :: GuiButton).Activated:Connect(function()
+		Menus.close(window)
 	end)
 end
 

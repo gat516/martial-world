@@ -12,6 +12,7 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local HotbarView = require(script.Parent.HotbarView)
 local Hud = require(script.Parent.Hud)
 local ListWindow = require(script.Parent.ListWindow)
+local Menus = require(script.Parent.Menus)
 local Platform = require(script.Parent.Platform)
 local SlotArt = require(script.Parent.SlotArt)
 local State = require(script.Parent.State)
@@ -196,10 +197,12 @@ local function layout()
 end
 
 local function setOpen(open: boolean)
-	window.Visible = open
 	if open then
 		layout()
 		render()
+		Menus.open(window)
+	else
+		Menus.close(window)
 	end
 end
 
@@ -214,6 +217,7 @@ function Inventory.init(gui: ScreenGui)
 	secondary = actions:FindFirstChild("Secondary") :: TextButton
 	primary.Activated:Connect(onPrimary)
 	secondary.Activated:Connect(onSecondary)
+	Menus.register(window, { keepHotbar = true })
 	ListWindow.bindClose(window)
 	local tabs = window:FindFirstChild("Tabs") :: Frame
 	for _, name: Tab in { "Pouch" :: Tab, "Arts" :: Tab } do

@@ -15,6 +15,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local Controls = require(script.Parent.Controls)
 local Hud = require(script.Parent.Hud)
+local Menus = require(script.Parent.Menus)
 local State = require(script.Parent.State)
 
 local remote = ReplicatedStorage.Remotes.Meditate :: RemoteEvent
@@ -38,7 +39,7 @@ local function refresh()
 	local trim = button:FindFirstChild("Trim") :: UIStroke
 	trim.Thickness = if active then 2.5 else 1.2
 	trim.Transparency = if active then 0 else 0.45
-	row.Visible = phase == "sitting" or phase == "seated"
+	row.Visible = (phase == "sitting" or phase == "seated") and not Menus.isOpen()
 end
 
 -- Call fn BLEND seconds before a non-looped track ends, so the next pose fades in
@@ -162,6 +163,7 @@ function Meditation.init(gui: ScreenGui)
 		return Enum.ContextActionResult.Sink
 	end, false, Enum.KeyCode.M)
 
+	Menus.onChanged(refresh)
 	player.CharacterAdded:Connect(onCharacter)
 	if player.Character then
 		task.spawn(onCharacter, player.Character)

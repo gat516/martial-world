@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local ListWindow = require(script.Parent.ListWindow)
+local Menus = require(script.Parent.Menus)
 
 local questRemote = ReplicatedStorage.Remotes.QuestState :: RemoteEvent
 
@@ -90,8 +91,8 @@ end
 local function onState(state: any)
 	if state.openBoard then
 		local window = gui:FindFirstChild("QuestBoardWindow") :: Frame
-		window.Visible = true
 		renderBoard()
+		Menus.open(window)
 		return
 	end
 	goals = state.goals or {}
@@ -124,7 +125,9 @@ end
 
 function Onboarding.init(screenGui: ScreenGui)
 	gui = screenGui
-	ListWindow.bindClose(gui:FindFirstChild("QuestBoardWindow") :: Frame)
+	local board = gui:FindFirstChild("QuestBoardWindow") :: Frame
+	Menus.register(board)
+	ListWindow.bindClose(board)
 	local travel = findButton("TravelButton")
 	if travel then
 		travel.Visible = false -- until the server says it's taught

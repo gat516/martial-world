@@ -10,6 +10,7 @@ local TweenService = game:GetService("TweenService")
 
 local Controls = require(script.Parent.Controls)
 local Hud = require(script.Parent.Hud)
+local Menus = require(script.Parent.Menus)
 local Feel = require(script.Parent.Minigames.Feel)
 
 local remote = ReplicatedStorage.Remotes.CultivationAction :: RemoteFunction
@@ -137,6 +138,7 @@ end
 -- Started from the cultivation seat (Meditation.luau), never on its own.
 function CirculationMinigame.init(gui: ScreenGui)
 	overlay = gui:FindFirstChild("Circulation") :: Frame
+	Menus.register(overlay, { minigame = true, close = function() end })
 end
 
 return CirculationMinigame

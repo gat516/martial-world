@@ -34,7 +34,9 @@ local attackRemote = remotes.Attack :: RemoteEvent
 local dodgeRemote = remotes.Dodge :: RemoteEvent
 local castRemote = remotes.Cast :: RemoteEvent
 local effectRemote = remotes.Effect :: RemoteEvent
-local fistAnimations = (ReplicatedStorage:WaitForChild("Animations") :: Folder):WaitForChild("Fists") :: Folder
+local animations = ReplicatedStorage:WaitForChild("Animations") :: Folder
+local fistAnimations = animations:WaitForChild("Fists") :: Folder
+local dashAnimations = animations:WaitForChild("Dash") :: Folder
 local player = Players.LocalPlayer
 
 local TAP_MAX_PIXELS = 12 -- a press that moves further is a drag (camera, thumbstick)
@@ -46,6 +48,7 @@ local KEYS = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three }
 local CombatController = {}
 
 local tracks: { AnimationTrack } = {}
+local dashTracks: { [string]: AnimationTrack } = {} -- "Back" / "Left" / "Right"
 local playing: AnimationTrack?
 local chainIndex = 0
 local lastSwing = -math.huge
@@ -65,6 +68,15 @@ local function loadTracks(character: Model)
 			track.Priority = Enum.AnimationPriority.Action
 			track.Looped = false
 			tracks[i] = track
+		end
+	end
+	table.clear(dashTracks)
+	for _, animation in dashAnimations:GetChildren() do
+		if animation:IsA("Animation") then
+			local track = animator:LoadAnimation(animation)
+			track.Priority = Enum.AnimationPriority.Action2
+			track.Looped = false
+			dashTracks[animation.Name] = track
 		end
 	end
 end
@@ -263,6 +275,17 @@ function CombatController.dodge()
 	steer(Config.DODGE_SPEED * 2)
 	CombatEffects.dashTrail(player.Character :: Model, root, Config.DODGE_SECONDS)
 
+	-- Back/side dashes play their animation and hold the facing for the dash, so the
+	-- humanoid doesn't swing round to face the way it's going. Forward has none yet.
+	local forward = root.CFrame.LookVector:Dot(dir)
+	local right = root.CFrame.RightVector:Dot(dir)
+	local side = if forward < -0.7 then "Back" elseif right > 0.7 then "Right" elseif right < -0.7 then "Left" else nil
+	local dashTrack = side and dashTracks[side]
+	if dashTrack then
+		dashTrack:Play(0.05)
+		humanoid.AutoRotate = false
+	end
+
 	local started = os.clock()
 	local connection
 	connection = RunService.Heartbeat:Connect(function(dt)
@@ -275,6 +298,9 @@ function CombatController.dodge()
 			return
 		end
 		connection:Disconnect()
+		if dashTrack then
+			humanoid.AutoRotate = true
+		end
 		-- bleed off the leftover speed so the dash doesn't carry into a slide
 		local v = root.AssemblyLinearVelocity
 		local flat = v * Vector3.new(1, 0, 1)

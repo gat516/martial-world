@@ -20,5 +20,13 @@
    <Item class="Animation" referent="RBX11"><Properties><string name="Name">GetUp</string><Content name="AnimationId"><url>rbxassetid://116159163837100</url></Content></Properties>
    </Item>
   </Item>
+  <Item class="Folder" referent="RBX12"><Properties><string name="Name">Dash</string></Properties>
+   <Item class="Animation" referent="RBX13"><Properties><string name="Name">Back</string><Content name="AnimationId"><url>rbxassetid://75338907283865</url></Content></Properties>
+   </Item>
+   <Item class="Animation" referent="RBX14"><Properties><string name="Name">Left</string><Content name="AnimationId"><url>rbxassetid://75338907283865</url></Content></Properties>
+   </Item>
+   <Item class="Animation" referent="RBX15"><Properties><string name="Name">Right</string><Content name="AnimationId"><url>rbxassetid://97389453311989</url></Content></Properties>
+   </Item>
+  </Item>
  </Item>
 </roblox>

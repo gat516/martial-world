@@ -8,6 +8,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Combat = require(script.Parent.Combat)
 local Peaks = require(script.Parent.Peaks)
+local PlayerData = require(script.Parent.PlayerData)
+local Quests = require(script.Parent.Quests)
 
 local lastTravel: { [Player]: number } = {}
 
@@ -32,6 +34,10 @@ function Travel.go(player: Player, where: any): (boolean, string?)
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if not (character and humanoid and humanoid.Health > 0) then
 		return false, "You can't travel right now"
+	end
+	local data = PlayerData.get(player)
+	if data and not Quests.travelUnlocked(data) then
+		return false, "The elder hasn't taught you the teleport formation yet."
 	end
 	if Combat.inCombat(player) then
 		return false, "You can't form the array mid-fight."

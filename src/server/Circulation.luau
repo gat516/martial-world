@@ -75,6 +75,12 @@ function Circulation.start(player: Player): (boolean, any)
 
 	local index = Realms.index(data.realm.major, data.realm.minor)
 	local duration = math.min(Config.DURATION_MAX, Config.DURATION_START + Config.DURATION_STEP * (index - 1))
+	local band = math.max(Config.BAND_MIN, Config.BAND_START - Config.BAND_STEP * (index - 1))
+	if data.stats.circulationRuns == 0 then
+		-- the onboarding run: short and forgiving
+		duration = Config.FIRST_RUN_DURATION
+		band += Config.FIRST_RUN_BAND_BONUS
+	end
 	local run = {
 		id = HttpService:GenerateGUID(false),
 		started = now,
@@ -87,7 +93,7 @@ function Circulation.start(player: Player): (boolean, any)
 		{
 			id = run.id,
 			duration = duration,
-			band = math.max(Config.BAND_MIN, Config.BAND_START - Config.BAND_STEP * (index - 1)),
+			band = band,
 			impurities = run.impurities,
 			loops = Config.LOOPS,
 			seed = math.random(1, 1e6),

@@ -28,7 +28,8 @@ export type Data = {
 	techniques: { owned: { [string]: Technique }, slots: { string } },
 	firstKills: { [string]: boolean },
 	milestones: { [string]: boolean }, -- kill milestones claimed, by kill count
-	onboardingStep: number,
+	onboardingStep: number, -- onboarding beats completed (Quests.Beats)
+	onboardingMark: number, -- circulation runs when the current beat began
 	lastLogoutUnix: number,
 	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
 	stats: { breakthroughs: number, circulationRuns: number, kills: number, bossKills: number },
@@ -58,6 +59,7 @@ local function default(): Data
 		firstKills = {},
 		milestones = {},
 		onboardingStep = 0,
+		onboardingMark = 0,
 		lastLogoutUnix = 0,
 		lastDailyDay = 0,
 		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0 },

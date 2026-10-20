@@ -12,6 +12,7 @@ export type Row = {
 	onPress: () -> (),
 	countText: string?, -- replaces "x<count>"
 	buttonText: string?, -- replaces the template button's label
+	hideButton: boolean?,
 }
 
 function ListWindow.bindClose(window: Frame)
@@ -42,6 +43,7 @@ function ListWindow.fill(window: Frame, templateName: string, buttonName: string
 		if r.buttonText then
 			button.Text = r.buttonText
 		end
+		button.Visible = not r.hideButton
 		button.Activated:Connect(r.onPress)
 		row.Parent = list
 	end

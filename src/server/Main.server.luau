@@ -21,6 +21,7 @@ local QiNodes = require(script.Parent.QiNodes)
 local EnemyService = require(script.Parent.EnemyService)
 local Progression = require(script.Parent.Progression)
 local Tribulation = require(script.Parent.Tribulation)
+local Quests = require(script.Parent.Quests)
 
 local remotes = ReplicatedStorage.Remotes
 
@@ -111,6 +112,7 @@ Players.PlayerRemoving:Connect(function(player)
 	QiNodes.forget(player)
 	EnemyService.forget(player)
 	Tribulation.forget(player)
+	Quests.forget(player)
 	Cultivation.forget(player)
 end)
 
@@ -141,7 +143,8 @@ table.insert(Cultivation.onBreakthrough, function(player)
 		Peaks.applyRealm(player, data)
 	end
 end)
-EnemyService.start();
+EnemyService.start()
+Quests.start();
 
 (remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(function(player, action, plotId, herbId)
 	if action == "plant" then

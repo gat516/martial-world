@@ -42,6 +42,8 @@ return {
 		MIN_DURATION_FRACTION = 0.9, -- a run reported sooner than this is rejected
 		RUN_TIMEOUT_GRACE = 15, -- seconds past the duration before a run is dropped
 		PEAK_RADIUS = 60, -- studs from your plateau centre that count as on your peak
+		FIRST_RUN_DURATION = 15, -- the very first run is short...
+		FIRST_RUN_BAND_BONUS = 0.1, -- ...and its band is this much wider
 	},
 
 	Build = {

@@ -33,6 +33,9 @@
     "Workspace": {
       "Wilds": {
         "$path": "assets/Wilds.rbxmx"
+      },
+      "Hub": {
+        "$path": "assets/Hub.rbxmx"
       }
     },
     "ServerStorage": {

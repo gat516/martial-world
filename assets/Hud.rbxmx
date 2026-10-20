@@ -1281,7 +1281,7 @@
   </Item>
   <Item class="TextButton" referent="RBXK1"><Properties>
    <string name="Name">DodgeButton</string>
-   <string name="Text">Dodge</string>
+   <string name="Text">Dash</string>
    <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
    <UDim2 name="Position"><XS>1</XS><XO>-200</XO><YS>1</YS><YO>-124</YO></UDim2>
    <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>70</YO></UDim2>

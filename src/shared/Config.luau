@@ -83,10 +83,15 @@ return {
 		HITBOX_SLACK = 4, -- studs added to each side of the hitbox for movement and lag
 		AREA_SLACK = 3, -- studs added to technique areas on the server
 
-		-- Dodge: a flying-sword dash with brief invulnerability
+		-- Dodge: a flying-sword dash (F / the Dash button) with brief invulnerability.
+		-- Driven by ApplyImpulse scaled by the character's AssemblyMass, so every
+		-- avatar dashes the same; the caps below stop slopes and enemies launching it.
 		DODGE_COOLDOWN = 1.2,
 		DODGE_SPEED = 75, -- studs per second during the dash
 		DODGE_SECONDS = 0.22,
+		DODGE_ACCEL = 600, -- studs/s² the dash may correct per second after the first kick
+		DODGE_MAX_RISE = 6, -- upward speed cap while dashing, so ramps don't fling you
+		DODGE_EXIT_SPEED = 24, -- horizontal speed left when the dash ends
 		IFRAME_SECONDS = 0.35, -- invulnerable this long from the dodge's timestamp
 		IFRAME_SLACK = 0.1, -- extra server-side allowance for latency
 		PERFECT_WINDOW = 0.2, -- dodging this close before a hit lands is a perfect dodge

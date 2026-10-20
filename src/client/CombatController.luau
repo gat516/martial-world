@@ -9,7 +9,8 @@
 -- client reports each action with its server-clock timestamp (GetServerTimeNow).
 -- At impact the client casts the shared hitbox and flashes what it hit; the server
 -- re-checks hits and owns damage (Combat.luau).
--- PC: 1/2/3 for techniques, Space to dodge, click an enemy to target it.
+-- PC: 1/2/3 for techniques, F to dash, click an enemy to target it.
+-- Mobile: the Dash button beside Strike.
 
 local CollectionService = game:GetService("CollectionService")
 local ContextActionService = game:GetService("ContextActionService")
@@ -180,21 +181,44 @@ function CombatController.dodge()
 	local move = humanoid.MoveDirection * Vector3.new(1, 0, 1)
 	local dir = if move.Magnitude > 0.1 then move.Unit else (root.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
 
-	local attachment = Instance.new("Attachment")
-	attachment.Parent = root
-	local push = Instance.new("LinearVelocity")
-	push.Attachment0 = attachment
-	push.RelativeTo = Enum.ActuatorRelativeTo.World
-	push.VelocityConstraintMode = Enum.VelocityConstraintMode.Plane
-	push.PrimaryTangentAxis = Vector3.xAxis
-	push.SecondaryTangentAxis = Vector3.zAxis
-	push.PlaneVelocity = Vector2.new(dir.X, dir.Z) * Config.DODGE_SPEED
-	push.MaxForce = math.huge
-	push.Parent = root
+	-- Impulses are mass * change in velocity, so read the mass instead of guessing a
+	-- force: one kick to full speed, then small capped top-ups each frame against
+	-- the humanoid's ground friction. Upward speed is capped so a slope or an
+	-- enemy's collider can't turn the dash into a launch.
+	local want = dir * Config.DODGE_SPEED
+	local function steer(maxChange: number)
+		local mass = root.AssemblyMass
+		local v = root.AssemblyLinearVelocity
+		local change = want - v * Vector3.new(1, 0, 1)
+		if change.Magnitude > maxChange then
+			change = change.Unit * maxChange
+		end
+		local rise = math.min(0, Config.DODGE_MAX_RISE - v.Y)
+		root:ApplyImpulse((change + Vector3.yAxis * rise) * mass)
+	end
+	steer(Config.DODGE_SPEED * 2)
 	CombatEffects.flyingSword(root, Config.DODGE_SECONDS)
-	task.delay(Config.DODGE_SECONDS, function()
-		push:Destroy()
-		attachment:Destroy()
+
+	local started = os.clock()
+	local connection
+	connection = RunService.Heartbeat:Connect(function(dt)
+		if not root.Parent then
+			connection:Disconnect()
+			return
+		end
+		if os.clock() - started < Config.DODGE_SECONDS then
+			steer(Config.DODGE_ACCEL * dt)
+			return
+		end
+		connection:Disconnect()
+		-- bleed off the leftover speed so the dash doesn't carry into a slide
+		local v = root.AssemblyLinearVelocity
+		local flat = v * Vector3.new(1, 0, 1)
+		if flat.Magnitude > Config.DODGE_EXIT_SPEED then
+			local excess = flat - flat.Unit * Config.DODGE_EXIT_SPEED
+			local rise = math.min(0, Config.DODGE_MAX_RISE - v.Y)
+			root:ApplyImpulse((Vector3.yAxis * rise - excess) * root.AssemblyMass)
+		end
 	end)
 end
 
@@ -414,13 +438,13 @@ function CombatController.init(gui: ScreenGui)
 	bindButtons(gui)
 	bindTapTargeting()
 
-	-- Space dodges instead of jumping; 1/2/3 cast
+	-- F dashes (Space stays jump; touch uses the Dash button); 1/2/3 cast
 	ContextActionService:BindActionAtPriority("Dodge", function(_, inputState)
 		if inputState == Enum.UserInputState.Begin then
 			CombatController.dodge()
 		end
 		return Enum.ContextActionResult.Sink
-	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.Space)
+	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.F, Enum.KeyCode.ButtonB)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed then
 			return

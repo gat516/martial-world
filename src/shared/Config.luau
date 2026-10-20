@@ -135,6 +135,16 @@ return {
 		FAIL_COOLDOWN = 120, -- seconds before trying again
 	},
 
+	-- Day and night (client-side, in step across clients through the server clock)
+	Ambience = {
+		DAY_MINUTES = 20, -- real minutes for a full day
+		START_HOUR = 9, -- the hour at server-time zero
+		NIGHT_LIGHT_SCALE = 1.8, -- lantern light brightness at night...
+		DAY_LIGHT_SCALE = 0.5, -- ...and by day, relative to the place's setting
+		FIREFLY_RATE = 14,
+		PETAL_RATE = 3,
+	},
+
 	Spawn = {
 		HEIGHT = 4, -- studs above a peak's spawn pad
 		-- after dying you reform at the main peak (the respawn hub), not on your peak

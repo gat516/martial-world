@@ -11,6 +11,9 @@
       },
       "Animations": {
         "$path": "assets/Animations.rbxmx"
+      },
+      "Ambience": {
+        "$path": "assets/Ambience.rbxmx"
       }
     },
     "ServerScriptService": {

@@ -127,10 +127,16 @@ render; `ContentProvider:PreloadAsync` or the image's `IsLoaded` tells you when.
 4. The XML lands in `tools/frag/Hud.xml`. Wrap it in `<roblox version="4">` and
    `</roblox>` and write it to `assets/Hud.rbxmx` (and likewise for other mapped
    assets). Read the `git diff`: it should only show what you meant to change.
-5. Rojo re-syncs the file into Studio and can **duplicate** anything you created
-   by hand. After every write, scan the whole tree (top-level children too, by
-   ClassName and Name) for duplicates, delete the extras (keep the copy with your
-   latest edits), and re-export if anything changed.
+5. Rojo's live sync adds instances from the file **next to** any copies you built
+   by hand, and a destroyed-and-rebuilt instance leaves Rojo patching a stale one.
+   Scripts then grab the wrong copy with `FindFirstChild` and the client breaks
+   on load. So: edit properties of existing instances in place, and don't
+   destroy and rebuild a subtree when you can restyle it. After any structural
+   change (create, delete, rename, reparent), write the file and then ask the
+   user to reconnect Rojo (Disconnect, then Connect and accept in the Rojo
+   plugin), which rebuilds the tree from disk. Then run
+   `tools/find_duplicates.luau` with `execute_luau`; it must return `clean`
+   before you commit.
 6. The exporter skips attributes and tags; check the target has none
    (`AttributesSerialize`, `Tags`) before exporting it whole.
 

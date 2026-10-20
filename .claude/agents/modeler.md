@@ -81,8 +81,8 @@ pattern.
 - Small held items and effects (ServerStorage.ItemTemplates, enemy models) are
   built from Parts in Studio through the MCP, then exported to assets/ with
   `tools/export_rbxmx.luau` and `tools/receive_rbxmx.py`. After writing an
-  .rbxmx, check Studio for duplicates: Rojo re-syncs the file and can copy
-  anything you built by hand.
+  .rbxmx, follow AGENTS.md's Rojo duplicates rule (reconnect Rojo after
+  structural changes, then `tools/find_duplicates.luau` must return `clean`).
 - Placed world geometry outside Rojo's mapped folders lives only in the place
   file. Say in the commit message what was changed Studio-side.
 - Check the result with `screen_capture` from several camera angles

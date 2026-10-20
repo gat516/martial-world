@@ -134,11 +134,22 @@ effect, read that animation's markers (animation events):
 4. At runtime, take times from the game's own source, not hard-coded delays.
    Combat derives the action profile from `Config.Combat`
    (`src/shared/Config.luau`, the chain's `hit`/`hitStop`/`speed`) in
-   `src/shared/ActionRules.luau` (`Rules.hitAt(action)`; casts rescale playback
-   so release lands on the source `Hit` pose). Pass those into `TechniqueVFX`,
-   or listen to `AnimationTrack:GetMarkerReachedSignal(name)` on the playing
-   track for events Combat doesn't model. If Config and the markers disagree,
-   report it, and don't paper over it in the effect.
+   `src/shared/ActionRules.luau`. For techniques use
+   `Rules.castProfile(def)` (windup / active / recovery, the same numbers the
+   caster and observers run on); `Rules.hitAt(action)` is the Hit moment of a
+   live action. Listen to `AnimationTrack:GetMarkerReachedSignal(name)` on the
+   playing track for events Combat doesn't model. Compare the markers with
+   Config first. If they disagree, report it (known: Fists.4 Hit Stop 0.45 vs
+   Config 0.50; Fists.5 0.333/0.350 vs 0.35/0.533). Effects follow Config, so
+   they stay in step with the hitbox either way.
+   - Fit phases with the template contract (see "Template layout"):
+     `Phase = "active"` emitters are refit to the active window,
+     the `Windup` part to the windup, and untagged emitters are aftermath and
+     keep their own fade. `TechniqueVFX.fit(inst, phase, authored, actual)`
+     scales Lifetime and EmitDelay.
+   - Time per-target impacts from the wave emitter's own Size curve (when the
+     front reaches that distance, `frontTime` in CombatEffects), not from
+     constants.
 5. **Stop and report** if the effect needs events the animation doesn't have.
    For example, a held beam with no start/end markers, a barrage with one `Hit`
    for many blows, or a charge with no release marker. Say which animation,
@@ -146,9 +157,10 @@ effect, read that animation's markers (animation events):
    would do with them. Don't fake the timing with guessed delays. Animations
    are the user's to edit.
 
-Hits already have feedback: `CombatEffects.shake` (tiered by `SHAKE_BY_TIER`),
-hit flashes, damage numbers and `Sfx.play("Hit")`. Build on them instead of
-doubling them up.
+Hits already have feedback: `CombatEffects.shake` (tiered by `SHAKE_BY_TIER`,
+only within 45 studs of the camera), `CombatEffects.flash` (fired per impact,
+not at release), damage numbers, and the technique's own Sfx cue. Build on
+them instead of doubling them up.
 
 ## Budget (mobile first)
 
@@ -177,11 +189,32 @@ doubling them up.
     the plugin's own library search, so the user must have opened the Asset
     Library window once this Studio session (it keeps working after the window
     is closed). If it errors, ask the user to open it.
-  - Tiles only carry ids, so judge looks from thumbnails before using one:
-    `https://thumbnails.roblox.com/v1/assets?assetIds=<id,id,...>&size=150x150&format=Png`
-    (up to 100 ids per call; each `imageUrl` is a PNG). Download a batch, paste
-    them into one labelled contact sheet with Pillow in your scratchpad, and
-    Read that image, rather than viewing them one at a time.
+  - Tiles only carry ids, so judge looks from thumbnails before using one, on a
+    contact sheet: `python3 tools/vfx_contact_sheet.py OUT NAME kw1,kw2 [kind] [max]`
+    (or `ids:a;b;c` instead of keywords) writes a labelled sheet with a
+    thumbnail cache; Read the PNG. A black tile means the texture has an opaque
+    black background, which is useless for tinted or additive use: skip it
+    (e.g. 8952281337, 10365552478, 11037528577, 8214519774).
+  - Don't vet ids with `ContentProvider:PreloadAsync`: it reports Failure for
+    many library images that render fine. Render-test instead.
+  - Picks that worked (Palm Strike), as a starting palette:
+    - rings 12363693873 (fuzzy wave front), 9841273159 (thin), 13052235894
+      (spiky hit ring), 16878174995 (double thin), 15611941586 (soft)
+    - flashes 13271628051 (4-point star), 243728206 (12-point), 243728166;
+      glow 867619398, 9841273544
+    - spark streaks 7814053668, 9841260273
+    - dust 11037785287, 13556798897, 11037785676
+    - cracks 93520831389146, 97725700315217; crater 90713203428310
+    - rocks 130042646554310 (2x2 sheet, use a Random flipbook); shards 12402863766
+    - circles and seals 83667248904000, 13399941667, 100708312805540;
+      sunburst 15773612675; yin-yang 121707861781327
+    - meshes: wind swirl rings 129778117978668, 73349240058321,
+      122217820569960; torus 471124075 (MeshSize 150, huge); spike crowns
+      4316118084, 489415286
+  - Search words that paid off: shockwave, ring, wave, nova, crack, debris,
+    rock, dust, shatter, puff, flash, glow, spark, sparkle, shine, lens, rune,
+    sigil, chinese, holy, pillar, wind, impact. Nothing for palm, hand, fist,
+    buddha, seal, talisman; crater has one result.
   - Use ids as `rbxassetid://<id>`. Meshes are MeshIds, sounds SoundIds, and
     flipbooks follow the library's mesh-flipbook layout (a Part with a
     SpecialMesh and a Decal whose `Flipbook` attribute lists the frames). Ask
@@ -201,24 +234,77 @@ doubling them up.
   each, with the Emit attributes on the root.
 - Never build inside the mapped folder (AGENTS.md, "Studio instances"). Clone
   it to `ReplicatedStorage._StagingEffects`, work there, export, destroy the
-  staging copy, and let Rojo patch the real one from the file.
-- Preview in Edit mode: clone the effect into `workspace` in front of the
-  camera (or at the spot it plays, e.g. a test dummy's root), require the Game
-  Module in `execute_luau`, `fx.emit(clone)`, `task.wait` to the peak, then
-  `screen_capture`. Take several captures across the effect's life, and from a
-  player's distance as well as up close. Clean up every preview clone and clear
-  `workspace.Terrain.TempVFX` afterwards; nothing of yours stays in Workspace.
-- If the module isn't in the place yet, preview with the plain API
-  (`ParticleEmitter:Emit(n)`, `Enabled`), still author the Emit attributes, and
-  say the module preview is untested.
+  staging copy, and let Rojo patch the real one from the file. That applies to
+  every change, even an attribute tweak (Rojo doesn't write back), so batch
+  tweaks into one staging pass.
+- Build templates with one builder function installed in `_G` that takes
+  `tier` (and keeps asset ids in a table such as `_G.PalmAssets`). Each tuning
+  pass is then a single rebuild of T1..T4 instead of per-instance edits.
 - Wrap edits in `ChangeHistoryService` recordings so Ctrl+Z undoes them.
+
+### Template layout
+
+One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
+- Pivot at the ground point under the caster. Leave `PrimaryPart` nil and set
+  `WorldPivot`. A PrimaryPart sits exactly on the pivot, so ground emitters
+  land flush with the floor and z-fight away. Lift ground emitters ~0.2 studs.
+- Parts by role: `Ground` (waves, dust, seal, cracks, debris); `Palm`/`Halo`
+  or similar, repositioned from the caster at runtime; `Windup`, played at cast
+  start through `TechniqueVFX.part`; `Impact` with a `Body` attachment,
+  detached with `TechniqueVFX.take` and cloned per target with `burstAt`.
+  Code-driven extras (swirl meshes, the one light) are found by name.
+- Root attributes: `AuthoredRadius` (or length/width) so code rescales to the
+  def; `AuthoredActive` (seconds the active-phase emitters were authored for);
+  `AuthoredWindup` on the `Windup` part; `Phase = "active"` on emitters that
+  must end by Hit Stop.
+- Impacts go on the target's near side at body height with ZOffset 2-3. At the
+  target's centre the burst is hidden inside its mesh.
+
+### Particle gotchas
+
+- `ParticleEmitter.Size` is a radius (half-width). A ring that must reach
+  radius R ends its Size curve at R.
+- Ground-hugging horizontal spray (a dust ring): `Shape = Box`,
+  `EmissionDirection = Front`, `SpreadAngle = (5, 180)`. Cylinder/Outward on a
+  small part sprays everything one way.
+- Flat ground decals: `Orientation = VelocityPerpendicular`,
+  `EmissionDirection = Top`, `Speed = 0.01`. For a vertical plane facing the
+  strike use `Back`/`Front`.
+- `MeshPart.MeshId` isn't writable from MCP scripts ("lacking capability"):
+  create the part with `AssetService:CreateMeshPartAsync(id)` and clone it into
+  the template. MeshId survives the binary export.
+
+### Previewing
+
+Use `tools/vfx_preview.luau` (run it through `execute_luau`; it installs
+`_G.vfxPreview`):
+- `.scene({ radius, enemies, offsets })` builds a clean SmoothPlastic floor in
+  open sky with a caster rig, enemy clones and red posts at the gameplay
+  radius. Don't preview in the spawn area: beds, fences and props hide ground
+  effects, and a textured Grass floor muddies them.
+- `.emit(inst)` is a native `:Emit` honouring EmitCount/EmitDelay. Use it for
+  timed captures: `shared.fx.emit` in Edit mode starts ~0.1 s late, so frozen
+  frames show the wrong moment. Run `fx.emit` once per tier, frozen later, only
+  to confirm the module plays everything.
+- `.freeze()` sets `ParticleEmitter.TimeScale = 0` after your `task.wait(t)`
+  so a capture holds the moment (tweens keep running). Then `.clear()`.
+- Cameras with the scene at C: player view C+(-12,9,5) looking at C+(4,1,-1);
+  side C+(3,6,16); top-down C+(0.1,28,0) (checks the shape against the radius
+  posts).
+- Capture each tier at release, mid-active, Hit Stop and aftermath, close up
+  and at ~25 studs, day (ClockTime 16.6) and night (0.5). Restore ClockTime.
+  Green dots on rigs are Studio's attachment display, not the effect.
+- If the Game Module isn't in the place, still author the Emit attributes and
+  say in-game module playback is untested.
+- Clean up everything: preview scene, clones, staging, `workspace.Terrain.TempVFX`.
 
 ## Export (attributes must survive)
 
 `tools/export_rbxmx.luau` drops attributes and tags and only knows a short
 property list, so it is wrong for effects. Use the binary exporter:
 
-1. Start `python3 tools/receive_rbxmx.py` in the background (loopback 8766).
+1. Start `timeout 600 python3 tools/receive_rbxmx.py` in the background
+   (loopback 8766). If the port is taken, a receiver is already running.
 2. Run the contents of `tools/export_rbxm.luau` through `execute_luau` (installs
    `_G.exportRbxm`).
 3. `game:GetService("HttpService"):PostAsync("http://127.0.0.1:8766/Effects.rbxm", _G.exportRbxm("ReplicatedStorage._StagingEffects", "Effects"))`
@@ -239,6 +325,11 @@ property list, so it is wrong for effects. Use the binary exporter:
   `workspace.CurrentCamera` or `workspace.Terrain.TempVFX` like the existing
   effects, then `fx.emit(clone)` and `fx.debris(clone)` (or `destroyAfter` with
   `fx.maxLifetime`). Loops: `fx.enable` / `fx.disable`, then clean up.
+- Techniques go through `src/client/TechniqueVFX.luau`: it picks
+  `Effects.<Id>.<Id>_T<tier>` from `Techniques.visualTier(level)`, steps
+  EmitCounts +20% per level inside a tier, and falls back to plain emitters
+  when the Game Module is missing. The cast payload carries the level. Extend
+  this helper rather than adding a parallel path.
 - Use `fx.rescale` / `fx.recolor` for variants (technique tier, realm, enemy
   size) instead of duplicating templates.
 - Server-triggered moments already arrive over the `Effect` remote (see the

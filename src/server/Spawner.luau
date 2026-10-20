@@ -1,8 +1,8 @@
 --!strict
 -- Decides where and when beasts appear; EnemyService runs them once they do.
 -- Designated zones are kept topped up with respawns, and players roaming open
--- ground away from any zone run into ambient packs picked by their realm (see
--- Shared.Spawns for both). World events use Spawner.boost to make ambient
+-- ground away from any zone run into ambient packs from their region's table
+-- (see Shared.Spawns and Shared.Regions). World events use Spawner.boost to make ambient
 -- encounters more frequent and bigger while they run, and Spawner.pack to drop
 -- a group of beasts somewhere.
 
@@ -11,11 +11,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Wilds
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
-local Realms = require(ReplicatedStorage.Shared.Realms)
+local Regions = require(ReplicatedStorage.Shared.Regions)
 local Spawns = require(ReplicatedStorage.Shared.Spawns)
 local Cultivation = require(script.Parent.Cultivation)
 local EnemyService = require(script.Parent.EnemyService)
-local PlayerData = require(script.Parent.PlayerData)
 
 local Ambient = Spawns.Ambient
 
@@ -117,9 +116,11 @@ local function livingRoot(player: Player): BasePart?
 	return nil
 end
 
--- Open ground: low in the wilds, away from safe spots and designated zones.
+-- Open ground: in a region with ambient packs, away from safe spots and
+-- designated zones.
 local function openGround(position: Vector3): boolean
-	if position.Y > Ambient.MAX_GROUND_Y then
+	local region = Regions.at(position)
+	if not (region and region.packs and Spawns.Encounters[region.packs]) then
 		return false
 	end
 	for _, safe in Ambient.SAFE do
@@ -171,8 +172,7 @@ local function encounterSpot(root: BasePart): Vector3?
 	return nil
 end
 
-local function pickPack(stage: number): { [string]: number }
-	local packs = Spawns.packsFor(stage)
+local function pickPack(packs: { Spawns.Pack }): { [string]: number }
 	local total = 0
 	for _, pack in packs do
 		total += pack.weight
@@ -206,12 +206,13 @@ local function ambientCount(player: Player?): number
 end
 
 local function encounter(player: Player, root: BasePart)
-	local data = PlayerData.get(player)
-	local spot = data and encounterSpot(root)
-	if not (data and spot) then
+	local spot = encounterSpot(root)
+	local region = spot and Regions.at(spot)
+	local packs = region and region.packs and Spawns.Encounters[region.packs]
+	if not (spot and packs) then
 		return
 	end
-	local beasts = pickPack(Realms.index(data.realm.major, data.realm.minor))
+	local beasts = pickPack(packs)
 	local _, extra = boosted()
 	for id, count in beasts do
 		beasts[id] = count + extra

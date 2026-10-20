@@ -4,13 +4,13 @@
 --            Count / Radius attributes, kept topped up with respawns
 --   ambient  encounters that find a player roaming open ground away from any
 --            zone: a small pack appears a little way off, out of the player's
---            line of sight, and comes for them. Packs are picked by the player's
---            realm, so the wilds keep pace with them wherever they go.
+--            line of sight, and comes for them. Packs come from the region's
+--            table below (Shared.Regions `packs`), so deeper regions are deadlier;
+--            regions without one (the sect) have no ambient beasts.
 -- World events can lean on ambient spawning (Spawner.boost): more often, bigger
 -- packs, while the event runs.
 --
--- The safety rules below (height, safe spots) are placeholders until the world
--- layout settles.
+-- The safe spots below are placeholders until the world layout settles.
 
 export type Pack = {
 	weight: number,
@@ -31,50 +31,32 @@ Spawns.Ambient = {
 	DESPAWN_DISTANCE = 150, -- an ambient beast with no player this close...
 	DESPAWN_SECONDS = 20, -- ...for this long fades away
 	ZONE_MARGIN = 40, -- studs past a designated zone's radius that it covers
-	MAX_GROUND_Y = 150, -- only below this (the peaks and sect sit far above the wilds)
 	SAFE = { -- no ambient encounters within these
 		{ at = Vector3.new(0, 9, 500), radius = 90 }, -- the sect gate
 	},
 }
 
--- Ambient packs by the player's realm stage (Realms.Stages index): the first
--- row whose `upTo` covers the stage.
+-- Ambient packs by region (Shared.Regions `packs`). Only the ring-1 beasts
+-- exist so far; Middle and Outer reuse them in bigger packs until their own
+-- beasts are made.
 Spawns.Encounters = {
-	{
-		upTo = 3, -- QC1-3: single beasts to learn on
-		packs = {
-			{ weight = 5, beasts = { SpiritWolf = { 1, 2 } } },
-			{ weight = 2, beasts = { VenomSerpent = { 1, 1 } } },
-		},
+	Inner = { -- QC1+: single beasts and small packs
+		{ weight = 5, beasts = { SpiritWolf = { 1, 2 } } },
+		{ weight = 2, beasts = { VenomSerpent = { 1, 1 } } },
+		{ weight = 2, beasts = { SpiritWolf = { 2, 3 } } },
+		{ weight = 1, beasts = { StoneBoar = { 1, 1 } } },
 	},
-	{
-		upTo = 6, -- QC4-6: small packs, the first boar
-		packs = {
-			{ weight = 4, beasts = { SpiritWolf = { 2, 3 } } },
-			{ weight = 3, beasts = { StoneBoar = { 1, 1 } } },
-			{ weight = 3, beasts = { VenomSerpent = { 1, 2 } } },
-			{ weight = 2, beasts = { SpiritWolf = { 1, 2 }, VenomSerpent = { 1, 1 } } },
-		},
+	Middle = { -- QC5+: mixed packs
+		{ weight = 3, beasts = { SpiritWolf = { 3, 4 } } },
+		{ weight = 3, beasts = { StoneBoar = { 1, 2 } } },
+		{ weight = 3, beasts = { StoneBoar = { 1, 1 }, SpiritWolf = { 2, 2 } } },
+		{ weight = 2, beasts = { VenomSerpent = { 2, 2 }, SpiritWolf = { 1, 2 } } },
 	},
-	{
-		upTo = math.huge, -- QC7 and up: mixed packs
-		packs = {
-			{ weight = 3, beasts = { SpiritWolf = { 3, 4 } } },
-			{ weight = 3, beasts = { StoneBoar = { 1, 2 } } },
-			{ weight = 3, beasts = { StoneBoar = { 1, 1 }, SpiritWolf = { 2, 2 } } },
-			{ weight = 2, beasts = { VenomSerpent = { 2, 2 }, SpiritWolf = { 1, 2 } } },
-		},
+	Outer = { -- Foundation+: placeholder until Foundation-realm beasts exist
+		{ weight = 3, beasts = { StoneBoar = { 2, 3 } } },
+		{ weight = 3, beasts = { SpiritWolf = { 3, 4 }, VenomSerpent = { 1, 2 } } },
+		{ weight = 1, beasts = { ElderWolfKing = { 1, 1 } } },
 	},
-} :: { { upTo: number, packs: { Pack } } }
-
--- The encounter table for a realm stage.
-function Spawns.packsFor(stage: number): { Pack }
-	for _, row in Spawns.Encounters do
-		if stage <= row.upTo then
-			return row.packs
-		end
-	end
-	return Spawns.Encounters[#Spawns.Encounters].packs
-end
+} :: { [string]: { Pack } }
 
 return Spawns

@@ -5,16 +5,16 @@
 -- vitals with Circulate (an active minigame, played seated) and Rise; when the
 -- realm bar is full, Circulate gives way to Break Through (BreakthroughView).
 -- The touch combat cluster hides while seated; the tile reads "Rise".
--- Getting up: Rise, the tile, M, or simply moving or jumping (you just stand
--- and go, no get-up animation). Taking damage stands you up, and the server
--- (Meditation.luau) can end it too. Plays Animations.Meditate: Sit once, Loop
+-- Seated, the character is locked in place: no walking, jumping, or turning to
+-- follow the camera in shift lock (Movement.luau holds the facing). Getting up:
+-- Rise, the tile, or M. Taking damage knocks you straight out of it (no get-up
+-- animation), and the server (Meditation.luau) can end it too. Plays Animations.Meditate: Sit once, Loop
 -- while seated, GetUp to stand. Where you sit sets the passive multiplier; a
 -- toast says what it is whenever it changes.
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local Controls = require(script.Parent.Controls)
@@ -28,7 +28,6 @@ local animations = (ReplicatedStorage:WaitForChild("Animations") :: Folder):Wait
 local player = Players.LocalPlayer
 
 local BLEND = 0.2 -- seconds each animation fades into the next
-local MOVE_TO_RISE = 0.1 -- move input past this stands you up
 
 local Meditation = {}
 
@@ -88,6 +87,7 @@ function Meditation.sit()
 	token += 1
 	local mine = token
 	remote:FireServer(true)
+	Controls.lock("Meditation")
 	tracks.Sit:Play(BLEND)
 	nearEnd(tracks.Sit, function()
 		if token == mine then
@@ -99,9 +99,9 @@ function Meditation.sit()
 end
 
 -- `fromServer`: the server already ended the session, so don't tell it again.
--- `moving`: the player is already walking off; skip the get-up animation.
-function Meditation.stand(fromServer: boolean?, moving: boolean?)
-	if phase == "idle" or (phase == "rising" and not moving) then
+-- `abrupt`: knocked out of it (hit); skip the get-up animation.
+function Meditation.stand(fromServer: boolean?, abrupt: boolean?)
+	if phase == "idle" or (phase == "rising" and not abrupt) then
 		return
 	end
 	token += 1
@@ -111,7 +111,7 @@ function Meditation.stand(fromServer: boolean?, moving: boolean?)
 	end
 	tracks.Sit:Stop(BLEND)
 	tracks.Loop:Stop(BLEND)
-	if moving then
+	if abrupt then
 		tracks.GetUp:Stop(BLEND)
 		phase = "idle"
 		Controls.unlock("Meditation")
@@ -119,7 +119,7 @@ function Meditation.stand(fromServer: boolean?, moving: boolean?)
 		return
 	end
 	phase = "rising"
-	Controls.lock("Meditation") -- hold still for the get-up only
+	-- still locked from sitting: hold still through the get-up too
 	tracks.GetUp:Play(BLEND)
 	nearEnd(tracks.GetUp, function()
 		if token == mine then
@@ -164,7 +164,7 @@ local function onCharacter(character: Model)
 	local last = humanoid.Health
 	humanoid.HealthChanged:Connect(function(health)
 		if health < last then
-			Meditation.stand()
+			Meditation.stand(false, true)
 		end
 		last = health
 	end)
@@ -190,16 +190,6 @@ function Meditation.init(gui: ScreenGui)
 	Menus.onChanged(refresh)
 	player:GetAttributeChangedSignal("Cultivation"):Connect(refresh)
 	player:GetAttributeChangedSignal("CultivationMax"):Connect(refresh)
-	-- moving or jumping while seated stands you up
-	RunService.Heartbeat:Connect(function()
-		if phase ~= "sitting" and phase ~= "seated" or CirculationMinigame.isRunning() then
-			return
-		end
-		local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-		if humanoid and (humanoid.MoveDirection.Magnitude > MOVE_TO_RISE or humanoid.Jump) then
-			Meditation.stand(false, true)
-		end
-	end)
 	player.CharacterAdded:Connect(onCharacter)
 	if player.Character then
 		task.spawn(onCharacter, player.Character)

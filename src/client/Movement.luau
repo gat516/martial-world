@@ -10,6 +10,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Rules = require(ReplicatedStorage.Shared.ActionRules)
 local ActionState = require(script.Parent.ActionState)
 local LockOn = require(script.Parent.LockOn)
+local Meditation = require(script.Parent.Meditation)
 local Sprint = require(script.Parent.Sprint)
 
 local player = Players.LocalPlayer
@@ -56,6 +57,9 @@ local function step()
 	if ActionState.locksFacing() then
 		humanoid.AutoRotate = false
 		root.CFrame = CFrame.lookAt(root.Position, root.Position + ActionState.facing)
+	elseif Meditation.isActive() then
+		-- seated: keep the facing you sat down with, even in shift lock
+		humanoid.AutoRotate = false
 	elseif locked and not running then
 		humanoid.AutoRotate = false
 		local offset = (locked:GetPivot().Position - root.Position) * Vector3.new(1, 0, 1)

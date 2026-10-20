@@ -228,6 +228,52 @@ def immortal_peach():
     ic.save("ImmortalPeach")
 
 
+# ---------------------------------------------------------------- currency / progress
+
+def spirit_stone():
+    """A spirit stone: a pale jade crystal with a soft qi glow, one facet ridge
+    and a highlight. Used in the reward feed and beside prices."""
+    ic = Icon()
+    ic.glow((64, 66), 52, (190, 255, 230), 200)
+    stone = poly([(64, 14), (96, 40), (100, 82), (64, 116), (28, 82), (32, 40)])
+    ic.shape(stone, (160, 236, 210), light=0.7, dark=0.3)
+    # facets: a shaded right face and a centre ridge
+    shade = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    ImageDraw.Draw(shade).polygon([(x * SS, y * SS) for x, y in [(66, 20), (94, 42), (97, 81), (66, 110)]], fill=(40, 120, 100, 90))
+    ic.img.alpha_composite(shade)
+    ic.line([(64, 18), (64, 110)], (255, 255, 255, 120), 2)
+    ic.line([(36, 42), (64, 52), (92, 42)], (255, 255, 255, 80), 1.6)
+    ic.gloss([40, 34, 56, 70], 170)
+    ic.save("SpiritStone")
+
+
+def insight():
+    """Insight: an open eye of golden light with a violet iris and short rays
+    above, for comprehension and enlightenment gains."""
+    ic = Icon()
+    ic.glow((64, 66), 48, (255, 220, 140), 140)
+    # rays
+    for k in range(5):
+        a = math.radians(-60 + k * 30)
+        x0, y0 = 64 + 40 * math.sin(a), 60 - 40 * math.cos(a)
+        x1, y1 = 64 + 54 * math.sin(a), 60 - 54 * math.cos(a)
+        ic.line([(x0, y0), (x1, y1)], INK, 7)
+        ic.line([(x0, y0), (x1, y1)], (255, 222, 140, 255), 3.5)
+    # almond eye: two arcs meeting at points
+    pts = []
+    for i in range(41):
+        t = i / 40
+        pts.append((14 + 100 * t, 74 - 30 * math.sin(math.pi * t)))
+    for i in range(41):
+        t = 1 - i / 40
+        pts.append((14 + 100 * t, 74 + 24 * math.sin(math.pi * t)))
+    ic.shape(poly(pts), (255, 236, 190), light=0.5, dark=0.15)
+    ic.shape(ellipse([46, 54, 82, 90]), (150, 110, 230), outline=3, light=0.45)
+    ic.shape(ellipse([57, 65, 71, 79]), (30, 20, 60), outline=1, light=0.1, dark=0.1)
+    ic.gloss([58, 58, 68, 66], 220)
+    ic.save("Insight")
+
+
 if __name__ == "__main__":
     spirit_grass()
     cloud_mint()
@@ -239,3 +285,5 @@ if __name__ == "__main__":
     heavenly_dew()
     cloud_jade()
     immortal_peach()
+    spirit_stone()
+    insight()

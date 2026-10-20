@@ -25,6 +25,7 @@ local SeedPicker = require(script.Parent.SeedPicker)
 local GardenView = require(script.Parent.GardenView)
 local BuildMode = require(script.Parent.BuildMode)
 local Meditation = require(script.Parent.Meditation)
+local Rewards = require(script.Parent.Rewards)
 
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
@@ -51,3 +52,4 @@ SeedPicker.init(gui)
 GardenView.init()
 BuildMode.init(gui)
 Meditation.init(gui)
+Rewards.init()

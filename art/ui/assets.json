@@ -22,5 +22,12 @@
   "button_lacquer.png": "rbxassetid://88447362782150",
   "button_gold.png": "rbxassetid://124847805310931",
   "seal_close.png": "rbxassetid://115115955425573",
-  "note_panel.png": "rbxassetid://125037975495218"
+  "note_panel.png": "rbxassetid://125037975495218",
+  "icons/icon_SpiritStone.png": "rbxassetid://112328127073930",
+  "icons/icon_Insight.png": "rbxassetid://92675446701433",
+  "feed_strip.png": "rbxassetid://107611945615777",
+  "feed_accent.png": "rbxassetid://122128532471515",
+  "victory_rays.png": "rbxassetid://119962690749366",
+  "victory_banner.png": "rbxassetid://113956701239464",
+  "victory_backdrop.png": "rbxassetid://133541421440826"
 }

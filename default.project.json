@@ -27,6 +27,9 @@
     "StarterGui": {
       "Hud": {
         "$path": "assets/Hud.rbxmx"
+      },
+      "Rewards": {
+        "$path": "assets/Rewards.rbxmx"
       }
     },
     "StarterPlayer": {

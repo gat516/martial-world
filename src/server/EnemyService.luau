@@ -237,11 +237,15 @@ function EnemyService.died(enemy: Enemy)
 			local stones = math.random(enemy.def.stones[1], enemy.def.stones[2])
 			data.stones += stones
 			Cultivation.markActive(player)
+			-- a boss opens the victory card first, so the rewards below land in it
+			if enemy.def.boss then
+				effectRemote:FireClient(player, "boss", enemy.def.name, math.max(0, amount))
+			end
+			effectRemote:FireClient(player, "stones", position, stones)
 			for _, fn in EnemyService.onKill do
 				task.spawn(fn, player, enemy.def, enemy.model)
 			end
 			Cultivation.pushState(player)
-			effectRemote:FireClient(player, "stones", position, stones)
 			if amount > 0 then
 				effectRemote:FireClient(player, "qi", position, amount)
 			else

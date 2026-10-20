@@ -6,7 +6,7 @@
 -- one with FindFirstChild. Returns "clean" or one line per duplicate set.
 
 -- Scanned all the way down: every name in these is looked up by scripts.
-local DEEP = { "StarterGui.Hud", "ReplicatedStorage.Remotes", "ReplicatedStorage.Animations", "ReplicatedStorage.Ambience", "ReplicatedStorage.BuildKit" }
+local DEEP = { "StarterGui.Hud", "ReplicatedStorage.Remotes", "ReplicatedStorage.Animations", "ReplicatedStorage.Ambience", "ReplicatedStorage.BuildKit", "StarterGui.Rewards" }
 -- World geometry and templates repeat names on purpose; only the root and its
 -- direct children are checked.
 local SHALLOW = { "Workspace.Wilds", "Workspace.Hub", "ServerStorage.Enemies", "ServerStorage.PeakTiers", "ServerStorage.ItemTemplates" }

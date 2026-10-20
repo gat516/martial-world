@@ -26,6 +26,7 @@ local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
+local BuildMode = require(script.Parent.BuildMode)
 local CombatEffects = require(script.Parent.CombatEffects)
 local Hud = require(script.Parent.Hud)
 local Meditation = require(script.Parent.Meditation)
@@ -159,11 +160,18 @@ local function currentTarget(from: Vector3): Model?
 	return best
 end
 
--- The character's root, if it can act right now.
+-- The character's root, if it can act right now (not circulating, meditating
+-- or building).
 local function myRoot(): BasePart?
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if not humanoid or humanoid.Health <= 0 or CirculationMinigame.isRunning() or Meditation.isActive() then
+	if
+		not humanoid
+		or humanoid.Health <= 0
+		or CirculationMinigame.isRunning()
+		or Meditation.isActive()
+		or BuildMode.isActive()
+	then
 		return nil
 	end
 	return (character :: Model):FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -539,6 +547,9 @@ function CombatController.init(gui: ScreenGui)
 
 	-- Q dashes (Space stays jump; touch uses the Dash button)
 	ContextActionService:BindActionAtPriority("Dodge", function(_, inputState)
+		if BuildMode.isActive() then
+			return Enum.ContextActionResult.Pass -- B cancels in build mode
+		end
 		if inputState == Enum.UserInputState.Begin then
 			CombatController.dodge()
 		end

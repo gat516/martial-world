@@ -919,6 +919,12 @@ local function active(): boolean
 	return BuildCatalog.isOpen() and BuildCatalog.mode() == "build" or controls.Visible
 end
 
+-- Whether a build session is open (the catalog on your peak or the placement
+-- controls). Combat stands down meanwhile.
+function BuildMode.isActive(): boolean
+	return controls ~= nil and active()
+end
+
 -- Tear down everything a build session made.
 local function finish()
 	endPlacing()

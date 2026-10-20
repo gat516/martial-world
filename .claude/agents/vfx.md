@@ -111,24 +111,44 @@ user to install one if an effect needs it.
 - LightEmission and Brightness sparingly; additive white-out on bright skies
   and the cloud sea looks flat. Check against day and night (`DayNight.luau`).
 
-## Combat timing (Hit and Hit Stop)
+## Sync to the animation's events
 
-- Every basic attack and technique cast plays one of the Fists chain
-  animations, which carry "Hit" and "Hit Stop" markers. Their source times
-  live in `Config.Combat` (`src/shared/Config.luau`, the chain table's
-  `hit`/`hitStop`/`speed`). `src/shared/ActionRules.luau` turns them into the
-  action profile: windup (start to Hit), active (Hit to Hit Stop, the hitbox
-  window), recovery. `Rules.hitAt(action)` is the Hit moment. Casts rescale
-  playback so release lands on the source Hit pose.
-- Sync effects to those phases: anticipation and charge during windup, release
-  and the impact burst exactly at Hit, the strongest part through the active
-  window to Hit Stop, aftermath fading during recovery.
-- Derive the times from ActionRules/Config (pass them in from
-  CombatController/CombatEffects or compute them in `TechniqueVFX`), never
-  hard-coded delays, so effects stay in sync when timings are retuned.
-- Hits already have feedback: `CombatEffects.shake` (tiered by
-  `SHAKE_BY_TIER`), hit flashes, damage numbers and `Sfx.play("Hit")`. Build
-  on them instead of doubling them up.
+Effects follow the animation the move actually plays. Before designing an
+effect, read that animation's markers (animation events):
+
+1. Find the animation. A technique's def has `animation = n`, meaning
+   `ReplicatedStorage.Animations.Fists.<n>` (Palm Strike and Fire Seal play 4,
+   Sword Qi Wave 3, Lightning Talisman 2, Iron Skin 1). Other moves (dashes,
+   meditation, enemy attacks) name theirs in their own module. Check the code
+   path, because a technique may get its own animation later.
+2. Run `tools/anim_markers.luau` through `execute_luau`, then
+   `_G.animMarkers("ReplicatedStorage.Animations.Fists.4")` (or an Animation
+   instance, or an `rbxassetid://` id). It returns the length and every marker
+   with its time and value.
+3. Design the effect around the events it has. Today the Fists animations
+   carry `Hit` (release, the hitbox opens) and `Hit Stop` (the hitbox closes):
+   charge during windup, release and the impact burst at `Hit`, the strongest
+   part through the window to `Hit Stop`, fade during recovery. Other moves may
+   carry other events (a beam's start/hold/end, each blow of a barrage, a
+   channel loop). Map every phase of the effect to a marker.
+4. At runtime, take times from the game's own source, not hard-coded delays.
+   Combat derives the action profile from `Config.Combat`
+   (`src/shared/Config.luau`, the chain's `hit`/`hitStop`/`speed`) in
+   `src/shared/ActionRules.luau` (`Rules.hitAt(action)`; casts rescale playback
+   so release lands on the source `Hit` pose). Pass those into `TechniqueVFX`,
+   or listen to `AnimationTrack:GetMarkerReachedSignal(name)` on the playing
+   track for events Combat doesn't model. If Config and the markers disagree,
+   report it, and don't paper over it in the effect.
+5. **Stop and report** if the effect needs events the animation doesn't have.
+   For example, a held beam with no start/end markers, a barrage with one `Hit`
+   for many blows, or a charge with no release marker. Say which animation,
+   which markers you'd need (names and roughly where), and what the effect
+   would do with them. Don't fake the timing with guessed delays. Animations
+   are the user's to edit.
+
+Hits already have feedback: `CombatEffects.shake` (tiered by `SHAKE_BY_TIER`),
+hit flashes, damage numbers and `Sfx.play("Hit")`. Build on them instead of
+doubling them up.
 
 ## Budget (mobile first)
 

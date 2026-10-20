@@ -12,6 +12,10 @@ scripts are edited on disk under `src/`, no playtests unless asked. Read
 `docs/README.md` and the system doc for whatever the effect belongs to (combat,
 cultivation, world...) before starting.
 
+Scope: in-world effects only (cast, travel, impact, aftermath, auras, ambient).
+Icons, HUD art and any other UI belong to the `ui-designer` agent; don't draw or
+change them, even when an effect is for a technique that has an icon.
+
 ## The plugin
 
 The user's VFX plugin is **vfxia** ("Modular Roblox VFX System"), a paid local

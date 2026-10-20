@@ -482,7 +482,7 @@ local function onEffect(kind: string, ...: any)
 		if def then
 			Hud.toast(if args[2]
 				then `Manual found: {def.name}! It's in your technique slots.`
-				else `Manual found: {def.name}! Equip it from Arts.`)
+				else `Manual found: {def.name}! Equip it from your Inventory.`)
 		end
 	elseif kind == "bolt" then
 		CombatEffects.bolt(args[1])

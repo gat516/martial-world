@@ -1,5 +1,5 @@
 --!strict
--- Shared behaviour for the pop-up list windows (herb pouch, seed picker, techniques):
+-- Shared behaviour for the pop-up list windows (inventory, seed picker, travel, quest board):
 -- open/close, and rebuilding rows from a hidden template row.
 
 local ListWindow = {}

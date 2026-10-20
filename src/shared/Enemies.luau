@@ -30,6 +30,7 @@ export type Def = {
 	keepAway: number?, -- backs off when a player is closer than this
 	qiDrop: number,
 	respawn: number, -- seconds before a replacement spawns
+	boss: boolean?,
 	attack: Attack,
 }
 

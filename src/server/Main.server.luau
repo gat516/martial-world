@@ -19,6 +19,7 @@ local Combat = require(script.Parent.Combat)
 local Travel = require(script.Parent.Travel)
 local QiNodes = require(script.Parent.QiNodes)
 local EnemyService = require(script.Parent.EnemyService)
+local Progression = require(script.Parent.Progression)
 
 local remotes = ReplicatedStorage.Remotes
 
@@ -117,8 +118,10 @@ end
 (remotes.Dodge :: RemoteEvent).OnServerEvent:Connect(Combat.dodge);
 (remotes.Cast :: RemoteEvent).OnServerEvent:Connect(Combat.cast);
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);
+(remotes.TechniqueAction :: RemoteFunction).OnServerInvoke = guarded(Progression.handle);
 
 QiNodes.start()
+table.insert(EnemyService.onKill, Progression.onKill)
 EnemyService.start();
 
 (remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(function(player, action, plotId, herbId)

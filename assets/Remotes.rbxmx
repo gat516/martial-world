@@ -26,5 +26,7 @@
   </Item>
   <Item class="RemoteEvent" referent="RBX14"><Properties><string name="Name">Telegraph</string></Properties>
   </Item>
+  <Item class="RemoteFunction" referent="RBX15"><Properties><string name="Name">TechniqueAction</string></Properties>
+  </Item>
  </Item>
 </roblox>

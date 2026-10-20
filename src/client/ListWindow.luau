@@ -1,5 +1,5 @@
 --!strict
--- Shared behaviour for the pop-up list windows (herb pouch, seed picker):
+-- Shared behaviour for the pop-up list windows (herb pouch, seed picker, techniques):
 -- open/close, and rebuilding rows from a hidden template row.
 
 local ListWindow = {}
@@ -10,6 +10,8 @@ export type Row = {
 	detail: string,
 	count: number,
 	onPress: () -> (),
+	countText: string?, -- replaces "x<count>"
+	buttonText: string?, -- replaces the template button's label
 }
 
 function ListWindow.bindClose(window: Frame)
@@ -35,8 +37,12 @@ function ListWindow.fill(window: Frame, templateName: string, buttonName: string
 		(row:FindFirstChild("Swatch") :: Frame).BackgroundColor3 = r.color;
 		(row:FindFirstChild("NameLabel") :: TextLabel).Text = r.name;
 		(row:FindFirstChild("Detail") :: TextLabel).Text = r.detail;
-		(row:FindFirstChild("CountLabel") :: TextLabel).Text = `x{r.count}`;
-		(row:FindFirstChild(buttonName) :: TextButton).Activated:Connect(r.onPress)
+		(row:FindFirstChild("CountLabel") :: TextLabel).Text = r.countText or `x{r.count}`
+		local button = row:FindFirstChild(buttonName) :: TextButton
+		if r.buttonText then
+			button.Text = r.buttonText
+		end
+		button.Activated:Connect(r.onPress)
 		row.Parent = list
 	end
 end

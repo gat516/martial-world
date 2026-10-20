@@ -376,6 +376,15 @@ local function onEffect(kind: string, ...: any)
 		end
 	elseif kind == "qi" then
 		CombatEffects.number(args[1], `+{args[2]} qi`, Color3.fromRGB(120, 235, 180), 20)
+	elseif kind == "insight" then
+		Hud.toast(`+{args[1]} insight: {args[2]}`)
+	elseif kind == "manual" then
+		local def = Techniques.Defs[args[1]]
+		if def then
+			Hud.toast(if args[2]
+				then `Manual found: {def.name}! It's in your technique slots.`
+				else `Manual found: {def.name}! Equip it from Arts.`)
+		end
 	elseif kind == "cast" then
 		local caster = args[1] :: Player
 		CombatEffects.cast(caster.Character, args[2], args[3], args[4], args[5])

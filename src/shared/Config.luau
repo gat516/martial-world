@@ -105,6 +105,19 @@ return {
 		AI_TICK = 0.1, -- seconds between enemy decisions
 	},
 
+	-- Insight and technique manuals
+	Progression = {
+		FIRST_KILL_INSIGHT = 1, -- the first kill of each enemy type
+		BOSS_INSIGHT = 1, -- every boss kill
+		BOSS_FIRST_MANUAL = "LightningTalisman",
+		-- kill milestones (total kills): insight and/or a manual, once each
+		MILESTONES = {
+			{ kills = 3, manual = "PalmStrike" },
+			{ kills = 30, insight = 1, manual = "IronSkin" },
+			{ kills = 100, insight = 1, manual = "FireSeal" },
+		},
+	},
+
 	Spawn = {
 		HEIGHT = 4, -- studs above a peak's spawn pad
 	},
@@ -114,7 +127,7 @@ return {
 		ENABLED = true,
 		HERBS_EACH = 5, -- every herb type
 		SEEDS_EACH = 5, -- every seed type
-		ALL_TECHNIQUES = true, -- own every technique (manuals aren't in yet)
+		ALL_TECHNIQUES = false, -- own every technique, to test them without earning manuals
 		FILL_DANTIAN = true, -- no combat yet, so this is the only steady raw qi source
 	},
 }

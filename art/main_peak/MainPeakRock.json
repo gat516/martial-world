@@ -2,20 +2,20 @@
  "placement": "CFrame.identity (Blender origin = world origin)",
  "meshes": {
   "MainRockSpire": {
-   "tris": 9300,
+   "tris": 11161,
    "center": [
-    -0.356,
-    94.032,
-    730.905
+    1.075,
+    93.074,
+    731.234
    ],
    "size": [
-    171.466,
-    109.16,
-    161.413
+    176.716,
+    111.076,
+    162.069
    ]
   },
   "MainRockMesa": {
-   "tris": 9527,
+   "tris": 11077,
    "center": [
     -1.047,
     13.164,
@@ -28,7 +28,7 @@
    ]
   },
   "MainRockCliffA": {
-   "tris": 7086,
+   "tris": 7390,
    "center": [
     60.076,
     -24.905,
@@ -41,7 +41,7 @@
    ]
   },
   "MainRockCliffB": {
-   "tris": 7179,
+   "tris": 7639,
    "center": [
     -31.943,
     -38.861,
@@ -54,7 +54,7 @@
    ]
   },
   "MainRockCliffC": {
-   "tris": 6720,
+   "tris": 7085,
    "center": [
     0.39,
     35.611,
@@ -80,16 +80,16 @@
    ]
   },
   "MainGrass": {
-   "tris": 7182,
+   "tris": 3901,
    "center": [
-    0.12,
-    -2.081,
-    620.127
+    -2.211,
+    -2.159,
+    533.419
    ],
    "size": [
-    379.002,
-    379.734,
-    384.283
+    375.337,
+    379.576,
+    166.77
    ]
   },
   "MainPath": {

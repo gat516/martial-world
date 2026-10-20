@@ -18,31 +18,33 @@ local STAGES = _G.MAIN_PEAK_STAGES or { place = true, collision = true, terrain 
 
 -- BEGIN MESHES (generated from MainPeakRock.json)
 local MESHES = {
-	MainRockSpire = { center = { -0.356, 94.032, 730.905 }, size = { 171.466, 109.16, 161.413 } }, -- 9300 tris
-	MainRockMesa = { center = { -1.047, 13.164, 617.914 }, size = { 261.215, 279.722, 71.251 } }, -- 9527 tris
-	MainRockCliffA = { center = { 60.076, -24.905, 496.933 }, size = { 259.092, 334.085, 173.866 } }, -- 7086 tris
-	MainRockCliffB = { center = { -31.943, -38.861, 496.843 }, size = { 315.137, 290.118, 173.686 } }, -- 7179 tris
-	MainRockCliffC = { center = { 0.39, 35.611, 496.845 }, size = { 335.321, 304.35, 173.69 } }, -- 6720 tris
+	MainRockSpire = { center = { 1.075, 93.074, 731.234 }, size = { 176.716, 111.076, 162.069 } }, -- 11161 tris
+	MainRockMesa = { center = { -1.047, 13.164, 617.914 }, size = { 261.215, 279.722, 71.251 } }, -- 11077 tris
+	MainRockCliffA = { center = { 60.076, -24.905, 496.933 }, size = { 259.092, 334.085, 173.866 } }, -- 7390 tris
+	MainRockCliffB = { center = { -31.943, -38.861, 496.843 }, size = { 315.137, 290.118, 173.686 } }, -- 7639 tris
+	MainRockCliffC = { center = { 0.39, 35.611, 496.845 }, size = { 335.321, 304.35, 173.69 } }, -- 7085 tris
 	MainRockBase = { center = { 1.851, 3.227, 209.007 }, size = { 472.997, 469.427, 435.775 } }, -- 6000 tris
-	MainGrass = { center = { 0.12, -2.081, 620.127 }, size = { 379.002, 379.734, 384.283 } }, -- 7182 tris
-	MainPath = { center = { -0.097, 0.066, 581.91 }, size = { 331.778, 331.681, 0.42 } }, -- 2048 tris
+	MainGrass = { center = { -2.211, -2.159, 533.419 }, size = { 375.337, 379.576, 166.77 } }, -- 3901 tris
+	MainPath = { center = { -0.097, 0.097, 581.91 }, size = { 331.778, 331.743, 0.42 } }, -- 2880 tris
 }
 -- END MESHES
 
 local CLEAR_RADIUS = 203 -- the 8 spirit peaks (r 300) and their terrain start beyond ~205
 local CLEAR_BOTTOM, CLEAR_TOP = 12, 900 -- ground ring is at y ~ -10..8
-local GRASS_VARIANT = "Stylized Grass I - BZ1 Studios"
+-- plain colours, no textures: the rock's shape carries the detail
+local GRASS_COLOR = Color3.fromRGB(110, 165, 70)
+local ROCK_COLOR = Color3.fromRGB(110, 110, 115)
 
 local CHS = game:GetService("ChangeHistoryService")
 local terrain = workspace.Terrain
 local mainPeak = workspace.Map.Sect.MainPeak
 
 local STYLE = {
-	MainGrass = { material = Enum.Material.Grass, variant = GRASS_VARIANT, color = Color3.new(1, 1, 1), fidelity = "PreciseConvexDecomposition" },
+	MainGrass = { material = Enum.Material.SmoothPlastic, color = GRASS_COLOR, fidelity = "PreciseConvexDecomposition" },
 	MainPath = { material = Enum.Material.Pavement, terrainColor = Enum.Material.Pavement, collide = false, shadow = false },
-	MainRockBase = { material = Enum.Material.Rock, terrainColor = Enum.Material.Rock, fidelity = "Hull" },
+	MainRockBase = { material = Enum.Material.SmoothPlastic, color = Color3.fromRGB(96, 96, 100), fidelity = "Hull" },
 }
-local ROCK = { material = Enum.Material.Rock, terrainColor = Enum.Material.Rock, fidelity = "PreciseConvexDecomposition" }
+local ROCK = { material = Enum.Material.SmoothPlastic, color = ROCK_COLOR, fidelity = "PreciseConvexDecomposition" }
 
 local function rockFolder()
 	local rock = mainPeak:FindFirstChild("Rock")

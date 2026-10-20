@@ -28,25 +28,33 @@ SEG = 128
 HALL = dict(cx=0.0, cy=6.0, ax=31.0, ay=27.0, floor=-24.5, wall_top=-15.0, apex=-7.5)  # floor surface = floor - 0.5
 MIN_WALL = 6.0
 
-# CaveAbode.CliffStairs step centres (x, outward, z), top to bottom. The steps spiral around the
-# cliff ~52.5 studs from the axis: 4.4 run (tangent) x 4 tall x 13 wide (radial).
-STEPS = [(-37.8, 36.4, -5.6), (-35.3, 38.9, -8.8), (-32.5, 41.2, -11.9), (-29.7, 43.3, -15.0),
-         (-26.7, 45.2, -18.1), (-23.6, 46.9, -21.3), (-20.4, 48.4, -24.4), (-17.0, 49.7, -27.5)]
-
 PORCH_TOP = -25.0  # landing in front of the abode door
+
+# Cliff stairs: a stone flight winding down the cliff from the lawn (at STAIR_HEAD deg, 90 = outward)
+# to the porch (STAIR_FOOT deg), cut into a rock shelf. Angles fall as the flight descends.
+STAIR_HEAD, STAIR_FOOT = 172.0, 120.0
+STAIR_N = 16
+STAIR_RISE = (TOP_Z - PORCH_TOP) / STAIR_N   # ~1.47, walkable without jumping
+STAIR_IN, STAIR_OUT = 5.0, 3.9               # tread extent inside/outside the stair line radius
+
+MIN_LAWN = 60.0  # studs^2; up-facing patches smaller than this are rock bumps, not lawn
 
 # Cliff ledges: (angle deg, 90 = outward; depth below top; radius; protrusion)
 OUTCROPS = [(20, 36, 11, 7), (205, 50, 13, 8), (322, 74, 10, 6), (158, 96, 12, 7),
             (58, 122, 9, 6), (242, 142, 14, 9), (352, 166, 11, 7),
             (110, 205, 14, 9), (30, 300, 16, 10), (210, 420, 18, 11)]
 
-HELPERS = ["PeakPillar", "CutCave", "CutHall", "CutStairs", "StairBlock", "Outcrops"]
+HELPERS = ["PeakPillar", "CutCave", "CutHall", "CutStairs", "StairBlock", "Outcrops", "StairTreads",
+           "StairRail", "StairRamp"]
 PARTS = [  # one MeshPart = one Roblox material
     ("PeakRock", (0.22, 0.25, 0.30, 1)),
     ("PeakRockBase", (0.20, 0.23, 0.28, 1)),
     ("PeakGrass", (0.18, 0.42, 0.16, 1)),
     ("AbodeWalls", (0.55, 0.50, 0.42, 1)),
     ("AbodeFloor", (0.45, 0.32, 0.20, 1)),
+    ("PeakStairs", (0.50, 0.49, 0.46, 1)),
+    ("PeakStairsRail", (0.36, 0.24, 0.14, 1)),
+    ("PeakStairsRamp", (0.9, 0.2, 0.2, 1)),  # invisible walk surface in Roblox
 ]
 
 
@@ -252,30 +260,144 @@ def cave_door_cutter():
     return link("CutCave", bm)
 
 
+def stair_t(ang):
+    """0 at the stair head, 1 at the porch."""
+    return (STAIR_HEAD - ang) / (STAIR_HEAD - STAIR_FOOT)
+
+
+def shelf_z(ang):
+    """Rock shelf under the treads: one straight slope, 0.5 below each tread's back edge."""
+    return max(PORCH_TOP - STAIR_RISE - 0.5, TOP_Z - STAIR_RISE * (STAIR_N * stair_t(ang) + 1) - 0.5)
+
+
+def stair_r(ang):
+    """Radius of the stair line: just outside the smooth cliff surface (before the blocky detail)."""
+    return surface_radius(math.radians(ang), TOP_Z - shelf_z(ang))[0] + 1.5
+
+
+def tread_top(k):
+    return TOP_Z - (k + 1) * STAIR_RISE
+
+
+def ramp_z(ang):
+    """Walk surface through the middle of every tread (feet sink/float at most half a rise)."""
+    return shelf_z(ang) + 0.5 + STAIR_RISE / 2
+
+
+def wobble(ang, k, amp):
+    # smooth along the flight, so edges wander instead of jittering per step
+    return amp * noise.noise(Vector((ang / 9.0, k * 3.7, 1.9)))
+
+
+def polar(ang, r, z):
+    th = math.radians(ang)
+    return Vector((math.cos(th) * r, math.sin(th) * r, z))
+
+
+def sweep(bm, sections, cap=True):
+    """Loft closed cross-sections (same vertex count, same winding) into a tube, capped at both ends."""
+    rings = [[bm.verts.new(p) for p in s] for s in sections]
+    n = len(rings[0])
+    for a, b in zip(rings, rings[1:]):
+        for i in range(n):
+            j = (i + 1) % n
+            bm.faces.new((a[i], a[j], b[j], b[i]))
+    if cap:
+        bm.faces.new(rings[0])
+        bm.faces.new(list(reversed(rings[-1])))
+
+
+def angles(a0, a1, step=1.0):
+    n = max(1, int(abs(a1 - a0) / step))
+    return [a0 + (a1 - a0) * i / n for i in range(n + 1)]
+
+
 def stair_solids():
-    """Per step: rock support under the Step part and clearance above it, following the spiral."""
+    """Rock shelf the flight sits on (unioned), and the clearance carved above it (subtracted).
+    Both are smooth sweeps along the spiral, so the cliff gets one winding ledge, not a box per step."""
     block, cut = bmesh.new(), bmesh.new()
-    for x, y, z in STEPS:
-        radial = Vector((x, y, 0)).normalized()
-        tangent = Vector((-radial.y, radial.x, 0))
-        r = Vector((x, y)).length
-        bottom, tread = z - 2.0, z + 2.0
-        # wedge: deep at the cliff, only a few studs thick at the outer edge, so it tapers into the rock
-        inner, outer = radial * (r - 12.0), radial * (r + 6.7)
-        t = tangent * 2.6
-        add_box(block, [inner - t + Vector((0, 0, bottom - 18)), inner + t + Vector((0, 0, bottom - 18)),
-                        outer + t + Vector((0, 0, bottom - 4)), outer - t + Vector((0, 0, bottom - 4)),
-                        inner - t + Vector((0, 0, bottom)), inner + t + Vector((0, 0, bottom)),
-                        outer + t + Vector((0, 0, bottom)), outer - t + Vector((0, 0, bottom))])
-        oriented_box(cut, Vector((0, 0, 0)), tangent, radial, 2.2, r - 8.5, r + 40.0, tread, tread + 14.0)
-    # stone landing the stairs end on, flush with the doorway threshold and CaveAbode.Ledge top;
-    # underside slopes back into the cliff like the step supports
+    sections = []
+    for a in angles(STAIR_HEAD + 1.0, STAIR_FOOT - 4.0):
+        s, r = shelf_z(a), stair_r(a)
+        lip = r + STAIR_OUT + 0.7 + wobble(a, 1, 0.6)
+        sections.append([polar(a, r - 10, s), polar(a, lip, s), polar(a, lip - 0.6, s - 3.5),
+                         polar(a, r + 1.5 + wobble(a, 2, 1.0), s - 8.0), polar(a, r - 10, s - 16)])
+    sweep(block, sections)
+    sections = []
+    for a in angles(STAIR_HEAD, STAIR_FOOT - 4.0):
+        s, r = max(shelf_z(a), PORCH_TOP) + 0.02, stair_r(a)
+        # inner wall leans back as it rises, with a wandering face
+        # 10 studs of headroom: enough to walk, and the lawn rim above stays whole below the first few steps
+        sections.append([polar(a, r - STAIR_IN + 0.2, s), polar(a, r + 30, s), polar(a, r + 30, s + 10),
+                         polar(a, r - 7.0 + wobble(a, 3, 1.2), s + 10), polar(a, r - 6.2 + wobble(a, 4, 1.0), s + 7),
+                         polar(a, r - 5.4 + wobble(a, 5, 0.6), s + 3.5)])
+    sweep(cut, sections)
+    # stone landing the stairs end on, flush with the doorway threshold and CaveAbode.Facade's piers;
+    # underside slopes back into the cliff like the shelf
     top = PORCH_TOP
     add_box(block, [(-28, 40, top - 16), (16, 40, top - 16), (16, 66, top - 4), (-28, 66, top - 4),
                     (-28, 40, top), (16, 40, top), (16, 66, top), (-28, 66, top)])
     for b in (block, cut):
         bmesh.ops.recalc_face_normals(b, faces=b.faces)
     return link("StairBlock", block), link("CutStairs", cut)
+
+
+def stair_meshes():
+    """Treads (stone), rail (wood) and the invisible walk ramp, as separate export meshes."""
+    random.seed(11)
+    da = (STAIR_HEAD - STAIR_FOOT) / STAIR_N
+    treads = bmesh.new()
+    for k in range(STAIR_N):
+        a_back = STAIR_HEAD - k * da + 0.4             # tucks under the tread above
+        a_front = STAIR_HEAD - (k + 1) * da + random.uniform(-0.25, 0.15)
+        top = tread_top(k) + random.uniform(-0.04, 0.04)
+        r_in = -STAIR_IN + random.uniform(-0.1, 0.1)
+        r_out = STAIR_OUT + random.uniform(-0.3, 0.2)
+        sections = []
+        for a in angles(a_back, a_front, 1.2):
+            r = stair_r(a)
+            bot = shelf_z(a) - 0.3
+            sections.append([polar(a, r + r_in, bot), polar(a, r + r_out, bot),
+                             polar(a, r + r_out, top - 0.05), polar(a, r + r_out - 0.15, top),
+                             polar(a, r + r_in, top)])  # chamfered outer edge
+        sweep(treads, sections)
+    bmesh.ops.recalc_face_normals(treads, faces=treads.faces)
+
+    rail = bmesh.new()
+    post_r = STAIR_OUT - 0.45
+    a0, a1 = STAIR_HEAD - da * 0.5, STAIR_FOOT + da * 0.5
+
+    def rail_z(a, h):
+        return ramp_z(a) + h
+
+    for h, t in ((3.1, 0.22), (1.6, 0.16)):  # hand rail, lower rail
+        sections = []
+        for a in angles(a0, a1, 1.0):
+            r, z = stair_r(a) + post_r, rail_z(a, h)
+            sections.append([polar(a, r - t, z - t), polar(a, r + t, z - t), polar(a, r + t, z + t),
+                             polar(a, r - t, z + t)])
+        sweep(rail, sections)
+    for k in list(range(0, STAIR_N, 3)) + [STAIR_N - 1]:
+        a = STAIR_HEAD - (k + 0.5) * da
+        r = stair_r(a) + post_r
+        lean = random.uniform(-0.12, 0.12)
+        z0, z1 = tread_top(k) - 0.2, rail_z(a, 3.1) + 0.35
+        w = 0.27 / (r * math.pi / 180)  # half-width in degrees
+        sections = [[polar(a - w, r - 0.27, z), polar(a + w, r - 0.27, z), polar(a + w, r + 0.27, z),
+                     polar(a - w, r + 0.27, z)] for z in (z0, z1)]
+        sections[1] = [p + polar(a, lean, 0) for p in sections[1]]
+        sweep(rail, sections)
+    bmesh.ops.recalc_face_normals(rail, faces=rail.faces)
+
+    ramp = bmesh.new()
+    sections = []
+    for a in angles(STAIR_HEAD + 2.0, STAIR_FOOT - 1.0, 1.0):
+        r, z = stair_r(a), min(TOP_Z - 0.4, max(PORCH_TOP, ramp_z(a)))
+        sections.append([polar(a, r - STAIR_IN + 0.3, z - 1.0), polar(a, r + STAIR_OUT - 0.2, z - 1.0),
+                         polar(a, r + STAIR_OUT - 0.2, z), polar(a, r - STAIR_IN + 0.3, z)])
+    sweep(ramp, sections)
+    bmesh.ops.recalc_face_normals(ramp, faces=ramp.faces)
+    return treads, rail, ramp
 
 
 def hall_cutter(h, seg=28):
@@ -330,11 +452,17 @@ def wall_report(pillar, h):
 
 # --- split + UV + export -----------------------------------------------------
 
+def in_stairs(c):
+    a = math.degrees(math.atan2(c.y, c.x)) % 360
+    if not STAIR_FOOT - 5 < a < STAIR_HEAD + 3 or c.z > TOP_Z - 2.5:  # the lawn stays whole around the head
+        return False
+    s = shelf_z(a)
+    return Vector((c.x, c.y)).length > stair_r(a) - 9 and s - 17 < c.z < s + 17
+
+
 def in_cut(c, h):
     cave = (-13 < c.x < 13 and c.y > 18 and -27 < c.z < -8) or (-27 < c.x < 14 and c.y > 53 and -26 < c.z < -6)
-    # stops below the plateau so the top stays one continuous lawn around the stair head
-    stairs = -50 < c.x < -8 and c.y > 28 and -34 < c.z < TOP_Z - 2.5
-    return cave or stairs or in_abode(c, h)
+    return cave or in_stairs(c) or in_abode(c, h)
 
 
 def in_abode(c, h):
@@ -346,15 +474,61 @@ def in_abode(c, h):
 
 def is_grass(f, h):
     c = f.calc_center_median()
-    if in_cut(c, h):
-        return False
-    if f.normal.z > 0.6:
-        return True
-    # ragged grass lip spilling over the rim, except over the abode front and stairs
-    if c.y > 28 and -50 < c.x < 20 and c.z < TOP_Z - 1.0:
-        return False
-    lip =1.0 + 2.5 * (noise.noise(Vector((c.x / 9.0, c.y / 9.0, 3.3))) + 1.0)
-    return c.z > TOP_Z - lip and f.normal.z > -0.3
+    # the rolling lawn may slope; below it only near-flat ledges count, so sloped bumps under the rim stay rock
+    return f.normal.z > (0.6 if c.z > TOP_Z - 2.0 else 0.85) and not in_cut(c, h)
+
+
+def lawns(faces):
+    """Keep only connected up-facing patches of at least MIN_LAWN, so bumps on the cliff stay rock."""
+    cand, seen, keep = set(faces), set(), []
+    for f in cand:
+        if f in seen:
+            continue
+        seen.add(f)
+        stack, patch = [f], []
+        while stack:
+            g = stack.pop()
+            patch.append(g)
+            for e in g.edges:
+                for n in e.link_faces:
+                    if n in cand and n not in seen:
+                        seen.add(n)
+                        stack.append(n)
+        if sum(g.calc_area() for g in patch) >= MIN_LAWN:
+            keep.extend(patch)
+    return keep
+
+
+def add_skirt(bm, skip=lambda co: False):
+    """Turf folding over every open edge of the lawn: one continuous band, each vertex dropped by a
+    smooth noise amount, so the rim reads as a soft overhang instead of loose triangles."""
+    bm.normal_update()
+    edges = [e for e in bm.edges if len(e.link_faces) == 1]
+    push = {}
+    for e in edges:
+        a, b = e.verts
+        d = b.co - a.co
+        n = Vector((d.y, -d.x, 0))
+        if n.length < 1e-6:
+            continue
+        n.normalize()
+        if n.dot(e.link_faces[0].calc_center_median() - (a.co + b.co) / 2) > 0:
+            n = -n  # away from the lawn
+        for v in (a, b):
+            push[v] = push.get(v, Vector()) + n
+    low = {}
+    for v, n in push.items():
+        if skip(v.co):
+            continue
+        n = n.normalized() if n.length > 1e-6 else n
+        drop = 1.0 + 0.8 * (noise.noise(Vector((v.co.x / 7.0, v.co.y / 7.0, 4.1))) + 1.0)
+        low[v] = bm.verts.new(v.co + n * 0.5 - Vector((0, 0, drop)))
+    for e in edges:
+        a, b = e.verts
+        if a in low and b in low:
+            l = next(l for l in e.link_faces[0].loops if l.edge == e)
+            x, y = l.vert, l.link_loop_next.vert  # lawn winding along this edge; the skirt runs the other way
+            bm.faces.new((y, x, low[x], low[y]))
 
 
 def extract(bm, faces):
@@ -402,7 +576,7 @@ def bounds(o):
     return [round(x, 3) for x in (mn + mx) / 2], [round(x, 3) for x in mx - mn]
 
 
-def split_and_export(pillar, h, anchors):
+def split_and_export(pillar, h, anchors, stairs):
     clear([n for n, _ in PARTS])
     bm = bmesh.new()
     bm.from_mesh(pillar.data)
@@ -413,13 +587,15 @@ def split_and_export(pillar, h, anchors):
     bm.verts.index_update()
     floor_bm = extract(bm, [f for f in bm.faces if in_abode(f.calc_center_median(), h) and f.normal.z > 0.82])
     walls_bm = extract(bm, [f for f in bm.faces if in_abode(f.calc_center_median(), h)])
-    grass_bm = extract(bm, [f for f in bm.faces if is_grass(f, h)])
+    grass_bm = extract(bm, lawns([f for f in bm.faces if is_grass(f, h)]))
+    add_skirt(grass_bm, skip=lambda co: -27 < co.x < 14 and co.y > 40)  # not over the abode facade
     base_bm = extract(bm, [f for f in bm.faces if f.calc_center_median().z < TOP_Z - SPLIT_H])
     for b in (bm, base_bm, grass_bm, walls_bm, floor_bm):  # drop loose verts left behind by extraction
         bmesh.ops.delete(b, geom=[e for e in b.edges if not e.link_faces], context='EDGES')
         bmesh.ops.delete(b, geom=[v for v in b.verts if not v.link_faces], context='VERTS')
     meshes = {"PeakRock": bm, "PeakRockBase": base_bm, "PeakGrass": grass_bm,
               "AbodeWalls": walls_bm, "AbodeFloor": floor_bm}
+    meshes["PeakStairs"], meshes["PeakStairsRail"], meshes["PeakStairsRamp"] = stairs
     objs = []
     for name, col in PARTS:
         b = meshes[name]
@@ -459,10 +635,10 @@ def main():
     boolean(pillar, outcrops, 'UNION')
     for cutter in (cave_door_cutter(), stair_cut, hall_cutter(HALL)):
         boolean(pillar, cutter, 'DIFFERENCE')
-    boolean(pillar, block, 'UNION')  # last, so the porch cut can't eat the step supports
+    boolean(pillar, block, 'UNION')  # last, so the porch cut can't eat the stair shelf
     pillar.modifiers.new("Tri", 'TRIANGULATE')
     apply_all(pillar)
-    report = split_and_export(pillar, HALL, anchors)
+    report = split_and_export(pillar, HALL, anchors, stair_meshes())
     print("thinnest hall wall:", wall, "(min", MIN_WALL, ")")
     for k, v in report["meshes"].items():
         print(k, v)

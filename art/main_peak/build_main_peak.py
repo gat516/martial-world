@@ -29,6 +29,7 @@ TILE = 12.0          # studs per UV unit
 VOXEL = 1.5          # remesh resolution of the upper body
 TOP_TRIS = 47000     # decimation target for everything above the clouds
 BASE_TRIS = 6000
+MIN_LAWN = 3000.0    # studs^2; the terrace, plaza ledge and mesa; smaller flats are rock unless a pine stands there
 TERRACE_Y, LEDGE_Y, MESA_Y = 582.0, 614.0, 647.0
 CLOUD_Y = 410.0      # upper body starts here; base runs below (overlap hidden in the clouds)
 
@@ -503,21 +504,73 @@ def under_floor(c):
     return abs(c.x) < 100.5 and -35.5 < -c.y < 115.5 and c.z > MESA_Y - 3
 
 
-def is_grass(f, kd, flats):
+def is_grass(f):
     c = f.calc_center_median()
-    if c.z < 430 or under_floor(c):
-        return False
-    if f.normal.z > 0.6:
-        return True
-    r = math.hypot(c.x, c.y)
-    a = world_angle(c.x, c.y)
-    if r > 165 and c.z > 540 and cap_radius(a, c.z) is not None:
-        return False  # bridge landings and waterfall lips stay bare rock
-    if f.normal.z < -0.3:
-        return False
-    co, i, dist = kd.find(c)
-    lip = 1.0 + 2.5 * (noise.noise(Vector((c.x / 9.0, c.y / 9.0, 3.3))) + 1.0)
-    return flats[i].z > c.z and dist < lip
+    return c.z >= 430 and not under_floor(c) and f.normal.z > 0.6
+
+
+def bare_lip(co):
+    """Bridge landings and waterfall lips get no turf hanging over them."""
+    a = world_angle(co.x, co.y)
+    return math.hypot(co.x, co.y) > 165 and co.z > 540 and cap_radius(a, co.z) is not None
+
+
+def pine_ledge(c):
+    return any(math.hypot(c.x - x, c.y + z) < size + 6 and abs(c.z - y) < 6 for x, y, z, size in CLIFF_PINES)
+
+
+def lawns(faces):
+    """Keep the big lawns and the pine ledges; every other up-facing patch stays rock, so the cliffs and
+    spires aren't freckled with turf."""
+    cand, seen, keep = set(faces), set(), []
+    for f in cand:
+        if f in seen:
+            continue
+        seen.add(f)
+        stack, patch = [f], []
+        while stack:
+            g = stack.pop()
+            patch.append(g)
+            for e in g.edges:
+                for n in e.link_faces:
+                    if n in cand and n not in seen:
+                        seen.add(n)
+                        stack.append(n)
+        if sum(g.calc_area() for g in patch) >= MIN_LAWN or any(pine_ledge(g.calc_center_median()) for g in patch):
+            keep.extend(patch)
+    return keep
+
+
+def add_skirt(bm, skip=lambda co: False):
+    """Turf folding over every open edge of the lawn: one continuous band, each vertex dropped by a
+    smooth noise amount, so the rim reads as a soft overhang instead of loose triangles."""
+    bm.normal_update()
+    edges = [e for e in bm.edges if len(e.link_faces) == 1]
+    push = {}
+    for e in edges:
+        a, b = e.verts
+        d = b.co - a.co
+        n = Vector((d.y, -d.x, 0))
+        if n.length < 1e-6:
+            continue
+        n.normalize()
+        if n.dot(e.link_faces[0].calc_center_median() - (a.co + b.co) / 2) > 0:
+            n = -n  # away from the lawn
+        for v in (a, b):
+            push[v] = push.get(v, Vector()) + n
+    low = {}
+    for v, n in push.items():
+        if skip(v.co):
+            continue
+        n = n.normalized() if n.length > 1e-6 else n
+        drop = 1.0 + 0.8 * (noise.noise(Vector((v.co.x / 7.0, v.co.y / 7.0, 4.1))) + 1.0)
+        low[v] = bm.verts.new(v.co + n * 0.5 - Vector((0, 0, drop)))
+    for e in edges:
+        a, b = e.verts
+        if a in low and b in low:
+            l = next(l for l in e.link_faces[0].loops if l.edge == e)
+            x, y = l.vert, l.link_loop_next.vert  # lawn winding along this edge; the skirt runs the other way
+            bm.faces.new((y, x, low[x], low[y]))
 
 
 def extract(bm, faces):
@@ -571,19 +624,8 @@ def split(upper, base, path):
     bm.from_mesh(upper.data)
     bm.normal_update()
     bm.verts.index_update()
-    # rim points: edges of up-facing faces sampled every 1.5 studs (decimated flats have few verts)
-    flats = []
-    for f in bm.faces:
-        if f.normal.z > 0.9 and f.calc_center_median().z > 430:
-            for e in f.edges:
-                a, b = e.verts[0].co, e.verts[1].co
-                n = max(1, int((a - b).length / 1.5))
-                flats.extend(a.lerp(b, i / n) for i in range(n + 1))
-    kd = KDTree(len(flats))
-    for i, p in enumerate(flats):
-        kd.insert(p, i)
-    kd.balance()
-    grass = extract(bm, [f for f in bm.faces if is_grass(f, kd, flats)])
+    grass = extract(bm, lawns([f for f in bm.faces if is_grass(f)]))
+    add_skirt(grass, skip=bare_lip)
     spire = extract(bm, [f for f in bm.faces if f.calc_center_median().z > 652])
     mesa = extract(bm, [f for f in bm.faces if f.calc_center_median().z > TERRACE_Y + 1.0
                         and math.hypot(*f.calc_center_median().xy) < 165])

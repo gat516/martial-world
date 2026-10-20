@@ -186,7 +186,7 @@ return {
 		-- avatar dashes the same; the caps below stop slopes and enemies launching it.
 		DODGE_COOLDOWN = 1.2,
 		DODGE_SPEED = 75, -- studs per second during the dash
-		DODGE_SECONDS = 0.22,
+		DODGE_SECONDS = 0.32,
 		DODGE_ACCEL = 600, -- studs/s² the dash may correct per second after the first kick
 		DODGE_MAX_RISE = 6, -- upward speed cap while dashing, so ramps don't fling you
 		DODGE_EXIT_SPEED = 24, -- horizontal speed left when the dash ends

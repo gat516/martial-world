@@ -126,16 +126,29 @@ user to install one if an effect needs it.
 
 ## Textures, meshes, sounds
 
-- The user wants effects built from the plugin's Asset Library (~9k
-  particle/beam images, meshes, sounds, mesh flipbooks). Only the user can
-  browse it (it's in the plugin UI). Before building, work out every asset the
-  job needs and end your turn with a shopping list: each entry describes the
-  look ("soft radial glow, white", "crescent slash beam", "ground crack decal")
-  and says which effects use it. The user inserts the picks into
-  `ServerStorage._VFXPicks`; read the ids off those instances, build from them,
-  and delete the folder when the job is committed.
+- Build effects from the plugin's Asset Library. You pick the assets yourself:
+  - `tools/vfx_library.json` lists the whole library (7,087 usable assets:
+    6,218 images, 41 mesh flipbooks, 77 meshes, 751 named sounds), in library
+    order, each with `kind` and the search `keywords` it matched (ring, slash,
+    lightning, flame, smoke, crack, rune, seal, aura, beam...). Grep it
+    first. Keywords come from a fixed word list, so an asset can fit without
+    matching your word.
+  - For other words, search live: run `tools/vfx_library.luau` through
+    `execute_luau`, then `_G.vfxLibrary.search("vortex", 40)`. It types into
+    the plugin's own library search, so the user must have opened the Asset
+    Library window once this Studio session (it keeps working after the window
+    is closed). If it errors, ask the user to open it.
+  - Tiles only carry ids, so judge looks from thumbnails before using one:
+    `https://thumbnails.roblox.com/v1/assets?assetIds=<id,id,...>&size=150x150&format=Png`
+    (up to 100 ids per call; each `imageUrl` is a PNG). Download a batch, paste
+    them into one labelled contact sheet with Pillow in your scratchpad, and
+    Read that image, rather than viewing them one at a time.
+  - Use ids as `rbxassetid://<id>`. Meshes are MeshIds, sounds SoundIds, and
+    flipbooks follow the library's mesh-flipbook layout (a Part with a
+    SpecialMesh and a Decal whose `Flipbook` attribute lists the frames). Ask
+    the user to insert one from the library if you need its exact setup.
 - Assets already in `ServerStorage.AssetLibrary`, existing effects and
-  `rbxasset://textures/particles/*` are fine to reuse alongside the picks.
+  `rbxasset://textures/particles/*` are fine to reuse alongside library picks.
 - Don't draw your own textures with Pillow unless the user asks for it.
 - Sounds belong with `SoundService.SFX` / `src/client/Sfx.luau`; don't hide
   Sounds inside effect templates unless the plugin should emit them with it.

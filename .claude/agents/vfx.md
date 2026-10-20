@@ -126,15 +126,17 @@ user to install one if an effect needs it.
 
 ## Textures, meshes, sounds
 
-- Reuse first: the assets already in `ServerStorage.AssetLibrary` and in
-  existing effects, `rbxasset://textures/particles/*`, and Roblox `search_asset`.
-- The plugin's Asset Library (~9k particle/beam images, meshes, sounds, mesh
-  flipbooks) is only reachable through its UI: ask the user to insert a
-  specific kind ("a soft radial glow", "a crescent slash beam") and read the ids
-  off what they insert.
-- Custom textures: draw with Pillow (white on transparent, so Color tints them;
-  256 or 512 px, soft edges) in `art/vfx/`, upload with `upload_image`, keep the
-  script and PNG in git like the UI art.
+- The user wants effects built from the plugin's Asset Library (~9k
+  particle/beam images, meshes, sounds, mesh flipbooks). Only the user can
+  browse it (it's in the plugin UI). Before building, work out every asset the
+  job needs and end your turn with a shopping list: each entry describes the
+  look ("soft radial glow, white", "crescent slash beam", "ground crack decal")
+  and says which effects use it. The user inserts the picks into
+  `ServerStorage._VFXPicks`; read the ids off those instances, build from them,
+  and delete the folder when the job is committed.
+- Assets already in `ServerStorage.AssetLibrary`, existing effects and
+  `rbxasset://textures/particles/*` are fine to reuse alongside the picks.
+- Don't draw your own textures with Pillow unless the user asks for it.
 - Sounds belong with `SoundService.SFX` / `src/client/Sfx.luau`; don't hide
   Sounds inside effect templates unless the plugin should emit them with it.
 

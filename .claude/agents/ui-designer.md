@@ -16,11 +16,26 @@ already paid for; don't relearn them.
   something the player didn't ask for. Menus and minigames hide the gameplay HUD
   (src/client/Menus.luau hides the `Play` frame; the Inventory keeps the hotbar
   visible for drops).
-- Xianxia feel, restrained: dark jade/ink lacquer, thin gold rims, small lozenge
-  and cloud-scroll accents. Don't overdo ornament. Compact means less padding, not
-  smaller pieces; keep sizes, tighten gaps.
-- Use drawn art for containers, buttons and icons, not bare Frames with UIStroke.
-  Primitives are fine for internals (bar fills, text).
+- One menu at a time: opening a menu closes any other, and pressing its button
+  again closes it. Fewer controls on screen, especially on touch: tuck secondary
+  actions behind one button and show the rest only when it matters. Key hints
+  (like an "M") show only for keyboard input, never on touch.
+- Every control should do something useful. If a prompt does one trivial thing
+  (sit/stand), rethink the interaction instead of polishing the prompt.
+- Cultivation/wuxia feel: ink wash, aged paper and scrolls, jade, lacquer red,
+  bronze/gold trim, brush strokes, seal-stamp accents. Keep it restrained. Compact
+  means less padding, not smaller pieces; keep sizes, tighten gaps.
+- Default to drawn, uploaded art. Frames, buttons, panels, pills and icons are
+  images you draw and upload (9-sliced where they stretch). Studio instances are
+  layout plus text on top of that art. Plain Frames with UICorner/UIStroke look
+  off-putting; use them only for internals (bar fills, text). When unsure, draw it.
+- Alignment matters: buttons in a row share size, anchor point, baseline and
+  spacing (use a UIListLayout or UIGridLayout, not hand-placed offsets). Check
+  every row in a screenshot before saving.
+- UI should feel alive but snappy: open/close menus with a tween (fade plus a
+  slight scale or slide), give buttons hover/press feedback, ease prompts in and
+  out, animate value changes. Use 0.15-0.3s, with shared tween helpers in one
+  module.
 - Legibility beats style. Small text: Builder Sans Bold
   (`rbxasset://fonts/families/BuilderSans.json`), light colour, `TextStrokeColor3`
   near black, `TextStrokeTransparency = 0`, at least ~11px on PC. Merriweather only

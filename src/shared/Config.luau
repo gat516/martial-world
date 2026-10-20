@@ -83,7 +83,7 @@ return {
 		HITBOX_SLACK = 4, -- studs added to each side of the hitbox for movement and lag
 		AREA_SLACK = 3, -- studs added to technique areas on the server
 
-		-- Dodge: a flying-sword dash (F / the Dash button) with brief invulnerability.
+		-- Dodge: a flying-sword dash (Q / the Dash button) with brief invulnerability.
 		-- Driven by ApplyImpulse scaled by the character's AssemblyMass, so every
 		-- avatar dashes the same; the caps below stop slopes and enemies launching it.
 		DODGE_COOLDOWN = 1.2,

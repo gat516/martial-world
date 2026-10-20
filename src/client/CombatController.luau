@@ -9,7 +9,7 @@
 -- client reports each action with its server-clock timestamp (GetServerTimeNow).
 -- At impact the client casts the shared hitbox and flashes what it hit; the server
 -- re-checks hits and owns damage (Combat.luau).
--- PC: 1/2/3 for techniques, F to dash, click an enemy to target it.
+-- PC: 1/2/3 for techniques, Q to dash, click an enemy to target it.
 -- Mobile: the Dash button beside Strike.
 
 local CollectionService = game:GetService("CollectionService")
@@ -438,13 +438,13 @@ function CombatController.init(gui: ScreenGui)
 	bindButtons(gui)
 	bindTapTargeting()
 
-	-- F dashes (Space stays jump; touch uses the Dash button); 1/2/3 cast
+	-- Q dashes (Space stays jump; touch uses the Dash button); 1/2/3 cast
 	ContextActionService:BindActionAtPriority("Dodge", function(_, inputState)
 		if inputState == Enum.UserInputState.Begin then
 			CombatController.dodge()
 		end
 		return Enum.ContextActionResult.Sink
-	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.F, Enum.KeyCode.ButtonB)
+	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.Q, Enum.KeyCode.ButtonB)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed then
 			return

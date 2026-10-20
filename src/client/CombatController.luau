@@ -284,6 +284,9 @@ local function bindButtons(gui: ScreenGui)
 			local def = Techniques.Defs[s.techniques.slots[slot] or ""]
 			local label = button:FindFirstChild("NameLabel") :: TextLabel
 			label.Text = if def then def.name else ""
+			local glyph = button:FindFirstChild("GlyphLabel") :: TextLabel
+			glyph.Text = if def then def.glyph else "·"
+			glyph.TextColor3 = if def then def.color:Lerp(Color3.new(1, 1, 1), 0.35) else Color3.fromRGB(90, 100, 100)
 			local stroke = button:FindFirstChildOfClass("UIStroke") :: UIStroke
 			stroke.Color = if def then def.color else Color3.fromRGB(70, 80, 80)
 		end
@@ -361,10 +364,13 @@ local function onEffect(kind: string, ...: any)
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if kind == "damage" then
 		CombatEffects.number(args[1], tostring(args[2]), DAMAGE_COLOR)
+		CombatEffects.sparks(args[1])
+		CombatEffects.shake(0.12)
 	elseif kind == "hurt" then
 		if character and root then
 			CombatEffects.flash(character, HURT_COLOR)
 			CombatEffects.number(root.Position, `-{args[1]}`, HURT_COLOR, 18)
+			CombatEffects.shake(0.35)
 		end
 	elseif kind == "perfect" then
 		local refund = args[1] :: number
@@ -429,10 +435,11 @@ function CombatController.init(gui: ScreenGui)
 
 	RunService.Heartbeat:Connect(function()
 		local root = myRoot()
+		local aimed = root and currentTarget(root.Position)
+		CombatEffects.markTarget(aimed)
 		if not Config.AUTO_ATTACK or not root then
 			return
 		end
-		local aimed = currentTarget(root.Position)
 		if aimed and distanceTo(aimed, root.Position) <= Config.AUTO_RANGE then
 			CombatController.swing()
 		end

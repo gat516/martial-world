@@ -17,6 +17,7 @@ export type Def = {
 	color: Color3,
 	blurb: string,
 	animation: number, -- which Fists chain animation the cast plays
+	glyph: string, -- the character on its button
 	length: number?,
 	width: number?,
 	radius: number?,
@@ -34,6 +35,7 @@ local Techniques = {}
 Techniques.Defs = {
 	SwordQiWave = {
 		id = "SwordQiWave",
+		glyph = "劍",
 		name = "Sword Qi Wave",
 		kind = "line",
 		cooldown = 6,
@@ -46,6 +48,7 @@ Techniques.Defs = {
 	},
 	PalmStrike = {
 		id = "PalmStrike",
+		glyph = "掌",
 		name = "Palm Strike",
 		kind = "circle",
 		cooldown = 8,
@@ -57,6 +60,7 @@ Techniques.Defs = {
 	},
 	LightningTalisman = {
 		id = "LightningTalisman",
+		glyph = "雷",
 		name = "Lightning Talisman",
 		kind = "chain",
 		cooldown = 10,
@@ -70,6 +74,7 @@ Techniques.Defs = {
 	},
 	IronSkin = {
 		id = "IronSkin",
+		glyph = "鐵",
 		name = "Iron Skin",
 		kind = "buff",
 		cooldown = 15,
@@ -82,6 +87,7 @@ Techniques.Defs = {
 	},
 	FireSeal = {
 		id = "FireSeal",
+		glyph = "火",
 		name = "Fire Seal",
 		kind = "zone",
 		cooldown = 12,

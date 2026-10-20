@@ -11,6 +11,10 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 
 local CombatEffects = {}
 
+local SPARKLE = "rbxasset://textures/particles/sparkles_main.dds"
+local FIRE = "rbxasset://textures/particles/fire_main.dds"
+local SMOKE = "rbxasset://textures/particles/smoke_main.dds"
+
 -- Effects live under the camera, so they're local to this client.
 local folder = workspace.CurrentCamera
 
@@ -55,6 +59,24 @@ local function groundBelow(position: Vector3): number
 	return if hit then hit.Position.Y + 0.1 else position.Y - 3
 end
 
+-- A one-shot particle burst at a point (an invisible anchor that cleans itself up).
+local function burst(position: Vector3, props: { [string]: any }, count: number, life: number?)
+	local anchor = Instance.new("Part")
+	anchor.Anchored, anchor.CanCollide, anchor.CanQuery, anchor.CanTouch = true, false, false, false
+	anchor.Transparency = 1
+	anchor.Size = Vector3.new(0.2, 0.2, 0.2)
+	anchor.CFrame = CFrame.new(position)
+	anchor.Parent = folder
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Rate = 0
+	for k, v in props do
+		(emitter :: any)[k] = v
+	end
+	emitter.Parent = anchor
+	emitter:Emit(count)
+	Debris:AddItem(anchor, life or 2)
+end
+
 -- `chain` lists the chain technique's targets, in order (nil for other kinds).
 function CombatEffects.cast(character: Model?, id: string, origin: Vector3, dir: Vector3, chain: { Model }?)
 	local def = Techniques.Defs[id]
@@ -67,6 +89,18 @@ function CombatEffects.cast(character: Model?, id: string, origin: Vector3, dir:
 		local blade = part(color, Vector3.new(def.width :: number, 0.5, 2.5), CFrame.lookAt(origin, origin + dir))
 		blade.Transparency = 0.15
 		local goal = CFrame.lookAt(origin + dir * length, origin + dir * (length + 1))
+		-- a glowing trail behind the crescent
+		local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+		a0.Position = Vector3.new(-(def.width :: number) / 2, 0, 0)
+		a1.Position = Vector3.new((def.width :: number) / 2, 0, 0)
+		a0.Parent, a1.Parent = blade, blade
+		local trail = Instance.new("Trail")
+		trail.Attachment0, trail.Attachment1 = a0, a1
+		trail.Color = ColorSequence.new(color)
+		trail.LightEmission = 1
+		trail.Lifetime = 0.25
+		trail.Transparency = NumberSequence.new(0.2, 1)
+		trail.Parent = blade
 		TweenService:Create(blade, TweenInfo.new(0.3, Enum.EasingStyle.Linear), { CFrame = goal }):Play()
 		task.delay(0.2, fade, blade, 0.15)
 	elseif def.kind == "circle" then
@@ -75,14 +109,38 @@ function CombatEffects.cast(character: Model?, id: string, origin: Vector3, dir:
 		ring.Transparency = 0.2
 		local r = def.radius :: number
 		fade(ring, 0.3, { Size = Vector3.new(0.4, r * 2, r * 2) })
+		-- a dust burst kicked out along the ground
+		burst(ground + Vector3.new(0, 0.5, 0), {
+			Texture = SMOKE,
+			Color = ColorSequence.new(Color3.fromRGB(230, 215, 190)),
+			Size = NumberSequence.new(1.5, 4),
+			Transparency = NumberSequence.new(0.5, 1),
+			Lifetime = NumberRange.new(0.5, 0.8),
+			Speed = NumberRange.new(r * 2, r * 3),
+			SpreadAngle = Vector2.new(180, 5),
+			Drag = 4,
+		}, 24)
+		CombatEffects.shake(0.2)
 	elseif def.kind == "chain" then
 		local from = origin + Vector3.new(0, 1.5, 0)
 		local targets: { Model } = chain or {}
 		for _, model in targets do
 			local to = model:GetPivot().Position
-			local bolt = beam(color, from, to, 0.35)
-			bolt.Transparency = 0.1
-			fade(bolt, 0.3)
+			-- a jagged bolt: two kinked segments that flicker out
+			local mid = (from + to) / 2 + Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5) * 2
+			for _, seg in { beam(color, from, mid, 0.35), beam(color, mid, to, 0.35) } do
+				seg.Transparency = 0.05
+				fade(seg, 0.3)
+			end
+			burst(to, {
+				Texture = SPARKLE,
+				Color = ColorSequence.new(color),
+				LightEmission = 1,
+				Size = NumberSequence.new(0.8, 0),
+				Lifetime = NumberRange.new(0.2, 0.4),
+				Speed = NumberRange.new(8, 16),
+				SpreadAngle = Vector2.new(180, 180),
+			}, 14)
 			from = to
 		end
 	elseif def.kind == "zone" then
@@ -91,6 +149,21 @@ function CombatEffects.cast(character: Model?, id: string, origin: Vector3, dir:
 		local zone = disc(color, ground, def.radius :: number, 0.25)
 		zone.Transparency = 0.45
 		local seconds = def.seconds :: number
+		local flames = Instance.new("ParticleEmitter")
+		flames.Texture = FIRE
+		flames.Color = ColorSequence.new(Color3.fromRGB(255, 170, 70), Color3.fromRGB(255, 70, 40))
+		flames.LightEmission = 1
+		flames.Size = NumberSequence.new(1.6, 0.2)
+		flames.Transparency = NumberSequence.new(0.2, 1)
+		flames.Lifetime = NumberRange.new(0.5, 0.9)
+		flames.Speed = NumberRange.new(3, 6)
+		flames.EmissionDirection = Enum.NormalId.Right -- the disc's local X is world up
+		flames.Rate = 40
+		flames.Shape = Enum.ParticleEmitterShape.Cylinder
+		flames.Parent = zone
+		task.delay(seconds, function()
+			flames.Enabled = false
+		end)
 		TweenService:Create(zone, TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Transparency = 0.7 }):Play()
 		task.delay(seconds, fade, zone, 0.3)
 	elseif def.kind == "buff" and character then
@@ -100,6 +173,19 @@ function CombatEffects.cast(character: Model?, id: string, origin: Vector3, dir:
 		glow.FillTransparency = 0.6
 		glow.Parent = character
 		Debris:AddItem(glow, def.seconds :: number)
+		local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if root then
+			burst(root.Position, {
+				Texture = SPARKLE,
+				Color = ColorSequence.new(color),
+				LightEmission = 1,
+				Size = NumberSequence.new(0.6, 0),
+				Lifetime = NumberRange.new(0.6, 1),
+				Speed = NumberRange.new(4, 7),
+				SpreadAngle = Vector2.new(180, 180),
+				Drag = 3,
+			}, 30)
+		end
 	end
 end
 
@@ -125,6 +211,65 @@ function CombatEffects.number(position: Vector3, text: string, color: Color3, si
 	TweenService:Create(anchor, info, { CFrame = anchor.CFrame + Vector3.new(0, 3, 0) }):Play()
 	TweenService:Create(label, info, { TextTransparency = 1, TextStrokeTransparency = 1 }):Play()
 	Debris:AddItem(anchor, 0.9)
+end
+
+-- Sparks where a hit landed.
+function CombatEffects.sparks(position: Vector3)
+	burst(position + Vector3.new(0, 1, 0), {
+		Texture = SPARKLE,
+		Color = ColorSequence.new(Color3.fromRGB(255, 240, 200)),
+		LightEmission = 1,
+		Size = NumberSequence.new(0.7, 0),
+		Lifetime = NumberRange.new(0.15, 0.3),
+		Speed = NumberRange.new(10, 18),
+		SpreadAngle = Vector2.new(180, 180),
+		Drag = 6,
+	}, 10, 1)
+end
+
+-- A short camera shake (strength in studs of jitter, decaying over ~0.2s).
+local shakeLeft = 0
+local shakeStrength = 0
+function CombatEffects.shake(strength: number)
+	shakeStrength = math.max(shakeStrength * (shakeLeft / 0.2), strength)
+	shakeLeft = 0.2
+end
+RunService:BindToRenderStep("CombatShake", Enum.RenderPriority.Camera.Value + 1, function(dt: number)
+	if shakeLeft <= 0 then
+		return
+	end
+	shakeLeft -= dt
+	local s = shakeStrength * math.max(0, shakeLeft / 0.2)
+	local camera = workspace.CurrentCamera
+	camera.CFrame *= CFrame.new((math.random() - 0.5) * s, (math.random() - 0.5) * s, 0)
+end)
+
+-- A soft ring under whatever the basic attack and techniques will aim at.
+local targetRing: Part? = nil
+function CombatEffects.markTarget(model: Model?)
+	if not model then
+		if targetRing then
+			targetRing.Transparency = 1
+		end
+		return
+	end
+	local ring = targetRing
+	if not ring then
+		-- gold, never red: red on the ground always means an incoming attack
+		local made = disc(Color3.fromRGB(255, 225, 140), Vector3.zero, 1, 0.12)
+		made.Transparency = 1
+		targetRing = made
+		ring = made
+	end
+	local r = ring :: Part
+	local _, size = model:GetBoundingBox()
+	local radius = math.max(size.X, size.Z) / 2 + 0.8
+	local pivot = model:GetPivot().Position
+	local ground = groundBelow(pivot - Vector3.new(0, size.Y / 2 - 1, 0))
+	local pulse = 0.08 * math.sin(os.clock() * 6)
+	r.Size = Vector3.new(0.12, radius * 2 * (1 + pulse), radius * 2 * (1 + pulse))
+	r.CFrame = CFrame.new(pivot.X, ground + 0.05, pivot.Z) * CFrame.Angles(0, 0, math.rad(90))
+	r.Transparency = 0.72
 end
 
 -- Brief white flash on something that was hit.

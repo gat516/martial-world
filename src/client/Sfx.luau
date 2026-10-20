@@ -19,17 +19,18 @@ local lastPlayed: { [string]: number } = {}
 
 -- `gap`: skip the play if this name went off less than `gap` seconds ago (for
 -- sounds that can arrive in bursts, like one hit per enemy struck).
-function Sfx.play(name: string, at: (Vector3 | BasePart)?, gap: number?)
+-- Returns an optional, repeat-safe stop function for effects owned by an action.
+function Sfx.play(name: string, at: (Vector3 | BasePart)?, gap: number?): (() -> ())?
 	local template: Instance? = group
 	for step in string.gmatch(name, "[^/]+") do
 		template = template and template:FindFirstChild(step)
 	end
 	if not (template and template:IsA("Sound")) then
-		return
+		return nil
 	end
 	local now = os.clock()
 	if gap and now - (lastPlayed[name] or -math.huge) < gap then
-		return
+		return nil
 	end
 	lastPlayed[name] = now
 
@@ -50,15 +51,19 @@ function Sfx.play(name: string, at: (Vector3 | BasePart)?, gap: number?)
 		holder = sound
 		sound.Parent = SoundService
 	end
-	sound.Ended:Once(function()
+	local stopped = false
+	local ended: RBXScriptConnection?
+	local function stop()
+		if stopped then return end
+		stopped = true
+		if ended then ended:Disconnect() end
+		if sound.Parent then sound:Stop() end
 		holder:Destroy()
-	end)
-	task.delay(MAX_SECONDS, function()
-		if holder.Parent then
-			holder:Destroy()
-		end
-	end)
+	end
+	ended = sound.Ended:Once(stop)
+	task.delay(MAX_SECONDS, stop)
 	sound:Play()
+	return stop
 end
 
 return Sfx

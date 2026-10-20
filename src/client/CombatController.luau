@@ -61,6 +61,7 @@ type Runtime = {
 	released: boolean,
 	reported: boolean,
 	suppressed: boolean,
+	soundStops: { () -> () },
 	steer: ((number) -> ())?,
 	finishDash: (() -> ())?,
 }
@@ -97,9 +98,9 @@ local function fadeToIdle(track: AnimationTrack, seconds: number)
 	end)
 end
 
-local function clearIdleFades()
+local function clearIdleFades(blend: number?)
 	for track in idleFades do
-		track:Stop(Config.ACTION_CROSSFADE)
+		track:Stop(blend or Config.ACTION_CROSSFADE)
 	end
 	table.clear(idleFades)
 end
@@ -115,7 +116,17 @@ local function stopPerfect(completed: boolean?)
 	end
 end
 
-local function stopRuntime(suppress: boolean, completed: boolean?)
+local function playActionSound(current: Runtime, name: string, gap: number?)
+	local stop = Sfx.play(name, nil, gap)
+	if stop then table.insert(current.soundStops, stop) end
+end
+
+local function stopActionSounds(current: Runtime)
+	for _, stop in current.soundStops do stop() end
+	table.clear(current.soundStops)
+end
+
+local function stopRuntime(suppress: boolean, completed: boolean?, blend: number?)
 	if suppress then
 		stopPerfect()
 		clearIdleFades()
@@ -125,6 +136,11 @@ local function stopRuntime(suppress: boolean, completed: boolean?)
 	if not old then
 		return
 	end
+	local finished = completed and not old.suppressed
+	-- Invalidate the outgoing action before stopping its track or dash. Its
+	-- sound handles belong to this swing, so unrelated sounds keep playing.
+	old.suppressed, old.reported = true, true
+	if not finished then stopActionSounds(old) end
 	if suppress then
 		attackRemote:FireServer({ op = "cancel", character = old.character, sequence = old.action.sequence })
 	end
@@ -132,10 +148,10 @@ local function stopRuntime(suppress: boolean, completed: boolean?)
 		old.stopped:Disconnect()
 	end
 	if old.track then
-		if completed and not old.suppressed then
+		if finished then
 			fadeToIdle(old.track, if old.action.kind == "dodge" then Config.DODGE_IDLE_FADE else Config.ATTACK_IDLE_FADE)
 		else
-			old.track:Stop(Config.ACTION_CROSSFADE)
+			old.track:Stop(blend or Config.ACTION_CROSSFADE)
 		end
 	end
 	if old.finishDash then
@@ -376,6 +392,7 @@ end
 -- Timelines mirror the authored markers, including explicit windows for the
 -- animations without markers. Stopping a track never advances its timeline.
 local function release(current: Runtime)
+	if runtime ~= current or current.suppressed then return end
 	current.released = true
 	if current.action.kind ~= "cast" or not current.action.id then return end
 	local def = Techniques.Defs[current.action.id]
@@ -393,7 +410,7 @@ local function release(current: Runtime)
 end
 
 local function sweep(current: Runtime, now: number)
-	if current.reported then return end
+	if runtime ~= current or current.suppressed or current.reported then return end
 	local root = current.root
 	local cframe, size = Hitbox.box(root)
 	local hits: { Model } = {}
@@ -401,7 +418,7 @@ local function sweep(current: Runtime, now: number)
 		if #hits >= Config.MAX_TARGETS then break end
 		table.insert(hits, model)
 		CombatEffects.flash(model)
-		Sfx.play("Hit", nil, 0.05)
+		playActionSound(current, "Hit", 0.05)
 	end
 	if #hits > 0 then
 		current.reported = true
@@ -443,19 +460,22 @@ local function tryStart(kind: string, id: string?): boolean
 		return false
 	end
 	local now = workspace:GetServerTimeNow()
-	advanceRuntime(now)
+	-- Accept the transition before catching up the outgoing timeline: a dodge
+	-- must never manufacture a late punch hit on the frame it cancels it.
 	local action = Rules.start(ActionState.current, kind, id, now, sequence + 1)
 	if not action then return false end
 	sequence += 1
-	stopRuntime(false)
+	local blend = if kind == "dodge" then Config.DODGE_CROSSFADE else Config.ACTION_CROSSFADE
+	local completed = runtime ~= nil and now >= Rules.endAt(runtime.action)
+	stopRuntime(false, completed, blend)
 	stopPerfect()
-	clearIdleFades()
+	clearIdleFades(blend)
 	local direction = if kind == "dodge" then root.CFrame.LookVector * Vector3.new(1, 0, 1) else faceTarget(root)
 	direction = if direction.Magnitude > 0.01 then direction.Unit else Vector3.zAxis
 	ActionState.facing = direction
 	local current: Runtime = {
 		action = action, root = root, character = character, direction = direction,
-		released = false, reported = false, suppressed = false,
+		released = false, reported = false, suppressed = false, soundStops = {},
 	}
 	runtime = current
 	attackRemote:FireServer({
@@ -466,14 +486,15 @@ local function tryStart(kind: string, id: string?): boolean
 		startDash(current)
 	else
 		current.track = tracks[action.profile.animation]
-		if kind == "basic" then Sfx.play("Swing") end
+		if kind == "basic" then playActionSound(current, "Swing") end
 	end
 	local track = current.track
 	if track then
-		track:Play(Config.ACTION_CROSSFADE, 1, action.profile.speed)
+		track:Play(blend, 1, action.profile.speed)
 		current.stopped = track.Stopped:Connect(function()
 			if runtime == current then
 				current.suppressed = true
+				stopActionSounds(current)
 				attackRemote:FireServer({ op = "cancel", character = character, sequence = action.sequence })
 			end
 		end)
@@ -758,10 +779,7 @@ function CombatController.init(gui: ScreenGui)
 			clearInputs()
 			if runtime and runtime.action.kind == "basic" then stopRuntime(true) end
 		end
-		advanceRuntime(now)
-		if runtime and runtime.steer then runtime.steer(Config.DODGE_ACCEL * dt) end
-		local aimed = currentTarget(root.Position)
-		CombatEffects.markTarget(if LockOn.target() then nil else aimed)
+		-- Buffered cancels get the same ordering as an immediate button press.
 		if pending then
 			if pending.expires < now then
 				pending = nil
@@ -769,6 +787,10 @@ function CombatController.init(gui: ScreenGui)
 				pending = nil
 			end
 		end
+		advanceRuntime(now)
+		if runtime and runtime.steer then runtime.steer(Config.DODGE_ACCEL * dt) end
+		local aimed = currentTarget(root.Position)
+		CombatEffects.markTarget(if LockOn.target() then nil else aimed)
 		local autoAttack = Config.AUTO_ATTACK and Platform.isTouch() and LockOn.isAuto()
 			and aimed ~= nil and distanceTo(aimed :: Model, root.Position) <= Config.AUTO_RANGE
 		if not pending and not holding and (ActionState.basicHeld or autoAttack) then

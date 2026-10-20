@@ -189,6 +189,7 @@ return {
 		ATTACK_IDLE_FADE = 0.24,
 		DODGE_IDLE_FADE = 0.24,
 		ACTION_CROSSFADE = 0.08, -- a new input takes over the lingering pose quickly
+		DODGE_CROSSFADE = 0.035, -- dodge cuts the punch pose almost immediately
 		INPUT_BUFFER = 0.20, -- one pending press; dodge takes priority over offense
 		CANCEL_RETRY = 0.25, -- technique retry delay if dodged before release
 		HIT_TIME_SLACK = 0.04,

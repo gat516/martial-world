@@ -363,7 +363,7 @@ function CombatController.cast(slot: number)
 	end)
 end
 
--- Labels, colors and cooldown overlays for the technique and dodge buttons.
+-- Icons, colors and cooldown overlays for the technique and dodge buttons.
 local function bindButtons(gui: ScreenGui)
 	local buttons: { TextButton } = {}
 	for slot = 1, Techniques.SLOTS do
@@ -376,12 +376,9 @@ local function bindButtons(gui: ScreenGui)
 	State.onChanged(function(s)
 		for slot, button in buttons do
 			local def = Techniques.Defs[s.techniques.slots[slot] or ""]
-			local label = button:FindFirstChild("NameLabel") :: TextLabel
-			label.Text = if def then def.name else "Empty"
-			label.TextColor3 = if def then Color3.fromRGB(236, 242, 236) else Color3.fromRGB(120, 130, 130)
-			local glyph = button:FindFirstChild("GlyphLabel") :: TextLabel
-			glyph.Text = if def then def.glyph else "·"
-			glyph.TextColor3 = if def then def.color:Lerp(Color3.new(1, 1, 1), 0.35) else Color3.fromRGB(90, 100, 100)
+			local icon = button:FindFirstChild("Icon") :: ImageLabel
+			icon.Image = if def then def.icon else ""
+			icon.ImageColor3 = if def then def.color:Lerp(Color3.new(1, 1, 1), 0.35) else Color3.new(1, 1, 1)
 			local stroke = button:FindFirstChildOfClass("UIStroke") :: UIStroke
 			stroke.Color = if def then def.color else Color3.fromRGB(70, 80, 80)
 		end

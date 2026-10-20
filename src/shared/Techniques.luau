@@ -17,7 +17,7 @@ export type Def = {
 	color: Color3,
 	blurb: string,
 	animation: number, -- which Fists chain animation the cast plays
-	glyph: string, -- the character on its button
+	icon: string, -- the image on its HUD button; names only show in the Arts window
 	length: number?,
 	width: number?,
 	radius: number?,
@@ -35,7 +35,7 @@ local Techniques = {}
 Techniques.Defs = {
 	SwordQiWave = {
 		id = "SwordQiWave",
-		glyph = "劍",
+		icon = "rbxassetid://100918699109239",
 		name = "Sword Qi Wave",
 		kind = "line",
 		cooldown = 6,
@@ -48,7 +48,7 @@ Techniques.Defs = {
 	},
 	PalmStrike = {
 		id = "PalmStrike",
-		glyph = "掌",
+		icon = "rbxassetid://98382420618802",
 		name = "Palm Strike",
 		kind = "circle",
 		cooldown = 8,
@@ -60,7 +60,7 @@ Techniques.Defs = {
 	},
 	LightningTalisman = {
 		id = "LightningTalisman",
-		glyph = "雷",
+		icon = "rbxassetid://89161711966835",
 		name = "Lightning Talisman",
 		kind = "chain",
 		cooldown = 10,
@@ -74,7 +74,7 @@ Techniques.Defs = {
 	},
 	IronSkin = {
 		id = "IronSkin",
-		glyph = "鐵",
+		icon = "rbxassetid://73960875385866",
 		name = "Iron Skin",
 		kind = "buff",
 		cooldown = 15,
@@ -87,7 +87,7 @@ Techniques.Defs = {
 	},
 	FireSeal = {
 		id = "FireSeal",
-		glyph = "火",
+		icon = "rbxassetid://123372008874762",
 		name = "Fire Seal",
 		kind = "zone",
 		cooldown = 12,

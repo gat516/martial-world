@@ -47,7 +47,8 @@ end
 local function refresh()
 	local active = phase ~= "idle"
 	local seated = phase == "sitting" or phase == "seated"
-	(button:FindFirstChild("Caption") :: TextLabel).Text = if active then "Rise" else "Cultivate"
+	local caption = button:FindFirstChild("Caption") :: TextLabel
+	caption.Text = if active then "Rise" else "Cultivate"
 	local trim = button:FindFirstChild("Trim") :: UIStroke
 	trim.Thickness = if active then 2.5 else 1.2
 	trim.Transparency = if active then 0 else 0.45

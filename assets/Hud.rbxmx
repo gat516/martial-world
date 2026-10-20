@@ -4,7 +4,7 @@
   <bool name="ResetOnSpawn">false</bool>
   <token name="ZIndexBehavior">1</token>
   <bool name="IgnoreGuiInset">true</bool>
-  <token name="ScreenInsets">0</token>
+  <token name="ScreenInsets">1</token>
  </Properties>
   <Item class="Frame" referent="RBX2"><Properties>
    <string name="Name">Buffs</string>

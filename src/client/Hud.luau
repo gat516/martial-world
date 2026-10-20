@@ -112,10 +112,9 @@ function Hud.init(screenGui: ScreenGui)
 	local dantianBar = vitals:FindFirstChild("DantianBar") :: Frame
 	local cultivationBar = vitals:FindFirstChild("CultivationBar") :: Frame
 	local healthText = vitals:FindFirstChild("HealthText") :: TextLabel
-	local insightText = ""
 
 	local function showCultivation()
-		realmLabel.Text = (player:GetAttribute("Realm") or "") .. insightText
+		realmLabel.Text = player:GetAttribute("Realm") or ""
 		local value, max = player:GetAttribute("Cultivation") or 0, player:GetAttribute("CultivationMax") or 0
 		setBar(cultivationBar, value, max)
 		setBar(dantianBar, player:GetAttribute("RawQi") or 0, player:GetAttribute("DantianCap") or 0)
@@ -141,9 +140,7 @@ function Hud.init(screenGui: ScreenGui)
 	local notifyRemote = ReplicatedStorage.Remotes.Notify :: RemoteEvent
 	notifyRemote.OnClientEvent:Connect(Hud.toast)
 
-	State.onChanged(function(s)
-		insightText = if s.insight > 0 then `  ·  Insight {s.insight}` else ""
-		showCultivation()
+	State.onChanged(function()
 		renderBuffs()
 	end)
 

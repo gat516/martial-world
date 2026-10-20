@@ -359,6 +359,7 @@
     </Item>
     <Item class="ProximityPrompt" referent="RBX39"><Properties>
      <string name="Name">ClaimPrompt</string>
+     <token name="Style">1</token>
      <string name="ActionText">Claim</string>
      <string name="ObjectText">Heavenly Treasure</string>
      <float name="HoldDuration">1</float>

@@ -1,0 +1,136 @@
+<roblox version="4">
+ <Item class="ScreenGui" referent="PR1"><Properties>
+  <string name="Name">Prompts</string>
+  <bool name="ResetOnSpawn">false</bool>
+  <token name="ZIndexBehavior">1</token>
+  <bool name="IgnoreGuiInset">true</bool>
+  <token name="ScreenInsets">1</token>
+ </Properties>
+  <Item class="Frame" referent="PR2"><Properties>
+   <string name="Name">List</string>
+   <float name="BackgroundTransparency">1</float>
+   <UDim2 name="Position"><XS>0.5</XS><XO>56</XO><YS>0.5</YS><YO>24</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>240</XO><YS>0</YS><YO>170</YO></UDim2>
+  </Properties>
+   <Item class="UIListLayout" referent="PR3"><Properties>
+    <string name="Name">UIListLayout</string>
+    <token name="SortOrder">2</token>
+    <UDim name="Padding"><S>0</S><O>6</O></UDim>
+   </Properties>
+   </Item>
+   <Item class="ImageButton" referent="PR4"><Properties>
+    <string name="Name">Card</string>
+    <float name="BackgroundTransparency">1</float>
+    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>52</YO></UDim2>
+    <bool name="Visible">false</bool>
+    <bool name="AutoButtonColor">false</bool>
+    <bool name="Selectable">false</bool>
+    <Content name="Image"><url>rbxassetid://76335917664569</url></Content>
+    <token name="ScaleType">1</token>
+    <Rect2D name="SliceCenter"><min><X>72</X><Y>63</Y></min><max><X>440</X><Y>65</Y></max></Rect2D>
+    <float name="SliceScale">0.4</float>
+   </Properties>
+    <Item class="UIScale" referent="PR6"><Properties>
+     <string name="Name">Motion</string>
+    </Properties>
+    </Item>
+    <Item class="ImageLabel" referent="PR7"><Properties>
+     <string name="Name">Key</string>
+     <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
+     <float name="BackgroundTransparency">1</float>
+     <UDim2 name="Position"><XS>0</XS><XO>9</XO><YS>0.5</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>40</XO><YS>0</YS><YO>40</YO></UDim2>
+     <Content name="Image"><url>rbxassetid://78474379425965</url></Content>
+     <token name="ScaleType">3</token>
+    </Properties>
+     <Item class="TextLabel" referent="PR8"><Properties>
+      <string name="Name">Letter</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.44</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.6</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+      <string name="Text">F</string>
+      <Color3 name="TextColor3"><R>0.101961</R><G>0.117647</G><B>0.133333</B></Color3>
+      <float name="TextSize">20</float>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+     <Item class="ImageLabel" referent="PR9"><Properties>
+      <string name="Name">Pad</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.44</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.62</XS><XO>0</XO><YS>0.62</YS><YO>0</YO></UDim2>
+      <bool name="Visible">false</bool>
+      <token name="ScaleType">3</token>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="PR5"><Properties>
+     <string name="Name">Body</string>
+     <float name="BackgroundTransparency">1</float>
+     <UDim2 name="Position"><XS>0</XS><XO>58</XO><YS>0</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>1</XS><XO>-78</XO><YS>1</YS><YO>0</YO></UDim2>
+    </Properties>
+     <Item class="TextLabel" referent="PR10"><Properties>
+      <string name="Name">Object</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>6</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>14</YO></UDim2>
+      <string name="Text">Herb Bed</string>
+      <Color3 name="TextColor3"><R>0.807843</R><G>0.752941</G><B>0.627451</B></Color3>
+      <float name="TextSize">13</float>
+      <token name="TextXAlignment">0</token>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0392157</G><B>0.0392157</B></Color3>
+      <token name="TextTruncate">1</token>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+     <Item class="TextLabel" referent="PR11"><Properties>
+      <string name="Name">Action</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
+      <string name="Text">Plant</string>
+      <Color3 name="TextColor3"><R>0.988235</R><G>0.94902</G><B>0.854902</B></Color3>
+      <float name="TextSize">18</float>
+      <token name="TextXAlignment">0</token>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0392157</G><B>0.0392157</B></Color3>
+      <token name="TextTruncate">1</token>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+     <Item class="Frame" referent="PR12"><Properties>
+      <string name="Name">Track</string>
+      <Color3 name="BackgroundColor3"><R>0</R><G>0</G><B>0</B></Color3>
+      <float name="BackgroundTransparency">0.45</float>
+      <int name="BorderSizePixel">0</int>
+      <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>1</YS><YO>-11</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>3</YO></UDim2>
+      <bool name="Visible">false</bool>
+     </Properties>
+      <Item class="UICorner" referent="PR13"><Properties>
+       <string name="Name">UICorner</string>
+       <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
+      </Properties>
+      </Item>
+      <Item class="Frame" referent="PR14"><Properties>
+       <string name="Name">Fill</string>
+       <Color3 name="BackgroundColor3"><R>0.478431</R><G>0.870588</G><B>0.690196</B></Color3>
+       <int name="BorderSizePixel">0</int>
+       <UDim2 name="Size"><XS>0.55</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      </Properties>
+       <Item class="UICorner" referent="PR15"><Properties>
+        <string name="Name">UICorner</string>
+        <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
+       </Properties>
+       </Item>
+      </Item>
+     </Item>
+    </Item>
+   </Item>
+  </Item>
+ </Item>
+</roblox>

@@ -655,6 +655,35 @@ def icon_store():
     _icon_finish(m, "icon_store.png")
 
 
+def key_cap():
+    """The key cap on world prompts, 128x128: an ivory key with a bronze rim and
+    a deeper bottom lip, so it reads as a key to press. The letter (or a gamepad
+    glyph) goes on top in ink. Not sliced: ScaleType Fit at a fixed size."""
+    S = 128
+    img = canvas(S, S)
+    d = ImageDraw.Draw(img)
+    m = 12 * SS
+    r = 22 * SS
+    lip = 7 * SS
+    # the key's body (seen as a lip under the face)
+    d.rounded_rectangle([m, m + lip, S * SS - m, S * SS - m], radius=r, fill=(92, 62, 26, 255))
+    d.rounded_rectangle([m, m, S * SS - m, S * SS - m - lip], radius=r, fill=GOLD_LO)
+    # the face: a warm ivory with a soft top light
+    i = 5 * SS
+    face = [m + i, m + i, S * SS - m - i, S * SS - m - lip - i]
+    gradient_rect(img, face, (255, 248, 226), (226, 206, 160), radius=r - i)
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([m + 2 * SS, m + 2 * SS, S * SS - m - 2 * SS, S * SS - m - lip - 2 * SS], radius=r - 2 * SS, outline=GOLD, width=3 * SS)
+    gloss = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(gloss).rounded_rectangle([face[0] + 8 * SS, face[1] + 4 * SS, face[2] - 8 * SS, face[1] + 16 * SS], radius=6 * SS, fill=(255, 255, 255, 90))
+    img.alpha_composite(gloss)
+    finish(shadow_under(img, blur=3, offset=2, alpha=140), "key_cap.png")
+
+
+def prompt_art():
+    key_cap()
+
+
 def garden_art():
     chip()
     icon_move()
@@ -665,6 +694,9 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "garden":
         garden_art()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "prompt":
+        prompt_art()
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "build":
         build_art()

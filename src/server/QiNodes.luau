@@ -54,9 +54,11 @@ local function watch(node: Instance)
 	end
 	local prompt = node:FindFirstChild("GatherPrompt") :: ProximityPrompt?
 	if prompt then
-		-- Gathering is F everywhere, like herb beds. TODO: set this on the node
-		-- prompts in assets/Wilds.rbxmx and drop this line.
+		-- Gathering is F everywhere, like herb beds, and drawn by the client's
+		-- WorldPrompts. TODO: set both on the node prompts in assets/Wilds.rbxmx
+		-- (it has uncommitted edits right now) and drop these lines.
 		prompt.KeyboardKeyCode = Enum.KeyCode.F
+		prompt.Style = Enum.ProximityPromptStyle.Custom
 		prompt.Triggered:Connect(function(player)
 			gather(node, player)
 		end)

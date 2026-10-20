@@ -33,7 +33,7 @@ local PROPS = {
 	"Attachment0", "Attachment1", "Width0", "Width1", "FaceCamera", "TextureSpeed", "TextureLength",
 	"Segments", "CurveSize0", "CurveSize1",
 	"ActionText", "ObjectText", "HoldDuration", "MaxActivationDistance", "RequiresLineOfSight",
-	"KeyboardKeyCode", "GamepadKeyCode", "UIOffset", "Exclusivity",
+	"KeyboardKeyCode", "GamepadKeyCode", "UIOffset", "Exclusivity", "Style", "ClickablePrompt",
 	"StudsOffset", "StudsOffsetWorldSpace", "ExtentsOffset", "ExtentsOffsetWorldSpace", "AlwaysOnTop", "MaxDistance", "Adornee", "SizeOffset",
 	"Part0", "Part1", "MeshType", "PrimaryPart", "AnimationId",
 	"FillColor", "OutlineColor", "FillTransparency", "OutlineTransparency", "DepthMode",

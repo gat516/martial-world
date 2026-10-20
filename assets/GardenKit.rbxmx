@@ -4,6 +4,7 @@
  </Properties>
   <Item class="ProximityPrompt" referent="GK2"><Properties>
    <string name="Name">WildPrompt</string>
+   <token name="Style">1</token>
    <string name="ActionText">Gather</string>
    <string name="ObjectText">Wild Herb</string>
    <token name="KeyboardKeyCode">102</token>
@@ -13,6 +14,7 @@
   </Item>
   <Item class="ProximityPrompt" referent="GK3"><Properties>
    <string name="Name">PlantPrompt</string>
+   <token name="Style">1</token>
    <bool name="Enabled">false</bool>
    <string name="ActionText">Harvest</string>
    <string name="ObjectText">Herb</string>
@@ -23,6 +25,7 @@
   </Item>
   <Item class="ProximityPrompt" referent="GK16"><Properties>
    <string name="Name">GrowPrompt</string>
+   <token name="Style">1</token>
    <bool name="Enabled">false</bool>
    <string name="ActionText">Grow now</string>
    <string name="ObjectText">Herb</string>

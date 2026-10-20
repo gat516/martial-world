@@ -38,6 +38,7 @@ local EnemySounds = require(script.Parent.EnemySounds)
 local Sprint = require(script.Parent.Sprint)
 local HeadLook = require(script.Parent.HeadLook)
 local Movement = require(script.Parent.Movement)
+local WorldPrompts = require(script.Parent.WorldPrompts)
 
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
@@ -69,6 +70,7 @@ Settings.init(gui)
 Inventory.init(gui)
 SeedPicker.init(gui)
 GardenView.init()
+WorldPrompts.init()
 Planting.init(gui)
 BuildMode.init(gui)
 HerbShop.init(gui)

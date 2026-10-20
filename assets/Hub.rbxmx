@@ -35,6 +35,7 @@
    </Properties>
     <Item class="ProximityPrompt" referent="RBXH5"><Properties>
      <string name="Name">TalkPrompt</string>
+     <token name="Style">1</token>
      <string name="ActionText">Talk</string>
      <string name="ObjectText">Elder Qingyun</string>
      <float name="HoldDuration">0</float>
@@ -276,6 +277,7 @@
    </Properties>
     <Item class="ProximityPrompt" referent="RBXH24"><Properties>
      <string name="Name">ReadPrompt</string>
+     <token name="Style">1</token>
      <string name="ActionText">Read</string>
      <string name="ObjectText">Quest Board</string>
      <float name="HoldDuration">0</float>
@@ -406,6 +408,7 @@
    </Properties>
     <Item class="ProximityPrompt" referent="RBXM3"><Properties>
      <string name="Name">MarketPrompt</string>
+     <token name="Style">1</token>
      <string name="ActionText">Browse</string>
      <string name="ObjectText">Spirit Market</string>
      <float name="MaxActivationDistance">12</float>
@@ -642,6 +645,7 @@
    </Properties>
     <Item class="ProximityPrompt" referent="RBXM90"><Properties>
      <string name="Name">Herbalist</string>
+     <token name="Style">1</token>
      <string name="ActionText">Trade herbs</string>
      <string name="ObjectText">Herbalist</string>
      <token name="KeyboardKeyCode">102</token>

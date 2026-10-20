@@ -124,6 +124,83 @@ function Motion.stopPulse(obj: GuiObject)
 	end
 end
 
+-- Fading a whole card in and out (world prompts). Each piece fades to its own
+-- authored transparency, which is read once per root the first time it fades.
+local FADE_IN = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local FADE_OUT = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+local FADE_PROPS = {
+	ImageLabel = { "ImageTransparency" },
+	ImageButton = { "ImageTransparency" },
+	TextLabel = { "TextTransparency", "TextStrokeTransparency" },
+	Frame = { "BackgroundTransparency" },
+}
+local authored: { [Instance]: { [Instance]: { [string]: number } } } = setmetatable({}, { __mode = "k" }) :: any
+
+local function fadeTargets(root: Instance): { [Instance]: { [string]: number } }
+	local known = authored[root]
+	if known then
+		return known
+	end
+	local found = {}
+	local all = root:GetDescendants()
+	table.insert(all, root)
+	for _, inst in all do
+		local props = FADE_PROPS[inst.ClassName]
+		if props then
+			local values = {}
+			for _, prop in props do
+				values[prop] = (inst :: any)[prop]
+			end
+			found[inst] = values
+		end
+	end
+	authored[root] = found
+	return found
+end
+
+-- Fade root in from nothing to its authored look, with a small pop.
+function Motion.fadeIn(root: GuiObject)
+	for inst, values in fadeTargets(root) do
+		local target = inst :: any
+		for prop in values do
+			target[prop] = 1
+		end
+		TweenService:Create(inst, FADE_IN, values):Play()
+	end
+	popFrom(root, 0.9, POP)
+end
+
+-- Fade root out (shrinking a little); done runs once it's invisible.
+function Motion.fadeOut(root: GuiObject, done: (() -> ())?)
+	for inst, values in fadeTargets(root) do
+		local to = {}
+		for prop in values do
+			to[prop] = 1
+		end
+		TweenService:Create(inst, FADE_OUT, to):Play()
+	end
+	local scale = scaleOf(root)
+	if scale then
+		Motion.tween(scale, { Scale = 0.94 }, FADE_OUT)
+	end
+	if done then
+		task.delay(FADE_OUT.Time, done)
+	end
+end
+
+-- A quick dip and spring back, for a press that came from a key, not a pointer.
+function Motion.tap(obj: GuiObject)
+	local scale = scaleOf(obj)
+	if scale then
+		local s = scale :: UIScale
+		Motion.tween(s, { Scale = PRESS_SCALE }, PRESS).Completed:Once(function(state)
+			if state == Enum.PlaybackState.Completed then
+				Motion.tween(s, { Scale = 1 }, RELEASE)
+			end
+		end)
+	end
+end
+
 local function pointer(input: InputObject): boolean
 	return input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch
 end

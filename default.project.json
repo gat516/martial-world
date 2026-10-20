@@ -33,6 +33,9 @@
       },
       "Rewards": {
         "$path": "assets/Rewards.rbxmx"
+      },
+      "Prompts": {
+        "$path": "assets/Prompts.rbxmx"
       }
     },
     "StarterPlayer": {

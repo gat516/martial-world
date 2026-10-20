@@ -30,7 +30,6 @@ local SCALE_STEP = 0.03 -- only rescale a plant when its size moves this much (s
 local TAG_RANGE = 14 -- studs: the nearest plant within this gets the tag on touch
 local TICK = 0.25
 local HARVEST_RANGE = 10 -- studs; ScaleTo scales a prompt's range with the plant, so we pin it
-local TEND_OFFSET = Vector2.new(0, 64) -- keeps the bed's prompt clear of a plant's Grow now prompt
 
 type PlantView = {
 	plant: Herbs.Plant,
@@ -297,7 +296,8 @@ local function refreshTendPrompt(plot: Instance)
 	prompt.Enabled = MyPeak.owns(Peak.of(plot))
 	prompt.ActionText = if have then "Plant" else "No seeds"
 	prompt.ObjectText = if info then info.name else "Plot"
-	prompt.UIOffset = TEND_OFFSET
+	-- The beds are authored in the place file, not in git, so the style is set here.
+	prompt.Style = Enum.ProximityPromptStyle.Custom -- drawn by WorldPrompts
 	prompt.MaxActivationDistance = 12
 end
 

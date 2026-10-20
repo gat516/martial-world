@@ -49,6 +49,7 @@ local tracks: { AnimationTrack } = {}
 local dashTracks: { [string]: AnimationTrack } = {} -- "Forward" / "Back" / "Left" / "Right"
 local perfectTracks: { [string]: AnimationTrack } = {}
 local perfectPlaying: AnimationTrack?
+local idleFades: { [AnimationTrack]: {} } = {}
 local dodgeVisual: { character: Model, sequence: number, started: number, style: string?, played: boolean }?
 type Runtime = {
 	action: Rules.Action,
@@ -80,15 +81,45 @@ local function clearInputs()
 	ActionState.basicHeld = false
 end
 
-local function stopPerfect()
+-- Visual recovery is independent of action recovery. Hold the outgoing pose
+-- briefly, then fade its weight over idle/walk while the player is free to act.
+local function fadeToIdle(track: AnimationTrack, seconds: number)
+	if not track.IsPlaying then return end
+	local token = {}
+	idleFades[track] = token
+	track:AdjustSpeed(0)
+	task.delay(Config.POSE_HOLD_SECONDS, function()
+		if idleFades[track] ~= token then return end
+		track:Stop(seconds)
+		task.delay(seconds, function()
+			if idleFades[track] == token then idleFades[track] = nil end
+		end)
+	end)
+end
+
+local function clearIdleFades()
+	for track in idleFades do
+		track:Stop(Config.ACTION_CROSSFADE)
+	end
+	table.clear(idleFades)
+end
+
+local function stopPerfect(completed: boolean?)
 	if perfectPlaying then
-		perfectPlaying:Stop(0.06)
+		if completed then
+			fadeToIdle(perfectPlaying, Config.DODGE_IDLE_FADE)
+		else
+			perfectPlaying:Stop(Config.ACTION_CROSSFADE)
+		end
 		perfectPlaying = nil
 	end
 end
 
-local function stopRuntime(suppress: boolean)
-	if suppress then stopPerfect() end
+local function stopRuntime(suppress: boolean, completed: boolean?)
+	if suppress then
+		stopPerfect()
+		clearIdleFades()
+	end
 	local old = runtime
 	runtime = nil
 	if not old then
@@ -101,7 +132,11 @@ local function stopRuntime(suppress: boolean)
 		old.stopped:Disconnect()
 	end
 	if old.track then
-		old.track:Stop(0.08)
+		if completed and not old.suppressed then
+			fadeToIdle(old.track, if old.action.kind == "dodge" then Config.DODGE_IDLE_FADE else Config.ATTACK_IDLE_FADE)
+		else
+			old.track:Stop(Config.ACTION_CROSSFADE)
+		end
 	end
 	if old.finishDash then
 		old.finishDash()
@@ -396,7 +431,7 @@ advanceRuntime = function(now: number)
 		end
 	end
 	if now >= Rules.stopAt(action) and current.finishDash then current.finishDash() end
-	if now >= Rules.endAt(action) then stopRuntime(false) end
+	if now >= Rules.endAt(action) then stopRuntime(false, true) end
 end
 
 local function tryStart(kind: string, id: string?): boolean
@@ -414,6 +449,7 @@ local function tryStart(kind: string, id: string?): boolean
 	sequence += 1
 	stopRuntime(false)
 	stopPerfect()
+	clearIdleFades()
 	local direction = if kind == "dodge" then root.CFrame.LookVector * Vector3.new(1, 0, 1) else faceTarget(root)
 	direction = if direction.Magnitude > 0.01 then direction.Unit else Vector3.zAxis
 	ActionState.facing = direction
@@ -434,7 +470,7 @@ local function tryStart(kind: string, id: string?): boolean
 	end
 	local track = current.track
 	if track then
-		track:Play(0.05, 1, action.profile.speed)
+		track:Play(Config.ACTION_CROSSFADE, 1, action.profile.speed)
 		current.stopped = track.Stopped:Connect(function()
 			if runtime == current then
 				current.suppressed = true
@@ -559,11 +595,23 @@ local function playPerfect(dodgeSequence: number)
 		current.track = nil
 	end
 	stopPerfect()
+	clearIdleFades()
 	perfectPlaying = track
-	track:Play(0.04)
+	track:Play(0.04, 1, 1)
 	task.delay(Config.PERFECT_ANIMATION_SECONDS, function()
-		if perfectPlaying == track then stopPerfect() end
+		if perfectPlaying == track then stopPerfect(true) end
 	end)
+end
+
+-- Short clips can end before gameplay recovery does. Catch their last pose
+-- before the Animator drops the track's weight; the action/fade owns release.
+local function holdClipEnd(track: AnimationTrack?, dt: number)
+	if not track or not track.IsPlaying or track.Speed <= 0 or track.Length <= 0 then return end
+	local lastPose = math.max(0, track.Length - 0.001)
+	if track.TimePosition + dt * track.Speed >= lastPose then
+		track.TimePosition = lastPose
+		track:AdjustSpeed(0)
+	end
 end
 
 local function onEffect(kind: string, ...: any)
@@ -684,6 +732,10 @@ function CombatController.init(gui: ScreenGui)
 		return Enum.ContextActionResult.Sink
 	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.Q, Enum.KeyCode.ButtonB)
 	effectRemote.OnClientEvent:Connect(onEffect)
+	RunService.PreAnimation:Connect(function(dt)
+		holdClipEnd(if runtime then runtime.track else nil, dt)
+		holdClipEnd(perfectPlaying, dt)
+	end)
 
 	player.CharacterRemoving:Connect(function()
 		clearInputs()

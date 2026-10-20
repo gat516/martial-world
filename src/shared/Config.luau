@@ -185,6 +185,10 @@ return {
 		CHAIN_COOLDOWN = 0.45, -- final Hit Stop -> earliest next string; survives a dodge
 		ATTACK_MOVE_MULTIPLIER = 0.6,
 		ATTACK_RECOVERY_MULTIPLIER = 0.8,
+		POSE_HOLD_SECONDS = 0.06, -- visual only; action permissions are already free
+		ATTACK_IDLE_FADE = 0.24,
+		DODGE_IDLE_FADE = 0.24,
+		ACTION_CROSSFADE = 0.08, -- a new input takes over the lingering pose quickly
 		INPUT_BUFFER = 0.20, -- one pending press; dodge takes priority over offense
 		CANCEL_RETRY = 0.25, -- technique retry delay if dodged before release
 		HIT_TIME_SLACK = 0.04,

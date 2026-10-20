@@ -1073,8 +1073,8 @@
    <string name="Name">Vitals</string>
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
-   <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-64</YO></UDim2>
-   <UDim2 name="Size"><XS>0</XS><XO>460</XO><YS>0</YS><YO>46</YO></UDim2>
+   <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-70</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>520</XO><YS>0</YS><YO>52</YO></UDim2>
    <int name="ZIndex">5</int>
   </Properties>
    <Item class="Frame" referent="RBX130"><Properties>
@@ -1184,7 +1184,7 @@
     <int name="ZIndex">6</int>
     <string name="Text">100 / 100</string>
     <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
-    <float name="TextSize">10</float>
+    <float name="TextSize">11</float>
     <float name="TextStrokeTransparency">0.35</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
@@ -1194,11 +1194,11 @@
     <Vector2 name="AnchorPoint"><X>1</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0.63125</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0</XS><XO>110</XO><YS>0</YS><YO>12</YO></UDim2>
+    <UDim2 name="Size"><XS>0</XS><XO>120</XO><YS>0</YS><YO>14</YO></UDim2>
     <int name="ZIndex">6</int>
     <string name="Text">Qi 0 / 120</string>
     <Color3 name="TextColor3"><R>0.588235</R><G>0.784314</G><B>1</B></Color3>
-    <float name="TextSize">9</float>
+    <float name="TextSize">10</float>
     <token name="TextXAlignment">1</token>
     <float name="TextStrokeTransparency">0.35</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
@@ -1209,11 +1209,11 @@
     <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>0.63125</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0</XS><XO>170</XO><YS>0</YS><YO>12</YO></UDim2>
+    <UDim2 name="Size"><XS>0</XS><XO>190</XO><YS>0</YS><YO>14</YO></UDim2>
     <int name="ZIndex">6</int>
     <string name="Text">Cultivation 0 / 100</string>
     <Color3 name="TextColor3"><R>0.980392</R><G>0.839216</G><B>0.470588</B></Color3>
-    <float name="TextSize">9</float>
+    <float name="TextSize">10</float>
     <token name="TextXAlignment">0</token>
     <float name="TextStrokeTransparency">0.35</float>
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
@@ -1223,8 +1223,8 @@
     <string name="Name">Crest</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>10</YO></UDim2>
-    <UDim2 name="Size"><XS>0</XS><XO>208</XO><YS>0</YS><YO>26</YO></UDim2>
+    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>12</YO></UDim2>
+    <UDim2 name="Size"><XS>0</XS><XO>240</XO><YS>0</YS><YO>30</YO></UDim2>
     <int name="ZIndex">4</int>
     <Content name="Image"><url>rbxassetid://102415598703650</url></Content>
    </Properties>
@@ -1235,7 +1235,7 @@
      <int name="ZIndex">5</int>
      <string name="Text">Qi Condensation 1</string>
      <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
-     <float name="TextSize">11</float>
+     <float name="TextSize">12</float>
      <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     </Properties>
     </Item>
@@ -3263,7 +3263,7 @@
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-10</YO></UDim2>
-   <UDim2 name="Size"><XS>0</XS><XO>462</XO><YS>0</YS><YO>54</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>508</XO><YS>0</YS><YO>60</YO></UDim2>
    <int name="ZIndex">9</int>
   </Properties>
    <Item class="Frame" referent="RBX382"><Properties>
@@ -3277,15 +3277,14 @@
      <token name="HorizontalAlignment">0</token>
      <token name="VerticalAlignment">2</token>
      <token name="SortOrder">2</token>
-     <UDim2 name="CellSize"><XS>0</XS><XO>46</XO><YS>0</YS><YO>46</YO></UDim2>
-     <UDim2 name="CellPadding"><XS>0</XS><XO>6</XO><YS>0</YS><YO>6</YO></UDim2>
+     <UDim2 name="CellSize"><XS>0</XS><XO>52</XO><YS>0</YS><YO>52</YO></UDim2>
      <int name="FillDirectionMaxCells">9</int>
     </Properties>
     </Item>
     <Item class="TextButton" referent="RBX384"><Properties>
      <string name="Name">SlotTemplate</string>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Size"><XS>0</XS><XO>46</XO><YS>0</YS><YO>46</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>52</XO><YS>0</YS><YO>52</YO></UDim2>
      <bool name="Visible">false</bool>
      <bool name="AutoButtonColor">false</bool>
      <string name="Text"></string>
@@ -3367,7 +3366,7 @@
       <int name="ZIndex">7</int>
       <string name="Text"></string>
       <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
-      <float name="TextSize">15</float>
+      <float name="TextSize">18</float>
       <float name="TextStrokeTransparency">0.3</float>
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
@@ -3381,7 +3380,7 @@
       <int name="ZIndex">6</int>
       <string name="Text"></string>
       <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
-      <float name="TextSize">10</float>
+      <float name="TextSize">11</float>
       <token name="TextXAlignment">1</token>
       <float name="TextStrokeTransparency">0.2</float>
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
@@ -3393,11 +3392,11 @@
       <Color3 name="BackgroundColor3"><R>0.0470588</R><G>0.0627451</G><B>0.0745098</B></Color3>
       <float name="BackgroundTransparency">0.1</float>
       <UDim2 name="Position"><XS>0</XS><XO>4</XO><YS>0</YS><YO>4</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>14</XO><YS>0</YS><YO>14</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>16</XO><YS>0</YS><YO>16</YO></UDim2>
       <int name="ZIndex">6</int>
       <string name="Text">1</string>
       <Color3 name="TextColor3"><R>0.909804</R><G>0.752941</G><B>0.360784</B></Color3>
-      <float name="TextSize">9</float>
+      <float name="TextSize">10</float>
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
       <Item class="UICorner" referent="RBX394"><Properties>

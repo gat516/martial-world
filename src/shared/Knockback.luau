@@ -3,8 +3,8 @@
 -- enemy depends on the hit's base push, the player's realm against the beast's
 -- (Enemies `realm`), and the beast's weight (Enemies `weight`):
 --   distance = base * (playerPower / beastPower) ^ REALM_EXPONENT / weight
--- where power is each realm's Realms.luau `power`. Anything under MIN_DISTANCE
--- doesn't move the beast at all, so a Qi Condensation fist can't shift the
+-- where power is each realm's Realms.luau `power`, capped at MAX_DISTANCE.
+-- Anything under MIN_DISTANCE doesn't move the beast at all, so a Qi Condensation fist can't shift the
 -- Elder Wolf King, Foundation Establishment nudges it, and higher realms throw
 -- it further. A hit that moves a beast also staggers it (stops chasing, a
 -- flinch pose) unless it was staggered moments ago; a beast winding up or
@@ -22,6 +22,7 @@ local Knockback = {}
 
 Knockback.REALM_EXPONENT = 3 -- how sharply the realm gap scales the push
 Knockback.MIN_DISTANCE = 1.5 -- studs; less than this and the beast doesn't budge
+Knockback.MAX_DISTANCE = 8 -- studs; no hit throws a beast further than this
 Knockback.ARMOR_BREAK = 6 -- studs; a push this big interrupts a windup or dash
 Knockback.PUSH_SECONDS = 0.18 -- the push plays out over this long
 Knockback.STUN_PER_STUD = 0.06 -- seconds of stagger per stud pushed
@@ -44,7 +45,7 @@ function Knockback.distance(base: number, playerPower: number, beast: { realm: {
 	end
 	local beastPower = Realms.get(beast.realm[1], beast.realm[2]).power
 	local distance = base * (playerPower / beastPower) ^ Knockback.REALM_EXPONENT / beast.weight
-	return if distance >= Knockback.MIN_DISTANCE then distance else 0
+	return if distance >= Knockback.MIN_DISTANCE then math.min(distance, Knockback.MAX_DISTANCE) else 0
 end
 
 function Knockback.stun(distance: number): number

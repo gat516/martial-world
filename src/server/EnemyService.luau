@@ -353,6 +353,10 @@ local function shove(enemy: Enemy, dir: Vector3, distance: number)
 	task.delay(Knockback.PUSH_SECONDS, function()
 		attachment:Destroy()
 		mover:Destroy()
+		-- stop dead: left alone it keeps the push's speed and slides far past
+		if enemy.root.Parent then
+			enemy.root.AssemblyLinearVelocity *= Vector3.new(0, 1, 0)
+		end
 		-- plant it where it landed, not back where it was told to walk
 		if enemy.state == "stagger" and enemy.model.Parent then
 			stop(enemy)

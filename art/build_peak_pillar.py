@@ -243,10 +243,11 @@ def axis_box(lo, hi):
 
 def cave_door_cutter():
     bm = bmesh.new()
-    # corridor into the hall (matches CaveAbode.Facade doorway)
-    add_box(bm, axis_box((-12.5, 21, PORCH_TOP), (12.5, 90, -9.0)))
-    # porch recess: clears the rock over CaveAbode.Ledge so the facade sits in a clean alcove
-    add_box(bm, axis_box((-26.0, 46, -25.0), (16.0, 90, -6.5)))
+    # corridor into the hall, exactly as wide as CaveAbode.Facade (piers at x +-12.05, outward
+    # 44.5-54.5) so the facade plugs it with no slits; the piers sink a hair into the rock
+    add_box(bm, axis_box((-12.0, 21, PORCH_TOP), (12.0, 54.5, -9.0)))
+    # porch: open only in front of the facade face, reaching left to the foot of the stairs
+    add_box(bm, axis_box((-26.0, 54.5, PORCH_TOP), (13.0, 90, -6.5)))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return link("CutCave", bm)
 
@@ -330,7 +331,7 @@ def wall_report(pillar, h):
 # --- split + UV + export -----------------------------------------------------
 
 def in_cut(c, h):
-    cave = (-13 < c.x < 13 and c.y > 18 and -27 < c.z < -8) or (-27 < c.x < 17 and c.y > 45 and -26 < c.z < -6)
+    cave = (-13 < c.x < 13 and c.y > 18 and -27 < c.z < -8) or (-27 < c.x < 14 and c.y > 53 and -26 < c.z < -6)
     # stops below the plateau so the top stays one continuous lawn around the stair head
     stairs = -50 < c.x < -8 and c.y > 28 and -34 < c.z < TOP_Z - 2.5
     return cave or stairs or in_abode(c, h)
@@ -372,6 +373,18 @@ def extract(bm, faces):
     return out
 
 
+SHARP_ANGLE = math.radians(40)
+
+
+def smooth_by_angle(bm):
+    """Smooth shading so decimation facets don't show; creases sharper than SHARP_ANGLE stay crisp."""
+    for f in bm.faces:
+        f.smooth = True
+    for e in bm.edges:
+        if not e.is_manifold or e.calc_face_angle(0.0) > SHARP_ANGLE:
+            e.smooth = False
+
+
 def box_uv(bm):
     uv = bm.loops.layers.uv.new("UVMap")
     for f in bm.faces:
@@ -411,6 +424,7 @@ def split_and_export(pillar, h, anchors):
     for name, col in PARTS:
         b = meshes[name]
         box_uv(b)
+        smooth_by_angle(b)
         o = link(name, b)
         m = bpy.data.materials.get("Preview" + name) or bpy.data.materials.new("Preview" + name)
         m.use_nodes = True
@@ -426,7 +440,7 @@ def split_and_export(pillar, h, anchors):
     bpy.context.view_layer.objects.active = objs[0]
     bpy.ops.export_scene.fbx(filepath=os.path.join(OUT_DIR, "SpiritPeakPillar.fbx"), use_selection=True,
                              object_types={'MESH'}, apply_unit_scale=True, apply_scale_options='FBX_SCALE_UNITS',
-                             axis_forward='-Z', axis_up='Y', mesh_smooth_type='FACE', bake_space_transform=True)
+                             axis_forward='-Z', axis_up='Y', mesh_smooth_type='EDGE', bake_space_transform=True)
     report = {"meshes": {}, "anchors": anchors}
     for o in objs:
         centre, size = bounds(o)

@@ -35,6 +35,7 @@ local effectRemote = remotes.Effect :: RemoteEvent
 local animations = ReplicatedStorage:WaitForChild("Animations") :: Folder
 local fistAnimations = animations:WaitForChild("Fists") :: Folder
 local dashAnimations = animations:WaitForChild("Dash") :: Folder
+local perfectAnimations = animations:WaitForChild("PerfectDodge") :: Folder
 local player = Players.LocalPlayer
 
 local TAP_MAX_PIXELS = 12 -- a press that moves further is a drag (camera, thumbstick)
@@ -46,6 +47,9 @@ local CombatController = {}
 
 local tracks: { AnimationTrack } = {}
 local dashTracks: { [string]: AnimationTrack } = {} -- "Forward" / "Back" / "Left" / "Right"
+local perfectTracks: { [string]: AnimationTrack } = {}
+local perfectPlaying: AnimationTrack?
+local dodgeVisual: { character: Model, sequence: number, started: number, style: string?, played: boolean }?
 type Runtime = {
 	action: Rules.Action,
 	root: BasePart,
@@ -76,7 +80,15 @@ local function clearInputs()
 	ActionState.basicHeld = false
 end
 
+local function stopPerfect()
+	if perfectPlaying then
+		perfectPlaying:Stop(0.06)
+		perfectPlaying = nil
+	end
+end
+
 local function stopRuntime(suppress: boolean)
+	if suppress then stopPerfect() end
 	local old = runtime
 	runtime = nil
 	if not old then
@@ -101,10 +113,12 @@ local function loadTracks(character: Model)
 	stopRuntime(true)
 	readyCharacter, synced = nil, false
 	ActionState.current = Rules.new()
+	dodgeVisual = nil
 	local humanoid = character:WaitForChild("Humanoid") :: Humanoid
 	local animator = humanoid:WaitForChild("Animator") :: Animator
 	local nextTracks: { AnimationTrack } = {}
 	local nextDashes: { [string]: AnimationTrack } = {}
+	local nextPerfects: { [string]: AnimationTrack } = {}
 	for i = 1, #Config.FIST_STEPS do
 		local animation = fistAnimations:FindFirstChild(tostring(i)) :: Animation?
 		if animation then
@@ -122,14 +136,25 @@ local function loadTracks(character: Model)
 			nextDashes[animation.Name] = track
 		end
 	end
+	for _, animation in perfectAnimations:GetChildren() do
+		if animation:IsA("Animation") and animation.AnimationId ~= "" then
+			local track = animator:LoadAnimation(animation)
+			track.Priority = Enum.AnimationPriority.Action3
+			track.Looped = false
+			nextPerfects[animation.Name] = track
+		end
+	end
 	if player.Character ~= character then
 		for _, track in nextTracks do track:Destroy() end
 		for _, track in nextDashes do track:Destroy() end
+		for _, track in nextPerfects do track:Destroy() end
 		return
 	end
 	for _, track in tracks do track:Destroy() end
 	for _, track in dashTracks do track:Destroy() end
+	for _, track in perfectTracks do track:Destroy() end
 	tracks, dashTracks = nextTracks, nextDashes
+	perfectTracks = nextPerfects
 	readyCharacter = character
 	humanoid.Died:Connect(function()
 		if readyCharacter == character then
@@ -240,6 +265,16 @@ local function startDash(current: Runtime)
 	local right = root.CFrame.RightVector:Dot(direction)
 	local side = if right > 0.38 then "Right" elseif right < -0.38 then "Left"
 		elseif root.CFrame.LookVector:Dot(direction) < 0 then "Back" else "Forward"
+	-- These clips are two lateral pairs: 1/2 duck left/right, 4/3 slip
+	-- left/right. Forward diagonals use the duck; side/back diagonals the slip.
+	local style: string? = nil
+	if side == "Left" or side == "Right" then
+		style = (if root.CFrame.LookVector:Dot(direction) > 0.35 then "Duck" else "Slip") .. side
+	end
+	dodgeVisual = {
+		character = current.character, sequence = current.action.sequence,
+		started = current.action.started, style = style, played = false,
+	}
 	current.track = dashTracks[side]
 	current.steer = steer
 	current.finishDash = function()
@@ -378,6 +413,7 @@ local function tryStart(kind: string, id: string?): boolean
 	if not action then return false end
 	sequence += 1
 	stopRuntime(false)
+	stopPerfect()
 	local direction = if kind == "dodge" then root.CFrame.LookVector * Vector3.new(1, 0, 1) else faceTarget(root)
 	direction = if direction.Magnitude > 0.01 then direction.Unit else Vector3.zAxis
 	ActionState.facing = direction
@@ -499,6 +535,37 @@ end
 
 --[[ Server effects ]]
 
+local function playPerfect(dodgeSequence: number)
+	local visual = dodgeVisual
+	if not visual or visual.played or visual.character ~= player.Character or visual.sequence ~= dodgeSequence
+		or sequence ~= dodgeSequence or not myRoot() then
+		return
+	end
+	if workspace:GetServerTimeNow() > visual.started + Config.DODGE_SECONDS + Config.PERFECT_ANIMATION_GRACE then
+		return
+	end
+	local track = visual.style and perfectTracks[visual.style]
+	if not track then return end
+	visual.played = true
+	local current = runtime
+	if current and current.action.sequence == dodgeSequence then
+		-- Swap only the pose. Dash motion, invulnerability and recovery keep
+		-- their original deadlines; stopping this track must not cancel them.
+		if current.stopped then
+			current.stopped:Disconnect()
+			current.stopped = nil
+		end
+		if current.track then current.track:Stop(0.04) end
+		current.track = nil
+	end
+	stopPerfect()
+	perfectPlaying = track
+	track:Play(0.04)
+	task.delay(Config.PERFECT_ANIMATION_SECONDS, function()
+		if perfectPlaying == track then stopPerfect() end
+	end)
+end
+
 local function onEffect(kind: string, ...: any)
 	local args = { ... }
 	local character = player.Character
@@ -528,10 +595,12 @@ local function onEffect(kind: string, ...: any)
 			Sfx.play("Hurt")
 		end
 	elseif kind == "perfect" then
+		if args[3] ~= character then return end
 		local refund = args[1] :: number
 		for id, t in ActionState.current.ready do
 			ActionState.current.ready[id] = t - refund
 		end
+		playPerfect(args[2])
 		if character and root then
 			CombatEffects.perfectDodge(character, root)
 			Sfx.play("PerfectDodge")

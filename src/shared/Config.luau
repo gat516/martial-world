@@ -213,6 +213,8 @@ return {
 		IFRAME_SLACK = 0.1, -- extra server-side allowance for latency
 		PERFECT_WINDOW = 0.2, -- dodging this close before a hit lands is a perfect dodge
 		PERFECT_REFUND = 1.5, -- seconds taken off every technique cooldown
+		PERFECT_ANIMATION_SECONDS = 16 / 60,
+		PERFECT_ANIMATION_GRACE = 0.25, -- late confirmation can finish the pose after the dash
 
 		IN_COMBAT_SECONDS = 6, -- after being hurt, travel is blocked this long
 

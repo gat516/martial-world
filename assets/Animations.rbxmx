@@ -1,39 +1,106 @@
 <roblox version="4">
- <Item class="Folder" referent="RBX1"><Properties><string name="Name">Animations</string></Properties>
-  <Item class="Folder" referent="RBX2"><Properties><string name="Name">Fists</string></Properties>
-   <Item class="Animation" referent="RBX3"><Properties><string name="Name">1</string><Content name="AnimationId"><url>rbxassetid://104973140880807</url></Content></Properties>
+ <Item class="Folder" referent="RBXA1"><Properties>
+  <string name="Name">Animations</string>
+ </Properties>
+  <Item class="Folder" referent="RBXA2"><Properties>
+   <string name="Name">Fists</string>
+  </Properties>
+   <Item class="Animation" referent="RBXA3"><Properties>
+    <string name="Name">1</string>
+    <Content name="AnimationId"><url>rbxassetid://104973140880807</url></Content>
+   </Properties>
    </Item>
-   <Item class="Animation" referent="RBX4"><Properties><string name="Name">2</string><Content name="AnimationId"><url>rbxassetid://85151406982978</url></Content></Properties>
+   <Item class="Animation" referent="RBXA4"><Properties>
+    <string name="Name">2</string>
+    <Content name="AnimationId"><url>rbxassetid://85151406982978</url></Content>
+   </Properties>
    </Item>
-   <Item class="Animation" referent="RBX5"><Properties><string name="Name">3</string><Content name="AnimationId"><url>rbxassetid://121754295053922</url></Content></Properties>
+   <Item class="Animation" referent="RBXA5"><Properties>
+    <string name="Name">3</string>
+    <Content name="AnimationId"><url>rbxassetid://121754295053922</url></Content>
+   </Properties>
    </Item>
-   <Item class="Animation" referent="RBX6"><Properties><string name="Name">4</string><Content name="AnimationId"><url>rbxassetid://118282301642574</url></Content></Properties>
+   <Item class="Animation" referent="RBXA6"><Properties>
+    <string name="Name">4</string>
+    <Content name="AnimationId"><url>rbxassetid://118282301642574</url></Content>
+   </Properties>
    </Item>
-   <Item class="Animation" referent="RBX7"><Properties><string name="Name">5</string><Content name="AnimationId"><url>rbxassetid://84167899415639</url></Content></Properties>
+   <Item class="Animation" referent="RBXA7"><Properties>
+    <string name="Name">5</string>
+    <Content name="AnimationId"><url>rbxassetid://84167899415639</url></Content>
+   </Properties>
    </Item>
   </Item>
-  <Item class="Folder" referent="RBX8"><Properties><string name="Name">Meditate</string></Properties>
-   <Item class="Animation" referent="RBX9"><Properties><string name="Name">Sit</string><Content name="AnimationId"><url>rbxassetid://76808937936968</url></Content></Properties>
+  <Item class="Folder" referent="RBXA8"><Properties>
+   <string name="Name">Meditate</string>
+  </Properties>
+   <Item class="Animation" referent="RBXA9"><Properties>
+    <string name="Name">Sit</string>
+    <Content name="AnimationId"><url>rbxassetid://76808937936968</url></Content>
+   </Properties>
    </Item>
-   <Item class="Animation" referent="RBX10"><Properties><string name="Name">Loop</string><Content name="AnimationId"><url>rbxassetid://110054098987663</url></Content></Properties>
+   <Item class="Animation" referent="RBXA10"><Properties>
+    <string name="Name">Loop</string>
+    <Content name="AnimationId"><url>rbxassetid://110054098987663</url></Content>
+   </Properties>
    </Item>
-   <Item class="Animation" referent="RBX11"><Properties><string name="Name">GetUp</string><Content name="AnimationId"><url>rbxassetid://116159163837100</url></Content></Properties>
+   <Item class="Animation" referent="RBXA11"><Properties>
+    <string name="Name">GetUp</string>
+    <Content name="AnimationId"><url>rbxassetid://116159163837100</url></Content>
+   </Properties>
    </Item>
   </Item>
-  <Item class="Folder" referent="RBX12"><Properties><string name="Name">Dash</string></Properties>
-   <Item class="Animation" referent="RBX13"><Properties><string name="Name">Back</string><Content name="AnimationId"><url>rbxassetid://75338907283865</url></Content></Properties>
+  <Item class="Folder" referent="RBXA12"><Properties>
+   <string name="Name">Dash</string>
+  </Properties>
+   <Item class="Animation" referent="RBXA13"><Properties>
+    <string name="Name">Back</string>
+    <Content name="AnimationId"><url>rbxassetid://75338907283865</url></Content>
+   </Properties>
    </Item>
-   <Item class="Animation" referent="RBX14"><Properties><string name="Name">Left</string><Content name="AnimationId"><url>rbxassetid://96415359360010</url></Content></Properties>
+   <Item class="Animation" referent="RBXA14"><Properties>
+    <string name="Name">Left</string>
+    <Content name="AnimationId"><url>rbxassetid://96415359360010</url></Content>
+   </Properties>
    </Item>
-   <Item class="Animation" referent="RBX16"><Properties><string name="Name">Forward</string><Content name="AnimationId"><null></null></Content></Properties>
+   <Item class="Animation" referent="RBXA15"><Properties>
+    <string name="Name">Right</string>
+    <Content name="AnimationId"><url>rbxassetid://97389453311989</url></Content>
+   </Properties>
    </Item>
-   <Item class="Animation" referent="RBX15"><Properties><string name="Name">Right</string><Content name="AnimationId"><url>rbxassetid://97389453311989</url></Content></Properties>
+   <Item class="Animation" referent="RBXA16"><Properties>
+    <string name="Name">Forward</string>
+   </Properties>
    </Item>
   </Item>
-  <Item class="Animation" referent="RBXR17"><Properties>
+  <Item class="Animation" referent="RBXA17"><Properties>
    <string name="Name">Run</string>
    <Content name="AnimationId"><url>rbxassetid://81617655199380</url></Content>
   </Properties>
+  </Item>
+  <Item class="Folder" referent="RBXA18"><Properties>
+   <string name="Name">PerfectDodge</string>
+  </Properties>
+   <Item class="Animation" referent="RBXA19"><Properties>
+    <string name="Name">DuckLeft</string>
+    <Content name="AnimationId"><url>rbxassetid://75838562358485</url></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXA20"><Properties>
+    <string name="Name">DuckRight</string>
+    <Content name="AnimationId"><url>rbxassetid://79304670830313</url></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXA21"><Properties>
+    <string name="Name">SlipRight</string>
+    <Content name="AnimationId"><url>rbxassetid://99287317142277</url></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXA22"><Properties>
+    <string name="Name">SlipLeft</string>
+    <Content name="AnimationId"><url>rbxassetid://84600575476781</url></Content>
+   </Properties>
+   </Item>
   </Item>
  </Item>
 </roblox>

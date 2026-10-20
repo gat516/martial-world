@@ -26,6 +26,7 @@ type State = {
 	aim: Vector3,
 	perfectUsed: boolean,
 	lastDodge: number,
+	lastDodgeSequence: number,
 	ironSkinUntil: number,
 	ironSkinReduction: number,
 	lastHurt: number,
@@ -50,6 +51,7 @@ local function state(player: Player): State
 			aim = Vector3.zAxis,
 			perfectUsed = false,
 			lastDodge = -math.huge,
+			lastDodgeSequence = 0,
 			ironSkinUntil = 0,
 			ironSkinReduction = 0,
 			lastHurt = -math.huge,
@@ -63,6 +65,7 @@ local function state(player: Player): State
 		s.actions = Rules.new()
 		s.actions.ready, s.actions.dodgeReady = ready, dodgeReady
 		s.lastDodge, s.ironSkinUntil = -math.huge, 0
+		s.lastDodgeSequence = 0
 		s.released, s.suppressed = false, false
 	end
 	return s
@@ -129,7 +132,7 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source
 			for id, readyAt in s.actions.ready do
 				s.actions.ready[id] = readyAt - Config.PERFECT_REFUND
 			end
-			effectRemote:FireClient(player, "perfect", Config.PERFECT_REFUND)
+			effectRemote:FireClient(player, "perfect", Config.PERFECT_REFUND, s.lastDodgeSequence, player.Character)
 			return "perfect", 0
 		end
 		return "dodged", 0
@@ -443,6 +446,7 @@ function Combat.action(player: Player, message: any)
 	end
 	if kind == "dodge" then
 		s.lastDodge, s.perfectUsed = t, false
+		s.lastDodgeSequence = sequence
 	end
 	advance(player, s, now)
 	reply(player, s, sequence, true)

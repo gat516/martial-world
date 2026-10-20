@@ -53,6 +53,31 @@ pattern.
 - In shader code, look nodes up by type, never by name, and read enum
   identifiers instead of hardcoding them (localized Blender installs differ).
 
+## Held weapons and items
+
+- Size against the R6 rig in `art/rig/r6_rigged.fbx`. `art/rig/rig_preview.py`
+  loads it, poses the tool hold, renders previews and holds the shared weapon
+  kit (palette, cloud guard, cord grip, tassel, export, JSON). Reuse it, and
+  keep a new weapon in the set's palette (steel, bronze, indigo cord, red).
+- Each weapon lives in `art/weapons/<name>/` (items in `art/items/<name>/`).
+  The origin is the right-hand grip; +Z runs to the working end, X is edge to
+  edge (+X is the cutting edge on single-edged blades), Y is flat to flat.
+- Seat the grip where a hand really holds it: just under the guard on swords
+  and sabres, near the balance point on polearms (staffs about mid-shaft,
+  bladed polearms a little below the middle). Two-handed weapons also get an
+  `off_grip` anchor. Record every anchor in the bounds JSON.
+- Held blades show their cutting edge forward (the way the rig faces and
+  swings), never the flat. Bake that into the grip orientation in the JSON.
+- In Studio, a hand weapon is a Tool whose `Handle` is its main mesh, with the
+  other parts welded to it and Tool.Grip set from the grip anchor, so the game
+  can clone it into a Backpack. Back-carried items (the zither) are
+  Accessories. Templates go in an unmapped folder (`ServerStorage.WeaponModels`)
+  unless the user says where they belong.
+- Preview held weapons on real R6 rigs: clones of `Workspace.Rig` (Humanoid,
+  Motor6Ds, RightGripAttachment) holding the Tool, never stand-in parts. Check
+  with front and side captures that each grip sits in the hand and the edge
+  faces forward.
+
 ## Export
 
 - Export FBX next to the script (`art/<thing>/<Thing>.fbx`) plus a JSON with

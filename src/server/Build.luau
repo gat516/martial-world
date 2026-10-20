@@ -2,8 +2,8 @@
 -- Owner-only building on their peak. Placing takes one of the item from the
 -- player's owned count (data.decor); storing anything (placed items or the starter
 -- pieces every peak comes with) puts it back. Starter pieces are stashed so they
--- return for the next owner of the peak. Items are bought with Spirit Stones at the
--- Spirit Market on the main peak (BuildItems.luau has every item's definition).
+-- return for the next owner of the peak. Items are bought with Spirit Stones from
+-- the build catalog, anywhere (BuildItems.luau has every item's definition).
 --
 -- The server is the authority on where things go: every place and move is
 -- re-checked with Placement.check (bounds, support, overlap, reserved zones,
@@ -110,7 +110,7 @@ local function place(player: Player, data: PlayerData.Data, peak: Model, args: a
 		return false, "Unknown item"
 	end
 	if (data.decor[itemId] or 0) < 1 then
-		return false, `You have no {def.name} left. Buy more at the Spirit Market`
+		return false, `You have no {def.name} left. Buy more in the build catalog`
 	end
 	if #data.peak.placed >= Config.MAX_ITEMS then
 		return false, `Your peak holds at most {Config.MAX_ITEMS} items`
@@ -267,23 +267,11 @@ local function move(player: Player, data: PlayerData.Data, peak: Model, args: an
 	return true, nil
 end
 
--- The Spirit Market stall on the main peak, where items are bought.
-local function marketNear(player: Player): boolean
-	local hub = workspace:FindFirstChild("Hub")
-	local market = hub and hub:FindFirstChild("SpiritMarket") :: Model?
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	return market ~= nil and root ~= nil and (root.Position - market:GetPivot().Position).Magnitude <= Config.MARKET_RANGE
-end
-
 local function buy(player: Player, data: PlayerData.Data, args: any): (boolean, string?)
 	local itemId, count = args.item, args.count
 	local def = type(itemId) == "string" and BuildItems.Defs[itemId]
 	if not def or type(count) ~= "number" or count ~= count // 1 or count < 1 or count > Config.MAX_BUY then
 		return false, "Bad request"
-	end
-	if not marketNear(player) then
-		return false, "Buy build items at the Spirit Market on the main peak"
 	end
 	local ok, need = BuildItems.unlocked(def, data.realm)
 	if not ok then

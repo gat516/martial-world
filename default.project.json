@@ -17,6 +17,9 @@
       },
       "BuildKit": {
         "$path": "assets/BuildKit.rbxmx"
+      },
+      "GardenKit": {
+        "$path": "assets/GardenKit.rbxmx"
       }
     },
     "ServerScriptService": {

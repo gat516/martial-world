@@ -150,7 +150,7 @@ return {
 			Pillar = "the rock",
 			Garden = "the garden",
 		} :: { [string]: string },
-		MARKET_RANGE = 24, -- studs from the Spirit Market stall to buy there
+		MARKET_RANGE = 24, -- studs from the Spirit Market stall to trade with the Herbalist
 		MAX_BUY = 10, -- items per purchase
 	},
 
@@ -161,10 +161,24 @@ return {
 		NODE_STONES = { 4, 8 }, -- per qi node gather (min, max)
 	},
 
+	-- Plant numbers live in Herbs.luau, weather's effects on plants in Weather.luau.
 	Garden = {
-		SEEDS_BACK = { 1, 2 }, -- seeds returned per harvest (min, max)
-		PLANT_SPOTS = { -4, 0, 4 }, -- plant offsets along a bed's long axis
-		SPROUT_SCALE = 0.35, -- plant size at planting, grows to 1 when mature
+		SEEDS_BACK = { 1, 2 }, -- seeds returned per single harvest (min, max)
+		EDGE = 0.5, -- studs a stem keeps from a plot's edge
+		TICK = 10, -- seconds between weather growth, swelling and mutation rolls
+		AURA_CAP = 1.5, -- the most cultivation speed a garden's plants can add
+		MAX_SELL = 999, -- herbs per sell request
+		MAX_SEEDS_BUY = 25, -- seeds per buy request
+		-- wild herbs that sprout on owned peaks during their weather event
+		WILD_PER_PEAK = 3, -- sprouts on each owned peak as the event starts
+		WILD_YIELD = { 1, 2 }, -- herbs per wild sprout
+		WILD_SEED_CHANCE = 0.5, -- a wild sprout also gives its seed
+		WILD_SECONDS = 300, -- a sprout withers after this long
+		-- seeds beasts drop: each damager rolls once per kill
+		BEAST_SEED_CHANCE = 0.12, -- normal beasts
+		BOSS_SEEDS = { 2, 4 }, -- bosses always drop this many
+		BEAST_SEEDS = { "SpiritGrass", "CloudMint", "JadeLotus", "PurpleBamboo", "BloodGinseng" },
+		BEAST_SEED_WEIGHTS = { 40, 25, 15, 15, 5 },
 	},
 
 	Combat = {

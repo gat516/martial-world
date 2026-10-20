@@ -582,8 +582,90 @@ def build_art():
     stone_icon()
 
 
+# ---------------------------------------------------------------- garden, build modes
+
+def chip():
+    """A small stadium chip for tags and badges (mutations on plant cards,
+    benefit badges on build tiles), 256x64: a near-black fill and a white rim,
+    so ImageColor3 tints the rim (the fill stays dark). 9-slice with SliceCenter
+    Rect(32, 31, 224, 33), SliceScale ~0.26 for a 16-18px chip: the round ends
+    are the corners, split at the vertical centre row."""
+    W, H = 256, 64
+    img = canvas(W, H)
+    m = 3 * SS
+    r = (H * SS - 2 * m) // 2
+    box = [m, m, W * SS - m, H * SS - m]
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle(box, radius=r, fill=(14, 18, 20, 225))
+    d.rounded_rectangle(box, radius=r, outline=(255, 255, 255, 255), width=4 * SS)
+    gloss = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(gloss).rounded_rectangle([m + 16 * SS, m + 6 * SS, W * SS - m - 16 * SS, m + 14 * SS], radius=4 * SS, fill=(255, 255, 255, 30))
+    img.alpha_composite(gloss)
+    finish(img, "chip.png")
+
+
+def _icon_finish(shape, name):
+    """Turn a white silhouette mask (L, at SS) into a cream-gold icon with a
+    soft top light, an ink outline and a drop shadow."""
+    N = shape.size[0]
+    outline = shape.filter(ImageFilter.MaxFilter(4 * SS + 1))
+    img = Image.new("RGBA", shape.size, (0, 0, 0, 0))
+    ink = Image.new("RGBA", shape.size, INK)
+    img.paste(ink, (0, 0), outline)
+    grad = Image.new("RGBA", shape.size, (0, 0, 0, 0))
+    gd = ImageDraw.Draw(grad)
+    top, bot = (255, 240, 200), (214, 164, 84)
+    for y in range(N):
+        t = y / N
+        gd.line([(0, y), (N, y)], fill=tuple(int(top[i] + (bot[i] - top[i]) * t) for i in range(3)) + (255,))
+    img.paste(grad, (0, 0), shape)
+    finish(shadow_under(img, blur=3, offset=2, alpha=120), name)
+
+
+def icon_move():
+    """Mode tab icon, 128px: four arrows out from a centre (move a piece)."""
+    N = 128 * SS
+    m = Image.new("L", (N, N), 0)
+    d = ImageDraw.Draw(m)
+    c = N / 2
+    arm = 7 * SS  # half-width of the shafts
+    d.rectangle([c - arm, 30 * SS, c + arm, N - 30 * SS], fill=255)
+    d.rectangle([30 * SS, c - arm, N - 30 * SS, c + arm], fill=255)
+    head = 17 * SS
+    tip = 10 * SS
+    for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0)):
+        tx, ty = c + dx * (c - tip), c + dy * (c - tip)
+        bx, by = c + dx * (c - tip - head * 1.3), c + dy * (c - tip - head * 1.3)
+        px, py = -dy, dx
+        d.polygon([(tx, ty), (bx + px * head, by + py * head), (bx - px * head, by - py * head)], fill=255)
+    d.ellipse([c - 13 * SS, c - 13 * SS, c + 13 * SS, c + 13 * SS], fill=255)
+    _icon_finish(m, "icon_move.png")
+
+
+def icon_store():
+    """Mode tab icon, 128px: a lidded storage chest (put a piece away)."""
+    N = 128 * SS
+    m = Image.new("L", (N, N), 0)
+    d = ImageDraw.Draw(m)
+    d.rounded_rectangle([18 * SS, 30 * SS, N - 18 * SS, 56 * SS], radius=8 * SS, fill=255)  # lid
+    d.rounded_rectangle([22 * SS, 62 * SS, N - 22 * SS, N - 20 * SS], radius=6 * SS, fill=255)  # body
+    # clasp: a notch cut through lid and body
+    d.rectangle([N / 2 - 9 * SS, 46 * SS, N / 2 + 9 * SS, 76 * SS], fill=0)
+    d.rounded_rectangle([N / 2 - 5 * SS, 50 * SS, N / 2 + 5 * SS, 72 * SS], radius=3 * SS, fill=255)
+    _icon_finish(m, "icon_store.png")
+
+
+def garden_art():
+    chip()
+    icon_move()
+    icon_store()
+
+
 if __name__ == "__main__":
     import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "garden":
+        garden_art()
+        sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "build":
         build_art()
         sys.exit()

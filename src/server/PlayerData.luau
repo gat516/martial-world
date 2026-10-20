@@ -15,11 +15,10 @@ local Realms = require(ReplicatedStorage.Shared.Realms)
 local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 
-local SCHEMA_VERSION = 3
+local SCHEMA_VERSION = 4
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number, m: string? }
-export type Plot = { herb: string, planted: number }
 export type ActiveBuff = { source: string, kind: string, amount: number, expires: number }
 export type Technique = { level: number, xp: number }
 -- Player preferences (the Settings window): volumes 0..1, and toggles
@@ -50,7 +49,7 @@ export type Data = {
 	peak: {
 		removed: { [string]: boolean },
 		placed: { Placed },
-		plots: { [string]: Plot },
+		plots: { [string]: { Herbs.Plant } }, -- plantings, by plot id
 	},
 }
 
@@ -108,6 +107,22 @@ local migrations: { [number]: (any) -> () } = {
 		end
 		if d.techniques then
 			d.techniques.slots = nil
+		end
+	end,
+	-- v3 beds held one herb in three fixed spots; they become three plantings
+	[3] = function(d)
+		local plots = d.peak and d.peak.plots
+		if not plots then
+			return
+		end
+		for plotId, old in plots do
+			if type(old.herb) == "string" then
+				local plants = {}
+				for i, z in { -4, 0, 4 } do
+					table.insert(plants, { u = `m{i}`, h = old.herb, x = 0, z = z, p = old.planted, b = 0, n = 0, s = 1 })
+				end
+				plots[plotId] = plants
+			end
 		end
 	end,
 }

@@ -13,6 +13,10 @@ local WeatherService = {}
 
 local current: Weather.Def = Weather.Defs.Clear
 
+function WeatherService.current(): Weather.Def
+	return current
+end
+
 -- The bonus of this kind the current weather grants (0 if none).
 function WeatherService.bonus(kind: string): number
 	local bonus = current.bonus

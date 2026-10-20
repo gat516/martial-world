@@ -57,6 +57,12 @@ local HERB_GLYPHS = {
 	BloodGinseng = "參",
 	MoonpetalOrchid = "蘭",
 	NineLeafLingzhi = "芝",
+	VioletCloudFungus = "菌",
+	ThousandYearGinseng = "參",
+	JadeLotus = "蓮",
+	RiftLotus = "蓮",
+	PurpleBamboo = "竹",
+	SpiritPeach = "桃",
 }
 
 Items.Defs = {

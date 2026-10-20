@@ -182,9 +182,7 @@ function Peaks.release(player: Player)
 			s.inst.Parent = s.parent
 		end
 		if s.inst:HasTag("HerbPlot") then
-			for _, attr in { "Herb", "PlantedAt", "GrowSeconds" } do
-				s.inst:SetAttribute(attr, nil)
-			end
+			s.inst:SetAttribute("Plants", nil)
 		end
 	end
 	local tier = peak:FindFirstChild("RealmTier")

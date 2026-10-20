@@ -640,6 +640,16 @@
     <token name="BottomSurface">0</token>
     <CoordinateFrame name="CFrame"><X>41.6</X><Y>652.05</Y><Z>93.6</Z><R00>0</R00><R01>0</R01><R02>1</R02><R10>1</R10><R11>-4.37114e-08</R11><R12>0</R12><R20>4.37114e-08</R20><R21>1</R21><R22>0</R22></CoordinateFrame>
    </Properties>
+    <Item class="ProximityPrompt" referent="RBXM90"><Properties>
+     <string name="Name">Herbalist</string>
+     <string name="ActionText">Trade herbs</string>
+     <string name="ObjectText">Herbalist</string>
+     <token name="KeyboardKeyCode">102</token>
+     <token name="GamepadKeyCode">1001</token>
+     <float name="MaxActivationDistance">12</float>
+     <bool name="RequiresLineOfSight">false</bool>
+    </Properties>
+    </Item>
    </Item>
    <Item class="Part" referent="RBXM24"><Properties>
     <string name="Name">StoneDisplay</string>

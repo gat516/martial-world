@@ -4,7 +4,7 @@
 -- ReplicatedStorage.BuildCatalog, which holds only geometry. Starter pieces on
 -- every peak carry the same id in their ItemId attribute.
 --
--- Items are bought with Spirit Stones at the Spirit Market on the main peak and
+-- Items are bought with Spirit Stones from the build catalog (anywhere) and
 -- kept as an owned count (data.decor). Placing one takes it from the count;
 -- storing a piece puts it back.
 --
@@ -32,7 +32,10 @@
 -- Limits: `limit` caps how many can be placed on a peak (Build.MAX_ITEMS caps them all).
 -- Unlocks: `realm` is the cultivation realm needed to buy it.
 -- Effects: `meditation` adds to the meditation multiplier when seated near it;
--- the best piece in range counts (Meditation.luau).
+-- the best piece in range counts (Meditation.luau). `garden` helps plants whose
+-- stems are within `radius` studs: `growth` adds to their growth speed, `luck`
+-- to their weather mutation chances; nearby pieces add up (Garden.luau). `soil`
+-- marks a plot (tagged HerbPlot) and the plants it takes (Herbs.Soils).
 
 local Realms = require(script.Parent.Realms)
 
@@ -61,6 +64,8 @@ export type Def = {
 	footprint: Vector2?,
 	boxes: { Box }?,
 	meditation: number?,
+	garden: { radius: number, growth: number?, luck: number? }?,
+	soil: string?,
 	order: number,
 }
 
@@ -103,6 +108,7 @@ local list: { Def } = {
 		limit = 1,
 		on = GROUND,
 		clearance = 1,
+		garden = { radius = 24, growth = 0.3 },
 		order = 0,
 	},
 	{
@@ -257,6 +263,7 @@ local list: { Def } = {
 		cost = 90,
 		realm = { major = "QiCondensation", minor = 5 },
 		on = FLOOR,
+		garden = { radius = 14, luck = 0.25 },
 		order = 0,
 	},
 
@@ -269,6 +276,29 @@ local list: { Def } = {
 		cost = 80,
 		limit = 16,
 		on = GROUND,
+		soil = "bed",
+		order = 0,
+	},
+	{
+		id = "LotusPond",
+		name = "Lotus Pond",
+		description = "A still spirit pond where lotuses take root.",
+		category = "Garden",
+		cost = 240,
+		limit = 4,
+		on = GROUND,
+		soil = "pond",
+		order = 0,
+	},
+	{
+		id = "SpiritGrove",
+		name = "Spirit Grove",
+		description = "A wide ring of rich earth for bamboo and spirit trees.",
+		category = "Garden",
+		cost = 400,
+		limit = 3,
+		on = GROUND,
+		soil = "grove",
 		order = 0,
 	},
 	{
@@ -278,6 +308,7 @@ local list: { Def } = {
 		category = "Garden",
 		cost = 30,
 		on = FLOOR,
+		garden = { radius = 12, growth = 0.1 },
 		order = 0,
 	},
 	{
@@ -325,6 +356,7 @@ local list: { Def } = {
 		limit = 1,
 		on = GROUND,
 		footprint = Vector2.new(8, 8),
+		garden = { radius = 20, growth = 0.2 },
 		order = 0,
 	},
 	{
@@ -516,6 +548,7 @@ local list: { Def } = {
 		fits = "Tabletop",
 		stack = true,
 		meditation = 0.5,
+		garden = { radius = 14, luck = 0.5 },
 		order = 0,
 	},
 	{
@@ -530,6 +563,7 @@ local list: { Def } = {
 		fits = "Tabletop",
 		stack = true,
 		meditation = 1,
+		garden = { radius = 18, growth = 0.15, luck = 0.25 },
 		order = 0,
 	},
 }

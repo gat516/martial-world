@@ -48,5 +48,8 @@
   "toggle_off.png": "rbxassetid://101309096517631",
   "toggle_on.png": "rbxassetid://111663747587047",
   "cursor_arrow.png": "rbxassetid://96712021684899",
-  "cursor_hover.png": "rbxassetid://134487250595279"
+  "cursor_hover.png": "rbxassetid://134487250595279",
+  "chip.png": "rbxassetid://114161172660254",
+  "icon_move.png": "rbxassetid://125362604168451",
+  "icon_store.png": "rbxassetid://114937264084665"
 }

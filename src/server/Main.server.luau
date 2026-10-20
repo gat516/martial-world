@@ -200,15 +200,10 @@ EnemyService.start()
 Quests.start()
 Inventory.start()
 Treasures.start()
-WeatherService.start();
+WeatherService.start()
+Garden.start()
+table.insert(EnemyService.onKill, Garden.onKill);
 
-(remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(function(player, action, plotId, herbId)
-	if action == "plant" then
-		return Garden.plant(player, plotId, herbId)
-	elseif action == "harvest" then
-		return Garden.harvest(player, plotId)
-	end
-	return false, "Unknown action"
-end);
+(remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(Garden.handle);
 
 (remotes.InventoryAction :: RemoteFunction).OnServerInvoke = guarded(Inventory.handle)

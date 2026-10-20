@@ -1,7 +1,7 @@
 --!strict
 -- Passive cultivation fills the realm bar every second at the realm's slow rate,
--- boosted by eaten-herb buffs, by the spirit aura of mature herbs left growing in
--- the player's beds, and by meditating (Meditation.luau). It stops at a full bar;
+-- boosted by eaten-herb buffs, by the spirit aura of mature plants left growing in
+-- the player's plots, and by meditating (Meditation.luau). It stops at a full bar;
 -- breakthroughs move the player on. Cultivation goes negative after a forced
 -- breakthrough: that qi debt is paid off by the same sources before the bar fills.
 -- Also owns breakthroughs, qi deviation, the passive-progress warnings, per-realm
@@ -13,6 +13,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config).Cultivation
 local CirculationConfig = require(ReplicatedStorage.Shared.Config).Circulation
 local LoginConfig = require(ReplicatedStorage.Shared.Config).Login
+local GardenConfig = require(ReplicatedStorage.Shared.Config).Garden
 local Movement = require(script.Parent.Movement)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
@@ -59,15 +60,18 @@ function Cultivation.deviate(player: Player, seconds: number)
 	player:SetAttribute("DeviationUntil", workspace:GetServerTimeNow() + seconds)
 end
 
+-- Mature, unharvested plants radiate aura, scaled by their size and mutations.
 function Cultivation.aura(data: PlayerData.Data, now: number): number
 	local total = 0
-	for _, plot in data.peak.plots do
-		local herb = Herbs.Defs[plot.herb]
-		if herb and now - plot.planted >= herb.growSeconds then
-			total += herb.aura
+	for _, plants in data.peak.plots do
+		for _, plant in plants do
+			local herb = Herbs.Defs[plant.h]
+			if herb and Herbs.progress(plant, now) >= 1 then
+				total += herb.aura * plant.s * Herbs.multiplier(plant.m)
+			end
 		end
 	end
-	return total
+	return math.min(total, GardenConfig.AURA_CAP)
 end
 
 local function buffTotal(data: PlayerData.Data, kind: string): number

@@ -1,19 +1,24 @@
 --!strict
 -- The build catalog window (Hud.BuildBar), in two modes:
---   build  on your peak: pick an item you own and Place it; Store and Move are
---          in the header. Items you own none of say where to buy them.
---   shop   at the Spirit Market on the main peak: Buy items with Spirit Stones.
+--   build  on your peak (the Place tab of build mode): pick an item and Place it.
+--          Items you own none of show their cost and the main button reads
+--          "Buy & Place": it buys one (anywhere) and goes straight to placing.
+--   shop   from the Spirit Market stall on the main peak: Buy only.
 -- Both list every item (BuildItems.Order) with category tabs, a search box and an
--- Owned filter. Each tile shows its owned count, how many are placed (and the
--- limit), its cost, and a lock with the reason when it can't be used: a realm not
--- reached, none owned, or the peak's limit reached. The detail panel spells out
--- the item's placement rule and limits before you commit.
+-- Owned filter. Each tile shows a 3D preview, its owned count, how many are placed
+-- (and the limit), its cost, a badge for its main benefit, and a lock with the
+-- reason when it can't be used: a realm not reached or the peak's limit reached.
+-- The detail panel shows a big slowly turning preview, every benefit, the
+-- placement rule and limits before you commit. Store and Move live in build
+-- mode's banner (BuildMode), not here.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local BuildItems = require(ReplicatedStorage.Shared.BuildItems)
+local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Config = require(ReplicatedStorage.Shared.Config).Build
 local Hud = require(script.Parent.Hud)
@@ -30,12 +35,11 @@ local OK_COLOR = Color3.fromRGB(150, 230, 170)
 local WARN_COLOR = Color3.fromRGB(240, 120, 100)
 local NOTE_COLOR = Color3.fromRGB(230, 214, 170)
 local COST_COLOR = Color3.fromRGB(240, 230, 200)
+local SPIN_SPEED = 0.35 -- radians per second, detail preview
 
 export type Mode = "build" | "shop"
 export type Handlers = {
 	place: (itemId: string) -> (),
-	store: () -> (),
-	move: () -> (),
 	closed: () -> (), -- the window closed in build mode (not by handing off)
 }
 
@@ -45,15 +49,25 @@ local bar: Frame
 local catalog: ScrollingFrame
 local detail: GuiObject
 local search: TextBox
-local ownedToggle: GuiButton
+local ownedToggle: GuiButton?
 local handlers: Handlers
 local mode: Mode = "build"
 local category = "All"
 local ownedOnly = false
 local selected: string? = nil
 local handingOff = false
+local busy = false
 local tiles: { [string]: GuiButton } = {}
 local tabs: { [string]: GuiButton } = {}
+
+-- the detail panel's turning preview
+local detailViewport: ViewportFrame? = nil
+local detailShown: string? = nil
+local detailCamera: Camera? = nil
+local detailFocus = Vector3.zero
+local detailRadius = 1
+local detailHeight = 0
+local detailAngle = math.rad(45)
 
 local function find(root: Instance, name: string): any
 	return root:FindFirstChild(name, true)
@@ -61,7 +75,17 @@ end
 
 -- `Selected` is also a GuiObject property, so always look the child up by name.
 local function setSelected(button: Instance, on: boolean)
-	(button:FindFirstChild("Selected") :: GuiObject).Visible = on
+	local sel = button:FindFirstChild("Selected") :: GuiObject?
+	if sel then
+		sel.Visible = on
+	end
+end
+
+local function setText(root: Instance, name: string, text: string)
+	local label = find(root, name) :: TextLabel?
+	if label then
+		label.Text = text
+	end
 end
 
 local function realm(): { major: string, minor: number }
@@ -76,6 +100,65 @@ end
 
 local function stones(): number
 	return (player:GetAttribute("Stones") :: number?) or 0
+end
+
+local function pct(n: number): string
+	return `{math.floor(n * 100 + 0.5)}%`
+end
+
+local function soilName(soil: string): string
+	local info = (Herbs.Soils :: any)[soil]
+	return if info then info.name else soil
+end
+
+local function soilPlants(soil: string): string
+	local names = {}
+	for _, id in Herbs.Order do
+		local herb = Herbs.Defs[id]
+		if herb and herb.soil == soil then
+			table.insert(names, herb.name)
+		end
+		if #names >= 3 then
+			break
+		end
+	end
+	return table.concat(names, ", ")
+end
+
+-- Every benefit of an item, one line each.
+function BuildCatalog.benefits(def: BuildItems.Def): { string }
+	local lines = {}
+	if def.soil then
+		local plants = soilPlants(def.soil)
+		table.insert(lines, `Plot: grows {string.lower(soilName(def.soil))} seeds{if plants ~= "" then ` ({plants}…)` else ""}`)
+	end
+	if def.meditation then
+		table.insert(lines, `+{def.meditation} meditation nearby`)
+	end
+	local g = def.garden
+	if g then
+		if g.growth then
+			table.insert(lines, `Plants within {g.radius} studs grow +{pct(g.growth)} faster`)
+		end
+		if g.luck then
+			table.insert(lines, `+{pct(g.luck)} mutation chance within {g.radius} studs`)
+		end
+	end
+	return lines
+end
+
+-- The one benefit a tile's badge shows (the detail panel lists them all).
+function BuildCatalog.badge(def: BuildItems.Def): string?
+	if def.soil then
+		return "Plot"
+	elseif def.meditation then
+		return `Med +{def.meditation}`
+	elseif def.garden and def.garden.growth then
+		return `Grow +{pct(def.garden.growth)}`
+	elseif def.garden and def.garden.luck then
+		return `Luck +{pct(def.garden.luck)}`
+	end
+	return nil
 end
 
 -- Pieces of each item standing on your peak (placed copies and starters).
@@ -129,26 +212,30 @@ function BuildCatalog.ruleText(def: BuildItems.Def): string
 	return table.concat(parts, " · ")
 end
 
-type Status = { locked: string?, note: string?, color: Color3, canBuy: boolean, canPlace: boolean }
+type Status = { locked: string?, note: string?, color: Color3, canBuy: boolean, canPlace: boolean, needsBuy: boolean }
 
 local function statusOf(def: BuildItems.Def, owned: number, placed: number): Status
+	local ok, need = BuildItems.unlocked(def, realm())
+	if not ok then
+		return { locked = need, note = `Unlocks at {need}`, color = WARN_COLOR, canBuy = false, canPlace = false, needsBuy = owned < 1 }
+	end
+	local affordable = stones() >= def.cost
 	if mode == "shop" then
-		local ok, need = BuildItems.unlocked(def, realm())
-		if not ok then
-			return { locked = need, note = `Unlocks at {need}`, color = WARN_COLOR, canBuy = false, canPlace = false }
+		if not affordable then
+			return { note = `You need {def.cost - stones()} more Spirit Stones`, color = WARN_COLOR, canBuy = false, canPlace = false, needsBuy = true }
 		end
-		if stones() < def.cost then
-			return { note = `You need {def.cost - stones()} more Spirit Stones`, color = WARN_COLOR, canBuy = false, canPlace = false }
-		end
-		return { note = if owned > 0 then `You own {owned}` else nil, color = NOTE_COLOR, canBuy = true, canPlace = false }
+		return { note = if owned > 0 then `You own {owned}` else nil, color = NOTE_COLOR, canBuy = true, canPlace = false, needsBuy = true }
 	end
 	if def.limit and placed >= def.limit then
-		return { locked = "Limit", note = `Your peak holds at most {def.limit}`, color = WARN_COLOR, canBuy = false, canPlace = false }
+		return { locked = "Limit", note = `Your peak holds at most {def.limit}`, color = WARN_COLOR, canBuy = false, canPlace = false, needsBuy = owned < 1 }
 	end
 	if owned < 1 then
-		return { locked = "Market", note = "Buy more at the Spirit Market on the main peak", color = WARN_COLOR, canBuy = false, canPlace = false }
+		if not affordable then
+			return { note = `You need {def.cost - stones()} more Spirit Stones`, color = WARN_COLOR, canBuy = false, canPlace = false, needsBuy = true }
+		end
+		return { note = `Buy one for {def.cost} Spirit Stones and place it`, color = NOTE_COLOR, canBuy = true, canPlace = true, needsBuy = true }
 	end
-	return { note = `{owned} ready to place`, color = OK_COLOR, canBuy = false, canPlace = true }
+	return { note = `{owned} ready to place`, color = OK_COLOR, canBuy = affordable, canPlace = true, needsBuy = false }
 end
 
 local function matches(def: BuildItems.Def, owned: number): boolean
@@ -166,6 +253,40 @@ local function matches(def: BuildItems.Def, owned: number): boolean
 	return true
 end
 
+-- Fill a viewport with a clone of the item's model and a camera looking at it.
+local function previewInto(viewport: ViewportFrame, template: Model): (Camera, Vector3, number)
+	local model = template:Clone()
+	model.Parent = viewport
+	local cf, size = model:GetBoundingBox()
+	local camera = Instance.new("Camera")
+	camera.FieldOfView = 40
+	local distance = size.Magnitude * 1.25
+	camera.CFrame = CFrame.lookAt(cf.Position + Vector3.new(1, 0.8, 1).Unit * distance, cf.Position)
+	camera.Parent = viewport
+	viewport.CurrentCamera = camera
+	return camera, cf.Position, distance
+end
+
+local function showPreview(def: BuildItems.Def)
+	local viewport = detailViewport
+	if not viewport or detailShown == def.id then
+		return
+	end
+	detailShown = def.id
+	viewport:ClearAllChildren()
+	detailCamera = nil
+	local template = templates:FindFirstChild(def.id) :: Model?
+	if template then
+		local camera, focus, distance = previewInto(viewport, template)
+		detailCamera = camera
+		detailFocus = focus
+		local flat = Vector3.new(1, 0.8, 1).Unit * distance
+		detailRadius = Vector2.new(flat.X, flat.Z).Magnitude
+		detailHeight = flat.Y
+		detailAngle = math.rad(45)
+	end
+end
+
 local function showDetail()
 	local def = selected and BuildItems.Defs[selected]
 	detail.Visible = def ~= nil
@@ -175,28 +296,50 @@ local function showDetail()
 	local owned = (State.current.decor or {})[def.id] or 0
 	local placed = placedCounts()[def.id] or 0
 	local status = statusOf(def, owned, placed)
-	find(detail, "NameLabel").Text = def.name
-	find(detail, "DescLabel").Text = def.description
+	showPreview(def)
+	setText(detail, "NameLabel", def.name)
+	setText(detail, "DescLabel", def.description)
+	local benefits = BuildCatalog.benefits(def)
+	local benefitLabel = find(detail, "Benefits") :: TextLabel?
+	if benefitLabel then
+		benefitLabel.Text = table.concat(benefits, "\n")
+		benefitLabel.Visible = #benefits > 0
+	end
 	local limit = if def.limit then `{placed}/{def.limit} placed` else `{placed} placed`
-	find(detail, "InfoLabel").Text = `{BuildCatalog.ruleText(def)}\nOwned {owned} · {limit} · peak cap {Config.MAX_ITEMS}`
-	local statusLabel = find(detail, "StatusLabel") :: TextLabel
-	statusLabel.Text = status.note or ""
-	statusLabel.TextColor3 = status.color
-	local buy = find(detail, "BuyButton") :: GuiButton
-	local placeButton = find(detail, "PlaceButton") :: GuiButton
-	buy.Visible = mode == "shop"
-	placeButton.Visible = mode == "build"
-	find(buy, "Label").Text = `Buy  {def.cost}`
-	buy.AutoButtonColor = status.canBuy;
-	(buy :: any).ImageTransparency = if status.canBuy then 0 else 0.45;
-	(placeButton :: any).ImageTransparency = if status.canPlace then 0 else 0.45
+	setText(detail, "InfoLabel", `{BuildCatalog.ruleText(def)}\nOwned {owned} · {limit} · peak cap {Config.MAX_ITEMS}`)
+	local statusLabel = find(detail, "StatusLabel") :: TextLabel?
+	if statusLabel then
+		statusLabel.Text = status.note or ""
+		statusLabel.TextColor3 = status.color
+	end
+	local buyButton = find(detail, "BuyButton") :: GuiButton?
+	local placeButton = find(detail, "PlaceButton") :: GuiButton?
+	if buyButton then
+		buyButton.Visible = mode == "shop"
+		setText(buyButton, "Label", "Buy")
+		setText(buyButton, "CostLabel", tostring(def.cost));
+		(buyButton :: any).ImageTransparency = if status.canBuy then 0 else 0.45
+	end
+	if placeButton then
+		placeButton.Visible = mode == "build"
+		setText(placeButton, "Label", if status.needsBuy then "Buy & Place" else "Place")
+		setText(placeButton, "CostLabel", tostring(def.cost))
+		local icon, cost = find(placeButton, "CostIcon") :: GuiObject?, find(placeButton, "CostLabel") :: GuiObject?
+		if icon then
+			icon.Visible = status.needsBuy
+		end
+		if cost then
+			cost.Visible = status.needsBuy
+		end
+		(placeButton :: any).ImageTransparency = if status.canPlace then 0 else 0.45
+	end
 end
 
 function BuildCatalog.refresh()
 	if not bar then
 		return
 	end
-	find(bar, "StonesLabel").Text = tostring(stones())
+	setText(bar, "StonesLabel", tostring(stones()))
 	local decor = State.current.decor or {}
 	local placed = placedCounts()
 	for id, tile in tiles do
@@ -211,11 +354,13 @@ function BuildCatalog.refresh()
 		local placedLabel = find(tile, "PlacedLabel") :: TextLabel
 		placedLabel.Text = if def.limit then `{count}/{def.limit}` else tostring(count)
 		placedLabel.Visible = mode == "build" and (count > 0 or def.limit ~= nil)
+		-- the cost shows whenever buying is the way to get one
+		local showCost = mode == "shop" or owned < 1
 		local cost = find(tile, "CostLabel") :: TextLabel
 		cost.Text = tostring(def.cost)
 		cost.TextColor3 = if stones() >= def.cost then COST_COLOR else WARN_COLOR
-		cost.Visible = mode == "shop"
-		find(tile, "CostIcon").Visible = mode == "shop"
+		cost.Visible = showCost
+		find(tile, "CostIcon").Visible = showCost
 		local lock = find(tile, "LockOverlay") :: GuiObject
 		lock.Visible = status.locked ~= nil
 		find(lock, "LockLabel").Text = status.locked or ""
@@ -238,42 +383,40 @@ local function setCategory(name: string)
 	BuildCatalog.refresh()
 end
 
-local function previewInto(viewport: ViewportFrame, template: Model)
-	local model = template:Clone()
-	model.Parent = viewport
-	local cf, size = model:GetBoundingBox()
-	local camera = Instance.new("Camera")
-	camera.FieldOfView = 40
-	camera.CFrame = CFrame.lookAt(cf.Position + Vector3.new(1, 0.8, 1).Unit * size.Magnitude * 1.25, cf.Position)
-	camera.Parent = viewport
-	viewport.CurrentCamera = camera
-end
-
-local function buy()
+-- Buy `count` of the selected item. Returns whether it went through.
+local function buy(): boolean
 	local def = selected and BuildItems.Defs[selected]
-	if not def then
-		return
+	if not def or busy then
+		return false
 	end
+	busy = true
 	local ok, message = buildRemote:InvokeServer("buy", { item = def.id, count = 1 })
+	busy = false
 	if message then
 		Hud.toast(message)
 	end
-	if ok then
-		Motion.pulse(find(detail, "BuyButton"))
+	local button = find(detail, if mode == "shop" then "BuyButton" else "PlaceButton") :: GuiObject?
+	if ok and button then
+		Motion.pulse(button)
 		task.delay(0.25, function()
-			Motion.stopPulse(find(detail, "BuyButton"))
+			Motion.stopPulse(button)
 		end)
 	end
+	return ok == true
 end
 
 local function place()
 	local def = selected and BuildItems.Defs[selected]
-	if not def then
+	if not def or busy then
 		return
 	end
-	local status = statusOf(def, (State.current.decor or {})[def.id] or 0, placedCounts()[def.id] or 0)
+	local owned = (State.current.decor or {})[def.id] or 0
+	local status = statusOf(def, owned, placedCounts()[def.id] or 0)
 	if not status.canPlace then
 		Hud.toast(status.note or "You can't place that")
+		return
+	end
+	if status.needsBuy and not buy() then
 		return
 	end
 	handlers.place(def.id)
@@ -281,14 +424,19 @@ end
 
 function BuildCatalog.open(m: Mode)
 	mode = m
-	find(bar, "Title").Text = if m == "shop" then "Spirit Market" else "Build"
-	find(bar, "Actions").Visible = m == "build"
+	local title = find(bar, "Title") :: TextLabel?
+	if title then
+		title.Text = if m == "shop" then "Spirit Market" else "Place"
+	end
+	if ownedToggle then
+		ownedToggle.Visible = true
+	end
 	BuildCatalog.refresh()
 	Menus.open(bar)
 end
 
 function BuildCatalog.isOpen(): boolean
-	return bar.Visible
+	return bar ~= nil and bar.Visible
 end
 
 function BuildCatalog.mode(): Mode
@@ -311,6 +459,8 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 	detail = find(bar, "Detail")
 	search = find(bar, "SearchBox")
 	ownedToggle = find(bar, "OwnedToggle")
+	local well = find(detail, "Well") :: Instance?
+	detailViewport = well and well:FindFirstChild("Preview") :: ViewportFrame?
 
 	Menus.register(bar, {
 		close = function()
@@ -358,6 +508,12 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 			else
 				previewInto(preview, template)
 			end
+			local badge = find(tile, "Badge") :: GuiObject?
+			local badgeText = BuildCatalog.badge(def)
+			if badge then
+				badge.Visible = badgeText ~= nil
+				setText(badge, "Label", badgeText or "")
+			end
 			local lastTap = 0
 			tile.Activated:Connect(function()
 				-- a second tap on the selected tile places (build) or buys (shop)
@@ -379,21 +535,23 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 	setCategory("All")
 
 	search:GetPropertyChangedSignal("Text"):Connect(BuildCatalog.refresh)
-	ownedToggle.Activated:Connect(function()
-		ownedOnly = not ownedOnly
-		setSelected(ownedToggle, ownedOnly)
-		BuildCatalog.refresh()
-	end)
-	setSelected(ownedToggle, false)
-	find(detail, "BuyButton").Activated:Connect(buy)
-	find(detail, "PlaceButton").Activated:Connect(place)
-	find(bar, "StoreButton").Activated:Connect(function()
-		handlers.store()
-	end)
-	find(bar, "MoveButton").Activated:Connect(function()
-		handlers.move()
-	end)
-	find(bar, "DoneButton").Activated:Connect(BuildCatalog.close)
+	if ownedToggle then
+		local toggle = ownedToggle
+		toggle.Activated:Connect(function()
+			ownedOnly = not ownedOnly
+			setSelected(toggle, ownedOnly)
+			BuildCatalog.refresh()
+		end)
+		setSelected(toggle, false)
+	end
+	local buyButton = find(detail, "BuyButton") :: GuiButton?
+	if buyButton then
+		buyButton.Activated:Connect(buy)
+	end
+	local placeButton = find(detail, "PlaceButton") :: GuiButton?
+	if placeButton then
+		placeButton.Activated:Connect(place)
+	end
 
 	State.onChanged(function()
 		if bar.Visible then
@@ -404,6 +562,17 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 		if bar.Visible then
 			BuildCatalog.refresh()
 		end
+	end)
+
+	-- the detail preview turns slowly while the window is up
+	RunService.RenderStepped:Connect(function(dt)
+		local camera = detailCamera
+		if not (camera and bar.Visible and detail.Visible) then
+			return
+		end
+		detailAngle += dt * SPIN_SPEED
+		local offset = Vector3.new(math.cos(detailAngle) * detailRadius, detailHeight, math.sin(detailAngle) * detailRadius)
+		camera.CFrame = CFrame.lookAt(detailFocus + offset, detailFocus)
 	end)
 
 	-- the Spirit Market stall on the main peak opens the shop

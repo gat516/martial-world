@@ -78,6 +78,11 @@ local controls: Frame
 local status: TextLabel
 local itemLabel: TextLabel
 local row: Frame
+local banner: Frame? -- Hud.BuildBanner: "Build mode · <peak>", the Place / Move / Store tabs and Exit
+local tilesFrame: GuiObject? -- the top-right tiles; build mode's banner replaces them
+local toast: GuiObject?
+local toastHome: UDim2? = nil
+local building = false -- a build session is open (banner up)
 
 local session: Session = "idle"
 local pickFor: "move" | "store" = "store"
@@ -610,7 +615,8 @@ local function setPicked(piece: Instance?)
 	end
 	setRiderHighlights(pickedRiders)
 	if not piece then
-		setStatus(if pickFor == "store" then "Pick something to store" else "Pick something to move", true)
+		local verb = if Platform.isTouch() then "Tap" else "Click"
+		setStatus(if pickFor == "store" then `{verb} a piece to store it` else `{verb} a piece to move it`, true)
 		return
 	end
 	local d = Placement.defOf(piece) :: BuildItems.Def
@@ -631,6 +637,64 @@ local function updateHover()
 	end
 	hoverHighlight.Adornee = piece
 	hoverHighlight.Enabled = piece ~= nil
+end
+
+-- Mode banner ------------------------------------------------------------------------------
+-- While building, a banner across the top says so ("Build mode · <peak>") and holds
+-- the three mode tabs (Place opens the catalog, Move and Store pick a piece) and
+-- Exit. The top-right tiles step aside meanwhile (Exit is the way out), and toasts
+-- drop below the banner.
+
+local function peakName(): string
+	local peak = MyPeak.model()
+	local name = peak and peak:GetAttribute("PeakName")
+	if type(name) ~= "string" then
+		return "Your peak"
+	end
+	return if string.find(name, "Peak") then name else `{name} Peak`
+end
+
+local function currentTab(): string
+	if session == "pick" or session == "move" or session == "store" then
+		return if session == "move" or pickFor == "move" then "MoveTab" else "StoreTab"
+	end
+	return "PlaceTab"
+end
+
+local function refreshBanner()
+	local b = banner
+	if not b then
+		return
+	end
+	if b.Visible ~= building then
+		if building then
+			Motion.open(b)
+		else
+			b.Visible = false
+		end
+	end
+	if tilesFrame and building then
+		tilesFrame.Visible = false
+	end
+	if toast and toastHome then
+		toast.Position = if building then toastHome + UDim2.fromOffset(0, 62) else toastHome
+	end
+	if not building then
+		return
+	end
+	local tag = b:FindFirstChild("Tag")
+	local label = tag and tag:FindFirstChild("PeakLabel") :: TextLabel?
+	if label then
+		label.Text = peakName()
+	end
+	local tab = currentTab()
+	for _, name in { "PlaceTab", "MoveTab", "StoreTab" } do
+		local button = b:FindFirstChild(name)
+		local sel = button and button:FindFirstChild("Selected") :: GuiObject?
+		if sel then
+			sel.Visible = name == tab
+		end
+	end
 end
 
 -- Controls bar -----------------------------------------------------------------------------
@@ -690,6 +754,7 @@ local function refreshControls()
 		itemLabel.Text = ""
 	end
 	refreshKeys()
+	refreshBanner()
 end
 
 -- Session flow -----------------------------------------------------------------------------
@@ -720,6 +785,7 @@ local function backToCatalog()
 	session = "idle"
 	handingOff = controls.Visible
 	BuildCatalog.open("build")
+	refreshBanner()
 end
 
 local function beginPlace(id: string)
@@ -937,6 +1003,13 @@ local function finish()
 	clearVisuals()
 	ctx = nil
 	indexDirty = true
+	if building then
+		building = false
+		if tilesFrame then
+			tilesFrame.Visible = true -- Menus settles them on its next update
+		end
+		refreshBanner()
+	end
 end
 
 function BuildMode.open()
@@ -949,7 +1022,9 @@ function BuildMode.open()
 	watchPeak()
 	table.insert(conns, RunService.RenderStepped:Connect(onStep))
 	session = "idle"
+	building = true
 	BuildCatalog.open("build")
+	refreshBanner()
 end
 
 function BuildMode.close()
@@ -1052,14 +1127,13 @@ function BuildMode.init(gui: ScreenGui)
 	itemLabel = controls:FindFirstChild("ItemLabel", true) :: TextLabel
 	row = controls:FindFirstChild("Row") :: Frame
 
+	banner = gui:FindFirstChild("BuildBanner") :: Frame?
+	tilesFrame = gui:FindFirstChild("Buttons") :: GuiObject?
+	toast = gui:FindFirstChild("Toast") :: GuiObject?
+	toastHome = toast and toast.Position
+
 	BuildCatalog.init(gui, {
 		place = beginPlace,
-		store = function()
-			beginPick("store")
-		end,
-		move = function()
-			beginPick("move")
-		end,
 		closed = function()
 			if not controls.Visible then
 				finish()
@@ -1096,6 +1170,29 @@ function BuildMode.init(gui: ScreenGui)
 		end
 	end)
 	bindInput()
+
+	-- the banner's mode tabs and Exit
+	local function bannerButton(name: string, fn: () -> ())
+		local b = banner and banner:FindFirstChild(name) :: GuiButton?
+		if b then
+			b.Activated:Connect(fn)
+		end
+	end
+	bannerButton("PlaceTab", function()
+		if session == "idle" and BuildCatalog.isOpen() then
+			return
+		end
+		backToCatalog()
+	end)
+	bannerButton("MoveTab", function()
+		beginPick("move")
+	end)
+	bannerButton("StoreTab", function()
+		beginPick("store")
+	end)
+	bannerButton("ExitButton", BuildMode.close)
+	-- Menus re-shows the tiles whenever a window changes; keep them hidden while building
+	Menus.onChanged(refreshBanner)
 
 	-- the Build tile shows only on (or over) your own peak
 	local toggle = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("BuildButton") :: GuiButton

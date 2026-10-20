@@ -25,6 +25,7 @@ local CombatEffects = require(script.Parent.CombatEffects)
 local Hud = require(script.Parent.Hud)
 local LockOn = require(script.Parent.LockOn)
 local Meditation = require(script.Parent.Meditation)
+local Planting = require(script.Parent.Planting)
 local Platform = require(script.Parent.Platform)
 local Sfx = require(script.Parent.Sfx)
 local State = require(script.Parent.State)
@@ -249,8 +250,8 @@ local function currentTarget(from: Vector3): Model?
 	return best
 end
 
--- The character's root, if it can act right now (not circulating, meditating
--- or building).
+-- The character's root, if it can act right now (not circulating, meditating,
+-- building or planting).
 local function myRoot(): BasePart?
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -266,6 +267,7 @@ local function myRoot(): BasePart?
 		or CirculationMinigame.isRunning()
 		or Meditation.isActive()
 		or BuildMode.isActive()
+		or Planting.isActive()
 	then
 		return nil
 	end

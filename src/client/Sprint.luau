@@ -26,7 +26,6 @@ local root: BasePart? = nil
 local track: AnimationTrack? = nil
 local running = false
 local movementFacing = false
-local rotationBefore: Enum.RotationType? = nil
 local turningPausedUntil = 0
 
 local function setMovementFacing(on: boolean)
@@ -35,16 +34,8 @@ local function setMovementFacing(on: boolean)
 	end
 	movementFacing = on
 	LockOn.setMovementFacing(on)
-	if on then
-		rotationBefore = gameSettings.RotationType
-	else
-		if rotationBefore then
-			gameSettings.RotationType = rotationBefore
-			rotationBefore = nil
-		end
-		if humanoid then
-			humanoid.AutoRotate = LockOn.target() == nil
-		end
+	if not on and humanoid then
+		humanoid.AutoRotate = LockOn.target() == nil
 	end
 end
 
@@ -153,10 +144,17 @@ function Sprint.init()
 	-- Decide before the camera/lock-on so they see who owns facing this frame.
 	RunService:BindToRenderStep("SprintState", Enum.RenderPriority.Input.Value + 1, step)
 	RunService:BindToRenderStep("SprintFacing", Enum.RenderPriority.Camera.Value + 4, function()
-		if movementFacing and humanoid then
-			-- The default camera selects camera-relative rotation in shift lock each frame.
-			-- Override that mode, leaving the gradual turn itself to the humanoid.
+		local camera = workspace.CurrentCamera
+		local firstPerson = camera ~= nil and (camera.CFrame.Position - camera.Focus.Position).Magnitude <= 1.5
+		local freeCamera = UserInputService.MouseBehavior ~= Enum.MouseBehavior.LockCenter
+			and not firstPerson
+			and LockOn.target() == nil
+		-- Alt can change during a run. Use the current camera mode instead of restoring
+		-- a saved CameraRelative value that would leave normal movement camera-facing.
+		if movementFacing or freeCamera then
 			gameSettings.RotationType = Enum.RotationType.MovementRelative
+		end
+		if movementFacing and humanoid then
 			humanoid.AutoRotate = true
 		end
 	end)

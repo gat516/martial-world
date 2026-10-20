@@ -2,7 +2,7 @@
 -- Meditation: the player sits still and passive cultivation is multiplied by where
 -- they sit. Anywhere gives a little, their own spirit peak more, and a seat or
 -- artifact on their peak (the cushion in the cave abode) adds its own bonus.
--- Bonuses are keyed by ItemId (Config.Meditation.ITEMS), so starter pieces and
+-- Bonuses are keyed by ItemId (BuildItems `meditation`), so starter pieces and
 -- placed copies count alike. The client plays the animations and asks to start
 -- or stop; the server re-checks the spot every second and stands the player up
 -- if they drift away from where they sat.
@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config).Meditation
 local PEAK_RADIUS = require(ReplicatedStorage.Shared.Config).Circulation.PEAK_RADIUS
 local Peak = require(ReplicatedStorage.Shared.Peak)
+local BuildItems = require(ReplicatedStorage.Shared.BuildItems)
 local Cultivation = require(script.Parent.Cultivation)
 local Peaks = require(script.Parent.Peaks)
 
@@ -42,9 +43,9 @@ local function bestItem(peak: Model, position: Vector3): { bonus: number, name: 
 	for _, part in workspace:GetPartBoundsInRadius(position, Config.ITEM_RANGE, params) do
 		local piece = Peak.pieceOf(part)
 		local id = piece and piece:GetAttribute("ItemId")
-		local item = if type(id) == "string" then Config.ITEMS[id] else nil
-		if item and (not best or item.bonus > best.bonus) then
-			best = item
+		local def = if type(id) == "string" then BuildItems.Defs[id] else nil
+		if def and def.meditation and (not best or def.meditation > best.bonus) then
+			best = { bonus = def.meditation, name = string.lower(def.name) }
 		end
 	end
 	return best

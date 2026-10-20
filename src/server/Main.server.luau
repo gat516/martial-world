@@ -50,7 +50,7 @@ local function sendHome(player: Player, character: Model)
 	end
 end
 
--- Studio playtests: top every herb, seed and item up to the test-kit amount, and fill
+-- Studio playtests: top every herb, seed, item and Spirit Stones up to the test-kit amount, and fill
 -- the dantian (never above that, so repeated sessions don't inflate a saved profile).
 local function applyTestKit(data: PlayerData.Data)
 	local kit = Config.TestKit
@@ -70,6 +70,7 @@ local function applyTestKit(data: PlayerData.Data)
 			Hotbar.place(data.hotbar, id)
 		end
 	end
+	data.stones = math.max(data.stones, kit.STONES)
 	if kit.ALL_TECHNIQUES then
 		for _, id in Techniques.Order do
 			data.techniques.owned[id] = data.techniques.owned[id] or { level = 1, xp = 0 }

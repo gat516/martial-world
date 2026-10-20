@@ -106,9 +106,7 @@ return {
 		ANYWHERE = 1.5, -- passive multiplier meditating anywhere
 		ON_PEAK = 2.5, -- on your own spirit peak (within Circulation.PEAK_RADIUS)
 		ITEM_RANGE = 6, -- studs from a seat or artifact for its bonus to count
-		ITEMS = { -- ItemId -> bonus added to the multiplier, and its name in the HUD
-			MeditationCushion = { bonus = 1.5, name = "meditation cushion" },
-		} :: { [string]: { bonus: number, name: string } },
+		-- (each build item's bonus is its `meditation` in BuildItems.luau)
 		MAX_DRIFT = 4, -- studs from where you sat down before the server stands you up
 	},
 
@@ -122,6 +120,8 @@ return {
 		ROTATE_STEP = 45, -- degrees per R / Rotate
 		FINE_ROTATE_STEP = 15, -- degrees per Shift+R (the server snaps to this)
 		MIN_INTERVAL = 0.15, -- seconds between build requests per player
+		MARKET_RANGE = 24, -- studs from the Spirit Market stall to buy there
+		MAX_BUY = 10, -- items per purchase
 	},
 
 	-- Spirit Stones: the currency build items are bought with at the Spirit Market
@@ -243,6 +243,7 @@ return {
 		HERBS_EACH = 5, -- every herb type
 		SEEDS_EACH = 5, -- every seed type
 		ITEMS_EACH = 2, -- every spirit core and treasure
+		STONES = 3000, -- Spirit Stones, to try the Spirit Market
 		ALL_TECHNIQUES = false, -- own every technique, to test them without earning manuals
 		FILL_DANTIAN = true, -- no combat yet, so this is the only steady raw qi source
 	},

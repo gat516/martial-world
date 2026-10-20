@@ -19,6 +19,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Build
+local BuildItems = require(ReplicatedStorage.Shared.BuildItems)
 local PEAK_RADIUS = require(ReplicatedStorage.Shared.Config).Circulation.PEAK_RADIUS
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local Hud = require(script.Parent.Hud)
@@ -386,15 +387,13 @@ local function previewInto(viewport: ViewportFrame, template: Model)
 	viewport.CurrentCamera = camera
 end
 
--- Stored items first (with a count), then free catalog items; anything else is hidden.
+-- Owned items only, with their count.
 local function refreshCatalog()
 	local decor = State.current.decor or {}
 	for itemId, tile in tiles do
-		local item = catalog:FindFirstChild(itemId)
 		local owned = decor[itemId] or 0
-		local order = (item and item:GetAttribute("Order") or 99) :: number
-		tile.Visible = owned > 0 or (item ~= nil and item:GetAttribute("Free") == true)
-		tile.LayoutOrder = if owned > 0 then order else 1000 + order
+		tile.Visible = owned > 0
+		tile.LayoutOrder = BuildItems.Defs[itemId].order
 		local count = tile:FindFirstChild("CountLabel") :: TextLabel
 		count.Text = `x{owned}`
 		count.Visible = owned > 0
@@ -409,10 +408,11 @@ local function buildCatalog()
 	local list = bar:FindFirstChild("Catalog") :: ScrollingFrame
 	local template = list:FindFirstChild("ItemTemplate") :: ImageButton
 	for _, item in catalog:GetChildren() do
-		if item:IsA("Model") then
+		local def = BuildItems.Defs[item.Name]
+		if item:IsA("Model") and def then
 			local tile = template:Clone()
 			tile.Name = item.Name;
-			(tile:FindFirstChild("NameLabel") :: TextLabel).Text = item:GetAttribute("DisplayName") or item.Name
+			(tile:FindFirstChild("NameLabel") :: TextLabel).Text = def.name
 			previewInto(tile:FindFirstChild("Preview") :: ViewportFrame, item)
 			tile.Activated:Connect(function()
 				selectItem(item.Name, tile)

@@ -75,11 +75,34 @@ already paid for; don't relearn them.
   soft top-light gradient, ink outline, one highlight.
 - Before uploading, compose a preview PNG in the scratchpad (on a mid-grey
   background, at real in-game size) and look at it with Read.
-- 9-slice art must keep every ornament inside the corner slices and only plain,
-  uniform lines along the edges (check: each row of the top edge strip has zero
-  variance). `SliceCenter` needs real top and bottom margins: a centre rect that
-  spans the full height (Y from 0 to H) gets clipped by Roblox. If an image can't
-  slice cleanly, use `ScaleType.Stretch` at its native aspect ratio.
+- 9-slice (this has cropped our pills flat more than once):
+  - Roblox stretches all four edge strips along their length: top/bottom
+    strips stretch sideways, left/right strips stretch up and down. Every curve
+    and ornament must sit entirely inside the four corners. The edge strips may
+    only hold lines that are identical along the stretch: the same in every
+    column for top/bottom, the same in every row for left/right. Checking only
+    the top strip isn't enough; the left/right strips are what broke.
+  - Pills and other stadium shapes: the round ends are the corners. Split them
+    at the one row where the curve is vertical, the exact vertical centre, e.g.
+    `Rect(72, 63, 440, 65)` on a 512x128 pill. Keep that row clear of
+    ornaments: an end lozenge on it smears into a bar. Set `SliceScale` so that
+    (top corner + bottom corner) x scale is about the button's height (0.28 for
+    36-40px from a 128px source). Don't go much smaller, or the ends turn into a
+    rounded rectangle.
+  - `SliceCenter` needs a margin on every side (no 0 or full-size edge), or
+    Roblox clips the art.
+  - Run `uv run --with pillow python tools/check_slices.py` after drawing art or
+    changing a `SliceCenter`. FAIL means the outline changes along an edge
+    strip, so fix the art or the rect. "warn" means a colour gradient along a
+    strip, which is fine unless it's an ornament. Put the intended
+    `SliceCenter` and `SliceScale` in the drawing function's docstring.
+  - A local Pillow simulation of the slice doesn't match Roblox's renderer; it
+    showed these pills as perfect while Roblox cropped them. The real check is in
+    Studio: `screen_capture` with the element visible at its real size, then crop
+    and enlarge that region with Pillow and Read it. Look at the ends and
+    corners closely before calling art done.
+  - If an image can't be sliced cleanly, use `ScaleType.Stretch` at its native
+    aspect ratio.
 - Draw big panels large (1024px) and slice them down (`SliceScale` ~0.26-0.3);
   small sources scaled up look resized.
 
@@ -96,6 +119,12 @@ Then call `mcp__Roblox_Studio__upload_image` with
 `http://127.0.0.1:8765/<file>.png` (several in one call). Record every returned
 `rbxassetid://` in `art/ui/assets.json`. New uploads take a few seconds to
 render; `ContentProvider:PreloadAsync` or the image's `IsLoaded` tells you when.
+
+A redrawn PNG needs a new upload: asset ids are immutable. Swap the old id for
+the new one everywhere (`grep -r` over `assets/`, `src/` and
+`art/ui/assets.json`). Property-only changes like this (Image, SliceCenter,
+SliceScale) can go straight into the `.rbxmx` on disk, and Rojo patches them
+into Studio without duplicating anything.
 
 ## Building in Studio
 

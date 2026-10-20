@@ -304,9 +304,10 @@ def slot_simple():
 
 
 def pill(name, top, bottom, rim, inner):
-    """A pill button, 512x128. 9-slice with SliceCenter Rect(72, 40, 440, 88):
-    the rounded ends and their lozenges stay in the side slices, and the top and
-    bottom margins keep Roblox's slicer from clipping the art."""
+    """A pill button, 512x128. 9-slice with SliceCenter Rect(72, 63, 440, 65) and
+    SliceScale ~0.28: the rounded ends are the corners, split at the one row
+    where the curve is vertical. Only that row stretches, so nothing ornamental
+    may sit on it (the end lozenges used to, and Roblox cropped the ends flat)."""
     W, H = 512, 128
     img = canvas(W, H)
     m = 10 * SS
@@ -321,8 +322,6 @@ def pill(name, top, bottom, rim, inner):
     gloss = Image.new("RGBA", img.size, (0, 0, 0, 0))
     ImageDraw.Draw(gloss).rounded_rectangle([m + 24 * SS, m + 10 * SS, W * SS - m - 24 * SS, m + 30 * SS], radius=10 * SS, fill=(255, 255, 255, 34))
     img.alpha_composite(gloss)
-    for side in (-1, 1):
-        lozenge(d, W * SS / 2 + side * (W / 2 - 40) * SS, H * SS / 2, 11 * SS, 3 * SS)
     finish(img, name)
 
 

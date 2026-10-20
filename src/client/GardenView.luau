@@ -21,6 +21,7 @@ local Hud = require(script.Parent.Hud)
 local MyPeak = require(script.Parent.MyPeak)
 local State = require(script.Parent.State)
 local PlantTag = require(script.Parent.PlantTag)
+local WorldPrompts = require(script.Parent.WorldPrompts)
 
 local gardenRemote = ReplicatedStorage.Remotes.GardenAction :: RemoteFunction
 local herbModels = ReplicatedStorage:WaitForChild("HerbModels")
@@ -416,6 +417,15 @@ function GardenView.init()
 	CollectionService:GetInstanceRemovedSignal("HerbPlot"):Connect(untrack)
 	for _, plot in CollectionService:GetTagged("HerbPlot") do
 		track(plot)
+	end
+	-- a focused plant brings its bed's Plant prompt along
+	WorldPrompts.companionOf = function(target)
+		local node: Instance? = target
+		while node and not views[node] do
+			node = node.Parent
+		end
+		local anchor = node and GardenView.anchorOf(node)
+		return anchor and anchor:FindFirstChild("Tend") :: ProximityPrompt?
 	end
 	-- growth, prompts and the tag; also catches the peak's Owner changing
 	task.spawn(function()

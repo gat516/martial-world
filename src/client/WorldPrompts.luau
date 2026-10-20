@@ -6,8 +6,9 @@
 --
 -- Only one target is in focus at a time: the nearest one with an enabled prompt
 -- in range (with a little stickiness so walking between two plants doesn't
--- flicker). Its prompts are the only ones drawn, so a garden full of plants shows
--- one plant's card (Harvest or Grow now), or the bed's Plant when that's nearest.
+-- flicker). Its prompts are the only ones drawn, plus its companion (a plant
+-- brings its bed's Plant, see companionOf), so a garden full of plants shows one
+-- plant's card (Harvest or Grow now) with the bed's Plant under it.
 -- Roblox's one-prompt-per-key rule doesn't apply on touch, which is why we pick.
 -- Every other Custom prompt has its keys muted locally (KeyboardKeyCode and
 -- GamepadKeyCode set to Unknown, restored when it gains focus), so F or G can
@@ -56,6 +57,11 @@ type Board = {
 
 local WorldPrompts = {}
 
+-- Set by GardenView: a prompt drawn alongside the focused target's own. Growing
+-- plants are nearer than their bed's anchor, so without this a bed with plants in
+-- it could never be planted again.
+WorldPrompts.companionOf = nil :: ((target: Instance) -> ProximityPrompt?)?
+
 local player = Players.LocalPlayer
 local playerGui: PlayerGui
 local boardTemplate: BillboardGui
@@ -65,6 +71,7 @@ local prompts: { [ProximityPrompt]: boolean } = {} -- every prompt in the world
 local muted: { [ProximityPrompt]: { keyboard: Enum.KeyCode, gamepad: Enum.KeyCode } } = {}
 local live: { [ProximityPrompt]: Enum.ProximityPromptInputType } = {} -- shown by ProximityPromptService
 local focus: Instance? = nil -- the target whose prompts are drawn
+local companion: ProximityPrompt? = nil -- drawn with focus's own (companionOf)
 local board: Board? = nil
 local shown = 0 -- counts cards, to keep same-key cards in the order they appeared
 
@@ -267,7 +274,7 @@ local function reconcile()
 	local want: { [ProximityPrompt]: Enum.ProximityPromptInputType } = {}
 	local any = false
 	for prompt, inputType in live do
-		if focus and prompt.Parent == focus then
+		if focus and (prompt.Parent == focus or prompt == companion) then
 			want[prompt] = inputType
 			any = true
 		end
@@ -362,15 +369,17 @@ end
 
 local function refocus()
 	local picked = pickFocus()
+	local hook = WorldPrompts.companionOf
+	local with = if picked and hook then hook(picked) else nil
 	-- unmute the new target's keys before anything else, so its cards read right
 	for prompt in prompts do
-		local mine = picked ~= nil and prompt.Parent == picked
+		local mine = picked ~= nil and (prompt.Parent == picked or prompt == with)
 		if prompt.Style == Enum.ProximityPromptStyle.Custom or muted[prompt] then
 			setMuted(prompt, not mine)
 		end
 	end
-	if picked ~= focus then
-		focus = picked
+	if picked ~= focus or with ~= companion then
+		focus, companion = picked, with
 		reconcile()
 	end
 end

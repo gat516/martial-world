@@ -9,7 +9,10 @@ cursor, settings and the admin panel.
 - One menu at a time (`Menus`); opening a window hides the gameplay HUD, keeping
   the top-right tiles to switch or close. The top-left is always Roblox's chat.
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
-- World prompts are drawn in our own style on their target, one target in focus at a time.
+- World prompts are drawn in our own style, one target in focus at a time: on their
+  target with mouse, keyboard or gamepad; on touch in a fixed column above the right
+  end of the vitals and hotbar (`Prompts.Dock`, mirrors `Hud.Stack`'s box), so they
+  are in thumb reach wherever the camera points.
 - UI work goes through the `ui-designer` subagent (AGENTS.md). GUIs are authored in
   Studio via MCP and exported to `assets/Hud.rbxmx`, `Rewards.rbxmx`, `Prompts.rbxmx`;
   scripts only find and fill them.
@@ -20,7 +23,7 @@ cursor, settings and the admin panel.
 - `Menus.luau`: the one-window rule and what hides while a window is open.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
 - `HotbarView.luau`, `Inventory.luau`, `SlotArt.luau`, `ListWindow.luau`.
-- `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`).
+- `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
 - `Onboarding.luau`, `TravelMenu.luau`, `HerbShop.luau`, `BuildCatalog.luau`,
   `SeedPicker.luau`, `PlantingBar.luau`, `PlantTag.luau`.

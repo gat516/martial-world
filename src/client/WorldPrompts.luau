@@ -1,8 +1,16 @@
 --!strict
 -- Our look for every ProximityPrompt in the world (all of them use Style Custom,
--- so Roblox draws nothing). Prompts are drawn in the world, on the thing they
--- belong to: one billboard (StarterGui.Prompts.Board, cloned per target) holds
--- that target's cards in a short list.
+-- so Roblox draws nothing). With a mouse, keyboard or gamepad, prompts are drawn
+-- in the world, on the thing they belong to: one billboard (StarterGui.Prompts.Board,
+-- cloned per target) holds that target's cards in a short list.
+-- On touch the cards go to a fixed spot in thumb reach instead (Prompts.Dock): a
+-- column just above the right end of the vitals and hotbar, left of the Lock and
+-- Dash buttons, growing upward. A card on a plant or bed ended up wherever the
+-- camera put it, under the hotbar or the thumbstick, so players tilted the camera
+-- to tap it. Dock mirrors Hud.Stack's box (same position, size and constraints),
+-- so the column always sits just over the stack; keep the two in step. The card's
+-- object line ("Huge Dewy Spirit Grass", "Herb Bed") says what it acts on, and the
+-- PlantTag still marks the plant in the world.
 --
 -- Only one target is in focus at a time: the nearest one with an enabled prompt
 -- in range (with a little stickiness so walking between two plants doesn't
@@ -15,7 +23,7 @@
 -- only ever fire the prompt whose card is on screen. Nothing else in the game
 -- sets those keys, and Enabled is left alone: the server and GardenView own it.
 --
--- The billboard sits just under the PlantTag card above a plant (same anchor:
+-- The billboard (non-touch) sits just under the PlantTag card above a plant (same anchor:
 -- top of the part plus a stud, then the 55px the tag hangs below that), sized in
 -- pixels so it reads and taps the same at any distance. Each card shows the key
 -- cap (keyboard key, or the gamepad button), the object and action text (kept
@@ -49,7 +57,8 @@ local KEY_NAMES: { [Enum.KeyCode]: string } = {
 }
 
 type Board = {
-	gui: BillboardGui,
+	gui: BillboardGui?, -- the world billboard; nil for the touch dock (kept, not per target)
+	holder: GuiObject, -- where a leaving card is lifted to while it fades (the list's parent)
 	list: Frame,
 	target: Instance,
 	cards: { [ProximityPrompt]: () -> () }, -- each drawn prompt, by how to take its card away
@@ -65,6 +74,8 @@ WorldPrompts.companionOf = nil :: ((target: Instance) -> ProximityPrompt?)?
 local player = Players.LocalPlayer
 local playerGui: PlayerGui
 local boardTemplate: BillboardGui
+local cardTemplate: ImageButton
+local dock: Frame -- touch: the fixed card column (Prompts.Dock)
 local actionBelow: UDim2 -- where the action line sits under the object line (authored)
 
 local prompts: { [ProximityPrompt]: boolean } = {} -- every prompt in the world
@@ -169,20 +180,37 @@ end
 
 -- Fade a card out, lifted out of the list first (to the slot the list gave it,
 -- worked out from the layout rather than read back mid-pop) so the rest don't
--- move for it.
+-- move for it. The billboard's list fills from the top, the dock's from the bottom.
 local function retire(card: ImageButton, b: Board)
 	card.Active = false
 	if card.Parent == b.list then
-		local layout = b.list:FindFirstChildOfClass("UIListLayout") :: UIListLayout
-		local y = 0
-		for _, other in b.list:GetChildren() do
-			if other ~= card and other:IsA("GuiObject") and other.Visible and other.LayoutOrder < card.LayoutOrder then
-				y += other.Size.Y.Offset + layout.Padding.Offset
+		local list = b.list
+		local layout = list:FindFirstChildOfClass("UIListLayout") :: UIListLayout
+		local fromBottom = layout.VerticalAlignment == Enum.VerticalAlignment.Bottom
+		local y = 0 -- the cards before it (top-down) or after it (bottom-up)
+		for _, other in list:GetChildren() do
+			if other ~= card and other:IsA("GuiObject") and other.Visible then
+				local before = other.LayoutOrder < card.LayoutOrder
+				if before ~= fromBottom then
+					y += other.Size.Y.Offset + layout.Padding.Offset
+				end
 			end
 		end
-		local at = b.list.Position
-		card.Position = UDim2.new(at.X.Scale, at.X.Offset, at.Y.Scale, at.Y.Offset + y)
-		card.Parent = b.gui
+		if fromBottom then
+			y = list.Size.Y.Offset - y - card.Size.Y.Offset
+		end
+		-- the list's top-left in its parent, then the card's slot under that
+		local at, size, anchor = list.Position, list.Size, list.AnchorPoint
+		card.Position = UDim2.new(
+			at.X.Scale - anchor.X * size.X.Scale,
+			at.X.Offset - anchor.X * size.X.Offset,
+			at.Y.Scale - anchor.Y * size.Y.Scale,
+			at.Y.Offset - anchor.Y * size.Y.Offset + y
+		)
+		-- its width came from the list; keep it once it's out
+		local w = card.Size.X
+		card.Size = UDim2.new(size.X.Scale * w.Scale, size.X.Offset * w.Scale + w.Offset, 0, card.Size.Y.Offset)
+		card.Parent = b.holder
 	end
 	Motion.fadeOut(card, function()
 		card:Destroy()
@@ -191,8 +219,7 @@ end
 
 local function addCard(b: Board, prompt: ProximityPrompt, inputType: Enum.ProximityPromptInputType)
 	shown += 1
-	local template = b.list:FindFirstChild("Card") :: ImageButton
-	local card = template:Clone()
+	local card = cardTemplate:Clone()
 	card.Name = "Prompt"
 	fill(prompt, card, inputType)
 	-- F above G: cards order by key, then by when they appeared
@@ -245,6 +272,9 @@ local function addCard(b: Board, prompt: ProximityPrompt, inputType: Enum.Proxim
 end
 
 local function newBoard(target: Instance): Board?
+	if Platform.isTouch() then
+		return { holder = dock, list = dock:FindFirstChild("List") :: Frame, target = target, cards = {} }
+	end
 	local adornee = adorneeOf(target)
 	if not adornee then
 		return nil
@@ -255,7 +285,7 @@ local function newBoard(target: Instance): Board?
 	gui.Enabled = true
 	gui.Parent = playerGui -- a BillboardGui only takes taps from PlayerGui
 	Motion.buttons(gui)
-	return { gui = gui, list = gui:FindFirstChild("List") :: Frame, target = target, cards = {} }
+	return { gui = gui, holder = gui, list = gui:FindFirstChild("List") :: Frame, target = target, cards = {} }
 end
 
 local function closeBoard(b: Board)
@@ -264,9 +294,11 @@ local function closeBoard(b: Board)
 	end
 	table.clear(b.cards)
 	local gui = b.gui
-	task.delay(FADE_TIME + 0.05, function()
-		gui:Destroy()
-	end)
+	if gui then
+		task.delay(FADE_TIME + 0.05, function()
+			gui:Destroy()
+		end)
+	end
 end
 
 -- Draw exactly the focused target's shown prompts.
@@ -405,8 +437,11 @@ function WorldPrompts.init()
 	playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
 	local gui = playerGui:WaitForChild("Prompts") :: ScreenGui
 	boardTemplate = gui:WaitForChild("Board") :: BillboardGui
-	local template = (boardTemplate:WaitForChild("List") :: Frame):WaitForChild("Card") :: ImageButton
-	actionBelow = ((template:FindFirstChild("Body") :: Frame):FindFirstChild("Action") :: TextLabel).Position
+	cardTemplate = (boardTemplate:WaitForChild("List") :: Frame):WaitForChild("Card") :: ImageButton
+	actionBelow = ((cardTemplate:FindFirstChild("Body") :: Frame):FindFirstChild("Action") :: TextLabel).Position
+	dock = gui:WaitForChild("Dock") :: Frame
+	dock.Visible = Platform.isTouch()
+	Motion.buttons(dock)
 
 	for _, d in workspace:GetDescendants() do
 		track(d)

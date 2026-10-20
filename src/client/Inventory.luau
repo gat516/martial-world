@@ -1,7 +1,7 @@
 --!strict
 -- The Inventory window (the Inventory tile, or ` on a keyboard): a grid of
--- everything you carry (Pouch) or know (Arts), and a detail pane for the chosen
--- one. Items can be used or held out; arts added to or taken off the hotbar.
+-- items you carry (Pouch) or arts you know that aren't on the hotbar, and a
+-- detail pane for the chosen one. Items can be used or held out; arts added to the hotbar.
 -- Anything in the grid can be dragged onto the hotbar (HotbarView).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -48,23 +48,30 @@ local function invoke(...: any)
 	end
 end
 
-local function entries(): { string }
+local function entries(): ({ string }, boolean)
 	local list = {}
 	local s = State.current
+	local hasOwned = false
 	if tab == "Pouch" then
 		for _, id in Items.Order do
 			if Items.count(s, id) > 0 then
-				table.insert(list, id)
+				hasOwned = true
+				if not table.find(s.hotbar, id) then
+					table.insert(list, id)
+				end
 			end
 		end
 	else
 		for _, id in Techniques.Order do
 			if s.techniques.owned[id] then
-				table.insert(list, id)
+				hasOwned = true
+				if not table.find(s.hotbar, id) then
+					table.insert(list, id)
+				end
 			end
 		end
 	end
-	return list
+	return list, hasOwned
 end
 
 local function label(name: string): TextLabel
@@ -131,7 +138,10 @@ local function render()
 		end
 	end
 	local s = State.current
-	local list = entries()
+	local list, hasOwned = entries()
+	if selected and not table.find(list, selected) then
+		selected = nil
+	end
 	for i, id in list do
 		local cell = cellTemplate:Clone()
 		cell.Name = id
@@ -142,10 +152,8 @@ local function render()
 		else
 			SlotArt.paint(cell, id, Items.count(s, id))
 		end
-		local onBar = table.find(s.hotbar, id)
 		local key = cell:FindFirstChild("KeyLabel") :: TextLabel
-		key.Visible = onBar ~= nil and not Platform.isTouch() -- key hints are for keyboards
-		key.Text = if onBar then tostring(onBar) else ""
+		key.Visible = false
 		local halo = cell:FindFirstChild("Halo") :: GuiObject
 		halo.Visible = id == selected
 		cell.Activated:Connect(function()
@@ -160,7 +168,9 @@ local function render()
 		cell.Parent = grid
 	end
 	local empty = window:FindFirstChild("Empty") :: TextLabel
-	empty.Text = EMPTY[tab]
+	empty.Text = if hasOwned
+		then `All your {if tab == "Pouch" then "items" else "arts"} are on the hotbar. Drag one off the bar to return it here.`
+		else EMPTY[tab]
 	empty.Visible = #list == 0
 	renderDetail()
 end

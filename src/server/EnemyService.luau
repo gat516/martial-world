@@ -168,6 +168,7 @@ function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?, respawns: 
 	local ground = groundAt(at)
 	model:PivotTo(CFrame.new(ground + Vector3.new(0, rootHeight, 0)) * CFrame.Angles(0, math.random() * math.pi * 2, 0))
 	model:SetAttribute("EnemyType", id)
+	model:SetAttribute("RunSpeed", def.runSpeed)
 	model:AddTag("Enemy")
 	model.Parent = liveFolder
 	root:SetNetworkOwner(nil)
@@ -536,6 +537,10 @@ function EnemyService.start()
 					local ok, err = pcall(think, enemy, now)
 					if not ok then
 						warn(`EnemyService: {enemy.def.id} errored: {err}`)
+					end
+					-- clients animate from this (crouch on windup, stretch on dash)
+					if enemy.model:GetAttribute("AIState") ~= enemy.state then
+						enemy.model:SetAttribute("AIState", enemy.state)
 					end
 				end
 			end

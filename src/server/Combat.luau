@@ -3,17 +3,18 @@
 -- the one path all damage takes (to enemies and to players).
 --
 -- Basic attacks are predicted by the client and checked here. The client swings,
--- casts its hitbox, shows the hit at once, and reports the swing's server-clock
--- timestamp (GetServerTimeNow) plus the enemies it hit. The server:
+-- casts its hitbox between the animation's "Hit" and "Hit Stop" markers, shows the
+-- hit at once, and reports the swing's server-clock timestamp (GetServerTimeNow)
+-- plus the enemies it hit. The server:
 --   - rejects timestamps too old, from the future, or closer together than the
 --     swing cooldown (so spam can't outpace the animation);
 --   - works out the chain step itself from the timestamps, so damage can't be
 --     inflated by always claiming the finisher;
 --   - re-casts the hitbox (GetPartBoundsInBox) at the attacker's current position,
 --     grown by HITBOX_SLACK, and only damages claimed enemies that overlap it.
--- Techniques: the client plays the cast at once and sends its timestamp and aim;
--- the server checks the technique is slotted and off cooldown, then finds what it
--- hits itself from the caster's position.
+-- Techniques: the client plays the cast at the animation's "Hit" marker and sends
+-- its timestamp and aim; the server checks the technique is slotted and off
+-- cooldown, then finds what it hits itself from the caster's position.
 -- Dodge: the client dashes at once and sends its timestamp; the server grants
 -- invulnerability from that moment, and a hit that lands just after the dodge
 -- started is a perfect dodge, which takes time off every technique cooldown.

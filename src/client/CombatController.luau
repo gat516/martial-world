@@ -7,8 +7,9 @@
 -- clicking an enemy makes it the target.
 -- Everything is predicted: the animation, dash and effects play at once, and the
 -- client reports each action with its server-clock timestamp (GetServerTimeNow).
--- At impact the client casts the shared hitbox and flashes what it hit; the server
--- re-checks hits and owns damage (Combat.luau).
+-- Impacts are timed by animation markers: a swing's hitbox is live from the "Hit"
+-- marker to the "Hit Stop" marker, and a technique goes off at "Hit". The client
+-- flashes what it hit; the server re-checks hits and owns damage (Combat.luau).
 -- PC: 1/2/3 for techniques, Q to dash, click an enemy to target it.
 -- Mobile: the Dash button beside Strike.
 
@@ -68,7 +69,7 @@ local function loadTracks(character: Model)
 	end
 end
 
-local function playAnimation(index: number)
+local function playAnimation(index: number): AnimationTrack?
 	if playing then
 		playing:Stop(0.05)
 	end
@@ -77,6 +78,43 @@ local function playAnimation(index: number)
 		track:Play(0.05)
 		playing = track
 	end
+	return track
+end
+
+-- Runs `hit` at the track's "Hit" marker and `stop` at its "Hit Stop" marker. If
+-- the track ends or is cut off first, whatever hasn't run yet runs then, so an
+-- attack is never lost (and an animation without markers lands when it ends).
+local function onMarkers(track: AnimationTrack?, hit: () -> (), stop: (() -> ())?)
+	local stage = 0
+	local connections: { RBXScriptConnection } = {}
+	local function advance(to: number)
+		while stage < to do
+			stage += 1
+			if stage == 1 then
+				hit()
+			elseif stop then
+				stop()
+			end
+		end
+		if stage >= 2 then
+			for _, connection in connections do
+				connection:Disconnect()
+			end
+		end
+	end
+	if not track then
+		advance(2)
+		return
+	end
+	table.insert(connections, track:GetMarkerReachedSignal("Hit"):Connect(function()
+		advance(1)
+	end))
+	table.insert(connections, track:GetMarkerReachedSignal("Hit Stop"):Connect(function()
+		advance(2)
+	end))
+	table.insert(connections, track.Stopped:Connect(function()
+		advance(2)
+	end))
 end
 
 local function rootOf(model: Model): BasePart?
@@ -148,23 +186,48 @@ function CombatController.swing()
 	chainIndex = if now - lastSwing > Config.CHAIN_RESET then 1 else chainIndex % #Config.FIST_DAMAGE + 1
 	lastSwing = now
 	faceTarget(root)
-	playAnimation(chainIndex)
+	local track = playAnimation(chainIndex)
 
+	-- The hitbox is cast every frame from "Hit" to "Hit Stop"; the swing is reported
+	-- once, as soon as it's hit all it can or when the window closes.
 	local swingTime = workspace:GetServerTimeNow()
-	task.delay(Config.HIT_DELAY, function()
-		local hits: { Model } = {}
-		if root.Parent and myRoot() then
-			local cframe, size = Hitbox.box(root)
-			for _, model in Hitbox.enemiesIn(cframe, size, excludeMe(), root.Position) do
-				if #hits >= Config.MAX_TARGETS then
-					break
-				end
+	local hits: { Model } = {}
+	local reported = false
+	local window: RBXScriptConnection?
+	local function report()
+		if window then
+			window:Disconnect()
+			window = nil
+		end
+		if not reported then
+			reported = true
+			attackRemote:FireServer(swingTime, hits)
+		end
+	end
+	local function sweep()
+		if not (root.Parent and myRoot()) then
+			return
+		end
+		local cframe, size = Hitbox.box(root)
+		for _, model in Hitbox.enemiesIn(cframe, size, excludeMe(), root.Position) do
+			if #hits >= Config.MAX_TARGETS then
+				break
+			end
+			if not table.find(hits, model) then
 				table.insert(hits, model)
 				CombatEffects.flash(model)
 			end
 		end
-		attackRemote:FireServer(swingTime, hits)
-	end)
+		if #hits >= Config.MAX_TARGETS then
+			report()
+		end
+	end
+	onMarkers(track, function()
+		sweep()
+		if not reported then
+			window = RunService.Heartbeat:Connect(sweep)
+		end
+	end, report)
 end
 
 --[[ Dodge ]]
@@ -282,16 +345,22 @@ function CombatController.cast(slot: number)
 	end
 	readyAt[def.id] = now + def.cooldown
 	local dir = faceTarget(root)
-	playAnimation(def.animation)
-	local chain = if def.kind == "chain" then predictChain(root.Position, def) else nil
-	CombatEffects.cast(player.Character, def.id, root.Position, dir, chain)
-	if chain then
-		for _, model in chain do
-			CombatEffects.flash(model, def.color)
+	-- the technique goes off at the animation's "Hit" marker, from where you stand then
+	onMarkers(playAnimation(def.animation), function()
+		if not root.Parent then
+			return
 		end
-	end
-	flashArea(def, root.Position, dir)
-	castRemote:FireServer(def.id, workspace:GetServerTimeNow(), dir)
+		local origin = root.Position
+		local chain = if def.kind == "chain" then predictChain(origin, def) else nil
+		CombatEffects.cast(player.Character, def.id, origin, dir, chain)
+		if chain then
+			for _, model in chain do
+				CombatEffects.flash(model, def.color)
+			end
+		end
+		flashArea(def, origin, dir)
+		castRemote:FireServer(def.id, workspace:GetServerTimeNow(), dir)
+	end)
 end
 
 -- Labels, colors and cooldown overlays for the technique and dodge buttons.

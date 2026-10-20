@@ -79,11 +79,11 @@ return {
 
 	Combat = {
 		-- Fist basic attack: a five-hit chain (ReplicatedStorage.Animations.Fists.1-5).
-		-- The client predicts hits; the server checks them (see Combat.luau).
+		-- The client predicts hits, casting the hitbox from each animation's "Hit"
+		-- marker to its "Hit Stop" marker; the server checks them (see Combat.luau).
 		FIST_DAMAGE = { 8, 8, 10, 12, 18 }, -- per chain hit, before the realm's power
 		SWING_SECONDS = 0.42, -- time between swings
 		CHAIN_RESET = 1.0, -- idle seconds before the chain starts over at hit 1
-		HIT_DELAY = 0.15, -- seconds from swing to impact, when the client casts the hitbox
 		HITBOX = Vector3.new(5, 5, 6), -- width, height, reach in front of the root
 		MAX_TARGETS = 1, -- fists hit one enemy per swing (the nearest in the box)
 		AIM_RANGE = 14, -- soft auto-aim and auto-attack pick targets this close

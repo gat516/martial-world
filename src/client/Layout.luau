@@ -85,7 +85,8 @@ function Layout.apply()
 	end
 	local tiles = find("Buttons"):FindFirstChildOfClass("UIScale")
 	if tiles then
-		tiles.Scale = if Platform.isSmall() then 0.75 else 0.85
+		-- touch: tiles stay thumb-sized (about 50px); PC: a little smaller
+		tiles.Scale = if touch then 0.9 elseif Platform.isSmall() then 0.75 else 0.85
 	end
 end
 

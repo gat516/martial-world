@@ -7,7 +7,8 @@
 --
 -- What shows while something is open (one rule, applied here):
 --   Always: toasts, banners, the window itself.
---   A window: the top-right tiles stay (to switch or close); the gameplay HUD
+--   A window: the top-right tiles stay (to switch or close; on touch a window
+--     that covers them, the inventory, hides them and closes by its seal); the gameplay HUD
 --     goes (Play: touch cluster, buffs, objective, elder line; the vitals; the
 --     seat pills and Break Through; world prompts). The hotbar stays only for
 --     windows that drop onto it (the inventory).
@@ -16,6 +17,7 @@
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local Motion = require(script.Parent.Motion)
+local Platform = require(script.Parent.Platform)
 
 local Menus = {}
 
@@ -23,6 +25,7 @@ export type Options = {
 	close: (() -> ())?, -- how to close it (default: hide the frame)
 	keepHotbar: boolean?, -- leave the hotbar up as a drop target
 	minigame: boolean?, -- takes the whole screen, tiles included
+	coversTiles: boolean?, -- on touch it fills the screen, so the tiles hide
 }
 
 local entries: { [GuiObject]: Options } = {}
@@ -40,7 +43,7 @@ local function update()
 	play.Visible = not any
 	vitals.Visible = not any
 	hotbar.Visible = not any or (entry :: Options).keepHotbar == true
-	tiles.Visible = not (entry and entry.minigame)
+	tiles.Visible = not (entry and (entry.minigame or (entry.coversTiles and Platform.isTouch())))
 	ProximityPromptService.Enabled = not any
 	for _, fn in listeners do
 		task.spawn(fn)

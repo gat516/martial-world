@@ -38,14 +38,15 @@ function Hud.toast(message: string)
 	end
 	showing = true
 	task.spawn(function()
-		local label = gui:FindFirstChild("Toast") :: TextLabel
+		local toast = gui:FindFirstChild("Toast") :: GuiObject
+		local label = toast:FindFirstChild("Message") :: TextLabel
 		while #queue > 0 do
 			label.Text = table.remove(queue, 1) :: string
-			label.Visible = true
+			toast.Visible = true
 			-- longer messages stay up a little longer
 			task.wait(TOAST_SECONDS + math.min(2, #label.Text / 60))
 		end
-		label.Visible = false
+		toast.Visible = false
 		showing = false
 	end)
 end

@@ -16,6 +16,7 @@ local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local CombatController = require(script.Parent.CombatController)
 local Hud = require(script.Parent.Hud)
+local Menus = require(script.Parent.Menus)
 local Platform = require(script.Parent.Platform)
 local SlotArt = require(script.Parent.SlotArt)
 local State = require(script.Parent.State)
@@ -209,12 +210,17 @@ end
 
 --[[ Drawing ]]
 
+-- On touch, empty slots hide (less to look at) except while the inventory is
+-- open, when every slot is a drop target.
 local function render()
 	local s = State.current
+	local inventory = gui:FindFirstChild("Inventory") :: GuiObject
+	local showEmpty = not Platform.isTouch() or Menus.isOpen(inventory)
 	for i, slot in slots do
 		local id = s.hotbar[i] or ""
 		local item = Items.Defs[id]
 		SlotArt.paint(slot, if id ~= "" then id else nil, if item then Items.count(s, id) else nil)
+		slot.Visible = showEmpty or id ~= ""
 	end
 end
 
@@ -269,6 +275,7 @@ function HotbarView.init(screenGui: ScreenGui)
 		end
 	end)
 	State.onChanged(render)
+	Menus.onChanged(render)
 	RunService.RenderStepped:Connect(tick)
 end
 

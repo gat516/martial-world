@@ -21,8 +21,9 @@ local inventoryRemote = ReplicatedStorage.Remotes.InventoryAction :: RemoteFunct
 
 type Tab = "Pouch" | "Arts"
 
-local TAB_ON = { fill = Color3.fromRGB(150, 110, 40), text = Color3.fromRGB(255, 244, 214) }
-local TAB_OFF = { fill = Color3.fromRGB(24, 34, 38), text = Color3.fromRGB(160, 182, 176) }
+-- tab art: gold for the open tab, lacquer for the other (art/ui/assets.json)
+local TAB_ON = { image = "rbxassetid://124847805310931", text = Color3.fromRGB(255, 244, 214) }
+local TAB_OFF = { image = "rbxassetid://88447362782150", text = Color3.fromRGB(170, 190, 184) }
 local EMPTY: { [Tab]: string } = {
 	Pouch = "Your pouch is empty. Harvest herbs, hunt spirit beasts for their cores, and watch the skies for heavenly treasures.",
 	Arts = "You know no arts yet. Beasts in the wilds sometimes drop manuals.",
@@ -32,11 +33,11 @@ local Inventory = {}
 
 local window: Frame
 local grid: ScrollingFrame
-local cellTemplate: TextButton
+local cellTemplate: GuiButton
 local info: ScrollingFrame
-local primary: TextButton
-local secondary: TextButton
-local tabButtons: { [Tab]: TextButton } = {}
+local primary: ImageButton
+local secondary: ImageButton
+local tabButtons: { [Tab]: ImageButton } = {}
 local tab: Tab = "Pouch"
 local selected: string? = nil
 
@@ -70,6 +71,11 @@ local function label(name: string): TextLabel
 	return info:FindFirstChild(name) :: TextLabel
 end
 
+-- The text on an art button (its Label child).
+local function caption(button: GuiObject): TextLabel
+	return button:FindFirstChild("Label") :: TextLabel
+end
+
 local function renderDetail()
 	local s = State.current
 	local preview = info:FindFirstChild("Preview") :: TextButton
@@ -92,9 +98,9 @@ local function renderDetail()
 		label("KindLabel").TextColor3 = Items.rarityColor(item)
 		label("Blurb").Text = item.blurb
 		label("Lore").Text = item.lore or ""
-		primary.Text = if item.category == "Herb" then "Eat" else "Use"
+		caption(primary).Text = if item.category == "Herb" then "Eat" else "Use"
 		local held = HotbarView.held()
-		secondary.Text = if held and held:GetAttribute("ItemId") == item.id then "Put away" else "Hold"
+		caption(secondary).Text = if held and held:GetAttribute("ItemId") == item.id then "Put away" else "Hold"
 	elseif technique and owned then
 		local xp = if owned.level >= Techniques.MAX_LEVEL
 			then "max level"
@@ -104,7 +110,7 @@ local function renderDetail()
 		label("KindLabel").TextColor3 = technique.color:Lerp(Color3.new(1, 1, 1), 0.3)
 		label("Blurb").Text = technique.blurb
 		label("Lore").Text = ""
-		primary.Text = if table.find(s.hotbar, technique.id) then "Remove from hotbar" else "Add to hotbar"
+		caption(primary).Text = if table.find(s.hotbar, technique.id) then "Remove from hotbar" else "Add to hotbar"
 	else
 		label("NameLabel").Text = ""
 		label("KindLabel").Text = ""
@@ -116,8 +122,8 @@ end
 local function render()
 	for name, button in tabButtons do
 		local style = if name == tab then TAB_ON else TAB_OFF
-		button.BackgroundColor3 = style.fill
-		button.TextColor3 = style.text
+		button.Image = style.image
+		caption(button).TextColor3 = style.text
 	end
 	for _, child in grid:GetChildren() do
 		if child:IsA("GuiButton") and child ~= cellTemplate then
@@ -138,7 +144,7 @@ local function render()
 		end
 		local onBar = table.find(s.hotbar, id)
 		local key = cell:FindFirstChild("KeyLabel") :: TextLabel
-		key.Visible = onBar ~= nil
+		key.Visible = onBar ~= nil and not Platform.isTouch() -- key hints are for keyboards
 		key.Text = if onBar then tostring(onBar) else ""
 		local halo = cell:FindFirstChild("Halo") :: GuiObject
 		halo.Visible = id == selected
@@ -209,19 +215,19 @@ end
 function Inventory.init(gui: ScreenGui)
 	window = gui:FindFirstChild("Inventory") :: Frame
 	grid = window:FindFirstChild("Grid") :: ScrollingFrame
-	cellTemplate = grid:FindFirstChild("CellTemplate") :: TextButton
+	cellTemplate = grid:FindFirstChild("CellTemplate") :: GuiButton
 	local detail = window:FindFirstChild("Detail") :: Frame
 	info = detail:FindFirstChild("Info") :: ScrollingFrame
 	local actions = detail:FindFirstChild("Actions") :: Frame
-	primary = actions:FindFirstChild("Primary") :: TextButton
-	secondary = actions:FindFirstChild("Secondary") :: TextButton
+	primary = actions:FindFirstChild("Primary") :: ImageButton
+	secondary = actions:FindFirstChild("Secondary") :: ImageButton
 	primary.Activated:Connect(onPrimary)
 	secondary.Activated:Connect(onSecondary)
-	Menus.register(window, { keepHotbar = true })
+	Menus.register(window, { keepHotbar = true, coversTiles = true })
 	ListWindow.bindClose(window)
 	local tabs = window:FindFirstChild("Tabs") :: Frame
 	for _, name: Tab in { "Pouch" :: Tab, "Arts" :: Tab } do
-		local button = tabs:FindFirstChild(`{name}Tab`) :: TextButton
+		local button = tabs:FindFirstChild(`{name}Tab`) :: ImageButton
 		tabButtons[name] = button
 		button.Activated:Connect(function()
 			tab = name

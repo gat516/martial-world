@@ -406,7 +406,97 @@ def vitals_frame():
     finish(shadow_under(img, blur=4, offset=3), "vitals_frame.png")
 
 
+# ---------------------------------------------------------------- window buttons
+
+def plaque_button(name, top, bottom, rim):
+    """A rectangular lacquer button for windows (tabs, actions, destinations),
+    512x128. 9-slice with SliceCenter Rect(64, 40, 448, 88): no ornament on the
+    edges (they stretch), just plain gold rims."""
+    W, H = 512, 128
+    img = canvas(W, H)
+    m = 8 * SS
+    box = [m, m, W * SS - m, H * SS - m]
+    gradient_rect(img, box, top, bottom, radius=10 * SS)
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle(box, radius=10 * SS, outline=GOLD_LO, width=6 * SS)
+    d.rounded_rectangle([m + 2 * SS, m + 2 * SS, W * SS - m - 2 * SS, H * SS - m - 2 * SS], radius=9 * SS, outline=rim, width=3 * SS)
+    i = 12 * SS
+    d.rounded_rectangle([m + i, m + i, W * SS - m - i, H * SS - m - i], radius=4 * SS, outline=(205, 170, 95, 90), width=2 * SS)
+    gloss = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(gloss).rectangle([m + 16 * SS, m + 8 * SS, W * SS - m - 16 * SS, m + 24 * SS], fill=(255, 255, 255, 26))
+    img.alpha_composite(gloss)
+    finish(img, name)
+
+
+def seal_close():
+    """The close button: a vermilion seal stamp, slightly uneven like a real
+    chop, with an X cut into it in paper colour. 128px, stretched."""
+    import random
+    rnd = random.Random(7)
+    S = 128
+    img = canvas(S, S)
+    m = 14 * SS
+    face = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    gradient_rect(face, [m, m, S * SS - m, S * SS - m], (196, 52, 38), (134, 26, 20), radius=12 * SS)
+    # rough inked edge: nibble the outline
+    mask = face.getchannel("A")
+    md = ImageDraw.Draw(mask)
+    for _ in range(90):
+        side = rnd.randrange(4)
+        t = rnd.uniform(m, S * SS - m)
+        r = rnd.uniform(1.5, 4) * SS
+        x, y = [(t, m), (S * SS - m, t), (t, S * SS - m), (m, t)][side]
+        md.ellipse([x - r, y - r, x + r, y + r], fill=0)
+    face.putalpha(mask)
+    img.alpha_composite(face)
+    d = ImageDraw.Draw(img)
+    i = 24 * SS
+    d.rounded_rectangle([i, i, S * SS - i, S * SS - i], radius=6 * SS, outline=(246, 226, 196, 200), width=3 * SS)
+    paper = (248, 232, 204, 255)
+    c0, c1 = 42 * SS, S * SS - 42 * SS
+    for a, b in (((c0, c0), (c1, c1)), ((c1, c0), (c0, c1))):
+        # a brush stroke: thick in the middle, tapering at both ends
+        steps = 24
+        for k in range(steps + 1):
+            t = k / steps
+            x = a[0] + (b[0] - a[0]) * t
+            y = a[1] + (b[1] - a[1]) * t
+            r = (2.2 + 4.6 * math.sin(math.pi * (0.15 + 0.7 * t))) * SS
+            d.ellipse([x - r, y - r, x + r, y + r], fill=paper)
+    finish(shadow_under(img, blur=3, offset=2, alpha=140), "seal_close.png")
+
+
+def note_panel():
+    """A small 9-slice panel for notes and rows (elder line, objective, toast,
+    list rows, build bar), 512x256: ink-dark jade, a thin gold rim and a lozenge
+    stud in each corner. SliceCenter Rect(64, 64, 448, 192)."""
+    W, H = 512, 256
+    img = canvas(W, H)
+    m = 10 * SS
+    box = [m, m, W * SS - m, H * SS - m]
+    gradient_rect(img, box, (24, 36, 40), (10, 15, 18), radius=12 * SS)
+    vignette(img, box, strength=90, blur=0.12)
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle(box, radius=12 * SS, outline=GOLD_LO, width=5 * SS)
+    d.rounded_rectangle([m + 2 * SS, m + 2 * SS, W * SS - m - 2 * SS, H * SS - m - 2 * SS], radius=11 * SS, outline=(214, 172, 92, 210), width=2 * SS)
+    for x in (m + 22 * SS, W * SS - m - 22 * SS):
+        for y in (m + 22 * SS, H * SS - m - 22 * SS):
+            lozenge(d, x, y, 8 * SS, 3 * SS)
+    finish(img, "note_panel.png")
+
+
 if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "window":
+        plaque_button("button_lacquer.png", (36, 50, 54), (12, 18, 22), GOLD)
+        plaque_button("button_gold.png", (190, 146, 64), (112, 76, 28), GOLD_HI)
+        seal_close()
+        note_panel()
+        sys.exit()
+    plaque_button("button_lacquer.png", (36, 50, 54), (12, 18, 22), GOLD)
+    plaque_button("button_gold.png", (190, 146, 64), (112, 76, 28), GOLD_HI)
+    seal_close()
+    note_panel()
     pill("pill_lacquer.png", (34, 44, 48), (12, 16, 20), GOLD, (205, 170, 95, 110))
     pill("pill_gold.png", (196, 150, 66), (120, 82, 30), GOLD_HI, (255, 236, 180, 120))
     slot_simple()

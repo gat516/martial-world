@@ -23,12 +23,13 @@ function ListWindow.bindClose(window: Frame)
 	end)
 end
 
--- Replace the window's rows. buttonName is the action button inside the template row.
+-- Replace the window's rows. buttonName is the action button inside the template
+-- row (an art button with a Label child).
 function ListWindow.fill(window: Frame, templateName: string, buttonName: string, rows: { Row })
 	local list = window:FindFirstChild("List") :: ScrollingFrame
-	local template = list:FindFirstChild(templateName) :: Frame
+	local template = list:FindFirstChild(templateName) :: GuiObject
 	for _, child in list:GetChildren() do
-		if child:IsA("Frame") and child ~= template then
+		if child.Name == "Row" then
 			child:Destroy()
 		end
 	end
@@ -41,9 +42,9 @@ function ListWindow.fill(window: Frame, templateName: string, buttonName: string
 		(row:FindFirstChild("NameLabel") :: TextLabel).Text = r.name;
 		(row:FindFirstChild("Detail") :: TextLabel).Text = r.detail;
 		(row:FindFirstChild("CountLabel") :: TextLabel).Text = r.countText or `x{r.count}`
-		local button = row:FindFirstChild(buttonName) :: TextButton
+		local button = row:FindFirstChild(buttonName) :: ImageButton
 		if r.buttonText then
-			button.Text = r.buttonText
+			(button:FindFirstChild("Label") :: TextLabel).Text = r.buttonText
 		end
 		button.Visible = not r.hideButton
 		button.Activated:Connect(r.onPress)

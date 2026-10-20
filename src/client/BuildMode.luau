@@ -71,18 +71,23 @@ local bottomOffset = 0 -- pivot height above the ghost's lowest point
 local stepConn: RBXScriptConnection? = nil
 local tiles: { [string]: GuiButton } = {}
 
-local function button(name: string): TextButton
-	return actions:FindFirstChild(name) :: TextButton
+local function button(name: string): ImageButton
+	return actions:FindFirstChild(name) :: ImageButton
+end
+
+-- The text on an art button (its Label child).
+local function caption(name: string): TextLabel
+	return button(name):FindFirstChild("Label") :: TextLabel
 end
 
 local function setMode(m: Mode)
 	mode = m
 	hint.Text = HINTS[m]
-	button("PlaceButton").Text = if m == "store" then "Store" else "Place"
+	caption("PlaceButton").Text = if m == "store" then "Store" else "Place"
 	button("PlaceButton").Visible = m ~= "idle"
 	button("RotateButton").Visible = m == "place"
 	button("GridButton").Visible = m == "place"
-	button("DeleteButton").Text = if m == "store" then "Cancel" else "Store"
+	caption("DeleteButton").Text = if m == "store" then "Cancel" else "Store"
 end
 
 local function stripTags(model: Instance)
@@ -342,7 +347,7 @@ end
 
 local function cycleGrid()
 	gridIndex = gridIndex % #Config.GRID_SIZES + 1
-	button("GridButton").Text = `Grid {gridSize()}`
+	caption("GridButton").Text = `Grid {gridSize()}`
 	updateGhost()
 end
 
@@ -402,7 +407,7 @@ end
 
 local function buildCatalog()
 	local list = bar:FindFirstChild("Catalog") :: ScrollingFrame
-	local template = list:FindFirstChild("ItemTemplate") :: TextButton
+	local template = list:FindFirstChild("ItemTemplate") :: ImageButton
 	for _, item in catalog:GetChildren() do
 		if item:IsA("Model") then
 			local tile = template:Clone()
@@ -509,7 +514,7 @@ function BuildMode.init(gui: ScreenGui)
 		rotate(false)
 	end)
 	button("GridButton").Activated:Connect(cycleGrid)
-	button("GridButton").Text = `Grid {gridSize()}`
+	caption("GridButton").Text = `Grid {gridSize()}`
 	button("PlaceButton").Activated:Connect(confirm)
 	button("DeleteButton").Activated:Connect(function()
 		deselectItem()

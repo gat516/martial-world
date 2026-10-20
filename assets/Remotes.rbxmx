@@ -22,5 +22,9 @@
   </Item>
   <Item class="RemoteEvent" referent="RBX12"><Properties><string name="Name">Effect</string></Properties>
   </Item>
+  <Item class="RemoteFunction" referent="RBX13"><Properties><string name="Name">TravelAction</string></Properties>
+  </Item>
+  <Item class="RemoteEvent" referent="RBX14"><Properties><string name="Name">Telegraph</string></Properties>
+  </Item>
  </Item>
 </roblox>

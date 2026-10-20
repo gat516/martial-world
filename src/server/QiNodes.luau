@@ -1,0 +1,72 @@
+--!strict
+-- Qi nodes in the wilds (parts tagged "QiNode" with a GatherPrompt): holding the
+-- prompt pours raw qi into the dantian, once per node per player every so often.
+-- Circulation runs are also allowed within a node's Radius (see Circulation.luau).
+
+local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config).Wilds
+local Cultivation = require(script.Parent.Cultivation)
+local PlayerData = require(script.Parent.PlayerData)
+
+local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
+
+-- node -> player -> os.clock() of their last gather
+local gathered: { [Instance]: { [Player]: number } } = {}
+
+local QiNodes = {}
+
+local function gather(node: BasePart, player: Player)
+	local data = PlayerData.get(player)
+	if not data then
+		return
+	end
+	local byPlayer = gathered[node] or {}
+	gathered[node] = byPlayer
+	local now = os.clock()
+	local wait = Config.NODE_COOLDOWN - (now - (byPlayer[player] or -math.huge))
+	if wait > 0 then
+		Cultivation.notify(player, `This node's qi is still gathering ({math.ceil(wait)}s).`)
+		return
+	end
+	local stage = Cultivation.stage(data)
+	local room = stage.dantian - data.rawQi
+	if room <= 0 then
+		Cultivation.notify(player, "Your dantian is full. Circulate to refine it.")
+		return
+	end
+	byPlayer[player] = now
+	local amount = math.min(room, math.floor(stage.dantian * Config.NODE_SHARE))
+	data.rawQi += amount
+	Cultivation.markActive(player)
+	Cultivation.pushState(player)
+	effectRemote:FireClient(player, "qi", node.Position, amount)
+end
+
+local function watch(node: Instance)
+	if not node:IsA("BasePart") then
+		return
+	end
+	local prompt = node:FindFirstChild("GatherPrompt") :: ProximityPrompt?
+	if prompt then
+		prompt.Triggered:Connect(function(player)
+			gather(node, player)
+		end)
+	end
+end
+
+function QiNodes.start()
+	for _, node in CollectionService:GetTagged("QiNode") do
+		watch(node)
+	end
+	CollectionService:GetInstanceAddedSignal("QiNode"):Connect(watch)
+end
+
+function QiNodes.forget(player: Player)
+	for _, byPlayer in gathered do
+		byPlayer[player] = nil
+	end
+end
+
+return QiNodes

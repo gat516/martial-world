@@ -91,6 +91,20 @@ return {
 		IN_COMBAT_SECONDS = 6, -- after being hurt, travel is blocked this long
 	},
 
+	-- Teleport formations between your peak, the main peak and the sect gate
+	Travel = {
+		MAIN_PEAK = Vector3.new(0, 653, 100), -- the plaza, by PlazaSpawn
+		SECT_GATE = Vector3.new(0, 9, 500), -- just outside the gate, facing the wilds
+		COOLDOWN = 3,
+	},
+
+	Wilds = {
+		NODE_COOLDOWN = 45, -- seconds before the same player can gather a node again
+		NODE_SHARE = 0.2, -- a gather gives this share of the player's dantian
+		RESPAWN_SPREAD = 0.3, -- respawn timers vary by up to this share
+		AI_TICK = 0.1, -- seconds between enemy decisions
+	},
+
 	Spawn = {
 		HEIGHT = 4, -- studs above a peak's spawn pad
 	},

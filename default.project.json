@@ -29,6 +29,11 @@
           "$path": "src/client"
         }
       }
+    },
+    "Workspace": {
+      "Wilds": {
+        "$path": "assets/Wilds.rbxmx"
+      }
     }
   }
 }

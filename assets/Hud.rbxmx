@@ -196,8 +196,8 @@
    <string name="Text"></string>
    <int name="ZIndex">20</int>
    <bool name="Visible">false</bool>
-   <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>14</YO></UDim2>
-   <UDim2 name="Size"><XS>0</XS><XO>320</XO><YS>0</YS><YO>48</YO></UDim2>
+   <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>80</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>300</XO><YS>0</YS><YO>48</YO></UDim2>
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
    <Color3 name="BackgroundColor3"><R>0.0627451</R><G>0.0941176</G><B>0.109804</B></Color3>
    <float name="BackgroundTransparency">0.2</float>
@@ -210,7 +210,7 @@
   <Item class="Frame" referent="RBX11"><Properties>
    <string name="Name">Buttons</string>
    <UDim2 name="Position"><XS>1</XS><XO>-12</XO><YS>0</YS><YO>12</YO></UDim2>
-   <UDim2 name="Size"><XS>0</XS><XO>192</XO><YS>0</YS><YO>56</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>260</XO><YS>0</YS><YO>56</YO></UDim2>
    <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
   </Properties>
@@ -264,6 +264,22 @@
    </Properties>
     <Item class="UICorner" referent="RBX16"><Properties>
      <string name="Name">UICorner</string>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="TextButton" referent="RBXT1"><Properties>
+    <string name="Name">TravelButton</string>
+    <string name="Text">Travel</string>
+    <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
+    <Color3 name="BackgroundColor3"><R>0.062745</R><G>0.094118</G><B>0.109804</B></Color3>
+    <Color3 name="TextColor3"><R>0.745098</R><G>0.823529</G><B>1.000000</B></Color3>
+    <float name="TextSize">13</float>
+    <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+    <int name="LayoutOrder">4</int>
+   </Properties>
+    <Item class="UICorner" referent="RBXT2"><Properties>
+     <string name="Name">UICorner</string>
+     <UDim name="CornerRadius"><S>0</S><O>8</O></UDim>
     </Properties>
     </Item>
    </Item>
@@ -1299,6 +1315,119 @@
     <bool name="Visible">false</bool>
     <int name="ZIndex">9</int>
    </Properties>
+   </Item>
+  </Item>
+  <Item class="Frame" referent="RBXT3"><Properties>
+   <string name="Name">TravelMenu</string>
+   <bool name="Visible">false</bool>
+   <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+   <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>280</XO><YS>0</YS><YO>250</YO></UDim2>
+   <Color3 name="BackgroundColor3"><R>0.062745</R><G>0.094118</G><B>0.109804</B></Color3>
+   <float name="BackgroundTransparency">0.1</float>
+   <int name="ZIndex">6</int>
+  </Properties>
+   <Item class="UICorner" referent="RBXT4"><Properties>
+    <string name="Name">UICorner</string>
+    <UDim name="CornerRadius"><S>0</S><O>12</O></UDim>
+   </Properties>
+   </Item>
+   <Item class="UIStroke" referent="RBXT5"><Properties>
+    <string name="Name">UIStroke</string>
+    <Color3 name="Color"><R>0.470588</R><G>0.627451</G><B>0.901961</B></Color3>
+    <float name="Transparency">0.4</float>
+   </Properties>
+   </Item>
+   <Item class="TextLabel" referent="RBXT6"><Properties>
+    <string name="Name">Title</string>
+    <string name="Text">Teleport Formation</string>
+    <UDim2 name="Position"><XS>0</XS><XO>16</XO><YS>0</YS><YO>10</YO></UDim2>
+    <UDim2 name="Size"><XS>1</XS><XO>-70</XO><YS>0</YS><YO>30</YO></UDim2>
+    <float name="BackgroundTransparency">1</float>
+    <Color3 name="TextColor3"><R>0.925490</R><G>0.949020</G><B>0.925490</B></Color3>
+    <float name="TextSize">19</float>
+    <bool name="TextWrapped">true</bool>
+    <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+    <token name="TextXAlignment">0</token>
+   </Properties>
+   </Item>
+   <Item class="TextButton" referent="RBXT7"><Properties>
+    <string name="Name">Close</string>
+    <string name="Text">X</string>
+    <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+    <UDim2 name="Position"><XS>1</XS><XO>-10</XO><YS>0</YS><YO>8</YO></UDim2>
+    <UDim2 name="Size"><XS>0</XS><XO>44</XO><YS>0</YS><YO>36</YO></UDim2>
+    <Color3 name="BackgroundColor3"><R>0.196078</R><G>0.117647</G><B>0.117647</B></Color3>
+    <Color3 name="TextColor3"><R>0.925490</R><G>0.949020</G><B>0.925490</B></Color3>
+    <float name="TextSize">16</float>
+    <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+   </Properties>
+    <Item class="UICorner" referent="RBXT8"><Properties>
+     <string name="Name">UICorner</string>
+     <UDim name="CornerRadius"><S>0</S><O>8</O></UDim>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Frame" referent="RBXT9"><Properties>
+    <string name="Name">List</string>
+    <UDim2 name="Position"><XS>0</XS><XO>16</XO><YS>0</YS><YO>56</YO></UDim2>
+    <UDim2 name="Size"><XS>1</XS><XO>-32</XO><YS>1</YS><YO>-68</YO></UDim2>
+    <float name="BackgroundTransparency">1</float>
+   </Properties>
+    <Item class="UIListLayout" referent="RBXT10"><Properties>
+     <string name="Name">UIListLayout</string>
+     <UDim name="Padding"><S>0</S><O>10</O></UDim>
+     <token name="SortOrder">2</token>
+    </Properties>
+    </Item>
+    <Item class="TextButton" referent="RBXT11"><Properties>
+     <string name="Name">Peak</string>
+     <string name="Text">My Peak</string>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>48</YO></UDim2>
+     <Color3 name="BackgroundColor3"><R>0.109804</R><G>0.156863</G><B>0.188235</B></Color3>
+     <Color3 name="TextColor3"><R>0.925490</R><G>0.949020</G><B>0.925490</B></Color3>
+     <float name="TextSize">17</float>
+     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>600</Weight><Style>Normal</Style></Font>
+     <int name="LayoutOrder">1</int>
+    </Properties>
+     <Item class="UICorner" referent="RBXT12"><Properties>
+      <string name="Name">UICorner</string>
+      <UDim name="CornerRadius"><S>0</S><O>8</O></UDim>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="TextButton" referent="RBXT13"><Properties>
+     <string name="Name">MainPeak</string>
+     <string name="Text">Main Peak</string>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>48</YO></UDim2>
+     <Color3 name="BackgroundColor3"><R>0.109804</R><G>0.156863</G><B>0.188235</B></Color3>
+     <Color3 name="TextColor3"><R>0.925490</R><G>0.949020</G><B>0.925490</B></Color3>
+     <float name="TextSize">17</float>
+     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>600</Weight><Style>Normal</Style></Font>
+     <int name="LayoutOrder">2</int>
+    </Properties>
+     <Item class="UICorner" referent="RBXT14"><Properties>
+      <string name="Name">UICorner</string>
+      <UDim name="CornerRadius"><S>0</S><O>8</O></UDim>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="TextButton" referent="RBXT15"><Properties>
+     <string name="Name">SectGate</string>
+     <string name="Text">Sect Gate (Wilds)</string>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>48</YO></UDim2>
+     <Color3 name="BackgroundColor3"><R>0.109804</R><G>0.156863</G><B>0.188235</B></Color3>
+     <Color3 name="TextColor3"><R>0.925490</R><G>0.949020</G><B>0.925490</B></Color3>
+     <float name="TextSize">17</float>
+     <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>600</Weight><Style>Normal</Style></Font>
+     <int name="LayoutOrder">3</int>
+    </Properties>
+     <Item class="UICorner" referent="RBXT16"><Properties>
+      <string name="Name">UICorner</string>
+      <UDim name="CornerRadius"><S>0</S><O>8</O></UDim>
+     </Properties>
+     </Item>
+    </Item>
    </Item>
   </Item>
  </Item>

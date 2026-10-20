@@ -374,6 +374,8 @@ local function onEffect(kind: string, ...: any)
 		if root then
 			CombatEffects.number(root.Position, "Perfect dodge!", Color3.fromRGB(170, 225, 255), 20)
 		end
+	elseif kind == "qi" then
+		CombatEffects.number(args[1], `+{args[2]} qi`, Color3.fromRGB(120, 235, 180), 20)
 	elseif kind == "cast" then
 		local caster = args[1] :: Player
 		CombatEffects.cast(caster.Character, args[2], args[3], args[4], args[5])

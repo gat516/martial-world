@@ -57,6 +57,7 @@ local RELEASE_SECONDS = 0.3
 local LockOn = {}
 
 local target: Model? = nil
+local movementFacing = false -- running keeps camera lock but uses native movement-facing rotation
 local auto = Platform.isTouch()
 local autoHeld = false -- unlocked by hand in Auto: don't re-lock until nobody's near
 local lastDodge = -math.huge
@@ -236,6 +237,10 @@ function LockOn.target(): Model?
 	return target
 end
 
+function LockOn.setMovementFacing(on: boolean)
+	movementFacing = on
+end
+
 function LockOn.isAuto(): boolean
 	return auto
 end
@@ -402,7 +407,7 @@ local function updateCamera(dt: number, root: BasePart, current: Model)
 
 	-- face the target: you strafe around it
 	local humanoid = myHumanoid()
-	if humanoid then
+	if humanoid and not movementFacing then
 		humanoid.AutoRotate = false
 		local look = Vector3.new(chest.X, root.Position.Y, chest.Z)
 		if (look - root.Position).Magnitude > 0.5 then

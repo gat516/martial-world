@@ -35,6 +35,7 @@ local LockOn = require(script.Parent.LockOn)
 local Meditation = require(script.Parent.Meditation)
 local Platform = require(script.Parent.Platform)
 local Sfx = require(script.Parent.Sfx)
+local Sprint = require(script.Parent.Sprint)
 local State = require(script.Parent.State)
 
 local remotes = ReplicatedStorage.Remotes
@@ -217,6 +218,7 @@ function CombatController.swing()
 	end
 	chainIndex = if now - lastSwing > Config.CHAIN_RESET then 1 else chainIndex % #Config.FIST_DAMAGE + 1
 	lastSwing = now
+	Sprint.pauseTurning(Config.SWING_SECONDS)
 	faceTarget(root)
 	local track = playAnimation(chainIndex)
 	Sfx.play("Swing")
@@ -274,6 +276,7 @@ function CombatController.dodge()
 		return
 	end
 	lastDodge = now
+	Sprint.pauseTurning(Config.DODGE_SECONDS)
 	LockOn.noteDodge()
 	dodgeRemote:FireServer(workspace:GetServerTimeNow())
 
@@ -407,6 +410,7 @@ function CombatController.cast(id: string)
 		return
 	end
 	readyAt[def.id] = now + def.cooldown
+	Sprint.pauseTurning(Config.SWING_SECONDS)
 	local dir = faceTarget(root)
 	-- the technique goes off at the animation's "Hit" marker, from where you stand then
 	onMarkers(playAnimation(def.animation), function()

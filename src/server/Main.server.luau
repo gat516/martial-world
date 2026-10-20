@@ -113,6 +113,7 @@ local function onPlayerAdded(player: Player)
 	lastBreakthroughAt[player] = os.clock()
 	if data.onboardingStep == 0 and data.stats.circulationRuns == 0 then
 		Analytics.funnel(player, 1)
+		Analytics.progression(player, "start", 1, Realms.Stages[1].name)
 	end
 	if offline > 0 then
 		Analytics.event(player, "OfflineQiClaimed", offline)
@@ -193,6 +194,23 @@ table.insert(Cultivation.onBreakthrough, function(player, stage)
 end)
 table.insert(Tribulation.onFinished, function(player, survived)
 	Analytics.event(player, "TribulationResult", if survived then 1 else 0)
+	local data = PlayerData.get(player)
+	if not survived and data then
+		local stage = Realms.get(data.realm.major, data.realm.minor)
+		Analytics.progression(player, "fail", Realms.index(stage.major, stage.minor), stage.name)
+	end
+end)
+-- the realm progression funnel: leaving one stage completes it and starts the next
+table.insert(Cultivation.onBreakthrough, function(player, stage)
+	local index = Realms.index(stage.major, stage.minor)
+	local previous = Realms.Stages[index - 1]
+	if previous then
+		Analytics.progression(player, "complete", index - 1, previous.name)
+	end
+	Analytics.progression(player, "start", index, stage.name)
+end)
+table.insert(Cultivation.onInsightBlocked, function(player, stage)
+	Analytics.event(player, "InsightBlocked", Realms.index(stage.major, stage.minor), stage.name)
 end)
 table.insert(Cultivation.onBreakthrough, function(player)
 	local data = PlayerData.get(player)

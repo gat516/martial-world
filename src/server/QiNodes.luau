@@ -6,8 +6,9 @@
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Config = require(ReplicatedStorage.Shared.Config).Wilds
 local Economy = require(ReplicatedStorage.Shared.Config).Economy
+local Income = require(ReplicatedStorage.Shared.Pacing).Income
+local Realms = require(ReplicatedStorage.Shared.Realms)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -26,7 +27,7 @@ local function gather(node: BasePart, player: Player)
 	local byPlayer = gathered[node] or {}
 	gathered[node] = byPlayer
 	local now = os.clock()
-	local wait = Config.NODE_COOLDOWN - (now - (byPlayer[player] or -math.huge))
+	local wait = Income.NODE_COOLDOWN - (now - (byPlayer[player] or -math.huge))
 	if wait > 0 then
 		Cultivation.notify(player, `This node's qi is still gathering ({math.ceil(wait)}s).`)
 		return
@@ -38,7 +39,7 @@ local function gather(node: BasePart, player: Player)
 		return
 	end
 	byPlayer[player] = now
-	local amount = math.min(room, math.floor(stage.dantian * Config.NODE_SHARE))
+	local amount = math.min(room, Realms.nodeQi(stage))
 	data.rawQi += amount
 	local stones = math.random(Economy.NODE_STONES[1], Economy.NODE_STONES[2])
 	data.stones += stones

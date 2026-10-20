@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Data
 local Economy = require(ReplicatedStorage.Shared.Config).Economy
+local Income = require(ReplicatedStorage.Shared.Pacing).Income
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
@@ -63,7 +64,7 @@ local function default(): Data
 		v = SCHEMA_VERSION,
 		realm = { major = "QiCondensation", minor = 1 },
 		cultivation = 0,
-		rawQi = Config.STARTING_RAW_QI,
+		rawQi = Income.STARTING_RAW_QI,
 		stones = Economy.STARTING_STONES,
 		insight = 0,
 		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } } },

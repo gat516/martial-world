@@ -7,7 +7,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Config = require(ReplicatedStorage.Shared.Config).Progression
+local Config = require(ReplicatedStorage.Shared.Pacing).Rewards
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Cultivation = require(script.Parent.Cultivation)

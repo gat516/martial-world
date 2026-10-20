@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
@@ -144,7 +145,7 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 		table.insert(goals, {
 			name = if major then `Face the tribulation: {nextStage.name}` else `Break through to {nextStage.name}`,
 			detail = if major
-				then "Fill your bar, then survive 30 seconds of heavenly lightning on the main peak."
+				then `Fill your bar, then survive {if stage.tribulation then stage.tribulation.seconds else 30} seconds of heavenly lightning on the main peak.`
 				else "Circulate raw qi from the wilds to fill your realm bar.",
 			progress = `{math.floor(data.cultivation)}/{stage.bar}`,
 		})
@@ -156,7 +157,7 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 			progress = "0/1",
 		})
 	end
-	for _, m in Config.Progression.MILESTONES do
+	for _, m in Pacing.Rewards.MILESTONES do
 		if not data.milestones[tostring(m.kills)] then
 			local reward = if m.manual then Techniques.Defs[m.manual].name else "insight"
 			table.insert(goals, {

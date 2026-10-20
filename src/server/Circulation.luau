@@ -11,6 +11,7 @@ local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Circulation
+local Refine = require(ReplicatedStorage.Shared.Pacing).Refine
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Cultivation = require(script.Parent.Cultivation)
@@ -29,7 +30,7 @@ local Circulation = {}
 Circulation.onFinished = {} :: { (Player, number) -> () }
 
 local function fullRunQi(stage: Realms.Stage): number
-	return math.floor(stage.dantian / Config.RUNS_PER_DANTIAN)
+	return math.floor(stage.dantian / Refine.RUNS_PER_DANTIAN)
 end
 
 -- A weighted pick from Config.Games, avoiding the player's last game when another can run.
@@ -96,7 +97,7 @@ function Circulation.start(player: Player): (boolean, any)
 	if data.cultivation >= stage.bar then
 		return false, "Your realm bar is full. Break through first."
 	end
-	if data.rawQi < fullRunQi(stage) * Config.MIN_RUN_FRACTION then
+	if data.rawQi < fullRunQi(stage) * Refine.MIN_RUN_FRACTION then
 		return false, "Your dantian is nearly empty. Go out and gather qi."
 	end
 	if not atRefiningSpot(player) then
@@ -104,8 +105,8 @@ function Circulation.start(player: Player): (boolean, any)
 	end
 
 	local index = Realms.index(data.realm.major, data.realm.minor)
-	local duration = math.min(Config.DURATION_MAX, Config.DURATION_START + Config.DURATION_STEP * (index - 1))
-	local difficulty = math.clamp((index - 1) / Config.DIFFICULTY_STAGES * Config.DIFFICULTY, 0, 1)
+	local duration = stage.runSeconds
+	local difficulty = stage.difficulty
 	local minigame = pickGame(player)
 	if data.stats.circulationRuns == 0 then
 		-- the onboarding run: short, forgiving, and the game the elder explains
@@ -151,7 +152,8 @@ function Circulation.finish(player: Player, id: any, accuracy: any, purged: any)
 	local acc = if type(accuracy) == "number" and accuracy == accuracy then math.clamp(accuracy, 0, 1) else 0
 	local purgedShare = if type(purged) == "number" then math.clamp(math.floor(purged), 0, run.impurities) / run.impurities else 0
 	local score = acc * Config.ACCURACY_WEIGHT + purgedShare * (1 - Config.ACCURACY_WEIGHT)
-	local efficiency = (Config.EFFICIENCY_MIN + (Config.EFFICIENCY_MAX - Config.EFFICIENCY_MIN) * score)
+	local efficiency = (Refine.EFFICIENCY_MIN + (Refine.EFFICIENCY_MAX - Refine.EFFICIENCY_MIN) * score)
+		* stage.refine
 		* (1 + WeatherService.bonus("circulation"))
 
 	-- spend only what fills the bar; the rest stays in the dantian
@@ -162,9 +164,9 @@ function Circulation.finish(player: Player, id: any, accuracy: any, purged: any)
 	data.cultivation = math.min(stage.bar, data.cultivation + gain)
 	data.stats.circulationRuns += 1
 
-	local deviation = score < Config.DEVIATION_SCORE
+	local deviation = score < Refine.DEVIATION_SCORE
 	if deviation then
-		Cultivation.deviate(player, Config.DEVIATION_SECONDS)
+		Cultivation.deviate(player, Refine.DEVIATION_SECONDS)
 	end
 	for _, fn in Circulation.onFinished do
 		task.spawn(fn, player, score)

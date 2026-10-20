@@ -1,5 +1,9 @@
 --!strict
 -- Every gameplay tunable in one place. Herb stats live in Herbs.luau.
+-- Progression pacing and per-stage difficulty (qi, breakthroughs, tribulations,
+-- insight, beast strength) live in Pacing.luau, the master tuning file.
+
+local Pacing = require(script.Parent.Pacing)
 
 return {
 	Data = {
@@ -9,7 +13,6 @@ return {
 		LOCK_WAIT_SECONDS = 15, -- wait this long for another server to release, then take over
 		LOCK_RETRY_SECONDS = 3,
 		STARTING_SEEDS = { SpiritGrass = 6 },
-		STARTING_RAW_QI = 60, -- half a QC1 dantian: enough for the first circulation run
 	},
 
 	Movement = {
@@ -26,26 +29,14 @@ return {
 		WARN_RATIO = 5,
 		WARN_IDLE_SECONDS = 180, -- no runs or breakthroughs for this long
 		WARN_INTERVAL = 240, -- at most one warning this often
-		-- Breakthroughs happen seated in meditation. In combat, at low health, one can
-		-- be forced early; the new realm then starts in qi debt (negative cultivation)
-		-- that peaceful cultivation has to pay off before the bar fills again.
-		FORCE_BAR_SHARE = 0.9, -- the bar must be at least this full to force it
-		FORCE_HEALTH_SHARE = 0.35, -- and health at most this share of max, in combat
-		FORCE_DEBT_SHARE = 0.5, -- debt: the bar's shortfall plus this share of the new bar
+		-- Breakthrough and forced-breakthrough numbers: Pacing.Breakthrough.
 	},
 
+	-- Qi spent per run, efficiency, deviation, and each stage's run length and
+	-- difficulty are progression pacing: Pacing.Refine and Pacing.Curve.
 	Circulation = {
-		RUNS_PER_DANTIAN = 2.5, -- a full run spends dantian / this raw qi
-		MIN_RUN_FRACTION = 0.25, -- need at least this share of a full run's qi to start
-		DURATION_START = 20, -- seconds at QC1
-		DURATION_STEP = 2, -- added per realm stage
-		DURATION_MAX = 40,
 		IMPURITIES_PER_10S = 1.5, -- impure beats/motes per 10 s of run, in every game
 		ACCURACY_WEIGHT = 0.75, -- score = accuracy * this + purged share * the rest
-		EFFICIENCY_MIN = 0.5, -- cultivation per raw qi at score 0
-		EFFICIENCY_MAX = 1.3, -- and at score 1
-		DEVIATION_SCORE = 0.35, -- below this the run causes a qi deviation
-		DEVIATION_SECONDS = 20, -- no circulating and no passive cultivation meanwhile
 		MIN_DURATION_FRACTION = 0.9, -- a run reported sooner than this is rejected
 		RUN_TIMEOUT_GRACE = 15, -- seconds past the duration before a run is dropped
 		PEAK_RADIUS = 60, -- studs from your plateau centre that count as on your peak
@@ -53,14 +44,9 @@ return {
 		FIRST_RUN_DURATION = 15, -- ...short...
 		FIRST_RUN_DIFFICULTY = -0.5, -- ...and easier than `easy` (below 0 blends past it)
 
-		-- Minigame difficulty. Each run gets a difficulty from 0 (easy) to 1 (hard):
-		--   (realm stage - 1) / DIFFICULTY_STAGES * DIFFICULTY, clamped.
-		-- DIFFICULTY is the master knob for all games: 0 keeps every run at `easy`,
-		-- 1 reaches `hard` after DIFFICULTY_STAGES stages, 2 gets there twice as fast.
-		-- Each game blends every value in `easy` toward `hard` by the run's difficulty.
-		-- `weight` is how often the game is picked for a run (0 = never).
-		DIFFICULTY = 1,
-		DIFFICULTY_STAGES = 9,
+		-- Minigames. Each run gets a difficulty from 0 (easy) to 1 (hard), set per
+		-- stage in Pacing.Curve (`difficulty`); each game blends every value in
+		-- `easy` toward `hard` by it. `weight` is how often the game is picked (0 = never).
 		Games = {
 			-- Maze Formation: drag your qi through the corridors, out of maze after maze.
 			Maze = {
@@ -108,8 +94,9 @@ return {
 	-- multiplied by where you sit. Seats and artifacts on your own peak add their
 	-- bonus when you meditate within ITEM_RANGE of them (the best one counts).
 	Meditation = {
-		ANYWHERE = 1.5, -- passive multiplier meditating anywhere
-		ON_PEAK = 2.5, -- on your own spirit peak (within Circulation.PEAK_RADIUS)
+		-- passive multipliers, from Pacing.Meditation (read them there)
+		ANYWHERE = Pacing.Meditation.ANYWHERE, -- meditating anywhere
+		ON_PEAK = Pacing.Meditation.ON_PEAK, -- on your own spirit peak (within Circulation.PEAK_RADIUS)
 		ITEM_RANGE = 6, -- studs from a seat or artifact for its bonus to count
 		-- (each build item's bonus is its `meditation` in BuildItems.luau)
 		MAX_DRIFT = 4, -- studs from where you sat down before the server stands you up
@@ -268,38 +255,19 @@ return {
 	},
 
 	Wilds = {
-		NODE_COOLDOWN = 45, -- seconds before the same player can gather a node again
-		NODE_SHARE = 0.2, -- a gather gives this share of the player's dantian
+		-- qi node yield and cooldown: Pacing.Income
 		RESPAWN_SPREAD = 0.3, -- respawn timers vary by up to this share
 		AI_TICK = 0.1, -- seconds between enemy decisions
 	},
 
-	-- Insight and technique manuals
-	Progression = {
-		FIRST_KILL_INSIGHT = 1, -- the first kill of each enemy type
-		BOSS_INSIGHT = 1, -- every boss kill
-		BOSS_FIRST_MANUAL = "LightningTalisman",
-		-- kill milestones (total kills): insight and/or a manual, once each
-		MILESTONES = {
-			{ kills = 3, manual = "PalmStrike" },
-			{ kills = 30, insight = 1, manual = "IronSkin" },
-			{ kills = 100, insight = 1, manual = "FireSeal" },
-		},
-	},
+	-- Insight and technique manuals: Pacing.Rewards.
 
-	-- The heavenly tribulation before Foundation Establishment
+	-- The heavenly tribulation's arena. How hard it is (length, strike rate and
+	-- damage, fail cooldown) is per stage: Pacing.Curve `tribulation`.
 	Tribulation = {
 		CENTER = Vector3.new(2, 857, -86), -- on the main peak's tribulation platform
 		ARENA_RADIUS = 34, -- stepping farther out than this fails the tribulation
-		SECONDS = 30,
 		STRIKE_RADIUS = 5,
-		WINDUP_START = 1.2, -- seconds a strike's telegraph shows, at the start...
-		WINDUP_END = 0.7, -- ...and by the end
-		INTERVAL_START = 1.3, -- seconds between strikes, at the start...
-		INTERVAL_END = 0.5, -- ...and by the end
-		SCATTER = 9, -- strikes land up to this far from the player
-		DAMAGE_SHARE = 0.22, -- of max health per strike
-		FAIL_COOLDOWN = 120, -- seconds before trying again
 	},
 
 	-- Day and night (client-side, in step across clients through the server clock)
@@ -318,11 +286,7 @@ return {
 		RESPAWN_AT_HUB = true,
 	},
 
-	Login = {
-		OFFLINE_MAX_HOURS = 12, -- offline cultivation counts at most this long
-		OFFLINE_RATE = 1, -- share of the online passive rate while away
-		DAILY_QI_SHARE = 0.5, -- first login of a day: this share of the dantian as raw qi
-	},
+	-- Offline cultivation and the daily raw qi bonus: Pacing.Income.
 
 	-- Admins (AdminPanel): the creator, these user ids, and anyone in Studio.
 	Admin = {

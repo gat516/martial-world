@@ -11,8 +11,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Cultivation
-local CirculationConfig = require(ReplicatedStorage.Shared.Config).Circulation
-local LoginConfig = require(ReplicatedStorage.Shared.Config).Login
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local GardenConfig = require(ReplicatedStorage.Shared.Config).Garden
 local Movement = require(script.Parent.Movement)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
@@ -227,6 +226,9 @@ function Cultivation.advance(player: Player, debt: number?)
 	end
 end
 
+-- Called with (player, stage) when a full-bar breakthrough is refused for lack of insight.
+Cultivation.onInsightBlocked = {} :: { (Player, Realms.Stage) -> () }
+
 -- Called with (player, newStage, major) after every breakthrough.
 Cultivation.onBreakthrough = {} :: { (Player, Realms.Stage, boolean) -> () }
 
@@ -236,8 +238,8 @@ function Cultivation.canForce(player: Player, data: PlayerData.Data): boolean
 	if not (humanoid and humanoid.Health > 0 and Cultivation.inCombat and Cultivation.inCombat(player)) then
 		return false
 	end
-	return humanoid.Health <= humanoid.MaxHealth * Config.FORCE_HEALTH_SHARE
-		and data.cultivation >= Cultivation.stage(data).bar * Config.FORCE_BAR_SHARE
+	return humanoid.Health <= humanoid.MaxHealth * Pacing.Breakthrough.FORCE_HEALTH_SHARE
+		and data.cultivation >= Cultivation.stage(data).bar * Pacing.Breakthrough.FORCE_BAR_SHARE
 end
 
 -- Breakthroughs happen seated in meditation on a full bar: minor ones at once,
@@ -254,6 +256,11 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 		return false, "You stand at the peak of this world's cultivation, for now."
 	end
 	if data.insight < stage.insight then
+		if data.cultivation >= stage.bar then
+			for _, fn in Cultivation.onInsightBlocked do
+				task.spawn(fn, player, stage)
+			end
+		end
 		return false, "You feel as if you need more insight."
 	end
 	local major = nextStage.major ~= stage.major
@@ -265,7 +272,7 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 		if major then
 			return false, "A major breakthrough can't be forced. Face the heavens calmly."
 		end
-		local debt = (stage.bar - math.min(data.cultivation, stage.bar)) + nextStage.bar * Config.FORCE_DEBT_SHARE
+		local debt = (stage.bar - math.min(data.cultivation, stage.bar)) + nextStage.bar * Pacing.Breakthrough.FORCE_DEBT_SHARE
 		Cultivation.advance(player, debt)
 		Cultivation.notify(player, `You forced the breakthrough! Your foundation is unstable: {math.ceil(debt)} qi owed.`)
 		return true, nil
@@ -303,7 +310,7 @@ local function warning(player: Player, data: PlayerData.Data, rate: number): str
 	if rate > 0 and activeRate / rate < Config.WARN_RATIO then
 		return nil
 	end
-	local runQi = stage.dantian / CirculationConfig.RUNS_PER_DANTIAN * CirculationConfig.MIN_RUN_FRACTION
+	local runQi = stage.dantian / Pacing.Refine.RUNS_PER_DANTIAN * Pacing.Refine.MIN_RUN_FRACTION
 	if data.rawQi >= runQi then
 		return "Qi stirs in your dantian. Circulate to refine it."
 	end
@@ -318,8 +325,8 @@ function Cultivation.claimLogin(player: Player, data: PlayerData.Data): (number,
 	local stage = Cultivation.stage(data)
 	local offline = 0
 	if data.lastLogoutUnix > 0 then
-		local away = math.clamp(now - data.lastLogoutUnix, 0, LoginConfig.OFFLINE_MAX_HOURS * 3600)
-		offline = math.min(stage.passive * LoginConfig.OFFLINE_RATE * away, stage.bar - data.cultivation)
+		local away = math.clamp(now - data.lastLogoutUnix, 0, Pacing.Income.OFFLINE_MAX_HOURS * 3600)
+		offline = math.min(stage.passive * Pacing.Income.OFFLINE_RATE * away, stage.bar - data.cultivation)
 		offline = math.max(0, math.floor(offline))
 		data.cultivation += offline
 	end
@@ -327,7 +334,7 @@ function Cultivation.claimLogin(player: Player, data: PlayerData.Data): (number,
 	local today = now // 86400
 	if data.lastDailyDay ~= today then
 		data.lastDailyDay = today
-		daily = math.min(math.floor(stage.dantian * LoginConfig.DAILY_QI_SHARE), stage.dantian - data.rawQi)
+		daily = math.min(math.floor(stage.dantian * Pacing.Income.DAILY_QI_SHARE * stage.gather), stage.dantian - data.rawQi)
 		daily = math.max(0, daily)
 		data.rawQi += daily
 	end

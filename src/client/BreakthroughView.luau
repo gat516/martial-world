@@ -12,7 +12,7 @@ local TweenService = game:GetService("TweenService")
 local Hud = require(script.Parent.Hud)
 local Menus = require(script.Parent.Menus)
 local State = require(script.Parent.State)
-local Config = require(ReplicatedStorage.Shared.Config).Cultivation
+local Config = require(ReplicatedStorage.Shared.Pacing).Breakthrough
 
 local SPARKLE = "rbxasset://textures/particles/sparkles_main.dds"
 

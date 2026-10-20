@@ -1,6 +1,6 @@
 --!strict
 -- Local camera look, layered onto the neck without changing body movement.
--- Looking back toward the character returns the head to its forward pose.
+-- Track past sideways; ease forward again as the camera faces the character.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -8,6 +8,7 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local MAX_YAW = math.rad(65)
 local MAX_PITCH = math.rad(25)
+local FORWARD_BLEND_START = math.rad(150)
 local SHARPNESS = 10
 
 local HeadLook = {}
@@ -49,11 +50,13 @@ local function step(dt: number)
 	local camera = workspace.CurrentCamera
 	if camera and camera.CameraSubject == h and h.Health > 0 then
 		local look = torso.CFrame:VectorToObjectSpace(camera.CFrame.LookVector)
-		-- A camera looking into the character's face must not twist the head backward.
-		if look.Z < 0 then
-			targetYaw = math.clamp(math.atan2(-look.X, -look.Z), -MAX_YAW, MAX_YAW)
-			targetPitch = math.clamp(math.asin(math.clamp(look.Y, -1, 1)), -MAX_PITCH, MAX_PITCH)
-		end
+		local cameraYaw = math.atan2(-look.X, -look.Z)
+		-- Keep looking sideways beyond 90 degrees, then return forward over 150-180.
+		-- Fading to zero also avoids flipping sides when camera yaw wraps at 180.
+		local blend = math.clamp((math.pi - math.abs(cameraYaw)) / (math.pi - FORWARD_BLEND_START), 0, 1)
+		local weight = blend * blend * (3 - 2 * blend)
+		targetYaw = math.clamp(cameraYaw, -MAX_YAW, MAX_YAW) * weight
+		targetPitch = math.clamp(math.asin(math.clamp(look.Y, -1, 1)), -MAX_PITCH, MAX_PITCH) * weight
 	end
 	local alpha = 1 - math.exp(-SHARPNESS * dt)
 	yaw += (targetYaw - yaw) * alpha

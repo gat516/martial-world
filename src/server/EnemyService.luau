@@ -152,8 +152,10 @@ function EnemyService.spawn(id: string, at: Vector3, zone: BasePart?): Model?
 	end
 	local model = template:Clone()
 	local humanoid = model:FindFirstChildOfClass("Humanoid") :: Humanoid
-	local root = model.PrimaryPart :: BasePart
-	local rootHeight = (template.PrimaryPart :: BasePart).Position.Y
+	-- Rojo's live sync drops Model.PrimaryPart, so find the root by name
+	local root = model:FindFirstChild("HumanoidRootPart") :: BasePart
+	model.PrimaryPart = root
+	local rootHeight = (template:FindFirstChild("HumanoidRootPart") :: BasePart).Position.Y
 	humanoid.MaxHealth = def.health
 	humanoid.Health = def.health
 	humanoid.WalkSpeed = def.walkSpeed

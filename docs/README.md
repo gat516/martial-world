@@ -32,7 +32,7 @@ AGENTS.md, "Studio instances".
 | How fast players climb, per stage: qi, breakthroughs, tribulation, insight, beast strength | `src/shared/Pacing.luau` ([cultivation](systems/cultivation.md)) |
 | Realm ladder names and helpers (built from Pacing) | `src/shared/Realms.luau` |
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
-| Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau` |
+| Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
 | Knockback / stagger | `src/shared/Knockback.luau` |
 | Techniques | `src/shared/Techniques.luau` |
 | Herbs and plants | `src/shared/Herbs.luau` |
@@ -49,7 +49,7 @@ AGENTS.md, "Studio instances".
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
 | Combat and action states | [combat](systems/combat.md) | Combat, Movement | ActionRules, Hitbox, Techniques, Knockback, Config.Combat | CombatController, ActionState, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |
-| Enemies and spawning | [enemies](systems/enemies.md) | EnemyService, Spawner | Enemies, Spawns, Knockback | EnemyAnimator, EnemyBars, EnemySounds, Telegraphs |
+| Enemies, spawning, regions | [enemies](systems/enemies.md) | EnemyService, Spawner | Enemies, Spawns, Regions, Knockback | EnemyAnimator, EnemyBars, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak |
 | Weather, world events, treasures | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures | Weather, WorldEvents | WeatherFX, DayNight, Music |

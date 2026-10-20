@@ -11,13 +11,17 @@ seeds, insight and technique manuals, and the main test of a player's realm.
   Together they set how far player hits throw them: a Qi Condensation fist can't
   move the Elder Wolf King (QC9, weight 7); Foundation shoves it.
 - Kill rewards scale with the killer's dantian, so old beasts stay worth hunting.
-- The wilds keep pace: besides designated zones, players roaming open ground meet
-  ambient packs picked by their realm stage.
+- Besides designated zones, players roaming open ground meet ambient packs drawn
+  from the region they're in (`Regions.luau`: the Sect, Inner Wilds, Ruined
+  Borderlands, Outer Wastes, each with the realm it's meant for), so deeper
+  regions are deadlier. The sect has no ambient beasts.
 
 ## Key files
 - `src/shared/Enemies.luau`: defs (health, speeds, aggro/leash, attack and boss
   pattern, `qiDrop`, `stones`, `drops`, `realm`, `weight`), `QI_SCALE_EXPONENT`.
-- `src/shared/Spawns.luau`: ambient encounter rules and packs by stage.
+- `src/shared/Spawns.luau`: ambient encounter rules (rates, caps, safe spots).
+- `src/shared/Regions.luau`: named regions (shape, intended realm, flavour line,
+  ambient pack table).
 - `src/server/Spawner.luau`: keeps zones (`Workspace.Wilds.Zones` parts with
   `Enemy`/`Count`/`Radius`) topped up with respawns, runs ambient encounters,
   `Spawner.pack` (drop a group) and `Spawner.boost` (world events).
@@ -39,7 +43,7 @@ resolve via `Combat.hurt` -> on death each damager gets qi (capped by dantian),
 stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner refill.
 
 ## Tuning knobs
-- Per beast: `Enemies.luau`. Ambient packs and rates: `Spawns.luau`.
+- Per beast: `Enemies.luau`. Ambient rates: `Spawns.luau`. Packs per region: `Regions.luau`.
 - Per stage (`Pacing.luau`, not wired yet): `beastHealth`, `beastDamage` (Adjust,
   by the beast's realm), `Global.BEAST_HEALTH/BEAST_DAMAGE`, the stage's `gather`
   for kill qi, and `Income.ENEMY_QI_EXPONENT` (replacing `Enemies.QI_SCALE_EXPONENT`).
@@ -47,6 +51,7 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 ## Known gaps
 - The Pacing beast multipliers and `Realms.enemyQi` aren't read by
   EnemyService/Spawner yet.
-- Spawns' safety rules (height, safe spots) are placeholders until the world layout settles.
+- Region shapes and Spawns' safe spots are placeholders until the world layout
+  settles; the middle and outer regions reuse ring-1 beasts until their own exist.
 - Enemy hits don't knock players back yet.
 - One ring of wilds: three beasts and one boss.

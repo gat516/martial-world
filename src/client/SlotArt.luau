@@ -39,9 +39,15 @@ function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: 
 		glow.Visible = true
 	elseif item then
 		local empty = (count or 0) <= 0
-		glyph.Text = item.glyph
-		glyph.TextColor3 = item.color:Lerp(WHITE, 0.45)
-		glyph.TextTransparency = if empty then 0.6 else 0
+		if item.icon then
+			icon.Image = item.icon
+			icon.ImageColor3 = WHITE
+			icon.ImageTransparency = if empty then 0.6 else 0
+		else
+			glyph.Text = item.glyph
+			glyph.TextColor3 = item.color:Lerp(WHITE, 0.45)
+			glyph.TextTransparency = if empty then 0.6 else 0
+		end
 		glow.ImageColor3 = Items.rarityColor(item)
 		glow.Visible = not empty
 		if countText == nil then

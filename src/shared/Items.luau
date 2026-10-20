@@ -29,7 +29,8 @@ export type Item = {
 	category: Category,
 	rarity: string,
 	color: Color3,
-	glyph: string, -- the character drawn on its slot
+	glyph: string, -- the character drawn when there's no icon
+	icon: string?, -- its slot image (art/ui/icons, drawn by draw_icons.py)
 	blurb: string, -- what it does, one line
 	lore: string?,
 	use: Use,
@@ -119,6 +120,20 @@ Items.Defs = {
 	},
 } :: { [string]: Item }
 
+-- Slot images, by item id (art/ui/icons/icon_<id>.png)
+local ICONS = {
+	SpiritGrass = "rbxassetid://84508841051600",
+	CloudMint = "rbxassetid://89589970277875",
+	BloodGinseng = "rbxassetid://119125771823117",
+	MoonpetalOrchid = "rbxassetid://80946895055394",
+	NineLeafLingzhi = "rbxassetid://81489830463246",
+	LesserSpiritCore = "rbxassetid://115885227394300",
+	GreaterSpiritCore = "rbxassetid://123502344464016",
+	HeavenlyDew = "rbxassetid://130425556372891",
+	CloudPatternJade = "rbxassetid://111675844442057",
+	ImmortalPeach = "rbxassetid://139842946222436",
+}
+
 -- Herbs are items too
 for _, id in Herbs.Order do
 	local herb = Herbs.Defs[id]
@@ -133,6 +148,10 @@ for _, id in Herbs.Order do
 		lore = "Grown in the beds of your spirit peak.",
 		use = { qi = herb.eat.qi, buffs = herb.eat.buffs },
 	}
+end
+
+for id, icon in ICONS do
+	Items.Defs[id].icon = icon
 end
 
 Items.Order = table.clone(Herbs.Order)

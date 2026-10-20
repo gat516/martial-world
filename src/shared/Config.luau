@@ -29,11 +29,7 @@ return {
 		DURATION_START = 20, -- seconds at QC1
 		DURATION_STEP = 2, -- added per realm stage
 		DURATION_MAX = 40,
-		BAND_START = 0.34, -- green band height as a share of the gauge at QC1
-		BAND_STEP = 0.022, -- narrows by this per realm stage
-		BAND_MIN = 0.14,
-		IMPURITIES_PER_10S = 1.5,
-		LOOPS = 2, -- times the orb circles the meridian per run
+		IMPURITIES_PER_10S = 1.5, -- impure beats/motes per 10 s of run, in every game
 		ACCURACY_WEIGHT = 0.75, -- score = accuracy * this + purged share * the rest
 		EFFICIENCY_MIN = 0.5, -- cultivation per raw qi at score 0
 		EFFICIENCY_MAX = 1.3, -- and at score 1
@@ -42,8 +38,49 @@ return {
 		MIN_DURATION_FRACTION = 0.9, -- a run reported sooner than this is rejected
 		RUN_TIMEOUT_GRACE = 15, -- seconds past the duration before a run is dropped
 		PEAK_RADIUS = 60, -- studs from your plateau centre that count as on your peak
-		FIRST_RUN_DURATION = 15, -- the very first run is short...
-		FIRST_RUN_BAND_BONUS = 0.1, -- ...and its band is this much wider
+		FIRST_RUN_DURATION = 15, -- the very first run is short, always the Circuit...
+		FIRST_RUN_DIFFICULTY = -0.5, -- ...and easier than `easy` (below 0 blends past it)
+
+		-- Minigame difficulty. Each run gets a difficulty from 0 (easy) to 1 (hard):
+		--   (realm stage - 1) / DIFFICULTY_STAGES * DIFFICULTY, clamped.
+		-- DIFFICULTY is the master knob for all games: 0 keeps every run at `easy`,
+		-- 1 reaches `hard` after DIFFICULTY_STAGES stages, 2 gets there twice as fast.
+		-- Each game blends every value in `easy` toward `hard` by the run's difficulty.
+		-- `weight` is how often the game is picked for a run (0 = never).
+		DIFFICULTY = 1,
+		DIFFICULTY_STAGES = 9,
+		Games = {
+			-- Small Heavenly Circuit: hold to keep the pressure needle in a drifting band.
+			Circuit = {
+				weight = 1,
+				easy = {
+					band = 0.34, -- green band height, share of the gauge
+					drift = 0.9, -- how fast the band wanders
+					loops = 2, -- orb laps per run (impurities come faster with more)
+				},
+				hard = { band = 0.14, drift = 1.4, loops = 3 },
+			},
+			-- Meridian Pulse: tap anywhere as each ring closes on its acupoint.
+			Pulse = {
+				weight = 1,
+				easy = {
+					window = 0.3, -- seconds either side of the beat that still count ("Good")
+					interval = 1.1, -- seconds between beats
+					approach = 1.4, -- seconds a ring takes to close
+				},
+				hard = { window = 0.14, interval = 0.7, approach = 0.9 },
+			},
+			-- Gather Qi: drag the dantian bowl to catch falling qi and dodge impure motes.
+			Gather = {
+				weight = 1,
+				easy = {
+					bowl = 0.3, -- bowl width, share of the field
+					fall = 0.45, -- mote fall speed, field heights per second
+					interval = 0.6, -- seconds between qi motes
+				},
+				hard = { bowl = 0.17, fall = 0.8, interval = 0.38 },
+			},
+		} :: { [string]: { weight: number, easy: { [string]: number }, hard: { [string]: number } } },
 	},
 
 	-- Meditation (M / the Cultivate tile, then Meditate): sit still and passive cultivation is

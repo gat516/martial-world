@@ -1,7 +1,9 @@
 --!strict
--- Circulation runs: the skill minigame that refines raw qi into cultivation.
--- The client plays the run and reports its accuracy and purged impurities; the
--- server sets the run's parameters, enforces where and how often runs happen, and
+-- Circulation runs: the skill minigames that refine raw qi into cultivation.
+-- The server picks the game (Config.Circulation.Games, weighted, not the same one
+-- twice running) and its length, difficulty and impurity count; the client plays
+-- it and reports an accuracy and how many impurities it purged, scored the same
+-- way for every game. The server enforces where and how often runs happen and
 -- sanity-checks the report (clamped score, minimum duration, qi actually held).
 
 local CollectionService = game:GetService("CollectionService")
@@ -19,6 +21,7 @@ local WeatherService = require(script.Parent.WeatherService)
 type Run = { id: string, started: number, duration: number, impurities: number, stageIndex: number }
 
 local runs: { [Player]: Run } = {}
+local lastGame: { [Player]: string } = {}
 
 local Circulation = {}
 
@@ -27,6 +30,29 @@ Circulation.onFinished = {} :: { (Player, number) -> () }
 
 local function fullRunQi(stage: Realms.Stage): number
 	return math.floor(stage.dantian / Config.RUNS_PER_DANTIAN)
+end
+
+-- A weighted pick from Config.Games, avoiding the player's last game when another can run.
+local function pickGame(player: Player): string
+	local total, pool = 0, {}
+	for name, def in Config.Games do
+		if def.weight > 0 and name ~= lastGame[player] then
+			total += def.weight
+			table.insert(pool, name)
+		end
+	end
+	if total == 0 then
+		return lastGame[player] or "Circuit"
+	end
+	table.sort(pool) -- pairs order isn't stable; keep the roll reproducible
+	local roll = math.random() * total
+	for _, name in pool do
+		roll -= Config.Games[name].weight
+		if roll <= 0 then
+			return name
+		end
+	end
+	return pool[#pool]
 end
 
 -- On your own peak, or within a qi node's radius (CollectionService tag "QiNode").
@@ -79,12 +105,15 @@ function Circulation.start(player: Player): (boolean, any)
 
 	local index = Realms.index(data.realm.major, data.realm.minor)
 	local duration = math.min(Config.DURATION_MAX, Config.DURATION_START + Config.DURATION_STEP * (index - 1))
-	local band = math.max(Config.BAND_MIN, Config.BAND_START - Config.BAND_STEP * (index - 1))
+	local difficulty = math.clamp((index - 1) / Config.DIFFICULTY_STAGES * Config.DIFFICULTY, 0, 1)
+	local minigame = pickGame(player)
 	if data.stats.circulationRuns == 0 then
-		-- the onboarding run: short and forgiving
+		-- the onboarding run: short, forgiving, and the game the elder explains
 		duration = Config.FIRST_RUN_DURATION
-		band += Config.FIRST_RUN_BAND_BONUS
+		difficulty = Config.FIRST_RUN_DIFFICULTY
+		minigame = "Circuit"
 	end
+	lastGame[player] = minigame
 	local run = {
 		id = HttpService:GenerateGUID(false),
 		started = now,
@@ -96,10 +125,10 @@ function Circulation.start(player: Player): (boolean, any)
 	return true,
 		{
 			id = run.id,
+			game = minigame,
 			duration = duration,
-			band = band,
+			difficulty = difficulty,
 			impurities = run.impurities,
-			loops = Config.LOOPS,
 			seed = math.random(1, 1e6),
 		}
 end
@@ -165,6 +194,7 @@ end
 
 function Circulation.forget(player: Player)
 	runs[player] = nil
+	lastGame[player] = nil
 end
 
 return Circulation

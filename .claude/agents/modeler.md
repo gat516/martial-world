@@ -66,9 +66,18 @@ pattern.
 
 ## Into Studio
 
-- Importing the FBX is a manual step: ask the user to run File > Import 3D in
-  Studio (scripts and the MCP can't import FBX). Everything after that is
-  scripted.
+- Importing the FBX is a manual step (scripts and the MCP can't import FBX), so
+  batch it. After exporting, copy every FBX that needs (re)importing into
+  `art/fbx_export/`, a flat drop folder of copies; the sources stay next to
+  their build scripts. Then stop and ask the user to import everything in it:
+  File > Import 3D, select all files in
+  `\\wsl.localhost\Ubuntu\home\cj\roblox\martial-world\art\fbx_export\`, keep
+  the defaults but don't merge meshes (placement finds parts by mesh name),
+  and import each file once. Don't poll Studio while you wait.
+- When the user says the imports are in, check every expected mesh is present
+  exactly once, then run the placement scripts to move each import where it
+  belongs (sized, styled, templated, placed) and delete the import containers.
+  Once that succeeds, empty `art/fbx_export/` so the next batch starts clean.
 - Write `art/<thing>/place_<thing>.luau` (run in Edit mode through
   `execute_luau`): find the imported MeshParts by name, set Size and CFrame from
   the JSON (keep a generated `MESHES` block between BEGIN/END markers), set

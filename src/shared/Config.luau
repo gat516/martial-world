@@ -95,8 +95,6 @@ return {
 	-- bonus when you meditate within ITEM_RANGE of them (the best one counts).
 	Meditation = {
 		-- passive multipliers, from Pacing.Meditation (read them there)
-		ANYWHERE = Pacing.Meditation.ANYWHERE, -- meditating anywhere
-		ON_PEAK = Pacing.Meditation.ON_PEAK, -- on your own spirit peak (within Circulation.PEAK_RADIUS)
 		ITEM_RANGE = 6, -- studs from a seat or artifact for its bonus to count
 		-- (each build item's bonus is its `meditation` in BuildItems.luau)
 		MAX_DRIFT = 4, -- studs from where you sat down before the server stands you up

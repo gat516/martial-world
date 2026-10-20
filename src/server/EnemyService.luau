@@ -175,8 +175,10 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 	local root = model:FindFirstChild("HumanoidRootPart") :: BasePart
 	model.PrimaryPart = root
 	local rootHeight = (template:FindFirstChild("HumanoidRootPart") :: BasePart).Position.Y
-	humanoid.MaxHealth = def.health
-	humanoid.Health = def.health
+	-- beast health and damage scale with its realm's Pacing row (beastHealth/beastDamage)
+	local health = math.floor(def.health * Realms.ofBeast(def.realm).beastHealth + 0.5)
+	humanoid.MaxHealth = health
+	humanoid.Health = health
 	humanoid.WalkSpeed = def.walkSpeed
 	local ground = groundAt(at)
 	model:PivotTo(CFrame.new(ground + Vector3.new(0, rootHeight, 0)) * CFrame.Angles(0, math.random() * math.pi * 2, 0))
@@ -259,8 +261,7 @@ end
 --[[ Death and rewards ]]
 
 local function qiFor(def: Enemies.Def, data: PlayerData.Data): number
-	local dantian = Realms.get(data.realm.major, data.realm.minor).dantian
-	return math.floor(def.qiDrop * (dantian / Realms.Stages[1].dantian) ^ Enemies.QI_SCALE_EXPONENT + 0.5)
+	return Realms.enemyQi(def.qiDrop, Realms.get(data.realm.major, data.realm.minor))
 end
 
 function EnemyService.died(enemy: Enemy)
@@ -514,7 +515,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 		for _, player in Players:GetPlayers() do
 			local root = playerRoot(player)
 			if root and EnemyService.inside(shape, root.Position) then
-				Combat.hurt(player, attack.damage, false, enemy.def.id)
+				Combat.hurt(player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, false, enemy.def.id)
 			end
 		end
 	end

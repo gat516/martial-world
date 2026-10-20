@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Meditation
 local PEAK_RADIUS = require(ReplicatedStorage.Shared.Config).Circulation.PEAK_RADIUS
+local Rates = require(ReplicatedStorage.Shared.Pacing).Meditation
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local BuildItems = require(ReplicatedStorage.Shared.BuildItems)
 local Cultivation = require(script.Parent.Cultivation)
@@ -58,12 +59,12 @@ local function spotAt(player: Player, position: Vector3): Spot
 		if Vector2.new(offset.X, offset.Z).Magnitude <= PEAK_RADIUS and math.abs(offset.Y) <= PEAK_RADIUS then
 			local item = bestItem(peak, position)
 			if item then
-				return { multiplier = Config.ON_PEAK + item.bonus, place = `on your {item.name}` }
+				return { multiplier = Rates.ON_PEAK + item.bonus, place = `on your {item.name}` }
 			end
-			return { multiplier = Config.ON_PEAK, place = "on your peak" }
+			return { multiplier = Rates.ON_PEAK, place = "on your peak" }
 		end
 	end
-	return { multiplier = Config.ANYWHERE, place = "" }
+	return { multiplier = Rates.ANYWHERE, place = "" }
 end
 
 -- Passive-rate multiplier and where it comes from, or nil when not meditating.

@@ -7,7 +7,8 @@
 --   cone    a wide cone in front (bite)
 --   slam    a circle around the attacker
 --   summon  no area; calls `count` more of `summons` to its side
--- qiDrop is raw qi at QC1; it scales with the receiving player's dantian.
+-- qiDrop is raw qi at QC1; it scales with the receiving player's dantian
+-- (Realms.enemyQi, Pacing.Income.ENEMY_QI_EXPONENT).
 -- drops: items (Items.luau) each damager may get on a kill, rolled separately.
 -- realm: the demon beast's cultivation, on the same ladder as players (Realms.luau).
 -- weight: how hard it is to shove (1 = a wolf). Realm and weight together set how
@@ -204,7 +205,5 @@ Enemies.Defs = {
 		} :: { Attack },
 	},
 } :: { [string]: Def }
-
-Enemies.QI_SCALE_EXPONENT = 0.8 -- drop = qiDrop * (dantian / QC1 dantian) ^ this
 
 return Enemies

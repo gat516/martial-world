@@ -752,6 +752,33 @@
     </Item>
    </Item>
   </Item>
+  <Item class="TextButton" referent="RBXA1"><Properties>
+   <string name="Name">AttackButton</string>
+   <string name="Text">Strike</string>
+   <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
+   <UDim2 name="Position"><XS>1</XS><XO>-190</XO><YS>1</YS><YO>-24</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>90</XO><YS>0</YS><YO>90</YO></UDim2>
+   <Color3 name="BackgroundColor3"><R>0.250980</R><G>0.098039</G><B>0.086275</B></Color3>
+   <float name="BackgroundTransparency">0.15</float>
+   <Color3 name="TextColor3"><R>1.000000</R><G>0.886275</G><B>0.823529</B></Color3>
+   <float name="TextSize">18</float>
+   <bool name="AutoButtonColor">true</bool>
+   <int name="ZIndex">5</int>
+   <Font name="FontFace"><Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+  </Properties>
+   <Item class="UICorner" referent="RBXA2"><Properties>
+    <string name="Name">UICorner</string>
+    <UDim name="CornerRadius"><S>1</S><O>0</O></UDim>
+   </Properties>
+   </Item>
+   <Item class="UIStroke" referent="RBXA3"><Properties>
+    <string name="Name">UIStroke</string>
+    <Color3 name="Color"><R>0.878431</R><G>0.431373</G><B>0.352941</B></Color3>
+    <float name="Thickness">2</float>
+    <token name="ApplyStrokeMode">1</token>
+   </Properties>
+   </Item>
+  </Item>
   <Item class="TextButton" referent="RBXC3"><Properties>
    <string name="Name">BreakthroughButton</string>
    <bool name="Visible">false</bool>

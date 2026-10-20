@@ -14,5 +14,7 @@
   </Item>
   <Item class="RemoteEvent" referent="RBX8"><Properties><string name="Name">Notify</string></Properties>
   </Item>
+  <Item class="RemoteEvent" referent="RBX9"><Properties><string name="Name">Attack</string></Properties>
+  </Item>
  </Item>
 </roblox>

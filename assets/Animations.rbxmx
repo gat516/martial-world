@@ -1,0 +1,14 @@
+<roblox version="4">
+ <Item class="Folder" referent="RBX1"><Properties><string name="Name">Animations</string></Properties>
+  <Item class="Folder" referent="RBX2"><Properties><string name="Name">Fists</string></Properties>
+   <Item class="Animation" referent="RBX3"><Properties><string name="Name">1</string><Content name="AnimationId"><url>rbxassetid://124160822518757</url></Content></Properties>
+   </Item>
+   <Item class="Animation" referent="RBX4"><Properties><string name="Name">2</string><Content name="AnimationId"><url>rbxassetid://124907803087760</url></Content></Properties>
+   </Item>
+   <Item class="Animation" referent="RBX5"><Properties><string name="Name">3</string><Content name="AnimationId"><url>rbxassetid://125855229567648</url></Content></Properties>
+   </Item>
+   <Item class="Animation" referent="RBX6"><Properties><string name="Name">4</string><Content name="AnimationId"><url>rbxassetid://79908153674133</url></Content></Properties>
+   </Item>
+  </Item>
+ </Item>
+</roblox>

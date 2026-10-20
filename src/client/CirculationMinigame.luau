@@ -234,6 +234,10 @@ function CirculationMinigame.start()
 	running = false
 end
 
+function CirculationMinigame.isRunning(): boolean
+	return running
+end
+
 function CirculationMinigame.init(gui: ScreenGui)
 	overlay = gui:FindFirstChild("Circulation") :: Frame
 	local button = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("CirculateButton") :: TextButton

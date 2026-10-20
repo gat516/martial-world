@@ -8,6 +8,9 @@
       },
       "Remotes": {
         "$path": "assets/Remotes.rbxmx"
+      },
+      "Animations": {
+        "$path": "assets/Animations.rbxmx"
       }
     },
     "ServerScriptService": {

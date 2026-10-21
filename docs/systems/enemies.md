@@ -93,11 +93,65 @@ colours), ids in `art/ui/assets.json` (`enemybar_*`).
 
 ### Adding a beast's effects (EnemyFX)
 Put `src/client/EnemyFX/<EnemyType>.luau` returning any of `windup`, `strike`,
-`dash`, `stagger`, `death`, each `(cue) -> ()`; a cue is `{ model, root, kind,
-attack, shape, seconds, at }` (shape and seconds left only on windup). Branch on
-`cue.attack` for a boss's pattern. Skipped past 220 studs from the camera. Server
-code never plays effects; if a cue is missing, add an attribute or a field on
-the telegraph, not a server-side effect.
+`dash`, `stagger`, `death`, `land`, `hit`, each `(cue) -> ()`; a cue is `{ model,
+root, kind, attack, shape, seconds, target, at }` (shape and seconds left only on
+windup, target only on hit). Branch on `cue.attack` (the model's `Attack`
+attribute when the cue fires). Skipped past 220 studs from the camera. Server
+code never plays effects; if a cue is missing, add an attribute, a field on the
+telegraph, or an `enemyCue` (below), not a server-side effect.
+
+Where each cue comes from (`EnemyFX/init.luau`):
+| Cue | Source |
+|---|---|
+| `windup` | the `Telegraph` remote (needs the enemy model in it); `seconds` = time left |
+| `strike` | `AIState` goes windup -> dash or recover (fires for every attack, telegraphed or not) |
+| `dash` | `AIState` becomes dash (same tick as strike for lunges) |
+| `stagger` | `AIState` becomes stagger |
+| `land` | `AIState` leaves dash (to recover, stagger, anything), or the server's `enemyCue` |
+| `hit` | only the server: `Effect:FireAllClients("enemyCue", model, "hit", character)` once per player caught |
+| `death` | `Health` reaches 0 |
+
+`enemyCue` is generic: `Effect:FireAllClients("enemyCue", model, name, target?)`
+calls handler `name` with `cue.target = target` (a Character or nil). Use it for
+moments with no state change, such as a leap's touchdown when the leap isn't
+modelled as a dash. Handlers dedupe what can arrive twice (the Spirit Wolf
+ignores a second `land` within 0.3 s).
+
+### Spirit Wolf effects
+`EnemyFX/SpiritWolf.luau`, templates `ReplicatedStorage.Effects.SpiritWolf`
+(builder `tools/vfx_specs/SpiritWolf.luau`; references
+`docs/reference/vfx/claw_slash_streaks_grid.webp`, `ground_slam_dome_rocks_grid.webp`).
+Moonlight qi: white-hot core, #CFE6FF falloff, #7FA8D8 rim, a #2F3B50 slate copy
+under each bright shape for daylight. Body hooks (modeler, 3435025): attachments
+`Mouth` (Skull), `Core` (Chest), `PawBL_FX`/`PawBR_FX` (ground under the hind
+paws); Neon `EyeL`/`EyeR`; crest strips `TellCrest1..3` with `Tell = true`. Each
+falls back to a part (Snout/Skull, Chest, FootB*/PawB*, `Crest`) when missing.
+Body-anchored effects follow their part every frame (RenderStepped), ground
+effects are placed once on a raycast that skips characters and the wolf.
+
+| Cue / attack | Template (layers) | Notes |
+|---|---|---|
+| windup, all | `EyeGlint` (red star glint 0.16 s, pop, held glow for the windup) on each eye | crest Tell strips go 45% dim -> #CFE6FF over the windup, back 0.2 s after (`TellBase` attribute keeps the original colour) |
+| windup bite | `Breath` (wisp, motes drawn in) at Mouth | |
+| windup pounce | `Gather` (motes in, streaks in, chest glow) at Core, refit to the windup | `PawDust` at both hind paws at 5/7 of the windup, if still winding up |
+| windup leap | `LeapSigil` (crescent moon, slate shadow, pale ring) at `shape.center`, refit to windup + 0.45 s flight and scaled to `shape.radius` (authored r5); `LeapGlint` 1.6 studs over the Skull | the stock red circle still draws |
+| windup howl | `HowlRings` (3 rings + slate ring) at Mouth; `CrestGlow` (glow, rising motes) on `Crest` | stock howl ring still draws |
+| strike bite | `FangSnap` (2 crescents x core/rim/slate, glint) at Mouth | |
+| strike/dash pounce, leap | `DashDust` (dust ring, low puffs, motes) between the hind paws; `MoonTrail` (bright trail, slate trail, shed motes) on Chest | trail ends at `land` or after 0.3 s (pounce) / 0.45 s (leap); leap trail is silver |
+| strike/land hop | `PawDust` (puff, grit) at both hind paws | |
+| land pounce (any non-leap) | `Skid` (puffs thrown forward, grit) 1.5 studs ahead of Core | |
+| land leap | `Landing` (crack decal 0.8 s, slate dust ring, r5 shockwave, dust spray, rock chips, flash) under Core | `CombatEffects.shake(0.22)` when the local character is within 8 studs |
+| hit bite/leap/other | `BiteHit` (ink splash, red-white sparks, pop) on the target's torso, near side | |
+| hit pounce | `ClawRake` (3-streak claw x core/rim/slate, glint, sparks) | |
+| stagger | `StaggerFlash` (pop, star) at Core | 0.08 s white Highlight, eyes flicker 3x |
+| death | `Death` (rising motes 0.8 s, gold-white glow and glint at Core) | eyes fade 0.2 s; the body's 1 s fade is init's |
+
+Layers per beat: windup 2 (tell) + 2 to 3 per attack; strike/take-off 3 + 3;
+landing 6; hits 3 to 5; stagger 2 + flash; death 3. Library ids are in the
+builder's `TEX` table. Untested in play: placement on the live body, follow
+smoothness, how it reads at 40 studs and on phones with a pack of four, and the
+whole path through the Game Module (not in the place; effects play on
+TechniqueVFX's plain-emitter fallback).
 
 ### Template contract
 Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated
@@ -213,6 +267,12 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   and R6 rigs (no enemy uses one yet).
 - Players and beasts pass through each other: the server root doesn't collide
   and the body is client-only.
+- The Spirit Wolf's effects wait on its new attack set: the def still has one
+  `lunge` attack (no `Attack` name of bite/pounce/leap/howl/hop), and the server
+  sends no `enemyCue` "hit" yet, so only the shared windup tell, the lunge's skid
+  dust, stagger and death play today. The leap's telegraph must be a circle
+  centred on the landing point (the sigil sits at `shape.center`). Pounce damage resolves at the end of the windup, before the dash
+  arrives, so its `hit` would fire before the wolf reaches the player.
 - Techniques don't get lag compensation, only M1 swings; their areas lean on
   `AREA_SLACK`.
 - Stagger shoves aren't predicted, only smoothed.

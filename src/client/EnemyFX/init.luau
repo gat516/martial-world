@@ -11,8 +11,18 @@
 --   dash(cue)     a lunge or charge sets off
 --   stagger(cue)  knocked back by a player
 --   death(cue)    killed (the body then fades, below)
--- A cue is { model, root, kind, attack, shape, seconds, at } (`at` = server time
--- the cue began; shape and seconds only on windup).
+--   land(cue)     a dash ended (AIState left "dash"): a lunge skids to a stop,
+--                 a leap modelled as a dash touches down. Also sent by the
+--                 server for moves that aren't dashes (below).
+--   hit(cue)      the blow caught a player: cue.target is their Character.
+--                 Only from the server (below).
+-- A cue is { model, root, kind, attack, shape, seconds, target, at } (`at` =
+-- server time the cue began; shape and seconds only on windup, target only on
+-- hit).
+-- Server-sent cues ride the Effect remote, to all clients:
+--   Effect:FireAllClients("enemyCue", model, name, target?)
+-- where name is a handler name ("hit", "land", ...) and target an optional
+-- Character. EnemyFX calls the beast's handler with the model's current Attack.
 -- Cues past MAX_DISTANCE from the camera are skipped. Every beast's body fades
 -- here when FadeAt is set (death or despawn), so the server sends no per-part
 -- changes for it.
@@ -31,6 +41,7 @@ export type Cue = {
 	attack: string?,
 	shape: any?,
 	seconds: number?,
+	target: Model?,
 	at: number,
 }
 type Handlers = { [string]: (Cue) -> () }
@@ -58,7 +69,7 @@ local function handlersFor(kind: string): Handlers?
 	return cached or nil
 end
 
-local function fire(model: Model, name: string, extra: { shape: any?, seconds: number?, at: number? }?)
+local function fire(model: Model, name: string, extra: { shape: any?, seconds: number?, target: Model?, at: number? }?)
 	local root = model:FindFirstChild("HumanoidRootPart")
 	local kind = model:GetAttribute("EnemyType")
 	if not (root and root:IsA("BasePart") and type(kind) == "string") then
@@ -82,6 +93,7 @@ local function fire(model: Model, name: string, extra: { shape: any?, seconds: n
 		attack = if type(attack) == "string" then attack else nil,
 		shape = extra and extra.shape,
 		seconds = extra and extra.seconds,
+		target = extra and extra.target,
 		at = (extra and extra.at) or (if type(at) == "number" then at else workspace:GetServerTimeNow()),
 	}
 	task.spawn(function()
@@ -120,6 +132,9 @@ local function watch(model: Instance)
 		if state == "dash" or state == "stagger" then
 			fire(model, state :: string)
 		end
+		if previous == "dash" and state ~= "dash" then
+			fire(model, "land")
+		end
 		previous = state
 	end)
 	model:GetAttributeChangedSignal("FadeAt"):Connect(function()
@@ -150,6 +165,15 @@ function EnemyFX.init()
 			local left = math.max(0, seconds - (workspace:GetServerTimeNow() - at))
 			fire(model, "windup", { shape = shape, seconds = left, at = at })
 		end
+	end)
+	-- server-sent cues with no attribute of their own (hit, non-dash landings)
+	local effect = ReplicatedStorage.Remotes.Effect :: RemoteEvent
+	effect.OnClientEvent:Connect(function(kind, model, name, target)
+		if kind ~= "enemyCue" or typeof(model) ~= "Instance" or not model:IsA("Model") or type(name) ~= "string" then
+			return
+		end
+		local character = if typeof(target) == "Instance" and target:IsA("Model") then target else nil
+		fire(model, name, { target = character })
 	end)
 end
 

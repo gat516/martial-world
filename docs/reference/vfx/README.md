@@ -30,6 +30,8 @@ the user are described in [auras.md](../../systems/auras.md) "References".
 | - | [Sol's RNG Tomorrow](https://www.youtube.com/watch?v=pGb_klAsJB8) | the roll cutscene: the world fades to black, glyphs and a star burst on screen, white-out, then the aura on the player |
 | `fire_aura_smoke_outline.png` | [video](https://www.youtube.com/watch?v=T9jHZv8NOtQ) | flames hugging the silhouette with black smoke at the tips (auras.md) |
 | `fire_aura_swirl_ground.png` | [video](https://www.youtube.com/watch?v=aBfd3qMOz_k) | a flame outline over a turning fire swirl on the ground (auras.md) |
+| `claw_slash_streaks_grid.webp` | [Wolf Claws Slash short](https://www.youtube.com/shorts/9yNr853ziDo) | a claw rake: three tapered parallel streaks with a white core and a coloured falloff, a first diagonal set then a second crossing it, ~0.3 s each; no ground, no smoke: the streak texture is the whole effect |
+| `ground_slam_dome_rocks_grid.webp` | [Ground Slam (Studio)](https://www.youtube.com/watch?v=834aKXq3c-c) | a landing: white-out flash, a translucent dome and flat shockwave ring, a ring of rock slabs tilting out, a glowing ground decal that browns into a scorch, thin speed rays and sparks shooting off |
 
 ## World events and anomalies (`world/`)
 
@@ -170,3 +172,22 @@ Beat title still (0 s): 4 layers
 4. cranes | silhouettes | still | n/a | white | n
 Our translation: Auspicious Mist's "violet qi from the east" (a violet band of wisp arcs and
 ruyi curl puffs drifting in from the east, with the violet grade). Library ids: none.
+
+### Wolf Claws Slash  (9yNr853ziDo, 0-5.3 s)
+Beat rake (0.3-0.7 s): 3 layers
+1. three tapered streaks, parallel | one textured sprite | grows along its length while sweeping diagonally | 0.3 s | white core | n
+2. the same streaks wider | sprite | as 1 | 0.3 s | colour falloff (red, yellow, violet, cyan per variant) | n
+3. second set crossing the first | sprite | sweeps the other diagonal | +0.15 s | as 1-2 | n
+Our translation (Spirit Wolf pounce hit, enemies.md): one three-streak texture, white core over a pale-blue rim over a slate copy for daylight, plus a glint and a few sparks; one diagonal only at ring 1.
+
+### Ground Slam  (834aKXq3c-c, 3-14 s)
+Beat landing (3-5 s): 7 layers
+1. white-out | screen | flash | 1 frame | white | n
+2. dome shell | translucent mesh | swells and fades | 0.5 s | orange-white | n
+3. flat shockwave ring | ground texture | expands | 0.4 s | white-orange | n
+4. rock slabs | parts (Craters-style ring) | pop up tilted outward, sink | 1-3 s | grey | they are the dark base
+5. ground glow decal | flat texture | flares, then browns to a scorch | 3 s | orange to brown | y (scorch)
+6. speed rays | thin streak particles | shoot out radially | 0.3 s | white-gold | n
+7. sparks | particles | burst out, fall | 0.5 s | gold | n
+Our translation (Spirit Wolf leap landing, enemies.md): flash, flat ring over a slate dust ring, low dust spray, rock chips, a dark crack decal that holds 0.6 s; no dome or slabs at ring 1 (they are for bigger beasts).
+

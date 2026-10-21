@@ -113,7 +113,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | Meditate | Event | both | `Meditation.handle(on)`; server fires `false` to stand you up | Meditation |
 | Sprint | Event | C->S | `Cultivation.setRunning` | Sprint |
 | Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync) | CombatController |
-| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "method", "boss", "used", "bolt", "tribulationStart/End" | CombatController, CombatEffects, Rewards, RootFX |
+| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "method", "boss", "used", "bolt", "tribulationStart/End", "enemyCue" (to all: enemy model, cue name, target character; see enemies.md) | CombatController, CombatEffects, Rewards, RootFX, EnemyFX |
 | Telegraph | Event | S->C | `EnemyService` (attack areas before they land: shape, seconds, enemy or nil, attack name, server start time) | Telegraphs, EnemyFX |
 | PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot) | State (everything reads State) |
 | Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major) | BreakthroughView |

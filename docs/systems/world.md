@@ -58,6 +58,19 @@ everyone to one spot, and a day/night cycle.
   `condenseSeconds` before the end the seal breaks and the first claim learns a
   technique from the def's pool, or insight, and ends the event; the clouds are
   drawn client-side from the published position).
+- `src/client/WorldEventFX.luau` draws the AuspiciousClouds kinds from the
+  `WorldEvents` attribute: it clones `Effects.AuspiciousClouds` (`assets/Effects.rbxm`,
+  built by `tools/vfx_specs/AuspiciousClouds.luau`) locally at the event's `at`: the
+  def's `look.pattern` Model (`Vortex`, `Mist`, `Spiral`: turning layers of
+  Cloud_WispArc wisps) plus the shared `Ring` (scaled to `radius`), `Column` and
+  `Whirl` (light column and a whirl of wisps on the cloud plane, seen from the peaks)
+  and `Eye` (the seal round the relic, the unseal burst, the glow), tinted from
+  `look.color`/`look.accent`. Wisps descend over 8 s, turn every frame (one
+  BulkMoveTo), pour into the relic over the 4 s before `ends - condenseSeconds`,
+  when the seal shatters, and rise and fade when the entry goes. It also bobs and
+  turns the server's relic (the Model named after the def id in `Workspace.Wilds`).
+  `Effects.AuspiciousClouds.Relics.Manual`/`Sword` are the server's relic templates
+  (`CoreHeight` 5/6, disabled `ClaimPrompt`, `Label` billboard).
 - `src/server/Treasures.luau`: treasures in the wilds' zones when weather with
   `treasures` starts; first claim keeps it.
 - `src/server/QiNodes.luau`: wilds qi nodes (raw qi + stones, per-player cooldown).

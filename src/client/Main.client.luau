@@ -1,7 +1,7 @@
 --!strict
 -- Client entry: wires the HUD, circulation minigame, breakthroughs, combat (with
 -- telegraphs, lock-on and enemy health bars), the mouse cursor, travel (menu, array markers, fade), the hotbar, the inventory
--- (items and arts), seed picker, garden view, build mode, meditation, settings, zone music, beast sounds and the region entry banner.
+-- (items and arts), seed picker, garden view, build mode, meditation, settings, zone music, beast sounds, the region entry banner and world event visuals.
 
 local Players = game:GetService("Players")
 
@@ -16,6 +16,7 @@ local EnemyAnimator = require(script.Parent.EnemyAnimator)
 local Onboarding = require(script.Parent.Onboarding)
 local DayNight = require(script.Parent.DayNight)
 local WeatherFX = require(script.Parent.WeatherFX)
+local WorldEventFX = require(script.Parent.WorldEventFX)
 local HotbarView = require(script.Parent.HotbarView)
 local Layout = require(script.Parent.Layout)
 local Menus = require(script.Parent.Menus)
@@ -61,6 +62,7 @@ EnemyAnimator.init()
 Onboarding.init(gui)
 DayNight.init()
 WeatherFX.init()
+WorldEventFX.init()
 HotbarView.init(gui)
 Layout.init(gui)
 LockOn.init(gui)

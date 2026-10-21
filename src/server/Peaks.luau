@@ -21,6 +21,11 @@ local TIER_BY_MAJOR = { Foundation = "Foundation" }
 
 type Starter = { inst: Instance, parent: Instance }
 
+-- The starter garden fence was one piece ("Garden/Fence", a whole GardenFence); it is now separate
+-- Fence segments "Garden/Fence_1".."Garden/Fence_N". Saved layouts that removed the old id keep working.
+local LEGACY_FENCE = "Garden/Fence"
+local FENCE_SEGMENT = "^Garden/Fence_%d+$"
+
 local Peaks = {}
 
 -- peak -> StarterId -> where the piece lives by default
@@ -115,7 +120,17 @@ function Peaks.applyLayout(player: Player, data: PlayerData.Data)
 		return
 	end
 	for id in data.peak.removed do
-		Peaks.stashStarter(peak, id)
+		if id == LEGACY_FENCE then
+			-- the garden fence used to be one starter piece; whoever stored it already has the whole
+			-- fence (a GardenFence item), so all of its segments stay stashed
+			for segment in starters[peak] do
+				if segment:match(FENCE_SEGMENT) then
+					Peaks.stashStarter(peak, segment)
+				end
+			end
+		else
+			Peaks.stashStarter(peak, id)
+		end
 	end
 	for _, rec in data.peak.placed do
 		Peaks.spawnPlaced(peak, rec)

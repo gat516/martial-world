@@ -1090,89 +1090,242 @@ local function mountainBreath(root)
 end
 
 -- ---------------------------------------------------------------- Thunder Pulse (Lightning, rare)
--- Sudden bursts: a dark body with violet-white cracks across the torso and
--- arms that flare irregularly; on a burst arcs jump from the hands to the
--- ground (ref dark_lightning_cracks).
+-- Sudden bursts (Mortal: small, close). Rebuilt 2026-10-21 from layered
+-- library emissions (ref docs/reference/auras/dark_lightning_cracks: a dark
+-- body split by glowing violet cracks, arcs off the hands, smoke tendrils,
+-- floating specks). The idle is dark and still; everything bright happens in
+-- irregular bursts (Rhythm = "burst", 0.5 to 2.6 s apart). Back to front:
+--   ground  a scorched rubble ring (dark base) round a lightning-crack web
+--           that flashes on each burst, dark storm haze, an electric ring
+--           crackling at the rim, small arcs crawling on the ground
+--   body    jagged lightning cracks (a hard core over a violet glow) across
+--           chest, belly and arms, re-jagged each burst; dark smoke tendrils
+--           off the head, shoulders and arms; a violet charge glow and arcs
+--           crackling on the skin;
+--           ozone sparks; a dim violet node at the crack meeting point
+--   burst   a crack flash at the chest (spark, radial arcs), bolts from both
+--           hands to the ground with spark splashes where they land, a snap
+--           ring and a crack flash on the ground, the skin crackles
+--   ignite  a bolt strikes the crown, a chromatic flash, radial lightning at
+--           the chest, arcs filling the space round the body, an electric
+--           ring and a scorched crack web blasting over the ground, dark
+--           smoke thrown low, sparks; the skin arcs surge
 
-local BOLT_CORE, BOLT, BOLT_DEEP = rgb(245, 235, 255), rgb(190, 150, 255), rgb(120, 70, 230)
+-- saturated violets: pastel violet goes white under LightEmission on a dark body
+local BOLT_CORE, BOLT, BOLT_DEEP = rgb(245, 235, 255), rgb(165, 100, 255), rgb(115, 45, 240)
+local STORM = rgb(18, 10, 32)
+
+local TP = {
+	dot = id(9841273544), -- small hard glow dot
+	glow = id(867619398), -- soft round glow
+	strip = id(7151777149), -- vertical lightning strip (beam texture, tiles along the beam)
+	bolt = id(1277456789), -- big branching lightning bolt
+	web = id(93520831389146), -- lightning-crack web (ground)
+	rubble = id(96277359307961), -- jagged scorched rubble ring
+	eRing = id(112496740337235), -- ring of crackling lightning
+	radial = id(528280947), -- radial lightning branches
+	spark = id(74576272746737), -- lightning spark splash with glow
+	chroma = id(86693750436614), -- chromatic lightning spark
+	crackle = id(7216850580), -- small electric crackle
+	zig = id(117027323479014), -- tiny zigzag bolt
+	arcs4 = id(11492870634), -- 4x4 flipbook: thin arcs flicking
+	arcs2 = id(76973563852665), -- 2x2 sheet: four short thick bolts
+	haze = id(112406986364431), -- 2x2 sheet: wispy smoke
+}
+_G.ThunderPulseAssets = TP
+
+local boltColor = cseq(0, BOLT_CORE, 0.5, BOLT, 1, BOLT_DEEP)
+local randomFb = Enum.ParticleFlipbookMode.Random
 
 local function thunderPulse(root)
 	local m = model("ThunderPulse", root, { Rhythm = "burst" })
-	-- the body darkened, with a violet rim that flares on a burst
-	shell(m, rgb(28, 16, 46), { Pulse = R(0.3, 0.38), Pad = 0.08 }, Enum.Material.SmoothPlastic, "ShellDark")
-	shell(m, BOLT, { Pulse = R(0, 0.85), Pad = 0.35 })
+	-- a faint dark tint over the body (support only: the smoke tendrils carry
+	-- the dark body on their own)
+	shell(m, STORM, { Pulse = R(0.62, 0.7), Pad = 0.06 }, Enum.Material.SmoothPlastic, "ShellDark")
 
+	-- body: jagged lightning cracks. Each is two lines on the same points: a
+	-- thin hard core, re-jagged on every burst, over a wide straight violet glow
 	local lines = folder("Lines", m)
-	local crack = {
-		Color = cseq(0, BOLT_CORE, 1, rgb(215, 190, 255)), Width0 = 0.16, Width1 = 0.1, Brightness = 4, LightEmission = 0.4,
-		Transparency = NS(0),
+	local core = {
+		Color = CS(BOLT_CORE), Width0 = 0.09, Width1 = 0.06, Brightness = 5, LightEmission = 1, Transparency = NS(0),
+	}
+	local glow = { -- a soft violet band (the glow texture stretched along the line)
+		Texture = TP.glow, TextureMode = Enum.TextureMode.Stretch, TextureLength = 1,
+		Color = cseq(0, BOLT, 1, BOLT_DEEP), Width0 = 1.1, Width1 = 0.8, Brightness = 6, LightEmission = 1,
+		Transparency = NS(0), ZOffset = 0.5,
 	}
 	for _, l in {
 		{ "ChestR", "Belly" }, { "Belly", "SideL" }, { "Chest", "ChestL" }, { "ChestL", "LShoulder" },
 		{ "LShoulder", "LElbow" }, { "LElbow", "LHand" }, { "RShoulder", "RElbow" }, { "RElbow", "RHand" },
 		{ "Neck", "ChestR" },
 	} do
-		beam(lines, l[1] .. "_" .. l[2], l[1], l[2], crack, { Pulse = R(0, 0.6), Flicker = 0.25, Segs = 3, Jag = 0.12 })
+		local arm = string.find(l[2], "Elbow") or string.find(l[2], "Hand")
+		beam(lines, l[1] .. "_" .. l[2], l[1], l[2], core, { Pulse = R(0, 0.5), Flicker = 0.35, Segs = if arm then 3 else 2, Jag = 0.12 })
+		beam(lines, l[1] .. "_" .. l[2] .. "Glow", l[1], l[2], glow, { Pulse = R(0, 0.8), Flicker = 0.2 })
 	end
-	-- arcs to the ground, only lit on a burst
+	-- bolts from the hands to the ground, lit only on a burst
 	local arc = {
-		Color = cseq(0, BOLT_CORE, 1, BOLT), Width0 = 0.2, Width1 = 0.12, Brightness = 5, LightEmission = 0.5,
-		Transparency = NS(0), ZOffset = 0.3,
+		Color = CS(BOLT_CORE), Width0 = 0.14, Width1 = 0.1, Brightness = 6, LightEmission = 1, Transparency = NS(0), ZOffset = 0.3,
 	}
-	beam(lines, "BoltL", "LHand", "ArcL", arc, { Pulse = R(0, 1), Segs = 4, Jag = 0.35 })
-	beam(lines, "BoltR", "RHand", "ArcR", arc, { Pulse = R(0, 1), Segs = 4, Jag = 0.35 })
+	local arcGlow = { -- a crawling bolt texture round the hard core
+		Texture = TP.strip, TextureMode = Enum.TextureMode.Stretch, TextureLength = 1, TextureSpeed = 4,
+		Color = cseq(0, BOLT, 1, BOLT_DEEP), Width0 = 0.8, Width1 = 0.6, Brightness = 4, LightEmission = 1,
+		Transparency = NS(0), ZOffset = 0.25,
+	}
+	for _, side in { "L", "R" } do
+		beam(lines, "Bolt" .. side, side .. "Hand", "Arc" .. side, arc, { Pulse = R(0, 1), Segs = 4, Jag = 0.3 })
+		beam(lines, "Bolt" .. side .. "Glow", side .. "Hand", "Arc" .. side, arcGlow, { Pulse = R(0, 1) })
+	end
 
+	-- ground: scorched ring, crack web, haze, electric rim, crawling arcs
 	local ground = model("Ground", m)
 	local anchors = part("Anchors", ground, CFrame.new(0, 0.1, 0))
-	B.attach(anchors, "ArcL", V3(-2.3, 0, -1.5))
-	B.attach(anchors, "ArcR", V3(2.3, 0, -1.5))
-	mesh(A.torus, ground, "Ring", ring(3.8, 1.2), CFrame.new(0, 0.12, 0), rgb(100, 50, 210), { Pulse = R(0, 0.75), Flicker = 0.3 })
+	B.attach(anchors, "ArcL", V3(-1.9, 0, -1.2))
+	B.attach(anchors, "ArcR", V3(1.9, 0, -1.2))
+	decalDisc("Rubble", ground, 4.6, 0.13, TP.rubble, rgb(40, 26, 64), { Pulse = R(0.2, 0.3), Kick = 0.3 })
+	decalDisc("Cracks", ground, 3.8, 0.15, TP.web, BOLT, { Pulse = R(0, 0.85), Flicker = 0.3, Kick = 0.8 })
+	local floor = part("Floor", ground, CFrame.new(0, 0.18, 0), V3(3.6, 0.1, 3.6))
+	loop(floor, "Haze", B.flat({ -- the dark storm pool under everything bright
+		Texture = TP.glow, Size = NS(2.6), Transparency = seq(0, 1, 0.25, 0.35, 0.75, 0.35, 1, 1), Color = CS(STORM),
+		Lifetime = R(4), Rate = 0.5, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Rim", B.flat({
+		Texture = TP.eRing, Size = rnd(2.1, 2.3), Transparency = seq(0, 1, 0.1, 0.45, 0.5, 0.6, 1, 1), Color = boltColor,
+		Lifetime = R(0.25, 0.4), Rate = 3, Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 0.1,
+	}), { Breathe = R(0.4, 6), Swell = 0.15 })
+	loop(floor, "GroundArcs", B.flat({
+		Texture = TP.arcs4, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = randomFb,
+		Shape = disc, ShapeStyle = volume, Size = rnd(0.35, 0.6), Transparency = seq(0, 0, 0.6, 0.2, 1, 1),
+		Color = boltColor, Lifetime = R(0.12, 0.22), Rate = 4, Rotation = R(0, 360), LightEmission = 1, Brightness = 3,
+		ZOffset = 0.15,
+	}), { Scaled = true, Breathe = R(0.5, 5) })
+	-- the node where the chest cracks meet: dim at rest, flaring on a burst
+	local body = model("Body", m)
+	local node = at("ChestR", CFrame.new(0, 0, -0.15), "Node", body)
+	loop(node, "Node", {
+		Texture = TP.dot, Size = NS(0.32), Transparency = seq(0, 1, 0.3, 0.25, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.3), Rate = 6, LightEmission = 1, Brightness = 3, ZOffset = 1.5, LockedToPart = true,
+	}, { Prime = 2, Swell = 1.2, Drift = 0.15 })
 
+	-- limbs: dark smoke tendrils, arcs crackling on the skin, ozone sparks
 	local limbs = folder("Limbs", m)
+	loop(limbs, "Tendrils", {
+		Texture = TP.haze, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid2x2, FlipbookMode = randomFb,
+		Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = seq(0, 0.35, 1, 0.9),
+		Transparency = seq(0, 1, 0.2, 0.25, 1, 1), Color = CS(STORM), Lifetime = R(1, 1.4), Speed = R(0.6, 1.2),
+		Acceleration = V3(0, 0.8, 0), Rotation = R(0, 360), RotSpeed = R(-30, 30), Rate = 2, LightEmission = 0, ZOffset = 0.1,
+	}, { On = "Arms,Torso,Head", Scaled = true })
+	loop(limbs, "Charge", { -- a violet charge glow on the skin, flaring on a burst
+		Texture = TP.glow, Shape = box, ShapeStyle = surface, Size = rnd(0.45, 0.6), Transparency = seq(0, 1, 0.3, 0.7, 1, 1),
+		Color = cseq(0, BOLT, 1, BOLT_DEEP), Lifetime = R(0.5, 0.7), Rate = 3, LightEmission = 1, Brightness = 3,
+		ZOffset = 0.4, LockedToPart = true,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.6, 3) })
+	loop(limbs, "Arcs", {
+		Texture = TP.arcs2, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid2x2, FlipbookMode = randomFb,
+		Shape = box, ShapeStyle = surface, Size = rnd(0.22, 0.38), Transparency = seq(0, 0, 0.5, 0.15, 1, 1),
+		Color = boltColor, Lifetime = R(0.08, 0.16), Rotation = R(0, 360), Rate = 1.5, LightEmission = 1, Brightness = 4,
+		ZOffset = 0.7, LockedToPart = true,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.5, 10), Surge = 8 })
 	loop(limbs, "Ozone", {
-		Texture = A.spark, Shape = box, ShapeStyle = surface, Orientation = streak,
-		Size = seq(0, 0.1, 1, 0), Transparency = NS(0), Color = CS(BOLT_CORE), Lifetime = R(0.15, 0.3),
-		Speed = R(2, 4), SpreadAngle = Vector2.new(180, 180), Rate = 2, LightEmission = 0.6,
-	}, { On = "Arms,Torso", Scaled = true, Surge = 6 })
+		Texture = TP.zig, Shape = box, ShapeStyle = surface, Size = rnd(0.07, 0.12), Transparency = seq(0, 0, 0.7, 0, 1, 1),
+		Color = CS(BOLT_CORE), Lifetime = R(0.25, 0.5), Speed = R(1.5, 3), SpreadAngle = Vector2.new(180, 180),
+		Rotation = R(0, 360), RotSpeed = R(-300, 300), Drag = 2, Rate = 1.2, LightEmission = 1, Brightness = 3,
+		ZOffset = 0.5,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.6, 4), Surge = 6 })
 
-	-- a burst: a flash at the chest, sparks where the arcs land, a ground snap
+	-- a burst: the cracks flash, bolts drop from the hands, the ground snaps
 	local breath = model("Breath", m)
-	local chest = at("Chest", nil, "Chest", breath)
+	local chest = at("ChestR", CFrame.new(0, 0, -0.3), "Chest", breath)
 	burst(chest, "Flash", 1, {
-		Texture = A.star4, Size = seq(0, 0.6, 0.3, 1.8, 1, 0), Transparency = NS(0), Color = CS(BOLT_CORE),
-		Lifetime = R(0.18), Rotation = R(0, 45), LightEmission = 0.6, ZOffset = 1,
+		Texture = TP.dot, Size = seq(0, 0.4, 0.2, 0.9, 1, 1), Transparency = seq(0, 0.1, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.18), LightEmission = 1, Brightness = 4, ZOffset = 2,
 	})
-	local floor = part("Floor", breath, CFrame.new(0, 0.12, 0), V3(5, 0.2, 5))
-	wave(floor, "Snap", {
-		mesh = A.torus, color = BOLT_DEEP, fromSize = ring(2.4, 1.8), toSize = ring(6.5, 0.8),
-		fromTransparency = 0, toTransparency = 1, duration = 0.35, style = "Quint",
+	burst(chest, "Spark", 1, {
+		Texture = TP.spark, Size = seq(0, 0.6, 1, 0.9), Transparency = seq(0, 0, 0.6, 0.2, 1, 1), Color = CS(BOLT_CORE),
+		Lifetime = R(0.16), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
 	})
+	burst(chest, "Radial", 1, {
+		Texture = TP.radial, Size = seq(0, 0.7, 1, 1.3), Transparency = seq(0, 0, 0.5, 0.3, 1, 1), Color = boltColor,
+		Lifetime = R(0.14), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 1.9,
+	})
+	local snap = part("Floor", breath, CFrame.new(0, 0.2, 0))
+	burst(snap, "Snap", 1, B.flat({
+		Texture = TP.eRing, Size = seq(0, 0.9, 1, 2.7), Transparency = seq(0, 0, 0.6, 0.35, 1, 1), Color = boltColor,
+		Lifetime = R(0.3), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 0.3,
+	}))
+	burst(snap, "Web", 1, B.flat({
+		Texture = TP.web, Size = seq(0, 1.5, 1, 1.8), Transparency = seq(0, 0, 0.5, 0.4, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.35), Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.25,
+	}))
 	for _, side in { -1, 1 } do
-		local hit = part(if side < 0 then "HitL" else "HitR", breath, CFrame.new(2.3 * side, 0.15, -1.5))
-		burst(hit, "Sparks", 6, {
-			Texture = A.spark, Orientation = streak, Size = seq(0, 0.14, 1, 0), Transparency = NS(0),
-			Color = CS(BOLT_CORE), Lifetime = R(0.2, 0.35), Speed = R(6, 11), Drag = 4, EmissionDirection = up,
-			SpreadAngle = Vector2.new(70, 70), LightEmission = 0.6,
+		local hit = part(if side < 0 then "HitL" else "HitR", breath, CFrame.new(1.9 * side, 0.2, -1.2))
+		burst(hit, "Splash", 1, {
+			Texture = TP.crackle, Size = seq(0, 0.4, 1, 0.7), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+			Lifetime = R(0.18), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 0.6,
+		})
+		burst(hit, "Sparks", 5, {
+			Texture = TP.zig, Size = rnd(0.08, 0.14), Transparency = NS(0), Color = CS(BOLT_CORE), Lifetime = R(0.2, 0.35),
+			Speed = R(5, 9), Drag = 5, EmissionDirection = up, SpreadAngle = Vector2.new(70, 70), Rotation = R(0, 360),
+			RotSpeed = R(-400, 400), LightEmission = 1, Brightness = 3,
 		})
 	end
 
-	-- ignition: a strike out of the sky onto you
+	-- ignition: a bolt strikes the crown and the storm wakes round the body
 	local ignite = model("Ignite", m)
-	local base = part("Base", ignite, CFrame.new(0, 0.15, 0), V3(5, 0.2, 5))
-	wave(base, "Strike", {
-		mesh = A.torus, color = BOLT_DEEP, fromSize = ring(2, 2.6), toSize = ring(12, 1),
-		fromTransparency = 0, toTransparency = 1, duration = 0.7, style = "Quint",
+	local sky = at("Crown", CFrame.new(0, 2.6, 0), "Sky", ignite)
+	burst(sky, "Strike", 1, {
+		Texture = TP.bolt, Size = NS(2.8), Transparency = seq(0, 0, 0.3, 0.4, 0.4, 0, 0.6, 0.5, 1, 1),
+		Color = cseq(0, BOLT_CORE, 1, BOLT), Lifetime = R(0.28), LightEmission = 1, Brightness = 5, ZOffset = 1,
 	})
-	local field = part("Field", ignite, CFrame.new(0, 2, 0), V3(4.5, 4, 4.5))
-	burst(field, "Arcs", 10, {
-		Texture = A.arcs, Shape = box, ShapeStyle = volume, Size = rnd(0.8, 1.4), Transparency = NS(0),
-		Rotation = R(0, 360), Color = cseq(0, BOLT_CORE, 1, BOLT), Lifetime = R(0.12, 0.25), LightEmission = 0.7,
-	})
+	burst(sky, "Strike2", 1, {
+		Texture = TP.bolt, Size = NS(2.4), Transparency = seq(0, 0, 0.5, 0.5, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.18), Rotation = R(160, 200), LightEmission = 1, Brightness = 4, ZOffset = 0.9,
+	}, { EmitDelay = 0.12 })
 	local crown = at("Crown", nil, "Crown", ignite)
 	burst(crown, "Flash", 1, {
-		Texture = A.star4, Size = seq(0, 1, 0.3, 4.5, 1, 0), Transparency = NS(0), Color = CS(BOLT_CORE),
-		Lifetime = R(0.35), Rotation = R(0, 45), LightEmission = 0.6, ZOffset = 1,
+		Texture = TP.dot, Size = seq(0, 0.6, 0.15, 1.8, 1, 2), Transparency = seq(0, 0, 0.5, 0.5, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.3), LightEmission = 1, Brightness = 4, ZOffset = 2,
 	})
+	burst(crown, "Chroma", 1, {
+		Texture = TP.chroma, Size = seq(0, 1, 1, 1.8), Transparency = seq(0, 0, 0.6, 0.2, 1, 1), Color = CS(rgb(255, 255, 255)),
+		Lifetime = R(0.25), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	local heart = at("Chest", CFrame.new(0, 0, -0.3), "Chest", ignite)
+	burst(heart, "Radial", 1, {
+		Texture = TP.radial, Size = seq(0, 1.4, 1, 2.6), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = boltColor,
+		Lifetime = R(0.3), Rotation = R(0, 360), LightEmission = 1, Brightness = 4, ZOffset = 1.9,
+	}, { EmitDelay = 0.06 })
+	local field = part("Field", ignite, CFrame.new(0, 1.6, 0), V3(3.4, 3, 3.4))
+	burst(field, "Arcs", 12, {
+		Texture = TP.arcs2, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid2x2, FlipbookMode = randomFb,
+		Shape = box, ShapeStyle = volume, Size = rnd(0.5, 0.9), Transparency = seq(0, 0, 0.6, 0.2, 1, 1), Color = boltColor,
+		Lifetime = R(0.12, 0.3), Rotation = R(0, 360), LightEmission = 1, Brightness = 4, ZOffset = 0.8,
+	}, { EmitDelay = 0.06 })
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3, 0.1, 3))
+	burst(base, "Ring", 1, B.flat({
+		Texture = TP.eRing, Size = seq(0, 1, 1, 4.2), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = boltColor,
+		Lifetime = R(0.45), Rotation = R(0, 360), LightEmission = 1, Brightness = 4, ZOffset = 0.35,
+	}), { EmitDelay = 0.06 })
+	burst(base, "Web", 1, B.flat({
+		Texture = TP.web, Size = seq(0, 2.2, 0.15, 2.6, 1, 2.7), Transparency = seq(0, 0, 0.4, 0.2, 1, 1),
+		Color = cseq(0, BOLT_CORE, 1, BOLT), Lifetime = R(0.9), Rotation = R(0, 360), LightEmission = 1, Brightness = 3,
+		ZOffset = 0.3,
+	}), { EmitDelay = 0.06 })
+	burst(base, "Scorch", 1, B.flat({ -- the dark under the web
+		Texture = TP.rubble, Size = seq(0, 2.6, 1, 2.9), Transparency = seq(0, 0.1, 0.6, 0.3, 1, 1), Color = CS(STORM),
+		Lifetime = R(1.4), Rotation = R(0, 360), LightEmission = 0, ZOffset = 0.2,
+	}), { EmitDelay = 0.06 })
+	burst(base, "Smoke", 8, {
+		Texture = TP.haze, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid2x2, FlipbookMode = randomFb, Shape = box,
+		EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.6, 1, 1.6),
+		Transparency = seq(0, 0.15, 1, 1), Color = CS(STORM), Lifetime = R(0.8, 1.1), Speed = R(5, 8), Drag = 3,
+		Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}, { EmitDelay = 0.06 })
+	burst(base, "Sparks", 18, {
+		Texture = TP.zig, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.1, 0.18),
+		Transparency = NS(0), Color = CS(BOLT_CORE), Lifetime = R(0.3, 0.6), Speed = R(8, 14), Drag = 5,
+		SpreadAngle = Vector2.new(60, 60), Rotation = R(0, 360), RotSpeed = R(-400, 400), LightEmission = 1, Brightness = 3,
+	}, { EmitDelay = 0.06 })
 	return m
 end
 

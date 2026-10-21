@@ -18,7 +18,7 @@ Heaven looks are not built (no method uses those grades yet).
 about 1.5 loop emitters per aura) and reads thin. Auras are to be rebuilt as
 layered emissions from the vfx library, modelled on Sol's RNG auras, with
 parts only in support. The method is in [docs/vfx/style.md](../vfx/style.md)
-("Auras"). **Reworked:** Blazing Heart, Flowing Spring (2026-10-21, below);
+("Auras"). **Reworked:** Blazing Heart, Flowing Spring, Thunder Pulse (2026-10-21, below);
 the other rows still describe the first, part-heavy pass. Blazing Heart shows the bar for
 size and quality, not a template: each method's rework starts from its own
 idea and references, not from Blazing Heart's layers or textures.
@@ -45,7 +45,7 @@ reuse its first method's motif.
 | Evergreen Root | green meridian beams with glowing joint dots, lighting trunk-first (belly, chest, then shoulders and hips, then elbows and knees, then hands) over ~2 breaths; green seed at the belly; faint green tint | six crooked roots creeping out, slow falling leaves | sap motes, a green ring breathes out | a green ring bursts out, a wind-swirl ring rises, leaves whirl up |
 | Iron Marrow | spinning gold gem between the hands (light); gold bone lines along the arms and spine; gold ForceField rim | thin gold ring | the clang: a thin ring snaps out level and one upright, sparks, a star; bone lines, rim and ring glint | a great clang ring, a sunburst flash, sparks, a steel ring across the ground |
 | Mountain Breath | amber low-belly core (light); faint amber tint | heavy carved stone ring with a turning glowing rune circle that settles on each breath; five pebbles lifting on the inhale; dust | a slow amber ring out of the stone, a little dust | the ground thumps: ring, dust spray, grit jumps |
-| Thunder Pulse | body darkened; violet-white jagged cracks across chest, belly and arms (re-jagged each burst); violet rim | flickering violet ring; on a burst jagged arcs from both hands to the ground | irregular bursts (0.5 to 2.6 s apart): chest flash, ground snap ring, sparks where the arcs land | a strike ring, arcs crackling round the body, a flash at the crown |
+| Thunder Pulse (reworked: 8 loop emitters + ~40 beams; the dark shell the only part) | a faint dark tint over the body (support); jagged lightning cracks across chest, belly and arms, each a thin white core (re-jagged every burst) over a wide violet glow band; dark smoke tendrils curling off the head, shoulders and arms; a violet charge glow on the skin and short arcs (bolt sprites) crackling on it, both flaring on a burst; tiny zigzag ozone sparks; a violet node where the chest cracks meet | a dark storm pool under you, a scorched rubble ring round a lightning-crack web (two SurfaceGui images) that flashes on a burst, an electric ring crackling at the rim and small arcs crawling on the ground, both spiking on a burst | irregular bursts (0.5 to 2.6 s apart): a flash, spark and radial arcs at the chest crack, bolts (white core in a crawling bolt-texture glow) from both hands to the ground with spark splashes where they land, a snap ring and a crack-web flash on the ground, the skin crackles | a bolt strikes the crown (two branching bolts), a white and chromatic flash there, radial lightning at the chest, arcs filling the space round the body, an electric ring and a crack web blasting over a scorched rubble ring, dark smoke thrown low, zigzag sparks; skin arcs surge |
 | Drifting Cloud | wisps lifting off the arms and torso; mint ForceField rim | a soft white cloud of puffs you sit on, a mint glow under it, two counter-turning wind rings that tighten on the inhale, streaks drawn inward | at the start of each inhale a wide wind ring sweeps in to the body | a gust ring bursts out, cloud puffs spray |
 | Frost Lotus | pale rime ForceField rim | a glass lotus of three petal rings (inner, then one more each breath), flakes and crystals drifting down | breath mist from the mouth, a frost ring creeps out | a frost ring, shards thrown up, a cold flash at the chest |
 
@@ -93,7 +93,7 @@ How it is put together (details in the builder header):
   `Rise = studs` with `RisePeriod` (drift up, fade at the top, start again),
   and `Kick` now also flashes on pulses.
 - **Budget per aura:** one PointLight (none for Wind, Ice, Thunder, Sect),
-  6 shell parts (R6), up to ~30 beams (Thunder's jagged cracks), a handful of
+  6 shell parts (R6), up to ~40 beams (Thunder's jagged cracks), a handful of
   emitters at 1 to 13 /s per limb. Sect Breathing auras rank after named
   methods for the 8 slots. Blazing Heart (R6): 17 loop emitters, about 60
   live particles in the loop (limb flames 8/s per limb are the bulk), one
@@ -101,7 +101,12 @@ How it is put together (details in the builder header):
   particles for about a second. Flowing Spring (R6): 13 loop emitters, about
   40 live particles (limb curls 2.2/s per limb, inflow 6/s on the inhale),
   one light, one SurfaceGui (caustics), no parts drawn; its ignition adds
-  ~40 particles for about a second, a pulse ~25.
+  ~40 particles for about a second, a pulse ~25. Thunder Pulse (R6): 8 loop
+  emitters (4 on the ground and chest node, 4 limb kinds), about 25 live
+  particles at rest (smoke tendrils are the bulk), spiking on each burst;
+  ~40 beams (9 cracks of 2-3 core segments plus a glow each, 2 hand bolts of
+  4 segments plus a glow); no light, two SurfaceGui images, the dark shell;
+  a burst adds ~15 particles, the ignition ~45 for about half a second.
 - **Palette for Neon:** bright pastels go white in Neon; ring and wave colours
   use the deeper shade of the element (violet, deep ice blue, burnt amber).
 
@@ -256,8 +261,14 @@ chant.
 
 ## Known gaps
 
-- The built Mortal auras other than Blazing Heart and Flowing Spring are
-  part-heavy and due for the emission rework (Status above).
+- The built Mortal auras other than Blazing Heart, Flowing Spring and
+  Thunder Pulse are part-heavy and due for the emission rework (Status above).
+- Thunder Pulse: previewed in Edit mode on an R6 rig (grass at noon and
+  night) through the plain emitter fallback; play speed, R15, phones and the
+  live sit / switch / breakthrough ignition are untested, and how the
+  irregular bursts feel next to a calm seated crowd. The ignition bolt is a
+  square sprite whose top edge can show for its 0.28 s. The dark shell is
+  kept as a faint tint (support); it reads without it.
 - Flowing Spring: previewed in Edit mode on the R6 rig (grass at noon and
   night) through the plain emitter fallback; play speed, R15, phones and the
   live sit / switch / breakthrough ignition are untested. The caustics disc

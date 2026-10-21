@@ -221,6 +221,28 @@ vividly, the way a VFX artist pitches a shot:
 - Shape and timing over particle count: a clear anticipation, a bright short
   peak, a soft fade. Combat effects land inside the hit's timing
   (`Config.Combat`), so a swing's flash is ~0.1-0.3 s, not a lingering cloud.
+- **3D first, sprites second.** Every effect's main reads (shockwaves,
+  slashes, shells, pillars, bursts) must be physical 3D parts the player can
+  see move through the world: torus and swirl MeshParts, Neon and ForceField
+  balls and shells, mesh blades, Beams with real width, Craters rocks. Flat
+  camera-facing particles are accents on top (glow, sparks, dust, motes), never
+  the whole effect. A plan or build that is only emitted 2D images is
+  incomplete. Every tier needs at least one 3D element, and higher tiers add
+  more.
+  - Use `MeshWave` models (see `TechniqueVFX.luau`): a Model with
+    `MeshWave = true` and one `Mesh` part, tweened from FromSize/FromOffset/
+    FromTransparency to To* over Duration, relative to its parent part or
+    attachment, with or without the Game Module. Ring meshes lie flat in XZ;
+    `Rotation = (90, 0, 0)` stands one up facing the parent's forward (-Z).
+  - Meshes that work: torus 471124075 (MeshSize 150×9.5×150, a clean solid
+    ring), wind-swirl rings 129778117978668, 73349240058321 and
+    122217820569960 (wispy shock rings). Use a ForceField-material Ball for
+    bubbles and air ripples, and Neon for solid glowing rings. Create meshes
+    with `AssetService:CreateMeshPartAsync`.
+  - Shockwave family: an impact ring facing along the blow at each target, a
+    ground ring under the target, air rings flying forward from the striking
+    limb, a ground torus rolling out to the gameplay radius (`Phase = "active"`
+    so `fit` times it), and bubbles or shells at high tiers.
 - Telegraphs (enemy attack areas, `Telegraphs.luau`) must stay readable over
   any effect: don't cover the ground warning with bright particles.
 - LightEmission and Brightness sparingly; additive white-out on bright skies

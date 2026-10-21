@@ -1,7 +1,7 @@
 --!strict
 -- Client entry: wires the HUD, circulation minigame, breakthroughs, combat (with
 -- telegraphs, lock-on and enemy health bars), the mouse cursor, travel (menu, array markers, fade), the hotbar, the inventory
--- (items and arts), seed picker, garden view, build mode, meditation, settings, zone music, beast sounds, the region entry banner, world event visuals, and the character window
+-- (items and arts), seed picker, garden view, build mode, meditation, settings, zone music, beast sounds, the region entry banner, world event visuals, stylized water, and the character window
 -- (realm crest) with the spirit root reveal card.
 
 local Players = game:GetService("Players")
@@ -18,6 +18,7 @@ local Onboarding = require(script.Parent.Onboarding)
 local DayNight = require(script.Parent.DayNight)
 local WeatherFX = require(script.Parent.WeatherFX)
 local WorldEventFX = require(script.Parent.WorldEventFX)
+local StylizedWater = require(script.Parent.StylizedWater)
 local RootFX = require(script.Parent.RootFX)
 local MethodAura = require(script.Parent.MethodAura)
 local HotbarView = require(script.Parent.HotbarView)
@@ -71,6 +72,7 @@ Onboarding.init(gui)
 DayNight.init()
 WeatherFX.init()
 WorldEventFX.init()
+StylizedWater.init()
 RootFX.init()
 MethodAura.init()
 HotbarView.init(gui)

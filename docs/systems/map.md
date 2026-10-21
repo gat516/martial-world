@@ -150,7 +150,7 @@ vary each slab or part a step either way inside its family.
 | Roof | `#33403F` | `#43524F` | `#262F2F` | tiled roofs (slate teal, not black) |
 | Jade | `#5FAE96` | `#8FD4BC` | `#3E7F6C` | lamps, runes, inlays |
 | Gold | `#C29A48` | `#DDBA68` | `#8E6E30` | trims, caps, finials |
-| Water | `#4E9FB2` | `#CFE6EA` (foam/rim) | `#2F6E80` | pools, falls |
+| Water | `#4E9FB2` | `#CFE6EA` (foam/rim) | `#2F6E80` | pool rims, wet stone; the water itself is brighter (WaterKit `#20AAE0`, foam `#F2FCFF`, after the library falls, [world](world.md)) |
 
 ### Verticality: walls and water
 Decided 2026-10-21, from the reference `docs/reference/map_enclosed_valley.webp`.
@@ -967,7 +967,7 @@ originals; re-colour to the palette.
 | Trees | Inno `Pine_Trees` Variation_01-06 (4 sizes each, 33-45 wide, 57-75 tall: the best chunky pines); Map Detailing Pine Tree 1-5, Tree 3 realistic, Tree 2 realistic, Small Tree 1-3; `Stylized Tree Pack` (Light/Dark Green 43 tall, Wide, Orange, Wind Physics); `_Templates.BambooCluster_1..3` (old single-part unions, ~45 tall); `_Templates.BambooCluster_4..16` (Models, `art/bamboo/`, `BambooKind` attribute: 4 Grove dense clump, 5 Sparse 4 culms, 6 Single tall culm, 7 Arching wind-bent, 8 Young with shoots, 9 Stumps cut, 10 Dry gold accent, 11 Thicket low oval row, 12-14 Stand A/B/C 16x16 tiles that butt into a continuous grove (turn by 90 deg), 15 Giant 78-96 tall for the hero grove, 16 Edge 16x8 border strip, tall side +Z, shoots toward -Z; multi-part, so recolour per part, not `c.Color`); `Tree Log Stumps` |
 | Fences, rails | Stylized Wooden Props II `Stylized Fence` (Full Fence, Fence Pillar 7 tall); `Stylized Props/Bamboo Fence (modular)`; Inno `Fences/Fence_01..03` (7x4); Map Detailing Asset Pack Fence1-3; `Lighting Fence` |
 | Paths, edging | `Textures` (Pavement I-III, Tiles, Ground I/II, Grass I/II, Wood Planks; reference swatches for colours); Map Detailing Pebble, Stone (8x1x8 stepping), Inno Logs |
-| Water edges | LilyPads (W Flower 7 wide), Inno Lilypads 01-06, Reeds; `VFX`: Blue Waterfall (28x80), WaterFall Main (26x62), Stylized Rock Formation Waterfall (87x74), Map Detailing Stylized waterfall 2/3, Water Fountain, Wells (Clean Blue, Mossy Green) |
+| Water edges | `ServerStorage.WaterKit` (stylized shallow water, never terrain water: `ShallowWater` block / `ShallowWaterRound` surfaces, `waterKit.dress` for unions, `RimFoam` and `waterKit.rimPart`/`rimAlong` rims, `WaterfallFoam` at a fall's foot with `AmbientFX.WaterfallSpray`; see [world](world.md)); LilyPads (W Flower 7 wide), Inno Lilypads 01-06, Reeds; `VFX`: Blue Waterfall (28x80, the colour reference for water), WaterFall Main (26x62), Stylized Rock Formation Waterfall (87x74), Map Detailing Stylized waterfall 2/3, Water Fountain, Wells (Clean Blue, Mossy Green) |
 | Bridges, stairs | `Stylized Bridges + Step Ladders` (Bridge I/II 108 long, Step Ladder I/II); Inno `Stone_Bridges/Bridge_Regular` (38 long arch, good for pool crossings), `Bridge_Wood`; Map Detailing Bridge, Pier |
 | Props | `Stylized Props`: barrels, crates, sacks, hay, trough, buckets, table + chairs, ladders, cart wheels; Wooden Props I: Pushing Cart, Strong Box; Props II: logs, LogPile, bench; Map Detailing: Gong, Wood Sign 1/2, Display, Market shop, Whistling board, Candles, Book Podium, Bell Pillar, Stone Statue |
 | Structures | Map Detailing: Tori Gate (with/without sign, 36x30), Temple Structure (36x32), Shop House, Smith House, House 1-3; `Stylized Market Tent`; VFX Shrine Statue, Portal |

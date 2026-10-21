@@ -29,7 +29,9 @@ Mapped assets: `Remotes`, `Animations`, `Ambience`, `Effects` (binary
 (SoundService); `Wilds`, `Hub` (Workspace); `Enemies`, `PeakTiers`,
 `ItemTemplates`, `AmbientFX` (binary `assets/AmbientFX.rbxm`, world-ambience
 effect templates: fireflies, lamp glows, mist, waterfall spray, petals; see
-[world](systems/world.md)), `WeaponModels` (binary `assets/WeaponModels.rbxm`, weapon
+[world](systems/world.md)), `WaterKit` (binary `assets/WaterKit.rbxm`, stylized
+shallow-water surfaces, rim foam and waterfall foam; see [world](systems/world.md)),
+`WeaponModels` (binary `assets/WeaponModels.rbxm`, weapon
 models: one Model per class weapon joined to the Right Arm by its `Hilt`/`HiltR` Motor6D, plus
 Dizi, Zither, SpiritStone and the ManualScroll prop; built by `art/weapons/place_weapons.luau`)
 (ServerStorage). Never restructure these by hand in Studio: see
@@ -79,7 +81,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Enemies, spawning, regions | [enemies](systems/enemies.md) | EnemyService, Spawner | Enemies, Spawns, Regions, Knockback | EnemyAnimator, EnemyBars, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
-| Weather, world events, treasures | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures | Weather, WorldEvents | WeatherFX, DayNight, Music |
+| Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures | Weather, WorldEvents | WeatherFX, DayNight, Music, StylizedWater |
 | Onboarding, quests, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Gates, Config.Travel | Onboarding, TravelMenu, GateMarkers, Veil |
 | UI and HUD | [ui](systems/ui.md) | - | - | Hud, Menus, Layout, Motion, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |

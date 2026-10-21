@@ -91,6 +91,9 @@
       "AmbientFX": {
         "$path": "assets/AmbientFX.rbxm"
       },
+      "WaterKit": {
+        "$path": "assets/WaterKit.rbxm"
+      },
       "WeaponModels": {
         "$path": "assets/WeaponModels.rbxm"
       }

@@ -7,7 +7,7 @@ instances and coordinates scripts depend on. `Workspace.Map` lives only in the
 place file (not Rojo), so this doc and the commit bodies are its only history.
 
 ## World at a glance
-Floating stone peaks above a cloud sea (deck tops Y ~415-424). The main sect
+Floating stone peaks above a cloud sea (deck tops Y ~405-455). The main sect
 peak sits at the origin; eight player spirit peaks ring it at radius 300 (plateaus
 Y 553.5, every 45 deg from 22.5 deg, `Peak_1` at (114.8, 553.5, 277.2)), each
 linked by a rope bridge to the main peak's ring terrace (Y 582). The wilds lie
@@ -242,9 +242,42 @@ peak end. Landings at both ends per the rules above. `SwayBridge` tags are free
 (no code reads them).
 
 ## Cloud sea and ground
-- Cloud decks (Y ~399-424) and puffs hide the peak bases; keep them dense under
-  the peaks and thinner toward the horizon so depth reads. Add a few large
-  stylized clouds drifting at peak height between peaks (not inside walk areas).
+- Clouds are stylized cumulus meshes (`art/clouds/build_clouds.py`, run
+  headless; `art/clouds/place_clouds.luau` lays them out, seeded and
+  re-runnable from the kit in `ServerStorage.CloudKit`). Eight shapes (deck
+  clumps A/B/C, DeckLong strip, Tower, Bank, Puff, WispArc) made of round
+  billows with a flat base. A baked UV ramp (`CloudRamp.png`, the import's
+  TextureID) gives every cloud cool shaded undersides and warm lit crowns.
+  Fabric material keeps them matte (SmoothPlastic put shiny sun spots on
+  every crown).
+- Layers under `Map.Clouds`:
+  - `Deck`: crowns with tops at Y 428-452 near the peaks, 416-440 to r 1150 and
+    402-424 out to r 1800, plus a floor layer of flatter clumps ~30 lower
+    (to r 1300) so the space between the crowns reads as more cloud.
+  - Five deliberate holes in the deck (`GAPS`), one of them in the plaza's
+    southern view at 100 deg, r 650. `UnderDeck` puts darker clumps ~70 lower
+    in each hole (big + medium + small), so the holes show depth.
+  - `Wisps`: two arcs and a puff around each spirit pillar (Y 430-515) and three
+    stacked arcs around the main peak (Y 428-523).
+  - `FallFoam`: puff clusters where the three main-peak falls (E, W, N) meet the
+    sea.
+  - `Banks`: mid-height clusters at 0/90/225 deg (r 430-620, Y 450-760) and a
+    lone tower at 315 deg r 950. All of them are outside the bridges (r < 300)
+    and the plateaus.
+  - `Horizon`: banks at r 2100-2600 and towers at r 1500-1800. They mostly melt
+    into the Atmosphere haze, so they show only when the haze is thin.
+  - `Auspicious` (12 swirl clouds) and `Emitters` (20 CloudLineFog emitters)
+    are kept from the old pass.
+- Budget: ~300 parts, ~400k tris before LOD (RenderFidelity Automatic), 8
+  unique meshes. Every cloud part is anchored, with CanCollide, CanQuery,
+  CanTouch and CastShadow off, and CollisionFidelity Box. Players fall
+  straight through the sea to the ground. The deck ceiling sits at Y 290-455,
+  far above the ground route and the sect gate.
+- Mist VFX spots (Attachments): `FX_PillarMist` x27 (pillar and main-peak
+  wisps), `FX_FallMist` x3, `FX_BankMist` x3. Clone
+  `ServerStorage.AmbientFX.MistWisps` there.
+- The sky's own clouds come from the painted skybox (lighting). Terrain Clouds
+  stay off: volumetric clouds would clash with it.
 - Distant karst silhouettes at r 800+ (far, Hull collision, low tris) give the
   horizon layers. The ground and wilds are a later pass (Wilds is Rojo-mapped:
   staging only).
@@ -265,7 +298,7 @@ originals; re-colour to the palette.
 | Bridges, stairs | `Stylized Bridges + Step Ladders` (Bridge I/II 108 long, Step Ladder I/II); Inno `Stone_Bridges/Bridge_Regular` (38 long arch, good for pool crossings), `Bridge_Wood`; Map Detailing Bridge, Pier |
 | Props | `Stylized Props`: barrels, crates, sacks, hay, trough, buckets, table + chairs, ladders, cart wheels; Wooden Props I: Pushing Cart, Strong Box; Props II: logs, LogPile, bench; Map Detailing: Gong, Wood Sign 1/2, Display, Market shop, Whistling board, Candles, Book Podium, Bell Pillar, Stone Statue |
 | Structures | Map Detailing: Tori Gate (with/without sign, 36x30), Temple Structure (36x32), Shop House, Smith House, House 1-3; `Stylized Market Tent`; VFX Shrine Statue, Portal |
-| Clouds | Props II `Stylized Clouds` (22-28 wide puffs) |
+| Clouds | own meshes in `ServerStorage.CloudKit` (`art/clouds/`); Props II `Stylized Clouds` (22-28 wide swirl puffs, used as `Map.Clouds.Auspicious`); Map Detailing `Clouds_01..09` (flat side-profile strips, unused) |
 
 Avoid: Map Detailing modern props (traffic cones, hydrants, mail box, AC unit,
 stop sign, street lights), palm trees, Castle/Medieval_House, Dummy.

@@ -18,7 +18,7 @@ local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
 local Methods = require(script.Parent.Methods)
 local DaoPractice = require(script.Parent.DaoPractice)
-local Roots = require(script.Parent.Roots)
+local RootService = require(script.Parent.Roots)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local WeatherService = require(script.Parent.WeatherService)
@@ -213,7 +213,7 @@ function Circulation.handle(player: Player, action: any, ...: any): (boolean, an
 	elseif action == "method" then
 		return Methods.switch(player, ...)
 	elseif action == "root" then
-		return Roots.choose(player, ...)
+		return RootService.choose(player, ...)
 	elseif action == "practiceStart" then
 		return DaoPractice.start(player)
 	elseif action == "practiceFinish" then

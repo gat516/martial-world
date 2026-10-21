@@ -1554,74 +1554,279 @@ local function ironMarrow(root)
 end
 
 -- ---------------------------------------------------------------- Mountain Breath (Earth)
--- Deep and steady as stone: an amber core low in the belly, a carved stone
--- ring under you that settles a little with each breath, pebbles lifting
--- very slowly, dust.
+-- Deep, steady as stone (Mortal: small, close, rich). Rebuilt 2026-10-21 from
+-- layered library emissions: the motion is heavy and downward, things settle,
+-- sift and sink; only the stones lift, slowly, on the inhale. Earth is
+-- square: a dark square-in-circle seal under a bright four-fold seal.
+-- Back to front:
+--   ground  dry cracked earth (dark base) with amber veins glowing through
+--           the cracks, a dark square-in-circle seal turning very slowly under
+--           a bright amber four-fold seal turning the other way, both sinking a
+--           little on each exhale; stones orbiting slowly round you, lifting
+--           on the inhale and settling on the exhale; gold dust hanging in
+--           the air; a low dust haze creeping out along the ground
+--   body    a low earth core in the belly (amber crusted glow, hard dot, a
+--           level horizon glint, the one light); amber earth qi clinging to
+--           the torso and legs; gold sand sifting down off the arms and torso
+--           with dark grit flecks
+--   breath  the settle: a dust ring rolls out low, puffs of dust, a few
+--           pebbles hop, the core swells; the seals and stones sink
+--   tremor  every 3 or 4 breaths: amber cracks flash across the ground, a
+--           bigger dust ring and spray, grit jumps, the core flashes
+--   ignite  the ground thumps: a dark crater under amber cracks flashing out,
+--           rubble crumbling, a dust ring and a low dust spray, rocks thrown
+--           up, stone shards jutting round the seat, a flash and a wide level
+--           glint at the belly, gold dust bursting up and raining back
 
-local EARTH_CORE, EARTH, STONE = rgb(255, 196, 110), rgb(225, 150, 60), rgb(118, 98, 78)
+local AMBER_WHITE, AMBER, OCHRE, UMBER = rgb(255, 240, 205), rgb(255, 182, 84), rgb(212, 132, 48), rgb(120, 72, 32)
+local STONE, SLATE, DUSTY = rgb(150, 136, 118), rgb(78, 70, 62), rgb(198, 172, 132)
+
+local MB = {
+	earth = id(86726095803553), -- dry cracked earth, dark
+	veins = id(1380079888), -- a net of cracks (glows amber through the dry earth)
+	seal = id(223123319), -- black lines: a square inside a circle, rune band
+	ward = id(133746306498771), -- a bold four-fold square seal
+	core = id(12362862883), -- amber energy with a dark crust
+	haze = id(12362866404), -- orange crusted energy, softer
+	glow = id(6673021984), -- soft round glow
+	dot = id(8242018934), -- small hard dot
+	lens = id(1847258023), -- a level lens streak
+	stones = id(82603403775997), -- 2x2: white rock chunks (tintable)
+	rocks = id(130042646554310), -- 2x2: grey-brown rocks (natural colour)
+	shard = id(281633012), -- a stone shard
+	dustRing = id(13556798897), -- a ring of dust
+	dust = id(11037784926), -- a soft dust puff
+	cracks = id(125427453566131), -- radial cracks
+	crater = id(109477912447315), -- a dark cracked crater
+	rubble = id(116852757864858), -- 4x4 flipbook: cracked ground crumbling
+}
+_G.MountainBreathAssets = MB
 
 local function mountainBreath(root)
-	local m = model("MountainBreath", root)
-	shell(m, rgb(225, 140, 60), { Pulse = R(0.86, 0.94), Pad = 0.2 }, Enum.Material.Neon)
+	local grid2, grid4 = Enum.ParticleFlipbookLayout.Grid2x2, Enum.ParticleFlipbookLayout.Grid4x4
+	local oneShot, loopFb = Enum.ParticleFlipbookMode.OneShot, Enum.ParticleFlipbookMode.Loop
+	-- a tremor (the Punch model) every 3 or 4 breaths, up to 0.5 s late
+	local m = model("MountainBreath", root, { PunchEvery = R(3, 4), PunchJitter = 0.5, PunchSwell = 1.3 })
 
-	local body = model("Body", m)
-	local core = ball("Core", body, 0.6, CFrame.new(0, 0, -0.4), EARTH_CORE, { Point = "Belly", Pulse = R(0.02, 0.25), Grow = R(0.9, 1.12) })
-	light(core, EARTH, 9, 1.4)
-
+	-- ground: the seat (within ~1 body-width)
 	local ground = model("Ground", m)
-	-- the stone ring: a heavy carved torus with a glowing rune circle inside
-	local stone = mesh(A.torus, ground, "Stone", ring(6.4, 1.9), CFrame.new(0, 0.18, 0), STONE, {
-		Pulse = R(0, 0), Lift = -0.14,
-	}, Enum.Material.Slate)
-	stone.Color = STONE
-	decalDisc("Runes", ground, 6, 0.1, A.rune, rgb(255, 180, 80), { Pulse = R(0, 0.35), Lift = -0.1, Turn = 4 })
-	mesh(A.torus, ground, "Glow", ring(5.7, 0.6), CFrame.new(0, 0.16, 0), rgb(235, 140, 50), { Pulse = R(0.3, 0.65), Lift = -0.1 })
-	local rockColors = { rgb(140, 116, 88), rgb(120, 100, 76), rgb(160, 132, 96) }
-	for i = 1, 5 do
-		local yaw = math.rad((i - 1) * 72 + 15)
-		local s = 0.3 + (i % 3) * 0.1
-		ellipsoid("Pebble" .. i, ground, V3(s * 1.2, s * 0.8, s), CFrame.Angles(0, yaw, 0) * CFrame.new(2.4 + (i % 2) * 0.4, 0.6 + (i % 3) * 0.35, 0)
-			* CFrame.Angles(i * 0.7, i * 1.3, i * 0.4), rockColors[(i % 3) + 1], {
-			Pulse = R(0, 0), Bob = 0.12, Lift = 0.5, Tumble = 12, Spin = 5,
-		}, Enum.Material.Slate)
+	local floor = part("Floor", ground, CFrame.new(0, 0.04, 0), V3(1, 0.05, 1))
+	local under = part("Under", ground, CFrame.new(0, 0.01, 0), V3(0.6, 0.02, 0.6))
+	loop(under, "Bedrock", B.flat({ -- the dark base under everything bright
+		Texture = MB.earth, Size = NS(2.9), Transparency = seq(0, 1, 0.2, 0.05, 0.8, 0.05, 1, 1), Color = CS(rgb(150, 125, 100)),
+		Lifetime = R(6), Rate = 0.34, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Veins", B.flat({
+		Texture = MB.veins, Size = NS(2.3), Transparency = seq(0, 1, 0.25, 0.3, 0.75, 0.3, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 0.4, AMBER, 1, OCHRE), Lifetime = R(4), Rate = 0.5, Rotation = R(0, 360),
+		LightEmission = 1, Brightness = 2, ZOffset = 1, -- over the bedrock (small ZOffsets lose the sort)
+	}), { Prime = 2, Breathe = R(0.5, 1.5), Swell = 0.06, Drift = 0.04 })
+	-- the seals are flat images; they sink a little at the breath's peak (Lift)
+	decalDisc("Seal", ground, 5.8, 0.22, MB.seal, rgb(255, 255, 255), {
+		Pulse = R(0.1, 0.25), Turn = 2.5, Lift = -0.05,
+	})
+	decalDisc("Ward", ground, 4.4, 0.27, MB.ward, AMBER, {
+		Pulse = R(0.05, 0.4), Turn = -4, Lift = -0.05, Grow = R(0.98, 1.03), GrowIn = true, Kick = 0.8,
+	})
+	-- stones orbiting slowly: emitters locked to anchors that circle the seat
+	-- (Spin) and lift on the inhale (Lift); each holds a few stones
+	for i, o in {
+		{ r = 2.5, y = 1.1, yaw = 0, spin = 11, size = 0.34 },
+		{ r = 2.7, y = 1.9, yaw = 130, spin = 9, size = 0.28 },
+		{ r = 2.3, y = 0.75, yaw = 245, spin = 13, size = 0.38 },
+	} do
+		local anchor = part("Orbit" .. i, ground, CFrame.Angles(0, math.rad(o.yaw), 0) * CFrame.new(0, o.y, -o.r), V3(1.2, 0.5, 1.2), {
+			Spin = o.spin, Lift = 0.35, Bob = 0.06,
+		})
+		loop(anchor, "Stones", {
+			Texture = MB.stones, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+			Shape = box, ShapeStyle = volume, Size = rnd(o.size * 0.7, o.size * 1.2), Transparency = seq(0, 1, 0.15, 0, 0.85, 0, 1, 1),
+			Color = cseq(0, STONE, 1, SLATE), Lifetime = R(6, 7), Rate = 0.6, Rotation = R(0, 360), RotSpeed = R(-25, 25),
+			LightEmission = 0, ZOffset = 0.2, LockedToPart = true,
+		}, { Prime = 3 })
+		loop(anchor, "Glint", { -- a spirit stone among them, lit from inside
+			Texture = MB.shard, Shape = box, ShapeStyle = volume, Size = rnd(0.18, 0.24),
+			Transparency = seq(0, 1, 0.2, 0.1, 0.8, 0.1, 1, 1), Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(6),
+			Rate = 0.17, Rotation = R(0, 360), RotSpeed = R(-30, 30), LightEmission = 0.6, Brightness = 2, ZOffset = 0.25,
+			LockedToPart = true,
+		}, { Prime = 1 })
 	end
-	local floor = part("Floor", ground, CFrame.new(0, 0.25, 0), V3(5.5, 0.2, 5.5))
-	loop(floor, "Dust", B.flat({
-		Texture = A.dust, Size = seq(0, 1.2, 1, 2.6), Transparency = seq(0, 1, 0.3, 0.75, 1, 1),
-		Color = CS(rgb(205, 175, 130)), Lifetime = R(3), Rate = 0.5, Rotation = R(0, 360), RotSpeed = R(-15, 15),
-		LightInfluence = 0.5,
-	}), { Scaled = true })
+	local air = part("Air", ground, CFrame.new(0, 1.5, 0), V3(4.6, 2.6, 4.6))
+	loop(air, "GoldDust", {
+		Texture = MB.dot, Shape = box, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.04, 0.065),
+		Transparency = seq(0, 1, 0.2, 0.1, 0.8, 0.2, 1, 1), Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(3, 4),
+		Speed = R(0.1, 0.3), SpreadAngle = Vector2.new(40, 40), Drag = 0.6, Acceleration = V3(0, -0.12, 0), Rate = 3,
+		LightEmission = 1, Brightness = 3, ZOffset = 0.3,
+	}, { Scaled = true, Breathe = R(0.6, 1.3), Prime = 5 })
+	local haze = part("Haze", ground, CFrame.new(0, 0.3, 0), V3(3.4, 0.2, 3.4))
+	loop(haze, "Dust", {
+		Texture = MB.dust, Shape = box, ShapeStyle = volume, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
+		Size = seq(0, 0.4, 1, 0.9), Transparency = seq(0, 1, 0.3, 0.72, 0.7, 0.8, 1, 1), Color = CS(DUSTY), Lifetime = R(2.6, 3.2),
+		Speed = R(0.3, 0.6), Drag = 0.3, Rotation = R(0, 360), RotSpeed = R(-15, 15), Rate = 1, LightEmission = 0,
+		LightInfluence = 0.6,
+	}, { Scaled = true, Prime = 2 })
 
-	-- each breath settles: a dust ring and a slow amber pulse out of the stone
+	-- body: the low earth core
+	local body = model("Body", m)
+	local core = at("Belly", CFrame.new(0, -0.18, -0.12), "Core", body)
+	light(core, OCHRE, 8, 1.4)
+	loop(core, "Earth", {
+		Texture = MB.core, Size = NS(0.62), Transparency = seq(0, 1, 0.3, 0.1, 0.7, 0.1, 1, 1), Color = CS(AMBER_WHITE),
+		Lifetime = R(1.3), Rate = 2.4, Rotation = R(0, 360), RotSpeed = R(-12, 12), LightEmission = 1, Brightness = 2,
+		ZOffset = 1.4, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.35 })
+	loop(core, "Hot", {
+		Texture = MB.dot, Size = NS(0.16), Transparency = seq(0, 1, 0.3, 0, 1, 1), Color = CS(AMBER_WHITE),
+		Lifetime = R(0.4), Rate = 6, LightEmission = 1, Brightness = 4, ZOffset = 1.5, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.25 })
+	loop(core, "Horizon", { -- a level glint: steady as the horizon
+		Texture = MB.lens, Size = seq(0, 0.6, 0.5, 1, 1, 0.7), Transparency = seq(0, 1, 0.4, 0.2, 1, 1), Color = CS(AMBER_WHITE),
+		Lifetime = R(1.6), Rate = 0.6, LightEmission = 1, Brightness = 3, ZOffset = 1.55, LockedToPart = true,
+	}, { Prime = 1 })
+
+	-- a squat amber glow behind the lower body on a dark umber copy of
+	-- itself: a low, broad shape (a hill, not a flame) that breathes slowly
+	local seat = at("Dantian", CFrame.new(0, 0.2, 0.55), "Seat", body)
+	loop(seat, "Shade", {
+		Texture = MB.haze, Size = NS(2), Transparency = seq(0, 1, 0.3, 0.2, 0.7, 0.2, 1, 1), Color = CS(rgb(40, 26, 14)),
+		Lifetime = R(2.4), Rate = 0.9, Rotation = R(-20, 20), LightEmission = 0, ZOffset = -0.8, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.06, Drift = 0.04 })
+	loop(seat, "Glow", {
+		Texture = MB.core, Size = NS(1.6), Transparency = seq(0, 1, 0.3, 0.1, 0.7, 0.1, 1, 1), Color = CS(rgb(255, 225, 175)),
+		Lifetime = R(2.2), Rate = 1.2, Rotation = R(0, 360), RotSpeed = R(-8, 8), LightEmission = 1, Brightness = 3,
+		ZOffset = -0.5, LockedToPart = true,
+	}, { Prime = 2, Breathe = R(0.7, 1.3), Swell = 0.1, Drift = 0.04 })
+
+	-- limbs: earth qi clinging low, gold sand sifting down, dark grit
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Qi", {
+		Texture = MB.haze, Shape = box, ShapeStyle = volume, Size = rnd(0.5, 0.65),
+		Transparency = seq(0, 1, 0.3, 0.3, 0.7, 0.3, 1, 1), Color = CS(rgb(255, 225, 185)), Lifetime = R(1.4, 1.8),
+		Rotation = R(0, 360), RotSpeed = R(-10, 10), Rate = 1.4, LightEmission = 1, Brightness = 2.5, ZOffset = -0.25,
+		LockedToPart = true,
+	}, { On = "Torso,Legs", Scaled = true, Breathe = R(0.7, 1.3), Swell = 0.12, Drift = 0.05 })
+	loop(limbs, "Sand", {
+		Texture = MB.dot, Shape = box, ShapeStyle = surface, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.05, 0.075),
+		Transparency = seq(0, 0, 0.8, 0.1, 1, 1), Color = cseq(0, AMBER_WHITE, 1, OCHRE), Lifetime = R(0.6, 0.9),
+		Speed = R(0.2, 0.5), SpreadAngle = Vector2.new(20, 20), Acceleration = V3(0, -7, 0), Rate = 5, LightEmission = 1,
+		Brightness = 2.5, ZOffset = 0.4,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.6, 1.4), Surge = 10, PunchSurge = 5 })
+	loop(limbs, "Grit", {
+		Texture = MB.stones, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = box, ShapeStyle = surface, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.045, 0.07),
+		Transparency = seq(0, 0, 0.8, 0.1, 1, 1), Color = CS(SLATE), Lifetime = R(0.7, 1), Speed = R(0.1, 0.3),
+		Acceleration = V3(0, -8, 0), Rotation = R(0, 360), RotSpeed = R(-90, 90), Rate = 0.8, LightEmission = 0, ZOffset = 0.35,
+	}, { On = "Arms,Torso", Scaled = true, Surge = 4, PunchSurge = 2 })
+
+	-- each breath settles: a low dust ring, puffs, a few pebbles hop, the core swells
 	local breath = model("Breath", m)
-	local base = part("Base", breath, CFrame.new(0, 0.2, 0), V3(5, 0.2, 5))
-	wave(base, "Settle", {
-		mesh = A.torus, color = rgb(205, 115, 40), fromSize = ring(5.4, 1.4), toSize = ring(7.4, 0.8),
-		fromTransparency = 0.2, toTransparency = 1, duration = 1.4, style = "Sine",
+	local belly = at("Belly", CFrame.new(0, -0.18, -0.18), "Belly", breath)
+	burst(belly, "Swell", 1, {
+		Texture = MB.glow, Size = seq(0, 0.5, 0.5, 1.1, 1, 1.2), Transparency = seq(0, 0.4, 1, 1), Color = cseq(0, AMBER_WHITE, 1, AMBER),
+		Lifetime = R(0.9), LightEmission = 1, Brightness = 2, ZOffset = 1.8,
 	})
-	burst(base, "Dust", 6, {
-		Texture = A.dust, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
-		Size = seq(0, 0.6, 1, 1.6), Transparency = seq(0, 0.55, 1, 1), Color = CS(rgb(210, 180, 135)),
-		Lifetime = R(1, 1.4), Speed = R(2, 3.5), Drag = 2, Rotation = R(0, 360), LightInfluence = 0.5,
+	local floorB = part("Floor", breath, CFrame.new(0, 0.18, 0), V3(2.4, 0.1, 2.4))
+	burst(floorB, "DustRing", 1, B.flat({
+		Texture = MB.dustRing, Size = seq(0, 1.6, 1, 3.3), Transparency = seq(0, 0.45, 0.5, 0.6, 1, 1), Color = CS(DUSTY),
+		Lifetime = R(1.4), Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5, ZOffset = 0.2,
+	}))
+	burst(floorB, "Puffs", 4, {
+		Texture = MB.dust, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.35, 1, 0.9),
+		Transparency = seq(0, 0.55, 1, 1), Color = CS(DUSTY), Lifetime = R(0.9, 1.3), Speed = R(1.5, 2.5), Drag = 2,
+		Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5,
+	})
+	burst(floorB, "Hop", 3, {
+		Texture = MB.rocks, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = box, EmissionDirection = up, Size = rnd(0.07, 0.11), Transparency = seq(0, 0, 0.85, 0, 1, 1),
+		Lifetime = R(0.45, 0.6), Speed = R(2.5, 3.5), SpreadAngle = Vector2.new(25, 25), Acceleration = V3(0, -22, 0),
+		Rotation = R(0, 360), RotSpeed = R(-200, 200), LightEmission = 0, LightInfluence = 0.6,
 	})
 
-	-- ignition: the ground thumps, dust sprays out, grit jumps
+	-- a tremor every few breaths: a lighter ignition
+	local tremor = model("Punch", m)
+	local pCore = at("Belly", CFrame.new(0, -0.18, -0.25), "Belly", tremor)
+	burst(pCore, "Flash", 1, {
+		Texture = MB.dot, Size = seq(0, 0.3, 0.2, 0.9, 1, 1), Transparency = seq(0, 0.05, 0.5, 0.5, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(0.45), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(pCore, "Horizon", 1, {
+		Texture = MB.lens, Size = seq(0, 0.6, 0.25, 2.2, 1, 0), Transparency = NS(0), Color = CS(AMBER_WHITE),
+		Lifetime = R(0.5), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	local pFloor = part("Floor", tremor, CFrame.new(0, 0.2, 0), V3(2.6, 0.1, 2.6))
+	burst(pFloor, "Cracks", 1, B.flat({
+		Texture = MB.cracks, Size = seq(0, 2, 0.2, 2.7, 1, 2.8), Transparency = seq(0, 0, 0.5, 0.4, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(0.9), Rotation = R(0, 360), LightEmission = 1, Brightness = 2.5,
+		ZOffset = 0.25,
+	}))
+	burst(pFloor, "DustRing", 1, B.flat({
+		Texture = MB.dustRing, Size = seq(0, 1.6, 1, 3.8), Transparency = seq(0, 0.3, 0.5, 0.5, 1, 1), Color = CS(DUSTY),
+		Lifetime = R(1.2), Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5, ZOffset = 0.2,
+	}))
+	burst(pFloor, "Spray", 6, {
+		Texture = MB.dust, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.5, 1, 1.3),
+		Transparency = seq(0, 0.45, 1, 1), Color = CS(DUSTY), Lifetime = R(0.8, 1.1), Speed = R(4, 6), Drag = 3,
+		Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5,
+	})
+	burst(pFloor, "Grit", 6, {
+		Texture = MB.rocks, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = box, EmissionDirection = up, Size = rnd(0.08, 0.13), Transparency = seq(0, 0, 0.85, 0, 1, 1),
+		Lifetime = R(0.5, 0.7), Speed = R(3.5, 5), SpreadAngle = Vector2.new(30, 30), Acceleration = V3(0, -24, 0),
+		Rotation = R(0, 360), RotSpeed = R(-220, 220), LightEmission = 0, LightInfluence = 0.6,
+	})
+
+	-- ignition: the ground thumps, short and heavy, on and near the body
 	local ignite = model("Ignite", m)
-	local slam = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(4, 0.2, 4))
-	wave(slam, "Thump", {
-		mesh = A.torus, color = rgb(205, 115, 40), fromSize = ring(3, 3), toSize = ring(11, 1.4),
-		fromTransparency = 0, toTransparency = 1, duration = 0.9, style = "Quint",
+	local iCore = at("Belly", CFrame.new(0, -0.18, -0.3), "Belly", ignite)
+	burst(iCore, "Flash", 1, {
+		Texture = MB.dot, Size = seq(0, 0.5, 0.15, 1.5, 1, 1.7), Transparency = seq(0, 0, 0.4, 0.5, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(0.45), LightEmission = 1, Brightness = 3, ZOffset = 2,
 	})
-	burst(slam, "Dust", 14, {
-		Texture = A.dust, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
-		Size = seq(0, 1, 1, 2.6), Transparency = seq(0, 0.4, 1, 1), Color = CS(rgb(210, 180, 135)),
-		Lifetime = R(0.9, 1.3), Speed = R(10, 16), Drag = 3, Rotation = R(0, 360), LightInfluence = 0.5,
+	burst(iCore, "Horizon", 1, {
+		Texture = MB.lens, Size = seq(0, 1, 0.2, 4.2, 1, 0), Transparency = NS(0), Color = CS(AMBER_WHITE),
+		Lifetime = R(0.6), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
 	})
-	burst(slam, "Grit", 10, {
-		Texture = A.rocks, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.25, 0.4),
-		Transparency = seq(0, 0, 0.8, 0, 1, 1), Lifetime = R(0.8, 1.1), Speed = R(6, 10), SpreadAngle = Vector2.new(30, 30),
-		Acceleration = V3(0, -25, 0), Rotation = R(0, 360), RotSpeed = R(-150, 150), LightInfluence = 0.6,
+	burst(iCore, "GoldDust", 20, {
+		Texture = MB.dot, EmissionDirection = up, Size = rnd(0.05, 0.09), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(1, 1.5), Speed = R(5, 8), SpreadAngle = Vector2.new(60, 60),
+		Drag = 2, Acceleration = V3(0, -6, 0), LightEmission = 1, Brightness = 3, ZOffset = 1,
 	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3.2, 0.1, 3.2))
+	burst(base, "Crater", 1, B.flat({ -- dark under the bright cracks
+		Texture = MB.crater, Size = seq(0, 2.2, 0.1, 2.6, 1, 2.6), Transparency = seq(0, 0, 0.7, 0.1, 1, 1),
+		Color = CS(rgb(120, 100, 85)), Lifetime = R(1.3), Rotation = R(0, 360), LightEmission = 0, ZOffset = 0.15,
+	}))
+	burst(base, "Cracks", 1, B.flat({
+		Texture = MB.cracks, Size = seq(0, 1.6, 0.12, 3.2, 1, 3.3), Transparency = seq(0, 0, 0.6, 0.35, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(1.1), Rotation = R(0, 360), LightEmission = 1, Brightness = 3,
+		ZOffset = 0.25,
+	}))
+	burst(base, "Rubble", 1, B.flat({
+		Texture = MB.rubble, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(2.1), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = CS(rgb(230, 200, 160)), Lifetime = R(1), Rotation = R(0, 360), LightEmission = 0.4, Brightness = 1.5, ZOffset = 0.2,
+	}))
+	burst(base, "DustRing", 1, B.flat({
+		Texture = MB.dustRing, Size = seq(0, 1.6, 1, 5), Transparency = seq(0, 0.1, 0.5, 0.4, 1, 1), Color = CS(DUSTY),
+		Lifetime = R(1.1), Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5, ZOffset = 0.3,
+	}))
+	burst(base, "Spray", 12, {
+		Texture = MB.dust, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.6, 1, 1.8),
+		Transparency = seq(0, 0.3, 1, 1), Color = CS(DUSTY), Lifetime = R(0.9, 1.3), Speed = R(8, 12), Drag = 3.5,
+		Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5,
+	})
+	burst(base, "Rocks", 12, {
+		Texture = MB.rocks, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.12, 0.22), Transparency = seq(0, 0, 0.85, 0, 1, 1),
+		Lifetime = R(0.7, 1), Speed = R(6, 9), SpreadAngle = Vector2.new(35, 35), Acceleration = V3(0, -30, 0),
+		Rotation = R(0, 360), RotSpeed = R(-250, 250), LightEmission = 0, LightInfluence = 0.6,
+	})
+	local rim = part("Rim", ignite, CFrame.new(0, 0.45, 0), V3(4.6, 0.1, 4.6))
+	burst(rim, "Shards", 8, { -- stone shards jutting up round the seat, then sinking
+		Texture = MB.shard, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = surface, EmissionDirection = up,
+		Size = seq(0, 0, 0.12, 0.5, 0.75, 0.45, 1, 0), Transparency = seq(0, 0, 0.8, 0, 1, 1),
+		Color = cseq(0, STONE, 1, UMBER), Lifetime = R(1, 1.2), Speed = R(0.3, 0.6), Rotation = R(-15, 15), LightEmission = 0,
+		LightInfluence = 0.5, ZOffset = 0.3,
+	}, { EmitDelay = 0.04 })
 	return m
 end
 

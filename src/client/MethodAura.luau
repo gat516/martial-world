@@ -19,8 +19,9 @@
 --                   of rays, gold bones, a spiked iron ring; each exhale a
 --                   clang (a spiky ring snaps out, sparks), now and then a
 --                   heavier blow
---   Mountain Breath an amber low core, a carved rune ring under you that
---                   settles with each breath, slow lifting pebbles, dust
+--   Mountain Breath an amber low core, sand sifting down the body, square seals
+--                   on cracked earth that settle each breath, stones orbiting,
+--                   a tremor now and then
 --   Thunder Pulse   dark, with violet cracks across the torso and arms that
 --                   flare in irregular bursts, arcs from the hands to the ground
 --   Drifting Cloud  a cloud you sit on, wind rings spiralling in on the inhale

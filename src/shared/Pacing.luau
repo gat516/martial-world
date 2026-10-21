@@ -292,6 +292,20 @@ Pacing.Weapons = {
 	XP_MANUAL = 25, -- learning one of the class's manuals
 }
 
+-- PRACTISE DAO (server DaoPractice, the meditation menu's Practise Dao tile). A
+-- short seated drill with the equipped weapon, played on a circulation
+-- minigame, for that class's Dao XP. It helps you catch up but never beats
+-- fighting: one drill per COOLDOWN, worth at most XP_SHARE of the current
+-- level's XP (scaled by the score). Leaving a drill early costs nothing.
+Pacing.DaoPractice = {
+	FROM = "QC7", -- the stage it unlocks (the core loop's second-weapon slot)
+	COOLDOWN = 300, -- seconds between finished drills (saved, so rejoining doesn't skip it)
+	XP_SHARE = 0.25, -- of xpToNext(level), at a perfect score
+	SECONDS = 20,
+	GAME = "Pulse", -- Minigames/<GAME>, themed as weapon forms
+	DIFFICULTY = 0.35,
+}
+
 -- SPIRIT ROOTS (Roots.luau, server Roots; docs/systems/character.md). A root's
 -- element is rolled once at the Testing Stone; its grade starts at STARTING_GRADE
 -- for everyone and is raised by rare items. Grade multiplies passive and refining

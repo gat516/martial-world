@@ -73,8 +73,14 @@ changes your inner self happens seated, in one row of tiles above the vitals
   isn't a camera drag, any key, the lotus again, opening a menu or standing up
   brings everything back. Passive cultivation keeps running.
 
-Still to come: Practise Dao (a short active drill with the equipped weapon for
-Dao XP, with a cooldown, never XP for sitting).
+**Practise Dao (server built, tile to do).** A 20 s drill with the equipped
+weapon, played on a circulation minigame titled "<Class> Forms"
+(`CirculationMinigame.practise()` -> `CultivationAction "practiceStart" /
+"practiceFinish" / "practiceCancel"`, server `src/server/DaoPractice.luau`).
+Scored like a circulation run; pays up to `XP_SHARE` (25%) of the current Dao
+level's XP, then a 5 min cooldown (`data.daoPracticeReadyUnix`, pushed as
+`daoPracticeReady`). Leaving early costs nothing and starts no cooldown. Unlocks
+at QC7 (`Pacing.DaoPractice.FROM`), never XP for sitting.
 
 **Root actions (server built, buttons to do).** The Spirit Root page offers the
 pills the player holds: Marrow Washing Pill (raise grade) and Root Rebirth Pill

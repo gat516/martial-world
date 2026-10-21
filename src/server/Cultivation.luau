@@ -165,6 +165,7 @@ function Cultivation.pushState(player: Player)
 		caches = data.caches,
 		root = data.root,
 		methods = data.methods,
+		daoPracticeReady = data.daoPracticeReadyUnix,
 	})
 	for _, fn in Cultivation.onPush do
 		task.spawn(fn, player, data)

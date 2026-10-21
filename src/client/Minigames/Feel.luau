@@ -16,6 +16,7 @@ export type Info = {
 	difficulty: number, -- 0 easy .. 1 hard (below 0 on the first run)
 	impurities: number,
 	seed: number,
+	title: string?, -- replaces the game's TITLE (Practise Dao: "Sword Forms")
 }
 
 -- What the runner hands each game: the overlay's labels, plus

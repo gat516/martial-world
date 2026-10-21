@@ -4,6 +4,8 @@
 -- difficulty and impurity count; this runs the shared frame around it: the
 -- overlay with the game's title and hint, a 3-2-1 count-in, the game itself on
 -- its own stage, and a graded result once the server has scored the report.
+-- The same runner plays Practise Dao drills (CirculationMinigame.practise):
+-- server DaoPractice picks the game and scores it for weapon Dao XP.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
@@ -75,7 +77,7 @@ local function play(info: Feel.Info, hold: { () -> () }): (number, number)
 	for name in GAMES do
 		(find(name) :: Frame).Visible = name == stageName
 	end
-	(find("Title") :: TextLabel).Text = minigame.TITLE
+	(find("Title") :: TextLabel).Text = info.title or minigame.TITLE
 	local hint = if Platform.isTouch() and minigame.TOUCH_HINT then minigame.TOUCH_HINT else minigame.HINT;
 	(find("Hint") :: TextLabel).Text = hint
 	local counted = false
@@ -133,14 +135,21 @@ local function gradeFor(score: number): typeof(GRADES[1])
 	return GRADES[#GRADES]
 end
 
-function CirculationMinigame.start()
+-- The server actions for each kind of run.
+local KINDS = {
+	circulation = { start = "start", finish = "finish", cancel = "cancel", left = "You stopped circulating. Your raw qi is untouched." },
+	dao = { start = "practiceStart", finish = "practiceFinish", cancel = "practiceCancel", left = "You set your weapon down. Nothing was lost." },
+}
+
+local function run(kind: string)
+	local actions = KINDS[kind]
 	if running then
 		return
 	end
 	running = true
-	local ok, info = remote:InvokeServer("start")
+	local ok, info = remote:InvokeServer(actions.start)
 	if not ok then
-		Hud.toast(info or "You can't circulate right now")
+		Hud.toast(info or "You can't do that right now")
 		running = false
 		return
 	end
@@ -152,13 +161,13 @@ function CirculationMinigame.start()
 	local accuracy, purged = play(info, hold)
 	if quitting then
 		-- left early: nothing refined, nothing spent
-		remote:InvokeServer("cancel", info.id)
-		Hud.toast("You stopped circulating. Your raw qi is untouched.")
+		remote:InvokeServer(actions.cancel, info.id)
+		Hud.toast(actions.left)
 	else
-		local done, result = remote:InvokeServer("finish", info.id, accuracy, purged)
+		local done, result = remote:InvokeServer(actions.finish, info.id, accuracy, purged)
 		if done then
 			local grade = gradeFor(result.score)
-			local detail = `+{result.gain} cultivation`
+			local detail = if kind == "dao" then `+{result.gain} {result.dao} XP` else `+{result.gain} cultivation`
 			if result.deviation then
 				detail ..= "\nQi deviation! Let it settle."
 			elseif result.full then
@@ -176,6 +185,15 @@ function CirculationMinigame.start()
 	end
 	Controls.unlock("Circulation")
 	running = false
+end
+
+function CirculationMinigame.start()
+	run("circulation")
+end
+
+-- A Practise Dao drill with the equipped weapon (the meditation menu's tile).
+function CirculationMinigame.practise()
+	run("dao")
 end
 
 function CirculationMinigame.isRunning(): boolean

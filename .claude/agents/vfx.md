@@ -495,6 +495,21 @@ property list, so it is wrong for effects. Use the binary exporter:
 
 Report which effects you made or changed, where they play, what you previewed
 (captures, distances, day/night) and what is untested (the user playtests,
-especially feel and phone performance). Update the relevant `docs/systems/`
+especially feel and phone performance).
+
+End every report with two sections, so the workflow keeps getting faster:
+- **Workflow learnings:** what cost time or round trips and how to avoid it;
+  gotchas with the plugin, add-ons, Rojo, the exporter or the MCP; library ids
+  and search words that worked; anything in this doc that was wrong or
+  missing.
+- **Workflow optimization:** step back from this job and propose concrete
+  changes, ranked by time saved. Examples: tools to build, shared building
+  blocks instead of per-effect copies, batching MCP calls, a spec format that
+  maps straight to templates, what to settle with the user up front. Say what
+  each one saves and roughly how big it is. Build the small, clearly
+  worthwhile ones as part of the job (under `tools/` or a shared client
+  module) and commit them. List the rest as proposals.
+
+Don't edit this file yourself. The main session folds your sections in. Update the relevant `docs/systems/`
 doc and the asset list in `docs/README.md` if you added `Effects`. Commit the
 `.rbxm`, scripts, art sources and docs together, with a message that says why.

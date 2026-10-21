@@ -1,5 +1,5 @@
 --!strict
--- Short-lived combat visuals: technique casts, damage numbers, dash afterimages,
+-- Short-lived combat visuals: technique casts, damage numbers, dodge streaks,
 -- and hit flashes. Everything here is cosmetic and cleans itself up.
 
 local Debris = game:GetService("Debris")
@@ -472,10 +472,120 @@ function CombatEffects.flash(model: Instance, color: Color3?)
 	Debris:AddItem(highlight, 0.12)
 end
 
--- One afterimage: a frozen, glowing copy of the character's current pose. Body
--- parts are cloned bare (meshes kept, joints/decals/clothing dropped) so the copy
--- can't weld itself to the live rig.
-local function afterimage(character: Model, color: Color3, transparency: number, seconds: number, grow: number?)
+-- Dodge effects (ReplicatedStorage.Effects.Dodge, built by
+-- tools/vfx_specs/Dodge.luau). Only the dodging player sees them.
+local function dodgeTemplate(name: string): Instance?
+	local effects = ReplicatedStorage:FindFirstChild("Effects")
+	local group = effects and effects:FindFirstChild("Dodge")
+	return group and group:FindFirstChild(name)
+end
+
+-- The latest dash, so a perfect dodge can leave its ghost where the dash began
+-- and turn the rest of the streak gold.
+local lastDash: { character: Model, origin: CFrame, at: number, trails: { Trail } }? = nil
+
+-- The dash: one light qi streak along the path (two camera-facing Trails on
+-- the root) that dies ~0.2 s after the dash ends. Nothing is left behind, so
+-- the perfect dodge's ghost and flash stay the only lingering dodge visual.
+function CombatEffects.dashTrail(character: Model, root: BasePart, seconds: number)
+	local dash = { character = character, origin = root.CFrame, at = os.clock(), trails = {} :: { Trail } }
+	lastDash = dash
+	local template = dodgeTemplate("Streak")
+	if not template then
+		return
+	end
+	-- attachments and trails are cloned together, so the trails keep pointing
+	-- at the moved attachments
+	local copy = template:Clone()
+	local moved = copy:GetChildren()
+	local longest = 0
+	for _, child in moved do
+		child.Parent = root
+		if child:IsA("Trail") then
+			child.Enabled = true
+			longest = math.max(longest, child.Lifetime)
+			table.insert(dash.trails, child)
+		end
+	end
+	copy:Destroy()
+	task.delay(seconds, function()
+		for _, t in dash.trails do
+			t.Enabled = false
+		end
+		task.delay(longest + 0.05, function()
+			for _, child in moved do
+				child:Destroy()
+			end
+		end)
+	end)
+end
+
+-- A beam pair from `a` to `b` that holds `hold` seconds, then thins and fades
+-- out over `seconds`.
+local function fadeBeams(part: BasePart, a: Vector3, b: Vector3, hold: number, seconds: number)
+	local from = part:FindFirstChild("From") :: Attachment?
+	local to = part:FindFirstChild("To") :: Attachment?
+	if not (from and to) then
+		part:Destroy()
+		return
+	end
+	part.CFrame = CFrame.new(a)
+	part.Parent = folder
+	from.WorldPosition, to.WorldPosition = a, b
+	local beams = {}
+	for _, d in part:GetChildren() do
+		if d:IsA("Beam") then
+			table.insert(beams, { beam = d, w0 = d.Width0, w1 = d.Width1, t = d.Transparency })
+		end
+	end
+	local started = os.clock()
+	local connection
+	connection = RunService.RenderStepped:Connect(function()
+		local k = math.clamp((os.clock() - started - hold) / seconds, 0, 1)
+		if k >= 1 or not part.Parent then
+			connection:Disconnect()
+			part:Destroy()
+			return
+		end
+		if k <= 0 then
+			return
+		end
+		local keep = 1 - k * k
+		for _, b in beams do
+			b.beam.Width0, b.beam.Width1 = b.w0 * keep, b.w1 * keep
+			local points = {}
+			for _, p in b.t.Keypoints do
+				table.insert(points, NumberSequenceKeypoint.new(p.Time, p.Value + (1 - p.Value) * k))
+			end
+			b.beam.Transparency = NumberSequence.new(points)
+		end
+	end)
+end
+
+-- A perfect dodge, "the blow cut only a shadow": a gold-white ghost of the
+-- body left where the dash began (where the blow lands) that holds, then
+-- dissolves into rising qi motes; a gold streak from the ghost to the player
+-- along the path taken; a sharp glint, flare and sparks on the player with a
+-- gold rim; and a brief desaturated time-slow grade. No ground ring and no
+-- shake: nothing was hit.
+local PERFECT_GOLD = Color3.fromRGB(255, 212, 120)
+local PERFECT_GHOST = Color3.fromRGB(255, 112, 32) -- Neon boosts it to gold (lighter colours clip to lemon)
+function CombatEffects.perfectDodge(character: Model, root: BasePart)
+	local here = root.CFrame
+	local dash = lastDash
+	local recent = dash and dash.character == character and os.clock() - dash.at < 1
+	local origin = if dash and recent then dash.origin else here
+	if dash and recent then
+		-- what's left of the dash streak flares gold
+		for _, t in dash.trails do
+			if t.Parent then
+				t.Color = ColorSequence.new(PERFECT_GOLD)
+			end
+		end
+	end
+
+	-- the ghost: this pose, moved back to the dash origin
+	local shift = origin * here:Inverse()
 	for _, source in character:GetDescendants() do
 		if not source:IsA("BasePart") or source.Name == "HumanoidRootPart" or source.Transparency >= 1 then
 			continue
@@ -495,75 +605,85 @@ local function afterimage(character: Model, color: Color3, transparency: number,
 		ghost.Anchored, ghost.CanCollide, ghost.CanQuery, ghost.CanTouch, ghost.CastShadow = true, false, false, false, false
 		ghost.Massless = true
 		ghost.Material = Enum.Material.Neon
-		ghost.Color = color
-		ghost.Transparency = transparency
+		ghost.Color = PERFECT_GHOST
+		ghost.Transparency = 0.12
+		ghost.CFrame = shift * source.CFrame
 		ghost.Parent = folder
-		fade(ghost, seconds, if grow then { Size = ghost.Size * grow } else nil)
+		task.delay(0.12, function()
+			if ghost.Parent then
+				TweenService:Create(ghost, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+					Transparency = 1,
+					Size = ghost.Size * 1.08,
+				}):Play()
+			end
+		end)
+		Debris:AddItem(ghost, 0.65)
 	end
-end
 
--- The dash: a trail of pale afterimages dropped along the path, plus a gust at
--- the feet where it started.
-function CombatEffects.dashTrail(character: Model, root: BasePart, seconds: number)
-	local color = Color3.fromRGB(150, 210, 255)
-	burst(Vector3.new(root.Position.X, groundBelow(root.Position), root.Position.Z), {
-		Texture = SMOKE,
-		Color = ColorSequence.new(Color3.fromRGB(220, 235, 245)),
-		Transparency = NumberSequence.new(0.5, 1),
-		Size = NumberSequence.new(1.2, 3),
-		Lifetime = NumberRange.new(0.3, 0.45),
-		Speed = NumberRange.new(6, 10),
-		SpreadAngle = Vector2.new(180, 10),
-		Drag = 5,
-	}, 8, 1)
-	local started = os.clock()
-	local nextGhost = 0
-	local connection
-	connection = RunService.RenderStepped:Connect(function()
-		local t = os.clock() - started
-		if t > seconds or not root.Parent then
-			connection:Disconnect()
-			return
+	local template = dodgeTemplate("Perfect")
+	if template then
+		local copy = template:Clone()
+		local ghostPart = copy:FindFirstChild("Ghost") :: BasePart?
+		local playerPart = copy:FindFirstChild("Player") :: BasePart?
+		if ghostPart then
+			ghostPart.CFrame = origin * CFrame.new(0, -0.2, 0)
 		end
-		if t >= nextGhost then
-			nextGhost += 0.04
-			-- earlier ghosts start fainter, so the trail thickens toward the player
-			afterimage(character, color, 0.45 + 0.3 * (1 - t / seconds), 0.28)
+		if playerPart then
+			playerPart.CFrame = here * CFrame.new(0, 0.8, 0)
 		end
-	end)
-end
+		local streak = TechniqueVFX.take(copy, "Streak")
+		local chest = Vector3.new(0, 0.3, 0)
+		if streak and (here.Position - origin.Position).Magnitude > 1.5 then
+			fadeBeams(streak, origin.Position + chest, here.Position + chest, 0.1, 0.3)
+		elseif streak then
+			streak:Destroy()
+		end
+		copy.Parent = folder
+		TechniqueVFX.emit(copy)
+		TechniqueVFX.cleanup(copy)
+	else
+		burst(here.Position, {
+			Texture = SPARKLE,
+			Color = ColorSequence.new(PERFECT_GOLD),
+			LightEmission = 1,
+			Size = NumberSequence.new(0.9, 0),
+			Lifetime = NumberRange.new(0.3, 0.55),
+			Speed = NumberRange.new(14, 24),
+			SpreadAngle = Vector2.new(180, 180),
+			Drag = 5,
+		}, 16, 1.2)
+	end
 
--- A perfect dodge: a golden afterimage left where the blow would have landed,
--- a shockwave ring, sparks, and a brief warm flash of the whole screen.
-function CombatEffects.perfectDodge(character: Model, root: BasePart)
-	local gold = Color3.fromRGB(255, 214, 120)
-	afterimage(character, gold, 0.15, 0.6, 1.15)
-	local ground = groundBelow(root.Position)
-	local ring = disc(gold, Vector3.new(root.Position.X, ground + 0.05, root.Position.Z), 1.5, 0.15)
-	ring.Transparency = 0.1
-	fade(ring, 0.45, { Size = Vector3.new(0.15, 22, 22) })
-	burst(root.Position, {
-		Texture = SPARKLE,
-		Color = ColorSequence.new(gold),
-		LightEmission = 1,
-		Size = NumberSequence.new(0.9, 0),
-		Lifetime = NumberRange.new(0.3, 0.55),
-		Speed = NumberRange.new(14, 24),
-		SpreadAngle = Vector2.new(180, 180),
-		Drag = 5,
-	}, 24, 1.2)
-	local grade = Instance.new("ColorCorrectionEffect")
-	grade.TintColor = Color3.fromRGB(255, 236, 190)
-	grade.Brightness = 0.12
-	grade.Saturation = -0.35
-	grade.Parent = folder
-	TweenService:Create(grade, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		TintColor = Color3.new(1, 1, 1),
-		Brightness = 0,
-		Saturation = 0,
+	-- a gold rim on the player
+	local rim = Instance.new("Highlight")
+	rim.FillColor = PERFECT_GOLD
+	rim.FillTransparency = 0.55
+	rim.OutlineColor = Color3.fromRGB(255, 244, 214)
+	rim.OutlineTransparency = 0
+	rim.DepthMode = Enum.HighlightDepthMode.Occluded
+	rim.Parent = character
+	TweenService:Create(rim, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+		FillTransparency = 1,
+		OutlineTransparency = 1,
 	}):Play()
-	Debris:AddItem(grade, 0.5)
-	CombatEffects.shake(0.2)
+	Debris:AddItem(rim, 0.4)
+
+	-- time-slow accent: the world drains of colour for a beat, then returns
+	local grade = Instance.new("ColorCorrectionEffect")
+	grade.TintColor = Color3.fromRGB(255, 240, 210)
+	grade.Brightness = 0.05
+	grade.Saturation = -0.55
+	grade.Contrast = 0.08
+	grade.Parent = folder
+	task.delay(0.08, function()
+		TweenService:Create(grade, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			TintColor = Color3.new(1, 1, 1),
+			Brightness = 0,
+			Saturation = 0,
+			Contrast = 0,
+		}):Play()
+	end)
+	Debris:AddItem(grade, 0.55)
 end
 
 -- A jagged lightning bolt from high in the sky down to `ground`, with a flash.

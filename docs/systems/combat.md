@@ -46,6 +46,24 @@ scales all player damage.
   (`ReplicatedStorage.vfx`, plugin-owned, not mapped); falls back to plain
   `ParticleEmitter:Emit` with a warning while the module is missing.
 
+## Dodge visuals
+Only the dodging player sees them (`CombatEffects`, from `CombatController`).
+Templates: `ReplicatedStorage.Effects.Dodge`, built by
+`tools/vfx_specs/Dodge.luau` (`_G.buildDodgeFX(staging)`; no tiers).
+- **Dodge** (`dashTrail`): one light qi streak along the path, two
+  camera-facing jade Trails (`Dodge.Streak`) moved onto the root for the dash
+  and gone ~0.2 s after it. Nothing else: no gust, no afterimages, nothing
+  left behind.
+- **Perfect dodge** (`perfectDodge`, on `Effect "perfect"`, i.e. when the hit
+  would have landed), "the blow cut only a shadow": a gold Neon ghost of the
+  body is left where the dash began (holds 0.12 s, dissolves over 0.45 s) with
+  a white star glint where the blow meets it and gold motes lifting off it
+  (`Perfect.Ghost`); a gold Beam streak from the ghost to the player
+  (`Perfect.Streak`, held 0.1 s, thinned out over 0.3 s); a glint, flare and
+  sparks on the player (`Perfect.Player`) with a gold Highlight rim (0.35 s);
+  the rest of the dash streak turns gold; and a short desaturated time-slow
+  grade (0.08 s hold, 0.4 s return). No ground ring and no shake.
+
 ## Technique visuals
 Casts are drawn on every client: the caster draws its own at release, the server
 relays `Effect "cast"` with the caster's technique level to everyone else, and

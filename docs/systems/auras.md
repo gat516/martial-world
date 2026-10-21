@@ -42,10 +42,11 @@ How it is put together (details in the builder header):
   attachments made on the body parts (ZOffset keeps them in front of the
   limb), and `Shell` parts are copied round every body part as a glowing skin.
   R6 and R15 map through `POINTS` / `LIMBS` in MethodAura.
-- **Outline glow is a Shell, not a Highlight.** The map already holds ~480
-  Highlights (fern and ground-cover outlines) and Roblox draws only 31, so an
-  aura Highlight would rarely show. ForceField shells read as a rim; Neon
-  shells at ~0.85 transparency read as a tint.
+- **Outline glow is a Shell, not a Highlight.** Roblox draws only 31
+  Highlights at once; when the auras were built the map's fern outlines used
+  them all (since stripped, see Known gaps), and 8 auras would still take a
+  quarter of the budget from combat feedback. ForceField shells read as a rim;
+  Neon shells at ~0.85 transparency read as a tint.
 - **Breath:** one 5 s period for every aura (`Breath` on the root), energy 0 at
   rest to 1 mid-breath; `Breath` models fire on the beat (`BreathAt`, default
   the exhale). Thunder Pulse sets `Rhythm = "burst"`.
@@ -84,7 +85,7 @@ How it is put together (details in the builder header):
   before it settles into its loop. This is what makes switching feel like an
   event.
 - **Budget.** Up to 8 auras draw at once (`MAX_AURAS`), on phones too. Prefer a
-  few strong pieces (a Highlight outline, beams, one core, one emitter per
+  few strong pieces (a shell outline, beams, one core, one emitter per
   limb) over many particles. Works on R15 and R6 (beams and emitters hang off
   attachments that exist on both, or fall back to the torso).
 
@@ -92,7 +93,7 @@ Roblox pieces that match the reference looks:
 
 | Look | Build it with |
 |---|---|
-| Outline glow | `Highlight` (outline only, or a faint fill); ≤31 on screen, so fine at 8 |
+| Outline glow | a `Shell` copied round each body part (ForceField rim or faint Neon); not a `Highlight`, whose 31-on-screen budget is kept for combat feedback |
 | Lit core (dantian, chest, between hands) | small Neon sphere or flipbook billboard + `PointLight` at the torso |
 | Meridians, constellations, cracks | `Beam`s between attachments on body parts, with dots at the joints |
 | Flame or frost hugging the body | short `ParticleEmitter`s on each limb, emitting along the surface |
@@ -211,6 +212,10 @@ chant.
 - Previewed in Edit mode on the R6 test rig only (grass at noon and night);
   R15 avatars and real accessories, phone performance with 8 auras, and the
   live sit / switch / breakthrough ignition are untested in play.
-- The map's ~480 Highlights fill Roblox's 31-highlight budget, so other
-  Highlight effects (the Iron Skin buff glow, the perfect-circulation rim,
-  hit flashes in `CombatEffects`) may not render near the map either.
+- Fixed 2026-10-21: the foliage pack's fern outlines (763 enabled
+  Highlights in the map, AssetLibrary, `_BorderlandsReplaced` and
+  `HerbModels`) filled Roblox's 31-highlight budget, so `CombatEffects`
+  Highlights (Iron Skin glow, perfect-circulation rim, hit flash) mostly didn't
+  render. They were stripped in Studio; 5 remain (4 in `BuildKit`, 1 in
+  ServerStorage). Rule: map dressing and prop templates carry no Highlights.
+  Not yet checked in play that the combat outlines now show.

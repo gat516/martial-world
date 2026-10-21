@@ -95,7 +95,7 @@ Templates: `ReplicatedStorage.Effects.Dodge`, built by
   a white star glint where the blow meets it and gold motes lifting off it
   (`Perfect.Ghost`); a gold Beam streak from the ghost to the player
   (`Perfect.Streak`, held 0.1 s, thinned out over 0.3 s); a glint, flare and
-  sparks on the player (`Perfect.Player`) with a gold Highlight rim (0.35 s);
+  sparks on the player (`Perfect.Player`) with a gold Highlight rim (0.35 s; Highlights are capped at 31 on screen, so map dressing must carry none);
   the rest of the dash streak turns gold; and a short desaturated time-slow
   grade (0.08 s hold, 0.4 s return). No ground ring and no shake.
 

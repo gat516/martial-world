@@ -68,6 +68,9 @@
       },
       "SFX": {
         "$path": "assets/SoundGroups/SFX.rbxmx"
+      },
+      "Ambience": {
+        "$path": "assets/SoundGroups/Ambience.rbxm"
       }
     },
     "Workspace": {

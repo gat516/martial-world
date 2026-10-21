@@ -1,7 +1,7 @@
 --!strict
 -- Client entry: wires the HUD, circulation minigame, breakthroughs, combat (with
 -- telegraphs, lock-on and enemy health bars), the mouse cursor, travel (menu, array markers, fade), the hotbar, the inventory
--- (items and arts), seed picker, garden view, build mode, meditation, settings, zone music, beast sounds, the region entry banner, world event visuals, stylized water, and the character window
+-- (items and arts), seed picker, garden view, build mode, meditation, settings, zone music, beast sounds, positional ambient sound, the region entry banner, world event visuals, stylized water, and the character window
 -- (realm crest) with the spirit root reveal card.
 
 local Players = game:GetService("Players")
@@ -41,6 +41,7 @@ local Cursor = require(script.Parent.Cursor)
 local Settings = require(script.Parent.Settings)
 local Music = require(script.Parent.Music)
 local EnemySounds = require(script.Parent.EnemySounds)
+local AmbientSounds = require(script.Parent.AmbientSounds)
 local Sprint = require(script.Parent.Sprint)
 local WeaponAnimator = require(script.Parent.WeaponAnimator)
 local WorldCaches = require(script.Parent.WorldCaches)
@@ -102,3 +103,4 @@ SelfCard.init(gui)
 RootReveal.init(gui)
 Music.init()
 EnemySounds.init()
+AmbientSounds.init()

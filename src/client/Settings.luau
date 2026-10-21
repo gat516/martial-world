@@ -2,7 +2,8 @@
 -- The Settings window (the gear tile): music and sound-effect volume, plus
 -- Auto combat (touch only: LockOn's auto lock, close-in and strike) and the PC
 -- lock-on key hint. Volumes drive the SoundService.Music and SoundService.SFX
--- groups; every sound belongs in one of them.
+-- groups; the sound slider also drives SoundService.Ambience (positional
+-- ambience, AmbientSounds). Every sound belongs in one of them.
 -- Changes apply at once and are sent to the server a moment after the last one
 -- (SaveSettings), which stores them with the profile. The saved set arrives with
 -- the first PlayerState push; after that this window is the authority.
@@ -39,6 +40,10 @@ local function apply()
 	end
 	if sfx then
 		sfx.Volume = values.sfx
+	end
+	local ambience = SoundService:FindFirstChild("Ambience") :: SoundGroup?
+	if ambience then
+		ambience.Volume = values.sfx
 	end
 	LockOn.setAuto(values.autoAttack and Platform.isTouch())
 	LockOn.setHint(values.lockHint)

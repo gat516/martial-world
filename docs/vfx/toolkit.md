@@ -203,6 +203,13 @@ surprises you):
     rock, dust, shatter, puff, flash, glow, spark, sparkle, shine, lens, rune,
     sigil, chinese, holy, pillar, wind, impact. Nothing for palm, hand, fist,
     buddha, seal, talisman; crater has one result.
+  - Flipbook ids in `vfx_library.json` are sprite sheets: put them on a
+    ParticleEmitter with `FlipbookLayout` Grid2x2 or Grid4x4 (read the grid
+    off a large thumbnail); no mesh needed.
+  - Soft glow 867619398 shows a square edge when large and bright; use the hard
+    dot 9841273544 for flashes and heartbeats.
+  - A turning sigil is steadier as a turning SurfaceGui image than as two
+    overlapping rotating particles, which drift out of step.
   - Use ids as `rbxassetid://<id>`. Meshes are MeshIds, sounds SoundIds, and
     flipbooks follow the library's mesh-flipbook layout (a Part with a
     SpecialMesh and a Decal whose `Flipbook` attribute lists the frames). Ask
@@ -468,6 +475,17 @@ Ask these in the plan, not after the build:
 - whether tier IV impact frames or screen flashes are comfortable
 
 ### Previewing
+
+- **Edit-mode particles only simulate near the editor camera.** Viewed from
+  far away (including `screen_capture`'s own camera move) you see only
+  new-born particles: pale flames, missing layers, a stacked white core. Park
+  `workspace.CurrentCamera` near the scene, wait ~2 s, then capture
+  (`_G.auraPreview.look()` does this for auras). Freezing right after an emit
+  captures nothing for the same reason.
+- Other sessions may change ClockTime or draw splines into your captures;
+  note the clock with each one.
+- `tools/receive_rbxmx.py` dies with the session; restart it before loading
+  tools over HTTP.
 
 `tools/vfx_preview.luau` also has the lower-level calls (run it through
 `execute_luau`; it installs `_G.vfxPreview`):

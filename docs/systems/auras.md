@@ -18,7 +18,12 @@ Heaven looks are not built (no method uses those grades yet).
 about 1.5 loop emitters per aura) and reads thin. Auras are to be rebuilt as
 layered emissions from the vfx library, modelled on Sol's RNG auras, with
 parts only in support. The method is in [docs/vfx/style.md](../vfx/style.md)
-("Auras"); the table below describes what's built now, not the target.
+("Auras"). **Blazing Heart is reworked** (2026-10-21, below: the model for the
+rest); the other seven rows still describe the first, part-heavy pass.
+
+Mortal means small and close but high in quality (user, 2026-10-21): within
+about one body-width, a gentle loop, no screen dimming or towering shapes, and
+an ignition that is a short, punchy flash and flare on and near the body.
 
 The spirit root reveal (`src/client/RootFX.luau`, template
 `Effects.RootPillar`) speaks the same language: each element's pillar carries
@@ -33,7 +38,7 @@ reuse its first method's motif.
 | Method | On the body | Ground / around | Breath beat | Ignition |
 |---|---|---|---|---|
 | Sect Breathing | — | — | two faint motes rise from the belly | — |
-| Blazing Heart | orange chest core that swells and flares on the breath (one PointLight); flame tongues off the arms and torso surface; embers; orange ForceField rim | thin fire ring | heartbeat flare at the chest, a warm ring breathes out | flames roar up off the seat, a fire ring climbs past the head, a flare ring rolls out; limb flames surge |
+| Blazing Heart (reworked: 17 loop emitters, no shell) | white-hot heart core at the chest (glow that swells with the breath, a hard dot, a twinkling 4-point glint, the one PointLight); a flame mantle (library aura-flame flipbook) hugging the silhouette from behind on a darker soot copy of itself; realistic flipbook flames licking off the arms and torso; a small crown of licks off the head; black soot curling off the flame tips; embers and dark ash flecks | dark scorch disc, warm heat pool, a turning fire swirl, a hui-wen (meander) sigil turning the other way, small flames on its rim | a heartbeat: lub-dub glow at the chest with a glint and a spark puff, the mantle flares, a fire ring pulses out of the sigil; flames, mantle and ground fire breathe | white flash and a chromatic star at the heart, a starburst flare, flame jets and flipbook flames roaring up round the body, a fire ring burning out over the ground, soot thrown low, an ember burst; limb flames surge |
 | Flowing Spring | blue tint over the body; blue belly core (light); droplets streaming in from a 7-stud shell to the core, faster on the inhale | still Neon pool disc with a pale rim | two ripples cross the pool | a wave rolls out, a ring springs up, droplets fall back |
 | Evergreen Root | green meridian beams with glowing joint dots, lighting trunk-first (belly, chest, then shoulders and hips, then elbows and knees, then hands) over ~2 breaths; green seed at the belly; faint green tint | six crooked roots creeping out, slow falling leaves | sap motes, a green ring breathes out | a green ring bursts out, a wind-swirl ring rises, leaves whirl up |
 | Iron Marrow | spinning gold gem between the hands (light); gold bone lines along the arms and spine; gold ForceField rim | thin gold ring | the clang: a thin ring snaps out level and one upright, sparks, a star; bone lines, rim and ring glint | a great clang ring, a sunburst flash, sparks, a steel ring across the ground |
@@ -63,10 +68,19 @@ How it is put together (details in the builder header):
   Walking up to someone already seated doesn't ignite.
 - **Grade hook:** `GRADES` in MethodAura scales the `Ground` model (reach),
   `Scaled` emitter rates and brightness. Mortal = 1.
+- **Emitter attributes** (added for Blazing Heart, usable by any aura):
+  `Breathe = NumberRange(lo, hi)` scales an emitter's rate from lo at rest to
+  hi at the breath's peak (Limbs emitters too; `Breathe = true` keeps the old
+  curve), `Prime = n` emits n at once when the aura starts so slow ground loops
+  show immediately, and `Swell = k` grows a Body emitter's Size by 1 + k with
+  the breath and the beat (the heart).
 - **Budget per aura:** one PointLight (none for Wind, Ice, Thunder, Sect),
   6 shell parts (R6), up to ~30 beams (Thunder's jagged cracks), a handful of
   emitters at 1 to 13 /s per limb. Sect Breathing auras rank after named
-  methods for the 8 slots.
+  methods for the 8 slots. Blazing Heart (R6): 17 loop emitters, about 60
+  live particles in the loop (limb flames 8/s per limb are the bulk), one
+  light, one SurfaceGui sigil, no parts drawn; its ignition adds ~70
+  particles for about a second.
 - **Palette for Neon:** bright pastels go white in Neon; ring and wave colours
   use the deeper shade of the element (violet, deep ice blue, burnt amber).
 
@@ -155,6 +169,8 @@ point here.
 | ![sunburst_diamond_core](../reference/auras/sunburst_diamond_core.png) | **sunburst_diamond_core**: a hard bright diamond between the hands, a dark silhouette, rays bursting behind. |
 | ![purple_flame_outline](../reference/auras/purple_flame_outline.png) | **purple_flame_outline**: flame hugging the silhouette like an outline, rising off the shoulders. |
 | ![red_flame_surge](../reference/auras/red_flame_surge.png) | **red_flame_surge**: an upward surge, hair and robes lifting; the ignition moment. |
+| ![fire_aura_smoke_outline](../reference/vfx/fire_aura_smoke_outline.png) | **fire_aura_smoke_outline** ([video](https://www.youtube.com/watch?v=T9jHZv8NOtQ)): realistic flames hugging the silhouette with black smoke at the tips and dark ash flecks; reads on a bright sky. Blazing Heart's loop. |
+| ![fire_aura_swirl_ground](../reference/vfx/fire_aura_swirl_ground.png) | **fire_aura_swirl_ground** ([video](https://www.youtube.com/watch?v=aBfd3qMOz_k)): a flame outline over a turning fire swirl on the ground. Blazing Heart's ground. |
 | ![dark_lightning_cracks](../reference/auras/dark_lightning_cracks.png) | **dark_lightning_cracks**: glowing cracks across a dark body, arcs, smoke tendrils. |
 
 **Backdrops and manifestations (Earth and Heaven)**
@@ -219,8 +235,13 @@ chant.
 
 ## Known gaps
 
-- The built Mortal auras are part-heavy and due for the emission rework
-  (Status above).
+- The built Mortal auras other than Blazing Heart are part-heavy and due for
+  the emission rework (Status above).
+- Blazing Heart: previewed in Edit mode on the R6 rig only, through the plain
+  emitter fallback (the place has no `ReplicatedStorage.vfx` Game Module).
+  Feel at play speed, R15, 8 seated auras on a phone and the live sit /
+  switch / breakthrough ignition are untested. The library has no heart
+  texture, so the heart is a glow, a dot and a glint, not a heart shape.
 - Only the Mortal column is built; the Spirit/Earth/Heaven looks (spreading
   figures, backdrops, manifestations) wait for methods of those grades.
 - No refs yet for Mountain Breath or Drifting Cloud.

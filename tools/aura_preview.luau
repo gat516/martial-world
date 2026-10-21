@@ -20,6 +20,11 @@
 --   P.reveal(element, grade, at?, first?)  plays RootFX at `at` (default the
 --       scene centre) from a fresh RootFX copy pointed at the same source
 --   P.clear()            removes the scene and every aura
+--   P.look(from, at?)    puts the editor camera there (offsets from the scene
+--                        centre). Roblox doesn't simulate particles far from
+--                        the camera, so screen_capture's own camera move shows
+--                        new-born particles only (pale flames, no mantle);
+--                        call this, wait ~2 s, then capture from the same spot
 -- Camera for screen_capture: in front of a rig at its position + (0, 3.5, -9),
 -- looking at position + (0, 1, 0); the row from + (0, 6, -26).
 
@@ -225,6 +230,13 @@ function P.freeze()
 			d.TimeScale = 0
 		end
 	end
+end
+
+function P.look(from, at)
+	local C = S and S.C or Vector3.new(0, 600, 3000)
+	local cam = workspace.CurrentCamera
+	cam.CFrame = CFrame.lookAt(C + (from or Vector3.new(4, 4.5, -10)), C + (at or Vector3.new(0, 1.8, 0)))
+	return cam.CFrame.Position
 end
 
 function P.state()

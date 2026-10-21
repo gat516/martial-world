@@ -122,6 +122,16 @@ Model on Sol's RNG, scaled by method grade (the grade ladder in
   loop is an aura players want to show off. Small in size, high in quality.
 - Parts are fine for what textures can't do (a core with a PointLight, a
   carved stone ring), but the aura must still read with them hidden.
+- Learned on Blazing Heart: a body outline of flame is one camera-facing
+  flipbook (the library's aura-flame silhouette) a little behind the torso,
+  over a darker, slightly larger soot copy of itself; the body hides the
+  middle and the rim reads as flame round the figure, dark under bright, on
+  grass at noon. Realistic white flipbook flames tinted white to deep red over
+  life, emitted off the limbs' surfaces, beat any single flame image. A slow
+  ground sigil should be a flat image turning (a particle sigil crossfades out
+  of step); swirls and glows can be flat particles. Keep big additive glows to
+  a hard dot texture: the soft glow 867619398 shows a square edge when large
+  and bright.
 
 ### Techniques
 

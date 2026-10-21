@@ -4,8 +4,10 @@
 -- that player's method (`Method`; nil or "" = Sect Breathing, which has only a
 -- faint mote on the breath). Each method has its own aura, built from its idea
 -- (art brief: docs/systems/auras.md), living on the body first:
---   Blazing Heart   a beating chest core, flame tongues on the arms and
---                   shoulders, embers, a warm outline
+--   Blazing Heart   a white-hot heart that beats (lub-dub) on the breath, a
+--                   flame mantle hugging the silhouette from behind, flames
+--                   licking off the arms and torso, soot and embers, a fire
+--                   swirl and a turning hui-wen sigil on the ground
 --   Flowing Spring  a still pool under you that ripples each breath, droplets
 --                   drawn in to a blue belly core, a cool body glow
 --   Evergreen Root  green meridian branches growing from the belly out along
@@ -34,7 +36,8 @@
 --           already has hundreds and Roblox draws only 31)
 --   Breath / Ignite  one-shot models
 -- Parts animate from Pulse/Spin/Bob/Tumble/Turn/Flicker/Grow/Lift/Delay. Loop
--- emitters play through TechniqueVFX.enable (Game Module or plain fallback).
+-- emitters play through TechniqueVFX.enable (Game Module or plain fallback);
+-- emitters breathe (`Breathe`), start primed (`Prime`) and swell (`Swell`).
 -- Mobile: auras draw only within RANGE of the camera, nearest MAX_AURAS first
 -- (named methods before Sect Breathing). Works on R6 and R15 (POINTS / LIMBS).
 
@@ -152,6 +155,10 @@ type Line = {
 	dots: { ImageLabel },
 }
 
+-- An emitter whose rate follows the breath: `Breathe = true` (the old curve,
+-- faster on the inhale) or a NumberRange `lo..hi` rate multiplier at rest..peak.
+type Breather = { emitter: ParticleEmitter, rate: number, lo: number?, hi: number? }
+
 type Aura = {
 	key: any,
 	method: string,
@@ -160,7 +167,8 @@ type Aura = {
 	model: Model,
 	pieces: { Piece },
 	lines: { Line },
-	breathers: { { emitter: ParticleEmitter, rate: number } },
+	breathers: { Breather },
+	swellers: { { emitter: ParticleEmitter, size: NumberSequence, swell: number } },
 	breathAt: number,
 	kickedAt: number,
 	limbEmitters: { ParticleEmitter },
@@ -327,6 +335,15 @@ local function pieceOf(part: BasePart, index: number, glow: number): Piece
 	}
 end
 
+local function addBreather(aura: Aura, e: ParticleEmitter)
+	local breathe = e:GetAttribute("Breathe")
+	if typeof(breathe) == "NumberRange" then
+		table.insert(aura.breathers, { emitter = e, rate = e.Rate, lo = breathe.Min, hi = breathe.Max })
+	elseif breathe then
+		table.insert(aura.breathers, { emitter = e, rate = e.Rate })
+	end
+end
+
 -- Ground and Body parts that move or breathe (Body parts always follow).
 local function collectPieces(aura: Aura, glow: number)
 	local index = 0
@@ -336,8 +353,12 @@ local function collectPieces(aura: Aura, glow: number)
 			continue
 		end
 		for _, d in group:GetDescendants() do
-			if d:IsA("ParticleEmitter") and d:GetAttribute("Breathe") then
-				table.insert(aura.breathers, { emitter = d, rate = d.Rate })
+			if d:IsA("ParticleEmitter") then
+				addBreather(aura, d)
+				local swell = d:GetAttribute("Swell")
+				if type(swell) == "number" and swell ~= 0 then
+					table.insert(aura.swellers, { emitter = d, size = d.Size, swell = swell })
+				end
 			end
 			if not d:IsA("BasePart") then
 				continue
@@ -523,6 +544,7 @@ local function collectLimbs(aura: Aura)
 					copy.Parent = body
 					table.insert(aura.owned, copy)
 					table.insert(aura.limbEmitters, copy)
+					addBreather(aura, copy)
 				end
 			end
 		end
@@ -605,6 +627,7 @@ local function start(key: any, root: BasePart, methodId: string, fresh: boolean)
 		pieces = {},
 		lines = {},
 		breathers = {},
+		swellers = {},
 		breathAt = math.clamp(num(source, "BreathAt", 0.5), 0.01, 0.99),
 		kickedAt = -math.huge,
 		limbEmitters = {},
@@ -638,6 +661,14 @@ local function start(key: any, root: BasePart, methodId: string, fresh: boolean)
 		local group = model:FindFirstChild(groupName)
 		if group then
 			TechniqueVFX.enable(group)
+			-- `Prime = n`: slow loops (a ground sigil every few seconds) start
+			-- with n particles instead of waiting out their first interval
+			for _, d in group:GetDescendants() do
+				local prime = d:GetAttribute("Prime")
+				if d:IsA("ParticleEmitter") and type(prime) == "number" and prime > 0 then
+					d:Emit(prime)
+				end
+			end
 		end
 	end
 	auras[key] = aura
@@ -724,7 +755,22 @@ local function step(aura: Aura, now: number, dt: number, parts: { BasePart }, fr
 	s = s * s
 	local kick = math.exp(-(now - aura.kickedAt) / KICK)
 	for _, b in aura.breathers do
-		b.emitter.Rate = b.rate * (0.2 + 1.3 * e + 2 * s)
+		local lo, hi = b.lo, b.hi
+		if lo and hi then
+			b.emitter.Rate = b.rate * (lo + (hi - lo) * e) * (1 + 2 * s)
+		else
+			b.emitter.Rate = b.rate * (0.2 + 1.3 * e + 2 * s)
+		end
+	end
+	-- `Swell` emitters (a heart core) grow with the breath, the beat and the surge
+	local grow = 1 + 0.6 * s
+	for _, w in aura.swellers do
+		local k = (1 + w.swell * (e + 0.8 * kick)) * grow
+		local kps = {}
+		for _, p in w.size.Keypoints do
+			table.insert(kps, NumberSequenceKeypoint.new(p.Time, p.Value * k, p.Envelope * k))
+		end
+		w.emitter.Size = NumberSequence.new(kps)
 	end
 	local t = now - aura.t0
 	local a = aura.alpha

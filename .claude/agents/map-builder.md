@@ -52,8 +52,9 @@ props wherever there's room.
   (terrain Grass/LeafyGrass/Ground on walkable tops; Rock/Slate/Basalt on cliff
   meshes; Slate/Cobblestone/Pavement paving; Wood/WoodPlanks) tinted to the
   palette, and keep SmoothPlastic for small stylized props.
-- No Terrain Water (the user finds it janky). Pools and streams are flat water
-  parts set into a stone rim, like the well; falls are beam effects plus spray.
+- Terrain Water is fine on its own (lakes, rivers), but never combine it with a
+  mesh or beam waterfall: the mix looks janky. A waterfall's pool is a flat water
+  part in a stone rim, like the well.
 - No round grass discs or ellipse "ledge" slabs stuck on cliffs or lawns. Grass
   follows the rock: irregular shapes on real flats, sunk into the stone.
 - Zhangjiajie karst is the world reference

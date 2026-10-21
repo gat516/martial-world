@@ -58,7 +58,7 @@ function Progression.comprehend(player: Player, id: any): (boolean, string?)
 		return false, "There's nothing to comprehend yet"
 	end
 	if owned.xp < Techniques.xpToNext(owned.level) then
-		return false, `Practise {def.name} more first`
+		return false, `Practice {def.name} more first`
 	end
 	if not (Cultivation.meditation and Cultivation.meditation(player)) then
 		return false, "Sit and meditate to comprehend it"

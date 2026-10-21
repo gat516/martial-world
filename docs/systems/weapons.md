@@ -17,7 +17,7 @@ Dao comprehension per weapon class that grows as you fight with it.
   Meditation, circulation, other control locks and breakthroughs also stow it.
 - **Dao comprehension**, level 0-10 per class: XP from landing M1 hits with the
   class (once per swing), casting its techniques and learning its manuals,
-  and from QC7 a seated Practise Dao drill (capped and on a cooldown; see
+  and from QC7 a seated Practice Dao drill (capped and on a cooldown; see
   [meditation](meditation.md)).
   Damage of M1 and the class's techniques = base x realm power x grade x Dao.
   Level 2 is neutral (x1.0); untrained (0) is x0.8 and mastery x1.3. A new

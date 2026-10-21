@@ -43,7 +43,7 @@ local BUTTONS: { [string]: { string } } = {
 	Circulate = { "Stack", "CultivatePrompt", "Circulate" },
 	Breakthrough = { "Stack", "CultivatePrompt", "Breakthrough" },
 	Comprehend = { "Stack", "CultivatePrompt", "Comprehend" },
-	Practise = { "Stack", "CultivatePrompt", "Practise" },
+	Practice = { "Stack", "CultivatePrompt", "Practice" },
 	Method = { "Stack", "CultivatePrompt", "Method" },
 	SpiritRoot = { "Stack", "CultivatePrompt", "Root" },
 }

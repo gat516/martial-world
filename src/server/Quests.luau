@@ -8,14 +8,14 @@
 -- already past a beat skip straight through. After the last beat the objective
 -- shows the top quest board goal instead.
 --
--- Lessons teach the systems a player meets later (first bottleneck, Practise
+-- Lessons teach the systems a player meets later (first bottleneck, Practice
 -- Dao, a method, a root pill): when one's condition first holds, the elder says
 -- its line once (data.lessons) and its guide shows for the rest of that session
 -- while the condition holds. They never dim the HUD.
 --
 -- Guide (sent in QuestState as `guide`; the client resolves the names):
 --   button  a HUD control by key: "Cultivate" (sit), "Circulate", "Breakthrough",
---           "Comprehend", "Practise", "Method", "SpiritRoot" (seated tiles),
+--           "Comprehend", "Practice", "Method", "SpiritRoot" (seated tiles),
 --           "Travel", "Attack", "Inventory", "Self"
 --   to      with button "Travel": the destination gate id to point at in the menu
 --   dim     grey out the rest of the HUD until that button is pressed
@@ -344,12 +344,12 @@ Quests.Lessons = {
 	},
 	{
 		id = "DaoPractice",
-		elder = "Your body is ready for more than brawling. While you meditate, practise your weapon's forms to deepen its Dao.",
+		elder = "Your body is ready for more than brawling. While you meditate, practice your weapon's forms to deepen its Dao.",
 		when = function(_, data)
 			return reached(data, DaoPacing.FROM)
 		end,
 		guide = function(player)
-			return seatedTile(player, "Practise")
+			return seatedTile(player, "Practice")
 		end,
 	},
 	{

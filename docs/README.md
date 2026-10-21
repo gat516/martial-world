@@ -41,7 +41,7 @@ ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 | Want to change | File |
 |---|---|
 | How fast players climb, per stage: qi, breakthroughs, tribulation, insight, beast strength | `src/shared/Pacing.luau` ([cultivation](systems/cultivation.md)) |
-| Practise Dao drill (unlock stage, cooldown, XP share, game) | `src/shared/Pacing.luau` `DaoPractice` ([meditation](systems/meditation.md)) |
+| Practice Dao drill (unlock stage, cooldown, XP share, game) | `src/shared/Pacing.luau` `DaoPractice` ([meditation](systems/meditation.md)) |
 | Realm ladder names and helpers (built from Pacing) | `src/shared/Realms.luau` |
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |

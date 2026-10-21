@@ -4,7 +4,7 @@
 -- difficulty and impurity count; this runs the shared frame around it: the
 -- overlay with the game's title and hint, a 3-2-1 count-in, the game itself on
 -- its own stage, and a graded result once the server has scored the report.
--- The same runner plays Practise Dao drills (CirculationMinigame.practise):
+-- The same runner plays Practice Dao drills (CirculationMinigame.practice):
 -- server DaoPractice picks the game and scores it for weapon Dao XP.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -196,8 +196,8 @@ function CirculationMinigame.start()
 	run("circulation")
 end
 
--- A Practise Dao drill with the equipped weapon (the meditation menu's tile).
-function CirculationMinigame.practise()
+-- A Practice Dao drill with the equipped weapon (the meditation menu's tile).
+function CirculationMinigame.practice()
 	run("dao")
 end
 

@@ -1,5 +1,5 @@
 --!strict
--- Practise Dao: a short seated drill with the equipped weapon for its class's
+-- Practice Dao: a short seated drill with the equipped weapon for its class's
 -- Dao XP (tuning: Pacing.DaoPractice; design: docs/systems/meditation.md). It
 -- plays a circulation minigame through the same client runner, over
 -- CultivationAction "practiceStart" / "practiceFinish" / "practiceCancel".
@@ -28,10 +28,10 @@ local DaoPractice = {}
 function DaoPractice.blocked(player: Player, data: PlayerData.Data): string?
 	local from = Realms.ByKey[Pacing.FROM]
 	if from and Realms.index(data.realm.major, data.realm.minor) < Realms.index(from.major, from.minor) then
-		return `Reach {from.name} to practise your Dao.`
+		return `Reach {from.name} to practice your Dao.`
 	end
 	if not (Cultivation.meditation and Cultivation.meditation(player)) then
-		return "Sit and meditate to practise."
+		return "Sit and meditate to practice."
 	end
 	local class = Weapons.class(player)
 	if Weapons.level(data, class) >= WeaponPacing.MAX_LEVEL then
@@ -51,7 +51,7 @@ function DaoPractice.start(player: Player): (boolean, any)
 	end
 	local active = runs[player]
 	if active and os.clock() - active.started < active.duration + Config.RUN_TIMEOUT_GRACE then
-		return false, "You're already practising"
+		return false, "You're already practicing"
 	end
 	local why = DaoPractice.blocked(player, data)
 	if why then

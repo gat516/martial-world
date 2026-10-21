@@ -316,7 +316,7 @@ local function render()
 			note.Text = if root then SelfCard.rootDetail(root) else ""
 		end
 	elseif page == "Comprehend" and count == 0 then
-		note.Text = "No technique is at a bottleneck. Practise your arts until one is."
+		note.Text = "No technique is at a bottleneck. Practice your arts until one is."
 	elseif page == "Method" and count == 0 then
 		note.Text = "You know no cultivation method yet."
 	elseif page == "Method" then

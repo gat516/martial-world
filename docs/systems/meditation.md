@@ -54,7 +54,7 @@ changes your inner self happens seated, in one row of tiles above the vitals
 | Comprehend | panel: techniques at a bottleneck, their insight and stone cost, Comprehend (`InventoryAction "comprehend"`) | a technique is at one (`Bottleneck.list`) |
 | Method | panel: owned methods (qi, reaches, blurb); Use switches (`CultivationAction "method"`) | you own one (Foundation) |
 | Spirit Root | panel: the root's card and exact numbers (same text as the Self card), root pills, the reform choice; a seal dot while a choice waits | root tested |
-| Practise | Practise Dao drill (`CirculationMinigame.practise`); dimmed with an m:ss countdown while resting, a tap toasts the wait | from `Pacing.DaoPractice.FROM`, until the equipped class's Dao is mastered |
+| Practice | Practice Dao drill (`CirculationMinigame.practice`); dimmed with an m:ss countdown while resting, a tap toasts the wait | from `Pacing.DaoPractice.FROM`, until the equipped class's Dao is mastered |
 | Rise | stand up | always |
 
 - Square tiles in the top-right tiles' style (drawn icons from
@@ -74,10 +74,10 @@ changes your inner self happens seated, in one row of tiles above the vitals
   isn't a camera drag, any key, the lotus again, opening a menu or standing up
   brings everything back. Passive cultivation keeps running.
 
-**Practise Dao (built).** The Practise tile (`CultivatePrompt.Practise`, crossed
-jian, `icon_practise` in `meditation_art`) runs a 20 s drill with the equipped
+**Practice Dao (built).** The Practice tile (`CultivatePrompt.Practice`, crossed
+jian, `icon_practice` in `meditation_art`) runs a 20 s drill with the equipped
 weapon, played on a circulation minigame titled "<Class> Forms"
-(`CirculationMinigame.practise()` -> `CultivationAction "practiceStart" /
+(`CirculationMinigame.practice()` -> `CultivationAction "practiceStart" /
 "practiceFinish" / "practiceCancel"`, server `src/server/DaoPractice.luau`).
 The hint comes from the run kind (Pulse's qi wording would read wrong). Scored like a circulation run; pays up to `XP_SHARE` (25%) of the current Dao
 level's XP, then a 5 min cooldown (`data.daoPracticeReadyUnix`, pushed as

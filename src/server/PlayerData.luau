@@ -49,7 +49,7 @@ export type Data = {
 	lastLogoutUnix: number,
 	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
 	tribulationReadyUnix: number, -- os.time() a failed tribulation can be retried
-	daoPracticeReadyUnix: number, -- os.time() the next Practise Dao drill opens
+	daoPracticeReadyUnix: number, -- os.time() the next Practice Dao drill opens
 	stats: { breakthroughs: number, circulationRuns: number, kills: number, bossKills: number },
 	herbs: { [string]: number },
 	items: { [string]: number }, -- spirit cores and treasures (herbs stay in herbs)

@@ -23,7 +23,7 @@ export type Snapshot = {
 	caches: { [string]: boolean }?, -- world manual caches / weapon racks claimed, by Cache id
 	root: { element: string, grade: string, pending: string }?, -- spirit root (Shared.Roots); element "" = not tested, pending = a reformed element awaiting keep/return ("" = none)
 	methods: { owned: { [string]: boolean }, active: string }?, -- cultivation methods (Shared.Methods); active "" = Sect Breathing
-	daoPracticeReady: number?, -- os.time() when the next Practise Dao drill opens (server DaoPractice)
+	daoPracticeReady: number?, -- os.time() when the next Practice Dao drill opens (server DaoPractice)
 }
 
 local State = {}

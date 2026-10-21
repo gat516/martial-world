@@ -994,8 +994,8 @@ def _petal_points(cx, base_y, length, width):
     return pts
 
 
-def icon_practise():
-    """Meditation menu: Practise Dao (a weapon drill). Two jian crossed point up,
+def icon_practice():
+    """Meditation menu: Practice Dao (a weapon drill). Two jian crossed point up,
     guards and pommels clear of each other, a fuller groove down each blade."""
     N = 128 * SS
     u = SS
@@ -1017,7 +1017,7 @@ def icon_practise():
 
     def deco(d, u):
         d.line([(c - 30 * u, 30 * u), (c - 40 * u, 42 * u)], fill=SHINE, width=3 * u)
-    _tile_icon(mask, "icon_practise.png", deco)
+    _tile_icon(mask, "icon_practice.png", deco)
 
 
 def meditation_art():
@@ -1027,7 +1027,7 @@ def meditation_art():
     icon_method()
     icon_rise()
     icon_lotus()
-    icon_practise()
+    icon_practice()
 
 
 # ---------------------------------------------------------------- onboarding guide

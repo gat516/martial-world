@@ -6,7 +6,7 @@
 -- they matter: Circulate (an active minigame, played seated; when the realm bar
 -- is full it gives way to Break Through), Comprehend (a technique at a
 -- bottleneck), Method (once you own one), Spirit Root (once tested; a seal dot
--- while a reformed element waits for a choice), Practise (a weapon drill for
+-- while a reformed element waits for a choice), Practice (a weapon drill for
 -- Dao XP, from Pacing.DaoPractice.FROM until the class is mastered; dimmed with
 -- a countdown while resting), and Rise.
 -- Comprehend, Method and Spirit Root open a small panel (MeditationMenu).
@@ -53,7 +53,7 @@ local CALM_AFTER = 20 -- seconds seated without input before the HUD fades by it
 local TAP_DRIFT = 12 -- px a press may move and still be a tap (more is a camera drag)
 local TAP_SECONDS = 0.4 -- a longer press isn't a tap either
 local CALM_ICON = 0.55 -- the lotus's transparency while the view is calm
-local RESTING = 0.5 -- the Practise tile's transparency while the drill is on cooldown
+local RESTING = 0.5 -- the Practice tile's transparency while the drill is on cooldown
 
 local Meditation = {}
 
@@ -76,7 +76,7 @@ local function tile(name: string): GuiObject
 	return row:FindFirstChild(name) :: GuiObject
 end
 
--- Practise Dao: the equipped class, and whether the tile belongs on the row
+-- Practice Dao: the equipped class, and whether the tile belongs on the row
 -- (reached Pacing.DaoPractice.FROM and that class isn't mastered yet).
 local function practiceClass(): string
 	local weapons = State.current.weapons
@@ -104,11 +104,11 @@ local function clock(seconds: number): string
 end
 
 -- The tile's caption is its countdown while resting; dimmed until the drill opens.
-local function paintPractise()
-	local t = tile("Practise")
+local function paintPractice()
+	local t = tile("Practice")
 	local wait = practiceWait()
 	local resting = wait > 0;
-	(t:FindFirstChild("Caption") :: TextLabel).Text = if resting then clock(wait) else "Practise";
+	(t:FindFirstChild("Caption") :: TextLabel).Text = if resting then clock(wait) else "Practice";
 	(t:FindFirstChild("Icon") :: ImageLabel).ImageTransparency = if resting then RESTING else 0;
 	(t:FindFirstChild("Frame") :: ImageLabel).ImageTransparency = if resting then RESTING else 0
 end
@@ -134,8 +134,8 @@ local function refresh()
 		tile(page).Visible = relevant[page] == true
 	end
 	(tile("Root"):FindFirstChild("Badge") :: GuiObject).Visible = MeditationMenu.rootPending()
-	tile("Practise").Visible = practiceOpen()
-	paintPractise()
+	tile("Practice").Visible = practiceOpen()
+	paintPractice()
 	local root = SelfCard.currentRoot()
 	if root then
 		(tile("Root"):FindFirstChild("Icon") :: ImageLabel).Image = SelfCard.rootIcon(root.element)
@@ -230,15 +230,15 @@ local function circulate()
 	refresh()
 end
 
--- Practise Dao from the seat; resting tells how long instead of asking the server.
-local function practise()
+-- Practice Dao from the seat; resting tells how long instead of asking the server.
+local function practice()
 	local wait = practiceWait()
 	if wait > 0 then
 		Hud.toast(`Rest your arms a while ({clock(wait)}).`)
 		return
 	end
 	Motion.setShown(row, false)
-	CirculationMinigame.practise()
+	CirculationMinigame.practice()
 	refresh()
 end
 
@@ -339,8 +339,8 @@ function Meditation.init(gui: ScreenGui)
 		Root = function()
 			MeditationMenu.toggle("Root")
 		end,
-		Practise = function()
-			task.spawn(practise)
+		Practice = function()
+			task.spawn(practice)
 		end,
 		Rise = function()
 			Meditation.stand()
@@ -366,12 +366,12 @@ function Meditation.init(gui: ScreenGui)
 	player:GetAttributeChangedSignal("CultivationMax"):Connect(refresh)
 	player:GetAttributeChangedSignal("Root"):Connect(refresh)
 	player:GetAttributeChangedSignal("Realm"):Connect(refresh)
-	-- the Practise countdown ticks while seated
+	-- the Practice countdown ticks while seated
 	task.spawn(function()
 		while true do
 			task.wait(1)
 			if phase ~= "idle" then
-				paintPractise()
+				paintPractice()
 			end
 		end
 	end)

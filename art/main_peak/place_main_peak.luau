@@ -14,38 +14,67 @@ and the Blender origin is the world origin, so: Size = (bx, bz, by),
 CFrame = CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy).
 ]]
 
-local STAGES = _G.MAIN_PEAK_STAGES or { place = true, collision = true, terrain = true, pines = true }
+-- terrain clearing and the pines are now terrain_main_peak.luau's and dress_main_peak.luau's job (clearing here
+-- would wipe the terrain floors); run them only on purpose
+local STAGES = _G.MAIN_PEAK_STAGES or { place = true, collision = true }
 
 -- BEGIN MESHES (generated from MainPeakRock.json)
 local MESHES = {
-	MainRockSpire = { center = { 0.483, 100.339, 731.196 }, size = { 161.428, 111.935, 162.202 } }, -- 11764 tris
-	MainRockMesa = { center = { 0.62, 18.419, 618.177 }, size = { 257.781, 281.449, 71.077 } }, -- 19061 tris
-	MainRockCliffA = { center = { 80.459, -41.061, 496.549 }, size = { 202.89, 284.757, 173.303 } }, -- 12650 tris
-	MainRockCliffB = { center = { -64.951, -42.276, 496.588 }, size = { 234.942, 281.043, 173.223 } }, -- 13326 tris
-	MainRockCliffC = { center = { -1.009, 111.903, 496.59 }, size = { 326.284, 140.411, 173.22 } }, -- 13141 tris
-	MainRockBase = { center = { 1.584, -1.396, 215.232 }, size = { 455.577, 458.339, 450.522 } }, -- 11999 tris
-	MainGrass = { center = { -0.251, -1.149, 537.004 }, size = { 364.4, 366.516, 162.008 } }, -- 19314 tris
-	MainLedges = { center = { -4.343, -7.281, 501.54 }, size = { 348.926, 354.25, 111.12 } }, -- 672 tris
-	MainPath = { center = { -0.097, 0.097, 581.91 }, size = { 331.778, 331.743, 0.42 } }, -- 2880 tris
+	MainRockSpire1 = { center = { -0.019, 103.521, 695.5 }, size = { 165.52, 108.092, 191.0 } }, -- 8429 tris
+	MainRockSpire2 = { center = { 2.776, 94.613, 695.5 }, size = { 157.271, 99.703, 191.0 } }, -- 11500 tris
+	MainRockSpire3 = { center = { 0.403, 98.706, 680.95 }, size = { 154.021, 105.91, 161.9 } }, -- 7633 tris
+	MainRockMesa1 = { center = { -2.989, 16.853, 616.863 }, size = { 249.243, 277.922, 72.725 } }, -- 6157 tris
+	MainRockMesa2 = { center = { 0.655, 18.424, 617.493 }, size = { 257.85, 281.439, 73.986 } }, -- 8140 tris
+	MainRockMesa3 = { center = { 0.859, 16.437, 616.733 }, size = { 253.673, 277.464, 72.466 } }, -- 6389 tris
+	MainRockCliff1 = { center = { -0.37, -0.218, 498.648 }, size = { 371.052, 379.29, 177.344 } }, -- 17522 tris
+	MainRockCliff2 = { center = { 0.371, -0.989, 497.937 }, size = { 374.0, 377.974, 175.922 } }, -- 15564 tris
+	MainRockCliff3 = { center = { 0.058, 0.31, 498.476 }, size = { 370.92, 373.581, 176.979 } }, -- 11847 tris
+	MainRockFoot1 = { center = { 1.379, 3.106, 202.084 }, size = { 452.069, 454.322, 424.168 } }, -- 10583 tris
+	MainRockFoot2 = { center = { 1.002, 2.566, 202.144 }, size = { 451.315, 454.251, 424.245 } }, -- 10530 tris
+	MainRockFoot3 = { center = { 1.002, 1.486, 202.044 }, size = { 451.315, 456.41, 424.045 } }, -- 8886 tris
+	MainMoss = { center = { -12.35, 10.032, 578.312 }, size = { 335.659, 335.143, 4.777 } }, -- 564 tris
+	MainLedges = { center = { -84.157, -88.91, 520.935 }, size = { 210.716, 233.966, 61.542 } }, -- 2056 tris
 }
 -- END MESHES
 
+-- meshes earlier builds made that this one replaces (deleted from MainPeak.Rock on place)
+local RETIRED = {
+	"MainRockSpire", "MainRockMesa", "MainRockCliffA", "MainRockCliffB", "MainRockCliffC", "MainGrass", "MainPath",
+	"MainTufts", "MainLawn1", "MainLawn2", "MainLawn3", "MainRockBase",
+	"MainTurfLip", -- the terrain lawn's own drooping edge reads better; the lip mesh floated where they differed
+}
+
 local CLEAR_RADIUS = 203 -- the 8 spirit peaks (r 300) and their terrain start beyond ~205
 local CLEAR_BOTTOM, CLEAR_TOP = 12, 900 -- ground ring is at y ~ -10..8
--- plain colours, no textures: the rock's shape carries the detail
-local GRASS_COLOR = Color3.fromRGB(110, 165, 70)
-local ROCK_COLOR = Color3.fromRGB(110, 110, 115)
+-- palette colours (docs/systems/map.md) on Roblox's textured materials: rock in three values per region (split
+-- per stone column / tower band in Blender); the lawns themselves are Terrain (terrain_main_peak.luau), only the
+-- turf lip along their edges and the moss under the terrace rim are meshes
+local function hex(h)
+	return Color3.fromHex(h)
+end
+local COLORS = {
+	MainRockSpire1 = hex("8E8983"), MainRockSpire2 = hex("7F7A74"), MainRockSpire3 = hex("6E6A65"),
+	MainRockMesa1 = hex("8A847D"), MainRockMesa2 = hex("7A7570"), MainRockMesa3 = hex("6A6661"),
+	MainRockCliff1 = hex("7F7A74"), MainRockCliff2 = hex("706B66"), MainRockCliff3 = hex("615D59"),
+	MainRockFoot1 = hex("7F7A74"), MainRockFoot2 = hex("706B66"), MainRockFoot3 = hex("615D59"),
+	MainLedges = hex("7A7570"),
+	MainTurfLip = hex("5A7A48"), MainMoss = hex("4E6B45"),
+}
 
 local CHS = game:GetService("ChangeHistoryService")
 local terrain = workspace.Terrain
 local mainPeak = workspace.Map.Sect.MainPeak
 
+local ROCK_MATERIAL = Enum.Material[_G.MAIN_PEAK_ROCK_MATERIAL or "Rock"] -- Rock / Slate / Basalt, tinted
 local STYLE = {
-	MainGrass = { material = Enum.Material.SmoothPlastic, color = GRASS_COLOR, fidelity = "PreciseConvexDecomposition" },
-	MainPath = { material = Enum.Material.Pavement, terrainColor = Enum.Material.Pavement, collide = false, shadow = false },
-	MainRockBase = { material = Enum.Material.SmoothPlastic, color = Color3.fromRGB(96, 96, 100), fidelity = "Hull" },
+	MainTurfLip = { material = Enum.Material.Grass, fidelity = "PreciseConvexDecomposition" },
+	MainMoss = { material = Enum.Material.Grass, collide = false, shadow = false },
+	-- the foot is below the cloud deck, seen from afar and from the wilds: simple hull collision
+	MainRockFoot1 = { material = ROCK_MATERIAL, fidelity = "Hull" },
+	MainRockFoot2 = { material = ROCK_MATERIAL, fidelity = "Hull" },
+	MainRockFoot3 = { material = ROCK_MATERIAL, fidelity = "Hull" },
 }
-local ROCK = { material = Enum.Material.SmoothPlastic, color = ROCK_COLOR, fidelity = "PreciseConvexDecomposition" }
+local ROCK = { material = ROCK_MATERIAL, fidelity = "PreciseConvexDecomposition" }
 
 local function rockFolder()
 	local rock = mainPeak:FindFirstChild("Rock")
@@ -86,7 +115,7 @@ local function place()
 		local st = STYLE[name] or ROCK
 		part.Material = st.material
 		part.MaterialVariant = st.variant or ""
-		part.Color = st.color or terrain:GetMaterialColor(st.terrainColor)
+		part.Color = COLORS[name] or Color3.fromHex("7A7570")
 		part.Anchored = true
 		part.CanTouch = false
 		part.CanCollide = st.collide ~= false
@@ -94,6 +123,12 @@ local function place()
 		part.CastShadow = st.shadow ~= false
 		part.RenderFidelity = Enum.RenderFidelity.Automatic
 		part.Parent = rock
+	end
+	for _, name in RETIRED do
+		local old = rock:FindFirstChild(name)
+		if old then
+			old:Destroy()
+		end
 	end
 	-- the import container (and any helper meshes that came with it)
 	for top in containers do

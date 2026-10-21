@@ -199,12 +199,44 @@ Found by coordinates only; children may be restructured freely.
   the cliff; a smaller one on the east from a cleft in the mesa. Pools get a stone
   rim, reeds/lilypads and a footbridge or stepping stones where the path crosses.
   Leave `FX_FallSpray`/`FX_Mist` attachments at each base.
-- Cliff faces (below Y 582): drop the 14 same-size `CLIFF_PINES` ledges. Use 4-5
-  ledges of clearly different sizes: one big shrine ledge visible from a bridge,
-  one waterfall step, two or three pine ledges in a cluster, plus a moss/vine band
-  under the terrace lip. Rock gets warm gray with per-column value variation.
-- Grass: lawns on the terrace, plaza ledge (Y 614) and mesa only, jade/sage per
-  slab, an overhanging turf lip with rocks and shrubs breaking the edge.
+- Landform (built, `art/main_peak/build_main_peak.py` -> `MainPeakRock.fbx`,
+  placed by `place_main_peak.luau`; floors by `terrain_main_peak.luau`):
+  - Rock: crisp vertical Voronoi stone columns everywhere, the spirit pillars'
+    rock. Each region (towers, mesa, cliff ring, the foot below the clouds) is
+    split per column into three value tones (`MainRock<Region>1..3`), placed in
+    textured Rock tinted to the rock family. The old lumpy `MainRockBase` is gone:
+    the cliff columns run down to the ground (`MainRockFoot1..3`, Hull collision).
+  - Towers: every tower above the massif is a bundle of column prisms (Voronoi
+    cells of its cross-section) in stacked segments; outer columns stop lower,
+    so tops are irregular crowns stepping up. Summit flat top Y 791 at (2, -90)
+    (the SkySteps' first stone stands on it); two slender column towers at the
+    back (767, 750) stay under it, and the air above the tribulation disc is clear.
+  - Cliff ledges: five irregular shelves of column stumps (`LEDGES`): a big
+    shrine ledge under the south balcony (0, 547, 194), a waterfall step in the
+    rim notch's chute (-184, 535, -19), and a big/medium/small pine cluster on the
+    south-west face (-127, 547, 143), (-159, 528, 111), (-161, 505, 120). Pine
+    and waterfall shelves have a sunk basin of terrain grass; the shrine floor is
+    bare stone. The 14 old disc ledges and their 12 floating pines are gone.
+  - Waterfall sources in the rock: one rim notch at 186 deg (cap r 176) and two
+    mesa-wall grooves, west at (-102, z -16) spanning 585-612 and 616-639 (the
+    614 ledge is the step), east at (102, z -6) spanning 585-604.
+  - Floors are smooth Terrain: terrace Grass with the ring walk in Cobblestone
+    (surface Y 582; only the top voxel layer droops 1.5 past the rim), the plaza
+    ledge Grass (Y ~614.5), the shelf basins LeafyGrass. The rock under them is
+    sunk 1.5; where the voxels round off at the rim the stone shows as a narrow
+    rim band. Grass (the material with blades) stays two voxels clear of paving,
+    the ring walk and the rim: those borders are LeafyGrass, and anything paved
+    on the terrace (bridgeheads, the stair foot pads, found at run time) gets
+    Cobblestone under it and a 4-stud cobble apron. No turf-lip mesh (it floated
+    where the terrain edge differed); a moss band hangs under the rim on four
+    arcs. Terrain surface rule (measured): a voxel over full voxels renders at
+    centre + 4 x occupancy.
+- Terrain colours (global, `Terrain:SetMaterialColor`, set by
+  `terrain_main_peak.luau`; spirit peaks share them): Grass `#7E9C63`,
+  LeafyGrass `#66804F`, Ground `#7A6A55`, Mud `#5E5244`, Rock `#7A7570`,
+  Slate `#7A746D` (was `#8A847D`, pale at night), Basalt `#615D59`, Cobblestone `#A39A8B`, Pavement `#B3AA9A`,
+  Sand `#B9AC8F`. Terrain decoration (grass blades) is a manual Studio toggle
+  (not scriptable through the MCP).
 
 ## Spirit peak template
 Peak-local frame (`Peak.frame`): origin at Plateau, "in" = +Z toward the main peak

@@ -99,7 +99,7 @@ and everything else arrives when it first matters.
 | QC3-5 | | the first technique bottleneck (about 28 casts of one art): comprehension, spending insight and stones. Today only a toast and the Arts pane explain it; the elder should name it once. |
 | QC5 | RAMP | a new region (Ruined Borderlands); the gather/refine loop sets in |
 | QC6 | MINI-WALL | herbs start to matter (the garden pays off) |
-| QC7-8 | BREATHER, RAMP | second weapon class, Dao Paths (choose a path at Dao 3; planned, [weapons](systems/weapons.md)) |
+| QC7-8 | BREATHER, RAMP | second weapon class and its Dao level (from caches and drops) |
 | QC9 | WALL | insight and the first tribulation |
 | FE | new realm | cultivation method, Outer Wastes |
 | later majors | | the realm milestones: flying sword, soul companion, flight ([character](systems/character.md)) |
@@ -147,9 +147,9 @@ world (caches, ruins, boss pools, events, milestones), never something a tree or
 shop hands out, so exploring keeps paying. Insight is deliberately scarce
 against them: players comprehend a few favourites, not all. So each new region
 must add its own insight sources (its beasts' first kills, event relics, secret
-comprehension spots), or mastery slows to a crawl. Weapon Dao Paths (QC7-8, see
-[weapons](systems/weapons.md)) shape how a weapon plays and never award
-techniques.
+comprehension spots), or mastery slows to a crawl. No weapon perk trees: weapon
+Dao stays a level that grows by fighting (decided 2026-10-21, to keep combat
+simple).
 
 ## Rules for anything new
 1. Name its **arrow** into the loop (table above).

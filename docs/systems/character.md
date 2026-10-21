@@ -121,11 +121,21 @@ raise grade). Analytics: event `RootTested` with the element.
 basic breathing method; it is only named when it stops being enough.
 
 **Meeting it:** on reaching Foundation Establishment the elder says the basic
-method can take you no further, and points you to the **sect library**. There
-you **choose one of five** starter methods, one per basic element. The one
-matching your root is listed first and marked "Matches your root!", so a kid
-can just take the top one, and anyone else can pick freely. Rare-root players
-get a matching sixth option.
+method can take you no further. A method is **earned, not handed out**: Elder
+Qingyun has a task for you (the first one comes this way, so nobody is stuck),
+or you find one by exploring (caches, ruins, bosses, events). The first choice
+is **one of five** starter methods, one per basic element. The one matching your
+root is listed first and marked "Matches your root!", so a kid can just take the
+top one, and anyone else can pick freely. Rare-root players get a matching
+sixth option.
+
+**The breakthrough message must never mislead (decided 2026-10-21).** When a full
+bar can't break through because the active method's `reaches` is the next stage's
+limit, say so and point the way: "Your method can take you no further. Elder
+Qingyun may have a task for you, or seek a stronger method out in the world."
+Only when there is truly no next stage in the game does it say "You stand at the
+peak of this world's cultivation, for now." (`Cultivation.breakthrough`; today
+FE1 is the real top, so the peak line is still correct there).
 
 **What a method does (three lines on its card):**
 1. **Qi speed:** a multiplier on gathering, refining and passive cultivation.
@@ -270,10 +280,20 @@ the timeline before it is built.
    (eggs, skins). It becomes the soul companion at Nascent Soul (see above).
 2. **Treasures.** One equipped treasure (jade pendant, bell, mirror) with one
    effect each. The flying sword is the first treasure, at Core Formation.
-3. **Dao insights (collection).** Before the Dao tree exists, insights are
-   collected by meditating at special places or during weather and events
-   ("comprehended the Dao of Thunder in a storm"). Each gives a tiny passive.
-   They become the tree's branches at Nascent Soul.
+3. **Daos (many, slow, mostly home perks).** Direction from 2026-10-21, timing
+   still open. A player can walk **several Daos** (Fire, Water, Wood, Metal,
+   Earth, Lightning, Wind...), but even **stepping onto a path takes a long
+   time**, and most players won't master most of them. Progress comes from
+   meditating at special places or during weather and events ("comprehended
+   the Dao of Thunder in a storm"), never from a menu. Stages per Dao, e.g.
+   Glimpse -> Stepped onto the path -> Small accomplishment -> Mastery.
+   Perks lean on **life at home**, not combat numbers, so they don't fight the
+   combat balance: Wood grows herbs faster (gardening), Water refines more
+   cleanly, a Dao of Clarity makes comprehension cheaper. They also point at the
+   later crafting: Fire for alchemy, Metal for mining and weapon refinement
+   ([core loop](../core-loop.md)). Keep each perk one line and small, and keep
+   qi-speed perks out (they bend Pacing). They become the Dao tree's branches at
+   Nascent Soul.
 4. **Titles.** Earned from feats and shown on the nameplate, cosmetic with at most
    a tiny bonus. Cheap to build, and kids like collecting them.
 5. **Meridians.** Dropped in favour of the Dao tree; one deep build layer is enough.

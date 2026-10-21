@@ -255,6 +255,10 @@ do -- vfx_preview.luau
 --       while it is current), cleanup disabled (frozen frames must survive until
 --       captured), and CameraShake/ImpactFrames attributes stripped before emit
 --       (ScreenEffects moves the editor camera and spoils the capture).
+--   P.look(cam?, scene?) parks the editor camera on a scene (cam = a CAMERAS
+--       name, default "player"). Edit mode only simulates particles near the
+--       camera; far away only new-born ones show (pale, missing layers), so
+--       castThrough parks it before playing and sweep before each moment.
 --   P.castThrough({ id, level, freezeAt?, animation? }) -> summary string
 --       The real call path: plays the technique's Fists animation on the scene
 --       rig at the cast's playback speed (Rules.castProfile), calls
@@ -408,6 +412,9 @@ function P.scene(opts)
 			local p = C + offsets[i]
 			e:PivotTo(CFrame.lookAt(Vector3.new(p.X, ground(p) + es.Y / 2, p.Z), Vector3.new(C.X, ground(p) + es.Y / 2, C.Z)))
 			e:AddTag("Enemy") -- Hitbox.enemiesIn and the ground filter look for it
+			-- live enemies carry their health as attributes; Hitbox.alive reads them
+			e:SetAttribute("MaxHealth", 100)
+			e:SetAttribute("Health", 100)
 			e.Parent = folder
 			table.insert(enemies, e)
 		end
@@ -523,6 +530,10 @@ function P.castThrough(opts)
 	assert(S, "call P.scene first")
 	local RunService = game:GetService("RunService")
 	S.folder._fxOut:ClearAllChildren()
+	if opts.look ~= false then
+		P.look(opts.camera, S)
+		task.wait(0.5)
+	end
 	local temp = workspace.Terrain:FindFirstChild("TempVFX")
 	if temp and not opts.scene then -- a sweep keeps earlier scenes' add-on parts
 		temp:ClearAllChildren()
@@ -600,6 +611,15 @@ local CAMERAS = {
 }
 P.CAMERAS = CAMERAS
 
+function P.look(cam, scene)
+	scene = scene or S
+	assert(scene, "call P.scene first")
+	local c = CAMERAS[cam or "player"] or CAMERAS.player
+	local camera = workspace.CurrentCamera
+	camera.CFrame = CFrame.lookAt(scene.C + c[1], scene.C + c[2])
+	return camera.CFrame.Position
+end
+
 function P.sweep(opts)
 	local holder = P.fresh({ "TechniqueVFX" })
 	local Rules = require(holder.Shared.ActionRules)
@@ -618,7 +638,7 @@ function P.sweep(opts)
 	local lines, results = {}, {}
 	for i, m in moments do
 		local scene = P.scene({ center = base + Vector3.new(0, 0, (i - 1) * (opts.spacing or 160)), radius = opts.radius, keep = true, enemies = opts.enemies })
-		table.insert(results, m.name .. ": " .. P.castThrough({ id = opts.id, level = opts.level, freezeAt = m.t, scene = scene }))
+		table.insert(results, m.name .. ": " .. P.castThrough({ id = opts.id, level = opts.level, freezeAt = m.t, scene = scene, camera = m.cameras[1] }))
 		for _, cam in m.cameras do
 			local c = CAMERAS[cam]
 			local from, to = scene.C + c[1], scene.C + c[2]
@@ -643,16 +663,31 @@ do -- vfx_stage.luau
 --
 --   _G.vfxStage.lock(who)                 -- Studio lock between sessions (see below)
 --   local staging = _G.vfxStage.begin(who) -- fresh clone at ReplicatedStorage._StagingEffects
+--                                          -- (refuses if templates were edited by hand)
 --   ... edit/build inside `staging` ...
 --   _G.vfxStage.finish()                  -- export, destroy staging
 --   (on disk) tools/vfx_export.sh [names]  -- into assets/, verified
 --   _G.vfxStage.synced(check)              -- Rojo patched the live folder?
 --   (commit assets/Effects.rbxm), then _G.vfxStage.unlock(who)
 --
+-- Hashing needs _G.vfxDiff (tools/vfx_diff.luau); when it isn't installed,
+-- the first hash loads it from the receiver, so this file works on its own.
+--
 -- finish() POSTs the staging copy as Effects.rbxm (root renamed to "Effects"),
 -- destroys it and returns a summary (templates per group, add-on tags).
 --
 -- Never build in ReplicatedStorage.Effects itself (AGENTS.md, "Studio instances").
+--
+-- Hand-edit guard: finish() stamps every template (each child of a group, e.g.
+-- Effects.MethodAura.BlazingHeart) with a BuildStamp attribute, a hash of its
+-- vfxDiff snapshot. begin() re-hashes the live templates: one whose hash no
+-- longer matches was changed in Studio since the last export (usually the
+-- user's hand edit), and a builder rebuild would wipe it. begin() then errors
+-- with the list; read the edits (vfxDiff), fold them into the spec, and call
+-- begin(who, { acceptEdits = true }). Unstamped templates aren't checked.
+-- begin() also lists effect-looking instances loose in Workspace (outside
+-- `_`-prefixed preview folders): they may be the user's work, so report them
+-- and never delete them without asking.
 
 local RS = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
@@ -696,9 +731,118 @@ function Stage.holder()
 	return holder()
 end
 
+local STAMP = "BuildStamp"
+-- Runtime state and the stamp itself don't count as edits.
+local SKIP = { "@" .. STAMP .. "=", "@EmitBreak=" }
+
+-- Loads tools/vfx_diff.luau from the receiver when vfx_session.luau hasn't.
+local function diff()
+	if not _G.vfxDiff then
+		local m = Instance.new("ModuleScript")
+		m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_diff.luau")
+		require(m)
+		m:Destroy()
+	end
+	return assert(_G.vfxDiff, "tools/vfx_diff.luau didn't install _G.vfxDiff")
+end
+
+local function hash(root): string
+	local lines = {}
+	for path, desc in diff().snapshot(root) do
+		local fields = {}
+		for f in string.gmatch(desc, "[^|]+") do
+			local skip = false
+			for _, prefix in SKIP do
+				if f:sub(1, #prefix) == prefix then
+					skip = true
+				end
+			end
+			if not skip then
+				table.insert(fields, f)
+			end
+		end
+		-- same-named siblings may come back from Rojo in another order
+		table.insert(lines, path:gsub("#%d+", "") .. "=" .. table.concat(fields, "|"))
+	end
+	table.sort(lines)
+	local h1, h2 = 5381, 52711
+	for _, line in lines do
+		for i = 1, #line do
+			local c = string.byte(line, i)
+			h1 = (h1 * 33 + c) % 4294967296
+			h2 = (h2 * 31 + c) % 4294967291
+		end
+	end
+	return string.format("%08x%08x", h1, h2)
+end
+
+local function templates(root)
+	local out = {}
+	for _, group in root:GetChildren() do
+		for _, t in group:GetChildren() do
+			table.insert(out, t)
+		end
+	end
+	return out
+end
+
+-- Live templates changed since their last export: { "Group.Template", ... }.
+function Stage.edited(): { string }
+	local out = {}
+	for _, t in templates(RS.Effects) do
+		local stamp = t:GetAttribute(STAMP)
+		if stamp and stamp ~= hash(t) then
+			table.insert(out, t.Parent.Name .. "." .. t.Name)
+		end
+	end
+	return out
+end
+
+local EFFECT_ATTRS = { "Hidden", "Pulse", "Point", "Grow", "Spin", "Turn", "EmitCount", "EmitDuration", "EmitDelay", "MeshWave", STAMP }
+
+-- Effect-looking instances in Workspace outside `_`-prefixed folders
+-- (previews, staging): maybe the user's, never delete them unasked.
+function Stage.strays(): { string }
+	local out = {}
+	local function walk(inst)
+		for _, c in inst:GetChildren() do
+			if c.Name:sub(1, 1) == "_" or c:IsA("Terrain") or c:IsA("Camera") then
+				continue
+			end
+			local hit = false
+			for _, a in EFFECT_ATTRS do
+				if c:GetAttribute(a) ~= nil then
+					hit = true
+					break
+				end
+			end
+			if hit then
+				table.insert(out, c:GetFullName())
+			elseif c:IsA("Folder") or c:IsA("Model") then
+				if c.Name ~= "Map" then -- the map's ambient FX are placed on purpose
+					walk(c)
+				end
+			end
+		end
+	end
+	walk(workspace)
+	return out
+end
+
 -- `who` must hold the lock (Stage.lock(who)).
-function Stage.begin(who: string?)
+function Stage.begin(who: string?, opts: { acceptEdits: boolean? }?)
 	assert(who and holder() == who, "take the Studio lock first: vfxStage.lock(who), then vfxStage.begin(who)")
+	local edited = Stage.edited()
+	if #edited > 0 and not (opts and opts.acceptEdits) then
+		error("hand edits since the last export in: " .. table.concat(edited, ", ")
+			.. ". A rebuild would wipe them. Diff them (vfxDiff), fold them into the spec, report them,"
+			.. " then begin(who, { acceptEdits = true }).", 2)
+	end
+	local strays = Stage.strays()
+	if #strays > 0 then
+		warn("vfxStage: effect-looking instances loose in Workspace (maybe the user's; report, don't delete): "
+			.. table.concat(strays, ", "))
+	end
 	local old = RS:FindFirstChild(NAME)
 	if old then
 		old:Destroy()
@@ -741,6 +885,10 @@ function Stage.finish()
 	assert(_G.exportRbxm, "run tools/export_rbxm.luau first")
 	local staging = RS:FindFirstChild(NAME)
 	assert(staging, "no staging copy; call begin() first")
+	for _, t in templates(staging) do
+		t:SetAttribute(STAMP, nil)
+		t:SetAttribute(STAMP, hash(t))
+	end
 	local text = summary(staging)
 	local reply = HttpService:PostAsync("http://127.0.0.1:8766/Effects.rbxm", _G.exportRbxm("ReplicatedStorage." .. NAME, "Effects"))
 	staging:Destroy()
@@ -838,7 +986,9 @@ local function describe(inst, root)
 		end
 	end
 	if inst:IsA("BasePart") then
-		table.insert(parts, "at=" .. fmt(root:GetPivot():ToObjectSpace(inst.CFrame)))
+		-- a Folder template (e.g. RootPillar.Accents) has no pivot: use world space
+		local pivot = if root:IsA("PVInstance") then root:GetPivot() else CFrame.identity
+		table.insert(parts, "at=" .. fmt(pivot:ToObjectSpace(inst.CFrame)))
 	end
 	if inst:IsA("Trail") or inst:IsA("Beam") then
 		table.insert(parts, "A0=" .. fmt(inst.Attachment0) .. " A1=" .. fmt(inst.Attachment1))
@@ -1593,6 +1743,6536 @@ return "vfxBlocks installed"
 	table.insert(installed, "vfx_blocks.luau: " .. tostring(msg))
 end
 _G.vfxSpecs = _G.vfxSpecs or {}
+do -- vfx_specs/AuspiciousClouds.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Builder for ReplicatedStorage.Effects.AuspiciousClouds, the world event
+-- "Auspicious Clouds" (and its varieties) drawn by src/client/WorldEventFX.luau.
+-- Run through execute_luau in Edit mode (served by tools/receive_rbxmx.py):
+--   local m = Instance.new("ModuleScript"); m.Source = HttpService:GetAsync(
+--     "http://127.0.0.1:8766/vfx_specs/AuspiciousClouds.luau"); require(m)
+--   _G.buildAuspiciousClouds(staging)   -- staging = vfxStage.begin(who)
+-- It replaces staging.AuspiciousClouds. Needs ServerStorage.CloudKit
+-- (Cloud_WispArc, Cloud_Puff) and ServerStorage.WeaponModels.Jian.
+--
+-- Layout (pivot = ground point at the eye, +Y up; built at the origin):
+--   Vortex / Mist / Spiral   one Model per cloud pattern (def.look.pattern)
+--   Ring                     glowing ground ring, AuthoredRadius on the root
+--   Column                   light column + qi helix (layer) rising through
+--                            the cloud plane
+--   Whirl                    a slow whirlpool of wisps on the cloud plane
+--                            (Absolute: Y is world Y, not ground-relative)
+--   Eye                      seal around the relic, unseal burst (Core), glow
+--   Relics.Manual / .Sword   the server's claimable relic (ClaimPrompt)
+-- Every Model with a `Speed` attribute is a turning layer (deg/s about the eye
+-- axis): Bob/BobPeriod (studs/s), Ripple/RipplePeriod (radial pulse), Phase
+-- (rad), Order (0 = arrives first .. 1 = last), Condense (false: stays put
+-- when the clouds pour into the relic), Absolute (world Y).
+-- Parts carry `Fade` (their resting Transparency, faded by the client);
+-- anything with `Tint` ("color" / "accent", optional `TintMix` 0..1) is
+-- recoloured from the def's look.
+
+local ServerStorage = game:GetService("ServerStorage")
+local AssetService = game:GetService("AssetService")
+
+local A = {
+	glow = "rbxassetid://867619398",
+	glow2 = "rbxassetid://9841273544",
+	star = "rbxassetid://13271628051",
+	spark = "rbxassetid://13271102367",
+	mist = "rbxassetid://1084987899",
+	swirl = "rbxassetid://14670080222",
+	ringSoft = "rbxassetid://15611941586",
+	shards = "rbxassetid://12402863766",
+	column = "rbxassetid://1191605952", -- soft solid band (the image's vertical runs along a beam)
+	chain = "rbxassetid://17405360386",
+	seal = "rbxassetid://83667248904000",
+	sunburst = "rbxassetid://15773612675",
+	torus = "rbxassetid://471124075",
+}
+_G.CloudAssets = A
+
+local WISP = { size = Vector3.new(300.934, 32.023, 153.091), circle = Vector3.new(1.753, 0, -86.207), radius = 130 }
+local WHITE = Color3.new(1, 1, 1)
+
+local meshCache = _G.CloudMeshCache or {}
+_G.CloudMeshCache = meshCache
+
+local function noPhysics(p)
+	p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+	if p:IsA("MeshPart") or p:IsA("PartOperation") then
+		p.CollisionFidelity = Enum.CollisionFidelity.Box
+	end
+end
+
+local function attrs(inst, t)
+	for k, v in t or {} do
+		inst:SetAttribute(k, v)
+	end
+	return inst
+end
+
+local function set(inst, props)
+	for k, v in props or {} do
+		inst[k] = v
+	end
+	return inst
+end
+
+local function model(name, parent, a)
+	local m = Instance.new("Model")
+	m.Name = name
+	attrs(m, a)
+	m.Parent = parent
+	return m
+end
+
+-- an invisible anchor part (emitters, attachments)
+local function anchor(name, parent, cf, size)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size or Vector3.new(1, 1, 1)
+	p.Transparency = 1
+	p.CFrame = cf
+	noPhysics(p)
+	p.Parent = parent
+	return p
+end
+
+local function att(name, parent, pos)
+	local a = Instance.new("Attachment")
+	a.Name = name
+	a.Position = pos or Vector3.zero
+	a.Parent = parent
+	return a
+end
+
+local function seq(...)
+	local pts = { ... }
+	local kps = {}
+	for i = 1, #pts, 2 do
+		table.insert(kps, NumberSequenceKeypoint.new(pts[i], pts[i + 1]))
+	end
+	return NumberSequence.new(kps)
+end
+
+local function emitter(name, parent, props, a)
+	local e = Instance.new("ParticleEmitter")
+	e.Name = name
+	e.Enabled = false
+	e.LightInfluence = 0
+	e.Rate = 0
+	set(e, props)
+	attrs(e, a)
+	e.Parent = parent
+	return e
+end
+
+local function beam(name, parent, a0, a1, props, a)
+	local b = Instance.new("Beam")
+	b.Name = name
+	b.Attachment0, b.Attachment1 = a0, a1
+	b.Enabled = false
+	b.LightInfluence = 0
+	b.FaceCamera = true
+	b.Segments = 1
+	set(b, props)
+	attrs(b, a)
+	b.Parent = parent
+	return b
+end
+
+local function meshPart(id, name, parent, size, cf, color, material, transparency, a)
+	local src = meshCache[id]
+	if not src then
+		src = AssetService:CreateMeshPartAsync(id)
+		meshCache[id] = src
+	end
+	local m = src:Clone()
+	m.Name = name
+	m.Size, m.CFrame, m.Color = size, cf, color
+	m.Material = material or Enum.Material.Neon
+	m.Transparency = transparency or 0
+	noPhysics(m)
+	attrs(m, a)
+	m:SetAttribute("Fade", m.Transparency)
+	m.Parent = parent
+	return m
+end
+
+-- a ring torus of radius r (outer edge) lying flat, tube thickness h
+local function torus(name, parent, r, h, cf, transparency, tint)
+	return meshPart(A.torus, name, parent, Vector3.new(r * 2, h, r * 2), cf, WHITE, Enum.Material.Neon, transparency, { Tint = tint or "accent", TintMix = 0.75 })
+end
+
+-- a crescent wisp centred on the eye axis at radius r, its bottom at y, the
+-- arc's middle facing `deg`; roll tilts it along its length (a screw turn)
+local function wisp(parent, r, y, deg, roll, yScale, transparency)
+	local s = r / WISP.radius
+	local size = Vector3.new(WISP.size.X * s, WISP.size.Y * s * (yScale or 1), WISP.size.Z * s)
+	local cc = Vector3.new(WISP.circle.X * s, 0, WISP.circle.Z * s)
+	local a = math.rad(deg)
+	local yaw = math.atan2(math.cos(a), math.sin(a))
+	local p = ServerStorage.CloudKit.Cloud_WispArc:Clone()
+	p.Name = "Wisp"
+	p.Size = size
+	p.CFrame = CFrame.new(0, y + size.Y / 2, 0) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(0, 0, math.rad(roll or 0)) * CFrame.new(-cc)
+	p.Color = WHITE
+	p.Transparency = transparency or 0
+	noPhysics(p)
+	attrs(p, { Fade = p.Transparency, Tint = "color" })
+	p.Parent = parent
+	return p
+end
+
+local function puff(parent, r, y, deg, scale, transparency)
+	local p = ServerStorage.CloudKit.Cloud_Puff:Clone()
+	p.Name = "Puff"
+	p.Size = p.Size * scale
+	local a = math.rad(deg)
+	p.CFrame = CFrame.new(math.sin(a) * r, y + p.Size.Y / 2, -math.cos(a) * r) * CFrame.Angles(0, a * 1.7, 0)
+	p.Color = WHITE
+	p.Transparency = transparency or 0
+	noPhysics(p)
+	attrs(p, { Fade = p.Transparency, Tint = "color" })
+	p.Parent = parent
+	return p
+end
+
+-- a vertical cylinder emission volume (Cylinder shapes run along the part's X)
+local function column(name, parent, y, height, radius)
+	return anchor(name, parent, CFrame.new(0, y, 0) * CFrame.Angles(0, 0, math.pi / 2), Vector3.new(height, radius * 2, radius * 2))
+end
+
+-- inward-spiralling motes and mist: emitted on the cylinder's wall, flying to
+-- its axis, locked to the (turning) part so they curl in
+local function inwardQi(part, radius, motes, mist)
+	emitter("InwardMotes", part, {
+		Texture = A.glow, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+		ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward, Speed = NumberRange.new(radius / 6), Lifetime = NumberRange.new(5, 6),
+		Rate = motes, LockedToPart = true, LightEmission = 0.5, Size = seq(0, 0, 0.2, 0.7, 1, 0.1),
+		Transparency = seq(0, 1, 0.2, 0.15, 1, 1),
+	}, { Tint = "accent" })
+	if mist > 0 then
+		emitter("InwardMist", part, {
+			Texture = A.mist, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+			ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward, Speed = NumberRange.new(radius / 8), Lifetime = NumberRange.new(6, 7),
+			Rate = mist, LockedToPart = true, Size = seq(0, 5, 1, 10), Rotation = NumberRange.new(0, 360),
+			RotSpeed = NumberRange.new(-12, 12), Transparency = seq(0, 1, 0.3, 0.7, 1, 1),
+		}, { Tint = "color", TintMix = 0.6 })
+	end
+	emitter("Sparkles", part, {
+		Texture = A.spark, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		Speed = NumberRange.new(0.5, 1), Lifetime = NumberRange.new(1.5, 2.5), Rate = 3, LightEmission = 0.6,
+		Size = seq(0, 0, 0.5, 0.9, 1, 0), Rotation = NumberRange.new(0, 90),
+	}, { Tint = "accent", TintMix = 0.5 })
+end
+
+-- patterns ------------------------------------------------------------------
+
+-- Vortex: a coiling funnel, six layers widening upward, alternating directions.
+local function vortex(root)
+	local p = model("Vortex", root, { AuthoredRadius = 36 })
+	-- the lowest layer floats over head height so the ring and relic stay in view
+	local layers = { -- y, r, n, speed, roll, yScale
+		{ 16, 44, 3, 12, 10, 0.6 },
+		{ 40, 54, 2, -9, -12, 0.7 },
+		{ 68, 68, 2, 7, 12, 0.75 },
+		{ 100, 84, 3, -6, -12, 0.8 },
+		{ 134, 102, 2, 5, 12, 0.85 },
+		{ 166, 122, 3, -4, -10, 0.9 },
+	}
+	for i, l in layers do
+		local m = model("L" .. i, p, {
+			Speed = l[4], Bob = 1 + i * 0.4, BobPeriod = 7 + i, Phase = i * 1.3, Order = 1 - (i - 1) / (#layers - 1),
+		})
+		for k = 0, l[3] - 1 do
+			wisp(m, l[2], l[1], k * 360 / l[3] + i * 37, l[5], l[6])
+		end
+		if i == #layers then
+			for k = 0, 2 do
+				puff(m, l[2] * 0.95, l[1] + 4, k * 120 + 60, 0.55)
+			end
+		end
+		if i == 1 then
+			inwardQi(column("Qi", m, 18, 32, 40), 40, 6, 1.5)
+		end
+	end
+	return p
+end
+
+-- Mist: low, wide concentric rings of wisps hugging the ground, rippling out,
+-- with violet mist drifting along the grass.
+local function mist(root)
+	local p = model("Mist", root, { AuthoredRadius = 44 })
+	local layers = { -- y, r, n, speed, roll, yScale
+		{ 0.5, 22, 2, 6, 2, 0.5 },
+		{ 1, 38, 3, -5, -2, 0.45 },
+		{ 1.5, 56, 3, 4, 2, 0.5 },
+		{ 2, 76, 3, -3, -2, 0.6 },
+		{ 3, 98, 3, 2, 2, 0.7 },
+	}
+	for i, l in layers do
+		local m = model("L" .. i, p, {
+			Speed = l[4], Bob = 0.4, BobPeriod = 9, Ripple = 3 + i * 0.6, RipplePeriod = 7, Phase = -i * 0.9,
+			Order = (i - 1) / (#layers - 1),
+		})
+		for k = 0, l[3] - 1 do
+			wisp(m, l[2], l[1], k * 360 / l[3] + i * 53, l[5], l[6], 0.2)
+		end
+		if i == 1 then
+			local fx = anchor("Drift", m, CFrame.new(0, 1, 0), Vector3.new(10, 1, 10))
+			emitter("GroundMist", fx, {
+				Texture = A.mist, Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Front,
+				SpreadAngle = Vector2.new(5, 180), Speed = NumberRange.new(5, 8), Drag = 0.25, Lifetime = NumberRange.new(8, 10),
+				Rate = 2.5, Size = seq(0, 6, 1, 14), Rotation = NumberRange.new(0, 360), RotSpeed = NumberRange.new(-8, 8),
+				Transparency = seq(0, 1, 0.25, 0.6, 1, 1),
+			}, { Tint = "accent", TintMix = 0.55 })
+			local c = att("Ripple", fx, Vector3.new(0, -0.3, 0))
+			emitter("RippleRing", c, {
+				Texture = A.ringSoft, Orientation = Enum.ParticleOrientation.VelocityPerpendicular,
+				EmissionDirection = Enum.NormalId.Top, Speed = NumberRange.new(0.01), Lifetime = NumberRange.new(6),
+				Rate = 0.35, Size = seq(0, 6, 1, 70), Transparency = seq(0, 1, 0.15, 0.55, 1, 1), LightEmission = 0.3,
+			}, { Tint = "accent" })
+			emitter("Motes", anchor("MoteVolume", m, CFrame.new(0, 4, 0), Vector3.new(80, 6, 80)), {
+				Texture = A.glow, Shape = Enum.ParticleEmitterShape.Box, Speed = NumberRange.new(0.3, 1),
+				SpreadAngle = Vector2.new(180, 180), Lifetime = NumberRange.new(3, 5), Rate = 5, LightEmission = 0.5,
+				Size = seq(0, 0, 0.3, 0.5, 1, 0), Acceleration = Vector3.new(0, 0.6, 0),
+			}, { Tint = "accent" })
+		end
+	end
+	return p
+end
+
+-- Spiral: a rising double helix of wisps climbing into a crown of clouds with
+-- a radiant halo.
+local function spiral(root)
+	local p = model("Spiral", root, { AuthoredRadius = 30 })
+	local helix = model("Helix", p, { Speed = 14, Bob = 1, BobPeriod = 8, Order = 0.6 })
+	for strand = 0, 1 do
+		for i = 0, 5 do
+			wisp(helix, 18 + i * 2.4, 16 + i * 24, i * 65 + strand * 180, 16, 1.6)
+		end
+	end
+	inwardQi(column("Qi", helix, 18, 30, 30), 30, 4, 0)
+	local rise = column("Rise", helix, 70, 140, 16)
+	emitter("RisingMotes", rise, {
+		Texture = A.spark, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		Speed = NumberRange.new(0.1), Acceleration = Vector3.new(0, 8, 0), Lifetime = NumberRange.new(4, 6), Rate = 6,
+		LightEmission = 0.6, Size = seq(0, 0, 0.3, 0.9, 1, 0), Rotation = NumberRange.new(0, 90),
+	}, { Tint = "accent" })
+	local crown = model("Crown", p, { Speed = -5, Bob = 2, BobPeriod = 10, Phase = 1, Order = 0 })
+	for k = 0, 3 do
+		wisp(crown, 56, 150, k * 90 + 20, k % 2 == 0 and 5 or -5, 1)
+	end
+	for k = 0, 2 do
+		puff(crown, 58, 146, k * 120, 0.6)
+	end
+	torus("Halo", crown, 40, 1.6, CFrame.new(0, 164, 0), 0.35)
+	local sun = anchor("Radiance", crown, CFrame.new(0, 164, 0))
+	emitter("Sunburst", sun, {
+		Texture = A.sunburst, Speed = NumberRange.new(0), Lifetime = NumberRange.new(6), Rate = 0.35, LightEmission = 0.4,
+		Size = seq(0, 26, 1, 34), Rotation = NumberRange.new(0, 360), RotSpeed = NumberRange.new(-4, 4),
+		Transparency = seq(0, 1, 0.3, 0.6, 1, 1),
+	}, { Tint = "accent" })
+	return p
+end
+
+-- shared pieces ---------------------------------------------------------------
+
+local function ring(root)
+	local m = model("Ring", root)
+	torus("RingBand", m, 36, 0.8, CFrame.new(0, 0.4, 0), 0.4).Name = "RingBand"
+	local fx = column("RingFX", m, 0.4, 0.4, 36)
+	emitter("RingMotes", fx, {
+		Texture = A.glow, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+		Speed = NumberRange.new(0.2), Acceleration = Vector3.new(0, 2.5, 0), Lifetime = NumberRange.new(2.5, 3.5), Rate = 6,
+		LightEmission = 0.5, Size = seq(0, 0, 0.3, 0.45, 1, 0),
+	}, { Tint = "accent", Scale = true })
+	local c = att("Centre", anchor("RingCentre", m, CFrame.new(0, 0.3, 0)))
+	emitter("RingPulse", c, {
+		Texture = A.ringSoft, Orientation = Enum.ParticleOrientation.VelocityPerpendicular,
+		EmissionDirection = Enum.NormalId.Top, Speed = NumberRange.new(0.01), Lifetime = NumberRange.new(4),
+		Rate = 0.3, Size = seq(0, 33, 1, 38), Transparency = seq(0, 1, 0.3, 0.55, 1, 1), LightEmission = 0.4,
+	}, { Tint = "accent", Scale = true })
+end
+
+-- the light column, ground to just over the cloud plane (its Top attachment
+-- sits at world Y WorldY). Beams are culled with their attachments' part, so
+-- the part above the plane is its own piece in Whirl (Sky).
+local function columnPiece(root)
+	local m = model("Column", root)
+	local base = anchor("Shaft", m, CFrame.new(0, 0, 0))
+	local a0, a1 = att("Base", base, Vector3.new(0, 2, 0)), att("Top", base, Vector3.new(0, 446, 0))
+	a1:SetAttribute("WorldY", 446)
+	beam("Glow", base, a0, a1, {
+		Texture = A.glow, TextureSpeed = 0.25, TextureLength = 1, TextureMode = Enum.TextureMode.Stretch,
+		Width0 = 22, Width1 = 30, LightEmission = 0, Transparency = seq(0, 1, 0.04, 0.3, 1, 0.3),
+	}, { Tint = "accent" }) -- not additive: it has to show against the white cloud plane
+	beam("Core", base, a0, a1, {
+		Texture = A.column, TextureSpeed = 0.5, TextureLength = 1, TextureMode = Enum.TextureMode.Stretch,
+		Width0 = 6, Width1 = 8, LightEmission = 0.5, Transparency = seq(0, 1, 0.04, 0.15, 1, 0.15),
+	}, { Tint = "color" })
+	-- the qi helix: one strand of 16 points, 30 studs and 45 degrees apart
+	local helix = model("Helix", m, { Speed = 40, Condense = false, Order = 0 })
+	local hp = anchor("HelixPoints", helix, CFrame.new(0, 0, 0))
+	local prev
+	for i = 0, 14 do
+		local a = math.rad(i * 45)
+		local pt = att("H" .. i, hp, Vector3.new(math.cos(a) * 7, 4 + i * 30, math.sin(a) * 7))
+		if prev then
+			beam("Strand" .. i, hp, prev, pt, {
+				Width0 = 1.6, Width1 = 1.6, LightEmission = 0.6, Transparency = seq(0, 0.35, 1, 0.35), Texture = "",
+			}, { Tint = "accent" })
+		end
+		prev = pt
+	end
+end
+
+local function whirl(root)
+	local m = model("Whirl", root, { Speed = 5, Absolute = true, Condense = false, Order = 0, Bob = 0.5, BobPeriod = 11 })
+	-- arcs half sunk in the cloud plane (top Y 440), spiralling out
+	for i, l in { { 60, 0 }, { 90, 100 }, { 125, 210 }, { 160, 300 } } do
+		wisp(m, l[1], 434 + i * 0.5, l[2], 3, 0.6)
+	end
+	torus("WhirlRing", m, 46, 1.2, CFrame.new(0, 440.6, 0), 0.3)
+	-- the column above the plane, seen from the peaks: a Neon pillar in a glow
+	local pillar = Instance.new("Part")
+	pillar.Name, pillar.Shape, pillar.Material = "SkyPillar", Enum.PartType.Cylinder, Enum.Material.Neon
+	pillar.Size = Vector3.new(170, 9, 9)
+	pillar.CFrame = CFrame.new(0, 440 + 85, 0) * CFrame.Angles(0, 0, math.pi / 2)
+	pillar.Transparency = 0.35
+	noPhysics(pillar)
+	attrs(pillar, { Fade = 0.35, Tint = "accent", TintMix = 0.7 })
+	pillar.Parent = m
+	local sky = anchor("Sky", m, CFrame.new(0, 438, 0))
+	local s0, s1 = att("SkyBase", sky), att("SkyTop", sky, Vector3.new(0, 200, 0))
+	beam("SkyGlow", sky, s0, s1, {
+		Texture = A.glow, TextureLength = 1, TextureMode = Enum.TextureMode.Stretch,
+		Width0 = 30, Width1 = 48, LightEmission = 0, Transparency = seq(0, 0.3, 0.75, 0.4, 1, 1),
+	}, { Tint = "accent" })
+	local fx = anchor("WhirlFX", m, CFrame.new(0, 441, 0))
+	emitter("WhirlSwirl", att("Swirl", fx), {
+		Texture = A.swirl, Orientation = Enum.ParticleOrientation.VelocityPerpendicular,
+		EmissionDirection = Enum.NormalId.Top, Speed = NumberRange.new(0.01), Lifetime = NumberRange.new(10),
+		Rate = 0.3, Size = seq(0, 120, 1, 150), Rotation = NumberRange.new(0, 360), RotSpeed = NumberRange.new(-6, -4),
+		Transparency = seq(0, 1, 0.3, 0.55, 0.7, 0.6, 1, 1),
+	}, { Tint = "accent" })
+end
+
+-- the seal around the relic, its unseal burst and the relic's glow; the Eye
+-- part sits at the relic's core height (the relic model's CoreHeight)
+local function eye(root)
+	local m = model("Eye", root)
+	local e = anchor("Eye", m, CFrame.new(0, 5, 0))
+	local core = att("Core", e)
+	emitter("Flash", core, {
+		Texture = A.star, Speed = NumberRange.new(0), Lifetime = NumberRange.new(0.6), LightEmission = 0.7,
+		Size = seq(0, 2, 0.2, 16, 1, 0), Rotation = NumberRange.new(0, 45), ZOffset = 2,
+	}, { Tint = "accent", TintMix = 0.6, EmitCount = 1 })
+	emitter("Sparks", core, {
+		Texture = A.spark, Speed = NumberRange.new(24, 40), Drag = 3, Lifetime = NumberRange.new(1, 1.6), LightEmission = 0.6,
+		SpreadAngle = Vector2.new(180, 180), Size = seq(0, 0.9, 1, 0), Rotation = NumberRange.new(0, 90),
+	}, { Tint = "accent", EmitCount = 30 })
+	emitter("Shards", core, {
+		Texture = A.shards, Speed = NumberRange.new(16, 26), Drag = 1.5, Lifetime = NumberRange.new(1.2, 1.8),
+		Acceleration = Vector3.new(0, -24, 0), SpreadAngle = Vector2.new(180, 180), LightEmission = 0.4,
+		Size = seq(0, 0.8, 1, 0.2), Rotation = NumberRange.new(0, 360), RotSpeed = NumberRange.new(-200, 200),
+	}, { Tint = "accent", EmitCount = 16 })
+	emitter("Puff", core, {
+		Texture = A.mist, Speed = NumberRange.new(8, 12), Drag = 2, Lifetime = NumberRange.new(2.2, 3),
+		SpreadAngle = Vector2.new(180, 180), Size = seq(0, 4, 1, 10), Rotation = NumberRange.new(0, 360),
+		Transparency = seq(0, 0.3, 1, 1),
+	}, { Tint = "color", EmitCount = 8 })
+	-- 3D unseal: a flat torus racing out and a Neon shell (MeshWave, TechniqueVFX)
+	local wave = model("UnsealWave", core, {
+		MeshWave = true, FromSize = Vector3.new(6, 0.8, 6), ToSize = Vector3.new(64, 2.4, 64), FromTransparency = 0.05,
+		ToTransparency = 1, Duration = 0.9, Style = "Quart", FadeStyle = "Quad",
+	})
+	torus("Mesh", wave, 3, 0.8, CFrame.new(0, 5, 0), 1)
+	local shell = model("UnsealShell", core, {
+		MeshWave = true, FromSize = Vector3.new(3, 3, 3), ToSize = Vector3.new(22, 22, 22), FromTransparency = 0.6,
+		ToTransparency = 1, Duration = 0.7, Style = "Quart", FadeStyle = "Quad",
+	})
+	local ball = Instance.new("Part")
+	ball.Name, ball.Shape, ball.Material, ball.Size, ball.Transparency = "Mesh", Enum.PartType.Ball, Enum.Material.Neon, Vector3.new(3, 3, 3), 1
+	ball.CFrame = CFrame.new(0, 5, 0)
+	noPhysics(ball)
+	attrs(ball, { Tint = "accent" })
+	ball.Parent = shell
+
+	-- glow: faint while sealed, bright once unsealed (the client switches)
+	local g = att("Glow", e)
+	emitter("Faint", g, {
+		Texture = A.glow2, Speed = NumberRange.new(0), Lifetime = NumberRange.new(1.5), Rate = 2, LightEmission = 0.4,
+		Size = seq(0, 3, 1, 3.5), Transparency = seq(0, 1, 0.4, 0.7, 1, 1),
+	}, { Tint = "accent" })
+	emitter("Bright", g, {
+		Texture = A.glow, Speed = NumberRange.new(0), Lifetime = NumberRange.new(1.2), Rate = 4, LightEmission = 0.6,
+		Size = seq(0, 5, 1, 6.5), Transparency = seq(0, 1, 0.3, 0.45, 1, 1),
+	}, { Tint = "accent", TintMix = 0.7, Unsealed = true })
+	emitter("Rise", g, {
+		Texture = A.spark, SpreadAngle = Vector2.new(30, 30), EmissionDirection = Enum.NormalId.Top, Speed = NumberRange.new(2, 4),
+		Lifetime = NumberRange.new(1.5, 2.5), Rate = 5, LightEmission = 0.6, Size = seq(0, 0, 0.3, 0.5, 1, 0),
+	}, { Tint = "accent", Unsealed = true })
+	local light = Instance.new("PointLight")
+	light.Name, light.Brightness, light.Range, light.Shadows, light.Enabled = "Light", 0, 14, false, true
+	light:SetAttribute("Tint", "accent")
+	light:SetAttribute("Brightness", 1.6)
+	light.Parent = g
+
+	-- the seal: two tilted talisman rings turning round the relic, a seal
+	-- circle on the ground and four chains of light; shatters on unseal
+	local seal = model("Seal", m, { Speed = 30, Condense = false, Order = 0.3 })
+	torus("SealRingA", seal, 3.6, 0.22, CFrame.new(0, 5, 0) * CFrame.Angles(math.rad(62), 0, 0), 0.2)
+	torus("SealRingB", seal, 3.9, 0.22, CFrame.new(0, 5, 0) * CFrame.Angles(0, 0, math.rad(-62)), 0.2)
+	local hub = anchor("Chains", seal, CFrame.new(0, 0, 0))
+	local top = att("Hub", hub, Vector3.new(0, 5, 0))
+	for k = 0, 3 do
+		local a = math.rad(k * 90 + 45)
+		local foot = att("Foot" .. k, hub, Vector3.new(math.cos(a) * 7, 0.4, math.sin(a) * 7))
+		beam("Chain" .. k, hub, top, foot, {
+			Texture = A.chain, TextureMode = Enum.TextureMode.Wrap, TextureLength = 1.2, TextureSpeed = 0.4,
+			Width0 = 1.1, Width1 = 1.1, LightEmission = 0.5, Transparency = seq(0, 0.5, 0.5, 0.15, 1, 0.4),
+		}, { Tint = "accent" })
+	end
+	local circle = att("Circle", anchor("SealCircle", seal, CFrame.new(0, 0.35, 0)))
+	emitter("SealCircle", circle, {
+		Texture = A.seal, Orientation = Enum.ParticleOrientation.VelocityPerpendicular, EmissionDirection = Enum.NormalId.Top,
+		Speed = NumberRange.new(0.01), Lifetime = NumberRange.new(3), Rate = 0.7, LightEmission = 0.4,
+		Size = seq(0, 7.5, 1, 8), Transparency = seq(0, 1, 0.3, 0.45, 0.7, 0.45, 1, 1), RotSpeed = NumberRange.new(10),
+	}, { Tint = "accent" })
+end
+
+-- relics (server-cloned, claimable) ------------------------------------------------
+
+local function relicPart(parent, name, size, cf, color, material, shape)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size, p.CFrame, p.Color = size, cf, color
+	p.Material = material or Enum.Material.SmoothPlastic
+	if shape then
+		p.Shape = shape
+	end
+	noPhysics(p)
+	p.Parent = parent
+	return p
+end
+
+local function claim(relic, holder, height)
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "ClaimPrompt"
+	prompt.Enabled = false
+	prompt.ActionText = "Claim"
+	prompt.ObjectText = "Relic"
+	prompt.HoldDuration = 2
+	prompt.KeyboardKeyCode = Enum.KeyCode.F
+	prompt.MaxActivationDistance = 12
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = holder
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "Label"
+	gui.Size = UDim2.fromOffset(220, 44)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, height, 0)
+	gui.MaxDistance = 90
+	gui.LightInfluence = 0
+	gui.AlwaysOnTop = false
+	local label = Instance.new("TextLabel")
+	label.Name = "Name"
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamMedium
+	label.TextScaled = true
+	label.TextColor3 = Color3.fromRGB(255, 246, 220)
+	label.TextStrokeTransparency = 0.4
+	label.TextStrokeColor3 = Color3.fromRGB(40, 30, 20)
+	label.Text = "Sealed relic"
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = 18
+	limit.Parent = label
+	label.Parent = gui
+	gui.Parent = holder
+end
+
+local function relics(root)
+	local folder = Instance.new("Folder")
+	folder.Name = "Relics"
+	folder.Parent = root
+
+	-- a cultivation manual: a silk scroll on a jade rod, half unrolled, hovering
+	local manual = model("Manual", folder, { CoreHeight = 5 })
+	local y = 5
+	local silk = Color3.fromRGB(238, 226, 196)
+	local jade = Color3.fromRGB(112, 214, 170)
+	local gold = Color3.fromRGB(226, 182, 92)
+	local body = relicPart(manual, "Scroll", Vector3.new(3.2, 0.9, 0.9), CFrame.new(0, y + 0.9, 0) * CFrame.Angles(0, 0, 0), silk, Enum.Material.Fabric, Enum.PartType.Cylinder)
+	relicPart(manual, "Rod", Vector3.new(4, 0.34, 0.34), CFrame.new(0, y + 0.9, 0), jade, Enum.Material.Glass, Enum.PartType.Cylinder).Transparency = 0.15
+	for s = -1, 1, 2 do
+		relicPart(manual, "Knob", Vector3.new(0.5, 0.5, 0.5), CFrame.new(s * 2.05, y + 0.9, 0), gold, Enum.Material.Metal, Enum.PartType.Ball)
+	end
+	relicPart(manual, "Silk", Vector3.new(0.3, 0.96, 0.96), CFrame.new(0.9, y + 0.9, 0), Color3.fromRGB(196, 52, 48), Enum.Material.Fabric, Enum.PartType.Cylinder)
+	-- the unrolled sheet hanging below, a little turned toward the viewer
+	relicPart(manual, "Sheet", Vector3.new(3, 2.2, 0.06), CFrame.new(0, y - 0.4, 0.15) * CFrame.Angles(math.rad(-8), 0, 0), silk, Enum.Material.Fabric)
+	relicPart(manual, "Rule", Vector3.new(2.6, 0.08, 0.07), CFrame.new(0, y - 1.45, 0.3) * CFrame.Angles(math.rad(-8), 0, 0), Color3.fromRGB(60, 50, 40), Enum.Material.SmoothPlastic)
+	relicPart(manual, "Weight", Vector3.new(3.2, 0.22, 0.22), CFrame.new(0, y - 1.55, 0.32), jade, Enum.Material.Glass, Enum.PartType.Cylinder).Transparency = 0.15
+	claim(manual, body, 3.2)
+	local glow = att("RelicGlow", body)
+	emitter("Aura", glow, {
+		Texture = A.glow2, Speed = NumberRange.new(0), Lifetime = NumberRange.new(2), Rate = 1.5, LightEmission = 0.3,
+		Size = seq(0, 3.5, 1, 4), Transparency = seq(0, 1, 0.4, 0.75, 1, 1), Color = ColorSequence.new(Color3.fromRGB(190, 255, 220)),
+		Enabled = true,
+	})
+	manual.WorldPivot = CFrame.new(0, 0, 0)
+
+	-- an ancient jian, point down, hovering
+	local sword = model("Sword", folder, { CoreHeight = 6 })
+	local jian = ServerStorage.WeaponModels.Jian
+	local scale = 2
+	local pivot = jian:GetPivot()
+	-- turn it so the blade points straight down, whichever way the Jian model
+	-- holds it (grip -> blade centre becomes -Y)
+	local blade = jian:FindFirstChild("JianBlade", true) or jian:FindFirstChild("Handle", true)
+	local grip = jian:FindFirstChild("JianGrip", true)
+	local turn = CFrame.Angles(math.pi, 0, 0)
+	if blade and grip then
+		local d = pivot:VectorToObjectSpace(blade.Position - grip.Position).Unit
+		local down = Vector3.new(0, -1, 0)
+		local axis = d:Cross(down)
+		local angle = math.acos(math.clamp(d:Dot(down), -1, 1))
+		turn = if axis.Magnitude > 1e-4 then CFrame.fromAxisAngle(axis.Unit, angle) elseif d.Y > 0 then CFrame.Angles(math.pi, 0, 0) else CFrame.identity
+	end
+	local handle
+	for _, d in jian:GetDescendants() do
+		if d:IsA("BasePart") then
+			local c = d:Clone()
+			c:ClearAllChildren()
+			local rel = pivot:ToObjectSpace(d.CFrame)
+			c.Size = d.Size * scale
+			c.CFrame = turn * CFrame.new(rel.Position * scale) * rel.Rotation
+			noPhysics(c)
+			c.Parent = sword
+			-- the blade carries the prompt and the glow (Handle on older Jian builds)
+			if d.Name == "JianBlade" or d.Name == "Handle" or not handle then
+				handle = c
+			end
+		end
+	end
+	-- centre the whole sword at y 6.5, whatever the Jian's current parts are
+	sword.WorldPivot = CFrame.new()
+	local box = sword:GetBoundingBox()
+	local shift = Vector3.new(-box.Position.X, 6.5 - box.Position.Y, -box.Position.Z)
+	for _, c in sword:GetChildren() do
+		c.CFrame += shift
+	end
+	claim(sword, handle, 6.5)
+	emitter("Aura", att("RelicGlow", handle), {
+		Texture = A.glow2, Speed = NumberRange.new(0), Lifetime = NumberRange.new(2), Rate = 1.5, LightEmission = 0.3,
+		Size = seq(0, 4, 1, 4.5), Transparency = seq(0, 1, 0.4, 0.75, 1, 1), Color = ColorSequence.new(Color3.fromRGB(255, 226, 160)),
+		Enabled = true,
+	})
+	sword.WorldPivot = CFrame.new(0, 0, 0)
+end
+
+_G.buildAuspiciousClouds = function(parent)
+	local old = parent:FindFirstChild("AuspiciousClouds")
+	if old then
+		old:Destroy()
+	end
+	local root = Instance.new("Model")
+	root.Name = "AuspiciousClouds"
+	attrs(root, { AuthoredRadius = 36, PlaneTop = 440 })
+	vortex(root)
+	mist(root)
+	spiral(root)
+	ring(root)
+	columnPiece(root)
+	whirl(root)
+	eye(root)
+	relics(root)
+	root.WorldPivot = CFrame.new()
+	root.Parent = parent
+	local parts, emitters, beams = 0, 0, 0
+	for _, d in root:GetDescendants() do
+		if d:IsA("BasePart") then
+			parts += 1
+		elseif d:IsA("ParticleEmitter") then
+			emitters += 1
+		elseif d:IsA("Beam") then
+			beams += 1
+		end
+	end
+	return string.format("built AuspiciousClouds: %d parts, %d emitters, %d beams", parts, emitters, beams)
+end
+
+return true
+	end)
+	if ok then _G.vfxSpecs["AuspiciousClouds"] = spec end
+	table.insert(installed, "spec AuspiciousClouds: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/BladeKit.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Spec helpers shared by the blade techniques (HeavenSplitter, RampagingTiger):
+-- not a technique spec itself (no `id`). The specs reach it lazily at build
+-- time through _G.vfxSpecs.BladeKit, so load order doesn't matter.
+-- Runtime counterpart: src/client/TechniqueFX/BladeSkill.luau.
+--
+--   edge(root, tier, p)   Part "Edge": the qi edge the runtime moves onto the
+--       held weapon (Base -> Tip): Trail "Trail" (the swing arc, a solid
+--       tapered ribbon), II+ Trail "After" (a longer faint afterimage), Beam
+--       "Glow" (the blade wreathed in qi while charged; the runtime toggles
+--       it), and emitter "Motes" on attachment "Mid" (qi shed off the blade).
+--       All disabled; the runtime enables them per strike window.
+--       p.color, p.core, p.trailLife {by tier}, p.glowWidth {by tier}
+--   strips(root, tier, p) a glowing Neon slit p.name ("Cut") and the ink
+--       scar p.scar ("Scar") it cools into, laid on the ground by the runtime
+--       (StartTransparency / Fade / FadeDelay / FadeColor attributes, the
+--       Sword Qi Wave convention). p.width {cut, scar} by tier.
+--   heldWave(parent, name, p) a MeshWave-shaped held mesh: Part/MeshPart
+--       "Mesh" at Transparency 1 under a Model, for pieces the runtime drives
+--       frame by frame (wheel rings, the phantom blade), with p.attrs.
+--   cylinderWave(parent, name, p) a MeshWave whose Mesh is a Neon cylinder
+--       Part (light columns): FromSize/ToSize X is the length; Rotation
+--       (0,0,90) stands it up.
+--   crescent(part, layer, p) a tapered curved ribbon of two Beams (L -> C ->
+--       R) in the part's XY plane (it faces +-Z): p.span, p.bow (how far the
+--       tips sweep back, +Y), p.y, p.width, p.color, p.transparency, p.light.
+local KIT = {}
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local V = Vector3.new
+local O = CFrame.new()
+
+local function B()
+	return _G.vfxBlocks
+end
+
+local function byTier(v, tier)
+	return if type(v) == "table" then v[tier] else v
+end
+
+function KIT.edge(root, tier, p)
+	local B0 = B()
+	local edge = B0.part(root, "Edge", O * CFrame.new(1.5, 1.5, -1), V(0.2, 0.2, 0.2))
+	local a0 = B0.attach(edge, "A0", V(0, 0, 0))
+	local a1 = B0.attach(edge, "A1", V(0, 4, 0))
+	B0.attach(edge, "Mid", V(0, 2.4, 0))
+	local color, core = p.color, p.core
+	local function trail(name, life, t0, light)
+		local t = Instance.new("Trail")
+		t.Name = name
+		t.Attachment0, t.Attachment1 = a0, a1
+		t.Color = CS({ ColorSequenceKeypoint.new(0, core), ColorSequenceKeypoint.new(0.35, color), ColorSequenceKeypoint.new(1, p.tail or color) })
+		t.Transparency = NS({ KP(0, t0), KP(0.5, t0 + (1 - t0) * 0.35), KP(1, 1) })
+		t.WidthScale = NS({ KP(0, 1), KP(1, 0.35) })
+		t.Lifetime = life
+		t.LightEmission, t.LightInfluence = light, 0
+		t.FaceCamera = false
+		t.MinLength = 0.04
+		t.Enabled = false
+		t.Parent = edge
+		return t
+	end
+	trail("Trail", byTier(p.trailLife or { 0.16, 0.2, 0.24, 0.3 }, tier), 0.05, 0.3)
+	if tier >= 2 then
+		trail("After", byTier(p.trailLife or { 0.16, 0.2, 0.24, 0.3 }, tier) * 2.2, 0.62, 0.2)
+	end
+	local glow = Instance.new("Beam")
+	glow.Name = "Glow"
+	glow.Attachment0, glow.Attachment1 = a0, a1
+	glow.Width0 = byTier(p.glowWidth or { 0.5, 0.7, 0.9, 1.1 }, tier) * 0.6
+	glow.Width1 = byTier(p.glowWidth or { 0.5, 0.7, 0.9, 1.1 }, tier)
+	glow.FaceCamera = true
+	glow.Color = CS(color)
+	glow.Transparency = NS({ KP(0, 0.75), KP(0.8, 0.55), KP(1, 0.8) })
+	glow.LightEmission, glow.LightInfluence = 0.45, 0
+	glow.Segments = 2
+	glow.Enabled = false
+	glow.Parent = edge
+	B0.emitter(edge.Mid, "Motes", {
+		Texture = "rbxassetid://9841260273", Color = CS(core, color),
+		Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		SpreadAngle = Vector2.new(180, 180), Size = NS({ KP(0, 0.22), KP(1, 0) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+		Lifetime = R(0.3, 0.55), Speed = R(1.5, 4), Drag = 3, LightEmission = 0.55, Rotation = R(0, 360),
+		Rate = byTier(p.moteRate or { 8, 14, 20, 28 }, tier),
+	})
+	return edge
+end
+
+function KIT.strips(root, tier, p)
+	local B0 = B()
+	local widths = p.width or { { 0.3, 0.6 }, { 0.36, 0.7 }, { 0.42, 0.85 }, { 0.5, 1.0 } }
+	local w = widths[tier]
+	local function strip(name, material, color, width, attrs, thick)
+		local s = B0.part(root, name, O * CFrame.new(0, 0.05, -6), V(width, thick, 1))
+		s.Material, s.Color = material, color
+		for k, v in attrs do
+			s:SetAttribute(k, v)
+		end
+		return s
+	end
+	strip(p.name or "Cut", Enum.Material.Neon, p.color, w[1], {
+		StartTransparency = 0.2, Fade = byTier(p.fade or { 0.45, 0.55, 0.65, 0.8 }, tier), FadeColor = p.fadeColor or p.color,
+	}, 0.1)
+	strip(p.scar or "Scar", Enum.Material.SmoothPlastic, p.ink, w[2], {
+		StartTransparency = 0.3, Fade = byTier(p.scarFade or { 1.0, 1.25, 1.5, 1.9 }, tier), FadeDelay = 0.25,
+	}, 0.06)
+	return root:FindFirstChild(p.name or "Cut")
+end
+
+function KIT.heldWave(parent, name, p)
+	local m = Instance.new("Model")
+	m.Name = name
+	local mesh
+	if p.mesh then
+		mesh = B().mesh(p.mesh, m, "Mesh", p.size, O, p.color, p.material)
+	else
+		mesh = Instance.new("Part")
+		mesh.Name = "Mesh"
+		mesh.Shape = p.shape or Enum.PartType.Block
+		mesh.Anchored, mesh.CanCollide, mesh.CanQuery, mesh.CanTouch, mesh.CastShadow = true, false, false, false, false
+		mesh.Material = p.material or Enum.Material.Neon
+		mesh.Color = p.color
+		mesh.Size = p.size or V(1, 1, 1)
+		mesh.Transparency = 1
+		mesh.CFrame = O
+		mesh.Parent = m
+	end
+	for k, v in p.attrs or {} do
+		m:SetAttribute(k, v)
+	end
+	m.Parent = parent
+	return m, mesh
+end
+
+function KIT.cylinderWave(parent, name, p)
+	local wave = Instance.new("Model")
+	wave.Name = name
+	for k, v in {
+		FromSize = p.fromSize, ToSize = p.toSize, FromOffset = p.fromOffset, ToOffset = p.toOffset,
+		Rotation = V(0, 0, 90), FromTransparency = p.fromTransparency, ToTransparency = p.toTransparency,
+		Duration = p.duration, Style = p.style, FadeStyle = p.fadeStyle, EmitDelay = p.delay,
+	} do
+		wave:SetAttribute(k, v)
+	end
+	wave:SetAttribute("MeshWave", true)
+	local c = Instance.new("Part")
+	c.Name = "Mesh"
+	c.Shape = Enum.PartType.Cylinder
+	c.Anchored, c.CanCollide, c.CanQuery, c.CanTouch, c.CastShadow = true, false, false, false, false
+	c.Material = p.material or Enum.Material.Neon
+	c.Color = p.color
+	c.Transparency = 1
+	c.Size = p.fromSize
+	c.CFrame = O
+	c.Parent = wave
+	wave.Parent = parent
+	return wave
+end
+
+function KIT.crescent(part, layer, p)
+	local span, bow, y = p.span, p.bow or p.span * 0.3, p.y or 0
+	local function att(name, pos, axis)
+		local a = Instance.new("Attachment")
+		a.Name = layer .. name
+		-- secondary axis along Z: the ribbon lies in the XY plane, facing +-Z
+		a.CFrame = CFrame.fromMatrix(pos, axis, Vector3.zAxis)
+		a.Parent = part
+		return a
+	end
+	local L = att("L", V(-span / 2, y + bow, 0), V(0, -1, 0))
+	local C = att("C", V(0, y, 0), V(1, 0, 0))
+	local Rt = att("R", V(span / 2, y + bow, 0), V(0, 1, 0))
+	for i, pair in { { L, C, 0.04, p.width }, { C, Rt, p.width, 0.04 } } do
+		local b = Instance.new("Beam")
+		b.Name = layer .. (if i == 1 then "Left" else "Right")
+		b.Attachment0, b.Attachment1 = pair[1], pair[2]
+		b.Width0, b.Width1 = pair[3], pair[4]
+		-- bow the halves into one arc (CurveSize pulls along each attachment's X)
+		b.CurveSize0 = if i == 1 then bow * 0.9 else span * 0.28
+		b.CurveSize1 = if i == 1 then span * 0.28 else bow * 0.9
+		b.FaceCamera = false
+		b.Color = CS(p.color)
+		b.LightEmission, b.LightInfluence = p.light or 0.3, 0
+		b.Transparency = NS(p.transparency or 0)
+		b.Segments = 14
+		b.Parent = part
+	end
+end
+
+-- Edit-mode preview through the real call path for the blade techniques:
+-- KIT.preview({ id, level, freezeAt (clip s), center?, rig? ("gsrigrea2lfixed"),
+-- enemies?, offsets?, anim? (id override) }) -> summary. Builds a vfxPreview
+-- scene, swaps its rig for a clone of a weapon rig (Tip/Base added on the
+-- blade), plays the technique clip on it by hand at castSpeed with the root
+-- driven over def.lungeWindow, calls CombatEffects.cast at the first hit, and
+-- freezes particles and MeshWave tweens at `freezeAt`. Markers don't fire
+-- while scrubbing, so beats run on the clip clock (+0.08 s fallback slack).
+function KIT.preview(opts)
+	local P = _G.vfxPreview
+	local RS = game:GetService("ReplicatedStorage")
+	local RunService = game:GetService("RunService")
+	local S = P.scene({ center = opts.center, radius = opts.radius, enemies = opts.enemies, offsets = opts.offsets, keep = opts.keep })
+	local source = workspace.WeaponShowcase:FindFirstChild(opts.rig or "gsrigrea2lfixed")
+	local rig = source:Clone()
+	local old = S.rig
+	local root = rig.HumanoidRootPart
+	local _, size = old:GetBoundingBox()
+	rig:PivotTo(old:GetPivot())
+	old:Destroy()
+	for _, d in rig:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.CollisionGroup = "_VFXPreviewRig"
+		end
+	end
+	-- Tip/Base on the longest weapon mesh, tip at the end far from the hilt
+	local hilt = rig:FindFirstChild("HiltR") or rig:FindFirstChild("Hilt")
+	local best
+	for _, d in rig:GetDescendants() do
+		if d:IsA("MeshPart") and d.Parent.Name == "PARTS" and (not best or d.Size.Magnitude > best.Size.Magnitude) then
+			best = d
+		end
+	end
+	if best and hilt then
+		local axis = best.Size.X >= best.Size.Y and best.Size.X >= best.Size.Z and Vector3.xAxis or (best.Size.Y >= best.Size.Z and Vector3.yAxis or Vector3.zAxis)
+		local half = axis * (best.Size:Dot(axis) / 2)
+		local e1, e2 = best.CFrame:PointToWorldSpace(half), best.CFrame:PointToWorldSpace(-half)
+		local far = (e1 - hilt.Position).Magnitude > (e2 - hilt.Position).Magnitude
+		local model = Instance.new("Model")
+		model.Name = "PreviewWeapon"
+		model.Parent = rig
+		local tip = Instance.new("Attachment")
+		tip.Name = "Tip"
+		tip.Parent = best
+		tip.WorldPosition = far and e1 or e2
+		local base = Instance.new("Attachment")
+		base.Name = "Base"
+		base.Parent = best
+		base.WorldPosition = far and e2 or e1
+		-- BladeSkill looks for Tip/Base inside a Model child of the character
+		best.Parent.Parent = model
+	end
+	rig.Parent = S.folder
+	S.rig = rig
+	local holder = P.fresh({ "CombatEffects", "Sfx", "TechniqueVFX", "CastFX" })
+	if opts.source then
+		-- preview templates from a scratch folder (opts.source.<Id>.<Id>_T<n>)
+		-- instead of the mapped ReplicatedStorage.Effects
+		local TV = require(holder.TechniqueVFX)
+		local Tq = require(holder.Shared.Techniques)
+		TV.template = function(id, level)
+			local tier, step = Tq.visualTier(level)
+			local group = opts.source:FindFirstChild(id)
+			return group and group:FindFirstChild(id .. "_T" .. tier), tier, step
+		end
+	end
+	local CE = require(holder.CombatEffects)
+	local Techniques = require(holder.Shared.Techniques)
+	local def = Techniques.Defs[opts.id]
+	if opts.anim then
+		def.animationId = opts.anim
+	end
+	local animId = def.animationId
+	if not animId then
+		local a = RS:FindFirstChild("Animations") and RS.Animations:FindFirstChild("Techniques") and RS.Animations.Techniques:FindFirstChild(opts.id)
+		animId = a and a.AnimationId
+	end
+	local anim = Instance.new("Animation")
+	anim.AnimationId = type(animId) == "number" and ("rbxassetid://" .. animId) or animId
+	root.Anchored = true
+	local hum = rig:FindFirstChildOfClass("Humanoid")
+	local animator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
+	local track = animator:LoadAnimation(anim)
+	local t0 = os.clock()
+	while track.Length == 0 and os.clock() - t0 < 6 do
+		task.wait()
+	end
+	track:Play(0, 1, 0)
+	local speed = def.castSpeed or 1
+	local first = def.hits[1].time
+	local window = def.lungeWindow or { 0, 0 }
+	local start = root.CFrame
+	local dir = (root.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
+	local began, casted, err = os.clock(), false, nil
+	local clip = 0
+	while true do
+		clip = (os.clock() - began) * speed
+		if opts.freezeAt and clip >= opts.freezeAt then
+			clip = opts.freezeAt
+		end
+		track.TimePosition = math.min(clip, track.Length - 0.01)
+		local k = math.clamp((clip - window[1]) / math.max(window[2] - window[1], 0.01), 0, 1)
+		root.CFrame = start + dir * (def.lunge or 0) * k
+		animator:StepAnimations(0)
+		if not casted and clip >= first then
+			casted = true
+			local ok, e = pcall(CE.cast, rig, opts.id, root.Position, dir, nil, opts.level)
+			if not ok then
+				err = e
+			end
+			if opts.trailLife then
+				-- trails can't be frozen: stretch them to see the whole arc in a still
+				for _, d in rig:GetDescendants() do
+					if d:IsA("Trail") then
+						d.Lifetime = opts.trailLife
+					end
+				end
+			end
+		end
+		if (opts.freezeAt and clip >= opts.freezeAt) or clip > track.Length then
+			break
+		end
+		RunService.Heartbeat:Wait()
+	end
+	if opts.freezeAt then
+		RunService.Heartbeat:Wait()
+		for _, r in { workspace.Terrain:FindFirstChild("TempVFX"), S.folder } do
+			if r then
+				for _, d in r:GetDescendants() do
+					if d:IsA("ParticleEmitter") then
+						d.TimeScale = 0
+					end
+				end
+			end
+		end
+		local TV = require(holder.TechniqueVFX)
+		for tween in TV.waves or {} do
+			tween:Pause()
+		end
+	end
+	local kids = {}
+	for _, d in S.folder._fxOut:GetChildren() do
+		kids[d.Name] = (kids[d.Name] or 0) + 1
+	end
+	local list = {}
+	for n, c in kids do
+		table.insert(list, n .. "x" .. c)
+	end
+	return string.format("clip=%.2f err=%s C=%s out=%s", clip, tostring(err), tostring(S.C), table.concat(list, ","))
+end
+
+return KIT
+	end)
+	if ok then _G.vfxSpecs["BladeKit"] = spec end
+	table.insert(installed, "spec BladeKit: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/CrescentSweep.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Crescent Moon Sweep's templates (CrescentSweep_T1..T4) as a spec for
+-- vfxBlocks.buildFromSpec. Runtime: src/client/TechniqueFX/CrescentSweep.luau.
+--
+-- The move: Skill_CrescentSweep (1.383 s, Guandao, joint Hilt), markers Hit
+-- 0.633 and Hit Stop 0.75; a circle of radius 11 round the caster. Sampled on
+-- GreataxeRig: 0.05-0.2 the polearm is raised into the grip, by 0.3 it is
+-- wound back low behind the left hip (blade tip ~0.6 off the ground, 8 studs
+-- out). From Hit the blade whips round in one low spin: behind (0.66), the
+-- right (0.69), the front (0.72) and the left (0.75), ~323 deg in 0.12 s,
+-- tip 0.6-4.6 studs off the ground, ~8 studs out; follow-through to 0.8.
+--
+-- The pitch ("a jade crescent moon cut out of the air"):
+--   Windup (0 -> Hit, part "Windup" on the right hand): jade motes gather
+--     into the grip as the blade is raised and wound back (II+ Spline
+--     wisps, III+ a closing seal).
+--   Release (Hit, part "Tip"): a flash on the blade where the spin starts.
+--   Sweep (Hit -> Hit Stop, part "Sweep", runtime-turned round the caster on
+--     the sampled heading curve): the blade's path is a flat jade sheet (a
+--     radial Trail from 2 studs out to the blade's reach) with a bright moon
+--     edge (a thin Trail at the reach), so the spin leaves a glowing crescent
+--     that closes into a disc and fades. A ground torus rolls out to the
+--     radius and a wispy swirl ring spreads at knee height (3D MeshWaves),
+--     dust is kicked outward. III+ a spinning SimpleMeshVFX swirl shell and a
+--     Craters ring erupting with the wave.
+--   Impact (each enemy as the blade's heading passes it, part "Impact"): a
+--     jade impactStack plus a horizontal crescent cut through the body.
+--   Aftermath: a jade-ink crescent scorched into the ground under the sweep,
+--     II+ motes rising round the circle.
+--   IV: a jade-gold moon (a standing Neon torus) rising behind the caster,
+--     the one light on the sweep, impact frames at the release and an
+--     Explosion quake on the first impact.
+--
+-- Tiers:
+--   I   sheet + moon edge, ground torus, knee swirl, dust, impacts, scorch.
+--   II  brighter wider sheet, a second inner edge, motes, impact swirl,
+--       wave echo and rays.
+--   III swirl shell, Craters ring, impact bubble and rock kicks, seal at
+--       the windup.
+--   IV  gold edge, moon rising behind, light, frames, quake.
+--
+-- Authored at radius 11, active 0.117 s (Hit -> Hit Stop at speed 1).
+local B = _G.vfxBlocks
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local O = CFrame.new()
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local JADE = Color3.fromRGB(110, 230, 160) -- the technique colour (suggested def.color)
+local DEEP = Color3.fromRGB(40, 176, 120)
+local CORE = Color3.fromRGB(236, 255, 242)
+local GOLD = Color3.fromRGB(255, 232, 170)
+local INK = Color3.fromRGB(22, 54, 42)
+local PALETTE = {
+	color = JADE, core = CORE,
+	ringColor = Color3.fromRGB(212, 255, 228), swirlColor = Color3.fromRGB(120, 230, 170), groundColor = Color3.fromRGB(170, 245, 200),
+}
+local function pal(extra)
+	local t = table.clone(PALETTE)
+	for k, v in extra or {} do
+		t[k] = v
+	end
+	return t
+end
+
+local A = {
+	moon = id(1084963972), -- crisp crescent moon
+	slash = id(7216852121),
+	mote = id(9841260273),
+	knotRing = id(93858335764593), -- key-fret (meander) ring
+}
+
+local RADIUS = 11
+local REACH = 8.6 -- the blade's reach round the caster (sampled ~8)
+local HEIGHT = 1.5 -- the sweep's height off the ground (the tip runs 0.6-4.6)
+local HAND_AT = O * CFrame.new(-0.4, 1.6, 3.2) -- the hands wound back behind the left hip
+local TIP_AT = O * CFrame.new(-6.5, 0.8, 5) -- the blade tip at Hit (behind-left, low)
+
+local function trail(parent, name, a0, a1, color, transparency, life, light, width)
+	local t = Instance.new("Trail")
+	t.Name = name
+	t.Attachment0, t.Attachment1 = a0, a1
+	t.Color = color
+	t.Transparency = transparency
+	t.WidthScale = width or NS(1)
+	t.Lifetime = life
+	t.FaceCamera = false
+	t.LightEmission, t.LightInfluence = light, 0
+	t.MinLength = 0.05
+	t.Enabled = false
+	t.Parent = parent
+	return t
+end
+
+-- The sweep: a part at the caster's centre, turned by the runtime; its
+-- attachments sit along -Z (the blade's heading) so the Trails between
+-- them draw the swept sheet and the moon edge.
+B.BLOCKS.csSweep = function(root, tier, p)
+	local sweep = B.part(root, "Sweep", O * CFrame.new(0, HEIGHT, 0))
+	for k, v in {
+		StartHeading = -126, -- degrees from facing, + to the right (the blade behind-left at Hit)
+		SweepDegrees = 323, -- turned by Hit Stop (the heading falls: behind, right, front, left)
+		FollowDegrees = 30, FollowTime = 0.05, -- carried on past Hit Stop
+		Reach = REACH, Height = HEIGHT, AuthoredRadius = RADIUS,
+		Tilt = 6, -- degrees: the sheet rises toward the front of the spin
+	} do
+		sweep:SetAttribute(k, v)
+	end
+	local inner = B.attach(sweep, "Inner", Vector3.new(0, 0, -2))
+	local outer = B.attach(sweep, "Outer", Vector3.new(0, 0.15, -REACH))
+	local rim0 = B.attach(sweep, "Rim0", Vector3.new(0, 0.1, -REACH + 0.45))
+	local rim1 = B.attach(sweep, "Rim1", Vector3.new(0, 0.2, -REACH - 0.25))
+	local edge = if tier >= 4 then GOLD else CORE
+	-- the sheet: transparent near the shaft, solid at the blade
+	trail(sweep, "Sheet", inner, outer, CS(DEEP, JADE), NS({ KP(0, ({ 0.35, 0.28, 0.22, 0.18 })[tier]), KP(0.5, 0.6), KP(1, 1) }),
+		({ 0.26, 0.3, 0.32, 0.36 })[tier], 0.3, NS({ KP(0, 1), KP(1, 1) }))
+	-- the moon edge at the blade's reach
+	trail(sweep, "Edge", rim0, rim1, CS(edge, JADE), NS({ KP(0, 0), KP(0.6, 0.3), KP(1, 1) }),
+		({ 0.32, 0.36, 0.4, 0.46 })[tier], 0.5)
+	if tier >= 2 then
+		local mid0 = B.attach(sweep, "Mid0", Vector3.new(0, 0.05, -REACH * 0.62))
+		local mid1 = B.attach(sweep, "Mid1", Vector3.new(0, 0.1, -REACH * 0.62 - 0.35))
+		trail(sweep, "InnerEdge", mid0, mid1, CS(CORE, JADE), NS({ KP(0, 0.25), KP(0.6, 0.5), KP(1, 1) }), 0.24, 0.45)
+	end
+	-- motes thrown off the blade while it turns
+	local shed = B.emitter(outer, "Shed", {
+		Texture = A.mote, Color = CS(CORE, JADE), SpreadAngle = Vector2.new(60, 60),
+		EmissionDirection = Enum.NormalId.Top,
+		Size = NS({ KP(0, 0.25), KP(1, 0) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+		Lifetime = R(0.3, 0.5), Speed = R(4, 8), Drag = 3, LightEmission = 0.6, Rotation = R(0, 360),
+		Rate = ({ 60, 80, 100, 130 })[tier],
+	})
+	shed:SetAttribute("Shed", true)
+	if tier >= 4 then
+		local light = Instance.new("PointLight")
+		light.Name = "Light"
+		light.Color = JADE
+		light.Range = 20
+		light.Brightness = 0
+		light.Shadows = false
+		light.Parent = sweep
+	end
+	return sweep
+end
+
+-- The cut wind at knee height and the scorched crescent left behind.
+B.BLOCKS.csGround = function(root, tier, p)
+	local ground = root:FindFirstChild("Ground")
+	local sd = RADIUS * 2 * 0.95
+	B.meshWave(ground, "KneeSwirl", {
+		mesh = id(73349240058321), color = PALETTE.swirlColor,
+		fromSize = Vector3.new(4, 0.5, 4), toSize = Vector3.new(sd, 1.3, sd),
+		fromOffset = Vector3.new(0, 1.2, 0), toOffset = Vector3.new(0, 1.6, 0),
+		fromTransparency = 0.2, toTransparency = 1, duration = 0.45, style = "Quart",
+	})
+	B.emitter(ground, "Scorch", B.flat({
+		Texture = A.moon, Color = CS(INK), LightInfluence = 0.3,
+		Size = NS(REACH * 0.95), Transparency = NS({ KP(0, 1), KP(0.05, 0.35), KP(0.6, 0.5), KP(1, 1) }),
+		Lifetime = R(1.1 + tier * 0.2), Rotation = R(0), ZOffset = -0.5,
+	}), { EmitCount = 1, EmitDelay = 0.08 })
+	B.emitter(ground, "MoonMark", B.flat({
+		Texture = A.moon, Color = CS(CORE, JADE),
+		Size = NS({ KP(0, REACH * 0.7), KP(1, REACH * 1.05) }), Transparency = NS({ KP(0, 0.2), KP(0.5, 0.45), KP(1, 1) }),
+		Lifetime = R(0.5), LightEmission = 0.4, Rotation = R(0), ZOffset = 0.2,
+	}), { EmitCount = 1, EmitDelay = 0.06 })
+	if tier >= 2 then
+		B.emitter(ground, "Motes", {
+			Texture = A.mote, Color = CS(CORE, JADE),
+			Shape = Enum.ParticleEmitterShape.Disc, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
+			Size = NS({ KP(0, 0.3), KP(0.5, 0.22), KP(1, 0) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.15), KP(1, 1) }),
+			Lifetime = R(0.8, 1.2), Speed = R(2, 4), Drag = 1, LightEmission = 0.5, Rotation = R(0, 360),
+		}, { EmitCount = ({ 0, 10, 14, 18 })[tier], EmitDelay = 0.12 })
+	end
+	return ground
+end
+
+-- IV: a jade-gold moon rising behind the caster.
+B.BLOCKS.csMoon = function(root, tier, p)
+	local ground = root:FindFirstChild("Ground")
+	local moon = B.meshWave(ground, "Moon", {
+		mesh = B.ASSETS.torusMesh, color = GOLD,
+		fromSize = Vector3.new(2, 0.3, 2), toSize = Vector3.new(7.5, 0.75, 7.5),
+		fromOffset = Vector3.new(0, 3, 2.5), toOffset = Vector3.new(0, 6, 3.5),
+		rotation = Vector3.new(90, 0, 0), fromTransparency = 0.05, toTransparency = 1,
+		duration = 1.0, style = "Quint", delay = 0.05,
+	})
+	moon:SetAttribute("FadeStyle", "Quart")
+	B.emitter(ground, "MoonGlow", B.flat({
+		Texture = A.moon, Color = CS(GOLD, JADE),
+		Size = NS({ KP(0, 2), KP(0.3, 4.2), KP(1, 4.6) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.3), KP(0.7, 0.45), KP(1, 1) }),
+		Lifetime = R(0.9), LightEmission = 0.45, Rotation = R(-30), ZOffset = -1,
+		Acceleration = Vector3.new(0, 3, 0),
+	}, Enum.NormalId.Back), { EmitCount = 1, EmitDelay = 0.05 })
+	return moon
+end
+
+B.BLOCKS.csTip = function(root, tier, p)
+	local tip = B.part(root, "Tip", TIP_AT)
+	B.emitter(tip, "Flash", {
+		Texture = B.ASSETS.star4, Color = CS(CORE),
+		Size = NS({ KP(0, 0.4), KP(0.35, 1.8 + tier * 0.3), KP(1, 0) }), Transparency = NS(0),
+		Lifetime = R(0.14), LightEmission = 0.7, Rotation = R(-15, 15), ZOffset = 1,
+	}, { EmitCount = 1 })
+	B.emitter(tip, "Glow", {
+		Texture = B.ASSETS.glow, Color = CS(JADE),
+		Size = NS({ KP(0, 1), KP(1, 2.2 + tier * 0.3) }), Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
+		Lifetime = R(0.22), LightEmission = 0.4,
+	}, { EmitCount = 1 })
+	B.screenShake(root, tier, { parent = "Tip", magnitude = ({ 1, 1.4, 1.9, 2.5 })[tier], frames = tier >= 4 })
+	return tip
+end
+
+B.BLOCKS.csSlash = function(root, tier, p)
+	local body = root:FindFirstChild("Impact"):FindFirstChild("Body")
+	return B.emitter(body, "Slash", {
+		Texture = A.slash, Color = CS(CORE, JADE),
+		Size = NS({ KP(0, 1), KP(0.25, 2.8 + tier * 0.45), KP(1, 3.4 + tier * 0.5) }), Transparency = NS({ KP(0, 0), KP(0.55, 0.15), KP(1, 1) }),
+		Lifetime = R(0.28), LightEmission = 0.55, Rotation = R(-8, 8), ZOffset = 3,
+	}, { EmitCount = 1 })
+end
+
+B.BLOCKS.csImpact = function(root, tier, p)
+	local wave = pal({ size = ({ 3.8, 4.6, 5.8, 7 })[tier], groundSize = ({ 4, 5, 6.2, 7.6 })[tier] })
+	return B.impactStack(root, tier, { burst = pal(), wave = wave })
+end
+
+return {
+	id = "CrescentSweep",
+	root = { attrs = { AuthoredActive = 0.117, AuthoredRadius = RADIUS } },
+	beats = {
+		{ block = "handGather", params = pal({ windup = 0.63, at = HAND_AT }) },
+		{ block = "csTip" },
+		{ block = "csSweep" },
+		{ block = "groundShockwave", params = pal({ radius = RADIUS, color = JADE }) },
+		{ block = "csGround" },
+		{ block = "shockwaveShell", from = 3, params = { name = "Shell", mesh = id(73349240058321), from = Vector3.new(4, 0.6, 4), to = Vector3.new(RADIUS * 2, 1.4, RADIUS * 2), spin = 260, duration = 0.4, startTransparency = 0.25, startColor = JADE, endColor = CORE, y0 = 1, y1 = 1.4 } },
+		{ block = "craterRing", from = 3, params = { radius = RADIUS - 1.5 } },
+		{ block = "csMoon", from = 4 },
+		{ block = "csImpact" },
+		{ block = "csSlash" },
+	},
+}
+	end)
+	if ok then _G.vfxSpecs["CrescentSweep"] = spec end
+	table.insert(installed, "spec CrescentSweep: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/Dodge.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Builder for ReplicatedStorage.Effects.Dodge (not a technique, so no tiers and
+-- no buildFromSpec). Load through the receiver, then build into staging:
+--   local m = Instance.new("ModuleScript")
+--   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/Dodge.luau")
+--   require(m)  -- installs _G.buildDodgeFX(effectsFolder)
+-- Runtime: CombatEffects.dashTrail / CombatEffects.perfectDodge.
+--
+-- Normal dodge, "a slip of qi": only a short pale-jade streak along the dash
+-- path (two camera-facing Trails on the root), gone ~0.2 s after the dash
+-- ends. No gust, no afterimages, nothing left behind.
+--
+-- Perfect dodge, "the blow cut only a shadow" (fires when the hit would have
+-- landed):
+--   Ghost (at the dash origin, where the blow lands): the code leaves a
+--     gold-white afterimage of the body there; it holds solid ~0.12 s, then
+--     swells slightly and dissolves (~0.55 s on screen). Here: a crisp white
+--     4-point glint where the blow meets it, a soft gold flare, and gold qi
+--     motes that lift off the dissolving body (aftermath, 0.5-0.8 s).
+--   Streak: two Beams (white core, gold glow) from the ghost to the player,
+--     thickening toward the player: the path you took, held 0.1 s then
+--     thinned out by code (0.4 s).
+--   Player: a bright glint and flare on the chest plus a few gold spark
+--     streaks: "you, now". Code adds a gold Highlight rim and a short
+--     desaturated time-slow grade.
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local JADE = Color3.fromRGB(120, 214, 230)
+local JADE_CORE = Color3.fromRGB(236, 252, 255)
+local GOLD = Color3.fromRGB(255, 212, 120)
+local CORE = Color3.fromRGB(255, 248, 226)
+
+local TEX = {
+	streak = id(18244764764), -- soft tapered streak (fat end at the attachments)
+	star4 = id(13271628051), -- crisp 4-point star
+	glow = id(867619398), -- soft radial glow
+	mote = id(8238126392), -- small soft dot
+	spindle = id(7814053668), -- thin spark streak
+}
+
+local function anchor(name, size, parent)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+	p.Transparency = 1
+	p.Size = size
+	p.CFrame = CFrame.new()
+	p.Parent = parent
+	return p
+end
+
+local function emitter(parent, name, props, attrs)
+	local e = Instance.new("ParticleEmitter")
+	e.Name = name
+	e.Rate = 0
+	e.Enabled = false
+	e.LightInfluence = 0
+	for k, v in props do
+		e[k] = v
+	end
+	for k, v in attrs do
+		e:SetAttribute(k, v)
+	end
+	e.Parent = parent
+	return e
+end
+
+local function attach(parent, name, pos)
+	local a = Instance.new("Attachment")
+	a.Name = name
+	a.Position = pos
+	a.Parent = parent
+	return a
+end
+
+local function trail(parent, name, a0, a1, props)
+	local t = Instance.new("Trail")
+	t.Name = name
+	t.Attachment0, t.Attachment1 = a0, a1
+	t.Enabled = false
+	t.FaceCamera = true
+	t.LightInfluence = 0
+	for k, v in props do
+		t[k] = v
+	end
+	t.Parent = parent
+	return t
+end
+
+local function beam(parent, name, a0, a1, props)
+	local b = Instance.new("Beam")
+	b.Name = name
+	b.Attachment0, b.Attachment1 = a0, a1
+	b.FaceCamera = true
+	b.LightInfluence = 0
+	b.Segments = 2
+	for k, v in props do
+		b[k] = v
+	end
+	b.Parent = parent
+	return b
+end
+
+function _G.buildDodgeFX(effects)
+	local old = effects:FindFirstChild("Dodge")
+	if old then
+		old:Destroy()
+	end
+	local root = Instance.new("Folder")
+	root.Name = "Dodge"
+
+	-- Normal dodge: the streak. Code moves the attachments and trails into the
+	-- HumanoidRootPart, enables the trails for the dash, then disables them.
+	local streak = anchor("Streak", Vector3.new(0.2, 0.2, 0.2), root)
+	local top = attach(streak, "StreakTop", Vector3.new(0, 0.8, 0))
+	local bottom = attach(streak, "StreakBottom", Vector3.new(0, -0.6, 0))
+	trail(streak, "Glow", top, bottom, {
+		Texture = TEX.glow, -- soft across the width, tapered at both ends
+		TextureMode = Enum.TextureMode.Stretch,
+		Color = CS(JADE),
+		LightEmission = 1,
+		Lifetime = 0.2,
+		MinLength = 0.05,
+		Transparency = NS({ KP(0, 0), KP(0.5, 0.4), KP(1, 1) }),
+		WidthScale = NS({ KP(0, 1), KP(1, 0.1) }),
+	})
+	trail(streak, "Core", top, bottom, {
+		Color = CS(JADE_CORE),
+		LightEmission = 0.8,
+		Lifetime = 0.12,
+		MinLength = 0.05,
+		Transparency = NS({ KP(0, 0.05), KP(1, 1) }),
+		WidthScale = NS({ KP(0, 0.3), KP(1, 0.05) }),
+	})
+
+	-- Perfect dodge
+	local perfect = Instance.new("Model")
+	perfect.Name = "Perfect"
+	perfect.Parent = root
+
+	-- Ghost: a body-sized box at the dash origin's root (code places it).
+	local ghost = anchor("Ghost", Vector3.new(2.4, 4.6, 1.2), perfect)
+	local chest = attach(ghost, "Chest", Vector3.new(0, 1, 0))
+	emitter(chest, "Glint", {
+		Texture = TEX.star4,
+		Color = CS(Color3.new(1, 1, 1)),
+		LightEmission = 1,
+		Speed = R(0),
+		Size = NS({ KP(0, 1.5), KP(0.25, 5.5), KP(1, 0) }),
+		Transparency = NS({ KP(0, 0), KP(0.6, 0.1), KP(1, 1) }),
+		Lifetime = R(0.26),
+		Rotation = R(0, 45),
+		ZOffset = 2,
+	}, { EmitCount = 1 })
+	emitter(chest, "Flare", {
+		Texture = TEX.glow,
+		Color = CS(GOLD),
+		LightEmission = 0.8,
+		Speed = R(0),
+		Size = NS({ KP(0, 3), KP(0.3, 4.5), KP(1, 5) }),
+		Transparency = NS({ KP(0, 0.35), KP(1, 1) }),
+		Lifetime = R(0.4),
+		ZOffset = 1,
+	}, { EmitCount = 1 })
+	emitter(ghost, "Motes", {
+		Texture = TEX.mote,
+		Color = CS(GOLD, CORE),
+		LightEmission = 1,
+		Shape = Enum.ParticleEmitterShape.Box,
+		ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Top,
+		SpreadAngle = Vector2.new(25, 25),
+		Speed = R(2, 5),
+		Acceleration = Vector3.new(0, 3, 0),
+		Drag = 2,
+		Size = NS({ KP(0, 0.6), KP(0.4, 0.5), KP(1, 0) }),
+		Transparency = NS({ KP(0, 0), KP(0.7, 0.1), KP(1, 1) }),
+		Lifetime = R(0.5, 0.8),
+		ZOffset = 1,
+	}, { EmitCount = 18, EmitDelay = 0.1 })
+
+	-- Player: placed at the live root when the perfect dodge lands.
+	local player = anchor("Player", Vector3.new(0.4, 0.4, 0.4), perfect)
+	emitter(player, "Glint", {
+		Texture = TEX.star4,
+		Color = CS(CORE),
+		LightEmission = 1,
+		Speed = R(0),
+		Size = NS({ KP(0, 1.5), KP(0.2, 6), KP(1, 0) }),
+		Transparency = NS({ KP(0, 0), KP(0.6, 0.1), KP(1, 1) }),
+		Lifetime = R(0.24),
+		Rotation = R(0),
+		ZOffset = 3,
+	}, { EmitCount = 1 })
+	emitter(player, "Flare", {
+		Texture = TEX.glow,
+		Color = CS(GOLD),
+		LightEmission = 0.7,
+		Speed = R(0),
+		Size = NS({ KP(0, 2), KP(0.25, 4), KP(1, 4.5) }),
+		Transparency = NS({ KP(0, 0.4), KP(1, 1) }),
+		Lifetime = R(0.32),
+		ZOffset = 2,
+	}, { EmitCount = 1 })
+	emitter(player, "Sparks", {
+		Texture = TEX.spindle,
+		Color = CS(CORE, GOLD),
+		LightEmission = 1,
+		Orientation = Enum.ParticleOrientation.VelocityParallel,
+		SpreadAngle = Vector2.new(180, 180),
+		Speed = R(18, 28),
+		Drag = 6,
+		Size = NS({ KP(0, 0.5), KP(1, 0) }),
+		Transparency = NS({ KP(0, 0), KP(1, 0.6) }),
+		Lifetime = R(0.18, 0.3),
+		ZOffset = 2,
+	}, { EmitCount = 10 })
+
+	-- Streak: from the ghost to the player (code sets the two attachments'
+	-- WorldPositions and thins the widths out).
+	local path = anchor("Streak", Vector3.new(0.2, 0.2, 0.2), perfect)
+	local from = attach(path, "From", Vector3.zero)
+	local to = attach(path, "To", Vector3.new(0, 0, -6))
+	-- Attachment0 is the player end: the texture's fat end sits at U = 0
+	beam(path, "Glow", to, from, {
+		Color = CS(GOLD),
+		LightEmission = 0.7,
+		Width0 = 1.8,
+		Width1 = 0.3,
+		Transparency = NS({ KP(0, 0.3), KP(0.4, 0.35), KP(1, 0.7) }),
+		Texture = TEX.streak,
+		TextureMode = Enum.TextureMode.Stretch,
+		TextureLength = 1,
+	})
+	beam(path, "Core", from, to, {
+		Color = CS(CORE),
+		LightEmission = 1,
+		Width0 = 0.15,
+		Width1 = 0.7,
+		Transparency = NS({ KP(0, 0.5), KP(1, 0) }),
+	})
+
+	root.Parent = effects
+	return root
+end
+
+return "buildDodgeFX installed"
+	end)
+	if ok then _G.vfxSpecs["Dodge"] = spec end
+	table.insert(installed, "spec Dodge: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/DragonPierce.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Dragon-Piercing Thrust's templates (DragonPierce_T1..T4) as a spec for
+-- vfxBlocks.buildFromSpec. Runtime: src/client/TechniqueFX/DragonPierce.luau.
+--
+-- The move: Animations.Techniques.DragonPierce (0.8 s, Spear, joint Hilt),
+-- markers Hit 0.30 / Hit Stop 0.40 with Lunge start/end on the same frames
+-- (the caster lunges def.lunge, 8 studs, through the active window); the line
+-- is 22 x 4 from where the caster is at Hit. Sampled on SpearRig: 0-0.30 the torso pulls back 1.5 and the spear
+-- is drawn back along the right side (tip out to the right at 0.30, ~3.9
+-- studs off the ground); 0.30-0.40 both hands drive it round and forward,
+-- the tip sweeping from the right to straight ahead (7.6 studs out at 0.40)
+-- and holding there.
+--
+-- The pitch ("a red-tasselled dragon bursts out of the spear point"):
+--   Windup (cast start -> Hit, part "Windup" on the right hand): crimson qi
+--     spirals into the hands as the spear is drawn back (II+ Spline wisps,
+--     III+ a closing seal).
+--   Release (Hit, part "Tip" where the lance starts on the line, at the spear
+--     point's height; the point itself is still out to the side at Hit): a gold-white
+--     star and glow, a spinning crimson vortex disc facing forward, a train of
+--     swirl rings punched down the line, a shake.
+--   Travel (Hit -> ~0.18 s, part "Lance", runtime-driven): a drill of crimson
+--     qi (a twisted spiral-cone mesh) shoots from the point to the line's end,
+--     a gold core Beam and a wide crimson glow Beam ride with it, and sonic
+--     swirl rings burst at intervals as the front passes (3D MeshWaves).
+--     II+ a coiling dragon helix wraps the lance; III+ a second, counter-wound.
+--   Impact (each enemy as the front reaches it, part "Impact"): a crimson
+--     impactStack (star, spiky ring, sparks, standing torus facing the thrust,
+--     ground shock) plus a spray of sparks punched out of its far side.
+--   Terminal (the line's end or the first wall, part "Terminal"): the lance
+--     bursts: a bigger impactStack, a vortex disc, III+ a Craters ring, IV a quake.
+--   Aftermath: a straight dark furrow along the line ("Furrow"), dust thrown
+--     to both sides along it and gold motes rising (II+, "Path").
+--
+-- Tiers:
+--   I   drill + core/glow beams, 2 rings along the line, release flash and
+--       1 air ring, impacts, terminal burst, furrow.
+--   II  3 rings, the dragon helix, release sparks, impact swirl, path dust
+--       and motes.
+--   III 4 rings, a counter-wound second helix, 2 air rings, impact bubble and
+--       rock kicks, terminal Craters ring, path cracks.
+--   IV  5 rings, gold-white core, 3 air rings, the dragon seal flashing at
+--       the release with impact frames, one point light on the lance head,
+--       a quake on the terminal burst.
+--
+-- Authored along -Z at length 22, width 4.
+local B = _G.vfxBlocks
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local O = CFrame.new()
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local CRIMSON = Color3.fromRGB(232, 66, 70) -- the technique colour (suggested def.color)
+local DEEP = Color3.fromRGB(196, 34, 52)
+local CORE = Color3.fromRGB(255, 238, 206)
+local GOLD = Color3.fromRGB(255, 204, 112)
+local INK = Color3.fromRGB(58, 22, 26)
+local PALETTE = {
+	color = CRIMSON, core = CORE,
+	ringColor = Color3.fromRGB(255, 196, 170), swirlColor = Color3.fromRGB(240, 90, 90), groundColor = Color3.fromRGB(255, 170, 140),
+}
+local function pal(extra)
+	local t = table.clone(PALETTE)
+	for k, v in extra or {} do
+		t[k] = v
+	end
+	return t
+end
+
+local A = {
+	vortex = id(6700005265), -- swirl disc
+	seal = id(132774975653552), -- seal-script glyph (dragon seal)
+	mote = id(9841260273),
+	crackSmall = id(97725700315217),
+	drillMesh = id(117701979506507), -- twisted spiral cone (2 x 2 x 2, axis Y, wide end +Y)
+	helixMesh = id(903178515), -- helix spring (50 x 72 x 50, axis Y)
+}
+
+local LENGTH = 22
+local HEIGHT = 3.2
+local TIP_AT = O * CFrame.new(0.4, HEIGHT, -3) -- the spear point at Hit; runtime puts it on the live tip
+local LANCE_AT = O * CFrame.new(0, HEIGHT, -3)
+local TERMINAL_AT = O * CFrame.new(0, 0.15, -LENGTH)
+
+-- The lance: a part at the lance's start facing the line, holding MeshWaves
+-- the runtime stretches to the actual length (Stretch = true: Size.Y and the
+-- offsets' Z scale with it) and the Beams it drives.
+B.BLOCKS.dpLance = function(root, tier, p)
+	local run = LENGTH - 3
+	local lance = B.part(root, "Lance", LANCE_AT, Vector3.new(0.4, 0.4, run))
+	for k, v in {
+		Run = run, Height = HEIGHT,
+		TravelTime = 0.16, -- seconds for the front to reach the end
+		TravelCurve = NS({ KP(0, 0), KP(0.3, 0.5), KP(0.6, 0.82), KP(1, 1) }),
+		Hold = 0.16, Fade = 0.28, -- beams hold at full length, then fade
+		Rings = ({ 2, 3, 4, 5 })[tier],
+	} do
+		lance:SetAttribute(k, v)
+	end
+	local core = if tier >= 4 then CORE else Color3.fromRGB(255, 226, 190)
+	-- the drill: narrow end forward (Rotation 90,0,0 turns +Y to +Z, back
+	-- toward the spear), grows from the point out to the full run
+	local dw = ({ 2.2, 2.6, 3, 3.4 })[tier]
+	local drill = B.meshWave(lance, "Drill", {
+		mesh = A.drillMesh, color = CRIMSON,
+		fromSize = Vector3.new(dw * 0.5, 1, dw * 0.5), toSize = Vector3.new(dw, run, dw),
+		fromOffset = Vector3.new(0, 0, -0.5), toOffset = Vector3.new(0, 0, -run / 2),
+		rotation = Vector3.new(90, 0, 0), fromTransparency = 0.15, toTransparency = 1,
+		duration = 0.42, style = "Quint",
+	})
+	drill:SetAttribute("Stretch", true)
+	drill:SetAttribute("FadeStyle", "Quart")
+	-- the inner bright drill
+	local inner = B.meshWave(lance, "DrillCore", {
+		mesh = A.drillMesh, color = core,
+		fromSize = Vector3.new(0.4, 1, 0.4), toSize = Vector3.new(dw * 0.4, run * 1.02, dw * 0.4),
+		fromOffset = Vector3.new(0, 0, -0.5), toOffset = Vector3.new(0, 0, -run * 0.51),
+		rotation = Vector3.new(90, 0, 0), fromTransparency = 0, toTransparency = 1,
+		duration = 0.34, style = "Quint",
+	})
+	inner:SetAttribute("Stretch", true)
+	inner:SetAttribute("FadeStyle", "Quart")
+	-- the dragon helix coiled round the lance (II+), III+ counter-wound
+	if tier >= 2 then
+		local hd = ({ 0, 3.2, 3.6, 4.2 })[tier]
+		for i = 1, (if tier >= 3 then 2 else 1) do
+			local h = B.meshWave(lance, if i == 1 then "Helix" else "Helix2", {
+				mesh = A.helixMesh, color = if i == 1 then GOLD else DEEP,
+				fromSize = Vector3.new(hd * 0.4, 1, hd * 0.4), toSize = Vector3.new(hd, run, hd),
+				fromOffset = Vector3.new(0, 0, -0.5), toOffset = Vector3.new(0, 0, -run / 2),
+				rotation = Vector3.new(90, if i == 1 then 0 else 180, 0), fromTransparency = 0.1, toTransparency = 1,
+				duration = 0.48, style = "Quint", delay = (i - 1) * 0.03,
+			})
+			h:SetAttribute("Stretch", true)
+			h:SetAttribute("FadeStyle", "Quart")
+		end
+	end
+	-- beams from the start to the front (the runtime moves Front)
+	local a0 = B.attach(lance, "Start", Vector3.zero)
+	local a1 = B.attach(lance, "Front", Vector3.new(0, 0, -run))
+	local function beam(name, w0, w1, color, transparency, light)
+		local b = Instance.new("Beam")
+		b.Name = name
+		b.Attachment0, b.Attachment1 = a0, a1
+		b.Width0, b.Width1 = w0, w1
+		b.FaceCamera = true
+		b.Color = CS(color)
+		b.LightEmission, b.LightInfluence = light, 0
+		b.Transparency = NS({ KP(0, transparency + (1 - transparency) * 0.5), KP(0.2, transparency), KP(1, transparency) })
+		b.Segments = 10
+		b.Enabled = false
+		b.Parent = lance
+	end
+	beam("Core", 0.35, ({ 0.6, 0.7, 0.8, 0.95 })[tier], core, 0, 0.5)
+	beam("Glow", 1.2, ({ 2.4, 2.8, 3.2, 3.8 })[tier], CRIMSON, 0.45, 0.35)
+	-- the lance head: a hot point riding the front
+	local head = B.attach(lance, "Head", Vector3.new(0, 0, -run))
+	local headGlow = B.emitter(head, "HeadGlow", {
+		Texture = B.ASSETS.glow, Color = CS(CORE, CRIMSON),
+		Size = NS({ KP(0, 1.6 + tier * 0.3), KP(1, 0.8) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+		Lifetime = R(0.12), LightEmission = 0.6, Rate = 60, LockedToPart = false,
+	})
+	headGlow:SetAttribute("Shed", true)
+	local sparks = B.emitter(head, "HeadSparks", {
+		Texture = B.ASSETS.spindle, Color = CS(CORE, GOLD), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		EmissionDirection = Enum.NormalId.Back, SpreadAngle = Vector2.new(25, 25),
+		Size = NS({ KP(0, 0.2), KP(1, 0) }), Squash = NS({ KP(0, 2), KP(1, 1) }), Transparency = NS(0),
+		Lifetime = R(0.15, 0.25), Speed = R(12, 20), Drag = 6, LightEmission = 0.6,
+		Rate = ({ 40, 55, 70, 90 })[tier],
+	})
+	sparks:SetAttribute("Shed", true)
+	if tier >= 4 then
+		local light = Instance.new("PointLight")
+		light.Name = "Light"
+		light.Color = CRIMSON
+		light.Range = 16
+		light.Brightness = 0
+		light.Shadows = false
+		light.Parent = head
+	end
+	-- sonic rings standing across the line, spaced along it; the runtime
+	-- moves each to its station and delays it to when the front passes
+	local rd = ({ 3.6, 4.2, 4.8, 5.6 })[tier]
+	for i = 1, ({ 2, 3, 4, 5 })[tier] do
+		local ring = B.meshWave(lance, "Ring" .. i, {
+			mesh = B.ASSETS.swirlMesh, color = PALETTE.ringColor,
+			fromSize = Vector3.new(0.8, 0.3, 0.8), toSize = Vector3.new(rd * (1 - i * 0.05), 0.8, rd * (1 - i * 0.05)),
+			fromOffset = Vector3.new(0, 0, -run * i / (({ 2, 3, 4, 5 })[tier] + 1)),
+			toOffset = Vector3.new(0, 0, -run * i / (({ 2, 3, 4, 5 })[tier] + 1) - 1.2),
+			rotation = Vector3.new(90, 0, 0), fromTransparency = 0.25, toTransparency = 1,
+			duration = 0.32, style = "Quad",
+		})
+		ring:SetAttribute("Station", i / (({ 2, 3, 4, 5 })[tier] + 1)) -- fraction along the run
+	end
+	return lance
+end
+
+-- The release at the spear point: star, glow, a vortex disc facing forward.
+B.BLOCKS.dpRelease = function(root, tier, p)
+	local tip = B.part(root, "Tip", TIP_AT)
+	B.emitter(tip, "Vortex", B.flat({
+		Texture = A.vortex, Color = CS(CORE, CRIMSON),
+		Size = NS({ KP(0, 0.6), KP(0.35, 2 + tier * 0.4), KP(1, 2.6 + tier * 0.45) }), Transparency = NS({ KP(0, 0.05), KP(0.6, 0.25), KP(1, 1) }),
+		Lifetime = R(0.3), LightEmission = 0.5, Rotation = R(0, 360), RotSpeed = R(-540), ZOffset = 1,
+	}, Enum.NormalId.Front), { EmitCount = 1 })
+	if tier >= 4 then
+		-- the dragon seal flaring in front of the point
+		B.emitter(tip, "Seal", B.flat({
+			Texture = A.seal, Color = CS(GOLD),
+			Size = NS({ KP(0, 1.5), KP(0.25, 3.4), KP(1, 4) }), Transparency = NS({ KP(0, 0.4), KP(0.25, 0.05), KP(0.7, 0.25), KP(1, 1) }),
+			Lifetime = R(0.5), LightEmission = 0.45, ZOffset = 1.5,
+		}, Enum.NormalId.Front), { EmitCount = 1 })
+		B.screenShake(root, tier, { parent = "Tip", name = "Frames", shake = false, framesName = "TipFrames", frames = true })
+	end
+	return tip
+end
+
+B.BLOCKS.dpShake = function(root, tier, p)
+	return B.screenShake(root, tier, { parent = "Tip", magnitude = ({ 0.9, 1.2, 1.6, 2.1 })[tier] })
+end
+
+-- A spray of sparks punched out of each target's far side (the pierce).
+B.BLOCKS.dpThrough = function(root, tier, p)
+	local impact = root:FindFirstChild(p.part or "Impact")
+	local body = impact:FindFirstChild("Body")
+	return B.emitter(body, "Through", {
+		Texture = B.ASSETS.spindle, Color = CS(CORE, CRIMSON), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(18, 18),
+		Size = NS({ KP(0, 0.35), KP(1, 0) }), Squash = NS({ KP(0, 2.5), KP(1, 1) }), Transparency = NS(0),
+		Lifetime = R(0.18, 0.32), Speed = R(40, 60), Drag = 6, LightEmission = 0.6, ZOffset = 2,
+	}, { EmitCount = ({ 8, 10, 12, 16 })[tier] })
+end
+
+B.BLOCKS.dpImpact = function(root, tier, p)
+	local wave = pal({ size = ({ 3.6, 4.4, 5.4, 6.4 })[tier], groundSize = ({ 3.6, 4.4, 5.4, 6.6 })[tier] })
+	return B.impactStack(root, tier, { burst = pal(), wave = wave })
+end
+
+B.BLOCKS.dpTerminal = function(root, tier, p)
+	local q = pal({ part = "Terminal", at = TERMINAL_AT })
+	B.impactBurst(root, tier, q)
+	q.size = ({ 4.8, 6, 7.4, 9.2 })[tier]
+	q.groundSize = ({ 5.2, 6.6, 8.2, 10.5 })[tier]
+	q.bubble = tier >= 3
+	B.impactShockwave(root, tier, q)
+	local term = root:FindFirstChild("Terminal")
+	B.emitter(term.Body, "Vortex", B.flat({
+		Texture = A.vortex, Color = CS(CORE, CRIMSON),
+		Size = NS({ KP(0, 1), KP(0.35, 2.6 + tier * 0.5), KP(1, 3.2 + tier * 0.5) }), Transparency = NS({ KP(0, 0.05), KP(0.6, 0.3), KP(1, 1) }),
+		Lifetime = R(0.36), LightEmission = 0.5, Rotation = R(0, 360), RotSpeed = R(-480), ZOffset = 2,
+	}, Enum.NormalId.Back), { EmitCount = 1 })
+	if tier >= 3 then
+		B.craterRing(root, tier, { parent = "Terminal", name = "Crater", attrs = {
+			Count = ({ 0, 0, 6, 9 })[tier], Radius = ({ 0, 0, 2.2, 2.8 })[tier], Variance = 0.7, Duration = 0.12,
+			Size = Vector3.new(1, 0.75, 0.9), Lifetime = R(1.1, 1.4), RaycastDistance = 8,
+		} })
+	end
+	if tier >= 4 then
+		B.screenShake(root, tier, { parent = "Terminal", name = "Quake", preset = "Explosion", falloff = "20~80" })
+	end
+	return term
+end
+
+-- The furrow along the line and what's thrown off it.
+B.BLOCKS.dpPath = function(root, tier, p)
+	local furrow = B.part(root, "Furrow", O * CFrame.new(0, 0.03, -LENGTH / 2), Vector3.new(({ 0.6, 0.7, 0.8, 0.95 })[tier], 0.06, LENGTH))
+	furrow.Material, furrow.Color = Enum.Material.SmoothPlastic, INK
+	furrow:SetAttribute("StartTransparency", 0.35)
+	furrow:SetAttribute("Fade", ({ 0.9, 1.1, 1.4, 1.8 })[tier])
+	furrow:SetAttribute("FadeDelay", 0.35)
+	local path = B.part(root, "Path", O * CFrame.new(0, 0.2, -LENGTH / 2), Vector3.new(1.5, 0.2, LENGTH))
+	if tier >= 2 then
+		B.emitter(path, "Dust", {
+			Texture = B.ASSETS.dust, Color = CS(B.COLORS.dust), LightInfluence = 0.5,
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Right, SpreadAngle = Vector2.new(20, 180),
+			Size = NS({ KP(0, 0.7), KP(1, 1.7) }), Transparency = NS({ KP(0, 0.4), KP(1, 1) }),
+			Lifetime = R(0.4, 0.6), Speed = R(8, 14), Drag = 5, Rotation = R(0, 360),
+		}, { EmitCount = ({ 0, 8, 11, 14 })[tier], EmitDelay = 0.05 })
+		B.emitter(path, "Motes", {
+			Texture = A.mote, Color = CS(CORE, GOLD),
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
+			Size = NS({ KP(0, 0.25), KP(0.5, 0.2), KP(1, 0) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.2), KP(1, 1) }),
+			Lifetime = R(0.7, 1.1), Speed = R(1.5, 3), Drag = 1, LightEmission = 0.5, Rotation = R(0, 360),
+		}, { EmitCount = ({ 0, 8, 12, 16 })[tier], EmitDelay = 0.12 })
+	end
+	if tier >= 3 then
+		B.emitter(path, "Cracks", B.flat({
+			Texture = A.crackSmall, Color = CS(INK), LightInfluence = 0.3,
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			Size = NS(1.3), Transparency = NS({ KP(0, 1), KP(0.05, 0.3), KP(0.6, 0.45), KP(1, 1) }),
+			Lifetime = R(1.1, 1.4), Rotation = R(0, 360), ZOffset = -0.5,
+		}), { EmitCount = ({ 0, 0, 4, 6 })[tier], EmitDelay = 0.1 })
+	end
+	return path
+end
+
+local HAND_AT = O * CFrame.new(1.4, 3.2, 1.2) -- the right hand drawn back
+
+return {
+	id = "DragonPierce",
+	root = { attrs = { AuthoredActive = 0.1, AuthoredLength = LENGTH, AuthoredWidth = 4 } },
+	beats = {
+		{ block = "handGather", params = pal({ windup = 0.3, at = HAND_AT }) },
+		{ block = "dpRelease" },
+		{ block = "releaseFlash", params = pal({ part = "Tip", at = TIP_AT, light = false }) },
+		{ block = "airShockwave", params = pal({ part = "Tip", at = TIP_AT, color = PALETTE.ringColor, travel = nil }) },
+		{ block = "dpShake" },
+		{ block = "dpLance" },
+		{ block = "dpPath" },
+		{ block = "dpImpact" },
+		{ block = "dpThrough" },
+		{ block = "dpTerminal" },
+	},
+}
+	end)
+	if ok then _G.vfxSpecs["DragonPierce"] = spec end
+	table.insert(installed, "spec DragonPierce: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/FireSeal.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Fire Seal's templates (FireSeal_T1..T4). Build with FireSeal.build(parent)
+-- (not plain vfxBlocks.buildFromSpec: this spec adds its own blocks in
+-- `blocks`, which build() resolves before the shared ones). Runtime:
+-- src/client/TechniqueFX/FireSeal.luau.
+--
+-- Gameplay: kind "zone", centre 8 studs ahead of the caster (def.offset),
+-- radius 8, a damage tick every 0.5 s for 4 s (8 ticks, the first at
+-- release). Fists.4 at 0.7x (windup 0.5 s, active 0.214 s, recovery 0.2 s);
+-- the left hand strikes. Authored at radius 8, active 0.214 s; the template
+-- pivot is the ground under the caster facing -Z, the zone centre at (0,0,-8).
+--
+-- THE SHOT, tier by tier
+--
+-- I (levels 1-3), "a seal of embers"
+--   Windup (0.5 s, caster only): orange motes spiral into the left palm, a
+--   coal-red charge glow swells on it.
+--   Release (Hit): an orange star flash and glow on the palm; the seal leaves
+--   the hand as a projectile: a Neon fire core with a burning trail and a
+--   spinning ring around it, diving to the zone centre in ~0.24 s.
+--   Landing: a fire-tinted impactStack on the ground at the centre (star
+--   flash, puff, spiky ring, ember sparks, the stood-up 3D impact ring and a
+--   ground shock torus), and a fat Neon torus (LandWave) rolls out from the
+--   centre to the zone edge in 0.45 s, solid at first and fading late.
+--   Hold (to 4 s): a raised Neon Rim torus at exactly radius 8 marks the
+--   zone; the rune circle glyph turns slowly on the ground inside it (kept
+--   translucent so enemy telegraphs stay readable); stylised flame tongues
+--   lick up around the rim; embers drift up from the disc.
+--   Each 0.5 s tick: a PulseRing torus sweeps centre -> rim (0.38 s), the rim
+--   flares bright, and every enemy inside gets a burn hit (flame flare,
+--   embers, a small upright impact ring and a ground ring) + a red flash.
+--   End (4 s): the hold fades over 0.35 s while a terminal burst pops: a
+--   torus out past the rim, a puff of embers and a ring of flames.
+-- II (4-6), "the seal turns"
+--   + Spline qi wisps in the windup, sparks off the release, impact dust.
+--   + a swirl ring (InnerSeal, radius ~6) spins clockwise inside the rim.
+--   + pulses flare a ring of flame tongues from the rim; burn hits get an
+--     upright ring that is bigger and a little fuller.
+-- III (7-9), "the wall of flame"
+--   + a closing seal on the palm in the windup; the landing kicks a Craters
+--     rock ring and leaves a scorch; a small ScreenEffects shake.
+--   + a second, counter-rotating seal (CounterSeal swirl ring and a second
+--     rune glyph) spins the other way.
+--   + an edge FlameWall: a crown of Neon flame spikes stands on the rim and
+--     flickers, with taller tongues; each pulse throws up a PulseCrown of
+--     spikes; burn hits raise a flame tongue under the target.
+-- IV (10), "the pillar"
+--   + at landing a flame Pillar (a twisted spike column ~22 studs tall)
+--     erupts from the centre with a column of fire, and the one light of the
+--     move (a PointLight on the Zone) flashes, then glows low under the seal.
+--   + the finale: a big torus, a flat star of spikes, an erupting spike crown,
+--     a ring of flames and an Explosion shake as the seal breaks.
+--
+-- Parts (runtime contract, see TechniqueFX/FireSeal.luau):
+--   Windup   handGather, played at cast start by CombatEffects.windup.
+--   Palm     the release flash + the Bolt/BoltRing MeshWaves (Phase "active";
+--            runtime aims ToOffset at the zone centre).
+--   Land     the landing impact at the centre (runtime sets its EmitDelay to
+--            the bolt's flight time).
+--   Zone     sustained: enabled from landing to def.seconds (EmitDuration 4
+--            for the plugin's T button). Children MeshParts Rim, InnerSeal,
+--            CounterSeal, FlameWall are driven (fade, spin, flicker) by code.
+--            Glyph emitters live on Land (one long particle each).
+--   Pulse    one tick's pulse, cloned per tick.
+--   Impact   one burn hit (Body attachment), cloned per target per tick.
+--   Finale   the terminal burst at def.seconds.
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local V = Vector3.new
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local FIRE = Color3.fromRGB(255, 128, 54) -- def.color is (255,120,60)
+local CORE = Color3.fromRGB(255, 224, 150)
+local EMBER = Color3.fromRGB(255, 176, 80)
+local DEEP = Color3.fromRGB(232, 70, 36)
+local RIM = Color3.fromRGB(255, 120, 48)
+local SCORCH = Color3.fromRGB(60, 36, 26)
+-- Neon blooms toward yellow-white, so 3D parts use deeper tones than particles
+local N_RIM = Color3.fromRGB(235, 62, 18)
+local N_FIRE = Color3.fromRGB(255, 88, 26)
+local N_CORE = Color3.fromRGB(255, 150, 62)
+local N_DEEP = Color3.fromRGB(196, 34, 16)
+
+local A = {
+	flame = id(265788038), -- stylised white flame silhouette (tinted)
+	flames4 = id(78723566587645), -- 4x4 cartoon fire flipbook (baked orange)
+	rune = id(83667248904000), -- rune circle
+	runeSwirl = id(129093523368188), -- swirl of runes
+	glow = id(867619398),
+	star12 = id(243728206),
+	spindle = id(7814053668),
+	crater = id(90713203428310),
+	torus = id(471124075), -- 150 x 9.51 x 150
+	swirlRing = id(122217820569960),
+	swirlRing2 = id(73349240058321),
+	crownTall = id(4316118084), -- tall spike crown
+	crownLow = id(489415286), -- low spike crown
+	spikeStar = id(89195313060285), -- flat star of spikes
+	spikeBurst = id(111460667532043), -- erupting spike cluster
+	column = id(112724324039362), -- tall twisted column
+}
+
+local CENTRE = CFrame.new(0, 0.2, -8)
+local RADIUS = 8
+local TUBE = 0.0634 -- torus Y per stud of diameter for a round tube
+
+local FIREPAL = { color = FIRE, core = CORE }
+
+local function B()
+	return _G.vfxBlocks
+end
+
+local function wave(parent, name, p, fadeStyle)
+	local w = B().meshWave(parent, name, p)
+	w:SetAttribute("FadeStyle", fadeStyle or "Quint")
+	return w
+end
+
+local function emitter(parent, name, props, attrs)
+	return B().emitter(parent, name, props, attrs)
+end
+
+local function flat(props, dir)
+	return B().flat(props, dir)
+end
+
+local function flameTongues(rate, size, life)
+	return {
+		Texture = A.flame, Color = CS({ ColorSequenceKeypoint.new(0, EMBER), ColorSequenceKeypoint.new(0.3, FIRE), ColorSequenceKeypoint.new(1, DEEP) }),
+		Shape = Enum.ParticleEmitterShape.Disc, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+		ShapeInOut = Enum.ParticleEmitterShapeInOut.Outward, ShapePartial = 1,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(6, 6),
+		Size = NS({ KP(0, size * 0.5), KP(0.3, size), KP(1, size * 0.2) }),
+		Transparency = NS({ KP(0, 0.5), KP(0.2, 0.05), KP(0.75, 0.2), KP(1, 1) }),
+		Lifetime = R(life * 0.8, life), Speed = R(2.5, 4.5), Acceleration = V(0, 3, 0),
+		Rate = rate, LightEmission = 0.2, LightInfluence = 0.15, Rotation = R(-8, 8), ZOffset = 0.3,
+	}
+end
+
+local blocks = {}
+
+-- the release flash on the palm + the seal thrown as a projectile
+function blocks.throw(root, tier, p)
+	local palm = B().releaseFlash(root, tier, { color = FIRE, core = CORE, light = false })
+	local d = ({ 1.1, 1.25, 1.4, 1.6 })[tier]
+	local bolt = wave(palm, "Bolt", {
+		mesh = "Ball", material = Enum.Material.Neon, color = N_CORE,
+		fromSize = V(0.5, 0.5, 0.5), toSize = V(d, d, d),
+		fromOffset = V(0, 0, -0.4), toOffset = V(0, -2.8, -6.4), -- runtime aims it at the zone centre
+		fromTransparency = 0, toTransparency = 0.15, duration = 0.24, style = "Sine", phase = "active",
+	}, "Quint")
+	-- a burning trail behind the core (the clone moves, so the trail draws)
+	local mesh = bolt:FindFirstChild("Mesh")
+	local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+	a0.Name, a1.Name = "T0", "T1"
+	a0.Position, a1.Position = V(0, 0.35, 0), V(0, -0.35, 0)
+	a0.Parent, a1.Parent = mesh, mesh
+	local trail = Instance.new("Trail")
+	trail.Attachment0, trail.Attachment1 = a0, a1
+	trail.Color = CS(CORE, DEEP)
+	trail.Transparency = NS({ KP(0, 0.05), KP(1, 1) })
+	trail.WidthScale = NS({ KP(0, 1), KP(1, 0.2) })
+	trail.Lifetime = 0.22
+	trail.LightEmission = 0.5
+	trail.LightInfluence = 0
+	trail.FaceCamera = true
+	trail.Parent = mesh
+	-- the seal itself: a ring spinning around the core on the way down
+	local rd = ({ 1.8, 2.1, 2.4, 2.8 })[tier]
+	wave(palm, "BoltRing", {
+		mesh = A.torus, color = N_FIRE,
+		fromSize = V(0.6, 0.12, 0.6), toSize = V(rd, rd * 0.12, rd),
+		fromOffset = V(0, 0, -0.4), toOffset = V(0, -2.8, -6.4),
+		rotation = V(90, 0, 0), fromTransparency = 0.1, toTransparency = 0.3, duration = 0.24, style = "Sine", phase = "active",
+	}, "Quint")
+	return palm
+end
+
+-- where the seal lands: an impactStack on the ground + the LandWave to the rim
+-- + (III+) rocks and a scorch, (IV) the flame pillar and its fire column
+function blocks.landing(root, tier, p)
+	local land = B().part(root, "Land", CENTRE)
+	B().impactBurst(root, tier, { part = "Land", color = FIRE, core = CORE })
+	B().impactShockwave(root, tier, {
+		part = "Land", ringColor = N_CORE, swirlColor = N_FIRE, groundColor = N_FIRE,
+		size = ({ 4.2, 5.2, 6.4, 8 })[tier], groundSize = ({ 5, 6, 7.5, 9 })[tier], bubble = tier >= 4,
+	})
+	local body = land:FindFirstChild("Body")
+	body.Position = V(0, 1.2, 0)
+	wave(land, "LandWave", {
+		mesh = A.torus, color = N_FIRE,
+		fromSize = V(2, 2 * TUBE * 1.6, 2), toSize = V(RADIUS * 2 + 1, 1.25, RADIUS * 2 + 1),
+		fromOffset = V(0, 0.35, 0), toOffset = V(0, 0.35, 0),
+		fromTransparency = 0.05, toTransparency = 1, duration = 0.45, style = "Quart",
+	})
+	-- the glyph(s): one long particle each; runtime stretches Lifetime to the zone
+	emitter(land, "Glyph", flat({
+		Texture = A.rune, Color = CS(FIRE),
+		Size = NS({ KP(0, 2), KP(0.06, RADIUS * 0.98), KP(1, RADIUS * 0.98) }),
+		Transparency = NS({ KP(0, 1), KP(0.04, 0.35), KP(0.9, 0.45), KP(1, 1) }),
+		Lifetime = R(3.86), LightEmission = 0.3, Brightness = 1.2, RotSpeed = R(14), Rotation = R(0, 360), ZOffset = -0.2,
+	}), { EmitCount = 1 })
+	if tier >= 3 then
+		emitter(land, "Glyph2", flat({
+			Texture = A.runeSwirl, Color = CS(EMBER),
+			Size = NS({ KP(0, 1), KP(0.06, RADIUS * 0.62), KP(1, RADIUS * 0.62) }),
+			Transparency = NS({ KP(0, 1), KP(0.05, 0.4), KP(0.9, 0.5), KP(1, 1) }),
+			Lifetime = R(3.86), LightEmission = 0.35, RotSpeed = R(-32), Rotation = R(0, 360), ZOffset = -0.1,
+		}), { EmitCount = 1 })
+	end
+	-- a ring of flames thrown out along the ground as it lands
+	emitter(land, "FlameBurst", {
+		Texture = A.flames4, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+		Color = CS(Color3.new(1, 1, 1)), EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180),
+		Shape = Enum.ParticleEmitterShape.Box,
+		Size = NS({ KP(0, 0.8), KP(0.4, 1.8 + tier * 0.2), KP(1, 0.6) }), Transparency = NS({ KP(0, 0.1), KP(0.7, 0.3), KP(1, 1) }),
+		Lifetime = R(0.4, 0.55), Speed = R(16, 22), Drag = 4, LightEmission = 0.3, ZOffset = 0.5,
+	}, { EmitCount = ({ 8, 10, 12, 14 })[tier] })
+	if tier >= 3 then
+		B().craterRing(root, tier, { parent = "Land", radius = 3.2, attrs = { Count = tier == 4 and 9 or 6, Duration = 0.12, Variance = 0.8, Size = V(1.1, 0.8, 1) } })
+		emitter(land, "Scorch", flat({
+			Texture = A.crater, Color = CS(SCORCH), LightInfluence = 0.4,
+			Size = NS(tier == 4 and 3.6 or 2.8), Transparency = NS({ KP(0, 1), KP(0.03, 0.15), KP(0.8, 0.3), KP(1, 1) }),
+			Lifetime = R(3.8), Rotation = R(0, 360), ZOffset = -0.4,
+		}), { EmitCount = 1 })
+		B().screenShake(root, tier, { parent = "Land", magnitude = ({ 0, 0, 1.6, 2.2 })[tier], falloff = "20~70" })
+	end
+	if tier >= 4 then
+		wave(land, "Pillar", {
+			mesh = A.column, color = N_FIRE,
+			fromSize = V(2.5, 3, 2.5), toSize = V(6, 22, 6),
+			fromOffset = V(0, 1.5, 0), toOffset = V(0, 11, 0),
+			fromTransparency = 0.1, toTransparency = 1, duration = 0.7, style = "Quart",
+		})
+		wave(land, "PillarCore", {
+			mesh = A.crownTall, color = N_CORE,
+			fromSize = V(3, 1, 3), toSize = V(4.5, 14, 4.5),
+			fromOffset = V(0, 0.5, 0), toOffset = V(0, 7, 0),
+			fromTransparency = 0.2, toTransparency = 1, duration = 0.55, style = "Quart",
+		})
+		emitter(land, "Column", {
+			Texture = A.flames4, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+			Color = CS(Color3.new(1, 1, 1)), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(8, 8),
+			Shape = Enum.ParticleEmitterShape.Disc,
+			Size = NS({ KP(0, 1.5), KP(0.5, 2.6), KP(1, 1) }), Transparency = NS({ KP(0, 0.1), KP(0.7, 0.35), KP(1, 1) }),
+			Lifetime = R(0.5, 0.7), Speed = R(26, 36), Drag = 2, LightEmission = 0.3, ZOffset = 0.5,
+		}, { EmitCount = 14 })
+	end
+	return land
+end
+
+-- the sustained zone: rim, seals, flame wall (MeshParts driven by code) and
+-- the enabled emitters (flame tongues, embers)
+function blocks.zone(root, tier, p)
+	local zone = B().part(root, "Zone", CENTRE, V(RADIUS * 2, 0.2, RADIUS * 2))
+	zone:SetAttribute("EmitDuration", 4)
+	-- 3D: the raised rim at exactly the gameplay radius (tube centre on it)
+	local rim = B().mesh(A.torus, zone, "Rim", V(RADIUS * 2, 0.8, RADIUS * 2), CENTRE * CFrame.new(0, 0.25, 0), N_RIM)
+	rim:SetAttribute("Show", 0.15)
+	if tier >= 2 then
+		local s = B().mesh(A.swirlRing, zone, "InnerSeal", V(12.5, 0.9, 12.5), CENTRE * CFrame.new(0, 0.3, 0), N_FIRE)
+		s:SetAttribute("Show", 0.3)
+		s:SetAttribute("Spin", 50)
+	end
+	if tier >= 3 then
+		local s = B().mesh(A.swirlRing2, zone, "CounterSeal", V(8, 0.8, 8), CENTRE * CFrame.new(0, 0.35, 0), N_CORE)
+		s:SetAttribute("Show", 0.35)
+		s:SetAttribute("Spin", -80)
+		local h = tier >= 4 and 4 or 3.2
+		local w = B().mesh(A.crownTall, zone, "FlameWall", V(RADIUS * 2 + 0.6, h, RADIUS * 2 + 0.6), CENTRE * CFrame.new(0, h / 2 - 0.1, 0), N_DEEP)
+		w:SetAttribute("Show", 0.5)
+		w:SetAttribute("Spin", 12)
+		w:SetAttribute("Flicker", 0.18)
+	end
+	-- the rim's flame tongues: a Disc emitter's surface is its edge
+	emitter(zone, "RimFlames", flameTongues(({ 12, 14, 16, 20 })[tier], 1.5 + tier * 0.15, 0.65))
+	emitter(zone, "Embers", {
+		Texture = A.spindle, Color = CS(CORE, EMBER), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		Shape = Enum.ParticleEmitterShape.Disc, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
+		Size = NS({ KP(0, 0.14), KP(1, 0) }), Squash = NS(1.5), Transparency = NS({ KP(0, 0), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(1, 1.5), Speed = R(3, 6), Acceleration = V(0, 2, 0), Rate = ({ 4, 6, 8, 10 })[tier],
+		LightEmission = 0.7, RotSpeed = R(-30, 30),
+	})
+	if tier >= 3 then
+		local wall = flameTongues(tier >= 4 and 18 or 14, 1.8 + (tier - 3) * 0.4, 0.55)
+		wall.Size = NS({ KP(0, 0.6), KP(0.3, 2 + (tier - 3) * 0.4), KP(1, 0.4) })
+		wall.Speed = R(5, 8)
+		emitter(zone, "WallFlames", wall)
+	end
+	if tier >= 4 then
+		local light = Instance.new("PointLight")
+		light.Name = "Light"
+		light.Color = FIRE
+		light.Range = 20
+		light.Brightness = 0 -- runtime flashes it at landing and the finale, glows low between
+		light.Shadows = false
+		light.Parent = zone
+	end
+	return zone
+end
+
+-- one tick: a torus sweeping centre -> rim, II+ a flare of flame tongues on
+-- the rim, III+ a crown of spikes thrown up at the edge
+function blocks.pulse(root, tier, p)
+	local pulse = B().part(root, "Pulse", CENTRE)
+	wave(pulse, "PulseRing", {
+		mesh = A.torus, color = N_CORE,
+		fromSize = V(2, 0.2, 2), toSize = V(RADIUS * 2, 0.8 + tier * 0.1, RADIUS * 2),
+		fromOffset = V(0, 0.3, 0), toOffset = V(0, 0.3, 0),
+		fromTransparency = 0.2, toTransparency = 1, duration = 0.38, style = "Quad",
+	})
+	if tier >= 2 then
+		local flare = flameTongues(0, 1.4 + tier * 0.15, 0.4)
+		flare.Speed = R(6, 9)
+		emitter(pulse, "Flare", flare, { EmitCount = ({ 0, 8, 10, 12 })[tier] })
+		pulse.Size = V(RADIUS * 2, 0.2, RADIUS * 2)
+	end
+	if tier >= 3 then
+		wave(pulse, "PulseCrown", {
+			mesh = A.crownLow, color = N_FIRE,
+			fromSize = V(RADIUS * 2, 0.4, RADIUS * 2), toSize = V(RADIUS * 2 + 1, tier >= 4 and 3.6 or 2.8, RADIUS * 2 + 1),
+			fromOffset = V(0, 0.2, 0), toOffset = V(0, tier >= 4 and 1.8 or 1.4, 0),
+			fromTransparency = 0.25, toTransparency = 1, duration = 0.36, style = "Quart",
+			delay = 0.12,
+		})
+	end
+	return pulse
+end
+
+-- one burn hit on a target inside the zone, per tick: based on impactShockwave
+function blocks.burn(root, tier, p)
+	local impact = B().part(root, "Impact", CFrame.new(0, 0.15, -6))
+	local body = B().attach(impact, "Body", V(0, 2.2, 0))
+	emitter(body, "Flare", {
+		Texture = A.flames4, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+		Color = CS(Color3.new(1, 1, 1)), Size = NS({ KP(0, 1), KP(0.4, 1.8 + tier * 0.3), KP(1, 1.2) }),
+		Transparency = NS({ KP(0, 0), KP(0.7, 0.2), KP(1, 1) }), Lifetime = R(0.4), LightEmission = 0.3,
+		Rotation = R(-10, 10), ZOffset = 2.5,
+	}, { EmitCount = 1 })
+	emitter(body, "Embers", {
+		Texture = A.spindle, Color = CS(CORE, EMBER), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		SpreadAngle = Vector2.new(70, 70), EmissionDirection = Enum.NormalId.Top,
+		Size = NS({ KP(0, 0.2), KP(1, 0) }), Squash = NS({ KP(0, 2), KP(1, 1) }), Transparency = NS(0),
+		Lifetime = R(0.3, 0.5), Speed = R(12, 20), Drag = 5, Acceleration = V(0, 4, 0), LightEmission = 0.7, ZOffset = 2,
+	}, { EmitCount = ({ 4, 5, 6, 8 })[tier] })
+	B().impactShockwave(root, tier, {
+		part = "Impact", ringColor = N_CORE, swirlColor = N_FIRE, groundColor = N_FIRE,
+		size = ({ 2.6, 3.2, 3.8, 4.4 })[tier], groundSize = ({ 3.4, 4, 4.6, 5.2 })[tier],
+		swirl = false, bubble = false, duration = 0.3,
+	})
+	if tier >= 3 then
+		wave(impact, "Tongue", {
+			mesh = A.crownTall, color = N_FIRE,
+			fromSize = V(1.6, 0.4, 1.6), toSize = V(2.6, tier >= 4 and 4 or 3, 2.6),
+			fromOffset = V(0, 0.2, 0), toOffset = V(0, tier >= 4 and 2 or 1.5, 0),
+			fromTransparency = 0.2, toTransparency = 1, duration = 0.34, style = "Quart",
+		})
+	end
+	return impact
+end
+
+-- the terminal burst as the seal breaks at def.seconds, all tiers, scaled
+function blocks.finale(root, tier, p)
+	local fin = B().part(root, "Finale", CENTRE, V(RADIUS * 2, 0.2, RADIUS * 2))
+	wave(fin, "BreakRing", {
+		mesh = A.torus, color = N_CORE,
+		fromSize = V(RADIUS * 2, 0.8, RADIUS * 2), toSize = V(RADIUS * 2 + 4 + tier * 1.5, 1.2 + tier * 0.15, RADIUS * 2 + 4 + tier * 1.5),
+		fromOffset = V(0, 0.35, 0), toOffset = V(0, 0.5, 0),
+		fromTransparency = 0.1, toTransparency = 1, duration = 0.45 + tier * 0.03, style = "Quart",
+	})
+	emitter(fin, "Puff", {
+		Texture = A.flame, Color = CS({ ColorSequenceKeypoint.new(0, CORE), ColorSequenceKeypoint.new(0.4, FIRE), ColorSequenceKeypoint.new(1, DEEP) }),
+		Shape = Enum.ParticleEmitterShape.Disc, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(10, 10),
+		Size = NS({ KP(0, 0.8), KP(0.3, 1.6 + tier * 0.3), KP(1, 0.3) }), Transparency = NS({ KP(0, 0.2), KP(0.7, 0.3), KP(1, 1) }),
+		Lifetime = R(0.45, 0.6), Speed = R(7, 11), LightEmission = 0.45,
+	}, { EmitCount = ({ 10, 12, 16, 20 })[tier] })
+	emitter(fin, "Embers", {
+		Texture = A.spindle, Color = CS(CORE, EMBER), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		Shape = Enum.ParticleEmitterShape.Disc, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40),
+		Size = NS({ KP(0, 0.22), KP(1, 0) }), Squash = NS(2), Transparency = NS(0),
+		Lifetime = R(0.5, 0.9), Speed = R(12, 22), Drag = 3, LightEmission = 0.7,
+	}, { EmitCount = ({ 8, 10, 14, 18 })[tier] })
+	emitter(fin, "Flash", flat({
+		Texture = A.glow, Color = CS(FIRE), Size = NS({ KP(0, RADIUS * 0.6), KP(1, RADIUS * 1.2) }),
+		Transparency = NS({ KP(0, 0.4), KP(1, 1) }), Lifetime = R(0.3), LightEmission = 0.4,
+	}), { EmitCount = 1 })
+	if tier >= 3 then
+		wave(fin, "BreakCrown", {
+			mesh = A.crownLow, color = N_FIRE,
+			fromSize = V(RADIUS * 2, 1, RADIUS * 2), toSize = V(RADIUS * 2 + 3, tier >= 4 and 6 or 4, RADIUS * 2 + 3),
+			fromOffset = V(0, 0.4, 0), toOffset = V(0, tier >= 4 and 3 or 2, 0),
+			fromTransparency = 0.15, toTransparency = 1, duration = 0.5, style = "Quart",
+		})
+	end
+	if tier >= 4 then
+		wave(fin, "SpikeStar", {
+			mesh = A.spikeStar, color = N_CORE,
+			fromSize = V(4, 1, 4), toSize = V(20, 5, 20),
+			fromOffset = V(0, 0.4, 0), toOffset = V(0, 1.2, 0),
+			fromTransparency = 0.15, toTransparency = 1, duration = 0.5, style = "Quart",
+		})
+		wave(fin, "Eruption", {
+			mesh = A.spikeBurst, color = N_FIRE,
+			fromSize = V(3, 2, 3), toSize = V(9, 9, 9),
+			fromOffset = V(0, 0.5, 0), toOffset = V(0, 3.5, 0),
+			fromTransparency = 0.1, toTransparency = 1, duration = 0.55, style = "Quart",
+		})
+		B().screenShake(root, tier, { parent = "Finale", name = "Quake", preset = "Explosion", falloff = "20~80" })
+	end
+	return fin
+end
+
+local spec = {
+	id = "FireSeal",
+	root = { attrs = { AuthoredActive = 0.214, AuthoredRadius = RADIUS, AuthoredSeconds = 4 } },
+	blocks = blocks,
+	beats = {
+		{ block = "handGather", params = { color = FIRE, core = CORE, windup = 0.5 } },
+		{ block = "throw" },
+		{ block = "landing" },
+		{ block = "zone" },
+		{ block = "pulse" },
+		{ block = "burn" },
+		{ block = "finale" },
+	},
+}
+
+-- buildFromSpec with this spec's own blocks (spec.blocks before the shared
+-- ones). Returns the built roots.
+function spec.build(parent)
+	local B0 = _G.vfxBlocks
+	local built = {}
+	for tier = 1, 4 do
+		local name = spec.id .. "_T" .. tier
+		local old = parent:FindFirstChild(name)
+		if old then
+			old:Destroy()
+		end
+		local root = Instance.new("Model")
+		root.Name = name
+		for k, v in spec.root.attrs do
+			root:SetAttribute(k, v)
+		end
+		for _, beat in spec.beats do
+			if tier >= (beat.from or 1) and tier <= (beat.to or 4) then
+				local fn = blocks[beat.block] or B0.BLOCKS[beat.block]
+				assert(fn, "unknown block " .. tostring(beat.block))
+				fn(root, tier, beat.params or {})
+			end
+		end
+		root.WorldPivot = CFrame.new()
+		root.Parent = parent
+		table.insert(built, root)
+	end
+	return built
+end
+
+return spec
+	end)
+	if ok then _G.vfxSpecs["FireSeal"] = spec end
+	table.insert(installed, "spec FireSeal: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/GreatSageAwakening.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Great Sage Awakening's templates (GreatSageAwakening_T1..T4). Build with
+-- spec.build(parent). Runtime: src/client/TechniqueFX/GreatSageAwakening.luau.
+--
+-- Gameplay: Staff technique, a self buff (+25% damage, +15% attack speed for
+-- 8 s) with a circle r 8 burst at the strike (12 dmg). Animation
+-- 92849379287075 (1.75 s), one hit 1.15-1.25. Sampled on StaffRig: the staff
+-- is raised over the head by 0.2 s and twirled flat ~2.5 studs above the
+-- root (~5 turns a second, both ends ~5 studs out) until ~1.0 s; at 1.05-1.15
+-- it is brought down so one end strikes the ground ~5 studs ahead at 1.15,
+-- then it sweeps on to the left. The template pivot is the ground under the
+-- caster facing -Z; authored at radius 8, active 0.1 s, windup 1.15 s.
+--
+-- The motif: the Great Sage (the Monkey King) wakes: his golden circlet,
+-- golden flame, the somersault cloud, fiery golden eyes.
+--
+-- THE SHOT, tier by tier
+--
+-- I (levels 1-3), "the circlet"
+--   Twirl (cast start -> Hit; TechniqueFX windup(), part "Twirl"): both ends
+--     of the spinning staff trail gold ribbons of light (a disc of arcs over
+--     the head); a rune seal grows and turns on the ground under the feet;
+--     gold motes rise from it into the spin; qi gathers into the right hand
+--     ("Windup").
+--   Strike (Hit): the staff end slams the ground ~5 studs ahead ("Slam": star
+--     flash, upright and ground 3D shock rings, dust, a light shake); a gold
+--     flash on the body ("Body"); the awakening burst opens from the feet to
+--     the radius ("Ground": the shared ground shockwave with a 3D torus,
+--     dust skirt) and a pillar of gold light (a stretched Neon ball) shoots
+--     up from the caster (~0.55 s). Every enemy inside gets a gold
+--     impactStack as the front reaches it.
+--   Buff (8 s, everyone sees it, "Aura"): a solid gold Neon circlet round the
+--     head; gold flame wisps rising off the body (~6 a second); the staff
+--     leaves short gold arcs on every swing ("Staff"). At the end a puff of
+--     gold motes and a thin ring ("Fade").
+-- II (4-6), "the cloud"
+--   + rays behind the body flash, an echo ring, gold streaks up the pillar,
+--     impact swirl and dust; the aura adds somersault-cloud puffs at the feet
+--     and rising motes; the circlet pulses.
+-- III (7-9), "fiery golden eyes"
+--   + a wind swirl climbs the body during the twirl; the strike adds a
+--     Craters rock ring at the radius, an ornate seal on the ground and slam
+--     cracks; impacts get bubbles and rock kicks; the aura adds two glowing
+--     golden eyes.
+-- IV (10), "Equal to Heaven"
+--   + a second torus, a taller pillar with a spike crown at its foot and an
+--     Explosion quake; the aura adds a turning halo ring behind the back and
+--     the move's one light, flashed bright at the strike and held soft gold
+--     on the body for the 8 s.
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local CK = ColorSequenceKeypoint.new
+local V = Vector3.new
+local O = CFrame.new()
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local A = {
+	flame = id(265788038),
+	glow = id(867619398),
+	star12 = id(243728206),
+	spindle = id(7814053668),
+	mote = id(9841260273),
+	rune = id(83667248904000),
+	ornate = id(13399941667),
+	rays = id(15773612675),
+	thinRing = id(9841273159),
+	dust = id(11037785287),
+	cloud = id(11037785676),
+	crack = id(93520831389146),
+	torus = id(471124075),
+	swirl = id(129778117978668),
+	swirlRing = id(122217820569960),
+	crownLow = id(489415286),
+}
+
+local GOLD = Color3.fromRGB(255, 204, 84)
+local CORE = Color3.fromRGB(255, 244, 205)
+local FLAME = Color3.fromRGB(255, 132, 44) -- the red-orange edge of the Sage's flame
+local N_GOLD = Color3.fromRGB(236, 166, 36) -- Neon blooms toward white, so deeper
+local CLOUD = Color3.fromRGB(255, 246, 228)
+local PAL = {
+	color = GOLD, core = CORE,
+	ringColor = Color3.fromRGB(255, 232, 160), swirlColor = Color3.fromRGB(255, 205, 100), groundColor = Color3.fromRGB(255, 220, 140),
+}
+local function pal(extra)
+	local t = table.clone(PAL)
+	for k, v in extra or {} do
+		t[k] = v
+	end
+	return t
+end
+
+local RADIUS, WINDUP, ACTIVE = 8, 1.15, 0.1
+local HAND_AT = O * CFrame.new(0.5, 5.6, -0.9) -- the right hand holding the spin
+local SLAM_AT = O * CFrame.new(0, 0.15, -4.8)
+local BODY_AT = O * CFrame.new(0, 3, 0)
+
+local function B()
+	return _G.vfxBlocks
+end
+local function emitter(parent, name, props, attrs)
+	return B().emitter(parent, name, props, attrs)
+end
+local function wave(parent, name, p, fadeStyle)
+	local w = B().meshWave(parent, name, p)
+	w:SetAttribute("FadeStyle", fadeStyle or "Quint")
+	return w
+end
+
+local blocks = {}
+
+-- The twirl at the feet: the ground seal, rising motes, III+ the climbing
+-- wind swirl, and the staff-end trail the runtime fixes to the weapon.
+function blocks.twirl(root, tier, p)
+	local twirl = B().part(root, "Twirl", O * CFrame.new(0, 0.2, 0), V(5, 0.2, 5))
+	twirl:SetAttribute("AuthoredWindup", WINDUP)
+	emitter(twirl, "Seal", B().flat({
+		Texture = A.rune, Color = CS(GOLD),
+		Size = NS({ KP(0, 0.8), KP(0.7, 3.6 + tier * 0.3), KP(0.9, 4 + tier * 0.3), KP(1, 4.2 + tier * 0.3) }),
+		Transparency = NS({ KP(0, 1), KP(0.3, 0.35), KP(0.85, 0.15), KP(1, 0.6) }),
+		Lifetime = R(WINDUP + 0.1), LightEmission = 0.45, RotSpeed = R(70), Rotation = R(0, 360), ZOffset = 0.2,
+	}), { EmitCount = 1 })
+	-- streaks rising from the seal into the spin (spindles, so they read
+	-- at play distance; round motes this small vanished)
+	local rise = emitter(twirl, "Rise", {
+		Texture = A.spindle, Color = CS(CORE, GOLD), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(12, 12),
+		Size = NS({ KP(0, 0.42), KP(1, 0.12) }), Squash = NS(1.8), Transparency = NS({ KP(0, 1), KP(0.15, 0.05), KP(1, 0.7) }),
+		Lifetime = R(0.55, 0.75), Speed = R(7, 10), LightEmission = 0.6, Rotation = R(0, 360),
+		Rate = ({ 9, 11, 14, 18 })[tier],
+	})
+	rise:SetAttribute("EmitDuration", WINDUP - 0.15)
+	if tier >= 3 then
+		wave(twirl, "Swirl", {
+			mesh = A.swirl, color = Color3.fromRGB(255, 226, 150),
+			fromSize = V(3.2, 0.7, 3.2), toSize = V(4.4, 1.4, 4.4),
+			fromOffset = V(0, 0.3, 0), toOffset = V(0, 5.2, 0),
+			fromTransparency = 0.45, toTransparency = 1, duration = 0.9, style = "Sine", delay = 0.15,
+		}, "Quad")
+	end
+	local arc = Instance.new("Trail")
+	arc.Name = "Arc"
+	arc.Color = CS({ CK(0, CORE), CK(0.4, GOLD), CK(1, FLAME) })
+	arc.Transparency = NS({ KP(0, 0.1), KP(0.5, 0.45), KP(1, 1) })
+	arc.WidthScale = NS({ KP(0, 1), KP(1, 0.4) })
+	arc.Lifetime = ({ 0.14, 0.16, 0.18, 0.2 })[tier]
+	arc.LightEmission, arc.LightInfluence = 0.6, 0
+	arc.MinLength = 0.05
+	arc.Enabled = false
+	arc:SetAttribute("Inward", 1.6)
+	arc.Parent = twirl
+	return twirl
+end
+
+-- The pillar of gold light and the body flash at the strike.
+function blocks.awaken(root, tier, p)
+	local ground = root:FindFirstChild("Ground")
+	local tall = ({ 12, 15, 18, 24 })[tier]
+	-- a Cylinder, stood up (a Ball part can't be stretched: it stays round)
+	-- (translucent and slim: a solid one hid the caster and bloomed lemon)
+	local d = 1.5 + tier * 0.25
+	local pillar = wave(ground, "Pillar", {
+		mesh = "Ball", material = Enum.Material.Neon, color = Color3.fromRGB(226, 146, 40),
+		fromSize = V(3, 1.2, 1.2), toSize = V(tall, d, d), rotation = V(0, 0, 90),
+		fromOffset = V(0, 1.5, 0), toOffset = V(0, tall / 2, 0),
+		fromTransparency = 0.45, toTransparency = 1, duration = 0.55, style = "Quart",
+	}, "Quad")
+	pillar.Mesh.Shape = Enum.PartType.Cylinder
+	if tier >= 2 then
+		emitter(ground, "Streaks", {
+			Texture = A.spindle, Color = CS(CORE, GOLD), Orientation = Enum.ParticleOrientation.VelocityParallel,
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(6, 6),
+			Size = NS({ KP(0, 0.3), KP(1, 0.1) }), Squash = NS(2.5), Transparency = NS({ KP(0, 0), KP(1, 1) }),
+			Lifetime = R(0.35, 0.5), Speed = R(26, 38), Drag = 2, LightEmission = 0.6,
+		}, { EmitCount = ({ 0, 6, 8, 12 })[tier] })
+	end
+	if tier >= 3 then
+		emitter(ground, "Seal", B().flat({
+			Texture = A.ornate, Color = CS(GOLD),
+			Size = NS({ KP(0, 2), KP(0.2, 5.5), KP(1, 6.2) }), Transparency = NS({ KP(0, 0.15), KP(0.5, 0.3), KP(1, 1) }),
+			Lifetime = R(0.95), LightEmission = 0.45, RotSpeed = R(-50), Rotation = R(0, 360), ZOffset = 0.1,
+		}), { EmitCount = 1 })
+		B().craterRing(root, tier, { parent = "Ground", radius = RADIUS, attrs = { Duration = 0.3 } })
+	end
+	if tier >= 4 then
+		wave(ground, "GroundWave2", {
+			mesh = A.torus, color = Color3.fromRGB(255, 236, 190),
+			fromSize = V(1.5, 0.2, 1.5), toSize = V(RADIUS * 2.3, 1.4, RADIUS * 2.3),
+			fromOffset = V(0, 0.25, 0), toOffset = V(0, 0.25, 0),
+			fromTransparency = 0.5, toTransparency = 1, duration = 0.5, style = "Quart", delay = 0.1,
+		})
+		wave(ground, "Crown", {
+			mesh = A.crownLow, color = N_GOLD,
+			fromSize = V(2.5, 1, 2.5), toSize = V(7, 4, 7), fromOffset = V(0, 0.3, 0), toOffset = V(0, 1.2, 0),
+			fromTransparency = 0.2, toTransparency = 1, duration = 0.5, style = "Quart",
+		})
+		B().screenShake(root, tier, { parent = "Ground", name = "Quake", preset = "Explosion", falloff = "20~80" })
+	end
+	-- the flash on the body
+	local body = B().part(root, "Body", BODY_AT)
+	emitter(body, "Flash", {
+		Texture = A.star12, Color = CS(CORE),
+		Size = NS({ KP(0, 0.5), KP(0.3, 3 + tier * 0.4), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(1, 0.5) }),
+		Lifetime = R(0.2), LightEmission = 0.6, Rotation = R(0, 360), ZOffset = 1.5,
+	}, { EmitCount = 1 })
+	emitter(body, "Glow", {
+		Texture = A.glow, Color = CS(GOLD),
+		Size = NS({ KP(0, 1.5), KP(1, 3.5 + tier * 0.4) }), Transparency = NS({ KP(0, 0.25), KP(1, 1) }),
+		Lifetime = R(0.35), LightEmission = 0.4, ZOffset = 1,
+	}, { EmitCount = 1 })
+	if tier >= 2 then
+		emitter(body, "Rays", {
+			Texture = A.rays, Color = CS(GOLD),
+			Size = NS({ KP(0, 1.5), KP(0.3, 4.5 + tier * 0.4), KP(1, 5 + tier * 0.4) }), Transparency = NS({ KP(0, 0.35), KP(1, 1) }),
+			Lifetime = R(0.45), LightEmission = 0.5, RotSpeed = R(40), Rotation = R(0, 360), ZOffset = -1,
+		}, { EmitCount = 1 })
+	end
+	return body
+end
+
+-- The staff end striking the ground ahead.
+function blocks.slam(root, tier, p)
+	local q = pal({ part = "Slam", at = SLAM_AT })
+	B().impactBurst(root, tier, q)
+	q.size = ({ 3.2, 3.8, 4.6, 5.6 })[tier]
+	q.groundSize = ({ 4.2, 5, 6, 7.4 })[tier]
+	q.swirl, q.bubble = false, false
+	B().impactShockwave(root, tier, q)
+	local slam = root:FindFirstChild("Slam")
+	slam.Body.Position = V(0, 0.8, 0)
+	if tier >= 3 then
+		emitter(slam, "Cracks", B().flat({
+			Texture = A.crack, Color = CS(Color3.fromRGB(110, 88, 56)), LightInfluence = 0.3,
+			Size = NS(2.2 + (tier - 3) * 0.8), Transparency = NS({ KP(0, 1), KP(0.04, 0.15), KP(0.6, 0.3), KP(1, 1) }),
+			Lifetime = R(1.3), Rotation = R(0, 360), ZOffset = -0.5,
+		}), { EmitCount = 1 })
+	end
+	B().screenShake(root, tier, { parent = "Slam", magnitude = ({ 0.9, 1.3, 1.8, 2.2 })[tier] })
+	return slam
+end
+
+-- The buff aura: emitters the runtime moves onto the body (Bone = the body
+-- part), held MeshParts it drives there (Offset from the bone, Show
+-- transparency, Spin deg/s, Pulse), and the staff trail for the buff.
+function blocks.aura(root, tier, p)
+	local aura = B().part(root, "Aura", BODY_AT, V(2, 2, 1))
+	aura:SetAttribute("EmitDuration", 8) -- the plugin's T button shows the hold
+	local flames = emitter(aura, "Flames", {
+		Texture = A.flame, Color = CS({ CK(0, CORE), CK(0.35, GOLD), CK(1, FLAME) }),
+		Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(10, 10),
+		Size = NS({ KP(0, 0.5), KP(0.3, 1.0 + tier * 0.1), KP(1, 0.15) }),
+		Transparency = NS({ KP(0, 1), KP(0.15, 0.2), KP(0.7, 0.4), KP(1, 1) }),
+		Lifetime = R(0.5, 0.8), Speed = R(1.5, 3), Acceleration = V(0, 4, 0),
+		LightEmission = 0.3, LightInfluence = 0.15, Rotation = R(-10, 10), ZOffset = -0.3,
+		Rate = ({ 6, 8, 10, 12 })[tier],
+	})
+	flames:SetAttribute("Bone", "Torso")
+	if tier >= 2 then
+		local motes = emitter(aura, "Motes", {
+			Texture = A.mote, Color = CS(CORE, GOLD),
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(30, 30),
+			Size = NS({ KP(0, 0.18), KP(1, 0) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+			Lifetime = R(0.7, 1), Speed = R(1.5, 3), LightEmission = 0.6, Rate = ({ 0, 4, 5, 6 })[tier],
+		})
+		motes:SetAttribute("Bone", "Torso")
+		local feet = B().attach(aura, "Feet", V(0, -2.8, 0), { Bone = "HumanoidRootPart" })
+		emitter(feet, "Cloud", {
+			Texture = A.cloud, Color = CS(CLOUD, Color3.fromRGB(255, 226, 170)), LightInfluence = 0.4,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(85, 85),
+			Size = NS({ KP(0, 0.6), KP(0.4, 1.3), KP(1, 1.8) }), Transparency = NS({ KP(0, 1), KP(0.25, 0.45), KP(1, 1) }),
+			Lifetime = R(0.9, 1.3), Speed = R(1.5, 2.5), Drag = 2, Rotation = R(0, 360), RotSpeed = R(-30, 30),
+			Rate = ({ 0, 3, 3.5, 4 })[tier], ZOffset = -0.5,
+		})
+	end
+	if tier >= 3 then
+		for _, x in { -0.2, 0.2 } do
+			local eye = B().attach(aura, if x < 0 then "EyeL" else "EyeR", V(x, 0.15, -0.58), { Bone = "Head" })
+			emitter(eye, "Glint", {
+				Texture = A.glow, Color = CS(Color3.fromRGB(255, 236, 150), FLAME),
+				Size = NS({ KP(0, 0.22), KP(1, 0.14) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+				Lifetime = R(0.18), LightEmission = 0.7, LockedToPart = true, Rate = 10, ZOffset = 0.6,
+			})
+		end
+	end
+	-- the golden circlet round the head
+	-- on the brow, below most hair (higher, it vanished inside hair accessories)
+	local circlet = B().mesh(A.torus, aura, "Circlet", V(1.75, 0.2, 1.75), O, N_GOLD)
+	for k, v in { Bone = "Head", Offset = CFrame.new(0, 0.3, 0.02) * CFrame.Angles(math.rad(-8), 0, 0), Show = 0.05, Pulse = if tier >= 2 then 0.2 else 0 } do
+		circlet:SetAttribute(k, v)
+	end
+	if tier >= 4 then
+		local halo = B().mesh(A.swirlRing, aura, "Halo", V(3.6, 0.35, 3.6), O, Color3.fromRGB(255, 214, 110))
+		for k, v in { Bone = "Torso", Offset = CFrame.new(0, 1.1, 1.0) * CFrame.Angles(math.rad(90), 0, 0), Show = 0.35, Spin = 40 } do
+			halo:SetAttribute(k, v)
+		end
+		local glow = B().attach(aura, "Glow", V(0, 0.5, 0), { Bone = "Torso" })
+		local light = Instance.new("PointLight")
+		light.Name = "Light"
+		light.Color = GOLD
+		light.Range = 10
+		light.Brightness = 0.8 -- the runtime flashes it x3 at the strike, then holds it
+		light.Shadows = false
+		light.Parent = glow
+	end
+	-- the staff's gold arcs while the buff holds
+	local staff = B().part(root, "Staff", BODY_AT)
+	local arc = Instance.new("Trail")
+	arc.Name = "BuffArc"
+	arc.Color = CS({ CK(0, CORE), CK(0.5, GOLD), CK(1, FLAME) })
+	arc.Transparency = NS({ KP(0, ({ 0.45, 0.35, 0.3, 0.2 })[tier]), KP(1, 1) })
+	arc.WidthScale = NS({ KP(0, 1), KP(1, 0.3) })
+	arc.Lifetime = ({ 0.08, 0.1, 0.12, 0.14 })[tier]
+	arc.LightEmission, arc.LightInfluence = 0.5, 0
+	arc.MinLength = 0.05
+	arc.Enabled = false
+	arc:SetAttribute("Inward", 1.3)
+	arc.Parent = staff
+	-- the puff when the buff runs out
+	local fade = B().part(root, "Fade", BODY_AT)
+	emitter(fade, "Motes", {
+		Texture = A.mote, Color = CS(CORE, GOLD), SpreadAngle = Vector2.new(180, 180),
+		Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		Size = NS({ KP(0, 0.25), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(1, 1) }),
+		Lifetime = R(0.5, 0.8), Speed = R(4, 7), Drag = 3, Acceleration = V(0, 2, 0), LightEmission = 0.6,
+	}, { EmitCount = ({ 8, 10, 12, 16 })[tier] })
+	emitter(fade, "Ring", {
+		Texture = A.thinRing, Color = CS(GOLD),
+		Size = NS({ KP(0, 0.8), KP(1, 3.4) }), Transparency = NS({ KP(0, 0.25), KP(1, 1) }),
+		Lifetime = R(0.4), LightEmission = 0.5, ZOffset = 1,
+	}, { EmitCount = 1 })
+	return aura
+end
+
+local spec = {
+	id = "GreatSageAwakening",
+	root = { attrs = { AuthoredActive = ACTIVE, AuthoredRadius = RADIUS, AuthoredSeconds = 8 } },
+	blocks = blocks,
+	beats = {
+		{ block = "handGather", params = pal({ windup = WINDUP, at = HAND_AT, wisps = false }) },
+		{ block = "twirl" },
+		{ block = "slam" },
+		{ block = "groundShockwave", params = pal({ radius = RADIUS, lifetime = 0.3 }) },
+		{ block = "awaken" },
+		{ block = "impactStack", params = { burst = pal(), wave = pal() } },
+		{ block = "aura" },
+	},
+}
+
+function spec.build(parent)
+	local B0 = _G.vfxBlocks
+	local built = {}
+	for tier = 1, 4 do
+		local name = spec.id .. "_T" .. tier
+		local old = parent:FindFirstChild(name)
+		if old then
+			old:Destroy()
+		end
+		local root = Instance.new("Model")
+		root.Name = name
+		for k, v in spec.root.attrs do
+			root:SetAttribute(k, v)
+		end
+		for _, beat in spec.beats do
+			if tier >= (beat.from or 1) and tier <= (beat.to or 4) then
+				local fn = blocks[beat.block] or B0.BLOCKS[beat.block]
+				assert(fn, "unknown block " .. tostring(beat.block))
+				fn(root, tier, beat.params or {})
+			end
+		end
+		root.WorldPivot = O
+		root.Parent = parent
+		table.insert(built, root)
+	end
+	return built
+end
+
+spec.previewDef = {
+	id = "GreatSageAwakening", name = "Great Sage Awakening", kind = "buff", weapon = "Staff",
+	radius = 8, seconds = 8, damage = 12, cooldown = 20, color = GOLD, hand = "Right",
+	animationId = "rbxassetid://117310636316384",
+	hits = { { time = 1.15, damage = 12 } },
+}
+
+return spec
+	end)
+	if ok then _G.vfxSpecs["GreatSageAwakening"] = spec end
+	table.insert(installed, "spec GreatSageAwakening: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/HeavenSplitter.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Heaven-Splitting Descent's templates (HeavenSplitter_T1..T4). Build with
+-- HeavenSplitter.build(parent) (its own blocks first, then vfxBlocks').
+-- Runtime: src/client/TechniqueFX/HeavenSplitter.luau (+ BladeSkill.luau).
+--
+-- The move (Greatsword, anim 90109091413405, 3.67 s, castSpeed ~1.3; clip
+-- seconds below, real = clip / castSpeed). Sampled on gsrigrea2lfixed:
+--   0.00-0.20  the blade swings back to the right, low.
+--   0.45-0.60  the LOW SWEEP: the tip skims the ground across the whole front,
+--              right to left. (The def's first hit is 0.18-0.37, by body
+--              speed; the blade actually crosses the front at 0.45-0.58.)
+--   0.60-1.00  crouch, blade held low-left behind, torso drives forward.
+--   1.05-1.25  the RISING CUT: low front -> straight up overhead; the body
+--              launches (up 3.8 by 1.7) - the "launch" hit 1.02-1.22.
+--   1.25-2.10  airborne, blade raised behind the head, hands at y+6.
+--   2.10-2.25  the SLAM: the blade falls from behind the head and strikes the
+--              ground ahead (2.22-2.25); the body lands in a deep crouch.
+--   2.25-2.65  held in the ground; recovery to 3.0.
+-- Gameplay: hits { 0.18 light, 1.02 light, 2.12 slam }, lunge 6, circle r 12
+-- centred 4 ahead of the landing.
+--
+-- THE SHOT ("the sky splits and the blade comes down through it"),
+-- palette: heaven-azure qi (Neon parts deeper), white core, ink scars;
+-- mastery adds a gold core.
+--   Windup (cast start -> first hit, caster only): a glint and motes gather
+--     on the right hand.
+--   Blade edge (all three cuts): the held greatsword draws its own arc as a
+--     solid azure ribbon (Trail on the weapon's Base -> Tip), on for each swing
+--     window; II+ a faint afterimage ribbon.
+--   Light hits (sweep, launch): each enemy in the circle gets a light impact
+--     (star flash, spiky ring, a small standing torus and ground shock).
+--   Launch (launch hit): a torus and dust ring kick out at the feet; II+ swirl
+--     rings rise up the body like an updraft; III+ upward streaks.
+--   Airborne (1.25 -> slam): the blade is wreathed in qi (Glow beam + motes
+--     shed); III+ a rune seal opens on the ground over the landing circle
+--     (faint, it marks r 12) and a vertical rift tears open in the sky above
+--     it; IV a giant phantom blade forms over the real one and follows it down.
+--   Slam (last hit): a star flash where the blade bites the ground, a fissure
+--     splits the ground from there through the circle (Neon slit cooling to an
+--     ink scar), a torus shockwave rolls out to r 12 with a dust skirt; each
+--     enemy gets a heavy impact as the front reaches it. II+ a pillar of light
+--     drops onto the bite, an echo torus, rays; III+ Craters rock ring,
+--     crater and cracks, rock kicks; IV a dome shell, the one PointLight,
+--     impact frames and an Explosion quake.
+--   Aftermath: the fissure cools for ~1-2 s, motes rise from it (II+), the
+--     dust settles; the phantom (IV) dissolves where it bit.
+local KIT_ = function()
+	return _G.vfxSpecs.BladeKit
+end
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local V = Vector3.new
+local O = CFrame.new()
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local AZURE = Color3.fromRGB(128, 156, 255) -- suggested def.color
+local CORE = Color3.fromRGB(236, 242, 255)
+local GOLD = Color3.fromRGB(255, 232, 170) -- mastery core
+local INK = Color3.fromRGB(22, 24, 48)
+local N_AZURE = Color3.fromRGB(78, 108, 240) -- Neon blooms, so parts go deeper
+local N_PALE = Color3.fromRGB(150, 175, 255)
+local DUST = Color3.fromRGB(214, 210, 200)
+
+local RADIUS, OFFSET = 12, 4
+local CENTRE = O * CFrame.new(0, 0.2, -OFFSET)
+local HAND_AT = O * CFrame.new(1.1, 2.2, -0.9)
+
+local A = {
+	seal = id(83667248904000),
+	ornate = id(13399941667),
+	crater = id(90713203428310),
+	crack = id(93520831389146),
+	crackSmall = id(97725700315217),
+	spindle = id(7814053668),
+	mote = id(9841260273),
+	glow = id(867619398),
+	dust = id(11037785287),
+	hitRing = id(13052235894),
+	torus = id(471124075),
+	swirl = id(129778117978668),
+	swirl2 = id(73349240058321),
+	dome = id(13567208057),
+}
+
+local function pal(core)
+	return {
+		color = AZURE, core = core or CORE,
+		ringColor = Color3.fromRGB(120, 150, 255), swirlColor = Color3.fromRGB(110, 140, 255), groundColor = Color3.fromRGB(105, 135, 250),
+	}
+end
+local function coreOf(tier)
+	return if tier >= 4 then GOLD else CORE
+end
+
+local blocks = {}
+
+blocks.windup = function(root, tier)
+	local p = pal(coreOf(tier))
+	p.windup, p.at, p.wisps = 0.14, HAND_AT, false
+	return _G.vfxBlocks.handGather(root, tier, p)
+end
+
+blocks.edge = function(root, tier)
+	return KIT_().edge(root, tier, { color = AZURE, core = coreOf(tier), tail = N_PALE, trailLife = { 0.18, 0.22, 0.26, 0.32 }, glowWidth = { 0.35, 0.45, 0.55, 0.7 } })
+end
+
+-- the light hits (sweep and launch): a smaller impact stack
+blocks.lightImpact = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local q = pal(coreOf(tier))
+	q.part = "LightImpact"
+	B0.impactBurst(root, tier, q)
+	q.size = ({ 2.6, 3.1, 3.6, 4.2 })[tier]
+	q.groundSize = ({ 2.8, 3.3, 3.8, 4.4 })[tier]
+	q.swirl, q.bubble = false, false
+	q.duration = 0.24
+	B0.impactShockwave(root, tier, q)
+	return root:FindFirstChild("LightImpact")
+end
+
+-- the take-off at the feet (launch hit)
+blocks.launch = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local part = B0.part(root, "Launch", O * CFrame.new(0, 0.2, 0))
+	B0.meshWave(part, "LaunchRing", {
+		mesh = A.torus, color = Color3.fromRGB(110, 140, 255),
+		fromSize = V(1.6, 0.2, 1.6), toSize = V(7 + tier, 0.55 + tier * 0.08, 7 + tier),
+		fromOffset = V(0, 0.15, 0), toOffset = V(0, 0.15, 0),
+		fromTransparency = 0.3, toTransparency = 1, duration = 0.4, style = "Quart",
+	}):SetAttribute("FadeStyle", "Quint")
+	B0.emitter(part, "Dust", {
+		Texture = A.dust, Color = CS(DUST), LightInfluence = 0.5,
+		EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180),
+		Size = NS({ KP(0, 0.8), KP(1, 2.2) }), Transparency = NS({ KP(0, 0.35), KP(0.5, 0.55), KP(1, 1) }),
+		Lifetime = R(0.45, 0.7), Speed = R(16, 22), Drag = 4, Rotation = R(0, 360), RotSpeed = R(-60, 60),
+	}, { EmitCount = ({ 6, 8, 10, 12 })[tier] })
+	if tier >= 2 then
+		-- swirl rings rising up the body: the updraft that carries the leap
+		for i = 1, ({ 0, 2, 2, 3 })[tier] do
+			local w = B0.meshWave(part, "Updraft" .. i, {
+				mesh = A.swirl, color = N_PALE,
+				fromSize = V(2.4, 0.3, 2.4), toSize = V(4.2 - i * 0.4, 0.9, 4.2 - i * 0.4),
+				fromOffset = V(0, 0.6, 0), toOffset = V(0, 6 + i * 0.8, 0),
+				fromTransparency = 0.25, toTransparency = 1, duration = 0.42, style = "Quad",
+				delay = (i - 1) * 0.07,
+			})
+			w:SetAttribute("FadeStyle", "Quint")
+		end
+	end
+	if tier >= 3 then
+		B0.emitter(part, "Streaks", {
+			Texture = A.spindle, Color = CS(coreOf(tier), AZURE), Orientation = Enum.ParticleOrientation.VelocityParallel,
+			Shape = Enum.ParticleEmitterShape.Disc, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(6, 6),
+			Size = NS({ KP(0, 0.3), KP(1, 0) }), Squash = NS(2.5), Transparency = NS({ KP(0, 0), KP(1, 0.6) }),
+			Lifetime = R(0.25, 0.4), Speed = R(26, 34), Drag = 3, LightEmission = 0.5,
+		}, { EmitCount = ({ 0, 0, 6, 9 })[tier] })
+	end
+	return part
+end
+
+-- III+: the rune seal over the landing circle while airborne (held long and
+-- faint: it marks r 12 without hiding any ground warning)
+blocks.mark = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local part = B0.part(root, "Mark", CENTRE)
+	part:SetAttribute("AuthoredAir", 0.67)
+	B0.emitter(part, "Seal", B0.flat({
+		Texture = A.seal, Color = CS(AZURE), LightEmission = 0.35,
+		Size = NS({ KP(0, RADIUS * 1.0), KP(0.4, RADIUS * 1.45), KP(1, RADIUS * 1.5) }),
+		Transparency = NS({ KP(0, 1), KP(0.15, 0.4), KP(0.85, 0.3), KP(1, 1) }),
+		Lifetime = R(0.67), RotSpeed = R(28), Rotation = R(0, 360), ZOffset = 0.2,
+	}), { EmitCount = 1 })
+	if tier >= 4 then
+		B0.emitter(part, "Halo", B0.flat({
+			Texture = A.ornate, Color = CS(GOLD), LightEmission = 0.4,
+			Size = NS({ KP(0, RADIUS * 0.5), KP(0.5, RADIUS * 0.85), KP(1, RADIUS * 0.9) }),
+			Transparency = NS({ KP(0, 1), KP(0.15, 0.4), KP(0.85, 0.3), KP(1, 1) }),
+			Lifetime = R(0.67), RotSpeed = R(-40), Rotation = R(0, 360), ZOffset = 0.3,
+		}), { EmitCount = 1 })
+	end
+	return part
+end
+
+-- III+: a vertical rift torn in the sky above the landing (two tapered Beams,
+-- widened by the runtime while airborne), shedding sparks downward
+blocks.rift = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local h = ({ 0, 0, 14, 18 })[tier]
+	local part = B0.part(root, "Rift", CENTRE * CFrame.new(0, 6 + h / 2, 0))
+	part:SetAttribute("Width", ({ 0, 0, 1.1, 1.5 })[tier])
+	local top = B0.attach(part, "Top", V(0, h / 2, 0))
+	local mid = B0.attach(part, "Mid", V(0, 0, 0))
+	local bottom = B0.attach(part, "Bottom", V(0, -h / 2, 0))
+	for i, pair in { { top, mid, 0, 1 }, { mid, bottom, 1, 0 } } do
+		for layer, look in { Core = { coreOf(tier), 0, 0.5, 0.6 }, Glow = { AZURE, 0.35, 2.6, 0.4 } } do
+			local b = Instance.new("Beam")
+			b.Name = layer .. (if i == 1 then "Upper" else "Lower")
+			b.Attachment0, b.Attachment1 = pair[1], pair[2]
+			b.Width0, b.Width1 = 0, 0 -- the runtime opens it: Width * look[3] at Mid
+			b:SetAttribute("Scale", look[3])
+			b.FaceCamera = true
+			b.Color = CS(look[1])
+			b.Transparency = NS(look[2])
+			b.LightEmission, b.LightInfluence = look[4], 0
+			b.Segments = 2
+			b.Enabled = false
+			b.Parent = part
+		end
+	end
+	B0.emitter(part, "Sparks", {
+		Texture = A.spindle, Color = CS(coreOf(tier), AZURE), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Bottom, SpreadAngle = Vector2.new(10, 10),
+		Size = NS({ KP(0, 0.25), KP(1, 0) }), Squash = NS(2), Transparency = NS({ KP(0, 0.1), KP(1, 0.8) }),
+		Lifetime = R(0.3, 0.5), Speed = R(10, 18), LightEmission = 0.5, Rate = ({ 0, 0, 14, 22 })[tier],
+	})
+	part.Size = V(0.4, h * 0.6, 0.4)
+	return part
+end
+
+-- IV (III fainter): a giant phantom blade the runtime lays over the real one
+-- from the top of the leap down into the ground
+blocks.phantom = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local K = KIT_()
+	local holder = B0.part(root, "Phantom", O * CFrame.new(0, 6, 2))
+	holder:SetAttribute("Length", ({ 0, 0, 11, 14 })[tier]) -- studs, base to tip
+	holder:SetAttribute("Width", ({ 0, 0, 1.6, 2.1 })[tier])
+	holder:SetAttribute("StartTransparency", ({ 0, 0, 0.55, 0.25 })[tier])
+	holder:SetAttribute("Hold", 0.25)
+	holder:SetAttribute("Fade", 0.5)
+	-- blade body (Neon at IV, ForceField at III) plus a ForceField aura; the
+	-- tip is a wedge. Sizes are per stud of Length/Width, set at runtime.
+	K.heldWave(holder, "Body", { color = if tier >= 4 then N_AZURE else N_PALE, material = if tier >= 4 then Enum.Material.Neon else Enum.Material.ForceField })
+	K.heldWave(holder, "Aura", { color = AZURE, material = Enum.Material.ForceField })
+	local _, tip = K.heldWave(holder, "Tip", { color = if tier >= 4 then N_AZURE else N_PALE, material = if tier >= 4 then Enum.Material.Neon else Enum.Material.ForceField })
+	-- swap the Tip's block for a wedge
+	local wedge = Instance.new("WedgePart")
+	wedge.Name = "Mesh"
+	wedge.Anchored, wedge.CanCollide, wedge.CanQuery, wedge.CanTouch, wedge.CastShadow = true, false, false, false, false
+	wedge.Material, wedge.Color, wedge.Transparency = tip.Material, tip.Color, 1
+	wedge.Parent = tip.Parent
+	tip:Destroy()
+	return holder
+end
+
+-- the bite: where the blade strikes the ground
+blocks.strike = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local q = pal(coreOf(tier))
+	q.part, q.at, q.light = "Strike", O * CFrame.new(0.4, 0.4, -3), false
+	local part = B0.releaseFlash(root, tier, q)
+	B0.emitter(part, "Splash", B0.flat({
+		Texture = A.hitRing, Color = CS(AZURE),
+		Size = NS({ KP(0, 0.5), KP(1, 2.4 + tier * 0.5) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.3), KP(1, 1) }),
+		Lifetime = R(0.25), LightEmission = 0.45, Rotation = R(0, 360), ZOffset = 0.5,
+	}), { EmitCount = 1 })
+	if tier >= 2 then
+		-- the pillar of light from the rift, down onto the blade's bite
+		KIT_().cylinderWave(part, "Pillar", {
+			color = N_AZURE, fromSize = V(30, ({ 0, 2.6, 3.2, 3.8 })[tier], ({ 0, 2.6, 3.2, 3.8 })[tier]), toSize = V(30, 0.3, 0.3),
+			fromOffset = V(0, 14.6, 0), toOffset = V(0, 14.6, 0),
+			fromTransparency = 0.3, toTransparency = 1, duration = ({ 0, 0.32, 0.38, 0.45 })[tier], style = "Quad", fadeStyle = "Quint",
+		})
+	end
+	B0.emitter(part, "Chips", {
+		Texture = A.dust, Color = CS(DUST), LightInfluence = 0.5,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40),
+		Size = NS({ KP(0, 0.7), KP(1, 1.8) }), Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
+		Lifetime = R(0.4, 0.65), Speed = R(9, 15), Drag = 4, Rotation = R(0, 360),
+	}, { EmitCount = 3 + tier })
+	return part
+end
+
+-- the slam's ground wave and everything that rolls out with it
+blocks.slam = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local q = pal(coreOf(tier))
+	q.part, q.radius, q.lifetime = "Slam", RADIUS, 0.36
+	local ground = B0.groundShockwave(root, tier, q)
+	ground.CFrame = CENTRE
+	-- the main torus a little bolder and slower for the showpiece
+	local gw = ground:FindFirstChild("GroundWave")
+	gw:SetAttribute("Duration", 0.5)
+	gw:SetAttribute("FromTransparency", 0.3)
+	gw:SetAttribute("FadeStyle", "Quint")
+	gw:SetAttribute("ToSize", V(RADIUS * 2, 2.2 + tier * 0.25, RADIUS * 2))
+	gw.Mesh.Color = Color3.fromRGB(105, 135, 255)
+	if tier >= 2 then
+		B0.meshWave(ground, "EchoWave", {
+			mesh = A.torus, color = N_AZURE,
+			fromSize = V(1.5, 0.2, 1.5), toSize = V(RADIUS * 1.7, 1.2, RADIUS * 1.7),
+			fromOffset = V(0, 0.25, 0), toOffset = V(0, 0.25, 0),
+			fromTransparency = 0.45, toTransparency = 1, duration = 0.55, style = "Quart", delay = 0.08,
+		}):SetAttribute("FadeStyle", "Quint")
+	end
+	if tier >= 3 then
+		B0.craterRing(root, tier, { parent = "Slam", attrs = {
+			Radius = RADIUS * 0.75, Count = ({ 0, 0, 10, 14 })[tier], Duration = 0.36,
+			Size = V(1.5, 1.1, 1.3), Lifetime = R(1.4, 1.8),
+		} })
+		B0.emitter(ground, "Crater", B0.flat({
+			Texture = A.crater, Color = CS(Color3.fromRGB(56, 52, 70)), LightInfluence = 0.4,
+			Size = NS(({ 0, 0, 3.6, 4.6 })[tier]), Transparency = NS({ KP(0, 1), KP(0.04, 0.2), KP(0.7, 0.35), KP(1, 1) }),
+			Lifetime = R(1.8), Rotation = R(0, 360), ZOffset = -0.3,
+		}), { EmitCount = 1 })
+		B0.emitter(ground, "Cracks", B0.flat({
+			Texture = A.crack, Color = CS(INK), LightInfluence = 0.3,
+			Size = NS(({ 0, 0, 6.5, 8.5 })[tier]), Transparency = NS({ KP(0, 1), KP(0.04, 0.15), KP(0.65, 0.3), KP(1, 1) }),
+			Lifetime = R(1.9), Rotation = R(0, 360), ZOffset = -0.4,
+		}), { EmitCount = 1 })
+	end
+	if tier >= 4 then
+		local shell = B0.shockwaveShell(root, tier, {
+			name = "Dome", mesh = A.dome, from = V(4, 1.5, 4), to = V(RADIUS * 2.1, 7, RADIUS * 2.1),
+			startColor = N_PALE, endColor = AZURE, y0 = 0.2, y1 = 0.2, spin = 40, duration = 0.5, startTransparency = 0.45,
+		})
+		shell:PivotTo(CENTRE)
+		local light = Instance.new("PointLight")
+		light.Name = "Light"
+		light.Color = AZURE
+		light.Range = 26
+		light.Brightness = 0 -- the runtime flashes it
+		light.Shadows = false
+		light.Parent = ground
+	end
+	B0.screenShake(root, tier, { parent = "Slam", magnitude = ({ 1.6, 2.2, 3.0, 3.8 })[tier], falloff = "30~110", frames = tier >= 4 })
+	return ground
+end
+
+blocks.fissure = function(root, tier)
+	local K = KIT_()
+	K.strips(root, tier, {
+		name = "Fissure", scar = "FissureScar", color = Color3.fromRGB(160, 186, 255), fadeColor = AZURE, ink = INK,
+		width = { { 0.34, 0.75 }, { 0.42, 0.9 }, { 0.5, 1.05 }, { 0.6, 1.25 } },
+		fade = { 0.5, 0.65, 0.8, 1.0 }, scarFade = { 1.2, 1.5, 1.8, 2.2 },
+	})
+	local B0 = _G.vfxBlocks
+	local path = B0.part(root, "FissurePath", O * CFrame.new(0, 0.2, -8), V(0.8, 0.2, 14))
+	if tier >= 2 then
+		B0.emitter(path, "Motes", {
+			Texture = A.mote, Color = CS(coreOf(tier), AZURE),
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
+			Size = NS({ KP(0, 0.28), KP(0.5, 0.22), KP(1, 0) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.2), KP(1, 1) }),
+			Lifetime = R(0.8, 1.2), Speed = R(1.5, 3.5), Drag = 1, LightEmission = 0.5, Rotation = R(0, 360),
+		}, { EmitCount = ({ 0, 8, 12, 16 })[tier], EmitDelay = 0.1 })
+	end
+	if tier >= 3 then
+		B0.emitter(path, "Cracks", B0.flat({
+			Texture = A.crackSmall, Color = CS(INK), LightInfluence = 0.3,
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			Size = NS(1.5), Transparency = NS({ KP(0, 1), KP(0.05, 0.3), KP(0.6, 0.45), KP(1, 1) }),
+			Lifetime = R(1.3, 1.7), Rotation = R(0, 360), ZOffset = -0.5,
+		}), { EmitCount = ({ 0, 0, 5, 7 })[tier] })
+	end
+	return path
+end
+
+-- the slam's heavy impact on each enemy
+blocks.impact = function(root, tier)
+	local q = pal(coreOf(tier))
+	local wave = pal(coreOf(tier))
+	wave.size = ({ 4.2, 5.2, 6.4, 7.8 })[tier]
+	wave.groundSize = ({ 4.4, 5.4, 6.8, 8.4 })[tier]
+	return _G.vfxBlocks.impactStack(root, tier, { burst = q, wave = wave })
+end
+
+local spec = {
+	id = "HeavenSplitter",
+	root = { attrs = { AuthoredRadius = RADIUS, AuthoredOffset = OFFSET } },
+	blocks = blocks,
+	beats = {
+		{ block = "windup" },
+		{ block = "edge" },
+		{ block = "lightImpact" },
+		{ block = "launch" },
+		{ block = "mark", from = 3 },
+		{ block = "rift", from = 3 },
+		{ block = "phantom", from = 3 },
+		{ block = "strike" },
+		{ block = "slam" },
+		{ block = "fissure" },
+		{ block = "impact" },
+	},
+}
+
+function spec.build(parent)
+	local B0 = _G.vfxBlocks
+	local built = {}
+	for tier = 1, 4 do
+		local name = spec.id .. "_T" .. tier
+		local old = parent:FindFirstChild(name)
+		if old then
+			old:Destroy()
+		end
+		local root = Instance.new("Model")
+		root.Name = name
+		for k, v in spec.root.attrs do
+			root:SetAttribute(k, v)
+		end
+		for _, beat in spec.beats do
+			if tier >= (beat.from or 1) and tier <= (beat.to or 4) then
+				local fn = blocks[beat.block] or B0.BLOCKS[beat.block]
+				assert(fn, "unknown block " .. tostring(beat.block))
+				fn(root, tier, beat.params or {})
+			end
+		end
+		root.WorldPivot = O
+		root.Parent = parent
+		table.insert(built, root)
+	end
+	return built
+end
+
+return spec
+	end)
+	if ok then _G.vfxSpecs["HeavenSplitter"] = spec end
+	table.insert(installed, "spec HeavenSplitter: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/LightningTalisman.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Lightning Talisman's templates (LightningTalisman_T1..T4) as a spec for
+-- vfxBlocks.buildFromSpec. Runtime: src/client/TechniqueFX/LightningTalisman.luau.
+--
+-- The shot (Fists.2: Hit 0.35, Hit Stop 0.433 of 0.70 s, played at 1.4x for
+-- the 0.25 s cast windup, so the active window is only 0.06 s; damage lands on
+-- the whole chain at Hit, and the bolts play on through recovery as a short
+-- visual stagger). Sampled: the LEFT hand reaches back past the right
+-- shoulder and is out in front-left, (-1.5, 3.8, -2.4) from the ground under
+-- the root, at Hit, then follows through across the body.
+--
+-- I (levels 1-3), "the paper calls the bolt"
+--   Windup (cast start -> Hit, caster only): violet motes gather into the
+--   left hand, a gold thunder glyph (雷) brightens in the palm, small arcs
+--   crackle round it.
+--   Release (Hit): a violet-white star flash on the live left hand; the
+--   talisman card (a real yellow paper part, red thunder glyph on both faces,
+--   a Neon violet rim, a crackling trail, shed sparks) leaves the hand
+--   tumbling end over end on a low arc to a point 3 studs above the first
+--   target (0.08-0.22 s by distance).
+--   Strike: the card flares (star flash, falling ash) and burns away in place
+--   over 0.32 s while a jagged bolt slams down from it into the target. Bolts
+--   are Beams with real width (a white core and a wide deep-violet glow per
+--   segment) on a jittered attachment chain that re-rolls ("flickers") 3
+--   times, snaps in, holds solid and thins out late: on screen 0.30 s.
+--   Hops: every HopDelay (0.12 s) a bolt leaps from the last target to the
+--   next in `chain` order, bowing up over the bodies (high near side to high
+--   near side) so the jump reads.
+--   Impact on every target: star flash, violet hit ring, sparks, the stood-up
+--   Neon impact torus facing the bolt (0.26 s) and a violet ground shock
+--   torus (0.34 s), plus crackling arcs flickering over the body (~0.4 s).
+--   Finale (the last target): the impact one tier up, an electric ring, a
+--   radial lightning splash on the ground (0.4 s), a camera shake.
+--   Fizzle (no target): the card flies to max range (24) on a slight dip, or
+--   stops at the wall or ground it meets, bursts (flash, impact torus, ground
+--   shock, swirl at II+, radial splash, paper embers, crackle) and earths a
+--   short bolt into the ground under it.
+-- II (4-6), "the seal answers"
+--   + one fork per bolt, sparks and an air ring off the release hand, a
+--     scorch mark (1.6 s) under every target, a turning rune seal (1.2 s)
+--     under the first target, impact swirl rings, LightningBeams sparks.
+-- III (7-9), "twin strands"
+--   + a double strand on every bolt, seals under every target, impact
+--     bubbles, a closing seal on the palm in the windup, and a Craters rock
+--     ring erupting at the finale.
+-- IV (10), "heaven's answer"
+--   + two forks per bolt, and the sky strike: a tall forked bolt from 55
+--     studs up through the card into the first target, a violet Neon pillar
+--     flash (0.4 s), a wide ground torus (0.5 s), a sunburst, the move's one
+--     PointLight (flashed and faded over 0.45 s) and an Explosion quake; the
+--     finale adds a swirl shell.
+--
+-- Game Module: with it, each bolt's main core is the LightningBeams add-on
+-- (Neon cylinder bolt, pulse 1/12 s, sparks II+) from the Bolt part's Arc
+-- attachment; the glow, second strand and forks stay Beams, and the shakes
+-- are ScreenEffects. Without it everything is Beams and CombatEffects.shake.
+--
+-- Root attributes (read by the runtime): HopDelay, Strands, Forks, BoltWidth,
+-- BoltLife, Segments, Jitter, Flickers, CardSpeed, SealTargets, SkyStrike.
+-- Parts: Windup (CombatEffects.windup), Hand (release), Card, Bolt (Beam
+-- looks + Arc), Impact, Finale, Fizzle, Sky (IV).
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local B = _G.vfxBlocks
+local O = CFrame.new()
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local VIOLET = Color3.fromRGB(200, 180, 255) -- def.color
+local CORE = Color3.fromRGB(246, 242, 255)
+local DEEP = Color3.fromRGB(150, 120, 255)
+local PAPER = Color3.fromRGB(240, 208, 126)
+local INK = Color3.fromRGB(176, 28, 34)
+local SCORCH = Color3.fromRGB(46, 34, 66)
+local EMBER = Color3.fromRGB(255, 190, 110)
+
+local LT = {
+	glyph = id(132774975653552), -- white "thunder" meander glyph (talisman ink)
+	arc = id(882168791), -- single jagged arc, transparent
+	arc2 = id(6127835958), -- bright forked arc
+	elecRing = id(112496740337235), -- ring of lightning
+	radial = id(301851161), -- radial lightning splash
+	seal = id(129093523368188), -- rune glyph ring
+}
+
+local COLORS = {
+	color = VIOLET, core = CORE, ringColor = Color3.fromRGB(176, 146, 255),
+	groundColor = Color3.fromRGB(156, 122, 255), swirlColor = Color3.fromRGB(140, 110, 250),
+}
+local function merged(extra)
+	local t = table.clone(COLORS)
+	for k, v in extra or {} do
+		t[k] = v
+	end
+	return t
+end
+
+-- crackling arcs flickering over a body (one emit; the Transparency wave is
+-- the flicker, the random Rotation/Size makes each arc different)
+local function crackle(parent, tier, count, size)
+	return B.emitter(parent, "Crackle", {
+		Texture = LT.arc, Color = CS(Color3.fromRGB(226, 216, 255), DEEP), LightEmission = 0.55,
+		Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		Size = NS({ KP(0, size * 0.6), KP(0.2, size), KP(1, size * 0.8) }),
+		Transparency = NS({ KP(0, 0), KP(0.15, 0.7), KP(0.25, 0), KP(0.4, 0.8), KP(0.5, 0.05), KP(0.7, 0.9), KP(0.8, 0.2), KP(1, 1) }),
+		Lifetime = R(0.3, 0.45), Rotation = R(0, 360), ZOffset = 2.4,
+	}, { EmitCount = count })
+end
+
+-- ---------------------------------------------------------------- custom blocks
+
+-- The talisman card: paper part, glyph decals, violet rim, trail and sparks.
+-- Everything starts hidden/disabled; the runtime shows it for the flight.
+local function card(root, tier, p)
+	local c = B.part(root, "Card", O * CFrame.new(-1.5, 3.8, -2.4), Vector3.new(1, 1.7, 0.05))
+	c.Material = Enum.Material.SmoothPlastic
+	c.Color = PAPER
+	for _, face in { Enum.NormalId.Front, Enum.NormalId.Back } do
+		local d = Instance.new("Decal")
+		d.Name = face.Name
+		d.Face = face
+		d.Texture = LT.glyph
+		d.Color3 = INK
+		d.Transparency = 1
+		d.Parent = c
+	end
+	local rim = Instance.new("Part")
+	rim.Name = "Rim"
+	rim.Anchored, rim.CanCollide, rim.CanQuery, rim.CanTouch, rim.CastShadow = true, false, false, false, false
+	rim.Material = Enum.Material.Neon
+	rim.Color = VIOLET
+	rim.Size = Vector3.new(1.18, 1.88, 0.03)
+	rim.Transparency = 1
+	rim.CFrame = c.CFrame
+	rim.Parent = c
+	local a0 = B.attach(c, "TrailTop", Vector3.new(0, 0.75, 0))
+	local a1 = B.attach(c, "TrailBottom", Vector3.new(0, -0.75, 0))
+	local trail = Instance.new("Trail")
+	trail.Name = "Trail"
+	trail.Attachment0, trail.Attachment1 = a0, a1
+	trail.Color = CS(CORE, DEEP)
+	trail.Transparency = NS({ KP(0, 0.15), KP(1, 1) })
+	trail.WidthScale = NS({ KP(0, 1), KP(1, 0.2) })
+	trail.Lifetime = 0.12 + tier * 0.02
+	trail.LightEmission = 0.6
+	trail.LightInfluence = 0
+	trail.FaceCamera = true
+	trail.Enabled = false
+	trail.Parent = c
+	-- sparks shed while it flies (Rate, enabled by the runtime during flight)
+	local sparks = B.emitter(c, "Sparks", {
+		Texture = B.ASSETS.spindle, Color = CS(CORE, VIOLET), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		SpreadAngle = Vector2.new(180, 180), Size = NS({ KP(0, 0.18), KP(1, 0) }), Squash = NS(2),
+		Lifetime = R(0.1, 0.18), Speed = R(6, 12), Drag = 6, LightEmission = 0.6,
+	})
+	sparks.Rate = ({ 30, 40, 50, 60 })[tier]
+	local glow = B.emitter(c, "Aura", {
+		Texture = B.ASSETS.glow, Color = CS(VIOLET), LightEmission = 0.5,
+		Size = NS({ KP(0, 1.1), KP(1, 0.6) }), Transparency = NS({ KP(0, 0.45), KP(1, 1) }),
+		Lifetime = R(0.12), LockedToPart = true,
+	})
+	glow.Rate = 30
+	-- the flare when the card calls the strike (the runtime emits it once)
+	B.emitter(c, "Flare", {
+		Texture = B.ASSETS.star4, Color = CS(CORE), LightEmission = 0.8,
+		Size = NS({ KP(0, 0.5), KP(0.3, 2.2 + tier * 0.4), KP(1, 0) }), Transparency = NS(0),
+		Lifetime = R(0.18), Rotation = R(-20, 20), ZOffset = 1.5,
+	}, { EmitCount = 1 })
+	B.emitter(c, "Ash", {
+		Texture = B.ASSETS.spindle, Color = CS(EMBER, INK), LightEmission = 0.3,
+		SpreadAngle = Vector2.new(180, 180), Acceleration = Vector3.new(0, -6, 0),
+		Size = NS({ KP(0, 0.14), KP(1, 0.04) }), Transparency = NS({ KP(0, 0), KP(0.7, 0.3), KP(1, 1) }),
+		Lifetime = R(0.4, 0.7), Speed = R(2, 5), Drag = 2, Rotation = R(0, 360), RotSpeed = R(-200, 200),
+	}, { EmitCount = 4 + tier })
+	return c
+end
+
+-- The bolt look: Beam templates the runtime clones onto each jittered segment
+-- (Core: thin white-violet, Glow: wide soft violet), plus the LightningBeams
+-- Arc. Unattached here.
+local function bolt(root, tier, p)
+	local holder = B.part(root, "Bolt", O)
+	local function beam(name, props)
+		local b = Instance.new("Beam")
+		b.Name = name
+		b.Segments = 1
+		b.FaceCamera = true
+		b.LightInfluence = 0
+		b.Enabled = false
+		for k, v in props do
+			b[k] = v
+		end
+		b.Parent = holder
+		return b
+	end
+	beam("Core", {
+		Color = CS(CORE), LightEmission = 0.8, Brightness = 1, Transparency = NS(0),
+		Width0 = 1, Width1 = 1, -- the runtime sets widths from BoltWidth
+	})
+	beam("Glow", {
+		Texture = B.ASSETS.glow, TextureMode = Enum.TextureMode.Stretch, TextureLength = 1,
+		Color = CS(DEEP), LightEmission = 0.45, Transparency = NS(0.25), Width0 = 1, Width1 = 1,
+	})
+	-- LightningBeams add-on (Game Module only): an attachment with a "B"
+	-- endpoint child draws a pulse-driven bolt of Neon cylinders from it to B.
+	-- The runtime clones Arc per strike, sets B, emits it and then skips its
+	-- own Core strand (the Glow beams and the second strand still draw).
+	local arc = B.attach(holder, "Arc", Vector3.zero, {
+		Duration = ({ 0.3, 0.33, 0.36, 0.4 })[tier], Thickness = ({ 0.3, 0.36, 0.42, 0.5 })[tier],
+		PartCount = ({ 10, 12, 12, 14 })[tier], PulseSpeed = 12, FadeLength = 0.25, Frequency = 1.2, Speed = 6,
+		Radius = R(0, ({ 0.8, 0.9, 1, 1.2 })[tier]), ThicknessMultiplier = R(0.4, 1),
+		Color = CORE, MaxSparkCount = ({ 0, 2, 3, 4 })[tier], SparkDistance = R(1, 2.5),
+	})
+	B.attach(arc, "B", Vector3.new(0, -4, 0))
+	return holder
+end
+
+-- One target hit: flash, hit ring, sparks, the 3D impact torus and ground
+-- shock (swirl/bubble by tier), crackling arcs on the body, II+ scorch and a
+-- rune seal (the runtime limits seals to SealTargets).
+local function impact(root, tier, p)
+	local name = p.part or "Impact"
+	local t = p.tier or tier
+	local part = B.impactBurst(root, t, merged({ part = name }))
+	B.impactShockwave(root, t, merged({ part = name, size = p.size, groundSize = p.groundSize }))
+	local body = part:FindFirstChild("Body")
+	crackle(body, t, p.crackles or ({ 3, 4, 5, 6 })[t], p.crackleSize or (1.1 + t * 0.15))
+	if t >= 2 and p.scorch ~= false then
+		B.emitter(part, "Scorch", B.flat({
+			Texture = B.ASSETS.crack, Color = CS(SCORCH), LightInfluence = 0.4,
+			Size = NS(1.2 + t * 0.35), Transparency = NS({ KP(0, 1), KP(0.04, 0.15), KP(0.6, 0.3), KP(1, 1) }),
+			Lifetime = R(1.6), Rotation = R(0, 360), ZOffset = 0.05,
+		}), { EmitCount = 1 })
+	end
+	if t >= 2 and p.seal ~= false then
+		B.emitter(part, "Seal", B.flat({
+			Texture = LT.seal, Color = CS(VIOLET), LightEmission = 0.45,
+			Size = NS({ KP(0, 0.8), KP(0.2, 2.4 + t * 0.3), KP(1, 2.8 + t * 0.3) }), Transparency = NS({ KP(0, 0.15), KP(0.55, 0.3), KP(1, 1) }),
+			Lifetime = R(1.2), RotSpeed = R(90), Rotation = R(0, 360), ZOffset = 0.2,
+		}), { EmitCount = 1 })
+	end
+	return part
+end
+
+-- The last strike: the impact one tier up plus an electric ring, a radial
+-- splash on the ground, a camera shake, III+ a rock ring, IV a swirl shell.
+local function finale(root, tier, p)
+	local t = math.min(tier + 1, 4)
+	local part = impact(root, tier, { part = "Finale", tier = t, size = ({ 4.8, 5.9, 7.2, 8.6 })[tier], groundSize = ({ 5.5, 6.8, 8.4, 10 })[tier], crackles = ({ 5, 6, 7, 8 })[tier] })
+	local body = part:FindFirstChild("Body")
+	B.emitter(body, "ElecRing", {
+		Texture = LT.elecRing, Color = CS(CORE, VIOLET), LightEmission = 0.7,
+		Size = NS({ KP(0, 0.6), KP(0.35, 3 + tier * 0.5), KP(1, 3.6 + tier * 0.6) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.3), KP(1, 1) }),
+		Lifetime = R(0.36), Rotation = R(0, 360), RotSpeed = R(-90, 90), ZOffset = 3,
+	}, { EmitCount = 1 })
+	B.emitter(part, "Splash", B.flat({
+		Texture = LT.radial, Color = CS(VIOLET), LightEmission = 0.6,
+		Size = NS({ KP(0, 1), KP(0.25, 3 + tier * 0.6), KP(1, 3.4 + tier * 0.7) }), Transparency = NS({ KP(0, 0), KP(0.5, 0.35), KP(1, 1) }),
+		Lifetime = R(0.4), Rotation = R(0, 360), ZOffset = 0.3,
+	}), { EmitCount = 1 })
+	B.screenShake(root, tier, { parent = "Finale", name = "Shake", magnitude = ({ 1, 1.4, 2, 2.6 })[tier], falloff = "20~70" })
+	if tier >= 3 then
+		B.craterRing(root, tier, {
+			parent = "Finale", name = "RockRing", radius = 2.8,
+			attrs = { Count = tier == 4 and 8 or 6, Duration = 0.12, Variance = 0.6, Size = Vector3.new(1, 0.8, 0.9), Lifetime = R(0.9, 1.2), RaycastDistance = 8 },
+		})
+	end
+	if tier >= 4 then
+		B.meshWave(part, "Shell", {
+			mesh = B.ASSETS.swirlMesh, color = CORE,
+			fromSize = Vector3.new(2, 0.6, 2), toSize = Vector3.new(11, 1.4, 11),
+			fromOffset = Vector3.new(0, 0.5, 0), toOffset = Vector3.new(0, 0.9, 0),
+			fromTransparency = 0.35, toTransparency = 1, duration = 0.4, style = "Quart",
+		})
+	end
+	return part
+end
+
+-- No target: the card bursts where it ends and earths a bolt into the ground.
+local function fizzle(root, tier, p)
+	local part = B.impactBurst(root, tier, merged({ part = "Fizzle" }))
+	B.impactShockwave(root, tier, merged({ part = "Fizzle", size = ({ 3.6, 4.4, 5.2, 6.2 })[tier], groundSize = ({ 4.6, 5.6, 6.8, 8 })[tier], swirl = tier >= 2, bubble = tier >= 3 }))
+	B.emitter(part:FindFirstChild("Body"), "Embers", {
+		Texture = B.ASSETS.spindle, Color = CS(Color3.fromRGB(255, 236, 190), EMBER), LightEmission = 0.5,
+		SpreadAngle = Vector2.new(180, 180), Acceleration = Vector3.new(0, -14, 0),
+		Size = NS({ KP(0, 0.16), KP(1, 0.05) }), Squash = NS(1.2), Transparency = NS({ KP(0, 0), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(0.5, 0.8), Speed = R(6, 12), Drag = 2, Rotation = R(0, 360), RotSpeed = R(-200, 200), ZOffset = 2,
+	}, { EmitCount = 6 + tier * 2 })
+	crackle(part:FindFirstChild("Body"), tier, 2 + tier, 1)
+	B.emitter(part, "Splash", B.flat({
+		Texture = LT.radial, Color = CS(VIOLET), LightEmission = 0.6,
+		Size = NS({ KP(0, 0.8), KP(0.25, 2.4 + tier * 0.5), KP(1, 2.8 + tier * 0.6) }), Transparency = NS({ KP(0, 0), KP(0.5, 0.35), KP(1, 1) }),
+		Lifetime = R(0.4), Rotation = R(0, 360), ZOffset = 0.3,
+	}), { EmitCount = 1 })
+	return part
+end
+
+-- IV: the sky strike on the first target (the runtime draws the tall bolt).
+local function sky(root, tier, p)
+	local part = B.part(root, "Sky", O * CFrame.new(0, 0.2, -6))
+	local pillar = Instance.new("Model")
+	pillar.Name = "Pillar"
+	for k, v in {
+		MeshWave = true, FromSize = Vector3.new(60, 1.3, 1.3), ToSize = Vector3.new(60, 0.1, 0.1),
+		FromOffset = Vector3.new(0, 30, 0), ToOffset = Vector3.new(0, 30, 0), Rotation = Vector3.new(0, 0, 90),
+		FromTransparency = 0.3, ToTransparency = 1, Duration = 0.4, Style = "Quad", FadeStyle = "Quart",
+	} do
+		pillar:SetAttribute(k, v)
+	end
+	local cyl = Instance.new("Part")
+	cyl.Name = "Mesh"
+	cyl.Shape = Enum.PartType.Cylinder
+	cyl.Anchored, cyl.CanCollide, cyl.CanQuery, cyl.CanTouch, cyl.CastShadow = true, false, false, false, false
+	cyl.Material = Enum.Material.Neon
+	cyl.Color = Color3.fromRGB(196, 172, 255)
+	cyl.Transparency = 1
+	cyl.Parent = pillar
+	pillar.Parent = part
+	B.meshWave(part, "SkyWave", {
+		mesh = B.ASSETS.torusMesh, color = COLORS.ringColor,
+		fromSize = Vector3.new(2, 0.3, 2), toSize = Vector3.new(16, 1.5, 16),
+		fromOffset = Vector3.new(0, 0.3, 0), toOffset = Vector3.new(0, 0.3, 0),
+		fromTransparency = 0.3, toTransparency = 1, duration = 0.5, style = "Quart",
+	})
+	B.emitter(part, "Rays", B.flat({
+		Texture = B.ASSETS.rays, Color = CS(VIOLET), LightEmission = 0.5,
+		Size = NS({ KP(0, 2), KP(1, 8) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+		Lifetime = R(0.4), Rotation = R(0, 360),
+	}), { EmitCount = 1 })
+	local light = Instance.new("PointLight")
+	light.Name = "Light"
+	light.Color = VIOLET
+	light.Range = 26
+	light.Brightness = 0 -- the runtime flashes it and fades it out
+	light.Shadows = false
+	light.Parent = part
+	B.screenShake(root, tier, { parent = "Sky", name = "Quake", preset = "Explosion", falloff = "20~80" })
+	return part
+end
+
+-- the glyph brightening in the palm during the windup
+local function glyph(root, tier, p)
+	local windup = root:FindFirstChild("Windup")
+	return B.emitter(windup, "Glyph", B.flat({
+		Texture = LT.glyph, Color = CS(PAPER), LightEmission = 0.5,
+		Size = NS({ KP(0, 0.2), KP(1, 0.55 + tier * 0.05) }), Transparency = NS({ KP(0, 1), KP(0.5, 0.4), KP(1, 0) }),
+		Lifetime = R(0.25), LockedToPart = true, ZOffset = 1,
+	}, Enum.NormalId.Front), { EmitCount = 1 })
+end
+
+-- crackling sparks around the hand during the windup
+local function handArcs(root, tier, p)
+	local windup = root:FindFirstChild("Windup")
+	return crackle(windup, tier, ({ 2, 3, 3, 4 })[tier], 0.7)
+end
+
+for name, fn in { card = card, bolt = bolt, impact = impact, finale = finale, fizzle = fizzle, sky = sky, glyph = glyph, handArcs = handArcs } do
+	B.BLOCKS["LightningTalisman." .. name] = fn
+end
+
+local function per(list)
+	return list
+end
+
+local spec
+spec = {
+	id = "LightningTalisman",
+	root = { attrs = { AuthoredWindup = 0.25 } },
+	tierAttrs = {
+		HopDelay = per({ 0.12, 0.11, 0.1, 0.09 }),
+		Strands = per({ 1, 1, 2, 2 }),
+		Forks = per({ 0, 1, 1, 2 }),
+		BoltWidth = per({ 0.42, 0.46, 0.5, 0.56 }),
+		BoltLife = per({ 0.3, 0.33, 0.36, 0.4 }),
+		Segments = per({ 5, 6, 6, 7 }),
+		Jitter = per({ 0.9, 1, 1.1, 1.25 }),
+		Flickers = per({ 3, 3, 3, 4 }),
+		CardSpeed = per({ 110, 115, 120, 125 }),
+		SealTargets = per({ 0, 1, 9, 9 }),
+		SkyStrike = per({ false, false, false, true }),
+	},
+	beats = {
+		-- windup: qi sparks and the glyph gather into the left hand
+		{ block = "handGather", params = { color = VIOLET, core = CORE, windup = 0.25 } },
+		{ block = "LightningTalisman.glyph" },
+		{ block = "LightningTalisman.handArcs" },
+		-- release off the left hand
+		{ block = "releaseFlash", params = { part = "Hand", at = O * CFrame.new(-1.5, 3.8, -2.4), color = VIOLET, core = CORE, light = false } },
+		{ block = "airShockwave", from = 2, params = { part = "Hand", count = 1, color = COLORS.ringColor } },
+		-- the card and the bolt look
+		{ block = "LightningTalisman.card" },
+		{ block = "LightningTalisman.bolt" },
+		-- per-target impact, the finale on the last, the fizzle when nothing is hit
+		{ block = "LightningTalisman.impact" },
+		{ block = "LightningTalisman.finale" },
+		{ block = "LightningTalisman.fizzle" },
+		-- IV: the sky strike
+		{ block = "LightningTalisman.sky", from = 4 },
+	},
+}
+
+-- buildFromSpec plus the per-tier tuning attributes on each root:
+-- _G.vfxSpecs.LightningTalisman.build(parent)
+function spec.build(parent)
+	local built = B.buildFromSpec(spec, parent)
+	for tier, root in built do
+		for k, list in spec.tierAttrs do
+			root:SetAttribute(k, list[tier])
+		end
+	end
+	return built
+end
+
+return spec
+	end)
+	if ok then _G.vfxSpecs["LightningTalisman"] = spec end
+	table.insert(installed, "spec LightningTalisman: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/MethodAura.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Builder for ReplicatedStorage.Effects.MethodAura: one aura per cultivation
+-- method (art brief docs/systems/auras.md), drawn on a seated player
+-- (Meditating + Method attributes) by src/client/MethodAura.luau.
+-- Run through execute_luau in Edit mode (served by tools/receive_rbxmx.py,
+-- after tools/vfx_blocks.luau so _G.vfxBlocks exists):
+--   local m = Instance.new("ModuleScript"); m.Source = HttpService:GetAsync(
+--     "http://127.0.0.1:8766/vfx_specs/MethodAura.luau"); require(m)
+--   _G.buildMethodAura(staging)   -- staging = vfxStage.begin(who)
+--   _G.buildMethodAura(staging, { only = { "BlazingHeart" } })
+-- It replaces staging.MethodAura; with `only`, just those methods' models,
+-- leaving every other method (and any hand edits on it) untouched.
+--
+-- MethodAura (Folder; attributes Breath = seconds per breath, FadeIn, FadeOut)
+--   <MethodId> (Model; Rhythm = "burst" for irregular bursts instead of the
+--   breath, BreathAt = phase 0..1 of the breath beat, default 0.5 = the exhale)
+--     Ground  parts relative to the ground under the player (pivot at the
+--             origin, +Y up, -Z = the player's facing)
+--     Body    parts with `Point` (a body point: Head, Crown, Mouth, Neck,
+--             Chest, ChestL/R, Belly, SideL/R, Dantian, L/RShoulder, L/RElbow,
+--             L/RHand, L/RHip, L/RKnee, L/RFoot, or Lap = between the hands);
+--             the part's CFrame is its offset from that point (yaw-aligned)
+--     Limbs   ParticleEmitters, `On` = body groups (Head, Torso, Arms, Hands,
+--             Legs): cloned onto each of those body parts (R6 or R15)
+--     Lines   Beams with `From`/`To` (body points, or the name of an
+--             Attachment in Ground); `Segs` + `Jag` (studs) make a jagged
+--             chain re-jagged on each burst; `Dots` (studs) puts a glow dot
+--             at each end (`DotColor`, `DotImage`)
+--     Shell*  parts copied round every body part, `Pad` studs larger (a
+--             glowing skin: the outline/body glow); Highlights are avoided
+--             because the map already uses hundreds (only 31 render)
+--     Breath  emitted on each breath beat (or burst); its parts with `Point`
+--             (and optional CFrame `Rel`) are moved to that body point first
+--     Ignite  emitted when the player sits (once all the way down),
+--             switches to this method or breaks through; Limbs emitters with
+--             `Surge` = n also Emit(n) then
+--     Punch   a recurring pulse (a lighter ignition) fired on the breath's beat
+--             every `PunchEvery` (NumberRange, whole breaths) breaths, up to
+--             `PunchJitter` seconds late, in place of that beat's Breath; that
+--             breath's Swell is `PunchSwell` times larger; Limbs emitters with
+--             `PunchSurge` = n Emit(n) then. Attributes on the method's Model.
+-- Animation attributes on parts (and Lines where they make sense):
+--   Pulse   NumberRange: transparency at breath peak..rest (template parts
+--           stay at Transparency 1, so nothing shows unplayed)
+--   Grow    NumberRange: size scale rest..peak (GrowIn = true: peak..rest)
+--   Lift    studs moved up at the peak (negative settles down)
+--   Spin    deg/s orbit about the aura's axis;  Turn  deg/s about its own Y
+--   Bob     studs of slow sine drift;  Tumble deg/s;  Flicker 0..1 random dimming
+--   Kick    extra opacity (and size) flashed on each breath beat and pulse
+--   Rise    studs drifted up over RisePeriod seconds (default 6), fading in at
+--           the bottom and out at the top, then again (a layer replaced)
+--   Delay   seconds after the aura starts before it fades in (growth)
+--   Hidden  keep the part invisible and breathe only its SurfaceGui image
+-- Emitters: loop ones carry EmitDuration = -1 (the plugin's T shows them);
+-- `Scaled` ones get the method grade's rate multiplier; `Breathe` ones run
+-- faster on the inhale (true: the old 0.2..1.5 curve; a NumberRange lo..hi:
+-- that rate multiplier at rest..peak; Limbs emitters may breathe too);
+-- `Prime = n` emits n at once when the aura starts (slow ground loops show at
+-- once); `Swell = k` scales the emitter's Size by 1 + k at the breath's
+-- peak, kicks on the beat and grows with the ignition and pulses (Ground, Body
+-- and Limbs emitters); `Drift = k` adds a slow size wander of +-k.
+-- Colours are baked per method (no tinting).
+
+local B = _G.vfxBlocks
+assert(B, "load tools/vfx_blocks.luau (or vfx_session.luau) first")
+
+local function id(n)
+	return "rbxassetid://" .. n
+end
+
+local A = {
+	glow = id(867619398),
+	glowDot = id(9841273544),
+	softRing = id(15611941586),
+	thinRing = id(9841273159),
+	wisp = id(9345352897),
+	torus = id(471124075),
+	swirlRing = id(129778117978668),
+	swirlRing2 = id(73349240058321),
+	star4 = id(13271628051),
+	star12 = id(243728206),
+	flame = id(265788038),
+	spark = id(9841260273),
+	bubble = id(249902641),
+	leaf = id(17259245248),
+	rocks = id(425665059),
+	dust = id(11037785287),
+	arcs = id(528280947),
+	windStreak = id(426653646),
+	puff = id(933102662),
+	mist = id(1084987899),
+	ice = id(18765221838),
+	shards = id(12402863766),
+	snow = id(94151281482069),
+	rune = id(83667248904000),
+}
+_G.MethodAuraAssets = A
+
+local NS, CS, KP, CK, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, ColorSequenceKeypoint.new, NumberRange.new
+local V3 = Vector3.new
+local rgb = Color3.fromRGB
+local LOOP = -1 -- EmitDuration: enable and never disable
+local up, front = Enum.NormalId.Top, Enum.NormalId.Front
+local disc, box, sphere = Enum.ParticleEmitterShape.Disc, Enum.ParticleEmitterShape.Box, Enum.ParticleEmitterShape.Sphere
+local surface, volume = Enum.ParticleEmitterShapeStyle.Surface, Enum.ParticleEmitterShapeStyle.Volume
+local streak = Enum.ParticleOrientation.VelocityParallel
+
+local function seq(...)
+	local v, kps = { ... }, {}
+	for i = 1, #v, 2 do
+		table.insert(kps, KP(v[i], v[i + 1]))
+	end
+	return NS(kps)
+end
+
+local function rnd(lo, hi)
+	local mid, env = (lo + hi) / 2, (hi - lo) / 2
+	return NS({ KP(0, mid, env), KP(1, mid, env) })
+end
+
+local function cseq(...)
+	local v, kps = { ... }, {}
+	for i = 1, #v, 2 do
+		table.insert(kps, CK(v[i], v[i + 1]))
+	end
+	return CS(kps)
+end
+
+local function attrs(inst, t)
+	for k, v in t or {} do
+		inst:SetAttribute(k, v)
+	end
+	return inst
+end
+
+local function model(name, parent, a)
+	local m = Instance.new("Model")
+	m.Name = name
+	attrs(m, a)
+	m.Parent = parent
+	return m
+end
+
+local function folder(name, parent)
+	local f = Instance.new("Folder")
+	f.Name = name
+	f.Parent = parent
+	return f
+end
+
+local function part(name, parent, cf, size, a)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+	p.Transparency = 1
+	p.Material = Enum.Material.Neon
+	p.Size = size or V3(0.2, 0.2, 0.2)
+	p.CFrame = cf or CFrame.new()
+	attrs(p, a)
+	p.Parent = parent
+	return p
+end
+
+local function ball(name, parent, d, cf, color, a)
+	local p = part(name, parent, cf, V3(d, d, d), a)
+	p.Shape = Enum.PartType.Ball
+	p.Color = color
+	return p
+end
+
+-- An ellipsoid: a Block with a Sphere SpecialMesh takes the part's size.
+local function ellipsoid(name, parent, size, cf, color, a, material)
+	local p = part(name, parent, cf, size, a)
+	p.Material = material or Enum.Material.Neon
+	p.Color = color
+	local sm = Instance.new("SpecialMesh")
+	sm.MeshType = Enum.MeshType.Sphere
+	sm.Parent = p
+	return p
+end
+
+local function mesh(meshId, parent, name, size, cf, color, a, material)
+	local m = B.mesh(meshId, parent, name, size, cf, color, material)
+	attrs(m, a)
+	return m
+end
+
+-- torus 471124075 is 150 x 9.51 x 150; a round tube is Y = D * 0.0634
+local function ring(d, fat)
+	return V3(d, d * 0.0634 * (fat or 1), d)
+end
+
+-- A looping emitter (off in the template; the runtime and the plugin's T enable it).
+local function loop(parent, name, props, a)
+	local e = Instance.new("ParticleEmitter")
+	e.Name = name
+	e.Rate = 1
+	e.Enabled = false
+	e.LightInfluence = 0
+	e.Speed = R(0)
+	e.Texture = A.glowDot
+	for k, v in props do
+		e[k] = v
+	end
+	attrs(e, { EmitDuration = LOOP })
+	attrs(e, a)
+	e.Parent = parent
+	return e
+end
+
+-- A one-shot emitter (EmitCount n).
+local function burst(parent, name, n, props, a)
+	local e = Instance.new("ParticleEmitter")
+	e.Name = name
+	e.Rate = 0
+	e.Enabled = false
+	e.LightInfluence = 0
+	e.Speed = R(0)
+	e.Texture = A.glowDot
+	for k, v in props do
+		e[k] = v
+	end
+	attrs(e, { EmitCount = n })
+	attrs(e, a)
+	e.Parent = parent
+	return e
+end
+
+local function wave(parent, name, p)
+	local w = B.meshWave(parent, name, p)
+	w:SetAttribute("FadeStyle", p.fadeStyle or "Quad")
+	return w
+end
+
+local function beam(parent, name, from, to, props, a)
+	local b = Instance.new("Beam")
+	b.Name = name
+	b.FaceCamera = true
+	b.Segments = 1
+	b.LightInfluence = 0
+	b.Enabled = false
+	b.ZOffset = 0.6 -- drawn just in front of the limb it runs along
+	for k, v in props do
+		b[k] = v
+	end
+	attrs(b, { From = from, To = to })
+	attrs(b, a)
+	b.Parent = parent
+	return b
+end
+
+-- A glowing skin: the runtime copies it round every body part (Pad studs
+-- larger) and breathes its transparency. ForceField reads as a rim glow.
+local function shell(parent, color, a, material, name)
+	local p = part(name or "Shell", parent, CFrame.new(), V3(1, 1, 1), a)
+	p.Material = material or Enum.Material.ForceField
+	p.Color = color
+	return p
+end
+
+local function light(parent, color, range, brightness)
+	local l = Instance.new("PointLight")
+	l.Color = color
+	l.Range = range
+	l.Brightness = brightness
+	l.Shadows = false
+	l.Enabled = false
+	l.Parent = parent
+	return l
+end
+
+-- A flat image on the ground: a hidden thin part with a SurfaceGui on top.
+-- `d` is a diameter or a Vector3 size (X/Z used); `y` a height or a CFrame.
+local function decalDisc(name, parent, d, y, image, color, a)
+	local size = if typeof(d) == "Vector3" then V3(d.X, 0.05, d.Z) else V3(d, 0.05, d)
+	local p = part(name, parent, if typeof(y) == "CFrame" then y else CFrame.new(0, y, 0), size, a)
+	p:SetAttribute("Hidden", true)
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = up
+	gui.LightInfluence = 0
+	gui.Brightness = 2
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 40
+	gui.Parent = p
+	local img = Instance.new("ImageLabel")
+	img.BackgroundTransparency = 1
+	img.Size = UDim2.fromScale(1, 1)
+	img.Image = image
+	img.ImageColor3 = color
+	img.ImageTransparency = 1
+	img.Parent = gui
+	return p
+end
+
+-- Points sit at the body (pivot is the ground; a seated R6 torso is ~1 up).
+local function at(point, rel, name, parent, size, a)
+	local p = part(name, parent, rel or CFrame.new(), size, a)
+	p:SetAttribute("Point", point)
+	return p
+end
+
+-- ---------------------------------------------------------------- Sect Breathing
+-- The basics: the first breathing every disciple learns. Qi is drawn in on
+-- the inhale and settles in the dantian on the exhale, over the sect's plain
+-- taiji. Modest on purpose (the starter, ranked after named methods), but
+-- every piece moves with the breath. Rebuilt 2026-10-21 from library
+-- emissions. Back to front:
+--   ground  a faint taiji turning slowly under you (its dark half is the
+--           dark base), a soft jade halo breathing round it
+--   body    a small jade dantian glow with a hot centre that swells with the
+--           breath; motes drawn in to it from about a body-width on the
+--           inhale; a faint qi vapour lifting off the head
+--   breath  the exhale settles: a glint at the dantian, a soft ring breathing
+--           out over the taiji, two or three motes rising off the belly
+--   ignite  a jade flash and star at the dantian, a ring and a low puff of
+--           qi over the ground, motes thrown up that drift back down
+-- No light, no shell, no parts drawn.
+
+local SECT_WHITE, SECT_JADE, SECT_DEEP = rgb(236, 255, 244), rgb(150, 235, 195), rgb(60, 170, 125)
+
+local SB = {
+	taiji = id(121707861781327), -- taiji (yin-yang), black and white
+	soft = id(243660373), -- soft round glow
+	dot = id(9841273544), -- small hard glow dot
+	twinkle = id(102648375149008), -- 4x4 flipbook: a 4-point sparkle growing and shrinking
+	star = id(13271102367), -- small 4-point star
+	ring = id(15611866526), -- soft wobbly ring
+	vapour = id(9345352897), -- curling wisp
+	puff = id(933102662), -- soft cloud puff
+}
+_G.SectBreathingAssets = SB
+
+local function sectBreathing(root)
+	local m = model("SectBreathing", root)
+	local grid4 = Enum.ParticleFlipbookLayout.Grid4x4
+
+	-- ground: the taiji (its dark half reads on grass), a halo breathing round it
+	local ground = model("Ground", m)
+	decalDisc("Taiji", ground, 8, 0.13, SB.taiji, SECT_WHITE, {
+		Pulse = R(0.4, 0.65), Turn = 8, Grow = R(0.97, 1.03), Kick = 0.35,
+	})
+	local floor = part("Floor", ground, CFrame.new(0, 0.1, 0), V3(0.1, 0.1, 0.1))
+	loop(floor, "Halo", B.flat({
+		Texture = SB.soft, Size = NS(3.6), Transparency = seq(0, 1, 0.3, 0.72, 0.7, 0.72, 1, 1), Color = CS(SECT_JADE),
+		Lifetime = R(4), Rate = 0.5, Rotation = R(0, 360), LightEmission = 0.6, ZOffset = 0,
+	}), { Prime = 2, Breathe = R(0.6, 1.4), Swell = 0.12, Drift = 0.05 })
+
+	-- body: the dantian, motes drawn in, qi vapour off the head
+	local body = model("Body", m)
+	local dantian = at("Belly", CFrame.new(0, 0, -0.15), "Dantian", body)
+	loop(dantian, "Glow", {
+		Texture = SB.soft, Size = NS(0.55), Transparency = seq(0, 1, 0.3, 0.35, 0.7, 0.35, 1, 1), Color = CS(SECT_JADE),
+		Lifetime = R(0.8), Rate = 3, LightEmission = 1, Brightness = 1.5, ZOffset = 1.2, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.55 })
+	loop(dantian, "Hot", {
+		Texture = SB.dot, Size = NS(0.11), Transparency = seq(0, 1, 0.3, 0.1, 1, 1), Color = CS(SECT_WHITE),
+		Lifetime = R(0.5), Rate = 4, LightEmission = 1, Brightness = 2.5, ZOffset = 1.3, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.4 })
+	local gather = at("Belly", CFrame.new(0, 0.1, 0), "Gather", body, V3(5.2, 3.8, 5.2))
+	loop(gather, "Motes", {
+		Texture = SB.dot, Shape = sphere, ShapeStyle = surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+		Size = seq(0, 0, 0.25, 0.06, 0.8, 0.05, 1, 0), Transparency = seq(0, 1, 0.3, 0.15, 1, 0.4),
+		Color = cseq(0, SECT_JADE, 1, SECT_WHITE), Lifetime = R(1.15, 1.25), Speed = R(2.2), Rate = 3, LightEmission = 1,
+		Brightness = 2, ZOffset = 0.5,
+	}, { Scaled = true, Breathe = R(0.15, 1.6) })
+
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Vapour", {
+		Texture = SB.vapour, Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = seq(0, 0.25, 1, 0.7),
+		Transparency = seq(0, 1, 0.35, 0.75, 1, 1), Color = cseq(0, SECT_WHITE, 1, SECT_JADE), Lifetime = R(1.4, 1.8),
+		Speed = R(0.6, 1), Acceleration = V3(0, 0.6, 0), Rotation = R(0, 360), RotSpeed = R(-30, 30), Rate = 0.8, LightEmission = 0.8,
+	}, { On = "Head", Scaled = true, Breathe = R(0.5, 1.4), Surge = 3 })
+
+	-- the exhale settles: a glint, a soft ring out over the taiji, motes rising
+	local breath = model("Breath", m)
+	local belly = at("Belly", CFrame.new(0, 0, -0.2), "Belly", breath)
+	burst(belly, "Glint", 1, {
+		Texture = SB.twinkle, FlipbookLayout = grid4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot, Size = NS(0.4),
+		Transparency = NS(0), Color = CS(SECT_WHITE), Lifetime = R(0.6), LightEmission = 1, Brightness = 2, ZOffset = 1.5,
+	})
+	burst(belly, "Motes", 3, {
+		Texture = SB.dot, Size = seq(0, 0, 0.2, 0.07, 1, 0), Transparency = seq(0, 0.2, 0.7, 0.35, 1, 1),
+		Color = cseq(0, SECT_WHITE, 1, SECT_JADE), Lifetime = R(1.8, 2.4), Speed = R(0.8, 1.3), SpreadAngle = Vector2.new(35, 35),
+		EmissionDirection = up, LightEmission = 1, Brightness = 2, Drag = 0.4, ZOffset = 0.8,
+	})
+	local settle = part("Floor", breath, CFrame.new(0, 0.18, 0))
+	burst(settle, "Ring", 1, B.flat({
+		Texture = SB.ring, Size = seq(0, 2.4, 1, 3.6), Transparency = seq(0, 0.55, 0.4, 0.6, 1, 1), Color = CS(SECT_JADE),
+		Lifetime = R(1.4), Rotation = R(0, 360), LightEmission = 0.8, Brightness = 1.5, ZOffset = 0.2,
+	}))
+
+	-- ignition: small and clean, a flash at the dantian and a breath out over the ground
+	local ignite = model("Ignite", m)
+	local core = at("Belly", CFrame.new(0, 0, -0.3), "Belly", ignite)
+	burst(core, "Flash", 1, {
+		Texture = SB.dot, Size = seq(0, 0.3, 0.15, 0.9, 1, 1.05), Transparency = seq(0, 0, 0.4, 0.45, 1, 1),
+		Color = cseq(0, SECT_WHITE, 1, SECT_JADE), Lifetime = R(0.35), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(core, "Star", 1, {
+		Texture = SB.star, Size = seq(0, 0.3, 0.25, 1.8, 1, 0), Transparency = NS(0), Color = CS(SECT_WHITE),
+		Lifetime = R(0.4), Rotation = R(0, 15), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(core, "Motes", 12, {
+		Texture = SB.dot, EmissionDirection = up, Size = seq(0, 0.09, 1, 0), Transparency = seq(0, 0, 0.7, 0.2, 1, 1),
+		Color = cseq(0, SECT_WHITE, 1, SECT_JADE), Lifetime = R(1.2, 1.8), Speed = R(4, 6.5), Drag = 2.5,
+		SpreadAngle = Vector2.new(55, 55), Acceleration = V3(0, -1.2, 0), LightEmission = 1, Brightness = 2.5, ZOffset = 1,
+	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3.6, 0.1, 3.6))
+	burst(base, "Ring", 1, B.flat({
+		Texture = SB.ring, Size = seq(0, 1.8, 1, 4.2), Transparency = seq(0, 0.1, 0.5, 0.45, 1, 1), Color = CS(SECT_JADE),
+		Lifetime = R(0.7), Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.3,
+	}))
+	burst(base, "Puff", 7, {
+		Texture = SB.puff, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
+		Size = seq(0, 0.5, 1, 1.2), Transparency = seq(0, 0.6, 1, 1), Color = CS(SECT_WHITE), Lifetime = R(0.8, 1.1),
+		Speed = R(4, 6), Drag = 3, Rotation = R(0, 360), LightEmission = 0.2, LightInfluence = 0.4,
+	})
+	return m
+end
+
+-- ---------------------------------------------------------------- Blazing Heart (Fire)
+-- A heart that burns (Mortal: small, close, rich). Rebuilt 2026-10-21 from
+-- layered library emissions (refs: docs/reference/vfx/fire_aura_smoke_outline,
+-- fire_aura_swirl_ground; Sol's RNG Holy Aura). Back to front:
+--   ground  scorch (dark base), heat pool, turning fire swirl, a hui-wen
+--           (meander) sigil ring turning the other way, small flames on its rim
+--   body    a flame mantle hugging the silhouette from behind (dark under
+--           bright), a white-hot heart core with a twinkling glint and the one
+--           light; flames licking off the arms and torso, a small crown of
+--           licks on the head, black smoke curling off the flame tips, embers
+--   breath  a heartbeat (lub-dub) at the chest, a ring pulsing out of the
+--           sigil, the mantle flaring, a puff of embers
+--   ignite  white flash and star at the heart, a starburst flare, flame jets
+--           roaring up round the body, a fire ring burning out over the
+--           ground, soot thrown low, an ember burst; limb flames surge
+
+local FIRE_WHITE, FIRE_CORE, FIRE, FIRE_DEEP = rgb(255, 248, 225), rgb(255, 214, 120), rgb(255, 130, 50), rgb(215, 50, 20)
+local SOOT = rgb(22, 10, 6)
+
+local BH = {
+	glow = id(867619398), -- soft round glow
+	dot = id(9841273544), -- small hard glow dot
+	star = id(13271628051), -- 4-point star
+	chroma = id(16366023815), -- 4-point lens glint, chromatic edges
+	twinkle = id(12156297119), -- 4x4 flipbook: star sparkle shrinking
+	starburst = id(13580358178), -- 4x4 flipbook: jagged starburst ring breaking up
+	mantle = id(81332883799807), -- 2x2 flipbook: a flame aura silhouette (spiky top, round base)
+	flame = id(17703378809), -- 4x4 flipbook: white flame tongue, birth to death
+	lick = id(7216854783), -- single curved flame tongue
+	jet = id(12363830081), -- spiky upward flame jet
+	spray = id(12363829856), -- spiky burst from the ground
+	soot = id(109022205002579), -- 4x4 flipbook: black smoke curl
+	swirl = id(14475273913), -- soft vortex swirl
+	sigil = id(16511732405), -- hui-wen (Greek key) ring
+	ring = id(12363693873), -- fuzzy ring
+	burnRing = id(121552805259111), -- 2x2 flipbook: a ring of fire burning out
+	ember = id(9841259562), -- comet streak
+}
+_G.BlazingHeartAssets = BH
+
+local grid2, grid4 = Enum.ParticleFlipbookLayout.Grid2x2, Enum.ParticleFlipbookLayout.Grid4x4
+local oneShot, loopFb = Enum.ParticleFlipbookMode.OneShot, Enum.ParticleFlipbookMode.Loop
+local fireColor = cseq(0, FIRE_WHITE, 0.25, FIRE_CORE, 0.6, FIRE, 1, FIRE_DEEP)
+
+local function blazingHeart(root)
+	-- a pulse (the Punch model) every 1 or 2 breaths, on the beat, up to 0.6 s
+	-- late; that breath swells 1.4x as far
+	local m = model("BlazingHeart", root, { PunchEvery = R(1, 2), PunchJitter = 0.6, PunchSwell = 1.4 })
+
+	-- ground: the figure's seat (within ~1 body-width)
+	local ground = model("Ground", m)
+	local floor = part("Floor", ground, CFrame.new(0, 0.12, 0), V3(3.4, 0.1, 3.4))
+	loop(floor, "Scorch", B.flat({ -- dark base under everything bright
+		Texture = BH.glow, Size = NS(3), Transparency = seq(0, 1, 0.2, 0.3, 0.8, 0.3, 1, 1), Color = CS(SOOT),
+		Lifetime = R(4), Rate = 0.5, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Heat", B.flat({
+		Texture = BH.glow, Size = NS(1.9), Transparency = seq(0, 1, 0.25, 0.45, 0.75, 0.45, 1, 1), Color = CS(FIRE),
+		Lifetime = R(3), Rate = 0.67, Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.05,
+	}), { Prime = 2, Breathe = R(0.6, 1.6), Swell = 0.15, Drift = 0.06 })
+	loop(floor, "Swirl", B.flat({
+		Texture = BH.swirl, Size = seq(0, 1.7, 1, 2.3), Transparency = seq(0, 1, 0.3, 0.2, 0.7, 0.3, 1, 1),
+		Color = cseq(0, FIRE_CORE, 0.5, FIRE, 1, FIRE_DEEP), Lifetime = R(2.4), Rate = 1, Rotation = R(0, 360),
+		RotSpeed = R(70, 90), LightEmission = 1, Brightness = 4, ZOffset = 0.1,
+	}), { Prime = 2, Breathe = R(0.6, 1.4), Swell = 0.12, Drift = 0.08 })
+	-- the sigils are flat images (a turning particle would cross-fade out of
+	-- step). Each moves its own way: turning, breathing in size (more into a
+	-- pulse), flashing brighter on the heartbeat and the pulses (Kick), and
+	-- the raised ones drifting up, fading at the top and starting again (Rise)
+	decalDisc("Sigil", ground, 4.7, 0.16, BH.sigil, FIRE_CORE, {
+		Pulse = R(0.05, 0.3), Turn = -14, Grow = R(0.95, 1.05), Kick = 0.6,
+	})
+	-- three raised sigils the user added by hand in Studio (2026-10-21), kept
+	-- at their rough sizes and heights but centred and level on the body axis
+	-- (their image and colour were lost, so they follow the ground sigil)
+	decalDisc("Sigil2", ground, 9, CFrame.new(0, 1.89, 0), BH.sigil, FIRE_CORE, {
+		Pulse = R(0.3, 0.6), Turn = 9, Grow = R(0.96, 1.05), Kick = 0.5, Rise = 0.6, RisePeriod = 7,
+	})
+	decalDisc("Sigil3", ground, 8.2, CFrame.new(0, 1.63, 0), BH.sigil, FIRE, {
+		Pulse = R(0.35, 0.65), Turn = -6, Grow = R(0.94, 1.06), Kick = 0.5, Rise = 0.5, RisePeriod = 9,
+	})
+	decalDisc("Sigil4", ground, 6.6, CFrame.new(0, 2.66, 0), BH.sigil, FIRE_CORE, {
+		Pulse = R(0.3, 0.6), Turn = 16, Grow = R(0.95, 1.07), Kick = 0.6, Rise = 0.4, RisePeriod = 6,
+	})
+	local rim = part("Rim", ground, CFrame.new(0, 0.15, 0), V3(3.6, 0.1, 3.6))
+	loop(rim, "RimFlames", {
+		Texture = BH.flame, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = surface, EmissionDirection = up, Size = seq(0, 0.25, 0.4, 0.42, 1, 0.12),
+		Transparency = seq(0, 1, 0.15, 0.1, 0.8, 0.35, 1, 1), Color = fireColor, Lifetime = R(0.5, 0.7),
+		Speed = R(0.6, 1.2), Acceleration = V3(0, 3, 0), Rotation = R(-10, 10), Rate = 9, LightEmission = 0.7,
+		Brightness = 2, ZOffset = 0.3,
+	}, { Scaled = true, Breathe = R(0.5, 1.5), Swell = 0.2, Drift = 0.1 })
+
+	-- body: the heart and the mantle
+	local body = model("Body", m)
+	local core = at("Chest", CFrame.new(0, 0, -0.2), "Heart", body)
+	light(core, FIRE, 9, 1.6)
+	loop(core, "Glow", {
+		Texture = BH.dot, Size = NS(0.55), Transparency = seq(0, 1, 0.3, 0.3, 1, 1), Color = cseq(0, FIRE_CORE, 1, FIRE),
+		Lifetime = R(0.45), Rate = 6, LightEmission = 1, Brightness = 2, ZOffset = 1.5, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.5 })
+	loop(core, "Hot", {
+		Texture = BH.dot, Size = NS(0.2), Transparency = seq(0, 1, 0.3, 0, 1, 1), Color = CS(FIRE_WHITE),
+		Lifetime = R(0.4), Rate = 6, LightEmission = 1, Brightness = 4, ZOffset = 1.6, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.3 })
+	loop(core, "Glint", {
+		Texture = BH.twinkle, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(0.75),
+		Transparency = NS(0), Color = CS(FIRE_WHITE), Lifetime = R(0.75), Rate = 0.9, Rotation = R(-15, 15),
+		LightEmission = 1, Brightness = 3, ZOffset = 1.7, LockedToPart = true,
+	})
+	local mantle = at("Dantian", CFrame.new(0, 1.15, 0.4), "Mantle", body)
+	loop(mantle, "MantleDark", { -- the dark under the bright flame outline
+		Texture = BH.mantle, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(6, 8),
+		FlipbookStartRandom = true, Size = NS(2.45), Transparency = seq(0, 1, 0.25, 0.45, 0.75, 0.45, 1, 1),
+		Color = CS(SOOT), Lifetime = R(1.2), Rate = 2, LightEmission = 0, ZOffset = -0.6, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.08, Drift = 0.06 })
+	loop(mantle, "Mantle", {
+		Texture = BH.mantle, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(7, 10),
+		FlipbookStartRandom = true, Size = seq(0, 2.1, 1, 2.3), Transparency = seq(0, 1, 0.25, 0.2, 0.7, 0.3, 1, 1),
+		Color = cseq(0, FIRE_CORE, 0.4, FIRE, 1, FIRE_DEEP), Lifetime = R(0.9), Rate = 3, LightEmission = 0.7,
+		Brightness = 2, ZOffset = -0.3, LockedToPart = true,
+	}, { Prime = 2, Breathe = R(0.7, 1.4), Swell = 0.08, Drift = 0.06 })
+
+	-- limbs: flames licking off the surface, a small crown, soot, embers
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Flames", {
+		Texture = BH.flame, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
+		EmissionDirection = up, Size = seq(0, 0.42, 0.4, 0.62, 1, 0.25), Transparency = seq(0, 1, 0.12, 0.1, 0.75, 0.3, 1, 1),
+		Color = fireColor, Lifetime = R(0.55, 0.75), Speed = R(0.5, 1.2), Acceleration = V3(0, 6, 0), Rotation = R(-10, 10),
+		Rate = 8, LightEmission = 0.6, Brightness = 2, ZOffset = 0.4,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.7, 1.4), Surge = 10, PunchSurge = 3, Swell = 0.2, Drift = 0.1 })
+	loop(limbs, "Crown", {
+		Texture = BH.lick, Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = seq(0, 0.22, 0.4, 0.4, 1, 0.1),
+		Transparency = seq(0, 1, 0.15, 0.1, 1, 1), Color = fireColor, Lifetime = R(0.35, 0.5), Speed = R(1.5, 2.5),
+		Rotation = R(-15, 15), Rate = 5, LightEmission = 0.7, Brightness = 2, ZOffset = 0.3,
+	}, { On = "Head", Scaled = true, Breathe = R(0.6, 1.4), Surge = 6, PunchSurge = 2, Swell = 0.2, Drift = 0.1 })
+	loop(limbs, "Soot", {
+		Texture = BH.soot, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
+		EmissionDirection = up, Size = seq(0, 0.3, 1, 0.75), Transparency = seq(0, 1, 0.2, 0.35, 1, 1), Color = CS(SOOT),
+		Lifetime = R(0.9, 1.2), Speed = R(0.9, 1.5), Acceleration = V3(0, 0.6, 0), Rotation = R(0, 360), RotSpeed = R(-40, 40),
+		Rate = 1.2, LightEmission = 0, LightInfluence = 0, ZOffset = 0.2,
+	}, { On = "Arms,Head", Scaled = true })
+	loop(limbs, "Embers", {
+		Texture = BH.ember, Shape = box, ShapeStyle = volume, EmissionDirection = up, Orientation = streak,
+		Size = seq(0, 0.09, 0.8, 0.07, 1, 0), Transparency = seq(0, 0, 0.5, 0.2, 0.55, 0.6, 0.6, 0.1, 1, 1),
+		Color = cseq(0, FIRE_WHITE, 0.4, FIRE_CORE, 1, FIRE), Lifetime = R(1, 1.6), Speed = R(2.5, 4), Drag = 0.8,
+		SpreadAngle = Vector2.new(30, 30), Acceleration = V3(0, 1.5, 0), Rate = 1.6, LightEmission = 1, Brightness = 3,
+	}, { On = "Arms,Torso", Scaled = true, Surge = 8, PunchSurge = 4 })
+	loop(limbs, "Ash", { -- dark flecks lifting off the burning body (ref fire_aura_smoke_outline)
+		Texture = BH.dot, Shape = box, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.04, 0.07),
+		Transparency = seq(0, 1, 0.15, 0.1, 0.8, 0.2, 1, 1), Color = CS(SOOT), Lifetime = R(0.9, 1.4), Speed = R(1, 2),
+		SpreadAngle = Vector2.new(40, 40), Rotation = R(0, 360), Rate = 1.5, LightEmission = 0, ZOffset = 0.5,
+	}, { On = "Torso,Arms", Scaled = true })
+
+	-- the breath's beat: a heartbeat (lub-dub)
+	local breath = model("Breath", m)
+	local chest = at("Chest", nil, "Chest", breath)
+	burst(chest, "Lub", 1, {
+		Texture = BH.dot, Size = seq(0, 0.5, 0.3, 1, 1, 1.15), Transparency = seq(0, 0.2, 1, 1), Color = cseq(0, FIRE_WHITE, 1, FIRE),
+		Lifetime = R(0.35), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
+	})
+	burst(chest, "Dub", 1, {
+		Texture = BH.dot, Size = seq(0, 0.4, 0.3, 0.8, 1, 0.9), Transparency = seq(0, 0.35, 1, 1), Color = cseq(0, FIRE_WHITE, 1, FIRE),
+		Lifetime = R(0.3), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
+	}, { EmitDelay = 0.24 })
+	burst(chest, "Glint", 1, {
+		Texture = BH.star, Size = seq(0, 0.4, 0.3, 1.5, 1, 0), Transparency = NS(0), Color = CS(FIRE_WHITE),
+		Lifetime = R(0.3), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 1.9,
+	})
+	burst(chest, "Sparks", 6, {
+		Texture = BH.ember, Orientation = streak, EmissionDirection = up, Size = seq(0, 0.1, 1, 0), Transparency = NS(0),
+		Color = cseq(0, FIRE_WHITE, 1, FIRE), Lifetime = R(0.5, 0.9), Speed = R(4, 7), Drag = 2, SpreadAngle = Vector2.new(60, 60),
+		LightEmission = 1, Brightness = 3,
+	})
+	local back = at("Dantian", CFrame.new(0, 1.15, 0.45), "Back", breath)
+	burst(back, "Flare", 1, {
+		Texture = BH.mantle, FlipbookLayout = grid2, FlipbookMode = oneShot, Size = seq(0, 2, 0.3, 2.6, 1, 2.8),
+		Transparency = seq(0, 0.15, 1, 1), Color = cseq(0, FIRE_CORE, 1, FIRE_DEEP), Lifetime = R(0.6), LightEmission = 0.9,
+		Brightness = 2, ZOffset = -0.3,
+	})
+	local pulse = part("Floor", breath, CFrame.new(0, 0.2, 0))
+	burst(pulse, "Pulse", 1, B.flat({
+		Texture = BH.ring, Size = seq(0, 1.3, 1, 3.1), Transparency = seq(0, 0.35, 1, 1), Color = CS(FIRE),
+		Lifetime = R(0.9), LightEmission = 1, Brightness = 2, ZOffset = 0.2,
+	}))
+
+	-- a pulse every few breaths: a lighter ignition (smaller flash, no
+	-- chromatic star or soot, fewer jets and embers), so it stays alive
+	-- without tiring the eye; limb flames surge too (PunchSurge)
+	local pulseM = model("Punch", m)
+	local pHeart = at("Chest", CFrame.new(0, 0, -0.3), "Chest", pulseM)
+	burst(pHeart, "Flash", 1, {
+		Texture = BH.dot, Size = seq(0, 0.5, 0.2, 1.3, 1, 1.5), Transparency = seq(0, 0.05, 0.4, 0.5, 1, 1),
+		Color = cseq(0, FIRE_WHITE, 1, FIRE_CORE), Lifetime = R(0.35), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(pHeart, "Star", 1, {
+		Texture = BH.star, Size = seq(0, 0.4, 0.25, 2.4, 1, 0), Transparency = NS(0), Color = CS(FIRE_WHITE),
+		Lifetime = R(0.35), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(pHeart, "Burst", 1, {
+		Texture = BH.starburst, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 1.6, 1, 2.3),
+		Transparency = seq(0, 0.2, 0.7, 0.4, 1, 1), Color = cseq(0, FIRE_CORE, 1, FIRE), Lifetime = R(0.45), Rotation = R(0, 360),
+		LightEmission = 1, Brightness = 2, ZOffset = 1.9,
+	})
+	burst(pHeart, "Embers", 12, {
+		Texture = BH.ember, Orientation = streak, EmissionDirection = up, Size = seq(0, 0.12, 1, 0), Transparency = NS(0),
+		Color = cseq(0, FIRE_WHITE, 0.5, FIRE_CORE, 1, FIRE), Lifetime = R(0.5, 0.9), Speed = R(8, 14), Drag = 4,
+		SpreadAngle = Vector2.new(70, 70), Acceleration = V3(0, -3, 0), LightEmission = 1, Brightness = 3,
+	})
+	local pBase = part("Base", pulseM, CFrame.new(0, 0.2, 0), V3(2.8, 0.1, 2.8))
+	burst(pBase, "Roar", 6, {
+		Texture = BH.jet, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.6, 0.3, 1.2, 1, 0.4),
+		Transparency = seq(0, 0.15, 0.6, 0.3, 1, 1), Color = fireColor, Lifetime = R(0.4, 0.6), Speed = R(5, 8),
+		SpreadAngle = Vector2.new(8, 8), Rotation = R(-8, 8), LightEmission = 0.8, Brightness = 2, ZOffset = 0.6,
+	})
+	burst(pBase, "Fire", 5, {
+		Texture = BH.flame, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc, ShapeStyle = volume,
+		EmissionDirection = up, Size = seq(0, 0.7, 0.4, 1.1, 1, 0.4), Transparency = seq(0, 0.15, 0.7, 0.35, 1, 1),
+		Color = fireColor, Lifetime = R(0.7, 0.9), Speed = R(2, 3.5), Acceleration = V3(0, 4, 0), Rotation = R(-10, 10),
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.5,
+	})
+	burst(pBase, "Ring", 1, B.flat({
+		Texture = BH.ring, Size = seq(0, 1, 1, 3.4), Transparency = seq(0, 0.15, 0.6, 0.5, 1, 1), Color = CS(FIRE_CORE),
+		Lifetime = R(0.5), LightEmission = 1, Brightness = 2, ZOffset = 0.3,
+	}))
+
+	-- ignition: a short, punchy flare on and near the body
+	local ignite = model("Ignite", m)
+	local heart = at("Chest", CFrame.new(0, 0, -0.3), "Chest", ignite)
+	burst(heart, "Flash", 1, {
+		Texture = BH.dot, Size = seq(0, 0.6, 0.15, 1.8, 1, 2.1), Transparency = seq(0, 0, 0.4, 0.5, 1, 1), Color = cseq(0, FIRE_WHITE, 1, FIRE_CORE),
+		Lifetime = R(0.4), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(heart, "Star", 1, {
+		Texture = BH.chroma, Size = seq(0, 0.8, 0.25, 4.2, 1, 0), Transparency = NS(0), Color = CS(FIRE_WHITE),
+		Lifetime = R(0.45), Rotation = R(0), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(heart, "Star45", 1, {
+		Texture = BH.star, Size = seq(0, 0.4, 0.25, 2.2, 1, 0), Transparency = NS(0), Color = CS(FIRE_CORE),
+		Lifetime = R(0.4), Rotation = R(45), LightEmission = 1, Brightness = 3, ZOffset = 2.05,
+	})
+	burst(heart, "Burst", 1, {
+		Texture = BH.starburst, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 2.2, 1, 3.2),
+		Transparency = seq(0, 0, 0.7, 0.2, 1, 1), Color = cseq(0, FIRE_CORE, 1, FIRE), Lifetime = R(0.55), Rotation = R(0, 360),
+		LightEmission = 1, Brightness = 2, ZOffset = 1.9,
+	})
+	burst(heart, "Embers", 26, {
+		Texture = BH.ember, Orientation = streak, EmissionDirection = up, Size = seq(0, 0.14, 1, 0), Transparency = NS(0),
+		Color = cseq(0, FIRE_WHITE, 0.5, FIRE_CORE, 1, FIRE), Lifetime = R(0.6, 1.1), Speed = R(10, 18), Drag = 4,
+		SpreadAngle = Vector2.new(80, 80), Acceleration = V3(0, -3, 0), LightEmission = 1, Brightness = 3,
+	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3, 0.1, 3))
+	burst(base, "Roar", 16, {
+		Texture = BH.jet, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.7, 0.3, 1.5, 1, 0.5),
+		Transparency = seq(0, 0.1, 0.6, 0.25, 1, 1), Color = fireColor, Lifetime = R(0.45, 0.65), Speed = R(6, 9),
+		SpreadAngle = Vector2.new(8, 8), Rotation = R(-8, 8), LightEmission = 0.8, Brightness = 2, ZOffset = 0.6,
+	})
+	burst(base, "Fire", 10, {
+		Texture = BH.flame, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc, ShapeStyle = volume,
+		EmissionDirection = up, Size = seq(0, 0.9, 0.4, 1.3, 1, 0.5), Transparency = seq(0, 0.1, 0.7, 0.3, 1, 1),
+		Color = fireColor, Lifetime = R(0.8, 1), Speed = R(2, 4), Acceleration = V3(0, 4, 0), Rotation = R(-10, 10),
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.5,
+	}, { EmitDelay = 0.05 })
+	burst(base, "Spray", 1, {
+		Texture = BH.spray, Size = seq(0, 1.2, 0.3, 2.6, 1, 2.8), Transparency = seq(0, 0, 0.5, 0.3, 1, 1),
+		Color = cseq(0, FIRE_WHITE, 1, FIRE), Lifetime = R(0.35), LightEmission = 1, Brightness = 2, ZOffset = 0.7,
+	})
+	burst(base, "Ring", 1, B.flat({
+		Texture = BH.ring, Size = seq(0, 1, 1, 4.2), Transparency = seq(0, 0, 0.6, 0.4, 1, 1), Color = CS(FIRE_CORE),
+		Lifetime = R(0.5), LightEmission = 1, Brightness = 2, ZOffset = 0.3,
+	}))
+	burst(base, "BurnRing", 1, B.flat({
+		Texture = BH.burnRing, FlipbookLayout = grid2, FlipbookMode = oneShot, Size = seq(0, 1.6, 1, 3.6),
+		Transparency = seq(0, 0, 0.7, 0.2, 1, 1), Color = CS(rgb(255, 200, 150)), Lifetime = R(1), Rotation = R(0, 360),
+		LightEmission = 0.6, Brightness = 2, ZOffset = 0.25,
+	}))
+	burst(base, "Soot", 8, {
+		Texture = BH.soot, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, EmissionDirection = front,
+		SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.6, 1, 1.5), Transparency = seq(0, 0.2, 1, 1), Color = CS(SOOT),
+		Lifetime = R(0.8, 1.1), Speed = R(5, 8), Drag = 3, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	})
+	return m
+end
+
+-- ---------------------------------------------------------------- Flowing Spring (Water)
+-- Qi gathers like water into a still pool (Mortal: small, close). Rebuilt
+-- 2026-10-21 from layered library emissions (ref: the water aura in
+-- docs/reference/vfx/README.md; Sol's RNG). Back to front:
+--   ground  a deep-blue pool (dark base), a watery surface sheet with soft
+--           caustics, slow ripples crossing it, a swirl drawing in to the
+--           seat, bubbles rising off it
+--   body    a water ring turning round the figure from behind (on a darker
+--           copy of itself), a pearl of water at the belly with a white-hot
+--           heart and a glint (the one light), water curls lifting off the
+--           arms and torso, droplets streaming in to the pearl on the inhale
+--   breath  the exhale: a ripple and a breaking ring cross the pool, the
+--           pearl glints, a few drops hop off the surface
+--   punch   every 2 or 3 breaths a drop of qi falls from above into the
+--           pool: a splash crown round the seat, a big ripple, the pearl
+--           flashes, the curls surge
+--   ignite  the pool springs up: a white flash at the pearl, water columns
+--           and a splash crown round the body, a wave ring, drops thrown up
+
+local WATER_WHITE, WATER_CORE, WATER, WATER_DEEP = rgb(235, 250, 255), rgb(165, 220, 255), rgb(75, 165, 255), rgb(25, 90, 210)
+local WATER_INK = rgb(6, 22, 52)
+
+local FS = {
+	glow = id(6673021984), -- soft round glow
+	core = id(13280146664), -- small hot glow
+	glint = id(13271102367), -- small 4-point star
+	pearl = id(15024914905), -- a ball of water (top-down puddle as a flat particle)
+	caustics = id(5722422984), -- water caustics tile
+	ripple = id(89560315838742), -- 4x4 flipbook: a wobbling water ring
+	breakRing = id(89798462580462), -- 4x4 flipbook: a water ring breaking up
+	swirl = id(6700006778), -- water swirl stroke
+	arc = id(135596833550213), -- curved water stroke (an arc of a ring)
+	curl = id(14191030010), -- 4x4 flipbook: a water curl
+	wisp = id(12110213243), -- 4x4 flipbook: a water wisp lifting
+	splash = id(14944433028), -- 4x4 flipbook: a splash bursting
+	column = id(12800352943), -- 4x4 flipbook: a water column rising and breaking
+	drop = id(7104844885), -- teardrop
+	bubble = id(249902641), -- bubble
+	streak = id(9841260008), -- soft streak
+}
+_G.FlowingSpringAssets = FS
+
+local waterColor = cseq(0, WATER_WHITE, 0.4, WATER_CORE, 1, WATER)
+
+local function flowingSpring(root)
+	-- a drop falls into the pool every 2 or 3 breaths, on the beat
+	local m = model("FlowingSpring", root, { PunchEvery = R(2, 3), PunchJitter = 0.4, PunchSwell = 1.3 })
+
+	-- ground: the pool (within ~1 body-width)
+	local ground = model("Ground", m)
+	local floor = part("Floor", ground, CFrame.new(0, 0.12, 0), V3(0.1, 0.1, 0.1)) -- centred flats
+	local pool = part("Pool", ground, CFrame.new(0, 0.15, 0), V3(3.6, 0.1, 3.6)) -- spread over the pool
+	loop(floor, "Deep", B.flat({ -- the dark base: deep water under everything bright
+		Texture = FS.pearl, Size = NS(2.6), Transparency = seq(0, 1, 0.25, 0.12, 0.75, 0.12, 1, 1), Color = CS(WATER_INK),
+		Lifetime = R(5), Rate = 0.5, Rotation = R(0, 360), RotSpeed = R(-4, 4), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Surface", B.flat({
+		Texture = FS.pearl, Size = NS(2.35), Transparency = seq(0, 1, 0.3, 0.5, 0.7, 0.5, 1, 1),
+		Color = cseq(0, WATER_CORE, 1, WATER), Lifetime = R(5), Rate = 0.4, Rotation = R(0, 360), RotSpeed = R(-6, 6),
+		LightEmission = 0.4, Brightness = 1.5, ZOffset = 0.05,
+	}), { Prime = 2, Swell = 0.05, Drift = 0.04 })
+	-- soft caustics in the pool: a round image, drifting round
+	local caustics = decalDisc("Caustics", ground, 3.5, 0.17, FS.caustics, rgb(150, 230, 255), {
+		Pulse = R(0.6, 0.76), Turn = 5, Grow = R(0.97, 1.03),
+	})
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0.5, 0)
+	corner.Parent = caustics:FindFirstChildWhichIsA("ImageLabel", true)
+	loop(pool, "Ripples", B.flat({
+		Texture = FS.ripple, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(8, 10),
+		Size = seq(0, 0.2, 1, 0.75), Transparency = seq(0, 1, 0.2, 0.25, 0.7, 0.5, 1, 1), Color = CS(WATER_WHITE),
+		Lifetime = R(1.8), Rate = 1.6, Rotation = R(0, 360), LightEmission = 0.6, Brightness = 2, ZOffset = 0.15,
+	}), { Prime = 2, Breathe = R(0.6, 1.5) })
+	loop(floor, "Swirl", B.flat({
+		Texture = FS.swirl, Size = seq(0, 2.5, 1, 1.6), Transparency = seq(0, 1, 0.35, 0.45, 0.75, 0.5, 1, 1),
+		Color = CS(WATER_CORE), Lifetime = R(3), Rate = 0.7, Rotation = R(0, 360), RotSpeed = R(-50, -40),
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.1,
+	}), { Prime = 2, Breathe = R(0.7, 1.3), Swell = 0.08, Drift = 0.05 })
+	loop(pool, "Bubbles", {
+		Texture = FS.bubble, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.05, 0.11),
+		Transparency = seq(0, 1, 0.15, 0.2, 0.85, 0.3, 1, 1), Color = CS(WATER_WHITE), Lifetime = R(1.4, 2.2),
+		Speed = R(0.6, 1.2), Acceleration = V3(0, 0.4, 0), SpreadAngle = Vector2.new(10, 10), Rate = 2.5, LightEmission = 0.3,
+	}, { Scaled = true, Breathe = R(0.6, 1.4) })
+
+	-- body: the pearl at the belly and the water ring round the figure
+	local body = model("Body", m)
+	local pearl = at("Belly", CFrame.new(0, 0.05, -0.25), "Pearl", body)
+	light(pearl, WATER, 8, 1.3)
+	loop(pearl, "Orb", {
+		Texture = FS.pearl, Size = NS(0.42), Transparency = seq(0, 1, 0.3, 0.15, 0.7, 0.15, 1, 1),
+		Color = cseq(0, WATER_CORE, 1, WATER), Lifetime = R(1.2), Rate = 2, Rotation = R(0, 360), RotSpeed = R(-30, 30),
+		LightEmission = 0.6, Brightness = 2, ZOffset = 1.4, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.35 })
+	loop(pearl, "Hot", {
+		Texture = FS.core, Size = NS(0.3), Transparency = seq(0, 1, 0.3, 0.05, 1, 1), Color = CS(WATER_WHITE),
+		Lifetime = R(0.5), Rate = 5, LightEmission = 1, Brightness = 3, ZOffset = 1.5, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.3 })
+	loop(pearl, "Glint", {
+		Texture = FS.glint, Size = seq(0, 0, 0.3, 0.55, 1, 0), Transparency = NS(0), Color = CS(WATER_WHITE),
+		Lifetime = R(0.6), Rate = 0.7, Rotation = R(-10, 10), LightEmission = 1, Brightness = 3, ZOffset = 1.6, LockedToPart = true,
+	})
+	-- droplets drawn in from all round to the pearl, faster on the inhale
+	local shell = at("Belly", CFrame.new(0, 0, -0.2), "Inflow", body, V3(4.2, 3.4, 4.2))
+	loop(shell, "Inflow", {
+		Texture = FS.streak, Shape = sphere, ShapeStyle = surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+		Orientation = streak, Size = seq(0, 0.05, 0.4, 0.13, 1, 0.03), Transparency = seq(0, 1, 0.3, 0.1, 0.85, 0.2, 1, 1),
+		Color = cseq(0, WATER_CORE, 1, WATER_WHITE), Lifetime = R(0.7, 0.8), Speed = R(2.6), Rate = 6, LightEmission = 0.8,
+		Brightness = 2,
+	}, { Scaled = true, Breathe = R(0.3, 1.6) })
+	-- a ring of water turning round the figure from behind, dark under bright
+	local ringAt = at("Dantian", CFrame.new(0, 0.85, 0.45), "Ring", body)
+	loop(ringAt, "RingDark", {
+		Texture = FS.arc, Size = NS(2.15), Transparency = seq(0, 1, 0.25, 0.5, 0.75, 0.5, 1, 1), Color = CS(WATER_INK),
+		Lifetime = R(1.8), Rate = 1.1, Rotation = R(0, 360), RotSpeed = R(-70, -55), LightEmission = 0, ZOffset = -0.7,
+		LockedToPart = true,
+	}, { Prime = 2, Swell = 0.06, Drift = 0.05 })
+	loop(ringAt, "Ring", {
+		Texture = FS.arc, Size = NS(1.95), Transparency = seq(0, 1, 0.25, 0.15, 0.75, 0.25, 1, 1),
+		Color = cseq(0, WATER_WHITE, 1, WATER_CORE), Lifetime = R(1.6), Rate = 1.4, Rotation = R(0, 360), RotSpeed = R(-75, -60),
+		LightEmission = 0.8, Brightness = 2, ZOffset = -0.4, LockedToPart = true,
+	}, { Prime = 2, Breathe = R(0.7, 1.4), Swell = 0.06, Drift = 0.05 })
+
+	-- limbs: water curls and wisps lifting off the surface
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Curls", {
+		Texture = FS.curl, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
+		EmissionDirection = up, Size = seq(0, 0.35, 1, 0.6), Transparency = seq(0, 0.6, 0.2, 0.1, 0.8, 0.3, 1, 1),
+		Color = cseq(0, WATER_WHITE, 0.5, WATER_CORE, 1, WATER), Lifetime = R(0.9, 1.1), Speed = R(0.4, 0.9),
+		Acceleration = V3(0, 1.2, 0), Rotation = R(0, 360), RotSpeed = R(-40, 40), Rate = 2.2, LightEmission = 0.6,
+		Brightness = 2, ZOffset = 0.4,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.6, 1.4), Surge = 5, PunchSurge = 2, Swell = 0.15, Drift = 0.08 })
+	loop(limbs, "Wisps", {
+		Texture = FS.wisp, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
+		EmissionDirection = up, Size = seq(0, 0.3, 1, 0.5), Transparency = seq(0, 0.4, 0.2, 0.15, 1, 1),
+		Color = cseq(0, WATER_WHITE, 1, WATER_CORE), Lifetime = R(0.7, 0.9), Speed = R(0.5, 0.9), Acceleration = V3(0, 0.6, 0),
+		Rotation = R(-20, 20), Rate = 1.2, LightEmission = 0.5, Brightness = 2, ZOffset = 0.3,
+	}, { On = "Arms", Scaled = true, Surge = 3 })
+
+	-- the exhale: a ripple and a breaking ring across the pool, drops hop off it
+	local breath = model("Breath", m)
+	local bFloor = part("Floor", breath, CFrame.new(0, 0.2, 0), V3(2.6, 0.1, 2.6))
+	burst(bFloor, "Ripple", 1, B.flat({
+		Texture = FS.ripple, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(10),
+		Size = seq(0, 0.6, 1, 2.1), Transparency = seq(0, 0.1, 0.6, 0.4, 1, 1), Color = CS(WATER_WHITE),
+		Lifetime = R(1.4), LightEmission = 0.8, Brightness = 2, ZOffset = 0.2,
+	}))
+	burst(bFloor, "Break", 1, B.flat({
+		Texture = FS.breakRing, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 0.9, 1, 1.9),
+		Transparency = seq(0, 0.2, 1, 0.6), Color = CS(WATER_CORE), Lifetime = R(1), Rotation = R(0, 360),
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.18,
+	}), { EmitDelay = 0.25 })
+	burst(bFloor, "Hop", 4, {
+		Texture = FS.drop, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Orientation = streak,
+		Size = rnd(0.06, 0.09), Transparency = seq(0, 0.1, 0.8, 0.2, 1, 1), Color = CS(WATER_WHITE), Lifetime = R(0.5, 0.7),
+		Speed = R(3, 4.5), SpreadAngle = Vector2.new(25, 25), Acceleration = V3(0, -14, 0), LightEmission = 0.6, Brightness = 2,
+	})
+	local bPearl = at("Belly", CFrame.new(0, 0.05, -0.3), "Pearl", breath)
+	burst(bPearl, "Glint", 1, {
+		Texture = FS.glint, Size = seq(0, 0.3, 0.3, 1.1, 1, 0), Transparency = NS(0), Color = CS(WATER_WHITE),
+		Lifetime = R(0.35), Rotation = R(0, 15), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
+	})
+
+	-- a pulse: a drop of qi falls from above into the pool
+	local pulseM = model("Punch", m)
+	local sky = part("Sky", pulseM, CFrame.new(0, 6.2, -0.9))
+	burst(sky, "Drop", 1, {
+		Texture = FS.drop, EmissionDirection = Enum.NormalId.Bottom, Orientation = streak, Size = seq(0, 0.16, 1, 0.24),
+		Transparency = seq(0, 0.6, 0.3, 0, 1, 0), Color = CS(WATER_WHITE), Lifetime = R(0.36), Speed = R(16),
+		LightEmission = 0.9, Brightness = 3, ZOffset = 1,
+	})
+	burst(sky, "Trail", 1, {
+		Texture = FS.streak, EmissionDirection = Enum.NormalId.Bottom, Orientation = streak, Size = seq(0, 0.08, 1, 0.3),
+		Transparency = seq(0, 1, 0.5, 0.2, 1, 1), Color = CS(WATER_CORE), Lifetime = R(0.36), Speed = R(15),
+		LightEmission = 1, Brightness = 2,
+	})
+	local pBase = part("Base", pulseM, CFrame.new(0, 0.2, 0), V3(2.8, 0.1, 2.8))
+	local land = { EmitDelay = 0.36 }
+	burst(pBase, "Crown", 12, {
+		Texture = FS.splash, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc,
+		ShapeStyle = volume, ShapePartial = 0.8, EmissionDirection = up, Size = seq(0, 0.45, 1, 0.85), Transparency = seq(0, 0.05, 0.7, 0.2, 1, 1),
+		Color = waterColor, Lifetime = R(0.55, 0.7), Speed = R(1.5, 2.5), Acceleration = V3(0, -3, 0), Rotation = R(-15, 15),
+		LightEmission = 0.6, Brightness = 2, ZOffset = 0.6,
+	}, land)
+	burst(pBase, "Ripple", 1, B.flat({
+		Texture = FS.ripple, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(12),
+		Size = seq(0, 0.8, 1, 2.8), Transparency = seq(0, 0, 0.6, 0.35, 1, 1), Color = CS(WATER_WHITE),
+		Lifetime = R(1.2), LightEmission = 0.9, Brightness = 2, ZOffset = 0.25,
+	}), land)
+	burst(pBase, "Drops", 8, {
+		Texture = FS.drop, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Orientation = streak,
+		Size = rnd(0.07, 0.11), Transparency = seq(0, 0, 0.8, 0.2, 1, 1), Color = CS(WATER_WHITE), Lifetime = R(0.6, 0.8),
+		Speed = R(4.5, 6.5), SpreadAngle = Vector2.new(35, 35), Acceleration = V3(0, -16, 0), LightEmission = 0.6, Brightness = 2,
+	}, land)
+	local pPearl = at("Belly", CFrame.new(0, 0.05, -0.3), "Pearl", pulseM)
+	burst(pPearl, "Flash", 1, {
+		Texture = FS.core, Size = seq(0, 0.4, 0.25, 1, 1, 1.1), Transparency = seq(0, 0.05, 0.4, 0.5, 1, 1),
+		Color = cseq(0, WATER_WHITE, 1, WATER_CORE), Lifetime = R(0.35), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	}, land)
+	burst(pPearl, "Star", 1, {
+		Texture = FS.glint, Size = seq(0, 0.3, 0.25, 1.7, 1, 0), Transparency = NS(0), Color = CS(WATER_WHITE),
+		Lifetime = R(0.4), Rotation = R(0, 15), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	}, land)
+
+	-- ignition: the pool springs up round the body
+	local ignite = model("Ignite", m)
+	local core = at("Belly", CFrame.new(0, 0.05, -0.3), "Pearl", ignite)
+	burst(core, "Flash", 1, {
+		Texture = FS.core, Size = seq(0, 0.6, 0.15, 1.6, 1, 1.9), Transparency = seq(0, 0, 0.4, 0.45, 1, 1),
+		Color = cseq(0, WATER_WHITE, 1, WATER_CORE), Lifetime = R(0.45), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(core, "Star", 1, {
+		Texture = FS.glint, Size = seq(0, 0.6, 0.25, 3.2, 1, 0), Transparency = NS(0), Color = CS(WATER_WHITE),
+		Lifetime = R(0.5), Rotation = R(0, 10), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(core, "Orb", 1, {
+		Texture = FS.pearl, Size = seq(0, 0.5, 0.3, 1.5, 1, 1.8), Transparency = seq(0, 0.1, 1, 1),
+		Color = cseq(0, WATER_WHITE, 1, WATER_CORE), Lifetime = R(0.5), Rotation = R(0, 360), LightEmission = 0.7,
+		Brightness = 2, ZOffset = 1.9,
+	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3, 0.1, 3))
+	burst(base, "Columns", 7, {
+		Texture = FS.column, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc,
+		ShapeStyle = volume, ShapePartial = 0.8, EmissionDirection = up, Size = seq(0, 0.7, 1, 1.1), Transparency = seq(0, 0, 0.7, 0.15, 1, 1),
+		Color = waterColor, Lifetime = R(0.7, 0.9), Speed = R(1.5, 2.5), Rotation = R(-8, 8), LightEmission = 0.6,
+		Brightness = 2, ZOffset = 0.6,
+	})
+	burst(base, "Crown", 10, {
+		Texture = FS.splash, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc,
+		ShapeStyle = volume, ShapePartial = 0.8, EmissionDirection = up, Size = seq(0, 0.5, 1, 0.95), Transparency = seq(0, 0, 0.7, 0.2, 1, 1),
+		Color = waterColor, Lifetime = R(0.6, 0.8), Speed = R(2.5, 4), Acceleration = V3(0, -5, 0), Rotation = R(-15, 15),
+		LightEmission = 0.6, Brightness = 2, ZOffset = 0.5,
+	}, { EmitDelay = 0.05 })
+	burst(base, "Wave", 1, B.flat({
+		Texture = FS.ripple, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(14),
+		Size = seq(0, 1, 1, 3.8), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = CS(WATER_WHITE),
+		Lifetime = R(0.8), LightEmission = 0.9, Brightness = 2, ZOffset = 0.3,
+	}))
+	burst(base, "Break", 1, B.flat({
+		Texture = FS.breakRing, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 1.4, 1, 3.1),
+		Transparency = seq(0, 0, 1, 0.5), Color = CS(WATER_CORE), Lifetime = R(0.9), Rotation = R(0, 360),
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.28,
+	}), { EmitDelay = 0.1 })
+	burst(base, "Drops", 18, {
+		Texture = FS.drop, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Orientation = streak,
+		Size = rnd(0.08, 0.13), Transparency = seq(0, 0, 0.8, 0.2, 1, 1), Color = CS(WATER_WHITE), Lifetime = R(0.7, 1),
+		Speed = R(6, 9), SpreadAngle = Vector2.new(30, 30), Acceleration = V3(0, -20, 0), LightEmission = 0.6, Brightness = 2,
+	})
+	burst(base, "Deep", 1, B.flat({ -- the pool darkens under the burst
+		Texture = FS.glow, Size = seq(0, 2, 1, 2.8), Transparency = seq(0, 0.2, 1, 1), Color = CS(WATER_INK),
+		Lifetime = R(0.9), LightEmission = 0, ZOffset = 0.02,
+	}))
+	return m
+end
+
+-- ---------------------------------------------------------------- Evergreen Root (Wood)
+-- An old tree, patient growth (Mortal: small, close, rich). Rebuilt
+-- 2026-10-21 from layered library emissions: the motion is upward and slow,
+-- things sprouting and unfurling; the aura fills in over the first breaths
+-- (roots and branches light trunk-first) and every few breaths it blooms.
+-- Back to front:
+--   ground  a dark moss pool (dark base) with a living green glow on it, a
+--           circle of linked rings (growth rings) turning slowly inside a
+--           jade ring of flourishes turning the other way, five glowing roots
+--           creeping out (flat beams, lit one after another), shoots
+--           springing up round the seat, jade motes hovering like fireflies,
+--           a few leaves falling from just above the head
+--   body    a seed of green qi at the belly (crackling glow, hard dot, a
+--           sparkle cluster, the one light); a green glow behind the body on
+--           a dark copy; leaves budding off the shoulders and back (a dark
+--           layer under a lit one: the tree's first crown); vine meridians growing
+--           from the belly out along the arms and legs with budding glints
+--           at the joints; a green qi glow hugging the torso and arms, small
+--           shoots sprouting on the arms, leaves curling off the shoulders
+--   breath  the seed pulses with a glint, sap motes rise, a thin ring breathes
+--           out over the ground, a few leaves skitter out low
+--   bloom   every 3 or 4 breaths: shoots spring up in a ring, a green ring
+--           bursts open, leaves whirl up, the seed flashes
+--   ignite  a jade flash and star at the seed, a sparkle burst, vines lashing
+--           up out of the ground round the body, shoots erupting, a dark spore
+--           puff under a bright bursting ring and a shockwave, leaves whirling
+--           up the body; limb leaves and shoots surge
+
+local JADE_WHITE, JADE, LEAF, LEAF_DEEP = rgb(232, 255, 214), rgb(140, 235, 110), rgb(80, 190, 70), rgb(32, 115, 45)
+local BUD, MOSS = rgb(222, 245, 120), rgb(10, 30, 14)
+
+local ER = {
+	moss = id(12362864669), -- soft green blob with a dark rim (tinted near-black: the moss base)
+	verdure = id(12362866115), -- crackling green energy with a dark crust
+	rings = id(139744345977881), -- an ornate circle of linked rings (growth rings)
+	tendrils = id(100708312805540), -- a thin ring with curling flourishes
+	strand = id(15938018250), -- a white twisting strand, vertical (roots, meridian vines, lashing vines)
+	sprout = id(126101557256096), -- 4x4 flipbook: a shoot springing up and wilting
+	leafA = id(125936833129232), -- 4x4 flipbook: a leaf tumbling
+	leafB = id(90111316485044), -- 4x4 flipbook: a leaf tumbling (other cut)
+	bloom = id(90585684660600), -- 4x4 flipbook: a green ring bursting open
+	sparkles = id(115317702570755), -- 4x4 flipbook: a cluster of sparkles
+	star = id(669133414), -- thin 4-point star
+	dot = id(13280146664), -- soft round dot
+	mote = id(8238126392), -- tiny hard glow
+	ring = id(16878174995), -- thin double ring
+}
+_G.EvergreenAssets = ER
+
+local function evergreen(root)
+	local grid4 = Enum.ParticleFlipbookLayout.Grid4x4
+	local oneShot, loopFb = Enum.ParticleFlipbookMode.OneShot, Enum.ParticleFlipbookMode.Loop
+	local leafColor = cseq(0, BUD, 0.5, JADE, 1, LEAF)
+	local shootColor = cseq(0, JADE_WHITE, 0.4, JADE, 1, LEAF)
+	-- a bloom (the Punch model) every 3 or 4 breaths, up to 0.8 s late
+	local m = model("EverGreen", root, { PunchEvery = R(3, 4), PunchJitter = 0.8, PunchSwell = 1.3 })
+
+	-- ground: the seat (within ~1 body-width)
+	local ground = model("Ground", m)
+	local floor = part("Floor", ground, CFrame.new(0, 0.04, 0), V3(1, 0.05, 1))
+	local under = part("Under", ground, CFrame.new(0, 0.01, 0), V3(0.6, 0.02, 0.6))
+	loop(under, "Moss", B.flat({ -- the dark base under everything bright
+		Texture = ER.verdure, Size = NS(2.8), Transparency = seq(0, 1, 0.2, 0.3, 0.8, 0.3, 1, 1), Color = CS(MOSS),
+		Lifetime = R(5), Rate = 0.4, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Verdure", B.flat({
+		Texture = ER.verdure, Size = NS(1.9), Transparency = seq(0, 1, 0.25, 0.35, 0.75, 0.35, 1, 1),
+		Color = cseq(0, JADE_WHITE, 0.5, JADE, 1, LEAF), Lifetime = R(3.5), Rate = 0.6, Rotation = R(0, 360),
+		RotSpeed = R(-12, 12), LightEmission = 1, Brightness = 4, ZOffset = 1, -- over the moss (small ZOffsets lose the sort)
+	}), { Prime = 2, Breathe = R(0.6, 1.5), Swell = 0.15, Drift = 0.06 })
+	-- the sigils are flat images (steadier than turning particles)
+	decalDisc("Rings", ground, 3.9, 0.27, ER.rings, JADE, {
+		Pulse = R(0, 0.25), Turn = 6, Grow = R(0.96, 1.05), Kick = 0.5,
+	})
+	decalDisc("Tendrils", ground, 5.2, 0.22, ER.tendrils, JADE, {
+		Pulse = R(0, 0.3), Turn = -9, Grow = R(0.96, 1.05), Kick = 0.7,
+	})
+	-- roots: two-segment glowing tendrils lying flat (attachment X up),
+	-- creeping out one after another over the first breaths
+	local anchors = part("Anchors", ground, CFrame.new(0, 0.3, 0))
+	local flatX = CFrame.Angles(0, 0, math.pi / 2)
+	local lines = folder("Lines", m)
+	local rootProps = {
+		Texture = ER.strand, TextureMode = Enum.TextureMode.Stretch, FaceCamera = false, Color = cseq(0, JADE_WHITE, 0.4, JADE, 1, LEAF),
+		Width0 = 0.7, Width1 = 0.4, LightEmission = 1, Brightness = 5, Transparency = NS(0), ZOffset = 0.02,
+	}
+	for i = 1, 5 do
+		local yaw = math.rad((i - 1) * 72 + 20 + (i % 2) * 14)
+		local side = if i % 2 == 0 then 1 else -1
+		local function p(r, lateral)
+			return (CFrame.Angles(0, yaw, 0) * CFrame.new(lateral, 0, -r)).Position
+		end
+		local a0 = B.attach(anchors, "RootA" .. i, p(0.8, 0))
+		local a1 = B.attach(anchors, "RootB" .. i, p(1.95, 0.38 * side))
+		local a2 = B.attach(anchors, "RootC" .. i, p(3.05, -0.15 * side))
+		for _, a in { a0, a1, a2 } do
+			a.CFrame = CFrame.new(a.Position) * flatX
+		end
+		local d = 0.6 + (i - 1) * 0.5
+		beam(lines, "Root" .. i .. "a", "RootA" .. i, "RootB" .. i, rootProps, { Pulse = R(0.05, 0.4), Delay = d, Kick = 0.6 })
+		beam(lines, "Root" .. i .. "b", "RootB" .. i, "RootC" .. i, rootProps, { Pulse = R(0.1, 0.5), Delay = d + 2.5, Kick = 0.6 })
+	end
+	local bed = part("Bed", ground, CFrame.new(0, 0.5, 0), V3(4.6, 0.1, 4.6))
+	loop(bed, "Shoots", {
+		Texture = ER.sprout, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.36, 0.52), Transparency = seq(0, 0.1, 0.8, 0.2, 1, 1),
+		Color = shootColor, Lifetime = R(1.4, 1.8), Speed = R(0), Rotation = R(-8, 8), Rate = 3, LightEmission = 0.8,
+		Brightness = 3, ZOffset = 0.3,
+	}, { Scaled = true, Breathe = R(0.5, 1.5), Swell = 0.15, Drift = 0.08 })
+	local air = part("Air", ground, CFrame.new(0, 1.7, 0), V3(4.4, 2.8, 4.4))
+	loop(air, "Fireflies", {
+		Texture = ER.mote, Shape = box, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.06, 0.1),
+		Transparency = seq(0, 1, 0.2, 0.1, 0.35, 0.5, 0.5, 0, 0.7, 0.45, 0.85, 0.1, 1, 1), Color = cseq(0, JADE_WHITE, 1, BUD),
+		Lifetime = R(2.6, 3.4), Speed = R(0.2, 0.5), SpreadAngle = Vector2.new(60, 60), Drag = 0.4,
+		Acceleration = V3(0, 0.15, 0), Rate = 2.4, LightEmission = 1, Brightness = 3, ZOffset = 0.4,
+	}, { Scaled = true, Breathe = R(0.6, 1.4), Prime = 4 })
+	local canopy = part("Canopy", ground, CFrame.new(0, 5.4, 0), V3(4, 0.2, 4))
+	loop(canopy, "Leaves", {
+		Texture = ER.leafA, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(5, 9), FlipbookStartRandom = true,
+		Shape = box, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.16, 0.24),
+		Transparency = seq(0, 1, 0.1, 0, 0.85, 0.05, 1, 1), Color = leafColor, Lifetime = R(5, 6), Speed = R(0.6, 0.9),
+		SpreadAngle = Vector2.new(20, 20), Acceleration = V3(0.25, -0.05, 0), Rotation = R(0, 360), RotSpeed = R(-40, 40),
+		Rate = 0.6, LightEmission = 0.25, Brightness = 1.5,
+	}, { Scaled = true, Prime = 2 })
+
+	-- body: the seed of green qi at the belly
+	local body = model("Body", m)
+	local seed = at("Belly", CFrame.new(0, 0, -0.12), "Seed", body)
+	light(seed, LEAF, 8, 1.3)
+	loop(seed, "Glow", {
+		Texture = ER.verdure, Size = NS(0.6), Transparency = seq(0, 1, 0.3, 0.15, 0.7, 0.15, 1, 1),
+		Color = cseq(0, JADE_WHITE, 0.5, JADE, 1, LEAF), Lifetime = R(0.9), Rate = 3, Rotation = R(0, 360), RotSpeed = R(-30, 30),
+		LightEmission = 1, Brightness = 2.5, ZOffset = 1.4, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.4 })
+	loop(seed, "Hot", {
+		Texture = ER.dot, Size = NS(0.2), Transparency = seq(0, 1, 0.3, 0, 1, 1), Color = CS(JADE_WHITE),
+		Lifetime = R(0.4), Rate = 6, LightEmission = 1, Brightness = 4, ZOffset = 1.5, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.3 })
+	loop(seed, "Sparkle", {
+		Texture = ER.sparkles, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(0.55), Transparency = NS(0),
+		Color = CS(JADE_WHITE), Lifetime = R(1.1), Rate = 0.6, Rotation = R(-20, 20), LightEmission = 1, Brightness = 3,
+		ZOffset = 1.6, LockedToPart = true,
+	})
+
+	-- a green glow behind the body on a darker copy of itself, so the
+	-- silhouette reads lit from behind in daylight
+	local back = at("Dantian", CFrame.new(0, 0.9, 0.45), "Back", body)
+	loop(back, "Shade", {
+		Texture = ER.moss, Size = NS(1.9), Transparency = seq(0, 1, 0.3, 0.45, 0.7, 0.45, 1, 1), Color = CS(MOSS),
+		Lifetime = R(2), Rate = 1, Rotation = R(0, 360), LightEmission = 0, ZOffset = -0.8, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.06, Drift = 0.05 })
+	loop(back, "Aura", {
+		Texture = ER.verdure, Size = NS(1.7), Transparency = seq(0, 1, 0.3, 0.1, 0.7, 0.1, 1, 1),
+		Color = cseq(0, JADE_WHITE, 0.5, JADE, 1, LEAF), Lifetime = R(1.6), Rate = 1.4, Rotation = R(0, 360), RotSpeed = R(-15, 15),
+		LightEmission = 1, Brightness = 3, ZOffset = -0.5, LockedToPart = true,
+	}, { Prime = 2, Breathe = R(0.7, 1.4), Swell = 0.1, Drift = 0.06 })
+
+	-- leaves budding from the shoulders and back, a dark layer under a lit
+	-- one: a tree's first crown (it spreads into a canopy at higher grades)
+	local crown = at("Neck", CFrame.new(0, 0.45, 0.5), "Crown", body, V3(2.6, 1.3, 0.5))
+	loop(crown, "FoliageDark", {
+		Texture = ER.leafA, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(2, 4), FlipbookStartRandom = true,
+		Shape = box, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.32, 0.44), Transparency = seq(0, 1, 0.2, 0.05, 0.8, 0.05, 1, 1),
+		Color = CS(LEAF_DEEP), Lifetime = R(1.8, 2.4), Speed = R(0.2, 0.4), Drag = 0.5, Rotation = R(0, 360), RotSpeed = R(-20, 20),
+		Rate = 5, LightEmission = 0, ZOffset = -0.4, LockedToPart = true,
+	}, { Prime = 3, Scaled = true, Swell = 0.12, Drift = 0.06 })
+	loop(crown, "Foliage", {
+		Texture = ER.leafB, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(2, 4), FlipbookStartRandom = true,
+		Shape = box, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.24, 0.34), Transparency = seq(0, 1, 0.2, 0, 0.8, 0, 1, 1),
+		Color = cseq(0, JADE_WHITE, 0.4, BUD, 1, JADE), Lifetime = R(1.6, 2.2), Speed = R(0.3, 0.5), Drag = 0.5, Rotation = R(0, 360),
+		RotSpeed = R(-30, 30), Rate = 4.5, LightEmission = 0.8, Brightness = 3, ZOffset = -0.3, LockedToPart = true,
+	}, { Prime = 3, Scaled = true, Breathe = R(0.7, 1.4), Swell = 0.12, Drift = 0.06 })
+
+	-- vine meridians, trunk first, then the shoulders and hips, then
+	-- the limbs (~2 breaths to grow), budding glints at the joints
+	local vine = {
+		Texture = ER.strand, TextureMode = Enum.TextureMode.Wrap, TextureLength = 1.3, TextureSpeed = 0.35,
+		Color = cseq(0, JADE_WHITE, 1, JADE), Width0 = 0.55, Width1 = 0.4, Brightness = 4, LightEmission = 1,
+		Transparency = NS(0),
+	}
+	for _, l in {
+		{ "Belly", "Chest", 0 }, { "Chest", "Neck", 1.5 },
+		{ "Chest", "LShoulder", 2.5 }, { "Chest", "RShoulder", 2.5 },
+		{ "LShoulder", "LElbow", 4.5 }, { "RShoulder", "RElbow", 4.5 },
+		{ "LElbow", "LHand", 6.5 }, { "RElbow", "RHand", 6.5 },
+		{ "Belly", "LHip", 2 }, { "Belly", "RHip", 2 },
+		{ "LHip", "LKnee", 4 }, { "RHip", "RKnee", 4 },
+	} do
+		beam(lines, l[1] .. "_" .. l[2], l[1], l[2], vine, {
+			Pulse = R(0.05, 0.35), Delay = l[3], Kick = 0.5, Dots = 0.42, DotColor = BUD, DotImage = ER.star,
+		})
+	end
+
+	-- limbs: green qi hugging the body, shoots on the arms, leaves curling off
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Qi", {
+		Texture = ER.verdure, Shape = box, ShapeStyle = volume, Size = rnd(0.45, 0.6),
+		Transparency = seq(0, 1, 0.3, 0.45, 0.7, 0.45, 1, 1), Color = cseq(0, JADE, 1, LEAF), Lifetime = R(1.2, 1.5),
+		Rotation = R(0, 360), RotSpeed = R(-20, 20), Rate = 1.4, LightEmission = 1, Brightness = 1.5, ZOffset = -0.2,
+		LockedToPart = true,
+	}, { On = "Torso,Arms", Scaled = true, Breathe = R(0.7, 1.3), Swell = 0.15, Drift = 0.06 })
+	loop(limbs, "Shoots", {
+		Texture = ER.sprout, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
+		EmissionDirection = up, Size = rnd(0.2, 0.28), Transparency = seq(0, 0.1, 0.8, 0.2, 1, 1), Color = shootColor,
+		Lifetime = R(1.2, 1.5), Rotation = R(-20, 20), Rate = 1, LightEmission = 0.7, Brightness = 2, ZOffset = 0.5,
+		LockedToPart = true,
+	}, { On = "Arms", Scaled = true, Breathe = R(0.5, 1.5), Surge = 4, PunchSurge = 2 })
+	loop(limbs, "Leaves", {
+		Texture = ER.leafB, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(6, 10), FlipbookStartRandom = true,
+		Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.13, 0.19),
+		Transparency = seq(0, 1, 0.1, 0, 0.8, 0.1, 1, 1), Color = leafColor, Lifetime = R(2, 2.6), Speed = R(0.6, 1),
+		SpreadAngle = Vector2.new(50, 50), Drag = 0.8, Acceleration = V3(0.2, -0.35, 0), Rotation = R(0, 360),
+		RotSpeed = R(-60, 60), Rate = 0.7, LightEmission = 0.3, Brightness = 1.5, ZOffset = 0.4,
+	}, { On = "Arms,Torso", Scaled = true, Surge = 4, PunchSurge = 2 })
+
+	-- each breath: the seed pulses, sap rises, a ring breathes out
+	local breath = model("Breath", m)
+	local belly = at("Belly", CFrame.new(0, 0, -0.15), "Belly", breath)
+	burst(belly, "Pulse", 1, {
+		Texture = ER.dot, Size = seq(0, 0.35, 0.35, 0.8, 1, 0.9), Transparency = seq(0, 0.3, 1, 1),
+		Color = cseq(0, JADE_WHITE, 1, JADE), Lifetime = R(0.7), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
+	})
+	burst(belly, "Glint", 1, {
+		Texture = ER.star, Size = seq(0, 0.3, 0.4, 1.1, 1, 0), Transparency = NS(0), Color = CS(JADE_WHITE),
+		Lifetime = R(0.6), Rotation = R(-10, 10), LightEmission = 1, Brightness = 3, ZOffset = 1.9,
+	})
+	burst(belly, "Sap", 5, {
+		Texture = ER.mote, Size = seq(0, 0, 0.2, 0.1, 1, 0), Transparency = seq(0, 0.1, 1, 1), Color = cseq(0, JADE_WHITE, 1, BUD),
+		Lifetime = R(1.4, 2), Speed = R(1, 2), SpreadAngle = Vector2.new(50, 50), EmissionDirection = up,
+		LightEmission = 1, Brightness = 3, Drag = 0.8, ZOffset = 0.8,
+	})
+	local floorB = part("Floor", breath, CFrame.new(0, 0.2, 0), V3(1.6, 0.1, 1.6))
+	burst(floorB, "Ring", 1, B.flat({
+		Texture = ER.ring, Size = seq(0, 1.4, 1, 3.4), Transparency = seq(0, 0.45, 0.6, 0.6, 1, 1), Color = CS(JADE),
+		Lifetime = R(1.6), LightEmission = 1, Brightness = 2, ZOffset = 0.2,
+	}))
+	burst(floorB, "Skitter", 3, {
+		Texture = ER.leafA, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(8, 12), FlipbookStartRandom = true,
+		Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = rnd(0.14, 0.2),
+		Transparency = seq(0, 0, 0.8, 0.2, 1, 1), Color = leafColor, Lifetime = R(1.2, 1.6), Speed = R(1.5, 2.5), Drag = 1.5,
+		Rotation = R(0, 360), RotSpeed = R(-120, 120), LightEmission = 0.3, Brightness = 1.5,
+	})
+
+	-- a bloom every few breaths: a lighter ignition
+	local bloomM = model("Punch", m)
+	local pSeed = at("Belly", CFrame.new(0, 0, -0.2), "Belly", bloomM)
+	burst(pSeed, "Flash", 1, {
+		Texture = ER.dot, Size = seq(0, 0.4, 0.25, 1.1, 1, 1.3), Transparency = seq(0, 0.1, 0.5, 0.5, 1, 1),
+		Color = cseq(0, JADE_WHITE, 1, JADE), Lifetime = R(0.5), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(pSeed, "Sparkle", 1, {
+		Texture = ER.sparkles, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(1.2), Transparency = NS(0),
+		Color = CS(JADE_WHITE), Lifetime = R(0.8), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	local pBed = part("Bed", bloomM, CFrame.new(0, 0.55, 0), V3(4.2, 0.1, 4.2))
+	burst(pBed, "Shoots", 8, {
+		Texture = ER.sprout, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.4, 0.55), Transparency = seq(0, 0, 0.8, 0.15, 1, 1),
+		Color = shootColor, Lifetime = R(1.1, 1.4), Rotation = R(-10, 10), LightEmission = 0.7, Brightness = 2, ZOffset = 0.4,
+	})
+	burst(pBed, "Whirl", 7, {
+		Texture = ER.leafB, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(8, 12), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.16, 0.24), Transparency = seq(0, 0, 0.8, 0.1, 1, 1),
+		Color = leafColor, Lifetime = R(1.4, 1.9), Speed = R(3, 5), SpreadAngle = Vector2.new(30, 30), Drag = 1.5,
+		Rotation = R(0, 360), RotSpeed = R(-160, 160), LightEmission = 0.3, Brightness = 1.5,
+	})
+	local pFloor = part("Floor", bloomM, CFrame.new(0, 0.22, 0))
+	burst(pFloor, "Bloom", 1, B.flat({
+		Texture = ER.bloom, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 2, 1, 2.8),
+		Transparency = NS(0), Color = CS(rgb(220, 255, 200)), Lifetime = R(0.8), Rotation = R(0, 360), LightEmission = 0.8,
+		Brightness = 2, ZOffset = 0.25,
+	}))
+
+	-- ignition: a short, punchy burst of growth on and near the body
+	local ignite = model("Ignite", m)
+	local iSeed = at("Belly", CFrame.new(0, 0, -0.25), "Belly", ignite)
+	burst(iSeed, "Flash", 1, {
+		Texture = ER.dot, Size = seq(0, 0.6, 0.15, 1.7, 1, 2), Transparency = seq(0, 0, 0.4, 0.5, 1, 1),
+		Color = cseq(0, JADE_WHITE, 1, JADE), Lifetime = R(0.45), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(iSeed, "Star", 1, {
+		Texture = ER.star, Size = seq(0, 0.6, 0.25, 3.4, 1, 0), Transparency = NS(0), Color = CS(JADE_WHITE),
+		Lifetime = R(0.5), Rotation = R(0), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(iSeed, "Sparkle", 1, {
+		Texture = ER.sparkles, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(1.8), Transparency = NS(0),
+		Color = CS(JADE_WHITE), Lifetime = R(0.9), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 2.05,
+	})
+	burst(iSeed, "Motes", 18, {
+		Texture = ER.mote, Size = seq(0, 0.12, 1, 0), Transparency = NS(0), Color = cseq(0, JADE_WHITE, 1, BUD),
+		Lifetime = R(0.8, 1.3), Speed = R(6, 10), Drag = 4, SpreadAngle = Vector2.new(180, 180), LightEmission = 1,
+		Brightness = 3, ZOffset = 1,
+	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3.8, 0.1, 3.8))
+	burst(base, "Spores", 1, B.flat({ -- dark under the bright burst
+		Texture = ER.moss, Size = seq(0, 1.4, 0.3, 3.2, 1, 3.6), Transparency = seq(0, 0.1, 0.7, 0.3, 1, 1), Color = CS(MOSS),
+		Lifetime = R(1.1), Rotation = R(0, 360), LightEmission = 0, ZOffset = 0.15,
+	}))
+	burst(base, "Bloom", 1, B.flat({
+		Texture = ER.bloom, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 2.4, 1, 3.6),
+		Transparency = NS(0), Color = CS(rgb(225, 255, 205)), Lifetime = R(0.85), Rotation = R(0, 360), LightEmission = 0.9,
+		Brightness = 2, ZOffset = 0.3,
+	}))
+	burst(base, "Ring", 1, B.flat({
+		Texture = ER.ring, Size = seq(0, 1, 1, 5), Transparency = seq(0, 0, 0.6, 0.4, 1, 1), Color = CS(JADE_WHITE),
+		Lifetime = R(0.55), LightEmission = 1, Brightness = 2, ZOffset = 0.35,
+	}))
+	burst(base, "Lash", 9, { -- vines lashing up out of the ground round the body
+		Texture = ER.strand, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = surface, EmissionDirection = up,
+		Orientation = streak, Size = seq(0, 0.35, 0.4, 0.5, 1, 0.15), Transparency = seq(0, 0, 0.6, 0.2, 1, 1),
+		Color = cseq(0, JADE_WHITE, 1, JADE), Lifetime = R(0.45, 0.6), Speed = R(8, 11), Drag = 4,
+		SpreadAngle = Vector2.new(10, 10), LightEmission = 0.7, Brightness = 2, ZOffset = 0.5,
+	})
+	burst(base, "Shoots", 12, {
+		Texture = ER.sprout, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc, ShapeStyle = volume,
+		EmissionDirection = up, Size = rnd(0.45, 0.7), Transparency = seq(0, 0, 0.8, 0.15, 1, 1), Color = shootColor,
+		Lifetime = R(1, 1.3), Speed = R(0.5, 1), Rotation = R(-10, 10), LightEmission = 0.7, Brightness = 2, ZOffset = 0.45,
+	}, { EmitDelay = 0.05 })
+	burst(base, "Whirl", 16, {
+		Texture = ER.leafB, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(10, 14), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.2, 0.3), Transparency = seq(0, 0, 0.8, 0.1, 1, 1),
+		Color = leafColor, Lifetime = R(1.4, 2), Speed = R(5, 8), SpreadAngle = Vector2.new(35, 35), Drag = 1.6,
+		Rotation = R(0, 360), RotSpeed = R(-220, 220), LightEmission = 0.3, Brightness = 1.5,
+	})
+	return m
+end
+
+-- ---------------------------------------------------------------- Iron Marrow (Metal)
+-- Qi hammered into the bones (Mortal: small, close). Rebuilt 2026-10-21 from
+-- layered library emissions (ref: docs/reference/auras/sunburst_diamond_core;
+-- Sol's RNG). The rhythm is a forge: every exhale a hammer clang. Back to front:
+--   ground  a black spiked iron ring (dark base, blades), an ornate gold ring
+--           turning the other way inside it, a molten glow, a spiky gold
+--           spark-splash flickering on the floor, metal filings lifting
+--   body    a hard white-gold diamond between the hands (a small spinning
+--           gem in support, a glow that swells, a white-hot dot, a long-armed
+--           star, a dark iron halo behind it, the one light); gold bone lines
+--           along the arms and spine with star glints at the joints; a cold
+--           needle glint running over the limbs; forge sparks spitting off
+--           the hands
+--   breath  the clang: a spiky ring snaps out of the diamond with a star and
+--           sparks, a thin ring runs over the floor, bones and rings flash
+--   punch   every 2 or 3 breaths a heavier blow: gold rays fan out behind
+--           the body, a big clang ring, a spiky ring over the ground, a spark
+--           shower and filings thrown out
+--   ignite  a white flash and star at the diamond, rays behind, two clang
+--           rings (facing you and over the ground), a spark shower, a spiky
+--           gold burst on the floor, shards thrown out; limb glints surge
+
+local GOLD_WHITE, GOLD_CORE, GOLD, GOLD_DEEP = rgb(255, 250, 228), rgb(255, 222, 135), rgb(242, 172, 55), rgb(160, 88, 18)
+local IRON, STEEL = rgb(22, 20, 24), rgb(210, 220, 238)
+
+local IM = {
+	glow = id(6673021984), -- soft round glow
+	hot = id(13280146664), -- small hot glow
+	star = id(8037777212), -- 4-point star with long arms
+	needle = id(7814053668), -- vertical needle glint
+	cross = id(271370648), -- X glint
+	cracks = id(18457400581), -- 2x2 flipbook: sharp sparkle cracks
+	spikeRing = id(110193486541760), -- black spiked ring with white edges
+	ornate = id(13399941667), -- ornate filigree ring
+	clang = id(13052235894), -- spiky ring burst
+	splash = id(13964665265), -- spiky radial burst
+	rays = id(15773612675), -- sunburst rays
+	softRays = id(1598630577), -- soft sunburst rays
+	thinRing = id(6250126210), -- thin ring sweep
+	shards = id(140013412087432), -- 8x8 sheet of metal shards
+	spark = id(9841260008), -- soft streak
+}
+_G.IronMarrowAssets = IM
+
+local grid8 = Enum.ParticleFlipbookLayout.Grid8x8
+local randomFb = Enum.ParticleFlipbookMode.Random
+local goldColor = cseq(0, GOLD_WHITE, 0.35, GOLD_CORE, 1, GOLD)
+
+local function ironMarrow(root)
+	-- a heavier blow every 2 or 3 breaths, on the clang
+	local m = model("IronMarrow", root, { PunchEvery = R(2, 3), PunchJitter = 0.3, PunchSwell = 1.3 })
+
+	-- ground: the forge floor (within ~1 body-width)
+	local ground = model("Ground", m)
+	decalDisc("IronRing", ground, 5.6, 0.13, IM.spikeRing, rgb(225, 225, 235), {
+		Pulse = R(0.04, 0.14), Turn = 7, Grow = R(0.98, 1.02),
+	})
+	decalDisc("GoldRing", ground, 4.5, 0.16, IM.ornate, GOLD_CORE, {
+		Pulse = R(0.15, 0.45), Turn = -11, Grow = R(0.97, 1.04), Kick = 0.8,
+	})
+	local floor = part("Floor", ground, CFrame.new(0, 0.18, 0), V3(0.1, 0.1, 0.1)) -- centred flats
+	loop(floor, "Molten", B.flat({
+		Texture = IM.glow, Size = NS(2.5), Transparency = seq(0, 1, 0.3, 0.2, 0.7, 0.2, 1, 1), Color = cseq(0, GOLD, 1, GOLD_DEEP),
+		Lifetime = R(3), Rate = 0.7, Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.05,
+	}), { Prime = 2, Breathe = R(0.6, 1.4), Swell = 0.1, Drift = 0.05 })
+	local pool = part("Pool", ground, CFrame.new(0, 0.2, 0), V3(3.8, 0.1, 3.8))
+	-- gold streaks rising round the seat, the forge's heat (more on the inhale)
+	loop(pool, "Rise", {
+		Texture = IM.needle, Shape = disc, ShapeStyle = volume, ShapePartial = 0.75, EmissionDirection = up,
+		Size = seq(0, 0.45, 0.4, 1, 1, 0.6), Transparency = seq(0, 1, 0.25, 0.15, 1, 1), Color = goldColor,
+		Lifetime = R(0.6, 0.9), Speed = R(2, 3.2), Rate = 9, LightEmission = 1, Brightness = 2, ZOffset = 0.2,
+	}, { Scaled = true, Breathe = R(0.4, 1.6), Swell = 0.2, Drift = 0.1 })
+	loop(pool, "Splash", B.flat({ -- spark-splashes popping on the forge floor
+		Texture = IM.splash, Shape = disc, ShapeStyle = volume, ShapePartial = 0.55, Size = seq(0, 0.45, 1, 0.8),
+		Transparency = seq(0, 0.6, 0.2, 0.1, 1, 1), Color = goldColor, Lifetime = R(0.35, 0.5), Rate = 4,
+		Rotation = R(0, 360), LightEmission = 1, Brightness = 2.5, ZOffset = 0.12,
+	}), { Scaled = true, Breathe = R(0.4, 1.6), Swell = 0.15 })
+	loop(pool, "Filings", {
+		Texture = IM.shards, FlipbookLayout = grid8, FlipbookMode = randomFb, Shape = disc, ShapeStyle = volume,
+		EmissionDirection = up, Size = rnd(0.05, 0.09), Transparency = seq(0, 1, 0.15, 0.05, 0.8, 0.2, 1, 1),
+		Color = cseq(0, STEEL, 1, GOLD_CORE), Lifetime = R(1.6, 2.4), Speed = R(0.4, 0.9), Acceleration = V3(0, 0.3, 0),
+		Rotation = R(0, 360), RotSpeed = R(-200, 200), Rate = 3, LightEmission = 0.5, Brightness = 2,
+	}, { Scaled = true, Breathe = R(0.4, 1.4) })
+
+	-- body: the diamond between the hands
+	local body = model("Body", m)
+	local gem = part("Diamond", body, CFrame.new(0, 0.35, -0.15) * CFrame.Angles(math.rad(45), 0, math.rad(35.26)), V3(0.34, 0.34, 0.34), {
+		Point = "Lap", Pulse = R(0.05, 0.2), Grow = R(0.92, 1.08), Turn = 80, Kick = 1,
+	})
+	gem.Color = rgb(255, 214, 120)
+	local core = at("Lap", CFrame.new(0, 0.35, -0.2), "Core", body)
+	light(core, GOLD, 8, 1.6)
+	loop(core, "Halo", { -- the dark iron behind the bright gem
+		Texture = IM.glow, Size = NS(0.75), Transparency = seq(0, 1, 0.3, 0.25, 0.7, 0.25, 1, 1), Color = CS(IRON),
+		Lifetime = R(1), Rate = 3, LightEmission = 0, ZOffset = 1.2, LockedToPart = true,
+	}, { Prime = 2 })
+	loop(core, "Glow", {
+		Texture = IM.glow, Size = NS(0.6), Transparency = seq(0, 1, 0.3, 0.2, 1, 1), Color = cseq(0, GOLD_CORE, 1, GOLD),
+		Lifetime = R(0.5), Rate = 6, LightEmission = 1, Brightness = 2, ZOffset = 1.4, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.5 })
+	loop(core, "Hot", {
+		Texture = IM.hot, Size = NS(0.24), Transparency = seq(0, 1, 0.3, 0, 1, 1), Color = CS(GOLD_WHITE),
+		Lifetime = R(0.4), Rate = 6, LightEmission = 1, Brightness = 4, ZOffset = 1.6, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.3 })
+	loop(core, "Star", {
+		Texture = IM.star, Size = seq(0, 0.5, 0.5, 0.8, 1, 0.5), Transparency = seq(0, 1, 0.3, 0, 0.7, 0, 1, 1),
+		Color = CS(GOLD_WHITE), Lifetime = R(1.4), Rate = 1.2, Rotation = R(0, 90), RotSpeed = R(-25, 25),
+		LightEmission = 1, Brightness = 3, ZOffset = 1.7, LockedToPart = true,
+	}, { Prime = 1, Swell = 0.3 })
+
+	-- a dim halo of rays behind the body on a dark iron disc (the diamond's
+	-- sunburst, kept small at Mortal; it grows into a blade fan with grade)
+	local halo = at("Dantian", CFrame.new(0, 1.45, 0.6), "Halo", body)
+	loop(halo, "IronDisc", {
+		Texture = IM.glow, Size = NS(2.4), Transparency = seq(0, 1, 0.3, 0.4, 0.7, 0.4, 1, 1), Color = CS(IRON),
+		Lifetime = R(2), Rate = 1, LightEmission = 0, ZOffset = -0.8, LockedToPart = true,
+	}, { Prime = 2 })
+	loop(halo, "Rays", {
+		Texture = IM.softRays, Size = NS(2.25), Transparency = seq(0, 1, 0.3, 0.15, 0.7, 0.15, 1, 1),
+		Color = CS(GOLD), Lifetime = R(3), Rate = 0.7, Rotation = R(0, 360), RotSpeed = R(-12, 12),
+		LightEmission = 1, Brightness = 2, ZOffset = -0.6, LockedToPart = true,
+	}, { Prime = 2, Breathe = R(0.6, 1.4), Swell = 0.12, Drift = 0.05 })
+
+	-- the marrow: gold bone lines along the arms and spine, glints at the joints
+	local lines = folder("Lines", m)
+	local bone = {
+		Color = cseq(0, GOLD_CORE, 0.5, GOLD_WHITE, 1, GOLD_CORE), Width0 = 0.14, Width1 = 0.14, Brightness = 4,
+		LightEmission = 1, Transparency = seq(0, 0.6, 0.15, 0, 0.85, 0, 1, 0.6),
+	}
+	for _, l in { { "LShoulder", "LElbow" }, { "LElbow", "LHand" }, { "RShoulder", "RElbow" }, { "RElbow", "RHand" }, { "Neck", "Belly" } } do
+		beam(lines, l[1] .. "_" .. l[2], l[1], l[2], bone, {
+			Pulse = R(0.35, 0.7), Kick = 1, Dots = 0.45, DotColor = GOLD_WHITE, DotImage = IM.star,
+		})
+	end
+
+	-- limbs: a cold glint running over the steel, forge sparks off the hands
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Glint", {
+		Texture = IM.needle, Shape = box, ShapeStyle = surface, Size = seq(0, 0, 0.4, 0.42, 1, 0),
+		Transparency = NS(0), Color = cseq(0, rgb(255, 255, 255), 1, STEEL), Lifetime = R(0.3), Rotation = R(-35, 35),
+		Rate = 0.7, LightEmission = 1, Brightness = 3, ZOffset = 0.6,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.6, 1.6), Surge = 3, PunchSurge = 1 })
+	loop(limbs, "Sheen", { -- the steel skin glowing from inside
+		Texture = IM.glow, Shape = box, ShapeStyle = volume, Size = NS(0.6), Transparency = seq(0, 1, 0.4, 0.55, 1, 1),
+		Color = CS(GOLD_CORE), Lifetime = R(0.8), Rate = 2, LightEmission = 1, Brightness = 1.5, ZOffset = 0.3,
+		LockedToPart = true,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.5, 1.5) })
+	loop(limbs, "Sparks", {
+		Texture = IM.spark, Shape = box, ShapeStyle = volume, EmissionDirection = up, Orientation = streak,
+		Size = seq(0, 0.07, 1, 0), Transparency = NS(0), Color = cseq(0, GOLD_WHITE, 0.5, GOLD_CORE, 1, GOLD),
+		Lifetime = R(0.35, 0.55), Speed = R(3, 5), SpreadAngle = Vector2.new(70, 70), Acceleration = V3(0, -20, 0),
+		Drag = 1, Rate = 1.4, LightEmission = 1, Brightness = 3,
+	}, { On = "Hands", Scaled = true, Surge = 8, PunchSurge = 4 })
+
+	-- the clang (each exhale)
+	local breath = model("Breath", m)
+	local lap = at("Lap", CFrame.new(0, 0.35, -0.25), "Lap", breath)
+	burst(lap, "Clang", 1, {
+		Texture = IM.clang, Size = seq(0, 0.3, 1, 1.5), Transparency = seq(0, 0, 0.6, 0.35, 1, 1), Color = goldColor,
+		Lifetime = R(0.32), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
+	})
+	burst(lap, "Star", 1, {
+		Texture = IM.star, Size = seq(0, 0.4, 0.25, 1.6, 1, 0), Transparency = NS(0), Color = CS(GOLD_WHITE),
+		Lifetime = R(0.28), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 1.9,
+	})
+	burst(lap, "Cracks", 1, {
+		Texture = IM.cracks, FlipbookLayout = grid2, FlipbookMode = oneShot, Size = NS(0.7), Transparency = NS(0),
+		Color = CS(GOLD_WHITE), Lifetime = R(0.25), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 1.85,
+	})
+	burst(lap, "Sparks", 10, {
+		Texture = IM.spark, Orientation = streak, Size = seq(0, 0.15, 1, 0), Transparency = NS(0), Color = goldColor,
+		Lifetime = R(0.35, 0.55), Speed = R(8, 13), Drag = 4, SpreadAngle = Vector2.new(180, 180), Acceleration = V3(0, -12, 0),
+		LightEmission = 1, Brightness = 3,
+	})
+	local bFloor = part("Floor", breath, CFrame.new(0, 0.22, 0), V3(0.1, 0.1, 0.1))
+	burst(bFloor, "Ring", 1, B.flat({
+		Texture = IM.thinRing, Size = seq(0, 1, 1, 2.6), Transparency = seq(0, 0.1, 0.6, 0.4, 1, 1), Color = CS(GOLD_CORE),
+		Lifetime = R(0.5), Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.2,
+	}))
+
+	-- a heavier blow every few breaths
+	local pulseM = model("Punch", m)
+	local back = at("Dantian", CFrame.new(0, 0.9, 0.5), "Back", pulseM)
+	burst(back, "Rays", 1, {
+		Texture = IM.rays, Size = seq(0, 1.2, 0.3, 2.3, 1, 2.6), Transparency = seq(0, 0.2, 0.5, 0.45, 1, 1),
+		Color = cseq(0, GOLD_CORE, 1, GOLD), Lifetime = R(0.45), Rotation = R(0, 360), RotSpeed = R(-20, 20),
+		LightEmission = 1, Brightness = 2, ZOffset = -0.5,
+	})
+	local pLap = at("Lap", CFrame.new(0, 0.35, -0.25), "Lap", pulseM)
+	burst(pLap, "Clang", 1, {
+		Texture = IM.clang, Size = seq(0, 0.4, 1, 2.2), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = goldColor,
+		Lifetime = R(0.36), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
+	})
+	burst(pLap, "Flash", 1, {
+		Texture = IM.hot, Size = seq(0, 0.4, 0.2, 1.1, 1, 1.2), Transparency = seq(0, 0.05, 0.4, 0.5, 1, 1),
+		Color = cseq(0, GOLD_WHITE, 1, GOLD_CORE), Lifetime = R(0.3), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(pLap, "Star", 1, {
+		Texture = IM.star, Size = seq(0, 0.5, 0.25, 2.3, 1, 0), Transparency = NS(0), Color = CS(GOLD_WHITE),
+		Lifetime = R(0.35), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(pLap, "Sparks", 18, {
+		Texture = IM.spark, Orientation = streak, Size = seq(0, 0.18, 1, 0), Transparency = NS(0), Color = goldColor,
+		Lifetime = R(0.4, 0.7), Speed = R(10, 16), Drag = 4, SpreadAngle = Vector2.new(180, 180), Acceleration = V3(0, -14, 0),
+		LightEmission = 1, Brightness = 3,
+	})
+	local pFloor = part("Floor", pulseM, CFrame.new(0, 0.22, 0), V3(0.1, 0.1, 0.1))
+	burst(pFloor, "Clang", 1, B.flat({
+		Texture = IM.clang, Size = seq(0, 0.9, 1, 2.8), Transparency = seq(0, 0, 0.6, 0.4, 1, 1), Color = goldColor,
+		Lifetime = R(0.45), Rotation = R(0, 360), LightEmission = 1, Brightness = 2.5, ZOffset = 0.25,
+	}))
+	burst(pFloor, "Filings", 10, {
+		Texture = IM.shards, FlipbookLayout = grid8, FlipbookMode = randomFb, Shape = box, EmissionDirection = front,
+		SpreadAngle = Vector2.new(10, 180), Size = rnd(0.07, 0.11), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = cseq(0, STEEL, 1, GOLD_CORE), Lifetime = R(0.5, 0.7), Speed = R(5, 8), Drag = 3, Rotation = R(0, 360),
+		RotSpeed = R(-300, 300), LightEmission = 0.5, Brightness = 2,
+	})
+
+	-- ignition: the first great blow
+	local ignite = model("Ignite", m)
+	local iBack = at("Dantian", CFrame.new(0, 0.9, 0.5), "Back", ignite)
+	burst(iBack, "Rays", 1, {
+		Texture = IM.rays, Size = seq(0, 1.6, 0.3, 3, 1, 3.3), Transparency = seq(0, 0.1, 0.5, 0.35, 1, 1),
+		Color = cseq(0, GOLD_CORE, 1, GOLD), Lifetime = R(0.6), Rotation = R(0, 360), RotSpeed = R(-25, 25),
+		LightEmission = 1, Brightness = 2, ZOffset = -0.5,
+	})
+	local iLap = at("Lap", CFrame.new(0, 0.35, -0.25), "Lap", ignite)
+	burst(iLap, "Flash", 1, {
+		Texture = IM.hot, Size = seq(0, 0.6, 0.15, 1.7, 1, 2), Transparency = seq(0, 0, 0.4, 0.45, 1, 1),
+		Color = cseq(0, GOLD_WHITE, 1, GOLD_CORE), Lifetime = R(0.4), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(iLap, "Star", 1, {
+		Texture = IM.star, Size = seq(0, 0.7, 0.25, 3.6, 1, 0), Transparency = NS(0), Color = CS(GOLD_WHITE),
+		Lifetime = R(0.45), Rotation = R(0, 10), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(iLap, "Cross", 1, {
+		Texture = IM.cross, Size = seq(0, 0.5, 0.25, 2.2, 1, 0), Transparency = NS(0), Color = CS(GOLD_CORE),
+		Lifetime = R(0.4), Rotation = R(0), LightEmission = 1, Brightness = 3, ZOffset = 2.05,
+	})
+	burst(iLap, "Clang", 1, {
+		Texture = IM.clang, Size = seq(0, 0.5, 1, 2.8), Transparency = seq(0, 0, 0.6, 0.25, 1, 1), Color = goldColor,
+		Lifetime = R(0.45), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
+	})
+	burst(iLap, "Sparks", 30, {
+		Texture = IM.spark, Orientation = streak, Size = seq(0, 0.22, 1, 0), Transparency = NS(0), Color = goldColor,
+		Lifetime = R(0.5, 0.9), Speed = R(12, 20), Drag = 4, SpreadAngle = Vector2.new(180, 180), Acceleration = V3(0, -16, 0),
+		LightEmission = 1, Brightness = 3,
+	})
+	local iFloor = part("Floor", ignite, CFrame.new(0, 0.22, 0), V3(0.1, 0.1, 0.1))
+	burst(iFloor, "Clang", 1, B.flat({
+		Texture = IM.clang, Size = seq(0, 1.2, 1, 3.8), Transparency = seq(0, 0, 0.6, 0.35, 1, 1), Color = goldColor,
+		Lifetime = R(0.55), Rotation = R(0, 360), LightEmission = 1, Brightness = 2.5, ZOffset = 0.25,
+	}))
+	burst(iFloor, "Splash", 1, B.flat({
+		Texture = IM.splash, Size = seq(0, 1.4, 0.3, 2.6, 1, 2.8), Transparency = seq(0, 0, 0.5, 0.3, 1, 1), Color = goldColor,
+		Lifetime = R(0.45), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 0.2,
+	}))
+	burst(iFloor, "Ring", 1, B.flat({
+		Texture = IM.thinRing, Size = seq(0, 1.5, 1, 4.2), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = CS(GOLD_WHITE),
+		Lifetime = R(0.6), Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.22,
+	}), { EmitDelay = 0.06 })
+	burst(iFloor, "Shards", 14, {
+		Texture = IM.shards, FlipbookLayout = grid8, FlipbookMode = randomFb, Shape = box, EmissionDirection = up,
+		SpreadAngle = Vector2.new(60, 60), Size = rnd(0.1, 0.16), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = cseq(0, STEEL, 1, GOLD_CORE), Lifetime = R(0.7, 1), Speed = R(6, 10), Acceleration = V3(0, -22, 0),
+		Rotation = R(0, 360), RotSpeed = R(-300, 300), LightEmission = 0.5, Brightness = 2,
+	})
+	return m
+end
+
+-- ---------------------------------------------------------------- Mountain Breath (Earth)
+-- Deep, steady as stone (Mortal: small, close, rich). Rebuilt 2026-10-21 from
+-- layered library emissions: the motion is heavy and downward, things settle,
+-- sift and sink; only the stones lift, slowly, on the inhale. Earth is
+-- square: a dark square-in-circle seal under a bright four-fold seal.
+-- Back to front:
+--   ground  dry cracked earth (dark base) with amber veins glowing through
+--           the cracks, a dark square-in-circle seal turning very slowly under
+--           a bright amber four-fold seal turning the other way, both sinking a
+--           little on each exhale; stones orbiting slowly round you, lifting
+--           on the inhale and settling on the exhale; gold dust hanging in
+--           the air; a low dust haze creeping out along the ground
+--   body    a low earth core in the belly (amber crusted glow, hard dot, a
+--           level horizon glint, the one light); amber earth qi clinging to
+--           the torso and legs; gold sand sifting down off the arms and torso
+--           with dark grit flecks
+--   breath  the settle: a dust ring rolls out low, puffs of dust, a few
+--           pebbles hop, the core swells; the seals and stones sink
+--   tremor  every 3 or 4 breaths: amber cracks flash across the ground, a
+--           bigger dust ring and spray, grit jumps, the core flashes
+--   ignite  the ground thumps: a dark crater under amber cracks flashing out,
+--           rubble crumbling, a dust ring and a low dust spray, rocks thrown
+--           up, stone shards jutting round the seat, a flash and a wide level
+--           glint at the belly, gold dust bursting up and raining back
+
+local AMBER_WHITE, AMBER, OCHRE, UMBER = rgb(255, 240, 205), rgb(255, 182, 84), rgb(212, 132, 48), rgb(120, 72, 32)
+local STONE, SLATE, DUSTY = rgb(150, 136, 118), rgb(78, 70, 62), rgb(198, 172, 132)
+
+local MB = {
+	earth = id(86726095803553), -- dry cracked earth, dark
+	veins = id(1380079888), -- a net of cracks (glows amber through the dry earth)
+	seal = id(223123319), -- black lines: a square inside a circle, rune band
+	ward = id(133746306498771), -- a bold four-fold square seal
+	core = id(12362862883), -- amber energy with a dark crust
+	haze = id(12362866404), -- orange crusted energy, softer
+	glow = id(6673021984), -- soft round glow
+	dot = id(8242018934), -- small hard dot
+	lens = id(1847258023), -- a level lens streak
+	stones = id(82603403775997), -- 2x2: white rock chunks (tintable)
+	rocks = id(130042646554310), -- 2x2: grey-brown rocks (natural colour)
+	shard = id(281633012), -- a stone shard
+	dustRing = id(13556798897), -- a ring of dust
+	dust = id(11037784926), -- a soft dust puff
+	cracks = id(125427453566131), -- radial cracks
+	crater = id(109477912447315), -- a dark cracked crater
+	rubble = id(116852757864858), -- 4x4 flipbook: cracked ground crumbling
+}
+_G.MountainBreathAssets = MB
+
+local function mountainBreath(root)
+	local grid2, grid4 = Enum.ParticleFlipbookLayout.Grid2x2, Enum.ParticleFlipbookLayout.Grid4x4
+	local oneShot, loopFb = Enum.ParticleFlipbookMode.OneShot, Enum.ParticleFlipbookMode.Loop
+	-- a tremor (the Punch model) every 3 or 4 breaths, up to 0.5 s late
+	local m = model("MountainBreath", root, { PunchEvery = R(3, 4), PunchJitter = 0.5, PunchSwell = 1.3 })
+
+	-- ground: the seat (within ~1 body-width)
+	local ground = model("Ground", m)
+	local floor = part("Floor", ground, CFrame.new(0, 0.04, 0), V3(1, 0.05, 1))
+	local under = part("Under", ground, CFrame.new(0, 0.01, 0), V3(0.6, 0.02, 0.6))
+	loop(under, "Bedrock", B.flat({ -- the dark base under everything bright
+		Texture = MB.earth, Size = NS(2.9), Transparency = seq(0, 1, 0.2, 0.05, 0.8, 0.05, 1, 1), Color = CS(rgb(150, 125, 100)),
+		Lifetime = R(6), Rate = 0.34, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Veins", B.flat({
+		Texture = MB.veins, Size = NS(2.3), Transparency = seq(0, 1, 0.25, 0.3, 0.75, 0.3, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 0.4, AMBER, 1, OCHRE), Lifetime = R(4), Rate = 0.5, Rotation = R(0, 360),
+		LightEmission = 1, Brightness = 2, ZOffset = 1, -- over the bedrock (small ZOffsets lose the sort)
+	}), { Prime = 2, Breathe = R(0.5, 1.5), Swell = 0.06, Drift = 0.04 })
+	-- the seals are flat images; they sink a little at the breath's peak (Lift)
+	decalDisc("Seal", ground, 5.8, 0.22, MB.seal, rgb(255, 255, 255), {
+		Pulse = R(0.1, 0.25), Turn = 2.5, Lift = -0.05,
+	})
+	decalDisc("Ward", ground, 4.4, 0.27, MB.ward, AMBER, {
+		Pulse = R(0.05, 0.4), Turn = -4, Lift = -0.05, Grow = R(0.98, 1.03), GrowIn = true, Kick = 0.8,
+	})
+	-- stones orbiting slowly: emitters locked to anchors that circle the seat
+	-- (Spin) and lift on the inhale (Lift); each holds a few stones
+	for i, o in {
+		{ r = 2.5, y = 1.1, yaw = 0, spin = 11, size = 0.34 },
+		{ r = 2.7, y = 1.9, yaw = 130, spin = 9, size = 0.28 },
+		{ r = 2.3, y = 0.75, yaw = 245, spin = 13, size = 0.38 },
+	} do
+		local anchor = part("Orbit" .. i, ground, CFrame.Angles(0, math.rad(o.yaw), 0) * CFrame.new(0, o.y, -o.r), V3(1.2, 0.5, 1.2), {
+			Spin = o.spin, Lift = 0.35, Bob = 0.06,
+		})
+		loop(anchor, "Stones", {
+			Texture = MB.stones, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+			Shape = box, ShapeStyle = volume, Size = rnd(o.size * 0.7, o.size * 1.2), Transparency = seq(0, 1, 0.15, 0, 0.85, 0, 1, 1),
+			Color = cseq(0, STONE, 1, SLATE), Lifetime = R(6, 7), Rate = 0.6, Rotation = R(0, 360), RotSpeed = R(-25, 25),
+			LightEmission = 0, ZOffset = 0.2, LockedToPart = true,
+		}, { Prime = 3 })
+		loop(anchor, "Glint", { -- a spirit stone among them, lit from inside
+			Texture = MB.shard, Shape = box, ShapeStyle = volume, Size = rnd(0.18, 0.24),
+			Transparency = seq(0, 1, 0.2, 0.1, 0.8, 0.1, 1, 1), Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(6),
+			Rate = 0.17, Rotation = R(0, 360), RotSpeed = R(-30, 30), LightEmission = 0.6, Brightness = 2, ZOffset = 0.25,
+			LockedToPart = true,
+		}, { Prime = 1 })
+	end
+	local air = part("Air", ground, CFrame.new(0, 1.5, 0), V3(4.6, 2.6, 4.6))
+	loop(air, "GoldDust", {
+		Texture = MB.dot, Shape = box, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.04, 0.065),
+		Transparency = seq(0, 1, 0.2, 0.1, 0.8, 0.2, 1, 1), Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(3, 4),
+		Speed = R(0.1, 0.3), SpreadAngle = Vector2.new(40, 40), Drag = 0.6, Acceleration = V3(0, -0.12, 0), Rate = 3,
+		LightEmission = 1, Brightness = 3, ZOffset = 0.3,
+	}, { Scaled = true, Breathe = R(0.6, 1.3), Prime = 5 })
+	local haze = part("Haze", ground, CFrame.new(0, 0.3, 0), V3(3.4, 0.2, 3.4))
+	loop(haze, "Dust", {
+		Texture = MB.dust, Shape = box, ShapeStyle = volume, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
+		Size = seq(0, 0.4, 1, 0.9), Transparency = seq(0, 1, 0.3, 0.72, 0.7, 0.8, 1, 1), Color = CS(DUSTY), Lifetime = R(2.6, 3.2),
+		Speed = R(0.3, 0.6), Drag = 0.3, Rotation = R(0, 360), RotSpeed = R(-15, 15), Rate = 1, LightEmission = 0,
+		LightInfluence = 0.6,
+	}, { Scaled = true, Prime = 2 })
+
+	-- body: the low earth core
+	local body = model("Body", m)
+	local core = at("Belly", CFrame.new(0, -0.18, -0.12), "Core", body)
+	light(core, OCHRE, 8, 1.4)
+	loop(core, "Earth", {
+		Texture = MB.core, Size = NS(0.62), Transparency = seq(0, 1, 0.3, 0.1, 0.7, 0.1, 1, 1), Color = CS(AMBER_WHITE),
+		Lifetime = R(1.3), Rate = 2.4, Rotation = R(0, 360), RotSpeed = R(-12, 12), LightEmission = 1, Brightness = 2,
+		ZOffset = 1.4, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.35 })
+	loop(core, "Hot", {
+		Texture = MB.dot, Size = NS(0.16), Transparency = seq(0, 1, 0.3, 0, 1, 1), Color = CS(AMBER_WHITE),
+		Lifetime = R(0.4), Rate = 6, LightEmission = 1, Brightness = 4, ZOffset = 1.5, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.25 })
+	loop(core, "Horizon", { -- a level glint: steady as the horizon
+		Texture = MB.lens, Size = seq(0, 0.6, 0.5, 1, 1, 0.7), Transparency = seq(0, 1, 0.4, 0.2, 1, 1), Color = CS(AMBER_WHITE),
+		Lifetime = R(1.6), Rate = 0.6, LightEmission = 1, Brightness = 3, ZOffset = 1.55, LockedToPart = true,
+	}, { Prime = 1 })
+
+	-- a squat amber glow behind the lower body on a dark umber copy of
+	-- itself: a low, broad shape (a hill, not a flame) that breathes slowly
+	local seat = at("Dantian", CFrame.new(0, 0.2, 0.55), "Seat", body)
+	loop(seat, "Shade", {
+		Texture = MB.haze, Size = NS(2), Transparency = seq(0, 1, 0.3, 0.2, 0.7, 0.2, 1, 1), Color = CS(rgb(40, 26, 14)),
+		Lifetime = R(2.4), Rate = 0.9, Rotation = R(-20, 20), LightEmission = 0, ZOffset = -0.8, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.06, Drift = 0.04 })
+	loop(seat, "Glow", {
+		Texture = MB.core, Size = NS(1.6), Transparency = seq(0, 1, 0.3, 0.1, 0.7, 0.1, 1, 1), Color = CS(rgb(255, 225, 175)),
+		Lifetime = R(2.2), Rate = 1.2, Rotation = R(0, 360), RotSpeed = R(-8, 8), LightEmission = 1, Brightness = 3,
+		ZOffset = -0.5, LockedToPart = true,
+	}, { Prime = 2, Breathe = R(0.7, 1.3), Swell = 0.1, Drift = 0.04 })
+
+	-- limbs: earth qi clinging low, gold sand sifting down, dark grit
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Qi", {
+		Texture = MB.haze, Shape = box, ShapeStyle = volume, Size = rnd(0.5, 0.65),
+		Transparency = seq(0, 1, 0.3, 0.3, 0.7, 0.3, 1, 1), Color = CS(rgb(255, 225, 185)), Lifetime = R(1.4, 1.8),
+		Rotation = R(0, 360), RotSpeed = R(-10, 10), Rate = 1.4, LightEmission = 1, Brightness = 2.5, ZOffset = -0.25,
+		LockedToPart = true,
+	}, { On = "Torso,Legs", Scaled = true, Breathe = R(0.7, 1.3), Swell = 0.12, Drift = 0.05 })
+	loop(limbs, "Sand", {
+		Texture = MB.dot, Shape = box, ShapeStyle = surface, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.05, 0.075),
+		Transparency = seq(0, 0, 0.8, 0.1, 1, 1), Color = cseq(0, AMBER_WHITE, 1, OCHRE), Lifetime = R(0.6, 0.9),
+		Speed = R(0.2, 0.5), SpreadAngle = Vector2.new(20, 20), Acceleration = V3(0, -7, 0), Rate = 5, LightEmission = 1,
+		Brightness = 2.5, ZOffset = 0.4,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.6, 1.4), Surge = 10, PunchSurge = 5 })
+	loop(limbs, "Grit", {
+		Texture = MB.stones, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = box, ShapeStyle = surface, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.045, 0.07),
+		Transparency = seq(0, 0, 0.8, 0.1, 1, 1), Color = CS(SLATE), Lifetime = R(0.7, 1), Speed = R(0.1, 0.3),
+		Acceleration = V3(0, -8, 0), Rotation = R(0, 360), RotSpeed = R(-90, 90), Rate = 0.8, LightEmission = 0, ZOffset = 0.35,
+	}, { On = "Arms,Torso", Scaled = true, Surge = 4, PunchSurge = 2 })
+
+	-- each breath settles: a low dust ring, puffs, a few pebbles hop, the core swells
+	local breath = model("Breath", m)
+	local belly = at("Belly", CFrame.new(0, -0.18, -0.18), "Belly", breath)
+	burst(belly, "Swell", 1, {
+		Texture = MB.glow, Size = seq(0, 0.5, 0.5, 1.1, 1, 1.2), Transparency = seq(0, 0.4, 1, 1), Color = cseq(0, AMBER_WHITE, 1, AMBER),
+		Lifetime = R(0.9), LightEmission = 1, Brightness = 2, ZOffset = 1.8,
+	})
+	local floorB = part("Floor", breath, CFrame.new(0, 0.18, 0), V3(2.4, 0.1, 2.4))
+	burst(floorB, "DustRing", 1, B.flat({
+		Texture = MB.dustRing, Size = seq(0, 1.6, 1, 3.3), Transparency = seq(0, 0.45, 0.5, 0.6, 1, 1), Color = CS(DUSTY),
+		Lifetime = R(1.4), Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5, ZOffset = 0.2,
+	}))
+	burst(floorB, "Puffs", 4, {
+		Texture = MB.dust, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.35, 1, 0.9),
+		Transparency = seq(0, 0.55, 1, 1), Color = CS(DUSTY), Lifetime = R(0.9, 1.3), Speed = R(1.5, 2.5), Drag = 2,
+		Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5,
+	})
+	burst(floorB, "Hop", 3, {
+		Texture = MB.rocks, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = box, EmissionDirection = up, Size = rnd(0.07, 0.11), Transparency = seq(0, 0, 0.85, 0, 1, 1),
+		Lifetime = R(0.45, 0.6), Speed = R(2.5, 3.5), SpreadAngle = Vector2.new(25, 25), Acceleration = V3(0, -22, 0),
+		Rotation = R(0, 360), RotSpeed = R(-200, 200), LightEmission = 0, LightInfluence = 0.6,
+	})
+
+	-- a tremor every few breaths: a lighter ignition
+	local tremor = model("Punch", m)
+	local pCore = at("Belly", CFrame.new(0, -0.18, -0.25), "Belly", tremor)
+	burst(pCore, "Flash", 1, {
+		Texture = MB.dot, Size = seq(0, 0.3, 0.2, 0.9, 1, 1), Transparency = seq(0, 0.05, 0.5, 0.5, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(0.45), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(pCore, "Horizon", 1, {
+		Texture = MB.lens, Size = seq(0, 0.6, 0.25, 2.2, 1, 0), Transparency = NS(0), Color = CS(AMBER_WHITE),
+		Lifetime = R(0.5), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	local pFloor = part("Floor", tremor, CFrame.new(0, 0.2, 0), V3(2.6, 0.1, 2.6))
+	burst(pFloor, "Cracks", 1, B.flat({
+		Texture = MB.cracks, Size = seq(0, 2, 0.2, 2.7, 1, 2.8), Transparency = seq(0, 0, 0.5, 0.4, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(0.9), Rotation = R(0, 360), LightEmission = 1, Brightness = 2.5,
+		ZOffset = 0.25,
+	}))
+	burst(pFloor, "DustRing", 1, B.flat({
+		Texture = MB.dustRing, Size = seq(0, 1.6, 1, 3.8), Transparency = seq(0, 0.3, 0.5, 0.5, 1, 1), Color = CS(DUSTY),
+		Lifetime = R(1.2), Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5, ZOffset = 0.2,
+	}))
+	burst(pFloor, "Spray", 6, {
+		Texture = MB.dust, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.5, 1, 1.3),
+		Transparency = seq(0, 0.45, 1, 1), Color = CS(DUSTY), Lifetime = R(0.8, 1.1), Speed = R(4, 6), Drag = 3,
+		Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5,
+	})
+	burst(pFloor, "Grit", 6, {
+		Texture = MB.rocks, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = box, EmissionDirection = up, Size = rnd(0.08, 0.13), Transparency = seq(0, 0, 0.85, 0, 1, 1),
+		Lifetime = R(0.5, 0.7), Speed = R(3.5, 5), SpreadAngle = Vector2.new(30, 30), Acceleration = V3(0, -24, 0),
+		Rotation = R(0, 360), RotSpeed = R(-220, 220), LightEmission = 0, LightInfluence = 0.6,
+	})
+
+	-- ignition: the ground thumps, short and heavy, on and near the body
+	local ignite = model("Ignite", m)
+	local iCore = at("Belly", CFrame.new(0, -0.18, -0.3), "Belly", ignite)
+	burst(iCore, "Flash", 1, {
+		Texture = MB.dot, Size = seq(0, 0.5, 0.15, 1.5, 1, 1.7), Transparency = seq(0, 0, 0.4, 0.5, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(0.45), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(iCore, "Horizon", 1, {
+		Texture = MB.lens, Size = seq(0, 1, 0.2, 4.2, 1, 0), Transparency = NS(0), Color = CS(AMBER_WHITE),
+		Lifetime = R(0.6), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(iCore, "GoldDust", 20, {
+		Texture = MB.dot, EmissionDirection = up, Size = rnd(0.05, 0.09), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(1, 1.5), Speed = R(5, 8), SpreadAngle = Vector2.new(60, 60),
+		Drag = 2, Acceleration = V3(0, -6, 0), LightEmission = 1, Brightness = 3, ZOffset = 1,
+	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3.2, 0.1, 3.2))
+	burst(base, "Crater", 1, B.flat({ -- dark under the bright cracks
+		Texture = MB.crater, Size = seq(0, 2.2, 0.1, 2.6, 1, 2.6), Transparency = seq(0, 0, 0.7, 0.1, 1, 1),
+		Color = CS(rgb(120, 100, 85)), Lifetime = R(1.3), Rotation = R(0, 360), LightEmission = 0, ZOffset = 0.15,
+	}))
+	burst(base, "Cracks", 1, B.flat({
+		Texture = MB.cracks, Size = seq(0, 1.6, 0.12, 3.2, 1, 3.3), Transparency = seq(0, 0, 0.6, 0.35, 1, 1),
+		Color = cseq(0, AMBER_WHITE, 1, AMBER), Lifetime = R(1.1), Rotation = R(0, 360), LightEmission = 1, Brightness = 3,
+		ZOffset = 0.25,
+	}))
+	burst(base, "Rubble", 1, B.flat({
+		Texture = MB.rubble, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(2.1), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = CS(rgb(230, 200, 160)), Lifetime = R(1), Rotation = R(0, 360), LightEmission = 0.4, Brightness = 1.5, ZOffset = 0.2,
+	}))
+	burst(base, "DustRing", 1, B.flat({
+		Texture = MB.dustRing, Size = seq(0, 1.6, 1, 5), Transparency = seq(0, 0.1, 0.5, 0.4, 1, 1), Color = CS(DUSTY),
+		Lifetime = R(1.1), Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5, ZOffset = 0.3,
+	}))
+	burst(base, "Spray", 12, {
+		Texture = MB.dust, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.6, 1, 1.8),
+		Transparency = seq(0, 0.3, 1, 1), Color = CS(DUSTY), Lifetime = R(0.9, 1.3), Speed = R(8, 12), Drag = 3.5,
+		Rotation = R(0, 360), LightEmission = 0, LightInfluence = 0.5,
+	})
+	burst(base, "Rocks", 12, {
+		Texture = MB.rocks, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.12, 0.22), Transparency = seq(0, 0, 0.85, 0, 1, 1),
+		Lifetime = R(0.7, 1), Speed = R(6, 9), SpreadAngle = Vector2.new(35, 35), Acceleration = V3(0, -30, 0),
+		Rotation = R(0, 360), RotSpeed = R(-250, 250), LightEmission = 0, LightInfluence = 0.6,
+	})
+	local rim = part("Rim", ignite, CFrame.new(0, 0.45, 0), V3(4.6, 0.1, 4.6))
+	burst(rim, "Shards", 8, { -- stone shards jutting up round the seat, then sinking
+		Texture = MB.shard, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = surface, EmissionDirection = up,
+		Size = seq(0, 0, 0.12, 0.5, 0.75, 0.45, 1, 0), Transparency = seq(0, 0, 0.8, 0, 1, 1),
+		Color = cseq(0, STONE, 1, UMBER), Lifetime = R(1, 1.2), Speed = R(0.3, 0.6), Rotation = R(-15, 15), LightEmission = 0,
+		LightInfluence = 0.5, ZOffset = 0.3,
+	}, { EmitDelay = 0.04 })
+	return m
+end
+
+-- ---------------------------------------------------------------- Thunder Pulse (Lightning, rare)
+-- Sudden bursts (Mortal: small, close). Rebuilt 2026-10-21 from layered
+-- library emissions (ref docs/reference/auras/dark_lightning_cracks: a dark
+-- body split by glowing violet cracks, arcs off the hands, smoke tendrils,
+-- floating specks). The idle is dark and still; everything bright happens in
+-- irregular bursts (Rhythm = "burst", 0.5 to 2.6 s apart). Back to front:
+--   ground  a scorched rubble ring (dark base) round a lightning-crack web
+--           that flashes on each burst, dark storm haze, an electric ring
+--           crackling at the rim, small arcs crawling on the ground
+--   body    jagged lightning cracks (a hard core over a violet glow) across
+--           chest, belly and arms, re-jagged each burst; dark smoke tendrils
+--           off the head, shoulders and arms; a violet charge glow and arcs
+--           crackling on the skin;
+--           ozone sparks; a dim violet node at the crack meeting point
+--   burst   a crack flash at the chest (spark, radial arcs), bolts from both
+--           hands to the ground with spark splashes where they land, a snap
+--           ring and a crack flash on the ground, the skin crackles
+--   ignite  a bolt strikes the crown, a chromatic flash, radial lightning at
+--           the chest, arcs filling the space round the body, an electric
+--           ring and a scorched crack web blasting over the ground, dark
+--           smoke thrown low, sparks; the skin arcs surge
+
+-- saturated violets: pastel violet goes white under LightEmission on a dark body
+local BOLT_CORE, BOLT, BOLT_DEEP = rgb(245, 235, 255), rgb(165, 100, 255), rgb(115, 45, 240)
+local STORM = rgb(18, 10, 32)
+
+local TP = {
+	dot = id(9841273544), -- small hard glow dot
+	glow = id(867619398), -- soft round glow
+	strip = id(7151777149), -- vertical lightning strip (beam texture, tiles along the beam)
+	bolt = id(1277456789), -- big branching lightning bolt
+	web = id(93520831389146), -- lightning-crack web (ground)
+	rubble = id(96277359307961), -- jagged scorched rubble ring
+	eRing = id(112496740337235), -- ring of crackling lightning
+	radial = id(528280947), -- radial lightning branches
+	spark = id(74576272746737), -- lightning spark splash with glow
+	chroma = id(86693750436614), -- chromatic lightning spark
+	crackle = id(7216850580), -- small electric crackle
+	zig = id(117027323479014), -- tiny zigzag bolt
+	arcs4 = id(11492870634), -- 4x4 flipbook: thin arcs flicking
+	arcs2 = id(76973563852665), -- 2x2 sheet: four short thick bolts
+	haze = id(112406986364431), -- 2x2 sheet: wispy smoke
+}
+_G.ThunderPulseAssets = TP
+
+local boltColor = cseq(0, BOLT_CORE, 0.5, BOLT, 1, BOLT_DEEP)
+local randomFb = Enum.ParticleFlipbookMode.Random
+
+local function thunderPulse(root)
+	local m = model("ThunderPulse", root, { Rhythm = "burst" })
+	-- a faint dark tint over the body (support only: the smoke tendrils carry
+	-- the dark body on their own)
+	shell(m, STORM, { Pulse = R(0.62, 0.7), Pad = 0.06 }, Enum.Material.SmoothPlastic, "ShellDark")
+
+	-- body: jagged lightning cracks. Each is two lines on the same points: a
+	-- thin hard core, re-jagged on every burst, over a wide straight violet glow
+	local lines = folder("Lines", m)
+	local core = {
+		Color = CS(BOLT_CORE), Width0 = 0.09, Width1 = 0.06, Brightness = 5, LightEmission = 1, Transparency = NS(0),
+	}
+	local glow = { -- a soft violet band (the glow texture stretched along the line)
+		Texture = TP.glow, TextureMode = Enum.TextureMode.Stretch, TextureLength = 1,
+		Color = cseq(0, BOLT, 1, BOLT_DEEP), Width0 = 1.1, Width1 = 0.8, Brightness = 6, LightEmission = 1,
+		Transparency = NS(0), ZOffset = 0.5,
+	}
+	for _, l in {
+		{ "ChestR", "Belly" }, { "Belly", "SideL" }, { "Chest", "ChestL" }, { "ChestL", "LShoulder" },
+		{ "LShoulder", "LElbow" }, { "LElbow", "LHand" }, { "RShoulder", "RElbow" }, { "RElbow", "RHand" },
+		{ "Neck", "ChestR" },
+	} do
+		local arm = string.find(l[2], "Elbow") or string.find(l[2], "Hand")
+		beam(lines, l[1] .. "_" .. l[2], l[1], l[2], core, { Pulse = R(0, 0.5), Flicker = 0.35, Segs = if arm then 3 else 2, Jag = 0.12 })
+		beam(lines, l[1] .. "_" .. l[2] .. "Glow", l[1], l[2], glow, { Pulse = R(0, 0.8), Flicker = 0.2 })
+	end
+	-- bolts from the hands to the ground, lit only on a burst
+	local arc = {
+		Color = CS(BOLT_CORE), Width0 = 0.14, Width1 = 0.1, Brightness = 6, LightEmission = 1, Transparency = NS(0), ZOffset = 0.3,
+	}
+	local arcGlow = { -- a crawling bolt texture round the hard core
+		Texture = TP.strip, TextureMode = Enum.TextureMode.Stretch, TextureLength = 1, TextureSpeed = 4,
+		Color = cseq(0, BOLT, 1, BOLT_DEEP), Width0 = 0.8, Width1 = 0.6, Brightness = 4, LightEmission = 1,
+		Transparency = NS(0), ZOffset = 0.25,
+	}
+	for _, side in { "L", "R" } do
+		beam(lines, "Bolt" .. side, side .. "Hand", "Arc" .. side, arc, { Pulse = R(0, 1), Segs = 4, Jag = 0.3 })
+		beam(lines, "Bolt" .. side .. "Glow", side .. "Hand", "Arc" .. side, arcGlow, { Pulse = R(0, 1) })
+	end
+
+	-- ground: scorched ring, crack web, haze, electric rim, crawling arcs
+	local ground = model("Ground", m)
+	local anchors = part("Anchors", ground, CFrame.new(0, 0.1, 0))
+	B.attach(anchors, "ArcL", V3(-1.9, 0, -1.2))
+	B.attach(anchors, "ArcR", V3(1.9, 0, -1.2))
+	decalDisc("Rubble", ground, 4.6, 0.13, TP.rubble, rgb(40, 26, 64), { Pulse = R(0.2, 0.3), Kick = 0.3 })
+	decalDisc("Cracks", ground, 3.8, 0.15, TP.web, BOLT, { Pulse = R(0, 0.85), Flicker = 0.3, Kick = 0.8 })
+	local floor = part("Floor", ground, CFrame.new(0, 0.18, 0), V3(3.6, 0.1, 3.6))
+	loop(floor, "Haze", B.flat({ -- the dark storm pool under everything bright
+		Texture = TP.glow, Size = NS(2.6), Transparency = seq(0, 1, 0.25, 0.35, 0.75, 0.35, 1, 1), Color = CS(STORM),
+		Lifetime = R(4), Rate = 0.5, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Rim", B.flat({
+		Texture = TP.eRing, Size = rnd(2.1, 2.3), Transparency = seq(0, 1, 0.1, 0.45, 0.5, 0.6, 1, 1), Color = boltColor,
+		Lifetime = R(0.25, 0.4), Rate = 3, Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 0.1,
+	}), { Breathe = R(0.4, 6), Swell = 0.15 })
+	loop(floor, "GroundArcs", B.flat({
+		Texture = TP.arcs4, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = randomFb,
+		Shape = disc, ShapeStyle = volume, Size = rnd(0.35, 0.6), Transparency = seq(0, 0, 0.6, 0.2, 1, 1),
+		Color = boltColor, Lifetime = R(0.12, 0.22), Rate = 4, Rotation = R(0, 360), LightEmission = 1, Brightness = 3,
+		ZOffset = 0.15,
+	}), { Scaled = true, Breathe = R(0.5, 5) })
+	-- the node where the chest cracks meet: dim at rest, flaring on a burst
+	local body = model("Body", m)
+	local node = at("ChestR", CFrame.new(0, 0, -0.15), "Node", body)
+	loop(node, "Node", {
+		Texture = TP.dot, Size = NS(0.32), Transparency = seq(0, 1, 0.3, 0.25, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.3), Rate = 6, LightEmission = 1, Brightness = 3, ZOffset = 1.5, LockedToPart = true,
+	}, { Prime = 2, Swell = 1.2, Drift = 0.15 })
+
+	-- limbs: dark smoke tendrils, arcs crackling on the skin, ozone sparks
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Tendrils", {
+		Texture = TP.haze, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid2x2, FlipbookMode = randomFb,
+		Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = seq(0, 0.35, 1, 0.9),
+		Transparency = seq(0, 1, 0.2, 0.25, 1, 1), Color = CS(STORM), Lifetime = R(1, 1.4), Speed = R(0.6, 1.2),
+		Acceleration = V3(0, 0.8, 0), Rotation = R(0, 360), RotSpeed = R(-30, 30), Rate = 2, LightEmission = 0, ZOffset = 0.1,
+	}, { On = "Arms,Torso,Head", Scaled = true })
+	loop(limbs, "Charge", { -- a violet charge glow on the skin, flaring on a burst
+		Texture = TP.glow, Shape = box, ShapeStyle = surface, Size = rnd(0.45, 0.6), Transparency = seq(0, 1, 0.3, 0.7, 1, 1),
+		Color = cseq(0, BOLT, 1, BOLT_DEEP), Lifetime = R(0.5, 0.7), Rate = 3, LightEmission = 1, Brightness = 3,
+		ZOffset = 0.4, LockedToPart = true,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.6, 3) })
+	loop(limbs, "Arcs", {
+		Texture = TP.arcs2, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid2x2, FlipbookMode = randomFb,
+		Shape = box, ShapeStyle = surface, Size = rnd(0.22, 0.38), Transparency = seq(0, 0, 0.5, 0.15, 1, 1),
+		Color = boltColor, Lifetime = R(0.08, 0.16), Rotation = R(0, 360), Rate = 1.5, LightEmission = 1, Brightness = 4,
+		ZOffset = 0.7, LockedToPart = true,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.5, 10), Surge = 8 })
+	loop(limbs, "Ozone", {
+		Texture = TP.zig, Shape = box, ShapeStyle = surface, Size = rnd(0.07, 0.12), Transparency = seq(0, 0, 0.7, 0, 1, 1),
+		Color = CS(BOLT_CORE), Lifetime = R(0.25, 0.5), Speed = R(1.5, 3), SpreadAngle = Vector2.new(180, 180),
+		Rotation = R(0, 360), RotSpeed = R(-300, 300), Drag = 2, Rate = 1.2, LightEmission = 1, Brightness = 3,
+		ZOffset = 0.5,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.6, 4), Surge = 6 })
+
+	-- a burst: the cracks flash, bolts drop from the hands, the ground snaps
+	local breath = model("Breath", m)
+	local chest = at("ChestR", CFrame.new(0, 0, -0.3), "Chest", breath)
+	burst(chest, "Flash", 1, {
+		Texture = TP.dot, Size = seq(0, 0.4, 0.2, 0.9, 1, 1), Transparency = seq(0, 0.1, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.18), LightEmission = 1, Brightness = 4, ZOffset = 2,
+	})
+	burst(chest, "Spark", 1, {
+		Texture = TP.spark, Size = seq(0, 0.6, 1, 0.9), Transparency = seq(0, 0, 0.6, 0.2, 1, 1), Color = CS(BOLT_CORE),
+		Lifetime = R(0.16), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(chest, "Radial", 1, {
+		Texture = TP.radial, Size = seq(0, 0.7, 1, 1.3), Transparency = seq(0, 0, 0.5, 0.3, 1, 1), Color = boltColor,
+		Lifetime = R(0.14), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 1.9,
+	})
+	local snap = part("Floor", breath, CFrame.new(0, 0.2, 0))
+	burst(snap, "Snap", 1, B.flat({
+		Texture = TP.eRing, Size = seq(0, 0.9, 1, 2.7), Transparency = seq(0, 0, 0.6, 0.35, 1, 1), Color = boltColor,
+		Lifetime = R(0.3), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 0.3,
+	}))
+	burst(snap, "Web", 1, B.flat({
+		Texture = TP.web, Size = seq(0, 1.5, 1, 1.8), Transparency = seq(0, 0, 0.5, 0.4, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.35), Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.25,
+	}))
+	for _, side in { -1, 1 } do
+		local hit = part(if side < 0 then "HitL" else "HitR", breath, CFrame.new(1.9 * side, 0.2, -1.2))
+		burst(hit, "Splash", 1, {
+			Texture = TP.crackle, Size = seq(0, 0.4, 1, 0.7), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+			Lifetime = R(0.18), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 0.6,
+		})
+		burst(hit, "Sparks", 5, {
+			Texture = TP.zig, Size = rnd(0.08, 0.14), Transparency = NS(0), Color = CS(BOLT_CORE), Lifetime = R(0.2, 0.35),
+			Speed = R(5, 9), Drag = 5, EmissionDirection = up, SpreadAngle = Vector2.new(70, 70), Rotation = R(0, 360),
+			RotSpeed = R(-400, 400), LightEmission = 1, Brightness = 3,
+		})
+	end
+
+	-- ignition: a bolt strikes the crown and the storm wakes round the body
+	local ignite = model("Ignite", m)
+	local sky = at("Crown", CFrame.new(0, 2.6, 0), "Sky", ignite)
+	burst(sky, "Strike", 1, {
+		Texture = TP.bolt, Size = NS(2.8), Transparency = seq(0, 0, 0.3, 0.4, 0.4, 0, 0.6, 0.5, 1, 1),
+		Color = cseq(0, BOLT_CORE, 1, BOLT), Lifetime = R(0.28), LightEmission = 1, Brightness = 5, ZOffset = 1,
+	})
+	burst(sky, "Strike2", 1, {
+		Texture = TP.bolt, Size = NS(2.4), Transparency = seq(0, 0, 0.5, 0.5, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.18), Rotation = R(160, 200), LightEmission = 1, Brightness = 4, ZOffset = 0.9,
+	}, { EmitDelay = 0.12 })
+	local crown = at("Crown", nil, "Crown", ignite)
+	burst(crown, "Flash", 1, {
+		Texture = TP.dot, Size = seq(0, 0.6, 0.15, 1.8, 1, 2), Transparency = seq(0, 0, 0.5, 0.5, 1, 1), Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.3), LightEmission = 1, Brightness = 4, ZOffset = 2,
+	})
+	burst(crown, "Chroma", 1, {
+		Texture = TP.chroma, Size = seq(0, 1, 1, 1.8), Transparency = seq(0, 0, 0.6, 0.2, 1, 1), Color = CS(rgb(255, 255, 255)),
+		Lifetime = R(0.25), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	local heart = at("Chest", CFrame.new(0, 0, -0.3), "Chest", ignite)
+	burst(heart, "Radial", 1, {
+		Texture = TP.radial, Size = seq(0, 1.4, 1, 2.6), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = boltColor,
+		Lifetime = R(0.3), Rotation = R(0, 360), LightEmission = 1, Brightness = 4, ZOffset = 1.9,
+	}, { EmitDelay = 0.06 })
+	local field = part("Field", ignite, CFrame.new(0, 1.6, 0), V3(3.4, 3, 3.4))
+	burst(field, "Arcs", 12, {
+		Texture = TP.arcs2, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid2x2, FlipbookMode = randomFb,
+		Shape = box, ShapeStyle = volume, Size = rnd(0.5, 0.9), Transparency = seq(0, 0, 0.6, 0.2, 1, 1), Color = boltColor,
+		Lifetime = R(0.12, 0.3), Rotation = R(0, 360), LightEmission = 1, Brightness = 4, ZOffset = 0.8,
+	}, { EmitDelay = 0.06 })
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3, 0.1, 3))
+	burst(base, "Ring", 1, B.flat({
+		Texture = TP.eRing, Size = seq(0, 1, 1, 4.2), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = boltColor,
+		Lifetime = R(0.45), Rotation = R(0, 360), LightEmission = 1, Brightness = 4, ZOffset = 0.35,
+	}), { EmitDelay = 0.06 })
+	burst(base, "Web", 1, B.flat({
+		Texture = TP.web, Size = seq(0, 2.2, 0.15, 2.6, 1, 2.7), Transparency = seq(0, 0, 0.4, 0.2, 1, 1),
+		Color = cseq(0, BOLT_CORE, 1, BOLT), Lifetime = R(0.9), Rotation = R(0, 360), LightEmission = 1, Brightness = 3,
+		ZOffset = 0.3,
+	}), { EmitDelay = 0.06 })
+	burst(base, "Scorch", 1, B.flat({ -- the dark under the web
+		Texture = TP.rubble, Size = seq(0, 2.6, 1, 2.9), Transparency = seq(0, 0.1, 0.6, 0.3, 1, 1), Color = CS(STORM),
+		Lifetime = R(1.4), Rotation = R(0, 360), LightEmission = 0, ZOffset = 0.2,
+	}), { EmitDelay = 0.06 })
+	burst(base, "Smoke", 8, {
+		Texture = TP.haze, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid2x2, FlipbookMode = randomFb, Shape = box,
+		EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.6, 1, 1.6),
+		Transparency = seq(0, 0.15, 1, 1), Color = CS(STORM), Lifetime = R(0.8, 1.1), Speed = R(5, 8), Drag = 3,
+		Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}, { EmitDelay = 0.06 })
+	burst(base, "Sparks", 18, {
+		Texture = TP.zig, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.1, 0.18),
+		Transparency = NS(0), Color = CS(BOLT_CORE), Lifetime = R(0.3, 0.6), Speed = R(8, 14), Drag = 5,
+		SpreadAngle = Vector2.new(60, 60), Rotation = R(0, 360), RotSpeed = R(-400, 400), LightEmission = 1, Brightness = 3,
+	}, { EmitDelay = 0.06 })
+	return m
+end
+
+-- ---------------------------------------------------------------- Drifting Cloud (Wind, rare)
+-- Qi drifting in on the wind (Mortal: small, close). Rebuilt 2026-10-21 from
+-- layered library emissions (no reference yet; roblox_seated_blue_wisps for
+-- the wisps and the ground ring). You sit on a soft cloud; on each inhale the
+-- wind spirals in to you and loosens on the exhale. Back to front:
+--   ground  a cool shadow under the cloud (dark base), a curling cloud of
+--           flipbook puffs you sit on over a grey-teal underside, low mist
+--           drifting off it, a soft wind vortex and a three-armed wind seal
+--           turning against each other (the seal tightens on the inhale)
+--   body    swirl strokes spiralling in round the waist and chest (faster on
+--           the inhale), wind curls drawn in from all round, rising wisps and
+--           curls lifting off the arms, torso and head (robes and hair can't
+--           lift), a calm mint glow at the dantian, motes drifting on the wind
+--   breath  (the inhale's start) spiral rings sweep in to the body, a gust of
+--           curls drawn in, a puff of cloud at the seat
+--   ignite  a soft flash at the chest, the cloud bursts out in a ring of puffs,
+--           a gust swirl spreading over the ground, wisps and curls thrown up,
+--           motes scattered; the limb wisps surge
+
+local WIND_CORE, WIND, WIND_DEEP = rgb(225, 255, 244), rgb(140, 230, 200), rgb(70, 160, 140)
+local CLOUD, CLOUD_UNDER, CLOUD_SHADOW = rgb(250, 253, 252), rgb(170, 200, 200), rgb(40, 70, 72)
+
+local DC = {
+	glow = id(867619398), -- soft round glow
+	dot = id(9841273544), -- small hard glow dot
+	puff = id(130296526638889), -- 4x4 flipbook: a cloud puff curling and thinning
+	fog = id(89816655384560), -- 4x4 flipbook: thin fog
+	poof = id(12360899465), -- 4x4 flipbook: a puff bursting into a ring
+	vortex = id(15249897265), -- soft radial wind swirl
+	seal = id(12362658430), -- three-armed wind curl (triskelion)
+	swirl = id(13276325263), -- wind swirl strokes
+	swirl2 = id(14670080222), -- four-armed swirl strokes
+	rings = id(18787656402), -- spiralling ring strokes
+	curls = id(12094495797), -- 4x4 flipbook: small wind curls
+	wisp = id(87957760009809), -- 4x4 flipbook: a rising wavy wisp
+}
+_G.DriftingCloudAssets = DC
+
+local function driftingCloud(root)
+	local m = model("DriftingCloud", root, { BreathAt = 0.05 }) -- the inhale's start
+
+	-- ground: the cloud seat
+	local ground = model("Ground", m)
+	local floor = part("Floor", ground, CFrame.new(0, 0.12, 0), V3(3, 0.1, 3))
+	loop(floor, "Shadow", B.flat({ -- the cool dark under the white cloud
+		Texture = DC.glow, Size = NS(2.5), Transparency = seq(0, 1, 0.25, 0.45, 0.75, 0.45, 1, 1), Color = CS(CLOUD_SHADOW),
+		Lifetime = R(4), Rate = 0.5, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Vortex", B.flat({
+		Texture = DC.vortex, Size = seq(0, 2.2, 1, 1.7), Transparency = seq(0, 1, 0.3, 0.45, 0.7, 0.5, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(3), Rate = 0.67, Rotation = R(0, 360), RotSpeed = R(-50, -40),
+		LightEmission = 1, Brightness = 1.5, ZOffset = 0.05,
+	}), { Prime = 2, Breathe = R(0.6, 1.4), Swell = -0.12, Drift = 0.05 })
+	decalDisc("Seal", ground, 3.6, 0.16, DC.seal, WIND, { Pulse = R(0.25, 0.55), Turn = 30, Grow = R(0.9, 1.05), GrowIn = true, Kick = 0.4 })
+	local seat = part("Seat", ground, CFrame.new(0, 0.6, 0), V3(3.8, 0.3, 3.8))
+	loop(seat, "Under", { -- grey-teal underside so the white puffs have an edge on grass
+		Texture = DC.puff, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.75, 0.4, 1.2, 1, 1.3),
+		Transparency = seq(0, 1, 0.2, 0.35, 0.8, 0.5, 1, 1), Color = CS(CLOUD_UNDER), Lifetime = R(3, 3.6), Speed = R(0.05, 0.15),
+		Rotation = R(0, 360), RotSpeed = R(-8, 8), Rate = 2, LightEmission = 0, ZOffset = 0.5,
+	}, { Prime = 4, Scaled = true })
+	loop(seat, "Cloud", {
+		Texture = DC.puff, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.65, 0.4, 1.05, 1, 1.15),
+		Transparency = seq(0, 1, 0.2, 0.1, 0.8, 0.3, 1, 1), Color = cseq(0, CLOUD, 1, WIND_CORE), Lifetime = R(2.6, 3.2),
+		Speed = R(0.1, 0.25), Acceleration = V3(0, 0.05, 0), Rotation = R(0, 360), RotSpeed = R(-10, 10), Rate = 3,
+		LightEmission = 0.15, Brightness = 1.4, ZOffset = 0.6, -- in front of the ground, so it doesn't clip flat
+	}, { Prime = 5, Scaled = true, Breathe = R(0.8, 1.3), Swell = 0.1, Drift = 0.06 })
+	loop(seat, "Mist", {
+		Texture = DC.fog, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = loopFb, FlipbookFramerate = R(4, 6),
+		Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = surface, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
+		Size = seq(0, 0.8, 1, 1.6), Transparency = seq(0, 1, 0.3, 0.55, 1, 1), Color = CS(CLOUD), Lifetime = R(2.5, 3.5),
+		Speed = R(0.4, 0.7), Drag = 0.4, Rotation = R(0, 360), Rate = 1, LightEmission = 0.1, ZOffset = 0,
+	}, { Prime = 2, Scaled = true })
+
+	-- body: the wind spiralling in, a calm glow, motes on the wind
+	local body = model("Body", m)
+	local waist = at("Dantian", CFrame.new(0, -0.2, 0), "Waist", body)
+	loop(waist, "Spiral", B.flat({
+		Texture = DC.swirl, Size = seq(0, 3.2, 1, 1.3), Transparency = seq(0, 1, 0.3, 0.15, 0.75, 0.3, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(1.8), Rate = 0.9, Rotation = R(0, 360), RotSpeed = R(140, 170),
+		LightEmission = 0.9, Brightness = 3, ZOffset = 0.4,
+	}), { Prime = 1, Breathe = R(0.3, 1.7) })
+	local chest = at("Chest", CFrame.new(0, 0.1, 0.5), "Upper", body)
+	loop(chest, "Spiral", B.flat({
+		Texture = DC.swirl2, Size = seq(0, 2.6, 1, 1.1), Transparency = seq(0, 1, 0.3, 0.25, 0.75, 0.4, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(1.6), Rate = 0.8, Rotation = R(0, 360), RotSpeed = R(-180, -150),
+		LightEmission = 0.9, Brightness = 3, ZOffset = 0.4,
+	}), { Breathe = R(0.2, 1.8) })
+	local core = at("Dantian", CFrame.new(0, 0, -0.55), "Core", body)
+	loop(core, "Glow", {
+		Texture = DC.glow, Size = NS(0.8), Transparency = seq(0, 1, 0.3, 0.55, 1, 1), Color = cseq(0, WIND_CORE, 1, WIND),
+		Lifetime = R(0.8), Rate = 3, LightEmission = 1, Brightness = 2, ZOffset = 1.2, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.35, Drift = 0.08 })
+	loop(core, "Dot", {
+		Texture = DC.dot, Size = NS(0.16), Transparency = seq(0, 1, 0.3, 0.1, 1, 1), Color = CS(WIND_CORE),
+		Lifetime = R(0.6), Rate = 4, LightEmission = 1, Brightness = 3, ZOffset = 1.3, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.4 })
+	-- curls drawn in from a shell round the body to the waist
+	local shellIn = at("Dantian", nil, "Inflow", body, V3(5.5, 4, 5.5))
+	loop(shellIn, "Curls", {
+		Texture = DC.curls, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = sphere, ShapeStyle = surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+		Size = seq(0, 0.25, 0.5, 0.4, 1, 0.2), Transparency = seq(0, 1, 0.25, 0.15, 0.8, 0.3, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(0.9, 1.1), Speed = R(2.2, 2.6), Rotation = R(0, 360),
+		RotSpeed = R(-90, 90), Rate = 3, LightEmission = 0.8, Brightness = 2, ZOffset = 0.3,
+	}, { Scaled = true, Breathe = R(0.2, 1.8) })
+	loop(shellIn, "Motes", {
+		Texture = DC.dot, Shape = sphere, ShapeStyle = volume, Size = seq(0, 0, 0.2, 0.06, 0.8, 0.06, 1, 0),
+		Transparency = seq(0, 0.2, 1, 0.6), Color = CS(WIND_CORE), Lifetime = R(2.5, 3.5), Speed = R(0.3, 0.6),
+		Acceleration = V3(0.5, 0.4, 0), Rate = 1.5, LightEmission = 1, Brightness = 3,
+	}, { Scaled = true })
+
+	-- limbs: wisps and curls lifting off the body
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Wisps", {
+		Texture = DC.wisp, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = seq(0, 0.3, 0.5, 0.5, 1, 0.55),
+		Transparency = seq(0, 1, 0.25, 0.45, 1, 1), Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(1, 1.4),
+		Speed = R(0.8, 1.5), Acceleration = V3(0, 1.2, 0), Rotation = R(-15, 15), Rate = 1.6, LightEmission = 0.6,
+		Brightness = 1.5, ZOffset = 0.3,
+	}, { On = "Arms,Torso,Head", Scaled = true, Breathe = R(0.6, 1.4), Surge = 5 })
+	loop(limbs, "Curls", {
+		Texture = DC.curls, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.22, 0.32),
+		Transparency = seq(0, 0.3, 0.7, 0.4, 1, 1), Color = CS(WIND_CORE), Lifetime = R(0.8, 1.1), Speed = R(1.2, 2),
+		SpreadAngle = Vector2.new(50, 50), Acceleration = V3(0.8, 0.6, 0), Rotation = R(0, 360), Rate = 0.8,
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.4,
+	}, { On = "Arms,Head", Scaled = true, Surge = 4 })
+
+	-- the inhale: spiral rings sweep in, curls drawn in, a puff at the seat
+	local breath = model("Breath", m)
+	local gather = at("Dantian", CFrame.new(0, -0.3, 0), "Gather", breath)
+	burst(gather, "Rings", 1, B.flat({
+		Texture = DC.rings, Size = seq(0, 3.4, 1, 0.8), Transparency = seq(0, 1, 0.25, 0.25, 0.8, 0.4, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(1.8), Rotation = R(0, 360), RotSpeed = R(160),
+		LightEmission = 0.9, Brightness = 2, ZOffset = 0.5,
+	}))
+	local around = at("Dantian", nil, "Around", breath, V3(7, 4, 7))
+	burst(around, "Curls", 8, {
+		Texture = DC.curls, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = sphere, ShapeStyle = surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+		Size = seq(0, 0.3, 0.5, 0.5, 1, 0.2), Transparency = seq(0, 1, 0.25, 0.1, 1, 1), Color = CS(WIND_CORE),
+		Lifetime = R(1.1, 1.3), Speed = R(2.8, 3.2), Rotation = R(0, 360), RotSpeed = R(-90, 90), LightEmission = 0.8,
+		Brightness = 2, ZOffset = 0.3,
+	})
+	local seatP = part("Seat", breath, CFrame.new(0, 0.4, 0), V3(2.4, 0.2, 2.4))
+	burst(seatP, "Puff", 3, {
+		Texture = DC.puff, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.7, 1, 1.2),
+		Transparency = seq(0, 0.2, 1, 1), Color = CS(CLOUD), Lifetime = R(1.6, 2), Speed = R(0.3, 0.5),
+		Rotation = R(0, 360), LightEmission = 0.15, Brightness = 1.4, ZOffset = 0.15,
+	})
+
+	-- ignition: the cloud bursts out on a gust
+	local ignite = model("Ignite", m)
+	local heart = at("Chest", CFrame.new(0, 0, -0.3), "Chest", ignite)
+	burst(heart, "Flash", 1, {
+		Texture = DC.glow, Size = seq(0, 0.6, 0.2, 1.5, 1, 1.7), Transparency = seq(0, 0.25, 0.4, 0.6, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(0.4), LightEmission = 1, Brightness = 2, ZOffset = 2,
+	})
+	burst(heart, "Swirl", 1, {
+		Texture = DC.swirl2, Size = seq(0, 0.6, 1, 2.6), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = CS(WIND_CORE),
+		Lifetime = R(0.5), Rotation = R(0, 360), RotSpeed = R(-360), LightEmission = 1, Brightness = 2.5, ZOffset = 2.1,
+	})
+	local base = part("Base", ignite, CFrame.new(0, 0.3, 0), V3(2.6, 0.2, 2.6))
+	burst(base, "Poof", 1, B.flat({
+		Texture = DC.poof, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Size = seq(0, 1.6, 1, 4.4), Transparency = seq(0, 0, 0.7, 0.2, 1, 1), Color = CS(CLOUD), Lifetime = R(0.8),
+		Rotation = R(0, 360), LightEmission = 0.2, Brightness = 1.5, ZOffset = 0.3,
+	}))
+	burst(base, "PoofDark", 1, B.flat({ -- the cool underside of the poof ring
+		Texture = DC.poof, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Size = seq(0, 1.75, 1, 4.6), Transparency = seq(0, 0.3, 0.7, 0.5, 1, 1), Color = CS(CLOUD_SHADOW), Lifetime = R(0.8),
+		Rotation = R(0, 360), LightEmission = 0, ZOffset = 0.2,
+	}))
+	burst(base, "Gust", 1, B.flat({
+		Texture = DC.swirl, Size = seq(0, 1.2, 1, 4.6), Transparency = seq(0, 0, 0.6, 0.35, 1, 1), Color = cseq(0, WIND_CORE, 1, WIND),
+		Lifetime = R(0.7), Rotation = R(0, 360), RotSpeed = R(-240), LightEmission = 1, Brightness = 2, ZOffset = 0.4,
+	}))
+	burst(base, "Puffs", 10, {
+		Texture = DC.puff, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.7, 1, 1.4),
+		Transparency = seq(0, 0, 0.6, 0.2, 1, 1), Color = CS(CLOUD), Lifetime = R(0.9, 1.2), Speed = R(7, 10), Drag = 4,
+		Rotation = R(0, 360), LightEmission = 0.15, Brightness = 1.4, ZOffset = 0.2,
+	})
+	burst(base, "Updraft", 8, {
+		Texture = DC.wisp, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.6, 1, 1),
+		Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(0.6, 0.8),
+		Speed = R(6, 9), Drag = 2, Rotation = R(-10, 10), LightEmission = 0.8, Brightness = 2, ZOffset = 0.5,
+	})
+	burst(base, "Curls", 12, {
+		Texture = DC.curls, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, SpreadAngle = Vector2.new(60, 60), Size = rnd(0.35, 0.5),
+		Transparency = seq(0, 0, 0.7, 0.3, 1, 1), Color = CS(WIND_CORE), Lifetime = R(0.7, 1), Speed = R(6, 10), Drag = 3,
+		Rotation = R(0, 360), RotSpeed = R(-200, 200), LightEmission = 0.8, Brightness = 2, ZOffset = 0.5,
+	})
+	burst(base, "Motes", 16, {
+		Texture = DC.dot, Shape = disc, ShapeStyle = volume, EmissionDirection = up, SpreadAngle = Vector2.new(70, 70),
+		Size = seq(0, 0.08, 1, 0), Transparency = NS(0), Color = CS(WIND_CORE), Lifetime = R(0.8, 1.3), Speed = R(5, 9),
+		Drag = 2.5, LightEmission = 1, Brightness = 3,
+	})
+	return m
+end
+
+-- ---------------------------------------------------------------- Frost Lotus (Ice, rare)
+-- Blooming cold and clear (Mortal: small, close). Rebuilt 2026-10-21 from
+-- layered library emissions; no light, no shell. The lotus is the frost on
+-- the ground opening round the seat, one petal ring more each breath, and cold
+-- pouring off the body. Back to front:
+--   ground  a deep-blue cracked-ice disc (the dark base) with pale frost
+--           creeping out over it; a glass lotus of leaf-veined petals (flat
+--           library images, two faces each) in three rings that open one per
+--           breath and turn slowly; ice crystals growing and melting round
+--           the rim; frost petals lifting off it; diamond dust falling
+--   body    a cold bud between the hands (a deep halo, a white-hot dot, a
+--           twinkling glint); frost glints twinkling on the skin; cold vapour
+--           pouring off the arms and sinking to the ground
+--   breath  the exhale: breath mist from the mouth, a frost ring breaking out
+--           over the ground, the petals and bud glinting, a few petals lifting
+--   punch   every 2 or 3 breaths the lotus blooms: a frost flash over the
+--           ice, a crown of ice springing up and melting, crystals and petals
+--           thrown up, a star at the bud; the skin glints and vapour surge
+--   ignite  a cold white flash and star at the bud, a crown of ice spikes
+--           bursting up round the body, frost slamming out over the ground,
+--           glass shards and petals thrown up, a low cold puff
+
+local ICE_WHITE, ICE_CORE, ICE, ICE_DEEP = rgb(240, 251, 255), rgb(200, 238, 255), rgb(140, 205, 255), rgb(70, 140, 235)
+local ICE_INK = rgb(12, 34, 74)
+
+local FL = {
+	crackedIce = id(16924487116), -- a cracked ice disc
+	frostRing = id(12360899465), -- 4x4 flipbook: a frost splat breaking into a ring
+	crystals = id(10762252968), -- 8x8 flipbook: an ice crystal cluster growing
+	petal = id(17259245248), -- a veined leaf (the lotus petal)
+	petals = id(90111316485044), -- 4x4 sheet: loose petals
+	halo = id(243660373), -- soft round glow
+	dot = id(9841273544), -- small hard glow dot
+	twinkle = id(102648375149008), -- 4x4 flipbook: a 4-point sparkle
+	dust = id(106007718683349), -- 8x8 flipbook: tiny twinkling glints
+	star = id(13271102367), -- small 4-point star
+	chroma = id(16366023815), -- 4-point lens glint, chromatic edges
+	vapour = id(9345352897), -- curling wisp
+	mist = id(1084987899), -- soft mist puff
+	puff = id(933102662), -- cloud puff
+	shards = id(122615286116832), -- 2x2 sheet: glass shards
+	crown = id(4316118084), -- mesh: a crown of ice spikes
+	lotusCrown = id(489415286), -- mesh: a crown of petal points
+}
+_G.FrostLotusAssets = FL
+
+-- One lotus petal: a hidden flat part with the petal image on both faces,
+-- tilted up `tilt` degrees, its base `r` studs out, at yaw `yaw`.
+local function petal(name, parent, yaw, r, tilt, w, l, color, a)
+	local t = math.rad(tilt)
+	local cf = CFrame.Angles(0, math.rad(yaw), 0) * CFrame.new(0, 0.14 + l / 2 * math.sin(t), -(r + l / 2 * math.cos(t)))
+		* CFrame.Angles(t, 0, 0)
+	local p = decalDisc(name, parent, V3(w, 0.05, l), cf, FL.petal, color, a)
+	local front = p:FindFirstChildOfClass("SurfaceGui")
+	front.Brightness = 3.5
+	local back = front:Clone()
+	back.Face = Enum.NormalId.Bottom
+	back.Parent = p
+	return p
+end
+
+local function frostLotus(root)
+	local m = model("FrostLotus", root, { PunchEvery = R(2, 3), PunchJitter = 0.5, PunchSwell = 1.3 })
+	local grid4, grid8, grid2 = Enum.ParticleFlipbookLayout.Grid4x4, Enum.ParticleFlipbookLayout.Grid8x8, Enum.ParticleFlipbookLayout.Grid2x2
+	local oneShot = Enum.ParticleFlipbookMode.OneShot
+
+	-- ground: the frost and the lotus
+	local ground = model("Ground", m)
+	local floor = part("Floor", ground, CFrame.new(0, 0.1, 0), V3(0.1, 0.1, 0.1))
+	loop(floor, "Ice", B.flat({ -- the dark base: deep ice under everything bright
+		Texture = FL.crackedIce, Size = NS(3.4), Transparency = seq(0, 1, 0.25, 0.25, 0.75, 0.25, 1, 1), Color = CS(ICE_INK),
+		Lifetime = R(6), Rate = 0.4, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Frost", B.flat({ -- pale frost creeping out over it
+		Texture = FL.crackedIce, Size = seq(0, 2, 1, 3.2), Transparency = seq(0, 1, 0.3, 0.45, 0.75, 0.55, 1, 1),
+		Color = CS(ICE_CORE), Lifetime = R(4.5), Rate = 0.5, Rotation = R(0, 360), LightEmission = 0.5, Brightness = 1.5,
+		ZOffset = 0.05,
+	}), { Prime = 2, Breathe = R(0.7, 1.3), Drift = 0.05 })
+	loop(part("Cup", ground, CFrame.new(0, 1.1, 0), V3(0.1, 0.1, 0.1)), "Cup", { -- cold light filling the lotus cup, behind the body
+		Texture = FL.halo, Size = NS(2.6), Transparency = seq(0, 1, 0.3, 0.7, 0.7, 0.7, 1, 1), Color = CS(ICE),
+		Lifetime = R(3), Rate = 0.8, Rotation = R(0, 360), LightEmission = 1, ZOffset = -1.5,
+	}, { Prime = 2, Breathe = R(0.7, 1.3), Swell = 0.1, Drift = 0.05 })
+	-- the lotus: three petal rings, inner first, one more each breath; the
+	-- whole flower turns slowly (Spin) and the petals glint on the beat (no
+	-- Grow: resizing a SurfaceGui's part re-renders it, 33 of them each frame)
+	for ring, p in {
+		{ n = 9, r = 1.45, tilt = 72, w = 1.05, l = 1.85, off = 0, color = ICE_WHITE, delay = 0, pulse = R(0, 0.2) },
+		{ n = 11, r = 1.85, tilt = 46, w = 1.05, l = 1.65, off = 22.5, color = ICE_WHITE, delay = 5, pulse = R(0.05, 0.3) },
+		{ n = 13, r = 2.2, tilt = 16, w = 1, l = 1.45, off = 9, color = ICE_CORE, delay = 10, pulse = R(0.12, 0.4) },
+	} do
+		for i = 1, p.n do
+			petal(("Petal%d_%d"):format(ring, i), ground, p.off + (i - 1) * 360 / p.n, p.r, p.tilt, p.w, p.l, p.color, {
+				Pulse = p.pulse, Delay = p.delay + (i - 1) * 0.1, Kick = 0.5, Spin = 3,
+			})
+		end
+	end
+	local rim = part("Rim", ground, CFrame.new(0, 0.12, 0), V3(5.4, 0.1, 5.4))
+	loop(rim, "Crystals", { -- ice crystals growing and melting round the rim
+		Texture = FL.crystals, FlipbookLayout = grid8, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.28, 0.42), Transparency = seq(0, 0.2, 0.75, 0.25, 1, 1),
+		Color = cseq(0, ICE_WHITE, 1, ICE_CORE), Lifetime = R(2.2, 2.8), Speed = R(0.01), Rotation = R(-8, 8), Rate = 2.5,
+		LightEmission = 0.5, Brightness = 2, ZOffset = 0.3,
+	}, { Prime = 4, Scaled = true, Breathe = R(0.7, 1.3) })
+	loop(rim, "Petals", { -- frost petals lifting off the lotus
+		Texture = FL.petals, FlipbookLayout = grid4, FlipbookMode = oneShot, FlipbookFramerate = R(0),
+		FlipbookStartRandom = true, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.1, 0.16),
+		Transparency = seq(0, 1, 0.2, 0.15, 0.8, 0.3, 1, 1), Color = CS(ICE_WHITE), Lifetime = R(2.2, 3), Speed = R(0.5, 0.9),
+		Acceleration = V3(0, 0.25, 0), SpreadAngle = Vector2.new(20, 20), Rotation = R(0, 360), RotSpeed = R(-60, 60),
+		Rate = 1.5, LightEmission = 0.6, Brightness = 2, ZOffset = 0.4,
+	}, { Scaled = true, Breathe = R(0.5, 1.5) })
+	local sky = part("Sky", ground, CFrame.new(0, 4.6, 0), V3(5, 0.1, 5))
+	loop(sky, "Dust", { -- diamond dust: tiny glints falling and twinkling
+		Texture = FL.dust, FlipbookLayout = grid8, FlipbookMode = Enum.ParticleFlipbookMode.Loop, FlipbookFramerate = R(10, 16),
+		FlipbookStartRandom = true, Shape = box, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.12, 0.2),
+		Transparency = seq(0, 1, 0.15, 0, 0.85, 0.1, 1, 1), Color = CS(ICE_WHITE), Lifetime = R(3.5, 4.5),
+		Speed = R(0.9, 1.2), SpreadAngle = Vector2.new(12, 12), Rate = 3, LightEmission = 1, Brightness = 2,
+	}, { Scaled = true })
+
+	-- body: the cold bud between the hands
+	local body = model("Body", m)
+	local bud = at("Lap", CFrame.new(0, 0.15, -0.1), "Bud", body)
+	loop(bud, "Halo", { -- a deep halo under the white (dark under bright)
+		Texture = FL.halo, Size = NS(0.7), Transparency = seq(0, 1, 0.3, 0.35, 0.7, 0.35, 1, 1), Color = CS(ICE_DEEP),
+		Lifetime = R(1), Rate = 3, LightEmission = 0.4, ZOffset = 1.1, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.35 })
+	loop(bud, "Hot", {
+		Texture = FL.dot, Size = NS(0.2), Transparency = seq(0, 1, 0.3, 0, 1, 1), Color = CS(ICE_WHITE),
+		Lifetime = R(0.45), Rate = 5, LightEmission = 1, Brightness = 4, ZOffset = 1.3, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.4 })
+	loop(bud, "Glint", {
+		Texture = FL.twinkle, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(0.5), Transparency = NS(0),
+		Color = CS(ICE_WHITE), Lifetime = R(0.8), Rate = 0.8, Rotation = R(-10, 10), LightEmission = 1, Brightness = 3,
+		ZOffset = 1.4, LockedToPart = true,
+	})
+
+	-- limbs: rime glints on the skin, cold vapour pouring off and sinking
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Rime", {
+		Texture = FL.twinkle, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
+		Size = rnd(0.12, 0.2), Transparency = NS(0), Color = CS(ICE_WHITE), Lifetime = R(0.6, 0.9), Rate = 2.5,
+		LightEmission = 1, Brightness = 3, ZOffset = 0.5, LockedToPart = true,
+	}, { On = "Head,Torso,Arms,Legs", Scaled = true, Breathe = R(0.6, 1.4), Surge = 5, PunchSurge = 2 })
+	loop(limbs, "Cold", {
+		Texture = FL.vapour, Shape = box, ShapeStyle = surface, EmissionDirection = Enum.NormalId.Bottom,
+		Size = seq(0, 0.25, 1, 0.75), Transparency = seq(0, 1, 0.3, 0.6, 1, 1), Color = cseq(0, ICE_WHITE, 1, ICE_CORE),
+		Lifetime = R(1.4, 1.9), Speed = R(0.3, 0.6), Acceleration = V3(0, -1.4, 0), Drag = 0.6, Rotation = R(0, 360),
+		RotSpeed = R(-25, 25), Rate = 1.2, LightEmission = 0.35, ZOffset = 0.2,
+	}, { On = "Arms", Scaled = true, Breathe = R(0.6, 1.4), Surge = 4, PunchSurge = 2, Swell = 0.15, Drift = 0.1 })
+
+	-- the exhale: breath mist, a frost ring breaking out, a few petals lifting
+	local breath = model("Breath", m)
+	local mouth = at("Mouth", nil, "Mouth", breath)
+	burst(mouth, "Mist", 4, {
+		Texture = FL.mist, EmissionDirection = front, Size = seq(0, 0.15, 1, 0.75), Transparency = seq(0, 0.5, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1, 1.4), Speed = R(1, 1.6), SpreadAngle = Vector2.new(20, 20),
+		Acceleration = V3(0, -0.3, 0), Drag = 1, Rotation = R(0, 360), LightEmission = 0.3,
+	})
+	local lap = at("Lap", CFrame.new(0, 0.15, -0.15), "Lap", breath)
+	burst(lap, "Glint", 1, {
+		Texture = FL.star, Size = seq(0, 0.2, 0.3, 0.9, 1, 0), Transparency = NS(0), Color = CS(ICE_WHITE),
+		Lifetime = R(0.35), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 1.6,
+	})
+	local floorB = part("Floor", breath, CFrame.new(0, 0.18, 0), V3(4.4, 0.1, 4.4))
+	burst(floorB, "Frost", 1, B.flat({
+		Texture = FL.frostRing, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 2.2, 1, 3.6),
+		Transparency = seq(0, 0.25, 0.7, 0.45, 1, 1), Color = CS(ICE_CORE), Lifetime = R(1.3), Rotation = R(0, 360),
+		LightEmission = 0.6, Brightness = 2, ZOffset = 0.2,
+	}))
+	burst(floorB, "Petals", 4, {
+		Texture = FL.petals, FlipbookLayout = grid4, FlipbookMode = oneShot, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.12, 0.18), Transparency = seq(0, 0.1, 0.8, 0.3, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.6, 2.2), Speed = R(1.5, 2.5), Drag = 1, SpreadAngle = Vector2.new(30, 30),
+		Rotation = R(0, 360), RotSpeed = R(-90, 90), LightEmission = 0.6, Brightness = 2,
+	})
+
+	-- a bloom every 2 or 3 breaths (a lighter ignition)
+	local bloom = model("Punch", m)
+	local pBud = at("Lap", CFrame.new(0, 0.15, -0.2), "Lap", bloom)
+	burst(pBud, "Flash", 1, {
+		Texture = FL.dot, Size = seq(0, 0.3, 0.2, 0.8, 1, 0.95), Transparency = seq(0, 0.05, 0.4, 0.5, 1, 1),
+		Color = cseq(0, ICE_WHITE, 1, ICE_CORE), Lifetime = R(0.35), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(pBud, "Star", 1, {
+		Texture = FL.star, Size = seq(0, 0.3, 0.25, 1.7, 1, 0), Transparency = NS(0), Color = CS(ICE_WHITE),
+		Lifetime = R(0.4), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	local pBase = part("Base", bloom, CFrame.new(0, 0.2, 0), V3(5, 0.1, 5))
+	burst(pBase, "Flash", 1, B.flat({ -- frost flashing over the ice
+		Texture = FL.crackedIce, Size = seq(0, 2.4, 1, 3.4), Transparency = seq(0, 0.2, 1, 1), Color = CS(ICE_WHITE),
+		Lifetime = R(0.7), Rotation = R(0, 360), LightEmission = 0.8, Brightness = 2, ZOffset = 0.15,
+	}))
+	wave(pBase, "Crown", {
+		mesh = FL.lotusCrown, color = ICE_CORE, material = Enum.Material.ForceField, fromSize = V3(3.6, 0.5, 3.6),
+		toSize = V3(5.6, 1.5, 5.6), fromOffset = V3(0, -0.1, 0), toOffset = V3(0, 0.35, 0), fromTransparency = 0,
+		toTransparency = 1, duration = 0.9, style = "Quint",
+	})
+	burst(pBase, "Crystals", 6, {
+		Texture = FL.crystals, FlipbookLayout = grid8, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.4, 0.55), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.2, 1.5), Speed = R(0.01), Rotation = R(-8, 8), LightEmission = 0.6,
+		Brightness = 2, ZOffset = 0.3,
+	})
+	burst(pBase, "Petals", 8, {
+		Texture = FL.petals, FlipbookLayout = grid4, FlipbookMode = oneShot, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.13, 0.2), Transparency = seq(0, 0, 0.8, 0.3, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.4, 2), Speed = R(3, 5), Drag = 1.5, SpreadAngle = Vector2.new(35, 35),
+		Rotation = R(0, 360), RotSpeed = R(-120, 120), LightEmission = 0.6, Brightness = 2,
+	})
+
+	-- ignition: short and cold, on and round the body
+	local ignite = model("Ignite", m)
+	local core = at("Lap", CFrame.new(0, 0.25, -0.3), "Lap", ignite)
+	burst(core, "Flash", 1, {
+		Texture = FL.dot, Size = seq(0, 0.5, 0.15, 1.5, 1, 1.75), Transparency = seq(0, 0, 0.4, 0.5, 1, 1),
+		Color = cseq(0, ICE_WHITE, 1, ICE_CORE), Lifetime = R(0.4), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(core, "Star", 1, {
+		Texture = FL.chroma, Size = seq(0, 0.6, 0.25, 3.4, 1, 0), Transparency = NS(0), Color = CS(ICE_CORE),
+		Lifetime = R(0.45), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(core, "Star45", 1, {
+		Texture = FL.star, Size = seq(0, 0.3, 0.25, 1.9, 1, 0), Transparency = NS(0), Color = CS(ICE_WHITE),
+		Lifetime = R(0.4), Rotation = R(45), LightEmission = 1, Brightness = 3, ZOffset = 2.05,
+	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(4.6, 0.1, 4.6))
+	wave(base, "Spikes", { -- a crown of ice spikes bursting up round the body
+		mesh = FL.crown, color = ICE_CORE, material = Enum.Material.ForceField, fromSize = V3(3.2, 0.6, 3.2),
+		toSize = V3(5.8, 2.8, 5.8), fromOffset = V3(0, -0.2, 0), toOffset = V3(0, 0.7, 0), fromTransparency = 0,
+		toTransparency = 1, duration = 1, style = "Quint",
+	})
+	wave(base, "Crown", {
+		mesh = FL.lotusCrown, color = ICE_WHITE, material = Enum.Material.ForceField, fromSize = V3(3, 0.4, 3),
+		toSize = V3(6.6, 1.5, 6.6), toOffset = V3(0, 0.3, 0), fromTransparency = 0, toTransparency = 1, duration = 0.8,
+		style = "Quint", delay = 0.05,
+	})
+	burst(base, "Frost", 1, B.flat({ -- frost slamming out over the ground
+		Texture = FL.crackedIce, Size = seq(0, 1.8, 0.3, 3.6, 1, 3.9), Transparency = seq(0, 0, 0.6, 0.35, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.1), Rotation = R(0, 360), LightEmission = 0.7, Brightness = 2, ZOffset = 0.15,
+	}))
+	burst(base, "Ring", 1, B.flat({
+		Texture = FL.frostRing, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 2.2, 1, 4.4),
+		Transparency = seq(0, 0, 0.7, 0.3, 1, 1), Color = CS(ICE_CORE), Lifetime = R(0.9), Rotation = R(0, 360),
+		LightEmission = 0.8, Brightness = 2, ZOffset = 0.25,
+	}))
+	burst(base, "Crystals", 10, {
+		Texture = FL.crystals, FlipbookLayout = grid8, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.45, 0.65), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.3, 1.7), Speed = R(0.01), Rotation = R(-10, 10), LightEmission = 0.6,
+		Brightness = 2, ZOffset = 0.35,
+	})
+	burst(base, "Shards", 10, {
+		Texture = FL.shards, FlipbookLayout = grid2, FlipbookMode = oneShot, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.2, 0.32), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(0.8, 1.1), Speed = R(7, 10), SpreadAngle = Vector2.new(30, 30),
+		Acceleration = V3(0, -22, 0), Rotation = R(0, 360), RotSpeed = R(-250, 250), LightEmission = 0.4, Brightness = 2,
+	})
+	burst(base, "Petals", 14, {
+		Texture = FL.petals, FlipbookLayout = grid4, FlipbookMode = oneShot, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.14, 0.22), Transparency = seq(0, 0, 0.8, 0.3, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.5, 2.2), Speed = R(4, 7), Drag = 1.8, SpreadAngle = Vector2.new(40, 40),
+		Rotation = R(0, 360), RotSpeed = R(-150, 150), LightEmission = 0.6, Brightness = 2,
+	}, { EmitDelay = 0.05 })
+	burst(base, "Cold", 8, {
+		Texture = FL.puff, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
+		Size = seq(0, 0.6, 1, 1.4), Transparency = seq(0, 0.45, 1, 1), Color = CS(ICE_WHITE), Lifetime = R(0.9, 1.2),
+		Speed = R(5, 8), Drag = 3, Rotation = R(0, 360), LightEmission = 0.2, LightInfluence = 0.4,
+	})
+	return m
+end
+
+function _G.buildMethodAura(parent, opts)
+	local only = opts and opts.only
+	local old = parent:FindFirstChild("MethodAura")
+	if old and not only then
+		old:Destroy()
+	end
+	local root = Instance.new("Folder")
+	root.Name = "MethodAura"
+	attrs(root, { Breath = 5, FadeIn = 1.2, FadeOut = 1 })
+	sectBreathing(root)
+	blazingHeart(root)
+	flowingSpring(root)
+	evergreen(root)
+	ironMarrow(root)
+	mountainBreath(root)
+	thunderPulse(root)
+	driftingCloud(root)
+	frostLotus(root)
+	for _, d in root:GetDescendants() do
+		if d:IsA("Model") then
+			d.WorldPivot = CFrame.new()
+		end
+	end
+	if only then
+		assert(old, "no MethodAura in " .. parent:GetFullName() .. " to update; build it whole first")
+		for _, id in only do
+			local fresh = root:FindFirstChild(id)
+			assert(fresh and fresh:IsA("Model"), "no method model " .. tostring(id))
+			local prev = old:FindFirstChild(id)
+			if prev then
+				prev:Destroy()
+			end
+			fresh.Parent = old
+		end
+		for k, v in root:GetAttributes() do
+			old:SetAttribute(k, v)
+		end
+		root:Destroy()
+		return old
+	end
+	root.Parent = parent
+	return root
+end
+
+return "buildMethodAura installed"
+	end)
+	if ok then _G.vfxSpecs["MethodAura"] = spec end
+	table.insert(installed, "spec MethodAura: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/MoonflashDraw.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Moonflash Draw's templates (MoonflashDraw_T1..T4) as a spec for
+-- vfxBlocks.buildFromSpec. Runtime: src/client/TechniqueFX/MoonflashDraw.luau.
+--
+-- The move: Animations.Techniques.MoonflashDraw (1.0 s, Sword/jian, joint
+-- HiltR), markers Hit 0.0667 / Hit Stop 0.2333 with Lunge start/end on the
+-- same frames: the caster lunges def.lunge (14) studs during the active
+-- window, and the line (def.length 18) runs from the cast's start. Sampled on katanadummy: the blade is drawn from the right hip
+-- (tip behind-right at 0.07), sweeps flat round the right side (0.13), across
+-- the front (0.19, tip 5.7 ahead) and out to the left (0.26), at chest height
+-- (~3.6-4.7 studs off the ground), a ~240 deg one-handed iaido cut. Still
+-- tail to 1.0.
+--
+-- The pitch ("the moon flashes after the sword is sheathed"):
+--   Windup (0 -> Hit, ~0.07 s, part "Windup" on the right hand): a cold glint
+--     on the hand as the blade leaves the scabbard.
+--   Release (Hit, part "Hand"): a crescent-moon flash and star on the hand,
+--     swirl air rings punched forward along the dash.
+--   Travel (Hit -> end of dash, part "Front", runtime-driven along the path):
+--     a horizontal crescent of moonlight Beams at chest height riding just
+--     ahead of the caster (the drawn blade's arc, span = the hitbox width
+--     plus slack), dragging a flat wake band exactly as wide as the hitbox,
+--     and a bright streak Beam from the dash start to the front (part
+--     "Streak"). A glowing slit is drawn on the ground behind it ("Cut").
+--     II+ Neon afterimages of the body are left along the path.
+--   Impact (each enemy as the front passes it, part "Impact"): a silver
+--     impactStack (flash, spiky ring, sparks, standing torus, ground shock)
+--     with a horizontal crescent cut through the body.
+--   Sheathe (II+, part "Sheathe", a beat after the dash ends): every target
+--     cut flashes again with a crossing crescent and a white standing ring,
+--     and the path's slit flares; the real "after the draw" moment.
+--   Finish (dash end, part "Finish", at the caster's feet): a crescent moon
+--     mark on the ground and a ground torus, dust; III+ a Craters ring;
+--     IV a big crescent moon rising behind, the light, impact frames.
+--   Aftermath ("Cut" cools into the ink "Scar"; "Path" motes and cracks).
+--
+-- Tiers:
+--   I   crescent (span 6) + wake, streak beam, release flash + 1 air ring,
+--       impacts, finish mark + torus, slit and scar ~1 s.
+--   II  span 6.5, an echo crescent, 1 afterimage, motes off the path,
+--       impact swirl, the Sheathe flash on every target.
+--   III span 7, 2 afterimages, 2 air rings, impact bubble and rock kicks,
+--       path cracks, Craters ring at the finish, sheathe flare along the slit.
+--   IV  span 8, gold-white core, 3 afterimages, 3 air rings, the one point
+--       light riding the front, a rising crescent moon at the finish, impact
+--       frames at the sheathe and a quake on the first impact.
+--
+-- Authored along -Z at length 14, width 5, active 0.16 s.
+local B = _G.vfxBlocks
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local O = CFrame.new()
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local MOON = Color3.fromRGB(165, 182, 255) -- the technique colour (suggested def.color)
+local CORE = Color3.fromRGB(246, 248, 255)
+local EDGE = Color3.fromRGB(98, 112, 246) -- the crescent's body, deeper than MOON
+local GOLD_CORE = Color3.fromRGB(255, 242, 208) -- mastery core
+local INK = Color3.fromRGB(28, 30, 62)
+local PALETTE = {
+	color = MOON, core = CORE,
+	ringColor = Color3.fromRGB(226, 232, 255), swirlColor = Color3.fromRGB(176, 190, 255), groundColor = Color3.fromRGB(200, 212, 255),
+}
+local function pal(extra)
+	local t = table.clone(PALETTE)
+	for k, v in extra or {} do
+		t[k] = v
+	end
+	return t
+end
+
+local A = {
+	moon = id(1084963972), -- crisp crescent moon
+	slash = id(7216852121), -- clean horizontal crescent
+	layered = id(13366366767), -- layered crescent slashes
+	mote = id(9841260273), -- glowing spindle mote
+	crackSmall = id(97725700315217),
+	star4 = id(13271628051),
+}
+
+local SPAN = { 6, 6.5, 7, 8 }
+local HEIGHT = 3.4 -- the blade's arc, chest height
+local HAND_AT = O * CFrame.new(1.4, 3.4, -1.2) -- right hand at Hit; runtime puts it on the live hand
+local FRONT_AT = O * CFrame.new(0, HEIGHT, -1.5)
+local FINISH_AT = O * CFrame.new(0, 0.15, -14)
+
+-- A horizontal crescent of Beams (two tapered halves, tips trailing back).
+local function crescent(part, layer, span, depth, y, width, color, transparency, faceCamera, light)
+	local function att(name, pos, axis)
+		local a = Instance.new("Attachment")
+		a.Name = layer .. name
+		a.CFrame = CFrame.fromMatrix(pos, axis, Vector3.yAxis)
+		a.Parent = part
+		return a
+	end
+	local L = att("L", Vector3.new(-span / 2, y, depth), Vector3.new(0, 0, -1))
+	local C = att("C", Vector3.new(0, y, 0), Vector3.new(1, 0, 0))
+	local Rt = att("R", Vector3.new(span / 2, y, depth), Vector3.new(0, 0, 1))
+	for i, pair in { { L, C, 0.04, width }, { C, Rt, width, 0.04 } } do
+		local b = Instance.new("Beam")
+		b.Name = layer .. (if i == 1 then "Left" else "Right")
+		b.Attachment0, b.Attachment1 = pair[1], pair[2]
+		b.Width0, b.Width1 = pair[3], pair[4]
+		b.CurveSize0 = if i == 1 then depth * 0.9 else span * 0.28
+		b.CurveSize1 = if i == 1 then span * 0.28 else depth * 0.9
+		b.FaceCamera = faceCamera
+		b.Color = CS(color)
+		b.LightEmission, b.LightInfluence = light, 0
+		b.Transparency = NS(transparency)
+		b.Segments = 14
+		b.Enabled = false
+		b.Parent = part
+	end
+end
+
+local function trail(parent, name, a0, a1, color, life, t0, faceCamera, light)
+	local t = Instance.new("Trail")
+	t.Name = name
+	t.Attachment0, t.Attachment1 = a0, a1
+	t.Color = CS(color)
+	t.Transparency = NS({ KP(0, t0), KP(0.6, (1 + t0) / 2), KP(1, 1) })
+	t.WidthScale = NS({ KP(0, 1), KP(1, 0.6) })
+	t.Lifetime = life
+	t.FaceCamera = faceCamera
+	t.LightEmission, t.LightInfluence = light, 0
+	t.MinLength = 0.05
+	t.Enabled = false
+	t.Parent = parent
+	return t
+end
+
+-- The drawn blade's arc riding the dash front.
+B.BLOCKS.mfdFront = function(root, tier, p)
+	local span = SPAN[tier]
+	local depth = span * 0.42
+	local front = B.part(root, "Front", FRONT_AT, Vector3.new(span, 0.3, depth))
+	for k, v in {
+		Span = span, Height = HEIGHT, Pitch = 10, Roll = 8, -- leading edge up a little, right tip low: the cut runs right to left
+		Lead = 1.6, -- studs ahead of the caster's root
+		Echoes = ({ 0, 1, 1, 2 })[tier], EchoLag = 1.6, EchoScale = 0.85, -- echo crescents trail by studs
+	} do
+		front:SetAttribute(k, v)
+	end
+	local core = if tier >= 4 then GOLD_CORE else CORE
+	crescent(front, "Edge", span, depth, 0, span * 0.3, EDGE, 0.05, false, 0.2)
+	crescent(front, "Core", span * 0.94, depth * 0.9, 0.05, span * 0.14, core, 0, false, 0.45)
+	crescent(front, "Glow", span * 1.1, depth * 1.1, 0.02, span * 0.42, MOON, 0.45, true, 0.35)
+	-- the wake band between the tips (the hitbox's width) and a bright centre streak
+	trail(front, "Wake", front.EdgeL, front.EdgeR, MOON, ({ 0.22, 0.26, 0.3, 0.36 })[tier], 0.45, false, 0.35)
+	local s0 = B.attach(front, "StreakA", Vector3.new(0, 0.22, 0))
+	local s1 = B.attach(front, "StreakB", Vector3.new(0, -0.22, 0))
+	trail(front, "CoreStreak", s0, s1, core, ({ 0.14, 0.16, 0.2, 0.24 })[tier], 0.1, true, 0.6)
+	local shed = B.emitter(front, "Shed", {
+		Texture = A.mote, Color = CS(CORE, MOON),
+		Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(70, 70),
+		Size = NS({ KP(0, 0.22), KP(1, 0) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+		Lifetime = R(0.3, 0.5), Speed = R(2, 5), Drag = 3, LightEmission = 0.6, Rotation = R(0, 360),
+		Rate = ({ 20, 30, 40, 50 })[tier],
+	})
+	shed:SetAttribute("Shed", true)
+	if tier >= 4 then
+		local light = Instance.new("PointLight")
+		light.Name = "Light"
+		light.Color = MOON
+		light.Range = 16
+		light.Brightness = 0
+		light.Shadows = false
+		light.Parent = front
+	end
+	return front
+end
+
+-- A straight streak of moonlight from the dash start to the front (the
+-- runtime places A0 at the start and A1 at the front).
+B.BLOCKS.mfdStreak = function(root, tier, p)
+	local streak = B.part(root, "Streak", O * CFrame.new(0, HEIGHT, 0))
+	local a0 = B.attach(streak, "A0", Vector3.zero)
+	local a1 = B.attach(streak, "A1", Vector3.new(0, 0, -14))
+	local function beam(name, width, color, transparency, light)
+		local b = Instance.new("Beam")
+		b.Name = name
+		b.Attachment0, b.Attachment1 = a0, a1
+		b.Width0, b.Width1 = width * 0.35, width
+		b.FaceCamera = true
+		b.Color = CS(color)
+		b.LightEmission, b.LightInfluence = light, 0
+		b.Transparency = NS({ KP(0, 1), KP(0.25, transparency + (1 - transparency) * 0.4), KP(1, transparency) })
+		b.Segments = 10
+		b.Enabled = false
+		b.Parent = streak
+	end
+	beam("Core", ({ 0.35, 0.4, 0.45, 0.55 })[tier], if tier >= 4 then GOLD_CORE else CORE, 0.05, 0.5)
+	beam("Glow", ({ 1.6, 1.9, 2.2, 2.6 })[tier], MOON, 0.55, 0.35)
+	streak:SetAttribute("Fade", ({ 0.3, 0.35, 0.4, 0.5 })[tier])
+	return streak
+end
+
+-- The glowing slit on the ground and the ink scar it cools into.
+B.BLOCKS.mfdCut = function(root, tier, p)
+	local function strip(name, material, color, width, attrs, thick)
+		local s = B.part(root, name, O * CFrame.new(0, 0.05, -7), Vector3.new(width, thick, 1))
+		s.Material, s.Color = material, color
+		for k, v in attrs do
+			s:SetAttribute(k, v)
+		end
+		return s
+	end
+	strip("Cut", Enum.Material.Neon, Color3.fromRGB(170, 186, 255), ({ 0.22, 0.26, 0.3, 0.36 })[tier], {
+		StartTransparency = 0.3, Fade = ({ 0.5, 0.6, 0.7, 0.85 })[tier], FadeColor = MOON,
+	}, 0.1)
+	strip("Scar", Enum.Material.SmoothPlastic, INK, ({ 0.5, 0.6, 0.7, 0.85 })[tier], {
+		StartTransparency = 0.4, Fade = ({ 1.0, 1.2, 1.5, 1.9 })[tier], FadeDelay = 0.3,
+	}, 0.06)
+	return root:FindFirstChild("Cut")
+end
+
+B.BLOCKS.mfdPath = function(root, tier, p)
+	local path = B.part(root, "Path", O * CFrame.new(0, 0.2, -7), Vector3.new(2.5, 0.2, 14))
+	B.emitter(path, "Motes", {
+		Texture = A.mote, Color = CS(CORE, MOON),
+		Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
+		Size = NS({ KP(0, 0.25), KP(0.5, 0.2), KP(1, 0) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.2), KP(1, 1) }),
+		Lifetime = R(0.7, 1.1), Speed = R(1.5, 3), Drag = 1, LightEmission = 0.5, Rotation = R(0, 360),
+	}, { EmitCount = ({ 4, 8, 12, 16 })[tier], EmitDelay = 0.15 })
+	if tier >= 3 then
+		B.emitter(path, "Cracks", B.flat({
+			Texture = A.crackSmall, Color = CS(INK), LightInfluence = 0.3,
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			Size = NS(1.2), Transparency = NS({ KP(0, 1), KP(0.05, 0.3), KP(0.6, 0.45), KP(1, 1) }),
+			Lifetime = R(1.1, 1.4), Rotation = R(0, 360), ZOffset = -0.5,
+		}), { EmitCount = ({ 0, 0, 3, 5 })[tier], EmitDelay = 0.1 })
+	end
+	return path
+end
+
+-- The draw on the hand: a crescent moon flash instead of a plain star.
+B.BLOCKS.mfdDraw = function(root, tier, p)
+	local hand = B.part(root, "Hand", HAND_AT)
+	B.emitter(hand, "Moon", B.flat({
+		Texture = A.moon, Color = CS(CORE, MOON),
+		Size = NS({ KP(0, 1), KP(0.3, 2.6 + tier * 0.4), KP(1, 3.2 + tier * 0.45) }), Transparency = NS({ KP(0, 0.05), KP(0.5, 0.2), KP(1, 1) }),
+		Lifetime = R(0.3), LightEmission = 0.55, Rotation = R(80, 100), ZOffset = 1,
+	}, Enum.NormalId.Top), { EmitCount = 1 })
+	return hand
+end
+
+-- The windup glint: the blade catching the light as it leaves the scabbard.
+B.BLOCKS.mfdGlint = function(root, tier, p)
+	local w = B.part(root, "Windup", HAND_AT, Vector3.new(1.5, 1.5, 1.5))
+	w:SetAttribute("AuthoredWindup", 0.07)
+	B.emitter(w, "Glint", {
+		Texture = A.star4, Color = CS(CORE),
+		Size = NS({ KP(0, 0.2), KP(0.6, 1.4 + tier * 0.25), KP(1, 0.4) }), Transparency = NS({ KP(0, 0.4), KP(0.6, 0), KP(1, 0.3) }),
+		Lifetime = R(0.1), LightEmission = 0.7, Rotation = R(-20, 20), LockedToPart = true, ZOffset = 1,
+	}, { EmitCount = 1 })
+	B.emitter(w, "Charge", {
+		Texture = B.ASSETS.glow, Color = CS(MOON),
+		Size = NS({ KP(0, 0.3), KP(1, 1.1 + tier * 0.15) }), Transparency = NS({ KP(0, 0.7), KP(1, 0.25) }),
+		Lifetime = R(0.1), LightEmission = 0.5, LockedToPart = true,
+	}, { EmitCount = 1 })
+	return w
+end
+
+-- The horizontal crescent cut through each target.
+B.BLOCKS.mfdSlash = function(root, tier, p)
+	local part = root:FindFirstChild(p.part or "Impact")
+	local body = part:FindFirstChild("Body")
+	return B.emitter(body, p.name or "Slash", {
+		Texture = p.texture or A.slash, Color = CS(CORE, MOON),
+		Size = NS({ KP(0, 1), KP(0.25, 2.8 + tier * 0.45), KP(1, 3.4 + tier * 0.5) }), Transparency = NS({ KP(0, 0), KP(0.55, 0.15), KP(1, 1) }),
+		Lifetime = R(p.life or 0.28), LightEmission = 0.55, Rotation = p.rotation or R(-8, 8), ZOffset = 3,
+	}, { EmitCount = 1 })
+end
+
+B.BLOCKS.mfdImpact = function(root, tier, p)
+	local wave = pal({ size = ({ 3.4, 4.2, 5.2, 6.2 })[tier], groundSize = ({ 3.6, 4.4, 5.4, 6.6 })[tier] })
+	return B.impactStack(root, tier, { burst = pal(), wave = wave })
+end
+
+-- II+: the after-the-draw flash on each target cut (a crossing crescent, a
+-- star, a white standing ring), IV impact frames on the first.
+B.BLOCKS.mfdSheathe = function(root, tier, p)
+	local part = B.part(root, "Sheathe", O * CFrame.new(0, 0.15, -6))
+	local body = B.attach(part, "Body", Vector3.new(0, 2.2, 0))
+	B.BLOCKS.mfdSlash(root, tier, { part = "Sheathe", name = "Cross", texture = A.layered, rotation = R(-40, -25), life = 0.34 })
+	B.emitter(body, "Flash", {
+		Texture = A.star4, Color = CS(CORE),
+		Size = NS({ KP(0, 0.8), KP(0.3, 2.4 + tier * 0.35), KP(1, 0) }), Transparency = NS(0),
+		Lifetime = R(0.16), LightEmission = 0.8, Rotation = R(-15, 15), ZOffset = 3,
+	}, { EmitCount = 1 })
+	B.emitter(body, "Motes", {
+		Texture = A.mote, Color = CS(CORE, MOON), SpreadAngle = Vector2.new(180, 180),
+		Size = NS({ KP(0, 0.3), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(1, 1) }),
+		Lifetime = R(0.4, 0.7), Speed = R(6, 12), Drag = 4, LightEmission = 0.6, Rotation = R(0, 360), ZOffset = 2,
+	}, { EmitCount = ({ 0, 6, 9, 12 })[tier] })
+	local d = ({ 0, 4.4, 5.4, 6.6 })[tier]
+	B.meshWave(body, "SheatheRing", {
+		mesh = B.ASSETS.torusMesh, color = CORE,
+		fromSize = Vector3.new(1, 0.15, 1), toSize = Vector3.new(d, d * 0.12, d),
+		rotation = Vector3.new(90, 0, 0), fromTransparency = 0.15, toTransparency = 1,
+		duration = 0.34, style = "Quart",
+	})
+	if tier >= 4 then
+		B.screenShake(root, tier, { parent = "Sheathe", name = "Frames", shake = false, framesName = "SheatheFrames", frames = true })
+	end
+	return part
+end
+
+-- The finish at the dash end, at the caster's feet.
+B.BLOCKS.mfdFinish = function(root, tier, p)
+	local fin = B.part(root, "Finish", FINISH_AT)
+	B.emitter(fin, "Mark", B.flat({
+		Texture = A.moon, Color = CS(MOON), LightInfluence = 0.2,
+		Size = NS({ KP(0, 1.5), KP(0.15, 3 + tier * 0.4), KP(1, 3.4 + tier * 0.45) }), Transparency = NS({ KP(0, 0.1), KP(0.6, 0.35), KP(1, 1) }),
+		Lifetime = R(0.9 + tier * 0.15), LightEmission = 0.35, Rotation = R(170, 190), ZOffset = 0.3,
+	}), { EmitCount = 1 })
+	B.emitter(fin, "Dust", {
+		Texture = B.ASSETS.dust, Color = CS(B.COLORS.dust), LightInfluence = 0.5,
+		EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180),
+		Size = NS({ KP(0, 0.7), KP(1, 1.8) }), Transparency = NS({ KP(0, 0.35), KP(1, 1) }),
+		Lifetime = R(0.35, 0.55), Speed = R(14, 20), Drag = 5, Rotation = R(0, 360),
+	}, { EmitCount = 4 + tier })
+	local gd = ({ 5, 6, 7.5, 9 })[tier]
+	B.meshWave(fin, "FinishWave", {
+		mesh = B.ASSETS.torusMesh, color = PALETTE.groundColor,
+		fromSize = Vector3.new(1.2, 0.15, 1.2), toSize = Vector3.new(gd, gd * 0.1, gd),
+		fromOffset = Vector3.new(0, 0.15, 0), toOffset = Vector3.new(0, 0.15, 0),
+		fromTransparency = 0.3, toTransparency = 1, duration = 0.4, style = "Quart",
+	})
+	if tier >= 3 then
+		B.craterRing(root, tier, { parent = "Finish", name = "Crater", attrs = {
+			Count = ({ 0, 0, 6, 8 })[tier], Radius = ({ 0, 0, 2.6, 3.2 })[tier], Variance = 0.6, Duration = 0.12,
+			Size = Vector3.new(0.9, 0.7, 0.8), Lifetime = R(1, 1.3), RaycastDistance = 8,
+		} })
+	end
+	if tier >= 4 then
+		-- a big crescent moon rising behind the caster as the blade is sheathed
+		B.emitter(fin, "RisingMoon", B.flat({
+			Texture = A.moon, Color = CS(GOLD_CORE, MOON),
+			Size = NS({ KP(0, 2), KP(0.3, 5.5), KP(1, 6.2) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.25), KP(0.7, 0.35), KP(1, 1) }),
+			Lifetime = R(1.1), LightEmission = 0.4, Rotation = R(-30), ZOffset = -1,
+			Acceleration = Vector3.new(0, 1.2, 0),
+		}, Enum.NormalId.Back), { EmitCount = 1, EmitDelay = 0.05 })
+	end
+	return fin
+end
+
+B.BLOCKS.mfdShake = function(root, tier, p)
+	return B.screenShake(root, tier, { parent = "Hand", magnitude = ({ 0.7, 1, 1.4, 1.8 })[tier] })
+end
+
+return {
+	id = "MoonflashDraw",
+	root = { attrs = { AuthoredActive = 0.16, AuthoredLength = 14, AuthoredWidth = 5 } },
+	beats = {
+		{ block = "mfdGlint" },
+		-- the draw on the hand
+		{ block = "mfdDraw" },
+		{ block = "releaseFlash", params = pal({ part = "Hand", at = HAND_AT, light = false }) },
+		{ block = "airShockwave", params = pal({ part = "Hand", at = HAND_AT, color = PALETTE.ringColor }) },
+		{ block = "mfdShake" },
+		-- the dash: the arc riding the front, the streak, the slit
+		{ block = "mfdFront" },
+		{ block = "mfdStreak" },
+		{ block = "mfdCut" },
+		{ block = "mfdPath" },
+		-- each target as the front passes it, and again at the sheathe
+		{ block = "mfdImpact" },
+		{ block = "mfdSlash" },
+		{ block = "mfdSheathe", from = 2 },
+		-- the dash end
+		{ block = "mfdFinish" },
+	},
+}
+	end)
+	if ok then _G.vfxSpecs["MoonflashDraw"] = spec end
+	table.insert(installed, "spec MoonflashDraw: " .. (ok and "ok" or tostring(spec)))
+end
 do -- vfx_specs/PalmStrike.luau
 	local ok, spec = pcall(function()
 --!nocheck
@@ -1685,5 +8365,3189 @@ return {
 	end)
 	if ok then _G.vfxSpecs["PalmStrike"] = spec end
 	table.insert(installed, "spec PalmStrike: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/RampagingTiger.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Rampaging Tiger Cleave's templates (RampagingTiger_T1..T4). Build with
+-- RampagingTiger.build(parent). Runtime: src/client/TechniqueFX/RampagingTiger.luau
+-- (+ BladeSkill.luau).
+--
+-- The move (Saber / dadao, one-handed, anim 75310024933368, 2.12 s; clip
+-- seconds, real = clip / castSpeed). Sampled on gsrigrea2lfixed:
+--   0.00-0.45  the saber is drawn up to the left shoulder (windup).
+--   0.50-0.65  the DIAGONAL CUT: high left, through the front, low right.
+--   0.65-0.95  crouch; 0.95-1.40 the LEAP (up 3.0 at 1.4).
+--   1.00-1.75  the SPIN: the blade wheels through a vertical circle at the
+--              right side (HiltR spins 381 deg): low-right, back, up over the
+--              head and down through the front at 1.30-1.40, round again.
+--   1.75-1.90  the LANDING CUT: down through the front into the ground as the
+--              body lands in a crouch; held to 2.12.
+-- Gameplay: circle r 10 around the caster, lunge 6, hits { 0.48 cut, two
+-- spin hits ~1.0-1.7, 1.78 landing } (9, 7, 7, 16 dmg).
+--
+-- THE SHOT ("a tiger's claws"): tawny amber qi with a white-gold core and
+-- black brush-ink stripes; every cut leaves three claw strokes in the air.
+--   Windup (caster only): amber motes and a glow gather into the right hand.
+--   Blade edge: the saber draws its arcs as an amber ribbon (Trail on the
+--     weapon), on for the cut, the spin and the landing; II+ afterimage.
+--   Cut (hit 1): three parallel claw strokes (Beams, amber over ink) flash
+--     along the diagonal in front; each enemy in the circle gets an impact.
+--   Leap: a torus and dust ring at the take-off.
+--   Spin (spin hits): the blade's wheel draws itself; II+ a spinning amber
+--     swirl ring stands in the blade's circle at the right side and turns
+--     with it (III+ a second, counter-turning ForceField ring); each spin hit
+--     flashes vertical claw strokes and impacts.
+--   Landing (last hit): a flash where the blade bites, three claw gouges torn
+--     into the ground ahead (Neon slits cooling to ink scars), a torus
+--     shockwave to r 10 around the caster with a dust skirt, "roar" rings
+--     thrown forward off the strike (1/1/2/3), heavy impacts timed by the
+--     front. III+ Craters rock ring, cracks, rock kicks; IV a giant claw
+--     standing over the strike, a swirl shell, the one PointLight, impact
+--     frames and an Explosion quake.
+--   Aftermath: the gouges cool over ~1-2 s, embers drift up (II+).
+local KIT_ = function()
+	return _G.vfxSpecs.BladeKit
+end
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local V = Vector3.new
+local O = CFrame.new()
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local AMBER = Color3.fromRGB(255, 172, 66) -- suggested def.color
+local CORE = Color3.fromRGB(255, 240, 206)
+local GOLD = Color3.fromRGB(255, 226, 140)
+local INK = Color3.fromRGB(30, 20, 14)
+local N_AMBER = Color3.fromRGB(240, 118, 28)
+local N_PALE = Color3.fromRGB(255, 170, 70)
+local DUST = Color3.fromRGB(222, 206, 178)
+
+local RADIUS = 10
+local HAND_AT = O * CFrame.new(-1.2, 3.6, -0.6) -- the right hand drawn up to the left shoulder
+
+local A = {
+	crack = id(93520831389146),
+	crackSmall = id(97725700315217),
+	spindle = id(7814053668),
+	mote = id(9841260273),
+	dust = id(11037785287),
+	hitRing = id(13052235894),
+	torus = id(471124075),
+	swirl = id(129778117978668),
+	swirl2 = id(73349240058321),
+	swirlRing = id(122217820569960),
+}
+
+local function pal(core)
+	return {
+		color = AMBER, core = core or CORE,
+		ringColor = Color3.fromRGB(255, 176, 90), swirlColor = Color3.fromRGB(255, 160, 70), groundColor = Color3.fromRGB(255, 165, 75),
+	}
+end
+local function coreOf(tier)
+	return if tier >= 4 then GOLD else CORE
+end
+
+local blocks = {}
+
+blocks.windup = function(root, tier)
+	local p = pal(coreOf(tier))
+	p.windup, p.at, p.wisps = 0.4, HAND_AT, false
+	return _G.vfxBlocks.handGather(root, tier, p)
+end
+
+blocks.edge = function(root, tier)
+	return KIT_().edge(root, tier, { color = AMBER, core = coreOf(tier), tail = N_AMBER, trailLife = { 0.16, 0.2, 0.24, 0.28 }, glowWidth = { 0.4, 0.55, 0.7, 0.9 } })
+end
+
+-- three parallel claw strokes, amber over a black ink stroke; the runtime
+-- turns it to each cut (Roll) and fades it (Hold, Fade)
+blocks.claw = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local K = KIT_()
+	local span = ({ 4.8, 5.3, 5.8, 6.4 })[tier]
+	local part = B0.part(root, "Claw", O * CFrame.new(0, 2.6, -2.6), V(span, 2, 0.2))
+	part:SetAttribute("Hold", 0.1)
+	part:SetAttribute("Fade", ({ 0.28, 0.32, 0.36, 0.42 })[tier])
+	part:SetAttribute("GiantScale", 2.4)
+	local gap = span * 0.17
+	for i = -1, 1 do
+		local y = i * gap
+		local s = span * (1 - math.abs(i) * 0.14) -- outer strokes a little shorter
+		K.crescent(part, "Ink" .. (i + 2), { span = s * 1.05, bow = s * 0.24, y = y - 0.08, width = s * 0.13, color = INK, transparency = 0.45, light = 0 })
+		K.crescent(part, "Stroke" .. (i + 2), { span = s, bow = s * 0.24, y = y, width = s * 0.1, color = if i == 0 then coreOf(tier) else AMBER, transparency = 0, light = 0.35 })
+	end
+	return part
+end
+
+blocks.impact = function(root, tier)
+	local wave = pal(coreOf(tier))
+	wave.size = ({ 3.4, 4.2, 5.2, 6.4 })[tier]
+	wave.groundSize = ({ 3.6, 4.4, 5.4, 6.8 })[tier]
+	return _G.vfxBlocks.impactStack(root, tier, { burst = pal(coreOf(tier)), wave = wave })
+end
+
+blocks.launch = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local part = B0.part(root, "Launch", O * CFrame.new(0, 0.2, 0))
+	B0.meshWave(part, "LaunchRing", {
+		mesh = A.torus, color = Color3.fromRGB(240, 135, 45),
+		fromSize = V(1.4, 0.2, 1.4), toSize = V(5.5 + tier, 0.5 + tier * 0.06, 5.5 + tier),
+		fromOffset = V(0, 0.15, 0), toOffset = V(0, 0.15, 0),
+		fromTransparency = 0.35, toTransparency = 1, duration = 0.36, style = "Quart",
+	}):SetAttribute("FadeStyle", "Quint")
+	B0.emitter(part, "Dust", {
+		Texture = A.dust, Color = CS(DUST), LightInfluence = 0.5,
+		EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180),
+		Size = NS({ KP(0, 0.7), KP(1, 1.9) }), Transparency = NS({ KP(0, 0.35), KP(0.5, 0.55), KP(1, 1) }),
+		Lifetime = R(0.4, 0.6), Speed = R(14, 20), Drag = 4, Rotation = R(0, 360), RotSpeed = R(-60, 60),
+	}, { EmitCount = ({ 5, 7, 8, 10 })[tier] })
+	return part
+end
+
+-- II+: the wheel the spinning blade cuts; the runtime stands it in the blade's
+-- circle at the right side, sizes it to the reach and spins it
+blocks.wheel = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local K = KIT_()
+	local holder = B0.part(root, "Wheel", O * CFrame.new(1.2, 3, -0.6))
+	holder:SetAttribute("Spin", ({ 0, 900, 1000, 1150 })[tier]) -- deg/s
+	holder:SetAttribute("StartTransparency", ({ 0, 0.4, 0.3, 0.2 })[tier])
+	K.heldWave(holder, "Ring", { mesh = A.swirl2, color = N_AMBER })
+	if tier >= 3 then
+		K.heldWave(holder, "Counter", { mesh = A.swirl, color = AMBER, material = Enum.Material.ForceField })
+	end
+	B0.emitter(holder, "Embers", {
+		Texture = A.mote, Color = CS(coreOf(tier), AMBER),
+		Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		SpreadAngle = Vector2.new(180, 180), Size = NS({ KP(0, 0.25), KP(1, 0) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+		Lifetime = R(0.35, 0.6), Speed = R(3, 7), Drag = 2, LightEmission = 0.55, Rotation = R(0, 360),
+		Rate = ({ 0, 16, 24, 32 })[tier],
+	})
+	return holder
+end
+
+blocks.strike = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local q = pal(coreOf(tier))
+	q.part, q.at, q.light = "Strike", O * CFrame.new(0.5, 0.4, -2.6), false
+	local part = B0.releaseFlash(root, tier, q)
+	B0.emitter(part, "Splash", B0.flat({
+		Texture = A.hitRing, Color = CS(AMBER),
+		Size = NS({ KP(0, 0.4), KP(1, 2 + tier * 0.45) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.3), KP(1, 1) }),
+		Lifetime = R(0.24), LightEmission = 0.45, Rotation = R(0, 360), ZOffset = 0.5,
+	}), { EmitCount = 1 })
+	-- the roar: rings thrown forward off the landing cut, low over the ground
+	local roar = B0.part(root, "Roar", O * CFrame.new(0.3, 1.4, -2.2))
+	local qa = pal(coreOf(tier))
+	qa.part, qa.color = "Roar", Color3.fromRGB(255, 214, 160)
+	qa.size, qa.travel, qa.duration = ({ 3.6, 4.4, 5.6, 7 })[tier], 5 + tier * 1.4, 0.34
+	B0.airShockwave(root, tier, qa)
+	return part
+end
+
+blocks.slam = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local q = pal(coreOf(tier))
+	q.part, q.radius, q.lifetime = "Slam", RADIUS, 0.32
+	local ground = B0.groundShockwave(root, tier, q)
+	local gw = ground:FindFirstChild("GroundWave")
+	gw:SetAttribute("Duration", 0.46)
+	gw:SetAttribute("FromTransparency", 0.32)
+	gw:SetAttribute("FadeStyle", "Quint")
+	gw.Mesh.Color = Color3.fromRGB(240, 130, 40)
+	if tier >= 3 then
+		B0.craterRing(root, tier, { parent = "Slam", attrs = {
+			Radius = RADIUS * 0.7, Count = ({ 0, 0, 8, 12 })[tier], Duration = 0.3,
+		} })
+		B0.emitter(ground, "Cracks", B0.flat({
+			Texture = A.crack, Color = CS(INK), LightInfluence = 0.3,
+			Size = NS(({ 0, 0, 5, 6.5 })[tier]), Transparency = NS({ KP(0, 1), KP(0.04, 0.15), KP(0.65, 0.3), KP(1, 1) }),
+			Lifetime = R(1.6), Rotation = R(0, 360), ZOffset = -0.4,
+		}), { EmitCount = 1 })
+	end
+	if tier >= 4 then
+		B0.shockwaveShell(root, tier, {
+			name = "Shell", mesh = A.swirl, from = V(3, 0.8, 3), to = V(RADIUS * 2.1, 2.2, RADIUS * 2.1),
+			startColor = N_PALE, endColor = AMBER, y0 = 0.6, y1 = 1.1, spin = 160, duration = 0.45, startTransparency = 0.35,
+		})
+		local light = Instance.new("PointLight")
+		light.Name = "Light"
+		light.Color = AMBER
+		light.Range = 22
+		light.Brightness = 0
+		light.Shadows = false
+		light.Parent = ground
+	end
+	B0.screenShake(root, tier, { parent = "Slam", magnitude = ({ 1.2, 1.7, 2.3, 3.0 })[tier], falloff = "25~95", frames = tier >= 4 })
+	return ground
+end
+
+blocks.gouges = function(root, tier)
+	local K = KIT_()
+	K.strips(root, tier, {
+		name = "Gouge", scar = "GougeScar", color = Color3.fromRGB(255, 160, 60), fadeColor = N_AMBER, ink = INK,
+		width = { { 0.34, 0.7 }, { 0.38, 0.8 }, { 0.44, 0.9 }, { 0.5, 1.0 } },
+		fade = { 0.45, 0.55, 0.7, 0.85 }, scarFade = { 1.0, 1.3, 1.6, 2.0 },
+	})
+	local gouge = root:FindFirstChild("Gouge")
+	gouge:SetAttribute("Length", ({ 5, 6, 7.5, 9 })[tier])
+	gouge:SetAttribute("Spread", 1.0) -- studs between the claw lines
+	local B0 = _G.vfxBlocks
+	if tier >= 2 then
+		local path = B0.part(root, "GougePath", O * CFrame.new(0, 0.2, -5), V(2.4, 0.2, 7))
+		B0.emitter(path, "Embers", {
+			Texture = A.mote, Color = CS(coreOf(tier), AMBER),
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
+			Size = NS({ KP(0, 0.25), KP(0.5, 0.2), KP(1, 0) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.2), KP(1, 1) }),
+			Lifetime = R(0.7, 1.1), Speed = R(1.5, 3), Drag = 1, LightEmission = 0.5, Rotation = R(0, 360),
+		}, { EmitCount = ({ 0, 7, 10, 14 })[tier], EmitDelay = 0.1 })
+	end
+	return gouge
+end
+
+local spec = {
+	id = "RampagingTiger",
+	root = { attrs = { AuthoredRadius = RADIUS } },
+	blocks = blocks,
+	beats = {
+		{ block = "windup" },
+		{ block = "edge" },
+		{ block = "claw" },
+		{ block = "impact" },
+		{ block = "launch" },
+		{ block = "wheel", from = 2 },
+		{ block = "strike" },
+		{ block = "slam" },
+		{ block = "gouges" },
+	},
+}
+
+function spec.build(parent)
+	local B0 = _G.vfxBlocks
+	local built = {}
+	for tier = 1, 4 do
+		local name = spec.id .. "_T" .. tier
+		local old = parent:FindFirstChild(name)
+		if old then
+			old:Destroy()
+		end
+		local root = Instance.new("Model")
+		root.Name = name
+		for k, v in spec.root.attrs do
+			root:SetAttribute(k, v)
+		end
+		for _, beat in spec.beats do
+			if tier >= (beat.from or 1) and tier <= (beat.to or 4) then
+				local fn = blocks[beat.block] or B0.BLOCKS[beat.block]
+				assert(fn, "unknown block " .. tostring(beat.block))
+				fn(root, tier, beat.params or {})
+			end
+		end
+		root.WorldPivot = O
+		root.Parent = parent
+		table.insert(built, root)
+	end
+	return built
+end
+
+return spec
+	end)
+	if ok then _G.vfxSpecs["RampagingTiger"] = spec end
+	table.insert(installed, "spec RampagingTiger: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/RootPillar.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Builder for ReplicatedStorage.Effects.RootPillar, the spirit root reveal at
+-- the Testing Stone, played by src/client/RootFX.luau (Effect "root").
+-- Run through execute_luau in Edit mode (served by tools/receive_rbxmx.py,
+-- after tools/vfx_session.luau so _G.vfxBlocks exists):
+--   local m = Instance.new("ModuleScript"); m.Source = HttpService:GetAsync(
+--     "http://127.0.0.1:8766/vfx_specs/RootPillar.luau"); require(m)
+--   _G.buildRootPillar(staging)   -- staging = vfxStage.begin(who)
+-- It replaces staging.RootPillar.
+--
+-- Layout (pivot = PillarOrigin, the stone's top centre, +Y up; built at the origin):
+--   Pillar   the shared column, recoloured per element: Column (Neon core) and
+--            Sheath (wider, softer) cylinders that RootFX grows to `Height`,
+--            a camera-facing Shaft beam (A0 -> A1, A1 raised with the column),
+--            and Base emitters + MeshWaves (flash, glow, rising motes, a ground
+--            ring). Crown: a glow at the top.
+--   Rare     extra for Lightning/Wind/Ice (and any Heaven-grade root): Ground
+--            shockwave (torus + swirl ring + dust) and Sky (ball flash,
+--            horizontal sky ring, star) that RootFX moves to the pillar's top.
+--   Glimpse  the re-touch version: a brief glow, motes and a small ring.
+--   Accents  one Model per element (Fire, Water, ...): the element's own
+--            reveal in its methods' aura language (MeshWaves, emitters, baked
+--            colours); RootFX clones the one it needs onto the base, scales
+--            it by grade, and moves `AtHeight` pieces up the column. See the
+--            Accents section for the per-element pieces and model attributes.
+-- Anything with `Tint` ("color", "core" or "deep") is recoloured from the
+-- element's colour (core = mixed toward white, deep = more saturated). Root attributes: Height,
+-- RareHeight, Width (column studs), Rise (seconds to full height), Hold, Fade.
+
+local AssetService = game:GetService("AssetService")
+
+local B = _G.vfxBlocks
+assert(B, "load tools/vfx_session.luau first")
+
+local function id(n)
+	return "rbxassetid://" .. n
+end
+
+local A = {
+	glow = id(867619398),
+	glowDot = id(9841273544),
+	star4 = id(13271628051),
+	star12 = id(243728206),
+	column = id(1191605952), -- soft band: the image's vertical runs along a beam
+	thinRing = id(9841273159),
+	softRing = id(15611941586),
+	dust = id(11037785287),
+	torus = id(471124075),
+	swirlRing = id(129778117978668),
+	-- accents
+	spark = id(9841260273), -- ember / streak
+	bubble = id(249902641),
+	leaf = id(17259245248),
+	shards = id(12402863766),
+	rocks = id(425665059),
+	arcs = id(528280947),
+	arc = id(7216850580),
+	windStreak = id(426653646),
+	ice = id(18765221838),
+	swirlRing2 = id(73349240058321),
+	crownTall = id(4316118084), -- tall spike crown (flame)
+	crownLow = id(489415286), -- low spike crown
+	flame = id(265788038),
+	puff = id(933102662),
+	crack = id(93520831389146),
+	rune = id(83667248904000),
+}
+_G.RootPillarAssets = A
+
+local NS, CS, KP, CK, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, ColorSequenceKeypoint.new, NumberRange.new
+local V3 = Vector3.new
+local WHITE = Color3.new(1, 1, 1)
+
+local function seq(...)
+	local v, kps = { ... }, {}
+	for i = 1, #v, 2 do
+		table.insert(kps, KP(v[i], v[i + 1]))
+	end
+	return NS(kps)
+end
+
+-- a constant size picked at random per particle in [lo, hi]
+local function rnd(lo, hi)
+	local mid, env = (lo + hi) / 2, (hi - lo) / 2
+	return NS({ KP(0, mid, env), KP(1, mid, env) })
+end
+
+local function cseq(...)
+	local v, kps = { ... }, {}
+	for i = 1, #v, 2 do
+		table.insert(kps, CK(v[i], v[i + 1]))
+	end
+	return CS(kps)
+end
+
+local function attrs(inst, t)
+	for k, v in t or {} do
+		inst:SetAttribute(k, v)
+	end
+	return inst
+end
+
+local function model(name, parent, a)
+	local m = Instance.new("Model")
+	m.Name = name
+	attrs(m, a)
+	m.Parent = parent
+	return m
+end
+
+local function part(name, parent, cf, size, a)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+	p.Transparency = 1
+	p.Size = size or V3(0.2, 0.2, 0.2)
+	p.CFrame = cf or CFrame.new()
+	attrs(p, a)
+	p.Parent = parent
+	return p
+end
+
+-- An emitter with sane defaults (off, no light influence, fixed facing).
+local function emitter(parent, name, props, a)
+	local e = Instance.new("ParticleEmitter")
+	e.Name = name
+	e.Rate = 0
+	e.Enabled = false
+	e.LightInfluence = 0
+	e.Speed = R(0)
+	e.Texture = A.glow
+	for k, v in props do
+		e[k] = v
+	end
+	attrs(e, a)
+	e.Parent = parent
+	return e
+end
+
+-- A Neon cylinder standing on the origin (axis = world Y), at Transparency 1:
+-- RootFX sets its height, width and transparency.
+local function cylinder(name, parent, width, a)
+	local p = part(name, parent, CFrame.new(0, 0.5, 0) * CFrame.Angles(0, 0, math.pi / 2), V3(1, width, width), a)
+	p.Shape = Enum.PartType.Cylinder
+	p.Material = Enum.Material.Neon
+	return p
+end
+
+local function wave(parent, name, p, tint)
+	local w = B.meshWave(parent, name, p)
+	if p.fadeStyle then
+		w:SetAttribute("FadeStyle", p.fadeStyle)
+	end
+	if tint then
+		w.Mesh:SetAttribute("Tint", tint)
+	end
+	return w
+end
+
+-- torus 471124075 is 150 x 9.51 x 150; a round tube is Y = D * 0.0634
+local function ring(d, fat)
+	return V3(d, d * 0.0634 * (fat or 1.6), d)
+end
+
+-- ------------------------------------------------------------------ Pillar
+
+local function pillar(root)
+	local m = model("Pillar", root)
+	cylinder("Column", m, 3.4, { Tint = "core", Fade = 0.05 })
+	cylinder("Sheath", m, 9, { Tint = "deep", Fade = 0.6 })
+
+	local base = part("Base", m, CFrame.new(0, 0.2, 0), V3(5, 0.2, 5))
+	local a0 = Instance.new("Attachment")
+	a0.Name = "A0"
+	a0.Parent = base
+	local a1 = Instance.new("Attachment")
+	a1.Name = "A1"
+	a1.Position = V3(0, 120, 0)
+	a1.Parent = base
+	local shaft = Instance.new("Beam")
+	shaft.Name = "Shaft"
+	shaft.Attachment0, shaft.Attachment1 = a0, a1
+	shaft.Texture = A.column
+	shaft.TextureMode = Enum.TextureMode.Stretch
+	shaft.TextureLength = 1
+	shaft.TextureSpeed = 0.6
+	shaft.FaceCamera = true
+	shaft.Segments = 1
+	shaft.Width0, shaft.Width1 = 24, 16
+	shaft.LightEmission = 0.4
+	shaft.LightInfluence = 0
+	shaft.Transparency = seq(0, 0.25, 0.75, 0.35, 1, 1)
+	shaft.Enabled = false
+	shaft:SetAttribute("Tint", "deep")
+	shaft.Parent = base
+
+	-- the release: a bright star and glow on the stone (lifted so the stone
+	-- doesn't cut the sprites in half)
+	local lift = Instance.new("Attachment")
+	lift.Name = "Lift"
+	lift.Position = V3(0, 3, 0)
+	lift.Parent = base
+	emitter(lift, "Flash", {
+		Texture = A.star4, Size = seq(0, 2, 0.25, 11, 1, 6), Transparency = seq(0, 0, 0.6, 0.2, 1, 1),
+		Lifetime = R(0.45), LightEmission = 0.6, ZOffset = 2, Rotation = R(0, 45),
+	}, { EmitCount = 1, Tint = "core" })
+	emitter(lift, "Glow", {
+		Texture = A.glow, Size = seq(0, 5, 0.3, 11, 1, 13), Transparency = seq(0, 0.3, 0.5, 0.45, 1, 1),
+		Lifetime = R(1.4), LightEmission = 0.35, ZOffset = 1,
+	}, { EmitCount = 2, Tint = "color" })
+	-- motes streaming up the column for ~2 s
+	emitter(base, "Motes", {
+		Texture = A.glowDot, Size = seq(0, 0.9, 0.7, 0.6, 1, 0), Transparency = seq(0, 0.1, 0.8, 0.2, 1, 1),
+		Lifetime = R(1.6, 2.4), Speed = R(28, 48), SpreadAngle = Vector2.new(6, 6),
+		EmissionDirection = Enum.NormalId.Top, Rate = 14, LightEmission = 0.6, Drag = 0.4,
+	}, { EmitDuration = 2, Tint = "core", Scaled = true })
+
+	-- 3D: a ground ring under the stone (the element's own pieces do the rest)
+	wave(base, "GroundRing", {
+		mesh = A.torus, color = WHITE, fromSize = ring(6, 2), toSize = ring(30, 1.4),
+		fromTransparency = 0.05, toTransparency = 1, duration = 1.1, style = "Quint", fadeStyle = "Quad",
+	}, "color")
+
+	local crown = part("Crown", m, CFrame.new(0, 120, 0), V3(1, 1, 1))
+	crown:SetAttribute("Top", true) -- RootFX keeps it at the column's top
+	emitter(crown, "Glow", {
+		Texture = A.glow, Size = seq(0, 8, 0.3, 20, 1, 22), Transparency = seq(0, 0.15, 0.6, 0.35, 1, 1),
+		Lifetime = R(1.8), LightEmission = 0.5,
+	}, { EmitCount = 2, EmitDelay = 0.35, Tint = "color" })
+	emitter(crown, "Star", {
+		Texture = A.star12, Size = seq(0, 3, 0.3, 14, 1, 8), Transparency = seq(0, 0.1, 1, 1),
+		Lifetime = R(0.6), LightEmission = 0.5, Rotation = R(0, 360), RotSpeed = R(-40, 40),
+	}, { EmitCount = 1, EmitDelay = 0.4, Tint = "core" })
+	return m
+end
+
+-- ------------------------------------------------------------------ Rare
+
+local function rare(root)
+	local m = model("Rare", root)
+	local ground = part("Ground", m, CFrame.new(0, 0.25, 0), V3(6, 0.2, 6))
+	wave(ground, "Shockwave", {
+		mesh = A.torus, color = WHITE, fromSize = ring(8, 2.2), toSize = ring(80, 1.3),
+		fromTransparency = 0, toTransparency = 1, duration = 1.3, style = "Quint", fadeStyle = "Quad", delay = 0.15,
+	}, "deep")
+	wave(ground, "Swirl", {
+		mesh = A.swirlRing, color = WHITE, fromSize = V3(10, 2, 10), toSize = V3(56, 6, 56),
+		fromTransparency = 0.1, toTransparency = 1, duration = 1.1, style = "Quart", fadeStyle = "Quad", delay = 0.1,
+	}, "color")
+	emitter(ground, "Dust", {
+		Texture = A.dust, Size = seq(0, 2, 1, 6), Transparency = seq(0, 0.45, 1, 1),
+		Lifetime = R(0.8, 1.2), Speed = R(30, 45), Drag = 3, Shape = Enum.ParticleEmitterShape.Box,
+		EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180), Rotation = R(0, 360),
+		Color = CS(Color3.fromRGB(235, 228, 214)),
+	}, { EmitCount = 14, EmitDelay = 0.1 })
+	emitter(ground, "FlatRing", B.flat({
+		Texture = A.softRing, Size = seq(0, 4, 1, 40), Transparency = seq(0, 0.2, 0.6, 0.5, 1, 1),
+		Lifetime = R(0.9), LightEmission = 0.4,
+	}), { EmitCount = 1, EmitDelay = 0.15, Tint = "color" })
+
+	local sky = part("Sky", m, CFrame.new(0, 200, 0), V3(1, 1, 1))
+	sky:SetAttribute("Top", true)
+	sky:SetAttribute("EmitDelay", 0.45) -- when the column reaches the sky
+	wave(sky, "Burst", {
+		mesh = "Ball", material = Enum.Material.Neon, color = WHITE, fromSize = V3(6, 6, 6), toSize = V3(40, 40, 40),
+		fromTransparency = 0.4, toTransparency = 1, duration = 0.7, style = "Quart", fadeStyle = "Quad",
+	}, "deep")
+	wave(sky, "SkyRing", {
+		mesh = A.torus, color = WHITE, fromSize = ring(14, 2.2), toSize = ring(150, 1.3),
+		fromTransparency = 0, toTransparency = 1, duration = 1.6, style = "Quint", fadeStyle = "Quad",
+	}, "deep")
+	emitter(sky, "Star", {
+		Texture = A.star4, Size = seq(0, 6, 0.25, 40, 1, 20), Transparency = seq(0, 0, 0.5, 0.3, 1, 1),
+		Lifetime = R(0.7), LightEmission = 0.5, Rotation = R(0, 45),
+	}, { EmitCount = 1, Tint = "core" })
+	emitter(sky, "Rays", {
+		Texture = A.glow, Size = seq(0, 10, 0.3, 45, 1, 50), Transparency = seq(0, 0.4, 1, 1),
+		Lifetime = R(1.2), LightEmission = 0.3,
+	}, { EmitCount = 1, Tint = "color" })
+	return m
+end
+
+-- ------------------------------------------------------------------ Glimpse
+
+local function glimpse(root)
+	local m = model("Glimpse", root)
+	local base = part("Base", m, CFrame.new(0, 0.3, 0), V3(3, 0.2, 3))
+	local lift = Instance.new("Attachment")
+	lift.Name = "Lift"
+	lift.Position = V3(0, 2, 0)
+	lift.Parent = base
+	emitter(lift, "Glow", {
+		Texture = A.glow, Size = seq(0, 3, 0.3, 6.5, 1, 7.5), Transparency = seq(0, 0.25, 0.5, 0.4, 1, 1),
+		Lifetime = R(1.1), LightEmission = 0.4, ZOffset = 1,
+	}, { EmitCount = 2, Tint = "color" })
+	emitter(base, "Motes", {
+		Texture = A.glowDot, Size = seq(0, 0.5, 1, 0), Transparency = seq(0, 0.1, 1, 1),
+		Lifetime = R(0.9, 1.3), Speed = R(5, 10), SpreadAngle = Vector2.new(25, 25),
+		EmissionDirection = Enum.NormalId.Top, LightEmission = 0.6, Shape = Enum.ParticleEmitterShape.Box,
+	}, { EmitCount = 10, Tint = "core" })
+	wave(base, "Ring", {
+		mesh = A.torus, color = WHITE, fromSize = ring(3, 2), toSize = ring(11, 1.4),
+		fromTransparency = 0.05, toTransparency = 1, duration = 0.8, style = "Quint", fadeStyle = "Quad",
+	}, "color")
+	wave(base, "Rise", {
+		mesh = A.torus, color = WHITE, fromSize = ring(4, 2), toSize = ring(2, 2.4),
+		fromOffset = V3(0, 0.5, 0), toOffset = V3(0, 9, 0),
+		fromTransparency = 0.1, toTransparency = 1, duration = 0.8, style = "Quad", fadeStyle = "Quad",
+	}, "core")
+	return m
+end
+
+-- ------------------------------------------------------------------ Accents
+-- One Model per element, in the visual language of its methods' auras
+-- (docs/systems/auras.md). Colours are baked (no Tint). Pieces with
+-- `AtHeight` are moved to that fraction of the column's height by RootFX;
+-- a `Bolt` Beam and an `OnBolt` model (Lightning) are played per strike.
+-- Model attributes: Flicker (column flicker 0..1), Bolts, BoltGap, SkyTint,
+-- SkyBrightness (the rare/Heaven sky flash).
+
+local rgb = Color3.fromRGB
+
+-- A MeshWave whose Mesh is a plain part: "Cylinder", "Block", "Ball" or
+-- "Ellipsoid" (a Block with a Sphere SpecialMesh), in `material`.
+local function shapeWave(parent, name, shape, material, color, p)
+	local w = Instance.new("Model")
+	w.Name = name
+	for k, v in {
+		FromSize = p.fromSize, ToSize = p.toSize, FromOffset = p.fromOffset, ToOffset = p.toOffset,
+		Rotation = p.rotation, FromTransparency = p.fromTransparency, ToTransparency = p.toTransparency,
+		Duration = p.duration, Style = p.style, FadeStyle = p.fadeStyle or "Quad", EmitDelay = p.delay,
+	} do
+		w:SetAttribute(k, v)
+	end
+	w:SetAttribute("MeshWave", true)
+	local m = Instance.new("Part")
+	m.Name = "Mesh"
+	m.Anchored, m.CanCollide, m.CanQuery, m.CanTouch, m.CastShadow = true, false, false, false, false
+	m.Material = material
+	m.Color = color
+	m.Transparency = 1
+	if shape == "Ellipsoid" then
+		local sm = Instance.new("SpecialMesh")
+		sm.MeshType = Enum.MeshType.Sphere
+		sm.Parent = m
+	else
+		m.Shape = Enum.PartType[shape]
+	end
+	m.Parent = w
+	w.Parent = parent
+	return w
+end
+
+local function holder(parent, name, cf)
+	local a = Instance.new("Attachment")
+	a.Name = name
+	a.CFrame = cf
+	a.Parent = parent
+	return a
+end
+
+local function accents(root)
+	local f = Instance.new("Folder")
+	f.Name = "Accents"
+	f.Parent = root
+	local up = Enum.NormalId.Top
+	local box = Enum.ParticleEmitterShape.Box
+	local volume = Enum.ParticleEmitterShapeStyle.Volume
+	local neon, glass, slate = Enum.Material.Neon, Enum.Material.Glass, Enum.Material.Slate
+
+	local function element(name, a)
+		local m = model(name, f, a)
+		return m, part("Base", m, CFrame.new(0, 0.3, 0), V3(12, 0.2, 12))
+	end
+	-- a tall box up the column (centred at `frac` of the height)
+	local function along(parent, name, frac, height, width)
+		return part(name, parent, CFrame.new(0, 0, 0), V3(width or 8, height, width or 8), { AtHeight = frac })
+	end
+
+	-- ---------------------------------------------------------------- Fire
+	-- Blazing Heart: the heart beats twice on the stone, a crown of flame and
+	-- fire tongues climb the column, a fire ring rolls out, embers.
+	local FIRE_CORE, FIRE, FIRE_DEEP = rgb(255, 214, 120), rgb(255, 130, 50), rgb(220, 60, 25)
+	local fireM, fire = element("Fire")
+	for i, d in { 0, 0.42 } do
+		shapeWave(fire, "Beat" .. i, "Ball", neon, FIRE_CORE, {
+			fromSize = V3(2, 2, 2), toSize = V3(9 + i * 4, 9 + i * 4, 9 + i * 4), fromOffset = V3(0, 3, 0), toOffset = V3(0, 3, 0),
+			fromTransparency = 0.05, toTransparency = 1, duration = 0.55, style = "Quart", delay = d,
+		})
+	end
+	wave(fire, "Crown", {
+		mesh = A.crownTall, color = FIRE, fromSize = V3(7, 2, 7), toSize = V3(16, 42, 16),
+		fromOffset = V3(0, 1, 0), toOffset = V3(0, 21, 0), fromTransparency = 0.05, toTransparency = 1,
+		duration = 1.7, style = "Quart", fadeStyle = "Quint", delay = 0.1,
+	})
+	wave(fire, "CrownLow", {
+		mesh = A.crownLow, color = FIRE_DEEP, fromSize = V3(9, 1, 9), toSize = V3(22, 9, 22),
+		fromOffset = V3(0, 0.5, 0), toOffset = V3(0, 4, 0), fromTransparency = 0, toTransparency = 1,
+		duration = 1.4, style = "Quart", fadeStyle = "Quint",
+	})
+	wave(fire, "Ring", {
+		mesh = A.torus, color = FIRE, fromSize = ring(8, 2.4), toSize = ring(40, 1.2),
+		fromTransparency = 0, toTransparency = 1, duration = 1.3, style = "Quint",
+	})
+	local tongues = along(fireM, "Tongues", 0.25, 60, 9)
+	emitter(tongues, "Tongues", {
+		Texture = A.flame, Size = seq(0, 2, 0.3, 4.5, 1, 0.5), Transparency = seq(0, 0.4, 0.2, 0.05, 0.75, 0.3, 1, 1),
+		Color = cseq(0, FIRE_CORE, 0.4, FIRE, 1, FIRE_DEEP), Lifetime = R(0.6, 0.9), Speed = R(14, 24),
+		EmissionDirection = up, Acceleration = V3(0, 12, 0), Rotation = R(-10, 10), Rate = 26, Shape = box,
+		ShapeStyle = volume, LightEmission = 0.3,
+	}, { EmitDuration = 2, Scaled = true })
+	emitter(fire, "Embers", {
+		Texture = A.spark, Size = seq(0, 0.8, 0.6, 0.55, 1, 0), Transparency = seq(0, 0, 0.7, 0.1, 1, 1),
+		Color = cseq(0, FIRE_CORE, 0.4, FIRE, 1, FIRE_DEEP),
+		Lifetime = R(1, 1.8), Speed = R(18, 34), SpreadAngle = Vector2.new(22, 22), EmissionDirection = up,
+		Acceleration = V3(0, 6, 0), Orientation = Enum.ParticleOrientation.VelocityParallel, Rate = 16,
+		LightEmission = 0.7, Shape = box, Drag = 0.6,
+	}, { EmitDuration = 2, Scaled = true })
+
+	-- ---------------------------------------------------------------- Water
+	-- Flowing Spring: a still pool spreads over the ground with ripples,
+	-- rings spout up the column, droplets are drawn in and thrown up.
+	local WATER_CORE, WATER = rgb(190, 232, 255), rgb(70, 150, 245)
+	local waterM, water = element("Water")
+	shapeWave(water, "Pool", "Cylinder", neon, WATER, {
+		fromSize = V3(0.15, 6, 6), toSize = V3(0.15, 34, 34), rotation = V3(0, 0, 90),
+		fromOffset = V3(0, -0.15, 0), toOffset = V3(0, -0.15, 0), fromTransparency = 0.3, toTransparency = 1,
+		duration = 3, style = "Quart", fadeStyle = "Quint",
+	})
+	for i, d in { 0.2, 0.75, 1.3 } do
+		wave(water, "Ripple" .. i, {
+			mesh = A.torus, color = WATER_CORE, fromSize = ring(5, 1.8), toSize = ring(32, 0.8),
+			fromTransparency = 0.05, toTransparency = 1, duration = 1.7, style = "Sine", delay = d,
+		})
+	end
+	for i, d in { 0, 0.3, 0.6, 0.9 } do
+		wave(water, "Spout" .. i, {
+			mesh = A.torus, color = WATER, fromSize = ring(14, 2), toSize = ring(7, 2.6),
+			fromOffset = V3(0, 1, 0), toOffset = V3(0, 75 - i * 10, 0),
+			fromTransparency = 0.05, toTransparency = 1, duration = 1.5, style = "Quad", delay = d,
+		})
+	end
+	local shell = part("Shell", waterM, CFrame.new(0, 8, 0), V3(40, 40, 40))
+	emitter(shell, "Inflow", {
+		Texture = A.spark, Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+		ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward, Orientation = Enum.ParticleOrientation.VelocityParallel,
+		Size = seq(0, 0.4, 0.5, 0.8, 1, 0.3), Transparency = seq(0, 1, 0.2, 0.1, 0.9, 0.2, 1, 1),
+		Color = CS(WATER_CORE), Lifetime = R(0.65, 0.7), Speed = R(30), Rate = 45, LightEmission = 0.3,
+	}, { EmitDuration = 1.8, Scaled = true })
+	emitter(water, "Droplets", {
+		Texture = A.bubble, Size = rnd(0.6, 1), Transparency = seq(0, 0.15, 0.8, 0.3, 1, 1),
+		Color = CS(WATER_CORE), Lifetime = R(1.2, 1.6), Speed = R(22, 32),
+		SpreadAngle = Vector2.new(28, 28), EmissionDirection = up, Acceleration = V3(0, -38, 0),
+		LightEmission = 0.3, Shape = box,
+	}, { EmitCount = 22, EmitDelay = 0.5, Scaled = true })
+
+	-- ---------------------------------------------------------------- Wood
+	-- Evergreen Root: roots grow out over the ground, branches sprout off
+	-- the column, leaves spiral up and burst from the top.
+	local WOOD_CORE, WOOD, WOOD_DEEP = rgb(200, 255, 160), rgb(100, 215, 80), rgb(50, 140, 50)
+	local woodM, wood = element("Wood")
+	for i = 1, 8 do
+		local yaw = (i - 1) * 45 + 10
+		local bend = if i % 2 == 0 then 28 else -28
+		local h = holder(wood, "Root" .. i, CFrame.Angles(0, math.rad(yaw), 0))
+		shapeWave(h, "Grow", "Block", neon, WOOD, {
+			fromSize = V3(0.6, 0.3, 0.3), toSize = V3(0.7, 0.3, 9), fromOffset = V3(0, -0.1, -3), toOffset = V3(0, -0.1, -7.5),
+			fromTransparency = 0.05, toTransparency = 1, duration = 3.2, style = "Quart", fadeStyle = "Quint",
+		})
+		local tip = holder(wood, "Tip" .. i, CFrame.Angles(0, math.rad(yaw), 0) * CFrame.new(0, 0, -11.8) * CFrame.Angles(0, math.rad(bend), 0))
+		shapeWave(tip, "Grow", "Block", neon, WOOD_DEEP, {
+			fromSize = V3(0.45, 0.25, 0.2), toSize = V3(0.45, 0.25, 6), fromOffset = V3(0, -0.1, 0), toOffset = V3(0, -0.1, -3),
+			fromTransparency = 0.05, toTransparency = 1, duration = 2.8, style = "Quart", fadeStyle = "Quint", delay = 0.4,
+		})
+	end
+	local tilt = math.rad(35)
+	for i = 1, 6 do
+		local frac = 0.08 + (i - 1) * 0.06
+		local h = holder(wood, "Branch" .. i, CFrame.Angles(0, math.rad(i * 137), 0))
+		h:SetAttribute("AtHeight", frac)
+		local len = 18 - i * 1.5
+		shapeWave(h, "Grow", "Block", neon, WOOD, {
+			fromSize = V3(0.9, 0.9, 0.3), toSize = V3(1, 1, len), rotation = V3(35, 0, 0),
+			fromOffset = V3(0, 0, -1.5), toOffset = V3(0, math.sin(tilt) * len / 2, -1.5 - math.cos(tilt) * len / 2),
+			fromTransparency = 0.05, toTransparency = 1, duration = 2.6, style = "Quart", fadeStyle = "Quint",
+			delay = 0.15 + i * 0.12,
+		})
+	end
+	emitter(wood, "Leaves", {
+		Texture = A.leaf, Size = rnd(1.1, 1.6), Transparency = seq(0, 0, 0.85, 0.1, 1, 1),
+		Color = cseq(0, WOOD_CORE, 1, WOOD),
+		Lifetime = R(2, 2.8), Speed = R(8, 14), SpreadAngle = Vector2.new(50, 50), EmissionDirection = up,
+		Acceleration = V3(0, 5, 0), Rotation = R(0, 360), RotSpeed = R(-160, 160), Rate = 9, Shape = box,
+		LightEmission = 0.1,
+	}, { EmitDuration = 2, Scaled = true })
+	local canopy = part("Canopy", woodM, CFrame.new(), V3(4, 1, 4), { AtHeight = 1 })
+	emitter(canopy, "Burst", {
+		Texture = A.leaf, Size = rnd(1.6, 2.4), Transparency = seq(0, 0, 0.8, 0.1, 1, 1),
+		Color = cseq(0, WOOD_CORE, 1, WOOD), Lifetime = R(1.6, 2.4), Speed = R(18, 30), Drag = 1.5,
+		SpreadAngle = Vector2.new(180, 180), Acceleration = V3(0, -6, 0), Rotation = R(0, 360), RotSpeed = R(-200, 200),
+		LightEmission = 0.1,
+	}, { EmitCount = 34, EmitDelay = 0.45, Scaled = true })
+
+	-- ---------------------------------------------------------------- Metal
+	-- Iron Marrow: a gold gem flares on the stone, clang rings snap out up the
+	-- column, shards and sparks, a gold sunburst at the top.
+	local GOLD_CORE, GOLD = rgb(255, 246, 210), rgb(255, 196, 80)
+	local metalM, metal = element("Metal")
+	shapeWave(metal, "Gem", "Block", neon, GOLD, {
+		fromSize = V3(1, 1, 1), toSize = V3(5, 5, 5), rotation = V3(45, 0, 35.26),
+		fromOffset = V3(0, 4, 0), toOffset = V3(0, 5, 0), fromTransparency = 0, toTransparency = 1,
+		duration = 1.8, style = "Back", fadeStyle = "Quint",
+	})
+	for i = 0, 4 do
+		local h = holder(metal, "Clang" .. i, CFrame.new())
+		h:SetAttribute("AtHeight", i * 0.12)
+		wave(h, "Ring", {
+			mesh = A.torus, color = if i % 2 == 0 then GOLD else GOLD_CORE, fromSize = ring(5, 1.6), toSize = ring(34 - i * 3, 0.7),
+			fromTransparency = 0, toTransparency = 1, duration = 0.6, style = "Quint", delay = 0.15 + i * 0.18,
+		})
+	end
+	local glints = along(metalM, "Glints", 0.25, 60)
+	emitter(glints, "Glints", {
+		Texture = A.star4, Size = seq(0, 0, 0.3, 3.2, 1, 0), Transparency = NS(0), Rotation = R(0, 45),
+		Color = CS(GOLD_CORE), Lifetime = R(0.35, 0.5), Rate = 18, Shape = box,
+		ShapeStyle = volume, LightEmission = 0.6,
+	}, { EmitDuration = 2, Scaled = true })
+	emitter(metal, "Shards", {
+		Texture = A.shards, Size = seq(0, 2, 1, 1), Transparency = seq(0, 0, 0.7, 0.2, 1, 1),
+		Color = CS(rgb(255, 236, 190)), Lifetime = R(0.6, 0.9), Speed = R(18, 28), Drag = 2,
+		SpreadAngle = Vector2.new(70, 70), EmissionDirection = up, Rotation = R(0, 360), LightEmission = 0.3,
+	}, { EmitCount = 10 })
+	local sun = part("Sun", metalM, CFrame.new(), V3(1, 1, 1), { AtHeight = 1 })
+	emitter(sun, "Sunburst", {
+		Texture = A.star12, Size = seq(0, 4, 0.3, 26, 1, 30), Transparency = seq(0, 0.05, 0.6, 0.3, 1, 1),
+		Color = CS(GOLD), Lifetime = R(1.4), Rotation = R(0, 360), RotSpeed = R(-20, 20), LightEmission = 0.4,
+	}, { EmitCount = 1, EmitDelay = 0.45 })
+
+	-- ---------------------------------------------------------------- Earth
+	-- Mountain Breath: a carved stone ring rises out of the ground round the
+	-- stone, a rune circle flashes amber, rocks lift, dust rolls out.
+	local EARTH, STONE = rgb(225, 140, 50), rgb(118, 98, 78)
+	local earthM, earth = element("Earth")
+	wave(earth, "StoneRing", {
+		mesh = A.torus, color = STONE, material = slate, fromSize = ring(17, 3.4), toSize = ring(17, 3.4),
+		fromOffset = V3(0, -2.2, 0), toOffset = V3(0, 0.2, 0), fromTransparency = 0, toTransparency = 1,
+		duration = 3.6, style = "Quint", fadeStyle = "Quint",
+	})
+	wave(earth, "Glow", {
+		mesh = A.torus, color = EARTH, fromSize = ring(14.5, 1), toSize = ring(14.5, 1),
+		fromOffset = V3(0, -1.5, 0), toOffset = V3(0, 0.25, 0), fromTransparency = 0.1, toTransparency = 1,
+		duration = 3.4, style = "Quint", fadeStyle = "Quint",
+	})
+	emitter(earth, "Runes", B.flat({
+		Texture = A.rune, Size = seq(0, 5, 0.2, 7.5, 1, 8), Transparency = seq(0, 1, 0.1, 0.05, 0.75, 0.3, 1, 1),
+		Color = CS(rgb(255, 180, 80)), Lifetime = R(3), Rotation = R(0, 360), RotSpeed = R(12), LightEmission = 0.3, ZOffset = 0.2,
+	}), { EmitCount = 1 })
+	emitter(earth, "Rocks", {
+		Texture = A.rocks, Size = rnd(1.4, 2.2), Transparency = seq(0, 0, 0.85, 0, 1, 1),
+		Lifetime = R(2, 2.6), Speed = R(5, 11), SpreadAngle = Vector2.new(20, 20), EmissionDirection = up,
+		Rotation = R(0, 360), RotSpeed = R(-50, 50), Drag = 0.3, Shape = box,
+	}, { EmitCount = 14, Scaled = true })
+	emitter(earth, "Dust", {
+		Texture = A.dust, Size = seq(0, 1.5, 1, 4.5), Transparency = seq(0, 0.5, 1, 1),
+		Color = CS(rgb(214, 180, 130)), Lifetime = R(0.9, 1.3), Speed = R(14, 22), Drag = 3,
+		Shape = box, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180),
+		Rotation = R(0, 360),
+	}, { EmitCount = 12 })
+
+	-- ---------------------------------------------------------------- Lightning (rare)
+	-- Thunder Pulse: jagged bolts strike down onto the stone in bursts, arcs
+	-- crawl up the column, the stone scorches, the sky darkens violet.
+	local BOLT_CORE, BOLT, BOLT_DEEP = rgb(245, 235, 255), rgb(190, 150, 255), rgb(120, 70, 230)
+	local lightningM, lightning = element("Lightning", {
+		Flicker = 0.4, Bolts = 5, BoltGap = 0.42, SkyTint = rgb(110, 70, 190), SkyBrightness = -0.04,
+	})
+	local bolt = Instance.new("Beam")
+	bolt.Name = "Bolt"
+	bolt.FaceCamera = true
+	bolt.Segments = 1
+	bolt.LightInfluence = 0
+	bolt.LightEmission = 0.6
+	bolt.Brightness = 5
+	bolt.Color = cseq(0, BOLT_CORE, 1, BOLT)
+	bolt.Width0, bolt.Width1 = 1.3, 1
+	bolt.Transparency = NS(0)
+	bolt.Enabled = false
+	bolt.Parent = lightningM
+	local onBolt = model("OnBolt", lightningM)
+	local hit = part("Hit", onBolt, CFrame.new(0, 0.5, 0), V3(4, 0.2, 4))
+	emitter(hit, "Flash", {
+		Texture = A.star4, Size = seq(0, 3, 0.3, 14, 1, 0), Transparency = NS(0), Color = CS(BOLT_CORE),
+		Lifetime = R(0.25), Rotation = R(0, 45), LightEmission = 0.6, ZOffset = 3,
+	}, { EmitCount = 1 })
+	wave(hit, "Snap", {
+		mesh = A.torus, color = BOLT_DEEP, fromSize = ring(4, 2.4), toSize = ring(24, 1),
+		fromTransparency = 0, toTransparency = 1, duration = 0.45, style = "Quint",
+	})
+	emitter(hit, "Sparks", {
+		Texture = A.spark, Size = seq(0, 0.5, 1, 0), Lifetime = R(0.3, 0.5), Speed = R(25, 40),
+		Color = CS(BOLT_CORE), SpreadAngle = Vector2.new(80, 80), EmissionDirection = up,
+		Orientation = Enum.ParticleOrientation.VelocityParallel, Drag = 3, LightEmission = 0.8,
+	}, { EmitCount = 12 })
+	local arcs = along(lightningM, "Arcs", 0.25, 90)
+	emitter(arcs, "Arcs", {
+		Texture = A.arcs, Size = rnd(4, 7), Transparency = NS(0), Rotation = R(0, 360),
+		Color = cseq(0, BOLT_CORE, 1, BOLT),
+		Lifetime = R(0.1, 0.2), Rate = 34, Shape = box, ShapeStyle = volume, LightEmission = 0.8,
+	}, { EmitDuration = 2.4, Scaled = true })
+	emitter(lightning, "Scorch", B.flat({
+		Texture = A.crack, Size = seq(0, 6, 0.1, 11, 1, 12), Transparency = seq(0, 1, 0.05, 0.1, 0.7, 0.3, 1, 1),
+		Color = CS(BOLT), Lifetime = R(3), Rotation = R(0, 360), LightEmission = 0.4, ZOffset = 0.2,
+	}), { EmitCount = 1, EmitDelay = 0.3 })
+
+	-- ---------------------------------------------------------------- Wind (rare)
+	-- Drifting Cloud: a wide wind ring is drawn in to the stone, a vortex of
+	-- rings corkscrews up the column, clouds spray out across the ground.
+	local WIND_CORE, WIND, CLOUD = rgb(220, 255, 242), rgb(140, 230, 200), rgb(246, 252, 250)
+	local windM, wind = element("Wind", { SkyTint = rgb(170, 245, 220) })
+	wave(wind, "Gather", {
+		mesh = A.swirlRing, color = WIND_CORE, fromSize = V3(80, 6, 80), toSize = V3(12, 3, 12),
+		fromOffset = V3(0, 4, 0), toOffset = V3(0, 2, 0), fromTransparency = 0.25, toTransparency = 1,
+		duration = 1.2, style = "Sine", fadeStyle = "Quart",
+	})
+	for i, d in { 0, 0.25, 0.5, 0.75, 1, 1.25 } do
+		wave(wind, "Swirl" .. i, {
+			mesh = if i % 2 == 0 then A.swirlRing2 else A.swirlRing, color = if i % 2 == 0 then WIND else WIND_CORE,
+			fromSize = V3(18, 3, 18), toSize = V3(9, 5, 9),
+			fromOffset = V3(0, 1, 0), toOffset = V3(0, 95 - i * 8, 0), rotation = V3(0, i * 60, 0),
+			fromTransparency = 0.15, toTransparency = 1, duration = 1.7, style = "Quad", fadeStyle = "Quad", delay = 0.3 + d,
+		})
+	end
+	emitter(wind, "Clouds", {
+		Texture = A.puff, Size = seq(0, 4, 1, 9), Transparency = seq(0, 0.2, 1, 1), Color = CS(CLOUD),
+		Lifetime = R(1.3, 1.8), Speed = R(25, 35), Drag = 2, Shape = box, EmissionDirection = Enum.NormalId.Front,
+		SpreadAngle = Vector2.new(5, 180), Rotation = R(0, 360), LightInfluence = 0.3,
+	}, { EmitCount = 18, EmitDelay = 0.3 })
+	emitter(wind, "Streaks", B.flat({
+		Texture = A.windStreak, Size = seq(0, 4, 1, 12), Transparency = seq(0, 0.3, 1, 1),
+		Color = CS(rgb(200, 250, 230)), Lifetime = R(0.7), Rate = 4, LightEmission = 0.3,
+		Rotation = R(0, 360), RotSpeed = R(-220, -160),
+	}), { EmitDuration = 2 })
+
+	-- ---------------------------------------------------------------- Ice (rare)
+	-- Frost Lotus: a giant glass lotus blooms round the stone, ring by ring,
+	-- a frost ring spreads, crystals rise and snow falls round it.
+	local ICE_CORE, ICE, ICE_DEEP = rgb(235, 250, 255), rgb(150, 210, 255), rgb(90, 160, 240)
+	local iceM, ice = element("Ice", { SkyTint = rgb(190, 235, 255) })
+	for layer, p in {
+		{ r = 4.5, tilt = 64, size = V3(5.2, 0.8, 9), n = 8, off = 0, color = ICE, delay = 0.2 },
+		{ r = 7.8, tilt = 42, size = V3(6.2, 0.8, 11), n = 10, off = 18, color = ICE_DEEP, delay = 0.45 },
+		{ r = 11.4, tilt = 20, size = V3(6.8, 0.7, 12.4), n = 12, off = 7, color = rgb(70, 135, 230), delay = 0.7 },
+	} do
+		for i = 1, p.n do
+			local h = holder(ice, ("Petal%d_%d"):format(layer, i), CFrame.Angles(0, math.rad(p.off + (i - 1) * 360 / p.n), 0))
+			local t = math.rad(p.tilt)
+			local reach = V3(0, math.sin(t) * p.size.Z / 2, -(p.r + math.cos(t) * p.size.Z / 2))
+			shapeWave(h, "Bloom", "Ellipsoid", glass, p.color, {
+				fromSize = p.size * 0.15, toSize = p.size, rotation = V3(p.tilt, 0, 0),
+				fromOffset = reach * 0.4, toOffset = reach, fromTransparency = 0.1, toTransparency = 1,
+				duration = 3.4, style = "Back", fadeStyle = "Quint", delay = p.delay + (i - 1) * 0.02,
+			})
+		end
+	end
+	emitter(ice, "Crystals", {
+		Texture = A.ice, Size = rnd(1.1, 1.8), Transparency = seq(0, 0, 0.8, 0.1, 1, 1),
+		Color = CS(ICE_CORE), Lifetime = R(1.8, 2.4), Speed = R(10, 18),
+		SpreadAngle = Vector2.new(25, 25), EmissionDirection = up, Rotation = R(0, 360), RotSpeed = R(-60, 60),
+		Drag = 0.5, Shape = box, LightEmission = 0.2,
+	}, { EmitCount = 16, Scaled = true })
+	emitter(ice, "FrostRing", B.flat({
+		Texture = A.softRing, Size = seq(0, 2, 1, 20), Transparency = seq(0, 0.25, 1, 1),
+		Color = CS(rgb(200, 238, 255)), Lifetime = R(1.4), LightEmission = 0.3,
+	}), { EmitCount = 1 })
+	local snow = part("Snow", iceM, CFrame.new(), V3(44, 1, 44), { AtHeight = 0.15 })
+	emitter(snow, "Snow", {
+		Texture = A.glowDot, Shape = box, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.25, 0.45),
+		Transparency = seq(0, 1, 0.1, 0.1, 0.85, 0.2, 1, 1), Color = CS(ICE_CORE), Lifetime = R(2.5, 3.5),
+		Speed = R(6, 9), SpreadAngle = Vector2.new(15, 15), Rate = 40, LightEmission = 0.4,
+	}, { EmitDuration = 2.4, Scaled = true })
+
+	-- drawn in front of the translucent sheath they rise through
+	for _, d in f:GetDescendants() do
+		if d:IsA("ParticleEmitter") and d.ZOffset == 0 then
+			d.ZOffset = 4
+		end
+	end
+	for _, d in f:GetDescendants() do
+		if d:IsA("Model") and not d:GetAttribute("MeshWave") then
+			d.WorldPivot = CFrame.new()
+		end
+	end
+	return f
+end
+
+function _G.buildRootPillar(parent)
+	local old = parent:FindFirstChild("RootPillar")
+	if old then
+		old:Destroy()
+	end
+	local root = Instance.new("Folder")
+	root.Name = "RootPillar"
+	attrs(root, { Height = 120, RareHeight = 210, Width = 1, Rise = 0.45, Hold = 1.5, Fade = 1.1 })
+	pillar(root)
+	rare(root)
+	glimpse(root)
+	accents(root)
+	root.Parent = parent
+	return root
+end
+
+return "buildRootPillar installed"
+	end)
+	if ok then _G.vfxSpecs["RootPillar"] = spec end
+	table.insert(installed, "spec RootPillar: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/SpiritWolf.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Builder for ReplicatedStorage.Effects.SpiritWolf: the Spirit Wolf's attack,
+-- hit and death effects (an enemy, so no tiers and no buildFromSpec). Load
+-- through the receiver, then build into staging:
+--   local m = Instance.new("ModuleScript")
+--   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/SpiritWolf.luau")
+--   require(m)  -- installs _G.buildSpiritWolfFX(effectsFolder)
+-- Runtime: src/client/EnemyFX/SpiritWolf.luau (cue -> template, placement).
+--
+-- Moonlight qi: white-hot core, pale blue (#CFE6FF) falloff, blue rim
+-- (#7FA8D8), and a dark slate (#2F3B50) copy under every bright shape so it
+-- reads on grass at noon. Ring-1 pack beast: every beat is 2 to 6 layers,
+-- one-shot, short-lived (packs of 3-4 die often).
+--
+-- Every template is an invisible Part (pivot = its centre, -Z = the wolf's
+-- facing or the blow's direction). Ground templates sit with their centre on
+-- the ground; code lifts nothing. Emit attributes (EmitCount, EmitDelay,
+-- EmitDuration) are on the emitters so the plugin's Emit button (R) plays each
+-- one as the game does. `AuthoredSeconds` on a root says how long it was timed
+-- for, so code refits it to the live windup.
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local CK = ColorSequenceKeypoint.new
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local WHITE = Color3.new(1, 1, 1)
+local CORE = Color3.fromRGB(207, 230, 255)
+local RIM = Color3.fromRGB(127, 168, 216)
+local SLATE = Color3.fromRGB(47, 59, 80)
+local INK = Color3.fromRGB(18, 20, 28)
+local DUST = Color3.fromRGB(176, 170, 156)
+local EYE = Color3.fromRGB(255, 64, 52)
+local GOLD = Color3.fromRGB(255, 240, 200)
+
+local TEX = {
+	glint = id(84223532517124), -- crisp 4-point star glint
+	dot = id(9841273544), -- hard round glow (flashes, motes, sparks)
+	mote = id(8238126392), -- small soft dot
+	fang = id(7216852121), -- thin bright crescent arc
+	claw = id(11636552631), -- three parallel tapered streaks (a claw rake)
+	moon = id(1084963972), -- crisp crescent moon
+	ring = id(16878073342), -- thin bright ring
+	dustRing = id(13052235894), -- ring of spiky dust
+	puff = id(14050360239), -- soft cloud puff
+	breath = id(15753663130), -- soft wisp
+	line = id(7886908733), -- thin line streak
+	streak = id(18244764764), -- soft tapered streak (trail)
+	crack = id(7994630128), -- dark branching cracks
+	chips = id(425665059), -- rock chips
+	ink = id(16132530029), -- black ink splash
+}
+
+local function anchor(name, size, parent)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+	p.Massless = true
+	p.Transparency = 1
+	p.Size = size
+	p.CFrame = CFrame.new()
+	p.Parent = parent
+	return p
+end
+
+local function attach(parent, name, pos)
+	local a = Instance.new("Attachment")
+	a.Name = name
+	a.Position = pos
+	a.Parent = parent
+	return a
+end
+
+local function emitter(parent, name, props, attrs)
+	local e = Instance.new("ParticleEmitter")
+	e.Name = name
+	e.Rate = 0
+	e.Enabled = false
+	e.LightInfluence = 0
+	e.Speed = R(0)
+	for k, v in props do
+		e[k] = v
+	end
+	for k, v in attrs or { EmitCount = 1 } do
+		e:SetAttribute(k, v)
+	end
+	e.Parent = parent
+	return e
+end
+
+local function trail(parent, name, a0, a1, props)
+	local t = Instance.new("Trail")
+	t.Name = name
+	t.Attachment0, t.Attachment1 = a0, a1
+	t.Enabled = false
+	t.LightInfluence = 0
+	for k, v in props do
+		t[k] = v
+	end
+	t.Parent = parent
+	return t
+end
+
+local fadeLate = NS({ KP(0, 0), KP(0.6, 0.1), KP(1, 1) })
+local flat = { -- lies on the ground, facing up
+	Orientation = Enum.ParticleOrientation.VelocityPerpendicular,
+	EmissionDirection = Enum.NormalId.Top,
+	Speed = R(0.01),
+}
+local function with(base, extra)
+	local t = table.clone(base)
+	for k, v in extra do
+		t[k] = v
+	end
+	return t
+end
+
+-- A crescent (core, rim, dark base) in one attachment: the fang.
+local function fang(parent, name, pos, rotation, dir)
+	local a = attach(parent, name, pos)
+	local base = {
+		Texture = TEX.fang,
+		Lifetime = R(0.14),
+		Rotation = R(rotation),
+		EmissionDirection = dir,
+		Speed = R(7),
+		Drag = 10,
+	}
+	emitter(a, "Dark", with(base, {
+		Color = CS(SLATE),
+		Size = NS({ KP(0, 1.05), KP(1, 1.35) }),
+		Transparency = NS({ KP(0, 0.25), KP(0.6, 0.35), KP(1, 1) }),
+		ZOffset = 0.5,
+	}))
+	emitter(a, "Rim", with(base, {
+		Color = CS(RIM),
+		LightEmission = 0.6,
+		Size = NS({ KP(0, 0.9), KP(1, 1.15) }),
+		Transparency = NS({ KP(0, 0.15), KP(0.6, 0.25), KP(1, 1) }),
+		ZOffset = 1,
+	}))
+	emitter(a, "Core", with(base, {
+		Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+		LightEmission = 1,
+		Brightness = 3,
+		Size = NS({ KP(0, 0.8), KP(1, 1.0) }),
+		Transparency = fadeLate,
+		ZOffset = 1.5,
+	}))
+end
+
+function _G.buildSpiritWolfFX(effects)
+	local old = effects:FindFirstChild("SpiritWolf")
+	if old then
+		old:Destroy()
+	end
+	local root = Instance.new("Folder")
+	root.Name = "SpiritWolf"
+
+	-- EyeGlint (welded on each eye, every windup): a red star pop, then the
+	-- held glow (`Hold` runs for the windup; code enables and disables it).
+	do
+		local p = anchor("EyeGlint", Vector3.new(0.2, 0.2, 0.2), root)
+		emitter(p, "Glint", {
+			Texture = TEX.glint,
+			Color = CS({ CK(0, WHITE), CK(0.5, EYE), CK(1, EYE) }),
+			LightEmission = 1,
+			Brightness = 4,
+			Lifetime = R(0.16),
+			Size = NS({ KP(0, 0.3), KP(0.3, 1.4), KP(1, 0) }),
+			Rotation = R(-10, 10),
+			ZOffset = 2,
+		})
+		emitter(p, "Pop", {
+			Texture = TEX.dot,
+			Color = CS(EYE),
+			LightEmission = 1,
+			Lifetime = R(0.22),
+			Size = NS({ KP(0, 0.7), KP(1, 0) }),
+			Transparency = NS({ KP(0, 0.2), KP(1, 1) }),
+			ZOffset = 1.5,
+		})
+		emitter(p, "Hold", {
+			Texture = TEX.dot,
+			Color = CS(EYE),
+			LightEmission = 1,
+			Lifetime = R(0.12, 0.18),
+			Rate = 18,
+			Size = NS({ KP(0, 0.32), KP(1, 0.22) }),
+			Transparency = NS({ KP(0, 0.35), KP(1, 0.8) }),
+			LockedToPart = true,
+			ZOffset = 1.5,
+		}, { EmitDuration = 0.45 })
+	end
+
+	-- Breath (bite windup, welded at the Mouth): a faint white wisp curling
+	-- out of the jaws, pale motes drawn in.
+	do
+		local p = anchor("Breath", Vector3.new(0.4, 0.4, 0.4), root)
+		emitter(p, "Wisp", {
+			Texture = TEX.breath,
+			Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+			LightEmission = 0.5,
+			Lifetime = R(0.4, 0.55),
+			Rate = 14,
+			EmissionDirection = Enum.NormalId.Front,
+			SpreadAngle = Vector2.new(20, 20),
+			Speed = R(1.5, 2.5),
+			Acceleration = Vector3.new(0, 1.5, 0),
+			Size = NS({ KP(0, 0.25), KP(1, 0.8) }),
+			Transparency = NS({ KP(0, 1), KP(0.2, 0.55), KP(1, 1) }),
+			Rotation = R(0, 360),
+			RotSpeed = R(-60, 60),
+		}, { EmitDuration = 0.4 })
+		emitter(p, "Motes", {
+			Texture = TEX.mote,
+			Color = CS(CORE),
+			LightEmission = 1,
+			Lifetime = R(0.3),
+			Rate = 10,
+			Shape = Enum.ParticleEmitterShape.Sphere,
+			ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+			ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+			Speed = R(3),
+			Size = NS({ KP(0, 0.12), KP(1, 0.05) }),
+			Transparency = NS({ KP(0, 1), KP(0.3, 0.2), KP(1, 0.6) }),
+		}, { EmitDuration = 0.4 })
+	end
+
+	-- FangSnap (bite strike, at the Mouth facing the bite): two crescents,
+	-- white core / blue rim / slate base, snap shut ~1.5 studs ahead of the
+	-- muzzle, and a glint where they meet.
+	do
+		local p = anchor("FangSnap", Vector3.new(0.4, 0.4, 0.4), root)
+		fang(p, "Upper", Vector3.new(0, 0.7, -1.1), 0, Enum.NormalId.Bottom)
+		fang(p, "Lower", Vector3.new(0, -0.7, -1.1), 180, Enum.NormalId.Top)
+		local snap = attach(p, "Snap", Vector3.new(0, 0, -1.2))
+		emitter(snap, "Glint", {
+			Texture = TEX.glint,
+			Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+			LightEmission = 1,
+			Brightness = 4,
+			Lifetime = R(0.12),
+			Size = NS({ KP(0, 0.4), KP(0.35, 1.3), KP(1, 0) }),
+			ZOffset = 2,
+		}, { EmitCount = 1, EmitDelay = 0.08 })
+	end
+
+	-- BiteHit (on the struck player, near side at chest height): red-white
+	-- sparks, a tiny ink splash behind them, a white pop.
+	do
+		local p = anchor("BiteHit", Vector3.new(0.4, 0.4, 0.4), root)
+		emitter(p, "Ink", {
+			Texture = TEX.ink,
+			Color = CS(INK),
+			Lifetime = R(0.3),
+			Size = NS({ KP(0, 0.7), KP(1, 1.5) }),
+			Transparency = NS({ KP(0, 0.1), KP(0.5, 0.3), KP(1, 1) }),
+			Rotation = R(0, 360),
+			ZOffset = 1,
+		})
+		emitter(p, "Sparks", {
+			Texture = TEX.dot,
+			Color = CS({ CK(0, WHITE), CK(1, Color3.fromRGB(255, 80, 64)) }),
+			LightEmission = 1,
+			Brightness = 3,
+			Orientation = Enum.ParticleOrientation.VelocityParallel,
+			Lifetime = R(0.15, 0.25),
+			Speed = R(18, 26),
+			Drag = 6,
+			SpreadAngle = Vector2.new(70, 70),
+			EmissionDirection = Enum.NormalId.Back,
+			Size = NS({ KP(0, 0.14), KP(1, 0) }),
+			Squash = NS(-1.5),
+			ZOffset = 2.5,
+		}, { EmitCount = 4 })
+		emitter(p, "Pop", {
+			Texture = TEX.dot,
+			Color = CS(WHITE),
+			LightEmission = 1,
+			Brightness = 4,
+			Lifetime = R(0.08),
+			Size = NS({ KP(0, 1.2), KP(1, 0) }),
+			ZOffset = 3,
+		})
+	end
+
+	-- Gather (pounce windup, welded at the Core): moon motes and thin streaks
+	-- pulled in from all round, a glow swelling at the chest. 0.7 s.
+	do
+		local p = anchor("Gather", Vector3.new(7, 5, 9), root)
+		p:SetAttribute("AuthoredSeconds", 0.7)
+		local inward = {
+			Shape = Enum.ParticleEmitterShape.Sphere,
+			ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+			ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+		}
+		emitter(p, "Motes", with(inward, {
+			Texture = TEX.dot,
+			Color = CS({ CK(0, RIM), CK(1, WHITE) }),
+			LightEmission = 1,
+			Lifetime = R(0.45, 0.6),
+			Rate = 28,
+			Speed = R(6, 8),
+			Size = NS({ KP(0, 0.26), KP(1, 0.12) }),
+			Transparency = NS({ KP(0, 1), KP(0.25, 0), KP(1, 0.2) }),
+		}), { EmitDuration = 0.6 })
+		emitter(p, "Streaks", with(inward, {
+			Texture = TEX.line,
+			Color = CS(CORE),
+			LightEmission = 1,
+			Orientation = Enum.ParticleOrientation.VelocityParallel,
+			Lifetime = R(0.3),
+			Rate = 12,
+			Speed = R(12, 14),
+			Size = NS({ KP(0, 1.2), KP(1, 0.6) }),
+			Transparency = NS({ KP(0, 1), KP(0.3, 0.1), KP(1, 0.6) }),
+		}), { EmitDuration = 0.55 })
+		local core = attach(p, "Core", Vector3.zero)
+		emitter(core, "Glow", {
+			Texture = TEX.dot,
+			Color = CS(CORE),
+			LightEmission = 1,
+			Lifetime = R(0.75),
+			Size = NS({ KP(0, 0.4), KP(0.85, 2), KP(1, 0.5) }),
+			Transparency = NS({ KP(0, 0.8), KP(0.8, 0.3), KP(1, 1) }),
+			LockedToPart = true,
+			ZOffset = 2.5, -- the chest is inside the body: pull it out to the camera
+		})
+	end
+
+	-- PawDust (hind paws, on the ground): a small dust kick and grit. Hop,
+	-- the pounce windup's push-off.
+	do
+		local p = anchor("PawDust", Vector3.new(0.6, 0.1, 0.6), root)
+		emitter(p, "Puff", {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			Lifetime = R(0.45, 0.65),
+			EmissionDirection = Enum.NormalId.Top,
+			SpreadAngle = Vector2.new(55, 55),
+			Speed = R(3, 5),
+			Drag = 5,
+			Size = NS({ KP(0, 0.7), KP(1, 1.8) }),
+			Transparency = NS({ KP(0, 0.15), KP(0.5, 0.45), KP(1, 1) }),
+			Rotation = R(0, 360),
+			RotSpeed = R(-40, 40),
+		}, { EmitCount = 4 })
+		emitter(p, "Grit", {
+			Texture = TEX.mote,
+			Color = CS(SLATE),
+			Lifetime = R(0.35, 0.45),
+			EmissionDirection = Enum.NormalId.Top,
+			SpreadAngle = Vector2.new(40, 40),
+			Speed = R(7, 10),
+			Acceleration = Vector3.new(0, -40, 0),
+			Size = NS(0.1),
+		}, { EmitCount = 4 })
+	end
+
+	-- DashDust (pounce/leap take-off, on the ground under the hind paws): a
+	-- flat dust ring, puffs sprayed low and wide, moon motes kicked up.
+	do
+		local p = anchor("DashDust", Vector3.new(1.5, 0.1, 1.5), root)
+		emitter(p, "Ring", with(flat, {
+			Texture = TEX.dustRing,
+			Color = CS(DUST),
+			Lifetime = R(0.35),
+			Size = NS({ KP(0, 0.6), KP(1, 3) }),
+			Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
+			Rotation = R(0, 360),
+		}))
+		emitter(p, "Puffs", {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Front,
+			SpreadAngle = Vector2.new(5, 180),
+			Lifetime = R(0.5, 0.7),
+			Speed = R(10, 14),
+			Drag = 5,
+			Size = NS({ KP(0, 0.7), KP(1, 2) }),
+			Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
+			Rotation = R(0, 360),
+			RotSpeed = R(-30, 30),
+		}, { EmitCount = 6 })
+		emitter(p, "Motes", {
+			Texture = TEX.dot,
+			Color = CS(CORE),
+			LightEmission = 1,
+			EmissionDirection = Enum.NormalId.Top,
+			SpreadAngle = Vector2.new(50, 50),
+			Lifetime = R(0.35, 0.5),
+			Speed = R(7, 10),
+			Drag = 3,
+			Size = NS({ KP(0, 0.16), KP(1, 0) }),
+		}, { EmitCount = 5 })
+	end
+
+	-- Skid (pounce ends, on the ground at the front paws, facing the dash):
+	-- dust thrown forward and grit.
+	do
+		local p = anchor("Skid", Vector3.new(1.5, 0.1, 0.6), root)
+		emitter(p, "Puffs", {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Front,
+			SpreadAngle = Vector2.new(25, 15),
+			Lifetime = R(0.45, 0.65),
+			Speed = R(6, 10),
+			Drag = 5,
+			Acceleration = Vector3.new(0, 2, 0),
+			Size = NS({ KP(0, 0.6), KP(1, 1.7) }),
+			Transparency = NS({ KP(0, 0.35), KP(1, 1) }),
+			Rotation = R(0, 360),
+		}, { EmitCount = 5 })
+		emitter(p, "Grit", {
+			Texture = TEX.mote,
+			Color = CS(SLATE),
+			EmissionDirection = Enum.NormalId.Front,
+			SpreadAngle = Vector2.new(30, 20),
+			Lifetime = R(0.35, 0.45),
+			Speed = R(9, 12),
+			Acceleration = Vector3.new(0, -40, 0),
+			Size = NS(0.1),
+		}, { EmitCount = 5 })
+	end
+
+	-- MoonTrail (pounce and leap flight): code moves the attachments onto the
+	-- body (Top at the crest, Bottom at the belly) and enables the trails and
+	-- the shed motes for the flight. Bright core over a wider slate band.
+	do
+		local p = anchor("MoonTrail", Vector3.new(0.2, 0.2, 0.2), root)
+		local top = attach(p, "Top", Vector3.new(0, 1.4, 0))
+		local mid = attach(p, "Mid", Vector3.new(0, 0.5, 0))
+		local bottom = attach(p, "Bottom", Vector3.new(0, -0.6, 0))
+		trail(p, "Dark", top, bottom, {
+			Texture = TEX.streak,
+			TextureMode = Enum.TextureMode.Stretch,
+			Color = CS(SLATE),
+			Lifetime = 0.25,
+			MinLength = 0.05,
+			Transparency = NS({ KP(0, 0.35), KP(1, 1) }),
+			WidthScale = NS({ KP(0, 1), KP(1, 0.3) }),
+		})
+		trail(p, "Bright", top, mid, {
+			Texture = TEX.streak,
+			TextureMode = Enum.TextureMode.Stretch,
+			Color = CS({ CK(0, WHITE), CK(0.4, CORE), CK(1, RIM) }),
+			LightEmission = 1,
+			Brightness = 2,
+			Lifetime = 0.25,
+			MinLength = 0.05,
+			Transparency = NS({ KP(0, 0), KP(0.6, 0.4), KP(1, 1) }),
+			WidthScale = NS({ KP(0, 1), KP(1, 0.2) }),
+		})
+		emitter(mid, "Shed", {
+			Texture = TEX.dot,
+			Color = CS(CORE),
+			LightEmission = 1,
+			Lifetime = R(0.3, 0.45),
+			Rate = 22,
+			SpreadAngle = Vector2.new(180, 180),
+			Speed = R(0.5, 1.5),
+			Size = NS({ KP(0, 0.15), KP(1, 0) }),
+		}, { EmitDuration = 0.3 })
+	end
+
+	-- ClawRake (pounce hit, on the target's near side facing the wolf): three
+	-- diagonal claw streaks (white core, blue rim, slate base) and a spark.
+	do
+		local p = anchor("ClawRake", Vector3.new(0.4, 0.4, 0.4), root)
+		local base = {
+			Texture = TEX.claw,
+			Lifetime = R(0.22),
+			Rotation = R(-35),
+		}
+		emitter(p, "Dark", with(base, {
+			Color = CS(SLATE),
+			Size = NS({ KP(0, 1.0), KP(0.2, 2.2), KP(1, 2.4) }),
+			Transparency = NS({ KP(0, 0.2), KP(0.6, 0.3), KP(1, 1) }),
+			ZOffset = 1.5,
+		}))
+		emitter(p, "Rim", with(base, {
+			Color = CS(RIM),
+			LightEmission = 0.6,
+			Size = NS({ KP(0, 0.9), KP(0.2, 1.95), KP(1, 2.1) }),
+			Transparency = NS({ KP(0, 0.1), KP(0.6, 0.2), KP(1, 1) }),
+			ZOffset = 2,
+		}))
+		emitter(p, "Core", with(base, {
+			Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+			LightEmission = 1,
+			Brightness = 3,
+			Size = NS({ KP(0, 0.8), KP(0.2, 1.7), KP(1, 1.8) }),
+			Transparency = fadeLate,
+			ZOffset = 2.5,
+		}))
+		emitter(p, "Glint", {
+			Texture = TEX.glint,
+			Color = CS(WHITE),
+			LightEmission = 1,
+			Brightness = 4,
+			Lifetime = R(0.14),
+			Size = NS({ KP(0, 0.5), KP(0.3, 1.5), KP(1, 0) }),
+			ZOffset = 3,
+		}, { EmitCount = 1, EmitDelay = 0.04 })
+		emitter(p, "Sparks", {
+			Texture = TEX.dot,
+			Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+			LightEmission = 1,
+			Orientation = Enum.ParticleOrientation.VelocityParallel,
+			Lifetime = R(0.15, 0.25),
+			Speed = R(16, 24),
+			Drag = 6,
+			SpreadAngle = Vector2.new(60, 60),
+			EmissionDirection = Enum.NormalId.Back,
+			Size = NS({ KP(0, 0.13), KP(1, 0) }),
+			Squash = NS(-1.5),
+			ZOffset = 3,
+		}, { EmitCount = 4 })
+	end
+
+	-- LeapSigil (leap windup, centred in the landing circle, on the ground):
+	-- a crescent moon turning on a slate shadow inside a thin pale ring, on top
+	-- of the stock red telegraph. Authored for the 1.0 s windup + 0.45 s
+	-- flight; code refits it to the telegraph's seconds left + flight, and
+	-- scales it to the circle's radius (authored for r5).
+	do
+		local p = anchor("LeapSigil", Vector3.new(1, 0.1, 1), root)
+		p:SetAttribute("AuthoredSeconds", 1.45)
+		p:SetAttribute("AuthoredRadius", 5)
+		local hold = NS({ KP(0, 1), KP(0.12, 0.15), KP(0.85, 0.15), KP(1, 1) })
+		local moon = {
+			Texture = TEX.moon,
+			Lifetime = R(1.45),
+			Rotation = R(0),
+			RotSpeed = R(80),
+		}
+		local low = attach(p, "Low", Vector3.new(0, 0.4, 0)) -- over the telegraph disc
+		emitter(low, "Shadow", with(flat, with(moon, {
+			Color = CS(SLATE),
+			Size = NS({ KP(0, 0.5), KP(0.12, 3.3), KP(1, 3.5) }),
+			Transparency = NS({ KP(0, 1), KP(0.12, 0.05), KP(0.85, 0.05), KP(1, 1) }),
+		})))
+		local high = attach(p, "High", Vector3.new(0, 0.46, 0))
+		emitter(high, "Moon", with(flat, with(moon, {
+			Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+			LightEmission = 1,
+			Brightness = 3,
+			Size = NS({ KP(0, 0.4), KP(0.12, 2.8), KP(1, 3) }),
+			Transparency = hold,
+		})))
+		emitter(high, "Ring", with(flat, {
+			Texture = TEX.ring,
+			Color = CS(CORE),
+			LightEmission = 1,
+			Lifetime = R(1.45),
+			Rotation = R(0),
+			RotSpeed = R(-40),
+			Size = NS({ KP(0, 3.5), KP(0.15, 4.4), KP(1, 4.5) }),
+			Transparency = NS({ KP(0, 1), KP(0.15, 0.45), KP(0.85, 0.35), KP(1, 1) }),
+		}))
+	end
+
+	-- LeapGlint (leap windup, above the wolf's head as it rears up): a star
+	-- glint with a soft halo.
+	do
+		local p = anchor("LeapGlint", Vector3.new(0.4, 0.4, 0.4), root)
+		emitter(p, "Glint", {
+			Texture = TEX.glint,
+			Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+			LightEmission = 1,
+			Brightness = 5,
+			Lifetime = R(0.4),
+			Size = NS({ KP(0, 0), KP(0.25, 2.2), KP(1, 0) }),
+			Rotation = R(0),
+			RotSpeed = R(120),
+			ZOffset = 2,
+		})
+		emitter(p, "Halo", {
+			Texture = TEX.dot,
+			Color = CS(CORE),
+			LightEmission = 1,
+			Lifetime = R(0.35),
+			Size = NS({ KP(0, 0.4), KP(0.3, 1.3), KP(1, 0.6) }),
+			Transparency = NS({ KP(0, 0.5), KP(1, 1) }),
+			ZOffset = 1.5,
+		})
+	end
+
+	-- Landing (leap lands, centred on the landing point, on the ground): r5
+	-- shockwave ring over a slate dust ring, low dust spray, rock chips, a
+	-- crack decal that holds ~0.6 s, and a white flash. Code adds the shake.
+	do
+		local p = anchor("Landing", Vector3.new(1.5, 0.1, 1.5), root)
+		p:SetAttribute("AuthoredRadius", 5)
+		local low = attach(p, "Low", Vector3.new(0, 0.18, 0))
+		emitter(low, "Crack", with(flat, {
+			Texture = TEX.crack,
+			Color = CS(Color3.fromRGB(30, 34, 44)),
+			Lifetime = R(0.8),
+			Size = NS({ KP(0, 2.2), KP(0.1, 3), KP(1, 3.1) }),
+			Transparency = NS({ KP(0, 1), KP(0.05, 0.1), KP(0.7, 0.2), KP(1, 1) }),
+			Rotation = R(0, 360),
+		}))
+		emitter(low, "DustRing", with(flat, {
+			Texture = TEX.dustRing,
+			Color = CS(SLATE),
+			Lifetime = R(0.5),
+			Size = NS({ KP(0, 0.8), KP(1, 4.8) }),
+			Transparency = NS({ KP(0, 0.25), KP(1, 1) }),
+			Rotation = R(0, 360),
+		}))
+		local high = attach(p, "High", Vector3.new(0, 0.26, 0))
+		emitter(high, "Shockwave", with(flat, {
+			Texture = TEX.ring,
+			Color = CS({ CK(0, WHITE), CK(1, RIM) }),
+			LightEmission = 1,
+			Brightness = 2,
+			Lifetime = R(0.4),
+			Size = NS({ KP(0, 0.6), KP(0.5, 4.3), KP(1, 5) }),
+			Transparency = NS({ KP(0, 0), KP(0.5, 0.2), KP(1, 1) }),
+		}))
+		local air = attach(p, "Air", Vector3.new(0, 0.6, 0))
+		emitter(air, "Puffs", {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Front,
+			SpreadAngle = Vector2.new(5, 180),
+			Lifetime = R(0.55, 0.75),
+			Speed = R(14, 20),
+			Drag = 6,
+			Size = NS({ KP(0, 0.9), KP(1, 2.4) }),
+			Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
+			Rotation = R(0, 360),
+			RotSpeed = R(-30, 30),
+		}, { EmitCount = 8 })
+		emitter(air, "Chips", {
+			Texture = TEX.chips,
+			Color = CS(Color3.fromRGB(120, 124, 132)),
+			EmissionDirection = Enum.NormalId.Top,
+			SpreadAngle = Vector2.new(45, 45),
+			Lifetime = R(0.6, 0.8),
+			Speed = R(14, 20),
+			Acceleration = Vector3.new(0, -55, 0),
+			Size = NS(0.35),
+			Rotation = R(0, 360),
+			RotSpeed = R(-300, 300),
+		}, { EmitCount = 6 })
+		local flash = attach(p, "Flash", Vector3.new(0, 1.2, 0))
+		emitter(flash, "Flash", {
+			Texture = TEX.dot,
+			Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+			LightEmission = 1,
+			Brightness = 3,
+			Lifetime = R(0.12),
+			Size = NS({ KP(0, 1), KP(0.3, 3), KP(1, 0) }),
+			ZOffset = 1,
+		})
+	end
+
+	-- HowlRings (howl, at the Mouth facing forward): three pale sound rings
+	-- rolling out of the jaws, the first over a slate ring.
+	do
+		local p = anchor("HowlRings", Vector3.new(0.4, 0.4, 0.4), root)
+		local ring = {
+			Texture = TEX.ring,
+			Orientation = Enum.ParticleOrientation.VelocityPerpendicular,
+			EmissionDirection = Enum.NormalId.Front,
+			Lifetime = R(0.6),
+			Speed = R(7),
+			Drag = 2,
+		}
+		emitter(p, "Dark", with(ring, {
+			Color = CS(SLATE),
+			Size = NS({ KP(0, 0.6), KP(1, 3.9) }),
+			Transparency = NS({ KP(0, 0.5), KP(1, 1) }),
+		}), { EmitCount = 1, EmitDelay = 0.03 })
+		for i, delay in { 0, 0.22, 0.44 } do
+			emitter(p, "Ring" .. i, with(ring, {
+				Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+				LightEmission = 0.8,
+				Size = NS({ KP(0, 0.5), KP(1, 3.5) }),
+				Transparency = NS({ KP(0, 0.2), KP(1, 1) }),
+			}), { EmitCount = 1, EmitDelay = delay })
+		end
+	end
+
+	-- CrestGlow (howl, welded on the crest): a faint moon-glow and motes
+	-- rising off the ridge for the howl.
+	do
+		local p = anchor("CrestGlow", Vector3.new(0.8, 0.3, 3), root)
+		emitter(p, "Glow", {
+			Texture = TEX.dot,
+			Color = CS(CORE),
+			LightEmission = 1,
+			Lifetime = R(0.9),
+			Size = NS({ KP(0, 1), KP(0.4, 2.2), KP(1, 1.6) }),
+			Transparency = NS({ KP(0, 1), KP(0.35, 0.65), KP(1, 1) }),
+			LockedToPart = true,
+		})
+		emitter(p, "Motes", {
+			Texture = TEX.mote,
+			Color = CS(CORE),
+			LightEmission = 1,
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Top,
+			Lifetime = R(0.5, 0.8),
+			Rate = 12,
+			Speed = R(1.5, 3),
+			Size = NS({ KP(0, 0.14), KP(1, 0) }),
+			Transparency = NS({ KP(0, 0.2), KP(0.5, 0.6), KP(0.6, 0.1), KP(1, 1) }),
+		}, { EmitDuration = 0.7 })
+	end
+
+	-- StaggerFlash (stagger, welded at the Core): a white pop and a star
+	-- burst. Code adds the 0.08 s white body flash and the eye flicker.
+	do
+		local p = anchor("StaggerFlash", Vector3.new(0.4, 0.4, 0.4), root)
+		emitter(p, "Pop", {
+			Texture = TEX.dot,
+			Color = CS(WHITE),
+			LightEmission = 1,
+			Brightness = 3,
+			Lifetime = R(0.08),
+			Size = NS({ KP(0, 1), KP(0.4, 2.6), KP(1, 0) }),
+			ZOffset = 3,
+		})
+		emitter(p, "Star", {
+			Texture = TEX.glint,
+			Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+			LightEmission = 1,
+			Lifetime = R(0.12),
+			Size = NS({ KP(0, 0.6), KP(0.3, 2), KP(1, 0) }),
+			Rotation = R(0, 45),
+			ZOffset = 3,
+		})
+	end
+
+	-- Death (at the Core, body-sized): pale-blue qi motes rising off the body
+	-- through the 1 s fade, a soft gold-white glow and the spirit-core glint.
+	do
+		local p = anchor("Death", Vector3.new(2.6, 2, 6), root)
+		emitter(p, "Motes", {
+			Texture = TEX.dot,
+			Color = CS({ CK(0, WHITE), CK(1, CORE) }),
+			LightEmission = 1,
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Top,
+			SpreadAngle = Vector2.new(20, 20),
+			Lifetime = R(0.6, 1),
+			Rate = 26,
+			Speed = R(3, 5),
+			Drag = 1,
+			Size = NS({ KP(0, 0.2), KP(1, 0) }),
+			Transparency = NS({ KP(0, 0.1), KP(0.4, 0.5), KP(0.5, 0), KP(1, 0.6) }),
+		}, { EmitDuration = 0.8 })
+		local core = attach(p, "Core", Vector3.zero)
+		emitter(core, "Glow", {
+			Texture = TEX.dot,
+			Color = CS(GOLD),
+			LightEmission = 1,
+			Lifetime = R(0.4),
+			Size = NS({ KP(0, 0.4), KP(0.3, 1.3), KP(1, 0.2) }),
+			Transparency = NS({ KP(0, 0.4), KP(1, 1) }),
+			ZOffset = 2,
+		}, { EmitCount = 1, EmitDelay = 0.1 })
+		emitter(core, "Glint", {
+			Texture = TEX.glint,
+			Color = CS({ CK(0, WHITE), CK(1, GOLD) }),
+			LightEmission = 1,
+			Brightness = 4,
+			Lifetime = R(0.4),
+			Size = NS({ KP(0, 0), KP(0.3, 1.8), KP(1, 0) }),
+			Rotation = R(0),
+			RotSpeed = R(90),
+			ZOffset = 3,
+		}, { EmitCount = 1, EmitDelay = 0.1 })
+	end
+
+	root.Parent = effects
+	return root
+end
+
+return true
+	end)
+	if ok then _G.vfxSpecs["SpiritWolf"] = spec end
+	table.insert(installed, "spec SpiritWolf: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/StoneBoar.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Builder for ReplicatedStorage.Effects.StoneBoar: the Stone Boar's attack,
+-- hit and death effects (an enemy, so no tiers and no buildFromSpec). Load
+-- through the receiver, then build into the Effects folder:
+--   local m = Instance.new("ModuleScript")
+--   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/StoneBoar.luau")
+--   require(m)  -- installs _G.buildStoneBoarFX(effectsFolder)
+-- Runtime: src/client/EnemyFX/StoneBoar.luau (cue -> template, placement).
+--
+-- Earth qi: amber (#FF8A2B) core with a white-hot centre, umber dust
+-- (#7E5D45), grey stone chips (#8F8B80), and a dark slate copy under every
+-- bright shape so it reads on grass at noon. A ring-1 charger: every beat is
+-- 2 to 6 layers, one-shot, short-lived.
+--
+-- Every template is an invisible Part (pivot = its centre, -Z = the boar's
+-- facing or the blow's direction). Ground templates sit with their centre on
+-- the ground. Emit attributes (EmitCount, EmitDelay, EmitDuration) are on the
+-- emitters so the plugin's Emit button (R) plays each one as the game does.
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local CK = ColorSequenceKeypoint.new
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local WHITE = Color3.new(1, 1, 1)
+local HOT = Color3.fromRGB(255, 214, 160) -- white-hot amber centre
+local AMBER = Color3.fromRGB(255, 138, 43)
+local UMBER = Color3.fromRGB(126, 93, 69)
+local DUST = Color3.fromRGB(168, 140, 112) -- umber lifted for the soft puffs
+local STONE = Color3.fromRGB(143, 139, 128)
+local SLATE = Color3.fromRGB(44, 46, 52)
+local BONE = Color3.fromRGB(246, 238, 220)
+
+local TEX = {
+	glint = id(84223532517124), -- crisp 4-point star glint
+	dot = id(9841273544), -- hard round glow (flashes, motes, sparks)
+	mote = id(8238126392), -- small soft dot
+	hook = id(13366366767), -- double crescent sweep (the tusk hook)
+	arc = id(14322954718), -- soft single crescent (hook mark)
+	dustRing = id(13052235894), -- ring of spiky dust
+	puff = id(14050360239), -- soft cloud puff
+	chips = id(130042646554310), -- grey rock chunks
+	chips2 = id(425665059), -- small rock chips
+}
+
+local function anchor(name, size, parent)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+	p.Massless = true
+	p.Transparency = 1
+	p.Size = size
+	p.CFrame = CFrame.new()
+	p.Parent = parent
+	return p
+end
+
+local function attach(parent, name, pos)
+	local a = Instance.new("Attachment")
+	a.Name = name
+	a.Position = pos
+	a.Parent = parent
+	return a
+end
+
+local function emitter(parent, name, props, attrs)
+	local e = Instance.new("ParticleEmitter")
+	e.Name = name
+	e.Rate = 0
+	e.Enabled = false
+	e.LightInfluence = 0
+	e.Speed = R(0)
+	for k, v in props do
+		e[k] = v
+	end
+	for k, v in attrs or { EmitCount = 1 } do
+		e:SetAttribute(k, v)
+	end
+	e.Parent = parent
+	return e
+end
+
+local function with(base, extra)
+	local t = table.clone(base)
+	for k, v in extra do
+		t[k] = v
+	end
+	return t
+end
+
+local flat = { -- lies on the ground, facing up
+	Orientation = Enum.ParticleOrientation.VelocityPerpendicular,
+	EmissionDirection = Enum.NormalId.Top,
+	Speed = R(0.01),
+}
+local fadeLate = NS({ KP(0, 0), KP(0.6, 0.1), KP(1, 1) })
+local amberHot = CS({ CK(0, WHITE), CK(0.35, HOT), CK(1, AMBER) })
+
+-- falling stone chips (grey, tumbling), `count` of them
+local function chips(parent, name, dir, spread, speed, count, size)
+	return emitter(parent, name, {
+		Texture = TEX.chips,
+		Color = CS(STONE),
+		EmissionDirection = dir,
+		SpreadAngle = Vector2.new(spread, spread),
+		Lifetime = R(0.5, 0.75),
+		Speed = speed,
+		Acceleration = Vector3.new(0, -60, 0),
+		Size = NS(size or 0.35),
+		Rotation = R(0, 360),
+		RotSpeed = R(-320, 320),
+	}, { EmitCount = count })
+end
+
+function _G.buildStoneBoarFX(effects)
+	local old = effects:FindFirstChild("StoneBoar")
+	if old then
+		old:Destroy()
+	end
+	local root = Instance.new("Folder")
+	root.Name = "StoneBoar"
+
+	-- EyeGlint (welded on each eye at windup t = 0): an amber star pop over a
+	-- hot dot. 2 layers.
+	do
+		local p = anchor("EyeGlint", Vector3.new(0.2, 0.2, 0.2), root)
+		emitter(p, "Glint", {
+			Texture = TEX.glint,
+			Color = amberHot,
+			LightEmission = 1,
+			Brightness = 4,
+			Lifetime = R(0.22),
+			Size = NS({ KP(0, 0.3), KP(0.3, 1.5), KP(1, 0) }),
+			Rotation = R(-10, 10),
+			ZOffset = 2,
+		})
+		emitter(p, "Pop", {
+			Texture = TEX.dot,
+			Color = CS(AMBER),
+			LightEmission = 1,
+			Lifetime = R(0.25),
+			Size = NS({ KP(0, 0.7), KP(1, 0) }),
+			Transparency = NS({ KP(0, 0.2), KP(1, 1) }),
+			ZOffset = 1.5,
+		})
+	end
+
+	-- TuskGlint (gore windup, on each tusk point): a sharper glint that holds
+	-- a beat, over a slate dot so it reads against the sky. 3 layers.
+	do
+		local p = anchor("TuskGlint", Vector3.new(0.2, 0.2, 0.2), root)
+		emitter(p, "Dark", {
+			Texture = TEX.dot,
+			Color = CS(SLATE),
+			Lifetime = R(0.35),
+			Size = NS({ KP(0, 0.4), KP(0.3, 1.0), KP(1, 0) }),
+			Transparency = NS({ KP(0, 0.4), KP(1, 1) }),
+			ZOffset = 1,
+		})
+		emitter(p, "Glint", {
+			Texture = TEX.glint,
+			Color = amberHot,
+			LightEmission = 1,
+			Brightness = 5,
+			Lifetime = R(0.35),
+			Size = NS({ KP(0, 0), KP(0.25, 1.6), KP(1, 0) }),
+			Rotation = R(0),
+			RotSpeed = R(140),
+			ZOffset = 2,
+		})
+		emitter(p, "Halo", {
+			Texture = TEX.dot,
+			Color = CS(AMBER),
+			LightEmission = 1,
+			Lifetime = R(0.3),
+			Size = NS({ KP(0, 0.3), KP(0.3, 0.9), KP(1, 0.4) }),
+			Transparency = NS({ KP(0, 0.4), KP(1, 1) }),
+			ZOffset = 1.5,
+		})
+	end
+
+	-- HoofScrape (charge windup, on the ground under the fore hoof, -Z = the
+	-- boar's facing): dust and grit kicked back past the hoof, a dust ring.
+	-- 3 layers.
+	do
+		local p = anchor("HoofScrape", Vector3.new(0.6, 0.1, 0.6), root)
+		emitter(p, "Ring", with(flat, {
+			Texture = TEX.dustRing,
+			Color = CS(UMBER),
+			Lifetime = R(0.3),
+			Size = NS({ KP(0, 0.4), KP(1, 2) }),
+			Transparency = NS({ KP(0, 0.35), KP(1, 1) }),
+			Rotation = R(0, 360),
+		}))
+		emitter(p, "Puff", {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			EmissionDirection = Enum.NormalId.Back,
+			SpreadAngle = Vector2.new(30, 30),
+			Lifetime = R(0.45, 0.6),
+			Speed = R(5, 7),
+			Drag = 5,
+			Acceleration = Vector3.new(0, 3, 0),
+			Size = NS({ KP(0, 0.6), KP(1, 1.7) }),
+			Transparency = NS({ KP(0, 0.2), KP(0.5, 0.5), KP(1, 1) }),
+			Rotation = R(0, 360),
+			RotSpeed = R(-40, 40),
+		}, { EmitCount = 4 })
+		emitter(p, "Grit", {
+			Texture = TEX.chips2,
+			Color = CS(SLATE),
+			EmissionDirection = Enum.NormalId.Back,
+			SpreadAngle = Vector2.new(25, 25),
+			Lifetime = R(0.35, 0.45),
+			Speed = R(8, 11),
+			Acceleration = Vector3.new(0, -45, 0),
+			Size = NS(0.18),
+			Rotation = R(0, 360),
+		}, { EmitCount = 4 })
+	end
+
+	-- Snort (charge windup, at the nose, -Z = facing): two short umber jets
+	-- down-forward out of the nostrils. 2 layers.
+	do
+		local p = anchor("Snort", Vector3.new(0.4, 0.4, 0.4), root)
+		local base = {
+			Texture = TEX.puff,
+			EmissionDirection = Enum.NormalId.Front,
+			SpreadAngle = Vector2.new(15, 15),
+			Speed = R(6, 9),
+			Drag = 6,
+			Acceleration = Vector3.new(0, -2, 0),
+			Rotation = R(0, 360),
+			RotSpeed = R(-60, 60),
+		}
+		for _, x in { -0.22, 0.22 } do
+			local a = attach(p, if x < 0 then "L" else "R", Vector3.new(x, 0, 0))
+			a.Orientation = Vector3.new(-25, if x < 0 then 12 else -12, 0)
+			emitter(a, "Jet", with(base, {
+				Color = CS({ CK(0, Color3.fromRGB(220, 208, 190)), CK(1, DUST) }),
+				Lifetime = R(0.4, 0.55),
+				Size = NS({ KP(0, 0.3), KP(1, 1.3) }),
+				Transparency = NS({ KP(0, 0.25), KP(0.5, 0.55), KP(1, 1) }),
+			}), { EmitCount = 3 })
+		end
+	end
+
+	-- DashDust (charge sets off, on the ground between the hind hooves): a
+	-- flat dust ring, puffs sprayed low and wide, chips kicked up, amber grit.
+	-- 4 layers.
+	do
+		local p = anchor("DashDust", Vector3.new(1.5, 0.1, 1.5), root)
+		emitter(p, "Ring", with(flat, {
+			Texture = TEX.dustRing,
+			Color = CS(UMBER),
+			Lifetime = R(0.4),
+			Size = NS({ KP(0, 0.8), KP(1, 4) }),
+			Transparency = NS({ KP(0, 0.25), KP(1, 1) }),
+			Rotation = R(0, 360),
+		}))
+		emitter(p, "Puffs", {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Back,
+			SpreadAngle = Vector2.new(10, 70),
+			Lifetime = R(0.6, 0.85),
+			Speed = R(10, 15),
+			Drag = 5,
+			Size = NS({ KP(0, 1.1), KP(1, 3) }),
+			Transparency = NS({ KP(0, 0.12), KP(0.5, 0.35), KP(1, 1) }),
+			Rotation = R(0, 360),
+			RotSpeed = R(-30, 30),
+		}, { EmitCount = 9 })
+		chips(p, "Chips", Enum.NormalId.Top, 45, R(12, 17), 5)
+		emitter(p, "Embers", {
+			Texture = TEX.dot,
+			Color = amberHot,
+			LightEmission = 1,
+			EmissionDirection = Enum.NormalId.Top,
+			SpreadAngle = Vector2.new(50, 50),
+			Lifetime = R(0.3, 0.45),
+			Speed = R(7, 10),
+			Drag = 3,
+			Size = NS({ KP(0, 0.16), KP(1, 0) }),
+		}, { EmitCount = 4 })
+	end
+
+	-- ChargeTrail (the charge, ridden along low under the body at hoof level):
+	-- dust left hanging behind, chips flicked up, slate grit and a few amber
+	-- sparks off the hooves. Rate emitters for 0.55 s; code switches them off
+	-- early on land. 4 layers.
+	do
+		local p = anchor("ChargeTrail", Vector3.new(2.4, 0.2, 3.5), root)
+		local box = {
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Top,
+		}
+		emitter(p, "Dust", with(box, {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			SpreadAngle = Vector2.new(40, 40),
+			Lifetime = R(0.6, 0.9),
+			Rate = 32,
+			Speed = R(1.5, 3),
+			Drag = 2,
+			Size = NS({ KP(0, 1.2), KP(1, 3) }),
+			Transparency = NS({ KP(0, 0.2), KP(0.5, 0.45), KP(1, 1) }),
+			Rotation = R(0, 360),
+			RotSpeed = R(-30, 30),
+		}), { EmitDuration = 0.55 })
+		emitter(p, "Chips", with(box, {
+			Texture = TEX.chips,
+			Color = CS(STONE),
+			SpreadAngle = Vector2.new(35, 35),
+			Lifetime = R(0.45, 0.6),
+			Rate = 12,
+			Speed = R(8, 12),
+			Acceleration = Vector3.new(0, -60, 0),
+			Size = NS(0.28),
+			Rotation = R(0, 360),
+			RotSpeed = R(-300, 300),
+		}), { EmitDuration = 0.55 })
+		emitter(p, "Grit", with(box, {
+			Texture = TEX.chips2,
+			Color = CS(SLATE),
+			SpreadAngle = Vector2.new(50, 50),
+			Lifetime = R(0.3, 0.45),
+			Rate = 16,
+			Speed = R(6, 9),
+			Acceleration = Vector3.new(0, -50, 0),
+			Size = NS(0.15),
+			Rotation = R(0, 360),
+		}), { EmitDuration = 0.55 })
+		emitter(p, "Sparks", with(box, {
+			Texture = TEX.dot,
+			Color = amberHot,
+			LightEmission = 1,
+			Orientation = Enum.ParticleOrientation.VelocityParallel,
+			SpreadAngle = Vector2.new(60, 60),
+			Lifetime = R(0.15, 0.25),
+			Rate = 10,
+			Speed = R(8, 12),
+			Drag = 4,
+			Size = NS({ KP(0, 0.12), KP(1, 0) }),
+			Squash = NS(-1.2),
+		}), { EmitDuration = 0.55 })
+	end
+
+	-- Skid (charge ends, on the ground at the fore hooves, -Z = the charge):
+	-- dust thrown forward, a slate under-puff and a few chips. 3 layers.
+	do
+		local p = anchor("Skid", Vector3.new(2, 0.1, 0.6), root)
+		emitter(p, "Under", {
+			Texture = TEX.puff,
+			Color = CS(UMBER),
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Front,
+			SpreadAngle = Vector2.new(20, 15),
+			Lifetime = R(0.4, 0.55),
+			Speed = R(5, 8),
+			Drag = 5,
+			Size = NS({ KP(0, 0.8), KP(1, 2.0) }),
+			Transparency = NS({ KP(0, 0.4), KP(1, 1) }),
+			Rotation = R(0, 360),
+		}, { EmitCount = 3 })
+		emitter(p, "Puffs", {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Front,
+			SpreadAngle = Vector2.new(30, 15),
+			Lifetime = R(0.5, 0.7),
+			Speed = R(8, 12),
+			Drag = 5,
+			Acceleration = Vector3.new(0, 2, 0),
+			Size = NS({ KP(0, 0.7), KP(1, 2.1) }),
+			Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
+			Rotation = R(0, 360),
+		}, { EmitCount = 6 })
+		chips(p, "Chips", Enum.NormalId.Front, 30, R(9, 13), 4, 0.3)
+	end
+
+	-- GoreHook (gore strike, ~5 studs ahead of the tusks, -Z = facing): an
+	-- upward hooking crescent, bone-white core / amber rim / slate under,
+	-- swept up through 0.15 s, with a glint at its peak. 4 layers.
+	do
+		local p = anchor("GoreHook", Vector3.new(0.4, 0.4, 0.4), root)
+		local base = {
+			Texture = TEX.hook,
+			Lifetime = R(0.18),
+			Rotation = R(150),
+			RotSpeed = R(-260),
+			EmissionDirection = Enum.NormalId.Top,
+			Speed = R(10),
+			Drag = 12,
+		}
+		emitter(p, "Dark", with(base, {
+			Color = CS(SLATE),
+			Size = NS({ KP(0, 2.4), KP(1, 3.4) }),
+			Transparency = NS({ KP(0, 0.2), KP(0.6, 0.35), KP(1, 1) }),
+			ZOffset = 0.5,
+		}))
+		emitter(p, "Rim", with(base, {
+			Color = CS(AMBER),
+			LightEmission = 0.8,
+			Size = NS({ KP(0, 2.1), KP(1, 3.0) }),
+			Transparency = NS({ KP(0, 0.1), KP(0.6, 0.25), KP(1, 1) }),
+			ZOffset = 1,
+		}))
+		emitter(p, "Core", with(base, {
+			Color = CS({ CK(0, WHITE), CK(1, BONE) }),
+			LightEmission = 1,
+			Brightness = 3,
+			Size = NS({ KP(0, 1.8), KP(1, 2.6) }),
+			Transparency = fadeLate,
+			ZOffset = 1.5,
+		}))
+		local peak = attach(p, "Peak", Vector3.new(0, 1.5, 0))
+		emitter(peak, "Glint", {
+			Texture = TEX.glint,
+			Color = amberHot,
+			LightEmission = 1,
+			Brightness = 4,
+			Lifetime = R(0.14),
+			Size = NS({ KP(0, 0.4), KP(0.35, 1.6), KP(1, 0) }),
+			ZOffset = 2,
+		}, { EmitCount = 1, EmitDelay = 0.08 })
+	end
+
+	-- ChargeHit (charge hit, on the target's near side facing the boar; sprays
+	-- go +Z, through the target): dust burst, stone chips, a short amber flash
+	-- over a slate blot. Code adds the shake. 5 layers.
+	do
+		local p = anchor("ChargeHit", Vector3.new(0.6, 0.6, 0.6), root)
+		emitter(p, "Dark", {
+			Texture = TEX.dot,
+			Color = CS(SLATE),
+			Lifetime = R(0.16),
+			Size = NS({ KP(0, 1.2), KP(0.3, 3), KP(1, 0.5) }),
+			Transparency = NS({ KP(0, 0.35), KP(1, 1) }),
+			ZOffset = 1,
+		})
+		emitter(p, "Flash", {
+			Texture = TEX.dot,
+			Color = amberHot,
+			LightEmission = 1,
+			Brightness = 4,
+			Lifetime = R(0.12),
+			Size = NS({ KP(0, 1), KP(0.3, 2.6), KP(1, 0) }),
+			ZOffset = 3,
+		})
+		emitter(p, "Star", {
+			Texture = TEX.glint,
+			Color = amberHot,
+			LightEmission = 1,
+			Lifetime = R(0.14),
+			Size = NS({ KP(0, 0.6), KP(0.3, 2.4), KP(1, 0) }),
+			Rotation = R(0, 45),
+			ZOffset = 3.5,
+		})
+		emitter(p, "Dust", {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			EmissionDirection = Enum.NormalId.Back,
+			SpreadAngle = Vector2.new(70, 70),
+			Lifetime = R(0.5, 0.7),
+			Speed = R(10, 14),
+			Drag = 6,
+			Size = NS({ KP(0, 1), KP(1, 2.4) }),
+			Transparency = NS({ KP(0, 0.25), KP(1, 1) }),
+			Rotation = R(0, 360),
+			RotSpeed = R(-40, 40),
+			ZOffset = 1.5,
+		}, { EmitCount = 6 })
+		chips(p, "Chips", Enum.NormalId.Back, 55, R(14, 20), 5)
+	end
+
+	-- GoreHit (gore hit, on the target's near side facing the boar): amber
+	-- sparks, a small crescent mark (bone core over slate) and a white pop.
+	-- 4 layers.
+	do
+		local p = anchor("GoreHit", Vector3.new(0.4, 0.4, 0.4), root)
+		local mark = {
+			Texture = TEX.arc,
+			Lifetime = R(0.25),
+			Rotation = R(-60),
+		}
+		emitter(p, "MarkDark", with(mark, {
+			Color = CS(SLATE),
+			Size = NS({ KP(0, 1.4), KP(0.2, 2.4), KP(1, 2.6) }),
+			Transparency = NS({ KP(0, 0.2), KP(0.6, 0.3), KP(1, 1) }),
+			ZOffset = 1.5,
+		}))
+		emitter(p, "Mark", with(mark, {
+			Color = CS({ CK(0, WHITE), CK(0.5, BONE), CK(1, AMBER) }),
+			LightEmission = 1,
+			Brightness = 3,
+			Size = NS({ KP(0, 1.2), KP(0.2, 2.1), KP(1, 2.2) }),
+			Transparency = fadeLate,
+			ZOffset = 2,
+		}))
+		emitter(p, "Sparks", {
+			Texture = TEX.dot,
+			Color = amberHot,
+			LightEmission = 1,
+			Brightness = 3,
+			Orientation = Enum.ParticleOrientation.VelocityParallel,
+			Lifetime = R(0.15, 0.25),
+			Speed = R(18, 26),
+			Drag = 6,
+			SpreadAngle = Vector2.new(60, 60),
+			EmissionDirection = Enum.NormalId.Back,
+			Size = NS({ KP(0, 0.15), KP(1, 0) }),
+			Squash = NS(-1.5),
+			ZOffset = 2.5,
+		}, { EmitCount = 6 })
+		emitter(p, "Pop", {
+			Texture = TEX.dot,
+			Color = CS(WHITE),
+			LightEmission = 1,
+			Brightness = 4,
+			Lifetime = R(0.08),
+			Size = NS({ KP(0, 1.2), KP(1, 0) }),
+			ZOffset = 3,
+		})
+	end
+
+	-- StaggerChips (stagger, welded at the Core): stone chips popped off the
+	-- chest, a dust puff and an amber pop. Code flickers the cracks. 3 layers.
+	do
+		local p = anchor("StaggerChips", Vector3.new(2.4, 1.5, 2.4), root)
+		emitter(p, "Pop", {
+			Texture = TEX.dot,
+			Color = amberHot,
+			LightEmission = 1,
+			Brightness = 3,
+			Lifetime = R(0.1),
+			Size = NS({ KP(0, 1), KP(0.4, 2.8), KP(1, 0) }),
+			ZOffset = 3,
+		})
+		emitter(p, "Dust", {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Top,
+			SpreadAngle = Vector2.new(60, 60),
+			Lifetime = R(0.45, 0.6),
+			Speed = R(3, 5),
+			Drag = 4,
+			Size = NS({ KP(0, 0.8), KP(1, 1.8) }),
+			Transparency = NS({ KP(0, 0.35), KP(1, 1) }),
+			Rotation = R(0, 360),
+			ZOffset = 1.5,
+		}, { EmitCount = 4 })
+		local c = chips(p, "Chips", Enum.NormalId.Top, 70, R(12, 17), 7, 0.32)
+		c.Shape = Enum.ParticleEmitterShape.Box
+	end
+
+	-- Death (at the Core, body-sized box): the body crumbles into umber dust
+	-- sinking and drifting, amber motes rising, and the spirit-core glint.
+	-- 4 layers over the 1 s fade.
+	do
+		local p = anchor("Death", Vector3.new(3, 2.6, 6), root)
+		emitter(p, "Dust", {
+			Texture = TEX.puff,
+			Color = CS(DUST),
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Top,
+			SpreadAngle = Vector2.new(80, 80),
+			Lifetime = R(0.8, 1.2),
+			Rate = 22,
+			Speed = R(1, 2.5),
+			Drag = 1,
+			Acceleration = Vector3.new(0, -1.5, 0),
+			Size = NS({ KP(0, 1.2), KP(1, 2.6) }),
+			Transparency = NS({ KP(0, 0.4), KP(0.5, 0.55), KP(1, 1) }),
+			Rotation = R(0, 360),
+			RotSpeed = R(-25, 25),
+		}, { EmitDuration = 0.9 })
+		emitter(p, "Motes", {
+			Texture = TEX.dot,
+			Color = amberHot,
+			LightEmission = 1,
+			Shape = Enum.ParticleEmitterShape.Box,
+			EmissionDirection = Enum.NormalId.Top,
+			SpreadAngle = Vector2.new(20, 20),
+			Lifetime = R(0.6, 1),
+			Rate = 22,
+			Speed = R(3, 5),
+			Drag = 1,
+			Size = NS({ KP(0, 0.2), KP(1, 0) }),
+			Transparency = NS({ KP(0, 0.1), KP(0.4, 0.5), KP(0.5, 0), KP(1, 0.6) }),
+		}, { EmitDuration = 0.8 })
+		local core = attach(p, "Core", Vector3.zero)
+		emitter(core, "Glow", {
+			Texture = TEX.dot,
+			Color = CS(HOT),
+			LightEmission = 1,
+			Lifetime = R(0.45),
+			Size = NS({ KP(0, 0.4), KP(0.3, 1.5), KP(1, 0.2) }),
+			Transparency = NS({ KP(0, 0.4), KP(1, 1) }),
+			ZOffset = 2.5,
+		}, { EmitCount = 1, EmitDelay = 0.15 })
+		emitter(core, "Glint", {
+			Texture = TEX.glint,
+			Color = amberHot,
+			LightEmission = 1,
+			Brightness = 4,
+			Lifetime = R(0.45),
+			Size = NS({ KP(0, 0), KP(0.3, 2), KP(1, 0) }),
+			Rotation = R(0),
+			RotSpeed = R(90),
+			ZOffset = 3,
+		}, { EmitCount = 1, EmitDelay = 0.15 })
+	end
+
+	root.Parent = effects
+	return root
+end
+
+return true
+	end)
+	if ok then _G.vfxSpecs["StoneBoar"] = spec end
+	table.insert(installed, "spec StoneBoar: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/SwordQiWave.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Sword Qi Wave's templates (SwordQiWave_T1..T4) as a spec for
+-- vfxBlocks.buildFromSpec. Runtime: src/client/TechniqueFX/SwordQiWave.luau.
+--
+-- The move: Fists.3 (Hit 0.35, Hit Stop 0.467 of 0.70 s; matches
+-- Config.FIST_STEPS[3]). The RIGHT arm is the blade: it comes from behind the
+-- body, reaches the right side at Hit and sweeps flat across the front to the
+-- left by +0.04 s (a horizontal hand-blade cut at chest height). The cast plays
+-- it at 1.09x: windup 0.32 s, active 0.107 s, recovery 0.16 s.
+--
+-- The pitch, beat by beat (every tier):
+--   Windup (cast start -> Hit, caster only, part "Windup"): ice-cyan qi motes
+--     stream into the swinging hand and a charge glow builds on it (II+ Spline
+--     wisps, III+ a closing seal).
+--   Release (Hit, part "Hand" at the right hand): a star flash and glow where
+--     the hand-blade cuts, sonic swirl rings (3D MeshWaves) thrown forward off
+--     the hand, a light shake.
+--   Travel (Hit -> ~0.36 s, part "Blade", runtime-driven): the crescent of
+--     sword qi, a physical horizontal wing of Beams with real width (a bright
+--     core, a cyan edge, a camera-facing glow layer so it reads at grazing
+--     angles), leaving a flat wake trail and a white centre streak, shedding
+--     motes. It forms in front of the caster at hand height, settles to body
+--     height and flies the line (32 studs) on TravelCurve (fast launch, eases
+--     out). Raycast along the path: it ends at max range, a wall or rising
+--     ground.
+--   Impact (each enemy, when the blade's front reaches its near side, part
+--     "Impact"): impactStack in cyan (star flash, spiky ring, sparks, 3D
+--     standing impact torus and ground shock) plus a horizontal crescent cut
+--     flash through the body.
+--   Terminal (where the blade ends, part "Terminal"): the blade bursts. A
+--     bigger impactStack (standing torus, ground shock, flash, sparks) so the
+--     projectile never just vanishes.
+--   Aftermath (parts "Cut", "Scar", "Path"): a glowing Neon slit drawn on the
+--     ground behind the blade as it flies, cooling into a dark ink scar that
+--     lingers and fades; II+ qi motes rise off the cut.
+--
+-- What each tier adds:
+--   I   one crescent (span 5), 1 air ring, impact ring + ground shock, a small
+--       terminal burst, slit + scar ~1 s.
+--   II  span 5.5, one echo blade trailing it, release sparks, impact swirl and
+--       dust, motes rising from the cut, terminal swirl.
+--   III span 6, two echo blades, 2 air rings, impact bubble and rock kicks
+--       (Craters cone, first 3 targets), cracks along the cut, terminal
+--       crater ring (Craters) and cracks, a longer scar.
+--   IV  span 7 (mastery): three blades with a gold-white core, 3 air rings,
+--       the one point light riding the blade, a "sword intent" crescent flash
+--       at the release, ScreenEffects impact frames at release and an
+--       Explosion quake on the first impact, a big terminal burst (bubble,
+--       swirl, crater ring, shards), the longest scar.
+--
+-- Authored at length 32, width 5, active 0.107 s; the runtime rescales to the
+-- def and fits Phase "active" emitters (none critical here: the blade's travel
+-- is authored, like Palm Strike's ground torus, so it is seen).
+local B = _G.vfxBlocks
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local O = CFrame.new()
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local CYAN = Color3.fromRGB(150, 230, 255) -- Techniques.SwordQiWave.color
+local CORE = Color3.fromRGB(232, 251, 255)
+local GOLD_CORE = Color3.fromRGB(255, 246, 214) -- mastery core
+local INK = Color3.fromRGB(28, 44, 60)
+local EDGE = Color3.fromRGB(95, 205, 255) -- the blade's body, deeper than the def colour
+local PALETTE = {
+	color = CYAN, core = CORE,
+	ringColor = Color3.fromRGB(205, 245, 255), swirlColor = Color3.fromRGB(150, 225, 255), groundColor = Color3.fromRGB(170, 232, 255),
+}
+local function pal(extra)
+	local t = table.clone(PALETTE)
+	for k, v in extra or {} do
+		t[k] = v
+	end
+	return t
+end
+
+local SPAN = { 5.5, 6, 6.5, 7.5 } -- the hitbox is width 5 plus 1.5 slack a side
+local BLADE_AT = O * CFrame.new(0, 2.6, -1.5) -- repositioned along the line at runtime
+local TERMINAL_AT = O * CFrame.new(0, 0.15, -32)
+local A = {
+	slash = id(7216852121), -- clean horizontal crescent (the cut through a target)
+	intent = id(13366366767), -- layered crescent slashes (mastery sword intent)
+	mote = id(9841260273), -- small glowing spindle mote
+	crackSmall = id(97725700315217), -- radial ground crack
+}
+
+-- The blade: a Part whose attachments and Beams draw a horizontal crescent
+-- (two tapered half-beams per layer, tips trailing back), plus wake trails,
+-- shed motes and (IV) the light. The runtime moves it; nothing here is emitted.
+local function crescent(part, layer, span, depth, y, width, color, transparency, faceCamera, light)
+	local function att(name, pos, axis)
+		local a = Instance.new("Attachment")
+		a.Name = layer .. name
+		a.CFrame = CFrame.fromMatrix(pos, axis, Vector3.yAxis) -- secondary axis up: the ribbon lies flat
+		a.Parent = part
+		return a
+	end
+	local L = att("L", Vector3.new(-span / 2, y, depth), Vector3.new(0, 0, -1))
+	local C = att("C", Vector3.new(0, y, 0), Vector3.new(1, 0, 0))
+	local Rt = att("R", Vector3.new(span / 2, y, depth), Vector3.new(0, 0, 1))
+	for i, pair in { { L, C, 0.04, width }, { C, Rt, width, 0.04 } } do
+		local b = Instance.new("Beam")
+		b.Name = layer .. (if i == 1 then "Left" else "Right")
+		b.Attachment0, b.Attachment1 = pair[1], pair[2]
+		b.Width0, b.Width1 = pair[3], pair[4]
+		b.CurveSize0 = if i == 1 then depth * 0.9 else span * 0.28
+		b.CurveSize1 = if i == 1 then span * 0.28 else depth * 0.9
+		b.FaceCamera = faceCamera
+		b.Color = CS(color)
+		b.LightEmission, b.LightInfluence = light, 0
+		b.Transparency = NS(transparency)
+		b.Segments = 14
+		b.Parent = part
+	end
+end
+
+B.BLOCKS.sqwBlade = function(root, tier, p)
+	local span = SPAN[tier]
+	local depth = span * 0.4
+	local blade = B.part(root, "Blade", BLADE_AT, Vector3.new(span, 0.3, depth))
+	for k, v in {
+		Span = span, Depth = depth, Height = 2.6,
+		Pitch = 16, Roll = -10, -- degrees: leading edge up so its face shows from behind the caster, left tip high like the sweep's end
+		TravelTime = 0.36, -- seconds to the full length
+		TravelCurve = NS({ KP(0, 0), KP(0.25, 0.37), KP(0.5, 0.65), KP(0.75, 0.86), KP(1, 1) }), -- progress over time
+		Echoes = ({ 0, 1, 2, 2 })[tier], EchoDelay = 0.045, EchoScale = 0.82,
+	} do
+		blade:SetAttribute(k, v)
+	end
+	local core = if tier >= 4 then GOLD_CORE else CORE
+	-- saturated and nearly solid, low LightEmission: additive white-out washes
+	-- the blade into the sky and the grass by day
+	crescent(blade, "Edge", span, depth, 0, span * 0.34, EDGE, 0.04, false, 0.15)
+	crescent(blade, "Core", span * 0.94, depth * 0.9, 0.05, span * 0.16, core, 0, false, 0.4)
+	crescent(blade, "Glow", span * 1.1, depth * 1.08, 0.02, span * 0.46, CYAN, 0.4, true, 0.35)
+	-- the flat wake between the tips and a bright streak behind the centre
+	local function trail(name, a0, a1, color, life, t0, faceCamera, light)
+		local t = Instance.new("Trail")
+		t.Name = name
+		t.Attachment0, t.Attachment1 = a0, a1
+		t.Color = CS(color)
+		t.Transparency = NS({ KP(0, t0), KP(0.6, (1 + t0) / 2), KP(1, 1) })
+		t.WidthScale = NS({ KP(0, 1), KP(1, 0.5) })
+		t.Lifetime = life
+		t.FaceCamera = faceCamera
+		t.LightEmission, t.LightInfluence = light, 0
+		t.MinLength = 0.05
+		t.Parent = blade
+	end
+	trail("Wake", blade.EdgeL, blade.EdgeR, CYAN, ({ 0.16, 0.2, 0.24, 0.3 })[tier], 0.55, false, 0.4)
+	local s0 = B.attach(blade, "StreakA", Vector3.new(0, 0.25, 0))
+	local s1 = B.attach(blade, "StreakB", Vector3.new(0, -0.25, 0))
+	trail("Streak", s0, s1, core, ({ 0.1, 0.12, 0.14, 0.18 })[tier], 0.15, true, 0.6)
+	-- motes shed off the blade while it flies (the runtime toggles Enabled)
+	local shed = B.emitter(blade, "Shed", {
+		Texture = A.mote, Color = CS(CORE, CYAN),
+		Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(60, 60),
+		Size = NS({ KP(0, 0.22), KP(1, 0) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+		Lifetime = R(0.25, 0.45), Speed = R(2, 5), Drag = 3, LightEmission = 0.6, Rotation = R(0, 360),
+		Rate = ({ 18, 26, 34, 45 })[tier],
+	})
+	shed:SetAttribute("Shed", true)
+	if tier >= 4 then
+		local light = Instance.new("PointLight")
+		light.Name = "Light"
+		light.Color = CYAN
+		light.Range = 16
+		light.Brightness = 0 -- the runtime lights it while the blade flies
+		light.Shadows = false
+		light.Parent = blade
+	end
+	return blade
+end
+
+-- The cut drawn on the ground behind the blade: a glowing Neon slit and the
+-- dark ink scar it cools into (the runtime stretches both along the path).
+B.BLOCKS.sqwCut = function(root, tier, p)
+	local function strip(name, material, color, width, attrs, thick)
+		local s = B.part(root, name, O * CFrame.new(0, 0.05, -16), Vector3.new(width, thick, 1))
+		s.Material, s.Color = material, color
+		for k, v in attrs do
+			s:SetAttribute(k, v)
+		end
+		return s
+	end
+	strip("Cut", Enum.Material.Neon, Color3.fromRGB(120, 215, 255), ({ 0.22, 0.26, 0.3, 0.36 })[tier], {
+		StartTransparency = 0.35, Fade = ({ 0.45, 0.55, 0.65, 0.8 })[tier], FadeColor = CYAN,
+	}, 0.1) -- a hair above the scar, so the two never z-fight
+	strip("Scar", Enum.Material.SmoothPlastic, INK, ({ 0.5, 0.6, 0.7, 0.85 })[tier], {
+		StartTransparency = 0.35, Fade = ({ 1.0, 1.25, 1.5, 1.9 })[tier], FadeDelay = 0.25,
+	}, 0.06)
+	return root:FindFirstChild("Cut")
+end
+
+-- Aftermath emitters spread over the whole path (a Box the runtime sizes to it).
+B.BLOCKS.sqwPath = function(root, tier, p)
+	local path = B.part(root, "Path", O * CFrame.new(0, 0.2, -16), Vector3.new(0.6, 0.2, 32))
+	if tier >= 2 then
+		B.emitter(path, "Motes", {
+			Texture = A.mote, Color = CS(CORE, CYAN),
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
+			Size = NS({ KP(0, 0.25), KP(0.5, 0.2), KP(1, 0) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.2), KP(1, 1) }),
+			Lifetime = R(0.7, 1.1), Speed = R(1.5, 3), Drag = 1, LightEmission = 0.5, Rotation = R(0, 360),
+		}, { EmitCount = ({ 0, 8, 12, 16 })[tier], EmitDelay = 0.12 })
+	end
+	if tier >= 3 then
+		B.emitter(path, "Cracks", B.flat({
+			Texture = A.crackSmall, Color = CS(INK), LightInfluence = 0.3,
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			Size = NS(1.3), Transparency = NS({ KP(0, 1), KP(0.05, 0.3), KP(0.6, 0.45), KP(1, 1) }),
+			Lifetime = R(1.1, 1.4), Rotation = R(0, 360), ZOffset = -0.5,
+		}), { EmitCount = ({ 0, 0, 4, 6 })[tier], EmitDelay = 0.1 })
+	end
+	return path
+end
+
+-- The horizontal crescent cut flashed through each target's body.
+B.BLOCKS.sqwSlash = function(root, tier, p)
+	local part = root:FindFirstChild(p.part or "Impact")
+	local body = part:FindFirstChild("Body")
+	return B.emitter(body, "Slash", {
+		Texture = A.slash, Color = CS(CORE, CYAN),
+		Size = NS({ KP(0, 1), KP(0.25, 2.6 + tier * 0.45), KP(1, 3.2 + tier * 0.5) }), Transparency = NS({ KP(0, 0), KP(0.55, 0.15), KP(1, 1) }),
+		Lifetime = R(0.26), LightEmission = 0.55, Rotation = R(-8, 8), ZOffset = 3,
+	}, { EmitCount = 1 })
+end
+
+B.BLOCKS.sqwIntent = function(root, tier, p)
+	local hand = B.part(root, "Hand", O * CFrame.new(1.2, 3.4, -0.8))
+	return B.emitter(hand, "Intent", B.flat({
+		Texture = A.intent, Color = CS(GOLD_CORE, CYAN),
+		Size = NS({ KP(0, 1.5), KP(0.3, 4.6), KP(1, 5.4) }), Transparency = NS({ KP(0, 0.15), KP(0.5, 0.35), KP(1, 1) }),
+		Lifetime = R(0.42), LightEmission = 0.5, Rotation = R(170, 190), ZOffset = 1,
+	}, Enum.NormalId.Top), { EmitCount = 1 })
+end
+
+-- A lighter shake than Palm Strike's (a cut, not a ground blow); IV adds
+-- impact frames at the release.
+B.BLOCKS.sqwShake = function(root, tier, p)
+	return B.screenShake(root, tier, { parent = "Hand", magnitude = ({ 0.8, 1.1, 1.5, 2 })[tier], frames = tier >= 4 })
+end
+
+-- The terminal burst where the blade ends: impactBurst + impactShockwave a
+-- size up from a target's, the crescent cut, III+ a Craters rock ring.
+B.BLOCKS.sqwTerminal = function(root, tier, p)
+	local q = pal({ part = "Terminal", at = TERMINAL_AT })
+	B.impactBurst(root, tier, q)
+	q.size = ({ 4.6, 5.8, 7.2, 9 })[tier]
+	q.groundSize = ({ 5, 6.4, 8, 10.5 })[tier]
+	q.bubble = tier >= 3
+	B.impactShockwave(root, tier, q)
+	B.BLOCKS.sqwSlash(root, tier, { part = "Terminal" })
+	if tier >= 3 then
+		B.craterRing(root, tier, { parent = "Terminal", name = "Crater", attrs = {
+			Count = ({ 0, 0, 6, 9 })[tier], Radius = ({ 0, 0, 2.2, 2.8 })[tier], Variance = 0.7, Duration = 0.12,
+			Size = Vector3.new(1, 0.75, 0.9), Lifetime = R(1.1, 1.4), RaycastDistance = 8,
+		} })
+	end
+	return root:FindFirstChild("Terminal")
+end
+
+-- Each target: impactStack in cyan, its 3D rings a size down from Palm
+-- Strike's (a cut passing through, not a blast), III+ rock kicks, IV quake.
+B.BLOCKS.sqwImpact = function(root, tier, p)
+	local wave = pal({ size = ({ 3.4, 4.2, 5.2, 6.2 })[tier], groundSize = ({ 3.6, 4.4, 5.4, 6.6 })[tier] })
+	return B.impactStack(root, tier, { burst = pal(), wave = wave })
+end
+
+local HAND_AT = O * CFrame.new(1.2, 3.4, -0.8) -- the right hand at Hit; runtime puts it on the live hand
+
+return {
+	id = "SwordQiWave",
+	root = { attrs = { AuthoredActive = 0.107, AuthoredLength = 32, AuthoredWidth = 5 } },
+	beats = {
+		-- windup: qi gathers into the right hand as it swings in
+		{ block = "handGather", params = pal({ windup = 0.32, at = HAND_AT }) },
+		-- release off the hand-blade
+		{ block = "releaseFlash", params = pal({ part = "Hand", at = HAND_AT, light = false }) },
+		{ block = "airShockwave", params = pal({ part = "Hand", at = HAND_AT, color = PALETTE.ringColor, travel = nil }) },
+		{ block = "sqwShake" },
+		{ block = "sqwIntent", from = 4 },
+		-- the blade itself and what it leaves on the ground
+		{ block = "sqwBlade" },
+		{ block = "sqwCut" },
+		{ block = "sqwPath" },
+		-- each target it passes through
+		{ block = "sqwImpact" },
+		{ block = "sqwSlash" },
+		-- where it ends (max range, a wall or the ground): a bigger burst
+		{ block = "sqwTerminal" },
+	},
+}
+	end)
+	if ok then _G.vfxSpecs["SwordQiWave"] = spec end
+	table.insert(installed, "spec SwordQiWave: " .. (ok and "ok" or tostring(spec)))
+end
+do -- vfx_specs/TwinPhoenixCannon.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Twin Phoenix Cannon's templates (TwinPhoenixCannon_T1..T4). Build with
+-- spec.build(parent) (this spec's own blocks resolve before the shared ones).
+-- Runtime: src/client/TechniqueFX/TwinPhoenixCannon.luau.
+--
+-- Gameplay: Fist technique, kind "line" 18 x 6, two blasts (14 dmg each),
+-- animation 134365896305843 (1.417 s): hits 0.30-0.38 (right fist) and
+-- 0.83-0.92 (left fist). Both strikes are overhand forward-down punches:
+-- the fist comes over the shoulder, sweeps down and is fully extended ~0.04 s
+-- after the hit starts (right fist at Hit +0.04: root-space (1.8, -1.1,
+-- -3.8); left at +0.03: (1.0, 0.5, -3.7)), the torso pitching forward, then
+-- the body twists to load the other side. The template pivot is the ground
+-- under the caster facing -Z; authored at length 18, width 6.
+--
+-- THE SHOT, tier by tier (R = the right fist's crimson phoenix, L = the left
+-- fist's golden phoenix, a size up: the finisher)
+--
+-- I (levels 1-3), "two fire birds"
+--   Windup (0 -> first Hit, caster only, part "Windup"): crimson motes stream
+--     into the right fist as it rises over the shoulder, a charge glow swells.
+--   Release R (Hit +0.03): a star flash and glow on the extended fist, one 3D
+--     swirl air ring thrown forward.
+--   Travel R (~0.26 s, part "BlastR"): the phoenix: a Neon fire head (a
+--     solid ball) with swept-back wings of Beams (span ~5.5, a flat crimson
+--     wing, a bright core, a camera-facing glow layer) and a burning tail
+--     trail, shedding embers. It forms past the fist at fist height, settles
+--     onto the line's centre at body height and flies the 18 studs (fast
+--     launch, eases out). It stops at a wall or rising ground.
+--   Impact (each enemy, when the head's front reaches it): fire impact
+--     (star flash, puff, spiky ring, sparks, upright 3D torus, ground shock),
+--     a flame flare up the body, CombatEffects.flash.
+--   Terminal (where it ends): an explosion: a fatter torus, ground shock,
+--     flash, a ring of flames and embers.
+--   Aftermath: a hot Neon burn line on the ground behind the bird cooling
+--     into a char mark (~1 s).
+--   Between: gold motes gather into the left fist as it rises (part
+--     "Gather", visible to everyone).
+--   Release / travel / impact / terminal L: the same in gold, wider wings
+--     and a bigger terminal.
+-- II (4-6), "feathers of flame"
+--   + flame feathers shed from the wings, release sparks, impact swirl and
+--     dust, embers rising off the burn line, a swirl at the terminal.
+-- III (7-9), "the cannon seal"
+--   + a rune seal flashes in front of each fist as it fires (the cannon
+--     mouth), 2 air rings, impact bubbles and rock kicks (Craters, first 2
+--     targets), a Craters rock ring at each terminal, a light shake.
+-- IV (10), "twin phoenix"
+--   + 3 air rings, a gold-white head on both birds, the move's one PointLight
+--     riding the golden bird, and its terminal becomes a fire dome (Neon
+--     ball shell) with a spike crown, a rock ring and an Explosion quake.
+--
+-- Parts (runtime contract):
+--   Windup        handGather on the right fist (CombatEffects.windup).
+--   Gather        handGather (gold) on the left fist between the blasts.
+--   FistR/FistL   release flash + air rings (+ III seal) at the live fist.
+--   BlastR/BlastL the bird (moved by the runtime; children BaseParts are
+--                 held: `Show` = their transparency while flying).
+--   ImpactR/L     per-target hit (Body attachment).
+--   TerminalR/L   the explosion where the bird ends.
+--   BurnR/L, CharR/L  ground strips stretched along the path.
+--   PathR/L       II+ aftermath embers over the flown path (a Box).
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local CK = ColorSequenceKeypoint.new
+local V = Vector3.new
+local O = CFrame.new()
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local A = {
+	flame = id(265788038), -- stylised white flame silhouette (tinted)
+	glow = id(867619398),
+	spindle = id(7814053668),
+	mote = id(9841260273),
+	rune = id(83667248904000), -- rune circle (cannon seal)
+	torus = id(471124075),
+	crownLow = id(489415286),
+	crack = id(97725700315217),
+}
+
+-- Palettes: particles take the light tones; Neon meshes bloom toward white,
+-- so they take deeper ones.
+local PAL = {
+	R = {
+		color = Color3.fromRGB(255, 96, 52), core = Color3.fromRGB(255, 214, 160),
+		edge = Color3.fromRGB(226, 52, 28), glowColor = Color3.fromRGB(255, 120, 70),
+		neon = Color3.fromRGB(236, 70, 34), ember = Color3.fromRGB(255, 150, 80),
+		ringColor = Color3.fromRGB(255, 170, 120), swirlColor = Color3.fromRGB(255, 120, 70), groundColor = Color3.fromRGB(255, 150, 100),
+	},
+	L = {
+		color = Color3.fromRGB(255, 196, 80), core = Color3.fromRGB(255, 242, 200),
+		edge = Color3.fromRGB(240, 150, 30), glowColor = Color3.fromRGB(255, 205, 100),
+		neon = Color3.fromRGB(245, 160, 40), ember = Color3.fromRGB(255, 200, 110),
+		ringColor = Color3.fromRGB(255, 225, 150), swirlColor = Color3.fromRGB(255, 196, 90), groundColor = Color3.fromRGB(255, 215, 130),
+	},
+}
+local CHAR = Color3.fromRGB(46, 30, 24)
+local MASTER_CORE = Color3.fromRGB(255, 250, 230)
+
+local LENGTH, WIDTH = 18, 6
+local FIST_AT = { R = O * CFrame.new(1.8, 1.9, -3.8), L = O * CFrame.new(1.0, 3.5, -3.7) } -- repositioned on the live fists
+local GATHER_AT = O * CFrame.new(0.3, 5, 0)
+
+local function B()
+	return _G.vfxBlocks
+end
+
+-- params for the shared blocks from a palette, plus extras
+local function pal(key, extra)
+	local t = table.clone(PAL[key])
+	for k, v in extra or {} do
+		t[k] = v
+	end
+	return t
+end
+
+-- The wings: a crescent of Beams (two tapered halves per layer, the tips
+-- swept back by `depth`), as on Sword Qi Wave's blade.
+local function wing(part, layer, span, depth, y, width, color, transparency, faceCamera, light)
+	local function att(name, pos, axis)
+		local a = Instance.new("Attachment")
+		a.Name = layer .. name
+		a.CFrame = CFrame.fromMatrix(pos, axis, Vector3.yAxis)
+		a.Parent = part
+		return a
+	end
+	-- the tips sweep back and lift (a gull's V from behind), so the wings
+	-- read as wings rather than a flat crescent
+	local lift = span * 0.2
+	local L = att("L", V(-span / 2, y + lift, depth), V(0, 0, -1))
+	local C = att("C", V(0, y, -0.2), V(1, 0, 0))
+	local Rt = att("R", V(span / 2, y + lift, depth), V(0, 0, 1))
+	for i, pair in { { L, C, 0.05, width }, { C, Rt, width, 0.05 } } do
+		local b = Instance.new("Beam")
+		b.Name = layer .. (if i == 1 then "Left" else "Right")
+		b.Attachment0, b.Attachment1 = pair[1], pair[2]
+		b.Width0, b.Width1 = pair[3], pair[4]
+		b.CurveSize0 = if i == 1 then depth * 0.6 else span * 0.22
+		b.CurveSize1 = if i == 1 then span * 0.22 else depth * 0.6
+		b.FaceCamera = faceCamera
+		b.Color = CS(color)
+		b.LightEmission, b.LightInfluence = light, 0
+		b.Transparency = NS(transparency)
+		b.Segments = 12
+		b.Enabled = false
+		b.Parent = part
+	end
+	return L, Rt
+end
+
+local function trail(parent, name, a0, a1, color, life, t0, faceCamera, light)
+	local t = Instance.new("Trail")
+	t.Name = name
+	t.Attachment0, t.Attachment1 = a0, a1
+	t.Color = color
+	t.Transparency = NS({ KP(0, t0), KP(0.6, (1 + t0) / 2), KP(1, 1) })
+	t.WidthScale = NS({ KP(0, 1), KP(1, 0.3) })
+	t.Lifetime = life
+	t.FaceCamera = faceCamera
+	t.LightEmission, t.LightInfluence = light, 0
+	t.MinLength = 0.05
+	t.Enabled = false
+	t.Parent = parent
+	return t
+end
+
+local blocks = {}
+
+-- The bird for side `key`.
+function blocks.blast(root, tier, p)
+	local key = p.key
+	local c = PAL[key]
+	local big = key == "L"
+	local span = ({ 5.5, 6, 6.5, 7.5 })[tier] * (if big then 1.1 else 1)
+	local depth = span * 0.42
+	local blast = B().part(root, "Blast" .. key, O * CFrame.new(0, 2.4, -2), V(span, 0.3, depth))
+	for k, v in {
+		Span = span, Height = 2.4, Pitch = 10,
+		TravelTime = if big then 0.28 else 0.26,
+		TravelCurve = NS({ KP(0, 0), KP(0.2, 0.36), KP(0.5, 0.7), KP(0.75, 0.9), KP(1, 1) }),
+	} do
+		blast:SetAttribute(k, v)
+	end
+	local core = if tier >= 4 then MASTER_CORE else c.core
+	local eL, eR = wing(blast, "Wing", span, depth, 0, span * 0.3, c.edge, 0.05, false, 0.2)
+	wing(blast, "Core", span * 0.9, depth * 0.9, 0.05, span * 0.13, core, 0, false, 0.45)
+	wing(blast, "Glow", span * 1.08, depth * 1.06, 0.02, span * 0.42, c.glowColor, 0.45, true, 0.35)
+	-- the Neon head, held at the front of the wings
+	local d = ({ 1.0, 1.15, 1.3, 1.5 })[tier] * (if big then 1.12 else 1)
+	local head = Instance.new("Part")
+	head.Name = "Head"
+	head.Shape = Enum.PartType.Ball
+	head.Material = Enum.Material.Neon
+	head.Color = if tier >= 4 then Color3.fromRGB(255, 226, 170) else c.neon
+	head.Size = V(d, d, d * 1.25)
+	head.Anchored, head.CanCollide, head.CanQuery, head.CanTouch, head.CastShadow = true, false, false, false, false
+	head.Transparency = 1
+	head.CFrame = blast.CFrame * CFrame.new(0, 0, -0.35)
+	head:SetAttribute("Show", 0.05)
+	head.Parent = blast
+	-- the burning tail and the flat wake between the wing tips
+	local t0 = B().attach(blast, "TailA", V(0, 0.3, -0.2))
+	local t1 = B().attach(blast, "TailB", V(0, -0.3, -0.2))
+	trail(blast, "Tail", t0, t1, CS({ CK(0, core), CK(0.35, c.color), CK(1, c.edge) }), ({ 0.16, 0.2, 0.24, 0.28 })[tier], 0.05, true, 0.5)
+	trail(blast, "Wake", eL, eR, CS(c.glowColor), ({ 0.12, 0.15, 0.18, 0.22 })[tier], 0.6, false, 0.35)
+	-- embers shed while it flies (the runtime toggles Enabled)
+	local shed = B().emitter(blast, "Embers", {
+		Texture = A.mote, Color = CS(core, c.color),
+		Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(70, 70),
+		Size = NS({ KP(0, 0.24), KP(1, 0) }), Transparency = NS({ KP(0, 0.05), KP(1, 1) }),
+		Lifetime = R(0.25, 0.45), Speed = R(2, 6), Drag = 3, LightEmission = 0.5, Rotation = R(0, 360),
+		Acceleration = V(0, 4, 0), Rate = ({ 22, 28, 36, 45 })[tier],
+	})
+	shed:SetAttribute("Shed", true)
+	if tier >= 2 then
+		local feathers = B().emitter(blast, "Feathers", {
+			Texture = A.flame, Color = CS({ CK(0, c.core), CK(0.4, c.color), CK(1, c.edge) }),
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Back, SpreadAngle = Vector2.new(25, 25),
+			Size = NS({ KP(0, 0.5), KP(0.3, 0.75), KP(1, 0.1) }), Transparency = NS({ KP(0, 0.3), KP(0.3, 0.1), KP(1, 1) }),
+			Lifetime = R(0.18, 0.3), Speed = R(3, 6), Drag = 4, LightEmission = 0.3, LightInfluence = 0.1,
+			Rotation = R(-30, 30), Rate = ({ 0, 14, 18, 24 })[tier], ZOffset = -0.2,
+		})
+		feathers:SetAttribute("Shed", true)
+	end
+	if tier >= 4 and big then
+		local light = Instance.new("PointLight")
+		light.Name = "Light"
+		light.Color = c.color
+		light.Range = 16
+		light.Brightness = 0 -- the runtime lights it while the bird flies
+		light.Shadows = false
+		light.Parent = blast
+	end
+	return blast
+end
+
+-- The release at the fist: flash, glow, sparks (II+), air rings, the III+
+-- cannon seal and a small shake.
+function blocks.fist(root, tier, p)
+	local key = p.key
+	local part = "Fist" .. key
+	local q = pal(key, { part = part, at = FIST_AT[key], light = false })
+	B().releaseFlash(root, tier, q)
+	B().airShockwave(root, tier, pal(key, { part = part, at = FIST_AT[key], color = PAL[key].ringColor }))
+	if tier >= 3 then
+		B().emitterBlock(root, tier, {
+			part = part, name = "Seal", flat = true, dir = Enum.NormalId.Front, attrs = { EmitCount = 1 },
+			props = {
+				Texture = A.rune, Color = CS(PAL[key].core, PAL[key].color),
+				Size = NS({ KP(0, 0.6), KP(0.25, 2 + (tier - 3) * 0.6), KP(1, 2.4 + (tier - 3) * 0.6) }),
+				Transparency = NS({ KP(0, 0.1), KP(0.6, 0.3), KP(1, 1) }),
+				Lifetime = R(0.36), LightEmission = 0.5, RotSpeed = R(240), Rotation = R(0, 360), ZOffset = 1,
+			},
+		})
+		B().screenShake(root, tier, { parent = part, magnitude = (if key == "L" then 1.4 else 1) * (tier - 1) * 0.6 })
+	end
+	return root:FindFirstChild(part)
+end
+
+-- The fire flare added to a burst (impact or terminal): flame tongues up
+-- from the body / ground point.
+local function flare(parent, key, count, size, spread)
+	local c = PAL[key]
+	return B().emitter(parent, "Flare", {
+		Texture = A.flame, Color = CS({ CK(0, c.core), CK(0.35, c.color), CK(1, c.edge) }),
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(spread, spread),
+		Size = NS({ KP(0, size * 0.4), KP(0.25, size), KP(1, size * 0.15) }),
+		Transparency = NS({ KP(0, 0.2), KP(0.3, 0.05), KP(1, 1) }),
+		Lifetime = R(0.3, 0.45), Speed = R(5, 10), Drag = 4, Acceleration = V(0, 6, 0),
+		LightEmission = 0.3, LightInfluence = 0.1, Rotation = R(-15, 15), ZOffset = 2,
+	}, { EmitCount = count })
+end
+
+function blocks.impact(root, tier, p)
+	local key = p.key
+	local part = "Impact" .. key
+	local big = key == "L"
+	local k = if big then 1.1 else 1
+	B().impactBurst(root, tier, pal(key, { part = part }))
+	B().impactShockwave(root, tier, pal(key, {
+		part = part, size = ({ 3.8, 4.6, 5.6, 6.8 })[tier] * k, groundSize = ({ 4, 4.8, 5.8, 7 })[tier] * k,
+	}))
+	local impact = root:FindFirstChild(part)
+	flare(impact.Body, key, ({ 3, 4, 5, 6 })[tier], 1.3 + tier * 0.15, 30)
+	if tier >= 3 then
+		B().craterRing(root, tier, { parent = part, shape = "Cone" })
+	end
+	return impact
+end
+
+function blocks.terminal(root, tier, p)
+	local key = p.key
+	local c = PAL[key]
+	local big = key == "L"
+	local part = "Terminal" .. key
+	local k = if big then 1.25 else 1
+	local q = pal(key, { part = part, at = O * CFrame.new(0, 0.15, -LENGTH) })
+	B().impactBurst(root, tier, q)
+	q.size = ({ 4.6, 5.6, 6.8, 8.4 })[tier] * k
+	q.groundSize = ({ 5.2, 6.4, 7.8, 9.6 })[tier] * k
+	q.bubble = tier >= 3
+	B().impactShockwave(root, tier, q)
+	local term = root:FindFirstChild(part)
+	-- a ring of flames thrown out along the ground and embers up
+	B().emitter(term, "FlameRing", {
+		Texture = A.flame, Color = CS({ CK(0, c.core), CK(0.35, c.color), CK(1, c.edge) }),
+		EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(10, 180),
+		Size = NS({ KP(0, 0.6), KP(0.25, 1.4 * k), KP(1, 0.2) }), Transparency = NS({ KP(0, 0.2), KP(0.3, 0.05), KP(1, 1) }),
+		Lifetime = R(0.35, 0.5), Speed = R(14 * k, 20 * k), Drag = 6, Acceleration = V(0, 5, 0),
+		LightEmission = 0.3, LightInfluence = 0.1, Rotation = R(-20, 20), ZOffset = 1,
+	}, { EmitCount = ({ 8, 10, 12, 16 })[tier] })
+	flare(term.Body, key, ({ 4, 5, 6, 8 })[tier], (1.6 + tier * 0.2) * k, 40)
+	B().emitter(term, "Embers", {
+		Texture = A.mote, Color = CS(c.core, c.color),
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(50, 50),
+		Size = NS({ KP(0, 0.25), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(1, 1) }),
+		Lifetime = R(0.6, 1), Speed = R(8, 14), Drag = 2.5, Acceleration = V(0, 3, 0), LightEmission = 0.5,
+	}, { EmitCount = ({ 6, 8, 10, 14 })[tier] })
+	if tier >= 2 then
+		B().emitter(term, "Scorch", B().flat({
+			Texture = A.crack, Color = CS(CHAR), LightInfluence = 0.3,
+			Size = NS(1.6 * k + tier * 0.3), Transparency = NS({ KP(0, 1), KP(0.05, 0.25), KP(0.6, 0.35), KP(1, 1) }),
+			Lifetime = R(1.3), Rotation = R(0, 360), ZOffset = -0.5,
+		}), { EmitCount = 1 })
+	end
+	if tier >= 3 then
+		B().craterRing(root, tier, { parent = part, name = "Crater", attrs = {
+			Count = ({ 0, 0, 6, 10 })[tier], Radius = ({ 0, 0, 2.2, 3 })[tier] * k, Variance = 0.7, Duration = 0.12,
+			Size = V(1, 0.75, 0.9), Lifetime = R(1.1, 1.4), RaycastDistance = 8,
+		} })
+	end
+	if tier >= 4 and big then
+		local dome = B().meshWave(term, "FireDome", {
+			mesh = "Ball", material = Enum.Material.Neon, color = c.neon,
+			fromSize = V(1.5, 1.2, 1.5), toSize = V(8, 5.5, 8), fromOffset = V(0, 0.6, 0), toOffset = V(0, 1.2, 0),
+			fromTransparency = 0.25, toTransparency = 1, duration = 0.5, style = "Quart",
+		})
+		dome:SetAttribute("FadeStyle", "Quint")
+		local crown = B().meshWave(term, "Crown", {
+			mesh = A.crownLow, color = PAL.R.neon,
+			fromSize = V(2.5, 1, 2.5), toSize = V(8.5, 4.5, 8.5), fromOffset = V(0, 0.3, 0), toOffset = V(0, 1.4, 0),
+			fromTransparency = 0.15, toTransparency = 1, duration = 0.55, style = "Quart",
+		})
+		crown:SetAttribute("FadeStyle", "Quint")
+		B().screenShake(root, tier, { parent = part, name = "Quake", preset = "Explosion", falloff = "20~80" })
+	end
+	return term
+end
+
+-- The burnt streak (the runtime stretches it along the flown path) and the
+-- II+ embers that rise off it.
+function blocks.streak(root, tier, p)
+	local key = p.key
+	local c = PAL[key]
+	local k = if key == "L" then 1.15 else 1
+	local function strip(name, material, color, width, attrs, thick)
+		local s = B().part(root, name .. key, O * CFrame.new(0, 0.05, -LENGTH / 2), V(width, thick, 1))
+		s.Material, s.Color = material, color
+		for a, v in attrs do
+			s:SetAttribute(a, v)
+		end
+		return s
+	end
+	strip("Burn", Enum.Material.Neon, c.neon, ({ 0.3, 0.36, 0.42, 0.5 })[tier] * k, {
+		StartTransparency = 0.25, Fade = ({ 0.5, 0.6, 0.7, 0.85 })[tier], FadeColor = c.edge,
+	}, 0.1)
+	strip("Char", Enum.Material.SmoothPlastic, CHAR, ({ 0.8, 0.95, 1.1, 1.3 })[tier] * k, {
+		StartTransparency = 0.35, Fade = ({ 0.9, 1.1, 1.3, 1.6 })[tier], FadeDelay = 0.25,
+	}, 0.06)
+	if tier >= 2 then
+		local path = B().part(root, "Path" .. key, O * CFrame.new(0, 0.3, -LENGTH / 2), V(1.5, 0.2, LENGTH))
+		B().emitter(path, "Embers", {
+			Texture = A.mote, Color = CS(c.core, c.color),
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
+			Size = NS({ KP(0, 0.22), KP(0.5, 0.18), KP(1, 0) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.15), KP(1, 1) }),
+			Lifetime = R(0.6, 1), Speed = R(1.5, 3.5), Drag = 1, LightEmission = 0.5, Rotation = R(0, 360),
+		}, { EmitCount = ({ 0, 6, 9, 12 })[tier], EmitDelay = 0.1 })
+	end
+	return root:FindFirstChild("Burn" .. key)
+end
+
+local spec = {
+	id = "TwinPhoenixCannon",
+	root = { attrs = { AuthoredActive = 0.08, AuthoredLength = LENGTH, AuthoredWidth = WIDTH } },
+	blocks = blocks,
+	beats = {
+		-- windup: crimson qi into the right fist (caster only)
+		{ block = "handGather", params = pal("R", { windup = 0.30, at = FIST_AT.R }) },
+		-- between the blasts: gold qi into the left fist (everyone)
+		{ block = "handGather", params = pal("L", { part = "Gather", windup = 0.45, at = GATHER_AT, wisps = false }) },
+		{ block = "fist", params = { key = "R" } },
+		{ block = "fist", params = { key = "L" } },
+		{ block = "blast", params = { key = "R" } },
+		{ block = "blast", params = { key = "L" } },
+		{ block = "streak", params = { key = "R" } },
+		{ block = "streak", params = { key = "L" } },
+		{ block = "impact", params = { key = "R" } },
+		{ block = "impact", params = { key = "L" } },
+		{ block = "terminal", params = { key = "R" } },
+		{ block = "terminal", params = { key = "L" } },
+	},
+}
+
+function spec.build(parent)
+	local B0 = _G.vfxBlocks
+	local built = {}
+	for tier = 1, 4 do
+		local name = spec.id .. "_T" .. tier
+		local old = parent:FindFirstChild(name)
+		if old then
+			old:Destroy()
+		end
+		local root = Instance.new("Model")
+		root.Name = name
+		for k, v in spec.root.attrs do
+			root:SetAttribute(k, v)
+		end
+		for _, beat in spec.beats do
+			if tier >= (beat.from or 1) and tier <= (beat.to or 4) then
+				local fn = blocks[beat.block] or B0.BLOCKS[beat.block]
+				assert(fn, "unknown block " .. tostring(beat.block))
+				fn(root, tier, beat.params or {})
+			end
+		end
+		root.WorldPivot = O
+		root.Parent = parent
+		table.insert(built, root)
+	end
+	return built
+end
+
+-- A local def for previews until Techniques.luau has it (numbers from the
+-- weapons design doc).
+spec.previewDef = {
+	id = "TwinPhoenixCannon", name = "Twin Phoenix Cannon", kind = "line", weapon = "Fist",
+	length = 18, width = 6, damage = 14, cooldown = 9, color = PAL.R.color,
+	animationId = "rbxassetid://116649566757684",
+	hits = { { time = 0.30, damage = 14 }, { time = 0.83, damage = 14 } },
+}
+
+return spec
+	end)
+	if ok then _G.vfxSpecs["TwinPhoenixCannon"] = spec end
+	table.insert(installed, "spec TwinPhoenixCannon: " .. (ok and "ok" or tostring(spec)))
 end
 return table.concat(installed, "\n")

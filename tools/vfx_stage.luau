@@ -12,6 +12,9 @@
 --   _G.vfxStage.synced(check)              -- Rojo patched the live folder?
 --   (commit assets/Effects.rbxm), then _G.vfxStage.unlock(who)
 --
+-- Hashing needs _G.vfxDiff (tools/vfx_diff.luau); when it isn't installed,
+-- the first hash loads it from the receiver, so this file works on its own.
+--
 -- finish() POSTs the staging copy as Effects.rbxm (root renamed to "Effects"),
 -- destroys it and returns a summary (templates per group, add-on tags).
 --
@@ -74,10 +77,20 @@ local STAMP = "BuildStamp"
 -- Runtime state and the stamp itself don't count as edits.
 local SKIP = { "@" .. STAMP .. "=", "@EmitBreak=" }
 
+-- Loads tools/vfx_diff.luau from the receiver when vfx_session.luau hasn't.
+local function diff()
+	if not _G.vfxDiff then
+		local m = Instance.new("ModuleScript")
+		m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_diff.luau")
+		require(m)
+		m:Destroy()
+	end
+	return assert(_G.vfxDiff, "tools/vfx_diff.luau didn't install _G.vfxDiff")
+end
+
 local function hash(root): string
-	assert(_G.vfxDiff, "run tools/vfx_diff.luau first (vfx_session.luau loads it)")
 	local lines = {}
-	for path, desc in _G.vfxDiff.snapshot(root) do
+	for path, desc in diff().snapshot(root) do
 		local fields = {}
 		for f in string.gmatch(desc, "[^|]+") do
 			local skip = false

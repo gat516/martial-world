@@ -422,11 +422,17 @@ Other sessions use the same Studio and the same `_G`. Before a capture run:
   warns about effect-looking instances loose in Workspace; report those and
   never delete them unasked (AGENTS.md, "Studio instances"). To rebuild only
   some auras, `_G.buildMethodAura(staging, { only = { "BlazingHeart" } })`
-  leaves the other methods untouched. `vfxStage.finish(check)` exports, destroys the staging copy
-  and waits for Rojo to patch the real folder. Then
-  `tools/vfx_export.sh [names]` copies the export into `assets/` and verifies
-  templates, attribute counts and add-on tags. These replace the manual steps
-  under "Export" below.
+  leaves the other methods untouched. `vfxStage.finish()` stamps, exports
+  and destroys the staging copy. Then `tools/vfx_export.sh [names]` copies
+  the export into `assets/` and verifies templates, attribute counts and
+  add-on tags, and `vfxStage.synced(check)` waits for Rojo to patch the real
+  folder. Names are any instance name (`PalmStrike_T4`) or a
+  `Group.Template` path for templates without a tier (`SpiritWolf.Landing`).
+  Templates may be Folders as well as Models: the stamp hash and `vfxDiff`
+  place parts in world space when the root has no pivot. `vfx_stage.luau`
+  loads `vfx_diff.luau` from the receiver itself if `vfx_session.luau`
+  hasn't, so it also works on its own. These replace the manual steps under
+  "Export" below.
 - Spline trails can't be frozen for a still, and ScreenEffects can't be
   captured. Say so in the report instead of spending captures on them.
 

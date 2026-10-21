@@ -177,6 +177,22 @@ FE1 and starters FE9, so the method line first appears when FE2 exists.
    higher grades can later add a small effect, like healing allies who meditate
    nearby.
 
+   **Direction (decided 2026-10-21): every method gets its own aura.** The
+   shared tinted template reads as the same ring in different colours, which is
+   why auras feel lackluster. The user: "there will be different cultivation
+   techniques so obviously the grade of their vfx should be way different."
+   Each method has a signature look of its own (its idea, its shapes, where on
+   the body it lives), not an element tint over a common base, and grade sets
+   how grand it is: a Mortal method stays modest and close to the body, while
+   high grades fill the screen (backdrop mandala or sunburst, a spirit rising
+   behind). Reference looks from the user: a dantian core lit in the belly,
+   glowing acupoints joined like constellations, an outline glow, flame hugging
+   the silhouette, cracks and arcs across the body, qi streaming inward, a
+   giant lotus or mandala behind. The per-method brief, grade scale and the
+   recipe for inventing new methods are in [auras.md](auras.md) (refs in
+   `docs/reference/auras/`). Still to do: the rebuild (vfx agent) replacing the
+   shared template.
+
 - A method matching your root gets a qi-speed bonus (the synergy rule).
 - Better methods come from bosses, world events, caches and later realms' libraries.
 - **Switching is free** while meditating, between methods you own. There is no

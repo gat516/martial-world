@@ -675,7 +675,8 @@ RUINED BORDERLANDS
 - Encounter spaces (visual only; spawns still come from `Wilds.Zones`): boss arenas are
   the Wolf Den clearing (Inner, ringed by standing stones at r 44, den cave west) and the
   Fallen Outpost (Middle, the existing BossArena disc inside a walled ring with a north
-  gate); world events land inside the zone discs (`Treasures.randomSpot`), which stay open;
+  gate); world events and treasures land on the event grounds (`Wilds.EventGrounds`,
+  `Treasures.randomSpot`; see [world](world.md));
   the Deserters' Camp is an outpost site for 3-5 enemies; ambush spots are the Hidden cleft,
   Giants Gully, the border gate, Bone Gully and the arena gate.
 - POI audit (2026-10-21, see "Editor-only markers and the POI tour"): the Stone Rock Pack's
@@ -780,6 +781,10 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 - Wilds zones and qi nodes (positions in `assets/Wilds.rbxmx`) are leash and
   spawn homes; ground raycasts (spawns reject Water, treasures, placement) need
   real collision under them.
+- Event grounds (`Wilds.EventGrounds`, parts with a `Radius` attribute, in
+  `assets/Wilds.rbxmx`) are where `Treasures.randomSpot` drops treasures and world
+  events; keep them flat, open (no trees or rock clusters inside) and on real
+  collision, and move them with the zone reworks (staging).
 - Weapon racks and manual caches (`src/server/WorldCaches.luau`, design in
   `docs/systems/weapons.md`): found only by CollectionService tag, anywhere
   under Workspace. Each anchor is an invisible BasePart (Transparency 1,

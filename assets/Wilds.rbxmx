@@ -132,6 +132,82 @@
    </Properties>
    </Item>
   </Item>
+  <Item class="Folder" referent="RBXEGF"><Properties>
+   <string name="Name">EventGrounds</string>
+  </Properties>
+   <Item class="Part" referent="RBXEG0"><Properties>
+    <string name="Name">BoarMeadowGround</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>80</X><Y>1</Y><Z>80</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>230</X><Y>4.3</Y><Z>690</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4293246032</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <float name="Transparency">1</float>
+    <bool name="CanQuery">false</bool>
+    <BinaryString name="AttributesSerialize">BQAAAAYAAABSYWRpdXMGAAAAAAAAREAEAAAAWm9uZQIFAAAASW5uZXIHAAAAUG9pTmFtZQISAAAAQm9hciBNZWFkb3cgZ3JvdW5kBAAAAEtpbmQCCwAAAEV2ZW50R3JvdW5kCQAAAExhYmVsTm90ZQIHAAAAaW50ZXJpbQ==</BinaryString>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXEG1"><Properties>
+    <string name="Name">WestFieldGround</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>76</X><Y>1</Y><Z>76</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-160</X><Y>4.9</Y><Z>780</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4293246032</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <float name="Transparency">1</float>
+    <bool name="CanQuery">false</bool>
+    <BinaryString name="AttributesSerialize">BQAAAAYAAABSYWRpdXMGAAAAAAAAQ0AEAAAAWm9uZQIFAAAASW5uZXIHAAAAUG9pTmFtZQIRAAAAV2VzdCBGaWVsZCBncm91bmQEAAAAS2luZAILAAAARXZlbnRHcm91bmQJAAAATGFiZWxOb3RlAgcAAABpbnRlcmlt</BinaryString>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXEG2"><Properties>
+    <string name="Name">GravesFieldGround</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>64</X><Y>1</Y><Z>64</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>-220</X><Y>2.3</Y><Z>1050</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4293246032</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <float name="Transparency">1</float>
+    <bool name="CanQuery">false</bool>
+    <BinaryString name="AttributesSerialize">BQAAAAYAAABSYWRpdXMGAAAAAAAAQEAEAAAAWm9uZQIGAAAATWlkZGxlBwAAAFBvaU5hbWUCEwAAAEdyYXZlcyBGaWVsZCBncm91bmQEAAAAS2luZAILAAAARXZlbnRHcm91bmQJAAAATGFiZWxOb3RlAgcAAABpbnRlcmlt</BinaryString>
+   </Properties>
+   </Item>
+   <Item class="Part" referent="RBXEG3"><Properties>
+    <string name="Name">SouthFlatGround</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
+    <bool name="Anchored">true</bool>
+    <bool name="CanCollide">false</bool>
+    <bool name="CanTouch">false</bool>
+    <bool name="Massless">true</bool>
+    <Vector3 name="size"><X>60</X><Y>1</Y><Z>60</Z></Vector3>
+    <CoordinateFrame name="CFrame"><X>140</X><Y>2.3</Y><Z>1228</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+    <Color3uint8 name="Color3uint8">4293246032</Color3uint8>
+    <token name="Material">272</token>
+    <token name="TopSurface">0</token>
+    <token name="BottomSurface">0</token>
+    <float name="Transparency">1</float>
+    <bool name="CanQuery">false</bool>
+    <BinaryString name="AttributesSerialize">BQAAAAYAAABSYWRpdXMGAAAAAAAAPkAEAAAAWm9uZQIGAAAATWlkZGxlBwAAAFBvaU5hbWUCEQAAAFNvdXRoIEZsYXQgZ3JvdW5kBAAAAEtpbmQCCwAAAEV2ZW50R3JvdW5kCQAAAExhYmVsTm90ZQIHAAAAaW50ZXJpbQ==</BinaryString>
+   </Properties>
+   </Item>
+  </Item>
   <Item class="Folder" referent="RBXE250"><Properties>
    <string name="Name">QiNodes</string>
   </Properties>

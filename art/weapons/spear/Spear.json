@@ -1,0 +1,173 @@
+{
+ "units": "1 Blender unit = 1 stud; Z along the shaft (blade +Z), X edge to edge; origin = the right-hand grip",
+ "roblox_mapping": "Size = (bx, bz, by); CFrame = pivot * CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy); anchor/direction 'roblox' = (x, z, -y) relative to the pivot (the mesh origin); an anchor's 'roll' is degrees about the item axis (Blender +Z = Roblox +Y): anchor frame = CFrame.new(roblox) * CFrame.Angles(0, rad(roll), 0); Tool.Grip = grip frame (in Handle space)",
+ "overall": {
+  "center": [
+   0.02,
+   0.0,
+   2.05
+  ],
+  "size": [
+   0.759,
+   0.779,
+   8.7
+  ],
+  "length": 8.7
+ },
+ "anchors": {
+  "grip": {
+   "pos": [
+    0,
+    0,
+    0.0
+   ],
+   "roll": -90.0,
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "up": [
+    1,
+    0,
+    0
+   ],
+   "note": "right hand (RightGripAttachment) on the lower wrap; shaft along +Z, an edge (+X) turned forward",
+   "roblox": [
+    0,
+    0.0,
+    0
+   ],
+   "roblox_dir": [
+    0,
+    1,
+    0
+   ],
+   "roblox_up": [
+    1,
+    0,
+    0
+   ]
+  },
+  "off_grip": {
+   "pos": [
+    0,
+    0,
+    1.5
+   ],
+   "roll": -90.0,
+   "note": "left hand on the upper wrap, toward the blade",
+   "roblox": [
+    0,
+    1.5,
+    0
+   ]
+  },
+  "tip": {
+   "pos": [
+    0,
+    0,
+    6.4
+   ],
+   "note": "blade point (trail/impact effects)",
+   "roblox": [
+    0,
+    6.4,
+    0
+   ]
+  },
+  "blade_mid": {
+   "pos": [
+    0,
+    0,
+    5.49
+   ],
+   "note": "widest part of the leaf",
+   "roblox": [
+    0,
+    5.49,
+    0
+   ]
+  },
+  "butt": {
+   "pos": [
+    0,
+    0,
+    -2.3
+   ],
+   "roblox": [
+    0,
+    -2.3,
+    0
+   ]
+  }
+ },
+ "meshes": {
+  "SpearBlade": {
+   "tris": 70,
+   "center": [
+    0.0,
+    0.0,
+    5.7
+   ],
+   "size": [
+    0.43,
+    0.144,
+    1.4
+   ]
+  },
+  "SpearFittings": {
+   "tris": 218,
+   "center": [
+    0.0,
+    0.0,
+    1.375
+   ],
+   "size": [
+    0.286,
+    0.286,
+    7.35
+   ]
+  },
+  "SpearShaft": {
+   "tris": 44,
+   "center": [
+    0.0,
+    0.0,
+    1.375
+   ],
+   "size": [
+    0.201,
+    0.201,
+    6.75
+   ]
+  },
+  "SpearWrap": {
+   "tris": 504,
+   "center": [
+    0.0,
+    0.0,
+    0.75
+   ],
+   "size": [
+    0.225,
+    0.225,
+    2.34
+   ]
+  },
+  "SpearTassel": {
+   "tris": 220,
+   "center": [
+    0.02,
+    0.0,
+    4.175
+   ],
+   "size": [
+    0.759,
+    0.779,
+    0.85
+   ]
+  }
+ },
+ "tris_total": 1056
+}

@@ -1,0 +1,131 @@
+{
+ "units": "1 Blender unit = 1 stud; axes X edge-to-edge, Y flat-to-flat, Z along the blade; origin = grip centre",
+ "roblox_mapping": "Size = (bx, bz, by); CFrame = pivot * CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy); anchor 'roblox' = (x, z, -y) relative to the pivot",
+ "overall": {
+  "length": 3.77,
+  "length_with_tassel": 4.5,
+  "blade": 2.45,
+  "grip": 0.9
+ },
+ "anchors": {
+  "grip": {
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "roll": -90.0,
+   "note": "pivot; weld to the R6 RightGripAttachment, blade along +Z, an edge turned forward",
+   "roblox": [
+    0,
+    0,
+    0
+   ]
+  },
+  "tip": {
+   "pos": [
+    0,
+    0,
+    3.1
+   ],
+   "roblox": [
+    0,
+    3.1,
+    0
+   ]
+  },
+  "guard": {
+   "pos": [
+    0,
+    0,
+    0.53
+   ],
+   "note": "guard centre, for hit/trail effects starting at the blade root",
+   "roblox": [
+    0,
+    0.53,
+    0
+   ]
+  },
+  "blade_mid": {
+   "pos": [
+    0,
+    0,
+    1.875
+   ],
+   "roblox": [
+    0,
+    1.875,
+    0
+   ]
+  },
+  "tassel_mount": {
+   "pos": [
+    0,
+    0,
+    -0.64
+   ],
+   "note": "where the tassel cord hangs from",
+   "roblox": [
+    0,
+    -0.64,
+    0
+   ]
+  }
+ },
+ "meshes": {
+  "JianBlade": {
+   "tris": 30,
+   "center": [
+    0.0,
+    0.0,
+    1.835
+   ],
+   "size": [
+    0.3,
+    0.1,
+    2.53
+   ]
+  },
+  "JianFittings": {
+   "tris": 310,
+   "center": [
+    0.0,
+    0.0,
+    0.015
+   ],
+   "size": [
+    0.794,
+    0.236,
+    1.37
+   ]
+  },
+  "JianGrip": {
+   "tris": 300,
+   "center": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "size": [
+    0.212,
+    0.176,
+    0.9
+   ]
+  },
+  "JianTassel": {
+   "tris": 82,
+   "center": [
+    0.0,
+    0.0,
+    -1.02
+   ],
+   "size": [
+    0.191,
+    0.22,
+    0.76
+   ]
+  }
+ },
+ "tris_total": 722
+}

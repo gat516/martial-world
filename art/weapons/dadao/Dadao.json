@@ -1,0 +1,159 @@
+{
+ "units": "1 Blender unit = 1 stud; Z along the blade, X toward the cutting edge; origin = build origin, right hand at the grip anchor",
+ "roblox_mapping": "Size = (bx, bz, by); CFrame = pivot * CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy); anchor/direction 'roblox' = (x, z, -y) relative to the pivot (the mesh origin); an anchor's 'roll' is degrees about the item axis (Blender +Z = Roblox +Y): anchor frame = CFrame.new(roblox) * CFrame.Angles(0, rad(roll), 0); Tool.Grip = grip frame (in Handle space)",
+ "overall": {
+  "center": [
+   -0.006,
+   0.0,
+   0.577
+  ],
+  "size": [
+   0.668,
+   0.473,
+   5.707
+  ],
+  "length": 5.707
+ },
+ "anchors": {
+  "grip": {
+   "pos": [
+    0,
+    0,
+    -0.1
+   ],
+   "roll": -90.0,
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "up": [
+    1,
+    0,
+    0
+   ],
+   "note": "right hand (RightGripAttachment) just under the guard; blade along +Z, edge +X turned forward",
+   "roblox": [
+    0,
+    -0.1,
+    0
+   ],
+   "roblox_dir": [
+    0,
+    1,
+    0
+   ],
+   "roblox_up": [
+    1,
+    0,
+    0
+   ]
+  },
+  "off_grip": {
+   "pos": [
+    0,
+    0,
+    -0.9
+   ],
+   "roll": -90.0,
+   "note": "left hand, toward the pommel",
+   "roblox": [
+    0,
+    -0.9,
+    0
+   ]
+  },
+  "tip": {
+   "pos": [
+    -0.34,
+    0,
+    3.43
+   ],
+   "roblox": [
+    -0.34,
+    3.43,
+    0
+   ]
+  },
+  "guard": {
+   "pos": [
+    0,
+    0,
+    0.465
+   ],
+   "roblox": [
+    0,
+    0.465,
+    0
+   ]
+  },
+  "blade_mid": {
+   "pos": [
+    0.23,
+    0,
+    2.141
+   ],
+   "note": "middle of the cutting edge",
+   "roblox": [
+    0.23,
+    2.141,
+    0
+   ]
+  }
+ },
+ "meshes": {
+  "DadaoBlade": {
+   "tris": 88,
+   "center": [
+    -0.052,
+    0.0,
+    1.98
+   ],
+   "size": [
+    0.576,
+    0.14,
+    2.9
+   ]
+  },
+  "DadaoFittings": {
+   "tris": 268,
+   "center": [
+    0.0,
+    0.0,
+    -0.572
+   ],
+   "size": [
+    0.657,
+    0.473,
+    2.165
+   ]
+  },
+  "DadaoGrip": {
+   "tris": 444,
+   "center": [
+    0.0,
+    0.0,
+    -0.415
+   ],
+   "size": [
+    0.24,
+    0.194,
+    1.51
+   ]
+  },
+  "DadaoRibbon": {
+   "tris": 60,
+   "center": [
+    0.0,
+    0.0,
+    -1.918
+   ],
+   "size": [
+    0.469,
+    0.1,
+    0.717
+   ]
+  }
+ },
+ "tris_total": 860
+}

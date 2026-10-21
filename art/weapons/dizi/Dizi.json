@@ -1,0 +1,168 @@
+{
+ "units": "1 Blender unit = 1 stud; Z along the flute toward the mouth end, holes face -Y; origin = right-hand grip",
+ "roblox_mapping": "Size = (bx, bz, by); CFrame = pivot * CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy); anchor/direction 'roblox' = (x, z, -y) relative to the pivot",
+ "overall": {
+  "center": [
+   0.0,
+   0.0,
+   0.055
+  ],
+  "size": [
+   0.203,
+   0.22,
+   2.99
+  ],
+  "length": 2.99
+ },
+ "anchors": {
+  "grip": {
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "up": [
+    0,
+    -1,
+    0
+   ],
+   "note": "pivot; right hand (RightGripAttachment) over the lower holes; flute along +Z toward the mouth, holes facing `up`",
+   "roblox": [
+    0,
+    0,
+    0
+   ],
+   "roblox_dir": [
+    0,
+    1,
+    0
+   ],
+   "roblox_up": [
+    0,
+    0,
+    1
+   ]
+  },
+  "off_grip": {
+   "pos": [
+    0,
+    0,
+    0.4
+   ],
+   "note": "left hand, over the upper holes",
+   "roblox": [
+    0,
+    0.4,
+    0
+   ]
+  },
+  "mouth": {
+   "pos": [
+    0,
+    -0.09,
+    1.22
+   ],
+   "dir": [
+    0,
+    -1,
+    0
+   ],
+   "note": "blow hole: put it at the R6's mouth (front of the Head, ~z 2.5 in the rig), flute running across to the player's right",
+   "roblox": [
+    0,
+    1.22,
+    0.09
+   ],
+   "roblox_dir": [
+    0,
+    0,
+    1
+   ]
+  },
+  "foot": {
+   "pos": [
+    0,
+    0,
+    -0.75
+   ],
+   "roblox": [
+    0,
+    -0.75,
+    0
+   ]
+  }
+ },
+ "meshes": {
+  "DiziBody": {
+   "tris": 92,
+   "center": [
+    0.0,
+    0.0,
+    0.4
+   ],
+   "size": [
+    0.188,
+    0.188,
+    2.16
+   ]
+  },
+  "DiziFittings": {
+   "tris": 88,
+   "center": [
+    0.0,
+    0.0,
+    0.4
+   ],
+   "size": [
+    0.203,
+    0.203,
+    2.3
+   ]
+  },
+  "DiziBinding": {
+   "tris": 324,
+   "center": [
+    0.0,
+    0.0,
+    0.385
+   ],
+   "size": [
+    0.188,
+    0.188,
+    2.01
+   ]
+  },
+  "DiziHoles": {
+   "tris": 160,
+   "center": [
+    0.0,
+    -0.07,
+    0.422
+   ],
+   "size": [
+    0.077,
+    0.034,
+    1.664
+   ]
+  },
+  "DiziTassel": {
+   "tris": 82,
+   "center": [
+    0.0,
+    0.0,
+    -1.09
+   ],
+   "size": [
+    0.191,
+    0.22,
+    0.7
+   ]
+  }
+ },
+ "tris_total": 746
+}

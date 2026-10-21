@@ -1,0 +1,73 @@
+{
+ "units": "1 Blender unit = 1 stud; Z up; origin = stone centre",
+ "roblox_mapping": "Size = (bx, bz, by); CFrame = pivot * CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy); anchor 'roblox' = (x, z, -y) relative to the pivot",
+ "anchors": {
+  "centre": {
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "note": "pivot; spin/bob about +Z (Roblox +Y)",
+   "roblox": [
+    0,
+    0,
+    0
+   ]
+  },
+  "base": {
+   "pos": [
+    0,
+    0,
+    -0.3
+   ],
+   "note": "lowest point; rest the pivot this far above the ground",
+   "roblox": [
+    0,
+    -0.3,
+    0
+   ]
+  },
+  "light": {
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "note": "PointLight here (glow colour = the core colour)",
+   "roblox": [
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "meshes": {
+  "SpiritStone": {
+   "tris": 36,
+   "center": [
+    0.0,
+    0.0,
+    0.04
+   ],
+   "size": [
+    0.44,
+    0.4,
+    0.68
+   ]
+  },
+  "SpiritStoneCore": {
+   "tris": 36,
+   "center": [
+    0.0,
+    0.0,
+    0.022
+   ],
+   "size": [
+    0.242,
+    0.22,
+    0.374
+   ]
+  }
+ }
+}

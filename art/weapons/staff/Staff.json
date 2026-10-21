@@ -1,0 +1,138 @@
+{
+ "units": "1 Blender unit = 1 stud; Z along the staff (head +Z); origin = build origin, right hand at the grip anchor",
+ "roblox_mapping": "Size = (bx, bz, by); CFrame = pivot * CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy); anchor/direction 'roblox' = (x, z, -y) relative to the pivot (the mesh origin); an anchor's 'roll' is degrees about the item axis (Blender +Z = Roblox +Y): anchor frame = CFrame.new(roblox) * CFrame.Angles(0, rad(roll), 0); Tool.Grip = grip frame (in Handle space)",
+ "overall": {
+  "center": [
+   0.003,
+   0.0,
+   1.05
+  ],
+  "size": [
+   0.697,
+   0.36,
+   6.1
+  ],
+  "length": 6.1
+ },
+ "anchors": {
+  "grip": {
+   "pos": [
+    0,
+    0,
+    0.8
+   ],
+   "roll": 0.0,
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "note": "right hand (RightGripAttachment), near the balance point; staff along +Z",
+   "roblox": [
+    0,
+    0.8,
+    0
+   ],
+   "roblox_dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  "off_grip": {
+   "pos": [
+    0,
+    0,
+    2.2
+   ],
+   "roll": 0.0,
+   "note": "left hand, further along the shaft",
+   "roblox": [
+    0,
+    2.2,
+    0
+   ]
+  },
+  "head": {
+   "pos": [
+    0,
+    0,
+    4.1
+   ],
+   "note": "striking end (trail/impact effects)",
+   "roblox": [
+    0,
+    4.1,
+    0
+   ]
+  },
+  "butt": {
+   "pos": [
+    0,
+    0,
+    -2.0
+   ],
+   "note": "butt end",
+   "roblox": [
+    0,
+    -2.0,
+    0
+   ]
+  }
+ },
+ "meshes": {
+  "StaffShaft": {
+   "tris": 44,
+   "center": [
+    0.0,
+    0.0,
+    1.05
+   ],
+   "size": [
+    0.258,
+    0.258,
+    6.0
+   ]
+  },
+  "StaffFittings": {
+   "tris": 184,
+   "center": [
+    0.0,
+    0.0,
+    1.05
+   ],
+   "size": [
+    0.36,
+    0.36,
+    6.1
+   ]
+  },
+  "StaffWrap": {
+   "tris": 504,
+   "center": [
+    0.0,
+    0.0,
+    1.5
+   ],
+   "size": [
+    0.274,
+    0.274,
+    2.24
+   ]
+  },
+  "StaffRibbon": {
+   "tris": 76,
+   "center": [
+    0.003,
+    0.0,
+    3.355
+   ],
+   "size": [
+    0.697,
+    0.271,
+    0.829
+   ]
+  }
+ },
+ "tris_total": 808
+}

@@ -1,0 +1,172 @@
+{
+ "units": "1 Blender unit = 1 stud; Z along the shaft (blade +Z), X toward the cutting edge; origin = build origin, right hand at the grip anchor",
+ "roblox_mapping": "Size = (bx, bz, by); CFrame = pivot * CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy); anchor/direction 'roblox' = (x, z, -y) relative to the pivot (the mesh origin); an anchor's 'roll' is degrees about the item axis (Blender +Z = Roblox +Y): anchor frame = CFrame.new(roblox) * CFrame.Angles(0, rad(roll), 0); Tool.Grip = grip frame (in Handle space)",
+ "overall": {
+  "center": [
+   0.027,
+   0.0,
+   1.656
+  ],
+  "size": [
+   0.955,
+   0.64,
+   7.511
+  ],
+  "length": 7.511
+ },
+ "anchors": {
+  "grip": {
+   "pos": [
+    0,
+    0,
+    1.5
+   ],
+   "roll": -90.0,
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "up": [
+    1,
+    0,
+    0
+   ],
+   "note": "right hand (RightGripAttachment) on the upper wrap; shaft along +Z, cutting edge +X turned forward",
+   "roblox": [
+    0,
+    1.5,
+    0
+   ],
+   "roblox_dir": [
+    0,
+    1,
+    0
+   ],
+   "roblox_up": [
+    1,
+    0,
+    0
+   ]
+  },
+  "off_grip": {
+   "pos": [
+    0,
+    0,
+    0.0
+   ],
+   "roll": -90.0,
+   "note": "left hand on the lower wrap, toward the butt",
+   "roblox": [
+    0,
+    0.0,
+    0
+   ]
+  },
+  "tip": {
+   "pos": [
+    -0.42,
+    0,
+    5.42
+   ],
+   "roblox": [
+    -0.42,
+    5.42,
+    0
+   ]
+  },
+  "blade_mid": {
+   "pos": [
+    0.312,
+    0,
+    4.32
+   ],
+   "note": "middle of the cutting edge",
+   "roblox": [
+    0.312,
+    4.32,
+    0
+   ]
+  },
+  "butt": {
+   "pos": [
+    0,
+    0,
+    -2.1
+   ],
+   "roblox": [
+    0,
+    -2.1,
+    0
+   ]
+  }
+ },
+ "meshes": {
+  "GuandaoBlade": {
+   "tris": 124,
+   "center": [
+    0.027,
+    0.0,
+    4.415
+   ],
+   "size": [
+    0.955,
+    0.13,
+    1.993
+   ]
+  },
+  "GuandaoFittings": {
+   "tris": 154,
+   "center": [
+    0.0,
+    0.0,
+    0.7
+   ],
+   "size": [
+    0.425,
+    0.34,
+    5.6
+   ]
+  },
+  "GuandaoShaft": {
+   "tris": 28,
+   "center": [
+    0.0,
+    0.0,
+    0.8
+   ],
+   "size": [
+    0.222,
+    0.222,
+    4.8
+   ]
+  },
+  "GuandaoWrap": {
+   "tris": 504,
+   "center": [
+    0.0,
+    0.0,
+    0.75
+   ],
+   "size": [
+    0.259,
+    0.259,
+    2.34
+   ]
+  },
+  "GuandaoTassel": {
+   "tris": 96,
+   "center": [
+    0.0,
+    0.0,
+    2.765
+   ],
+   "size": [
+    0.609,
+    0.64,
+    0.65
+   ]
+  }
+ },
+ "tris_total": 906
+}

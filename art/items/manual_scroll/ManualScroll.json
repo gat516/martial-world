@@ -1,0 +1,113 @@
+{
+ "units": "1 Blender unit = 1 stud; X along the roll, Y outward (loose end toward -Y), Z up; origin = centre of the footprint on the ground",
+ "roblox_mapping": "Size = (bx, bz, by); CFrame = pivot * CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy); anchor/direction 'roblox' = (x, z, -y) relative to the pivot (the mesh origin); an anchor's 'roll' is degrees about the item axis (Blender +Z = Roblox +Y): anchor frame = CFrame.new(roblox) * CFrame.Angles(0, rad(roll), 0); Tool.Grip = grip frame (in Handle space)",
+ "overall": {
+  "center": [
+   0.0,
+   -0.145,
+   0.2
+  ],
+  "size": [
+   1.44,
+   0.705,
+   0.436
+  ],
+  "length": 0.436
+ },
+ "anchors": {
+  "base": {
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "note": "rests here: the middle of its footprint on the surface",
+   "roblox": [
+    0,
+    0,
+    0
+   ]
+  },
+  "centre": {
+   "pos": [
+    0,
+    0,
+    0.2
+   ],
+   "note": "middle of the roll (glow / prompt)",
+   "roblox": [
+    0,
+    0.2,
+    0
+   ]
+  },
+  "top": {
+   "pos": [
+    0,
+    0,
+    0.4
+   ],
+   "note": "top of the roll",
+   "roblox": [
+    0,
+    0.4,
+    0
+   ]
+  }
+ },
+ "meshes": {
+  "ManualScrollPaper": {
+   "tris": 128,
+   "center": [
+    0.0,
+    -0.15,
+    0.2
+   ],
+   "size": [
+    1.1,
+    0.68,
+    0.4
+   ]
+  },
+  "ManualScrollRod": {
+   "tris": 196,
+   "center": [
+    0.0,
+    0.0,
+    0.2
+   ],
+   "size": [
+    1.44,
+    0.228,
+    0.24
+   ]
+  },
+  "ManualScrollTie": {
+   "tris": 96,
+   "center": [
+    0.196,
+    -0.145,
+    0.2
+   ],
+   "size": [
+    0.282,
+    0.705,
+    0.436
+   ]
+  },
+  "ManualScrollLabel": {
+   "tris": 36,
+   "center": [
+    -0.2,
+    0.0,
+    0.2
+   ],
+   "size": [
+    0.22,
+    0.409,
+    0.43
+   ]
+  }
+ },
+ "tris_total": 456
+}

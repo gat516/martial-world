@@ -1,0 +1,177 @@
+{
+ "units": "1 Blender unit = 1 stud; Z tail->head, X across, -Y = strings side; origin = body centre",
+ "roblox_mapping": "Size = (bx, bz, by); CFrame = pivot * CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy); anchor/direction 'roblox' = (x, z, -y) relative to the pivot",
+ "overall": {
+  "center": [
+   0.062,
+   -0.042,
+   0.0
+  ],
+  "size": [
+   1.253,
+   0.472,
+   4.2
+  ],
+  "length": 4.2
+ },
+ "anchors": {
+  "back_carry": {
+   "pos": [
+    0,
+    0.194,
+    0.3
+   ],
+   "up": [
+    0,
+    -1,
+    0
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "note": "on the underside: put this on the R6's back (Torso back face) with `up` (strings) facing away from the body; tilt `dir` (head) ~30 deg over the right shoulder",
+   "roblox": [
+    0,
+    0.3,
+    -0.194
+   ],
+   "roblox_dir": [
+    0,
+    1,
+    0
+   ],
+   "roblox_up": [
+    0,
+    0,
+    1
+   ]
+  },
+  "play": {
+   "pos": [
+    0,
+    0.194,
+    0
+   ],
+   "up": [
+    0,
+    -1,
+    0
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "note": "on the underside: rest flat in front of / across the lap, `up` (strings) upward, `dir` (head) toward the player's right",
+   "roblox": [
+    0,
+    0,
+    -0.194
+   ],
+   "roblox_dir": [
+    0,
+    1,
+    0
+   ],
+   "roblox_up": [
+    0,
+    0,
+    1
+   ]
+  },
+  "pluck": {
+   "pos": [
+    0,
+    -0.26,
+    1.3
+   ],
+   "note": "where the right hand plucks (between the bridges and the head), for effects",
+   "roblox": [
+    0,
+    1.3,
+    0.26
+   ]
+  },
+  "head": {
+   "pos": [
+    0,
+    0,
+    2.1
+   ],
+   "roblox": [
+    0,
+    2.1,
+    0
+   ]
+  },
+  "tail": {
+   "pos": [
+    0,
+    0,
+    -2.1
+   ],
+   "roblox": [
+    0,
+    -2.1,
+    0
+   ]
+  }
+ },
+ "meshes": {
+  "ZitherBody": {
+   "tris": 50,
+   "center": [
+    0.0,
+    -0.03,
+    -0.1
+   ],
+   "size": [
+    0.983,
+    0.32,
+    3.6
+   ]
+  },
+  "ZitherFittings": {
+   "tris": 244,
+   "center": [
+    0.0,
+    -0.033,
+    0.0
+   ],
+   "size": [
+    1.128,
+    0.454,
+    4.2
+   ]
+  },
+  "ZitherStrings": {
+   "tris": 312,
+   "center": [
+    0.0,
+    -0.234,
+    -0.1
+   ],
+   "size": [
+    0.722,
+    0.088,
+    3.681
+   ]
+  },
+  "ZitherTassel": {
+   "tris": 82,
+   "center": [
+    0.584,
+    0.0,
+    1.514
+   ],
+   "size": [
+    0.21,
+    0.242,
+    0.932
+   ]
+  }
+ },
+ "tris_total": 688
+}

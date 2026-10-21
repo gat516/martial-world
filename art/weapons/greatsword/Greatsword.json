@@ -1,0 +1,160 @@
+{
+ "units": "1 Blender unit = 1 stud; Z along the blade, X edge to edge, Y flat to flat; origin = build origin, right hand at the grip anchor",
+ "roblox_mapping": "Size = (bx, bz, by); CFrame = pivot * CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy); anchor/direction 'roblox' = (x, z, -y) relative to the pivot (the mesh origin); an anchor's 'roll' is degrees about the item axis (Blender +Z = Roblox +Y): anchor frame = CFrame.new(roblox) * CFrame.Angles(0, rad(roll), 0); Tool.Grip = grip frame (in Handle space)",
+ "overall": {
+  "center": [
+   0.0,
+   0.0,
+   0.915
+  ],
+  "size": [
+   1.232,
+   0.305,
+   6.55
+  ],
+  "length": 6.55
+ },
+ "anchors": {
+  "grip": {
+   "pos": [
+    0,
+    0,
+    -0.1
+   ],
+   "roll": -90.0,
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "note": "right hand (RightGripAttachment) just under the guard; blade along +Z, an edge turned forward",
+   "roblox": [
+    0,
+    -0.1,
+    0
+   ],
+   "roblox_dir": [
+    0,
+    1,
+    0
+   ]
+  },
+  "off_grip": {
+   "pos": [
+    0,
+    0,
+    -0.9
+   ],
+   "roll": -90.0,
+   "note": "left hand, toward the pommel",
+   "roblox": [
+    0,
+    -0.9,
+    0
+   ]
+  },
+  "tip": {
+   "pos": [
+    0,
+    0,
+    4.19
+   ],
+   "roblox": [
+    0,
+    4.19,
+    0
+   ]
+  },
+  "guard": {
+   "pos": [
+    0,
+    0,
+    0.52
+   ],
+   "roblox": [
+    0,
+    0.52,
+    0
+   ]
+  },
+  "blade_mid": {
+   "pos": [
+    0,
+    0,
+    2.44
+   ],
+   "roblox": [
+    0,
+    2.44,
+    0
+   ]
+  },
+  "tassel_mount": {
+   "pos": [
+    0,
+    0,
+    -1.45
+   ],
+   "roblox": [
+    0,
+    -1.45,
+    0
+   ]
+  }
+ },
+ "meshes": {
+  "GreatswordBlade": {
+   "tris": 62,
+   "center": [
+    0.0,
+    0.0,
+    2.38
+   ],
+   "size": [
+    0.54,
+    0.15,
+    3.62
+   ]
+  },
+  "GreatswordFittings": {
+   "tris": 310,
+   "center": [
+    0.0,
+    0.0,
+    -0.361
+   ],
+   "size": [
+    1.232,
+    0.305,
+    2.237
+   ]
+  },
+  "GreatswordGrip": {
+   "tris": 492,
+   "center": [
+    0.0,
+    0.0,
+    -0.39
+   ],
+   "size": [
+    0.249,
+    0.203,
+    1.62
+   ]
+  },
+  "GreatswordTassel": {
+   "tris": 82,
+   "center": [
+    0.0,
+    0.0,
+    -1.905
+   ],
+   "size": [
+    0.238,
+    0.275,
+    0.91
+   ]
+  }
+ },
+ "tris_total": 946
+}

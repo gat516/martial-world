@@ -82,6 +82,9 @@
       },
       "AmbientFX": {
         "$path": "assets/AmbientFX.rbxm"
+      },
+      "WeaponModels": {
+        "$path": "assets/WeaponModels.rbxm"
       }
     }
   }

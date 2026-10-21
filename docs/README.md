@@ -25,7 +25,10 @@ Mapped assets: `Remotes`, `Animations`, `Ambience`, `Effects` (binary
 (SoundService); `Wilds`, `Hub` (Workspace); `Enemies`, `PeakTiers`,
 `ItemTemplates`, `AmbientFX` (binary `assets/AmbientFX.rbxm`, world-ambience
 effect templates: fireflies, lamp glows, mist, waterfall spray, petals; see
-[world](systems/world.md)) (ServerStorage). Never restructure these by hand in Studio: see
+[world](systems/world.md)), `WeaponModels` (binary `assets/WeaponModels.rbxm`, weapon
+models: one Model per class weapon joined to the Right Arm by its `Hilt`/`HiltR` Motor6D, plus
+Dizi, Zither, SpiritStone and the ManualScroll prop; built by `art/weapons/place_weapons.luau`)
+(ServerStorage). Never restructure these by hand in Studio: see
 AGENTS.md, "Studio instances". `Workspace.Map` (peaks, plaza, cliffs, bridges,
 ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 [map](systems/map.md).

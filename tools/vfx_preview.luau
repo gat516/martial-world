@@ -263,6 +263,17 @@ function P.fresh(names)
 		m.Source = m.Source:gsub("ReplicatedStorage%.Shared", 'game:GetService("ServerStorage")._PreviewModules.Shared')
 		m.Parent = holder
 	end
+	-- per-technique effect modules (Client.TechniqueFX.<Id>), which CombatEffects
+	-- finds next to itself
+	if client:FindFirstChild("TechniqueFX") and not holder:FindFirstChild("TechniqueFX") then
+		local fx = client.TechniqueFX:Clone()
+		for _, m in fx:GetDescendants() do
+			if m:IsA("ModuleScript") then
+				m.Source = m.Source:gsub("ReplicatedStorage%.Shared", 'game:GetService("ServerStorage")._PreviewModules.Shared')
+			end
+		end
+		fx.Parent = holder
+	end
 	local tvModule = holder:FindFirstChild("TechniqueVFX")
 	if tvModule and S then
 		local TV = require(tvModule)

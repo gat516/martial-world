@@ -3,11 +3,13 @@
 -- (and tools/export_rbxm.luau, for _G.exportRbxm) once through execute_luau,
 -- with tools/receive_rbxmx.py running. Installs _G.vfxStage:
 --
---   local staging = _G.vfxStage.begin()   -- fresh clone at ReplicatedStorage._StagingEffects
+--   _G.vfxStage.lock(who)                 -- Studio lock between sessions (see below)
+--   local staging = _G.vfxStage.begin(who) -- fresh clone at ReplicatedStorage._StagingEffects
 --   ... edit/build inside `staging` ...
 --   _G.vfxStage.finish()                  -- export, destroy staging
 --   (on disk) tools/vfx_export.sh [names]  -- into assets/, verified
 --   _G.vfxStage.synced(check)              -- Rojo patched the live folder?
+--   (commit assets/Effects.rbxm), then _G.vfxStage.unlock(who)
 --
 -- finish() POSTs the staging copy as Effects.rbxm (root renamed to "Effects"),
 -- destroys it and returns a summary (templates per group, add-on tags).
@@ -21,7 +23,44 @@ local CollectionService = game:GetService("CollectionService")
 local Stage = {}
 local NAME = "_StagingEffects"
 
-function Stage.begin()
+-- A Studio lock between sessions sharing one Studio (several vfx agents at
+-- once): take it before staging, previews or captures, hold it through
+-- export, Rojo sync and the git commit of assets/Effects.rbxm, then release.
+-- Stored as ServerStorage's VFXStudioLock attribute ("who|unix time"); a lock
+-- older than STALE seconds counts as abandoned.
+local LOCK, STALE = "VFXStudioLock", 20 * 60
+local function holder(): (string?, number?)
+	local v = game:GetService("ServerStorage"):GetAttribute(LOCK)
+	if type(v) ~= "string" then
+		return nil, nil
+	end
+	local who, t = v:match("^(.-)|(%d+)$")
+	return who, tonumber(t)
+end
+
+-- true, or false and who holds it (and for how long). Re-locking refreshes it.
+function Stage.lock(who: string)
+	local owner, t = holder()
+	if owner and owner ~= who and t and os.time() - t < STALE then
+		return false, string.format("held by %s for %ds", owner, os.time() - t)
+	end
+	game:GetService("ServerStorage"):SetAttribute(LOCK, who .. "|" .. os.time())
+	return true
+end
+
+function Stage.unlock(who: string)
+	if holder() == who then
+		game:GetService("ServerStorage"):SetAttribute(LOCK, nil)
+	end
+end
+
+function Stage.holder()
+	return holder()
+end
+
+-- `who` must hold the lock (Stage.lock(who)).
+function Stage.begin(who: string?)
+	assert(who and holder() == who, "take the Studio lock first: vfxStage.lock(who), then vfxStage.begin(who)")
 	local old = RS:FindFirstChild(NAME)
 	if old then
 		old:Destroy()

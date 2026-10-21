@@ -76,6 +76,27 @@ end
 
 local SHAKE_BY_TIER = { 0.14, 0.2, 0.28, 0.38 }
 
+-- Per-technique effect modules (Client.TechniqueFX.<Id>), each returning
+-- { cast = function(CombatEffects, def, level, character, origin, dir, chain): boolean }.
+-- Keeps every technique's drawing in its own file. Required lazily, once.
+local techniqueModules: { [string]: any } = {}
+local function techniqueModule(id: string): any?
+	if techniqueModules[id] == nil then
+		local folder = script.Parent:FindFirstChild("TechniqueFX")
+		local m = folder and folder:FindFirstChild(id)
+		local ok, mod = false, nil
+		if m and m:IsA("ModuleScript") then
+			ok, mod = pcall(require, m)
+			if not ok then
+				warn(`TechniqueFX.{id} failed to load:`, mod)
+			end
+		end
+		techniqueModules[id] = if ok and type(mod) == "table" and type(mod.cast) == "function" then mod else false
+	end
+	return techniqueModules[id] or nil
+end
+CombatEffects.SHAKE_BY_TIER = SHAKE_BY_TIER
+
 -- Palm Strike from its tier template (ReplicatedStorage.Effects.PalmStrike):
 -- a ground wave from the caster's feet out to the gameplay radius, and an
 -- impact on every enemy the front reaches, timed to when it gets there.
@@ -236,6 +257,18 @@ function CombatEffects.cast(character: Model?, id: string, origin: Vector3, dir:
 	end
 	level = math.clamp(if type(level) == "number" then level else 1, 1, Techniques.MAX_LEVEL)
 	Sfx.play(def.id, origin) -- each technique's sound is named after its id
+	-- a technique with its own effect module (TechniqueFX/<Id>) draws itself;
+	-- it returns false (e.g. its templates are missing) to fall back to the
+	-- old drawing below
+	local own = techniqueModule(def.id)
+	if own then
+		local ok, handled = pcall(own.cast, CombatEffects, def, level :: number, character, origin, dir, chain)
+		if not ok then
+			warn(`TechniqueFX.{def.id}:`, handled)
+		elseif handled then
+			return
+		end
+	end
 	local color = def.color
 	if def.kind == "line" then
 		local length = def.length :: number

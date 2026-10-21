@@ -262,11 +262,6 @@ chant.
   texture, so the heart is a glow, a dot and a glint, not a heart shape. The
   seated-moment ignition was checked on the preview rig (lit at Sit 1.40 /
   1.60 s), not on a live player or an observer's replicated tracks.
-- The user's three hand-placed sigils (2026-10-21) were deleted by the vfx
-  agent before their rotation, image and colour were read; they were rebuilt
-  from their recorded sizes and heights as flat hui-wen rings, centred on the
-  player (user's call: their loose placement doesn't stand). If they used
-  another image or colour, say so and fold it into the builder.
 - Only the Mortal column is built; the Spirit/Earth/Heaven looks (spreading
   figures, backdrops, manifestations) wait for methods of those grades.
 - No refs yet for Mountain Breath or Drifting Cloud.

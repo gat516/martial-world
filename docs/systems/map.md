@@ -36,7 +36,8 @@ only for instanced party content.
 - **Today:** the wilds are one continuous smooth-terrain field covering rings
   300-2200 around the origin (Inner, Middle, Outer). Each ring has one array
   (`Map.Markers.TeleportHome`), standing in for zone gates until the zones are
-  rebuilt as separate areas.
+  rebuilt as separate areas. The Inner and Middle arrays stand in their built
+  zones (see "Wilds zones"); the Outer one is still out on its ring.
 - **What to build with** (`.claude/agents/map-builder.md`): meshes for the
   landmarks people look at (peaks, cliffs, spires, floating islands), smooth
   terrain for the ground people walk on in wild zones (exact collision for the
@@ -623,8 +624,11 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 - Teleport arrays (`Shared.Gates`): every array players travel through is tagged
   `TravelGate` with a `Gate` attribute: `Plaza.TeleportArray_Plaza` "MainPeak"
   (66, 649.5, 92; also the death respawn), `Markers.TeleportHome.TeleportHome_Gate`
-  "SectGate" (48, 6, 470), `TeleportHome_Inner`/`_Middle`/`_Outer` "InnerWilds"/
-  "MiddleWilds"/"OuterWilds", each peak's `TeleportArray` "Peak". Arrivals land 4
+  "SectGate" (48, 6, 470), `TeleportHome_Inner` "InnerWilds" (18, 6.6, 676; a
+  clearing east of the trunk past the Old Stone Gate, facing south down the path),
+  `TeleportHome_Middle` "MiddleWilds" (14, 2.6, 962; between the road and the east
+  road past the Border Gate, facing south toward the arena), `TeleportHome_Outer`
+  "OuterWilds", each peak's `TeleportArray` "Peak". Arrivals land 4
   above the pivot facing its LookVector; travel works within 12 studs flat of the
   pivot. Arrays are `ModelStreamingMode` Atomic. Moving one moves where players
   arrive; keep the tag and attribute on any rebuild. `SectGate.AscensionArray`
@@ -721,7 +725,7 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 - No named attachment points for map VFX exist yet.
 - Wilds: only the Inner and Middle boxes south of the sect gate are built (see "Wilds
   zones"); the rest of those rings and the Outer Wastes still carry the old sprinkled
-  ring dressing, and the `TeleportHome_Inner`/`_Middle` arrays stand far from the built
-  zones (zone separation, step 2 above).
+  ring dressing (zone separation, step 2 above). `art/karst/place_karst.luau`'s array
+  clearance list still has the Inner/Middle arrays' old spots (524, -367), (-403, -1108).
 - Under the sect: the path and array clearing have no lights or dressing yet;
   `FX_` attachment points for mist/fireflies there are still to place.

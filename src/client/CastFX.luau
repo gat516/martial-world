@@ -220,12 +220,15 @@ function CastFX.impactAt(impact: BasePart, target: Target, limits: { [string]: n
 			end
 		end
 	end
-	local burst = TechniqueVFX.burstAt(source, CFrame.lookAt(target.point, target.point + target.toward))
-	source:Destroy()
-	local body = burst:FindFirstChild("Body")
+	-- raise Body before emitting: MeshWaves read their holder's WorldCFrame the
+	-- moment they're emitted, so raising it afterwards left the 3D impact rings
+	-- at the template's authored height instead of the target's centre
+	local body = source:FindFirstChild("Body")
 	if body and body:IsA("Attachment") then
 		body.Position = Vector3.new(0, target.height, 0)
 	end
+	local burst = TechniqueVFX.burstAt(source, CFrame.lookAt(target.point, target.point + target.toward))
+	source:Destroy()
 	return burst
 end
 

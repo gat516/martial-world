@@ -41,7 +41,8 @@ Spawns.Ambient = {
 
 -- Ambient packs by region (Shared.Regions `packs`). Only the ring-1 beasts
 -- exist so far; Middle and Outer reuse them in bigger packs until their own
--- beasts are made.
+-- beasts are made. Bosses never come from packs (Spawner skips them): they
+-- have their own zone and respawn timer.
 Spawns.Encounters = {
 	Inner = { -- QC1+: single beasts and small packs
 		{ weight = 5, beasts = { SpiritWolf = { 1, 2 } } },
@@ -58,7 +59,7 @@ Spawns.Encounters = {
 	Outer = { -- Foundation+: placeholder until Foundation-realm beasts exist
 		{ weight = 3, beasts = { StoneBoar = { 2, 3 } } },
 		{ weight = 3, beasts = { SpiritWolf = { 3, 4 }, VenomSerpent = { 1, 2 } } },
-		{ weight = 1, beasts = { ElderWolfKing = { 1, 1 } } },
+		{ weight = 2, beasts = { StoneBoar = { 1, 2 }, SpiritWolf = { 2, 3 } } },
 	},
 } :: { [string]: { Pack } }
 

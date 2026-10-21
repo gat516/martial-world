@@ -17,6 +17,11 @@ seeds, insight and technique manuals, and the main test of a player's realm.
   regions are deadlier. The sect has no ambient beasts, and none find a player
   within 90 of the sect gate or 75 of the Inner and Middle wilds arrays
   (`Spawns.Ambient.SAFE`; move these with the arrays).
+- Bosses only come from their own zone and respawn timer, never from ambient
+  packs (Spawner skips any `boss` def in a pack).
+- Kill credit is earned, not tagged: a player gets the kill's rewards only after
+  dealing `Pacing.Rewards.KILL_SHARE` of its max health (`BOSS_KILL_SHARE` for a
+  boss). Whoever dealt the most always qualifies, so every kill pays someone.
 
 ## Key files
 - `src/shared/Enemies.luau`: defs (health, speeds, aggro/leash, attack and boss
@@ -41,11 +46,14 @@ seeds, insight and technique manuals, and the main test of a player's realm.
 ## Data flow
 Spawner decides where -> `EnemyService.spawn` clones the model, tags it `Enemy`
 -> AI ticks every `Config.Wilds.AI_TICK` -> attacks fire `Telegraph` to clients and
-resolve via `Combat.hurt` -> on death each damager gets qi (capped by dantian),
+resolve via `Combat.hurt`; player hits add to the beast's `damagers` tally
+(`Combat.onEnemyDamaged`; cleared when it walks home and heals) -> on death each
+credited player gets qi (capped by dantian),
 stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner refill.
 
 ## Tuning knobs
 - Per beast: `Enemies.luau`. Ambient rates: `Spawns.luau`. Packs per region: `Regions.luau`.
+- Kill credit share: `Pacing.Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`.
 - Per stage (`Pacing.luau`, not wired yet): `beastHealth`, `beastDamage` (Adjust,
   by the beast's realm), `Global.BEAST_HEALTH/BEAST_DAMAGE`, the stage's `gather`
   for kill qi, and `Income.ENEMY_QI_EXPONENT` (replacing `Enemies.QI_SCALE_EXPONENT`).

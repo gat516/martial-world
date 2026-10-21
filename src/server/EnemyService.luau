@@ -24,6 +24,7 @@ local DEFAULT_ROAM = 15 -- studs an enemy wanders from home unless told otherwis
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Realms = require(ReplicatedStorage.Shared.Realms)
+local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
 local Combat = require(script.Parent.Combat)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
@@ -62,7 +63,7 @@ type Enemy = {
 	nextWander: number,
 	shape: Shape?,
 	dashTo: Vector3?,
-	damagers: { [Player]: boolean },
+	damagers: { [Player]: number }, -- damage dealt by each player
 	attack: Enemies.Attack, -- the attack in progress, or the next one to use
 	patternIndex: number,
 	summonsDone: { [number]: boolean }, -- summonAt thresholds already used
@@ -264,13 +265,37 @@ local function qiFor(def: Enemies.Def, data: PlayerData.Data): number
 	return Realms.enemyQi(def.qiDrop, Realms.get(data.realm.major, data.realm.minor))
 end
 
+-- Players who dealt enough of the beast's health to earn the kill
+-- (Pacing.Rewards KILL_SHARE / BOSS_KILL_SHARE). Whoever dealt the most always
+-- qualifies, so a kill is never left without anyone credited.
+local function credited(enemy: Enemy): { Player }
+	local share = if enemy.def.boss then Rewards.BOSS_KILL_SHARE else Rewards.KILL_SHARE
+	local needed = enemy.humanoid.MaxHealth * share
+	local top, topDamage = nil, 0
+	local list = {}
+	for player, damage in enemy.damagers do
+		if player.Parent then
+			if damage >= needed then
+				table.insert(list, player)
+			elseif damage > topDamage then
+				top, topDamage = player, damage
+			end
+		end
+	end
+	if #list == 0 and top then
+		table.insert(list, top)
+	end
+	return list
+end
+
 function EnemyService.died(enemy: Enemy)
 	if enemies[enemy.model] ~= enemy then
 		return
 	end
 	enemies[enemy.model] = nil
 	local position = enemy.root.Position
-	for player in enemy.damagers do
+	local winners = credited(enemy)
+	for _, player in winners do
 		local data = player.Parent and PlayerData.get(player)
 		if data then
 			local cap = Cultivation.stage(data).dantian
@@ -300,10 +325,8 @@ function EnemyService.died(enemy: Enemy)
 	fadeAway(enemy)
 	if enemy.def.boss then
 		local names = {}
-		for player in enemy.damagers do
-			if player.Parent then
-				table.insert(names, player.DisplayName)
-			end
+		for _, player in winners do
+			table.insert(names, player.DisplayName)
 		end
 		if #names > 0 then
 			remotes.Notify:FireAllClients(`{table.concat(names, ", ")} defeated the {enemy.def.name}!`)
@@ -393,10 +416,10 @@ end
 
 -- Damage from players: remember who to credit, turn on them if idle, and
 -- take the hit's knockback.
-Combat.onEnemyDamaged = function(model: Model, player: Player, _amount: number, push: Vector3?)
+Combat.onEnemyDamaged = function(model: Model, player: Player, amount: number, push: Vector3?)
 	local enemy = enemies[model]
 	if enemy then
-		enemy.damagers[player] = true
+		enemy.damagers[player] = (enemy.damagers[player] or 0) + amount
 		if not enemy.target and enemy.state ~= "return" then
 			enemy.target = player
 		end

@@ -188,7 +188,8 @@ local function pickPack(packs: { Spawns.Pack }): { [string]: number }
 	end
 	local beasts = {}
 	for id, range in chosen.beasts do
-		if Enemies.Defs[id] then
+		local def = Enemies.Defs[id]
+		if def and not def.boss then
 			beasts[id] = math.random(range[1], range[2])
 		end
 	end

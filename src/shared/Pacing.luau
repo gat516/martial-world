@@ -224,6 +224,11 @@ Pacing.Breakthrough = {
 -- normal beasts and the boss, first kills give 4, the boss kill 1 more, so a
 -- player who has seen the whole wilds ring once has the 5 it needs.
 Pacing.Rewards = {
+	-- a player is credited with a kill (qi, stones, insight, drops) only if they
+	-- dealt at least this share of the beast's max health; a boss asks more, so
+	-- one tag in a crowd doesn't earn the boss rewards
+	KILL_SHARE = 0.1,
+	BOSS_KILL_SHARE = 0.15,
 	FIRST_KILL_INSIGHT = 1, -- the first kill of each enemy type
 	BOSS_INSIGHT = 1, -- every boss kill
 	BOSS_FIRST_MANUAL = "LightningTalisman",

@@ -1106,14 +1106,14 @@ function B.groundShockwave(root, tier, p)
 	end
 	-- the 3D torus rolling out with the front (CombatEffects sets ToSize from
 	-- def.radius). Not Phase "active": fitted to the 0.16 s window it was gone
-	-- before anyone saw it; Quart Out still covers ~80% of the radius by Hit
+	-- before anyone saw it; Quart Out still covers ~85% of the radius by Hit
 	-- Stop, and the late fade lets it be seen
 	if pick(p, "torus", true) then
 		B.meshWave(ground, "GroundWave", {
 			mesh = A.torusMesh, color = Cl.ring,
-			fromSize = Vector3.new(1.5, 0.3, 1.5), toSize = Vector3.new(radius * 2, 2.2 * k, radius * 2),
-			fromOffset = Vector3.new(0, 0.35, 0), toOffset = Vector3.new(0, 0.35, 0),
-			fromTransparency = 0, toTransparency = 1, duration = 0.5, style = "Quart",
+			fromSize = Vector3.new(1.5, 0.24, 1.5), toSize = Vector3.new(radius * 2, 1.82 * k, radius * 2),
+			fromOffset = Vector3.new(0, 0.31, 0), toOffset = Vector3.new(0, 0.31, 0),
+			fromTransparency = 0.45, toTransparency = 1, duration = 0.42, style = "Quart",
 		})
 	end
 	if pick(p, "rays", tier >= 2) then
@@ -1334,29 +1334,29 @@ function B.meshWave(parent, name, p)
 end
 
 -- Torus 471124075 is 150 x 9.51 x 150 (a round tube is Y = D * 0.0634);
--- impact rings use a 3x fatter tube, ground shocks ~2x (thin tubes were
--- invisible at play speed).
-local RING_TUBE, GROUND_TUBE = 0.19, 0.12
+-- impact rings use a ~2.4x fatter tube, ground shocks ~1.7x (thin tubes
+-- were invisible at play speed; the boldest pass read heavy, this is 60% of it).
+local RING_TUBE, GROUND_TUBE = 0.152, 0.105
 
 function B.impactShockwave(root, tier, p)
 	local impact = B.part(root, pick(p, "part", "Impact"), pick(p, "at", O * CFrame.new(0, 0.15, -6)))
 	local body = impact:FindFirstChild("Body") or B.attach(impact, "Body", Vector3.new(0, 2.2, 0))
-	local d = pick(p, "size", ({ 4.2, 5.3, 6.7, 8.4 })[tier]) -- ring diameter, studs
+	local d = pick(p, "size", ({ 3.7, 4.7, 5.9, 7.4 })[tier]) -- ring diameter, studs
 	-- the "it connected" ring, stood up facing back along the blow (CastFX aims
-	-- the Impact part's look along the hit), bursting out and holding ~0.3 s
+	-- the Impact part's look along the hit), bursting out and holding ~0.25 s
 	local ring = B.meshWave(body, "ImpactRing", {
 		mesh = A.torusMesh, color = pick(p, "ringColor", Cl.ring),
-		fromSize = Vector3.new(0.8, 0.15, 0.8), toSize = Vector3.new(d, d * RING_TUBE, d),
-		rotation = Vector3.new(90, 0, 0), fromTransparency = 0, toTransparency = 1,
-		duration = pick(p, "duration", 0.32), style = "Quart",
+		fromSize = Vector3.new(0.8, 0.13, 0.8), toSize = Vector3.new(d, d * RING_TUBE, d),
+		rotation = Vector3.new(90, 0, 0), fromTransparency = 0.35, toTransparency = 1,
+		duration = pick(p, "duration", 0.26), style = "Quart",
 	})
 	if pick(p, "swirl", tier >= 2) then
-		local sd = d * 1.35
+		local sd = d * 1.33
 		B.meshWave(body, "ImpactSwirl", {
 			mesh = A.swirlRingMesh, color = pick(p, "swirlColor", Cl.swirl),
-			fromSize = Vector3.new(1, 0.4, 1), toSize = Vector3.new(sd, 1, sd),
-			rotation = Vector3.new(90, 0, 0), fromTransparency = 0.05, toTransparency = 1,
-			duration = 0.38, style = "Quad", delay = 0.04,
+			fromSize = Vector3.new(1, 0.34, 1), toSize = Vector3.new(sd, 0.8, sd),
+			rotation = Vector3.new(90, 0, 0), fromTransparency = 0.45, toTransparency = 1,
+			duration = 0.32, style = "Quad", delay = 0.036,
 		})
 	end
 	if pick(p, "bubble", tier >= 3) then
@@ -1364,16 +1364,16 @@ function B.impactShockwave(root, tier, p)
 		B.meshWave(body, "ImpactBubble", {
 			mesh = "Ball", material = Enum.Material.ForceField, color = pick(p, "swirlColor", Cl.swirl),
 			fromSize = Vector3.new(0.6, 0.6, 0.6), toSize = Vector3.new(bd, bd, bd),
-			fromTransparency = 0, toTransparency = 1, duration = 0.35, style = "Quad",
+			fromTransparency = 0.3, toTransparency = 1, duration = 0.3, style = "Quad",
 		})
 	end
 	-- a short flat torus on the ground under the target
-	local gd = pick(p, "groundSize", ({ 4.4, 5.5, 7, 8.8 })[tier])
+	local gd = pick(p, "groundSize", ({ 4, 5, 6.4, 8 })[tier])
 	B.meshWave(impact, "GroundShock", {
 		mesh = A.torusMesh, color = pick(p, "groundColor", Cl.groundRing),
-		fromSize = Vector3.new(1, 0.15, 1), toSize = Vector3.new(gd, gd * GROUND_TUBE, gd),
-		fromOffset = Vector3.new(0, 0.15, 0), toOffset = Vector3.new(0, 0.15, 0),
-		fromTransparency = 0, toTransparency = 1, duration = 0.4, style = "Quart",
+		fromSize = Vector3.new(1, 0.14, 1), toSize = Vector3.new(gd, gd * GROUND_TUBE, gd),
+		fromOffset = Vector3.new(0, 0.13, 0), toOffset = Vector3.new(0, 0.13, 0),
+		fromTransparency = 0.4, toTransparency = 1, duration = 0.34, style = "Quart",
 	})
 	return ring
 end
@@ -1381,18 +1381,18 @@ end
 function B.airShockwave(root, tier, p)
 	local part = B.part(root, pick(p, "part", "Palm"), pick(p, "at", O * CFrame.new(0, 3, -1.6)))
 	local count = pick(p, "count", ({ 1, 1, 2, 3 })[tier])
-	local d = pick(p, "size", ({ 3.3, 4.2, 5.4, 6.9 })[tier]) -- first ring's final diameter
-	local travel = pick(p, "travel", 5 + tier * 1.5) -- studs along the strike (-Z)
+	local d = pick(p, "size", ({ 2.9, 3.6, 4.7, 6 })[tier]) -- first ring's final diameter
+	local travel = pick(p, "travel", 4.4 + tier * 1.3) -- studs along the strike (-Z)
 	local name = pick(p, "name", "AirRing")
 	local first
 	for i = 1, count do
 		local k = 1 - (i - 1) * 0.12
 		local wave = B.meshWave(part, if i == 1 then name else name .. i, {
 			mesh = pick(p, "mesh", A.swirlMesh), color = pick(p, "color", Cl.ring),
-			fromSize = Vector3.new(0.8, 0.3, 0.8), toSize = Vector3.new(d * k, 0.9, d * k),
+			fromSize = Vector3.new(0.72, 0.24, 0.72), toSize = Vector3.new(d * k, 0.7, d * k),
 			fromOffset = Vector3.new(0, 0, -0.3), toOffset = Vector3.new(0, 0, -travel * k),
-			rotation = Vector3.new(90, 0, 0), fromTransparency = (i - 1) * 0.12, toTransparency = 1,
-			duration = pick(p, "duration", 0.34), style = "Quad", delay = if i > 1 then (i - 1) * 0.06 else nil,
+			rotation = Vector3.new(90, 0, 0), fromTransparency = 0.35 + (i - 1) * 0.12, toTransparency = 1,
+			duration = pick(p, "duration", 0.28), style = "Quad", delay = if i > 1 then (i - 1) * 0.054 else nil,
 		})
 		first = first or wave
 	end

@@ -141,12 +141,84 @@ local function setEnabled(root: Instance, on: boolean)
 	end
 end
 
+-- Mesh waves: 3D shockwaves (torus rings, shells, bubbles) that grow and fade,
+-- played here with or without the Game Module. A Model with `MeshWave = true`
+-- holds one `Mesh` part (kept at Transparency 1 in the template). Attributes,
+-- all optional; offsets are studs in the parent part's (or attachment's) space,
+-- captured when the wave is emitted:
+--   FromSize/ToSize (Vector3), FromOffset/ToOffset (Vector3), Rotation
+--   (Vector3, degrees, applied to the mesh), FromTransparency/ToTransparency,
+--   Duration (seconds), Style (an Enum.EasingStyle name, default "Quad"), and
+--   the usual inherited EmitDelay. `Phase` lets fit() retime it.
+-- It doesn't use Start/End names, so SimpleMeshVFX won't also play it.
+local TweenService = game:GetService("TweenService")
+
+-- Running wave tweens (each clone is destroyed when its tween completes), so
+-- Edit-mode previews can Pause() them mid-flight for a capture.
+TechniqueVFX.waves = {} :: { [Tween]: true }
+
+local function playWaves(root: Instance)
+	local list = root:GetDescendants()
+	table.insert(list, root)
+	for _, d in list do
+		if not (d:IsA("Model") and d:GetAttribute("MeshWave")) then
+			continue
+		end
+		local mesh = d:FindFirstChild("Mesh")
+		local holder = d.Parent
+		if not (mesh and mesh:IsA("BasePart") and holder) then
+			continue
+		end
+		local base = if holder:IsA("Attachment") then holder.WorldCFrame elseif holder:IsA("BasePart") then holder.CFrame else nil
+		if not base then
+			continue
+		end
+		local rot = d:GetAttribute("Rotation")
+		local turn = if typeof(rot) == "Vector3" then CFrame.Angles(math.rad(rot.X), math.rad(rot.Y), math.rad(rot.Z)) else CFrame.identity
+		local fromOffset = d:GetAttribute("FromOffset")
+		local toOffset = d:GetAttribute("ToOffset")
+		local from = base * CFrame.new(if typeof(fromOffset) == "Vector3" then fromOffset else Vector3.zero) * turn
+		local to = base * CFrame.new(if typeof(toOffset) == "Vector3" then toOffset else Vector3.zero) * turn
+		local fromSize = d:GetAttribute("FromSize")
+		local toSize = d:GetAttribute("ToSize")
+		local duration = sampled(d:GetAttribute("Duration"))
+		local style = d:GetAttribute("Style")
+		local easing = (Enum.EasingStyle :: any)[if type(style) == "string" then style else "Quad"] or Enum.EasingStyle.Quad
+		local fromT = d:GetAttribute("FromTransparency")
+		local toT = d:GetAttribute("ToTransparency")
+		-- cloned now: the template copy may be cleaned up before a delayed wave plays
+		local m = mesh:Clone()
+		task.delay(totalDelay(d, root), function()
+			m.Anchored, m.CanCollide, m.CanQuery, m.CanTouch, m.CastShadow = true, false, false, false, false
+			m.CFrame = from
+			if typeof(fromSize) == "Vector3" then
+				m.Size = fromSize
+			end
+			m.Transparency = if type(fromT) == "number" then fromT else 0
+			m.Parent = TechniqueVFX.folder
+			local seconds = if duration > 0 then duration else 0.2
+			local tween = TweenService:Create(m, TweenInfo.new(seconds, easing, Enum.EasingDirection.Out), {
+				CFrame = to,
+				Size = if typeof(toSize) == "Vector3" then toSize else m.Size,
+				Transparency = if type(toT) == "number" then toT else 1,
+			})
+			TechniqueVFX.waves[tween] = true
+			tween.Completed:Once(function()
+				TechniqueVFX.waves[tween] = nil
+				m:Destroy()
+			end)
+			tween:Play()
+		end)
+	end
+end
+
 function TechniqueVFX.emit(inst: Instance)
 	if api then
 		api.emit(inst)
 	else
 		fallbackEmit(inst)
 	end
+	playWaves(inst)
 end
 
 function TechniqueVFX.enable(inst: Instance)
@@ -208,7 +280,21 @@ function TechniqueVFX.fit(inst: Instance, phase: string?, authored: number?, act
 	local list = inst:GetDescendants()
 	table.insert(list, inst)
 	for _, d in list do
-		if not d:IsA("ParticleEmitter") or (phase and d:GetAttribute("Phase") ~= phase) then
+		if phase and d:GetAttribute("Phase") ~= phase then
+			continue
+		end
+		if d:IsA("Model") and d:GetAttribute("MeshWave") then
+			local duration = d:GetAttribute("Duration")
+			if type(duration) == "number" then
+				d:SetAttribute("Duration", duration * k)
+			end
+			local delay = d:GetAttribute("EmitDelay")
+			if type(delay) == "number" then
+				d:SetAttribute("EmitDelay", delay * k)
+			end
+			continue
+		end
+		if not d:IsA("ParticleEmitter") then
 			continue
 		end
 		d.Lifetime = NumberRange.new(d.Lifetime.Min * k, d.Lifetime.Max * k)

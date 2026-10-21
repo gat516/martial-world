@@ -127,6 +127,15 @@ local function palmStrike(def: Techniques.Def, level: number, character: Model?,
 			shell:SetAttribute("Duration", timeline.active + 0.05)
 		end
 	end
+	-- the 3D ground torus rolls out to the def's radius (fit() times it to the
+	-- active window with the other Phase="active" parts)
+	local groundWave = copy:FindFirstChild("GroundWave", true)
+	if groundWave then
+		local size = groundWave:GetAttribute("ToSize")
+		if typeof(size) == "Vector3" then
+			groundWave:SetAttribute("ToSize", Vector3.new(radius * 2, size.Y, radius * 2))
+		end
+	end
 	local rocks = copy:FindFirstChild("RockRing", true)
 	if rocks then
 		rocks:SetAttribute("Radius", radius)

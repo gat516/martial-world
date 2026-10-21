@@ -803,13 +803,32 @@ pieces by hand. Each piece stays a separate named model (`Wall_<Side><nn>_<Role>
 attribute `WallPiece` = source proportion) in one folder,
 `Map.Ground.WildsInner.Walls`, never merged or welded, and no script or raycast depends
 on wall geometry (terrain scripts don't read it; spawns and event grounds stay 40+ studs
-off). Crest lines in the blockout: NorthWest (-800,560)..(-110,555), NorthEast
-(130,560)..(380,565) and (540,600)..(840,640) either side of EastSentinels, East
-(840,640)..(905,1000)..(800,1260), SouthEast (600,1430)..(260,1450), SouthWest
-(-280,1450)..(-760,1400), West (-760,1400)..(-900,1000)..(-870,780). Front 30-40 studs over
-the floor near paths, back 55-70; turf and moss over every top; a few pines on ledges.
-From above: dressed rims (turf lip, pines, boulder caps), backs stepping down in finished
-terraces to a low mist band (Y ~20-30, `MistWisps`) over the forest beyond.
+off).
+
+Built (2026-10-21): the whole ring, 284 pieces in eight segment folders under
+`Map.Ground.WildsInner.Walls` (`TestStretch_South` 14, `NorthWest` 55, `NorthEast` 18,
+`NorthEast2` 26, `East` 49, `SouthEast` 29, `SouthWest` 43, `West` 50): 70 giants
+(82-124 tall), 60 back-row rocks (40-60, stepping down outward), 58 seam covers on the
+valley side (24-38), 75 small foot rocks, the test stretch's 5 foot rocks and notch lip,
+15 rim pines (Map Detailing Pine Tree 2/3) on
+giant tops and 14 `MistWisps` clones on the backs (`Wall_<Seg>_FX_RimMist<nn>`, Y 24, front
+face outward). `art/wilds/build_walls_inner.luau` built them (seeded; it skips any segment
+folder that exists, so hand edits survive; delete a folder to rebuild it). Crest lines:
+NorthWest (-790,556)..(-620,522)..(-400,505)..(-112,502); NorthEast (152,500)..(386,500)
+up to EastSentinels; NorthEast2 (545,600)..(700,590)..(840,640); East
+(840,640)..(900,800)..(905,1000)..(880,1180)..(800,1262) to SouthEastFar; SouthEast
+(618,1425)..(420,1450)..(262,1452); the test stretch x -210..105 at SouthHorizon's foot;
+SouthWest (-212,1448)..(-500,1440)..(-760,1400); West (-760,1400)..(-860,1250)..(-900,1000)
+..(-872,742) to SouthWestField. Openings: the sect-gate front (x -112..152 on the north)
+and the gorge gate (x ~175..262 on the south). The north walls sit at z ~500, not the
+planned ~550, until the rework moves the old Inner layout: there everything scripts read
+keeps 48+ studs off a rock (Wolf Den disc 48, CrescentSweep cache 53, QiNode1 51); their
+back rows touch the sect wall and five back rocks that clipped it were removed. Checks:
+every segment's valley-side rays (heights 4, 15, 30, every 10 studs) hit rock with no
+fills needed, no piece floats, and 88 old dressing pieces that the rocks clipped (old
+ring rocks, trees, bamboo, glowing pools, boundary fog, Inner trees, colliders and rocks)
+went to `ServerStorage._InnerWildsReplaced`. When the rework lays out the pockets, P5
+Hunter's Camp moves ~50 south of the planned (660, 650) to clear the NorthEast2 feet.
 
 **Stylized shallow water.** The Lotus Mere and every fall pool use one reusable template
 the `vfx` agent is building: a flat water part with a cartoon surface (bright cyan cells,

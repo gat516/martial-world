@@ -225,9 +225,14 @@ Each one cost a pass real time. Check them before calling an area done.
 - **Studio needs a file from disk?** Run `tools/receive_rbxmx.py` and
   `HttpService:GetAsync("http://127.0.0.1:8766/<file>.luau")` instead of pasting long
   source, and stop the server afterwards.
-- **Walls are user-placed modular kit pieces.** Keep each one a separate named model in one
-  folder, never merged or welded, and never make a script or raycast depend on wall
-  geometry. Keep spawns, discs and nodes 40+ studs off wall feet.
+- **Walls are a few giant library rocks, not piles.** "Stylized Cliff Terrain Rock" scaled
+  to 80-120 studs is one cliff face; medium ones cover seams and feet. Fewer pieces means
+  fewer seams and triangles, and the moss holds up at scale. Keep each a separate named
+  model in `Map.Ground.WildsInner.Walls` (the user moves and scales them), never merged or
+  welded; no script or raycast depends on wall geometry; spawns, discs and nodes stay 40+
+  studs off wall feet. Check for gaps by rays from the valley side at several heights.
+- **Library rock families don't mix.** Cliff Rock Pack I and the Fantasy rocks read brown
+  and plain beside the moss-capped Cliff Terrain Rocks; capture a test before using them.
 
 ## Finish
 

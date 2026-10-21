@@ -699,8 +699,8 @@ RUINED BORDERLANDS
   Graves, BrokenPagoda).
 
 ### Inner Wilds rework: the walled valley (proposed 2026-10-21, not built)
-Plan approved in direction; the walls wait for the modular wall kit
-(`ServerStorage.ValleyWallKit`). It turns the Inner Wilds into a walled valley per "Zone
+Plan approved in direction; walls are built from scaled-up library cliff rocks, one
+test stretch first (below). It turns the Inner Wilds into a walled valley per "Zone
 shape" and "Verticality": one spine from the array, seven detailed pockets, three open
 event grounds, a find every 6-10 seconds on foot between them, walls with waterfalls as
 the edge, and a vertical layer for flyers stubbed in. The user asked for about twice the
@@ -785,10 +785,22 @@ Twin-Jade (410); SouthEast back to the gorge gate (472); CrossWest and CrossEast
 ~1000-1150 linking the loops to the spine; LotusLane (194); NorthFoot under the north
 wall to G2.
 
-**Walls (the zone edge): user-placed modular kit.** The modeler's `ValleyWallKit` holds
-short cliff segments, corners, a waterfall notch, rim caps, end pieces, boulder stacks
-and a modest Shrine Cliff, which the user places, resizes and edits by hand. Each piece
-stays a separate named model (`Wall_<Side><nn>`, `Fall_<Name>`, ...) in one folder,
+**Walls (the zone edge): giant library cliff rocks** (decided 2026-10-21, replacing a
+modeler kit). The AssetLibrary's "Stylized Cliff Terrain Rock" (Stylized Cliff Rock Pack
+II: one mesh in five proportions, blue-grey with moss caps from its SurfaceAppearance)
+scaled up a lot: one rock 80-120 studs tall is a cliff face on its own; a few medium
+ones (the low 23/27-tall proportions at 20-35 studs) blend the giants into the ground and
+cover their seams, small ones (7-10) scatter at the foot. The moss and texture hold up
+at that scale; Cliff Rock Pack I and the Fantasy rocks read brown and plain beside them,
+so they stay out of walls. Clones are pivoted at their bottom centre, scaled with
+`ScaleTo`, sunk 10-20% of their height into the lowest ground under them, Hull
+collision. Check contact by rays: from the valley side at heights 4, 15, 30 every 10
+studs, every ray must hit the wall (only a notch may be open above its lip). Test
+stretch (for review, `Walls.TestStretch_South`): 14 pieces along x -210..105 at the
+SouthHorizon karst's foot, with a corner arm north to z ~1300 and the Jade Veil notch at
+x ~-12 (lip top Y ~46, `FX_JadeVeilLip` anchor). The user places, resizes and edits
+pieces by hand. Each piece stays a separate named model (`Wall_<Side><nn>_<Role>`,
+attribute `WallPiece` = source proportion) in one folder,
 `Map.Ground.WildsInner.Walls`, never merged or welded, and no script or raycast depends
 on wall geometry (terrain scripts don't read it; spawns and event grounds stay 40+ studs
 off). Crest lines in the blockout: NorthWest (-800,560)..(-110,555), NorthEast

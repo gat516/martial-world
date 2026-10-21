@@ -14,6 +14,8 @@ local peaksFolder = workspace.Map.Sect.SpiritPeaks
 local stashFolder = ServerStorage.PeakStash
 local catalog = ReplicatedStorage.BuildCatalog
 local tiers = ServerStorage.PeakTiers
+-- place-only meshes per tier (library MeshParts Rojo can't sync), merged into the tier on apply
+local tierModels = ServerStorage.PeakTierModels
 local Realms = require(ReplicatedStorage.Shared.Realms)
 
 -- Peak visuals per major realm, beyond the bare rock every peak starts with.
@@ -138,8 +140,8 @@ function Peaks.applyLayout(player: Player, data: PlayerData.Data)
 end
 
 -- The owner's realm on their peak: a floating name sign over the stele, and the
--- major realm's tier (Foundation: hovering formation ring, lanterns, floating
--- pavilion and a sky beam), so everyone can see who is strongest from afar.
+-- major realm's tier (Foundation: lanterns, a floating shrine pavilion and a sky
+-- beam), so everyone can see who is strongest from afar.
 function Peaks.applyRealm(player: Player, data: PlayerData.Data)
 	local peak = owners[player]
 	if not peak then
@@ -169,6 +171,12 @@ function Peaks.applyRealm(player: Player, data: PlayerData.Data)
 	end
 	if wanted and not current then
 		local tier = (tiers:FindFirstChild(wanted) :: Model):Clone()
+		local extra = tierModels:FindFirstChild(wanted)
+		if extra then
+			for _, child in extra:GetChildren() do
+				child:Clone().Parent = tier
+			end
+		end
 		-- the template is authored in peak-local coordinates around the plateau
 		local frame = Peak.frame(peak)
 		for _, d in tier:GetDescendants() do

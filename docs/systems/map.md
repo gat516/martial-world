@@ -327,8 +327,14 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 - Beds `Garden.Beds.Bed_K`: tag HerbPlot, attrs PlotId, ItemId, BedIndex, Soil,
   Round; child `PlotAnchor` never resized or rotated. Losing a PlotId deletes
   saved plantings.
-- RealmTier `ServerStorage.PeakTiers.Foundation` (`assets/PeakTiers.rbxmx`)
-  sits in peak-local X/Z +-49, Y 1.5..194: re-check clipping if the plateau
+- RealmTier `ServerStorage.PeakTiers.Foundation` (`assets/PeakTiers.rbxmx`:
+  Lantern1-8 at r 47 y 7, a thin jade SkyBeam with a gold SkyBeamCore from y 75
+  to 344) plus the place-only `ServerStorage.PeakTierModels.Foundation`
+  (`Pavilion`: the plaza Temple mesh on an inverted Slate rock island, top y 56,
+  spike bottom ~y 32, spirit stone, gold finial, roots, fern tufts), which
+  `Peaks.applyRealm` merges into the clone. Library MeshParts live place-only
+  because Rojo can't sync MeshIds (they arrive as gray boxes). Peak-local X/Z
+  +-49, all non-colliding with CanQuery off; re-check clipping if the plateau
   surface changes.
 - Teleport arrays (`Shared.Gates`): every array players travel through is tagged
   `TravelGate` with a `Gate` attribute: `Plaza.TeleportArray_Plaza` "MainPeak"

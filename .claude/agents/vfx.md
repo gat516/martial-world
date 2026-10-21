@@ -449,6 +449,53 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
   create the part with `AssetService:CreateMeshPartAsync(id)` and clone it into
   the template. MeshId survives the binary export.
 
+### The pipeline (use this for every technique)
+
+1. **Bootstrap:** load every helper in three lines:
+   `local m = Instance.new("ModuleScript"); m.Source = game:GetService("HttpService"):GetAsync("http://127.0.0.1:8766/vfx_session.luau"); require(m)`.
+   It needs `tools/receive_rbxmx.py` running. Then read `tools/vfx_addons.md`.
+2. **Plan:** read `animMarkers` for the move's animation, sample the striking
+   limb, and settle the limb, add-ons, mastery motif and missing events with the
+   user in the plan.
+3. **Spec:** write `tools/vfx_specs/<Id>.luau` from the blocks in
+   `tools/vfx_blocks.luau`. Every block takes `(root, tier, p)`, and the file
+   header documents the params. The blocks:
+   - `groundShockwave`, `impactShockwave`, `airShockwave` and `shockwaveShell`
+     (all 3D MeshWave-based);
+   - `releaseFlash`, `dropStreak`, `handGather` (with Spline wisps),
+     `impactBurst`;
+   - `impactStack`, a tier-scaled big hit where every part can be overridden
+     or set to `false`;
+   - `craterRing` (Ring/Cone), `screenShake`;
+   - `meshWave` and `emitter` for one-off pieces.
+
+   Beats are `{ block, from, to, params, phase, attrs }`. It's plain data, so
+   keep it boring. A ForceField distortion shell was tried and dropped because
+   it didn't read.
+4. **Build:** `vfxStage.begin()`, then `vfxBlocks.buildFromSpec(spec, parent)`,
+   then `vfxStage.finish()`. Then run `tools/vfx_export.sh <names>` and
+   `vfxStage.synced(check)`. Rojo can't patch until the file is in `assets/`.
+5. **Runtime:** wire it with `CastFX`: `targets({ kind = "circle" | "zone" | "line", ... })`,
+   `impactAt`, `curveTime`/`frontTime`, `handPosition`, `phases`, and
+   `groundBelow`. Caster and observer go through the same code.
+6. **Review:** `vfxPreview.sweep({ id, level, radius })` at levels 1/4/7/10
+   builds one scene per moment (windup/hit/hitstop/aftermath) and freezes
+   particles and MeshWave tweens. Then take the captures back to back. Retune
+   by editing the spec and rebuilding; `vfxDiff.snapshot`/`compare` shows
+   what changed. Exclude `EmitBreak`, runtime state the Game Module writes.
+   When writing a builder for something that already exists, snapshot the real
+   templates first and iterate to a zero diff.
+
+### Shared Studio
+
+Other sessions use the same Studio and the same `_G`. Before a capture run:
+- Check `workspace.CurrentCamera.CameraType`; another session may hold a
+  Scriptable camera.
+- Check for others' `_*Preview` / `_Staging*` folders, and leave them alone.
+- Scope any `_G` helper overrides inside the call that needs them.
+- ClockTime and Lighting can change under you mid-run, so note them with
+  each capture.
+
 ### Fast path (helpers from the Palm Strike build)
 
 - **Preview the real cast:** `tools/vfx_preview.luau`. Use `P.scene({ radius = ... })`,

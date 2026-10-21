@@ -162,36 +162,30 @@ FE1 and starters FE9, so the method line first appears when FE2 exists.
    later majors (e.g. a Spirit-grade method reaches Core Formation, an Earth one
    Nascent Soul). FE1 is the top realm today, so this line only matters once
    later stages exist.
-3. **Aura (built 2026-10-21):** a visual around you while seated (meditating or
-   circulating), seen by everyone: `src/client/MethodAura.luau`, keyed on the
-   player attributes `Meditating` and `Method`; template
-   `ReplicatedStorage.Effects.MethodAura` (builder `tools/vfx_specs/MethodAura.luau`).
-   One shared aura tinted with the element's colour (a breathing ground halo,
-   qi motes, a ring rising to the head each breath) plus the element's accent:
-   Fire a flame lotus and embers, Water a water ring and ripples, Wood a leaf
-   lotus and falling leaves, Metal orbiting needles, Earth floating stones, and
-   for the rare roots a wider second halo plus Lightning's crackling ring, Wind's
-   counter-turning swirls, Ice's frost lotus and snow. Sect Breathing has none.
-   Fades in/out, swaps when the method changes, drawn within 140 studs for the
-   8 nearest. Grade hook: `GRADES` in MethodAura (more motes, brighter 3D);
-   higher grades can later add a small effect, like healing allies who meditate
-   nearby.
-
-   **Direction (decided 2026-10-21): every method gets its own aura.** The
-   shared tinted template reads as the same ring in different colours, which is
-   why auras feel lackluster. The user: "there will be different cultivation
-   techniques so obviously the grade of their vfx should be way different."
-   Each method has a signature look of its own (its idea, its shapes, where on
-   the body it lives), not an element tint over a common base, and grade sets
-   how grand it is: a Mortal method stays modest and close to the body, while
-   high grades fill the screen (backdrop mandala or sunburst, a spirit rising
-   behind). Reference looks from the user: a dantian core lit in the belly,
-   glowing acupoints joined like constellations, an outline glow, flame hugging
-   the silhouette, cracks and arcs across the body, qi streaming inward, a
-   giant lotus or mandala behind. The per-method brief, grade scale and the
-   recipe for inventing new methods are in [auras.md](auras.md) (refs in
-   `docs/reference/auras/`). Still to do: the rebuild (vfx agent) replacing the
-   shared template.
+3. **Aura (built 2026-10-21; per-method rebuild the same day):** a visual
+   around you while seated (meditating or circulating), seen by everyone:
+   `src/client/MethodAura.luau`, keyed on the player attributes `Meditating`
+   and `Method`; templates `ReplicatedStorage.Effects.MethodAura.<MethodId>`
+   (builder `tools/vfx_specs/MethodAura.luau`, preview
+   `tools/aura_preview.luau`). **Every method has its own aura** (decided
+   2026-10-21: the old shared tinted template read as the same ring in
+   different colours; the user: "there will be different cultivation
+   techniques so obviously the grade of their vfx should be way different").
+   Each is built from its method's idea and lives on the body first: Blazing
+   Heart a beating chest core with flames off the limbs, Flowing Spring a
+   still pool and droplets drawn to a belly core, Evergreen Root meridian
+   branches growing out along the limbs, Iron Marrow a gold gem between the
+   hands that clangs each exhale, Mountain Breath a carved rune stone ring
+   that settles with the breath, Thunder Pulse a darkened body with cracks
+   and arcs in irregular bursts, Drifting Cloud a cloud seat with wind drawn
+   in on the inhale, Frost Lotus a glass lotus opening a ring per breath.
+   Sect Breathing has only a faint mote on the breath. Sitting down, switching
+   method and breaking through play the method's ignition surge first. Drawn
+   within 140 studs for the 8 nearest (named methods first). Grade sets how
+   grand it is (`GRADES` in MethodAura scales reach today; Spirit and up get
+   their own pieces later). The per-method brief, what's built, the grade
+   scale and the recipe for inventing new methods are in
+   [auras.md](auras.md) (refs in `docs/reference/auras/`).
 
 - A method matching your root gets a qi-speed bonus (the synergy rule).
 - Better methods come from bosses, world events, caches and later realms' libraries.

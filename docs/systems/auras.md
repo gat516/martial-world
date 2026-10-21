@@ -6,11 +6,53 @@ cultivate and how good it is, so it should be the most covetable thing about
 a method. Mechanics, data and the method list live in
 [character.md](character.md); this doc is the art brief.
 
-**Status:** brief drafted 2026-10-21, not built. Today every method shares one
-tinted template (`src/client/MethodAura.luau`, template
-`ReplicatedStorage.Effects.MethodAura`, builder
-`tools/vfx_specs/MethodAura.luau`). The rebuild (vfx agent) replaces it with one
-aura per method, following this doc.
+**Status:** Mortal auras built 2026-10-21 (vfx agent): every method has its
+own aura, following this doc. Runtime `src/client/MethodAura.luau`, templates
+`ReplicatedStorage.Effects.MethodAura.<MethodId>` (one Model per method),
+builder `tools/vfx_specs/MethodAura.luau` (its header is the attribute
+contract), Edit-mode preview `tools/aura_preview.luau`. Spirit, Earth and
+Heaven looks are not built (no method uses those grades yet).
+
+## What's built (Mortal)
+
+| Method | On the body | Ground / around | Breath beat | Ignition |
+|---|---|---|---|---|
+| Sect Breathing | — | — | two faint motes rise from the belly | — |
+| Blazing Heart | orange chest core that swells and flares on the breath (one PointLight); flame tongues off the arms and torso surface; embers; orange ForceField rim | thin fire ring | heartbeat flare at the chest, a warm ring breathes out | flames roar up off the seat, a fire ring climbs past the head, a flare ring rolls out; limb flames surge |
+| Flowing Spring | blue tint over the body; blue belly core (light); droplets streaming in from a 7-stud shell to the core, faster on the inhale | still Neon pool disc with a pale rim | two ripples cross the pool | a wave rolls out, a ring springs up, droplets fall back |
+| Evergreen Root | green meridian beams with glowing joint dots, lighting trunk-first (belly, chest, then shoulders and hips, then elbows and knees, then hands) over ~2 breaths; green seed at the belly; faint green tint | six crooked roots creeping out, slow falling leaves | sap motes, a green ring breathes out | a green ring bursts out, a wind-swirl ring rises, leaves whirl up |
+| Iron Marrow | spinning gold gem between the hands (light); gold bone lines along the arms and spine; gold ForceField rim | thin gold ring | the clang: a thin ring snaps out level and one upright, sparks, a star; bone lines, rim and ring glint | a great clang ring, a sunburst flash, sparks, a steel ring across the ground |
+| Mountain Breath | amber low-belly core (light); faint amber tint | heavy carved stone ring with a turning glowing rune circle that settles on each breath; five pebbles lifting on the inhale; dust | a slow amber ring out of the stone, a little dust | the ground thumps: ring, dust spray, grit jumps |
+| Thunder Pulse | body darkened; violet-white jagged cracks across chest, belly and arms (re-jagged each burst); violet rim | flickering violet ring; on a burst jagged arcs from both hands to the ground | irregular bursts (0.5 to 2.6 s apart): chest flash, ground snap ring, sparks where the arcs land | a strike ring, arcs crackling round the body, a flash at the crown |
+| Drifting Cloud | wisps lifting off the arms and torso; mint ForceField rim | a soft white cloud of puffs you sit on, a mint glow under it, two counter-turning wind rings that tighten on the inhale, streaks drawn inward | at the start of each inhale a wide wind ring sweeps in to the body | a gust ring bursts out, cloud puffs spray |
+| Frost Lotus | pale rime ForceField rim | a glass lotus of three petal rings (inner, then one more each breath), flakes and crystals drifting down | breath mist from the mouth, a frost ring creeps out | a frost ring, shards thrown up, a cold flash at the chest |
+
+How it is put together (details in the builder header):
+- **Body first.** `Body` parts follow named body points (`Chest`, `Belly`,
+  `Lap` between the hands...), `Limbs` emitters are cloned onto the body parts
+  themselves (they emit off the limb's surface), `Lines` are Beams between
+  attachments made on the body parts (ZOffset keeps them in front of the
+  limb), and `Shell` parts are copied round every body part as a glowing skin.
+  R6 and R15 map through `POINTS` / `LIMBS` in MethodAura.
+- **Outline glow is a Shell, not a Highlight.** The map already holds ~480
+  Highlights (fern and ground-cover outlines) and Roblox draws only 31, so an
+  aura Highlight would rarely show. ForceField shells read as a rim; Neon
+  shells at ~0.85 transparency read as a tint.
+- **Breath:** one 5 s period for every aura (`Breath` on the root), energy 0 at
+  rest to 1 mid-breath; `Breath` models fire on the beat (`BreathAt`, default
+  the exhale). Thunder Pulse sets `Rhythm = "burst"`.
+- **Ignition:** an aura that starts within 2 s of `Meditating` or `Method`
+  changing plays its `Ignite` model and a 1.8 s surge (pieces brighter and
+  bigger, limb emitters `Surge`); the `Breakthrough` remote replays it.
+  Walking up to someone already seated doesn't ignite.
+- **Grade hook:** `GRADES` in MethodAura scales the `Ground` model (reach),
+  `Scaled` emitter rates and brightness. Mortal = 1.
+- **Budget per aura:** one PointLight (none for Wind, Ice, Thunder, Sect),
+  6 shell parts (R6), up to ~30 beams (Thunder's jagged cracks), a handful of
+  emitters at 1 to 13 /s per limb. Sect Breathing auras rank after named
+  methods for the 8 slots.
+- **Palette for Neon:** bright pastels go white in Neon; ring and wave colours
+  use the deeper shade of the element (violet, deep ice blue, burnt amber).
 
 ## Rules every aura follows
 
@@ -153,7 +195,14 @@ chant.
 
 ## Known gaps
 
-- Nothing in this brief is built yet; the live auras are the shared template.
+- Only the Mortal column is built; the Spirit/Earth/Heaven looks (spreading
+  figures, backdrops, manifestations) wait for methods of those grades.
 - No refs yet for Mountain Breath or Drifting Cloud.
-- The ignition surge (sit, switch, breakthrough) is not built.
-- Method grades above Mortal exist only in name; no method uses them yet.
+- Robes and hair can't lift (avatar clothing isn't ours to move); Drifting
+  Cloud and the ignitions stand in with rising wisps and flames.
+- Previewed in Edit mode on the R6 test rig only (grass at noon and night);
+  R15 avatars and real accessories, phone performance with 8 auras, and the
+  live sit / switch / breakthrough ignition are untested in play.
+- The map's ~480 Highlights fill Roblox's 31-highlight budget, so other
+  Highlight effects (the Iron Skin buff glow, the perfect-circulation rim,
+  hit flashes in `CombatEffects`) may not render near the map either.

@@ -80,10 +80,18 @@ changes your inner self happens seated, in one row of tiles above the vitals
 
 **Practice Dao (built).** The Practice tile (`CultivatePrompt.Practice`, crossed
 jian, `icon_practice` in `meditation_art`) runs a 20 s drill with the equipped
-weapon, played on a circulation minigame titled "<Class> Forms"
+weapon, played on its own minigame, Weapon Forms (`Minigames/Forms.luau`,
+titled "<Class> Forms")
 (`CirculationMinigame.practice()` -> `CultivationAction "practiceStart" /
 "practiceFinish" / "practiceCancel"`, server `src/server/DaoPractice.luau`).
-The hint comes from the run kind (Pulse's qi wording would read wrong). Scored like a circulation run; pays up to `XP_SHARE` (25%) of the current Dao
+*Forms (decided 2026-10-21):* osu-style, not a fixed ring. Numbered strike
+points pop up anywhere on the field in flowing strings (count restarts each
+string, a long jump between strings, the odd quick double), so several are up
+at once; tap the point itself as its approach ring closes. Purple points are
+bad habits to strike and purge. Empty-field taps and early taps on a point are
+strays. Touch/mouse aim with the tap, Space/Z/X strike at the mouse, gamepad A
+strikes whatever is due. Tuning: `Config.Circulation.Games.Forms` (weight 0, so
+circulation never picks it). Scored like a circulation run; pays up to `XP_SHARE` (25%) of the current Dao
 level's XP, then a 5 min cooldown (`data.daoPracticeReadyUnix`, pushed as
 `daoPracticeReady`). Leaving early costs nothing and starts no cooldown. Unlocks
 at QC7 (`Pacing.DaoPractice.FROM`), never XP for sitting.
@@ -95,7 +103,7 @@ session and passive cultivation keep running, and the weapon stays in hand
 shows it and its idle; while every lock keeps the weapon it also ignores
 `ActionState.blocked`, which is true the whole time you meditate). Every tap in the drill plays the next strike of the
 equipped class's chain (`Animations.Weapons.<Class>/1..n`, Fists bare-handed),
-looping, hit or miss (Feel `ui.tapped`, Pulse calls it). When the drill ends
+looping, hit or miss (Feel `ui.tapped`, which Forms and Pulse call). When the drill ends
 the character sits back down (`Sit`, then `Loop`). Strikes replicate, so others
 see the forms. Known gaps: the drill overlay sits over the screen centre and
 may hide the character's swings; strikes are cosmetic only (no hit/miss

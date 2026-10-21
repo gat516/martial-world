@@ -186,6 +186,18 @@ return {
 				},
 				hard = { bowl = 0.17, fall = 0.8, interval = 0.38 },
 			},
+			-- Weapon Forms: tap numbered points anywhere on the field as their rings
+			-- close. The Practice Dao drill only (weight 0: never a circulation run).
+			Forms = {
+				weight = 0,
+				easy = {
+					window = 0.28, -- seconds either side of the beat that still count ("Good")
+					interval = 0.8, -- seconds between points in a string
+					approach = 1.3, -- seconds a ring takes to close
+					jump = 0.3, -- usual distance to the next point, share of the field's longer side
+				},
+				hard = { window = 0.14, interval = 0.5, approach = 0.85, jump = 0.5 },
+			},
 		} :: { [string]: { weight: number, easy: { [string]: number }, hard: { [string]: number } } },
 	},
 

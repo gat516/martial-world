@@ -302,7 +302,7 @@ Pacing.DaoPractice = {
 	COOLDOWN = 300, -- seconds between finished drills (saved, so rejoining doesn't skip it)
 	XP_SHARE = 0.25, -- of xpToNext(level), at a perfect score
 	SECONDS = 20,
-	GAME = "Pulse", -- Minigames/<GAME>, themed as weapon forms
+	GAME = "Forms", -- Minigames/<GAME>: osu-style strike points anywhere on the field
 	DIFFICULTY = 0.35,
 }
 

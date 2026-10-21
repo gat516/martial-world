@@ -32,7 +32,10 @@ qi deviation.
   runs Practice Dao drills (`practice(stance)`: the seat stands up on `begin` and swings on every `ui.tapped`; server `DaoPractice`, an `info.title`
   replaces the game's title, the result reads "+N Sword Dao XP").
 - `src/client/Minigames/Feel.luau`: shared run info, difficulty blend, feel helpers.
-- `src/client/Minigames/{Maze,Thread,Pulse,Gather}.luau`: the games.
+- `src/client/Minigames/{Maze,Thread,Pulse,Gather}.luau`: the games;
+  `Forms.luau` is the Practice Dao drill's own game (weight 0, never picked for
+  circulation; see `docs/systems/meditation.md`). Its stage is
+  `Circulation`…`Forms` in `assets/Hud.rbxmx`.
 - `src/shared/Config.luau` `Circulation`: games and their `easy`/`hard` values.
 - `src/shared/Pacing.luau`: per-stage `runSeconds`, `difficulty`; `Pacing.Refine`.
 

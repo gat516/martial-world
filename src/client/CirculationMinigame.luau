@@ -5,7 +5,7 @@
 -- overlay with the game's title and hint, a 3-2-1 count-in, the game itself on
 -- its own stage, and a graded result once the server has scored the report.
 -- The same runner plays Practice Dao drills (CirculationMinigame.practice):
--- server DaoPractice picks the game and scores it for weapon Dao XP. The drill
+-- server DaoPractice picks the game (Forms) and scores it for weapon Dao XP. The drill
 -- keeps the weapon in hand and tells the seat when it starts and on every tap,
 -- so the character stands and swings (Meditation.luau).
 
@@ -27,6 +27,7 @@ local GAMES: { [string]: Feel.Game } = {
 	Thread = require(script.Parent.Minigames.Thread),
 	Pulse = require(script.Parent.Minigames.Pulse),
 	Gather = require(script.Parent.Minigames.Gather),
+	Forms = require(script.Parent.Minigames.Forms),
 }
 
 local RESULT_SECONDS = 2.6
@@ -150,8 +151,6 @@ local KINDS = {
 	circulation = { start = "start", finish = "finish", cancel = "cancel", left = "You stopped circulating. Your raw qi is untouched." },
 	dao = {
 		start = "practiceStart", finish = "practiceFinish", cancel = "practiceCancel", left = "You set your weapon down. Nothing was lost.",
-		-- the drill plays Pulse; its qi wording would read wrong for weapon forms
-		hint = "Tap as each ring closes on its point to strike the form true. Strike purple points to clear bad habits.",
 	},
 }
 
@@ -167,7 +166,6 @@ local function run(kind: string, stance: Stance?)
 		running = false
 		return
 	end
-	info.hint = info.hint or (actions :: any).hint
 
 	Controls.lock("Circulation", stance ~= nil)
 	if stance then

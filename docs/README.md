@@ -23,7 +23,8 @@ client module against `StarterGui.Hud`).
 
 Mapped assets: `Remotes`, `Animations`, `Ambience`, `Effects` (binary
 `assets/Effects.rbxm`, VFX templates with plugin attributes), `BuildKit`, `GardenKit`
-(ReplicatedStorage); `Hud`, `Rewards`, `Prompts` (StarterGui); `Music`, `SFX`
+(ReplicatedStorage); `HerbMorsel` (ReplicatedStorage, temporary eating prop);
+`Hud`, `Rewards`, `Prompts` (StarterGui); `Music`, `SFX`
 (SoundService); `Wilds`, `Hub` (Workspace); `Enemies`, `PeakTiers`,
 `ItemTemplates`, `AmbientFX` (binary `assets/AmbientFX.rbxm`, world-ambience
 effect templates: fireflies, lamp glows, mist, waterfall spray, petals; see
@@ -102,6 +103,8 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 `Effect "cast"` is relayed by `Combat.releaseTechnique` to every client except the
 caster as `(caster, id, origin, dir, level, chain)`; `level` is the caster's
 technique level at cast time (picks the visual tier), `chain` the chain targets or nil.
+`Effect "herbEat"` broadcasts `(character, itemId, serverTime)` from
+`Inventory.use` to `HerbAnimator` on every client after a successful herb use.
 
 Besides remotes, the server publishes fast-changing values as attributes:
 player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`,

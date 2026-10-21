@@ -23,6 +23,9 @@
       },
       "GardenKit": {
         "$path": "assets/GardenKit.rbxmx"
+      },
+      "HerbMorsel": {
+        "$path": "assets/HerbMorsel.rbxmx"
       }
     },
     "ServerScriptService": {

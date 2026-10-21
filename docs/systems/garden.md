@@ -34,6 +34,11 @@ consumables: spirit cores from beasts and heavenly treasures.
   `PlantTag.luau`, `HerbShop.luau`, `Inventory.luau`, `HotbarView.luau`, `SlotArt.luau`.
 - Models: `ReplicatedStorage.GardenKit` (`assets/GardenKit.rbxmx`); plots are build
   items tagged `HerbPlot` with a `Soil` attribute.
+- `src/client/HerbAnimator.luau`: procedural R6 hand-to-mouth gesture, bite,
+  two small chewing nods, and eased return. Each client animates confirmed eats;
+  `HeadLook` eases the local gaze forward during the gesture. The temporary
+  morsel is cloned from `ReplicatedStorage.HerbMorsel`
+  (`assets/HerbMorsel.rbxmx`, authored from the Herb Tool in Studio).
 
 ## Data flow
 `GardenAction("plant", plotId, herbId, x, z)` -> a `Plant` record in
@@ -42,9 +47,20 @@ every client draws it. The garden tick applies weather; `Cultivation.aura` sums
 mature plants each second. Harvest grants herbs (and sometimes seeds); eating goes
 through `InventoryAction("use")`.
 
+Successful herb uses also broadcast `Effect("herbEat", character, itemId,
+serverTime)`. Effects and inventory deduction still happen immediately; the
+animation is cosmetic. A separate morsel remains visible until the bite even when
+the last inventory Tool is removed, and also supports the inventory's Use button.
+Held Tools and weapons are hidden locally for the gesture, then restored.
+Combat actions interrupt/override eating; death, despawn and completion clean up
+the pose and prop. Unsupported rigs skip the gesture (the game uses R6).
+
 ## Tuning knobs
 - `Herbs.luau`: everything per plant; `Sizes`, `Mutations`, `GOLDEN_CHANCE`, `MAX_SIZE`.
 - `Items.luau`: core and treasure effects, `treasureWeight`, `USE_COOLDOWN`.
+- `Items.HERB_EAT_SECONDS` (1.05 s) sets the herb use cooldown and animation duration;
+  `HERB_BITE_SECONDS` (0.4 s) removes the morsel. Reach/chew/return poses and
+  their phase times live in `HerbAnimator.luau`.
 - `Config.Garden`: seeds back, tick, aura cap, wild sprouts, beast seed drops, Grow now tiers.
 - `Weather.luau` `garden`: growth speed, mutation and chance per weather.
 - `Config.Economy`: starting stones; `Config.Build.MARKET_RANGE` (also how far you can walk

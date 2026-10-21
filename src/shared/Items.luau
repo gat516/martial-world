@@ -40,6 +40,8 @@ export type Item = {
 local Items = {}
 
 Items.USE_COOLDOWN = 0.6 -- seconds between uses, per player
+Items.HERB_EAT_SECONDS = 1.05 -- reach, bite, chew, lower the hand
+Items.HERB_BITE_SECONDS = 0.4
 
 Items.Rarities = {
 	Common = { order = 1, color = Color3.fromRGB(200, 206, 200) },

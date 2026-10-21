@@ -26,7 +26,7 @@ local templates = ServerStorage:WaitForChild("ItemTemplates") :: Folder
 local Inventory = {}
 
 local tools: { [Player]: { [string]: Tool } } = {}
-local lastUse: { [Player]: number } = {}
+local nextUse: { [Player]: number } = {}
 
 --[[ Tools ]]
 
@@ -128,7 +128,7 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 		return false, "You have none left"
 	end
 	local now = os.clock()
-	if now - (lastUse[player] or -math.huge) < Items.USE_COOLDOWN then
+	if now < (nextUse[player] or 0) then
 		return false, nil
 	end
 	local use = item.use
@@ -140,7 +140,7 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	if onlyQi and data.rawQi >= stage.dantian then
 		return false, "Your dantian is already full."
 	end
-	lastUse[player] = now
+	nextUse[player] = now + (if item.category == "Herb" then Items.HERB_EAT_SECONDS else Items.USE_COOLDOWN)
 	take(data, item.id)
 
 	data.rawQi = math.min(stage.dantian, data.rawQi + qi)
@@ -159,6 +159,9 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	Cultivation.markActive(player)
 	Cultivation.applyStats(player, data)
 	Cultivation.pushState(player)
+	if item.category == "Herb" and player.Character then
+		effectRemote:FireAllClients("herbEat", player.Character, item.id, workspace:GetServerTimeNow())
+	end
 	effectRemote:FireClient(player, "used", item.id)
 	return true, `{item.name}: {item.blurb}`
 end
@@ -259,7 +262,7 @@ end
 
 function Inventory.forget(player: Player)
 	tools[player] = nil
-	lastUse[player] = nil
+	nextUse[player] = nil
 end
 
 function Inventory.start()

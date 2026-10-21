@@ -4,6 +4,7 @@
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local HerbAnimator = require(script.Parent.HerbAnimator)
 
 local player = Players.LocalPlayer
 local MAX_YAW = math.rad(65)
@@ -48,7 +49,7 @@ local function step(dt: number)
 	end
 	local targetYaw, targetPitch = 0, 0
 	local camera = workspace.CurrentCamera
-	if camera and camera.CameraSubject == h and h.Health > 0 then
+	if camera and camera.CameraSubject == h and h.Health > 0 and not HerbAnimator.isEating() then
 		local look = torso.CFrame:VectorToObjectSpace(camera.CFrame.LookVector)
 		local cameraYaw = math.atan2(-look.X, -look.Z)
 		-- Keep looking sideways beyond 90 degrees, then return forward over 150-180.

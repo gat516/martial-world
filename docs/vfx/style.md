@@ -19,8 +19,15 @@ Grandeur is earned: it grows with technique tier, method grade and realm, and
 the big set pieces are reserved for breakthroughs, tribulation and world
 events.
 
+**No research by default (user, 2026-10-21, later).** Many effects are
+already decent, and "emit it from the vfx library" is the method. Don't search
+YouTube or tutorials when starting each new effect: work from the reference
+library below, this doc and the effects in the game, and go straight to the
+vfx library. New research only when the user asks, or when a look isn't
+covered and can't be built otherwise.
+
 **Every effect starts fresh (user, 2026-10-21).** An effect's look comes from
-its own idea and its own references, never from earlier effects. Docs record
+its own idea, never copied from earlier effects. Docs record
 how tools behave (gotchas, techniques for getting a kind of look), not a house
 style: no "use these textures", no recipes copied from the last build. What
 one effect used is history in its system doc, not guidance for the next. The

@@ -35,9 +35,14 @@ an `enemy-designer` brief.
 
 ## The method
 
-1. **Gather references.** Start from what the user gave you and the
-   reference library, `docs/reference/vfx/README.md`: reuse its references and
-   breakdowns, and research only what it doesn't cover. Then find more: search YouTube for Roblox showcases
+1. **References: use what's there, don't research by default** (user,
+   2026-10-21). Start from what the user gave you, the reference library
+   `docs/reference/vfx/README.md`, style.md and the decent effects already in
+   the game, then go straight to the vfx library (step 5). Don't search
+   YouTube, watch videos or read tutorials at the start of each new effect.
+   Do new research only when the user asks for it, or when a look truly isn't
+   covered by anything in the repo and you can't build it otherwise; say so in
+   your report. When you do, search YouTube for Roblox showcases
    of the same kind of effect ("roblox vfx showcase aura", "sol's rng aura",
    "roblox studio vfx <element> explosion"). Turn each video into a frame grid
    and look at it:
@@ -51,8 +56,8 @@ an `enemy-designer` brief.
    there too (not only in the scratchpad), and add a row and a layer
    breakdown to the library for every reference you used, in the same
    commit as the effect.
-2. **Learn the technique.** When you don't know how a look is made, look it up
-   before guessing: Roblox Creator Hub VFX tutorials, DevForum VFX threads,
+2. **Learn the technique.** Only when you truly don't know how a look is made
+   and the toolkit, style.md and existing effects don't show it, look it up: Roblox Creator Hub VFX tutorials, DevForum VFX threads,
    YouTube tutorials ("roblox studio vfx tutorial <thing>"). Note what you
    learned in your report so it lands in the docs.
 3. **Break the reference down.** For each beat (anticipation, climax,
@@ -67,8 +72,8 @@ an `enemy-designer` brief.
 5. **Cast every layer from the library.** Search `tools/vfx_library.json` and
    the live library search for each layer, look at contact sheets, and pick
    per layer. Use flipbooks (41) and meshes (77), not only images. Search per
-   effect from its own references; don't start from another effect's ids,
-   layers or palette.
+   effect from its own idea; don't copy another effect's ids, layers or
+   palette wholesale, but reusing a good asset where it fits is fine.
 6. **Plan, then build.** Send the plan (below) before building unless told to
    go straight on. Build plugin-compatible (Emit attributes, tags, add-ons) so
    the user can tweak it with the plugin's sliders and press R/T.

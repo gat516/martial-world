@@ -1,0 +1,62 @@
+{
+ "frames": {
+  "PeakRoot": "spirit peak frame (Plateau x, z; look = outward), y 0",
+  "MainRoot": "world (2, 0, 2), identity"
+ },
+ "foot_top": 40.0,
+ "bottom": -22.0,
+ "meshes": {
+  "PeakRoot": {
+   "tris": 2958,
+   "center": [
+    -14.484,
+    3.833,
+    54.0
+   ],
+   "size": [
+    215.084,
+    230.23,
+    152.0
+   ]
+  },
+  "PeakRootFoot": {
+   "tris": 346,
+   "center": [
+    -14.484,
+    3.833,
+    6.0
+   ],
+   "size": [
+    215.084,
+    230.23,
+    56.0
+   ]
+  },
+  "MainRoot": {
+   "tris": 4478,
+   "center": [
+    0.292,
+    4.849,
+    42.0
+   ],
+   "size": [
+    475.433,
+    471.775,
+    128.0
+   ]
+  },
+  "MainRootFoot": {
+   "tris": 478,
+   "center": [
+    0.292,
+    4.849,
+    6.0
+   ],
+   "size": [
+    475.433,
+    471.775,
+    56.0
+   ]
+  }
+ }
+}

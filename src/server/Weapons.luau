@@ -24,7 +24,18 @@ local HELD_NAME = "HeldWeapon"
 local Weapons = {}
 
 local warned: { [string]: boolean } = {}
-local watched: { [Player]: RBXScriptConnection } = {}
+type Watch = {
+	player: { RBXScriptConnection },
+	character: { RBXScriptConnection },
+}
+local watched: { [Player]: Watch } = {}
+
+local function disconnect(connections: { RBXScriptConnection })
+	for _, connection in connections do
+		connection:Disconnect()
+	end
+	table.clear(connections)
+end
 
 local function equippedId(data: PlayerData.Data?): string
 	local id = data and data.weapons.equipped or ""
@@ -104,6 +115,11 @@ function Weapons.apply(player: Player)
 	local id = equippedId(PlayerData.get(player))
 	player:SetAttribute("Weapon", id)
 	character:SetAttribute("WeaponClass", Defs.classOf(id))
+	-- Backpack Tools own the hand while equipped. Keep the saved weapon/class
+	-- selected, but remove its model for every observer until the Tool is put away.
+	if character:FindFirstChildOfClass("Tool") then
+		return
+	end
 	local def = Defs.Defs[id]
 	if not def then
 		return
@@ -140,26 +156,48 @@ function Weapons.apply(player: Player)
 	joint.Part0 = arm
 end
 
--- Re-apply the held weapon on every respawn. Called once the profile is loaded.
+-- Re-apply on respawn and whenever a Backpack Tool takes or releases the hand.
 function Weapons.watch(player: Player)
-	if watched[player] then
-		watched[player]:Disconnect()
-	end
-	watched[player] = player.CharacterAdded:Connect(function(character)
+	Weapons.forget(player)
+	local watch: Watch = { player = {}, character = {} }
+	watched[player] = watch
+	local function onCharacter(character: Model)
+		if watched[player] ~= watch or player.Character ~= character then return end
+		disconnect(watch.character)
+		local pending = false
+		local function changed(child: Instance)
+			if not child:IsA("Tool") or pending then return end
+			pending = true
+			-- Coalesce a Tool swap so the weapon doesn't reappear between items.
+			task.defer(function()
+				pending = false
+				if watched[player] == watch and player.Character == character then
+					Weapons.apply(player)
+				end
+			end)
+		end
+		table.insert(watch.character, character.ChildAdded:Connect(changed))
+		table.insert(watch.character, character.ChildRemoved:Connect(changed))
 		if character:WaitForChild("Right Arm", 5) or character:FindFirstChild("RightHand") then
-			if player.Character == character then
+			if watched[player] == watch and player.Character == character then
 				Weapons.apply(player)
 			end
 		end
-	end)
+	end
+	table.insert(watch.player, player.CharacterAdded:Connect(onCharacter))
+	table.insert(watch.player, player.CharacterRemoving:Connect(function()
+		disconnect(watch.character)
+	end))
 	if player.Character then
-		task.spawn(Weapons.apply, player)
+		task.spawn(onCharacter, player.Character)
 	end
 end
 
 function Weapons.forget(player: Player)
-	if watched[player] then
-		watched[player]:Disconnect()
+	local watch = watched[player]
+	if watch then
+		disconnect(watch.player)
+		disconnect(watch.character)
 		watched[player] = nil
 	end
 end

@@ -11,8 +11,9 @@ Dao comprehension per weapon class that grows as you fight with it.
   Nothing equipped = Fist.
 - A **weapon item** is one concrete weapon of a class and grade (Mortal 1.0,
   Spirit 1.25, Earth 1.5, Heaven 1.9). One is equipped at a time. Weapons are
-  Models joined to the Right Arm by a Motor6D, not Backpack Tools, so they never
-  fight the item Tools.
+  Models joined to the Right Arm by a Motor6D, not Backpack Tools. Equipping
+  any Tool removes the weapon model and pauses its idle/walk; putting the Tool
+  away restores the selected weapon.
 - **Dao comprehension**, level 0-10 per class: XP from landing M1 hits with the
   class (once per swing), casting its techniques and learning its manuals.
   Damage of M1 and the class's techniques = base x realm power x grade x Dao.
@@ -79,6 +80,14 @@ class)` picks the chain from `WeaponClass` (client) / the equipped weapon
 push, times `Weapons.multiplier`, and grants `XP_HIT` Dao XP when it lands.
 Dao level-ups notify and push state; other XP rides the periodic state refresh.
 
+`Weapons.watch` observes character Tool additions/removals on every spawn.
+While any Tool is equipped, `Weapons.apply` removes/skips `HeldWeapon` on the
+server so all players see it stowed. Removing the last Tool (including consuming
+the final item) restores the model. Tool swaps are coalesced; changing the
+selected weapon while holding an item leaves it stowed until the hand is free.
+The saved selection, player `Weapon`, and character `WeaponClass` stay selected.
+`WeaponAnimator` pauses the weapon's idle/walk while a Tool is held.
+
 Saved: `weapons = { owned = { [id]: count }, equipped = "" | id }`,
 `dao = { [class]: { level, xp } }`, `caches = { [cacheId]: true }`. All three are
 in the `PlayerState` push (`weapons`, `dao`).
@@ -113,7 +122,6 @@ derived from the template's joint frames; no per-weapon correction is needed.
 - `Weapons.Grades`: grade multipliers and colours.
 
 ## Known gaps
-- The held weapon is still drawn while an item Tool is out.
 - Sword, Saber have placeholder idles (Spear Idle, Bat Idle) and no walk.
 - Equipping is refused only mid-action, not in combat.
 - The sect weapon rack and five manual caches are placed and all reachable

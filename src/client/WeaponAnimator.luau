@@ -96,7 +96,9 @@ local function step()
 	if not h or (not idle and not walk) then
 		return
 	end
-	local grounded = h.Health > 0 and not h.Sit and h.FloorMaterial ~= Enum.Material.Air
+	local character = h.Parent
+	local holdingItem = character ~= nil and character:FindFirstChildOfClass("Tool") ~= nil
+	local grounded = h.Health > 0 and not h.Sit and h.FloorMaterial ~= Enum.Material.Air and not holdingItem
 	local root = h.RootPart
 	local speed = if root then (root.AssemblyLinearVelocity * Vector3.new(1, 0, 1)).Magnitude else 0
 	local moving = grounded and speed > 1 and h.MoveDirection.Magnitude > 0.1

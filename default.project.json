@@ -76,6 +76,9 @@
       },
       "ItemTemplates": {
         "$path": "assets/ItemTemplates.rbxmx"
+      },
+      "AmbientFX": {
+        "$path": "assets/AmbientFX.rbxm"
       }
     }
   }

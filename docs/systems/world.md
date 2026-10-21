@@ -20,6 +20,26 @@ everyone to one spot, and a day/night cycle.
   stay as set in the place (GlobalShadows on, no shadow-casting point lights).
   Lamps (lights under `Map.Sect.Ambience`, or inside a model named in
   `Config.Ambience.LAMP_MODELS`) dim by day and brighten and reach further at night.
+- Ambient world effects are templates in `ServerStorage.AmbientFX`
+  (`assets/AmbientFX.rbxm`, built by `tools/ambient_fx_build.luau`), placed by
+  map passes. Each is one invisible, anchored, non-colliding Part (the emission
+  volume): move, rotate and resize it to fit.
+  - `Fireflies`: fireflies + spirit motes over a lawn or garden (24x5x24;
+    raise Rate with area). Night only (spirit motes keep a fifth by day).
+  - `LanternGlow`, `JadeLampGlow`, `BrazierGlow`: halo, flame flicker (and
+    embers/smoke) for the `_Templates` FX_StoneLantern / FX_JadeLamp /
+    FX_Brazier. Pivot them on the flame:
+    `glow:PivotTo(lamp:GetPivot() * CFrame.new(glow:GetAttribute("MountOffset")))`.
+    No lights of their own (the lamp models carry those).
+  - `MistWisps`: low drifting mist for cliff edges and the cloud-sea surface;
+    the part's front face is the drift direction. Keep it just off the rock:
+    particles have no soft edges and cut hard lines where they cross geometry.
+  - `WaterfallSpray` (flat on the plunge pool where the water lands, front face
+    away from the cliff) and `WaterfallLip` (thin strip on the top edge, front
+    face out over the drop).
+  - `FallingPetals`, `FallingLeaves`: under a flowering tree's canopy.
+  Emitters tagged `NightFX` scale their authored Rate in DayNight's night step,
+  between their `DayScale` (default 0) and `NightScale` (default 1) attributes.
 
 ## Key files
 - `src/shared/Weather.luau`, `src/server/WeatherService.luau` (pick, set,
@@ -33,6 +53,7 @@ everyone to one spot, and a day/night cycle.
   `treasures` starts; first claim keeps it.
 - `src/server/QiNodes.luau`: wilds qi nodes (raw qi + stones, per-player cooldown).
 - `src/client/DayNight.luau`, `src/client/Music.luau` (zone music).
+- `assets/AmbientFX.rbxm` (`ServerStorage.AmbientFX`), `tools/ambient_fx_build.luau`.
 
 ## Data flow
 WeatherService sets `Weather`/`WeatherEnds` on workspace and runs `onChanged`

@@ -23,7 +23,9 @@ Mapped assets: `Remotes`, `Animations`, `Ambience`, `Effects` (binary
 `assets/Effects.rbxm`, VFX templates with plugin attributes), `BuildKit`, `GardenKit`
 (ReplicatedStorage); `Hud`, `Rewards`, `Prompts` (StarterGui); `Music`, `SFX`
 (SoundService); `Wilds`, `Hub` (Workspace); `Enemies`, `PeakTiers`,
-`ItemTemplates` (ServerStorage). Never restructure these by hand in Studio: see
+`ItemTemplates`, `AmbientFX` (binary `assets/AmbientFX.rbxm`, world-ambience
+effect templates: fireflies, lamp glows, mist, waterfall spray, petals; see
+[world](systems/world.md)) (ServerStorage). Never restructure these by hand in Studio: see
 AGENTS.md, "Studio instances". `Workspace.Map` (peaks, plaza, cliffs, bridges,
 ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 [map](systems/map.md).

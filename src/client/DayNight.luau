@@ -10,6 +10,7 @@
 -- petals by day, fireflies and spirit motes by night. Weather events lean the
 -- look through WeatherFX.adjust.
 
+local CollectionService = game:GetService("CollectionService")
 local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -174,12 +175,43 @@ local function collectLamps()
 	end)
 end
 
+-- Placed ambient effects (the ServerStorage.AmbientFX templates: fireflies,
+-- spirit motes, lantern halos and flicker) tag their emitters NightFX. Like the
+-- lamps, each remembers its authored Rate and scales with night, between its
+-- DayScale (default 0) and NightScale (default 1) attributes.
+local nightFX: { [ParticleEmitter]: number } = {}
+
+local function scaleNightFX(emitter: ParticleEmitter, base: number, night: number)
+	local day = emitter:GetAttribute("DayScale")
+	local full = emitter:GetAttribute("NightScale")
+	emitter.Rate = base * lerp(if type(day) == "number" then day else 0, if type(full) == "number" then full else 1, night)
+end
+
+local function collectNightFX()
+	local function add(inst: Instance)
+		if inst:IsA("ParticleEmitter") and not nightFX[inst] then
+			nightFX[inst] = inst.Rate
+			if lastNight >= 0 then
+				scaleNightFX(inst, inst.Rate, lastNight)
+			end
+		end
+	end
+	for _, inst in CollectionService:GetTagged("NightFX") do
+		add(inst)
+	end
+	CollectionService:GetInstanceAddedSignal("NightFX"):Connect(add)
+	CollectionService:GetInstanceRemovedSignal("NightFX"):Connect(function(inst: Instance)
+		nightFX[inst :: ParticleEmitter] = nil
+	end)
+end
+
 function DayNight.init()
 	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
 	local grade = Lighting:FindFirstChildOfClass("ColorCorrectionEffect")
 	local bloom = Lighting:FindFirstChildOfClass("BloomEffect")
 	local rays = Lighting:FindFirstChildOfClass("SunRaysEffect")
 	collectLamps()
+	collectNightFX()
 
 	local motes = (ReplicatedStorage:WaitForChild("Ambience") :: Folder):WaitForChild("AmbientMotes") :: BasePart
 	motes = motes:Clone()
@@ -227,6 +259,9 @@ function DayNight.init()
 			lastNight = night
 			for _, l in lamps do
 				scaleLamp(l, night)
+			end
+			for emitter, base in nightFX do
+				scaleNightFX(emitter, base, night)
 			end
 			fireflies.Rate = Config.FIREFLY_RATE * night
 			petals.Rate = Config.PETAL_RATE * (1 - night)

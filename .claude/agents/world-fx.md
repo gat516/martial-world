@@ -83,12 +83,17 @@ usually one shape and one colour) separately from the close-up detail.
   Lighting values, so blend on top of it (a ColorCorrection of your own, an
   offset it reads) rather than writing the same properties; read
   `src/client/DayNight.luau` first and say how you combined them.
-- Cloud pieces: the user has a cool circular cloud at `Workspace.Wisps`; the
-  existing Auspicious Clouds turn `Cloud_WispArc` wisps. Animate them (turn,
-  breathe in scale, drift inward, descend), and make colour variants (violet
-  mist, gold, white, storm grey-indigo) by tinting textures and emitter colours,
-  not by making new meshes. If `Workspace.Wisps` isn't in the open place, ask
-  the user where it went before building around it.
+- Cloud pieces: the user likes the circular cloud at
+  `Workspace.Map.Clouds.Wisps`: 11 `Cloud_WispArc` MeshParts (mesh
+  `rbxassetid://113324095325320`, texture `rbxassetid://131820708134549`,
+  171 or ~420 studs long, lying flat with only a yaw) in a ring round the main
+  peak at Y 445-505. The existing Auspicious Clouds event turns the same arc
+  mesh. Clone the arcs into your template (the map copy lives only in the
+  place file; leave it alone), then animate them (turn, breathe in scale, drift
+  inward, descend) and make colour variants (violet mist, gold, white, storm
+  grey-indigo) by tinting the texture and emitter colours, not by making new
+  meshes. `Workspace.Map.Clouds` also has `Auspicious`, `KarstWisps`, `Banks`
+  and `SpotRings` models worth looking at.
 - Pillars: a ground-to-sky pillar is a stack: a white-hot inner Beam, a wider
   coloured Beam with a soft-edged texture, rising motes and streaks along it, a
   ground ring and a shock ring where it lands, and a sky circle at the top. A

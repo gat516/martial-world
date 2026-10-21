@@ -143,7 +143,8 @@ around it swirl, gold streaks and glints fill the air. See
 The `world-fx` agent builds these (`.claude/agents/world-fx.md`). Looks the
 user asked for (2026-10-21): the sky splitting open, clouds parting, violet
 and purple cloud mist for treasure births, a striking light pillar, and the
-circular cloud at `Workspace.Wisps` animated and recoloured per event. Every
+circular cloud at `Workspace.Map.Clouds.Wisps` (a ring of `Cloud_WispArc`
+meshes round the main peak) animated and recoloured per event. Every
 placed piece is checked upright at several spots through the real event code
 path; event effects have come out lying on their side before.
 

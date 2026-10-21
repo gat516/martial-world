@@ -6,7 +6,12 @@
 #                                   (repo code + assets/, testbed stubs, no
 #                                   Workspace.Map) and open it in Studio
 #   tools/sandbox.sh close <name>   close that Studio window (no save prompt)
-#   tools/sandbox.sh list           list open sandboxes
+#   tools/sandbox.sh list           list open sandboxes with their age
+#   tools/sandbox.sh prune <hours>  close every sandbox open longer than that
+#                                   (leftovers from agents that forgot)
+#
+# Always close your sandbox before you report, even when the task failed or
+# was cut short: every one left open is a full Studio eating the user's RAM.
 #
 # The place file is mw-sandbox-<name>.rbxl in the Windows temp folder. Once it
 # opens, it shows up in the Studio MCP's list_roblox_studios under that name;
@@ -41,16 +46,24 @@ EOF
 	nohup "$exe" "$(wslpath -w "$out")" >/dev/null 2>&1 &
 	disown
 	echo "opening $(basename "$out"); find it with list_roblox_studios (it can take ~20 s to connect)"
+	echo "close it before you report: tools/sandbox.sh close $name"
+	others=$("$0" list)
+	[[ -n "$others" ]] && echo "already open:" && echo "$others"
+	true
 	;;
 close)
 	[[ "$name" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "usage: $0 close <name>" >&2; exit 2; }
 	ps "Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { \$_.MainWindowTitle -like '*mw-sandbox-$name.rbxl*' } | ForEach-Object { Stop-Process -Id \$_.Id -Force; 'closed ' + \$_.MainWindowTitle }"
 	;;
 list)
-	ps "Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { \$_.MainWindowTitle -like '*mw-sandbox-*' } | ForEach-Object { \$_.MainWindowTitle }"
+	ps "Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { \$_.MainWindowTitle -like '*mw-sandbox-*' } | ForEach-Object { \$n = [regex]::Match(\$_.MainWindowTitle, 'mw-sandbox-([A-Za-z0-9_-]+)\\.rbxl').Groups[1].Value; '{0}  open {1:0.0} h' -f \$n, ((Get-Date) - \$_.StartTime).TotalHours }"
+	;;
+prune)
+	[[ "$name" =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "usage: $0 prune <hours>" >&2; exit 2; }
+	ps "Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { \$_.MainWindowTitle -like '*mw-sandbox-*' -and ((Get-Date) - \$_.StartTime).TotalHours -gt $name } | ForEach-Object { Stop-Process -Id \$_.Id -Force; 'closed ' + \$_.MainWindowTitle }"
 	;;
 *)
-	sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
 	exit 2
 	;;
 esac

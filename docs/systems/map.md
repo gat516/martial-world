@@ -593,14 +593,16 @@ From a read-only audit of the code (2026-10-20); code refs inline.
     Harder spots hold the stronger manuals:
     | Manual | Cache id | Realm | Anchor | Spot |
     |---|---|---|---|---|
-    | CrescentSweep | cache_crescentsweep | - | (-131, 7.2, 588) | the bamboo hollow inside Old Stone Hill, end of the Hidden trail (Inner) |
+    | CrescentSweep | cache_crescentsweep | - | (-126, 8.05, 620) | in the bamboo at the south foot of Old Stone Hill's boulders, by the end of the Hidden trail (Inner) |
     | RampagingTiger | cache_rampagingtiger | - | (318, 9.8, 611) | hunter's camp rise, end of the Camp trail (Inner, east) |
     | HeavenSplitter | cache_heavensplitter | - | (-114, 12.3, 843) | river side of the ShrineBack ridge behind the shrine terrace (Inner, deep) |
-    | DragonPierce | cache_dragonpierce | QC3 | (-318, 9.3, 654) | back of the WolfDenCave in the wolf den crag (Inner, wolves) |
+    | DragonPierce | cache_dragonpierce | QC3 | (-314, 8.17, 682) | tucked against the wolf den crag's south foot and its boulders (Inner, wolves) |
     | GreatSageAwakening | cache_greatsageawakening | - | (-316, 7.3, 1088) | back of the SerpentGrotto, end of the Grotto trail (Middle) |
     Coordinates come from `art/wilds/wilds_layout.luau` landforms; re-seat the
-    pedestals if the wilds terrain is re-run, and keep the cave and hollow
-    open (dressing colliders must not fill them).
+    pedestals if the wilds terrain is re-run. The bamboo hollow and the
+    WolfDenCave are filled by the WildsInner BoulderPile hull colliders, so those
+    two caches sit just outside them; re-check each prompt is reachable (a clear
+    ray from open ground within 10 studs) after any dressing change.
 - Free (no code reads them): `Map.Markers.*` (except the tagged TeleportHome arrays and ManualCaches), `Map.Clouds`, `Map.Ground`, tags
   SwayBridge, WindShake, SkyLantern. Place-only: `ReplicatedStorage.BuildCatalog`,
   `ReplicatedStorage.HerbModels`, `ServerStorage.PeakStash`.

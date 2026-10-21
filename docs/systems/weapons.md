@@ -109,9 +109,8 @@ works, held invisibly.
 - The held weapon is still drawn while an item Tool is out.
 - Sword, Saber have placeholder idles (Spear Idle, Bat Idle) and no walk.
 - Equipping is refused only mid-action, not in combat.
-- The sect weapon rack and five manual caches are placed (positions in
-  [map](map.md)), but boulder piles in the wilds dressing bury the bamboo hollow
-  (Crescent Moon Sweep) and wolf den (Dragon-Piercing Thrust) caches.
+- The sect weapon rack and five manual caches are placed and all reachable
+  (positions in [map](map.md)); not yet claimed in a play session.
 - Dadao and Guandao lead with the blade's back on their backhand steps (Saber 2
   and 4, Guandao 2): the clips were made for a double-bit axe.
 - Untested in game: grips, joints and the idle/walk overlay need a look in Studio.

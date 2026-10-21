@@ -40,7 +40,7 @@ reuse its first method's motif.
 | Method | On the body | Ground / around | Breath beat | Ignition |
 |---|---|---|---|---|
 | Sect Breathing | — | — | two faint motes rise from the belly | — |
-| Blazing Heart (reworked: 17 loop emitters, no shell) | white-hot heart core at the chest (glow that swells with the breath, a hard dot, a twinkling 4-point glint, the one PointLight); a flame mantle (library aura-flame flipbook) hugging the silhouette from behind on a darker soot copy of itself; realistic flipbook flames licking off the arms and torso; a small crown of licks off the head; black soot curling off the flame tips; embers and dark ash flecks | dark scorch disc, warm heat pool, a turning fire swirl, a hui-wen (meander) sigil turning the other way, small flames on its rim | a heartbeat: lub-dub glow at the chest with a glint and a spark puff, the mantle flares, a fire ring pulses out of the sigil; flames, mantle and ground fire breathe | white flash and a chromatic star at the heart, a starburst flare, flame jets and flipbook flames roaring up round the body, a fire ring burning out over the ground, soot thrown low, an ember burst; limb flames surge |
+| Blazing Heart (reworked: 17 loop emitters, no shell) | white-hot heart core at the chest (glow that swells with the breath, a hard dot, a twinkling 4-point glint, the one PointLight); a flame mantle (library aura-flame flipbook) hugging the silhouette from behind on a darker soot copy of itself; realistic flipbook flames licking off the arms and torso; a small crown of licks off the head; black soot curling off the flame tips; embers and dark ash flecks. Flames, mantle and ground fire grow and shrink with the breath and drift slowly in size | dark scorch disc, warm heat pool, a turning fire swirl, small flames on the rim; four hui-wen sigils: one on the ground turning against the swirl, three raised round the chest (added by the user, centred and level on the body axis) each turning its own way and drifting up, fading and starting again; all breathe in size and flash on the heartbeat and pulses | a heartbeat: lub-dub glow at the chest with a glint and a spark puff, the mantle flares, a fire ring pulses out of the sigil. Every 1 or 2 breaths (about 5 or 10 s, a little late at random) the beat is a pulse instead: a lighter punch (flash and star at the heart, a starburst, embers, a few flame jets and flames, a ground ring, limb flames surging), the aura swelling into it | once fully seated: white flash and a chromatic star at the heart, a starburst flare, flame jets and flipbook flames roaring up round the body, a fire ring burning out over the ground, soot thrown low, an ember burst; limb flames surge |
 | Flowing Spring | blue tint over the body; blue belly core (light); droplets streaming in from a 7-stud shell to the core, faster on the inhale | still Neon pool disc with a pale rim | two ripples cross the pool | a wave rolls out, a ring springs up, droplets fall back |
 | Evergreen Root | green meridian beams with glowing joint dots, lighting trunk-first (belly, chest, then shoulders and hips, then elbows and knees, then hands) over ~2 breaths; green seed at the belly; faint green tint | six crooked roots creeping out, slow falling leaves | sap motes, a green ring breathes out | a green ring bursts out, a wind-swirl ring rises, leaves whirl up |
 | Iron Marrow | spinning gold gem between the hands (light); gold bone lines along the arms and spine; gold ForceField rim | thin gold ring | the clang: a thin ring snaps out level and one upright, sparks, a star; bone lines, rim and ring glint | a great clang ring, a sunburst flash, sparks, a steel ring across the ground |
@@ -67,15 +67,31 @@ How it is put together (details in the builder header):
 - **Ignition:** an aura that starts within 2 s of `Meditating` or `Method`
   changing plays its `Ignite` model and a 1.8 s surge (pieces brighter and
   bigger, limb emitters `Surge`); the `Breakthrough` remote replays it.
-  Walking up to someone already seated doesn't ignite.
+  Walking up to someone already seated doesn't ignite. On a sit-down the whole
+  aura waits until the player is all the way down (user, 2026-10-21): when the
+  `Animations.Meditate.Sit` track (1.6 s, no animation events) is 0.2 s from
+  its end, the moment `Meditation.luau` fades into `Loop`, or `Loop` is already
+  playing; 2.6 s at most if the track never shows. A `Seated` marker on Sit
+  would be cleaner. A method switch while seated and a breakthrough ignite at
+  once.
+- **Pulses:** a method Model with `PunchEvery = NumberRange(a, b)` fires its
+  `Punch` model (a lighter ignition) on the breath's beat every a to b whole
+  breaths (rolled each time), up to `PunchJitter` s late, in place of that
+  beat's `Breath`; that breath's `Swell` is `PunchSwell` times larger, so the
+  aura swells into the pulse and eases back. Limb emitters with
+  `PunchSurge = n` emit n then. Only Blazing Heart uses it (every 1 to 2
+  breaths, 0.6 s jitter, 1.4x swell).
 - **Grade hook:** `GRADES` in MethodAura scales the `Ground` model (reach),
   `Scaled` emitter rates and brightness. Mortal = 1.
 - **Emitter attributes** (added for Blazing Heart, usable by any aura):
   `Breathe = NumberRange(lo, hi)` scales an emitter's rate from lo at rest to
   hi at the breath's peak (Limbs emitters too; `Breathe = true` keeps the old
   curve), `Prime = n` emits n at once when the aura starts so slow ground loops
-  show immediately, and `Swell = k` grows a Body emitter's Size by 1 + k with
-  the breath and the beat (the heart).
+  show immediately, `Swell = k` grows an emitter's Size (Ground, Body or
+  Limbs) by 1 + k with the breath, the beat and the surges, and `Drift = k`
+  adds a slow wander of +-k so the size never sits still. Parts take
+  `Rise = studs` with `RisePeriod` (drift up, fade at the top, start again),
+  and `Kick` now also flashes on pulses.
 - **Budget per aura:** one PointLight (none for Wind, Ice, Thunder, Sect),
   6 shell parts (R6), up to ~30 beams (Thunder's jagged cracks), a handful of
   emitters at 1 to 13 /s per limb. Sect Breathing auras rank after named
@@ -243,7 +259,14 @@ chant.
   emitter fallback (the place has no `ReplicatedStorage.vfx` Game Module).
   Feel at play speed, R15, 8 seated auras on a phone and the live sit /
   switch / breakthrough ignition are untested. The library has no heart
-  texture, so the heart is a glow, a dot and a glint, not a heart shape.
+  texture, so the heart is a glow, a dot and a glint, not a heart shape. The
+  seated-moment ignition was checked on the preview rig (lit at Sit 1.40 /
+  1.60 s), not on a live player or an observer's replicated tracks.
+- The user's three hand-placed sigils (2026-10-21) were deleted by the vfx
+  agent before their rotation, image and colour were read; they were rebuilt
+  from their recorded sizes and heights as flat hui-wen rings, centred on the
+  player (user's call: their loose placement doesn't stand). If they used
+  another image or colour, say so and fold it into the builder.
 - Only the Mortal column is built; the Spirit/Earth/Heaven looks (spreading
   figures, backdrops, manifestations) wait for methods of those grades.
 - No refs yet for Mountain Breath or Drifting Cloud.

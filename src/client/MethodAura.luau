@@ -64,6 +64,14 @@ local LINGER = 5 -- seconds a stopped aura keeps its particles before it's destr
 local REGROUND = 0.5 -- seconds between ground checks under a seated player
 local IGNITE = 1.8 -- seconds the ignition surge takes to settle
 local FRESH = 2 -- an aura starting this soon after Meditating/Method changed ignites
+-- Sitting down ignites when the player is all the way down: when the
+-- Meditate.Sit track (1.6 s, no markers) is within SEAT_BLEND of its end (the
+-- moment Meditation.luau fades into Loop), or Loop is already playing (a method
+-- switch while seated ignites at once). SEAT_TIMEOUT covers a track that never
+-- replicates.
+local SEAT_BLEND = 0.2 -- Meditation.luau's BLEND
+local SEAT_TIMEOUT = 2.6
+local PUNCH = 1.2 -- seconds a pulse's surge takes to settle
 local BURST_GAP = NumberRange.new(0.5, 2.6) -- "burst" rhythm: seconds between bursts
 local BURST_DECAY = 0.16 -- seconds for a burst to fall to ~37%
 local KICK = 0.3 -- seconds for a breath's kick (Kick attributes: a clang's glint) to fall to ~37%
@@ -134,6 +142,8 @@ type Piece = {
 	hidden: boolean,
 	images: { ImageLabel },
 	lift: number,
+	rise: number,
+	risePeriod: number,
 	delay: number,
 	phase: number,
 	light: PointLight?,
@@ -159,6 +169,10 @@ type Line = {
 -- faster on the inhale) or a NumberRange `lo..hi` rate multiplier at rest..peak.
 type Breather = { emitter: ParticleEmitter, rate: number, lo: number?, hi: number? }
 
+-- An emitter whose Size breathes (`Swell`: fraction at the breath's peak,
+-- `Drift`: a slow wander), e.g. a heart core, flames, a mantle, a ground swirl.
+type Sweller = { emitter: ParticleEmitter, size: NumberSequence, swell: number, drift: number, phase: number }
+
 type Aura = {
 	key: any,
 	method: string,
@@ -168,7 +182,17 @@ type Aura = {
 	pieces: { Piece },
 	lines: { Line },
 	breathers: { Breather },
-	swellers: { { emitter: ParticleEmitter, size: NumberSequence, swell: number } },
+	swellers: { Sweller },
+	punch: Model?,
+	punchEvery: NumberRange?,
+	punchJitter: number,
+	punchSwell: number,
+	punchIn: number,
+	punching: boolean,
+	punchDue: number?,
+	punchedAt: number,
+	waiting: boolean,
+	sawSit: boolean,
 	breathAt: number,
 	kickedAt: number,
 	limbEmitters: { ParticleEmitter },
@@ -197,6 +221,7 @@ type Aura = {
 local auras: { [any]: Aura } = {} -- live, by Player (or a preview key)
 local dying: { Aura } = {}
 local changed: { [Player]: number } = {} -- when Meditating/Method last changed
+local satAt: { [Player]: number } = {} -- when Meditating last changed (a sit-down)
 
 local function template(): Instance?
 	local source = MethodAura.source or ReplicatedStorage:FindFirstChild("Effects")
@@ -328,6 +353,8 @@ local function pieceOf(part: BasePart, index: number, glow: number): Piece
 		hidden = part:GetAttribute("Hidden") == true,
 		images = images,
 		lift = num(part, "Lift", 0),
+		rise = num(part, "Rise", 0),
+		risePeriod = math.max(0.5, num(part, "RisePeriod", 6)),
 		delay = num(part, "Delay", 0),
 		phase = index * 1.7,
 		light = light,
@@ -344,6 +371,13 @@ local function addBreather(aura: Aura, e: ParticleEmitter)
 	end
 end
 
+local function addSweller(aura: Aura, e: ParticleEmitter)
+	local swell, drift = num(e, "Swell", 0), num(e, "Drift", 0)
+	if swell ~= 0 or drift ~= 0 then
+		table.insert(aura.swellers, { emitter = e, size = e.Size, swell = swell, drift = drift, phase = math.random() * 2 * math.pi })
+	end
+end
+
 -- Ground and Body parts that move or breathe (Body parts always follow).
 local function collectPieces(aura: Aura, glow: number)
 	local index = 0
@@ -355,10 +389,7 @@ local function collectPieces(aura: Aura, glow: number)
 		for _, d in group:GetDescendants() do
 			if d:IsA("ParticleEmitter") then
 				addBreather(aura, d)
-				local swell = d:GetAttribute("Swell")
-				if type(swell) == "number" and swell ~= 0 then
-					table.insert(aura.swellers, { emitter = d, size = d.Size, swell = swell })
-				end
+				addSweller(aura, d)
 			end
 			if not d:IsA("BasePart") then
 				continue
@@ -366,7 +397,7 @@ local function collectPieces(aura: Aura, glow: number)
 			index += 1
 			local piece = pieceOf(d, index, glow)
 			local moves = piece.point or piece.pulsed or #piece.images > 0 or piece.spin ~= 0 or piece.bob ~= 0 or piece.tumble ~= 0
-				or piece.turn ~= 0 or piece.grow or piece.lift ~= 0
+				or piece.turn ~= 0 or piece.grow or piece.lift ~= 0 or piece.rise ~= 0
 			if moves then
 				table.insert(aura.pieces, piece)
 			end
@@ -540,11 +571,12 @@ local function collectLimbs(aura: Aura)
 				if body and body:IsA("BasePart") then
 					local copy = e:Clone()
 					copy.Name = "Aura_" .. e.Name
-					copy.Enabled = true
+					copy.Enabled = false -- activate() lights them
 					copy.Parent = body
 					table.insert(aura.owned, copy)
 					table.insert(aura.limbEmitters, copy)
 					addBreather(aura, copy)
+					addSweller(aura, copy)
 				end
 			end
 		end
@@ -585,18 +617,105 @@ local function exhale(aura: Aura)
 	fire(aura, aura.breath)
 end
 
-local function ignite(aura: Aura)
-	aura.ignitedAt = MethodAura.now()
-	fire(aura, aura.ignite)
+local function surgeLimbs(aura: Aura, attribute: string)
 	for _, e in aura.limbEmitters do
-		local surge = e:GetAttribute("Surge")
-		if type(surge) == "number" and surge > 0 then
-			e:Emit(surge)
+		local n = e:GetAttribute(attribute)
+		if type(n) == "number" and n > 0 then
+			e:Emit(n)
 		end
 	end
 end
 
-local function start(key: any, root: BasePart, methodId: string, fresh: boolean): Aura?
+local function ignite(aura: Aura)
+	aura.ignitedAt = MethodAura.now()
+	fire(aura, aura.ignite)
+	surgeLimbs(aura, "Surge")
+end
+
+-- Breaths until the next pulse (the method's `PunchEvery` range, whole breaths).
+local function rollPunch(aura: Aura): number
+	local every = aura.punchEvery
+	if not every then
+		return math.huge
+	end
+	return math.random(math.max(1, math.floor(every.Min)), math.max(1, math.floor(every.Max)))
+end
+
+-- A pulse: a lighter ignition (`Punch` model, limb `PunchSurge`) on the beat.
+local function punch(aura: Aura)
+	local now = MethodAura.now()
+	aura.punchedAt = now
+	aura.kickedAt = now
+	fire(aura, aura.punch)
+	surgeLimbs(aura, "PunchSurge")
+end
+
+-- Lights the loop: Ground/Body emitters on (primed), limb emitters on.
+local function activate(aura: Aura)
+	for _, groupName in { "Ground", "Body" } do
+		local group = aura.model:FindFirstChild(groupName)
+		if group then
+			TechniqueVFX.enable(group)
+			-- `Prime = n`: slow loops (a ground sigil every few seconds) start
+			-- with n particles instead of waiting out their first interval
+			for _, d in group:GetDescendants() do
+				local prime = d:GetAttribute("Prime")
+				if d:IsA("ParticleEmitter") and type(prime) == "number" and prime > 0 then
+					d:Emit(prime)
+				end
+			end
+		end
+	end
+	for _, e in aura.limbEmitters do
+		e.Enabled = true
+	end
+end
+
+local sitIds: { Sit: string, Loop: string }? = nil
+local function meditateIds(): { Sit: string, Loop: string }
+	if not sitIds then
+		local folder = ReplicatedStorage:FindFirstChild("Animations")
+		folder = folder and folder:FindFirstChild("Meditate")
+		local sit = folder and folder:FindFirstChild("Sit")
+		local loop = folder and folder:FindFirstChild("Loop")
+		sitIds = {
+			Sit = if sit and sit:IsA("Animation") then sit.AnimationId else "",
+			Loop = if loop and loop:IsA("Animation") then loop.AnimationId else "",
+		}
+	end
+	return sitIds :: any
+end
+
+-- Is the character all the way down (see SEAT_BLEND)?
+local function seated(aura: Aura, now: number): boolean
+	if now - aura.t0 >= SEAT_TIMEOUT then
+		return true
+	end
+	local humanoid = aura.character:FindFirstChildOfClass("Humanoid")
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	if not animator then
+		return true
+	end
+	local ids = meditateIds()
+	local sitting = false
+	for _, track in animator:GetPlayingAnimationTracks() do
+		local id = track.Animation and track.Animation.AnimationId
+		if id == ids.Loop and ids.Loop ~= "" then
+			return true
+		elseif id == ids.Sit and ids.Sit ~= "" then
+			aura.sawSit = true
+			if track.Length > 0 and track.TimePosition >= track.Length - SEAT_BLEND then
+				return true
+			end
+			sitting = true
+		end
+	end
+	return aura.sawSit and not sitting
+end
+
+-- `fresh` ignites; `waitSeat` holds the whole aura (and its ignition) until
+-- the player is all the way down (a sit-down, not a method switch).
+local function start(key: any, root: BasePart, methodId: string, fresh: boolean, waitSeat: boolean?): Aura?
 	local def = Methods.Defs[methodId]
 	local proto = template()
 	local source = proto and proto:FindFirstChild(methodId)
@@ -628,6 +747,19 @@ local function start(key: any, root: BasePart, methodId: string, fresh: boolean)
 		lines = {},
 		breathers = {},
 		swellers = {},
+		punch = model:FindFirstChild("Punch") :: Model?,
+		punchEvery = (function()
+			local v = source:GetAttribute("PunchEvery")
+			return if typeof(v) == "NumberRange" then v else nil
+		end)(),
+		punchJitter = num(source, "PunchJitter", 0),
+		punchSwell = num(source, "PunchSwell", 1),
+		punchIn = 0,
+		punching = false,
+		punchDue = nil,
+		punchedAt = -math.huge,
+		waiting = fresh and waitSeat == true,
+		sawSit = false,
 		breathAt = math.clamp(num(source, "BreathAt", 0.5), 0.01, 0.99),
 		kickedAt = -math.huge,
 		limbEmitters = {},
@@ -657,23 +789,13 @@ local function start(key: any, root: BasePart, methodId: string, fresh: boolean)
 	placeAura(aura)
 	model.Parent = MethodAura.folder
 	collectLines(aura, grade.glow)
-	for _, groupName in { "Ground", "Body" } do
-		local group = model:FindFirstChild(groupName)
-		if group then
-			TechniqueVFX.enable(group)
-			-- `Prime = n`: slow loops (a ground sigil every few seconds) start
-			-- with n particles instead of waiting out their first interval
-			for _, d in group:GetDescendants() do
-				local prime = d:GetAttribute("Prime")
-				if d:IsA("ParticleEmitter") and type(prime) == "number" and prime > 0 then
-					d:Emit(prime)
-				end
-			end
-		end
-	end
+	aura.punchIn = rollPunch(aura)
 	auras[key] = aura
-	if fresh then
-		ignite(aura)
+	if not aura.waiting then
+		activate(aura)
+		if fresh then
+			ignite(aura)
+		end
 	end
 	return aura
 end
@@ -723,8 +845,24 @@ local function energy(aura: Aura, now: number): number
 	end
 	local phase = ((now - aura.t0) / aura.period) % 1
 	local at = aura.breathAt
+	if phase < aura.lastPhase then -- a new breath: is this one a pulse?
+		aura.punchIn -= 1
+		aura.punching = aura.punchIn <= 0
+	end
 	if aura.on and aura.lastPhase < at and phase >= at and aura.alpha > 0.5 then
-		exhale(aura) -- the breath's beat (the exhale's release unless BreathAt says otherwise)
+		-- the breath's beat (the exhale's release unless BreathAt says otherwise);
+		-- every `PunchEvery` breaths it is a pulse instead, up to `PunchJitter` late
+		if aura.punching and aura.punch then
+			aura.punchDue = now + math.random() * aura.punchJitter
+			aura.punchIn = rollPunch(aura)
+		else
+			exhale(aura)
+		end
+	end
+	local due = aura.punchDue
+	if due and now >= due then
+		aura.punchDue = nil
+		punch(aura)
 	end
 	aura.lastPhase = phase
 	return 0.5 - 0.5 * math.cos(2 * math.pi * phase)
@@ -738,6 +876,18 @@ local function ramp(aura: Aura, now: number, delay: number): number
 end
 
 local function step(aura: Aura, now: number, dt: number, parts: { BasePart }, frames: { CFrame })
+	if aura.waiting then
+		-- sitting down: nothing shows until the player is all the way down
+		if not (aura.on and seated(aura, now)) then
+			return
+		end
+		aura.waiting = false
+		aura.t0 = now
+		aura.lastPhase = 0
+		aura.alpha = 0.35
+		activate(aura)
+		ignite(aura)
+	end
 	if aura.on then
 		aura.alpha = math.min(1, aura.alpha + dt / aura.fadeIn)
 		if now >= aura.nextGround then
@@ -754,18 +904,25 @@ local function step(aura: Aura, now: number, dt: number, parts: { BasePart }, fr
 	local s = math.clamp(1 - (now - aura.ignitedAt) / IGNITE, 0, 1)
 	s = s * s
 	local kick = math.exp(-(now - aura.kickedAt) / KICK)
+	-- a pulse's surge (1 at the pulse, settling over PUNCH seconds)
+	local pz = math.clamp(1 - (now - aura.punchedAt) / PUNCH, 0, 1)
+	pz = pz * pz
 	for _, b in aura.breathers do
 		local lo, hi = b.lo, b.hi
 		if lo and hi then
-			b.emitter.Rate = b.rate * (lo + (hi - lo) * e) * (1 + 2 * s)
+			b.emitter.Rate = b.rate * (lo + (hi - lo) * e) * (1 + 2 * s + 0.8 * pz)
 		else
 			b.emitter.Rate = b.rate * (0.2 + 1.3 * e + 2 * s)
 		end
 	end
-	-- `Swell` emitters (a heart core) grow with the breath, the beat and the surge
-	local grow = 1 + 0.6 * s
+	-- Swell/Drift emitters grow with the breath (more on a pulse's breath, so
+	-- the aura swells into each pulse and eases back), the beat, the surges,
+	-- and wander slowly so the size never sits still
+	local grow = 1 + 0.6 * s + 0.15 * pz
+	local amp = if aura.punching then aura.punchSwell else 1
+	local tt = now - aura.t0
 	for _, w in aura.swellers do
-		local k = (1 + w.swell * (e + 0.8 * kick)) * grow
+		local k = (1 + w.swell * amp * (e + 0.8 * kick) + w.drift * math.sin(tt * 0.45 + w.phase)) * grow
 		local kps = {}
 		for _, p in w.size.Keypoints do
 			table.insert(kps, NumberSequenceKeypoint.new(p.Time, p.Value * k, p.Envelope * k))
@@ -789,6 +946,14 @@ local function step(aura: Aura, now: number, dt: number, parts: { BasePart }, fr
 			cf *= CFrame.Angles(0, piece.spin * t, 0)
 		end
 		local dy = piece.lift * e
+		-- `Rise`: drifts up that far over `RisePeriod` seconds, fading in at the
+		-- bottom and out at the top, then starts again (a layer replaced)
+		local riseFade = 1
+		if piece.rise ~= 0 then
+			local u = ((t + piece.phase * piece.risePeriod) / piece.risePeriod) % 1
+			dy += piece.rise * u
+			riseFade = math.sin(math.pi * u)
+		end
 		if piece.bob ~= 0 then
 			dy += piece.bob * math.sin(t * 1.3 + piece.phase)
 		end
@@ -808,13 +973,13 @@ local function step(aura: Aura, now: number, dt: number, parts: { BasePart }, fr
 		local grow = piece.grow
 		if grow then
 			local g = if piece.growIn then 1 - e else e
-			local k = (grow.Min + (grow.Max - grow.Min) * g) * (1 + 0.35 * s + 0.25 * piece.kick * kick)
+			local k = (grow.Min + (grow.Max - grow.Min) * g) * (1 + 0.35 * s + 0.25 * piece.kick * kick + 0.12 * pz)
 			piece.part.Size = piece.size * k
 		end
-		local on = a * ramp(aura, now, piece.delay)
+		local on = a * ramp(aura, now, piece.delay) * riseFade
 		if piece.pulsed then
 			local op = 1 - (piece.hi - (piece.hi - piece.lo) * e)
-			op = math.min(1, op * (1 + 1.5 * s) + (1 - op) * piece.kick * kick)
+			op = math.min(1, op * (1 + 1.5 * s) + (1 - op) * piece.kick * math.max(kick, pz))
 			if piece.flicker > 0 then
 				op *= 1 - piece.flicker * math.random()
 			end
@@ -919,7 +1084,8 @@ local function refresh()
 		end
 		if not aura then
 			local fresh = now - (changed[w.player] or -math.huge) <= FRESH
-			start(w.player, w.root, w.method, fresh)
+			local sitting = now - (satAt[w.player] or -math.huge) <= FRESH
+			start(w.player, w.root, w.method, fresh, sitting)
 		end
 	end
 	for key in auras do
@@ -930,10 +1096,11 @@ local function refresh()
 end
 
 -- Previews (Edit mode, no players): an aura on a stand-in rig under `key`,
--- igniting like a fresh sit-down unless `quiet`.
-function MethodAura.preview(key: any, root: BasePart, methodId: string, quiet: boolean?)
+-- igniting at once unless `quiet`; `sitDown` waits for the rig's Sit track to
+-- finish like a real sit-down.
+function MethodAura.preview(key: any, root: BasePart, methodId: string, quiet: boolean?, sitDown: boolean?)
 	stop(key)
-	return start(key, root, methodId, not quiet)
+	return start(key, root, methodId, not quiet, sitDown)
 end
 
 function MethodAura.stopPreview(key: any)
@@ -943,7 +1110,7 @@ end
 -- Replays the ignition surge on a live aura (breakthroughs; previews).
 function MethodAura.ignite(key: any)
 	local aura = auras[key]
-	if aura then
+	if aura and not aura.waiting then -- a waiting aura ignites when seated anyway
 		ignite(aura)
 	end
 end
@@ -958,7 +1125,10 @@ function MethodAura.init()
 			changed[player] = MethodAura.now()
 			refresh()
 		end
-		player:GetAttributeChangedSignal("Meditating"):Connect(mark)
+		player:GetAttributeChangedSignal("Meditating"):Connect(function()
+			satAt[player] = MethodAura.now()
+			mark()
+		end)
 		player:GetAttributeChangedSignal("Method"):Connect(mark)
 		player.CharacterRemoving:Connect(function()
 			stop(player)
@@ -971,6 +1141,7 @@ function MethodAura.init()
 	Players.PlayerRemoving:Connect(function(player)
 		stop(player)
 		changed[player] = nil
+		satAt[player] = nil
 	end)
 	local remotes = ReplicatedStorage:FindFirstChild("Remotes")
 	local breakthrough = remotes and remotes:FindFirstChild("Breakthrough")

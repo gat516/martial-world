@@ -15,6 +15,9 @@
 --                        feeding enabled emitters by hand (Edit mode doesn't
 --                        tick Rate emission)
 --   P.ignite()           replays every aura's ignition surge
+--   P.sit(method?)       the real sit-down: the rig stands, plays Meditate.Sit
+--                        then Loop (animations stepped by hand), and the aura
+--                        waits for the seated moment to ignite, as in play
 --   P.hold()             stops stepping (particles keep simulating)
 --   P.freeze()           holds the moment for a capture (waves and particles paused)
 --   P.reveal(element, grade, at?, first?)  plays RootFX at `at` (default the
@@ -60,10 +63,16 @@ local function pose(rig)
 	animator:StepAnimations(0)
 end
 
+local animConn = nil
+
 function P.clear()
 	if conn then
 		conn:Disconnect()
 		conn = nil
+	end
+	if animConn then
+		animConn:Disconnect()
+		animConn = nil
 	end
 	if S then
 		for key in S.at do
@@ -182,6 +191,41 @@ end
 function P.ignite()
 	for key in S.at do
 		S.aura.ignite(key)
+	end
+end
+
+function P.sit(method)
+	method = method or next(S.rigs)
+	local rig = S.rigs[method]
+	local animator = rig:FindFirstChildOfClass("Humanoid"):FindFirstChildOfClass("Animator")
+	if animConn then
+		animConn:Disconnect()
+	end
+	for _, track in animator:GetPlayingAnimationTracks() do
+		track:Stop(0)
+	end
+	animator:StepAnimations(0)
+	local sit = animator:LoadAnimation(RS.Animations.Meditate.Sit)
+	local loop = animator:LoadAnimation(RS.Animations.Meditate.Loop)
+	loop.Looped = true
+	local t0 = os.clock()
+	while (sit.Length == 0 or loop.Length == 0) and os.clock() - t0 < 5 do
+		task.wait()
+	end
+	S.aura.stopPreview(method)
+	S.aura.step(100) -- clear the old aura away
+	sit:Play(0.1)
+	S.aura.preview(method, rig.HumanoidRootPart, method, false, true)
+	local looped = false
+	animConn = RunService.Heartbeat:Connect(function(dt)
+		if not looped and sit.TimePosition >= sit.Length - 0.2 then
+			looped = true -- Meditation.luau fades Sit into Loop here
+			loop:Play(0.2)
+		end
+		animator:StepAnimations(dt)
+	end)
+	if not conn then
+		P.run(0)
 	end
 end
 

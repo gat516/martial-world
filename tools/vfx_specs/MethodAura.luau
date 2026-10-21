@@ -29,8 +29,14 @@
 --             because the map already uses hundreds (only 31 render)
 --     Breath  emitted on each breath beat (or burst); its parts with `Point`
 --             (and optional CFrame `Rel`) are moved to that body point first
---     Ignite  emitted when the player sits, switches to this method or breaks
---             through; Limbs emitters with `Surge` = n also Emit(n) then
+--     Ignite  emitted when the player sits (once all the way down),
+--             switches to this method or breaks through; Limbs emitters with
+--             `Surge` = n also Emit(n) then
+--     Punch   a recurring pulse (a lighter ignition) fired on the breath's beat
+--             every `PunchEvery` (NumberRange, whole breaths) breaths, up to
+--             `PunchJitter` seconds late, in place of that beat's Breath; that
+--             breath's Swell is `PunchSwell` times larger; Limbs emitters with
+--             `PunchSurge` = n Emit(n) then. Attributes on the method's Model.
 -- Animation attributes on parts (and Lines where they make sense):
 --   Pulse   NumberRange: transparency at breath peak..rest (template parts
 --           stay at Transparency 1, so nothing shows unplayed)
@@ -38,7 +44,9 @@
 --   Lift    studs moved up at the peak (negative settles down)
 --   Spin    deg/s orbit about the aura's axis;  Turn  deg/s about its own Y
 --   Bob     studs of slow sine drift;  Tumble deg/s;  Flicker 0..1 random dimming
---   Kick    extra opacity (and size) flashed on each breath beat
+--   Kick    extra opacity (and size) flashed on each breath beat and pulse
+--   Rise    studs drifted up over RisePeriod seconds (default 6), fading in at
+--           the bottom and out at the top, then again (a layer replaced)
 --   Delay   seconds after the aura starts before it fades in (growth)
 --   Hidden  keep the part invisible and breathe only its SurfaceGui image
 -- Emitters: loop ones carry EmitDuration = -1 (the plugin's T shows them);
@@ -46,8 +54,9 @@
 -- faster on the inhale (true: the old 0.2..1.5 curve; a NumberRange lo..hi:
 -- that rate multiplier at rest..peak; Limbs emitters may breathe too);
 -- `Prime = n` emits n at once when the aura starts (slow ground loops show at
--- once); `Swell = k` (Body) scales the emitter's Size by 1 + k at the breath's
--- peak, kicks on the beat and grows with the ignition (a heart core).
+-- once); `Swell = k` scales the emitter's Size by 1 + k at the breath's
+-- peak, kicks on the beat and grows with the ignition and pulses (Ground, Body
+-- and Limbs emitters); `Drift = k` adds a slow size wander of +-k.
 -- Colours are baked per method (no tinting).
 
 local B = _G.vfxBlocks
@@ -259,8 +268,10 @@ local function light(parent, color, range, brightness)
 end
 
 -- A flat image on the ground: a hidden thin part with a SurfaceGui on top.
+-- `d` is a diameter or a Vector3 size (X/Z used); `y` a height or a CFrame.
 local function decalDisc(name, parent, d, y, image, color, a)
-	local p = part(name, parent, CFrame.new(0, y, 0), V3(d, 0.05, d), a)
+	local size = if typeof(d) == "Vector3" then V3(d.X, 0.05, d.Z) else V3(d, 0.05, d)
+	local p = part(name, parent, if typeof(y) == "CFrame" then y else CFrame.new(0, y, 0), size, a)
 	p:SetAttribute("Hidden", true)
 	local gui = Instance.new("SurfaceGui")
 	gui.Face = up
@@ -346,7 +357,9 @@ local oneShot, loopFb = Enum.ParticleFlipbookMode.OneShot, Enum.ParticleFlipbook
 local fireColor = cseq(0, FIRE_WHITE, 0.25, FIRE_CORE, 0.6, FIRE, 1, FIRE_DEEP)
 
 local function blazingHeart(root)
-	local m = model("BlazingHeart", root)
+	-- a pulse (the Punch model) every 1 or 2 breaths, on the beat, up to 0.6 s
+	-- late; that breath swells 1.4x as far
+	local m = model("BlazingHeart", root, { PunchEvery = R(1, 2), PunchJitter = 0.6, PunchSwell = 1.4 })
 
 	-- ground: the figure's seat (within ~1 body-width)
 	local ground = model("Ground", m)
@@ -358,14 +371,31 @@ local function blazingHeart(root)
 	loop(floor, "Heat", B.flat({
 		Texture = BH.glow, Size = NS(1.9), Transparency = seq(0, 1, 0.25, 0.45, 0.75, 0.45, 1, 1), Color = CS(FIRE),
 		Lifetime = R(3), Rate = 0.67, Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.05,
-	}), { Prime = 2, Breathe = R(0.6, 1.6) })
+	}), { Prime = 2, Breathe = R(0.6, 1.6), Swell = 0.15, Drift = 0.06 })
 	loop(floor, "Swirl", B.flat({
 		Texture = BH.swirl, Size = seq(0, 1.7, 1, 2.3), Transparency = seq(0, 1, 0.3, 0.2, 0.7, 0.3, 1, 1),
 		Color = cseq(0, FIRE_CORE, 0.5, FIRE, 1, FIRE_DEEP), Lifetime = R(2.4), Rate = 1, Rotation = R(0, 360),
 		RotSpeed = R(70, 90), LightEmission = 1, Brightness = 4, ZOffset = 0.1,
-	}), { Prime = 2, Breathe = R(0.6, 1.4) })
-	-- the sigil is a flat image (a turning particle would cross-fade out of step)
-	decalDisc("Sigil", ground, 4.7, 0.16, BH.sigil, FIRE_CORE, { Pulse = R(0.05, 0.3), Turn = -14 })
+	}), { Prime = 2, Breathe = R(0.6, 1.4), Swell = 0.12, Drift = 0.08 })
+	-- the sigils are flat images (a turning particle would cross-fade out of
+	-- step). Each moves its own way: turning, breathing in size (more into a
+	-- pulse), flashing brighter on the heartbeat and the pulses (Kick), and
+	-- the raised ones drifting up, fading at the top and starting again (Rise)
+	decalDisc("Sigil", ground, 4.7, 0.16, BH.sigil, FIRE_CORE, {
+		Pulse = R(0.05, 0.3), Turn = -14, Grow = R(0.95, 1.05), Kick = 0.6,
+	})
+	-- three raised sigils the user added by hand in Studio (2026-10-21), kept
+	-- at their rough sizes and heights but centred and level on the body axis
+	-- (their image and colour were lost, so they follow the ground sigil)
+	decalDisc("Sigil2", ground, 9, CFrame.new(0, 1.89, 0), BH.sigil, FIRE_CORE, {
+		Pulse = R(0.3, 0.6), Turn = 9, Grow = R(0.96, 1.05), Kick = 0.5, Rise = 0.6, RisePeriod = 7,
+	})
+	decalDisc("Sigil3", ground, 8.2, CFrame.new(0, 1.63, 0), BH.sigil, FIRE, {
+		Pulse = R(0.35, 0.65), Turn = -6, Grow = R(0.94, 1.06), Kick = 0.5, Rise = 0.5, RisePeriod = 9,
+	})
+	decalDisc("Sigil4", ground, 6.6, CFrame.new(0, 2.66, 0), BH.sigil, FIRE_CORE, {
+		Pulse = R(0.3, 0.6), Turn = 16, Grow = R(0.95, 1.07), Kick = 0.6, Rise = 0.4, RisePeriod = 6,
+	})
 	local rim = part("Rim", ground, CFrame.new(0, 0.15, 0), V3(3.6, 0.1, 3.6))
 	loop(rim, "RimFlames", {
 		Texture = BH.flame, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
@@ -373,7 +403,7 @@ local function blazingHeart(root)
 		Transparency = seq(0, 1, 0.15, 0.1, 0.8, 0.35, 1, 1), Color = fireColor, Lifetime = R(0.5, 0.7),
 		Speed = R(0.6, 1.2), Acceleration = V3(0, 3, 0), Rotation = R(-10, 10), Rate = 9, LightEmission = 0.7,
 		Brightness = 2, ZOffset = 0.3,
-	}, { Scaled = true, Breathe = R(0.5, 1.5) })
+	}, { Scaled = true, Breathe = R(0.5, 1.5), Swell = 0.2, Drift = 0.1 })
 
 	-- body: the heart and the mantle
 	local body = model("Body", m)
@@ -397,13 +427,13 @@ local function blazingHeart(root)
 		Texture = BH.mantle, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(6, 8),
 		FlipbookStartRandom = true, Size = NS(2.45), Transparency = seq(0, 1, 0.25, 0.45, 0.75, 0.45, 1, 1),
 		Color = CS(SOOT), Lifetime = R(1.2), Rate = 2, LightEmission = 0, ZOffset = -0.6, LockedToPart = true,
-	}, { Prime = 2 })
+	}, { Prime = 2, Swell = 0.08, Drift = 0.06 })
 	loop(mantle, "Mantle", {
 		Texture = BH.mantle, FlipbookLayout = grid2, FlipbookMode = loopFb, FlipbookFramerate = R(7, 10),
 		FlipbookStartRandom = true, Size = seq(0, 2.1, 1, 2.3), Transparency = seq(0, 1, 0.25, 0.2, 0.7, 0.3, 1, 1),
 		Color = cseq(0, FIRE_CORE, 0.4, FIRE, 1, FIRE_DEEP), Lifetime = R(0.9), Rate = 3, LightEmission = 0.7,
 		Brightness = 2, ZOffset = -0.3, LockedToPart = true,
-	}, { Prime = 2, Breathe = R(0.7, 1.4) })
+	}, { Prime = 2, Breathe = R(0.7, 1.4), Swell = 0.08, Drift = 0.06 })
 
 	-- limbs: flames licking off the surface, a small crown, soot, embers
 	local limbs = folder("Limbs", m)
@@ -412,12 +442,12 @@ local function blazingHeart(root)
 		EmissionDirection = up, Size = seq(0, 0.42, 0.4, 0.62, 1, 0.25), Transparency = seq(0, 1, 0.12, 0.1, 0.75, 0.3, 1, 1),
 		Color = fireColor, Lifetime = R(0.55, 0.75), Speed = R(0.5, 1.2), Acceleration = V3(0, 6, 0), Rotation = R(-10, 10),
 		Rate = 8, LightEmission = 0.6, Brightness = 2, ZOffset = 0.4,
-	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.7, 1.4), Surge = 10 })
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.7, 1.4), Surge = 10, PunchSurge = 3, Swell = 0.2, Drift = 0.1 })
 	loop(limbs, "Crown", {
 		Texture = BH.lick, Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = seq(0, 0.22, 0.4, 0.4, 1, 0.1),
 		Transparency = seq(0, 1, 0.15, 0.1, 1, 1), Color = fireColor, Lifetime = R(0.35, 0.5), Speed = R(1.5, 2.5),
 		Rotation = R(-15, 15), Rate = 5, LightEmission = 0.7, Brightness = 2, ZOffset = 0.3,
-	}, { On = "Head", Scaled = true, Breathe = R(0.6, 1.4), Surge = 6 })
+	}, { On = "Head", Scaled = true, Breathe = R(0.6, 1.4), Surge = 6, PunchSurge = 2, Swell = 0.2, Drift = 0.1 })
 	loop(limbs, "Soot", {
 		Texture = BH.soot, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
 		EmissionDirection = up, Size = seq(0, 0.3, 1, 0.75), Transparency = seq(0, 1, 0.2, 0.35, 1, 1), Color = CS(SOOT),
@@ -429,7 +459,7 @@ local function blazingHeart(root)
 		Size = seq(0, 0.09, 0.8, 0.07, 1, 0), Transparency = seq(0, 0, 0.5, 0.2, 0.55, 0.6, 0.6, 0.1, 1, 1),
 		Color = cseq(0, FIRE_WHITE, 0.4, FIRE_CORE, 1, FIRE), Lifetime = R(1, 1.6), Speed = R(2.5, 4), Drag = 0.8,
 		SpreadAngle = Vector2.new(30, 30), Acceleration = V3(0, 1.5, 0), Rate = 1.6, LightEmission = 1, Brightness = 3,
-	}, { On = "Arms,Torso", Scaled = true, Surge = 8 })
+	}, { On = "Arms,Torso", Scaled = true, Surge = 8, PunchSurge = 4 })
 	loop(limbs, "Ash", { -- dark flecks lifting off the burning body (ref fire_aura_smoke_outline)
 		Texture = BH.dot, Shape = box, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.04, 0.07),
 		Transparency = seq(0, 1, 0.15, 0.1, 0.8, 0.2, 1, 1), Color = CS(SOOT), Lifetime = R(0.9, 1.4), Speed = R(1, 2),
@@ -466,6 +496,46 @@ local function blazingHeart(root)
 	burst(pulse, "Pulse", 1, B.flat({
 		Texture = BH.ring, Size = seq(0, 1.3, 1, 3.1), Transparency = seq(0, 0.35, 1, 1), Color = CS(FIRE),
 		Lifetime = R(0.9), LightEmission = 1, Brightness = 2, ZOffset = 0.2,
+	}))
+
+	-- a pulse every few breaths: a lighter ignition (smaller flash, no
+	-- chromatic star or soot, fewer jets and embers), so it stays alive
+	-- without tiring the eye; limb flames surge too (PunchSurge)
+	local pulseM = model("Punch", m)
+	local pHeart = at("Chest", CFrame.new(0, 0, -0.3), "Chest", pulseM)
+	burst(pHeart, "Flash", 1, {
+		Texture = BH.dot, Size = seq(0, 0.5, 0.2, 1.3, 1, 1.5), Transparency = seq(0, 0.05, 0.4, 0.5, 1, 1),
+		Color = cseq(0, FIRE_WHITE, 1, FIRE_CORE), Lifetime = R(0.35), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(pHeart, "Star", 1, {
+		Texture = BH.star, Size = seq(0, 0.4, 0.25, 2.4, 1, 0), Transparency = NS(0), Color = CS(FIRE_WHITE),
+		Lifetime = R(0.35), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(pHeart, "Burst", 1, {
+		Texture = BH.starburst, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 1.6, 1, 2.3),
+		Transparency = seq(0, 0.2, 0.7, 0.4, 1, 1), Color = cseq(0, FIRE_CORE, 1, FIRE), Lifetime = R(0.45), Rotation = R(0, 360),
+		LightEmission = 1, Brightness = 2, ZOffset = 1.9,
+	})
+	burst(pHeart, "Embers", 12, {
+		Texture = BH.ember, Orientation = streak, EmissionDirection = up, Size = seq(0, 0.12, 1, 0), Transparency = NS(0),
+		Color = cseq(0, FIRE_WHITE, 0.5, FIRE_CORE, 1, FIRE), Lifetime = R(0.5, 0.9), Speed = R(8, 14), Drag = 4,
+		SpreadAngle = Vector2.new(70, 70), Acceleration = V3(0, -3, 0), LightEmission = 1, Brightness = 3,
+	})
+	local pBase = part("Base", pulseM, CFrame.new(0, 0.2, 0), V3(2.8, 0.1, 2.8))
+	burst(pBase, "Roar", 6, {
+		Texture = BH.jet, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.6, 0.3, 1.2, 1, 0.4),
+		Transparency = seq(0, 0.15, 0.6, 0.3, 1, 1), Color = fireColor, Lifetime = R(0.4, 0.6), Speed = R(5, 8),
+		SpreadAngle = Vector2.new(8, 8), Rotation = R(-8, 8), LightEmission = 0.8, Brightness = 2, ZOffset = 0.6,
+	})
+	burst(pBase, "Fire", 5, {
+		Texture = BH.flame, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc, ShapeStyle = volume,
+		EmissionDirection = up, Size = seq(0, 0.7, 0.4, 1.1, 1, 0.4), Transparency = seq(0, 0.15, 0.7, 0.35, 1, 1),
+		Color = fireColor, Lifetime = R(0.7, 0.9), Speed = R(2, 3.5), Acceleration = V3(0, 4, 0), Rotation = R(-10, 10),
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.5,
+	})
+	burst(pBase, "Ring", 1, B.flat({
+		Texture = BH.ring, Size = seq(0, 1, 1, 3.4), Transparency = seq(0, 0.15, 0.6, 0.5, 1, 1), Color = CS(FIRE_CORE),
+		Lifetime = R(0.5), LightEmission = 1, Brightness = 2, ZOffset = 0.3,
 	}))
 
 	-- ignition: a short, punchy flare on and near the body

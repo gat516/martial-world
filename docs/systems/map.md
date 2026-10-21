@@ -484,6 +484,90 @@ knoll rocks come from `art/ground/dress_sect_roots.luau` (`Map.Ground.SectRoots`
   main rock there). Non-colliding; an invisible hull collider (*Foot) covers
   y 0-40.
 
+## Wilds zones: Inner Wilds and Ruined Borderlands
+The first two wilds zones as one walk south from the sect gate (`TeleportHome_Gate`
+"SectGate" (48, 6, 470)): the Inner Wilds (`Regions` InnerWilds, r 410-900, "Bamboo and
+old stone, where young beasts hunt") down to the border river (water Y 0, z ~860-940),
+then over the stone bridge into the Ruined Borderlands (MiddleWilds, r 900-1600, "Dead
+villages. The beasts here have eaten cultivators."). The built boxes are Inner x -430..410,
+z 560..878 and Middle x -420..280, z 912..1260: that is where every `Wilds.Zones` disc and
+qi node of the two rings sits. Reference: a sandy path sunk between grass banks under
+layered-canopy trees, pale rounded boulders, blue/white flowers on the path edge, blue haze.
+
+Scripts (`art/wilds/`, Studio Edit mode, in this order; each is re-runnable and seeded):
+1. `wilds_layout.luau` sets `_G.WILDS_LAYOUT`: path splines, ridges, terraces, gullies,
+   caves, pools, flats and POI footprints for both zones. Change the layout here.
+2. `terrain_wilds.luau` rewrites the terrain in each box to absolute target heights
+   (re-runs give the same ground), feathered 36 studs at the box edge and kept away from
+   the river and the gate's paving; zone discs stay flat at their disc height out past
+   Radius + 6 and qi nodes at their base; then carves the caves. Paths are Sand (Mud ruts
+   and edges in the Middle), banks Grass/LeafyGrass (Inner) or Ground/Mud with sparse
+   LeafyGrass (Middle), slopes over ~45 deg bare Ground. It also fills the old 4-8 stud
+   fissures (down to Y -18) that crossed the Middle ring inside its box. Material colours
+   are never set (they are global). The path splines are saved to
+   `Map.Ground.WildsLayout` (StringValue, JSON).
+3. `dress_wilds.luau` builds `ServerStorage.WildsKit` (named clones of the AssetLibrary
+   pieces used; the crystal "Stylized Rock IV" with rainbow ore is never used) and
+   rebuilds `Map.Ground.Wilds<Zone>.Dressing` (Trees, Bamboo, Rocks, Shrubs, GroundCover,
+   PathEdge, Colliders): a jittered 9-stud grid read against the layout (noise groves with
+   gaps, a ring of trees round each clearing, framing a few steps off the paths, sized-up
+   rocks sunk into steep ground as cliff faces, outcrops of big + small rocks on rocky
+   ridges), then a walk along every path (flower and clover runs, bushes, a big + medium +
+   small boulder cluster every 40-75 studs), then a clean-up that removes colliding rocks
+   and trees reaching into a path, a zone disc or a qi node's 8 studs.
+4. `poi_wilds.luau` rebuilds `Map.Ground.Wilds<Zone>.POIs` (one Model per POI).
+Old ring dressing that stood inside the boxes (7 Inner, 8 Middle) was moved to
+`ServerStorage._WildsReplaced` (attribute `FromPath` = old location).
+
+```
+INNER WILDS (z down = south)                x ->
+ z560  OldStoneHill ridge (bamboo, outcrops)      GateRidge  MeadowNorth ridge     EastRim
+        Bamboo Hollow (-128,598) <- Hidden cleft      |   gate (48,470) / paving to z590
+ z600  DenNorth ridge   WolfPocket(0,600) Old Stone Gate (-4,642)  QiNode1 (60,545)
+ z650  WOLF DEN crag+cave (-318,652)  West path -> QiNode2 (-170,700)   East path ->
+       WolfDen clearing (-240,660) = boss ring     Steles (-28,684)  Fallen Giant over
+ z700        BoarField (-160,780)  WestSpur         trunk          Giants Gully (150,690)
+ z780  WestRim   WestLoop -> Shrine Terrace (-58,826) HERO     EastHills    BoarMeadow (230,690)
+ z850                    ShrineBack                EastBank path  QiNode3 + Qi Spring (266,844)
+ z866  ~~~~~~~~~~~~~ border river ~~~~~ stone bridge x -8, z 866-910 ~~~~~~~~~~~~~~~~
+RUINED BORDERLANDS
+ z925  Border wall + gate piers (-6,928), Watchtower (28,936)
+ z960  Ashen Hollow village (-72,962) around QiNode4    East road -> Caravan (116,976)
+       West road -> Serpent Fen pools + Serpent Bones (-300..-336, 960..1000)
+ z1040 Bone Gully   Cultivators' Graves (-162,1062)   Ruined Courtyard + QiNode5 (120,1040)
+       Serpent Grotto cave (-322,1066)                Marsh: Drowned Shrine (176,958)
+ z1100 WestBluff   FALLEN OUTPOST = BossArena (0,1100), wall ring r 60, gate north
+                                                  EastBluff   Deserters' Camp (184,1142)
+ z1172 Broken Pagoda on its mound (0,1172) HERO     SouthBluff
+```
+
+- Heroes: Inner, the weathered pavilion on the cliff-edged Shrine Terrace at the end of
+  the trunk's long view, stone stair up from the path, lanterns, an old wide tree; Middle,
+  the Broken Pagoda (three leaning tiers, burned) behind the arena, seen down the road from
+  the bridge and through the arena gate.
+- Landforms (smooth terrain + sized-up rocks): ridges and rims break each zone into
+  pockets and are cut into clefts where a path crosses; Old Stone Hill holds the hidden
+  hollow; the Wolf Den crag (top ~26) with a carved cave heading west; Giants Gully, a dry
+  ravine the east path dips through; the Middle's bluffs close the arena basin; the Grotto
+  crag with the Serpent Grotto cave; Bone Gully west of the arena; fen and marsh pools.
+- Collision: foliage and debris never collide or take queries (spawn/treasure raycasts
+  pass through); trees > 28 studs get one invisible `TrunkCollider`; rocks >= 6 studs
+  collide (Hull); POI walls, pillars, steps, tents, carts, logs and the bridge deck
+  collide. The bridge arch mesh is visual; an invisible ten-slab hump deck carries players.
+- Lights (15 Inner, 7 Middle, `Shadows` off, Range 12-14): stone lanterns are Models named
+  `StoneLantern`, the camp pole `Lantern` (`Config.Ambience.LAMP_MODELS`), so DayNight scales
+  them; the Middle's are cold jade "ghost" lanterns. Campfire embers carry their own light.
+- VFX points for `vfx` (Attachments on invisible anchors, sized to the area): Inner
+  `FX_ShrineIncense`, `FX_Fireflies` (shrine, hollow), `FX_DenMist`, `FX_Campfire`,
+  `FX_QiSpring`; Middle `FX_AshDrift`, `FX_GhostLights`, `FX_MarshMist`, `FX_ArenaMist`,
+  `FX_PagodaEmbers`, `FX_GrottoMist`, `FX_Campfire`, `FX_CampSmoke`.
+- Encounter spaces (visual only; spawns still come from `Wilds.Zones`): boss arenas are
+  the Wolf Den clearing (Inner, ringed by standing stones at r 44, den cave west) and the
+  Fallen Outpost (Middle, the existing BossArena disc inside a walled ring with a north
+  gate); world events land inside the zone discs (`Treasures.randomSpot`), which stay open;
+  the Deserters' Camp is an outpost site for 3-5 enemies; ambush spots are the Hidden cleft,
+  Giants Gully, the border gate, Bone Gully and the arena gate.
+
 ## Asset catalogue
 All under `ServerStorage.AssetLibrary` unless noted. Clone, don't move, the
 originals; re-colour to the palette.
@@ -635,7 +719,9 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 
 ## Known gaps
 - No named attachment points for map VFX exist yet.
-- The wilds look beyond the under-sect floor is unplanned beyond keeping Wilds
-  anchors (separate pass).
+- Wilds: only the Inner and Middle boxes south of the sect gate are built (see "Wilds
+  zones"); the rest of those rings and the Outer Wastes still carry the old sprinkled
+  ring dressing, and the `TeleportHome_Inner`/`_Middle` arrays stand far from the built
+  zones (zone separation, step 2 above).
 - Under the sect: the path and array clearing have no lights or dressing yet;
   `FX_` attachment points for mist/fireflies there are still to place.

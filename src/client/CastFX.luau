@@ -19,10 +19,18 @@ local CastFX = {}
 -- Phase timings of a cast, from the same timeline Combat uses
 -- (ActionRules.castProfile): windup is cast start -> Hit, active Hit -> Hit
 -- Stop, recovery after that. CombatEffects.cast runs at Hit.
-export type Phases = { windup: number, active: number, recovery: number, speed: number }
+-- `hits`: for multi-hit weapon skills (def.hits), each hit's real seconds after
+-- the first (the first is 0, when cast() runs); { 0 } otherwise.
+export type Phases = { windup: number, active: number, recovery: number, speed: number, hits: { number } }
 function CastFX.phases(def: Techniques.Def): Phases
 	local p = Rules.castProfile(def)
-	return { windup = p.windup, active = p.active, recovery = p.recovery, speed = p.speed }
+	local hits = { 0 }
+	if def.hits then
+		for i = 2, #def.hits do
+			hits[i] = (def.hits[i].time - def.hits[1].time) / p.speed
+		end
+	end
+	return { windup = p.windup, active = p.active, recovery = p.recovery, speed = p.speed, hits = hits }
 end
 
 -- Ground rays skip effects, every player character and every enemy: callers

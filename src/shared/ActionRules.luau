@@ -34,12 +34,14 @@ export type State = {
 	comboReady: number,
 	dodgeReady: number,
 	ready: { [string]: number },
+	haste: number, -- share added to M1 playback speed while now < hasteUntil (Great Sage Awakening)
+	hasteUntil: number,
 }
 
 local Rules = {}
 
 function Rules.new(): State
-	return { action = nil, comboIndex = 0, comboExpires = 0, comboReady = 0, dodgeReady = 0, ready = {} }
+	return { action = nil, comboIndex = 0, comboExpires = 0, comboReady = 0, dodgeReady = 0, ready = {}, haste = 0, hasteUntil = 0 }
 end
 
 function Rules.hitAt(action: Action): number
@@ -112,7 +114,20 @@ end
 -- A technique cast's timeline. Playback speed is rescaled so release (Hit)
 -- lands on the source animation's Hit pose; active runs Hit -> Hit Stop.
 -- Effects read it too, so visuals follow retuned timings.
+-- Weapon skills with `hits` play their own clip at `castSpeed`: windup runs to
+-- the first hit, active to the last hit's stop.
 function Rules.castProfile(def: Techniques.Def): Profile
+	local hits = def.hits
+	if hits and #hits > 0 then
+		local speed = def.castSpeed or 1
+		local first, last = hits[1], hits[#hits]
+		return {
+			animation = 0, clip = `Techniques/{def.id}`, chain = 0, speed = speed,
+			windup = first.time / speed, active = (last.stop - first.time) / speed, recovery = def.cast.recovery,
+			moveMultiplier = def.cast.moveMultiplier, recoveryMoveMultiplier = def.cast.recoveryMoveMultiplier,
+			dodgeBeforeHit = def.cast.dodgeBeforeHit,
+		}
+	end
 	local source = Config.FIST_STEPS[def.animation]
 	local speed = source.hit / def.cast.windup
 	return {
@@ -138,9 +153,10 @@ function Rules.start(s: State, kind: string, id: string?, now: number, sequence:
 		local steps = Weapons.Classes[weaponClass].steps
 		step = if now > s.comboExpires then 1 else s.comboIndex % #steps + 1
 		local def = steps[step]
+		local speed = def.speed * (if now < (s.hasteUntil or 0) then 1 + (s.haste or 0) else 1)
 		profile = {
-			animation = step, clip = Weapons.clip(weaponClass, step), chain = #steps, speed = def.speed,
-			windup = def.hit / def.speed, active = (def.hitStop - def.hit) / def.speed,
+			animation = step, clip = Weapons.clip(weaponClass, step), chain = #steps, speed = speed,
+			windup = def.hit / speed, active = (def.hitStop - def.hit) / speed,
 			recovery = def.recovery, moveMultiplier = Config.ATTACK_MOVE_MULTIPLIER,
 			recoveryMoveMultiplier = Config.ATTACK_RECOVERY_MULTIPLIER, dodgeBeforeHit = true,
 		}

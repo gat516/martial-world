@@ -49,6 +49,34 @@ scales all player damage.
   (`ReplicatedStorage.vfx`, plugin-owned, not mapped); falls back to plain
   `ParticleEmitter:Emit` with a warning while the module is missing.
 
+## Techniques and weapon gating
+Every technique has a `weapon`: a weapon class or `"Any"`. A class technique
+casts only with that class equipped: the client shows "Requires a sword" (or
+"Requires bare hands") without starting, and the server refuses the begin with
+the same message. Class techniques scale with the class's grade and Dao
+comprehension, and each cast grants that class `Pacing.Weapons.XP_CAST` Dao XP.
+- Any: Lightning Talisman, Iron Skin, Fire Seal. Fist: Palm Strike. Sword: Sword Qi Wave.
+- Weapon skills play their own clip (`Animations.Techniques.<Id>`) at
+  `castSpeed`; `hits` lists each strike's clip window and damage (matching the
+  clip's `Hit`/`Hit Stop` markers, numbered for multi-hit). Windup runs to the
+  first hit, the active window to the last stop, and the caster is committed
+  through it. The client reports the first hit; the server lands the later ones
+  at their times from wherever the caster is then (unless the action ended).
+- `lunge`: the client drives the root forward over `lungeWindow` (the clip's
+  Lunge or Leap -> Land markers); each hit is measured from the root unless it is
+  farther from the cast's start than the lunge plus `LUNGE_SLACK` and
+  `LUNGE_WALK_ALLOWANCE`, when it's pulled back.
+
+| Id | Weapon | Shape | Hits (dmg) | Lunge | Cooldown |
+|---|---|---|---|---|---|
+| TwinPhoenixCannon | Fist | line 18 x 6, right then left fist | 14, 14 | - | 9 |
+| MoonflashDraw | Sword | line 18 x 5 from the cast's start (the dash path) | 30 | 14, i-frames while dashing | 7 |
+| RampagingTiger | Saber | circle r 10 around the caster | 9, 7, 7, 16 | 6 over the leap | 12 |
+| HeavenSplitter | Greatsword | circle r 12 centred 4 ahead | 6, 6, 60 (slam) | 6 over the leap; castSpeed 1.3 | 16 |
+| CrescentSweep | Guandao | circle r 11 | 32 | - | 9 |
+| DragonPierce | Spear | line 22 x 4 | 34 | 8 | 8 |
+| GreatSageAwakening | Staff | buff 8 s: +25% all damage, +15% M1 speed; circle r 8 burst at the strike | 12 | - | 20 |
+
 ## Dodge visuals
 Only the dodging player sees them (`CombatEffects`, from `CombatController`).
 Templates: `ReplicatedStorage.Effects.Dodge`, built by
@@ -199,7 +227,9 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   hitbox and max targets; `FIST_STEPS` is the Fist chain), chain/reset timings, buffers, dodge
   (`DODGE_*`, `IFRAME_*`, `PERFECT_*`), hitbox and server slack, lock-on and
   auto ranges, `IN_COMBAT_SECONDS`.
-- `Techniques.luau`: per-technique damage, cooldown, shape, cast timing.
+- `Techniques.luau`: per-technique damage, cooldown, shape, cast timing,
+  `weapon`, and for weapon skills `hits`, `castSpeed`, `lunge`/`lungeWindow`.
+- `Config.Combat.LUNGE_SLACK`, `LUNGE_WALK_ALLOWANCE`: the server's lunge check.
   `VISUAL_TIERS` maps levels to the four visual tiers (I 1-3, II 4-6, III 7-9,
   IV 10); `TechniqueVFX.STEP_COUNT` is the extra particle count per level inside a tier.
 - `Knockback.luau`: `REALM_EXPONENT`, `MIN_DISTANCE`, `ARMOR_BREAK`, stun, base pushes.

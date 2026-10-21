@@ -62,9 +62,9 @@ local CLASSES: { [string]: ClassCombat } = {
 	-- gs1-gs3: slow, wide sweeps
 	Greatsword = {
 		steps = {
-			{ damage = 12, hit = 0.50, hitStop = 0.66, speed = 1.15, recovery = 0.08, push = 4 },
-			{ damage = 12, hit = 0.50, hitStop = 0.66, speed = 1.15, recovery = 0.08, push = 4 },
-			{ damage = 20, hit = 0.58, hitStop = 0.68, speed = 1.05, recovery = 0.15, push = 9 },
+			{ damage = 12, hit = 0.50, hitStop = 0.6667, speed = 1.15, recovery = 0.08, push = 4 },
+			{ damage = 12, hit = 0.50, hitStop = 0.6667, speed = 1.15, recovery = 0.08, push = 4 },
+			{ damage = 20, hit = 0.5833, hitStop = 0.6833, speed = 1.05, recovery = 0.15, push = 9 },
 		},
 		hitbox = Vector3.new(10, 6, 8),
 		maxTargets = 3,
@@ -72,10 +72,10 @@ local CLASSES: { [string]: ClassCombat } = {
 	-- "Great axe 1-4" (set A1): long-haft cuts with long reach
 	Guandao = {
 		steps = {
-			{ damage = 10, hit = 0.35, hitStop = 0.43, speed = 1.10, recovery = 0.07, push = 3 },
-			{ damage = 10, hit = 0.33, hitStop = 0.42, speed = 1.10, recovery = 0.07, push = 3 },
-			{ damage = 12, hit = 0.35, hitStop = 0.43, speed = 1.10, recovery = 0.07, push = 4 },
-			{ damage = 18, hit = 0.30, hitStop = 0.42, speed = 1.00, recovery = 0.12, push = 8 },
+			{ damage = 10, hit = 0.35, hitStop = 0.4333, speed = 1.10, recovery = 0.07, push = 3 },
+			{ damage = 10, hit = 0.3333, hitStop = 0.4167, speed = 1.10, recovery = 0.07, push = 3 },
+			{ damage = 12, hit = 0.35, hitStop = 0.4333, speed = 1.10, recovery = 0.07, push = 4 },
+			{ damage = 18, hit = 0.30, hitStop = 0.4167, speed = 1.00, recovery = 0.12, push = 8 },
 		},
 		hitbox = Vector3.new(8, 6, 10),
 		maxTargets = 3,
@@ -83,10 +83,10 @@ local CLASSES: { [string]: ClassCombat } = {
 	-- Spear1-4: thrusts that reach ~2.8 studs past the hands
 	Spear = {
 		steps = {
-			{ damage = 9, hit = 0.32, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 2 },
+			{ damage = 9, hit = 0.3167, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 2 },
 			{ damage = 9, hit = 0.30, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 2 },
 			{ damage = 11, hit = 0.30, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 3 },
-			{ damage = 15, hit = 0.28, hitStop = 0.38, speed = 1.1, recovery = 0.10, push = 6 },
+			{ damage = 15, hit = 0.2833, hitStop = 0.3833, speed = 1.1, recovery = 0.10, push = 6 },
 		},
 		hitbox = Vector3.new(4, 5, 11),
 		maxTargets = 2,
@@ -94,10 +94,10 @@ local CLASSES: { [string]: ClassCombat } = {
 	-- BoStaff1-4: wide sweeps
 	Staff = {
 		steps = {
-			{ damage = 8, hit = 0.28, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 3 },
-			{ damage = 8, hit = 0.32, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 3 },
-			{ damage = 10, hit = 0.35, hitStop = 0.43, speed = 1.2, recovery = 0.07, push = 3 },
-			{ damage = 15, hit = 0.32, hitStop = 0.42, speed = 1.1, recovery = 0.10, push = 7 },
+			{ damage = 8, hit = 0.2833, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 3 },
+			{ damage = 8, hit = 0.3167, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 3 },
+			{ damage = 10, hit = 0.35, hitStop = 0.4333, speed = 1.2, recovery = 0.07, push = 3 },
+			{ damage = 15, hit = 0.3167, hitStop = 0.4167, speed = 1.1, recovery = 0.10, push = 7 },
 		},
 		hitbox = Vector3.new(9, 5, 8),
 		maxTargets = 2,
@@ -303,6 +303,10 @@ return {
 		CLOCK_SLACK = 0.1, -- and lead it
 		HITBOX_SLACK = 4, -- studs added to each side of the hitbox for movement and lag
 		AREA_SLACK = 3, -- studs added to technique areas on the server
+		-- lunging skills (Techniques `lunge`): a hit lands from the caster's root
+		-- unless it's farther from the cast's start than the lunge plus these
+		LUNGE_SLACK = 4, -- studs
+		LUNGE_WALK_ALLOWANCE = 10, -- studs per second of cast (walking, lag)
 
 		-- Dodge: a flying-sword dash (Q / the Dash button) with brief invulnerability.
 		-- Driven by ApplyImpulse scaled by the character's AssemblyMass, so every

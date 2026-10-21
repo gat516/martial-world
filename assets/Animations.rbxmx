@@ -110,22 +110,22 @@
    </Properties>
     <Item class="Animation" referent="RBXAW3"><Properties>
      <string name="Name">1</string>
-     <Content name="AnimationId"><url>rbxassetid://109593952136769</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://80706399557278</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW4"><Properties>
      <string name="Name">2</string>
-     <Content name="AnimationId"><url>rbxassetid://91691158937351</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://78212624904658</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW5"><Properties>
      <string name="Name">3</string>
-     <Content name="AnimationId"><url>rbxassetid://93688206954837</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://126963447068203</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW6"><Properties>
      <string name="Name">4</string>
-     <Content name="AnimationId"><url>rbxassetid://93754523467494</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://108793582312570</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW7"><Properties>
@@ -139,27 +139,27 @@
    </Properties>
     <Item class="Animation" referent="RBXAW9"><Properties>
      <string name="Name">1</string>
-     <Content name="AnimationId"><url>rbxassetid://97718952251165</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://134504933795467</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW10"><Properties>
      <string name="Name">2</string>
-     <Content name="AnimationId"><url>rbxassetid://110531795352433</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://94407324445319</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW11"><Properties>
      <string name="Name">3</string>
-     <Content name="AnimationId"><url>rbxassetid://111046242154268</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://81242239039719</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW12"><Properties>
      <string name="Name">4</string>
-     <Content name="AnimationId"><url>rbxassetid://135553571757647</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://138353542944182</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW13"><Properties>
      <string name="Name">5</string>
-     <Content name="AnimationId"><url>rbxassetid://107080464456278</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://96214526735850</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW14"><Properties>
@@ -173,27 +173,27 @@
    </Properties>
     <Item class="Animation" referent="RBXAW16"><Properties>
      <string name="Name">1</string>
-     <Content name="AnimationId"><url>rbxassetid://91739494855005</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://77662321739883</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW17"><Properties>
      <string name="Name">2</string>
-     <Content name="AnimationId"><url>rbxassetid://78469007042753</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://130938170303907</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW18"><Properties>
      <string name="Name">3</string>
-     <Content name="AnimationId"><url>rbxassetid://133428387483948</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://123527364841342</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW19"><Properties>
      <string name="Name">Idle</string>
-     <Content name="AnimationId"><url>rbxassetid://101485530991855</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://96892999811796</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW20"><Properties>
      <string name="Name">Walk</string>
-     <Content name="AnimationId"><url>rbxassetid://136675772338942</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://126484632647193</url></Content>
     </Properties>
     </Item>
    </Item>
@@ -202,22 +202,22 @@
    </Properties>
     <Item class="Animation" referent="RBXAW22"><Properties>
      <string name="Name">1</string>
-     <Content name="AnimationId"><url>rbxassetid://91635512845066</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://102511980102751</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW23"><Properties>
      <string name="Name">2</string>
-     <Content name="AnimationId"><url>rbxassetid://132871794503164</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://95548477455046</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW24"><Properties>
      <string name="Name">3</string>
-     <Content name="AnimationId"><url>rbxassetid://93775997549385</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://122644633958259</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW25"><Properties>
      <string name="Name">4</string>
-     <Content name="AnimationId"><url>rbxassetid://102499769042417</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://129604495493070</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW26"><Properties>
@@ -236,22 +236,22 @@
    </Properties>
     <Item class="Animation" referent="RBXAW29"><Properties>
      <string name="Name">1</string>
-     <Content name="AnimationId"><url>rbxassetid://102691024269480</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://133652823540695</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW30"><Properties>
      <string name="Name">2</string>
-     <Content name="AnimationId"><url>rbxassetid://127621049837594</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://87120894443083</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW31"><Properties>
      <string name="Name">3</string>
-     <Content name="AnimationId"><url>rbxassetid://82944342384670</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://93203579418868</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW32"><Properties>
      <string name="Name">4</string>
-     <Content name="AnimationId"><url>rbxassetid://87886049969652</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://131628769883100</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW33"><Properties>
@@ -270,22 +270,22 @@
    </Properties>
     <Item class="Animation" referent="RBXAW36"><Properties>
      <string name="Name">1</string>
-     <Content name="AnimationId"><url>rbxassetid://120349073467629</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://133229555305192</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW37"><Properties>
      <string name="Name">2</string>
-     <Content name="AnimationId"><url>rbxassetid://112372702825023</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://130747840782674</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW38"><Properties>
      <string name="Name">3</string>
-     <Content name="AnimationId"><url>rbxassetid://89211032200808</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://77014132244954</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW39"><Properties>
      <string name="Name">4</string>
-     <Content name="AnimationId"><url>rbxassetid://90020994869606</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://112635705700804</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAW40"><Properties>
@@ -298,6 +298,45 @@
      <Content name="AnimationId"><url>rbxassetid://86315186378632</url></Content>
     </Properties>
     </Item>
+   </Item>
+  </Item>
+  <Item class="Folder" referent="RBXAT0"><Properties>
+   <string name="Name">Techniques</string>
+  </Properties>
+   <Item class="Animation" referent="RBXAT1"><Properties>
+    <string name="Name">TwinPhoenixCannon</string>
+    <Content name="AnimationId"><url>rbxassetid://116649566757684</url></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXAT2"><Properties>
+    <string name="Name">MoonflashDraw</string>
+    <Content name="AnimationId"><url>rbxassetid://103568362497302</url></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXAT3"><Properties>
+    <string name="Name">RampagingTiger</string>
+    <Content name="AnimationId"><url>rbxassetid://92466138621591</url></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXAT4"><Properties>
+    <string name="Name">HeavenSplitter</string>
+    <Content name="AnimationId"><url>rbxassetid://138105262165454</url></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXAT5"><Properties>
+    <string name="Name">CrescentSweep</string>
+    <Content name="AnimationId"><url>rbxassetid://111684861050012</url></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXAT6"><Properties>
+    <string name="Name">DragonPierce</string>
+    <Content name="AnimationId"><url>rbxassetid://116456285069838</url></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXAT7"><Properties>
+    <string name="Name">GreatSageAwakening</string>
+    <Content name="AnimationId"><url>rbxassetid://117310636316384</url></Content>
+   </Properties>
    </Item>
   </Item>
  </Item>

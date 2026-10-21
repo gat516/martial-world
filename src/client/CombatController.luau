@@ -65,6 +65,7 @@ type Runtime = {
 	soundStops: { () -> () },
 	steer: ((number) -> ())?,
 	finishDash: (() -> ())?,
+	drive: ((number) -> ())?, -- a lunging skill moving the root (Techniques `lunge`)
 }
 local runtime: Runtime?
 local sequence = 0
@@ -76,6 +77,7 @@ local pending: { kind: string, id: string?, expires: number }?
 local target: Model?
 local advanceRuntime: (number) -> ()
 local request: (string, string?) -> ()
+local startLunge: (any, Techniques.Def) -> ()
 
 local function clearInputs()
 	table.clear(held)
@@ -358,6 +360,42 @@ end
 
 --[[ Techniques ]]
 
+-- A lunging skill drives the root forward over its lunge window (clip seconds,
+-- Techniques `lungeWindow`), like the dash: impulses toward the wanted
+-- velocity, so walls and slopes still stop it. The server checks the distance.
+local LUNGE_ACCEL = 900 -- studs/s per second the drive may correct
+startLunge = function(current: Runtime, def: Techniques.Def)
+	local studs = def.lunge
+	if not studs or studs <= 0 then return end
+	local root = current.root
+	local speed = current.action.profile.speed
+	local window = def.lungeWindow or { 0, if def.hits then def.hits[#def.hits].time else 0 }
+	local from = current.action.started + window[1] / speed
+	local to = current.action.started + window[2] / speed
+	local want = current.direction * (studs / math.max(to - from, 0.05))
+	local last = workspace:GetServerTimeNow()
+	local finished = false
+	current.drive = function(now: number)
+		local dt = math.max(now - last, 0)
+		last = now
+		if finished or now < from or not root.Parent then return end
+		local velocity = root.AssemblyLinearVelocity
+		local flat = velocity * Vector3.new(1, 0, 1)
+		if now >= to then
+			-- stop where the lunge ends instead of sliding on
+			finished = true
+			current.drive = nil
+			root:ApplyImpulse(-flat * root.AssemblyMass)
+			return
+		end
+		local change = want - flat
+		local maxChange = if dt <= 0 then want.Magnitude else math.max(LUNGE_ACCEL * dt, want.Magnitude * 0.5)
+		if change.Magnitude > maxChange then change = change.Unit * maxChange end
+		local rise = math.min(0, Config.DODGE_MAX_RISE - velocity.Y)
+		root:ApplyImpulse((change + Vector3.yAxis * rise) * root.AssemblyMass)
+	end
+end
+
 -- Client-side guess at the chain's targets, for the predicted visual only.
 local function predictChain(origin: Vector3, def: Techniques.Def): { Model }
 	local hits: { Model } = {}
@@ -413,6 +451,11 @@ local function release(current: Runtime)
 	local origin, direction = current.root.Position, current.direction
 	local chain = if def.kind == "chain" then predictChain(origin, def) else nil
 	local owned = State.current.techniques.owned[def.id]
+	if def.kind == "buff" and def.attackSpeed then
+		-- predict the server's haste so the next swings keep its timeline
+		ActionState.current.haste = def.attackSpeed
+		ActionState.current.hasteUntil = workspace:GetServerTimeNow() + (def.seconds :: number)
+	end
 	CombatEffects.cast(current.character, def.id, origin, direction, chain, if owned then owned.level else 1)
 	if chain then
 		for _, model in chain do CombatEffects.flash(model, def.color) end
@@ -471,11 +514,14 @@ local function tryStart(kind: string, id: string?): boolean
 	if kind == "cast" and (not id or not State.current.techniques.owned[id] or not table.find(State.current.hotbar, id)) then
 		return false
 	end
+	local weaponClass = character:GetAttribute("WeaponClass")
+	if kind == "cast" and id and not Techniques.allowed(Techniques.Defs[id], if type(weaponClass) == "string" then weaponClass else Weapons.FIST) then
+		return false
+	end
 	local now = workspace:GetServerTimeNow()
 	-- Accept the transition before catching up the outgoing timeline: a dodge
 	-- must never manufacture a late punch hit on the frame it cancels it.
-	local class = character:GetAttribute("WeaponClass")
-	local action = Rules.start(ActionState.current, kind, id, now, sequence + 1, if type(class) == "string" then class else nil)
+	local action = Rules.start(ActionState.current, kind, id, now, sequence + 1, if type(weaponClass) == "string" then weaponClass else nil)
 	if not action then return false end
 	sequence += 1
 	local blend = if kind == "dodge" then Config.DODGE_CROSSFADE else Config.ACTION_CROSSFADE
@@ -503,6 +549,7 @@ local function tryStart(kind: string, id: string?): boolean
 		if kind == "cast" and id then
 			local owned = State.current.techniques.owned[id]
 			CombatEffects.windup(character, id, if owned then owned.level else 1)
+			startLunge(current, Techniques.Defs[id])
 		end
 	end
 	local track = current.track
@@ -533,7 +580,16 @@ end
 
 function CombatController.swing() request("basic", nil) end
 function CombatController.dodge() request("dodge", nil) end
-function CombatController.cast(id: string) request("cast", id) end
+function CombatController.cast(id: string)
+	local def = Techniques.Defs[id]
+	local character = player.Character
+	local class = character and character:GetAttribute("WeaponClass")
+	if def and not Techniques.allowed(def, if type(class) == "string" then class else Weapons.FIST) then
+		Hud.toast(Weapons.requires(def.weapon))
+		return
+	end
+	request("cast", id)
+end
 
 function CombatController.cooldown(id: string): (number, number)
 	local def = Techniques.Defs[id]
@@ -828,6 +884,7 @@ function CombatController.init(gui: ScreenGui)
 		end
 		advanceRuntime(now)
 		if runtime and runtime.steer then runtime.steer(Config.DODGE_ACCEL * dt) end
+		if runtime and runtime.drive then runtime.drive(now) end
 		local aimed = currentTarget(root.Position)
 		CombatEffects.markTarget(if LockOn.target() then nil else aimed)
 		local autoAttack = Config.AUTO_ATTACK and Platform.isTouch() and LockOn.isAuto()

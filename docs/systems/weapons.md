@@ -35,6 +35,13 @@ Dao comprehension per weapon class that grows as you fight with it.
 - `assets/Animations.rbxmx`: `Animations.Weapons.<Class>.1..n`, `.Idle`, `.Walk`.
   Every animation id lives only here, so swapping a clip is a one-file edit.
 
+## Class techniques
+Each technique names its `weapon` (a class or "Any"); a class technique needs
+that class equipped and scales with its grade and Dao. One weapon skill per
+class (Twin Phoenix Cannon, Moonflash Draw, Rampaging Tiger Cleave,
+Heaven-Splitting Descent, Crescent Moon Sweep, Dragon-Piercing Thrust, Great
+Sage Awakening); see [combat](combat.md) for their shapes and numbers.
+
 ## Data flow
 Equip: client invokes `WeaponAction("equip", id)` -> the server checks ownership
 and that no action is running -> `data.weapons.equipped`, clones

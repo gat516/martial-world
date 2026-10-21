@@ -40,15 +40,17 @@ asked. The user playtests feel and difficulty; say what's untested.
 1. **Design sheet.** Before building, send a design sheet (below) and wait for
    the user's go unless told to go straight on.
 2. **Briefs for the other agents.** You can't spawn subagents yourself. Write
-   two self-contained briefs and return them to the main session, which runs
-   `modeler` and `vfx` with them (in parallel when they don't share files):
+   self-contained briefs and return them to the main session, which runs
+   `modeler`, `vfx` and later `animator` with them (in parallel when they don't
+   share files):
    - **Body (modeler):** concept and references, silhouette, size against the
-     R6 rig, part list with names, joint pivots (each limb, head, tail, jaw)
-     and their rest poses, tri budget (a beast a few thousand, a boss under
-     ~15k), palette, the glowing tell parts (eyes, markings, crest) as their
-     own parts so they can flare on windup, and an identity-rotation pivot at
-     the ground point. Simple beasts can be built from Parts like the current
-     ones; say which.
+     R6 rig, segment list with names, joint pivots (each limb, head, tail, jaw,
+     and any cloth, weapon or sway joints) and their rest poses, part budget
+     (about 80 for a pack beast, about 150 for a boss), palette, and the
+     glowing tell parts (eyes, markings, crest) as their own parts so they can
+     flare on windup. Bodies are built from Studio parts and rigged for the
+     animator (see "Bodies" below and the modeler's "Enemy bodies" section);
+     humanoids are stock R6 rigs.
    - **Effects (vfx):** per attack, the windup tell (a flare on the tell parts,
      gathering qi), the release, the hit and the telegraph's look if it should
      differ from the stock one; a death effect (dissolve to qi motes, a spirit
@@ -68,18 +70,16 @@ asked. The user playtests feel and difficulty; say what's untested.
    animations.
    `ServerStorage.Enemies` is Rojo-mapped (`assets/Enemies.rbxmx`): build in a
    staging clone and export per AGENTS.md's staging steps.
-4. **Animation.** EnemyAnimator poses joints procedurally from `AIState`
-   (idle, moving, windup, dash, recover, stagger). Give each attack its own
-   readable windup pose and release (a wolf crouches, a boar paws and lowers
-   its tusks, a serpent coils), keyed off the attack kind, and give the body
-   type its own gait (four legs, coil, hop, flap). Extend the animator with
-   per-type pose tables rather than branching on names in its loop. Authored
-   KeyframeSequences are fine for a boss; say in the sheet which you'll use.
-   For quadruped timing and weight, study the bear and tiger rigs in
-   `docs/reference/animation/` (walk, run, idle, claw swipes, pounce, bite,
-   slams, pain, death; the README lists them and how to view them). Match
-   their beats (anticipation, release, follow-through) in our own poses;
-   they are reference only and never ship.
+4. **Animation (animator).** The `animator` agent animates the rig; you give it
+   a brief. EnemyAnimator poses joints procedurally from `AIState` (idle,
+   moving, windup, dash, recover, stagger). The brief asks for each attack's
+   own readable windup pose and release (a wolf crouches, a boar paws and lowers
+   its tusks, a serpent coils), keyed off the attack kind, and the body type's
+   gait (four legs, coil, hop, flap), with the timing from your attack table.
+   Say in the sheet whether each state is procedural (per-type pose tables in
+   EnemyAnimator, not name branches in its loop) or an authored
+   KeyframeSequence. The animator works from `docs/reference/animation/` (the
+   bear and tiger rigs) and the rig's `RIGS.md`.
 5. **Sounds.** `SoundService.SFX.Enemies.<EnemyType>.Aggro / Attack / Death`
    (`assets/SoundGroups/SFX.rbxmx`), played by EnemySounds. Find them in the
    asset library sounds or the Creator Store (search through the MCP), match
@@ -130,6 +130,30 @@ and one realm below and above.
 - **Briefs** for modeler and vfx (step 2), ready to hand off.
 - **New code:** new attack kinds or AI behaviour, and which files they touch.
 - **Open questions** for the user.
+
+## Bodies (user decisions, 2026-10-21)
+
+- **Beasts are built from Studio parts, not Blender.** The user compared the two
+  on the Spirit Wolf and picked Studio. The reference is
+  `art/enemies/spirit_wolf_b/build_spirit_wolf_b.luau` (a re-runnable build script
+  with block, limb, fin, tri and bevel helpers, and a `Segment` attribute on detail
+  parts) plus `art/enemies/spirit_wolf/rig_wolf.luau` (the shared Motor6D
+  assembler; every joint frame is identity in model space, and legacy names are
+  kept). Brief the modeler only for props, not for enemy bodies.
+- **Every humanoid enemy is a standard R6 rig** unless the user says otherwise:
+  clone `Workspace.Rig`, keep the standard part and Motor6D names, and keep every
+  limb visible. Part-built armour and outfits are welcome. Weld each piece to the
+  limb it moves with so the R6 Animation Editor and standard R6 animations work,
+  and keep robe skirts clear of the legs. Catalog gear is optional; strip every
+  script from inserted assets.
+- **Previews:** Motor6D.Transform doesn't move parts in Edit mode, so pose a
+  preview copy by forward kinematics and cut its motors (see
+  `art/enemies/spirit_wolf/preview_wolves.luau`). Then anchor every part in the
+  copy and tag the preview folder `EditorOnly`. If you don't, a Play test drops
+  the loose segments into a heap.
+- **Check before reporting:** run `art/enemies/check_rig.luau` for floating and
+  unjointed parts and rig faults. Then look at every pose capture critically: the
+  checker can't see a misplaced piece that still touches something.
 
 ## Pitfalls
 

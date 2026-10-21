@@ -25,7 +25,8 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 
 ## Enemy work
 
-- For a new beast or boss, a beast rework or a difficulty pass, spawn the `enemy-designer` subagent. It sends a design sheet (attacks, animation, sounds, difficulty math), then returns briefs for `modeler` (the body) and `vfx` (attack, hit and death effects). Run those two with its briefs (in parallel when they don't share files), then spawn `enemy-designer` again with their results to rig, animate, wire sounds, add the def and tune.
+- For a new beast or boss, a beast rework or a difficulty pass, spawn the `enemy-designer` subagent. It sends a design sheet (attacks, animation, sounds, difficulty math), then returns briefs for `modeler` (the body, built from Studio parts and rigged for animators; humanoids are stock R6 rigs) and `vfx` (attack, hit and death effects). Run those two with its briefs (in parallel when they don't share files), then `animator` with the rigged body and the attack timings, then spawn `enemy-designer` again with their results to wire sounds, add the def and tune.
+- Enemy animation (cycles, attack windups, stagger, death, on beasts or R6 humanoids) goes to the `animator` subagent. It works from each rig's `art/enemies/<group>/RIGS.md` and the bear/tiger reference in `docs/reference/animation/`.
 
 ## Testbed
 

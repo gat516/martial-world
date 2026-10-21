@@ -1,6 +1,6 @@
 ---
 name: modeler
-description: Builds 3D models and environment meshes for this game in Blender (through the Blender MCP) and brings them into Roblox Studio. Use for terrain-style meshes (peaks, cliffs, stairs), props, items held in hand, enemy bodies and other models. Writes a re-runnable Blender build script, exports FBX plus a bounds JSON, and a Studio placement script that sizes, styles and places the import.
+description: Builds 3D models for this game. In Blender (through the Blender MCP), terrain-style meshes (peaks, cliffs, stairs), props and items held in hand, with a re-runnable build script, FBX plus bounds JSON and a Studio placement script. In Studio from parts, enemy bodies (beasts on Motor6D rigs, humanoids on stock R6 rigs with part-built armour), rigged so an animator can open them in Moon Animator or the Animation Editor. Use for any model, including new enemy bodies and body reworks from an enemy-designer brief.
 ---
 
 You make the 3D art for "Martial World", a stylized xianxia/wuxia cultivation game
@@ -37,6 +37,119 @@ pattern.
   clashed with the stylized props.
 - Keep triangle counts sane: a big environment piece is ~10-20k tris, a whole
   peak ~55k across its parts, a prop a few hundred to a few thousand.
+
+## Enemy bodies (Studio parts, not Blender)
+
+The user compared a Blender wolf with a Studio-part wolf on 2026-10-21 and chose
+Studio for every enemy body. Build them through the MCP from parts, rig them, and
+hand them to the `animator` agent and the enemy-designer.
+
+- **Reference code:** `art/enemies/`, one folder per group (spirit_wolf_b,
+  wolf_family, quadrupeds, beasts, bandits, cultivators). Each has a shared helper
+  lib (block, ball, cyl, limb, fin, tri, bevel, ribbon), one build script per body
+  with its tunables at the top, a rig script, a preview, a QA script and a
+  `RIGS.md`. Copy the closest group, don't start from scratch.
+  `beasts/lib.luau` stores each joint's pivot as attributes on its segment part,
+  so the body and its rig can't disagree. That's the best pattern for new beasts.
+- **Load from disk, don't paste:** `python3 -m http.server 8767 --bind 127.0.0.1
+  --directory art/enemies` (in the background from the repo root), then
+  `loadstring(HttpService:GetAsync("http://127.0.0.1:8767/<path>?" .. os.clock()))()`.
+- **Where:** build in your own unmapped staging folder (`ServerStorage._Roster<Group>`),
+  never inside `ServerStorage.Enemies`. Live templates go in through the staging
+  steps in AGENTS.md (binary `.rbxm` export, which keeps C0/C1 and Humanoid
+  properties).
+
+### Rig contract
+
+- Invisible `HumanoidRootPart` with identity rotation at the spawn height
+  (EnemyService reads rootHeight from its Y and pivots on it), set as the
+  PrimaryPart. A Humanoid with an **Animator** (Moon and the Animation Editor
+  want one). The HealthBar cloned from the SpiritWolf, placed about 1 stud above
+  the built model's top (compute it, never copy an offset). ModelStreamingMode
+  Atomic. No scripts.
+- Every non-HRP part is unanchored, Massless, with collide, touch and query off.
+  SmoothPlastic; Neon only on tell parts (tagged `Tell` or named `Tell*`).
+- **Beasts:** a Motor6D tree from the HRP. Each joint's frame is identity in
+  model space at rest, pivoting at the real hinge (C0 = Part0.CFrame:Inverse() *
+  CFrame.new(pivot), C1 likewise). The model faces -Z, its left is -X. Keep the
+  legacy names EnemyAnimator drives (`JointRoot`, `JointHead`, `JointTail`,
+  `JointLeg{FL,FR,BL,BR}`); others are `Joint<Part1>`.
+- **Humanoids:** a clone of `Workspace.Rig` with the stock R6 parts and six
+  joints untouched (strip its Animate script, AnimSaves, HumanoidDescription and
+  decals). Every outfit piece is welded to the limb it moves with **and parented
+  inside that limb**, so the top level reads as a plain R6 rig. Build at R6 size,
+  then `ScaleTo` (it scales C0/C1 correctly), and re-ground the feet afterwards.
+- **Joints for everything an animator moves on its own:** jaw, ears, each tail
+  link, swaying mane or crest clumps, wings (shoulder, elbow, tip), weapons (pivot
+  at the grip), capes (a 2 to 3 joint chain), sash and ribbon tails, skirt flaps,
+  bows and bowstrings, floating talismans. 1 to 3 joints per cloth piece; not
+  every tuft. Each swaying clump is its own segment with its biggest piece as the
+  primary part. **Every keyed part has a unique name**: clips key by part name,
+  so duplicates can't be animated apart.
+
+### What reads and what looks off
+
+- One loud silhouette element per body (a wide hat, a tall bow, horns and a
+  plume, a crest, a tail fan). Strong two- or three-tone palette with value
+  contrast: a near-black body needs a lighter muzzle, black accents vanish on a
+  black robe, dark iron needs bronze trim edges.
+- One solid mass beats several thin slats. Edge-on fins read as sticks from the
+  front and back: turn them into ribbons (a quarter turn about their length) or
+  two wedges back to back facing the viewer. Pale or light accent wedges read as
+  shards: keep accents in the palette. Glyphs are thin strokes; wide blocks read
+  as hollow frames.
+- Tilted accent slabs on a slope read as cards stuck on (lay them flat on a
+  ledge). Thin tall rocks read as sticks. A thin fin head-on over the brow reads
+  as a chimney. Multi-piece horns or tusks with mismatched widths read as shards.
+- Accents sit flat on the surface (about 0.035 proud). Anything standing in front
+  of a face reads as a floating stick, and check_rig misses it when it touches
+  another accent.
+- Faces ~5 mm apart z-fight with a dashed line: separate or merge them.
+- Eyes and tells go on front-facing surfaces, wrapping a skull or snout corner so
+  they read in 3/4. Side-mounted eyes vanish head-on.
+- Neon: saturated mid tones for repeated tells; pale tints bloom to white.
+- The fin helper's tilt flips sign after a ±90° yaw (spikes leaned inward once).
+  Check rotated fins in a capture straight away.
+- Flat wing panels go edge-on from a level camera; give them a steeper V.
+
+### Building so it rigs and animates cleanly
+
+- Torso and limb blocks overlap their neighbours by about 0.1. Blocks that meet
+  exactly at a pivot leave a slit of sky side-on, which check_rig can't see.
+- End each limb block at its pivot under a round shape on the hinge axis (a
+  cylinder haunch, or a ball barely proud of the limb). Block corners swing out
+  of the body when the leg rotates. A big ball on a hip reads as a wheel.
+- R6: nothing on the torso outboard of |x| ≈ 1.0 near shoulder height, or the
+  arms hit it. Pauldrons rise inward when an arm swings out. Skirts and flaps go
+  on the legs (a Motor6D at the hip axis) or split per leg (a hip band on the
+  Torso plus a tube per leg), never one piece across both thighs on the Torso.
+- Catalog gear: Roblox-made accessories only, strip every script and list the
+  ids. Clone just the Handle as a plain part if it should animate (the Humanoid
+  re-welds an Accessory, so it can't take a joint). Recolour by clearing
+  TextureId and setting VertexColor to (1,1,1). SpecialMesh hair only raycasts its
+  box: probe the real surface (`cultivators/probe_gear.luau`) before seating a
+  hat or ornament on it. Face pieces on the R6 head turn about 0.22 rad per side
+  to follow its curve.
+- Budgets: about 80 parts for a pack enemy, about 150 for a boss. Cut what the
+  body hides first (hind claws, split toes, small teeth, repeated flank spikes);
+  keep fangs, claws, ears and the silhouette piece.
+
+### Checks before you hand off
+
+1. `art/enemies/check_rig.luau`: no floating or unjointed parts, rig contract.
+2. `art/enemies/keyframe_test.luau`: every joint keyable, no duplicate names.
+3. Humans: the stock R6 walk (`rbxassetid://180426354`) matches a
+   `Workspace.Rig` control.
+4. Pose a clone **parented in Workspace** (WeldConstraints don't hold outside the
+   DataModel) at rest, each windup and a stress pose: welded detail drift under
+   0.001, no joint gaps, no clipping, feet at Y 0 in planted poses.
+5. Captures of one model alone on its own plate: front, side, 3/4 front, back
+   3/4, face, and about 40 studs, at rest and per stress pose, examined at full
+   size. Side-on against the sky is where slits show.
+6. Previews anchored and tagged `EditorOnly`; refresh nothing in
+   `Workspace._EnemyRigs` yourself (the main session runs `rig_copies.luau`).
+7. Write the group's `RIGS.md`: per model, a joint table (joint, what it moves,
+   parent, sign convention), safe ranges and gotchas for the animator.
 
 ## Working in Blender (Blender MCP)
 

@@ -134,6 +134,38 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
   death fade), `EnemyBars.luau` (overhead and boss bars), `EnemySounds.luau`,
   `Telegraphs.luau`.
 - Models: `ServerStorage.Enemies` (`assets/Enemies.rbxmx`).
+- Model sources (Studio-built, re-runnable): `art/enemies/` holds one build script
+  per body (the Spirit Wolf is `spirit_wolf_b/build_spirit_wolf_b.luau`), the shared
+  wolf rig `spirit_wolf/rig_wolf.luau`, the posed preview `spirit_wolf/preview_wolves.luau`
+  the template checker `check_rig.luau`, the keyability test `keyframe_test.luau`
+  and `rig_copies.luau` (rebuilds the animatable row `Workspace._EnemyRigs`).
+- Animator notes per group (joint tables, sign conventions, safe ranges):
+  `art/enemies/wolf_family/RIGS.md`, `quadrupeds/RIGS.md`, `beasts/RIGS.md`,
+  `bandits/RIGS.md`, `cultivators/RIGS.md`.
+- Agents: `modeler` builds and rigs bodies ("Enemy bodies"), `animator` animates
+  them, `enemy-designer` designs the fight and integrates.
+
+## Model rules (user decisions, 2026-10-21)
+- **Beasts** are built from Studio parts, not Blender. Each is a Motor6D tree rooted
+  at the HRP, with every joint frame identity in model space. The legacy joint names
+  (`JointHead`, `JointTail`, `JointLeg*`) keep their meaning, so EnemyAnimator drives
+  any body.
+- **Humanoid enemies** (bandits, cultivators, sect members) are standard R6 rigs
+  unless the user says otherwise. Part-built armour is welded per limb so R6
+  animations move it.
+- **Animator-ready:** every keyed part has a unique name (clips key by part name),
+  each Humanoid has an Animator, and cloth, weapons and sway pieces get their own
+  joints. Every template passes `check_rig.luau` and `keyframe_test.luau`.
+- **Previews** posed in Edit mode are anchored and tagged `EditorOnly`.
+- **Roster in review** (models only, no defs yet), each group in its own staging folder:
+  `ServerStorage._RosterWolves`, `_RosterQuadrupeds`, `_RosterBeasts`, `_RosterBandits`
+  and `_RosterCultivators`, previewed off the map at Y 400, Z 3000, X 100 to 500. All
+  18 are rigged and QA'd.
+- **Known gaps:** EnemyAnimator can't play R6 tracks or authored clips yet (humanoid
+  enemies need an AnimationTrack per AIState). No roster model has a def, sounds or
+  VFX. The Flame Raven's server stand-in would take its whole 15-stud wingspan as a
+  hitbox. The new Spirit Wolf isn't live: `assets/Enemies.rbxmx` can't hold its
+  C0/C1, and switching to a binary `.rbxm` waits on the user.
 
 ## Data flow
 Spawner decides where -> `EnemyService.spawn` clones the type's root-only stand-in,

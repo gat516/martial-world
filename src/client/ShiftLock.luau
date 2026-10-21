@@ -70,18 +70,29 @@ local function suspendForMenus()
 	end
 end
 
+-- Waits for a child with no timeout and no "infinite yield" warning: on a slow join
+-- (a busy Studio, the testbed) the PlayerModule can take well over 30s to start.
+local function waitChild(parent: Instance, name: string): Instance
+	local child = parent:FindFirstChild(name)
+	while not child do
+		parent.ChildAdded:Wait()
+		child = parent:FindFirstChild(name)
+	end
+	return child
+end
+
 local function rebind()
-	local module = player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule", 30)
-	local camera = module and module:WaitForChild("CameraModule", 30)
-	local lockModule = camera and camera:WaitForChild("MouseLockController", 30) :: ModuleScript?
-	if lockModule and not Platform.isTouch() then
+	local module = waitChild(waitChild(player, "PlayerScripts"), "PlayerModule")
+	local lockModule = waitChild(waitChild(module, "CameraModule"), "MouseLockController") :: ModuleScript
+	if not Platform.isTouch() then
 		hook(lockModule)
 	end
-	local keys = lockModule and lockModule:WaitForChild("BoundKeys", 30) :: StringValue?
-	if keys then
+	-- the controller makes BoundKeys when the camera module starts
+	local keys = waitChild(lockModule, "BoundKeys")
+	if keys:IsA("StringValue") then
 		keys.Value = KEYS
 	else
-		warn("ShiftLock: MouseLockController.BoundKeys not found; shift lock stays on Shift")
+		warn("ShiftLock: MouseLockController.BoundKeys isn't a StringValue; shift lock stays on Shift")
 	end
 end
 

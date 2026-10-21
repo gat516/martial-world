@@ -92,7 +92,11 @@ setting its flag to `true`.
 - Garden, build mode and peaks can't be tested (no peaks; empty `HerbModels` and
   `BuildCatalog`). The Guarded Herb event has no herb models to grow.
 - Lighting is Studio's default; the real place's Sky, Atmosphere and post effects
-  are place-only.
+  are place-only. So are the main place's map LocalScripts in StarterPlayerScripts
+  (`BridgeSway`, `SkyLayerAtmosphere`, `SpiritLights`), which have nothing to act on here.
+- Joins can be slow in a busy Studio (several places open), so client code that waits
+  on Roblox's own modules or the HUD mustn't give up on a timeout (ShiftLock once fell
+  back to Shift this way).
 - Animations play only if the testbed experience's owner can use them (same
   creator as the uploads, or permission granted).
 - Untested in Studio so far.

@@ -132,9 +132,12 @@ function Weapons.apply(player: Player)
 		model:Destroy()
 		return
 	end
-	model:PivotTo(arm.CFrame)
-	joint.Part0 = arm
+	-- Put the hilt at the motor's rest frame, then activate the model's welds
+	-- before connecting it to the arm. Connecting outside Workspace lets the
+	-- motor snap the hilt alone on insertion and bake that offset into the welds.
+	model:PivotTo(arm.CFrame * joint.C0 * joint.C1:Inverse() * hilt.PivotOffset)
 	model.Parent = character
+	joint.Part0 = arm
 end
 
 -- Re-apply the held weapon on every respawn. Called once the profile is loaded.

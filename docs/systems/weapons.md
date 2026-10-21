@@ -95,6 +95,13 @@ Part1 = the PrimaryPart and Part0 = nil. Everything welded to it, unanchored,
 massless, no collide/touch/query. A missing model only warns: the weapon still
 works, held invisibly.
 
+Equip places the hilt at `arm.CFrame * joint.C0 * joint.C1:Inverse()` (including
+the PrimaryPart's `PivotOffset` when calling `PivotTo`), parents the model into
+the character so its internal welds activate, then connects `joint.Part0` to
+the arm. Connecting before parenting can snap the hilt separately from its
+meshes and bake an unwanted offset into their welds. Keep the attachment
+derived from the template's joint frames; no per-weapon correction is needed.
+
 ## Tuning knobs
 - `Config.Combat.CLASSES`: chains, hitboxes, max targets. Hit/hitStop are clip
   seconds and must match each clip's `Hit`/`Hit Stop` markers (check with
@@ -113,4 +120,6 @@ works, held invisibly.
   (positions in [map](map.md)); not yet claimed in a play session.
 - Dadao and Guandao lead with the blade's back on their backhand steps (Saber 2
   and 4, Guandao 2): the clips were made for a double-bit axe.
-- Untested in game: grips, joints and the idle/walk overlay need a look in Studio.
+- All six weapons preserve their mesh-to-hilt offsets in an Edit-mode attachment
+  comparison after the equip-order fix. Animation playback, grips through full
+  combos and the idle/walk overlay still need a player review.

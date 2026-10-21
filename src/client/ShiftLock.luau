@@ -7,6 +7,11 @@
 -- mouse too but marks its target instead, so then neither shows.
 -- Roblox snaps the camera onto the shoulder when shift lock toggles; this eases
 -- that slide over SHOULDER_SECONDS by offsetting against it for a moment.
+-- While a window is open (Menus: inventory, reward card, minigame...) shift lock
+-- is switched off so the mouse is free over it, and switched back on when the
+-- last window closes. Roblox gives no handle on its MouseLockController, so this
+-- catches the controller the first time the camera asks it for its state (which
+-- the camera does on every toggle) and toggles it the same way Alt does.
 
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -14,6 +19,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local LockOn = require(script.Parent.LockOn)
+local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
 
@@ -25,11 +31,53 @@ local player = Players.LocalPlayer
 
 local ShiftLock = {}
 
+-- Roblox's MouseLockController instance, once caught (see hook)
+type Controller = { isMouseLocked: boolean, OnMouseLockToggled: (any) -> () }
+local controller: Controller? = nil
+local suspended = false -- shift lock was on when a window opened
+
+-- The camera calls GetIsMouseLocked on the controller whenever shift lock toggles,
+-- so wrapping it on the shared class hands us the instance before it can matter.
+local function hook(module: ModuleScript)
+	local ok, class = pcall(require, module)
+	if not ok or type(class) ~= "table" or type(class.GetIsMouseLocked) ~= "function" or type(class.OnMouseLockToggled) ~= "function" then
+		warn("ShiftLock: MouseLockController isn't the shape expected; windows won't suspend shift lock")
+		return
+	end
+	local original = class.GetIsMouseLocked
+	class.GetIsMouseLocked = function(self, ...)
+		controller = self
+		return original(self, ...)
+	end
+end
+
+-- Keep shift lock off while a window is open, and put it back afterwards.
+local function suspendForMenus()
+	local c = controller
+	if not c then
+		return
+	end
+	if Menus.isOpen() then
+		if c.isMouseLocked then -- on as it opened, or Alt pressed over it
+			c:OnMouseLockToggled()
+			suspended = true
+		end
+	elseif suspended then
+		suspended = false
+		if not c.isMouseLocked then
+			c:OnMouseLockToggled()
+		end
+	end
+end
+
 local function rebind()
 	local module = player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule", 30)
 	local camera = module and module:WaitForChild("CameraModule", 30)
-	local controller = camera and camera:WaitForChild("MouseLockController", 30)
-	local keys = controller and controller:WaitForChild("BoundKeys", 30) :: StringValue?
+	local lockModule = camera and camera:WaitForChild("MouseLockController", 30) :: ModuleScript?
+	if lockModule and not Platform.isTouch() then
+		hook(lockModule)
+	end
+	local keys = lockModule and lockModule:WaitForChild("BoundKeys", 30) :: StringValue?
 	if keys then
 		keys.Value = KEYS
 	else
@@ -53,6 +101,7 @@ function ShiftLock.init(gui: ScreenGui)
 
 	-- after the camera module and LockOn have set this frame's mouse behaviour
 	RunService:BindToRenderStep("ShiftLockReticle", Enum.RenderPriority.Camera.Value + 3, function(dt: number)
+		suspendForMenus()
 		local camera = workspace.CurrentCamera
 		local centred = UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter
 		local locked = LockOn.target() ~= nil

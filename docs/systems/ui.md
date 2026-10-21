@@ -10,7 +10,9 @@ cursor, settings and the admin panel.
   combat cluster, PC cooldown chips, vitals, hotbar; the inventory keeps the
   hotbar as a drop target). Windows sit centred with their own close seal; on
   PC the top-right tiles stay to switch, on touch the big windows hide them.
-  The top-left is always Roblox's chat.
+  The top-left is always Roblox's chat. On PC, shift lock switches off while
+  any window (reward card and minigames included) is open, so the mouse is free,
+  and comes back when it closes (`ShiftLock`).
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
 - Weapons live in the Inventory's Weapons tab: Bare Fists first (choosing them
   puts the weapon away), then owned weapons with their grade glow and a cinnabar

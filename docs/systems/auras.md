@@ -19,7 +19,7 @@ about 1.5 loop emitters per aura) and reads thin. Auras are to be rebuilt as
 layered emissions from the vfx library, modelled on Sol's RNG auras, with
 parts only in support. The method is in [docs/vfx/style.md](../vfx/style.md)
 ("Auras"). **Reworked:** Blazing Heart, Flowing Spring, Thunder Pulse, Drifting
-Cloud, Iron Marrow (2026-10-21, below);
+Cloud, Iron Marrow, Sect Breathing (2026-10-21, below);
 the other rows still describe the first, part-heavy pass. Blazing Heart shows the bar for
 size and quality, not a template: each method's rework starts from its own
 idea and references, not from Blazing Heart's layers or textures.
@@ -40,7 +40,7 @@ reuse its first method's motif.
 
 | Method | On the body | Ground / around | Breath beat | Ignition |
 |---|---|---|---|---|
-| Sect Breathing | — | — | two faint motes rise from the belly | — |
+| Sect Breathing (reworked, modest on purpose: 6 loop emitters, no parts drawn) | a small jade dantian glow with a hot centre, swelling with the breath; faint motes drawn in to it from about a body-width on the inhale; a faint jade qi vapour lifting off the head | a faint ink taiji (black and white, its splattered dark half the dark base) turning slowly under you, a soft jade halo breathing round it | the exhale settles: a glint at the dantian, a soft ring breathing out over the taiji, two or three motes rising off the belly | a jade flash and star at the dantian, motes thrown up that drift back down, a ring and a low puff of qi over the ground; the taiji and vapour surge |
 | Blazing Heart (reworked: 17 loop emitters, no shell) | white-hot heart core at the chest (glow that swells with the breath, a hard dot, a twinkling 4-point glint, the one PointLight); a flame mantle (library aura-flame flipbook) hugging the silhouette from behind on a darker soot copy of itself; realistic flipbook flames licking off the arms and torso; a small crown of licks off the head; black soot curling off the flame tips; embers and dark ash flecks. Flames, mantle and ground fire grow and shrink with the breath and drift slowly in size | dark scorch disc, warm heat pool, a turning fire swirl, small flames on the rim; four hui-wen sigils: one on the ground turning against the swirl, three raised round the chest (added by the user, centred and level on the body axis) each turning its own way and drifting up, fading and starting again; all breathe in size and flash on the heartbeat and pulses | a heartbeat: lub-dub glow at the chest with a glint and a spark puff, the mantle flares, a fire ring pulses out of the sigil. Every 1 or 2 breaths (about 5 or 10 s, a little late at random) the beat is a pulse instead: a lighter punch (flash and star at the heart, a starburst, embers, a few flame jets and flames, a ground ring, limb flames surging), the aura swelling into it | once fully seated: white flash and a chromatic star at the heart, a starburst flare, flame jets and flipbook flames roaring up round the body, a fire ring burning out over the ground, soot thrown low, an ember burst; limb flames surge |
 | Flowing Spring (reworked: 13 loop emitters, no parts drawn) | a pearl of water at the belly (a water-ball orb that swells with the breath, a white-hot heart, a small glint, the one PointLight); a ring of water strokes turning round the figure from behind on a darker ink-blue copy of itself; water-curl flipbooks lifting off the arms and torso and water wisps off the arms; streaks of qi streaming in from all round to the pearl, fast on the inhale, almost none at rest | a pool under the seat: a deep ink-blue water blob (dark base), a pale water surface over it, a round caustics image drifting (the one SurfaceGui), small water-ring ripples popping across it, a swirl turning inward, bubbles rising | the exhale: a ripple and a breaking ring cross the pool, a few drops hop off it, the pearl glints. Every 2 or 3 breaths (0.4 s jitter, 1.3x swell) a pulse: a drop of qi falls from above into the pool, a splash crown round the seat, a big ripple, the pearl flashes, the curls surge | the pool springs up: a white flash, a star and a water orb at the pearl, water columns and a splash crown round the body, a ripple wave and a breaking ring over the ground, drops thrown up, the pool darkening under it; curls and wisps surge |
 | Evergreen Root | green meridian beams with glowing joint dots, lighting trunk-first (belly, chest, then shoulders and hips, then elbows and knees, then hands) over ~2 breaths; green seed at the belly; faint green tint | six crooked roots creeping out, slow falling leaves | sap motes, a green ring breathes out | a green ring bursts out, a wind-swirl ring rises, leaves whirl up |
@@ -102,7 +102,10 @@ How it is put together (details in the builder header):
   particles for about a second. Flowing Spring (R6): 13 loop emitters, about
   40 live particles (limb curls 2.2/s per limb, inflow 6/s on the inhale),
   one light, one SurfaceGui (caustics), no parts drawn; its ignition adds
-  ~40 particles for about a second, a pulse ~25. Thunder Pulse (R6): 8 loop
+  ~40 particles for about a second, a pulse ~25. Sect Breathing (R6): 6
+  loop emitters, about 12 live particles (motes 3/s on the inhale), one
+  SurfaceGui (the taiji), no light, no parts drawn; its ignition adds ~22
+  particles for about a second. Thunder Pulse (R6): 8 loop
   emitters (4 on the ground and chest node, 4 limb kinds), about 25 live
   particles at rest (smoke tendrils are the bulk), spiking on each burst;
   ~40 beams (9 cracks of 2-3 core segments plus a glow each, 2 hand bolts of
@@ -179,7 +182,7 @@ lines below say where the method's family goes when a stronger version exists.
 
 | Method | Idea | Mortal aura (build now) | Higher grades | Refs |
 |---|---|---|---|---|
-| Sect Breathing | the basics | none; a faint mote or two on the breath at most | — | — |
+| Sect Breathing | the basics | modest but deliberate (user, 2026-10-21): a small dantian glow that gathers motes on the inhale and settles on the exhale, a faint turning taiji under you, a short jade ignition | — (the starter; it has no higher grade) | — |
 | Blazing Heart Sutra (Fire) | a heart that burns | an orange core in the chest that beats on the breath; short flame tongues licking up from shoulders and arms; embers rising; warm outline | flames climb into a crown of fire above the head, then a burning lotus behind; Heaven: a phoenix silhouette | red_flame_surge, purple_flame_outline |
 | Flowing Spring Scripture (Water) | water gathering into a still pool | a mirror-still pool disc under you, one ripple per breath; droplet streams drawn inward to a soft blue core in the belly; cool blue body glow | the pool widens with lotus pads and the streams come from farther away; Heaven: a waterfall of qi pouring into you from above | meridians_qi_inflow, constellation_dantian_core |
 | Evergreen Root Canon (Wood) | an old tree, patient growth | green meridian lines that grow like branches from the belly out along the arms, lighting slowly over a few breaths; thin roots spreading on the ground; a few slow leaves | the branches leave the body and form a tree canopy over you; Heaven: a dryad spirit rising behind | spirit_manifest_green |

@@ -300,16 +300,120 @@ local function at(point, rel, name, parent, size, a)
 end
 
 -- ---------------------------------------------------------------- Sect Breathing
--- The basics: a faint mote or two drifting up from the belly on each breath.
+-- The basics: the first breathing every disciple learns. Qi is drawn in on
+-- the inhale and settles in the dantian on the exhale, over the sect's plain
+-- taiji. Modest on purpose (the starter, ranked after named methods), but
+-- every piece moves with the breath. Rebuilt 2026-10-21 from library
+-- emissions. Back to front:
+--   ground  a faint taiji turning slowly under you (its dark half is the
+--           dark base), a soft jade halo breathing round it
+--   body    a small jade dantian glow with a hot centre that swells with the
+--           breath; motes drawn in to it from about a body-width on the
+--           inhale; a faint qi vapour lifting off the head
+--   breath  the exhale settles: a glint at the dantian, a soft ring breathing
+--           out over the taiji, two or three motes rising off the belly
+--   ignite  a jade flash and star at the dantian, a ring and a low puff of
+--           qi over the ground, motes thrown up that drift back down
+-- No light, no shell, no parts drawn.
+
+local SECT_WHITE, SECT_JADE, SECT_DEEP = rgb(236, 255, 244), rgb(150, 235, 195), rgb(60, 170, 125)
+
+local SB = {
+	taiji = id(121707861781327), -- taiji (yin-yang), black and white
+	soft = id(243660373), -- soft round glow
+	dot = id(9841273544), -- small hard glow dot
+	twinkle = id(102648375149008), -- 4x4 flipbook: a 4-point sparkle growing and shrinking
+	star = id(13271102367), -- small 4-point star
+	ring = id(15611866526), -- soft wobbly ring
+	vapour = id(9345352897), -- curling wisp
+	puff = id(933102662), -- soft cloud puff
+}
+_G.SectBreathingAssets = SB
 
 local function sectBreathing(root)
 	local m = model("SectBreathing", root)
+	local grid4 = Enum.ParticleFlipbookLayout.Grid4x4
+
+	-- ground: the taiji (its dark half reads on grass), a halo breathing round it
+	local ground = model("Ground", m)
+	decalDisc("Taiji", ground, 8, 0.13, SB.taiji, SECT_WHITE, {
+		Pulse = R(0.4, 0.65), Turn = 8, Grow = R(0.97, 1.03), Kick = 0.35,
+	})
+	local floor = part("Floor", ground, CFrame.new(0, 0.1, 0), V3(0.1, 0.1, 0.1))
+	loop(floor, "Halo", B.flat({
+		Texture = SB.soft, Size = NS(3.6), Transparency = seq(0, 1, 0.3, 0.72, 0.7, 0.72, 1, 1), Color = CS(SECT_JADE),
+		Lifetime = R(4), Rate = 0.5, Rotation = R(0, 360), LightEmission = 0.6, ZOffset = 0,
+	}), { Prime = 2, Breathe = R(0.6, 1.4), Swell = 0.12, Drift = 0.05 })
+
+	-- body: the dantian, motes drawn in, qi vapour off the head
+	local body = model("Body", m)
+	local dantian = at("Belly", CFrame.new(0, 0, -0.15), "Dantian", body)
+	loop(dantian, "Glow", {
+		Texture = SB.soft, Size = NS(0.55), Transparency = seq(0, 1, 0.3, 0.35, 0.7, 0.35, 1, 1), Color = CS(SECT_JADE),
+		Lifetime = R(0.8), Rate = 3, LightEmission = 1, Brightness = 1.5, ZOffset = 1.2, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.55 })
+	loop(dantian, "Hot", {
+		Texture = SB.dot, Size = NS(0.11), Transparency = seq(0, 1, 0.3, 0.1, 1, 1), Color = CS(SECT_WHITE),
+		Lifetime = R(0.5), Rate = 4, LightEmission = 1, Brightness = 2.5, ZOffset = 1.3, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.4 })
+	local gather = at("Belly", CFrame.new(0, 0.1, 0), "Gather", body, V3(5.2, 3.8, 5.2))
+	loop(gather, "Motes", {
+		Texture = SB.dot, Shape = sphere, ShapeStyle = surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+		Size = seq(0, 0, 0.25, 0.06, 0.8, 0.05, 1, 0), Transparency = seq(0, 1, 0.3, 0.15, 1, 0.4),
+		Color = cseq(0, SECT_JADE, 1, SECT_WHITE), Lifetime = R(1.15, 1.25), Speed = R(2.2), Rate = 3, LightEmission = 1,
+		Brightness = 2, ZOffset = 0.5,
+	}, { Scaled = true, Breathe = R(0.15, 1.6) })
+
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Vapour", {
+		Texture = SB.vapour, Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = seq(0, 0.25, 1, 0.7),
+		Transparency = seq(0, 1, 0.35, 0.75, 1, 1), Color = cseq(0, SECT_WHITE, 1, SECT_JADE), Lifetime = R(1.4, 1.8),
+		Speed = R(0.6, 1), Acceleration = V3(0, 0.6, 0), Rotation = R(0, 360), RotSpeed = R(-30, 30), Rate = 0.8, LightEmission = 0.8,
+	}, { On = "Head", Scaled = true, Breathe = R(0.5, 1.4), Surge = 3 })
+
+	-- the exhale settles: a glint, a soft ring out over the taiji, motes rising
 	local breath = model("Breath", m)
-	local belly = at("Belly", nil, "Belly", breath)
-	burst(belly, "Motes", 2, {
-		Size = seq(0, 0, 0.2, 0.16, 1, 0), Transparency = seq(0, 0.3, 0.7, 0.45, 1, 1),
-		Color = CS(rgb(205, 245, 225)), Lifetime = R(2.2, 2.8), Speed = R(0.8, 1.3), SpreadAngle = Vector2.new(30, 30),
-		EmissionDirection = up, LightEmission = 0.5, Drag = 0.3,
+	local belly = at("Belly", CFrame.new(0, 0, -0.2), "Belly", breath)
+	burst(belly, "Glint", 1, {
+		Texture = SB.twinkle, FlipbookLayout = grid4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot, Size = NS(0.4),
+		Transparency = NS(0), Color = CS(SECT_WHITE), Lifetime = R(0.6), LightEmission = 1, Brightness = 2, ZOffset = 1.5,
+	})
+	burst(belly, "Motes", 3, {
+		Texture = SB.dot, Size = seq(0, 0, 0.2, 0.07, 1, 0), Transparency = seq(0, 0.2, 0.7, 0.35, 1, 1),
+		Color = cseq(0, SECT_WHITE, 1, SECT_JADE), Lifetime = R(1.8, 2.4), Speed = R(0.8, 1.3), SpreadAngle = Vector2.new(35, 35),
+		EmissionDirection = up, LightEmission = 1, Brightness = 2, Drag = 0.4, ZOffset = 0.8,
+	})
+	local settle = part("Floor", breath, CFrame.new(0, 0.18, 0))
+	burst(settle, "Ring", 1, B.flat({
+		Texture = SB.ring, Size = seq(0, 2.4, 1, 3.6), Transparency = seq(0, 0.55, 0.4, 0.6, 1, 1), Color = CS(SECT_JADE),
+		Lifetime = R(1.4), Rotation = R(0, 360), LightEmission = 0.8, Brightness = 1.5, ZOffset = 0.2,
+	}))
+
+	-- ignition: small and clean, a flash at the dantian and a breath out over the ground
+	local ignite = model("Ignite", m)
+	local core = at("Belly", CFrame.new(0, 0, -0.3), "Belly", ignite)
+	burst(core, "Flash", 1, {
+		Texture = SB.dot, Size = seq(0, 0.3, 0.15, 0.9, 1, 1.05), Transparency = seq(0, 0, 0.4, 0.45, 1, 1),
+		Color = cseq(0, SECT_WHITE, 1, SECT_JADE), Lifetime = R(0.35), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(core, "Star", 1, {
+		Texture = SB.star, Size = seq(0, 0.3, 0.25, 1.8, 1, 0), Transparency = NS(0), Color = CS(SECT_WHITE),
+		Lifetime = R(0.4), Rotation = R(0, 15), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(core, "Motes", 12, {
+		Texture = SB.dot, EmissionDirection = up, Size = seq(0, 0.09, 1, 0), Transparency = seq(0, 0, 0.7, 0.2, 1, 1),
+		Color = cseq(0, SECT_WHITE, 1, SECT_JADE), Lifetime = R(1.2, 1.8), Speed = R(4, 6.5), Drag = 2.5,
+		SpreadAngle = Vector2.new(55, 55), Acceleration = V3(0, -1.2, 0), LightEmission = 1, Brightness = 2.5, ZOffset = 1,
+	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3.6, 0.1, 3.6))
+	burst(base, "Ring", 1, B.flat({
+		Texture = SB.ring, Size = seq(0, 1.8, 1, 4.2), Transparency = seq(0, 0.1, 0.5, 0.45, 1, 1), Color = CS(SECT_JADE),
+		Lifetime = R(0.7), Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.3,
+	}))
+	burst(base, "Puff", 7, {
+		Texture = SB.puff, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
+		Size = seq(0, 0.5, 1, 1.2), Transparency = seq(0, 0.6, 1, 1), Color = CS(SECT_WHITE), Lifetime = R(0.8, 1.1),
+		Speed = R(4, 6), Drag = 3, Rotation = R(0, 360), LightEmission = 0.2, LightInfluence = 0.4,
 	})
 	return m
 end

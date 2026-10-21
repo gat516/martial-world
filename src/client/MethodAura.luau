@@ -1,8 +1,9 @@
 --!strict
 -- Cultivation method auras: while a player is seated (player attribute
 -- `Meditating`, which covers circulation too), every client draws the aura of
--- that player's method (`Method`; nil or "" = Sect Breathing, which has only a
--- faint mote on the breath). Each method has its own aura, built from its idea
+-- that player's method (`Method`; nil or "" = Sect Breathing, the modest
+-- starter: a small dantian glow gathering motes over a faint turning taiji).
+-- Each method has its own aura, built from its idea
 -- (art brief: docs/systems/auras.md), living on the body first:
 --   Blazing Heart   a white-hot heart that beats (lub-dub) on the breath, a
 --                   flame mantle hugging the silhouette from behind, flames
@@ -1064,7 +1065,7 @@ local function refresh()
 		if method and root then
 			local d = (root.Position - eye).Magnitude
 			if d <= RANGE then
-				-- named methods first: Sect Breathing's mote never takes a slot from one
+				-- named methods first: a Sect Breathing aura never takes a slot from one
 				local rank = d + (if method == Methods.BASIC then RANGE * 2 else 0)
 				table.insert(list, { player = player, method = method, root = root, d = rank })
 			end

@@ -1,7 +1,8 @@
 --!strict
 -- Red ground telegraphs for every attack that hurts: the exact area, an outline
 -- that shows at once, and a fill that grows until the moment it lands.
--- Shapes come from the server (EnemyService.Shape): box, circle or cone.
+-- Shapes come from the server (EnemyService.Shape): box, circle or cone, with the
+-- enemy, attack name and the server time it started (EnemyService.strike sends no enemy).
 
 local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -71,7 +72,12 @@ local function cone(center: Vector3, look: Vector3, radius: number, angle: numbe
 	return parts
 end
 
-function Telegraphs.show(shape: any, seconds: number)
+-- `startedAt` (server time the attack began) shortens a late telegraph so its
+-- fill still finishes the moment the blow lands on the server.
+function Telegraphs.show(shape: any, seconds: number, _model: Instance?, _attack: string?, startedAt: number?)
+	if type(startedAt) == "number" then
+		seconds = math.max(0.05, seconds - (workspace:GetServerTimeNow() - startedAt))
+	end
 	local outline: { BasePart } = {}
 	local fill: { BasePart } = {}
 	local lift = Vector3.new(0, LIFT, 0)

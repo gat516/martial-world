@@ -13,11 +13,19 @@
 -- moment, depending on realm and weight (Knockback.luau). Every attack that hurts shows its exact area to all
 -- clients first (Telegraph remote) and resolves on the server through Combat.hurt,
 -- so dodging through it negates the hit.
+--
+-- Authority split (docs/systems/enemies.md, "Server and client"): the server owns
+-- the AI, positions, damage and every hit check; clients only draw. What a client
+-- needs to draw goes out as attributes on the model (AIState, StateAt, Attack,
+-- DashFrom/DashTo/DashSpeed/DashAt, FadeAt) and the Telegraph remote. Clients
+-- predict the visible body from these (EnemyMotion) and play per-beast effects
+-- (EnemyFX); the server compensates player swings for lag (EnemyHistory).
+-- Idle beasts with no player within Config.Wilds.WAKE_RADIUS sleep: anchored,
+-- not thinking, nothing to replicate.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
-local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Wilds
 local DEFAULT_ROAM = 15 -- studs an enemy wanders from home unless told otherwise
@@ -25,7 +33,9 @@ local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
+local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
 local Combat = require(script.Parent.Combat)
+local EnemyHistory = require(script.Parent.EnemyHistory)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -69,6 +79,7 @@ type Enemy = {
 	summonsDone: { [number]: boolean }, -- summonAt thresholds already used
 	summoned: { Model }, -- live summons (bosses)
 	staggerImmuneUntil: number,
+	asleep: boolean,
 }
 
 local enemies: { [Model]: Enemy } = {}
@@ -119,6 +130,10 @@ local function playerRoot(player: Player): BasePart?
 	return nil
 end
 
+local function serverNow(): number
+	return workspace:GetServerTimeNow()
+end
+
 function EnemyService.inside(shape: Shape, position: Vector3): boolean
 	if shape.kind == "box" then
 		local cframe, size = shape.cframe :: CFrame, shape.size :: Vector2
@@ -142,15 +157,31 @@ function EnemyService.inside(shape: Shape, position: Vector3): boolean
 	return false
 end
 
+-- Is the player in the area as it lands? Generous to high ping: a player whose
+-- own movement (the velocity the server sees, capped at dodge speed) carries them
+-- out within half their ping, at most Config.Combat.ESCAPE_LEAD, is spared,
+-- because on their screen they had already left.
+local function caught(shape: Shape, player: Player, root: BasePart): boolean
+	if not EnemyService.inside(shape, root.Position) then
+		return false
+	end
+	local lead = math.min(player:GetNetworkPing() / 2, CombatConfig.ESCAPE_LEAD)
+	local velocity = flat(root.AssemblyLinearVelocity)
+	if velocity.Magnitude > CombatConfig.DODGE_SPEED then
+		velocity = velocity.Unit * CombatConfig.DODGE_SPEED
+	end
+	return EnemyService.inside(shape, root.Position + velocity * lead)
+end
+
 -- Show an area to every client for `seconds`, then hurt every player in it.
 -- Returns the players it hit.
 function EnemyService.strike(shape: Shape, seconds: number, damage: number, nonLethal: boolean?, only: Player?, source: string?): { Player }
-	telegraphRemote:FireAllClients(shape, seconds)
+	telegraphRemote:FireAllClients(shape, seconds, nil, source, serverNow())
 	task.wait(seconds)
 	local hit = {}
 	for _, player in Players:GetPlayers() do
 		local root = playerRoot(player)
-		if root and (only == nil or only == player) and EnemyService.inside(shape, root.Position) then
+		if root and (only == nil or only == player) and caught(shape, player, root) then
 			local result = Combat.hurt(player, damage, nonLethal, source)
 			if result == "hit" then
 				table.insert(hit, player)
@@ -181,14 +212,31 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 	humanoid.MaxHealth = health
 	humanoid.Health = health
 	humanoid.WalkSpeed = def.walkSpeed
+	-- states a beast never uses cost the server humanoid work every step
+	for _, unused in
+		{
+			Enum.HumanoidStateType.Climbing,
+			Enum.HumanoidStateType.Seated,
+			Enum.HumanoidStateType.FallingDown,
+			Enum.HumanoidStateType.Ragdoll,
+			Enum.HumanoidStateType.Flying,
+			Enum.HumanoidStateType.PlatformStanding,
+		}
+	do
+		humanoid:SetStateEnabled(unused, false)
+	end
 	local ground = groundAt(at)
 	model:PivotTo(CFrame.new(ground + Vector3.new(0, rootHeight, 0)) * CFrame.Angles(0, math.random() * math.pi * 2, 0))
 	model:SetAttribute("EnemyType", id)
 	model:SetAttribute("RunSpeed", def.runSpeed)
 	model:SetAttribute("Realm", Realms.get(def.realm[1], def.realm[2]).name)
+	model:SetAttribute("AIState", "idle")
+	model:SetAttribute("StateAt", serverNow())
 	model:AddTag("Enemy")
 	model.Parent = liveFolder
 	root:SetNetworkOwner(nil)
+	local extents = model:GetExtentsSize()
+	EnemyHistory.track(model, math.max(extents.X, extents.Z) / 2, extents.Y / 2)
 
 	local enemy: Enemy = {
 		model = model,
@@ -211,6 +259,7 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		summonsDone = {},
 		summoned = {},
 		staggerImmuneUntil = 0,
+		asleep = false,
 	}
 	enemies[model] = enemy
 	humanoid.Died:Connect(function()
@@ -224,13 +273,12 @@ local function randomPointNear(center: Vector3, radius: number): Vector3
 	return center + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r)
 end
 
+-- Clients fade the body (EnemyFX, on FadeAt); the server only holds it still
+-- and removes it, so a fade costs no per-part replication.
 local function fadeAway(enemy: Enemy)
 	enemy.root.Anchored = true
-	for _, d in enemy.model:GetDescendants() do
-		if d:IsA("BasePart") and d ~= enemy.root then
-			TweenService:Create(d, TweenInfo.new(1), { Transparency = 1 }):Play()
-		end
-	end
+	EnemyHistory.forget(enemy.model)
+	enemy.model:SetAttribute("FadeAt", serverNow())
 	task.delay(1.2, function()
 		enemy.model:Destroy()
 	end)
@@ -357,8 +405,10 @@ end
 
 local function setState(enemy: Enemy, state: string)
 	enemy.state = state
-	-- clients animate from this (crouch on windup, stretch on dash)
+	-- clients animate from this (crouch on windup, stretch on dash); StateAt
+	-- (server time) lets them sync the pose's timing however late it arrives
 	if enemy.model:GetAttribute("AIState") ~= state then
+		enemy.model:SetAttribute("StateAt", serverNow())
 		enemy.model:SetAttribute("AIState", state)
 	end
 end
@@ -491,10 +541,13 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 		enemy.dashTo = enemy.root.Position + dir * length
 	end
 	enemy.shape = shape
-	enemy.state = "windup"
 	enemy.stateUntil = now + attack.windup
 	enemy.nextAttack = now + attack.cooldown
-	telegraphRemote:FireAllClients(shape, attack.windup)
+	-- which attack, for per-attack poses and effects (EnemyAnimator, EnemyFX)
+	local name = attack.name or attack.kind
+	enemy.model:SetAttribute("Attack", name)
+	setState(enemy, "windup")
+	telegraphRemote:FireAllClients(shape, attack.windup, enemy.model, name, serverNow())
 end
 
 local function summon(enemy: Enemy, attack: Enemies.Attack)
@@ -537,7 +590,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 	else
 		for _, player in Players:GetPlayers() do
 			local root = playerRoot(player)
-			if root and EnemyService.inside(shape, root.Position) then
+			if root and caught(shape, player, root) then
 				Combat.hurt(player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, false, enemy.def.id)
 			end
 		end
@@ -546,6 +599,13 @@ local function resolveAttack(enemy: Enemy, now: number)
 	if enemy.dashTo then
 		enemy.humanoid.WalkSpeed = attack.dashSpeed :: number
 		enemy.humanoid:MoveTo(enemy.dashTo)
+		-- the dash's line, so clients draw it where it is on the server, not a
+		-- ping behind (EnemyMotion)
+		local model = enemy.model
+		model:SetAttribute("DashFrom", enemy.root.Position)
+		model:SetAttribute("DashTo", enemy.dashTo)
+		model:SetAttribute("DashSpeed", attack.dashSpeed)
+		model:SetAttribute("DashAt", serverNow())
 		enemy.state = "dash"
 		enemy.stateUntil = now + (attack.length :: number) / (attack.dashSpeed :: number) + 0.1
 		enemy.dashTo = nil
@@ -645,18 +705,66 @@ local function think(enemy: Enemy, now: number)
 	end
 end
 
+-- No player near and nothing to do: stop thinking and anchor, so the beast costs
+-- no physics or replication. One walking home is put there and healed first
+-- (nobody is near enough to see it jump).
+local function sleep(enemy: Enemy)
+	if enemy.state == "return" then
+		local ground = groundAt(enemy.home)
+		enemy.model:PivotTo(CFrame.new(ground + Vector3.new(0, enemy.rootHeight, 0)) * enemy.root.CFrame.Rotation)
+		enemy.humanoid.Health = enemy.humanoid.MaxHealth
+		table.clear(enemy.damagers)
+	end
+	stop(enemy)
+	enemy.humanoid.WalkSpeed = enemy.def.walkSpeed
+	enemy.root.Anchored = true
+	enemy.asleep = true
+	setState(enemy, "idle")
+end
+
+local function wake(enemy: Enemy, now: number)
+	enemy.root.Anchored = false
+	enemy.asleep = false
+	enemy.nextWander = now + math.random() * 3
+end
+
 function EnemyService.start()
 	task.spawn(function()
 		while true do
 			task.wait(Config.AI_TICK)
 			local now = os.clock()
+			local stamp = serverNow()
+			local awake: { Vector3 } = {}
+			for _, player in Players:GetPlayers() do
+				local root = playerRoot(player)
+				if root then
+					table.insert(awake, root.Position)
+				end
+			end
 			for _, enemy in enemies do
 				if enemy.humanoid.Health > 0 and enemy.model.Parent then
+					local position = enemy.root.Position
+					local near = false
+					for _, at in awake do
+						if (at - position).Magnitude <= Config.WAKE_RADIUS then
+							near = true
+							break
+						end
+					end
+					if not near and not enemy.target and (enemy.state == "idle" or enemy.state == "return") then
+						if not enemy.asleep then
+							sleep(enemy)
+						end
+						continue
+					elseif enemy.asleep then
+						wake(enemy, now)
+					end
 					local ok, err = pcall(think, enemy, now)
 					if not ok then
 						warn(`EnemyService: {enemy.def.id} errored: {err}`)
 					end
 					setState(enemy, enemy.state)
+					EnemyHistory.record(enemy.model, enemy.root.Position, stamp)
 				end
 			end
 		end

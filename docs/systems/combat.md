@@ -368,7 +368,8 @@ checks a rebuild against the previous templates.
 Client presses -> `ActionRules` decides if legal -> plays locally and sends
 `Attack { begin }`; hit reports follow as `Attack { hit, targets }` -> server
 replays the timeline, checks timing (`MAX_LAG`, `CLOCK_SLACK`) and the slackened
-hitbox, applies `damage * Combat.power(player)` (times `Weapons.multiplier` for M1)
+hitbox (a claimed target outside it now still counts if it was inside at the
+swing's time, rewound at most `REWIND`: lag compensation, `EnemyHistory`), applies `damage * Combat.power(player)` (times `Weapons.multiplier` for M1)
 and knockback, and acknowledges
 via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
 `"perfect" | "dodged" | "hit"` and fires `Effect "hurt"`/`"perfect"`.
@@ -376,7 +377,9 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
 ## Tuning knobs
 - `Config.Combat`: `CLASSES` (each weapon class's chain with per-step `push`,
   hitbox and max targets; `FIST_STEPS` is the Fist chain), chain/reset timings, buffers, dodge
-  (`DODGE_*`, `IFRAME_*`, `PERFECT_*`), hitbox and server slack, lock-on and
+  (`DODGE_*`, `IFRAME_*`, `PERFECT_*`), hitbox and server slack, `REWIND` (swing
+  lag compensation) and `ESCAPE_LEAD` (enemy strikes spare a player already
+  moving out, see [enemies](enemies.md) "Server and client"), lock-on and
   auto ranges, `IN_COMBAT_SECONDS`.
 - `Techniques.luau`: per-technique damage, cooldown, shape, cast timing,
   `weapon`, and for weapon skills `hits`, `castSpeed`, `lunge`/`lungeWindow`.

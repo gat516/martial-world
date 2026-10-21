@@ -22,7 +22,9 @@ asked. The user playtests feel and difficulty; say what's untested.
   attack kinds, kill credit, spawning, regions and known gaps. Always.
 - `src/shared/Enemies.luau` (defs, attack kinds and every field),
   `src/server/EnemyService.luau` (spawn, state machine, `strike`),
-  `src/client/EnemyAnimator.luau`, `EnemySounds.luau`, `Telegraphs.luau`.
+  `src/client/EnemyAnimator.luau`, `EnemyMotion.luau`, `EnemyFX/`,
+  `EnemySounds.luau`, `Telegraphs.luau`. Follow enemies.md "Server and client":
+  the server decides and checks everything, clients only draw.
 - [docs/core-loop.md](../../docs/core-loop.md) and `src/shared/Pacing.luau`:
   which stage each region serves, what the player has at that point
   (realm, techniques, weapon), and the per-stage beast multipliers.
@@ -58,6 +60,10 @@ asked. The user playtests feel and difficulty; say what's untested.
    existing ones: `HumanoidRootPart`, `Humanoid`, Motor6Ds named
    `JointHead`, `JointTail`, `JointLeg{FL,FR,BL,BR}` (or new names that the
    animator learns), the `HealthBar` and the attributes EnemyService expects.
+   Exactly one joint leaves `HumanoidRootPart`: a Motor6D to the body root
+   (`JointRoot` from `rig_wolf.luau`, `RootJoint` on R6), with the rest of the
+   body hung below it, nothing welded straight to the root (enemies.md "Rig
+   contract"); otherwise the beast can't be predicted for high-ping players.
    `ServerStorage.Enemies` is Rojo-mapped (`assets/Enemies.rbxmx`): build in a
    staging clone and export per AGENTS.md's staging steps.
 4. **Animation.** EnemyAnimator poses joints procedurally from `AIState`
@@ -131,6 +137,10 @@ and one realm below and above.
   on its side (the 90-degree trap in AGENTS.md, "Luau pitfalls"). Check by
   spawning through `EnemyService.spawn`'s path at a few spots in Edit mode and
   capturing from the side.
+- Attack, hit and death effects play on the client from
+  `src/client/EnemyFX/<EnemyType>.luau` cues (windup, strike, dash, stagger,
+  death), never from server code. Give attacks a `name` when a beast has two of
+  one kind, so cues and poses can tell them apart.
 - New attack kinds need server code (EnemyService `strike` and the state
   machine) and a telegraph shape the client draws. Every damaging attack must
   have one.

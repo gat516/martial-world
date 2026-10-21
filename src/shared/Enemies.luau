@@ -19,6 +19,7 @@
 
 export type Attack = {
 	kind: string, -- "lunge" | "charge" | "spit" | "cone" | "slam" | "summon"
+	name: string?, -- shown to clients as the model's Attack attribute (default: kind); name it when one beast has two of a kind
 	damage: number,
 	range: number, -- start the attack when the target is this close
 	windup: number, -- seconds the telegraph shows before it resolves

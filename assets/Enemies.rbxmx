@@ -74,51 +74,53 @@
       </Item>
      </Item>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE113"><Properties>
-     <string name="Name">Weld_Chest</string>
+    <Item class="Motor6D" referent="RBXE113"><Properties>
+     <string name="Name">RootJoint</string>
      <Ref name="Part0">RBXE1</Ref>
      <Ref name="Part1">RBXE2</Ref>
+     <CoordinateFrame name="C0"><X>0.000000</X><Y>0.500000</Y><Z>-1.100000</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+     <CoordinateFrame name="C1"><X>0.000000</X><Y>0.000000</Y><Z>0.000000</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE114"><Properties>
      <string name="Name">Weld_Torso</string>
-     <Ref name="Part0">RBXE1</Ref>
+     <Ref name="Part0">RBXE2</Ref>
      <Ref name="Part1">RBXE3</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE115"><Properties>
      <string name="Name">Weld_Hips</string>
-     <Ref name="Part0">RBXE1</Ref>
+     <Ref name="Part0">RBXE2</Ref>
      <Ref name="Part1">RBXE4</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE116"><Properties>
      <string name="Name">Weld_Belly</string>
-     <Ref name="Part0">RBXE1</Ref>
+     <Ref name="Part0">RBXE2</Ref>
      <Ref name="Part1">RBXE5</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE117"><Properties>
      <string name="Name">Weld_Ruff</string>
-     <Ref name="Part0">RBXE1</Ref>
+     <Ref name="Part0">RBXE2</Ref>
      <Ref name="Part1">RBXE6</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE118"><Properties>
      <string name="Name">Weld_Mane</string>
-     <Ref name="Part0">RBXE1</Ref>
+     <Ref name="Part0">RBXE2</Ref>
      <Ref name="Part1">RBXE7</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE119"><Properties>
      <string name="Name">Weld_Wisp1</string>
-     <Ref name="Part0">RBXE1</Ref>
+     <Ref name="Part0">RBXE2</Ref>
      <Ref name="Part1">RBXE8</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE120"><Properties>
      <string name="Name">Weld_Wisp2</string>
-     <Ref name="Part0">RBXE1</Ref>
+     <Ref name="Part0">RBXE2</Ref>
      <Ref name="Part1">RBXE9</Ref>
     </Properties>
     </Item>
@@ -792,39 +794,41 @@
       </Item>
      </Item>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE151"><Properties>
-     <string name="Name">Weld_Body</string>
+    <Item class="Motor6D" referent="RBXE151"><Properties>
+     <string name="Name">RootJoint</string>
      <Ref name="Part0">RBXE33</Ref>
      <Ref name="Part1">RBXE34</Ref>
+     <CoordinateFrame name="C0"><X>0.000000</X><Y>0.500000</Y><Z>0.300000</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+     <CoordinateFrame name="C1"><X>0.000000</X><Y>0.000000</Y><Z>0.000000</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE152"><Properties>
      <string name="Name">Weld_Hump</string>
-     <Ref name="Part0">RBXE33</Ref>
+     <Ref name="Part0">RBXE34</Ref>
      <Ref name="Part1">RBXE35</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE153"><Properties>
      <string name="Name">Weld_Plate1</string>
-     <Ref name="Part0">RBXE33</Ref>
+     <Ref name="Part0">RBXE34</Ref>
      <Ref name="Part1">RBXE36</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE154"><Properties>
      <string name="Name">Weld_Plate2</string>
-     <Ref name="Part0">RBXE33</Ref>
+     <Ref name="Part0">RBXE34</Ref>
      <Ref name="Part1">RBXE37</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE155"><Properties>
      <string name="Name">Weld_Plate3</string>
-     <Ref name="Part0">RBXE33</Ref>
+     <Ref name="Part0">RBXE34</Ref>
      <Ref name="Part1">RBXE38</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE156"><Properties>
      <string name="Name">Weld_Crack</string>
-     <Ref name="Part0">RBXE33</Ref>
+     <Ref name="Part0">RBXE34</Ref>
      <Ref name="Part1">RBXE39</Ref>
     </Properties>
     </Item>
@@ -1288,99 +1292,101 @@
       </Item>
      </Item>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE178"><Properties>
-     <string name="Name">Weld_Coil1</string>
+    <Item class="Motor6D" referent="RBXE178"><Properties>
+     <string name="Name">RootJoint</string>
      <Ref name="Part0">RBXE54</Ref>
      <Ref name="Part1">RBXE55</Ref>
+     <CoordinateFrame name="C0"><X>0.000000</X><Y>-0.650000</Y><Z>1.900000</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+     <CoordinateFrame name="C1"><X>0.000000</X><Y>0.000000</Y><Z>0.000000</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE179"><Properties>
      <string name="Name">Weld_Coil2</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE56</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE180"><Properties>
      <string name="Name">Weld_Coil3</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE57</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE181"><Properties>
      <string name="Name">Weld_Coil4</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE58</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE182"><Properties>
      <string name="Name">Weld_Coil5</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE59</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE183"><Properties>
      <string name="Name">Weld_Coil6</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE60</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE184"><Properties>
      <string name="Name">Weld_Coil7</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE61</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE185"><Properties>
      <string name="Name">Weld_Neck1</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE62</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE186"><Properties>
      <string name="Name">Weld_Neck2</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE63</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE187"><Properties>
      <string name="Name">Weld_Neck3</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE64</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE188"><Properties>
      <string name="Name">Weld_Hood</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE65</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE189"><Properties>
      <string name="Name">Weld_Head</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE66</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE190"><Properties>
      <string name="Name">Weld_EyeL</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE67</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE191"><Properties>
      <string name="Name">Weld_EyeR</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE68</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE192"><Properties>
      <string name="Name">Weld_Spot1</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE69</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE193"><Properties>
      <string name="Name">Weld_Spot2</string>
-     <Ref name="Part0">RBXE54</Ref>
+     <Ref name="Part0">RBXE55</Ref>
      <Ref name="Part1">RBXE70</Ref>
     </Properties>
     </Item>
@@ -1704,51 +1710,53 @@
       </Item>
      </Item>
     </Item>
-    <Item class="WeldConstraint" referent="RBXE201"><Properties>
-     <string name="Name">Weld_Chest</string>
+    <Item class="Motor6D" referent="RBXE201"><Properties>
+     <string name="Name">RootJoint</string>
      <Ref name="Part0">RBXE71</Ref>
      <Ref name="Part1">RBXE72</Ref>
+     <CoordinateFrame name="C0"><X>0.000000</X><Y>1.200000</Y><Z>-2.640000</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+     <CoordinateFrame name="C1"><X>0.000000</X><Y>0.000000</Y><Z>0.000000</Z><R00>1.000000</R00><R01>0.000000</R01><R02>0.000000</R02><R10>0.000000</R10><R11>1.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE202"><Properties>
      <string name="Name">Weld_Torso</string>
-     <Ref name="Part0">RBXE71</Ref>
+     <Ref name="Part0">RBXE72</Ref>
      <Ref name="Part1">RBXE73</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE203"><Properties>
      <string name="Name">Weld_Hips</string>
-     <Ref name="Part0">RBXE71</Ref>
+     <Ref name="Part0">RBXE72</Ref>
      <Ref name="Part1">RBXE74</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE204"><Properties>
      <string name="Name">Weld_Belly</string>
-     <Ref name="Part0">RBXE71</Ref>
+     <Ref name="Part0">RBXE72</Ref>
      <Ref name="Part1">RBXE75</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE205"><Properties>
      <string name="Name">Weld_Ruff</string>
-     <Ref name="Part0">RBXE71</Ref>
+     <Ref name="Part0">RBXE72</Ref>
      <Ref name="Part1">RBXE76</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE206"><Properties>
      <string name="Name">Weld_Mane</string>
-     <Ref name="Part0">RBXE71</Ref>
+     <Ref name="Part0">RBXE72</Ref>
      <Ref name="Part1">RBXE77</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE207"><Properties>
      <string name="Name">Weld_Wisp1</string>
-     <Ref name="Part0">RBXE71</Ref>
+     <Ref name="Part0">RBXE72</Ref>
      <Ref name="Part1">RBXE78</Ref>
     </Properties>
     </Item>
     <Item class="WeldConstraint" referent="RBXE208"><Properties>
      <string name="Name">Weld_Wisp2</string>
-     <Ref name="Part0">RBXE71</Ref>
+     <Ref name="Part0">RBXE72</Ref>
      <Ref name="Part1">RBXE79</Ref>
     </Properties>
     </Item>

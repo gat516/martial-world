@@ -14,6 +14,7 @@ local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
+local EnemyHistory = require(script.Parent.EnemyHistory)
 local PlayerData = require(script.Parent.PlayerData)
 local Movement = require(script.Parent.Movement)
 local Weapons = require(script.Parent.Weapons)
@@ -193,7 +194,7 @@ local function pushFrom(from: Vector3, model: Model, studs: number, fallback: Ve
 	return (if offset.Magnitude > 0.1 then offset.Unit else fallback) * studs
 end
 
-local function damageSwing(player: Player, action: Rules.Action, claimed: { any })
+local function damageSwing(player: Player, action: Rules.Action, claimed: { any }, swungAt: number)
 	local root = livingRoot(player)
 	if not root then
 		return
@@ -235,9 +236,23 @@ local function damageSwing(player: Player, action: Rules.Action, claimed: { any 
 	local studs = step.push or 0
 	local facing = root.CFrame.LookVector * Vector3.new(1, 0, 1)
 	local landed = false
+	local hit: { [Model]: boolean } = {}
 	for _, model in Hitbox.enemiesIn(cframe, size, params, root.Position) do
-		landed = true
-		Combat.damageEnemy(player, model, damage, pushFrom(root.Position, model, studs, facing.Unit))
+		hit[model] = true
+	end
+	-- lag compensation: a claimed target that has moved out of the box still
+	-- counts if it was in it at the swing's time (rewound at most Config.REWIND)
+	local now = workspace:GetServerTimeNow()
+	for _, model in targets do
+		if not hit[model] and EnemyHistory.wasIn(model, cframe, size, swungAt, now) then
+			hit[model] = true
+		end
+	end
+	for _, model in targets do
+		if hit[model] then
+			landed = true
+			Combat.damageEnemy(player, model, damage, pushFrom(root.Position, model, studs, facing.Unit))
+		end
 	end
 	if landed then
 		Weapons.addXp(player, action.class, WeaponPacing.XP_HIT)
@@ -521,7 +536,7 @@ function Combat.action(player: Player, message: any)
 		end
 		s.released = true
 		if action.kind == "basic" then
-			damageSwing(player, action, message.targets)
+			damageSwing(player, action, message.targets, t)
 		elseif action.id then
 			releaseTechnique(player, action, s.aim)
 		end

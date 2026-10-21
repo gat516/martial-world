@@ -324,6 +324,13 @@ return {
 		CLOCK_SLACK = 0.1, -- and lead it
 		HITBOX_SLACK = 4, -- studs added to each side of the hitbox for movement and lag
 		AREA_SLACK = 3, -- studs added to technique areas on the server
+		-- lag compensation (EnemyHistory): a swing that misses the beast where it is
+		-- now still lands if it was in the box this far back at the swing's time.
+		-- Also the most a forged timestamp can buy, so keep it short.
+		REWIND = 0.35, -- seconds
+		-- enemy strikes spare a player whose own movement (server-seen velocity)
+		-- carries them out of the area within half their ping, up to this
+		ESCAPE_LEAD = 0.15, -- seconds
 		-- lunging skills (Techniques `lunge`): a hit lands from the caster's root
 		-- unless it's farther from the cast's start than the lunge plus these
 		LUNGE_SLACK = 4, -- studs
@@ -371,6 +378,9 @@ return {
 		-- qi node yield and cooldown: Pacing.Income
 		RESPAWN_SPREAD = 0.3, -- respawn timers vary by up to this share
 		AI_TICK = 0.1, -- seconds between enemy decisions
+		-- idle beasts with no player this close stop thinking and anchor (no physics,
+		-- nothing to replicate); keep it well past every def's aggro
+		WAKE_RADIUS = 220,
 	},
 
 	-- Insight and technique manuals: Pacing.Rewards.

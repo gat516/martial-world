@@ -74,7 +74,7 @@ local STYLE = {
 	PeakRock = { material = Enum.Material.Slate, color = Color3.fromHex("7A7570"), fidelity = "PreciseConvexDecomposition" },
 	PeakRockBase = { material = Enum.Material.Slate, color = Color3.fromHex("615D59"), fidelity = "Hull" },
 	PeakGrass = { material = Enum.Material.LeafyGrass, color = Color3.fromHex("6E8F5A"), fidelity = "PreciseConvexDecomposition" },
-	AbodeWalls = { material = Enum.Material.SmoothPlastic, color = Color3.fromRGB(150, 138, 120), fidelity = "PreciseConvexDecomposition" },
+	AbodeWalls = { material = Enum.Material.Slate, color = Color3.fromHex("8A847D"), fidelity = "PreciseConvexDecomposition" },
 	AbodeFloor = { material = Enum.Material.WoodPlanks, color = Color3.fromRGB(120, 85, 55), fidelity = "Box", shadow = false },
 	-- the treads are looks only; feet ride the invisible ramp through the middle of each tread
 	PeakStairs = { material = Enum.Material.Slate, color = Color3.fromRGB(150, 146, 140), collide = false },

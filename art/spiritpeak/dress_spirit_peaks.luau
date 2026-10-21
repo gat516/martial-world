@@ -39,8 +39,9 @@ local LIB = ServerStorage:WaitForChild("AssetLibrary")
 local BUSHES = LIB["Stylized Foliage + Pots"]["Stylized Bushes"]
 local PLANTS = LIB["Stylized Foliage + Pots"]["Plants + Pots"]
 
-local ROCK = { Color3.fromHex("7A7570"), Color3.fromHex("6E6A65"), Color3.fromHex("85807A"), Color3.fromHex("66625D") }
-local PAVE = { Color3.fromHex("A39A8B"), Color3.fromHex("9A9183"), Color3.fromHex("ADA494"), Color3.fromHex("958C7E") }
+local ROCK = { Color3.fromHex("6E6A65"), Color3.fromHex("66625D"), Color3.fromHex("5E5A55"), Color3.fromHex("726D67") }
+-- Slate brightens pale tints a lot: these read as warm mid-gray stone in game
+local PAVE = { Color3.fromHex("6A6358"), Color3.fromHex("625B51"), Color3.fromHex("72695E"), Color3.fromHex("5D564C") }
 -- the library foliage is a saturated green; a slight warm-gray tint pulls it toward the map's jade/sage
 local FOLIAGE_TINT = Color3.fromHex("C9D2BE")
 

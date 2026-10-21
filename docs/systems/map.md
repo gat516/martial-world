@@ -318,7 +318,11 @@ As built (2026-10-21, approved on Peak_1 and rolled out to all 8 peaks):
   `fence_model.luau` + `garden_fence.luau`; `dress_spirit_peaks.luau`;
   `fix_overhangs.luau` (pulls back anything hanging over a terrace or wall
   edge); `strict_seat.luau` (rays over every unit's whole footprint, lowers
-  anything floating; run dry to check). Then raycast the lawn for holes.
+  anything floating; run dry to check); `recolor_peaks.luau` (palette pass on the
+  peaks' plain parts: flagstones and terrace stone in warm mid grays, since sunlit
+  Slate tops read far paler than their tint; dwelling walls Plaster cream, roofs
+  dark Slate, abode hall walls Slate; also the catalogue Dwelling). Then raycast
+  the lawn for holes.
 
 Not done yet: the doc's raised garden curb and lantern-lit path turns. The
 starter PineTree (BuildCatalog `PineTree`, a sparse realistic tree) and the

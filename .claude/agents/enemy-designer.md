@@ -67,6 +67,10 @@ them only for work that needs them, and never start Play in them.
      flare on windup. Bodies are built from Studio parts and rigged for the
      animator (see "Bodies" below and the modeler's "Enemy bodies" section);
      humanoids are stock R6 rigs.
+   - **Contracts:** pin down in every brief the attack names, phase timings,
+     and exactly what each effect cue carries (e.g. whether a windup cue's
+     `seconds` covers only the windup or windup plus flight; the wolf's leap
+     tell got this wrong).
    - **Effects (vfx):** per attack, the windup tell (a flare on the tell parts,
      gathering qi), the release, the hit and the telegraph's look if it should
      differ from the stock one; a death effect (dissolve to qi motes, a spirit
@@ -84,8 +88,10 @@ them only for work that needs them, and never start Play in them.
    "Template contract"). So the body is purely visual, server code never
    reaches into it, and the template's Humanoid is only there for R6
    animations.
-   `ServerStorage.Enemies` is Rojo-mapped (`assets/Enemies.rbxmx`): build in a
-   staging clone and export per AGENTS.md's staging steps.
+   `ServerStorage.Enemies` is Rojo-mapped to binary `assets/Enemies.rbxm`
+   (keeps C0/C1, attributes and tags). Build in your sandbox Studio and export
+   it with `tools/export_rbxm.luau` (export steps in enemies.md); never
+   `export_rbxmx`.
 4. **Animation (animator).** The `animator` agent animates the rig; you give it
    a brief. EnemyAnimator poses joints procedurally from `AIState` (idle,
    moving, windup, dash, recover, stagger). The brief asks for each attack's

@@ -121,6 +121,10 @@ local function press(i: number)
 	end
 end
 
+-- Set by Inventory: while it's open, tapping a slot shows that slot's art or item
+-- in its detail pane instead of casting or holding it (returns true when it did).
+HotbarView.inspect = nil :: ((id: string) -> boolean)?
+
 --[[ Drag and drop ]]
 
 -- True just after a drag ends, so the release isn't also taken as a click.
@@ -264,9 +268,14 @@ function HotbarView.init(screenGui: ScreenGui)
 		key.Text = tostring(i)
 		key.Visible = not Platform.isTouch()
 		slot.Activated:Connect(function()
-			if not HotbarView.justDragged() then
-				press(i)
+			if HotbarView.justDragged() then
+				return
 			end
+			local inspect = HotbarView.inspect
+			if inspect and inspect(State.current.hotbar[i] or "") then
+				return
+			end
+			press(i)
 		end)
 		HotbarView.draggable(slot, function()
 			return State.current.hotbar[i]

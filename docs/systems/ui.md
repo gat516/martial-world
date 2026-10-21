@@ -26,6 +26,16 @@ cursor, settings and the admin panel.
   grades share their model's art and differ by glow colour.
 - Technique icons are flat white glyphs tinted by the technique's colour; the
   class weapon skills' are drawn in `art/ui/draw_techniques.py`.
+- A chosen art in the Inventory shows its tier, level and XP bar (a `DaoList`
+  row cloned from `RowTemplate`). At a bottleneck (XP full at level 3, 6 or 9) the
+  bar turns cinnabar and reads "Bottleneck", the grid's "Lv" turns the same
+  colour, two cost rows (insight and Spirit Stones icons, "need · you have") show
+  up, and the Secondary button becomes Comprehend (jade). While it can't run it
+  stays lacquer and dimmed and its caption is the reason ("Meditate first",
+  "Need insight", "Need stones"); a tap toasts the longer reason. Success is the
+  server's notify. While the Inventory is open, tapping a hotbar slot shows that
+  art or item in the detail pane instead of casting or holding it, so arts on the
+  hotbar can be comprehended too.
 - Character window (`SelfCard`): the Self tile (`Buttons.SelfButton`, between
   Cultivate and Inventory) opens a compact Self card (realm and stage bar, spirit
   root row, equipped weapon badge); tapping the realm crest over the vitals is a

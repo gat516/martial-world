@@ -6,13 +6,19 @@
 -- choosing them puts the weapon away). Arts that need a weapon class wear its
 -- badge. With no weapon chosen, the Weapons pane lists every class's Dao
 -- comprehension; a chosen weapon shows its own class's.
--- Items and arts in the grid can be dragged onto the hotbar (HotbarView).
+-- A chosen art shows its level and XP bar. At a bottleneck (Techniques.bottleneck,
+-- XP full at level 3, 6 or 9) the bar turns cinnabar, the cost rows (insight and
+-- Spirit Stones, Pacing.Comprehension) show what you have, and Comprehend sits
+-- beside the hotbar button; it reads the reason ("Meditate first") while it can't.
+-- Items and arts in the grid can be dragged onto the hotbar (HotbarView); while
+-- the window is open, tapping a hotbar slot shows that slot here instead.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local Items = require(ReplicatedStorage.Shared.Items)
+local Comprehension = require(ReplicatedStorage.Shared.Pacing).Comprehension
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local HotbarView = require(script.Parent.HotbarView)
@@ -35,6 +41,17 @@ local TAB_OFF = { image = "rbxassetid://88447362782150", text = Color3.fromRGB(1
 local DAO_NAME = Color3.fromRGB(236, 242, 236)
 local DAO_NAME_EQUIPPED = Color3.fromRGB(255, 226, 160)
 local MARK_POP = TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+-- comprehension (button art from art/ui/assets.json)
+local BUTTON_JADE = "rbxassetid://124219422183170"
+local BUTTON_LACQUER = "rbxassetid://88447362782150"
+local BOTTLENECK = Color3.fromRGB(255, 150, 110)
+local COST_SHORT = Color3.fromRGB(255, 130, 110)
+local COST_OK = Color3.fromRGB(240, 210, 140)
+local BAR_GOLD = ColorSequence.new(Color3.fromRGB(246, 214, 140), Color3.fromRGB(178, 124, 52))
+local BAR_CINNABAR = ColorSequence.new(Color3.fromRGB(240, 120, 84), Color3.fromRGB(150, 46, 32))
+local STONE_ICON = "rbxassetid://112328127073930"
+local INSIGHT_ICON = "rbxassetid://92675446701433"
+local TIER_NAMES = { "Tier I", "Tier II", "Tier III", "Mastery" }
 local FIST_BLURB = "Palm and fist, always at hand. Choosing them puts your weapon away."
 local EMPTY: { [Tab]: string } = {
 	Pouch = "Your pouch is empty. Harvest herbs, hunt spirit beasts for their cores, and watch the skies for heavenly treasures.",
@@ -56,6 +73,10 @@ local daoRows: { [string]: Frame } = {}
 local tab: Tab = "Pouch"
 local selected: string? = nil
 local shownEquipped: string? = nil -- the equipped weapon at the last render, to pop its mark when it changes
+local techniqueRow: Frame -- the chosen art's level and XP bar (a RowTemplate clone)
+local costRows: { insight: Frame, stones: Frame }
+local comprehendBlock: string? = nil -- why Comprehend can't run now (nil = it can)
+local comprehending = false
 
 local function weaponRemote(): RemoteFunction
 	return (ReplicatedStorage.Remotes :: any).WeaponAction
@@ -145,6 +166,10 @@ end
 
 -- The Dao rows: every class (only) or just one.
 local function renderDao(only: string?)
+	techniqueRow.Visible = false
+	costRows.insight.Visible = false
+	costRows.stones.Visible = false;
+	(daoList:FindFirstChild("Header") :: GuiObject).Visible = true
 	local _, equipped, dao = weaponState()
 	local equippedClass = Weapons.classOf(equipped)
 	local template = daoList:FindFirstChild("RowTemplate") :: Frame
@@ -209,7 +234,92 @@ local function renderWeaponDetail()
 	renderDao(classId)
 end
 
-local function renderDetail()
+local function stones(): number
+	return (Players.LocalPlayer:GetAttribute("Stones") :: number?) or 0
+end
+
+-- The gate a technique is stuck at, or nil while its XP still flows.
+local function gateOf(owned: State.Technique): { insight: number, stones: number }?
+	if Techniques.bottleneck(owned.level) and owned.xp >= Techniques.xpToNext(owned.level) then
+		return Comprehension.GATES[owned.level]
+	end
+	return nil
+end
+
+local function paintCost(row: Frame, need: number, have: number)
+	local text = row:FindFirstChild("LevelLabel") :: TextLabel
+	text.Text = `{need} · you have {have}`
+	text.TextColor3 = if have >= need then COST_OK else COST_SHORT
+	row.Visible = true
+end
+
+-- The art's level row (tier, Lv, XP bar) and, at a bottleneck, its cost rows and
+-- the Comprehend button (Secondary), which names what's missing while it can't.
+local function renderTechnique(technique: any, owned: State.Technique, animate: boolean)
+	local s = State.current
+	local gate = gateOf(owned)
+	daoList.Visible = true
+	for _, row in daoRows do
+		row.Visible = false
+	end
+	(daoList:FindFirstChild("Header") :: GuiObject).Visible = false
+	techniqueRow.Visible = true
+	local icon = techniqueRow:FindFirstChild("Icon") :: ImageLabel
+	icon.Image = technique.icon
+	icon.ImageColor3 = technique.color:Lerp(Color3.new(1, 1, 1), 0.35)
+	local name = techniqueRow:FindFirstChild("NameLabel") :: TextLabel
+	local level = techniqueRow:FindFirstChild("LevelLabel") :: TextLabel
+	local fill = (techniqueRow:FindFirstChild("Bar") :: Frame):FindFirstChild("Fill") :: Frame;
+	(fill:FindFirstChild("UIGradient") :: UIGradient).Color = if gate then BAR_CINNABAR else BAR_GOLD
+	local tier = Techniques.visualTier(owned.level)
+	local share
+	if owned.level >= Techniques.MAX_LEVEL then
+		name.Text, name.TextColor3 = "Mastered", DAO_NAME_EQUIPPED
+		level.Text, level.TextColor3 = `Lv {owned.level}`, COST_OK
+		share = 1
+	elseif gate then
+		name.Text, name.TextColor3 = "Bottleneck", BOTTLENECK
+		level.Text, level.TextColor3 = `Lv {owned.level} · XP full`, BOTTLENECK
+		share = 1
+	else
+		local need = Techniques.xpToNext(owned.level)
+		name.Text, name.TextColor3 = TIER_NAMES[tier] or "", DAO_NAME
+		level.Text, level.TextColor3 = `Lv {owned.level} · {owned.xp}/{need}`, COST_OK
+		share = math.clamp(owned.xp / need, 0, 1)
+	end
+	local size = UDim2.fromScale(share, 1)
+	if animate and fill.Size ~= size then
+		Motion.ease(fill, { Size = size })
+	else
+		fill.Size = size
+	end
+	secondary.Visible = gate ~= nil
+	comprehendBlock = nil
+	if gate then
+		local insight = s.insight or 0
+		paintCost(costRows.insight, gate.insight, insight)
+		paintCost(costRows.stones, gate.stones, stones())
+		local short = if s.meditation == nil
+			then "Meditate first"
+			elseif insight < gate.insight then "Need insight"
+			elseif stones() < gate.stones then "Need stones"
+			else nil
+		comprehendBlock = short
+		secondary.Image = if short then BUTTON_LACQUER else BUTTON_JADE
+		secondary.ImageTransparency = if short then 0.3 else 0
+		local text = caption(secondary)
+		text.Text = short or "Comprehend"
+		text.TextTransparency = if short then 0.3 else 0
+	else
+		costRows.insight.Visible = false
+		costRows.stones.Visible = false
+	end
+end
+
+local function renderDetail(animate: boolean?)
+	secondary.Image = BUTTON_LACQUER
+	secondary.ImageTransparency = 0
+	caption(secondary).TextTransparency = 0
 	if tab == "Weapons" then
 		renderWeaponDetail()
 		return
@@ -241,17 +351,15 @@ local function renderDetail()
 		local held = HotbarView.held()
 		caption(secondary).Text = if held and held:GetAttribute("ItemId") == item.id then "Put away" else "Hold"
 	elseif technique and owned then
-		local xp = if owned.level >= Techniques.MAX_LEVEL
-			then "max level"
-			else `{owned.xp}/{Techniques.xpToNext(owned.level)} xp`
 		local need = SlotArt.techniqueClass(technique.id)
 		local kind = if need then `{Weapons.Classes[need].name} art` else "Technique"
 		label("NameLabel").Text = technique.name
-		label("KindLabel").Text = `{kind} · Lv {owned.level} · {xp} · {technique.cooldown}s`
+		label("KindLabel").Text = `{kind} · {technique.cooldown}s cooldown`
 		label("KindLabel").TextColor3 = technique.color:Lerp(Color3.new(1, 1, 1), 0.3)
 		label("Blurb").Text = technique.blurb
 		label("Lore").Text = ""
 		caption(primary).Text = if table.find(s.hotbar, technique.id) then "Remove from hotbar" else "Add to hotbar"
+		renderTechnique(technique, owned, animate == true)
 	else
 		label("NameLabel").Text = ""
 		label("KindLabel").Text = ""
@@ -260,7 +368,8 @@ local function renderDetail()
 	end
 end
 
-local function render()
+-- animate: ease bars to new values (a state change), not a fresh selection.
+local function render(animate: boolean?)
 	for name, button in tabButtons do
 		local style = if name == tab then TAB_ON else TAB_OFF
 		button.Image = style.image
@@ -273,7 +382,8 @@ local function render()
 	end
 	local s = State.current
 	local list, hasOwned = entries()
-	if selected and not table.find(list, selected) then
+	-- a hotbar slot tapped while open stays chosen though the grid doesn't list it
+	if selected and not table.find(list, selected) and not table.find(s.hotbar, selected) then
 		selected = nil
 	end
 	local owned, equipped = weaponState()
@@ -297,7 +407,11 @@ local function render()
 				Motion.tween(mark, { Size = size, ImageTransparency = 0 }, MARK_POP)
 			end
 		elseif Techniques.Defs[id] then
-			SlotArt.paint(cell, id, nil, `Lv {s.techniques.owned[id].level}`)
+			local known = s.techniques.owned[id]
+			SlotArt.paint(cell, id, nil, `Lv {known.level}`)
+			if gateOf(known) then
+				(cell:FindFirstChild("CountLabel") :: TextLabel).TextColor3 = BOTTLENECK
+			end
 			SlotArt.gate(cell, id, true)
 		else
 			SlotArt.paint(cell, id, Items.count(s, id))
@@ -322,10 +436,10 @@ local function render()
 	end
 	local empty = window:FindFirstChild("Empty") :: TextLabel
 	empty.Text = if hasOwned
-		then `All your {if tab == "Pouch" then "items" else "arts"} are on the hotbar. Drag one off the bar to return it here.`
+		then `All your {if tab == "Pouch" then "items" else "arts"} are on the hotbar. Tap one there to see it, or drag it off the bar to return it here.`
 		else EMPTY[tab]
 	empty.Visible = #list == 0
-	renderDetail()
+	renderDetail(animate)
 end
 
 local function equip(id: string)
@@ -360,7 +474,45 @@ local function onPrimary()
 	end
 end
 
+local function comprehend(id: string)
+	if comprehendBlock then
+		Hud.toast(if comprehendBlock == "Meditate first"
+			then "Sit and meditate to comprehend it."
+			elseif comprehendBlock == "Need insight" then "You need more insight. Defeat new foes and bosses to gain it."
+			else "You need more Spirit Stones.")
+		return
+	end
+	if comprehending then
+		return
+	end
+	comprehending = true
+	local ok, message = inventoryRemote:InvokeServer("comprehend", id)
+	comprehending = false
+	if not ok and message then
+		Hud.toast(message)
+	end
+end
+
+-- Tapping a hotbar slot while the window is open shows that slot here.
+local function inspect(id: string): boolean
+	if not window.Visible or id == "" then
+		return false
+	end
+	local nextTab: Tab? = if Techniques.Defs[id] then "Arts" elseif Items.Defs[id] then "Pouch" else nil
+	if not nextTab then
+		return false
+	end
+	tab = nextTab
+	selected = id
+	render()
+	return true
+end
+
 local function onSecondary()
+	if selected and Techniques.Defs[selected] and tab == "Arts" then
+		comprehend(selected)
+		return
+	end
 	if selected and Items.Defs[selected] then
 		HotbarView.toggleHold(selected)
 		task.defer(renderDetail)
@@ -395,6 +547,36 @@ function Inventory.init(gui: ScreenGui)
 	local detail = window:FindFirstChild("Detail") :: Frame
 	info = detail:FindFirstChild("Info") :: ScrollingFrame
 	daoList = info:FindFirstChild("DaoList") :: Frame
+	local rowTemplate = daoList:FindFirstChild("RowTemplate") :: Frame
+	techniqueRow = rowTemplate:Clone()
+	techniqueRow.Name = "TechniqueRow"
+	techniqueRow.LayoutOrder = 1
+	techniqueRow.Parent = daoList
+	-- cost rows: icon, name and "need · you have", no bar
+	local function costRow(name: string, icon: string, order: number): Frame
+		local row = rowTemplate:Clone()
+		row.Name = `{name}Cost`
+		row.LayoutOrder = order
+		row.Size = UDim2.new(1, 0, 0, 22);
+		(row:FindFirstChild("Bar") :: GuiObject).Visible = false
+		local image = row:FindFirstChild("Icon") :: ImageLabel
+		image.Image = icon
+		image.ImageColor3 = Color3.new(1, 1, 1)
+		image.Size = UDim2.fromOffset(22, 22)
+		image.Position = UDim2.new(0, 5, 0.5, 0)
+		for _, text in { "NameLabel", "LevelLabel" } do
+			local labelText = row:FindFirstChild(text) :: TextLabel
+			labelText.Position = UDim2.new(labelText.Position.X, UDim.new(0, 3))
+		end
+		(row:FindFirstChild("NameLabel") :: TextLabel).Text = name;
+		(row:FindFirstChild("LevelLabel") :: TextLabel).Size = UDim2.fromOffset(130, 16)
+		row.Parent = daoList
+		return row
+	end
+	costRows = {
+		insight = costRow("Insight", INSIGHT_ICON, 2),
+		stones = costRow("Spirit Stones", STONE_ICON, 3),
+	}
 	local actions = detail:FindFirstChild("Actions") :: Frame
 	primary = actions:FindFirstChild("Primary") :: ImageButton
 	secondary = actions:FindFirstChild("Secondary") :: ImageButton
@@ -423,9 +605,15 @@ function Inventory.init(gui: ScreenGui)
 	end)
 	State.onChanged(function()
 		if window.Visible then
-			render()
+			render(true)
 		end
 	end)
+	Players.LocalPlayer:GetAttributeChangedSignal("Stones"):Connect(function()
+		if window.Visible and tab == "Arts" then
+			renderDetail(true)
+		end
+	end)
+	HotbarView.inspect = inspect
 	Players.LocalPlayer:GetAttributeChangedSignal("Weapon"):Connect(function()
 		if window.Visible then
 			render()

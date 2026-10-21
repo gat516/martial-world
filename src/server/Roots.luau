@@ -96,8 +96,9 @@ function Roots.raiseGrade(player: Player): (boolean, string?)
 end
 
 -- Reform the root as another element (Root Rebirth Pill). The new element waits
--- in `pending` until the player keeps it or returns to the old (Roots.choose);
--- the grade carries over either way, so a reroll can't make a root weaker.
+-- in `pending` until the player keeps it or returns to the old (Roots.choose).
+-- Each element keeps its own grade (one never held is at STARTING_GRADE), and
+-- returning to the old costs nothing, so a reroll can't leave a root weaker.
 function Roots.reroll(player: Player): (boolean, string?)
 	local data = PlayerData.get(player)
 	local why = if data then Roots.cantReroll(data) else "Still loading"
@@ -114,7 +115,8 @@ function Roots.reroll(player: Player): (boolean, string?)
 	data.root.pending = new
 	Cultivation.pushState(player)
 	local def = RootDefs.Elements[new]
-	Cultivation.notify(player, `Your root dissolves and reforms: a {def.name} root! {def.blurb} Keep it, or return to {data.root.element}.`)
+	local grade = RootDefs.gradeOf(data.root, new)
+	Cultivation.notify(player, `Your root dissolves and reforms: a {grade}-grade {def.name} root! {def.blurb} Keep it, or return to {data.root.grade}-grade {data.root.element}.`)
 	return true, nil
 end
 
@@ -125,7 +127,7 @@ function Roots.choose(player: Player, keepNew: any): (boolean, string?)
 		return false, "Your root isn't reforming."
 	end
 	if keepNew == true then
-		data.root.element = data.root.pending
+		RootDefs.switch(data.root, data.root.pending)
 	end
 	data.root.pending = ""
 	publish(player, data)

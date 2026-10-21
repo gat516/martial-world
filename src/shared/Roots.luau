@@ -8,9 +8,11 @@
 
 local Pacing = require(script.Parent.Pacing).Roots
 
--- element "" = not tested yet; pending = a rerolled element waiting for the
--- player to keep it or return to `element` ("" = none)
-export type Root = { element: string, grade: string, pending: string }
+-- element "" = not tested yet; grade = that element's; pending = a rerolled
+-- element waiting for the player to keep it or return to `element` ("" = none);
+-- grades = the grade each other element held reached while it was the root
+-- (one never held starts at STARTING_GRADE)
+export type Root = { element: string, grade: string, pending: string, grades: { [string]: string } }
 
 -- What an element's perk changes (amounts in Pacing.Roots.PERKS):
 --   technique  share added to technique damage
@@ -55,7 +57,29 @@ Roots.Order = { "Fire", "Water", "Wood", "Metal", "Earth", "Lightning", "Wind", 
 Roots.GradeOrder = { "Spirit", "Earth", "Heaven" }
 
 function Roots.new(): Root
-	return { element = "", grade = Pacing.STARTING_GRADE, pending = "" }
+	return { element = "", grade = Pacing.STARTING_GRADE, pending = "", grades = {} }
+end
+
+-- The grade `element` has (or would come back at) for this player.
+function Roots.gradeOf(root: Root, element: string): string
+	if element == root.element then
+		return root.grade
+	end
+	return root.grades[element] or Pacing.STARTING_GRADE
+end
+
+-- Make `element` the root ("" = untested), keeping the old element's grade for
+-- if it ever comes back and taking up the new one's own grade.
+function Roots.switch(root: Root, element: string)
+	if element == root.element then
+		return
+	end
+	if Roots.tested(root) then
+		root.grades[root.element] = root.grade
+	end
+	root.grade = Roots.gradeOf(root, element)
+	root.grades[element] = nil
+	root.element = element
 end
 
 function Roots.tested(root: Root): boolean

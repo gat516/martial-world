@@ -91,7 +91,7 @@ local function currentRoot(): Roots.Root?
 	local element = player:GetAttribute("Root")
 	if type(element) == "string" and Roots.Elements[element] then
 		local grade = player:GetAttribute("RootGrade")
-		return { element = element, grade = if type(grade) == "string" then grade else Pacing.Roots.STARTING_GRADE, pending = "" }
+		return { element = element, grade = if type(grade) == "string" then grade else Pacing.Roots.STARTING_GRADE, pending = "", grades = {} }
 	end
 	return nil
 end

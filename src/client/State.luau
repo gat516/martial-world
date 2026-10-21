@@ -21,7 +21,7 @@ export type Snapshot = {
 	weapons: { owned: { [string]: number }, equipped: string }?, -- equipped "" = Fist (Shared.Weapons)
 	dao: { [string]: { level: number, xp: number } }?, -- by weapon class; missing = level 0
 	caches: { [string]: boolean }?, -- world manual caches / weapon racks claimed, by Cache id
-	root: { element: string, grade: string, pending: string }?, -- spirit root (Shared.Roots); element "" = not tested, pending = a reformed element awaiting keep/return ("" = none)
+	root: { element: string, grade: string, pending: string, grades: { [string]: string } }?, -- spirit root (Shared.Roots); element "" = not tested, pending = a reformed element awaiting keep/return ("" = none), grades = other elements' own grades
 	methods: { owned: { [string]: boolean }, active: string }?, -- cultivation methods (Shared.Methods); active "" = Sect Breathing
 	daoPracticeReady: number?, -- os.time() when the next Practice Dao drill opens (server DaoPractice)
 }

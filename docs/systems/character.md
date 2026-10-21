@@ -115,13 +115,19 @@ Pill** (Epic; 8% from the Elder Wolf King, and a rare heavenly treasure)
 reforms the root as a different element (`Roots.reroll`, rolled with the usual
 odds). The new element waits in `data.root.pending` and the player chooses:
 keep it, or return to the old one (`Roots.choose`, `CultivationAction("root",
-keepNew)`). The grade carries over. So a reroll can never leave you worse off
+keepNew)`). **Each element keeps its own grade** (decided 2026-10-21): one
+you've never held starts at Spirit, and one you held before comes back at the
+grade it reached (`Roots.switch` saves the old element's grade in
+`root.grades`; `Roots.gradeOf`). Marrow Washing raises only the current element.
+The pending row shows the new element's own grade. So a reroll trades grade for
+element; returning costs nothing, so it can never leave you worse off
 (principle 5), and it isn't gacha: no Robux, and you can always say no.
 Both pills are absorbed seated in meditation (`Inventory.use`, item uses
 `rootGrade` / `rootReroll`), from the meditation menu's Spirit Root page.
 
-**Data:** `data.root = { element: string, grade: string, pending: string }` (schema v6; `pending` filled by default); `""`
-element = not yet tested. Tuning in `Pacing.Roots`. Pushed in `PlayerState`
+**Data:** `data.root = { element: string, grade: string, pending: string, grades: { [element]: grade } }` (schema v6; `pending` and `grades` filled by default); `""`
+element = not yet tested; `grade` is the current element's, `grades` the others'
+(saves from before 2026-10-21 have none recorded, so earlier elements read as Spirit). Tuning in `Pacing.Roots`. Pushed in `PlayerState`
 (`root`); published as player attributes `Root` and `RootGrade` for others'
 nameplates and effects. Admin panel: "Spirit root" (reroll, set, untest,
 raise grade). Analytics: event `RootTested` with the element.

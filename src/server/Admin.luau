@@ -201,7 +201,7 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		if id ~= nil and not (id == "" or (type(id) == "string" and RootDefs.Elements[id])) then
 			return false, "Unknown element"
 		end
-		data.root.element = if id == nil then RootDefs.roll(Random.new()) else id
+		RootDefs.switch(data.root, if id == nil then RootDefs.roll(Random.new()) else id)
 		Roots.publish(player, data)
 		Cultivation.applyStats(player, data)
 		Cultivation.pushState(player)

@@ -240,7 +240,7 @@ local function pendingRows(root: Roots.Root): number
 			send(cultivationRemote, false, "root", false)
 		end,
 	})
-	rootRow(2, root.pending, root.grade, "New · ", {
+	rootRow(2, root.pending, Roots.gradeOf(root, root.pending), "New · ", {
 		action = `Keep {new.name}`,
 		ready = true,
 		onAction = function()
@@ -309,7 +309,7 @@ local function render()
 	if page == "Root" then
 		local root = SelfCard.currentRoot()
 		if MeditationMenu.rootPending() then
-			note.Text = "Your root is reforming. Keep the new element, or return to the old. The grade stays."
+			note.Text = "Your root is reforming. Keep the new element, or return to the old. Each element keeps its own grade."
 		elseif root and count <= 1 then
 			note.Text = `{SelfCard.rootDetail(root)}\nRare pills can purify or reform your root.`
 		else

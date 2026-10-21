@@ -57,6 +57,8 @@ Split big map or content passes across several subagents when the parts don't sh
 
 ## Studio instances
 
+- Agents that build or preview in Studio without needing the map (vfx, world-fx templates, modeler enemy bodies and props, animator, enemy-designer, ui-designer) work in their own sandbox Studio: `tools/sandbox.sh open <name>` builds a fresh place from `test.project.json` and opens it, the agent passes its `studio_id` to the MCP, exports to `assets/` and runs `tools/sandbox.sh close <name>`. Each agent gets its own, so they never block each other or the user. The user's Studios are for playing and for map work (`Workspace.Map`, `AssetLibrary` live only in the place file). Rojo isn't connected in a sandbox, so the staging steps below aren't needed there.
+
 - Create persistent instances (RemoteEvents, GUIs, parts, folders, templates) with the Roblox Studio MCP in edit mode. Game scripts reference them; don't build them at runtime with `Instance.new` or "create if missing" fallbacks.
 - Runtime cloning of MCP-authored templates and short-lived effects is fine.
 - Rojo doesn't write Studio edits back to disk. To keep MCP-authored instances in git, export them to `.rbxmx` under `assets/` and map them in `default.project.json`.

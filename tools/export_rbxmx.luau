@@ -105,6 +105,10 @@ local function encode(inst, name, v): string?
 			table.insert(parts, `<{n}>{num(c[i])}</{n}>`)
 		end
 		return `<CoordinateFrame name="{tag}">{table.concat(parts)}</CoordinateFrame>`
+	elseif t == "EnumItem" and name == "LightInfluence" then
+		-- Newer Studio reports BillboardGui.LightInfluence as an enum; Rojo
+		-- 7.7 expects a float and refuses to build otherwise.
+		return `<float name="{tag}">{v.Value}</float>`
 	elseif t == "EnumItem" then
 		return `<token name="{tag}">{v.Value}</token>`
 	elseif t == "ColorSequence" then

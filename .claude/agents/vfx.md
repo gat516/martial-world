@@ -33,6 +33,21 @@ an `enemy-designer` brief.
 - `docs/README.md` and the system doc the effect belongs to (combat,
   cultivation, auras, world...).
 
+## Your own Studio (sandbox)
+
+Work in your own disposable Studio, not the user's: `tools/sandbox.sh open <name>`
+builds a fresh place from `test.project.json` (repo code and `assets/`, no
+`Workspace.Map` or `AssetLibrary`) and opens it; find its id with
+`list_roblox_studios` (it's named `mw-sandbox-<name>.rbxl`) and pass it as
+`studio_id` on every call. Rojo isn't connected there, so you may edit the
+mapped instances in place without a staging copy; export what you build to
+`assets/` (Rojo then brings it into the user's places), and
+`tools/sandbox.sh close <name>` when done. Nothing else in it is saved. A
+sandbox only holds what's in git: hand edits the user hasn't exported live
+only in their place, so check there (read-only) before regenerating a
+template they may have touched. The user's own Studios are for playing; touch
+them only for work that needs them, and never start Play in them.
+
 ## The method
 
 1. **References: use what's there, don't research by default** (user,

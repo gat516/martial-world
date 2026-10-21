@@ -22,7 +22,7 @@
     <string name="Name">Fireflies</string>
     <ColorSequence name="Color">0 0.667 1.000 0.784 0 1 1.000 0.941 0.627 0 </ColorSequence>
     <float name="LightEmission">1</float>
-    <token name="LightInfluence">0</token>
+    <float name="LightInfluence">0</float>
     <float name="Rate">0</float>
     <NumberRange name="Lifetime">4 7 </NumberRange>
     <NumberRange name="Speed">0.3 1.2 </NumberRange>

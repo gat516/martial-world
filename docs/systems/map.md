@@ -378,13 +378,21 @@ bridges, `strict_seat.luau` skips them):
     three stacked arcs around the main peak (Y 436, 458, 482).
   - `FallFoam`: one big puff at each waterfall end within 30 studs of the
     plane (now only WestFall's CloudFall).
+  - `Mounds`: 40 low clouds (16 deck clumps, 24 puffs) squashed so they bulge
+    15-50 studs over the plane, base sunk 6 under it. Ten loose clusters
+    (`MOUND_CLUSTERS`, big + medium + small): four of 5 framing the peaks
+    (r 430-480), two of 4 on the plaza sightlines (r 760-820), and four of 3
+    thinning toward the haze (r 900-1300). There is open flat plane between
+    clusters. They stay off the main peak (r < 202), the pillars (66 + 25),
+    waterfall ends near the plane (90) and the plaza's southern view
+    (100 deg, r 650, radius 150).
   - `Banks`: mid-height clusters at 0/90/225 deg (r 430-620, Y 450-760) and a
     lone tower at 315 deg r 950. All of them are outside the bridges (r < 300)
     and the plateaus.
   - `Auspicious` (12 swirl clouds) are kept from the old pass. Of the 20
     `Emitters` (CloudLineFog, rate 1.2 each), 6 are kept and lifted onto the
     plane (`EMITTER_KEEP` in the script).
-- Budget: ~50 parts, ~30k tris of cloud meshes plus the 12 swirls, 6 emitters.
+- Budget: ~90 parts, ~71k tris of cloud meshes plus the 12 swirls, 6 emitters.
   Every cloud part is anchored, with CanCollide, CanQuery, CanTouch and
   CastShadow off, Massless, CollisionFidelity Box, RenderFidelity Automatic,
   DoubleSided off. The plane doesn't block raycasts, and players fall straight

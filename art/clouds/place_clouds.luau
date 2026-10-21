@@ -16,6 +16,7 @@ Stages (set _G.CLOUD_STAGES to run one on its own):
             Wisps      one arc hugging each spirit pillar and three stacked arcs round the main peak
             FallFoam   one puff where each waterfall ending near the plane drops into it
             Banks      three cumulus clusters and one lone tower drifting at mid height between the peaks
+            Mounds     ~40 squashed clumps and puffs in loose clusters, bulging 15-50 studs over the plane
           Auspicious (the swirl clouds) is kept as it is; Emitters is trimmed to EMITTER_KEEP and lifted
           onto the plane. Every remaining cloud part gets the no-collision/query/touch/shadow treatment.
 Everything is one ChangeHistory recording per run, so Ctrl+Z undoes it.
@@ -306,6 +307,83 @@ local function banks()
 	return g
 end
 
+-- low mounds on the plane so it has relief: loose clusters (big + medium + small) framing the peaks and on
+-- the plaza's sightlines, open flat plane between them, fewer and wider toward the haze. Each is a deck
+-- clump or puff squashed so it bulges 15-50 studs over the plane, its base sunk MOUND_SINK under it.
+local MOUND_SINK = 6
+local MOUND_CLUSTERS = { -- (angle deg, radius, deck clumps, puffs, spread)
+	{ 0, 430, 2, 3, 110 },
+	{ 135, 440, 2, 3, 110 },
+	{ 240, 430, 2, 3, 110 },
+	{ 300, 480, 2, 3, 110 },
+	{ 55, 760, 2, 2, 140 },
+	{ 140, 820, 2, 2, 140 },
+	{ 330, 900, 1, 2, 160 },
+	{ 175, 1120, 1, 2, 180 },
+	{ 20, 1300, 1, 2, 200 },
+	{ 260, 1260, 1, 2, 200 },
+}
+local SOUTH_VIEW = { 100, 650, 150 } -- (deg, r, radius) kept flat: the plaza's southern view
+
+local function moundSpot(p: Vector2, pillars, feet)
+	if (p - MAIN).Magnitude < MAIN_R + 30 or (p - polar(SOUTH_VIEW[1], SOUTH_VIEW[2])).Magnitude < SOUTH_VIEW[3] then
+		return false
+	end
+	for _, c in pillars do
+		if (p - c).Magnitude < PILLAR_R + 25 then
+			return false
+		end
+	end
+	for _, f in feet do
+		if (p - Vector2.new(f.X, f.Z)).Magnitude < 90 then
+			return false
+		end
+	end
+	return true
+end
+
+local function mound(g: Instance, name: string, p: Vector2, widthScale: number, bulge: number, color: Color3)
+	local s = robloxSize(name)
+	local part = templates[name]:Clone()
+	part.Size = Vector3.new(s.X * widthScale, bulge + MOUND_SINK, s.Z * widthScale)
+	part.CFrame = CFrame.new(p.X, PLANE_TOP - MOUND_SINK + part.Size.Y / 2, p.Y) * CFrame.Angles(0, rand(0, 2 * math.pi), 0)
+	tint(part, color)
+	part.Parent = g
+end
+
+local function mounds(feet)
+	local g = newGroup("Mounds")
+	local pillars = peaks()
+	for _, cl in MOUND_CLUSTERS do
+		local centre = polar(cl[1], cl[2])
+		local far = math.clamp((cl[2] - 400) / 900, 0, 1) -- 0 by the peaks .. 1 toward the haze
+		local list = {}
+		for i = 1, cl[3] do
+			table.insert(list, pick({ "Cloud_DeckA", "Cloud_DeckB", "Cloud_DeckC" }))
+		end
+		for _ = 1, cl[4] do
+			table.insert(list, "Cloud_Puff")
+		end
+		for i, name in list do
+			local spot
+			for _ = 1, 10 do
+				local q = i == 1 and centre + polar(rand(0, 360), rand(0, 30)) or centre + polar(rand(0, 360), cl[5] * rand(0.4, 1))
+				if moundSpot(q, pillars, feet) then
+					spot = q
+					break
+				end
+			end
+			if spot then
+				local deck = name ~= "Cloud_Puff"
+				local width = deck and (i == 1 and rand(1.1, 1.35) or rand(0.8, 1.05)) + far * 0.5 or rand(1.5, 2.4) + far * 0.8
+				local bulge = deck and (i == 1 and rand(38, 50) or rand(26, 36)) or rand(15, 26)
+				mound(g, name, spot, width, bulge, rng:NextNumber() < 0.5 and WARM or COOL)
+			end
+		end
+	end
+	return g
+end
+
 -- the foot of every waterfall (the "waterfall end" parts) that ends near the plane, so foam can hide it
 local function waterfallFeet()
 	local feet = {}
@@ -364,7 +442,9 @@ local function layout()
 	local counts = {}
 	for _, build in { plane, wisps, function()
 		return fallFoam(waterfallFeet())
-	end, banks } do
+	end, banks, function()
+		return mounds(waterfallFeet())
+	end } do
 		local g = build()
 		g.Parent = clouds
 		counts[g.Name] = #g:GetChildren()

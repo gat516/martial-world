@@ -40,5 +40,9 @@
    <string name="Name">Sprint</string>
   </Properties>
   </Item>
+  <Item class="RemoteFunction" referent="RBXW1"><Properties>
+   <string name="Name">WeaponAction</string>
+  </Properties>
+  </Item>
  </Item>
 </roblox>

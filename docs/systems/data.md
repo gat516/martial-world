@@ -14,7 +14,8 @@ game (funnels, progression, custom events), and give admins test tools.
 
 ## Key files
 - `src/server/PlayerData.luau`: the `Data` type, `default()`, `migrations`
-  (schema v4), load with session lock, autosave, release on leave.
+  (schema v5: v4 -> v5 adds `weapons` (everyone owns and equips the Iron Jian),
+  `dao` (Fist and Sword at the neutral level) and `caches`), load with session lock, autosave, release on leave.
 - `src/server/Settings.luau` + `src/client/Settings.luau` (`SaveSettings` remote).
 - `src/server/Analytics.luau`: onboarding funnel, realm progression events,
   custom events. See [cultivation](cultivation.md) for reading dropoff.

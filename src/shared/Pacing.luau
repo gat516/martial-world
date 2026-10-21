@@ -30,6 +30,8 @@
 --   * Want the whole game faster, slower, easier or harder? Change Pacing.Global.
 --   * Redesigning the rhythm? Edit Pacing.Curve.
 
+-- WEAPON DAO (Pacing.Weapons, at the end): per-class comprehension levels and XP.
+
 -- THE RHYTHM (Qi Condensation 1-9, then Foundation Establishment)
 --   QC1-3  HOOK      fast, one or two runs each; the onboarding ends at QC3
 --   QC4    BREATHER  a cheap stage right after the tutorial, to reward staying
@@ -231,6 +233,26 @@ Pacing.Rewards = {
 		{ kills = 30, insight = 1, manual = "IronSkin" },
 		{ kills = 100, insight = 1, manual = "FireSeal" },
 	} :: { { kills: number, insight: number?, manual: string? } },
+}
+
+-- WEAPON DAO COMPREHENSION (Weapons.luau, server Weapons). Each weapon class
+-- (Fist, Sword, Saber, ...) has its own level 0..MAX_LEVEL that multiplies M1
+-- and that class's technique damage (on top of the weapon's grade and the
+-- realm's power). NEUTRAL_LEVEL is today's strength (x1.0): a new player's
+-- Fist and Sword start there, so starting power is unchanged; an untrained
+-- class is ~20% weaker and mastery ~30% stronger.
+Pacing.Weapons = {
+	MAX_LEVEL = 10,
+	NEUTRAL_LEVEL = 2,
+	STARTING = { Fist = 2, Sword = 2 } :: { [string]: number }, -- new profiles (and the v5 migration)
+	-- damage multiplier by level, index 1 = level 0
+	MULTIPLIER = { 0.8, 0.9, 1.0, 1.04, 1.08, 1.12, 1.16, 1.2, 1.24, 1.27, 1.3 },
+	-- XP to go from `level` to the next: XP_BASE + level * XP_PER_LEVEL
+	XP_BASE = 30,
+	XP_PER_LEVEL = 30,
+	XP_HIT = 1, -- an M1 swing that lands (once per swing, not per target)
+	XP_CAST = 3, -- casting one of the class's techniques
+	XP_MANUAL = 25, -- learning one of the class's manuals
 }
 
 return Pacing

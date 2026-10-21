@@ -31,7 +31,7 @@ Knockback.STUN_MAX = 0.8
 Knockback.RESTAGGER = 0.5 -- seconds after a stagger ends before it can stagger again
 
 -- Base push in studs at an even realm match against a weight-1 beast.
-Knockback.FIST_STEPS = { 2, 2, 3, 4, 8 } -- by Config.Combat.FIST_STEPS step
+-- M1 pushes are per chain step: `push` in Config.Combat.CLASSES (Fist 2, 2, 3, 4, 8).
 Knockback.TECHNIQUES = { -- by technique id; missing = no push
 	SwordQiWave = 6,
 	PalmStrike = 10,

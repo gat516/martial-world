@@ -15,6 +15,8 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 local Movement = require(script.Parent.Movement)
+local Weapons = require(script.Parent.Weapons)
+local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 
@@ -176,14 +178,16 @@ local function damageSwing(player: Player, action: Rules.Action, claimed: { any 
 		return
 	end
 
+	local class = Config.CLASSES[action.class] or Config.CLASSES.Fist
+	local maxTargets = class.maxTargets
 	-- claimed enemies, deduplicated and capped
 	local targets: { Model } = {}
 	local seen: { [Instance]: boolean } = {}
 	for index, model in ipairs(claimed) do
-		if index > Config.MAX_TARGETS * 4 then
+		if index > maxTargets * 4 then
 			break
 		end
-		if #targets >= Config.MAX_TARGETS then
+		if #targets >= maxTargets then
 			break
 		end
 		if typeof(model) == "Instance" and Hitbox.alive(model) and not seen[model] then
@@ -195,15 +199,24 @@ local function damageSwing(player: Player, action: Rules.Action, claimed: { any 
 		return
 	end
 
-	local cframe, size = Hitbox.box(root, Config.HITBOX_SLACK)
+	local cframe, size = Hitbox.box(root, Config.HITBOX_SLACK, action.class)
 	local params = OverlapParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = targets :: { any }
-	local damage = Config.FIST_STEPS[action.step].damage * Combat.power(player)
-	local studs = Knockback.FIST_STEPS[action.step] or 0
+	local step = class.steps[action.step]
+	if not step then
+		return
+	end
+	local damage = step.damage * Combat.power(player) * Weapons.multiplier(player, action.class)
+	local studs = step.push or 0
 	local facing = root.CFrame.LookVector * Vector3.new(1, 0, 1)
+	local landed = false
 	for _, model in Hitbox.enemiesIn(cframe, size, params, root.Position) do
+		landed = true
 		Combat.damageEnemy(player, model, damage, pushFrom(root.Position, model, studs, facing.Unit))
+	end
+	if landed then
+		Weapons.addXp(player, action.class, WeaponPacing.XP_HIT)
 	end
 end
 
@@ -442,7 +455,7 @@ function Combat.action(player: Player, message: any)
 		reply(player, s, sequence, false)
 		return
 	end
-	local nextAction = Rules.start(s.actions, kind, id, t, sequence)
+	local nextAction = Rules.start(s.actions, kind, id, t, sequence, Weapons.class(player))
 	if not nextAction then
 		reply(player, s, sequence, false)
 		return

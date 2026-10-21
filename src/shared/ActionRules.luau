@@ -4,9 +4,12 @@
 
 local Config = require(script.Parent.Config).Combat
 local Techniques = require(script.Parent.Techniques)
+local Weapons = require(script.Parent.Weapons)
 
 export type Profile = {
-	animation: number,
+	animation: number, -- the chain step (basics) or the Fists animation a cast plays
+	clip: string, -- the Animations path the client plays: "Fists/3", "Weapons/Sword/2"
+	chain: number, -- steps in this basic's chain (0 for casts and dodges)
 	speed: number,
 	windup: number,
 	active: number,
@@ -19,6 +22,7 @@ export type Action = {
 	sequence: number,
 	kind: string,
 	id: string?,
+	class: string, -- the weapon class it started with (Weapons.Classes)
 	step: number,
 	started: number,
 	profile: Profile,
@@ -92,7 +96,7 @@ function Rules.cancel(s: State, now: number, preserveCombo: boolean?)
 		elseif action.kind == "basic" then
 			-- A punch cancelled before Hit hasn't spent its place in the string.
 			if preserveCombo then s.comboIndex = action.step - 1 end
-			if action.step == #Config.FIST_STEPS then
+			if action.step == action.profile.chain then
 				-- A feinted finisher never completed the string.
 				s.comboReady = 0
 			end
@@ -112,14 +116,16 @@ function Rules.castProfile(def: Techniques.Def): Profile
 	local source = Config.FIST_STEPS[def.animation]
 	local speed = source.hit / def.cast.windup
 	return {
-		animation = def.animation, speed = speed, windup = def.cast.windup,
+		animation = def.animation, clip = `Fists/{def.animation}`, chain = 0, speed = speed, windup = def.cast.windup,
 		active = (source.hitStop - source.hit) / speed, recovery = def.cast.recovery,
 		moveMultiplier = def.cast.moveMultiplier, recoveryMoveMultiplier = def.cast.recoveryMoveMultiplier,
 		dodgeBeforeHit = def.cast.dodgeBeforeHit,
 	}
 end
 
-function Rules.start(s: State, kind: string, id: string?, now: number, sequence: number): Action?
+-- `class` is the caster's equipped weapon class (nil = Fist); basics play its chain.
+function Rules.start(s: State, kind: string, id: string?, now: number, sequence: number, class: string?): Action?
+	local weaponClass = if class and Weapons.Classes[class] then class else Weapons.FIST
 	if not Rules.canTransition(s.action, kind, now) then
 		return nil
 	end
@@ -129,10 +135,11 @@ function Rules.start(s: State, kind: string, id: string?, now: number, sequence:
 		if now < s.comboReady then
 			return nil
 		end
-		step = if now > s.comboExpires then 1 else s.comboIndex % #Config.FIST_STEPS + 1
-		local def = Config.FIST_STEPS[step]
+		local steps = Weapons.Classes[weaponClass].steps
+		step = if now > s.comboExpires then 1 else s.comboIndex % #steps + 1
+		local def = steps[step]
 		profile = {
-			animation = step, speed = def.speed,
+			animation = step, clip = Weapons.clip(weaponClass, step), chain = #steps, speed = def.speed,
 			windup = def.hit / def.speed, active = (def.hitStop - def.hit) / def.speed,
 			recovery = def.recovery, moveMultiplier = Config.ATTACK_MOVE_MULTIPLIER,
 			recoveryMoveMultiplier = Config.ATTACK_RECOVERY_MULTIPLIER, dodgeBeforeHit = true,
@@ -148,7 +155,7 @@ function Rules.start(s: State, kind: string, id: string?, now: number, sequence:
 			return nil
 		end
 		profile = {
-			animation = 0, speed = 1, windup = 0, active = Config.DODGE_SECONDS,
+			animation = 0, clip = "", chain = 0, speed = 1, windup = 0, active = Config.DODGE_SECONDS,
 			recovery = Config.DODGE_RECOVERY, moveMultiplier = 0,
 			recoveryMoveMultiplier = 1, dodgeBeforeHit = false,
 		}
@@ -162,12 +169,12 @@ function Rules.start(s: State, kind: string, id: string?, now: number, sequence:
 	if Rules.phase(s.action, now) ~= "free" then
 		Rules.cancel(s, now, true)
 	end
-	local action: Action = { sequence = sequence, kind = kind, id = id, step = step, started = now, profile = profile }
+	local action: Action = { sequence = sequence, kind = kind, id = id, class = weaponClass, step = step, started = now, profile = profile }
 	s.action = action
 	if kind == "basic" then
 		s.comboIndex = step
 		s.comboExpires = Rules.endAt(action) + Config.CHAIN_RESET
-		if step == #Config.FIST_STEPS then
+		if step == profile.chain then
 			s.comboReady = Rules.stopAt(action) + Config.CHAIN_COOLDOWN
 		end
 	else

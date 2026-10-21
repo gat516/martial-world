@@ -34,6 +34,7 @@ local Admin = require(script.Parent.Admin)
 local WorldEvents = require(script.Parent.WorldEvents)
 local Treasures = require(script.Parent.Treasures)
 local Settings = require(script.Parent.Settings)
+local Weapons = require(script.Parent.Weapons)
 
 local joinedAt: { [Player]: number } = {}
 local lastBreakthroughAt: { [Player]: number } = {}
@@ -135,6 +136,7 @@ local function onPlayerAdded(player: Player)
 	else
 		warn(`No free peak for {player.Name}; all peaks are taken`)
 	end
+	Weapons.watch(player)
 	Cultivation.pushState(player)
 end
 
@@ -183,6 +185,7 @@ end
 (remotes.Sprint :: RemoteEvent).OnServerEvent:Connect(Cultivation.setRunning);
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);
 (remotes.SaveSettings :: RemoteEvent).OnServerEvent:Connect(Settings.save);
+(remotes.WeaponAction :: RemoteFunction).OnServerInvoke = guarded(Weapons.handle);
 
 QiNodes.start()
 table.insert(EnemyService.onKill, Progression.onKill)

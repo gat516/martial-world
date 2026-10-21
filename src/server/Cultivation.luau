@@ -139,6 +139,8 @@ function Cultivation.pushState(player: Player)
 		buffs = data.buffs,
 		decor = data.decor,
 		settings = data.settings,
+		weapons = data.weapons,
+		dao = data.dao,
 	})
 	for _, fn in Cultivation.onPush do
 		task.spawn(fn, player, data)

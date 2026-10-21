@@ -15,13 +15,17 @@ local Income = require(ReplicatedStorage.Shared.Pacing).Income
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Weapons = require(ReplicatedStorage.Shared.Weapons)
+local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
 
-local SCHEMA_VERSION = 4
+local SCHEMA_VERSION = 5
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number, m: string? }
 export type ActiveBuff = { source: string, kind: string, amount: number, expires: number }
 export type Technique = { level: number, xp: number }
+-- weapon Dao comprehension of one class (Weapons.Classes), level 0..Pacing.Weapons.MAX_LEVEL
+export type Dao = { level: number, xp: number }
 -- Player preferences (the Settings window): volumes 0..1, and toggles
 export type Settings = { music: number, sfx: number, autoAttack: boolean, lockHint: boolean }
 -- hotbar always has Hotbar.SIZE entries: a technique id, an item id, or "" (empty)
@@ -49,6 +53,9 @@ export type Data = {
 	decor: { [string]: number }, -- stored build items, by catalog id
 	receipts: { [string]: number }, -- Robux purchases already granted: PurchaseId -> os.time()
 	settings: Settings,
+	weapons: { owned: { [string]: number }, equipped: string }, -- owned counts by weapon id; "" = Fist
+	dao: { [string]: Dao }, -- by class id; a missing class is level 0
+	caches: { [string]: boolean }, -- world ManualCache / WeaponRack anchors claimed, by Cache id
 	peak: {
 		removed: { [string]: boolean },
 		placed: { Placed },
@@ -59,6 +66,14 @@ export type Data = {
 -- What's actually stored under a player's key: the profile plus who holds it.
 type Session = { job: string, t: number }
 type Record = { data: any, session: Session? }
+
+local function startingDao(): { [string]: Dao }
+	local dao = {}
+	for class, level in WeaponPacing.STARTING do
+		dao[class] = { level = level, xp = 0 }
+	end
+	return dao
+end
 
 local function default(): Data
 	return {
@@ -85,6 +100,9 @@ local function default(): Data
 		decor = {},
 		receipts = {},
 		settings = { music = 1, sfx = 1, autoAttack = true, lockHint = true },
+		weapons = { owned = { [Weapons.STARTING] = 1 }, equipped = Weapons.STARTING },
+		dao = startingDao(),
+		caches = {},
 		peak = { removed = {}, placed = {}, plots = {} },
 	}
 end
@@ -130,11 +148,18 @@ local migrations: { [number]: (any) -> () } = {
 			end
 		end
 	end,
+	-- v4 had no weapons: everyone gets the starting jian, equipped, and their
+	-- Fist and Sword Dao at the neutral level (so their power is unchanged)
+	[4] = function(d)
+		d.weapons = { owned = { [Weapons.STARTING] = 1 }, equipped = Weapons.STARTING }
+		d.dao = startingDao()
+		d.caches = {}
+	end,
 }
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

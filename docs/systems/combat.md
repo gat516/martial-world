@@ -1,7 +1,8 @@
 # Combat and action states
 
 ## Purpose
-Action combat against beasts: a five-hit fist chain, a flying-sword dash with
+Action combat against beasts: an M1 chain per weapon class (a five-hit fist
+chain bare-handed; see [weapons](weapons.md)), a flying-sword dash with
 i-frames and perfect dodges, and up to a few equipped techniques. Realm power
 scales all player damage.
 
@@ -20,7 +21,9 @@ scales all player damage.
 ## Key files
 - `src/shared/ActionRules.luau`: the one action timeline (attack, cast, dodge),
   combo state, buffers and cooldowns, shared by client and server.
-- `src/shared/Hitbox.luau`: the shared fist hitbox.
+- `src/shared/Hitbox.luau`: the shared M1 hitbox, per weapon class.
+- `src/shared/Weapons.luau`, `src/server/Weapons.luau`: weapon classes, the
+  equipped weapon, grade and Dao multipliers ([weapons](weapons.md)).
 - `src/shared/Techniques.luau`: technique defs (line, circle, chain, zone, buff),
   levels (`MAX_LEVEL` 10, +8% damage a level, XP per cast).
 - `src/shared/Knockback.luau`: how far player hits push beasts (by realm power
@@ -186,12 +189,14 @@ checks a rebuild against the previous templates.
 Client presses -> `ActionRules` decides if legal -> plays locally and sends
 `Attack { begin }`; hit reports follow as `Attack { hit, targets }` -> server
 replays the timeline, checks timing (`MAX_LAG`, `CLOCK_SLACK`) and the slackened
-hitbox, applies `damage * Combat.power(player)` and knockback, and acknowledges
+hitbox, applies `damage * Combat.power(player)` (times `Weapons.multiplier` for M1)
+and knockback, and acknowledges
 via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
 `"perfect" | "dodged" | "hit"` and fires `Effect "hurt"`/`"perfect"`.
 
 ## Tuning knobs
-- `Config.Combat`: `FIST_STEPS`, chain/reset timings, buffers, dodge
+- `Config.Combat`: `CLASSES` (each weapon class's chain with per-step `push`,
+  hitbox and max targets; `FIST_STEPS` is the Fist chain), chain/reset timings, buffers, dodge
   (`DODGE_*`, `IFRAME_*`, `PERFECT_*`), hitbox and server slack, lock-on and
   auto ranges, `IN_COMBAT_SECONDS`.
 - `Techniques.luau`: per-technique damage, cooldown, shape, cast timing.

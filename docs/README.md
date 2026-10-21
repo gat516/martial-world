@@ -40,6 +40,7 @@ ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
 | Knockback / stagger | `src/shared/Knockback.luau` |
 | Techniques (and their visual tiers, `VISUAL_TIERS`) | `src/shared/Techniques.luau` |
+| Weapons, classes, grades; M1 chains per class | `src/shared/Weapons.luau`, `Config.Combat.CLASSES`; Dao comprehension in `Pacing.Weapons` |
 | Herbs and plants | `src/shared/Herbs.luau` |
 | Consumables (cores, treasures) | `src/shared/Items.luau` |
 | Build items | `src/shared/BuildItems.luau` |
@@ -54,6 +55,7 @@ ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
 | Combat and action states | [combat](systems/combat.md) | Combat, Movement | ActionRules, Hitbox, Techniques, Knockback, Config.Combat | CombatController, ActionState, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |
+| Weapons and weapon Dao | [weapons](systems/weapons.md) | Weapons, Combat | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController |
 | Enemies, spawning, regions | [enemies](systems/enemies.md) | EnemyService, Spawner | Enemies, Spawns, Regions, Knockback | EnemyAnimator, EnemyBars, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
@@ -87,6 +89,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | TravelAction | Function | C->S | `Travel.go` (gate id; only while standing on an array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only) | AdminPanel |
+| WeaponAction | Function | C->S | `Weapons.handle` ("equip", weaponId / "unequip") | Inventory (Weapons tab) |
 | Dodge, Cast | Event | - | unused (combat moved onto Attack) | - |
 
 `Effect "cast"` is relayed by `Combat.releaseTechnique` to every client except the
@@ -95,7 +98,7 @@ technique level at cast time (picks the visual tier), `chain` the chain targets 
 
 Besides remotes, the server publishes fast-changing values as attributes:
 player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`,
-`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`; humanoid `BaseWalkSpeed`,
+`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`; character `WeaponClass`; humanoid `BaseWalkSpeed`,
 `Running`, `ActionBusy`; enemy `AIState`, `Realm`; workspace `Weather`,
 `WeatherEnds`, `WorldEvents`; plot `Plants` (JSON).
 

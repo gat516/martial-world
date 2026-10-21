@@ -102,5 +102,203 @@
    </Properties>
    </Item>
   </Item>
+  <Item class="Folder" referent="RBXAW1"><Properties>
+   <string name="Name">Weapons</string>
+  </Properties>
+   <Item class="Folder" referent="RBXAW2"><Properties>
+    <string name="Name">Sword</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAW3"><Properties>
+     <string name="Name">1</string>
+     <Content name="AnimationId"><url>rbxassetid://109593952136769</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW4"><Properties>
+     <string name="Name">2</string>
+     <Content name="AnimationId"><url>rbxassetid://91691158937351</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW5"><Properties>
+     <string name="Name">3</string>
+     <Content name="AnimationId"><url>rbxassetid://93688206954837</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW6"><Properties>
+     <string name="Name">4</string>
+     <Content name="AnimationId"><url>rbxassetid://93754523467494</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW7"><Properties>
+     <string name="Name">Idle</string>
+     <Content name="AnimationId"><url>rbxassetid://129377032734888</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAW8"><Properties>
+    <string name="Name">Saber</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAW9"><Properties>
+     <string name="Name">1</string>
+     <Content name="AnimationId"><url>rbxassetid://97718952251165</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW10"><Properties>
+     <string name="Name">2</string>
+     <Content name="AnimationId"><url>rbxassetid://110531795352433</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW11"><Properties>
+     <string name="Name">3</string>
+     <Content name="AnimationId"><url>rbxassetid://111046242154268</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW12"><Properties>
+     <string name="Name">4</string>
+     <Content name="AnimationId"><url>rbxassetid://135553571757647</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW13"><Properties>
+     <string name="Name">5</string>
+     <Content name="AnimationId"><url>rbxassetid://107080464456278</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW14"><Properties>
+     <string name="Name">Idle</string>
+     <Content name="AnimationId"><url>rbxassetid://114953684774003</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAW15"><Properties>
+    <string name="Name">Greatsword</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAW16"><Properties>
+     <string name="Name">1</string>
+     <Content name="AnimationId"><url>rbxassetid://91739494855005</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW17"><Properties>
+     <string name="Name">2</string>
+     <Content name="AnimationId"><url>rbxassetid://78469007042753</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW18"><Properties>
+     <string name="Name">3</string>
+     <Content name="AnimationId"><url>rbxassetid://133428387483948</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW19"><Properties>
+     <string name="Name">Idle</string>
+     <Content name="AnimationId"><url>rbxassetid://101485530991855</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW20"><Properties>
+     <string name="Name">Walk</string>
+     <Content name="AnimationId"><url>rbxassetid://136675772338942</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAW21"><Properties>
+    <string name="Name">Guandao</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAW22"><Properties>
+     <string name="Name">1</string>
+     <Content name="AnimationId"><url>rbxassetid://91635512845066</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW23"><Properties>
+     <string name="Name">2</string>
+     <Content name="AnimationId"><url>rbxassetid://132871794503164</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW24"><Properties>
+     <string name="Name">3</string>
+     <Content name="AnimationId"><url>rbxassetid://93775997549385</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW25"><Properties>
+     <string name="Name">4</string>
+     <Content name="AnimationId"><url>rbxassetid://102499769042417</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW26"><Properties>
+     <string name="Name">Idle</string>
+     <Content name="AnimationId"><url>rbxassetid://129377032734888</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW27"><Properties>
+     <string name="Name">Walk</string>
+     <Content name="AnimationId"><url>rbxassetid://86315186378632</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAW28"><Properties>
+    <string name="Name">Spear</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAW29"><Properties>
+     <string name="Name">1</string>
+     <Content name="AnimationId"><url>rbxassetid://102691024269480</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW30"><Properties>
+     <string name="Name">2</string>
+     <Content name="AnimationId"><url>rbxassetid://127621049837594</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW31"><Properties>
+     <string name="Name">3</string>
+     <Content name="AnimationId"><url>rbxassetid://82944342384670</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW32"><Properties>
+     <string name="Name">4</string>
+     <Content name="AnimationId"><url>rbxassetid://87886049969652</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW33"><Properties>
+     <string name="Name">Idle</string>
+     <Content name="AnimationId"><url>rbxassetid://129377032734888</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW34"><Properties>
+     <string name="Name">Walk</string>
+     <Content name="AnimationId"><url>rbxassetid://86315186378632</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAW35"><Properties>
+    <string name="Name">Staff</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAW36"><Properties>
+     <string name="Name">1</string>
+     <Content name="AnimationId"><url>rbxassetid://120349073467629</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW37"><Properties>
+     <string name="Name">2</string>
+     <Content name="AnimationId"><url>rbxassetid://112372702825023</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW38"><Properties>
+     <string name="Name">3</string>
+     <Content name="AnimationId"><url>rbxassetid://89211032200808</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW39"><Properties>
+     <string name="Name">4</string>
+     <Content name="AnimationId"><url>rbxassetid://90020994869606</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW40"><Properties>
+     <string name="Name">Idle</string>
+     <Content name="AnimationId"><url>rbxassetid://114953684774003</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAW41"><Properties>
+     <string name="Name">Walk</string>
+     <Content name="AnimationId"><url>rbxassetid://86315186378632</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+  </Item>
  </Item>
 </roblox>

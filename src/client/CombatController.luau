@@ -16,6 +16,7 @@ local Rules = require(ReplicatedStorage.Shared.ActionRules)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
+local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local ActionState = require(script.Parent.ActionState)
 local Controls = require(script.Parent.Controls)
 local Menus = require(script.Parent.Menus)
@@ -34,7 +35,6 @@ local remotes = ReplicatedStorage.Remotes
 local attackRemote = remotes.Attack :: RemoteEvent
 local effectRemote = remotes.Effect :: RemoteEvent
 local animations = ReplicatedStorage:WaitForChild("Animations") :: Folder
-local fistAnimations = animations:WaitForChild("Fists") :: Folder
 local dashAnimations = animations:WaitForChild("Dash") :: Folder
 local perfectAnimations = animations:WaitForChild("PerfectDodge") :: Folder
 local player = Players.LocalPlayer
@@ -46,7 +46,7 @@ local HURT_COLOR = Color3.fromRGB(255, 90, 80)
 
 local CombatController = {}
 
-local tracks: { AnimationTrack } = {}
+local tracks: { [string]: AnimationTrack } = {} -- by Animations path: "Fists/3", "Weapons/Sword/2"
 local dashTracks: { [string]: AnimationTrack } = {} -- "Forward" / "Back" / "Left" / "Right"
 local perfectTracks: { [string]: AnimationTrack } = {}
 local perfectPlaying: AnimationTrack?
@@ -168,18 +168,28 @@ local function loadTracks(character: Model)
 	dodgeVisual = nil
 	local humanoid = character:WaitForChild("Humanoid") :: Humanoid
 	local animator = humanoid:WaitForChild("Animator") :: Animator
-	local nextTracks: { AnimationTrack } = {}
+	local nextTracks: { [string]: AnimationTrack } = {}
 	local nextDashes: { [string]: AnimationTrack } = {}
 	local nextPerfects: { [string]: AnimationTrack } = {}
-	for i = 1, #Config.FIST_STEPS do
-		local animation = fistAnimations:FindFirstChild(tostring(i)) :: Animation?
-		if animation then
-			local track = animator:LoadAnimation(animation)
-			track.Priority = Enum.AnimationPriority.Action
-			track.Looped = false
-			nextTracks[i] = track
+	-- every chain step and technique clip, keyed by its path under Animations.
+	-- Several source clips are flagged Loop or Action2; actions are Action, once.
+	-- Idle/Walk clips belong to WeaponAnimator.
+	local function loadFolder(folder: Instance?, prefix: string)
+		if not folder then return end
+		for _, child in folder:GetChildren() do
+			if child:IsA("Animation") and child.AnimationId ~= "" and child.Name ~= "Idle" and child.Name ~= "Walk" then
+				local track = animator:LoadAnimation(child)
+				track.Priority = Enum.AnimationPriority.Action
+				track.Looped = false
+				nextTracks[prefix .. child.Name] = track
+			elseif child:IsA("Folder") then
+				loadFolder(child, `{prefix}{child.Name}/`)
+			end
 		end
 	end
+	loadFolder(animations:FindFirstChild("Fists"), "Fists/")
+	loadFolder(animations:FindFirstChild("Weapons"), "Weapons/")
+	loadFolder(animations:FindFirstChild("Techniques"), "Techniques/")
 	for _, animation in dashAnimations:GetChildren() do
 		if animation:IsA("Animation") and animation.AnimationId ~= "" then
 			local track = animator:LoadAnimation(animation)
@@ -413,10 +423,11 @@ end
 local function sweep(current: Runtime, now: number)
 	if runtime ~= current or current.suppressed or current.reported then return end
 	local root = current.root
-	local cframe, size = Hitbox.box(root)
+	local class = Weapons.Classes[current.action.class] or Weapons.Classes.Fist
+	local cframe, size = Hitbox.box(root, nil, class.id)
 	local hits: { Model } = {}
 	for _, model in Hitbox.enemiesIn(cframe, size, excludeMe(), root.Position) do
-		if #hits >= Config.MAX_TARGETS then break end
+		if #hits >= class.maxTargets then break end
 		table.insert(hits, model)
 		CombatEffects.flash(model)
 		playActionSound(current, "Hit", 0.05)
@@ -463,7 +474,8 @@ local function tryStart(kind: string, id: string?): boolean
 	local now = workspace:GetServerTimeNow()
 	-- Accept the transition before catching up the outgoing timeline: a dodge
 	-- must never manufacture a late punch hit on the frame it cancels it.
-	local action = Rules.start(ActionState.current, kind, id, now, sequence + 1)
+	local class = character:GetAttribute("WeaponClass")
+	local action = Rules.start(ActionState.current, kind, id, now, sequence + 1, if type(class) == "string" then class else nil)
 	if not action then return false end
 	sequence += 1
 	local blend = if kind == "dodge" then Config.DODGE_CROSSFADE else Config.ACTION_CROSSFADE
@@ -486,7 +498,7 @@ local function tryStart(kind: string, id: string?): boolean
 	if kind == "dodge" then
 		startDash(current)
 	else
-		current.track = tracks[action.profile.animation]
+		current.track = tracks[action.profile.clip]
 		if kind == "basic" then playActionSound(current, "Swing") end
 		if kind == "cast" and id then
 			local owned = State.current.techniques.owned[id]

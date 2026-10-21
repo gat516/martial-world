@@ -5,6 +5,105 @@
 
 local Pacing = require(script.Parent.Pacing)
 
+export type Step = {
+	damage: number, -- before realm power, weapon grade and Dao comprehension
+	hit: number, -- the clip's Hit and Hit Stop, in clip seconds (before playback speed)
+	hitStop: number,
+	speed: number, -- playback speed
+	recovery: number, -- real seconds after Hit Stop before the next action
+	push: number, -- base knockback studs (Knockback.luau)
+}
+
+-- Basic attack chains, one per weapon class (Weapons.luau). Each step plays
+-- ReplicatedStorage.Animations.Fists.<n> (Fist) or Animations.Weapons.<Class>.<n>;
+-- the animation ids live only in assets/Animations.rbxmx. Hit/hitStop must
+-- match each clip's "Hit"/"Hit Stop" markers (tools/anim_markers.luau): the
+-- server validates hits against these numbers, not the markers.
+-- Chains are 3-5 steps; the last is the finisher (CHAIN_COOLDOWN after it).
+local FIST_STEPS: { Step } = {
+	{ damage = 8, hit = 0.35, hitStop = 0.50, speed = 1.25, recovery = 0.07, push = 2 },
+	{ damage = 8, hit = 0.35, hitStop = 13 / 30, speed = 1.25, recovery = 0.07, push = 2 },
+	{ damage = 10, hit = 0.35, hitStop = 14 / 30, speed = 1.25, recovery = 0.07, push = 3 },
+	{ damage = 12, hit = 0.35, hitStop = 0.50, speed = 1.25, recovery = 0.07, push = 4 },
+	{ damage = 18, hit = 0.35, hitStop = 16 / 30, speed = 1.15, recovery = 0.10, push = 8 },
+}
+
+export type ClassCombat = {
+	steps: { Step },
+	hitbox: Vector3, -- width, height, reach in front of the root
+	maxTargets: number, -- enemies one swing can hit (the nearest in the box)
+}
+
+local CLASSES: { [string]: ClassCombat } = {
+	Fist = { steps = FIST_STEPS, hitbox = Vector3.new(5, 5, 6), maxTargets = 1 },
+	-- jian: katana firstm1-fourthm1, one-handed (Hit = the animator's HitFrame 0.333)
+	Sword = {
+		steps = {
+			{ damage = 9, hit = 0.333, hitStop = 0.433, speed = 1.2, recovery = 0.07, push = 2 },
+			{ damage = 9, hit = 0.333, hitStop = 0.433, speed = 1.2, recovery = 0.07, push = 2 },
+			{ damage = 11, hit = 0.333, hitStop = 0.433, speed = 1.2, recovery = 0.07, push = 3 },
+			{ damage = 15, hit = 0.333, hitStop = 0.433, speed = 1.1, recovery = 0.12, push = 6 },
+		},
+		hitbox = Vector3.new(6, 5, 7),
+		maxTargets = 2,
+	},
+	-- dadao: Greataxe1-5 (set C), upper body only, so it plays while walking
+	Saber = {
+		steps = {
+			{ damage = 9, hit = 0.50, hitStop = 0.60, speed = 1.35, recovery = 0.07, push = 2 },
+			{ damage = 9, hit = 0.50, hitStop = 0.60, speed = 1.35, recovery = 0.07, push = 2 },
+			{ damage = 11, hit = 0.50, hitStop = 0.60, speed = 1.35, recovery = 0.07, push = 3 },
+			{ damage = 12, hit = 0.50, hitStop = 0.60, speed = 1.35, recovery = 0.07, push = 3 },
+			{ damage = 18, hit = 0.50, hitStop = 0.60, speed = 1.20, recovery = 0.12, push = 8 },
+		},
+		hitbox = Vector3.new(7, 5, 7),
+		maxTargets = 2,
+	},
+	-- gs1-gs3: slow, wide sweeps
+	Greatsword = {
+		steps = {
+			{ damage = 12, hit = 0.50, hitStop = 0.66, speed = 1.15, recovery = 0.08, push = 4 },
+			{ damage = 12, hit = 0.50, hitStop = 0.66, speed = 1.15, recovery = 0.08, push = 4 },
+			{ damage = 20, hit = 0.58, hitStop = 0.68, speed = 1.05, recovery = 0.15, push = 9 },
+		},
+		hitbox = Vector3.new(10, 6, 8),
+		maxTargets = 3,
+	},
+	-- "Great axe 1-4" (set A1): long-haft cuts with long reach
+	Guandao = {
+		steps = {
+			{ damage = 10, hit = 0.35, hitStop = 0.43, speed = 1.10, recovery = 0.07, push = 3 },
+			{ damage = 10, hit = 0.33, hitStop = 0.42, speed = 1.10, recovery = 0.07, push = 3 },
+			{ damage = 12, hit = 0.35, hitStop = 0.43, speed = 1.10, recovery = 0.07, push = 4 },
+			{ damage = 18, hit = 0.30, hitStop = 0.42, speed = 1.00, recovery = 0.12, push = 8 },
+		},
+		hitbox = Vector3.new(8, 6, 10),
+		maxTargets = 3,
+	},
+	-- Spear1-4: thrusts that reach ~2.8 studs past the hands
+	Spear = {
+		steps = {
+			{ damage = 9, hit = 0.32, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 2 },
+			{ damage = 9, hit = 0.30, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 2 },
+			{ damage = 11, hit = 0.30, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 3 },
+			{ damage = 15, hit = 0.28, hitStop = 0.38, speed = 1.1, recovery = 0.10, push = 6 },
+		},
+		hitbox = Vector3.new(4, 5, 11),
+		maxTargets = 2,
+	},
+	-- BoStaff1-4: wide sweeps
+	Staff = {
+		steps = {
+			{ damage = 8, hit = 0.28, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 3 },
+			{ damage = 8, hit = 0.32, hitStop = 0.40, speed = 1.2, recovery = 0.07, push = 3 },
+			{ damage = 10, hit = 0.35, hitStop = 0.43, speed = 1.2, recovery = 0.07, push = 3 },
+			{ damage = 15, hit = 0.32, hitStop = 0.42, speed = 1.1, recovery = 0.10, push = 7 },
+		},
+		hitbox = Vector3.new(9, 5, 8),
+		maxTargets = 2,
+	},
+}
+
 return {
 	Data = {
 		STORE_NAME = "PlayerData_v1",
@@ -178,19 +277,12 @@ return {
 	},
 
 	Combat = {
-		-- Fist basic attack: a five-hit chain (ReplicatedStorage.Animations.Fists.1-5).
-		-- The client predicts hits, casting the hitbox from each animation's "Hit"
-		-- marker to its "Hit Stop" marker; the server checks them (see Combat.luau).
-		-- Hit/Hit Stop times in the source animations, before playback speed.
-		-- Animations 4 and 5 have no markers: their explicit windows below are
-		-- the fallback. Never resolve a hit just because an animation stopped.
-		FIST_STEPS = {
-			{ damage = 8, hit = 0.35, hitStop = 0.50, speed = 1.25, recovery = 0.07 },
-			{ damage = 8, hit = 0.35, hitStop = 13 / 30, speed = 1.25, recovery = 0.07 },
-			{ damage = 10, hit = 0.35, hitStop = 14 / 30, speed = 1.25, recovery = 0.07 },
-			{ damage = 12, hit = 0.35, hitStop = 0.50, speed = 1.25, recovery = 0.07 },
-			{ damage = 18, hit = 0.35, hitStop = 16 / 30, speed = 1.15, recovery = 0.10 },
-		},
+		-- Basic attack chains per weapon class (CLASSES above; Weapons.luau names
+		-- the classes). The client predicts hits from Hit to Hit Stop; the
+		-- server checks them against the same timeline (see Combat.luau).
+		-- Never resolve a hit just because an animation stopped.
+		CLASSES = CLASSES,
+		FIST_STEPS = FIST_STEPS, -- = CLASSES.Fist.steps; old fist techniques time their casts from these
 		CHAIN_RESET = 0.85, -- idle time after recovery before returning to hit 1
 		CHAIN_COOLDOWN = 0.45, -- final Hit Stop -> earliest next string; survives a dodge
 		ATTACK_MOVE_MULTIPLIER = 0.6,
@@ -203,8 +295,6 @@ return {
 		INPUT_BUFFER = 0.20, -- one pending press; dodge takes priority over offense
 		CANCEL_RETRY = 0.25, -- technique retry delay if dodged before release
 		HIT_TIME_SLACK = 0.04,
-		HITBOX = Vector3.new(5, 5, 6), -- width, height, reach in front of the root
-		MAX_TARGETS = 1, -- fists hit one enemy per swing (the nearest in the box)
 		AIM_RANGE = 14, -- soft auto-aim and auto-attack pick targets this close
 		AUTO_RANGE = 6, -- auto-attack swings while the target is this close
 		AUTO_ATTACK = true,

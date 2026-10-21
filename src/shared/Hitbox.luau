@@ -1,14 +1,16 @@
 --!strict
--- Attack hitboxes, shared so the client's predicted hits and the server's check
+-- Attack hitboxes (one per weapon class), shared so the client's predicted hits and the server's check
 -- use the same box. Enemies are models tagged "Enemy" with a living Humanoid.
 
 local Config = require(script.Parent.Config).Combat
 
 local Hitbox = {}
 
--- A box in front of the root reaching HITBOX.Z studs, grown by `grow` on every side.
-function Hitbox.box(root: BasePart, grow: number?): (CFrame, Vector3)
-	local size = Config.HITBOX
+-- A weapon class's M1 box (Config.Combat.CLASSES) in front of the root,
+-- reaching hitbox.Z studs, grown by `grow` on every side. nil class = Fist.
+function Hitbox.box(root: BasePart, grow: number?, class: string?): (CFrame, Vector3)
+	local entry = Config.CLASSES[class or "Fist"] or Config.CLASSES.Fist
+	local size = entry.hitbox
 	local g = grow or 0
 	return root.CFrame * CFrame.new(0, 0, -size.Z / 2), size + Vector3.one * (g * 2)
 end

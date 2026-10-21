@@ -15,12 +15,21 @@ local FADE_IN = TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.
 local QUICK = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 local MAX_COVER = 12
 
--- each piece and the transparency props it fades (to 0 when covered, 1 when clear)
+-- each piece and the transparency props it fades (to 0 when covered, 1 when clear).
+-- Only the Shade itself fades its background: inner Frames (the Card) are
+-- layout-only, and fading theirs to 0 paints a default grey box.
 local PROPS = {
-	Frame = { "BackgroundTransparency" },
 	TextLabel = { "TextTransparency", "TextStrokeTransparency" },
 	ImageLabel = { "ImageTransparency" },
 }
+local SHADE_PROPS = { "BackgroundTransparency" }
+
+local function propsFor(inst: Instance, root: Instance): { string }?
+	if inst == root then
+		return SHADE_PROPS
+	end
+	return PROPS[inst.ClassName]
+end
 
 local shade: Frame? = nil
 local title: TextLabel? = nil
@@ -46,7 +55,7 @@ local function fade(to: number, info: TweenInfo)
 	local all = root:GetDescendants()
 	table.insert(all, root)
 	for _, inst in all do
-		local props = PROPS[inst.ClassName]
+		local props = propsFor(inst, root)
 		if props then
 			local goal = {}
 			for _, prop in props do
@@ -62,7 +71,7 @@ local function setAll(value: number)
 	local all = root:GetDescendants()
 	table.insert(all, root)
 	for _, inst in all do
-		for _, prop in PROPS[inst.ClassName] or {} do
+		for _, prop in propsFor(inst, root) or {} do
 			(inst :: any)[prop] = value
 		end
 	end

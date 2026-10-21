@@ -44,6 +44,9 @@ that class equipped and scales with its grade and Dao. One weapon skill per
 class (Twin Phoenix Cannon, Moonflash Draw, Rampaging Tiger Cleave,
 Heaven-Splitting Descent, Crescent Moon Sweep, Dragon-Piercing Thrust, Great
 Sage Awakening); see [combat](combat.md) for their shapes and numbers.
+Many more techniques are planned. Each one is a manual found in the world, gets
+its own comprehension bottlenecks for free, and needs four visual tiers
+(`<Id>_T1..T4`; it can launch with T1 and grow the rest).
 
 ## Where techniques and weapons come from (v1)
 | Source | What |
@@ -137,6 +140,43 @@ derived from the template's joint frames; no per-weapon correction is needed.
 - `Weapons.Grades`: grade multipliers and colours.
 - `server/Weapons.BREAKTHROUGH_STOW_SECONDS`: 1.6 s, matching the breakthrough
   effect's lifetime.
+
+## Planned: Dao Paths (design, not built)
+Decided 2026-10-21; next combat feature after technique comprehension has been
+playtested. Introduced at QC7-8 (the core loop's "Dao paths" slot), so it never
+lands alongside comprehension.
+
+A light weapon tree on the existing Dao level, **the same shape for every class**:
+
+| Dao level | Node |
+|---|---|
+| 3 | choose a Path, A or B (the one big choice; respec for Spirit Stones) |
+| 5 | path node (automatic, stats) |
+| 7 | path node (automatic, stats) |
+| 10 | Dao Intent capstone (changes how the weapon plays; later, optional) |
+
+- A path is about 3 small numbers with a trade-off, each within ±20%: M1 speed,
+  damage, max HP, walk speed, reach (hitbox), knockback, stagger immunity,
+  dodge i-frames, targets per swing, chain steps, regen.
+- First sketch (to tune): Greatsword *Mountain* (+HP, unstaggerable swings,
+  slower walk) / *Avalanche* (+damage, +knockback, slower swings); Sword *Swift
+  Blade* (+M1 speed, +i-frames) / *Piercing Intent* (+reach, armour pierce);
+  Saber *Tiger* (+damage vs low-HP beasts) / *Wind* (+move speed while
+  chaining); Spear *Long Reach* / *Dragon* (lunge on the last step); Fist *Iron
+  Body* / *Hundred Strikes* (an extra chain step); Staff *Still Water* (heal on
+  perfect dodge) / *Monkey King* (+targets); Guandao *General* (360° sweeps) /
+  *Warlord* (combat regen).
+- **The tree never awards techniques.** Manuals stay things you find out in the
+  world (caches, ruins, bosses, events). A capstone is a modifier, e.g. the
+  Sword's last M1 also fires a small sword-qi slash, reusing a cut-down version
+  of the class's technique effect. Paths need no VFX; capstones can follow one
+  class at a time.
+- Build: a paths table in one shared file, about 6 stat hooks in Combat, a saved
+  path per class in `data.dao`, a "choose your path" card and a path view in
+  the Weapons tab (ui-designer).
+- No cultivation perk tree: perks like "+10% qi rate" would bend Pacing's time
+  estimates. The cultivation-side choice is the cultivation method at
+  Foundation ([character](character.md)).
 
 ## Known gaps
 - Sword, Saber have placeholder idles (Spear Idle, Bat Idle) and no walk.

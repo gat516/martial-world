@@ -96,9 +96,10 @@ and everything else arrives when it first matters.
 |---|---|---|
 | QC1-3 | HOOK | the rhythm itself, once: circulate (home) -> break through -> spirit root -> travel out -> hunt -> technique -> refine (home) -> QC3. This is the current onboarding. |
 | QC4 | BREATHER | **home deepens:** garden and peak building (proposal; onboarding doesn't teach them today) |
+| QC3-5 | | the first technique bottleneck (about 28 casts of one art): comprehension, spending insight and stones. Today only a toast and the Arts pane explain it; the elder should name it once. |
 | QC5 | RAMP | a new region (Ruined Borderlands); the gather/refine loop sets in |
 | QC6 | MINI-WALL | herbs start to matter (the garden pays off) |
-| QC7-8 | BREATHER, RAMP | second weapon class, Dao paths (from caches and drops) |
+| QC7-8 | BREATHER, RAMP | second weapon class, Dao Paths (choose a path at Dao 3; planned, [weapons](systems/weapons.md)) |
 | QC9 | WALL | insight and the first tribulation |
 | FE | new realm | cultivation method, Outer Wastes |
 | later majors | | the realm milestones: flying sword, soul companion, flight ([character](systems/character.md)) |
@@ -139,6 +140,16 @@ introduced alone, at a breather stage, by the elder or the quest board.
    first and at most two other goals.
 6. **Content stops at FE1.** The long goal needs the next realm before more
    side systems.
+
+## Techniques: many, found, chosen
+Many more techniques are planned. Every one is a manual you find out in the
+world (caches, ruins, boss pools, events, milestones), never something a tree or
+shop hands out, so exploring keeps paying. Insight is deliberately scarce
+against them: players comprehend a few favourites, not all. So each new region
+must add its own insight sources (its beasts' first kills, event relics, secret
+comprehension spots), or mastery slows to a crawl. Weapon Dao Paths (QC7-8, see
+[weapons](systems/weapons.md)) shape how a weapon plays and never award
+techniques.
 
 ## Rules for anything new
 1. Name its **arrow** into the loop (table above).

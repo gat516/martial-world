@@ -19,7 +19,8 @@ game (funnels, progression, custom events), and give admins test tools.
 - `src/server/Analytics.luau`: onboarding funnel, realm progression events,
   custom events. See [cultivation](cultivation.md) for reading dropoff.
 - `src/server/Admin.luau` + `src/client/AdminPanel.luau`: weather, give, seeds,
-  stones, buildItems, spawn, growAll, mutateAll, wild, event, stopEvents, fillQi.
+  stones, buildItems, spawn, growAll, mutateAll, wild, event, stopEvents, fillQi,
+  techniqueLevel (set a technique to any level, learning it if needed).
   Admins: the creator, `Config.Admin.USER_IDS`, anyone in Studio.
 - `src/server/Main.server.luau`: join/leave order, `applyTestKit`, hook wiring.
 

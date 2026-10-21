@@ -13,6 +13,7 @@ local BuildItems = require(ReplicatedStorage.Shared.BuildItems)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
+local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
@@ -80,6 +81,17 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		data.stones += count
 		Cultivation.pushState(player)
 		return true, `Gave {count} Spirit Stones`
+	end,
+	-- sets a technique's level (learning it if needed), for testing its tiers
+	techniqueLevel = function(player, data, id, n)
+		local level = amount(n, Techniques.MAX_LEVEL)
+		local def = type(id) == "string" and Techniques.Defs[id]
+		if not (def and level) then
+			return false, `Unknown technique, or level isn't 1-{Techniques.MAX_LEVEL}`
+		end
+		data.techniques.owned[id] = { level = level, xp = 0 }
+		Cultivation.pushState(player)
+		return true, `{def.name} is now level {level}`
 	end,
 	buildItems = function(player, data, n)
 		local count = amount(n, MAX_COUNT)

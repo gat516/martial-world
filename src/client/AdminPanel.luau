@@ -15,6 +15,7 @@ local UserInputService = game:GetService("UserInputService")
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
+local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 local Hud = require(script.Parent.Hud)
 local Motion = require(script.Parent.Motion)
@@ -140,6 +141,16 @@ local function build()
 			invoke("stones", n)
 		end },
 	})
+
+	-- the count box is the level to set (1 to Techniques.MAX_LEVEL)
+	local techniques: { Chip } = {}
+	for _, id in Techniques.Order do
+		local def = Techniques.Defs[id]
+		table.insert(techniques, { label = def and def.name or spaced(id), color = def and def.color, press = function(n)
+			invoke("techniqueLevel", id, n)
+		end })
+	end
+	section("Technique level", Techniques.MAX_LEVEL, techniques)
 
 	local items: { Chip } = {}
 	for _, id in Items.Order do

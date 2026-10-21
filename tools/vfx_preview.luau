@@ -28,6 +28,10 @@
 --       while it is current), cleanup disabled (frozen frames must survive until
 --       captured), and CameraShake/ImpactFrames attributes stripped before emit
 --       (ScreenEffects moves the editor camera and spoils the capture).
+--   P.look(cam?, scene?) parks the editor camera on a scene (cam = a CAMERAS
+--       name, default "player"). Edit mode only simulates particles near the
+--       camera; far away only new-born ones show (pale, missing layers), so
+--       castThrough parks it before playing and sweep before each moment.
 --   P.castThrough({ id, level, freezeAt?, animation? }) -> summary string
 --       The real call path: plays the technique's Fists animation on the scene
 --       rig at the cast's playback speed (Rules.castProfile), calls
@@ -296,6 +300,10 @@ function P.castThrough(opts)
 	assert(S, "call P.scene first")
 	local RunService = game:GetService("RunService")
 	S.folder._fxOut:ClearAllChildren()
+	if opts.look ~= false then
+		P.look(opts.camera, S)
+		task.wait(0.5)
+	end
 	local temp = workspace.Terrain:FindFirstChild("TempVFX")
 	if temp and not opts.scene then -- a sweep keeps earlier scenes' add-on parts
 		temp:ClearAllChildren()
@@ -373,6 +381,15 @@ local CAMERAS = {
 }
 P.CAMERAS = CAMERAS
 
+function P.look(cam, scene)
+	scene = scene or S
+	assert(scene, "call P.scene first")
+	local c = CAMERAS[cam or "player"] or CAMERAS.player
+	local camera = workspace.CurrentCamera
+	camera.CFrame = CFrame.lookAt(scene.C + c[1], scene.C + c[2])
+	return camera.CFrame.Position
+end
+
 function P.sweep(opts)
 	local holder = P.fresh({ "TechniqueVFX" })
 	local Rules = require(holder.Shared.ActionRules)
@@ -391,7 +408,7 @@ function P.sweep(opts)
 	local lines, results = {}, {}
 	for i, m in moments do
 		local scene = P.scene({ center = base + Vector3.new(0, 0, (i - 1) * (opts.spacing or 160)), radius = opts.radius, keep = true, enemies = opts.enemies })
-		table.insert(results, m.name .. ": " .. P.castThrough({ id = opts.id, level = opts.level, freezeAt = m.t, scene = scene }))
+		table.insert(results, m.name .. ": " .. P.castThrough({ id = opts.id, level = opts.level, freezeAt = m.t, scene = scene, camera = m.cameras[1] }))
 		for _, cam in m.cameras do
 			local c = CAMERAS[cam]
 			local from, to = scene.C + c[1], scene.C + c[2]

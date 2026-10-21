@@ -7,7 +7,9 @@
 --   local m = Instance.new("ModuleScript"); m.Source = HttpService:GetAsync(
 --     "http://127.0.0.1:8766/vfx_specs/MethodAura.luau"); require(m)
 --   _G.buildMethodAura(staging)   -- staging = vfxStage.begin(who)
--- It replaces staging.MethodAura.
+--   _G.buildMethodAura(staging, { only = { "BlazingHeart" } })
+-- It replaces staging.MethodAura; with `only`, just those methods' models,
+-- leaving every other method (and any hand edits on it) untouched.
 --
 -- MethodAura (Folder; attributes Breath = seconds per breath, FadeIn, FadeOut)
 --   <MethodId> (Model; Rhythm = "burst" for irregular bursts instead of the
@@ -1122,9 +1124,10 @@ local function frostLotus(root)
 	return m
 end
 
-function _G.buildMethodAura(parent)
+function _G.buildMethodAura(parent, opts)
+	local only = opts and opts.only
 	local old = parent:FindFirstChild("MethodAura")
-	if old then
+	if old and not only then
 		old:Destroy()
 	end
 	local root = Instance.new("Folder")
@@ -1143,6 +1146,23 @@ function _G.buildMethodAura(parent)
 		if d:IsA("Model") then
 			d.WorldPivot = CFrame.new()
 		end
+	end
+	if only then
+		assert(old, "no MethodAura in " .. parent:GetFullName() .. " to update; build it whole first")
+		for _, id in only do
+			local fresh = root:FindFirstChild(id)
+			assert(fresh and fresh:IsA("Model"), "no method model " .. tostring(id))
+			local prev = old:FindFirstChild(id)
+			if prev then
+				prev:Destroy()
+			end
+			fresh.Parent = old
+		end
+		for k, v in root:GetAttributes() do
+			old:SetAttribute(k, v)
+		end
+		root:Destroy()
+		return old
 	end
 	root.Parent = parent
 	return root

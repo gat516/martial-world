@@ -178,7 +178,8 @@ surprises you):
   - Tiles only carry ids, so judge looks from thumbnails before using one, on a
     contact sheet: `python3 tools/vfx_contact_sheet.py OUT NAME kw1,kw2 [kind] [max]`
     (or `ids:a;b;c` instead of keywords) writes a labelled sheet with a
-    thumbnail cache; Read the PNG. A black tile means the texture has an opaque
+    thumbnail cache; Read the PNG. Add `--size 420` for big tiles (16 a
+    sheet) to read a flipbook's grid or fine detail. A black tile means the texture has an opaque
     black background, which is useless for tinted or additive use: skip it
     (e.g. 8952281337, 10365552478, 11037528577, 8214519774).
   - Don't vet ids with `ContentProvider:PreloadAsync`: it reports Failure for
@@ -322,7 +323,9 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
 
 1. **Bootstrap:** load every helper in three lines:
    `local m = Instance.new("ModuleScript"); m.Source = game:GetService("HttpService"):GetAsync("http://127.0.0.1:8766/vfx_session.luau"); require(m)`.
-   It needs `tools/receive_rbxmx.py` running. Then read `tools/vfx_addons.md`.
+   It needs the receiver: run `tools/ensure_receiver.sh` first (it starts
+   `tools/receive_rbxmx.py` unless it's already up). Then read
+   `tools/vfx_addons.md`.
 2. **Plan:** read `animMarkers` for the move's animation, sample the striking
    limb, and settle the limb, add-ons, mastery motif and missing events with the
    user in the plan.
@@ -412,7 +415,14 @@ Other sessions use the same Studio and the same `_G`. Before a capture run:
     group that doesn't collide with Default.
 - `castThrough` takes a **level**, not a tier: use 1, 4, 7, 10 for T1–T4.
 - **Stage and export:** `tools/vfx_stage.luau`. `vfxStage.begin()` makes the
-  staging clone. `vfxStage.finish(check)` exports, destroys the staging copy
+  staging clone. It refuses when a template was changed in Studio since its
+  last export (`finish()` stamps each template with a `BuildStamp` hash): a
+  rebuild would wipe that edit, which is usually the user's. Diff it, fold it
+  into the spec, report it, then `begin(who, { acceptEdits = true })`. It also
+  warns about effect-looking instances loose in Workspace; report those and
+  never delete them unasked (AGENTS.md, "Studio instances"). To rebuild only
+  some auras, `_G.buildMethodAura(staging, { only = { "BlazingHeart" } })`
+  leaves the other methods untouched. `vfxStage.finish(check)` exports, destroys the staging copy
   and waits for Rojo to patch the real folder. Then
   `tools/vfx_export.sh [names]` copies the export into `assets/` and verifies
   templates, attribute counts and add-on tags. These replace the manual steps
@@ -462,12 +472,13 @@ Ask these in the plan, not after the build:
   far away (including `screen_capture`'s own camera move) you see only
   new-born particles: pale flames, missing layers, a stacked white core. Park
   `workspace.CurrentCamera` near the scene, wait ~2 s, then capture
-  (`_G.auraPreview.look()` does this for auras). Freezing right after an emit
+  (`_G.auraPreview.look()` for auras; `vfxPreview.look(cam)`, and
+  `castThrough`/`sweep` park it themselves). Freezing right after an emit
   captures nothing for the same reason.
 - Other sessions may change ClockTime or draw splines into your captures;
   note the clock with each one.
-- `tools/receive_rbxmx.py` dies with the session; restart it before loading
-  tools over HTTP.
+- `tools/receive_rbxmx.py` dies with the session; `tools/ensure_receiver.sh`
+  before loading tools over HTTP.
 
 `tools/vfx_preview.luau` also has the lower-level calls (run it through
 `execute_luau`; it installs `_G.vfxPreview`):
@@ -499,8 +510,8 @@ Ask these in the plan, not after the build:
 `tools/export_rbxmx.luau` drops attributes and tags and only knows a short
 property list, so it is wrong for effects. Use the binary exporter:
 
-1. Start `timeout 600 python3 tools/receive_rbxmx.py` in the background
-   (loopback 8766). If the port is taken, a receiver is already running.
+1. Run `tools/ensure_receiver.sh` (starts `tools/receive_rbxmx.py` on
+   loopback 8766 unless one is already up).
 2. Run the contents of `tools/export_rbxm.luau` through `execute_luau` (installs
    `_G.exportRbxm`).
 3. `game:GetService("HttpService"):PostAsync("http://127.0.0.1:8766/Effects.rbxm", _G.exportRbxm("ReplicatedStorage._StagingEffects", "Effects"))`

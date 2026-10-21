@@ -223,8 +223,8 @@ confirmation. You keep the old one's stage if you ever return to it.
 ## Character window
 
 **Where weapons live:** weapons and Dao comprehension are in the Inventory's
-Weapons tab (f10a380). The character window does not repeat them; it shows the
-equipped weapon as a small badge only.
+Weapons tab (f10a380). The character window does not list weapons; it shows
+only the equipped class's Weapon Dao row (level, XP, what it gives).
 
 **The reveal card** (`src/client/RootReveal.luau`, `Hud.RootReveal`): on the
 local player's first test (Effect "root" with `first`), a small centre card: the
@@ -243,24 +243,41 @@ top-right tiles fade away while any window is open). Tapping the **realm
 crest** in the vitals (`Crest.Open`) is a shortcut to the same card, with no dot of
 its own. The elder pointing at it is still to do.
 
-**Built (v1, `src/client/SelfCard.luau`, `Hud.SelfCard`):** one compact card
-(at most 330 px wide, grows to fit) with the realm name, its stage bar
-(cultivation toward the next stage), then the Self page: the root row (seal,
-"Fire Root", grade, perk; tap it for the exact numbers: the perk at this grade,
-"+15% damage" with the matching techniques by name, cultivation speed) and the
-equipped weapon's badge with its class's Dao level. Room is left in the layout:
-the Self page is a list by `LayoutOrder` (root 10, its numbers 11, **12-19 for
-root actions** such as a Reroll button and a stored-roots strip, 20 the Method
-row, weapon 30), and tabs go between the stage bar and `Body.Pages`
-(each tab a page frame in `Pages`).
+**Built (v2, `src/client/SelfCard.luau`, `Hud.SelfCard`):** one card (at most
+380 px wide, grows to fit) with the realm name, its stage bar (cultivation toward
+the next stage), then the Self page, a scrolling list of rows that all share one
+shape. **Decided 2026-10-21** (the user found the old rows unclear: "Iron Marrow
+Art is a what?", a truncated weapon name read as a technique, "Guandao Dao 0"):
+each row is labelled by kind in small gold capitals, then names the thing, then
+shows only its effects, one line each, gains in jade and losses in a muted red,
+with the numbers taken from the shared defs. No flavour text, no techniques, no
+weapon names.
+- **Spirit Root** (10): "Metal Root", grade on the right; the perk at this grade
+  (`Pacing.Roots.PERKS` x grade), "+15% Metal technique damage"
+  (`Pacing.Roots.MATCH`), and the grade's cultivation speed (`Roots.speed`).
+  **12-19** stay free for root actions (a Reroll button, a stored-roots strip).
+- **Cultivation Method** (20, from Foundation; hidden on Sect Breathing): name and
+  grade in its grade colour; "+20% cultivation speed (matches your root)"
+  (`Methods.speed`) and "Takes you up to the end of Foundation" (`reaches`, the
+  one limit that matters to the player). Read-only; switching is in the
+  meditation menu.
+- **Weapon Dao** (30): the equipped class's Dao ("Guandao Dao"), "Level 0" on
+  the right, an XP bar ("12 / 30 Dao XP", or "Mastered"), the weapon damage it
+  gives now (`Weapons.daoMultiplier`, e.g. "-20% weapon damage" below the
+  neutral level) and at the next level.
+
+The list grows up to what fits on screen (`LIST_MARGIN` from the top and
+bottom) and then scrolls; later systems such as bloodlines add rows of the same
+shape (none built yet). Tabs go between the stage bar and `Body.Pages` (each tab
+a page frame in `Pages`).
 
 **It grows with the player:**
 
 | Stage | What the window shows |
 |---|---|
 | Before the root reveal | the crest isn't tappable yet |
-| After the root reveal | one card, **Self**: realm, stage bar, spirit root (element, grade, perk), weapon badge. No tabs. |
-| FE (method) | Self gains a **Method** row (built): element seal, name in its grade colour, qi speed ("+20% qi · matches your root!"), "Reaches: all of Foundation", the blurb. Read-only; switching is in the meditation menu (built). Hidden while on Sect Breathing. |
+| After the root reveal | one card, **Self**: realm, stage bar, Spirit Root row (element, grade, effects), Weapon Dao row (level, XP, damage). No tabs. |
+| FE (method) | Self gains a **Cultivation Method** row (built): element seal, name and grade in its grade colour, cultivation speed (with the root match) and how far it takes you. Read-only; switching is in the meditation menu (built). Hidden while on Sect Breathing. |
 | First bloodline | tabs appear: **Self** \| **Body** (bloodline card, stage pips, skill, passive) |
 | Later layers | at most four tabs |
 

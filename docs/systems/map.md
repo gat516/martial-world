@@ -92,6 +92,11 @@ funnels players, not teleports:
   then mist or a drop); and each zone plans a vertical layer of cliff-top
   ledges, high caves and floating rocks with POIs only flyers or climbers reach.
   Each zone records its flight ceiling and bounds.
+- **Bamboo is its own biome.** Bamboo grows only in pure, dense groves with a
+  reason (a hero bamboo-forest pocket in the Inner Wilds, the hidden hollow,
+  round steles, shrines or water), with a clear edge or a short transition of
+  shoots and sparse culms. Never single clumps mixed into pine or broadleaf
+  forest (today `dress_wilds.luau`'s `bambooAt` noise field does exactly that).
 - **Rework passes remove what they replace.** Past AI passes layered new work on
   old (orphaned props, half-replaced dressing, misaligned seams, floating or sunk
   pieces). Every rework of an area starts with an inventory of what is there and

@@ -272,8 +272,12 @@ return {
 	Ambience = {
 		DAY_MINUTES = 20, -- real minutes for a full day
 		START_HOUR = 9, -- the hour at server-time zero
-		NIGHT_LIGHT_SCALE = 1.8, -- lantern light brightness at night...
-		DAY_LIGHT_SCALE = 0.5, -- ...and by day, relative to the place's setting
+		NIGHT_LIGHT_SCALE = 2.5, -- lamp light brightness at night...
+		DAY_LIGHT_SCALE = 0.4, -- ...and by day, relative to the place's setting
+		NIGHT_RANGE_SCALE = 1.4, -- lamp light range at night (by day: as set; capped at 60)
+		-- lights inside models with these names follow day and night (as do all
+		-- lights under Map's Ambience folder): map lamps and buildable lamps
+		LAMP_MODELS = { "StoneLantern", "JadeLamp", "Brazier", "Lantern", "StoneLamp", "TallStoneLamp", "LampPost" },
 		FIREFLY_RATE = 14,
 		PETAL_RATE = 3,
 	},

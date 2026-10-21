@@ -13,6 +13,13 @@ everyone to one spot, and a day/night cycle.
 - World events are announced, visible from the peaks (pillars of light), and
   first-come: the first to claim keeps the prize.
 - Ambience is client-side and in step across clients via the server clock.
+- Day/night: DayNight blends hourly keyframes (soft warm day with blue distance
+  haze, golden hour before the ~18:00 sunset, violet dusk, a desaturated indigo
+  night lifted by exposure so dim phones still read paths). It owns the per-hour
+  Lighting values; shadows, environment scales, bloom size/threshold and the Sky
+  stay as set in the place (GlobalShadows on, no shadow-casting point lights).
+  Lamps (lights under `Map.Sect.Ambience`, or inside a model named in
+  `Config.Ambience.LAMP_MODELS`) dim by day and brighten and reach further at night.
 
 ## Key files
 - `src/shared/Weather.luau`, `src/server/WeatherService.luau` (pick, set,

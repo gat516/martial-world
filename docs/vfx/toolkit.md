@@ -176,7 +176,7 @@ surprises you):
     Library window once this Studio session (it keeps working after the window
     is closed). If it errors, ask the user to open it.
   - Tiles only carry ids, so judge looks from thumbnails before using one, on a
-    contact sheet: `python3 tools/vfx_contact_sheet.py OUT NAME kw1,kw2 [kind] [max]`
+    contact sheet: `~/.local/bin/uv run -q --with pillow python3 -I tools/vfx_contact_sheet.py OUT NAME kw1,kw2 [kind] [max]`
     (or `ids:a;b;c` instead of keywords) writes a labelled sheet with a
     thumbnail cache; Read the PNG. Add `--size 420` for big tiles (16 a
     sheet) to read a flipbook's grid or fine detail. A black tile means the texture has an opaque

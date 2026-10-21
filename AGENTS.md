@@ -55,6 +55,7 @@ Split big map or content passes across several subagents when the parts don't sh
   4. Destroy the staging copy. Rojo patches its own instance from the file, so only one copy ever exists. If Rojo isn't connected, have the user connect it; don't rebuild the change by hand.
 
   Never leave a staging copy behind (StarterGui copies them into every player). Changing properties of existing managed instances in place is fine, as is writing property changes straight into the `.rbxmx`.
+- Never delete, replace or rebuild over Studio instances you didn't create in this task, even ones that look like leaked copies of your own work: they may be the user's hand edits (a vfx agent wiped the user's hand-placed aura sigils this way). Ask first. Before a builder regenerates a template, check the live one for changes that aren't in the builder and report them.
 - Run `tools/find_duplicates.luau` (through `execute_luau`) only when the user explicitly asks for a duplicate check. It is not a prerequisite for committing.
 
 ## Luau pitfalls

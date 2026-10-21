@@ -307,7 +307,7 @@ the timeline before it is built.
 5. **Meridians.** Dropped in favour of the Dao tree; one deep build layer is enough.
 
 ## Open questions
-- The Testing Stone and the sect library need places in the hub
-  (`map-builder`), and the root pillar needs a vfx.
+- The sect library needs a place in the hub (`map-builder`). The Testing Stone
+  (`Hub.TestingStone`) and the root pillar (`RootFX`) are built.
 - Should root grade raise the realm ceiling too, or stay a speed bonus only?
   Recommendation: speed only, so the method is the single gate.

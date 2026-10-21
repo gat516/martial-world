@@ -957,88 +957,328 @@ local function flowingSpring(root)
 end
 
 -- ---------------------------------------------------------------- Evergreen Root (Wood)
--- An old tree, patient growth: meridian branches grow from the belly out
--- along the arms and legs, lighting over a few breaths; thin roots spread
--- on the ground; a few slow leaves (ref spirit_manifest_green, constellation).
+-- An old tree, patient growth (Mortal: small, close, rich). Rebuilt
+-- 2026-10-21 from layered library emissions: the motion is upward and slow,
+-- things sprouting and unfurling; the aura fills in over the first breaths
+-- (roots and branches light trunk-first) and every few breaths it blooms.
+-- Back to front:
+--   ground  a dark moss pool (dark base) with a living green glow on it, a
+--           circle of linked rings (growth rings) turning slowly inside a
+--           jade ring of flourishes turning the other way, five glowing roots
+--           creeping out (flat beams, lit one after another), shoots
+--           springing up round the seat, jade motes hovering like fireflies,
+--           a few leaves falling from just above the head
+--   body    a seed of green qi at the belly (crackling glow, hard dot, a
+--           sparkle cluster, the one light); a green glow behind the body on
+--           a dark copy; leaves budding off the shoulders and back (a dark
+--           layer under a lit one: the tree's first crown); vine meridians growing
+--           from the belly out along the arms and legs with budding glints
+--           at the joints; a green qi glow hugging the torso and arms, small
+--           shoots sprouting on the arms, leaves curling off the shoulders
+--   breath  the seed pulses with a glint, sap motes rise, a thin ring breathes
+--           out over the ground, a few leaves skitter out low
+--   bloom   every 3 or 4 breaths: shoots spring up in a ring, a green ring
+--           bursts open, leaves whirl up, the seed flashes
+--   ignite  a jade flash and star at the seed, a sparkle burst, vines lashing
+--           up out of the ground round the body, shoots erupting, a dark spore
+--           puff under a bright bursting ring and a shockwave, leaves whirling
+--           up the body; limb leaves and shoots surge
 
-local WOOD_CORE, WOOD, WOOD_DEEP = rgb(200, 255, 160), rgb(110, 225, 90), rgb(50, 140, 50)
-local WOOD_DOT = rgb(235, 255, 150)
+local JADE_WHITE, JADE, LEAF, LEAF_DEEP = rgb(232, 255, 214), rgb(140, 235, 110), rgb(80, 190, 70), rgb(32, 115, 45)
+local BUD, MOSS = rgb(222, 245, 120), rgb(10, 30, 14)
+
+local ER = {
+	moss = id(12362864669), -- soft green blob with a dark rim (tinted near-black: the moss base)
+	verdure = id(12362866115), -- crackling green energy with a dark crust
+	rings = id(139744345977881), -- an ornate circle of linked rings (growth rings)
+	tendrils = id(100708312805540), -- a thin ring with curling flourishes
+	strand = id(15938018250), -- a white twisting strand, vertical (roots, meridian vines, lashing vines)
+	sprout = id(126101557256096), -- 4x4 flipbook: a shoot springing up and wilting
+	leafA = id(125936833129232), -- 4x4 flipbook: a leaf tumbling
+	leafB = id(90111316485044), -- 4x4 flipbook: a leaf tumbling (other cut)
+	bloom = id(90585684660600), -- 4x4 flipbook: a green ring bursting open
+	sparkles = id(115317702570755), -- 4x4 flipbook: a cluster of sparkles
+	star = id(669133414), -- thin 4-point star
+	dot = id(13280146664), -- soft round dot
+	mote = id(8238126392), -- tiny hard glow
+	ring = id(16878174995), -- thin double ring
+}
+_G.EvergreenAssets = ER
 
 local function evergreen(root)
-	local m = model("EverGreen", root)
-	shell(m, rgb(120, 230, 90), { Pulse = R(0.84, 0.94), Pad = 0.2, Delay = 1 }, Enum.Material.Neon)
+	local grid4 = Enum.ParticleFlipbookLayout.Grid4x4
+	local oneShot, loopFb = Enum.ParticleFlipbookMode.OneShot, Enum.ParticleFlipbookMode.Loop
+	local leafColor = cseq(0, BUD, 0.5, JADE, 1, LEAF)
+	local shootColor = cseq(0, JADE_WHITE, 0.4, JADE, 1, LEAF)
+	-- a bloom (the Punch model) every 3 or 4 breaths, up to 0.8 s late
+	local m = model("EverGreen", root, { PunchEvery = R(3, 4), PunchJitter = 0.8, PunchSwell = 1.3 })
 
-	local body = model("Body", m)
-	ball("Seed", body, 0.38, CFrame.new(0, 0, -0.1), WOOD_DOT, { Point = "Belly", Pulse = R(0, 0.2), Grow = R(0.85, 1.15) })
-
+	-- ground: the seat (within ~1 body-width)
+	local ground = model("Ground", m)
+	local floor = part("Floor", ground, CFrame.new(0, 0.04, 0), V3(1, 0.05, 1))
+	local under = part("Under", ground, CFrame.new(0, 0.01, 0), V3(0.6, 0.02, 0.6))
+	loop(under, "Moss", B.flat({ -- the dark base under everything bright
+		Texture = ER.verdure, Size = NS(2.8), Transparency = seq(0, 1, 0.2, 0.3, 0.8, 0.3, 1, 1), Color = CS(MOSS),
+		Lifetime = R(5), Rate = 0.4, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Verdure", B.flat({
+		Texture = ER.verdure, Size = NS(1.9), Transparency = seq(0, 1, 0.25, 0.35, 0.75, 0.35, 1, 1),
+		Color = cseq(0, JADE_WHITE, 0.5, JADE, 1, LEAF), Lifetime = R(3.5), Rate = 0.6, Rotation = R(0, 360),
+		RotSpeed = R(-12, 12), LightEmission = 1, Brightness = 4, ZOffset = 1, -- over the moss (small ZOffsets lose the sort)
+	}), { Prime = 2, Breathe = R(0.6, 1.5), Swell = 0.15, Drift = 0.06 })
+	-- the sigils are flat images (steadier than turning particles)
+	decalDisc("Rings", ground, 3.9, 0.27, ER.rings, JADE, {
+		Pulse = R(0, 0.25), Turn = 6, Grow = R(0.96, 1.05), Kick = 0.5,
+	})
+	decalDisc("Tendrils", ground, 5.2, 0.22, ER.tendrils, JADE, {
+		Pulse = R(0, 0.3), Turn = -9, Grow = R(0.96, 1.05), Kick = 0.7,
+	})
+	-- roots: two-segment glowing tendrils lying flat (attachment X up),
+	-- creeping out one after another over the first breaths
+	local anchors = part("Anchors", ground, CFrame.new(0, 0.3, 0))
+	local flatX = CFrame.Angles(0, 0, math.pi / 2)
 	local lines = folder("Lines", m)
-	local props = {
-		Color = CS(WOOD_CORE), Width0 = 0.16, Width1 = 0.11, Brightness = 3, LightEmission = 0.3,
+	local rootProps = {
+		Texture = ER.strand, TextureMode = Enum.TextureMode.Stretch, FaceCamera = false, Color = cseq(0, JADE_WHITE, 0.4, JADE, 1, LEAF),
+		Width0 = 0.7, Width1 = 0.4, LightEmission = 1, Brightness = 5, Transparency = NS(0), ZOffset = 0.02,
+	}
+	for i = 1, 5 do
+		local yaw = math.rad((i - 1) * 72 + 20 + (i % 2) * 14)
+		local side = if i % 2 == 0 then 1 else -1
+		local function p(r, lateral)
+			return (CFrame.Angles(0, yaw, 0) * CFrame.new(lateral, 0, -r)).Position
+		end
+		local a0 = B.attach(anchors, "RootA" .. i, p(0.8, 0))
+		local a1 = B.attach(anchors, "RootB" .. i, p(1.95, 0.38 * side))
+		local a2 = B.attach(anchors, "RootC" .. i, p(3.05, -0.15 * side))
+		for _, a in { a0, a1, a2 } do
+			a.CFrame = CFrame.new(a.Position) * flatX
+		end
+		local d = 0.6 + (i - 1) * 0.5
+		beam(lines, "Root" .. i .. "a", "RootA" .. i, "RootB" .. i, rootProps, { Pulse = R(0.05, 0.4), Delay = d, Kick = 0.6 })
+		beam(lines, "Root" .. i .. "b", "RootB" .. i, "RootC" .. i, rootProps, { Pulse = R(0.1, 0.5), Delay = d + 2.5, Kick = 0.6 })
+	end
+	local bed = part("Bed", ground, CFrame.new(0, 0.5, 0), V3(4.6, 0.1, 4.6))
+	loop(bed, "Shoots", {
+		Texture = ER.sprout, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.36, 0.52), Transparency = seq(0, 0.1, 0.8, 0.2, 1, 1),
+		Color = shootColor, Lifetime = R(1.4, 1.8), Speed = R(0), Rotation = R(-8, 8), Rate = 3, LightEmission = 0.8,
+		Brightness = 3, ZOffset = 0.3,
+	}, { Scaled = true, Breathe = R(0.5, 1.5), Swell = 0.15, Drift = 0.08 })
+	local air = part("Air", ground, CFrame.new(0, 1.7, 0), V3(4.4, 2.8, 4.4))
+	loop(air, "Fireflies", {
+		Texture = ER.mote, Shape = box, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.06, 0.1),
+		Transparency = seq(0, 1, 0.2, 0.1, 0.35, 0.5, 0.5, 0, 0.7, 0.45, 0.85, 0.1, 1, 1), Color = cseq(0, JADE_WHITE, 1, BUD),
+		Lifetime = R(2.6, 3.4), Speed = R(0.2, 0.5), SpreadAngle = Vector2.new(60, 60), Drag = 0.4,
+		Acceleration = V3(0, 0.15, 0), Rate = 2.4, LightEmission = 1, Brightness = 3, ZOffset = 0.4,
+	}, { Scaled = true, Breathe = R(0.6, 1.4), Prime = 4 })
+	local canopy = part("Canopy", ground, CFrame.new(0, 5.4, 0), V3(4, 0.2, 4))
+	loop(canopy, "Leaves", {
+		Texture = ER.leafA, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(5, 9), FlipbookStartRandom = true,
+		Shape = box, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.16, 0.24),
+		Transparency = seq(0, 1, 0.1, 0, 0.85, 0.05, 1, 1), Color = leafColor, Lifetime = R(5, 6), Speed = R(0.6, 0.9),
+		SpreadAngle = Vector2.new(20, 20), Acceleration = V3(0.25, -0.05, 0), Rotation = R(0, 360), RotSpeed = R(-40, 40),
+		Rate = 0.6, LightEmission = 0.25, Brightness = 1.5,
+	}, { Scaled = true, Prime = 2 })
+
+	-- body: the seed of green qi at the belly
+	local body = model("Body", m)
+	local seed = at("Belly", CFrame.new(0, 0, -0.12), "Seed", body)
+	light(seed, LEAF, 8, 1.3)
+	loop(seed, "Glow", {
+		Texture = ER.verdure, Size = NS(0.6), Transparency = seq(0, 1, 0.3, 0.15, 0.7, 0.15, 1, 1),
+		Color = cseq(0, JADE_WHITE, 0.5, JADE, 1, LEAF), Lifetime = R(0.9), Rate = 3, Rotation = R(0, 360), RotSpeed = R(-30, 30),
+		LightEmission = 1, Brightness = 2.5, ZOffset = 1.4, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.4 })
+	loop(seed, "Hot", {
+		Texture = ER.dot, Size = NS(0.2), Transparency = seq(0, 1, 0.3, 0, 1, 1), Color = CS(JADE_WHITE),
+		Lifetime = R(0.4), Rate = 6, LightEmission = 1, Brightness = 4, ZOffset = 1.5, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.3 })
+	loop(seed, "Sparkle", {
+		Texture = ER.sparkles, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(0.55), Transparency = NS(0),
+		Color = CS(JADE_WHITE), Lifetime = R(1.1), Rate = 0.6, Rotation = R(-20, 20), LightEmission = 1, Brightness = 3,
+		ZOffset = 1.6, LockedToPart = true,
+	})
+
+	-- a green glow behind the body on a darker copy of itself, so the
+	-- silhouette reads lit from behind in daylight
+	local back = at("Dantian", CFrame.new(0, 0.9, 0.45), "Back", body)
+	loop(back, "Shade", {
+		Texture = ER.moss, Size = NS(1.9), Transparency = seq(0, 1, 0.3, 0.45, 0.7, 0.45, 1, 1), Color = CS(MOSS),
+		Lifetime = R(2), Rate = 1, Rotation = R(0, 360), LightEmission = 0, ZOffset = -0.8, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.06, Drift = 0.05 })
+	loop(back, "Aura", {
+		Texture = ER.verdure, Size = NS(1.7), Transparency = seq(0, 1, 0.3, 0.1, 0.7, 0.1, 1, 1),
+		Color = cseq(0, JADE_WHITE, 0.5, JADE, 1, LEAF), Lifetime = R(1.6), Rate = 1.4, Rotation = R(0, 360), RotSpeed = R(-15, 15),
+		LightEmission = 1, Brightness = 3, ZOffset = -0.5, LockedToPart = true,
+	}, { Prime = 2, Breathe = R(0.7, 1.4), Swell = 0.1, Drift = 0.06 })
+
+	-- leaves budding from the shoulders and back, a dark layer under a lit
+	-- one: a tree's first crown (it spreads into a canopy at higher grades)
+	local crown = at("Neck", CFrame.new(0, 0.45, 0.5), "Crown", body, V3(2.6, 1.3, 0.5))
+	loop(crown, "FoliageDark", {
+		Texture = ER.leafA, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(2, 4), FlipbookStartRandom = true,
+		Shape = box, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.32, 0.44), Transparency = seq(0, 1, 0.2, 0.05, 0.8, 0.05, 1, 1),
+		Color = CS(LEAF_DEEP), Lifetime = R(1.8, 2.4), Speed = R(0.2, 0.4), Drag = 0.5, Rotation = R(0, 360), RotSpeed = R(-20, 20),
+		Rate = 5, LightEmission = 0, ZOffset = -0.4, LockedToPart = true,
+	}, { Prime = 3, Scaled = true, Swell = 0.12, Drift = 0.06 })
+	loop(crown, "Foliage", {
+		Texture = ER.leafB, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(2, 4), FlipbookStartRandom = true,
+		Shape = box, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.24, 0.34), Transparency = seq(0, 1, 0.2, 0, 0.8, 0, 1, 1),
+		Color = cseq(0, JADE_WHITE, 0.4, BUD, 1, JADE), Lifetime = R(1.6, 2.2), Speed = R(0.3, 0.5), Drag = 0.5, Rotation = R(0, 360),
+		RotSpeed = R(-30, 30), Rate = 4.5, LightEmission = 0.8, Brightness = 3, ZOffset = -0.3, LockedToPart = true,
+	}, { Prime = 3, Scaled = true, Breathe = R(0.7, 1.4), Swell = 0.12, Drift = 0.06 })
+
+	-- vine meridians, trunk first, then the shoulders and hips, then
+	-- the limbs (~2 breaths to grow), budding glints at the joints
+	local vine = {
+		Texture = ER.strand, TextureMode = Enum.TextureMode.Wrap, TextureLength = 1.3, TextureSpeed = 0.35,
+		Color = cseq(0, JADE_WHITE, 1, JADE), Width0 = 0.55, Width1 = 0.4, Brightness = 4, LightEmission = 1,
 		Transparency = NS(0),
 	}
-	-- trunk first, then out to the shoulders and hips, then the limbs
 	for _, l in {
-		{ "Belly", "Chest", 0 }, { "Chest", "Neck", 2 }, { "Neck", "Head", 6 },
+		{ "Belly", "Chest", 0 }, { "Chest", "Neck", 1.5 },
 		{ "Chest", "LShoulder", 2.5 }, { "Chest", "RShoulder", 2.5 },
-		{ "LShoulder", "LElbow", 5 }, { "RShoulder", "RElbow", 5 },
-		{ "LElbow", "LHand", 7.5 }, { "RElbow", "RHand", 7.5 },
-		{ "Belly", "LHip", 2.5 }, { "Belly", "RHip", 2.5 },
-		{ "LHip", "LKnee", 5 }, { "RHip", "RKnee", 5 },
+		{ "LShoulder", "LElbow", 4.5 }, { "RShoulder", "RElbow", 4.5 },
+		{ "LElbow", "LHand", 6.5 }, { "RElbow", "RHand", 6.5 },
+		{ "Belly", "LHip", 2 }, { "Belly", "RHip", 2 },
+		{ "LHip", "LKnee", 4 }, { "RHip", "RKnee", 4 },
 	} do
-		beam(lines, l[1] .. "_" .. l[2], l[1], l[2], props, {
-			Pulse = R(0, 0.3), Delay = l[3], Dots = 0.5, DotColor = WOOD_DOT,
+		beam(lines, l[1] .. "_" .. l[2], l[1], l[2], vine, {
+			Pulse = R(0.05, 0.35), Delay = l[3], Kick = 0.5, Dots = 0.42, DotColor = BUD, DotImage = ER.star,
 		})
 	end
 
-	-- roots creeping out over the ground, two crooked segments each
-	local ground = model("Ground", m)
-	for i = 1, 6 do
-		local yaw = math.rad((i - 1) * 60 + 20)
-		local bend = math.rad(if i % 2 == 0 then 22 else -22)
-		local dir = CFrame.Angles(0, yaw, 0)
-		local a = dir * CFrame.new(0, 0.06, -1.6)
-		part("Root" .. i .. "a", ground, a, V3(0.11, 0.05, 1.4), { Pulse = R(0.2, 0.5), Delay = 1 + i * 0.4 }).Color = WOOD
-		local b = dir * CFrame.new(0, 0.06, -2.3) * CFrame.Angles(0, bend, 0) * CFrame.new(0, 0, -0.6)
-		part("Root" .. i .. "b", ground, b, V3(0.07, 0.04, 1.2), { Pulse = R(0.3, 0.6), Delay = 3.5 + i * 0.4 }).Color = WOOD_DEEP
-	end
-	local canopy = part("Canopy", ground, CFrame.new(0, 5.5, 0), V3(5, 0.2, 5))
-	loop(canopy, "Leaves", {
-		Texture = A.leaf, Shape = box, EmissionDirection = Enum.NormalId.Bottom,
-		Size = rnd(0.25, 0.38), Transparency = seq(0, 1, 0.12, 0, 0.85, 0.05, 1, 1),
-		Color = cseq(0, WOOD_CORE, 1, WOOD), Lifetime = R(4, 5), Speed = R(0.8, 1.2), SpreadAngle = Vector2.new(25, 25),
-		Acceleration = V3(0.25, -0.1, 0), Rotation = R(0, 360), RotSpeed = R(-90, 90), Rate = 0.8, LightEmission = 0.15,
-	}, { Scaled = true })
+	-- limbs: green qi hugging the body, shoots on the arms, leaves curling off
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Qi", {
+		Texture = ER.verdure, Shape = box, ShapeStyle = volume, Size = rnd(0.45, 0.6),
+		Transparency = seq(0, 1, 0.3, 0.45, 0.7, 0.45, 1, 1), Color = cseq(0, JADE, 1, LEAF), Lifetime = R(1.2, 1.5),
+		Rotation = R(0, 360), RotSpeed = R(-20, 20), Rate = 1.4, LightEmission = 1, Brightness = 1.5, ZOffset = -0.2,
+		LockedToPart = true,
+	}, { On = "Torso,Arms", Scaled = true, Breathe = R(0.7, 1.3), Swell = 0.15, Drift = 0.06 })
+	loop(limbs, "Shoots", {
+		Texture = ER.sprout, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
+		EmissionDirection = up, Size = rnd(0.2, 0.28), Transparency = seq(0, 0.1, 0.8, 0.2, 1, 1), Color = shootColor,
+		Lifetime = R(1.2, 1.5), Rotation = R(-20, 20), Rate = 1, LightEmission = 0.7, Brightness = 2, ZOffset = 0.5,
+		LockedToPart = true,
+	}, { On = "Arms", Scaled = true, Breathe = R(0.5, 1.5), Surge = 4, PunchSurge = 2 })
+	loop(limbs, "Leaves", {
+		Texture = ER.leafB, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(6, 10), FlipbookStartRandom = true,
+		Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.13, 0.19),
+		Transparency = seq(0, 1, 0.1, 0, 0.8, 0.1, 1, 1), Color = leafColor, Lifetime = R(2, 2.6), Speed = R(0.6, 1),
+		SpreadAngle = Vector2.new(50, 50), Drag = 0.8, Acceleration = V3(0.2, -0.35, 0), Rotation = R(0, 360),
+		RotSpeed = R(-60, 60), Rate = 0.7, LightEmission = 0.3, Brightness = 1.5, ZOffset = 0.4,
+	}, { On = "Arms,Torso", Scaled = true, Surge = 4, PunchSurge = 2 })
 
-	-- each breath: sap motes rising off the seed, a green ring breathing out
+	-- each breath: the seed pulses, sap rises, a ring breathes out
 	local breath = model("Breath", m)
-	local belly = at("Belly", nil, "Belly", breath)
-	burst(belly, "Sap", 5, {
-		Size = seq(0, 0, 0.2, 0.18, 1, 0), Transparency = seq(0, 0.1, 1, 1), Color = CS(WOOD_DOT),
-		Lifetime = R(1.4, 2), Speed = R(1, 2), SpreadAngle = Vector2.new(60, 60), EmissionDirection = up,
-		LightEmission = 0.5, Drag = 0.6, ZOffset = 0.8,
+	local belly = at("Belly", CFrame.new(0, 0, -0.15), "Belly", breath)
+	burst(belly, "Pulse", 1, {
+		Texture = ER.dot, Size = seq(0, 0.35, 0.35, 0.8, 1, 0.9), Transparency = seq(0, 0.3, 1, 1),
+		Color = cseq(0, JADE_WHITE, 1, JADE), Lifetime = R(0.7), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
 	})
-	local floor = part("Floor", breath, CFrame.new(0, 0.12, 0))
-	wave(floor, "Out", {
-		mesh = A.torus, color = WOOD, fromSize = ring(3, 1.6), toSize = ring(6.6, 1),
-		fromTransparency = 0.3, toTransparency = 1, duration = 1.6, style = "Sine",
+	burst(belly, "Glint", 1, {
+		Texture = ER.star, Size = seq(0, 0.3, 0.4, 1.1, 1, 0), Transparency = NS(0), Color = CS(JADE_WHITE),
+		Lifetime = R(0.6), Rotation = R(-10, 10), LightEmission = 1, Brightness = 3, ZOffset = 1.9,
+	})
+	burst(belly, "Sap", 5, {
+		Texture = ER.mote, Size = seq(0, 0, 0.2, 0.1, 1, 0), Transparency = seq(0, 0.1, 1, 1), Color = cseq(0, JADE_WHITE, 1, BUD),
+		Lifetime = R(1.4, 2), Speed = R(1, 2), SpreadAngle = Vector2.new(50, 50), EmissionDirection = up,
+		LightEmission = 1, Brightness = 3, Drag = 0.8, ZOffset = 0.8,
+	})
+	local floorB = part("Floor", breath, CFrame.new(0, 0.2, 0), V3(1.6, 0.1, 1.6))
+	burst(floorB, "Ring", 1, B.flat({
+		Texture = ER.ring, Size = seq(0, 1.4, 1, 3.4), Transparency = seq(0, 0.45, 0.6, 0.6, 1, 1), Color = CS(JADE),
+		Lifetime = R(1.6), LightEmission = 1, Brightness = 2, ZOffset = 0.2,
+	}))
+	burst(floorB, "Skitter", 3, {
+		Texture = ER.leafA, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(8, 12), FlipbookStartRandom = true,
+		Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = rnd(0.14, 0.2),
+		Transparency = seq(0, 0, 0.8, 0.2, 1, 1), Color = leafColor, Lifetime = R(1.2, 1.6), Speed = R(1.5, 2.5), Drag = 1.5,
+		Rotation = R(0, 360), RotSpeed = R(-120, 120), LightEmission = 0.3, Brightness = 1.5,
 	})
 
-	-- ignition: a green ring bursts out of the ground, leaves whirl up
+	-- a bloom every few breaths: a lighter ignition
+	local bloomM = model("Punch", m)
+	local pSeed = at("Belly", CFrame.new(0, 0, -0.2), "Belly", bloomM)
+	burst(pSeed, "Flash", 1, {
+		Texture = ER.dot, Size = seq(0, 0.4, 0.25, 1.1, 1, 1.3), Transparency = seq(0, 0.1, 0.5, 0.5, 1, 1),
+		Color = cseq(0, JADE_WHITE, 1, JADE), Lifetime = R(0.5), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(pSeed, "Sparkle", 1, {
+		Texture = ER.sparkles, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(1.2), Transparency = NS(0),
+		Color = CS(JADE_WHITE), Lifetime = R(0.8), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	local pBed = part("Bed", bloomM, CFrame.new(0, 0.55, 0), V3(4.2, 0.1, 4.2))
+	burst(pBed, "Shoots", 8, {
+		Texture = ER.sprout, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.4, 0.55), Transparency = seq(0, 0, 0.8, 0.15, 1, 1),
+		Color = shootColor, Lifetime = R(1.1, 1.4), Rotation = R(-10, 10), LightEmission = 0.7, Brightness = 2, ZOffset = 0.4,
+	})
+	burst(pBed, "Whirl", 7, {
+		Texture = ER.leafB, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(8, 12), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.16, 0.24), Transparency = seq(0, 0, 0.8, 0.1, 1, 1),
+		Color = leafColor, Lifetime = R(1.4, 1.9), Speed = R(3, 5), SpreadAngle = Vector2.new(30, 30), Drag = 1.5,
+		Rotation = R(0, 360), RotSpeed = R(-160, 160), LightEmission = 0.3, Brightness = 1.5,
+	})
+	local pFloor = part("Floor", bloomM, CFrame.new(0, 0.22, 0))
+	burst(pFloor, "Bloom", 1, B.flat({
+		Texture = ER.bloom, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 2, 1, 2.8),
+		Transparency = NS(0), Color = CS(rgb(220, 255, 200)), Lifetime = R(0.8), Rotation = R(0, 360), LightEmission = 0.8,
+		Brightness = 2, ZOffset = 0.25,
+	}))
+
+	-- ignition: a short, punchy burst of growth on and near the body
 	local ignite = model("Ignite", m)
-	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(4, 0.2, 4))
-	wave(base, "Sprout", {
-		mesh = A.torus, color = WOOD, fromSize = ring(2, 3), toSize = ring(10, 1.3),
-		fromTransparency = 0, toTransparency = 1, duration = 1, style = "Quint",
+	local iSeed = at("Belly", CFrame.new(0, 0, -0.25), "Belly", ignite)
+	burst(iSeed, "Flash", 1, {
+		Texture = ER.dot, Size = seq(0, 0.6, 0.15, 1.7, 1, 2), Transparency = seq(0, 0, 0.4, 0.5, 1, 1),
+		Color = cseq(0, JADE_WHITE, 1, JADE), Lifetime = R(0.45), LightEmission = 1, Brightness = 3, ZOffset = 2,
 	})
-	wave(base, "Rise", {
-		mesh = A.swirlRing, color = WOOD_CORE, fromSize = V3(6, 1.4, 6), toSize = V3(2.4, 2.4, 2.4),
-		toOffset = V3(0, 5, 0), fromTransparency = 0.1, toTransparency = 1, duration = 1.1, style = "Quad",
+	burst(iSeed, "Star", 1, {
+		Texture = ER.star, Size = seq(0, 0.6, 0.25, 3.4, 1, 0), Transparency = NS(0), Color = CS(JADE_WHITE),
+		Lifetime = R(0.5), Rotation = R(0), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
 	})
-	burst(base, "Leaves", 16, {
-		Texture = A.leaf, Shape = disc, ShapeStyle = volume, EmissionDirection = up,
-		Size = rnd(0.35, 0.55), Transparency = seq(0, 0, 0.8, 0.1, 1, 1), Color = cseq(0, WOOD_CORE, 1, WOOD),
-		Lifetime = R(1.4, 2), Speed = R(5, 8), SpreadAngle = Vector2.new(35, 35), Drag = 1.2,
-		Rotation = R(0, 360), RotSpeed = R(-200, 200), LightEmission = 0.15,
+	burst(iSeed, "Sparkle", 1, {
+		Texture = ER.sparkles, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(1.8), Transparency = NS(0),
+		Color = CS(JADE_WHITE), Lifetime = R(0.9), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 2.05,
+	})
+	burst(iSeed, "Motes", 18, {
+		Texture = ER.mote, Size = seq(0, 0.12, 1, 0), Transparency = NS(0), Color = cseq(0, JADE_WHITE, 1, BUD),
+		Lifetime = R(0.8, 1.3), Speed = R(6, 10), Drag = 4, SpreadAngle = Vector2.new(180, 180), LightEmission = 1,
+		Brightness = 3, ZOffset = 1,
+	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3.8, 0.1, 3.8))
+	burst(base, "Spores", 1, B.flat({ -- dark under the bright burst
+		Texture = ER.moss, Size = seq(0, 1.4, 0.3, 3.2, 1, 3.6), Transparency = seq(0, 0.1, 0.7, 0.3, 1, 1), Color = CS(MOSS),
+		Lifetime = R(1.1), Rotation = R(0, 360), LightEmission = 0, ZOffset = 0.15,
+	}))
+	burst(base, "Bloom", 1, B.flat({
+		Texture = ER.bloom, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 2.4, 1, 3.6),
+		Transparency = NS(0), Color = CS(rgb(225, 255, 205)), Lifetime = R(0.85), Rotation = R(0, 360), LightEmission = 0.9,
+		Brightness = 2, ZOffset = 0.3,
+	}))
+	burst(base, "Ring", 1, B.flat({
+		Texture = ER.ring, Size = seq(0, 1, 1, 5), Transparency = seq(0, 0, 0.6, 0.4, 1, 1), Color = CS(JADE_WHITE),
+		Lifetime = R(0.55), LightEmission = 1, Brightness = 2, ZOffset = 0.35,
+	}))
+	burst(base, "Lash", 9, { -- vines lashing up out of the ground round the body
+		Texture = ER.strand, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = surface, EmissionDirection = up,
+		Orientation = streak, Size = seq(0, 0.35, 0.4, 0.5, 1, 0.15), Transparency = seq(0, 0, 0.6, 0.2, 1, 1),
+		Color = cseq(0, JADE_WHITE, 1, JADE), Lifetime = R(0.45, 0.6), Speed = R(8, 11), Drag = 4,
+		SpreadAngle = Vector2.new(10, 10), LightEmission = 0.7, Brightness = 2, ZOffset = 0.5,
+	})
+	burst(base, "Shoots", 12, {
+		Texture = ER.sprout, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc, ShapeStyle = volume,
+		EmissionDirection = up, Size = rnd(0.45, 0.7), Transparency = seq(0, 0, 0.8, 0.15, 1, 1), Color = shootColor,
+		Lifetime = R(1, 1.3), Speed = R(0.5, 1), Rotation = R(-10, 10), LightEmission = 0.7, Brightness = 2, ZOffset = 0.45,
+	}, { EmitDelay = 0.05 })
+	burst(base, "Whirl", 16, {
+		Texture = ER.leafB, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(10, 14), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.2, 0.3), Transparency = seq(0, 0, 0.8, 0.1, 1, 1),
+		Color = leafColor, Lifetime = R(1.4, 2), Speed = R(5, 8), SpreadAngle = Vector2.new(35, 35), Drag = 1.6,
+		Rotation = R(0, 360), RotSpeed = R(-220, 220), LightEmission = 0.3, Brightness = 1.5,
 	})
 	return m
 end

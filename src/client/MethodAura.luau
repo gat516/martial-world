@@ -12,8 +12,9 @@
 --   Flowing Spring  a pool under you that ripples each breath, a pearl of
 --                   water at the belly fed by streams of qi, a water ring
 --                   turning round the figure; now and then a drop falls in
---   Evergreen Root  green meridian branches growing from the belly out along
---                   the arms over a few breaths, roots on the ground, leaves
+--   Evergreen Root  a seed of green qi at the belly, vine meridians growing out
+--                   over a few breaths, leaves budding behind the shoulders,
+--                   glowing roots and shoots on a moss pool; blooms now and then
 --   Iron Marrow     a white-gold diamond between the hands under a small halo
 --                   of rays, gold bones, a spiked iron ring; each exhale a
 --                   clang (a spiky ring snaps out, sparks), now and then a

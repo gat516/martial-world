@@ -76,8 +76,18 @@ and the elder reacts (more excited for a rare root). It needs no decisions.
 Players already past the beat get "Have your root tested" as a quest-board goal.
 The pillar is `src/client/RootFX.luau` (template `ReplicatedStorage.Effects.RootPillar`,
 built by `tools/vfx_specs/RootPillar.luau`): a column from the stone's `PillarOrigin`
-with an element accent, taller with a ground shockwave and sky burst for rare roots,
-a short glow on the stone when `first` is false.
+wrapped in the element's own reveal, in the same visual language as its methods'
+auras ([auras.md](auras.md)): Fire a heart beating twice and a crown of flame
+climbing the column, Water a pool spreading over the ground with ripples and
+rings spouting up, Wood roots growing out and branches sprouting off the column
+with a leaf burst at the top, Metal a gold gem and clang rings snapping out up
+the column under a sunburst, Earth a carved stone ring rising round the stone
+with a rune circle, Lightning jagged bolts striking the stone under a darkened
+violet sky, Wind a vortex of rings corkscrewing up and clouds spraying out, Ice a
+giant glass lotus blooming round the stone. Rare roots go taller with a ground
+shockwave, a sky burst and a sky tint. Grade (in the payload) makes the column
+taller, wider and brighter and the element's pieces bigger; a Heaven root also
+gets the sky burst. A short glow on the stone when `first` is false.
 
 **Element (rolled):**
 

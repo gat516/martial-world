@@ -5,7 +5,7 @@
 -- installs _G.auraPreview:
 --
 --   P.scene({ methods = { "BlazingHeart", ... }, source = staging?, at = Vector3?,
---             spacing = 9, floor = "grass" | "dark", r15 = false })
+--             spacing = 9, floor = "grass" | "dark", floorSize = Vector3? })
 --       A floor in open sky with one R6 rig per method (clones of workspace.Rig,
 --       posed in Animations.Meditate.Loop), facing -Z, and a fresh copy of
 --       MethodAura pointed at `source` (default ReplicatedStorage.Effects)
@@ -91,7 +91,7 @@ function P.scene(opts)
 	local floor = Instance.new("Part")
 	floor.Name = "Floor"
 	floor.Anchored = true
-	floor.Size = Vector3.new(spacing * #methods + 20, 1, 40)
+	floor.Size = opts.floorSize or Vector3.new(spacing * #methods + 20, 1, 40)
 	floor.CFrame = CFrame.new(C - Vector3.new(0, 0.5, 0))
 	if opts.floor == "dark" then
 		floor.Material = Enum.Material.SmoothPlastic
@@ -192,8 +192,11 @@ function P.reveal(element, grade, at, first)
 	S.rootModules = modules
 	fx.folder = S.effects
 	tv.folder = S.effects
-	S.rootTv = tv
+	S.rootTvs = S.rootTvs or {}
+	table.insert(S.rootTvs, tv)
 	fx.source = S.source
+	S.rootFx = S.rootFx or {}
+	table.insert(S.rootFx, fx)
 	fx.play(nil, element, grade or "Spirit", first ~= false, CFrame.new(at or S.C))
 	return fx
 end
@@ -202,8 +205,18 @@ end
 -- particles. P.run() (or P.scene) starts things again.
 function P.freeze()
 	P.hold()
-	for _, tv in { S.tv, S.rootTv } do
-		for tween in (tv and tv.waves or {}) do
+	for _, fx in S.rootFx or {} do
+		local t = fx.now()
+		fx.now = function()
+			return t -- the reveal's column holds too (and isn't cleaned up)
+		end
+	end
+	local tvs = { S.tv }
+	for _, tv in S.rootTvs or {} do
+		table.insert(tvs, tv)
+	end
+	for _, tv in tvs do
+		for tween in tv.waves do
 			tween:Pause()
 		end
 	end

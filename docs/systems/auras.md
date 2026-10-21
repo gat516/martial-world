@@ -13,6 +13,14 @@ builder `tools/vfx_specs/MethodAura.luau` (its header is the attribute
 contract), Edit-mode preview `tools/aura_preview.luau`. Spirit, Earth and
 Heaven looks are not built (no method uses those grades yet).
 
+The spirit root reveal (`src/client/RootFX.luau`, template
+`Effects.RootPillar`) speaks the same language: each element's pillar carries
+its methods' motifs (Fire's heart and flame crown, Water's pool and ripples,
+Wood's roots and branches, Metal's gem and clang rings, Earth's rune stone
+ring, Lightning's bolts, Wind's vortex, Ice's glass lotus); see
+[character.md](character.md), "The reveal". A new element's reveal should
+reuse its first method's motif.
+
 ## What's built (Mortal)
 
 | Method | On the body | Ground / around | Breath beat | Ignition |

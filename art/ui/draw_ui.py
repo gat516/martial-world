@@ -1030,8 +1030,94 @@ def meditation_art():
     icon_practise()
 
 
+# ---------------------------------------------------------------- onboarding guide
+
+def guide_hole():
+    """The spotlight cut-out of the onboarding dim, 128px: an ink-jade veil all
+    round a soft rounded hole, with a faint warm halo at the hole's edge. The
+    alpha only depends on the distance to the centre square, so every edge strip
+    is identical along its length. 9-slice SliceCenter Rect(48, 48, 80, 80),
+    SliceScale 0.5; tinted to the dim's transparency with ImageTransparency."""
+    S = 128
+    N = S * SS
+    lo, hi = 48 * SS, 80 * SS
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(N):
+        dy = max(lo - y, 0, y - hi)
+        for x in range(N):
+            dx = max(lo - x, 0, x - hi)
+            dist = math.hypot(dx, dy) / SS
+            t = min(1.0, max(0.0, (dist - 4) / 36))
+            a = t * t * (3 - 2 * t)
+            # a warm halo hugging the hole
+            h = max(0.0, 1 - abs(dist - 7) / 5) * 0.55
+            r = int(10 + (232 - 10) * h)
+            g = int(16 + (190 - 16) * h)
+            b = int(20 + (110 - 20) * h)
+            px[x, y] = (r, g, b, int(255 * max(a, h * 0.8)))
+    finish(img, "guide_hole.png")
+
+
+def guide_arrow():
+    """The guide's pointer, 128px, pointing right (rotated in script): a gold
+    arrowhead with a jade core, ink outline and soft top light. Used at the
+    screen edge for an off-screen target and, turned down, as the marker over
+    the target. Stretched, shown at ~36-44px."""
+    N = 128 * SS
+    shape = Image.new("L", (N, N), 0)
+    d = ImageDraw.Draw(shape)
+    c = N / 2
+    d.polygon([(c + 54 * SS, c), (c - 40 * SS, c - 50 * SS), (c - 20 * SS, c), (c - 40 * SS, c + 50 * SS)], fill=255)
+    outline = shape.filter(ImageFilter.MaxFilter(5 * SS + 1))
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    img.paste(Image.new("RGBA", (N, N), INK), (0, 0), outline)
+    grad = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(grad)
+    top, bot = (255, 236, 180), (200, 146, 62)
+    for y in range(N):
+        t = y / N
+        gd.line([(0, y), (N, y)], fill=tuple(int(top[i] + (bot[i] - top[i]) * t) for i in range(3)) + (255,))
+    img.paste(grad, (0, 0), shape)
+    core = Image.new("L", (N, N), 0)
+    ImageDraw.Draw(core).polygon([(c + 26 * SS, c), (c - 18 * SS, c - 24 * SS), (c - 9 * SS, c), (c - 18 * SS, c + 24 * SS)], fill=255)
+    img.paste(Image.new("RGBA", (N, N), (64, 156, 120, 255)), (0, 0), core)
+    hl = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    ImageDraw.Draw(hl).line([(c - 32 * SS, c - 38 * SS), (c + 32 * SS, c - 7 * SS)], fill=(255, 250, 230, 150), width=3 * SS)
+    img.alpha_composite(hl)
+    finish(shadow_under(img, blur=3, offset=2, alpha=130), "guide_arrow.png")
+
+
+def guide_trail():
+    """The walking path's beam texture, 256x64, tiling along its length (U):
+    soft white chevrons pointing toward the target, tinted by the Beam's Color.
+    A glow under each chevron keeps it readable on bright ground."""
+    W, H = 256, 64
+    img = canvas(W, H)
+    glow = canvas(W, H)
+    gd = ImageDraw.Draw(glow)
+    d = ImageDraw.Draw(img)
+    for i in range(2):
+        x = (i * 128 + 64) * SS
+        pts = [(x - 18 * SS, 10 * SS), (x + 14 * SS, 32 * SS), (x - 18 * SS, 54 * SS)]
+        gd.line(pts, fill=(255, 255, 255, 120), width=22 * SS, joint="curve")
+        d.line(pts, fill=(255, 255, 255, 255), width=9 * SS, joint="curve")
+    glow = glow.filter(ImageFilter.GaussianBlur(8 * SS))
+    glow.alpha_composite(img)
+    finish(glow, "guide_trail.png")
+
+
+def guide_art():
+    guide_hole()
+    guide_arrow()
+    guide_trail()
+
+
 if __name__ == "__main__":
     import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "guide":
+        guide_art()
+        sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "meditation":
         meditation_art()
         sys.exit()

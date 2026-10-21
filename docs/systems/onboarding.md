@@ -49,7 +49,7 @@ How we apply it:
    root, travel, fight (M1, dodge), a technique, refine. Everything met later
    teaches itself through a **lesson** the first time it matters (see below),
    so the beat list stays short.
-2. **Guided UI** (client, to build): each beat and lesson carries a `guide`.
+2. **Guided UI** (built, `Guide.luau`): each beat and lesson carries a `guide`.
    - `button` + `dim`: grey the whole HUD except that control (a spotlight with a
      soft pulse) until it's pressed. Only for the first-session beats, never
      mid-fight, never for lessons.
@@ -95,7 +95,24 @@ on arrival at the gate (map), and timing the funnel to the first kill.
 - `src/server/Travel.luau`: where you may travel from (sect ground, an array, the
   Sect Gate for the wilds), destinations, realm gate, cooldown,
   combat block, streaming the destination in; `Travel.arrival` for respawns.
-- `src/client/Onboarding.luau`: objective tracker, elder line, quest board window.
+- `src/client/Onboarding.luau`: objective tracker, elder line, quest board window;
+  hands `QuestState.guide` to `Guide`.
+- `src/client/Guide.luau`: shows the guide. Button keys map to HUD controls in
+  one table (`BUTTONS`), resolved every frame since seated tiles come and go;
+  a non-dim button just pulses. With `dim`, `Hud.Guide.Dim` lays a gentle ink
+  veil (a soft-edged `Hole` around the control plus four side frames), every
+  other HUD control turns non-interactable (touch Jump and Dash excepted; the
+  veil itself sinks no input, so walking and the camera work), and
+  `Guide.Callout` carries the elder's line beside it. It lifts when the control
+  is pressed or the guide changes, and never shows in combat (hurt within
+  `Config.Combat.IN_COMBAT_SECONDS`), in the calm view or over a window the
+  target isn't in. Travel + `to` moves to the destination button once the menu
+  is open (dim or not). `place` resolves to the nearest target every second
+  (`Garden` = your own peak's HerbPlots, `WeaponRack`, `QiNode`, living
+  `Enemy`, `Array:<id>`, Hub pieces) and shows `Hud.GuideTrail`'s Beam from
+  the hips toward it (at most 28 studs), `Hud.GuideMarker` bobbing over it and
+  `Guide.Arrow` at the screen edge while it's off screen; all hide within 8 studs
+  and while a window is open.
 - `src/client/TravelMenu.luau`: shows the Travel button on sect ground, clones
   `Hud.TravelPrompt` onto every array (it opens the menu), binds every
   button under List named after a gate id (grouped in `List.Sect` / `List.Wilds`),
@@ -121,8 +138,6 @@ then pivots the character onto that array.
 - Rewards shown on the board come from `Pacing.Rewards`.
 
 ## Known gaps
-- The client still only pulses a button per beat (`Onboarding.FOCUS`) and shows
-  lesson lines; it doesn't read `guide` yet (no dimming, no walking paths).
 - Analytics funnel steps are beat positions, so inserting a beat shifts the
   step numbers after it (compare funnels across versions with care).
 

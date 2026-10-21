@@ -81,6 +81,14 @@ cursor, settings and the admin panel.
   floats over arrays (others' peaks only up close) and the screen fades to ink
   with the destination's name while the trip runs; the fade always lifts (a
   refusal lifts it at once, and it times out on its own).
+- Onboarding guide (`Guide`, see [onboarding](onboarding.md)): the server's
+  `guide` pulses one control; first-session beats spotlight it under a gentle
+  ink veil (`Hud.Guide`, art `guide_hole.png`, SliceCenter Rect(48, 48, 80, 80),
+  SliceScale 0.5) with the elder's line in a note-panel callout beside it, other
+  HUD controls ignoring taps until it's pressed. Walking goals get a chevron
+  beam (`Hud.GuideTrail`, `guide_trail.png`), a bobbing gold arrow over the
+  target (`Hud.GuideMarker`) and the same arrow at the screen edge when it's off
+  screen (`guide_arrow.png`). Art in `art/ui/draw_ui.py guide`.
 - World prompts are drawn in our own style, one target in focus at a time: on their
   target with mouse, keyboard or gamepad; on touch in a fixed column above the right
   end of the vitals and hotbar (`Prompts.Dock`, mirrors `Hud.Stack`'s box), so they
@@ -105,7 +113,7 @@ cursor, settings and the admin panel.
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`
   (spirit root reveal card).
-- `Onboarding.luau`, `TravelMenu.luau` (with `GateMarkers.luau` over arrays and
+- `Onboarding.luau`, `Guide.luau` (spotlight, dim, walking path), `TravelMenu.luau` (with `GateMarkers.luau` over arrays and
   `Veil.luau`, the travel fade in `StarterGui.Veil`), `HerbShop.luau`, `BuildCatalog.luau`,
   `SeedPicker.luau`, `PlantingBar.luau`, `PlantTag.luau`.
 - `BreakthroughView.luau`, `Meditation.luau` (seated tiles, calm view),

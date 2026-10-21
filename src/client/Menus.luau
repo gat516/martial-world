@@ -127,6 +127,11 @@ function Menus.isOpen(frame: GuiObject?): boolean
 	return current ~= nil
 end
 
+-- The open menu, if any.
+function Menus.current(): GuiObject?
+	return current
+end
+
 -- The calm view: fade the HUD away (or bring it back). Ignored while a menu is open.
 function Menus.setCalm(on: boolean)
 	if on and current then

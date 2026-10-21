@@ -1,11 +1,12 @@
 --!strict
 -- Onboarding and quest board UI: the objective tracker under the top-right tiles,
--- the elder's one-line guidance (shown once per beat, never blocking), a gentle
--- pulse on the button the current beat is about, the Travel button appearing when
--- the formation is taught, and the quest board window.
+-- the elder's one-line guidance (shown once per beat, never blocking), the
+-- server's guide (Guide: a pulsing or spotlit control, a path to walk), the
+-- Travel button appearing when the formation is taught, and the quest board.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Guide = require(script.Parent.Guide)
 local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
@@ -15,44 +16,19 @@ local questRemote = ReplicatedStorage.Remotes.QuestState :: RemoteEvent
 
 local ELDER_SECONDS = 7
 
--- Which button each beat is about.
-local FOCUS = {
-	Circulate = "CultivateButton",
-	Breakthrough = "Breakthrough", -- the seated Break Through tile
-	Root = "TravelButton",
-	Gate = "TravelButton",
-	FirstKill = "AttackButton",
-	Refine = "CultivateButton",
-}
-
 local Onboarding = {}
 
 local gui: ScreenGui
 local lastBeat: string? = nil
 local lastElder = ""
 local elderToken = 0
-local pulsing: GuiButton? = nil
 local goals: { any } = {}
-
-local function findButton(name: string): GuiButton?
-	return gui:FindFirstChild(name, true) :: GuiButton?
-end
-
--- A gentle swell on the button the current beat is about.
-local function pulse(name: string?)
-	if pulsing then
-		Motion.stopPulse(pulsing)
-		pulsing = nil
-	end
-	local button = name and findButton(name)
-	if button then
-		Motion.pulse(button)
-		pulsing = button
-	end
-end
 
 local function showElder(line: string)
 	local frame = gui:FindFirstChild("ElderLine", true) :: Frame
+	if Guide.spotlit() then
+		return -- the spotlight carries the line beside its control
+	end
 	(frame:FindFirstChild("Line") :: TextLabel).Text = line
 	frame.Visible = true
 	elderToken += 1
@@ -95,9 +71,12 @@ local function onState(state: any)
 
 	TravelMenu.setTaught(state.travel)
 
-	if state.beat ~= lastBeat or state.elder ~= lastElder then
-		local first = lastBeat == nil
-		lastBeat, lastElder = state.beat, state.elder
+	local newBeat = state.beat ~= lastBeat or state.elder ~= lastElder
+	local first = lastBeat == nil
+	lastBeat, lastElder = state.beat, state.elder
+	-- the guide first, so a spotlight can carry the line beside its control
+	Guide.set(state.guide, if state.lesson then state.lesson.elder else state.elder)
+	if newBeat then
 		-- returning players in free play don't need the farewell line every join
 		if not (first and state.beat == "FreePlay") then
 			showElder(state.elder)
@@ -109,7 +88,6 @@ local function onState(state: any)
 	if state.lesson then
 		showElder(state.lesson.elder)
 	end
-	pulse(FOCUS[state.beat])
 
 	local window = gui:FindFirstChild("QuestBoardWindow") :: Frame
 	if window.Visible then
@@ -119,6 +97,7 @@ end
 
 function Onboarding.init(screenGui: ScreenGui)
 	gui = screenGui
+	Guide.init(gui)
 	local board = gui:FindFirstChild("QuestBoardWindow") :: Frame
 	Menus.register(board)
 	ListWindow.bindClose(board)

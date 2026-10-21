@@ -352,6 +352,17 @@ end
 -- inside a tier step up its particle counts a little (see TechniqueVFX).
 Techniques.VISUAL_TIERS = { 3, 6, 9, 10 } -- I: 1-3, II: 4-6, III: 7-9, IV: 10 (mastery)
 
+-- Whether `level` is a tier's last level below mastery: casting stops there
+-- until the technique is comprehended (Pacing.Comprehension).
+function Techniques.bottleneck(level: number): boolean
+	for i = 1, #Techniques.VISUAL_TIERS - 1 do
+		if Techniques.VISUAL_TIERS[i] == level then
+			return true
+		end
+	end
+	return false
+end
+
 -- (tier, step): step is how many levels above the tier's first level.
 function Techniques.visualTier(level: number): (number, number)
 	local first = 1

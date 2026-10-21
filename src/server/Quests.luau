@@ -145,11 +145,11 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 	local nextStage = Realms.after(stage.major, stage.minor)
 	if nextStage then
 		local major = nextStage.major ~= stage.major
-		if data.insight < stage.insight then
+		if data.insightEarned < stage.insight then
 			table.insert(goals, {
 				name = "Gather insight",
 				detail = `Insight from first kills, the Elder Wolf King and kill milestones opens the way to {nextStage.name}.`,
-				progress = `{data.insight}/{stage.insight}`,
+				progress = `{data.insightEarned}/{stage.insight}`,
 			})
 		end
 		table.insert(goals, {

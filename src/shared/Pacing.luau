@@ -245,6 +245,19 @@ Pacing.Rewards = {
 	} :: { { kills: number, insight: number?, manual: string? } },
 }
 
+-- TECHNIQUE COMPREHENSION (Techniques.bottleneck, Progression.comprehend). Casting
+-- levels a technique, but at the top of each visual tier (Techniques.VISUAL_TIERS:
+-- levels 3, 6, 9) its XP stops at a bottleneck. Breaking it takes insight and
+-- Spirit Stones, spent seated in meditation, and opens the next tier. Spending
+-- insight never blocks a breakthrough: those check insight ever earned.
+Pacing.Comprehension = {
+	GATES = { -- by the level the bottleneck sits at
+		[3] = { insight = 1, stones = 60 }, -- into tier II
+		[6] = { insight = 2, stones = 250 }, -- into tier III
+		[9] = { insight = 3, stones = 600 }, -- into mastery
+	} :: { [number]: { insight: number, stones: number } },
+}
+
 -- WEAPON DAO COMPREHENSION (Weapons.luau, server Weapons). Each weapon class
 -- (Fist, Sword, Saber, ...) has its own level 0..MAX_LEVEL that multiplies M1
 -- and that class's technique damage (on top of the weapon's grade and the

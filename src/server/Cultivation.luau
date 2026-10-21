@@ -265,7 +265,7 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 	if not nextStage then
 		return false, "You stand at the peak of this world's cultivation, for now."
 	end
-	if data.insight < stage.insight then
+	if data.insightEarned < stage.insight then
 		if data.cultivation >= stage.bar then
 			for _, fn in Cultivation.onInsightBlocked do
 				task.spawn(fn, player, stage)
@@ -308,7 +308,7 @@ local function warning(player: Player, data: PlayerData.Data, rate: number): str
 	if data.cultivation >= stage.bar then
 		local first = not s.fullNoticed
 		s.fullNoticed = true
-		if data.insight < stage.insight then
+		if data.insightEarned < stage.insight then
 			return "You feel as if you need more insight."
 		end
 		return if first then "Your meridians brim with qi. Sit and meditate to break through." else nil

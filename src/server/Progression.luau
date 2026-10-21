@@ -3,6 +3,7 @@
 --   - the first kill of each enemy type: insight
 --   - every boss kill: insight; the first one also drops a manual
 --   - total-kill milestones: insight and/or a manual, once each
+-- Insight is spent comprehending a technique past a bottleneck (comprehend).
 --   - boss drop pools (Enemies `bossDrops`): a manual or weapon not owned yet,
 --     guaranteed on the first kill of that boss, then by chance
 -- Learning a class manual grants that class Dao XP (Pacing.Weapons.XP_MANUAL).
@@ -11,6 +12,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Pacing).Rewards
+local Comprehension = require(ReplicatedStorage.Shared.Pacing).Comprehension
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
@@ -37,8 +39,44 @@ function Progression.grantInsight(player: Player, amount: number, reason: string
 		return
 	end
 	data.insight += amount
+	data.insightEarned += amount
 	effectRemote:FireClient(player, "insight", amount, reason)
 	earned(player, "insight", reason)
+end
+
+-- Break a technique's bottleneck: seated in meditation, spend the gate's insight
+-- and Spirit Stones to open its next tier (Pacing.Comprehension).
+function Progression.comprehend(player: Player, id: any): (boolean, string?)
+	local data = PlayerData.get(player)
+	local def = type(id) == "string" and Techniques.Defs[id]
+	local owned = def and data and data.techniques.owned[id]
+	if not (data and def and owned) then
+		return false, "You don't know that technique"
+	end
+	local gate = Comprehension.GATES[owned.level]
+	if not (gate and Techniques.bottleneck(owned.level)) then
+		return false, "There's nothing to comprehend yet"
+	end
+	if owned.xp < Techniques.xpToNext(owned.level) then
+		return false, `Practise {def.name} more first`
+	end
+	if not (Cultivation.meditation and Cultivation.meditation(player)) then
+		return false, "Sit and meditate to comprehend it"
+	end
+	if data.insight < gate.insight then
+		return false, `You need {gate.insight} insight`
+	end
+	if data.stones < gate.stones then
+		return false, `You need {gate.stones} Spirit Stones`
+	end
+	data.insight -= gate.insight
+	data.stones -= gate.stones
+	owned.level += 1
+	owned.xp = 0
+	Cultivation.notify(player, `You comprehended {def.name}! It reached level {owned.level}.`)
+	earned(player, "comprehend", `{id}:{owned.level}`)
+	Cultivation.pushState(player)
+	return true, nil
 end
 
 -- Set by Inventory: puts a technique on the hotbar if there's room for it.

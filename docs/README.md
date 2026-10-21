@@ -93,7 +93,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | QuestState | Event | S->C | `Quests` (beat, objective, goals, openBoard) | Onboarding |
 | BuildAction | Function | C->S | `Build.handle` ("buy", "place", "store", "move") | BuildMode, BuildCatalog |
 | GardenAction | Function | C->S | `Garden.handle` ("plant", "harvest", "growTarget", "uproot", "buySeed", "sell", "sellAll") | Planting, GardenView, HerbShop |
-| InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot", "clear", "swap") | Inventory, HotbarView |
+| InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot", "clear", "swap", "comprehend") | Inventory, HotbarView |
 | TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only) | AdminPanel |

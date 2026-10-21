@@ -317,8 +317,18 @@ local function grantXp(player: Player, id: string)
 	if not owned or owned.level >= Techniques.MAX_LEVEL then
 		return
 	end
-	owned.xp += 1
 	local need = Techniques.xpToNext(owned.level)
+	if Techniques.bottleneck(owned.level) then
+		-- stuck at the tier's top until comprehended (Progression.comprehend)
+		if owned.xp < need then
+			owned.xp += 1
+			if owned.xp >= need then
+				Cultivation.notify(player, `{def.name} has reached a bottleneck. Meditate and comprehend it to go further.`)
+			end
+		end
+		return
+	end
+	owned.xp += 1
 	if owned.xp >= need then
 		owned.xp -= need
 		owned.level += 1

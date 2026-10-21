@@ -81,6 +81,7 @@ Every trip should get the thing you went for, plus a chance at a surprise.
 | Garden | herbs become qi and buffs (fewer trips) and sell for stones |
 | Peak building | meditation and garden bonuses (a better home) |
 | Weapons, Dao, techniques | how you fight out there (deal with "beasts too strong") |
+| Technique comprehension | spends insight and stones from trips out to break a technique's bottleneck (a new tier) |
 | Spirit root | a small perk on home or out, and your element |
 | World events, treasures, caches | surprise loot during trips |
 | Tribulation | the gate of a major realm |

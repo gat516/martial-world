@@ -19,7 +19,7 @@ local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
 local Roots = require(ReplicatedStorage.Shared.Roots)
 
-local SCHEMA_VERSION = 6
+local SCHEMA_VERSION = 7
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number, m: string? }
@@ -36,7 +36,8 @@ export type Data = {
 	cultivation: number, -- progress in the current realm bar
 	rawQi: number, -- held in the dantian, refined by circulation runs
 	stones: number, -- Spirit Stones, spent at the Spirit Market
-	insight: number,
+	insight: number, -- unspent insight (spent comprehending techniques)
+	insightEarned: number, -- every insight ever gained; breakthroughs check this
 	techniques: { owned: { [string]: Technique } },
 	hotbar: { string },
 	firstKills: { [string]: boolean },
@@ -85,6 +86,7 @@ local function default(): Data
 		rawQi = Income.STARTING_RAW_QI,
 		stones = Economy.STARTING_STONES,
 		insight = 0,
+		insightEarned = 0,
 		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } } },
 		hotbar = Hotbar.empty({ "SwordQiWave" }),
 		firstKills = {},
@@ -165,6 +167,10 @@ local migrations: { [number]: (any) -> () } = {
 			d.onboardingStep += 1
 		end
 		d.root = Roots.new()
+	end,
+	-- v6 never spent insight, so everything held so far was earned
+	[6] = function(d)
+		d.insightEarned = d.insight or 0
 	end,
 }
 

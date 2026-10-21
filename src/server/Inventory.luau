@@ -219,6 +219,7 @@ end
 --   ("slot", id, slot?)       put a technique or item on the hotbar
 --   ("clear", slot)           empty a slot
 --   ("swap", slotA, slotB)    swap two slots
+--   ("comprehend", techniqueId) break its bottleneck (Progression.comprehend)
 function Inventory.handle(player: Player, action: any, a: any, b: any): (boolean, string?)
 	local data = PlayerData.get(player)
 	if not data then
@@ -227,6 +228,8 @@ function Inventory.handle(player: Player, action: any, a: any, b: any): (boolean
 	local ok, message = true, nil
 	if action == "use" then
 		return Inventory.use(player, a)
+	elseif action == "comprehend" then
+		return Progression.comprehend(player, a)
 	elseif action == "slot" then
 		if type(a) ~= "string" or not owns(data, a) or (b ~= nil and not validSlot(b)) then
 			return false, "You can't place that"

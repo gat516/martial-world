@@ -34,7 +34,8 @@ felt in fights.
   `pushState` and the player attributes.
 - `src/server/Circulation.luau`: refining runs (see [minigames](minigames.md)).
 - `src/server/Tribulation.luau`: the lightning trial for a major breakthrough.
-- `src/server/Progression.luau`: insight and technique manuals from kills.
+- `src/server/Progression.luau`: insight and technique manuals from kills, and
+  `comprehend` (spends insight and stones to break a technique's bottleneck).
 - `src/server/QiNodes.luau`: raw qi (and stones) from wilds nodes.
 - `src/server/Inventory.luau` (`use`): consumables that add qi, cultivation, insight.
 - Client: `Hud.luau` (bars from attributes), `BreakthroughView.luau` (button and
@@ -57,6 +58,13 @@ felt in fights.
 5. The HUD reads `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`
    attributes every second and the `PlayerState` snapshot on change.
 
+## Insight: earned and spent
+`data.insightEarned` counts every insight gained and is what breakthroughs (and
+the quest board's "Gather insight") check. `data.insight` is what's left to spend:
+comprehending a technique past a bottleneck costs insight and Spirit Stones
+(`Pacing.Comprehension`, see [combat](combat.md)). So spending never blocks a
+breakthrough, and insight is a choice: which technique to deepen.
+
 ## Tuning knobs (all in `Pacing.luau`)
 - **Pacing.Curve**: one row per stage. QI: `bar`, `dantian`, `passive`.
   BREAKTHROUGH: `insight`, `runSeconds`, `difficulty`, `tribulation`. FIGHT:
@@ -69,7 +77,9 @@ felt in fights.
   `BEAST_HEALTH`, `BEAST_DAMAGE`, `TRIBULATION_DAMAGE`.
 - **Pacing.Refine / Income / Meditation / Breakthrough / Rewards**: run qi cost and
   efficiency, node/daily/offline/starting qi and the enemy-qi exponent,
-  meditation multipliers, forced-breakthrough thresholds, insight and manuals.
+  meditation multipliers, forced-breakthrough thresholds, insight and manuals,
+  and the kill-credit share (`Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`).
+- **Pacing.Comprehension**: insight and stones to break each technique bottleneck.
 - Arena geometry for the tribulation stays in `Config.Tribulation` (`CENTER`,
   `ARENA_RADIUS`, `STRIKE_RADIUS`, `RETURN_DELAY`).
 

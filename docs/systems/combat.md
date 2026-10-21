@@ -25,7 +25,11 @@ scales all player damage.
 - `src/shared/Weapons.luau`, `src/server/Weapons.luau`: weapon classes, the
   equipped weapon, grade and Dao multipliers ([weapons](weapons.md)).
 - `src/shared/Techniques.luau`: technique defs (line, circle, chain, zone, buff),
-  levels (`MAX_LEVEL` 10, +8% damage a level, XP per cast).
+  levels (`MAX_LEVEL` 10, +8% damage a level, XP per cast). At the top of
+  tiers I-III (levels 3, 6, 9) XP stops at a bottleneck (`Techniques.bottleneck`);
+  the player breaks it seated in meditation by spending insight and Spirit Stones
+  (`InventoryAction "comprehend"` -> `Progression.comprehend`, costs in
+  `Pacing.Comprehension`), which opens the next visual tier.
 - `src/shared/Knockback.luau`: how far player hits push beasts (by realm power
   ratio and beast weight) and the stagger they cause.
 - `src/server/Combat.luau`: `action` (Attack remote: begin/hit/cancel/sync),
@@ -378,7 +382,7 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   `weapon`, and for weapon skills `hits`, `castSpeed`, `lunge`/`lungeWindow`.
 - `Config.Combat.LUNGE_SLACK`, `LUNGE_WALK_ALLOWANCE`: the server's lunge check.
   `VISUAL_TIERS` maps levels to the four visual tiers (I 1-3, II 4-6, III 7-9,
-  IV 10); `TechniqueVFX.STEP_COUNT` is the extra particle count per level inside a tier.
+  IV 10), and so where the comprehension bottlenecks sit; `TechniqueVFX.STEP_COUNT` is the extra particle count per level inside a tier.
 - `Knockback.luau`: `REALM_EXPONENT`, `MIN_DISTANCE`, `ARMOR_BREAK`, stun, base pushes.
 - Per stage (`Pacing.luau`): player `power` and `health` (curve and Adjust).
 

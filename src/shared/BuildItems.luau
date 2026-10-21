@@ -128,6 +128,8 @@ local list: { Def } = {
 		category = "Structures",
 		cost = 15,
 		on = FLOOR,
+		-- the run is 13.4 between the snap edges; the posts standing on the joints poke past it
+		footprint = Vector2.new(0.62, 13.4),
 		edges = {
 			{ kind = "Fence", at = CFrame.new(0, 0, -6.7) },
 			{ kind = "Fence", at = CFrame.new(0, 0, 6.7) * CFrame.Angles(0, math.pi, 0) },

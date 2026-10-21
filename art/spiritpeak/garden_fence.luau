@@ -9,7 +9,8 @@ removal as all segments removed.
 
 Layout, peak-local (Peak.frame; -Z outward): a rectangle around the 12 beds (beds span X +-28, Z -20..32), four
 13.4-stud segments a side, the front and back each split by a 9-stud gap on the garden aisle (x = 0).
-Order: front left to right, right side front to back, back right to left, left side back to front.
+Order: front left to right, right side front to back, back right to left, left side back to front. Each
+segment's run (+Z) points along that loop, so its smaller end post always tucks into the next one's post.
 ]]
 
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
@@ -20,9 +21,10 @@ local PEAKS = CFG.peaks or { 1, 2, 3, 4, 5, 6, 7, 8 }
 local LAWN = -1.5
 local RUN = 13.4 -- segment length (BuildItems Fence edges at +-6.7)
 local SIDE_X = 31.3 -- side fences' centre line
-local FRONT_Z, BACK_Z = 33.4, -21.4 -- front/back fences' centre lines
+local FRONT_Z, BACK_Z = 32.8, -20.8 -- front/back fences' centre lines (corners meet the sides exactly)
 local SIDE_Z0 = -20.8 -- side runs start here and go 4 x RUN toward the front (to 32.8)
 local GAP = 4.5 -- half-width of the aisle gap front and back
+local SINK = 0.08 -- posts sink this far below the lowest lawn under them
 
 local template = game:GetService("ReplicatedStorage").BuildCatalog:FindFirstChild("Fence") :: Model
 assert(template, "BuildCatalog.Fence missing")
@@ -33,13 +35,13 @@ local function segments(): { { x: number, z: number, yaw: number } }
 	local list = {}
 	local xs = { -(GAP + RUN * 1.5), -(GAP + RUN / 2), GAP + RUN / 2, GAP + RUN * 1.5 }
 	for _, x in xs do -- front, left to right
-		table.insert(list, { x = x, z = FRONT_Z, yaw = 90 })
+		table.insert(list, { x = x, z = FRONT_Z, yaw = 90 }) -- run +Z points along the loop (clockwise from above)
 	end
 	for k = 3, 0, -1 do -- right side, front to back
-		table.insert(list, { x = SIDE_X, z = SIDE_Z0 + RUN * (k + 0.5), yaw = 0 })
+		table.insert(list, { x = SIDE_X, z = SIDE_Z0 + RUN * (k + 0.5), yaw = 180 })
 	end
 	for i = 4, 1, -1 do -- back, right to left
-		table.insert(list, { x = xs[i], z = BACK_Z, yaw = 90 })
+		table.insert(list, { x = xs[i], z = BACK_Z, yaw = -90 })
 	end
 	for k = 0, 3 do -- left side, back to front
 		table.insert(list, { x = -SIDE_X, z = SIDE_Z0 + RUN * (k + 0.5), yaw = 0 })
@@ -51,6 +53,10 @@ local function rebuild(peak: Model)
 	local c = (peak:FindFirstChild("Plateau") :: BasePart).Position
 	local frame = CFrame.lookAt(c, c + Vector3.new(c.X, 0, c.Z).Unit)
 	local garden = peak:FindFirstChild("Garden") :: Model
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { peak:FindFirstChild("Pillar") :: Instance }
+	params.RespectCanCollide = true
 	for _, d in garden:GetChildren() do
 		local id = d:GetAttribute("StarterId")
 		if id == "Garden/Fence" or (type(id) == "string" and id:match("^Garden/Fence_%d+$")) then
@@ -65,7 +71,16 @@ local function rebuild(peak: Model)
 		seg.Name = "Fence"
 		seg:SetAttribute("ItemId", "Fence")
 		seg:SetAttribute("StarterId", "Garden/Fence_" .. i)
-		seg:PivotTo(frame * CFrame.new(s.x, LAWN + LIFT - 0.05, s.z) * CFrame.Angles(0, math.rad(s.yaw), 0))
+		-- the lawn mesh rolls a little (about y -1.7..-1.2): stand the run on the lowest of its three post
+		-- spots, sunk SINK, so no post floats (the higher ones sink a few tenths into the turf)
+		local place = frame * CFrame.new(s.x, 0, s.z) * CFrame.Angles(0, math.rad(s.yaw), 0)
+		local low = math.huge
+		for _, dz in { -RUN / 2, 0, RUN / 2 } do
+			local o = place * Vector3.new(0, 10, dz)
+			local hit = workspace:Raycast(o, Vector3.new(0, -20, 0), params)
+			low = math.min(low, if hit then frame:PointToObjectSpace(hit.Position).Y else LAWN)
+		end
+		seg:PivotTo(place * CFrame.new(0, low - SINK + LIFT, 0))
 		seg.Parent = garden
 	end
 end

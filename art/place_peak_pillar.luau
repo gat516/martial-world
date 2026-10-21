@@ -7,10 +7,12 @@ mode) from the command bar or the MCP.
   2. replaces every SpiritPeaks.Peak_N.Pillar with a clone of the template at the same pivot
   3. removes the old part-built CaveAbode.CliffStairs (the stairs are now PeakStairs/Rail/Ramp in the pillar)
   4. lays invisible LawnCollider boxes just under each lawn (template and every peak): PeakGrass is an open
-     turf shell 420 studs tall, and its convex-decomposed collision has holes in the lawn (one over the abode
+     turf shell (it used to run 420 studs down the cliff to the ledge turf), and its convex-decomposed collision has holes in the lawn (one over the abode
      dome, a crack across the middle) that players fell through. The boxes come from art/lawn_collider.py.
 
-Set _G.PEAK_PILLAR_STAGES = { colliders = true } to only (re)lay the lawn colliders, without an import.
+Set _G.PEAK_PILLAR_STAGES = { colliders = true } to only (re)lay the lawn colliders, without an import, and add
+`peaks = { 1 }` to either stage to touch only those peaks (the template is always rebuilt on a swap). Children of
+an old Pillar that aren't meshes or the collider (Peak_N.Pillar.Terrace) are moved onto the new one.
 
 One ChangeHistory recording, so Ctrl+Z undoes it. Collision geometry for PreciseConvexDecomposition parts is
 computed per clone and can take a few seconds.
@@ -22,9 +24,9 @@ CFrame = CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy).
 
 -- BEGIN MESHES (generated from SpiritPeakPillar.json)
 local MESHES = {
-	PeakRock = { center = { 5.232, -0.768, -90.51 }, size = { 152.267, 143.797, 173.98 } }, -- 8165 tris
-	PeakRockBase = { center = { -0.25, 0.606, -370.505 }, size = { 214.559, 212.153, 386.011 } }, -- 13079 tris
-	PeakGrass = { center = { -5.35, 3.369, -211.962 }, size = { 177.62, 151.409, 421.653 } }, -- 4353 tris
+	PeakRock = { center = { 5.232, -0.768, -90.51 }, size = { 152.267, 143.797, 173.98 } }, -- 8193 tris
+	PeakRockBase = { center = { -0.25, 0.606, -370.505 }, size = { 214.559, 212.153, 386.011 } }, -- 13106 tris
+	PeakGrass = { center = { -1.588, 1.108, -2.668 }, size = { 106.956, 106.034, 3.065 } }, -- 3860 tris
 	AbodeWalls = { center = { 0.04, 16.581, -16.25 }, size = { 62.543, 75.837, 17.5 } }, -- 461 tris
 	AbodeFloor = { center = { 0.0, 16.75, -25.0 }, size = { 62.0, 75.5, 0.0 } }, -- 48 tris
 	PeakStairs = { center = { -39.385, 28.288, -15.116 }, size = { 29.803, 44.402, 24.305 } }, -- 247 tris
@@ -35,44 +37,43 @@ local MESHES = {
 
 -- BEGIN LAWN_COLLIDER (generated from SpiritPeakPillar.json: x0, x1, y0, y1, top in Blender axes)
 local LAWN_COLLIDER = {
-	{ -48.0, -44.0, -5.836, 5.164, -1.825 },
-	{ -44.0, -40.0, -19.336, 6.164, -1.843 },
-	{ -40.0, -36.0, -27.336, 15.664, -1.838 },
-	{ -40.0, -36.0, 21.164, 28.164, -1.794 },
-	{ -36.0, -32.0, -31.836, 33.164, -1.823 },
-	{ -32.0, -28.0, -35.836, 37.664, -1.801 },
-	{ -28.0, -24.0, -38.836, 42.164, -1.775 },
-	{ -24.0, -20.0, -41.336, 45.664, -1.723 },
-	{ -20.0, -16.0, -43.336, 48.164, -1.776 },
-	{ -16.0, -12.0, -45.336, 49.164, -1.749 },
-	{ -12.0, -8.0, -46.336, 50.164, -1.684 },
-	{ -8.0, -4.0, -47.336, 50.664, -1.697 },
-	{ -4.0, 0.0, -48.336, 51.164, -1.724 },
-	{ 0.0, 4.0, -48.836, 51.664, -1.738 },
-	{ 4.0, 8.0, -48.836, 51.164, -1.715 },
-	{ 8.0, 12.0, -47.836, 50.164, -1.69 },
-	{ 12.0, 16.0, -46.836, 48.664, -1.711 },
-	{ 16.0, 20.0, -44.836, 47.164, -1.739 },
-	{ 20.0, 24.0, -43.336, 43.664, -1.743 },
-	{ 24.0, 28.0, -40.836, 38.664, -1.755 },
-	{ 28.0, 32.0, -37.836, 33.664, -1.758 },
-	{ 32.0, 36.0, -34.336, 28.664, -1.758 },
-	{ 36.0, 40.0, -29.336, 22.664, -1.737 },
-	{ 40.0, 44.0, -22.836, 17.164, -1.75 },
-	{ 44.0, 48.0, -11.336, 8.164, -1.73 },
+	{ -48.0, -44.0, -5.908, 5.092, -1.827 },
+	{ -44.0, -40.0, -19.408, 6.092, -1.843 },
+	{ -40.0, -36.0, -27.408, 16.092, -1.838 },
+	{ -40.0, -36.0, 21.092, 28.092, -1.794 },
+	{ -36.0, -32.0, -31.908, 33.092, -1.824 },
+	{ -32.0, -28.0, -35.908, 37.592, -1.801 },
+	{ -28.0, -24.0, -38.908, 42.092, -1.775 },
+	{ -24.0, -20.0, -41.408, 46.092, -1.725 },
+	{ -20.0, -16.0, -43.408, 48.092, -1.777 },
+	{ -16.0, -12.0, -44.908, 49.092, -1.746 },
+	{ -12.0, -8.0, -46.408, 50.092, -1.684 },
+	{ -8.0, -4.0, -47.408, 50.592, -1.697 },
+	{ -4.0, 0.0, -48.408, 51.092, -1.724 },
+	{ 0.0, 4.0, -48.908, 51.592, -1.736 },
+	{ 4.0, 8.0, -48.908, 51.092, -1.715 },
+	{ 8.0, 12.0, -47.908, 50.092, -1.69 },
+	{ 12.0, 16.0, -46.408, 48.592, -1.711 },
+	{ 16.0, 20.0, -44.908, 47.092, -1.738 },
+	{ 20.0, 24.0, -42.908, 43.592, -1.742 },
+	{ 24.0, 28.0, -40.908, 39.092, -1.755 },
+	{ 28.0, 32.0, -37.908, 33.592, -1.758 },
+	{ 32.0, 36.0, -33.908, 28.592, -1.758 },
+	{ 36.0, 40.0, -29.408, 22.592, -1.737 },
+	{ 40.0, 44.0, -22.408, 17.092, -1.75 },
+	{ 44.0, 48.0, -11.408, 8.092, -1.73 },
 }
 -- END LAWN_COLLIDER
 local COLLIDER_DEPTH = 3.5 -- box thickness; stays above the abode dome (apex 7.5 under the lawn)
 local COLLIDER_OVERLAP = 0.1 -- neighbouring strips overlap this much, so no seam is left between them
 
--- plain colours, no textures: the rock's shape carries the detail
-local ROCK = Color3.fromRGB(110, 110, 115)
-local GRASS = Color3.fromRGB(110, 165, 70)
-
+-- Roblox's textured materials tinted to the map palette (docs/systems/map.md): the user found SmoothPlastic
+-- "too plasticy". LeafyGrass is overridden by MaterialService's stylized grass variant, the same one the
+-- terrain lawns use, and tinted like terrain LeafyGrass (6E8F5A), so the peaks read as the same green.
 local STYLE = {
-	PeakRock = { material = Enum.Material.SmoothPlastic, color = ROCK, fidelity = "PreciseConvexDecomposition" },
-	PeakRockBase = { material = Enum.Material.SmoothPlastic, color = Color3.fromRGB(96, 96, 100), fidelity = "Hull" },
-	PeakGrass = { material = Enum.Material.SmoothPlastic, color = GRASS, fidelity = "PreciseConvexDecomposition" },
+	PeakRock = { material = Enum.Material.Slate, color = Color3.fromHex("7A7570"), fidelity = "PreciseConvexDecomposition" },
+	PeakRockBase = { material = Enum.Material.Slate, color = Color3.fromHex("615D59"), fidelity = "Hull" },
+	PeakGrass = { material = Enum.Material.LeafyGrass, color = Color3.fromHex("6E8F5A"), fidelity = "PreciseConvexDecomposition" },
 	AbodeWalls = { material = Enum.Material.SmoothPlastic, color = Color3.fromRGB(150, 138, 120), fidelity = "PreciseConvexDecomposition" },
 	AbodeFloor = { material = Enum.Material.WoodPlanks, color = Color3.fromRGB(120, 85, 55), fidelity = "Box", shadow = false },
 	-- the treads are looks only; feet ride the invisible ramp through the middle of each tread
@@ -82,6 +83,7 @@ local STYLE = {
 }
 
 local STAGES = _G.PEAK_PILLAR_STAGES or { swap = true, colliders = true }
+local ONLY = STAGES.peaks -- e.g. { 1 }: swap/lay only these peaks' pillars (default all 8)
 
 local CHS = game:GetService("ChangeHistoryService")
 local ServerStorage = game:GetService("ServerStorage")
@@ -135,14 +137,36 @@ local function buildTemplate()
 	return model
 end
 
+local function chosen(peak: Instance): boolean
+	if not ONLY then
+		return true
+	end
+	for _, i in ONLY do
+		if peak.Name == "Peak_" .. i then
+			return true
+		end
+	end
+	return false
+end
+
 local function swapPillars(template)
 	for _, peak in peaks:GetChildren() do
+		if not chosen(peak) then
+			continue
+		end
 		local old = peak:FindFirstChild("Pillar")
 		assert(old, peak.Name .. " has no Pillar")
 		local pivot = old:GetPivot()
 		local new = template:Clone()
 		new.Name = "Pillar"
 		new:PivotTo(pivot)
+		-- keep what was built onto the pillar by other scripts (the dwelling's Terrace): anything that is
+		-- not one of the meshes or the lawn collider moves across unchanged
+		for _, c in old:GetChildren() do
+			if not MESHES[c.Name] and c.Name ~= "LawnCollider" then
+				c.Parent = new
+			end
+		end
 		old:Destroy()
 		new.Parent = peak
 		local stairs = peak:FindFirstChild("CaveAbode") and peak.CaveAbode:FindFirstChild("CliffStairs")
@@ -185,6 +209,9 @@ local function layAllLawnColliders()
 	assert(template, "ServerStorage.PeakPillar missing; run the full swap first")
 	layLawnCollider(template)
 	for _, peak in peaks:GetChildren() do
+		if not chosen(peak) then
+			continue
+		end
 		layLawnCollider(assert(peak:FindFirstChild("Pillar"), peak.Name .. " has no Pillar"))
 	end
 end

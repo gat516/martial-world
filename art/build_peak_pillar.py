@@ -43,6 +43,7 @@ STAIR_IN, STAIR_OUT = 5.0, 3.9               # tread extent inside/outside the s
 MIN_LAWN = 60.0  # studs^2; up-facing patches smaller than this are rock bumps, not lawn
 LIP = 1.3        # depth of the lawn's green side (and of the turf wrapped over the cliff ledges)
 SLOPE_H = 1.4    # the lawn's bevelled edge drops this far while reaching out by rim_out() (like the cliff ledges)
+LEDGE_TURF = False  # turf on the cliff ledges too (the user found the green ledge discs lousy: ledges stay rock)
 
 # Cliff ledges: (angle deg, 90 = outward; depth below top; radius; protrusion)
 OUTCROPS = [(20, 36, 11, 7), (205, 50, 13, 8), (322, 74, 10, 6), (158, 96, 12, 7),
@@ -683,6 +684,8 @@ def split_and_export(pillar, h, anchors, stairs):
             return False
         if rim_level(p) > TOP_Z - SLOPE_H - 1.0:
             return True
+        if not LEDGE_TURF:
+            return False
         c = p[0].calc_center_median()
         return any(math.hypot(c.x - a["x"], c.y - a["y"]) < a["size"] + 6 and abs(c.z - a["z"]) < 4 for a in anchors)
 

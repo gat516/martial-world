@@ -7,8 +7,9 @@
 -- terrain_wilds.luau.
 --
 -- Also carves the border river (RIVER) between the valley and the moved Borderlands.
--- Leaves alone: the built Inner box and the Ruined Borderlands box (feathered 36 studs into
--- what is there), the sect-gate front, and everything within r 480 of the origin (the
+-- Leaves alone: the Ruined Borderlands box (feathered 36 studs into what is there; the old Inner
+-- box and its old river are valley floor since the rework's phase 2, which runs terrain_wilds
+-- over the whole valley afterwards), the sect-gate front, and everything within r 480 of the origin (the
 -- under-sect ground). Replaces old terrain water and fills old fissures down to Y -24.
 -- Materials: LeafyGrass and Grass by noise (the built zone's banks), Ground on slopes over
 -- ~35 deg and under the top layer. Material colours are global and not touched.
@@ -17,8 +18,6 @@ local RES = 4
 local Y0, Y1 = -24, 40
 local BOUNDS = { x0 = -1020, x1 = 1020, z0 = 470, z1 = 1620 }
 local KEEP = { -- {x0, x1, z0, z1}: built areas left as they are
-	{ -430, 410, 560, 878 }, -- Inner Wilds box (wilds_layout)
-	{ -440, 420, 860, 945 }, -- its border river and bridge
 	{ -200, 500, 1612, 1960 }, -- Ruined Borderlands box (moved south 2026-10-21)
 	{ -120, 160, 470, 612 }, -- sect-gate front
 }

@@ -121,9 +121,10 @@ everyone to one spot, and a day/night cycle.
   `Workspace.Wilds.EventGrounds` disc's `Radius` (`assets/Wilds.rbxmx`; tagged `POI`,
   Kind `EventGround`), raycasts to the ground and skips water, retrying up to 8 times;
   it falls back to the `Wilds.Zones` beast discs only when no event ground exists.
-  Today's grounds are interim spots in the built boxes (Inner: Boar Meadow (230, 690)
-  r 40, West Field (-160, 780) r 38; Middle, moved with the zone: Graves Field (0,
-  1750) r 32, South Flat (360, 1928) r 30) until the zone reworks place the planned ones ([map](map.md)).
+  Grounds: the Inner valley's three planned ones (West Field (-400, 1000) r 55, North
+  Terrace (300, 680) r 48, East Flat (470, 1120) r 55; [map](map.md) "Inner Wilds rework")
+  and two interim ones in the Ruined Borderlands (Graves Field (0, 1750) r 32, South Flat
+  (360, 1928) r 30) until that zone is reworked.
 - Placing event and treasure templates: keep the template's pivot rotation
   (`CFrame.new(spot) * template:GetPivot().Rotation`). `WorldTreasure`'s pivot is
   its `Ring`, a cylinder turned upright, so a bare `CFrame.new(spot)` lays the

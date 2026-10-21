@@ -390,7 +390,7 @@ local function run(CFG)
 					end
 					for _, f in Z.flats or {} do
 						if (p - Vector2.new(f[1], f[2])).Magnitude < f[3] + 6 then
-							top = M.Ground -- arena floors: bare packed earth
+							top = if f[5] then M[f[5]] else M.Ground -- arena floors: bare packed earth unless the flat names one
 						end
 					end
 				end

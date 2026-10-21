@@ -20,74 +20,119 @@ end
 
 _G.WILDS_LAYOUT = {
 	Inner = {
-		-- "Bamboo and old stone, where young beasts hunt."
-		box = { -430, 560, 410, 878 }, -- area the terrain pass rewrites (x0, z0, x1, z1), feathered at the edge
+		-- "Bamboo and old stone, where young beasts hunt." The walled valley (docs/systems/map.md,
+		-- "Inner Wilds rework", 2026-10-21): spine from the arrival court south to the Shrine Terrace,
+		-- arms and loops to seven pockets, three event grounds, a find every 100-150 studs.
+		box = { -1000, 500, 1000, 1460 }, -- the whole valley inside the wall ring (x0, z0, x1, z1)
 		base = 4.6, -- mean ground height
-		noise = { { 90, 1.4 }, { 33, 0.6 } }, -- { wavelength, amplitude }
+		noise = { { 120, 1.6 }, { 33, 0.6 } }, -- { wavelength, amplitude }
 		bank = 3.2, -- grass banks either side of the paths
 		pathMat = "Sand",
 		edgeMat = "Ground",
 		cliffMat = "Ground", -- slopes steeper than CLIFF_SLOPE
 		grass = { "Grass", "LeafyGrass" },
 		paths = {
-			-- the trunk: end of the sect gate's paving -> old stone gate -> steles -> shrine terrace -> bridge
-			{ name = "Trunk", w = 10, pts = P({ 0, 586, 4, 615, -6, 648, -10, 680, 6, 712, 14, 740, 2, 772, -14, 798, -12, 826, -4, 848, -8, 868 }) },
-			-- west: QiNode2 nook -> wolf den hunting ground
-			{ name = "West", w = 7, pts = P({ -8, 662, -48, 674, -96, 694, -140, 710, -178, 716, -212, 694, -238, 672 }) },
-			-- west loop: boar field -> north foot of the shrine terrace -> trunk
-			{ name = "WestLoop", w = 6, pts = P({ -178, 716, -176, 750, -160, 778, -125, 792, -90, 788, -40, 792, -12, 798 }) },
-			-- hidden trail: a cleft through Old Stone Hill into the bamboo hollow
-			{ name = "Hidden", w = 4, pts = P({ -48, 674, -66, 648, -88, 626, -110, 608, -124, 600 }) },
-			-- east: through the gap -> fallen giant over the gully -> boar meadow -> qi spring shrine
-			{ name = "East", w = 7, pts = P({ 6, 712, 50, 706, 100, 700, 140, 696, 185, 694, 230, 690, 258, 722, 270, 770, 262, 804, 244, 824 }) },
-			-- back along the river bank
-			{ name = "EastBank", w = 6, pts = P({ 244, 824, 226, 840, 190, 850, 130, 856, 70, 858, 20, 858, -4, 852 }) },
-			-- hunter's camp in the lee of the east hills
-			{ name = "Camp", w = 4, pts = P({ 252, 676, 280, 652, 304, 634 }) },
+			-- the spine: end of the sect gate's paving -> old stone gate -> arrival court -> shrine stair
+			{ name = "Spine", w = 10, pts = P({ 0, 586, 4, 615, -6, 648, -10, 680, 4, 712, 10, 760, 8, 800, -6, 870, -20, 950, -10, 1030, 0, 1100, -4, 1180, -10, 1250, -24, 1300, -36, 1335 }) },
+			-- the gorge road: spine end -> gorge gate -> the bridge
+			{ name = "GorgeRoad", w = 8, pts = P({ -10, 1250, 40, 1280, 120, 1320, 170, 1370, 205, 1420, 212, 1455 }) },
+			-- west arm: the court -> QiNode2 -> the Wolf Den Hollow
+			{ name = "WestArm", w = 7, pts = P({ -8, 664, -48, 674, -96, 694, -150, 712, -200, 722, -280, 735, -360, 745, -450, 755, -540, 762 }) },
+			-- the Hidden trail through the Bamboo Sea to the hollow
+			{ name = "Hidden", w = 4, pts = P({ -150, 712, -190, 680, -230, 650, -280, 625, -320, 610 }) },
+			-- west loop: down past the West Field to the Three Pillars
+			{ name = "WestLoop", w = 6, pts = P({ -360, 745, -420, 850, -430, 930, -410, 990, -470, 1060, -520, 1120, -560, 1165 }) },
+			-- south-west: back east along the south wall to the spine
+			{ name = "SouthWest", w = 6, pts = P({ -560, 1165, -480, 1250, -420, 1300, -330, 1320, -250, 1330, -180, 1320, -120, 1300, -60, 1270, -10, 1250 }) },
+			-- east arm: the court -> over the Fallen Giant -> boar wallow -> the Hunter's Camp
+			{ name = "EastArm", w = 7, pts = P({ 4, 712, 40, 712, 100, 728, 150, 735, 220, 728, 262, 760, 290, 798, 335, 797, 380, 800, 450, 795, 500, 800, 570, 760, 630, 725 }) },
+			{ name = "Camp", w = 4, pts = P({ 630, 725, 660, 714 }) },
+			-- east loop: south to the Twin-Jade Spring
+			{ name = "EastLoop", w = 6, pts = P({ 500, 800, 560, 870, 600, 950, 610, 1050, 600, 1130, 590, 1185 }) },
+			-- south-east: back west to the gorge gate
+			{ name = "SouthEast", w = 6, pts = P({ 590, 1185, 530, 1250, 470, 1300, 380, 1330, 300, 1340, 250, 1380, 210, 1420 }) },
+			-- cross paths linking the loops to the spine
+			{ name = "CrossWest", w = 6, pts = P({ -20, 950, -80, 968, -150, 985, -220, 995, -300, 1000, -345, 1000 }) },
+			{ name = "CrossEast", w = 6, pts = P({ 0, 1100, 80, 1135, 150, 1160, 240, 1160, 330, 1150, 415, 1130, 530, 1090, 605, 1045 }) },
+			{ name = "LotusLane", w = 4, pts = P({ -150, 985, -190, 1040, -225, 1100, -238, 1122 }) },
+			-- the north foot under the wall to the North Terrace (G2's second route)
+			{ name = "NorthFoot", w = 5, pts = P({ -6, 648, 40, 640, 130, 618, 240, 628, 280, 650, 296, 676 }) },
+			-- risky shortcuts (narrow trails)
+			{ name = "CutWest", w = 3, pts = P({ -10, 700, -60, 760, -120, 810, -180, 850, -240, 895, -300, 940, -350, 975 }) },
+			{ name = "CutRidge", w = 3, pts = P({ 40, 665, 90, 668, 150, 664, 200, 660, 255, 670 }) },
+			{ name = "CutGully", w = 3, pts = P({ 300, 812, 298, 860, 304, 920, 318, 980, 345, 1040, 420, 1100 }) },
 		},
 		-- hills and ridges: polyline spines, height above base, half width; rock = outcrop dressing on it
 		ridges = {
-			{ name = "OldStoneHill", pts = P({ -40, 590, -90, 572, -160, 580, -205, 610 }), h = 20, hw = 34, rock = true },
-			{ name = "GateRidge", pts = P({ 40, 600, 62, 640, 70, 684 }), h = 17, hw = 22, rock = true },
-			{ name = "EastHills", pts = P({ 96, 780, 150, 772, 200, 792 }), h = 15, hw = 22, rock = true },
-			{ name = "MeadowNorth", pts = P({ 130, 610, 200, 628, 250, 618 }), h = 13, hw = 22 },
-			{ name = "WestSpur", pts = P({ -112, 738, -76, 744, -46, 754 }), h = 11, hw = 16, rock = true },
-			{ name = "DenNorth", pts = P({ -260, 596, -200, 640 }), h = 12, hw = 18 },
-			{ name = "WestRim", pts = P({ -400, 600, -385, 700, -395, 800, -370, 860 }), h = 22, hw = 34, rock = true },
-			{ name = "EastRim", pts = P({ 380, 640, 360, 730, 372, 820 }), h = 20, hw = 30, rock = true },
-			{ name = "ShrineBack", pts = P({ -110, 840, -150, 830, -200, 836 }), h = 9, hw = 18 },
+			-- the ground rises into the wall feet (crest lines of art/wilds/build_walls_inner.luau)
+			{ name = "BermNW", pts = P({ -790, 556, -620, 522, -400, 505, -112, 502 }), h = 9, hw = 70 },
+			{ name = "BermNE", pts = P({ 152, 500, 270, 494, 386, 500 }), h = 9, hw = 70 },
+			{ name = "BermNE2", pts = P({ 545, 600, 700, 590, 840, 640 }), h = 9, hw = 70 },
+			{ name = "BermE", pts = P({ 840, 640, 900, 800, 905, 1000, 880, 1180, 800, 1262 }), h = 9, hw = 70 },
+			{ name = "BermSE", pts = P({ 618, 1425, 420, 1450, 262, 1452 }), h = 9, hw = 70 },
+			{ name = "BermS", pts = P({ -212, 1448, -110, 1418, -12, 1400, 42, 1402, 62, 1360, 60, 1300 }), h = 9, hw = 60 },
+			{ name = "BermSW", pts = P({ -212, 1448, -280, 1452, -500, 1440, -760, 1400 }), h = 9, hw = 70 },
+			{ name = "BermW", pts = P({ -760, 1400, -860, 1250, -900, 1000, -872, 742 }), h = 9, hw = 70 },
+			-- Old Stone Hill under the Bamboo Sea, holding the hidden hollow
+			{ name = "OldStoneHill", pts = P({ -440, 610, -380, 578, -300, 572, -230, 600 }), h = 18, hw = 34, rock = true },
+			-- the GateRidge east of the court; the G2 shortcut runs along its crest
+			{ name = "GateRidge", pts = P({ 60, 668, 150, 666, 235, 664 }), h = 11, hw = 20, rock = true },
 		},
 		-- terraces / knolls: { x, z, flatRadius, outerRadius, topY, steep } (steep: cliff-edged, rocks around)
 		knolls = {
-			{ -58, 826, 14, 24, 15, true }, -- shrine terrace (hero)
-			{ -318, 652, 14, 40, 26, true }, -- wolf den crag (the den cave runs into it)
-			{ 314, 616, 7, 22, 7.5, false }, -- camp rise
+			{ -70, 1365, 14, 28, 15, true }, -- Shrine Terrace at the Shrine Cliff's foot (hero)
+			{ -658, 772, 14, 40, 26, true }, -- wolf den crag (the den cave runs into it)
+			{ 660, 712, 7, 22, 7.5, false }, -- hunter's camp rise
+			{ -560, 1170, 10, 26, 6.5, false }, -- the hermitage rise at the Three Pillars' feet
 		},
 		-- gullies: dry ravines, polyline, depth below the ground, half width
 		gullies = {
-			{ name = "GiantsGully", pts = P({ 150, 640, 146, 690, 156, 740, 150, 800 }), depth = 7, hw = 11 },
+			{ name = "GiantsGully", pts = P({ 300, 743, 296, 793, 306, 843, 300, 903, 312, 980, 330, 1040 }), depth = 7, hw = 11 },
 		},
 		-- bowls: { x, z, flatRadius, rimRadius, rimHeight }
 		bowls = {
-			{ -128, 598, 16, 30, 0 }, -- the hidden bamboo hollow inside Old Stone Hill (floor kept at base)
+			{ -328, 602, 16, 30, 0 }, -- the hidden bamboo hollow inside Old Stone Hill
 		},
 		-- caves carved after the heightmap: mouth (x, z), floor Y, heading (deg, 0 = +X, 90 = +Z), length, radius
 		caves = {
-			{ name = "WolfDenCave", x = -296, z = 654, floor = 4.8, heading = 180, length = 30, radius = 7.5 },
+			{ name = "WolfDenCave", x = -636, z = 774, floor = 4.8, heading = 180, length = 30, radius = 7.5 },
 		},
-		pools = {},
+		pools = {}, -- no terrain water in the valley: pools are WaterKit parts on flats
+		-- flats: { x, z, radius, Y, material? } (event grounds, the Lotus Mere floor, fall pools, the arrival court)
+		flats = {
+			{ -400, 1000, 52, 4.6, "LeafyGrass" }, -- G1 West Field
+			{ 300, 680, 46, 4.8, "LeafyGrass" }, -- G2 North Terrace
+			{ 470, 1120, 52, 4.6, "Grass" }, -- G3 East Flat
+			{ -260, 1170, 46, 3.4, "Sand" }, -- Lotus Mere floor (shallow water part over it)
+			{ -2, 1340, 14, 3.9, "Sand" }, -- Jade Veil pool
+			{ 592, 1218, 16, 3.9, "Sand" }, -- Twin-Jade pool
+			{ 18, 676, 20, 4.6, "Grass" }, -- arrival court
+		},
 		-- points of interest: dressing keeps out of these footprints ({ name, x, z, radius })
 		pois = {
 			{ "OldStoneGate", -4, 642, 12 },
 			{ "Steles", -28, 684, 9 },
-			{ "ShrineTerrace", -58, 826, 24 },
-			{ "ShrineStair", -32, 822, 11 },
-			{ "WolfDen", -300, 654, 16 },
-			{ "BambooHollow", -128, 598, 15 },
-			{ "FallenGiant", 150, 697, 14 },
-			{ "HunterCamp", 314, 618, 16 },
-			{ "QiSpringShrine", 266, 844, 13 },
-			{ "BridgeNorth", -8, 866, 12 },
+			{ "ShrineTerrace", -70, 1365, 30 },
+			{ "ShrineStair", -42, 1352, 11 },
+			{ "JadeVeilPool", -2, 1340, 18 },
+			{ "WolfDen", -640, 772, 18 },
+			{ "BambooHollow", -328, 602, 15 },
+			{ "FallenGiant", 300, 800, 16 },
+			{ "HunterCamp", 660, 712, 18 },
+			{ "QiSpringShrine", 590, 1215, 20 },
+			{ "Hermitage", -560, 1170, 22 },
+			{ "LotusMere", -260, 1170, 50 },
+			{ "GorgeGate", 212, 1440, 16 },
+		},
+		-- builder offsets for poi_wilds.luau: these POIs keep their old literal coordinates in the
+		-- builder and are moved by this much (sampling the ground at the new spot)
+		poiMoves = {
+			ShrineTerrace = Vector2.new(-12, 539),
+			WolfDen = Vector2.new(-340, 120),
+			BambooHollow = Vector2.new(-200, 4),
+			FallenGiant = Vector2.new(150, 103),
+			HunterCamp = Vector2.new(346, 94),
+			QiSpringShrine = Vector2.new(324, 371),
 		},
 	},
 	Middle = {

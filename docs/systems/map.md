@@ -623,10 +623,14 @@ gorge gate (x ~175..262, z ~1450) and the border river (terrain water Y 0, z ~15
 then over the stone bridge (x 212) into the Ruined Borderlands (MiddleWilds, box x
 -320..620, z 1560..2060, "Dead villages. The beasts here have eaten cultivators."). The
 Borderlands moved there as one block by (+220, 0, +700) on 2026-10-21 (rework phase 1);
-its built box is now x -200..500, z 1612..1960. The Inner built box is still x -430..410,
-z 560..878 until the rework's phase 2 (its old border river at z ~860-940 and the old
-bridge, `BorderBridge_Old`, stay until then). The rest of the valley has a base grass
-floor (`terrain_valley_base.luau`). Reference: a sandy path sunk between grass banks under
+its built box is now x -200..500, z 1612..1960. Since phase 2 the Inner layout and terrain
+cover the whole valley (box x -1000..1000, z 500..1460): the plan's spine, arms, loops,
+cross paths and shortcuts, Old Stone Hill under the Bamboo Sea, the GateRidge, the Wolf
+Den crag and cave, Giants Gully, the hollow, the knolls for the Shrine Terrace, the camp
+and the hermitage, flats for the three event grounds, the Lotus Mere floor and the fall
+pools, and a berm rising into every wall. The old border river, the old Inner dressing
+(1,775 pieces) and the nine old Inner POIs went to `ServerStorage._InnerWildsReplaced`;
+until phases 3-4 the valley is bare terrain. Reference: a sandy path sunk between grass banks under
 layered-canopy trees, pale rounded boulders, blue/white flowers on the path edge, blue haze.
 
 Scripts (`art/wilds/`, Studio Edit mode, in this order; each is re-runnable and seeded):
@@ -910,11 +914,15 @@ shortcut (lengths from the array along the planned paths, at walking speed 16):
 | G3 East Flat (far) | (470, 1120) r 55 | EastArm, EastLoop, back west 925 (58 s) | spine then CrossEast 914 | 718, down Giants Gully past the moved BoarField lair (jump-down) |
 `Wilds.EventGrounds` gets these three in place of today's two interim Inner grounds.
 
-**Lairs, nodes, caches.** `Wilds.Zones` WolfDen to (-580, 780) (the boss ring),
-WolfPocket to (-170, 880) on the G1 shortcut, BoarMeadow to (420, 790) by the boar
-wallow, BoarField to (330, 1000) in the gully on the G3 shortcut. QiNode1 (60, 545) and
-QiNode2 (-170, 700) stay; QiNode3 to (545, 1195); two new nodes at P6 and P7. Caches as
-in the pocket table; ids never change.
+**Lairs, nodes, caches (moved in phase 2).** `Wilds.Zones` WolfDen (-580, 780) (the boss
+ring), WolfPocket (-170, 880) on the G1 shortcut, BoarMeadow (420, 790) by the boar
+wallow, BoarField (370, 1040) where Giants Gully opens (the G3 shortcut). QiNode1 (60,
+545) and QiNode2 (-170, 700) stay; QiNode3 (574, 1201) by the Qi Spring shrine; new
+QiNode6 (-200, 1120) at the Lotus Mere and QiNode7 (-520, 1150) at the Three Pillars.
+Event grounds `Wilds.EventGrounds` WestFieldGround (G1, -400, 1000, r 55),
+NorthTerraceGround (G2, 300, 680, r 48), EastFlatGround (G3, 470, 1120, r 55), with their
+route lengths in `LabelNote`. Caches move with their pockets in phase 3; ids never
+change.
 
 **Finds between the pockets (a cluster each, big + medium + small, tagged `POI` Kind
 `Find`).** Spine: F1 Stele grove (-29, 684, the kept Steles), F2 wayside earth-god shrine
@@ -1036,7 +1044,7 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 - Teleport arrays (`Shared.Gates`): every array players travel through is tagged
   `TravelGate` with a `Gate` attribute: `Plaza.TeleportArray_Plaza` "MainPeak"
   (66, 649.5, 92; also the death respawn), `Markers.TeleportHome.TeleportHome_Gate`
-  "SectGate" (48, 6, 470), `TeleportHome_Inner` "InnerWilds" (18, 6.6, 676; a
+  "SectGate" (48, 6, 470), `TeleportHome_Inner` "InnerWilds" (18, 4.2, 676; a
   clearing east of the trunk past the Old Stone Gate, facing south down the path),
   `TeleportHome_Middle` "MiddleWilds" (234, 1.4, 1662; between the road and the east
   road past the Border Gate, facing south toward the arena; moved with the Borderlands), `TeleportHome_Outer`

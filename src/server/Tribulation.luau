@@ -8,6 +8,11 @@
 -- cultivation. Leaving the platform also fails it.
 -- The whole server is told, and every client draws the bolts from the sky, so
 -- the storm is visible from every peak.
+-- One player at a time: the platform is reachable only by starting a
+-- tribulation, anyone else on it is sent down to the plaza's array when one
+-- starts (or if they get up there during it), and the challenger is sent down
+-- a few seconds after it ends. Players turned away while it's taken are told
+-- when it clears. Failing costs a cooldown, so nobody can chain attempts.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -17,18 +22,22 @@ local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Cultivation = require(script.Parent.Cultivation)
 local EnemyService = require(script.Parent.EnemyService)
 local PlayerData = require(script.Parent.PlayerData)
+local Travel = require(script.Parent.Travel)
 
 local remotes = ReplicatedStorage.Remotes
 local effectRemote = remotes.Effect :: RemoteEvent
 local notifyRemote = remotes.Notify :: RemoteEvent
 
-local active: { [Player]: Pacing.Tribulation } = {}
+-- The trial in progress (only one at a time), and when its last strike lands.
+local current: { player: Player, def: Pacing.Tribulation, endsAt: number }? = nil
 local readyAt: { [Player]: number } = {}
+-- Players turned away while the platform was taken, told when it clears.
+local waiting: { [Player]: true } = {}
 
 local Tribulation = {}
 
 function Tribulation.isActive(player: Player): boolean
-	return active[player] ~= nil
+	return current ~= nil and current.player == player
 end
 
 local function humanoidOf(player: Player): (Humanoid?, BasePart?)
@@ -41,19 +50,57 @@ local function humanoidOf(player: Player): (Humanoid?, BasePart?)
 	return nil, nil
 end
 
+local function onPlatform(position: Vector3): boolean
+	local offset = position - Config.CENTER
+	return Vector2.new(offset.X, offset.Z).Magnitude <= Config.ARENA_RADIUS and math.abs(offset.Y) <= 30
+end
+
+-- Down to the main peak's plaza array.
+local function sendDown(player: Player)
+	local character = player.Character
+	local target = Travel.arrival(player, "MainPeak")
+	if character and target then
+		character:PivotTo(target)
+	end
+end
+
+-- Sends everyone but the challenger off the platform.
+local function clearPlatform(challenger: Player)
+	for _, other in Players:GetPlayers() do
+		local _, root = humanoidOf(other)
+		if other ~= challenger and root and onPlatform(root.Position) then
+			sendDown(other)
+			Cultivation.notify(other, `The heavens descend on {challenger.DisplayName}. Watch from below.`)
+		end
+	end
+end
+
 -- Called with (player, survived) when a tribulation ends, for analytics.
 Tribulation.onFinished = {} :: { (Player, boolean) -> () }
 
 local function finish(player: Player, survived: boolean)
-	local def = active[player]
-	active[player] = nil
+	local def = current and current.def
+	current = nil
 	for _, fn in Tribulation.onFinished do
 		task.spawn(fn, player, survived)
 	end
 	effectRemote:FireAllClients("tribulationEnd", player, survived)
+	for other in waiting do
+		if other.Parent and other ~= player then
+			Cultivation.notify(other, "The storm over the main peak has passed. The heavens will hear you now.")
+		end
+	end
+	table.clear(waiting)
 	if player.Parent == nil then
 		return
 	end
+	-- a moment to take in the result, then off the platform for the next one
+	task.delay(Config.RETURN_DELAY, function()
+		local _, root = humanoidOf(player)
+		if player.Parent and root and onPlatform(root.Position) and not Tribulation.isActive(player) then
+			sendDown(player)
+		end
+	end)
 	if survived then
 		notifyRemote:FireAllClients(`{player.DisplayName} survived the heavenly tribulation!`)
 		Cultivation.advance(player)
@@ -66,9 +113,12 @@ local function finish(player: Player, survived: boolean)
 end
 
 -- Height of the platform floor under the centre (strikes are drawn on it).
+-- Only solid parts count: the platform carries invisible, non-colliding effect
+-- parts above the floor that would otherwise put every strike in the air.
 local function floorY(): number
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.RespectCanCollide = true
 	local characters = {}
 	for _, p in Players:GetPlayers() do
 		if p.Character then
@@ -90,15 +140,11 @@ local function run(player: Player, def: Pacing.Tribulation)
 			finish(player, false)
 			return
 		end
-		local offset = root.Position - center
-		if Vector2.new(offset.X, offset.Z).Magnitude > Config.ARENA_RADIUS or math.abs(offset.Y) > 30 then
+		if not onPlatform(root.Position) or humanoid.Health <= 1 then
 			finish(player, false)
 			return
 		end
-		if humanoid.Health <= 1 then
-			finish(player, false)
-			return
-		end
+		clearPlatform(player)
 		local t = (os.clock() - started) / def.seconds
 		local windup = def.windupStart + (def.windupEnd - def.windupStart) * t
 		local interval = def.intervalStart + (def.intervalEnd - def.intervalStart) * t
@@ -124,8 +170,13 @@ local function run(player: Player, def: Pacing.Tribulation)
 end
 
 function Tribulation.start(player: Player): (boolean, string?)
-	if active[player] then
+	if current and current.player == player then
 		return false, "The tribulation is already upon you!"
+	end
+	if current then
+		waiting[player] = true
+		local left = math.max(1, math.ceil(current.endsAt - os.clock()))
+		return false, `{current.player.DisplayName} is facing the heavens. Wait for the storm to pass ({left}s); you'll be told when it does.`
 	end
 	local wait = (readyAt[player] or 0) - os.clock()
 	if wait > 0 then
@@ -140,18 +191,21 @@ function Tribulation.start(player: Player): (boolean, string?)
 	if not def then
 		return false, "The heavens are silent."
 	end
-	active[player] = def
+	current = { player = player, def = def, endsAt = os.clock() + def.seconds + def.windupStart }
+	waiting[player] = nil
 	humanoid.Health = humanoid.MaxHealth
 	;(player.Character :: Model):PivotTo(CFrame.new(Config.CENTER + Vector3.new(0, 3, 0)))
+	clearPlatform(player)
 	notifyRemote:FireAllClients(`{player.DisplayName} is facing the heavenly tribulation!`)
 	effectRemote:FireAllClients("tribulationStart", player, Config.CENTER)
 	task.spawn(run, player, def)
 	return true, `Heavenly lightning gathers. Survive for {def.seconds} seconds!`
 end
 
+-- A leaving challenger's trial is failed by its own loop on the next check.
 function Tribulation.forget(player: Player)
-	active[player] = nil
 	readyAt[player] = nil
+	waiting[player] = nil
 end
 
 Cultivation.startTribulation = Tribulation.start

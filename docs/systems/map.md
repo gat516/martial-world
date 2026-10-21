@@ -186,8 +186,8 @@ Found by coordinates only; children may be restructured freely.
   gets a small paved landing, two posts and a lantern; between them, lawn with
   shrub clusters and a few pines grouped near the spire side, open toward the
   cloud views.
-- Tribulation summit: a set piece seen from below (players are teleported up,
-  `Tribulation.luau`). Disc, posts and SkySteps stay; add a crisp rim and a few
+- Tribulation summit: a set piece seen from below (players are teleported up
+  and back down to the plaza array, `Tribulation.luau`). Disc, posts and SkySteps stay; add a crisp rim and a few
   wind-bent pines on the shoulder spires. Keep air above it clear.
 - Waterfalls: today four identical falls at the cardinals, fed by bare
   "Spring" discs lying on the terrace lawn next to the path (the "random pond").
@@ -309,7 +309,9 @@ From a read-only audit of the code (2026-10-20); code refs inline.
   (-24.2, 652.7, 80), QuestBoard (24, 652.15, 80), SpiritMarket (40, 650.1, 96)
   (MARKET_RANGE 24); prompts by name (MarketPrompt, Herbalist).
 - Tribulation: `Config.Tribulation.CENTER` (2, 857, -86), ARENA_RADIUS 34; the
-  floor raycast from CENTER+20 down 60 must hit Y 817-877 (`Tribulation.luau`).
+  floor raycast from CENTER+20 down 60 (CanCollide parts only) must hit the
+  walkable floor (TopSurface, Y 855.3) (`Tribulation.luau`). Effect parts above
+  the floor (TribulationLightning) must stay CanCollide off.
   Keep a walkable floor >= 34 radius at Y ~855.5 with clear air, or update Config.
 - Day/night lights: `DayNight.luau` scales only Lights under the first recursive
   "Ambience" under Map (`Map.Sect.Ambience`). Never add another "Ambience".

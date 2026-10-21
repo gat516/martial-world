@@ -17,6 +17,11 @@ felt in fights.
 - Breakthroughs happen seated in meditation. A minor one can be **forced** in a
   fight when badly hurt with a 90% bar; the new stage starts in qi debt.
 - Failing a tribulation costs time (a cooldown), never cultivation.
+- One tribulation at a time, server-wide, on the main peak's platform. Others
+  asking meanwhile are told who holds it and how long is left, then notified
+  when it clears. Bystanders on the platform are sent to the plaza array when
+  one starts (and during it); the challenger follows `RETURN_DELAY` seconds
+  after it ends, so nobody can camp the platform.
 
 ## Key files
 - `src/shared/Pacing.luau`: the master tuning (see below).
@@ -64,7 +69,8 @@ felt in fights.
 - **Pacing.Refine / Income / Meditation / Breakthrough / Rewards**: run qi cost and
   efficiency, node/daily/offline/starting qi and the enemy-qi exponent,
   meditation multipliers, forced-breakthrough thresholds, insight and manuals.
-- Arena geometry for the tribulation stays in `Config.Tribulation`.
+- Arena geometry for the tribulation stays in `Config.Tribulation` (`CENTER`,
+  `ARENA_RADIUS`, `STRIKE_RADIUS`, `RETURN_DELAY`).
 
 ## Reading dropoff from analytics
 `Analytics.luau` logs a progression path **"Realm"** (level = stage index,

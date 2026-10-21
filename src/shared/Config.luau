@@ -266,6 +266,7 @@ return {
 		CENTER = Vector3.new(2, 857, -86), -- on the main peak's tribulation platform
 		ARENA_RADIUS = 34, -- stepping farther out than this fails the tribulation
 		STRIKE_RADIUS = 5,
+		RETURN_DELAY = 4, -- seconds after it ends before the challenger is sent down to the plaza
 	},
 
 	-- Day and night (client-side, in step across clients through the server clock)

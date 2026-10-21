@@ -257,6 +257,27 @@ checks a rebuild against the previous templates.
   three afterimages, one point light on the front, a crescent moon rising
   behind the finish, impact frames at the sheathe and a quake on the first
   impact. `WeaponFX` (same folder) holds the helpers the weapon skills share.
+- **Dragon-Piercing Thrust** (`DragonPierce_T1..T4`, authored at length 22
+  and width 4; `TechniqueFX.DragonPierce`). A red-tasselled spear dragon in
+  crimson and gold: the clip draws the spear back along the right side, then
+  drives it round and forward from Hit to Hit Stop while the caster lunges.
+  Windup: crimson qi spirals into the hands (II+ Spline wisps, III+ a seal).
+  At Hit a forward-facing vortex disc, a star and swirl air rings burst where the
+  lance starts on the line, at the height of the live spear point (the
+  weapon's `Tip` attachment, else the right hand). A
+  drill of qi (`Lance`: twisted spiral-cone MeshWaves stretched to the line,
+  `Stretch = true`) shoots from the point to the line's end on `TravelCurve`
+  over `TravelTime` (0.16 s), with a gold core and crimson glow Beam and a hot
+  head shedding sparks; swirl rings (`Ring1..n`, `Station` = fraction along
+  the line) burst across the line as the front passes them. A ray stops it at
+  a wall. Each enemy gets a crimson `impactStack` plus sparks punched out of
+  its far side when the front reaches it, and the lance bursts at its end
+  (`Terminal`: impact stack and vortex). A dark `Furrow` follows the front
+  and fades. II adds a gold dragon helix coiled round the lance, path dust
+  and motes, impact swirl; III a counter-wound second helix, impact bubbles
+  and rock kicks, a Craters ring at the terminal, path cracks; IV a gold-white
+  core, five rings, the dragon seal flashing at the point with impact frames,
+  one point light on the lance head and a quake at the terminal.
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative

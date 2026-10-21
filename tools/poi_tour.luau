@@ -2,7 +2,8 @@
 -- POI tour and labels, for inspecting every point of interest in Studio Edit mode.
 -- Every POI, cache, find, qi node, lair, boss ring and event ground carries the
 -- CollectionService tag "POI" with attributes PoiName, Kind, Zone (optional LabelNote,
--- e.g. a route length or "(later)"). See docs/systems/map.md, "Editor-only markers".
+-- e.g. a route length or "(later)"). POI models also hold a "POIAnchor" part with the same
+-- attributes, which the tour uses once the model has been ungrouped. See docs/systems/map.md, "Editor-only markers".
 --
 -- Studio copy: the ModuleScript `ServerStorage._EditorTools.PoiTour` (place-only) holds
 -- this file's source; paste it in again after editing this file. In the command bar:
@@ -42,11 +43,23 @@ local function bounds(inst: Instance): (CFrame, Vector3)
 	return CFrame.new(), Vector3.zero
 end
 
+-- a POIAnchor part stands in for its POI model when the model is gone (ungrouped in Studio: Ctrl+U
+-- drops the Model's tags and attributes and leaves its children, the anchor among them, loose)
+local function orphanAnchor(a: Instance, tag: string): boolean
+	local parent = a.Parent
+	return not (parent and parent:IsA("Model") and CollectionService:HasTag(parent, tag))
+end
+
 function PoiTour.all(): { Instance }
 	local list = {}
 	for _, inst in CollectionService:GetTagged("POI") do
 		if inst:IsDescendantOf(workspace) then
 			table.insert(list, inst)
+		end
+	end
+	for _, a in CollectionService:GetTagged("POIAnchor") do
+		if a:IsDescendantOf(workspace) and orphanAnchor(a, "POI") then
+			table.insert(list, a)
 		end
 	end
 	table.sort(list, function(a, b)
@@ -213,7 +226,9 @@ function PoiTour.handpassList(): { Instance }
 	local list = {}
 	for _, inst in CollectionService:GetTagged("NeedsHandPass") do
 		if inst:IsDescendantOf(workspace) and inst:GetAttribute("HandPassStatus") ~= "done" then
-			table.insert(list, inst)
+			if not (CollectionService:HasTag(inst, "POIAnchor") and not orphanAnchor(inst, "NeedsHandPass")) then
+				table.insert(list, inst)
+			end
 		end
 	end
 	table.sort(list, function(a, b)

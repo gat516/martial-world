@@ -1004,6 +1004,25 @@ shoots, a few culms, low bushes), never single clumps among the pines.
   (new pockets and finds, `POI` tags), `Regions`, `Music.luau`, `Shared.Spawns`,
   `place_karst.luau` clearances.
 
+**Prefab updates and ungrouping (2026-10-21).** `art/wilds/swap_prefabs_inner.luau` swaps any
+placed pocket or find whose structure no longer matches its prefab (`_G.SWAP_DRY = true` lists
+them first), keeping the copy's exact pivot and its tags and attributes. It re-seats the cache,
+redoes the reseats, the Lotus shore fix and the terrain carves, and moves the old copy to
+`_InnerWildsReplaced`; run `ambience_inner.luau` and `T.labels()` after it. Every POI model also
+holds a `POIAnchor` part (tag `POIAnchor`, the POI's attributes) so the tour, labels and
+hand-pass list survive the user ungrouping it (Ctrl+U drops a Model's tags and attributes).
+Game scripts find nothing through the pocket or find models: caches by the `ManualCache` tag on
+their `CacheAnchor` part, qi nodes by the `QiNode` tag on their Crystal (`Workspace.Wilds`),
+ambient sounds by the `AmbientSound` tag on each anchor part. Things not to ungroup or move:
+- anything under `Workspace.Wilds` (zone discs, qi nodes, event grounds: Rojo-managed, edit
+  `assets/Wilds.rbxmx`);
+- the TravelGate arrays (`Map.Markers.TeleportHome.*`, `SectGate.AscensionArray`: the tag and
+  `Gate` attribute live on the array Model);
+- the cache models (`Map.Markers.ManualCaches.Cache_*`: moving the whole model is fine, the
+  `CacheAnchor` part must stay with its pedestal);
+- lamp models named `StoneLantern`/`Lantern` (DayNight finds their lights by model name);
+- `Map.Sect.SpiritPeaks.*` and `Map.Sect.Ambience`.
+
 **Inventory of the Inner box before the rework** (x -450..430, z 470..900, Y < 300;
 1,867 models and loose parts): `Map.Ground.WildsInner.Dressing` 1,827 (Trees 386,
 Colliders 360, PathEdge 548, Rocks 256, Bamboo 144, Shrubs 97, GroundCover 36);

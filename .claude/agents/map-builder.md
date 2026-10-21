@@ -265,6 +265,12 @@ Each one cost a pass real time. Check them before calling an area done.
   ground under their middle (the carve lowers it): sample the footprint's rim.
 - **`require` caches a ModuleScript in Edit**, so after updating
   `_EditorTools.PoiTour.Source` load the file with `loadstring` to use the new version.
+- **The user's Studio edits are the source of truth.** They ungroup and move things by
+  hand. Never assume a prefab's model structure in a later pass: rescan the area by tags
+  (`POI`, `POIAnchor`, `ManualCache`, `AmbientSound`, `NeedsHandPass`) and positions, and
+  never move something they moved back to its planned spot. Put gameplay tags and
+  attributes on parts (caches, prompts, sound and FX anchors, a `POIAnchor`), never only on
+  a Model, because ungrouping drops the Model's tags and attributes.
 - **Walls are a few giant library rocks, not piles.** "Stylized Cliff Terrain Rock" scaled
   to 80-120 studs is one cliff face; medium ones cover seams and feet. Fewer pieces means
   fewer seams and triangles, and the moss holds up at scale. Keep each a separate named

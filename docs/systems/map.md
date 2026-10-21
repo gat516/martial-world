@@ -303,7 +303,9 @@ As built (2026-10-21, approved on Peak_1 and rolled out to all 8 peaks):
   knee-high two-rail Wood run, one post per joint (the +Z end post and its cap
   tuck inside the neighbour's), pivot height and +-6.7 snap edges unchanged.
 - BridgeGate sits on the lawn (its flank walls and pillar bases used to float
-  ~0.8); no lanterns on the flank walls (they were wider than the walls).
+  ~0.8); no lanterns on the flank walls (they were wider than the walls). The
+  flank walls are Slate `7E776B` (were Pavement, whose "Stylized Pavement II"
+  override has a metalness map and renders the sides near black).
 - Lights: 8 per peak (gate lanterns are the Bridge's; jade lamps; dwelling and
   porch stone lanterns; abode spirit stone; well), no shadows.
 - `Peak_N.Dressing` holds all non-piece dressing (no StarterId/ItemId, never
@@ -334,6 +336,22 @@ Rope bridges from the terrace bridgeheads (r 172.5) down to each peak's gate
 shade change, rope sag, posts at both ends with gold caps and a lantern on the
 peak end. Landings at both ends per the rules above. `SwayBridge` tags are free
 (no code reads them).
+
+As seated (`art/spiritpeak/seat_bridges.luau`, re-runnable, run it after any
+rebuild of the main peak's terrace or the spirit pillars; nothing else moves the
+bridges, `strict_seat.luau` skips them):
+- Terrace end: the `Bridgehead` (14x0.6x8 paving, top Y 582.05, Slate: the
+  Pavement override's sides render near black) on a `Plinth` of rock-tone stone
+  inset 0.25 under it, down into the sunk rim rock (580.5). They were a thin slab
+  hanging a stud over the rock.
+- Peak end: a stone `Landing` (11 wide, from just past the last plank to just
+  inside the end posts, top on the posts' feet ~0.2 over the lawn, up to 6.5 deep
+  into the lawn's bevel). The last plank and the posts hung over the bevel.
+- Deck: the first plank's inner edge meets the Bridgehead top, the last plank's
+  outer edge meets the Landing (a linear vertical shear; hangers keep their tops
+  on the chains). Walk-checked along three lines per bridge: the only dips are
+  the plan gaps between the pitched planks (0.4) and between the Bridgehead and
+  the first plank (0.7), too narrow to step into.
 
 ## Cloud sea and ground
 - Clouds are stylized cumulus meshes (`art/clouds/build_clouds.py`, run

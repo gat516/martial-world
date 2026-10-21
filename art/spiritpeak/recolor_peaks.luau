@@ -9,7 +9,8 @@ SmoothPlastic walls. Library MeshParts keep their SurfaceAppearances; this only 
   - Dressing.Stones column stubs: the pillar rock's grays, darker than the lawn-side stone
   - Dwelling (and BuildCatalog.Dwelling) walls/gables/door head: Plaster, warm cream; roof slabs and ridges:
     Slate, dark blue-gray (CaveAbode.Facade's roof too)
-  - BridgeGate pillar bases, Bridge post caps, NameStele base and cap: from a pale 96948E to warm 7E776B
+  - BridgeGate pillar bases, Bridge post caps, NameStele base and cap: from a pale 96948E to warm 7E776B; the
+    BridgeGate flank walls from Pavement (black-looking sides) to Slate in the same 7E776B
   - Pillar.AbodeWalls (hall inside the pillar): Slate, warm gray (place_peak_pillar.luau STYLE matches)
 ]]
 
@@ -97,11 +98,15 @@ local function peakPass(peak: Model)
 		house(dwelling)
 	end
 	-- the gate's pillar bases, the bridge's post caps and the stele's base and cap were a pale 96948E
+	-- the gate's flank walls were Pavement with the "Stylized Pavement II" variant, whose metalness map renders
+	-- the sides near black (a dark slab with a void under it, next to the bridge landing)
 	for _, n in { "BridgeGate", "Bridge", "NameStele" } do
 		local m = peak:FindFirstChild(n)
 		if m then
 			for _, d in m:GetDescendants() do
 				if d:IsA("BasePart") and d.Material == Enum.Material.Slate and d.Color:ToHex() == "96948e" then
+					set(d, Enum.Material.Slate, PALE_STONE)
+				elseif d:IsA("BasePart") and d.Name == "FlankWall" and d.Material == Enum.Material.Pavement then
 					set(d, Enum.Material.Slate, PALE_STONE)
 				end
 			end

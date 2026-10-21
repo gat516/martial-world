@@ -1,6 +1,7 @@
 --!strict
 -- Owned and equipped weapons, the held weapon model, and weapon Dao comprehension.
 --   WeaponAction (RemoteFunction): ("equip", weaponId) / ("unequip") -> (ok, message)
+--   ("stow", character, boolean) mirrors cosmetic control locks to all observers.
 --   The equipped weapon's model (ServerStorage.WeaponModels.<model>) is cloned
 --   into the character as "HeldWeapon" and its joint Motor6D's Part0 set to the
 --   Right Arm; it's re-applied on every respawn. Attributes: player `Weapon`
@@ -20,6 +21,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 
 local HELD_NAME = "HeldWeapon"
+local BREAKTHROUGH_STOW_SECONDS = 1.6 -- the breakthrough column's lifetime
 
 local Weapons = {}
 
@@ -108,16 +110,18 @@ function Weapons.apply(player: Player)
 	if not character then
 		return
 	end
-	local old = character:FindFirstChild(HELD_NAME)
-	if old then
-		old:Destroy()
-	end
 	local id = equippedId(PlayerData.get(player))
 	player:SetAttribute("Weapon", id)
 	character:SetAttribute("WeaponClass", Defs.classOf(id))
-	-- Backpack Tools own the hand while equipped. Keep the saved weapon/class
-	-- selected, but remove its model for every observer until the Tool is put away.
-	if character:FindFirstChildOfClass("Tool") then
+	local stowed = character:FindFirstChildOfClass("Tool") ~= nil
+		or character:GetAttribute("WeaponControlsLocked") == true
+		or (character:GetAttribute("WeaponBreakthroughUntil") or 0) > workspace:GetServerTimeNow()
+	character:SetAttribute("WeaponStowed", stowed)
+	local old = character:FindFirstChild(HELD_NAME)
+	-- Releasing one lock must not redraw a weapon while another still owns it.
+	if old and not stowed and old:GetAttribute("WeaponId") == id then return end
+	if old then old:Destroy() end
+	if stowed then
 		return
 	end
 	local def = Defs.Defs[id]
@@ -202,6 +206,21 @@ function Weapons.forget(player: Player)
 	end
 end
 
+-- Includes forced breakthroughs outside meditation. A later breakthrough or
+-- respawn supersedes this callback; movement/Tool locks still apply afterward.
+function Weapons.onBreakthrough(player: Player)
+	local character = player.Character
+	if not character then return end
+	local untilTime = workspace:GetServerTimeNow() + BREAKTHROUGH_STOW_SECONDS
+	character:SetAttribute("WeaponBreakthroughUntil", untilTime)
+	Weapons.apply(player)
+	task.delay(BREAKTHROUGH_STOW_SECONDS, function()
+		if player.Character ~= character or character:GetAttribute("WeaponBreakthroughUntil") ~= untilTime then return end
+		character:SetAttribute("WeaponBreakthroughUntil", nil)
+		Weapons.apply(player)
+	end)
+end
+
 --[[ Owning and equipping ]]
 
 -- Give a player a weapon. Fires Effect "weapon" (the rewards toast) unless silent.
@@ -244,8 +263,19 @@ function Weapons.equip(player: Player, weaponId: string?): (boolean, string?)
 	return true, if id == "" then "Fighting bare-handed" else `Equipped {Defs.Defs[id].name}`
 end
 
-function Weapons.handle(player: Player, action: any, weaponId: any): (boolean, string?)
-	if action == "equip" then
+function Weapons.handle(player: Player, action: any, weaponId: any, stowed: any): (boolean, string?)
+	if action == "stow" then
+		local character = player.Character
+		if not character or weaponId ~= character or type(stowed) ~= "boolean" then
+			return false, "Invalid weapon presentation"
+		end
+		-- Cosmetic only: this never changes selection, stats or action eligibility.
+		if character:GetAttribute("WeaponControlsLocked") ~= stowed then
+			character:SetAttribute("WeaponControlsLocked", stowed)
+			Weapons.apply(player)
+		end
+		return true, nil
+	elseif action == "equip" then
 		if type(weaponId) ~= "string" then
 			return false, "Unknown weapon"
 		end

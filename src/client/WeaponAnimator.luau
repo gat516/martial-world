@@ -4,6 +4,8 @@
 -- walk while walking (not running: Sprint's run owns that). Jumps and falls
 -- stay with Animate. Tracks played by the owner replicate, so other clients see
 -- them too. Fist (nothing equipped) uses the default idle/walk.
+-- Movement/combat control locks stow the model through WeaponAction and pause
+-- these tracks; rooted attacks/casts still keep their weapon.
 -- Clips: ReplicatedStorage.Animations.Weapons.<Class>.Idle / .Walk; the source
 -- clips are flagged Action (and some Loop), so priority and looping are set here.
 
@@ -12,6 +14,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Sprint = require(script.Parent.Sprint)
+local Controls = require(script.Parent.Controls)
+local ActionState = require(script.Parent.ActionState)
 
 local player = Players.LocalPlayer
 local animations = ReplicatedStorage:WaitForChild("Animations") :: Folder
@@ -25,6 +29,29 @@ local humanoid: Humanoid? = nil
 local idle: AnimationTrack? = nil
 local walk: AnimationTrack? = nil
 local classConnection: RBXScriptConnection? = nil
+local sentCharacter: Model? = nil
+local sentStowed: boolean? = nil
+local sending = false
+local retryAt = 0
+
+-- Report only presentation state, never combat authority. The server removes
+-- the model for everyone; character identity rejects requests from an old life.
+local function syncStowed(character: Model, stowed: boolean)
+	if sending or os.clock() < retryAt then return end
+	if character == sentCharacter and stowed == sentStowed then return end
+	sending = true
+	task.spawn(function()
+		local ok, accepted = pcall(function()
+			return ReplicatedStorage.Remotes.WeaponAction:InvokeServer("stow", character, stowed)
+		end)
+		if ok and accepted then
+			sentCharacter, sentStowed = character, stowed
+		else
+			retryAt = os.clock() + 0.5
+		end
+		sending = false
+	end)
+end
 
 local function clear()
 	for _, track in { idle, walk } do
@@ -93,13 +120,18 @@ end
 
 local function step()
 	local h = humanoid
-	if not h or (not idle and not walk) then
+	local character = player.Character
+	if not h or not character or h.Parent ~= character then
 		return
 	end
-	local character = h.Parent
-	local holdingItem = character ~= nil and character:FindFirstChildOfClass("Tool") ~= nil
-	local grounded = h.Health > 0 and not h.Sit and h.FloorMaterial ~= Enum.Material.Air and not holdingItem
 	local root = h.RootPart
+	local controlsBlocked = Controls.isLocked() or ActionState.blocked
+		or h.Health <= 0 or h.Sit or (root ~= nil and root.Anchored)
+	syncStowed(character, controlsBlocked)
+	if not idle and not walk then return end
+	local stowed = controlsBlocked or character:GetAttribute("WeaponStowed") == true
+		or character:FindFirstChildOfClass("Tool") ~= nil
+	local grounded = h.FloorMaterial ~= Enum.Material.Air and not stowed
 	local speed = if root then (root.AssemblyLinearVelocity * Vector3.new(1, 0, 1)).Magnitude else 0
 	local moving = grounded and speed > 1 and h.MoveDirection.Magnitude > 0.1
 	local walking = moving and walk ~= nil and not Sprint.isRunning()

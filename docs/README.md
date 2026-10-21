@@ -97,7 +97,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only) | AdminPanel |
-| WeaponAction | Function | C->S | `Weapons.handle` ("equip", weaponId / "unequip") | Inventory (Weapons tab) |
+| WeaponAction | Function | C->S | `Weapons.handle` ("equip", weaponId / "unequip" / "stow", character, boolean) | Inventory (Weapons tab), WeaponAnimator (cosmetic control locks) |
 | Dodge, Cast | Event | - | unused (combat moved onto Attack) | - |
 
 `Effect "cast"` is relayed by `Combat.releaseTechnique` to every client except the
@@ -108,7 +108,8 @@ technique level at cast time (picks the visual tier), `chain` the chain targets 
 
 Besides remotes, the server publishes fast-changing values as attributes:
 player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`,
-`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`; character `WeaponClass`; humanoid `BaseWalkSpeed`,
+`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`; character `WeaponClass`, `WeaponStowed`
+(combines Tool occupancy, `WeaponControlsLocked`, `WeaponBreakthroughUntil`); humanoid `BaseWalkSpeed`,
 `Running`, `ActionBusy`; enemy `AIState`, `Realm`; workspace `Weather`,
 `WeatherEnds`, `WorldEvents`; plot `Plants` (JSON).
 

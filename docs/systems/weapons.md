@@ -13,7 +13,8 @@ Dao comprehension per weapon class that grows as you fight with it.
   Spirit 1.25, Earth 1.5, Heaven 1.9). One is equipped at a time. Weapons are
   Models joined to the Right Arm by a Motor6D, not Backpack Tools. Equipping
   any Tool removes the weapon model and pauses its idle/walk; putting the Tool
-  away restores the selected weapon.
+  away restores the selected weapon once movement/combat controls are available.
+  Meditation, circulation, other control locks and breakthroughs also stow it.
 - **Dao comprehension**, level 0-10 per class: XP from landing M1 hits with the
   class (once per swing), casting its techniques and learning its manuals.
   Damage of M1 and the class's techniques = base x realm power x grade x Dao.
@@ -31,7 +32,8 @@ Dao comprehension per weapon class that grows as you fight with it.
 - `src/shared/Pacing.luau` `Weapons`: Dao levels, multipliers and XP.
 - `src/server/Weapons.luau`: `WeaponAction` ("equip", id / "unequip"), the held
   model (`HeldWeapon` in the character), `class`, `multiplier`, `addXp`, `grant`.
-- `src/client/WeaponAnimator.luau`: the class's idle/walk on the local character.
+- `src/client/WeaponAnimator.luau`: the class's idle/walk on the local character,
+  plus cosmetic stow requests from `Controls.isLocked()` / `ActionState.blocked`.
 - `src/client/CombatController.luau`: plays the class's chain (`profile.clip`).
 - `assets/Animations.rbxmx`: `Animations.Weapons.<Class>.1..n`, `.Idle`, `.Walk`.
   Every animation id lives only here, so swapping a clip is a one-file edit.
@@ -86,7 +88,20 @@ server so all players see it stowed. Removing the last Tool (including consuming
 the final item) restores the model. Tool swaps are coalesced; changing the
 selected weapon while holding an item leaves it stowed until the hand is free.
 The saved selection, player `Weapon`, and character `WeaponClass` stay selected.
-`WeaponAnimator` pauses the weapon's idle/walk while a Tool is held.
+`WeaponAnimator` pauses the weapon's idle/walk while stowed. It sends
+`WeaponAction("stow", character, boolean)` only when the local aggregate control
+lock changes: named movement locks (including meditation's get-up and circulation
+results), blocked combat input (menus, building, planting, typing/focus), sitting,
+death, or an anchored root. This is cosmetic: the server validates the current
+character and boolean and never uses the request to authorize combat.
+
+`Weapons.apply` combines Tool occupancy, `WeaponControlsLocked`, and
+`WeaponBreakthroughUntil` into the replicated character `WeaponStowed`
+attribute. Releasing one reason cannot override another. The breakthrough hook
+stows the weapon for the 1.6-second column effect, including forced breakthroughs;
+the timer is scoped to that character and latest breakthrough. The next respawn
+gets fresh attributes and a new client report. Ordinary attack/cast/dodge movement
+restrictions (`ActionBusy` / zero action speed) do not stow the weapon.
 
 Saved: `weapons = { owned = { [id]: count }, equipped = "" | id }`,
 `dao = { [class]: { level, xp } }`, `caches = { [cacheId]: true }`. All three are
@@ -120,6 +135,8 @@ derived from the template's joint frames; no per-weapon correction is needed.
 - `Pacing.Weapons`: `NEUTRAL_LEVEL`, `STARTING`, `MULTIPLIER`, XP per hit / cast /
   manual, `XP_BASE`/`XP_PER_LEVEL`.
 - `Weapons.Grades`: grade multipliers and colours.
+- `server/Weapons.BREAKTHROUGH_STOW_SECONDS`: 1.6 s, matching the breakthrough
+  effect's lifetime.
 
 ## Known gaps
 - Sword, Saber have placeholder idles (Spear Idle, Bat Idle) and no walk.

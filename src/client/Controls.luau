@@ -39,6 +39,10 @@ function Controls.unlock(reason: string)
 	apply()
 end
 
+function Controls.isLocked(): boolean
+	return next(locks) ~= nil
+end
+
 -- What the player is steering with (thumbstick or keys), whatever else moves them.
 function Controls.moveVector(): Vector3
 	local ctl = controls()

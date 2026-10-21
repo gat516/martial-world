@@ -20,7 +20,9 @@ circulation happen.
   1 s re-check; sets `Cultivation.meditation`.
 - `src/client/Meditation.luau`: the M key / tile, animations
   (`Animations.Meditate`: Sit, Loop, GetUp), the seated HUD row, toasts.
-- `src/client/Controls.luau`: named movement locks (meditation, circulation).
+- `src/client/Controls.luau`: named movement locks (meditation, circulation);
+  `isLocked()` also tells weapon presentation to stow through sitting/get-up and
+  any overlapping circulation lock.
 - `src/client/Movement.luau`: holds facing while seated.
 - `src/shared/BuildItems.luau`: each item's `meditation` bonus.
 

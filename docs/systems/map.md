@@ -363,8 +363,10 @@ From a read-only audit of the code (2026-10-20); code refs inline.
   bounds JSON, batched import via `art/fbx_export/`, `place_*.luau`).
 
 ## Passes (in order)
-1. **Collision holes** (in progress elsewhere): fix walkable holes on the main
-   peak and pillars found by the raycast grid.
+1. **Collision holes** (done, `fcc1119`): spirit-peak lawns backed by
+   `Pillar.LawnCollider` boxes (`art/lawn_collider.py`); main peak terrace,
+   ledges, bridges and the rebuilt plaza raycast-checked with no holes. Not yet
+   walked in play.
 2. **Main peak landform** (`art/main_peak/build_main_peak.py`): warm rock with
    per-column value variation, lawns as jade slabs with turf lips, the 4-5
    planned cliff ledges instead of 14, terrace notches and mesa cleft for the

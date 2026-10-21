@@ -2,18 +2,15 @@
 -- Short-lived combat visuals: technique casts, damage numbers, dash afterimages,
 -- and hit flashes. Everything here is cosmetic and cleans itself up.
 
-local CollectionService = game:GetService("CollectionService")
 local Debris = game:GetService("Debris")
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
-local Rules = require(ReplicatedStorage.Shared.ActionRules)
-local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Sfx = require(script.Parent.Sfx)
 local TechniqueVFX = require(script.Parent.TechniqueVFX)
+local CastFX = require(script.Parent.CastFX)
 
 local CombatEffects = {}
 
@@ -56,36 +53,8 @@ local function beam(color: Color3, a: Vector3, b: Vector3, width: number): Part
 	return part(color, Vector3.new(width, width, math.max(length, 0.1)), CFrame.lookAt((a + b) / 2, b), nil)
 end
 
--- Ground rays skip effects, every player character and every enemy: callers
--- pass root or body positions, and a ray from there would otherwise land on
--- the caster's (or target's) own body and put the effect at torso height.
--- The filter is rebuilt at most twice a second (markTarget calls this per frame).
-local groundParams = RaycastParams.new()
-groundParams.FilterType = Enum.RaycastFilterType.Exclude
-local groundFilterAt = -math.huge
-local function groundFilter(): RaycastParams
-	local now = os.clock()
-	if now - groundFilterAt > 0.5 then
-		groundFilterAt = now
-		local list: { Instance } = { folder }
-		for _, other in Players:GetPlayers() do
-			if other.Character then
-				table.insert(list, other.Character)
-			end
-		end
-		for _, enemy in CollectionService:GetTagged("Enemy") do
-			table.insert(list, enemy)
-		end
-		groundParams.FilterDescendantsInstances = list
-	end
-	return groundParams
-end
-
--- Ground height under a point (falls back to 3 studs below it).
-local function groundBelow(position: Vector3): number
-	local hit = workspace:Raycast(position + Vector3.new(0, 2, 0), Vector3.new(0, -24, 0), groundFilter())
-	return if hit then hit.Position.Y + 0.1 else position.Y - 3
-end
+-- Ground height under a point (CastFX skips characters, enemies and effects).
+local groundBelow = CastFX.groundBelow
 
 -- A one-shot particle burst at a point (an invisible anchor that cleans itself up).
 local function burst(position: Vector3, props: { [string]: any }, count: number, life: number?)
@@ -105,46 +74,7 @@ local function burst(position: Vector3, props: { [string]: any }, count: number,
 	Debris:AddItem(anchor, life or 2)
 end
 
--- Seconds after emit until a flat ring emitter's front reaches `frac` of its
--- final radius (its Size curve is the ring radius over its lifetime).
-local function frontTime(ring: ParticleEmitter, frac: number): number
-	local kps = ring.Size.Keypoints
-	local final = kps[#kps].Value
-	local want = frac * final
-	for i = 2, #kps do
-		local a, b = kps[i - 1], kps[i]
-		if want <= b.Value then
-			local t = (want - a.Value) / math.max(b.Value - a.Value, 1e-3)
-			return (a.Time + (b.Time - a.Time) * math.clamp(t, 0, 1)) * ring.Lifetime.Max
-		end
-	end
-	return ring.Lifetime.Max
-end
-
-local function nearCamera(position: Vector3, studs: number): boolean
-	return (workspace.CurrentCamera.CFrame.Position - position).Magnitude <= studs
-end
-
 local SHAKE_BY_TIER = { 0.14, 0.2, 0.28, 0.38 }
-
--- Where a character's hand is right now (the palm/fist end), for effects that
--- come from the striking hand. R15: the hand's grip attachment; R6: the far end
--- of the arm. nil if the character has no such limb.
-local function handPosition(character: Model?, side: string?): Vector3?
-	if not (character and side) then
-		return nil
-	end
-	local hand = character:FindFirstChild(side .. "Hand")
-	if hand and hand:IsA("BasePart") then
-		local grip = hand:FindFirstChild(side .. "GripAttachment")
-		return if grip and grip:IsA("Attachment") then grip.WorldPosition else hand.Position
-	end
-	local arm = character:FindFirstChild(side .. " Arm")
-	if arm and arm:IsA("BasePart") then
-		return (arm.CFrame * CFrame.new(0, -arm.Size.Y / 2, 0)).Position
-	end
-	return nil
-end
 
 -- Palm Strike from its tier template (ReplicatedStorage.Effects.PalmStrike):
 -- a ground wave from the caster's feet out to the gameplay radius, and an
@@ -162,7 +92,7 @@ local function palmStrike(def: Techniques.Def, level: number, character: Model?,
 	TechniqueVFX.rescale(copy, scale)
 	-- cast() runs at Hit: the wave reaches the radius by Hit Stop, so every
 	-- impact lands inside the active window; aftermath keeps its authored fade
-	local timeline = Rules.castProfile(def)
+	local timeline = CastFX.phases(def)
 	TechniqueVFX.fit(copy, "active", copy:GetAttribute("AuthoredActive"), timeline.active)
 	local impact = TechniqueVFX.take(copy, "Impact")
 	local windup = TechniqueVFX.take(copy, "Windup")
@@ -172,7 +102,7 @@ local function palmStrike(def: Techniques.Def, level: number, character: Model?,
 	-- the release comes from the striking hand (live, so observers see it on the
 	-- caster's replicated pose too); the ring stays centred on the feet, where
 	-- the gameplay circle is
-	local palmAt = handPosition(character, def.hand) or origin + dir * 1.6
+	local palmAt = CastFX.handPosition(character, def.hand) or origin + dir * 1.6
 	local palm = copy:FindFirstChild("Palm") :: BasePart?
 	if palm then
 		palm.CFrame = CFrame.lookAt(palmAt, palmAt + dir)
@@ -202,10 +132,7 @@ local function palmStrike(def: Techniques.Def, level: number, character: Model?,
 		rocks:SetAttribute("Radius", radius)
 		rocks:SetAttribute("Duration", timeline.active)
 	end
-	-- Craters' rays skip players but not beasts; keep rocks off them (client-only tag)
-	for _, enemy in CollectionService:GetTagged("Enemy") do
-		enemy:AddTag("CraterIgnore")
-	end
+	CastFX.keepCratersOffEnemies()
 	TechniqueVFX.emit(copy)
 
 	local light = palm and palm:FindFirstChildOfClass("PointLight")
@@ -215,7 +142,7 @@ local function palmStrike(def: Techniques.Def, level: number, character: Model?,
 	end
 	-- the template's ScreenEffects CameraShake (with its own distance falloff)
 	-- shakes through the Game Module; the plain fallback shakes here instead
-	if not TechniqueVFX.full and nearCamera(origin, 45) then
+	if not TechniqueVFX.full and CastFX.nearCamera(origin, 45) then
 		CombatEffects.shake(SHAKE_BY_TIER[tier] or 0.2)
 	end
 	TechniqueVFX.cleanup(copy, 0.2)
@@ -225,55 +152,16 @@ local function palmStrike(def: Techniques.Def, level: number, character: Model?,
 	if not (impact and ring and ring:IsA("ParticleEmitter")) then
 		return true
 	end
-	local params = OverlapParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = { folder, character :: Instance? }
-	local box = Vector3.new(radius * 2 + 2, 16, radius * 2 + 2)
-	local hits = 0
-	for _, model in Hitbox.enemiesIn(CFrame.new(origin), box, params, origin) do
-		if hits >= 6 then
-			break
-		end
-		local cf, size = model:GetBoundingBox()
-		local p = cf.Position
-		local flat = Vector3.new(p.X - ground.X, 0, p.Z - ground.Z)
-		local distance = flat.Magnitude
-		if distance > radius + 1.5 then
-			continue
-		end
-		hits += 1
-		local index = hits
-		local toward = if distance > 0.01 then flat.Unit else dir
-		-- the near side of the target, where the front meets it
-		local near = math.max(distance - math.min(size.X, size.Z) * 0.4, 1)
-		local at = Vector3.new(ground.X, 0, ground.Z) + toward * near
-		local feet = Vector3.new(at.X, groundBelow(Vector3.new(at.X, p.Y, at.Z)) + 0.15, at.Z)
-		task.delay(frontTime(ring, math.clamp(near / radius, 0, 1)), function()
-			-- rock kicks (Craters) on the first three targets, the mastery quake
-			-- (ScreenEffects) on the first only
-			local source = impact:Clone()
-			if index > 3 then
-				local kick = source:FindFirstChild("Kick")
-				if kick then
-					kick:Destroy()
-				end
+	-- rock kicks (Craters) on the first three targets, the mastery quake
+	-- (ScreenEffects) on the first only
+	local targets = CastFX.targets({ kind = "circle", origin = origin, dir = dir, radius = radius, character = character })
+	for _, target in targets do
+		task.delay(CastFX.frontTime(ring, target.progress), function()
+			CastFX.impactAt(impact, target, { Kick = 3, Quake = 1 })
+			if target.model.Parent then
+				CombatEffects.flash(target.model)
 			end
-			if index > 1 then
-				local quake = source:FindFirstChild("Quake")
-				if quake then
-					quake:Destroy()
-				end
-			end
-			local burst = TechniqueVFX.burstAt(source, CFrame.lookAt(feet, feet + toward))
-			source:Destroy()
-			local body = burst:FindFirstChild("Body")
-			if body and body:IsA("Attachment") then
-				body.Position = Vector3.new(0, math.max(p.Y - feet.Y, 1), 0)
-			end
-			if model.Parent then
-				CombatEffects.flash(model)
-			end
-			if index == 1 and tier >= 4 and not TechniqueVFX.full and nearCamera(feet, 45) then
+			if target.index == 1 and tier >= 4 and not TechniqueVFX.full and CastFX.nearCamera(target.point, 45) then
 				CombatEffects.shake(0.25) -- the mastery strike lands twice: release, then the first impact
 			end
 		end)
@@ -291,7 +179,7 @@ function CombatEffects.windup(character: Model, id: string, level: number)
 	end
 	local def = Techniques.Defs[id]
 	local function at(): CFrame
-		local hand = handPosition(character, def.hand)
+		local hand = CastFX.handPosition(character, def.hand)
 		return if hand then CFrame.lookAt(hand, hand + root.CFrame.LookVector) else root.CFrame * CFrame.new(0, 0, -1.2)
 	end
 	local p = TechniqueVFX.part(id, level, "Windup", at())
@@ -299,7 +187,7 @@ function CombatEffects.windup(character: Model, id: string, level: number)
 		return
 	end
 	-- the charge fills the windup exactly, peaking at Hit when cast() takes over
-	local seconds = Rules.castProfile(def).windup
+	local seconds = CastFX.phases(def).windup
 	TechniqueVFX.fit(p, nil, p:GetAttribute("AuthoredWindup"), seconds)
 	-- qi wisps (Splines) curve in from around the body and reach the hand by Hit
 	local wisps = p:FindFirstChild("Wisps") :: BasePart?

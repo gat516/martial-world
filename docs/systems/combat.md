@@ -34,6 +34,13 @@ scales all player damage.
 - `src/client/ActionState.luau`: local predicted action state.
 - `src/client/LockOn.luau`, `Sprint.luau`, `ShiftLock.luau` (Alt), `HeadLook.luau`.
 - `src/client/CombatEffects.luau`, `Telegraphs.luau`: cosmetic effects and ground warnings.
+- `src/client/CastFX.luau`: shared runtime helpers for technique effects, used
+  for the caster's own casts and relayed ones alike: the striking limb
+  (`handPosition`, R6/R15), the ground under a point with characters, enemies
+  and effects excluded (`groundBelow`), the enemies a circle/zone/line covers
+  with their near-side contact point and arrival progress (`targets`), arrival
+  timing from a growing curve (`curveTime`/`frontTime`), impacts placed on a
+  target (`impactAt`), and cast phases from `ActionRules.castProfile` (`phases`).
 - `src/client/TechniqueVFX.luau`: plays technique effect templates
   (`ReplicatedStorage.Effects.<Id>.<Id>_T<tier>`) through the vfxia Game Module
   (`ReplicatedStorage.vfx`, plugin-owned, not mapped); falls back to plain

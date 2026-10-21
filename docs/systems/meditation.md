@@ -39,7 +39,8 @@ client fires `Meditate(false)`, or the server fires `Meditate(false)` to the cli
   `Config.Meditation` aliases).
 - `Config.Meditation.ITEM_RANGE`, `MAX_DRIFT`; BuildItems `meditation` per item.
 - `Meditation.luau`: `CALM_AFTER` (seconds before the HUD fades by itself),
-  `TAP_DRIFT`, `TAP_SECONDS` (what counts as a tap that ends the calm view).
+  `TAP_DRIFT`, `TAP_SECONDS` (what counts as a tap that ends the calm view),
+  `LOTUS_GAP` (px from the last seated tile to the lotus).
 
 ## The meditation menu (built 2026-10-21)
 **Self is what you are; meditation is what you work on.** The Self card is
@@ -71,7 +72,11 @@ changes your inner self happens seated, in one row of tiles above the vitals
 - Comprehending moved here from the Arts pane. The pane still shows the
   bottleneck and its cost; its button reads "Meditate to comprehend" unseated
   and still works when seated. Shared logic: `src/client/Bottleneck.luau`.
-- **Calm view.** The lotus at the right end above the vitals (`Stack.CalmToggle`)
+- **Calm view.** The lotus (`Stack.CalmToggle`) sits just past the last seated
+  tile (Rise), level with the tiles; `Meditation.placeLotus` moves it to the
+  row's end whenever tiles come and go (`LOTUS_GAP`), and it keeps that spot
+  while the row is folded away so the same tap brings it back. (It used to be
+  pinned to the stack's right end, where a full row put it over Rise.) It
   folds the tiles away and fades the rest of the HUD (bars, hotbar, top-right
   tiles, objective, buffs) via `Menus.setCalm` and `Motion.setShown`. It also
   comes on by itself after `CALM_AFTER` (20 s) seated without input. A tap that

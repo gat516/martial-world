@@ -56,6 +56,7 @@ local TAP_DRIFT = 12 -- px a press may move and still be a tap (more is a camera
 local TAP_SECONDS = 0.4 -- a longer press isn't a tap either
 local CALM_ICON = 0.55 -- the lotus's transparency while the view is calm
 local RESTING = 0.5 -- the Practice tile's transparency while the drill is on cooldown
+local LOTUS_GAP = 22 -- px from the last tile's edge to the lotus (the tile frame overhangs ~7)
 
 local Meditation = {}
 
@@ -118,6 +119,24 @@ local function paintPractice()
 	(t:FindFirstChild("Frame") :: ImageLabel).ImageTransparency = if resting then RESTING else 0
 end
 
+-- The lotus sits just past the row's last tile (Rise), whichever tiles show.
+-- It keeps its spot while the calm view folds the row away, so the same tap
+-- brings the row back. Offsets are in the stack's units: the row's own pop
+-- scale is divided out.
+local function placeLotus()
+	if not row.Visible or Menus.isCalm() then
+		return
+	end
+	local stack = row.Parent :: GuiObject
+	local unscaled = stack.AbsoluteSize.X * row.Size.X.Scale
+	if unscaled <= 0 then
+		return
+	end
+	local factor = row.AbsoluteSize.X / unscaled
+	local width = (row:FindFirstChildOfClass("UIListLayout") :: UIListLayout).AbsoluteContentSize.X / factor
+	calmToggle.Position = UDim2.new(0.5, math.round(width / 2 + LOTUS_GAP), calmToggle.Position.Y.Scale, calmToggle.Position.Y.Offset)
+end
+
 local function refresh()
 	local active = phase ~= "idle"
 	local seated = phase == "sitting" or phase == "seated"
@@ -146,6 +165,7 @@ local function refresh()
 		(tile("Root"):FindFirstChild("Icon") :: ImageLabel).Image = SelfCard.rootIcon(root.element)
 	end
 	calmToggle.Visible = seated and not open
+	placeLotus()
 	calmToggle.ImageTransparency = if calm then CALM_ICON else 0;
 	(calmToggle:FindFirstChild("Icon") :: ImageLabel).ImageTransparency = if calm then CALM_ICON else 0
 	Layout.showCluster(not active)
@@ -423,6 +443,7 @@ function Meditation.init(gui: ScreenGui)
 	for name, fn in actions do
 		(row:FindFirstChild(name) :: GuiButton).Activated:Connect(fn)
 	end
+	(row:FindFirstChildOfClass("UIListLayout") :: UIListLayout):GetPropertyChangedSignal("AbsoluteContentSize"):Connect(placeLotus)
 	calmToggle.Activated:Connect(function()
 		lastInput = os.clock()
 		Menus.setCalm(not Menus.isCalm())

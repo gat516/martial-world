@@ -28,7 +28,8 @@ Mapped assets: `Remotes`, `Animations`, `Ambience`, `Effects` (binary
 `Hud`, `Rewards`, `Prompts` (StarterGui); `Music`, `SFX`
 (SoundService); `Wilds`, `Hub` (Workspace); `Enemies`, `PeakTiers`,
 `ItemTemplates`, `AmbientFX` (binary `assets/AmbientFX.rbxm`, world-ambience
-effect templates: fireflies, lamp glows, mist, waterfall spray, petals; see
+effect templates: fireflies, spirit motes, lamp glows, mist, waterfall spray and
+mist, incense, qi spring, den mist, bamboo light, lotus mere, rim veil, petals; see
 [world](systems/world.md)), `WaterKit` (binary `assets/WaterKit.rbxm`, stylized
 shallow-water surfaces, rim foam and waterfall foam; see [world](systems/world.md)),
 `WeaponModels` (binary `assets/WeaponModels.rbxm`, weapon

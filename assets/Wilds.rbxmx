@@ -373,7 +373,7 @@
      <bool name="CanTouch">false</bool>
      <bool name="Massless">false</bool>
      <Vector3 name="size"><X>1.2</X><Y>5</Y><Z>5</Z></Vector3>
-     <CoordinateFrame name="CFrame"><X>-546.7</X><Y>5</Y><Z>1181.2</Z><R00>0.000000</R00><R01>-1.000000</R01><R02>0.000000</R02><R10>1.000000</R10><R11>0.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+     <CoordinateFrame name="CFrame"><X>-529.8</X><Y>5</Y><Z>1171</Z><R00>0.000000</R00><R01>-1.000000</R01><R02>0.000000</R02><R10>1.000000</R10><R11>0.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
      <Color3uint8 name="Color3uint8">4284112996</Color3uint8>
      <token name="Material">800</token>
      <token name="TopSurface">0</token>
@@ -388,7 +388,7 @@
      <bool name="CanTouch">false</bool>
      <bool name="Massless">false</bool>
      <Vector3 name="size"><X>1.6</X><Y>4.5</Y><Z>1.6</Z></Vector3>
-     <CoordinateFrame name="CFrame"><X>-546.7</X><Y>8</Y><Z>1181.2</Z><R00>0.847101</R00><R01>-0.180057</R01><R02>0.500000</R02><R10>0.273954</R10><R11>0.954160</R11><R12>-0.120527</R12><R20>-0.455378</R20><R21>0.239076</R21><R22>0.857597</R22></CoordinateFrame>
+     <CoordinateFrame name="CFrame"><X>-529.8</X><Y>8</Y><Z>1171</Z><R00>0.847101</R00><R01>-0.180057</R01><R02>0.500000</R02><R10>0.273954</R10><R11>0.954160</R11><R12>-0.120527</R12><R20>-0.455378</R20><R21>0.239076</R21><R22>0.857597</R22></CoordinateFrame>
      <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
      <token name="Material">288</token>
      <token name="TopSurface">0</token>
@@ -505,7 +505,7 @@
      <bool name="CanTouch">false</bool>
      <bool name="Massless">false</bool>
      <Vector3 name="size"><X>1.2</X><Y>5</Y><Z>5</Z></Vector3>
-     <CoordinateFrame name="CFrame"><X>604.7</X><Y>4.55</Y><Z>1224.7</Z><R00>0.000000</R00><R01>-1.000000</R01><R02>0.000000</R02><R10>1.000000</R10><R11>0.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
+     <CoordinateFrame name="CFrame"><X>596.6</X><Y>4.55</Y><Z>1216.5</Z><R00>0.000000</R00><R01>-1.000000</R01><R02>0.000000</R02><R10>1.000000</R10><R11>0.000000</R11><R12>0.000000</R12><R20>0.000000</R20><R21>0.000000</R21><R22>1.000000</R22></CoordinateFrame>
      <Color3uint8 name="Color3uint8">4284112996</Color3uint8>
      <token name="Material">800</token>
      <token name="TopSurface">0</token>
@@ -520,7 +520,7 @@
      <bool name="CanTouch">false</bool>
      <bool name="Massless">false</bool>
      <Vector3 name="size"><X>1.6</X><Y>4.5</Y><Z>1.6</Z></Vector3>
-     <CoordinateFrame name="CFrame"><X>604.7</X><Y>7.55</Y><Z>1224.7</Z><R00>0.847101</R00><R01>-0.180057</R01><R02>0.500000</R02><R10>0.273954</R10><R11>0.954160</R11><R12>-0.120527</R12><R20>-0.455378</R20><R21>0.239076</R21><R22>0.857597</R22></CoordinateFrame>
+     <CoordinateFrame name="CFrame"><X>596.6</X><Y>7.55</Y><Z>1216.5</Z><R00>0.847101</R00><R01>-0.180057</R01><R02>0.500000</R02><R10>0.273954</R10><R11>0.954160</R11><R12>-0.120527</R12><R20>-0.455378</R20><R21>0.239076</R21><R22>0.857597</R22></CoordinateFrame>
      <Color3uint8 name="Color3uint8">4284147370</Color3uint8>
      <token name="Material">288</token>
      <token name="TopSurface">0</token>

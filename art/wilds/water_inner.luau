@@ -126,6 +126,22 @@ end
 
 -- a falling sheet from `top` straight down to `bottomY`, facing `out` (horizontal, away from the rock)
 local SHEET_SIZE = select(2, SHEET:GetBoundingBox())
+local frontParams = RaycastParams.new()
+frontParams.FilterType = Enum.RaycastFilterType.Include
+-- how far a fall must come forward so its sheet clears the rock under the lip: a lip leaning out over
+-- a bulging face would otherwise hide the water inside the rock (the first Jade Veil sheet did)
+local function frontPush(top, bottomY, out)
+	frontParams.FilterDescendantsInstances = { ground:FindFirstChild("Walls"), ground:FindFirstChild("Pockets") }
+	local push = 0
+	for y = bottomY + 2, top.Y - 1, 3 do
+		local from = Vector3.new(top.X, y, top.Z) + out * 60
+		local hit = workspace:Raycast(from, -out * 70, frontParams)
+		if hit then
+			push = math.max(push, (hit.Position - Vector3.new(top.X, y, top.Z)):Dot(out) + 1.5)
+		end
+	end
+	return push
+end
 local function fall(parent, name, top, bottomY, out, width)
 	local h = top.Y - bottomY
 	local m = SHEET:Clone()
@@ -251,6 +267,7 @@ do
 	local lipRock = WALLS.TestStretch_South.Wall_S06_NotchLip
 	local inward = Vector3.new(0, 0, -1)
 	local top = lipAbove(-12, 1340, inward, { lipRock }, 12)
+	top += inward * frontPush(top, 4, inward)
 	local px, pz, r = -12, top.Z - 11, 12
 	local m, surface = pool("JadeVeilPool", px, pz, r, 11)
 	local f = fall(m, "JadeVeilFall", top + inward * 2.5 + Vector3.new(0, 0.5, 0), surface, inward, 12)
@@ -267,17 +284,20 @@ do
 	local n = Instance.new("Folder")
 	n.Name = "TwinJadeNotch"
 	n.Parent = WALLS
-	rock(n, "Wall_TJ01_Giant", 96, 565, 1267, 0.6, 0.12)
-	rock(n, "Wall_TJ02_Giant", 104, 683, 1237, 2.2, 0.12)
-	rock(n, "Wall_TJ03_NotchLip", 46, 625, 1251, 0.1, 0.1)
-	rock(n, "Wall_TJ04_Seam", 30, 535, 1237, 1.4, 0.15)
-	rock(n, "Wall_TJ05_Seam", 28, 715, 1211, 4.0, 0.15)
-	rock(n, "Wall_TJ06_Small", 8, 587, 1221, 2.0, 0.2)
-	rock(n, "Wall_TJ07_Small", 10, 665, 1205, 5.0, 0.2)
+	-- the giants stand back and well to the sides (the first ones, 96-104 tall and 60 to the sides,
+	-- overhung the pool and swallowed the fall); the lip alone frames the notch
+	rock(n, "Wall_TJ01_Giant", 68, 586, 1311, 0.6, 0.12)
+	rock(n, "Wall_TJ02_Giant", 74, 685, 1213, 2.2, 0.12)
+	rock(n, "Wall_TJ03_NotchLip", 40, 625, 1251, 0.1, 0.1)
+	rock(n, "Wall_TJ04_Seam", 30, 602, 1285, 1.4, 0.15)
+	rock(n, "Wall_TJ05_Seam", 28, 659, 1229, 4.0, 0.15)
+	rock(n, "Wall_TJ06_Small", 8, 587, 1278, 2.0, 0.2)
+	rock(n, "Wall_TJ07_Small", 10, 652, 1213, 5.0, 0.2)
 	-- 25 studs in front of the SouthEastFar karst: its trunk collider (r 96 round (704, 1324)) is
 	-- wider than the mesh, and players must reach the pool
 	local inward = (Vector3.new(565, 0, 1190) - Vector3.new(625, 0, 1251)).Unit
 	local top = lipAbove(625, 1251, inward, { n.Wall_TJ03_NotchLip }, 12)
+	top += inward * frontPush(top, 3, inward)
 	local c = Vector3.new(top.X, 0, top.Z) + inward * 15
 	local m, surface
 	local placed = ground:FindFirstChild("Pockets") and ground.Pockets:FindFirstChild("TwinJadeSpring")
@@ -311,7 +331,8 @@ local function trickle(name, x, z, inward, walls, r)
 	end
 	local top = lipAbove(face.X + inward.X * 2, face.Z + inward.Z * 2, inward, walls, 10)
 	top = Vector3.new(face.X, math.min(top.Y, 60), face.Z)
-	local c = Vector3.new(face.X, 0, face.Z) + inward * (r + 2)
+	top += inward * frontPush(top, 3, inward)
+	local c = Vector3.new(top.X, 0, top.Z) + inward * (r + 2)
 	local m, surface = pool(name .. "Pool", c.X, c.Z, r, 7)
 	fall(m, name, top + inward * 2.5, surface, inward, 4)
 	foot(m, Vector3.new(top.X, surface, top.Z) + inward * 3, inward, 6, false, top)
@@ -324,12 +345,13 @@ do
 	local spring = placed and placed:FindFirstChild("Spring", true)
 	if spring then
 		local inward = Vector3.new(0, 0, 1)
-		local walls = { WALLS.NorthWest, placed:FindFirstChild("Outcrop", true) }
+		local walls = { WALLS.NorthWest } -- the wall face above the hollow, not the prefab's low outcrop
 		local sw = spring:FindFirstChild("Water") or spring:FindFirstChildWhichIsA("BasePart")
 		local face = faceAt(sw.Position.X, sw.Position.Z, inward, sw.Position.Y + 8, walls)
 		if face then
 			local top = lipAbove(face.X + inward.X * 2, face.Z + inward.Z * 2, inward, walls, math.floor(sw.Position.Y + 8))
 			top = Vector3.new(face.X, math.min(top.Y, 50), face.Z)
+			top += inward * frontPush(top, sw.Position.Y, inward)
 			local m = Instance.new("Model")
 			m.Name = "BambooHollowTrickle"
 			m.Parent = root

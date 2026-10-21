@@ -271,6 +271,13 @@ Each one cost a pass real time. Check them before calling an area done.
   never move something they moved back to its planned spot. Put gameplay tags and
   attributes on parts (caches, prompts, sound and FX anchors, a `POIAnchor`), never only on
   a Model, because ungrouping drops the Model's tags and attributes.
+- **Judge every POI against a player and its world.** Prefab finds came out too small for
+  80-120 stud walls: scale until it reads from the path (doors and steps a 5-stud player
+  fits, steles taller than a person). And ask why it is there: a fisherman's boat stood in a
+  forest. Move or swap anything whose story doesn't fit its spot.
+- **Root everything, not just the centre.** Seat objects from several rays under their base,
+  sink them a little, tilt flat ones to the slope; keep buildings level and fill the ground
+  under them.
 - **Walls are a few giant library rocks, not piles.** "Stylized Cliff Terrain Rock" scaled
   to 80-120 studs is one cliff face; medium ones cover seams and feet. Fewer pieces means
   fewer seams and triangles, and the moss holds up at scale. Keep each a separate named

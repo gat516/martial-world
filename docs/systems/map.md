@@ -928,17 +928,17 @@ change.
 `Find`).** Spine: F1 Stele grove (-29, 684, the kept Steles), F2 wayside earth-god shrine
 (-5, 790), F3 meditation rock facing the falls (25, 900), F4 ruined tea stall and
 milestone (-35, 1010), F5 old well (15, 1150), F6 lantern stair foot (-15, 1280).
-GorgeRoad: F7 ferryman's hut (120, 1330), F8 river jetty through the gate (250, 1470).
+GorgeRoad: F7 ferryman's hut (180, 1532, at the crossing), F8 river jetty through the gate (250, 1470).
 WestArm: F9 herb patch (-110, 700), F10 abandoned cart (-260, 735), F11 claw-marked tree
-and bones (-450, 760). WestLoop: F12 snare line (-470, 920), F13 half-buried pagoda
+and bones (-450, 760). WestLoop: F12 snare line (-240, 895, on the CutWest beast trail), F13 half-buried pagoda
 finial (-530, 1080). SouthWest: F14 woodcutter's clearing (-330, 1320), F15 stone bridge
 over a dry creek (-180, 1320). EastArm: F16 herb patch (110, 725), F17 GateRidge vista
 notch (150, 665, climb), F18 boar wallow (420, 790), F19 collapsed watch post (580,
 760). EastLoop: F20 moss stele circle (610, 880), F21 Fox Hole cave mouth (700, 1000).
-SouthEast: F22 charcoal kiln (420, 1320), F23 sword in the rock (300, 1350). CrossWest:
-F24 lone pine with a meditation mat (-220, 960), F25 herbalist's drying racks (-330,
-1030). CrossEast: F26 toppled statue head (200, 1150), F27 spirit-beast skeleton (380,
-1170). LotusLane: F28 fisherman's boat (-300, 1100). Bamboo Sea: F29 turtle stele at the
+SouthEast: F22 charcoal kiln (-292, 1366, by the woodcutter), F23 sword in the rock (300, 1350). CrossWest:
+F24 lone pine with a meditation mat (-220, 960), F25 herbalist's drying racks (-585,
+1148, by the hermit's hut). CrossEast: F26 toppled statue head (200, 1150), F27 spirit-beast skeleton (380,
+1170). LotusLane: F28 fisherman's boat (178, 1556, on the river bank). Bamboo Sea: F29 turtle stele at the
 Hidden trail (-200, 650), F30 weiqi table (-330, 600). Gully: F31 old armour and a sword
 (310, 920, shortcut reward). That is 31 finds plus 7 pockets and 3 grounds on ~5,000
 studs of path: something new every 100-150 studs (6-10 s).
@@ -1022,6 +1022,49 @@ ambient sounds by the `AmbientSound` tag on each anchor part. Things not to ungr
   `CacheAnchor` part must stay with its pedestal);
 - lamp models named `StoneLantern`/`Lantern` (DayNight finds their lights by model name);
 - `Map.Sect.SpiritPeaks.*` and `Map.Sect.Ambience`.
+
+**POI pass (2026-10-21, done by the agent at the user's request).** Order after phase 3:
+`water_inner.luau`, `poi_pass_inner.luau` (clears the blocked-by list), `group_poi_parts.luau`
+(groups and roots every object), `poi_scale_sense.luau` (scale and sense), `ambience_inner.luau`,
+`T.labels()`.
+- **Grouping:** inside every pocket, find, water group, prefab and staging copy, small pieces
+  that touch a bigger object go inside it (moss on a stele, a tent's ropes, a cart's load, a
+  log's fungus; plants, rim stones and water stay their own), then objects go into function
+  groups: `Rocks`, `Foliage`, `Props`, `Structure`, `Roof`, `Stair`, `Apron`, `Lanterns`
+  (lamp models keep their names), `Water`, `PoolRim`, `FX`, `Sound`, `Markers`. Each group is
+  pivoted at its bottom centre; nothing is left loose beside the groups and the `POIAnchor`.
+  `_G.groupPoiParts(model)` can be called by the prefab builder too.
+- **Rooting:** every object is seated on what is under it (five rays under its base, sunk
+  0.4 stud for props, 8-15% of the height for rocks and rim stones), tilted to the slope
+  (fully for flat stones, logs and crates, at most 8 degrees for upright things, never for
+  plants), with a small random yaw on loose stones; buildings, stairs and roofs stay level and
+  the ground is filled up under them where they hovered.
+- **Blocks cleared:** seven wall seam rocks that stood in the Bamboo Hollow, the Fox Hole and
+  in front of the den and East trickles; Wall_SouthEast26_Giant moved off the gorge
+  approach; Wall_S11_CornerFoot shrunk off the GorgeRoad; the Twin-Jade notch giants pulled
+  back and lowered (68/74 tall, to the sides) so the pool, falls and shrine stand open; the
+  prefab's bamboo off the pool rim and the fall foot; an old dead tree in the Wolf Den; the
+  camp lantern off the trail end; the hermitage 18 studs off the SouthWestFar collider.
+  Falls now drop in front of the rock under their lip (`frontPush`), and the Bamboo Hollow
+  trickle falls from the north wall face. The wall ray check still finds no gaps.
+- **Scale:** WolfDen 1.4, WolfDenRockGate 1.3, HuntersCamp 1.3, hermitage 1.15, ShrineTerrace
+  1.25 (moved 10 studs forward of the cliff); finds 1.2-2.5 (steles and moss circle 1.8,
+  earth-god shrine 1.8, sword in the rock and turtle stele 2.0, pagoda finial 2.0, statue head
+  and beast skeleton 2.5, fox hole 1.8, ferryman's hut 1.5 with a 7-stud door). Each POI keeps
+  its factor in `AppliedScale`.
+- **Sense (moved):** F05 Old Well beside the tea stall (-2, 1040); F07 Ferryman's Hut to the
+  river crossing past the gorge gate (180, 1532); F28 Fisherman's Boat on trestles on the
+  river bank by the hut (178, 1556) instead of the forest; F08 jetty on the bank east of the
+  bridge; F22 Charcoal Kiln beside the woodcutter's clearing (-292, 1366); F12 Snare Line
+  across the CutWest beast trail (-240, 895); F25 Drying Racks beside the hermit's hut
+  (-585, 1148). QiNode3 and QiNode7 follow their pockets' node spots.
+- **Prompts and caches:** HeavenSplitter at the shrine stair's head (14 of 24 approach
+  spots), the Twin-Jade, F03 and F04 prompt spots moved to open ground (24 of 24), F18's lifted
+  out of its hollow; the other caches 24 of 24.
+- **Still open** (`T.handpass()`): structure fits not checked piece by piece (stele grove,
+  earth-god shrine, tea stall, pagoda finial, dry creek bridge, vista, watch post, kiln, lone
+  pine, the border bridge, the fallen giant, the den ring and gate), the toppled statue head
+  (reads as loose blocks at 2.5x), and the Borderlands POIs.
 
 **Inventory of the Inner box before the rework** (x -450..430, z 470..900, Y < 300;
 1,867 models and loose parts): `Map.Ground.WildsInner.Dressing` 1,827 (Trees 386,

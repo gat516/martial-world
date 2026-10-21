@@ -14,6 +14,14 @@
 
 local CollectionService = game:GetService("CollectionService")
 local SS = game:GetService("ServerStorage")
+local function waterPart(root)
+	for _, d in root:GetDescendants() do
+		if d:IsA("BasePart") and (d.Name == "Water" or game:GetService("CollectionService"):HasTag(d, "StylizedWater")) then
+			return d
+		end
+	end
+	return nil
+end
 local PREFABS = SS:WaitForChild("InnerWildsPrefabs")
 local ground = workspace.Map.Ground.WildsInner
 
@@ -110,7 +118,7 @@ for _, e in PLACE do
 	-- LotusMere: its Shore discs top out 0.1 under the water's top and z-fight with it (reads as a sand
 	-- pond); sink them under the surface until the prefab is fixed
 	if name == "LotusMere" then
-		local w = m:FindFirstChild("Water", true)
+		local w = waterPart(m)
 		local top = w and (w.Position.Y + math.min(w.Size.X, w.Size.Y, w.Size.Z) / 2) or 0
 		for _, c in m:GetDescendants() do
 			if c:IsA("BasePart") and c.Name == "Shore" then

@@ -11,6 +11,14 @@
 
 local CollectionService = game:GetService("CollectionService")
 local SS = game:GetService("ServerStorage")
+local function waterPart(root)
+	for _, d in root:GetDescendants() do
+		if d:IsA("BasePart") and (d.Name == "Water" or game:GetService("CollectionService"):HasTag(d, "StylizedWater")) then
+			return d
+		end
+	end
+	return nil
+end
 local AF = SS.AmbientFX
 local terrain = workspace.Terrain
 local ground = workspace.Map.Ground.WildsInner
@@ -121,7 +129,7 @@ local FX_FOR = { -- anchor base name -> function(anchor, pocket)
 		return fx("MistWisps", "FX_GullyMist", flatAt(a, 2), Vector3.new(40, 8, 20), nil, a)
 	end,
 	FX_LotusMist = function(a, pocket)
-		local water = pocket:FindFirstChild("Water", true)
+		local water = waterPart(pocket)
 		local y = water and (water.Position.Y + water.Size.X / 2 + 0.1) or a.Position.Y
 		return fx("LotusMere", "FX_LotusMere", CFrame.new(a.Position.X, y, a.Position.Z), Vector3.new(50, 0.2, 50), nil, a)
 	end,

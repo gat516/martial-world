@@ -15,6 +15,14 @@
 
 local CollectionService = game:GetService("CollectionService")
 local SS = game:GetService("ServerStorage")
+local function waterPart(root)
+	for _, d in root:GetDescendants() do
+		if d:IsA("BasePart") and (d.Name == "Water" or game:GetService("CollectionService"):HasTag(d, "StylizedWater")) then
+			return d
+		end
+	end
+	return nil
+end
 local PREFABS = SS.InnerWildsPrefabs
 local ground = workspace.Map.Ground.WildsInner
 local rep = SS:FindFirstChild("_InnerWildsReplaced")
@@ -89,7 +97,7 @@ local function fixups(m, src)
 		end
 	end
 	if m.Name == "LotusMere" then
-		local w = m:FindFirstChild("Water", true)
+		local w = waterPart(m)
 		local top = w and (w.Position.Y + math.min(w.Size.X, w.Size.Y, w.Size.Z) / 2) or 0
 		for _, c in m:GetDescendants() do
 			if c:IsA("BasePart") and c.Name == "Shore" then
@@ -127,6 +135,15 @@ local function ensureAnchor(m)
 		a.CanTouch = false
 		a.CastShadow = false
 		a.Parent = m
+	end
+	-- at the model's pivot, unless that pivot lies off the model (some built POIs keep a far pivot):
+	-- then at the bottom centre of its box, and the model pivots there too
+	a.Parent = nil
+	local cf, size = m:GetBoundingBox()
+	a.Parent = m
+	local lp = cf:PointToObjectSpace(m:GetPivot().Position)
+	if math.abs(lp.X) > size.X / 2 + 5 or math.abs(lp.Z) > size.Z / 2 + 5 then
+		m.WorldPivot = CFrame.new(cf.X, cf.Y - size.Y / 2, cf.Z)
 	end
 	a.CFrame = m:GetPivot()
 	CollectionService:AddTag(a, "POIAnchor")

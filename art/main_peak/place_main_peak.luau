@@ -32,7 +32,6 @@ local MESHES = {
 	MainRockFoot1 = { center = { 1.379, 3.106, 202.084 }, size = { 452.069, 454.322, 424.168 } }, -- 10583 tris
 	MainRockFoot2 = { center = { 1.002, 2.566, 202.144 }, size = { 451.315, 454.251, 424.245 } }, -- 10530 tris
 	MainRockFoot3 = { center = { 1.002, 1.486, 202.044 }, size = { 451.315, 456.41, 424.045 } }, -- 8886 tris
-	MainMoss = { center = { -12.35, 10.032, 578.312 }, size = { 335.659, 335.143, 4.777 } }, -- 564 tris
 	MainLedges = { center = { -84.157, -88.91, 520.935 }, size = { 210.716, 233.966, 61.542 } }, -- 2056 tris
 }
 -- END MESHES
@@ -42,13 +41,14 @@ local RETIRED = {
 	"MainRockSpire", "MainRockMesa", "MainRockCliffA", "MainRockCliffB", "MainRockCliffC", "MainGrass", "MainPath",
 	"MainTufts", "MainLawn1", "MainLawn2", "MainLawn3", "MainRockBase",
 	"MainTurfLip", -- the terrain lawn's own drooping edge reads better; the lip mesh floated where they differed
+	"MainMoss", -- made for the turf lip: under the sunk rim rock it hung as a dark green sheet (still in the old FBX)
 }
 
 local CLEAR_RADIUS = 203 -- the 8 spirit peaks (r 300) and their terrain start beyond ~205
 local CLEAR_BOTTOM, CLEAR_TOP = 12, 900 -- ground ring is at y ~ -10..8
 -- palette colours (docs/systems/map.md) on Roblox's textured materials: rock in three values per region (split
--- per stone column / tower band in Blender); the lawns themselves are Terrain (terrain_main_peak.luau), only the
--- turf lip along their edges and the moss under the terrace rim are meshes
+-- per stone column / tower band in Blender); the lawns themselves are Terrain (terrain_main_peak.luau), with no
+-- green meshes on their edges
 local function hex(h)
 	return Color3.fromHex(h)
 end

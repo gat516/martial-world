@@ -214,22 +214,27 @@ Found by coordinates only; children may be restructured freely.
   - Cliff ledges: five irregular shelves of column stumps (`LEDGES`): a big
     shrine ledge under the south balcony (0, 547, 194), a waterfall step in the
     rim notch's chute (-184, 535, -19), and a big/medium/small pine cluster on the
-    south-west face (-127, 547, 143), (-159, 528, 111), (-161, 505, 120). Pine
-    and waterfall shelves have a sunk basin of terrain grass; the shrine floor is
-    bare stone. The 14 old disc ledges and their 12 floating pines are gone.
+    south-west face (-127, 547, 143), (-159, 528, 111), (-161, 505, 120). All
+    shelves are bare stone (the pines stand sunk in the stumps): their terrain
+    grass basins leaked out between the stumps as green cubes and drips, so
+    `terrain_main_peak.luau` no longer writes them (`SHELF_BASINS`). The 14 old
+    disc ledges and their 12 floating pines are gone.
   - Waterfall sources in the rock: one rim notch at 186 deg (cap r 176) and two
     mesa-wall grooves, west at (-102, z -16) spanning 585-612 and 616-639 (the
     614 ledge is the step), east at (102, z -6) spanning 585-604.
   - Floors are smooth Terrain: terrace Grass with the ring walk in Cobblestone
     (surface Y 582; only the top voxel layer droops 1.5 past the rim), the plaza
-    ledge Grass (Y ~614.5), the shelf basins LeafyGrass. The rock under them is
+    ledge Grass (Y ~614.5; only over the rock's sunk ledge flat, its lower
+    voxel layers terrain Rock so the lip never shows a green band). The rock under them is
     sunk 1.5; where the voxels round off at the rim the stone shows as a narrow
     rim band. Grass (the material with blades) stays two voxels clear of paving,
     the ring walk and the rim: those borders are LeafyGrass, and anything paved
     on the terrace (bridgeheads, the stair foot pads, found at run time) gets
     Cobblestone under it and a 4-stud cobble apron. No turf-lip mesh (it floated
-    where the terrain edge differed); a moss band hangs under the rim on four
-    arcs. Terrain surface rule (measured): a voxel over full voxels renders at
+    where the terrain edge differed) and no moss band (`MainMoss`, retired: it
+    hung as a dark green sheet under the sunk rim rock). The terrace's lower
+    voxel layers near the rim are terrain Rock, so crevices in the cliff face
+    show stone. Terrain surface rule (measured): a voxel over full voxels renders at
     centre + 4 x occupancy.
 - Grand stairs (`art/main_peak/build_grand_stairs.luau`, re-runnable): each
   flight climbs the mesa's south wall toward the balcony in three runs with two

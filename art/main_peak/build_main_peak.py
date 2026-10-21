@@ -20,8 +20,9 @@ Layout (world coords), matching the existing gameplay structures (plan: docs/sys
 
 Colour comes from splitting meshes: rock is split per stone column into three value tones
 (MainRock<Region>1..3, Region = Spire/Mesa/Cliff/Foot) and textured in Studio. Walkable floors are Roblox
-Terrain written by terrain_main_peak.luau from the outlines this script exports (JSON "terrain"); a moss band
-hangs under the terrace rim on a few arcs (MainMoss).
+Terrain written by terrain_main_peak.luau from the outlines this script exports (JSON "terrain"). No moss band
+under the terrace rim any more (MainMoss): built for the old turf lip, it hung as a dark green sheet under the
+sunk rim rock once the floors became terrain.
 """
 import json
 import math
@@ -96,7 +97,9 @@ LEDGES = [
     (-160.3, 506.0, 118.9, 8, "pine"),
 ]
 # moss hanging under the terrace's turf lip on a few arcs (world deg from, to; max depth below the lip)
-MOSS_ARCS = [(34.0, 58.0, 4.5), (128.0, 150.0, 6.0), (196.0, 212.0, 3.5), (286.0, 318.0, 5.0)]
+# retired: with terrain floors the band read as a dark green sheet hanging under the rim (user, 2026-10-20);
+# the old arcs were (34, 58, 4.5), (128, 150, 6), (196, 212, 3.5), (286, 318, 5)
+MOSS_ARCS = []
 # terrace lawn sectors: boundaries (world deg), each sector one of three shades, neighbours differ
 LAWN_SECTORS = [0.0, 31.0, 78.0, 104.0, 151.0, 197.0, 236.0, 262.0, 301.0, 338.0]
 LAWN_SHADES = [1, 2, 3, 1, 2, 1, 3, 2, 3, 2]
@@ -1329,7 +1332,8 @@ def split(upper, base, path):
         append(meshes["MainRockSpire%d" % tone], b)
     append(ledges, body_grass)   # (normally empty: every lawn is terrain now)
     lip.free()   # the turf lip mesh is gone: the terrain lawn's own edge droops over the rim instead
-    meshes["MainMoss"] = build_moss()
+    if MOSS_ARCS:
+        meshes["MainMoss"] = build_moss()
     meshes["MainLedges"] = ledges
     b = bmesh.new()
     b.from_mesh(base.data)

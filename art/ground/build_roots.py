@@ -70,7 +70,10 @@ def cell_hash(p):
 
 
 def outline(src, ys, a_deg, y):
-    """Rock outline radius (its collision hull) at world angle a_deg and height y (linear in both)."""
+    """Rock outline radius (its collision hull) at world angle a_deg and height y (linear in both). With an
+    alternative outline (prof_alt: pillars not yet rebuilt), the smaller of the two."""
+    if "prof_alt" in src:
+        return min(outline({"prof": src["prof"]}, ys, a_deg, y), outline({"prof": src["prof_alt"]}, ys, a_deg, y))
     prof = src["prof"]
     s = (a_deg % 360.0) / 5.0
     s0 = int(math.floor(s)) % 72

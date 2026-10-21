@@ -15,8 +15,8 @@ local ServerStorage = game:GetService("ServerStorage")
 
 -- BEGIN MESHES (PeakRoots.json: centre and size in Blender axes)
 local MESHES = {
-	PeakRoot = { center = Vector3.new(0.605, 7.425, 54.0), size = Vector3.new(214.089, 221.257, 152.0) },
-	PeakRootFoot = { center = Vector3.new(0.584, 6.64, 17.5), size = Vector3.new(213.539, 219.687, 35.0) },
+	PeakRoot = { center = Vector3.new(-9.624, 7.598, 54.0), size = Vector3.new(193.631, 220.911, 152.0) },
+	PeakRootFoot = { center = Vector3.new(-9.497, 6.813, 17.5), size = Vector3.new(193.377, 219.342, 35.0) },
 	MainRoot = { center = Vector3.new(-2.067, 8.377, 42.0), size = Vector3.new(470.362, 464.87, 128.0) },
 	MainRootFoot = { center = Vector3.new(-1.645, 8.2, 17.5), size = Vector3.new(468.582, 462.275, 35.0) },
 }

@@ -10,6 +10,13 @@ cursor, settings and the admin panel.
   combat cluster, PC cooldown chips, vitals, hotbar; the inventory keeps the
   hotbar as a drop target). Windows sit centred with their own close seal; on
   PC the top-right tiles stay to switch, on touch the big windows hide them.
+  Small panels too: a menu the player opens (like the meditation panel) goes
+  in the centre of the screen, not docked at the bottom over the vitals and
+  hotbar (user decision, 2026-10-21). The HUD steps aside while it's open, so
+  the bottom has nothing to stay near.
+- A ScrollingFrame whose rows size themselves (`AutomaticSize` Y) gets its
+  `CanvasSize` from its `UIListLayout.AbsoluteContentSize` in script;
+  `AutomaticCanvasSize` doesn't count those rows and leaves the list unscrollable.
   The top-left is always Roblox's chat. On PC, shift lock switches off while
   any window (reward card and minigames included) is open, so the mouse is free,
   and comes back when it closes (`ShiftLock`).

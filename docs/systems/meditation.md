@@ -60,10 +60,14 @@ changes your inner self happens seated, in one row of tiles above the vitals
 - Square tiles in the top-right tiles' style (drawn icons from
   `art/ui/draw_ui.py` `meditation_art`), at least 50 px on phones; a QC1 player
   sees two (Circulate, Rise), so the calm-screen intent holds.
-- The panel (`Stack.MeditationPanel`, `src/client/MeditationMenu.luau`) is a
-  small window at the bottom of the stack: the tiles and the HUD step aside
-  while it's open and its seal closes it. Rows come from `List.RowTemplate`;
-  the list grows with its rows up to its `UISizeConstraint` and then scrolls.
+- The panel (`Hud.MeditationPanel`, `src/client/MeditationMenu.luau`) is a
+  small window centred on screen, like the other windows (all three pages share
+  it): the tiles and the HUD step aside while it's open and its seal closes it.
+  Rows come from `List.RowTemplate`; the list grows with its rows up to its
+  `UISizeConstraint` (160 px, so it fits a phone in landscape) and then
+  scrolls. `fitList` sets the canvas from the layout (`AutomaticCanvasSize`
+  is off: it ignored the self-sizing rows, so the Spirit Root page showed only
+  its first row).
 - Comprehending moved here from the Arts pane. The pane still shows the
   bottleneck and its cost; its button reads "Meditate to comprehend" unseated
   and still works when seated. Shared logic: `src/client/Bottleneck.luau`.

@@ -1,5 +1,5 @@
 --!strict
--- The meditation menu's small panel (Hud.Stack.MeditationPanel), opened from the
+-- The meditation menu's small panel (Hud.MeditationPanel), opened from the
 -- seated tiles (Meditation.luau). One page at a time, each a short list of rows
 -- cloned from List.RowTemplate (seal, name, two lines, a blurb, an action):
 --   Comprehend  techniques at a bottleneck (Bottleneck), their cost in insight
@@ -14,8 +14,8 @@
 --               element is pending it shows the old and the new root instead,
 --               each with its choice (CultivationAction "root", keepNew).
 -- The panel is a window (Menus): the seated row and the HUD step aside while it's
--- open, and its seal closes it. It sits where the vitals were, at the bottom
--- of the stack, so the meditating character stays in view.
+-- open, and its seal closes it. It is centred on screen like the other windows
+-- (docs/systems/ui.md: menus go in the centre, not docked at the bottom).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -327,9 +327,14 @@ local function render()
 end
 
 -- The list grows with its rows; its UISizeConstraint caps it and it scrolls.
+-- The canvas is set from the layout here: AutomaticCanvasSize doesn't count rows
+-- that size themselves (AutomaticSize Y), so it stayed at the capped frame height
+-- and everything past the first row or so was clipped with no way to scroll.
 local function fitList()
 	local layout = list:FindFirstChildOfClass("UIListLayout") :: UIListLayout
-	list.Size = UDim2.new(1, 0, 0, layout.AbsoluteContentSize.Y)
+	local height = layout.AbsoluteContentSize.Y
+	list.Size = UDim2.new(1, 0, 0, height)
+	list.CanvasSize = UDim2.fromOffset(0, height)
 end
 
 function MeditationMenu.open(which: Page)

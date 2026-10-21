@@ -35,6 +35,7 @@ local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local BreakthroughView = require(script.Parent.BreakthroughView)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local Controls = require(script.Parent.Controls)
+local Guide = require(script.Parent.Guide)
 local Hud = require(script.Parent.Hud)
 local Layout = require(script.Parent.Layout)
 local MeditationMenu = require(script.Parent.MeditationMenu)
@@ -307,8 +308,9 @@ local function watchInput()
 	task.spawn(function()
 		while true do
 			task.wait(1)
+			-- never fade away a tile the onboarding guide is spotlighting
 			if phase == "seated" and not Menus.isOpen() and not Menus.isCalm() and not CirculationMinigame.isRunning()
-				and os.clock() - lastInput >= CALM_AFTER then
+				and not Guide.spotlit() and os.clock() - lastInput >= CALM_AFTER then
 				Menus.setCalm(true)
 			end
 		end

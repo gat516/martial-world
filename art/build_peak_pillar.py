@@ -5,12 +5,13 @@ Run inside Blender (Text Editor or exec). Axes: X = peak-local right, Y = outwar
 1 Blender unit = 1 stud.
 
 Exports art/SpiritPeakPillar.fbx (one mesh per Roblox material) and
-art/SpiritPeakPillar.json (mesh bounds + decor anchors, in the same axes).
+art/SpiritPeakPillar.json (mesh bounds, decor anchors and the lawn collider boxes, in the same axes).
 """
 import json
 import math
 import os
 import random
+import sys
 
 import bmesh
 import bpy
@@ -18,6 +19,8 @@ from mathutils import Vector, noise
 from mathutils.bvhtree import BVHTree
 
 OUT_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else bpy.path.abspath("//")
+sys.path.insert(0, OUT_DIR)
+from lawn_collider import lawn_strips  # noqa: E402  (invisible boxes under the lawn; see lawn_collider.py)
 TOP_Z = -1.5                 # walkable top (world y 552)
 DEPTH = 562.0                # down to the ground ring (world y -10)
 SPLIT_H = 176.0              # upper/lower mesh split, just under the cloud deck (world y ~376)
@@ -689,6 +692,9 @@ def split_and_export(pillar, h, anchors, stairs):
     for b in (bm, base_bm, grass_bm, walls_bm, floor_bm):  # drop loose verts left behind by extraction
         bmesh.ops.delete(b, geom=[e for e in b.edges if not e.link_faces], context='EDGES')
         bmesh.ops.delete(b, geom=[v for v in b.verts if not v.link_faces], context='VERTS')
+    # PeakGrass is an open shell 420 studs tall, so its convex-decomposed collision leaves holes in the lawn:
+    # the placement script lays these invisible boxes just under the turf
+    lawn_collider = lawn_strips(grass_bm)
     meshes = {"PeakRock": bm, "PeakRockBase": base_bm, "PeakGrass": grass_bm,
               "AbodeWalls": walls_bm, "AbodeFloor": floor_bm}
     meshes["PeakStairs"], meshes["PeakStairsRail"], meshes["PeakStairsRamp"] = stairs
@@ -713,7 +719,7 @@ def split_and_export(pillar, h, anchors, stairs):
     bpy.ops.export_scene.fbx(filepath=os.path.join(OUT_DIR, "SpiritPeakPillar.fbx"), use_selection=True,
                              object_types={'MESH'}, apply_unit_scale=True, apply_scale_options='FBX_SCALE_UNITS',
                              axis_forward='-Z', axis_up='Y', mesh_smooth_type='EDGE', bake_space_transform=True)
-    report = {"meshes": {}, "anchors": anchors}
+    report = {"meshes": {}, "anchors": anchors, "lawn_collider": lawn_collider}
     for o in objs:
         centre, size = bounds(o)
         report["meshes"][o.name] = dict(tris=len(o.data.polygons), center=centre, size=size)

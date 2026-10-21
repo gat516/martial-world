@@ -177,6 +177,58 @@ on, parts for buildings.
 - Anything players stand on must collide the way it looks: raycast-check walkable
   areas in Edit mode after changes (holes have happened before).
 
+## Lessons from past passes
+
+Each one cost a pass real time. Check them before calling an area done.
+- **Library pivots lie.** Some AssetLibrary models keep their WorldPivot far from the mesh
+  ("Single Stone" in the Stone Rock Pack: ~485 studs; Wide_L trees 54, pines 36-38, cliff
+  masses 33). Then `PivotTo(spot)` drops the mesh somewhere else, and the ring stones of
+  the Wolf Den ended up 1,000 studs away. Pivot every kit clone at its bounding box's bottom
+  centre, keeping its rotation (`dress_wilds.luau` `add` does this). After a placement run,
+  scan for single-part models whose part is more than 40 studs from the pivot.
+- **Every POI must be visible and reachable; this check is required.** Caches have ended
+  up inside boulder piles, tree trunks and behind crates (and once inside a tent). Test
+  each POI and cache from 24 approach spots (12 bearings at 5 and 8 studs). Each spot
+  needs ground, a free 2x4.6x2 standing box and a clear ray from eye height (ground + 4.5)
+  to the target. Count colliders (prompt line of sight) and visual meshes separately: set
+  CanQuery on nearby parts for the visual ray, then restore it. Fewer than about 12 clear
+  spots means move the POI or the dressing. Then capture it from a clear spot, because a
+  camera placed blindly lands inside a trunk.
+- **"Floating" checks need care.** A ray cast from inside terrain hits nothing, so a sunk
+  part reads as floating. Only flag gaps where the ray actually hit something below.
+  Lanterns and lamps did float 1-5 studs, but some only looked like they floated: they
+  stood on non-colliding meshes (pavilion floors, crates) that CanQuery-off raycasts
+  ignore. Check for any part under the footprint before you lower a prop.
+- **Event and treasure spots skip water.** Raycasts hit terrain water by default; the
+  serpent marsh lair was 37% water. Spot pickers check `hit.Material ~= Water` and
+  retry.
+- **Name collisions in hand-edited XML.** When editing `.rbxmx` text, a pattern like a
+  CFrame can match two instances (a zone disc and an event ground at the same spot).
+  Anchor each edit to the item's Name block.
+- **Commits in a shared repo.** Other sessions commit at the same time and can sweep up
+  anything you've staged. Stage and commit in one command, right after a
+  `git diff --cached --name-only` check. For files that carry other agents' uncommitted
+  hunks (map.md, README.md), stage only your hunks by building the blob:
+  `git show HEAD:<file>`, apply your edits in a script, `git hash-object -w --stdin`, then
+  `git update-index --cacheinfo`. Never `git add` the whole file.
+- **Studio can switch to Play under you.** The user or another agent starts play
+  sessions, and `execute_luau` on Edit then fails. Don't stop their session; check
+  `get_studio_state`, work on files meanwhile and retry. Edit-mode `_G` state can be
+  lost, so keep audit helpers re-runnable rather than relying on `_G`.
+- **Aerial captures don't work over the wilds.** The cloud plane (Y 440) and the haze
+  white out any camera above about Y 300, and the dense canopy hides views at eye height.
+  Check sightlines with the blockout from eye height on the spine, and verify numbers by
+  raycast.
+- **Editor-only aids go in `Workspace._EditorMarkers`** (labels, blockouts, route strips,
+  anchored and non-colliding with CanQuery off). `EditorOnly.server.luau` strips them at
+  runtime. Tag every new POI `POI` (PoiName, Kind, Zone) and re-run `PoiTour.labels()`.
+- **Studio needs a file from disk?** Run `tools/receive_rbxmx.py` and
+  `HttpService:GetAsync("http://127.0.0.1:8766/<file>.luau")` instead of pasting long
+  source, and stop the server afterwards.
+- **Walls are user-placed modular kit pieces.** Keep each one a separate named model in one
+  folder, never merged or welded, and never make a script or raycast depend on wall
+  geometry. Keep spawns, discs and nodes 40+ studs off wall feet.
+
 ## Finish
 
 Check with `screen_capture` from several angles, day and night (set

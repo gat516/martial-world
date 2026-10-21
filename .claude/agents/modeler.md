@@ -135,6 +135,10 @@ pattern.
   the clone and let Rojo apply the file. A placement script that builds a
   template in a mapped folder must target the staging clone, not the real one.
   `tools/find_duplicates.luau` must still return `clean` before you commit.
+- Pivot every model you make or template at its ground point (bottom centre,
+  identity or upright rotation), and check library models you reuse: some keep
+  their WorldPivot hundreds of studs from the mesh (Stone Rock Pack "Single
+  Stone"), so a later `PivotTo(spot)` drops the mesh far from the spot.
 - Placed world geometry outside Rojo's mapped folders lives only in the place
   file. Say in the commit message what was changed Studio-side.
 - Check the result with `screen_capture` from several camera angles

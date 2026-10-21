@@ -19,13 +19,12 @@ pattern.
 - Rock: crisp vertical stone columns (2D Voronoi, stacked segments, narrow
   grooves), light smoothing, crease shading around 28 degrees. Avoid noise-blob
   "melted clay" rock. Columns are for the peaks and karst pillars only.
-- Ground-level cliffs, valley walls, shores and pool edges are piles of big,
-  chunky boulders, not columns or tiers: faceted, a few large planes each, soft
-  bevelled edges, light warm gray with a slight lavender tint, stacked
-  irregularly (big at the base, smaller up top), with greenery growing out of
-  the cracks. References: `docs/reference/rock_*` and
-  `map_enclosed_valley.webp`. The user rejected a tiered column-and-lawn-shelf
-  wall kit (2026-10-21).
+- Don't model ground-level cliffs, valley walls or shore rocks. They come from
+  the library's mossy "Stylized Cliff Terrain Rock" (Cliff Rock Pack II),
+  scaled up and placed by `map-builder`. On 2026-10-21 the user rejected two
+  custom kits: a tiered column-and-lawn-shelf wall kit, and a boulder kit with
+  its own moss and grass tufts ("looks bad"). Ask before trying a third. The
+  look to match is in `docs/reference/rock_*` and `map_enclosed_valley.webp`.
 - Cohesion: every rock rests on the ground or on a bigger stone with real
   overlap (nothing floating or over a void), rocks never poke up through grass,
   and there are no see-through gaps or dark cores. Hide a crack with a stone

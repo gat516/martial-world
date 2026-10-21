@@ -236,6 +236,45 @@ Impacts), `Aggro`, `Death`; all picked by description only, not listened to.
 The testbed's `Wilds.Zones.WolfPair` (test.project.json) still keeps two Spirit Wolves
 at (-90, 648.6, -40), 127 studs from the spawn pad, for tuning.
 
+### Stone Boar (the new fight, testbed first)
+Behind `Config.Wilds.NEW_BOAR` (= `Config.TESTBED`); with it off the main game keeps
+the old boar (one 1.0 s charge, 160 HP, the old body). **To ship it, set
+`NEW_BOAR = true`.** User direction (2026-10-21): "a charge and then it uses its tusk
+to attack you". Either `NEW_WOLF` or `NEW_BOAR` turns on attack slots and dash-front
+hits for every non-boss beast (`TURNS` in EnemyService).
+
+With the flag on: the body is `StoneBoarB` (the roster boar, built by
+`art/enemies/quadrupeds/build_stone_boar.luau` + `rig_stone_boar.luau`, posed by
+`EnemyPoses/Boar.luau`, effects in `EnemyFX/StoneBoar.luau`, "Stone Boar effects"
+above). **Boar poses pending:** `EnemyPoses/Boar.luau` hasn't landed yet;
+EnemyAnimator loads it only if it's there (`FindFirstChild`), so until then the boar
+moves with the generic trot/crouch/stretch pose, and it picks the module up on its own
+once it syncs. Tells: the Neon cracks
+`CrackL1/L2/R1/R2`, `CrackBack` (Chest) and `EyeL/EyeR` (Head); effect attachments
+`TuskTip` (Head), `Core` (Chest), `HoofFL_FX`, `HoofFR_FX`. It never hops. Waiting, it
+side-paces 16 studs out (`pack.circle`, 5 studs/s, facing you; it closes in from
+farther and backs out to 16 from closer); it charges down a 30-stud lane straight
+through you, and if you're within 7 studs when the charge's recover ends it gores at
+once (`followUp`: past its pause and the gore's cooldown, but it still waits for the
+attack slot, up to 1 s past the recover, `FOLLOW_UP_WAIT`). Up close it gores.
+
+| Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage (QC4 165 HP) | Cooldown |
+|---|---|---|---|---|---|---|
+| `charge` (opener) | charge | 1.0 / 0.55 (30 studs at 55/s, `dash`) / 0.7 | 12-28 | box 5 x 30 | 26 (16%) | 4 s, then the gore if close |
+| `gore` | cone | 0.6 / 0.15 (the hook: the first 0.15 s of recover) / 0.8 in all | 0-7 | cone r 7, 100 deg | 20 (12%) | 2.5 s |
+
+Cues as the wolf's: `windup` (Telegraph remote, `seconds` = the windup only),
+`strike` (windup -> dash for the charge, windup -> recover for the gore), `dash`
+with the strike, `land` as it leaves `dash`, `hit` once per player caught (the
+charge's when the dash front reaches them), `stagger`, `death`. The gore resolves at
+windup end; the hook is drawn in the first 0.15 s of `recover`.
+
+Health 200 (was 160), QC4, weight 2.5, qiDrop 24. Sounds (`SFX.Enemies.StoneBoar`, PSE,
+picked by description, unheard): `Attack_charge` (Pig Grunts 2, deep, 0.85 pitch),
+`Attack_gore` (Pig Squeals 6 at 0.7), `Hurt` (Pig Grunts 5), `Land` (Debris Rain 4, the
+skid as a charge ends); the old boar picks these up too. The testbed's
+`Wilds.Zones.BoarPair` keeps two at (100, 648.6, -40).
+
 ### Template contract
 Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated
 `HumanoidRootPart` as PrimaryPart standing on Y 0 (its height is the beast's root
@@ -309,7 +348,8 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
 - **Known gaps:** EnemyAnimator can't play R6 tracks or authored clips yet (humanoid
   enemies need an AnimationTrack per AIState). No roster model has a def, sounds or
   VFX. The Flame Raven's server stand-in would take its whole 15-stud wingspan as a
-  hitbox. The new Spirit Wolf is shipped (`Config.Wilds.NEW_WOLF`).
+  hitbox. The new Stone Boar is live in the testbed only
+  (`Config.Wilds.NEW_BOAR`).
 
 ## Data flow
 Spawner decides where -> `EnemyService.spawn` clones the type's root-only stand-in,
@@ -330,9 +370,10 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - Kill credit share: `Pacing.Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`.
 - Movement: `Config.Wilds.MOVE_TICK` (step and replication rate), `WALK_SLOPE`,
   `CLIMB`, `FALL_SPEED`, `TURN_RATE`, `CROWD`.
-- Packs and turns: `Config.Wilds.NEW_WOLF` (the wolf fight's switch, shipped on),
+- Packs and turns: `Config.Wilds.NEW_WOLF` (the wolf fight's switch, shipped on; it or NEW_BOAR turns on slots
+  and dash-front hits for everyone), `NEW_BOAR` (the new boar fight),
   `ATTACK_SLOTS`, `SLOT_GAP`, `ENGAGE_RESET`; per beast `attacks` (with `minRange`,
-  `notBefore`, `active`, `arc`, `hopAfter`) and `pack` (`howl`, `hop`, `circle`).
+  `notBefore`, `active`, `arc`, `hopAfter`, `followUp`) and `pack` (`howl`, `hop`, `circle`).
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
   `ESCAPE_LEAD`; client `EnemyMotion` `LEAD_MAX`, `STALE`, `FOLLOW`, `TURN`, `SNAP`,
   `DASH_SLACK`.
@@ -362,6 +403,11 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   wilds: the leap's flight over broken ground (EnemyMover can stop it short at a wall;
   the hit still resolves on the circle), the GateWolves pair in the FirstKill beat,
   and phones with a pack of four. Its sounds were picked unheard.
+- The new Stone Boar fight is untested in play (testbed only): its poses are pending
+  (generic pose until `EnemyPoses/Boar.luau` lands), whether pacing at 16 studs reads as
+  stalking, the gore's reach (range 7 against a cone of radius 7), the follow-up's wait
+  for the slot, sounds (picked unheard). Time to kill at QC4 is about 14 s, above the
+  pack-beast guide.
 - Techniques don't get lag compensation, only M1 swings; their areas lean on
   `AREA_SLACK`.
 - Stagger shoves aren't predicted, only smoothed.

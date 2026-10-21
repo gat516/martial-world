@@ -5,7 +5,7 @@
 -- cry. The sounds are SoundService.SFX.Enemies.<EnemyType>.Aggro / Attack / Death.
 -- Optional, per beast: Attack_<name> for one attack (the model's Attack
 -- attribute; falls back to Attack), Howl for a pack call, Hurt on a stagger,
--- Land when a leap touches down.
+-- Land when a leap touches down or a charge skids to a stop.
 
 local CollectionService = game:GetService("CollectionService")
 
@@ -56,7 +56,8 @@ local function watch(model: Instance)
 		elseif state == "stagger" then
 			Sfx.play(base .. "Hurt", root, 0.3)
 		end
-		if previous == "dash" and state ~= "dash" and model:GetAttribute("Attack") == "leap" then
+		local attack = model:GetAttribute("Attack")
+		if previous == "dash" and state ~= "dash" and (attack == "leap" or attack == "charge") then
 			Sfx.play(base .. "Land", root)
 		end
 		previous = state

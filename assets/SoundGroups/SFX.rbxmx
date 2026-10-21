@@ -132,6 +132,38 @@
      <float name="RollOffMaxDistance">120</float>
     </Properties>
     </Item>
+    <Item class="Sound" referent="SGSFXB1"><Properties>
+     <string name="Name">Attack_gore</string>
+     <Content name="SoundId"><url>rbxassetid://9117370226</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFXB2"><Properties>
+     <string name="Name">Attack_charge</string>
+     <Content name="SoundId"><url>rbxassetid://9117357588</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFXB3"><Properties>
+     <string name="Name">Hurt</string>
+     <Content name="SoundId"><url>rbxassetid://9117352636</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFXB4"><Properties>
+     <string name="Name">Land</string>
+     <Content name="SoundId"><url>rbxassetid://9114034583</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1.1</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
    </Item>
    <Item class="Folder" referent="SGSFX16"><Properties>
     <string name="Name">VenomSerpent</string>

@@ -31,7 +31,8 @@ on the baseplate unchanged.
 - `Workspace.Wilds`: `EventGrounds.ArenaGround` (radius 60 at (0, 648.6, -120)),
   so world events and treasures land there through the real `EventGrounds` path;
   `QiNodes` and `Enemies` are empty folders; `Zones` holds `WolfPair` (2 Spirit
-  Wolves at (-90, 648.6, -40), 127 studs from the pad, respawning like any zone).
+  Wolves at (-90, 648.6, -40), 127 studs from the pad) and `BoarPair` (2 Stone Boars
+  at (100, 648.6, -40)), respawning like any zone.
 - `Workspace.Map.Sect.SpiritPeaks`: an empty stub, so `Peaks` and `MyPeak` load
   (nobody gets a peak).
 - Place-only, kept on purpose (not in git, never synced back): the enemy pose-preview rigs
@@ -42,9 +43,10 @@ on the baseplate unchanged.
 
 ## Trials before shipping
 New fights land here first behind a flag that is on only in the testbed, so the user
-can fight them before the main game changes. None is waiting today. Shipped so
-far: the Spirit Wolf (`NEW_WOLF`, 2026-10-21); `WolfPair` stays for tuning. Ship one
-by setting its flag to `true`.
+can fight them before the main game changes. Today: `Config.Wilds.NEW_BOAR`
+(= `Config.TESTBED`), the new Stone Boar (enemies.md "Stone Boar"). Ship one by
+setting its flag to `true`. Shipped so far: the Spirit Wolf (`NEW_WOLF`, 2026-10-21);
+`WolfPair` stays for tuning.
 
 ## Key files
 - `test.project.json`: the testbed's Rojo project (serve port 34873); sets the

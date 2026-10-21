@@ -9,7 +9,8 @@
 --            timed from StateAt over the attack's real seconds (Enemies.luau)
 --   stagger  the Stagger move, the head thrown away from the target's side
 --   dead     the Death move from the moment Health hits 0, held until the fade
---   else     loops: idle, walk, run, or circle (sidestepping with a target)
+--   else     loops: idle, walk, run, or circle (sidestepping with a target, when
+--            the module has one)
 -- Every other body keeps the old generic pose on JointHead, JointTail and
 -- JointLeg* (a trot, a windup crouch, a dash stretch, a stagger flinch).
 -- Enemies far from the camera aren't animated. The joints are the client-only
@@ -24,6 +25,10 @@ local RunService = game:GetService("RunService")
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local EnemyMotion = require(script.Parent.EnemyMotion)
 local Wolf = require(script.Parent.EnemyPoses.Wolf)
+-- the boar's pose module may not have landed yet: without it the boar keeps the
+-- generic pose
+local boarModule = script.Parent.EnemyPoses:FindFirstChild("Boar")
+local Boar = if boarModule then require(boarModule :: ModuleScript) :: any else nil
 
 local MAX_DISTANCE = 160
 local SMOOTHING = 14 -- how quickly joints settle toward their pose (per second)
@@ -32,12 +37,17 @@ local STAGGER_SECONDS = 0.28
 local DEATH_SECONDS = 0.6
 
 -- A pose module and how a beast's attack names map onto its moves.
-type Family = { poses: any, scale: number, moves: { [string]: string } }
+-- runFrom: the speed (studs/s) where the walk loop gives way to the run.
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number }
 
 local WOLF_MOVES = { bite = "FangSnap", pounce = "MoonPounce", leap = "MoonfallLeap", howl = "Howl", hop = "Hop" }
 local FAMILIES: { [string]: Family } = {
-	SpiritWolfB = { poses = Wolf, scale = 1, moves = WOLF_MOVES },
+	SpiritWolfB = { poses = Wolf, scale = 1, moves = WOLF_MOVES, runFrom = 9 },
 }
+-- the gore's hook is its Gore active beat (0.15 s), played at the start of recover
+if Boar then
+	FAMILIES.StoneBoarB = { poses = Boar, scale = 1, moves = { charge = "Charge", gore = "Gore" }, runFrom = 8 }
+end
 
 type Rig = {
 	model: Model,
@@ -196,7 +206,7 @@ local function loopPose(rig: Rig, family: Family, dt: number): any
 	local frame = rig.root.CFrame
 	local local_ = frame:VectorToObjectSpace(flatVelocity)
 	local target = targetRoot(rig.model)
-	if target and speed > 1 and math.abs(local_.X) > math.abs(local_.Z) then
+	if target and poses.loops.circle and speed > 1 and math.abs(local_.X) > math.abs(local_.Z) then
 		local toTarget = frame:PointToObjectSpace(target.Position)
 		local input = {
 			dir = if local_.X < 0 then 1 else -1, -- -X is the wolf's left
@@ -207,7 +217,7 @@ local function loopPose(rig: Rig, family: Family, dt: number): any
 	elseif speed < 0.6 then
 		return poses.loops.idle(os.clock(), speed, { seed = rig.seed })
 	end
-	local loop = if speed <= 9 then "walk" else "run"
+	local loop = if speed <= family.runFrom then "walk" else "run"
 	rig.phase += poses.gaitRate(loop, speed, family.scale) * dt
 	return poses.loops[loop](rig.phase, speed)
 end

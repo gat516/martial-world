@@ -254,6 +254,52 @@
                 }
               }
             }
+          },
+          "BoarPair": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "StoneBoar",
+              "Count": 2,
+              "Radius": 14
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    100,
+                    648.6,
+                    -40
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
           }
         },
         "EventGrounds": {

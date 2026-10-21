@@ -48,6 +48,7 @@ export type Attack = {
 	active: number?, -- leap: flight seconds (the hit lands at the end)
 	arc: number?, -- leap: studs the body rises mid-flight (client only)
 	hopAfter: boolean?, -- attack pools: hop back once it recovers
+	followUp: string?, -- attack pools: this attack's name starts as soon as it recovers, if the target is in its range
 }
 
 -- Pack behaviour for regular beasts with an attack pool.
@@ -85,9 +86,66 @@ export type Def = {
 	summonAt: { number }?, -- bosses: health fractions that trigger a summon
 }
 
-local NEW_WOLF = require(script.Parent.Config).Wilds.NEW_WOLF
+local Wilds = require(script.Parent.Config).Wilds
+local NEW_WOLF = Wilds.NEW_WOLF
+local NEW_BOAR = Wilds.NEW_BOAR
 
 local Enemies = {}
+
+-- The Stone Boar until its new fight ships (Config.Wilds.NEW_BOAR).
+local OLD_STONE_BOAR: Def = {
+	id = "StoneBoar",
+	name = "Stone Boar",
+	realm = { "QiCondensation", 4 },
+	weight = 2.5,
+	health = 160,
+	walkSpeed = 6,
+	runSpeed = 12,
+	aggro = 35,
+	leash = 90,
+	qiDrop = 24,
+	stones = { 5, 9 },
+	respawn = 30,
+	drops = { { item = "LesserSpiritCore", chance = 0.35 } },
+	attack = {
+		kind = "charge",
+		damage = 26,
+		range = 24,
+		windup = 1.0,
+		recover = 1.2,
+		cooldown = 3.5,
+		length = 30,
+		width = 5,
+		dashSpeed = 55,
+	},
+}
+
+local BOAR_CHARGE: Attack = {
+	kind = "charge",
+	name = "charge",
+	damage = 26,
+	range = 28,
+	minRange = 12,
+	windup = 1.0,
+	recover = 0.7,
+	cooldown = 4,
+	length = 30,
+	width = 5,
+	dashSpeed = 55,
+	followUp = "gore",
+}
+
+local BOAR_GORE: Attack = {
+	kind = "cone",
+	name = "gore",
+	damage = 20,
+	range = 7,
+	windup = 0.6,
+	recover = 0.8,
+	cooldown = 2.5,
+	radius = 7,
+	angle = 100,
+}
 
 -- The Spirit Wolf until the new fight ships (Config.Wilds.NEW_WOLF): one lunge,
 -- the old part-built body.
@@ -198,12 +256,16 @@ Enemies.Defs = {
 			circle = { radius = 10, speed = 8 },
 		},
 	},
-	StoneBoar = {
+	-- Ring 1-2's charger (QC4). Keeps its distance pacing side to side, charges
+	-- down a long lane, and gores at once if you're still close when it skids to
+	-- a stop. At QC4 (165 HP): charge 16%, gore 12%.
+	StoneBoar = if not NEW_BOAR then OLD_STONE_BOAR else {
 		id = "StoneBoar",
 		name = "Stone Boar",
+		body = "StoneBoarB", -- the rigged Studio-part boar (art/enemies/quadrupeds)
 		realm = { "QiCondensation", 4 },
 		weight = 2.5,
-		health = 160,
+		health = 200,
 		walkSpeed = 6,
 		runSpeed = 12,
 		aggro = 35,
@@ -212,16 +274,10 @@ Enemies.Defs = {
 		stones = { 5, 9 },
 		respawn = 30,
 		drops = { { item = "LesserSpiritCore", chance = 0.35 } },
-		attack = {
-			kind = "charge",
-			damage = 26,
-			range = 24,
-			windup = 1.0,
-			recover = 1.2,
-			cooldown = 3.5,
-			length = 30,
-			width = 5,
-			dashSpeed = 55,
+		attack = BOAR_CHARGE,
+		attacks = { BOAR_CHARGE, BOAR_GORE } :: { Attack },
+		pack = {
+			circle = { radius = 16, speed = 5 }, -- paces side to side at charging distance
 		},
 	},
 	VenomSerpent = {

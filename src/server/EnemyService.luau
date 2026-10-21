@@ -41,6 +41,10 @@ local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
+-- attack slots and dash-front hits: the new fights' rules (Spirit Wolf, Stone Boar)
+local TURNS = Config.NEW_WOLF or Config.NEW_BOAR
+-- how long a follow-up (Enemies `followUp`) waits past its recover for the attack slot
+local FOLLOW_UP_WAIT = 1.0
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Combat = require(script.Parent.Combat)
 local EnemyHistory = require(script.Parent.EnemyHistory)
@@ -145,6 +149,8 @@ type Enemy = {
 	recoverFor: number, -- recover seconds after the current dash
 	landShape: Shape?, -- a leap's circle, resolved as it lands
 	hopPending: boolean,
+	followUp: string?, -- an attack to start as soon as it recovers (Enemies `followUp`)
+	followUpUntil: number, -- the follow-up lapses if no slot frees up by then
 	hopReadyAt: number,
 	hits: { number }, -- recent times it was hit (the hop's trigger)
 	orbitDir: number,
@@ -342,6 +348,8 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		recoverFor = def.attack.recover,
 		landShape = nil,
 		hopPending = false,
+		followUp = nil,
+		followUpUntil = 0,
 		hopReadyAt = 0,
 		hits = {},
 		orbitDir = if math.random() < 0.5 then 1 else -1,
@@ -590,6 +598,7 @@ local function knock(enemy: Enemy, player: Player, push: Vector3)
 	enemy.shape, enemy.dashTo, enemy.landShape = nil, nil, nil
 	enemy.strikeId += 1
 	enemy.hopPending = false
+	enemy.followUp = nil
 	releaseSlot(enemy)
 	setSpeed(enemy, enemy.def.runSpeed)
 	enemy.mover.turn = false
@@ -784,7 +793,7 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	else
 		enemy.nextAttack = now + attack.cooldown
 	end
-	if Config.NEW_WOLF and not def.boss and attack.damage > 0 and enemy.target then
+	if TURNS and not def.boss and attack.damage > 0 and enemy.target then
 		takeSlot(enemy, enemy.target)
 	end
 	-- which attack, for per-attack poses and effects (EnemyAnimator, EnemyFX)
@@ -857,13 +866,19 @@ local function resolveAttack(enemy: Enemy, now: number)
 		callPack(enemy, attack, now)
 	elseif attack.kind == "leap" then
 		enemy.landShape = shape -- resolves as it lands (think, dash)
-	elseif enemy.dashTo and Config.NEW_WOLF then
+	elseif enemy.dashTo and TURNS then
 		hurtAlongDash(enemy, attack, shape)
 	else
 		hurtIn(enemy, attack, shape)
 	end
 	if attack.hopAfter then
 		enemy.hopPending = true
+	end
+	enemy.followUp = attack.followUp
+	if attack.followUp then
+		-- through the dash and recover, plus a short wait for the attack slot
+		local dash = if attack.dashSpeed then (attack.length or 0) / attack.dashSpeed else 0
+		enemy.followUpUntil = now + dash + attack.recover + FOLLOW_UP_WAIT
 	end
 	if enemy.dashTo then
 		local to = enemy.dashTo :: Vector3
@@ -924,10 +939,29 @@ end
 -- The attack to start now, if any: the opener first in a fresh engagement, then
 -- the first in the pool whose range band holds the target and whose cooldown is up.
 local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.Attack?
-	if now < enemy.nextAttack then
-		return nil
+	local slotOk = not (TURNS and not enemy.def.boss and enemy.target and not slotFree(enemy.target, now))
+	-- a follow-up (the boar's gore after its charge) goes as soon as it recovers,
+	-- past the usual pause and its own cooldown, if the target is still in reach.
+	-- It waits for the attack slot (briefly), and lapses once the target is out of
+	-- reach or the wait runs out.
+	local followUp = enemy.followUp
+	if followUp then
+		local chosen: Enemies.Attack? = nil
+		for _, a in enemy.def.attacks or {} do
+			if attackName(a) == followUp then
+				chosen = a
+			end
+		end
+		if not chosen or distance > chosen.range or now > enemy.followUpUntil then
+			enemy.followUp = nil
+		elseif slotOk then
+			enemy.followUp = nil
+			return chosen
+		else
+			return nil
+		end
 	end
-	if Config.NEW_WOLF and not enemy.def.boss and enemy.target and not slotFree(enemy.target, now) then
+	if now < enemy.nextAttack or not slotOk then
 		return nil
 	end
 	local function fits(a: Enemies.Attack): boolean

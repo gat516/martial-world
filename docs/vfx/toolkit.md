@@ -183,26 +183,8 @@ surprises you):
     (e.g. 8952281337, 10365552478, 11037528577, 8214519774).
   - Don't vet ids with `ContentProvider:PreloadAsync`: it reports Failure for
     many library images that render fine. Render-test instead.
-  - Known-good ids from Palm Strike. They are proof the pipeline works, not a
-    palette: search the library for every new effect (the first aura pass
-    reused these and looked generic):
-    - rings 12363693873 (fuzzy wave front), 9841273159 (thin), 13052235894
-      (spiky hit ring), 16878174995 (double thin), 15611941586 (soft)
-    - flashes 13271628051 (4-point star), 243728206 (12-point), 243728166;
-      glow 867619398, 9841273544
-    - spark streaks 7814053668, 9841260273
-    - dust 11037785287, 13556798897, 11037785676
-    - cracks 93520831389146, 97725700315217; crater 90713203428310
-    - rocks 130042646554310 (2x2 sheet, use a Random flipbook); shards 12402863766
-    - circles and seals 83667248904000, 13399941667, 100708312805540;
-      sunburst 15773612675; yin-yang 121707861781327
-    - meshes: wind swirl rings 129778117978668, 73349240058321,
-      122217820569960; torus 471124075 (MeshSize 150, huge); spike crowns
-      4316118084, 489415286
-  - Search words that paid off: shockwave, ring, wave, nova, crack, debris,
-    rock, dust, shatter, puff, flash, glow, spark, sparkle, shine, lens, rune,
-    sigil, chinese, holy, pillar, wind, impact. Nothing for palm, hand, fist,
-    buddha, seal, talisman; crater has one result.
+  - Search fresh for every effect, with words from its own references and
+    idea. Don't start from ids another effect used.
   - Flipbook ids in `vfx_library.json` are sprite sheets: put them on a
     ParticleEmitter with `FlipbookLayout` Grid2x2 or Grid4x4 (read the grid
     off a large thumbnail); no mesh needed.

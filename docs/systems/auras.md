@@ -18,8 +18,10 @@ Heaven looks are not built (no method uses those grades yet).
 about 1.5 loop emitters per aura) and reads thin. Auras are to be rebuilt as
 layered emissions from the vfx library, modelled on Sol's RNG auras, with
 parts only in support. The method is in [docs/vfx/style.md](../vfx/style.md)
-("Auras"). **Blazing Heart is reworked** (2026-10-21, below: the model for the
-rest); the other seven rows still describe the first, part-heavy pass.
+("Auras"). **Blazing Heart is reworked** (2026-10-21, below); the other seven rows
+still describe the first, part-heavy pass. Blazing Heart shows the bar for
+size and quality, not a template: each method's rework starts from its own
+idea and references, not from Blazing Heart's layers or textures.
 
 Mortal means small and close but high in quality (user, 2026-10-21): within
 about one body-width, a gentle loop, no screen dimming or towering shapes, and

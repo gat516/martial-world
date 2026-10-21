@@ -59,7 +59,8 @@ an `enemy-designer` brief.
 5. **Cast every layer from the library.** Search `tools/vfx_library.json` and
    the live library search for each layer, look at contact sheets, and pick
    per layer. Use flipbooks (41) and meshes (77), not only images. Search per
-   effect; don't reuse a previous effect's palette by habit.
+   effect from its own references; don't start from another effect's ids,
+   layers or palette.
 6. **Plan, then build.** Send the plan (below) before building unless told to
    go straight on. Build plugin-compatible (Emit attributes, tags, add-ons) so
    the user can tweak it with the plugin's sliders and press R/T.
@@ -110,16 +111,17 @@ reference frames (paths), the layer count per beat, and what is untested (the
 user playtests, especially feel and phone performance). Ask the user to review
 in Studio rather than sending a pile of screenshots.
 
-Update the system doc the effect belongs to, `docs/vfx/style.md` if you
-learned something about the look, and the asset list in `docs/README.md` if you
+Update the system doc the effect belongs to (what you built, the ids you
+used, as that effect's record) and the asset list in `docs/README.md` if you
 added `Effects`. Commit the `.rbxm`, scripts, art sources and docs together,
 with a message that says why.
 
 End every report with:
 - **Workflow learnings:** what cost time and how to avoid it; plugin, add-on,
-  Rojo, exporter or MCP gotchas; library ids and search words that worked;
-  tutorial techniques worth keeping; anything in these docs that was wrong or
-  missing.
+  Rojo, exporter or MCP gotchas; how a tool or property behaves; tutorial
+  techniques for getting a kind of look; anything in these docs that was
+  wrong or missing. Not your taste or your picks: no ids, palettes or layer
+  recipes for others to reuse (style.md, "Every effect starts fresh").
 - **Workflow optimization:** concrete changes ranked by time saved (tools,
   shared building blocks, batching, a better spec format). Build the small,
   clearly worthwhile ones and commit them; list the rest.

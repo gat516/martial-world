@@ -148,8 +148,8 @@ the three upright-placement captures, layer counts per distance, budget, and
 what is untested (the user playtests). Ask the user to review in Studio.
 
 Update [world.md](../../docs/systems/world.md) (event looks, templates, files,
-known gaps), style.md's world-events section if you learned something about
-the look, and the asset list in `docs/README.md` if you added templates.
+known gaps; what you built and the ids you used, as that event's record) and
+the asset list in `docs/README.md` if you added templates.
 Commit the `.rbxm`, scripts, specs, references and docs together.
 
 End every report with **Workflow learnings** and **Workflow optimization**,

@@ -19,6 +19,13 @@ Grandeur is earned: it grows with technique tier, method grade and realm, and
 the big set pieces are reserved for breakthroughs, tribulation and world
 events.
 
+**Every effect starts fresh (user, 2026-10-21).** An effect's look comes from
+its own idea and its own references, never from earlier effects. Docs record
+how tools behave (gotchas, techniques for getting a kind of look), not a house
+style: no "use these textures", no recipes copied from the last build. What
+one effect used is history in its system doc, not guidance for the next. The
+first aura pass looked generic because it reused one technique's picks.
+
 ## What the references teach
 
 The references are Roblox showcase effects (`docs/reference/vfx/`, the videos
@@ -122,16 +129,6 @@ Model on Sol's RNG, scaled by method grade (the grade ladder in
   loop is an aura players want to show off. Small in size, high in quality.
 - Parts are fine for what textures can't do (a core with a PointLight, a
   carved stone ring), but the aura must still read with them hidden.
-- Learned on Blazing Heart: a body outline of flame is one camera-facing
-  flipbook (the library's aura-flame silhouette) a little behind the torso,
-  over a darker, slightly larger soot copy of itself; the body hides the
-  middle and the rim reads as flame round the figure, dark under bright, on
-  grass at noon. Realistic white flipbook flames tinted white to deep red over
-  life, emitted off the limbs' surfaces, beat any single flame image. A slow
-  ground sigil should be a flat image turning (a particle sigil crossfades out
-  of step); swirls and glows can be flat particles. Keep big additive glows to
-  a hard dot texture: the soft glow 867619398 shows a square edge when large
-  and bright.
 
 ### Techniques
 

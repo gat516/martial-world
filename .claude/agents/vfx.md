@@ -243,6 +243,18 @@ vividly, the way a VFX artist pitches a shot:
     ground ring under the target, air rings flying forward from the striking
     limb, a ground torus rolling out to the gameplay radius (`Phase = "active"`
     so `fit` times it), and bubbles or shells at high tiers.
+- **Make sure it can be noticed.** Judge every beat at play speed, not from
+  frozen captures. A frozen frame makes a 0.15 s, half-transparent ring look
+  fine, while a player sees nothing. Palm Strike's first 3D shockwaves
+  (0.13–0.24 s, thin tubes, a fade that started at once) were invisible in play.
+  - The main read of each beat (the impact, the shockwave, the release) should
+    stay visible for roughly 0.25–0.5 s, be big and solid enough to register,
+    and fade late (`FadeStyle`: the fade eases In while the motion eases Out).
+  - Fast or faint pieces are fine as detail layered on a beat that does read.
+    Don't force everything to be big or slow.
+  - In the report, say for each beat how long it's on screen and how solid it
+    is. When in doubt, err toward noticeable; the user can always ask for
+    subtler.
 - Telegraphs (enemy attack areas, `Telegraphs.luau`) must stay readable over
   any effect: don't cover the ground warning with bright particles.
 - LightEmission and Brightness sparingly; additive white-out on bright skies

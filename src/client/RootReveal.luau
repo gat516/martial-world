@@ -11,6 +11,7 @@
 -- the server). The pillar of light from the same event is world vfx, not here.
 
 local Players = game:GetService("Players")
+local AvatarEditorService = game:GetService("AvatarEditorService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -22,6 +23,7 @@ local SelfCard = require(script.Parent.SelfCard)
 local CARD_DELAY = 0.6 -- let the pillar rise first
 local CARD_MIN = 1.0 -- seconds before a tap can close it
 local CARD_LIFE = 6 -- it closes by itself after this
+local FAVORITE_DELAY = 1.5 -- seconds after the card closes before the favourite prompt
 local RAY_SPEED = 14 -- degrees per second
 
 local player = Players.LocalPlayer
@@ -46,6 +48,12 @@ local function close()
 			rayConn = nil
 		end
 		SelfCard.announce()
+		-- the reveal is the opening's high point: ask once to favourite the game
+		task.delay(FAVORITE_DELAY, function()
+			pcall(function()
+				AvatarEditorService:PromptSetFavorite(game.PlaceId, Enum.AvatarItemType.Asset, true)
+			end)
+		end)
 	end)
 end
 

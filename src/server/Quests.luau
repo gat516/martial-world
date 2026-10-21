@@ -20,7 +20,8 @@
 --   to      with button "Travel": the destination gate id to point at in the menu
 --   dim     grey out the rest of the HUD until that button is pressed
 --   place   a world target to walk to: "TestingStone", "Elder", "QuestBoard",
---           "QiNode" (nearest), "Enemy" (nearest), "Array:<gate id>"
+--           "QiNode" (nearest), "Enemy" (nearest), "Array:<gate id>",
+--           "Garden" (nearest HerbPlot on your own peak), "WeaponRack" (nearest)
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -34,6 +35,10 @@ local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
 local Circulation = require(script.Parent.Circulation)
+local Peaks = require(script.Parent.Peaks)
+local Peak = require(ReplicatedStorage.Shared.Peak)
+local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
+local CollectionService = game:GetService("CollectionService")
 local PlayerData = require(script.Parent.PlayerData)
 local DaoPacing = require(ReplicatedStorage.Shared.Pacing).DaoPractice
 
@@ -105,15 +110,81 @@ local function climbGuide(player: Player, data: PlayerData.Data): Guide?
 	return { button = "Travel", to = "Peak" }
 end
 
-local function nearTestingStone(player: Player): boolean
+local function rootPosition(player: Player): Vector3?
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	return root and root.Position
+end
+
+local function positionOf(thing: Instance?): Vector3?
+	if thing and thing:IsA("Model") then
+		return thing:GetPivot().Position
+	elseif thing and thing:IsA("BasePart") then
+		return thing.Position
+	end
+	return nil
+end
+
+-- Close enough to walk to (the same peak), rather than travel to.
+local WALKABLE = 250
+
+local function nearTestingStone(player: Player): boolean
 	local hub = workspace:FindFirstChild("Hub")
-	local stone = hub and hub:FindFirstChild("TestingStone")
-	if not (root and stone) then
+	local at, here = positionOf(hub and hub:FindFirstChild("TestingStone")), rootPosition(player)
+	return at ~= nil and here ~= nil and (here - at).Magnitude < WALKABLE
+end
+
+local function nearTagged(player: Player, tag: string): boolean
+	local here = rootPosition(player)
+	if not here then
 		return false
 	end
-	local at = if stone:IsA("Model") then stone:GetPivot().Position elseif stone:IsA("BasePart") then stone.Position else nil
-	return at ~= nil and (root.Position - at).Magnitude < 250
+	for _, thing in CollectionService:GetTagged(tag) do
+		local at = positionOf(thing)
+		if at and thing:IsDescendantOf(workspace) and (here - at).Magnitude < WALKABLE then
+			return true
+		end
+	end
+	return false
+end
+
+local function onOwnPeak(player: Player): boolean
+	local peak, here = Peaks.ownedBy(player), rootPosition(player)
+	if not (peak and here) then
+		return false
+	end
+	local offset = Peak.frame(peak):PointToObjectSpace(here)
+	return Vector2.new(offset.X, offset.Z).Magnitude < 120 and math.abs(offset.Y) < 80
+end
+
+local function plantedAny(data: PlayerData.Data): boolean
+	for _, plants in data.peak.plots do
+		if type(plants) == "table" and #plants > 0 then
+			return true
+		end
+	end
+	return false
+end
+
+-- Weapon classes the player owns a weapon of (Fist, bare hands, doesn't count).
+local function weaponClasses(data: PlayerData.Data): number
+	local classes = {}
+	for id, count in data.weapons.owned do
+		if count > 0 then
+			classes[WeaponDefs.classOf(id)] = true
+		end
+	end
+	local n = 0
+	for class in classes do
+		if class ~= "Fist" then
+			n += 1
+		end
+	end
+	return n
+end
+
+local function reached(data: PlayerData.Data, key: string): boolean
+	local stage = Realms.ByKey[key]
+	return stage ~= nil and stageIndex(data) >= Realms.index(stage.major, stage.minor)
 end
 
 local function bottlenecked(data: PlayerData.Data): boolean
@@ -168,7 +239,7 @@ Quests.Beats = {
 	},
 	{
 		id = "Gate",
-		elder = "Your dantian is spent. Ride the formation to the Sect Gate, then gather qi in the wilds.",
+		elder = "Your dantian is spent. Spirit wolves prowl just past the Sect Gate. Go, and take their qi!",
 		objective = "Tap Travel, then Sect Gate",
 		done = function(player, _)
 			return nearGate(player)
@@ -236,6 +307,19 @@ local FREE_PLAY = #Quests.Beats
 
 Quests.Lessons = {
 	{
+		id = "Home",
+		elder = "Your peak can grow with you. Plant a seed in your garden; herbs feed your cultivation and sell for Spirit Stones.",
+		when = function(_, data)
+			return reached(data, "QC4") and not plantedAny(data)
+		end,
+		guide = function(player)
+			if onOwnPeak(player) then
+				return { place = "Garden" }
+			end
+			return { button = "Travel", to = "Peak" }
+		end,
+	},
+	{
 		id = "Bottleneck",
 		elder = "Your technique has hit a bottleneck. Sit in meditation and comprehend it; insight opens the way.",
 		when = function(_, data)
@@ -246,11 +330,23 @@ Quests.Lessons = {
 		end,
 	},
 	{
+		id = "WeaponRack",
+		elder = "A cultivator need not keep to one blade. The sect's weapon rack on the Main Peak lends each disciple one weapon of every kind.",
+		when = function(_, data)
+			return reached(data, DaoPacing.FROM) and weaponClasses(data) < 2
+		end,
+		guide = function(player)
+			if nearTagged(player, "WeaponRack") then
+				return { place = "WeaponRack" }
+			end
+			return { button = "Travel", to = "MainPeak" }
+		end,
+	},
+	{
 		id = "DaoPractice",
 		elder = "Your body is ready for more than brawling. While you meditate, practise your weapon's forms to deepen its Dao.",
 		when = function(_, data)
-			local from = Realms.ByKey[DaoPacing.FROM]
-			return from ~= nil and stageIndex(data) >= Realms.index(from.major, from.minor)
+			return reached(data, DaoPacing.FROM)
 		end,
 		guide = function(player)
 			return seatedTile(player, "Practise")

@@ -62,16 +62,23 @@ How we apply it:
 4. **Celebrate the highs:** the root reveal, the first breakthrough and the
    first technique are the moments to ask players to favourite the game.
 
-Still to decide with the user (next pass): the exact first-session beat list
-and lines, where garden/peak ("home deepens", QC4) and weapons/the rack fit,
-and whether a favourite prompt goes after the root reveal.
+**The first session (decided 2026-10-21):** own peak -> one short, forgiving
+circulation -> an instant, celebrated breakthrough -> travel (spotlit) to the
+Testing Stone -> **the root reveal, the hook**, then the game asks once to be
+favourited (`RootReveal`, `AvatarEditorService:PromptSetFavorite`, 1.5 s after
+the card closes) -> "Spirit wolves prowl just past the Sect Gate. Go!" with
+Travel -> Sect Gate spotlit -> first kill -> a technique -> refine (once the
+dantian is actually full) -> QC3 -> free play. Home (garden and peak, QC4) and
+the weapon rack (QC7) are lessons, not beats. Still to do here: wolves in view
+on arrival at the gate (map), and timing the funnel to the first kill.
 
 ### Beats and lessons (built)
 - Beats are kept **by id** in `data.beats` (schema v8; v7's position count is
   migrated), so beats can be inserted or reordered. `travel = true` marks the
   beat from which the formation is taught (Root).
-- **Lessons** (`Quests.Lessons`, `data.lessons`): Bottleneck, DaoPractice,
-  Method, RootPill. In free play, the first lesson whose condition holds says
+- **Lessons** (`Quests.Lessons`, `data.lessons`), in priority order: Home
+  (QC4, nothing planted: walk to your garden), WeaponRack (QC7, a single weapon
+  class: the Main Peak rack), Bottleneck, DaoPractice (QC7), Method, RootPill. In free play, the first lesson whose condition holds says
   its elder line once ever (`QuestState.lesson`), and its guide shows for the
   rest of that session while the condition still holds.
 - **Guides** (`QuestState.guide`), computed per tick from where the player is

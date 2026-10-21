@@ -1,8 +1,14 @@
 --!strict
--- Enemy health, Souls-style. Each enemy's overhead bar (its HealthBar
--- BillboardGui: Back > Fill, with a Trail chip beneath) shows only while it's
--- locked or for a while after it's hurt. The fill drops at once and the trail
--- drains after it, so each hit's size reads at a glance.
+-- Enemy health, Souls-style. Each regular enemy's overhead bar (its HealthBar
+-- BillboardGui, Dead Cells style: Plate > Strip (NameLabel, RealmTag), Bar
+-- (Aura, Back, Window > Trail/Fill, Rim), Omen; and Warning > Skull, Omen) shows
+-- only while it's locked or for a while after it's hurt. The fill drops at once
+-- and the trail drains after it, so each hit's size reads at a glance. The bar is
+-- cut into ten talisman slips (10% of health each), drawn into the Rim art.
+-- Its dressing follows the beast's danger to you: the realm gap between it and
+-- the player picks a STYLES tier (thresholds in Pacing.Danger), re-picked when
+-- the player breaks through. The top tier hides the bar and health entirely and
+-- shows a pulsing skull seal whenever the beast is in range, as a warning.
 -- Bosses skip the overhead bar: the boss you're fighting (locked, or the nearest
 -- one hunting you) fills the screen bar, Play.BossBar (NameLabel, Bar > Fill, Trail).
 
@@ -10,21 +16,66 @@ local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local LockOn = require(script.Parent.LockOn)
 local Motion = require(script.Parent.Motion)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
+local Realms = require(ReplicatedStorage.Shared.Realms)
 
 local SHOW_AFTER_HURT = 8 -- seconds an overhead bar stays up after a hit
 local BOSS_RANGE = 60 -- a boss this close that's after you takes the screen bar
 local TRAIL = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.45)
 
+local AURA_PULSE = TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+local SHEEN_SWEEP = TweenInfo.new(1.6, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, -1, false, 1.2)
+local SKULL_PULSE = TweenInfo.new(1.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+
+-- Danger tiers, picked by realm gap (Pacing.Danger). rim: the frame art (art/ui
+-- draw_ui.py eb_rim); tag/omen: text colours; omens: flavour lines, one picked
+-- per beast per tier (keep them under ~24 characters so they fit at 11px).
+type Style = { rim: string?, tag: Color3?, omen: Color3?, aura: boolean?, sheen: boolean?, skull: boolean?, omens: { string }? }
+local STYLES: { [string]: Style } = {
+	below = { rim = "rbxassetid://129086600812253", tag = Color3.fromRGB(176, 170, 160) },
+	even = { rim = "rbxassetid://83318003824497", tag = Color3.fromRGB(176, 228, 196) },
+	above = {
+		rim = "rbxassetid://133768153785008",
+		tag = Color3.fromRGB(252, 222, 150),
+		omen = Color3.fromRGB(240, 206, 146),
+		omens = { "Its qi presses on you", "Your meridians tighten", "A heavy aura stirs", "Its gaze weighs on you" },
+	},
+	far = {
+		rim = "rbxassetid://110079661251126",
+		tag = Color3.fromRGB(222, 190, 255),
+		omen = Color3.fromRGB(222, 176, 255),
+		aura = true,
+		sheen = true,
+		omens = { "Your dao heart trembles", "Killing intent chills you", "Your qi falters", "Its pressure crushes you" },
+	},
+	deadly = {
+		skull = true,
+		omen = Color3.fromRGB(255, 118, 106),
+		omens = { "Heaven forbids this fight", "Death walks here", "Your soul would scatter", "Flee, or become ash" },
+	},
+}
+local MAJOR_TAGS = { QiCondensation = "QC", Foundation = "FE" }
+
 local player = Players.LocalPlayer
 
 local EnemyBars = {}
 
-type Watched = { bar: BillboardGui, humanoid: Humanoid, lastHurt: number, boss: boolean }
+type Watched = {
+	bar: BillboardGui,
+	humanoid: Humanoid,
+	lastHurt: number,
+	boss: boolean,
+	def: Enemies.Def?,
+	tier: string?,
+	omens: { [string]: string }, -- the line picked per tier, so it never flickers
+	loops: { Tween },
+}
 local watched: { [Model]: Watched } = {}
 
 local bossBar: GuiObject?
@@ -49,6 +100,111 @@ local function setBar(fill: GuiObject, trail: GuiObject?, value: number)
 	end
 end
 
+local function playerIndex(): number
+	local stage = Realms.byName(player:GetAttribute("Realm")) or Realms.Stages[1]
+	return Realms.index(stage.major, stage.minor)
+end
+
+local function tierFor(gap: number): string
+	local D = Pacing.Danger
+	if gap >= D.DEADLY_AT then
+		return "deadly"
+	elseif gap >= D.FAR_AT then
+		return "far"
+	elseif gap >= D.ABOVE_AT then
+		return "above"
+	elseif gap <= D.BELOW_AT then
+		return "below"
+	end
+	return "even"
+end
+
+local function loop(entry: Watched, inst: Instance, props: { [string]: any }, info: TweenInfo)
+	local tween = TweenService:Create(inst, info, props)
+	table.insert(entry.loops, tween)
+	tween:Play()
+end
+
+-- Dress a regular beast's bar for its danger to the player (on spawn and when the
+-- player's realm changes). Bosses and bars without the Plate layout are left alone.
+local function restyle(entry: Watched)
+	local plate = entry.bar:FindFirstChild("Plate") :: Frame?
+	local warning = entry.bar:FindFirstChild("Warning") :: Frame?
+	local def = entry.def
+	if entry.boss or not (plate and warning and def and def.realm) then
+		return
+	end
+	local beast = Realms.ofBeast(def.realm)
+	local tier = tierFor(Realms.index(beast.major, beast.minor) - playerIndex())
+	if tier == entry.tier then
+		return
+	end
+	entry.tier = tier
+	local style = STYLES[tier]
+	for _, tween in entry.loops do
+		tween:Cancel()
+	end
+	table.clear(entry.loops)
+
+	local omen = ""
+	if style.omens and #style.omens > 0 then
+		omen = entry.omens[tier] or style.omens[math.random(#style.omens)]
+		entry.omens[tier] = omen
+	end
+
+	plate.Visible = not style.skull
+	warning.Visible = style.skull == true
+	if style.skull then
+		local skull = warning:FindFirstChild("Skull") :: ImageLabel
+		local pulse = skull:FindFirstChild("Pulse") :: UIScale
+		local label = warning:FindFirstChild("Omen") :: TextLabel
+		label.Text = omen
+		if style.omen then
+			label.TextColor3 = style.omen
+		end
+		pulse.Scale = 1
+		skull.ImageTransparency = 0
+		loop(entry, pulse, { Scale = 1.1 }, SKULL_PULSE)
+		loop(entry, skull, { ImageTransparency = 0.18 }, SKULL_PULSE)
+		return
+	end
+
+	local strip = plate:FindFirstChild("Strip") :: ImageLabel
+	local bar = plate:FindFirstChild("Bar") :: Frame
+	local nameLabel = strip:FindFirstChild("NameLabel") :: TextLabel
+	local tag = strip:FindFirstChild("RealmTag") :: TextLabel
+	nameLabel.Text = def.name
+	tag.Text = `{MAJOR_TAGS[beast.major] or beast.major} {beast.minor}`
+	if style.tag then
+		tag.TextColor3 = style.tag
+	end
+	local rim = bar:FindFirstChild("Rim") :: ImageLabel
+	if style.rim then
+		rim.Image = style.rim
+	end
+	local label = plate:FindFirstChild("Omen") :: TextLabel
+	label.Visible = omen ~= ""
+	label.Text = omen
+	if style.omen then
+		label.TextColor3 = style.omen
+	end
+	local aura = bar:FindFirstChild("Aura") :: ImageLabel
+	aura.Visible = style.aura == true
+	if style.aura then
+		aura.ImageTransparency = 0.55
+		loop(entry, aura, { ImageTransparency = 0.05 }, AURA_PULSE)
+	end
+	local sheen = bar:FindFirstChild("Sheen", true) :: ImageLabel?
+	if sheen then
+		sheen.Visible = style.sheen == true
+		if style.sheen then
+			local window = bar:FindFirstChild("Window") :: Frame
+			sheen.Position = UDim2.fromOffset(-sheen.Size.X.Offset, 0)
+			loop(entry, sheen, { Position = UDim2.fromOffset(window.Size.X.Offset, 0) }, SHEEN_SWEEP)
+		end
+	end
+end
+
 local function watch(model: Instance)
 	if not model:IsA("Model") then
 		return
@@ -61,9 +217,18 @@ local function watch(model: Instance)
 	end
 	local trail = bar:FindFirstChild("Trail", true) :: GuiObject?
 	local def = Enemies.Defs[model:GetAttribute("EnemyType") :: string? or ""]
-	local entry: Watched = { bar = bar, humanoid = humanoid, lastHurt = -math.huge, boss = def ~= nil and def.boss == true }
+	local entry: Watched = {
+		bar = bar,
+		humanoid = humanoid,
+		lastHurt = -math.huge,
+		boss = def ~= nil and def.boss == true,
+		def = def,
+		omens = {},
+		loops = {},
+	}
 	watched[model] = entry
 	bar.Enabled = false
+	restyle(entry)
 	local last = humanoid.Health
 	local function show()
 		if humanoid.Health < last then
@@ -80,6 +245,9 @@ local function watch(model: Instance)
 	show()
 	model.AncestryChanged:Connect(function()
 		if not model:IsDescendantOf(workspace) then
+			for _, tween in entry.loops do
+				tween:Cancel()
+			end
 			watched[model] = nil
 		end
 	end)
@@ -146,14 +314,21 @@ function EnemyBars.init(gui: ScreenGui)
 		task.spawn(watch, model)
 	end
 	CollectionService:GetInstanceAddedSignal("Enemy"):Connect(watch)
+	-- a breakthrough makes the same beast read less threatening
+	player:GetAttributeChangedSignal("Realm"):Connect(function()
+		for _, entry in watched do
+			restyle(entry)
+		end
+	end)
 
 	RunService.Heartbeat:Connect(function()
 		local now = os.clock()
 		local locked = LockOn.target()
 		for model, entry in watched do
+			-- a deadly beast's skull warns whenever it's in range (MaxDistance)
 			entry.bar.Enabled = not entry.boss
 				and entry.humanoid.Health > 0
-				and (model == locked or now - entry.lastHurt < SHOW_AFTER_HURT)
+				and (entry.tier == "deadly" or model == locked or now - entry.lastHurt < SHOW_AFTER_HURT)
 		end
 		updateBoss()
 	end)

@@ -52,6 +52,36 @@ player in a session sees the same beasts and nothing a client does can change on
   of the area within half their ping, at most `ESCAPE_LEAD`. Prediction is drawing
   only: no client position, timing or hit claim is trusted past these windows.
 
+### Overhead health bars (EnemyBars)
+Regular beasts carry a `HealthBar` BillboardGui (Dead Cells layout in the
+game's lacquer-and-seal dress): a dark ink nameplate strip with the beast's name
+and realm tag (`QC 4`), sitting on a long thin bar with a slanted right end. The
+fill is blood-qi crimson, cut into ten slanted talisman slips (one per 10% of
+health, the same count as the player's vitals bar; the divisions are drawn into
+the rim art, so the slip size never depends on the beast's max health). A hit
+drops the fill at once and a pale gold ghost (`Trail`) drains after it. The bar
+shows while the beast is locked or for 8 s after it's hurt.
+
+Its dressing says how dangerous the beast is **to you**: the gap between the
+beast's realm and the local player's (`Realms.index`, in ladder stages) picks a
+tier from `Pacing.Danger`, re-picked live when the player's `Realm` changes, so
+a breakthrough makes the same beast look tamer.
+
+| Tier | Gap (default) | Look |
+|---|---|---|
+| below | <= -2 | muted bronze frame, grey tag |
+| even | -1 to +1 | jade frame, vermilion seal on the tip |
+| above | +2 to +3 | gold frame, seal tip and lozenge cap, omen line |
+| far | +4 to +5 | violet frame, long talisman tip, pulsing qi aura, sheen sweep, omen line |
+| deadly | >= +6 | no name, realm or health: a pulsing cracked skull seal and an omen, shown whenever the beast is in range (90 studs) |
+
+Omen lines are short xianxia warnings under the bar (under the skull for
+deadly), one picked at random per beast per tier so it never flickers; the pools
+live in `STYLES` in `EnemyBars.luau` (keep lines under ~24 characters). Bosses
+skip all of this: their overhead bar stays off and the screen `Play.BossBar` is
+unchanged. Art: `art/ui/draw_ui.py enemybar` (`EB` geometry, `EB_TIERS`
+colours), ids in `art/ui/assets.json` (`enemybar_*`).
+
 ### Adding a beast's effects (EnemyFX)
 Put `src/client/EnemyFX/<EnemyType>.luau` returning any of `windup`, `strike`,
 `dash`, `stagger`, `death`, each `(cue) -> ()`; a cue is `{ model, root, kind,
@@ -103,6 +133,9 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 
 ## Tuning knobs
 - Per beast: `Enemies.luau`. Ambient rates: `Spawns.luau`. Packs per region: `Regions.luau`.
+- Overhead bar danger tiers: `Pacing.Danger` (`BELOW_AT`, `ABOVE_AT`, `FAR_AT`,
+  `DEADLY_AT`, in realm stages); per-tier rim art, colours and omen pools in
+  `EnemyBars.luau` `STYLES`; show time `SHOW_AFTER_HURT`, ghost drain `TRAIL`.
 - Kill credit share: `Pacing.Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`.
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
   `ESCAPE_LEAD`; client `EnemyMotion` `LEAD_MAX`, `FOLLOW`, `SNAP`, `DASH_SLACK`.
@@ -117,6 +150,12 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   region is still a placeholder ring. The middle and outer regions reuse ring-1 beasts
   until their own exist.
 - Enemy hits don't knock players back yet.
+- The tiered overhead bars are untested in play: the aura pulse, sheen sweep and
+  skull pulse, the restyle on breakthrough, and how the 150x62 px billboard reads
+  on a phone with several beasts on screen. No shipped beast is far or deadly to a
+  QC1 player yet (the Stone Boar at QC4 is the only "above"), so those tiers only
+  show once higher-realm beasts or lower-realm players meet. A new beast template
+  needs the same HealthBar (copy it from the Spirit Wolf in `assets/Enemies.rbxmx`).
 - Netcode is untested in play, at any ping. Things to watch: the predicted body
   running ahead into walls on a blocked chase (it eases back), and R6 rigs
   (no enemy uses one yet).

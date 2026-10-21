@@ -337,4 +337,21 @@ Pacing.Roots = {
 	MATCH = 0.15, -- share added to techniques of your root's element
 }
 
+-- BEAST DANGER (client EnemyBars; docs/systems/enemies.md). A regular demon
+-- beast's overhead bar is dressed by its realm gap: Realms.index(beast) minus
+-- Realms.index(player), in stages on the ladder. Bosses keep their screen bar.
+-- Thresholds are the smallest gap that reaches each tier; below BELOW_AT and up
+-- to EVEN_AT the beast reads as your equal.
+--   gap <= BELOW_AT    "below"   muted bronze, no omen
+--   gap <  ABOVE_AT    "even"    jade, no omen
+--   gap >= ABOVE_AT    "above"   gold with a seal tip and an omen line
+--   gap >= FAR_AT      "far"     violet with a pulsing qi aura, a sheen and an ornate tip
+--   gap >= DEADLY_AT   "deadly"  no bar: a skull seal and a "do not fight" omen
+Pacing.Danger = {
+	BELOW_AT = -2,
+	ABOVE_AT = 2,
+	FAR_AT = 4,
+	DEADLY_AT = 6,
+}
+
 return Pacing

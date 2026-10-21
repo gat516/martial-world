@@ -1340,8 +1340,326 @@ def maze_art():
     maze_array()
 
 
+
+# ---------------------------------------------------------------- enemy bars
+
+# The overhead bar on regular demon beasts (bosses keep Play.BossBar), Dead Cells
+# style: a dark nameplate strip over a long thin bar with a slanted right end,
+# cut into ten talisman slips (one per 10% of health, like the player's vitals).
+# Every piece is drawn at its display size x EB_R and shown with ScaleType Stretch
+# at a fixed pixel size in the BillboardGui, so nothing is 9-sliced.
+# Geometry in display px (the BillboardGui lays its frames on these numbers):
+EB_R = 4  # image px per display px
+EB = {
+    "bar": (136, 22),  # bar art canvas: Back, Rim and Aura all cover it
+    "window": (10, 7, 126, 15),  # fill window bbox: Fill / Trail clip frames
+    "slant": 4,  # the right end leans back this far over the window's height
+    "outer": (6, 5, 17),  # rim outer edge: left x, top y, bottom y
+    "segments": 10,
+    "strip": (112, 15),  # nameplate strip
+    "sheen": (28, 8),
+    "skull": (40, 40),
+}
+
+# Danger tiers (EnemyBars.STYLES picks one from the realm gap, Pacing.Danger).
+EB_TIERS = {
+    "bronze": {"metal": (150, 104, 62), "hi": (206, 158, 104), "lo": (82, 52, 30)},
+    "jade": {"metal": (78, 158, 128), "hi": (176, 228, 196), "lo": (30, 74, 60)},
+    "gold": {"metal": (214, 172, 92), "hi": (252, 226, 156), "lo": (120, 82, 34)},
+    "far": {"metal": (150, 92, 206), "hi": (226, 196, 255), "lo": (66, 30, 104)},
+}
+
+
+def _eb(v):
+    return int(round(v * EB_R * SS))
+
+
+def _eb_canvas(w, h):
+    return Image.new("RGBA", (_eb(w), _eb(h)), (0, 0, 0, 0))
+
+
+def _eb_finish(img, name):
+    w, h = img.size
+    img = img.resize((w // SS, h // SS), Image.LANCZOS)
+    img.save(os.path.join(OUT, name))
+    print("wrote", name, img.size)
+
+
+def _eb_poly(inset):
+    """The bar body, `inset` display px in from the rim's outer edge: square
+    left end, right end slanted back toward the bottom."""
+    lx, ty, by = EB["outer"]
+    wx0, wy0, wx1, wy1 = EB["window"]
+    k = EB["slant"] / (wy1 - wy0)  # x lean per px of height
+    rx_top = wx1 + (wy0 - ty) * k + 2.2  # outer right edge, through the rim
+    a, b = ty + inset, by - inset
+    rt = rx_top - inset - (inset * k)
+    return [(_eb(lx + inset), _eb(a)), (_eb(rt), _eb(a)), (_eb(rt - (b - a) * k), _eb(b)), (_eb(lx + inset), _eb(b))]
+
+
+def _eb_window_poly(ox=0, oy=0):
+    """The fill shape in window space (offset by ox, oy display px)."""
+    wx0, wy0, wx1, wy1 = EB["window"]
+    w, h = wx1 - wx0, wy1 - wy0
+    s = EB["slant"]
+    return [(_eb(ox), _eb(oy)), (_eb(ox + w), _eb(oy)), (_eb(ox + w - s), _eb(oy + h)), (_eb(ox), _eb(oy + h))]
+
+
+def eb_back():
+    """Dark lacquer backing for lost health, the whole bar body. 544x88,
+    stretched at 136x22."""
+    img = _eb_canvas(*EB["bar"])
+    d = ImageDraw.Draw(img)
+    d.polygon(_eb_poly(0), fill=(8, 8, 10, 235))
+    wx0, wy0, _, _ = EB["window"]
+    d.polygon(_eb_window_poly(wx0, wy0), fill=(30, 14, 16, 235))
+    # a faint inner shadow along the top of the window
+    d.line([(_eb(wx0), _eb(wy0) + _eb(0.6)), (_eb(EB["window"][2]), _eb(wy0) + _eb(0.6))], fill=(0, 0, 0, 200), width=_eb(1.2))
+    _eb_finish(shadow_under(img, blur=1, offset=1, alpha=150), "enemybar_back.png")
+
+
+def _eb_strip_fill(name, top, bot, glint):
+    """A window-shaped strip (Fill, Trail): 464x32, stretched at 116x8 inside
+    its clip frame."""
+    wx0, wy0, wx1, wy1 = EB["window"]
+    w, h = wx1 - wx0, wy1 - wy0
+    img = _eb_canvas(w, h)
+    grad = _eb_canvas(w, h)
+    gradient_rect(grad, [0, 0, _eb(w), _eb(h)], top, bot)
+    mask = Image.new("L", img.size, 0)
+    ImageDraw.Draw(mask).polygon(_eb_window_poly(), fill=255)
+    img.paste(grad, (0, 0), mask)
+    if glint:
+        # blood-qi sheen: a soft lit band near the top, and a faint core line
+        g = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        gd = ImageDraw.Draw(g)
+        gd.rectangle([0, _eb(1), _eb(w), _eb(2.6)], fill=glint)
+        gd.rectangle([0, _eb(h * 0.62), _eb(w), _eb(h * 0.62 + 0.6)], fill=(255, 90, 70, 40))
+        g = g.filter(ImageFilter.GaussianBlur(_eb(0.35)))
+        g.putalpha(Image.composite(g.getchannel("A"), Image.new("L", img.size, 0), mask))
+        img.alpha_composite(g)
+    _eb_finish(img, name)
+
+
+def eb_fill():
+    _eb_strip_fill("enemybar_fill.png", (222, 58, 50), (112, 12, 24), (255, 170, 150, 110))
+
+
+def eb_ghost():
+    """The recent-damage chip: pale qi gold, drains after the fill."""
+    _eb_strip_fill("enemybar_ghost.png", (255, 240, 200), (226, 182, 108), None)
+
+
+def eb_sheen():
+    """A soft slanted white band that sweeps across the fill on far-above beasts.
+    112x32, stretched at 28x8."""
+    w, h = EB["sheen"]
+    img = _eb_canvas(w, h)
+    d = ImageDraw.Draw(img)
+    s = EB["slant"]
+    cx = w / 2
+    d.polygon([(_eb(cx - 3 + s / 2), 0), (_eb(cx + 3 + s / 2), 0), (_eb(cx + 3 - s / 2), _eb(h)), (_eb(cx - 3 - s / 2), _eb(h))], fill=(255, 236, 255, 150))
+    img = img.filter(ImageFilter.GaussianBlur(_eb(1.6)))
+    _eb_finish(img, "enemybar_sheen.png")
+
+
+def _eb_seal(d, cx, cy, r, face, edge):
+    """A small diamond seal stamp on the bar's tip."""
+    d.polygon([(_eb(cx), _eb(cy - r - 0.8)), (_eb(cx + r + 0.8), _eb(cy)), (_eb(cx), _eb(cy + r + 0.8)), (_eb(cx - r - 0.8), _eb(cy))], fill=INK)
+    d.polygon([(_eb(cx), _eb(cy - r)), (_eb(cx + r), _eb(cy)), (_eb(cx), _eb(cy + r)), (_eb(cx - r), _eb(cy))], fill=face)
+    q = r * 0.45
+    d.polygon([(_eb(cx), _eb(cy - q)), (_eb(cx + q), _eb(cy)), (_eb(cx), _eb(cy + q)), (_eb(cx - q), _eb(cy))], outline=edge, width=_eb(0.5))
+
+
+def eb_rim(tier):
+    """The frame over the fill for one danger tier: ink outline, a metal band
+    with a lit top edge, nine slanted talisman divisions across the window and
+    the tier's end caps (jade: a vermilion seal on the tip; gold: seal plus a
+    lozenge on the left end; far: a violet lozenge and a long pointed talisman
+    tip). 544x88, stretched at 136x22."""
+    t = EB_TIERS[tier]
+    metal, hi, lo = t["metal"] + (255,), t["hi"] + (255,), t["lo"] + (255,)
+    img = _eb_canvas(*EB["bar"])
+    d = ImageDraw.Draw(img)
+    lx, ty, by = EB["outer"]
+    wx0, wy0, wx1, wy1 = EB["window"]
+    cy = (ty + by) / 2
+
+    if tier == "far":
+        # long talisman tip: a pointed blade leaning off the right end
+        tip = [(_eb(126.5), _eb(ty - 0.5)), (_eb(135.5), _eb(cy - 1)), (_eb(122), _eb(by + 0.5))]
+        d.polygon(tip, fill=INK)
+        tip2 = [(_eb(127.4), _eb(ty + 1)), (_eb(133.6), _eb(cy - 1)), (_eb(123.6), _eb(by - 1))]
+        d.polygon(tip2, fill=metal)
+        d.line([tip2[0], tip2[1]], fill=hi, width=_eb(0.6))
+
+    # body ring: ink, metal, then cut the window back out
+    ring = _eb_canvas(*EB["bar"])
+    rd = ImageDraw.Draw(ring)
+    rd.polygon(_eb_poly(0), fill=INK)
+    rd.polygon(_eb_poly(0.8), fill=metal)
+    # lit top edge and shaded bottom edge of the band
+    p = _eb_poly(0.8)
+    rd.line([p[0], p[1]], fill=hi, width=_eb(0.55))
+    rd.line([p[3], p[2]], fill=lo, width=_eb(0.55))
+    rd.polygon(_eb_window_poly(wx0 - 0.6, wy0 - 0.6), fill=INK)
+    a = ring.getchannel("A")
+    ImageDraw.Draw(a).polygon(_eb_window_poly(wx0, wy0), fill=0)
+    # the window poly is cut 1px wider on the slant side to keep the tip crisp
+    ring.putalpha(a)
+    img.alpha_composite(ring)
+    d = ImageDraw.Draw(img)
+
+    # slanted talisman divisions, one per 10%
+    n = EB["segments"]
+    w = wx1 - wx0
+    s = EB["slant"]
+    for i in range(1, n):
+        x = wx0 + w * i / n
+        d.line([(_eb(x + 0.3), _eb(wy0)), (_eb(x + 0.3 - s), _eb(wy1))], fill=(6, 6, 8, 255), width=_eb(1.1))
+        d.line([(_eb(x + 0.95), _eb(wy0 + 0.3)), (_eb(x + 0.95 - s), _eb(wy1 - 0.3))], fill=(255, 255, 255, 46), width=_eb(0.35))
+
+    # glaze along the top of the window
+    gl = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(gl).rectangle([_eb(wx0), _eb(wy0 + 0.4), _eb(wx1), _eb(wy0 + 1.5)], fill=(255, 255, 255, 30))
+    m = Image.new("L", img.size, 0)
+    ImageDraw.Draw(m).polygon(_eb_window_poly(wx0, wy0), fill=255)
+    gl.putalpha(Image.composite(gl.getchannel("A"), Image.new("L", img.size, 0), m))
+    img.alpha_composite(gl)
+
+    if tier in ("jade", "gold"):
+        _eb_seal(d, 128.6, cy, 4.2, (176, 40, 30, 255), (246, 226, 196, 230))
+    if tier in ("gold", "far"):
+        face = (30, 18, 40, 255) if tier == "far" else (40, 30, 22, 255)
+        r = 5.0
+        d.polygon([(_eb(lx), _eb(cy - r - 0.8)), (_eb(lx + r + 0.8), _eb(cy)), (_eb(lx), _eb(cy + r + 0.8)), (_eb(lx - r - 0.8), _eb(cy))], fill=INK)
+        d.polygon([(_eb(lx), _eb(cy - r)), (_eb(lx + r), _eb(cy)), (_eb(lx), _eb(cy + r)), (_eb(lx - r), _eb(cy))], fill=metal)
+        q = r * 0.5
+        d.polygon([(_eb(lx), _eb(cy - q)), (_eb(lx + q), _eb(cy)), (_eb(lx), _eb(cy + q)), (_eb(lx - q), _eb(cy))], fill=face)
+        d.line([(_eb(lx - r * 0.5), _eb(cy - r * 0.5)), (_eb(lx), _eb(cy - r))], fill=hi, width=_eb(0.5))
+    if tier == "far":
+        _eb_seal(d, 126.2, cy - 0.6, 2.6, (150, 26, 52, 255), (255, 210, 230, 220))
+    _eb_finish(shadow_under(img, blur=1, offset=1, alpha=140), f"enemybar_rim_{tier}.png")
+
+
+def eb_aura():
+    """The faint violet qi glow behind a far-above beast's bar (pulsed by the
+    script). 544x88, stretched at 136x22."""
+    img = _eb_canvas(*EB["bar"])
+    d = ImageDraw.Draw(img)
+    lx, ty, by = EB["outer"]
+    d.rounded_rectangle([_eb(lx + 1), _eb(ty + 1.5), _eb(128), _eb(by - 1.5)], radius=_eb(4), fill=(190, 120, 255, 200))
+    img = img.filter(ImageFilter.GaussianBlur(_eb(2.4)))
+    _eb_finish(img, "enemybar_aura.png")
+
+
+def eb_strip():
+    """The nameplate strip: dark ink, slightly translucent, washing out to the
+    right, with a thin bronze hairline along its foot. 448x60, stretched at
+    112x15."""
+    w, h = EB["strip"]
+    img = _eb_canvas(w, h)
+    px = img.load()
+    W, H = img.size
+    for x in range(W):
+        t = x / (W - 1)
+        a = 168 if t < 0.62 else int(168 * max(0, 1 - (t - 0.62) / 0.38) ** 1.4)
+        for y in range(H):
+            v = y / (H - 1)
+            edge = 1 - 0.35 * (abs(v - 0.5) * 2) ** 6
+            px[x, y] = (10, 12, 14, int(a * edge))
+    hl = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    hd = ImageDraw.Draw(hl)
+    for x in range(0, W, SS):
+        t = x / (W - 1)
+        a = int(200 * max(0, 1 - t / 0.8) ** 1.2)
+        hd.line([(x, H - _eb(0.9)), (x + SS, H - _eb(0.9))], fill=(206, 164, 96, a), width=_eb(0.6))
+    img.alpha_composite(hl)
+    d = ImageDraw.Draw(img)
+    # a small lozenge tick at the left end of the hairline
+    cy, r = h - 0.9, 1.6
+    d.polygon([(_eb(1.6), _eb(cy - r)), (_eb(1.6 + r), _eb(cy)), (_eb(1.6), _eb(cy + r)), (_eb(1.6 - r), _eb(cy))], fill=GOLD)
+    _eb_finish(img, "enemybar_strip.png")
+
+
+def eb_skull():
+    """The "do not fight" mark over a beast far past the player: a cracked
+    crimson talisman seal with a horned bone skull, ringed by a soft blood-qi
+    glow (pulsed by the script). 160x160, stretched at 40x40."""
+    import random
+    rnd = random.Random(23)
+    w, h = EB["skull"]
+    img = _eb_canvas(w, h)
+    c = _eb(w / 2)
+    # glow
+    g = _eb_canvas(w, h)
+    ImageDraw.Draw(g).ellipse([c - _eb(15), c - _eb(15), c + _eb(15), c + _eb(15)], fill=(220, 30, 40, 170))
+    g = g.filter(ImageFilter.GaussianBlur(_eb(3.5)))
+    img.alpha_composite(g)
+    d = ImageDraw.Draw(img)
+    # seal: a diamond talisman face
+    R = _eb(14.5)
+    d.polygon([(c, c - R - _eb(1.2)), (c + R + _eb(1.2), c), (c, c + R + _eb(1.2)), (c - R - _eb(1.2), c)], fill=INK)
+    face = _eb_canvas(w, h)
+    gradient_rect(face, [c - R, c - R, c + R, c + R], (170, 30, 34), (86, 10, 20))
+    m = Image.new("L", img.size, 0)
+    md = ImageDraw.Draw(m)
+    md.polygon([(c, c - R), (c + R, c), (c, c + R), (c - R, c)], fill=255)
+    for _ in range(60):  # nibbled chop edge
+        k = rnd.random()
+        side = rnd.randrange(4)
+        corners = [(c, c - R), (c + R, c), (c, c + R), (c - R, c), (c, c - R)]
+        (x0, y0), (x1, y1) = corners[side], corners[side + 1]
+        x, y = x0 + (x1 - x0) * k, y0 + (y1 - y0) * k
+        r = rnd.uniform(0.3, 0.8) * _eb(1)
+        md.ellipse([x - r, y - r, x + r, y + r], fill=0)
+    img.paste(face, (0, 0), m)
+    d = ImageDraw.Draw(img)
+    q = R * 0.84
+    d.polygon([(c, c - q), (c + q, c), (c, c + q), (c - q, c)], outline=(240, 200, 170, 150), width=_eb(0.5))
+    bone = (240, 226, 200, 255)
+    u = _eb(1)
+    sy = c - 1.5 * u
+    # horns
+    for side in (-1, 1):
+        d.line([(c + side * 4.2 * u, sy - 3.6 * u), (c + side * 6.6 * u, sy - 6.4 * u), (c + side * 6.2 * u, sy - 8.6 * u)], fill=INK, width=round(2.6 * u), joint="curve")
+        d.line([(c + side * 4.2 * u, sy - 3.6 * u), (c + side * 6.6 * u, sy - 6.4 * u), (c + side * 6.2 * u, sy - 8.6 * u)], fill=bone, width=int(1.4 * u), joint="curve")
+    # cranium and jaw
+    d.ellipse([c - 6.4 * u, sy - 6.2 * u, c + 6.4 * u, sy + 5.2 * u], fill=INK)
+    d.rounded_rectangle([c - 4.2 * u, sy + 2.2 * u, c + 4.2 * u, sy + 8.4 * u], radius=1.5 * u, fill=INK)
+    d.ellipse([c - 5.5 * u, sy - 5.3 * u, c + 5.5 * u, sy + 4.4 * u], fill=bone)
+    d.rounded_rectangle([c - 3.4 * u, sy + 2.4 * u, c + 3.4 * u, sy + 7.6 * u], radius=1.2 * u, fill=bone)
+    # eyes, nose, teeth
+    for side in (-1, 1):
+        ex = c + side * 2.4 * u
+        d.polygon([(ex - 1.8 * u, sy - 0.6 * u), (ex + 1.8 * u, sy - 0.6 * u), (ex + side * 0.4 * u, sy + 1.8 * u)], fill=(120, 8, 16, 255))
+        d.ellipse([ex - 0.5 * u, sy - 0.2 * u, ex + 0.5 * u, sy + 0.8 * u], fill=(255, 90, 70, 255))
+    d.polygon([(c, sy + 2.2 * u), (c - 0.9 * u, sy + 3.8 * u), (c + 0.9 * u, sy + 3.8 * u)], fill=INK)
+    for k in (-1.5, 0, 1.5):
+        d.line([(c + k * u, sy + 5.0 * u), (c + k * u, sy + 7.4 * u)], fill=INK, width=int(0.6 * u))
+    # a crack across the brow and down through the seal
+    crack = [(c + 1.2 * u, sy - 5.3 * u), (c + 0.2 * u, sy - 3.2 * u), (c + 1.4 * u, sy - 1.8 * u)]
+    d.line(crack, fill=INK, width=int(0.6 * u))
+    d.line([(c - 4 * u, c + 8 * u), (c - 6.2 * u, c + 9.4 * u), (c - 7.0 * u, c + 7.4 * u)], fill=INK, width=int(0.6 * u))
+    _eb_finish(img, "enemybar_skull.png")
+
+
+def enemy_bar_art():
+    eb_back()
+    eb_fill()
+    eb_ghost()
+    eb_sheen()
+    for tier in EB_TIERS:
+        eb_rim(tier)
+    eb_aura()
+    eb_strip()
+    eb_skull()
+
 if __name__ == "__main__":
     import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "enemybar":
+        enemy_bar_art()
+        sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "maze":
         maze_art()
         sys.exit()

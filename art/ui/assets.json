@@ -100,5 +100,16 @@
   "maze_spark.png": "rbxassetid://122478768634138",
   "maze_exit.png": "rbxassetid://73145445285954",
   "maze_impurity.png": "rbxassetid://94388982564204",
-  "maze_array.png": "rbxassetid://70680442030496"
+  "maze_array.png": "rbxassetid://70680442030496",
+  "enemybar_skull.png": "rbxassetid://129855571914300",
+  "enemybar_aura.png": "rbxassetid://90944820239236",
+  "enemybar_fill.png": "rbxassetid://123879287937413",
+  "enemybar_rim_bronze.png": "rbxassetid://129086600812253",
+  "enemybar_strip.png": "rbxassetid://86479320252475",
+  "enemybar_rim_jade.png": "rbxassetid://83318003824497",
+  "enemybar_sheen.png": "rbxassetid://129982019555076",
+  "enemybar_back.png": "rbxassetid://131295214395641",
+  "enemybar_rim_far.png": "rbxassetid://110079661251126",
+  "enemybar_rim_gold.png": "rbxassetid://133768153785008",
+  "enemybar_ghost.png": "rbxassetid://138048271555699"
 }

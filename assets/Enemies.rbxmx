@@ -24,52 +24,184 @@
    </Properties>
     <Item class="BillboardGui" referent="HBSpir1"><Properties>
      <string name="Name">HealthBar</string>
-     <UDim2 name="Size"><XS>0</XS><XO>86</XO><YS>0</YS><YO>16</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>150</XO><YS>0</YS><YO>62</YO></UDim2>
+     <bool name="ResetOnSpawn">false</bool>
      <token name="ZIndexBehavior">1</token>
+     <bool name="Enabled">false</bool>
      <Vector3 name="StudsOffset"><X>0</X><Y>3.4</Y><Z>0</Z></Vector3>
      <bool name="AlwaysOnTop">true</bool>
      <float name="MaxDistance">90</float>
-     <float name="LightInfluence">0</float>
+      <float name="LightInfluence">0</float>
     </Properties>
      <Item class="Frame" referent="HBSpir2"><Properties>
-      <string name="Name">Back</string>
-      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0470588</G><B>0.0470588</B></Color3>
-      <float name="BackgroundTransparency">0.15</float>
-      <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>4</XO><YS>0</YS><YO>4</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>-8</XO><YS>1</YS><YO>-8</YO></UDim2>
+      <string name="Name">Plate</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      </Properties>
-      <Item class="Frame" referent="HBSpir3"><Properties>
-       <string name="Name">Fill</string>
-       <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
-       <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <int name="ZIndex">2</int>
+      <Item class="ImageLabel" referent="HBSpir3"><Properties>
+       <string name="Name">Strip</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>8</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>126</XO><YS>0</YS><YO>15</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://86479320252475</url></Content>
       </Properties>
-       <Item class="UIGradient" referent="HBSpir4"><Properties>
-        <string name="Name">UIGradient</string>
-        <float name="Rotation">90</float>
-        <ColorSequence name="Color">0 0.807843 0.188235 0.156863 0 1 0.462745 0.0627451 0.0784314 0 </ColorSequence>
+       <Item class="TextLabel" referent="HBSpir4"><Properties>
+        <string name="Name">NameLabel</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>0</XS><XO>6</XO><YS>0</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>1</XS><XO>-40</XO><YS>1</YS><YO>0</YO></UDim2>
+        <string name="Text"></string>
+        <Color3 name="TextColor3"><R>0.964706</R><G>0.92549</G><B>0.847059</B></Color3>
+        <float name="TextSize">12</float>
+        <token name="TextXAlignment">0</token>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+        <token name="TextTruncate">1</token>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+       </Properties>
+       </Item>
+       <Item class="TextLabel" referent="HBSpir5"><Properties>
+        <string name="Name">RealmTag</string>
+        <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>1</XS><XO>-4</XO><YS>0</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>32</XO><YS>0</YS><YO>15</YO></UDim2>
+        <string name="Text"></string>
+        <Color3 name="TextColor3"><R>0.690196</R><G>0.894118</G><B>0.768627</B></Color3>
+        <float name="TextSize">11</float>
+        <token name="TextXAlignment">1</token>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+        <token name="TextTruncate">1</token>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="HBSpir5"><Properties>
-       <string name="Name">Trail</string>
-       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.776471</G><B>0.470588</B></Color3>
-       <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Item class="Frame" referent="HBSpir6"><Properties>
+       <string name="Name">Bar</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>11</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>136</XO><YS>0</YS><YO>22</YO></UDim2>
+       <int name="ZIndex">2</int>
+      </Properties>
+       <Item class="ImageLabel" referent="HBSpir7"><Properties>
+        <string name="Name">Aura</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <bool name="Visible">false</bool>
+        <Content name="Image"><url>rbxassetid://90944820239236</url></Content>
+       </Properties>
+       </Item>
+       <Item class="ImageLabel" referent="HBSpir8"><Properties>
+        <string name="Name">Back</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <int name="ZIndex">2</int>
+        <Content name="Image"><url>rbxassetid://131295214395641</url></Content>
+       </Properties>
+       </Item>
+       <Item class="Frame" referent="HBSpir9"><Properties>
+        <string name="Name">Window</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>0</XS><XO>10</XO><YS>0</YS><YO>7</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>116</XO><YS>0</YS><YO>8</YO></UDim2>
+        <int name="ZIndex">3</int>
+       </Properties>
+        <Item class="Frame" referent="HBSpir10"><Properties>
+         <string name="Name">Trail</string>
+         <float name="BackgroundTransparency">1</float>
+         <bool name="ClipsDescendants">true</bool>
+         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        </Properties>
+         <Item class="ImageLabel" referent="HBSpir11"><Properties>
+          <string name="Name">Art</string>
+          <float name="BackgroundTransparency">1</float>
+          <UDim2 name="Size"><XS>0</XS><XO>116</XO><YS>0</YS><YO>8</YO></UDim2>
+          <Content name="Image"><url>rbxassetid://138048271555699</url></Content>
+         </Properties>
+         </Item>
+        </Item>
+        <Item class="Frame" referent="HBSpir12"><Properties>
+         <string name="Name">Fill</string>
+         <float name="BackgroundTransparency">1</float>
+         <bool name="ClipsDescendants">true</bool>
+         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+         <int name="ZIndex">2</int>
+        </Properties>
+         <Item class="ImageLabel" referent="HBSpir13"><Properties>
+          <string name="Name">Art</string>
+          <float name="BackgroundTransparency">1</float>
+          <UDim2 name="Size"><XS>0</XS><XO>116</XO><YS>0</YS><YO>8</YO></UDim2>
+          <Content name="Image"><url>rbxassetid://123879287937413</url></Content>
+         </Properties>
+         </Item>
+         <Item class="ImageLabel" referent="HBSpir14"><Properties>
+          <string name="Name">Sheen</string>
+          <float name="BackgroundTransparency">1</float>
+          <UDim2 name="Position"><XS>0</XS><XO>-28</XO><YS>0</YS><YO>0</YO></UDim2>
+          <UDim2 name="Size"><XS>0</XS><XO>28</XO><YS>0</YS><YO>8</YO></UDim2>
+          <bool name="Visible">false</bool>
+          <int name="ZIndex">2</int>
+          <Content name="Image"><url>rbxassetid://129982019555076</url></Content>
+         </Properties>
+         </Item>
+        </Item>
+       </Item>
+       <Item class="ImageLabel" referent="HBSpir15"><Properties>
+        <string name="Name">Rim</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <int name="ZIndex">4</int>
+        <Content name="Image"><url>rbxassetid://129086600812253</url></Content>
+       </Properties>
+       </Item>
+      </Item>
+      <Item class="TextLabel" referent="HBSpir16"><Properties>
+       <string name="Name">Omen</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>10</XO><YS>0</YS><YO>33</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>140</XO><YS>0</YS><YO>13</YO></UDim2>
+       <bool name="Visible">false</bool>
+       <string name="Text"></string>
+       <Color3 name="TextColor3"><R>0.941176</R><G>0.807843</G><B>0.572549</B></Color3>
+       <float name="TextSize">11</float>
+       <token name="TextXAlignment">0</token>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
       </Item>
-      <Item class="ImageLabel" referent="HBSpir6"><Properties>
-       <string name="Name">Rim</string>
+     </Item>
+     <Item class="Frame" referent="HBSpir17"><Properties>
+      <string name="Name">Warning</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <bool name="Visible">false</bool>
+     </Properties>
+      <Item class="ImageLabel" referent="HBSpir18"><Properties>
+       <string name="Name">Skull</string>
+       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>0</YS><YO>-4</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>8</XO><YS>1</YS><YO>8</YO></UDim2>
-       <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://84962649927985</url></Content>
-       <token name="ScaleType">1</token>
-       <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
-       <float name="SliceScale">0.166667</float>
+       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>48</XO><YS>0</YS><YO>48</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://129855571914300</url></Content>
+      </Properties>
+       <Item class="UIScale" referent="HBSpir19"><Properties>
+        <string name="Name">Pulse</string>
+       </Properties>
+       </Item>
+      </Item>
+      <Item class="TextLabel" referent="HBSpir20"><Properties>
+       <string name="Name">Omen</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>49</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>13</YO></UDim2>
+       <string name="Text"></string>
+       <Color3 name="TextColor3"><R>1</R><G>0.470588</G><B>0.423529</B></Color3>
+       <float name="TextSize">11</float>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
       </Item>
      </Item>
@@ -744,52 +876,184 @@
    </Properties>
     <Item class="BillboardGui" referent="HBSton1"><Properties>
      <string name="Name">HealthBar</string>
-     <UDim2 name="Size"><XS>0</XS><XO>86</XO><YS>0</YS><YO>16</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>150</XO><YS>0</YS><YO>62</YO></UDim2>
+     <bool name="ResetOnSpawn">false</bool>
      <token name="ZIndexBehavior">1</token>
-     <Vector3 name="StudsOffset"><X>0</X><Y>4.4</Y><Z>0</Z></Vector3>
+     <bool name="Enabled">false</bool>
+     <Vector3 name="StudsOffset"><X>0</X><Y>3.4</Y><Z>0</Z></Vector3>
      <bool name="AlwaysOnTop">true</bool>
      <float name="MaxDistance">90</float>
-     <float name="LightInfluence">0</float>
+      <float name="LightInfluence">0</float>
     </Properties>
      <Item class="Frame" referent="HBSton2"><Properties>
-      <string name="Name">Back</string>
-      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0470588</G><B>0.0470588</B></Color3>
-      <float name="BackgroundTransparency">0.15</float>
-      <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>4</XO><YS>0</YS><YO>4</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>-8</XO><YS>1</YS><YO>-8</YO></UDim2>
+      <string name="Name">Plate</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      </Properties>
-      <Item class="Frame" referent="HBSton3"><Properties>
-       <string name="Name">Fill</string>
-       <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
-       <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <int name="ZIndex">2</int>
+      <Item class="ImageLabel" referent="HBSton3"><Properties>
+       <string name="Name">Strip</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>8</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>126</XO><YS>0</YS><YO>15</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://86479320252475</url></Content>
       </Properties>
-       <Item class="UIGradient" referent="HBSton4"><Properties>
-        <string name="Name">UIGradient</string>
-        <float name="Rotation">90</float>
-        <ColorSequence name="Color">0 0.807843 0.188235 0.156863 0 1 0.462745 0.0627451 0.0784314 0 </ColorSequence>
+       <Item class="TextLabel" referent="HBSton4"><Properties>
+        <string name="Name">NameLabel</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>0</XS><XO>6</XO><YS>0</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>1</XS><XO>-40</XO><YS>1</YS><YO>0</YO></UDim2>
+        <string name="Text"></string>
+        <Color3 name="TextColor3"><R>0.964706</R><G>0.92549</G><B>0.847059</B></Color3>
+        <float name="TextSize">12</float>
+        <token name="TextXAlignment">0</token>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+        <token name="TextTruncate">1</token>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+       </Properties>
+       </Item>
+       <Item class="TextLabel" referent="HBSton5"><Properties>
+        <string name="Name">RealmTag</string>
+        <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>1</XS><XO>-4</XO><YS>0</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>32</XO><YS>0</YS><YO>15</YO></UDim2>
+        <string name="Text"></string>
+        <Color3 name="TextColor3"><R>0.690196</R><G>0.894118</G><B>0.768627</B></Color3>
+        <float name="TextSize">11</float>
+        <token name="TextXAlignment">1</token>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+        <token name="TextTruncate">1</token>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="HBSton5"><Properties>
-       <string name="Name">Trail</string>
-       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.776471</G><B>0.470588</B></Color3>
-       <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Item class="Frame" referent="HBSton6"><Properties>
+       <string name="Name">Bar</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>11</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>136</XO><YS>0</YS><YO>22</YO></UDim2>
+       <int name="ZIndex">2</int>
+      </Properties>
+       <Item class="ImageLabel" referent="HBSton7"><Properties>
+        <string name="Name">Aura</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <bool name="Visible">false</bool>
+        <Content name="Image"><url>rbxassetid://90944820239236</url></Content>
+       </Properties>
+       </Item>
+       <Item class="ImageLabel" referent="HBSton8"><Properties>
+        <string name="Name">Back</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <int name="ZIndex">2</int>
+        <Content name="Image"><url>rbxassetid://131295214395641</url></Content>
+       </Properties>
+       </Item>
+       <Item class="Frame" referent="HBSton9"><Properties>
+        <string name="Name">Window</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>0</XS><XO>10</XO><YS>0</YS><YO>7</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>116</XO><YS>0</YS><YO>8</YO></UDim2>
+        <int name="ZIndex">3</int>
+       </Properties>
+        <Item class="Frame" referent="HBSton10"><Properties>
+         <string name="Name">Trail</string>
+         <float name="BackgroundTransparency">1</float>
+         <bool name="ClipsDescendants">true</bool>
+         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        </Properties>
+         <Item class="ImageLabel" referent="HBSton11"><Properties>
+          <string name="Name">Art</string>
+          <float name="BackgroundTransparency">1</float>
+          <UDim2 name="Size"><XS>0</XS><XO>116</XO><YS>0</YS><YO>8</YO></UDim2>
+          <Content name="Image"><url>rbxassetid://138048271555699</url></Content>
+         </Properties>
+         </Item>
+        </Item>
+        <Item class="Frame" referent="HBSton12"><Properties>
+         <string name="Name">Fill</string>
+         <float name="BackgroundTransparency">1</float>
+         <bool name="ClipsDescendants">true</bool>
+         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+         <int name="ZIndex">2</int>
+        </Properties>
+         <Item class="ImageLabel" referent="HBSton13"><Properties>
+          <string name="Name">Art</string>
+          <float name="BackgroundTransparency">1</float>
+          <UDim2 name="Size"><XS>0</XS><XO>116</XO><YS>0</YS><YO>8</YO></UDim2>
+          <Content name="Image"><url>rbxassetid://123879287937413</url></Content>
+         </Properties>
+         </Item>
+         <Item class="ImageLabel" referent="HBSton14"><Properties>
+          <string name="Name">Sheen</string>
+          <float name="BackgroundTransparency">1</float>
+          <UDim2 name="Position"><XS>0</XS><XO>-28</XO><YS>0</YS><YO>0</YO></UDim2>
+          <UDim2 name="Size"><XS>0</XS><XO>28</XO><YS>0</YS><YO>8</YO></UDim2>
+          <bool name="Visible">false</bool>
+          <int name="ZIndex">2</int>
+          <Content name="Image"><url>rbxassetid://129982019555076</url></Content>
+         </Properties>
+         </Item>
+        </Item>
+       </Item>
+       <Item class="ImageLabel" referent="HBSton15"><Properties>
+        <string name="Name">Rim</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <int name="ZIndex">4</int>
+        <Content name="Image"><url>rbxassetid://129086600812253</url></Content>
+       </Properties>
+       </Item>
+      </Item>
+      <Item class="TextLabel" referent="HBSton16"><Properties>
+       <string name="Name">Omen</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>10</XO><YS>0</YS><YO>33</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>140</XO><YS>0</YS><YO>13</YO></UDim2>
+       <bool name="Visible">false</bool>
+       <string name="Text"></string>
+       <Color3 name="TextColor3"><R>0.941176</R><G>0.807843</G><B>0.572549</B></Color3>
+       <float name="TextSize">11</float>
+       <token name="TextXAlignment">0</token>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
       </Item>
-      <Item class="ImageLabel" referent="HBSton6"><Properties>
-       <string name="Name">Rim</string>
+     </Item>
+     <Item class="Frame" referent="HBSton17"><Properties>
+      <string name="Name">Warning</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <bool name="Visible">false</bool>
+     </Properties>
+      <Item class="ImageLabel" referent="HBSton18"><Properties>
+       <string name="Name">Skull</string>
+       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>0</YS><YO>-4</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>8</XO><YS>1</YS><YO>8</YO></UDim2>
-       <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://84962649927985</url></Content>
-       <token name="ScaleType">1</token>
-       <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
-       <float name="SliceScale">0.166667</float>
+       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>48</XO><YS>0</YS><YO>48</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://129855571914300</url></Content>
+      </Properties>
+       <Item class="UIScale" referent="HBSton19"><Properties>
+        <string name="Name">Pulse</string>
+       </Properties>
+       </Item>
+      </Item>
+      <Item class="TextLabel" referent="HBSton20"><Properties>
+       <string name="Name">Omen</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>49</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>13</YO></UDim2>
+       <string name="Text"></string>
+       <Color3 name="TextColor3"><R>1</R><G>0.470588</G><B>0.423529</B></Color3>
+       <float name="TextSize">11</float>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
       </Item>
      </Item>
@@ -1242,52 +1506,184 @@
    </Properties>
     <Item class="BillboardGui" referent="HBVeno1"><Properties>
      <string name="Name">HealthBar</string>
-     <UDim2 name="Size"><XS>0</XS><XO>86</XO><YS>0</YS><YO>16</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>150</XO><YS>0</YS><YO>62</YO></UDim2>
+     <bool name="ResetOnSpawn">false</bool>
      <token name="ZIndexBehavior">1</token>
-     <Vector3 name="StudsOffset"><X>0</X><Y>4.6</Y><Z>0</Z></Vector3>
+     <bool name="Enabled">false</bool>
+     <Vector3 name="StudsOffset"><X>0</X><Y>3.4</Y><Z>0</Z></Vector3>
      <bool name="AlwaysOnTop">true</bool>
      <float name="MaxDistance">90</float>
-     <float name="LightInfluence">0</float>
+      <float name="LightInfluence">0</float>
     </Properties>
      <Item class="Frame" referent="HBVeno2"><Properties>
-      <string name="Name">Back</string>
-      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0470588</G><B>0.0470588</B></Color3>
-      <float name="BackgroundTransparency">0.15</float>
-      <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>4</XO><YS>0</YS><YO>4</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>-8</XO><YS>1</YS><YO>-8</YO></UDim2>
+      <string name="Name">Plate</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      </Properties>
-      <Item class="Frame" referent="HBVeno3"><Properties>
-       <string name="Name">Fill</string>
-       <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
-       <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <int name="ZIndex">2</int>
+      <Item class="ImageLabel" referent="HBVeno3"><Properties>
+       <string name="Name">Strip</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>8</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>126</XO><YS>0</YS><YO>15</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://86479320252475</url></Content>
       </Properties>
-       <Item class="UIGradient" referent="HBVeno4"><Properties>
-        <string name="Name">UIGradient</string>
-        <float name="Rotation">90</float>
-        <ColorSequence name="Color">0 0.807843 0.188235 0.156863 0 1 0.462745 0.0627451 0.0784314 0 </ColorSequence>
+       <Item class="TextLabel" referent="HBVeno4"><Properties>
+        <string name="Name">NameLabel</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>0</XS><XO>6</XO><YS>0</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>1</XS><XO>-40</XO><YS>1</YS><YO>0</YO></UDim2>
+        <string name="Text"></string>
+        <Color3 name="TextColor3"><R>0.964706</R><G>0.92549</G><B>0.847059</B></Color3>
+        <float name="TextSize">12</float>
+        <token name="TextXAlignment">0</token>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+        <token name="TextTruncate">1</token>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+       </Properties>
+       </Item>
+       <Item class="TextLabel" referent="HBVeno5"><Properties>
+        <string name="Name">RealmTag</string>
+        <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>1</XS><XO>-4</XO><YS>0</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>32</XO><YS>0</YS><YO>15</YO></UDim2>
+        <string name="Text"></string>
+        <Color3 name="TextColor3"><R>0.690196</R><G>0.894118</G><B>0.768627</B></Color3>
+        <float name="TextSize">11</float>
+        <token name="TextXAlignment">1</token>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+        <token name="TextTruncate">1</token>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="HBVeno5"><Properties>
-       <string name="Name">Trail</string>
-       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.776471</G><B>0.470588</B></Color3>
-       <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <Item class="Frame" referent="HBVeno6"><Properties>
+       <string name="Name">Bar</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>11</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>136</XO><YS>0</YS><YO>22</YO></UDim2>
+       <int name="ZIndex">2</int>
+      </Properties>
+       <Item class="ImageLabel" referent="HBVeno7"><Properties>
+        <string name="Name">Aura</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <bool name="Visible">false</bool>
+        <Content name="Image"><url>rbxassetid://90944820239236</url></Content>
+       </Properties>
+       </Item>
+       <Item class="ImageLabel" referent="HBVeno8"><Properties>
+        <string name="Name">Back</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <int name="ZIndex">2</int>
+        <Content name="Image"><url>rbxassetid://131295214395641</url></Content>
+       </Properties>
+       </Item>
+       <Item class="Frame" referent="HBVeno9"><Properties>
+        <string name="Name">Window</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>0</XS><XO>10</XO><YS>0</YS><YO>7</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>116</XO><YS>0</YS><YO>8</YO></UDim2>
+        <int name="ZIndex">3</int>
+       </Properties>
+        <Item class="Frame" referent="HBVeno10"><Properties>
+         <string name="Name">Trail</string>
+         <float name="BackgroundTransparency">1</float>
+         <bool name="ClipsDescendants">true</bool>
+         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        </Properties>
+         <Item class="ImageLabel" referent="HBVeno11"><Properties>
+          <string name="Name">Art</string>
+          <float name="BackgroundTransparency">1</float>
+          <UDim2 name="Size"><XS>0</XS><XO>116</XO><YS>0</YS><YO>8</YO></UDim2>
+          <Content name="Image"><url>rbxassetid://138048271555699</url></Content>
+         </Properties>
+         </Item>
+        </Item>
+        <Item class="Frame" referent="HBVeno12"><Properties>
+         <string name="Name">Fill</string>
+         <float name="BackgroundTransparency">1</float>
+         <bool name="ClipsDescendants">true</bool>
+         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+         <int name="ZIndex">2</int>
+        </Properties>
+         <Item class="ImageLabel" referent="HBVeno13"><Properties>
+          <string name="Name">Art</string>
+          <float name="BackgroundTransparency">1</float>
+          <UDim2 name="Size"><XS>0</XS><XO>116</XO><YS>0</YS><YO>8</YO></UDim2>
+          <Content name="Image"><url>rbxassetid://123879287937413</url></Content>
+         </Properties>
+         </Item>
+         <Item class="ImageLabel" referent="HBVeno14"><Properties>
+          <string name="Name">Sheen</string>
+          <float name="BackgroundTransparency">1</float>
+          <UDim2 name="Position"><XS>0</XS><XO>-28</XO><YS>0</YS><YO>0</YO></UDim2>
+          <UDim2 name="Size"><XS>0</XS><XO>28</XO><YS>0</YS><YO>8</YO></UDim2>
+          <bool name="Visible">false</bool>
+          <int name="ZIndex">2</int>
+          <Content name="Image"><url>rbxassetid://129982019555076</url></Content>
+         </Properties>
+         </Item>
+        </Item>
+       </Item>
+       <Item class="ImageLabel" referent="HBVeno15"><Properties>
+        <string name="Name">Rim</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <int name="ZIndex">4</int>
+        <Content name="Image"><url>rbxassetid://129086600812253</url></Content>
+       </Properties>
+       </Item>
+      </Item>
+      <Item class="TextLabel" referent="HBVeno16"><Properties>
+       <string name="Name">Omen</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>10</XO><YS>0</YS><YO>33</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>140</XO><YS>0</YS><YO>13</YO></UDim2>
+       <bool name="Visible">false</bool>
+       <string name="Text"></string>
+       <Color3 name="TextColor3"><R>0.941176</R><G>0.807843</G><B>0.572549</B></Color3>
+       <float name="TextSize">11</float>
+       <token name="TextXAlignment">0</token>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
       </Item>
-      <Item class="ImageLabel" referent="HBVeno6"><Properties>
-       <string name="Name">Rim</string>
+     </Item>
+     <Item class="Frame" referent="HBVeno17"><Properties>
+      <string name="Name">Warning</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <bool name="Visible">false</bool>
+     </Properties>
+      <Item class="ImageLabel" referent="HBVeno18"><Properties>
+       <string name="Name">Skull</string>
+       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>0</YS><YO>-4</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>8</XO><YS>1</YS><YO>8</YO></UDim2>
-       <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://84962649927985</url></Content>
-       <token name="ScaleType">1</token>
-       <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
-       <float name="SliceScale">0.166667</float>
+       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>48</XO><YS>0</YS><YO>48</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://129855571914300</url></Content>
+      </Properties>
+       <Item class="UIScale" referent="HBVeno19"><Properties>
+        <string name="Name">Pulse</string>
+       </Properties>
+       </Item>
+      </Item>
+      <Item class="TextLabel" referent="HBVeno20"><Properties>
+       <string name="Name">Omen</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>49</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>13</YO></UDim2>
+       <string name="Text"></string>
+       <Color3 name="TextColor3"><R>1</R><G>0.470588</G><B>0.423529</B></Color3>
+       <float name="TextSize">11</float>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0313726</G><B>0.0392157</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
       </Item>
      </Item>

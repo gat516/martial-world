@@ -127,6 +127,25 @@ end
 
 local SHAKE_BY_TIER = { 0.14, 0.2, 0.28, 0.38 }
 
+-- Where a character's hand is right now (the palm/fist end), for effects that
+-- come from the striking hand. R15: the hand's grip attachment; R6: the far end
+-- of the arm. nil if the character has no such limb.
+local function handPosition(character: Model?, side: string?): Vector3?
+	if not (character and side) then
+		return nil
+	end
+	local hand = character:FindFirstChild(side .. "Hand")
+	if hand and hand:IsA("BasePart") then
+		local grip = hand:FindFirstChild(side .. "GripAttachment")
+		return if grip and grip:IsA("Attachment") then grip.WorldPosition else hand.Position
+	end
+	local arm = character:FindFirstChild(side .. " Arm")
+	if arm and arm:IsA("BasePart") then
+		return (arm.CFrame * CFrame.new(0, -arm.Size.Y / 2, 0)).Position
+	end
+	return nil
+end
+
 -- Palm Strike from its tier template (ReplicatedStorage.Effects.PalmStrike):
 -- a ground wave from the caster's feet out to the gameplay radius, and an
 -- impact on every enemy the front reaches, timed to when it gets there.
@@ -150,34 +169,53 @@ local function palmStrike(def: Techniques.Def, level: number, character: Model?,
 	if windup then
 		windup:Destroy() -- played at cast start (CombatEffects.windup)
 	end
-	-- hand-height parts follow the caster's root, not the template's guess
+	-- the release comes from the striking hand (live, so observers see it on the
+	-- caster's replicated pose too); the ring stays centred on the feet, where
+	-- the gameplay circle is
+	local palmAt = handPosition(character, def.hand) or origin + dir * 1.6
 	local palm = copy:FindFirstChild("Palm") :: BasePart?
 	if palm then
-		palm.CFrame = CFrame.lookAt(origin + dir * 1.6, origin + dir * 2.6)
+		palm.CFrame = CFrame.lookAt(palmAt, palmAt + dir)
+	end
+	-- where the palm's burst drops to the ground and opens into the ring
+	local strike = copy:FindFirstChild("Strike") :: BasePart?
+	if strike then
+		local below = Vector3.new(palmAt.X, groundBelow(palmAt) + 0.1, palmAt.Z)
+		strike.CFrame = CFrame.lookAt(below, below + dir)
 	end
 	local halo = copy:FindFirstChild("Halo") :: BasePart?
 	if halo then
-		local at = origin - dir * 1.2 + Vector3.new(0, 0.6, 0)
+		local at = origin - dir * 0.8 + Vector3.new(0, 1.6, 0) -- a nimbus behind the head, not across the body
 		halo.CFrame = CFrame.lookAt(at, at + dir)
+	end
+	-- add-on parts follow the gameplay shape and the active window: the mesh
+	-- shells (SimpleMeshVFX) sweep out by Hit Stop, and the rock ring (Craters)
+	-- erupts outward over the same window at the def's radius
+	for _, name in { "Shell", "Dome" } do
+		local shell = copy:FindFirstChild(name)
+		if shell then
+			shell:SetAttribute("Duration", timeline.active + 0.05)
+		end
+	end
+	local rocks = copy:FindFirstChild("RockRing", true)
+	if rocks then
+		rocks:SetAttribute("Radius", radius)
+		rocks:SetAttribute("Duration", timeline.active)
+	end
+	-- Craters' rays skip players but not beasts; keep rocks off them (client-only tag)
+	for _, enemy in CollectionService:GetTagged("Enemy") do
+		enemy:AddTag("CraterIgnore")
 	end
 	TechniqueVFX.emit(copy)
 
-	local swirl = copy:FindFirstChild("Swirl") :: BasePart?
-	if swirl then
-		local reach = radius * 2 * 1.05
-		swirl.Transparency = 0.3
-		TweenService:Create(swirl, TweenInfo.new(timeline.active + 0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = Vector3.new(reach, swirl.Size.Y * 2, reach),
-			Transparency = 1,
-			CFrame = swirl.CFrame * CFrame.Angles(0, math.rad(140), 0),
-		}):Play()
-	end
 	local light = palm and palm:FindFirstChildOfClass("PointLight")
 	if light then
 		light.Brightness = 3
 		TweenService:Create(light, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Brightness = 0 }):Play()
 	end
-	if nearCamera(origin, 45) then
+	-- the template's ScreenEffects CameraShake (with its own distance falloff)
+	-- shakes through the Game Module; the plain fallback shakes here instead
+	if not TechniqueVFX.full and nearCamera(origin, 45) then
 		CombatEffects.shake(SHAKE_BY_TIER[tier] or 0.2)
 	end
 	TechniqueVFX.cleanup(copy, 0.2)
@@ -211,7 +249,23 @@ local function palmStrike(def: Techniques.Def, level: number, character: Model?,
 		local at = Vector3.new(ground.X, 0, ground.Z) + toward * near
 		local feet = Vector3.new(at.X, groundBelow(Vector3.new(at.X, p.Y, at.Z)) + 0.15, at.Z)
 		task.delay(frontTime(ring, math.clamp(near / radius, 0, 1)), function()
-			local burst = TechniqueVFX.burstAt(impact, CFrame.lookAt(feet, feet + toward))
+			-- rock kicks (Craters) on the first three targets, the mastery quake
+			-- (ScreenEffects) on the first only
+			local source = impact:Clone()
+			if index > 3 then
+				local kick = source:FindFirstChild("Kick")
+				if kick then
+					kick:Destroy()
+				end
+			end
+			if index > 1 then
+				local quake = source:FindFirstChild("Quake")
+				if quake then
+					quake:Destroy()
+				end
+			end
+			local burst = TechniqueVFX.burstAt(source, CFrame.lookAt(feet, feet + toward))
+			source:Destroy()
 			local body = burst:FindFirstChild("Body")
 			if body and body:IsA("Attachment") then
 				body.Position = Vector3.new(0, math.max(p.Y - feet.Y, 1), 0)
@@ -219,7 +273,7 @@ local function palmStrike(def: Techniques.Def, level: number, character: Model?,
 			if model.Parent then
 				CombatEffects.flash(model)
 			end
-			if index == 1 and tier >= 4 and nearCamera(feet, 45) then
+			if index == 1 and tier >= 4 and not TechniqueVFX.full and nearCamera(feet, 45) then
 				CombatEffects.shake(0.25) -- the mastery strike lands twice: release, then the first impact
 			end
 		end)
@@ -235,13 +289,44 @@ function CombatEffects.windup(character: Model, id: string, level: number)
 	if not root or not Techniques.Defs[id] then
 		return
 	end
-	local p = TechniqueVFX.part(id, level, "Windup", root.CFrame * CFrame.new(0, 0, -1.2))
-	if p then
-		-- the charge fills the windup exactly, peaking at Hit when cast() takes over
-		TechniqueVFX.fit(p, nil, p:GetAttribute("AuthoredWindup"), Rules.castProfile(Techniques.Defs[id]).windup)
-		TechniqueVFX.emit(p)
-		TechniqueVFX.cleanup(p)
+	local def = Techniques.Defs[id]
+	local function at(): CFrame
+		local hand = handPosition(character, def.hand)
+		return if hand then CFrame.lookAt(hand, hand + root.CFrame.LookVector) else root.CFrame * CFrame.new(0, 0, -1.2)
 	end
+	local p = TechniqueVFX.part(id, level, "Windup", at())
+	if not p then
+		return
+	end
+	-- the charge fills the windup exactly, peaking at Hit when cast() takes over
+	local seconds = Rules.castProfile(def).windup
+	TechniqueVFX.fit(p, nil, p:GetAttribute("AuthoredWindup"), seconds)
+	-- qi wisps (Splines) curve in from around the body and reach the hand by Hit
+	local wisps = p:FindFirstChild("Wisps") :: BasePart?
+	if wisps then
+		wisps:SetAttribute("Duration", NumberRange.new(seconds * 0.9))
+		wisps.CFrame = p.CFrame
+	end
+	TechniqueVFX.emit(p)
+	if wisps then
+		TechniqueVFX.emit(wisps) -- emitting a part doesn't reach parts nested in it
+	end
+	TechniqueVFX.cleanup(p)
+	-- qi gathers into the hand as it swings (the template's emitters are
+	-- LockedToPart; the spline paths follow the Wisps part via SyncPosition)
+	local started = os.clock()
+	local follow
+	follow = RunService.RenderStepped:Connect(function()
+		if os.clock() - started > seconds or not p.Parent or not root.Parent then
+			follow:Disconnect()
+			return
+		end
+		local cf = at()
+		p.CFrame = cf
+		if wisps then
+			wisps.CFrame = cf
+		end
+	end)
 end
 
 -- `chain` lists the chain technique's targets, in order (nil for other kinds).

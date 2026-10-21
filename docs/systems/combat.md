@@ -56,15 +56,28 @@ untagged aftermath keeps its authored fade through recovery.
 Templates (`ReplicatedStorage.Effects`, `assets/Effects.rbxm`, built from the
 vfxia Asset Library):
 - **Palm Strike** (`PalmStrike_T1..T4`, authored at radius 9, rescaled to
-  `def.radius`): a gold ground shockwave from the caster's feet to the radius
-  by Hit Stop, dust kicked out along the ground, a palm flash at hand height,
-  and an impact on each enemy inside the radius as the front reaches it (star
-  flash, spiky hit ring, sparks, drawn in front of the target with ZOffset).
-  The impact also fires `CombatEffects.flash` (the caster's release-time flash
-  for circles moved here). II adds an echo ring, centre rays and impact dust;
-  III a rotating seal, ground cracks, debris and a wind swirl; IV a crater, a
-  golden halo behind the caster, one point light and a second shake on the
-  first impact. Windup: qi motes gather into the palm (III+ a closing seal).
+  `def.radius`). Fists.4 strikes with the **left** hand (`def.hand`), which
+  `CombatEffects` finds on the live character (R6 arm tip, R15 grip
+  attachment), for observers too. Windup (caster only): qi motes and a charge
+  glow ride the swinging hand (II+ Spline wisps curve in, III+ a seal closes
+  on it). At Hit: a flash from the palm, a streak drops from it to the ground
+  and splashes, and the gold shockwave opens from the feet (the gameplay
+  centre) to the radius by Hit Stop, with dust kicked along the ground.
+  Each enemy inside the radius gets an impact as the front reaches it: star
+  flash, spiky ring, sparks, drawn in front of it, plus `CombatEffects.flash`.
+  II adds an echo ring, rays and impact dust; III a seal, cracks, a spinning
+  SimpleMeshVFX shell, a Craters rock ring erupting with the wave and rock
+  kicks on the first three targets; IV a crater, a dome shell, a nimbus halo
+  behind the head, one point light, ScreenEffects impact frames and an
+  Explosion shake on the first impact.
+- Add-ons used: Craters (`CraterVFX` attachments `RockRing`, `Kick`; enemies
+  get the client-only `CraterIgnore` tag so rocks skip them), SimpleMeshVFX
+  (`Shell`, `Dome` Start/End models), Splines (`Wisps`, emitted explicitly:
+  emitting a part doesn't reach parts nested in it), ScreenEffects
+  (`CameraShake`/`ImpactFrames` CSV attributes on attachments `Shake`,
+  `Frames`, `Quake`). All need the Game Module with those add-ons installed in
+  the place; without it (`TechniqueVFX.full` false) only the particles play and
+  `CombatEffects.shake` stands in for the camera shake.
 
 ## Data flow
 Client presses -> `ActionRules` decides if legal -> plays locally and sends

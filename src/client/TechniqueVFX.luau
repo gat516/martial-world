@@ -30,6 +30,9 @@ type Api = {
 
 -- The Game Module is plugin-owned and lives in the place file (inserted with the
 -- plugin's code button), so it is looked up once rather than mapped by Rojo.
+-- Without it, shared.fx (the plugin's auto-initialized API) is used when
+-- present, which is what Edit-mode previews run on. Add-ons (Craters,
+-- SimpleMeshVFX, Splines, ScreenEffects) only play through one of the two.
 local api: Api? = nil
 do
 	local module = ReplicatedStorage:FindFirstChild("vfx")
@@ -40,10 +43,18 @@ do
 		else
 			warn("TechniqueVFX: ReplicatedStorage.vfx failed to load:", result)
 		end
-	else
-		warn("TechniqueVFX: ReplicatedStorage.vfx (vfxia Game Module) is missing; technique effects play with plain emitters")
+	end
+	if not api and type(shared.fx) == "table" and type(shared.fx.emit) == "function" then
+		api = shared.fx
+	end
+	if not api then
+		warn("TechniqueVFX: ReplicatedStorage.vfx (vfxia Game Module) is missing; technique effects play with plain emitters and no add-ons")
 	end
 end
+
+-- True when effects play through the Game Module (add-ons, screen shake and
+-- all); false on the plain-emitter fallback, where callers add their own shake.
+TechniqueVFX.full = api ~= nil
 
 -- Effects render only for this client.
 TechniqueVFX.folder = workspace.CurrentCamera :: Instance
@@ -216,18 +227,23 @@ function TechniqueVFX.template(id: string, level: number): (Instance?, number, n
 	return group and group:FindFirstChild(`{id}_T{tier}`), tier, step
 end
 
--- Multiply every numeric EmitCount by the level step.
+-- Multiply every numeric EmitCount (and Craters Count) by the level step.
 local function stepCounts(root: Instance, step: number)
 	if step <= 0 then
 		return
 	end
 	local k = 1 + TechniqueVFX.STEP_COUNT * step
-	for _, d in root:GetDescendants() do
-		local count = d:GetAttribute("EmitCount")
-		if type(count) == "number" then
-			d:SetAttribute("EmitCount", math.round(count * k))
-		elseif typeof(count) == "NumberRange" then
-			d:SetAttribute("EmitCount", NumberRange.new(math.round(count.Min * k), math.round(count.Max * k)))
+	local list = root:GetDescendants()
+	table.insert(list, root)
+	for _, d in list do
+		-- EmitCount for emitters and meshes, Count for Craters rocks
+		for _, name in { "EmitCount", "Count" } do
+			local count = d:GetAttribute(name)
+			if type(count) == "number" then
+				d:SetAttribute(name, math.round(count * k))
+			elseif typeof(count) == "NumberRange" then
+				d:SetAttribute(name, NumberRange.new(math.round(count.Min * k), math.round(count.Max * k)))
+			end
 		end
 	end
 end

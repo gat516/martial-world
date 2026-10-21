@@ -27,6 +27,7 @@ export type Def = {
 	color: Color3,
 	blurb: string,
 	animation: number, -- which Fists chain animation the cast plays
+	hand: string?, -- visuals: "Left" or "Right", the hand that strikes in that animation
 	cast: Cast,
 	icon: string, -- the image on its HUD button; names only show in the Arts window
 	length: number?,
@@ -69,6 +70,7 @@ Techniques.Defs = {
 		color = Color3.fromRGB(255, 210, 120),
 		blurb = "A palm of force that blasts everything around you.",
 		animation = 4,
+		hand = "Left", -- Fists.4 thrusts the left palm forward through Hit
 		cast = { windup = 0.38, recovery = 0.18, moveMultiplier = 0, recoveryMoveMultiplier = 0.6, dodgeBeforeHit = true },
 	},
 	LightningTalisman = {

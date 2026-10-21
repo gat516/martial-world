@@ -60,7 +60,19 @@ props wherever there's room.
 - Zhangjiajie karst is the world reference
   (sheer striated towers, green tufts on tops and ledges, rising from a forest
   floor through the cloud sea).
-- Palette: muted jade/sage greens rather than saturated lime, warm stone grays
+- Ground-level reference: `docs/reference/map_enclosed_valley.webp` (read it
+  with the Read tool). Wilds areas are **enclosed valleys, not open fields**:
+  the player walks a path through a pocket walled by stacked chunky rock (big
+  blocky boulders piled into cliffs 3-8x a character's height near the path,
+  rising higher behind), moss and grass spilling over every top, tall trees
+  framing both sides, and a glowing waterfall dropping off a ledge into a rimmed
+  pool as the hero at the end of the view. See "Verticality" in map.md. The map
+  reading flat is the main problem to fix: before calling an area done, check
+  every capture has a wall or rise in the background, not a horizon of open
+  ground.
+- Palette: jade/sage greens, brighter and fresher on sunlit tops (moss and
+  grass catching the light) and cool blue-violet in shade, as in the reference;
+  never flat lime everywhere. Pale warm stone grays
   with a little value variation, dark wood and red lacquer on buildings, jade and
   gold accents. Avoid pure flat colour across huge areas: break it up with
   slightly different shades per slab or part.

@@ -67,8 +67,9 @@ only for instanced party content.
    bounded area far apart, with its array, landmark and POIs; switch `Regions`
    from rings to per-zone bounds, and update `Music.luau` (copies the layout),
    `Spawns`, qi nodes, treasures and world-event locations to match.
-3. **Zone edges:** cliffs, water or mist at the edge, plus an out-of-bounds
-   return to the zone's array.
+3. **Zone edges:** tall stacked-rock cliff walls with waterfalls (see
+   "Verticality"), so each zone is an enclosed valley; mist where a wall can't
+   go, plus an out-of-bounds return to the zone's array.
 4. **Combat tag:** `Combat.inCombat` (taking damage within `IN_COMBAT_SECONDS`)
    already blocks travel. Also count dealing damage and being targeted by a
    beast, so hitting and running to an array doesn't work.
@@ -96,6 +97,30 @@ vary each slab or part a step either way inside its family.
 | Jade | `#5FAE96` | `#8FD4BC` | `#3E7F6C` | lamps, runes, inlays |
 | Gold | `#C29A48` | `#DDBA68` | `#8E6E30` | trims, caps, finials |
 | Water | `#4E9FB2` | `#CFE6EA` (foam/rim) | `#2F6E80` | pools, falls |
+
+### Verticality: walls and water
+Decided 2026-10-21, from the reference `docs/reference/map_enclosed_valley.webp`.
+The map reads flat: the wilds are rolling ground under open sky, so every view
+ends in a horizon. Ground-level areas should feel like **enclosed valleys**:
+- **Walls:** each pocket is ringed by cliffs of big stacked, chunky, blocky
+  boulders (meshes in the house rock style, or library rocks sized up and
+  piled), 15-40 studs high near the path and rising higher behind, with grass
+  and moss spilling over every top and a few trees growing out of ledges. A
+  player at the path should see a wall or rise behind most things they look at.
+  Walls are also the zone edges (step 3 below), so they replace invisible
+  boundaries.
+- **Waterfalls:** the hero of most pockets. A bright white-cyan fall drops from
+  a notch or overhang in the wall into a pool with a stone rim (a flat water
+  part, never terrain water with a mesh fall). Several zones should have more
+  than one: a big hero fall plus small trickles down other walls. Spray and mist
+  are `vfx` (`FX_FallSpray`, `FX_FallMist`).
+- **Framing layers:** foreground (tall grass and bushes by the path), mid (path,
+  boulders, crates and props), background (the wall and its fall), with tall
+  trees on both sides framing the view.
+- **Light:** sunlit tops bright fresh green, shade sides cool blue-violet, pale
+  warm stone; bloom on water. The sky stays a clear saturated blue in the day.
+- Terrain grass decoration (the reference's big blades) stays off for mobile
+  unless the user asks; fake it with grass clumps from the library by paths.
 
 Today's problems to undo: lime grass `#57A83A`-ish with a hard edge, cool
 blue-gray rock with no value change, pure red/yellow neon garland lanterns on the
@@ -127,6 +152,8 @@ Lighting instances (those are only the Edit-mode look).
 - Clusters of odd numbers and mixed scale (big + medium + small) with quiet space
   between; no even sprinkling, identical spacing or one-of-each.
 - Vary height: terraces, steps, plinths, low walls, tall trees over shrubs.
+  On the ground, enclose: every view from the path ends in a wall, a rise or a
+  waterfall, not open horizon (see "Verticality").
 - Edges get the most care: lawn-to-rock (turf lip, rocks, shrubs, moss),
   path-to-lawn (curb or stepping stones), bridge landings (posts, gate, pad).
 - Cliffs: a few deliberate ledges of clearly different sizes, each with a reason
@@ -723,6 +750,8 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 
 ## Known gaps
 - No named attachment points for map VFX exist yet.
+- The wilds read flat: low ridges and rims under open sky, no tall walls and no
+  waterfalls on the ground. Needs a walls-and-water pass (see "Verticality").
 - Wilds: only the Inner and Middle boxes south of the sect gate are built (see "Wilds
   zones"); the rest of those rings and the Outer Wastes still carry the old sprinkled
   ring dressing (zone separation, step 2 above). `art/karst/place_karst.luau`'s array

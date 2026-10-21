@@ -793,8 +793,221 @@ def garden_art():
     icon_store()
 
 
+# ---------------------------------------------------------------- meditation menu icons
+
+def _tile_icon(mask, name, decorate=None):
+    """Finish a 128px tile icon from a white silhouette mask (L, at SS) the way
+    self_icon does: near white with a soft top light and an ink outline, tinted in
+    Studio through ImageColor3. `decorate(d, u)` draws grooves and the one
+    highlight on top. ScaleType Fit."""
+    N = mask.size[0]
+    S = N // SS
+    outline = mask.filter(ImageFilter.MaxFilter(4 * SS + 1))
+    img = Image.new("RGBA", (N, N), INK[:3] + (0,))
+    img.putalpha(outline)
+    face = canvas(S, S)
+    gradient_rect(face, [0, 0, N, N], (255, 255, 255), (196, 200, 204))
+    face.putalpha(mask)
+    img.alpha_composite(face)
+    if decorate:
+        decorate(ImageDraw.Draw(img), SS)
+    finish(img, name)
+
+
+GROOVE = (120, 126, 130, 255)
+SHINE = (255, 255, 255, 255)
+
+
+def icon_circulate():
+    """Meditation menu: Circulate. Three qi streams chasing round a still centre,
+    each a tapering arc with a round head."""
+    N = 128 * SS
+    u = SS
+    c = N / 2
+    mask = Image.new("L", (N, N), 0)
+    md = ImageDraw.Draw(mask)
+    r = 38 * u
+    for k in range(3):
+        a0 = k * 120 - 90
+        # the stream: a run of discs that swell toward a round head
+        steps = 60
+        for i in range(steps + 1):
+            t = i / steps
+            a = math.radians(a0 + t * 80)
+            w = (2.5 + 5 * t) * u
+            x, y = c + math.cos(a) * r, c + math.sin(a) * r
+            md.ellipse([x - w, y - w, x + w, y + w], fill=255)
+        a = math.radians(a0 + 80)
+        x, y = c + math.cos(a) * r, c + math.sin(a) * r
+        md.ellipse([x - 10 * u, y - 10 * u, x + 10 * u, y + 10 * u], fill=255)
+    md.ellipse([c - 11 * u, c - 11 * u, c + 11 * u, c + 11 * u], fill=255)
+
+    def deco(d, u):
+        d.arc([c - 7 * u, c - 7 * u, c + 7 * u, c + 7 * u], 200, 290, fill=SHINE, width=3 * u)
+    _tile_icon(mask, "icon_circulate.png", deco)
+
+
+def icon_breakthrough():
+    """Meditation menu: Break Through. A bold arrow bursting up through a broken
+    barrier, two short rays beside its head."""
+    N = 128 * SS
+    u = SS
+    c = N / 2
+    mask = Image.new("L", (N, N), 0)
+    md = ImageDraw.Draw(mask)
+    # the barrier, broken in the middle
+    md.rounded_rectangle([12 * u, 78 * u, c - 20 * u, 92 * u], radius=5 * u, fill=255)
+    md.rounded_rectangle([c + 20 * u, 78 * u, N - 12 * u, 92 * u], radius=5 * u, fill=255)
+    md.polygon([(c - 20 * u, 78 * u), (c - 12 * u, 70 * u), (c - 14 * u, 92 * u)], fill=255)
+    md.polygon([(c + 20 * u, 78 * u), (c + 12 * u, 70 * u), (c + 14 * u, 92 * u)], fill=255)
+    # the arrow
+    md.rectangle([c - 9 * u, 46 * u, c + 9 * u, 114 * u], fill=255)
+    md.polygon([(c, 10 * u), (c - 28 * u, 50 * u), (c + 28 * u, 50 * u)], fill=255)
+    # rays
+    for sx in (-1, 1):
+        md.line([(c + sx * 34 * u, 30 * u), (c + sx * 46 * u, 20 * u)], fill=255, width=6 * u)
+        md.line([(c + sx * 38 * u, 50 * u), (c + sx * 52 * u, 48 * u)], fill=255, width=6 * u)
+
+    def deco(d, u):
+        d.line([(c - 3 * u, 24 * u), (c - 16 * u, 44 * u)], fill=SHINE, width=3 * u)
+    _tile_icon(mask, "icon_breakthrough.png", deco)
+
+
+def icon_comprehend():
+    """Meditation menu: Comprehend (break a technique's bottleneck). A calabash
+    gourd, its narrow neck cracking open, with sparks escaping the mouth."""
+    N = 128 * SS
+    u = SS
+    c = N / 2
+    mask = Image.new("L", (N, N), 0)
+    md = ImageDraw.Draw(mask)
+    md.ellipse([c - 36 * u, 52 * u, c + 36 * u, 122 * u], fill=255)  # belly
+    md.ellipse([c - 20 * u, 26 * u, c + 20 * u, 64 * u], fill=255)  # upper bulb
+    md.rectangle([c - 9 * u, 52 * u, c + 9 * u, 64 * u], fill=255)  # waist
+    md.rounded_rectangle([c - 6 * u, 18 * u, c + 6 * u, 30 * u], radius=3 * u, fill=255)  # mouth
+    # sparks out of the mouth: three short rays, apart from it
+    for ang in (-50, -90, -130):
+        a = math.radians(ang)
+        x0, y0 = c + math.cos(a) * 12 * u, 12 * u + math.sin(a) * 2 * u
+        md.line([(x0, y0), (x0 + math.cos(a) * 9 * u, y0 + math.sin(a) * 9 * u)], fill=255, width=4 * u)
+
+    def deco(d, u):
+        # the crack across the waist
+        d.line([(c - 14 * u, 52 * u), (c - 4 * u, 58 * u), (c - 8 * u, 64 * u), (c + 4 * u, 70 * u), (c + 2 * u, 76 * u)], fill=GROOVE, width=4 * u, joint="curve")
+        d.arc([c - 30 * u, 58 * u, c + 30 * u, 116 * u], 200, 250, fill=SHINE, width=4 * u)
+    _tile_icon(mask, "icon_comprehend.png", deco)
+
+
+def icon_method():
+    """Meditation menu: Method (cultivation methods). An open scroll between two
+    rollers, three columns of script on it."""
+    N = 128 * SS
+    u = SS
+    mask = Image.new("L", (N, N), 0)
+    md = ImageDraw.Draw(mask)
+    md.rectangle([26 * u, 30 * u, N - 26 * u, 98 * u], fill=255)  # the sheet
+    for x in (20, N // SS - 20):
+        md.rounded_rectangle([(x - 9) * u, 20 * u, (x + 9) * u, 108 * u], radius=6 * u, fill=255)
+        md.rounded_rectangle([(x - 4) * u, 12 * u, (x + 4) * u, 116 * u], radius=3 * u, fill=255)
+
+    def deco(d, u):
+        for x in (48, 64, 80):
+            d.line([(x * u, 42 * u), (x * u, 86 * u)], fill=GROOVE, width=4 * u)
+        for x in (20, N // SS - 20):
+            d.line([((x - 9) * u, 30 * u), ((x + 9) * u, 30 * u)], fill=GROOVE, width=2 * u)
+            d.line([((x - 9) * u, 98 * u), ((x + 9) * u, 98 * u)], fill=GROOVE, width=2 * u)
+        d.line([(16 * u, 34 * u), (16 * u, 60 * u)], fill=SHINE, width=3 * u)
+    _tile_icon(mask, "icon_method.png", deco)
+
+
+def icon_rise():
+    """Meditation menu: Rise (stand up). A double chevron lifting off a round
+    meditation cushion."""
+    N = 128 * SS
+    u = SS
+    c = N / 2
+    mask = Image.new("L", (N, N), 0)
+    md = ImageDraw.Draw(mask)
+    md.ellipse([18 * u, 92 * u, N - 18 * u, 120 * u], fill=255)  # cushion
+    for top in (14, 44):
+        w = 14 * u
+        pts = [(c - 36 * u, (top + 34) * u), (c, top * u), (c + 36 * u, (top + 34) * u)]
+        md.line(pts, fill=255, width=w, joint="curve")
+        for x, y in (pts[0], pts[2]):
+            md.ellipse([x - w / 2, y - w / 2, x + w / 2, y + w / 2], fill=255)
+        md.ellipse([c - w / 2, top * u - w / 2 + 2 * u, c + w / 2, top * u + w / 2 + 2 * u], fill=255)
+
+    def deco(d, u):
+        d.arc([20 * u, 94 * u, N - 20 * u, 118 * u], 190, 250, fill=SHINE, width=3 * u)
+        d.line([(30 * u, 106 * u), (N - 30 * u, 106 * u)], fill=GROOVE, width=2 * u)
+    _tile_icon(mask, "icon_rise.png", deco)
+
+
+def icon_lotus():
+    """The calm-view toggle while meditating: a lotus. A tall middle petal, two
+    leaning beside it and two low outer ones on a flat pad, drawn back to front,
+    each with its own ink edge so the petals read apart."""
+    from PIL import ImageChops
+    N = 128 * SS
+    u = SS
+    c = N / 2
+    base = 98 * u
+
+    def petal(length, width, angle):
+        layer = Image.new("L", (N, N), 0)
+        ImageDraw.Draw(layer).polygon(_petal_points(c, base, length, width), fill=255)
+        return layer.rotate(angle, resample=Image.BICUBIC, center=(c, base))
+
+    shapes = [petal(44 * u, 15 * u, a) for a in (66, -66)]
+    shapes += [petal(60 * u, 17 * u, a) for a in (32, -32)]
+    shapes.append(petal(76 * u, 19 * u, 0))
+    pad = Image.new("L", (N, N), 0)
+    ImageDraw.Draw(pad).rounded_rectangle([18 * u, 96 * u, N - 18 * u, 110 * u], radius=7 * u, fill=255)
+    shapes.append(pad)
+    grad = canvas(128, 128)
+    gradient_rect(grad, [0, 0, N, N], (255, 255, 255), (196, 200, 204))
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    edge = 4 * SS + 1
+    for shape in shapes:
+        ink = Image.new("RGBA", (N, N), INK[:3] + (255,))
+        img.paste(ink, (0, 0), shape.filter(ImageFilter.MaxFilter(edge)))
+        img.paste(grad, (0, 0), shape)
+    d = ImageDraw.Draw(img)
+    d.line([(c - 4 * u, 40 * u), (c - 7 * u, 70 * u)], fill=SHINE, width=3 * u)
+    finish(img, "icon_lotus.png")
+
+
+def _petal_points(cx, base_y, length, width):
+    """A pointed petal standing up from (cx, base_y)."""
+    pts = []
+    steps = 24
+    for i in range(steps + 1):
+        t = i / steps
+        y = base_y - t * length
+        w = width * math.sin(math.pi * min(1.0, t * 1.04)) ** 0.55
+        pts.append((cx + w, y))
+    for i in range(steps, -1, -1):
+        t = i / steps
+        y = base_y - t * length
+        w = width * math.sin(math.pi * min(1.0, t * 1.04)) ** 0.55
+        pts.append((cx - w, y))
+    return pts
+
+
+def meditation_art():
+    icon_circulate()
+    icon_breakthrough()
+    icon_comprehend()
+    icon_method()
+    icon_rise()
+    icon_lotus()
+
+
 if __name__ == "__main__":
     import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "meditation":
+        meditation_art()
+        sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "self":
         self_icon()
         sys.exit()

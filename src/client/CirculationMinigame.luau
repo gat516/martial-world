@@ -194,6 +194,9 @@ end
 function CirculationMinigame.init(gui: ScreenGui)
 	overlay = gui:FindFirstChild("Circulation") :: Frame
 	Menus.register(overlay, { minigame = true, close = CirculationMinigame.quit })
+	-- the Leave pill at the header's right corner (Column.Header.Title.Leave)
+	local leave = overlay:FindFirstChild("Leave", true) :: GuiButton
+	leave.Activated:Connect(CirculationMinigame.quit)
 	UserInputService.InputBegan:Connect(function(input)
 		if input.KeyCode == Enum.KeyCode.ButtonB then
 			CirculationMinigame.quit()

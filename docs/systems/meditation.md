@@ -8,8 +8,8 @@ circulation happen.
 - Idle-safe: you can leave it running. Where you sit matters: anywhere x1.5,
   your own peak x2.5, plus the best meditation seat or artifact within range on
   your peak (BuildItems `meditation`), which gives building a progression payoff.
-- Seated is a calm screen: only Circulate (or Break Through when the bar is
-  full) and Rise.
+- Seated is a calm screen with the meditation menu (below): a row of tiles that
+  only appear when they matter.
 - Seated locks the character: no walking, jumping or turning to the camera.
   Only Rise, the Cultivate tile, M, or taking a hit ends it (a hit drops you out
   instantly, no get-up animation). The server also stands you up if you drift
@@ -19,7 +19,9 @@ circulation happen.
 - `src/server/Meditation.luau`: sessions, spot multiplier (`spotAt`, `bestItem`),
   1 s re-check; sets `Cultivation.meditation`.
 - `src/client/Meditation.luau`: the M key / tile, animations
-  (`Animations.Meditate`: Sit, Loop, GetUp), the seated HUD row, toasts.
+  (`Animations.Meditate`: Sit, Loop, GetUp), the seated tiles, the calm view, toasts.
+- `src/client/MeditationMenu.luau`: the Comprehend / Method / Spirit Root panel;
+  `src/client/Bottleneck.luau`: bottleneck checks and the comprehend call.
 - `src/client/Controls.luau`: named movement locks (meditation, circulation);
   `isLocked()` also tells weapon presentation to stow through sitting/get-up and
   any overlapping circulation lock.
@@ -36,32 +38,44 @@ client fires `Meditate(false)`, or the server fires `Meditate(false)` to the cli
 - `Pacing.Meditation.ANYWHERE`, `ON_PEAK` (currently read through the
   `Config.Meditation` aliases).
 - `Config.Meditation.ITEM_RANGE`, `MAX_DRIFT`; BuildItems `meditation` per item.
+- `Meditation.luau`: `CALM_AFTER` (seconds before the HUD fades by itself),
+  `TAP_DRIFT`, `TAP_SECONDS` (what counts as a tap that ends the calm view).
 
-## Planned: the meditation menu (design, decided 2026-10-21)
+## The meditation menu (built 2026-10-21)
 **Self is what you are; meditation is what you work on.** The Self card is
 read-only (realm, root, method, equipped weapon, mastery). Everything that
-changes your inner self happens seated, in one small menu of tiles that appears
-when you sit:
+changes your inner self happens seated, in one row of tiles above the vitals
+(`Hud.Stack.CultivatePrompt`, `src/client/Meditation.luau`):
 
 | Tile | Does | Appears when |
 |---|---|---|
-| Circulate | refine raw qi (today's minigame) | always |
-| Break Through | today's button | bar full |
-| Comprehend | break a technique bottleneck (moves here from the Arts pane, which keeps showing the bottleneck) | a technique is at one |
-| Method | inspect and switch owned methods (`CultivationAction "method"`; not on the Self card) | Foundation |
-| Spirit Root | inspect it; later raise grade / reroll | root tested |
-| Practise Dao | a short active drill with the equipped weapon for Dao XP (later, not v1) | a second weapon class |
+| Circulate | refine raw qi (the circulation minigame) | bar not full |
+| Break Through | `CultivationAction "breakthrough"` (`BreakthroughView.attempt`) | bar full (replaces Circulate) |
+| Comprehend | panel: techniques at a bottleneck, their insight and stone cost, Comprehend (`InventoryAction "comprehend"`) | a technique is at one (`Bottleneck.list`) |
+| Method | panel: owned methods (qi, reaches, blurb); Use switches (`CultivationAction "method"`) | you own one (Foundation) |
+| Spirit Root | panel: the root's card and exact numbers (same text as the Self card) | root tested |
+| Rise | stand up | always |
 
-- Tiles only appear once they matter, so a QC1 player still sees one tile and the
-  calm-screen intent holds. On phones: one row of 2-5 big tiles.
-- **Hide the menu to just enjoy the view.** Meditation is also the AFK state, so
-  one small toggle collapses the tiles and fades the rest of the HUD (bars,
-  hotbar, tiles) for a clean view; tapping it (or anywhere) brings them back.
-  Prefer a calm icon (a lotus or an eye) over a hamburger, which reads as an app
-  menu; ui-designer's call. Idea: the HUD also fades by itself after ~20 s of no
-  input while seated. Passive cultivation keeps running either way.
-- Practise Dao must be an active drill with a cooldown (reuse the circulation
-  minigames as weapon forms), never XP for sitting, so AFK can't farm it.
+- Square tiles in the top-right tiles' style (drawn icons from
+  `art/ui/draw_ui.py` `meditation_art`), at least 50 px on phones; a QC1 player
+  sees two (Circulate, Rise), so the calm-screen intent holds.
+- The panel (`Stack.MeditationPanel`, `src/client/MeditationMenu.luau`) is a
+  small window at the bottom of the stack: the tiles and the HUD step aside
+  while it's open and its seal closes it. Rows come from `List.RowTemplate`;
+  the list grows with its rows up to its `UISizeConstraint` and then scrolls.
+- Comprehending moved here from the Arts pane. The pane still shows the
+  bottleneck and its cost; its button reads "Meditate to comprehend" unseated
+  and still works when seated. Shared logic: `src/client/Bottleneck.luau`.
+- **Calm view.** The lotus at the right end above the vitals (`Stack.CalmToggle`)
+  folds the tiles away and fades the rest of the HUD (bars, hotbar, top-right
+  tiles, objective, buffs) via `Menus.setCalm` and `Motion.setShown`. It also
+  comes on by itself after `CALM_AFTER` (20 s) seated without input. A tap that
+  isn't a camera drag, any key, the lotus again, opening a menu or standing up
+  brings everything back. Passive cultivation keeps running.
+
+Still to come: Practise Dao (a short active drill with the equipped weapon for
+Dao XP, with a cooldown, never XP for sitting; appears with a second weapon
+class) and root actions on the Spirit Root page (raise grade, reroll).
 
 ## Known gaps
 - `server/Meditation.luau` still reads the multipliers via the Config aliases.

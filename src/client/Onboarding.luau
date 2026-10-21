@@ -18,7 +18,7 @@ local ELDER_SECONDS = 7
 -- Which button each beat is about.
 local FOCUS = {
 	Circulate = "CultivateButton",
-	Breakthrough = "BreakthroughButton",
+	Breakthrough = "Breakthrough", -- the seated Break Through tile
 	Root = "TravelButton",
 	Gate = "TravelButton",
 	FirstKill = "AttackButton",

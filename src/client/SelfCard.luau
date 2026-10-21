@@ -12,7 +12,7 @@
 --     20  Method (from Foundation, once a method is active): seal, name in its
 --         grade colour, qi speed ("+20% qi · matches your root!"), "Reaches: ...",
 --         the blurb. Read-only: switching methods belongs to the meditation menu
---         (to do).
+--         (MeditationMenu, which reuses the root and method text from here).
 --     30  Weapon: the equipped weapon's badge, name in its grade colour and its
 --         class's Dao level (weapons themselves live in the Inventory).
 --   Future tabs (Self | Body) go in Body at LayoutOrder 3, between the stage bar
@@ -144,6 +144,9 @@ local function detailText(root: Roots.Root): string
 	return table.concat(lines, "\n")
 end
 
+SelfCard.currentRoot = currentRoot
+SelfCard.rootDetail = detailText
+
 local function renderRoot(root: Roots.Root)
 	local def = Roots.Elements[root.element]
 	local row = selfPage:FindFirstChild("Root") :: GuiObject
@@ -226,6 +229,19 @@ local function paintSeal(seal: Instance, element: string)
 	(seal:FindFirstChild("Glyph") :: TextLabel).Visible = icon.Image == ""
 end
 
+-- A method's card lines: qi speed (with the root match), whether it matches,
+-- and "Reaches: ...".
+function SelfCard.methodInfo(def: Methods.Def): (string, boolean, string)
+	local match = def.element ~= "" and def.element == rootElement()
+	local bonus = qiBonus(def)
+	local qi = (if bonus > 0 then `+{bonus}% qi` else "Normal qi speed") .. (if match then " · matches your root!" else "")
+	return qi, match, reachesText(def.reaches)
+end
+
+function SelfCard.paintSeal(seal: Instance, element: string)
+	paintSeal(seal, element)
+end
+
 local function renderMethod()
 	local row = selfPage:FindFirstChild("Method") :: GuiObject
 	local activeId = activeMethod()
@@ -239,12 +255,11 @@ local function renderMethod()
 	local name = (lines:FindFirstChild("Top") :: Instance):FindFirstChild("NameLabel") :: TextLabel
 	name.Text = def.name
 	name.TextColor3 = SelfCard.gradeColor(def.grade)
-	local match = def.element ~= "" and def.element == rootElement()
-	local bonus = qiBonus(def)
+	local qiText, match, reaches = SelfCard.methodInfo(def)
 	local qi = lines:FindFirstChild("Qi") :: TextLabel
-	qi.Text = (if bonus > 0 then `+{bonus}% qi` else "Normal qi speed") .. (if match then " · matches your root!" else "")
+	qi.Text = qiText
 	qi.TextColor3 = if match then JADE else LIGHT;
-	(lines:FindFirstChild("Reaches") :: TextLabel).Text = reachesText(def.reaches);
+	(lines:FindFirstChild("Reaches") :: TextLabel).Text = reaches;
 	(lines:FindFirstChild("Blurb") :: TextLabel).Text = def.blurb
 end
 

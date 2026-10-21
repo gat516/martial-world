@@ -14,6 +14,15 @@ cursor, settings and the admin panel.
   any window (reward card and minigames included) is open, so the mouse is free,
   and comes back when it closes (`ShiftLock`).
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
+- Seated: the meditation menu, a row of square tiles above the vitals that
+  appear only when relevant (Circulate or Break Through, Comprehend, Method,
+  Spirit Root, Rise), a small panel for Comprehend / Method / Spirit Root, and
+  the lotus calm toggle that fades the HUD for a clean view (`Menus.setCalm`;
+  also after 20 s idle; a tap brings it back). See [meditation](meditation.md).
+  The standing Force Breakthrough pill (`Stack.BreakthroughButton`) is the only
+  breakthrough button outside the seat.
+- The circulation overlay has a Leave pill at its header's right corner
+  (`Circulation.Column.Header.Title.Leave`) that ends the run early for free.
 - Weapons live in the Inventory's Weapons tab: Bare Fists first (choosing them
   puts the weapon away), then owned weapons with their grade glow and a cinnabar
   佩 seal on the equipped one; Equip/Unequip go through `WeaponAction`. With no
@@ -31,8 +40,10 @@ cursor, settings and the admin panel.
   bar turns cinnabar and reads "Bottleneck", the grid's "Lv" turns the same
   colour, two cost rows (insight and Spirit Stones icons, "need · you have") show
   up, and the Secondary button becomes Comprehend (jade). While it can't run it
-  stays lacquer and dimmed and its caption is the reason ("Meditate first",
-  "Need insight", "Need stones"); a tap toasts the longer reason. Success is the
+  stays lacquer and dimmed and its caption is the reason ("Meditate to
+  comprehend", "Need insight", "Need stones"); a tap toasts the longer reason.
+  Comprehending belongs to the meditation menu's Comprehend tile; the button
+  here still works while seated (`Bottleneck` holds the shared logic). Success is the
   server's notify. While the Inventory is open, tapping a hotbar slot shows that
   art or item in the detail pane instead of casting or holding it, so arts on the
   hotbar can be comprehended too.
@@ -53,7 +64,7 @@ cursor, settings and the admin panel.
   read-only Method row (LayoutOrder 20) shows the active cultivation method: its
   element seal (or a 法 glyph), name in its grade colour, qi speed with "matches
   your root!" in jade, "Reaches: ..." and the blurb; it stays hidden on Sect
-  Breathing. Switching methods will live in a meditation menu (to do). The tile shows and
+  Breathing. Switching methods lives in the meditation menu ([meditation](meditation.md)). The tile shows and
   the crest is tappable only once the root is tested. The card is small, so the
   tiles stay up on touch too. The spirit root reveal (`RootReveal`) is a small
   centre card on the first test, closed by a tap or by itself, after which the
@@ -96,7 +107,8 @@ cursor, settings and the admin panel.
 - `Onboarding.luau`, `TravelMenu.luau` (with `GateMarkers.luau` over arrays and
   `Veil.luau`, the travel fade in `StarterGui.Veil`), `HerbShop.luau`, `BuildCatalog.luau`,
   `SeedPicker.luau`, `PlantingBar.luau`, `PlantTag.luau`.
-- `BreakthroughView.luau`, `Meditation.luau` (seated row), `CirculationMinigame.luau`.
+- `BreakthroughView.luau`, `Meditation.luau` (seated tiles, calm view),
+  `MeditationMenu.luau` (its panel), `Bottleneck.luau`, `CirculationMinigame.luau`.
 - `Cursor.luau`, `ShiftLock.luau` (Alt), `LockOn.luau` reticle and hint.
 - `Settings.luau` (volumes, Auto combat, lock hint), `AdminPanel.luau` (F2, admins on PC).
 - `State.luau`: the latest `PlayerState` snapshot with change listeners.

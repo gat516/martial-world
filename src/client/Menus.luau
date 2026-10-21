@@ -11,9 +11,12 @@
 --     windows that fill the screen (inventory, Spirit Market, Herbalist) hide
 --     them and close by their own seal. The gameplay HUD goes (Play: touch
 --     cluster, buffs, objective, elder line; the vitals; the Dash and Strike
---     cooldown chips; the seat pills and Break Through; world prompts). The
+--     cooldown chips; the seated tiles; world prompts). The
 --     hotbar stays only for windows that drop onto it (the inventory).
 --   A minigame: everything but the minigame, tiles included.
+--   The calm view (Menus.setCalm, while meditating; nothing open): the gameplay
+--     HUD, the tiles and the hotbar fade away for a clean view of the world.
+--     Opening anything ends it.
 
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
@@ -31,6 +34,7 @@ export type Options = {
 
 local entries: { [GuiObject]: Options } = {}
 local current: GuiObject? = nil
+local calm = false
 local listeners: { () -> () } = {}
 
 local play: GuiObject
@@ -39,14 +43,20 @@ local hotbar: GuiObject
 local tiles: GuiObject
 local chips: GuiObject -- PC only: Dash and Strike cooldown chips over the hotbar
 
-local function update()
+local function update(fade: boolean?)
 	local entry = current and entries[current]
 	local any = entry ~= nil
-	play.Visible = not any
-	vitals.Visible = not any
-	hotbar.Visible = not any or (entry :: Options).keepHotbar == true
-	chips.Visible = not any and not Platform.isTouch()
-	tiles.Visible = not (entry and (entry.minigame or (entry.coversTiles and Platform.isTouch())))
+	if any then
+		calm = false
+	end
+	local function show(obj: GuiObject, shown: boolean)
+		Motion.setShown(obj, shown and not calm, fade)
+	end
+	show(play, not any)
+	show(vitals, not any)
+	show(hotbar, not any or (entry :: Options).keepHotbar == true)
+	show(chips, not any and not Platform.isTouch())
+	show(tiles, not (entry and (entry.minigame or (entry.coversTiles and Platform.isTouch()))))
 	ProximityPromptService.Enabled = not any
 	for _, fn in listeners do
 		task.spawn(fn)
@@ -117,7 +127,22 @@ function Menus.isOpen(frame: GuiObject?): boolean
 	return current ~= nil
 end
 
--- Called whenever what's open changes.
+-- The calm view: fade the HUD away (or bring it back). Ignored while a menu is open.
+function Menus.setCalm(on: boolean)
+	if on and current then
+		return
+	end
+	if on ~= calm then
+		calm = on
+		update(true)
+	end
+end
+
+function Menus.isCalm(): boolean
+	return calm
+end
+
+-- Called whenever what's open changes (or the calm view starts or ends).
 function Menus.onChanged(fn: () -> ())
 	table.insert(listeners, fn)
 end

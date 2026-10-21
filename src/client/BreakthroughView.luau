@@ -1,8 +1,9 @@
 --!strict
--- The Break Through button and the breakthrough effect: a column of light on
--- whoever broke through, seen by everyone nearby. The button shows while seated in
--- meditation with a full bar, or as Force Breakthrough when badly hurt with the
--- bar nearly full (the server also checks you're in combat, see Cultivation.luau).
+-- Breaking through, and the breakthrough effect: a column of light on whoever
+-- broke through, seen by everyone nearby. Seated with a full bar it's the
+-- meditation menu's Break Through tile (Meditation calls attempt); standing, the
+-- Force Breakthrough button shows when badly hurt with the bar nearly full (the
+-- server also checks you're in combat, see Cultivation.luau).
 
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
@@ -25,6 +26,21 @@ local MAJOR_COLOR = Color3.fromRGB(255, 220, 120)
 local FADE_SECONDS = 1.6
 
 local BreakthroughView = {}
+
+local busy = false
+
+-- Ask the server to break through (seated, or forced); refusals toast why.
+function BreakthroughView.attempt()
+	if busy then
+		return
+	end
+	busy = true
+	local _, message = (remotes.CultivationAction :: RemoteFunction):InvokeServer("breakthrough")
+	if message then
+		Hud.toast(message)
+	end
+	busy = false
+end
 
 local function playEffect(who: Player, major: boolean)
 	local root = who.Character and who.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -119,8 +135,8 @@ function BreakthroughView.init(gui: ScreenGui)
 		local seated = State.current.meditation ~= nil
 		local hurt = humanoid ~= nil and humanoid.Health > 0 and humanoid.Health <= humanoid.MaxHealth * Config.FORCE_HEALTH_SHARE
 		local forcible = hurt and max > 0 and value >= max * Config.FORCE_BAR_SHARE
-		button.Visible = (if seated then max > 0 and value >= max else forcible) and not Menus.isOpen()
-		label.Text = if seated then "Break Through" else "Force Breakthrough"
+		button.Visible = not seated and forcible and not Menus.isOpen()
+		label.Text = "Force Breakthrough"
 	end
 	Menus.onChanged(refresh)
 	player:GetAttributeChangedSignal("Cultivation"):Connect(refresh)
@@ -138,18 +154,7 @@ function BreakthroughView.init(gui: ScreenGui)
 		task.spawn(watch, player.Character)
 	end
 
-	local busy = false
-	button.Activated:Connect(function()
-		if busy then
-			return
-		end
-		busy = true
-		local _, message = (remotes.CultivationAction :: RemoteFunction):InvokeServer("breakthrough")
-		if message then
-			Hud.toast(message)
-		end
-		busy = false
-	end)
+	button.Activated:Connect(BreakthroughView.attempt)
 
 	local breakthroughRemote = remotes.Breakthrough :: RemoteEvent
 	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean)

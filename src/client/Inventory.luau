@@ -9,7 +9,9 @@
 -- A chosen art shows its level and XP bar. At a bottleneck (Techniques.bottleneck,
 -- XP full at level 3, 6 or 9) the bar turns cinnabar, the cost rows (insight and
 -- Spirit Stones, Pacing.Comprehension) show what you have, and Comprehend sits
--- beside the hotbar button; it reads the reason ("Meditate first") while it can't.
+-- beside the hotbar button. Comprehending belongs to meditation (its Comprehend
+-- tile); unseated the button reads "Meditate to comprehend", and seated it still
+-- works here (Bottleneck holds the shared logic).
 -- Items and arts in the grid can be dragged onto the hotbar (HotbarView); while
 -- the window is open, tapping a hotbar slot shows that slot here instead.
 -- Arts and Weapons sort and filter by class through InventoryFilter; a class
@@ -20,9 +22,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local Items = require(ReplicatedStorage.Shared.Items)
-local Comprehension = require(ReplicatedStorage.Shared.Pacing).Comprehension
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
+local Bottleneck = require(script.Parent.Bottleneck)
 local HotbarView = require(script.Parent.HotbarView)
 local Hud = require(script.Parent.Hud)
 local InventoryFilter = require(script.Parent.InventoryFilter)
@@ -78,8 +80,6 @@ local selected: string? = nil
 local shownEquipped: string? = nil -- the equipped weapon at the last render, to pop its mark when it changes
 local techniqueRow: Frame -- the chosen art's level and XP bar (a RowTemplate clone)
 local costRows: { insight: Frame, stones: Frame }
-local comprehendBlock: string? = nil -- why Comprehend can't run now (nil = it can)
-local comprehending = false
 
 local function weaponRemote(): RemoteFunction
 	return (ReplicatedStorage.Remotes :: any).WeaponAction
@@ -98,13 +98,7 @@ local function weaponState(): ({ [string]: number }, string, { [string]: Dao })
 	return weapons.owned or {}, weapons.equipped or SlotArt.equipped(), s.dao or {}
 end
 
--- The gate a technique is stuck at, or nil while its XP still flows.
-local function gateOf(owned: State.Technique): { insight: number, stones: number }?
-	if Techniques.bottleneck(owned.level) and owned.xp >= Techniques.xpToNext(owned.level) then
-		return Comprehension.GATES[owned.level]
-	end
-	return nil
-end
+local gateOf = Bottleneck.gateOf
 
 local function entries(): ({ string }, boolean)
 	local s = State.current
@@ -271,9 +265,7 @@ local function renderWeaponDetail()
 	renderDao(classId)
 end
 
-local function stones(): number
-	return (Players.LocalPlayer:GetAttribute("Stones") :: number?) or 0
-end
+local stones = Bottleneck.stones
 
 local function paintCost(row: Frame, need: number, have: number)
 	local text = row:FindFirstChild("LevelLabel") :: TextLabel
@@ -323,17 +315,10 @@ local function renderTechnique(technique: any, owned: State.Technique, animate: 
 		fill.Size = size
 	end
 	secondary.Visible = gate ~= nil
-	comprehendBlock = nil
 	if gate then
-		local insight = s.insight or 0
-		paintCost(costRows.insight, gate.insight, insight)
+		paintCost(costRows.insight, gate.insight, s.insight or 0)
 		paintCost(costRows.stones, gate.stones, stones())
-		local short = if s.meditation == nil
-			then "Meditate first"
-			elseif insight < gate.insight then "Need insight"
-			elseif stones() < gate.stones then "Need stones"
-			else nil
-		comprehendBlock = short
+		local short = Bottleneck.block(gate)
 		secondary.Image = if short then BUTTON_LACQUER else BUTTON_JADE
 		secondary.ImageTransparency = if short then 0.3 else 0
 		local text = caption(secondary)
@@ -506,25 +491,6 @@ local function onPrimary()
 	end
 end
 
-local function comprehend(id: string)
-	if comprehendBlock then
-		Hud.toast(if comprehendBlock == "Meditate first"
-			then "Sit and meditate to comprehend it."
-			elseif comprehendBlock == "Need insight" then "You need more insight. Defeat new foes and bosses to gain it."
-			else "You need more Spirit Stones.")
-		return
-	end
-	if comprehending then
-		return
-	end
-	comprehending = true
-	local ok, message = inventoryRemote:InvokeServer("comprehend", id)
-	comprehending = false
-	if not ok and message then
-		Hud.toast(message)
-	end
-end
-
 -- Tapping a hotbar slot while the window is open shows that slot here.
 local function inspect(id: string): boolean
 	if not window.Visible or id == "" then
@@ -542,7 +508,7 @@ end
 
 local function onSecondary()
 	if selected and Techniques.Defs[selected] and tab == "Arts" then
-		comprehend(selected)
+		Bottleneck.comprehend(selected)
 		return
 	end
 	if selected and Items.Defs[selected] then

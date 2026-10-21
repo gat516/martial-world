@@ -188,6 +188,130 @@ function Motion.fadeOut(root: GuiObject, done: (() -> ())?)
 	end
 end
 
+-- Fading whole HUD regions away and back (the calm view while meditating).
+-- Unlike fadeIn/fadeOut this reads each piece's transparency fresh every time,
+-- so values scripts change at runtime (dimmed slots, hidden fills) survive: the
+-- region fades to nothing, hides, and gets its real values back while hidden.
+local CALM_OUT = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local CALM_IN = TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local CALM_PROPS = {
+	ImageLabel = { "ImageTransparency", "BackgroundTransparency" },
+	ImageButton = { "ImageTransparency", "BackgroundTransparency" },
+	TextLabel = { "TextTransparency", "TextStrokeTransparency", "BackgroundTransparency" },
+	TextButton = { "TextTransparency", "TextStrokeTransparency", "BackgroundTransparency" },
+	Frame = { "BackgroundTransparency" },
+	ScrollingFrame = { "BackgroundTransparency", "ScrollBarImageTransparency" },
+	UIStroke = { "Transparency" },
+}
+-- root -> the values it had when its fade away began (only while fading)
+local fading: { [Instance]: { [Instance]: { [string]: number } } } = {}
+local fadeTokens: { [Instance]: number } = {}
+local calmTweens: { [Instance]: Tween } = {} -- own map, so bar eases keep running
+
+local function calmTween(inst: Instance, props: { [string]: number }, info: TweenInfo)
+	local old = calmTweens[inst]
+	if old then
+		old:Cancel()
+	end
+	local tween = TweenService:Create(inst, info, props)
+	calmTweens[inst] = tween
+	tween:Play()
+end
+
+local function snapshot(root: Instance): { [Instance]: { [string]: number } }
+	local found = {}
+	local all = root:GetDescendants()
+	table.insert(all, root)
+	for _, inst in all do
+		local props = CALM_PROPS[inst.ClassName]
+		if props then
+			local values = {}
+			for _, prop in props do
+				values[prop] = (inst :: any)[prop]
+			end
+			found[inst] = values
+		end
+	end
+	return found
+end
+
+local function restore(values: { [Instance]: { [string]: number } })
+	for inst, props in values do
+		local tween = calmTweens[inst]
+		if tween then
+			tween:Cancel()
+			calmTweens[inst] = nil
+		end
+		for prop, value in props do
+			(inst :: any)[prop] = value
+		end
+	end
+end
+
+-- Show or hide a HUD region; `fade` eases it instead of snapping.
+function Motion.setShown(root: GuiObject, shown: boolean, fade: boolean?)
+	local token = (fadeTokens[root] or 0) + 1
+	fadeTokens[root] = token
+	local pending = fading[root]
+	if shown then
+		if pending then
+			-- caught mid-fade: ease back to the values it had
+			fading[root] = nil
+			for inst, props in pending do
+				calmTween(inst, props, CALM_IN)
+			end
+			root.Visible = true
+		elseif not root.Visible then
+			if fade then
+				local values = snapshot(root)
+				for inst, props in values do
+					for prop in props do
+						(inst :: any)[prop] = 1
+					end
+				end
+				root.Visible = true
+				for inst, props in values do
+					calmTween(inst, props, CALM_IN)
+				end
+			else
+				root.Visible = true
+			end
+		end
+		return
+	end
+	if pending then
+		if not fade then
+			fading[root] = nil
+			root.Visible = false
+			restore(pending)
+		end
+		return -- already on its way out
+	end
+	if not root.Visible then
+		return
+	end
+	if not fade then
+		root.Visible = false
+		return
+	end
+	local values = snapshot(root)
+	fading[root] = values
+	for inst, props in values do
+		local to = {}
+		for prop in props do
+			to[prop] = 1
+		end
+		calmTween(inst, to, CALM_OUT)
+	end
+	task.delay(CALM_OUT.Time, function()
+		if fadeTokens[root] == token and fading[root] == values then
+			fading[root] = nil
+			root.Visible = false
+			restore(values)
+		end
+	end)
+end
+
 -- A quick dip and spring back, for a press that came from a key, not a pointer.
 function Motion.tap(obj: GuiObject)
 	local scale = scaleOf(obj)

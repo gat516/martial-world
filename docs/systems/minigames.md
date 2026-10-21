@@ -54,7 +54,5 @@ next frame, and the client sends `CultivationAction("cancel", id)` instead of
   `PEAK_RADIUS`.
 
 ## Known gaps
-- The overlay has no visible Leave button yet (ui-designer); until then only
-  gamepad B leaves a run.
 - The score is client-reported (clamped and time-checked, not replayed).
 - Thread has a local `SCATTER_SECONDS` constant in its file rather than in Config.

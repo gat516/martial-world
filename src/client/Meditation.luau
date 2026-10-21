@@ -1,9 +1,17 @@
 --!strict
 -- Cultivation seat: M or the Cultivate tile (top right) sits the character down
 -- to meditate (idle, safe to leave running).
--- Seated is a calm screen with only what you can do there: a slim row above the
--- vitals with Circulate (an active minigame, played seated) and Rise; when the
--- realm bar is full, Circulate gives way to Break Through (BreakthroughView).
+-- Seated is a calm screen with only what you can do there: the meditation menu,
+-- one row of tiles above the vitals (Stack.CultivatePrompt) that appear only when
+-- they matter: Circulate (an active minigame, played seated; when the realm bar
+-- is full it gives way to Break Through), Comprehend (a technique at a
+-- bottleneck), Method (once you own one), Spirit Root (once tested), and Rise.
+-- Comprehend, Method and Spirit Root open a small panel (MeditationMenu).
+-- The calm view: the lotus toggle (Stack.CalmToggle) folds the tiles away and
+-- fades the rest of the HUD (Menus.setCalm) to just watch the world; it also
+-- comes on by itself after CALM_AFTER seconds without input. A tap anywhere, a
+-- key, the lotus again, or standing up brings everything back. Passive
+-- cultivation runs either way.
 -- The touch combat cluster hides while seated; the tile reads "Rise".
 -- Seated, the character is locked in place: no walking, jumping, or turning to
 -- follow the camera in shift lock (Movement.luau holds the facing). Getting up:
@@ -15,12 +23,17 @@
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
+local BreakthroughView = require(script.Parent.BreakthroughView)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local Controls = require(script.Parent.Controls)
 local Hud = require(script.Parent.Hud)
 local Layout = require(script.Parent.Layout)
+local MeditationMenu = require(script.Parent.MeditationMenu)
 local Menus = require(script.Parent.Menus)
+local Motion = require(script.Parent.Motion)
+local SelfCard = require(script.Parent.SelfCard)
 local State = require(script.Parent.State)
 
 local remote = ReplicatedStorage.Remotes.Meditate :: RemoteEvent
@@ -28,6 +41,10 @@ local animations = (ReplicatedStorage:WaitForChild("Animations") :: Folder):Wait
 local player = Players.LocalPlayer
 
 local BLEND = 0.2 -- seconds each animation fades into the next
+local CALM_AFTER = 20 -- seconds seated without input before the HUD fades by itself
+local TAP_DRIFT = 12 -- px a press may move and still be a tap (more is a camera drag)
+local TAP_SECONDS = 0.4 -- a longer press isn't a tap either
+local CALM_ICON = 0.55 -- the lotus's transparency while the view is calm
 
 local Meditation = {}
 
@@ -36,11 +53,18 @@ local phase: Phase = "idle"
 local token = 0 -- bumped on every sit and stand, so stale callbacks do nothing
 local tracks: { [string]: AnimationTrack } = {}
 local button: TextButton
-local row: Frame -- Stack.CultivatePrompt: the Circulate and Rise pills
+local row: Frame -- Stack.CultivatePrompt: the seated tiles
+local calmToggle: ImageButton -- Stack.CalmToggle: the lotus
+local wasCalm = false
+local lastInput = os.clock()
 
 local function barFull(): boolean
 	local value, max = player:GetAttribute("Cultivation") or 0, player:GetAttribute("CultivationMax") or 0
 	return max > 0 and value >= max
+end
+
+local function tile(name: string): GuiObject
+	return row:FindFirstChild(name) :: GuiObject
 end
 
 local function refresh()
@@ -51,9 +75,25 @@ local function refresh()
 	local trim = button:FindFirstChild("Trim") :: UIStroke
 	trim.Thickness = if active then 2.5 else 1.2
 	trim.Transparency = if active then 0 else 0.45
-	row.Visible = seated and not Menus.isOpen();
+	local calm = Menus.isCalm()
+	local open = Menus.isOpen()
+	Motion.setShown(row, seated and not open and not calm, calm ~= wasCalm)
+	wasCalm = calm
 	-- a full bar has nothing to circulate into; Break Through shows instead
-	(row:FindFirstChild("Circulate") :: GuiObject).Visible = not barFull()
+	local full = barFull()
+	tile("Circulate").Visible = not full
+	tile("Breakthrough").Visible = full
+	local relevant = MeditationMenu.relevant()
+	for _, page in { "Comprehend", "Method", "Root" } do
+		tile(page).Visible = relevant[page] == true
+	end
+	local root = SelfCard.currentRoot()
+	if root then
+		(tile("Root"):FindFirstChild("Icon") :: ImageLabel).Image = SelfCard.rootIcon(root.element)
+	end
+	calmToggle.Visible = seated and not open
+	calmToggle.ImageTransparency = if calm then CALM_ICON else 0;
+	(calmToggle:FindFirstChild("Icon") :: ImageLabel).ImageTransparency = if calm then CALM_ICON else 0
 	Layout.showCluster(not active)
 end
 
@@ -84,6 +124,7 @@ function Meditation.sit()
 		return
 	end
 	phase = "sitting"
+	lastInput = os.clock()
 	token += 1
 	local mine = token
 	remote:FireServer(true)
@@ -106,6 +147,8 @@ function Meditation.stand(fromServer: boolean?, abrupt: boolean?)
 	end
 	token += 1
 	local mine = token
+	Menus.setCalm(false)
+	MeditationMenu.close()
 	if not fromServer and phase ~= "rising" then
 		remote:FireServer(false)
 	end
@@ -131,9 +174,9 @@ function Meditation.stand(fromServer: boolean?, abrupt: boolean?)
 	refresh()
 end
 
--- Circulate from the seat; the pills come back when the run ends.
+-- Circulate from the seat; the tiles come back when the run ends.
 local function circulate()
-	row.Visible = false
+	Motion.setShown(row, false)
 	CirculationMinigame.start()
 	refresh()
 end
@@ -170,16 +213,82 @@ local function onCharacter(character: Model)
 	end)
 end
 
+-- The calm view's clock and its way back: any input restarts the idle clock; a
+-- key, or a tap that isn't a camera drag (and didn't land on our GUI), ends it.
+local function watchInput()
+	local presses: { [InputObject]: { at: number, pos: Vector3 } } = {}
+	local function pointer(input: InputObject): boolean
+		return input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch
+	end
+	UserInputService.InputBegan:Connect(function(input, processed)
+		lastInput = os.clock()
+		if pointer(input) then
+			if not processed then
+				presses[input] = { at = os.clock(), pos = input.Position }
+			end
+		elseif not processed and Menus.isCalm() and (input.UserInputType == Enum.UserInputType.Keyboard or input.UserInputType.Name:match("^Gamepad")) then
+			Menus.setCalm(false)
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		local kind = input.UserInputType
+		if kind == Enum.UserInputType.MouseMovement or kind == Enum.UserInputType.MouseWheel or kind == Enum.UserInputType.Touch
+			or (kind.Name:match("^Gamepad") and input.Position.Magnitude > 0.2) then
+			lastInput = os.clock()
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		local press = presses[input]
+		presses[input] = nil
+		if press and Menus.isCalm() and os.clock() - press.at <= TAP_SECONDS and (input.Position - press.pos).Magnitude <= TAP_DRIFT then
+			Menus.setCalm(false)
+		end
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			if phase == "seated" and not Menus.isOpen() and not Menus.isCalm() and not CirculationMinigame.isRunning()
+				and os.clock() - lastInput >= CALM_AFTER then
+				Menus.setCalm(true)
+			end
+		end
+	end)
+end
+
 function Meditation.init(gui: ScreenGui)
 	button = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("CultivateButton") :: TextButton
 	button.Activated:Connect(Meditation.toggle)
-	row = (gui:FindFirstChild("Stack") :: Frame):FindFirstChild("CultivatePrompt") :: Frame;
-	(row:FindFirstChild("Circulate") :: ImageButton).Activated:Connect(function()
-		task.spawn(circulate)
-	end);
-	(row:FindFirstChild("Rise") :: ImageButton).Activated:Connect(function()
-		Meditation.stand()
+	local stack = gui:FindFirstChild("Stack") :: Frame
+	row = stack:FindFirstChild("CultivatePrompt") :: Frame
+	calmToggle = stack:FindFirstChild("CalmToggle") :: ImageButton
+	local actions: { [string]: () -> () } = {
+		Circulate = function()
+			task.spawn(circulate)
+		end,
+		Breakthrough = function()
+			task.spawn(BreakthroughView.attempt)
+		end,
+		Comprehend = function()
+			MeditationMenu.toggle("Comprehend")
+		end,
+		Method = function()
+			MeditationMenu.toggle("Method")
+		end,
+		Root = function()
+			MeditationMenu.toggle("Root")
+		end,
+		Rise = function()
+			Meditation.stand()
+		end,
+	}
+	for name, fn in actions do
+		(row:FindFirstChild(name) :: GuiButton).Activated:Connect(fn)
+	end
+	calmToggle.Activated:Connect(function()
+		lastInput = os.clock()
+		Menus.setCalm(not Menus.isCalm())
 	end)
+	watchInput()
 	ContextActionService:BindAction("Meditate", function(_, inputState)
 		if inputState == Enum.UserInputState.Begin then
 			Meditation.toggle()
@@ -190,6 +299,10 @@ function Meditation.init(gui: ScreenGui)
 	Menus.onChanged(refresh)
 	player:GetAttributeChangedSignal("Cultivation"):Connect(refresh)
 	player:GetAttributeChangedSignal("CultivationMax"):Connect(refresh)
+	player:GetAttributeChangedSignal("Root"):Connect(refresh)
+	State.onChanged(function()
+		refresh()
+	end)
 	player.CharacterAdded:Connect(onCharacter)
 	if player.Character then
 		task.spawn(onCharacter, player.Character)

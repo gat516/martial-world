@@ -2,8 +2,8 @@
 
 **Status:** cultivation methods are built (v1: random starter at Foundation; see
 below): server, the Self card's read-only Method row, the reward feed entry and
-the admin `method` chips. Switching between owned methods will live in a
-meditation menu (to do; the server's `CultivationAction "method"` is ready). The spirit root is built on the server (`src/shared/Roots.luau`,
+the admin `method` chips. Switching between owned methods happens seated, in
+the meditation menu's Method tile (built; see [meditation](meditation.md)). The spirit root is built on the server (`src/shared/Roots.luau`,
 `src/server/Roots.luau`, `Pacing.Roots`). Still to do for it: the Testing Stone
 in the hub and the Marrow Washing Pill. The reveal card and the first
 character window (Self card) are built (`RootReveal`, `SelfCard`). Everything else here is design: build it one layer
@@ -129,7 +129,7 @@ a **random starter method** for your root (`Methods.giveStarter`): one of five,
 one per basic element, plus the rare root's own for rare roots. No choice
 screen. Better methods are **earned, not handed out**: Elder Qingyun's task and
 exploring (caches with a `Method` attribute work today; ruins, bosses, events
-to do). **Still to do:** the switch UI (a meditation menu), the elder's task in
+to do). The switch UI is the meditation menu's Method tile. **Still to do:** the elder's task in
 the quest line, method caches placed on the map, the auras (`vfx`).
 
 **The breakthrough message must never mislead (decided 2026-10-21).** When a full
@@ -235,7 +235,7 @@ row, weapon 30), and tabs go between the stage bar and `Body.Pages`
 |---|---|
 | Before the root reveal | the crest isn't tappable yet |
 | After the root reveal | one card, **Self**: realm, stage bar, spirit root (element, grade, perk), weapon badge. No tabs. |
-| FE (method) | Self gains a **Method** row (built): element seal, name in its grade colour, qi speed ("+20% qi · matches your root!"), "Reaches: all of Foundation", the blurb. Read-only; switching goes in the meditation menu (to do). Hidden while on Sect Breathing. |
+| FE (method) | Self gains a **Method** row (built): element seal, name in its grade colour, qi speed ("+20% qi · matches your root!"), "Reaches: all of Foundation", the blurb. Read-only; switching is in the meditation menu (built). Hidden while on Sect Breathing. |
 | First bloodline | tabs appear: **Self** \| **Body** (bloodline card, stage pips, skill, passive) |
 | Later layers | at most four tabs |
 

@@ -1,6 +1,6 @@
 ---
 name: vfx
-description: Makes this game's visual effects (technique casts, hits, auras, breakthroughs, world events and anomalies, ambient effects) the way Roblox VFX artists do. Works from reference videos and tutorials, breaks a reference down into layers, translates it into xianxia motifs, and builds thick layered emissions from the vfxia plugin's asset library and add-ons (parts only in support). Builds in Studio through the MCP, previews in Edit mode, compares against the reference, exports templates to assets/ and wires playback into the client scripts.
+description: Makes this game's visual effects (technique casts, hits, auras, breakthroughs, enemy attacks, ambient effects; sky-scale world events go to world-fx) the way Roblox VFX artists do. Works from reference videos and tutorials, breaks a reference down into layers, translates it into xianxia motifs, and builds thick layered emissions from the vfxia plugin's asset library and add-ons (parts only in support). Builds in Studio through the MCP, previews in Edit mode, compares against the reference, exports templates to assets/ and wires playback into the client scripts.
 ---
 
 You make the visual effects for "Martial World", a stylized xianxia/wuxia
@@ -16,7 +16,10 @@ playtests unless asked.
 
 Scope: in-world effects and the screen effects that belong to them (shake,
 impact frames, colour pulses). Icons, HUD art and other UI belong to the
-`ui-designer` agent.
+`ui-designer` agent. Sky-scale world events and anomalies (sky splits, cloud
+vortices and mists, treasure births, event pillars, tribulation clouds) belong
+to the `world-fx` agent; enemies' attack, hit and death effects are yours, from
+an `enemy-designer` brief.
 
 ## Read first
 

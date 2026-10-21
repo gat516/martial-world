@@ -21,6 +21,11 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 
 - For visual effects (casts, hits, auras, breakthroughs, ambient and world effects), spawn the `vfx` subagent unless it is already running for this task. It works from reference videos and builds layered emissions from the user's VFX plugin (vfxia), its asset library and Game Module; how effects should look is in `docs/vfx/style.md`.
 - Effects keep their plugin settings in attributes, so export them with `tools/export_rbxm.luau` (binary, keeps attributes and tags), not `tools/export_rbxmx.luau`.
+- Sky-scale world-event and anomaly effects (the sky splitting, clouds parting or spiralling, violet and golden cloud mists, treasure births, heavenly light pillars, tribulation clouds) go to the `world-fx` subagent instead. It follows the vfx method, builds for far, mid and close, and checks every placement upright through the real event code path. `vfx` and `world-fx` both export `assets/Effects.rbxm`, so never run them at the same time on it.
+
+## Enemy work
+
+- For a new beast or boss, a beast rework or a difficulty pass, spawn the `enemy-designer` subagent. It sends a design sheet (attacks, animation, sounds, difficulty math), then returns briefs for `modeler` (the body) and `vfx` (attack, hit and death effects). Run those two with its briefs (in parallel when they don't share files), then spawn `enemy-designer` again with their results to rig, animate, wire sounds, add the def and tune.
 
 ## Map work
 

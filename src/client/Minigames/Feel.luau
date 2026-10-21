@@ -12,9 +12,10 @@ local Games = require(ReplicatedStorage.Shared.Config).Circulation.Games
 export type Info = {
 	id: string,
 	game: string,
-	duration: number,
+	duration: number, -- the time limit, seconds
+	levels: number?, -- circulation runs: the levels to clear (the run ends once all are)
 	difficulty: number, -- 0 easy .. 1 hard (below 0 on the first run)
-	impurities: number,
+	impurities: number, -- per level in a circulation run; for the whole drill in Practice Dao
 	seed: number,
 	title: string?, -- replaces the game's TITLE (Practice Dao: "Sword Forms")
 	hint: string?, -- replaces the game's HINT / TOUCH_HINT
@@ -26,7 +27,7 @@ export type Info = {
 --   hold(clear): the game's own cleanup; the runner calls it once the result
 --     card has gone, so the final board stays under the result.
 --   quit(): true once the player has left the run early; the game should end
---     on its next frame (its returned score is ignored).
+--     on its next frame (a circulation run still pays for the levels cleared).
 --   tapped(): call on every tap the player makes in play (a Practice Dao
 --     drill swings the weapon on it).
 export type Ui = {
@@ -43,8 +44,9 @@ export type Game = {
 	TITLE: string,
 	HINT: string,
 	TOUCH_HINT: string?, -- shown instead of HINT on touch screens
-	-- Plays a run on its stage and returns accuracy (0-1) and impurities purged.
-	play: (stage: Frame, info: Info, ui: Ui) -> (number, number),
+	-- Plays a run on its stage and returns accuracy (0-1) and impurities purged;
+	-- circulation games also return the levels cleared (accuracy is over those).
+	play: (stage: Frame, info: Info, ui: Ui) -> (number, number, number?),
 }
 
 local Feel = {}

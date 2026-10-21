@@ -1,7 +1,7 @@
 --!strict
 -- Circulation runs, full screen and one thumb. The server picks which minigame
--- each run plays (Minigames/: Maze, Thread, Pulse, Gather), along with its length,
--- difficulty and impurity count; this runs the shared frame around it: the
+-- each run plays (Minigames/: Maze, Thread, Pulse, Gather), along with its levels,
+-- time limit, difficulty and impurity count; this runs the shared frame around it: the
 -- overlay with the game's title and hint, a 3-2-1 count-in, the game itself on
 -- its own stage, and a graded result once the server has scored the report.
 -- The same runner plays Practice Dao drills (CirculationMinigame.practice):
@@ -19,6 +19,7 @@ local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
 local Feel = require(script.Parent.Minigames.Feel)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
 
 local remote = ReplicatedStorage.Remotes.CultivationAction :: RemoteFunction
 
@@ -77,7 +78,7 @@ end
 
 -- Shows the picked game's stage and labels and plays it. The game draws its
 -- first board, then calls ui.ready() for the count-in.
-local function play(info: Feel.Info, hold: { () -> () }, stance: Stance?): (number, number)
+local function play(info: Feel.Info, hold: { () -> () }, stance: Stance?): (number, number, number?)
 	local minigame = GAMES[info.game] or GAMES.Maze
 	local stageName = if GAMES[info.game] then info.game else "Maze"
 	for name in GAMES do
@@ -112,9 +113,9 @@ local function play(info: Feel.Info, hold: { () -> () }, stance: Stance?): (numb
 	ui.flow.Text = ""
 	ui.score.Text = ""
 	ui.timer.Text = string.format("%d", info.duration)
-	local accuracy, purged = minigame.play(find(stageName) :: Frame, info, ui)
+	local accuracy, purged, cleared = minigame.play(find(stageName) :: Frame, info, ui)
 	ui.flow.Text = ""
-	return accuracy, purged
+	return accuracy, purged, cleared
 end
 
 -- The graded card pops in over the final board, holds, and fades away.
@@ -174,16 +175,30 @@ local function run(kind: string, stance: Stance?)
 	overlay.Visible = true
 	local hold: { () -> () } = {}
 	quitting = false
-	local accuracy, purged = play(info, hold, stance)
-	if quitting then
-		-- left early: nothing refined, nothing spent
+	local accuracy, purged, cleared = play(info, hold, stance)
+	if quitting and (cleared or 0) == 0 then
+		-- left before clearing a level (or a drill): nothing refined, nothing spent
 		remote:InvokeServer(actions.cancel, info.id)
 		Hud.toast(actions.left)
+	elseif kind == "circulation" and (cleared or 0) == 0 then
+		-- out of time with no level cleared: nothing refined, nothing spent
+		remote:InvokeServer(actions.cancel, info.id)
+		showResult("Out of time", "No level cleared. Your raw qi is untouched.", FIZZLE)
 	else
-		local done, result = remote:InvokeServer(actions.finish, info.id, accuracy, purged)
+		local done, result
+		if kind == "dao" then
+			done, result = remote:InvokeServer(actions.finish, info.id, accuracy, purged)
+		else
+			done, result = remote:InvokeServer(actions.finish, info.id, cleared, accuracy, purged)
+		end
 		if done then
 			local grade = gradeFor(result.score)
 			local detail = if kind == "dao" then `+{result.gain} {result.dao} XP` else `+{result.gain} cultivation`
+			if result.bonus then
+				detail ..= `\nAll {result.levels} levels cleared: +{math.floor(Pacing.Refine.FULL_CLEAR_BONUS * 100 + 0.5)}%`
+			elseif (result.levels or 0) > 1 then
+				detail ..= `\n{result.cleared} of {result.levels} levels cleared`
+			end
 			if result.deviation then
 				detail ..= "\nQi deviation! Let it settle."
 			elseif result.full then

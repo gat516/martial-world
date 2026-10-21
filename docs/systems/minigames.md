@@ -6,7 +6,15 @@ cultivation. Better play means more cultivation per qi; very poor play causes a
 qi deviation.
 
 ## Design intent
-- Full screen, one thumb, playable seated in meditation, 15-40 seconds.
+- Full screen, one thumb, playable seated in meditation.
+- **A run is levels, not a stretch of time.** It's up to Pacing `levels` levels
+  (two at QC1-2, three after; one on the first run) against a cap of
+  `LEVEL_SECONDS` a level. You're paid for the levels you clear: 2 of 3 refines
+  2/3 of a full run's qi. Clearing every level ends the run on the spot and
+  refines `Refine.FULL_CLEAR_BONUS` more, for no extra qi. A level only half
+  done when time runs out or you leave counts for nothing. What a level is:
+  Maze, one maze (accuracy from its `par` time); Thread, one channel (each wall
+  touch costs accuracy); Pulse, `beats` beats; Gather, `motes` qi motes.
 - Four games, picked by weight and never the same twice running: **Maze
   Formation** (trace the qi out of mazes), **Thread the Meridian** (steer a bead
   down a winding channel), **Meridian Pulse** (tap as rings close), **Gather Qi**
@@ -20,14 +28,15 @@ qi deviation.
   overlaps the board on a phone. Each game draws its first board, then calls
   `ui.ready()` for the 3-2-1 count-in over it; the final board stays under the
   result card and is cleared through `ui.hold`.
-- **You can always leave a run early**, for free: nothing is spent until a run
-  finishes, so leaving refines nothing and costs nothing (the raw qi stays). The
-  first run left early is still the first run next time.
+- **You can always leave a run early.** Leaving after clearing a level banks the
+  levels cleared, like running out of time. Leaving (or running out of time)
+  before clearing any refines nothing and costs nothing (the raw qi stays). A
+  first run left with no level cleared is still the first run next time.
 
 ## Key files
 - `src/server/Circulation.luau`: start/finish, game pick, where runs may happen
   (own peak within `PEAK_RADIUS`, or within a `QiNode`'s `Radius`), anti-cheat
-  (minimum duration, clamped score, realm unchanged), qi spend and gain.
+  (minimum time per cleared level, clamped score, realm unchanged), qi spend and gain.
 - `src/client/CirculationMinigame.luau`: overlay, count-in, result card. Also
   runs Practice Dao drills (`practice(stance)`: the seat stands up on `begin` and swings on every `ui.tapped`; server `DaoPractice`, an `info.title`
   replaces the game's title, the result reads "+N Sword Dao XP").
@@ -37,26 +46,35 @@ qi deviation.
   circulation; see `docs/systems/meditation.md`). Its stage is
   `Circulation`…`Forms` in `assets/Hud.rbxmx`.
 - `src/shared/Config.luau` `Circulation`: games and their `easy`/`hard` values.
-- `src/shared/Pacing.luau`: per-stage `runSeconds`, `difficulty`; `Pacing.Refine`.
+- `src/shared/Pacing.luau`: per-stage `levels`, `difficulty`; `Pacing.Refine`.
 
 ## Data flow
-`CultivationAction("start")` -> `{ id, game, duration, difficulty, impurities, seed }`
--> the client plays with that seed -> `CultivationAction("finish", id, accuracy,
-purged)` -> score = `accuracy * ACCURACY_WEIGHT + purgedShare * (1 - ACCURACY_WEIGHT)`
--> `{ score, gain, spent, deviation, full }`. Only the qi needed to fill the bar is
-spent. `Circulation.onFinished` logs `CirculationScore`.
-Leaving early: `CirculationMinigame.quit()` (gamepad B, `Menus.close` on the
-overlay, and the overlay's Leave button) sets `ui.quit()`; the game ends on its
-next frame, and the client sends `CultivationAction("cancel", id)` instead of
-"finish" (the server just drops the run).
+`CultivationAction("start")` -> `{ id, game, levels, duration, difficulty,
+impurities (per level), seed }` -> the client plays with that seed until every
+level is cleared, `duration` runs out or the player leaves ->
+`CultivationAction("finish", id, cleared, accuracy, purged)` (accuracy averaged
+over the cleared levels) -> score = `accuracy * ACCURACY_WEIGHT + purgedShare *
+(1 - ACCURACY_WEIGHT)`, purged share out of the cleared levels' impurities ->
+gain = a full run's qi * cleared / levels * efficiency (times `1 +
+FULL_CLEAR_BONUS` when all are cleared) -> `{ score, gain, spent, deviation, full,
+cleared, levels, bonus }`. Only the qi needed to fill the bar is spent.
+`Circulation.onFinished` logs `CirculationScore`.
+No level cleared (out of time, or left): the client sends
+`CultivationAction("cancel", id)` and the server just drops the run. Leaving:
+`CirculationMinigame.quit()` (gamepad B, `Menus.close` on the overlay, and the
+overlay's Leave button) sets `ui.quit()`; the game ends on its next frame and
+reports what it cleared. Practice Dao drills keep the timed flow:
+`practiceFinish(id, accuracy, purged)`.
 
 ## Tuning knobs
-- Per stage (Pacing.Curve / Adjust): `runSeconds`, `difficulty`, `refine`.
+- Per stage (Pacing.Curve / Adjust): `levels`, `difficulty`, `refine`.
 - Pacing.Refine: `RUNS_PER_DANTIAN`, `MIN_RUN_FRACTION`, `EFFICIENCY_MIN/MAX`,
-  `DEVIATION_SCORE`, `DEVIATION_SECONDS`.
-- Config.Circulation: `Games.<name>.weight/easy/hard`, `IMPURITIES_PER_10S`,
-  `ACCURACY_WEIGHT`, `FIRST_RUN_*`, `MIN_DURATION_FRACTION`, `RUN_TIMEOUT_GRACE`,
-  `PEAK_RADIUS`.
+  `DEVIATION_SCORE`, `DEVIATION_SECONDS`, `FULL_CLEAR_BONUS`.
+- Config.Circulation: `Games.<name>.weight/easy/hard` (Pulse `beats`, Gather
+  `motes` per level), `LEVEL_SECONDS`, `IMPURITIES_PER_LEVEL`, `ACCURACY_WEIGHT`,
+  `MIN_LEVEL_SECONDS`, `RUN_TIMEOUT_GRACE`, `FIRST_RUN_*`, `PEAK_RADIUS`; Practice
+  Dao drills (still timed) use `MIN_DURATION_FRACTION` and `IMPURITIES_PER_10S`.
+- In the game files: Thread `SCATTER_COST`; Pulse and Gather `LEVEL_GAP`.
 
 ## Maze Formation: feel and look
 - **Drag feel.** A drag doesn't move the spark directly: it feeds a short lead

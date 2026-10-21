@@ -12,7 +12,7 @@
 --   refine     circulation efficiency multiplier
 --   gather     raw qi income multiplier (qi nodes, daily qi, enemy kills)
 --   difficulty circulation minigame difficulty (0 easy .. 1 hard)
---   runSeconds circulation minigame length
+--   levels     most levels in a circulation run
 --   tribulation the tribulation that guards a major breakthrough out of this stage
 --   beastHealth, beastDamage  multipliers for demon beasts whose realm is this stage
 
@@ -33,7 +33,7 @@ export type Stage = {
 	refine: number,
 	gather: number,
 	difficulty: number,
-	runSeconds: number,
+	levels: number,
 	tribulation: Pacing.Tribulation?,
 	beastHealth: number,
 	beastDamage: number,
@@ -76,7 +76,7 @@ for i, row in Pacing.Curve do
 		refine = (adjust.refine or 1) * G.REFINE,
 		gather = (adjust.gather or 1) * G.GATHER,
 		difficulty = math.clamp(row.difficulty + (adjust.difficulty or 0) + G.DIFFICULTY, -0.5, 1),
-		runSeconds = adjust.runSeconds or row.runSeconds,
+		levels = adjust.levels or row.levels,
 		tribulation = tribulation,
 		beastHealth = (adjust.beastHealth or 1) * G.BEAST_HEALTH,
 		beastDamage = (adjust.beastDamage or 1) * G.BEAST_DAMAGE,

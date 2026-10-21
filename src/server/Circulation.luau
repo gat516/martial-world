@@ -1,10 +1,13 @@
 --!strict
 -- Circulation runs: the skill minigames that refine raw qi into cultivation.
 -- The server picks the game (Config.Circulation.Games, weighted, not the same one
--- twice running) and its length, difficulty and impurity count; the client plays
--- it and reports an accuracy and how many impurities it purged, scored the same
--- way for every game. The server enforces where and how often runs happen and
--- sanity-checks the report (clamped score, minimum duration, qi actually held).
+-- twice running) and its levels, time limit, difficulty and impurity count; the
+-- client plays until every level is cleared, the clock runs out or the player
+-- leaves, and reports how many levels it cleared, their accuracy and how many impurities it purged, scored the
+-- same way for every game. Each cleared level refines its share of a full run's
+-- qi; clearing them all adds Refine.FULL_CLEAR_BONUS. The server enforces where
+-- and how often runs happen and sanity-checks the report (clamped score, a
+-- minimum time per level, qi actually held).
 
 local CollectionService = game:GetService("CollectionService")
 local HttpService = game:GetService("HttpService")
@@ -23,7 +26,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local WeatherService = require(script.Parent.WeatherService)
 
-type Run = { id: string, started: number, duration: number, impurities: number, stageIndex: number }
+type Run = { id: string, started: number, levels: number, duration: number, impurities: number, stageIndex: number }
 
 local runs: { [Player]: Run } = {}
 local lastGame: { [Player]: string } = {}
@@ -109,12 +112,12 @@ function Circulation.start(player: Player): (boolean, any)
 	end
 
 	local index = Realms.index(data.realm.major, data.realm.minor)
-	local duration = stage.runSeconds
+	local levels = stage.levels
 	local difficulty = stage.difficulty
 	local minigame = pickGame(player)
 	if data.stats.circulationRuns == 0 then
 		-- the onboarding run: short, forgiving, and the game the elder explains
-		duration = Config.FIRST_RUN_DURATION
+		levels = Config.FIRST_RUN_LEVELS
 		difficulty = Config.FIRST_RUN_DIFFICULTY
 		minigame = Config.FIRST_RUN_GAME
 	end
@@ -122,8 +125,9 @@ function Circulation.start(player: Player): (boolean, any)
 	local run = {
 		id = HttpService:GenerateGUID(false),
 		started = now,
-		duration = duration,
-		impurities = math.max(1, math.floor(duration / 10 * Config.IMPURITIES_PER_10S + 0.5)),
+		levels = levels,
+		duration = levels * Config.LEVEL_SECONDS,
+		impurities = Config.IMPURITIES_PER_LEVEL,
 		stageIndex = index,
 	}
 	runs[player] = run
@@ -131,21 +135,26 @@ function Circulation.start(player: Player): (boolean, any)
 		{
 			id = run.id,
 			game = minigame,
-			duration = duration,
+			levels = levels,
+			duration = run.duration,
 			difficulty = difficulty,
 			impurities = run.impurities,
 			seed = math.random(1, 1e6),
 		}
 end
 
-function Circulation.finish(player: Player, id: any, accuracy: any, purged: any): (boolean, any)
+function Circulation.finish(player: Player, id: any, cleared: any, accuracy: any, purged: any): (boolean, any)
 	local run = runs[player]
 	local data = PlayerData.get(player)
 	if not (run and data and run.id == id) then
 		return false, "That run has ended"
 	end
 	runs[player] = nil
-	if os.clock() - run.started < run.duration * Config.MIN_DURATION_FRACTION then
+	local levels = if type(cleared) == "number" then math.clamp(math.floor(cleared), 0, run.levels) else 0
+	if levels == 0 then
+		return false, "No level was cleared"
+	end
+	if os.clock() - run.started < levels * Config.MIN_LEVEL_SECONDS then
 		return false, "The run ended too soon"
 	end
 	local stage = Cultivation.stage(data)
@@ -154,7 +163,8 @@ function Circulation.finish(player: Player, id: any, accuracy: any, purged: any)
 	end
 
 	local acc = if type(accuracy) == "number" and accuracy == accuracy then math.clamp(accuracy, 0, 1) else 0
-	local purgedShare = if type(purged) == "number" then math.clamp(math.floor(purged), 0, run.impurities) / run.impurities else 0
+	local impurities = run.impurities * levels
+	local purgedShare = if type(purged) == "number" then math.clamp(math.floor(purged), 0, impurities) / impurities else 0
 	local score = acc * Config.ACCURACY_WEIGHT + purgedShare * (1 - Config.ACCURACY_WEIGHT)
 	local efficiency = (Refine.EFFICIENCY_MIN + (Refine.EFFICIENCY_MAX - Refine.EFFICIENCY_MIN) * score)
 		* stage.refine
@@ -162,9 +172,14 @@ function Circulation.finish(player: Player, id: any, accuracy: any, purged: any)
 		* Cultivation.methodSpeed(data)
 		* (1 + WeatherService.bonus("circulation"))
 
-	-- spend only what fills the bar; the rest stays in the dantian
-	local qi = math.min(data.rawQi, fullRunQi(stage))
-	local gain = math.min(qi * efficiency, stage.bar - data.cultivation)
+	-- each cleared level refines its share of a full run, and clearing every
+	-- level refines a bonus on top for free; spend only what fills the bar, the
+	-- rest stays in the dantian
+	local allCleared = levels >= run.levels
+	local bonus = if allCleared then 1 + Refine.FULL_CLEAR_BONUS else 1
+	local qi = math.min(data.rawQi, fullRunQi(stage) * levels / run.levels)
+	local gain = math.min(qi * efficiency * bonus, stage.bar - data.cultivation)
+	efficiency *= bonus
 	local spent = math.ceil(gain / efficiency)
 	data.rawQi = math.max(0, data.rawQi - spent)
 	data.cultivation = math.min(stage.bar, data.cultivation + gain)
@@ -186,6 +201,9 @@ function Circulation.finish(player: Player, id: any, accuracy: any, purged: any)
 			spent = spent,
 			deviation = deviation,
 			full = data.cultivation >= stage.bar,
+			cleared = levels,
+			levels = run.levels,
+			bonus = allCleared and run.levels > 1,
 		}
 end
 

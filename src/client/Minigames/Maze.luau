@@ -8,12 +8,15 @@
 -- while the button is held, so the pointer can't wander off the board. It only
 -- moves while you drag or hold, and stops when you
 -- stop. Pushing across a corridor near a turning takes the turning, so corners
--- don't need pixel-perfect drags. Escape and a new maze forms, as many
--- as the run allows. Purple impurities sit in dead ends off the way out: detour
--- through one to purge it. Accuracy is mazes escaped (plus how far along the
--- current one) against the run's par.
+-- don't need pixel-perfect drags. Each maze is a level: escape and the next
+-- forms, until the server's number of levels is cleared (the run ends then) or
+-- the clock runs out. Purple impurities sit in dead ends off the way out: detour
+-- through one to purge it. A maze escaped within its par time is full accuracy;
+-- slower costs a little (par / time, never below MIN_QUALITY).
 --
 -- Maze size and par seconds per maze come from Config (Games.Maze).
+
+local MIN_QUALITY = 0.5 -- accuracy for a maze escaped far slower than its par
 
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -203,10 +206,10 @@ local function impuritySpots(grid: Grid, count: number, rng: Random): { number }
 	return spots
 end
 
-function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
+function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number, number)
 	local tune = Feel.tune("Maze", info.difficulty)
 	local n = math.max(MIN_SIZE, math.floor(tune.size + 0.5))
-	local goal = math.max(1, info.duration / math.max(1, tune.par))
+	local levels = info.levels or 1
 	local field = stage:FindFirstChild("Field") :: Frame
 	local board = field:FindFirstChild("Board") :: Frame
 	local wallTemplate = board:FindFirstChild("WallTemplate") :: ImageLabel
@@ -314,8 +317,8 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 	-- centres are whole numbers).
 	local px, py = 0, 0
 	local walked: { [string]: boolean } = {} -- corridors already trailed
-	local impuritiesLeft = info.impurities
-	local mazesLeft = math.ceil(goal)
+	local mazeStart = 0 -- when the current maze began
+	local t, solved, purged, nudge, total = 0, 0, 0, 0, 0 -- total: escaped mazes' accuracy, summed
 	local grid: Grid
 	local impurities: { [number]: ImageLabel } = {}
 
@@ -327,9 +330,8 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		table.clear(walked)
 		measure()
 		drawWalls(grid)
-		local count = math.ceil(impuritiesLeft / math.max(1, mazesLeft))
-		mazesLeft -= 1
-		for _, spot in impuritySpots(grid, count, rng) do
+		mazeStart = t
+		for _, spot in impuritySpots(grid, info.impurities, rng) do
 			local frame = impurityTemplate:Clone()
 			frame.Name = "Impurity"
 			frame.Position = center(spot)
@@ -338,7 +340,6 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 			frame.Parent = board
 			table.insert(made, frame)
 			impurities[spot] = frame
-			impuritiesLeft -= 1
 		end
 		exitMark.Position = center(grid.exit)
 		exitMark.Size = UDim2.fromScale(EXIT_SIZE / n, EXIT_SIZE / n)
@@ -350,7 +351,7 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 
 	local pauseUntil = 0
 	local veilAt: number? = nil -- when the veil starts to fall over an escaped maze
-	local t, solved, purged, nudge = 0, 0, 0, 0
+	local endAt: number? = nil -- the last maze is escaped: the run ends then
 
 	local function isOpen(x: number, y: number, dir: number): boolean
 		return grid.open[cellOf(n, x, y)][dir]
@@ -377,9 +378,15 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		end
 		if to == grid.exit then
 			solved += 1
+			total += math.clamp(tune.par / math.max(0.01, t - mazeStart), MIN_QUALITY, 1)
 			Feel.pop(board, center(to), EXIT, 140)
 			Feel.buzz(0.5, 0.12)
 			ui.flow.Text = "Escaped!"
+			if solved >= levels then
+				endAt = t + NEXT_PAUSE
+				pauseUntil = math.huge
+				return
+			end
 			veilAt = t + NEXT_PAUSE
 			pauseUntil = t + NEXT_PAUSE + Feel.VEIL_IN
 			task.delay(NEXT_PAUSE + Feel.VEIL_IN + 0.4, function()
@@ -632,8 +639,8 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		spark.ImageColor3 = if t < pauseUntil then EXIT else WHITE
 
 		Feel.timer(ui.timer, t, info.duration)
-		ui.score.Text = `Escaped {solved} / {math.ceil(goal)}`
-		if t >= info.duration or ui.quit() then
+		ui.score.Text = `Escaped {solved} / {levels}`
+		if t >= info.duration or (endAt and t >= endAt) or ui.quit() then
 			finished = true
 		end
 	end))
@@ -645,13 +652,6 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		c:Disconnect()
 	end
 	unpin()
-	-- partial credit for how far along the current maze you got
-	local along = 0
-	local cell = cellOf(n, math.round(px), math.round(py))
-	if cell ~= grid.exit then
-		local total = grid.toExit[grid.start]
-		along = math.clamp(1 - grid.toExit[cell] / math.max(1, total), 0, 1)
-	end
 	ui.hold(function()
 		clear()
 		spark.Visible = false
@@ -659,7 +659,7 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		local veil = field:FindFirstChild("Veil") :: Frame
 		veil.BackgroundTransparency = 1
 	end)
-	return math.min(1, (solved + along) / goal), purged
+	return total / math.max(1, solved), purged, solved
 end
 
 return Maze

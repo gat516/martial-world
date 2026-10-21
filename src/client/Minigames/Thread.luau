@@ -6,10 +6,11 @@
 -- on it to take hold and the bead follows the cursor exactly (outrun it, or
 -- scatter, and you must put the cursor back on the bead). Touch a wall and the qi scatters back to the last
 -- acupoint you lit. Purple impurities hug the walls: brush through one to purge
--- it, if you dare. Accuracy is levels cleared (plus how far along the current
--- one) against the run's par.
+-- it, if you dare. A run is the server's number of levels against its clock and
+-- ends once the last is cleared; each level's accuracy drops SCATTER_COST for
+-- every wall touched.
 --
--- Channel width, bends and par seconds per level come from Config (Games.Thread).
+-- Channel width and bends come from Config (Games.Thread).
 -- Lengths here are in field heights; the field keeps a fixed aspect ratio.
 
 local RunService = game:GetService("RunService")
@@ -30,6 +31,7 @@ local STEP = 0.006 -- collision sub-step
 local SCATTER_SECONDS = 0.45 -- frozen after touching a wall
 local IMPURITY_RADIUS = 0.016
 local NEXT_PAUSE = 0.35
+local SCATTER_COST = 0.2 -- accuracy a level loses for each wall touched
 local GRAB_RADIUS = 0.05 -- the cursor must be this close to the bead to take hold of it
 local LOSE_RADIUS = 0.09 -- ...and outrunning the bead by this much lets go
 
@@ -111,7 +113,7 @@ end
 
 function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 	local tune = Feel.tune("Thread", info.difficulty)
-	local goal = math.max(1, info.duration / math.max(1, tune.par))
+	local levels = info.levels or 1
 	local field = stage:FindFirstChild("Field") :: Frame
 	local wallTemplate = field:FindFirstChild("WallTemplate") :: Frame
 	local wallJointTemplate = field:FindFirstChild("WallJointTemplate") :: Frame
@@ -145,8 +147,6 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	local level: Level
 	local acupoints: { Frame } = {}
 	local impurities: { { at: Vector2, frame: Frame } } = {}
-	local impuritiesLeft = info.impurities
-	local levelsLeft = math.ceil(goal)
 	local pos = Vector2.zero
 	local checkpoint = 1 -- index into level.points
 	local best = 0 -- furthest along the current level
@@ -175,16 +175,14 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		for i = 2, #points - 1 do
 			acupoints[i] = place(acupointTemplate, points[i], half * 0.7, half * 0.7)
 		end
-		local count = math.ceil(impuritiesLeft / math.max(1, levelsLeft))
-		levelsLeft -= 1
-		for i = 1, math.min(count, impuritiesLeft) do
+		local count = info.impurities
+		for i = 1, count do
 			local s = level.length * (i / (count + 1)) * rng:NextNumber(0.85, 1.15)
 			local at, dir = pointAt(level, s)
 			local side = if rng:NextNumber() < 0.5 then 1 else -1
 			at += Vector2.new(-dir.Y, dir.X) * side * (half - BEAD_RADIUS) * 0.8
 			local frame = place(impurityTemplate, at, IMPURITY_RADIUS * 2, IMPURITY_RADIUS * 2)
 			table.insert(impurities, { at = at, frame = frame })
-			impuritiesLeft -= 1
 		end
 		goalMark.Position = toUDim(points[#points])
 		goalMark.Size = UDim2.fromScale(half * 1.6 / ASPECT, half * 1.6)
@@ -197,6 +195,8 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	end
 
 	local t, cleared, purged, streak = 0, 0, 0, 0
+	local scatters, quality = 0, 0 -- wall touches this level; accuracy summed over cleared levels
+	local endAt: number? = nil -- the last level is cleared: the run ends then
 	local frozenUntil = 0
 	local joltUntil = 0
 	local nextLevelAt: number? = nil
@@ -212,6 +212,7 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		frozenUntil = t + SCATTER_SECONDS
 		joltUntil = frozenUntil
 		streak = 0
+		scatters += 1
 		pending = Vector2.zero
 		grabbed = false
 	end
@@ -248,12 +249,18 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 			end
 			if (pos - level.points[#level.points]).Magnitude <= level.half * 0.6 then
 				cleared += 1
+				quality += math.max(0, 1 - SCATTER_COST * scatters)
+				scatters = 0
 				Feel.pop(field, toUDim(pos), LIT, 140)
 				Feel.buzz(0.5, 0.12)
 				frozenUntil = math.huge
-				veilAt = t + NEXT_PAUSE
-				nextLevelAt = t + NEXT_PAUSE + Feel.VEIL_IN
 				pending = Vector2.zero
+				if cleared >= levels then
+					endAt = t + NEXT_PAUSE
+				else
+					veilAt = t + NEXT_PAUSE
+					nextLevelAt = t + NEXT_PAUSE + Feel.VEIL_IN
+				end
 				ui.flow.Text = `Meridian {cleared} cleared`
 				task.delay(NEXT_PAUSE + 0.6, function()
 					ui.flow.Text = ""
@@ -369,11 +376,11 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		beadStroke.Thickness = if waiting then 2 + 2.5 * (0.5 + 0.5 * math.sin(t * 7)) else 2
 
 		Feel.timer(ui.timer, t, info.duration)
-		ui.score.Text = `Meridians {cleared} / {math.ceil(goal)}`
+		ui.score.Text = `Meridians {cleared} / {levels}`
 		if ui.flow.Text == "" or string.find(ui.flow.Text, "Unbroken") then
 			ui.flow.Text = if streak >= 2 then `Unbroken x{streak}` else ""
 		end
-		if t >= info.duration or ui.quit() then
+		if t >= info.duration or (endAt and t >= endAt) or ui.quit() then
 			finished = true
 		end
 	end))
@@ -384,8 +391,6 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	for _, c in connections do
 		c:Disconnect()
 	end
-	-- partial credit for how far along the current level you got
-	local along = if nextLevelAt then 0 else math.clamp(best / math.max(0.001, level.length), 0, 1)
 	ui.hold(function()
 		clear()
 		bead.Visible = false
@@ -394,7 +399,7 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		local veil = field:FindFirstChild("Veil") :: Frame
 		veil.BackgroundTransparency = 1
 	end)
-	return math.min(1, (cleared + along) / goal), purged
+	return quality / math.max(1, cleared), purged, cleared
 end
 
 return Thread

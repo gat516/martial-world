@@ -67,10 +67,10 @@ breakthrough, and insight is a choice: which technique to deepen.
 
 ## Tuning knobs (all in `Pacing.luau`)
 - **Pacing.Curve**: one row per stage. QI: `bar`, `dantian`, `passive`.
-  BREAKTHROUGH: `insight`, `runSeconds`, `difficulty`, `tribulation`. FIGHT:
+  BREAKTHROUGH: `insight`, `levels` (circulation run levels), `difficulty`, `tribulation`. FIGHT:
   `health`, `power`.
 - **Pacing.Adjust**: per-stage multipliers on top of the curve, keyed `"QC1".."FE1"`:
-  `bar`, `passive`, `refine`, `gather`, `difficulty` (added), `runSeconds`,
+  `bar`, `passive`, `refine`, `gather`, `difficulty` (added), `levels`,
   `insight`, `tribulation` (field overrides), `health`, `power`, `beastHealth`,
   `beastDamage` (for beasts whose Enemies `realm` is that stage).
 - **Pacing.Global**: whole-game `BAR`, `PASSIVE`, `REFINE`, `GATHER`, `DIFFICULTY`,

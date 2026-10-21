@@ -3,9 +3,12 @@
 -- the bottom to catch them. Drag anywhere (the bowl follows your thumb's side to
 -- side), move the mouse, or hold A/D or the arrow keys. Purple motes are
 -- impurities: let them fall past to purge them, catch one and it jolts you.
--- Accuracy is the share of qi motes caught.
+-- A run is the server's number of levels, each a fall of qi with a short breath
+-- between; a level is cleared once its last mote has landed, and the run ends
+-- after the last level. Each level's accuracy is the share of its qi caught.
 --
--- Bowl width, fall speed and how often qi falls come from Config (Games.Gather).
+-- Bowl width, fall speed, how often qi falls and motes a level come from
+-- Config (Games.Gather).
 
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -20,13 +23,15 @@ local EDGE = 0.06 -- motes stay this far from the field's sides
 local BOWL_LIFT = 10 -- px from the field bottom to the bowl's bottom, as authored
 local MOTE_SIZE = 22
 local IMPURE_SIZE = 28
+local LEVEL_GAP = 1.2 -- extra seconds between one level's last mote and the next one's first
+local END_PAUSE = 0.5 -- seconds after the last mote lands before the run ends
 
 local QI = Color3.fromRGB(200, 255, 230)
 local IMPURE = Color3.fromRGB(190, 90, 220)
 local JOLT = Color3.fromRGB(255, 110, 100)
 local MISSED = Color3.fromRGB(120, 150, 140)
 
-type Mote = { spawn: number, x: number, impure: boolean, frame: Frame?, done: boolean }
+type Mote = { spawn: number, x: number, impure: boolean, level: number, frame: Frame?, done: boolean }
 
 local Gather = {}
 
@@ -44,29 +49,38 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	local impureTemplate = field:FindFirstChild("ImpureTemplate") :: Frame
 	bowl.Size = UDim2.new(bowlWidth, 0, bowl.Size.Y.Scale, bowl.Size.Y.Offset)
 
-	-- the fall schedule: qi at a steady pace within reach of the last one,
-	-- impurities spread through the run near where qi is about to fall
+	-- the fall schedule, level by level: qi at a steady pace within reach of the
+	-- last one, impurities spread through the level near where qi is about to fall
 	local rng = Random.new(info.seed)
+	local levels = info.levels or 1
+	local perLevel = math.max(4, math.floor(tune.motes + 0.5))
 	local motes: { Mote } = {}
+	local left = table.create(levels, 0) -- motes still to land, per level
 	local last = 0.5
 	local spawn = 0.3
-	local lastSpawn = info.duration - fallTime - 0.2
-	while spawn <= lastSpawn do
-		last = math.clamp(last + rng:NextNumber(-MAX_STEP, MAX_STEP), EDGE, 1 - EDGE)
-		table.insert(motes, { spawn = spawn, x = last, impure = false, frame = nil, done = false })
-		spawn += tune.interval * rng:NextNumber(0.8, 1.2)
-	end
-	local qiCount = #motes
-	for i = 1, info.impurities do
-		local when = math.clamp(lastSpawn * i / (info.impurities + 1) + rng:NextNumber(-0.3, 0.3), 0.6, lastSpawn)
-		local x = rng:NextNumber(EDGE, 1 - EDGE)
-		table.insert(motes, { spawn = when, x = x, impure = true, frame = nil, done = false })
+	for level = 1, levels do
+		local from = spawn
+		for _ = 1, perLevel do
+			last = math.clamp(last + rng:NextNumber(-MAX_STEP, MAX_STEP), EDGE, 1 - EDGE)
+			table.insert(motes, { spawn = spawn, x = last, impure = false, level = level, frame = nil, done = false })
+			spawn += tune.interval * rng:NextNumber(0.8, 1.2)
+		end
+		local to = spawn - tune.interval
+		for i = 1, info.impurities do
+			local when = math.clamp(from + (to - from) * i / (info.impurities + 1) + rng:NextNumber(-0.3, 0.3), from + 0.6, to)
+			local x = rng:NextNumber(EDGE, 1 - EDGE)
+			table.insert(motes, { spawn = when, x = x, impure = true, level = level, frame = nil, done = false })
+		end
+		left[level] = perLevel + info.impurities
+		spawn += LEVEL_GAP
 	end
 	table.sort(motes, function(a, b)
 		return a.spawn < b.spawn
 	end)
 
-	local t, caught, purged, combo = 0, 0, 0, 0
+	local caught = table.create(levels, 0) -- qi caught, per level
+	local t, purged, combo, cleared, total = 0, 0, 0, 0, 0 -- total: cleared levels' accuracy, summed
+	local endAt: number? = nil
 	local bowlX, target = 0.5, 0.5
 	local made: { Instance } = {}
 
@@ -107,7 +121,11 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 
 	ui.ready()
 	local finished = false
-	ui.score.Text = "Caught 0%"
+	local function scoreText(): string
+		local level = math.min(cleared + 1, levels)
+		return `Level {level} / {levels}   Caught {math.floor(caught[level] / perLevel * 100 + 0.5)}%`
+	end
+	ui.score.Text = scoreText()
 	table.insert(connections, RunService.RenderStepped:Connect(function(dt)
 		if finished then
 			return
@@ -158,7 +176,7 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 					purged += 1
 					Feel.pop(field, UDim2.fromScale(mote.x, 1), IMPURE, 60)
 				elseif inBowl then
-					caught += 1
+					caught[mote.level] += 1
 					combo += 1
 					Feel.pop(field, at, QI, 70)
 					flashGlow(QI)
@@ -168,13 +186,33 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 					Feel.pop(field, UDim2.fromScale(mote.x, 1), MISSED, 40)
 				end
 				frame:Destroy()
+				left[mote.level] -= 1
+				if left[mote.level] == 0 then
+					cleared += 1
+					total += caught[mote.level] / perLevel
+					if cleared >= levels then
+						endAt = t + END_PAUSE
+					else
+						local text = `Level {cleared + 1}`
+						ui.flow.Text = text
+						task.delay(LEVEL_GAP + 0.6, function()
+							if ui.flow.Text == text then
+								ui.flow.Text = ""
+							end
+						end)
+					end
+				end
 			end
 		end
 
 		Feel.timer(ui.timer, t, info.duration)
-		ui.score.Text = `Caught {math.floor(caught / math.max(1, qiCount) * 100 + 0.5)}%`
-		ui.flow.Text = if combo >= 3 then `Combo x{combo}` else ""
-		if t >= info.duration or ui.quit() then
+		ui.score.Text = scoreText()
+		if combo >= 3 then
+			ui.flow.Text = `Combo x{combo}`
+		elseif string.find(ui.flow.Text, "Combo") then
+			ui.flow.Text = ""
+		end
+		if t >= info.duration or (endAt and t >= endAt) or ui.quit() then
 			finished = true
 		end
 	end))
@@ -193,7 +231,7 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		end
 		bowl.Position = UDim2.new(0.5, 0, 1, -BOWL_LIFT)
 	end)
-	return if qiCount > 0 then caught / qiCount else 1, purged
+	return total / math.max(1, cleared), purged, cleared
 end
 
 return Gather

@@ -134,37 +134,44 @@ return {
 	-- Qi spent per run, efficiency, deviation, and each stage's run length and
 	-- difficulty are progression pacing: Pacing.Refine and Pacing.Curve.
 	Circulation = {
-		IMPURITIES_PER_10S = 1.5, -- impure beats/motes per 10 s of run, in every game
+		-- A circulation run is Pacing `levels` levels (one on the first run) against a
+		-- clock of LEVEL_SECONDS a level. It pays for the levels cleared when the
+		-- clock runs out or the player leaves, and ends the moment the last one clears.
+		LEVEL_SECONDS = 15, -- the run's time limit, per level
+		IMPURITIES_PER_LEVEL = 2, -- impure beats/motes/spots per level, in every game
 		ACCURACY_WEIGHT = 0.75, -- score = accuracy * this + purged share * the rest
-		MIN_DURATION_FRACTION = 0.9, -- a run reported sooner than this is rejected
-		RUN_TIMEOUT_GRACE = 15, -- seconds past the duration before a run is dropped
+		MIN_LEVEL_SECONDS = 3, -- a report faster than this per cleared level is rejected
+		RUN_TIMEOUT_GRACE = 15, -- seconds past the time limit before an unreported run is dropped
+		-- Practice Dao drills (Forms) are timed, not levelled:
+		MIN_DURATION_FRACTION = 0.9, -- a drill reported sooner than this is rejected
+		IMPURITIES_PER_10S = 1.5, -- impure points per 10 s of drill
 		PEAK_RADIUS = 60, -- studs from your plateau centre that count as on your peak
 		FIRST_RUN_GAME = "Maze", -- the very first run is always this game...
-		FIRST_RUN_DURATION = 15, -- ...short...
+		FIRST_RUN_LEVELS = 1, -- ...one level...
 		FIRST_RUN_DIFFICULTY = -0.5, -- ...and easier than `easy` (below 0 blends past it)
 
 		-- Minigames. Each run gets a difficulty from 0 (easy) to 1 (hard), set per
 		-- stage in Pacing.Curve (`difficulty`); each game blends every value in
 		-- `easy` toward `hard` by it. `weight` is how often the game is picked (0 = never).
 		Games = {
-			-- Maze Formation: drag your qi through the corridors, out of maze after maze.
+			-- Maze Formation: drag your qi through the corridors; one maze a level.
 			Maze = {
 				weight = 1,
 				easy = {
 					size = 5, -- cells per side (at least 4)
-					par = 8, -- seconds per maze for full accuracy
+					par = 8, -- seconds per maze for full accuracy (slower costs a little)
 				},
 				hard = { size = 9, par = 14 },
 			},
-			-- Thread the Meridian: drag a bead along a winding channel without touching its walls.
+			-- Thread the Meridian: drag a bead along a winding channel without touching
+			-- its walls; one channel a level, each touch costs accuracy.
 			Thread = {
 				weight = 1,
 				easy = {
 					width = 0.09, -- channel half-width on level 1, share of the field height
 					bends = 3, -- turns on level 1 (each later level adds one)
-					par = 9, -- seconds per level for full accuracy
 				},
-				hard = { width = 0.055, bends = 5, par = 11 },
+				hard = { width = 0.055, bends = 5 },
 			},
 			-- Meridian Pulse: tap anywhere as each ring closes on its acupoint.
 			Pulse = {
@@ -173,8 +180,9 @@ return {
 					window = 0.3, -- seconds either side of the beat that still count ("Good")
 					interval = 1.1, -- seconds between beats
 					approach = 1.4, -- seconds a ring takes to close
+					beats = 10, -- beats a level
 				},
-				hard = { window = 0.14, interval = 0.7, approach = 0.9 },
+				hard = { window = 0.14, interval = 0.7, approach = 0.9, beats = 14 },
 			},
 			-- Gather Qi: drag the dantian bowl to catch falling qi and dodge impure motes.
 			Gather = {
@@ -183,8 +191,9 @@ return {
 					bowl = 0.3, -- bowl width, share of the field
 					fall = 0.45, -- mote fall speed, field heights per second
 					interval = 0.6, -- seconds between qi motes
+					motes = 14, -- qi motes a level
 				},
-				hard = { bowl = 0.17, fall = 0.8, interval = 0.38 },
+				hard = { bowl = 0.17, fall = 0.8, interval = 0.38, motes = 22 },
 			},
 			-- Weapon Forms: tap numbered points anywhere on the field as their rings
 			-- close. The Practice Dao drill only (weight 0: never a circulation run).

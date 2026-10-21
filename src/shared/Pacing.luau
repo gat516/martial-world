@@ -10,7 +10,7 @@
 --     QI            how much qi the stage needs and how fast it comes
 --                   (bar, dantian, passive, refine, gather)
 --     BREAKTHROUGH  what it takes to leave the stage
---                   (insight, minigame runSeconds and difficulty, tribulation)
+--                   (insight, minigame levels and difficulty, tribulation)
 --     FIGHT         how hard fights feel at this stage
 --                   (the player's health and power; beastHealth and beastDamage
 --                   for demon beasts whose Enemies `realm` is this stage)
@@ -85,7 +85,7 @@ export type Row = {
 	health: number, -- the player's max health
 	power: number, -- the player's damage multiplier (also sets knockback, Knockback.luau)
 	insight: number, -- insight needed to break out of this stage (0 = none)
-	runSeconds: number, -- circulation minigame length
+	levels: number, -- most levels in a circulation run (1-3); leave after any one and keep what it refined
 	difficulty: number, -- circulation minigame difficulty, 0 (easy) to 1 (hard); below 0 is easier than easy
 	tribulation: Tribulation?, -- set on a stage whose breakthrough is major (into a new realm)
 }
@@ -97,7 +97,7 @@ export type Adjust = {
 	refine: number?, -- multiplies circulation efficiency (cultivation per raw qi)
 	gather: number?, -- multiplies raw qi income: qi nodes, daily login qi (and enemy kills, see Income)
 	difficulty: number?, -- added to the minigame difficulty (-0.2 = easier)
-	runSeconds: number?, -- replaces the minigame length
+	levels: number?, -- replaces the most levels in a run
 	insight: number?, -- replaces the insight requirement
 	tribulation: { [string]: number }?, -- replaces fields of this stage's tribulation
 	health: number?, -- multiplies the player's max health at this stage
@@ -124,32 +124,32 @@ local HEAVENLY_TRIBULATION: Tribulation = {
 -- THE CURVE. Bars grow about 1.6x a stage after the hook; dantians about 1.4x,
 -- so each stage needs a bit more gathering per bar than the last. Breathers and
 -- walls bend that ramp on purpose (see THE RHYTHM above).
--- Minigame length grows 2 s a stage (capped at 40) and difficulty reaches hard at
--- the last Qi Condensation stage's breakthrough (FE1).
+-- Runs are two levels at QC1-2 and three after; difficulty reaches hard at the
+-- last Qi Condensation stage's breakthrough (FE1).
 Pacing.Curve = {
 	-- HOOK: one run fills the bar; the very first run is always a short, easy Maze
 	-- (Config.Circulation.FIRST_RUN_*). Breakthrough within the first few minutes.
-	{ key = "QC1", major = "QiCondensation", minor = 1, beat = "HOOK", bar = 40, dantian = 120, passive = 0.20, health = 100, power = 1.00, insight = 0, runSeconds = 20, difficulty = 0.000 },
+	{ key = "QC1", major = "QiCondensation", minor = 1, beat = "HOOK", bar = 40, dantian = 120, passive = 0.20, health = 100, power = 1.00, insight = 0, levels = 2, difficulty = 0.000 },
 	-- HOOK: the elder sends the player to the wilds; kills refill the dantian.
-	{ key = "QC2", major = "QiCondensation", minor = 2, beat = "HOOK", bar = 110, dantian = 180, passive = 0.25, health = 120, power = 1.10, insight = 0, runSeconds = 22, difficulty = 0.111 },
+	{ key = "QC2", major = "QiCondensation", minor = 2, beat = "HOOK", bar = 110, dantian = 180, passive = 0.25, health = 120, power = 1.10, insight = 0, levels = 2, difficulty = 0.111 },
 	-- HOOK: the onboarding's last goal is reaching QC3.
-	{ key = "QC3", major = "QiCondensation", minor = 3, beat = "HOOK", bar = 200, dantian = 260, passive = 0.32, health = 140, power = 1.20, insight = 0, runSeconds = 24, difficulty = 0.222 },
+	{ key = "QC3", major = "QiCondensation", minor = 3, beat = "HOOK", bar = 200, dantian = 260, passive = 0.32, health = 140, power = 1.20, insight = 0, levels = 3, difficulty = 0.222 },
 	-- BREATHER: the first free-play stage. Kept under the 1.6x ramp (was 340) so
 	-- the first goal off the rails comes quickly.
-	{ key = "QC4", major = "QiCondensation", minor = 4, beat = "BREATHER", bar = 300, dantian = 380, passive = 0.40, health = 165, power = 1.32, insight = 0, runSeconds = 26, difficulty = 0.333 },
+	{ key = "QC4", major = "QiCondensation", minor = 4, beat = "BREATHER", bar = 300, dantian = 380, passive = 0.40, health = 165, power = 1.32, insight = 0, levels = 3, difficulty = 0.333 },
 	-- RAMP: the bar outgrows one dantian; gather -> refine becomes the loop.
-	{ key = "QC5", major = "QiCondensation", minor = 5, beat = "RAMP", bar = 560, dantian = 540, passive = 0.50, health = 190, power = 1.45, insight = 0, runSeconds = 28, difficulty = 0.444 },
+	{ key = "QC5", major = "QiCondensation", minor = 5, beat = "RAMP", bar = 560, dantian = 540, passive = 0.50, health = 190, power = 1.45, insight = 0, levels = 3, difficulty = 0.444 },
 	-- MINI-WALL: 1.3 dantians of qi (was 900). Herbs, cores and the garden start to matter.
-	{ key = "QC6", major = "QiCondensation", minor = 6, beat = "MINI-WALL", bar = 1000, dantian = 760, passive = 0.62, health = 220, power = 1.60, insight = 0, runSeconds = 30, difficulty = 0.556 },
+	{ key = "QC6", major = "QiCondensation", minor = 6, beat = "MINI-WALL", bar = 1000, dantian = 760, passive = 0.62, health = 220, power = 1.60, insight = 0, levels = 3, difficulty = 0.556 },
 	-- BREATHER: relief after the mini-wall (was 1450); about as long as QC6.
-	{ key = "QC7", major = "QiCondensation", minor = 7, beat = "BREATHER", bar = 1300, dantian = 1050, passive = 0.78, health = 255, power = 1.76, insight = 0, runSeconds = 32, difficulty = 0.667 },
+	{ key = "QC7", major = "QiCondensation", minor = 7, beat = "BREATHER", bar = 1300, dantian = 1050, passive = 0.78, health = 255, power = 1.76, insight = 0, levels = 3, difficulty = 0.667 },
 	-- RAMP: the long climb before the wall.
-	{ key = "QC8", major = "QiCondensation", minor = 8, beat = "RAMP", bar = 2300, dantian = 1450, passive = 0.95, health = 290, power = 1.94, insight = 0, runSeconds = 34, difficulty = 0.778 },
+	{ key = "QC8", major = "QiCondensation", minor = 8, beat = "RAMP", bar = 2300, dantian = 1450, passive = 0.95, health = 290, power = 1.94, insight = 0, levels = 3, difficulty = 0.778 },
 	-- WALL: the biggest bar, 5 insight, then the heavenly tribulation. This is
 	-- where the first realm ends; the payoff is Foundation's 1.4x power jump.
-	{ key = "QC9", major = "QiCondensation", minor = 9, beat = "WALL", bar = 3700, dantian = 2000, passive = 1.15, health = 330, power = 2.13, insight = 5, runSeconds = 36, difficulty = 0.889, tribulation = HEAVENLY_TRIBULATION },
+	{ key = "QC9", major = "QiCondensation", minor = 9, beat = "WALL", bar = 3700, dantian = 2000, passive = 1.15, health = 330, power = 2.13, insight = 5, levels = 3, difficulty = 0.889, tribulation = HEAVENLY_TRIBULATION },
 	-- The top of the ladder for now. Its bar is only shown, never broken through.
-	{ key = "FE1", major = "Foundation", minor = 1, beat = "PEAK", bar = 12000, dantian = 4000, passive = 2.00, health = 500, power = 3.00, insight = 0, runSeconds = 38, difficulty = 1.000 },
+	{ key = "FE1", major = "Foundation", minor = 1, beat = "PEAK", bar = 12000, dantian = 4000, passive = 2.00, health = 500, power = 3.00, insight = 0, levels = 3, difficulty = 1.000 },
 } :: { Row }
 
 -- PER-STAGE CORRECTIONS, by stage key. Empty by default: the curve is the design.
@@ -184,12 +184,13 @@ Pacing.Global = {
 -- REFINING (circulation runs turn raw qi into cultivation). The minigames
 -- themselves (games, impurities, first run, anti-cheat timing) are in Config.Circulation.
 Pacing.Refine = {
-	RUNS_PER_DANTIAN = 2.5, -- a full run spends dantian / this raw qi
+	RUNS_PER_DANTIAN = 2.5, -- a full run (every level cleared) spends dantian / this raw qi; each level its share
 	MIN_RUN_FRACTION = 0.25, -- need at least this share of a full run's qi to start
 	EFFICIENCY_MIN = 0.5, -- cultivation per raw qi at score 0
 	EFFICIENCY_MAX = 1.3, -- and at score 1 (before the stage's refine multiplier)
 	DEVIATION_SCORE = 0.35, -- below this the run causes a qi deviation
 	DEVIATION_SECONDS = 20, -- no circulating and no passive cultivation meanwhile
+	FULL_CLEAR_BONUS = 0.2, -- clearing every level of a run refines this much more, for no extra qi
 }
 
 -- RAW QI INCOME (what refining spends). Herb and item qi are fixed per item

@@ -24,9 +24,65 @@ main peak, the sect gate and the wilds arrays (see [map](map.md), "World structu
   buttons grey out with "From the Sect Gate". They also open by realm
   (`Gates.required`, from the region's `realm`). Arrivals and respawns land on arrays.
 
+## Hook fast: the onboarding direction (decided 2026-10-21)
+Goal: the player feels the core loop (cultivate -> hit a wall -> go out ->
+come home stronger) in the first few minutes, with as little friction as
+possible. Day 1 retention is the measure; the onboarding funnel
+(`Analytics.funnel`, one step per beat) shows where players leave.
+
+What Roblox's own guidance and common practice say (sources at the end):
+- **Teach the essentials, get to the fun quickly, leave them wanting more.**
+  Roblox's FTUE guide judges onboarding by D1 retention and a per-step funnel,
+  and suggests A/B testing single steps (e.g. a shorter dialogue against a
+  guided arrow).
+- **Show, don't tell.** One short line at a time, never a text wall; point at
+  the thing (a spotlit button, a path on the ground) instead of describing it.
+- **Early wins.** Low first thresholds so progress is felt at once (QC1's bar
+  is 40), starter items and currency so systems get used early, a celebrated
+  milestone to end on a high.
+- **Goals in view.** Short, mid and long goals always visible (objective line,
+  quest board), and a reason to come back (offline cultivation, daily login).
+
+How we apply it:
+1. **Start set vs encounterables.** Onboarding beats teach only what every
+   player needs in the first session: circulate/meditate, break through, spirit
+   root, travel, fight (M1, dodge), a technique, refine. Everything met later
+   teaches itself through a **lesson** the first time it matters (see below),
+   so the beat list stays short.
+2. **Guided UI** (client, to build): each beat and lesson carries a `guide`.
+   - `button` + `dim`: grey the whole HUD except that control (a spotlight with a
+     soft pulse) until it's pressed. Only for the first-session beats, never
+     mid-fight, never for lessons.
+   - `button` "Travel" + `to`: spotlight Travel, then the destination in the menu.
+   - `place`: a path to walk (a soft trail of light on the ground plus an
+     edge-of-screen arrow when it's off screen) to the target.
+   - The elder's line sits beside the spotlight; one line, auto-hides.
+3. **Fewer steps to the first fight.** Measure time-to-first-kill in the funnel;
+   cut anything between the root reveal and the wilds that isn't fun.
+4. **Celebrate the highs:** the root reveal, the first breakthrough and the
+   first technique are the moments to ask players to favourite the game.
+
+Still to decide with the user (next pass): the exact first-session beat list
+and lines, where garden/peak ("home deepens", QC4) and weapons/the rack fit,
+and whether a favourite prompt goes after the root reveal.
+
+### Beats and lessons (built)
+- Beats are kept **by id** in `data.beats` (schema v8; v7's position count is
+  migrated), so beats can be inserted or reordered. `travel = true` marks the
+  beat from which the formation is taught (Root).
+- **Lessons** (`Quests.Lessons`, `data.lessons`): Bottleneck, DaoPractice,
+  Method, RootPill. In free play, the first lesson whose condition holds says
+  its elder line once ever (`QuestState.lesson`), and its guide shows for the
+  rest of that session while the condition still holds.
+- **Guides** (`QuestState.guide`), computed per tick from where the player is
+  and what they're doing: e.g. Circulate spotlights Cultivate (dim), then the
+  seated Circulate tile; Root spotlights Travel -> Main Peak, then walks to the
+  Testing Stone; Refine walks to the nearest qi node unless you can refine
+  where you stand. Keys are listed at the top of `Quests.luau`.
+
 ## Key files
-- `src/server/Quests.luau`: `Beats`, `goals` (quest board), `travelUnlocked`, elder
-  and board prompts in `Workspace.Hub`.
+- `src/server/Quests.luau`: `Beats`, `Lessons`, guides, `goals` (quest board),
+  `travelUnlocked`, elder and board prompts in `Workspace.Hub`.
 - `src/shared/Gates.luau`: the arrays (ids, names, realm gate, standing range;
   tag `TravelGate` + attribute `Gate` in the place).
 - `src/server/Travel.luau`: where you may travel from (sect ground, an array, the
@@ -44,8 +100,9 @@ main peak, the sect gate and the wilds arrays (see [map](map.md), "World structu
 - Analytics: each beat is an onboarding funnel step (`Analytics.funnel`).
 
 ## Data flow
-Every second `Quests.check` advances `data.onboardingStep` and pushes
-`QuestState` (only when something visible changed); Onboarding passes `travel`
+Every second `Quests.check` marks met beats in `data.beats` and pushes
+`QuestState` `{ step, beat, elder, objective, travel, goals, guide, lesson }`
+(only when something visible changed, or a lesson fires); Onboarding passes `travel`
 to `TravelMenu.setTaught`. `TravelAction(gateId)` checks unlock, where you
 stand (sect ground or an array; the Sect Gate's or a wilds array for the wilds), the realm gate, combat and cooldown, streams the destination in,
 then pivots the character onto that array.
@@ -57,6 +114,14 @@ then pivots the character onto that array.
 - Rewards shown on the board come from `Pacing.Rewards`.
 
 ## Known gaps
-- `TRAVEL_BEAT` is an index asserted against the beat list, and PlayerData's v5
-  migration assumes Root is the 3rd beat; reordering beats needs care.
-- Inserting Root shifted the analytics funnel's step numbers from 3 up.
+- The client still only pulses a button per beat (`Onboarding.FOCUS`) and shows
+  lesson lines; it doesn't read `guide` yet (no dimming, no walking paths).
+- Analytics funnel steps are beat positions, so inserting a beat shifts the
+  step numbers after it (compare funnels across versions with care).
+
+## Sources
+- Roblox Creator Docs, [Onboarding](https://create.roblox.com/docs/production/game-design/onboarding)
+  and [Retention](https://create.roblox.com/docs/en-us/production/analytics/retention.md).
+- DevForum, [Improving Onboarding through Funnel Events](https://devforum.roblox.com/t/improving-onboarding-through-funnel-events/3064458).
+- RoLearn, [First week retention optimization](https://rolearn.dev/guidance/first-week-retention-optimization)
+  (third-party benchmarks: below 20% D1 is critical, 30-40% good; unverified).

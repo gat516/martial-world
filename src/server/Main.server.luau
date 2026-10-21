@@ -126,7 +126,7 @@ local function onPlayerAdded(player: Player)
 	local offline = Cultivation.claimLogin(player, data)
 	joinedAt[player] = os.clock()
 	lastBreakthroughAt[player] = os.clock()
-	if data.onboardingStep == 0 and data.stats.circulationRuns == 0 then
+	if next(data.beats) == nil and data.stats.circulationRuns == 0 then
 		Analytics.funnel(player, 1)
 		Analytics.progression(player, "start", 1, Realms.Stages[1].name)
 	end

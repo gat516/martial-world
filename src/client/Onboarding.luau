@@ -105,6 +105,10 @@ local function onState(state: any)
 	elseif state.repeatElder then
 		showElder(state.elder)
 	end
+	-- a first-encounter lesson (Quests.Lessons): its line, once
+	if state.lesson then
+		showElder(state.lesson.elder)
+	end
 	pulse(FOCUS[state.beat])
 
 	local window = gui:FindFirstChild("QuestBoardWindow") :: Frame

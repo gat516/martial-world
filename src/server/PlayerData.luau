@@ -19,7 +19,7 @@ local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
 local Roots = require(ReplicatedStorage.Shared.Roots)
 
-local SCHEMA_VERSION = 7
+local SCHEMA_VERSION = 8
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number, m: string? }
@@ -43,7 +43,8 @@ export type Data = {
 	hotbar: { string },
 	firstKills: { [string]: boolean },
 	milestones: { [string]: boolean }, -- kill milestones claimed, by kill count
-	onboardingStep: number, -- onboarding beats completed (Quests.Beats)
+	beats: { [string]: boolean }, -- onboarding beats completed, by id (Quests.Beats)
+	lessons: { [string]: boolean }, -- first-encounter lessons already shown (Quests.Lessons)
 	onboardingMark: number, -- circulation runs when the current beat began
 	lastLogoutUnix: number,
 	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
@@ -94,7 +95,8 @@ local function default(): Data
 		hotbar = Hotbar.empty({ "SwordQiWave" }),
 		firstKills = {},
 		milestones = {},
-		onboardingStep = 0,
+		beats = {},
+		lessons = {},
 		onboardingMark = 0,
 		lastLogoutUnix = 0,
 		lastDailyDay = 0,
@@ -175,6 +177,16 @@ local migrations: { [number]: (any) -> () } = {
 	-- v6 never spent insight, so everything held so far was earned
 	[6] = function(d)
 		d.insightEarned = d.insight or 0
+	end,
+	-- v7 counted onboarding beats by position; v8 keeps them by id, so beats
+	-- can be reordered or inserted. This is the v7 beat order.
+	[7] = function(d)
+		local order = { "Circulate", "Breakthrough", "Root", "Gate", "FirstKill", "Technique", "Refine", "QC3" }
+		d.beats = {}
+		for i = 1, math.min(d.onboardingStep or 0, #order) do
+			d.beats[order[i]] = true
+		end
+		d.onboardingStep = nil
 	end,
 }
 

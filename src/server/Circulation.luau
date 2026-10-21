@@ -199,6 +199,8 @@ function Circulation.cancel(player: Player, id: any): (boolean, any)
 	return true, nil
 end
 
+Circulation.atRefiningSpot = atRefiningSpot
+
 function Circulation.handle(player: Player, action: any, ...: any): (boolean, any)
 	if action == "start" then
 		return Circulation.start(player)

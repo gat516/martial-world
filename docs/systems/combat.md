@@ -40,6 +40,11 @@ scales all player damage.
 - `src/client/CombatController.luau`: input, prediction, buffering, animations.
 - `src/client/ActionState.luau`: local predicted action state.
 - `src/client/LockOn.luau`, `Sprint.luau`, `ShiftLock.luau` (Alt), `HeadLook.luau`.
+  Sprint's loop is `Animations/Run` in `assets/Animations.rbxmx` (rbxassetid
+  117319074411273, the new run clip; the old one was 81617655199380). Its
+  playback speed is scaled from `Config.Movement.RUN_ANIMATION_SPEED` (26 studs/s,
+  set for the old clip), so the new clip's pace is untuned: check the feet against
+  the ground at run speed and retune that number if it slides.
 - `src/client/CombatEffects.luau`, `Telegraphs.luau`: cosmetic effects and ground warnings.
 - `src/client/CastFX.luau`: shared runtime helpers for technique effects, used
   for the caster's own casts and relayed ones alike: the striking limb

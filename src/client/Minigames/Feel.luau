@@ -27,6 +27,8 @@ export type Info = {
 --     card has gone, so the final board stays under the result.
 --   quit(): true once the player has left the run early; the game should end
 --     on its next frame (its returned score is ignored).
+--   tapped(): call on every tap the player makes in play (a Practice Dao
+--     drill swings the weapon on it).
 export type Ui = {
 	timer: TextLabel,
 	score: TextLabel,
@@ -34,6 +36,7 @@ export type Ui = {
 	ready: () -> (),
 	hold: (clear: () -> ()) -> (),
 	quit: () -> boolean,
+	tapped: () -> (),
 }
 
 export type Game = {

@@ -88,6 +88,18 @@ level's XP, then a 5 min cooldown (`data.daoPracticeReadyUnix`, pushed as
 `daoPracticeReady`). Leaving early costs nothing and starts no cooldown. Unlocks
 at QC7 (`Pacing.DaoPractice.FROM`), never XP for sitting.
 
+*Stance (decided 2026-10-21):* once the server starts the drill the character
+gets up (Meditate `GetUp`) but stays in meditation: still locked in place, the
+session and passive cultivation keep running, and the weapon stays in hand
+(`Controls.lock("Meditation"/"Circulation", keepWeapon)`, so WeaponAnimator
+shows it and its idle). Every tap in the drill plays the next strike of the
+equipped class's chain (`Animations.Weapons.<Class>/1..n`, Fists bare-handed),
+looping, hit or miss (Feel `ui.tapped`, Pulse calls it). When the drill ends
+the character sits back down (`Sit`, then `Loop`). Strikes replicate, so others
+see the forms. Known gaps: the drill overlay sits over the screen centre and
+may hide the character's swings; strikes are cosmetic only (no hit/miss
+difference).
+
 **Root actions (built).** Under the root card the Spirit Root page lists the
 pills the player holds, each with Absorb (`InventoryAction "use"`, refused unless
 seated; refusals toast): Marrow Washing Pill ("Raise your root one grade"; at

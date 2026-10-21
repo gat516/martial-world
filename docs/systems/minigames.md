@@ -29,7 +29,7 @@ qi deviation.
   (own peak within `PEAK_RADIUS`, or within a `QiNode`'s `Radius`), anti-cheat
   (minimum duration, clamped score, realm unchanged), qi spend and gain.
 - `src/client/CirculationMinigame.luau`: overlay, count-in, result card. Also
-  runs Practice Dao drills (`practice()`; server `DaoPractice`, an `info.title`
+  runs Practice Dao drills (`practice(stance)`: the seat stands up on `begin` and swings on every `ui.tapped`; server `DaoPractice`, an `info.title`
   replaces the game's title, the result reads "+N Sword Dao XP").
 - `src/client/Minigames/Feel.luau`: shared run info, difficulty blend, feel helpers.
 - `src/client/Minigames/{Maze,Thread,Pulse,Gather}.luau`: the games.

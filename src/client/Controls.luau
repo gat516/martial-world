@@ -2,6 +2,8 @@
 -- A shared lock on the character's movement controls. Anything that needs the
 -- player still (circulating, meditating) locks by name, and movement comes back
 -- only once every lock is released, so one ending can't free the other.
+-- A lock stows the weapon (WeaponAnimator) unless it asks to keep it in hand
+-- (the standing Practice Dao drill).
 
 local Players = game:GetService("Players")
 
@@ -9,7 +11,7 @@ local player = Players.LocalPlayer
 
 local Controls = {}
 
-local locks: { [string]: boolean } = {}
+local locks: { [string]: boolean } = {} -- reason -> keeps the weapon in hand
 
 local function controls(): any?
 	local ok, module = pcall(function()
@@ -29,8 +31,8 @@ local function apply()
 	end
 end
 
-function Controls.lock(reason: string)
-	locks[reason] = true
+function Controls.lock(reason: string, keepWeapon: boolean?)
+	locks[reason] = keepWeapon == true
 	apply()
 end
 
@@ -41,6 +43,16 @@ end
 
 function Controls.isLocked(): boolean
 	return next(locks) ~= nil
+end
+
+-- Whether a lock wants the weapon put away.
+function Controls.stowsWeapon(): boolean
+	for _, keep in locks do
+		if not keep then
+			return true
+		end
+	end
+	return false
 end
 
 -- What the player is steering with (thumbstick or keys), whatever else moves them.

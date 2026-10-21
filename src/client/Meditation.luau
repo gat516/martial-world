@@ -8,7 +8,9 @@
 -- bottleneck), Method (once you own one), Spirit Root (once tested; a seal dot
 -- while a reformed element waits for a choice), Practice (a weapon drill for
 -- Dao XP, from Pacing.DaoPractice.FROM until the class is mastered; dimmed with
--- a countdown while resting), and Rise.
+-- a countdown while resting; the character gets up for the drill, still locked
+-- in place and still meditating, swings the weapon's chain one strike per tap,
+-- and sits back down after), and Rise.
 -- Comprehend, Method and Spirit Root open a small panel (MeditationMenu).
 -- The calm view: the lotus toggle (Stack.CalmToggle) folds the tiles away and
 -- fades the rest of the HUD (Menus.setCalm) to just watch the world; it also
@@ -61,6 +63,9 @@ type Phase = "idle" | "sitting" | "seated" | "rising"
 local phase: Phase = "idle"
 local token = 0 -- bumped on every sit and stand, so stale callbacks do nothing
 local tracks: { [string]: AnimationTrack } = {}
+local animator: Animator? = nil
+local strikes: { [string]: { AnimationTrack } } = {} -- a class's chain steps, loaded on first drill
+local strikeStep = 0
 local button: TextButton
 local row: Frame -- Stack.CultivatePrompt: the seated tiles
 local calmToggle: ImageButton -- Stack.CalmToggle: the lotus
@@ -230,7 +235,38 @@ local function circulate()
 	refresh()
 end
 
+-- The equipped class's chain (Animations.Weapons.<Class>/1..n, Fists for bare
+-- hands), loaded once per character.
+local function strikeTracks(class: string): { AnimationTrack }
+	local list = strikes[class]
+	if list or not animator then
+		return list or {}
+	end
+	list = {}
+	local root = ReplicatedStorage:WaitForChild("Animations")
+	local step = 1
+	while true do
+		local path = string.split(Weapons.clip(class, step), "/")
+		local found: Instance? = root
+		for _, name in path do
+			found = found and found:FindFirstChild(name)
+		end
+		if not (found and found:IsA("Animation")) then
+			break
+		end
+		local track = (animator :: Animator):LoadAnimation(found)
+		track.Priority = Enum.AnimationPriority.Action
+		track.Looped = false
+		table.insert(list, track)
+		step += 1
+	end
+	strikes[class] = list
+	return list
+end
+
 -- Practice Dao from the seat; resting tells how long instead of asking the server.
+-- Once the server starts the drill the character gets up (still meditating and
+-- locked in place, weapon in hand), strikes on every tap, and sits back down.
 local function practice()
 	local wait = practiceWait()
 	if wait > 0 then
@@ -238,7 +274,43 @@ local function practice()
 		return
 	end
 	Motion.setShown(row, false)
-	CirculationMinigame.practice()
+	local mine = token
+	local stood = false
+	CirculationMinigame.practice({
+		begin = function()
+			if token ~= mine then
+				return
+			end
+			stood = true
+			strikeStep = 0
+			Controls.lock("Meditation", true)
+			tracks.Sit:Stop(BLEND)
+			tracks.Loop:Stop(BLEND)
+			tracks.GetUp:Play(BLEND)
+		end,
+		strike = function()
+			local list = strikeTracks(practiceClass())
+			if token ~= mine or #list == 0 then
+				return
+			end
+			tracks.GetUp:Stop(0.1)
+			strikeStep = strikeStep % #list + 1
+			list[strikeStep]:Play(0.05)
+		end,
+	})
+	if stood and token == mine then
+		-- back down onto the seat
+		Controls.lock("Meditation")
+		phase = "sitting"
+		tracks.GetUp:Stop(BLEND)
+		tracks.Sit:Play(BLEND)
+		nearEnd(tracks.Sit, function()
+			if token == mine then
+				phase = "seated"
+				tracks.Loop:Play(BLEND)
+			end
+		end)
+	end
 	refresh()
 end
 
@@ -253,14 +325,16 @@ end
 
 local function onCharacter(character: Model)
 	table.clear(tracks)
+	table.clear(strikes)
 	token += 1
 	phase = "idle"
 	Controls.unlock("Meditation")
 	refresh()
 	local humanoid = character:WaitForChild("Humanoid") :: Humanoid
-	local animator = humanoid:WaitForChild("Animator") :: Animator
+	local mine = humanoid:WaitForChild("Animator") :: Animator
+	animator = mine
 	for _, name in { "Sit", "Loop", "GetUp" } do
-		local track = animator:LoadAnimation(animations:FindFirstChild(name) :: Animation)
+		local track = mine:LoadAnimation(animations:FindFirstChild(name) :: Animation)
 		track.Priority = Enum.AnimationPriority.Action
 		track.Looped = name == "Loop"
 		tracks[name] = track

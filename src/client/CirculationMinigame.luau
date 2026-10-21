@@ -5,7 +5,9 @@
 -- overlay with the game's title and hint, a 3-2-1 count-in, the game itself on
 -- its own stage, and a graded result once the server has scored the report.
 -- The same runner plays Practice Dao drills (CirculationMinigame.practice):
--- server DaoPractice picks the game and scores it for weapon Dao XP.
+-- server DaoPractice picks the game and scores it for weapon Dao XP. The drill
+-- keeps the weapon in hand and tells the seat when it starts and on every tap,
+-- so the character stands and swings (Meditation.luau).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
@@ -45,6 +47,9 @@ local overlay: Frame
 local running = false
 local quitting = false -- the player left the current run early
 
+-- What the seat does around a Practice Dao drill (none for circulation runs).
+export type Stance = { begin: () -> (), strike: () -> () }
+
 local function find(name: string): any
 	return overlay:FindFirstChild(name, true)
 end
@@ -71,7 +76,7 @@ end
 
 -- Shows the picked game's stage and labels and plays it. The game draws its
 -- first board, then calls ui.ready() for the count-in.
-local function play(info: Feel.Info, hold: { () -> () }): (number, number)
+local function play(info: Feel.Info, hold: { () -> () }, stance: Stance?): (number, number)
 	local minigame = GAMES[info.game] or GAMES.Maze
 	local stageName = if GAMES[info.game] then info.game else "Maze"
 	for name in GAMES do
@@ -96,6 +101,11 @@ local function play(info: Feel.Info, hold: { () -> () }): (number, number)
 		end,
 		quit = function()
 			return quitting
+		end,
+		tapped = function()
+			if stance then
+				stance.strike()
+			end
 		end,
 	}
 	ui.flow.Text = ""
@@ -145,7 +155,7 @@ local KINDS = {
 	},
 }
 
-local function run(kind: string)
+local function run(kind: string, stance: Stance?)
 	local actions = KINDS[kind]
 	if running then
 		return
@@ -159,11 +169,14 @@ local function run(kind: string)
 	end
 	info.hint = info.hint or (actions :: any).hint
 
-	Controls.lock("Circulation")
+	Controls.lock("Circulation", stance ~= nil)
+	if stance then
+		stance.begin()
+	end
 	overlay.Visible = true
 	local hold: { () -> () } = {}
 	quitting = false
-	local accuracy, purged = play(info, hold)
+	local accuracy, purged = play(info, hold, stance)
 	if quitting then
 		-- left early: nothing refined, nothing spent
 		remote:InvokeServer(actions.cancel, info.id)
@@ -197,8 +210,9 @@ function CirculationMinigame.start()
 end
 
 -- A Practice Dao drill with the equipped weapon (the meditation menu's tile).
-function CirculationMinigame.practice()
-	run("dao")
+-- Returns once it's over.
+function CirculationMinigame.practice(stance: Stance)
+	run("dao", stance)
 end
 
 function CirculationMinigame.isRunning(): boolean

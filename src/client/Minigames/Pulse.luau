@@ -154,6 +154,7 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 		then
 			if not finished then
 				tap()
+				ui.tapped()
 			end
 		end
 	end))

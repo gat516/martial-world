@@ -51,6 +51,13 @@ already paid for; don't relearn them.
 - `StarterGui.Hud` uses `ScreenInsets = DeviceSafeInsets`. Only the touch cluster
   (Strike, Jump, Dash) reaches past the right inset (src/client/Layout.luau).
 - Our own Jump button replaces Roblox's on touch (Layout hides `TouchGui`'s).
+- Menus, panels, windows, pickers, choices and result cards the player opens or
+  reads go in the **centre of the screen** (AnchorPoint 0.5,0.5, Position
+  0.5,0.5), never docked at the bottom. The user has had to correct bottom-docked
+  menus repeatedly (the meditation panel, 2026-10-21). The bottom is only for the
+  always-on HUD: vitals, hotbar, the seated tile row (`Hud.Stack`). A new panel
+  goes at the Hud root (or a centred container), not inside `Hud.Stack`. If you
+  think something really belongs at the bottom, ask first.
 - Thumb targets on touch are at least ~50px. Keep the bottom stack centred; shrink
   it to fit instead of sliding it sideways.
 - Size things in the GUI, not in scripts: scale units, `UIAspectRatioConstraint`

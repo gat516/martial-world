@@ -21,13 +21,17 @@ only for instanced party content.
 - **Hub server, 8 players.** The 8-player cap matches the 8 spirit peaks. The
   sect (main peak, plaza, spirit peaks) is where everyone keeps returning: peaks,
   market, elder, quest board, world events and tribulations people can watch.
-- **Zones in the same place, linked only by teleport arrays.** Each wilds zone is
-  a small, dense area (a few hundred studs) far from the others in space, one per
+- **Zones in the same place, linked by arrays and, between neighbours, a walkable
+  gorge or bridge.** Each wilds zone is a dense walled area far from the others in
+  space (the Inner Wilds valley is ~1800 x 920), one per
   realm tier, opened by realm (`Regions` `realm`). Staying in one server keeps
   friends together and weather, treasures and world events server-wide. Keep
   the zone count low (2-3 to start) so 8 players don't spread too thin; add more
   only when the existing ones are full of content.
-- **Arrays carry all travel** (`Shared.Gates`, `src/server/Travel.luau`).
+  Adjacent zones may also join on foot through a gorge gate and a bridge (decided
+  2026-10-21: the Inner Wilds and the Ruined Borderlands stay one continuous walk over
+  the border river); zones that aren't neighbours only connect by arrays.
+- **Arrays carry all long travel** (`Shared.Gates`, `src/server/Travel.luau`).
   Players spawn on their own peak's array, respawn after death on the plaza's and
   arrive on the destination's. On the sect's safe ground the Travel button rides
   to the sect's arrays (My Peak, Main Peak, Sect Gate) from anywhere; out in the
@@ -691,6 +695,215 @@ RUINED BORDERLANDS
   (to `ServerStorage._InnerWildsReplaced`), and ten lamps and lanterns floating 1-5 studs
   up (QiSpringShrine's jade lamps, BambooHollow, BorderBridge, ShrineTerrace stair foot,
   Graves, BrokenPagoda).
+
+### Inner Wilds rework: the walled valley (proposed 2026-10-21, not built)
+Plan approved in direction; the walls wait for the modular wall kit
+(`ServerStorage.ValleyWallKit`). It turns the Inner Wilds into a walled valley per "Zone
+shape" and "Verticality": one spine from the array, seven detailed pockets, three open
+event grounds, a find every 6-10 seconds on foot between them, walls with waterfalls as
+the edge, and a vertical layer for flyers stubbed in. The user asked for about twice the
+first draft's size (2026-10-21): the valley floor is ~1800 x 920. Only the sect-gate
+front (z 470-600, x -60..110, `Map.Ground.SectGate` ApproachLamps/ApproachArch plus 52
+dressing pieces) is at the target standard and is kept as is. The gray blockout of all
+of this (wall crests, falls, pockets, lairs, event grounds with route lengths, finds,
+"later" spots, routes, bounds) is `Workspace._EditorMarkers._InnerBlockout`, labelled and
+hidden at runtime.
+
+**Frame and growth.** Valley floor x -900..900, z 520..1440, Y ~3-8. Zone bounds x
+-1020..1020, z 470..1560, Y < 140: the band between the walls and the bounds (60-120
+studs) is the growth band, where walls can move out or open into new pockets later.
+Nothing scripts read (zone discs, qi nodes, arrays, cache anchors, event grounds) sits
+within 40 studs of a wall's foot. Flight ceiling (sword flight, later) Y 420, just under
+the cloud plane (top Y 440), so flyers can climb round the karst towers and reach the
+"later" ledges (decided 2026-10-21). That needs `Regions`' `SectHeights` ("safe above Y
+150") limited to the sect area itself (rings 0-470), done in the same change as the box
+bounds below; the wilds boxes then reach up to Y 420. Past the bounds or the ceiling the
+player is turned back, and past the growth band returned to the array.
+
+**Why south, and what it moves.** The sect (r < 470) is north and the karst groups frame
+east and west, so the valley grows east-west to the karst and south over today's
+Ruined Borderlands box. The Borderlands move as one block by (+220, 0, +700) to x
+-200..500, z 1612..1960, south of the SouthHorizon karst group, so the river, bridge and
+gorge stay one continuous walk (the user's choice). What moves with it:
+- `Wilds.Zones` SerpentMarsh (380, 1640), SerpentFen (-80, 1660), BossArena (220, 1800);
+  `Wilds.QiNodes` QiNode4 (160, 1660), QiNode5 (340, 1740); `Wilds.EventGrounds`
+  GravesFieldGround (0, 1750), SouthFlatGround (360, 1928) (all `assets/Wilds.rbxmx`,
+  staging).
+- `TeleportHome_Middle` to (234, 1662) and `Spawns.Ambient.SAFE`'s Middle entry with it;
+  `cache_greatsageawakening` to (-77, 1779) (id unchanged).
+- `Map.Ground.WildsMiddle` (POIs and dressing) by the same offset, re-grounded; the
+  Middle's terrain and layout (`wilds_layout.luau` Middle coordinates + offset) rebuilt at
+  the new box; the old Middle box and the old river (z 860-940) become valley floor.
+- `Music.luau`: `MARSH_SOUTH` 880 to 1560, `BOSS_CENTER` (0, 1100) to (220, 1800).
+- `Regions`: the rings no longer fit (the valley's corners reach r ~1700, the moved
+  Borderlands r ~1600-2000, inside today's Outer ring). Add box bounds: InnerWilds x
+  -1020..1020, z 470..1560; MiddleWilds x -320..620, z 1560..2060, both below Y 420 and
+  checked before the Outer ring; in the same change `SectHeights` (`above = 150`) gets
+  the sect's ring (0-470) so it no longer covers the wilds' sky. This is the "Zone
+  separation" step. The user is open to moving anything else the layout needs.
+- `art/karst/place_karst.luau`: its wilds clearance box and array spots.
+- Old ring dressing in the new footprint goes to `ServerStorage._InnerWildsReplaced`:
+  `Map.Ground.InnerRing` (Rocks 4, Trees 3, BambooForest 1 container models),
+  `MiddleRing` (DeadTrees 7, RuinedVillages 2), `OuterRing.SealedRuins` (10).
+- Karst stays where it is and becomes part of the valley (ground colliders to Y ~92):
+  SouthWestField (x -862..-999, z 546..721) is the NW corner, SouthWestPair and
+  EastSentinels (x 432..482, z 461..580) back the north wall, SouthWestFar (x -605..-733, z
+  1207..1287) stands inside the SW (the Three Pillars pocket), SouthEastFar (x 661..791, z
+  1307..1404) is the SE corner with the Twin-Jade Falls, and SouthHorizon (x -280..175, z
+  1402..1596) closes the south behind the Shrine Terrace. The gorge gate passes east of
+  it at x ~220, the one slot wide enough.
+
+```
+INNER WILDS VALLEY (proposed; z down = south, x right; A = Inner array (18,676))
+z470          sect wall, gate front (kept), Gate array (48,470), QiNode1 (60,545)
+z560  [SW Field karst]=NW WALL==V6======(gate gap)==NE WALL==[EastSentinels]==NE WALL==
+       P2 BAMBOO SEA + HOLLOW (-300,630)   A    G2 NORTH TERRACE (300,680) r48   P5 HUNTER'S
+W  P1 WOLF DEN (-580,780)  <-- West arm --+-- East arm -->  boar wallow   CAMP (660,650)  E
+A   V1                   QiNode2 (-170,700) |  P3 FALLEN GIANT RAVINE (300,800)            A
+L        WolfPocket (-170,880)        spine |  Giants Gully x~305, z 760..1060 (G3 cut)    L
+L  G1 WEST FIELD (-400,1000) r55  <-- cross west --+-- cross east -->   BoarField (330,1000)  L
+        P7 LOTUS MERE (-260,1170)           |   G3 EAST FLAT (470,1120) r55  P4 TWIN-JADE
+   P6 THREE PILLARS [SW Far karst]          |                            SPRING (580,1210)
+z1400 ==SW WALL=====  [SouthHorizon karst] SHRINE TERRACE + JADE VEIL FALLS (-40,1360) HERO
+                                 gorge gate (220,1450) -> bridge -> river -> Borderlands
+```
+
+**Arrival and spine.** Players arrive on `TeleportHome_Inner` (18, 6.6, 676, kept, facing
+south) or walk in through the gate front past the Old Stone Gate (217 studs, 14 s, from
+the Sect Gate array). First view south down the spine: the SouthHorizon karst towers
+rising out of the valley's far end, 700 studs away, with the Shrine Terrace and the Jade
+Veil Falls at their feet (the zone hero). The spine (10 wide) runs from the court to the
+shrine stair (666 studs, 42 s), framed by the Bamboo Sea west and the GateRidge east.
+The GorgeRoad leaves it at (-10, 1250) east to the gorge gate, the bridge and the river.
+
+**Paths** (about 5,000 studs): Spine; GorgeRoad (442); WestArm to the Wolf Den (553);
+WestLoop south past G1 to the Three Pillars (350); SouthWest back east along the south
+wall (618); EastArm past the Fallen Giant to the Hunter's Camp (710); EastLoop south to
+Twin-Jade (410); SouthEast back to the gorge gate (472); CrossWest and CrossEast at z
+~1000-1150 linking the loops to the spine; LotusLane (194); NorthFoot under the north
+wall to G2.
+
+**Walls (the zone edge): user-placed modular kit.** The modeler's `ValleyWallKit` holds
+short cliff segments, corners, a waterfall notch, rim caps, end pieces, boulder stacks
+and a modest Shrine Cliff, which the user places, resizes and edits by hand. Each piece
+stays a separate named model (`Wall_<Side><nn>`, `Fall_<Name>`, ...) in one folder,
+`Map.Ground.WildsInner.Walls`, never merged or welded, and no script or raycast depends
+on wall geometry (terrain scripts don't read it; spawns and event grounds stay 40+ studs
+off). Crest lines in the blockout: NorthWest (-800,560)..(-110,555), NorthEast
+(130,560)..(380,565) and (540,600)..(840,640) either side of EastSentinels, East
+(840,640)..(905,1000)..(800,1260), SouthEast (600,1430)..(260,1450), SouthWest
+(-280,1450)..(-760,1400), West (-760,1400)..(-900,1000)..(-870,780). Front 30-40 studs over
+the floor near paths, back 55-70; turf and moss over every top; a few pines on ledges.
+From above: dressed rims (turf lip, pines, boulder caps), backs stepping down in finished
+terraces to a low mist band (Y ~20-30, `MistWisps`) over the forest beyond.
+
+**Stylized shallow water.** The Lotus Mere and every fall pool use one reusable template
+the `vfx` agent is building: a flat water part with a cartoon surface (bright cyan cells,
+white foam lines, a pale foam rim where it meets sand or stone), matching the waterfall
+assets in ServerStorage (reference `docs/reference/water_stylized_shallow.webp`). The map
+pass only places and sizes it on a flat sunk floor with a sand or stone rim; it never
+builds water itself. Shallow water is walkable (a collider floor under it, no swimming).
+Only the border river stays terrain water, seen at the gorge gate.
+
+**Waterfalls** (each into a flat water part in a stone rim, never terrain water; spray,
+lip, mist as `FX_FallSpray`/`FX_FallLip`/`FX_FallMist` for `vfx`): Jade Veil Falls (hero)
+off the Shrine Cliff (-12, 1352) into a pool beside the spine's end; Twin-Jade Falls off
+the SouthEastFar foot (625, 1245) into the Qi Spring pool; the den trickle down the West
+wall (-868, 790); the Bamboo Hollow trickle down the north wall (-330, 560); a trickle on
+the East wall (902, 960).
+
+**Pockets (each detailed to the gate-front standard, one hero each).**
+| Pocket | Centre | What it is | Hero | Script pieces |
+|---|---|---|---|---|
+| P1 Wolf Den Hollow | (-580, 780) | boss pocket: ring of standing stones r 44, den crag and cave against the West wall, a rock gate on the WestArm (ambush) | den crag with the trickle | `WolfDen` disc moves here (boss ring), `cache_dragonpierce` (-610, 750) |
+| P2 Bamboo Sea + Bamboo Hollow | (-300, 630) | the hero bamboo forest (~250 x 150) on and round Old Stone Hill, the Hidden trail winding through it in filtered light to the hollow's spring | the spring under the north wall trickle, the weiqi table | `cache_crescentsweep` (-330, 600) |
+| P3 Fallen Giant Ravine | (300, 800) | Giants Gully runs south from here; the fallen giant spans it as the EastArm's bridge | the giant | gully floor is the G3 shortcut |
+| P4 Twin-Jade Spring | (580, 1210) | Qi Spring shrine at the fall pool under the SouthEastFar karst | Twin-Jade Falls | `QiNode3` moves to (545, 1195) |
+| P5 Hunter's Camp | (660, 650) | camp on a rise in the NE, ladder up to a lookout (V4) | the lookout | `cache_rampagingtiger` (650, 660), 40+ off the wall |
+| P6 Three Pillars Hermitage (new) | (-560, 1170) | a hermit's cliff dwelling at the SouthWestFar karst feet, ledge stair up the pillar (V7) | the three karst towers | new qi node (-520, 1150), a hermit NPC spot |
+| P7 Lotus Mere (new) | (-260, 1170) | a shallow, walkable mere: a flat stylized water part (the `vfx` shallow-water template) over a sand floor sunk ~1 stud, with lotus, a stilt pavilion and a beached boat; no terrain water, no fall into it | the pavilion on the water | new qi node (-200, 1120) |
+| Hero: Shrine Terrace | (-40, 1360) | weathered pavilion on the Shrine Cliff at SouthHorizon's foot, stair from the spine | Jade Veil Falls | `cache_heavensplitter` (-90, 1370) |
+
+**Event grounds (open, flat, dressed light: grass, a few low rocks at the edge, no trees
+or rock clusters inside).** Three distances; two near-equal routes each and one riskier
+shortcut (lengths from the array along the planned paths, at walking speed 16):
+| Ground | Centre, radius | Route A | Route B | Shortcut (risk) |
+|---|---|---|---|---|
+| G2 North Terrace (near) | (300, 680) r 48, at the EastSentinels' feet | EastArm then up the meadow 322 (20 s) | NorthFoot under the wall 326 | 285, along the GateRidge crest (narrow, drops either side) |
+| G1 West Field (mid) | (-400, 1000) r 55 | WestArm then down the WestLoop 665 (42 s) | spine then CrossWest 663 | 531, through the Bamboo Sea's edge past the moved WolfPocket |
+| G3 East Flat (far) | (470, 1120) r 55 | EastArm, EastLoop, back west 925 (58 s) | spine then CrossEast 914 | 718, down Giants Gully past the moved BoarField lair (jump-down) |
+`Wilds.EventGrounds` gets these three in place of today's two interim Inner grounds.
+
+**Lairs, nodes, caches.** `Wilds.Zones` WolfDen to (-580, 780) (the boss ring),
+WolfPocket to (-170, 880) on the G1 shortcut, BoarMeadow to (420, 790) by the boar
+wallow, BoarField to (330, 1000) in the gully on the G3 shortcut. QiNode1 (60, 545) and
+QiNode2 (-170, 700) stay; QiNode3 to (545, 1195); two new nodes at P6 and P7. Caches as
+in the pocket table; ids never change.
+
+**Finds between the pockets (a cluster each, big + medium + small, tagged `POI` Kind
+`Find`).** Spine: F1 Stele grove (-29, 684, the kept Steles), F2 wayside earth-god shrine
+(-5, 790), F3 meditation rock facing the falls (25, 900), F4 ruined tea stall and
+milestone (-35, 1010), F5 old well (15, 1150), F6 lantern stair foot (-15, 1280).
+GorgeRoad: F7 ferryman's hut (120, 1330), F8 river jetty through the gate (250, 1470).
+WestArm: F9 herb patch (-110, 700), F10 abandoned cart (-260, 735), F11 claw-marked tree
+and bones (-450, 760). WestLoop: F12 snare line (-470, 920), F13 half-buried pagoda
+finial (-530, 1080). SouthWest: F14 woodcutter's clearing (-330, 1320), F15 stone bridge
+over a dry creek (-180, 1320). EastArm: F16 herb patch (110, 725), F17 GateRidge vista
+notch (150, 665, climb), F18 boar wallow (420, 790), F19 collapsed watch post (580,
+760). EastLoop: F20 moss stele circle (610, 880), F21 Fox Hole cave mouth (700, 1000).
+SouthEast: F22 charcoal kiln (420, 1320), F23 sword in the rock (300, 1350). CrossWest:
+F24 lone pine with a meditation mat (-220, 960), F25 herbalist's drying racks (-330,
+1030). CrossEast: F26 toppled statue head (200, 1150), F27 spirit-beast skeleton (380,
+1170). LotusLane: F28 fisherman's boat (-300, 1100). Bamboo Sea: F29 turtle stele at the
+Hidden trail (-200, 650), F30 weiqi table (-330, 600). Gully: F31 old armour and a sword
+(310, 920, shortcut reward). That is 31 finds plus 7 pockets and 3 grounds on ~5,000
+studs of path: something new every 100-150 studs (6-10 s).
+
+**Vertical layer (later; anchor Parts tagged `POI` Kind `Later`, LabelNote "(later)").**
+V1 Eagle Ledge on a SouthWestField pillar (-880, ~70, 640); V2 Water Curtain Cave behind
+the Jade Veil Falls (-25, ~30, 1385); V3 Drifting Stele, a floating rock over the gully
+(305, ~100, 900), flight only; V4 Hunter's Lookout on the NE wall (760, ~60, 605), ladder;
+V5 floating islets with qi motes over Twin-Jade (620, 100-130, 1180), flight only; V6
+Sect View ledge on the NW wall (-400, ~55, 560); V7 hermit's high cell on a SouthWestFar
+ledge (-640, ~80, 1240), climb; V8 Sentinel Gap ledge on EastSentinels (430, ~90, 620),
+flight only.
+
+**Bamboo is its own biome.** It grows only in deliberate pure groves: the Bamboo Sea
+(P2, dense, tall, a path winding through, light filtering down), and small groves with a
+reason (the Bamboo Hollow, the Stele grove, round the Shrine Terrace, by the Twin-Jade
+pool and the Lotus Mere). Each grove has a clear edge or a short transition (young
+shoots, a few culms, low bushes), never single clumps among the pines.
+`dress_wilds.luau` drops its noise sprinkle (`bambooAt`'s `math.noise(x / 70, z / 70) >
+0.32`) and reads the grove list from the layout; clumps come from the modeler's
+`_Templates` bamboo (BambooCluster_1..16).
+
+**What happens to the existing pieces** (replaced pieces go to
+`ServerStorage._InnerWildsReplaced` with `FromPath`):
+- Kept: the gate front and its 52 dressing pieces; `TeleportHome_Inner`, `TeleportHome_Gate`;
+  QiNode1-2; POIs OldStoneGate, Steles, FallenGiant, QiSpringShrine, HunterCamp,
+  BambooHollow, ShrineTerrace, WolfDen (moved to their pockets and reworked);
+  BorderBridge (moved to the new gorge, x ~220).
+- Moved: the four Inner lairs, QiNode3, four Inner caches, the Middle as a block (above).
+- Replaced: all `WildsInner.Dressing` outside the gate front (about 1,770 pieces, rebuilt
+  by `dress_wilds.luau` against the new layout: the 144 bamboo unions that render as loose
+  planks, the even canopy of 386 trees and their colliders, 256 rocks, 548 path edge,
+  97 shrubs, 36 ground cover); the old ring dressing in the footprint.
+- Removed: `Map.Markers.TideSpawns` and `TideRally` (no code reads them; user approved).
+- Scripts to update with the build: `wilds_layout.luau` (paths, pockets, grounds, groves,
+  the Middle offset), `terrain_wilds.luau` (bounds, old river fill, new river at z
+  ~1480-1560), `dress_wilds.luau` (bamboo rule, rim and wall-foot dressing), `poi_wilds.luau`
+  (new pockets and finds, `POI` tags), `Regions`, `Music.luau`, `Shared.Spawns`,
+  `place_karst.luau` clearances.
+
+**Inventory of the Inner box before the rework** (x -450..430, z 470..900, Y < 300;
+1,867 models and loose parts): `Map.Ground.WildsInner.Dressing` 1,827 (Trees 386,
+Colliders 360, PathEdge 548, Rocks 256, Bamboo 144, Shrubs 97, GroundCover 36);
+`WildsInner.POIs` 9; `Map.Markers` ManualCaches 4, TeleportHome 2, TideSpawns 13,
+TideRally 5; `Wilds.Zones` 4 (WolfPocket, WolfDen, BoarMeadow, BoarField); `Wilds.QiNodes`
+3. No loose pieces at the Workspace root or in `Hub`. Terrain (20-stud samples): Grass
+565, LeafyGrass 327, Water 92, Ground 88, Mud 40, Sand 31, Pavement 7; floor Y 3-8,
+ridges to Y 26. The wider footprint is flat terrain (Y 1-6) with scattered pools and old
+fissures to Y -20.
 
 ## Asset catalogue
 All under `ServerStorage.AssetLibrary` unless noted. Clone, don't move, the

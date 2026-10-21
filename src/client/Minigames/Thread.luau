@@ -373,7 +373,7 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		if ui.flow.Text == "" or string.find(ui.flow.Text, "Unbroken") then
 			ui.flow.Text = if streak >= 2 then `Unbroken x{streak}` else ""
 		end
-		if t >= info.duration then
+		if t >= info.duration or ui.quit() then
 			finished = true
 		end
 	end))

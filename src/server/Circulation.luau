@@ -187,11 +187,23 @@ function Circulation.finish(player: Player, id: any, accuracy: any, purged: any)
 		}
 end
 
+-- Leave a run early. Nothing was spent yet (qi is only refined on finish), so
+-- this just frees the player to start another.
+function Circulation.cancel(player: Player, id: any): (boolean, any)
+	local run = runs[player]
+	if run and run.id == id then
+		runs[player] = nil
+	end
+	return true, nil
+end
+
 function Circulation.handle(player: Player, action: any, ...: any): (boolean, any)
 	if action == "start" then
 		return Circulation.start(player)
 	elseif action == "finish" then
 		return Circulation.finish(player, ...)
+	elseif action == "cancel" then
+		return Circulation.cancel(player, ...)
 	elseif action == "breakthrough" then
 		return Cultivation.breakthrough(player)
 	elseif action == "method" then

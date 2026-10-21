@@ -20,6 +20,9 @@ qi deviation.
   overlaps the board on a phone. Each game draws its first board, then calls
   `ui.ready()` for the 3-2-1 count-in over it; the final board stays under the
   result card and is cleared through `ui.hold`.
+- **You can always leave a run early**, for free: nothing is spent until a run
+  finishes, so leaving refines nothing and costs nothing (the raw qi stays). The
+  first run left early is still the first run next time.
 
 ## Key files
 - `src/server/Circulation.luau`: start/finish, game pick, where runs may happen
@@ -37,6 +40,10 @@ qi deviation.
 purged)` -> score = `accuracy * ACCURACY_WEIGHT + purgedShare * (1 - ACCURACY_WEIGHT)`
 -> `{ score, gain, spent, deviation, full }`. Only the qi needed to fill the bar is
 spent. `Circulation.onFinished` logs `CirculationScore`.
+Leaving early: `CirculationMinigame.quit()` (gamepad B, `Menus.close` on the
+overlay, and the overlay's Leave button) sets `ui.quit()`; the game ends on its
+next frame, and the client sends `CultivationAction("cancel", id)` instead of
+"finish" (the server just drops the run).
 
 ## Tuning knobs
 - Per stage (Pacing.Curve / Adjust): `runSeconds`, `difficulty`, `refine`.
@@ -47,5 +54,7 @@ spent. `Circulation.onFinished` logs `CirculationScore`.
   `PEAK_RADIUS`.
 
 ## Known gaps
+- The overlay has no visible Leave button yet (ui-designer); until then only
+  gamepad B leaves a run.
 - The score is client-reported (clamped and time-checked, not replayed).
 - Thread has a local `SCATTER_SECONDS` constant in its file rather than in Config.

@@ -82,7 +82,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 
 | Remote | Kind | Direction | Server handler | Client user |
 |---|---|---|---|---|
-| CultivationAction | Function | C->S | `Circulation.handle` ("start", "finish", "breakthrough", "method" id) | CirculationMinigame, BreakthroughView |
+| CultivationAction | Function | C->S | `Circulation.handle` ("start", "finish", "cancel", "breakthrough", "method" id) | CirculationMinigame, BreakthroughView |
 | Meditate | Event | both | `Meditation.handle(on)`; server fires `false` to stand you up | Meditation |
 | Sprint | Event | C->S | `Cultivation.setRunning` | Sprint |
 | Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync) | CombatController |

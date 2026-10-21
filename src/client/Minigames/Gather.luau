@@ -174,7 +174,7 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		Feel.timer(ui.timer, t, info.duration)
 		ui.score.Text = `Caught {math.floor(caught / math.max(1, qiCount) * 100 + 0.5)}%`
 		ui.flow.Text = if combo >= 3 then `Combo x{combo}` else ""
-		if t >= info.duration then
+		if t >= info.duration or ui.quit() then
 			finished = true
 		end
 	end))

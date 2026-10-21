@@ -23,12 +23,15 @@ export type Info = {
 --     (so the board is already there to look at) and returns when play starts.
 --   hold(clear): the game's own cleanup; the runner calls it once the result
 --     card has gone, so the final board stays under the result.
+--   quit(): true once the player has left the run early; the game should end
+--     on its next frame (its returned score is ignored).
 export type Ui = {
 	timer: TextLabel,
 	score: TextLabel,
 	flow: TextLabel,
 	ready: () -> (),
 	hold: (clear: () -> ()) -> (),
+	quit: () -> boolean,
 }
 
 export type Game = {

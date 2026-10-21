@@ -537,7 +537,7 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 
 		Feel.timer(ui.timer, t, info.duration)
 		ui.score.Text = `Escaped {solved} / {math.ceil(goal)}`
-		if t >= info.duration then
+		if t >= info.duration or ui.quit() then
 			finished = true
 		end
 	end))

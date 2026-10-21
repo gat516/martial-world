@@ -7,6 +7,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Controls = require(script.Parent.Controls)
 local Hud = require(script.Parent.Hud)
@@ -40,6 +41,7 @@ local CirculationMinigame = {}
 
 local overlay: Frame
 local running = false
+local quitting = false -- the player left the current run early
 
 local function find(name: string): any
 	return overlay:FindFirstChild(name, true)
@@ -89,6 +91,9 @@ local function play(info: Feel.Info, hold: { () -> () }): (number, number)
 		end,
 		hold = function(clear)
 			table.insert(hold, clear)
+		end,
+		quit = function()
+			return quitting
 		end,
 	}
 	ui.flow.Text = ""
@@ -143,20 +148,28 @@ function CirculationMinigame.start()
 	Controls.lock("Circulation")
 	overlay.Visible = true
 	local hold: { () -> () } = {}
+	quitting = false
 	local accuracy, purged = play(info, hold)
-	local done, result = remote:InvokeServer("finish", info.id, accuracy, purged)
-	if done then
-		local grade = gradeFor(result.score)
-		local detail = `+{result.gain} cultivation`
-		if result.deviation then
-			detail ..= "\nQi deviation! Let it settle."
-		elseif result.full then
-			detail ..= "\nYour realm bar is full!"
-		end
-		showResult(grade.name, detail, grade.color)
+	if quitting then
+		-- left early: nothing refined, nothing spent
+		remote:InvokeServer("cancel", info.id)
+		Hud.toast("You stopped circulating. Your raw qi is untouched.")
 	else
-		showResult("Fizzled", result or "The run fizzled", FIZZLE)
+		local done, result = remote:InvokeServer("finish", info.id, accuracy, purged)
+		if done then
+			local grade = gradeFor(result.score)
+			local detail = `+{result.gain} cultivation`
+			if result.deviation then
+				detail ..= "\nQi deviation! Let it settle."
+			elseif result.full then
+				detail ..= "\nYour realm bar is full!"
+			end
+			showResult(grade.name, detail, grade.color)
+		else
+			showResult("Fizzled", result or "The run fizzled", FIZZLE)
+		end
 	end
+	quitting = false
 	overlay.Visible = false
 	for _, clear in hold do
 		clear()
@@ -169,10 +182,23 @@ function CirculationMinigame.isRunning(): boolean
 	return running
 end
 
+-- Leave the current run early (the overlay's Leave button, gamepad B). The
+-- game ends on its next frame; no qi is spent.
+function CirculationMinigame.quit()
+	if running then
+		quitting = true
+	end
+end
+
 -- Started from the cultivation seat (Meditation.luau), never on its own.
 function CirculationMinigame.init(gui: ScreenGui)
 	overlay = gui:FindFirstChild("Circulation") :: Frame
-	Menus.register(overlay, { minigame = true, close = function() end })
+	Menus.register(overlay, { minigame = true, close = CirculationMinigame.quit })
+	UserInputService.InputBegan:Connect(function(input)
+		if input.KeyCode == Enum.KeyCode.ButtonB then
+			CirculationMinigame.quit()
+		end
+	end)
 end
 
 return CirculationMinigame

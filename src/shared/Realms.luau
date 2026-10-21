@@ -85,6 +85,16 @@ for i, row in Pacing.Curve do
 	Realms.ByKey[row.key] = stage
 end
 
+-- The stage with this display name (the player's `Realm` attribute), or nil.
+function Realms.byName(name: any): Stage?
+	for _, s in Realms.Stages do
+		if s.name == name then
+			return s
+		end
+	end
+	return nil
+end
+
 function Realms.index(major: string, minor: number): number
 	for i, s in Realms.Stages do
 		if s.major == major and s.minor == minor then

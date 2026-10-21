@@ -39,6 +39,9 @@
       },
       "Prompts": {
         "$path": "assets/Prompts.rbxmx"
+      },
+      "Veil": {
+        "$path": "assets/Veil.rbxmx"
       }
     },
     "StarterPlayer": {

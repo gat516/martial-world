@@ -12,12 +12,18 @@ cursor, settings and the admin panel.
   PC the top-right tiles stay to switch, on touch the big windows hide them.
   The top-left is always Roblox's chat.
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
+- Travel: the menu groups Sect grounds and the Wilds; locked arrays stay listed,
+  greyed under a cinnabar 封 seal with "Opens at <realm>". A seal-and-name marker
+  floats over arrays (others' peaks only up close) and the screen fades to ink
+  with the destination's name while the trip runs; the fade always lifts (a
+  refusal lifts it at once, and it times out on its own).
 - World prompts are drawn in our own style, one target in focus at a time: on their
   target with mouse, keyboard or gamepad; on touch in a fixed column above the right
   end of the vitals and hotbar (`Prompts.Dock`, mirrors `Hud.Stack`'s box), so they
   are in thumb reach wherever the camera points.
 - UI work goes through the `ui-designer` subagent (AGENTS.md). GUIs are authored in
-  Studio via MCP and exported to `assets/Hud.rbxmx`, `Rewards.rbxmx`, `Prompts.rbxmx`;
+  Studio via MCP and exported to `assets/Hud.rbxmx`, `Rewards.rbxmx`, `Prompts.rbxmx`,
+  `Veil.rbxmx` (full-screen, no safe insets, above everything);
   scripts only find and fill them.
 
 ## Key files (all `src/client/`)
@@ -28,7 +34,8 @@ cursor, settings and the admin panel.
 - `HotbarView.luau`, `Inventory.luau`, `SlotArt.luau`, `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
-- `Onboarding.luau`, `TravelMenu.luau`, `HerbShop.luau`, `BuildCatalog.luau`,
+- `Onboarding.luau`, `TravelMenu.luau` (with `GateMarkers.luau` over arrays and
+  `Veil.luau`, the travel fade in `StarterGui.Veil`), `HerbShop.luau`, `BuildCatalog.luau`,
   `SeedPicker.luau`, `PlantingBar.luau`, `PlantTag.luau`.
 - `BreakthroughView.luau`, `Meditation.luau` (seated row), `CirculationMinigame.luau`.
 - `Cursor.luau`, `ShiftLock.luau` (Alt), `LockOn.luau` reticle and hint.

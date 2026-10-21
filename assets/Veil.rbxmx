@@ -1,0 +1,75 @@
+<roblox version="4">
+ <Item class="ScreenGui" referent="RBX1"><Properties>
+  <string name="Name">Veil</string>
+  <bool name="ResetOnSpawn">false</bool>
+  <token name="ZIndexBehavior">1</token>
+  <bool name="IgnoreGuiInset">true</bool>
+  <int name="DisplayOrder">50</int>
+  <token name="ScreenInsets">0</token>
+  <bool name="ClipToDeviceSafeArea">false</bool>
+ </Properties>
+  <Item class="Frame" referent="RBX2"><Properties>
+   <string name="Name">Shade</string>
+   <bool name="Active">true</bool>
+   <Color3 name="BackgroundColor3"><R>0.0352941</R><G>0.0470588</G><B>0.054902</B></Color3>
+   <int name="BorderSizePixel">0</int>
+   <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+   <bool name="Visible">false</bool>
+  </Properties>
+   <Item class="Frame" referent="RBX3"><Properties>
+    <string name="Name">Card</string>
+    <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+    <float name="BackgroundTransparency">1</float>
+    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.8</XS><XO>0</XO><YS>0</YS><YO>96</YO></UDim2>
+   </Properties>
+    <Item class="UISizeConstraint" referent="RBX4"><Properties>
+     <string name="Name">UISizeConstraint</string>
+     <Vector2 name="MaxSize"><X>520</X><Y>96</Y></Vector2>
+    </Properties>
+    </Item>
+    <Item class="TextLabel" referent="RBX5"><Properties>
+     <string name="Name">Kicker</string>
+     <float name="BackgroundTransparency">1</float>
+     <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>4</YO></UDim2>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>18</YO></UDim2>
+     <string name="Text">THE FORMATION CARRIES YOU TO</string>
+     <Color3 name="TextColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
+     <float name="TextSize">13</float>
+     <float name="TextStrokeTransparency">0</float>
+     <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0392157</G><B>0.0392157</B></Color3>
+     <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+    </Properties>
+    </Item>
+    <Item class="TextLabel" referent="RBX6"><Properties>
+     <string name="Name">Title</string>
+     <float name="BackgroundTransparency">1</float>
+     <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>24</YO></UDim2>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>44</YO></UDim2>
+     <string name="Text">Ruined Borderlands</string>
+     <Color3 name="TextColor3"><R>0.960784</R><G>0.92549</G><B>0.839216</B></Color3>
+     <bool name="TextScaled">true</bool>
+     <bool name="TextWrapped">true</bool>
+     <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+    </Properties>
+     <Item class="UITextSizeConstraint" referent="RBX7"><Properties>
+      <string name="Name">UITextSizeConstraint</string>
+      <int name="MaxTextSize">34</int>
+      <int name="MinTextSize">14</int>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="ImageLabel" referent="RBX8"><Properties>
+     <string name="Name">Rule</string>
+     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
+     <float name="BackgroundTransparency">1</float>
+     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>76</YO></UDim2>
+     <UDim2 name="Size"><XS>0.7</XS><XO>0</XO><YS>0</YS><YO>8</YO></UDim2>
+     <Content name="Image"><url>rbxassetid://80115889563057</url></Content>
+     <Color3 name="ImageColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
+    </Properties>
+    </Item>
+   </Item>
+  </Item>
+ </Item>
+</roblox>

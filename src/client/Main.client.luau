@@ -1,6 +1,6 @@
 --!strict
 -- Client entry: wires the HUD, circulation minigame, breakthroughs, combat (with
--- telegraphs, lock-on and enemy health bars), the mouse cursor, travel, the hotbar, the inventory
+-- telegraphs, lock-on and enemy health bars), the mouse cursor, travel (menu, array markers, fade), the hotbar, the inventory
 -- (items and arts), seed picker, garden view, build mode, meditation, settings, zone music, beast sounds and the region entry banner.
 
 local Players = game:GetService("Players")

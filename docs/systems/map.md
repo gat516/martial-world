@@ -54,10 +54,12 @@ only for instanced party content.
   (session locking), and players always return to a hub server.
 
 ### Still to do, in rough order
-1. **Gate UI** (`ui-designer`): TravelMenu buttons for `InnerWilds`,
+1. ~~**Gate UI** (`ui-designer`): TravelMenu buttons for `InnerWilds`,
    `MiddleWilds`, `OuterWilds` (TravelMenu wires any List button named after a
    gate id) showing the realm each opens at and a locked state; a prompt or glow
-   on arrays so players find them; a fade while the destination streams in.
+   on arrays so players find them; a fade while the destination streams in.~~
+   Done: wilds buttons with realm locks, `GateMarkers` billboards, the `Veil`
+   fade. A glow or particle on the arrays themselves is left for `vfx`.
 2. **Zone separation** (`map-builder`): rebuild each wilds zone as its own
    bounded area far apart, with its array, landmark and POIs; switch `Regions`
    from rings to per-zone bounds, and update `Music.luau` (copies the layout),

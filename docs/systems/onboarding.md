@@ -27,7 +27,12 @@ main peak, the sect gate and the wilds arrays, always from one array to another
   combat block, streaming the destination in; `Travel.arrival` for respawns.
 - `src/client/Onboarding.luau`: objective tracker, elder line, quest board window.
 - `src/client/TravelMenu.luau`: shows the Travel button on an array, binds every
-  List button named after a gate id, hides the array you're on.
+  button under List named after a gate id (grouped in `List.Sect` / `List.Wilds`),
+  hides the array you're on, greys out realm-gated arrays the player hasn't
+  reached (Detail shows the realm, a cinnabar Seal marks locked; a tap only
+  toasts why), and runs the trip under the `Veil` fade.
+- `src/client/GateMarkers.luau`: a seal and name over each array (`Hud.GateMarker`)
+  once travel is taught; `src/client/Veil.luau`: the travel fade (`StarterGui.Veil`).
 - Analytics: each beat is an onboarding funnel step (`Analytics.funnel`).
 
 ## Data flow
@@ -44,6 +49,4 @@ then pivots the character onto that array.
 - Rewards shown on the board come from `Pacing.Rewards`.
 
 ## Known gaps
-- The TravelMenu window only has buttons for Peak, MainPeak and SectGate; the
-  wilds arrays need buttons (gate UI, see map.md "Still to do").
 - `GATE_BEAT` is an index asserted against the beat list; reordering beats needs care.

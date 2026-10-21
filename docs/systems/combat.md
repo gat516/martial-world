@@ -317,6 +317,30 @@ checks a rebuild against the previous templates.
   heads, the one light riding the golden bird and a fire dome with a spike
   crown and an Explosion quake at its terminal. Damage lands on the server's
   hit times; visual impacts follow the bird, up to ~0.28 s later.
+- **Great Sage Awakening** (`GreatSageAwakening_T1..T4`, authored at radius
+  8 and 8 s; `TechniqueFX.GreatSageAwakening`). The Monkey King wakes: his
+  golden circlet, golden flame, the somersault cloud, fiery eyes. The staff
+  animation twirls the staff flat overhead (`Twirl "start"` 0.167 to `"end"`
+  1.0, all on the `Hilt` joint) and brings one end down on the ground ~5
+  studs ahead at `Hit` (1.15). Windup (`windup()`, needs the
+  CombatEffects hook, see known gaps): from the Twirl start, gold ribbon
+  Trails on both ends of the staff (the weapon's `Tip`/`Base` attachments)
+  draw a spinning disc of arcs over the head; a rune seal grows under the
+  feet with motes rising into the spin (`Twirl`), qi gathers into the right
+  hand (`Windup`); III+ a wind swirl climbs the body. At Hit: a slam impact
+  where the low staff end meets the ground (`Slam`), a gold flash on the body
+  (`Body`), the shared ground shockwave to `def.radius` and a pillar of gold
+  light (stretched Neon ball) from the feet (`Ground`), and a gold impact on
+  each enemy as the front reaches it. Then the buff aura holds for
+  `def.seconds` on every client (`Aura`): a gold Neon circlet round the head,
+  gold flame wisps rising off the torso, and short gold arcs off the staff on
+  every swing (`Staff`); it ends with a puff (`Fade`) or stops if the caster
+  dies. II adds rays, an echo ring, pillar streaks, cloud puffs at the feet,
+  rising motes and a pulsing circlet; III a ground seal, slam cracks, a
+  Craters rock ring, impact bubbles and kicks, and two glowing golden eyes;
+  IV a second torus, a taller pillar with a spike crown, an Explosion quake,
+  a turning halo behind the back and the move's one light (flashed at the
+  strike, then a soft gold glow for the buff).
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative
@@ -370,4 +394,11 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   the server's damage ticks (which aren't sent), and the first one waits for
   the seal to land (~0.24 s after the first damage tick).
 - An interrupted enemy windup's telegraph still plays out on clients.
+- Great Sage Awakening's twirl (`TechniqueFX.GreatSageAwakening.windup`: the
+  staff trails, ground seal and rising streaks) only plays once
+  `CombatEffects.windup` hands off to a technique module's `windup`, which it
+  doesn't yet (it plays the template's `Windup` hand gather), and observers
+  only get the cast at the first hit, so they never see the twirl. The buff
+  aura runs `def.seconds` from the cast on each client (it stops early only if
+  the caster dies or leaves), not from a server buff start/end signal.
 - `Dodge` and `Cast` remotes in `assets/Remotes.rbxmx` are unused.

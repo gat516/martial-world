@@ -11,6 +11,7 @@
 --   T(12)          -- select POI 12 and frame the camera on it from a player's eye height
 --   T("WolfDen")   -- same, by PoiName (or instance name); partial names match too
 --   T.labels()     -- rebuild the floating labels under Workspace._EditorMarkers.POILabels
+--   T.handpass()   -- list builds flagged NeedsHandPass; T.handpass(3) frames the third
 -- (require caches modules: after changing the module, use a fresh copy or restart Studio.)
 -- Labels and blockouts under Workspace._EditorMarkers are destroyed at runtime by
 -- src/server/EditorOnly.server.luau, so they never reach the game.
@@ -134,7 +135,122 @@ function PoiTour.go(arg): string
 	return string.format("%s (%s, %s) at (%d, %d, %d)", nameOf(inst), tostring(inst:GetAttribute("Kind")), tostring(inst:GetAttribute("Zone")), center.X, center.Y, center.Z)
 end
 
--- Rebuild one floating label per POI under Workspace._EditorMarkers.POILabels.
+-- Label look per kind: how far away it still shows (studs) and its size, so finds don't pile up
+-- over the landmarks in a wide view.
+local KIND_LABEL = {
+	Find = { 250, 170, 30 },
+	Cache = { 300, 200, 36 },
+	QiNode = { 300, 190, 34 },
+	Lair = { 350, 200, 36 },
+	Later = { 350, 200, 34 },
+	Array = { 450, 220, 40 },
+	WeaponRack = { 300, 200, 36 },
+	Landmark = { 500, 240, 44 },
+	BossRing = { 550, 250, 46 },
+	EventGround = { 650, 250, 46 },
+}
+local HANDPASS_COLOR = Color3.fromRGB(255, 150, 60)
+
+local function makeLabel(folder, name, pos, title, subtitle, color, look)
+	local anchor = Instance.new("Part")
+	anchor.Name = name
+	anchor.Anchored = true
+	anchor.CanCollide = false
+	anchor.CanQuery = false
+	anchor.CanTouch = false
+	anchor.CastShadow = false
+	anchor.Transparency = 1
+	anchor.Size = Vector3.new(1, 1, 1)
+	anchor.Position = pos
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.fromOffset(look[2], look[3])
+	gui.AlwaysOnTop = true
+	gui.MaxDistance = look[1]
+	gui.LightInfluence = 0
+	local t = Instance.new("TextLabel")
+	t.BackgroundTransparency = 1
+	t.Size = UDim2.fromScale(1, 0.6)
+	t.TextScaled = true
+	t.Font = Enum.Font.GothamBold
+	t.TextColor3 = color
+	t.TextStrokeTransparency = 0
+	t.Text = title
+	t.Parent = gui
+	local sub = t:Clone()
+	sub.Font = Enum.Font.Gotham
+	sub.Position = UDim2.fromScale(0, 0.6)
+	sub.Size = UDim2.fromScale(1, 0.4)
+	sub.TextColor3 = Color3.new(1, 1, 1)
+	sub.Text = subtitle
+	sub.Parent = gui
+	gui.Parent = anchor
+	anchor.Parent = folder
+	return anchor
+end
+
+-- Keep labels from stacking: a label within 24 studs (flat) and 7 (height) of one already
+-- placed rises by 7 until it is clear.
+local function declutter(placed, pos)
+	local p = pos
+	for _ = 1, 12 do
+		local clash = false
+		for _, q in placed do
+			if (Vector2.new(p.X, p.Z) - Vector2.new(q.X, q.Z)).Magnitude < 24 and math.abs(p.Y - q.Y) < 7 then
+				clash = true
+				break
+			end
+		end
+		if not clash then
+			break
+		end
+		p += Vector3.new(0, 7, 0)
+	end
+	table.insert(placed, p)
+	return p
+end
+
+function PoiTour.handpassList(): { Instance }
+	local list = {}
+	for _, inst in CollectionService:GetTagged("NeedsHandPass") do
+		if inst:IsDescendantOf(workspace) and inst:GetAttribute("HandPassStatus") ~= "done" then
+			table.insert(list, inst)
+		end
+	end
+	table.sort(list, function(a, b)
+		return a:GetFullName() < b:GetFullName()
+	end)
+	return list
+end
+
+-- Builds flagged for a hand pass (tag NeedsHandPass, attributes HandPassReason and
+-- HandPassStatus "open"/"done"): T.handpass() lists them, T.handpass(3) frames the third.
+function PoiTour.handpass(arg): string
+	local list = PoiTour.handpassList()
+	if arg == nil then
+		local lines = {}
+		for i, inst in list do
+			local cf = bounds(inst)
+			table.insert(lines, string.format("%3d  %-28s (%d, %d, %d)  %s  [%s]", i, nameOf(inst), cf.X, cf.Y, cf.Z, tostring(inst:GetAttribute("HandPassReason")), tostring(inst:GetAttribute("HandPassStatus"))))
+		end
+		local text = table.concat(lines, "\n")
+		print(text)
+		return text
+	end
+	local inst = list[arg]
+	if not inst then
+		return "no hand-pass item " .. tostring(arg)
+	end
+	local cf, size = bounds(inst)
+	local reach = math.clamp(math.max(size.X, size.Z) * 0.8 + 14, 18, 110)
+	local eye = cf.Position + Vector3.new(reach * 0.7, math.max(6, size.Y * 0.4), reach * 0.7)
+	workspace.CurrentCamera.CFrame = CFrame.lookAt(eye, cf.Position)
+	workspace.CurrentCamera.Focus = CFrame.new(cf.Position)
+	Selection:Set({ inst })
+	return nameOf(inst) .. ": " .. tostring(inst:GetAttribute("HandPassReason"))
+end
+
+-- Rebuild one floating label per POI under Workspace._EditorMarkers.POILabels, and an orange
+-- "⚑" label per open hand-pass item under Workspace._EditorMarkers.HandPassLabels.
 function PoiTour.labels(): string
 	local markers = workspace:FindFirstChild("_EditorMarkers")
 	if not markers then
@@ -142,56 +258,49 @@ function PoiTour.labels(): string
 		markers.Name = "_EditorMarkers"
 		markers.Parent = workspace
 	end
-	local old = markers:FindFirstChild("POILabels")
-	if old then
-		old:Destroy()
+	for _, n in { "POILabels", "HandPassLabels" } do
+		local old = markers:FindFirstChild(n)
+		if old then
+			old:Destroy()
+		end
+	end
+	local placed = {}
+	local hp = Instance.new("Folder")
+	hp.Name = "HandPassLabels"
+	for i, inst in PoiTour.handpassList() do
+		local cf, size = bounds(inst)
+		local pos = declutter(placed, cf.Position + Vector3.new(0, math.min(size.Y / 2, 40) + 9, 0))
+		makeLabel(hp, nameOf(inst), pos, "\u{2691} " .. nameOf(inst), tostring(inst:GetAttribute("HandPassReason") or "check by hand"), HANDPASS_COLOR, { 500, 300, 46 })
 	end
 	local folder = Instance.new("Folder")
 	folder.Name = "POILabels"
-	for i, inst in PoiTour.all() do
+	local list = PoiTour.all()
+	local order = {}
+	for i, inst in list do
+		table.insert(order, { i, inst })
+	end
+	-- big things claim their spot first, finds step aside
+	table.sort(order, function(a, b)
+		local la = KIND_LABEL[tostring(a[2]:GetAttribute("Kind"))] or KIND_LABEL.Landmark
+		local lb = KIND_LABEL[tostring(b[2]:GetAttribute("Kind"))] or KIND_LABEL.Landmark
+		return la[1] > lb[1]
+	end)
+	for _, e in order do
+		local i, inst = e[1], e[2]
 		local cf, size = bounds(inst)
 		local kind = tostring(inst:GetAttribute("Kind"))
-		local anchor = Instance.new("Part")
-		anchor.Name = nameOf(inst)
-		anchor.Anchored = true
-		anchor.CanCollide = false
-		anchor.CanQuery = false
-		anchor.CanTouch = false
-		anchor.CastShadow = false
-		anchor.Transparency = 1
-		anchor.Size = Vector3.new(1, 1, 1)
-		anchor.Position = cf.Position + Vector3.new(0, math.min(size.Y / 2, 30) + 4, 0)
+		local look = KIND_LABEL[kind] or KIND_LABEL.Landmark
+		local pos = declutter(placed, cf.Position + Vector3.new(0, math.min(size.Y / 2, 30) + 4, 0))
+		local note = inst:GetAttribute("LabelNote")
+		local anchor = makeLabel(folder, nameOf(inst), pos, string.format("#%d %s", i, nameOf(inst)), kind .. " · " .. tostring(inst:GetAttribute("Zone")) .. (if note then " · " .. tostring(note) else ""), KIND_COLOR[kind] or Color3.new(1, 1, 1), look)
 		local target = Instance.new("ObjectValue")
 		target.Name = "Target"
 		target.Value = inst
 		target.Parent = anchor
-		local gui = Instance.new("BillboardGui")
-		gui.Size = UDim2.fromOffset(240, 44)
-		gui.AlwaysOnTop = true
-		gui.MaxDistance = 1500
-		gui.LightInfluence = 0
-		local title = Instance.new("TextLabel")
-		title.BackgroundTransparency = 1
-		title.Size = UDim2.fromScale(1, 0.6)
-		title.TextScaled = true
-		title.Font = Enum.Font.GothamBold
-		title.TextColor3 = KIND_COLOR[kind] or Color3.new(1, 1, 1)
-		title.TextStrokeTransparency = 0
-		title.Text = string.format("#%d %s", i, nameOf(inst))
-		title.Parent = gui
-		local sub = title:Clone()
-		sub.Font = Enum.Font.Gotham
-		sub.Position = UDim2.fromScale(0, 0.6)
-		sub.Size = UDim2.fromScale(1, 0.4)
-		sub.TextColor3 = Color3.new(1, 1, 1)
-		local note = inst:GetAttribute("LabelNote")
-		sub.Text = kind .. " · " .. tostring(inst:GetAttribute("Zone")) .. (if note then " · " .. tostring(note) else "")
-		sub.Parent = gui
-		gui.Parent = anchor
-		anchor.Parent = folder
 	end
 	folder.Parent = markers
-	return #folder:GetChildren() .. " labels"
+	hp.Parent = markers
+	return #folder:GetChildren() .. " labels, " .. #hp:GetChildren() .. " hand-pass flags"
 end
 
 setmetatable(PoiTour, {

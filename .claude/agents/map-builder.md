@@ -186,6 +186,24 @@ on, parts for buildings.
 - Anything players stand on must collide the way it looks: raycast-check walkable
   areas in Edit mode after changes (holes have happened before).
 
+## Hand-pass flags (hard builds)
+
+Decided 2026-10-21. Some builds are structurally hard for an AI to assemble well, and the
+user wants them flagged, not silently shipped:
+- **What counts:** multi-part buildings (pavilions, shrines, gates, towers, houses), roofs,
+  stairs and ramps, bridges, arches, anything with an interior or that players walk
+  through or under, anything that must fit tightly with terrain or rock, and trees or
+  canopy near structures.
+- **Do your own second pass first:** check alignment and gaps between parts, clipping,
+  floating or buried pieces, stairs reaching both floors, decks and ladders reaching the
+  ground, canopy clear of roofs and walls (move the tree, not the building). Say what you
+  fixed.
+- **Then flag what's left:** CollectionService tag `NeedsHandPass` on the build's root
+  model, attributes `HandPassReason` (one line: what may be off, what to check) and
+  `HandPassStatus` "open" (the user sets "done"). `PoiTour.labels()` gives each an orange
+  "⚑" label; `T.handpass()` lists them and `T.handpass(n)` frames one.
+- **Report:** end every phase or pass report with the open hand-pass list.
+
 ## Lessons from past passes
 
 Each one cost a pass real time. Check them before calling an area done.

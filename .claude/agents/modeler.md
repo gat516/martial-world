@@ -146,6 +146,10 @@ pattern.
 
 ## Gameplay checks before you call it done
 
+- Flag hard-to-assemble models (multi-part buildings, roofs, stairs, bridges, things players
+  walk through or under) in your report, and tag them `NeedsHandPass` with a
+  `HandPassReason` when you place them in the world (map-builder brief, "Hand-pass flags").
+
 - Walkable surfaces: flat enough, no snags, stairs about 1.5 studs per tread on a
   ramp, about 10 studs of headroom.
 - Nothing floats or clips: decor, pines, waterfalls and props re-seated on the

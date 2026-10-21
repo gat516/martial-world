@@ -243,6 +243,20 @@ Decided 2026-10-21. Planning aids are for reviewing in Studio and never part of 
   where a player would stand looking at it, `T.labels()` rebuilds one floating label per POI
   ("#n Name", "Kind · Zone · note"), coloured by kind. Re-run `T.labels()` after adding or
   moving POIs.
+- **Hand-pass flags** (decided 2026-10-21): builds that are hard for an AI to assemble
+  (buildings, roofs, stairs, bridges, arches, walk-through or walk-under things, tight fits
+  to terrain or rock, canopy near structures) get a second pass and then the tag
+  `NeedsHandPass` with `HandPassReason` and `HandPassStatus` ("open"/"done") on their root
+  model. `T.handpass()` lists them, `T.handpass(n)` frames one, and `T.labels()` gives each an
+  orange "⚑" label (`_EditorMarkers.HandPassLabels`). Every pass report ends with the open
+  list. Flagged so far: the Inner POIs ShrineTerrace, OldStoneGate, QiSpringShrine,
+  HunterCamp, BambooHollow, FallenGiant, WolfDen, BorderBridge (and BorderBridge_Old), and
+  the Borderlands' BorderGate, BrokenPagoda, FallenOutpost, DeserterCamp, AshenHollow,
+  RuinedCourtyard, DrownedShrine, SerpentGrotto, Caravan.
+- **Labels stay readable:** each kind has its own MaxDistance and size (finds 250 studs
+  and small, caches and nodes 300, lairs 350, landmarks 500, boss rings 550, event grounds
+  650), big things claim their spot first, and a label that would sit on another rises
+  until clear.
 - **Audit after a dressing pass:** a POI or cache must be visible and reachable from where
   players walk: open standing ground within 8 studs, a clear line to it through visual
   meshes (not only colliders), not inside a tent, rock or trunk, not buried or floating.

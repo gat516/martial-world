@@ -47,8 +47,16 @@ props wherever there's room.
 ## Style
 
 - Stylized, chunky and readable, consistent with the existing pieces. The
-  modeler's rules on rock (crisp vertical columns), grass slabs and
-  SmoothPlastic colours apply.
+  modeler's rock rule (crisp vertical columns) applies. The user finds
+  SmoothPlastic everywhere "too plasticy": use Roblox's textured materials
+  (terrain Grass/LeafyGrass/Ground on walkable tops; Rock/Slate/Basalt on cliff
+  meshes; Slate/Cobblestone/Pavement paving; Wood/WoodPlanks) tinted to the
+  palette, and keep SmoothPlastic for small stylized props.
+- No round grass discs or ellipse "ledge" slabs stuck on cliffs or lawns. Grass
+  follows the rock: irregular shapes on real flats, sunk into the stone.
+- Zhangjiajie karst is the world reference
+  (sheer striated towers, green tufts on tops and ledges, rising from a forest
+  floor through the cloud sea).
 - Palette: muted jade/sage greens rather than saturated lime, warm stone grays
   with a little value variation, dark wood and red lacquer on buildings, jade and
   gold accents. Avoid pure flat colour across huge areas: break it up with
@@ -80,8 +88,13 @@ on, parts for buildings.
   be re-run. Keep it on palette: `Terrain:SetMaterialColor` to the map.md
   families, and flat stylized MaterialVariants in MaterialService for the
   materials you use, never the default semi-realistic look. Terrain grass
-  decoration costs a lot on mobile; leave it off unless the user asks. The
-  floating sect peaks use no terrain.
+  decoration costs a lot on mobile; leave it off unless the user asks. Walkable
+  floors on the peaks (lawns, terraces, standable ledges, summit) are terrain
+  too, laid on top of the mesh rock by script; the rock body stays mesh.
+- Blender: use the live Blender MCP (`execute_blender_code` with the build
+  script, `look` to check) for visual iteration. Several agents may share it:
+  take turns, save your own .blend, and never evaluate modifiers on a scene that
+  isn't the active one (that crashed it).
 - Parts: halls, houses, pavilions, walls, gates, stairs, railings, platforms.
   Easy to edit and collide exactly. Curved roofs with upturned eaves and other
   curved trims are meshes (or library structures re-coloured); the body stays

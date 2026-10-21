@@ -125,12 +125,14 @@ local function watch(model: Instance)
 	model:GetAttributeChangedSignal("FadeAt"):Connect(function()
 		fade(model)
 	end)
-	local humanoid = model:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		humanoid.Died:Once(function()
+	local died = false
+	model:GetAttributeChangedSignal("Health"):Connect(function()
+		local health = model:GetAttribute("Health")
+		if not died and type(health) == "number" and health <= 0 then
+			died = true
 			fire(model, "death")
-		end)
-	end
+		end
+	end)
 end
 
 function EnemyFX.init()

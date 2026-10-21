@@ -185,6 +185,9 @@ function P.scene(opts)
 			local p = C + offsets[i]
 			e:PivotTo(CFrame.lookAt(Vector3.new(p.X, ground(p) + es.Y / 2, p.Z), Vector3.new(C.X, ground(p) + es.Y / 2, C.Z)))
 			e:AddTag("Enemy") -- Hitbox.enemiesIn and the ground filter look for it
+			-- live enemies carry their health as attributes; Hitbox.alive reads them
+			e:SetAttribute("MaxHealth", 100)
+			e:SetAttribute("Health", 100)
 			e.Parent = folder
 			table.insert(enemies, e)
 		end

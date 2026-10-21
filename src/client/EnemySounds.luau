@@ -44,13 +44,16 @@ local function watch(model: Instance)
 		end
 		previous = state
 	end)
-	local humanoid = model:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		humanoid.Died:Once(function()
+	-- Health is an attribute (no Humanoid); hitting 0 is the death
+	local died = false
+	model:GetAttributeChangedSignal("Health"):Connect(function()
+		local health = model:GetAttribute("Health")
+		if not died and type(health) == "number" and health <= 0 then
+			died = true
 			-- from where it fell: the body may be removed before the cry ends
 			Sfx.play(base .. "Death", root.Position)
-		end)
-	end
+		end
+	end)
 end
 
 function EnemySounds.init()

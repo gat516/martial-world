@@ -68,7 +68,7 @@ local EnemyBars = {}
 
 type Watched = {
 	bar: BillboardGui,
-	humanoid: Humanoid,
+	model: Model,
 	lastHurt: number,
 	boss: boolean,
 	def: Enemies.Def?,
@@ -84,8 +84,15 @@ local bossTrail: GuiObject?
 local bossName: TextLabel?
 local shownBoss: Model? = nil
 
-local function fraction(humanoid: Humanoid): number
-	return math.clamp(humanoid.Health / math.max(humanoid.MaxHealth, 1), 0, 1)
+-- Enemy health is in attributes (EnemyService; enemies have no Humanoid).
+local function health(model: Model): (number, number)
+	local now, max = model:GetAttribute("Health"), model:GetAttribute("MaxHealth")
+	return (if type(now) == "number" then now else 0), (if type(max) == "number" then max else 1)
+end
+
+local function fraction(model: Model): number
+	local now, max = health(model)
+	return math.clamp(now / math.max(max, 1), 0, 1)
 end
 
 -- Fill drops at once; the trail catches up after a beat (and jumps up on a heal).
@@ -209,17 +216,18 @@ local function watch(model: Instance)
 	if not model:IsA("Model") then
 		return
 	end
-	local humanoid = model:WaitForChild("Humanoid", 5) :: Humanoid?
-	local bar = model:FindFirstChild("HealthBar", true) :: BillboardGui?
+	-- the bar rides the client-only body EnemyMotion builds
+	local body = model:WaitForChild("Body", 10)
+	local bar = body and body:FindFirstChild("HealthBar", true) :: BillboardGui?
 	local fill = bar and bar:FindFirstChild("Fill", true) :: GuiObject?
-	if not (humanoid and bar and fill) then
+	if not (bar and fill) then
 		return
 	end
 	local trail = bar:FindFirstChild("Trail", true) :: GuiObject?
 	local def = Enemies.Defs[model:GetAttribute("EnemyType") :: string? or ""]
 	local entry: Watched = {
 		bar = bar,
-		humanoid = humanoid,
+		model = model,
 		lastHurt = -math.huge,
 		boss = def ~= nil and def.boss == true,
 		def = def,
@@ -229,19 +237,20 @@ local function watch(model: Instance)
 	watched[model] = entry
 	bar.Enabled = false
 	restyle(entry)
-	local last = humanoid.Health
+	local last = health(model)
 	local function show()
-		if humanoid.Health < last then
+		local now = health(model)
+		if now < last then
 			entry.lastHurt = os.clock()
 		end
-		last = humanoid.Health
-		setBar(fill, trail, fraction(humanoid))
+		last = now
+		setBar(fill, trail, fraction(model))
 		if shownBoss == model and bossFill then
-			setBar(bossFill, bossTrail, fraction(humanoid))
+			setBar(bossFill, bossTrail, fraction(model))
 		end
 	end
-	humanoid.HealthChanged:Connect(show)
-	humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(show)
+	model:GetAttributeChangedSignal("Health"):Connect(show)
+	model:GetAttributeChangedSignal("MaxHealth"):Connect(show)
 	show()
 	model.AncestryChanged:Connect(function()
 		if not model:IsDescendantOf(workspace) then
@@ -290,7 +299,7 @@ local function updateBoss()
 			if bossName then
 				bossName.Text = if def then def.name else boss.Name
 			end
-			local value = fraction(entry.humanoid)
+			local value = fraction(entry.model)
 			bossFill.Size = UDim2.fromScale(value, 1)
 			if bossTrail then
 				bossTrail.Size = bossFill.Size
@@ -327,7 +336,7 @@ function EnemyBars.init(gui: ScreenGui)
 		for model, entry in watched do
 			-- a deadly beast's skull warns whenever it's in range (MaxDistance)
 			entry.bar.Enabled = not entry.boss
-				and entry.humanoid.Health > 0
+				and Hitbox.alive(model)
 				and (entry.tier == "deadly" or model == locked or now - entry.lastHurt < SHOW_AFTER_HURT)
 		end
 		updateBoss()

@@ -34,7 +34,8 @@ see [world](systems/world.md)), `BuildKit`, `GardenKit`
 `Hud`, `Rewards`, `Prompts` (StarterGui); `Music`, `SFX`, `Ambience` (binary
 `assets/SoundGroups/Ambience.rbxm`, positional ambient sound templates placed by
 `AmbientSound`-tagged anchors; see [world](systems/world.md))
-(SoundService); `Wilds`, `Hub` (Workspace); `Enemies`, `PeakTiers`,
+(SoundService); `Wilds`, `Hub` (Workspace); `Enemies` (copied at start to
+`ReplicatedStorage.EnemyBodies` for clients to draw from), `PeakTiers`,
 `ItemTemplates`, `AmbientFX` (binary `assets/AmbientFX.rbxm`, world-ambience
 effect templates: fireflies, spirit motes, lamp glows, mist, waterfall spray and
 mist, incense, qi spring, den mist, bamboo light, lotus mere, rim veil, petals; see
@@ -88,7 +89,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Combat and action states | [combat](systems/combat.md) | Combat, Movement | ActionRules, Hitbox, Techniques, Knockback, Config.Combat | CombatController, ActionState, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |
 | Weapons, weapon Dao, manual caches, weapon racks | [weapons](systems/weapons.md) | Weapons, Combat, WorldCaches, Progression | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController, WorldCaches |
 | Character: spirit root, cultivation method (built); bloodline (design); character window | [character](systems/character.md), method aura brief [auras](systems/auras.md) | Roots (perks applied in Cultivation, Circulation, Combat, Garden), Methods (qi speed in Cultivation, Circulation, EnemyService, QiNodes) | Roots, Methods, Pacing.Roots, Pacing.Methods, Techniques `element` | RootFX (reveal pillar, each element in its methods' aura language), MethodAura (one aura per method while seated, from player attributes Meditating + Method; ignites on sit, switch and the Breakthrough remote) |
-| Enemies, spawning, regions, server/client split | [enemies](systems/enemies.md) | EnemyService, EnemyHistory, Spawner | Enemies, Spawns, Regions, Knockback, Pacing.Danger | EnemyMotion, EnemyAnimator, EnemyFX/*, EnemyBars, EnemySounds, Telegraphs |
+| Enemies, spawning, regions, server/client split | [enemies](systems/enemies.md) | EnemyService, EnemyMover, EnemyHistory, Spawner | Enemies, Spawns, Regions, Knockback, Pacing.Danger | EnemyMotion, EnemyAnimator, EnemyFX/*, EnemyBars, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
 | Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, WorldFX/* (Kit, SkyGrade, TreasureFX), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |
@@ -134,7 +135,7 @@ Besides remotes, the server publishes fast-changing values as attributes:
 player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`, `Meditating` (seated; for others' method auras),
 `DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`; character `WeaponClass`, `WeaponStowed`
 (combines Tool occupancy, `WeaponControlsLocked`, `WeaponBreakthroughUntil`); humanoid `BaseWalkSpeed`,
-`Running`, `ActionBusy`; enemy `AIState`, `StateAt`, `Attack`, `DashFrom`/`DashTo`/`DashSpeed`/`DashAt`, `FadeAt`, `Realm`
+`Running`, `ActionBusy`; enemy `Health`, `MaxHealth` (enemies have no Humanoid), `AIState`, `StateAt`, `Attack`, `DashFrom`/`DashTo`/`DashSpeed`/`DashAt`, `FadeAt`, `Realm`
 (see [enemies](systems/enemies.md), "Server and client"); workspace `Weather`,
 `WeatherEnds`, `WorldEvents`; plot `Plants` (JSON).
 

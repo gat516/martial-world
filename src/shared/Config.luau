@@ -381,6 +381,13 @@ return {
 		-- idle beasts with no player this close stop thinking and anchor (no physics,
 		-- nothing to replicate); keep it well past every def's aggro
 		WAKE_RADIUS = 220,
+		-- server movement (EnemyMover; enemies have no Humanoid)
+		MOVE_TICK = 1 / 15, -- seconds between movement steps (and root replication)
+		WALK_SLOPE = 0.6, -- surfaces with a normal's Y below this are walls
+		CLIMB = 2.5, -- studs a beast steps up in one step, beyond its move
+		FALL_SPEED = 60, -- studs per second it drops off a ledge
+		TURN_RATE = 10, -- how fast it turns to face where it walks (per second)
+		CROWD = 6, -- studs per second neighbours push apart when they overlap
 	},
 
 	-- Insight and technique manuals: Pacing.Rewards.

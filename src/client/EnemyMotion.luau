@@ -1,42 +1,48 @@
 --!strict
--- Client-side prediction for enemies' visible bodies, so beasts don't lag or
--- jump around for players with high ping. Purely visual: the server owns where a
--- beast really is (its HumanoidRootPart, replicated as usual) and checks every
--- hit there. This only moves what you see, by offsetting the rig's root joint:
--- the one Motor6D from HumanoidRootPart to the body (`JointRoot` on the beasts,
--- `RootJoint` on R6, `Root` on R15):
---   moving   drawn ahead of the replicated root by its velocity over half your
---            ping (LEAD_MAX at most), which is about where it is on the server now
---   dash     drawn along the server's dash line (DashFrom/DashTo/DashSpeed/DashAt)
+-- Every enemy's visible body, built and drawn on this client. The server's enemy
+-- is just an anchored root part with attributes (EnemyService, no Humanoid); it
+-- moves in steps (Config.Wilds.MOVE_TICK) and owns where the beast really is and
+-- every hit. Here each one gets a local clone of its template from
+-- ReplicatedStorage.EnemyBodies, parented under the enemy as "Body", and drawn
+-- each frame where the beast is on the server about now:
+--   moving   the last replicated spot plus its velocity (from the last two
+--            spots) over the time since it arrived and half your ping
+--            (LEAD_MAX at most); a beast that stops replicating has stopped
+--   dash     along the server's dash line (DashFrom/DashTo/DashSpeed/DashAt)
 --            at the server's clock, so a lunge lands on screen when it lands
--- The drawn spot eases toward the prediction and snaps when it's far off
--- (spawns, the server moving a sleeping beast home). The overhead bar follows the
--- body. Rigs without a root joint, dead beasts and anything past MAX_DISTANCE
--- are drawn where they replicate.
--- The offset is layered on whatever pose the joint already has, so an Animator
--- playing R6 animations (which drive RootJoint) keeps working. Other client code
--- shouldn't write the root joint's Transform; pose the joints below it.
+-- The drawn spot eases toward the prediction and snaps when far off (spawns,
+-- the server moving a sleeping beast home); it turns smoothly toward the
+-- server's facing. Past MAX_DISTANCE bodies sit where they replicate.
+-- The body is client-only: no collisions, its Humanoid (kept for an Animator on
+-- R6 rigs) never runs. Other client modules find it with model:WaitForChild("Body")
+-- and read its drawn velocity with EnemyMotion.velocity. On this client the
+-- enemy's PrimaryPart is the body's root, so model:GetPivot() is where it's drawn.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local MAX_DISTANCE = 160
-local LEAD_MAX = 0.25 -- seconds the body may be drawn ahead of the replicated root
-local INTERPOLATION = 0.05 -- roughly what Roblox's own replication smoothing adds
-local FOLLOW = 18 -- per second, how fast the drawn body eases toward the prediction
+local Config = require(ReplicatedStorage.Shared.Config).Wilds
+
+local MAX_DISTANCE = 220
+local LEAD_MAX = 0.35 -- seconds the body may be drawn ahead of the last replicated spot
+local STALE = Config.MOVE_TICK * 2.5 -- no new spot for this long: the beast has stopped
+local FOLLOW = 16 -- per second, how fast the drawn body eases toward the prediction
+local TURN = 12 -- per second, how fast it turns toward the server's facing
 local SNAP = 14 -- studs off the prediction before the body just jumps there
 local DASH_SLACK = 6 -- studs a dash prediction may run ahead before it's distrusted (the beast was blocked)
 
 type Rig = {
 	model: Model,
-	root: BasePart,
-	joint: Motor6D,
-	bar: BillboardGui?,
-	humanoid: Humanoid?,
-	drawn: Vector3?,
-	base: CFrame, -- the joint's pose before our offset (an animation's, or identity)
-	written: CFrame?, -- what we last wrote, to tell a fresh animation pose from our own
+	root: BasePart, -- the server's root
+	body: Model,
+	bodyRoot: BasePart,
+	last: Vector3, -- last replicated position
+	lastAt: number, -- os.clock() it arrived
+	serverVelocity: Vector3, -- estimated from the last two replicated spots
+	drawn: CFrame,
+	velocity: Vector3, -- of the drawn body, for the gait
 }
 
 local rigs: { [Model]: Rig } = {}
@@ -47,51 +53,76 @@ local function flat(v: Vector3): Vector3
 	return Vector3.new(v.X, 0, v.Z)
 end
 
+-- The drawn body's velocity (zero for one not drawn here).
+function EnemyMotion.velocity(model: Model): Vector3
+	local rig = rigs[model]
+	return if rig then rig.velocity else Vector3.zero
+end
+
+local function build(model: Model, root: BasePart): Model?
+	local kind = model:GetAttribute("EnemyType")
+	local folder = ReplicatedStorage:WaitForChild("EnemyBodies", 10)
+	local template = if folder and type(kind) == "string" then folder:FindFirstChild(kind) else nil
+	if not (template and template:IsA("Model")) then
+		warn(`EnemyMotion: no body for {kind}`)
+		return nil
+	end
+	local body = template:Clone()
+	local bodyRoot = body:FindFirstChild("HumanoidRootPart")
+	if not (bodyRoot and bodyRoot:IsA("BasePart")) then
+		return nil
+	end
+	for _, d in body:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = d == bodyRoot
+			d.CanCollide, d.CanTouch = false, false
+			d.CanQuery = d ~= bodyRoot -- client hit claims see the limbs (Hitbox.enemiesIn)
+			d.Massless = true
+		elseif d:IsA("Humanoid") then
+			d.EvaluateStateMachine = false
+			d.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		end
+	end
+	body.Name = "Body"
+	body.PrimaryPart = bodyRoot
+	body:PivotTo(root.CFrame)
+	body.Parent = model
+	return body
+end
+
 local function watch(model: Instance)
-	if not model:IsA("Model") then
+	if not model:IsA("Model") or rigs[model] then
 		return
 	end
 	local root = model:WaitForChild("HumanoidRootPart", 5)
 	if not (root and root:IsA("BasePart")) then
 		return
 	end
-	local joint: Motor6D? = nil
-	for _, d in model:GetDescendants() do
-		if d:IsA("Motor6D") and d.Part0 == root then
-			joint = d
-			break
-		end
-	end
-	if not joint then
+	local existing = model:FindFirstChild("Body")
+	local body = if existing and existing:IsA("Model") then existing else build(model, root)
+	local bodyRoot = body and body:FindFirstChild("HumanoidRootPart")
+	if not (body and bodyRoot and bodyRoot:IsA("BasePart")) then
 		return
 	end
-	local bar = root:FindFirstChild("HealthBar")
+	-- locally, the model's pivot is the drawn body: lock-on, auto-approach and
+	-- effects (model:GetPivot()) aim at what you see, not the lagging server root
+	model.PrimaryPart = bodyRoot
 	rigs[model] = {
 		model = model,
 		root = root,
-		joint = joint,
-		bar = if bar and bar:IsA("BillboardGui") then bar else nil,
-		humanoid = model:FindFirstChildOfClass("Humanoid"),
-		drawn = nil,
-		base = CFrame.identity,
-		written = nil,
+		body = body,
+		bodyRoot = bodyRoot,
+		last = root.Position,
+		lastAt = os.clock(),
+		serverVelocity = Vector3.zero,
+		drawn = root.CFrame,
+		velocity = Vector3.zero,
 	}
 end
 
-local function release(rig: Rig)
-	if rig.written and rig.joint.Transform == rig.written then
-		rig.joint.Transform = rig.base
-	end
-	rig.written = nil
-	if rig.bar then
-		rig.bar.StudsOffsetWorldSpace = Vector3.zero
-	end
-	rig.drawn = nil
-end
-
 -- Where the beast is on the server about now, from what has replicated.
-local function predict(rig: Rig, lead: number, now: number): Vector3
-	local model, position = rig.model, rig.root.Position
+local function predict(rig: Rig, ping: number, now: number, clock: number): Vector3
+	local model, position = rig.model, rig.last
 	if model:GetAttribute("AIState") == "dash" then
 		local from, to = model:GetAttribute("DashFrom"), model:GetAttribute("DashTo")
 		local speed, at = model:GetAttribute("DashSpeed"), model:GetAttribute("DashAt")
@@ -100,51 +131,59 @@ local function predict(rig: Rig, lead: number, now: number): Vector3
 			local along = math.clamp((now - at) * speed, 0, line.Magnitude)
 			local point = from + (if line.Magnitude > 0 then line.Unit * along else Vector3.zero)
 			point = Vector3.new(point.X, position.Y, point.Z)
-			if flat(point - position).Magnitude <= speed * (lead + INTERPOLATION) + DASH_SLACK then
+			if flat(point - position).Magnitude <= speed * (ping + STALE) + DASH_SLACK then
 				return point
 			end
 		end
 	end
-	return position + flat(rig.root.AssemblyLinearVelocity) * lead
+	local since = clock - rig.lastAt
+	if since > STALE then
+		return position
+	end
+	return position + rig.serverVelocity * math.min(since + ping / 2, LEAD_MAX)
 end
 
 local function step(dt: number)
 	local camera = workspace.CurrentCamera.CFrame.Position
 	local now = workspace:GetServerTimeNow()
-	local lead = math.min(Players.LocalPlayer:GetNetworkPing() / 2 + INTERPOLATION, LEAD_MAX)
+	local clock = os.clock()
+	local ping = Players.LocalPlayer:GetNetworkPing()
 	local ease = 1 - math.exp(-FOLLOW * dt)
+	local turn = 1 - math.exp(-TURN * dt)
 	for model, rig in rigs do
-		if not model.Parent then
+		if not model.Parent or not rig.body.Parent then
 			rigs[model] = nil
 			continue
 		end
-		local dead = (rig.humanoid and rig.humanoid.Health <= 0) or model:GetAttribute("FadeAt") ~= nil
-		if dead or (rig.root.Position - camera).Magnitude > MAX_DISTANCE then
-			if rig.drawn then
-				release(rig)
-			end
-			continue
+		local root = rig.root
+		local position = root.Position
+		if position ~= rig.last then
+			local gap = clock - rig.lastAt
+			local measured = flat(position - rig.last) / math.max(gap, Config.MOVE_TICK * 0.5)
+			rig.serverVelocity = if gap > STALE then measured else rig.serverVelocity:Lerp(measured, 0.6)
+			rig.last, rig.lastAt = position, clock
 		end
-		local target = predict(rig, lead, now)
-		local drawn = rig.drawn
-		if not drawn or (drawn - target).Magnitude > SNAP then
-			drawn = target
+		local health = model:GetAttribute("Health")
+		local dead = model:GetAttribute("FadeAt") ~= nil or (type(health) == "number" and health <= 0)
+		local target: CFrame
+		if dead then
+			-- a dying body stays where it fell
+			target = rig.drawn
+			rig.velocity = Vector3.zero
+		elseif (position - camera).Magnitude > MAX_DISTANCE then
+			target = root.CFrame
+			rig.velocity = Vector3.zero
 		else
-			drawn = drawn:Lerp(target, ease)
+			local predicted = predict(rig, ping, now, clock)
+			local drawn = rig.drawn.Position
+			local nextPosition = if (drawn - predicted).Magnitude > SNAP then predicted else drawn:Lerp(predicted, ease)
+			local rotation = rig.drawn.Rotation:Lerp(root.CFrame.Rotation, turn)
+			rig.velocity = (nextPosition - drawn) / math.max(dt, 1 / 240)
+			target = CFrame.new(nextPosition) * rotation
 		end
-		rig.drawn = drawn
-		local world = (drawn :: Vector3) - rig.root.Position
-		local offset = rig.root.CFrame:VectorToObjectSpace(world)
-		local joint = rig.joint
-		local current = joint.Transform
-		if current ~= rig.written then
-			rig.base = current
-		end
-		local written = CFrame.new(joint.C0:VectorToObjectSpace(offset)) * rig.base
-		joint.Transform = written
-		rig.written = written
-		if rig.bar then
-			rig.bar.StudsOffsetWorldSpace = world
+		rig.drawn = target
+		if rig.bodyRoot.CFrame ~= target then
+			rig.bodyRoot.CFrame = target
 		end
 	end
 end

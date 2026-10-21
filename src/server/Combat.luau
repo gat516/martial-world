@@ -46,7 +46,7 @@ local states: { [Player]: State } = {}
 
 local Combat = {}
 
--- Set by Enemies: called whenever a player damages an enemy. `push` is the hit's
+-- Set by EnemyService: applies a player's damage to an enemy. `push` is the hit's
 -- knockback: flat direction times base studs (Knockback.luau), before realm and weight.
 Combat.onEnemyDamaged = nil :: ((model: Model, player: Player, amount: number, push: Vector3?) -> ())?
 
@@ -107,15 +107,14 @@ local function livingRoot(player: Player): (BasePart?, Humanoid?)
 end
 
 -- Damage an enemy on a player's behalf. Every player-caused hit goes through here.
--- `push`, if any, knocks it back (see Combat.onEnemyDamaged).
+-- EnemyService owns enemy health and applies it (Combat.onEnemyDamaged); `push`,
+-- if any, knocks it back.
 function Combat.damageEnemy(player: Player, model: Model, amount: number, push: Vector3?)
-	local humanoid = model:FindFirstChildOfClass("Humanoid")
-	if not (humanoid and humanoid.Health > 0) then
+	if not Hitbox.alive(model) then
 		return
 	end
 	amount = math.floor(amount + 0.5)
 	model:SetAttribute("LastHitBy", player.UserId)
-	humanoid:TakeDamage(amount)
 	effectRemote:FireClient(player, "damage", model:GetPivot().Position, amount)
 	Cultivation.markActive(player)
 	if Combat.onEnemyDamaged then

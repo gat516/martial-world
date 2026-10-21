@@ -7,10 +7,14 @@
 --   windup   crouched: head low, legs braced, tail stiff and high
 --   dash     stretched out: front legs reaching, back legs pushing
 --   stagger  knocked back: head thrown up, legs splayed, tail down
--- Enemies far from the camera aren't animated.
+-- Enemies far from the camera aren't animated. The joints are the client-only
+-- body's (EnemyMotion builds it as the enemy's "Body"), and the gait's speed is the
+-- drawn body's velocity.
 
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
+
+local EnemyMotion = require(script.Parent.EnemyMotion)
 
 local MAX_DISTANCE = 160
 local SMOOTHING = 14 -- how quickly joints settle toward their pose (per second)
@@ -31,12 +35,13 @@ local function watch(model: Instance)
 	if not model:IsA("Model") then
 		return
 	end
-	local root = model:WaitForChild("HumanoidRootPart", 5) :: BasePart?
-	if not root then
+	local body = model:WaitForChild("Body", 10)
+	local root = body and body:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not (body and root) then
 		return
 	end
 	local joints = {}
-	for _, d in model:GetDescendants() do
+	for _, d in body:GetDescendants() do
 		if d:IsA("Motor6D") then
 			joints[d.Name] = d
 		end
@@ -74,13 +79,13 @@ local function step(dt: number)
 		if (rig.root.Position - camera).Magnitude > MAX_DISTANCE then
 			continue
 		end
-		local humanoid = model:FindFirstChildOfClass("Humanoid")
-		if humanoid and humanoid.Health <= 0 then
+		local health = model:GetAttribute("Health")
+		if type(health) == "number" and health <= 0 then
 			continue
 		end
 		local state = model:GetAttribute("AIState")
 		local runSpeed = (model:GetAttribute("RunSpeed") :: number?) or 16
-		local velocity = rig.root.AssemblyLinearVelocity
+		local velocity = EnemyMotion.velocity(model)
 		local speed = Vector2.new(velocity.X, velocity.Z).Magnitude
 		local gait = math.clamp(speed / runSpeed, 0, 1.3)
 		rig.phase += dt * (3 + speed * 0.55) / rig.scale

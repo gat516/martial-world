@@ -27,23 +27,32 @@ seeds, insight and technique manuals, and the main test of a player's realm.
 The server is the only authority over a fight; clients only draw it, so every
 player in a session sees the same beasts and nothing a client does can change one.
 
-- **Server** (`EnemyService`): the AI state machine, movement (server-owned
-  Humanoid physics), targeting, telegraphed areas, every hit check both ways,
-  damage, knockback and rewards. Idle beasts with no player within
-  `Config.Wilds.WAKE_RADIUS` sleep: anchored, not thinking, nothing to replicate
-  (one walking home is put there and healed first). Beasts skip the humanoid
-  states they never use.
-- **Wire**: model attributes `AIState` + `StateAt` (server time it began),
+- **Server** (`EnemyService`): the AI state machine, targeting, telegraphed areas,
+  every hit check both ways, health, damage, knockback and rewards. **No Humanoid
+  and no body**: a live enemy is a Model holding one anchored, invisible root part
+  (the template's `HumanoidRootPart`, grown to the body's bounds: the hit volume).
+  `EnemyMover` walks it kinematically every `Config.Wilds.MOVE_TICK` (toward a goal
+  at a speed, snapped to the ground, sliding along walls, refusing cliffs it can't
+  climb, turning to face where it goes; knockback is a timed push; overlapping
+  beasts drift apart) and writes its CFrame only when it moves. Idle beasts with no
+  player within `Config.Wilds.WAKE_RADIUS` sleep: no thinking, no moving, nothing to
+  replicate (one walking home is put there and healed first).
+- **Wire**: model attributes `Health` + `MaxHealth`, `AIState` + `StateAt` (server time it began),
   `Attack` (the attack's `name`, default its `kind`), `DashFrom/DashTo/DashSpeed/DashAt`
   (a lunge or charge's line), `FadeAt` (dying or despawning); and the `Telegraph`
   remote `(shape, seconds, model, attack, startedAt)`.
-- **Client**: `EnemyMotion` predicts the visible body so beasts don't lag or jump
-  for high-ping players: it draws the body ahead of the replicated root by its
-  velocity over half the ping (at most 0.25 s), along the server's dash line
-  during a dash, eased and snapping when far off, by offsetting the rig's
-  root joint (layered over any animation; the overhead bar follows). `EnemyAnimator`
-  poses the joints, `EnemySounds` plays voices, `Telegraphs` draws areas shortened by
-  how late they arrived, `EnemyFX` plays per-beast cues and fades bodies.
+- **Client**: `EnemyMotion` builds each enemy's body locally (a clone of its
+  template from `ReplicatedStorage.EnemyBodies`, the server's copy of
+  `ServerStorage.Enemies`, parented as the enemy's `Body`: anchored root, no
+  collisions, its Humanoid inert) and draws it where the beast is on the server
+  now, so it doesn't lag or jump for high-ping players: the last replicated spot
+  plus its velocity over the time since and half the ping (at most 0.35 s), along
+  the server's dash line during a dash, eased, snapping when far off. Locally the
+  enemy's `PrimaryPart` is the body's root, so lock-on and effects aim at what you
+  see. `EnemyAnimator` poses the body's joints from its drawn velocity and `AIState`,
+  `EnemyBars` shows the body's `HealthBar` from the health attributes, `EnemySounds`
+  plays voices, `Telegraphs` draws areas shortened by how late they arrived,
+  `EnemyFX` plays per-beast cues and fades bodies.
 - **Generous, but bounded.** A player's swing that misses the beast where it is
   now still lands if it was in the hitbox at the swing's time, rewound at most
   `Config.Combat.REWIND` (`EnemyHistory`); that cap is all a forged timestamp can
@@ -90,14 +99,14 @@ attack, shape, seconds, at }` (shape and seconds left only on windup). Branch on
 code never plays effects; if a cue is missing, add an attribute or a field on
 the telegraph, not a server-side effect.
 
-### Rig contract
-Every enemy rig has exactly one joint off `HumanoidRootPart`: a Motor6D root
-joint (Part0 the root, Part1 the body root: `JointRoot` to the Hips on the
-beasts built by `rig_wolf.luau`, `RootJoint` on R6, `Root` on R15). Everything
-else is welded or jointed below the body root, never straight to the root.
-EnemyMotion moves the drawn body through that joint; a rig without one can't be
-predicted and is drawn where it replicates. The four shipped templates got a
-`RootJoint` (root to Chest, Body or Coil1) in place of their first root weld.
+### Template contract
+Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated
+`HumanoidRootPart` as PrimaryPart standing on Y 0 (its height is the beast's root
+height), everything jointed or welded back to it, the `HealthBar` somewhere inside,
+and a Humanoid if the rig wants one (R6 animations need its Animator; nothing
+else reads it). The server uses only the root (its height and the model's bounds);
+the rest is drawn by clients. Server code must never look for a body part or a
+Humanoid on a live enemy, and client code finds the body under `Body`.
 
 ## Key files
 - `src/shared/Enemies.luau`: defs (health, speeds, aggro/leash, attack and boss
@@ -114,20 +123,24 @@ predicted and is drawn where it replicates. The four shipped templates got a
   rewards and `onKill` hooks.
 - Kill hooks: `Progression.onKill` (insight, manuals, boss pools), `Inventory.onKill`
   (drops), `Garden.onKill` (seeds).
+- `src/server/EnemyMover.luau`: kinematic movement (goal, speed, push, turn,
+  ground and walls).
 - `src/server/EnemyHistory.luau`: each beast's recent positions, for swing lag
   compensation (`Combat.damageSwing`).
 - `src/shared/Knockback.luau`; client `EnemyAnimator.luau` (procedural gait by
-  `AIState`), `EnemyMotion.luau` (predicted body), `EnemyFX/` (per-beast cues,
+  `AIState`), `EnemyMotion.luau` (builds and draws the predicted body), `EnemyFX/` (per-beast cues,
   death fade), `EnemyBars.luau` (overhead and boss bars), `EnemySounds.luau`,
   `Telegraphs.luau`.
 - Models: `ServerStorage.Enemies` (`assets/Enemies.rbxmx`).
 
 ## Data flow
-Spawner decides where -> `EnemyService.spawn` clones the model, tags it `Enemy`
--> AI ticks every `Config.Wilds.AI_TICK` (sleeping beasts skip) and records each
-position in EnemyHistory -> attacks set `Attack`/`AIState`, fire `Telegraph` to
-clients and resolve via `Combat.hurt`; player hits add to the beast's `damagers` tally
-(`Combat.onEnemyDamaged`; cleared when it walks home and heals) -> on death each
+Spawner decides where -> `EnemyService.spawn` clones the type's root-only stand-in,
+sets its health attributes and tags it `Enemy` -> every client builds its body ->
+AI ticks every `Config.Wilds.AI_TICK` and EnemyMover steps every `MOVE_TICK`
+(sleeping beasts skip both), recording each position in EnemyHistory -> attacks set `Attack`/`AIState`, fire `Telegraph` to
+clients and resolve via `Combat.hurt`; player hits go through `Combat.damageEnemy`
+to `Combat.onEnemyDamaged`, where EnemyService takes the health and adds to the
+beast's `damagers` tally (cleared when it walks home and heals) -> at 0 health each
 credited player gets qi (capped by dantian),
 stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner refill.
 
@@ -137,8 +150,11 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   `DEADLY_AT`, in realm stages); per-tier rim art, colours and omen pools in
   `EnemyBars.luau` `STYLES`; show time `SHOW_AFTER_HURT`, ghost drain `TRAIL`.
 - Kill credit share: `Pacing.Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`.
+- Movement: `Config.Wilds.MOVE_TICK` (step and replication rate), `WALK_SLOPE`,
+  `CLIMB`, `FALL_SPEED`, `TURN_RATE`, `CROWD`.
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
-  `ESCAPE_LEAD`; client `EnemyMotion` `LEAD_MAX`, `FOLLOW`, `SNAP`, `DASH_SLACK`.
+  `ESCAPE_LEAD`; client `EnemyMotion` `LEAD_MAX`, `STALE`, `FOLLOW`, `TURN`, `SNAP`,
+  `DASH_SLACK`.
 - Per stage (`Pacing.luau`, not wired yet): `beastHealth`, `beastDamage` (Adjust,
   by the beast's realm), `Global.BEAST_HEALTH/BEAST_DAMAGE`, the stage's `gather`
   for kill qi, and `Income.ENEMY_QI_EXPONENT` (replacing `Enemies.QI_SCALE_EXPONENT`).
@@ -156,14 +172,17 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   QC1 player yet (the Stone Boar at QC4 is the only "above"), so those tiers only
   show once higher-realm beasts or lower-realm players meet. A new beast template
   needs the same HealthBar (copy it from the Spirit Wolf in `assets/Enemies.rbxmx`).
-- Netcode is untested in play, at any ping. Things to watch: the predicted body
-  running ahead into walls on a blocked chase (it eases back), and R6 rigs
-  (no enemy uses one yet).
+- The Humanoid-free movement and netcode are untested in play, at any ping.
+  Things to watch: beasts on steep or broken ground and stairs (EnemyMover has no
+  pathfinding, like the Humanoid MoveTo before it: a wall it can't slide along
+  stops it), cliffs, packs crowding, the body overshooting when a beast stops,
+  and R6 rigs (no enemy uses one yet).
+- Players and beasts pass through each other: the server root doesn't collide
+  and the body is client-only.
 - Techniques don't get lag compensation, only M1 swings; their areas lean on
   `AREA_SLACK`.
-- Lock-on, auto-approach and the boss bar aim at the replicated root, not the
-  predicted body (at most a few studs apart).
 - Stagger shoves aren't predicted, only smoothed.
-- Every beast still runs a server Humanoid. If live counts outgrow that, move
-  awake beasts to a lighter server mover with client-only bodies.
+- `tools/vfx_session.luau` still builds preview dummies without `Health`
+  attributes until it's regenerated from `build_vfx_session.py`
+  (`vfx_preview.luau` already sets them).
 - One ring of wilds: three beasts and one boss.

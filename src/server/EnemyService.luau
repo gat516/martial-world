@@ -3,9 +3,13 @@
 -- rewards. Where and when they appear is Spawner.luau's job; this module only
 -- spawns one on request and tells EnemyService.onRemoved when it's gone.
 --
--- Enemies are cloned from ServerStorage.Enemies, tagged "Enemy", and walk with
--- their Humanoid (server-owned physics, so clients see smooth movement). Each
--- has a home it wanders around (`roam` studs) and leashes back to.
+-- Enemies have no Humanoid and no body on the server: each is a Model holding
+-- one anchored root part (the template's HumanoidRootPart, grown to the body's
+-- bounds as its hit volume), tagged "Enemy", moved kinematically by EnemyMover,
+-- with its health in Health/MaxHealth attributes. Clients clone the body from
+-- ReplicatedStorage.EnemyBodies (a copy of ServerStorage.Enemies made at start)
+-- and draw it (EnemyMotion). Each has a home it wanders around (`roam` studs)
+-- and leashes back to.
 --
 -- States: idle (wander near home) -> chase -> windup (telegraph on the ground)
 -- -> dash (lunge/charge only) -> recover -> chase. Past its leash an enemy
@@ -20,8 +24,8 @@
 -- DashFrom/DashTo/DashSpeed/DashAt, FadeAt) and the Telegraph remote. Clients
 -- predict the visible body from these (EnemyMotion) and play per-beast effects
 -- (EnemyFX); the server compensates player swings for lag (EnemyHistory).
--- Idle beasts with no player within Config.Wilds.WAKE_RADIUS sleep: anchored,
--- not thinking, nothing to replicate.
+-- Idle beasts with no player within Config.Wilds.WAKE_RADIUS sleep: not
+-- thinking or moving, nothing to replicate.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -34,8 +38,10 @@ local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
+local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Combat = require(script.Parent.Combat)
 local EnemyHistory = require(script.Parent.EnemyHistory)
+local EnemyMover = require(script.Parent.EnemyMover)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -46,6 +52,49 @@ local effectRemote = remotes.Effect :: RemoteEvent
 local wilds = workspace:WaitForChild("Wilds")
 local liveFolder = wilds:WaitForChild("Enemies") :: Folder
 local templates = ServerStorage:WaitForChild("Enemies") :: Folder
+
+-- clients draw bodies from this copy of the templates (EnemyMotion)
+local bodies = templates:Clone()
+bodies.Name = "EnemyBodies"
+bodies.Parent = ReplicatedStorage
+
+-- Per enemy type, a template stripped to its root, cloned for each spawn.
+type Standin = { model: Model, rootHeight: number, radius: number, height: number }
+local standins: { [string]: Standin } = {}
+
+local function standinFor(id: string): Standin?
+	local cached = standins[id]
+	if cached then
+		return cached
+	end
+	local template = templates:FindFirstChild(id)
+	local templateRoot = template and template:FindFirstChild("HumanoidRootPart")
+	if not (template and template:IsA("Model") and templateRoot and templateRoot:IsA("BasePart")) then
+		return nil
+	end
+	local extents = template:GetExtentsSize()
+	local model = template:Clone()
+	local root = model:FindFirstChild("HumanoidRootPart") :: BasePart
+	for _, child in model:GetChildren() do
+		if child ~= root then
+			child:Destroy()
+		end
+	end
+	root:ClearAllChildren()
+	root.Anchored = true
+	root.CanCollide, root.CanTouch, root.CanQuery = false, false, true
+	root.Transparency = 1
+	root.Size = Vector3.new(math.max(root.Size.X, extents.X), math.max(root.Size.Y, extents.Y), math.max(root.Size.Z, extents.Z))
+	model.PrimaryPart = root
+	cached = {
+		model = model,
+		rootHeight = templateRoot.Position.Y,
+		radius = math.max(extents.X, extents.Z) / 2,
+		height = extents.Y / 2,
+	}
+	standins[id] = cached
+	return cached
+end
 
 local PLAYER_RADIUS = 1.5 -- players count as inside an area this far past its edge
 local AREA_HEIGHT = 8 -- areas reach this far up and down from the ground
@@ -61,8 +110,10 @@ export type Shape = {
 type Enemy = {
 	model: Model,
 	def: Enemies.Def,
-	humanoid: Humanoid,
 	root: BasePart,
+	mover: EnemyMover.Mover,
+	health: number,
+	maxHealth: number,
 	home: Vector3,
 	roam: number,
 	rootHeight: number,
@@ -107,6 +158,13 @@ local function groundParams(): RaycastParams
 		end
 	end
 	params.FilterDescendantsInstances = ignore
+	return params
+end
+
+-- For walking: also skips anything players can walk through.
+local function moveParams(): RaycastParams
+	local params = groundParams()
+	params.RespectCanCollide = true
 	return params
 end
 
@@ -201,48 +259,38 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		warn(`EnemyService: no enemy "{id}"`)
 		return nil
 	end
-	local model = template:Clone()
-	local humanoid = model:FindFirstChildOfClass("Humanoid") :: Humanoid
+	local standin = standinFor(id)
+	if not standin then
+		warn(`EnemyService: enemy "{id}" has no HumanoidRootPart`)
+		return nil
+	end
+	local model = standin.model:Clone()
 	-- Rojo's live sync drops Model.PrimaryPart, so find the root by name
 	local root = model:FindFirstChild("HumanoidRootPart") :: BasePart
 	model.PrimaryPart = root
-	local rootHeight = (template:FindFirstChild("HumanoidRootPart") :: BasePart).Position.Y
+	local rootHeight = standin.rootHeight
 	-- beast health and damage scale with its realm's Pacing row (beastHealth/beastDamage)
 	local health = math.floor(def.health * Realms.ofBeast(def.realm).beastHealth + 0.5)
-	humanoid.MaxHealth = health
-	humanoid.Health = health
-	humanoid.WalkSpeed = def.walkSpeed
-	-- states a beast never uses cost the server humanoid work every step
-	for _, unused in
-		{
-			Enum.HumanoidStateType.Climbing,
-			Enum.HumanoidStateType.Seated,
-			Enum.HumanoidStateType.FallingDown,
-			Enum.HumanoidStateType.Ragdoll,
-			Enum.HumanoidStateType.Flying,
-			Enum.HumanoidStateType.PlatformStanding,
-		}
-	do
-		humanoid:SetStateEnabled(unused, false)
-	end
 	local ground = groundAt(at)
 	model:PivotTo(CFrame.new(ground + Vector3.new(0, rootHeight, 0)) * CFrame.Angles(0, math.random() * math.pi * 2, 0))
 	model:SetAttribute("EnemyType", id)
 	model:SetAttribute("RunSpeed", def.runSpeed)
 	model:SetAttribute("Realm", Realms.get(def.realm[1], def.realm[2]).name)
+	model:SetAttribute("MaxHealth", health)
+	model:SetAttribute("Health", health)
 	model:SetAttribute("AIState", "idle")
 	model:SetAttribute("StateAt", serverNow())
 	model:AddTag("Enemy")
 	model.Parent = liveFolder
-	root:SetNetworkOwner(nil)
-	local extents = model:GetExtentsSize()
-	EnemyHistory.track(model, math.max(extents.X, extents.Z) / 2, extents.Y / 2)
+	EnemyHistory.track(model, standin.radius, standin.height)
 
 	local enemy: Enemy = {
 		model = model,
 		def = def,
-		humanoid = humanoid,
 		root = root,
+		mover = EnemyMover.new(root, rootHeight, standin.radius, def.walkSpeed),
+		health = health,
+		maxHealth = health,
 		home = opts.home or ground,
 		roam = opts.roam or DEFAULT_ROAM,
 		rootHeight = rootHeight,
@@ -262,9 +310,6 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		asleep = false,
 	}
 	enemies[model] = enemy
-	humanoid.Died:Connect(function()
-		EnemyService.died(enemy)
-	end)
 	return model
 end
 
@@ -276,7 +321,7 @@ end
 -- Clients fade the body (EnemyFX, on FadeAt); the server only holds it still
 -- and removes it, so a fade costs no per-part replication.
 local function fadeAway(enemy: Enemy)
-	enemy.root.Anchored = true
+	enemy.mover.goal, enemy.mover.push = nil, nil
 	EnemyHistory.forget(enemy.model)
 	enemy.model:SetAttribute("FadeAt", serverNow())
 	task.delay(1.2, function()
@@ -318,7 +363,7 @@ end
 -- qualifies, so a kill is never left without anyone credited.
 local function credited(enemy: Enemy): { Player }
 	local share = if enemy.def.boss then Rewards.BOSS_KILL_SHARE else Rewards.KILL_SHARE
-	local needed = enemy.humanoid.MaxHealth * share
+	local needed = enemy.maxHealth * share
 	local top, topDamage = nil, 0
 	local list = {}
 	for player, damage in enemy.damagers do
@@ -400,7 +445,20 @@ local function face(enemy: Enemy, toward: Vector3)
 end
 
 local function stop(enemy: Enemy)
-	enemy.humanoid:MoveTo(enemy.root.Position)
+	enemy.mover.goal = nil
+end
+
+local function moveTo(enemy: Enemy, at: Vector3)
+	enemy.mover.goal = at
+end
+
+local function setSpeed(enemy: Enemy, speed: number)
+	enemy.mover.speed = speed
+end
+
+local function setHealth(enemy: Enemy, health: number)
+	enemy.health = math.clamp(health, 0, enemy.maxHealth)
+	enemy.model:SetAttribute("Health", enemy.health)
 end
 
 local function setState(enemy: Enemy, state: string)
@@ -413,29 +471,15 @@ local function setState(enemy: Enemy, state: string)
 	end
 end
 
--- Shove the enemy `distance` studs along `dir` over Knockback.PUSH_SECONDS.
+-- Shove the enemy `distance` studs along `dir` over Knockback.PUSH_SECONDS,
+-- then plant it where it landed, not back where it was told to walk.
 local function shove(enemy: Enemy, dir: Vector3, distance: number)
-	local attachment = Instance.new("Attachment")
-	attachment.Parent = enemy.root
-	local mover = Instance.new("LinearVelocity")
-	mover.Attachment0 = attachment
-	mover.RelativeTo = Enum.ActuatorRelativeTo.World
-	mover.ForceLimitMode = Enum.ForceLimitMode.PerAxis
-	mover.MaxAxesForce = Vector3.new(1, 0, 1) * enemy.root.AssemblyMass * 2000
-	mover.VectorVelocity = dir * (distance / Knockback.PUSH_SECONDS)
-	mover.Parent = enemy.root
-	task.delay(Knockback.PUSH_SECONDS, function()
-		attachment:Destroy()
-		mover:Destroy()
-		-- stop dead: left alone it keeps the push's speed and slides far past
-		if enemy.root.Parent then
-			enemy.root.AssemblyLinearVelocity *= Vector3.new(0, 1, 0)
-		end
-		-- plant it where it landed, not back where it was told to walk
-		if enemy.state == "stagger" and enemy.model.Parent then
-			stop(enemy)
-		end
-	end)
+	local mover = enemy.mover
+	mover.push = flat(dir) * (distance / Knockback.PUSH_SECONDS)
+	mover.pushUntil = os.clock() + Knockback.PUSH_SECONDS
+	if enemy.state == "stagger" then
+		stop(enemy)
+	end
 end
 
 -- A player hit with a push: knock the enemy back and stagger it if the
@@ -457,25 +501,32 @@ local function knock(enemy: Enemy, player: Player, push: Vector3)
 	end
 	-- a windup broken here never resolves; its telegraph just fades
 	enemy.shape, enemy.dashTo = nil, nil
-	enemy.humanoid.WalkSpeed = enemy.def.runSpeed
-	enemy.humanoid.AutoRotate = false
+	setSpeed(enemy, enemy.def.runSpeed)
+	enemy.mover.turn = false
+	stop(enemy)
 	setState(enemy, "stagger")
 	enemy.stateUntil = now + Knockback.stun(distance)
 	enemy.staggerImmuneUntil = enemy.stateUntil + Knockback.RESTAGGER
 end
 
--- Damage from players: remember who to credit, turn on them if idle, and
--- take the hit's knockback.
+-- Damage from players (Combat.damageEnemy): take it, remember who to credit,
+-- turn on them if idle, then die or take the hit's knockback.
 Combat.onEnemyDamaged = function(model: Model, player: Player, amount: number, push: Vector3?)
 	local enemy = enemies[model]
-	if enemy then
-		enemy.damagers[player] = (enemy.damagers[player] or 0) + amount
-		if not enemy.target and enemy.state ~= "return" then
-			enemy.target = player
-		end
-		if push and enemy.humanoid.Health > 0 then
-			knock(enemy, player, push)
-		end
+	if not enemy or enemy.health <= 0 then
+		return
+	end
+	enemy.damagers[player] = (enemy.damagers[player] or 0) + amount
+	setHealth(enemy, enemy.health - amount)
+	if enemy.health <= 0 then
+		EnemyService.died(enemy)
+		return
+	end
+	if not enemy.target and enemy.state ~= "return" then
+		enemy.target = player
+	end
+	if push then
+		knock(enemy, player, push)
 	end
 end
 
@@ -510,7 +561,7 @@ end
 local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, attack: Enemies.Attack)
 	enemy.attack = attack
 	stop(enemy)
-	enemy.humanoid.AutoRotate = false
+	enemy.mover.turn = false
 	face(enemy, targetRoot.Position)
 	local ground = groundAt(enemy.root.Position)
 	local dir = flat(targetRoot.Position - enemy.root.Position)
@@ -553,8 +604,7 @@ end
 local function summon(enemy: Enemy, attack: Enemies.Attack)
 	for i = #enemy.summoned, 1, -1 do
 		local m = enemy.summoned[i]
-		local h = m:FindFirstChildOfClass("Humanoid")
-		if not (m.Parent and h and h.Health > 0) then
+		if not Hitbox.alive(m) then
 			table.remove(enemy.summoned, i)
 		end
 	end
@@ -597,8 +647,8 @@ local function resolveAttack(enemy: Enemy, now: number)
 	end
 	enemy.shape = nil
 	if enemy.dashTo then
-		enemy.humanoid.WalkSpeed = attack.dashSpeed :: number
-		enemy.humanoid:MoveTo(enemy.dashTo)
+		setSpeed(enemy, attack.dashSpeed :: number)
+		moveTo(enemy, enemy.dashTo :: Vector3)
 		-- the dash's line, so clients draw it where it is on the server, not a
 		-- ping behind (EnemyMotion)
 		local model = enemy.model
@@ -617,7 +667,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 end
 
 local function think(enemy: Enemy, now: number)
-	local def, humanoid = enemy.def, enemy.humanoid
+	local def = enemy.def
 	local position = enemy.root.Position
 
 	if enemy.state == "windup" then
@@ -628,7 +678,7 @@ local function think(enemy: Enemy, now: number)
 	elseif enemy.state == "dash" then
 		if now >= enemy.stateUntil then
 			stop(enemy)
-			humanoid.WalkSpeed = def.runSpeed
+			setSpeed(enemy, def.runSpeed)
 			enemy.state = "recover"
 			enemy.stateUntil = now + def.attack.recover
 		end
@@ -637,15 +687,15 @@ local function think(enemy: Enemy, now: number)
 		if now < enemy.stateUntil then
 			return
 		end
-		humanoid.AutoRotate = true
+		enemy.mover.turn = true
 		enemy.state = "chase"
 	elseif enemy.state == "return" then
 		if flat(position - home(enemy)).Magnitude < 8 then
-			humanoid.Health = humanoid.MaxHealth
+			setHealth(enemy, enemy.maxHealth)
 			table.clear(enemy.damagers)
 			enemy.state = "idle"
 		else
-			humanoid:MoveTo(home(enemy))
+			moveTo(enemy, home(enemy))
 		end
 		return
 	end
@@ -653,8 +703,8 @@ local function think(enemy: Enemy, now: number)
 	if flat(position - home(enemy)).Magnitude > def.leash then
 		enemy.target = nil
 		enemy.state = "return"
-		humanoid.WalkSpeed = def.runSpeed
-		humanoid:MoveTo(home(enemy))
+		setSpeed(enemy, def.runSpeed)
+		moveTo(enemy, home(enemy))
 		return
 	end
 
@@ -662,21 +712,21 @@ local function think(enemy: Enemy, now: number)
 	enemy.target = target
 	if not (target and targetRoot) then
 		enemy.state = "idle"
-		humanoid.WalkSpeed = def.walkSpeed
+		setSpeed(enemy, def.walkSpeed)
 		if now >= enemy.nextWander then
 			enemy.nextWander = now + 4 + math.random() * 4
-			humanoid:MoveTo(randomPointNear(enemy.home, enemy.roam))
+			moveTo(enemy, randomPointNear(enemy.home, enemy.roam))
 		end
 		return
 	end
 
 	enemy.state = "chase"
-	humanoid.WalkSpeed = def.runSpeed
+	setSpeed(enemy, def.runSpeed)
 	local distance = flat(targetRoot.Position - position).Magnitude
 
 	-- bosses summon when their health crosses a threshold, whatever comes next
 	if def.summonAt and def.pattern and now >= enemy.nextAttack then
-		local fraction = humanoid.Health / humanoid.MaxHealth
+		local fraction = enemy.health / enemy.maxHealth
 		for i, at in def.summonAt do
 			if fraction <= at and not enemy.summonsDone[i] then
 				enemy.summonsDone[i] = true
@@ -694,79 +744,140 @@ local function think(enemy: Enemy, now: number)
 	if def.keepAway and distance < def.keepAway then
 		local away = flat(position - targetRoot.Position)
 		away = if away.Magnitude > 0.1 then away.Unit else Vector3.xAxis
-		humanoid:MoveTo(position + away * 10)
+		moveTo(enemy, position + away * 10)
 	elseif distance <= attack.range and now >= enemy.nextAttack then
 		startAttack(enemy, targetRoot, now, attack)
 	elseif distance > math.min(attack.range, 20) * 0.7 then
-		humanoid:MoveTo(targetRoot.Position)
+		moveTo(enemy, targetRoot.Position)
 	else
 		stop(enemy)
 		face(enemy, targetRoot.Position)
 	end
 end
 
--- No player near and nothing to do: stop thinking and anchor, so the beast costs
--- no physics or replication. One walking home is put there and healed first
--- (nobody is near enough to see it jump).
+-- No player near and nothing to do: stop thinking and moving, so the beast
+-- costs nothing. One walking home is put there and healed first (nobody is near
+-- enough to see it jump).
 local function sleep(enemy: Enemy)
 	if enemy.state == "return" then
 		local ground = groundAt(enemy.home)
 		enemy.model:PivotTo(CFrame.new(ground + Vector3.new(0, enemy.rootHeight, 0)) * enemy.root.CFrame.Rotation)
-		enemy.humanoid.Health = enemy.humanoid.MaxHealth
+		setHealth(enemy, enemy.maxHealth)
 		table.clear(enemy.damagers)
 	end
 	stop(enemy)
-	enemy.humanoid.WalkSpeed = enemy.def.walkSpeed
-	enemy.root.Anchored = true
+	setSpeed(enemy, enemy.def.walkSpeed)
 	enemy.asleep = true
 	setState(enemy, "idle")
 end
 
 local function wake(enemy: Enemy, now: number)
-	enemy.root.Anchored = false
 	enemy.asleep = false
 	enemy.nextWander = now + math.random() * 3
+end
+
+local function thinkAll()
+	local now = os.clock()
+	local awake: { Vector3 } = {}
+	for _, player in Players:GetPlayers() do
+		local root = playerRoot(player)
+		if root then
+			table.insert(awake, root.Position)
+		end
+	end
+	for _, enemy in enemies do
+		if enemy.health > 0 and enemy.model.Parent then
+			local position = enemy.root.Position
+			local near = false
+			for _, at in awake do
+				if (at - position).Magnitude <= Config.WAKE_RADIUS then
+					near = true
+					break
+				end
+			end
+			if not near and not enemy.target and (enemy.state == "idle" or enemy.state == "return") then
+				if not enemy.asleep then
+					sleep(enemy)
+				end
+				continue
+			elseif enemy.asleep then
+				wake(enemy, now)
+			end
+			local ok, err = pcall(think, enemy, now)
+			if not ok then
+				warn(`EnemyService: {enemy.def.id} errored: {err}`)
+			end
+			setState(enemy, enemy.state)
+		end
+	end
+end
+
+-- Overlapping awake beasts drift apart (no physics bodies to bump them), except
+-- mid-dash.
+local function crowd(list: { Enemy })
+	for _, enemy in list do
+		enemy.mover.nudge = Vector3.zero
+	end
+	for i = 1, #list do
+		local a = list[i]
+		for j = i + 1, #list do
+			local b = list[j]
+			local offset = flat(a.root.Position - b.root.Position)
+			local reach = (a.mover.radius + b.mover.radius) * 0.7
+			local distance = offset.Magnitude
+			if distance < reach then
+				local dir = if distance > 0.05 then offset.Unit else Vector3.xAxis
+				local push = dir * Config.CROWD * (1 - distance / reach)
+				if a.state ~= "dash" then
+					a.mover.nudge += push
+				end
+				if b.state ~= "dash" then
+					b.mover.nudge -= push
+				end
+			end
+		end
+	end
+end
+
+local function moveAll(dt: number)
+	local now = os.clock()
+	local stamp = serverNow()
+	local list: { Enemy } = {}
+	for _, enemy in enemies do
+		if not enemy.asleep and enemy.health > 0 and enemy.model.Parent then
+			table.insert(list, enemy)
+		end
+	end
+	if #list == 0 then
+		return
+	end
+	crowd(list)
+	local params = moveParams()
+	for _, enemy in list do
+		if EnemyMover.moving(enemy.mover, now) then
+			local ok, err = pcall(EnemyMover.step, enemy.mover, dt, now, params)
+			if not ok then
+				warn(`EnemyService: {enemy.def.id} failed to move: {err}`)
+			end
+		end
+		EnemyHistory.record(enemy.model, enemy.root.Position, stamp)
+	end
 end
 
 function EnemyService.start()
 	task.spawn(function()
 		while true do
 			task.wait(Config.AI_TICK)
+			thinkAll()
+		end
+	end)
+	task.spawn(function()
+		local last = os.clock()
+		while true do
+			task.wait(Config.MOVE_TICK)
 			local now = os.clock()
-			local stamp = serverNow()
-			local awake: { Vector3 } = {}
-			for _, player in Players:GetPlayers() do
-				local root = playerRoot(player)
-				if root then
-					table.insert(awake, root.Position)
-				end
-			end
-			for _, enemy in enemies do
-				if enemy.humanoid.Health > 0 and enemy.model.Parent then
-					local position = enemy.root.Position
-					local near = false
-					for _, at in awake do
-						if (at - position).Magnitude <= Config.WAKE_RADIUS then
-							near = true
-							break
-						end
-					end
-					if not near and not enemy.target and (enemy.state == "idle" or enemy.state == "return") then
-						if not enemy.asleep then
-							sleep(enemy)
-						end
-						continue
-					elseif enemy.asleep then
-						wake(enemy, now)
-					end
-					local ok, err = pcall(think, enemy, now)
-					if not ok then
-						warn(`EnemyService: {enemy.def.id} errored: {err}`)
-					end
-					setState(enemy, enemy.state)
-					EnemyHistory.record(enemy.model, enemy.root.Position, stamp)
-				end
-			end
+			moveAll(math.min(now - last, Config.MOVE_TICK * 3))
+			last = now
 		end
 	end)
 end

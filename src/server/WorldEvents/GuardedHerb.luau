@@ -10,6 +10,7 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Cultivation = require(script.Parent.Parent.Cultivation)
 local EnemyService = require(script.Parent.Parent.EnemyService)
 local Inventory = require(script.Parent.Parent.Inventory)
@@ -82,9 +83,12 @@ function GuardedHerb.start(run: any): boolean
 		end
 		run.announce(`The {guardianDef.name} has fallen! The {herb.name} is free to gather.`)
 	end
-	local humanoid = guardian and guardian:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		humanoid.Died:Connect(unguard)
+	if guardian then
+		guardian:GetAttributeChangedSignal("Health"):Connect(function()
+			if not Hitbox.alive(guardian) then
+				unguard()
+			end
+		end)
 	else
 		unguard()
 	end

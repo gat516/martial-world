@@ -1,6 +1,7 @@
 --!strict
 -- Attack hitboxes (one per weapon class), shared so the client's predicted hits and the server's check
--- use the same box. Enemies are models tagged "Enemy" with a living Humanoid.
+-- use the same box. Enemies are models tagged "Enemy" with a Health attribute above 0
+-- (no Humanoid: EnemyService owns health).
 
 local Config = require(script.Parent.Config).Combat
 
@@ -19,8 +20,8 @@ function Hitbox.alive(model: Instance?): boolean
 	if not (model and model:IsA("Model") and model:HasTag("Enemy") and model:IsDescendantOf(workspace)) then
 		return false
 	end
-	local humanoid = model:FindFirstChildOfClass("Humanoid")
-	return humanoid ~= nil and humanoid.Health > 0
+	local health = model:GetAttribute("Health")
+	return type(health) == "number" and health > 0
 end
 
 -- The enemy model a part belongs to, if any.

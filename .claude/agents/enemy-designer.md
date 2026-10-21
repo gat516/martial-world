@@ -23,8 +23,9 @@ asked. The user playtests feel and difficulty; say what's untested.
 - `src/shared/Enemies.luau` (defs, attack kinds and every field),
   `src/server/EnemyService.luau` (spawn, state machine, `strike`),
   `src/client/EnemyAnimator.luau`, `EnemyMotion.luau`, `EnemyFX/`,
-  `EnemySounds.luau`, `Telegraphs.luau`. Follow enemies.md "Server and client":
-  the server decides and checks everything, clients only draw.
+  `EnemySounds.luau`, `Telegraphs.luau`, and `src/server/EnemyMover.luau` (how
+  a beast walks). Follow enemies.md "Server and client": the server decides and
+  checks everything, clients only draw.
 - [docs/core-loop.md](../../docs/core-loop.md) and `src/shared/Pacing.luau`:
   which stage each region serves, what the player has at that point
   (realm, techniques, weapon), and the per-stage beast multipliers.
@@ -60,10 +61,11 @@ asked. The user playtests feel and difficulty; say what's untested.
    existing ones: `HumanoidRootPart`, `Humanoid`, Motor6Ds named
    `JointHead`, `JointTail`, `JointLeg{FL,FR,BL,BR}` (or new names that the
    animator learns), the `HealthBar` and the attributes EnemyService expects.
-   Exactly one joint leaves `HumanoidRootPart`: a Motor6D to the body root
-   (`JointRoot` from `rig_wolf.luau`, `RootJoint` on R6), with the rest of the
-   body hung below it, nothing welded straight to the root (enemies.md "Rig
-   contract"); otherwise the beast can't be predicted for high-ping players.
+   Live enemies have no Humanoid or body on the server: it keeps only the
+   root, and every client draws the body from the template (enemies.md
+   "Template contract"). So the body is purely visual, server code never
+   reaches into it, and the template's Humanoid is only there for R6
+   animations.
    `ServerStorage.Enemies` is Rojo-mapped (`assets/Enemies.rbxmx`): build in a
    staging clone and export per AGENTS.md's staging steps.
 4. **Animation.** EnemyAnimator poses joints procedurally from `AIState`

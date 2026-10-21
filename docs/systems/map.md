@@ -391,20 +391,41 @@ bridges, `strict_seat.luau` skips them):
     clusters. They stay off the main peak (r < 202), the pillars (66 + 25),
     waterfall ends near the plane (90) and the plaza's southern view
     (100 deg, r 650, radius 150).
+  - `KarstWisps`: a sparse ring pattern at the foot of each karst group within
+    r 1500 (`KARST_ARCS` picks 0-3 arcs per group; stacked, spiral, offset
+    rings, broken crescent or a single arc). Each group is seeded by its name,
+    so every one is different and re-runs match. Only `COLLARS` (EastSentinels,
+    WestMesa) get a mid-height collar of squashed puffs.
+  - `KarstBands`: thin arcs (1-2) or a small puff collar (3-5) on about a
+    third of the single karst pillars (`BAND_CHANCE`, seeded by pillar name).
+    Each sits 60-80% of the way up and must clear the plane (19 pillars now).
+  - `SpotRings`: free ring patterns (2-3 arcs) at the five spots where the
+    user's hand-placed rings were. The one round Far_133 sits at Y 680 with a
+    collar.
+  - `Sprinkle`: 3 lone puffs and 1 free wisp over open plane, clear of the
+    karst, the mound clusters and the peaks.
+  - `HandPlaced`: any `Wisps` model the user drops at the Workspace root is
+    moved here on the next run and never cleared. This runs before the kit
+    stage, which would otherwise take their Cloud_* meshes for a fresh import
+    and delete them. It is empty now.
   - `Banks`: mid-height clusters at 0/90/225 deg (r 430-620, Y 450-760) and a
     lone tower at 315 deg r 950. All of them are outside the bridges (r < 300)
     and the plateaus.
   - `Auspicious` (12 swirl clouds) are kept from the old pass. Of the 20
     `Emitters` (CloudLineFog, rate 1.2 each), 6 are kept and lifted onto the
     plane (`EMITTER_KEEP` in the script).
-- Budget: ~90 parts, ~71k tris of cloud meshes plus the 12 swirls, 6 emitters.
+- Budget: ~185 parts, ~172k tris of cloud meshes (before LOD) plus the 12
+  swirls, 6 emitters. The arcs are 1400 tris each whatever their size, so
+  they are most of it. A lower-poly WispArc would be the next saving.
+  `ServerStorage.CloudKit.Cloud_WispArc` stays as a template for runtime
+  effects.
   Every cloud part is anchored, with CanCollide, CanQuery, CanTouch and
   CastShadow off, Massless, CollisionFidelity Box, RenderFidelity Automatic,
   DoubleSided off. The plane doesn't block raycasts, and players fall straight
   through it to the ground. From the ground the plane is a solid white ceiling
   at Y 440.
 - Mist VFX spots (Attachments): `FX_PillarMist` x11 (pillar and main-peak
-  wisps), `FX_FallMist` x1, `FX_BankMist` x3. Clone
+  wisps) plus one per `KarstWisps` ring, `FX_FallMist` x1, `FX_BankMist` x3. Clone
   `ServerStorage.AmbientFX.MistWisps` there.
 - The sky's own clouds come from the painted skybox (lighting). Terrain Clouds
   stay off: volumetric clouds would clash with it.

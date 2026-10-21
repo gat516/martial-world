@@ -14,8 +14,14 @@ Stages (set _G.CLOUD_STAGES to run one on its own):
   layout  clear the old cloud groups and lay out:
             Plane      3x3 thin white slabs, top at PLANE_TOP, hiding the peaks' feet
             Wisps      one arc hugging each spirit pillar and three stacked arcs round the main peak
+            KarstWisps a sparse ring pattern (0-3 arcs: stacked, spiral, offset rings or broken crescent,
+                       seeded per group) round each nearer karst group's foot; COLLARS get a puff collar
+            KarstBands thin arcs or a small puff collar 60-80% up about a third of the karst pillars
+            SpotRings  free ring patterns (2-3 arcs) where the user's old hand-placed rings were
             FallFoam   one puff where each waterfall ending near the plane drops into it
             Banks      three cumulus clusters and one lone tower drifting at mid height between the peaks
+            Sprinkle   a few lone puffs and free wisps over open plane
+          HandPlaced (any Workspace-root "Wisps" model the user makes) is folded in and never cleared.
             Mounds     ~40 squashed clumps and puffs in loose clusters, bulging 15-50 studs over the plane
           Auspicious (the swirl clouds) is kept as it is; Emitters is trimmed to EMITTER_KEEP and lifted
           onto the plane. Every remaining cloud part gets the no-collision/query/touch/shadow treatment.
@@ -194,17 +200,19 @@ local function cloud(group: Instance, name: string, bottom: Vector3, yaw: number
 end
 
 -- an arc wisp wrapped around a pillar axis `centre` (x, z) at radius `radius`, its middle facing `deg`
-local function arc(group: Instance, centre: Vector2, y: number, radius: number, deg: number, color: Color3?)
+-- `tilt` (radians) leans the arc's middle up or down about its circle centre; `thick` scales the tube height
+local function arc(group: Instance, centre: Vector2, y: number, radius: number, deg: number, color: Color3?, tilt: number?, thick: number?)
 	local m = MESHES.Cloud_WispArc
 	local s = radius / m.radius
 	local size = robloxSize("Cloud_WispArc") * s
+	size = Vector3.new(size.X, size.Y * (thick or 1), size.Z)
 	-- circle centre in part-local coords (mesh x = -Blender x, mesh z = Blender y)
 	local cc = Vector3.new(-m.circle[1], 0, m.circle[2]) * s
 	local a = math.rad(deg)
 	local yaw = math.atan2(math.cos(a), math.sin(a)) -- local +Z (the arc's middle) toward deg
 	local p = templates.Cloud_WispArc:Clone()
 	p.Size = size
-	p.CFrame = CFrame.new(centre.X, y + size.Y / 2, centre.Y) * CFrame.Angles(0, yaw, 0) * CFrame.new(-cc)
+	p.CFrame = CFrame.new(centre.X, y + size.Y / 2, centre.Y) * CFrame.Angles(0, yaw, 0) * CFrame.Angles(tilt or 0, 0, 0) * CFrame.new(-cc)
 	tint(p, color or LIT)
 	p.Parent = group
 	return p
@@ -254,6 +262,107 @@ local function plane()
 	return g
 end
 
+-- karst ring patterns: the karst groups nearer than KARST_RING_R each get their own sparse pattern (0-3 arcs),
+-- seeded per group so each is different but re-runs come out the same, and only COLLARS get a mid-height
+-- puff collar. They draw from their own Random, so the groups built from the main seed are unaffected.
+-- (The spirit peaks and the main peak keep their simple Wisps below: the user likes them as they are.)
+local KARST_RING_R = 1500 -- karst group centres within this radius of the origin get a ring pattern
+-- a band (thin arcs or a small puff collar) 60-80% of the way up about a third of the karst pillars
+local BAND_CHANCE = 1 / 3
+local BAND_FRACTION = { 0.6, 0.8 }
+-- free-floating ring patterns where the user had hand-placed wisp rings: (x, z, lowest y, ring radius, collar)
+local SPOT_RINGS = {
+	{ 989, 1023, PLANE_TOP - 4, 150, false },
+	{ 1147, -1058, PLANE_TOP - 4, 150, false },
+	{ -1205, -1765, PLANE_TOP - 4, 150, false },
+	{ -1766, -416, PLANE_TOP - 4, 150, false },
+	{ -1472, 1433, 680, 150, true }, -- round Far_133, at mid height
+}
+local RING_PATTERNS = { "stacked", "spiral", "offset", "broken" }
+local KARST_ARCS = { 0, 0, 1, 1, 2, 3 } -- arcs per karst group, picked per group
+local COLLARS = { WestMesa = true, EastSentinels = true } -- only these get a puff collar
+
+local function collar(g: Instance, centre: Vector2, radius: number, y: number, count: number?)
+	local n = count or rng:NextInteger(5, 6)
+	local a0 = rand(0, 360)
+	for i = 0, n - 1 do
+		local q = centre + polar(a0 + i * 360 / n + rand(-12, 12), radius + rand(-4, 8))
+		local s = robloxSize("Cloud_Puff") * rand(1.0, 1.4)
+		local p = templates.Cloud_Puff:Clone()
+		p.Size = Vector3.new(s.X, s.Y * rand(0.6, 0.8), s.Z)
+		p.CFrame = CFrame.new(q.X, y + rand(-5, 5), q.Y) * CFrame.Angles(0, rand(0, 2 * math.pi), 0)
+		tint(p, i % 2 == 0 and WARM or COOL)
+		p.Parent = g
+	end
+end
+
+-- `n` arcs in one pattern round the axis `centre` (rock radius `r`) between heights yLo and yHi
+local function ring(g: Instance, centre: Vector2, r: number, yLo: number, yHi: number, n: number, withCollar: boolean)
+	local pattern = pick(RING_PATTERNS)
+	local a0 = rand(0, 360)
+	local dir = rng:NextNumber() < 0.5 and -1 or 1
+	local first
+	local function put(y, radius, deg, i, thick)
+		local tilt = math.rad(rand(-7, 7))
+		local p = arc(g, centre, y, radius, deg, i % 2 == 0 and WARM or COOL, tilt, thick or rand(0.8, 1.3))
+		first = first or p
+	end
+	if n == 1 then -- a lone arc low on the rock
+		put(yLo + rand(0, 20), r + rand(6, 14), a0, 0)
+	elseif pattern == "stacked" then -- bands stacked up the rock, each facing a different way
+		local step = (yHi - yLo) / n
+		for i = 0, n - 1 do
+			put(yLo + i * step + rand(-4, 4), r + rand(6, 14), a0 + i * rand(100, 150), i)
+		end
+	elseif pattern == "spiral" then -- a corkscrew climbing round the rock, opening out as it rises
+		local turn = rand(65, 95)
+		for i = 0, n - 1 do
+			put(yLo + (yHi - yLo) * i / math.max(1, n - 1), r + 8 + i * rand(3, 7), a0 + dir * i * turn, i)
+		end
+	elseif pattern == "offset" then -- a tight inner ring higher up and a wide outer ring low, gaps offset
+		local inner = math.ceil(n / 2)
+		local yIn = yLo + (yHi - yLo) * rand(0.35, 0.6)
+		for i = 0, inner - 1 do
+			put(yIn + rand(-4, 4), r + rand(5, 9), a0 + i * 360 / inner + rand(-15, 15), i)
+		end
+		local outer = n - inner
+		local rOut = r + rand(40, 60)
+		for i = 0, outer - 1 do
+			put(yLo + rand(0, 10), rOut + rand(-6, 6), a0 + 180 / math.max(1, outer) + i * 360 / outer + rand(-20, 20), i + 1, rand(0.7, 1.0))
+		end
+	elseif n > 0 then -- broken crescent: thin arcs at one height with gaps between
+		local y = yLo + (yHi - yLo) * rand(0, 0.4)
+		local radius = r + rand(8, 16)
+		for i = 0, n - 1 do
+			put(y + rand(-6, 6), radius + rand(-4, 4), a0 + i * 360 / n + rand(-25, 25), i, rand(0.6, 0.9))
+		end
+	end
+	if withCollar then -- a dense collar of squashed puffs hugging the rock mid-height
+		collar(g, centre, r + 6, (yLo + yHi) / 2 + rand(-8, 8))
+	end
+	return first, n > 0 and pattern or "none"
+end
+
+-- the XZ centre, radius and top of a karst group above the plane
+local function karstBounds(model: Instance)
+	local minx, maxx, minz, maxz, top = math.huge, -math.huge, math.huge, -math.huge, -math.huge
+	local bottom = math.huge
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			bottom = math.min(bottom, d.Position.Y - d.Size.Y / 2)
+		end
+		if d:IsA("BasePart") and d.Position.Y + d.Size.Y / 2 > PLANE_TOP then
+			minx, maxx = math.min(minx, d.Position.X - d.Size.X / 2), math.max(maxx, d.Position.X + d.Size.X / 2)
+			minz, maxz = math.min(minz, d.Position.Z - d.Size.Z / 2), math.max(maxz, d.Position.Z + d.Size.Z / 2)
+			top = math.max(top, d.Position.Y + d.Size.Y / 2)
+		end
+	end
+	if top == -math.huge then
+		return nil, 0, 0, 0
+	end
+	return Vector2.new((minx + maxx) / 2, (minz + maxz) / 2), math.max(maxx - minx, maxz - minz) / 2, top, bottom
+end
+
 local function wisps()
 	local g = newGroup("Wisps")
 	for k, c in peaks() do
@@ -268,6 +377,89 @@ local function wisps()
 		local m = MAIN + polar(spec[2], MAIN_R + 16)
 		fx(p, "FX_PillarMist", Vector3.new(m.X, spec[1] + 14, m.Y))
 	end
+	return g
+end
+
+local function nameSeed(name: string)
+	local seed = SEED
+	for b = 1, #name do
+		seed = (seed * 31 + string.byte(name, b)) % 2147483647
+	end
+	return seed
+end
+
+local function karstModels()
+	local karst = workspace.Map:FindFirstChild("Karst")
+	local models = karst and karst:GetChildren() or {}
+	table.sort(models, function(a, b)
+		return a.Name < b.Name
+	end)
+	return models
+end
+
+-- a sparse ring pattern round each nearer karst group, at its foot
+local function karstWisps()
+	local g = newGroup("KarstWisps")
+	local base = rng
+	for _, model in karstModels() do
+		local c, r, top = karstBounds(model)
+		if c and c.Magnitude <= KARST_RING_R then
+			rng = Random.new(nameSeed(model.Name))
+			local n = pick(KARST_ARCS)
+			if n > 0 or COLLARS[model.Name] then
+				local q = ring(g, c, r * 0.8, PLANE_TOP, math.min(top - 60, 640), n, COLLARS[model.Name] == true)
+				if q then
+					fx(q, "FX_PillarMist", Vector3.new(c.X + r, PLANE_TOP + 14, c.Y))
+				end
+			end
+		end
+	end
+	rng = base
+	return g
+end
+
+-- bands high on about a third of the single karst pillars (the groups' child models)
+local function karstBands()
+	local g = newGroup("KarstBands")
+	local base = rng
+	for _, group in karstModels() do
+		local pillars = group:GetChildren()
+		table.sort(pillars, function(a, b)
+			return a.Name < b.Name
+		end)
+		for _, pillar in pillars do
+			rng = Random.new(nameSeed(pillar.Name .. "#band"))
+			if pillar:IsA("Model") and rng:NextNumber() < BAND_CHANCE then
+				local c, r, top, bottom = karstBounds(pillar)
+				local y = c and bottom + (top - bottom) * rand(BAND_FRACTION[1], BAND_FRACTION[2])
+				if c and y > PLANE_TOP + 25 and y < top - 20 then
+					local radius = r * 0.85 + 6
+					if rng:NextNumber() < 0.55 then -- one or two thin arcs
+						local a0 = rand(0, 360)
+						arc(g, c, y, radius, a0, WARM, math.rad(rand(-6, 6)), rand(0.6, 0.9))
+						if rng:NextNumber() < 0.5 then
+							arc(g, c, y + rand(-8, 8), radius + rand(-3, 5), a0 + 180 + rand(-30, 30), COOL, math.rad(rand(-6, 6)), rand(0.6, 0.9))
+						end
+					else -- a small puff collar
+						collar(g, c, radius - 4, y, rng:NextInteger(3, 5))
+					end
+				end
+			end
+		end
+	end
+	rng = base
+	return g
+end
+
+-- free ring patterns at the spots of the user's old hand-placed rings
+local function spotRings()
+	local g = newGroup("SpotRings")
+	local base = rng
+	for i, spot in SPOT_RINGS do
+		rng = Random.new(SEED + (40 + i) * 7919)
+		ring(g, Vector2.new(spot[1], spot[2]), spot[4], spot[3], spot[3] + rand(50, 70), rng:NextInteger(2, 3), spot[5])
+	end
+	rng = base
 	return g
 end
 
@@ -384,6 +576,72 @@ local function mounds(feet)
 	return g
 end
 
+-- a light sprinkle of lone clouds over open plane (puffs and a couple of free wisps), clear of the karst,
+-- the mound clusters, the peaks and the plaza's southern view
+local SPRINKLE_PUFFS, SPRINKLE_ARCS = 3, 1
+
+local function sprinkle(feet)
+	local g = newGroup("Sprinkle")
+	local pillars = peaks()
+	local blockers = {}
+	local karst = workspace.Map:FindFirstChild("Karst")
+	if karst then
+		for _, model in karst:GetChildren() do
+			local c, r = karstBounds(model)
+			if c then
+				table.insert(blockers, { c, r + 80 })
+			end
+		end
+	end
+	for _, cl in MOUND_CLUSTERS do
+		table.insert(blockers, { polar(cl[1], cl[2]), cl[5] + 60 })
+	end
+	local function free(q)
+		if not moundSpot(q, pillars, feet) then
+			return false
+		end
+		for _, b in blockers do
+			if (q - b[1]).Magnitude < b[2] then
+				return false
+			end
+		end
+		return true
+	end
+	for i = 1, SPRINKLE_PUFFS + SPRINKLE_ARCS do
+		for _ = 1, 20 do
+			local q = polar(rand(0, 360), rand(520, 1700))
+			if free(q) then
+				if i <= SPRINKLE_PUFFS then
+					mound(g, "Cloud_Puff", q, rand(1.4, 2.2), rand(14, 24), i % 2 == 0 and WARM or COOL)
+				else
+					arc(g, q, PLANE_TOP - 2, rand(70, 110), rand(0, 360), WARM, math.rad(rand(-6, 6)), rand(0.7, 1.0))
+				end
+				table.insert(blockers, { q, 200 })
+				break
+			end
+		end
+	end
+	return g
+end
+
+-- hand-placed clouds: any "Wisps" model the user drops at the Workspace root is moved into
+-- Map.Clouds.HandPlaced, which the layout never clears (only the no-collision settings are applied there)
+local function foldHandPlaced()
+	local hand = clouds:FindFirstChild("HandPlaced")
+	if not hand then
+		hand = Instance.new("Folder")
+		hand.Name = "HandPlaced"
+		hand.Parent = clouds
+	end
+	for _, m in workspace:GetChildren() do
+		if m.Name == "Wisps" and m:IsA("Model") then
+			m.Name = "Hand_" .. (#hand:GetChildren() + 1)
+			m.Parent = hand
+		end
+	end
+	return #hand:GetChildren()
+end
+
 -- the foot of every waterfall (the "waterfall end" parts) that ends near the plane, so foam can hide it
 local function waterfallFeet()
 	local feet = {}
@@ -444,6 +702,8 @@ local function layout()
 		return fallFoam(waterfallFeet())
 	end, banks, function()
 		return mounds(waterfallFeet())
+	end, karstWisps, karstBands, spotRings, function()
+		return sprinkle(waterfallFeet())
 	end } do
 		local g = build()
 		g.Parent = clouds
@@ -451,6 +711,7 @@ local function layout()
 		task.wait()
 	end
 	counts.Emitters = trimEmitters()
+	counts.HandPlaced = #clouds.HandPlaced:GetChildren()
 	-- everything (kept groups too) gets the no-collision treatment; Box fidelity so Roblox doesn't build or
 	-- stream decomposed collision for parts that never collide, and no double-sided rendering
 	for _, d in clouds:GetDescendants() do
@@ -470,6 +731,9 @@ end
 
 local rec = CHS:TryBeginRecording("Place clouds")
 local ok, result = pcall(function()
+	-- first, so the kit stage (which takes any Cloud_* MeshPart outside Map.Clouds for a fresh import and
+	-- deletes its container) never sees the user's hand-placed wisps
+	foldHandPlaced()
 	if STAGES.kit then
 		kit()
 	end

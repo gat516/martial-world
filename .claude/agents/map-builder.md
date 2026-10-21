@@ -231,6 +231,12 @@ Each one cost a pass real time. Check them before calling an area done.
   model in `Map.Ground.WildsInner.Walls` (the user moves and scales them), never merged or
   welded; no script or raycast depends on wall geometry; spawns, discs and nodes stay 40+
   studs off wall feet. Check for gaps by rays from the valley side at several heights.
+- **Library rocks with a SurfaceAppearance ignore part Color.** Tint them with
+  `SurfaceAppearance.Color` (the Cliff Terrain Rocks need about `#706858` to sit with the
+  house warm greys); check the tint in haze, day and dusk, from the valley floor.
+- **New ground gets a base terrain pass before anyone looks at it.** Walls on bare
+  Ground/Slate, old pools or fissures read as an unfinished game; lay grass up to the
+  wall feet and raise it into them (`terrain_valley_base.luau`).
 - **Library rock families don't mix.** Cliff Rock Pack I and the Fantasy rocks read brown
   and plain beside the moss-capped Cliff Terrain Rocks; capture a test before using them.
 

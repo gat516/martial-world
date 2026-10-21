@@ -830,6 +830,23 @@ ring rocks, trees, bamboo, glowing pools, boundary fog, Inner trees, colliders a
 went to `ServerStorage._InnerWildsReplaced`. When the rework lays out the pockets, P5
 Hunter's Camp moves ~50 south of the planned (660, 650) to clear the NorthEast2 feet.
 
+Colour pass (2026-10-21, after the user found rock, moss and ground "three different games"):
+- The rocks' look comes from their SurfaceAppearance (Overlay ColorMap), so the part Color
+  does nothing; `SurfaceAppearance.Color` tints it. Every wall rock is tinted warm grey
+  around `#706858` (a step either way per rock, kept in a `Tint` attribute). That brings
+  the icy white-blue down to the house rock family (the karst's `#7A7570`) and quiets the
+  moss to a deeper green next to the grass. Don't raise it much: lighter tints read icy
+  again under the wilds' haze.
+- `art/wilds/terrain_valley_base.luau` gives the new footprint (bounds, outside the built
+  Inner and Borderlands boxes, the sect-gate front and r 480) a base floor: LeafyGrass and
+  Grass by noise, Ground on slopes, rising 10 studs into the wall feet over 80 studs,
+  feathered 36 studs into the built boxes; it filled the old pools and fissures. Global
+  terrain material colours are unchanged (Grass `#7E9C63`, LeafyGrass `#66804F`, Ground
+  `#7A6A55`).
+- The old ring boundary fog emitters inside the bounds went to `_InnerWildsReplaced`. The
+  tall pale "panels" seen past the walls are the far karst trunks (Far_008, Far_050) in
+  haze, not blockout parts; they are the karst pass's to restyle.
+
 **Stylized shallow water.** The Lotus Mere and every fall pool use one reusable template
 the `vfx` agent is building: a flat water part with a cartoon surface (bright cyan cells,
 white foam lines, a pale foam rim where it meets sand or stone), matching the waterfall

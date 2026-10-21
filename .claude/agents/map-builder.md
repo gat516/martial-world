@@ -44,6 +44,23 @@ props wherever there's room.
 - Cliff faces: a few deliberate ledges of different sizes with a reason (a pine
   growing out, a shrine, a waterfall step), not many identical ones.
 
+## Reworking an area
+
+AI passes have kept layering new work on old: orphaned props, dressing half
+replaced, seams that no longer meet, pieces floating or sunk. A rework is not
+done until the old is gone.
+- Before building, inventory the area (every model and part in its bounds,
+  including loose ones at the Workspace root and in other folders) and decide
+  for each: keep, rework or replace.
+- Replace, don't layer. Move replaced pieces to `ServerStorage._<Area>Replaced`
+  with a `FromPath` attribute; never leave the old copy beside the new one.
+- After building, sweep the same bounds again: anything not from this pass or
+  on the keep list is an orphan; remove it. Raycast every prop's base onto the
+  ground (no floating or buried pieces), check seams that should meet (wall
+  segments, path to bridge, lawn to rock, terrain to mesh) for gaps, and look
+  for duplicates stacked in one spot.
+- Report the counts (kept, replaced, removed, reseated) in your summary.
+
 ## Style
 
 - Stylized, chunky and readable, consistent with the existing pieces. The

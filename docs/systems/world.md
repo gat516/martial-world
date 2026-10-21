@@ -11,7 +11,9 @@ everyone to one spot, and a day/night cycle.
   passive cultivation or circulation and drop treasures; rain and storms change
   the garden.
 - World events are announced, visible from the peaks (pillars of light), and
-  first-come: the first to claim keeps the prize.
+  first-come: the first to claim keeps the prize. They should feel like a race:
+  everyone sees it at once, runs for it and competes on arrival. Each zone keeps
+  open event grounds for them (decided 2026-10-21, [map](map.md) "Zone shape").
 - Ambience is client-side and in step across clients via the server clock.
 - Day/night: DayNight blends hourly keyframes (soft warm day with blue distance
   haze, golden hour before the ~18:00 sunset, violet dusk, a desaturated indigo
@@ -94,6 +96,9 @@ dashboard, and end when claimed or after `minutes`.
 - `Pacing.Income.NODE_SHARE`, `NODE_COOLDOWN`; `Config.Economy.NODE_STONES`.
 
 ## Known gaps
+- Event and treasure spots come from the zone discs (`Treasures.randomSpot`), not
+  the planned per-zone event grounds, and nothing on arrival makes it a contest
+  beyond first claim.
 - Only the Auspicious Clouds varieties have a timer `weight`, so they are the only
   events that start on their own (the timer rolls every 20-35 min).
 - Qi node prompts get their key and style set in code (TODO in QiNodes.luau) until

@@ -55,6 +55,41 @@ only for instanced party content.
   entered as a party (reserved server), a queue (`MemoryStoreService`) or an open
   public server. Saves must finish before leaving and load safely on arrival
   (session locking), and players always return to a hub server.
+- **Later realm tiers may move to another place we own.** From about the third
+  zone on, teleporting into a separate place is allowed (a "you've moved up"
+  moment), at the cost of splitting friends across realms and a save handoff.
+  Decide when zone 3 is close; zones 1-2 stay in this place.
+
+### Zone shape: walled valleys, detailed pockets, open event grounds
+Decided 2026-10-21. Only the spirit gate front was detailed to the target
+standard, and an open field can never be finished (every direction needs
+something to look at, and the horizon makes it read flat). So the terrain
+funnels players, not teleports:
+- **A spine and pockets.** Each zone is a walled valley a few hundred studs
+  across: one main path from the arrival array, and 3-5 side pockets off it (a
+  hollow, a waterfall pool, a ruin, a lair, a cache). Each pocket gets the spirit
+  gate front's level of detail; cliff walls close every other view and are the
+  zone edge (no invisible walls). Exploring means leaving the spine for a pocket.
+- **Open event grounds.** Each zone also keeps 2-3 open, flat-ish grounds
+  (meadows, clearings, a terrace) away from the arrival array and at different
+  distances from it, deliberately lighter on dressing so world events,
+  auspicious phenomena and treasures have room to land and players room to
+  fight over them. They are the places `Treasures.randomSpot` and event kinds
+  pick; keep them clear of trees and rock clusters and reachable by more than
+  one route.
+- **Events are races.** A world event or auspicious phenomenon is announced and
+  visible from afar (light pillar, clouds), so everyone runs for it at once; the
+  routes to each event ground should be about equal from the zone's array, with
+  a riskier shortcut (a cleft, a climb, a lair) to reward knowing the zone. See
+  [world](world.md).
+- **Rework passes remove what they replace.** Past AI passes layered new work on
+  old (orphaned props, half-replaced dressing, misaligned seams, floating or sunk
+  pieces). Every rework of an area starts with an inventory of what is there and
+  ends with a sweep: every piece in the area either belongs to the new pass or is
+  deliberately kept; replaced pieces go to `ServerStorage._<Area>Replaced` with a
+  `FromPath` attribute (as `_WildsReplaced`), not left in place; seams that
+  should meet (wall segments, path to bridge, lawn to rock) are checked for
+  gaps; props are raycast onto the ground. See `.claude/agents/map-builder.md`.
 
 ### Still to do, in rough order
 1. ~~**Gate UI** (`ui-designer`): TravelMenu buttons for `InnerWilds`,

@@ -106,6 +106,27 @@ checks a rebuild against the previous templates.
   point light riding the blade, a sword-intent crescent and impact frames at
   the release, and a quake on the first impact. Damage still lands on the
   whole line at Hit; visual impacts follow the blade, up to ~0.36 s later.
+- **Fire Seal** (`FireSeal_T1..T4`, authored at radius 8, a 0.214 s active
+  window and 4 s; `TechniqueFX.FireSeal`). Fists.4 strikes with the left hand.
+  Windup: qi gathers into the palm. At Hit the seal is thrown as a projectile
+  (a Neon core with a trail and a spinning ring, `Palm/Bolt`, `BoltRing`),
+  whose 0.24 s flight is fitted to the active window, and lands at the zone
+  centre (`def.offset` ahead, on the ground) with an impact stack and a torus
+  rolling out to the rim (`Land`, delayed by the flight). For `def.seconds` a
+  raised Neon `Rim` torus marks exactly `def.radius`, with a turning rune
+  glyph, flame tongues and embers (`Zone`, enabled/disabled by the runtime;
+  its held MeshParts carry `Show`/`Spin`/`Flicker`). Every `def.tick` a
+  `PulseRing` sweeps to the rim, the rim flares, and each enemy inside
+  (re-queried per tick, up to 4) gets a burn hit (`Impact`: flare, embers,
+  `impactShockwave` rings) and an orange `CombatEffects.flash`. At the end the
+  hold fades and `Finale` bursts. Ticks are counted on the client from the
+  cast time (k × tick, the first held until the landing), because the server's
+  ticks aren't sent. II adds a spinning `InnerSeal` and rim flares; III a
+  counter-rotating `CounterSeal` and second glyph, a `FlameWall` spike crown
+  on the rim, `PulseCrown` spikes per tick, a Craters rock ring, scorch and
+  shake at the landing, and a flame tongue under each burn hit; IV a flame
+  `Pillar` at the landing, the move's one PointLight, and a big finale with an
+  Explosion shake.
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative
@@ -150,7 +171,9 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   the animation's marker. Effects follow Config until the two are aligned.
 - Enemy hits don't knock players back or stagger them yet.
 - Sword Qi Wave's blade stops visually at walls, but its damage box still
-  reaches through them; and its windup gathers in front of the chest rather
-  than on the right hand until its def gets `hand = "Right"`.
+  reaches through them.
+- Fire Seal's tick visuals are timed on the client from the cast, not from
+  the server's damage ticks (which aren't sent), and the first one waits for
+  the seal to land (~0.24 s after the first damage tick).
 - An interrupted enemy windup's telegraph still plays out on clients.
 - `Dodge` and `Cast` remotes in `assets/Remotes.rbxmx` are unused.

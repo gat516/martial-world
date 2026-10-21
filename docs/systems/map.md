@@ -979,6 +979,48 @@ shoots, a few culms, low bushes), never single clumps among the pines.
   (new pockets and finds, `POI` tags), `Regions`, `Music.luau`, `Shared.Spawns`,
   `place_karst.luau` clearances.
 
+**Phase 3 as built (2026-10-21; stopped for the user's own POI pass).** Run in Edit mode,
+in this order, after `terrain_wilds.luau`: `water_inner.luau` (builds the Twin-Jade notch
+rocks), `place_pockets_inner.luau`, `water_inner.luau` again, `place_finds_inner.luau`,
+`ambience_inner.luau` (needs `tools/water_kit_build.luau` first for `_G.waterKit`).
+- Pockets (`Map.Ground.WildsInner.Pockets`): the POI builder's prefabs from
+  `ServerStorage.InnerWildsPrefabs` (WolfDen at (-700, 786), WolfDenRing round the boss
+  disc, WolfDenRockGate on the WestArm at (-480, 760), BambooHollow under the north wall
+  at (-330, 590), FallenGiant over the gully, HuntersCamp at (660, 702), the hermitage at
+  (-566, 1176), LotusMere, ShrineTerrace at (-62, 1325) in front of the Shrine Cliff,
+  TwinJadeSpring under the Twin-Jade falls). Each is seated on the lowest ground round its
+  footprint's rim, digs its own `TerrainCarve` discs, keeps its POI tag and is flagged
+  `NeedsHandPass`. The terrain knolls and the den cave they replace came out of the layout.
+- Finds (`Map.Ground.WildsInner.Finds`): F01-F31 at their planned spots, front toward the
+  nearest path, pushed off paths and out of pockets, tagged `POI` (structural ones
+  `NeedsHandPass`).
+- Water (`Map.Ground.WildsInner.Water`): the Jade Veil falls through the test stretch's
+  notch into a WaterKit pool; the Twin-Jade notch (three giants, a lip and seams, 25 studs
+  in front of the SouthEastFar karst, whose trunk collider is r 96) with two ribbons into
+  the TwinJadeSpring prefab's pool; trickles down the West wall (den), the East wall and
+  the north wall into the Bamboo Hollow's spring; the Lotus Mere's water is the prefab's.
+  Every fall foot has WaterKit foam, `WaterfallSpray`, `WaterfallMist` (PlungeBillow at the
+  hero falls) and AmbientSound anchors.
+- Caches sit on their pocket's `CacheSpotAnchor`; QiNode3, 6 and 7 on the prefabs'
+  `QiNodeSpotAnchor`s (Wilds.rbxmx).
+- FX and sound (`Map.Ground.WildsInner.FX`, plus the prefabs' own `FX_*`/`SND_*` anchors):
+  AmbientFX clones with Rate scaled by area (den and ring mist, bamboo light, qi spring,
+  lotus, fireflies, incense, lantern and fire glows, small glows), 33 `RimVeil` banks past
+  the wall backs, and `AmbientSound` anchors (`Sound` = template) for falls, pools, the
+  river, bamboo, the den, the shrine and hermitage bells, the camp, the mere, birds and
+  insects in pairs over open ground, rim wind along the crests and high wind at the flyer
+  spots. Left for `vfx`: anchors without a template (DenEyes, FoxEyes, Dragonflies,
+  LookoutFlag, SpireGlint, SwordGlint) and sounds without one (BoarGrunt, SwordHum,
+  BannerFlap, ClothFlap, WoodCreak, the prefabs' SND_Wind).
+- Clearance check (report only, the user is doing a POI pass before any rock or tree
+  moves): wall seams overlap the Bamboo Hollow and the Fox Hole; the SouthWestFar and
+  SouthEastFar karst colliders reach into the hermitage and the Twin-Jade spring; seam
+  rocks stand in front of the den, east and Bamboo trickles; a giant overhangs the
+  Twin-Jade pocket (user report); Wall_SouthEast26_Giant blocks the SouthEast path at the
+  gorge gate, Wall_S11_CornerFoot the GorgeRoad, the Twin-Jade notch giants the end of the
+  SouthEast path; an old MiddleRing dead tree stands in the Wolf Den. Each is tagged
+  `NeedsHandPass` with what blocks it (`T.handpass()`).
+
 **Inventory of the Inner box before the rework** (x -450..430, z 470..900, Y < 300;
 1,867 models and loose parts): `Map.Ground.WildsInner.Dressing` 1,827 (Trees 386,
 Colliders 360, PathEdge 548, Rocks 256, Bamboo 144, Shrubs 97, GroundCover 36);

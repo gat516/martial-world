@@ -74,54 +74,52 @@ _G.WILDS_LAYOUT = {
 			{ name = "BermSW", pts = P({ -212, 1448, -280, 1452, -500, 1440, -760, 1400 }), h = 9, hw = 70 },
 			{ name = "BermW", pts = P({ -760, 1400, -860, 1250, -900, 1000, -872, 742 }), h = 9, hw = 70 },
 			-- Old Stone Hill under the Bamboo Sea, holding the hidden hollow
-			{ name = "OldStoneHill", pts = P({ -440, 610, -380, 578, -300, 572, -230, 600 }), h = 18, hw = 34, rock = true },
+			{ name = "OldStoneHill", pts = P({ -470, 650, -410, 668, -340, 676, -270, 664 }), h = 16, hw = 30, rock = true },
 			-- the GateRidge east of the court; the G2 shortcut runs along its crest
 			{ name = "GateRidge", pts = P({ 60, 668, 150, 666, 235, 664 }), h = 11, hw = 20, rock = true },
 		},
 		-- terraces / knolls: { x, z, flatRadius, outerRadius, topY, steep } (steep: cliff-edged, rocks around)
 		knolls = {
-			{ -70, 1365, 14, 28, 15, true }, -- Shrine Terrace at the Shrine Cliff's foot (hero)
-			{ -658, 772, 14, 40, 26, true }, -- wolf den crag (the den cave runs into it)
-			{ 660, 712, 7, 22, 7.5, false }, -- hunter's camp rise
-			{ -560, 1170, 10, 26, 6.5, false }, -- the hermitage rise at the Three Pillars' feet
+			-- the Shrine Terrace, the den crag and cave come from InnerWildsPrefabs (part-built), not terrain
+			{ 660, 702, 26, 42, 7.0, false }, -- hunter's camp rise (the HuntersCamp prefab sits on it)
+			{ -566, 1176, 34, 50, 6.0, false }, -- the hermitage rise at the Three Pillars' feet
 		},
 		-- gullies: dry ravines, polyline, depth below the ground, half width
 		gullies = {
 			{ name = "GiantsGully", pts = P({ 300, 743, 296, 793, 306, 843, 300, 903, 312, 980, 330, 1040 }), depth = 7, hw = 11 },
 		},
 		-- bowls: { x, z, flatRadius, rimRadius, rimHeight }
-		bowls = {
-			{ -328, 602, 16, 30, 0 }, -- the hidden bamboo hollow inside Old Stone Hill
-		},
+		bowls = {},
 		-- caves carved after the heightmap: mouth (x, z), floor Y, heading (deg, 0 = +X, 90 = +Z), length, radius
-		caves = {
-			{ name = "WolfDenCave", x = -636, z = 774, floor = 4.8, heading = 180, length = 30, radius = 7.5 },
-		},
+		caves = {}, -- the den cave is part of the WolfDen prefab
 		pools = {}, -- no terrain water in the valley: pools are WaterKit parts on flats
 		-- flats: { x, z, radius, Y, material? } (event grounds, the Lotus Mere floor, fall pools, the arrival court)
 		flats = {
 			{ -400, 1000, 52, 4.6, "LeafyGrass" }, -- G1 West Field
 			{ 300, 680, 46, 4.8, "LeafyGrass" }, -- G2 North Terrace
 			{ 470, 1120, 52, 4.6, "Grass" }, -- G3 East Flat
-			{ -260, 1170, 46, 3.4, "Sand" }, -- Lotus Mere floor (shallow water part over it)
+			{ -260, 1170, 46, 3.4, "LeafyGrass" }, -- Lotus Mere floor (the LotusMere prefab digs its own pond)
 			{ -2, 1340, 14, 3.9, "Sand" }, -- Jade Veil pool
 			{ 592, 1218, 16, 3.9, "Sand" }, -- Twin-Jade pool
 			{ 18, 676, 20, 4.6, "Grass" }, -- arrival court
+			{ -330, 585, 38, 4.6, "LeafyGrass" }, -- the Bamboo Hollow under the north wall's trickle
+			{ -58, 1360, 40, 4.6, "Grass" }, -- the Shrine Terrace prefab's ground
 		},
 		-- points of interest: dressing keeps out of these footprints ({ name, x, z, radius })
 		pois = {
 			{ "OldStoneGate", -4, 642, 12 },
 			{ "Steles", -28, 684, 9 },
-			{ "ShrineTerrace", -70, 1365, 30 },
-			{ "ShrineStair", -42, 1352, 11 },
+			{ "ShrineTerrace", -62, 1360, 40 },
 			{ "JadeVeilPool", -2, 1340, 18 },
-			{ "WolfDen", -640, 772, 18 },
-			{ "BambooHollow", -328, 602, 15 },
-			{ "FallenGiant", 300, 800, 16 },
-			{ "HunterCamp", 660, 712, 18 },
-			{ "QiSpringShrine", 590, 1215, 20 },
-			{ "Hermitage", -560, 1170, 22 },
-			{ "LotusMere", -260, 1170, 50 },
+			{ "WolfDen", -700, 786, 42 },
+			{ "WolfDenRing", -580, 780, 50 },
+			{ "WolfDenRockGate", -480, 760, 28 },
+			{ "BambooHollow", -330, 588, 40 },
+			{ "FallenGiant", 300, 800, 60 },
+			{ "HunterCamp", 660, 702, 30 },
+			{ "TwinJadeSpring", 620, 1245, 40 },
+			{ "Hermitage", -566, 1176, 45 },
+			{ "LotusMere", -260, 1170, 52 },
 			{ "GorgeGate", 212, 1440, 16 },
 		},
 		-- builder offsets for poi_wilds.luau: these POIs keep their old literal coordinates in the

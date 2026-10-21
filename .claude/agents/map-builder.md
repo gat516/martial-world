@@ -252,6 +252,19 @@ Each one cost a pass real time. Check them before calling an area done.
 - **Studio needs a file from disk?** Run `tools/receive_rbxmx.py` and
   `HttpService:GetAsync("http://127.0.0.1:8766/<file>.luau")` instead of pasting long
   source, and stop the server afterwards.
+- **Clearance before you call a pocket done.** No wall rock, karst collider, tree or
+  dressing may overlap a pocket's footprint, a pool, a fall's drop line (seen from the
+  valley), a path's walking width or a POI's view from its path. A giant overhung the
+  Twin-Jade pool and swallowed its fall. Check every pocket, pool, fall, path and event
+  ground after any wall or pocket change, and fix or flag every hit.
+- **Keep bamboo and trees out of water and fall drops.** A clump at a fall's foot or on a
+  pool's rim hides both.
+- **Karst trunk colliders are wider than the meshes** (r up to 96 round SouthEastFar):
+  keep pools, paths and pockets outside them, or players hit an invisible wall.
+- **Prefabs that dig their own water sink on a re-run** if you seat them on the lowest
+  ground under their middle (the carve lowers it): sample the footprint's rim.
+- **`require` caches a ModuleScript in Edit**, so after updating
+  `_EditorTools.PoiTour.Source` load the file with `loadstring` to use the new version.
 - **Walls are a few giant library rocks, not piles.** "Stylized Cliff Terrain Rock" scaled
   to 80-120 studs is one cliff face; medium ones cover seams and feet. Fewer pieces means
   fewer seams and triangles, and the moss holds up at scale. Keep each a separate named

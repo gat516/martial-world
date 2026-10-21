@@ -156,6 +156,38 @@ smoothness, how it reads at 40 studs and on phones with a pack of four, and the
 whole path through the Game Module (not in the place; effects play on
 TechniqueVFX's plain-emitter fallback).
 
+### Stone Boar effects
+`EnemyFX/StoneBoar.luau`, templates `ReplicatedStorage.Effects.StoneBoar`
+(builder `tools/vfx_specs/StoneBoar.luau`, built straight from the
+enemy-designer's brief, no new references). Earth qi: #FF8A2B amber with a
+white-hot centre, #7E5D45 umber dust, #8F8B80 stone chips, a slate copy under
+each bright shape for daylight. Every handler returns early unless the model's
+`Template` is `StoneBoarB` (the old boar has none of these hooks). Body hooks
+(a7115a5): attachments `TuskTip` (Head, between the two tusk points; each tusk
+point is 1.15 studs either side), `Core` (Chest), `HoofFL_FX`/`HoofFR_FX`
+(ground under the fore hooves); hind hooves are the `HoofBL`/`HoofBR` parts;
+`Tell = true` on `CrackL1/L2/R1/R2`, `CrackBack` and `EyeL/EyeR`.
+
+| Cue / attack | Template (layers) | Notes |
+|---|---|---|
+| windup, both | `EyeGlint` (amber star, pop) on each eye at t = 0 | every Tell part goes 50% dim -> hot amber over `seconds`, back 0.2 s after (`TellBase` keeps the original colour) |
+| windup charge | `HoofScrape` (dust ring, puffs kicked back, slate grit) at HoofFL_FX at 0.2 and 0.55 x seconds; `Snort` (2 nostril jets) at NosePad at 0.8 x seconds | the second scrape and the snort only while AIState is still `windup` |
+| windup gore | `TuskGlint` (slate dot, spinning amber glint, halo) on each tusk point | follows the Head |
+| strike/dash charge | `DashDust` (umber ring, low puffs, chips, amber embers) between the hind hooves; `ChargeTrail` (dust, chips, slate grit, amber sparks; Rate emitters) ridden under the HRP at hoof level | strike and dash dedupe (0.25 s); trail stops at `land`, death or 0.65 s |
+| strike gore | `GoreHook` (crescent sweep x bone core / amber rim / slate, glint at the peak) 4.5 studs ahead of TuskTip, 1 stud low, sweeping up 0.18 s | |
+| land charge | `Skid` (umber under-puff, dust thrown forward, chips) 1.2 studs ahead of the fore hooves | |
+| hit charge | `ChargeHit` (slate blot, amber flash, star, dust burst, chips) on the target's torso, near side | `CombatEffects.shake(0.3)` when the target is the local character |
+| hit gore | `GoreHit` (crescent mark x core/slate, amber sparks, pop) | |
+| stagger | `StaggerChips` (amber pop, dust, chips) at Core | Tell parts flicker 3x |
+| death | `Death` (umber dust crumbling 0.9 s, amber motes rising, core glow and glint) | Tell parts fade to slate in 0.3 s; the body's 1 s fade is init's |
+
+Layers per beat: windup 2 (+ tell) + 3 to 5; take-off 4 + 4; gore hook 4;
+skid 3; hits 4 to 5; stagger 3; death 4. Library ids are in the builder's
+`TEX` table. Untested in play: placement on the moving, animated body (tusk
+points, trail height), the full cue path, how it reads at 40 studs and on
+phones, and the Game Module path (effects play on TechniqueVFX's fallback
+when the module isn't in the place).
+
 ### Spirit Wolf (the new fight, testbed first)
 User decisions (2026-10-21): the new fight ships to the **testbed first**, behind
 `Config.Wilds.NEW_WOLF` (= `Config.TESTBED`). With it off (the main game) the Spirit

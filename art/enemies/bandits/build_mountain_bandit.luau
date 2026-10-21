@@ -3,6 +3,7 @@
 -- hat (the silhouette: a flat disc over a thin body), a red face wrap and a dao.
 -- Run in Edit mode through execute_luau; rebuilds ServerStorage._RosterBandits.MountainBandit.
 -- Needs _Gear.ConicalHat (cleaned Creator Store hat, see the roster report).
+-- Keyable joints (RIGS.md): Hilt (dao), Hat, SashTail1/2, WrapTail1/2, SkirtL/SkirtR.
 
 local HttpService = game:GetService("HttpService")
 local BASE = "http://127.0.0.1:8767/"
@@ -36,19 +37,29 @@ end
 -- the right panel crosses over the left (jiaoling), a darker band running shoulder to hip
 block("Torso", "CollarL", v(0.32, 1.7, 0.08), v(-0.28, 3.25, -0.53), HEMP_SH, CFrame.Angles(0, 0, -0.55))
 block("Torso", "CollarR", v(0.32, 1.9, 0.08), v(0.22, 3.2, -0.535), HEMP_SH, CFrame.Angles(0, 0, 0.5))
-block("Torso", "CollarBack", v(1.3, 0.3, 0.08), v(0, 3.85, 0.53), HEMP_SH)
+block("Torso", "CollarBack", v(1.3, 0.26, 0.08), v(0, 3.78, 0.53), HEMP_SH)
 block("Torso", "Patch", v(0.45, 0.4, 0.06), v(-0.55, 2.75, 0.53), HEMP_SH, CFrame.Angles(0, 0, 0.2))
 block("Torso", "Sash", v(2.1, 0.42, 1.12), v(0, 2.2, 0), RUST)
 block("Torso", "SashKnot", v(0.4, 0.4, 0.3), v(0.6, 2.2, -0.62), RUST)
-fin("Torso", "SashTail1", v(0.55, 2.05, -0.62), 0.75, 0.32, 0.08, RUST, math.pi + 0.1, 0.1)
-fin("Torso", "SashTail2", v(0.78, 2.05, -0.6), 0.6, 0.28, 0.08, RUST, math.pi - 0.1, -0.15)
--- the tunic skirt over the thighs, torn into teeth
-block("Torso", "SkirtFront", v(2.04, 0.45, 0.1), v(0, 1.8, -0.52), HEMP)
-block("Torso", "SkirtBack", v(2.04, 0.45, 0.1), v(0, 1.8, 0.52), HEMP)
-for i, x in { -0.75, -0.25, 0.25, 0.75 } do
-	local h = if i % 2 == 0 then 0.4 else 0.28
-	B.tri(ctx, "Torso", "HemF" .. i, v(x, 1.58, -0.52), h, 0.5, 0.1, HEMP, DOWN)
-	B.tri(ctx, "Torso", "HemB" .. i, v(x, 1.58, 0.52), 0.68 - h, 0.5, 0.1, HEMP, DOWN)
+B.joint(ctx, B.ribbon(ctx, "Torso", "SashTail1", v(0.55, 2.05, -0.62), 0.75, 0.32, 0.08, RUST, math.pi + 0.1, 0.1), "Torso", v(0.55, 2.05, -0.62))
+B.joint(ctx, B.ribbon(ctx, "Torso", "SashTail2", v(0.78, 2.05, -0.6), 0.6, 0.28, 0.08, RUST, math.pi - 0.1, -0.15), "Torso", v(0.78, 2.05, -0.6))
+-- the tunic skirt over the thighs, torn into teeth. Split down the middle into two flaps
+-- that ride their legs (SkirtL/SkirtR joints at the hip), so a stride never pokes the
+-- thigh through; each flap's back panel and teeth are welded to its front panel.
+for _, s in { -1, 1 } do
+	local side = if s < 0 then "L" else "R"
+	local leg = if s < 0 then "Left Leg" else "Right Leg"
+	local flap = block("Torso", "Skirt" .. side, v(1.02, 0.42, 0.1), v(s * 0.51, 1.78, -0.52), HEMP)
+	block("Skirt" .. side, "SkirtBack" .. side, v(1.02, 0.42, 0.1), v(s * 0.51, 1.78, 0.52), HEMP)
+	for i, x in { 0.75, 0.25 } do
+		local h = if i == 1 then 0.28 else 0.4 -- outer teeth short, inner long, as before
+		if s > 0 then
+			h = if i == 1 then 0.4 else 0.28
+		end
+		B.tri(ctx, "Skirt" .. side, "HemF" .. side .. i, v(s * x, 1.58, -0.52), h, 0.5, 0.1, HEMP, DOWN)
+		B.tri(ctx, "Skirt" .. side, "HemB" .. side .. i, v(s * x, 1.58, 0.52), 0.68 - h, 0.5, 0.1, HEMP, DOWN)
+	end
+	B.joint(ctx, flap, leg, v(s * 0.5, 2, 0))
 end
 
 -- Arms: ragged short sleeves, bare forearms, wrist wraps --------------------------------
@@ -74,8 +85,8 @@ end
 -- Head: face wrap, eyes, brows, a hank of hair under the hat ---------------------------
 block("Head", "FaceWrap", v(1.32, 0.55, 1.32), v(0, 4.18, 0), RUST)
 block("Head", "FaceWrapNose", v(0.5, 0.25, 0.12), v(0, 4.42, -0.66), RUST, CFrame.Angles(-0.3, 0, 0))
-fin("Head", "WrapTail1", v(-0.15, 4.3, 0.66), 0.7, 0.3, 0.08, RUST, math.pi - 0.6, 0.2)
-fin("Head", "WrapTail2", v(0.15, 4.25, 0.66), 0.55, 0.26, 0.08, RUST, math.pi - 0.9, -0.2)
+B.joint(ctx, B.ribbon(ctx, "Head", "WrapTail1", v(-0.15, 4.3, 0.66), 0.7, 0.3, 0.08, RUST, math.pi - 0.6, 0.2), "Head", v(-0.15, 4.3, 0.66))
+B.joint(ctx, B.ribbon(ctx, "Head", "WrapTail2", v(0.15, 4.25, 0.66), 0.55, 0.26, 0.08, RUST, math.pi - 0.9, -0.2), "Head", v(0.15, 4.25, 0.66))
 for _, s in { -1, 1 } do
 	local eye = block("Head", "Eye" .. (if s < 0 then "L" else "R"), v(0.26, 0.1, 0.06), v(s * 0.27, 4.62, -0.615),
 		EYE, CFrame.Angles(0, 0, s * 0.15), Enum.Material.Neon)
@@ -86,11 +97,11 @@ end
 block("Head", "HairBack", v(1.28, 0.5, 0.25), v(0, 4.75, 0.55), DARK)
 fin("Head", "HairTuft", v(0, 4.55, 0.62), 0.4, 0.3, 0.3, DARK, math.pi - 0.3)
 
-B.accessory(ctx, "ConicalHat", "Head", "HatAttachment", CFrame.new(0, 0.1, 0) * CFrame.Angles(0.08, 0, 0), STRAW)
-local hat = ctx.model.ConicalHat.Handle
+local hat = B.gearPart(ctx, "ConicalHat", "Hat", "Head", "HatAttachment", CFrame.new(0, 0.1, 0) * CFrame.Angles(0.08, 0, 0), STRAW)
 hat.SpecialMesh.Scale = Vector3.one * HAT_SCALE
--- chin cord so the hat reads as tied on
-block("Head", "HatCord", v(0.06, 0.6, 0.06), v(-0.62, 4.45, -0.1), DARK, CFrame.Angles(0, 0, -0.1))
+B.joint(ctx, hat, "Head", v(0, 5.0, 0)) -- hinge on the crown of the head
+-- chin cord so the hat reads as tied on (rides the hat when it tilts)
+block("Hat", "HatCord", v(0.06, 0.6, 0.06), v(-0.62, 4.45, -0.1), DARK, CFrame.Angles(0, 0, -0.1))
 
 B.weapon(ctx, WEAPON, "Right Arm")
 

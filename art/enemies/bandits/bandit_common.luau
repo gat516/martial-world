@@ -12,6 +12,12 @@
 -- Detail parts are positioned in this rest space and carry a `Segment` attribute naming
 -- the R6 part they're welded to (a Weld, so the R6 Animation Editor carries them).
 -- Parts with the `Tell` attribute are the windup-flare parts (eyes, markings).
+-- Anything an animator moves on its own (weapon, cloth tails, cape, hat, bow, skirt flaps)
+-- is a keyable Motor6D (B.joint) named after the part it moves, parented in its Part0,
+-- with the rest of that piece welded to it. The six stock R6 joints are never touched.
+-- Joint frames are identity in model space at rest unless a build passes its own frame
+-- (the bow), so +X swings a hanging piece's lower end forward (-Z, the front), +Z swings
+-- it toward the bandit's right (+X), +Y turns its front toward the bandit's left. RIGS.md.
 
 local ServerStorage = game:GetService("ServerStorage")
 
@@ -66,7 +72,7 @@ function B.new(name, skin, colors)
 			p.Material = Enum.Material.SmoothPlastic
 		end
 	end
-	local ctx = { model = rig, count = 0 }
+	local ctx = { model = rig, count = 0, joints = {} }
 	return ctx
 end
 
@@ -119,6 +125,14 @@ function B.fin(ctx, seg, name, base, h, depth, thick, color, pitch, roll, yaw)
 	local cf = CFrame.new(base) * CFrame.Angles(0, yaw or 0, 0) * CFrame.Angles(pitch or 0, 0, roll or 0)
 		* CFrame.new(0, h / 2, 0)
 	return B.add(ctx, seg, name, "WedgePart", v(thick, h, depth), cf, color)
+end
+
+-- A cloth tail: a fin turned a quarter about its own length so its flat face looks front and
+-- back (a ribbon, tapering to a point), not edge-on like a stick. Same arguments as fin.
+function B.ribbon(ctx, seg, name, base, h, width, thick, color, pitch, roll, yaw)
+	local p = B.fin(ctx, seg, name, base, h, width, thick, color, pitch, roll, yaw)
+	p.CFrame *= CFrame.Angles(0, math.pi / 2, 0)
+	return p
 end
 
 -- An isosceles triangle (two wedges back to back), h tall and w wide, in the frame's XY.
@@ -195,6 +209,7 @@ function B.weapon(ctx, weaponName, arm, rest)
 	motor.Part0 = armPart
 	local hiltCF = armPart.CFrame * motor.C0 * (rest or CFrame.identity) * motor.C1:Inverse()
 	w:PivotTo(hiltCF * w.PrimaryPart.CFrame:Inverse() * w:GetPivot())
+	w.PrimaryPart.Material = Enum.Material.SmoothPlastic
 	for _, p in w:GetDescendants() do
 		if p:IsA("BasePart") and p ~= w.PrimaryPart then
 			p:SetAttribute("Segment", hiltName)
@@ -202,6 +217,41 @@ function B.weapon(ctx, weaponName, arm, rest)
 	end
 	w.Parent = ctx.model
 	return w
+end
+
+-- A keyable joint: a Motor6D named after `part`, from the part named `parentName` (an R6
+-- limb or another jointed part), hinged at `hinge` (a rest-space Vector3, or a CFrame when
+-- the joint needs its own axes). Built in finish(), before scaling.
+function B.joint(ctx, part, parentName, hinge)
+	part:SetAttribute("Segment", nil)
+	part:SetAttribute("JointTo", parentName)
+	local cf = if typeof(hinge) == "CFrame" then hinge else CFrame.new(hinge)
+	table.insert(ctx.joints, { part = part, parent = parentName, hinge = cf })
+	return part
+end
+
+-- A cleaned gear mesh from _Gear as a plain Part named `name` (no Accessory wrapper, so
+-- the Humanoid never re-welds it and it can take a joint). Placed like B.accessory.
+function B.gearPart(ctx, gearName, name, seg, att, adjust, color)
+	local src = B.staging()._Gear:FindFirstChild(gearName)
+	assert(src, "missing gear " .. gearName)
+	local handle = src.Handle:Clone()
+	local accAtt = handle:FindFirstChildWhichIsA("Attachment")
+	local charAtt = ctx.model[seg]:FindFirstChild(att or accAtt.Name)
+	handle.CFrame = charAtt.WorldCFrame * (adjust or CFrame.identity) * accAtt.CFrame:Inverse()
+	for _, d in handle:GetChildren() do
+		if not d:IsA("SpecialMesh") then
+			d:Destroy()
+		end
+	end
+	handle.Name = name
+	handle.Color = color or handle.Color
+	handle.SpecialMesh.TextureId = ""
+	handle.Material = Enum.Material.SmoothPlastic
+	handle:SetAttribute("Segment", seg)
+	handle.Parent = ctx.model
+	ctx.count += 1
+	return handle
 end
 
 -- Finish ----------------------------------------------------------------------------
@@ -223,9 +273,10 @@ function B.finish(ctx, opts)
 			p.Massless = true
 			p.CastShadow = true
 			local seg = p:GetAttribute("Segment")
-			if seg and not p:FindFirstChild("AccessoryWeld") and not p:FindFirstChildWhichIsA("WeldConstraint")
-				and p.Parent == model then
-				local s = model[seg]
+			if seg and not p:GetAttribute("JointTo") and not p:FindFirstChild("AccessoryWeld")
+				and not p:FindFirstChildWhichIsA("WeldConstraint") and p.Parent == model then
+				local s = model:FindFirstChild(seg)
+				assert(s, p.Name .. ": no segment " .. seg)
 				local weld = Instance.new("Weld")
 				weld.Name = "Weld"
 				weld.Part0 = s
@@ -234,6 +285,26 @@ function B.finish(ctx, opts)
 				weld.Parent = p
 			end
 		end
+	end
+	-- keyable joints; Part1 names must be unique so the Animation Editor and Moon Animator
+	-- can address each pose by name
+	local names = {}
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			names[d.Name] = (names[d.Name] or 0) + 1
+		end
+	end
+	for _, j in ctx.joints do
+		local p0 = model:FindFirstChild(j.parent, true)
+		assert(p0, j.part.Name .. ": no joint parent " .. j.parent)
+		assert(names[j.part.Name] == 1, "jointed part name not unique: " .. j.part.Name)
+		local m = Instance.new("Motor6D")
+		m.Name = j.part.Name
+		m.Part0 = p0
+		m.Part1 = j.part
+		m.C0 = p0.CFrame:Inverse() * j.hinge
+		m.C1 = j.part.CFrame:Inverse() * j.hinge
+		m.Parent = p0
 	end
 	hrp.Transparency = 1
 	hrp.CanCollide = true
@@ -247,6 +318,9 @@ function B.finish(ctx, opts)
 	hum.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
 	hum.HipHeight = 0 -- R6 stands on its legs; HipHeight stays 0
 	hum.BreakJointsOnDeath = false
+	if not hum:FindFirstChildOfClass("Animator") then
+		Instance.new("Animator").Parent = hum
+	end
 
 	local bar = ServerStorage.Enemies.SpiritWolf.HumanoidRootPart.HealthBar:Clone()
 	bar.StudsOffset = Vector3.new(0, opts.barOffset or 3.4, 0)
@@ -264,14 +338,18 @@ function B.finish(ctx, opts)
 		model:SetAttribute(k, val)
 	end
 
-	-- Each armour piece goes inside the R6 limb it's welded to, so the top level reads as a
-	-- plain R6 rig (Head, Torso, Left/Right Arm, Left/Right Leg, HRP, Humanoid) plus
-	-- accessories and the weapon. The welds don't care where the pieces are parented.
+	-- Each armour piece goes inside the part it's welded to, and each jointed piece inside
+	-- its joint's Part0, so the top level reads as a plain R6 rig (Head, Torso, Left/Right
+	-- Arm, Left/Right Leg, HRP, Humanoid) plus the weapon. Welds don't care where parts live.
+	local moves = {}
 	for _, p in model:GetChildren() do
-		local seg = p:IsA("BasePart") and p:GetAttribute("Segment")
-		if seg and B.R6_LIMBS[seg] then
-			p.Parent = model[seg]
+		local owner = p:IsA("BasePart") and (p:GetAttribute("JointTo") or p:GetAttribute("Segment"))
+		if owner and not B.R6_LIMBS[p.Name] then
+			table.insert(moves, { p, model:FindFirstChild(owner) })
 		end
+	end
+	for _, mv in moves do
+		mv[1].Parent = mv[2]
 	end
 	for _, d in model:GetDescendants() do
 		assert(not d:IsA("LuaSourceContainer"), "script left in " .. d:GetFullName())

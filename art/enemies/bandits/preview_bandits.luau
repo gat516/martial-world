@@ -7,71 +7,15 @@
 
 local PREVIEW_AT = CFrame.new(400, 400, 3000)
 local SPACING = 5
-local ONLY = nil -- e.g. "MountainBandit" to preview one model
-local MODE = "attack" -- "attack": rest + windup; "test": stride + arms raised (clipping check)
+local ONLY = nil -- e.g. "MountainBandit" to preview one model (gsub it for single-model captures)
+local MODE = "attack" -- PREVIEW_MODE -- "attack": rest + windup; "test": stride + arms raised (clipping check)
+local BASE = "http://127.0.0.1:8767/"
 
 local ServerStorage = game:GetService("ServerStorage")
 
-local A = CFrame.Angles
--- R6 joint conventions (pose is applied in the joint's frame):
---   Right Shoulder / Right Hip: A(0,0,+a) swings forward, A(-b,0,0) swings out.
---   Left Shoulder / Left Hip:   A(0,0,-a) swings forward, A(-b,0,0) swings out.
---   Neck / RootJoint:           A(+a,0,0) pitches forward (head down / lean in), A(0,0,y) yaws.
---   Hilt (weapon motor, arm frame): A(x,0,0) pitches the blade (+ up when the arm hangs).
-local POSES = {
-	MountainBandit = {
-		rest = {
-			["Right Shoulder"] = A(0, 0, 0.15), ["Left Shoulder"] = A(-0.08, 0, 0),
-			Hilt = A(-0.9, 0, 0),
-		},
-		-- windup for the overhead chop: dao raised high behind the head, weight back
-		windup = {
-			RootJoint = A(-0.12, 0, 0.35), Neck = A(0.05, 0, -0.3),
-			["Right Shoulder"] = A(-0.25, 0, 2.7), ["Left Shoulder"] = A(-0.2, 0, -0.9),
-			["Right Hip"] = A(0, 0, -0.35), ["Left Hip"] = A(0, 0, -0.45),
-			Hilt = A(0.5, 0, 0),
-		},
-	},
-	BanditArcher = {
-		rest = {
-			["Left Shoulder"] = A(-0.05, 0, -0.35), ["Right Shoulder"] = A(-0.05, 0, 0),
-		},
-		-- full draw: bow arm straight at the target, string hand at the jaw, body side-on
-		windup = {
-			RootJoint = A(0, 0, 0.9), Neck = A(0, 0, -0.9),
-			["Left Shoulder"] = A(0, -0.9, -1.57),
-			["Right Shoulder"] = A(0, 0.9, 1.45),
-			["Right Hip"] = A(0, 0, 0.25), ["Left Hip"] = A(0, 0, 0.2),
-		},
-	},
-	BanditChief = {
-		rest = {
-			["Right Shoulder"] = A(-0.1, 0, 0.35), Hilt = A(1.2, 0, 0),
-			["Left Shoulder"] = A(-0.15, 0, 0),
-		},
-		-- windup for the sweeping cleave: guandao drawn back low across the body
-		windup = {
-			RootJoint = A(0.15, 0, -0.6), Neck = A(-0.1, 0, 0.5),
-			["Right Shoulder"] = A(-0.6, 0, 0.3), ["Left Shoulder"] = A(-0.2, 0, -1.3),
-			["Right Hip"] = A(-0.3, 0, -0.3), ["Left Hip"] = A(0, 0, -0.5),
-			Hilt = A(0.3, 0.6, 0),
-		},
-	},
-}
-
--- joint-range test poses shared by every bandit
-local TEST = {
-	stride = {
-		["Right Shoulder"] = A(0, 0, 0.9), ["Left Shoulder"] = A(0, 0, 0.9),
-		["Right Hip"] = A(0, 0, -0.8), ["Left Hip"] = A(0, 0, -0.8),
-		RootJoint = A(0.1, 0, 0),
-	},
-	raised = {
-		["Right Shoulder"] = A(-0.3, 0, 3.0), ["Left Shoulder"] = A(-0.3, 0, -3.0),
-		["Right Hip"] = A(-0.5, 0, 0.9), ["Left Hip"] = A(-0.5, 0, 0),
-		Neck = A(-0.4, 0, 0.5),
-	},
-}
+local HttpService = game:GetService("HttpService")
+local PZ = loadstring(HttpService:GetAsync(BASE .. "bandits/bandit_poses.luau?" .. os.clock()))()
+local POSES, TEST = PZ.POSES, PZ.TEST
 
 local preview = workspace:FindFirstChild("_RosterPreviewBandits")
 if preview then
@@ -98,11 +42,17 @@ local function pose(copy, p)
 		end
 	end
 	-- each non-motor part follows the segment it hangs off
+	local byName = {}
+	for _, part in copy:GetDescendants() do
+		if part:IsA("BasePart") then
+			byName[part.Name] = byName[part.Name] or part
+		end
+	end
 	local follow = {}
 	for _, part in copy:GetDescendants() do
 		if part:IsA("BasePart") then
 			local seg = part:GetAttribute("Segment")
-			local owner = seg and (copy:FindFirstChild(seg) or copy:FindFirstChild(seg, true))
+			local owner = seg and byName[seg]
 			if owner and owner ~= part then
 				follow[part] = { owner, owner.CFrame:Inverse() * part.CFrame }
 			end
@@ -114,7 +64,11 @@ local function pose(copy, p)
 		local before = pending
 		for _, m in motors do
 			if world[m.Part0] and not world[m.Part1] then
-				world[m.Part1] = world[m.Part0] * m.C0 * (p[m.Name] or CFrame.identity) * m.C1:Inverse()
+				local q = p[m.Name] or CFrame.identity
+				if q == "aim" then
+					q = PZ.solveAim(m, world)
+				end
+				world[m.Part1] = world[m.Part0] * m.C0 * q * m.C1:Inverse()
 				pending -= 1
 			end
 		end

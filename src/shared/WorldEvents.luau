@@ -55,11 +55,28 @@ WorldEvents.Defs = {
 		rate = 3, -- ambient encounters come this many times as often (Spawner.boost)
 		extra = 1, -- beasts added to each pack
 	},
+	-- Auspicious clouds descend from the cloud sea and coil into a turning vortex
+	-- of wisps over a spot in the wilds. Meditating inside its ring cultivates far
+	-- faster; near the end the clouds condense into a jade at the eye, and the
+	-- first to claim it keeps it. Clients draw it (WorldEventFX).
+	CloudConvergence = {
+		id = "CloudConvergence",
+		name = "Auspicious Cloud Convergence",
+		kind = "CloudConvergence",
+		minutes = 6,
+		triggers = { AuspiciousMist = 0.5, Windy = 0.2 },
+		weight = 1,
+		radius = 36, -- studs: the meditation ring around the eye
+		meditation = 4.5, -- passive multiplier while meditating inside (Pacing.Meditation: 1.5 anywhere, 2.5 on your peak)
+		condenseSeconds = 75, -- the jade condenses this long before the end
+		treasure = "CloudPatternJade", -- Items id
+		beaconScale = 2, -- the jade's pillar of light, relative to a heavenly treasure's
+	},
 } :: { [string]: Def }
 
 WorldEvents.MAX_RUNNING = 2 -- at most this many events at once
 -- Untriggered events: the timer rolls every so often and starts a weighted pick
--- (only defs with a weight). Nothing has a weight yet.
+-- (only defs with a weight).
 WorldEvents.TIMER_MINUTES = { 20, 35 }
 
 return WorldEvents

@@ -3,7 +3,8 @@
 -- they sit. Anywhere gives a little, their own spirit peak more, and a seat or
 -- artifact on their peak (the cushion in the cave abode) adds its own bonus.
 -- Bonuses are keyed by ItemId (BuildItems `meditation`), so starter pieces and
--- placed copies count alike. The client plays the animations and asks to start
+-- placed copies count alike. World events can open sites (Meditation.addSite) that
+-- beat sitting anywhere while they last. The client plays the animations and asks to start
 -- or stop; the server re-checks the spot every second and stands the player up
 -- if they drift away from where they sat.
 
@@ -25,6 +26,23 @@ type Session = { anchor: Vector3, spot: Spot }
 local Meditation = {}
 
 local sessions: { [Player]: Session } = {}
+
+type Site = { center: Vector3, radius: number, spot: Spot }
+local sites: { Site } = {}
+
+-- Open a meditation site: anyone meditating within `radius` of `center` gets
+-- `multiplier`. Returns a function that closes it (seated players are re-checked
+-- within a second).
+function Meditation.addSite(center: Vector3, radius: number, multiplier: number, place: string): () -> ()
+	local site = { center = center, radius = radius, spot = { multiplier = multiplier, place = place } }
+	table.insert(sites, site)
+	return function()
+		local i = table.find(sites, site)
+		if i then
+			table.remove(sites, i)
+		end
+	end
+end
 
 local function rootOf(player: Player): BasePart?
 	local character = player.Character
@@ -64,7 +82,13 @@ local function spotAt(player: Player, position: Vector3): Spot
 			return { multiplier = Rates.ON_PEAK, place = "on your peak" }
 		end
 	end
-	return { multiplier = Rates.ANYWHERE, place = "" }
+	local best: Spot = { multiplier = Rates.ANYWHERE, place = "" }
+	for _, site in sites do
+		if (position - site.center).Magnitude <= site.radius and site.spot.multiplier > best.multiplier then
+			best = site.spot
+		end
+	end
+	return best
 end
 
 -- Passive-rate multiplier and where it comes from, or nil when not meditating.

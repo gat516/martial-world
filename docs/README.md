@@ -1,6 +1,8 @@
 # Martial World: code map
 
 A Roblox cultivation / martial-arts game, synced with Rojo (`default.project.json`).
+**Start with [the core loop](core-loop.md)**: cultivate until you hit a wall, go
+out and break it, come home stronger. Every system plugs into it.
 This page says where everything lives. Each system has a short design doc in
 [`systems/`](systems/) (purpose, design intent, files, data flow, tuning knobs, gaps).
 
@@ -60,7 +62,7 @@ ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
 | Combat and action states | [combat](systems/combat.md) | Combat, Movement | ActionRules, Hitbox, Techniques, Knockback, Config.Combat | CombatController, ActionState, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |
 | Weapons, weapon Dao, manual caches, weapon racks | [weapons](systems/weapons.md) | Weapons, Combat, WorldCaches, Progression | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController, WorldCaches |
-| Character: spirit root (built); cultivation method, bloodline, character window (design) | [character](systems/character.md) | Roots (perks applied in Cultivation, Circulation, Combat, Garden) | Roots, Pacing.Roots, Techniques `element` | - |
+| Character: spirit root (built); cultivation method, bloodline, character window (design) | [character](systems/character.md) | Roots (perks applied in Cultivation, Circulation, Combat, Garden) | Roots, Pacing.Roots, Techniques `element` | RootFX (reveal pillar) |
 | Enemies, spawning, regions | [enemies](systems/enemies.md) | EnemyService, Spawner | Enemies, Spawns, Regions, Knockback | EnemyAnimator, EnemyBars, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
@@ -82,7 +84,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | Meditate | Event | both | `Meditation.handle(on)`; server fires `false` to stand you up | Meditation |
 | Sprint | Event | C->S | `Cultivation.setRunning` | Sprint |
 | Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync) | CombatController |
-| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "boss", "used", "bolt", "tribulationStart/End" | CombatController, CombatEffects, Rewards |
+| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "boss", "used", "bolt", "tribulationStart/End" | CombatController, CombatEffects, Rewards, RootFX |
 | Telegraph | Event | S->C | `EnemyService` (attack areas before they land) | Telegraphs |
 | PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot) | State (everything reads State) |
 | Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major) | BreakthroughView |

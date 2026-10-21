@@ -29,8 +29,13 @@
 -- cap (keyboard key, or the gamepad button), the object and action text (kept
 -- live: prices and "No seeds" change while shown), and a hold bar for prompts
 -- with a HoldDuration. On touch there's no key cap: the whole card is the button.
--- A mouse can click a card too (ClickablePrompt). A card that leaves is lifted
--- out of the list while it fades, so it never pushes the others around.
+-- A mouse can click a card too (ClickablePrompt), but only while the cursor is
+-- free: under shift lock or lock-on the mouse sits at the screen's centre, which
+-- is usually right on the board of whatever you face, and the card would sink
+-- every click (no swing, the prompt held instead) and the right-drag that turns
+-- the camera. So the board takes no input while the mouse is held (mouseFree).
+-- A card that leaves is lifted out of the list while it fades, so it never pushes
+-- the others around.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -62,6 +67,7 @@ type Board = {
 	list: Frame,
 	target: Instance,
 	cards: { [ProximityPrompt]: () -> () }, -- each drawn prompt, by how to take its card away
+	releases: { [ProximityPrompt]: () -> () }, -- each card's end-a-held-click
 }
 
 local WorldPrompts = {}
@@ -84,6 +90,7 @@ local live: { [ProximityPrompt]: Enum.ProximityPromptInputType } = {} -- shown b
 local focus: Instance? = nil -- the target whose prompts are drawn
 local companion: ProximityPrompt? = nil -- drawn with focus's own (companionOf)
 local board: Board? = nil
+local mouseFree = true -- PC: the cursor isn't held at the centre (boards take clicks only then)
 local shown = 0 -- counts cards, to keep same-key cards in the order they appeared
 
 local function keyText(code: Enum.KeyCode): string
@@ -259,6 +266,7 @@ local function addCard(b: Board, prompt: ProximityPrompt, inputType: Enum.Proxim
 	local release = bindInput(prompt, card)
 
 	card.Visible = true
+	card.Interactable = Platform.isTouch() or mouseFree
 	card.Parent = b.list
 	Motion.fadeIn(card)
 
@@ -269,11 +277,35 @@ local function addCard(b: Board, prompt: ProximityPrompt, inputType: Enum.Proxim
 		release()
 		retire(card, b)
 	end
+	b.releases[prompt] = release
+end
+
+-- PC: let the board take clicks only while the cursor is free (see the header).
+local function updateMouseFree()
+	local free = UserInputService.MouseBehavior == Enum.MouseBehavior.Default
+	if free == mouseFree then
+		return
+	end
+	mouseFree = free
+	local b = board
+	if b and b.gui then
+		b.gui.Active = free
+		for _, card in b.list:GetChildren() do
+			if card:IsA("GuiButton") then
+				card.Interactable = free
+			end
+		end
+		if not free then
+			for _, release in b.releases do
+				release() -- a click held as the mouse locked would never see its release
+			end
+		end
+	end
 end
 
 local function newBoard(target: Instance): Board?
 	if Platform.isTouch() then
-		return { holder = dock, list = dock:FindFirstChild("List") :: Frame, target = target, cards = {} }
+		return { holder = dock, list = dock:FindFirstChild("List") :: Frame, target = target, cards = {}, releases = {} }
 	end
 	local adornee = adorneeOf(target)
 	if not adornee then
@@ -283,9 +315,10 @@ local function newBoard(target: Instance): Board?
 	gui.Name = "PromptBoard"
 	gui.Adornee = adornee
 	gui.Enabled = true
+	gui.Active = mouseFree
 	gui.Parent = playerGui -- a BillboardGui only takes taps from PlayerGui
 	Motion.buttons(gui)
-	return { gui = gui, holder = gui, list = gui:FindFirstChild("List") :: Frame, target = target, cards = {} }
+	return { gui = gui, holder = gui, list = gui:FindFirstChild("List") :: Frame, target = target, cards = {}, releases = {} }
 end
 
 local function closeBoard(b: Board)
@@ -293,6 +326,7 @@ local function closeBoard(b: Board)
 		take()
 	end
 	table.clear(b.cards)
+	table.clear(b.releases)
 	local gui = b.gui
 	if gui then
 		task.delay(FADE_TIME + 0.05, function()
@@ -329,6 +363,7 @@ local function reconcile()
 	for prompt, take in b.cards do
 		if not want[prompt] then
 			b.cards[prompt] = nil
+			b.releases[prompt] = nil
 			take()
 		end
 	end
@@ -466,6 +501,9 @@ function WorldPrompts.init()
 
 	local since = 0
 	RunService.Heartbeat:Connect(function(dt)
+		if not Platform.isTouch() then
+			updateMouseFree()
+		end
 		since += dt
 		if since >= FOCUS_EVERY then
 			since = 0

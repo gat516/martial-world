@@ -75,9 +75,13 @@ an `enemy-designer` brief.
    effect from its own idea; don't copy another effect's ids, layers or
    palette wholesale, but reusing a good asset where it fits is fine.
 6. **Plan, then build.** Send the plan (below) before building unless told to
-   go straight on. Build plugin-compatible (Emit attributes, tags, add-ons) so
+   go straight on. Enemy effects from an enemy-designer brief skip the plan:
+   the brief is the plan, so build straight away and reuse other enemies'
+   templates where they fit. Build plugin-compatible (Emit attributes, tags, add-ons) so
    the user can tweak it with the plugin's sliders and press R/T.
-7. **Compare and iterate.** Capture your effect at the same moments as the
+7. **Compare and iterate.** Keep captures to a few targeted checks (the user
+   reviews the look in Studio, unless they ask you to review it yourself).
+   Capture your effect at the same moments as the
    reference frames and put them side by side. Fewer layers, flatter
    contrast, less motion or a smaller silhouette than the reference means
    another pass. Check on green grass at noon and at night.

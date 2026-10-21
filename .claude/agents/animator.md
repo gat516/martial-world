@@ -127,7 +127,8 @@ what's untested.
    `Workspace.Rig` control.
 3. Your clip stepped through its key times on a parented clone: feet, drift,
    gaps, clipping.
-4. Captures of one model alone on its own plate (the group `solo`/`shot`
+4. Only if the user asks you to review it yourself (otherwise numeric QA by
+   forward kinematics plus posed copies the user can look at): captures of one model alone on its own plate (the group `solo`/`shot`
    scripts), at the windup peak, the release and the recover, from the side and
    3/4 front, plus one at about 40 studs. Aim about 1.5 studs above the subject's
    centre to clear the HUD, nudge the camera half a stud if a frame comes back
@@ -136,6 +137,16 @@ what's untested.
    first frame is where the telegraph, tell flare and sound start.
 
 ## Pitfalls
+
+- Pose tables live in `src/client/EnemyPoses/<Family>.luau` (format in the
+  rig's `RIGS.md`). Reuse the wolf's `plant` solver (two-joint IK, root drop,
+  floor clamp) and `wolf_family/qa_wolf_poses.luau` for new families instead
+  of rebuilding them.
+- If a new module under `src/` doesn't appear in Studio, Rojo isn't syncing:
+  ask the main session to have the user reconnect, don't work around it.
+- Test which way a middle joint actually compresses near rest before
+  authoring planted poses; RIGS.md sign notes have been wrong (the wolf's
+  hind knee).
 
 - `FindFirstChild(name, true)` can return a Motor6D named after its part; search
   for BaseParts when you mean the part.

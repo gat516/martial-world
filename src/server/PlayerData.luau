@@ -19,7 +19,7 @@ local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
 local Roots = require(ReplicatedStorage.Shared.Roots)
 
-local SCHEMA_VERSION = 8
+local SCHEMA_VERSION = 9
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number, m: string? }
@@ -45,6 +45,7 @@ export type Data = {
 	milestones: { [string]: boolean }, -- kill milestones claimed, by kill count
 	beats: { [string]: boolean }, -- onboarding beats completed, by id (Quests.Beats)
 	lessons: { [string]: boolean }, -- first-encounter lessons already shown (Quests.Lessons)
+	quests: { [string]: boolean }, -- rewarded objectives claimed, by quest id (beats, lessons, later real quests)
 	onboardingMark: number, -- circulation runs when the current beat began
 	lastLogoutUnix: number,
 	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
@@ -97,6 +98,7 @@ local function default(): Data
 		milestones = {},
 		beats = {},
 		lessons = {},
+		quests = {},
 		onboardingMark = 0,
 		lastLogoutUnix = 0,
 		lastDailyDay = 0,
@@ -187,6 +189,16 @@ local migrations: { [number]: (any) -> () } = {
 			d.beats[order[i]] = true
 		end
 		d.onboardingStep = nil
+	end,
+	-- v8 had no objective rewards: beats already passed count as claimed (the
+	-- tutorial isn't paid in arrears); lessons already done pay out once
+	[8] = function(d)
+		d.quests = {}
+		for id, passed in d.beats or {} do
+			if passed then
+				d.quests[id] = true
+			end
+		end
 	end,
 }
 

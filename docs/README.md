@@ -67,6 +67,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | How fast players climb, per stage: qi, breakthroughs, tribulation, insight, beast strength | `src/shared/Pacing.luau` ([cultivation](systems/cultivation.md)) |
 | Enemy overhead bar danger tiers (realm-gap thresholds); their art, colours and omen lines | `src/shared/Pacing.luau` `Danger`; `STYLES` in `src/client/EnemyBars.luau` ([enemies](systems/enemies.md)) |
 | Practice Dao drill (unlock stage, cooldown, XP share, game) | `src/shared/Pacing.luau` `DaoPractice` ([meditation](systems/meditation.md)) |
+| Objective rewards (every onboarding beat and lesson, by id) | `src/shared/Pacing.luau` `Quests` ([onboarding](systems/onboarding.md)) |
 | Realm ladder names and helpers (built from Pacing) | `src/shared/Realms.luau` |
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
@@ -95,7 +96,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
 | Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, WorldFX/* (Kit, SkyGrade, TreasureFX), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |
-| Onboarding, quests, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Gates, Config.Travel | Onboarding, TravelMenu, GateMarkers, Veil |
+| Onboarding, rewarded objectives, quest board, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Gates, Config.Travel, Pacing.Quests | Onboarding, TravelMenu, GateMarkers, Veil |
 | UI and HUD | [ui](systems/ui.md) | - | - | Hud, Menus, Layout, Motion, ScrollHint, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |
 | Map: layout, art direction, anchors scripts depend on | [map](systems/map.md) | Peaks (Map.Sect.SpiritPeaks), Tribulation (CENTER), Travel (TravelGate arrays) | Gates, Config.Travel, Config.Tribulation, Config.Build | DayNight (Map.Sect.Ambience), MyPeak |
@@ -118,7 +119,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot) | State (everything reads State) |
 | Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major) | BreakthroughView |
 | Notify | Event | S->C | toasts from everywhere | Hud |
-| QuestState | Event | S->C | `Quests` (beat, objective, goals, openBoard) | Onboarding |
+| QuestState | Event | S->C | `Quests` (beat, objective, reward, goals, guide, lesson, openBoard) | Onboarding |
 | BuildAction | Function | C->S | `Build.handle` ("buy", "place", "store", "move") | BuildMode, BuildCatalog |
 | GardenAction | Function | C->S | `Garden.handle` ("plant", "harvest", "growTarget", "uproot", "buySeed", "sell", "sellAll") | Planting, GardenView, HerbShop |
 | InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot", "clear", "swap", "comprehend") | Inventory, HotbarView |
@@ -147,7 +148,7 @@ player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`
 Modules expose hook lists that `Main.server.luau` fills, which keeps modules from
 requiring each other in circles: `Cultivation.onBreakthrough`, `.onPush`,
 `.onInsightBlocked`; `EnemyService.onKill`; `Circulation.onFinished`;
-`Tribulation.onFinished`; `Quests.onBeat`; `Progression.onEarned`. Some are
+`Tribulation.onFinished`; `Quests.onBeat`, `.onClaimed`; `Progression.onEarned`. Some are
 function slots set by the module that owns the answer: `Cultivation.meditation`
 (Meditation), `Cultivation.inCombat` (Combat), `Cultivation.startTribulation`
 (Tribulation), `Progression.slotTechnique` (Inventory).

@@ -1,5 +1,6 @@
 --!strict
--- Onboarding and quest board UI: the objective tracker under the top-right tiles,
+-- Onboarding and quest board UI: the objective tracker under the top-right tiles
+-- (with the objective's reward, when it has one),
 -- the elder's one-line guidance (shown once per beat, never blocking), the
 -- server's guide (Guide: a pulsing or spotlit control, a path to walk), the
 -- Travel button appearing when the formation is taught, and the quest board.
@@ -66,7 +67,9 @@ local function onState(state: any)
 	end
 	goals = state.goals or {}
 	local objective = gui:FindFirstChild("Objective", true) :: Frame
-	(objective:FindFirstChild("Text") :: TextLabel).Text = state.objective
+	-- a rewarded objective (Quests) carries its reward after it
+	local line = if state.reward then `{state.objective} · Reward: {state.reward}` else state.objective;
+	(objective:FindFirstChild("Text") :: TextLabel).Text = line
 	objective.Visible = state.objective ~= ""
 
 	TravelMenu.setTaught(state.travel)

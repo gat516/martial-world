@@ -248,6 +248,46 @@ Pacing.Rewards = {
 	} :: { { kills: number, insight: number?, manual: string? } },
 }
 
+-- OBJECTIVE REWARDS (server Quests; docs/systems/onboarding.md). Every
+-- onboarding beat and lesson is a rewarded objective, claimed once per profile
+-- (data.quests, by id). Keyed by the beat or lesson id.
+--   stones   Spirit Stones
+--   qiShare  raw qi, as a share of the dantian of the stage it's claimed at
+--            (so it stays worth the same later; capped by the room left)
+--   insight  insight (counts toward breakthroughs like any other)
+-- SIZING. The early economy: a new player starts with 150 stones; a Spirit
+-- Grass seed costs 10 and a Cloud Mint seed 40; a spirit wolf drops 3-6 stones
+-- (about 4.5), a qi node 4-8; the first technique bottleneck costs 60 stones
+-- and 1 insight; the Elder Wolf King drops 60-90. So:
+--   * the eight first-session beats pay 80 stones in all (about 18 wolf kills,
+--     half the starting purse): felt at every step, not a second economy.
+--     QC3 adds a quarter dantian of raw qi (65 at QC3, over half a run) so the
+--     first goal off the rails starts with qi in hand.
+--   * the lessons pay 20-50 each, about one Spirit Grass bed (Home: 3 seeds) or
+--     two thirds of a bottleneck gate (Bottleneck), never a whole purchase.
+--   * insight only for a big moment: a cultivation method (Foundation, past the
+--     QC9 wall, so the wall's 5 insight still come from first kills and the boss).
+-- Kids should feel every step pays; nothing here should outpace hunting.
+export type QuestReward = { stones: number?, qiShare: number?, insight: number? }
+Pacing.Quests = {
+	-- beats (QC1-3, the first session)
+	Circulate = { stones = 5 },
+	Breakthrough = { stones = 10 },
+	Root = { stones = 10 },
+	Gate = { stones = 5 },
+	FirstKill = { stones = 10 },
+	Technique = { stones = 10 },
+	Refine = { stones = 10 },
+	QC3 = { stones = 20, qiShare = 0.25 },
+	-- lessons (met later, when each first matters)
+	RootPill = { stones = 20 },
+	Home = { stones = 30 },
+	Bottleneck = { stones = 40 },
+	WeaponRack = { stones = 30 },
+	DaoPractice = { stones = 50 },
+	Method = { stones = 150, insight = 1 },
+} :: { [string]: QuestReward }
+
 -- TECHNIQUE COMPREHENSION (Techniques.bottleneck, Progression.comprehend). Casting
 -- levels a technique, but at the top of each visual tier (Techniques.VISUAL_TIERS:
 -- levels 3, 6, 9) its XP stops at a bottleneck. Breaking it takes insight and

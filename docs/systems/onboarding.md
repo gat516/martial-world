@@ -97,7 +97,7 @@ to the first kill.
   its elder line once ever (`QuestState.lesson`), and its guide shows for the
   rest of that session while the condition still holds (`persist`: every
   session until done). A lesson's `objective` replaces the objective line
-  while its guide shows.
+  while its guide shows and it's unclaimed (see "Rewarded objectives").
 - **Root pill (decided 2026-10-21):** a tested root plus a pill that can act
   (a Root Rebirth Pill, or a Marrow Washing Pill below the purest grade, and no
   reforming root waiting) brings the elder's line and a step-by-step guide:
@@ -128,15 +128,58 @@ to the first kill.
   at the destination once its menu is open. Keys are listed at the top of
   `Quests.luau`.
 
+### Rewarded objectives (decided 2026-10-21)
+- **The objective line is the onboarding for now.** Every beat and lesson is a
+  rewarded objective, claimed once per profile: finishing it pays a small
+  reward (mostly Spirit Stones; raw qi or insight for bigger moments), with a
+  toast ("Objective complete: Plant a seed in your garden! +30 Spirit Stones"),
+  the stones' floating number and the Pickup sound, and the Rewards feed. The
+  tracker shows the reward after the objective ("Plant a seed in your garden ·
+  Reward: 30 Spirit Stones").
+- **An actual questing system is the intended direction.** Beats and lessons
+  are already quest-shaped defs (`Quests.Quest`: `id`, `elder`, `objective`,
+  `progress`, `done`, `reward`, `guide`; lessons add `when`, `open`, `early`,
+  `persist`), and claimed state is kept by quest id in `data.quests` (schema
+  v9), never by position, so a quest log, givers, chains and dailies can load
+  the same defs and share the claim path.
+- **What each one asks** (`done`; a lesson's objective applies while `open`,
+  by default its `when`): the beats as above; RootPill: a pill absorbed;
+  Home (from QC4): a herb planted; Bottleneck (while a technique is
+  bottlenecked): a technique comprehended past its first bottleneck;
+  WeaponRack (from QC7): a weapon of a second class; DaoPractice (from QC7): a
+  Practice Dao drill finished (`daoPracticeReadyUnix` set); Method: a
+  cultivation method gained (claimed the moment it's given).
+- **Claiming** is server-side in `Quests.check`: a beat when it's passed, a
+  lesson when its objective is done while it applies (so planting before QC4
+  pays at QC4). `claim` marks `data.quests[id]` before granting, so nothing
+  pays twice. Raw qi only fills the room left in the dantian. Insight goes
+  through `Progression.grantInsight` (counts toward breakthroughs).
+- **Objective line priority:** a guiding lesson's objective while unclaimed
+  (what its guide points at, e.g. RootPill between beat steps) -> the current
+  beat -> the first unclaimed lesson whose objective applies -> the top quest
+  board goal.
+- **Rewards** are all in `Pacing.Quests` (the comment there sizes them
+  against the early economy): the eight beats pay 80 stones in all (about 18
+  wolf kills) plus a quarter dantian of raw qi at QC3; lessons pay 20-50; a
+  cultivation method pays 150 and 1 insight.
+- **Open questions** for the questing system: where quests come from (givers
+  around the sect, the quest board, or auto-offered as now); dailies and
+  repeatables (what resets, and what they pay without inflating stones);
+  chains per zone and per realm (a region's quests leading into its
+  exploring spots and its boss).
+
 ## Key files
-- `src/server/Quests.luau`: `Beats`, `Lessons`, guides, `goals` (quest board),
-  `travelUnlocked`, elder and board prompts in `Workspace.Hub`.
+- `src/server/Quests.luau`: the `Quest` def type, `Beats`, `Lessons`, guides,
+  claiming and granting objective rewards (`claim`, `rewardText`, `onClaimed`),
+  `goals` (quest board), `travelUnlocked`, elder and board prompts in `Workspace.Hub`.
+- `src/shared/Pacing.luau` `Quests`: each objective's reward, by id.
 - `src/shared/Gates.luau`: the arrays (ids, names, realm gate, standing range;
   tag `TravelGate` + attribute `Gate` in the place).
 - `src/server/Travel.luau`: where you may travel from (sect ground, an array, the
   Sect Gate for the wilds), destinations, realm gate, cooldown,
   combat block, streaming the destination in; `Travel.arrival` for respawns.
-- `src/client/Onboarding.luau`: objective tracker, elder line, quest board window;
+- `src/client/Onboarding.luau`: objective tracker (with "· Reward: ..." after a
+  rewarded objective), elder line, quest board window;
   hands `QuestState.guide` to `Guide`.
 - `src/client/Guide.luau`: shows the guide. Button keys map to HUD controls in
   one table (`BUTTONS`), resolved every frame since seated tiles come and go;
@@ -168,8 +211,10 @@ to the first kill.
 - Analytics: each beat is an onboarding funnel step (`Analytics.funnel`).
 
 ## Data flow
-Every second `Quests.check` marks met beats in `data.beats` and pushes
-`QuestState` `{ step, beat, elder, objective, travel, goals, guide, lesson }`
+Every second `Quests.check` marks met beats in `data.beats`, claims done
+objectives in `data.quests` (granting their rewards: `Effect` "stones", "qi",
+"insight" and a `Notify` toast) and pushes
+`QuestState` `{ step, beat, elder, objective, reward, travel, goals, guide, lesson }`
 (only when something visible changed, or a lesson fires); Onboarding passes `travel`
 to `TravelMenu.setTaught`. `TravelAction(gateId)` checks unlock, where you
 stand (sect ground or an array; the Sect Gate's or a wilds array for the wilds), the realm gate, combat and cooldown, streams the destination in,
@@ -179,9 +224,20 @@ then pivots the character onto that array.
 - Beat text and conditions in `Quests.Beats`; goals in `Quests.goals`.
 - `Gates.List`, `Gates.RANGE`; `Config.Travel`: `SECT_GATE` (Gate beat check),
   `COOLDOWN`; `Config.Spawn.HEIGHT` (arrival height above an array).
-- Rewards shown on the board come from `Pacing.Rewards`.
+- Rewards shown on the board come from `Pacing.Rewards`; objective rewards
+  from `Pacing.Quests` (stones, `qiShare` of the dantian, insight).
 
 ## Known gaps
+- No real questing system yet: no quest log, givers, chains or dailies; only
+  the beats and lessons are quests (see "Rewarded objectives" for the open
+  questions). The quest board's goals are not rewarded and not quests.
+- The objective's reward shares the tracker's one text line (scaled 9-14 px),
+  so long objectives shrink; a separate reward line in `Hud.Objective` is UI
+  work for the ui-designer.
+- Method's objective can't wait for the Self card to be opened (the server
+  doesn't know), so it pays as the method is given.
+- A lesson's guide still runs on `when`, so DaoPractice's guide can stay up the
+  rest of the session after its drill is claimed (the objective line moves on).
 - Analytics funnel steps are beat positions, so inserting a beat shifts the
   step numbers after it (compare funnels across versions with care).
 

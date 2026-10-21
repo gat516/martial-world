@@ -16,10 +16,14 @@ game (funnels, progression, custom events), and give admins test tools.
 ## Key files
 - `src/server/PlayerData.luau`: the `Data` type, `default()`, `migrations`
   (schema v5: v4 -> v5 adds `weapons` (everyone owns and equips the Iron Jian),
-  `dao` (Fist and Sword at the neutral level) and `caches`), load with session lock, autosave, release on leave.
+  `dao` (Fist and Sword at the neutral level) and `caches`; v8 -> v9 adds
+  `quests`, the rewarded objectives claimed, by quest id (see
+  [onboarding](onboarding.md)); beats a v8 profile had already passed count as
+  claimed, so the tutorial isn't paid in arrears, while lessons already done
+  pay out once on the next join), load with session lock, autosave, release on leave.
 - `src/server/Settings.luau` + `src/client/Settings.luau` (`SaveSettings` remote).
 - `src/server/Analytics.luau`: onboarding funnel, realm progression events,
-  custom events. See [cultivation](cultivation.md) for reading dropoff.
+  custom events (e.g. `QuestClaimed`, field = quest id). See [cultivation](cultivation.md) for reading dropoff.
 - `src/server/Admin.luau` + `src/client/AdminPanel.luau`: weather, give, seeds,
   stones, buildItems, spawn, growAll, mutateAll, wild, event, stopEvents, fillQi,
   techniqueLevel (set a technique to any level, learning it if needed),

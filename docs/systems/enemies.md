@@ -61,7 +61,8 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 ## Known gaps
 - The Pacing beast multipliers and `Realms.enemyQi` aren't read by
   EnemyService/Spawner yet.
-- Region shapes and Spawns' safe spots are placeholders until the world layout
-  settles; the middle and outer regions reuse ring-1 beasts until their own exist.
+- The Inner and Middle regions are now zone boxes (map.md "Wilds zones"); the Outer
+  region is still a placeholder ring. The middle and outer regions reuse ring-1 beasts
+  until their own exist.
 - Enemy hits don't knock players back yet.
 - One ring of wilds: three beasts and one boss.

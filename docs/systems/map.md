@@ -603,17 +603,29 @@ knoll rocks come from `art/ground/dress_sect_roots.luau` (`Map.Ground.SectRoots`
 
 ## Wilds zones: Inner Wilds and Ruined Borderlands
 The first two wilds zones as one walk south from the sect gate (`TeleportHome_Gate`
-"SectGate" (48, 6, 470)): the Inner Wilds (`Regions` InnerWilds, r 410-900, "Bamboo and
-old stone, where young beasts hunt") down to the border river (water Y 0, z ~860-940),
-then over the stone bridge into the Ruined Borderlands (MiddleWilds, r 900-1600, "Dead
-villages. The beasts here have eaten cultivators."). The built boxes are Inner x -430..410,
-z 560..878 and Middle x -420..280, z 912..1260: that is where every `Wilds.Zones` disc and
-qi node of the two rings sits. Reference: a sandy path sunk between grass banks under
+"SectGate" (48, 6, 470)): the Inner Wilds (`Regions` InnerWilds, box x -1020..1020, z
+470..1560, "Bamboo and old stone, where young beasts hunt"), a walled valley, down to the
+gorge gate (x ~175..262, z ~1450) and the border river (terrain water Y 0, z ~1566-1610),
+then over the stone bridge (x 212) into the Ruined Borderlands (MiddleWilds, box x
+-320..620, z 1560..2060, "Dead villages. The beasts here have eaten cultivators."). The
+Borderlands moved there as one block by (+220, 0, +700) on 2026-10-21 (rework phase 1);
+its built box is now x -200..500, z 1612..1960. The Inner built box is still x -430..410,
+z 560..878 until the rework's phase 2 (its old border river at z ~860-940 and the old
+bridge, `BorderBridge_Old`, stay until then). The rest of the valley has a base grass
+floor (`terrain_valley_base.luau`). Reference: a sandy path sunk between grass banks under
 layered-canopy trees, pale rounded boulders, blue/white flowers on the path edge, blue haze.
 
 Scripts (`art/wilds/`, Studio Edit mode, in this order; each is re-runnable and seeded):
 1. `wilds_layout.luau` sets `_G.WILDS_LAYOUT`: path splines, ridges, terraces, gullies,
-   caves, pools, flats and POI footprints for both zones. Change the layout here.
+   caves, pools, flats and POI footprints for both zones. Change the layout here. The
+   Middle table keeps its pre-move coordinates and the end of the file shifts all of them
+   (and the bridge) by `Middle.offset` (220, 700). `poi_wilds.luau` builds the Middle's
+   POIs at their literal old coordinates, sampling the ground at the moved spot, then moves
+   each POI by the offset; `_G.WILDS_POI.only = { "Bridge", ... }` rebuilds single
+   builders and keeps the rest (rename or remove the old model first). Every POI it
+   builds is tagged `POI`. `terrain_valley_base.luau` (run before `terrain_wilds.luau`)
+   lays the valley's base floor and carves the border river, which `terrain_wilds.luau`
+   keeps clear of.
 2. `terrain_wilds.luau` rewrites the terrain in each box to absolute target heights
    (re-runs give the same ground), feathered 36 studs at the box edge and kept away from
    the river and the gate's paving; zone discs stay flat at their disc height out past
@@ -722,7 +734,7 @@ the cloud plane (top Y 440), so flyers can climb round the karst towers and reac
 bounds below; the wilds boxes then reach up to Y 420. Past the bounds or the ceiling the
 player is turned back, and past the growth band returned to the array.
 
-**Why south, and what it moves.** The sect (r < 470) is north and the karst groups frame
+**Why south, and what it moves (done 2026-10-21, phase 1).** The sect (r < 470) is north and the karst groups frame
 east and west, so the valley grows east-west to the karst and south over today's
 Ruined Borderlands box. The Borderlands move as one block by (+220, 0, +700) to x
 -200..500, z 1612..1960, south of the SouthHorizon karst group, so the river, bridge and
@@ -1012,8 +1024,8 @@ From a read-only audit of the code (2026-10-20); code refs inline.
   (66, 649.5, 92; also the death respawn), `Markers.TeleportHome.TeleportHome_Gate`
   "SectGate" (48, 6, 470), `TeleportHome_Inner` "InnerWilds" (18, 6.6, 676; a
   clearing east of the trunk past the Old Stone Gate, facing south down the path),
-  `TeleportHome_Middle` "MiddleWilds" (14, 2.6, 962; between the road and the east
-  road past the Border Gate, facing south toward the arena), `TeleportHome_Outer`
+  `TeleportHome_Middle` "MiddleWilds" (234, 1.4, 1662; between the road and the east
+  road past the Border Gate, facing south toward the arena; moved with the Borderlands), `TeleportHome_Outer`
   "OuterWilds", each peak's `TeleportArray` "Peak". Arrivals land 4
   above the pivot facing its LookVector; travel works within 12 studs flat of the
   pivot. Arrays are `ModelStreamingMode` Atomic. Moving one moves where players
@@ -1038,8 +1050,12 @@ From a read-only audit of the code (2026-10-20); code refs inline.
   Keep a walkable floor >= 34 radius at Y ~855.5 with clear air, or update Config.
 - Day/night lights: `DayNight.luau` scales only Lights under the first recursive
   "Ambience" under Map (`Map.Sect.Ambience`). Never add another "Ambience".
-- Regions: Y >= 150 is the safe sect; rings Sect 0-410 (the under-sect floor
-  included), Inner 410-900, Middle 900-1600, Outer 1600-2200 (`Regions.luau`).
+- Regions (`Regions.luau`): the sect is ring 0-410 on the ground (the under-sect floor
+  included) and ring 0-470 above Y 150 (only over the sect, so flyers in the wilds keep
+  their region); InnerWilds box x -1020..1020, z 470..1560 and MiddleWilds box x
+  -320..620, z 1560..2060, both below Y 420 (the wilds' flight ceiling under the cloud
+  plane); Outer still the ring 1600-2200. `Music.luau` copies the Borderlands line
+  (`MARSH_SOUTH` 1560) and the boss arena centre (220, 1800).
   SECT_GATE (0, 9, 500).
 - Wilds zones and qi nodes (positions in `assets/Wilds.rbxmx`) are leash and
   spawn homes; ground raycasts (spawns reject Water, treasures, placement) need
@@ -1075,7 +1091,7 @@ From a read-only audit of the code (2026-10-20); code refs inline.
     | RampagingTiger | cache_rampagingtiger | - | (313, 8.7, 628) | hunter's camp rise, beside the tent's south end, 17 studs off the camp's back (Inner, east) |
     | HeavenSplitter | cache_heavensplitter | - | (-100, 9.6, 816) | west foot of the Shrine Terrace's boulders, off the WestLoop (Inner, deep) |
     | DragonPierce | cache_dragonpierce | QC3 | (-302, 8.0, 685) | in front of the wolf den crag's south boulders (Inner, wolves) |
-    | GreatSageAwakening | cache_greatsageawakening | - | (-297, 8.1, 1079) | at the SerpentGrotto's mouth, end of the Grotto trail (Middle) |
+    | GreatSageAwakening | cache_greatsageawakening | - | (-77, 7.2, 1779) | at the SerpentGrotto's mouth, end of the Grotto trail (Middle, moved with the zone) |
     Re-seat the pedestals if the wilds terrain is re-run. The bamboo hollow, the
     WolfDenCave and the grotto are filled by BoulderPile hull colliders, so caches
     sit just outside them. The 2026-10-21 audit moved four that were unreachable or

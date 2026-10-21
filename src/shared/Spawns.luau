@@ -35,7 +35,7 @@ Spawns.Ambient = {
 		{ at = Vector3.new(0, 9, 500), radius = 90 }, -- the sect gate
 		-- the wilds arrays (Map.Markers.TeleportHome), so no pack lands on an arrival
 		{ at = Vector3.new(18, 7, 676), radius = 75 }, -- TeleportHome_Inner
-		{ at = Vector3.new(14, 3, 962), radius = 75 }, -- TeleportHome_Middle
+		{ at = Vector3.new(234, 2, 1662), radius = 75 }, -- TeleportHome_Middle
 	},
 }
 

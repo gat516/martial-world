@@ -6,6 +6,7 @@
 -- ground. The detailed pockets, paths and the new river come with the rework's
 -- terrain_wilds.luau.
 --
+-- Also carves the border river (RIVER) between the valley and the moved Borderlands.
 -- Leaves alone: the built Inner box and the Ruined Borderlands box (feathered 36 studs into
 -- what is there), the sect-gate front, and everything within r 480 of the origin (the
 -- under-sect ground). Replaces old terrain water and fills old fissures down to Y -24.
@@ -14,11 +15,11 @@
 
 local RES = 4
 local Y0, Y1 = -24, 40
-local BOUNDS = { x0 = -1020, x1 = 1020, z0 = 470, z1 = 1560 }
+local BOUNDS = { x0 = -1020, x1 = 1020, z0 = 470, z1 = 1620 }
 local KEEP = { -- {x0, x1, z0, z1}: built areas left as they are
 	{ -430, 410, 560, 878 }, -- Inner Wilds box (wilds_layout)
 	{ -440, 420, 860, 945 }, -- its border river and bridge
-	{ -420, 280, 912, 1260 }, -- Ruined Borderlands box
+	{ -200, 500, 1612, 1960 }, -- Ruined Borderlands box (moved south 2026-10-21)
 	{ -120, 160, 470, 612 }, -- sect-gate front
 }
 local FEATHER = 36
@@ -34,6 +35,12 @@ local WALLS = { -- crest polylines (build_walls_inner.luau SEGMENTS + the test s
 	{ { -760, 1400 }, { -860, 1250 }, { -900, 1000 }, { -872, 742 } },
 }
 local BERM_H, BERM_R = 10, 80
+-- the border river between the valley and the Borderlands: terrain water, surface Y 0, under the
+-- stone bridge (wilds_layout Bridge: x 212, z 1566..1610)
+local RIVER = { z = 1588, wiggle = 5, half = 22, bank = 14, bed = -5, water = 0, bridgeX = 212 }
+local function riverDist(x, z)
+	return math.abs(z - (RIVER.z + RIVER.wiggle * math.sin((x - RIVER.bridgeX) / 110)))
+end
 local SEED = 31
 
 local function segDist(px, pz, ax, az, bx, bz)
@@ -88,6 +95,11 @@ for cx = BOUNDS.x0, BOUNDS.x1 - 1, CHUNK do
 			for iz = 1, size.Z do
 				local z = min.Z + (iz - 0.5) * RES
 				local w = weight(x, z)
+				local dr = riverDist(x, z)
+				local inRiver = dr < RIVER.half + RIVER.bank
+				if inRiver then
+					w = 1
+				end
 				if w > 0 then
 					touched = true
 					-- existing surface height from the voxels (for the feather)
@@ -100,6 +112,9 @@ for cx = BOUNDS.x0, BOUNDS.x1 - 1, CHUNK do
 						end
 					end
 					local h = hOld + (target(x, z) - hOld) * w
+					if inRiver then
+						h = RIVER.bed + (h - RIVER.bed) * smooth((dr - RIVER.half + 6) / (RIVER.bank + 6))
+					end
 					local slope = math.abs(target(x + RES, z) - target(x - RES, z)) + math.abs(target(x, z + RES) - target(x, z - RES))
 					local top
 					if slope / (2 * RES) > 0.7 then
@@ -113,10 +128,11 @@ for cx = BOUNDS.x0, BOUNDS.x1 - 1, CHUNK do
 						local y0 = min.Y + (iy - 1) * RES
 						local occ = math.clamp((h - y0) / RES, 0, 1)
 						if occ <= 0 then
-							mats[ix][iy][iz] = Enum.Material.Air
-							occs[ix][iy][iz] = 0
+							local water = inRiver and y0 < RIVER.water
+							mats[ix][iy][iz] = if water then Enum.Material.Water else Enum.Material.Air
+							occs[ix][iy][iz] = if water then math.clamp((RIVER.water - y0) / RES, 0, 1) else 0
 						else
-							mats[ix][iy][iz] = if y0 + RES > h - 3 then top else Enum.Material.Ground
+							mats[ix][iy][iz] = if inRiver and h < 1.5 then Enum.Material.Sand elseif y0 + RES > h - 3 then top else Enum.Material.Ground
 							occs[ix][iy][iz] = occ
 						end
 					end

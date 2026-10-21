@@ -21,10 +21,10 @@ local MyPeak = require(script.Parent.MyPeak)
 local player = Players.LocalPlayer
 local group = SoundService:WaitForChild("Music") :: SoundGroup
 
-local WILDS_TOP = 300 -- the Wilds lie below this height (the peaks stand far above)...
-local WILDS_SOUTH = 500 -- ...and north of this Z
-local MARSH_SOUTH = 880 -- the serpent marshes start here
-local BOSS_CENTER = Vector2.new(0, 1100) -- the BossArena zone's X, Z
+local WILDS_TOP = 420 -- the Wilds lie below this height (their flight ceiling; the peaks stand far above)...
+local WILDS_SOUTH = 470 -- ...and south of this Z (the valley starts at the sect gate)
+local MARSH_SOUTH = 1560 -- the Ruined Borderlands (serpent marshes) start here, past the border river
+local BOSS_CENTER = Vector2.new(220, 1800) -- the BossArena zone's X, Z
 local BOSS_RADIUS = 60 -- a little past the arena's edge
 local CHECK_SECONDS = 0.5
 local FADE_SECONDS = 2.5

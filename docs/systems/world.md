@@ -122,8 +122,8 @@ everyone to one spot, and a day/night cycle.
   Kind `EventGround`), raycasts to the ground and skips water, retrying up to 8 times;
   it falls back to the `Wilds.Zones` beast discs only when no event ground exists.
   Today's grounds are interim spots in the built boxes (Inner: Boar Meadow (230, 690)
-  r 40, West Field (-160, 780) r 38; Middle: Graves Field (-220, 1050) r 32, South
-  Flat (140, 1228) r 30) until the zone reworks place the planned ones ([map](map.md)).
+  r 40, West Field (-160, 780) r 38; Middle, moved with the zone: Graves Field (0,
+  1750) r 32, South Flat (360, 1928) r 30) until the zone reworks place the planned ones ([map](map.md)).
 - Placing event and treasure templates: keep the template's pivot rotation
   (`CFrame.new(spot) * template:GetPivot().Rotation`). `WorldTreasure`'s pivot is
   its `Ring`, a cylinder turned upright, so a bare `CFrame.new(spot)` lays the

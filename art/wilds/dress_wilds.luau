@@ -648,7 +648,7 @@ for _, zoneName in CFG.zones or { "Inner", "Middle" } do
 					end
 				else
 					local list = K.trees
-					if zoneName == "Middle" and z < 965 and math.noise(x / 30, z / 30, seed + 9) > 0 then
+					if zoneName == "Middle" and z < 965 + (Z.offset and Z.offset.Y or 0) and math.noise(x / 30, z / 30, seed + 9) > 0 then
 						list = K.riverTrees -- the last living trees by the river
 					elseif hill > 9 then
 						list = K.hillTrees

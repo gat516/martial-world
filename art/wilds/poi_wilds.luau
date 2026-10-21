@@ -6,6 +6,7 @@ could go later). Run in Studio Edit mode after wilds_layout.luau, terrain_wilds.
 (it uses ServerStorage.WildsKit).
 
   _G.WILDS_POI = { zones = { "Inner", "Middle" } }
+  _G.WILDS_POI = { zones = { "Inner" }, only = { "Bridge" } } -- rebuild only some POIs, keep the rest
 
 Rebuilds Map.Ground.Wilds<Zone>.POIs (one Model per POI). Heights come from terrain raycasts, so it
 follows the ground whatever the terrain pass did. Collision: walls, pillars, steps, stones and the bridge
@@ -55,8 +56,11 @@ local M = Enum.Material
 local terrainParams = RaycastParams.new()
 terrainParams.FilterType = Enum.RaycastFilterType.Include
 terrainParams.FilterDescendantsInstances = { workspace.Terrain }
+-- a zone that moved (LAYOUT.Middle.offset) is built at its old literal coordinates and shifted into
+-- place afterwards; the ground is sampled where the POI will end up
+local SAMPLE_OFFSET = Vector2.zero
 local function gy(x, z)
-	local hit = workspace:Raycast(Vector3.new(x, 150, z), Vector3.new(0, -250, 0), terrainParams)
+	local hit = workspace:Raycast(Vector3.new(x + SAMPLE_OFFSET.X, 150, z + SAMPLE_OFFSET.Y), Vector3.new(0, -250, 0), terrainParams)
 	return hit and hit.Position.Y or 4
 end
 local function G(x, z, up)
@@ -191,8 +195,11 @@ end
 local function stoneLantern(parent, pos, yaw, color)
 	local m = TEMPLATES.FX_StoneLantern:Clone()
 	m.Name = "StoneLantern"
-	local _, s = m:GetBoundingBox()
-	m:PivotTo(CFrame.new(pos + Vector3.new(0, s.Y / 2 - 0.3, 0)) * CFrame.Angles(0, yaw or 0, 0))
+	-- seat the lantern's lowest point 0.3 into the ground whatever the template's pivot (the
+	-- _Templates pivot sits at the ground point, so the old "half its height up" floated it ~3.5)
+	local box, s = m:GetBoundingBox()
+	local pivotAboveBottom = m:GetPivot().Y - (box.Y - s.Y / 2)
+	m:PivotTo(CFrame.new(pos + Vector3.new(0, pivotAboveBottom - 0.3, 0)) * CFrame.Angles(0, yaw or 0, 0))
 	local flame = m:FindFirstChild("Flame")
 	if flame then
 		local light = Instance.new("PointLight")
@@ -987,6 +994,17 @@ end
 --[[ Run ]]
 
 local BUILDERS = { Inner = INNER, Middle = MIDDLE }
+-- every POI is tagged for the POI tour and labels (docs/systems/map.md, "Editor-only markers")
+local CollectionService = game:GetService("CollectionService")
+local POI_NAMES = {
+	OldStoneGate = "Old Stone Gate", Steles = "Old Steles", ShrineTerrace = "Shrine Terrace", WolfDen = "Wolf Den",
+	BambooHollow = "Bamboo Hollow", FallenGiant = "Fallen Giant", HunterCamp = "Hunter's Camp",
+	QiSpringShrine = "Qi Spring Shrine", BorderBridge = "Border Bridge", BorderGate = "Border Gate",
+	AshenHollow = "Ashen Hollow", Caravan = "Caravan", Graves = "Cultivators' Graves", DrownedShrine = "Drowned Shrine",
+	SerpentBones = "Serpent Bones", FallenOutpost = "Fallen Outpost", BrokenPagoda = "Broken Pagoda",
+	SerpentGrotto = "Serpent Grotto", RuinedCourtyard = "Ruined Courtyard", DeserterCamp = "Deserters' Camp",
+}
+local BOSS_RINGS = { WolfDen = true, FallenOutpost = true }
 local report = {}
 for _, zoneName in CFG.zones or { "Inner", "Middle" } do
 	local holder = workspace.Map.Ground:FindFirstChild("Wilds" .. zoneName)
@@ -995,21 +1013,53 @@ for _, zoneName in CFG.zones or { "Inner", "Middle" } do
 		holder.Name = "Wilds" .. zoneName
 		holder.Parent = workspace.Map.Ground
 	end
-	local old = holder:FindFirstChild("POIs")
-	if old then
-		old:Destroy()
+	-- CFG.only = { "Bridge", ... }: rebuild just those builders, keep the other POIs as they are
+	local only = CFG.only and {} or nil
+	for _, n in CFG.only or {} do
+		only[n] = true
 	end
-	local root = Instance.new("Folder")
-	root.Name = "POIs"
+	local root = holder:FindFirstChild("POIs")
+	if not only then
+		if root then
+			root:Destroy()
+		end
+		root = nil
+	end
+	local fresh = root == nil
+	if fresh then
+		root = Instance.new("Folder")
+		root.Name = "POIs"
+	end
+	local offset = LAYOUT[zoneName].offset or Vector2.zero
+	SAMPLE_OFFSET = offset
 	partCount = 0
 	local names = {}
 	for name, build in BUILDERS[zoneName] do
+		if only and not only[name] then
+			continue
+		end
+		local before = {}
+		for _, c in root:GetChildren() do
+			before[c] = true
+		end
 		local rng = Random.new(#name * 97 + 13)
 		math.randomseed(#name * 31)
 		local ok, err = pcall(build, root, rng)
 		table.insert(names, ok and name or (name .. " FAILED: " .. tostring(err)))
+		for _, c in root:GetChildren() do
+			if not before[c] and c:IsA("Model") then
+				if offset ~= Vector2.zero then
+					c:PivotTo(c:GetPivot() + Vector3.new(offset.X, 0, offset.Y))
+				end
+				CollectionService:AddTag(c, "POI")
+				c:SetAttribute("PoiName", POI_NAMES[c.Name] or c.Name)
+				c:SetAttribute("Kind", BOSS_RINGS[c.Name] and "BossRing" or "Landmark")
+				c:SetAttribute("Zone", zoneName)
+			end
+		end
 		task.wait()
 	end
+	SAMPLE_OFFSET = Vector2.zero
 	root.Parent = holder
 	table.sort(names)
 	table.insert(report, string.format("%s POIs (%d parts): %s", zoneName, partCount, table.concat(names, ", ")))

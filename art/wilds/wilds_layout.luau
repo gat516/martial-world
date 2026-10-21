@@ -164,4 +164,42 @@ _G.WILDS_LAYOUT = {
 	Bridge = { x = -8, z0 = 866, z1 = 910, y = 4.4 },
 }
 
+-- The Ruined Borderlands moved south as one block (2026-10-21, docs/systems/map.md "Inner Wilds
+-- rework"): the Middle table above keeps its old coordinates, and this shifts every one of them by
+-- MIDDLE_OFFSET into the new box (x -200..500, z 1612..1960), with the bridge, so the river, the gorge
+-- gate and the bridge stay one walk from the Inner valley. poi_wilds.luau builds the Middle's POIs at
+-- their old literal coordinates and moves each one by `offset` (sampling the ground at the new spot).
+local MIDDLE_OFFSET = Vector2.new(220, 700)
+do
+	local Z = _G.WILDS_LAYOUT.Middle
+	local o = MIDDLE_OFFSET
+	Z.offset = o
+	Z.box = { Z.box[1] + o.X, Z.box[2] + o.Y, Z.box[3] + o.X, Z.box[4] + o.Y }
+	for _, key in { "paths", "ridges", "gullies" } do
+		for _, item in Z[key] or {} do
+			for i, v in item.pts do
+				item.pts[i] = v + o
+			end
+		end
+	end
+	for _, key in { "knolls", "bowls", "pools", "flats" } do
+		for _, item in Z[key] or {} do
+			item[1] += o.X
+			item[2] += o.Y
+		end
+	end
+	for _, item in Z.pois or {} do
+		item[2] += o.X
+		item[3] += o.Y
+	end
+	for _, c in Z.caves or {} do
+		c.x += o.X
+		c.z += o.Y
+	end
+	local B = _G.WILDS_LAYOUT.Bridge
+	B.x += o.X
+	B.z0 += o.Y
+	B.z1 += o.Y
+end
+
 return "WILDS_LAYOUT set"

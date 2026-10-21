@@ -13,21 +13,18 @@
 --           a little when folded, as real ones do
 --   range   middle joints the planting solver bent past 1.3 rad
 -- Run in Edit mode through execute_luau. The module comes from the Rojo-synced
--- ModuleScript (StarterPlayerScripts.Client.EnemyPoses.Wolf) or, if _G.WOLF_POSES_URL is
--- set, from that URL (e.g. a `python3 -m http.server` over src/client/EnemyPoses).
+-- ModuleScript (StarterPlayerScripts.Client.EnemyPoses.Wolf), from a fresh copy of the
+-- whole EnemyPoses folder so it can require shared siblings (Quadruped). In a sandbox,
+-- push edited modules in first with tools/push_src.luau.
 -- _G.WOLF_POSE_ONLY = "MoonPounce" limits it to one move or loop.
 -- Set _G.WOLF_POSE_PREVIEW = { { "MoonPounce", "windup", 1 }, { "loop", "run", 2.0, 18 } }
 -- to also leave anchored, posed copies in Workspace._WolfPoses (EditorOnly) for review.
 
 local ServerStorage = game:GetService("ServerStorage")
 
-local Wolf
-if _G.WOLF_POSES_URL then
-	Wolf = loadstring(game:GetService("HttpService"):GetAsync(_G.WOLF_POSES_URL .. "?" .. os.clock()))()
-else
-	local src = game:GetService("StarterPlayer").StarterPlayerScripts.Client.EnemyPoses.Wolf
-	Wolf = require(src:Clone())
-end
+-- a fresh copy of the whole folder, so the edit-mode require cache never serves a stale
+-- module and Wolf still finds its siblings
+local Wolf = require(game:GetService("StarterPlayer").StarterPlayerScripts.Client.EnemyPoses:Clone().Wolf)
 
 local template = ServerStorage._StagingEnemies.SpiritWolf_B
 local hrp = template.HumanoidRootPart
@@ -154,7 +151,14 @@ local function check(label, pose)
 	end
 	local body = lowest(all)
 	if body < -0.02 then
-		table.insert(issues, ("SUNK %.3f"):format(body))
+		local worst, wy = "?", math.huge
+		for seg, list in boxes do
+			local y = lowest(list)
+			if y < wy then
+				worst, wy = seg, y
+			end
+		end
+		table.insert(issues, ("SUNK %.3f (%s)"):format(body, worst))
 	end
 	local feet = {}
 	local slide = {}

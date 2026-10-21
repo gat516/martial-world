@@ -138,7 +138,7 @@ one per basic element, plus the rare root's own for rare roots. No choice
 screen. Better methods are **earned, not handed out**: Elder Qingyun's task and
 exploring (caches with a `Method` attribute work today; ruins, bosses, events
 to do). The switch UI is the meditation menu's Method tile. **Still to do:** the elder's task in
-the quest line, method caches placed on the map, the auras (`vfx`).
+the quest line, method caches placed on the map.
 
 **The breakthrough message must never mislead (decided 2026-10-21).** When a full
 bar can't break through because the active method's `reaches` is the next stage's
@@ -156,9 +156,20 @@ FE1 and starters FE9, so the method line first appears when FE2 exists.
    later majors (e.g. a Spirit-grade method reaches Core Formation, an Earth one
    Nascent Soul). FE1 is the top realm today, so this line only matters once
    later stages exist.
-3. **Aura:** a visual around you while meditating or circulating (flame lotus,
-   water ring, falling leaves...), made by the `vfx` agent. Higher grades can add
-   a small effect to it, like healing allies who meditate nearby.
+3. **Aura (built 2026-10-21):** a visual around you while seated (meditating or
+   circulating), seen by everyone: `src/client/MethodAura.luau`, keyed on the
+   player attributes `Meditating` and `Method`; template
+   `ReplicatedStorage.Effects.MethodAura` (builder `tools/vfx_specs/MethodAura.luau`).
+   One shared aura tinted with the element's colour (a breathing ground halo,
+   qi motes, a ring rising to the head each breath) plus the element's accent:
+   Fire a flame lotus and embers, Water a water ring and ripples, Wood a leaf
+   lotus and falling leaves, Metal orbiting needles, Earth floating stones, and
+   for the rare roots a wider second halo plus Lightning's crackling ring, Wind's
+   counter-turning swirls, Ice's frost lotus and snow. Sect Breathing has none.
+   Fades in/out, swaps when the method changes, drawn within 140 studs for the
+   8 nearest. Grade hook: `GRADES` in MethodAura (more motes, brighter 3D);
+   higher grades can later add a small effect, like healing allies who meditate
+   nearby.
 
 - A method matching your root gets a qi-speed bonus (the synergy rule).
 - Better methods come from bosses, world events, caches and later realms' libraries.

@@ -427,10 +427,73 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
   create the part with `AssetService:CreateMeshPartAsync(id)` and clone it into
   the template. MeshId survives the binary export.
 
+### Fast path (helpers from the Palm Strike build)
+
+- **Preview the real cast:** `tools/vfx_preview.luau`. Use `P.scene({ radius = ... })`,
+  then `P.castThrough({ id, level, freezeAt })`, then `screen_capture`. It
+  drives a rig through the move's animation at cast speed, with live hands and
+  tagged enemies, through the real `CombatEffects.windup`/`cast`, and freezes
+  at a moment. It already works around these Edit-mode traps:
+  - `require` caches go stale: `P.fresh` requires fresh copies of
+    `ReplicatedStorage.Shared`.
+  - `screen_capture` swaps the camera, so effects under
+    `workspace.CurrentCamera` don't show: `TechniqueVFX.folder` is pointed at
+    a workspace folder.
+  - `cleanup` destroys a frozen frame early, so it's disabled.
+  - ScreenEffects shakes move the editor camera, so they're stripped.
+  - Ground rays hit the preview rig. CanCollide/CanQuery don't help (an R6
+    Humanoid forces Torso/Head collidable), so the rig goes in a collision
+    group that doesn't collide with Default.
+- `castThrough` takes a **level**, not a tier: use 1, 4, 7, 10 for T1–T4.
+- **Stage and export:** `tools/vfx_stage.luau`. `vfxStage.begin()` makes the
+  staging clone. `vfxStage.finish(check)` exports, destroys the staging copy
+  and waits for Rojo to patch the real folder. Then
+  `tools/vfx_export.sh [names]` copies the export into `assets/` and verifies
+  templates, attribute counts and add-on tags. These replace the manual steps
+  under "Export" below.
+- Spline trails can't be frozen for a still, and ScreenEffects can't be
+  captured. Say so in the report instead of spending captures on them.
+
+### Module and add-on gotchas
+
+- The Game Module doesn't descend into Parts nested inside a Part, only into
+  its emitters and attachments; emitting a Model reaches everything. Emit a
+  SplineVFX part nested in another part on its own.
+- ScreenEffects CSV:
+  - Fields follow the defaults' types: a NumberRange is `30~120`, a Vector3
+    is `1;2;3`, and an empty field takes the default.
+  - Color3 didn't parse in any format tried, so leave TintColor empty.
+  - Set your own CameraShake falloff; the default is 100–500 studs.
+  - Put each attribute on its own empty Attachment, so inherited emit
+    attributes don't fire it once per child emitter.
+- Craters:
+  - `Shape=Ring, Fill=true, EmissionStart=Progressive, Duration=<active>`
+    erupts rocks outward with a wave.
+  - `MatchGround` copies the ground's colour (on grass, rocks come out green).
+  - Mesh rocks raised and tilted (YOffset 0.45, AngleX 25–50) read better than
+    blocks. Use `ServerStorage.AssetLibrary` Inno `Rock_01..07` (for example
+    17608108317).
+  - It has no CastShadow option, so count its parts in the budget.
+- SimpleMeshVFX: keep the Start and End meshes at Transparency 1 in the
+  template, so the plain fallback shows nothing rather than stray meshes.
+- `TechniqueVFX.full` is false when the Game Module is missing. Branch on it
+  for add-on beats (e.g. ScreenEffects shake vs `CombatEffects.shake`), so
+  nothing doubles and the fallback stays clean.
+- `git apply -3` re-applies a saved partial patch on top of later commits.
+
+### Settle up front, in the plan
+
+Ask these in the plan, not after the build:
+- which limb strikes
+- whether add-ons are OK
+- the mastery motif (halo, print, ...)
+- what to do about missing animation events
+- whether tier IV impact frames or screen flashes are comfortable
+
 ### Previewing
 
-Use `tools/vfx_preview.luau` (run it through `execute_luau`; it installs
-`_G.vfxPreview`):
+`tools/vfx_preview.luau` also has the lower-level calls (run it through
+`execute_luau`; it installs `_G.vfxPreview`):
 - `.scene({ radius, enemies, offsets })` builds a clean SmoothPlastic floor in
   open sky with a caster rig, enemy clones and red posts at the gameplay
   radius. Don't preview in the spawn area: beds, fences and props hide ground

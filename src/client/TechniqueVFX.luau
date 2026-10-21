@@ -148,7 +148,9 @@ end
 -- captured when the wave is emitted:
 --   FromSize/ToSize (Vector3), FromOffset/ToOffset (Vector3), Rotation
 --   (Vector3, degrees, applied to the mesh), FromTransparency/ToTransparency,
---   Duration (seconds), Style (an Enum.EasingStyle name, default "Quad"), and
+--   Duration (seconds), Style (an Enum.EasingStyle name for the motion, eased
+--   Out, default "Quad"), FadeStyle (the fade's style, eased In, so the wave
+--   holds solid and fades late; default "Quad"), and
 --   the usual inherited EmitDelay. `Phase` lets fit() retime it.
 -- It doesn't use Start/End names, so SimpleMeshVFX won't also play it.
 local TweenService = game:GetService("TweenService")
@@ -184,6 +186,8 @@ local function playWaves(root: Instance)
 		local duration = sampled(d:GetAttribute("Duration"))
 		local style = d:GetAttribute("Style")
 		local easing = (Enum.EasingStyle :: any)[if type(style) == "string" then style else "Quad"] or Enum.EasingStyle.Quad
+		local fadeStyle = d:GetAttribute("FadeStyle")
+		local fadeEasing = (Enum.EasingStyle :: any)[if type(fadeStyle) == "string" then fadeStyle else "Quad"] or Enum.EasingStyle.Quad
 		local fromT = d:GetAttribute("FromTransparency")
 		local toT = d:GetAttribute("ToTransparency")
 		-- cloned now: the template copy may be cleaned up before a delayed wave plays
@@ -197,17 +201,24 @@ local function playWaves(root: Instance)
 			m.Transparency = if type(fromT) == "number" then fromT else 0
 			m.Parent = TechniqueVFX.folder
 			local seconds = if duration > 0 then duration else 0.2
+			-- motion bursts out (Style, Out); the fade eases in (FadeStyle, In) so
+			-- the wave stays solid while it grows and dies away at the end
 			local tween = TweenService:Create(m, TweenInfo.new(seconds, easing, Enum.EasingDirection.Out), {
 				CFrame = to,
 				Size = if typeof(toSize) == "Vector3" then toSize else m.Size,
+			})
+			local fade = TweenService:Create(m, TweenInfo.new(seconds, fadeEasing, Enum.EasingDirection.In), {
 				Transparency = if type(toT) == "number" then toT else 1,
 			})
 			TechniqueVFX.waves[tween] = true
+			TechniqueVFX.waves[fade] = true
 			tween.Completed:Once(function()
 				TechniqueVFX.waves[tween] = nil
+				TechniqueVFX.waves[fade] = nil
 				m:Destroy()
 			end)
 			tween:Play()
+			fade:Play()
 		end)
 	end
 end

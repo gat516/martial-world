@@ -1832,74 +1832,271 @@ local function driftingCloud(root)
 end
 
 -- ---------------------------------------------------------------- Frost Lotus (Ice, rare)
--- Blooming cold and clear: a frost lotus on the ground that opens a petal
--- ring per breath, a rime outline, breath mist, a few flakes.
+-- Blooming cold and clear (Mortal: small, close). Rebuilt 2026-10-21 from
+-- layered library emissions; no light, no shell. The lotus is the frost on
+-- the ground opening round the seat, one petal ring more each breath, and cold
+-- pouring off the body. Back to front:
+--   ground  a deep-blue cracked-ice disc (the dark base) with pale frost
+--           creeping out over it; a glass lotus of leaf-veined petals (flat
+--           library images, two faces each) in three rings that open one per
+--           breath and turn slowly; ice crystals growing and melting round
+--           the rim; frost petals lifting off it; diamond dust falling
+--   body    a cold bud between the hands (a deep halo, a white-hot dot, a
+--           twinkling glint); frost glints twinkling on the skin; cold vapour
+--           pouring off the arms and sinking to the ground
+--   breath  the exhale: breath mist from the mouth, a frost ring breaking out
+--           over the ground, the petals and bud glinting, a few petals lifting
+--   punch   every 2 or 3 breaths the lotus blooms: a frost flash over the
+--           ice, a crown of ice springing up and melting, crystals and petals
+--           thrown up, a star at the bud; the skin glints and vapour surge
+--   ignite  a cold white flash and star at the bud, a crown of ice spikes
+--           bursting up round the body, frost slamming out over the ground,
+--           glass shards and petals thrown up, a low cold puff
 
-local ICE_CORE, ICE, ICE_DEEP = rgb(235, 250, 255), rgb(170, 225, 255), rgb(110, 180, 245)
+local ICE_WHITE, ICE_CORE, ICE, ICE_DEEP = rgb(240, 251, 255), rgb(200, 238, 255), rgb(140, 205, 255), rgb(70, 140, 235)
+local ICE_INK = rgb(12, 34, 74)
+
+local FL = {
+	crackedIce = id(16924487116), -- a cracked ice disc
+	frostRing = id(12360899465), -- 4x4 flipbook: a frost splat breaking into a ring
+	crystals = id(10762252968), -- 8x8 flipbook: an ice crystal cluster growing
+	petal = id(17259245248), -- a veined leaf (the lotus petal)
+	petals = id(90111316485044), -- 4x4 sheet: loose petals
+	halo = id(243660373), -- soft round glow
+	dot = id(9841273544), -- small hard glow dot
+	twinkle = id(102648375149008), -- 4x4 flipbook: a 4-point sparkle
+	dust = id(106007718683349), -- 8x8 flipbook: tiny twinkling glints
+	star = id(13271102367), -- small 4-point star
+	chroma = id(16366023815), -- 4-point lens glint, chromatic edges
+	vapour = id(9345352897), -- curling wisp
+	mist = id(1084987899), -- soft mist puff
+	puff = id(933102662), -- cloud puff
+	shards = id(122615286116832), -- 2x2 sheet: glass shards
+	crown = id(4316118084), -- mesh: a crown of ice spikes
+	lotusCrown = id(489415286), -- mesh: a crown of petal points
+}
+_G.FrostLotusAssets = FL
+
+-- One lotus petal: a hidden flat part with the petal image on both faces,
+-- tilted up `tilt` degrees, its base `r` studs out, at yaw `yaw`.
+local function petal(name, parent, yaw, r, tilt, w, l, color, a)
+	local t = math.rad(tilt)
+	local cf = CFrame.Angles(0, math.rad(yaw), 0) * CFrame.new(0, 0.14 + l / 2 * math.sin(t), -(r + l / 2 * math.cos(t)))
+		* CFrame.Angles(t, 0, 0)
+	local p = decalDisc(name, parent, V3(w, 0.05, l), cf, FL.petal, color, a)
+	local front = p:FindFirstChildOfClass("SurfaceGui")
+	front.Brightness = 3.5
+	local back = front:Clone()
+	back.Face = Enum.NormalId.Bottom
+	back.Parent = p
+	return p
+end
 
 local function frostLotus(root)
-	local m = model("FrostLotus", root)
-	shell(m, rgb(200, 240, 255), { Pulse = R(0.05, 0.4) })
+	local m = model("FrostLotus", root, { PunchEvery = R(2, 3), PunchJitter = 0.5, PunchSwell = 1.3 })
+	local grid4, grid8, grid2 = Enum.ParticleFlipbookLayout.Grid4x4, Enum.ParticleFlipbookLayout.Grid8x8, Enum.ParticleFlipbookLayout.Grid2x2
+	local oneShot = Enum.ParticleFlipbookMode.OneShot
 
+	-- ground: the frost and the lotus
 	local ground = model("Ground", m)
-	-- three petal rings, inner first, one more each breath
-	for layer, p in {
-		{ r = 1.75, tilt = 68, size = V3(0.95, 0.14, 1.7), n = 6, off = 0, color = ICE, delay = 0 },
-		{ r = 2.35, tilt = 48, size = V3(1.15, 0.13, 2), n = 8, off = 22.5, color = ICE_DEEP, delay = 5 },
-		{ r = 3, tilt = 26, size = V3(1.25, 0.12, 2.2), n = 10, off = 9, color = rgb(80, 150, 235), delay = 10 },
+	local floor = part("Floor", ground, CFrame.new(0, 0.1, 0), V3(0.1, 0.1, 0.1))
+	loop(floor, "Ice", B.flat({ -- the dark base: deep ice under everything bright
+		Texture = FL.crackedIce, Size = NS(3.4), Transparency = seq(0, 1, 0.25, 0.25, 0.75, 0.25, 1, 1), Color = CS(ICE_INK),
+		Lifetime = R(6), Rate = 0.4, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Frost", B.flat({ -- pale frost creeping out over it
+		Texture = FL.crackedIce, Size = seq(0, 2, 1, 3.2), Transparency = seq(0, 1, 0.3, 0.45, 0.75, 0.55, 1, 1),
+		Color = CS(ICE_CORE), Lifetime = R(4.5), Rate = 0.5, Rotation = R(0, 360), LightEmission = 0.5, Brightness = 1.5,
+		ZOffset = 0.05,
+	}), { Prime = 2, Breathe = R(0.7, 1.3), Drift = 0.05 })
+	loop(part("Cup", ground, CFrame.new(0, 1.1, 0), V3(0.1, 0.1, 0.1)), "Cup", { -- cold light filling the lotus cup, behind the body
+		Texture = FL.halo, Size = NS(2.6), Transparency = seq(0, 1, 0.3, 0.7, 0.7, 0.7, 1, 1), Color = CS(ICE),
+		Lifetime = R(3), Rate = 0.8, Rotation = R(0, 360), LightEmission = 1, ZOffset = -1.5,
+	}, { Prime = 2, Breathe = R(0.7, 1.3), Swell = 0.1, Drift = 0.05 })
+	-- the lotus: three petal rings, inner first, one more each breath; the
+	-- whole flower turns slowly (Spin) and the petals glint on the beat (no
+	-- Grow: resizing a SurfaceGui's part re-renders it, 33 of them each frame)
+	for ring, p in {
+		{ n = 9, r = 1.45, tilt = 72, w = 1.05, l = 1.85, off = 0, color = ICE_WHITE, delay = 0, pulse = R(0, 0.2) },
+		{ n = 11, r = 1.85, tilt = 46, w = 1.05, l = 1.65, off = 22.5, color = ICE_WHITE, delay = 5, pulse = R(0.05, 0.3) },
+		{ n = 13, r = 2.2, tilt = 16, w = 1, l = 1.45, off = 9, color = ICE_CORE, delay = 10, pulse = R(0.12, 0.4) },
 	} do
 		for i = 1, p.n do
-			local yaw = math.rad(p.off + (i - 1) * 360 / p.n)
-			local cf = CFrame.Angles(0, yaw, 0) * CFrame.new(0, 0.1 + p.size.Z / 2 * math.sin(math.rad(p.tilt)), -p.r)
-				* CFrame.Angles(math.rad(p.tilt), 0, 0)
-			ellipsoid(("Petal%d_%d"):format(layer, i), ground, p.size, cf, p.color, {
-				Pulse = R(0.1, 0.3), Delay = p.delay + (i - 1) * 0.08, Grow = R(0.95, 1.05),
-			}, Enum.Material.Glass)
+			petal(("Petal%d_%d"):format(ring, i), ground, p.off + (i - 1) * 360 / p.n, p.r, p.tilt, p.w, p.l, p.color, {
+				Pulse = p.pulse, Delay = p.delay + (i - 1) * 0.1, Kick = 0.5, Spin = 3,
+			})
 		end
 	end
-	local sky = part("Sky", ground, CFrame.new(0, 5.5, 0), V3(5.5, 0.2, 5.5))
-	loop(sky, "Flakes", {
-		Texture = A.glowDot, Shape = box, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.08, 0.14),
-		Transparency = seq(0, 1, 0.15, 0.1, 0.85, 0.2, 1, 1), Color = CS(ICE_CORE), Lifetime = R(4, 5),
-		Speed = R(0.9, 1.3), SpreadAngle = Vector2.new(15, 15), Rate = 2.5, LightEmission = 0.4,
-	}, { Scaled = true })
-	loop(sky, "Crystals", {
-		Texture = A.ice, Shape = box, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.2, 0.32),
-		Transparency = seq(0, 1, 0.15, 0, 0.85, 0.1, 1, 1), Color = CS(ICE_CORE), Lifetime = R(4, 5),
-		Speed = R(0.9, 1.2), Rotation = R(0, 360), RotSpeed = R(-50, 50), Rate = 0.6, LightEmission = 0.2,
+	local rim = part("Rim", ground, CFrame.new(0, 0.12, 0), V3(5.4, 0.1, 5.4))
+	loop(rim, "Crystals", { -- ice crystals growing and melting round the rim
+		Texture = FL.crystals, FlipbookLayout = grid8, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.28, 0.42), Transparency = seq(0, 0.2, 0.75, 0.25, 1, 1),
+		Color = cseq(0, ICE_WHITE, 1, ICE_CORE), Lifetime = R(2.2, 2.8), Speed = R(0.01), Rotation = R(-8, 8), Rate = 2.5,
+		LightEmission = 0.5, Brightness = 2, ZOffset = 0.3,
+	}, { Prime = 4, Scaled = true, Breathe = R(0.7, 1.3) })
+	loop(rim, "Petals", { -- frost petals lifting off the lotus
+		Texture = FL.petals, FlipbookLayout = grid4, FlipbookMode = oneShot, FlipbookFramerate = R(0),
+		FlipbookStartRandom = true, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.1, 0.16),
+		Transparency = seq(0, 1, 0.2, 0.15, 0.8, 0.3, 1, 1), Color = CS(ICE_WHITE), Lifetime = R(2.2, 3), Speed = R(0.5, 0.9),
+		Acceleration = V3(0, 0.25, 0), SpreadAngle = Vector2.new(20, 20), Rotation = R(0, 360), RotSpeed = R(-60, 60),
+		Rate = 1.5, LightEmission = 0.6, Brightness = 2, ZOffset = 0.4,
+	}, { Scaled = true, Breathe = R(0.5, 1.5) })
+	local sky = part("Sky", ground, CFrame.new(0, 4.6, 0), V3(5, 0.1, 5))
+	loop(sky, "Dust", { -- diamond dust: tiny glints falling and twinkling
+		Texture = FL.dust, FlipbookLayout = grid8, FlipbookMode = Enum.ParticleFlipbookMode.Loop, FlipbookFramerate = R(10, 16),
+		FlipbookStartRandom = true, Shape = box, EmissionDirection = Enum.NormalId.Bottom, Size = rnd(0.12, 0.2),
+		Transparency = seq(0, 1, 0.15, 0, 0.85, 0.1, 1, 1), Color = CS(ICE_WHITE), Lifetime = R(3.5, 4.5),
+		Speed = R(0.9, 1.2), SpreadAngle = Vector2.new(12, 12), Rate = 3, LightEmission = 1, Brightness = 2,
 	}, { Scaled = true })
 
-	-- each exhale: a mist of breath, a frost ring creeping out
+	-- body: the cold bud between the hands
+	local body = model("Body", m)
+	local bud = at("Lap", CFrame.new(0, 0.15, -0.1), "Bud", body)
+	loop(bud, "Halo", { -- a deep halo under the white (dark under bright)
+		Texture = FL.halo, Size = NS(0.7), Transparency = seq(0, 1, 0.3, 0.35, 0.7, 0.35, 1, 1), Color = CS(ICE_DEEP),
+		Lifetime = R(1), Rate = 3, LightEmission = 0.4, ZOffset = 1.1, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.35 })
+	loop(bud, "Hot", {
+		Texture = FL.dot, Size = NS(0.2), Transparency = seq(0, 1, 0.3, 0, 1, 1), Color = CS(ICE_WHITE),
+		Lifetime = R(0.45), Rate = 5, LightEmission = 1, Brightness = 4, ZOffset = 1.3, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.4 })
+	loop(bud, "Glint", {
+		Texture = FL.twinkle, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = NS(0.5), Transparency = NS(0),
+		Color = CS(ICE_WHITE), Lifetime = R(0.8), Rate = 0.8, Rotation = R(-10, 10), LightEmission = 1, Brightness = 3,
+		ZOffset = 1.4, LockedToPart = true,
+	})
+
+	-- limbs: rime glints on the skin, cold vapour pouring off and sinking
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Rime", {
+		Texture = FL.twinkle, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
+		Size = rnd(0.12, 0.2), Transparency = NS(0), Color = CS(ICE_WHITE), Lifetime = R(0.6, 0.9), Rate = 2.5,
+		LightEmission = 1, Brightness = 3, ZOffset = 0.5, LockedToPart = true,
+	}, { On = "Head,Torso,Arms,Legs", Scaled = true, Breathe = R(0.6, 1.4), Surge = 5, PunchSurge = 2 })
+	loop(limbs, "Cold", {
+		Texture = FL.vapour, Shape = box, ShapeStyle = surface, EmissionDirection = Enum.NormalId.Bottom,
+		Size = seq(0, 0.25, 1, 0.75), Transparency = seq(0, 1, 0.3, 0.6, 1, 1), Color = cseq(0, ICE_WHITE, 1, ICE_CORE),
+		Lifetime = R(1.4, 1.9), Speed = R(0.3, 0.6), Acceleration = V3(0, -1.4, 0), Drag = 0.6, Rotation = R(0, 360),
+		RotSpeed = R(-25, 25), Rate = 1.2, LightEmission = 0.35, ZOffset = 0.2,
+	}, { On = "Arms", Scaled = true, Breathe = R(0.6, 1.4), Surge = 4, PunchSurge = 2, Swell = 0.15, Drift = 0.1 })
+
+	-- the exhale: breath mist, a frost ring breaking out, a few petals lifting
 	local breath = model("Breath", m)
 	local mouth = at("Mouth", nil, "Mouth", breath)
 	burst(mouth, "Mist", 4, {
-		Texture = A.mist, EmissionDirection = front, Size = seq(0, 0.2, 1, 1), Transparency = seq(0, 0.45, 1, 1),
-		Color = CS(ICE_CORE), Lifetime = R(1, 1.4), Speed = R(1, 1.6), SpreadAngle = Vector2.new(20, 20),
-		Acceleration = V3(0, 0.3, 0), Drag = 1, Rotation = R(0, 360), LightEmission = 0.2,
+		Texture = FL.mist, EmissionDirection = front, Size = seq(0, 0.15, 1, 0.75), Transparency = seq(0, 0.5, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1, 1.4), Speed = R(1, 1.6), SpreadAngle = Vector2.new(20, 20),
+		Acceleration = V3(0, -0.3, 0), Drag = 1, Rotation = R(0, 360), LightEmission = 0.3,
 	})
-	local floor = part("Floor", breath, CFrame.new(0, 0.1, 0))
-	wave(floor, "Frost", {
-		mesh = A.torus, color = ICE_DEEP, fromSize = ring(2.6, 1.6), toSize = ring(7.2, 0.9),
-		fromTransparency = 0.2, toTransparency = 1, duration = 1.8, style = "Sine",
+	local lap = at("Lap", CFrame.new(0, 0.15, -0.15), "Lap", breath)
+	burst(lap, "Glint", 1, {
+		Texture = FL.star, Size = seq(0, 0.2, 0.3, 0.9, 1, 0), Transparency = NS(0), Color = CS(ICE_WHITE),
+		Lifetime = R(0.35), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 1.6,
+	})
+	local floorB = part("Floor", breath, CFrame.new(0, 0.18, 0), V3(4.4, 0.1, 4.4))
+	burst(floorB, "Frost", 1, B.flat({
+		Texture = FL.frostRing, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 2.2, 1, 3.6),
+		Transparency = seq(0, 0.25, 0.7, 0.45, 1, 1), Color = CS(ICE_CORE), Lifetime = R(1.3), Rotation = R(0, 360),
+		LightEmission = 0.6, Brightness = 2, ZOffset = 0.2,
+	}))
+	burst(floorB, "Petals", 4, {
+		Texture = FL.petals, FlipbookLayout = grid4, FlipbookMode = oneShot, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.12, 0.18), Transparency = seq(0, 0.1, 0.8, 0.3, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.6, 2.2), Speed = R(1.5, 2.5), Drag = 1, SpreadAngle = Vector2.new(30, 30),
+		Rotation = R(0, 360), RotSpeed = R(-90, 90), LightEmission = 0.6, Brightness = 2,
 	})
 
-	-- ignition: a burst of frost, shards thrown up, a cold flash
+	-- a bloom every 2 or 3 breaths (a lighter ignition)
+	local bloom = model("Punch", m)
+	local pBud = at("Lap", CFrame.new(0, 0.15, -0.2), "Lap", bloom)
+	burst(pBud, "Flash", 1, {
+		Texture = FL.dot, Size = seq(0, 0.3, 0.2, 0.8, 1, 0.95), Transparency = seq(0, 0.05, 0.4, 0.5, 1, 1),
+		Color = cseq(0, ICE_WHITE, 1, ICE_CORE), Lifetime = R(0.35), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(pBud, "Star", 1, {
+		Texture = FL.star, Size = seq(0, 0.3, 0.25, 1.7, 1, 0), Transparency = NS(0), Color = CS(ICE_WHITE),
+		Lifetime = R(0.4), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	local pBase = part("Base", bloom, CFrame.new(0, 0.2, 0), V3(5, 0.1, 5))
+	burst(pBase, "Flash", 1, B.flat({ -- frost flashing over the ice
+		Texture = FL.crackedIce, Size = seq(0, 2.4, 1, 3.4), Transparency = seq(0, 0.2, 1, 1), Color = CS(ICE_WHITE),
+		Lifetime = R(0.7), Rotation = R(0, 360), LightEmission = 0.8, Brightness = 2, ZOffset = 0.15,
+	}))
+	wave(pBase, "Crown", {
+		mesh = FL.lotusCrown, color = ICE_CORE, material = Enum.Material.ForceField, fromSize = V3(3.6, 0.5, 3.6),
+		toSize = V3(5.6, 1.5, 5.6), fromOffset = V3(0, -0.1, 0), toOffset = V3(0, 0.35, 0), fromTransparency = 0,
+		toTransparency = 1, duration = 0.9, style = "Quint",
+	})
+	burst(pBase, "Crystals", 6, {
+		Texture = FL.crystals, FlipbookLayout = grid8, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.4, 0.55), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.2, 1.5), Speed = R(0.01), Rotation = R(-8, 8), LightEmission = 0.6,
+		Brightness = 2, ZOffset = 0.3,
+	})
+	burst(pBase, "Petals", 8, {
+		Texture = FL.petals, FlipbookLayout = grid4, FlipbookMode = oneShot, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.13, 0.2), Transparency = seq(0, 0, 0.8, 0.3, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.4, 2), Speed = R(3, 5), Drag = 1.5, SpreadAngle = Vector2.new(35, 35),
+		Rotation = R(0, 360), RotSpeed = R(-120, 120), LightEmission = 0.6, Brightness = 2,
+	})
+
+	-- ignition: short and cold, on and round the body
 	local ignite = model("Ignite", m)
-	local base = part("Base", ignite, CFrame.new(0, 0.15, 0), V3(4, 0.2, 4))
-	wave(base, "Freeze", {
-		mesh = A.torus, color = ICE_DEEP, fromSize = ring(2, 2.6), toSize = ring(11, 1.2),
-		fromTransparency = 0, toTransparency = 1, duration = 1, style = "Quint",
+	local core = at("Lap", CFrame.new(0, 0.25, -0.3), "Lap", ignite)
+	burst(core, "Flash", 1, {
+		Texture = FL.dot, Size = seq(0, 0.5, 0.15, 1.5, 1, 1.75), Transparency = seq(0, 0, 0.4, 0.5, 1, 1),
+		Color = cseq(0, ICE_WHITE, 1, ICE_CORE), Lifetime = R(0.4), LightEmission = 1, Brightness = 3, ZOffset = 2,
 	})
-	burst(base, "Shards", 16, {
-		Texture = A.shards, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.35, 0.6),
-		Transparency = seq(0, 0, 0.8, 0.2, 1, 1), Color = CS(ICE_CORE), Lifetime = R(0.8, 1.2), Speed = R(7, 11),
-		SpreadAngle = Vector2.new(35, 35), Acceleration = V3(0, -20, 0), Rotation = R(0, 360), RotSpeed = R(-200, 200),
-		LightEmission = 0.3,
+	burst(core, "Star", 1, {
+		Texture = FL.chroma, Size = seq(0, 0.6, 0.25, 3.4, 1, 0), Transparency = NS(0), Color = CS(ICE_CORE),
+		Lifetime = R(0.45), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
 	})
-	local chest = at("Chest", nil, "Chest", ignite)
-	burst(chest, "Flash", 1, {
-		Texture = A.star4, Size = seq(0, 0.8, 0.3, 3.4, 1, 0), Transparency = NS(0), Color = CS(ICE_CORE),
-		Lifetime = R(0.4), Rotation = R(0, 45), LightEmission = 0.5, ZOffset = 1,
+	burst(core, "Star45", 1, {
+		Texture = FL.star, Size = seq(0, 0.3, 0.25, 1.9, 1, 0), Transparency = NS(0), Color = CS(ICE_WHITE),
+		Lifetime = R(0.4), Rotation = R(45), LightEmission = 1, Brightness = 3, ZOffset = 2.05,
+	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(4.6, 0.1, 4.6))
+	wave(base, "Spikes", { -- a crown of ice spikes bursting up round the body
+		mesh = FL.crown, color = ICE_CORE, material = Enum.Material.ForceField, fromSize = V3(3.2, 0.6, 3.2),
+		toSize = V3(5.8, 2.8, 5.8), fromOffset = V3(0, -0.2, 0), toOffset = V3(0, 0.7, 0), fromTransparency = 0,
+		toTransparency = 1, duration = 1, style = "Quint",
+	})
+	wave(base, "Crown", {
+		mesh = FL.lotusCrown, color = ICE_WHITE, material = Enum.Material.ForceField, fromSize = V3(3, 0.4, 3),
+		toSize = V3(6.6, 1.5, 6.6), toOffset = V3(0, 0.3, 0), fromTransparency = 0, toTransparency = 1, duration = 0.8,
+		style = "Quint", delay = 0.05,
+	})
+	burst(base, "Frost", 1, B.flat({ -- frost slamming out over the ground
+		Texture = FL.crackedIce, Size = seq(0, 1.8, 0.3, 3.6, 1, 3.9), Transparency = seq(0, 0, 0.6, 0.35, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.1), Rotation = R(0, 360), LightEmission = 0.7, Brightness = 2, ZOffset = 0.15,
+	}))
+	burst(base, "Ring", 1, B.flat({
+		Texture = FL.frostRing, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 2.2, 1, 4.4),
+		Transparency = seq(0, 0, 0.7, 0.3, 1, 1), Color = CS(ICE_CORE), Lifetime = R(0.9), Rotation = R(0, 360),
+		LightEmission = 0.8, Brightness = 2, ZOffset = 0.25,
+	}))
+	burst(base, "Crystals", 10, {
+		Texture = FL.crystals, FlipbookLayout = grid8, FlipbookMode = oneShot, Shape = Enum.ParticleEmitterShape.Cylinder,
+		ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.45, 0.65), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.3, 1.7), Speed = R(0.01), Rotation = R(-10, 10), LightEmission = 0.6,
+		Brightness = 2, ZOffset = 0.35,
+	})
+	burst(base, "Shards", 10, {
+		Texture = FL.shards, FlipbookLayout = grid2, FlipbookMode = oneShot, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.2, 0.32), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(0.8, 1.1), Speed = R(7, 10), SpreadAngle = Vector2.new(30, 30),
+		Acceleration = V3(0, -22, 0), Rotation = R(0, 360), RotSpeed = R(-250, 250), LightEmission = 0.4, Brightness = 2,
+	})
+	burst(base, "Petals", 14, {
+		Texture = FL.petals, FlipbookLayout = grid4, FlipbookMode = oneShot, FlipbookFramerate = R(0), FlipbookStartRandom = true,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.14, 0.22), Transparency = seq(0, 0, 0.8, 0.3, 1, 1),
+		Color = CS(ICE_WHITE), Lifetime = R(1.5, 2.2), Speed = R(4, 7), Drag = 1.8, SpreadAngle = Vector2.new(40, 40),
+		Rotation = R(0, 360), RotSpeed = R(-150, 150), LightEmission = 0.6, Brightness = 2,
+	}, { EmitDelay = 0.05 })
+	burst(base, "Cold", 8, {
+		Texture = FL.puff, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
+		Size = seq(0, 0.6, 1, 1.4), Transparency = seq(0, 0.45, 1, 1), Color = CS(ICE_WHITE), Lifetime = R(0.9, 1.2),
+		Speed = R(5, 8), Drag = 3, Rotation = R(0, 360), LightEmission = 0.2, LightInfluence = 0.4,
 	})
 	return m
 end

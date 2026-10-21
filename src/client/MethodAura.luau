@@ -23,8 +23,9 @@
 --   Thunder Pulse   dark, with violet cracks across the torso and arms that
 --                   flare in irregular bursts, arcs from the hands to the ground
 --   Drifting Cloud  a cloud you sit on, wind rings spiralling in on the inhale
---   Frost Lotus     a frost lotus opening a petal ring per breath, a rime
---                   outline, breath mist, flakes
+--   Frost Lotus     a glass lotus of light opening round the seat, one petal
+--                   ring more each breath, on cracked ice; cold vapour pouring
+--                   off the arms, rime glints, a cold bud between the hands
 -- Every aura breathes on one shared period (Thunder Pulse bursts instead).
 -- Sitting down, switching method and breaking through play the method's
 -- Ignite surge before it settles into its loop.

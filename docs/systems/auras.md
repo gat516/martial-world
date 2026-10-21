@@ -19,7 +19,7 @@ about 1.5 loop emitters per aura) and reads thin. Auras are to be rebuilt as
 layered emissions from the vfx library, modelled on Sol's RNG auras, with
 parts only in support. The method is in [docs/vfx/style.md](../vfx/style.md)
 ("Auras"). **Reworked:** Blazing Heart, Flowing Spring, Thunder Pulse, Drifting
-Cloud, Iron Marrow, Sect Breathing (2026-10-21, below);
+Cloud, Iron Marrow, Sect Breathing, Frost Lotus (2026-10-21, below);
 the other rows still describe the first, part-heavy pass. Blazing Heart shows the bar for
 size and quality, not a template: each method's rework starts from its own
 idea and references, not from Blazing Heart's layers or textures.
@@ -48,7 +48,7 @@ reuse its first method's motif.
 | Mountain Breath | amber low-belly core (light); faint amber tint | heavy carved stone ring with a turning glowing rune circle that settles on each breath; five pebbles lifting on the inhale; dust | a slow amber ring out of the stone, a little dust | the ground thumps: ring, dust spray, grit jumps |
 | Thunder Pulse (reworked: 8 loop emitters + ~40 beams; the dark shell the only part) | a faint dark tint over the body (support); jagged lightning cracks across chest, belly and arms, each a thin white core (re-jagged every burst) over a wide violet glow band; dark smoke tendrils curling off the head, shoulders and arms; a violet charge glow on the skin and short arcs (bolt sprites) crackling on it, both flaring on a burst; tiny zigzag ozone sparks; a violet node where the chest cracks meet | a dark storm pool under you, a scorched rubble ring round a lightning-crack web (two SurfaceGui images) that flashes on a burst, an electric ring crackling at the rim and small arcs crawling on the ground, both spiking on a burst | irregular bursts (0.5 to 2.6 s apart): a flash, spark and radial arcs at the chest crack, bolts (white core in a crawling bolt-texture glow) from both hands to the ground with spark splashes where they land, a snap ring and a crack-web flash on the ground, the skin crackles | a bolt strikes the crown (two branching bolts), a white and chromatic flash there, radial lightning at the chest, arcs filling the space round the body, an electric ring and a crack web blasting over a scorched rubble ring, dark smoke thrown low, zigzag sparks; skin arcs surge |
 | Drifting Cloud (reworked: 13 loop emitters, no parts drawn) | swirl strokes turning flat round the waist and the chest, shrinking inward as they turn (the wind spiralling in, thick on the inhale, loose on the exhale); wind curls drawn in from about a body-width to the waist; rising wavy wisps off the arms, torso and head and small curls blowing off the arms and head (robes and hair can't lift); a calm mint glow with a soft dot at the dantian; motes drifting on the wind | the cloud you sit on: curling flipbook cloud puffs over a grey-teal underside, low mist drifting off it, a cool shadow under it (dark base); a soft wind vortex turning one way and a three-armed wind seal (the one SurfaceGui) the other, the seal tightening on the inhale | at the start of each inhale: spiral ring strokes sweep in to the body, a gust of curls drawn in from all round, a puff of cloud at the seat | a soft flash and a swirl at the chest, the cloud bursting out in a puff ring (over a dark copy) with puffs thrown low, a gust swirl spreading over the ground, wisps and curls thrown up, motes scattered; limb wisps and curls surge |
-| Frost Lotus | pale rime ForceField rim | a glass lotus of three petal rings (inner, then one more each breath), flakes and crystals drifting down | breath mist from the mouth, a frost ring creeps out | a frost ring, shards thrown up, a cold flash at the chest |
+| Frost Lotus (reworked: 11 loop emitters + 33 petal images, no light, no shell) | a cold bud between the hands (a deep-blue halo under a white-hot dot and a twinkling glint); frost glints twinkling on the skin; cold vapour pouring off the arms and sinking to the ground | a deep-blue cracked-ice disc (the dark base) with pale frost creeping out over it, a soft cold light filling the cup; a glass lotus of leaf-veined petals (flat library images, both faces, no Grow) in three rings, inner and upright first, then one more ring each breath, turning slowly; ice crystals growing and melting round the rim; frost petals lifting off it; diamond dust falling | the exhale: breath mist from the mouth, a frost ring breaking out over the ground, a glint at the bud, a few petals lifting, the petals glinting. Every 2 or 3 breaths (0.5 s jitter, 1.3x swell) the beat is a bloom instead: a frost flash over the ice, a crown of ice (library crown mesh, ForceField) springing up and melting, crystals and petals thrown up, a flash and star at the bud; skin glints and vapour surge | a cold white flash, chromatic star and cross star at the bud, a crown of ice spikes bursting up round the body with a petal crown inside it (library meshes, ForceField waves), frost slamming out over the ground and a frost ring breaking, ice crystals springing up, glass shards and petals thrown up, a low cold puff; skin glints and vapour surge |
 
 How it is put together (details in the builder header):
 - **Body first.** `Body` parts follow named body points (`Chest`, `Belly`,
@@ -102,7 +102,12 @@ How it is put together (details in the builder header):
   particles for about a second. Flowing Spring (R6): 13 loop emitters, about
   40 live particles (limb curls 2.2/s per limb, inflow 6/s on the inhale),
   one light, one SurfaceGui (caustics), no parts drawn; its ignition adds
-  ~40 particles for about a second, a pulse ~25. Sect Breathing (R6): 6
+  ~40 particles for about a second, a pulse ~25. Frost Lotus (R6): 11
+  loop emitters, about 50 live particles (diamond dust and skin glints are
+  the bulk), 33 petal parts with two SurfaceGuis each (moved, never resized:
+  resizing a SurfaceGui's part re-renders it), no light, no shell; a bloom
+  adds ~20 particles and a mesh wave, the ignition ~45 and two mesh waves.
+  Sect Breathing (R6): 6
   loop emitters, about 12 live particles (motes 3/s on the inhale), one
   SurfaceGui (the taiji), no light, no parts drawn; its ignition adds ~22
   particles for about a second. Thunder Pulse (R6): 8 loop
@@ -273,8 +278,18 @@ chant.
 ## Known gaps
 
 - The built Mortal auras other than Blazing Heart, Flowing Spring, Thunder
-  Pulse, Drifting Cloud and Iron Marrow are part-heavy and due for the emission rework
-  (Status above).
+  Pulse, Drifting Cloud, Iron Marrow, Sect Breathing and Frost Lotus are
+  part-heavy and due for the emission rework (Status above).
+- Frost Lotus and Sect Breathing: previewed in Edit mode on an R6 rig (grass
+  at noon and night) through the plain emitter fallback; play speed, R15,
+  phones and the live sit / switch / breakthrough ignition are untested. The
+  library has no lotus-petal texture, so the petals are a veined leaf image
+  laid on flat parts in rings (they read as a glass lotus from the usual
+  camera, edge-on from level). On a blocky R6 rig the seated arms hide most
+  of what sits within ~2 studs of the body, which is why both ground figures
+  reach about 3.5 studs out; slimmer avatars show more of them. Sect's taiji
+  is a bold black-and-white image kept faint; its ignition surge brings it
+  near full strength for a moment.
 - Drifting Cloud: previewed in Edit mode on an R6 rig (grass at noon and
   night) through the plain emitter fallback; play speed, R15, phones and the
   live sit / switch / breakthrough ignition are untested. The swirl strokes

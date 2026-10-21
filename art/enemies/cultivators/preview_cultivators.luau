@@ -3,8 +3,11 @@
 -- at (500, 400, 3000), with a Workspace.Rig clone for scale. Each model appears
 -- at rest and, behind it, in its first attack's windup pose. Re-runnable.
 -- Transform doesn't move parts in Edit mode, so poses are applied by forward
--- kinematics: solve each limb's CFrame from its motor, cut the motors, move the
--- limbs (their welded details follow), anchor.
+-- kinematics over every Motor6D (stock and extra): solve each part from its motor,
+-- cut the motors, move the parts (their welded details follow, as the copy is in the
+-- DataModel), measure each welded piece's drift, anchor. MODE "stress" also swings
+-- every extra joint. With RUN = false (gsub) it returns { place, pose, POSES, STRESS }
+-- for solo_cultivator.luau.
 
 local AT = CFrame.new(500, 400, 3000)
 local SPACING = 6
@@ -60,30 +63,48 @@ local POSES = {
 	},
 }
 
-local BODY = { RootJoint = true, Neck = true, ["Left Shoulder"] = true, ["Right Shoulder"] = true,
-	["Left Hip"] = true, ["Right Hip"] = true }
-
 local STRESS = {
 	RootJoint = CFrame.Angles(0.2, 0, 0.25), Neck = CFrame.Angles(-0.3, 0, 0.3),
 	["Right Shoulder"] = arm("R", 2.6, 0.4), ["Left Shoulder"] = arm("L", -0.9, 0.5),
 	["Right Hip"] = arm("R", 0.8, 0.15), ["Left Hip"] = arm("L", -0.75, 0.15),
 }
+-- extra (animator) joints swing this much in the stress pose, so their pieces are
+-- checked under motion too
+local EXTRA_STRESS = CFrame.Angles(0.45, 0.2, 0.25)
 
-local function pose(model, p)
-	local motors = {}
+-- Forward kinematics over every Motor6D (the stock six and the extra animator
+-- joints): solve each Part1 from Part0 * C0 * pose * C1:Inverse(), parents first,
+-- cut the motors and move each part (its welded pieces follow, as the model is in
+-- the DataModel). Returns the max drift of any welded piece from its part.
+local STOCK = { RootJoint = true, Neck = true, ["Left Shoulder"] = true, ["Right Shoulder"] = true,
+	["Left Hip"] = true, ["Right Hip"] = true }
+local function pose(model, p, extra)
+	local motors, byPart1 = {}, {}
 	for _, m in model:GetDescendants() do
-		if m:IsA("Motor6D") and BODY[m.Name] then
+		if m:IsA("Motor6D") and m.Part0 and m.Part1 then
 			table.insert(motors, m)
+			byPart1[m.Part1] = m
 		end
 	end
-	-- solve top-down: RootJoint first, then the Torso's children
-	table.sort(motors, function(a, c)
-		return (a.Name == "RootJoint" and 0 or 1) < (c.Name == "RootJoint" and 0 or 1)
-	end)
 	local target = { [model.HumanoidRootPart] = model.HumanoidRootPart.CFrame }
+	local function solve(part)
+		if target[part] then
+			return target[part]
+		end
+		local m = byPart1[part]
+		local t = p[m.Name] or (not STOCK[m.Name] and extra) or CFrame.identity
+		target[part] = solve(m.Part0) * m.C0 * t * m.C1:Inverse()
+		return target[part]
+	end
 	for _, m in motors do
-		local t = p[m.Name] or CFrame.identity
-		target[m.Part1] = target[m.Part0] * m.C0 * t * m.C1:Inverse()
+		solve(m.Part1)
+	end
+	-- each welded piece's offset to its weld partner before the move
+	local offsets = {}
+	for _, w in model:GetDescendants() do
+		if w:IsA("WeldConstraint") and w.Part0 and w.Part1 then
+			offsets[w] = w.Part0.CFrame:ToObjectSpace(w.Part1.CFrame)
+		end
 	end
 	for _, m in motors do
 		m:Destroy()
@@ -91,6 +112,50 @@ local function pose(model, p)
 	for part, cf in target do
 		part.CFrame = cf
 	end
+	local drift = 0
+	for w, off in offsets do
+		local now = w.Part0.CFrame:ToObjectSpace(w.Part1.CFrame)
+		drift = math.max(drift, (now.Position - off.Position).Magnitude, (now.LookVector - off.LookVector).Magnitude)
+	end
+	return drift
+end
+
+-- Clone template `name` (or a model) into `parent` with its feet at `at`, posed
+-- ("rest", "windup" or "stress"), anchored, joints stripped. Returns the copy and
+-- the drift measured while posing.
+local function place(template, at, mode, parent)
+	if type(template) == "string" then
+		template = st:FindFirstChild(template)
+	end
+	local copy = template:Clone()
+	copy.Name = template.Name .. (mode == "rest" and "" or "_" .. mode)
+	copy.Parent = parent
+	local hrp = copy.HumanoidRootPart
+	local want = (at * CFrame.new(0, 1.5 * hrp.Size.Y, 0)).Position
+	copy:PivotTo(copy:GetPivot() + (want - hrp.Position))
+	local drift = 0
+	if mode == "windup" and POSES[template.Name] then
+		drift = pose(copy, POSES[template.Name], nil)
+	elseif mode == "stress" then
+		drift = pose(copy, STRESS, EXTRA_STRESS)
+	end
+	for _, d in copy:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+		end
+	end
+	-- every part is anchored, so joints and attachments only clutter the captures
+	for _, d in copy:GetDescendants() do
+		if d:IsA("JointInstance") or d:IsA("WeldConstraint") or d:IsA("Attachment") then
+			d:Destroy()
+		end
+	end
+	return copy, drift
+end
+
+local RUN = true
+if not RUN then
+	return { place = place, POSES = POSES, STRESS = STRESS, pose = pose }
 end
 
 local preview = workspace:FindFirstChild("_RosterPreviewCultivators")
@@ -126,35 +191,16 @@ end
 scale.Name = "PlayerScale"
 table.insert(list, 1, scale)
 
+local report = {}
 for i, template in list do
 	local x = (i - (#list + 1) / 2) * SPACING
-	local rows = if MODE == "both" then { false, true } elseif MODE == "rest" then { false } else { true }
-	for row, posed in rows do
-		local p = if MODE == "stress" then STRESS else POSES[template.Name]
-		if posed and not p then
+	local rows = if MODE == "both" then { "rest", "windup" } else { MODE }
+	for row, mode in rows do
+		if mode == "windup" and not POSES[template.Name] then
 			continue
 		end
-		local copy = template:Clone()
-		copy.Name = template.Name .. (posed and "_Windup" or "")
-		copy.Parent = preview
-		-- the HRP stands 3 * scale above the feet on an R6 rig (HRP is 2 * scale tall)
-		local hrp = copy.HumanoidRootPart
-		local want = (AT * CFrame.new(x, 1.5 * hrp.Size.Y, (row - 1) * 7)).Position
-		copy:PivotTo(copy:GetPivot() + (want - hrp.Position))
-		if posed then
-			pose(copy, p)
-		end
-		for _, d in copy:GetDescendants() do
-			if d:IsA("BasePart") then
-				d.Anchored = true
-			end
-		end
-		-- every part is anchored, so joints and attachments only clutter the captures
-		for _, d in copy:GetDescendants() do
-			if d:IsA("JointInstance") or d:IsA("WeldConstraint") or d:IsA("Attachment") then
-				d:Destroy()
-			end
-		end
+		local _, drift = place(template, AT * CFrame.new(x, 0, (row - 1) * 7), mode, preview)
+		table.insert(report, string.format("%s %s drift %.4f", template.Name, mode, drift))
 	end
 end
-return #list
+return table.concat(report, "\n")

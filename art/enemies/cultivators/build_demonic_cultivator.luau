@@ -29,10 +29,18 @@ b.block("Torso", "SigilRing", v(0.46, 0.46, 0.04), v(-0.42, 3.35, -0.62), BLACK_
 
 -- ragged tails, split per leg so the legs swing free: two hanging fins on the back
 -- of each leg's robe
+-- of each leg's robe, pointed and hanging past the hem; each leg's pair is one
+-- keyable joint (TailL / TailR) hinged at the top
 for _, s in { -1, 1 } do
 	local leg = if s < 0 then "Left Leg" else "Right Leg"
-	b.fin(leg, "TailA", v(s * 0.3, 1.7, 0.66), 1.25, 0.12, 0.45, BLACK_HI, math.pi + 0.05)
-	b.fin(leg, "TailB", v(s * 0.7, 1.7, 0.66), 1.05, 0.12, 0.38, BLACK, math.pi + 0.05)
+	local side = if s < 0 then "L" else "R"
+	local down = CFrame.Angles(0, 0, math.pi)
+	local tail = b.tri(leg, "Tail" .. side, v(s * 0.3, 1.75, 0.69), 1.5, 0.5, 0.08, BLACK_HI, down)
+	b.joint(tail, v(s * 0.5, 1.75, 0.69))
+	b.ride(b.model:FindFirstChild("Tail" .. side .. "B"), tail)
+	local tailB = b.tri(leg, "TailTip" .. side, v(s * 0.72, 1.75, 0.69), 1.25, 0.4, 0.08, CRIMSON, down)
+	b.ride(tailB, tail)
+	b.ride(b.model:FindFirstChild("TailTip" .. side .. "B"), tail)
 end
 
 -- bone pauldrons: a plate on each arm, three spikes raking up and out
@@ -43,7 +51,7 @@ for _, s in { -1, 1 } do
 	for i, z in { -0.38, 0, 0.38 } do
 		local h = SPIKE_H * (if i == 2 then 1.25 else 0.85)
 		-- turned side-on (yaw) so the slope faces out, then raked out and up (pitch)
-		b.fin(arm, "Spike" .. i, v(s * 1.7, 4.12, z), h, 0.42, 0.22, if i == 2 then BONE else BONE_SH, 0.55, 0, -s * math.pi / 2)
+		b.fin(arm, "Spike" .. i, v(s * 1.7, 4.12, z), h, 0.42, 0.28, if i == 2 then BONE else BONE_SH, -0.55, 0, -s * math.pi / 2)
 	end
 	-- claw gauntlet: black wraps and bone talons over the hand
 	b.block(arm, "Gauntlet", v(1.08, 0.36, 1.08), v(s * 1.5, 2.08, 0), BLACK_HI)
@@ -80,4 +88,4 @@ for _, s in { -1, 1 } do
 	end
 end
 
-return L.finish(b, { healthBarY = 3.2 })
+return L.finish(b, { healthBarY = 2.9 })

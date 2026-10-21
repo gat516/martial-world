@@ -9,7 +9,9 @@
 -- Model space: ground Y=0, the rig faces -Z, its left is -X. Standard R6 rest:
 -- HumanoidRootPart and Torso at (0, 3, 0), Head (0, 4.5, 0), arms at x=+-1.5,
 -- y=3, legs at x=+-0.5, y=1. Detail parts carry a `Segment` attribute (the R6
--- part they ride on) and finish() welds them to it with WeldConstraints.
+-- part they ride on) and finish() welds them to it with WeldConstraints, or, for
+-- animator joints (b.joint), gives them a Motor6D named after the part, with pieces
+-- that ride a joint (b.ride) welded to it. See RIGS.md for the joints per model.
 --
 -- Gear from the catalog lives in ServerStorage._RosterCultivators._Gear (cleaned
 -- of scripts on insert); accessory() clones from there. Weapons are cloned from
@@ -60,7 +62,7 @@ function L.begin(name, opts)
 	end
 	rig:PivotTo(CFrame.identity)
 	rig.PrimaryPart = rig.HumanoidRootPart
-	local b = { model = rig, parts = {} }
+	local b = { model = rig, parts = {}, joints = {}, rides = {} }
 	local skin = opts.skin or Color3.fromHex("E8B98F")
 	for _, n in { "Head", "Left Arm", "Right Arm" } do
 		rig[n].Color = skin
@@ -68,6 +70,9 @@ function L.begin(name, opts)
 	rig.Torso.Color = opts.torso or Color3.fromHex("333333")
 	rig["Left Leg"].Color = opts.legs or Color3.fromHex("2A2522")
 	rig["Right Leg"].Color = opts.legs or Color3.fromHex("2A2522")
+	for _, n in { "Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg", "HumanoidRootPart" } do
+		rig[n].Material = Enum.Material.SmoothPlastic
+	end
 
 	local function add(seg, name, class, size, cf, color, material)
 		assert(SEGMENTS[seg], "unknown segment " .. tostring(seg))
@@ -142,6 +147,24 @@ function L.begin(name, opts)
 		end
 		return first
 	end
+	-- Animator joints. joint() makes a detail part a keyable joint: finish() gives it a
+	-- Motor6D named after the part, from `parent` (an R6 limb or another jointed part)
+	-- with the hinge at `hinge` (model space, identity rotation, so the joint's axes are
+	-- the model's axes at rest: X pitch, Y yaw, Z roll). Jointed part names must be
+	-- unique in the model, since animations address joints by Part1 name.
+	-- ride() welds a detail to a jointed part so it moves with it.
+	function b.joint(part, hinge, parent)
+		b.joints[part] = { hinge = hinge, parent = parent or part:GetAttribute("Segment") }
+		return part
+	end
+	function b.ride(piece, jointPart)
+		b.rides[piece] = jointPart
+		return piece
+	end
+	-- the hinge at the top centre of a hanging piece (its local +Y face)
+	function b.top(part)
+		return (part.CFrame * CFrame.new(0, part.Size.Y / 2, 0)).Position
+	end
 	return b
 end
 
@@ -180,8 +203,12 @@ function L.robe(b, o)
 		local sc = o.sleeveColor or outer
 		b.block(arm, "SleeveUpper", v(1.14, 1.25, 1.14), v(s * 1.5, 3.4, 0), sc)
 		if o.sleeve == "wide" then
-			b.block(arm, "SleeveWide", v(1.34, 1.3, 1.75), v(s * 1.52, 2.5, 0.08), sc)
-			b.block(arm, "SleeveCuff", v(1.38, 0.16, 1.79), v(s * 1.52, 1.86, 0.08), o.cuff or trim)
+			-- the hanging sleeve end is a joint (SleeveWideL/R) hinged where it leaves the upper
+			-- sleeve, so it can swing and flare; the cuff rides it
+			local side = if s < 0 then "L" else "R"
+			local wide = b.block(arm, "SleeveWide" .. side, v(1.34, 1.3, 1.75), v(s * 1.52, 2.5, 0.08), sc)
+			b.joint(wide, v(s * 1.52, 3.1, 0.08))
+			b.ride(b.block(arm, "SleeveCuff", v(1.38, 0.16, 1.79), v(s * 1.52, 1.86, 0.08), o.cuff or trim), wide)
 		else
 			b.block(arm, "SleeveLower", v(1.2, 0.72, 1.2), v(s * 1.5, 2.58, 0), sc)
 			b.block(arm, "SleeveCuff", v(1.24, 0.16, 1.24), v(s * 1.5, 2.22, 0), o.cuff or trim)
@@ -192,17 +219,21 @@ end
 -- Eyes and brows on the front of the R6 head mesh. o.eye colour, o.neon (eyes are
 -- tell parts named TellEyeL/R), o.brow colour, o.scowl (brow tilt, radians).
 L.FACE_Z = -0.6
+-- the R6 head mesh curves back toward its sides, so each eye and brow is yawed to
+-- follow it (outer end back) instead of standing proud at its outer corner
+local FACE_YAW = 0.22
+L.FACE_YAW = FACE_YAW
 function L.face(b, o)
 	local v = L.v
 	local z = L.FACE_Z
 	for _, s in { -1, 1 } do
 		local side = if s < 0 then "L" else "R"
 		b.block("Head", (o.neon and "TellEye" or "Eye") .. side, v(o.eyeW or 0.24, o.eyeH or 0.12, 0.06),
-			v(s * 0.24, 4.56, z), o.eye, CFrame.Angles(0, 0, s * (o.eyeTilt or 0.12)),
+			v(s * 0.24, 4.56, z), o.eye, CFrame.Angles(0, -s * FACE_YAW, s * (o.eyeTilt or 0.12)),
 			o.neon and Enum.Material.Neon or nil)
 		if o.brow then
 			b.block("Head", "Brow" .. side, v(0.34, 0.09, 0.07), v(s * 0.25, 4.73, z - 0.005), o.brow,
-				CFrame.Angles(0, 0, s * (o.scowl or 0.3)))
+				CFrame.Angles(0, -s * FACE_YAW, s * (o.scowl or 0.3)))
 		end
 	end
 end
@@ -237,6 +268,18 @@ function L.accessory(b, gearName, opts)
 	handle.Material = Enum.Material.SmoothPlastic
 	local offset = opts.offset or CFrame.identity
 	handle.CFrame = tAtt.WorldCFrame * offset * accAtt.CFrame:Inverse()
+	if opts.joint then
+		-- keyable: the handle leaves its Accessory and becomes a plain jointed part named
+		-- opts.joint.name (its SpecialMesh comes along), hinged at opts.joint.hinge
+		handle.Name = opts.joint.name
+		handle:SetAttribute("Segment", target.Name)
+		accAtt:Destroy()
+		handle.Parent = b.model
+		table.insert(b.parts, handle)
+		b.joint(handle, opts.joint.hinge, target.Name)
+		acc:Destroy()
+		return handle
+	end
 	local weld = Instance.new("Weld")
 	weld.Name = "AccessoryWeld"
 	weld.Part0 = handle
@@ -250,7 +293,9 @@ end
 
 -- Clone ServerStorage.WeaponModels[name] into the right hand, as Weapons.luau does:
 -- the hilt at its motor's rest frame, then the motor's Part0 set to the arm.
-function L.weapon(b, name, jointName)
+-- grip (optional) replaces the motor's C0, for an enemy rest hold that differs from
+-- the player's (the pivot stays at the grip, which is the motor's C0 point).
+function L.weapon(b, name, jointName, grip)
 	local template = ServerStorage.WeaponModels:FindFirstChild(name)
 	assert(template, "missing weapon " .. name)
 	local model = template:Clone()
@@ -260,6 +305,9 @@ function L.weapon(b, name, jointName)
 	local joint = hilt and hilt:FindFirstChild(jointName)
 	assert(joint and joint:IsA("Motor6D"), name .. " has no " .. jointName .. " motor")
 	local arm = b.model["Right Arm"]
+	if grip then
+		joint.C0 = grip
+	end
 	model:PivotTo(arm.CFrame * joint.C0 * joint.C1:Inverse() * hilt.PivotOffset)
 	model.Parent = b.model
 	joint.Part0 = arm
@@ -270,12 +318,42 @@ end
 function L.finish(b, opts)
 	opts = opts or {}
 	local model = b.model
+	local function partNamed(n)
+		local seg = model:FindFirstChild(n)
+		if seg and seg:IsA("BasePart") then
+			return seg
+		end
+		for p in b.joints do
+			if p.Name == n then
+				return p
+			end
+		end
+		error("no joint parent " .. tostring(n))
+	end
+	local names = {}
+	for p in b.joints do
+		assert(not names[p.Name], "duplicate joint part name " .. p.Name)
+		names[p.Name] = true
+	end
 	for _, p in b.parts do
-		local seg = model:FindFirstChild(p:GetAttribute("Segment"))
-		local w = Instance.new("WeldConstraint")
-		w.Part0 = seg
-		w.Part1 = p
-		w.Parent = p
+		local j = b.joints[p]
+		if j then
+			local p0 = partNamed(j.parent)
+			local m = Instance.new("Motor6D")
+			m.Name = p.Name
+			m.Part0 = p0
+			m.Part1 = p
+			local hinge = CFrame.new(j.hinge)
+			m.C0 = p0.CFrame:Inverse() * hinge
+			m.C1 = p.CFrame:Inverse() * hinge
+			m.Parent = p0
+			p:SetAttribute("JointParent", p0.Name)
+		else
+			local w = Instance.new("WeldConstraint")
+			w.Part0 = b.rides[p] or model:FindFirstChild(p:GetAttribute("Segment"))
+			w.Part1 = p
+			w.Parent = p
+		end
 	end
 	local hrp = model.HumanoidRootPart
 	local count = 0
@@ -300,6 +378,9 @@ function L.finish(b, opts)
 	hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	hum.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
 	hum.HipHeight = 0 -- R6 stands on its legs; HipHeight stays 0 at any scale
+	if not hum:FindFirstChildOfClass("Animator") then
+		Instance.new("Animator").Parent = hum -- Moon Animator / Animation Editor and runtime tracks
+	end
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 	if opts.scale and opts.scale ~= 1 then
 		model:ScaleTo(opts.scale)
@@ -318,6 +399,14 @@ function L.finish(b, opts)
 		local seg = p:IsA("BasePart") and p:GetAttribute("Segment")
 		if seg and limbs[seg] then
 			p.Parent = model[seg]
+		end
+	end
+	-- a jointed part sits inside the part its motor hangs from, a rider inside its joint
+	for _, p in b.parts do
+		if b.joints[p] then
+			p.Parent = partNamed(b.joints[p].parent)
+		elseif b.rides[p] then
+			p.Parent = b.rides[p]
 		end
 	end
 	for _, d in model:GetDescendants() do

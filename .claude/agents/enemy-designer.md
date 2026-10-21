@@ -91,7 +91,12 @@ asked. The user playtests feel and difficulty; say what's untested.
    `Regions.luau`, zones or spawns as needed. Pick numbers from the guidelines
    below during wiring; a quick sanity check is enough, the user tunes by
    playtesting. Put the final numbers in the commit body.
-7. **Check and ship.** `tools/check.sh`, preview the rig through its states in
+7. **Testbed first.** Put the new or reworked fight behind a flag that is on
+   only in the testbed (`Config.TESTBED`), and make sure the testbed spawns it
+   (a pack if it fights as one). The user fights it there; flip the flag for
+   the main game only after they approve. Report the re-sync steps and the
+   one-line change that ships it.
+8. **Check and ship.** `tools/check.sh`, preview the rig through its states in
    Edit mode (set `AIState` by hand on a placed clone; check numerically, capture only
    if the user asks), docs, one
    commit.

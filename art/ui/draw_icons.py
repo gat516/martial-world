@@ -274,6 +274,172 @@ def insight():
     ic.save("Insight")
 
 
+# ---------------------------------------------------------------- weapons
+# Weapons lie on the diagonal, grip at the lower left and tip at the upper right,
+# drawn in a vertical frame (x across, y down the length, tip at the top) and
+# turned 45 degrees so every class reads at hotbar size. Colours follow the
+# models in art/weapons/: pale steel, bronze fittings, indigo grip wrap, lacquer
+# red tassels, warm wood shafts.
+
+STEEL = (196, 208, 226)
+BRONZE = (214, 174, 96)
+WRAP = (82, 88, 124)
+TASSEL = (214, 84, 72)
+WOOD = (166, 118, 74)
+
+
+class Diag:
+    """Maps vertical-frame points onto the 45 degree diagonal (tip to the upper right)."""
+
+    def __init__(self, cy=64, k=1.0, deg=-45):
+        """cy: the vertical-frame row that lands on the icon centre; k: scale."""
+        a = math.radians(deg)
+        self.c, self.s, self.cy, self.k = math.cos(a), math.sin(a), cy, k
+
+    def p(self, x, y):
+        dx, dy = (x - 64) * self.k, (y - self.cy) * self.k
+        return (64 + dx * self.c + dy * self.s, 64 - dx * self.s + dy * self.c)
+
+    def poly(self, pts):
+        return poly([self.p(x, y) for x, y in pts])
+
+    def rect(self, x0, y0, x1, y1):
+        return self.poly([(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
+
+    def oval(self, cx, cy, rx, ry, n=36):
+        return self.poly([(cx + rx * math.cos(2 * math.pi * i / n), cy + ry * math.sin(2 * math.pi * i / n)) for i in range(n)])
+
+    def line(self, ic, pts, color, width):
+        ic.line([self.p(x, y) for x, y in pts], color, width)
+
+
+def wrap_bands(ic, d, x0, x1, y0, y1, step=6):
+    d_ = ImageDraw.Draw(ic.img)
+    y = y0 + step
+    while y < y1 - 1:
+        d.line(ic, [(x0, y), (x1, y)], (40, 42, 70, 230), 1.6)
+        y += step
+
+
+def tassel(ic, d, x, y, length=22, spread=6):
+    ic.shape(d.poly([(x - 2, y), (x + 2, y), (x + spread, y + length), (x - spread, y + length)]), TASSEL, outline=3)
+
+
+def jian():
+    """Straight double-edged sword: long tapering blade, bronze wing guard, wrapped
+    grip, bronze pommel and a red tassel."""
+    ic, d = Icon(), Diag(68, 0.92)
+    tassel(ic, d, 64, 128, 18, 6)
+    ic.shape(d.rect(60, 96, 68, 122), WRAP, outline=4)
+    wrap_bands(ic, d, 60, 68, 96, 122, 5)
+    ic.shape(d.oval(64, 125, 6, 5), BRONZE, outline=4)
+    ic.shape(d.poly([(58, 6), (64, -6), (70, 6), (70.5, 88), (57.5, 88)]), STEEL, outline=4, light=0.6)
+    d.line(ic, [(64, 0), (64, 86)], (255, 255, 255, 140), 1.6)
+    ic.shape(d.poly([(46, 92), (52, 86), (76, 86), (82, 92), (76, 98), (52, 98)]), BRONZE, outline=4)
+    ic.save("IronJian")
+
+
+def dadao():
+    """Broad saber: a wide single-edged blade swelling toward a clipped tip, a
+    small disc guard, wrapped grip, ring pommel with a red tassel."""
+    ic, d = Icon(), Diag(70, 0.95)
+    tassel(ic, d, 64, 128, 14, 7)
+    ring = d.oval(64, 122, 7, 7)
+    ring.paste(0, (0, 0), d.oval(64, 122, 3.2, 3.2))
+    ic.shape(ring, BRONZE, outline=3)
+    ic.shape(d.rect(60, 88, 68, 115), WRAP, outline=4)
+    wrap_bands(ic, d, 60, 68, 88, 115, 5)
+    blade = d.poly([(58, 80), (56, 40), (57, 14), (60, 2), (80, 14), (82, 44), (74, 80)])
+    ic.shape(blade, STEEL, outline=4, light=0.6)
+    d.line(ic, [(60, 10), (60, 78)], (255, 255, 255, 140), 1.6)
+    ic.shape(d.oval(64, 84, 12, 4), BRONZE, outline=4)
+    ic.save("IronDadao")
+
+
+def greatsword():
+    """Two-handed great sword: a wide heavy blade with a fuller, a broad bronze
+    guard and a long wrapped grip."""
+    ic, d = Icon(), Diag(62, 0.95)
+    ic.shape(d.rect(59.5, 92, 68.5, 124), WRAP, outline=4)
+    wrap_bands(ic, d, 59.5, 68.5, 92, 124, 5)
+    ic.shape(d.oval(64, 126, 7, 5), BRONZE, outline=4)
+    ic.shape(d.poly([(54, 8), (64, -8), (74, 8), (75, 84), (53, 84)]), STEEL, outline=4, light=0.6)
+    ic.shape(d.rect(62.5, 10, 65.5, 78), darken(STEEL, 0.25), outline=0, light=0.2)
+    d.line(ic, [(57, 6), (57, 82)], (255, 255, 255, 140), 1.6)
+    ic.shape(d.poly([(40, 88), (46, 82), (82, 82), (88, 88), (82, 94), (46, 94)]), BRONZE, outline=4)
+    ic.save("IronGreatsword")
+
+
+def guandao():
+    """Crescent glaive: a curved moon blade with a back spike on a long wood
+    shaft, bronze collar and red tassel, wrapped near the butt."""
+    ic, d = Icon(), Diag(54, 0.84)
+    ic.shape(d.rect(60, 34, 68, 132), WOOD, outline=4, light=0.3)
+    ic.shape(d.rect(60, 100, 68, 116), WRAP, outline=3)
+    wrap_bands(ic, d, 60, 68, 100, 116, 5)
+    ic.shape(d.poly([(61, 132), (67, 132), (64, 140)]), BRONZE, outline=3)
+    tassel(ic, d, 64, 28, 14, 8)
+    blade = d.poly([(60, 24), (60, 4), (62, -14), (68, -32), (78, -16), (84, 2), (82, 18), (72, 24)])
+    ic.shape(blade, STEEL, outline=4, light=0.6)
+    ic.shape(d.poly([(61, 10), (50, 2), (52, 12), (61, 18)]), STEEL, outline=3, light=0.6)
+    d.line(ic, [(64, -16), (63, 20)], (255, 255, 255, 140), 1.6)
+    ic.shape(d.oval(64, 27, 6, 4), BRONZE, outline=4)
+    ic.save("IronGuandao")
+
+
+def spear():
+    """Spear: a leaf-shaped steel head over a red horsehair tassel and bronze
+    socket on a long wood shaft with a bronze butt cap."""
+    ic, d = Icon(), Diag(60, 0.88)
+    ic.shape(d.rect(60, 22, 68, 136), WOOD, outline=4, light=0.3)
+    ic.shape(d.rect(60, 96, 68, 112), WRAP, outline=3)
+    wrap_bands(ic, d, 60, 68, 96, 112, 5)
+    ic.shape(d.rect(60, 132, 68, 140), BRONZE, outline=3)
+    tassel(ic, d, 64, 14, 22, 13)
+    ic.shape(d.poly([(64, -20), (72, 0), (69, 12), (59, 12), (56, 0)]), STEEL, outline=4, light=0.6)
+    d.line(ic, [(64, -16), (64, 10)], (255, 255, 255, 150), 1.6)
+    ic.shape(d.rect(60.5, 11, 67.5, 18), BRONZE, outline=3)
+    ic.save("IronSpear")
+
+
+def staff():
+    """Staff: a long wood pole with bronze caps, two indigo wrap bands and a red
+    cloth tie near the head."""
+    ic, d = Icon(), Diag(64, 0.86)
+    ic.shape(d.rect(59.5, -10, 68.5, 138), WOOD, outline=4, light=0.35)
+    for y0, y1 in ((22, 40), (84, 102)):
+        ic.shape(d.rect(59.5, y0, 68.5, y1), WRAP, outline=3)
+        wrap_bands(ic, d, 59.5, 68.5, y0, y1, 5)
+    ic.shape(d.poly([(62, 2), (66, 2), (74, 18), (69, 20)]), TASSEL, outline=3)
+    ic.shape(d.poly([(62, 2), (66, 2), (59, 20), (54, 18)]), TASSEL, outline=3)
+    for y in (-12, 132):
+        ic.shape(d.rect(59.5, y, 68.5, y + 8), BRONZE, outline=3)
+    d.line(ic, [(62.5, -4), (62.5, 130)], (255, 255, 255, 90), 1.4)
+    ic.save("BambooStaff")
+
+
+def fist():
+    """Bare fists (no weapon): a clenched fist seen from the front, knuckles up,
+    in warm skin tone with an indigo wrist wrap."""
+    ic = Icon()
+    skin = (236, 196, 156)
+    ic.shape(poly([(38, 80), (90, 80), (86, 116), (42, 116)]), WRAP, outline=4)
+    for y in (90, 100, 108):
+        ic.line([(41, y), (88, y)], (40, 42, 70, 230), 1.6)
+    palm = union(
+        poly([(30, 50), (98, 46), (100, 84), (36, 88)]),
+        *[ellipse([24 + i * 18, 26 + abs(i - 1.5) * 3, 46 + i * 18, 58 + abs(i - 1.5) * 3]) for i in range(4)],
+    )
+    ic.shape(palm, skin, light=0.35, dark=0.25)
+    for i in range(1, 4):
+        x = 24 + i * 18
+        ic.line([(x, 34 + abs(i - 1.5) * 3), (x + 1, 54)], (150, 100, 70, 230), 2)
+    thumb = union(poly([(32, 64), (62, 60), (66, 74), (34, 80)]), ellipse([54, 58, 74, 76]))
+    ic.shape(thumb, skin, outline=3, light=0.3, dark=0.2)
+    ic.line([(40, 30), (44, 26)], (255, 255, 255, 150), 2.5)
+    ic.save("Fist")
+
+
 if __name__ == "__main__":
     spirit_grass()
     cloud_mint()
@@ -287,3 +453,10 @@ if __name__ == "__main__":
     immortal_peach()
     spirit_stone()
     insight()
+    jian()
+    dadao()
+    greatsword()
+    guandao()
+    spear()
+    staff()
+    fist()

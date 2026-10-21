@@ -12,6 +12,16 @@ cursor, settings and the admin panel.
   PC the top-right tiles stay to switch, on touch the big windows hide them.
   The top-left is always Roblox's chat.
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
+- Weapons live in the Inventory's Weapons tab: Bare Fists first (choosing them
+  puts the weapon away), then owned weapons with their grade glow and a cinnabar
+  佩 seal on the equipped one; Equip/Unequip go through `WeaponAction`. With no
+  weapon chosen the pane lists every class's Dao comprehension (level and XP bar);
+  a chosen weapon shows its own class's row. Arts that need a weapon class wear a
+  small round class badge in the Arts grid; on the hotbar the badge (and a dimmed
+  icon) shows only while that class isn't in hand, and the slot still casts so
+  the server can say "Requires a sword". Weapon and class icons live in
+  `SlotArt` (drawn in `art/ui/draw_icons.py`; a def's own `icon` wins), so Spirit
+  grades share their model's art and differ by glow colour.
 - Travel: the menu groups Sect grounds and the Wilds; locked arrays stay listed,
   greyed under a cinnabar 封 seal with "Opens at <realm>". A seal-and-name marker
   floats over arrays (others' peaks only up close) and the screen fades to ink
@@ -31,7 +41,8 @@ cursor, settings and the admin panel.
 - `Layout.luau`: device-specific layout flips; `Platform.luau`.
 - `Menus.luau`: the one-window rule and what hides while a window is open.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
-- `HotbarView.luau`, `Inventory.luau`, `SlotArt.luau`, `ListWindow.luau`.
+- `HotbarView.luau`, `Inventory.luau` (Pouch, Arts, Weapons tabs), `SlotArt.luau`
+  (slot painting, weapon art, the weapon badge), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
 - `Onboarding.luau`, `TravelMenu.luau` (with `GateMarkers.luau` over arrays and
@@ -46,7 +57,8 @@ cursor, settings and the admin panel.
 Fast values come from player attributes (`Realm`, `Cultivation`,
 `CultivationMax`, `RawQi`, `DantianCap`, `Stones`), refreshed every second by
 the server. Everything else comes from the `PlayerState` snapshot into `State`.
-Toasts arrive over `Notify`; rewards and combat feedback over `Effect`.
+Toasts arrive over `Notify`; rewards and combat feedback over `Effect`
+(a gained weapon is Effect "weapon", shown in the reward feed).
 
 ## Tuning knobs
 - Layout and look live in the authored GUI assets; timings in each module's

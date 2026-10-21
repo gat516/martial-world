@@ -55,5 +55,14 @@
   "key_cap.png": "rbxassetid://78474379425965",
   "region_wash.png": "rbxassetid://107683658291420",
   "region_rule.png": "rbxassetid://80115889563057",
-  "region_seal.png": "rbxassetid://80023417498562"
+  "region_seal.png": "rbxassetid://80023417498562",
+  "seal_mark.png": "rbxassetid://108501117687747",
+  "weapon_badge.png": "rbxassetid://74682860769903",
+  "icons/icon_IronJian.png": "rbxassetid://86085933890312",
+  "icons/icon_IronDadao.png": "rbxassetid://124212742751085",
+  "icons/icon_IronGreatsword.png": "rbxassetid://139993149675749",
+  "icons/icon_IronGuandao.png": "rbxassetid://91007493859855",
+  "icons/icon_IronSpear.png": "rbxassetid://70542848898137",
+  "icons/icon_BambooStaff.png": "rbxassetid://86834637733687",
+  "icons/icon_Fist.png": "rbxassetid://83664160831695"
 }

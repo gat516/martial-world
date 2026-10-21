@@ -1,7 +1,7 @@
 --!strict
 -- What the player just gained, in StarterGui.Rewards.
 --   Feed: a compact entry per thing gained (Spirit Stones, items, insight,
---   manuals). Gaining the same thing again while its entry is up adds to it and
+--   manuals, weapons). Gaining the same thing again while its entry is up adds to it and
 --   pops the count ("Spirit Stones x23" -> "x24"), so fast farming reads as one
 --   climbing number. Entries fade a few seconds after their last gain; the oldest
 --   go first when the feed is full.
@@ -9,7 +9,8 @@
 --   and every reward arriving in the next moment lands on it as a tile, as well
 --   as in the feed. Click or tap closes it (after a short beat), or it closes by
 --   itself.
--- Fed by the server's Effect events: "stones", "loot", "insight", "manual", "boss".
+-- Fed by the server's Effect events: "stones", "loot", "insight", "manual",
+-- "weapon", "boss".
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -21,6 +22,8 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
+local SlotArt = require(script.Parent.SlotArt)
+local Weapons = require(ReplicatedStorage.Shared.Weapons)
 
 local STONE_ICON = "rbxassetid://112328127073930"
 local INSIGHT_ICON = "rbxassetid://92675446701433"
@@ -62,6 +65,9 @@ local function lookOf(key: string): Look?
 	elseif key:sub(1, 7) == "manual:" then
 		local def = Techniques.Defs[key:sub(8)]
 		return def and { name = `{def.name} manual`, glyph = "卷", color = GOLD }
+	elseif key:sub(1, 7) == "weapon:" then
+		local id = key:sub(8)
+		return Weapons.Defs[id] and { name = SlotArt.weaponName(id), icon = SlotArt.weaponIcon(id), color = SlotArt.weaponColor(id) }
 	end
 	local item = Items.Defs[key]
 	return item and { name = item.name, icon = item.icon, glyph = item.glyph, color = Items.rarityColor(item) }
@@ -247,6 +253,8 @@ function Rewards.init()
 			gain("insight", args[1])
 		elseif kind == "manual" then
 			gain(`manual:{args[1]}`, 1)
+		elseif kind == "weapon" then
+			gain(`weapon:{args[1]}`, 1)
 		elseif kind == "boss" then
 			openCard(args[1], args[2])
 		end

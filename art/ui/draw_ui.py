@@ -427,12 +427,11 @@ def plaque_button(name, top, bottom, rim):
     finish(img, name)
 
 
-def seal_close():
-    """The close button: a vermilion seal stamp, slightly uneven like a real
-    chop, with an X cut into it in paper colour. 128px, stretched."""
+def _seal_face(S, seed):
+    """A vermilion seal stamp face on a fresh SxS canvas, its edge nibbled
+    like a real chop."""
     import random
-    rnd = random.Random(7)
-    S = 128
+    rnd = random.Random(seed)
     img = canvas(S, S)
     m = 14 * SS
     face = Image.new("RGBA", img.size, (0, 0, 0, 0))
@@ -448,6 +447,14 @@ def seal_close():
         md.ellipse([x - r, y - r, x + r, y + r], fill=0)
     face.putalpha(mask)
     img.alpha_composite(face)
+    return img
+
+
+def seal_close():
+    """The close button: a vermilion seal stamp, slightly uneven like a real
+    chop, with an X cut into it in paper colour. 128px, stretched."""
+    S = 128
+    img = _seal_face(S, 7)
     d = ImageDraw.Draw(img)
     i = 24 * SS
     d.rounded_rectangle([i, i, S * SS - i, S * SS - i], radius=6 * SS, outline=(246, 226, 196, 200), width=3 * SS)
@@ -463,6 +470,42 @@ def seal_close():
             r = (2.2 + 4.6 * math.sin(math.pi * (0.15 + 0.7 * t))) * SS
             d.ellipse([x - r, y - r, x + r, y + r], fill=paper)
     finish(shadow_under(img, blur=3, offset=2, alpha=140), "seal_close.png")
+
+
+def seal_mark():
+    """The "equipped" stamp on a weapon cell: a small vermilion seal with a thin
+    paper inner rim and a blank face (the glyph is a TextLabel on top, so the
+    same art can carry other marks). 128px, stretched, shown at ~22px."""
+    S = 128
+    img = _seal_face(S, 11)
+    d = ImageDraw.Draw(img)
+    i = 24 * SS
+    d.rounded_rectangle([i, i, S * SS - i, S * SS - i], radius=6 * SS, outline=(246, 226, 196, 210), width=4 * SS)
+    finish(shadow_under(img, blur=3, offset=2, alpha=140), "seal_mark.png")
+
+
+def weapon_badge():
+    """The weapon-class badge on technique slots and art cells: a round dark
+    lacquer disc with a bronze rim and a lit top edge, the class icon drawn on top
+    as a child ImageLabel. 128px, stretched, shown at ~22-24px."""
+    S = 128
+    img = canvas(S, S)
+    c = S * SS / 2
+    r = 54 * SS
+    disc = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    gradient_rect(disc, [c - r, c - r, c + r, c + r], (40, 34, 30), (12, 12, 14), radius=r)
+    img.alpha_composite(disc)
+    d = ImageDraw.Draw(img)
+    d.ellipse([c - r, c - r, c + r, c + r], outline=INK, width=4 * SS)
+    d.ellipse([c - r + 4 * SS, c - r + 4 * SS, c + r - 4 * SS, c + r - 4 * SS], outline=GOLD, width=6 * SS)
+    d.arc([c - r + 4 * SS, c - r + 4 * SS, c + r - 4 * SS, c + r - 4 * SS], 200, 320, fill=GOLD_HI, width=4 * SS)
+    d.ellipse([c - r + 12 * SS, c - r + 12 * SS, c + r - 12 * SS, c + r - 12 * SS], outline=GOLD_LO, width=2 * SS)
+    finish(shadow_under(img, blur=3, offset=2, alpha=140), "weapon_badge.png")
+
+
+def weapon_art():
+    seal_mark()
+    weapon_badge()
 
 
 def note_panel():
@@ -697,6 +740,9 @@ if __name__ == "__main__":
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "prompt":
         prompt_art()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "weapons":
+        weapon_art()
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "build":
         build_art()

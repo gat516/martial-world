@@ -5,6 +5,8 @@
 -- Anything can be dragged: from the Inventory onto a slot, between slots to swap
 -- them, or off the bar to clear a slot.
 -- One row along the bottom on every device; the Stack frame sizes it.
+-- An art whose weapon class isn't in hand dims and wears that class's badge; it
+-- still casts, and the server answers "Requires a ...".
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -225,6 +227,7 @@ local function render()
 		local id = s.hotbar[i] or ""
 		local item = Items.Defs[id]
 		SlotArt.paint(slot, if id ~= "" then id else nil, if item then Items.count(s, id) else nil)
+		SlotArt.gate(slot, id, false)
 		slot.Visible = showEmpty or id ~= ""
 	end
 end
@@ -281,6 +284,7 @@ function HotbarView.init(screenGui: ScreenGui)
 	end)
 	State.onChanged(render)
 	Menus.onChanged(render)
+	player:GetAttributeChangedSignal("Weapon"):Connect(render)
 	RunService.RenderStepped:Connect(tick)
 end
 

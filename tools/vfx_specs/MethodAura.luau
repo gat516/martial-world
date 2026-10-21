@@ -1330,71 +1330,207 @@ local function thunderPulse(root)
 end
 
 -- ---------------------------------------------------------------- Drifting Cloud (Wind, rare)
--- Qi drifting in on the wind: a soft cloud you sit on; wind rings spiral in
--- toward you on each inhale and loosen on the exhale; wisps lift off you.
+-- Qi drifting in on the wind (Mortal: small, close). Rebuilt 2026-10-21 from
+-- layered library emissions (no reference yet; roblox_seated_blue_wisps for
+-- the wisps and the ground ring). You sit on a soft cloud; on each inhale the
+-- wind spirals in to you and loosens on the exhale. Back to front:
+--   ground  a cool shadow under the cloud (dark base), a curling cloud of
+--           flipbook puffs you sit on over a grey-teal underside, low mist
+--           drifting off it, a soft wind vortex and a three-armed wind seal
+--           turning against each other (the seal tightens on the inhale)
+--   body    swirl strokes spiralling in round the waist and chest (faster on
+--           the inhale), wind curls drawn in from all round, rising wisps and
+--           curls lifting off the arms, torso and head (robes and hair can't
+--           lift), a calm mint glow at the dantian, motes drifting on the wind
+--   breath  (the inhale's start) spiral rings sweep in to the body, a gust of
+--           curls drawn in, a puff of cloud at the seat
+--   ignite  a soft flash at the chest, the cloud bursts out in a ring of puffs,
+--           a gust swirl spreading over the ground, wisps and curls thrown up,
+--           motes scattered; the limb wisps surge
 
-local WIND_CORE, WIND, CLOUD = rgb(220, 255, 242), rgb(140, 230, 200), rgb(246, 252, 250)
+local WIND_CORE, WIND, WIND_DEEP = rgb(225, 255, 244), rgb(140, 230, 200), rgb(70, 160, 140)
+local CLOUD, CLOUD_UNDER, CLOUD_SHADOW = rgb(250, 253, 252), rgb(170, 200, 200), rgb(40, 70, 72)
+
+local DC = {
+	glow = id(867619398), -- soft round glow
+	dot = id(9841273544), -- small hard glow dot
+	puff = id(130296526638889), -- 4x4 flipbook: a cloud puff curling and thinning
+	fog = id(89816655384560), -- 4x4 flipbook: thin fog
+	poof = id(12360899465), -- 4x4 flipbook: a puff bursting into a ring
+	vortex = id(15249897265), -- soft radial wind swirl
+	seal = id(12362658430), -- three-armed wind curl (triskelion)
+	swirl = id(13276325263), -- wind swirl strokes
+	swirl2 = id(14670080222), -- four-armed swirl strokes
+	rings = id(18787656402), -- spiralling ring strokes
+	curls = id(12094495797), -- 4x4 flipbook: small wind curls
+	wisp = id(87957760009809), -- 4x4 flipbook: a rising wavy wisp
+}
+_G.DriftingCloudAssets = DC
 
 local function driftingCloud(root)
 	local m = model("DriftingCloud", root, { BreathAt = 0.05 }) -- the inhale's start
-	shell(m, rgb(170, 245, 220), { Pulse = R(0.3, 0.7), Pad = 0.35 })
 
+	-- ground: the cloud seat
 	local ground = model("Ground", m)
-	-- the cloud: soft white puffs round the seat
-	for i, p in {
-		{ 0, 0, 2.6, 1.2 }, { 1.5, -0.6, 1.9, 1 }, { -1.5, -0.6, 1.9, 1 }, { 1.2, 1.1, 1.8, 0.9 },
-		{ -1.2, 1.1, 1.8, 0.9 }, { 0, -1.6, 1.8, 0.9 }, { 0, 1.6, 1.7, 0.85 }, { 2.3, 0.5, 1.4, 0.8 }, { -2.3, 0.5, 1.4, 0.8 },
-	} do
-		ellipsoid("Puff" .. i, ground, V3(p[3], p[4], p[3]), CFrame.new(p[1], 0.35, p[2]), CLOUD, {
-			Pulse = R(0.04, 0.12), Bob = 0.06, Grow = R(0.97, 1.04),
-		}, Enum.Material.SmoothPlastic)
-	end
-	mesh(A.torus, ground, "Under", ring(4.6, 1.2), CFrame.new(0, 0.1, 0), WIND, { Pulse = R(0.2, 0.55) })
-	-- two wind rings turning against each other, drawn in on the inhale
-	mesh(A.swirlRing, ground, "Swirl", V3(7, 1.2, 7), CFrame.new(0, 1.3, 0), WIND_CORE, {
-		Pulse = R(0.25, 0.5), Spin = -120, Grow = R(0.62, 1), GrowIn = true,
-	})
-	mesh(A.swirlRing2, ground, "Swirl2", V3(6, 1.4, 6), CFrame.new(0, 2.7, 0), WIND, {
-		Pulse = R(0.35, 0.6), Spin = 90, Grow = R(0.6, 1), GrowIn = true,
-	})
-	local rim = part("Rim", ground, CFrame.new(0, 1.6, 0), V3(7.5, 2.6, 7.5))
-	loop(rim, "Streaks", {
-		Texture = A.windStreak, Shape = sphere, ShapeStyle = surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
-		Orientation = streak, Size = seq(0, 0.2, 0.5, 0.45, 1, 0.2), Transparency = seq(0, 1, 0.3, 0.45, 1, 1),
-		Color = CS(WIND_CORE), Lifetime = R(0.9, 1.1), Speed = R(3, 3.6), Rate = 4, LightEmission = 0.3,
-	}, { Scaled = true, Breathe = true })
+	local floor = part("Floor", ground, CFrame.new(0, 0.12, 0), V3(3, 0.1, 3))
+	loop(floor, "Shadow", B.flat({ -- the cool dark under the white cloud
+		Texture = DC.glow, Size = NS(2.5), Transparency = seq(0, 1, 0.25, 0.45, 0.75, 0.45, 1, 1), Color = CS(CLOUD_SHADOW),
+		Lifetime = R(4), Rate = 0.5, Rotation = R(0, 360), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Vortex", B.flat({
+		Texture = DC.vortex, Size = seq(0, 2.2, 1, 1.7), Transparency = seq(0, 1, 0.3, 0.45, 0.7, 0.5, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(3), Rate = 0.67, Rotation = R(0, 360), RotSpeed = R(-50, -40),
+		LightEmission = 1, Brightness = 1.5, ZOffset = 0.05,
+	}), { Prime = 2, Breathe = R(0.6, 1.4), Swell = -0.12, Drift = 0.05 })
+	decalDisc("Seal", ground, 3.6, 0.16, DC.seal, WIND, { Pulse = R(0.25, 0.55), Turn = 30, Grow = R(0.9, 1.05), GrowIn = true, Kick = 0.4 })
+	local seat = part("Seat", ground, CFrame.new(0, 0.6, 0), V3(3.8, 0.3, 3.8))
+	loop(seat, "Under", { -- grey-teal underside so the white puffs have an edge on grass
+		Texture = DC.puff, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.75, 0.4, 1.2, 1, 1.3),
+		Transparency = seq(0, 1, 0.2, 0.35, 0.8, 0.5, 1, 1), Color = CS(CLOUD_UNDER), Lifetime = R(3, 3.6), Speed = R(0.05, 0.15),
+		Rotation = R(0, 360), RotSpeed = R(-8, 8), Rate = 2, LightEmission = 0, ZOffset = 0.5,
+	}, { Prime = 4, Scaled = true })
+	loop(seat, "Cloud", {
+		Texture = DC.puff, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.65, 0.4, 1.05, 1, 1.15),
+		Transparency = seq(0, 1, 0.2, 0.1, 0.8, 0.3, 1, 1), Color = cseq(0, CLOUD, 1, WIND_CORE), Lifetime = R(2.6, 3.2),
+		Speed = R(0.1, 0.25), Acceleration = V3(0, 0.05, 0), Rotation = R(0, 360), RotSpeed = R(-10, 10), Rate = 3,
+		LightEmission = 0.15, Brightness = 1.4, ZOffset = 0.6, -- in front of the ground, so it doesn't clip flat
+	}, { Prime = 5, Scaled = true, Breathe = R(0.8, 1.3), Swell = 0.1, Drift = 0.06 })
+	loop(seat, "Mist", {
+		Texture = DC.fog, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = loopFb, FlipbookFramerate = R(4, 6),
+		Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = surface, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
+		Size = seq(0, 0.8, 1, 1.6), Transparency = seq(0, 1, 0.3, 0.55, 1, 1), Color = CS(CLOUD), Lifetime = R(2.5, 3.5),
+		Speed = R(0.4, 0.7), Drag = 0.4, Rotation = R(0, 360), Rate = 1, LightEmission = 0.1, ZOffset = 0,
+	}, { Prime = 2, Scaled = true })
 
+	-- body: the wind spiralling in, a calm glow, motes on the wind
+	local body = model("Body", m)
+	local waist = at("Dantian", CFrame.new(0, -0.2, 0), "Waist", body)
+	loop(waist, "Spiral", B.flat({
+		Texture = DC.swirl, Size = seq(0, 3.2, 1, 1.3), Transparency = seq(0, 1, 0.3, 0.15, 0.75, 0.3, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(1.8), Rate = 0.9, Rotation = R(0, 360), RotSpeed = R(140, 170),
+		LightEmission = 0.9, Brightness = 3, ZOffset = 0.4,
+	}), { Prime = 1, Breathe = R(0.3, 1.7) })
+	local chest = at("Chest", CFrame.new(0, 0.1, 0.5), "Upper", body)
+	loop(chest, "Spiral", B.flat({
+		Texture = DC.swirl2, Size = seq(0, 2.6, 1, 1.1), Transparency = seq(0, 1, 0.3, 0.25, 0.75, 0.4, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(1.6), Rate = 0.8, Rotation = R(0, 360), RotSpeed = R(-180, -150),
+		LightEmission = 0.9, Brightness = 3, ZOffset = 0.4,
+	}), { Breathe = R(0.2, 1.8) })
+	local core = at("Dantian", CFrame.new(0, 0, -0.55), "Core", body)
+	loop(core, "Glow", {
+		Texture = DC.glow, Size = NS(0.8), Transparency = seq(0, 1, 0.3, 0.55, 1, 1), Color = cseq(0, WIND_CORE, 1, WIND),
+		Lifetime = R(0.8), Rate = 3, LightEmission = 1, Brightness = 2, ZOffset = 1.2, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.35, Drift = 0.08 })
+	loop(core, "Dot", {
+		Texture = DC.dot, Size = NS(0.16), Transparency = seq(0, 1, 0.3, 0.1, 1, 1), Color = CS(WIND_CORE),
+		Lifetime = R(0.6), Rate = 4, LightEmission = 1, Brightness = 3, ZOffset = 1.3, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.4 })
+	-- curls drawn in from a shell round the body to the waist
+	local shellIn = at("Dantian", nil, "Inflow", body, V3(5.5, 4, 5.5))
+	loop(shellIn, "Curls", {
+		Texture = DC.curls, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = sphere, ShapeStyle = surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+		Size = seq(0, 0.25, 0.5, 0.4, 1, 0.2), Transparency = seq(0, 1, 0.25, 0.15, 0.8, 0.3, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(0.9, 1.1), Speed = R(2.2, 2.6), Rotation = R(0, 360),
+		RotSpeed = R(-90, 90), Rate = 3, LightEmission = 0.8, Brightness = 2, ZOffset = 0.3,
+	}, { Scaled = true, Breathe = R(0.2, 1.8) })
+	loop(shellIn, "Motes", {
+		Texture = DC.dot, Shape = sphere, ShapeStyle = volume, Size = seq(0, 0, 0.2, 0.06, 0.8, 0.06, 1, 0),
+		Transparency = seq(0, 0.2, 1, 0.6), Color = CS(WIND_CORE), Lifetime = R(2.5, 3.5), Speed = R(0.3, 0.6),
+		Acceleration = V3(0.5, 0.4, 0), Rate = 1.5, LightEmission = 1, Brightness = 3,
+	}, { Scaled = true })
+
+	-- limbs: wisps and curls lifting off the body
 	local limbs = folder("Limbs", m)
-	loop(limbs, "Lift", {
-		Texture = A.wisp, Shape = box, ShapeStyle = surface, EmissionDirection = up,
-		Size = seq(0, 0.3, 1, 0.8), Transparency = seq(0, 1, 0.3, 0.6, 1, 1), Color = CS(WIND_CORE),
-		Lifetime = R(1, 1.4), Speed = R(1, 2), Acceleration = V3(0, 1.5, 0), Rotation = R(0, 360), RotSpeed = R(-60, 60),
-		Rate = 1.2, LightEmission = 0.2,
-	}, { On = "Arms,Torso", Scaled = true, Surge = 4 })
+	loop(limbs, "Wisps", {
+		Texture = DC.wisp, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = seq(0, 0.3, 0.5, 0.5, 1, 0.55),
+		Transparency = seq(0, 1, 0.25, 0.45, 1, 1), Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(1, 1.4),
+		Speed = R(0.8, 1.5), Acceleration = V3(0, 1.2, 0), Rotation = R(-15, 15), Rate = 1.6, LightEmission = 0.6,
+		Brightness = 1.5, ZOffset = 0.3,
+	}, { On = "Arms,Torso,Head", Scaled = true, Breathe = R(0.6, 1.4), Surge = 5 })
+	loop(limbs, "Curls", {
+		Texture = DC.curls, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = box, ShapeStyle = surface, EmissionDirection = up, Size = rnd(0.22, 0.32),
+		Transparency = seq(0, 0.3, 0.7, 0.4, 1, 1), Color = CS(WIND_CORE), Lifetime = R(0.8, 1.1), Speed = R(1.2, 2),
+		SpreadAngle = Vector2.new(50, 50), Acceleration = V3(0.8, 0.6, 0), Rotation = R(0, 360), Rate = 0.8,
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.4,
+	}, { On = "Arms,Head", Scaled = true, Surge = 4 })
 
-	-- each inhale: a wide wind ring sweeps in to the body
+	-- the inhale: spiral rings sweep in, curls drawn in, a puff at the seat
 	local breath = model("Breath", m)
-	local base = part("Base", breath, CFrame.new(0, 1.6, 0))
-	wave(base, "Gather", {
-		mesh = A.swirlRing, color = WIND_CORE, fromSize = V3(11, 1.6, 11), toSize = V3(2.6, 1.2, 2.6),
-		fromTransparency = 0.35, toTransparency = 1, duration = 2, style = "Sine", fadeStyle = "Quart",
+	local gather = at("Dantian", CFrame.new(0, -0.3, 0), "Gather", breath)
+	burst(gather, "Rings", 1, B.flat({
+		Texture = DC.rings, Size = seq(0, 3.4, 1, 0.8), Transparency = seq(0, 1, 0.25, 0.25, 0.8, 0.4, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(1.8), Rotation = R(0, 360), RotSpeed = R(160),
+		LightEmission = 0.9, Brightness = 2, ZOffset = 0.5,
+	}))
+	local around = at("Dantian", nil, "Around", breath, V3(7, 4, 7))
+	burst(around, "Curls", 8, {
+		Texture = DC.curls, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = sphere, ShapeStyle = surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+		Size = seq(0, 0.3, 0.5, 0.5, 1, 0.2), Transparency = seq(0, 1, 0.25, 0.1, 1, 1), Color = CS(WIND_CORE),
+		Lifetime = R(1.1, 1.3), Speed = R(2.8, 3.2), Rotation = R(0, 360), RotSpeed = R(-90, 90), LightEmission = 0.8,
+		Brightness = 2, ZOffset = 0.3,
+	})
+	local seatP = part("Seat", breath, CFrame.new(0, 0.4, 0), V3(2.4, 0.2, 2.4))
+	burst(seatP, "Puff", 3, {
+		Texture = DC.puff, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.7, 1, 1.2),
+		Transparency = seq(0, 0.2, 1, 1), Color = CS(CLOUD), Lifetime = R(1.6, 2), Speed = R(0.3, 0.5),
+		Rotation = R(0, 360), LightEmission = 0.15, Brightness = 1.4, ZOffset = 0.15,
 	})
 
-	-- ignition: a gust bursts out of the cloud
+	-- ignition: the cloud bursts out on a gust
 	local ignite = model("Ignite", m)
-	local gust = part("Base", ignite, CFrame.new(0, 0.6, 0), V3(4, 0.2, 4))
-	wave(gust, "Gust", {
-		mesh = A.swirlRing, color = WIND_CORE, fromSize = V3(3, 1.4, 3), toSize = V3(15, 3, 15),
-		fromTransparency = 0, toTransparency = 1, duration = 0.9, style = "Quint",
+	local heart = at("Chest", CFrame.new(0, 0, -0.3), "Chest", ignite)
+	burst(heart, "Flash", 1, {
+		Texture = DC.glow, Size = seq(0, 0.6, 0.2, 1.5, 1, 1.7), Transparency = seq(0, 0.25, 0.4, 0.6, 1, 1),
+		Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(0.4), LightEmission = 1, Brightness = 2, ZOffset = 2,
 	})
-	wave(gust, "Gust2", {
-		mesh = A.swirlRing2, color = WIND, fromSize = V3(4, 2, 4), toSize = V3(3, 3, 3), toOffset = V3(0, 5, 0),
-		fromTransparency = 0.1, toTransparency = 1, duration = 0.9, style = "Quad",
+	burst(heart, "Swirl", 1, {
+		Texture = DC.swirl2, Size = seq(0, 0.6, 1, 2.6), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = CS(WIND_CORE),
+		Lifetime = R(0.5), Rotation = R(0, 360), RotSpeed = R(-360), LightEmission = 1, Brightness = 2.5, ZOffset = 2.1,
 	})
-	burst(gust, "Puffs", 12, {
-		Texture = A.puff, Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180),
-		Size = seq(0, 0.8, 1, 2.2), Transparency = seq(0, 0.3, 1, 1), Color = CS(CLOUD), Lifetime = R(0.9, 1.2),
-		Speed = R(8, 12), Drag = 3, Rotation = R(0, 360), LightInfluence = 0.3,
+	local base = part("Base", ignite, CFrame.new(0, 0.3, 0), V3(2.6, 0.2, 2.6))
+	burst(base, "Poof", 1, B.flat({
+		Texture = DC.poof, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Size = seq(0, 1.6, 1, 4.4), Transparency = seq(0, 0, 0.7, 0.2, 1, 1), Color = CS(CLOUD), Lifetime = R(0.8),
+		Rotation = R(0, 360), LightEmission = 0.2, Brightness = 1.5, ZOffset = 0.3,
+	}))
+	burst(base, "PoofDark", 1, B.flat({ -- the cool underside of the poof ring
+		Texture = DC.poof, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Size = seq(0, 1.75, 1, 4.6), Transparency = seq(0, 0.3, 0.7, 0.5, 1, 1), Color = CS(CLOUD_SHADOW), Lifetime = R(0.8),
+		Rotation = R(0, 360), LightEmission = 0, ZOffset = 0.2,
+	}))
+	burst(base, "Gust", 1, B.flat({
+		Texture = DC.swirl, Size = seq(0, 1.2, 1, 4.6), Transparency = seq(0, 0, 0.6, 0.35, 1, 1), Color = cseq(0, WIND_CORE, 1, WIND),
+		Lifetime = R(0.7), Rotation = R(0, 360), RotSpeed = R(-240), LightEmission = 1, Brightness = 2, ZOffset = 0.4,
+	}))
+	burst(base, "Puffs", 10, {
+		Texture = DC.puff, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = box, EmissionDirection = front, SpreadAngle = Vector2.new(5, 180), Size = seq(0, 0.7, 1, 1.4),
+		Transparency = seq(0, 0, 0.6, 0.2, 1, 1), Color = CS(CLOUD), Lifetime = R(0.9, 1.2), Speed = R(7, 10), Drag = 4,
+		Rotation = R(0, 360), LightEmission = 0.15, Brightness = 1.4, ZOffset = 0.2,
+	})
+	burst(base, "Updraft", 8, {
+		Texture = DC.wisp, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = seq(0, 0.6, 1, 1),
+		Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = cseq(0, WIND_CORE, 1, WIND), Lifetime = R(0.6, 0.8),
+		Speed = R(6, 9), Drag = 2, Rotation = R(-10, 10), LightEmission = 0.8, Brightness = 2, ZOffset = 0.5,
+	})
+	burst(base, "Curls", 12, {
+		Texture = DC.curls, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = oneShot,
+		Shape = disc, ShapeStyle = volume, EmissionDirection = up, SpreadAngle = Vector2.new(60, 60), Size = rnd(0.35, 0.5),
+		Transparency = seq(0, 0, 0.7, 0.3, 1, 1), Color = CS(WIND_CORE), Lifetime = R(0.7, 1), Speed = R(6, 10), Drag = 3,
+		Rotation = R(0, 360), RotSpeed = R(-200, 200), LightEmission = 0.8, Brightness = 2, ZOffset = 0.5,
+	})
+	burst(base, "Motes", 16, {
+		Texture = DC.dot, Shape = disc, ShapeStyle = volume, EmissionDirection = up, SpreadAngle = Vector2.new(70, 70),
+		Size = seq(0, 0.08, 1, 0), Transparency = NS(0), Color = CS(WIND_CORE), Lifetime = R(0.8, 1.3), Speed = R(5, 9),
+		Drag = 2.5, LightEmission = 1, Brightness = 3,
 	})
 	return m
 end

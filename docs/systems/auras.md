@@ -18,7 +18,8 @@ Heaven looks are not built (no method uses those grades yet).
 about 1.5 loop emitters per aura) and reads thin. Auras are to be rebuilt as
 layered emissions from the vfx library, modelled on Sol's RNG auras, with
 parts only in support. The method is in [docs/vfx/style.md](../vfx/style.md)
-("Auras"). **Reworked:** Blazing Heart, Flowing Spring, Thunder Pulse (2026-10-21, below);
+("Auras"). **Reworked:** Blazing Heart, Flowing Spring, Thunder Pulse, Drifting
+Cloud (2026-10-21, below);
 the other rows still describe the first, part-heavy pass. Blazing Heart shows the bar for
 size and quality, not a template: each method's rework starts from its own
 idea and references, not from Blazing Heart's layers or textures.
@@ -46,7 +47,7 @@ reuse its first method's motif.
 | Iron Marrow | spinning gold gem between the hands (light); gold bone lines along the arms and spine; gold ForceField rim | thin gold ring | the clang: a thin ring snaps out level and one upright, sparks, a star; bone lines, rim and ring glint | a great clang ring, a sunburst flash, sparks, a steel ring across the ground |
 | Mountain Breath | amber low-belly core (light); faint amber tint | heavy carved stone ring with a turning glowing rune circle that settles on each breath; five pebbles lifting on the inhale; dust | a slow amber ring out of the stone, a little dust | the ground thumps: ring, dust spray, grit jumps |
 | Thunder Pulse (reworked: 8 loop emitters + ~40 beams; the dark shell the only part) | a faint dark tint over the body (support); jagged lightning cracks across chest, belly and arms, each a thin white core (re-jagged every burst) over a wide violet glow band; dark smoke tendrils curling off the head, shoulders and arms; a violet charge glow on the skin and short arcs (bolt sprites) crackling on it, both flaring on a burst; tiny zigzag ozone sparks; a violet node where the chest cracks meet | a dark storm pool under you, a scorched rubble ring round a lightning-crack web (two SurfaceGui images) that flashes on a burst, an electric ring crackling at the rim and small arcs crawling on the ground, both spiking on a burst | irregular bursts (0.5 to 2.6 s apart): a flash, spark and radial arcs at the chest crack, bolts (white core in a crawling bolt-texture glow) from both hands to the ground with spark splashes where they land, a snap ring and a crack-web flash on the ground, the skin crackles | a bolt strikes the crown (two branching bolts), a white and chromatic flash there, radial lightning at the chest, arcs filling the space round the body, an electric ring and a crack web blasting over a scorched rubble ring, dark smoke thrown low, zigzag sparks; skin arcs surge |
-| Drifting Cloud | wisps lifting off the arms and torso; mint ForceField rim | a soft white cloud of puffs you sit on, a mint glow under it, two counter-turning wind rings that tighten on the inhale, streaks drawn inward | at the start of each inhale a wide wind ring sweeps in to the body | a gust ring bursts out, cloud puffs spray |
+| Drifting Cloud (reworked: 13 loop emitters, no parts drawn) | swirl strokes turning flat round the waist and the chest, shrinking inward as they turn (the wind spiralling in, thick on the inhale, loose on the exhale); wind curls drawn in from about a body-width to the waist; rising wavy wisps off the arms, torso and head and small curls blowing off the arms and head (robes and hair can't lift); a calm mint glow with a soft dot at the dantian; motes drifting on the wind | the cloud you sit on: curling flipbook cloud puffs over a grey-teal underside, low mist drifting off it, a cool shadow under it (dark base); a soft wind vortex turning one way and a three-armed wind seal (the one SurfaceGui) the other, the seal tightening on the inhale | at the start of each inhale: spiral ring strokes sweep in to the body, a gust of curls drawn in from all round, a puff of cloud at the seat | a soft flash and a swirl at the chest, the cloud bursting out in a puff ring (over a dark copy) with puffs thrown low, a gust swirl spreading over the ground, wisps and curls thrown up, motes scattered; limb wisps and curls surge |
 | Frost Lotus | pale rime ForceField rim | a glass lotus of three petal rings (inner, then one more each breath), flakes and crystals drifting down | breath mist from the mouth, a frost ring creeps out | a frost ring, shards thrown up, a cold flash at the chest |
 
 How it is put together (details in the builder header):
@@ -107,6 +108,9 @@ How it is put together (details in the builder header):
   ~40 beams (9 cracks of 2-3 core segments plus a glow each, 2 hand bolts of
   4 segments plus a glow); no light, two SurfaceGui images, the dark shell;
   a burst adds ~15 particles, the ignition ~45 for about half a second.
+  Drifting Cloud (R6): 13 loop emitters, about 50 live particles (the cloud
+  puffs and limb wisps are the bulk), no light, one SurfaceGui (the wind
+  seal), no parts drawn; its ignition adds ~50 particles for about a second.
 - **Palette for Neon:** bright pastels go white in Neon; ring and wave colours
   use the deeper shade of the element (violet, deep ice blue, burnt amber).
 
@@ -261,8 +265,15 @@ chant.
 
 ## Known gaps
 
-- The built Mortal auras other than Blazing Heart, Flowing Spring and
-  Thunder Pulse are part-heavy and due for the emission rework (Status above).
+- The built Mortal auras other than Blazing Heart, Flowing Spring, Thunder
+  Pulse and Drifting Cloud are part-heavy and due for the emission rework
+  (Status above).
+- Drifting Cloud: previewed in Edit mode on an R6 rig (grass at noon and
+  night) through the plain emitter fallback; play speed, R15, phones and the
+  live sit / switch / breakthrough ignition are untested. The swirl strokes
+  lie flat, so they read best from above (the usual camera) and thin from
+  level. Built without a reference (none in the library for a seated wind
+  aura).
 - Thunder Pulse: previewed in Edit mode on an R6 rig (grass at noon and
   night) through the plain emitter fallback; play speed, R15, phones and the
   live sit / switch / breakthrough ignition are untested, and how the
@@ -283,7 +294,7 @@ chant.
   1.60 s), not on a live player or an observer's replicated tracks.
 - Only the Mortal column is built; the Spirit/Earth/Heaven looks (spreading
   figures, backdrops, manifestations) wait for methods of those grades.
-- No refs yet for Mountain Breath or Drifting Cloud.
+- No refs yet for Mountain Breath or Drifting Cloud (built without one).
 - Robes and hair can't lift (avatar clothing isn't ours to move); Drifting
   Cloud and the ignitions stand in with rising wisps and flames.
 - Previewed in Edit mode on the R6 test rig only (grass at noon and night);

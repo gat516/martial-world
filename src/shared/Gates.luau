@@ -1,6 +1,9 @@
 --!strict
--- Teleport arrays: the only way to travel. Players arrive, respawn and leave
--- through them, and the travel menu works only while standing on one.
+-- Teleport arrays. Players arrive and respawn on them. Inside the sect the
+-- Travel button rides to the sect's own arrays (My Peak, Main Peak, Sect Gate)
+-- from anywhere; out in the wilds you travel only from an array (its prompt opens
+-- the menu), and the wilds arrays are reached only from the Sect Gate's array or
+-- another wilds array: you leave the sect through its gate.
 -- Each array in the place is tagged TravelGate with a `Gate` attribute naming
 -- its entry below; every spirit peak's TeleportArray is tagged with Gate "Peak"
 -- (you can leave from anyone's, but "Peak" always takes you to your own).
@@ -56,6 +59,28 @@ end
 function Gates.open(gate: Gate, realm: { major: string, minor: number }): boolean
 	local need = Gates.required(gate)
 	return need == nil or Realms.index(realm.major, realm.minor) >= Realms.index(need.major, need.minor)
+end
+
+-- Whether the gate is out in the wilds (reached only from a Gates.leadsOut array).
+function Gates.wild(gate: Gate): boolean
+	return gate.region ~= nil
+end
+
+-- Whether the array with this `Gate` attribute can send you into the wilds: the
+-- Sect Gate's and the wilds arrays themselves.
+function Gates.leadsOut(id: any): boolean
+	if id == "SectGate" then
+		return true
+	end
+	local gate = if typeof(id) == "string" then Gates.ById[id] else nil
+	return gate ~= nil and Gates.wild(gate)
+end
+
+-- Whether `position` is on the sect's safe ground, where travel to the sect's
+-- arrays works from anywhere. The Sect Gate's array stands outside, in the wilds.
+function Gates.inSect(position: Vector3): boolean
+	local region = Regions.at(position)
+	return region ~= nil and region.realm == nil
 end
 
 -- Whether `position` stands on the array instance.

@@ -1,8 +1,8 @@
 --!strict
 -- A small seal and name floating over each teleport array (Hud.GateMarker, a
 -- BillboardGui template), so players can find where to travel from. Shown once
--- the elder has taught the formation, hidden over the array you stand on (the
--- Travel button takes over there) and while a menu is open. Arrays the player's
+-- the elder has taught the formation, hidden over the array you stand on (its
+-- Travel prompt takes over there) and while a menu is open. Arrays the player's
 -- realm hasn't opened carry a cinnabar seal; other players' peak arrays only
 -- show up close. Arrays stream in and out, so markers follow the TravelGate tag.
 

@@ -1,8 +1,10 @@
 --!strict
--- Teleport arrays (Shared.Gates): standing on one, travel to your own peak, the
--- main peak, the sect gate or a wilds array your realm has opened. Blocked for a
--- few seconds after taking damage, so it can't be used to escape a fight
--- mid-attack. Arrivals and hub respawns land on an array too (Travel.arrival).
+-- Teleport arrays (Shared.Gates). Anywhere on the sect's safe ground you can ride
+-- to your own peak, the main peak or the sect gate; out in the wilds only from an
+-- array. The wilds arrays open by realm and only from the Sect Gate's array or
+-- another wilds array. Blocked for a few seconds after taking damage, so it can't
+-- be used to escape a fight mid-attack. Arrivals and hub respawns land on an
+-- array too (Travel.arrival).
 
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -83,10 +85,15 @@ function Travel.go(player: Player, where: any): (boolean, string?)
 		return false, "Unknown destination"
 	end
 	local from = Travel.standingOn(player)
-	if not from then
-		return false, "Stand on a teleport array to travel."
+	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if Gates.wild(gate) then
+		if not (from and Gates.leadsOut(from:GetAttribute("Gate"))) then
+			return false, "The wilds arrays answer only from the Sect Gate's array."
+		end
+	elseif not from and not (root and Gates.inSect(root.Position)) then
+		return false, "Out in the wilds, stand on a teleport array to travel."
 	end
-	if from == array(player, gate.id) then
+	if from and from == array(player, gate.id) then
 		return false, `You're already at {gate.name}.`
 	end
 	if data and not Gates.open(gate, data.realm) then

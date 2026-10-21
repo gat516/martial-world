@@ -71,7 +71,7 @@ Quests.Beats = {
 	},
 	{
 		id = "Root",
-		elder = "Qi flows in you now. Ride a teleport array to the Main Peak and lay your hand on the Testing Stone. Let us see your spirit root.",
+		elder = "Qi flows in you now. Ride the teleport formation to the Main Peak and lay your hand on the Testing Stone. Let us see your spirit root.",
 		objective = "Travel to the Main Peak and touch the Testing Stone",
 		done = function(_, data)
 			return Roots.tested(data.root)
@@ -79,8 +79,8 @@ Quests.Beats = {
 	},
 	{
 		id = "Gate",
-		elder = "Your dantian is spent. Step onto a teleport array and ride it to the Sect Gate, then gather qi in the wilds.",
-		objective = "Stand on a teleport array, tap Travel, then Sect Gate",
+		elder = "Your dantian is spent. Ride the formation to the Sect Gate, then gather qi in the wilds.",
+		objective = "Tap Travel, then Sect Gate",
 		done = function(player, _)
 			return nearGate(player)
 		end,

@@ -91,7 +91,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | BuildAction | Function | C->S | `Build.handle` ("buy", "place", "store", "move") | BuildMode, BuildCatalog |
 | GardenAction | Function | C->S | `Garden.handle` ("plant", "harvest", "growTarget", "uproot", "buySeed", "sell", "sellAll") | Planting, GardenView, HerbShop |
 | InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot", "clear", "swap") | Inventory, HotbarView |
-| TravelAction | Function | C->S | `Travel.go` (gate id; only while standing on an array) | TravelMenu |
+| TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only) | AdminPanel |
 | WeaponAction | Function | C->S | `Weapons.handle` ("equip", weaponId / "unequip") | Inventory (Weapons tab) |

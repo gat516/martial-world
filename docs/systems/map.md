@@ -27,10 +27,12 @@ only for instanced party content.
   friends together and weather, treasures and world events server-wide. Keep
   the zone count low (2-3 to start) so 8 players don't spread too thin; add more
   only when the existing ones are full of content.
-- **Arrays are the only way to travel** (`Shared.Gates`, `src/server/Travel.luau`).
-  Players spawn on their own peak's array, respawn after death on the plaza's,
-  arrive on the destination's, and can open the travel menu only while standing
-  on one (any array, peaks included). Nothing teleports from anywhere.
+- **Arrays carry all travel** (`Shared.Gates`, `src/server/Travel.luau`).
+  Players spawn on their own peak's array, respawn after death on the plaza's and
+  arrive on the destination's. On the sect's safe ground the Travel button rides
+  to the sect's arrays (My Peak, Main Peak, Sect Gate) from anywhere; out in the
+  wilds you travel only from an array (its prompt), and the wilds arrays answer
+  only from the Sect Gate's array or another wilds array.
 - **Today:** the wilds are one continuous smooth-terrain field covering rings
   300-2200 around the origin (Inner, Middle, Outer). Each ring has one array
   (`Map.Markers.TeleportHome`), standing in for zone gates until the zones are

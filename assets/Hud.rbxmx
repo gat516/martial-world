@@ -9919,6 +9919,17 @@ Owned 0 · 0 placed · peak cap 120</string>
     </Item>
    </Item>
   </Item>
+  <Item class="ProximityPrompt" referent="RBXTP01"><Properties>
+   <string name="Name">TravelPrompt</string>
+   <string name="ActionText">Travel</string>
+   <string name="ObjectText">Teleport Array</string>
+   <float name="HoldDuration">0</float>
+   <float name="MaxActivationDistance">12</float>
+   <bool name="RequiresLineOfSight">false</bool>
+   <token name="Style">1</token>
+   <bool name="Enabled">false</bool>
+  </Properties>
+  </Item>
   <Item class="BillboardGui" referent="RBX1026"><Properties>
    <string name="Name">GateMarker</string>
    <UDim2 name="Size"><XS>0</XS><XO>170</XO><YS>0</YS><YO>58</YO></UDim2>

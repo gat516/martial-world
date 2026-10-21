@@ -40,6 +40,7 @@ export type Data = {
 	onboardingMark: number, -- circulation runs when the current beat began
 	lastLogoutUnix: number,
 	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
+	tribulationReadyUnix: number, -- os.time() a failed tribulation can be retried
 	stats: { breakthroughs: number, circulationRuns: number, kills: number, bossKills: number },
 	herbs: { [string]: number },
 	items: { [string]: number }, -- spirit cores and treasures (herbs stay in herbs)
@@ -75,6 +76,7 @@ local function default(): Data
 		onboardingMark = 0,
 		lastLogoutUnix = 0,
 		lastDailyDay = 0,
+		tribulationReadyUnix = 0,
 		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0 },
 		herbs = {},
 		items = {},

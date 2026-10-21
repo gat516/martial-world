@@ -12,7 +12,8 @@
 -- tribulation, anyone else on it is sent down to the plaza's array when one
 -- starts (or if they get up there during it), and the challenger is sent down
 -- a few seconds after it ends. Players turned away while it's taken are told
--- when it clears. Failing costs a cooldown, so nobody can chain attempts.
+-- when it clears. Failing costs a cooldown, saved with the profile so
+-- rejoining doesn't skip it, so nobody can chain attempts.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -30,7 +31,6 @@ local notifyRemote = remotes.Notify :: RemoteEvent
 
 -- The trial in progress (only one at a time), and when its last strike lands.
 local current: { player: Player, def: Pacing.Tribulation, endsAt: number }? = nil
-local readyAt: { [Player]: number } = {}
 -- Players turned away while the platform was taken, told when it clears.
 local waiting: { [Player]: true } = {}
 
@@ -106,7 +106,10 @@ local function finish(player: Player, survived: boolean)
 		Cultivation.advance(player)
 	else
 		local cooldown = if def then def.failCooldown else 0
-		readyAt[player] = os.clock() + cooldown
+		local data = PlayerData.get(player)
+		if data then
+			data.tribulationReadyUnix = os.time() + cooldown
+		end
 		local wait = if cooldown >= 60 then `{cooldown // 60} minutes` else `{math.ceil(cooldown)} seconds`
 		Cultivation.notify(player, `The tribulation overwhelmed you. Steady your qi and try again in {wait}.`)
 	end
@@ -178,15 +181,15 @@ function Tribulation.start(player: Player): (boolean, string?)
 		local left = math.max(1, math.ceil(current.endsAt - os.clock()))
 		return false, `{current.player.DisplayName} is facing the heavens. Wait for the storm to pass ({left}s); you'll be told when it does.`
 	end
-	local wait = (readyAt[player] or 0) - os.clock()
+	local data = PlayerData.get(player)
+	local wait = if data then data.tribulationReadyUnix - os.time() else 0
 	if wait > 0 then
-		return false, `Your qi is still unsettled. Try again in {math.ceil(wait)}s.`
+		return false, `Your qi is still unsettled. Try again in {wait}s.`
 	end
 	local humanoid = humanoidOf(player)
 	if not humanoid then
 		return false, "You can't face the heavens right now."
 	end
-	local data = PlayerData.get(player)
 	local def = data and Cultivation.stage(data).tribulation
 	if not def then
 		return false, "The heavens are silent."
@@ -204,7 +207,6 @@ end
 
 -- A leaving challenger's trial is failed by its own loop on the next check.
 function Tribulation.forget(player: Player)
-	readyAt[player] = nil
 	waiting[player] = nil
 end
 

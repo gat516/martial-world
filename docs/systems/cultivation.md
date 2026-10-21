@@ -16,7 +16,8 @@ felt in fights.
   `src/shared/Pacing.luau`.
 - Breakthroughs happen seated in meditation. A minor one can be **forced** in a
   fight when badly hurt with a 90% bar; the new stage starts in qi debt.
-- Failing a tribulation costs time (a cooldown), never cultivation.
+- Failing a tribulation costs time (a cooldown, saved as
+  `data.tribulationReadyUnix` so rejoining doesn't skip it), never cultivation.
 - One tribulation at a time, server-wide, on the main peak's platform. Others
   asking meanwhile are told who holds it and how long is left, then notified
   when it clears. Bystanders on the platform are sent to the plaza array when

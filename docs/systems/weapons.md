@@ -84,8 +84,11 @@ Saved: `weapons = { owned = { [id]: count }, equipped = "" | id }`,
 in the `PlayerState` push (`weapons`, `dao`).
 
 ## Weapon models (contract with the modeler)
-`ServerStorage.WeaponModels` (`assets/WeaponModels.rbxmx`): one Model per model
-name (`Jian`, `Dadao`, `Greatsword`, `Guandao`, `Spear`, `Staff`, `ManualScroll`).
+`ServerStorage.WeaponModels` (binary `assets/WeaponModels.rbxm`, built by
+`art/weapons/place_weapons.luau`): one Model per model name (`Jian`, `Dadao`,
+`Greatsword`, `Guandao`, `Spear`, `Staff`, `ManualScroll`). Meshes are Parts with
+a SpecialMesh (MeshPart ids don't survive Rojo sync); `Tip`/`Base` attachments on
+the PrimaryPart.
 PrimaryPart = a small invisible part named the class's joint (`HiltR` for Jian
 and Greatsword, `Hilt` for the rest), holding a Motor6D of the same name with
 Part1 = the PrimaryPart and Part0 = nil. Everything welded to it, unanchored,
@@ -106,6 +109,9 @@ works, held invisibly.
 - The held weapon is still drawn while an item Tool is out.
 - Sword, Saber have placeholder idles (Spear Idle, Bat Idle) and no walk.
 - Equipping is refused only mid-action, not in combat.
-- Caches and racks need their anchors placed in `Workspace.Map`; until then
-  Dragon-Piercing Thrust and the Mortal non-sword weapons are admin-only.
+- The sect weapon rack and five manual caches are placed (positions in
+  [map](map.md)), but boulder piles in the wilds dressing bury the bamboo hollow
+  (Crescent Moon Sweep) and wolf den (Dragon-Piercing Thrust) caches.
+- Dadao and Guandao lead with the blade's back on their backhand steps (Saber 2
+  and 4, Guandao 2): the clips were made for a double-bit axe.
 - Untested in game: grips, joints and the idle/walk overlay need a look in Studio.

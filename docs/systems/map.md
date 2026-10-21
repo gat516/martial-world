@@ -147,7 +147,7 @@ Found by coordinates only; children may be restructured freely.
    z   14  +-WEST COURT +0.6-+   Gong(30,26)    +-EAST COURT +0.6-+
    z   30  | Stele(-69,30)   |                  | PortalRing(73,44)|
    z   50  | benches, pots   W  [Cauldron(0,50)] W  bench, pots    |
-   z   62  |                 | garlands N-S at x+-16, z62..92     |
+   z   62  |       TestingStone(-34,64) garlands N-S at x+-16, z62..92 |
    z   80  | SeedMarket(-72,83) Elder(-24,80)  QuestBoard(24,80)  |
    z   91  |                 |           SpiritMarket(40,96) TA(70,91)
    z  100  |  planter(-90,104)  * PlazaSpawn (0,648.3,100)        |
@@ -551,6 +551,12 @@ From a read-only audit of the code (2026-10-20); code refs inline.
   is the only enabled spawn (players are moved straight onto an array); plaza floor at Y ~647-648 under it. Hub: Elder
   (-24.2, 652.7, 80), QuestBoard (24, 652.15, 80), SpiritMarket (40, 650.1, 96)
   (MARKET_RANGE 24); prompts by name (MarketPrompt, Herbalist).
+- TestingStone (spirit-root reveal, `Roots.luau`): `Hub.TestingStone` at
+  (-34, 648.6, 64) on the plaza floor west of the axis, 19 studs N-W of the
+  Elder, step facing the spawn. Stone > TestPrompt (found recursively) and
+  Stone > PillarOrigin (top centre, Y 654.85) for the root pillar vfx; keep the
+  air above it clear. Built by `art/main_peak/build_testing_stone.luau` into a
+  staging clone, then spliced into `assets/Hub.rbxmx`.
 - Tribulation: `Config.Tribulation.CENTER` (2, 857, -86), ARENA_RADIUS 34; the
   floor raycast from CENTER+20 down 60 (CanCollide parts only) must hit the
   walkable floor (TopSurface, Y 855.3) (`Tribulation.luau`). Effect parts above

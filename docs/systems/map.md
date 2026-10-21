@@ -137,17 +137,17 @@ Found by coordinates only; children may be restructured freely.
    z -140  .  .  spire cluster (tips 684..812)  .  .
    z  -86  .  .  [Tribulation disc r30 @ Y855, (2,-86)] .
    z  -60  ----- mesa back (Y614 ledge / spire feet) -----
-   z  -34  +-----------------------------------------------+  plaza Y647
-           | PavW(-76,-14)   [MAIN HALL (0,-6)]   PavE(76,-14) |
-   z    4  | Planter                                Planter |
-   z   26  |               Gong(30,26)                       |
-   z   30  | Stele(-68,30)                                   |
-   z   46  |          [Cauldron (0,50)]    PortalRing(70,46) |
-   z   62  |        lantern pairs both sides of axis         |
-   z   80  | Elder(-24,80)    ProcessionPath x=0   QuestBoard(24,80)
-   z   83  | SeedMarket(-70,83)         TeleportArray(67,91) |
-   z   96  |                          SpiritMarket(40,96)    |
-   z  100  |              * PlazaSpawn (0,648,100)           |
+   z  -34  +-----------------------------------------------+  plaza floor Y648.6
+           | PavW(-76,-14) [HALL TERRACE +1.2 x+-58]  PavE(76,-14) |
+           |  Brazier(-58,4)  JadeLamp(+-30,5)  Brazier(58,4) |
+   z   14  +-WEST COURT +0.6-+   Gong(30,26)    +-EAST COURT +0.6-+
+   z   30  | Stele(-69,30)   |                  | PortalRing(73,44)|
+   z   50  | benches, pots   W  [Cauldron(0,50)] W  bench, pots    |
+   z   62  |                 | garlands N-S at x+-16, z62..92     |
+   z   80  | SeedMarket(-72,83) Elder(-24,80)  QuestBoard(24,80)  |
+   z   91  |                 |           SpiritMarket(40,96) TA(70,91)
+   z  100  |  planter(-90,104)  * PlazaSpawn (0,648.3,100)        |
+   z  111  +-----------------+    lanterns x+-10.5 @ z 104/78/22, x+-19 @ z 50
    z  115  +-----------------[ balcony (0,130) ]------------+
    z  139      FlightWest (-55) \       / FlightEast (55)
                          down to ring terrace Y582
@@ -164,9 +164,21 @@ Found by coordinates only; children may be restructured freely.
   SpiritMarket, TeleportArray, PortalRing), the hall's flanking pavilions, the
   south balcony overlooking the stairs. Each court gets its own paving inset and a
   low wall/planter edge so it reads as a room, not a scatter.
-- Plaza floor: break the 200x150 slab into a raised hall terrace (2-3 steps,
-  z -34..10), the main court and two side courts a step lower or higher; keep
-  the walking surface at Y 647-648 around (0, 100) and under the Hub models.
+- Plaza floor (built, `art/main_peak/build_plaza.luau`, re-runnable, parts under
+  `Plaza.Layout`): PlazaFloor stays the walking surface (top Y 648.6) under the
+  spawn and the Hub models. A hall terrace (x -58..58, z -31..8, +1.2, two
+  risers on the front and sides) carries the hall's own platform; the
+  pavilions flank it on the floor. Side courts (x -97..-45 and 47..97,
+  z 14..111) are one 0.6 step up in a darker paving with a curb, and a low
+  stone wall on the inner edge with openings toward the axis. Stele,
+  SeedMarket, PortalRing, TeleportArray_Plaza and the planters sit on the
+  courts (each keeps its pre-pass pivot in a `PlazaOrigin` attribute so the
+  script re-seats it the same way). Garlands hang north-south along the axis
+  (not across it) in lacquer red and paper, no neon. Lamps (template clones
+  named StoneLantern/JadeLamp/Brazier so DayNight scales them, each with one
+  shadowless PointLight): axis pairs at z 104/78/50/22, jade lamps at the hall
+  porch, lanterns at the court openings, braziers at the pavilions; 26 lights
+  on the plaza.
 - Grand stairs: the south balcony is the plaza's "front door" view out over the
   cloud sea and spirit peaks; flights land on the ring terrace with gate posts
   and a lantern pair at each foot.

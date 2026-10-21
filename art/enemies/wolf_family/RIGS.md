@@ -100,3 +100,63 @@ Empty FX attachments (identity world rotation at rest, so they turn with their p
 - The Spirit Wolf B's back is a cylinder over the chest and over the hips (no shoulder
   bevels any more), and it has no shoulder balls, hind claws, small teeth, chin block or
   leg tufts: none of those were keyable, so no clip keyed them.
+
+## Procedural poses (`src/client/EnemyPoses/Wolf.luau`)
+
+Combat pass (2026-10-21). EnemyAnimator can't play clips yet, so the wolf family's
+animation is a pose module: Transforms by motor name, sampled per frame. Its format
+(documented at the top of the file) is the fixed format for every later beast's
+`EnemyPoses/<Family>.luau`:
+
+- `Wolf.moves[Move][Phase]` with phases `windup` / `active` / `recover`: a designed
+  `duration`, `keys` `{ t = 0..1, pose, ease, plant = { "FL", ... }, reach = { FL =
+  Vector3 } }`, an optional `overlay(u, secs, input)` for fast shakes and wiggles,
+  `mirror` (play mirrored by `input.side`) and `air` (the client lifts the body).
+- `Wolf.loops.idle/walk/run/circle(phase, speed, input)`, with `Wolf.gaitRate` giving
+  the phase speed that keeps planted paws from skating.
+- `Wolf.sample(move, phase, u, input)`, `Wolf.scaled(pose, scale)` (JointRoot studs
+  for the King 2.4 and Shadow-Mane 1.15), `Wolf.plant(pose, legs, reach)`.
+- Only shared joints are keyed, plus JointCrest (Spirit Wolf and King; a body without
+  it just skips it). Manes, seal and forelock are left to per-body overlay tables.
+
+**Planting.** A planted paw stays on its rest spot plus the key's `reach`: a two-joint
+solve in the leg's plane sets the shoulder/hip and the elbow/knee, then the wrist/hock
+levels the paw, so the paw is flat on Y 0 whatever the root, spine and pitch do. If a
+leg can't reach without stretching past its rest length, the root drops. So a pose
+authors the root, spine, head, tail and paw offsets; the legs follow. Moves outside
+the air phases also floor-clamp every unplanted paw. The gait loops instead swing the
+upper legs from the cycle and solve only the middle joint (stance paws on the ground,
+swing paws lifted a set clearance).
+
+**QA:** `wolf_family/qa_wolf_poses.luau` samples every move phase and loop, poses the
+template by forward kinematics (nothing in the place moves) and reports each paw's
+lowest point, sinking, joint gaps, clipping between segments, merges at folded joints
+and middle-joint range. `_G.WOLF_POSE_PREVIEW` leaves anchored posed copies in
+`Workspace._WolfPoses` (EditorOnly, on a plate at X -200 to -420, Y 400, Z 3100).
+
+### Learned on this rig (pose module pass)
+
+- **The hind knee closes on -X.** The shin slants back from the knee to the hock, so
+  near rest a compressing hind leg (a crouch, a sit, a landing) bends the knee
+  negative, and the hip goes positive. The old "+X bends the shin forward (crouch)"
+  holds only with the hip swung back: a crouch with the paws planted where they stood
+  is hip about +0.5, knee -0.6 to -0.95. The brief's "hind knees +0.6" coil is this.
+- **Elbows:** in a crouch with the forepaws planted, the forearm comes forward under
+  the chest (elbow +1.0 to +1.25, clean). In swing it folds back (-0.3 to -1.3, clean).
+- **Crouches need the paws to move.** Root -0.55 with the paws on their rest spots jams
+  the shins into the hips and the hocks into the thighs (0.18 to 0.21). Forepaws 0.3
+  forward and hind paws 0.4 to 0.6 back clears them. A landing squash at root -0.4
+  clears with forepaws 0.3 forward and the paws 0.25 to 0.3 wide.
+- **Merges that remain (by design, under 0.22):** the elbow ball into the chest bib with
+  the forelegs swung +0.95 or more (pounce dash, leap flight); the hock ball into the
+  thigh in the deepest coil and the howl sit (0.15 to 0.19); the forearm touches the
+  neck by 0.1 at the pounce launch. The modeler's old QA leap pose, run through the same
+  check, puts the forepaws 0.27 to 0.4 into the skull, so keep forelegs at or under
+  +1.05 with 0.06 to 0.08 of outward roll when the head is level.
+- **Gallop:** the hind legs must reach forward less than they drive back (0.65x) and
+  roll out 0.22 when forward, or the hind shins enter the hips (0.3) and the hind paws
+  hit the forepaws. A spine arch past 0.1 drops the chest onto the reaching hind shins.
+- **Circle (crab-trot):** lateral leg roll up to 0.2 around a 0.06 outward stance; at
+  0.3 the paws cross and collide.
+- **Death:** rolled 1.4 about the hips and shifted 0.55 toward the side it falls to,
+  the flank rests on Y 0 at a root drop of 0.95 (measured, not keyed by eye).

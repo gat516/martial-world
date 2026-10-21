@@ -184,7 +184,10 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
 - `src/server/EnemyHistory.luau`: each beast's recent positions, for swing lag
   compensation (`Combat.damageSwing`).
 - `src/shared/Knockback.luau`; client `EnemyAnimator.luau` (procedural gait by
-  `AIState`), `EnemyMotion.luau` (builds and draws the predicted body), `EnemyFX/` (per-beast cues,
+  `AIState`), `EnemyPoses/` (per-family pose tables for it: `Wolf.luau` keys every
+  shared wolf joint for idle, walk, run, circle and each Spirit Wolf move, with planted
+  paws solved onto the ground; format at its top and in `wolf_family/RIGS.md`),
+  `EnemyMotion.luau` (builds and draws the predicted body), `EnemyFX/` (per-beast cues,
   death fade), `EnemyBars.luau` (overhead and boss bars), `EnemySounds.luau`,
   `Telegraphs.luau`.
 - Models: `ServerStorage.Enemies` (`assets/Enemies.rbxmx`).
@@ -267,6 +270,10 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   and R6 rigs (no enemy uses one yet).
 - Players and beasts pass through each other: the server root doesn't collide
   and the body is client-only.
+- `EnemyPoses/Wolf.luau` isn't wired into EnemyAnimator yet: EnemyAnimator still
+  drives only the six legacy joints from `AIState`. Wiring it means sampling
+  `Wolf.sample(attack, phase, (now - StateAt) / duration)` per state, the loops by
+  speed, and scaling JointRoot for the King and Shadow-Mane (`Wolf.scaled`).
 - The Spirit Wolf's effects wait on its new attack set: the def still has one
   `lunge` attack (no `Attack` name of bite/pounce/leap/howl/hop), and the server
   sends no `enemyCue` "hit" yet, so only the shared windup tell, the lunge's skid

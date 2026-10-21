@@ -70,8 +70,8 @@ Quests.Beats = {
 	},
 	{
 		id = "Gate",
-		elder = "Your dantian is spent. Take the teleport formation to the Sect Gate and gather qi in the wilds.",
-		objective = "Tap Travel, then Sect Gate",
+		elder = "Your dantian is spent. Step onto a teleport array and ride it to the Sect Gate, then gather qi in the wilds.",
+		objective = "Stand on a teleport array, tap Travel, then Sect Gate",
 		done = function(player, _)
 			return nearGate(player)
 		end,

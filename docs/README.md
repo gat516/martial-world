@@ -58,10 +58,10 @@ ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
 | Weather, world events, treasures | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures | Weather, WorldEvents | WeatherFX, DayNight, Music |
-| Onboarding, quests, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Config.Travel | Onboarding, TravelMenu |
+| Onboarding, quests, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Gates, Config.Travel | Onboarding, TravelMenu |
 | UI and HUD | [ui](systems/ui.md) | - | - | Hud, Menus, Layout, Motion, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |
-| Map: layout, art direction, anchors scripts depend on | [map](systems/map.md) | Peaks (Map.Sect.SpiritPeaks), Tribulation (CENTER) | Config.Travel, Config.Tribulation, Config.Build | DayNight (Map.Sect.Ambience), MyPeak |
+| Map: layout, art direction, anchors scripts depend on | [map](systems/map.md) | Peaks (Map.Sect.SpiritPeaks), Tribulation (CENTER), Travel (TravelGate arrays) | Gates, Config.Travel, Config.Tribulation, Config.Build | DayNight (Map.Sect.Ambience), MyPeak |
 | Monetization | [monetization](systems/monetization.md) | Receipts, Garden (Grow now) | Config.Garden.GROW_NOW | GardenView |
 
 ## Remotes (`ReplicatedStorage.Remotes`, `assets/Remotes.rbxmx`)
@@ -84,7 +84,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | BuildAction | Function | C->S | `Build.handle` ("buy", "place", "store", "move") | BuildMode, BuildCatalog |
 | GardenAction | Function | C->S | `Garden.handle` ("plant", "harvest", "growTarget", "uproot", "buySeed", "sell", "sellAll") | Planting, GardenView, HerbShop |
 | InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot", "clear", "swap") | Inventory, HotbarView |
-| TravelAction | Function | C->S | `Travel.go` | TravelMenu |
+| TravelAction | Function | C->S | `Travel.go` (gate id; only while standing on an array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only) | AdminPanel |
 | Dodge, Cast | Event | - | unused (combat moved onto Attack) | - |

@@ -14,6 +14,66 @@ linked by a rope bridge to the main peak's ring terrace (Y 582). The wilds lie
 far below on the ground (`Workspace.Wilds`, Y ~0-10, south of the sect gate at
 (0, 9, 500)). Axes below: +X east, -Z north (the summit is north of the plaza).
 
+## World structure
+Decided 2026-10-20. One place holds the hub and every zone; separate places are
+only for instanced party content.
+
+- **Hub server, 8 players.** The 8-player cap matches the 8 spirit peaks. The
+  sect (main peak, plaza, spirit peaks) is where everyone keeps returning: peaks,
+  market, elder, quest board, world events and tribulations people can watch.
+- **Zones in the same place, linked only by teleport arrays.** Each wilds zone is
+  a small, dense area (a few hundred studs) far from the others in space, one per
+  realm tier, opened by realm (`Regions` `realm`). Staying in one server keeps
+  friends together and weather, treasures and world events server-wide. Keep
+  the zone count low (2-3 to start) so 8 players don't spread too thin; add more
+  only when the existing ones are full of content.
+- **Arrays are the only way to travel** (`Shared.Gates`, `src/server/Travel.luau`).
+  Players spawn on their own peak's array, respawn after death on the plaza's,
+  arrive on the destination's, and can open the travel menu only while standing
+  on one (any array, peaks included). Nothing teleports from anywhere.
+- **Today:** the wilds are one continuous smooth-terrain field covering rings
+  300-2200 around the origin (Inner, Middle, Outer). Each ring has one array
+  (`Map.Markers.TeleportHome`), standing in for zone gates until the zones are
+  rebuilt as separate areas.
+- **What to build with** (`.claude/agents/map-builder.md`): meshes for the
+  landmarks people look at (peaks, cliffs, spires, floating islands), smooth
+  terrain for the ground people walk on in wild zones (exact collision for the
+  ground raycasts, recoloured with MaterialVariants to the palette), parts for
+  halls, houses, walls, gates and stairs (curved roofs as meshes).
+- **Point-of-interest density:** something to do every 20-30 seconds of travel
+  at the player's speed, in clusters with quiet space between, and one landmark
+  per zone visible from its arrival array. Kinds: qi nodes, beast lairs, herbs,
+  ruins/steles giving insight, meditation spots with a local bonus, hermit
+  NPCs, small trials, secret-realm entrances, vistas.
+- **Sword flight at Foundation Establishment:** free movement inside a zone,
+  never between zones (that stays the arrays). Server-checked speed, landing
+  forced in suppression zones (lairs, sect grounds), streaming requested ahead.
+- **Separate places for instanced content:** secret realms, dungeons and trials,
+  entered as a party (reserved server), a queue (`MemoryStoreService`) or an open
+  public server. Saves must finish before leaving and load safely on arrival
+  (session locking), and players always return to a hub server.
+
+### Still to do, in rough order
+1. **Gate UI** (`ui-designer`): TravelMenu buttons for `InnerWilds`,
+   `MiddleWilds`, `OuterWilds` (TravelMenu wires any List button named after a
+   gate id) showing the realm each opens at and a locked state; a prompt or glow
+   on arrays so players find them; a fade while the destination streams in.
+2. **Zone separation** (`map-builder`): rebuild each wilds zone as its own
+   bounded area far apart, with its array, landmark and POIs; switch `Regions`
+   from rings to per-zone bounds, and update `Music.luau` (copies the layout),
+   `Spawns`, qi nodes, treasures and world-event locations to match.
+3. **Zone edges:** cliffs, water or mist at the edge, plus an out-of-bounds
+   return to the zone's array.
+4. **Combat tag:** `Combat.inCombat` (taking damage within `IN_COMBAT_SECONDS`)
+   already blocks travel. Also count dealing damage and being targeted by a
+   beast, so hitting and running to an array doesn't work.
+5. **Array discovery:** wilds arrays unlock on first visit (saved per player),
+   on top of the realm requirement.
+6. **Quiet empty zones:** no zone spawns or AI ticks where no player is.
+7. **World events and treasures** pick a zone someone is in.
+8. **Cross-place travel:** party/queue/open entry, data handoff, return to hub.
+9. **Sword flight.**
+
 ## Art direction
 Stylized, chunky, readable; shape carries detail. Plain colours on
 SmoothPlastic (the modeler's rules: crisp vertical rock columns, grass only as
@@ -223,8 +283,17 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 - RealmTier `ServerStorage.PeakTiers.Foundation` (`assets/PeakTiers.rbxmx`)
   sits in peak-local X/Z +-49, Y 1.5..194: re-check clipping if the plateau
   surface changes.
-- Main peak: `Config.Travel.MAIN_PEAK` (0, 653, 100); PlazaSpawn (0, 648.3, 100)
-  is the only enabled spawn; plaza floor at Y ~647-648 under it. Hub: Elder
+- Teleport arrays (`Shared.Gates`): every array players travel through is tagged
+  `TravelGate` with a `Gate` attribute: `Plaza.TeleportArray_Plaza` "MainPeak"
+  (66, 649.5, 92; also the death respawn), `Markers.TeleportHome.TeleportHome_Gate`
+  "SectGate" (48, 6, 470), `TeleportHome_Inner`/`_Middle`/`_Outer` "InnerWilds"/
+  "MiddleWilds"/"OuterWilds", each peak's `TeleportArray` "Peak". Arrivals land 4
+  above the pivot facing its LookVector; travel works within 12 studs flat of the
+  pivot. Arrays are `ModelStreamingMode` Atomic. Moving one moves where players
+  arrive; keep the tag and attribute on any rebuild. `SectGate.AscensionArray`
+  (0, 4, 236) is untagged (decor).
+- Main peak: PlazaSpawn (0, 648.3, 100)
+  is the only enabled spawn (players are moved straight onto an array); plaza floor at Y ~647-648 under it. Hub: Elder
   (-24.2, 652.7, 80), QuestBoard (24, 652.15, 80), SpiritMarket (40, 650.1, 96)
   (MARKET_RANGE 24); prompts by name (MarketPrompt, Herbalist).
 - Tribulation: `Config.Tribulation.CENTER` (2, 857, -86), ARENA_RADIUS 34; the
@@ -237,7 +306,7 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 - Wilds zones and qi nodes (positions in `assets/Wilds.rbxmx`) are leash and
   spawn homes; ground raycasts (spawns reject Water, treasures, placement) need
   real collision under them.
-- Free (no code reads them): `Map.Markers.*`, `Map.Clouds`, `Map.Ground`, tags
+- Free (no code reads them): `Map.Markers.*` (except the tagged TeleportHome arrays), `Map.Clouds`, `Map.Ground`, tags
   SwayBridge, WindShake, SkyLantern. Place-only: `ReplicatedStorage.BuildCatalog`,
   `ReplicatedStorage.HerbModels`, `ServerStorage.PeakStash`.
 - Collision matches looks: raycast-check walkable areas in Edit mode after every

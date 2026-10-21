@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
+local TravelMenu = require(script.Parent.TravelMenu)
 
 local questRemote = ReplicatedStorage.Remotes.QuestState :: RemoteEvent
 
@@ -91,10 +92,7 @@ local function onState(state: any)
 	(objective:FindFirstChild("Text") :: TextLabel).Text = state.objective
 	objective.Visible = state.objective ~= ""
 
-	local travel = findButton("TravelButton")
-	if travel then
-		travel.Visible = state.travel
-	end
+	TravelMenu.setTaught(state.travel)
 
 	if state.beat ~= lastBeat or state.elder ~= lastElder then
 		local first = lastBeat == nil
@@ -119,10 +117,6 @@ function Onboarding.init(screenGui: ScreenGui)
 	local board = gui:FindFirstChild("QuestBoardWindow") :: Frame
 	Menus.register(board)
 	ListWindow.bindClose(board)
-	local travel = findButton("TravelButton")
-	if travel then
-		travel.Visible = false -- until the server says it's taught
-	end
 	questRemote.OnClientEvent:Connect(onState)
 end
 

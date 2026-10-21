@@ -41,11 +41,15 @@ local lastBreakthroughAt: { [Player]: number } = {}
 local remotes = ReplicatedStorage.Remotes
 
 -- Peak spawn pads are disabled so nobody spawns on someone else's peak;
--- move each character onto their own peak's teleport array instead.
+-- move each character onto their own peak's teleport array instead (after a
+-- death, onto the main peak's array).
 local function sendHome(player: Player, character: Model)
 	if Config.Spawn.RESPAWN_AT_HUB and player:GetAttribute("Died") then
 		player:SetAttribute("Died", nil)
-		character:PivotTo(CFrame.new(Config.Travel.MAIN_PEAK + Vector3.new(0, Config.Spawn.HEIGHT, 0)))
+		local hub = Travel.arrival(player, "MainPeak")
+		if hub then
+			character:PivotTo(hub)
+		end
 		return
 	end
 	local peak = Peaks.ownedBy(player)

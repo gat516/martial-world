@@ -247,8 +247,8 @@ return {
 
 	-- Teleport formations between your peak, the main peak and the sect gate
 	Travel = {
-		MAIN_PEAK = Vector3.new(0, 653, 100), -- the plaza, by PlazaSpawn
-		SECT_GATE = Vector3.new(0, 9, 500), -- just outside the gate, facing the wilds
+		-- arrays and where they lead: Shared.Gates
+		SECT_GATE = Vector3.new(0, 9, 500), -- just outside the gate (the onboarding Gate beat checks it)
 		COOLDOWN = 3,
 	},
 

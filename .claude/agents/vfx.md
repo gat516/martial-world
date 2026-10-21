@@ -378,6 +378,12 @@ them instead of doubling them up.
 - Assets already in `ServerStorage.AssetLibrary`, existing effects and
   `rbxasset://textures/particles/*` are fine to reuse alongside library picks.
 - Don't draw your own textures with Pillow unless the user asks for it.
+  When one is asked for: the system python has no Pillow, so run
+  `~/.local/bin/uv run --with pillow --with numpy python art/<x>/draw_<x>.py`.
+  To upload, serve the folder with
+  `python3 -m http.server 8771 --bind 127.0.0.1 --directory art/<x>` (in the
+  background) and pass `http://127.0.0.1:8771/<file>.png` to `upload_image`;
+  keep the returned ids in `art/<x>/assets.json` and stop the server after.
 - Sounds belong with `SoundService.SFX` / `src/client/Sfx.luau`; don't hide
   Sounds inside effect templates unless the plugin should emit them with it.
 
@@ -469,6 +475,27 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
 - `MeshPart.MeshId` isn't writable from MCP scripts ("lacking capability"):
   create the part with `AssetService:CreateMeshPartAsync(id)` and clone it into
   the template. MeshId survives the binary export.
+
+### Beams, surfaces and decals (from the water kit)
+
+- A non-FaceCamera Beam faces along its attachments' Axis (local X).
+  Identity attachments only lie flat for a beam running along world X; along
+  Z it stands up as a wall. For flat beams (rims, ground streaks) turn the
+  attachments `CFrame.Angles(0, 0, math.pi / 2)` so X points up.
+- A Beam runs its texture's vertical image axis along its length. Draw strip
+  textures upright (tiling top to bottom), or they show as stripes across it.
+- Parent an Attachment before setting `WorldCFrame`. Unparented, WorldCFrame
+  is stored as local, so the point lands at double its world position.
+- Keep big surfaces under effects opaque. Transparent parts and particles are
+  depth-sorted by part centre, so a slightly translucent water union drew over
+  its own foam and splash particles and hid them.
+- Decals render on Transparency-1 parts, so an invisible volume can carry a
+  flat foam patch or seal decal.
+- Any-shape flat surfaces: union blocks/cylinders (Studio CSG) into one part.
+  A Texture tiles across the union's whole face, with no seams between pieces.
+  The union takes its first part's rotation, so check which face points up.
+- CSG (`UnionAsync`/`SubtractAsync`) errors unless at least one part is
+  parented into the DataModel. Parent the pieces first, then destroy them.
 
 ### The pipeline (use this for every technique)
 
@@ -631,6 +658,9 @@ Ask these in the plan, not after the build:
 - If the Game Module isn't in the place, still author the Emit attributes and
   say in-game module playback is untested.
 - Clean up everything: preview scene, clones, staging, `workspace.Terrain.TempVFX`.
+- If a capture right after a big edit looks wrong (stale scene, empty sky),
+  take it again before debugging; the first frame can lag the change.
+
 
 ## Export (attributes must survive)
 

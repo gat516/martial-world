@@ -72,6 +72,15 @@ done until the old is gone.
 - Terrain Water is fine on its own (lakes, rivers), but never combine it with a
   mesh or beam waterfall: the mix looks janky. A waterfall's pool is a flat water
   part in a stone rim, like the well.
+- Shallow pools and meres use `ServerStorage.WaterKit` (docs/systems/world.md).
+  Run `tools/water_kit_build.luau` for `_G.waterKit`. Use a `ShallowWater`/
+  `ShallowWaterRound` clone, or union any shape and `waterKit.dress(union)`.
+  Sink the surface 0.3-0.5 under the bank and put a bed 1-1.5 studs below it
+  so players wade. Leave the surface opaque: translucent water hides the foam
+  particles. Add rims with `waterKit.rimPart(water)` (block/cylinder) or
+  `waterKit.rimAlong(parent, points, true)` (shore points counter-clockwise
+  seen from above, 1 stud inside the bank). Put `WaterfallFoam` and
+  `AmbientFX.WaterfallSpray` at each fall's foot.
 - No round grass discs or ellipse "ledge" slabs stuck on cliffs or lawns. Grass
   follows the rock: irregular shapes on real flats, sunk into the stone.
 - Zhangjiajie karst is the world reference

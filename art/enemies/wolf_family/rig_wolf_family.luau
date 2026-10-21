@@ -17,9 +17,22 @@ local STAGING = "_RosterWolves"
 -- Per body: SCALE matches its build script. The HRP, HipHeight and joint pivots are the
 -- Spirit Wolf's times SCALE; at 2.4 that is exactly the old ElderWolfKing's HRP
 -- (4.8 x 4.8 x 10.56 at Y 6.24, HipHeight 3.84), so its AI ranges still fit.
+-- extras: animator joints beyond the Spirit Wolf's, { Motor6D, Part0, Part1, pivot (unit space) },
+-- each named Joint<Part1> with its pivot at the real hinge.
+local v = Vector3.new
 local PROFILES = {
-	ElderWolfKing = { scale = 2.4 },
-	ShadowManeWolf = { scale = 1.15 },
+	ElderWolfKing = { scale = 2.4, extras = {
+		{ "JointCrest", "Chest", "Crest", v(0, 4.05, -0.4) }, -- the silver dorsal blades, bristle
+		{ "JointManeL", "Neck", "ManeL", v(-0.95, 3.15, -2.15) }, -- each side of the mane, sway and flare
+		{ "JointManeR", "Neck", "ManeR", v(0.95, 3.15, -2.15) },
+		{ "JointSeal", "Neck", "Seal", v(0, 2.3, -2.7) }, -- the jade seal, hung from the collar
+	} },
+	ShadowManeWolf = { scale = 1.15, extras = {
+		{ "JointMane", "Chest", "Mane", v(0, 3.75, -1.2) }, -- the dorsal mane and its shoulder drapes
+		{ "JointManeL", "Neck", "ManeL", v(-0.5, 3.3, -2.05) }, -- each side's neck strands
+		{ "JointManeR", "Neck", "ManeR", v(0.5, 3.3, -2.05) },
+		{ "JointForelock", "Skull", "Forelock", v(0, 3.72, -3.1) },
+	} },
 }
 
 local ServerStorage = game:GetService("ServerStorage")
@@ -57,6 +70,10 @@ local JOINTS = {
 	{ "JointTail2", "TailBase", "TailMid", Vector3.new(0, 3.25, 3.75) },
 	{ "JointTail3", "TailMid", "TailTip", Vector3.new(0, 3.4, 4.85) },
 }
+
+for _, j in profile.extras or {} do
+	table.insert(JOINTS, j)
+end
 
 local model = ServerStorage[STAGING]:FindFirstChild(TARGET)
 assert(model, ("no ServerStorage.%s.%s"):format(STAGING, TARGET))
@@ -144,6 +161,7 @@ local hum = Instance.new("Humanoid")
 hum.RigType = Enum.HumanoidRigType.R15
 hum.HipHeight = HIP_HEIGHT
 hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+Instance.new("Animator").Parent = hum -- Moon Animator and the Animation Editor play through it
 hum.Parent = model
 model.PrimaryPart = hrp
 model.WorldPivot = CFrame.new(hrp.Position) -- identity rotation: never spawns on its side

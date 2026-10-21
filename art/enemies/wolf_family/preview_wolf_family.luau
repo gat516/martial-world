@@ -71,22 +71,13 @@ local function pose(copy, angles)
 		end
 		assert(pending < before, "motor tree doesn't reach the root")
 	end
-	-- The copy isn't parented yet, so its WeldConstraints are inactive and won't carry the
-	-- detail parts: move each detail with its segment by hand.
-	local details = {}
-	for _, w in copy:GetDescendants() do
-		if w:IsA("WeldConstraint") and world[w.Part0] then
-			details[w.Part1] = { w.Part0, w.Part0.CFrame:ToObjectSpace(w.Part1.CFrame) }
-		end
-	end
+	-- The copy is parented (WeldConstraints only hold inside the DataModel), so once the
+	-- motors are cut, moving a segment carries its welded details with it.
 	for _, m in motors do
 		m.Part1 = nil
 	end
 	for part, cf in world do
 		part.CFrame = cf
-	end
-	for part, d in details do
-		part.CFrame = world[d[1]] * d[2]
 	end
 end
 
@@ -127,6 +118,7 @@ for i, slot in LINEUP do
 		else
 			copy:PivotTo(CFrame.new(at.Position + Vector3.new(0, template.HumanoidRootPart.Position.Y, 0)) * at.Rotation)
 			copy.HumanoidRootPart.Anchored = true
+			copy.Parent = preview
 			if slot[3] and copy:FindFirstChild("JointRoot", true) then
 				pose(copy, POSES[slot[3]])
 			end

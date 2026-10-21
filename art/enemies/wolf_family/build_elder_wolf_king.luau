@@ -109,13 +109,14 @@ end
 -- Hips --------------------------------------------------------------------------------
 -- Lower than the chest, so the back slopes down from a humped, maned shoulder.
 
-block("Hips", "Hips", v(2.0, 1.1, 1.8), v(0, 2.55, 1.9), SLATE)
-block("Hips", "HipsTop", v(1.1, 0.6, 1.8), v(0, 3.4, 1.9), SLATE)
-block("Hips", "HipsBelly", v(2.06, 0.5, 1.3), v(0, 2.25, 1.7), SILVER_SH)
+-- the hip blocks run 0.1 into the chest, so no slit of sky opens at the waist
+block("Hips", "Hips", v(2.0, 1.1, 2.2), v(0, 2.55, 1.9), SLATE)
+block("Hips", "HipsTop", v(1.1, 0.6, 2.2), v(0, 3.4, 1.9), SLATE)
+block("Hips", "HipsBelly", v(2.06, 0.5, 1.7), v(0, 2.25, 1.55), SILVER_SH)
 fin("Hips", "HipsCrest1", v(0, 3.6, 1.3), 0.75, 0.8, 0.5, SILVER, 0.8)
 fin("Hips", "HipsCrest2", v(0, 3.6, 2.05), 0.55, 0.7, 0.45, SILVER_SH, 0.9)
 for _, s in { -1, 1 } do
-	bevel("Hips", "HipsShoulder" .. s, v(s * 0.775, 3.4, 1.9), 0.45, 0.6, 1.8, s, SLATE)
+	bevel("Hips", "HipsShoulder" .. s, v(s * 0.775, 3.4, 1.9), 0.45, 0.6, 2.2, s, SLATE)
 end
 
 -- Chest: heavier and higher than the Spirit Wolf's, a hump of shoulder ----------------
@@ -124,19 +125,20 @@ block("Chest", "Chest", v(2.6, 1.4, 2.8), v(0, 2.6, -0.5), SLATE)
 block("Chest", "ChestTop", v(1.5, 0.95, 2.8), v(0, 3.65, -0.5), SLATE)
 block("Chest", "ChestBelly", v(2.66, 0.55, 2.3), v(0, 2.12, -0.45), SILVER_SH)
 block("Chest", "ChestBib", v(2.0, 1.5, 0.6), v(0, 2.45, -1.75), SILVER_SH)
--- the crest: six silver blades from the withers back to the hips, the tallest first
+-- the crest: silver blades from the withers back to the hips, the tallest first. It is its
+-- own segment (JointCrest, primary part "Crest" = the tallest blade) so it can bristle.
 for i, c in {
 	{ -1.35, 1.35, 1.0, 0.55 }, { -0.75, 1.45, 1.0, 0.62 }, { -0.1, 1.3, 0.95, 0.7 },
 	{ 0.5, 1.05, 0.9, 0.78 }, { 1.0, 0.8, 0.8, 0.85 },
 } do
-	fin("Chest", "Crest" .. i, v(0, 4.05, c[1]), c[2], c[3], 0.6, if i % 2 == 0 then SILVER_SH else SILVER, c[4])
+	fin("Crest", if i == 2 then "Crest" else "Crest" .. i, v(0, 4.05, c[1]), c[2], c[3], 0.6, if i % 2 == 0 then SILVER_SH else SILVER, c[4])
 end
 for _, s in { -1, 1 } do
 	bevel("Chest", "ChestShoulder" .. s, v(s * 1.05, 3.65, -0.5), 0.6, 0.95, 2.8, s, SLATE)
 	-- two side rows of crest spikes flaring out over the shoulders
-	fin("Chest", "CrestSide" .. s, v(s * 0.65, 3.95, -1.15), 0.95, 0.85, 0.45, SILVER, 0.6, -s * 0.55)
-	fin("Chest", "CrestSideB" .. s, v(s * 0.65, 3.9, -0.35), 0.8, 0.8, 0.4, SILVER_SH, 0.7, -s * 0.6)
-	fin("Chest", "CrestSideC" .. s, v(s * 0.6, 3.85, 0.4), 0.6, 0.75, 0.4, SILVER, 0.8, -s * 0.65)
+	fin("Crest", "CrestSide" .. s, v(s * 0.65, 3.95, -1.15), 0.95, 0.85, 0.45, SILVER, 0.6, -s * 0.55)
+	fin("Crest", "CrestSideB" .. s, v(s * 0.65, 3.9, -0.35), 0.8, 0.8, 0.4, SILVER_SH, 0.7, -s * 0.6)
+	fin("Crest", "CrestSideC" .. s, v(s * 0.6, 3.85, 0.4), 0.6, 0.75, 0.4, SILVER, 0.8, -s * 0.65)
 	-- jagged slate/silver line along the flank
 	for i, z in { -1.2, -0.35, 0.5 } do
 		fin("Chest", "Flank" .. s .. i, v(s * 1.28, 2.5, z), 0.6, 0.7, 0.25, SLATE, 2.75, -s * 0.15)
@@ -151,9 +153,11 @@ block("Neck", "NeckBib", v(1.2, 0.9, 1.0), v(0, 2.55, -2.45), SILVER_SH)
 -- over the withers to down-and-back over the chest, so it reads as a lion's ruff side-on
 block("Neck", "Ruff", v(2.0, 1.7, 0.9), v(0, 3.2, -1.95), SILVER_SH)
 fin("Neck", "RuffTop", v(0, 4.0, -2.15), 1.05, 0.9, 0.7, SILVER, 0.75)
+-- Each side's blades are one segment (JointManeL/R) so the mane can sway and flare.
 for _, s in { -1, 1 } do
+	local mane = if s < 0 then "ManeL" else "ManeR"
 	for i, row in { { 3.85, 0.95, 1.05 }, { 3.35, 1.3, 1.1 }, { 2.85, 1.65, 1.0 }, { 2.45, 1.85, 0.6 } } do
-		fin("Neck", "Mane" .. s .. i, v(s * 0.95, row[1], -2.15), row[3], 0.9, 0.35,
+		fin(mane, if i == 2 then mane else mane .. i, v(s * 0.95, row[1], -2.15), row[3], 0.9, 0.35,
 			if i % 2 == 0 then SILVER_SH else SILVER, row[2], -s * 0.6)
 	end
 	fin("Neck", "BibTuft" .. s, v(s * 0.4, 2.1, -2.6), 0.5, 0.45, 0.3, SILVER, math.pi - 0.4, s * 0.3)
@@ -166,8 +170,9 @@ for _, s in { -1, 1 } do
 	block("Neck", "CollarSide" .. side, v(0.28, 1.82, 0.4), v(s * 0.85, 3.05, -2.6), IRON)
 	tell(disc("Neck", "CollarJade" .. side, 0.42, 0.12, v(s * 1.02, 3.05, -2.6), JADE, "X"))
 end
-disc("Neck", "SealRing", 0.62, 0.12, v(0, 1.95, -2.7), IRON, "Z")
-tell(disc("Neck", "Seal", 0.42, 0.16, v(0, 1.95, -2.7), JADE, "Z"))
+-- the seal hangs on its own joint (JointSeal, hinged at the collar) so it can swing
+tell(disc("Seal", "Seal", 0.42, 0.16, v(0, 1.95, -2.7), JADE, "Z"))
+disc("Seal", "SealRing", 0.62, 0.12, v(0, 1.95, -2.7), IRON, "Z")
 
 -- Head: scarred muzzle, swept head crest, a brow mark ------------------------------------
 
@@ -193,8 +198,7 @@ end
 for i = 1, 3 do
 	block("Skull", "ScarMuzzle" .. i, v(0.04, 0.55, 0.07), v(-0.505, 2.98, -4.1 - i * 0.22), SCAR, CFrame.Angles(-0.55, 0, 0))
 end
-block("Skull", "ScarEyeTop", v(0.07, 0.3, 0.04), v(-0.7, 3.72, -4.22), SCAR, CFrame.Angles(0, 0, -0.3))
-block("Skull", "ScarEyeLow", v(0.07, 0.35, 0.04), v(-0.56, 3.14, -4.11), SCAR, CFrame.Angles(0, 0, -0.3))
+block("Skull", "ScarEye", v(0.08, 0.8, 0.04), v(-0.74, 3.4, -4.11), SCAR, CFrame.Angles(0, 0, -0.15))
 
 block("Jaw", "Jaw", v(0.9, 0.34, 1.3), v(0, 2.5, -4.2), SILVER_SH)
 block("Jaw", "JawMouth", v(0.72, 0.15, 1.15), v(0, 2.66, -4.2), MOUTH)
@@ -224,7 +228,7 @@ for _, s in { -1, 1 } do
 	local x = s * 0.72
 	block("UpperLeg" .. f, "UpperLeg" .. f, v(0.85, 1.35, 0.9), v(x, 1.9, -1.3), SLATE)
 	-- a heavy shoulder pad standing proud of the chest, swinging with the leg
-	block("UpperLeg" .. f, "Shoulder" .. f, v(0.45, 1.1, 1.15), v(s * 1.3, 2.45, -1.3), SLATE_HI)
+	disc("UpperLeg" .. f, "Shoulder" .. f, 1.15, 0.45, v(s * 1.3, 2.45, -1.3), SLATE_HI, "X")
 	fin("UpperLeg" .. f, "ShoulderTuft" .. f, v(s * 1.4, 2.3, -1.0), 0.6, 0.6, 0.3, SLATE, 2.3, -s * 0.2)
 	fin("UpperLeg" .. f, "ElbowTuft" .. f, v(s * 0.8, 1.5, -0.9), 0.55, 0.45, 0.45, SILVER_SH, 2.2)
 	block("LowerLeg" .. f, "LowerLeg" .. f, v(0.65, 1.1, 0.7), v(x, 0.8, -1.3), SILVER_SH)
@@ -236,7 +240,10 @@ for _, s in { -1, 1 } do
 	local b = if s < 0 then "BL" else "BR"
 	x = s * 0.75
 	local knee, hock, ankle = v(x, 1.35, 1.8), v(x, 0.62, 2.3), v(x, 0.25, 2.2)
-	block("UpperLeg" .. b, "UpperLeg" .. b, v(0.95, 1.45, 1.05), v(x, 1.95, 2.0), SLATE)
+	-- the thigh block stops at the hip pivot under a rounded haunch (a cylinder on the
+	-- pivot axis), so a swinging leg never flashes its block corners out of the hip side
+	block("UpperLeg" .. b, "UpperLeg" .. b, v(0.95, 1.25, 1.05), v(x, 1.875, 2.1), SLATE)
+	disc("UpperLeg" .. b, "Haunch" .. b, 1.15, 0.95, v(x, 2.5, 2.1), SLATE, "X")
 	fin("UpperLeg" .. b, "ThighTuft" .. b, v(s * 0.85, 1.5, 2.45), 0.5, 0.5, 0.45, SLATE_HI, 2.3)
 	limb("LowerLeg" .. b, "LowerLeg" .. b, knee, hock, 0.58, 0.62, SILVER_SH, 0.25)
 	ball("LowerLeg" .. b, "Knee" .. b, 0.7, knee, SLATE)

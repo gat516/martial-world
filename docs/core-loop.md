@@ -101,6 +101,25 @@ and everything else arrives when it first matters.
 | QC9 | WALL | insight and the first tribulation |
 | FE | new realm | cultivation method, Outer Wastes |
 | later majors | | the realm milestones: flying sword, soul companion, flight ([character](systems/character.md)) |
+| later (unscheduled) | | crafting: mining and ores, weapon refinement, alchemy (see below) |
+
+## Don't overwhelm: crafting comes later
+Never put many mechanics in front of a player at once. Each one needs its own
+moment in the table above, after the ones before it have settled in. Crafting
+is the clearest case: it's planned but held back until the core loop, the
+wilds and the first realms are solid. Out of scope until we schedule it.
+
+- **Mining and ores:** a new "out" verb. Ore veins in the wilds, deeper regions
+  hold rarer ores. It feeds weapon refinement. The model is *The Forge*
+  (mine -> smelt -> forge -> better gear) in a cultivation skin.
+- **Weapon refinement:** spend ores and Spirit Stones to raise a weapon's grade
+  or temper it. This gives duplicate weapons and stones a use.
+- **Alchemy:** turn herbs (the garden, the wilds) into pills: breakthrough aids,
+  heals, buffs. It is the long-term sink for herbs and stones, and fixes herbs
+  falling off at high stages (their flat qi stops mattering).
+
+When one gets scheduled, it passes the "Rules for anything new" below and is
+introduced alone, at a breather stage, by the elder or the quest board.
 
 ## Why it felt messy (and the fixes)
 1. **The rhythm is never named.** Onboarding teaches each step but not "this is

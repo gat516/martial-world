@@ -10,7 +10,8 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 
 ## Docs
 
-- `docs/README.md` maps every system to its files, remotes and tuning; `docs/systems/` has one short design doc per system. Read them to find your way, and update the relevant doc when a change makes it wrong. Progression and per-stage difficulty are tuned in `src/shared/Pacing.luau`.
+- `docs/README.md` maps every system to its files, remotes and tuning; `docs/systems/` has one short design doc per system; `docs/core-loop.md` is the north star and says when each system is introduced. Read them to find your way. Progression and per-stage difficulty are tuned in `src/shared/Pacing.luau`.
+- Every commit leaves the docs at least as good as it found them. In the same commit, update every doc the change touches: behaviour, design intent, files, remotes, tuning knobs and known gaps (add new gaps, remove fixed ones). Also fix anything stale or unclear you ran into while reading. A design decision the user makes in conversation goes into the matching doc, so it isn't lost when the session ends.
 
 ## UI work
 

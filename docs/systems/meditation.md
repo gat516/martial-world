@@ -23,8 +23,8 @@ circulation happen.
 - `src/client/MeditationMenu.luau`: the Comprehend / Method / Spirit Root panel;
   `src/client/Bottleneck.luau`: bottleneck checks and the comprehend call.
 - `src/client/Controls.luau`: named movement locks (meditation, circulation);
-  `isLocked()` also tells weapon presentation to stow through sitting/get-up and
-  any overlapping circulation lock.
+  `stowsWeapon()` tells weapon presentation to stow through sitting/get-up and
+  any overlapping circulation lock, unless every lock keeps the weapon (the drill).
 - `src/client/Movement.luau`: holds facing while seated.
 - `src/shared/BuildItems.luau`: each item's `meditation` bonus.
 
@@ -92,7 +92,8 @@ at QC7 (`Pacing.DaoPractice.FROM`), never XP for sitting.
 gets up (Meditate `GetUp`) but stays in meditation: still locked in place, the
 session and passive cultivation keep running, and the weapon stays in hand
 (`Controls.lock("Meditation"/"Circulation", keepWeapon)`, so WeaponAnimator
-shows it and its idle). Every tap in the drill plays the next strike of the
+shows it and its idle; while every lock keeps the weapon it also ignores
+`ActionState.blocked`, which is true the whole time you meditate). Every tap in the drill plays the next strike of the
 equipped class's chain (`Animations.Weapons.<Class>/1..n`, Fists bare-handed),
 looping, hit or miss (Feel `ui.tapped`, Pulse calls it). When the drill ends
 the character sits back down (`Sit`, then `Loop`). Strikes replicate, so others

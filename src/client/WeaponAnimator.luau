@@ -6,7 +6,8 @@
 -- them too. Fist (nothing equipped) uses the default idle/walk.
 -- Movement/combat control locks stow the model through WeaponAction and pause
 -- these tracks, unless the lock keeps the weapon (Controls.stowsWeapon: the
--- standing Practice Dao drill); rooted attacks/casts still keep their weapon.
+-- standing Practice Dao drill, which also overrides ActionState.blocked: combat
+-- counts as blocked while meditating); rooted attacks/casts still keep their weapon.
 -- Clips: ReplicatedStorage.Animations.Weapons.<Class>.Idle / .Walk; the source
 -- clips are flagged Action (and some Loop), so priority and looping are set here.
 
@@ -126,7 +127,10 @@ local function step()
 		return
 	end
 	local root = h.RootPart
-	local controlsBlocked = Controls.stowsWeapon() or ActionState.blocked
+	-- every lock keeps the weapon (the drill): combat being blocked by the seat
+	-- and the drill overlay mustn't stow it
+	local kept = Controls.isLocked() and not Controls.stowsWeapon()
+	local controlsBlocked = Controls.stowsWeapon() or (ActionState.blocked and not kept)
 		or h.Health <= 0 or h.Sit or (root ~= nil and root.Anchored)
 	syncStowed(character, controlsBlocked)
 	if not idle and not walk then return end

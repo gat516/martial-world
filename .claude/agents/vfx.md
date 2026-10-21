@@ -243,6 +243,13 @@ vividly, the way a VFX artist pitches a shot:
     ground ring under the target, air rings flying forward from the striking
     limb, a ground torus rolling out to the gameplay radius (`Phase = "active"`
     so `fit` times it), and bubbles or shells at high tiers.
+- **Projectiles end with a bang.** Anything that travels (a qi blade, a
+  thrown talisman, a bolt, a fireball) has an impact or explosion where it
+  hits each target, plus a terminal burst where it ends: at max range, on a
+  wall or the ground, or when it fades out. Don't let it just stop or
+  vanish. Scale both with tier (flash, 3D shockwave from the blocks, sparks,
+  debris or embers, Craters at high tiers), using `impactStack` or
+  `impactShockwave` as the base.
 - **Make sure it can be noticed.** Judge every beat at play speed, not from
   frozen captures. A frozen frame makes a 0.15 s, half-transparent ring look
   fine, while a player sees nothing. Palm Strike's first 3D shockwaves

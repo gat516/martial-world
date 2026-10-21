@@ -11,9 +11,12 @@
 --
 -- Touch and mouse aim with the tap; Space/Z/X strike at the mouse; a gamepad's
 -- A strikes whichever point is due, wherever it is. Window, spacing, ring speed
--- and jump distance come from Config (Games.Forms).
+-- and jump distance come from Config (Games.Forms). Over the field the mouse
+-- shows as the qi pointer, so aim is exact.
+-- Look: the same lacquered points and closing rings as Meridian Pulse
+-- (mg_note.png / mg_note_impure.png, mg_ring.png) on a scroll panel over a faint
+-- ink-wash landscape (field_wash.png); hits flare out, misses sink away.
 
-local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -31,14 +34,16 @@ local BREATHER = 0.5 -- extra share of an interval between strings
 local DOUBLE_CHANCE = 0.2 -- a point that follows its last at half the interval, close by
 local TURN = 1.2 -- radians a string may bend per point
 
+local NOTE_IMPURE = "rbxassetid://72392262787490" -- mg_note_impure.png
+local POP_IN = 0.18 -- seconds a point takes to pop in
+
 local IMPURE = Color3.fromRGB(190, 90, 220)
-local IMPURE_FILL = Color3.fromRGB(70, 30, 90)
 local PERFECT = Color3.fromRGB(255, 225, 140)
 local GOOD = Color3.fromRGB(150, 245, 200)
 local MISS = Color3.fromRGB(255, 110, 100)
 local STRAY = Color3.fromRGB(200, 170, 165)
 
-type Beat = { at: number, spot: UDim2, px: Vector2, number: number, impure: boolean, note: Frame?, judged: boolean }
+type Beat = { at: number, spot: UDim2, px: Vector2, number: number, impure: boolean, note: ImageLabel?, born: number, judged: boolean }
 
 local Forms = {}
 
@@ -115,6 +120,7 @@ local function chart(rng: Random, tune: { [string]: number }, duration: number, 
 			number = number,
 			impure = false,
 			note = nil,
+			born = 0,
 			judged = false,
 		})
 		prev = p
@@ -139,7 +145,8 @@ function Forms.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 	local tune = Feel.tune("Forms", info.difficulty)
 	local window = math.max(0.06, tune.window)
 	local field = stage:FindFirstChild("Field") :: Frame
-	local noteTemplate = field:FindFirstChild("NoteTemplate") :: Frame
+	local noteTemplate = field:FindFirstChild("NoteTemplate") :: ImageLabel
+	local noteSize = noteTemplate.Size
 	local judgeTemplate = field:FindFirstChild("JudgeTemplate") :: TextLabel
 
 	local size = field.AbsoluteSize
@@ -172,17 +179,33 @@ function Forms.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 		return credit / math.max(1, judged + strays * STRAY_COST)
 	end
 
+	-- a judged point flares out (hit) or sinks away (missed) instead of vanishing
+	local function retire(note: ImageLabel, hit: boolean)
+		(note:FindFirstChild("Ring") :: ImageLabel).Visible = false;
+		(note:FindFirstChild("Number") :: TextLabel).Visible = false
+		local grow = if hit then 1.35 else 0.7
+		TweenService:Create(note, TweenInfo.new(if hit then 0.15 else 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = UDim2.new(noteSize.X.Scale * grow, 0, noteSize.Y.Scale * grow, 0),
+			ImageTransparency = 1,
+			ImageColor3 = if hit then Color3.new(1, 1, 1) else Color3.fromRGB(120, 120, 120),
+		}):Play()
+		task.delay(0.3, note.Destroy, note)
+	end
+
 	local function finish(beat: Beat, quality: number)
 		beat.judged = true
 		if beat.impure then
 			if quality > 0 then
 				purged += 1
 				Feel.pop(field, beat.spot, IMPURE, 110)
+				Feel.burst(field, beat.spot, IMPURE, 100)
 				Feel.judge(judgeTemplate, beat.spot, "Purged", IMPURE)
+				Feel.sound("Purge")
 				Feel.buzz(0.3, 0.08)
 			else
 				Feel.pop(field, beat.spot, MISS)
 				Feel.judge(judgeTemplate, beat.spot, "Bad habit!", MISS)
+				Feel.sound("Thud")
 				Feel.buzz(0.7, 0.15)
 			end
 		else
@@ -195,13 +218,20 @@ function Forms.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 				word, color = "Good", GOOD
 			end
 			Feel.judge(judgeTemplate, beat.spot, word, color)
-			if quality > 0 then
+			if quality >= 1 then
 				Feel.pop(field, beat.spot, color)
+				Feel.burst(field, beat.spot, color, 110)
+				Feel.sound("Perfect", 1 + 0.04 * math.min(combo, 10))
+			elseif quality > 0 then
+				Feel.pop(field, beat.spot, color)
+				Feel.sound("Tick", 1 + 0.04 * math.min(combo, 10))
+			else
+				Feel.sound("Thud", 1.3)
 			end
 		end
 		combo = if quality > 0 then combo + 1 else 0
 		if beat.note then
-			beat.note:Destroy()
+			retire(beat.note, quality > 0)
 			beat.note = nil
 		end
 	end
@@ -210,6 +240,8 @@ function Forms.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 		strays += 1
 		combo = 0
 		Feel.judge(judgeTemplate, at, word, STRAY)
+		Feel.pop(field, at, STRAY, 40)
+		Feel.sound("Thud", 1.5)
 	end
 
 	-- A strike at a screen point (GUI space), or at whatever is due (nil: gamepad).
@@ -220,7 +252,7 @@ function Forms.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 				continue
 			end
 			if pos then
-				local note = beat.note :: Frame
+				local note = beat.note :: ImageLabel
 				local centre = note.AbsolutePosition + note.AbsoluteSize / 2
 				if (pos - centre).Magnitude <= note.AbsoluteSize.X / 2 * HIT_SLACK then
 					target = beat
@@ -259,7 +291,7 @@ function Forms.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 		if kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseButton1 then
 			pos = Vector2.new(input.Position.X, input.Position.Y)
 		elseif key == Enum.KeyCode.Space or key == Enum.KeyCode.Z or key == Enum.KeyCode.X then
-			pos = UserInputService:GetMouseLocation() - GuiService:GetGuiInset()
+			pos = Feel.mouse()
 		elseif key ~= Enum.KeyCode.ButtonA then
 			return
 		end
@@ -268,12 +300,14 @@ function Forms.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 		ui.tapped()
 	end))
 
+	local pointer = Feel.pointer(stage:FindFirstChild("Backdrop") :: GuiObject, "qi")
 	ui.score.Text = "Accuracy 100%"
 	table.insert(connections, RunService.RenderStepped:Connect(function(dt)
 		if finished then
 			return
 		end
 		t += math.min(dt, 0.1)
+		pointer.step()
 
 		for _, beat in beats do
 			if beat.judged then
@@ -290,21 +324,24 @@ function Forms.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 				note.Visible = true;
 				(note:FindFirstChild("Number") :: TextLabel).Text = tostring(beat.number)
 				if beat.impure then
-					note.BackgroundColor3 = IMPURE_FILL;
-					(note:FindFirstChildOfClass("UIStroke") :: UIStroke).Color = IMPURE;
-					((note:FindFirstChild("Ring") :: Frame):FindFirstChildOfClass("UIStroke") :: UIStroke).Color = IMPURE;
-					(note:FindFirstChild("Dot") :: Frame).BackgroundColor3 = IMPURE
+					note.Image = NOTE_IMPURE;
+					(note:FindFirstChild("Ring") :: ImageLabel).ImageColor3 = IMPURE
 				end
 				note.Parent = field
 				table.insert(made, note)
 				beat.note = note
+				beat.born = t
 			end
-			local note = beat.note :: Frame
-			local ring = note:FindFirstChild("Ring") :: Frame
+			local note = beat.note :: ImageLabel
+			local ring = note:FindFirstChild("Ring") :: ImageLabel
 			local closing = math.clamp(untilBeat / tune.approach, 0, 1)
-			ring.Size = UDim2.fromScale(1 + (RING_START - 1) * closing, 1 + (RING_START - 1) * closing)
-			note.BackgroundTransparency = 0.2 + 0.6 * closing;
-			(ring:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = 0.7 * closing;
+			ring.Size = UDim2.fromScale(1.1 + (RING_START - 1.1) * closing, 1.1 + (RING_START - 1.1) * closing)
+			ring.ImageTransparency = 0.75 * closing
+			-- pops in (a little overshoot), then sits half-faded until its ring nears
+			local age = math.clamp((t - beat.born) / POP_IN, 0, 1)
+			local grow = 0.5 + 0.5 * age + 0.15 * math.sin(age * math.pi)
+			note.Size = UDim2.new(noteSize.X.Scale * grow, 0, noteSize.Y.Scale * grow, 0)
+			note.ImageTransparency = 0.45 * closing;
 			(note:FindFirstChild("Number") :: TextLabel).TextTransparency = 0.6 * closing
 			if untilBeat < -window then
 				finish(beat, 0)
@@ -325,6 +362,7 @@ function Forms.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 	for _, c in connections do
 		c:Disconnect()
 	end
+	pointer.stop()
 	ui.hold(function()
 		for _, inst in made do
 			inst:Destroy()

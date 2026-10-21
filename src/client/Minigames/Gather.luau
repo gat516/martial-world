@@ -1,7 +1,8 @@
 --!strict
 -- Gather Qi. Motes of qi fall through the field; slide the dantian bowl along
--- the bottom to catch them. Drag anywhere (the bowl follows your thumb's side to
--- side), move the mouse, or hold A/D or the arrow keys. Purple motes are
+-- the bottom to catch them. The bowl follows the pointer side to side (the
+-- mouse over the board, where the OS arrow hides, or your thumb anywhere), or
+-- hold A/D or the arrow keys. Purple motes are
 -- impurities: let them fall past to purge them, catch one and it jolts you.
 -- A run is the server's number of levels, each a fall of qi with a short breath
 -- between; a level is cleared once its last mote has landed, and the run ends
@@ -9,6 +10,10 @@
 --
 -- Bowl width, fall speed, how often qi falls and motes a level come from
 -- Config (Games.Gather).
+-- Look: a lacquer-red dantian bowl with a gold lip (gather_bowl.png, 9-sliced to
+-- any width) under a faint ink-wash landscape (field_wash.png); qi motes are
+-- the Maze's spark, impurities its violet knots. A catch squashes the bowl and
+-- lights its pooled glow; a caught impurity jolts the board.
 
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -16,12 +21,13 @@ local UserInputService = game:GetService("UserInputService")
 
 local Feel = require(script.Parent.Feel)
 
-local BOWL_SPEED = 2.4 -- field widths per second the bowl can travel
+local BOWL_SPEED = 4 -- field widths per second the bowl can travel
+local BOWL_FOLLOW = 20 -- share of the gap to the pointer the bowl closes per second
 local KEY_SPEED = 1.5 -- field widths per second keys move the target
 local MAX_STEP = 0.45 -- furthest (field widths) one qi mote lands from the last
 local EDGE = 0.06 -- motes stay this far from the field's sides
 local BOWL_LIFT = 10 -- px from the field bottom to the bowl's bottom, as authored
-local MOTE_SIZE = 22
+local MOTE_SIZE = 22 -- px a mote counts as wide for a catch (its spark art is a little wider, with its halo)
 local IMPURE_SIZE = 28
 local LEVEL_GAP = 1.2 -- extra seconds between one level's last mote and the next one's first
 local END_PAUSE = 0.5 -- seconds after the last mote lands before the run ends
@@ -30,8 +36,9 @@ local QI = Color3.fromRGB(200, 255, 230)
 local IMPURE = Color3.fromRGB(190, 90, 220)
 local JOLT = Color3.fromRGB(255, 110, 100)
 local MISSED = Color3.fromRGB(120, 150, 140)
+local PERFECT = Color3.fromRGB(255, 225, 140)
 
-type Mote = { spawn: number, x: number, impure: boolean, level: number, frame: Frame?, done: boolean }
+type Mote = { spawn: number, x: number, impure: boolean, level: number, frame: ImageLabel?, done: boolean }
 
 local Gather = {}
 
@@ -43,11 +50,12 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	local bowlWidth = math.clamp(tune.bowl, 0.08, 0.8)
 	local fallTime = 1 / math.max(0.1, tune.fall)
 	local field = stage:FindFirstChild("Field") :: Frame
-	local bowl = field:FindFirstChild("Bowl") :: Frame
-	local glow = bowl:FindFirstChild("Glow") :: Frame
-	local moteTemplate = field:FindFirstChild("MoteTemplate") :: Frame
-	local impureTemplate = field:FindFirstChild("ImpureTemplate") :: Frame
-	bowl.Size = UDim2.new(bowlWidth, 0, bowl.Size.Y.Scale, bowl.Size.Y.Offset)
+	local bowl = field:FindFirstChild("Bowl") :: ImageLabel
+	local glow = bowl:FindFirstChild("Glow") :: ImageLabel
+	local moteTemplate = field:FindFirstChild("MoteTemplate") :: ImageLabel
+	local impureTemplate = field:FindFirstChild("ImpureTemplate") :: ImageLabel
+	local bowlHeight = bowl.Size.Y.Offset
+	bowl.Size = UDim2.new(bowlWidth, 0, 0, bowlHeight)
 
 	-- the fall schedule, level by level: qi at a steady pace within reach of the
 	-- last one, impurities spread through the level near where qi is about to fall
@@ -88,17 +96,16 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		return math.clamp((screenX - field.AbsolutePosition.X) / math.max(1, field.AbsoluteSize.X), bowlWidth / 2, 1 - bowlWidth / 2)
 	end
 
+	local pointer = Feel.pointer(field, "hidden")
 	local connections: { RBXScriptConnection } = {}
 	table.insert(connections, UserInputService.InputBegan:Connect(function(input)
-		local kind = input.UserInputType
-		if kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseButton1 then
+		if input.UserInputType == Enum.UserInputType.Touch then
 			target = fieldX(input.Position.X)
 		end
 	end))
 	table.insert(connections, UserInputService.InputChanged:Connect(function(input)
-		local kind = input.UserInputType
 		-- any moving thumb steers, including one already down through the count-in
-		if kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseMovement then
+		if input.UserInputType == Enum.UserInputType.Touch then
 			target = fieldX(input.Position.X)
 		end
 	end))
@@ -114,9 +121,17 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	end
 
 	local function flashGlow(color: Color3)
-		glow.BackgroundColor3 = color
-		glow.BackgroundTransparency = 0.1
-		TweenService:Create(glow, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
+		glow.ImageColor3 = color
+		glow.ImageTransparency = 0
+		TweenService:Create(glow, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { ImageTransparency = 1 }):Play()
+	end
+
+	-- the bowl dips under a catch and springs back
+	local function squash(depth: number)
+		bowl.Size = UDim2.new(bowlWidth * (1 + depth * 0.5), 0, 0, bowlHeight * (1 - depth))
+		TweenService:Create(bowl, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Size = UDim2.new(bowlWidth, 0, 0, bowlHeight),
+		}):Play()
 	end
 
 	ui.ready()
@@ -133,11 +148,15 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 		dt = math.min(dt, 0.1)
 		t += dt
 
+		local mouse = pointer.step()
+		if mouse then
+			target = fieldX(mouse.X)
+		end
 		local axis = keyAxis()
 		if axis ~= 0 then
 			target = math.clamp(target + axis * KEY_SPEED * dt, bowlWidth / 2, 1 - bowlWidth / 2)
 		end
-		local step = math.clamp(target - bowlX, -BOWL_SPEED * dt, BOWL_SPEED * dt)
+		local step = math.clamp((target - bowlX) * math.min(1, BOWL_FOLLOW * dt), -BOWL_SPEED * dt, BOWL_SPEED * dt)
 		bowlX += step
 		bowl.Position = UDim2.new(bowlX, 0, 1, -BOWL_LIFT)
 
@@ -159,9 +178,11 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 				table.insert(made, frame)
 				mote.frame = frame
 			end
-			local frame = mote.frame :: Frame
+			local frame = mote.frame :: ImageLabel
 			local y = (t - mote.spawn) / fallTime * (catchY + 0.04) - 0.04
 			frame.Position = UDim2.fromScale(mote.x, y)
+			-- qi spins as it falls; impurities writhe
+			frame.Rotation = (t - mote.spawn) * (if mote.impure then 50 else 140)
 			if y >= catchY then
 				mote.done = true
 				local radius = (if mote.impure then IMPURE_SIZE else MOTE_SIZE) / 2 / math.max(1, size.X)
@@ -170,16 +191,23 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 				if mote.impure and inBowl then
 					combo = 0
 					Feel.pop(field, at, JOLT)
+					Feel.shake(field, 6, 0.25)
+					Feel.sound("Thud")
 					Feel.buzz(0.7, 0.15)
 					flashGlow(JOLT)
+					squash(0.3)
 				elseif mote.impure then
 					purged += 1
 					Feel.pop(field, UDim2.fromScale(mote.x, 1), IMPURE, 60)
+					Feel.burst(field, UDim2.fromScale(mote.x, 0.97), IMPURE, 70)
+					Feel.sound("Purge")
 				elseif inBowl then
 					caught[mote.level] += 1
 					combo += 1
 					Feel.pop(field, at, QI, 70)
+					Feel.sound("Tick", 1 + 0.04 * math.min(combo, 10))
 					flashGlow(QI)
+					squash(0.18)
 				else
 					-- a mote let fall: a faint ripple where it left
 					combo = 0
@@ -190,6 +218,8 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 				if left[mote.level] == 0 then
 					cleared += 1
 					total += caught[mote.level] / perLevel
+					Feel.burst(field, UDim2.new(bowlX, 0, 1, -BOWL_LIFT - bowlHeight), PERFECT, 160)
+					Feel.sound("Clear")
 					if cleared >= levels then
 						endAt = t + END_PAUSE
 					else
@@ -223,6 +253,7 @@ function Gather.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 	for _, c in connections do
 		c:Disconnect()
 	end
+	pointer.stop()
 	ui.hold(function()
 		for _, inst in made do
 			if inst.Parent then

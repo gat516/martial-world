@@ -1341,6 +1341,306 @@ def maze_art():
 
 
 
+# ---------------------------------------------------------------- circulation minigames
+# Shared pieces for Thread, Pulse, Gather and Forms (and the qi pointer every
+# pointing game uses). Run: draw_ui.py minigames
+
+def mg_pointer():
+    """The qi pointer, 64px, stretched (shown ~30px at the mouse while it's over
+    a board; the OS arrow hides there): a jade ring with four gold ticks and a
+    white-hot pinpoint at the exact centre, ink-outlined so it reads on any board."""
+    N = 64 * SS
+    c = N / 2
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    glow = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    r = 0.6 * c
+    gd.ellipse([c - r, c - r, c + r, c + r], outline=(120, 240, 200, 200), width=8 * SS)
+    img.alpha_composite(glow.filter(ImageFilter.GaussianBlur(3 * SS)))
+    d = ImageDraw.Draw(img)
+    d.ellipse([c - r, c - r, c + r, c + r], outline=INK, width=6 * SS)
+    d.ellipse([c - r, c - r, c + r, c + r], outline=(170, 250, 220, 255), width=3 * SS)
+    for k in range(4):
+        a = k * math.pi / 2 + math.pi / 4
+        ca, sa = math.cos(a), math.sin(a)
+        p0 = (c + ca * 0.72 * c, c + sa * 0.72 * c)
+        p1 = (c + ca * 0.95 * c, c + sa * 0.95 * c)
+        d.line([p0, p1], fill=INK, width=7 * SS)
+        d.line([p0, p1], fill=GOLD_HI, width=3 * SS)
+    rr = 0.16 * c
+    d.ellipse([c - rr - 2 * SS, c - rr - 2 * SS, c + rr + 2 * SS, c + rr + 2 * SS], fill=INK)
+    d.ellipse([c - rr, c - rr, c + rr, c + rr], fill=(255, 255, 245, 255))
+    finish(img, "mg_pointer.png")
+
+
+def mg_ring():
+    """A white glowing ring, 128px, stretched and tinted by ImageColor3: the
+    pops on hits, purges and touches (Feel.pop) and the closing approach rings.
+    A crisp band at r 0.80-0.90 with a soft glow either side."""
+    def profile(r):
+        band = max(0.0, 1 - abs(r - 0.85) / 0.05)
+        soft = max(0.0, 1 - abs(r - 0.85) / 0.16) ** 2
+        a = 255 * min(1, band * 1.4) if band > 0 else 0
+        a = max(a, 120 * soft)
+        return (255, 255, 255, a)
+
+    finish(_radial(128, profile), "mg_ring.png")
+
+
+def mg_burst():
+    """A spray of qi light, 128px, stretched and tinted: twelve tapering rays from
+    a soft core, for Perfect hits, purges and clears (Feel.burst)."""
+    N = 128 * SS
+    c = N / 2
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    for k in range(12):
+        a = k * math.pi / 6 + (0.12 if k % 2 else 0)
+        length = (0.95 if k % 2 == 0 else 0.7) * c
+        w = 0.07 * c
+        ca, sa = math.cos(a), math.sin(a)
+        p0 = (c + ca * 0.25 * c - sa * w, c + sa * 0.25 * c + ca * w)
+        p1 = (c + ca * 0.25 * c + sa * w, c + sa * 0.25 * c - ca * w)
+        tip = (c + ca * length, c + sa * length)
+        d.polygon([p0, tip, p1], fill=(255, 255, 255, 230))
+    img = img.filter(ImageFilter.GaussianBlur(1.5 * SS))
+    core = _radial(128, lambda r: (255, 255, 255, 220 * max(0, 1 - r / 0.4) ** 1.5))
+    img.alpha_composite(core)
+    finish(img, "mg_burst.png")
+
+
+def mg_glow():
+    """A soft white glow, 128px, stretched and tinted: halos and flashes (the
+    bead's halo, the bowl's pooled qi, the pulse core's beat)."""
+    finish(_radial(128, lambda r: (255, 255, 255, 255 * (1 - r) ** 2.2)), "mg_glow.png")
+
+
+def mg_disc():
+    """A plain white disc with an antialiased edge, 128px, tinted by
+    ImageColor3. Thread's channel: 9-slice SliceCenter Rect(63, 63, 65, 65),
+    SliceScale = shown thickness / 128 (set by Thread.luau), so it makes
+    round-capped strokes whose overlaps are invisible (one flat colour)."""
+    finish(_radial(128, lambda r: (255, 255, 255, 255 if r < 0.97 else 255 * (1 - r) / 0.03)), "mg_disc.png")
+
+
+def thread_wall():
+    """The meridian's wall, 128px, radially symmetric: a gold band whose inner
+    side (where the channel meets it) is lit and outer side shaded bronze, out to
+    r 0.78, then a faint warm aura. The channel (mg_disc) covers the middle, so
+    only the band shows, like an engraved gold rim. 9-slice SliceCenter
+    Rect(63, 63, 65, 65); SliceScale = shown thickness / 128 (Thread.luau)."""
+    CORE = 0.78
+
+    def profile(r):
+        if r < CORE:
+            t = max(0.0, (r - 0.5) / (CORE - 0.5))
+            col = _mix((255, 238, 186), (150, 104, 40), t ** 1.3)
+            a = 255 if r < CORE - 0.03 else 255 * (1 - (r - CORE + 0.03) / 0.03 * 0.4)
+            return col + (a,)
+        t = (r - CORE) / (1 - CORE)
+        return (230, 180, 96, 110 * (1 - t) ** 2)
+
+    finish(_radial(128, profile), "thread_wall.png")
+
+
+def thread_node():
+    """An acupoint on the meridian, 64px, stretched and tinted (dim jade unlit,
+    gold once the qi passes): a ring with four petals and a centre pip."""
+    N = 64 * SS
+    c = N / 2
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    r = 0.78 * c
+    d.ellipse([c - r, c - r, c + r, c + r], outline=(255, 255, 255, 255), width=5 * SS)
+    for k in range(4):
+        a = k * math.pi / 2
+        ca, sa = math.cos(a), math.sin(a)
+        p = (c + ca * 0.42 * c, c + sa * 0.42 * c)
+        w = 0.13 * c
+        d.polygon([(c + ca * 0.18 * c, c + sa * 0.18 * c), (p[0] - sa * w, p[1] + ca * w), (c + ca * 0.62 * c, c + sa * 0.62 * c), (p[0] + sa * w, p[1] - ca * w)], fill=(255, 255, 255, 200))
+    rr = 0.14 * c
+    d.ellipse([c - rr, c - rr, c + rr, c + rr], fill=(255, 255, 255, 255))
+    finish(img, "thread_node.png")
+
+
+def _note(name, body_in, body_out, rim, rim_hi, rim_lo, glint):
+    """A struck point (Pulse and Forms notes), 128px, stretched: a lacquer disc
+    with a bevelled metal rim, an ink outline and a soft top-left glint. The
+    centre stays plain for the Forms number."""
+    N = 128 * SS
+    c = N / 2
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    R = 0.94 * c
+    d.ellipse([c - R, c - R, c + R, c + R], fill=INK)
+    R2 = R - 3 * SS
+    d.ellipse([c - R2, c - R2, c + R2, c + R2], fill=rim_lo)
+    d.pieslice([c - R2, c - R2, c + R2, c + R2], 135, 315, fill=rim_hi)
+    R3 = R2 - 3 * SS
+    d.ellipse([c - R3, c - R3, c + R3, c + R3], fill=rim)
+    R4 = R3 - 9 * SS
+    d.ellipse([c - R4 - 2 * SS, c - R4 - 2 * SS, c + R4 + 2 * SS, c + R4 + 2 * SS], fill=INK)
+    body = _radial(128, lambda r: _mix(body_in, body_out, min(1, r / (R4 / c)) ** 1.4) + (255,))
+    mask = Image.new("L", (N, N), 0)
+    ImageDraw.Draw(mask).ellipse([c - R4, c - R4, c + R4, c + R4], fill=255)
+    img.paste(body, (0, 0), mask)
+    hl = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    ImageDraw.Draw(hl).arc([c - R4 + 6 * SS, c - R4 + 6 * SS, c + R4 - 6 * SS, c + R4 - 6 * SS], 200, 280, fill=glint, width=5 * SS)
+    img.alpha_composite(hl.filter(ImageFilter.GaussianBlur(1.5 * SS)))
+    finish(img, name)
+
+
+def mg_notes():
+    _note("mg_note.png", (64, 150, 122), (12, 40, 34), GOLD, GOLD_HI, GOLD_LO, (230, 255, 240, 150))
+    _note("mg_note_impure.png", (150, 70, 190), (40, 12, 54), (150, 92, 206), (226, 196, 255, 255), (66, 30, 104, 255), (240, 210, 255, 150))
+
+
+def pulse_core():
+    """The dantian at the centre of Meridian Pulse, 256px, stretched: a round
+    lacquer seal with a double gold ring and eight lozenge studs; the 脈 glyph
+    sits on it as text."""
+    N = 256 * SS
+    c = N / 2
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    R = 0.95 * c
+    d.ellipse([c - R, c - R, c + R, c + R], fill=INK)
+    body = _radial(256, lambda r: _mix((40, 74, 66), (8, 18, 18), min(1, r / 0.9) ** 1.2) + (255,))
+    mask = Image.new("L", (N, N), 0)
+    R2 = R - 4 * SS
+    ImageDraw.Draw(mask).ellipse([c - R2, c - R2, c + R2, c + R2], fill=255)
+    img.paste(body, (0, 0), mask)
+    for rad, w in ((0.86, 7), (0.72, 3)):
+        rr = rad * c
+        d.ellipse([c - rr, c - rr, c + rr, c + rr], outline=GOLD_LO, width=(w + 3) * SS)
+        d.ellipse([c - rr, c - rr, c + rr, c + rr], outline=GOLD, width=w * SS)
+    for k in range(8):
+        a = k * math.pi / 4
+        lozenge(d, c + math.cos(a) * 0.79 * c, c + math.sin(a) * 0.79 * c, 9 * SS, 2 * SS)
+    finish(img, "pulse_core.png")
+
+
+def pulse_path():
+    """The meridian ring the beats travel round, 512px, stretched over
+    Pulse.Field.Path: a thin gold line in a faint jade glow, with twelve small
+    acupoint pips on it."""
+    N = 512 * SS
+    c = N / 2
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    glow = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    r = 0.96 * c
+    ImageDraw.Draw(glow).ellipse([c - r, c - r, c + r, c + r], outline=(90, 210, 170, 140), width=14 * SS)
+    img.alpha_composite(glow.filter(ImageFilter.GaussianBlur(6 * SS)))
+    d = ImageDraw.Draw(img)
+    d.ellipse([c - r, c - r, c + r, c + r], outline=GOLD_LO, width=5 * SS)
+    d.ellipse([c - r, c - r, c + r, c + r], outline=GOLD, width=3 * SS)
+    for k in range(12):
+        a = k * math.pi / 6
+        x, y = c + math.cos(a) * r, c + math.sin(a) * r
+        pr = 6 * SS
+        d.ellipse([x - pr - 2 * SS, y - pr - 2 * SS, x + pr + 2 * SS, y + pr + 2 * SS], fill=INK)
+        d.ellipse([x - pr, y - pr, x + pr, y + pr], fill=GOLD_HI)
+    finish(img, "pulse_path.png")
+
+
+def gather_bowl():
+    """The dantian bowl in Gather Qi, 512x128, 9-sliced so it stretches to any
+    width: a shallow lacquer-red vessel with a gold lip, its rounded ends wholly
+    inside the corners. Every row of the top/bottom strips and every column of
+    the side strips is identical. SliceCenter Rect(120, 63, 392, 65), SliceScale
+    0.22 (about 28px tall)."""
+    W, H = 512 * SS, 128 * SS
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    shape = Image.new("L", (W, H), 0)
+    sd = ImageDraw.Draw(shape)
+    end = 110 * SS
+    top, bot = 22 * SS, 120 * SS
+    knee = 74 * SS  # the sides drop straight to here (through the slice rows), then round under
+    # the body: straight sides down past the slice rows, then rounded-in bottom
+    # corners (quarter ellipses), all within the corners
+    sd.rectangle([8 * SS, top, W - 8 * SS, knee], fill=255)
+    sd.rectangle([end, knee - SS, W - end, bot], fill=255)
+    sd.pieslice([8 * SS, knee - (bot - knee), 2 * end - 8 * SS, bot], 90, 180, fill=255)
+    sd.pieslice([W - 2 * end + 8 * SS, knee - (bot - knee), W - 8 * SS, bot], 0, 90, fill=255)
+    outline = shape.filter(ImageFilter.MaxFilter(5 * SS + 1))
+    img.paste(Image.new("RGBA", (W, H), INK), (0, 0), outline)
+    grad = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(grad)
+    for y in range(H):
+        t = max(0, min(1, (y - top) / (bot - top)))
+        gd.line([(0, y), (W, y)], fill=tuple(int(v) for v in _mix((178, 52, 40), (70, 14, 14), t ** 1.1)) + (255,))
+    img.paste(grad, (0, 0), shape)
+    # a gold band low on the body, and the gold lip along the top
+    band = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(band).rectangle([0, 82 * SS, W, 88 * SS], fill=255)
+    band = Image.composite(band, Image.new("L", (W, H), 0), shape.filter(ImageFilter.MinFilter(10 * SS + 1)))
+    img.paste(Image.new("RGBA", (W, H), GOLD), (0, 0), band)
+    lip = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(lip).rounded_rectangle([2 * SS, 12 * SS, W - 2 * SS, 30 * SS], radius=9 * SS, fill=255)
+    img.paste(Image.new("RGBA", (W, H), INK), (0, 0), lip)
+    lip2 = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    l2 = ImageDraw.Draw(lip2)
+    l2.rounded_rectangle([6 * SS, 15 * SS, W - 6 * SS, 27 * SS], radius=6 * SS, fill=GOLD)
+    l2.line([(12 * SS, 18 * SS), (W - 12 * SS, 18 * SS)], fill=GOLD_HI, width=3 * SS)
+    img.alpha_composite(lip2)
+    finish(img, "gather_bowl.png")
+
+
+def field_wash():
+    """A faint ink-wash landscape, 1024x512, stretched under the Thread, Gather
+    and Forms boards (shown with ImageTransparency ~0.8): layered mountain
+    ridges fading upward and two drifting cloud bands, in pale jade-white."""
+    W, H = 1024 * SS, 512 * SS
+    import random
+    rng = random.Random(7)
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    for layer, (base, amp, alpha) in enumerate(((0.62, 0.18, 70), (0.74, 0.14, 110), (0.86, 0.1, 150))):
+        pts = [(0, H)]
+        phase = rng.random() * 6
+        for i in range(129):
+            x = W * i / 128
+            u = i / 128
+            y = H * (base - amp * (0.55 * math.sin(u * 7 + phase) ** 2 + 0.3 * math.sin(u * 17 + phase * 2) ** 2 + 0.15 * math.sin(u * 37)))
+            pts.append((x, y))
+        pts.append((W, H))
+        m = Image.new("L", (W, H), 0)
+        ImageDraw.Draw(m).polygon(pts, fill=alpha)
+        # fade each ridge toward its foot, like ink thinning in water
+        fade = Image.new("L", (W, H), 0)
+        fd = ImageDraw.Draw(fade)
+        for y in range(0, H, SS):
+            t = y / H
+            fd.rectangle([0, y, W, y + SS], fill=int(255 * max(0, 1 - max(0, t - base + 0.05) * 2.2)))
+        m = Image.composite(m, Image.new("L", (W, H), 0), fade)
+        m = m.filter(ImageFilter.GaussianBlur(3 * SS))
+        img.paste(Image.new("RGBA", (W, H), (200, 236, 222, 255)), (0, 0), m)
+    clouds = Image.new("L", (W, H), 0)
+    cd = ImageDraw.Draw(clouds)
+    for cy, cx0, cx1 in ((0.3, 0.08, 0.42), (0.45, 0.58, 0.95)):
+        for k in range(9):
+            x = W * (cx0 + (cx1 - cx0) * k / 8)
+            r = H * (0.03 + 0.02 * rng.random())
+            cd.ellipse([x - r * 2.2, H * cy - r, x + r * 2.2, H * cy + r], fill=90)
+    clouds = clouds.filter(ImageFilter.GaussianBlur(8 * SS))
+    img.paste(Image.new("RGBA", (W, H), (230, 246, 240, 255)), (0, 0), clouds)
+    finish(img, "field_wash.png")
+
+
+def minigame_art():
+    mg_pointer()
+    mg_ring()
+    mg_burst()
+    mg_glow()
+    mg_disc()
+    thread_wall()
+    thread_node()
+    mg_notes()
+    pulse_core()
+    pulse_path()
+    gather_bowl()
+    field_wash()
+
+
 # ---------------------------------------------------------------- enemy bars
 
 # The overhead bar on regular demon beasts (bosses keep Play.BossBar), Dead Cells
@@ -1758,6 +2058,9 @@ if __name__ == "__main__":
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "maze":
         maze_art()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "minigames":
+        minigame_art()
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "scroll":
         scroll_art()

@@ -8,7 +8,11 @@
 -- server DaoPractice picks the game (Forms) and scores it for weapon Dao XP. The drill
 -- keeps the weapon in hand and tells the seat when it starts and on every tap,
 -- so the character stands and swings (Meditation.luau).
+-- Every run holds the camera still (Feel.freezeCamera) and gives it back
+-- exactly however it ends; a game that errors still hands back the camera,
+-- controls and qi.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -173,9 +177,24 @@ local function run(kind: string, stance: Stance?)
 		stance.begin()
 	end
 	overlay.Visible = true
+	-- the camera holds still for the whole run (board, result card and all) and
+	-- comes back exactly however the run ends; dying mid-run leaves it
+	local restoreCamera = Feel.freezeCamera()
+	local character = Players.LocalPlayer.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local died = humanoid and humanoid.Died:Connect(CirculationMinigame.quit)
 	local hold: { () -> () } = {}
 	quitting = false
-	local accuracy, purged, cleared = play(info, hold, stance)
+	local played, accuracy, purged, cleared = pcall(play, info, hold, stance)
+	if not played then
+		-- a broken game must still hand back the camera, controls and qi
+		warn("Circulation minigame failed: " .. tostring(accuracy))
+		quitting = true
+		accuracy, purged, cleared = 0, 0, 0
+	end
+	if died then
+		died:Disconnect()
+	end
 	if quitting and (cleared or 0) == 0 then
 		-- left before clearing a level (or a drill): nothing refined, nothing spent
 		remote:InvokeServer(actions.cancel, info.id)
@@ -214,6 +233,7 @@ local function run(kind: string, stance: Stance?)
 	for _, clear in hold do
 		clear()
 	end
+	restoreCamera()
 	Controls.unlock("Circulation")
 	running = false
 end
@@ -243,6 +263,8 @@ end
 -- Started from the cultivation seat (Meditation.luau), never on its own.
 function CirculationMinigame.init(gui: ScreenGui)
 	overlay = gui:FindFirstChild("Circulation") :: Frame
+	Feel.setSounds(overlay:FindFirstChild("Sounds") :: Folder)
+	Feel.setPointer(overlay:FindFirstChild("Pointer") :: ImageLabel)
 	Menus.register(overlay, { minigame = true, close = CirculationMinigame.quit })
 	-- the Leave pill at the header's right corner (Column.Header.Title.Leave)
 	local leave = overlay:FindFirstChild("Leave", true) :: GuiButton

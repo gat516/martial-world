@@ -13,6 +13,10 @@
 -- Only the timing matters, so it plays with one thumb anywhere on the screen.
 -- The timing window, beat interval, ring speed and beats a level come from
 -- Config (Games.Pulse).
+-- Look: a faint bagua array plate (maze_array.png) under a gold meridian ring
+-- (pulse_path.png) round the dantian seal (pulse_core.png, glowing on each
+-- hit); beats are lacquered acupoints (mg_note.png, violet mg_note_impure.png)
+-- that pop in, each with a glowing ring (mg_ring.png) closing on it.
 
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -29,15 +33,18 @@ local LEAD_IN = 0.4 -- seconds after the count-in before the first ring lands, b
 local LEVEL_GAP = 1.2 -- extra seconds of rest between one level's last beat and the next one's first
 local END_PAUSE = 0.5 -- seconds after the last beat before the run ends
 
+local NOTE_IMPURE = "rbxassetid://72392262787490" -- mg_note_impure.png
+local CORE_SIZE = 0.24 -- of the field, as authored
+local POP_IN = 0.18 -- seconds a beat takes to pop in
+
 local QI = Color3.fromRGB(200, 255, 230)
 local IMPURE = Color3.fromRGB(190, 90, 220)
-local IMPURE_FILL = Color3.fromRGB(70, 30, 90)
 local PERFECT = Color3.fromRGB(255, 225, 140)
 local GOOD = Color3.fromRGB(150, 245, 200)
 local MISS = Color3.fromRGB(255, 110, 100)
 local STRAY = Color3.fromRGB(200, 170, 165)
 
-type Beat = { at: number, spot: UDim2, impure: boolean, level: number, note: Frame?, judged: boolean }
+type Beat = { at: number, spot: UDim2, impure: boolean, level: number, note: ImageLabel?, born: number, judged: boolean }
 
 local Pulse = {}
 
@@ -48,8 +55,10 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 	local tune = Feel.tune("Pulse", info.difficulty)
 	local window = math.max(0.06, tune.window)
 	local field = stage:FindFirstChild("Field") :: Frame
-	local core = field:FindFirstChild("Core") :: Frame
-	local noteTemplate = field:FindFirstChild("NoteTemplate") :: Frame
+	local core = field:FindFirstChild("Core") :: ImageLabel
+	local coreGlow = field:FindFirstChild("CoreGlow") :: ImageLabel
+	local noteTemplate = field:FindFirstChild("NoteTemplate") :: ImageLabel
+	local noteSize = noteTemplate.Size
 	local judgeTemplate = field:FindFirstChild("JudgeTemplate") :: TextLabel
 
 	-- the beat chart: each level a string of steady beats stepping around the
@@ -66,7 +75,7 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 		for _ = 1, perLevel do
 			angle += rng:NextNumber(0.7, 1.3)
 			local spot = UDim2.fromScale(0.5 + PATH_RADIUS * math.sin(angle), 0.5 - PATH_RADIUS * math.cos(angle))
-			table.insert(beats, { at = at, spot = spot, impure = false, level = level, note = nil, judged = false })
+			table.insert(beats, { at = at, spot = spot, impure = false, level = level, note = nil, born = 0, judged = false })
 			at += tune.interval
 		end
 		at += LEVEL_GAP
@@ -103,11 +112,30 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 		return levels
 	end
 
-	local function beatCore()
-		core.Size = UDim2.fromScale(0.28, 0.28)
+	-- the dantian swells and glows with a landed beat
+	local function beatCore(color: Color3)
+		core.Size = UDim2.fromScale(CORE_SIZE * 1.18, CORE_SIZE * 1.18)
 		TweenService:Create(core, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = UDim2.fromScale(0.24, 0.24),
+			Size = UDim2.fromScale(CORE_SIZE, CORE_SIZE),
 		}):Play()
+		coreGlow.ImageColor3 = color
+		coreGlow.ImageTransparency = 0.15
+		TweenService:Create(coreGlow, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			ImageTransparency = 0.7,
+		}):Play()
+	end
+
+	-- a judged beat flares out (hit) or sinks away (missed) instead of vanishing
+	local function retire(note: ImageLabel, hit: boolean)
+		local ring = note:FindFirstChild("Ring") :: ImageLabel
+		ring.Visible = false
+		local grow = if hit then 1.35 else 0.7
+		TweenService:Create(note, TweenInfo.new(if hit then 0.15 else 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = UDim2.new(noteSize.X.Scale * grow, 0, noteSize.Y.Scale * grow, 0),
+			ImageTransparency = 1,
+			ImageColor3 = if hit then Color3.new(1, 1, 1) else Color3.fromRGB(120, 120, 120),
+		}):Play()
+		task.delay(0.3, note.Destroy, note)
 	end
 
 	local function finish(beat: Beat, quality: number)
@@ -116,11 +144,15 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 			if quality > 0 then
 				purged += 1
 				Feel.pop(field, beat.spot, IMPURE, 110)
+				Feel.burst(field, beat.spot, IMPURE, 100)
 				Feel.judge(judgeTemplate, beat.spot, "Purged", IMPURE)
+				Feel.sound("Purge")
 				Feel.buzz(0.3, 0.08)
 			else
 				Feel.pop(field, beat.spot, MISS)
 				Feel.judge(judgeTemplate, beat.spot, "Impure!", MISS)
+				Feel.sound("Thud")
+				Feel.shake(field, 4, 0.2)
 				Feel.buzz(0.7, 0.15)
 			end
 		else
@@ -133,19 +165,29 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 				word, color = "Good", GOOD
 			end
 			Feel.judge(judgeTemplate, beat.spot, word, color)
-			if quality > 0 then
+			if quality >= 1 then
 				Feel.pop(field, beat.spot, color)
-				beatCore()
+				Feel.burst(field, beat.spot, color, 100)
+				Feel.sound("Perfect", 1 + 0.04 * math.min(combo, 10))
+				beatCore(color)
+			elseif quality > 0 then
+				Feel.pop(field, beat.spot, color)
+				Feel.sound("Tick", 1 + 0.04 * math.min(combo, 10))
+				beatCore(color)
+			else
+				Feel.sound("Thud", 1.3)
 			end
 		end
 		combo = if quality > 0 then combo + 1 else 0
 		if beat.note then
-			beat.note:Destroy()
+			retire(beat.note, quality > 0)
 			beat.note = nil
 		end
 		if beats[lastBeat[beat.level]] == beat then
 			cleared += 1
 			total += accuracy(beat.level)
+			Feel.burst(field, UDim2.fromScale(0.5, 0.5), PERFECT, 220)
+			Feel.sound("Clear")
 			if cleared >= levels then
 				endAt = t + END_PAUSE
 			else
@@ -178,9 +220,10 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 		combo = 0
 		-- an off-beat tap: the core flinches so the cost is felt, not just counted
 		Feel.judge(judgeTemplate, UDim2.fromScale(0.5, 0.36), "Off beat", STRAY)
-		core.Size = UDim2.fromScale(0.21, 0.21)
+		Feel.sound("Thud", 1.5)
+		core.Size = UDim2.fromScale(CORE_SIZE * 0.87, CORE_SIZE * 0.87)
 		TweenService:Create(core, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-			Size = UDim2.fromScale(0.24, 0.24),
+			Size = UDim2.fromScale(CORE_SIZE, CORE_SIZE),
 		}):Play()
 	end
 
@@ -227,21 +270,24 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 				note.Position = beat.spot
 				note.Visible = true
 				if beat.impure then
-					note.BackgroundColor3 = IMPURE_FILL;
-					(note:FindFirstChildOfClass("UIStroke") :: UIStroke).Color = IMPURE;
-					((note:FindFirstChild("Ring") :: Frame):FindFirstChildOfClass("UIStroke") :: UIStroke).Color = IMPURE;
-					(note:FindFirstChild("Dot") :: Frame).BackgroundColor3 = IMPURE
+					note.Image = NOTE_IMPURE;
+					(note:FindFirstChild("Ring") :: ImageLabel).ImageColor3 = IMPURE
 				end
 				note.Parent = field
 				table.insert(made, note)
 				beat.note = note
+				beat.born = t
 			end
-			local note = beat.note :: Frame
-			local ring = note:FindFirstChild("Ring") :: Frame
+			local note = beat.note :: ImageLabel
+			local ring = note:FindFirstChild("Ring") :: ImageLabel
 			local closing = math.clamp(untilBeat / tune.approach, 0, 1)
-			ring.Size = UDim2.fromScale(1 + (RING_START - 1) * closing, 1 + (RING_START - 1) * closing)
-			note.BackgroundTransparency = 0.2 + 0.6 * closing;
-			(ring:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = 0.7 * closing
+			ring.Size = UDim2.fromScale(1.1 + (RING_START - 1.1) * closing, 1.1 + (RING_START - 1.1) * closing)
+			ring.ImageTransparency = 0.75 * closing
+			-- pops in (a little overshoot), then sits half-faded until its ring nears
+			local age = math.clamp((t - beat.born) / POP_IN, 0, 1)
+			local grow = 0.5 + 0.5 * age + 0.15 * math.sin(age * math.pi)
+			note.Size = UDim2.new(noteSize.X.Scale * grow, 0, noteSize.Y.Scale * grow, 0)
+			note.ImageTransparency = 0.45 * closing
 			if untilBeat < -window then
 				finish(beat, 0)
 			end
@@ -269,7 +315,8 @@ function Pulse.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number
 		for _, inst in made do
 			inst:Destroy()
 		end
-		core.Size = UDim2.fromScale(0.24, 0.24)
+		core.Size = UDim2.fromScale(CORE_SIZE, CORE_SIZE)
+		coreGlow.ImageTransparency = 0.7
 	end)
 	return total / math.max(1, cleared), purged, cleared
 end

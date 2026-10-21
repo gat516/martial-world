@@ -25,7 +25,7 @@ local MODEL_ICONS: { [string]: string } = {
 	Dadao = "rbxassetid://124212742751085",
 	Greatsword = "rbxassetid://139993149675749",
 	Guandao = "rbxassetid://91007493859855",
-	Spear = "rbxassetid://70542848898137",
+	Spear = "rbxassetid://71808674278003",
 	Staff = "rbxassetid://86834637733687",
 }
 local CLASS_ICONS: { [string]: string } = {

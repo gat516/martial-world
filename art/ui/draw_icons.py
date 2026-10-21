@@ -388,17 +388,19 @@ def guandao():
 
 
 def spear():
-    """Spear: a leaf-shaped steel head over a red horsehair tassel and bronze
-    socket on a long wood shaft with a bronze butt cap."""
+    """Spear (art/weapons/spear): a slim leaf-shaped steel head on a bronze
+    collar, a bell of red horsehair below it, a long wood shaft with two indigo
+    wrap bands and a rounded bronze butt cap."""
     ic, d = Icon(), Diag(60, 0.88)
-    ic.shape(d.rect(60, 22, 68, 136), WOOD, outline=4, light=0.3)
-    ic.shape(d.rect(60, 96, 68, 112), WRAP, outline=3)
-    wrap_bands(ic, d, 60, 68, 96, 112, 5)
-    ic.shape(d.rect(60, 132, 68, 140), BRONZE, outline=3)
-    tassel(ic, d, 64, 14, 22, 13)
-    ic.shape(d.poly([(64, -20), (72, 0), (69, 12), (59, 12), (56, 0)]), STEEL, outline=4, light=0.6)
-    d.line(ic, [(64, -16), (64, 10)], (255, 255, 255, 150), 1.6)
-    ic.shape(d.rect(60.5, 11, 67.5, 18), BRONZE, outline=3)
+    ic.shape(d.rect(60, 30, 68, 134), WOOD, outline=4, light=0.3)
+    for y0, y1 in ((76, 90), (100, 114)):
+        ic.shape(d.rect(59.5, y0, 68.5, y1), WRAP, outline=3)
+        wrap_bands(ic, d, 59.5, 68.5, y0, y1, 5)
+    ic.shape(d.oval(64, 136, 5.5, 6), BRONZE, outline=3)
+    ic.shape(d.poly([(60, 16), (68, 16), (76, 34), (52, 34)]), TASSEL, outline=3)
+    ic.shape(d.poly([(64, -22), (69.5, -2), (64, 12), (58.5, -2)]), STEEL, outline=4, light=0.6)
+    d.line(ic, [(64, -18), (64, 10)], (255, 255, 255, 150), 1.6)
+    ic.shape(d.rect(60, 10, 68, 17), BRONZE, outline=3)
     ic.save("IronSpear")
 
 

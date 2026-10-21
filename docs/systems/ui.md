@@ -22,6 +22,8 @@ cursor, settings and the admin panel.
   the server can say "Requires a sword". Weapon and class icons live in
   `SlotArt` (drawn in `art/ui/draw_icons.py`; a def's own `icon` wins), so Spirit
   grades share their model's art and differ by glow colour.
+- Technique icons are flat white glyphs tinted by the technique's colour; the
+  class weapon skills' are drawn in `art/ui/draw_techniques.py`.
 - Travel: the menu groups Sect grounds and the Wilds; locked arrays stay listed,
   greyed under a cinnabar 封 seal with "Opens at <realm>". A seal-and-name marker
   floats over arrays (others' peaks only up close) and the screen fades to ink

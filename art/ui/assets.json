@@ -62,7 +62,14 @@
   "icons/icon_IronDadao.png": "rbxassetid://124212742751085",
   "icons/icon_IronGreatsword.png": "rbxassetid://139993149675749",
   "icons/icon_IronGuandao.png": "rbxassetid://91007493859855",
-  "icons/icon_IronSpear.png": "rbxassetid://70542848898137",
+  "icons/icon_IronSpear.png": "rbxassetid://71808674278003",
   "icons/icon_BambooStaff.png": "rbxassetid://86834637733687",
-  "icons/icon_Fist.png": "rbxassetid://83664160831695"
+  "icons/icon_Fist.png": "rbxassetid://83664160831695",
+  "icons/tech_TwinPhoenixCannon.png": "rbxassetid://81953324274209",
+  "icons/tech_MoonflashDraw.png": "rbxassetid://96346324489936",
+  "icons/tech_RampagingTiger.png": "rbxassetid://104006341750065",
+  "icons/tech_HeavenSplitter.png": "rbxassetid://131580966208055",
+  "icons/tech_CrescentSweep.png": "rbxassetid://110851099640824",
+  "icons/tech_DragonPierce.png": "rbxassetid://123799153426166",
+  "icons/tech_GreatSageAwakening.png": "rbxassetid://115862718192751"
 }

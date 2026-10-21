@@ -4,8 +4,9 @@
 -- grading blend between keyframes: an indigo, moonlit night; a rose dawn; a soft
 -- warm day with blue distance haze; a golden sunset; a violet dusk. This owns the
 -- per-hour Lighting values (brightness, exposure, ambients, ColorShift_Top, Atmosphere,
--- grade tint/saturation/contrast, bloom and sun-ray intensity); the rest (shadows,
--- environment scales, bloom size/threshold, Sky) stays as set in the place.
+-- grade tint/saturation/contrast, bloom and sun-ray intensity, and a multiplier on the
+-- place's environment scales); the rest (shadows, bloom size/threshold, Sky) stays as
+-- set in the place.
 -- Lamps glow brighter and reach further after dark, and motes drift around the camera: peach
 -- petals by day, fireflies and spirit motes by night. Weather events lean the
 -- look through WeatherFX.adjust.
@@ -38,6 +39,7 @@ type Key = {
 	contrast: number,
 	bloom: number,
 	sunRays: number,
+	sky: number, -- multiplier on the place's EnvironmentDiffuse/SpecularScale
 	night: number, -- 0 day .. 1 night, for lanterns and motes
 }
 
@@ -51,8 +53,11 @@ end
 -- lanterns and jade lamps carry the colour. Saturation sits a little below zero
 -- all day: the place's parts are bright, and the grade calms them. A low night
 -- Atmosphere offset keeps the (daytime) skybox hidden behind the dark haze.
-local NIGHT: Key = { hour = 0, brightness = 1.5, exposure = 0.4, ambient = rgb(80, 88, 126), outdoor = rgb(110, 120, 164), shift = rgb(18, 26, 56), atmoColor = rgb(50, 60, 104), atmoDecay = rgb(28, 32, 76), density = 0.36, offset = 0.04, haze = 1.6, glare = 0, tint = rgb(204, 212, 255), saturation = -0.2, contrast = 0.06, bloom = 0.85, sunRays = 0, night = 1 }
-local DAY: Key = { hour = 8.5, brightness = 2.5, exposure = 0, ambient = rgb(96, 96, 106), outdoor = rgb(140, 142, 152), shift = rgb(46, 32, 10), atmoColor = rgb(216, 224, 230), atmoDecay = rgb(160, 176, 198), density = 0.36, offset = 0.25, haze = 1.8, glare = 0.3, tint = rgb(255, 249, 240), saturation = -0.12, contrast = 0.1, bloom = 0.45, sunRays = 0.08, night = 0 }
+-- Sky light (the environment scales) fades out at night: the engine refreshes it in
+-- steps as the clock turns, and against the dim night ambient each step showed as
+-- the scene pulsing darker and lighter. Night fill comes from the ambients instead.
+local NIGHT: Key = { hour = 0, brightness = 1.5, exposure = 0.4, ambient = rgb(80, 88, 126), outdoor = rgb(110, 120, 164), shift = rgb(18, 26, 56), atmoColor = rgb(50, 60, 104), atmoDecay = rgb(28, 32, 76), density = 0.36, offset = 0.04, haze = 1.6, glare = 0, tint = rgb(204, 212, 255), saturation = -0.2, contrast = 0.06, bloom = 0.85, sunRays = 0, sky = 0, night = 1 }
+local DAY: Key = { hour = 8.5, brightness = 2.5, exposure = 0, ambient = rgb(96, 96, 106), outdoor = rgb(140, 142, 152), shift = rgb(46, 32, 10), atmoColor = rgb(216, 224, 230), atmoDecay = rgb(160, 176, 198), density = 0.36, offset = 0.25, haze = 1.8, glare = 0.3, tint = rgb(255, 249, 240), saturation = -0.12, contrast = 0.1, bloom = 0.45, sunRays = 0.08, sky = 1, night = 0 }
 
 local function at(hour: number, base: Key, changes: { [string]: any }): Key
 	local k = table.clone(base) :: any
@@ -105,6 +110,7 @@ local function sample(hour: number): Key
 				contrast = lerp(a.contrast, b.contrast, t),
 				bloom = lerp(a.bloom, b.bloom, t),
 				sunRays = lerp(a.sunRays, b.sunRays, t),
+				sky = lerp(a.sky, b.sky, t),
 				night = lerp(a.night, b.night, t),
 			}
 		end
@@ -210,6 +216,7 @@ function DayNight.init()
 	local grade = Lighting:FindFirstChildOfClass("ColorCorrectionEffect")
 	local bloom = Lighting:FindFirstChildOfClass("BloomEffect")
 	local rays = Lighting:FindFirstChildOfClass("SunRaysEffect")
+	local envDiffuse, envSpecular = Lighting.EnvironmentDiffuseScale, Lighting.EnvironmentSpecularScale
 	collectLamps()
 	collectNightFX()
 
@@ -229,6 +236,8 @@ function DayNight.init()
 		Lighting.Ambient = k.ambient
 		Lighting.OutdoorAmbient = k.outdoor
 		Lighting.ColorShift_Top = k.shift
+		Lighting.EnvironmentDiffuseScale = envDiffuse * k.sky
+		Lighting.EnvironmentSpecularScale = envSpecular * k.sky
 		if atmosphere then
 			atmosphere.Color = k.atmoColor
 			atmosphere.Decay = k.atmoDecay

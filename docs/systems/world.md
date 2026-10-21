@@ -16,8 +16,10 @@ everyone to one spot, and a day/night cycle.
 - Day/night: DayNight blends hourly keyframes (soft warm day with blue distance
   haze, golden hour before the ~18:00 sunset, violet dusk, a desaturated indigo
   night lifted by exposure so dim phones still read paths). It owns the per-hour
-  Lighting values; shadows, environment scales, bloom size/threshold and the Sky
-  stay as set in the place (GlobalShadows on, no shadow-casting point lights).
+  Lighting values, including a multiplier on the place's environment scales that
+  fades sky light out at night (its stepped refresh made the night pulse); shadows,
+  bloom size/threshold and the Sky stay as set in the place (GlobalShadows on, no
+  shadow-casting point lights).
   Lamps (lights under `Map.Sect.Ambience`, or inside a model named in
   `Config.Ambience.LAMP_MODELS`) dim by day and brighten and reach further at night.
 - Ambient world effects are templates in `ServerStorage.AmbientFX`

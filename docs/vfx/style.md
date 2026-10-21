@@ -11,6 +11,14 @@ videos. Parts and meshes support the emissions; they are not the effect. The
 first aura pass (part shells, Neon discs, code tweens, ~20 textures) was the
 wrong direction. "3D first, sprites second" is retired.
 
+**Scale follows progression (user, 2026-10-21).** Take the references'
+craft (layering, contrast, motion, timing), not their size. Every technique
+and method in the game today is a beginner one, so its effects stay small,
+close and tasteful: a few well-made layers, not a screen-filling show.
+Grandeur is earned: it grows with technique tier, method grade and realm, and
+the big set pieces are reserved for breakthroughs, tribulation and world
+events.
+
 ## What the references teach
 
 The references are Roblox showcase effects (`docs/reference/vfx/`, the videos
@@ -107,8 +115,9 @@ Model on Sol's RNG, scaled by method grade (the grade ladder in
 - **Signature:** one big shape that is the method's idea, made of library
   textures: Blazing Heart's crown of flame, Frost Lotus's glass lotus, Iron
   Marrow's blade fan. It grows with grade.
-- **Ignition:** sitting down or switching plays a short cutscene-like surge:
-  the sky dims around you, a flash, the signature unfolds.
+- **Ignition:** sitting down or switching plays a short surge: a flash and
+  the signature unfolding. Dimming the world around you is for high grades
+  only; a Mortal ignition stays on and near the body.
 - Parts are fine for what textures can't do (a core with a PointLight, a
   carved stone ring), but the aura must still read with them hidden.
 

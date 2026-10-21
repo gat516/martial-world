@@ -221,8 +221,10 @@ Decided 2026-10-21. Planning aids are for reviewing in Studio and never part of 
   (place-only Folder) or carries the CollectionService tag `EditorOnly`: gray blockouts
   (`_EditorMarkers._InnerBlockout`), floating POI labels (`_EditorMarkers.POILabels`),
   route strips, "later" markers. `src/server/EditorOnly.server.luau` destroys the folder
-  and every `EditorOnly` instance as the server starts, before anyone joins, so nothing of
-  them replicates. Every part in them is Anchored, CanCollide/CanQuery/CanTouch off, so
+  and every `EditorOnly` instance as the server starts (and prints how many it removed),
+  and `ReplicatedFirst.EditorOnly` (`src/first/EditorOnly.client.luau`) destroys any copy
+  that reaches a client, now or later: a Studio playtest once showed the blockout labels
+  with only the server script in place. Every part in them is Anchored, CanCollide/CanQuery/CanTouch off, so
   Edit-mode raycasts (spawns, treasures, audits) ignore them. Never leave a label, disc or
   blockout anywhere else; build nothing there at runtime.
 - **POI tag:** every point of interest carries the tag `POI` with attributes `PoiName`,

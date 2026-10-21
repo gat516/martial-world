@@ -10,6 +10,11 @@
 --                             Treasures and the event kinds use), reproducible by seed
 --   P.setTime(t)              the fake server clock (seconds); P.advance(dt) steps it
 --   P.pillar(at, palette, yaw) a bare LightPillar placed through Kit.place
+--   P.treasure(at, weather)   a heavenly treasure birth born now (fake clock), drawn by a
+--                             fresh TreasureFX through its real create/update
+--   P.run(seconds)            advance the fake clock in real time, stepping TreasureFX
+--                             (bursts fire as their moments pass); P.jump(t) skips ahead
+--   P.leave(show)             play the departure (claim / weather end)
 --   P.look(camPos, target)    park the editor camera (Edit-mode particles only simulate
 --                             near it) before a screen_capture from the same spot
 --   P.lighting(preset)        "day" / "night" / "mist" / "clear" (the event sky grade), and
@@ -100,6 +105,40 @@ function P.pillar(at, palette, yaw)
 		end
 	end
 	return m
+end
+
+local keyN = 0
+function P.treasure(at, weather)
+	local mods = P.mods or P.fresh()
+	local TF = mods.TreasureFX
+	keyN += 1
+	local entry = { key = "p" .. keyN, at = { at.X, at.Y, at.Z }, color = { 255, 255, 255 }, weather = weather or "AuspiciousMist", born = P.time }
+	local show = TF._create(entry)
+	TF._shows[entry.key] = show
+	return show
+end
+
+function P.run(seconds, dt)
+	dt = dt or 1 / 30
+	local TF = (P.mods or P.fresh()).TreasureFX
+	local t0 = os.clock()
+	local last = os.clock()
+	while os.clock() - t0 < seconds do
+		task.wait(dt)
+		local now = os.clock()
+		P.advance(now - last) -- the fake clock follows real time, so emitters keep pace
+		last = now
+		TF.step()
+	end
+end
+
+function P.jump(dt)
+	P.advance(dt)
+	P.mods.TreasureFX.step()
+end
+
+function P.leave(show)
+	P.mods.TreasureFX._depart(show)
 end
 
 function P.look(camPos, target)

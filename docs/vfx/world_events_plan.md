@@ -1,8 +1,8 @@
 # World events and sky anomalies: look pass (PLAN, not committed)
 
 The world-fx agent's working plan, written down as it goes so a restart doesn't lose it.
-Status: approved (section 10). Step 0 (groundwork, far-read test) is done; the treasure
-birth is next.
+Status: approved (section 10). Step 0 (groundwork, far-read test) and step 1 (treasure
+birth) are built; Heaven Split is next, after the user's review in Studio.
 
 ## 1. What plays today (read from code, 2026-10-21)
 
@@ -391,3 +391,19 @@ north spirit peak (-114, 565, -277; ~1330 studs):
 - Upright: the LightPillar placed through `Kit.place` at three `EventGrounds.randomSpot`
   spots (seed 7: East Flat, West Field, South Flat) with three yaws stood vertical in
   side captures; top at Y 1400, puncture on the plane at Y 441 each time.
+
+## 12. Treasure birth as built (step 1, 2026-10-21)
+What changed from the plan, found while building:
+- The cloud plane is opaque from below too and sits at Y ~339.6 in the place, not 440, so
+  the birth plays twice: a high rift for the peaks and a rift in the cloud ceiling for the
+  valley, which tears wide when the meteor punches through. The sky circle hangs under the
+  ceiling (40 below), where both the valley and the pillar's foot can see it.
+- An alpha-blended violet body keeps its hue up close but vanishes at 1000 studs; an
+  additive one reads far but washes white up close. TreasureFX blends between them by
+  camera distance (Body brightness 1.6 to 6, Haze 1.2 to 10, LightEmission up to 1, width
+  up to x1.8).
+- A full SurfaceAppearance tint turned the arcs a flat saturated purple; TintMix 0.55 with
+  AlphaMode TintMask keeps the cloud ramp's shading.
+- The violet mist bank and local grade are in (GroundCircle Bank/Under, SkyGrade
+  TreasureNear). The "violet mist from the wisp ring" for the whole sky is Auspicious Mist's
+  (step 3), with the Wisps ring copy.

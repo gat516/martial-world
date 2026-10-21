@@ -11,8 +11,9 @@
 --     that palette colour, mixed with white by `TintMix` (0..1, default 1)
 --   * Beams keep their authored Width0/Width1 and Transparency; Kit.beam scales and
 --     fades them from those
---   * parts or attachments with a `WorldY` attribute sit at that world height
---     (the cloud plane, the top of a pillar), not relative to the ground point
+--   * parts or attachments with a `WorldY` attribute sit at that world height (the
+--     top of a pillar), and with `PlaneOffset` at that many studs above the cloud
+--     plane's top (Kit.planeY), not relative to the ground point
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -31,6 +32,25 @@ Kit.now = function(): number
 end
 
 local WHITE = Color3.new(1, 1, 1)
+
+-- Top of the cloud sea (Workspace.Map.Clouds.Plane, place-only). Read from the map,
+-- since it has moved before (docs said 440; the place had it at ~339.6 on
+-- 2026-10-21); 440 if the map isn't there (yet).
+local planeTop: number? = nil
+function Kit.planeY(): number
+	if planeTop then
+		return planeTop
+	end
+	local map = workspace:FindFirstChild("Map")
+	local clouds = map and map:FindFirstChild("Clouds")
+	local plane = clouds and clouds:FindFirstChild("Plane")
+	local slab = plane and plane:FindFirstChildWhichIsA("BasePart", true)
+	if slab then
+		planeTop = slab.Position.Y + slab.Size.Y / 2
+		return planeTop :: number
+	end
+	return 440
+end
 
 function Kit.templates(): Instance?
 	return Kit.source or ReplicatedStorage:FindFirstChild("WorldFX")
@@ -57,6 +77,10 @@ function Kit.place(model: Model, spot: Vector3, yaw: number?)
 	model:PivotTo(CFrame.new(spot) * rotation * CFrame.Angles(0, yaw or 0, 0))
 	for _, d in model:GetDescendants() do
 		local worldY = d:GetAttribute("WorldY")
+		local planeOffset = d:GetAttribute("PlaneOffset")
+		if type(planeOffset) == "number" then
+			worldY = Kit.planeY() + planeOffset
+		end
 		if type(worldY) ~= "number" then
 			continue
 		end

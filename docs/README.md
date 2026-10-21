@@ -27,7 +27,8 @@ client module against `StarterGui.Hud`).
 
 Mapped assets: `Remotes`, `Animations`, `Ambience`, `Effects` (binary
 `assets/Effects.rbxm`, VFX templates with plugin attributes), `WorldFX` (binary
-`assets/WorldFX.rbxm`, the sky-scale world-event kit built by `tools/worldfx_build.luau`;
+`assets/WorldFX.rbxm`, the sky-scale world-event kit built by `tools/worldfx_build.luau`:
+Grade, LightPillar, SkyRift, Meteor, SkyCircle, GroundCircle, CloudRing;
 see [world](systems/world.md)), `BuildKit`, `GardenKit`
 (ReplicatedStorage); `HerbMorsel` (ReplicatedStorage, temporary eating prop);
 `Hud`, `Rewards`, `Prompts` (StarterGui); `Music`, `SFX`, `Ambience` (binary
@@ -89,7 +90,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Enemies, spawning, regions | [enemies](systems/enemies.md) | EnemyService, Spawner | Enemies, Spawns, Regions, Knockback | EnemyAnimator, EnemyBars, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
-| Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, WorldFX/* (Kit, SkyGrade), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |
+| Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, WorldFX/* (Kit, SkyGrade, TreasureFX), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |
 | Onboarding, quests, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Gates, Config.Travel | Onboarding, TravelMenu, GateMarkers, Veil |
 | UI and HUD | [ui](systems/ui.md) | - | - | Hud, Menus, Layout, Motion, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |

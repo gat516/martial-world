@@ -41,7 +41,8 @@ ROOTS = {
     "PeakRoot": dict(src="peak", seg=80, col=14.0, flare=(4.0, 10.0), tops=(40.0, 125.0), top_y=130.0,
                      # toward the neighbouring pillars (the narrow slots between peaks) and the main rock
                      # (flare 0 there: the path and the Ascension Array pass between Peak_8, Peak_1 and the main rock)
-                     pinch=[(180.0, 26.0, 0.0), (315.0, 26.0, 0.0), (247.5, 34.0, 0.0)]),
+                     # i.e. the whole inward half; the flare shows on the outward half, the side seen from the wilds
+                     pinch=[(247.5, 125.0, 0.0)]),
     "MainRoot": dict(src="main", seg=128, col=16.0, flare=(3.5, 8.5), tops=(34.0, 100.0), top_y=106.0,
                      # the Ascension Array stands at the rock's foot at 90 deg: leave the face plain there
                      pinch=[(90.0, 22.0, 0.0)], skip=[(90.0, 10.0)]),
@@ -121,7 +122,7 @@ def columns(cfg, a, dx, dz):
     for c, w, f in cfg["pinch"]:
         dd = abs(angdiff(a, c))
         if dd < w:
-            pinch = min(pinch, f + (1 - f) * smoothstep(0.0, 1.0, dd / w))
+            pinch = min(pinch, f + (1 - f) * smoothstep(0.7, 1.0, dd / w))  # flat at f out to 0.7 w
     if any(abs(angdiff(a, c)) < w for c, w in cfg.get("skip", [])):
         flare, crown = 0.0, BOTTOM - 4.0  # tucked into the rock all the way down
     return flare * pinch * (0.35 + 0.65 * crack), crown

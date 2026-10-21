@@ -15,14 +15,15 @@ local ServerStorage = game:GetService("ServerStorage")
 
 -- BEGIN MESHES (PeakRoots.json: centre and size in Blender axes)
 local MESHES = {
-	PeakRoot = { center = Vector3.new(-15.389, 6.532, 54.0), size = Vector3.new(211.777, 224.831, 152.0) },
-	PeakRootFoot = { center = Vector3.new(-15.309, 6.163, 17.5), size = Vector3.new(210.649, 222.432, 35.0) },
-	MainRoot = { center = Vector3.new(0.292, 6.945, 42.0), size = Vector3.new(475.433, 467.585, 128.0) },
-	MainRootFoot = { center = Vector3.new(0.07, 6.413, 17.5), size = Vector3.new(474.892, 465.577, 35.0) },
+	PeakRoot = { center = Vector3.new(0.605, 7.425, 54.0), size = Vector3.new(214.089, 221.257, 152.0) },
+	PeakRootFoot = { center = Vector3.new(0.584, 6.64, 17.5), size = Vector3.new(213.539, 219.687, 35.0) },
+	MainRoot = { center = Vector3.new(-2.067, 8.377, 42.0), size = Vector3.new(470.362, 464.87, 128.0) },
+	MainRootFoot = { center = Vector3.new(-1.645, 8.2, 17.5), size = Vector3.new(468.582, 462.275, 35.0) },
 }
 -- END MESHES
 
-local ROCK = Color3.fromHex("5E5A56") -- a step darker than the pillars' base rock (#615D59): the foot is in shade
+-- the pillars' base is Slate #615D59; one step lighter so the columns read in the shade under the peaks
+local ROCK = Color3.fromHex("7A7570")
 
 -- Blender (x, y, z) -> Studio, relative to the pivot (the modeler's FBX rule)
 local function offset(name: string): CFrame
@@ -39,7 +40,7 @@ local function style(part: MeshPart, name: string)
 	part.Anchored = true
 	part.Size = size(name)
 	part.CanTouch = false
-	part.Material = Enum.Material.SmoothPlastic
+	part.Material = Enum.Material.Slate -- the pillars' own material
 	part.Color = ROCK
 	if string.sub(name, -4) == "Foot" then
 		part.Transparency = 1
@@ -70,7 +71,16 @@ local kit = ServerStorage:FindFirstChild("PeakRootsKit")
 if next(found) then
 	for name in MESHES do
 		local list = found[name]
-		assert(list and #list == 1, `PeakRoots import: expected one {name}, found {list and #list or 0}`)
+		local ids = {}
+		for _, p in list or {} do
+			ids[p.MeshId] = true
+		end
+		local n = 0
+		for _ in ids do
+			n += 1
+		end
+		-- the same file imported more than once is harmless (one is kept); two different meshes is not
+		assert(n == 1, `PeakRoots import: expected one {name} mesh, found {n}`)
 	end
 	local containers = {}
 	if kit then
@@ -79,14 +89,16 @@ if next(found) then
 	kit = Instance.new("Folder")
 	kit.Name = "PeakRootsKit"
 	for name, list in found do
+		for _, p in list do -- every import container goes, duplicates included
+			local top: Instance = p
+			while top.Parent ~= workspace do
+				top = top.Parent :: Instance
+			end
+			if top ~= p then
+				containers[top] = true
+			end
+		end
 		local part = list[1]
-		local top = part
-		while top.Parent ~= workspace do
-			top = top.Parent :: Instance
-		end
-		if top ~= part then
-			containers[top] = true
-		end
 		style(part, name)
 		part.Parent = kit
 	end

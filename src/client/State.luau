@@ -20,6 +20,7 @@ export type Snapshot = {
 	settings: { music: number, sfx: number, autoAttack: boolean, lockHint: boolean }?,
 	weapons: { owned: { [string]: number }, equipped: string }?, -- equipped "" = Fist (Shared.Weapons)
 	dao: { [string]: { level: number, xp: number } }?, -- by weapon class; missing = level 0
+	caches: { [string]: boolean }?, -- world manual caches / weapon racks claimed, by Cache id
 }
 
 local State = {}

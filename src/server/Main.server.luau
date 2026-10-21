@@ -35,6 +35,8 @@ local WorldEvents = require(script.Parent.WorldEvents)
 local Treasures = require(script.Parent.Treasures)
 local Settings = require(script.Parent.Settings)
 local Weapons = require(script.Parent.Weapons)
+local WorldCaches = require(script.Parent.WorldCaches)
+local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
 local joinedAt: { [Player]: number } = {}
 local lastBreakthroughAt: { [Player]: number } = {}
@@ -89,6 +91,11 @@ local function applyTestKit(data: PlayerData.Data)
 			if Hotbar.techniqueCount(data.hotbar) < Hotbar.MAX_TECHNIQUES then
 				Hotbar.place(data.hotbar, id)
 			end
+		end
+	end
+	if kit.ALL_WEAPONS then
+		for _, id in WeaponDefs.Order do
+			data.weapons.owned[id] = math.max(data.weapons.owned[id] or 0, 1)
 		end
 	end
 	if kit.FILL_DANTIAN then
@@ -232,6 +239,7 @@ Spawner.start()
 Quests.start()
 Inventory.start()
 Treasures.start()
+WorldCaches.start()
 WeatherService.start()
 Garden.start()
 Receipts.start()

@@ -17,6 +17,7 @@ local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weather = require(ReplicatedStorage.Shared.Weather)
+local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local Hud = require(script.Parent.Hud)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
@@ -151,6 +152,29 @@ local function build()
 		end })
 	end
 	section("Technique level", Techniques.MAX_LEVEL, techniques)
+
+	local weapons: { Chip } = {
+		{ label = "All weapons", press = function()
+			invoke("allWeapons")
+		end },
+	}
+	for _, id in Weapons.Order do
+		local def = Weapons.Defs[id]
+		local grade = Weapons.Grades[def.grade]
+		table.insert(weapons, { label = def.name, color = grade and grade.color, press = function()
+			invoke("weapon", id)
+		end })
+	end
+	section("Give weapon", nil, weapons)
+
+	-- the count box is the Dao level to set (1 to Weapons.MAX_LEVEL)
+	local daos: { Chip } = {}
+	for _, class in Weapons.ClassOrder do
+		table.insert(daos, { label = Weapons.Classes[class].dao, press = function(n)
+			invoke("daoLevel", class, n)
+		end })
+	end
+	section("Dao level", Weapons.MAX_LEVEL, daos)
 
 	local items: { Chip } = {}
 	for _, id in Items.Order do

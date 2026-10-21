@@ -1,6 +1,7 @@
 --!strict
 -- Admin tools behind the PC admin dashboard (AdminPanel.luau): force weather
--- and world events, give items, seeds and Spirit Stones, spawn beasts, and tend
+-- and world events, give items, seeds, weapons and Spirit Stones, set technique
+-- and Dao levels, spawn beasts, and tend
 -- the garden instantly. Admins are the game's creator, the ids in Config.Admin.USER_IDS, and
 -- anyone in a Studio playtest. They're marked with the Admin attribute so the
 -- client shows the dashboard; the server re-checks every request.
@@ -14,6 +15,7 @@ local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
+local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
@@ -23,6 +25,7 @@ local EnemyService = require(script.Parent.EnemyService)
 local WeatherService = require(script.Parent.WeatherService)
 local Garden = require(script.Parent.Garden)
 local WorldEvents = require(script.Parent.WorldEvents)
+local Weapons = require(script.Parent.Weapons)
 
 local MAX_COUNT = 999
 local MAX_SPAWN = 10
@@ -92,6 +95,33 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		data.techniques.owned[id] = { level = level, xp = 0 }
 		Cultivation.pushState(player)
 		return true, `{def.name} is now level {level}`
+	end,
+	weapon = function(player, _, id)
+		local def = type(id) == "string" and WeaponDefs.Defs[id]
+		if not def then
+			return false, "Unknown weapon"
+		end
+		Weapons.grant(player, id)
+		return true, `Gave {def.name}`
+	end,
+	allWeapons = function(player, data)
+		for _, id in WeaponDefs.Order do
+			if (data.weapons.owned[id] or 0) <= 0 then
+				Weapons.grant(player, id, true)
+			end
+		end
+		return true, "Gave every weapon"
+	end,
+	-- sets a class's Dao comprehension level (0 to max)
+	daoLevel = function(player, data, class, n)
+		local def = type(class) == "string" and WeaponDefs.Classes[class]
+		local level = if type(n) == "number" and n == n // 1 and n >= 0 and n <= WeaponDefs.MAX_LEVEL then n else nil
+		if not (def and level) then
+			return false, `Unknown class, or level isn't 0-{WeaponDefs.MAX_LEVEL}`
+		end
+		data.dao[class] = { level = level, xp = 0 }
+		Cultivation.pushState(player)
+		return true, `{def.dao} is now {level}`
 	end,
 	buildItems = function(player, data, n)
 		local count = amount(n, MAX_COUNT)

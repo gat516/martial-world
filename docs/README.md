@@ -55,7 +55,7 @@ ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
 | Combat and action states | [combat](systems/combat.md) | Combat, Movement | ActionRules, Hitbox, Techniques, Knockback, Config.Combat | CombatController, ActionState, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |
-| Weapons and weapon Dao | [weapons](systems/weapons.md) | Weapons, Combat | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController |
+| Weapons, weapon Dao, manual caches, weapon racks | [weapons](systems/weapons.md) | Weapons, Combat, WorldCaches, Progression | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController, WorldCaches |
 | Character: spirit root, cultivation method, bloodline, character window (design only) | [character](systems/character.md) | - | - | - |
 | Enemies, spawning, regions | [enemies](systems/enemies.md) | EnemyService, Spawner | Enemies, Spawns, Regions, Knockback | EnemyAnimator, EnemyBars, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
@@ -78,7 +78,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | Meditate | Event | both | `Meditation.handle(on)`; server fires `false` to stand you up | Meditation |
 | Sprint | Event | C->S | `Cultivation.setRunning` | Sprint |
 | Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync) | CombatController |
-| Effect | Event | S->C | many: "action", "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "boss", "used", "bolt", "tribulationStart/End" | CombatController, CombatEffects, Rewards |
+| Effect | Event | S->C | many: "action", "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "boss", "used", "bolt", "tribulationStart/End" | CombatController, CombatEffects, Rewards |
 | Telegraph | Event | S->C | `EnemyService` (attack areas before they land) | Telegraphs |
 | PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot) | State (everything reads State) |
 | Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major) | BreakthroughView |

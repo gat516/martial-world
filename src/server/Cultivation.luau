@@ -141,6 +141,7 @@ function Cultivation.pushState(player: Player)
 		settings = data.settings,
 		weapons = data.weapons,
 		dao = data.dao,
+		caches = data.caches,
 	})
 	for _, fn in Cultivation.onPush do
 		task.spawn(fn, player, data)

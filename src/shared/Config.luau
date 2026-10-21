@@ -398,6 +398,7 @@ return {
 		ITEMS_EACH = 2, -- every spirit core and treasure
 		STONES = 3000, -- Spirit Stones, to try the Spirit Market
 		ALL_TECHNIQUES = false, -- own every technique, to test them without earning manuals
+		ALL_WEAPONS = false, -- own every weapon, to test each class
 		FILL_DANTIAN = true, -- no combat yet, so this is the only steady raw qi source
 	},
 }

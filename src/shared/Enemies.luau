@@ -10,6 +10,9 @@
 -- qiDrop is raw qi at QC1; it scales with the receiving player's dantian
 -- (Realms.enemyQi, Pacing.Income.ENEMY_QI_EXPONENT).
 -- drops: items (Items.luau) each damager may get on a kill, rolled separately.
+-- bossDrops (bosses): a pool of technique manuals and weapons. Each kill rolls
+-- `chance` (the first kill of the boss always rolls) and grants one entry the
+-- player doesn't own yet, picked at random (Progression.luau).
 -- realm: the demon beast's cultivation, on the same ladder as players (Realms.luau).
 -- weight: how hard it is to shove (1 = a wolf). Realm and weight together set how
 -- far player hits knock it back (Knockback.luau).
@@ -32,6 +35,7 @@ export type Attack = {
 }
 
 export type Drop = { item: string, chance: number }
+export type BossDrops = { manuals: { string }, weapons: { string }, chance: number }
 
 export type Def = {
 	id: string,
@@ -45,6 +49,7 @@ export type Def = {
 	qiDrop: number,
 	respawn: number, -- seconds before a replacement spawns
 	drops: { Drop }?,
+	bossDrops: BossDrops?,
 	stones: { number }, -- Spirit Stones each damager gets on a kill (min, max)
 	boss: boolean?,
 	realm: { any }, -- { major, minor } on the Realms ladder
@@ -149,6 +154,11 @@ Enemies.Defs = {
 		stones = { 60, 90 },
 		respawn = 180,
 		drops = { { item = "GreaterSpiritCore", chance = 1 }, { item = "LesserSpiritCore", chance = 1 } },
+		bossDrops = {
+			manuals = { "RampagingTiger", "HeavenSplitter", "CrescentSweep", "GreatSageAwakening" },
+			weapons = { "AzureFrostJian", "CrimsonFangDadao", "MountainSplitterGreatsword", "GreenDragonGuandao", "SilverSerpentSpear", "CloudSageStaff" },
+			chance = 0.25,
+		},
 		summonAt = { 0.66, 0.33 },
 		attack = {
 			kind = "cone",

@@ -419,5 +419,27 @@
    </Properties>
    </Item>
   </Item>
+  <Item class="ProximityPrompt" referent="RBXWC1"><Properties>
+   <string name="Name">CachePrompt</string>
+   <token name="Style">1</token>
+   <string name="ActionText">Study</string>
+   <string name="ObjectText">Manual Cache</string>
+   <token name="KeyboardKeyCode">102</token>
+   <float name="HoldDuration">0.8</float>
+   <float name="MaxActivationDistance">10</float>
+   <bool name="RequiresLineOfSight">false</bool>
+  </Properties>
+  </Item>
+  <Item class="ProximityPrompt" referent="RBXWC2"><Properties>
+   <string name="Name">RackPrompt</string>
+   <token name="Style">1</token>
+   <string name="ActionText">Take</string>
+   <string name="ObjectText">Weapon Rack</string>
+   <token name="KeyboardKeyCode">102</token>
+   <float name="HoldDuration">0.5</float>
+   <float name="MaxActivationDistance">10</float>
+   <bool name="RequiresLineOfSight">false</bool>
+  </Properties>
+  </Item>
  </Item>
 </roblox>

@@ -783,6 +783,11 @@ local function onEffect(kind: string, ...: any)
 				then `Manual found: {def.name}! It's on your hotbar.`
 				else `Manual found: {def.name}! Drag it onto your hotbar from the Inventory.`)
 		end
+	elseif kind == "weapon" then
+		local def = Weapons.Defs[args[1]]
+		if def then
+			Hud.toast(`Weapon found: {def.name}! Equip it from the Inventory.`)
+		end
 	elseif kind == "loot" then
 		local item = Items.Defs[args[1]]
 		if item then

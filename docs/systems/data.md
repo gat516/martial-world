@@ -21,7 +21,8 @@ game (funnels, progression, custom events), and give admins test tools.
   custom events. See [cultivation](cultivation.md) for reading dropoff.
 - `src/server/Admin.luau` + `src/client/AdminPanel.luau`: weather, give, seeds,
   stones, buildItems, spawn, growAll, mutateAll, wild, event, stopEvents, fillQi,
-  techniqueLevel (set a technique to any level, learning it if needed).
+  techniqueLevel (set a technique to any level, learning it if needed),
+  weapon, allWeapons, daoLevel (set a weapon class's Dao comprehension).
   Admins: the creator, `Config.Admin.USER_IDS`, anyone in Studio.
 - `src/server/Main.server.luau`: join/leave order, `applyTestKit`, hook wiring.
 
@@ -32,7 +33,7 @@ analytics `SessionLength`, `PlayerData.release` (final save), every module's `fo
 
 ## Tuning knobs
 - `Config.Data`: store name, autosave, lock timings, starting seeds.
-- `Config.TestKit`; `Config.Admin.USER_IDS`.
+- `Config.TestKit` (`ALL_TECHNIQUES`, `ALL_WEAPONS`); `Config.Admin.USER_IDS`.
 - Starting raw qi: `Pacing.Income.STARTING_RAW_QI`; starting stones: `Config.Economy`.
 
 ## Known gaps

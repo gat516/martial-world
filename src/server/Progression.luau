@@ -3,6 +3,9 @@
 --   - the first kill of each enemy type: insight
 --   - every boss kill: insight; the first one also drops a manual
 --   - total-kill milestones: insight and/or a manual, once each
+--   - boss drop pools (Enemies `bossDrops`): a manual or weapon not owned yet,
+--     guaranteed on the first kill of that boss, then by chance
+-- Learning a class manual grants that class Dao XP (Pacing.Weapons.XP_MANUAL).
 -- A new manual goes onto the hotbar if there's room (Inventory.slotTechnique).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,6 +13,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Pacing).Rewards
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
+local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
+local Weapons = require(script.Parent.Weapons)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -47,15 +52,46 @@ function Progression.grantManual(player: Player, id: string)
 		return
 	end
 	data.techniques.owned[id] = { level = 1, xp = 0 }
+	if def.weapon ~= "Any" then
+		Weapons.addXp(player, def.weapon, WeaponPacing.XP_MANUAL)
+	end
 	local slotted = Progression.slotTechnique ~= nil and Progression.slotTechnique(data, id)
 	effectRemote:FireClient(player, "manual", id, slotted)
 	earned(player, "manual", id)
+end
+
+-- One entry of a boss pool the player doesn't own yet, or nil.
+local function rollPool(player: Player, data: PlayerData.Data, pool: Enemies.BossDrops)
+	local options: { () -> () } = {}
+	for _, id in pool.manuals do
+		if Techniques.Defs[id] and not data.techniques.owned[id] then
+			table.insert(options, function()
+				Progression.grantManual(player, id)
+			end)
+		end
+	end
+	for _, id in pool.weapons do
+		if (data.weapons.owned[id] or 0) <= 0 then
+			table.insert(options, function()
+				if Weapons.grant(player, id) then
+					earned(player, "weapon", id)
+				end
+			end)
+		end
+	end
+	if #options > 0 then
+		options[math.random(#options)]()
+	end
 end
 
 function Progression.onKill(player: Player, def: Enemies.Def, _model: Model)
 	local data = PlayerData.get(player)
 	if not data then
 		return
+	end
+	local firstKill = not data.firstKills[def.id]
+	if def.bossDrops and (firstKill or math.random() < def.bossDrops.chance) then
+		rollPool(player, data, def.bossDrops)
 	end
 	if not data.firstKills[def.id] then
 		data.firstKills[def.id] = true

@@ -227,10 +227,15 @@ Pacing.Rewards = {
 	FIRST_KILL_INSIGHT = 1, -- the first kill of each enemy type
 	BOSS_INSIGHT = 1, -- every boss kill
 	BOSS_FIRST_MANUAL = "LightningTalisman",
+	-- boss pools of class manuals and Spirit weapons: Enemies `bossDrops`;
+	-- the rest of the class manuals and the Mortal weapons are in world caches
+	-- and the sect weapon rack (docs/systems/weapons.md)
 	-- kill milestones (total kills): insight and/or a manual, once each
 	MILESTONES = {
 		{ kills = 3, manual = "PalmStrike" },
+		{ kills = 12, manual = "TwinPhoenixCannon" },
 		{ kills = 30, insight = 1, manual = "IronSkin" },
+		{ kills = 60, manual = "MoonflashDraw" },
 		{ kills = 100, insight = 1, manual = "FireSeal" },
 	} :: { { kills: number, insight: number?, manual: string? } },
 }

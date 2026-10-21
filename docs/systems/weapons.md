@@ -42,6 +42,32 @@ class (Twin Phoenix Cannon, Moonflash Draw, Rampaging Tiger Cleave,
 Heaven-Splitting Descent, Crescent Moon Sweep, Dragon-Piercing Thrust, Great
 Sage Awakening); see [combat](combat.md) for their shapes and numbers.
 
+## Where techniques and weapons come from (v1)
+| Source | What |
+|---|---|
+| Start | Iron Jian (equipped), Sword Qi Wave |
+| Kill milestones (`Pacing.Rewards.MILESTONES`) | 3 Palm Strike, 12 Twin Phoenix Cannon, 30 Iron Skin, 60 Moonflash Draw, 100 Fire Seal |
+| First boss kill (`BOSS_FIRST_MANUAL`) | Lightning Talisman |
+| Boss pool (`Enemies.ElderWolfKing.bossDrops`) | one unowned entry of: Rampaging Tiger Cleave, Heaven-Splitting Descent, Crescent Moon Sweep, Great Sage Awakening, or a Spirit weapon of any class. Guaranteed on the first kill, then 25% a kill |
+| Manual caches (`ManualCache` anchors) | whatever manual/weapon the anchor names; meant for Dragon-Piercing Thrust and the other class manuals |
+| Sect weapon rack (`WeaponRack` anchors) | one free Mortal weapon of each class, once each |
+| Admin / test kit | `weapon`, `allWeapons`, `daoLevel`; `Config.TestKit.ALL_WEAPONS` |
+
+Learning a class manual grants that class `XP_MANUAL` Dao XP (re-studying a
+known one at a cache too). A gained weapon fires Effect `"weapon"` (weaponId).
+
+### World anchors (placed by the map)
+- `ManualCache`: a BasePart tagged `ManualCache` in Workspace, attributes `Cache`
+  (unique id, saved in `data.caches`), `Manual` (technique id) and/or `Weapon`
+  (weapon id), optional `Realm` (a stage key like `"QC5"` needed to claim it).
+  The server gives it `ServerStorage.ItemTemplates.CachePrompt` and a
+  `WeaponModels.ManualScroll` clone resting on top.
+- `WeaponRack`: a BasePart tagged `WeaponRack`, attribute `Weapon`, optional
+  `Cache` (default `rack:<Weapon>`); gets `RackPrompt`.
+- `src/server/WorldCaches.luau` sets them up (zero anchors is fine) and claims
+  once per player; `src/client/WorldCaches.luau` disables prompts already
+  claimed (`caches` is in the state push).
+
 ## Data flow
 Equip: client invokes `WeaponAction("equip", id)` -> the server checks ownership
 and that no action is running -> `data.weapons.equipped`, clones
@@ -80,4 +106,6 @@ works, held invisibly.
 - The held weapon is still drawn while an item Tool is out.
 - Sword, Saber have placeholder idles (Spear Idle, Bat Idle) and no walk.
 - Equipping is refused only mid-action, not in combat.
+- Caches and racks need their anchors placed in `Workspace.Map`; until then
+  Dragon-Piercing Thrust and the Mortal non-sword weapons are admin-only.
 - Untested in game: grips, joints and the idle/walk overlay need a look in Studio.

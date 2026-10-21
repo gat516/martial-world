@@ -18,7 +18,7 @@ seeds, insight and technique manuals, and the main test of a player's realm.
 
 ## Key files
 - `src/shared/Enemies.luau`: defs (health, speeds, aggro/leash, attack and boss
-  pattern, `qiDrop`, `stones`, `drops`, `realm`, `weight`), `QI_SCALE_EXPONENT`.
+  pattern, `qiDrop`, `stones`, `drops`, `bossDrops` (bosses' manual/weapon pool, see [weapons](weapons.md)), `realm`, `weight`), `QI_SCALE_EXPONENT`.
 - `src/shared/Spawns.luau`: ambient encounter rules (rates, caps, safe spots).
 - `src/shared/Regions.luau`: named regions (shape, intended realm, flavour line,
   ambient pack table).
@@ -29,7 +29,7 @@ seeds, insight and technique manuals, and the main test of a player's realm.
   `despawn`, `onRemoved`, the state machine (idle, chase, windup, dash, recover,
   stagger), `strike` (telegraphed areas, also used by the tribulation), kill
   rewards and `onKill` hooks.
-- Kill hooks: `Progression.onKill` (insight, manuals), `Inventory.onKill`
+- Kill hooks: `Progression.onKill` (insight, manuals, boss pools), `Inventory.onKill`
   (drops), `Garden.onKill` (seeds).
 - `src/shared/Knockback.luau`; client `EnemyAnimator.luau` (procedural gait by
   `AIState`), `EnemyBars.luau` (overhead and boss bars), `EnemySounds.luau`,

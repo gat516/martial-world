@@ -89,7 +89,8 @@ B.ASSETS = {
 	swirlMesh = id(129778117978668), -- horizontal wind swirl ring mesh
 	domeMesh = id(13567208057), -- low dome mesh
 	rockMesh = id(17608108317), -- Inno stylized Rock_03 (Craters UseMesh)
-	torusMesh = id(471124075), -- torus ring mesh (MeshSize 150 x 9.5 x 150; scaled by Size)
+	torusMesh = id(471124075), -- torus ring mesh (MeshSize 150 x 9.51 x 150; lies flat in XZ)
+	swirlRingMesh = id(122217820569960), -- flat swirl ring (impact swirl)
 }
 
 B.COLORS = {
@@ -98,6 +99,9 @@ B.COLORS = {
 	dust = Color3.fromRGB(226, 212, 186),
 	crack = Color3.fromRGB(110, 88, 56),
 	crater = Color3.fromRGB(70, 56, 40),
+	ring = Color3.fromRGB(255, 240, 205), -- Neon torus rings (impact, air, ground wave)
+	groundRing = Color3.fromRGB(255, 224, 150), -- the ground shock under a target
+	swirl = Color3.fromRGB(255, 214, 130), -- impact swirl and bubble
 }
 
 local A, Cl = B.ASSETS, B.COLORS
@@ -186,7 +190,9 @@ function B.mesh(meshId, parent, name, size, cf, color, material)
 	m.Material = material or Enum.Material.Neon
 	m.Color = color
 	m.Transparency = 1
-	m.Size = size
+	if size then
+		m.Size = size
+	end
 	m.CFrame = cf
 	m.Parent = parent
 	return m
@@ -221,6 +227,16 @@ function B.groundShockwave(root, tier, p)
 			Size = NS({ KP(0, 1 * k), KP(0.4, 6.5 * k), KP(1, 9.4 * k) }), Transparency = NS({ KP(0, 0.05), KP(1, 1) }),
 			Lifetime = R(0.36), LightEmission = 0.5, Brightness = 1.6,
 		}), { EmitCount = 1, EmitDelay = 0.07, Phase = "active" })
+	end
+	-- the 3D torus rolling out with the front (CombatEffects sets ToSize from
+	-- def.radius; Phase "active" fits it to the window)
+	if pick(p, "torus", true) then
+		B.meshWave(ground, "GroundWave", {
+			mesh = A.torusMesh, color = Cl.ring,
+			fromSize = Vector3.new(1.5, 0.152, 1.5), toSize = Vector3.new(radius * 2, 1.255 * k, radius * 2),
+			fromOffset = Vector3.new(0, 0.25, 0), toOffset = Vector3.new(0, 0.25, 0),
+			fromTransparency = 0, toTransparency = 1, duration = 0.3, style = "Quart", phase = "active",
+		})
 	end
 	if pick(p, "rays", tier >= 2) then
 		B.emitter(ground, "Rays", B.flat({
@@ -401,96 +417,107 @@ function B.impactBurst(root, tier, p)
 	return impact
 end
 
--- A MeshWave (played by TechniqueVFX, with or without the Game Module): a
--- Model with a child `Mesh` part, tweened relative to its parent part's
--- CFrame at emit time from From* to To* over Duration (after EmitDelay).
--- Shockwaves read as physical 3D parts this way; particles are accents only.
---   p.mesh (MeshId, or "Ball" for a sphere Part), p.material, p.color,
---   p.fromSize/p.toSize (Vector3), p.fromOffset/p.toOffset (Vector3, in the
---   parent part's space), p.fromTransparency/p.toTransparency, p.duration,
---   p.rotation (Vector3 degrees of spin over the tween), p.delay, p.orient
---   (CFrame applied to the mesh, e.g. to stand a torus up facing the blow)
+-- A MeshWave (TechniqueVFX plays it, with or without the Game Module): a
+-- Model with MeshWave = true and a child `Mesh` part (Transparency 1 in the
+-- template, native mesh size, at the template origin), tweened at emit time
+-- relative to its parent part/attachment from From* to To*. Only the given
+-- attributes are set: fromSize/toSize, fromOffset/toOffset (Vector3, parent
+-- space), rotation (Vector3 degrees; (90,0,0) stands a flat ring up facing
+-- the parent's -Z), fromTransparency/toTransparency, duration, style (an
+-- EasingStyle name), delay (EmitDelay), phase ("active" -> fit() retimes it).
+-- p.mesh is a MeshId, or "Ball" for a sphere Part; p.material, p.color.
+-- Shockwaves read as physical 3D parts this way; particles are accents.
 function B.meshWave(parent, name, p)
 	local wave = Instance.new("Model")
 	wave.Name = name
 	for k, v in {
-		FromSize = p.fromSize, ToSize = p.toSize,
-		FromOffset = p.fromOffset or Vector3.zero, ToOffset = p.toOffset or Vector3.zero,
-		FromTransparency = pick(p, "fromTransparency", 0.2), ToTransparency = pick(p, "toTransparency", 1),
-		Duration = pick(p, "duration", 0.15), Rotation = p.rotation or Vector3.zero, EmitDelay = p.delay,
+		FromSize = p.fromSize, ToSize = p.toSize, FromOffset = p.fromOffset, ToOffset = p.toOffset,
+		Rotation = p.rotation, FromTransparency = p.fromTransparency, ToTransparency = p.toTransparency,
+		Duration = p.duration, Style = p.style, EmitDelay = p.delay, Phase = p.phase,
 	} do
 		wave:SetAttribute(k, v)
 	end
-	local mesh
+	wave:SetAttribute("MeshWave", true)
 	if p.mesh == "Ball" then
-		mesh = Instance.new("Part")
-		mesh.Shape = Enum.PartType.Ball
-		mesh.Name = "Mesh"
-		mesh.Anchored, mesh.CanCollide, mesh.CanQuery, mesh.CanTouch, mesh.CastShadow = true, false, false, false, false
-		mesh.Material = p.material or Enum.Material.ForceField
-		mesh.Color = p.color or Cl.core
-		mesh.Transparency = 1
-		mesh.Size = p.fromSize
-		mesh.CFrame = parent.CFrame * (p.orient or O)
-		mesh.Parent = wave
+		local ball = Instance.new("Part")
+		ball.Name = "Mesh"
+		ball.Shape = Enum.PartType.Ball
+		ball.Anchored, ball.CanCollide, ball.CanQuery, ball.CanTouch, ball.CastShadow = true, false, false, false, false
+		ball.Material = p.material or Enum.Material.ForceField
+		ball.Color = p.color or Cl.core
+		ball.Transparency = 1
+		ball.CFrame = O
+		ball.Parent = wave
 	else
-		mesh = B.mesh(p.mesh or A.torusMesh, wave, "Mesh", p.fromSize, parent.CFrame * (p.orient or O), p.color or Cl.core, p.material)
+		B.mesh(p.mesh or A.torusMesh, wave, "Mesh", nil, O, p.color or Cl.ring, p.material)
 	end
 	wave.Parent = parent
 	return wave
 end
 
+-- Torus 471124075 is 150 x 9.51 x 150 (a round tube is Y = D * 0.0634);
+-- impact rings use a 1.5x fatter tube, ground shocks 1.3x.
+local RING_TUBE, GROUND_TUBE = 0.0951, 0.0824
+
 function B.impactShockwave(root, tier, p)
-	local gold, core = pick(p, "color", Cl.gold), pick(p, "core", Cl.core)
 	local impact = B.part(root, pick(p, "part", "Impact"), pick(p, "at", O * CFrame.new(0, 0.15, -6)))
 	local body = impact:FindFirstChild("Body") or B.attach(impact, "Body", Vector3.new(0, 2.2, 0))
-	local size = pick(p, "size", 2.2 + tier * 0.7) -- final ring diameter, studs
-	local life = pick(p, "lifetime", 0.15 - (tier - 1) * 0.0233) -- snaps out in 0.15 s at I, 0.08 s at IV
-	local name = pick(p, "name", "ImpactWave")
-	-- the "it connected" ring: a torus stood up facing back along the blow
-	-- (CastFX aims the Impact part's look along the hit), at body height
-	local up = CFrame.new(0, 2.2, 0) * CFrame.Angles(math.rad(90), 0, 0)
-	B.meshWave(impact, name, {
-		mesh = A.torusMesh, material = Enum.Material.Neon, color = core, orient = up,
-		fromSize = Vector3.new(0.6, 0.15, 0.6), toSize = Vector3.new(size, 0.25, size),
-		fromOffset = Vector3.new(0, 2.2, 0), toOffset = Vector3.new(0, 2.2, -0.6),
-		fromTransparency = 0.05, toTransparency = 1, duration = life,
+	local d = pick(p, "size", ({ 3, 3.8, 4.8, 6 })[tier]) -- ring diameter, studs
+	-- the "it connected" ring, stood up facing back along the blow (CastFX aims
+	-- the Impact part's look along the hit), snapping out in 0.16 s
+	local ring = B.meshWave(body, "ImpactRing", {
+		mesh = A.torusMesh, color = pick(p, "ringColor", Cl.ring),
+		fromSize = Vector3.new(0.8, 0.1, 0.8), toSize = Vector3.new(d, d * RING_TUBE, d),
+		rotation = Vector3.new(90, 0, 0), fromTransparency = 0.05, toTransparency = 1,
+		duration = pick(p, "duration", 0.16), style = "Quart",
 	})
-	if pick(p, "second", tier >= 3) then
-		B.meshWave(impact, name .. "2", {
-			mesh = A.torusMesh, material = Enum.Material.Neon, color = gold, orient = up,
-			fromSize = Vector3.new(0.6, 0.1, 0.6), toSize = Vector3.new(size * 1.4, 0.15, size * 1.4),
-			fromOffset = Vector3.new(0, 2.2, 0), toOffset = Vector3.new(0, 2.2, -1),
-			fromTransparency = 0.3, toTransparency = 1, duration = life * 1.5, delay = 0.05,
+	if pick(p, "swirl", tier >= 2) then
+		local sd = d * 1.3
+		B.meshWave(body, "ImpactSwirl", {
+			mesh = A.swirlRingMesh, color = pick(p, "swirlColor", Cl.swirl),
+			fromSize = Vector3.new(1, 0.25, 1), toSize = Vector3.new(sd, 0.5, sd),
+			rotation = Vector3.new(90, 0, 0), fromTransparency = 0.15, toTransparency = 1,
+			duration = 0.22, style = "Quad", delay = 0.03,
 		})
 	end
-	-- a short flat ring on the ground under the target (accent)
-	B.meshWave(impact, name .. "Ground", {
-		mesh = A.torusMesh, material = Enum.Material.Neon, color = gold,
-		fromSize = Vector3.new(0.8, 0.1, 0.8), toSize = Vector3.new(2.4 + tier * 0.6, 0.15, 2.4 + tier * 0.6),
+	if pick(p, "bubble", tier >= 3) then
+		local bd = d * ({ 1.1, 1.1, 1.1, 1.3 })[tier]
+		B.meshWave(body, "ImpactBubble", {
+			mesh = "Ball", material = Enum.Material.ForceField, color = pick(p, "swirlColor", Cl.swirl),
+			fromSize = Vector3.new(0.6, 0.6, 0.6), toSize = Vector3.new(bd, bd, bd),
+			fromTransparency = 0, toTransparency = 1, duration = 0.22, style = "Quad",
+		})
+	end
+	-- a short flat torus on the ground under the target
+	local gd = pick(p, "groundSize", ({ 3.4, 4.2, 5.4, 6.8 })[tier])
+	B.meshWave(impact, "GroundShock", {
+		mesh = A.torusMesh, color = pick(p, "groundColor", Cl.groundRing),
+		fromSize = Vector3.new(1, 0.12, 1), toSize = Vector3.new(gd, gd * GROUND_TUBE, gd),
 		fromOffset = Vector3.new(0, 0.1, 0), toOffset = Vector3.new(0, 0.1, 0),
-		fromTransparency = 0.25, toTransparency = 1, duration = 0.2,
+		fromTransparency = 0.05, toTransparency = 1, duration = 0.24, style = "Quart",
 	})
-	return impact:FindFirstChild(name)
+	return ring
 end
 
 function B.airShockwave(root, tier, p)
-	local core = pick(p, "core", Cl.core)
 	local part = B.part(root, pick(p, "part", "Palm"), pick(p, "at", O * CFrame.new(0, 3, -1.6)))
 	local count = pick(p, "count", ({ 1, 1, 2, 3 })[tier])
-	local travel = pick(p, "travel", 4 + tier) -- studs along the strike
-	local name = pick(p, "name", "AirWave")
-	local up = CFrame.Angles(math.rad(90), 0, 0) -- torus ring facing along the strike (-Z)
+	local d = pick(p, "size", ({ 2.2, 2.8, 3.6, 4.6 })[tier]) -- first ring's final diameter
+	local travel = pick(p, "travel", 3.5 + tier) -- studs along the strike (-Z)
+	local name = pick(p, "name", "AirRing")
+	local first
 	for i = 1, count do
-		local scale = 1 - (i - 1) * 0.2
-		B.meshWave(part, if i == 1 then name else name .. i, {
-			mesh = A.torusMesh, material = Enum.Material.Neon, color = core, orient = up,
-			fromSize = Vector3.new(0.8, 0.12, 0.8) * scale, toSize = Vector3.new(2.2 + tier * 0.5, 0.2, 2.2 + tier * 0.5) * scale,
-			fromOffset = Vector3.zero, toOffset = Vector3.new(0, 0, -travel * scale),
-			fromTransparency = 0.15, toTransparency = 1, duration = pick(p, "duration", 0.22), delay = (i - 1) * 0.05,
+		local k = 1 - (i - 1) * 0.12
+		local wave = B.meshWave(part, if i == 1 then name else name .. i, {
+			mesh = pick(p, "mesh", A.swirlMesh), color = pick(p, "color", Cl.ring),
+			fromSize = Vector3.new(0.6, 0.15, 0.6), toSize = Vector3.new(d * k, 0.4, d * k),
+			fromOffset = Vector3.new(0, 0, -0.3), toOffset = Vector3.new(0, 0, -travel * k),
+			rotation = Vector3.new(90, 0, 0), fromTransparency = 0.1 + (i - 1) * 0.15, toTransparency = 1,
+			duration = pick(p, "duration", 0.2), style = "Quad", delay = if i > 1 then (i - 1) * 0.045 else nil,
 		})
+		first = first or wave
 	end
-	return part:FindFirstChild(name)
+	return first
 end
 
 function B.shockwaveShell(root, tier, p)

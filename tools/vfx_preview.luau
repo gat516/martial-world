@@ -42,7 +42,8 @@
 --       moments come from Rules.castProfile: windup (80% of windup), hit (just
 --       after Hit), hitstop (Hit Stop), aftermath (end of recovery + 0.3 s);
 --       post-Hit moments add `lag` (default 0.1 s, shared.fx's Edit-mode start
---       delay). Default cameras (5 shots): windup hand, hit player+side,
+--       delay). Particles and MeshWave tweens freeze; Craters/SimpleMeshVFX
+--       tweens and spline trails don't. Default cameras (5 shots): windup hand, hit player+side,
 --       hitstop top, aftermath player; pass `moments` for others ("far" is
 --       player distance, ~25 studs). Tweened add-on parts (Craters,
 --       shells, spline trails) keep moving after a freeze, so judge those from
@@ -335,6 +336,11 @@ function P.castThrough(opts)
 					end
 				end
 			end
+		end
+		-- MeshWave tweens (TechniqueVFX.waves) hold too
+		local TV = require(holder.TechniqueVFX)
+		for tween in TV.waves or {} do
+			tween:Pause()
 		end
 	end
 	pcall(function()

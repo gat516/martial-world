@@ -261,6 +261,20 @@ do -- vfx_preview.luau
 --       CombatEffects.windup at start and CombatEffects.cast at Hit with the rig's
 --       live root and hands, then freezes particles at `freezeAt` seconds after
 --       cast start. Pass a level (1, 4, 7, 10 for tiers I-IV), not a tier.
+--   P.sweep({ id, level, radius?, moments?, lag? }) -> capture list (string)
+--       One call for a whole tier: builds one scene per named moment (spaced
+--       apart so effects don't mix), plays the real cast in each and freezes it
+--       at its moment, then returns every screen_capture to make, back to back:
+--       "capture_id | camera_position | look_at_position" per line. Default
+--       moments come from Rules.castProfile: windup (80% of windup), hit (just
+--       after Hit), hitstop (Hit Stop), aftermath (end of recovery + 0.3 s);
+--       post-Hit moments add `lag` (default 0.1 s, shared.fx's Edit-mode start
+--       delay). Particles and MeshWave tweens freeze; Craters/SimpleMeshVFX
+--       tweens and spline trails don't. Default cameras (5 shots): windup hand, hit player+side,
+--       hitstop top, aftermath player; pass `moments` for others ("far" is
+--       player distance, ~25 studs). Tweened add-on parts (Craters,
+--       shells, spline trails) keep moving after a freeze, so judge those from
+--       the hit/hitstop shots only.
 -- Typical camera for screen_capture: behind-right of the caster at player
 -- distance, e.g. C + (-12, 9, 5) looking at C + (4, 1, 0); top-down
 -- C + (0.1, 28, 0) -> C checks radii against the posts.
@@ -339,7 +353,9 @@ end
 
 function P.scene(opts)
 	opts = opts or {}
-	P.clear()
+	if not opts.keep then
+		P.clear()
+	end
 	local C = opts.center or Vector3.new(400, 640, 300)
 	local folder = Instance.new("Folder")
 	folder.Name = "_VFXPreview"
@@ -437,9 +453,8 @@ function P.clear(keepScene)
 			S = nil
 		end
 	end
-	local old = workspace:FindFirstChild("_VFXPreview")
-	if old and not keepScene then
-		old:Destroy()
+	while not keepScene and workspace:FindFirstChild("_VFXPreview") do
+		workspace._VFXPreview:Destroy()
 	end
 	local temp = workspace.Terrain:FindFirstChild("TempVFX")
 	if temp then
@@ -493,14 +508,15 @@ function P.fresh(names)
 end
 
 function P.castThrough(opts)
+	S = opts.scene or S
 	assert(S, "call P.scene first")
 	local RunService = game:GetService("RunService")
 	S.folder._fxOut:ClearAllChildren()
 	local temp = workspace.Terrain:FindFirstChild("TempVFX")
-	if temp then
+	if temp and not opts.scene then -- a sweep keeps earlier scenes' add-on parts
 		temp:ClearAllChildren()
 	end
-	local holder = P.fresh({ "CombatEffects", "Sfx", "TechniqueVFX" })
+	local holder = P.fresh({ "CombatEffects", "Sfx", "TechniqueVFX", "CastFX" })
 	local CE = require(holder.CombatEffects)
 	local Techniques = require(holder.Shared.Techniques)
 	local Rules = require(holder.Shared.ActionRules)
@@ -548,6 +564,11 @@ function P.castThrough(opts)
 				end
 			end
 		end
+		-- MeshWave tweens (TechniqueVFX.waves) hold too
+		local TV = require(holder.TechniqueVFX)
+		for tween in TV.waves or {} do
+			tween:Pause()
+		end
 	end
 	pcall(function()
 		RunService:UnbindFromRenderStep("CombatShake")
@@ -557,6 +578,44 @@ function P.castThrough(opts)
 		table.insert(kids, d.Name)
 	end
 	return string.format("t=%.2f err=%s spawned=%s", os.clock() - start, tostring(err), table.concat(kids, ","))
+end
+
+local CAMERAS = {
+	player = { Vector3.new(-12, 9, 5), Vector3.new(4, 1, -1) },
+	side = { Vector3.new(3, 6, 16), Vector3.new(3, 1.5, -1) },
+	top = { Vector3.new(0.1, 28, 0), Vector3.zero },
+	far = { Vector3.new(-23, 12, 12), Vector3.new(2, 1, -1) },
+	hand = { Vector3.new(4, 6, 9), Vector3.new(-0.5, 4.5, 0.5) },
+}
+P.CAMERAS = CAMERAS
+
+function P.sweep(opts)
+	local holder = P.fresh({ "TechniqueVFX" })
+	local Rules = require(holder.Shared.ActionRules)
+	local Techniques = require(holder.Shared.Techniques)
+	local profile = Rules.castProfile(Techniques.Defs[opts.id])
+	local lag = opts.lag or 0.1
+	local w, a, r = profile.windup, profile.active, profile.recovery
+	local moments = opts.moments or {
+		{ name = "windup", t = w * 0.8, cameras = { "hand" } },
+		{ name = "hit", t = w + 0.06 + lag, cameras = { "player", "side" } },
+		{ name = "hitstop", t = w + a + lag, cameras = { "top" } },
+		{ name = "aftermath", t = w + a + r + 0.3 + lag, cameras = { "player" } },
+	}
+	P.clear()
+	local base = opts.center or Vector3.new(400, 640, 300)
+	local lines, results = {}, {}
+	for i, m in moments do
+		local scene = P.scene({ center = base + Vector3.new(0, 0, (i - 1) * (opts.spacing or 160)), radius = opts.radius, keep = true, enemies = opts.enemies })
+		table.insert(results, m.name .. ": " .. P.castThrough({ id = opts.id, level = opts.level, freezeAt = m.t, scene = scene }))
+		for _, cam in m.cameras do
+			local c = CAMERAS[cam]
+			local from, to = scene.C + c[1], scene.C + c[2]
+			table.insert(lines, string.format("%s_L%d_%s_%s | %.1f, %.1f, %.1f | %.1f, %.1f, %.1f",
+				opts.id, opts.level, m.name, cam, from.X, from.Y, from.Z, to.X, to.Y, to.Z))
+		end
+	end
+	return table.concat(results, "\n") .. "\n" .. table.concat(lines, "\n")
 end
 
 _G.vfxPreview = P
@@ -573,13 +632,12 @@ do -- vfx_stage.luau
 --
 --   local staging = _G.vfxStage.begin()   -- fresh clone at ReplicatedStorage._StagingEffects
 --   ... edit/build inside `staging` ...
---   _G.vfxStage.finish()                  -- export, destroy staging, wait for Rojo
+--   _G.vfxStage.finish()                  -- export, destroy staging
+--   (on disk) tools/vfx_export.sh [names]  -- into assets/, verified
+--   _G.vfxStage.synced(check)              -- Rojo patched the live folder?
 --
 -- finish() POSTs the staging copy as Effects.rbxm (root renamed to "Effects"),
--- destroys the staging copy, and returns a summary: templates per group, tagged
--- add-on instances, and how many Effects copies exist. Then on disk run
--- tools/vfx_export.sh to move the file into assets/ and verify it; Rojo patches
--- the live folder from the file (finish's `wait` polls `check` for that).
+-- destroys it and returns a summary (templates per group, add-on tags).
 --
 -- Never build in ReplicatedStorage.Effects itself (AGENTS.md, "Studio instances").
 
@@ -626,25 +684,31 @@ local function summary(root)
 	return table.concat(groups, " ") .. " | tags " .. table.concat(tags, ",")
 end
 
--- check(): optional function(effectsFolder) -> boolean, true once Rojo has
--- applied the change (e.g. an attribute you just set). Waits up to 10 s.
-function Stage.finish(check)
+-- Exports the staging copy as Effects.rbxm (root renamed "Effects") and
+-- destroys it. Rojo patches the live folder only after tools/vfx_export.sh
+-- has copied the file into assets/, so confirm that with Stage.synced.
+function Stage.finish()
 	assert(_G.exportRbxm, "run tools/export_rbxm.luau first")
 	local staging = RS:FindFirstChild(NAME)
 	assert(staging, "no staging copy; call begin() first")
 	local text = summary(staging)
 	local reply = HttpService:PostAsync("http://127.0.0.1:8766/Effects.rbxm", _G.exportRbxm("ReplicatedStorage." .. NAME, "Effects"))
 	staging:Destroy()
-	local synced = check == nil
-	if check then
-		local t0 = os.clock()
-		while os.clock() - t0 < 10 do
-			if pcall(check, RS.Effects) and check(RS.Effects) then
-				synced = true
-				break
-			end
-			task.wait(0.25)
+	return string.format("export %s | %s | next: tools/vfx_export.sh, then vfxStage.synced(check)", reply, text)
+end
+
+-- After tools/vfx_export.sh: waits (up to 10 s) until check(ReplicatedStorage.Effects)
+-- is true, i.e. Rojo applied the change, and reports how many Effects copies exist.
+function Stage.synced(check)
+	local ok = false
+	local t0 = os.clock()
+	while os.clock() - t0 < 10 do
+		local passed, result = pcall(check, RS.Effects)
+		if passed and result then
+			ok = true
+			break
 		end
+		task.wait(0.25)
 	end
 	local copies = 0
 	for _, c in RS:GetChildren() do
@@ -652,12 +716,921 @@ function Stage.finish(check)
 			copies += 1
 		end
 	end
-	return string.format("export %s | %s | Effects copies %d | rojo synced %s", reply, text, copies, tostring(synced))
+	return string.format("rojo synced %s | Effects copies %d", tostring(ok), copies)
 end
 
 _G.vfxStage = Stage
 return "vfxStage installed"
 	end)
 	table.insert(installed, "vfx_stage.luau: " .. tostring(msg))
+end
+do -- vfx_diff.luau
+	local ok, msg = pcall(function()
+--!nocheck
+-- Structural diff of effect templates, for refactors that must not change what
+-- plays (e.g. rebuilding templates from a spec). Run through execute_luau; it
+-- installs _G.vfxDiff:
+--   local snap = vfxDiff.snapshot(root)       -- { [path] = "Class|prop=value|...|@attr=...|#tag" }
+--   vfxDiff.compare(snapA, snapB) -> string   -- "no differences", or one line per difference
+-- Paths are names from the root (siblings with the same name get #2, #3...).
+-- Every property that changes how an effect looks or times is compared; part
+-- placement is relative to the root's pivot, rounded to 1/1000 stud.
+
+local Diff = {}
+
+local PROPS = {
+	ParticleEmitter = {
+		"Texture", "Color", "Size", "Transparency", "Lifetime", "Speed", "SpreadAngle", "Rotation", "RotSpeed",
+		"Acceleration", "Drag", "LightEmission", "LightInfluence", "Brightness", "ZOffset", "Orientation",
+		"EmissionDirection", "Shape", "ShapeInOut", "ShapeStyle", "ShapePartial", "Squash", "FlipbookLayout",
+		"FlipbookMode", "FlipbookFramerate", "LockedToPart", "Rate", "Enabled", "TimeScale", "VelocityInheritance",
+	},
+	Trail = { "Color", "Transparency", "WidthScale", "Lifetime", "LightEmission", "LightInfluence", "FaceCamera", "Texture", "Enabled", "MinLength" },
+	Beam = { "Color", "Transparency", "Width0", "Width1", "CurveSize0", "CurveSize1", "Texture", "TextureSpeed", "LightEmission", "FaceCamera", "Segments" },
+	PointLight = { "Color", "Range", "Brightness", "Shadows", "Enabled" },
+	Attachment = { "Position", "Orientation" },
+	BasePart = { "Size", "Transparency", "Color", "Material", "Anchored", "CanCollide", "CanQuery", "CanTouch", "CastShadow" },
+	MeshPart = { "MeshId", "TextureID" },
+	Part = { "Shape" },
+}
+
+local function fmt(v)
+	local t = typeof(v)
+	if t == "number" then
+		return string.format("%.4g", v)
+	elseif t == "Vector3" then
+		return string.format("%.3f,%.3f,%.3f", v.X, v.Y, v.Z)
+	elseif t == "CFrame" then
+		local x, y, z = v:ToEulerAnglesXYZ()
+		return string.format("%.3f,%.3f,%.3f/%.3f,%.3f,%.3f", v.X, v.Y, v.Z, x, y, z)
+	elseif t == "Instance" then
+		return v.Name
+	end
+	return tostring(v)
+end
+
+local function describe(inst, root)
+	local parts = { inst.ClassName }
+	local lists = {}
+	for class, props in PROPS do
+		if inst:IsA(class) then
+			table.insert(lists, props)
+		end
+	end
+	for _, props in lists do
+		for _, p in props do
+			local ok, v = pcall(function()
+				return inst[p]
+			end)
+			if ok then
+				table.insert(parts, p .. "=" .. fmt(v))
+			end
+		end
+	end
+	if inst:IsA("BasePart") then
+		table.insert(parts, "at=" .. fmt(root:GetPivot():ToObjectSpace(inst.CFrame)))
+	end
+	if inst:IsA("Trail") or inst:IsA("Beam") then
+		table.insert(parts, "A0=" .. fmt(inst.Attachment0) .. " A1=" .. fmt(inst.Attachment1))
+	end
+	local attrs = {}
+	for k, v in inst:GetAttributes() do
+		table.insert(attrs, "@" .. k .. "=" .. fmt(v))
+	end
+	table.sort(attrs)
+	for _, a in attrs do
+		table.insert(parts, a)
+	end
+	local tags = inst:GetTags()
+	table.sort(tags)
+	for _, t in tags do
+		table.insert(parts, "#" .. t)
+	end
+	return table.concat(parts, "|")
+end
+
+function Diff.snapshot(root)
+	local snap = {}
+	local function walk(inst, path)
+		snap[path] = describe(inst, root)
+		local seen = {}
+		for _, child in inst:GetChildren() do
+			seen[child.Name] = (seen[child.Name] or 0) + 1
+			local key = child.Name .. (if seen[child.Name] > 1 then "#" .. seen[child.Name] else "")
+			walk(child, path .. "/" .. key)
+		end
+	end
+	walk(root, root.Name)
+	snap[root.Name] = describe(root, root) .. "|pivot"
+	return snap
+end
+
+-- Splits "A|b=1|c=2" and reports only the fields that differ.
+local function fieldDiff(a, b)
+	local fa, fb = {}, {}
+	for f in string.gmatch(a, "[^|]+") do
+		fa[f:match("^([^=]+)") or f] = f
+	end
+	for f in string.gmatch(b, "[^|]+") do
+		fb[f:match("^([^=]+)") or f] = f
+	end
+	local out = {}
+	for k, v in fa do
+		if fb[k] ~= v then
+			table.insert(out, v .. " -> " .. tostring(fb[k]))
+		end
+	end
+	for k, v in fb do
+		if fa[k] == nil then
+			table.insert(out, "(none) -> " .. v)
+		end
+	end
+	table.sort(out)
+	return table.concat(out, "; ")
+end
+
+function Diff.compare(a, b)
+	local out = {}
+	for path, desc in a do
+		if b[path] == nil then
+			table.insert(out, "- " .. path)
+		elseif b[path] ~= desc then
+			table.insert(out, "~ " .. path .. ": " .. fieldDiff(desc, b[path]))
+		end
+	end
+	for path in b do
+		if a[path] == nil then
+			table.insert(out, "+ " .. path)
+		end
+	end
+	table.sort(out)
+	return if #out == 0 then "no differences" else table.concat(out, "\n")
+end
+
+_G.vfxDiff = Diff
+return "vfxDiff installed"
+	end)
+	table.insert(installed, "vfx_diff.luau: " .. tostring(msg))
+end
+do -- vfx_blocks.luau
+	local ok, msg = pcall(function()
+--!nocheck
+-- VFXBlocks: parametric template builders for technique effects, run in Edit
+-- mode through execute_luau (bundled in tools/vfx_session.luau). They write
+-- instances into a template Model built at the origin (pivot = the ground
+-- point under the caster, facing -Z), so build into staging or a scratch
+-- folder, never into ReplicatedStorage.Effects. Runtime placement and timing
+-- stay in src/client (TechniqueVFX, CastFX); blocks only make the instances
+-- and the attributes those read (Phase, AuthoredWindup, EmitCount, ...).
+-- Values are seeded from what worked on Palm Strike; every block takes
+-- (root, tier, p) where tier is 1-4 and p overrides any default.
+--
+-- Shared params: color (main tint), core (bright accent), plus per block:
+--   groundShockwave  p.radius (9), p.echo (tier>=2), p.rays (tier>=2), p.dust
+--       Part "Ground": a flat ring front (Size = radius over its life, Phase
+--       "active" so it's fitted to Hit -> Hit Stop), an echo ring, centre rays
+--       and a dust skirt kicked out along the ground. Circles and zones.
+--   releaseFlash     p.part ("Palm"), p.at (CFrame), p.light (tier>=4)
+--       The flash/glow/forward sparks where the limb lands, the tier IV light.
+--   dropStreak       p.part ("Palm"), p.strike ("Strike"), p.strikeAt
+--       A streak dropping from the release point and a splash + puff where it
+--       lands (hand -> ground -> ring).
+--   handGather       p.part ("Windup"), p.at, p.windup (0.38), p.wisps (tier>=2)
+--       Qi motes and a charge glow that ride the striking limb through the
+--       windup (LockedToPart), III+ a closing seal, II+ Spline wisps.
+--   impactBurst      p.part ("Impact"), p.at
+--       Per-target hit: star flash, glow puff, spiky ring, sparks (Body
+--       attachment, ZOffset in front of the target), II+ dust, III+ shards,
+--       IV a ground crack.
+--   meshWave         (primitive) a 3D MeshWave model: torus/ball tweened From*
+--       -> To* relative to its parent part (see the function). Shockwaves use
+--       these so the main read is a physical part; particles are accents.
+--   impactShockwave  p.part ("Impact"), p.size, p.lifetime, p.second (tier>=3)
+--       The "it connected" punch: a Neon torus stood up facing back along the
+--       blow (CastFX aims the Impact part's look along the hit) snapping out
+--       in 0.15 -> 0.08 s by tier, a thinner second torus a beat later at
+--       III+, and a short flat torus on the ground under the target.
+--   airShockwave     p.part ("Palm"), p.count (1, 1, 2, 3 by tier), p.travel
+--       Sonic-boom torus rings leaving the striking limb along the strike
+--       direction, growing as they travel; a staggered train at high tiers.
+--       For palm/kick releases and sword waves.
+--   shockwaveShell   p.name ("Shell"), p.mesh, p.from/p.to (size), p.spin,
+--       p.duration, p.startTransparency: a SimpleMeshVFX Start/End shell
+--       (dome, sphere or swirl ring). Code sets Duration from the active window.
+--   craterRing       p.parent ("Ground"), p.name ("RockRing"), p.shape
+--       ("Ring"/"Cone"), p.radius, p.count: a Craters attachment (rocks that
+--       erupt with a wave, or a cone kicked out at a target).
+--   screenShake      p.parent, p.name ("Shake"), p.magnitude, p.preset,
+--       p.falloff, p.frames: ScreenEffects CameraShake (and ImpactFrames) on
+--       an empty attachment. Code adds CombatEffects.shake only when
+--       TechniqueVFX.full is false.
+--   (distortionWave was tried and dropped: an expanding ForceField shell
+--   didn't read at all in captures, day or night.)
+--   impactStack      p.flash/p.wave/p.burst/p.kick/p.quake overrides: one
+--       tier-scaled "big hit" = impactBurst + impactShockwave + III+ Craters
+--       cone + IV ScreenEffects quake.
+--   emitter          p.part, p.partAt, p.name, p.props, p.attrs, p.flat,
+--       p.dir: one emitter for a technique-specific piece (seals, halos...).
+--
+-- buildFromSpec(spec, parent) builds <Id>_T1..T4 from a spec table (see
+-- tools/vfx_specs/): spec.root.attrs on each root, and spec.beats, a list of
+-- { block, from?, to?, params?, phase?, attrs? } played in order for each tier
+-- with from <= tier <= to. `phase` sets Phase on the beat's emitters, `attrs`
+-- adds attributes to the beat's main instance.
+
+local AssetService = game:GetService("AssetService")
+
+local B = {}
+
+local function id(n)
+	return "rbxassetid://" .. n
+end
+
+-- Library picks that worked (see tools/vfx_library.json for more).
+B.ASSETS = {
+	glow = id(867619398), -- soft radial glow
+	star12 = id(243728206), -- 12-point starburst
+	star4 = id(13271628051), -- crisp 4-point star
+	waveRing = id(12363693873), -- thick fuzzy ring (ground wave front)
+	thinRing = id(9841273159), -- clean thin ring
+	hitRing = id(13052235894), -- spiky anime impact ring
+	rays = id(15773612675), -- radial sunburst
+	spindle = id(7814053668), -- thin spindle streak (sparks, drops)
+	dust = id(11037785287), -- soft dust puff
+	crack = id(93520831389146), -- radial ground cracks
+	crater = id(90713203428310), -- dark crater ring
+	seal = id(83667248904000), -- rune circle
+	ornate = id(13399941667), -- ornate halo circle
+	shards = id(12402863766), -- shard spray
+	swirlMesh = id(129778117978668), -- horizontal wind swirl ring mesh
+	domeMesh = id(13567208057), -- low dome mesh
+	rockMesh = id(17608108317), -- Inno stylized Rock_03 (Craters UseMesh)
+	torusMesh = id(471124075), -- torus ring mesh (MeshSize 150 x 9.51 x 150; lies flat in XZ)
+	swirlRingMesh = id(122217820569960), -- flat swirl ring (impact swirl)
+}
+
+B.COLORS = {
+	gold = Color3.fromRGB(255, 210, 120),
+	core = Color3.fromRGB(255, 244, 214),
+	dust = Color3.fromRGB(226, 212, 186),
+	crack = Color3.fromRGB(110, 88, 56),
+	crater = Color3.fromRGB(70, 56, 40),
+	ring = Color3.fromRGB(255, 240, 205), -- Neon torus rings (impact, air, ground wave)
+	groundRing = Color3.fromRGB(255, 224, 150), -- the ground shock under a target
+	swirl = Color3.fromRGB(255, 214, 130), -- impact swirl and bubble
+}
+
+local A, Cl = B.ASSETS, B.COLORS
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local O = CFrame.new()
+
+local function pick(p, key, default)
+	if p[key] == nil then
+		return default
+	end
+	return p[key]
+end
+
+-- ---------------------------------------------------------------- primitives
+
+-- A named part under `root`, created at `cf` (relative to the origin pivot)
+-- the first time; later blocks asking for the same name share it.
+function B.part(root, name, cf, size)
+	local existing = root:FindFirstChild(name)
+	if existing then
+		return existing
+	end
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+	p.Transparency = 1
+	p.Size = size or Vector3.new(0.2, 0.2, 0.2)
+	p.CFrame = cf or O
+	p.Parent = root
+	return p
+end
+
+function B.emitter(parent, name, props, attrs)
+	local e = Instance.new("ParticleEmitter")
+	e.Name = name
+	e.Rate = 0
+	e.Enabled = false
+	e.LightInfluence = 0
+	e.Speed = R(0)
+	for k, v in props do
+		e[k] = v
+	end
+	for k, v in attrs or {} do
+		e:SetAttribute(k, v)
+	end
+	e.Parent = parent
+	return e
+end
+
+-- A plane particle: flat on the ground (Top) or facing along `dir`.
+function B.flat(props, dir)
+	props.Orientation = Enum.ParticleOrientation.VelocityPerpendicular
+	props.EmissionDirection = dir or Enum.NormalId.Top
+	props.Speed = R(0.01)
+	props.SpreadAngle = Vector2.zero
+	return props
+end
+
+function B.attach(parent, name, pos, attrs, tag)
+	local a = Instance.new("Attachment")
+	a.Name = name
+	a.Position = pos or Vector3.zero
+	for k, v in attrs or {} do
+		a:SetAttribute(k, v)
+	end
+	if tag then
+		a:AddTag(tag)
+	end
+	a.Parent = parent
+	return a
+end
+
+local meshCache = {}
+-- A Neon MeshPart at Transparency 1 (SimpleMeshVFX shows clones from
+-- StartTransparency). MeshId isn't writable from scripts, hence the cache of
+-- CreateMeshPartAsync results.
+function B.mesh(meshId, parent, name, size, cf, color, material)
+	local source = meshCache[meshId]
+	if not source then
+		source = AssetService:CreateMeshPartAsync(meshId)
+		meshCache[meshId] = source
+	end
+	local m = source:Clone()
+	m.Name = name
+	m.Anchored, m.CanCollide, m.CanQuery, m.CanTouch, m.CastShadow = true, false, false, false, false
+	m.Material = material or Enum.Material.Neon
+	m.Color = color
+	m.Transparency = 1
+	if size then
+		m.Size = size
+	end
+	m.CFrame = cf
+	m.Parent = parent
+	return m
+end
+
+-- ---------------------------------------------------------------- blocks
+
+function B.groundShockwave(root, tier, p)
+	local gold, core = pick(p, "color", Cl.gold), pick(p, "core", Cl.core)
+	local radius = pick(p, "radius", 9)
+	local ground = B.part(root, pick(p, "part", "Ground"), O * CFrame.new(0, 0.2, 0))
+	local k = radius / 9
+	B.emitter(ground, "WaveFront", B.flat({
+		Texture = A.waveRing, Color = CS(gold),
+		Size = NS({ KP(0, 1 * k), KP(0.3, 5 * k), KP(0.6, 7.6 * k), KP(1, radius) }),
+		Transparency = NS({ KP(0, 0.1), KP(0.6, 0.35), KP(1, 1) }),
+		Lifetime = R(pick(p, "lifetime", 0.3)), LightEmission = 0.35, Brightness = 1.4,
+	}), { EmitCount = 1, Phase = "active" })
+	if pick(p, "dust", true) then
+		B.emitter(ground, "Dust", {
+			Texture = A.dust, Color = CS(pick(p, "dustColor", Cl.dust)), LightInfluence = 0.5,
+			ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface, EmissionDirection = Enum.NormalId.Front,
+			SpreadAngle = Vector2.new(5, 180),
+			Size = NS({ KP(0, 0.9), KP(1, 2.2 + tier * 0.2) }), Transparency = NS({ KP(0, 0.3), KP(0.5, 0.5), KP(1, 1) }),
+			Lifetime = R(0.45, 0.7), Speed = R(34 * k, 44 * k), Drag = 4,
+			Rotation = R(0, 360), RotSpeed = R(-60, 60),
+		}, { EmitCount = ({ 10, 12, 14, 16 })[tier] })
+	end
+	if pick(p, "echo", tier >= 2) then
+		B.emitter(ground, "WaveEcho", B.flat({
+			Texture = A.thinRing, Color = CS(core),
+			Size = NS({ KP(0, 1 * k), KP(0.4, 6.5 * k), KP(1, 9.4 * k) }), Transparency = NS({ KP(0, 0.05), KP(1, 1) }),
+			Lifetime = R(0.36), LightEmission = 0.5, Brightness = 1.6,
+		}), { EmitCount = 1, EmitDelay = 0.07, Phase = "active" })
+	end
+	-- the 3D torus rolling out with the front (CombatEffects sets ToSize from
+	-- def.radius; Phase "active" fits it to the window)
+	if pick(p, "torus", true) then
+		B.meshWave(ground, "GroundWave", {
+			mesh = A.torusMesh, color = Cl.ring,
+			fromSize = Vector3.new(1.5, 0.152, 1.5), toSize = Vector3.new(radius * 2, 1.255 * k, radius * 2),
+			fromOffset = Vector3.new(0, 0.25, 0), toOffset = Vector3.new(0, 0.25, 0),
+			fromTransparency = 0, toTransparency = 1, duration = 0.3, style = "Quart", phase = "active",
+		})
+	end
+	if pick(p, "rays", tier >= 2) then
+		B.emitter(ground, "Rays", B.flat({
+			Texture = A.rays, Color = CS(gold),
+			Size = NS({ KP(0, 1.5), KP(1, 6) }), Transparency = NS({ KP(0, 0), KP(1, 1) }),
+			Lifetime = R(0.28), LightEmission = 0.5, Rotation = R(0, 360),
+		}), { EmitCount = 1, Phase = "active" })
+	end
+	return ground
+end
+
+function B.releaseFlash(root, tier, p)
+	local gold, core = pick(p, "color", Cl.gold), pick(p, "core", Cl.core)
+	local part = B.part(root, pick(p, "part", "Palm"), pick(p, "at", O * CFrame.new(0, 3, -1.6)))
+	B.emitter(part, "Flash", {
+		Texture = A.star12, Color = CS(core),
+		Size = NS({ KP(0, 0.3), KP(0.35, 1.2 + tier * 0.25), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(1, 0.5) }),
+		Lifetime = R(0.14), LightEmission = 0.6, Rotation = R(0, 360), ZOffset = 1,
+	}, { EmitCount = 1 })
+	B.emitter(part, "Glow", {
+		Texture = A.glow, Color = CS(gold),
+		Size = NS({ KP(0, 0.8), KP(1, 1.6 + tier * 0.3) }), Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
+		Lifetime = R(0.22), LightEmission = 0.4,
+	}, { EmitCount = 1 })
+	if tier >= 2 then
+		B.emitter(part, "Sparks", {
+			Texture = A.spindle, Color = CS(core), Orientation = Enum.ParticleOrientation.VelocityParallel,
+			EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(35, 35),
+			Size = NS({ KP(0, 0.22), KP(1, 0) }), Squash = NS({ KP(0, 2), KP(1, 1) }), Transparency = NS(0),
+			Lifetime = R(0.15, 0.28), Speed = R(28, 42), Drag = 7, LightEmission = 0.6,
+		}, { EmitCount = ({ 0, 6, 8, 10 })[tier] })
+	end
+	if pick(p, "light", tier >= 4) then
+		local light = Instance.new("PointLight")
+		light.Name = "Light"
+		light.Color = gold
+		light.Range = 22
+		light.Brightness = 0 -- the caller flashes it and fades it out
+		light.Shadows = false
+		light.Parent = part
+	end
+	return part
+end
+
+function B.dropStreak(root, tier, p)
+	local gold, core = pick(p, "color", Cl.gold), pick(p, "core", Cl.core)
+	local part = B.part(root, pick(p, "part", "Palm"), O * CFrame.new(0, 3, -1.6))
+	B.emitter(part, "Drop", {
+		Texture = A.spindle, Color = CS(core, gold), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		EmissionDirection = Enum.NormalId.Bottom, SpreadAngle = Vector2.new(4, 4),
+		Size = NS({ KP(0, 0.35 + tier * 0.08), KP(1, 0.15) }), Squash = NS(2.5), Transparency = NS({ KP(0, 0), KP(1, 0.4) }),
+		Lifetime = R(0.06), Speed = R(45), LightEmission = 0.6, ZOffset = 1,
+	}, { EmitCount = tier >= 3 and 2 or 1 })
+	if tier >= 3 then
+		B.emitter(part, "Column", {
+			Texture = A.glow, Color = CS(gold), Orientation = Enum.ParticleOrientation.VelocityParallel,
+			EmissionDirection = Enum.NormalId.Bottom, Size = NS({ KP(0, 0.8), KP(1, 0.4) }), Squash = NS(3),
+			Transparency = NS({ KP(0, 0.3), KP(1, 1) }), Lifetime = R(0.08), Speed = R(30), LightEmission = 0.4,
+		}, { EmitCount = 1 })
+	end
+	local strike = B.part(root, pick(p, "strike", "Strike"), pick(p, "strikeAt", O * CFrame.new(0, 0.2, -1.5)))
+	B.emitter(strike, "Splash", B.flat({
+		Texture = A.hitRing, Color = CS(gold),
+		Size = NS({ KP(0, 0.3), KP(1, 1.2 + tier * 0.3) }), Transparency = NS({ KP(0, 0), KP(1, 1) }),
+		Lifetime = R(0.15), LightEmission = 0.5, Rotation = R(0, 360), ZOffset = 0.5,
+	}), { EmitCount = 1, EmitDelay = 0.04 })
+	B.emitter(strike, "Puff", {
+		Texture = A.dust, Color = CS(Cl.dust), LightInfluence = 0.5,
+		EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180),
+		Size = NS({ KP(0, 0.5), KP(1, 1.3) }), Transparency = NS({ KP(0, 0.35), KP(1, 1) }),
+		Lifetime = R(0.3, 0.45), Speed = R(10, 14), Drag = 5, Rotation = R(0, 360),
+	}, { EmitCount = 2 + tier, EmitDelay = 0.04 })
+	return part
+end
+
+function B.handGather(root, tier, p)
+	local gold, core = pick(p, "color", Cl.gold), pick(p, "core", Cl.core)
+	local at = pick(p, "at", O * CFrame.new(0, 3, -1.2))
+	local windup = B.part(root, pick(p, "part", "Windup"), at, Vector3.new(3, 3, 3))
+	windup:SetAttribute("AuthoredWindup", pick(p, "windup", 0.38))
+	B.emitter(windup, "Gather", {
+		Texture = A.glow, Color = CS(gold),
+		Shape = Enum.ParticleEmitterShape.Sphere, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+		ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
+		Size = NS({ KP(0, 0.25), KP(1, 0.05) }), Transparency = NS({ KP(0, 1), KP(0.3, 0.2), KP(1, 0) }),
+		Lifetime = R(0.3), Speed = R(7, 9), LightEmission = 0.6, LockedToPart = true,
+	}, { EmitCount = ({ 5, 7, 9, 12 })[tier] })
+	B.emitter(windup, "Charge", {
+		Texture = A.glow, Color = CS(core),
+		Size = NS({ KP(0, 0.1), KP(1, 0.7 + tier * 0.12) }), Transparency = NS({ KP(0, 0.8), KP(1, 0.2) }),
+		Lifetime = R(0.34), LightEmission = 0.5, LockedToPart = true,
+	}, { EmitCount = 1 })
+	if tier >= 3 then
+		B.emitter(windup, "SealIn", B.flat({
+			Texture = A.seal, Color = CS(gold),
+			Size = NS({ KP(0, 1.3), KP(1, 0.35) }), Transparency = NS({ KP(0, 1), KP(0.4, 0.3), KP(1, 0.1) }),
+			Lifetime = R(0.34), RotSpeed = R(-180), LightEmission = 0.5, LockedToPart = true,
+		}, Enum.NormalId.Front), { EmitCount = 1 })
+	end
+	if pick(p, "wisps", tier >= 2) then
+		-- Spline wisps (Splines add-on): paths from around the body into the
+		-- limb; CombatEffects moves this part with the hand and emits it itself
+		local wisps = B.part(windup, "Wisps", at, Vector3.new(5, 3, 5))
+		wisps:AddTag("SplineVFX")
+		B.attach(wisps, "1", Vector3.new(0, 1.5, -1))
+		B.attach(wisps, "End", Vector3.zero)
+		for k2, v in {
+			EmitCount = tier, Duration = R(0.34), Easing = NS({ KP(0, 0), KP(0.6, 0.35), KP(1, 1) }),
+			Tension = R(-0.3), Variance = Vector3.new(1.5, 1.5, 1.5), SyncPosition = true, FacePath = true, PoolObject = false,
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, -- start points: the part's volume
+		} do
+			wisps:SetAttribute(k2, v)
+		end
+		local wisp = B.part(wisps, "Wisp", at)
+		local a0 = B.attach(wisp, "A0", Vector3.new(-0.12, 0, 0))
+		local a1 = B.attach(wisp, "A1", Vector3.new(0.12, 0, 0))
+		local trail = Instance.new("Trail")
+		trail.Attachment0, trail.Attachment1 = a0, a1
+		trail.Color = CS(core, gold)
+		trail.Transparency = NS({ KP(0, 0.1), KP(1, 1) })
+		trail.WidthScale = NS({ KP(0, 1), KP(1, 0) })
+		trail.Lifetime = 0.18
+		trail.LightEmission = 0.6
+		trail.LightInfluence = 0
+		trail.FaceCamera = true
+		trail.Parent = wisp
+	end
+	return windup
+end
+
+function B.impactBurst(root, tier, p)
+	local gold, core = pick(p, "color", Cl.gold), pick(p, "core", Cl.core)
+	local impact = B.part(root, pick(p, "part", "Impact"), pick(p, "at", O * CFrame.new(0, 0.15, -6)))
+	local body = impact:FindFirstChild("Body") or B.attach(impact, "Body", Vector3.new(0, 2.2, 0))
+	B.emitter(body, "Flash", {
+		Texture = A.star4, Color = CS(core),
+		Size = NS({ KP(0, 0.6), KP(0.3, 2 + tier * 0.35), KP(1, 0) }), Transparency = NS(0),
+		Lifetime = R(0.12), LightEmission = 0.8, Rotation = R(-15, 15), ZOffset = 3,
+	}, { EmitCount = 1 })
+	B.emitter(body, "Puff", {
+		Texture = A.glow, Color = CS(gold),
+		Size = NS({ KP(0, 1.2), KP(1, 2.2 + tier * 0.25) }), Transparency = NS({ KP(0, 0.25), KP(1, 1) }),
+		Lifetime = R(0.16), LightEmission = 0.5, ZOffset = 2.5,
+	}, { EmitCount = 1 })
+	B.emitter(body, "HitRing", {
+		Texture = A.hitRing, Color = CS(gold),
+		Size = NS({ KP(0, 0.5), KP(1, 2.2 + tier * 0.35) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.25), KP(1, 1) }),
+		Lifetime = R(0.2), LightEmission = 0.45, Rotation = R(0, 360), ZOffset = 2.8,
+	}, { EmitCount = 1 })
+	B.emitter(body, "Sparks", {
+		Texture = A.spindle, Color = CS(core), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		SpreadAngle = Vector2.new(180, 180),
+		Size = NS({ KP(0, 0.25), KP(1, 0) }), Squash = NS({ KP(0, 2), KP(1, 1) }), Transparency = NS(0),
+		Lifetime = R(0.15, 0.3), Speed = R(30, 45), Drag = 8, LightEmission = 0.6, ZOffset = 2,
+	}, { EmitCount = ({ 6, 8, 10, 12 })[tier] })
+	if tier >= 2 then
+		B.emitter(impact, "Dust", {
+			Texture = A.dust, Color = CS(Cl.dust), LightInfluence = 0.5,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(80, 80),
+			Size = NS({ KP(0, 0.6), KP(1, 1.5) }), Transparency = NS({ KP(0, 0.45), KP(1, 1) }),
+			Lifetime = R(0.4, 0.6), Speed = R(6, 10), Drag = 4, Rotation = R(0, 360), ZOffset = 1,
+		}, { EmitCount = ({ 0, 3, 4, 5 })[tier] })
+	end
+	if tier >= 3 then
+		B.emitter(body, "Shards", {
+			Texture = A.shards, Color = CS(gold),
+			Size = NS({ KP(0, 1), KP(1, 2.4) }), Transparency = NS({ KP(0, 0), KP(1, 1) }),
+			Lifetime = R(0.16), LightEmission = 0.4, Rotation = R(0, 360), ZOffset = 2.6,
+		}, { EmitCount = 1 })
+	end
+	if tier >= 4 then
+		B.emitter(impact, "Crack", B.flat({
+			Texture = A.crack, Color = CS(Cl.crack), LightInfluence = 0.3,
+			Size = NS(1.8), Transparency = NS({ KP(0, 1), KP(0.05, 0.15), KP(0.6, 0.3), KP(1, 1) }),
+			Lifetime = R(1.1), Rotation = R(0, 360), ZOffset = -0.5,
+		}), { EmitCount = 1 })
+	end
+	return impact
+end
+
+-- A MeshWave (TechniqueVFX plays it, with or without the Game Module): a
+-- Model with MeshWave = true and a child `Mesh` part (Transparency 1 in the
+-- template, native mesh size, at the template origin), tweened at emit time
+-- relative to its parent part/attachment from From* to To*. Only the given
+-- attributes are set: fromSize/toSize, fromOffset/toOffset (Vector3, parent
+-- space), rotation (Vector3 degrees; (90,0,0) stands a flat ring up facing
+-- the parent's -Z), fromTransparency/toTransparency, duration, style (an
+-- EasingStyle name), delay (EmitDelay), phase ("active" -> fit() retimes it).
+-- p.mesh is a MeshId, or "Ball" for a sphere Part; p.material, p.color.
+-- Shockwaves read as physical 3D parts this way; particles are accents.
+function B.meshWave(parent, name, p)
+	local wave = Instance.new("Model")
+	wave.Name = name
+	for k, v in {
+		FromSize = p.fromSize, ToSize = p.toSize, FromOffset = p.fromOffset, ToOffset = p.toOffset,
+		Rotation = p.rotation, FromTransparency = p.fromTransparency, ToTransparency = p.toTransparency,
+		Duration = p.duration, Style = p.style, EmitDelay = p.delay, Phase = p.phase,
+	} do
+		wave:SetAttribute(k, v)
+	end
+	wave:SetAttribute("MeshWave", true)
+	if p.mesh == "Ball" then
+		local ball = Instance.new("Part")
+		ball.Name = "Mesh"
+		ball.Shape = Enum.PartType.Ball
+		ball.Anchored, ball.CanCollide, ball.CanQuery, ball.CanTouch, ball.CastShadow = true, false, false, false, false
+		ball.Material = p.material or Enum.Material.ForceField
+		ball.Color = p.color or Cl.core
+		ball.Transparency = 1
+		ball.CFrame = O
+		ball.Parent = wave
+	else
+		B.mesh(p.mesh or A.torusMesh, wave, "Mesh", nil, O, p.color or Cl.ring, p.material)
+	end
+	wave.Parent = parent
+	return wave
+end
+
+-- Torus 471124075 is 150 x 9.51 x 150 (a round tube is Y = D * 0.0634);
+-- impact rings use a 1.5x fatter tube, ground shocks 1.3x.
+local RING_TUBE, GROUND_TUBE = 0.0951, 0.0824
+
+function B.impactShockwave(root, tier, p)
+	local impact = B.part(root, pick(p, "part", "Impact"), pick(p, "at", O * CFrame.new(0, 0.15, -6)))
+	local body = impact:FindFirstChild("Body") or B.attach(impact, "Body", Vector3.new(0, 2.2, 0))
+	local d = pick(p, "size", ({ 3, 3.8, 4.8, 6 })[tier]) -- ring diameter, studs
+	-- the "it connected" ring, stood up facing back along the blow (CastFX aims
+	-- the Impact part's look along the hit), snapping out in 0.16 s
+	local ring = B.meshWave(body, "ImpactRing", {
+		mesh = A.torusMesh, color = pick(p, "ringColor", Cl.ring),
+		fromSize = Vector3.new(0.8, 0.1, 0.8), toSize = Vector3.new(d, d * RING_TUBE, d),
+		rotation = Vector3.new(90, 0, 0), fromTransparency = 0.05, toTransparency = 1,
+		duration = pick(p, "duration", 0.16), style = "Quart",
+	})
+	if pick(p, "swirl", tier >= 2) then
+		local sd = d * 1.3
+		B.meshWave(body, "ImpactSwirl", {
+			mesh = A.swirlRingMesh, color = pick(p, "swirlColor", Cl.swirl),
+			fromSize = Vector3.new(1, 0.25, 1), toSize = Vector3.new(sd, 0.5, sd),
+			rotation = Vector3.new(90, 0, 0), fromTransparency = 0.15, toTransparency = 1,
+			duration = 0.22, style = "Quad", delay = 0.03,
+		})
+	end
+	if pick(p, "bubble", tier >= 3) then
+		local bd = d * ({ 1.1, 1.1, 1.1, 1.3 })[tier]
+		B.meshWave(body, "ImpactBubble", {
+			mesh = "Ball", material = Enum.Material.ForceField, color = pick(p, "swirlColor", Cl.swirl),
+			fromSize = Vector3.new(0.6, 0.6, 0.6), toSize = Vector3.new(bd, bd, bd),
+			fromTransparency = 0, toTransparency = 1, duration = 0.22, style = "Quad",
+		})
+	end
+	-- a short flat torus on the ground under the target
+	local gd = pick(p, "groundSize", ({ 3.4, 4.2, 5.4, 6.8 })[tier])
+	B.meshWave(impact, "GroundShock", {
+		mesh = A.torusMesh, color = pick(p, "groundColor", Cl.groundRing),
+		fromSize = Vector3.new(1, 0.12, 1), toSize = Vector3.new(gd, gd * GROUND_TUBE, gd),
+		fromOffset = Vector3.new(0, 0.1, 0), toOffset = Vector3.new(0, 0.1, 0),
+		fromTransparency = 0.05, toTransparency = 1, duration = 0.24, style = "Quart",
+	})
+	return ring
+end
+
+function B.airShockwave(root, tier, p)
+	local part = B.part(root, pick(p, "part", "Palm"), pick(p, "at", O * CFrame.new(0, 3, -1.6)))
+	local count = pick(p, "count", ({ 1, 1, 2, 3 })[tier])
+	local d = pick(p, "size", ({ 2.2, 2.8, 3.6, 4.6 })[tier]) -- first ring's final diameter
+	local travel = pick(p, "travel", 3.5 + tier) -- studs along the strike (-Z)
+	local name = pick(p, "name", "AirRing")
+	local first
+	for i = 1, count do
+		local k = 1 - (i - 1) * 0.12
+		local wave = B.meshWave(part, if i == 1 then name else name .. i, {
+			mesh = pick(p, "mesh", A.swirlMesh), color = pick(p, "color", Cl.ring),
+			fromSize = Vector3.new(0.6, 0.15, 0.6), toSize = Vector3.new(d * k, 0.4, d * k),
+			fromOffset = Vector3.new(0, 0, -0.3), toOffset = Vector3.new(0, 0, -travel * k),
+			rotation = Vector3.new(90, 0, 0), fromTransparency = 0.1 + (i - 1) * 0.15, toTransparency = 1,
+			duration = pick(p, "duration", 0.2), style = "Quad", delay = if i > 1 then (i - 1) * 0.045 else nil,
+		})
+		first = first or wave
+	end
+	return first
+end
+
+function B.shockwaveShell(root, tier, p)
+	local shell = Instance.new("Model")
+	shell.Name = pick(p, "name", "Shell")
+	for k, v in {
+		Duration = pick(p, "duration", 0.35), StartTransparency = pick(p, "startTransparency", 0.3),
+		EndTransparency = 1, Part_TweenParams = pick(p, "tween", "Quad,Out"),
+	} do
+		shell:SetAttribute(k, v)
+	end
+	shell.Parent = root
+	local meshId = pick(p, "mesh", A.swirlMesh)
+	local spin = pick(p, "spin", 140)
+	B.mesh(meshId, shell, "Start", pick(p, "from", Vector3.new(3, 0.7, 3)), O * CFrame.new(0, pick(p, "y0", 0.5), 0), pick(p, "startColor", Cl.gold), p.material)
+	B.mesh(meshId, shell, "End", pick(p, "to", Vector3.new(19, 1.4, 19)), O * CFrame.new(0, pick(p, "y1", 0.7), 0) * CFrame.Angles(0, math.rad(spin), 0), pick(p, "endColor", Cl.core), p.material)
+	return shell
+end
+
+function B.craterRing(root, tier, p)
+	local parent = root:FindFirstChild(pick(p, "parent", "Ground")) or B.part(root, pick(p, "parent", "Ground"), O * CFrame.new(0, 0.2, 0))
+	local cone = pick(p, "shape", "Ring") == "Cone"
+	local attrs = if cone then {
+		Shape = "Cone", ConeAngle = 80, Radius = 2.2, Fill = true, Variance = 0.5, Count = tier == 4 and 4 or 3, Duration = 0.04,
+		EmissionStart = "Progressive", EmissionEnd = "Random",
+		Size = Vector3.new(0.8, 0.6, 0.7), SizeScale = R(0.8, 1.2), SizeBias = 0.5,
+		Lifetime = R(0.9, 1.2), SpawnTime = R(0.05, 0.08), DespawnTime = R(0.3, 0.4),
+		AngleX = R(20, 45), AngleY = R(-30, 30), AngleZ = R(-15, 15),
+		Collision = false, MatchGround = true, YOffset = 0.3, RaycastDistance = 8,
+		UseMesh = true, MeshId = A.rockMesh,
+	} else {
+		Shape = "Ring", Fill = true, Radius = pick(p, "radius", 9), Variance = 1.2, Count = tier == 4 and 12 or 8, Duration = 0.3,
+		EmissionStart = "Progressive", EmissionEnd = "Progressive",
+		Size = Vector3.new(1.4, 1.0, 1.2), SizeScale = R(0.7, 1.2), SizeBias = 0.7,
+		Lifetime = R(1.3, 1.7), SpawnTime = R(0.06, 0.1), DespawnTime = R(0.4, 0.6),
+		AngleX = R(25, 50), AngleY = R(-20, 20), AngleZ = R(-10, 10),
+		Collision = false, MatchGround = true, YOffset = 0.45, RaycastDistance = 12,
+		UseMesh = true, MeshId = A.rockMesh,
+	}
+	for k, v in p.attrs or {} do
+		attrs[k] = v
+	end
+	return B.attach(parent, pick(p, "name", if cone then "Kick" else "RockRing"), Vector3.zero, attrs, "CraterVFX")
+end
+
+function B.screenShake(root, tier, p)
+	local parent = root:FindFirstChild(pick(p, "parent", "Palm")) or B.part(root, pick(p, "parent", "Palm"), O * CFrame.new(0, 3, -1.6))
+	local attrs = {}
+	if p.preset then
+		attrs.CameraShake = p.preset .. (if p.falloff then "," .. p.falloff else "")
+	elseif pick(p, "shake", true) then
+		attrs.CameraShake = string.format("Custom,%s,%.1f,0.25,9,0.02", pick(p, "falloff", "25~90"), pick(p, "magnitude", ({ 1.2, 1.8, 2.6, 3.4 })[tier]))
+	end
+	local shake = B.attach(parent, pick(p, "name", "Shake"), nil, attrs)
+	if p.frames then
+		B.attach(parent, pick(p, "framesName", "Frames"), nil, { ImpactFrames = p.frames == true and "2,,60,40,0,0.5,0.045,0.045" or p.frames })
+	end
+	return shake
+end
+
+function B.impactStack(root, tier, p)
+	B.impactBurst(root, tier, p.burst or p)
+	if p.wave ~= false then
+		B.impactShockwave(root, tier, p.wave or p)
+	end
+	if p.kick ~= false and tier >= 3 then
+		B.craterRing(root, tier, { parent = "Impact", shape = "Cone", attrs = p.kick })
+	end
+	if p.quake ~= false and tier >= 4 then
+		B.screenShake(root, tier, { parent = "Impact", name = "Quake", preset = "Explosion", falloff = "20~80" })
+	end
+	return root:FindFirstChild("Impact")
+end
+
+-- One emitter on a named part (created at p.partAt the first time).
+function B.emitterBlock(root, tier, p)
+	local part = B.part(root, p.part, p.partAt or O)
+	local props = table.clone(p.props)
+	if p.flat then
+		B.flat(props, p.dir)
+	end
+	return B.emitter(part, p.name, props, p.attrs)
+end
+
+-- ---------------------------------------------------------------- specs
+
+local BLOCKS = {
+	groundShockwave = B.groundShockwave, releaseFlash = B.releaseFlash, dropStreak = B.dropStreak,
+	handGather = B.handGather, impactBurst = B.impactBurst, impactShockwave = B.impactShockwave,
+	airShockwave = B.airShockwave, shockwaveShell = B.shockwaveShell, craterRing = B.craterRing,
+	screenShake = B.screenShake, impactStack = B.impactStack,
+	emitter = B.emitterBlock,
+}
+B.BLOCKS = BLOCKS
+
+local function setPhase(inst, phase)
+	local list = inst:GetDescendants()
+	table.insert(list, inst)
+	for _, d in list do
+		if d:IsA("ParticleEmitter") then
+			d:SetAttribute("Phase", phase)
+		end
+	end
+end
+
+-- Builds <spec.id>_T<tier> for tier 1..4 (or spec.tiers) into `parent`,
+-- replacing existing ones. Returns the built roots.
+function B.buildFromSpec(spec, parent)
+	local built = {}
+	for tier = 1, spec.tiers or 4 do
+		local name = spec.id .. "_T" .. tier
+		local old = parent:FindFirstChild(name)
+		if old then
+			old:Destroy()
+		end
+		local root = Instance.new("Model")
+		root.Name = name
+		for k, v in (spec.root and spec.root.attrs) or {} do
+			root:SetAttribute(k, v)
+		end
+		for _, beat in spec.beats do
+			if tier >= (beat.from or 1) and tier <= (beat.to or 4) then
+				local fn = BLOCKS[beat.block]
+				assert(fn, "unknown block " .. tostring(beat.block))
+				local made = fn(root, tier, beat.params or {})
+				if beat.phase and made then
+					setPhase(made, beat.phase)
+				end
+				for k, v in beat.attrs or {} do
+					made:SetAttribute(k, v)
+				end
+			end
+		end
+		root.WorldPivot = O
+		root.Parent = parent
+		table.insert(built, root)
+	end
+	return built
+end
+
+_G.vfxBlocks = B
+return "vfxBlocks installed"
+	end)
+	table.insert(installed, "vfx_blocks.luau: " .. tostring(msg))
+end
+_G.vfxSpecs = _G.vfxSpecs or {}
+do -- vfx_specs/PalmStrike.luau
+	local ok, spec = pcall(function()
+--!nocheck
+-- Palm Strike's templates (PalmStrike_T1..T4) as a spec for
+-- vfxBlocks.buildFromSpec. Beats play in order for every tier between
+-- `from` and `to` (default 1-4). Shared pieces come from blocks; the seal,
+-- cracks, crater and halo are Palm Strike's own (generic `emitter` beats).
+-- Authored at radius 9 and an active window of 0.3 s; CombatEffects rescales
+-- to def.radius and fits Phase "active" emitters to Hit -> Hit Stop.
+local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
+local GOLD = Color3.fromRGB(255, 210, 120)
+local CRACK = Color3.fromRGB(110, 88, 56)
+local CRATER = Color3.fromRGB(70, 56, 40)
+local id = function(n)
+	return "rbxassetid://" .. n
+end
+
+local function crackProps(size)
+	return {
+		Texture = id(93520831389146), Color = CS(CRACK), LightInfluence = 0.3,
+		Size = NS(size), Transparency = NS({ KP(0, 1), KP(0.04, 0.1), KP(0.6, 0.25), KP(1, 1) }),
+		Lifetime = R(1.4), Rotation = R(0, 360), ZOffset = -0.5,
+	}
+end
+
+local HALO_AT = CFrame.new(0, 3.6, 1.2) -- repositioned behind the head at runtime
+
+return {
+	id = "PalmStrike",
+	root = { attrs = { AuthoredActive = 0.3, AuthoredRadius = 9 } },
+	beats = {
+		-- the ground wave out to the radius (3D torus + particle front), with
+		-- echo ring, rays and dust skirt
+		{ block = "groundShockwave", params = { radius = 9 } },
+		{ block = "emitter", from = 3, params = {
+			part = "Ground", name = "Seal", flat = true, attrs = { EmitCount = 1 },
+			props = {
+				Texture = id(83667248904000), Color = CS(GOLD),
+				Size = NS({ KP(0, 2), KP(0.2, 4.5), KP(1, 5) }), Transparency = NS({ KP(0, 0.1), KP(0.5, 0.25), KP(1, 1) }),
+				Lifetime = R(0.8), LightEmission = 0.45, RotSpeed = R(90), Rotation = R(0, 360),
+			},
+		} },
+		{ block = "emitter", from = 3, to = 3, params = { part = "Ground", name = "Cracks", flat = true, attrs = { EmitCount = 1, EmitDelay = 0.02 }, props = crackProps(3.2) } },
+		{ block = "emitter", from = 4, params = { part = "Ground", name = "Cracks", flat = true, attrs = { EmitCount = 1, EmitDelay = 0.02 }, props = crackProps(4.5) } },
+		{ block = "craterRing", from = 3, params = { parent = "Ground", radius = 9 } },
+		{ block = "shockwaveShell", from = 3, params = { name = "Shell" } },
+		{ block = "emitter", from = 4, params = {
+			part = "Ground", name = "Crater", flat = true, attrs = { EmitCount = 1 },
+			props = {
+				Texture = id(90713203428310), Color = CS(CRATER), LightInfluence = 0.4,
+				Size = NS(3), Transparency = NS({ KP(0, 1), KP(0.03, 0.1), KP(0.65, 0.2), KP(1, 1) }),
+				Lifetime = R(1.8), Rotation = R(0, 360), ZOffset = -0.6,
+			},
+		} },
+		-- the release from the left palm, the drop to the ground, the shake
+		{ block = "releaseFlash" },
+		{ block = "airShockwave" }, -- 3D rings flying forward off the palm (1/1/2/3)
+		{ block = "dropStreak" },
+		{ block = "screenShake", to = 3 },
+		{ block = "screenShake", from = 4, params = { frames = true } },
+		-- mastery: a nimbus halo behind the head and a flattening dome
+		{ block = "emitter", from = 4, params = {
+			part = "Halo", partAt = HALO_AT, name = "Ring", flat = true, dir = Enum.NormalId.Back, attrs = { EmitCount = 1 },
+			props = {
+				Texture = id(13399941667), Color = CS(GOLD),
+				Size = NS({ KP(0, 0.5), KP(0.2, 2.6), KP(1, 2.9) }), Transparency = NS({ KP(0, 0.2), KP(0.5, 0.35), KP(1, 1) }),
+				Lifetime = R(0.75), LightEmission = 0.5, RotSpeed = R(45),
+			},
+		} },
+		{ block = "emitter", from = 4, params = {
+			part = "Halo", partAt = HALO_AT, name = "Rays", flat = true, dir = Enum.NormalId.Back, attrs = { EmitCount = 1 },
+			props = {
+				Texture = id(15773612675), Color = CS(GOLD),
+				Size = NS({ KP(0, 1), KP(0.3, 3.8), KP(1, 4.4) }), Transparency = NS({ KP(0, 0.6), KP(1, 1) }),
+				Lifetime = R(0.6), LightEmission = 0.6, RotSpeed = R(-20), ZOffset = -0.2,
+			},
+		} },
+		{ block = "shockwaveShell", from = 4, params = {
+			name = "Dome", mesh = id(13567208057), from = Vector3.new(2.5, 1.6, 2.5), to = Vector3.new(16, 0.4, 16),
+			y0 = 0.3, y1 = 0.1, spin = 0, duration = 0.3, startTransparency = 0.55,
+			startColor = Color3.fromRGB(255, 244, 214), endColor = GOLD,
+		} },
+		-- windup: qi gathers into the left palm
+		{ block = "handGather" },
+		-- each target: the burst, the 3D impact shockwave (ring, II+ swirl, III+
+		-- bubble, ground shock), III+ a rock kick, IV the quake
+		{ block = "impactStack" },
+	},
+}
+	end)
+	if ok then _G.vfxSpecs["PalmStrike"] = spec end
+	table.insert(installed, "spec PalmStrike: " .. (ok and "ok" or tostring(spec)))
 end
 return table.concat(installed, "\n")

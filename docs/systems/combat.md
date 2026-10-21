@@ -61,7 +61,13 @@ Hit -> Hit Stop (`TechniqueVFX.fit` against the root's `AuthoredActive`), and
 untagged aftermath keeps its authored fade through recovery.
 
 Templates (`ReplicatedStorage.Effects`, `assets/Effects.rbxm`, built from the
-vfxia Asset Library):
+vfxia Asset Library). Each technique's T1-T4 are generated in Edit mode from a
+spec, `tools/vfx_specs/<Id>.luau` (a list of beats: `{ block, from, to,
+params }`), by `vfxBlocks.buildFromSpec` (`tools/vfx_blocks.luau`, the shared
+builders: ground/impact/air shockwaves, release flash, drop streak, hand
+gather, impact burst/stack, crater ring, mesh shell, screen shake). Edit the
+spec and rebuild rather than editing templates by hand; `tools/vfx_diff.luau`
+checks a rebuild against the previous templates.
 - **Palm Strike** (`PalmStrike_T1..T4`, authored at radius 9, rescaled to
   `def.radius`). Fists.4 strikes with the **left** hand (`def.hand`), which
   `CombatEffects` finds on the live character (R6 arm tip, R15 grip
@@ -77,6 +83,16 @@ vfxia Asset Library):
   kicks on the first three targets; IV a crater, a dome shell, a nimbus halo
   behind the head, one point light, ScreenEffects impact frames and an
   Explosion shake on the first impact.
+- 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
+  or without the Game Module: a Model with `MeshWave = true` and a child
+  `Mesh` part (Transparency 1 in the template), tweened at emit time relative
+  to its parent part/attachment from `FromSize`/`FromOffset`/`FromTransparency`
+  to `ToSize`/`ToOffset`/`ToTransparency` over `Duration` (`Style` easing,
+  `Rotation` degrees, inherited `EmitDelay`; `Phase = "active"` lets `fit()`
+  retime it). Names avoid Start/End so SimpleMeshVFX doesn't also play them.
+  Palm Strike: `Ground/GroundWave` (torus to `def.radius`), per target
+  `Impact/GroundShock` and `Body/ImpactRing` (II+ `ImpactSwirl`, III+
+  ForceField `ImpactBubble`), and `Palm/AirRing` (1/1/2/3 flying forward).
 - Add-ons used: Craters (`CraterVFX` attachments `RockRing`, `Kick`; enemies
   get the client-only `CraterIgnore` tag so rocks skip them), SimpleMeshVFX
   (`Shell`, `Dome` Start/End models), Splines (`Wisps`, emitted explicitly:

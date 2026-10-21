@@ -34,6 +34,19 @@
 --       CombatEffects.windup at start and CombatEffects.cast at Hit with the rig's
 --       live root and hands, then freezes particles at `freezeAt` seconds after
 --       cast start. Pass a level (1, 4, 7, 10 for tiers I-IV), not a tier.
+--   P.sweep({ id, level, radius?, moments?, lag? }) -> capture list (string)
+--       One call for a whole tier: builds one scene per named moment (spaced
+--       apart so effects don't mix), plays the real cast in each and freezes it
+--       at its moment, then returns every screen_capture to make, back to back:
+--       "capture_id | camera_position | look_at_position" per line. Default
+--       moments come from Rules.castProfile: windup (80% of windup), hit (just
+--       after Hit), hitstop (Hit Stop), aftermath (end of recovery + 0.3 s);
+--       post-Hit moments add `lag` (default 0.1 s, shared.fx's Edit-mode start
+--       delay). Default cameras (5 shots): windup hand, hit player+side,
+--       hitstop top, aftermath player; pass `moments` for others ("far" is
+--       player distance, ~25 studs). Tweened add-on parts (Craters,
+--       shells, spline trails) keep moving after a freeze, so judge those from
+--       the hit/hitstop shots only.
 -- Typical camera for screen_capture: behind-right of the caster at player
 -- distance, e.g. C + (-12, 9, 5) looking at C + (4, 1, 0); top-down
 -- C + (0.1, 28, 0) -> C checks radii against the posts.
@@ -112,7 +125,9 @@ end
 
 function P.scene(opts)
 	opts = opts or {}
-	P.clear()
+	if not opts.keep then
+		P.clear()
+	end
 	local C = opts.center or Vector3.new(400, 640, 300)
 	local folder = Instance.new("Folder")
 	folder.Name = "_VFXPreview"
@@ -210,9 +225,8 @@ function P.clear(keepScene)
 			S = nil
 		end
 	end
-	local old = workspace:FindFirstChild("_VFXPreview")
-	if old and not keepScene then
-		old:Destroy()
+	while not keepScene and workspace:FindFirstChild("_VFXPreview") do
+		workspace._VFXPreview:Destroy()
 	end
 	local temp = workspace.Terrain:FindFirstChild("TempVFX")
 	if temp then
@@ -266,14 +280,15 @@ function P.fresh(names)
 end
 
 function P.castThrough(opts)
+	S = opts.scene or S
 	assert(S, "call P.scene first")
 	local RunService = game:GetService("RunService")
 	S.folder._fxOut:ClearAllChildren()
 	local temp = workspace.Terrain:FindFirstChild("TempVFX")
-	if temp then
+	if temp and not opts.scene then -- a sweep keeps earlier scenes' add-on parts
 		temp:ClearAllChildren()
 	end
-	local holder = P.fresh({ "CombatEffects", "Sfx", "TechniqueVFX" })
+	local holder = P.fresh({ "CombatEffects", "Sfx", "TechniqueVFX", "CastFX" })
 	local CE = require(holder.CombatEffects)
 	local Techniques = require(holder.Shared.Techniques)
 	local Rules = require(holder.Shared.ActionRules)
@@ -330,6 +345,44 @@ function P.castThrough(opts)
 		table.insert(kids, d.Name)
 	end
 	return string.format("t=%.2f err=%s spawned=%s", os.clock() - start, tostring(err), table.concat(kids, ","))
+end
+
+local CAMERAS = {
+	player = { Vector3.new(-12, 9, 5), Vector3.new(4, 1, -1) },
+	side = { Vector3.new(3, 6, 16), Vector3.new(3, 1.5, -1) },
+	top = { Vector3.new(0.1, 28, 0), Vector3.zero },
+	far = { Vector3.new(-23, 12, 12), Vector3.new(2, 1, -1) },
+	hand = { Vector3.new(4, 6, 9), Vector3.new(-0.5, 4.5, 0.5) },
+}
+P.CAMERAS = CAMERAS
+
+function P.sweep(opts)
+	local holder = P.fresh({ "TechniqueVFX" })
+	local Rules = require(holder.Shared.ActionRules)
+	local Techniques = require(holder.Shared.Techniques)
+	local profile = Rules.castProfile(Techniques.Defs[opts.id])
+	local lag = opts.lag or 0.1
+	local w, a, r = profile.windup, profile.active, profile.recovery
+	local moments = opts.moments or {
+		{ name = "windup", t = w * 0.8, cameras = { "hand" } },
+		{ name = "hit", t = w + 0.06 + lag, cameras = { "player", "side" } },
+		{ name = "hitstop", t = w + a + lag, cameras = { "top" } },
+		{ name = "aftermath", t = w + a + r + 0.3 + lag, cameras = { "player" } },
+	}
+	P.clear()
+	local base = opts.center or Vector3.new(400, 640, 300)
+	local lines, results = {}, {}
+	for i, m in moments do
+		local scene = P.scene({ center = base + Vector3.new(0, 0, (i - 1) * (opts.spacing or 160)), radius = opts.radius, keep = true, enemies = opts.enemies })
+		table.insert(results, m.name .. ": " .. P.castThrough({ id = opts.id, level = opts.level, freezeAt = m.t, scene = scene }))
+		for _, cam in m.cameras do
+			local c = CAMERAS[cam]
+			local from, to = scene.C + c[1], scene.C + c[2]
+			table.insert(lines, string.format("%s_L%d_%s_%s | %.1f, %.1f, %.1f | %.1f, %.1f, %.1f",
+				opts.id, opts.level, m.name, cam, from.X, from.Y, from.Z, to.X, to.Y, to.Z))
+		end
+	end
+	return table.concat(results, "\n") .. "\n" .. table.concat(lines, "\n")
 end
 
 _G.vfxPreview = P

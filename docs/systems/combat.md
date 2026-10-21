@@ -278,6 +278,25 @@ checks a rebuild against the previous templates.
   and rock kicks, a Craters ring at the terminal, path cracks; IV a gold-white
   core, five rings, the dragon seal flashing at the point with impact frames,
   one point light on the lance head and a quake at the terminal.
+- **Crescent Moon Sweep** (`CrescentSweep_T1..T4`, authored at radius 11;
+  `TechniqueFX.CrescentSweep`). A jade crescent cut out of the air: the clip
+  winds the guandao back low behind the left hip, then from Hit to Hit Stop
+  whips it round ~323 deg in one low spin (behind, right, front, left).
+  Windup: jade motes gather into the grip (II+ wisps, III+ a seal). At Hit a
+  flash on the blade tip. The `Sweep` part is turned round the caster on that
+  heading curve (`StartHeading` -126, `SweepDegrees` 323 over the active
+  window, then `FollowDegrees` of follow-through), so its radial Trails lay a
+  flat jade sheet with a bright moon edge at the blade's reach that closes into
+  a disc and fades. A ground torus rolls out to `def.radius`, a wispy swirl
+  ring spreads at knee height, dust is kicked outward and a jade-ink crescent
+  is scorched under the sweep. Each enemy in the circle gets a jade
+  `impactStack` and a crescent cut when the blade's heading passes it (one in
+  the arc the spin skips, behind-left, at Hit Stop). II adds an inner edge,
+  wave echo and rays, rising motes, impact swirl; III a spinning SimpleMeshVFX
+  swirl shell, a Craters ring erupting with the wave, impact bubbles and rock
+  kicks; IV a gold edge, a jade-gold moon rising behind the caster, one point
+  light on the sweep, impact frames at the release and a quake on the first
+  impact.
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative

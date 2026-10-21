@@ -2,8 +2,8 @@
 
 **Status:** the spirit root is built on the server (`src/shared/Roots.luau`,
 `src/server/Roots.luau`, `Pacing.Roots`). Still to do for it: the Testing Stone
-in the hub, the reveal pillar vfx, and the Marrow Washing Pill. The reveal card
-and the first character window (Self card) are built (`RootReveal`, `SelfCard`). Everything else here is design: build it one layer
+in the hub and the Marrow Washing Pill. The reveal card and the first
+character window (Self card) are built (`RootReveal`, `SelfCard`). Everything else here is design: build it one layer
 at a time, in the order of "Unlock timeline".
 
 ## Purpose
@@ -71,6 +71,10 @@ unlocks here, so the trip teaches the arrays. The elder sends you to the
 your element's colour rises (vfx), your root's name and one-line perk appear,
 and the elder reacts (more excited for a rare root). It needs no decisions.
 Players already past the beat get "Have your root tested" as a quest-board goal.
+The pillar is `src/client/RootFX.luau` (template `ReplicatedStorage.Effects.RootPillar`,
+built by `tools/vfx_specs/RootPillar.luau`): a column from the stone's `PillarOrigin`
+with an element accent, taller with a ground shockwave and sky burst for rare roots,
+a short glow on the stone when `first` is false.
 
 **Element (rolled):**
 

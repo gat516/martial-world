@@ -50,11 +50,14 @@ everyone to one spot, and a day/night cycle.
   `src/server/WorldEvents/init.luau` (framework: start, locate, announce,
   finish, publish to the `WorldEvents` workspace attribute) and kinds:
   `GuardedHerb.luau` (a giant herb under a guardian beast), `BeastSurge.luau`
-  (more and bigger ambient packs via `Spawner.boost`), `CloudConvergence.luau`
-  (a wisp vortex over a wilds spot: meditating inside its ring uses the def's
-  multiplier through `Meditation.addSite`; `condenseSeconds` before the end a
-  Cloud-Pattern Jade beacon appears at the eye, first claim ends the event; the
-  vortex is drawn client-side from the published position).
+  (more and bigger ambient packs via `Spawner.boost`), `AuspiciousClouds.luau`
+  (Auspicious Clouds, Violet Cloud Mist, Golden Auspicious Clouds: clouds in the
+  def's `look` gather around a sealed relic, a technique manual or a sword
+  inheritance from `Effects.AuspiciousClouds.Relics`, at a wilds spot; meditating
+  inside the ring uses the def's multiplier through `Meditation.addSite`;
+  `condenseSeconds` before the end the seal breaks and the first claim learns a
+  technique from the def's pool, or insight, and ends the event; the clouds are
+  drawn client-side from the published position).
 - `src/server/Treasures.luau`: treasures in the wilds' zones when weather with
   `treasures` starts; first claim keeps it.
 - `src/server/QiNodes.luau`: wilds qi nodes (raw qi + stones, per-player cooldown).
@@ -74,7 +77,7 @@ dashboard, and end when claimed or after `minutes`.
 - `Pacing.Income.NODE_SHARE`, `NODE_COOLDOWN`; `Config.Economy.NODE_STONES`.
 
 ## Known gaps
-- Only Cloud Convergence has a timer `weight`, so it is the only event that starts
-  on its own (the timer rolls every 20-35 min).
+- Only the Auspicious Clouds varieties have a timer `weight`, so they are the only
+  events that start on their own (the timer rolls every 20-35 min).
 - Qi node prompts get their key and style set in code (TODO in QiNodes.luau) until
   `assets/Wilds.rbxmx` carries them.

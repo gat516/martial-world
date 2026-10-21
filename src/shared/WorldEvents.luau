@@ -55,22 +55,62 @@ WorldEvents.Defs = {
 		rate = 3, -- ambient encounters come this many times as often (Spawner.boost)
 		extra = 1, -- beasts added to each pack
 	},
-	-- Auspicious clouds descend from the cloud sea and coil into a turning vortex
-	-- of wisps over a spot in the wilds. Meditating inside its ring cultivates far
-	-- faster; near the end the clouds condense into a jade at the eye, and the
-	-- first to claim it keeps it. Clients draw it (WorldEventFX).
-	CloudConvergence = {
-		id = "CloudConvergence",
-		name = "Auspicious Cloud Convergence",
-		kind = "CloudConvergence",
+	-- Auspicious clouds (kind AuspiciousClouds): a relic, a technique manual or an
+	-- ancient sword, appears sealed at a spot in the wilds and the clouds gather
+	-- around it, each variety in its own pattern and colours (`look`, drawn by
+	-- clients in WorldEventFX). Meditating inside the ring cultivates far faster;
+	-- `condenseSeconds` before the end the clouds pour into the relic and unseal it,
+	-- and the first to claim it learns a technique from `techniques` (the one the
+	-- relic names if they don't know it, else another they don't; `insight` if they
+	-- know them all).
+	--   radius      studs: the meditation ring around the relic
+	--   meditation  passive multiplier inside (Pacing.Meditation: 1.5 anywhere, 2.5 on your peak)
+	--   relic       ReplicatedStorage.Effects.AuspiciousClouds.Relics child
+	--   look        { pattern = AuspiciousClouds child, color, accent }
+	AuspiciousClouds = {
+		id = "AuspiciousClouds",
+		name = "Auspicious Clouds",
+		kind = "AuspiciousClouds",
 		minutes = 6,
-		triggers = { AuspiciousMist = 0.5, Windy = 0.2 },
+		triggers = { Windy = 0.2, RainbowAurora = 0.4 },
+		weight = 2,
+		radius = 36,
+		meditation = 4.5,
+		condenseSeconds = 90,
+		relic = "Manual",
+		techniques = { "PalmStrike", "IronSkin" },
+		insight = 1, -- for a claimer who already knows every technique in the pool
+		look = { pattern = "Vortex", color = Color3.fromRGB(246, 250, 255), accent = Color3.fromRGB(140, 235, 190) },
+	},
+	VioletCloudMist = {
+		id = "VioletCloudMist",
+		name = "Violet Cloud Mist",
+		kind = "AuspiciousClouds",
+		minutes = 6,
+		triggers = { AuspiciousMist = 0.5 },
 		weight = 1,
-		radius = 36, -- studs: the meditation ring around the eye
-		meditation = 4.5, -- passive multiplier while meditating inside (Pacing.Meditation: 1.5 anywhere, 2.5 on your peak)
-		condenseSeconds = 75, -- the jade condenses this long before the end
-		treasure = "CloudPatternJade", -- Items id
-		beaconScale = 2, -- the jade's pillar of light, relative to a heavenly treasure's
+		radius = 44,
+		meditation = 4.5,
+		condenseSeconds = 90,
+		relic = "Manual",
+		techniques = { "FireSeal", "LightningTalisman" },
+		insight = 1,
+		look = { pattern = "Mist", color = Color3.fromRGB(214, 190, 255), accent = Color3.fromRGB(160, 110, 240) },
+	},
+	GoldenAuspiciousClouds = {
+		id = "GoldenAuspiciousClouds",
+		name = "Golden Auspicious Clouds",
+		kind = "AuspiciousClouds",
+		minutes = 5,
+		triggers = { HeavenSplit = 0.5 },
+		weight = 0.4,
+		radius = 30,
+		meditation = 6,
+		condenseSeconds = 75,
+		relic = "Sword",
+		techniques = { "LightningTalisman", "FireSeal", "IronSkin", "PalmStrike" },
+		insight = 2,
+		look = { pattern = "Spiral", color = Color3.fromRGB(255, 244, 214), accent = Color3.fromRGB(255, 196, 90) },
 	},
 } :: { [string]: Def }
 

@@ -231,6 +231,14 @@ Found by coordinates only; children may be restructured freely.
     where the terrain edge differed); a moss band hangs under the rim on four
     arcs. Terrain surface rule (measured): a voxel over full voxels renders at
     centre + 4 x occupancy.
+- Grand stairs (`art/main_peak/build_grand_stairs.luau`, re-runnable): each
+  flight climbs the mesa's south wall toward the balcony in three runs with two
+  landings (606, 628), a lacquer paifang and lantern pair at the foot pad
+  (x +-98..106), lacquer posts, lanterns and potted plants on the landings, a
+  stone balustrade on the outer side and a curb on the wall side. Open under
+  the flights (a sloped slab and corbels against the cliff). Treads don't
+  collide; an invisible ramp on each flight's nosing line does (checked by
+  raycast along three lines per flight, no gaps or steps over 1.2).
 - Terrain colours (global, `Terrain:SetMaterialColor`, set by
   `terrain_main_peak.luau`; spirit peaks share them): Grass `#7E9C63`,
   LeafyGrass `#66804F`, Ground `#7A6A55`, Mud `#5E5244`, Rock `#7A7570`,

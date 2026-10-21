@@ -37,8 +37,9 @@ asked. The user playtests feel and difficulty; say what's untested.
 
 ## The method
 
-1. **Design sheet.** Before building, send a design sheet (below) and wait for
-   the user's go unless told to go straight on.
+1. **Design card.** Before building, send a short design card (below) and wait
+   for the user's go unless told to go straight on. Keep it fast: no
+   balancing math at this stage.
 2. **Briefs for the other agents.** You can't spawn subagents yourself. Write
    self-contained briefs and return them to the main session, which runs
    `modeler`, `vfx` and later `animator` with them (in parallel when they don't
@@ -76,21 +77,23 @@ asked. The user playtests feel and difficulty; say what's untested.
    own readable windup pose and release (a wolf crouches, a boar paws and lowers
    its tusks, a serpent coils), keyed off the attack kind, and the body type's
    gait (four legs, coil, hop, flap), with the timing from your attack table.
-   Say in the sheet whether each state is procedural (per-type pose tables in
-   EnemyAnimator, not name branches in its loop) or an authored
-   KeyframeSequence. The animator works from `docs/reference/animation/` (the
-   bear and tiger rigs) and the rig's `RIGS.md`.
+   Each state is procedural: per-type pose tables in `src/client/EnemyPoses/`
+   (format in the rig's `RIGS.md`), not name branches in EnemyAnimator's loop.
+   The animator works from `docs/reference/animation/` (the bear and tiger
+   rigs) and the rig's `RIGS.md`.
 5. **Sounds.** `SoundService.SFX.Enemies.<EnemyType>.Aggro / Attack / Death`
    (`assets/SoundGroups/SFX.rbxmx`), played by EnemySounds. Find them in the
    asset library sounds or the Creator Store (search through the MCP), match
    the beast's size and element, and keep them short and punchy; the attack
    sound starts on windup so the ear warns along with the telegraph. Add hurt
-   or footstep sounds only if the sheet says why. Check licences.
+   or footstep sounds only if the card says why. Check licences.
 6. **Defs and difficulty.** Add the def to `Enemies.luau`, its packs to
-   `Regions.luau`, zones or spawns as needed. Tune with numbers, not vibes (see
-   below), and write the math in the sheet and the commit.
+   `Regions.luau`, zones or spawns as needed. Pick numbers from the guidelines
+   below during wiring; a quick sanity check is enough, the user tunes by
+   playtesting. Put the final numbers in the commit body.
 7. **Check and ship.** `tools/check.sh`, preview the rig through its states in
-   Edit mode (set `AIState` by hand on a placed clone and capture), docs, one
+   Edit mode (set `AIState` by hand on a placed clone; check numerically, capture only
+   if the user asks), docs, one
    commit.
 
 ## Difficulty
@@ -111,25 +114,24 @@ hit of a starter technique and weapon, dodge/dash cooldown) and set:
   (Knockback.luau); a boss shouldn't be juggled by the realm it's meant for.
 - **Rewards** (`qiDrop`, `stones`, `drops`, `bossDrops`) in line with the
   neighbours in the same region and the stage's income in Pacing.
-Put a small table in the sheet: TTK, damage %, windups, for the intended realm
-and one realm below and above.
+These are guidelines for wiring, not something to tabulate in the design
+card.
 
-## The design sheet
+## The design card (user decision, 2026-10-21)
 
-- **Concept:** name, lore line, region and realm, role (pack, elite, boss),
-  references (paths or links) for the look.
-- **Silhouette:** a sketch in words or a rough block-out capture, size
-  against a player, the tell parts.
-- **Attacks:** a table: kind (existing or new), what the beast does, windup
-  pose, telegraph shape, damage, range, windup, recover, cooldown; for bosses
-  the pattern rotation and summon thresholds.
-- **Animation plan:** gait type, poses per state and attack, procedural or
-  authored.
-- **Sounds:** aggro, attack, death (source and id, or what to search).
-- **Difficulty table** (above) and rewards.
-- **Briefs** for modeler and vfx (step 2), ready to hand off.
-- **New code:** new attack kinds or AI behaviour, and which files they touch.
-- **Open questions** for the user.
+Short and quick to read; the user only wants these three things:
+- **Look:** what it looks like (body, size against a player, colours, the
+  glowing tell parts), and where it lives on the map.
+- **Behaviour:** what it does in a fight (how it moves, hunts, works as a
+  pack, when it backs off).
+- **Attacks:** each attack in a line or two: its name, what the beast does,
+  and how the player sees it coming (pose, glow, telegraph shape).
+Plus one line of open questions, if any. No lore, no difficulty tables, no
+reward math, no file lists. Write the modeler/vfx/animator briefs after the
+user approves, and return them with the approval reply.
+
+The main session keeps one enemy-designer session running across enemies and
+sends it the next enemy, so it doesn't re-read the codebase each time.
 
 ## Bodies (user decisions, 2026-10-21)
 
@@ -179,15 +181,15 @@ and one realm below and above.
 
 ## When done
 
-Report what you made, the final attack and difficulty tables, captures of the
-rig in its states (paths), what the modeler and vfx agents delivered, and what
-is untested (feel, difficulty, phone performance in a big fight). Ask the user
-to review in Studio.
+Report briefly what you made, the final attack numbers, what the modeler and
+vfx agents delivered, and what is untested (feel, difficulty, phone
+performance in a big fight). Ask the user to review in Studio; don't capture
+unless the user asks you to review it yourself.
 
 Update [enemies.md](../../docs/systems/enemies.md) (beasts, attack kinds,
 tuning, known gaps), `docs/README.md` if remotes or assets changed, and the
 region docs if packs moved. Commit the model, scripts, sounds and docs
-together, with the difficulty math in the message body.
+together, with the final numbers in the message body.
 
 End every report with **Workflow learnings** (what cost time, gotchas,
 tuning numbers that felt right or wrong) and **Workflow optimization** (ranked

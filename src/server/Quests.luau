@@ -22,8 +22,11 @@
 --   to      with button "Travel": the destination gate id to point at in the menu
 --   dim     grey out the rest of the HUD until that button is pressed
 --   place   a world target to walk to: "TestingStone", "Elder", "QuestBoard",
---           "QiNode" (nearest), "Enemy" (nearest), "Array:<gate id>",
---           "Garden" (nearest HerbPlot on your own peak), "WeaponRack" (nearest)
+--           "QiNode" (nearest), "Enemy" (nearest living), "Array" (nearest
+--           array of any kind), "Array:<gate id>", "Garden" (nearest HerbPlot
+--           on your own peak), "WeaponRack" (nearest). With button "Travel" +
+--           `to` (out in the wilds, where the button is hidden), walk to the
+--           array; once its menu is open, `to` points at the destination.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -34,6 +37,7 @@ local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
+local Gates = require(ReplicatedStorage.Shared.Gates)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
 local Circulation = require(script.Parent.Circulation)
@@ -99,23 +103,55 @@ local function seatedTile(player: Player, tile: string, dim: boolean?): Guide
 	return { button = "Cultivate", dim = dim }
 end
 
--- Circulate until the bar is full, then break through.
+local function rootPosition(player: Player): Vector3?
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	return root and root.Position
+end
+
+-- On the sect's safe ground, where the Travel button shows.
+local function inSect(player: Player): boolean
+	local here = rootPosition(player)
+	return here ~= nil and Gates.inSect(here)
+end
+
+-- Travel to a sect array: the Travel button on sect ground; out in the wilds
+-- there is none, so walk to the nearest array (its prompt opens the menu).
+local function travelTo(player: Player, gate: string, dim: boolean?): Guide
+	if inSect(player) then
+		return { button = "Travel", to = gate, dim = dim }
+	end
+	return { button = "Travel", to = gate, place = "Array" }
+end
+
+-- Where to refine: circulate here if you can, else the nearest qi node out in
+-- the wilds, or your own peak from the sect.
+local function refineGuide(player: Player): Guide
+	if Circulation.atRefiningSpot(player) then
+		return seatedTile(player, "Circulate")
+	end
+	if inSect(player) then
+		return travelTo(player, "Peak")
+	end
+	return { place = "QiNode" }
+end
+
+-- Circulate until the bar is full, then break through. Too little raw qi for a
+-- run: before travel is taught, meditate (passive cultivation fills the rest);
+-- after, go out and gather it.
 local function climbGuide(player: Player, data: PlayerData.Data): Guide?
 	if barFull(data) then
 		return seatedTile(player, "Breakthrough", true)
 	end
-	if data.rawQi <= 0 then
+	if not Circulation.enoughQi(data) then
+		if not data.beats.Breakthrough then
+			return if seated(player) then nil else { button = "Cultivate" }
+		end
+		if inSect(player) then
+			return travelTo(player, "SectGate")
+		end
 		return { place = "QiNode" }
 	end
-	if Circulation.atRefiningSpot(player) then
-		return seatedTile(player, "Circulate")
-	end
-	return { button = "Travel", to = "Peak" }
-end
-
-local function rootPosition(player: Player): Vector3?
-	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	return root and root.Position
+	return refineGuide(player)
 end
 
 local function positionOf(thing: Instance?): Vector3?
@@ -282,14 +318,13 @@ Quests.Beats = {
 		id = "Refine",
 		elder = "Your dantian swells. Refine that qi at a glowing qi node, or back on your peak.",
 		objective = "Circulate at a qi node or on your peak",
+		-- a bar already full (passive cultivation while hunting) can't take a
+		-- run, so it moves on to QC3, which breaks through
 		done = function(_, data)
-			return data.stats.circulationRuns >= (data.onboardingMark or 0) + 1
+			return data.stats.circulationRuns >= (data.onboardingMark or 0) + 1 or barFull(data)
 		end,
 		guide = function(player)
-			if Circulation.atRefiningSpot(player) then
-				return seatedTile(player, "Circulate")
-			end
-			return { place = "QiNode" }
+			return refineGuide(player)
 		end,
 	},
 	{
@@ -324,7 +359,7 @@ Quests.Lessons = {
 			if onOwnPeak(player) then
 				return { place = "Garden" }
 			end
-			return { button = "Travel", to = "Peak" }
+			return travelTo(player, "Peak")
 		end,
 	},
 	{
@@ -347,7 +382,7 @@ Quests.Lessons = {
 			if nearTagged(player, "WeaponRack") then
 				return { place = "WeaponRack" }
 			end
-			return { button = "Travel", to = "MainPeak" }
+			return travelTo(player, "MainPeak")
 		end,
 	},
 	{

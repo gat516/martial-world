@@ -27,6 +27,7 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Gates = require(ReplicatedStorage.Shared.Gates)
+local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local MyPeak = require(script.Parent.MyPeak)
@@ -329,11 +330,6 @@ local function nearest(candidates: { Instance }, from: Vector3, accept: ((Instan
 	return best
 end
 
-local function alive(inst: Instance): boolean
-	local humanoid = inst:FindFirstChildOfClass("Humanoid")
-	return humanoid ~= nil and humanoid.Health > 0
-end
-
 local GARDEN_RANGE = 150 -- with no peak known, herb plots this close count
 
 -- The instance a place key points at, nearest to `from`.
@@ -344,7 +340,8 @@ local function pickPlace(key: string, from: Vector3): Instance?
 	elseif key == "QiNode" then
 		return nearest(CollectionService:GetTagged("QiNode"), from)
 	elseif key == "Enemy" then
-		return nearest(CollectionService:GetTagged("Enemy"), from, alive)
+		-- enemies have no Humanoid: Health is an attribute on the server root
+		return nearest(CollectionService:GetTagged("Enemy"), from, Hitbox.alive)
 	elseif key == "WeaponRack" then
 		return nearest(CollectionService:GetTagged("WeaponRack"), from)
 	elseif key == "Garden" then
@@ -366,6 +363,8 @@ local function pickPlace(key: string, from: Vector3): Instance?
 			-- "Peak" means your own peak's array
 			return gate ~= "Peak" or MyPeak.owns(array.Parent)
 		end)
+	elseif key == "Array" then
+		return nearest(CollectionService:GetTagged(Gates.TAG), from)
 	end
 	return nil
 end

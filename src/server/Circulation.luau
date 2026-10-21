@@ -87,6 +87,11 @@ local function atRefiningSpot(player: Player): boolean
 	return false
 end
 
+-- Whether the dantian holds enough raw qi to start a run (Refine.MIN_RUN_FRACTION).
+function Circulation.enoughQi(data: PlayerData.Data): boolean
+	return data.rawQi >= fullRunQi(Cultivation.stage(data)) * Refine.MIN_RUN_FRACTION
+end
+
 function Circulation.start(player: Player): (boolean, any)
 	local data = PlayerData.get(player)
 	if not data then
@@ -104,7 +109,7 @@ function Circulation.start(player: Player): (boolean, any)
 	if data.cultivation >= stage.bar then
 		return false, "Your realm bar is full. Break through first."
 	end
-	if data.rawQi < fullRunQi(stage) * Refine.MIN_RUN_FRACTION then
+	if not Circulation.enoughQi(data) then
 		return false, "Your dantian is nearly empty. Go out and gather qi."
 	end
 	if not atRefiningSpot(player) then

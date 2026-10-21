@@ -13,7 +13,8 @@ main peak, the sect gate and the wilds arrays (see [map](map.md), "World structu
 - Beats: Circulate -> Breakthrough -> Root (travel unlocks here: ride to the
   Main Peak and touch the Testing Stone, see [character](character.md)) -> Gate -> FirstKill ->
   Technique (3 kills, done once the 3-kill milestone's manual is earned) -> Refine
-  -> QC3 -> FreePlay (the top quest-board goal).
+  (done once a run is finished, or when the bar is already full, since a full
+  bar can't take a run) -> QC3 -> FreePlay (the top quest-board goal).
 - A beat can show progress after its objective (`progress`, e.g. Technique's
   kills "(1/3)").
 - Travel can't be used to flee a fight (blocked while in combat or mid-action).
@@ -87,8 +88,16 @@ on arrival at the gate (map), and timing the funnel to the first kill.
 - **Guides** (`QuestState.guide`), computed per tick from where the player is
   and what they're doing: e.g. Circulate spotlights Cultivate (dim), then the
   seated Circulate tile; Root spotlights Travel -> Main Peak, then walks to the
-  Testing Stone; Refine walks to the nearest qi node unless you can refine
-  where you stand. Keys are listed at the top of `Quests.luau`.
+  Testing Stone; Refine circulates where you stand if you can, else rides
+  home from the sect or walks to the nearest qi node in the wilds. Climbing
+  with too little raw qi for a run (`Circulation.enoughQi`, the same check
+  the run's start makes) says meditate before the Breakthrough beat (passive
+  cultivation fills the rest; travel isn't taught yet) and go out to the Sect
+  Gate or a qi node after it. Any guide that rides somewhere (`travelTo`)
+  uses the Travel button on sect ground, and out in the wilds, where that
+  button is hidden, walks to the nearest array (`place = "Array"`) and points
+  at the destination once its menu is open. Keys are listed at the top of
+  `Quests.luau`.
 
 ## Key files
 - `src/server/Quests.luau`: `Beats`, `Lessons`, guides, `goals` (quest board),
@@ -112,7 +121,8 @@ on arrival at the gate (map), and timing the funnel to the first kill.
   target isn't in. Travel + `to` moves to the destination button once the menu
   is open (dim or not). `place` resolves to the nearest target every second
   (`Garden` = your own peak's HerbPlots, `WeaponRack`, `QiNode`, living
-  `Enemy`, `Array:<id>`, Hub pieces) and shows `Hud.GuideTrail`'s Beam from
+  `Enemy` (`Hitbox.alive`: the Health attribute, enemies have no Humanoid),
+  `Array` (nearest of any kind), `Array:<id>`, Hub pieces) and shows `Hud.GuideTrail`'s Beam from
   the hips toward it (at most 28 studs), `Hud.GuideMarker` bobbing over it and
   `Guide.Arrow` at the screen edge while it's off screen; all hide within 8 studs
   and while a window is open.
@@ -141,6 +151,9 @@ then pivots the character onto that array.
 - Rewards shown on the board come from `Pacing.Rewards`.
 
 ## Known gaps
+- No beast is in view at the Sect Gate: the nearest spawn zone (WolfPocket)
+  is ~460 studs from its array, so the FirstKill beat leans on ambient
+  encounters and the guide's path to the nearest streamed-in enemy.
 - Analytics funnel steps are beat positions, so inserting a beat shifts the
   step numbers after it (compare funnels across versions with care).
 

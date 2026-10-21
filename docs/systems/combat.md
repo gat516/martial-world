@@ -224,6 +224,19 @@ checks a rebuild against the previous templates.
   bite and an echo torus; III+ Craters rock ring, crater and cracks, rock
   kicks, fissure cracks; IV a dome shell, the one PointLight, impact frames
   and an Explosion quake.
+- **Rampaging Tiger Cleave** (`RampagingTiger_T1..T4`, authored at radius 10
+  around the caster; `TechniqueFX.RampagingTiger`). Tawny amber qi over black
+  brush-ink, white-gold core at IV. Every cut flashes three claw strokes in the
+  air (`Claw`: amber Beams over ink, diagonal for Hit 1, vertical for the spin
+  hits and the landing) and an impact on each enemy in the circle. Leap: a
+  torus and dust ring. II+ while the blade wheels (1.0-1.78 clip) a spinning
+  amber swirl ring stands in its circle at the right side (`Wheel`, sized to
+  the blade's reach; III+ a counter-turning ForceField ring, embers). Landing
+  (last hit): flash where the blade bites, three claw gouges fanned forward
+  (Neon slits cooling to ink), roar rings thrown forward (1/1/2/3), a torus
+  shockwave to the radius, heavy impacts by the front; III+ Craters rock
+  ring, cracks, rock kicks; IV a giant claw over the strike, a swirl shell,
+  the one PointLight, impact frames and a quake.
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative

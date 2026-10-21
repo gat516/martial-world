@@ -498,6 +498,34 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
    When writing a builder for something that already exists, snapshot the real
    templates first and iterate to a zero diff.
 
+### Working alongside other vfx agents
+
+Several vfx agents may build different techniques at the same time in the
+same worktree and Studio. Ownership:
+- **Yours:** `src/client/TechniqueFX/<Id>.luau` (the technique's runtime:
+  `return { cast = function(CombatEffects, def, level, character, origin, dir, chain): boolean }`,
+  returning false to fall back to the old drawing), `tools/vfx_specs/<Id>.luau`
+  (helpers only your technique needs go in that spec file), and the
+  `Effects.<Id>` group in Studio.
+- **Shared, don't edit while others are running:** `CombatEffects.luau`,
+  `CastFX.luau`, `TechniqueVFX.luau`, `tools/vfx_blocks.luau`, the other
+  tools, `tools/vfx_session.luau` (regenerate it to load your spec, but don't
+  commit it), and `docs/`. If you need a shared change (a new block, a
+  CastFX helper such as playLine/playZone), build it inside your own files
+  and propose the shared version in your report. The main session merges it.
+- Commit only your own files, staged by path (never `git add -A`).
+- **Studio lock:** call `vfxStage.lock(who)` (use your technique id as `who`)
+  before any staging, preview scene or capture run. Hold it from
+  `begin(who)` through `finish()`, `tools/vfx_export.sh`, `synced` and the
+  git commit of `assets/Effects.rbxm` (together with your files), then
+  `unlock(who)`. Re-lock to refresh it on long runs. If someone else holds
+  it, do non-Studio work (spec, runtime code, planning) and try again later.
+  Never steal a fresh lock. `assets/Effects.rbxm` holds every technique, so
+  always stage from the live `Effects` while holding the lock; never reuse
+  an old staging copy.
+- `vfxPreview.clear()` removes every preview scene, so only call it while
+  you hold the lock.
+
 ### Shared Studio
 
 Other sessions use the same Studio and the same `_G`. Before a capture run:

@@ -407,10 +407,13 @@ return {
 		-- (before a testbed fight); false brings back the old one-charge boar until
 		-- OLD_STONE_BOAR and the StoneBoar template go.
 		NEW_BOAR = true,
-		-- attack slots (EnemyService): at most this many non-boss beasts wind up or
-		-- strike at one player at once, and the next can't start its windup until
-		-- SLOT_GAP after the last one resolved, so a pack takes turns and every blow
-		-- can be dodged (blows land more than Combat.DODGE_COOLDOWN apart)
+		-- THE ELDER WOLF KING TRIAL: rigged boss, heavy attacks and two quick paw
+		-- checks. Testbed only until the user approves the fight; set true to ship.
+		NEW_WOLF_KING = TESTBED,
+		-- attack slots (EnemyService): at most this many beasts (non-bosses, plus
+		-- bosses with shareTurns) wind up or strike at one player at once; the next waits
+		-- SLOT_GAP after the last one resolved, so a pack takes turns. Short tells
+		-- still reward moving clear as well as spending the dodge.
 		ATTACK_SLOTS = 1,
 		SLOT_GAP = 0.6,
 		ENGAGE_RESET = 6, -- seconds without a target before a beast's next fight counts as new (howl, opener)

@@ -16,7 +16,8 @@
 -- first whose range band holds the target and whose own cooldown is up), open
 -- every engagement with `attack`, and may howl, hop back and circle (`pack`).
 -- Every non-boss beast takes an attack slot on its target first
--- (Config.Wilds.ATTACK_SLOTS / SLOT_GAP), so a pack takes turns.
+-- (Config.Wilds.ATTACK_SLOTS / SLOT_GAP), so a pack takes turns; bosses opt in
+-- with shareTurns. A thresholdOnly summon stays out of the normal rotation.
 -- qiDrop is raw qi at QC1; it scales with the receiving player's dantian
 -- (Realms.enemyQi, Pacing.Income.ENEMY_QI_EXPONENT).
 -- drops: items (Items.luau) each damager may get on a kill, rolled separately.
@@ -38,6 +39,7 @@ export type Attack = {
 	length: number?, -- box: how far it reaches
 	width: number?, -- box: how wide
 	radius: number?, -- circle
+	offset: Vector3?, -- slam: ground centre in facing-local studs (negative Z is forward)
 	dashSpeed: number?, -- lunge/charge: studs per second along the box
 	angle: number?, -- cone: degrees
 	summons: string?, -- summon: enemy id; howl: the reinforcements it calls when it rallies nobody
@@ -51,6 +53,7 @@ export type Attack = {
 	hopAfter: boolean?, -- attack pools: hop back once it recovers
 	followUp: string?, -- attack pools: this attack's name starts as soon as it recovers, if the target is in its range
 	stopPast: number?, -- lunge/charge: dash only to this many studs past the target (between minRange and length)
+	thresholdOnly: boolean?, -- boss pattern: kept here for poses/cues, called only by summonAt
 }
 
 -- Pack behaviour for regular beasts with an attack pool.
@@ -90,11 +93,14 @@ export type Def = {
 	body: string?, -- the template in ServerStorage.Enemies to draw (default: id)
 	pattern: { Attack }?, -- bosses: attacks used in rotation after `attack`
 	summonAt: { number }?, -- bosses: health fractions that trigger a summon
+	shareTurns: boolean?, -- boss joins its summons' attack slots instead of overlapping their blows
+	resetOnEvade: boolean?, -- return home, heal/reset the fight and dismiss owned summons on losing the target
 }
 
 local Wilds = require(script.Parent.Config).Wilds
 local NEW_WOLF = Wilds.NEW_WOLF
 local NEW_BOAR = Wilds.NEW_BOAR
+local NEW_WOLF_KING = Wilds.NEW_WOLF_KING
 
 local Enemies = {}
 
@@ -413,5 +419,97 @@ Enemies.Defs = {
 		} :: { Attack },
 	},
 } :: { [string]: Def }
+
+-- A boss animation/fight trial, isolated from the main game's older King by
+-- Config.Wilds.NEW_WOLF_KING. At QC9 (330 HP), the quick checks take 10-14%,
+-- the bite 19%, the rush 25% and Crownfall 32%. Small mistakes accumulate;
+-- every heavy hit is reactable and every attack leaves time to answer it.
+if NEW_WOLF_KING then
+	local royalBite: Attack = {
+		kind = "cone",
+		name = "royalBite",
+		damage = 64,
+		range = 14,
+		windup = 0.9,
+		recover = 1.0,
+		cooldown = 2.3,
+		radius = 15,
+		angle = 100,
+	}
+	local pawSwipe: Attack = {
+		kind = "cone",
+		name = "pawSwipe",
+		damage = 34,
+		range = 11,
+		windup = 0.45,
+		recover = 0.75,
+		cooldown = 1.6,
+		radius = 12,
+		angle = 95,
+	}
+	local kingsRush: Attack = {
+		kind = "charge",
+		name = "kingsRush",
+		damage = 82,
+		range = 30,
+		windup = 1.0,
+		recover = 1.0,
+		cooldown = 3.1,
+		length = 30,
+		width = 7,
+		dashSpeed = 50,
+		minRange = 12, -- the shortest rush lane, including when started close
+		stopPast = 3,
+	}
+	local clawDown: Attack = {
+		kind = "slam",
+		name = "clawDown",
+		damage = 46,
+		range = 11,
+		windup = 0.55,
+		recover = 0.85,
+		cooldown = 1.8,
+		radius = 4.5,
+		offset = Vector3.new(1.7, 0, -7), -- under the right forepaw, not the root
+	}
+	local crownfall: Attack = {
+		kind = "slam",
+		name = "crownfall",
+		damage = 104,
+		range = 14,
+		windup = 1.25,
+		recover = 1.25,
+		cooldown = 2.9,
+		radius = 13,
+		offset = Vector3.new(0, 0, -3.5),
+	}
+	local packCall: Attack = {
+		kind = "summon",
+		name = "packCall",
+		damage = 0,
+		range = 40,
+		windup = 1.2,
+		recover = 1.0,
+		cooldown = 2.6,
+		summons = "SpiritWolf",
+		count = 2,
+		maxAlive = 2,
+		thresholdOnly = true,
+	}
+	local king = Enemies.Defs.ElderWolfKing
+	king.body = "ElderWolfKingB"
+	king.health = 1900
+	king.walkSpeed = 5
+	king.runSpeed = 14
+	king.aggro = 55
+	king.leash = 110
+	king.attack = royalBite
+	-- Quick checks alternate with the big commitments. Pack Call is included so
+	-- clients can find its timing, but the server calls it only at the thresholds.
+	king.pattern = { pawSwipe, kingsRush, clawDown, crownfall, royalBite, packCall }
+	king.summonAt = { 0.65, 0.30 }
+	king.shareTurns = true
+	king.resetOnEvade = true
+end
 
 return Enemies

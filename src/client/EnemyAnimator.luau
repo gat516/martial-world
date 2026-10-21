@@ -25,6 +25,7 @@ local RunService = game:GetService("RunService")
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local EnemyMotion = require(script.Parent.EnemyMotion)
 local Wolf = require(script.Parent.EnemyPoses.Wolf)
+local WolfKing = require(script.Parent.EnemyPoses.WolfKing)
 -- the boar's pose module may not have landed yet: without it the boar keeps the
 -- generic pose
 local boarModule = script.Parent.EnemyPoses:FindFirstChild("Boar")
@@ -38,11 +39,21 @@ local DEATH_SECONDS = 0.6
 
 -- A pose module and how a beast's attack names map onto its moves.
 -- runFrom: the speed (studs/s) where the walk loop gives way to the run.
-type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number }
+-- keyedBlend: blend from the preceding state for this many seconds, then sample
+-- keyed poses directly. This keeps the King's short tells and contact instants
+-- from trailing the server clock through the normal joint smoothing.
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number? }
 
 local WOLF_MOVES = { bite = "FangSnap", pounce = "MoonPounce", leap = "MoonfallLeap", howl = "Howl", hop = "Hop" }
 local FAMILIES: { [string]: Family } = {
 	SpiritWolfB = { poses = Wolf, scale = 1, moves = WOLF_MOVES, runFrom = 9 },
+	ElderWolfKingB = {
+		poses = WolfKing, scale = 2.4, runFrom = 10, keyedBlend = 0.06,
+		moves = {
+			royalBite = "RoyalBite", kingsRush = "KingsRush", crownfall = "Crownfall",
+			pawSwipe = "PawSwipe", clawDown = "ClawDown", packCall = "PackCall",
+		},
+	},
 }
 -- the gore's hook is its Gore active beat (0.15 s), played at the start of recover
 if Boar then
@@ -59,6 +70,7 @@ type Rig = {
 	def: Enemies.Def?,
 	seed: number,
 	lastState: string?,
+	blendPose: { [string]: CFrame }?, -- keyed families: joints as the preceding state ended
 	side: number, -- stagger/death: +1 the target is on its right
 	deadAt: number?,
 }
@@ -99,6 +111,7 @@ local function watch(model: Instance)
 		def = if type(kind) == "string" then Enemies.Defs[kind] else nil,
 		seed = math.random() * 100,
 		lastState = nil,
+		blendPose = nil,
 		side = 1,
 		deadAt = nil,
 	}
@@ -123,6 +136,13 @@ local function attackOf(def: Enemies.Def?, name: string?): Enemies.Attack?
 		return nil
 	end
 	for _, a in def.attacks or {} do
+		if (a.name or a.kind) == name then
+			return a
+		end
+	end
+	-- Bosses rotate a pattern instead of the regular beasts' attack pool. Every
+	-- named beat (including a threshold-only summon) still needs its real timing.
+	for _, a in def.pattern or {} do
 		if (a.name or a.kind) == name then
 			return a
 		end
@@ -227,24 +247,37 @@ end
 local function stepFamily(rig: Rig, family: Family, dt: number)
 	local model = rig.model
 	local state = model:GetAttribute("AIState")
-	if state ~= rig.lastState then
-		rig.lastState = state :: string?
+	local health = model:GetAttribute("Health")
+	local dead = type(health) == "number" and health <= 0
+	local animationState = if dead then "dead" else state
+	if animationState ~= rig.lastState then
+		rig.lastState = animationState :: string?
 		if state == "stagger" then
 			rig.side = sideOf(rig)
 		end
+		if family.keyedBlend then
+			local from = {}
+			for _, name in family.poses.JOINTS do
+				local joint = rig.joints[name]
+				if joint then
+					from[name] = joint.Transform
+				end
+			end
+			rig.blendPose = from
+		end
 	end
-	local health = model:GetAttribute("Health")
-	local dead = type(health) == "number" and health <= 0
 	local target: any
+	local since: number
 	if dead then
 		if not rig.deadAt then
 			rig.deadAt = os.clock()
 			rig.side = sideOf(rig)
 		end
-		target = family.poses.sample("Death", "active", (os.clock() - (rig.deadAt :: number)) / DEATH_SECONDS, { side = rig.side })
+		since = os.clock() - (rig.deadAt :: number)
+		target = family.poses.sample("Death", "active", since / DEATH_SECONDS, { side = rig.side })
 	else
 		local at = model:GetAttribute("StateAt")
-		local since = math.max(0, workspace:GetServerTimeNow() - (if type(at) == "number" then at else 0))
+		since = math.max(0, workspace:GetServerTimeNow() - (if type(at) == "number" then at else 0))
 		target = movePose(rig, family, state, since)
 	end
 	local keyed = target ~= nil
@@ -255,8 +288,19 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 		target = family.poses.scaled(target, family.scale)
 	end
 	local alpha = math.min(1, dt * (if keyed then MOVE_SMOOTHING else SMOOTHING))
+	local blend = if family.keyedBlend then math.clamp(since / family.keyedBlend, 0, 1) else 1
+	blend = 1 - (1 - blend) ^ 2
 	for _, name in family.poses.JOINTS do
-		pose(rig, name, target[name] or CFrame.identity, alpha)
+		local transform = target[name] or CFrame.identity
+		if keyed and family.keyedBlend then
+			local joint = rig.joints[name]
+			if joint then
+				local from = rig.blendPose and rig.blendPose[name]
+				joint.Transform = if from and blend < 1 then from:Lerp(transform, blend) else transform
+			end
+		else
+			pose(rig, name, transform, alpha)
+		end
 	end
 end
 

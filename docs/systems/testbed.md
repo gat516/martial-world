@@ -31,8 +31,10 @@ on the baseplate unchanged.
 - `Workspace.Wilds`: `EventGrounds.ArenaGround` (radius 60 at (0, 648.6, -120)),
   so world events and treasures land there through the real `EventGrounds` path;
   `QiNodes` and `Enemies` are empty folders; `Zones` holds `WolfPair` (2 Spirit
-  Wolves at (-90, 648.6, -40), 127 studs from the pad) and `BoarPair` (2 Stone Boars
-  at (100, 648.6, -40)), respawning like any zone.
+  Wolves at (-90, 648.6, -40), 127 studs from the pad), `BoarPair` (2 Stone Boars
+  at (100, 648.6, -40)) and `WolfKingTrial` (one Elder Wolf King at
+  (0, 648.6, -300)), respawning like any zone. The King stands farther beyond the
+  event ground, away from the pairs and spawn pad.
 - `Workspace.Map.Sect.SpiritPeaks`: an empty stub, so `Peaks` and `MyPeak` load
   (nobody gets a peak).
 - Place-only, kept on purpose (not in git, never synced back): the enemy pose-preview rigs
@@ -43,8 +45,13 @@ on the baseplate unchanged.
 
 ## Trials before shipping
 New fights land here first behind a flag that is on only in the testbed, so the user
-can fight them before the main game changes. Today: none waiting. Ship one by
-setting its flag to `true`. Shipped so far: the Spirit Wolf (`NEW_WOLF`, 2026-10-21)
+can fight them before the main game changes. Waiting: the Elder Wolf King boss
+animation/fight pass (`NEW_WOLF_KING = Config.TESTBED`): heavy bite/rush/Crownfall,
+fast paw swipe and downward claw, and capped pack calls. Tune at QC9; the test kit
+gives equipment but does not change realm. The user asked for a reasonably hard
+boss that can kill the player, with short readable reaction checks and recovery
+windows. Ship after approval by setting `NEW_WOLF_KING = true`.
+Shipped so far: the Spirit Wolf (`NEW_WOLF`, 2026-10-21)
 and the Stone Boar (`NEW_BOAR`, 2026-10-21); `WolfPair` and `BoarPair` stay for
 tuning.
 
@@ -54,6 +61,8 @@ tuning.
 - `src/shared/Config.luau`: `TESTBED` (reads that attribute).
 - `src/server/Main.server.luau`: `applyTestKit` (skips onboarding, everything
   owned), `sendHome` (no-op: you spawn on the pad).
+- `src/shared/Enemies.luau`: the King's trial def and tuning;
+  `src/client/EnemyPoses/WolfKing.luau` and `EnemyFX/ElderWolfKing.luau` draw it.
 - `src/server/WorldEvents/init.luau` (no timer), `src/server/WeatherService.luau`
   (no rolls), `src/server/Spawner.luau` (no ambient encounters).
 
@@ -101,4 +110,6 @@ tuning.
   back to Shift this way).
 - Animations play only if the testbed experience's owner can use them (same
   creator as the uploads, or permission granted).
-- Untested in Studio so far.
+- The King's new poses, effects, contact placement and QC9 difficulty are untested
+  in play, including latency and phone cost. The earlier Spirit Wolf fight was
+  reviewed here before it shipped.

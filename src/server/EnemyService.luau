@@ -41,8 +41,9 @@ local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
--- attack slots and dash-front hits: the new fights' rules (Spirit Wolf, Stone Boar)
-local TURNS = Config.NEW_WOLF or Config.NEW_BOAR
+-- Attack slots and dash-front hits for the new fights; a boss opts into slots
+-- with shareTurns so its summoned pack cannot cover its tells with another hit.
+local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING
 -- how long a follow-up (Enemies `followUp`) waits past its recover for the attack slot
 local FOLLOW_UP_WAIT = 1.0
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
@@ -413,6 +414,18 @@ local function releaseSlot(enemy: Enemy)
 	end
 end
 
+-- Trial bosses own their adds: a finished or abandoned fight must not leave
+-- another pack in the arena. Older boss definitions keep their existing rules.
+local function dismissSummons(enemy: Enemy)
+	if not enemy.def.resetOnEvade then
+		return
+	end
+	for _, model in enemy.summoned do
+		EnemyService.despawn(model)
+	end
+	table.clear(enemy.summoned)
+end
+
 -- Clients fade the body (EnemyFX, on FadeAt); the server only holds it still
 -- and removes it, so a fade costs no per-part replication.
 local function fadeAway(enemy: Enemy)
@@ -432,6 +445,7 @@ function EnemyService.despawn(model: Model)
 	end
 	enemies[model] = nil
 	releaseSlot(enemy)
+	dismissSummons(enemy)
 	fadeAway(enemy)
 	for _, fn in EnemyService.onRemoved do
 		task.spawn(fn, model, false)
@@ -483,6 +497,7 @@ function EnemyService.died(enemy: Enemy)
 	end
 	enemies[enemy.model] = nil
 	releaseSlot(enemy)
+	dismissSummons(enemy)
 	local position = enemy.root.Position
 	local winners = credited(enemy)
 	for _, player in winners do
@@ -558,6 +573,26 @@ end
 local function setHealth(enemy: Enemy, health: number)
 	enemy.health = math.clamp(health, 0, enemy.maxHealth)
 	enemy.model:SetAttribute("Health", enemy.health)
+end
+
+local function resetAtHome(enemy: Enemy)
+	setHealth(enemy, enemy.maxHealth)
+	table.clear(enemy.damagers)
+	if not enemy.def.resetOnEvade then
+		return
+	end
+	dismissSummons(enemy)
+	table.clear(enemy.summonsDone)
+	table.clear(enemy.cooldowns)
+	enemy.attack = enemy.def.attack
+	enemy.patternIndex = 0
+	enemy.nextAttack = 0
+	enemy.lastEngaged = -math.huge
+	enemy.opened = false
+	enemy.shape, enemy.dashTo, enemy.landShape = nil, nil, nil
+	enemy.hopPending = false
+	enemy.followUp = nil
+	enemy.strikeId += 1
 end
 
 local function setState(enemy: Enemy, state: string)
@@ -761,7 +796,12 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 		enemy.dashTo = center
 		seconds += attack.active or 0.45
 	elseif attack.kind == "slam" then
-		shape = { kind = "circle", center = ground, radius = attack.radius }
+		local center = ground
+		if attack.offset then
+			local facing = CFrame.lookAt(ground, ground + dir)
+			center = groundAt(facing:PointToWorldSpace(attack.offset))
+		end
+		shape = { kind = "circle", center = center, radius = attack.radius }
 	elseif attack.kind == "cone" then
 		shape = {
 			kind = "cone",
@@ -805,7 +845,7 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	else
 		enemy.nextAttack = now + attack.cooldown
 	end
-	if TURNS and not def.boss and attack.damage > 0 and enemy.target then
+	if TURNS and (not def.boss or def.shareTurns) and attack.damage > 0 and enemy.target then
 		takeSlot(enemy, enemy.target)
 	end
 	-- which attack, for per-attack poses and effects (EnemyAnimator, EnemyFX)
@@ -858,7 +898,8 @@ local function summon(enemy: Enemy, attack: Enemies.Attack, count: number?, arou
 		local model = EnemyService.spawn(
 			attack.summons :: string,
 			at :: Vector3,
-			{ home = enemy.home, roam = enemy.roam, target = enemy.target, fleeting = around ~= nil }
+			{ home = enemy.home, roam = enemy.roam, target = enemy.target,
+				fleeting = around ~= nil or enemy.def.resetOnEvade == true }
 		)
 		if model then
 			table.insert(enemy.summoned, model)
@@ -929,12 +970,22 @@ local function reinforce(enemy: Enemy, attack: Enemies.Attack)
 	summon(enemy, attack, count, root.Position)
 end
 
--- Bosses go through their pattern in order; everyone else repeats one attack.
+-- Bosses go through their pattern in order; threshold-only calls interrupt it.
 local function advancePattern(enemy: Enemy)
 	local pattern = enemy.def.pattern
 	if pattern then
-		enemy.patternIndex = enemy.patternIndex % #pattern + 1
-		enemy.attack = pattern[enemy.patternIndex]
+		if enemy.attack.thresholdOnly then
+			-- A phase call interrupts the upcoming move; it does not consume it.
+			enemy.attack = if enemy.patternIndex == 0 then enemy.def.attack else pattern[enemy.patternIndex]
+			return
+		end
+		for _ = 1, #pattern do
+			enemy.patternIndex = enemy.patternIndex % #pattern + 1
+			enemy.attack = pattern[enemy.patternIndex]
+			if not enemy.attack.thresholdOnly then
+				return
+			end
+		end
 	end
 end
 
@@ -1032,7 +1083,8 @@ end
 -- The attack to start now, if any: the opener first in a fresh engagement, then
 -- the first in the pool whose range band holds the target and whose cooldown is up.
 local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.Attack?
-	local slotOk = not (TURNS and not enemy.def.boss and enemy.target and not slotFree(enemy.target, now))
+	local slotOk = not (TURNS and (not enemy.def.boss or enemy.def.shareTurns)
+		and enemy.target and not slotFree(enemy.target, now))
 	-- a follow-up (the boar's gore after its charge) goes as soon as it recovers,
 	-- past the usual pause and its own cooldown, if the target is still in reach.
 	-- It waits for the attack slot (briefly), and lapses once the target is out of
@@ -1118,8 +1170,7 @@ local function think(enemy: Enemy, now: number)
 		enemy.state = "chase"
 	elseif enemy.state == "return" then
 		if flat(position - home(enemy)).Magnitude < 8 then
-			setHealth(enemy, enemy.maxHealth)
-			table.clear(enemy.damagers)
+			resetAtHome(enemy)
 			enemy.state = "idle"
 		else
 			moveTo(enemy, home(enemy))
@@ -1134,6 +1185,7 @@ local function think(enemy: Enemy, now: number)
 	if flat(position - home(enemy)).Magnitude > def.leash then
 		enemy.target = nil
 		releaseSlot(enemy)
+		dismissSummons(enemy)
 		enemy.state = "return"
 		setSpeed(enemy, def.runSpeed)
 		moveTo(enemy, home(enemy))
@@ -1146,6 +1198,16 @@ local function think(enemy: Enemy, now: number)
 		if enemy.fleeting then
 			-- a howl's reinforcement with no one left to fight goes back where it came from
 			EnemyService.despawn(enemy.model)
+			return
+		end
+		if def.resetOnEvade and enemy.lastEngaged > -math.huge then
+			-- A player death/disengage resets this encounter instead of leaving a
+			-- wounded boss and its pack waiting beside the respawn pad.
+			releaseSlot(enemy)
+			dismissSummons(enemy)
+			enemy.state = "return"
+			setSpeed(enemy, def.runSpeed)
+			moveTo(enemy, home(enemy))
 			return
 		end
 		enemy.state = "idle"
@@ -1226,8 +1288,7 @@ local function sleep(enemy: Enemy)
 	if enemy.state == "return" then
 		local ground = groundAt(enemy.home)
 		enemy.model:PivotTo(CFrame.new(ground + Vector3.new(0, enemy.rootHeight, 0)) * enemy.root.CFrame.Rotation)
-		setHealth(enemy, enemy.maxHealth)
-		table.clear(enemy.damagers)
+		resetAtHome(enemy)
 	end
 	stop(enemy)
 	setSpeed(enemy, enemy.def.walkSpeed)
@@ -1298,10 +1359,10 @@ local function crowd(list: { Enemy })
 			if distance < reach then
 				local dir = if distance > 0.05 then offset.Unit else Vector3.xAxis
 				local push = dir * Config.CROWD * (1 - distance / reach)
-				if a.state ~= "dash" then
+				if a.state ~= "dash" and not (a.def.shareTurns and (a.state == "windup" or a.state == "recover")) then
 					a.mover.nudge += push
 				end
-				if b.state ~= "dash" then
+				if b.state ~= "dash" and not (b.def.shareTurns and (b.state == "windup" or b.state == "recover")) then
 					b.mover.nudge -= push
 				end
 			end

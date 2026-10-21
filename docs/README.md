@@ -72,6 +72,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Realm ladder names and helpers (built from Pacing) | `src/shared/Realms.luau` |
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
+| Testbed fight trials before shipping | `Config.Wilds.NEW_WOLF_KING` (King trial); `test.project.json` zones ([testbed](systems/testbed.md)) |
 | Knockback / stagger | `src/shared/Knockback.luau` |
 | Techniques (and their visual tiers, `VISUAL_TIERS`, elements) | `src/shared/Techniques.luau` |
 | Spirit roots: element odds, grades, perks, element match | `src/shared/Pacing.luau` `Roots`; elements in `src/shared/Roots.luau` |

@@ -1,7 +1,8 @@
 # Wolf family rigs: animator notes
 
-Spirit Wolf B (`ServerStorage._StagingEnemies.SpiritWolf_B`), Elder Wolf King and
-Shadow-Mane Wolf (`ServerStorage._RosterWolves`). All three share one skeleton: the same
+Spirit Wolf B (`ServerStorage.Enemies.SpiritWolfB`), Elder Wolf King B
+(`ServerStorage.Enemies.ElderWolfKingB`, from the `_RosterWolves.ElderWolfKing`
+body) and Shadow-Mane Wolf (`ServerStorage._RosterWolves`). All three share one skeleton: the same
 joint names, hierarchy and pivots, the King at 2.4x and the Shadow-Mane at 1.15x the
 Spirit Wolf. A clip made on one plays on the others as long as it only keys the shared
 joints, and the extras are named so they don't clash.
@@ -84,10 +85,12 @@ Empty FX attachments (identity world rotation at rest, so they turn with their p
 
 ## Things to know
 
-- **Only the legacy joints are driven in game today.** EnemyAnimator poses JointHead,
-  JointTail and JointLeg* procedurally from `AIState` and overwrites them every frame. A
-  clip played alongside it fights it on those joints; everything else (jaw, ears, spine,
-  lower legs, tail chain, extras) is free.
+- **Pose modules own their named joints every frame.** EnemyAnimator selects them by
+  the live enemy's `Template`: `SpiritWolfB` uses `Wolf.luau`; `ElderWolfKingB` uses
+  `WolfKing.luau`. Each module's `JOINTS` list includes the root, spine, neck, jaw,
+  ears, complete legs and tail chain; the King adds both manes and the seal. A clip
+  played alongside the poser would fight it on those joints. Bodies without a
+  registered module still use only the generic head, tail and upper-leg pose.
 - **Tested ranges** (no gaps, nothing separates): legs ±0.85 rad at the shoulder and hip,
   elbows and knees ±0.8, a 0.6-stud crouch on JointRoot, the jaw to -0.8, the neck and
   head to 0.35 yaw, the tail chain to 0.6 each, and a full leap stretch (forelegs +1.2,
@@ -160,3 +163,56 @@ and middle-joint range. `_G.WOLF_POSE_PREVIEW` leaves anchored posed copies in
   0.3 the paws cross and collide.
 - **Death:** rolled 1.4 about the hips and shifted 0.55 toward the side it falls to,
   the flank rests on Y 0 at a root drop of 0.95 (measured, not keyed by eye).
+
+### Elder Wolf King B (`EnemyPoses/WolfKing.luau`)
+
+The testbed boss uses the existing King's skeleton, including `JointManeL`,
+`JointManeR` and `JointSeal`. It has its own pose module so its heavy gait and
+attack tells do not change the Spirit Wolf. Every pose is authored in **unit
+wolf space**: `EnemyAnimator` scales root translation by **2.4 once**, after
+sampling, and advances gait phases at the scaled stride rate.
+
+The module has the same `moves`, `durations`, `JOINTS`, `sample`, `loops`,
+`gaitRate`, `scaled` and `plant` API as `Wolf`. It uses `Quadruped.new` for the
+shared two-joint planting and gait solver, with the wolf pivots and the King's
+wider, longer paw soles from `build_elder_wolf_king.luau`. Walk and circle use a
+four-beat gait with a 72% stance; its stride clock uses that stance fraction when
+matching paw travel to root speed. Run uses an asymmetric gallop. Rush strides use
+elapsed seconds at three cycles per second, rather than forcing a fixed number
+of strides into a short dash. The seal and manes trail the body in gait curves;
+on attacks they hold their windup flare through contact and then swing through.
+
+| Attack attribute | Pose move | Windup | Active | Pose recover | Server recover | Tell |
+|---|---|---|---|---|---|---|
+| `royalBite` | `RoyalBite` | 0.90 | 0.16 | 0.84 | 1.00 | high head, open jaw, braced forepaws |
+| `kingsRush` | `KingsRush` | 1.00 | actual `DashSeconds`, at most 0.60 | 1.00 | 1.00 | low still coil, hind-leg push, gallop, wide skid |
+| `crownfall` | `Crownfall` | 1.25 | 0.18 | 1.07 | 1.25 | both forepaws rise; broad ground impact and held squat |
+| `pawSwipe` | `PawSwipe` | 0.45 | 0.12 | 0.63 | 0.75 | left shoulder and paw lift outward, then sweep diagonally inward |
+| `clawDown` | `ClawDown` | 0.55 | 0.12 | 0.73 | 0.85 | right paw above the lowered head, then a downward drive |
+| `packCall` | `PackCall` | 1.20 | 0.10 | 0.90 | 1.00 | all four paws planted, throat up, mane spread |
+
+Stationary attacks reach their contact pose at the **end of windup**: this is
+when the server hits and the `strike` cue fires. `active` is visual follow-through
+at the beginning of the server's recover; `EnemyAnimator` subtracts it before
+playing the pose recover. The two fast paw tells lift their attacking shoulder
+immediately, with the other three paws planted. ClawDown's claw-tip target is
+King-local `(1.7, 0, -7)`; the module converts it to unit space and accounts for
+the toe's offset from the wrist. Crownfall has no airborne root movement: only
+the front limbs lift while the rear paws support the body.
+
+`EnemyAnimator` searches boss `def.pattern` for each attack's real timing. For
+`ElderWolfKingB` only, it blends from the preceding state's transforms for 0.06 s,
+then applies keyed poses directly from `StateAt`, so normal smoothing cannot
+delay a fast release past its hit instant. Locomotion keeps normal smoothing.
+Stagger (0.28 s) and mirrored death (0.60 s) reuse the shared wolf keys with
+King-specific mane and seal follow-through.
+
+**Authored ranges, not newly validated:** the raised forepaws use upper-leg
+pitch to 1.25, elbow pitch to 1.10 and compensating wrist pitch to -2.0; the
+Crownfall root pitches to 0.32 and its impact drops 0.38 unit studs before
+planting. These extend the earlier pose set. No numeric pose QA, Studio preview,
+captures or playtests were run for this pass, at the user's instruction. Paw
+clearance against the King's larger skull, shoulder pads and mane, the ClawDown
+contact, death against the ground, phase blending, phone cost and readability
+at 40 studs remain for review. No KeyframeSequences or uploaded clips were made;
+the live game currently uses procedural poses.

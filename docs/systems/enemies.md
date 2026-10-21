@@ -6,7 +6,8 @@ seeds, insight and technique manuals, and the main test of a player's realm.
 
 ## Design intent
 - Readable fights: every damaging attack has a ground telegraph; bosses rotate a
-  pattern and summon adds at health thresholds.
+  pattern and summon adds at health thresholds. A boss can opt into its pack's
+  attack slots (`shareTurns`) so their damaging windups do not overlap.
 - Beasts cultivate on the same ladder as players (`realm`), and have a `weight`.
   Together they set how far player hits throw them: a Qi Condensation fist can't
   move the Elder Wolf King (QC9, weight 7); Foundation shoves it.
@@ -305,6 +306,106 @@ picked by description, unheard): `Attack_charge` (Pig Grunts 2, deep, 0.85 pitch
 skid as a charge ends); the old boar picks these up too. The testbed's
 `Wilds.Zones.BoarPair` keeps two at (100, 648.6, -40).
 
+### Elder Wolf King (testbed trial)
+User direction (2026-10-21): try the animation workflow on the wolf boss; make it
+reasonably hard, with real risk of dying, and add fast reaction checks: a paw swipe
+and a downward paw/claw strike. The big attacks keep longer, readable anticipation
+and every move leaves an opening. This is a pass on the existing QC9 boss, not a
+new enemy id.
+
+`Config.Wilds.NEW_WOLF_KING = Config.TESTBED` gates the entire pass. The main game
+keeps the older body, 1500 HP and old attack pattern. After the user fights and
+approves the trial, set that flag to `true` to ship it.
+
+The trial draws `ElderWolfKingB`: the already-rigged Studio-part roster King,
+promoted from `_RosterWolves.ElderWolfKing` without changing its wolf-family
+skeleton. Sources: `art/enemies/wolf_family/build_elder_wolf_king.luau`,
+`rig_wolf_family.luau`, `promote_wolf_king.luau`; poses:
+`src/client/EnemyPoses/WolfKing.luau`, registered only for that body in
+`EnemyAnimator`. It shares the Spirit Wolf's hierarchy at 2.4x, with its own
+`JointManeL/R` and `JointSeal`. Dark slate body, silver mane and crest, amber eyes
+and brow, jade collar seal; its shoulders stand above a player. Its eventual home
+is the Inner Wilds boss arena; the trial is on the separate testbed baseplate.
+The promotion cloned the live roster rig instead of regenerating it: 146 parts,
+26 motors, 119 welds, the original HealthBar and six Tell attributes. The root is
+upright at (0, 6.24, 0), with rest feet at Y 0. There were no AnimSaves on the source.
+Only the new B template was added to the binary asset; the old King and the other
+shipped templates are retained. The promotion script refuses to replace an existing
+staging folder or B template.
+
+The opener is Royal Bite. The repeating pattern is Paw Swipe -> King's Rush ->
+Claw Down -> Crownfall -> Royal Bite. Pack Call interrupts the next attack at 65%
+and 30% health, then resumes that attack; `thresholdOnly = true` keeps the call out
+of the normal rotation. It calls two Spirit Wolves, capped at two owned wolves
+alive. Those wolves arrive already targeting and cannot howl in another pack.
+
+| Attack (`name`) | Kind | Windup / active / server recover | Start range | Locked area | Damage (QC9 330 HP) | Cooldown |
+|---|---|---|---|---|---|---|
+| Royal Bite (`royalBite`) | cone | 0.90 / 0.16 / 1.00 | 14 | r 15, 100 deg | 64 (19%) | 2.3 s |
+| Paw Swipe (`pawSwipe`) | cone | 0.45 / 0.12 / 0.75 | 11 | r 12, 95 deg | 34 (10%) | 1.6 s |
+| King's Rush (`kingsRush`) | charge | 1.00 / lane / 1.00 | 30 | 7-wide lane, 12-30 long | 82 (25%) | 3.1 s |
+| Claw Down (`clawDown`) | slam | 0.55 / 0.12 / 0.85 | 11 | r 4.5 at local (1.7, 0, -7) | 46 (14%) | 1.8 s |
+| Crownfall (`crownfall`) | slam | 1.25 / 0.18 / 1.25 | 14 | r 13 at local (0, 0, -3.5) | 104 (32%) | 2.9 s |
+| Pack Call (`packCall`) | summon | 1.20 / 0.10 / 1.00 | threshold | no damage | 0 | 2.6 s |
+
+Cooldowns start with the windup; the server always completes the attack and recover
+before starting the next one. Stationary attacks hit **at windup end**. Their active
+animation is the first part of server recover, not extra damage delay: the windup
+reaches contact and the active phase follows through. The rush hits each player as
+the dash front arrives, stops three studs beyond the locked target position, and
+runs at 50 studs/s (up to 0.60 s plus the mover's 0.10 s settling allowance).
+`DashSeconds` times the moving pose. Slam `offset` values are facing-local ground
+studs; the downward strike's circle is under the right forepaw. The offsets are
+locked with the telegraph, so the attack cannot track a late dodge.
+
+Health 1900, QC9, weight 7, walk/run 5/14, aggro 55, leash 110. Rewards, drops and
+respawn remain the existing boss's. The quick checks punish slow reactions without
+the damage of the big commitments; Crownfall punishes ignoring a long tell. These
+are starting values for the user's playtest, not measured difficulty.
+
+`shareTurns = true` makes the King reserve the same damaging-attack slot as its
+wolves; it keeps its root planted against crowd nudges during windup and recover.
+`resetOnEvade = true` sends it home when no eligible player remains, heals and
+resets its pattern/thresholds there, and dismisses owned wolves on abandonment,
+death or despawn. Its wolves are temporary encounter adds, not arena residents.
+The testbed zone `WolfKingTrial` spawns one at (0, 648.6, -300), away from the wolf
+and boar pairs and the spawn pad. Fight at QC9 for the intended comparison; the
+test kit gives equipment but does not change the player's realm.
+
+Effects: `src/client/EnemyFX/ElderWolfKing.luau`, gated to `ElderWolfKingB`; standard
+`windup`, `strike`, `dash`, `land`, `hit`, `stagger`, `death` cues. Every windup's
+`seconds` covers only the windup. Body hooks: `Mouth` (Skull), `Core` (Chest),
+`PawFL_FX`/`PawFR_FX`/`PawBL_FX`/`PawBR_FX` (the paws), `SealFX` (Seal).
+The existing `SFX.Enemies.ElderWolfKing` Aggro/Attack/Death sounds are reused.
+No new remotes.
+
+The King's FX handler reuses `Effects.SpiritWolf` and `Effects.StoneBoar` through
+`TechniqueVFX`; it does not add or re-export `Effects.rbxm`. Runtime clones keep
+the plugin attributes, textures and layer counts, with silver `#E4E9EE`, rim
+`#9EB0C1`, slate `#252C3A`, amber `#FFC85A` warnings and jade `#5DBB98` seal glints.
+Scale, palette and cue timing are in `EnemyFX/ElderWolfKing.luau`; retime the
+fallback `WINDUP` table there if the attack definitions change.
+
+| Beat | Reused templates and placement |
+|---|---|
+| Every windup | StoneBoar `EyeGlint` on both eyes; the stock ground outline/fill stays visible |
+| Royal Bite | SpiritWolf `Breath` at Mouth, then `FangSnap` crescents at contact |
+| Paw Swipe | StoneBoar `TuskGlint` on the left shoulder, then a short diagonal `GoreHook` at the left paw |
+| Claw Down | StoneBoar `TuskGlint` on the raised right paw, then SpiritWolf `ClawRake` moving down and `PawDust` at the locked circle |
+| King's Rush | SpiritWolf `Gather`, hind-paw `PawDust`, take-off `DashDust` and body `MoonTrail`; StoneBoar `Skid` at the forepaws when it stops |
+| Crownfall | SpiritWolf `Gather`, a jade StoneBoar `TuskGlint` on SealFX, then SpiritWolf `Landing` scaled to the locked circle's radius (crack, ring, wave, dust, chips and flash) |
+| Pack Call | SpiritWolf `HowlRings` and `CrestGlow`, jade seal glint, a short extra ring burst as wolves arrive |
+| Confirmed hits | SpiritWolf `ClawRake` / `BiteHit` or StoneBoar `GoreHit` / `ChargeHit`, chosen by attack |
+| Stagger / death | SpiritWolf `StaggerFlash` / `Death` qi motes, with a final seal glint |
+
+Windup tasks cancel when the state or attack changes; rush release/dash cues dedupe,
+and the trail stops on landing, interruption, death or its duration limit. Confirmed
+hit flashes allow the same attack's immediate windup-to-contact state transition,
+because its remote may arrive before the replicated phase update. Ground effects
+stay at the locked point; body effects follow their attachment's part. Layer details
+and library IDs remain in the two existing template builders and effect sections
+above; no new library assets were chosen for this pass.
+
 ### Template contract
 Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated
 `HumanoidRootPart` as PrimaryPart standing on Y 0 (its height is the beast's root
@@ -316,7 +417,8 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
 
 ## Key files
 - `src/shared/Enemies.luau`: defs (health, speeds, aggro/leash, attack and boss
-  pattern, `qiDrop`, `stones`, `drops`, `bossDrops` (bosses' manual/weapon pool, see [weapons](weapons.md)), `realm`, `weight`), `QI_SCALE_EXPONENT`.
+  pattern, `qiDrop`, `stones`, `drops`, `bossDrops` (bosses' manual/weapon pool, see [weapons](weapons.md)), `realm`, `weight`). Kill qi scaling uses
+  `Pacing.Income.ENEMY_QI_EXPONENT` through `Realms.enemyQi`.
 - `src/shared/Spawns.luau`: ambient encounter rules (rates, caps, safe spots).
 - `src/shared/Regions.luau`: named regions (shape, intended realm, flavour line,
   ambient pack table).
@@ -338,7 +440,8 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
 - `src/shared/Knockback.luau`; client `EnemyAnimator.luau` (procedural gait by
   `AIState`), `EnemyPoses/` (per-family pose tables for it: `Wolf.luau` keys every
   shared wolf joint for idle, walk, run, circle and each Spirit Wolf move, with planted
-  paws solved onto the ground; format at its top and in `wolf_family/RIGS.md`),
+  paws solved onto the ground; `WolfKing.luau` adds the King's boss moves and mane/seal
+  motion; format at Wolf's top and in `wolf_family/RIGS.md`),
   `EnemyMotion.luau` (builds and draws the predicted body), `EnemyFX/` (per-beast cues,
   death fade), `EnemyBars.luau` (overhead and boss bars), `EnemySounds.luau`,
   `Telegraphs.luau`.
@@ -371,13 +474,15 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
   each Humanoid has an Animator, and cloth, weapons and sway pieces get their own
   joints. Every template passes `check_rig.luau` and `keyframe_test.luau`.
 - **Previews** posed in Edit mode are anchored and tagged `EditorOnly`.
-- **Roster in review** (models only, no defs yet), each group in its own staging folder:
+- **Roster in review** (staging bodies), each group in its own staging folder:
   `ServerStorage._RosterWolves`, `_RosterQuadrupeds`, `_RosterBeasts`, `_RosterBandits`
   and `_RosterCultivators`, previewed off the map at Y 400, Z 3000, X 100 to 500. All
-  18 are rigged and QA'd.
+  18 were rigged and QA'd in the roster pass. Spirit Wolf B and Stone Boar B have
+  shipped; Elder Wolf King B is promoted for the testbed trial. The other roster
+  bodies still await their fights.
 - **Known gaps:** EnemyAnimator can't play R6 tracks or authored clips yet (humanoid
-  enemies need an AnimationTrack per AIState). No roster model has a def, sounds or
-  VFX. The Flame Raven's server stand-in would take its whole 15-stud wingspan as a
+  enemies need an AnimationTrack per AIState). The remaining roster bodies have no
+  dedicated fights, sounds or VFX. The Flame Raven's server stand-in would take its whole 15-stud wingspan as a
   hitbox.
 
 ## Data flow
@@ -401,9 +506,11 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   `CLIMB`, `FALL_SPEED`, `TURN_RATE`, `CROWD`.
 - Packs and turns: `Config.Wilds.NEW_WOLF` (the wolf fight's switch, shipped on; it or NEW_BOAR turns on slots
   and dash-front hits for everyone), `NEW_BOAR` (the boar fight's switch, shipped on),
+  `NEW_WOLF_KING` (King trial, testbed only),
   `ATTACK_SLOTS`, `SLOT_GAP`, `ENGAGE_RESET`; per beast `attacks` (with `minRange`,
   `notBefore`, `active`, `arc`, `hopAfter`, `followUp`, `stopPast`) and `pack` (`howl`, `hop`,
-  `circle` with optional `waitFor`, `closeOpener`).
+  `circle` with optional `waitFor`, `closeOpener`); boss `pattern`, `summonAt`,
+  `shareTurns`, `resetOnEvade`, and attack `offset` / `thresholdOnly`.
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
   `ESCAPE_LEAD`; client `EnemyMotion` `LEAD_MAX`, `STALE`, `FOLLOW`, `TURN`, `SNAP`,
   `DASH_SLACK`.
@@ -412,6 +519,12 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   `Global.BEAST_HEALTH/BEAST_DAMAGE`, and kill qi through `Realms.enemyQi`.
 
 ## Known gaps
+- The Elder Wolf King trial is untested in play and has no visual/numeric pose QA
+  in this pass: fast tells on a moving camera and at latency, paw contact against
+  the locked circles, the full cue path, shared slots with two wolves, abandonment
+  reset, QC9 difficulty and phone cost need the user's testbed review. The test
+  kit does not raise the player's realm; lower-realm fights are deliberately much
+  harder. Do not ship the flag to the main game until that review is approved.
 - The Spirit Wolf's howl reinforcements are untested in play: where they appear on
   broken ground (a spot can be behind a wall the mover can't cross), whether 3 extra
   wolves on a QC2 player is too much, the onboarding limit, and whether howls become a

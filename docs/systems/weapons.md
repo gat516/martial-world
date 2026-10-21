@@ -53,9 +53,9 @@ its own comprehension bottlenecks for free, and needs four visual tiers
 ## Where techniques and weapons come from (v1)
 | Source | What |
 |---|---|
-| Start | Iron Jian (equipped), Sword Qi Wave |
-| Kill milestones (`Pacing.Rewards.MILESTONES`) | 3 Palm Strike, 12 Twin Phoenix Cannon, 30 Iron Skin, 60 Moonflash Draw, 100 Fire Seal |
-| First boss kill (`BOSS_FIRST_MANUAL`) | Lightning Talisman |
+| Start | Iron Jian (equipped), Lightning Talisman (any weapon, so the starter works whatever you hold) |
+| Kill milestones (`Pacing.Rewards.MILESTONES`) | 3 Fire Seal, 12 Sword Qi Wave, 30 Iron Skin, 60 Moonflash Draw, 100 Palm Strike (any-weapon manuals first: the 3-kill one is the onboarding's) |
+| First boss kill (`BOSS_FIRST_MANUAL`) | Twin Phoenix Cannon |
 | Boss pool (`Enemies.ElderWolfKing.bossDrops`) | one unowned entry of: Rampaging Tiger Cleave, Heaven-Splitting Descent, Crescent Moon Sweep, Great Sage Awakening, or a Spirit weapon of any class. Guaranteed on the first kill, then 25% a kill |
 | Manual caches (`ManualCache` anchors) | whatever manual/weapon the anchor names; meant for Dragon-Piercing Thrust and the other class manuals |
 | Sect weapon rack (`WeaponRack` anchors) | one free Mortal weapon of each class, once each |

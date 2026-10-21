@@ -232,17 +232,19 @@ Pacing.Rewards = {
 	BOSS_KILL_SHARE = 0.15,
 	FIRST_KILL_INSIGHT = 1, -- the first kill of each enemy type
 	BOSS_INSIGHT = 1, -- every boss kill
-	BOSS_FIRST_MANUAL = "LightningTalisman",
+	BOSS_FIRST_MANUAL = "TwinPhoenixCannon",
 	-- boss pools of class manuals and Spirit weapons: Enemies `bossDrops`;
 	-- the rest of the class manuals and the Mortal weapons are in world caches
 	-- and the sect weapon rack (docs/systems/weapons.md)
 	-- kill milestones (total kills): insight and/or a manual, once each
 	MILESTONES = {
-		{ kills = 3, manual = "PalmStrike" },
-		{ kills = 12, manual = "TwinPhoenixCannon" },
+		-- early manuals work with any weapon (the onboarding's first manual is the
+		-- 3-kill one), then the starting sword's, then other classes'
+		{ kills = 3, manual = "FireSeal" },
+		{ kills = 12, manual = "SwordQiWave" },
 		{ kills = 30, insight = 1, manual = "IronSkin" },
 		{ kills = 60, manual = "MoonflashDraw" },
-		{ kills = 100, insight = 1, manual = "FireSeal" },
+		{ kills = 100, insight = 1, manual = "PalmStrike" },
 	} :: { { kills: number, insight: number?, manual: string? } },
 }
 

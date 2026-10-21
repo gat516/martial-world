@@ -91,8 +91,8 @@ local function default(): Data
 		insight = 0,
 		insightEarned = 0,
 		methods = { owned = {}, active = "" },
-		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } } },
-		hotbar = Hotbar.empty({ "SwordQiWave" }),
+		techniques = { owned = { LightningTalisman = { level = 1, xp = 0 } } }, -- any weapon
+		hotbar = Hotbar.empty({ "LightningTalisman" }),
 		firstKills = {},
 		milestones = {},
 		beats = {},

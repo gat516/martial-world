@@ -12,7 +12,10 @@
 -- and leashes back to.
 --
 -- States: idle (wander near home) -> chase -> windup (telegraph on the ground)
--- -> dash (lunge/charge only) -> recover -> chase. Past its leash an enemy
+-- -> dash (lunge/charge/leap, and a pack beast's hop) -> recover -> chase.
+-- Regular beasts with an attack pool (Enemies `attacks`, `pack`) howl their pack
+-- in on first noticing a player, take turns through per-player attack slots
+-- (Config.Wilds.ATTACK_SLOTS), circle while they wait and hop back when pressed. Past its leash an enemy
 -- returns home and heals. Player hits can knock it back into "stagger" for a
 -- moment, depending on realm and weight (Knockback.luau). Every attack that hurts shows its exact area to all
 -- clients first (Telegraph remote) and resolves on the server through Combat.hurt,
@@ -67,7 +70,8 @@ local function standinFor(id: string): Standin?
 	if cached then
 		return cached
 	end
-	local template = templates:FindFirstChild(id)
+	local def = Enemies.Defs[id]
+	local template = templates:FindFirstChild(def and def.body or id)
 	local templateRoot = template and template:FindFirstChild("HumanoidRootPart")
 	if not (template and template:IsA("Model") and templateRoot and templateRoot:IsA("BasePart")) then
 		return nil
@@ -131,9 +135,28 @@ type Enemy = {
 	summoned: { Model }, -- live summons (bosses)
 	staggerImmuneUntil: number,
 	asleep: boolean,
+	-- attack pools and packs
+	cooldowns: { [string]: number }, -- per attack name: when it may be used again
+	lastEngaged: number, -- os.clock() it last had a target (a fresh engagement after Config.ENGAGE_RESET)
+	engagedAt: number, -- when this engagement began (attacks' notBefore)
+	opened: boolean, -- used its opener (def.attack) this engagement
+	slotFor: Player?, -- holds an attack slot on this player
+	strikeId: number, -- bumped when an attack resolves or breaks; pending dash hits check it
+	recoverFor: number, -- recover seconds after the current dash
+	landShape: Shape?, -- a leap's circle, resolved as it lands
+	hopPending: boolean,
+	hopReadyAt: number,
+	hits: { number }, -- recent times it was hit (the hop's trigger)
+	orbitDir: number,
+	orbitSwitchAt: number,
+	targetId: number?, -- the Target attribute last sent
 }
 
 local enemies: { [Model]: Enemy } = {}
+
+-- Attack slots by player: who holds one and when the next windup may start.
+type Slot = { holders: { [Enemy]: boolean }, freeAt: number }
+local slots: { [Player]: Slot } = {}
 
 local EnemyService = {}
 
@@ -254,7 +277,7 @@ end
 function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Model?
 	local opts: SpawnOptions = options or {}
 	local def = Enemies.Defs[id]
-	local template = templates:FindFirstChild(id) :: Model?
+	local template = templates:FindFirstChild(def and def.body or id) :: Model?
 	if not (def and template) then
 		warn(`EnemyService: no enemy "{id}"`)
 		return nil
@@ -274,6 +297,7 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 	local ground = groundAt(at)
 	model:PivotTo(CFrame.new(ground + Vector3.new(0, rootHeight, 0)) * CFrame.Angles(0, math.random() * math.pi * 2, 0))
 	model:SetAttribute("EnemyType", id)
+	model:SetAttribute("Template", def.body or id) -- the template clients draw (EnemyMotion)
 	model:SetAttribute("RunSpeed", def.runSpeed)
 	model:SetAttribute("Realm", Realms.get(def.realm[1], def.realm[2]).name)
 	model:SetAttribute("MaxHealth", health)
@@ -308,6 +332,21 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		summoned = {},
 		staggerImmuneUntil = 0,
 		asleep = false,
+		cooldowns = {},
+		-- sent at a player already (summons): no howl, it joins the fight
+		lastEngaged = if opts.target then os.clock() else -math.huge,
+		engagedAt = os.clock(),
+		opened = false,
+		slotFor = nil,
+		strikeId = 0,
+		recoverFor = def.attack.recover,
+		landShape = nil,
+		hopPending = false,
+		hopReadyAt = 0,
+		hits = {},
+		orbitDir = if math.random() < 0.5 then 1 else -1,
+		orbitSwitchAt = 0,
+		targetId = nil,
 	}
 	enemies[model] = enemy
 	return model
@@ -316,6 +355,49 @@ end
 local function randomPointNear(center: Vector3, radius: number): Vector3
 	local a, r = math.random() * math.pi * 2, math.sqrt(math.random()) * radius
 	return center + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r)
+end
+
+--[[ Attack slots ]]
+
+local function slotFree(player: Player, now: number): boolean
+	local slot = slots[player]
+	if not slot then
+		return true
+	end
+	local held = 0
+	for holder in slot.holders do
+		if enemies[holder.model] == holder and holder.slotFor == player then
+			held += 1
+		else
+			slot.holders[holder] = nil
+		end
+	end
+	return held < Config.ATTACK_SLOTS and now >= slot.freeAt
+end
+
+local function takeSlot(enemy: Enemy, player: Player)
+	local slot = slots[player]
+	if not slot then
+		slot = { holders = {}, freeAt = 0 }
+		slots[player] = slot
+	end
+	slot.holders[enemy] = true
+	enemy.slotFor = player
+end
+
+-- The attack is over (resolved, broken, or the beast is gone): the next beast
+-- may wind up on that player after SLOT_GAP.
+local function releaseSlot(enemy: Enemy)
+	local player = enemy.slotFor
+	if not player then
+		return
+	end
+	enemy.slotFor = nil
+	local slot = slots[player]
+	if slot then
+		slot.holders[enemy] = nil
+		slot.freeAt = math.max(slot.freeAt, os.clock() + Config.SLOT_GAP)
+	end
 end
 
 -- Clients fade the body (EnemyFX, on FadeAt); the server only holds it still
@@ -336,6 +418,7 @@ function EnemyService.despawn(model: Model)
 		return
 	end
 	enemies[model] = nil
+	releaseSlot(enemy)
 	fadeAway(enemy)
 	for _, fn in EnemyService.onRemoved do
 		task.spawn(fn, model, false)
@@ -386,6 +469,7 @@ function EnemyService.died(enemy: Enemy)
 		return
 	end
 	enemies[enemy.model] = nil
+	releaseSlot(enemy)
 	local position = enemy.root.Position
 	local winners = credited(enemy)
 	for _, player in winners do
@@ -446,10 +530,12 @@ end
 
 local function stop(enemy: Enemy)
 	enemy.mover.goal = nil
+	enemy.mover.look = nil
 end
 
 local function moveTo(enemy: Enemy, at: Vector3)
 	enemy.mover.goal = at
+	enemy.mover.look = nil
 end
 
 local function setSpeed(enemy: Enemy, speed: number)
@@ -499,8 +585,12 @@ local function knock(enemy: Enemy, player: Player, push: Vector3)
 	if now < enemy.staggerImmuneUntil and not committed then
 		return
 	end
-	-- a windup broken here never resolves; its telegraph just fades
-	enemy.shape, enemy.dashTo = nil, nil
+	-- a windup broken here never resolves; its telegraph just fades, and a
+	-- dash's pending hits or a leap's landing are called off
+	enemy.shape, enemy.dashTo, enemy.landShape = nil, nil, nil
+	enemy.strikeId += 1
+	enemy.hopPending = false
+	releaseSlot(enemy)
 	setSpeed(enemy, enemy.def.runSpeed)
 	enemy.mover.turn = false
 	stop(enemy)
@@ -518,6 +608,19 @@ Combat.onEnemyDamaged = function(model: Model, player: Player, amount: number, p
 	end
 	enemy.damagers[player] = (enemy.damagers[player] or 0) + amount
 	setHealth(enemy, enemy.health - amount)
+	-- pressed too hard: a pack beast hops back after enough hits in a short window
+	local hop = enemy.def.pack and enemy.def.pack.hop
+	if hop then
+		local now = os.clock()
+		table.insert(enemy.hits, now)
+		while enemy.hits[1] and now - enemy.hits[1] > hop.window do
+			table.remove(enemy.hits, 1)
+		end
+		if #enemy.hits >= hop.hits then
+			enemy.hopPending = true
+			table.clear(enemy.hits)
+		end
+	end
 	if enemy.health <= 0 then
 		EnemyService.died(enemy)
 		return
@@ -558,7 +661,73 @@ local function pickTarget(enemy: Enemy): (Player?, BasePart?)
 	return best, bestRoot
 end
 
+local function attackName(attack: Enemies.Attack): string
+	return attack.name or attack.kind
+end
+
+-- Hurt one player with an attack, and show the hit to everyone (EnemyFX `hit`).
+local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player)
+	local result = Combat.hurt(player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, false, enemy.def.id)
+	if result == "hit" and player.Character then
+		effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
+	end
+end
+
+local function hurtIn(enemy: Enemy, attack: Enemies.Attack, shape: Shape)
+	for _, player in Players:GetPlayers() do
+		local root = playerRoot(player)
+		if root and caught(shape, player, root) then
+			hurtPlayer(enemy, attack, player)
+		end
+	end
+end
+
+-- A lunge or charge: each player in the lane is checked when the dash front
+-- reaches them (how far along the lane they stood as it set off), so the blow
+-- lands as the beast arrives and a late side-step still saves them. A stagger
+-- or the next attack (strikeId) calls the rest off.
+local function hurtAlongDash(enemy: Enemy, attack: Enemies.Attack, shape: Shape)
+	local id = enemy.strikeId
+	local cframe, size = shape.cframe :: CFrame, shape.size :: Vector2
+	local speed = attack.dashSpeed :: number
+	for _, player in Players:GetPlayers() do
+		local root = playerRoot(player)
+		if root then
+			local p = cframe:PointToObjectSpace(root.Position)
+			-- skip anyone nowhere near the lane
+			if math.abs(p.X) <= size.X / 2 + PLAYER_RADIUS + 8 and math.abs(p.Z) <= size.Y / 2 + PLAYER_RADIUS + 8 then
+				local along = math.clamp(size.Y / 2 - p.Z, 0, size.Y)
+				task.delay(along / speed, function()
+					if enemies[enemy.model] ~= enemy or enemy.strikeId ~= id then
+						return
+					end
+					local root = playerRoot(player)
+					if root and caught(shape, player, root) then
+						hurtPlayer(enemy, attack, player)
+					end
+				end)
+			end
+		end
+	end
+end
+
+-- Send the beast along a line (lunge, charge, leap, hop); clients draw it from
+-- these attributes, arcing it up by `arc` studs mid-way (EnemyMotion).
+local function startDash(enemy: Enemy, to: Vector3, speed: number, arc: number?)
+	local model = enemy.model
+	enemy.mover.turn = false
+	setSpeed(enemy, speed)
+	moveTo(enemy, to)
+	model:SetAttribute("DashFrom", enemy.root.Position)
+	model:SetAttribute("DashTo", to)
+	model:SetAttribute("DashSpeed", speed)
+	model:SetAttribute("DashArc", arc or 0)
+	model:SetAttribute("DashAt", serverNow())
+	enemy.state = "dash"
+end
+
 local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, attack: Enemies.Attack)
+	local def = enemy.def
 	enemy.attack = attack
 	stop(enemy)
 	enemy.mover.turn = false
@@ -568,8 +737,15 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	dir = if dir.Magnitude > 0.1 then dir.Unit else flat(enemy.root.CFrame.LookVector).Unit
 
 	local shape: Shape
+	local seconds = attack.windup
 	if attack.kind == "spit" then
 		shape = { kind = "circle", center = groundAt(targetRoot.Position), radius = attack.radius }
+	elseif attack.kind == "leap" then
+		-- the landing circle stays where the target stood; it fills until touchdown
+		local center = groundAt(targetRoot.Position)
+		shape = { kind = "circle", center = center, radius = attack.radius }
+		enemy.dashTo = center
+		seconds += attack.active or 0.45
 	elseif attack.kind == "slam" then
 		shape = { kind = "circle", center = ground, radius = attack.radius }
 	elseif attack.kind == "cone" then
@@ -580,7 +756,7 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 			radius = attack.radius,
 			size = Vector2.new(attack.angle :: number, 0),
 		}
-	elseif attack.kind == "summon" then
+	elseif attack.kind == "summon" or attack.kind == "howl" then
 		shape = { kind = "howl", center = ground, radius = 8 }
 	else
 		local length = attack.length :: number
@@ -593,12 +769,28 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	end
 	enemy.shape = shape
 	enemy.stateUntil = now + attack.windup
-	enemy.nextAttack = now + attack.cooldown
+	local name = attackName(attack)
+	if def.attacks then
+		-- a pool: each attack keeps its own cooldown, and the beast waits out the
+		-- whole move (and a breath) before choosing again
+		enemy.cooldowns[name] = now + attack.cooldown
+		local busy = if attack.kind == "leap" then attack.active or 0.45
+			elseif attack.dashSpeed then (attack.length or 0) / attack.dashSpeed
+			else 0
+		enemy.nextAttack = now + attack.windup + busy + attack.recover + 0.4
+		if attack.kind ~= "howl" then
+			enemy.opened = true
+		end
+	else
+		enemy.nextAttack = now + attack.cooldown
+	end
+	if Config.NEW_WOLF and not def.boss and attack.damage > 0 and enemy.target then
+		takeSlot(enemy, enemy.target)
+	end
 	-- which attack, for per-attack poses and effects (EnemyAnimator, EnemyFX)
-	local name = attack.name or attack.kind
 	enemy.model:SetAttribute("Attack", name)
 	setState(enemy, "windup")
-	telegraphRemote:FireAllClients(shape, attack.windup, enemy.model, name, serverNow())
+	telegraphRemote:FireAllClients(shape, seconds, enemy.model, name, serverNow())
 end
 
 local function summon(enemy: Enemy, attack: Enemies.Attack)
@@ -623,6 +815,27 @@ local function summon(enemy: Enemy, attack: Enemies.Attack)
 	end
 end
 
+-- A howl: packmates of the same kind within its radius who aren't fighting
+-- turn on the howler's target, staggered so they don't all strike at once.
+local function callPack(enemy: Enemy, attack: Enemies.Attack, now: number)
+	local radius = attack.radius or 30
+	local position = enemy.root.Position
+	for _, other in enemies do
+		if
+			other ~= enemy
+			and other.def.id == enemy.def.id
+			and other.health > 0
+			and not other.target
+			and (other.root.Position - position).Magnitude <= radius
+		then
+			other.target = enemy.target
+			other.lastEngaged, other.engagedAt, other.opened = now, now, false
+			other.nextAttack = math.max(other.nextAttack, now + 0.6 + math.random() * 0.8)
+			other.asleep = false
+		end
+	end
+end
+
 -- Bosses go through their pattern in order; everyone else repeats one attack.
 local function advancePattern(enemy: Enemy)
 	local pattern = enemy.def.pattern
@@ -635,35 +848,107 @@ end
 local function resolveAttack(enemy: Enemy, now: number)
 	local attack = enemy.attack
 	local shape = enemy.shape :: Shape
+	enemy.shape = nil
+	enemy.strikeId += 1
+	enemy.recoverFor = attack.recover
 	if attack.kind == "summon" then
 		summon(enemy, attack)
+	elseif attack.kind == "howl" then
+		callPack(enemy, attack, now)
+	elseif attack.kind == "leap" then
+		enemy.landShape = shape -- resolves as it lands (think, dash)
+	elseif enemy.dashTo and Config.NEW_WOLF then
+		hurtAlongDash(enemy, attack, shape)
 	else
-		for _, player in Players:GetPlayers() do
-			local root = playerRoot(player)
-			if root and caught(shape, player, root) then
-				Combat.hurt(player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, false, enemy.def.id)
-			end
-		end
+		hurtIn(enemy, attack, shape)
 	end
-	enemy.shape = nil
+	if attack.hopAfter then
+		enemy.hopPending = true
+	end
 	if enemy.dashTo then
-		setSpeed(enemy, attack.dashSpeed :: number)
-		moveTo(enemy, enemy.dashTo :: Vector3)
-		-- the dash's line, so clients draw it where it is on the server, not a
-		-- ping behind (EnemyMotion)
-		local model = enemy.model
-		model:SetAttribute("DashFrom", enemy.root.Position)
-		model:SetAttribute("DashTo", enemy.dashTo)
-		model:SetAttribute("DashSpeed", attack.dashSpeed)
-		model:SetAttribute("DashAt", serverNow())
-		enemy.state = "dash"
-		enemy.stateUntil = now + (attack.length :: number) / (attack.dashSpeed :: number) + 0.1
+		local to = enemy.dashTo :: Vector3
+		if attack.kind == "leap" then
+			local flight = attack.active or 0.45
+			startDash(enemy, to, math.max(flat(to - enemy.root.Position).Magnitude / flight, 1), attack.arc)
+			enemy.stateUntil = now + flight
+		else
+			-- the dash's line, so clients draw it where it is on the server, not a
+			-- ping behind (EnemyMotion)
+			startDash(enemy, to, attack.dashSpeed :: number)
+			enemy.stateUntil = now + (attack.length :: number) / (attack.dashSpeed :: number) + 0.1
+		end
 		enemy.dashTo = nil
 	else
+		releaseSlot(enemy)
 		enemy.state = "recover"
 		enemy.stateUntil = now + attack.recover
 	end
 	advancePattern(enemy)
+end
+
+-- Hop back from the target (no damage), then circle again.
+local function hop(enemy: Enemy, targetRoot: BasePart, now: number)
+	local h = (enemy.def.pack :: Enemies.Pack).hop :: any
+	enemy.hopPending = false
+	enemy.hopReadyAt = now + h.cooldown
+	local position = enemy.root.Position
+	local away = flat(position - targetRoot.Position)
+	away = if away.Magnitude > 0.1 then away.Unit else -flat(enemy.root.CFrame.LookVector).Unit
+	face(enemy, targetRoot.Position)
+	enemy.model:SetAttribute("Attack", "hop")
+	startDash(enemy, position + away * h.distance, h.distance / h.seconds, h.arc)
+	enemy.recoverFor = 0.1
+	enemy.stateUntil = now + h.seconds + 0.05
+	effectRemote:FireAllClients("enemyCue", enemy.model, "strike")
+end
+
+-- Circle the target at the pack's radius, facing it, switching direction now
+-- and then.
+local function orbit(enemy: Enemy, targetRoot: BasePart, circle: { radius: number, speed: number }, now: number)
+	if now >= enemy.orbitSwitchAt then
+		if enemy.orbitSwitchAt > 0 then
+			enemy.orbitDir = -enemy.orbitDir
+		end
+		enemy.orbitSwitchAt = now + 2 + math.random() * 2
+	end
+	local center = targetRoot.Position
+	local away = flat(enemy.root.Position - center)
+	away = if away.Magnitude > 0.1 then away.Unit else Vector3.xAxis
+	local step = enemy.orbitDir * circle.speed * 0.4 / circle.radius
+	local dir = CFrame.Angles(0, step, 0):VectorToWorldSpace(away)
+	setSpeed(enemy, circle.speed)
+	enemy.mover.goal = center + dir * circle.radius
+	enemy.mover.look = center
+end
+
+-- The attack to start now, if any: the opener first in a fresh engagement, then
+-- the first in the pool whose range band holds the target and whose cooldown is up.
+local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.Attack?
+	if now < enemy.nextAttack then
+		return nil
+	end
+	if Config.NEW_WOLF and not enemy.def.boss and enemy.target and not slotFree(enemy.target, now) then
+		return nil
+	end
+	local function fits(a: Enemies.Attack): boolean
+		return distance <= a.range
+			and distance >= (a.minRange or 0)
+			and now >= (enemy.cooldowns[attackName(a)] or 0)
+			and (a.notBefore == nil or now - enemy.engagedAt >= a.notBefore)
+	end
+	local pool = enemy.def.attacks
+	if not pool then
+		return if distance <= enemy.attack.range then enemy.attack else nil
+	end
+	if not enemy.opened then
+		return if fits(enemy.def.attack) then enemy.def.attack else nil
+	end
+	for _, a in pool do
+		if fits(a) then
+			return a
+		end
+	end
+	return nil
 end
 
 local function think(enemy: Enemy, now: number)
@@ -679,8 +964,15 @@ local function think(enemy: Enemy, now: number)
 		if now >= enemy.stateUntil then
 			stop(enemy)
 			setSpeed(enemy, def.runSpeed)
+			-- a leap lands now
+			local landing = enemy.landShape
+			if landing then
+				enemy.landShape = nil
+				hurtIn(enemy, enemy.attack, landing)
+			end
+			releaseSlot(enemy)
 			enemy.state = "recover"
-			enemy.stateUntil = now + def.attack.recover
+			enemy.stateUntil = now + enemy.recoverFor
 		end
 		return
 	elseif enemy.state == "recover" or enemy.state == "stagger" then
@@ -702,6 +994,7 @@ local function think(enemy: Enemy, now: number)
 
 	if flat(position - home(enemy)).Magnitude > def.leash then
 		enemy.target = nil
+		releaseSlot(enemy)
 		enemy.state = "return"
 		setSpeed(enemy, def.runSpeed)
 		moveTo(enemy, home(enemy))
@@ -712,6 +1005,7 @@ local function think(enemy: Enemy, now: number)
 	enemy.target = target
 	if not (target and targetRoot) then
 		enemy.state = "idle"
+		enemy.mover.look = nil
 		setSpeed(enemy, def.walkSpeed)
 		if now >= enemy.nextWander then
 			enemy.nextWander = now + 4 + math.random() * 4
@@ -719,6 +1013,18 @@ local function think(enemy: Enemy, now: number)
 		end
 		return
 	end
+
+	-- a fresh engagement: the opener comes first, and a pack beast howls its pack in
+	local pack = def.pack
+	if now - enemy.lastEngaged > Config.ENGAGE_RESET then
+		enemy.engagedAt, enemy.opened = now, false
+		enemy.lastEngaged = now
+		if pack and pack.howl then
+			startAttack(enemy, targetRoot, now, pack.howl)
+			return
+		end
+	end
+	enemy.lastEngaged = now
 
 	enemy.state = "chase"
 	setSpeed(enemy, def.runSpeed)
@@ -740,20 +1046,25 @@ local function think(enemy: Enemy, now: number)
 		end
 	end
 
-	local attack = enemy.attack
+	local choice = pickAttack(enemy, distance, now)
 	if def.keepAway and distance < def.keepAway then
 		local away = flat(position - targetRoot.Position)
 		away = if away.Magnitude > 0.1 then away.Unit else Vector3.xAxis
 		moveTo(enemy, position + away * 10)
-	elseif distance <= attack.range and now >= enemy.nextAttack then
-		startAttack(enemy, targetRoot, now, attack)
-	elseif distance > math.min(attack.range, 20) * 0.7 then
+	elseif choice then
+		startAttack(enemy, targetRoot, now, choice)
+	elseif pack and pack.hop and enemy.hopPending and now >= enemy.hopReadyAt then
+		hop(enemy, targetRoot, now)
+	elseif pack and pack.circle and distance <= pack.circle.radius + 6 then
+		orbit(enemy, targetRoot, pack.circle, now)
+	elseif def.attacks or distance > math.min(enemy.attack.range, 20) * 0.7 then
 		moveTo(enemy, targetRoot.Position)
 	else
 		stop(enemy)
 		face(enemy, targetRoot.Position)
 	end
 end
+
 
 -- No player near and nothing to do: stop thinking and moving, so the beast
 -- costs nothing. One walking home is put there and healed first (nobody is near
@@ -808,6 +1119,12 @@ local function thinkAll()
 				warn(`EnemyService: {enemy.def.id} errored: {err}`)
 			end
 			setState(enemy, enemy.state)
+			-- who it's after, so clients can turn its head and aim effects
+			local targetId = enemy.target and enemy.target.UserId
+			if targetId ~= enemy.targetId then
+				enemy.targetId = targetId
+				enemy.model:SetAttribute("Target", targetId)
+			end
 		end
 	end
 end

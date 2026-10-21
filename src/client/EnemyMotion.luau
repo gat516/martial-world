@@ -9,7 +9,8 @@
 --            spots) over the time since it arrived and half your ping
 --            (LEAD_MAX at most); a beast that stops replicating has stopped
 --   dash     along the server's dash line (DashFrom/DashTo/DashSpeed/DashAt)
---            at the server's clock, so a lunge lands on screen when it lands
+--            at the server's clock, so a lunge lands on screen when it lands;
+--            DashArc lifts the body on a parabola over the line (leaps, hops)
 -- The drawn spot eases toward the prediction and snaps when far off (spawns,
 -- the server moving a sleeping beast home); it turns smoothly toward the
 -- server's facing. Past MAX_DISTANCE bodies sit where they replicate.
@@ -60,7 +61,8 @@ function EnemyMotion.velocity(model: Model): Vector3
 end
 
 local function build(model: Model, root: BasePart): Model?
-	local kind = model:GetAttribute("EnemyType")
+	-- the def's body template (Enemies `body`), else the enemy type
+	local kind = model:GetAttribute("Template") or model:GetAttribute("EnemyType")
 	local folder = ReplicatedStorage:WaitForChild("EnemyBodies", 10)
 	local template = if folder and type(kind) == "string" then folder:FindFirstChild(kind) else nil
 	if not (template and template:IsA("Model")) then
@@ -130,7 +132,10 @@ local function predict(rig: Rig, ping: number, now: number, clock: number): Vect
 			local line = flat(to - from)
 			local along = math.clamp((now - at) * speed, 0, line.Magnitude)
 			local point = from + (if line.Magnitude > 0 then line.Unit * along else Vector3.zero)
-			point = Vector3.new(point.X, position.Y, point.Z)
+			local arc = model:GetAttribute("DashArc")
+			local f = if line.Magnitude > 0 then along / line.Magnitude else 1
+			local lift = if type(arc) == "number" and arc > 0 then arc * 4 * f * (1 - f) else 0
+			point = Vector3.new(point.X, position.Y + lift, point.Z)
 			if flat(point - position).Magnitude <= speed * (ping + STALE) + DASH_SLACK then
 				return point
 			end

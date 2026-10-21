@@ -36,7 +36,8 @@ see [world](systems/world.md)), `BuildKit`, `GardenKit`
 `Hud`, `Rewards`, `Prompts` (StarterGui); `Music`, `SFX`, `Ambience` (binary
 `assets/SoundGroups/Ambience.rbxm`, positional ambient sound templates placed by
 `AmbientSound`-tagged anchors; see [world](systems/world.md))
-(SoundService); `Wilds`, `Hub` (Workspace); `Enemies` (copied at start to
+(SoundService); `Wilds`, `Hub` (Workspace); `Enemies` (binary `assets/Enemies.rbxm`, so rigs keep their Motor6D C0/C1, `Tell`
+attributes and FX attachments; exported with `tools/export_rbxm.luau`; copied at start to
 `ReplicatedStorage.EnemyBodies` for clients to draw from), `PeakTiers`,
 `ItemTemplates`, `AmbientFX` (binary `assets/AmbientFX.rbxm`, world-ambience
 effect templates: fireflies, spirit motes, lamp glows, mist, waterfall spray and

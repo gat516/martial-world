@@ -65,6 +65,45 @@
      <float name="RollOffMaxDistance">120</float>
     </Properties>
     </Item>
+    <Item class="Sound" referent="SGSFXW1"><Properties>
+     <string name="Name">Howl</string>
+     <Content name="SoundId"><url>rbxassetid://9120790124</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1.1</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFXW2"><Properties>
+     <string name="Name">Attack_bite</string>
+     <Content name="SoundId"><url>rbxassetid://97491288736522</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1.25</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFXW3"><Properties>
+     <string name="Name">Attack_leap</string>
+     <Content name="SoundId"><url>rbxassetid://9120788137</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1.15</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFXW4"><Properties>
+     <string name="Name">Hurt</string>
+     <Content name="SoundId"><url>rbxassetid://77414722255060</url></Content>
+     <float name="Volume">0.5</float>
+     <float name="PlaybackSpeed">1.6</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="SGSFXW5"><Properties>
+     <string name="Name">Land</string>
+     <Content name="SoundId"><url>rbxassetid://9114101585</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
    </Item>
    <Item class="Folder" referent="SGSFX12"><Properties>
     <string name="Name">StoneBoar</string>

@@ -208,7 +208,53 @@
       "Wilds": {
         "$className": "Folder",
         "Zones": {
-          "$className": "Folder"
+          "$className": "Folder",
+          "WolfPair": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "SpiritWolf",
+              "Count": 2,
+              "Radius": 12
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    -90,
+                    648.6,
+                    -40
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
+          }
         },
         "EventGrounds": {
           "$className": "Folder",
@@ -268,7 +314,7 @@
     },
     "ServerStorage": {
       "Enemies": {
-        "$path": "assets/Enemies.rbxmx"
+        "$path": "assets/Enemies.rbxm"
       },
       "PeakTiers": {
         "$path": "assets/PeakTiers.rbxmx"

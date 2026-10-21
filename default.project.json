@@ -86,7 +86,7 @@
     },
     "ServerStorage": {
       "Enemies": {
-        "$path": "assets/Enemies.rbxmx"
+        "$path": "assets/Enemies.rbxm"
       },
       "PeakTiers": {
         "$path": "assets/PeakTiers.rbxmx"

@@ -30,7 +30,8 @@ on the baseplate unchanged.
 - `Workspace.Arena.SpawnPad`: the only SpawnLocation, at (0, 649.1, 40), no forcefield.
 - `Workspace.Wilds`: `EventGrounds.ArenaGround` (radius 60 at (0, 648.6, -120)),
   so world events and treasures land there through the real `EventGrounds` path;
-  `Zones`, `QiNodes` and `Enemies` are empty folders.
+  `QiNodes` and `Enemies` are empty folders; `Zones` holds `WolfPair` (2 Spirit
+  Wolves at (-90, 648.6, -40), 127 studs from the pad, respawning like any zone).
 - `Workspace.Map.Sect.SpiritPeaks`: an empty stub, so `Peaks` and `MyPeak` load
   (nobody gets a peak).
 - Place-only, kept on purpose (not in git, never synced back): the enemy pose-preview rigs
@@ -38,6 +39,12 @@ on the baseplate unchanged.
   waterfall parts, `Snd_*` sounds, the `F01`-`F31` set dressing) loose in ServerStorage.
 - Stubbed as empty folders: `ReplicatedStorage.BuildCatalog`, `HerbModels`;
   `ServerStorage.PeakStash`, `PeakTierModels`.
+
+## Trials before shipping
+New fights land here first behind a flag that is on only in the testbed, so the user
+can fight them before the main game changes. Today: `Config.Wilds.NEW_WOLF`
+(= `Config.TESTBED`), the new Spirit Wolf (enemies.md "Spirit Wolf"). Ship one by
+setting its flag to `true`.
 
 ## Key files
 - `test.project.json`: the testbed's Rojo project (serve port 34873); sets the

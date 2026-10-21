@@ -8,6 +8,7 @@
 --   goal + speed   walk there (XZ; the ground sets the height), then stop
 --   push           a knockback velocity until pushUntil, instead of walking
 --   turn           face the walking direction (off while attacking)
+--   look           face this point instead while walking (circling a target)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -20,6 +21,7 @@ export type Mover = {
 	speed: number,
 	goal: Vector3?,
 	turn: boolean,
+	look: Vector3?,
 	push: Vector3?,
 	pushUntil: number,
 	nudge: Vector3, -- crowding velocity from neighbours, set each step by EnemyService
@@ -39,6 +41,7 @@ function EnemyMover.new(root: BasePart, rootHeight: number, radius: number, spee
 		speed = speed,
 		goal = nil,
 		turn = true,
+		look = nil,
 		push = nil,
 		pushUntil = 0,
 		nudge = Vector3.zero,
@@ -110,7 +113,10 @@ function EnemyMover.step(m: Mover, dt: number, now: number, params: RaycastParam
 	local nextPosition = Vector3.new(nextXZ.X, y, nextXZ.Z)
 
 	local rotation = cframe.Rotation
-	if m.turn then
+	local look = m.look and flat(m.look - nextPosition)
+	if look and look.Magnitude > 0.1 then
+		rotation = rotation:Lerp(CFrame.lookAt(Vector3.zero, look.Unit), math.min(1, dt * Config.TURN_RATE))
+	elseif m.turn then
 		local facing = CFrame.lookAt(Vector3.zero, move.Unit)
 		rotation = rotation:Lerp(facing, math.min(1, dt * Config.TURN_RATE))
 	end

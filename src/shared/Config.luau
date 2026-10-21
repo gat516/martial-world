@@ -104,12 +104,14 @@ local CLASSES: { [string]: ClassCombat } = {
 	},
 }
 
+local TESTBED = workspace:GetAttribute("Testbed") == true
+
 return {
 	-- The testbed place (test.project.json sets this attribute on Workspace): a baseplate
 	-- arena with the real Hub and no map. No timed events, rolled weather or ambient
 	-- beasts, onboarding is skipped and every player gets the full test kit
 	-- (docs/systems/testbed.md).
-	TESTBED = workspace:GetAttribute("Testbed") == true,
+	TESTBED = TESTBED,
 
 	Data = {
 		STORE_NAME = "PlayerData_v1",
@@ -394,6 +396,18 @@ return {
 		FALL_SPEED = 60, -- studs per second it drops off a ledge
 		TURN_RATE = 10, -- how fast it turns to face where it walks (per second)
 		CROWD = 6, -- studs per second neighbours push apart when they overlap
+		-- THE NEW SPIRIT WOLF FIGHT (enemies.md "Spirit Wolf"): the rigged body, its
+		-- attack pool (bite, pounce, leap, howl, hop, circling), attack slots for
+		-- every non-boss beast and dash hits that land as the dash arrives. On only
+		-- in the testbed until the user approves it; to ship it, set this to true.
+		NEW_WOLF = TESTBED,
+		-- attack slots (EnemyService): at most this many non-boss beasts wind up or
+		-- strike at one player at once, and the next can't start its windup until
+		-- SLOT_GAP after the last one resolved, so a pack takes turns and every blow
+		-- can be dodged (blows land more than Combat.DODGE_COOLDOWN apart)
+		ATTACK_SLOTS = 1,
+		SLOT_GAP = 0.6,
+		ENGAGE_RESET = 6, -- seconds without a target before a beast's next fight counts as new (howl, opener)
 	},
 
 	-- Insight and technique manuals: Pacing.Rewards.

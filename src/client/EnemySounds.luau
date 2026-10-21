@@ -3,6 +3,9 @@
 -- EnemyAnimator): a cry when it takes notice, its attack sound as the windup
 -- starts (so the ear warns of the blow along with the telegraph), and a death
 -- cry. The sounds are SoundService.SFX.Enemies.<EnemyType>.Aggro / Attack / Death.
+-- Optional, per beast: Attack_<name> for one attack (the model's Attack
+-- attribute; falls back to Attack), Howl for a pack call, Hurt on a stagger,
+-- Land when a leap touches down.
 
 local CollectionService = game:GetService("CollectionService")
 
@@ -40,7 +43,21 @@ local function watch(model: Instance)
 				Sfx.play(base .. "Aggro", root)
 			end
 		elseif state == "windup" then
-			Sfx.play(base .. "Attack", root)
+			local attack = model:GetAttribute("Attack")
+			local played = false
+			if attack == "howl" then
+				played = Sfx.play(base .. "Howl", root) ~= nil
+			elseif type(attack) == "string" then
+				played = Sfx.play(base .. "Attack_" .. attack, root) ~= nil
+			end
+			if not played then
+				Sfx.play(base .. "Attack", root)
+			end
+		elseif state == "stagger" then
+			Sfx.play(base .. "Hurt", root, 0.3)
+		end
+		if previous == "dash" and state ~= "dash" and model:GetAttribute("Attack") == "leap" then
+			Sfx.play(base .. "Land", root)
 		end
 		previous = state
 	end)

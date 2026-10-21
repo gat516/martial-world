@@ -39,8 +39,11 @@ player in a session sees the same beasts and nothing a client does can change on
   replicate (one walking home is put there and healed first).
 - **Wire**: model attributes `Health` + `MaxHealth`, `AIState` + `StateAt` (server time it began),
   `Attack` (the attack's `name`, default its `kind`), `DashFrom/DashTo/DashSpeed/DashAt`
-  (a lunge or charge's line), `FadeAt` (dying or despawning); and the `Telegraph`
-  remote `(shape, seconds, model, attack, startedAt)`.
+  (a lunge, charge, leap or hop's line) and `DashArc` (studs the body rises mid-dash),
+  `Target` (the UserId it's after, for head turns and circling), `Template` (the body
+  template clients draw: the def's `body`, else its id), `FadeAt` (dying or
+  despawning); the `Telegraph` remote `(shape, seconds, model, attack, startedAt)`;
+  and `Effect "enemyCue"` (model, cue, character) for hits and other moments.
 - **Client**: `EnemyMotion` builds each enemy's body locally (a clone of its
   template from `ReplicatedStorage.EnemyBodies`, the server's copy of
   `ServerStorage.Enemies`, parented as the enemy's `Body`: anchored root, no
@@ -153,6 +156,51 @@ smoothness, how it reads at 40 studs and on phones with a pack of four, and the
 whole path through the Game Module (not in the place; effects play on
 TechniqueVFX's plain-emitter fallback).
 
+### Spirit Wolf (the new fight, testbed first)
+User decisions (2026-10-21): the new fight ships to the **testbed first**, behind
+`Config.Wilds.NEW_WOLF` (= `Config.TESTBED`). With it off (the main game) the Spirit
+Wolf is the old def (one 0.55 s lunge, 60 HP, the old part-built body) and no other
+beast changes. **To ship it, set `NEW_WOLF = true`.** Also decided: a careless player
+may die to the GateWolves pair (fallback `Pacing.Adjust.QC2 = { beastDamage = 0.85 }`);
+attack slots apply to every non-boss beast; `qiDrop` stays 14; the leap stays on the
+basic wolf; its qi is moonlight pale blue-white; `ServerStorage.Enemies` is now binary
+`assets/Enemies.rbxm`.
+
+With the flag on:
+- **Body:** the def's `body = "SpiritWolfB"` (the rigged Studio-part wolf, 90 parts,
+  `art/enemies/spirit_wolf_b/`); the old `SpiritWolf` template stays beside it until
+  the flag ships and the old one can go. EnemyAnimator poses it from
+  `EnemyPoses/Wolf.luau` (FAMILIES by `Template`); others keep the generic pose.
+- **Pack:** the first wolf to notice a player howls (0.8 s, no damage; packmates of
+  its kind within 30 studs take the same target). Each engagement opens with the
+  pounce; the leap waits 6 s into it. Waiting wolves circle at 10 studs (8 studs/s,
+  facing the player, switching direction every 2-4 s). A wolf hops 7 studs back
+  (0.25 s, 1.2-stud arc) after a bite, or after 3 hits within 2 s, at most every 4 s.
+- **Attack slots** (every non-boss beast): one beast at a time winds up or strikes at
+  a player (`ATTACK_SLOTS` 1), and the next windup waits `SLOT_GAP` 0.6 s after it
+  resolves, so blows land at least ~1.4 s apart (more than the 1.2 s dodge cooldown).
+- **Dash hits:** lunges and charges hit each player when the dash front reaches them
+  (their distance along the lane / dash speed), not at the end of the windup; a
+  stagger or the next attack calls the rest off. The leap resolves its circle as it
+  lands.
+
+| Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage (QC2 120 HP) | Cooldown |
+|---|---|---|---|---|---|---|
+| `bite` | cone | 0.45 / 0.1 / 0.5 | 0-5 | cone r 6, 70 deg | 10 (8%) | 2.2 s, then a hop |
+| `pounce` (opener) | lunge | 0.7 / 0.3 (12 studs at 40/s) / 0.9 | 5-12 | box 3.5 x 12 | 16 (13%) | 3.5 s |
+| `leap` | leap | 1.0 / 0.45 flight / 1.1 | 12-24, not before 6 s | circle r 5 on the target, telegraph runs to touchdown | 18 (15%) | 9 s |
+| `howl` | howl | 0.8 / - / 0.2 | first notice | stock howl ring | 0 | once per engagement |
+
+Health 80 (was 60), QC2, weight 1. Sanity check against a QC2 sword player (power
+1.10, chain about 44 damage per 2.25 s): roughly 8 s to kill one wolf with realistic
+uptime; the sword finisher (push 6) breaks a windup at QC2 (ARMOR_BREAK 6). Sounds
+(`SFX.Enemies.SpiritWolf`): `Howl` (PSE Wolf Howl 5), `Attack_bite`, `Attack_leap`,
+`Attack` (pounce), `Hurt` (a pitched-up whimper on stagger), `Land` (PSE Dirt
+Impacts), `Aggro`, `Death`; all picked by description only, not listened to.
+
+The testbed's `Wilds.Zones.WolfPair` (test.project.json) keeps two Spirit Wolves at
+(-90, 648.6, -40), 127 studs from the spawn pad.
+
 ### Template contract
 Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated
 `HumanoidRootPart` as PrimaryPart standing on Y 0 (its height is the beast's root
@@ -175,12 +223,12 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
   `Spawner.pack` (drop a group) and `Spawner.boost` (world events).
 - `src/server/EnemyService.luau`: runs beasts: `spawn(id, at, { home, roam, target })`,
   `despawn`, `onRemoved`, the state machine (idle, chase, windup, dash, recover,
-  stagger), `strike` (telegraphed areas, also used by the tribulation), kill
-  rewards and `onKill` hooks.
+  stagger), attack pools, packs (howl, circle, hop) and attack slots, `strike`
+  (telegraphed areas, also used by the tribulation), kill rewards and `onKill` hooks.
 - Kill hooks: `Progression.onKill` (insight, manuals, boss pools), `Inventory.onKill`
   (drops), `Garden.onKill` (seeds).
-- `src/server/EnemyMover.luau`: kinematic movement (goal, speed, push, turn,
-  ground and walls).
+- `src/server/EnemyMover.luau`: kinematic movement (goal, speed, push, turn, `look`
+  to face a point while circling, ground and walls).
 - `src/server/EnemyHistory.luau`: each beast's recent positions, for swing lag
   compensation (`Combat.damageSwing`).
 - `src/shared/Knockback.luau`; client `EnemyAnimator.luau` (procedural gait by
@@ -190,7 +238,12 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
   `EnemyMotion.luau` (builds and draws the predicted body), `EnemyFX/` (per-beast cues,
   death fade), `EnemyBars.luau` (overhead and boss bars), `EnemySounds.luau`,
   `Telegraphs.luau`.
-- Models: `ServerStorage.Enemies` (`assets/Enemies.rbxmx`).
+- Models: `ServerStorage.Enemies` (binary `assets/Enemies.rbxm`; it keeps Motor6D
+  C0/C1, attributes and attachments). To change it: clone it to
+  `ServerStorage._StagingEnemiesLive`, edit there, export with
+  `_G.exportRbxm("ServerStorage._StagingEnemiesLive", "Enemies")`
+  (`tools/export_rbxm.luau`, posted to `tools/receive_rbxmx.py`), copy
+  `tools/frag/Enemies.rbxm` to `assets/`, destroy the staging copy.
 - Model sources (Studio-built, re-runnable): `art/enemies/` holds one build script
   per body (the Spirit Wolf is `spirit_wolf_b/build_spirit_wolf_b.luau`), the shared
   wolf rig `spirit_wolf/rig_wolf.luau`, the posed preview `spirit_wolf/preview_wolves.luau`
@@ -221,8 +274,7 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
 - **Known gaps:** EnemyAnimator can't play R6 tracks or authored clips yet (humanoid
   enemies need an AnimationTrack per AIState). No roster model has a def, sounds or
   VFX. The Flame Raven's server stand-in would take its whole 15-stud wingspan as a
-  hitbox. The new Spirit Wolf isn't live: `assets/Enemies.rbxmx` can't hold its
-  C0/C1, and switching to a binary `.rbxm` waits on the user.
+  hitbox. The new Spirit Wolf is live in the testbed only (`Config.Wilds.NEW_WOLF`).
 
 ## Data flow
 Spawner decides where -> `EnemyService.spawn` clones the type's root-only stand-in,
@@ -243,16 +295,17 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - Kill credit share: `Pacing.Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`.
 - Movement: `Config.Wilds.MOVE_TICK` (step and replication rate), `WALK_SLOPE`,
   `CLIMB`, `FALL_SPEED`, `TURN_RATE`, `CROWD`.
+- Packs and turns: `Config.Wilds.NEW_WOLF` (the new wolf fight's switch),
+  `ATTACK_SLOTS`, `SLOT_GAP`, `ENGAGE_RESET`; per beast `attacks` (with `minRange`,
+  `notBefore`, `active`, `arc`, `hopAfter`) and `pack` (`howl`, `hop`, `circle`).
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
   `ESCAPE_LEAD`; client `EnemyMotion` `LEAD_MAX`, `STALE`, `FOLLOW`, `TURN`, `SNAP`,
   `DASH_SLACK`.
-- Per stage (`Pacing.luau`, not wired yet): `beastHealth`, `beastDamage` (Adjust,
-  by the beast's realm), `Global.BEAST_HEALTH/BEAST_DAMAGE`, the stage's `gather`
-  for kill qi, and `Income.ENEMY_QI_EXPONENT` (replacing `Enemies.QI_SCALE_EXPONENT`).
+- Per stage (`Pacing.luau`): `beastHealth`, `beastDamage` (Adjust, by the beast's
+  realm; EnemyService applies them through `Realms.ofBeast`),
+  `Global.BEAST_HEALTH/BEAST_DAMAGE`, and kill qi through `Realms.enemyQi`.
 
 ## Known gaps
-- The Pacing beast multipliers and `Realms.enemyQi` aren't read by
-  EnemyService/Spawner yet.
 - The Inner and Middle regions are now zone boxes (map.md "Wilds zones"); the Outer
   region is still a placeholder ring. The middle and outer regions reuse ring-1 beasts
   until their own exist.
@@ -262,7 +315,7 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   on a phone with several beasts on screen. No shipped beast is far or deadly to a
   QC1 player yet (the Stone Boar at QC4 is the only "above"), so those tiers only
   show once higher-realm beasts or lower-realm players meet. A new beast template
-  needs the same HealthBar (copy it from the Spirit Wolf in `assets/Enemies.rbxmx`).
+  needs the same HealthBar (copy it from the Spirit Wolf in `assets/Enemies.rbxm`).
 - The Humanoid-free movement and netcode are untested in play, at any ping.
   Things to watch: beasts on steep or broken ground and stairs (EnemyMover has no
   pathfinding, like the Humanoid MoveTo before it: a wall it can't slide along
@@ -270,16 +323,14 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   and R6 rigs (no enemy uses one yet).
 - Players and beasts pass through each other: the server root doesn't collide
   and the body is client-only.
-- `EnemyPoses/Wolf.luau` isn't wired into EnemyAnimator yet: EnemyAnimator still
-  drives only the six legacy joints from `AIState`. Wiring it means sampling
-  `Wolf.sample(attack, phase, (now - StateAt) / duration)` per state, the loops by
-  speed, and scaling JointRoot for the King and Shadow-Mane (`Wolf.scaled`).
-- The Spirit Wolf's effects wait on its new attack set: the def still has one
-  `lunge` attack (no `Attack` name of bite/pounce/leap/howl/hop), and the server
-  sends no `enemyCue` "hit" yet, so only the shared windup tell, the lunge's skid
-  dust, stagger and death play today. The leap's telegraph must be a circle
-  centred on the landing point (the sigil sits at `shape.center`). Pounce damage resolves at the end of the windup, before the dash
-  arrives, so its `hit` would fire before the wolf reaches the player.
+- The new Spirit Wolf fight is untested in play (testbed only): how the howl, the
+  circling and the hop feel, whether the slot rule makes packs too passive, the pose
+  timing against the server, the leap's flight over broken ground (EnemyMover can stop
+  it short at a wall; the hit still resolves on the circle), sounds (picked unheard),
+  and phones with a pack of four. The old wolf's stagger now also plays the new `Hurt`
+  whimper in the main game (the only change there).
+- Studio's Rojo was not syncing during this pass (`EnemyPoses` and the `.rbxm`
+  switch hadn't arrived in the open place), so nothing was seen running.
 - Techniques don't get lag compensation, only M1 swings; their areas lean on
   `AREA_SLACK`.
 - Stagger shoves aren't predicted, only smoothed.

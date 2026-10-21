@@ -334,6 +334,10 @@ function SpiritWolf.windup(cue: Cue)
 	local model = cue.model
 	local attack = cue.attack or ""
 	local seconds = cue.seconds or WINDUP[attack] or 0.5
+	if attack == "leap" and cue.seconds then
+		-- the leap's telegraph runs through the flight to touchdown; the windup is the rest
+		seconds = math.max(0.05, seconds - FLIGHT.leap)
+	end
 	tell(model, seconds)
 	if attack == "bite" then
 		local skull = partNamed(model, { "Skull", "HumanoidRootPart" })

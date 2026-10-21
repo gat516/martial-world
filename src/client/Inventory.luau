@@ -583,7 +583,7 @@ function Inventory.init(gui: ScreenGui)
 	InventoryFilter.init(window, function()
 		render()
 	end)
-	Menus.register(window, { keepHotbar = true, coversTiles = true })
+	Menus.register(window, { keepHotbar = true })
 	ListWindow.bindClose(window)
 	local tabs = window:FindFirstChild("Tabs") :: Frame
 	for _, name: Tab in { "Pouch" :: Tab, "Arts" :: Tab, "Weapons" :: Tab } do

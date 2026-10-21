@@ -476,7 +476,6 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 	shopPlace = { anchor = bar.AnchorPoint, position = bar.Position, size = bar.Size }
 
 	Menus.register(bar, {
-		coversTiles = true,
 		close = function()
 			Motion.close(bar)
 			if handingOff then

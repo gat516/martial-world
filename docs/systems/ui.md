@@ -8,8 +8,10 @@ cursor, settings and the admin panel.
 - Mobile-first and one layout per session (`Platform` decides touch vs mouse once).
 - One menu at a time (`Menus`); opening a window hides the gameplay HUD (touch
   combat cluster, PC cooldown chips, vitals, hotbar; the inventory keeps the
-  hotbar as a drop target). Windows sit centred with their own close seal; on
-  PC the top-right tiles stay to switch, on touch the big windows hide them.
+  hotbar as a drop target). Windows sit centred with their own close seal, and
+  the top-right tiles fade away while any window is open, on every device, and
+  fade back when the last one closes (user decision, 2026-10-21: they poked out
+  over the panels; it used to be touch-only for the big windows).
   Small panels too: a menu the player opens (like the meditation panel) goes
   in the centre of the screen, not docked at the bottom over the vitals and
   hotbar (user decision, 2026-10-21). The HUD steps aside while it's open, so
@@ -73,8 +75,8 @@ cursor, settings and the admin panel.
   element seal (or a 法 glyph), name in its grade colour, qi speed with "matches
   your root!" in jade, "Reaches: ..." and the blurb; it stays hidden on Sect
   Breathing. Switching methods lives in the meditation menu ([meditation](meditation.md)). The tile shows and
-  the crest is tappable only once the root is tested. The card is small, so the
-  tiles stay up on touch too. The spirit root reveal (`RootReveal`) is a small
+  the crest is tappable only once the root is tested. The tiles fade away while it's
+  open, like every window. The spirit root reveal (`RootReveal`) is a small
   centre card on the first test, closed by a tap or by itself, after which the
   tile pops in, swells once and wears a seal dot until opened.
 - Top-right tiles (`Hud.Buttons`, right-aligned list): Cultivate, Self (once the

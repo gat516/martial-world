@@ -186,7 +186,7 @@ function HerbShop.init(gui: ScreenGui)
 	tabs.buy = header:FindFirstChild("BuyTab") :: GuiButton
 	tabs.sell = header:FindFirstChild("SellTab") :: GuiButton
 
-	Menus.register(window, { coversTiles = true });
+	Menus.register(window);
 	(window:FindFirstChild("Close") :: GuiButton).Activated:Connect(function()
 		Menus.close(window)
 	end)

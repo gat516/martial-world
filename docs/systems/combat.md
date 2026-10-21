@@ -237,6 +237,26 @@ checks a rebuild against the previous templates.
   shockwave to the radius, heavy impacts by the front; III+ Craters rock
   ring, cracks, rock kicks; IV a giant claw over the strike, a swirl shell,
   the one PointLight, impact frames and a quake.
+- **Moonflash Draw** (`MoonflashDraw_T1..T4`, authored along a 14-stud dash
+  with width 5; `TechniqueFX.MoonflashDraw`). An iaido dash-cut in silver
+  moonlight: the clip draws the blade from the right hip and sweeps it flat
+  round the front at chest height while the caster lunges `def.lunge` from Hit
+  to Hit Stop. Windup: a glint on the drawing hand. At Hit a crescent-moon
+  flash and swirl air rings burst on the hand. A horizontal crescent of Beams
+  (`Front`) rides `def.length - def.lunge` studs ahead of the caster's live
+  root (with a time floor so it never stalls), dragging a wake band as wide as
+  the hitbox, a streak Beam from the dash start (`Streak`) and a glowing slit
+  on the ground (`Cut`) that cools into an ink scar (`Scar`). Each enemy on the
+  line gets a silver `impactStack` and a crescent cut as the front passes it.
+  The dash ends in a crescent mark and ground torus at the feet (`Finish`).
+  II+ leaves Neon afterimages of the body along the path (1/2/3 by tier), an
+  echo crescent, and the signature "sheathe": ~0.12 s after the dash every
+  target cut flashes again with a crossing crescent and a standing white ring
+  while the slit flares (`Sheathe`). III adds 2 air rings, impact bubbles and
+  rock kicks, path cracks and a Craters ring at the finish; IV a gold core,
+  three afterimages, one point light on the front, a crescent moon rising
+  behind the finish, impact frames at the sheathe and a quake on the first
+  impact. `WeaponFX` (same folder) holds the helpers the weapon skills share.
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative

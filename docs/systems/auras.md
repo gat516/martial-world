@@ -18,8 +18,8 @@ Heaven looks are not built (no method uses those grades yet).
 about 1.5 loop emitters per aura) and reads thin. Auras are to be rebuilt as
 layered emissions from the vfx library, modelled on Sol's RNG auras, with
 parts only in support. The method is in [docs/vfx/style.md](../vfx/style.md)
-("Auras"). **Blazing Heart is reworked** (2026-10-21, below); the other seven rows
-still describe the first, part-heavy pass. Blazing Heart shows the bar for
+("Auras"). **Reworked:** Blazing Heart, Flowing Spring (2026-10-21, below);
+the other rows still describe the first, part-heavy pass. Blazing Heart shows the bar for
 size and quality, not a template: each method's rework starts from its own
 idea and references, not from Blazing Heart's layers or textures.
 
@@ -41,7 +41,7 @@ reuse its first method's motif.
 |---|---|---|---|---|
 | Sect Breathing | — | — | two faint motes rise from the belly | — |
 | Blazing Heart (reworked: 17 loop emitters, no shell) | white-hot heart core at the chest (glow that swells with the breath, a hard dot, a twinkling 4-point glint, the one PointLight); a flame mantle (library aura-flame flipbook) hugging the silhouette from behind on a darker soot copy of itself; realistic flipbook flames licking off the arms and torso; a small crown of licks off the head; black soot curling off the flame tips; embers and dark ash flecks. Flames, mantle and ground fire grow and shrink with the breath and drift slowly in size | dark scorch disc, warm heat pool, a turning fire swirl, small flames on the rim; four hui-wen sigils: one on the ground turning against the swirl, three raised round the chest (added by the user, centred and level on the body axis) each turning its own way and drifting up, fading and starting again; all breathe in size and flash on the heartbeat and pulses | a heartbeat: lub-dub glow at the chest with a glint and a spark puff, the mantle flares, a fire ring pulses out of the sigil. Every 1 or 2 breaths (about 5 or 10 s, a little late at random) the beat is a pulse instead: a lighter punch (flash and star at the heart, a starburst, embers, a few flame jets and flames, a ground ring, limb flames surging), the aura swelling into it | once fully seated: white flash and a chromatic star at the heart, a starburst flare, flame jets and flipbook flames roaring up round the body, a fire ring burning out over the ground, soot thrown low, an ember burst; limb flames surge |
-| Flowing Spring | blue tint over the body; blue belly core (light); droplets streaming in from a 7-stud shell to the core, faster on the inhale | still Neon pool disc with a pale rim | two ripples cross the pool | a wave rolls out, a ring springs up, droplets fall back |
+| Flowing Spring (reworked: 13 loop emitters, no parts drawn) | a pearl of water at the belly (a water-ball orb that swells with the breath, a white-hot heart, a small glint, the one PointLight); a ring of water strokes turning round the figure from behind on a darker ink-blue copy of itself; water-curl flipbooks lifting off the arms and torso and water wisps off the arms; streaks of qi streaming in from all round to the pearl, fast on the inhale, almost none at rest | a pool under the seat: a deep ink-blue water blob (dark base), a pale water surface over it, a round caustics image drifting (the one SurfaceGui), small water-ring ripples popping across it, a swirl turning inward, bubbles rising | the exhale: a ripple and a breaking ring cross the pool, a few drops hop off it, the pearl glints. Every 2 or 3 breaths (0.4 s jitter, 1.3x swell) a pulse: a drop of qi falls from above into the pool, a splash crown round the seat, a big ripple, the pearl flashes, the curls surge | the pool springs up: a white flash, a star and a water orb at the pearl, water columns and a splash crown round the body, a ripple wave and a breaking ring over the ground, drops thrown up, the pool darkening under it; curls and wisps surge |
 | Evergreen Root | green meridian beams with glowing joint dots, lighting trunk-first (belly, chest, then shoulders and hips, then elbows and knees, then hands) over ~2 breaths; green seed at the belly; faint green tint | six crooked roots creeping out, slow falling leaves | sap motes, a green ring breathes out | a green ring bursts out, a wind-swirl ring rises, leaves whirl up |
 | Iron Marrow | spinning gold gem between the hands (light); gold bone lines along the arms and spine; gold ForceField rim | thin gold ring | the clang: a thin ring snaps out level and one upright, sparks, a star; bone lines, rim and ring glint | a great clang ring, a sunburst flash, sparks, a steel ring across the ground |
 | Mountain Breath | amber low-belly core (light); faint amber tint | heavy carved stone ring with a turning glowing rune circle that settles on each breath; five pebbles lifting on the inhale; dust | a slow amber ring out of the stone, a little dust | the ground thumps: ring, dust spray, grit jumps |
@@ -79,8 +79,8 @@ How it is put together (details in the builder header):
   breaths (rolled each time), up to `PunchJitter` s late, in place of that
   beat's `Breath`; that breath's `Swell` is `PunchSwell` times larger, so the
   aura swells into the pulse and eases back. Limb emitters with
-  `PunchSurge = n` emit n then. Only Blazing Heart uses it (every 1 to 2
-  breaths, 0.6 s jitter, 1.4x swell).
+  `PunchSurge = n` emit n then. Blazing Heart (every 1 to 2 breaths, 0.6 s
+  jitter, 1.4x swell) and Flowing Spring (every 2 to 3, 0.4 s, 1.3x) use it.
 - **Grade hook:** `GRADES` in MethodAura scales the `Ground` model (reach),
   `Scaled` emitter rates and brightness. Mortal = 1.
 - **Emitter attributes** (added for Blazing Heart, usable by any aura):
@@ -98,7 +98,10 @@ How it is put together (details in the builder header):
   methods for the 8 slots. Blazing Heart (R6): 17 loop emitters, about 60
   live particles in the loop (limb flames 8/s per limb are the bulk), one
   light, one SurfaceGui sigil, no parts drawn; its ignition adds ~70
-  particles for about a second.
+  particles for about a second. Flowing Spring (R6): 13 loop emitters, about
+  40 live particles (limb curls 2.2/s per limb, inflow 6/s on the inhale),
+  one light, one SurfaceGui (caustics), no parts drawn; its ignition adds
+  ~40 particles for about a second, a pulse ~25.
 - **Palette for Neon:** bright pastels go white in Neon; ring and wave colours
   use the deeper shade of the element (violet, deep ice blue, burnt amber).
 
@@ -253,8 +256,13 @@ chant.
 
 ## Known gaps
 
-- The built Mortal auras other than Blazing Heart are part-heavy and due for
-  the emission rework (Status above).
+- The built Mortal auras other than Blazing Heart and Flowing Spring are
+  part-heavy and due for the emission rework (Status above).
+- Flowing Spring: previewed in Edit mode on the R6 rig (grass at noon and
+  night) through the plain emitter fallback; play speed, R15, phones and the
+  live sit / switch / breakthrough ignition are untested. The caustics disc
+  has a hard round edge (UICorner on the image), softened only by the dark
+  water blob around it.
 - Blazing Heart: previewed in Edit mode on the R6 rig only, through the plain
   emitter fallback (the place has no `ReplicatedStorage.vfx` Game Module).
   Feel at play speed, R15, 8 seated auras on a phone and the live sit /

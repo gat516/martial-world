@@ -599,61 +599,256 @@ local function blazingHeart(root)
 end
 
 -- ---------------------------------------------------------------- Flowing Spring (Water)
--- Water gathering into a still pool: a mirror-still disc that ripples once per
--- breath, droplets drawn in from all round to a soft blue belly core.
+-- Qi gathers like water into a still pool (Mortal: small, close). Rebuilt
+-- 2026-10-21 from layered library emissions (ref: the water aura in
+-- docs/reference/vfx/README.md; Sol's RNG). Back to front:
+--   ground  a deep-blue pool (dark base), a watery surface sheet with soft
+--           caustics, slow ripples crossing it, a swirl drawing in to the
+--           seat, bubbles rising off it
+--   body    a water ring turning round the figure from behind (on a darker
+--           copy of itself), a pearl of water at the belly with a white-hot
+--           heart and a glint (the one light), water curls lifting off the
+--           arms and torso, droplets streaming in to the pearl on the inhale
+--   breath  the exhale: a ripple and a breaking ring cross the pool, the
+--           pearl glints, a few drops hop off the surface
+--   punch   every 2 or 3 breaths a drop of qi falls from above into the
+--           pool: a splash crown round the seat, a big ripple, the pearl
+--           flashes, the curls surge
+--   ignite  the pool springs up: a white flash at the pearl, water columns
+--           and a splash crown round the body, a wave ring, drops thrown up
 
-local WATER_CORE, WATER, WATER_DEEP = rgb(190, 232, 255), rgb(90, 170, 255), rgb(40, 110, 230)
+local WATER_WHITE, WATER_CORE, WATER, WATER_DEEP = rgb(235, 250, 255), rgb(165, 220, 255), rgb(75, 165, 255), rgb(25, 90, 210)
+local WATER_INK = rgb(6, 22, 52)
+
+local FS = {
+	glow = id(6673021984), -- soft round glow
+	core = id(13280146664), -- small hot glow
+	glint = id(13271102367), -- small 4-point star
+	pearl = id(15024914905), -- a ball of water (top-down puddle as a flat particle)
+	caustics = id(5722422984), -- water caustics tile
+	ripple = id(89560315838742), -- 4x4 flipbook: a wobbling water ring
+	breakRing = id(89798462580462), -- 4x4 flipbook: a water ring breaking up
+	swirl = id(6700006778), -- water swirl stroke
+	arc = id(135596833550213), -- curved water stroke (an arc of a ring)
+	curl = id(14191030010), -- 4x4 flipbook: a water curl
+	wisp = id(12110213243), -- 4x4 flipbook: a water wisp lifting
+	splash = id(14944433028), -- 4x4 flipbook: a splash bursting
+	column = id(12800352943), -- 4x4 flipbook: a water column rising and breaking
+	drop = id(7104844885), -- teardrop
+	bubble = id(249902641), -- bubble
+	streak = id(9841260008), -- soft streak
+}
+_G.FlowingSpringAssets = FS
+
+local waterColor = cseq(0, WATER_WHITE, 0.4, WATER_CORE, 1, WATER)
 
 local function flowingSpring(root)
-	local m = model("FlowingSpring", root)
-	shell(m, rgb(110, 185, 255), { Pulse = R(0.8, 0.92), Pad = 0.2 }, Enum.Material.Neon)
+	-- a drop falls into the pool every 2 or 3 breaths, on the beat
+	local m = model("FlowingSpring", root, { PunchEvery = R(2, 3), PunchJitter = 0.4, PunchSwell = 1.3 })
 
-	local body = model("Body", m)
-	local core = ball("Core", body, 0.5, CFrame.new(0, 0, -0.12), WATER_CORE, { Point = "Belly", Pulse = R(0, 0.25), Grow = R(0.85, 1.2) })
-	light(core, WATER, 9, 1.4)
-	-- droplets spawned on a shell round the body, streaming in to the core
-	local shell = at("Dantian", nil, "Shell", body, V3(7, 7, 7))
-	loop(shell, "Inflow", {
-		Texture = A.spark, Shape = sphere, ShapeStyle = surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
-		Orientation = streak, Size = seq(0, 0.14, 0.3, 0.26, 1, 0.08), Transparency = seq(0, 1, 0.25, 0, 0.85, 0.1, 1, 1),
-		Color = CS(rgb(160, 215, 255)), Lifetime = R(0.95, 1.05), Speed = R(3.3), Rate = 10, LightEmission = 0.3,
-	}, { Scaled = true, Breathe = true })
-
+	-- ground: the pool (within ~1 body-width)
 	local ground = model("Ground", m)
-	local pool = part("Pool", ground, CFrame.new(0, 0.08, 0) * CFrame.Angles(0, 0, math.pi / 2), V3(0.06, 5.6, 5.6), { Pulse = R(0.5, 0.62) })
-	pool.Shape = Enum.PartType.Cylinder
-	pool.Color = WATER
-	mesh(A.torus, ground, "Rim", ring(5.7, 0.8), CFrame.new(0, 0.1, 0), WATER_CORE, { Pulse = R(0.2, 0.5) })
+	local floor = part("Floor", ground, CFrame.new(0, 0.12, 0), V3(0.1, 0.1, 0.1)) -- centred flats
+	local pool = part("Pool", ground, CFrame.new(0, 0.15, 0), V3(3.6, 0.1, 3.6)) -- spread over the pool
+	loop(floor, "Deep", B.flat({ -- the dark base: deep water under everything bright
+		Texture = FS.pearl, Size = NS(2.6), Transparency = seq(0, 1, 0.25, 0.12, 0.75, 0.12, 1, 1), Color = CS(WATER_INK),
+		Lifetime = R(5), Rate = 0.5, Rotation = R(0, 360), RotSpeed = R(-4, 4), LightEmission = 0, ZOffset = 0,
+	}), { Prime = 2 })
+	loop(floor, "Surface", B.flat({
+		Texture = FS.pearl, Size = NS(2.35), Transparency = seq(0, 1, 0.3, 0.5, 0.7, 0.5, 1, 1),
+		Color = cseq(0, WATER_CORE, 1, WATER), Lifetime = R(5), Rate = 0.4, Rotation = R(0, 360), RotSpeed = R(-6, 6),
+		LightEmission = 0.4, Brightness = 1.5, ZOffset = 0.05,
+	}), { Prime = 2, Swell = 0.05, Drift = 0.04 })
+	-- soft caustics in the pool: a round image, drifting round
+	local caustics = decalDisc("Caustics", ground, 3.5, 0.17, FS.caustics, rgb(150, 230, 255), {
+		Pulse = R(0.6, 0.76), Turn = 5, Grow = R(0.97, 1.03),
+	})
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0.5, 0)
+	corner.Parent = caustics:FindFirstChildWhichIsA("ImageLabel", true)
+	loop(pool, "Ripples", B.flat({
+		Texture = FS.ripple, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(8, 10),
+		Size = seq(0, 0.2, 1, 0.75), Transparency = seq(0, 1, 0.2, 0.25, 0.7, 0.5, 1, 1), Color = CS(WATER_WHITE),
+		Lifetime = R(1.8), Rate = 1.6, Rotation = R(0, 360), LightEmission = 0.6, Brightness = 2, ZOffset = 0.15,
+	}), { Prime = 2, Breathe = R(0.6, 1.5) })
+	loop(floor, "Swirl", B.flat({
+		Texture = FS.swirl, Size = seq(0, 2.5, 1, 1.6), Transparency = seq(0, 1, 0.35, 0.45, 0.75, 0.5, 1, 1),
+		Color = CS(WATER_CORE), Lifetime = R(3), Rate = 0.7, Rotation = R(0, 360), RotSpeed = R(-50, -40),
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.1,
+	}), { Prime = 2, Breathe = R(0.7, 1.3), Swell = 0.08, Drift = 0.05 })
+	loop(pool, "Bubbles", {
+		Texture = FS.bubble, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Size = rnd(0.05, 0.11),
+		Transparency = seq(0, 1, 0.15, 0.2, 0.85, 0.3, 1, 1), Color = CS(WATER_WHITE), Lifetime = R(1.4, 2.2),
+		Speed = R(0.6, 1.2), Acceleration = V3(0, 0.4, 0), SpreadAngle = Vector2.new(10, 10), Rate = 2.5, LightEmission = 0.3,
+	}, { Scaled = true, Breathe = R(0.6, 1.4) })
 
-	-- one ripple per breath, out across the pool
+	-- body: the pearl at the belly and the water ring round the figure
+	local body = model("Body", m)
+	local pearl = at("Belly", CFrame.new(0, 0.05, -0.25), "Pearl", body)
+	light(pearl, WATER, 8, 1.3)
+	loop(pearl, "Orb", {
+		Texture = FS.pearl, Size = NS(0.42), Transparency = seq(0, 1, 0.3, 0.15, 0.7, 0.15, 1, 1),
+		Color = cseq(0, WATER_CORE, 1, WATER), Lifetime = R(1.2), Rate = 2, Rotation = R(0, 360), RotSpeed = R(-30, 30),
+		LightEmission = 0.6, Brightness = 2, ZOffset = 1.4, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.35 })
+	loop(pearl, "Hot", {
+		Texture = FS.core, Size = NS(0.3), Transparency = seq(0, 1, 0.3, 0.05, 1, 1), Color = CS(WATER_WHITE),
+		Lifetime = R(0.5), Rate = 5, LightEmission = 1, Brightness = 3, ZOffset = 1.5, LockedToPart = true,
+	}, { Prime = 2, Swell = 0.3 })
+	loop(pearl, "Glint", {
+		Texture = FS.glint, Size = seq(0, 0, 0.3, 0.55, 1, 0), Transparency = NS(0), Color = CS(WATER_WHITE),
+		Lifetime = R(0.6), Rate = 0.7, Rotation = R(-10, 10), LightEmission = 1, Brightness = 3, ZOffset = 1.6, LockedToPart = true,
+	})
+	-- droplets drawn in from all round to the pearl, faster on the inhale
+	local shell = at("Belly", CFrame.new(0, 0, -0.2), "Inflow", body, V3(4.2, 3.4, 4.2))
+	loop(shell, "Inflow", {
+		Texture = FS.streak, Shape = sphere, ShapeStyle = surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward,
+		Orientation = streak, Size = seq(0, 0.05, 0.4, 0.13, 1, 0.03), Transparency = seq(0, 1, 0.3, 0.1, 0.85, 0.2, 1, 1),
+		Color = cseq(0, WATER_CORE, 1, WATER_WHITE), Lifetime = R(0.7, 0.8), Speed = R(2.6), Rate = 6, LightEmission = 0.8,
+		Brightness = 2,
+	}, { Scaled = true, Breathe = R(0.3, 1.6) })
+	-- a ring of water turning round the figure from behind, dark under bright
+	local ringAt = at("Dantian", CFrame.new(0, 0.85, 0.45), "Ring", body)
+	loop(ringAt, "RingDark", {
+		Texture = FS.arc, Size = NS(2.15), Transparency = seq(0, 1, 0.25, 0.5, 0.75, 0.5, 1, 1), Color = CS(WATER_INK),
+		Lifetime = R(1.8), Rate = 1.1, Rotation = R(0, 360), RotSpeed = R(-70, -55), LightEmission = 0, ZOffset = -0.7,
+		LockedToPart = true,
+	}, { Prime = 2, Swell = 0.06, Drift = 0.05 })
+	loop(ringAt, "Ring", {
+		Texture = FS.arc, Size = NS(1.95), Transparency = seq(0, 1, 0.25, 0.15, 0.75, 0.25, 1, 1),
+		Color = cseq(0, WATER_WHITE, 1, WATER_CORE), Lifetime = R(1.6), Rate = 1.4, Rotation = R(0, 360), RotSpeed = R(-75, -60),
+		LightEmission = 0.8, Brightness = 2, ZOffset = -0.4, LockedToPart = true,
+	}, { Prime = 2, Breathe = R(0.7, 1.4), Swell = 0.06, Drift = 0.05 })
+
+	-- limbs: water curls and wisps lifting off the surface
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Curls", {
+		Texture = FS.curl, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
+		EmissionDirection = up, Size = seq(0, 0.35, 1, 0.6), Transparency = seq(0, 0.6, 0.2, 0.1, 0.8, 0.3, 1, 1),
+		Color = cseq(0, WATER_WHITE, 0.5, WATER_CORE, 1, WATER), Lifetime = R(0.9, 1.1), Speed = R(0.4, 0.9),
+		Acceleration = V3(0, 1.2, 0), Rotation = R(0, 360), RotSpeed = R(-40, 40), Rate = 2.2, LightEmission = 0.6,
+		Brightness = 2, ZOffset = 0.4,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.6, 1.4), Surge = 5, PunchSurge = 2, Swell = 0.15, Drift = 0.08 })
+	loop(limbs, "Wisps", {
+		Texture = FS.wisp, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = box, ShapeStyle = surface,
+		EmissionDirection = up, Size = seq(0, 0.3, 1, 0.5), Transparency = seq(0, 0.4, 0.2, 0.15, 1, 1),
+		Color = cseq(0, WATER_WHITE, 1, WATER_CORE), Lifetime = R(0.7, 0.9), Speed = R(0.5, 0.9), Acceleration = V3(0, 0.6, 0),
+		Rotation = R(-20, 20), Rate = 1.2, LightEmission = 0.5, Brightness = 2, ZOffset = 0.3,
+	}, { On = "Arms", Scaled = true, Surge = 3 })
+
+	-- the exhale: a ripple and a breaking ring across the pool, drops hop off it
 	local breath = model("Breath", m)
-	local floor = part("Floor", breath, CFrame.new(0, 0.14, 0))
-	wave(floor, "Ripple", {
-		mesh = A.torus, color = WATER_CORE, fromSize = ring(1, 2.4), toSize = ring(5.6, 1.1),
-		fromTransparency = 0.05, toTransparency = 1, duration = 1.8, style = "Sine",
+	local bFloor = part("Floor", breath, CFrame.new(0, 0.2, 0), V3(2.6, 0.1, 2.6))
+	burst(bFloor, "Ripple", 1, B.flat({
+		Texture = FS.ripple, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(10),
+		Size = seq(0, 0.6, 1, 2.1), Transparency = seq(0, 0.1, 0.6, 0.4, 1, 1), Color = CS(WATER_WHITE),
+		Lifetime = R(1.4), LightEmission = 0.8, Brightness = 2, ZOffset = 0.2,
+	}))
+	burst(bFloor, "Break", 1, B.flat({
+		Texture = FS.breakRing, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 0.9, 1, 1.9),
+		Transparency = seq(0, 0.2, 1, 0.6), Color = CS(WATER_CORE), Lifetime = R(1), Rotation = R(0, 360),
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.18,
+	}), { EmitDelay = 0.25 })
+	burst(bFloor, "Hop", 4, {
+		Texture = FS.drop, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Orientation = streak,
+		Size = rnd(0.06, 0.09), Transparency = seq(0, 0.1, 0.8, 0.2, 1, 1), Color = CS(WATER_WHITE), Lifetime = R(0.5, 0.7),
+		Speed = R(3, 4.5), SpreadAngle = Vector2.new(25, 25), Acceleration = V3(0, -14, 0), LightEmission = 0.6, Brightness = 2,
 	})
-	wave(floor, "Ripple2", {
-		mesh = A.torus, color = WATER_CORE, fromSize = ring(0.6, 2.4), toSize = ring(4.2, 1.1),
-		fromTransparency = 0.3, toTransparency = 1, duration = 1.8, style = "Sine", delay = 0.45,
+	local bPearl = at("Belly", CFrame.new(0, 0.05, -0.3), "Pearl", breath)
+	burst(bPearl, "Glint", 1, {
+		Texture = FS.glint, Size = seq(0, 0.3, 0.3, 1.1, 1, 0), Transparency = NS(0), Color = CS(WATER_WHITE),
+		Lifetime = R(0.35), Rotation = R(0, 15), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
 	})
 
-	-- ignition: the pool springs up, a wave rolls out and droplets fall back
+	-- a pulse: a drop of qi falls from above into the pool
+	local pulseM = model("Punch", m)
+	local sky = part("Sky", pulseM, CFrame.new(0, 6.2, -0.9))
+	burst(sky, "Drop", 1, {
+		Texture = FS.drop, EmissionDirection = Enum.NormalId.Bottom, Orientation = streak, Size = seq(0, 0.16, 1, 0.24),
+		Transparency = seq(0, 0.6, 0.3, 0, 1, 0), Color = CS(WATER_WHITE), Lifetime = R(0.36), Speed = R(16),
+		LightEmission = 0.9, Brightness = 3, ZOffset = 1,
+	})
+	burst(sky, "Trail", 1, {
+		Texture = FS.streak, EmissionDirection = Enum.NormalId.Bottom, Orientation = streak, Size = seq(0, 0.08, 1, 0.3),
+		Transparency = seq(0, 1, 0.5, 0.2, 1, 1), Color = CS(WATER_CORE), Lifetime = R(0.36), Speed = R(15),
+		LightEmission = 1, Brightness = 2,
+	})
+	local pBase = part("Base", pulseM, CFrame.new(0, 0.2, 0), V3(2.8, 0.1, 2.8))
+	local land = { EmitDelay = 0.36 }
+	burst(pBase, "Crown", 12, {
+		Texture = FS.splash, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc,
+		ShapeStyle = volume, ShapePartial = 0.8, EmissionDirection = up, Size = seq(0, 0.45, 1, 0.85), Transparency = seq(0, 0.05, 0.7, 0.2, 1, 1),
+		Color = waterColor, Lifetime = R(0.55, 0.7), Speed = R(1.5, 2.5), Acceleration = V3(0, -3, 0), Rotation = R(-15, 15),
+		LightEmission = 0.6, Brightness = 2, ZOffset = 0.6,
+	}, land)
+	burst(pBase, "Ripple", 1, B.flat({
+		Texture = FS.ripple, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(12),
+		Size = seq(0, 0.8, 1, 2.8), Transparency = seq(0, 0, 0.6, 0.35, 1, 1), Color = CS(WATER_WHITE),
+		Lifetime = R(1.2), LightEmission = 0.9, Brightness = 2, ZOffset = 0.25,
+	}), land)
+	burst(pBase, "Drops", 8, {
+		Texture = FS.drop, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Orientation = streak,
+		Size = rnd(0.07, 0.11), Transparency = seq(0, 0, 0.8, 0.2, 1, 1), Color = CS(WATER_WHITE), Lifetime = R(0.6, 0.8),
+		Speed = R(4.5, 6.5), SpreadAngle = Vector2.new(35, 35), Acceleration = V3(0, -16, 0), LightEmission = 0.6, Brightness = 2,
+	}, land)
+	local pPearl = at("Belly", CFrame.new(0, 0.05, -0.3), "Pearl", pulseM)
+	burst(pPearl, "Flash", 1, {
+		Texture = FS.core, Size = seq(0, 0.4, 0.25, 1, 1, 1.1), Transparency = seq(0, 0.05, 0.4, 0.5, 1, 1),
+		Color = cseq(0, WATER_WHITE, 1, WATER_CORE), Lifetime = R(0.35), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	}, land)
+	burst(pPearl, "Star", 1, {
+		Texture = FS.glint, Size = seq(0, 0.3, 0.25, 1.7, 1, 0), Transparency = NS(0), Color = CS(WATER_WHITE),
+		Lifetime = R(0.4), Rotation = R(0, 15), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	}, land)
+
+	-- ignition: the pool springs up round the body
 	local ignite = model("Ignite", m)
-	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(5, 0.2, 5))
-	wave(base, "Wave", {
-		mesh = A.torus, color = WATER, fromSize = ring(3, 3), toSize = ring(11, 1.4),
-		fromTransparency = 0, toTransparency = 1, duration = 1, style = "Quint",
+	local core = at("Belly", CFrame.new(0, 0.05, -0.3), "Pearl", ignite)
+	burst(core, "Flash", 1, {
+		Texture = FS.core, Size = seq(0, 0.6, 0.15, 1.6, 1, 1.9), Transparency = seq(0, 0, 0.4, 0.45, 1, 1),
+		Color = cseq(0, WATER_WHITE, 1, WATER_CORE), Lifetime = R(0.45), LightEmission = 1, Brightness = 3, ZOffset = 2,
 	})
-	wave(base, "Spout", {
-		mesh = A.torus, color = WATER, fromSize = ring(5.4, 2.4), toSize = ring(1.6, 3),
-		toOffset = V3(0, 3.2, 0), fromTransparency = 0, toTransparency = 1, duration = 0.8, style = "Quad",
+	burst(core, "Star", 1, {
+		Texture = FS.glint, Size = seq(0, 0.6, 0.25, 3.2, 1, 0), Transparency = NS(0), Color = CS(WATER_WHITE),
+		Lifetime = R(0.5), Rotation = R(0, 10), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
 	})
-	burst(base, "Droplets", 22, {
-		Texture = A.bubble, Shape = disc, ShapeStyle = volume, EmissionDirection = up,
-		Size = rnd(0.16, 0.3), Transparency = seq(0, 0.1, 0.8, 0.3, 1, 1), Color = CS(WATER_CORE),
-		Lifetime = R(0.9, 1.3), Speed = R(8, 13), SpreadAngle = Vector2.new(25, 25), Acceleration = V3(0, -30, 0),
-		LightEmission = 0.3,
+	burst(core, "Orb", 1, {
+		Texture = FS.pearl, Size = seq(0, 0.5, 0.3, 1.5, 1, 1.8), Transparency = seq(0, 0.1, 1, 1),
+		Color = cseq(0, WATER_WHITE, 1, WATER_CORE), Lifetime = R(0.5), Rotation = R(0, 360), LightEmission = 0.7,
+		Brightness = 2, ZOffset = 1.9,
 	})
+	local base = part("Base", ignite, CFrame.new(0, 0.2, 0), V3(3, 0.1, 3))
+	burst(base, "Columns", 7, {
+		Texture = FS.column, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc,
+		ShapeStyle = volume, ShapePartial = 0.8, EmissionDirection = up, Size = seq(0, 0.7, 1, 1.1), Transparency = seq(0, 0, 0.7, 0.15, 1, 1),
+		Color = waterColor, Lifetime = R(0.7, 0.9), Speed = R(1.5, 2.5), Rotation = R(-8, 8), LightEmission = 0.6,
+		Brightness = 2, ZOffset = 0.6,
+	})
+	burst(base, "Crown", 10, {
+		Texture = FS.splash, FlipbookLayout = grid4, FlipbookMode = oneShot, Shape = disc,
+		ShapeStyle = volume, ShapePartial = 0.8, EmissionDirection = up, Size = seq(0, 0.5, 1, 0.95), Transparency = seq(0, 0, 0.7, 0.2, 1, 1),
+		Color = waterColor, Lifetime = R(0.6, 0.8), Speed = R(2.5, 4), Acceleration = V3(0, -5, 0), Rotation = R(-15, 15),
+		LightEmission = 0.6, Brightness = 2, ZOffset = 0.5,
+	}, { EmitDelay = 0.05 })
+	burst(base, "Wave", 1, B.flat({
+		Texture = FS.ripple, FlipbookLayout = grid4, FlipbookMode = loopFb, FlipbookFramerate = R(14),
+		Size = seq(0, 1, 1, 3.8), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = CS(WATER_WHITE),
+		Lifetime = R(0.8), LightEmission = 0.9, Brightness = 2, ZOffset = 0.3,
+	}))
+	burst(base, "Break", 1, B.flat({
+		Texture = FS.breakRing, FlipbookLayout = grid4, FlipbookMode = oneShot, Size = seq(0, 1.4, 1, 3.1),
+		Transparency = seq(0, 0, 1, 0.5), Color = CS(WATER_CORE), Lifetime = R(0.9), Rotation = R(0, 360),
+		LightEmission = 0.7, Brightness = 2, ZOffset = 0.28,
+	}), { EmitDelay = 0.1 })
+	burst(base, "Drops", 18, {
+		Texture = FS.drop, Shape = disc, ShapeStyle = volume, EmissionDirection = up, Orientation = streak,
+		Size = rnd(0.08, 0.13), Transparency = seq(0, 0, 0.8, 0.2, 1, 1), Color = CS(WATER_WHITE), Lifetime = R(0.7, 1),
+		Speed = R(6, 9), SpreadAngle = Vector2.new(30, 30), Acceleration = V3(0, -20, 0), LightEmission = 0.6, Brightness = 2,
+	})
+	burst(base, "Deep", 1, B.flat({ -- the pool darkens under the burst
+		Texture = FS.glow, Size = seq(0, 2, 1, 2.8), Transparency = seq(0, 0.2, 1, 1), Color = CS(WATER_INK),
+		Lifetime = R(0.9), LightEmission = 0, ZOffset = 0.02,
+	}))
 	return m
 end
 

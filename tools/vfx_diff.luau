@@ -60,7 +60,9 @@ local function describe(inst, root)
 		end
 	end
 	if inst:IsA("BasePart") then
-		table.insert(parts, "at=" .. fmt(root:GetPivot():ToObjectSpace(inst.CFrame)))
+		-- a Folder template (e.g. RootPillar.Accents) has no pivot: use world space
+		local pivot = if root:IsA("PVInstance") then root:GetPivot() else CFrame.identity
+		table.insert(parts, "at=" .. fmt(pivot:ToObjectSpace(inst.CFrame)))
 	end
 	if inst:IsA("Trail") or inst:IsA("Beam") then
 		table.insert(parts, "A0=" .. fmt(inst.Attachment0) .. " A1=" .. fmt(inst.Attachment1))

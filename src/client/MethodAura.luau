@@ -8,8 +8,9 @@
 --                   flame mantle hugging the silhouette from behind, flames
 --                   licking off the arms and torso, soot and embers, a fire
 --                   swirl and a turning hui-wen sigil on the ground
---   Flowing Spring  a still pool under you that ripples each breath, droplets
---                   drawn in to a blue belly core, a cool body glow
+--   Flowing Spring  a pool under you that ripples each breath, a pearl of
+--                   water at the belly fed by streams of qi, a water ring
+--                   turning round the figure; now and then a drop falls in
 --   Evergreen Root  green meridian branches growing from the belly out along
 --                   the arms over a few breaths, roots on the ground, leaves
 --   Iron Marrow     a spinning white-gold diamond between the hands; each

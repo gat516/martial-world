@@ -43,10 +43,10 @@ on the baseplate unchanged.
 
 ## Trials before shipping
 New fights land here first behind a flag that is on only in the testbed, so the user
-can fight them before the main game changes. Today: `Config.Wilds.NEW_BOAR`
-(= `Config.TESTBED`), the new Stone Boar (enemies.md "Stone Boar"). Ship one by
-setting its flag to `true`. Shipped so far: the Spirit Wolf (`NEW_WOLF`, 2026-10-21);
-`WolfPair` stays for tuning.
+can fight them before the main game changes. Today: none waiting. Ship one by
+setting its flag to `true`. Shipped so far: the Spirit Wolf (`NEW_WOLF`, 2026-10-21)
+and the Stone Boar (`NEW_BOAR`, 2026-10-21); `WolfPair` and `BoarPair` stay for
+tuning.
 
 ## Key files
 - `test.project.json`: the testbed's Rojo project (serve port 34873); sets the

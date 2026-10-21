@@ -403,9 +403,10 @@ return {
 		-- old one-lunge wolf until OLD_SPIRIT_WOLF and the SpiritWolf template go.
 		NEW_WOLF = true,
 		-- THE NEW STONE BOAR FIGHT (enemies.md "Stone Boar"): its rigged body, the
-		-- charge into a tusk gore, side-pacing. Testbed only until approved; to ship
-		-- it, set this to true.
-		NEW_BOAR = TESTBED,
+		-- charge into a tusk gore, side-pacing. Shipped 2026-10-21 at the user's word
+		-- (before a testbed fight); false brings back the old one-charge boar until
+		-- OLD_STONE_BOAR and the StoneBoar template go.
+		NEW_BOAR = true,
 		-- attack slots (EnemyService): at most this many non-boss beasts wind up or
 		-- strike at one player at once, and the next can't start its windup until
 		-- SLOT_GAP after the last one resolved, so a pack takes turns and every blow

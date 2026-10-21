@@ -236,20 +236,22 @@ Impacts), `Aggro`, `Death`; all picked by description only, not listened to.
 The testbed's `Wilds.Zones.WolfPair` (test.project.json) still keeps two Spirit Wolves
 at (-90, 648.6, -40), 127 studs from the spawn pad, for tuning.
 
-### Stone Boar (the new fight, testbed first)
-Behind `Config.Wilds.NEW_BOAR` (= `Config.TESTBED`); with it off the main game keeps
-the old boar (one 1.0 s charge, 160 HP, the old body). **To ship it, set
-`NEW_BOAR = true`.** User direction (2026-10-21): "a charge and then it uses its tusk
+### Stone Boar (shipped)
+Built behind `Config.Wilds.NEW_BOAR` for the testbed first; the user shipped it to the
+main game on 2026-10-21 (`NEW_BOAR = true`) without fighting it in the testbed first.
+Setting the flag back to false still brings back the old boar (one 1.0 s charge,
+160 HP, the old body). **Follow-up:** remove `OLD_STONE_BOAR` (Enemies.luau), the old
+`StoneBoar` template in `assets/Enemies.rbxm` and the flag once the new boar has
+proved itself in play. User direction (2026-10-21): "a charge and then it uses its tusk
 to attack you". Either `NEW_WOLF` or `NEW_BOAR` turns on attack slots and dash-front
 hits for every non-boss beast (`TURNS` in EnemyService).
 
 With the flag on: the body is `StoneBoarB` (the roster boar, built by
 `art/enemies/quadrupeds/build_stone_boar.luau` + `rig_stone_boar.luau`, posed by
 `EnemyPoses/Boar.luau`, effects in `EnemyFX/StoneBoar.luau`, "Stone Boar effects"
-above). **Boar poses pending:** `EnemyPoses/Boar.luau` hasn't landed yet;
-EnemyAnimator loads it only if it's there (`FindFirstChild`), so until then the boar
-moves with the generic trot/crouch/stretch pose, and it picks the module up on its own
-once it syncs. Tells: the Neon cracks
+above; shared leg planting in `EnemyPoses/Quadruped.luau`, QA
+`art/enemies/quadrupeds/qa_quadruped_poses.luau`). EnemyAnimator loads the pose module
+only if it's there (`FindFirstChild`) and falls back to the generic pose. Tells: the Neon cracks
 `CrackL1/L2/R1/R2`, `CrackBack` (Chest) and `EyeL/EyeR` (Head); effect attachments
 `TuskTip` (Head), `Core` (Chest), `HoofFL_FX`, `HoofFR_FX`. It never hops. Waiting, it
 side-paces 16 studs out (`pack.circle`, 5 studs/s, facing you; it closes in from
@@ -348,8 +350,7 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
 - **Known gaps:** EnemyAnimator can't play R6 tracks or authored clips yet (humanoid
   enemies need an AnimationTrack per AIState). No roster model has a def, sounds or
   VFX. The Flame Raven's server stand-in would take its whole 15-stud wingspan as a
-  hitbox. The new Stone Boar is live in the testbed only
-  (`Config.Wilds.NEW_BOAR`).
+  hitbox.
 
 ## Data flow
 Spawner decides where -> `EnemyService.spawn` clones the type's root-only stand-in,
@@ -371,7 +372,7 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - Movement: `Config.Wilds.MOVE_TICK` (step and replication rate), `WALK_SLOPE`,
   `CLIMB`, `FALL_SPEED`, `TURN_RATE`, `CROWD`.
 - Packs and turns: `Config.Wilds.NEW_WOLF` (the wolf fight's switch, shipped on; it or NEW_BOAR turns on slots
-  and dash-front hits for everyone), `NEW_BOAR` (the new boar fight),
+  and dash-front hits for everyone), `NEW_BOAR` (the boar fight's switch, shipped on),
   `ATTACK_SLOTS`, `SLOT_GAP`, `ENGAGE_RESET`; per beast `attacks` (with `minRange`,
   `notBefore`, `active`, `arc`, `hopAfter`, `followUp`) and `pack` (`howl`, `hop`, `circle`).
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
@@ -403,8 +404,8 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   wilds: the leap's flight over broken ground (EnemyMover can stop it short at a wall;
   the hit still resolves on the circle), the GateWolves pair in the FirstKill beat,
   and phones with a pack of four. Its sounds were picked unheard.
-- The new Stone Boar fight is untested in play (testbed only): its poses are pending
-  (generic pose until `EnemyPoses/Boar.luau` lands), whether pacing at 16 studs reads as
+- The Stone Boar fight shipped untested in play (not fought in the testbed first): its
+  poses in EnemyAnimator, whether pacing at 16 studs reads as
   stalking, the gore's reach (range 7 against a cone of radius 7), the follow-up's wait
   for the slot, sounds (picked unheard). Time to kill at QC4 is about 14 s, above the
   pack-beast guide.

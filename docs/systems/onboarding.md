@@ -73,8 +73,8 @@ favourited (`RootReveal`, `AvatarEditorService:PromptSetFavorite`, 1.5 s after
 the card closes) -> "Spirit wolves prowl just past the Sect Gate. Go!" with
 Travel -> Sect Gate spotlit -> first kill -> a technique -> refine (once the
 dantian is actually full) -> QC3 -> free play. Home (garden and peak, QC4) and
-the weapon rack (QC7) are lessons, not beats. Still to do here: wolves in view
-on arrival at the gate (map), and timing the funnel to the first kill.
+the weapon rack (QC7) are lessons, not beats. Still to do here: timing the funnel
+to the first kill.
 
 ### Beats and lessons (built)
 - Beats are kept **by id** in `data.beats` (schema v8; v7's position count is
@@ -151,9 +151,6 @@ then pivots the character onto that array.
 - Rewards shown on the board come from `Pacing.Rewards`.
 
 ## Known gaps
-- No beast is in view at the Sect Gate: the nearest spawn zone (WolfPocket)
-  is ~460 studs from its array, so the FirstKill beat leans on ambient
-  encounters and the guide's path to the nearest streamed-in enemy.
 - Analytics funnel steps are beat positions, so inserting a beat shifts the
   step numbers after it (compare funnels across versions with care).
 

@@ -115,7 +115,9 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
 - `src/shared/Regions.luau`: named regions (shape, intended realm, flavour line,
   ambient pack table).
 - `src/server/Spawner.luau`: keeps zones (`Workspace.Wilds.Zones` parts with
-  `Enemy`/`Count`/`Radius`) topped up with respawns, runs ambient encounters,
+  `Enemy`/`Count`/`Radius`) topped up with respawns (zones: GateWolves 2 Spirit Wolves
+  by the Sect Gate array for the FirstKill beat, WolfPocket, WolfDen, BoarMeadow,
+  BoarField, SerpentMarsh, SerpentFen, BossArena; positions in map.md), runs ambient encounters,
   `Spawner.pack` (drop a group) and `Spawner.boost` (world events).
 - `src/server/EnemyService.luau`: runs beasts: `spawn(id, at, { home, roam, target })`,
   `despawn`, `onRemoved`, the state machine (idle, chase, windup, dash, recover,

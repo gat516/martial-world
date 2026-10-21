@@ -915,7 +915,10 @@ shortcut (lengths from the array along the planned paths, at walking speed 16):
 `Wilds.EventGrounds` gets these three in place of today's two interim Inner grounds.
 
 **Lairs, nodes, caches (moved in phase 2).** `Wilds.Zones` WolfDen (-580, 780) (the boss
-ring), WolfPocket (-170, 880) on the G1 shortcut, BoarMeadow (420, 790) by the boar
+ring), WolfPocket (-170, 880) on the G1 shortcut, GateWolves (-36, 488) (2 Spirit Wolves,
+r 18: the onboarding FirstKill target on the lawn west of the gate road, in front of the
+NorthWest karst foot, 86 studs west of the Sect Gate array and in view from it; added
+2026-10-21; dressed with a three-boulder cluster, `WildsInner.Dressing.GateWolves`), BoarMeadow (420, 790) by the boar
 wallow, BoarField (370, 1040) where Giants Gully opens (the G3 shortcut). QiNode1 (60,
 545) and QiNode2 (-170, 700) stay; QiNode3 (574, 1201) by the Qi Spring shrine; new
 QiNode6 (-200, 1120) at the Lotus Mere and QiNode7 (-520, 1150) at the Three Pillars.
@@ -1145,7 +1148,9 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 - Teleport arrays (`Shared.Gates`): every array players travel through is tagged
   `TravelGate` with a `Gate` attribute: `Plaza.TeleportArray_Plaza` "MainPeak"
   (66, 649.5, 92; also the death respawn), `Markers.TeleportHome.TeleportHome_Gate`
-  "SectGate" (48, 6, 470), `TeleportHome_Inner` "InnerWilds" (18, 4.2, 676; a
+  "SectGate" (48, 6, 470; turned 2026-10-21 to face west-north-west, LookVector
+  (-0.98, 0, 0.21), so arrivals face the GateWolves lair across the gate road; it faced
+  north into the sect wall before), `TeleportHome_Inner` "InnerWilds" (18, 4.2, 676; a
   clearing east of the trunk past the Old Stone Gate, facing south down the path),
   `TeleportHome_Middle` "MiddleWilds" (234, 1.4, 1662; between the road and the east
   road past the Border Gate, facing south toward the arena; moved with the Borderlands), `TeleportHome_Outer`

@@ -57,6 +57,7 @@ Techniques.Defs = {
 		color = Color3.fromRGB(150, 230, 255),
 		blurb = "A blade of qi that cuts through every enemy in a line.",
 		animation = 3,
+		hand = "Right", -- Fists.3 cuts flat across the front with the right arm at Hit
 		cast = { windup = 0.32, recovery = 0.16, moveMultiplier = 0.35, recoveryMoveMultiplier = 0.7, dodgeBeforeHit = true },
 	},
 	PalmStrike = {
@@ -86,6 +87,7 @@ Techniques.Defs = {
 		color = Color3.fromRGB(200, 180, 255),
 		blurb = "Lightning that leaps between nearby enemies.",
 		animation = 2,
+		hand = "Left", -- Fists.2 reaches back over the right shoulder and flings the talisman with the left at Hit
 		cast = { windup = 0.25, recovery = 0.12, moveMultiplier = 0.5, recoveryMoveMultiplier = 0.8, dodgeBeforeHit = true },
 	},
 	IronSkin = {
@@ -116,6 +118,7 @@ Techniques.Defs = {
 		color = Color3.fromRGB(255, 120, 60),
 		blurb = "Seal the ground ahead in flame that burns whoever stands in it.",
 		animation = 4,
+		hand = "Left", -- Fists.4 thrusts the left palm forward through Hit (same as Palm Strike)
 		cast = { windup = 0.50, recovery = 0.20, moveMultiplier = 0, recoveryMoveMultiplier = 0.6, dodgeBeforeHit = true },
 	},
 } :: { [string]: Def }

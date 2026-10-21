@@ -106,6 +106,24 @@ checks a rebuild against the previous templates.
   point light riding the blade, a sword-intent crescent and impact frames at
   the release, and a quake on the first impact. Damage still lands on the
   whole line at Hit; visual impacts follow the blade, up to ~0.36 s later.
+- **Lightning Talisman** (`LightningTalisman_T1..T4`;
+  `TechniqueFX.LightningTalisman`). At Hit a paper talisman card leaves the
+  left hand (Fists.2) and tumbles to a point above the first target in
+  `chain`, where it flares and burns while a jagged bolt strikes down. Bolts
+  then hop along `chain` every `HopDelay` (0.12 to 0.09 s by tier), bowing over
+  the bodies. Each target gets an impact (flash, Neon impact torus, ground
+  shock, crackle; II+ scorch and seals); the last gets a heavier finale with an
+  electric ring, a ground splash and a shake (III+ Craters rocks). With no
+  target the card flies to max range or the first wall or ground and bursts
+  there. II adds forks, release sparks and an air ring; III a double strand,
+  seals under every target and impact bubbles; IV two forks and a sky strike on
+  the first target with the move's one light and a quake. Bolts are Beams on
+  a jittered attachment chain; with the Game Module the main core is the
+  LightningBeams add-on. Tuning lives in root attributes (`HopDelay`,
+  `Strands`, `Forks`, `BoltWidth`, `BoltLife`, `Segments`, `Jitter`,
+  `Flickers`, `CardSpeed`, `SealTargets`, `SkyStrike`). Damage lands at Hit;
+  the hops are only a visual stagger. When `chain` is nil (Edit previews) the
+  module predicts it with Combat.chainTargets' rule.
 - **Fire Seal** (`FireSeal_T1..T4`, authored at radius 8, a 0.214 s active
   window and 4 s; `TechniqueFX.FireSeal`). Fists.4 strikes with the left hand.
   Windup: qi gathers into the palm. At Hit the seal is thrown as a projectile

@@ -82,6 +82,16 @@ funnels players, not teleports:
   routes to each event ground should be about equal from the zone's array, with
   a riskier shortcut (a cleft, a climb, a lair) to reward knowing the zone. See
   [world](world.md).
+- **Dense with POIs.** Well past the "every 20-30 seconds" minimum: small finds
+  between the big pockets (steles, herb patches, a hermit's camp, cave mouths,
+  meditation rocks, vistas) and things found only off the path or by climbing.
+- **Room to grow, and flight.** Players will fly (sword flight at Foundation,
+  later real flight), so zones stay expandable: free space around each one so
+  walls can move out or open onto new pockets (nothing scripts depend on sits
+  against a wall); wall tops and backs look finished from above (a dressed rim,
+  then mist or a drop); and each zone plans a vertical layer of cliff-top
+  ledges, high caves and floating rocks with POIs only flyers or climbers reach.
+  Each zone records its flight ceiling and bounds.
 - **Rework passes remove what they replace.** Past AI passes layered new work on
   old (orphaned props, half-replaced dressing, misaligned seams, floating or sunk
   pieces). Every rework of an area starts with an inventory of what is there and

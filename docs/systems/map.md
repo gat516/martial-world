@@ -564,7 +564,38 @@ From a read-only audit of the code (2026-10-20); code refs inline.
 - Wilds zones and qi nodes (positions in `assets/Wilds.rbxmx`) are leash and
   spawn homes; ground raycasts (spawns reject Water, treasures, placement) need
   real collision under them.
-- Free (no code reads them): `Map.Markers.*` (except the tagged TeleportHome arrays), `Map.Clouds`, `Map.Ground`, tags
+- Weapon racks and manual caches (`src/server/WorldCaches.luau`, design in
+  `docs/systems/weapons.md`): found only by CollectionService tag, anywhere
+  under Workspace. Each anchor is an invisible BasePart (Transparency 1,
+  anchored, CanCollide/CanQuery/CanTouch off); the server parents the prompt
+  (`ItemTemplates.RackPrompt`/`CachePrompt`, 10 studs) to it, so the anchor is
+  where the prompt shows. Moving anchors is fine; renaming a `Cache` id or a
+  rack's `Weapon` re-opens it for everyone who claimed it (`data.caches`).
+  - `WeaponRack` (attr `Weapon`, optional `Cache`, default `rack:<Weapon>`):
+    `Plaza.WeaponRack` in the west court, a lacquered rack against the court's
+    west balustrade (x -93, z 50..72, floor 649.2) facing the axis, with a chest
+    and crates at its south end. One `RackAnchor_<Weapon>` (1 stud cube) per
+    weapon at (-92, 652.7, z): IronJian 52.9, IronDadao 55.8, IronGreatsword
+    58.6, IronGuandao 63.4, IronSpear 66.2, BambooStaff 69.1. The weapons on it
+    are part props (non-colliding).
+  - `ManualCache` (attrs `Cache` unique id, `Manual` technique id and/or
+    `Weapon`, optional `Realm` stage key like "QC3"): `Map.Markers.ManualCaches.
+    Cache_<Manual>`, each a small Slate pedestal (or a log at the camp) with a
+    red cloth, a 1x0.2x1 `CacheAnchor` on top (the server rests
+    `WeaponModels.ManualScroll` on it, so keep ~1.5 studs clear above), an
+    `FX_CacheGlow` attachment on the cap for `vfx`, and a little dressing.
+    Harder spots hold the stronger manuals:
+    | Manual | Cache id | Realm | Anchor | Spot |
+    |---|---|---|---|---|
+    | CrescentSweep | cache_crescentsweep | - | (-131, 7.2, 588) | the bamboo hollow inside Old Stone Hill, end of the Hidden trail (Inner) |
+    | RampagingTiger | cache_rampagingtiger | - | (318, 9.8, 611) | hunter's camp rise, end of the Camp trail (Inner, east) |
+    | HeavenSplitter | cache_heavensplitter | - | (-114, 12.3, 843) | river side of the ShrineBack ridge behind the shrine terrace (Inner, deep) |
+    | DragonPierce | cache_dragonpierce | QC3 | (-318, 9.3, 654) | back of the WolfDenCave in the wolf den crag (Inner, wolves) |
+    | GreatSageAwakening | cache_greatsageawakening | - | (-316, 7.3, 1088) | back of the SerpentGrotto, end of the Grotto trail (Middle) |
+    Coordinates come from `art/wilds/wilds_layout.luau` landforms; re-seat the
+    pedestals if the wilds terrain is re-run, and keep the cave and hollow
+    open (dressing colliders must not fill them).
+- Free (no code reads them): `Map.Markers.*` (except the tagged TeleportHome arrays and ManualCaches), `Map.Clouds`, `Map.Ground`, tags
   SwayBridge, WindShake, SkyLantern. Place-only: `ReplicatedStorage.BuildCatalog`,
   `ReplicatedStorage.HerbModels`, `ServerStorage.PeakStash`.
 - Collision matches looks: raycast-check walkable areas in Edit mode after every

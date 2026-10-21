@@ -122,6 +122,54 @@ source before using one.
   rocks), Sequencer (tweens). Ask the user to install one if a plan needs it.
 - `ServerStorage.vfx_addons` only exists once the user installs an add-on in
   this place, through Manage Add-ons.
+- In the unpacked files, sources are `<string name="Source">` items nested
+  inside the add-on module. Parse them with `xml.etree` and walk `Item`
+  children; a regex over `<Item>…</Item>` stops at the first nested item.
+  AnimationUtil has no `game` module (it's plugin-side only).
+
+Reference, from their `game` modules (re-check the source if behaviour
+surprises you):
+- **Craters:** tag `CraterVFX` on a Part or Attachment.
+  - Attributes: `Count`, `Lifetime`, `Size`, `SizeScale`, `Shape`
+    (Ring/Line/Cone), `Radius`, `Variance`, `ConeAngle`, `Fill`, `Duration`
+    (staggers spawns), `EmissionStart`/`End` (Progressive/Random/Reverse),
+    `SpawnTime`, `DespawnTime`, `AngleX/Y/Z`, `MatchGround` (copies the
+    ground's colour, material and textures), `UseMesh`/`MeshId`/`TextureId`,
+    `YOffset`, `RaycastDistance`.
+  - `Collision` defaults to true, so set it false.
+  - Its raycast skips players and `CraterIgnore` only, not enemies.
+  - It spawns anchored Parts into TempVFX.
+- **SimpleMeshVFX:** a Model/Folder with `Start` and `End` BaseParts (or a
+  part with an `End` child, or the `MeshVFX` tag).
+  - It clones Start `EmitCount` times and tweens each clone to End's
+    Size/Color/CFrame, ending at `EndTransparency`.
+  - Attributes: `Duration`, `RotSpeed` (deg/s Vector3), `StartTransparency`,
+    `FadeInTime`, `Part_TweenParams` ("Style,Direction,repeat,reverse,delay,time"),
+    `LockedToPart`, `Distance`/`Scale`/`SpreadAngle`/`FacePath`, `EmitClone`.
+  - Decals may carry `Flipbook`. It only emits for instances under workspace.
+- **ScreenEffects:** CSV string attributes.
+  - `CameraShake` = "Preset,FalloffDistance,Magnitude,FadeOutTime,Roughness,FadeInTime,RotInfluence,PosInfluence".
+    Presets: Explosion, Earthquake, Vibration, Custom. It has its own
+    distance falloff.
+  - `ImpactFrames` = "Count,TintColor,Range,Contrast,Saturation,MinVisibility,-Duration,+Duration".
+    It flips a ColorCorrection, only within Range and only when the point is
+    visible.
+  - `CameraWeldOffset`/`Scale` attach screen-space parts.
+  - Use it in place of `CombatEffects.shake` for that effect, falling back to
+    the shake when the module is missing.
+- **Splines:** tag `SplineVFX`.
+  - Control points are child attachments `1`, `2`, …, plus `End` (or an
+    ObjectValue). The first PVInstance child is the template that travels the
+    TCB path.
+  - Attributes: `Duration`, `Easing` (NumberSequence), `EmitCount`, start
+    `Shape`/`SpreadAngle`, `SyncPosition` (the path follows a moving root),
+    `Tension`/`Continuity`/`Bias`/`Jaggedness`, `MirrorPath`, `Reverse`,
+    `PoolObject`.
+  - Children named `EmitOnHit`/`EmitOnFinish` fire at the end.
+- Plan around add-ons first (Craters for ground breaks instead of rock
+  particles, SimpleMeshVFX for shells instead of code tweens, ScreenEffects
+  instead of ad-hoc shakes, Splines for gathering qi), then fill in with
+  particles.
 
 ## Plan before you build
 
@@ -333,10 +381,21 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
   release from the striking hand, a kick from the foot, a sword wave from the
   blade's arc. Find that part on the live character at runtime (for observers
   too), using the rig's hands/grip attachments, and place the release there at
-  the release marker. Never use an offset guessed from the root. If the
-  animation data doesn't show which limb strikes, load the track on a rig in
-  Edit mode, sample the limb CFrames at the marker's TimePosition, or report
-  it.
+  the release marker. Never use an offset guessed from the root. To find
+  which limb strikes and where it is at each marker, sample the animation on
+  a rig in Edit mode:
+  1. `animator:LoadAnimation(anim)`, then wait until `track.Length > 0`.
+     Before it loads you silently read the rest pose.
+  2. `track:Play(0, 1, 0)` (speed 0).
+  3. For each sample, set `track.TimePosition = t`, then call
+     `animator:StepAnimations(0)` twice.
+  4. Read limb CFrames relative to `HumanoidRootPart`. An R6 hand is
+     `arm.CFrame * CFrame.new(0, -arm.Size.Y/2, 0)`.
+
+  Sample ±0.07 s around each marker in 0.01 s steps; poses move fast near
+  Hit. The Fists animations are R6. Palm Strike (Fists.4) strikes with the
+  left arm, which is still sweeping in at Hit and fully extended ~0.04 s
+  later.
 - Charge gathers into that limb during windup, and the release visibly travels
   from it to where the gameplay shape starts (e.g. hand → ground → ring).
   Gameplay shapes stay centred where the hitbox is (circles on the caster's
@@ -346,7 +405,13 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
   becomes torso height. Exclude the caster and targets, or all characters.
 - Preview through the real call path (`CombatEffects.cast` with a real
   character's root position), not hand-placed pivots, so placement bugs show
-  up in Edit mode.
+  up in Edit mode. Edit mode has no player characters, so set the preview
+  rig's parts to `CanQuery = false` to stand in for the game's character
+  exclusion. Tag enemy clones `Enemy` (with a living Humanoid) so
+  `Hitbox.enemiesIn` finds them.
+- When scope changes mid-edit, save the partial work with `git diff` into a
+  patch in your scratchpad, check out the files, commit only the finished
+  piece, and keep the patch for later.
 
 ### Particle gotchas
 

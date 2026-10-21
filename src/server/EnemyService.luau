@@ -152,6 +152,7 @@ type Enemy = {
 	followUp: string?, -- an attack to start as soon as it recovers (Enemies `followUp`)
 	followUpUntil: number, -- the follow-up lapses if no slot frees up by then
 	dashLength: number, -- the current lunge/charge's lane length (Enemies `stopPast`)
+	fleeting: boolean, -- SpawnOptions.fleeting
 	hopReadyAt: number,
 	hits: { number }, -- recent times it was hit (the hop's trigger)
 	orbitDir: number,
@@ -176,6 +177,7 @@ export type SpawnOptions = {
 	home: Vector3?, -- where it wanders and leashes back to (default: where it spawns)
 	roam: number?, -- studs it wanders from home
 	target: Player?, -- comes straight for this player
+	fleeting: boolean?, -- gone (no rewards) once it has no one to fight: a howl's reinforcements
 }
 
 local function groundParams(): RaycastParams
@@ -352,6 +354,7 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		followUp = nil,
 		followUpUntil = 0,
 		dashLength = 0,
+		fleeting = opts.fleeting == true,
 		hopReadyAt = 0,
 		hits = {},
 		orbitDir = if math.random() < 0.5 then 1 else -1,
@@ -811,7 +814,28 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	telegraphRemote:FireAllClients(shape, seconds, enemy.model, name, serverNow())
 end
 
-local function summon(enemy: Enemy, attack: Enemies.Attack)
+-- A spot 18-25 studs from `center` on ground a beast can stand on (a downward ray
+-- hits within 8 studs of the center's ground height), or nil after a few tries.
+local function reinforcePoint(center: Vector3): Vector3?
+	local base = groundAt(center)
+	for _ = 1, 8 do
+		local a = math.random() * math.pi * 2
+		local r = 18 + math.random() * 7
+		local probe = base + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r)
+		local hit = workspace:Raycast(probe + Vector3.new(0, 40, 0), Vector3.new(0, -120, 0), groundParams())
+		if hit and math.abs(hit.Position.Y - base.Y) <= 8 then
+			return hit.Position
+		end
+	end
+	return nil
+end
+
+-- Spawn `count` (default attack.count) of attack.summons, sent straight at the
+-- summoner's target, so they join the fight without howling again (a target at
+-- spawn counts as already engaged). Beside the summoner, or with `around` 18-25
+-- studs from that point (a howl's reinforcements, fleeting). Each waits a moment
+-- before its first attack, and attack slots still apply.
+local function summon(enemy: Enemy, attack: Enemies.Attack, count: number?, around: Vector3?)
 	for i = #enemy.summoned, 1, -1 do
 		local m = enemy.summoned[i]
 		if not Hitbox.alive(m) then
@@ -819,15 +843,28 @@ local function summon(enemy: Enemy, attack: Enemies.Attack)
 		end
 	end
 	local room = (attack.maxAlive or 4) - #enemy.summoned
-	for _ = 1, math.min(attack.count or 1, room) do
-		local a = math.random() * math.pi * 2
-		local at = enemy.root.Position + Vector3.new(math.cos(a), 0, math.sin(a)) * 8
-		local model = EnemyService.spawn(attack.summons :: string, at, { home = enemy.home, roam = enemy.roam })
+	local now = os.clock()
+	for _ = 1, math.min(count or attack.count or 1, room) do
+		local at: Vector3?
+		if around then
+			at = reinforcePoint(around)
+		else
+			local a = math.random() * math.pi * 2
+			at = enemy.root.Position + Vector3.new(math.cos(a), 0, math.sin(a)) * 8
+		end
+		if not at then
+			continue
+		end
+		local model = EnemyService.spawn(
+			attack.summons :: string,
+			at :: Vector3,
+			{ home = enemy.home, roam = enemy.roam, target = enemy.target, fleeting = around ~= nil }
+		)
 		if model then
 			table.insert(enemy.summoned, model)
 			local spawned = enemies[model]
 			if spawned then
-				spawned.target = enemy.target
+				spawned.nextAttack = now + 1 + math.random() * 1.5
 			end
 		end
 	end
@@ -835,9 +872,10 @@ end
 
 -- A howl: packmates of the same kind within its radius who aren't fighting
 -- turn on the howler's target, staggered so they don't all strike at once.
-local function callPack(enemy: Enemy, attack: Enemies.Attack, now: number)
+local function callPack(enemy: Enemy, attack: Enemies.Attack, now: number): number
 	local radius = attack.radius or 30
 	local position = enemy.root.Position
+	local rallied = 0
 	for _, other in enemies do
 		if
 			other ~= enemy
@@ -850,8 +888,45 @@ local function callPack(enemy: Enemy, attack: Enemies.Attack, now: number)
 			other.lastEngaged, other.engagedAt, other.opened = now, now, false
 			other.nextAttack = math.max(other.nextAttack, now + 0.6 + math.random() * 0.8)
 			other.asleep = false
+			rallied += 1
 		end
 	end
+	return rallied
+end
+
+-- Whether a player is still in onboarding (the QC3 beat, the last before free
+-- play, not yet passed; Quests.Beats).
+local function onboarding(player: Player): boolean
+	local data = PlayerData.get(player)
+	return data ~= nil and not (data.beats :: any).QC3
+end
+
+-- A howl that rallied nobody calls reinforcements (Enemies `summons`, between
+-- `count` and `countMax`) from 18-25 studs around its target. While the target is
+-- in onboarding: only one, and only if no other beast of its kind is within the
+-- howl's radius.
+local function reinforce(enemy: Enemy, attack: Enemies.Attack)
+	local player = enemy.target
+	local root = player and playerRoot(player)
+	if not (player and root and attack.summons) then
+		return
+	end
+	local count = math.random(attack.count or 1, attack.countMax or attack.count or 1)
+	if onboarding(player) then
+		local radius = attack.radius or 30
+		for _, other in enemies do
+			if
+				other ~= enemy
+				and other.def.id == enemy.def.id
+				and other.health > 0
+				and (other.root.Position - enemy.root.Position).Magnitude <= radius
+			then
+				return
+			end
+		end
+		count = 1
+	end
+	summon(enemy, attack, count, root.Position)
 end
 
 -- Bosses go through their pattern in order; everyone else repeats one attack.
@@ -872,7 +947,9 @@ local function resolveAttack(enemy: Enemy, now: number)
 	if attack.kind == "summon" then
 		summon(enemy, attack)
 	elseif attack.kind == "howl" then
-		callPack(enemy, attack, now)
+		if callPack(enemy, attack, now) == 0 and attack.summons then
+			reinforce(enemy, attack)
+		end
 	elseif attack.kind == "leap" then
 		enemy.landShape = shape -- resolves as it lands (think, dash)
 	elseif enemy.dashTo and TURNS then
@@ -1050,6 +1127,10 @@ local function think(enemy: Enemy, now: number)
 		return
 	end
 
+	if enemy.fleeting and flat(position - home(enemy)).Magnitude > def.leash then
+		EnemyService.despawn(enemy.model)
+		return
+	end
 	if flat(position - home(enemy)).Magnitude > def.leash then
 		enemy.target = nil
 		releaseSlot(enemy)
@@ -1062,6 +1143,11 @@ local function think(enemy: Enemy, now: number)
 	local target, targetRoot = pickTarget(enemy)
 	enemy.target = target
 	if not (target and targetRoot) then
+		if enemy.fleeting then
+			-- a howl's reinforcement with no one left to fight goes back where it came from
+			EnemyService.despawn(enemy.model)
+			return
+		end
 		enemy.state = "idle"
 		enemy.mover.look = nil
 		setSpeed(enemy, def.walkSpeed)
@@ -1132,6 +1218,11 @@ end
 -- costs nothing. One walking home is put there and healed first (nobody is near
 -- enough to see it jump).
 local function sleep(enemy: Enemy)
+	if enemy.fleeting then
+		-- a howl's reinforcement nobody is near: just gone
+		EnemyService.despawn(enemy.model)
+		return
+	end
 	if enemy.state == "return" then
 		local ground = groundAt(enemy.home)
 		enemy.model:PivotTo(CFrame.new(ground + Vector3.new(0, enemy.rootHeight, 0)) * enemy.root.CFrame.Rotation)

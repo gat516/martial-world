@@ -40,8 +40,9 @@ export type Attack = {
 	radius: number?, -- circle
 	dashSpeed: number?, -- lunge/charge: studs per second along the box
 	angle: number?, -- cone: degrees
-	summons: string?, -- summon: enemy id
-	count: number?, -- summon: how many
+	summons: string?, -- summon: enemy id; howl: the reinforcements it calls when it rallies nobody
+	count: number?, -- summon: how many (howl: the fewest reinforcements)
+	countMax: number?, -- howl: the most reinforcements (a random count from count to countMax)
 	maxAlive: number?, -- summon: skip if this many summons are still alive
 	minRange: number?, -- attack pools: only start it when the target is at least this far
 	notBefore: number?, -- attack pools: not until this many seconds into an engagement
@@ -257,7 +258,24 @@ Enemies.Defs = {
 			},
 		} :: { Attack },
 		pack = {
-			howl = { kind = "howl", name = "howl", damage = 0, range = 0, windup = 0.8, recover = 0.2, cooldown = 0, radius = 30 },
+			-- rallies idle packmates within 30; with none, calls 1-3 Spirit Wolves from
+			-- 18-25 studs around the target (only 1, and only with no wolf near, while
+			-- the target is in onboarding). They pay full rewards and leave when the
+			-- fight ends.
+			howl = {
+				kind = "howl",
+				name = "howl",
+				damage = 0,
+				range = 0,
+				windup = 0.8,
+				recover = 0.2,
+				cooldown = 0,
+				radius = 30,
+				summons = "SpiritWolf",
+				count = 1,
+				countMax = 3,
+				maxAlive = 3,
+			},
 			hop = { distance = 7, seconds = 0.25, arc = 1.2, cooldown = 4, hits = 3, window = 2 },
 			circle = { radius = 10, speed = 8 },
 		},

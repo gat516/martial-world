@@ -211,6 +211,21 @@ The fight:
   pounce; the leap waits 6 s into it. Waiting wolves circle at 10 studs (8 studs/s,
   facing the player, switching direction every 2-4 s). A wolf hops 7 studs back
   (0.25 s, 1.2-stud arc) after a bite, or after 3 hits within 2 s, at most every 4 s.
+- **Howl reinforcements** (user decision, 2026-10-21; the user saw no wolves arriving
+  to a howl): a howl that finds no idle packmate within its 30 studs calls 1-3 Spirit
+  Wolves instead (`summons`, `count` 1 to `countMax` 3, `maxAlive` 3 per howler). They
+  appear 18-25 studs around the target on ground within 8 studs of its height
+  (`reinforcePoint`), already targeting it, so they never howl themselves (no chains),
+  wait 1-2.5 s before their first attack and take attack slots like any wolf. While the
+  target is still in onboarding (its `QC3` beat not passed, `data.beats`) a howl calls
+  only one, and only if no other Spirit Wolf is within 30 studs; at the GateWolves pair
+  the first howl rallies the second, so nothing spawns. They are `fleeting`: gone
+  without rewards once they have no target, leave the leash or would fall asleep.
+  **Rewards: summoned wolves pay full rewards** (qi, stones, drops, kill credit, exactly
+  like any wolf; summons have never been reduced), so a player who leaves and re-engages
+  a lone wolf (a fresh engagement after `ENGAGE_RESET`) can farm up to 3 extra wolves
+  per howl. The Elder Wolf King's summons now also arrive already targeting (they used
+  to howl on their first think) and wait 1-2.5 s before attacking.
 - **Attack slots** (every non-boss beast): one beast at a time winds up or strikes at
   a player (`ATTACK_SLOTS` 1), and the next windup waits `SLOT_GAP` 0.6 s after it
   resolves, so blows land at least ~1.4 s apart (more than the 1.2 s dodge cooldown).
@@ -224,7 +239,7 @@ The fight:
 | `bite` | cone | 0.45 / 0.1 / 0.5 | 0-5 | cone r 6, 70 deg | 10 (8%) | 2.2 s, then a hop |
 | `pounce` (opener) | lunge | 0.7 / 0.3 (12 studs at 40/s) / 0.9 | 5-12 | box 3.5 x 12 | 16 (13%) | 3.5 s |
 | `leap` | leap | 1.0 / 0.45 flight / 1.1 | 12-24, not before 6 s | circle r 5 on the target, telegraph runs to touchdown | 18 (15%) | 9 s |
-| `howl` | howl | 0.8 / - / 0.2 | first notice | stock howl ring | 0 | once per engagement |
+| `howl` | howl | 0.8 / - / 0.2 | first notice | stock howl ring | 0 | once per engagement; rallies, or calls 1-3 wolves |
 
 Health 80 (was 60), QC2, weight 1. Sanity check against a QC2 sword player (power
 1.10, chain about 44 damage per 2.25 s): roughly 8 s to kill one wolf with realistic
@@ -397,6 +412,10 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   `Global.BEAST_HEALTH/BEAST_DAMAGE`, and kill qi through `Realms.enemyQi`.
 
 ## Known gaps
+- The Spirit Wolf's howl reinforcements are untested in play: where they appear on
+  broken ground (a spot can be behind a wall the mover can't cross), whether 3 extra
+  wolves on a QC2 player is too much, the onboarding limit, and whether howls become a
+  farm (full rewards; see "Howl reinforcements").
 - The Stone Boar's gore fix (shorter charge, closing in while the charge cools down,
   goring when rushed) is untested in play: whether it now gores, whether the 4-stud
   hold crowds the player, and whether it backs off to charge too often for the gore

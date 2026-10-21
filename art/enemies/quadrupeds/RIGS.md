@@ -54,6 +54,7 @@ A lowered root sinks the feet unless the legs bend to match. `plant_feet.luau` s
 | JointTailTip | TailTip (with the tuft) | Tail | |
 
 - The Neon tells are the shoulder cracks, the back crack and the eyes, all on Chest and Head.
+- Empty effect Attachments (no joint of their own, they ride their part): `TuskTip` on Head at (0, 4.05, -5.85), centred between the tusk points; `Core` on Chest at its centre (0, 3.4, -0.6); `HoofFL_FX` / `HoofFR_FX` on HoofFL / HoofFR at ground level under the fore hooves, (-1.15, 0, -1.35) / (1.15, 0, -1.35).
 - Charge windup: head and neck down about -0.3 total, one fore hoof pawing (`JointLegFL` +1.0, `JointLowerLegFL` -1.35, `JointHoofFL` +0.6) and the haunches loaded.
 
 ## StoneTortoise_R (14 joints)

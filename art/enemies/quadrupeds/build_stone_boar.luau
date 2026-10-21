@@ -12,6 +12,15 @@ local P = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/parts_lib.luau?" .
 local v, block, ball, limb, fin, spike, tri, bevel, bevelZ, tell, add =
 	P.v, P.block, P.ball, P.limb, P.fin, P.spike, P.tri, P.bevel, P.bevelZ, P.tell, P.add
 
+-- Empty named Attachments for effects (same idea as the Spirit Wolf's Mouth / Core / Paw*_FX).
+local function fxAttachment(p, name, pos)
+	local a = Instance.new("Attachment")
+	a.Name = name
+	a.CFrame = p.CFrame:ToObjectSpace(CFrame.new(pos))
+	a.Parent = p
+	return a
+end
+
 -- Tunables ------------------------------------------------------------------------------
 local HIDE = Color3.fromHex("7E5D45") -- warm umber hide
 local HIDE_SH = Color3.fromHex("5E4535")
@@ -28,7 +37,8 @@ local LEG_X_B, LEG_Z_B = 1.05, 2.15
 -- Chest (the hump) and hips ----------------------------------------------------------------
 -- The chest is the big front mass; the back slopes down to small hips, so the silhouette
 -- is a wedge pointing at whatever it charges.
-block("Chest", "Chest", v(3.2, 2.6, 3.4), v(0, 3.4, -0.6), HIDE)
+local chest = block("Chest", "Chest", v(3.2, 2.6, 3.4), v(0, 3.4, -0.6), HIDE)
+fxAttachment(chest, "Core", chest.Position)
 block("Chest", "ChestTop", v(2.2, 0.8, 3.2), v(0, 5.05, -0.6), HIDE)
 for _, s in { -1, 1 } do
 	bevel("Chest", "ChestShoulder" .. s, v(s * 1.35, 5.05, -0.6), 0.5, 0.8, 3.2, s, HIDE)
@@ -78,7 +88,9 @@ end
 block("Neck", "Neck", v(2.3, 1.75, 1.3), v(0, 3.4, -2.4), HIDE)
 block("Neck", "NeckJowl", v(2.0, 0.8, 1.1), v(0, 2.45, -2.55), HIDE_SH)
 
-block("Head", "Head", v(2.3, 2.0, 1.9), v(0, 3.25, -3.6), HIDE)
+local skull = block("Head", "Head", v(2.3, 2.0, 1.9), v(0, 3.25, -3.6), HIDE)
+-- TuskTip: centred between the two tusk points (tusk tips are at x = +-1.15, y 4.05, z -5.85)
+fxAttachment(skull, "TuskTip", v(0, 4.05, -5.85))
 bevelZ("Head", "Forehead", v(0, 4.5, -3.75), 1.9, 0.5, 1.2, -1, HIDE)
 block("Head", "BrowPlate", v(2.0, 0.45, 1.1), v(0, 4.15, -4.0), STONE, CFrame.Angles(0.35, 0, 0))
 block("Head", "Snout", v(1.6, 1.25, 1.6), v(0, 2.9, -5.05), HIDE)
@@ -110,7 +122,10 @@ end
 
 -- Legs: short, thick columns with split hooves -----------------------------------------------
 local function hoof(seg, x, z, color)
-	block(seg, seg, v(0.9, 0.5, 1.0), v(x, 0.25, z), color)
+	local h = block(seg, seg, v(0.9, 0.5, 1.0), v(x, 0.25, z), color)
+	if seg == "HoofFL" or seg == "HoofFR" then
+		fxAttachment(h, seg .. "_FX", v(x, 0, z)) -- on the ground under the fore hoof
+	end
 	-- one toe wedge across the front (the split pair cost 4 parts and read only up close)
 	add(seg, seg .. "Toe", "WedgePart", v(0.82, 0.4, 0.35), CFrame.new(x, 0.2, z - 0.62), HOOF)
 end

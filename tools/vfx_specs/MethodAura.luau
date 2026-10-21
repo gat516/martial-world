@@ -940,79 +940,271 @@ local function evergreen(root)
 end
 
 -- ---------------------------------------------------------------- Iron Marrow (Metal)
--- Qi hammered into the bones: a hard white-gold diamond spinning between the
--- hands; on each exhale a clang (a thin ring snaps out with sparks, the bone
--- lines and outline glint) (ref sunburst_diamond_core).
+-- Qi hammered into the bones (Mortal: small, close). Rebuilt 2026-10-21 from
+-- layered library emissions (ref: docs/reference/auras/sunburst_diamond_core;
+-- Sol's RNG). The rhythm is a forge: every exhale a hammer clang. Back to front:
+--   ground  a black spiked iron ring (dark base, blades), an ornate gold ring
+--           turning the other way inside it, a molten glow, a spiky gold
+--           spark-splash flickering on the floor, metal filings lifting
+--   body    a hard white-gold diamond between the hands (a small spinning
+--           gem in support, a glow that swells, a white-hot dot, a long-armed
+--           star, a dark iron halo behind it, the one light); gold bone lines
+--           along the arms and spine with star glints at the joints; a cold
+--           needle glint running over the limbs; forge sparks spitting off
+--           the hands
+--   breath  the clang: a spiky ring snaps out of the diamond with a star and
+--           sparks, a thin ring runs over the floor, bones and rings flash
+--   punch   every 2 or 3 breaths a heavier blow: gold rays fan out behind
+--           the body, a big clang ring, a spiky ring over the ground, a spark
+--           shower and filings thrown out
+--   ignite  a white flash and star at the diamond, rays behind, two clang
+--           rings (facing you and over the ground), a spark shower, a spiky
+--           gold burst on the floor, shards thrown out; limb glints surge
 
-local GOLD_CORE, GOLD, STEEL = rgb(255, 248, 215), rgb(255, 220, 130), rgb(220, 228, 245)
+local GOLD_WHITE, GOLD_CORE, GOLD, GOLD_DEEP = rgb(255, 250, 228), rgb(255, 222, 135), rgb(242, 172, 55), rgb(160, 88, 18)
+local IRON, STEEL = rgb(22, 20, 24), rgb(210, 220, 238)
+
+local IM = {
+	glow = id(6673021984), -- soft round glow
+	hot = id(13280146664), -- small hot glow
+	star = id(8037777212), -- 4-point star with long arms
+	needle = id(7814053668), -- vertical needle glint
+	cross = id(271370648), -- X glint
+	cracks = id(18457400581), -- 2x2 flipbook: sharp sparkle cracks
+	spikeRing = id(110193486541760), -- black spiked ring with white edges
+	ornate = id(13399941667), -- ornate filigree ring
+	clang = id(13052235894), -- spiky ring burst
+	splash = id(13964665265), -- spiky radial burst
+	rays = id(15773612675), -- sunburst rays
+	softRays = id(1598630577), -- soft sunburst rays
+	thinRing = id(6250126210), -- thin ring sweep
+	shards = id(140013412087432), -- 8x8 sheet of metal shards
+	spark = id(9841260008), -- soft streak
+}
+_G.IronMarrowAssets = IM
+
+local grid8 = Enum.ParticleFlipbookLayout.Grid8x8
+local randomFb = Enum.ParticleFlipbookMode.Random
+local goldColor = cseq(0, GOLD_WHITE, 0.35, GOLD_CORE, 1, GOLD)
 
 local function ironMarrow(root)
-	local m = model("IronMarrow", root)
-	shell(m, rgb(255, 225, 150), { Pulse = R(0.3, 0.8), Pad = 0.35, Kick = 0.9 })
+	-- a heavier blow every 2 or 3 breaths, on the clang
+	local m = model("IronMarrow", root, { PunchEvery = R(2, 3), PunchJitter = 0.3, PunchSwell = 1.3 })
 
+	-- ground: the forge floor (within ~1 body-width)
+	local ground = model("Ground", m)
+	decalDisc("IronRing", ground, 5.6, 0.13, IM.spikeRing, rgb(225, 225, 235), {
+		Pulse = R(0.04, 0.14), Turn = 7, Grow = R(0.98, 1.02),
+	})
+	decalDisc("GoldRing", ground, 4.5, 0.16, IM.ornate, GOLD_CORE, {
+		Pulse = R(0.15, 0.45), Turn = -11, Grow = R(0.97, 1.04), Kick = 0.8,
+	})
+	local floor = part("Floor", ground, CFrame.new(0, 0.18, 0), V3(0.1, 0.1, 0.1)) -- centred flats
+	loop(floor, "Molten", B.flat({
+		Texture = IM.glow, Size = NS(2.5), Transparency = seq(0, 1, 0.3, 0.2, 0.7, 0.2, 1, 1), Color = cseq(0, GOLD, 1, GOLD_DEEP),
+		Lifetime = R(3), Rate = 0.7, Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.05,
+	}), { Prime = 2, Breathe = R(0.6, 1.4), Swell = 0.1, Drift = 0.05 })
+	local pool = part("Pool", ground, CFrame.new(0, 0.2, 0), V3(3.8, 0.1, 3.8))
+	-- gold streaks rising round the seat, the forge's heat (more on the inhale)
+	loop(pool, "Rise", {
+		Texture = IM.needle, Shape = disc, ShapeStyle = volume, ShapePartial = 0.75, EmissionDirection = up,
+		Size = seq(0, 0.45, 0.4, 1, 1, 0.6), Transparency = seq(0, 1, 0.25, 0.15, 1, 1), Color = goldColor,
+		Lifetime = R(0.6, 0.9), Speed = R(2, 3.2), Rate = 9, LightEmission = 1, Brightness = 2, ZOffset = 0.2,
+	}, { Scaled = true, Breathe = R(0.4, 1.6), Swell = 0.2, Drift = 0.1 })
+	loop(pool, "Splash", B.flat({ -- spark-splashes popping on the forge floor
+		Texture = IM.splash, Shape = disc, ShapeStyle = volume, ShapePartial = 0.55, Size = seq(0, 0.45, 1, 0.8),
+		Transparency = seq(0, 0.6, 0.2, 0.1, 1, 1), Color = goldColor, Lifetime = R(0.35, 0.5), Rate = 4,
+		Rotation = R(0, 360), LightEmission = 1, Brightness = 2.5, ZOffset = 0.12,
+	}), { Scaled = true, Breathe = R(0.4, 1.6), Swell = 0.15 })
+	loop(pool, "Filings", {
+		Texture = IM.shards, FlipbookLayout = grid8, FlipbookMode = randomFb, Shape = disc, ShapeStyle = volume,
+		EmissionDirection = up, Size = rnd(0.05, 0.09), Transparency = seq(0, 1, 0.15, 0.05, 0.8, 0.2, 1, 1),
+		Color = cseq(0, STEEL, 1, GOLD_CORE), Lifetime = R(1.6, 2.4), Speed = R(0.4, 0.9), Acceleration = V3(0, 0.3, 0),
+		Rotation = R(0, 360), RotSpeed = R(-200, 200), Rate = 3, LightEmission = 0.5, Brightness = 2,
+	}, { Scaled = true, Breathe = R(0.4, 1.4) })
+
+	-- body: the diamond between the hands
 	local body = model("Body", m)
-	-- a cube stood on its corner: a gem
-	local gem = part("Diamond", body, CFrame.new(0, 0.45, -0.1) * CFrame.Angles(math.rad(45), 0, math.rad(35.26)), V3(0.6, 0.6, 0.6), {
-		Point = "Lap", Pulse = R(0.02, 0.12), Grow = R(0.9, 1.1), Turn = 70, Kick = 1,
+	local gem = part("Diamond", body, CFrame.new(0, 0.35, -0.15) * CFrame.Angles(math.rad(45), 0, math.rad(35.26)), V3(0.34, 0.34, 0.34), {
+		Point = "Lap", Pulse = R(0.05, 0.2), Grow = R(0.92, 1.08), Turn = 80, Kick = 1,
 	})
-	gem.Color = rgb(255, 196, 80)
-	light(gem, GOLD, 9, 1.8)
-	loop(gem, "Gleam", {
-		Texture = A.star4, Size = seq(0, 0.8, 0.5, 1.8, 1, 0.8), Transparency = seq(0, 0.6, 0.5, 0.2, 1, 1),
-		Color = CS(GOLD_CORE), Lifetime = R(0.7), Rate = 2.5, Rotation = R(0, 45), LightEmission = 0.4, ZOffset = 0.6,
-		LockedToPart = true,
-	})
+	gem.Color = rgb(255, 214, 120)
+	local core = at("Lap", CFrame.new(0, 0.35, -0.2), "Core", body)
+	light(core, GOLD, 8, 1.6)
+	loop(core, "Halo", { -- the dark iron behind the bright gem
+		Texture = IM.glow, Size = NS(0.75), Transparency = seq(0, 1, 0.3, 0.25, 0.7, 0.25, 1, 1), Color = CS(IRON),
+		Lifetime = R(1), Rate = 3, LightEmission = 0, ZOffset = 1.2, LockedToPart = true,
+	}, { Prime = 2 })
+	loop(core, "Glow", {
+		Texture = IM.glow, Size = NS(0.6), Transparency = seq(0, 1, 0.3, 0.2, 1, 1), Color = cseq(0, GOLD_CORE, 1, GOLD),
+		Lifetime = R(0.5), Rate = 6, LightEmission = 1, Brightness = 2, ZOffset = 1.4, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.5 })
+	loop(core, "Hot", {
+		Texture = IM.hot, Size = NS(0.24), Transparency = seq(0, 1, 0.3, 0, 1, 1), Color = CS(GOLD_WHITE),
+		Lifetime = R(0.4), Rate = 6, LightEmission = 1, Brightness = 4, ZOffset = 1.6, LockedToPart = true,
+	}, { Prime = 3, Swell = 0.3 })
+	loop(core, "Star", {
+		Texture = IM.star, Size = seq(0, 0.5, 0.5, 0.8, 1, 0.5), Transparency = seq(0, 1, 0.3, 0, 0.7, 0, 1, 1),
+		Color = CS(GOLD_WHITE), Lifetime = R(1.4), Rate = 1.2, Rotation = R(0, 90), RotSpeed = R(-25, 25),
+		LightEmission = 1, Brightness = 3, ZOffset = 1.7, LockedToPart = true,
+	}, { Prime = 1, Swell = 0.3 })
 
+	-- a dim halo of rays behind the body on a dark iron disc (the diamond's
+	-- sunburst, kept small at Mortal; it grows into a blade fan with grade)
+	local halo = at("Dantian", CFrame.new(0, 1.45, 0.6), "Halo", body)
+	loop(halo, "IronDisc", {
+		Texture = IM.glow, Size = NS(2.4), Transparency = seq(0, 1, 0.3, 0.4, 0.7, 0.4, 1, 1), Color = CS(IRON),
+		Lifetime = R(2), Rate = 1, LightEmission = 0, ZOffset = -0.8, LockedToPart = true,
+	}, { Prime = 2 })
+	loop(halo, "Rays", {
+		Texture = IM.softRays, Size = NS(2.25), Transparency = seq(0, 1, 0.3, 0.15, 0.7, 0.15, 1, 1),
+		Color = CS(GOLD), Lifetime = R(3), Rate = 0.7, Rotation = R(0, 360), RotSpeed = R(-12, 12),
+		LightEmission = 1, Brightness = 2, ZOffset = -0.6, LockedToPart = true,
+	}, { Prime = 2, Breathe = R(0.6, 1.4), Swell = 0.12, Drift = 0.05 })
+
+	-- the marrow: gold bone lines along the arms and spine, glints at the joints
 	local lines = folder("Lines", m)
-	local props = { Color = CS(GOLD), Width0 = 0.11, Width1 = 0.11, Brightness = 2.5, LightEmission = 0.3, Transparency = NS(0) }
+	local bone = {
+		Color = cseq(0, GOLD_CORE, 0.5, GOLD_WHITE, 1, GOLD_CORE), Width0 = 0.14, Width1 = 0.14, Brightness = 4,
+		LightEmission = 1, Transparency = seq(0, 0.6, 0.15, 0, 0.85, 0, 1, 0.6),
+	}
 	for _, l in { { "LShoulder", "LElbow" }, { "LElbow", "LHand" }, { "RShoulder", "RElbow" }, { "RElbow", "RHand" }, { "Neck", "Belly" } } do
-		beam(lines, l[1] .. "_" .. l[2], l[1], l[2], props, { Pulse = R(0.55, 0.85), Kick = 0.9 })
+		beam(lines, l[1] .. "_" .. l[2], l[1], l[2], bone, {
+			Pulse = R(0.35, 0.7), Kick = 1, Dots = 0.45, DotColor = GOLD_WHITE, DotImage = IM.star,
+		})
 	end
 
-	local ground = model("Ground", m)
-	mesh(A.torus, ground, "Ring", ring(3.6, 1), CFrame.new(0, 0.12, 0), rgb(255, 205, 110), { Pulse = R(0.25, 0.6), Kick = 0.7 })
+	-- limbs: a cold glint running over the steel, forge sparks off the hands
+	local limbs = folder("Limbs", m)
+	loop(limbs, "Glint", {
+		Texture = IM.needle, Shape = box, ShapeStyle = surface, Size = seq(0, 0, 0.4, 0.42, 1, 0),
+		Transparency = NS(0), Color = cseq(0, rgb(255, 255, 255), 1, STEEL), Lifetime = R(0.3), Rotation = R(-35, 35),
+		Rate = 0.7, LightEmission = 1, Brightness = 3, ZOffset = 0.6,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.6, 1.6), Surge = 3, PunchSurge = 1 })
+	loop(limbs, "Sheen", { -- the steel skin glowing from inside
+		Texture = IM.glow, Shape = box, ShapeStyle = volume, Size = NS(0.6), Transparency = seq(0, 1, 0.4, 0.55, 1, 1),
+		Color = CS(GOLD_CORE), Lifetime = R(0.8), Rate = 2, LightEmission = 1, Brightness = 1.5, ZOffset = 0.3,
+		LockedToPart = true,
+	}, { On = "Arms,Torso", Scaled = true, Breathe = R(0.5, 1.5) })
+	loop(limbs, "Sparks", {
+		Texture = IM.spark, Shape = box, ShapeStyle = volume, EmissionDirection = up, Orientation = streak,
+		Size = seq(0, 0.07, 1, 0), Transparency = NS(0), Color = cseq(0, GOLD_WHITE, 0.5, GOLD_CORE, 1, GOLD),
+		Lifetime = R(0.35, 0.55), Speed = R(3, 5), SpreadAngle = Vector2.new(70, 70), Acceleration = V3(0, -20, 0),
+		Drag = 1, Rate = 1.4, LightEmission = 1, Brightness = 3,
+	}, { On = "Hands", Scaled = true, Surge = 8, PunchSurge = 4 })
 
-	-- the clang
+	-- the clang (each exhale)
 	local breath = model("Breath", m)
-	local lap = at("Lap", nil, "Lap", breath)
-	wave(lap, "Clang", {
-		mesh = A.torus, color = GOLD_CORE, fromSize = ring(0.8, 1.6), toSize = ring(7.5, 0.8),
-		fromTransparency = 0, toTransparency = 1, duration = 0.55, style = "Quint",
-	})
-	wave(lap, "Clang2", {
-		mesh = A.torus, color = GOLD, fromSize = ring(0.6, 1.6), toSize = ring(5, 0.8), rotation = V3(90, 0, 0),
-		fromTransparency = 0.1, toTransparency = 1, duration = 0.5, style = "Quint",
-	})
-	burst(lap, "Sparks", 12, {
-		Texture = A.spark, Orientation = streak, Size = seq(0, 0.16, 1, 0), Transparency = NS(0),
-		Color = cseq(0, GOLD_CORE, 1, GOLD), Lifetime = R(0.25, 0.45), Speed = R(10, 16), Drag = 5,
-		SpreadAngle = Vector2.new(180, 180), LightEmission = 0.6,
+	local lap = at("Lap", CFrame.new(0, 0.35, -0.25), "Lap", breath)
+	burst(lap, "Clang", 1, {
+		Texture = IM.clang, Size = seq(0, 0.3, 1, 1.5), Transparency = seq(0, 0, 0.6, 0.35, 1, 1), Color = goldColor,
+		Lifetime = R(0.32), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
 	})
 	burst(lap, "Star", 1, {
-		Texture = A.star4, Size = seq(0, 0.5, 0.3, 2.4, 1, 0), Transparency = NS(0), Color = CS(GOLD_CORE),
-		Lifetime = R(0.3), Rotation = R(0, 45), LightEmission = 0.5, ZOffset = 1,
+		Texture = IM.star, Size = seq(0, 0.4, 0.25, 1.6, 1, 0), Transparency = NS(0), Color = CS(GOLD_WHITE),
+		Lifetime = R(0.28), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 1.9,
+	})
+	burst(lap, "Cracks", 1, {
+		Texture = IM.cracks, FlipbookLayout = grid2, FlipbookMode = oneShot, Size = NS(0.7), Transparency = NS(0),
+		Color = CS(GOLD_WHITE), Lifetime = R(0.25), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 1.85,
+	})
+	burst(lap, "Sparks", 10, {
+		Texture = IM.spark, Orientation = streak, Size = seq(0, 0.15, 1, 0), Transparency = NS(0), Color = goldColor,
+		Lifetime = R(0.35, 0.55), Speed = R(8, 13), Drag = 4, SpreadAngle = Vector2.new(180, 180), Acceleration = V3(0, -12, 0),
+		LightEmission = 1, Brightness = 3,
+	})
+	local bFloor = part("Floor", breath, CFrame.new(0, 0.22, 0), V3(0.1, 0.1, 0.1))
+	burst(bFloor, "Ring", 1, B.flat({
+		Texture = IM.thinRing, Size = seq(0, 1, 1, 2.6), Transparency = seq(0, 0.1, 0.6, 0.4, 1, 1), Color = CS(GOLD_CORE),
+		Lifetime = R(0.5), Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.2,
+	}))
+
+	-- a heavier blow every few breaths
+	local pulseM = model("Punch", m)
+	local back = at("Dantian", CFrame.new(0, 0.9, 0.5), "Back", pulseM)
+	burst(back, "Rays", 1, {
+		Texture = IM.rays, Size = seq(0, 1.2, 0.3, 2.3, 1, 2.6), Transparency = seq(0, 0.2, 0.5, 0.45, 1, 1),
+		Color = cseq(0, GOLD_CORE, 1, GOLD), Lifetime = R(0.45), Rotation = R(0, 360), RotSpeed = R(-20, 20),
+		LightEmission = 1, Brightness = 2, ZOffset = -0.5,
+	})
+	local pLap = at("Lap", CFrame.new(0, 0.35, -0.25), "Lap", pulseM)
+	burst(pLap, "Clang", 1, {
+		Texture = IM.clang, Size = seq(0, 0.4, 1, 2.2), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = goldColor,
+		Lifetime = R(0.36), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
+	})
+	burst(pLap, "Flash", 1, {
+		Texture = IM.hot, Size = seq(0, 0.4, 0.2, 1.1, 1, 1.2), Transparency = seq(0, 0.05, 0.4, 0.5, 1, 1),
+		Color = cseq(0, GOLD_WHITE, 1, GOLD_CORE), Lifetime = R(0.3), LightEmission = 1, Brightness = 3, ZOffset = 2,
+	})
+	burst(pLap, "Star", 1, {
+		Texture = IM.star, Size = seq(0, 0.5, 0.25, 2.3, 1, 0), Transparency = NS(0), Color = CS(GOLD_WHITE),
+		Lifetime = R(0.35), Rotation = R(0, 20), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
+	})
+	burst(pLap, "Sparks", 18, {
+		Texture = IM.spark, Orientation = streak, Size = seq(0, 0.18, 1, 0), Transparency = NS(0), Color = goldColor,
+		Lifetime = R(0.4, 0.7), Speed = R(10, 16), Drag = 4, SpreadAngle = Vector2.new(180, 180), Acceleration = V3(0, -14, 0),
+		LightEmission = 1, Brightness = 3,
+	})
+	local pFloor = part("Floor", pulseM, CFrame.new(0, 0.22, 0), V3(0.1, 0.1, 0.1))
+	burst(pFloor, "Clang", 1, B.flat({
+		Texture = IM.clang, Size = seq(0, 0.9, 1, 2.8), Transparency = seq(0, 0, 0.6, 0.4, 1, 1), Color = goldColor,
+		Lifetime = R(0.45), Rotation = R(0, 360), LightEmission = 1, Brightness = 2.5, ZOffset = 0.25,
+	}))
+	burst(pFloor, "Filings", 10, {
+		Texture = IM.shards, FlipbookLayout = grid8, FlipbookMode = randomFb, Shape = box, EmissionDirection = front,
+		SpreadAngle = Vector2.new(10, 180), Size = rnd(0.07, 0.11), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = cseq(0, STEEL, 1, GOLD_CORE), Lifetime = R(0.5, 0.7), Speed = R(5, 8), Drag = 3, Rotation = R(0, 360),
+		RotSpeed = R(-300, 300), LightEmission = 0.5, Brightness = 2,
 	})
 
-	-- ignition: a great clang, a sunburst flash behind and a ring across the ground
+	-- ignition: the first great blow
 	local ignite = model("Ignite", m)
-	local lap2 = at("Lap", nil, "Lap", ignite)
-	wave(lap2, "Clang", {
-		mesh = A.torus, color = GOLD_CORE, fromSize = ring(1, 2), toSize = ring(14, 0.9),
-		fromTransparency = 0, toTransparency = 1, duration = 0.8, style = "Quint",
+	local iBack = at("Dantian", CFrame.new(0, 0.9, 0.5), "Back", ignite)
+	burst(iBack, "Rays", 1, {
+		Texture = IM.rays, Size = seq(0, 1.6, 0.3, 3, 1, 3.3), Transparency = seq(0, 0.1, 0.5, 0.35, 1, 1),
+		Color = cseq(0, GOLD_CORE, 1, GOLD), Lifetime = R(0.6), Rotation = R(0, 360), RotSpeed = R(-25, 25),
+		LightEmission = 1, Brightness = 2, ZOffset = -0.5,
 	})
-	burst(lap2, "Sunburst", 1, {
-		Texture = A.star12, Size = seq(0, 1, 0.25, 6, 1, 7), Transparency = seq(0, 0.1, 1, 1), Color = CS(GOLD),
-		Lifetime = R(0.6), Rotation = R(0, 360), RotSpeed = R(-30, 30), LightEmission = 0.4, ZOffset = -2,
+	local iLap = at("Lap", CFrame.new(0, 0.35, -0.25), "Lap", ignite)
+	burst(iLap, "Flash", 1, {
+		Texture = IM.hot, Size = seq(0, 0.6, 0.15, 1.7, 1, 2), Transparency = seq(0, 0, 0.4, 0.45, 1, 1),
+		Color = cseq(0, GOLD_WHITE, 1, GOLD_CORE), Lifetime = R(0.4), LightEmission = 1, Brightness = 3, ZOffset = 2,
 	})
-	burst(lap2, "Sparks", 26, {
-		Texture = A.spark, Orientation = streak, Size = seq(0, 0.22, 1, 0), Transparency = NS(0),
-		Color = cseq(0, GOLD_CORE, 1, GOLD), Lifetime = R(0.35, 0.6), Speed = R(14, 22), Drag = 4,
-		SpreadAngle = Vector2.new(180, 180), LightEmission = 0.6,
+	burst(iLap, "Star", 1, {
+		Texture = IM.star, Size = seq(0, 0.7, 0.25, 3.6, 1, 0), Transparency = NS(0), Color = CS(GOLD_WHITE),
+		Lifetime = R(0.45), Rotation = R(0, 10), LightEmission = 1, Brightness = 3, ZOffset = 2.1,
 	})
-	local base = part("Base", ignite, CFrame.new(0, 0.15, 0))
-	wave(base, "Floor", {
-		mesh = A.torus, color = STEEL, fromSize = ring(3, 2), toSize = ring(10, 1),
-		fromTransparency = 0, toTransparency = 1, duration = 0.9, style = "Quint",
+	burst(iLap, "Cross", 1, {
+		Texture = IM.cross, Size = seq(0, 0.5, 0.25, 2.2, 1, 0), Transparency = NS(0), Color = CS(GOLD_CORE),
+		Lifetime = R(0.4), Rotation = R(0), LightEmission = 1, Brightness = 3, ZOffset = 2.05,
+	})
+	burst(iLap, "Clang", 1, {
+		Texture = IM.clang, Size = seq(0, 0.5, 1, 2.8), Transparency = seq(0, 0, 0.6, 0.25, 1, 1), Color = goldColor,
+		Lifetime = R(0.45), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 1.8,
+	})
+	burst(iLap, "Sparks", 30, {
+		Texture = IM.spark, Orientation = streak, Size = seq(0, 0.22, 1, 0), Transparency = NS(0), Color = goldColor,
+		Lifetime = R(0.5, 0.9), Speed = R(12, 20), Drag = 4, SpreadAngle = Vector2.new(180, 180), Acceleration = V3(0, -16, 0),
+		LightEmission = 1, Brightness = 3,
+	})
+	local iFloor = part("Floor", ignite, CFrame.new(0, 0.22, 0), V3(0.1, 0.1, 0.1))
+	burst(iFloor, "Clang", 1, B.flat({
+		Texture = IM.clang, Size = seq(0, 1.2, 1, 3.8), Transparency = seq(0, 0, 0.6, 0.35, 1, 1), Color = goldColor,
+		Lifetime = R(0.55), Rotation = R(0, 360), LightEmission = 1, Brightness = 2.5, ZOffset = 0.25,
+	}))
+	burst(iFloor, "Splash", 1, B.flat({
+		Texture = IM.splash, Size = seq(0, 1.4, 0.3, 2.6, 1, 2.8), Transparency = seq(0, 0, 0.5, 0.3, 1, 1), Color = goldColor,
+		Lifetime = R(0.45), Rotation = R(0, 360), LightEmission = 1, Brightness = 3, ZOffset = 0.2,
+	}))
+	burst(iFloor, "Ring", 1, B.flat({
+		Texture = IM.thinRing, Size = seq(0, 1.5, 1, 4.2), Transparency = seq(0, 0, 0.6, 0.3, 1, 1), Color = CS(GOLD_WHITE),
+		Lifetime = R(0.6), Rotation = R(0, 360), LightEmission = 1, Brightness = 2, ZOffset = 0.22,
+	}), { EmitDelay = 0.06 })
+	burst(iFloor, "Shards", 14, {
+		Texture = IM.shards, FlipbookLayout = grid8, FlipbookMode = randomFb, Shape = box, EmissionDirection = up,
+		SpreadAngle = Vector2.new(60, 60), Size = rnd(0.1, 0.16), Transparency = seq(0, 0, 0.8, 0.2, 1, 1),
+		Color = cseq(0, STEEL, 1, GOLD_CORE), Lifetime = R(0.7, 1), Speed = R(6, 10), Acceleration = V3(0, -22, 0),
+		Rotation = R(0, 360), RotSpeed = R(-300, 300), LightEmission = 0.5, Brightness = 2,
 	})
 	return m
 end

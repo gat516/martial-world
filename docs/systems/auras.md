@@ -19,7 +19,7 @@ about 1.5 loop emitters per aura) and reads thin. Auras are to be rebuilt as
 layered emissions from the vfx library, modelled on Sol's RNG auras, with
 parts only in support. The method is in [docs/vfx/style.md](../vfx/style.md)
 ("Auras"). **Reworked:** Blazing Heart, Flowing Spring, Thunder Pulse, Drifting
-Cloud (2026-10-21, below);
+Cloud, Iron Marrow (2026-10-21, below);
 the other rows still describe the first, part-heavy pass. Blazing Heart shows the bar for
 size and quality, not a template: each method's rework starts from its own
 idea and references, not from Blazing Heart's layers or textures.
@@ -44,7 +44,7 @@ reuse its first method's motif.
 | Blazing Heart (reworked: 17 loop emitters, no shell) | white-hot heart core at the chest (glow that swells with the breath, a hard dot, a twinkling 4-point glint, the one PointLight); a flame mantle (library aura-flame flipbook) hugging the silhouette from behind on a darker soot copy of itself; realistic flipbook flames licking off the arms and torso; a small crown of licks off the head; black soot curling off the flame tips; embers and dark ash flecks. Flames, mantle and ground fire grow and shrink with the breath and drift slowly in size | dark scorch disc, warm heat pool, a turning fire swirl, small flames on the rim; four hui-wen sigils: one on the ground turning against the swirl, three raised round the chest (added by the user, centred and level on the body axis) each turning its own way and drifting up, fading and starting again; all breathe in size and flash on the heartbeat and pulses | a heartbeat: lub-dub glow at the chest with a glint and a spark puff, the mantle flares, a fire ring pulses out of the sigil. Every 1 or 2 breaths (about 5 or 10 s, a little late at random) the beat is a pulse instead: a lighter punch (flash and star at the heart, a starburst, embers, a few flame jets and flames, a ground ring, limb flames surging), the aura swelling into it | once fully seated: white flash and a chromatic star at the heart, a starburst flare, flame jets and flipbook flames roaring up round the body, a fire ring burning out over the ground, soot thrown low, an ember burst; limb flames surge |
 | Flowing Spring (reworked: 13 loop emitters, no parts drawn) | a pearl of water at the belly (a water-ball orb that swells with the breath, a white-hot heart, a small glint, the one PointLight); a ring of water strokes turning round the figure from behind on a darker ink-blue copy of itself; water-curl flipbooks lifting off the arms and torso and water wisps off the arms; streaks of qi streaming in from all round to the pearl, fast on the inhale, almost none at rest | a pool under the seat: a deep ink-blue water blob (dark base), a pale water surface over it, a round caustics image drifting (the one SurfaceGui), small water-ring ripples popping across it, a swirl turning inward, bubbles rising | the exhale: a ripple and a breaking ring cross the pool, a few drops hop off it, the pearl glints. Every 2 or 3 breaths (0.4 s jitter, 1.3x swell) a pulse: a drop of qi falls from above into the pool, a splash crown round the seat, a big ripple, the pearl flashes, the curls surge | the pool springs up: a white flash, a star and a water orb at the pearl, water columns and a splash crown round the body, a ripple wave and a breaking ring over the ground, drops thrown up, the pool darkening under it; curls and wisps surge |
 | Evergreen Root | green meridian beams with glowing joint dots, lighting trunk-first (belly, chest, then shoulders and hips, then elbows and knees, then hands) over ~2 breaths; green seed at the belly; faint green tint | six crooked roots creeping out, slow falling leaves | sap motes, a green ring breathes out | a green ring bursts out, a wind-swirl ring rises, leaves whirl up |
-| Iron Marrow | spinning gold gem between the hands (light); gold bone lines along the arms and spine; gold ForceField rim | thin gold ring | the clang: a thin ring snaps out level and one upright, sparks, a star; bone lines, rim and ring glint | a great clang ring, a sunburst flash, sparks, a steel ring across the ground |
+| Iron Marrow (reworked: 13 loop emitters, 5 bone beams, one small gem part in support) | a hard white-gold diamond between the hands: a small spinning Neon gem (support), a gold glow that swells with the breath, a white-hot dot, a long-armed star turning slowly, a dark iron halo behind it, the one PointLight; a small halo of soft gold rays turning behind the head and shoulders on a dark iron disc (the diamond's sunburst, kept small); gold bone lines along the arms and spine with star glints at the joints (they flash on every clang); a cold needle glint running over the arms and torso, a faint gold sheen inside the limbs; forge sparks spitting off the hands and falling | a black spiked iron ring (the dark base; its spikes are blades), an ornate gold filigree ring turning the other way inside it, a molten gold glow, spiky gold spark-splashes popping on the floor, thin gold streaks rising round the seat like forge heat (thick on the inhale), metal filings lifting and tumbling | the clang on each exhale: a spiky ring snaps out of the diamond with a star, sharp crack glints and a spark spray, a thin ring runs over the floor, bones and the gold ring flash. Every 2 or 3 breaths (0.3 s jitter, 1.3x swell) a heavier blow: gold rays fan out behind the body, a big clang ring, flash and star, a spark shower, a spiky ring over the ground, filings thrown out; limb glints and sparks surge | the first great blow: a white flash, a long star and an X glint at the diamond, rays behind, clang rings facing you and over the ground, a spiky gold burst and a thin ring on the floor, 30 sparks, steel shards thrown up; limb sparks and glints surge |
 | Mountain Breath | amber low-belly core (light); faint amber tint | heavy carved stone ring with a turning glowing rune circle that settles on each breath; five pebbles lifting on the inhale; dust | a slow amber ring out of the stone, a little dust | the ground thumps: ring, dust spray, grit jumps |
 | Thunder Pulse (reworked: 8 loop emitters + ~40 beams; the dark shell the only part) | a faint dark tint over the body (support); jagged lightning cracks across chest, belly and arms, each a thin white core (re-jagged every burst) over a wide violet glow band; dark smoke tendrils curling off the head, shoulders and arms; a violet charge glow on the skin and short arcs (bolt sprites) crackling on it, both flaring on a burst; tiny zigzag ozone sparks; a violet node where the chest cracks meet | a dark storm pool under you, a scorched rubble ring round a lightning-crack web (two SurfaceGui images) that flashes on a burst, an electric ring crackling at the rim and small arcs crawling on the ground, both spiking on a burst | irregular bursts (0.5 to 2.6 s apart): a flash, spark and radial arcs at the chest crack, bolts (white core in a crawling bolt-texture glow) from both hands to the ground with spark splashes where they land, a snap ring and a crack-web flash on the ground, the skin crackles | a bolt strikes the crown (two branching bolts), a white and chromatic flash there, radial lightning at the chest, arcs filling the space round the body, an electric ring and a crack web blasting over a scorched rubble ring, dark smoke thrown low, zigzag sparks; skin arcs surge |
 | Drifting Cloud (reworked: 13 loop emitters, no parts drawn) | swirl strokes turning flat round the waist and the chest, shrinking inward as they turn (the wind spiralling in, thick on the inhale, loose on the exhale); wind curls drawn in from about a body-width to the waist; rising wavy wisps off the arms, torso and head and small curls blowing off the arms and head (robes and hair can't lift); a calm mint glow with a soft dot at the dantian; motes drifting on the wind | the cloud you sit on: curling flipbook cloud puffs over a grey-teal underside, low mist drifting off it, a cool shadow under it (dark base); a soft wind vortex turning one way and a three-armed wind seal (the one SurfaceGui) the other, the seal tightening on the inhale | at the start of each inhale: spiral ring strokes sweep in to the body, a gust of curls drawn in from all round, a puff of cloud at the seat | a soft flash and a swirl at the chest, the cloud bursting out in a puff ring (over a dark copy) with puffs thrown low, a gust swirl spreading over the ground, wisps and curls thrown up, motes scattered; limb wisps and curls surge |
@@ -81,7 +81,7 @@ How it is put together (details in the builder header):
   beat's `Breath`; that breath's `Swell` is `PunchSwell` times larger, so the
   aura swells into the pulse and eases back. Limb emitters with
   `PunchSurge = n` emit n then. Blazing Heart (every 1 to 2 breaths, 0.6 s
-  jitter, 1.4x swell) and Flowing Spring (every 2 to 3, 0.4 s, 1.3x) use it.
+  jitter, 1.4x swell), Flowing Spring (every 2 to 3, 0.4 s, 1.3x) and Iron Marrow (every 2 to 3, 0.3 s, 1.3x) use it.
 - **Grade hook:** `GRADES` in MethodAura scales the `Ground` model (reach),
   `Scaled` emitter rates and brightness. Mortal = 1.
 - **Emitter attributes** (added for Blazing Heart, usable by any aura):
@@ -111,6 +111,10 @@ How it is put together (details in the builder header):
   Drifting Cloud (R6): 13 loop emitters, about 50 live particles (the cloud
   puffs and limb wisps are the bulk), no light, one SurfaceGui (the wind
   seal), no parts drawn; its ignition adds ~50 particles for about a second.
+  Iron Marrow (R6): 13 loop emitters, about 50 live particles (rising
+  streaks 9/s at the peak, filings, limb sheen), 5 bone beams with 6 joint dots, one
+  light, two SurfaceGui rings, one 0.34-stud gem part; its ignition adds
+  ~50 particles for about a second, a pulse ~35.
 - **Palette for Neon:** bright pastels go white in Neon; ring and wave colours
   use the deeper shade of the element (violet, deep ice blue, burnt amber).
 
@@ -266,7 +270,7 @@ chant.
 ## Known gaps
 
 - The built Mortal auras other than Blazing Heart, Flowing Spring, Thunder
-  Pulse and Drifting Cloud are part-heavy and due for the emission rework
+  Pulse, Drifting Cloud and Iron Marrow are part-heavy and due for the emission rework
   (Status above).
 - Drifting Cloud: previewed in Edit mode on an R6 rig (grass at noon and
   night) through the plain emitter fallback; play speed, R15, phones and the
@@ -292,6 +296,11 @@ chant.
   texture, so the heart is a glow, a dot and a glint, not a heart shape. The
   seated-moment ignition was checked on the preview rig (lit at Sit 1.40 /
   1.60 s), not on a live player or an observer's replicated tracks.
+- Iron Marrow: previewed in Edit mode on the R6 rig (grass at noon and
+  night) through the plain emitter fallback; play speed, R15, phones and
+  the live sit / switch / breakthrough ignition are untested. The diamond
+  is still a small Neon gem part (support); hidden, the glow, dot and
+  star still read as the core.
 - Only the Mortal column is built; the Spirit/Earth/Heaven looks (spreading
   figures, backdrops, manifestations) wait for methods of those grades.
 - No refs yet for Mountain Breath or Drifting Cloud (built without one).

@@ -13,8 +13,10 @@
 --                   turning round the figure; now and then a drop falls in
 --   Evergreen Root  green meridian branches growing from the belly out along
 --                   the arms over a few breaths, roots on the ground, leaves
---   Iron Marrow     a spinning white-gold diamond between the hands; each
---                   exhale a clang (a metal ring snaps out, sparks, a glint)
+--   Iron Marrow     a white-gold diamond between the hands under a small halo
+--                   of rays, gold bones, a spiked iron ring; each exhale a
+--                   clang (a spiky ring snaps out, sparks), now and then a
+--                   heavier blow
 --   Mountain Breath an amber low core, a carved rune ring under you that
 --                   settles with each breath, slow lifting pebbles, dust
 --   Thunder Pulse   dark, with violet cracks across the torso and arms that

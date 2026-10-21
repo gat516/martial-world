@@ -297,6 +297,26 @@ checks a rebuild against the previous templates.
   kicks; IV a gold edge, a jade-gold moon rising behind the caster, one point
   light on the sweep, impact frames at the release and a quake on the first
   impact.
+- **Twin Phoenix Cannon** (`TwinPhoenixCannon_T1..T4`, authored at length 18
+  and width 6; `TechniqueFX.TwinPhoenixCannon`). The skill animation throws
+  two overhand forward punches, right fist at `Hit "1"`/`Release "1"` (0.30)
+  and left at `Hit "2"` (0.833); each fist is fully extended ~0.03 s later,
+  where its release plays on the live hand. `cast()` runs at the first hit
+  and schedules the second from `def.hits` at the cast's playback rate. Each
+  blast is a phoenix: a Neon fire head with swept-back Beam wings and a
+  burning tail (`BlastR` crimson, `BlastL` gold and a size up) flying the line
+  on its `TravelCurve` (~0.26 s), stopped by walls or rising ground, with a
+  muzzle flash and 3D air rings off the fist (`FistR/L`), a fire impact on
+  every enemy its front reaches (`ImpactR/L`: impact stack plus flame flare),
+  an explosion where it ends (`TerminalR/L`) and a burn line cooling to a
+  char mark (`BurnR/L`, `CharR/L`). Between the blasts gold qi gathers in the
+  left fist (`Gather`, everyone sees it). II adds flame feathers off the
+  wings, release sparks, embers off the burn line and impact swirl/dust; III
+  a rune "cannon seal" at each fist, 2 air rings, impact bubbles and rock
+  kicks, a terminal Craters ring and a small shake; IV 3 air rings, white-gold
+  heads, the one light riding the golden bird and a fire dome with a spike
+  crown and an Explosion quake at its terminal. Damage lands on the server's
+  hit times; visual impacts follow the bird, up to ~0.28 s later.
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative

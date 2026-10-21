@@ -102,6 +102,7 @@ local function stop(player: Player, tellClient: boolean)
 		return
 	end
 	sessions[player] = nil
+	player:SetAttribute("Meditating", nil)
 	if tellClient then
 		meditateRemote:FireClient(player, false)
 	end
@@ -125,6 +126,8 @@ local function start(player: Player)
 		return
 	end
 	sessions[player] = { anchor = root.Position, spot = spotAt(player, root.Position) }
+	-- every client reads this to draw the player's method aura while seated
+	player:SetAttribute("Meditating", true)
 	Cultivation.markActive(player)
 	Cultivation.pushState(player)
 end
@@ -139,6 +142,7 @@ end
 
 function Meditation.forget(player: Player)
 	sessions[player] = nil
+	player:SetAttribute("Meditating", nil)
 end
 
 Cultivation.meditation = Meditation.spot

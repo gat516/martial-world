@@ -109,7 +109,7 @@ technique level at cast time (picks the visual tier), `chain` the chain targets 
 `Inventory.use` to `HerbAnimator` on every client after a successful herb use.
 
 Besides remotes, the server publishes fast-changing values as attributes:
-player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`,
+player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`, `Meditating` (seated; for others' method auras),
 `DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`; character `WeaponClass`, `WeaponStowed`
 (combines Tool occupancy, `WeaponControlsLocked`, `WeaponBreakthroughUntil`); humanoid `BaseWalkSpeed`,
 `Running`, `ActionBusy`; enemy `AIState`, `Realm`; workspace `Weather`,

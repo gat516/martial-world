@@ -42,9 +42,9 @@ on the baseplate unchanged.
 
 ## Trials before shipping
 New fights land here first behind a flag that is on only in the testbed, so the user
-can fight them before the main game changes. Today: `Config.Wilds.NEW_WOLF`
-(= `Config.TESTBED`), the new Spirit Wolf (enemies.md "Spirit Wolf"). Ship one by
-setting its flag to `true`.
+can fight them before the main game changes. None is waiting today. Shipped so
+far: the Spirit Wolf (`NEW_WOLF`, 2026-10-21); `WolfPair` stays for tuning. Ship one
+by setting its flag to `true`.
 
 ## Key files
 - `test.project.json`: the testbed's Rojo project (serve port 34873); sets the

@@ -396,11 +396,12 @@ return {
 		FALL_SPEED = 60, -- studs per second it drops off a ledge
 		TURN_RATE = 10, -- how fast it turns to face where it walks (per second)
 		CROWD = 6, -- studs per second neighbours push apart when they overlap
-		-- THE NEW SPIRIT WOLF FIGHT (enemies.md "Spirit Wolf"): the rigged body, its
+		-- THE SPIRIT WOLF FIGHT (enemies.md "Spirit Wolf"): the rigged body, its
 		-- attack pool (bite, pounce, leap, howl, hop, circling), attack slots for
-		-- every non-boss beast and dash hits that land as the dash arrives. On only
-		-- in the testbed until the user approves it; to ship it, set this to true.
-		NEW_WOLF = TESTBED,
+		-- every non-boss beast and dash hits that land as the dash arrives. Shipped
+		-- 2026-10-21 after the user fought it in the testbed; false brings back the
+		-- old one-lunge wolf until OLD_SPIRIT_WOLF and the SpiritWolf template go.
+		NEW_WOLF = true,
 		-- attack slots (EnemyService): at most this many non-boss beasts wind up or
 		-- strike at one player at once, and the next can't start its windup until
 		-- SLOT_GAP after the last one resolved, so a pack takes turns and every blow

@@ -188,20 +188,23 @@ points, trail height), the full cue path, how it reads at 40 studs and on
 phones, and the Game Module path (effects play on TechniqueVFX's fallback
 when the module isn't in the place).
 
-### Spirit Wolf (the new fight, testbed first)
-User decisions (2026-10-21): the new fight ships to the **testbed first**, behind
-`Config.Wilds.NEW_WOLF` (= `Config.TESTBED`). With it off (the main game) the Spirit
-Wolf is the old def (one 0.55 s lunge, 60 HP, the old part-built body) and no other
-beast changes. **To ship it, set `NEW_WOLF = true`.** Also decided: a careless player
+### Spirit Wolf (shipped)
+History: the new fight went to the **testbed first** behind `Config.Wilds.NEW_WOLF`;
+the user fought it there and approved it, and it shipped to the main game on
+2026-10-21 (`NEW_WOLF = true`). Setting the flag back to false still brings back the
+old def (one 0.55 s lunge, 60 HP, the old part-built body). **Follow-up:** remove
+`OLD_SPIRIT_WOLF` (Enemies.luau), the old `SpiritWolf` template in
+`assets/Enemies.rbxm` and the flag once the main game has run on the new wolf for a
+while. Also decided: a careless player
 may die to the GateWolves pair (fallback `Pacing.Adjust.QC2 = { beastDamage = 0.85 }`);
 attack slots apply to every non-boss beast; `qiDrop` stays 14; the leap stays on the
 basic wolf; its qi is moonlight pale blue-white; `ServerStorage.Enemies` is now binary
 `assets/Enemies.rbxm`.
 
-With the flag on:
+The fight:
 - **Body:** the def's `body = "SpiritWolfB"` (the rigged Studio-part wolf, 90 parts,
   `art/enemies/spirit_wolf_b/`); the old `SpiritWolf` template stays beside it until
-  the flag ships and the old one can go. EnemyAnimator poses it from
+  the follow-up above removes it. EnemyAnimator poses it from
   `EnemyPoses/Wolf.luau` (FAMILIES by `Template`); others keep the generic pose.
 - **Pack:** the first wolf to notice a player howls (0.8 s, no damage; packmates of
   its kind within 30 studs take the same target). Each engagement opens with the
@@ -230,8 +233,8 @@ uptime; the sword finisher (push 6) breaks a windup at QC2 (ARMOR_BREAK 6). Soun
 `Attack` (pounce), `Hurt` (a pitched-up whimper on stagger), `Land` (PSE Dirt
 Impacts), `Aggro`, `Death`; all picked by description only, not listened to.
 
-The testbed's `Wilds.Zones.WolfPair` (test.project.json) keeps two Spirit Wolves at
-(-90, 648.6, -40), 127 studs from the spawn pad.
+The testbed's `Wilds.Zones.WolfPair` (test.project.json) still keeps two Spirit Wolves
+at (-90, 648.6, -40), 127 studs from the spawn pad, for tuning.
 
 ### Template contract
 Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated
@@ -306,7 +309,7 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
 - **Known gaps:** EnemyAnimator can't play R6 tracks or authored clips yet (humanoid
   enemies need an AnimationTrack per AIState). No roster model has a def, sounds or
   VFX. The Flame Raven's server stand-in would take its whole 15-stud wingspan as a
-  hitbox. The new Spirit Wolf is live in the testbed only (`Config.Wilds.NEW_WOLF`).
+  hitbox. The new Spirit Wolf is shipped (`Config.Wilds.NEW_WOLF`).
 
 ## Data flow
 Spawner decides where -> `EnemyService.spawn` clones the type's root-only stand-in,
@@ -327,7 +330,7 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - Kill credit share: `Pacing.Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`.
 - Movement: `Config.Wilds.MOVE_TICK` (step and replication rate), `WALK_SLOPE`,
   `CLIMB`, `FALL_SPEED`, `TURN_RATE`, `CROWD`.
-- Packs and turns: `Config.Wilds.NEW_WOLF` (the new wolf fight's switch),
+- Packs and turns: `Config.Wilds.NEW_WOLF` (the wolf fight's switch, shipped on),
   `ATTACK_SLOTS`, `SLOT_GAP`, `ENGAGE_RESET`; per beast `attacks` (with `minRange`,
   `notBefore`, `active`, `arc`, `hopAfter`) and `pack` (`howl`, `hop`, `circle`).
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
@@ -355,14 +358,10 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   and R6 rigs (no enemy uses one yet).
 - Players and beasts pass through each other: the server root doesn't collide
   and the body is client-only.
-- The new Spirit Wolf fight is untested in play (testbed only): how the howl, the
-  circling and the hop feel, whether the slot rule makes packs too passive, the pose
-  timing against the server, the leap's flight over broken ground (EnemyMover can stop
-  it short at a wall; the hit still resolves on the circle), sounds (picked unheard),
-  and phones with a pack of four. The old wolf's stagger now also plays the new `Hurt`
-  whimper in the main game (the only change there).
-- Studio's Rojo was not syncing during this pass (`EnemyPoses` and the `.rbxm`
-  switch hadn't arrived in the open place), so nothing was seen running.
+- The Spirit Wolf fight was approved in the testbed but is unseen in the main game's
+  wilds: the leap's flight over broken ground (EnemyMover can stop it short at a wall;
+  the hit still resolves on the circle), the GateWolves pair in the FirstKill beat,
+  and phones with a pack of four. Its sounds were picked unheard.
 - Techniques don't get lag compensation, only M1 swings; their areas lean on
   `AREA_SLACK`.
 - Stagger shoves aren't predicted, only smoothed.

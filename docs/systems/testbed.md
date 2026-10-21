@@ -33,6 +33,9 @@ on the baseplate unchanged.
   `Zones`, `QiNodes` and `Enemies` are empty folders.
 - `Workspace.Map.Sect.SpiritPeaks`: an empty stub, so `Peaks` and `MyPeak` load
   (nobody gets a peak).
+- Place-only, kept on purpose (not in git, never synced back): the enemy pose-preview rigs
+  (rest and windup statues) in Workspace, and a spare copy of map pieces (bamboo,
+  waterfall parts, `Snd_*` sounds, the `F01`-`F31` set dressing) loose in ServerStorage.
 - Stubbed as empty folders: `ReplicatedStorage.BuildCatalog`, `HerbModels`;
   `ServerStorage.PeakStash`, `PeakTierModels`.
 

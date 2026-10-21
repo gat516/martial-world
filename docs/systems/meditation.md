@@ -20,7 +20,7 @@ circulation happen.
   1 s re-check; sets `Cultivation.meditation`.
 - `src/client/Meditation.luau`: the M key / tile, animations
   (`Animations.Meditate`: Sit, Loop, GetUp), the seated tiles, the calm view, toasts.
-- `src/client/MeditationMenu.luau`: the Comprehend / Method / Spirit Root panel;
+- `src/client/MeditationMenu.luau`: the Comprehend (Practice > Technique) / Method / Spirit Root panel;
   `src/client/Bottleneck.luau`: bottleneck checks and the comprehend call.
 - `src/client/Controls.luau`: named movement locks (meditation, circulation);
   `stowsWeapon()` tells weapon presentation to stow through sitting/get-up and
@@ -52,15 +52,34 @@ changes your inner self happens seated, in one row of tiles above the vitals
 |---|---|---|
 | Circulate | refine raw qi (the circulation minigame) | bar not full |
 | Break Through | `CultivationAction "breakthrough"` (`BreakthroughView.attempt`) | bar full (replaces Circulate) |
-| Comprehend | panel: techniques at a bottleneck, their insight and stone cost, Comprehend (`InventoryAction "comprehend"`) | a technique is at one (`Bottleneck.list`) |
 | Method | panel: owned methods (qi, reaches, blurb); Use switches (`CultivationAction "method"`) | you own one (Foundation) |
 | Spirit Root | panel: the root's card and exact numbers (same text as the Self card), root pills, the reform choice; a seal dot while a choice waits | root tested |
-| Practice | Practice Dao drill (`CirculationMinigame.practice`); dimmed with an m:ss countdown while resting, a tap toasts the wait | from `Pacing.DaoPractice.FROM`, until the equipped class's Dao is mastered |
+| Practice | swaps the row for the Practice tiles (below); a seal dot while a technique is at a bottleneck | either Practice action exists (a bottleneck, or the Dao drill is unlocked) |
 | Rise | stand up | always |
+
+**Practice row (decided 2026-10-21).** The user folded Comprehend under
+Practice: "practice would open up a row of icons: practice technique, practice
+weapon dao, and a back button". Tapping Practice swaps the main row for these
+tiles in the same row (`CultivatePrompt.PracticeTechnique`, `.PracticeDao`,
+`.Back`, with a small pop); the lotus follows the row's end.
+
+| Tile | Does | When it can't |
+|---|---|---|
+| Technique (`PracticeTechnique`, the gourd) | panel: techniques at a bottleneck, their insight and stone cost, Comprehend (`InventoryAction "comprehend"`) | dimmed; toasts "No technique is at a bottleneck yet." |
+| Weapon Dao (`PracticeDao`, crossed jian) | Practice Dao drill (`CirculationMinigame.practice`); an m:ss countdown while resting, a tap toasts the wait | dimmed; toasts the stage it opens at, or that the Dao is mastered |
+| Back (`icon_back`) | back to the main row | always |
+
+Both actions stay on the Practice row even when unavailable (dimmed), so the
+row keeps its shape. The main row comes back after a drill, when the panel
+opens (it shows again when the panel closes), on Back, on standing, and when
+neither action exists any more. The onboarding guide keys are
+`PracticeTechnique` and `PracticeDao` (server `Quests.luau`); until the Practice
+row is open the client points at Practice instead (`Guide.luau` `FOLDED`).
 
 - Square tiles in the top-right tiles' style (drawn icons from
   `art/ui/draw_ui.py` `meditation_art`), at least 50 px on phones; a QC1 player
-  sees two (Circulate, Rise), so the calm-screen intent holds.
+  sees two (Circulate, Rise), so the calm-screen intent holds; at most five show
+at once (Circulate or Break Through, Method, Spirit Root, Practice, Rise).
 - The panel (`Hud.MeditationPanel`, `src/client/MeditationMenu.luau`) is a
   small window centred on screen, like the other windows (all three pages share
   it): the tiles and the HUD step aside while it's open and its seal closes it.
@@ -83,8 +102,9 @@ changes your inner self happens seated, in one row of tiles above the vitals
   isn't a camera drag, any key, the lotus again, opening a menu or standing up
   brings everything back. Passive cultivation keeps running.
 
-**Practice Dao (built).** The Practice tile (`CultivatePrompt.Practice`, crossed
-jian, `icon_practice` in `meditation_art`) runs a 20 s drill with the equipped
+**Practice Dao (built).** The Weapon Dao tile on the Practice row
+(`CultivatePrompt.PracticeDao`, crossed jian, `icon_practice` in
+`meditation_art`) runs a 20 s drill with the equipped
 weapon, played on its own minigame, Weapon Forms (`Minigames/Forms.luau`,
 titled "<Class> Forms")
 (`CirculationMinigame.practice()` -> `CultivationAction "practiceStart" /

@@ -24,8 +24,9 @@ cursor, settings and the admin panel.
   and comes back when it closes (`ShiftLock`).
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
 - Seated: the meditation menu, a row of square tiles above the vitals that
-  appear only when relevant (Circulate or Break Through, Comprehend, Method,
-  Spirit Root, Practice, Rise), a small panel for Comprehend / Method / Spirit
+  appear only when relevant (Circulate or Break Through, Method, Spirit Root,
+  Practice, Rise; Practice swaps in its own tiles: Technique, Weapon Dao,
+  Back), a small panel for Comprehend / Method / Spirit
   Root (root pills and the reform choice live on its Spirit Root page), and
   the lotus calm toggle that fades the HUD for a clean view (`Menus.setCalm`;
   also after 20 s idle; a tap brings it back). See [meditation](meditation.md).
@@ -52,7 +53,7 @@ cursor, settings and the admin panel.
   up, and the Secondary button becomes Comprehend (jade). While it can't run it
   stays lacquer and dimmed and its caption is the reason ("Meditate to
   comprehend", "Need insight", "Need stones"); a tap toasts the longer reason.
-  Comprehending belongs to the meditation menu's Comprehend tile; the button
+  Comprehending belongs to the seated Practice row's Technique tile; the button
   here still works while seated (`Bottleneck` holds the shared logic). Success is the
   server's notify. While the Inventory is open, tapping a hotbar slot shows that
   art or item in the detail pane instead of casting or holding it, so arts on the
@@ -68,13 +69,13 @@ cursor, settings and the admin panel.
   that class, hotbar ones included (slot number on PC, not draggable). Weapons keep
   the equipped one first, then Bare Fists. The choice lasts the session, per tab.
 - Character window (`SelfCard`): the Self tile (`Buttons.SelfButton`, between
-  Cultivate and Inventory) opens a compact Self card (realm and stage bar, spirit
-  root row, equipped weapon badge); tapping the realm crest over the vitals is a
-  shortcut to it. Tapping the root row shows its exact numbers. From Foundation a
-  read-only Method row (LayoutOrder 20) shows the active cultivation method: its
-  element seal (or a 法 glyph), name in its grade colour, qi speed with "matches
-  your root!" in jade, "Reaches: ..." and the blurb; it stays hidden on Sect
-  Breathing. Switching methods lives in the meditation menu ([meditation](meditation.md)). The tile shows and
+  Cultivate and Inventory) opens the Self card (realm and stage bar, then a
+  scrolling list of rows: Spirit Root, Cultivation Method from Foundation, Weapon
+  Dao); tapping the realm crest over the vitals is a shortcut to it. Every row
+  has the same shape: a seal, its kind in small gold capitals, the name (grade or
+  level on the right) and its effects, one line each, gains in jade (decided
+  2026-10-21; details in [character](character.md)). Switching methods lives in
+  the meditation menu ([meditation](meditation.md)). The tile shows and
   the crest is tappable only once the root is tested. The tiles fade away while it's
   open, like every window. The spirit root reveal (`RootReveal`) is a small
   centre card on the first test, closed by a tap or by itself, after which the

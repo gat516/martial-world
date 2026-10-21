@@ -15,7 +15,9 @@
 --
 -- Guide (sent in QuestState as `guide`; the client resolves the names):
 --   button  a HUD control by key: "Cultivate" (sit), "Circulate", "Breakthrough",
---           "Comprehend", "Practice", "Method", "SpiritRoot" (seated tiles),
+--           "Practice", "PracticeTechnique", "PracticeDao" (the Practice row's
+--           tiles; the client points at Practice until that row is open),
+--           "Method", "SpiritRoot" (seated tiles),
 --           "Travel", "Attack", "Inventory", "Self"
 --   to      with button "Travel": the destination gate id to point at in the menu
 --   dim     grey out the rest of the HUD until that button is pressed
@@ -326,7 +328,7 @@ Quests.Lessons = {
 			return bottlenecked(data)
 		end,
 		guide = function(player)
-			return seatedTile(player, "Comprehend")
+			return seatedTile(player, "PracticeTechnique")
 		end,
 	},
 	{
@@ -349,7 +351,7 @@ Quests.Lessons = {
 			return reached(data, DaoPacing.FROM)
 		end,
 		guide = function(player)
-			return seatedTile(player, "Practice")
+			return seatedTile(player, "PracticeDao")
 		end,
 	},
 	{

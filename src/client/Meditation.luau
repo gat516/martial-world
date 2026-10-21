@@ -4,14 +4,19 @@
 -- Seated is a calm screen with only what you can do there: the meditation menu,
 -- one row of tiles above the vitals (Stack.CultivatePrompt) that appear only when
 -- they matter: Circulate (an active minigame, played seated; when the realm bar
--- is full it gives way to Break Through), Comprehend (a technique at a
--- bottleneck), Method (once you own one), Spirit Root (once tested; a seal dot
--- while a reformed element waits for a choice), Practice (a weapon drill for
--- Dao XP, from Pacing.DaoPractice.FROM until the class is mastered; dimmed with
--- a countdown while resting; the character gets up for the drill, still locked
--- in place and still meditating, swings the weapon's chain one strike per tap,
--- and sits back down after), and Rise.
--- Comprehend, Method and Spirit Root open a small panel (MeditationMenu).
+-- is full it gives way to Break Through), Method (once you own one), Spirit Root
+-- (once tested; a seal dot while a reformed element waits for a choice),
+-- Practice, and Rise.
+-- Practice (shown while either of its actions exists; a seal dot while a
+-- technique is at a bottleneck) swaps the row for its own tiles (user decision,
+-- 2026-10-21): Technique (comprehend a technique at a bottleneck, in the
+-- MeditationMenu panel), Weapon Dao (a weapon drill for Dao XP, from
+-- Pacing.DaoPractice.FROM until the class is mastered; a countdown while
+-- resting; the character gets up for the drill, still locked in place and still
+-- meditating, swings the weapon's chain one strike per tap, and sits back down
+-- after) and Back. An action that isn't available shows dimmed and toasts why.
+-- The main row comes back after a drill or the panel, on Back, and on standing.
+-- Technique, Method and Spirit Root open a small panel (MeditationMenu).
 -- The calm view: the lotus toggle (Stack.CalmToggle) folds the tiles away and
 -- fades the rest of the HUD (Menus.setCalm) to just watch the world; it also
 -- comes on by itself after CALM_AFTER seconds without input. A tap anywhere, a
@@ -55,7 +60,7 @@ local CALM_AFTER = 20 -- seconds seated without input before the HUD fades by it
 local TAP_DRIFT = 12 -- px a press may move and still be a tap (more is a camera drag)
 local TAP_SECONDS = 0.4 -- a longer press isn't a tap either
 local CALM_ICON = 0.55 -- the lotus's transparency while the view is calm
-local RESTING = 0.5 -- the Practice tile's transparency while the drill is on cooldown
+local RESTING = 0.5 -- a Practice-row tile's transparency while resting or unavailable
 local LOTUS_GAP = 22 -- px from the last tile's edge to the lotus (the tile frame overhangs ~7)
 
 local Meditation = {}
@@ -71,6 +76,7 @@ local button: TextButton
 local row: Frame -- Stack.CultivatePrompt: the seated tiles
 local calmToggle: ImageButton -- Stack.CalmToggle: the lotus
 local wasCalm = false
+local practiceRow = false -- the Practice tiles show instead of the main row
 local lastInput = os.clock()
 
 local function barFull(): boolean
@@ -89,7 +95,7 @@ local function practiceClass(): string
 	return Weapons.classOf(if weapons and weapons.equipped ~= "" then weapons.equipped else nil)
 end
 
-local function practiceOpen(): boolean
+local function daoOpen(): boolean
 	local from = Realms.ByKey[Pacing.DaoPractice.FROM]
 	local stage = Realms.byName(player:GetAttribute("Realm"))
 	if not (from and stage) or Realms.index(stage.major, stage.minor) < Realms.index(from.major, from.minor) then
@@ -109,14 +115,24 @@ local function clock(seconds: number): string
 	return string.format("%d:%02d", seconds // 60, seconds % 60)
 end
 
--- The tile's caption is its countdown while resting; dimmed until the drill opens.
+local function techniqueReady(): boolean
+	return MeditationMenu.relevant().Comprehend == true
+end
+
+local function dim(t: GuiObject, dimmed: boolean)
+	(t:FindFirstChild("Icon") :: ImageLabel).ImageTransparency = if dimmed then RESTING else 0;
+	(t:FindFirstChild("Frame") :: ImageLabel).ImageTransparency = if dimmed then RESTING else 0
+end
+
+-- The Weapon Dao tile's caption is its countdown while resting; dimmed while
+-- resting or locked. The Technique tile is dimmed with nothing to comprehend.
 local function paintPractice()
-	local t = tile("Practice")
+	local t = tile("PracticeDao")
 	local wait = practiceWait()
-	local resting = wait > 0;
-	(t:FindFirstChild("Caption") :: TextLabel).Text = if resting then clock(wait) else "Practice";
-	(t:FindFirstChild("Icon") :: ImageLabel).ImageTransparency = if resting then RESTING else 0;
-	(t:FindFirstChild("Frame") :: ImageLabel).ImageTransparency = if resting then RESTING else 0
+	local resting = daoOpen() and wait > 0;
+	(t:FindFirstChild("Caption") :: TextLabel).Text = if resting then clock(wait) else "Weapon Dao"
+	dim(t, resting or not daoOpen())
+	dim(tile("PracticeTechnique"), not techniqueReady())
 end
 
 -- The lotus sits just past the row's last tile (Rise), whichever tiles show.
@@ -151,14 +167,24 @@ local function refresh()
 	wasCalm = calm
 	-- a full bar has nothing to circulate into; Break Through shows instead
 	local full = barFull()
-	tile("Circulate").Visible = not full
-	tile("Breakthrough").Visible = full
 	local relevant = MeditationMenu.relevant()
-	for _, page in { "Comprehend", "Method", "Root" } do
-		tile(page).Visible = relevant[page] == true
+	local anyPractice = relevant.Comprehend == true or daoOpen()
+	if not (seated and anyPractice) then
+		practiceRow = false
+	end
+	local main = not practiceRow
+	tile("Circulate").Visible = main and not full
+	tile("Breakthrough").Visible = main and full
+	for _, page in { "Method", "Root" } do
+		tile(page).Visible = main and relevant[page] == true
 	end
 	(tile("Root"):FindFirstChild("Badge") :: GuiObject).Visible = MeditationMenu.rootPending()
-	tile("Practice").Visible = practiceOpen()
+	tile("Practice").Visible = main and anyPractice;
+	(tile("Practice"):FindFirstChild("Badge") :: GuiObject).Visible = relevant.Comprehend == true
+	tile("Rise").Visible = main
+	for _, name in { "PracticeTechnique", "PracticeDao", "Back" } do
+		tile(name).Visible = practiceRow
+	end
 	paintPractice()
 	local root = SelfCard.currentRoot()
 	if root then
@@ -318,6 +344,7 @@ local function practice()
 			list[strikeStep]:Play(0.05)
 		end,
 	})
+	practiceRow = false
 	if stood and token == mine then
 		-- back down onto the seat
 		Controls.lock("Meditation")
@@ -332,6 +359,20 @@ local function practice()
 		end)
 	end
 	refresh()
+end
+
+-- Swap the seated row between its main tiles and the Practice tiles, with a
+-- small pop.
+local function showPractice(on: boolean)
+	if practiceRow == on then
+		return
+	end
+	practiceRow = on
+	lastInput = os.clock()
+	refresh()
+	if row.Visible then
+		Motion.open(row)
+	end
 end
 
 -- M and the tile: sit down to meditate, or stand straight back up.
@@ -424,7 +465,18 @@ function Meditation.init(gui: ScreenGui)
 		Breakthrough = function()
 			task.spawn(BreakthroughView.attempt)
 		end,
-		Comprehend = function()
+		Practice = function()
+			showPractice(true)
+		end,
+		Back = function()
+			showPractice(false)
+		end,
+		PracticeTechnique = function()
+			if not techniqueReady() then
+				Hud.toast("No technique is at a bottleneck yet.")
+				return
+			end
+			practiceRow = false -- the panel hides the row; the main row comes back after
 			MeditationMenu.toggle("Comprehend")
 		end,
 		Method = function()
@@ -433,8 +485,19 @@ function Meditation.init(gui: ScreenGui)
 		Root = function()
 			MeditationMenu.toggle("Root")
 		end,
-		Practice = function()
-			task.spawn(practice)
+		PracticeDao = function()
+			if daoOpen() then
+				task.spawn(practice)
+				return
+			end
+			local from = Realms.ByKey[Pacing.DaoPractice.FROM]
+			local class = Weapons.Classes[practiceClass()]
+			local stage = Realms.byName(player:GetAttribute("Realm"))
+			if from and stage and Realms.index(stage.major, stage.minor) < Realms.index(from.major, from.minor) then
+				Hud.toast(`Weapon Dao practice opens at {from.name}.`)
+			else
+				Hud.toast(`Your {if class then class.dao else "weapon Dao"} is mastered.`)
+			end
 		end,
 		Rise = function()
 			Meditation.stand()

@@ -1020,6 +1020,33 @@ def icon_practice():
     _tile_icon(mask, "icon_practice.png", deco)
 
 
+def icon_back():
+    """Seated Practice sub-row: Back (to the main row). A return arrow: a thick
+    stroke running left along the top into a broad arrowhead, its tail curving
+    round the right side and back along the bottom."""
+    N = 128 * SS
+    u = SS
+    mask = Image.new("L", (N, N), 0)
+    md = ImageDraw.Draw(mask)
+    w = 16 * u
+    top, bot = 40 * u, 100 * u
+    r = (bot - top) / 2
+    cx = 82 * u  # centre of the turn
+    # the turn: a half ring on the right
+    md.arc([cx - r - w / 2, top - w / 2, cx + r + w / 2, bot + w / 2], 270, 90, fill=255, width=int(w))
+    # the top run to the arrowhead, the bottom run back left
+    md.rectangle([40 * u, top - w / 2, cx, top + w / 2], fill=255)
+    md.rectangle([34 * u, bot - w / 2, cx, bot + w / 2], fill=255)
+    md.ellipse([34 * u - w / 2, bot - w / 2, 34 * u + w / 2, bot + w / 2], fill=255)
+    # the arrowhead, pointing left
+    md.polygon([(10 * u, top), (46 * u, top - 28 * u), (46 * u, top + 28 * u)], fill=255)
+
+    def deco(d, u):
+        d.arc([cx - r + 2 * u, top + 4 * u, cx + r - 2 * u, bot - 4 * u], 290, 340, fill=SHINE, width=3 * u)
+        d.line([(50 * u, top - 3 * u), (74 * u, top - 3 * u)], fill=SHINE, width=3 * u)
+    _tile_icon(mask, "icon_back.png", deco)
+
+
 def meditation_art():
     icon_circulate()
     icon_breakthrough()
@@ -1028,6 +1055,7 @@ def meditation_art():
     icon_rise()
     icon_lotus()
     icon_practice()
+    icon_back()
 
 
 # ---------------------------------------------------------------- onboarding guide
@@ -1117,6 +1145,9 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "guide":
         guide_art()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "back":
+        icon_back()
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "meditation":
         meditation_art()

@@ -292,7 +292,7 @@ Pacing.Weapons = {
 	XP_MANUAL = 25, -- learning one of the class's manuals
 }
 
--- PRACTICE DAO (server DaoPractice, the meditation menu's Practice Dao tile). A
+-- PRACTICE DAO (server DaoPractice, the seated Practice row's Weapon Dao tile). A
 -- short seated drill with the equipped weapon, played on a circulation
 -- minigame, for that class's Dao XP. It helps you catch up but never beats
 -- fighting: one drill per COOLDOWN, worth at most XP_SHARE of the current

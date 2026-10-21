@@ -42,11 +42,16 @@ local BUTTONS: { [string]: { string } } = {
 	Attack = { "Play", "AttackButton" },
 	Circulate = { "Stack", "CultivatePrompt", "Circulate" },
 	Breakthrough = { "Stack", "CultivatePrompt", "Breakthrough" },
-	Comprehend = { "Stack", "CultivatePrompt", "Comprehend" },
 	Practice = { "Stack", "CultivatePrompt", "Practice" },
+	-- the Practice row's tiles: until that row is open, point at Practice
+	PracticeTechnique = { "Stack", "CultivatePrompt", "PracticeTechnique" },
+	PracticeDao = { "Stack", "CultivatePrompt", "PracticeDao" },
 	Method = { "Stack", "CultivatePrompt", "Method" },
 	SpiritRoot = { "Stack", "CultivatePrompt", "Root" },
 }
+
+-- Tiles inside the seated Practice row -> the main-row tile that opens it.
+local FOLDED: { [string]: string } = { PracticeTechnique = "Practice", PracticeDao = "Practice" }
 
 local HOLE_PAD = 6 -- clear space around the control before the veil starts
 local HOLE_FADE = 24 -- the hole art's soft edge (48px corners at SliceScale 0.5)
@@ -113,7 +118,16 @@ local function resolve(): GuiButton?
 	for _, name in path do
 		node = node and node:FindFirstChild(name)
 	end
-	return if node and node:IsA("GuiButton") then node else nil
+	if not (node and node:IsA("GuiButton")) then
+		return nil
+	end
+	if FOLDED[g.button] and not node.Visible then
+		-- the Practice row is closed: point at the tile that opens it
+		local parent = node.Parent :: Instance
+		local opener = parent:FindFirstChild(FOLDED[g.button])
+		return if opener and opener:IsA("GuiButton") then opener else node
+	end
+	return node
 end
 
 -- Whether a control is actually on screen (it and every frame above it shown).

@@ -1,6 +1,6 @@
 --!strict
 -- Technique bottlenecks, shared by the Inventory's Arts pane (which shows them)
--- and the meditation menu's Comprehend tile (where you break them). At a
+-- and the seated Practice row's Technique tile (where you break them). At a
 -- bottleneck (Techniques.bottleneck: XP full at level 3, 6 or 9) XP stops until
 -- you comprehend it, seated, for insight and Spirit Stones (Pacing.Comprehension).
 

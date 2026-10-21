@@ -12,7 +12,10 @@ main peak, the sect gate and the wilds arrays (see [map](map.md), "World structu
   button show what to do.
 - Beats: Circulate -> Breakthrough -> Root (travel unlocks here: ride to the
   Main Peak and touch the Testing Stone, see [character](character.md)) -> Gate -> FirstKill ->
-  Technique (3 kills) -> Refine -> QC3 -> FreePlay (the top quest-board goal).
+  Technique (3 kills, done once the 3-kill milestone's manual is earned) -> Refine
+  -> QC3 -> FreePlay (the top quest-board goal).
+- A beat can show progress after its objective (`progress`, e.g. Technique's
+  kills "(1/3)").
 - Travel can't be used to flee a fight (blocked while in combat or mid-action).
 - In the sect, travel works from anywhere: the Travel button shows on the sect's
   safe ground (`Gates.inSect`) and rides to My Peak, Main Peak or the Sect Gate,

@@ -52,6 +52,7 @@ type Beat = {
 	id: string,
 	elder: string,
 	objective: string,
+	progress: ((PlayerData.Data) -> string)?, -- shown after the objective, e.g. "1/3"
 	done: (Player, PlayerData.Data) -> boolean,
 	guide: ((Player, PlayerData.Data) -> Guide?)?,
 	travel: boolean?, -- the formation is taught from this beat on
@@ -265,8 +266,13 @@ Quests.Beats = {
 		id = "Technique",
 		elder = "Every beast you slay teaches you something. Defeat a few more; a technique manual awaits.",
 		objective = "Defeat 3 enemies to earn a technique manual",
+		progress = function(data)
+			return `{math.min(data.stats.kills, 3)}/3`
+		end,
+		-- the 3-kill milestone's manual, earned; not "two on the hotbar", which a
+		-- full hotbar or an unslotted starter technique kept from ever holding
 		done = function(_, data)
-			return slotted(data) >= 2
+			return data.milestones["3"] == true or slotted(data) >= 2
 		end,
 		guide = function()
 			return { place = "Enemy" }
@@ -510,7 +516,7 @@ end
 
 local function push(player: Player, data: PlayerData.Data, repeatElder: boolean?)
 	local beat, index = current(data)
-	local objective = beat.objective
+	local objective = if beat.progress then `{beat.objective} ({beat.progress(data)})` else beat.objective
 	local guide: Guide? = if beat.guide then beat.guide(player, data) else nil
 	local lesson: Lesson? = nil
 	if beat.id == "FreePlay" then

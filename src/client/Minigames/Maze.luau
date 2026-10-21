@@ -2,7 +2,11 @@
 -- Maze Formation. Your qi is caught in a maze formation; find the way out, like
 -- the maze on a cereal box. Drag anywhere and the spark moves with your finger
 -- (relative, so the finger never hides it), held to the corridors; hold WASD /
--- the arrows to walk it. It only moves while you drag or hold, and stops when you
+-- the arrows to walk it. A drag feeds a short lead the spark glides after
+-- (FOLLOW, capped at MAX_SPEED, at most MAX_LAG cells behind), so it moves
+-- smoothly and never runs off on a flick; on PC the mouse is pinned and hidden
+-- while the button is held, so the pointer can't wander off the board. It only
+-- moves while you drag or hold, and stops when you
 -- stop. Pushing across a corridor near a turning takes the turning, so corners
 -- don't need pixel-perfect drags. Escape and a new maze forms, as many
 -- as the run allows. Purple impurities sit in dead ends off the way out: detour
@@ -12,23 +16,32 @@
 -- Maze size and par seconds per maze come from Config (Games.Maze).
 
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Feel = require(script.Parent.Feel)
+local Platform = require(script.Parent.Parent.Platform)
 
 local KEY_SPEED = 6 -- cells per second while an arrow key is held
-local DRAG_GAIN = 1 -- spark pixels per dragged pixel
+local DRAG_GAIN = { mouse = 0.6, touch = 0.9 } -- spark pixels per dragged pixel
+local FOLLOW = 22 -- how fast the spark closes on the drag's lead (per second)
+local MAX_SPEED = 9 -- cells per second the spark can glide at most
+local MAX_LAG = 0.9 -- cells the drag's lead may run ahead of the spark
 local CORNER = 0.4 -- pushing across a corridor this close (in cells) to a turning takes it
 local EPS = 1e-4
-local WALL_SHARE = 0.1 -- wall thickness as a share of a cell, in even pixels within WALL_PX
+local WALL_SHARE = 0.1 -- wall line thickness as a share of a cell, in even pixels within WALL_PX
 local WALL_PX = { 4, 8 }
-local TRAIL_EXTRA = 2 -- pixels the trail is thicker than the walls
+local WALL_CORE = 0.4 -- share of maze_wall.png's width the gold line fills (the rest is its aura)
+local TRAIL_SHARE = 0.3 -- qi trail thickness (glow included) as a share of a cell, within TRAIL_PX
+local TRAIL_PX = { 10, 28 }
+local SLICE_SOURCE = 128 -- maze_wall / maze_trail source size (9-slice Rect(63, 63, 65, 65))
+local SPARK_SIZE, EXIT_SIZE, IMPURITY_SIZE = 0.85, 0.95, 0.62 -- in cells
 local NEXT_PAUSE = 0.35 -- seconds between escaping and the next maze
 local MIN_SIZE = 4
 
-local QI = Color3.fromRGB(200, 255, 230)
 local IMPURE = Color3.fromRGB(220, 160, 255)
 local EXIT = Color3.fromRGB(255, 225, 140)
+local WHITE = Color3.new(1, 1, 1)
 
 -- up, right, down, left
 local DX = { 0, 1, 0, -1 }
@@ -196,11 +209,11 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 	local goal = math.max(1, info.duration / math.max(1, tune.par))
 	local field = stage:FindFirstChild("Field") :: Frame
 	local board = field:FindFirstChild("Board") :: Frame
-	local wallTemplate = board:FindFirstChild("WallTemplate") :: Frame
-	local trailTemplate = board:FindFirstChild("TrailTemplate") :: Frame
-	local impurityTemplate = board:FindFirstChild("ImpurityTemplate") :: Frame
-	local spark = board:FindFirstChild("Spark") :: Frame
-	local exitMark = board:FindFirstChild("Exit") :: Frame
+	local wallTemplate = board:FindFirstChild("WallTemplate") :: ImageLabel
+	local trailTemplate = board:FindFirstChild("TrailTemplate") :: ImageLabel
+	local impurityTemplate = board:FindFirstChild("ImpurityTemplate") :: ImageLabel
+	local spark = board:FindFirstChild("Spark") :: ImageLabel
+	local exitMark = board:FindFirstChild("Exit") :: ImageLabel
 	local rng = Random.new(info.seed)
 
 	local function center(cell: number): UDim2
@@ -216,18 +229,28 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		table.clear(made)
 	end
 
-	-- line widths in even whole pixels (centred on a grid line without landing on
-	-- half a pixel), so every wall reads crisp and the same at any board size
-	local wallPx, trailPx = WALL_PX[1], WALL_PX[1] + TRAIL_EXTRA
+	-- Walls and trail are round-capped strokes, 9-sliced from one radially
+	-- symmetric image so the caps meet as rounded joints. The wall's gold line is
+	-- an even whole number of pixels (crisp at any board size); its image is
+	-- wider by the aura around the line.
+	local wallPx, trailPx = WALL_PX[1] / WALL_CORE, TRAIL_PX[1]
 	local function measure()
 		local cellPx = board.AbsoluteSize.X / n
-		wallPx = math.clamp(2 * math.round(cellPx * WALL_SHARE / 2), WALL_PX[1], WALL_PX[2])
-		trailPx = wallPx + TRAIL_EXTRA
+		wallPx = math.clamp(2 * math.round(cellPx * WALL_SHARE / 2), WALL_PX[1], WALL_PX[2]) / WALL_CORE
+		trailPx = math.clamp(math.round(cellPx * TRAIL_SHARE), TRAIL_PX[1], TRAIL_PX[2])
+	end
+
+	local function fadeIn(image: ImageLabel, seconds: number)
+		image.ImageTransparency = 1
+		TweenService:Create(image, TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			ImageTransparency = 0,
+		}):Play()
 	end
 
 	local function wall(x0: number, y0: number, x1: number, y1: number)
 		local frame = wallTemplate:Clone()
 		frame.Name = "Wall"
+		frame.SliceScale = wallPx / SLICE_SOURCE
 		frame.Position = UDim2.new(x0 / n, -wallPx / 2, y0 / n, -wallPx / 2)
 		frame.Size = UDim2.new((x1 - x0) / n, wallPx, (y1 - y0) / n, wallPx)
 		frame.Visible = true
@@ -277,12 +300,13 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		local bx, by = xyOf(n, b)
 		local frame = trailTemplate:Clone()
 		frame.Name = "Trail"
+		frame.SliceScale = trailPx / SLICE_SOURCE
 		frame.Position = UDim2.fromScale((math.min(ax, bx) + 0.5) / n, (math.min(ay, by) + 0.5) / n)
 			- UDim2.fromOffset(trailPx / 2, trailPx / 2)
 		frame.Size = UDim2.new(math.abs(bx - ax) / n, trailPx, math.abs(by - ay) / n, trailPx)
 		frame.Visible = true
 		frame.Parent = board
-		Feel.fadeIn(frame, 0.12)
+		fadeIn(frame, 0.15)
 		table.insert(made, frame)
 	end
 
@@ -293,7 +317,7 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 	local impuritiesLeft = info.impurities
 	local mazesLeft = math.ceil(goal)
 	local grid: Grid
-	local impurities: { [number]: Frame } = {}
+	local impurities: { [number]: ImageLabel } = {}
 
 	local function newMaze()
 		clear()
@@ -309,7 +333,7 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 			local frame = impurityTemplate:Clone()
 			frame.Name = "Impurity"
 			frame.Position = center(spot)
-			frame.Size = UDim2.fromScale(0.5 / n, 0.5 / n)
+			frame.Size = UDim2.fromScale(IMPURITY_SIZE / n, IMPURITY_SIZE / n)
 			frame.Visible = true
 			frame.Parent = board
 			table.insert(made, frame)
@@ -317,10 +341,10 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 			impuritiesLeft -= 1
 		end
 		exitMark.Position = center(grid.exit)
-		exitMark.Size = UDim2.fromScale(0.8 / n, 0.8 / n)
+		exitMark.Size = UDim2.fromScale(EXIT_SIZE / n, EXIT_SIZE / n)
 		exitMark.Visible = true
 		spark.Position = center(grid.start)
-		spark.Size = UDim2.fromScale(0.55 / n, 0.55 / n)
+		spark.Size = UDim2.fromScale(SPARK_SIZE / n, SPARK_SIZE / n)
 		spark.Visible = true
 	end
 
@@ -440,13 +464,61 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 	newMaze()
 	ui.ready()
 
+	local touch = Platform.isTouch()
 	local held: { number } = {} -- held arrow keys' directions, latest last
-	local lasts: { [InputObject]: Vector3 } = {} -- each drag's last position
+	local lasts: { [InputObject]: Vector3 } = {} -- each drag's last position (touch)
+	local lead = Vector2.zero -- dragged distance (cells) the spark hasn't glided yet
+	local grip = 0 -- 0..1, eases up while the spark is being dragged or walked
+
+	-- PC: the mouse is pinned and hidden while the button is held, so the drag
+	-- reads from its raw movement and the pointer can't leave the board; the
+	-- game's own mouse mode and pointer come back on release.
+	local pinned: { behavior: Enum.MouseBehavior, icon: boolean }? = nil
+	local function pin()
+		if touch or pinned then
+			return
+		end
+		pinned = { behavior = UserInputService.MouseBehavior, icon = UserInputService.MouseIconEnabled }
+		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCurrentPosition
+		UserInputService.MouseIconEnabled = false
+	end
+	local function unpin()
+		local was = pinned
+		if not was then
+			return
+		end
+		pinned = nil
+		if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCurrentPosition then
+			UserInputService.MouseBehavior = was.behavior
+		end
+		UserInputService.MouseIconEnabled = was.icon
+	end
+	local function mouseDown(): InputObject?
+		for down in lasts do
+			if down.UserInputType == Enum.UserInputType.MouseButton1 then
+				return down
+			end
+		end
+		return nil
+	end
+
+	-- feed a drag of `pixels` (screen) into the lead, at most MAX_LAG ahead
+	local function drag(pixels: Vector3, gain: number)
+		local cellPx = math.max(1, board.AbsoluteSize.X / n)
+		lead += Vector2.new(pixels.X, pixels.Y) * gain / cellPx
+		if lead.Magnitude > MAX_LAG then
+			lead = lead.Unit * MAX_LAG
+		end
+	end
+
 	local connections: { RBXScriptConnection } = {}
 	table.insert(connections, UserInputService.InputBegan:Connect(function(input)
 		local kind = input.UserInputType
 		if kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseButton1 then
 			lasts[input] = input.Position
+			if kind == Enum.UserInputType.MouseButton1 then
+				pin()
+			end
 		elseif KEYS[input.KeyCode] then
 			local dir = KEYS[input.KeyCode]
 			table.insert(held, dir)
@@ -459,36 +531,26 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 		end
 	end))
 	table.insert(connections, UserInputService.InputChanged:Connect(function(input)
-		local key: InputObject? = input
 		if input.UserInputType == Enum.UserInputType.MouseMovement then
-			-- the held mouse button's InputObject carries the drag; one whose
-			-- release we missed (let go outside the window) is dropped
-			key = nil
-			for down in lasts do
-				if down.UserInputType == Enum.UserInputType.MouseButton1 then
-					if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-						key = down
-					else
-						lasts[down] = nil
-					end
-				end
+			-- the held button carries the drag; the pinned mouse reports its
+			-- movement as Delta (its Position stays put)
+			if mouseDown() and pinned then
+				drag(input.Delta, DRAG_GAIN.mouse)
 			end
-		elseif input.UserInputType == Enum.UserInputType.Touch and not lasts[input] then
-			-- a thumb already down through the count-in takes hold where it is
+		elseif input.UserInputType == Enum.UserInputType.Touch then
+			local last = lasts[input]
 			lasts[input] = input.Position
-			return
+			-- a thumb already down through the count-in takes hold where it is
+			if last then
+				drag(input.Position - last, DRAG_GAIN.touch)
+			end
 		end
-		local last = key and lasts[key]
-		if not (key and last) then
-			return
-		end
-		lasts[key] = input.Position
-		local cellPx = math.max(1, board.AbsoluteSize.X / n)
-		local delta = (input.Position - last) * DRAG_GAIN / cellPx
-		move(delta.X, delta.Y)
 	end))
 	table.insert(connections, UserInputService.InputEnded:Connect(function(input)
 		lasts[input] = nil
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			unpin()
+		end
 		local dir = KEYS[input.KeyCode]
 		if dir then
 			local at = table.find(held, dir)
@@ -527,13 +589,47 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 			end
 			move(dx, dy)
 		end
+		-- a released mouse whose release we missed (let go outside the window)
+		local down = mouseDown()
+		if down and not UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+			lasts[down] = nil
+			down = nil
+		end
+		if not down then
+			unpin()
+		elseif UserInputService.MouseBehavior ~= Enum.MouseBehavior.LockCurrentPosition then
+			UserInputService.MouseBehavior = Enum.MouseBehavior.LockCurrentPosition
+		end
+		-- the spark glides after the drag: it closes on the lead quickly, but no
+		-- faster than MAX_SPEED, so a flick can't fling it through the maze
+		if t >= pauseUntil and lead.Magnitude > 1e-3 then
+			local step = lead * math.min(1, FOLLOW * dt)
+			local cap = MAX_SPEED * dt
+			if step.Magnitude > cap then
+				step = step.Unit * cap
+			end
+			lead -= step
+			move(step.X, step.Y)
+		else
+			lead = Vector2.zero
+		end
+
+		local active = next(lasts) ~= nil or #held > 0
+		grip += ((if active then 1 else 0) - grip) * math.min(1, dt * 14)
+		local size = SPARK_SIZE * (1 + 0.14 * grip + 0.04 * math.sin(t * 5)) / n
+		spark.Size = UDim2.fromScale(size, size)
+		exitMark.Rotation = (t * 24) % 360
+		for spot, frame in impurities do
+			local pulse = IMPURITY_SIZE * (1 + 0.08 * math.sin(t * 3 + spot)) / n
+			frame.Size = UDim2.fromScale(pulse, pulse)
+		end
 		local at = UDim2.fromScale((px + 0.5) / n, (py + 0.5) / n)
 		if nudge > 0 then
 			nudge = math.max(0, nudge - dt)
 			at += UDim2.fromOffset(math.sin(t * 90) * 3, 0)
 		end
 		spark.Position = at
-		spark.BackgroundColor3 = if t < pauseUntil then EXIT else QI
+		spark.ImageColor3 = if t < pauseUntil then EXIT else WHITE
 
 		Feel.timer(ui.timer, t, info.duration)
 		ui.score.Text = `Escaped {solved} / {math.ceil(goal)}`
@@ -548,6 +644,7 @@ function Maze.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, number)
 	for _, c in connections do
 		c:Disconnect()
 	end
+	unpin()
 	-- partial credit for how far along the current maze you got
 	local along = 0
 	local cell = cellOf(n, math.round(px), math.round(py))

@@ -1141,8 +1141,210 @@ def guide_art():
     guide_trail()
 
 
+# ---------------------------------------------------------------- maze formation
+
+def _radial(S, profile):
+    """A square image whose colour depends only on the distance from its centre
+    (0 at the centre, 1 at the edge): profile(r) -> (r, g, b, a)."""
+    N = S * SS
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    px = img.load()
+    c = (N - 1) / 2
+    for y in range(N):
+        for x in range(N):
+            r = math.hypot(x - c, y - c) / (N / 2)
+            if r < 1:
+                px[x, y] = tuple(int(max(0, min(255, v))) for v in profile(r))
+    return img
+
+
+def _mix(a, b, t):
+    return tuple(a[i] + (b[i] - a[i]) * t for i in range(len(a)))
+
+
+def maze_wall():
+    """A formation wall, 128px: an engraved gold line (bright crest, bronze edge)
+    in the middle 40% of the width, with a faint warm aura beyond it. Radially
+    symmetric, so one image slices into horizontal and vertical walls alike and
+    the round caps meet as rounded joints. 9-slice SliceCenter Rect(63, 63, 65, 65);
+    SliceScale = shown thickness / 128 (set by Maze.luau from the board size)."""
+    CORE = 0.4
+
+    def profile(r):
+        if r < CORE:
+            t = r / CORE
+            col = _mix((255, 236, 184), (196, 150, 70), t ** 1.6)
+            a = 255 if t < 0.82 else 255 * (1 - (t - 0.82) / 0.18 * 0.35)
+            return col + (a,)
+        t = (r - CORE) / (1 - CORE)
+        return (214, 172, 92, 120 * (1 - t) ** 2.2)
+
+    finish(_radial(128, profile), "maze_wall.png")
+
+
+def maze_trail():
+    """The qi trail through walked corridors, 128px: a bright mint-white core
+    fading to jade, wrapped in a soft jade glow. Radially symmetric like
+    maze_wall. 9-slice SliceCenter Rect(63, 63, 65, 65); SliceScale = shown
+    thickness / 128."""
+    CORE = 0.5
+
+    def profile(r):
+        if r < CORE:
+            t = r / CORE
+            col = _mix((240, 255, 248), (88, 214, 170), t ** 1.4)
+            return col + (255,)
+        t = (r - CORE) / (1 - CORE)
+        return _mix((88, 214, 170), (40, 150, 120), t) + (150 * (1 - t) ** 2,)
+
+    finish(_radial(128, profile), "maze_trail.png")
+
+
+def maze_spark():
+    """The player's qi spark, 128px, stretched: a white-hot core in a jade orb,
+    two qi wisps curling round it (taiji-like) and a wide soft halo."""
+    def profile(r):
+        if r < 0.16:
+            return (255, 255, 250, 255)
+        if r < 0.42:
+            t = (r - 0.16) / 0.26
+            return _mix((236, 255, 246), (96, 220, 176), t ** 1.2) + (255 - 40 * t,)
+        t = (r - 0.42) / 0.58
+        return (120, 230, 190, 170 * (1 - t) ** 2)
+
+    img = _radial(128, profile)
+    N = img.size[0]
+    c = N / 2
+    wisp = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(wisp)
+    for start in (0.0, math.pi):
+        pts = []
+        for i in range(40):
+            t = i / 39
+            a = start + t * math.pi * 0.9
+            rr = (0.5 - 0.08 * t) * c
+            pts.append((c + math.cos(a) * rr, c + math.sin(a) * rr))
+        d.line(pts, fill=(235, 255, 245, 230), width=5 * SS, joint="curve")
+        ex, ey = pts[0]
+        d.ellipse([ex - 4 * SS, ey - 4 * SS, ex + 4 * SS, ey + 4 * SS], fill=(255, 255, 250, 255))
+    img.alpha_composite(wisp.filter(ImageFilter.GaussianBlur(1.2 * SS)))
+    finish(img, "maze_spark.png")
+
+
+def maze_exit():
+    """The formation's way out, 128px, stretched (spun slowly in script): a gold
+    seal ring with eight trigram-like bars round a warm light, the gate the qi
+    escapes through."""
+    def profile(r):
+        if r < 0.5:
+            return (255, 226, 150, 150 * (1 - r / 0.5) ** 1.5 + 30)
+        return (255, 210, 120, 40 * max(0, 1 - (r - 0.5) / 0.5))
+
+    img = _radial(128, profile)
+    N = img.size[0]
+    c = N / 2
+    d = ImageDraw.Draw(img)
+    for rad, w in ((0.84, 5), (0.6, 3)):
+        rr = rad * c
+        d.ellipse([c - rr, c - rr, c + rr, c + rr], outline=GOLD_LO, width=(w + 2) * SS)
+        d.ellipse([c - rr, c - rr, c + rr, c + rr], outline=GOLD, width=w * SS)
+    # the eight trigrams between the rings, bottom line innermost
+    trigrams = ["111", "011", "101", "001", "110", "010", "100", "000"]
+    for k, bits in enumerate(trigrams):
+        a = -math.pi / 2 + k * math.pi / 4
+        ca, sa = math.cos(a), math.sin(a)
+        for j, bit in enumerate(bits):
+            rr = (0.665 + 0.05 * j) * c
+            half = 0.1 * c
+            segs = [(-half, half)] if bit == "1" else [(-half, -0.025 * c), (0.025 * c, half)]
+            for lo, hi in segs:
+                p0 = (c + ca * rr - sa * lo, c + sa * rr + ca * lo)
+                p1 = (c + ca * rr - sa * hi, c + sa * rr + ca * hi)
+                d.line([p0, p1], fill=GOLD_HI, width=int(2.5 * SS))
+    lozenge(d, c, c, 14 * SS, 3 * SS)
+    finish(img, "maze_exit.png")
+
+
+def maze_impurity():
+    """A purple impurity, 128px, stretched: a lumpy violet miasma knot with a
+    near-black core, ink rim and one pale glint."""
+    N = 128 * SS
+    c = N / 2
+    shape = Image.new("L", (N, N), 0)
+    pts = []
+    for i in range(96):
+        a = i / 96 * 2 * math.pi
+        rr = c * (0.62 + 0.07 * math.sin(a * 5 + 0.6) + 0.04 * math.sin(a * 3 - 1.1))
+        pts.append((c + math.cos(a) * rr, c + math.sin(a) * rr))
+    ImageDraw.Draw(shape).polygon(pts, fill=255)
+    glow = shape.filter(ImageFilter.GaussianBlur(10 * SS)).point(lambda v: v * 110 // 255)
+    img = Image.new("RGBA", (N, N), (190, 110, 240, 0))
+    img.putalpha(glow)
+    rim = shape.filter(ImageFilter.MaxFilter(4 * SS + 1))
+    img.paste(Image.new("RGBA", (N, N), (28, 8, 36, 255)), (0, 0), rim)
+    body = _radial(128, lambda r: _mix((40, 10, 52), (196, 108, 236), min(1, r / 0.66) ** 1.3) + (255,))
+    img.paste(body, (0, 0), shape)
+    d = ImageDraw.Draw(img)
+    d.ellipse([c - 30 * SS, c - 30 * SS, c - 14 * SS, c - 18 * SS], fill=(240, 210, 255, 200))
+    finish(img, "maze_impurity.png")
+
+
+def maze_array():
+    """The formation array under the maze, 512px, stretched over the board and
+    shown faint: concentric gold rings, the eight trigrams round the middle and
+    tick marks, like the plate of a formation compass."""
+    N = 512 * SS
+    c = N / 2
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    col = (214, 172, 92, 255)
+    for rad, w in ((0.97, 4), (0.9, 2), (0.62, 3), (0.56, 2), (0.3, 3)):
+        rr = rad * c
+        d.ellipse([c - rr, c - rr, c + rr, c + rr], outline=col, width=w * SS)
+    for k in range(72):
+        a = k * math.pi / 36
+        r0 = 0.9 * c
+        r1 = (0.84 if k % 3 == 0 else 0.87) * c
+        d.line([(c + math.cos(a) * r0, c + math.sin(a) * r0), (c + math.cos(a) * r1, c + math.sin(a) * r1)], fill=col, width=2 * SS)
+    # earlier-heaven trigrams, bottom line first: 1 = solid, 0 = broken
+    trigrams = ["111", "011", "101", "001", "110", "010", "100", "000"]
+    for k, bits in enumerate(trigrams):
+        a = -math.pi / 2 + k * math.pi / 4
+        ca, sa = math.cos(a), math.sin(a)
+        for j, bit in enumerate(bits):
+            rr = (0.66 + 0.06 * j) * c
+            half = 0.1 * c
+            segs = [(-half, half)] if bit == "1" else [(-half, -0.02 * c), (0.02 * c, half)]
+            for lo, hi in segs:
+                p0 = (c + ca * rr - sa * lo, c + sa * rr + ca * lo)
+                p1 = (c + ca * rr - sa * hi, c + sa * rr + ca * hi)
+                d.line([p0, p1], fill=col, width=7 * SS)
+    # a taiji at the heart
+    rr = 0.18 * c
+    d.ellipse([c - rr, c - rr, c + rr, c + rr], outline=col, width=3 * SS)
+    d.pieslice([c - rr, c - rr, c + rr, c + rr], 90, 270, fill=col)
+    h = rr / 2
+    d.ellipse([c - h, c - rr, c + h, c], fill=col)
+    d.ellipse([c - h, c, c + h, c + rr], fill=(0, 0, 0, 0))
+    d.ellipse([c - 6 * SS, c - h - 6 * SS, c + 6 * SS, c - h + 6 * SS], fill=(0, 0, 0, 0))
+    d.ellipse([c - 6 * SS, c + h - 6 * SS, c + 6 * SS, c + h + 6 * SS], fill=col)
+    finish(img, "maze_array.png")
+
+
+def maze_art():
+    maze_wall()
+    maze_trail()
+    maze_spark()
+    maze_exit()
+    maze_impurity()
+    maze_array()
+
+
 if __name__ == "__main__":
     import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "maze":
+        maze_art()
+        sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "guide":
         guide_art()
         sys.exit()

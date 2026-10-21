@@ -94,5 +94,11 @@
   "icons/icon_RootRebirthPill.png": "rbxassetid://89728852679228",
   "guide_hole.png": "rbxassetid://137295474944958",
   "guide_arrow.png": "rbxassetid://74720178953752",
-  "guide_trail.png": "rbxassetid://140502177200398"
+  "guide_trail.png": "rbxassetid://140502177200398",
+  "maze_wall.png": "rbxassetid://104506731895191",
+  "maze_trail.png": "rbxassetid://124180097363007",
+  "maze_spark.png": "rbxassetid://122478768634138",
+  "maze_exit.png": "rbxassetid://73145445285954",
+  "maze_impurity.png": "rbxassetid://94388982564204",
+  "maze_array.png": "rbxassetid://70680442030496"
 }

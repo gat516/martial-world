@@ -58,6 +58,30 @@ next frame, and the client sends `CultivationAction("cancel", id)` instead of
   `ACCURACY_WEIGHT`, `FIRST_RUN_*`, `MIN_DURATION_FRACTION`, `RUN_TIMEOUT_GRACE`,
   `PEAK_RADIUS`.
 
+## Maze Formation: feel and look
+- **Drag feel.** A drag doesn't move the spark directly: it feeds a short lead
+  (at most `MAX_LAG` cells) that the spark glides after (`FOLLOW`, never faster
+  than `MAX_SPEED` cells/s), so it moves smoothly and a flick can't fling it
+  through the maze. `DRAG_GAIN` is 0.6 spark px per mouse px on PC and 0.9 per
+  finger px on touch. On PC the mouse is pinned (`MouseBehavior =
+  LockCurrentPosition`) and hidden while the button is held, so the pointer
+  can't drift off the board while walls hold the spark; the game's own mouse
+  mode and pointer (ShiftLock/Cursor) come back on release, also when the
+  release happened outside the window. WASD / arrows walk it at `KEY_SPEED`.
+  The spark swells a little while it's held (grip) and breathes otherwise.
+- **Look: a qi formation on lacquer.** Walls are engraved gold array lines with a
+  faint warm aura (`maze_wall.png`), the walked path is a glowing jade qi trail
+  (`maze_trail.png`), the spark is a white-hot qi orb with two wisps
+  (`maze_spark.png`), the way out is a slowly turning gold trigram seal
+  (`maze_exit.png`), impurities are pulsing violet miasma knots
+  (`maze_impurity.png`), and a faint bagua array plate (`maze_array.png`, `Board.Array`)
+  sits under the maze. Art: `art/ui/draw_ui.py maze`. Walls and trail are
+  9-sliced from one radially symmetric image (SliceCenter Rect(63, 63, 65, 65),
+  `SliceScale` set per board size by Maze.luau), so the same image makes
+  horizontal and vertical strokes and their round caps meet as rounded joints.
+  Knobs at the top of `Maze.luau`: `WALL_SHARE`/`WALL_PX` (the gold line),
+  `WALL_CORE`, `TRAIL_SHARE`/`TRAIL_PX`, `SPARK_SIZE`, `EXIT_SIZE`, `IMPURITY_SIZE`.
+
 ## Known gaps
 - The score is client-reported (clamped and time-checked, not replayed).
 - Thread has a local `SCATTER_SECONDS` constant in its file rather than in Config.

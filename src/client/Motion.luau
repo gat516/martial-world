@@ -116,6 +116,14 @@ function Motion.pulse(obj: GuiObject)
 	end
 end
 
+-- An endless soft bob of `pixels` along Y from obj's authored position (scroll
+-- hints). Call once; the tween runs while obj exists.
+local BOB = TweenInfo.new(0.55, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+function Motion.bob(obj: GuiObject, pixels: number)
+	local base = obj.Position
+	Motion.tween(obj, { Position = base + UDim2.fromOffset(0, pixels) }, BOB)
+end
+
 function Motion.stopPulse(obj: GuiObject)
 	local scale = scaleOf(obj)
 	if scale and pulsing[scale] then

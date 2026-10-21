@@ -111,5 +111,10 @@
   "enemybar_back.png": "rbxassetid://131295214395641",
   "enemybar_rim_far.png": "rbxassetid://110079661251126",
   "enemybar_rim_gold.png": "rbxassetid://133768153785008",
-  "enemybar_ghost.png": "rbxassetid://138048271555699"
+  "enemybar_ghost.png": "rbxassetid://138048271555699",
+  "scroll_fade.png": "rbxassetid://113477382033322",
+  "scroll_more.png": "rbxassetid://123518918402754",
+  "scroll_thumb_top.png": "rbxassetid://79466160523433",
+  "scroll_thumb_mid.png": "rbxassetid://75934409239828",
+  "scroll_thumb_bottom.png": "rbxassetid://81073831199278"
 }

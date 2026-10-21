@@ -96,7 +96,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
 | Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, WorldFX/* (Kit, SkyGrade, TreasureFX), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |
 | Onboarding, quests, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Gates, Config.Travel | Onboarding, TravelMenu, GateMarkers, Veil |
-| UI and HUD | [ui](systems/ui.md) | - | - | Hud, Menus, Layout, Motion, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
+| UI and HUD | [ui](systems/ui.md) | - | - | Hud, Menus, Layout, Motion, ScrollHint, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |
 | Map: layout, art direction, anchors scripts depend on | [map](systems/map.md) | Peaks (Map.Sect.SpiritPeaks), Tribulation (CENTER), Travel (TravelGate arrays) | Gates, Config.Travel, Config.Tribulation, Config.Build | DayNight (Map.Sect.Ambience), MyPeak |
 | Testbed place (baseplate arena, `test.project.json`) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |

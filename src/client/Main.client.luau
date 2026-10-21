@@ -56,6 +56,7 @@ local WorldPrompts = require(script.Parent.WorldPrompts)
 local RegionBanner = require(script.Parent.RegionBanner)
 local SelfCard = require(script.Parent.SelfCard)
 local RootReveal = require(script.Parent.RootReveal)
+local ScrollHint = require(script.Parent.ScrollHint)
 
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
@@ -63,6 +64,7 @@ Hud.init(gui)
 HerbAnimator.init()
 Menus.init(gui) -- before anything registers a window
 Motion.buttons(gui)
+ScrollHint.init(gui) -- the "more below" fade and chevron on every scrolling list
 for _, name in { "CultivatePrompt", "BreakthroughButton", "Toast", "ElderLine", "Objective" } do
 	Motion.appear(gui:FindFirstChild(name, true) :: GuiObject)
 end

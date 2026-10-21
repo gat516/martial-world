@@ -58,6 +58,15 @@ How we apply it:
      soft pulse) until it's pressed. Only for the first-session beats, never
      mid-fight, never for lessons.
    - `button` "Travel" + `to`: spotlight Travel, then the destination in the menu.
+   - `button` + `point` (+ `say`): no veil and nothing blocked, but a bobbing
+     gold pointer beside the control (`Hud.Guide.Pointer`, tip toward it, from
+     its outer side) and a short step line in the callout. For lessons that
+     need more than a pulse (RootPill). Lifts once the control is pressed.
+   - In-window controls (`INSIDE` in `Guide.luau`, e.g. `RootPill`): the
+     window's script marks the control with a `GuideKey` attribute (and may
+     give it its own callout line, `GuideSay`); until that window is open the
+     guide points at the control that opens it. A target inside a scrolling
+     list is scrolled into view.
    - `place`: a path to walk (a soft trail of light on the ground plus an
      edge-of-screen arrow when it's off screen) to the target.
    - The elder's line sits beside the spotlight; one line, auto-hides.
@@ -80,11 +89,31 @@ to the first kill.
 - Beats are kept **by id** in `data.beats` (schema v8; v7's position count is
   migrated), so beats can be inserted or reordered. `travel = true` marks the
   beat from which the formation is taught (Root).
-- **Lessons** (`Quests.Lessons`, `data.lessons`), in priority order: Home
-  (QC4, nothing planted: walk to your garden), WeaponRack (QC7, a single weapon
-  class: the Main Peak rack), Bottleneck, DaoPractice (QC7), Method, RootPill. In free play, the first lesson whose condition holds says
+- **Lessons** (`Quests.Lessons`, `data.lessons`), in priority order: RootPill
+  (first, so a standing lesson like DaoPractice can't hide it), Home
+  (QC4, nothing planted: walk to your garden), Bottleneck, WeaponRack (QC7, a
+  single weapon class: the Main Peak rack), DaoPractice (QC7), Method. In free
+  play, the first lesson whose condition holds says
   its elder line once ever (`QuestState.lesson`), and its guide shows for the
-  rest of that session while the condition still holds.
+  rest of that session while the condition still holds (`persist`: every
+  session until done). A lesson's `objective` replaces the objective line
+  while its guide shows.
+- **Root pill (decided 2026-10-21):** a tested root plus a pill that can act
+  (a Root Rebirth Pill, or a Marrow Washing Pill below the purest grade, and no
+  reforming root waiting) brings the elder's line and a step-by-step guide:
+  Cultivate ("Sit in meditation") -> the Spirit Root tile ("Open your Spirit
+  Root") -> the pill's Absorb button on that page ("Absorb it to purify/reform
+  your root"), each with the pointer and callout, the objective reading
+  "Meditate, open Spirit Root and absorb the pill". It ends for good once a pill
+  is absorbed (the held count drops: `data.lessons.RootPillUsed`). Pills drop
+  from early wolves, so it is `early`: it doesn't wait for free play, but steps
+  in during the beats only **between steps**: on the sect's safe ground (no
+  fights there), while the beat's own guide isn't a spotlight (`dim`: the hook
+  steps, a full bar's Break Through), and it only takes the guide while the
+  player isn't seated (a seat is usually a beat's step under way). Once it has
+  the guide it keeps it, seated or not, until one of those stops holding;
+  then the beat resumes. No veil (`dim` stays for the first-session hook beats
+  only); the pointer is the stronger-than-a-pulse indicator.
 - **Guides** (`QuestState.guide`), computed per tick from where the player is
   and what they're doing: e.g. Circulate spotlights Cultivate (dim), then the
   seated Circulate tile; Root spotlights Travel -> Main Peak, then walks to the
@@ -111,7 +140,9 @@ to the first kill.
   hands `QuestState.guide` to `Guide`.
 - `src/client/Guide.luau`: shows the guide. Button keys map to HUD controls in
   one table (`BUTTONS`), resolved every frame since seated tiles come and go;
-  a non-dim button just pulses. With `dim`, `Hud.Guide.Dim` lays a gentle ink
+  in-window keys (`INSIDE`) find the open window's control by its `GuideKey`
+  attribute; a non-dim button pulses, and with `point` gets the pointer and
+  callout too. With `dim`, `Hud.Guide.Dim` lays a gentle ink
   veil (a soft-edged `Hole` around the control plus four side frames), every
   other HUD control turns non-interactable (touch Jump and Dash excepted; the
   veil itself sinks no input, so walking and the camera work), and

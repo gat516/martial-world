@@ -12,6 +12,16 @@
 --           while a window the guide doesn't point into is open.
 --   to      with button "Travel": once the travel menu is open, the destination
 --           button in it (named after the gate id) is the target instead.
+--           In-window keys (INSIDE, e.g. "RootPill") work the same way for any
+--           window: the control marks itself with a `GuideKey` attribute, and
+--           until the window holding it is open the guide points at the control
+--           that opens it. A target inside a scrolling list is scrolled into view.
+--   point   without dim: a bobbing gold pointer beside the control (Guide.Pointer)
+--           and the guide's line in the callout, nothing greyed out or blocked.
+--           It lifts like the spotlight: once the control is pressed.
+--   say     the short line for the callout at this step (else the elder's line).
+--           An in-window control's own GuideSay attribute wins while it's the
+--           target (e.g. "Absorb it to temper your root" on the pill's button).
 --   place   a world target to walk to: a soft beam of light from the character
 --           toward it (Hud.GuideTrail), a marker over it (Hud.GuideMarker) and,
 --           while it's off screen, an arrow at the screen edge (Guide.Arrow).
@@ -31,6 +41,7 @@ local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local MyPeak = require(script.Parent.MyPeak)
+local ScrollHint = require(script.Parent.ScrollHint)
 
 local player = Players.LocalPlayer
 
@@ -54,12 +65,19 @@ local BUTTONS: { [string]: { string } } = {
 -- Tiles inside the seated Practice row -> the main-row tile that opens it.
 local FOLDED: { [string]: string } = { PracticeTechnique = "Practice", PracticeDao = "Practice" }
 
+-- Controls inside a window -> the key of the control that opens that window.
+-- The control itself carries the attribute GuideKey = <key> (set by the window's
+-- script on the row it builds, e.g. MeditationMenu's pill rows).
+local INSIDE: { [string]: string } = { RootPill = "SpiritRoot" }
+
 local HOLE_PAD = 6 -- clear space around the control before the veil starts
 local HOLE_FADE = 24 -- the hole art's soft edge (48px corners at SliceScale 0.5)
 local FAR = 4000 -- the veil's side pieces reach this far past the screen
 local CALLOUT_GAP = 10
 local EDGE = 12 -- keep the callout and arrow this far inside the screen
 local ARROW_TOP = 80 -- the arrow stays below the chat and the top-right tiles
+local POINTER_GAP = 4 -- between a control and the pointer's tip
+local POINTER_BOB = 5 -- px
 local NEAR = 8 -- studs: close enough, the path hides
 local TRAIL_MAX = 28 -- studs: the beam reaches this far toward the target
 local REPICK = 1 -- seconds between picks of the nearest target
@@ -75,13 +93,16 @@ local sides: { [string]: Frame } = {}
 local callout: GuiObject
 local calloutLine: TextLabel
 local arrow: ImageLabel
+local pointer: ImageLabel
 local marker: BillboardGui
 local trail: Beam
 local trailStart: Attachment
 local trailEnd: Attachment
 
-local guide: { button: string?, to: string?, dim: boolean?, place: string? }? = nil
+type GuideSpec = { button: string?, to: string?, dim: boolean?, place: string?, point: boolean?, say: string? }
+local guide: GuideSpec? = nil
 local line = ""
+local pointing = false
 local target: GuiButton? = nil -- the control currently pointed at
 local pressed: GuiButton? = nil -- pressed since it became the target: no spotlight
 local pressConn: RBXScriptConnection? = nil
@@ -96,10 +117,49 @@ local stepConn: RBXScriptConnection? = nil
 
 --[[ HUD controls ]]
 
+-- A shown control marked GuideKey = key inside the open window, if any.
+local function insideOpenWindow(key: string): GuiButton?
+	local open = Menus.current()
+	if not open then
+		return nil
+	end
+	for _, inst in open:GetDescendants() do
+		if inst:IsA("GuiButton") and inst:GetAttribute("GuideKey") == key and inst.Visible then
+			return inst
+		end
+	end
+	return nil
+end
+
+local function resolveKey(key: string): GuiButton?
+	local path = BUTTONS[key]
+	if not path then
+		return nil
+	end
+	local node: Instance? = gui
+	for _, name in path do
+		node = node and node:FindFirstChild(name)
+	end
+	if not (node and node:IsA("GuiButton")) then
+		return nil
+	end
+	if FOLDED[key] and not node.Visible then
+		-- the Practice row is closed: point at the tile that opens it
+		local parent = node.Parent :: Instance
+		local opener = parent:FindFirstChild(FOLDED[key])
+		return if opener and opener:IsA("GuiButton") then opener else node
+	end
+	return node
+end
+
 local function resolve(): GuiButton?
 	local g = guide
 	if not g or not g.button then
 		return nil
+	end
+	local opener = INSIDE[g.button]
+	if opener then
+		return insideOpenWindow(g.button) or resolveKey(opener)
 	end
 	if g.button == "Travel" and g.to then
 		local menu = gui:FindFirstChild("TravelMenu") :: GuiObject?
@@ -111,24 +171,7 @@ local function resolve(): GuiButton?
 			end
 		end
 	end
-	local path = BUTTONS[g.button]
-	if not path then
-		return nil
-	end
-	local node: Instance? = gui
-	for _, name in path do
-		node = node and node:FindFirstChild(name)
-	end
-	if not (node and node:IsA("GuiButton")) then
-		return nil
-	end
-	if FOLDED[g.button] and not node.Visible then
-		-- the Practice row is closed: point at the tile that opens it
-		local parent = node.Parent :: Instance
-		local opener = parent:FindFirstChild(FOLDED[g.button])
-		return if opener and opener:IsA("GuiButton") then opener else node
-	end
-	return node
+	return resolveKey(g.button)
 end
 
 -- Whether a control is actually on screen (it and every frame above it shown).
@@ -208,6 +251,19 @@ local function wantSpotlight(button: GuiButton?): boolean
 		and not otherWindowOpen(button)
 end
 
+local function wantPointer(button: GuiButton?): boolean
+	local g = guide
+	return g ~= nil
+		and g.point == true
+		and not spotlit
+		and button ~= nil
+		and pressed ~= button
+		and shown(button)
+		and not inCombat()
+		and not Menus.isCalm()
+		and not otherWindowOpen(button)
+end
+
 -- The control's own box, without the pulse's swell.
 local function baseBox(button: GuiButton): (Vector2, Vector2)
 	local size, pos = button.AbsoluteSize, button.AbsolutePosition
@@ -216,6 +272,67 @@ local function baseBox(button: GuiButton): (Vector2, Vector2)
 	local centre = pos + size / 2
 	local base = size / s
 	return centre - base / 2, base
+end
+
+-- The guide's line beside a control (pos relative to the Guide frame): below a
+-- control in the top half, above one in the bottom half, `clear` px away,
+-- centred on it and kept on screen.
+local function placeCallout(pos: Vector2, size: Vector2, clear: number)
+	local area = root.AbsoluteSize
+	local w, h = callout.AbsoluteSize.X, callout.AbsoluteSize.Y
+	local cx = pos.X + size.X / 2
+	local below = pos.Y + size.Y / 2 < area.Y / 2
+	local y = if below then pos.Y + size.Y + clear + CALLOUT_GAP else pos.Y - clear - CALLOUT_GAP - h
+	local x = math.clamp(cx - w / 2, EDGE, math.max(EDGE, area.X - w - EDGE))
+	callout.Position = UDim2.fromOffset(x, math.clamp(y, EDGE, math.max(EDGE, area.Y - h - EDGE)))
+end
+
+-- The pointer beside a control, its tip toward it: below a control near the
+-- top, above one near the bottom, else on the control's outer side (away from
+-- the screen's middle: in a centred window that's toward its edge, past the
+-- row's text). The callout goes past the pointer: below or above it, or out to
+-- the side when there's room there, else above or below the control.
+local function placePointer(button: GuiButton)
+	local area = root.AbsoluteSize
+	local pos, size = baseBox(button)
+	pos -= root.AbsolutePosition
+	local half = pointer.AbsoluteSize / 2
+	local bob = (math.sin(os.clock() * 6) + 1) / 2 * POINTER_BOB
+	local cx, cy = pos.X + size.X / 2, pos.Y + size.Y / 2
+	local reach = POINTER_GAP + half.Y * 2 + POINTER_BOB -- the pointer's whole run
+	if cy < area.Y * 0.3 then
+		pointer.Position = UDim2.fromOffset(cx, pos.Y + size.Y + POINTER_GAP + half.Y + bob)
+		pointer.Rotation = -90
+		placeCallout(pos, size, reach)
+		return
+	elseif cy > area.Y * 0.7 then
+		pointer.Position = UDim2.fromOffset(cx, pos.Y - POINTER_GAP - half.Y - bob)
+		pointer.Rotation = 90
+		placeCallout(pos, size, reach)
+		return
+	end
+	local w, h = callout.AbsoluteSize.X, callout.AbsoluteSize.Y
+	local y = math.clamp(cy - h / 2, EDGE, math.max(EDGE, area.Y - h - EDGE))
+	if cx > area.X / 2 then
+		-- right of the control, pointing left
+		pointer.Position = UDim2.fromOffset(pos.X + size.X + POINTER_GAP + half.X + bob, cy)
+		pointer.Rotation = 180
+		local x = pos.X + size.X + reach + CALLOUT_GAP
+		if x + w <= area.X - EDGE then
+			callout.Position = UDim2.fromOffset(x, y)
+		else
+			placeCallout(pos, size, 0)
+		end
+	else
+		pointer.Position = UDim2.fromOffset(pos.X - POINTER_GAP - half.X - bob, cy)
+		pointer.Rotation = 0
+		local x = pos.X - reach - CALLOUT_GAP - w
+		if x >= EDGE then
+			callout.Position = UDim2.fromOffset(x, y)
+		else
+			placeCallout(pos, size, 0)
+		end
+	end
 end
 
 local function placeSpotlight(button: GuiButton)
@@ -237,14 +354,7 @@ local function placeSpotlight(button: GuiButton)
 	sides.Right.Position = UDim2.fromOffset(r, t)
 	sides.Right.Size = UDim2.fromOffset(FAR + area.X - r, b - t)
 
-	-- the elder's line beside it: below a control in the top half, above one
-	-- in the bottom half, centred on it and kept on screen
-	local w, h = callout.AbsoluteSize.X, callout.AbsoluteSize.Y
-	local cx = pos.X + size.X / 2
-	local below = pos.Y + size.Y / 2 < area.Y / 2
-	local y = if below then pos.Y + size.Y + HOLE_PAD + CALLOUT_GAP else pos.Y - HOLE_PAD - CALLOUT_GAP - h
-	local x = math.clamp(cx - w / 2, EDGE, math.max(EDGE, area.X - w - EDGE))
-	callout.Position = UDim2.fromOffset(x, math.clamp(y, EDGE, math.max(EDGE, area.Y - h - EDGE)))
+	placeCallout(pos, size, HOLE_PAD)
 end
 
 local function setSpotlight(on: boolean, button: GuiButton?)
@@ -284,6 +394,16 @@ local function retarget(button: GuiButton?)
 		block(button)
 	end
 	setPulse(button)
+	if button and button:FindFirstAncestorWhichIsA("ScrollingFrame") then
+		-- bring it into the list's view now, and again once the window's pop
+		-- and the list's layout have settled
+		ScrollHint.reveal(button)
+		task.delay(0.3, function()
+			if target == button then
+				ScrollHint.reveal(button)
+			end
+		end)
+	end
 end
 
 --[[ Walking guide ]]
@@ -452,9 +572,22 @@ local function step()
 	local button = resolve()
 	retarget(button)
 	setSpotlight(wantSpotlight(button), button)
+	pointing = wantPointer(button)
+	if pointing and button then
+		placePointer(button)
+	end
+	pointer.Visible = pointing
 	stepPath(now)
-	callout.Visible = spotlit and line ~= ""
-	root.Visible = spotlit or arrow.Visible or dim.Visible
+	-- an in-window control can carry its own step line (GuideSay attribute)
+	local own = if button then button:GetAttribute("GuideSay") else nil
+	local text = if type(own) == "string" and own ~= "" then own
+		elseif guide and guide.say and guide.say ~= "" then guide.say
+		else line
+	if calloutLine.Text ~= text then
+		calloutLine.Text = text
+	end
+	callout.Visible = (spotlit or pointing) and text ~= ""
+	root.Visible = spotlit or pointing or arrow.Visible or dim.Visible
 	if not guide then
 		hidePath()
 		if not dim.Visible and stepConn then
@@ -473,13 +606,18 @@ end
 
 -- The server's current guide (nil: none) and the elder's line to show beside a
 -- spotlight.
+local function keyOf(g: GuideSpec?): string
+	if not g then
+		return ""
+	end
+	return `{g.button or ""}/{g.to or ""}/{g.dim == true}/{g.place or ""}/{g.point == true}/{g.say or ""}`
+end
+
 function Guide.set(g: any, elderLine: string?)
-	local key = if g then `{g.button or ""}/{g.to or ""}/{g.dim == true}/{g.place or ""}` else ""
-	local old = guide
-	local oldKey = if old then `{old.button or ""}/{old.to or ""}/{old.dim == true}/{old.place or ""}` else ""
+	local key = keyOf(g)
+	local oldKey = keyOf(guide)
 	if elderLine and elderLine ~= "" then
 		line = elderLine
-		calloutLine.Text = line
 	end
 	if key ~= oldKey then
 		guide = g
@@ -494,7 +632,9 @@ function Guide.set(g: any, elderLine: string?)
 	run()
 end
 
--- Whether the spotlight (with its own elder line) is up right now.
+-- Whether the spotlight (with the elder's line beside it) is up right now. The
+-- pointer's callout carries its own short `say` line, so the elder still
+-- speaks in the usual place while it shows.
 function Guide.spotlit(): boolean
 	return spotlit
 end
@@ -524,6 +664,7 @@ function Guide.init(screenGui: ScreenGui)
 	callout = root:FindFirstChild("Callout") :: GuiObject
 	calloutLine = callout:FindFirstChild("Line") :: TextLabel
 	arrow = root:FindFirstChild("Arrow") :: ImageLabel
+	pointer = root:FindFirstChild("Pointer") :: ImageLabel
 	Motion.appear(callout)
 
 	marker = (gui:FindFirstChild("GuideMarker") :: BillboardGui):Clone()

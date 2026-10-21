@@ -1655,6 +1655,102 @@ def enemy_bar_art():
     eb_strip()
     eb_skull()
 
+
+# ---------------------------------------------------------------- scroll hints
+
+
+def scroll_fade():
+    """The "more below" fade over a scrolling list's bottom edge, 64x64: ink
+    lacquer from clear at the top to dense at the bottom (smoothstep). Every
+    column is the same, so it stretches sideways at any width; shown with
+    ScaleType Stretch at ~48px tall (Hud.ScrollHint.Hint.Fade)."""
+    W, H = 64, 64
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(H):
+        t = y / (H - 1)
+        a = t * t * (3 - 2 * t)
+        for x in range(W):
+            px[x, y] = (8, 12, 15, int(250 * a))
+    img.save(os.path.join(OUT, "scroll_fade.png"))
+    print("wrote scroll_fade.png", img.size)
+
+
+def scroll_more():
+    """The bobbing "scroll for more" seal, 128px: a round dark-jade lacquer disc
+    with a gold rim and a gold downward chevron, ink outline and soft top light.
+    It straddles the list's bottom edge, so the disc keeps it readable over rows
+    and frame alike. Stretched, shown at ~30px (Hud.ScrollHint.Hint.More)."""
+    N = 128 * SS
+    c = N / 2
+    img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    R = 54 * SS
+    d.ellipse([c - R, c - R, c + R, c + R], fill=INK)
+    r = R - 4 * SS
+    d.ellipse([c - r, c - r, c + r, c + r], fill=GOLD_LO)
+    r2 = r - 3 * SS
+    disc = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    gradient_rect(disc, (c - r2, c - r2, c + r2, c + r2), (40, 64, 64), (10, 18, 22), radius=int(r2))
+    img.alpha_composite(disc)
+    d.ellipse([c - r, c - r, c + r, c + r], outline=GOLD, width=3 * SS)
+    shape = Image.new("L", (N, N), 0)
+    sd = ImageDraw.Draw(shape)
+    y = c + 6 * SS
+    sd.line([(c - 26 * SS, y - 14 * SS), (c, y + 12 * SS), (c + 26 * SS, y - 14 * SS)], fill=255, width=14 * SS, joint="curve")
+    outline = shape.filter(ImageFilter.MaxFilter(4 * SS + 1))
+    img.paste(Image.new("RGBA", (N, N), INK), (0, 0), outline)
+    grad = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(grad)
+    top, bot = (255, 236, 180), (210, 156, 70)
+    for yy in range(N):
+        t = yy / N
+        gd.line([(0, yy), (N, yy)], fill=tuple(int(top[i] + (bot[i] - top[i]) * t) for i in range(3)) + (255,))
+    img.paste(grad, (0, 0), shape)
+    hl = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    ImageDraw.Draw(hl).arc([c - r + 6 * SS, c - r + 6 * SS, c + r - 6 * SS, c + r - 6 * SS], 200, 290, fill=(255, 250, 230, 110), width=3 * SS)
+    img.alpha_composite(hl)
+    finish(shadow_under(img, blur=3, offset=2, alpha=140), "scroll_more.png")
+
+
+def scroll_thumb():
+    """A scroll bar thumb drawn in three parts for ScrollingFrame Top/Mid/Bottom
+    Image (32px wide, shown at ScrollBarThickness ~6, ScrollBarImageColor3 white):
+    a gold bar lit from the left with an ink outline. Mid is identical in every
+    row, so it stretches cleanly; Top and Bottom are its rounded caps."""
+    W = 32 * SS
+
+    def strip(h, cap):
+        img = Image.new("RGBA", (W, h), (0, 0, 0, 0))
+        shape = Image.new("L", (W, h), 0)
+        d = ImageDraw.Draw(shape)
+        if cap == "top":
+            d.rounded_rectangle([0, 0, W - 1, h + W], radius=W // 2, fill=255)
+        elif cap == "bottom":
+            d.rounded_rectangle([0, -W - 1, W - 1, h - 1], radius=W // 2, fill=255)
+        else:
+            d.rectangle([0, 0, W - 1, h - 1], fill=255)
+        inner = shape.filter(ImageFilter.MinFilter(6 * SS + 1))
+        img.paste(Image.new("RGBA", (W, h), INK), (0, 0), shape)
+        grad = Image.new("RGBA", (W, h), (0, 0, 0, 0))
+        gd = ImageDraw.Draw(grad)
+        left, right = (252, 226, 156), (176, 124, 50)
+        for x in range(W):
+            t = x / (W - 1)
+            gd.line([(x, 0), (x, h)], fill=tuple(int(left[i] + (right[i] - left[i]) * t) for i in range(3)) + (255,))
+        img.paste(grad, (0, 0), inner)
+        return img
+
+    for cap, name in (("top", "scroll_thumb_top.png"), ("mid", "scroll_thumb_mid.png"), ("bottom", "scroll_thumb_bottom.png")):
+        finish(strip(W, cap), name)
+
+
+def scroll_art():
+    scroll_fade()
+    scroll_more()
+    scroll_thumb()
+
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "enemybar":
@@ -1662,6 +1758,9 @@ if __name__ == "__main__":
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "maze":
         maze_art()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "scroll":
+        scroll_art()
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "guide":
         guide_art()

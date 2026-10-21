@@ -10,7 +10,8 @@
 --   Root        the spirit root's card and its exact numbers (Note), the same
 --               text as the Self card, then a row per root pill the player holds
 --               (Marrow Washing raises the grade, Root Rebirth reforms the
---               element; Absorb = InventoryAction "use"). While a reformed
+--               element; Absorb = InventoryAction "use", marked GuideKey
+--               "RootPill" for the onboarding guide). While a reformed
 --               element is pending it shows the old and the new root instead,
 --               each with its choice (CultivationAction "root", keepNew).
 -- The panel is a window (Menus): the seated row and the HUD step aside while it's
@@ -89,6 +90,8 @@ type RowSpec = {
 	ready: boolean?, -- jade and bright; else lacquer and dimmed
 	plain: boolean?, -- lacquer but bright: a real choice that isn't the suggested one
 	onAction: (() -> ())?,
+	guideKey: string?, -- the onboarding guide can point at this row's button (Guide INSIDE)
+	guideSay: string?, -- and the guide's callout line while it does
 }
 
 local function addRow(order: number, spec: RowSpec)
@@ -118,6 +121,8 @@ local function addRow(order: number, spec: RowSpec)
 	blurb.Visible = spec.blurb ~= ""
 	local button = row:FindFirstChild("Action") :: ImageButton
 	button.Visible = spec.action ~= nil
+	button:SetAttribute("GuideKey", spec.guideKey)
+	button:SetAttribute("GuideSay", spec.guideSay)
 	if spec.action then
 		local label = button:FindFirstChild("Label") :: TextLabel
 		label.Text = spec.action
@@ -269,6 +274,8 @@ local function pillRows(root: Roots.Root): number
 				blurb = "",
 				action = if purest then nil else "Absorb",
 				ready = true,
+				guideKey = "RootPill",
+				guideSay = if id == "MarrowWashingPill" then "Absorb it to purify your root" else "Absorb it to reform your root",
 				onAction = function()
 					send(inventoryRemote, false, "use", id)
 				end,

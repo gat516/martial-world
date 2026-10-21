@@ -19,6 +19,15 @@ cursor, settings and the admin panel.
 - A ScrollingFrame whose rows size themselves (`AutomaticSize` Y) gets its
   `CanvasSize` from its `UIListLayout.AbsoluteContentSize` in script;
   `AutomaticCanvasSize` doesn't count those rows and leaves the list unscrollable.
+- Scrolling lists say so (decided 2026-10-21: it wasn't obvious that the
+  meditation panel's Spirit Root page scrolled to its pill rows). Every
+  vertical ScrollingFrame in the Hud gets, from `ScrollHint`, an ink fade over
+  its bottom edge and a small bobbing gold chevron seal straddling it, shown
+  only while there's more below; they go at the end of the list or when it all
+  fits. The scroll bar is drawn art too: a gold thumb with an ink outline
+  (`TopImage`/`MidImage`/`BottomImage`, `ScrollBarImageColor3` white,
+  thickness 6 in windows and 4 in the build bar). A new scrolling list needs
+  nothing extra: `ScrollHint.init` picks up every ScrollingFrame in the Hud.
   The top-left is always Roblox's chat. On PC, shift lock switches off while
   any window (reward card and minigames included) is open, so the mouse is free,
   and comes back when it closes (`ShiftLock`).
@@ -98,7 +107,11 @@ cursor, settings and the admin panel.
   HUD controls ignoring taps until it's pressed. Walking goals get a chevron
   beam (`Hud.GuideTrail`, `guide_trail.png`), a bobbing gold arrow over the
   target (`Hud.GuideMarker`) and the same arrow at the screen edge when it's off
-  screen (`guide_arrow.png`). Art in `art/ui/draw_ui.py guide`.
+  screen (`guide_arrow.png`). Lessons that need more than a pulse (the root
+  pill) use `point`: the same arrow bobbing beside the control
+  (`Hud.Guide.Pointer`) with a short line in the callout, no veil. A guide can
+  point into an open window (the pill's Absorb button) and scrolls it into
+  view. Art in `art/ui/draw_ui.py guide`.
 - World prompts are drawn in our own style, one target in focus at a time: on their
   target with mouse, keyboard or gamepad; on touch in a fixed column above the right
   end of the vitals and hotbar (`Prompts.Dock`, mirrors `Hud.Stack`'s box), so they
@@ -128,6 +141,9 @@ cursor, settings and the admin panel.
   `SeedPicker.luau`, `PlantingBar.luau`, `PlantTag.luau`.
 - `BreakthroughView.luau`, `Meditation.luau` (seated tiles, calm view),
   `MeditationMenu.luau` (its panel), `Bottleneck.luau`, `CirculationMinigame.luau`.
+- `ScrollHint.luau` (the "more below" fade and chevron over every scrolling
+  list, `Hud.ScrollHint`; art `draw_ui.py scroll`; `ScrollHint.reveal` scrolls a
+  control into view).
 - `Cursor.luau`, `ShiftLock.luau` (Alt), `LockOn.luau` reticle and hint.
 - `Settings.luau` (volumes, Auto combat, lock hint), `AdminPanel.luau` (F2, admins on PC).
 - `State.luau`: the latest `PlayerState` snapshot with change listeners.

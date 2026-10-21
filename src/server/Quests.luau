@@ -11,16 +11,23 @@
 -- Lessons teach the systems a player meets later (first bottleneck, Practice
 -- Dao, a method, a root pill): when one's condition first holds, the elder says
 -- its line once (data.lessons) and its guide shows for the rest of that session
--- while the condition holds. They never dim the HUD.
+-- while the condition holds (`persist`: in later sessions too). They never dim
+-- the HUD; `point` in their guide adds a pointer and a callout line instead.
+-- Lessons fire in free play, except `early` ones, which may also step in
+-- during the onboarding beats, between steps (see earlyLesson).
 --
 -- Guide (sent in QuestState as `guide`; the client resolves the names):
 --   button  a HUD control by key: "Cultivate" (sit), "Circulate", "Breakthrough",
 --           "Practice", "PracticeTechnique", "PracticeDao" (the Practice row's
 --           tiles; the client points at Practice until that row is open),
 --           "Method", "SpiritRoot" (seated tiles),
---           "Travel", "Attack", "Inventory", "Self"
+--           "Travel", "Attack", "Inventory", "Self",
+--           "RootPill" (the Absorb button on the Spirit Root page; until that
+--           page is open the client points at the SpiritRoot tile)
 --   to      with button "Travel": the destination gate id to point at in the menu
 --   dim     grey out the rest of the HUD until that button is pressed
+--   point   (no dim) a bobbing pointer and a callout beside the button
+--   say     the callout's short line for this step
 --   place   a world target to walk to: "TestingStone", "Elder", "QuestBoard",
 --           "QiNode" (nearest), "Enemy" (nearest living), "Array" (nearest
 --           array of any kind), "Array:<gate id>", "Garden" (nearest HerbPlot
@@ -50,7 +57,7 @@ local DaoPacing = require(ReplicatedStorage.Shared.Pacing).DaoPractice
 
 local questRemote = ReplicatedStorage.Remotes.QuestState :: RemoteEvent
 
-export type Guide = { button: string?, to: string?, dim: boolean?, place: string? }
+export type Guide = { button: string?, to: string?, dim: boolean?, place: string?, point: boolean?, say: string? }
 
 type Beat = {
 	id: string,
@@ -65,8 +72,11 @@ type Beat = {
 type Lesson = {
 	id: string,
 	elder: string,
+	objective: string?, -- replaces the objective line while its guide shows
 	when: (Player, PlayerData.Data) -> boolean,
 	guide: ((Player, PlayerData.Data) -> Guide?)?,
+	early: boolean?, -- may step in during the onboarding beats (earlyLesson)
+	persist: boolean?, -- its guide comes back every session while `when` holds
 }
 
 local function stageIndex(data: PlayerData.Data): number
@@ -235,6 +245,27 @@ local function bottlenecked(data: PlayerData.Data): boolean
 	return false
 end
 
+-- Root pills held, and whether one can be absorbed right now (a Marrow
+-- Washing Pill does nothing to a root at its purest; a reforming root must be
+-- settled before another pill).
+local ROOT_PILLS = { "MarrowWashingPill", "RootRebirthPill" }
+
+local function rootPills(data: PlayerData.Data): number
+	local n = 0
+	for _, id in ROOT_PILLS do
+		n += data.items[id] or 0
+	end
+	return n
+end
+
+local function rootPillReady(data: PlayerData.Data): boolean
+	if not Roots.tested(data.root) or data.root.pending ~= "" then
+		return false
+	end
+	return (data.items.RootRebirthPill or 0) > 0
+		or ((data.items.MarrowWashingPill or 0) > 0 and Roots.nextGrade(data.root.grade) ~= nil)
+end
+
 local Quests = {}
 
 -- Called with (player, beatIndex, beatId) when a beat is completed, for analytics.
@@ -350,6 +381,24 @@ local FREE_PLAY = #Quests.Beats
 
 Quests.Lessons = {
 	{
+		-- first so no standing lesson (DaoPractice holds for good) hides it
+		id = "RootPill",
+		elder = "A root pill! It can temper your very root. Sit in meditation, open your Spirit Root and absorb it.",
+		objective = "Meditate, open Spirit Root and absorb the pill",
+		early = true,
+		persist = true,
+		-- until the first pill is absorbed (data.lessons.RootPillUsed, set in check)
+		when = function(_, data)
+			return not data.lessons.RootPillUsed and rootPillReady(data)
+		end,
+		guide = function(player)
+			if seated(player) then
+				return { button = "RootPill", point = true, say = "Open your Spirit Root" }
+			end
+			return { button = "Cultivate", point = true, say = "Sit in meditation" }
+		end,
+	},
+	{
 		id = "Home",
 		elder = "Your peak can grow with you. Plant a seed in your garden; herbs feed your cultivation and sell for Spirit Stones.",
 		when = function(_, data)
@@ -403,16 +452,6 @@ Quests.Lessons = {
 		end,
 		guide = function()
 			return { button = "Self" }
-		end,
-	},
-	{
-		id = "RootPill",
-		elder = "That pill can temper your very root. Absorb it while you meditate, from the Spirit Root page.",
-		when = function(_, data)
-			return (data.items.MarrowWashingPill or 0) > 0 or (data.items.RootRebirthPill or 0) > 0
-		end,
-		guide = function(player)
-			return seatedTile(player, "SpiritRoot")
 		end,
 	},
 } :: { Lesson }
@@ -519,17 +558,20 @@ end
 
 local lastSent: { [Player]: string } = {}
 local sessionLessons: { [Player]: { [string]: boolean } } = {} -- lessons shown this session
+local claimed: { [Player]: string } = {} -- the early lesson holding the guide during the beats
+local pillsHeld: { [Player]: number } = {}
 
 local function key(guide: Guide?): string
 	if not guide then
 		return ""
 	end
-	return `{guide.button or ""}/{guide.to or ""}/{guide.dim == true}/{guide.place or ""}`
+	return `{guide.button or ""}/{guide.to or ""}/{guide.dim == true}/{guide.place or ""}/{guide.point == true}/{guide.say or ""}`
 end
 
 -- In free play: say the first lesson whose moment has come (once ever), and
--- guide toward the first one shown this session that still applies.
-local function lessons(player: Player, data: PlayerData.Data): (Lesson?, Guide?)
+-- guide toward the first one shown this session (or `persist`, ever) that
+-- still applies. Returns the fresh lesson, the guide and the guiding lesson.
+local function lessons(player: Player, data: PlayerData.Data): (Lesson?, Guide?, Lesson?)
 	local shown = sessionLessons[player] or {}
 	sessionLessons[player] = shown
 	local fresh: Lesson? = nil
@@ -542,22 +584,56 @@ local function lessons(player: Player, data: PlayerData.Data): (Lesson?, Guide?)
 		end
 	end
 	for _, lesson in Quests.Lessons do
-		if shown[lesson.id] and lesson.guide and lesson.when(player, data) then
-			return fresh, lesson.guide(player, data)
+		local live = shown[lesson.id] or (lesson.persist and data.lessons[lesson.id])
+		if live and lesson.guide and lesson.when(player, data) then
+			return fresh, lesson.guide(player, data), lesson
 		end
 	end
-	return fresh, nil
+	return fresh, nil, nil
+end
+
+-- During the onboarding beats, an `early` lesson may take the guide, but only
+-- between steps: on the sect's safe ground (no fights there), while the beat's
+-- own guide isn't a spotlight (dim: the hook steps, a full bar's Break Through)
+-- and, to take it, while the player isn't sitting (a seat is usually a beat's
+-- step under way). Once it holds the guide it keeps it, seated or not, until
+-- one of the first two stops holding or its condition ends; then the beat
+-- resumes. Its elder line comes the first time it takes the guide.
+local function earlyLesson(player: Player, data: PlayerData.Data, beatGuide: Guide?): (Lesson?, Lesson?)
+	local allowed = inSect(player) and not (beatGuide and beatGuide.dim)
+	for _, lesson in Quests.Lessons do
+		if lesson.early and allowed and lesson.when(player, data) and (claimed[player] == lesson.id or not seated(player)) then
+			claimed[player] = lesson.id
+			local fresh: Lesson? = nil
+			if not data.lessons[lesson.id] then
+				data.lessons[lesson.id] = true
+				fresh = lesson
+			end
+			return fresh, lesson
+		end
+	end
+	claimed[player] = nil
+	return nil, nil
 end
 
 local function push(player: Player, data: PlayerData.Data, repeatElder: boolean?)
 	local beat, index = current(data)
 	local objective = if beat.progress then `{beat.objective} ({beat.progress(data)})` else beat.objective
 	local guide: Guide? = if beat.guide then beat.guide(player, data) else nil
-	local lesson: Lesson? = nil
+	local lesson: Lesson? = nil -- a lesson saying its line now
+	local guiding: Lesson? = nil -- the lesson whose guide shows
 	if beat.id == "FreePlay" then
 		local top = Quests.goals(data)[1]
 		objective = if top then `{top.name} ({top.progress})` else ""
-		lesson, guide = lessons(player, data)
+		lesson, guide, guiding = lessons(player, data)
+	else
+		lesson, guiding = earlyLesson(player, data, guide)
+		if guiding and guiding.guide then
+			guide = guiding.guide(player, data)
+		end
+	end
+	if guiding and guiding.objective then
+		objective = guiding.objective
 	end
 	local payload = {
 		step = index - 1,
@@ -593,9 +669,21 @@ local function advance(player: Player, data: PlayerData.Data)
 	end
 end
 
+-- A root pill absorbed (held count dropped) after the RootPill lesson: that
+-- lesson is learned and its guide stops for good.
+local function notePills(player: Player, data: PlayerData.Data)
+	local held = rootPills(data)
+	local before = pillsHeld[player]
+	pillsHeld[player] = held
+	if before and held < before and data.lessons.RootPill then
+		data.lessons.RootPillUsed = true
+	end
+end
+
 function Quests.check(player: Player)
 	local data = PlayerData.get(player)
 	if data then
+		notePills(player, data)
 		advance(player, data)
 		push(player, data)
 	end
@@ -646,6 +734,8 @@ end
 function Quests.forget(player: Player)
 	lastSent[player] = nil
 	sessionLessons[player] = nil
+	claimed[player] = nil
+	pillsHeld[player] = nil
 end
 
 return Quests

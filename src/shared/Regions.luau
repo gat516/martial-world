@@ -36,7 +36,9 @@ Regions.List = {
 		subtitle = "Sheltered ground. No beast dares come here.",
 		realm = nil,
 		packs = nil,
-		rings = { 0, 300 },
+		-- the ground under the peaks too: the spirit pillars' outer feet reach r ~405, and a disciple
+		-- who falls off a peak lands in this forest (art/ground/terrain_ground.luau)
+		rings = { 0, 410 },
 	},
 	{
 		id = "SectHeights",
@@ -52,7 +54,7 @@ Regions.List = {
 		subtitle = "Bamboo and old stone, where young beasts hunt.",
 		realm = { "QiCondensation", 1 },
 		packs = "Inner",
-		rings = { 300, 900 },
+		rings = { 410, 900 },
 		below = 150,
 	},
 	{

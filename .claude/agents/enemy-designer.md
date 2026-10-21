@@ -67,6 +67,11 @@ asked. The user playtests feel and difficulty; say what's untested.
    type its own gait (four legs, coil, hop, flap). Extend the animator with
    per-type pose tables rather than branching on names in its loop. Authored
    KeyframeSequences are fine for a boss; say in the sheet which you'll use.
+   For quadruped timing and weight, study the bear and tiger rigs in
+   `docs/reference/animation/` (walk, run, idle, claw swipes, pounce, bite,
+   slams, pain, death; the README lists them and how to view them). Match
+   their beats (anticipation, release, follow-through) in our own poses;
+   they are reference only and never ship.
 5. **Sounds.** `SoundService.SFX.Enemies.<EnemyType>.Aggro / Attack / Death`
    (`assets/SoundGroups/SFX.rbxmx`), played by EnemySounds. Find them in the
    asset library sounds or the Creator Store (search through the MCP), match

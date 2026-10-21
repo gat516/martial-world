@@ -26,6 +26,16 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 
 - For map layout, landforms, set dressing, detailing and lighting/atmosphere, spawn the `map-builder` subagent unless it is already running for this task. It plans against `docs/systems/map.md` (layout, art direction, and the instances and coordinates scripts depend on), builds meshes through the modeler's Blender pipeline and dresses from `ServerStorage.AssetLibrary`. Single meshes and props go to the `modeler` subagent; particle and beam effects go to `vfx`.
 - `Workspace.Map` lives only in the place file, not in Rojo. Studio-side map changes aren't in git, so commit messages list them and the user saves the place.
+- Structurally hard builds (multi-part buildings, roofs, stairs, bridges, arches, things players walk through or under, tight fits with rock or terrain, trees near structures) get a second pass by the agent and are then tagged `NeedsHandPass` with a `HandPassReason`, listed in the report, so the user can fix them by hand (`T.handpass()` in the POI tour). Never ship one silently.
+
+## Parallel agents
+
+Split big map or content passes across several subagents when the parts don't share state. All of them edit the same open Studio place and the same repo, so:
+- Give each agent sole ownership: its own folders in Studio (e.g. a staging area off the map, or `ServerStorage.<Thing>`) and its own files. One owner at a time for terrain, `wilds_layout.luau`, `dress_wilds.luau` and any Rojo-mapped asset.
+- Build in parallel, place in series. Builders make self-contained, tagged templates or prefabs away from the map; one map-builder places them, once the layout and terrain they sit on are done.
+- No one starts Play or touches terrain outside their own task. If Studio flips into Play, keep working on files and wait.
+- Commit immediately after staging, and only your own files and hunks. For shared docs (`map.md`, `README.md`), build the index blob from `git show HEAD:` plus your hunk. Check `git diff --cached --name-only` first. Two commits have been swallowed by parallel sessions so far.
+- Split by zone only when the zones don't share code or layout files.
 
 ## Studio instances
 

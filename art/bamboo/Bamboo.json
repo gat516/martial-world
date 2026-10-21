@@ -1,0 +1,992 @@
+{
+ "origin": "each kind's base centre on the ground (culms start 1 stud below); Blender X, Y horizontal, Z up",
+ "meshes": {
+  "BambooGrove_Culm": {
+   "tris": 2322,
+   "center": [
+    3.029,
+    -0.406,
+    28.472
+   ],
+   "size": [
+    14.81,
+    16.614,
+    59.543
+   ],
+   "color": "7A9A50"
+  },
+  "BambooGrove_CulmAlt": {
+   "tris": 276,
+   "center": [
+    -3.078,
+    -2.131,
+    23.232
+   ],
+   "size": [
+    4.144,
+    3.391,
+    49.061
+   ],
+   "color": "627E44"
+  },
+  "BambooGrove_Leaf": {
+   "tris": 628,
+   "center": [
+    2.346,
+    0.852,
+    39.608
+   ],
+   "size": [
+    27.154,
+    25.464,
+    36.657
+   ],
+   "color": "5E7F45"
+  },
+  "BambooGrove_LeafLight": {
+   "tris": 456,
+   "center": [
+    3.087,
+    -0.863,
+    36.699
+   ],
+   "size": [
+    25.398,
+    25.713,
+    33.47
+   ],
+   "color": "86A65B"
+  },
+  "BambooSparse_Culm": {
+   "tris": 924,
+   "center": [
+    2.562,
+    -0.96,
+    20.726
+   ],
+   "size": [
+    14.406,
+    15.17,
+    44.052
+   ],
+   "color": "7A9A50"
+  },
+  "BambooSparse_Leaf": {
+   "tris": 116,
+   "center": [
+    6.029,
+    0.522,
+    25.221
+   ],
+   "size": [
+    17.537,
+    22.673,
+    9.907
+   ],
+   "color": "5E7F45"
+  },
+  "BambooSparse_LeafLight": {
+   "tris": 188,
+   "center": [
+    1.665,
+    -2.238,
+    31.138
+   ],
+   "size": [
+    23.675,
+    22.619,
+    22.873
+   ],
+   "color": "86A65B"
+  },
+  "BambooSingle_Culm": {
+   "tris": 306,
+   "center": [
+    1.967,
+    0.838,
+    27.54
+   ],
+   "size": [
+    5.767,
+    3.504,
+    57.679
+   ],
+   "color": "7A9A50"
+  },
+  "BambooSingle_Leaf": {
+   "tris": 88,
+   "center": [
+    2.976,
+    0.352,
+    38.937
+   ],
+   "size": [
+    14.75,
+    15.177,
+    26.04
+   ],
+   "color": "5E7F45"
+  },
+  "BambooSingle_LeafLight": {
+   "tris": 84,
+   "center": [
+    1.806,
+    1.489,
+    45.217
+   ],
+   "size": [
+    17.721,
+    13.985,
+    21.086
+   ],
+   "color": "86A65B"
+  },
+  "BambooArching_Culm": {
+   "tris": 1758,
+   "center": [
+    11.659,
+    2.268,
+    21.505
+   ],
+   "size": [
+    30.85,
+    10.568,
+    45.608
+   ],
+   "color": "7A9A50"
+  },
+  "BambooArching_Leaf": {
+   "tris": 400,
+   "center": [
+    11.957,
+    2.017,
+    30.809
+   ],
+   "size": [
+    28.946,
+    21.358,
+    23.347
+   ],
+   "color": "5E7F45"
+  },
+  "BambooArching_LeafLight": {
+   "tris": 528,
+   "center": [
+    12.099,
+    1.348,
+    32.22
+   ],
+   "size": [
+    33.23,
+    18.38,
+    24.984
+   ],
+   "color": "86A65B"
+  },
+  "BambooYoung_Culm": {
+   "tris": 630,
+   "center": [
+    1.31,
+    -0.327,
+    10.356
+   ],
+   "size": [
+    8.581,
+    13.593,
+    23.311
+   ],
+   "color": "86A65A"
+  },
+  "BambooYoung_CulmAlt": {
+   "tris": 414,
+   "center": [
+    -1.725,
+    1.429,
+    9.708
+   ],
+   "size": [
+    8.115,
+    8.978,
+    22.012
+   ],
+   "color": "9BB866"
+  },
+  "BambooYoung_Leaf": {
+   "tris": 160,
+   "center": [
+    0.123,
+    -0.25,
+    10.236
+   ],
+   "size": [
+    16.615,
+    20.502,
+    11.891
+   ],
+   "color": "5E7F45"
+  },
+  "BambooYoung_LeafLight": {
+   "tris": 300,
+   "center": [
+    -0.455,
+    -0.724,
+    13.035
+   ],
+   "size": [
+    19.173,
+    22.282,
+    17.156
+   ],
+   "color": "92B262"
+  },
+  "BambooYoung_Shoot": {
+   "tris": 120,
+   "center": [
+    -0.217,
+    -0.527,
+    2.325
+   ],
+   "size": [
+    10.441,
+    9.368,
+    7.049
+   ],
+   "color": "8C8452"
+  },
+  "BambooStumps_Culm": {
+   "tris": 330,
+   "center": [
+    0.758,
+    -1.069,
+    7.04
+   ],
+   "size": [
+    9.808,
+    6.973,
+    16.679
+   ],
+   "color": "7A9A50"
+  },
+  "BambooStumps_CulmAlt": {
+   "tris": 300,
+   "center": [
+    -0.737,
+    1.062,
+    7.169
+   ],
+   "size": [
+    9.49,
+    7.408,
+    16.939
+   ],
+   "color": "627E44"
+  },
+  "BambooStumps_Leaf": {
+   "tris": 100,
+   "center": [
+    -0.489,
+    2.018,
+    8.472
+   ],
+   "size": [
+    15.052,
+    11.628,
+    13.191
+   ],
+   "color": "5E7F45"
+  },
+  "BambooStumps_LeafLight": {
+   "tris": 36,
+   "center": [
+    -2.349,
+    0.475,
+    9.608
+   ],
+   "size": [
+    6.653,
+    8.557,
+    11.176
+   ],
+   "color": "86A65B"
+  },
+  "BambooStumps_Cut": {
+   "tris": 168,
+   "center": [
+    0.101,
+    0.252,
+    3.442
+   ],
+   "size": [
+    10.845,
+    8.78,
+    5.328
+   ],
+   "color": "D6CB98"
+  },
+  "BambooDry_Culm": {
+   "tris": 516,
+   "center": [
+    0.978,
+    0.708,
+    19.707
+   ],
+   "size": [
+    3.094,
+    13.707,
+    42.012
+   ],
+   "color": "C3A152"
+  },
+  "BambooDry_CulmAlt": {
+   "tris": 660,
+   "center": [
+    2.686,
+    1.289,
+    20.897
+   ],
+   "size": [
+    16.205,
+    9.045,
+    44.393
+   ],
+   "color": "A6853D"
+  },
+  "BambooDry_Leaf": {
+   "tris": 184,
+   "center": [
+    1.217,
+    2.23,
+    27.89
+   ],
+   "size": [
+    22.433,
+    21.083,
+    25.097
+   ],
+   "color": "AE9549"
+  },
+  "BambooDry_LeafLight": {
+   "tris": 80,
+   "center": [
+    5.232,
+    0.385,
+    28.637
+   ],
+   "size": [
+    19.132,
+    18.956,
+    27.898
+   ],
+   "color": "CDB46A"
+  },
+  "BambooThicket_Culm": {
+   "tris": 1098,
+   "center": [
+    -0.484,
+    -0.324,
+    18.462
+   ],
+   "size": [
+    20.489,
+    11.159,
+    39.523
+   ],
+   "color": "7A9A50"
+  },
+  "BambooThicket_CulmAlt": {
+   "tris": 642,
+   "center": [
+    6.207,
+    0.138,
+    16.902
+   ],
+   "size": [
+    17.673,
+    8.19,
+    36.404
+   ],
+   "color": "627E44"
+  },
+  "BambooThicket_Leaf": {
+   "tris": 496,
+   "center": [
+    2.303,
+    -0.661,
+    23.187
+   ],
+   "size": [
+    37.462,
+    23.189,
+    28.907
+   ],
+   "color": "5E7F45"
+  },
+  "BambooThicket_LeafLight": {
+   "tris": 296,
+   "center": [
+    -0.951,
+    -0.71,
+    21.208
+   ],
+   "size": [
+    29.405,
+    19.298,
+    26.008
+   ],
+   "color": "86A65B"
+  },
+  "BambooStandA_Culm": {
+   "tris": 1860,
+   "center": [
+    1.286,
+    0.058,
+    32.014
+   ],
+   "size": [
+    16.701,
+    14.687,
+    66.628
+   ],
+   "color": "7A9A50"
+  },
+  "BambooStandA_CulmAlt": {
+   "tris": 858,
+   "center": [
+    2.188,
+    0.877,
+    30.953
+   ],
+   "size": [
+    17.559,
+    15.25,
+    64.506
+   ],
+   "color": "627E44"
+  },
+  "BambooStandA_Leaf": {
+   "tris": 572,
+   "center": [
+    2.876,
+    0.696,
+    45.514
+   ],
+   "size": [
+    29.243,
+    25.317,
+    35.217
+   ],
+   "color": "5E7F45"
+  },
+  "BambooStandA_LeafLight": {
+   "tris": 312,
+   "center": [
+    0.509,
+    1.315,
+    47.854
+   ],
+   "size": [
+    27.356,
+    21.928,
+    33.666
+   ],
+   "color": "86A65B"
+  },
+  "BambooStandB_Culm": {
+   "tris": 1430,
+   "center": [
+    0.919,
+    -0.606,
+    27.294
+   ],
+   "size": [
+    17.626,
+    15.819,
+    57.187
+   ],
+   "color": "7A9A50"
+  },
+  "BambooStandB_CulmAlt": {
+   "tris": 1050,
+   "center": [
+    -1.803,
+    1.863,
+    27.85
+   ],
+   "size": [
+    16.893,
+    14.338,
+    58.299
+   ],
+   "color": "627E44"
+  },
+  "BambooStandB_Leaf": {
+   "tris": 436,
+   "center": [
+    -1.85,
+    0.297,
+    41.98
+   ],
+   "size": [
+    26.019,
+    26.907,
+    28.764
+   ],
+   "color": "5E7F45"
+  },
+  "BambooStandB_LeafLight": {
+   "tris": 328,
+   "center": [
+    -0.487,
+    1.52,
+    41.87
+   ],
+   "size": [
+    28.495,
+    21.529,
+    27.897
+   ],
+   "color": "86A65B"
+  },
+  "BambooStandC_Culm": {
+   "tris": 1846,
+   "center": [
+    -0.952,
+    0.19,
+    30.36
+   ],
+   "size": [
+    17.639,
+    16.147,
+    63.319
+   ],
+   "color": "7A9A50"
+  },
+  "BambooStandC_CulmAlt": {
+   "tris": 686,
+   "center": [
+    1.314,
+    1.73,
+    33.625
+   ],
+   "size": [
+    12.98,
+    10.664,
+    69.85
+   ],
+   "color": "627E44"
+  },
+  "BambooStandC_Leaf": {
+   "tris": 388,
+   "center": [
+    -2.438,
+    -0.323,
+    50.057
+   ],
+   "size": [
+    29.491,
+    26.245,
+    36.396
+   ],
+   "color": "5E7F45"
+  },
+  "BambooStandC_LeafLight": {
+   "tris": 372,
+   "center": [
+    -0.451,
+    0.192,
+    45.86
+   ],
+   "size": [
+    29.077,
+    27.62,
+    31.216
+   ],
+   "color": "86A65B"
+  },
+  "BambooGiant_Culm": {
+   "tris": 726,
+   "center": [
+    4.934,
+    0.368,
+    45.713
+   ],
+   "size": [
+    10.165,
+    13.553,
+    94.025
+   ],
+   "color": "7A9A50"
+  },
+  "BambooGiant_CulmAlt": {
+   "tris": 378,
+   "center": [
+    -1.657,
+    1.58,
+    44.631
+   ],
+   "size": [
+    5.769,
+    7.51,
+    91.862
+   ],
+   "color": "627E44"
+  },
+  "BambooGiant_Leaf": {
+   "tris": 264,
+   "center": [
+    2.941,
+    -0.762,
+    68.659
+   ],
+   "size": [
+    29.938,
+    24.79,
+    43.486
+   ],
+   "color": "5E7F45"
+  },
+  "BambooGiant_LeafLight": {
+   "tris": 220,
+   "center": [
+    3.713,
+    -0.657,
+    73.64
+   ],
+   "size": [
+    27.004,
+    26.616,
+    38.381
+   ],
+   "color": "86A65B"
+  },
+  "BambooEdge_Culm": {
+   "tris": 920,
+   "center": [
+    1.285,
+    0.446,
+    20.534
+   ],
+   "size": [
+    14.631,
+    8.507,
+    43.668
+   ],
+   "color": "7A9A50"
+  },
+  "BambooEdge_CulmAlt": {
+   "tris": 432,
+   "center": [
+    -2.274,
+    -1.78,
+    23.577
+   ],
+   "size": [
+    13.3,
+    4.81,
+    49.753
+   ],
+   "color": "627E44"
+  },
+  "BambooEdge_Leaf": {
+   "tris": 300,
+   "center": [
+    -0.81,
+    0.416,
+    23.143
+   ],
+   "size": [
+    26.052,
+    17.657,
+    24.64
+   ],
+   "color": "5E7F45"
+  },
+  "BambooEdge_LeafLight": {
+   "tris": 368,
+   "center": [
+    -0.129,
+    0.053,
+    29.258
+   ],
+   "size": [
+    27.031,
+    18.616,
+    38.607
+   ],
+   "color": "86A65B"
+  },
+  "BambooEdge_Shoot": {
+   "tris": 60,
+   "center": [
+    2.764,
+    5.461,
+    1.539
+   ],
+   "size": [
+    13.862,
+    4.839,
+    5.472
+   ],
+   "color": "8C8452"
+  }
+ },
+ "kinds": {
+  "BambooGrove": {
+   "template": "BambooCluster_4",
+   "culms": 9,
+   "heights": [
+    55.29,
+    44.92,
+    51.57,
+    56.99,
+    41.77,
+    47.66,
+    52.58,
+    46.32,
+    51.68
+   ],
+   "tris": 3682,
+   "parts": [
+    "BambooGrove_Culm",
+    "BambooGrove_CulmAlt",
+    "BambooGrove_Leaf",
+    "BambooGrove_LeafLight"
+   ]
+  },
+  "BambooSparse": {
+   "template": "BambooCluster_5",
+   "culms": 4,
+   "heights": [
+    40.09,
+    41.42,
+    30.78,
+    32.58
+   ],
+   "tris": 1228,
+   "parts": [
+    "BambooSparse_Culm",
+    "BambooSparse_Leaf",
+    "BambooSparse_LeafLight"
+   ]
+  },
+  "BambooSingle": {
+   "template": "BambooCluster_6",
+   "culms": 1,
+   "heights": [
+    55.0
+   ],
+   "tris": 478,
+   "parts": [
+    "BambooSingle_Culm",
+    "BambooSingle_Leaf",
+    "BambooSingle_LeafLight"
+   ]
+  },
+  "BambooArching": {
+   "template": "BambooCluster_7",
+   "culms": 6,
+   "heights": [
+    46.02,
+    47.62,
+    46.75,
+    39.31,
+    49.73,
+    48.39
+   ],
+   "tris": 2686,
+   "parts": [
+    "BambooArching_Culm",
+    "BambooArching_Leaf",
+    "BambooArching_LeafLight"
+   ]
+  },
+  "BambooYoung": {
+   "template": "BambooCluster_8",
+   "culms": 5,
+   "heights": [
+    18.06,
+    20.18,
+    20.79,
+    19.44,
+    14.41
+   ],
+   "tris": 1624,
+   "parts": [
+    "BambooYoung_Culm",
+    "BambooYoung_CulmAlt",
+    "BambooYoung_Leaf",
+    "BambooYoung_LeafLight",
+    "BambooYoung_Shoot"
+   ]
+  },
+  "BambooStumps": {
+   "template": "BambooCluster_9",
+   "culms": 2,
+   "heights": [
+    14.27,
+    13.8
+   ],
+   "tris": 934,
+   "parts": [
+    "BambooStumps_Culm",
+    "BambooStumps_CulmAlt",
+    "BambooStumps_Leaf",
+    "BambooStumps_LeafLight",
+    "BambooStumps_Cut"
+   ]
+  },
+  "BambooDry": {
+   "template": "BambooCluster_10",
+   "culms": 5,
+   "heights": [
+    38.92,
+    31.39,
+    31.74,
+    42.26,
+    39.32
+   ],
+   "tris": 1440,
+   "parts": [
+    "BambooDry_Culm",
+    "BambooDry_CulmAlt",
+    "BambooDry_Leaf",
+    "BambooDry_LeafLight"
+   ]
+  },
+  "BambooThicket": {
+   "template": "BambooCluster_11",
+   "culms": 8,
+   "heights": [
+    24.87,
+    24.15,
+    28.76,
+    25.48,
+    33.93,
+    24.38,
+    37.02,
+    34.28
+   ],
+   "tris": 2532,
+   "parts": [
+    "BambooThicket_Culm",
+    "BambooThicket_CulmAlt",
+    "BambooThicket_Leaf",
+    "BambooThicket_LeafLight"
+   ]
+  },
+  "BambooStandA": {
+   "template": "BambooCluster_12",
+   "culms": 13,
+   "heights": [
+    49.06,
+    53.76,
+    58.62,
+    62.4,
+    54.98,
+    62.19,
+    61.65,
+    50.0,
+    53.72,
+    58.7,
+    63.78,
+    48.08,
+    56.16
+   ],
+   "tris": 3602,
+   "parts": [
+    "BambooStandA_Culm",
+    "BambooStandA_CulmAlt",
+    "BambooStandA_Leaf",
+    "BambooStandA_LeafLight"
+   ]
+  },
+  "BambooStandB": {
+   "template": "BambooCluster_13",
+   "culms": 12,
+   "heights": [
+    55.46,
+    45.53,
+    49.24,
+    52.43,
+    43.35,
+    50.37,
+    52.6,
+    54.31,
+    46.97,
+    46.11,
+    54.24,
+    53.11
+   ],
+   "tris": 3244,
+   "parts": [
+    "BambooStandB_Culm",
+    "BambooStandB_CulmAlt",
+    "BambooStandB_Leaf",
+    "BambooStandB_LeafLight"
+   ]
+  },
+  "BambooStandC": {
+   "template": "BambooCluster_14",
+   "culms": 12,
+   "heights": [
+    58.07,
+    60.53,
+    59.28,
+    54.6,
+    66.55,
+    50.51,
+    50.81,
+    50.59,
+    51.31,
+    52.36,
+    51.88,
+    66.99
+   ],
+   "tris": 3292,
+   "parts": [
+    "BambooStandC_Culm",
+    "BambooStandC_CulmAlt",
+    "BambooStandC_Leaf",
+    "BambooStandC_LeafLight"
+   ]
+  },
+  "BambooGiant": {
+   "template": "BambooCluster_15",
+   "culms": 3,
+   "heights": [
+    91.57,
+    89.09,
+    82.83
+   ],
+   "tris": 1588,
+   "parts": [
+    "BambooGiant_Culm",
+    "BambooGiant_CulmAlt",
+    "BambooGiant_Leaf",
+    "BambooGiant_LeafLight"
+   ]
+  },
+  "BambooEdge": {
+   "template": "BambooCluster_16",
+   "culms": 8,
+   "heights": [
+    43.79,
+    27.46,
+    40.8,
+    21.28,
+    47.08,
+    22.55,
+    41.04,
+    27.39
+   ],
+   "tris": 2080,
+   "parts": [
+    "BambooEdge_Culm",
+    "BambooEdge_CulmAlt",
+    "BambooEdge_Leaf",
+    "BambooEdge_LeafLight",
+    "BambooEdge_Shoot"
+   ]
+  }
+ }
+}

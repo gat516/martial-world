@@ -40,10 +40,11 @@ ROOTS = {
     # pinch: (world angle deg, half width deg, factor) where the flare is cut; skip: no columns at all
     "PeakRoot": dict(src="peak", seg=80, col=14.0, flare=(4.0, 10.0), tops=(40.0, 125.0), top_y=130.0,
                      # toward the neighbouring pillars (the narrow slots between peaks) and the main rock
-                     pinch=[(180.0, 20.0, 0.3), (315.0, 20.0, 0.3), (247.5, 25.0, 0.5)]),
+                     # (flare 0 there: the path and the Ascension Array pass between Peak_8, Peak_1 and the main rock)
+                     pinch=[(180.0, 26.0, 0.0), (315.0, 26.0, 0.0), (247.5, 34.0, 0.0)]),
     "MainRoot": dict(src="main", seg=128, col=16.0, flare=(3.5, 8.5), tops=(34.0, 100.0), top_y=106.0,
                      # the Ascension Array stands at the rock's foot at 90 deg: leave the face plain there
-                     pinch=[(90.0, 12.0, 0.15)], skip=[(90.0, 4.5)]),
+                     pinch=[(90.0, 22.0, 0.0)], skip=[(90.0, 10.0)]),
 }
 
 PARTS_COLOR = (0.34, 0.325, 0.31, 1.0)  # viewport only; Studio colour is set by place_roots.luau
@@ -96,10 +97,11 @@ def to_blender(kind, src, dx, dz):
 
 
 def ring_heights(top_y):
-    hs, h = [BOTTOM], BOTTOM
+    hs, h = [BOTTOM, -8.0], 0.0  # a ring at y 0, where the collider starts
     while h < top_y:
+        hs.append(h)
         h += 7.0 if h < 70 else 14.0
-        hs.append(min(h, top_y))
+    hs.append(top_y)
     return hs
 
 
@@ -148,7 +150,7 @@ def build_root(name, cfg, data):
             px, pz = math.cos(math.radians(a)) * r, math.sin(math.radians(a)) * r
             bx, by = to_blender(kind, src, px, pz)
             ring.append(bm.verts.new((bx, by, h)))
-            if h <= FOOT_TOP:
+            if 0.0 <= h <= FOOT_TOP:  # the collider starts at y 0: the widest drum is under the floor anyway
                 foot_pts.append((bx, by, h))
         grid.append(ring)
     for lo_r, hi_r in zip(grid, grid[1:]):

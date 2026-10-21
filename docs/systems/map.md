@@ -318,16 +318,20 @@ knoll rocks come from `art/ground/dress_sect_roots.luau` (`Map.Ground.SectRoots`
   Slate still look default).
 - Old terrain spires (Slate/Rock, at r ~415-460, tops Y 300-480) whose bases
   hung at Y ~46-120 are joined down to the floor in their own material. The
-  eight old hanging terrain columns at r ~212 (in front of the main rock's
-  face, Y ~90-350) are left as they are: one shows in the slot view from the
-  path and reads as floating (owner: main peak pass).
+  eight old hanging terrain columns at r ~212 in front of the main rock's face
+  (Y ~48-400, nobody's) were deleted.
 - Safety: `Regions` Sect ring is 0-410 (no ambient beasts under the peaks);
   the Ascension Array is a real array (any destination from it), and the gate
   array at (48, 6, 470) is a walk south. No fall damage exists.
-- Peak roots (built in Blender, waiting for the FBX import): `Map.Ground.PeakRoots` (Zhangjiajie flared feet,
-  `art/ground/build_roots.py` + `place_roots.luau`): one mesh cloned to all
-  eight pillars, a separate one for the main rock with a notch at the array.
-  Non-colliding, except a hull collider for the bottom ~40 studs.
+- Peak roots: `Map.Ground.PeakRoots` (`art/ground/build_roots.py` +
+  `place_roots.luau`, kit in `ServerStorage.PeakRootsKit`): a sleeve round each
+  rock base stepping out per 2D-Voronoi cell, the spirit pillar's vertical
+  column look, flaring up to ~10 studs at the floor. One mesh cloned to all
+  eight pillars, a separate one for the main rock. No flare toward the slots
+  between neighbouring pillars and the main rock, and none in front of the
+  Ascension Array (the path and array squeeze between Peak_8, Peak_1 and the
+  main rock there). Non-colliding; an invisible hull collider (*Foot) covers
+  y 0-40.
 
 ## Asset catalogue
 All under `ServerStorage.AssetLibrary` unless noted. Clone, don't move, the

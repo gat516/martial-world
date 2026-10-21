@@ -40,7 +40,11 @@ an `enemy-designer` brief.
    of the same kind of effect ("roblox vfx showcase aura", "sol's rng aura",
    "roblox studio vfx <element> explosion"). Turn each video into a frame grid
    and look at it:
-   `~/.local/bin/uv run -q --with yt-dlp --with av --with imageio --with pillow --with numpy python -I tools/ref_frames.py <url> <scratchpad>/<name>.png 16 [start-end]`.
+   `~/.local/bin/uv run -q --with yt-dlp --with av --with pillow --with numpy python -I tools/ref_frames.py <url> <scratchpad>/<name>.png 16 [start-end]`.
+   Use only this tool on videos, one at a time: it decodes one frame per
+   tile. Decoding a whole video in your own code ran WSL out of memory and
+   crashed it. Videos are cached in `~/.cache/ref_frames`; never save them
+   in the repo (only the grids and stills go in `docs/reference/`).
    Zoom on the climax with a time window. Save stills the user gives you to
    `docs/reference/vfx/` with a descriptive name.
 2. **Learn the technique.** When you don't know how a look is made, look it up

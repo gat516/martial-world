@@ -7,7 +7,7 @@ instances and coordinates scripts depend on. `Workspace.Map` lives only in the
 place file (not Rojo), so this doc and the commit bodies are its only history.
 
 ## World at a glance
-Floating stone peaks above a cloud sea (deck tops Y ~405-455). The main sect
+Floating stone peaks above a cloud sea (a flat cloud plane, top Y 440). The main sect
 peak sits at the origin; eight player spirit peaks ring it at radius 300 (plateaus
 Y 553.5, every 45 deg from 22.5 deg, `Peak_1` at (114.8, 553.5, 277.2)), each
 linked by a rope bridge to the main peak's ring terrace (Y 582). The wilds lie
@@ -344,31 +344,36 @@ peak end. Landings at both ends per the rules above. `SwayBridge` tags are free
   TextureID) gives every cloud cool shaded undersides and warm lit crowns.
   Fabric material keeps them matte (SmoothPlastic put shiny sun spots on
   every crown).
+- The cloud sea is a flat white plane with a sparse set of hero clouds on it
+  (cut for frame rate: the old dense deck was ~290 cloud parts, ~400k tris and
+  20 big fog emitters). Don't bring the dense deck back; add a few hero clouds
+  where a view needs them instead.
 - Layers under `Map.Clouds`:
-  - `Deck`: crowns with tops at Y 428-452 near the peaks, 416-440 to r 1150 and
-    402-424 out to r 1800, plus a floor layer of flatter clumps ~30 lower
-    (to r 1300) so the space between the crowns reads as more cloud.
-  - Five deliberate holes in the deck (`GAPS`), one of them in the plaza's
-    southern view at 100 deg, r 650. `UnderDeck` puts darker clumps ~70 lower
-    in each hole (big + medium + small), so the holes show depth.
-  - `Wisps`: two arcs and a puff around each spirit pillar (Y 430-515) and three
-    stacked arcs around the main peak (Y 428-523).
-  - `FallFoam`: puff clusters where the three main-peak falls (E, W, N) meet the
-    sea.
+  - `Plane`: 9 slabs (3x3 of 1400 x 2 x 1400, Part sizes cap at 2048), top at
+    Y 440, Fabric (matte), off-white (246, 248, 252), opaque. It covers
+    +-2100 studs and the Atmosphere haze takes the edge. It hides every peak's
+    foot and Peak_8's fall end (Y ~382). Its top is just over the lowest
+    main-peak fall end (`Ring.WestFall.CloudFall`, Y ~438), so that fall drops
+    into it. The five old deck holes are gone (the plaza's southern view is
+    plane now).
+  - `Wisps`: one arc hugging each spirit pillar at the plane (Y 436-446) and
+    three stacked arcs around the main peak (Y 436, 458, 482).
+  - `FallFoam`: one big puff at each waterfall end within 30 studs of the
+    plane (now only WestFall's CloudFall).
   - `Banks`: mid-height clusters at 0/90/225 deg (r 430-620, Y 450-760) and a
     lone tower at 315 deg r 950. All of them are outside the bridges (r < 300)
     and the plateaus.
-  - `Horizon`: banks at r 2100-2600 and towers at r 1500-1800. They mostly melt
-    into the Atmosphere haze, so they show only when the haze is thin.
-  - `Auspicious` (12 swirl clouds) and `Emitters` (20 CloudLineFog emitters)
-    are kept from the old pass.
-- Budget: ~300 parts, ~400k tris before LOD (RenderFidelity Automatic), 8
-  unique meshes. Every cloud part is anchored, with CanCollide, CanQuery,
-  CanTouch and CastShadow off, and CollisionFidelity Box. Players fall
-  straight through the sea to the ground. The deck ceiling sits at Y 290-455,
-  far above the ground route and the sect gate.
-- Mist VFX spots (Attachments): `FX_PillarMist` x27 (pillar and main-peak
-  wisps), `FX_FallMist` x3, `FX_BankMist` x3. Clone
+  - `Auspicious` (12 swirl clouds) are kept from the old pass. Of the 20
+    `Emitters` (CloudLineFog, rate 1.2 each), 6 are kept and lifted onto the
+    plane (`EMITTER_KEEP` in the script).
+- Budget: ~50 parts, ~30k tris of cloud meshes plus the 12 swirls, 6 emitters.
+  Every cloud part is anchored, with CanCollide, CanQuery, CanTouch and
+  CastShadow off, Massless, CollisionFidelity Box, RenderFidelity Automatic,
+  DoubleSided off. The plane doesn't block raycasts, and players fall straight
+  through it to the ground. From the ground the plane is a solid white ceiling
+  at Y 440.
+- Mist VFX spots (Attachments): `FX_PillarMist` x11 (pillar and main-peak
+  wisps), `FX_FallMist` x1, `FX_BankMist` x3. Clone
   `ServerStorage.AmbientFX.MistWisps` there.
 - The sky's own clouds come from the painted skybox (lighting). Terrain Clouds
   stay off: volumetric clouds would clash with it.

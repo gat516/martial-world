@@ -122,6 +122,17 @@ _G.WILDS_LAYOUT = {
 			{ "LotusMere", -260, 1170, 52 },
 			{ "GorgeGate", 212, 1440, 16 },
 		},
+		-- bamboo groves: { x, z, radius, "sea" | "small" } (dress_wilds: bamboo grows only here)
+		groves = {
+			{ -430, 640, 60, "sea" }, -- the Bamboo Sea on and round Old Stone Hill (the hero grove)
+			{ -350, 660, 62, "sea" },
+			{ -265, 670, 55, "sea" },
+			{ -390, 575, 30, "sea" },
+			{ -40, 702, 18, "small" }, -- behind the stele grove
+			{ -105, 1335, 22, "small" }, -- the Shrine Terrace's west side
+			{ -205, 1215, 18, "small" }, -- by the Lotus Mere
+			{ 560, 1185, 14, "small" }, -- the Twin-Jade spring's west side
+		},
 		-- builder offsets for poi_wilds.luau: these POIs keep their old literal coordinates in the
 		-- builder and are moved by this much (sampling the ground at the new spot)
 		poiMoves = {

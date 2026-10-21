@@ -360,6 +360,12 @@ for _, z in wilds.Zones:GetChildren() do
 		table.insert(zonesDiscs, { p = Vector2.new(z.Position.X, z.Position.Z), r = z:GetAttribute("Radius") or 30 })
 	end
 end
+-- the event grounds are open clearings too (low cover only, no trees or rock clusters)
+for _, g in (wilds:FindFirstChild("EventGrounds") and wilds.EventGrounds:GetChildren() or {}) do
+	if g:IsA("BasePart") then
+		table.insert(zonesDiscs, { p = Vector2.new(g.Position.X, g.Position.Z), r = (g:GetAttribute("Radius") or 40) + 4 })
+	end
+end
 local nodes = {}
 for _, n in wilds.QiNodes:GetChildren() do
 	local b = n:FindFirstChild("Base")
@@ -438,9 +444,59 @@ local KITS = {
 	},
 }
 
--- bamboo belongs to the Inner Wilds' old stone places: groves round the hidden hollow, the steles, the
--- shrine's back slope and Old Stone Hill, plus a noise-field of smaller stands
-local BAMBOO_SPOTS = { { -128, 598, 46 }, { -40, 690, 26 }, { -140, 840, 40 }, { -120, 580, 70 }, { -80, 744, 28 }, { 300, 640, 24 } }
+-- Bamboo is its own biome (docs/systems/map.md): it grows only in the layout's groves (Z.groves:
+-- { x, z, radius, "sea" | "small" }), pure and dense in the core, thinning to young shoots, stumps and
+-- single culms in a 10-stud band round it; never mixed into the forest. The kit's Bamboo_4..16 come
+-- from the _Templates bamboo set (BambooKind Stand/Giant/Clump/Accent/Edge); the old flat unions 1-3
+-- are never used.
+local BAMBOO = {
+	sea = { "Bamboo_12", 3, "Bamboo_13", 3, "Bamboo_14", 3, "Bamboo_15", 1 },
+	small = { "Bamboo_4", 3, "Bamboo_5", 2, "Bamboo_7", 2, "Bamboo_6", 1, "Bamboo_10", 1 },
+	edge = { "Bamboo_8", 3, "Bamboo_9", 2, "Bamboo_16", 2, "Bamboo_11", 1, "Bamboo_6", 1 },
+}
+do -- make sure the kit holds the bamboo set (the kit is only rebuilt with CFG.kit)
+	for i = 4, 16 do
+		local name = "Bamboo_" .. i
+		local src = SS._Templates:FindFirstChild("BambooCluster_" .. i)
+		if src and not KIT:FindFirstChild(name) then
+			local c = src:Clone()
+			c.Name = name
+			if c:IsA("Model") then
+				local box, size = c:GetBoundingBox()
+				c.WorldPivot = CFrame.new(box.Position - Vector3.new(0, size.Y / 2, 0)) * c:GetPivot().Rotation
+			end
+			c.Parent = KIT
+		end
+	end
+end
+
+-- what the placed POIs, water, wall rocks and karst trunks cover: nothing grows there
+local function coverList()
+	local list = {}
+	local WI = workspace.Map.Ground:FindFirstChild("WildsInner")
+	for _, n in { "Pockets", "Finds", "Water" } do
+		local f = WI and WI:FindFirstChild(n)
+		for _, m in (f and f:GetChildren() or {}) do
+			if m:IsA("Model") then
+				local cf, size = m:GetBoundingBox()
+				table.insert(list, { p = Vector2.new(cf.X, cf.Z), r = math.max(size.X, size.Z) / 2 + 6 })
+			end
+		end
+	end
+	local walls = WI and WI:FindFirstChild("Walls")
+	for _, d in (walls and walls:GetDescendants() or {}) do
+		if d:IsA("Model") and d:GetAttribute("WallPiece") then
+			local cf, size = d:GetBoundingBox()
+			table.insert(list, { p = Vector2.new(cf.X, cf.Z), r = math.max(size.X, size.Z) * 0.45 })
+		end
+	end
+	for _, d in workspace.Map.Karst:GetDescendants() do
+		if d:IsA("BasePart") and d.Name == "Collider" then
+			table.insert(list, { p = Vector2.new(d.Position.X, d.Position.Z), r = math.min(d.Size.Y, d.Size.Z) / 2 + 4 })
+		end
+	end
+	return list
+end
 
 local report = {}
 for _, zoneName in CFG.zones or { "Inner", "Middle" } do
@@ -481,6 +537,13 @@ for _, zoneName in CFG.zones or { "Inner", "Middle" } do
 	end
 	local pois = Z.pois or {}
 	local caves = Z.caves or {}
+	local covers = zoneName == "Inner" and coverList() or {}
+	local spine
+	for _, path in paths do
+		if path.name == "Spine" then
+			spine = path.pts
+		end
+	end
 
 	local function pathEdge(p)
 		local edge = math.huge
@@ -507,6 +570,11 @@ for _, zoneName in CFG.zones or { "Inner", "Middle" } do
 				return false
 			end
 		end
+		for _, c in covers do
+			if (p - c.p).Magnitude < c.r + (margin or 0) then
+				return false
+			end
+		end
 		return true
 	end
 	local function zoneDist(p)
@@ -516,16 +584,19 @@ for _, zoneName in CFG.zones or { "Inner", "Middle" } do
 		end
 		return zd
 	end
+	-- "sea" / "small" inside a grove's core, "edge" in the band round it, nil outside
 	local function bambooAt(x, z)
-		if zoneName ~= "Inner" then
-			return false
-		end
-		for _, b in BAMBOO_SPOTS do
-			if (Vector2.new(x, z) - Vector2.new(b[1], b[2])).Magnitude < b[3] then
-				return true
+		local best
+		for _, g in Z.groves or {} do
+			local d = (Vector2.new(x, z) - Vector2.new(g[1], g[2])).Magnitude
+			local r = g[3] * (1 + 0.15 * math.noise(x / 23, z / 23, seed + 6))
+			if d < r then
+				return g[4]
+			elseif d < r + 10 then
+				best = "edge"
 			end
 		end
-		return math.noise(x / 70, z / 70, seed + 5) > 0.32
+		return best
 	end
 	local function addTree(pick, pos, scaleLo, scaleHi, tilt)
 		local s = rng:NextNumber(scaleLo, scaleHi)
@@ -540,14 +611,15 @@ for _, zoneName in CFG.zones or { "Inner", "Middle" } do
 			collider(groups.Colliders, pos, math.clamp(h / 30, 1.2, 3), 14)
 		end
 	end
-	local function addBamboo(pos)
-		local c = place(groups.Bamboo, "Bamboo_" .. rng:NextInteger(1, 3), pos, rng:NextNumber(0, 6.28), rng:NextNumber(0.95, 1.5), "foliage", 0.04)
-		if c then
+	local function addBamboo(pos, kind)
+		local c = place(groups.Bamboo, weighted(rng, BAMBOO[kind]), pos, rng:NextNumber(0, 6.28), rng:NextNumber(0.85, 1.2), "foliage", 0.04)
+		if c and c:IsA("BasePart") then
 			c.UsePartColor = true
 			c.Color = Color3.fromHex(K.bambooTones[rng:NextInteger(1, #K.bambooTones)])
 			c.Material = Enum.Material.Plastic
 			c.CastShadow = true
 		end
+		-- a template Model keeps its own colours (setting Color on a Model errors)
 	end
 
 	-- 1) the field: a jittered grid read against the layout
@@ -621,14 +693,27 @@ for _, zoneName in CFG.zones or { "Inner", "Middle" } do
 				continue
 			end
 
+			local bamboo = zoneName == "Inner" and bambooAt(x, z)
+			if bamboo then
+				local pB = bamboo == "sea" and 0.62 or (bamboo == "small" and 0.5 or 0.22)
+				if edge > 3 and roll < pB then
+					addBamboo(pos, bamboo)
+				elseif bamboo ~= "edge" and roll < pB + 0.15 then
+					place(groups.Shrubs, weighted(rng, { "Fern_M", 2, "Fern_S", 2, "Leaf_A", 1 }), pos, yaw, rng:NextNumber(0.8, 1.2), "foliage", 0.1)
+				end
+				continue
+			end
+
 			local pTree
 			if zoneName == "Inner" then
-				pTree = grove > 0.12 and 0.45 or (grove > -0.18 and 0.14 or 0.025)
+				-- the walled valley is four times the old box: an open forest of groves and glades, so
+				-- pockets, finds and the walls read from the paths and from the air
+				pTree = grove > 0.12 and 0.2 or (grove > -0.18 and 0.05 or 0.01)
 			else
 				pTree = grove > 0.2 and 0.26 or (grove > -0.1 and 0.07 or 0.012)
 			end
 			if zoneD < 20 then
-				pTree += zoneName == "Inner" and 0.28 or 0.1 -- the ring of trees round each clearing
+				pTree += zoneName == "Inner" and 0.12 or 0.1 -- the ring of trees round each clearing
 			end
 			if edge > 7 and edge < 18 then
 				pTree += 0.1 -- trees frame the paths a few steps back
@@ -636,17 +721,12 @@ for _, zoneName in CFG.zones or { "Inner", "Middle" } do
 			if hill > 4 then
 				pTree += 0.06
 			end
-			if edge > 7 and roll < pTree then
-				if bambooAt(x, z) then
-					local n = roll2 < 0.4 and 2 or 1
-					for k = 1, n do
-						local a, r = rng:NextNumber(0, 6.28), k == 1 and 0 or rng:NextNumber(4, 7)
-						local q = ground(x + math.cos(a) * r, z + math.sin(a) * r)
-						if q and q.Material ~= Enum.Material.Water then
-							addBamboo(q.Position)
-						end
-					end
-				else
+			-- the spine's long view to the Shrine Cliff stays open: trees stand well back from it
+			if spine and lineDist(p, spine) < 60 then
+				pTree *= 0.1
+			end
+			if edge > 7 and roll < pTree and free(p, 10) then
+				do
 					local list = K.trees
 					if zoneName == "Middle" and z < 965 + (Z.offset and Z.offset.Y or 0) and math.noise(x / 30, z / 30, seed + 9) > 0 then
 						list = K.riverTrees -- the last living trees by the river

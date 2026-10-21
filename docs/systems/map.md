@@ -1066,6 +1066,20 @@ ambient sounds by the `AmbientSound` tag on each anchor part. Things not to ungr
   pine, the border bridge, the fallen giant, the den ring and gate), the toppled statue head
   (reads as loose blocks at 2.5x), and the Borderlands POIs.
 
+**Phase 4: dressing (2026-10-21).** `dress_wilds.luau` re-run over the whole valley
+(about 6,300 pieces, 11,000 parts: 996 trees with 929 trunk colliders, 208 bamboo stands, 786
+rocks, 1,844 shrubs, 411 ground cover, 1,921 path-edge pieces).
+- Bamboo grows only in the layout's `groves` (the Bamboo Sea's four circles round Old Stone
+  Hill, small groves behind the steles, by the shrine, the Lotus Mere and the Twin-Jade
+  spring): dense `Stand`/`Giant` templates (BambooCluster_12-15) in the Sea, `Clump`/`Accent`
+  ones (4-7, 10) in the small groves, `Edge` ones (8, 9, 11, 16) in a 10-stud band round each.
+  The noise sprinkle is gone; template Models keep their own colours.
+- Nothing grows inside a placed pocket, find or water group (their box + 6, trees + 16), a
+  wall rock's footprint or a karst trunk collider; the event grounds are clearings with low
+  cover only; trees stand well back from the spine (the hero view to the Shrine Cliff).
+- The forest is an open one for this size (tree chance about half the old box's), so
+  pockets and walls read from the paths and from the air.
+
 **Inventory of the Inner box before the rework** (x -450..430, z 470..900, Y < 300;
 1,867 models and loose parts): `Map.Ground.WildsInner.Dressing` 1,827 (Trees 386,
 Colliders 360, PathEdge 548, Rocks 256, Bamboo 144, Shrubs 97, GroundCover 36);

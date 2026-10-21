@@ -21,6 +21,7 @@ export type Snapshot = {
 	weapons: { owned: { [string]: number }, equipped: string }?, -- equipped "" = Fist (Shared.Weapons)
 	dao: { [string]: { level: number, xp: number } }?, -- by weapon class; missing = level 0
 	caches: { [string]: boolean }?, -- world manual caches / weapon racks claimed, by Cache id
+	root: { element: string, grade: string }?, -- spirit root (Shared.Roots); element "" = not tested
 }
 
 local State = {}

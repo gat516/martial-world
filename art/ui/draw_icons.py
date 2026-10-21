@@ -442,7 +442,142 @@ def fist():
     ic.save("Fist")
 
 
+# ---------------------------------------------------------------- spirit root elements
+# One symbol per element (Shared.Roots), in the element's colour. They sit on the
+# round weapon badge disc (weapon_badge.png) in the reveal card and the Self card,
+# so each stays inside a ~100px circle. Written as icon_Root<Element>.png.
+
+def stroke_mask(pts, width):
+    m = blank()
+    ImageDraw.Draw(m).line([(x * SS, y * SS) for x, y in pts], fill=255, width=int(width * SS), joint="curve")
+    r = width * SS / 2
+    d = ImageDraw.Draw(m)
+    for x, y in (pts[0], pts[-1]):
+        d.ellipse([x * SS - r, y * SS - r, x * SS + r, y * SS + r], fill=255)
+    return m
+
+
+def root_fire():
+    """Fire: a three-tongued flame with a bright core."""
+    ic = Icon()
+    ic.glow((64, 76), 40, (255, 150, 80), 120)
+    body = union(
+        ellipse([30, 56, 98, 116]),
+        poly([(31, 86), (50, 50), (70, 6), (78, 40), (97, 86)]),
+        poly([(31, 96), (24, 56), (34, 64), (50, 78)]),
+        poly([(97, 96), (102, 64), (92, 70), (80, 78)]),
+    )
+    ic.shape(body, (255, 120, 60), light=0.5, dark=0.25)
+    core = union(ellipse([46, 78, 82, 112]), poly([(48, 92), (66, 46), (80, 92)]))
+    ic.shape(core, (255, 214, 120), outline=0, light=0.6, dark=0.05)
+    ic.gloss([50, 36, 60, 60], 150)
+    ic.save("RootFire")
+
+
+def root_water():
+    """Water: a droplet with a wave across its lower half."""
+    ic = Icon()
+    drop = union(ellipse([30, 50, 98, 118]), poly([(32, 76), (64, 8), (96, 76)]))
+    ic.shape(drop, (80, 160, 255), light=0.5, dark=0.35)
+    wave = [(36, 92)] + [(36 + i * 2, 92 + 5 * math.sin(i / 32 * 2 * math.pi)) for i in range(29)]
+    ic.line(wave, (255, 255, 255, 170), 4)
+    ic.gloss([44, 50, 56, 78], 190)
+    ic.save("RootWater")
+
+
+def root_wood():
+    """Wood: a sprout, a short stem with two broad leaves and a bud."""
+    ic = Icon()
+    stem = poly([(60, 118), (68, 118), (67, 50), (61, 50)])
+    leaves = union(leaf(64, 74, 54, 20, -1.0), leaf(64, 64, 56, 20, 1.0), leaf(64, 56, 46, 14, 0))
+    ic.shape(union(stem, leaves), (110, 200, 90), light=0.45, dark=0.3)
+    ic.line([(62, 72), (30, 52)], (255, 255, 255, 110), 2.2)
+    ic.line([(66, 62), (98, 42)], (255, 255, 255, 110), 2.2)
+    ic.line([(64, 52), (64, 18)], (255, 255, 255, 90), 1.8)
+    ic.save("RootWood")
+
+
+def root_metal():
+    """Metal: a silver yuanbao ingot, a boat-shaped base and a domed top."""
+    ic = Icon()
+    base = union(
+        poly([(14, 62), (34, 64), (94, 64), (114, 62), (104, 92), (84, 104), (44, 104), (24, 92)]),
+        ellipse([10, 52, 34, 72]),
+        ellipse([94, 52, 118, 72]),
+    )
+    ic.shape(base, (215, 218, 232), light=0.5, dark=0.4)
+    ic.shape(ellipse([40, 36, 88, 76]), (232, 234, 244), outline=4, light=0.6, dark=0.3)
+    ic.line([(28, 80), (100, 80)], (120, 126, 150, 200), 2)
+    ic.gloss([50, 42, 64, 56], 200)
+    ic.save("RootMetal")
+
+
+def root_earth():
+    """Earth: a mountain, a tall peak and a shorter one with a ridge line."""
+    ic = Icon()
+    hills = union(poly([(8, 108), (52, 22), (82, 72), (92, 56), (120, 108)]))
+    ic.shape(hills, (200, 150, 80), light=0.4, dark=0.4)
+    shade = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    ImageDraw.Draw(shade).polygon([(x * SS, y * SS) for x, y in [(52, 24), (82, 72), (76, 106), (56, 106), (60, 64)]], fill=(70, 40, 10, 80))
+    ic.img.alpha_composite(shade)
+    ic.line([(52, 26), (46, 46), (54, 60), (48, 78)], (255, 245, 220, 150), 2.4)
+    ic.line([(16, 108), (112, 108)], INK, 4)
+    ic.save("RootEarth")
+
+
+def root_lightning():
+    """Lightning: a zigzag bolt with a violet glow."""
+    ic = Icon()
+    ic.glow((64, 64), 44, (180, 140, 255), 150)
+    bolt = poly([(72, 6), (30, 70), (58, 70), (44, 122), (100, 50), (70, 50), (90, 6)])
+    ic.shape(bolt, (190, 150, 255), light=0.6, dark=0.25)
+    ic.line([(76, 14), (50, 60)], (255, 255, 255, 170), 2.6)
+    ic.save("RootLightning")
+
+
+def root_wind():
+    """Wind: a curling gust, a spiral with two trailing streaks."""
+    ic = Icon()
+    spiral = []
+    for i in range(70):
+        t = i / 69
+        a = math.radians(-90 + 400 * t)
+        r = 8 + 26 * t
+        spiral.append((70 + r * math.cos(a) * -1, 54 + r * math.sin(a) * -1))
+    spiral.append((10, spiral[-1][1]))
+    gust = union(stroke_mask(spiral, 11), stroke_mask([(28, 96), (100, 96)], 9), stroke_mask([(44, 114), (86, 114)], 8))
+    ic.shape(gust, (150, 235, 210), outline=4, light=0.5, dark=0.3)
+    ic.save("RootWind")
+
+
+def root_ice():
+    """Ice: a six-armed snowflake with small side branches."""
+    ic = Icon()
+    ic.glow((64, 64), 40, (190, 240, 255), 130)
+    masks = []
+    for k in range(6):
+        a = math.radians(k * 60)
+        ca, sa = math.cos(a), math.sin(a)
+        p = lambda r, s: (64 + r * sa + s * ca, 64 - r * ca + s * sa)
+        masks.append(stroke_mask([p(0, 0), p(50, 0)], 9))
+        masks.append(stroke_mask([p(30, 0), p(44, -12)], 7))
+        masks.append(stroke_mask([p(30, 0), p(44, 12)], 7))
+    masks.append(poly([(64 + 14 * math.sin(math.radians(k * 60)), 64 - 14 * math.cos(math.radians(k * 60))) for k in range(6)]))
+    ic.shape(union(*masks), (170, 230, 255), outline=4, light=0.6, dark=0.3)
+    ic.gloss([56, 54, 66, 62], 200)
+    ic.save("RootIce")
+
+
+ROOTS = [root_fire, root_water, root_wood, root_metal, root_earth, root_lightning, root_wind, root_ice]
+
+
 if __name__ == "__main__":
+    import sys
+
+    if sys.argv[1:] == ["roots"]:
+        for draw in ROOTS:
+            draw()
+        sys.exit()
     spirit_grass()
     cloud_mint()
     blood_ginseng()
@@ -462,3 +597,5 @@ if __name__ == "__main__":
     spear()
     staff()
     fist()
+    for draw in ROOTS:
+        draw()

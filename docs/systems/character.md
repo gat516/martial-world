@@ -2,8 +2,8 @@
 
 **Status:** the spirit root is built on the server (`src/shared/Roots.luau`,
 `src/server/Roots.luau`, `Pacing.Roots`). Still to do for it: the Testing Stone
-in the hub, the reveal pillar vfx, the reveal card and character window UI,
-and the Marrow Washing Pill. Everything else here is design: build it one layer
+in the hub, the reveal pillar vfx, and the Marrow Washing Pill. The reveal card
+and the first character window (Self card) are built (`RootReveal`, `SelfCard`). Everything else here is design: build it one layer
 at a time, in the order of "Unlock timeline".
 
 ## Purpose
@@ -177,9 +177,31 @@ confirmation. You keep the old one's stage if you ever return to it.
 Weapons tab (f10a380). The character window does not repeat them; it shows the
 equipped weapon as a small badge only.
 
-**Opening it:** tap the **realm crest** in the vitals. There is no new top-right
-tile (that row is full on phones). The crest pulses, and the elder points at it
-once, at the root reveal. If playtests show people don't find it, add a tile then.
+**The reveal card** (`src/client/RootReveal.luau`, `Hud.RootReveal`): on the
+local player's first test (Effect "root" with `first`), a small centre card: the
+element's seal (`art/ui/draw_icons.py`, `icon_Root<Element>`) on rays in its
+colour, "Spirit Root", the element's name, the grade in its colour and the
+one-line perk. Rare roots add a gold ring round the seal and a "RARE!" tag. A tap
+closes it after a beat, or it closes itself after 6 s. A repeat test shows no card
+(the server toasts).
+
+**Opening it:** tap the **realm crest** in the vitals (`Crest.Open`). There is no
+new top-right tile (that row is full on phones). The crest is tappable only once
+the root is tested; when the reveal card closes it swells once and wears a small
+seal dot until the window is first opened (not saved across sessions). The elder
+pointing at it is still to do. If playtests show people don't find it, add a tile
+then.
+
+**Built (v1, `src/client/SelfCard.luau`, `Hud.SelfCard`):** one compact card
+(at most 330 px wide, grows to fit) with the realm name, its stage bar
+(cultivation toward the next stage), then the Self page: the root row (seal,
+"Fire Root", grade, perk; tap it for the exact numbers: the perk at this grade,
+"+15% damage" with the matching techniques by name, cultivation speed) and the
+equipped weapon's badge with its class's Dao level. Room is left in the layout:
+the Self page is a list by `LayoutOrder` (root 10, its numbers 11, **12-19 for
+root actions** such as a Reroll button and a stored-roots strip, **20 for the
+Method row**, weapon 30), and tabs go between the stage bar and `Body.Pages`
+(each tab a page frame in `Pages`).
 
 **It grows with the player:**
 

@@ -83,6 +83,29 @@ checks a rebuild against the previous templates.
   kicks on the first three targets; IV a crater, a dome shell, a nimbus halo
   behind the head, one point light, ScreenEffects impact frames and an
   Explosion shake on the first impact.
+- Techniques other than Palm Strike draw themselves in
+  `Client.TechniqueFX.<Id>` (`{ cast = function(CombatEffects, def, level,
+  character, origin, dir, chain): boolean }`; false falls back to the old
+  drawing in `CombatEffects.cast`).
+- **Sword Qi Wave** (`SwordQiWave_T1..T4`, authored at length 32 and width 5;
+  `TechniqueFX.SwordQiWave`). Fists.3 cuts flat across the front with the
+  **right** arm, so the release flashes on the live right hand at Hit: a star
+  flash, 3D swirl air rings thrown forward, a light shake. The blade (`Blade`)
+  is a horizontal crescent of Beams (core, edge and a camera-facing glow
+  layer) with a wake trail. It flies the line on the template's `TravelCurve`
+  over `TravelTime` (0.36 s), driven by a pausable tween registered in
+  `TechniqueVFX.waves`. A ray along the path stops it at a wall or rising
+  ground, and it bursts where it ends (`Terminal`: `impactBurst` +
+  `impactShockwave`, III+ a Craters ring). Each enemy on the line gets a cyan
+  `impactStack` plus a crescent cut flash when the blade's front reaches its
+  near side (`curveTime`), and `CombatEffects.flash`. Behind the blade a Neon
+  slit (`Cut`) is drawn on the ground and cools into an ink scar (`Scar`); II+
+  motes rise off it (`Path`). II adds an echo blade, release sparks, impact
+  swirl and dust; III a second echo, a second air ring, bubbles, rock kicks,
+  path cracks and the terminal crater; IV a gold core, three air rings, one
+  point light riding the blade, a sword-intent crescent and impact frames at
+  the release, and a quake on the first impact. Damage still lands on the
+  whole line at Hit; visual impacts follow the blade, up to ~0.36 s later.
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative
@@ -126,5 +149,8 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   effect's active phase, which follows Config) runs ~0.05 s of source time past
   the animation's marker. Effects follow Config until the two are aligned.
 - Enemy hits don't knock players back or stagger them yet.
+- Sword Qi Wave's blade stops visually at walls, but its damage box still
+  reaches through them; and its windup gathers in front of the chest rather
+  than on the right hand until its def gets `hand = "Right"`.
 - An interrupted enemy windup's telegraph still plays out on clients.
 - `Dodge` and `Cast` remotes in `assets/Remotes.rbxmx` are unused.

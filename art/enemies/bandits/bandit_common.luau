@@ -208,6 +208,8 @@ end
 
 -- Weld every detail part to its segment, set the enemy contract and park the model in
 -- staging (replacing an older build of the same name).
+B.R6_LIMBS = { Head = true, Torso = true, ["Left Arm"] = true, ["Right Arm"] = true, ["Left Leg"] = true, ["Right Leg"] = true }
+
 function B.finish(ctx, opts)
 	local model = ctx.model
 	opts = opts or {}
@@ -262,6 +264,15 @@ function B.finish(ctx, opts)
 		model:SetAttribute(k, val)
 	end
 
+	-- Each armour piece goes inside the R6 limb it's welded to, so the top level reads as a
+	-- plain R6 rig (Head, Torso, Left/Right Arm, Left/Right Leg, HRP, Humanoid) plus
+	-- accessories and the weapon. The welds don't care where the pieces are parented.
+	for _, p in model:GetChildren() do
+		local seg = p:IsA("BasePart") and p:GetAttribute("Segment")
+		if seg and B.R6_LIMBS[seg] then
+			p.Parent = model[seg]
+		end
+	end
 	for _, d in model:GetDescendants() do
 		assert(not d:IsA("LuaSourceContainer"), "script left in " .. d:GetFullName())
 	end

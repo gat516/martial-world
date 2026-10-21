@@ -193,7 +193,8 @@ function Thread.play(stage: Frame, info: Feel.Info, ui: Feel.Ui): (number, numbe
 			stroke(channelTemplate, points[i], points[i + 1], 2 * half)
 		end
 		for i = 1, #points - 1 do
-			local trail = stroke(trailTemplate, points[i], points[i], 2 * half * TRAIL_SHARE)
+			-- laid along the whole segment so it takes the segment's angle; drawTrail only regrows its length
+			local trail = stroke(trailTemplate, points[i], points[i + 1], 2 * half * TRAIL_SHARE)
 			trail.Visible = false
 			trails[i] = trail
 		end

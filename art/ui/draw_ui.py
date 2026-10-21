@@ -723,6 +723,50 @@ def key_cap():
     finish(shadow_under(img, blur=3, offset=2, alpha=140), "key_cap.png")
 
 
+def self_icon():
+    """The Self tile icon (character window), 128px: a cultivator's bust, a topknot
+    with a hairpin over the head and a cross-collared robe on the shoulders. Near
+    white with a soft top light, an ink outline and one highlight, tinted in Studio
+    through ImageColor3 like the other tile icons (gear_icon). ScaleType Fit."""
+    S = 128
+    N = S * SS
+    c = N / 2
+    u = SS
+    mask = Image.new("L", (N, N), 0)
+    md = ImageDraw.Draw(mask)
+    # robe: broad rounded shoulders down to the bottom edge
+    md.rounded_rectangle([14 * u, 78 * u, N - 14 * u, 122 * u], radius=28 * u, fill=255)
+    md.rectangle([14 * u, 104 * u, N - 14 * u, 122 * u], fill=255)
+    # neck and head
+    md.rectangle([c - 9 * u, 62 * u, c + 9 * u, 84 * u], fill=255)
+    hr = 22 * u
+    hy = 50 * u
+    md.ellipse([c - hr, hy - hr, c + hr, hy + hr], fill=255)
+    # topknot bun
+    br = 10 * u
+    by = 24 * u
+    md.ellipse([c - br, by - br, c + br, by + br], fill=255)
+    # the hairpin crosses the bun and pokes out both sides
+    ImageDraw.Draw(mask).line([(c - 19 * u, 31 * u), (c + 19 * u, 17 * u)], fill=255, width=4 * u)
+    outline = mask.filter(ImageFilter.MaxFilter(4 * SS + 1))
+    img = Image.new("RGBA", (N, N), INK[:3] + (0,))
+    img.putalpha(outline)
+    face = canvas(S, S)
+    gradient_rect(face, [0, 0, N, N], (255, 255, 255), (196, 200, 204))
+    face.putalpha(mask)
+    img.alpha_composite(face)
+    d = ImageDraw.Draw(img)
+    groove = (120, 126, 130, 255)
+    # cross collar: left lapel over right, meeting below the neck
+    d.line([(c - 16 * u, 82 * u), (c + 6 * u, 108 * u)], fill=groove, width=4 * u)
+    d.line([(c + 16 * u, 82 * u), (c + 1 * u, 100 * u)], fill=groove, width=4 * u)
+    # chin line under the head, so head and robe read apart
+    d.arc([c - hr, hy - hr, c + hr, hy + hr], 30, 150, fill=groove, width=3 * u)
+    # one highlight on the head
+    d.arc([c - hr + 5 * u, hy - hr + 5 * u, c + hr - 5 * u, hy + hr - 5 * u], 200, 255, fill=(255, 255, 255, 255), width=4 * u)
+    finish(img, "self_icon.png")
+
+
 def prompt_art():
     key_cap()
 
@@ -735,6 +779,9 @@ def garden_art():
 
 if __name__ == "__main__":
     import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "self":
+        self_icon()
+        sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "garden":
         garden_art()
         sys.exit()

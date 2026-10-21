@@ -24,12 +24,18 @@ cursor, settings and the admin panel.
   grades share their model's art and differ by glow colour.
 - Technique icons are flat white glyphs tinted by the technique's colour; the
   class weapon skills' are drawn in `art/ui/draw_techniques.py`.
-- Character window (`SelfCard`): tapping the realm crest over the vitals opens a
-  compact Self card (realm and stage bar, spirit root row, equipped weapon badge);
-  tapping the root row shows its exact numbers. The crest is tappable only once the
-  root is tested. The spirit root reveal (`RootReveal`) is a small centre card on
-  the first test, closed by a tap or by itself, after which the crest swells once
-  and wears a seal dot until opened. Element seals are drawn in
+- Character window (`SelfCard`): the Self tile (`Buttons.SelfButton`, between
+  Cultivate and Inventory) opens a compact Self card (realm and stage bar, spirit
+  root row, equipped weapon badge); tapping the realm crest over the vitals is a
+  shortcut to it. Tapping the root row shows its exact numbers. The tile shows and
+  the crest is tappable only once the root is tested. The card is small, so the
+  tiles stay up on touch too. The spirit root reveal (`RootReveal`) is a small
+  centre card on the first test, closed by a tap or by itself, after which the
+  tile pops in, swells once and wears a seal dot until opened.
+- Top-right tiles (`Hud.Buttons`, right-aligned list): Cultivate, Self (once the
+  root is tested), Inventory, Build (near your peak), Travel (in the sect),
+  Settings. 56 px tiles 10 px apart, scaled 0.9 on touch (about 50 px thumb
+  targets), 0.85 on PC; six tiles are about 350 px wide on a phone. Element seals are drawn in
   `art/ui/draw_icons.py` (`icon_Root<Element>`) and shown on the weapon badge disc.
   Layout and room for later rows and tabs: [character](character.md).
 - Travel: the menu groups Sect grounds and the Wilds; locked arrays stay listed,
@@ -48,7 +54,7 @@ cursor, settings and the admin panel.
 
 ## Key files (all `src/client/`)
 - `Hud.luau`: vitals (health, qi, cultivation bars, realm crest), buffs, toasts.
-  The crest opens the character window (`SelfCard`).
+  The crest is a shortcut to the character window (`SelfCard`).
 - `Layout.luau`: device-specific layout flips; `Platform.luau`.
 - `Menus.luau`: the one-window rule and what hides while a window is open.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
@@ -56,7 +62,7 @@ cursor, settings and the admin panel.
   (slot painting, weapon art, the weapon badge), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
-- `SelfCard.luau` (character window from the realm crest), `RootReveal.luau`
+- `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`
   (spirit root reveal card).
 - `Onboarding.luau`, `TravelMenu.luau` (with `GateMarkers.luau` over arrays and
   `Veil.luau`, the travel fade in `StarterGui.Veil`), `HerbShop.luau`, `BuildCatalog.luau`,

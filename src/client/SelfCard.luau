@@ -1,6 +1,7 @@
 --!strict
--- The character window, opened by tapping the realm crest over the vitals
--- (Hud.Stack.Vitals.Crest.Open). It grows with the player
+-- The character window, opened by the Self tile in the top-right row
+-- (Hud.Buttons.SelfButton) or, as a shortcut, by tapping the realm crest over the
+-- vitals (Hud.Stack.Vitals.Crest.Open). It grows with the player
 -- (docs/systems/character.md, "Character window"); this is the first stage:
 -- one card, Self, with no tabs.
 --   Header: realm name and its stage bar (cultivation toward the next stage).
@@ -13,8 +14,9 @@
 --         class's Dao level (weapons themselves live in the Inventory).
 --   Future tabs (Self | Body) go in Body at LayoutOrder 3, between the stage bar
 --   and Pages; each tab is a page frame inside Pages.
--- The crest is only tappable once the root is tested. After the reveal it pulses
--- once and wears a small seal dot until the window is first opened (not saved).
+-- The tile shows (and the crest is tappable) only once the root is tested. After
+-- the reveal the tile pops in, swells once and wears a small seal dot until the
+-- window is first opened (not saved).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -50,8 +52,9 @@ local SelfCard = {}
 
 local window: Frame
 local crest: GuiObject
-local openButton: GuiButton
-local newDot: GuiObject
+local openButton: GuiButton -- over the crest
+local tile: GuiButton -- Buttons.SelfButton
+local newDot: GuiObject -- on the tile
 local selfPage: Frame
 local seenOnce = false
 
@@ -174,6 +177,7 @@ end
 local function render()
 	local root = currentRoot()
 	openButton.Visible = root ~= nil
+	tile.Visible = root ~= nil
 	if not root then
 		newDot.Visible = false
 		if window.Visible then
@@ -212,17 +216,23 @@ function SelfCard.toggle()
 	end
 end
 
--- After the root reveal: one swell of the crest, and the dot until it's opened.
+-- After the root reveal: the tile pops in and swells once, with the dot until
+-- it's opened.
 function SelfCard.announce()
 	if seenOnce or not currentRoot() then
 		return
 	end
 	openButton.Visible = true
 	newDot.Visible = true
-	local scale = crest:FindFirstChild("Motion") :: UIScale?
+	local scale = tile:FindFirstChild("Motion") :: UIScale?
+	tile.Visible = true
 	if scale then
-		scale.Scale = 1
-		Motion.tween(scale, { Scale = PULSE_SCALE }, PULSE)
+		scale.Scale = 0.8
+		Motion.tween(scale, { Scale = 1 }).Completed:Once(function(state)
+			if state == Enum.PlaybackState.Completed then
+				Motion.tween(scale, { Scale = PULSE_SCALE }, PULSE)
+			end
+		end)
 	end
 end
 
@@ -231,7 +241,8 @@ function SelfCard.init(gui: ScreenGui)
 	selfPage = ((window:FindFirstChild("Body") :: Instance):FindFirstChild("Pages") :: Instance):FindFirstChild("Self") :: Frame
 	crest = gui:FindFirstChild("Crest", true) :: GuiObject
 	openButton = crest:FindFirstChild("Open") :: GuiButton
-	newDot = crest:FindFirstChild("NewDot") :: GuiObject
+	tile = (gui:FindFirstChild("Buttons") :: Instance):FindFirstChild("SelfButton") :: GuiButton
+	newDot = tile:FindFirstChild("NewDot") :: GuiObject
 
 	Menus.register(window)
 	ListWindow.bindClose(window)
@@ -252,6 +263,8 @@ function SelfCard.init(gui: ScreenGui)
 		Motion.tap(crest)
 		SelfCard.toggle()
 	end)
+	-- the tile gets its press feedback from Motion.buttons, like the other tiles
+	tile.Activated:Connect(SelfCard.toggle)
 
 	local rootRow = selfPage:FindFirstChild("Root") :: GuiButton
 	local detail = selfPage:FindFirstChild("RootDetail") :: GuiObject

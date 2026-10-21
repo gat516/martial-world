@@ -185,12 +185,14 @@ one-line perk. Rare roots add a gold ring round the seal and a "RARE!" tag. A ta
 closes it after a beat, or it closes itself after 6 s. A repeat test shows no card
 (the server toasts).
 
-**Opening it:** tap the **realm crest** in the vitals (`Crest.Open`). There is no
-new top-right tile (that row is full on phones). The crest is tappable only once
-the root is tested; when the reveal card closes it swells once and wears a small
-seal dot until the window is first opened (not saved across sessions). The elder
-pointing at it is still to do. If playtests show people don't find it, add a tile
-then.
+**Opening it:** the **Self tile** in the top-right row (`Hud.Buttons.SelfButton`,
+between Cultivate and Inventory; a bust with a topknot, `art/ui/draw_ui.py`
+`self_icon`). It is hidden until the root is tested; when the reveal card closes
+it pops in, swells once and wears a small seal dot until the window is first
+opened (not saved across sessions). Pressing it again closes the card, and the
+tiles stay up while it's open (it is small, even on phones). Tapping the **realm
+crest** in the vitals (`Crest.Open`) is a shortcut to the same card, with no dot of
+its own. The elder pointing at it is still to do.
 
 **Built (v1, `src/client/SelfCard.luau`, `Hud.SelfCard`):** one compact card
 (at most 330 px wide, grows to fit) with the realm name, its stage bar

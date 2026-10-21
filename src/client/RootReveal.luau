@@ -4,8 +4,8 @@
 -- element's seal over rays in its colour, "Spirit Root", the element's name, the
 -- grade in its colour and the one-line perk. Rare roots (Lightning, Wind, Ice)
 -- add a gold ring round the seal and a "RARE!" tag. A tap or click closes it
--- (after a short beat), or it closes by itself; then the realm crest pulses once
--- to show where the root now lives (SelfCard).
+-- (after a short beat), or it closes by itself; then the Self tile appears in the
+-- top-right row with a pulse to show where the root now lives (SelfCard).
 -- Fed by Effect "root" (player, element, grade, first), sent to everyone; only
 -- the local player's first test opens the card (a repeat test gets a toast from
 -- the server). The pillar of light from the same event is world vfx, not here.

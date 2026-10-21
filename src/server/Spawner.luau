@@ -10,6 +10,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Wilds
+local TESTBED = require(ReplicatedStorage.Shared.Config).TESTBED
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Regions = require(ReplicatedStorage.Shared.Regions)
 local Spawns = require(ReplicatedStorage.Shared.Spawns)
@@ -296,7 +297,7 @@ function Spawner.start()
 		while true do
 			task.wait(Ambient.TICK)
 			local now = os.clock()
-			if Ambient.ENABLED then
+			if Ambient.ENABLED and not TESTBED then -- the testbed only has what you spawn
 				for _, player in Players:GetPlayers() do
 					tickPlayer(player, now)
 				end

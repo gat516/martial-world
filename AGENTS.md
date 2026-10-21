@@ -27,6 +27,15 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 
 - For a new beast or boss, a beast rework or a difficulty pass, spawn the `enemy-designer` subagent. It sends a design sheet (attacks, animation, sounds, difficulty math), then returns briefs for `modeler` (the body) and `vfx` (attack, hit and death effects). Run those two with its briefs (in parallel when they don't share files), then spawn `enemy-designer` again with their results to rig, animate, wire sounds, add the def and tune.
 
+## Testbed
+
+The testbed is a separate experience: a baseplate arena where the user fights spawned beasts and tests animations and events. It runs this repo's code through `test.project.json` (`rojo serve test.project.json`, port 34873; see `docs/systems/testbed.md`). Keep it in sync:
+- **Shared, never forked.** Both projects map the same `src/` and `assets/`, so code and exported assets sync on their own. A testbed difference is a `Config.TESTBED` check in the real code, never a copied script.
+- **New mappings go in both projects.** When you add or change a `$path` in `default.project.json`, make the same change in `test.project.json`, then run `python3 tools/check_testbed.py`.
+- **Content moves through `assets/`, never by hand.** Anything that needs to exist in both places (a new enemy body, effect, item or template) gets exported to `assets/` and mapped, whichever place it was built in. New enemies are in both places once they're in `assets/Enemies.rbxmx` and `Enemies.luau`. Don't copy and paste between places. Studio-only content (`Workspace.Map`, `AssetLibrary`) doesn't move.
+- **Don't break its boot.** The testbed has no `Workspace.Map`, peaks or wilds zones (only the stubs in `test.project.json`). New code that waits on a map instance (`WaitForChild`, or `workspace.Map...` when a module loads) needs a stub in `test.project.json` or a `Config.TESTBED` guard.
+- **Flag what to test there.** After a change that needs testing in the testbed (combat, enemy AI, attacks, enemies, techniques, events, animations), end the commit body with `Testbed: re-sync and republish to test <what>`, and say so in your report. The user re-syncs and publishes; agents don't publish.
+
 ## Map work
 
 - For map layout, landforms, set dressing, detailing and lighting/atmosphere, spawn the `map-builder` subagent unless it is already running for this task. It plans against `docs/systems/map.md` (layout, art direction, and the instances and coordinates scripts depend on), builds meshes through the modeler's Blender pipeline and dresses from `ServerStorage.AssetLibrary`. Single meshes and props go to the `modeler` subagent; particle and beam effects go to `vfx`.

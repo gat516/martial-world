@@ -10,7 +10,8 @@ game (funnels, progression, custom events), and give admins test tools.
   outage can't wipe real progress.
 - Schema changes go through numbered migrations.
 - Analytics must never break gameplay (every call is pcall'd).
-- Studio playtests top up a test kit so systems can be tried at once.
+- Studio playtests and the [testbed](testbed.md) top up a test kit so systems can be tried at once
+  (the testbed also skips onboarding and owns every technique and weapon).
 
 ## Key files
 - `src/server/PlayerData.luau`: the `Data` type, `default()`, `migrations`
@@ -27,7 +28,7 @@ game (funnels, progression, custom events), and give admins test tools.
 - `src/server/Main.server.luau`: join/leave order, `applyTestKit`, hook wiring.
 
 ## Data flow
-Join: `PlayerData.load` -> test kit (Studio) -> `Cultivation.claimLogin` (offline
+Join: `PlayerData.load` -> test kit (Studio, testbed) -> `Cultivation.claimLogin` (offline
 cultivation, daily qi) -> peak layout, realm tier, garden -> `pushState`. Leave:
 analytics `SessionLength`, `PlayerData.release` (final save), every module's `forget`.
 
@@ -37,4 +38,4 @@ analytics `SessionLength`, `PlayerData.release` (final save), every module's `fo
 - Starting raw qi: `Pacing.Income.STARTING_RAW_QI`; starting stones: `Config.Economy`.
 
 ## Known gaps
-- `Config.TestKit.ENABLED` is on (Studio only); `FILL_DANTIAN` fills the dantian on every Studio join.
+- `Config.TestKit.ENABLED` is on (Studio and the testbed only); `FILL_DANTIAN` fills the dantian on every Studio join.

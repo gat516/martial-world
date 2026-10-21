@@ -49,6 +49,9 @@ local remotes = ReplicatedStorage.Remotes
 -- move each character onto their own peak's teleport array instead (after a
 -- death, onto the main peak's array).
 local function sendHome(player: Player, character: Model)
+	if Config.TESTBED then
+		return -- no peaks or arrays; everyone (re)spawns on the arena's pad
+	end
 	if Config.Spawn.RESPAWN_AT_HUB and player:GetAttribute("Died") then
 		player:SetAttribute("Died", nil)
 		local hub = Travel.arrival(player, "MainPeak")
@@ -64,12 +67,20 @@ local function sendHome(player: Player, character: Model)
 	end
 end
 
--- Studio playtests: top every herb, seed, item and Spirit Stones up to the test-kit amount, and fill
--- the dantian (never above that, so repeated sessions don't inflate a saved profile).
+-- Studio playtests and the testbed: top every herb, seed, item and Spirit Stones up to the test-kit
+-- amount, and fill the dantian (never above that, so repeated sessions don't inflate a saved
+-- profile). The testbed also skips onboarding and owns every technique and weapon.
 local function applyTestKit(data: PlayerData.Data)
 	local kit = Config.TestKit
-	if not (kit.ENABLED and RunService:IsStudio()) then
+	if not (kit.ENABLED and (RunService:IsStudio() or Config.TESTBED)) then
 		return
+	end
+	if Config.TESTBED then
+		for _, beat in Quests.Beats do
+			if beat.id ~= "FreePlay" then
+				data.beats[beat.id] = true
+			end
+		end
 	end
 	for _, id in Herbs.Order do
 		data.herbs[id] = math.max(data.herbs[id] or 0, kit.HERBS_EACH)
@@ -85,7 +96,7 @@ local function applyTestKit(data: PlayerData.Data)
 		end
 	end
 	data.stones = math.max(data.stones, kit.STONES)
-	if kit.ALL_TECHNIQUES then
+	if kit.ALL_TECHNIQUES or Config.TESTBED then
 		for _, id in Techniques.Order do
 			data.techniques.owned[id] = data.techniques.owned[id] or { level = 1, xp = 0 }
 		end
@@ -95,7 +106,7 @@ local function applyTestKit(data: PlayerData.Data)
 			end
 		end
 	end
-	if kit.ALL_WEAPONS then
+	if kit.ALL_WEAPONS or Config.TESTBED then
 		for _, id in WeaponDefs.Order do
 			data.weapons.owned[id] = math.max(data.weapons.owned[id] or 0, 1)
 		end

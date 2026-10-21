@@ -105,6 +105,12 @@ local CLASSES: { [string]: ClassCombat } = {
 }
 
 return {
+	-- The testbed place (test.project.json sets this attribute on Workspace): a baseplate
+	-- arena with the real Hub and no map. No timed events, rolled weather or ambient
+	-- beasts, onboarding is skipped and every player gets the full test kit
+	-- (docs/systems/testbed.md).
+	TESTBED = workspace:GetAttribute("Testbed") == true,
+
 	Data = {
 		STORE_NAME = "PlayerData_v1",
 		AUTOSAVE_SECONDS = 120,
@@ -428,7 +434,8 @@ return {
 		USER_IDS = {} :: { number },
 	},
 
-	-- Studio playtests only: topped up on join so systems can be tried right away.
+	-- Studio playtests and the testbed: topped up on join so systems can be tried right
+	-- away. The testbed also owns every technique and weapon.
 	TestKit = {
 		ENABLED = true,
 		HERBS_EACH = 5, -- every herb type

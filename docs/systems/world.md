@@ -354,7 +354,8 @@ dashboard, and end when claimed or after `minutes`.
 - Nothing on arrival makes an event a contest beyond first claim. Event grounds are
   picked at random, not by where players are (map.md "Still to do" step 7).
 - Only the Auspicious Clouds varieties have a timer `weight`, so they are the only
-  events that start on their own (the timer rolls every 20-35 min).
+  events that start on their own (the timer rolls every 20-35 min). The
+  [testbed](testbed.md) has no timer and no rolled weather.
 - Stylized water: ground raycasts (Treasures, Spawner) skip only terrain water,
   so they can pick a shallow pool's bed under a `StylizedWater` part; check the
   tag there if treasures or beasts in pools look wrong. No wading slow-down,

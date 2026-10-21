@@ -5,6 +5,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Config = require(ReplicatedStorage.Shared.Config)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 
 local notifyRemote = ReplicatedStorage.Remotes.Notify :: RemoteEvent
@@ -63,8 +64,9 @@ function WeatherService.start()
 		while true do
 			local ends = workspace:GetAttribute("WeatherEnds") :: number
 			task.wait(math.max(1, ends - workspace:GetServerTimeNow()))
-			-- after anything else, the sky clears before the next event
-			local nextDef = if current.id == "Clear" then pick() else Weather.Defs.Clear
+			-- after anything else, the sky clears before the next event (the testbed only
+			-- clears: its weather is whatever the admin dashboard forces)
+			local nextDef = if current.id == "Clear" and not Config.TESTBED then pick() else Weather.Defs.Clear
 			local range = nextDef.minutes
 			WeatherService.set(nextDef, 60 * (range[1] + math.random() * (range[2] - range[1])))
 		end

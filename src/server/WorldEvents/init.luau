@@ -16,6 +16,7 @@
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Config = require(ReplicatedStorage.Shared.Config)
 local Shared = require(ReplicatedStorage.Shared.WorldEvents)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 local WeatherService = require(script.Parent.WeatherService)
@@ -172,6 +173,9 @@ end
 
 function WorldEvents.init()
 	table.insert(WeatherService.onChanged, onWeather)
+	if Config.TESTBED then
+		return -- no timer: testbed events start from the dashboard (or its forced weather)
+	end
 	task.spawn(function()
 		while true do
 			local range = Shared.TIMER_MINUTES

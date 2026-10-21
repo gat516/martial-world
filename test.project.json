@@ -1,0 +1,296 @@
+{
+  "name": "Martial World Testbed",
+  "servePort": 34873,
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "src/shared"
+      },
+      "Remotes": {
+        "$path": "assets/Remotes.rbxmx"
+      },
+      "Animations": {
+        "$path": "assets/Animations.rbxmx"
+      },
+      "Ambience": {
+        "$path": "assets/Ambience.rbxmx"
+      },
+      "Effects": {
+        "$path": "assets/Effects.rbxm"
+      },
+      "WorldFX": {
+        "$path": "assets/WorldFX.rbxm"
+      },
+      "BuildKit": {
+        "$path": "assets/BuildKit.rbxmx"
+      },
+      "GardenKit": {
+        "$path": "assets/GardenKit.rbxmx"
+      },
+      "HerbMorsel": {
+        "$path": "assets/HerbMorsel.rbxmx"
+      },
+      "BuildCatalog": {
+        "$className": "Folder"
+      },
+      "HerbModels": {
+        "$className": "Folder"
+      }
+    },
+    "ReplicatedFirst": {
+      "EditorOnly": {
+        "$path": "src/first/EditorOnly.client.luau"
+      }
+    },
+    "ServerScriptService": {
+      "Server": {
+        "$path": "src/server"
+      }
+    },
+    "StarterGui": {
+      "Hud": {
+        "$path": "assets/Hud.rbxmx"
+      },
+      "Rewards": {
+        "$path": "assets/Rewards.rbxmx"
+      },
+      "Prompts": {
+        "$path": "assets/Prompts.rbxmx"
+      },
+      "Veil": {
+        "$path": "assets/Veil.rbxmx"
+      }
+    },
+    "StarterPlayer": {
+      "$properties": {
+        "CameraMaxZoomDistance": 30
+      },
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "src/client"
+        }
+      }
+    },
+    "SoundService": {
+      "Music": {
+        "$path": "assets/SoundGroups/Music.rbxmx"
+      },
+      "SFX": {
+        "$path": "assets/SoundGroups/SFX.rbxmx"
+      },
+      "Ambience": {
+        "$path": "assets/SoundGroups/Ambience.rbxm"
+      }
+    },
+    "Workspace": {
+      "$attributes": {
+        "Testbed": true
+      },
+      "Hub": {
+        "$path": "assets/Hub.rbxmx"
+      },
+      "Arena": {
+        "$className": "Folder",
+        "Baseplate": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "Locked": true,
+            "Size": [
+              2048,
+              16,
+              2048
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  640.6,
+                  80
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Material": "Slate",
+            "Color": [
+              0.36,
+              0.38,
+              0.36
+            ],
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "Grid": {
+            "$className": "Texture",
+            "$properties": {
+              "Texture": "rbxassetid://6372755229",
+              "Face": "Top",
+              "StudsPerTileU": 8,
+              "StudsPerTileV": 8,
+              "Transparency": 0.8
+            }
+          }
+        },
+        "SpawnPad": {
+          "$className": "SpawnLocation",
+          "$properties": {
+            "Anchored": true,
+            "Neutral": true,
+            "Duration": 0,
+            "Size": [
+              12,
+              1,
+              12
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  649.1,
+                  40
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Material": "SmoothPlastic",
+            "Color": [
+              0.85,
+              0.75,
+              0.45
+            ],
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        }
+      },
+      "Map": {
+        "$className": "Folder",
+        "Sect": {
+          "$className": "Folder",
+          "SpiritPeaks": {
+            "$className": "Folder"
+          }
+        }
+      },
+      "Wilds": {
+        "$className": "Folder",
+        "Zones": {
+          "$className": "Folder"
+        },
+        "EventGrounds": {
+          "$className": "Folder",
+          "ArenaGround": {
+            "$className": "Part",
+            "$attributes": {
+              "Radius": 60
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Massless": true,
+              "Transparency": 1,
+              "Size": [
+                120,
+                1,
+                120
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    0,
+                    648.6,
+                    -120
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "QiNodes": {
+          "$className": "Folder"
+        },
+        "Enemies": {
+          "$className": "Folder"
+        }
+      }
+    },
+    "ServerStorage": {
+      "Enemies": {
+        "$path": "assets/Enemies.rbxmx"
+      },
+      "PeakTiers": {
+        "$path": "assets/PeakTiers.rbxmx"
+      },
+      "ItemTemplates": {
+        "$path": "assets/ItemTemplates.rbxmx"
+      },
+      "AmbientFX": {
+        "$path": "assets/AmbientFX.rbxm"
+      },
+      "WaterKit": {
+        "$path": "assets/WaterKit.rbxm"
+      },
+      "WeaponModels": {
+        "$path": "assets/WeaponModels.rbxm"
+      },
+      "PeakStash": {
+        "$className": "Folder"
+      },
+      "PeakTierModels": {
+        "$className": "Folder"
+      }
+    }
+  }
+}

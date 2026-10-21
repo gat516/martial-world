@@ -138,6 +138,13 @@ on, parts for buildings.
   walkable tribulation floor of 34+ studs radius at (2, ~855.5, -86) with clear
   air above (or update `Config.Tribulation`). The main peak is found only by these
   coordinates, so its children can be restructured freely.
+- Templates scripts clone and place (event beacons, treasures, relics, props
+  in `ServerStorage`): pivot upright. Leave `PrimaryPart` nil and set an
+  identity-rotation `WorldPivot` at the ground point, with cylinders and
+  pillars stood up inside the model. Then check the placing script keeps the
+  pivot rotation (`CFrame.new(spot) * template:GetPivot().Rotation`; see
+  AGENTS.md, "Luau pitfalls"). A pivot on a turned cylinder plus
+  `PivotTo(CFrame.new(spot))` lays light pillars on their side.
 - Anything players stand on must collide the way it looks: raycast-check walkable
   areas in Edit mode after changes (holes have happened before).
 

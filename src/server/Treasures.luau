@@ -96,7 +96,9 @@ local function spawnOne(): boolean
 			d.TextColor3 = Items.rarityColor(item)
 		end
 	end
-	model:PivotTo(CFrame.new(spot))
+	-- keep the template's authored pivot rotation: its pivot is the Ring, a
+	-- cylinder turned upright, so dropping it lays the pillar on its side
+	model:PivotTo(CFrame.new(spot) * template:GetPivot().Rotation)
 	local prompt = model:FindFirstChildWhichIsA("ProximityPrompt", true) :: ProximityPrompt
 	prompt.ObjectText = item.name
 	local claimed = false

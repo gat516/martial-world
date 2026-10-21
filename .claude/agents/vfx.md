@@ -402,7 +402,9 @@ them instead of doubling them up.
 
 One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
 - Pivot at the ground point under the caster. Leave `PrimaryPart` nil and set
-  `WorldPivot`. A PrimaryPart sits exactly on the pivot, so ground emitters
+  an identity-rotation (upright) `WorldPivot`; stand pillars and cylinders up
+  inside the model. Scripts that place a template must keep its pivot rotation
+  (AGENTS.md, "Luau pitfalls"), or pillars spawn sideways. A PrimaryPart sits exactly on the pivot, so ground emitters
   land flush with the floor and z-fight away. Lift ground emitters ~0.2 studs.
 - Parts by role: `Ground` (waves, dust, seal, cracks, debris); `Palm`/`Halo`
   or similar, repositioned from the caster at runtime; `Windup`, played at cast

@@ -73,6 +73,10 @@ everyone to one spot, and a day/night cycle.
   (`CoreHeight` 5/6, disabled `ClaimPrompt`, `Label` billboard).
 - `src/server/Treasures.luau`: treasures in the wilds' zones when weather with
   `treasures` starts; first claim keeps it.
+- Placing event and treasure templates: keep the template's pivot rotation
+  (`CFrame.new(spot) * template:GetPivot().Rotation`). `WorldTreasure`'s pivot is
+  its `Ring`, a cylinder turned upright, so a bare `CFrame.new(spot)` lays the
+  pillar on its side (AGENTS.md, "Luau pitfalls").
 - `src/server/QiNodes.luau`: wilds qi nodes (raw qi + stones, per-player cooldown).
 - `src/client/DayNight.luau`, `src/client/Music.luau` (zone music).
 - `assets/AmbientFX.rbxm` (`ServerStorage.AmbientFX`), `tools/ambient_fx_build.luau`.

@@ -136,6 +136,9 @@ pattern.
   ramp, about 10 studs of headroom.
 - Nothing floats or clips: decor, pines, waterfalls and props re-seated on the
   new surfaces; existing parts that now hang over a cut moved inward.
+- Upright pivot: a model scripts clone and place has `PrimaryPart` nil (or an
+  unrotated one) and an identity-rotation pivot at its base, so
+  `PivotTo(CFrame.new(spot))` can't tip it over (AGENTS.md, "Luau pitfalls").
 - Collision matches what players see; invisible helpers really are invisible.
 - Report what changed, what you looked at (angles), and what is untested (the
   user playtests), then commit the scripts, FBX, JSON and .blend with a message

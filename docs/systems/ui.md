@@ -49,7 +49,11 @@ cursor, settings and the admin panel.
 - Character window (`SelfCard`): the Self tile (`Buttons.SelfButton`, between
   Cultivate and Inventory) opens a compact Self card (realm and stage bar, spirit
   root row, equipped weapon badge); tapping the realm crest over the vitals is a
-  shortcut to it. Tapping the root row shows its exact numbers. The tile shows and
+  shortcut to it. Tapping the root row shows its exact numbers. From Foundation a
+  read-only Method row (LayoutOrder 20) shows the active cultivation method: its
+  element seal (or a 法 glyph), name in its grade colour, qi speed with "matches
+  your root!" in jade, "Reaches: ..." and the blurb; it stays hidden on Sect
+  Breathing. Switching methods will live in a meditation menu (to do). The tile shows and
   the crest is tappable only once the root is tested. The card is small, so the
   tiles stay up on touch too. The spirit root reveal (`RootReveal`) is a small
   centre card on the first test, closed by a tap or by itself, after which the
@@ -102,7 +106,8 @@ Fast values come from player attributes (`Realm`, `Cultivation`,
 `CultivationMax`, `RawQi`, `DantianCap`, `Stones`), refreshed every second by
 the server. Everything else comes from the `PlayerState` snapshot into `State`.
 Toasts arrive over `Notify`; rewards and combat feedback over `Effect`
-(a gained weapon is Effect "weapon", shown in the reward feed).
+(a gained weapon is Effect "weapon", a cultivation method Effect "method",
+both shown in the reward feed).
 
 ## Tuning knobs
 - Layout and look live in the authored GUI assets; timings in each module's

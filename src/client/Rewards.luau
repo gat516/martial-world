@@ -10,7 +10,8 @@
 --   as in the feed. Click or tap closes it (after a short beat), or it closes by
 --   itself.
 -- Fed by the server's Effect events: "stones", "loot", "insight", "manual",
--- "weapon", "boss".
+-- "weapon", "method" (a cultivation method: its name in its grade colour on its
+-- element's seal; the elder's line or the server's notify says the rest), "boss".
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,10 +19,12 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Items = require(ReplicatedStorage.Shared.Items)
+local Methods = require(ReplicatedStorage.Shared.Methods)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
+local SelfCard = require(script.Parent.SelfCard)
 local SlotArt = require(script.Parent.SlotArt)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 
@@ -68,6 +71,13 @@ local function lookOf(key: string): Look?
 	elseif key:sub(1, 7) == "weapon:" then
 		local id = key:sub(8)
 		return Weapons.Defs[id] and { name = SlotArt.weaponName(id), icon = SlotArt.weaponIcon(id), color = SlotArt.weaponColor(id) }
+	elseif key:sub(1, 7) == "method:" then
+		local def = Methods.Defs[key:sub(8)]
+		if not def then
+			return nil
+		end
+		local icon = SelfCard.rootIcon(def.element)
+		return { name = def.name, icon = if icon ~= "" then icon else nil, glyph = "法", color = SelfCard.gradeColor(def.grade) }
 	end
 	local item = Items.Defs[key]
 	return item and { name = item.name, icon = item.icon, glyph = item.glyph, color = Items.rarityColor(item) }
@@ -255,6 +265,8 @@ function Rewards.init()
 			gain(`manual:{args[1]}`, 1)
 		elseif kind == "weapon" then
 			gain(`weapon:{args[1]}`, 1)
+		elseif kind == "method" then
+			gain(`method:{args[1]}`, 1)
 		elseif kind == "boss" then
 			openCard(args[1], args[2])
 		end

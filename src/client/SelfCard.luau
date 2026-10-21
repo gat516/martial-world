@@ -9,7 +9,10 @@
 --     10  Root: element seal, "<Element> Root", grade in its colour, the one-line
 --         perk. Tapping it shows RootDetail (11), the exact numbers.
 --     12-19 free for root actions (a Reroll button, a stored-roots strip).
---     20  free for the cultivation method row (FE).
+--     20  Method (from Foundation, once a method is active): seal, name in its
+--         grade colour, qi speed ("+20% qi · matches your root!"), "Reaches: ...",
+--         the blurb. Read-only: switching methods belongs to the meditation menu
+--         (to do).
 --     30  Weapon: the equipped weapon's badge, name in its grade colour and its
 --         class's Dao level (weapons themselves live in the Inventory).
 --   Future tabs (Self | Body) go in Body at LayoutOrder 3, between the stage bar
@@ -21,6 +24,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Methods = require(ReplicatedStorage.Shared.Methods)
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
@@ -47,6 +51,17 @@ local ROOT_ICONS: { [string]: string } = {
 
 local PULSE = TweenInfo.new(0.32, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, 1, true)
 local PULSE_SCALE = 1.14
+
+local JADE = Color3.fromRGB(130, 230, 185)
+local LIGHT = Color3.fromRGB(236, 232, 220)
+
+-- Major names for "Reaches: ..." by stage-key prefix (Pacing.Curve keys).
+local MAJOR_SHORT: { [string]: string } = {
+	QC = "Qi Condensation",
+	FE = "Foundation",
+	CF = "Core Formation",
+	NS = "Nascent Soul",
+}
 
 local SelfCard = {}
 
@@ -174,6 +189,65 @@ local function renderRealm()
 		else `{math.floor(value)} cultivation`
 end
 
+-- Methods -------------------------------------------------------------------------
+
+local function activeMethod(): string
+	local m = State.current.methods
+	if m then
+		return m.active
+	end
+	local attr = player:GetAttribute("Method")
+	return if type(attr) == "string" then attr else ""
+end
+
+local function rootElement(): string
+	local root = currentRoot()
+	return if root then root.element else ""
+end
+
+-- "+20%" for a 1.2 multiplier
+local function qiBonus(def: Methods.Def): number
+	return math.floor((Methods.speed(def, rootElement()) - 1) * 100 + 0.5)
+end
+
+local function reachesText(key: string): string
+	local prefix, minor = string.match(key, "^(%a+)(%d+)$")
+	local major = prefix and MAJOR_SHORT[prefix]
+	if not major then
+		return `Reaches: {key}`
+	end
+	return if tonumber(minor) == 9 then `Reaches: all of {major}` else `Reaches: {major} {minor}`
+end
+
+local function paintSeal(seal: Instance, element: string)
+	local icon = seal:FindFirstChild("Icon") :: ImageLabel
+	icon.Image = SelfCard.rootIcon(element)
+	icon.Visible = icon.Image ~= "";
+	(seal:FindFirstChild("Glyph") :: TextLabel).Visible = icon.Image == ""
+end
+
+local function renderMethod()
+	local row = selfPage:FindFirstChild("Method") :: GuiObject
+	local activeId = activeMethod()
+	row.Visible = activeId ~= ""
+	if activeId == "" then
+		return
+	end
+	local def = Methods.active(activeId)
+	local lines = row:FindFirstChild("Lines") :: Instance
+	paintSeal(row:FindFirstChild("Seal") :: Instance, def.element)
+	local name = (lines:FindFirstChild("Top") :: Instance):FindFirstChild("NameLabel") :: TextLabel
+	name.Text = def.name
+	name.TextColor3 = SelfCard.gradeColor(def.grade)
+	local match = def.element ~= "" and def.element == rootElement()
+	local bonus = qiBonus(def)
+	local qi = lines:FindFirstChild("Qi") :: TextLabel
+	qi.Text = (if bonus > 0 then `+{bonus}% qi` else "Normal qi speed") .. (if match then " · matches your root!" else "")
+	qi.TextColor3 = if match then JADE else LIGHT;
+	(lines:FindFirstChild("Reaches") :: TextLabel).Text = reachesText(def.reaches);
+	(lines:FindFirstChild("Blurb") :: TextLabel).Text = def.blurb
+end
+
 local function render()
 	local root = currentRoot()
 	openButton.Visible = root ~= nil
@@ -189,6 +263,7 @@ local function render()
 		renderRoot(root)
 		renderWeapon()
 		renderRealm()
+		renderMethod()
 	end
 end
 
@@ -200,7 +275,8 @@ function SelfCard.open()
 	local root = currentRoot() :: Roots.Root
 	renderRoot(root)
 	renderWeapon()
-	renderRealm();
+	renderRealm()
+	renderMethod();
 	(selfPage:FindFirstChild("RootDetail") :: GuiObject).Visible = false;
 	((selfPage:FindFirstChild("Root") :: Instance):FindFirstChild("More") :: TextLabel).Text = "+"
 	seenOnce = true
@@ -277,7 +353,7 @@ function SelfCard.init(gui: ScreenGui)
 	State.onChanged(function()
 		render()
 	end)
-	for _, attr in { "Root", "RootGrade", "Realm", "Cultivation", "CultivationMax", "Weapon" } do
+	for _, attr in { "Root", "RootGrade", "Realm", "Cultivation", "CultivationMax", "Weapon", "Method" } do
 		player:GetAttributeChangedSignal(attr):Connect(render)
 	end
 	render()

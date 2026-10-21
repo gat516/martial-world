@@ -269,7 +269,7 @@ Pacing.Methods = {
 	STARTER_QI = 1.1,
 	STARTER_REACHES = "FE9", -- the whole of Foundation
 	MATCH = 0.1,
-	GIVEN_AT = "FoundationEstablishment", -- the major where the starter is given
+	GIVEN_AT = "Foundation", -- the major (Pacing.Curve `major`) where the starter is given
 }
 
 -- WEAPON DAO COMPREHENSION (Weapons.luau, server Weapons). Each weapon class

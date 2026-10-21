@@ -19,6 +19,7 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local Roots = require(ReplicatedStorage.Shared.Roots)
+local Methods = require(ReplicatedStorage.Shared.Methods)
 local Hud = require(script.Parent.Hud)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
@@ -167,6 +168,23 @@ local function build()
 		end })
 	end
 	section("Give weapon", nil, weapons)
+
+	-- the first method given becomes active; Reset goes back to Sect Breathing
+	local methods: { Chip } = {
+		{ label = "Reset methods", color = Color3.fromRGB(240, 150, 130), press = function()
+			invoke("method", "")
+		end },
+	}
+	for _, id in Methods.Order do
+		local def = Methods.Defs[id]
+		if id ~= Methods.BASIC then
+			local grade = Weapons.Grades[def.grade]
+			table.insert(methods, { label = def.name, color = grade and grade.color, press = function()
+				invoke("method", id)
+			end })
+		end
+	end
+	section("Give method", nil, methods)
 
 	-- the count box is the Dao level to set (1 to Weapons.MAX_LEVEL)
 	local daos: { Chip } = {}

@@ -22,6 +22,7 @@ export type Snapshot = {
 	dao: { [string]: { level: number, xp: number } }?, -- by weapon class; missing = level 0
 	caches: { [string]: boolean }?, -- world manual caches / weapon racks claimed, by Cache id
 	root: { element: string, grade: string }?, -- spirit root (Shared.Roots); element "" = not tested
+	methods: { owned: { [string]: boolean }, active: string }?, -- cultivation methods (Shared.Methods); active "" = Sect Breathing
 }
 
 local State = {}

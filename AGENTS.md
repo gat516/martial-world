@@ -19,7 +19,7 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 
 ## VFX work
 
-- For visual effects (casts, hits, auras, breakthroughs, ambient and world effects), spawn the `vfx` subagent unless it is already running for this task. It builds them with the user's VFX plugin (vfxia) and its Game Module.
+- For visual effects (casts, hits, auras, breakthroughs, ambient and world effects), spawn the `vfx` subagent unless it is already running for this task. It works from reference videos and builds layered emissions from the user's VFX plugin (vfxia), its asset library and Game Module; how effects should look is in `docs/vfx/style.md`.
 - Effects keep their plugin settings in attributes, so export them with `tools/export_rbxm.luau` (binary, keeps attributes and tags), not `tools/export_rbxmx.luau`.
 
 ## Map work

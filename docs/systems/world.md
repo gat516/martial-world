@@ -14,6 +14,11 @@ everyone to one spot, and a day/night cycle.
   first-come: the first to claim keeps the prize. They should feel like a race:
   everyone sees it at once, runs for it and competes on arrival. Each zone keeps
   open event grounds for them (decided 2026-10-21, [map](map.md) "Zone shape").
+- Event and anomaly arrivals are the game's loudest effects, readable from
+  across the map: a formation array opening in the sky, a light pillar driving
+  down into a ground circle, clouds spiralling in, gold streaks and glints in
+  the air (the user's Enkidu "Enuma Elish" reference, 2026-10-21). Recipe in
+  [docs/vfx/style.md](../vfx/style.md), "World events and anomalies".
 - Ambience is client-side and in step across clients via the server clock.
 - Day/night: DayNight blends hourly keyframes (soft warm day with blue distance
   haze, golden hour before the ~18:00 sunset, violet dusk, a desaturated indigo
@@ -191,6 +196,8 @@ dashboard, and end when claimed or after `minutes`.
 - `Pacing.Income.NODE_SHARE`, `NODE_COOLDOWN`; `Config.Economy.NODE_STONES`.
 
 ## Known gaps
+- Event arrivals don't have the sky-to-ground descent from
+  [style.md](../vfx/style.md) yet; Auspicious Clouds is the only event look.
 - Nothing on arrival makes an event a contest beyond first claim. Event grounds are
   picked at random, not by where players are (map.md "Still to do" step 7).
 - Only the Auspicious Clouds varieties have a timer `weight`, so they are the only

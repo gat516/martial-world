@@ -13,6 +13,13 @@ builder `tools/vfx_specs/MethodAura.luau` (its header is the attribute
 contract), Edit-mode preview `tools/aura_preview.luau`. Spirit, Earth and
 Heaven looks are not built (no method uses those grades yet).
 
+**Rework due (decided 2026-10-21, user):** the Mortal pass is mostly parts
+(Neon and ForceField shells, discs and rings animated in code, ~20 textures,
+about 1.5 loop emitters per aura) and reads thin. Auras are to be rebuilt as
+layered emissions from the vfx library, modelled on Sol's RNG auras, with
+parts only in support. The method is in [docs/vfx/style.md](../vfx/style.md)
+("Auras"); the table below describes what's built now, not the target.
+
 The spirit root reveal (`src/client/RootFX.luau`, template
 `Effects.RootPillar`) speaks the same language: each element's pillar carries
 its methods' motifs (Fire's heart and flame crown, Water's pool and ripples,
@@ -71,34 +78,42 @@ How it is put together (details in the builder header):
 - **Grade sets the size, not the look.** The method decides what the aura is;
   its grade decides how far it reaches (table below). A Mortal aura stays on
   and close to the body; a Heaven one owns the screen.
-- **It lives on the body first.** The references glow from inside the figure:
-  a core, lines, an outline, flame hugging the silhouette. Ground rings and
-  floating props are support, not the main event.
+- **Emissions first, parts in support.** Each aura is a thick stack of
+  library emissions (core glow, glints, flames or petals or motes on the
+  body, a turning ground sigil, an ambient field, the method's signature
+  shape) like a Sol's RNG aura. It still centres on the body: the figure glows
+  from inside and the signature grows out of it. Parts (a lit core, a carved
+  ring) are fine as support, but the aura must read with them hidden.
 - **It breathes.** Every aura follows the shared breath (inhale gathers,
   exhale releases), so a seated crowd feels calm, not noisy. Thunder Pulse is
   the one deliberate exception (sudden bursts).
 - **It reads in daylight.** The references sit on dark backgrounds; ours sit on
-  green grass at noon. Use Neon, `LightInfluence = 0`, strong brightness and
-  dark-edged shapes so it doesn't wash out.
+  green grass at noon. Use a white-hot core with colour at the edges,
+  `LightInfluence = 0`, and a dark or deep-tint layer under the bright shapes
+  so they don't wash out ([style.md](../vfx/style.md)).
 - **Ignition.** Sitting down, switching method and breaking through play a
   one-shot surge of the aura (ref: red flame surge, hair and robes lifting)
   before it settles into its loop. This is what makes switching feel like an
   event.
-- **Budget.** Up to 8 auras draw at once (`MAX_AURAS`), on phones too. Prefer a
-  few strong pieces (a shell outline, beams, one core, one emitter per
-  limb) over many particles. Works on R15 and R6 (beams and emitters hang off
-  attachments that exist on both, or fall back to the torso).
+- **Budget.** Up to 8 auras draw at once (`MAX_AURAS`), on phones too. Get
+  richness from many kinds of layer at modest rates rather than one heavy
+  emitter; the nearest auras get the full stack, far ones drop the ambient
+  field first. Works on R15 and R6 (emitters and beams hang off attachments
+  that exist on both, or fall back to the torso).
 
-Roblox pieces that match the reference looks:
+Roblox pieces that match the reference looks (library textures on all of
+them; search per method):
 
 | Look | Build it with |
 |---|---|
-| Outline glow | a `Shell` copied round each body part (ForceField rim or faint Neon); not a `Highlight`, whose 31-on-screen budget is kept for combat feedback |
-| Lit core (dantian, chest, between hands) | small Neon sphere or flipbook billboard + `PointLight` at the torso |
-| Meridians, constellations, cracks | `Beam`s between attachments on body parts, with dots at the joints |
-| Flame or frost hugging the body | short `ParticleEmitter`s on each limb, emitting along the surface |
-| Qi streaming inward | particles spawned on a shell that travel to the core (negative speed or attractor) |
-| Backdrop (mandala, sunburst, spirit) | a large camera-facing billboard or decal behind the player, Spirit grade and up |
+| Body glow | flame, wisp or glow emitters on each limb emitting off the surface (LockedToPart), plus a soft glow billboard on the torso; a shell part only as a faint extra. Not a `Highlight`, whose 31-on-screen budget is kept for combat feedback |
+| Lit core (dantian, chest, between hands) | a white-hot glow emitter with a star glint on top, one `PointLight` |
+| Meridians, constellations, cracks | textured `Beam`s between attachments on body parts, glint emitters at the joints |
+| Signature shape (lotus, flame crown, blade fan) | library textures on flat or curved meshes and emitters, layered with a dark base |
+| Ground figure | a turning sigil or formation texture flat on the ground, a ring emitter breathing out of it |
+| Qi streaming inward | Splines add-on or particles with negative speed toward the core, streak textures |
+| Ambient field | sparkles, petals, embers, snow by element, out to the grade's reach |
+| Backdrop (mandala, sunburst, spirit) | large textures behind the player, Spirit grade and up |
 
 ## Grade scale
 
@@ -204,6 +219,8 @@ chant.
 
 ## Known gaps
 
+- The built Mortal auras are part-heavy and due for the emission rework
+  (Status above).
 - Only the Mortal column is built; the Spirit/Earth/Heaven looks (spreading
   figures, backdrops, manifestations) wait for methods of those grades.
 - No refs yet for Mountain Breath or Drifting Cloud.

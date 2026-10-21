@@ -109,7 +109,17 @@ hrp.CanCollide = true
 hrp.TopSurface = Enum.SurfaceType.Smooth
 hrp.BottomSurface = Enum.SurfaceType.Smooth
 hrp.Parent = model
-ServerStorage.Enemies.SpiritWolf.HumanoidRootPart.HealthBar:Clone().Parent = hrp
+local healthBar = ServerStorage.Enemies.SpiritWolf.HumanoidRootPart.HealthBar:Clone()
+-- seat it about a stud over the built body's top (computed, so a body change can't bury it)
+local top = -math.huge
+for _, d in model:GetDescendants() do
+	if d:IsA("BasePart") and d ~= hrp then
+		local cf, h = d.CFrame, d.Size / 2
+		top = math.max(top, cf.Y + math.abs(cf.UpVector.Y) * h.Y + math.abs(cf.RightVector.Y) * h.X + math.abs(cf.LookVector.Y) * h.Z)
+	end
+end
+healthBar.StudsOffset = Vector3.new(0, top + 1 - hrp.Position.Y, 0)
+healthBar.Parent = hrp
 segments.HumanoidRootPart = hrp
 
 local welds = 0

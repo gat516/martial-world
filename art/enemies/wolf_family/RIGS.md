@@ -64,6 +64,24 @@ left is -X. So, for a rotation `CFrame.Angles(x, y, z)` on any joint:
 | Shadow-Mane | JointManeL / JointManeR | ManeL / ManeR (each side's neck strands) | Neck | sway and flare like the King's |
 | Shadow-Mane | JointForelock | Forelock | Skull | -X lifts it |
 
+## Spirit Wolf B: tells and FX attachments
+
+Combat pass (2026-10-21). Joints, names and axes are unchanged; the body is 90 parts
+(89 + the HRP).
+
+| Tell part | Segment (rides) | Notes |
+|---|---|---|
+| EyeL / EyeR | Skull | red Neon, `Tell = true` |
+| TellCrest1 / TellCrest2 / TellCrest3 | Crest (JointCrest) | Neon caps down the leading edges of the three big crest spikes (Crest1, Crest, Crest3), dim slate-blue `#3A4A66` at rest; the client FX brightens them on windups. They sit a little wider than each spike, so the edge reads as a line side-on too. Bristling the crest (-X on JointCrest) tips them up toward the camera |
+
+Empty FX attachments (identity world rotation at rest, so they turn with their part):
+
+| Attachment | Parent part | Model-space position | For |
+|---|---|---|---|
+| Mouth | Skull | (0, 2.7, -4.9), the muzzle tip between the lips | breath, bite, howl. It rides the Skull, not the Jaw, so it stays put when the jaw opens |
+| Core | Chest | (0, 2.55, -0.5), the Chest centre | auras, hit flashes |
+| PawBL_FX / PawBR_FX | PawBL / PawBR | (-0.75, 0, 1.95) / (0.75, 0, 1.95), on the ground under each hind foot | stomps, dust on the pounce |
+
 ## Things to know
 
 - **Only the legacy joints are driven in game today.** EnemyAnimator poses JointHead,
@@ -77,5 +95,8 @@ left is -X. So, for a rotation `CFrame.Angles(x, y, z)` on any joint:
   cleanly at any angle; the forelegs' block tops sit inside the chest.
 - The King's scale is 2.4x: translations on JointRoot are in studs, so scale them up
   (a 0.5 crouch on the Spirit Wolf is 1.2 on the King). Rotations transfer unchanged.
-- Tell parts (eyes, the King's brow mark, collar jade and seal) carry the `Tell`
-  attribute; they flare in the client FX, not through the clip.
+- Tell parts (the Spirit Wolf's eyes and crest edges, the King's brow mark, collar jade
+  and seal) carry the `Tell` attribute; they flare in the client FX, not through the clip.
+- The Spirit Wolf B's back is a cylinder over the chest and over the hips (no shoulder
+  bevels any more), and it has no shoulder balls, hind claws, small teeth, chin block or
+  leg tufts: none of those were keyable, so no clip keyed them.

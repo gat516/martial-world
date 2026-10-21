@@ -7,6 +7,13 @@
 -- Model space: ground Y=0, the wolf faces -Z, its left side is -X. Each segment's
 -- primary part carries the segment name and fills the spec box from the design
 -- sheet; detail parts carry a `Segment` attribute for rig_wolf to weld them by.
+--
+-- Combat pass (2026-10-21): tell parts (Neon, `Tell = true`) are the eyes and three
+-- inlays on the crest spikes' leading edges (TellCrest1-3, dim at rest, brightened by
+-- the FX on windups). Empty FX attachments: Mouth (Skull, muzzle tip), Core (Chest
+-- centre), PawBL_FX / PawBR_FX (hind paws, at the ground). The body was trimmed to 90
+-- parts by cutting what the body hides (shoulder balls, small teeth, hind claws) and
+-- merging repeated tufts; the back of the chest and hips is one cylinder each.
 
 local ServerStorage = game:GetService("ServerStorage")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
@@ -19,6 +26,9 @@ local BONE = Color3.fromHex("EEE9DC") -- claws and teeth
 local DARK = Color3.fromHex("1B1E25") -- nose and lips
 local MOUTH = Color3.fromHex("6B2A33") -- mouth and ear inside
 local EYE = Color3.fromHex("FF2B2B")
+local TELL_CREST = Color3.fromHex("3A4A66") -- dim slate-blue at rest; the FX brightens it
+
+local TELL_INSET = 0.035 -- how far a tell inlay stands proud of its surface
 
 local model = Instance.new("Model")
 model.Name = "SpiritWolf_B"
@@ -92,33 +102,67 @@ local function bevel(seg, name, pos, w, h, len, s, color)
 	return add(seg, name, "WedgePart", v(len, h, w), CFrame.new(pos) * CFrame.Angles(0, -s * math.pi / 2, 0), color)
 end
 
+-- A Neon tell: Neon plus the Tell attribute, so the FX finds it without a name list.
+local function tell(p)
+	p.Material = Enum.Material.Neon
+	p:SetAttribute("Tell", true)
+	return p
+end
+
+-- A Neon cap along a fin's sloped leading edge, `frac` of the slope's length, lying flat
+-- on the slope and TELL_INSET proud of it. It is `wrap` wider than the fin, so its sides
+-- show past the fin's flanks and the edge reads as a glowing line side-on as well.
+local function edgeInlay(seg, name, f, wrap, frac, color)
+	local w = f.Size.X + wrap
+	local h, d = f.Size.Y, f.Size.Z
+	-- in the wedge's own frame the slope runs from (0, -h/2, -d/2) to (0, h/2, d/2)
+	local dir = Vector3.new(0, h, d).Unit
+	local n = Vector3.new(0, d, -h).Unit -- out of the slope: forward and up
+	local cf = f.CFrame * CFrame.lookAt(Vector3.zero, dir, n)
+	local len = math.sqrt(h * h + d * d) * frac
+	return tell(add(seg, name, "Part", v(w, TELL_INSET * 2, len), cf, color))
+end
+
+-- An empty FX attachment on part p at world position pos, with identity world rotation.
+local function fxAttachment(p, name, pos)
+	local a = Instance.new("Attachment")
+	a.Name = name
+	a.CFrame = p.CFrame:ToObjectSpace(CFrame.new(pos))
+	a.Parent = p
+	return a
+end
+
 -- Hips and chest ----------------------------------------------------------------------
 -- Each torso box is a lower block, a narrower top block and sloped shoulders, so the
 -- back reads round rather than as a crate; cream plates cover the lower flanks.
 
 -- the hip blocks run 0.1 into the chest, so no slit of sky opens at the waist
 block("Hips", "Hips", v(1.9, 1.1, 2.2), v(0, 2.55, 1.9), SLATE)
-block("Hips", "HipsTop", v(1.0, 0.6, 2.2), v(0, 3.4, 1.9), SLATE)
-block("Hips", "HipsBelly", v(1.96, 0.5, 1.7), v(0, 2.25, 1.55), CREAM)
-fin("Hips", "HipsCrest1", v(0, 3.6, 1.35), 0.6, 0.75, 0.5, SLATE_HI, 0.8)
+-- the rounded back: one cylinder along Z (top at 3.7, flush with the old top block)
+disc("Hips", "HipsTop", 1.8, 2.2, v(0, 2.8, 1.9), SLATE, "Z")
+block("Hips", "HipsBelly", v(1.96, 0.65, 1.7), v(0, 2.175, 1.55), CREAM)
 
-block("Chest", "Chest", v(2.2, 1.3, 2.8), v(0, 2.55, -0.5), SLATE)
-block("Chest", "ChestTop", v(1.2, 0.7, 2.8), v(0, 3.55, -0.5), SLATE)
-block("Chest", "ChestBelly", v(2.26, 0.55, 2.3), v(0, 2.15, -0.45), CREAM)
+local chest = block("Chest", "Chest", v(2.2, 1.3, 2.8), v(0, 2.55, -0.5), SLATE)
+-- body-centred FX (auras, hit flashes)
+fxAttachment(chest, "Core", chest.Position)
+disc("Chest", "ChestTop", 2.1, 2.8, v(0, 2.85, -0.5), SLATE, "Z")
+block("Chest", "ChestBelly", v(2.26, 0.65, 2.3), v(0, 2.1, -0.45), CREAM)
 block("Chest", "ChestBib", v(1.7, 1.4, 0.6), v(0, 2.45, -1.75), CREAM)
 -- the crest: the tallest spikes peak above the shoulders and sweep back to the hips
 -- the crest is its own segment (JointCrest), so an animator can bristle it on a windup
-fin("Crest", "Crest1", v(0, 3.85, -1.3), 0.85, 0.95, 0.6, SLATE, 0.65)
-fin("Crest", "Crest", v(0, 3.85, -0.6), 0.8, 0.9, 0.55, SLATE_HI, 0.7)
-fin("Crest", "Crest3", v(0, 3.85, 0.1), 0.7, 0.85, 0.5, SLATE, 0.75)
+local crest1 = fin("Crest", "Crest1", v(0, 3.85, -1.3), 0.85, 0.95, 0.6, SLATE, 0.65)
+local crest2 = fin("Crest", "Crest", v(0, 3.85, -0.6), 0.8, 0.9, 0.55, SLATE_HI, 0.7)
+local crest3 = fin("Crest", "Crest3", v(0, 3.85, 0.1), 0.7, 0.85, 0.5, SLATE, 0.75)
 fin("Crest", "Crest4", v(0, 3.8, 0.75), 0.55, 0.8, 0.45, SLATE_HI, 0.8)
+-- the crest tells: a Neon inlay down the leading edge of each of the three big spikes
+for i, f in { crest1, crest2, crest3 } do
+	edgeInlay("Crest", "TellCrest" .. i, f, 0.04, 0.8, TELL_CREST)
+end
 for _, s in { -1, 1 } do
-	bevel("Chest", "ChestShoulder" .. s, v(s * 0.85, 3.55, -0.5), 0.5, 0.7, 2.8, s, SLATE)
-	bevel("Hips", "HipsShoulder" .. s, v(s * 0.725, 3.4, 1.9), 0.45, 0.6, 2.2, s, SLATE)
 	fin("Crest", "CrestSide" .. s, v(s * 0.5, 3.75, -1.1), 0.6, 0.8, 0.45, SLATE_HI, 0.6, -s * 0.5)
 	-- the jagged slate/cream line along the flank: tufts hanging down and back
-	for i, z in { -1.25, -0.25, 0.75 } do
-		fin("Chest", "Flank" .. s .. i, v(s * 1.08, 2.55, z), 0.55, 0.6, 0.25, SLATE, 2.75, -s * 0.15)
+	for i, z in { -0.95, 0.35 } do
+		fin("Chest", "Flank" .. s .. i, v(s * 1.08, 2.55, z), 0.6, 0.7, 0.25, SLATE, 2.75, -s * 0.15)
 	end
 end
 
@@ -132,10 +176,11 @@ fin("Neck", "RuffTop", v(0, 3.85, -2.05), 0.55, 0.8, 0.6, SLATE_HI, 0.6)
 for _, s in { -1, 1 } do
 	fin("Neck", "RuffSide" .. s, v(s * 1.1, 3.25, -1.95), 0.55, 0.7, 0.35, SLATE, 0.4, -s * 1.2)
 	fin("Neck", "RuffLow" .. s, v(s * 1.0, 2.55, -2.0), 0.5, 0.6, 0.35, SLATE, 0.5, -s * 2.2)
-	fin("Neck", "BibTuft" .. s, v(s * 0.35, 2.15, -2.6), 0.4, 0.4, 0.3, CREAM, math.pi - 0.4, s * 0.3)
 end
 
-block("Skull", "Skull", v(1.45, 1.25, 1.3), v(0, 3.15, -3.35), SLATE)
+local skull = block("Skull", "Skull", v(1.45, 1.25, 1.3), v(0, 3.15, -3.35), SLATE)
+-- breath and bite FX: at the muzzle tip, between the lips
+fxAttachment(skull, "Mouth", v(0, 2.7, -4.9))
 block("Skull", "Snout", v(0.85, 0.6, 1.2), v(0, 2.95, -4.3), CREAM)
 add("Skull", "SnoutTop", "WedgePart", v(0.7, 0.3, 0.9), CFrame.new(0, 3.4, -4.25), SLATE_HI)
 block("Skull", "Nose", v(0.42, 0.3, 0.28), v(0, 3.1, -4.86), DARK)
@@ -147,16 +192,14 @@ for _, s in { -1, 1 } do
 	fin("Skull", "CheekTuft" .. side, v(s * 0.75, 2.8, -3.1), 0.6, 0.5, 0.3, CREAM, 1.25, -s * 0.75)
 	-- scowl: brow and eye slant with the inner corner down
 	block("Skull", "Brow" .. side, v(0.45, 0.15, 0.3), v(s * 0.38, 3.45, -3.95), SLATE, CFrame.Angles(0, 0, s * 0.26))
-	local eye = block("Skull", "Eye" .. side, v(0.3, 0.14, 0.08), v(s * 0.38, 3.3, -4.03), EYE, CFrame.Angles(0, 0, s * 0.26))
-	eye.Material = Enum.Material.Neon
-	-- upper fang and teeth, pointing down
+	tell(block("Skull", "Eye" .. side, v(0.3, 0.14, 0.08), v(s * 0.38, 3.3, -4.03), EYE, CFrame.Angles(0, 0, s * 0.26)))
+	-- upper fang, pointing down
 	fin("Skull", "Fang" .. side, v(s * 0.36, 2.66, -4.75), 0.26, 0.15, 0.12, BONE, math.pi)
-	fin("Skull", "Tooth" .. side, v(s * 0.36, 2.66, -4.3), 0.14, 0.14, 0.1, BONE, math.pi)
 end
 
-block("Jaw", "Jaw", v(0.75, 0.3, 1.15), v(0, 2.55, -4.05), CREAM)
+-- the jaw runs back under the cheeks to the hinge (it used to end at a separate chin block)
+block("Jaw", "Jaw", v(0.8, 0.32, 1.5), v(0, 2.56, -3.9), CREAM)
 block("Jaw", "JawMouth", v(0.6, 0.15, 1.0), v(0, 2.7, -4.05), MOUTH)
-block("Jaw", "Chin", v(0.9, 0.35, 0.6), v(0, 2.6, -3.45), CREAM_SH)
 for _, s in { -1, 1 } do
 	local side = if s < 0 then "L" else "R"
 	fin("Jaw", "LowerFang" .. side, v(s * 0.27, 2.68, -4.5), 0.2, 0.12, 0.1, BONE)
@@ -171,8 +214,9 @@ end
 
 -- Legs ---------------------------------------------------------------------------------
 
+-- front paws only: the hind claws hide under the body and were cut for the part budget
 local function claws(seg, x, z)
-	for i, dx in { -0.2, 0, 0.2 } do
+	for i, dx in { -0.14, 0.14 } do
 		add(seg, seg .. "Claw" .. i, "WedgePart", v(0.1, 0.18, 0.28), CFrame.new(x + dx, 0.09, z), BONE)
 	end
 end
@@ -181,8 +225,6 @@ for _, s in { -1, 1 } do
 	local f = if s < 0 then "FL" else "FR"
 	local x = s * 0.72
 	block("UpperLeg" .. f, "UpperLeg" .. f, v(0.7, 1.3, 0.8), v(x, 1.9, -1.3), SLATE)
-	ball("UpperLeg" .. f, "Shoulder" .. f, 0.8, v(s * 0.7, 2.45, -1.3), SLATE)
-	fin("UpperLeg" .. f, "ElbowTuft" .. f, v(s * 0.74, 1.5, -0.95), 0.45, 0.4, 0.4, SLATE, 2.2)
 	block("LowerLeg" .. f, "LowerLeg" .. f, v(0.45, 1.1, 0.5), v(x, 0.8, -1.3), CREAM)
 	ball("LowerLeg" .. f, "Elbow" .. f, 0.55, v(x, 1.35, -1.25), CREAM)
 	block("Paw" .. f, "Paw" .. f, v(0.65, 0.3, 0.85), v(x, 0.15, -1.6), CREAM)
@@ -196,22 +238,19 @@ for _, s in { -1, 1 } do
 	-- pivot axis), so a swinging leg never flashes its block corners out of the hip side
 	block("UpperLeg" .. b, "UpperLeg" .. b, v(0.85, 1.25, 1.0), v(x, 1.875, 2.1), SLATE)
 	disc("UpperLeg" .. b, "Haunch" .. b, 1.1, 0.85, v(x, 2.5, 2.1), SLATE, "X")
-	fin("UpperLeg" .. b, "ThighTuft" .. b, v(s * 0.78, 1.5, 2.4), 0.45, 0.45, 0.4, SLATE, 2.3)
 	limb("LowerLeg" .. b, "LowerLeg" .. b, knee, hock, 0.45, 0.5, CREAM, 0.25)
 	ball("LowerLeg" .. b, "Knee" .. b, 0.6, knee, SLATE)
-	limb("Paw" .. b, "Paw" .. b, hock, ankle, 0.42, 0.45, CREAM, 0.15)
+	local pawB = limb("Paw" .. b, "Paw" .. b, hock, ankle, 0.42, 0.45, CREAM, 0.15)
 	ball("Paw" .. b, "Hock" .. b, 0.45, hock, CREAM)
 	block("Paw" .. b, "Foot" .. b, v(0.6, 0.3, 0.8), v(x, 0.15, 1.95), CREAM)
-	claws("Paw" .. b, x, 1.5)
+	-- ground-stomp FX under the hind paw
+	fxAttachment(pawB, "Paw" .. b .. "_FX", v(x, 0, 1.95))
 end
 
 -- Tail ---------------------------------------------------------------------------------
 
 block("TailBase", "TailBase", v(0.7, 0.7, 1.1), v(0, 3.25, 3.25), SLATE)
-fin("TailBase", "TailBaseFin", v(0, 3.5, 3.0), 0.4, 0.6, 0.45, SLATE_HI, 0.9)
 block("TailMid", "TailMid", v(0.8, 0.8, 1.2), v(0, 3.3, 4.3), SLATE)
-block("TailMid", "TailMidUnder", v(0.6, 0.35, 1.1), v(0, 2.98, 4.3), CREAM)
-fin("TailMid", "TailMidFin", v(0, 3.6, 4.1), 0.45, 0.6, 0.5, SLATE, 1.0)
 local tipA, tipB = v(0, 3.35, 4.85), v(0, 4.25, 5.6)
 limb("TailTip", "TailTip", tipA, tipB, 0.6, 0.6, SLATE, 0.2)
 limb("TailTip", "TailTipUnder", tipA + v(0, -0.1, 0.18), tipB + v(0, -0.1, 0.18), 0.45, 0.35, CREAM, 0)
@@ -237,4 +276,4 @@ model.Parent = staging
 if recording then
 	ChangeHistoryService:FinishRecording(recording, Enum.FinishRecordingOperation.Commit)
 end
-return ("SpiritWolf_B body: %d parts"):format(#model:GetChildren())
+return ("SpiritWolf_B body: %d parts (the rig adds the HumanoidRootPart)"):format(#model:GetChildren())

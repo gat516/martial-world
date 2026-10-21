@@ -117,7 +117,9 @@ Model on Sol's RNG, scaled by method grade (the grade ladder in
   Marrow's blade fan. It grows with grade.
 - **Ignition:** sitting down or switching plays a short surge: a flash and
   the signature unfolding. Dimming the world around you is for high grades
-  only; a Mortal ignition stays on and near the body.
+  only; a Mortal ignition stays on and near the body. Small still has to be
+  cool (user, 2026-10-21): the sit-down is a punchy, satisfying moment and the
+  loop is an aura players want to show off. Small in size, high in quality.
 - Parts are fine for what textures can't do (a core with a PointLight, a
   carved stone ring), but the aura must still read with them hidden.
 

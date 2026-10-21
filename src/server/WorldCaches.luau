@@ -3,6 +3,7 @@
 --   ManualCache  a BasePart tagged "ManualCache" with attributes `Cache` (unique
 --                id), `Manual` (technique id) and/or `Weapon` (weapon id), and
 --                optionally `Realm` (a stage key like "QC5": needed to claim it).
+--                Or `Method` (a cultivation method id, Shared.Methods).
 --                A ManualScroll (ServerStorage.WeaponModels.ManualScroll) rests on it.
 --   WeaponRack   a BasePart tagged "WeaponRack" with `Weapon` (a weapon id) and
 --                optionally `Cache` (defaults to "rack:<Weapon>").
@@ -22,6 +23,8 @@ local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 local Progression = require(script.Parent.Progression)
 local Weapons = require(script.Parent.Weapons)
+local Methods = require(script.Parent.Methods)
+local MethodDefs = require(ReplicatedStorage.Shared.Methods)
 
 local templates = ServerStorage:WaitForChild("ItemTemplates") :: Folder
 
@@ -69,10 +72,12 @@ local function claim(player: Player, anchor: BasePart, tag: string)
 	end
 	local manual = anchor:GetAttribute("Manual")
 	local weapon = anchor:GetAttribute("Weapon")
+	local method = anchor:GetAttribute("Method")
 	local manualDef = type(manual) == "string" and Techniques.Defs[manual] or nil
 	local weaponDef = type(weapon) == "string" and WeaponDefs.Defs[weapon] or nil
-	if not manualDef and not weaponDef then
-		warn(`WorldCaches: {anchor:GetFullName()} names no valid Manual or Weapon`)
+	local methodDef = type(method) == "string" and MethodDefs.Defs[method] or nil
+	if not manualDef and not weaponDef and not methodDef then
+		warn(`WorldCaches: {anchor:GetFullName()} names no valid Manual, Weapon or Method`)
 		return
 	end
 	data.caches[id] = true
@@ -89,6 +94,9 @@ local function claim(player: Player, anchor: BasePart, tag: string)
 	end
 	if weaponDef then
 		Weapons.grant(player, weaponDef.id)
+	end
+	if methodDef and not Methods.grant(player, methodDef.id) then
+		Cultivation.notify(player, `You already know the {methodDef.name}.`)
 	end
 	Cultivation.pushState(player)
 end
@@ -115,6 +123,8 @@ local function setUp(anchor: Instance, tag: string)
 		prompt.ObjectText = weaponDef.name
 	elseif manualDef then
 		prompt.ObjectText = `{manualDef.name} manual`
+	elseif type(anchor:GetAttribute("Method")) == "string" and MethodDefs.Defs[anchor:GetAttribute("Method") :: string] then
+		prompt.ObjectText = MethodDefs.Defs[anchor:GetAttribute("Method") :: string].name
 	end
 	-- the client reads this to hide prompts already claimed
 	prompt:SetAttribute("Cache", cacheId(anchor, tag))

@@ -39,7 +39,7 @@ local function gather(node: BasePart, player: Player)
 		return
 	end
 	byPlayer[player] = now
-	local amount = math.min(room, Realms.nodeQi(stage))
+	local amount = math.min(room, math.floor(Realms.nodeQi(stage) * Cultivation.methodSpeed(data) + 0.5))
 	data.rawQi += amount
 	local stones = math.random(Economy.NODE_STONES[1], Economy.NODE_STONES[2])
 	data.stones += stones

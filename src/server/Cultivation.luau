@@ -17,6 +17,7 @@ local Movement = require(script.Parent.Movement)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Roots = require(ReplicatedStorage.Shared.Roots)
+local Methods = require(ReplicatedStorage.Shared.Methods)
 local StarterPlayer = game:GetService("StarterPlayer")
 local PlayerData = require(script.Parent.PlayerData)
 local WeatherService = require(script.Parent.WeatherService)
@@ -89,6 +90,21 @@ function Cultivation.stage(data: PlayerData.Data): Realms.Stage
 	return Realms.get(data.realm.major, data.realm.minor)
 end
 
+-- The active cultivation method's qi multiplier (passive, refining, gathering),
+-- with the bonus for matching the root's element.
+function Cultivation.methodSpeed(data: PlayerData.Data): number
+	return Methods.speed(Methods.active(data.methods.active), data.root.element)
+end
+
+-- Why a full bar can't break into `nextStage` because of the method, or nil.
+local function methodLimit(data: PlayerData.Data, nextStage: Realms.Stage): string?
+	if Methods.allows(Methods.active(data.methods.active), nextStage) then
+		return nil
+	end
+	return "Your method can take you no further. Elder Qingyun may have a task for you, or seek a stronger method out in the world."
+end
+Cultivation.methodLimit = methodLimit
+
 -- Set by Meditation: where the player is meditating and its passive multiplier,
 -- or nil when they aren't.
 Cultivation.meditation = nil :: ((Player) -> { multiplier: number, place: string }?)?
@@ -105,6 +121,7 @@ function Cultivation.rate(data: PlayerData.Data, now: number, player: Player?): 
 		* (1 + WeatherService.bonus("passive"))
 		* (if spot then spot.multiplier else 1)
 		* Roots.speed(data.root)
+		* Cultivation.methodSpeed(data)
 end
 
 -- Mirror the numbers that change every second (and that other players may show,
@@ -117,6 +134,7 @@ local function publish(player: Player, data: PlayerData.Data)
 	player:SetAttribute("RawQi", math.floor(data.rawQi))
 	player:SetAttribute("DantianCap", stage.dantian)
 	player:SetAttribute("Stones", data.stones)
+	player:SetAttribute("Method", if data.methods.active ~= "" then data.methods.active else nil)
 end
 
 -- Called with (player, data) after every state push (Inventory syncs tools from it).
@@ -146,6 +164,7 @@ function Cultivation.pushState(player: Player)
 		dao = data.dao,
 		caches = data.caches,
 		root = data.root,
+		methods = data.methods,
 	})
 	for _, fn in Cultivation.onPush do
 		task.spawn(fn, player, data)
@@ -273,6 +292,10 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 		end
 		return false, "You feel as if you need more insight."
 	end
+	local limit = methodLimit(data, nextStage)
+	if limit then
+		return false, limit
+	end
 	local major = nextStage.major ~= stage.major
 	local seated = Cultivation.meditation ~= nil and Cultivation.meditation(player) ~= nil
 	if not seated then
@@ -311,7 +334,14 @@ local function warning(player: Player, data: PlayerData.Data, rate: number): str
 		if data.insightEarned < stage.insight then
 			return "You feel as if you need more insight."
 		end
-		return if first then "Your meridians brim with qi. Sit and meditate to break through." else nil
+		if not first then
+			return nil
+		end
+		local nextStage = Realms.after(stage.major, stage.minor)
+		if not nextStage then
+			return "You stand at the peak of this world's cultivation, for now."
+		end
+		return methodLimit(data, nextStage) or "Your meridians brim with qi. Sit and meditate to break through."
 	end
 	if os.clock() - s.lastActive < Config.WARN_IDLE_SECONDS then
 		return nil

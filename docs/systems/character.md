@@ -1,6 +1,7 @@
 # Character: roots, methods, bloodlines and the character window
 
-**Status:** the spirit root is built on the server (`src/shared/Roots.luau`,
+**Status:** cultivation methods are built on the server (v1: random starter at
+Foundation; see below), their UI is in progress. The spirit root is built on the server (`src/shared/Roots.luau`,
 `src/server/Roots.luau`, `Pacing.Roots`). Still to do for it: the Testing Stone
 in the hub and the Marrow Washing Pill. The reveal card and the first
 character window (Self card) are built (`RootReveal`, `SelfCard`). Everything else here is design: build it one layer
@@ -120,22 +121,24 @@ raise grade). Analytics: event `RootTested` with the element.
 **What it is:** how you cultivate. Until FE everyone uses the sect's unnamed
 basic breathing method; it is only named when it stops being enough.
 
-**Meeting it:** on reaching Foundation Establishment the elder says the basic
-method can take you no further. A method is **earned, not handed out**: Elder
-Qingyun has a task for you (the first one comes this way, so nobody is stuck),
-or you find one by exploring (caches, ruins, bosses, events). The first choice
-is **one of five** starter methods, one per basic element. The one matching your
-root is listed first and marked "Matches your root!", so a kid can just take the
-top one, and anyone else can pick freely. Rare-root players get a matching
-sixth option.
+**Meeting it (built v1, 2026-10-21):** on reaching Foundation Establishment
+(the breakthrough, or on joining for players already there) the elder gives you
+a **random starter method** for your root (`Methods.giveStarter`): one of five,
+one per basic element, plus the rare root's own for rare roots. No choice
+screen. Better methods are **earned, not handed out**: Elder Qingyun's task and
+exploring (caches with a `Method` attribute work today; ruins, bosses, events
+to do). **Still to do:** the elder's task in the quest line, method caches
+placed on the map, the auras (`vfx`).
 
 **The breakthrough message must never mislead (decided 2026-10-21).** When a full
 bar can't break through because the active method's `reaches` is the next stage's
 limit, say so and point the way: "Your method can take you no further. Elder
 Qingyun may have a task for you, or seek a stronger method out in the world."
 Only when there is truly no next stage in the game does it say "You stand at the
-peak of this world's cultivation, for now." (`Cultivation.breakthrough`; today
-FE1 is the real top, so the peak line is still correct there).
+peak of this world's cultivation, for now." Built in `Cultivation.breakthrough`,
+the full-bar toast (`warning`) and the quest board ("Seek a stronger method").
+Today FE1 is the real top, so the peak line shows there; Sect Breathing reaches
+FE1 and starters FE9, so the method line first appears when FE2 exists.
 
 **What a method does (three lines on its card):**
 1. **Qi speed:** a multiplier on gathering, refining and passive cultivation.
@@ -152,7 +155,12 @@ FE1 is the real top, so the peak line is still correct there).
 - **Switching is free** while meditating, between methods you own. There is no
   lost progress, so trying one out is never a mistake.
 
-**Data:** `data.methods = { owned: { [id]: true }, active: string }`; defs in
+**Data:** `data.methods = { owned: { [id]: true }, active: string }` (active
+`""` = Sect Breathing, owned never lists it), player attribute `Method`, in the
+`PlayerState` push as `methods`. Switch: `CultivationAction("method", id)`
+(`Methods.switch`, while meditating). Effect `"method"` (id, becameActive) when
+one is gained. Admin `method <id>` (no id resets). Server
+`src/server/Methods.luau`; defs in
 `src/shared/Methods.luau` (id, name, element, grade, qi multiplier, reaches,
 aura). Tuning in `Pacing.Methods`.
 
@@ -248,7 +256,7 @@ unlock rules per system.
 | Major realm | New verb | Layer it opens |
 |---|---|---|
 | Qi Condensation | fight, cultivate, travel by array | weapon, spirit root |
-| Foundation Establishment | choose a cultivation method | method (aura) |
+| Foundation Establishment | given a random cultivation method; find better ones | method (aura) |
 | Core Formation | **ride a flying sword** (traversal between peaks, then zones) | method grade gates it |
 | Nascent Soul | **your soul awakens**: an inner world opens, and in it you can raise a **soul companion** (the spirit beast, summoned to fight beside you) and grow your **Dao tree** | companion, Dao tree |
 | Soul Transformation / Spirit Severing | **fly without a sword** | - |

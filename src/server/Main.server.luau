@@ -37,6 +37,7 @@ local Settings = require(script.Parent.Settings)
 local Weapons = require(script.Parent.Weapons)
 local WorldCaches = require(script.Parent.WorldCaches)
 local Roots = require(script.Parent.Roots)
+local Methods = require(script.Parent.Methods)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
 local joinedAt: { [Player]: number } = {}
@@ -147,6 +148,7 @@ local function onPlayerAdded(player: Player)
 	Weapons.watch(player)
 	Roots.publish(player, data)
 	Cultivation.pushState(player)
+	Methods.giveStarter(player) -- already at Foundation from before methods existed
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
@@ -206,6 +208,10 @@ table.insert(Circulation.onFinished, function(player, score)
 	Analytics.event(player, "CirculationScore", math.floor(score * 100 + 0.5))
 end)
 table.insert(Cultivation.onBreakthrough, Weapons.onBreakthrough)
+table.insert(Cultivation.onBreakthrough, Methods.giveStarter)
+table.insert(Methods.onGained, function(player, id)
+	Analytics.event(player, "MethodGained", 1, id)
+end)
 table.insert(Cultivation.onBreakthrough, function(player, stage)
 	local since = os.clock() - (lastBreakthroughAt[player] or os.clock())
 	lastBreakthroughAt[player] = os.clock()

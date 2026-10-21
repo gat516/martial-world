@@ -258,6 +258,20 @@ Pacing.Comprehension = {
 	} :: { [number]: { insight: number, stones: number } },
 }
 
+-- CULTIVATION METHODS (Methods.luau, server Methods; docs/systems/character.md).
+-- Everyone cultivates with the basic Sect Breathing until Foundation, when they
+-- are given a random starter. `qi` multiplies passive, refining and gathering;
+-- `reaches` is the last stage a method can take you to (a key not on the ladder
+-- yet means no limit today). Matching your root's element adds MATCH.
+Pacing.Methods = {
+	BASIC_QI = 1.0,
+	BASIC_REACHES = "FE1", -- Sect Breathing stops at Foundation's first stage
+	STARTER_QI = 1.1,
+	STARTER_REACHES = "FE9", -- the whole of Foundation
+	MATCH = 0.1,
+	GIVEN_AT = "FoundationEstablishment", -- the major where the starter is given
+}
+
 -- WEAPON DAO COMPREHENSION (Weapons.luau, server Weapons). Each weapon class
 -- (Fist, Sword, Saber, ...) has its own level 0..MAX_LEVEL that multiplies M1
 -- and that class's technique damage (on top of the weapon's grade and the

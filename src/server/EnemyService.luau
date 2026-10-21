@@ -262,7 +262,7 @@ end
 --[[ Death and rewards ]]
 
 local function qiFor(def: Enemies.Def, data: PlayerData.Data): number
-	return Realms.enemyQi(def.qiDrop, Realms.get(data.realm.major, data.realm.minor))
+	return math.floor(Realms.enemyQi(def.qiDrop, Realms.get(data.realm.major, data.realm.minor)) * Cultivation.methodSpeed(data) + 0.5)
 end
 
 -- Players who dealt enough of the beast's health to earn the kill

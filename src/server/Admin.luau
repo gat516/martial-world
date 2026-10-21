@@ -28,6 +28,8 @@ local WorldEvents = require(script.Parent.WorldEvents)
 local Weapons = require(script.Parent.Weapons)
 local Roots = require(script.Parent.Roots)
 local RootDefs = require(ReplicatedStorage.Shared.Roots)
+local Methods = require(script.Parent.Methods)
+local MethodDefs = require(ReplicatedStorage.Shared.Methods)
 
 local MAX_COUNT = 999
 local MAX_SPAWN = 10
@@ -104,6 +106,23 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 			return false, "Unknown weapon"
 		end
 		Weapons.grant(player, id)
+		return true, `Gave {def.name}`
+	end,
+	-- gives a cultivation method (the first becomes active), or with no id
+	-- clears them all back to Sect Breathing
+	method = function(player, data, id)
+		if id == nil or id == "" then
+			data.methods = { owned = {}, active = "" }
+			Cultivation.pushState(player)
+			return true, "Back to Sect Breathing"
+		end
+		local def = type(id) == "string" and MethodDefs.Defs[id]
+		if not def then
+			return false, "Unknown method"
+		end
+		if not Methods.grant(player, id) then
+			return false, `Already known: {def.name}`
+		end
 		return true, `Gave {def.name}`
 	end,
 	allWeapons = function(player, data)

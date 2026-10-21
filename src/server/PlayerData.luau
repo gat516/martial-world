@@ -38,6 +38,7 @@ export type Data = {
 	stones: number, -- Spirit Stones, spent at the Spirit Market
 	insight: number, -- unspent insight (spent comprehending techniques)
 	insightEarned: number, -- every insight ever gained; breakthroughs check this
+	methods: { owned: { [string]: boolean }, active: string }, -- active "" = Sect Breathing
 	techniques: { owned: { [string]: Technique } },
 	hotbar: { string },
 	firstKills: { [string]: boolean },
@@ -87,6 +88,7 @@ local function default(): Data
 		stones = Economy.STARTING_STONES,
 		insight = 0,
 		insightEarned = 0,
+		methods = { owned = {}, active = "" },
 		techniques = { owned = { SwordQiWave = { level = 1, xp = 0 } } },
 		hotbar = Hotbar.empty({ "SwordQiWave" }),
 		firstKills = {},
@@ -176,7 +178,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

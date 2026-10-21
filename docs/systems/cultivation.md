@@ -80,6 +80,9 @@ breakthrough, and insight is a choice: which technique to deepen.
   meditation multipliers, forced-breakthrough thresholds, insight and manuals,
   and the kill-credit share (`Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`).
 - **Pacing.Comprehension**: insight and stones to break each technique bottleneck.
+- **Pacing.Methods**: the cultivation method's qi multiplier (passive, refining,
+  kill and node qi), how far each method reaches, the root-match bonus, and the
+  major where the random starter is given ([character](character.md)).
 - Arena geometry for the tribulation stays in `Config.Tribulation` (`CENTER`,
   `ARENA_RADIUS`, `STRIKE_RADIUS`, `RETURN_DELAY`).
 
@@ -101,7 +104,8 @@ to Stone Boars).
 
 ## Known gaps
 - Foundation Establishment is the top: no stage beyond FE1, so its bar is shown but
-  can't be broken through.
+  can't be broken through ("peak of this world"). When FE2+ exist, a method that
+  doesn't reach the next stage blocks it with "seek a stronger method" instead.
 - Enemy qi drops and beast health/damage multipliers are defined in Pacing
   (`Realms.enemyQi`, `stage.beastHealth/beastDamage`) but EnemyService/Spawner
   don't read them yet; enemy qi still uses `Enemies.QI_SCALE_EXPONENT`.

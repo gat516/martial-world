@@ -152,6 +152,13 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 				progress = `{data.insightEarned}/{stage.insight}`,
 			})
 		end
+		if Cultivation.methodLimit(data, nextStage) then
+			table.insert(goals, {
+				name = "Seek a stronger method",
+				detail = `Your cultivation method can't take you to {nextStage.name}. Ask Elder Qingyun, or search the world for a better one.`,
+				progress = "0/1",
+			})
+		end
 		table.insert(goals, {
 			name = if major then `Face the tribulation: {nextStage.name}` else `Break through to {nextStage.name}`,
 			detail = if major

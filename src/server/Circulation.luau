@@ -16,6 +16,7 @@ local Peak = require(ReplicatedStorage.Shared.Peak)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
+local Methods = require(script.Parent.Methods)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local WeatherService = require(script.Parent.WeatherService)
@@ -156,6 +157,7 @@ function Circulation.finish(player: Player, id: any, accuracy: any, purged: any)
 	local efficiency = (Refine.EFFICIENCY_MIN + (Refine.EFFICIENCY_MAX - Refine.EFFICIENCY_MIN) * score)
 		* stage.refine
 		* Roots.speed(data.root)
+		* Cultivation.methodSpeed(data)
 		* (1 + WeatherService.bonus("circulation"))
 
 	-- spend only what fills the bar; the rest stays in the dantian
@@ -192,6 +194,8 @@ function Circulation.handle(player: Player, action: any, ...: any): (boolean, an
 		return Circulation.finish(player, ...)
 	elseif action == "breakthrough" then
 		return Cultivation.breakthrough(player)
+	elseif action == "method" then
+		return Methods.switch(player, ...)
 	end
 	return false, "Unknown action"
 end

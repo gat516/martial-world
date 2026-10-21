@@ -78,7 +78,7 @@ end
 function Roots.start()
 	task.spawn(function()
 		local stone = workspace:WaitForChild("Hub"):WaitForChild("TestingStone")
-		local prompt = stone:WaitForChild("TestPrompt", 30) :: ProximityPrompt?
+		local prompt = stone:FindFirstChild("TestPrompt", true) :: ProximityPrompt?
 		if prompt then
 			prompt.Triggered:Connect(Roots.test)
 		else

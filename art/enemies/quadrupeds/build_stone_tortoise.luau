@@ -3,7 +3,7 @@
 -- qi glowing in the shell's seams (the tells). Run in Edit mode through execute_luau; it
 -- rebuilds ServerStorage._RosterQuadrupeds.StoneTortoise_R (body only), then run
 -- rig_stone_tortoise.luau. Model space: ground Y=0, faces -Z, left side is -X.
--- The head and neck retract: JointNeck slides back along +Z (up to NECK_RETRACT) and the
+-- The head and neck retract: JointNeck slides back along +Z (up to 2.3, see RIGS.md) and the
 -- neck disappears under the shell's front lip.
 
 local BASE = "http://127.0.0.1:8767/"
@@ -63,9 +63,11 @@ block("Shell", "Crag3", v(1.0, 0.9, 1.1), v(-0.5, 5.85, 1.7), ROCK, CFrame.Angle
 block("Shell", "CragMoss1", v(1.5, 0.3, 1.3), v(0.7, 7.52, 1.05), MOSS_HI, CFrame.Angles(0.2, 0.5, -0.22))
 block("Shell", "CragMoss2", v(1.1, 0.3, 1.1), v(-0.95, 6.85, -0.7), MOSS, CFrame.Angles(-0.18, 0.3, 0.2))
 block("Shell", "CapMoss", v(3.3, 0.3, 2.4), v(0, 5.7, -0.7), MOSS, CFrame.Angles(0.06, 0, 0))
-block("Shell", "DomeMossL", v(1.6, 0.3, 2.2), v(-1.9, 5.0, 1.3), MOSS_HI, CFrame.Angles(0, 0, 0.35))
-block("Shell", "DomeMossR", v(1.4, 0.3, 1.8), v(2.0, 4.95, -1.6), MOSS, CFrame.Angles(0, 0, -0.35))
-block("Shell", "Crag4", v(0.7, 1.5, 0.7), v(1.2, 6.0, -0.9), ROCK, CFrame.Angles(-0.25, 0.8, -0.3))
+-- moss lying flat on the dome's top ledge, tucked under the cap and lipping just past
+-- the dome edge (tilted slabs here read as cards stuck on the slope)
+block("Shell", "DomeMossL", v(1.2, 0.22, 2.4), v(-1.85, 5.02, 1.3), MOSS_HI)
+block("Shell", "DomeMossR", v(1.1, 0.22, 2.0), v(1.9, 5.02, -1.5), MOSS)
+block("Shell", "Crag4", v(1.0, 1.0, 0.9), v(1.25, 5.9, -0.95), ROCK, CFrame.Angles(-0.15, 0.8, -0.2))
 
 -- Neck and head: a thick wrinkled neck, a blunt skull with a hooked beak, heavy stone
 -- brows over slanted jade eyes, and a jade mark on the brow.
@@ -73,25 +75,25 @@ block("Neck", "Neck", v(1.4, 1.3, 2.0), v(0, 2.25, -4.1), SKIN)
 block("Neck", "NeckFold", v(1.6, 1.45, 0.4), v(0, 2.28, -4.65), SKIN_SH)
 block("Neck", "NeckUnder", v(1.1, 0.4, 1.6), v(0, 1.6, -4.3), BELLY)
 
-block("Skull", "Skull", v(1.9, 1.55, 1.85), v(0, 2.65, -5.65), SKIN)
-bevelZ("Skull", "SkullBrow", v(0, 3.62, -5.95), 1.8, 0.4, 0.9, -1, SKIN_SH)
-block("Skull", "HeadPlate", v(1.4, 0.25, 1.1), v(0, 3.5, -5.4), SHELL_HI)
-block("Skull", "Beak", v(1.4, 0.7, 0.5), v(0, 2.3, -6.75), BEAK)
-add("Skull", "BeakHook", "WedgePart", v(1.0, 0.45, 0.45), CFrame.new(0, 1.88, -6.85) * CFrame.Angles(math.pi, 0, 0), BEAK)
-tell(block("Skull", "BrowMark", v(0.2, 0.2, 0.08), v(0, 3.3, -6.6), JADE, CFrame.Angles(0, 0, math.pi / 4)))
+block("Head", "Head", v(1.9, 1.55, 1.85), v(0, 2.65, -5.65), SKIN)
+bevelZ("Head", "HeadBrow", v(0, 3.62, -5.95), 1.8, 0.4, 0.9, -1, SKIN_SH)
+block("Head", "HeadPlate", v(1.4, 0.25, 0.75), v(0, 3.5, -5.12), SHELL_HI) -- behind the brow wedge, not through it
+block("Head", "Beak", v(1.4, 0.7, 0.5), v(0, 2.3, -6.75), BEAK)
+add("Head", "BeakHook", "WedgePart", v(1.0, 0.45, 0.45), CFrame.new(0, 1.88, -6.85) * CFrame.Angles(math.pi, 0, 0), BEAK)
+tell(block("Head", "BrowMark", v(0.2, 0.2, 0.08), v(0, 3.3, -6.6), JADE, CFrame.Angles(0, 0, math.pi / 4)))
 for _, s in { -1, 1 } do
 	local side = if s < 0 then "L" else "R"
 	-- heavy stone brows over slanted eyes on the front corners, so it glares head-on
-	block("Skull", "Brow" .. side, v(0.7, 0.3, 0.5), v(s * 0.6, 3.28, -6.45), SHELL_HI, CFrame.Angles(0, 0, s * 0.3))
-	tell(block("Skull", "Eye" .. side, v(0.42, 0.14, 0.08), v(s * 0.58, 3.02, -6.6), JADE, CFrame.Angles(0, 0, s * 0.3)))
+	block("Head", "Brow" .. side, v(0.7, 0.3, 0.5), v(s * 0.6, 3.28, -6.45), SHELL_HI, CFrame.Angles(0, 0, s * 0.3))
+	tell(block("Head", "Eye" .. side, v(0.42, 0.14, 0.08), v(s * 0.58, 3.02, -6.6), JADE, CFrame.Angles(0, 0, s * 0.3)))
 end
 block("Jaw", "Jaw", v(1.6, 0.45, 1.6), v(0, 1.72, -5.65), SKIN_SH)
 block("Jaw", "JawBeak", v(1.2, 0.4, 0.45), v(0, 1.78, -6.55), BEAK)
 
 -- Legs: stumpy elephant columns with scale plates and three blunt claws.
-local function foot(seg, x, z)
+local function foot(seg, x, z, claws)
 	block(seg, seg, v(1.85, 0.75, 1.85), v(x, 0.375, z), SKIN_SH)
-	for i, dx in { -0.55, 0, 0.55 } do
+	for i, dx in claws do
 		add(seg, seg .. "Claw" .. i, "WedgePart", v(0.35, 0.35, 0.4), CFrame.new(x + dx, 0.18, z - 1.1), CLAW)
 	end
 end
@@ -100,14 +102,18 @@ for _, s in { -1, 1 } do
 		local leg = e[1] .. (if s < 0 then "L" else "R")
 		local x, z = s * LEG_X, e[2]
 		block("UpperLeg" .. leg, "UpperLeg" .. leg, v(1.55, 1.6, 1.55), v(x, 1.5, z), SKIN)
-		fin("UpperLeg" .. leg, "LegScale" .. leg, v(x, 1.0, z - 0.8), 0.9, 0.4, 1.0, SHELL_HI, -0.25)
+		-- the front scale and three claws only on the forelegs: on the hind legs the shell
+		-- hides them, so the hind feet carry two claws and no front scale
+		if e[1] == "F" then
+			fin("UpperLeg" .. leg, "LegScale" .. leg, v(x, 1.0, z - 0.8), 0.9, 0.4, 1.0, SHELL_HI, -0.25)
+		end
 		block("UpperLeg" .. leg, "LegScaleOut" .. leg, v(0.3, 0.7, 0.9), v(x + s * 0.8, 1.45, z), SHELL_HI)
-		foot("Foot" .. leg, x + s * 0.05, z - 0.1)
+		foot("Foot" .. leg, x + s * 0.05, z - 0.1, if e[1] == "F" then { -0.55, 0, 0.55 } else { -0.4, 0.4 })
 	end
 end
 
 -- Tail: a short blunt cone.
 limb("Tail", "Tail", v(0, 1.7, 3.9), v(0, 1.25, 4.8), 0.7, 0.6, SKIN_SH, 0.1)
-spike("Tail", "TailTip", v(0, 1.25, 4.75), v(0, 1.0, 5.3), 0.45, SKIN_SH)
+spike("TailTip", "TailTip", v(0, 1.25, 4.75), v(0, 1.0, 5.3), 0.45, SKIN_SH)
 
 return P.place("_RosterQuadrupeds")

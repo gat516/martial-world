@@ -11,48 +11,10 @@ local PREVIEW_AT = CFrame.new(200, 400, 3000)
 
 local ServerStorage = game:GetService("ServerStorage")
 
-local function pitch(a)
-	return CFrame.Angles(a, 0, 0)
-end
-
--- Windup poses (rough procedural poses for the later animator pass).
-local WINDUP = {
-	-- charge: head dropped to aim the tusks, a front hoof pawing, haunches loaded
-	StoneBoar_R = {
-		JointRoot = CFrame.new(0, -0.35, 0) * pitch(-0.12), JointSpine = pitch(0.05),
-		JointNeck = pitch(-0.2), JointHead = pitch(-0.12), JointJaw = pitch(-0.15),
-		JointLegFL = pitch(0.5), JointElbowFL = pitch(-0.9), JointWristFL = pitch(0.35),
-		JointLegFR = pitch(-0.2), JointElbowFR = pitch(0.15),
-		JointLegBL = pitch(-0.25), JointKneeBL = pitch(0.55), JointHockBL = pitch(-0.3),
-		JointLegBR = pitch(-0.25), JointKneeBR = pitch(0.55), JointHockBR = pitch(-0.3),
-		JointTail = pitch(0.9), JointEarL = pitch(-0.5), JointEarR = pitch(-0.5),
-	},
-	-- quake stomp: rears up on the hind legs, front feet lifted, head pulled half in
-	StoneTortoise_R = {
-		JointRoot = CFrame.new(0, 0.55, 0) * pitch(0.32),
-		JointNeck = CFrame.new(0, 0, 0.6) * pitch(0.15), JointHead = pitch(-0.35), JointJaw = pitch(-0.45),
-		JointLegFL = pitch(0.25), JointElbowFL = pitch(-0.6), JointLegFR = pitch(0.25), JointElbowFR = pitch(-0.6),
-		JointLegBL = pitch(-0.32), JointKneeBL = pitch(0.25), JointLegBR = pitch(-0.32), JointKneeBR = pitch(0.25),
-		JointTail = pitch(-0.3),
-	},
-	-- foxfire volley: crouched low, head forward, every tail fanned out wide and raised
-	NineTailFox_R = {
-		JointRoot = CFrame.new(0, -0.3, 0) * pitch(-0.05), JointSpine = pitch(0.06),
-		JointNeck = pitch(-0.35), JointHead = pitch(0.3), JointJaw = pitch(-0.3),
-		JointEarL = pitch(-0.2) * CFrame.Angles(0, 0, 0.3), JointEarR = pitch(-0.2) * CFrame.Angles(0, 0, -0.3),
-		JointLegFL = pitch(0.45), JointElbowFL = pitch(-0.6), JointWristFL = pitch(0.2),
-		JointLegFR = pitch(-0.1), JointElbowFR = pitch(-0.2),
-		JointLegBL = pitch(-0.35), JointKneeBL = pitch(0.55), JointHockBL = pitch(-0.3),
-		JointLegBR = pitch(-0.25), JointKneeBR = pitch(0.45), JointHockBR = pitch(-0.25),
-		JointTail = pitch(-0.35),
-	},
-}
--- The fox's nine tails fan out by roll about Z: outer tails spread most.
-for i = 1, 9 do
-	local t = (i - 5) / 4
-	WINDUP.NineTailFox_R["JointTail" .. i] = CFrame.Angles(0.05, 0, -t * 0.3)
-	WINDUP.NineTailFox_R["JointTail" .. i .. "Tip"] = CFrame.Angles(0.2, 0, -t * 0.15)
-end
+-- Windup poses live in poses_quadrupeds.luau (shared with qa_quadrupeds.luau).
+local HttpService = game:GetService("HttpService")
+local POSES = loadstring(HttpService:GetAsync("http://127.0.0.1:8767/quadrupeds/poses_quadrupeds.luau?" .. os.clock()))()
+local WINDUP = POSES.WINDUP
 
 local function posed(copy, pose)
 	local motors = {}
@@ -135,8 +97,16 @@ if player then
 			d.Anchored = true
 		end
 	end
-	local _, size = p:GetBoundingBox()
-	p:PivotTo(PREVIEW_AT * CFrame.new(-22, size.Y / 2, 0))
+	-- stand it on the plate by its lowest visible part (its bounding box reaches lower
+	-- than the feet, so a box-based lift left it floating)
+	local bottom = math.huge
+	for _, d in p:GetDescendants() do
+		if d:IsA("BasePart") and d.Transparency < 1 then
+			bottom = math.min(bottom, d.Position.Y - d.Size.Y / 2)
+		end
+	end
+	local lift = p:GetPivot().Position.Y - bottom
+	p:PivotTo(PREVIEW_AT * CFrame.new(-22, lift, 0))
 	p.Parent = preview
 	table.insert(placed, "player")
 end

@@ -52,7 +52,7 @@ end
 for _, s in { -1, 1 } do
 	local side = if s < 0 then "L" else "R"
 	block("Chest", "Shield" .. side .. "1", v(0.35, 1.7, 1.6), v(s * 1.62, 4.3, -1.35), STONE, CFrame.Angles(0, 0, -s * 0.22))
-	block("Chest", "Shield" .. side .. "2", v(0.35, 1.5, 1.5), v(s * 1.6, 4.25, 0.05), STONE_HI, CFrame.Angles(0, 0, -s * 0.2))
+	block("Chest", "Shield" .. side .. "2", v(0.35, 1.5, 1.5), v(s * 1.55, 4.25, 0.05), STONE_HI, CFrame.Angles(0, 0, -s * 0.2))
 	block("Hips", "Shield" .. side .. "3", v(0.3, 1.2, 1.3), v(s * 1.42, 4.0, 1.75), STONE, CFrame.Angles(0, 0, -s * 0.2))
 	-- the tell: a forked crack across the shoulder shield
 	tell(block("Chest", "Crack" .. side .. "1", v(0.08, 1.0, 0.14), v(s * 1.79, 4.3, -1.45), CRACK, CFrame.Angles(0.5, 0, -s * 0.22)))
@@ -61,9 +61,9 @@ end
 tell(block("Chest", "CrackBack", v(0.16, 0.08, 2.4), v(0, 5.86, -0.9), CRACK))
 
 -- Bristle crest: black spikes bursting from the seams between the plates, tallest over
--- the hump, running from the nape to the rump.
+-- the hump, running from the shoulders to the rump (a nape spike read head-on as a black
+-- chimney over the brow, so it went).
 local crest = {
-	{ "Neck", v(0, 4.25, -2.3), 0.7, 0.4 },
 	{ "Chest", v(0, 5.75, -1.95), 1.05, 0.5 },
 	{ "Chest", v(0, 5.85, -0.95), 1.15, 0.55 },
 	{ "Chest", v(0, 5.8, 0.2), 0.95, 0.6 },
@@ -78,24 +78,26 @@ end
 block("Neck", "Neck", v(2.3, 1.75, 1.3), v(0, 3.4, -2.4), HIDE)
 block("Neck", "NeckJowl", v(2.0, 0.8, 1.1), v(0, 2.45, -2.55), HIDE_SH)
 
-block("Skull", "Skull", v(2.3, 2.0, 1.9), v(0, 3.25, -3.6), HIDE)
-bevelZ("Skull", "Forehead", v(0, 4.5, -3.75), 1.9, 0.5, 1.2, -1, HIDE)
-block("Skull", "BrowPlate", v(2.0, 0.45, 1.1), v(0, 4.15, -4.0), STONE, CFrame.Angles(0.35, 0, 0))
-block("Skull", "Snout", v(1.6, 1.25, 1.6), v(0, 2.9, -5.05), HIDE)
-add("Skull", "SnoutTop", "WedgePart", v(1.3, 0.45, 1.3), CFrame.new(0, 3.75, -5.0), HIDE_SH)
-local disc = add("Skull", "NosePad", "Part", v(0.3, 1.0, 1.0), CFrame.new(0, 2.92, -5.9) * CFrame.Angles(0, math.pi / 2, 0), SNOUT)
+block("Head", "Head", v(2.3, 2.0, 1.9), v(0, 3.25, -3.6), HIDE)
+bevelZ("Head", "Forehead", v(0, 4.5, -3.75), 1.9, 0.5, 1.2, -1, HIDE)
+block("Head", "BrowPlate", v(2.0, 0.45, 1.1), v(0, 4.15, -4.0), STONE, CFrame.Angles(0.35, 0, 0))
+block("Head", "Snout", v(1.6, 1.25, 1.6), v(0, 2.9, -5.05), HIDE)
+add("Head", "SnoutTop", "WedgePart", v(1.3, 0.45, 1.3), CFrame.new(0, 3.75, -5.0), HIDE_SH)
+local disc = add("Head", "NosePad", "Part", v(0.3, 1.0, 1.0), CFrame.new(0, 2.92, -5.9) * CFrame.Angles(0, math.pi / 2, 0), SNOUT)
 disc.Shape = Enum.PartType.Cylinder
 for _, s in { -1, 1 } do
 	local side = if s < 0 then "L" else "R"
-	block("Skull", "Nostril" .. side, v(0.14, 0.22, 0.06), v(s * 0.22, 2.92, -6.06), HOOF)
+	block("Head", "Nostril" .. side, v(0.14, 0.22, 0.06), v(s * 0.22, 2.92, -6.06), HOOF)
 	-- small, deep-set eyes under the heavy brow, slanted down to the snout
-	tell(block("Skull", "Eye" .. side, v(0.32, 0.16, 0.08), v(s * 0.72, 3.7, -4.52), CRACK, CFrame.Angles(0, 0, s * 0.3)))
-	block("Skull", "Brow" .. side, v(0.6, 0.22, 0.4), v(s * 0.68, 3.88, -4.45), STONE_HI, CFrame.Angles(0, 0, s * 0.3))
+	tell(block("Head", "Eye" .. side, v(0.32, 0.16, 0.08), v(s * 0.72, 3.7, -4.52), CRACK, CFrame.Angles(0, 0, s * 0.3)))
+	block("Head", "Brow" .. side, v(0.6, 0.22, 0.4), v(s * 0.68, 3.88, -4.45), STONE_HI, CFrame.Angles(0, 0, s * 0.3))
 	-- tusks: a thick base out of the snout side, curving up and out to a point
 	local a, b, c, d = v(s * 0.7, 2.5, -5.1), v(s * 1.0, 2.7, -5.75), v(s * 1.2, 3.3, -6.05), v(s * 1.15, 4.05, -5.85)
-	limb("Skull", "TuskBase" .. side, a, b, 0.5, 0.5, BONE, 0.3)
-	limb("Skull", "TuskMid" .. side, b, c, 0.42, 0.42, BONE, 0.3)
-	spike("Skull", "Tusk" .. side, c, d, 0.38, BONE)
+	-- (widths step down evenly and the pads only just cover each bend, so the three pieces
+	-- read as one curved tusk instead of a pile of shards)
+	limb("Head", "TuskBase" .. side, a, b, 0.48, 0.48, BONE, 0.16)
+	limb("Head", "TuskMid" .. side, b, c, 0.42, 0.42, BONE, 0.14)
+	spike("Head", "Tusk" .. side, c, d, 0.4, BONE)
 	-- ears: small, stiff, angled back
 	tri("Ear" .. side, "Ear" .. side, v(s * 0.85, 4.15, -3.05), 0.75, 0.6, 0.2, HIDE_SH, CFrame.Angles(-0.5, 0, -s * 0.5))
 end
@@ -109,15 +111,14 @@ end
 -- Legs: short, thick columns with split hooves -----------------------------------------------
 local function hoof(seg, x, z, color)
 	block(seg, seg, v(0.9, 0.5, 1.0), v(x, 0.25, z), color)
-	for i, dx in { -0.22, 0.22 } do
-		add(seg, seg .. "Toe" .. i, "WedgePart", v(0.38, 0.4, 0.35), CFrame.new(x + dx, 0.2, z - 0.62), HOOF)
-	end
+	-- one toe wedge across the front (the split pair cost 4 parts and read only up close)
+	add(seg, seg .. "Toe", "WedgePart", v(0.82, 0.4, 0.35), CFrame.new(x, 0.2, z - 0.62), HOOF)
 end
 for _, s in { -1, 1 } do
 	local f = if s < 0 then "FL" else "FR"
 	local x, z = s * LEG_X_F, LEG_Z_F
 	block("UpperLeg" .. f, "UpperLeg" .. f, v(1.05, 1.5, 1.15), v(x, 2.25, z), HIDE)
-	ball("UpperLeg" .. f, "Shoulder" .. f, 1.2, v(x, 2.9, z), HIDE)
+	ball("UpperLeg" .. f, "Shoulder" .. f, 1.08, v(x, 2.9, z), HIDE) -- just proud of the leg, not a knob
 	block("LowerLeg" .. f, "LowerLeg" .. f, v(0.75, 1.15, 0.8), v(x, 1.05, z), HIDE_SH)
 	ball("LowerLeg" .. f, "Elbow" .. f, 0.85, v(x, 1.55, z), HIDE_SH)
 	hoof("Hoof" .. f, x, z, HOOF)
@@ -125,14 +126,14 @@ for _, s in { -1, 1 } do
 	local b = if s < 0 then "BL" else "BR"
 	x, z = s * LEG_X_B, LEG_Z_B
 	block("UpperLeg" .. b, "UpperLeg" .. b, v(1.1, 1.5, 1.35), v(x, 2.4, z + 0.05), HIDE)
-	ball("UpperLeg" .. b, "Haunch" .. b, 1.35, v(x, 3.0, z), HIDE)
+	ball("UpperLeg" .. b, "Haunch" .. b, 1.18, v(x, 3.0, z), HIDE)
 	limb("LowerLeg" .. b, "LowerLeg" .. b, v(x, 1.7, z + 0.15), v(x, 0.55, z + 0.05), 0.72, 0.78, HIDE_SH, 0.3)
 	ball("LowerLeg" .. b, "Knee" .. b, 0.85, v(x, 1.7, z + 0.1), HIDE_SH)
 	hoof("Hoof" .. b, x, z, HOOF)
 end
 
 -- Tail: a short whip with a bristle tuft ----------------------------------------------------
-limb("TailBase", "TailBase", v(0, 4.1, 3.15), v(0, 3.55, 3.7), 0.3, 0.3, HIDE_SH, 0.15)
+limb("Tail", "Tail", v(0, 4.1, 3.15), v(0, 3.55, 3.7), 0.3, 0.3, HIDE_SH, 0.15)
 limb("TailTip", "TailTip", v(0, 3.55, 3.7), v(0, 2.9, 3.85), 0.22, 0.22, HIDE_SH, 0.1)
 fin("TailTip", "TailTuft", v(0, 3.0, 3.85), 0.5, 0.35, 0.3, BRISTLE, math.pi - 0.2)
 

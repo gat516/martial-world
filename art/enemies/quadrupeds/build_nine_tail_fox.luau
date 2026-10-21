@@ -5,7 +5,7 @@
 -- ServerStorage._RosterQuadrupeds.NineTailFox_R (body only), then run
 -- rig_nine_tail_fox.luau. Model space: ground Y=0, faces -Z, left side is -X.
 -- Each tail is two segments, Tail<i> and Tail<i>Tip (i = 1..9 from left to right), on
--- a shared TailRoot, so they can fan, sway and curl one by one.
+-- a shared root block named Tail (JointTail), so they can fan, sway and curl one by one.
 
 local BASE = "http://127.0.0.1:8767/"
 local HttpService = game:GetService("HttpService")
@@ -20,7 +20,10 @@ local GOLD = Color3.fromHex("DDA84A")
 local GOLD_DK = Color3.fromHex("A97A31")
 local DARK = Color3.fromHex("2E2630") -- nose, eyeliner, mouth line
 local EAR_IN = Color3.fromHex("D98C9C")
-local FOXFIRE = Color3.fromHex("7FC8FF") -- the tell
+local FOXFIRE = Color3.fromHex("7FC8FF") -- the tell: eyes and brow mark
+-- the nine tail flames are a deeper azure at rest: in the pale tone the nine Neon tips
+-- bloomed to white and outshone the face; the windup flare brightens them (vfx)
+local FOXFIRE_TIP = Color3.fromHex("3C93E6")
 local TAIL_ROOT = Vector3.new(0, 3.55, 2.7)
 local TAIL_SPREAD = 1.35 -- radians from the centre tail to the outer ones (rest fan)
 local TAIL_BASE_LEN, TAIL_TIP_LEN = 1.6, 2.1
@@ -57,19 +60,19 @@ for _, s in { -1, 1 } do
 end
 
 -- Head: a narrow wedge skull, long snout, cheek fur sweeping back, slanted sly eyes.
-block("Skull", "Skull", v(1.25, 1.0, 1.15), v(0, 4.6, -2.85), CREAM)
-add("Skull", "Brow", "WedgePart", v(1.05, 0.3, 0.6), CFrame.new(0, 5.25, -3.05), GOLD)
-block("Skull", "Snout", v(0.55, 0.45, 1.2), v(0, 4.38, -3.95), CREAM)
-add("Skull", "SnoutTop", "WedgePart", v(0.45, 0.3, 1.1), CFrame.new(0, 4.75, -3.6), GOLD)
-block("Skull", "Nose", v(0.3, 0.22, 0.2), v(0, 4.5, -4.6), DARK)
-tell(block("Skull", "BrowMark", v(0.2, 0.2, 0.06), v(0, 5.0, -3.44), FOXFIRE, CFrame.Angles(0, 0, math.pi / 4)))
+block("Head", "Head", v(1.25, 1.0, 1.15), v(0, 4.6, -2.85), CREAM)
+add("Head", "Brow", "WedgePart", v(1.05, 0.3, 0.6), CFrame.new(0, 5.25, -3.05), GOLD)
+block("Head", "Snout", v(0.55, 0.45, 1.2), v(0, 4.38, -3.95), CREAM)
+add("Head", "SnoutTop", "WedgePart", v(0.45, 0.3, 1.1), CFrame.new(0, 4.75, -3.6), GOLD)
+block("Head", "Nose", v(0.3, 0.22, 0.2), v(0, 4.5, -4.6), DARK)
+tell(block("Head", "BrowMark", v(0.2, 0.2, 0.06), v(0, 5.0, -3.44), FOXFIRE, CFrame.Angles(0, 0, math.pi / 4)))
 for _, s in { -1, 1 } do
 	local side = if s < 0 then "L" else "R"
 	-- sly eyes: narrow, the outer corner swept up, lined dark
-	block("Skull", "Liner" .. side, v(0.46, 0.16, 0.06), v(s * 0.33, 4.76, -3.44), DARK, CFrame.Angles(0, 0, s * 0.4))
-	tell(block("Skull", "Eye" .. side, v(0.34, 0.08, 0.06), v(s * 0.33, 4.74, -3.47), FOXFIRE, CFrame.Angles(0, 0, s * 0.4)))
+	block("Head", "Liner" .. side, v(0.46, 0.16, 0.06), v(s * 0.33, 4.76, -3.44), DARK, CFrame.Angles(0, 0, s * 0.4))
+	tell(block("Head", "Eye" .. side, v(0.34, 0.08, 0.06), v(s * 0.33, 4.74, -3.47), FOXFIRE, CFrame.Angles(0, 0, s * 0.4)))
 	-- the smile: a dark line up the snout side
-	block("Skull", "Smile" .. side, v(0.04, 0.06, 0.7), v(s * 0.28, 4.2, -3.75), DARK, CFrame.Angles(-0.2, 0, 0))
+	block("Head", "Smile" .. side, v(0.04, 0.06, 0.7), v(s * 0.28, 4.2, -3.75), DARK, CFrame.Angles(-0.2, 0, 0))
 	tri("Ear" .. side, "Ear" .. side, v(s * 0.42, 5.0, -2.7), 1.15, 0.7, 0.2, CREAM, CFrame.Angles(-0.12, 0, -s * 0.22))
 	tri("Ear" .. side, "Ear" .. side .. "Inner", v(s * 0.42, 5.05, -2.82), 0.75, 0.42, 0.05, EAR_IN, CFrame.Angles(-0.12, 0, -s * 0.22))
 end
@@ -98,7 +101,7 @@ for _, s in { -1, 1 } do
 end
 
 -- Nine tails: gold bases out of a shared root, fat cream brushes, foxfire tips ------------
-block("TailRoot", "TailRoot", v(0.9, 0.8, 0.8), TAIL_ROOT + v(0, -0.05, -0.15), GOLD)
+block("Tail", "Tail", v(0.9, 0.8, 0.8), TAIL_ROOT + v(0, -0.05, -0.15), GOLD)
 for i = 1, 9 do
 	local d, dt = tailDirs(i)
 	local a = TAIL_ROOT + d * 0.2
@@ -108,7 +111,7 @@ for i = 1, 9 do
 	limb("Tail" .. i .. "Tip", "Tail" .. i .. "Tip", b, c, 0.62, 0.62, CREAM, 0.3)
 	-- the foxfire tip: a flame wedge carrying on along the curl
 	local cf = CFrame.lookAt(c, c + dt) * CFrame.Angles(-math.pi / 2, 0, 0) * CFrame.new(0, 0.3, 0)
-	tell(add("Tail" .. i .. "Tip", "Tail" .. i .. "Flame", "WedgePart", v(0.46, 0.75, 0.46), cf, FOXFIRE))
+	tell(add("Tail" .. i .. "Tip", "Tail" .. i .. "Flame", "WedgePart", v(0.46, 0.75, 0.46), cf, FOXFIRE_TIP))
 end
 
 return P.place("_RosterQuadrupeds")

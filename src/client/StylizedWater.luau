@@ -9,11 +9,18 @@
 -- Offsets come from the server clock, so every client sees the same water.
 -- Only parts within NEAR studs of the camera update (30 times a second, one
 -- distance check every SCAN seconds); rim foam beams scroll on the GPU (TextureSpeed)
--- and need nothing here. The Glimmer emitter's Rate is scaled once by the
--- part's surface area (its GlimmerPer100 attribute).
+-- and need nothing here. FLOW and SWAY scale every layer's authored values, so
+-- one number retunes every pool already placed. Layers named Glints (or with a
+-- Pulse attribute, 0-1) also fade in and out a little: the shimmer.
+-- Each water part also gets ripple rings and sun glints fitted to its shape
+-- (ReplicatedStorage.Shared.WaterSurface), rebuilt here at load so resized
+-- copies are always right.
 
 local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+
+local WaterSurface = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("WaterSurface"))
 
 local StylizedWater = {}
 
@@ -21,6 +28,10 @@ local TAG = "StylizedWater"
 local NEAR = 260 -- studs past the part's edge within which it animates
 local STEP = 1 / 30
 local SCAN = 0.5 -- seconds between distance checks
+local FLOW = 3 -- x the authored FlowU/FlowV (Cells 0.35 -> ~1.2 studs/s)
+local SWAY = 2.5 -- x the authored SwayU/SwayV
+local GLINT_PULSE = 0.35 -- default transparency swing on Glints layers
+local PULSE_PERIOD = 2.2
 
 type Layer = {
 	texture: Texture,
@@ -32,6 +43,8 @@ type Layer = {
 	swayV: number,
 	period: number,
 	phase: number,
+	alpha0: number,
+	pulse: number,
 }
 type Entry = { part: BasePart, layers: { Layer }, reach: number }
 
@@ -72,11 +85,19 @@ local function add(inst: Instance)
 				swayV = num(c, "SwayV", 0),
 				period = math.max(num(c, "SwayPeriod", 6), 0.5),
 				phase = i * 1.7,
+				alpha0 = c.Transparency,
+				pulse = num(c, "Pulse", if c.Name == "Glints" then GLINT_PULSE else 0),
 			})
 		elseif c:IsA("ParticleEmitter") and c:GetAttribute("GlimmerPer100") then
 			c.Rate = math.clamp(num(c, "GlimmerPer100", 0) * surfaceArea(part) / 100, 0.5, 40)
 		end
 	end
+	-- ripples and glints fitted to the shape (replaces the part-wide Glimmer)
+	task.defer(function()
+		if entries[part] and part:IsDescendantOf(workspace) then
+			pcall(WaterSurface.build, part)
+		end
+	end)
 	entries[part] = { part = part, layers = layers, reach = part.Size.Magnitude / 2 + NEAR }
 end
 
@@ -104,8 +125,12 @@ local function step()
 		for _, l in e.layers do
 			local tex = l.texture
 			local w = 2 * math.pi * t / l.period + l.phase
-			local u = l.u0 + l.flowU * t + l.swayU * math.sin(w)
-			local v = l.v0 + l.flowV * t + l.swayV * math.cos(w * 0.8)
+			local u = l.u0 + l.flowU * FLOW * t + l.swayU * SWAY * math.sin(w)
+			local v = l.v0 + l.flowV * FLOW * t + l.swayV * SWAY * math.cos(w * 0.8)
+			if l.pulse > 0 then
+				local k = 0.5 + 0.5 * math.sin(2 * math.pi * t / PULSE_PERIOD + l.phase)
+				tex.Transparency = math.clamp(l.alpha0 + (k - 0.5) * 2 * l.pulse, 0, 1)
+			end
 			-- wrap to one tile so the offsets stay small and exact
 			tex.OffsetStudsU = u % tex.StudsPerTileU
 			tex.OffsetStudsV = v % tex.StudsPerTileV

@@ -16,6 +16,14 @@
 --                                 band sits on that side. Returns the Model.
 --   waterKit.rimPart(water, width?, inset?)
 --                                 rim foam round a block or cylinder water part's top.
+--   waterKit.surfaceFX(root?)     builds the ripple/glint zones (Shared.WaterSurface)
+--                                 on every StylizedWater part under `root` (default
+--                                 workspace), so the surface moves in Edit mode too.
+--                                 The client rebuilds them at load anyway; rerun
+--                                 after resizing a pool to see it right in Studio.
+--   waterKit.rockRipples(parent, position, radius)
+--                                 rings spreading from a rock standing in the water
+--                                 (`position` on the surface, `radius` the rock's).
 -- Tune here and rebuild, then export the staging folder with
 -- tools/export_rbxm.luau as "WaterKit" (binary keeps attributes and tags).
 --
@@ -309,8 +317,41 @@ function B.WaterfallFoam()
 	return p
 end
 
+-- 5. RockRipples: rings spreading from a rock or post standing in the water.
+-- Put it on the surface at the rock's centre; waterKit.rockRipples sizes the
+-- rings to the rock (authored for a rock of radius 2).
+local function rockRippleSize(radius)
+	return seq({ { 0, radius * 0.95 }, { 1, radius + 2.6 } })
+end
+
+function B.RockRipples()
+	local p = Instance.new("Part")
+	p.Name = "RockRipples"
+	p.Size = Vector3.new(0.2, 0.1, 0.2)
+	p.Transparency = 1
+	noPhysics(p)
+	p:SetAttribute("RockRadius", 2)
+	emitter(p, "Ripples", {
+		Texture = A.ring,
+		Color = CS(C.foam),
+		Size = rockRippleSize(2),
+		Transparency = seq({ { 0, 1 }, { 0.1, 0.2 }, { 0.6, 0.5 }, { 1, 1 } }),
+		Lifetime = NR(1.8, 2.4),
+		Rate = 0.9,
+		Speed = NR(0.01, 0.01),
+		Rotation = NR(0, 360),
+		RotSpeed = NR(-6, 6),
+		EmissionDirection = Enum.NormalId.Top,
+		Orientation = Enum.ParticleOrientation.VelocityPerpendicular,
+		LightInfluence = 0.8,
+		LightEmission = 0.1,
+		ZOffset = 0.05,
+	})
+	return p
+end
+
 local function build(parent)
-	local order = { "ShallowWater", "ShallowWaterRound", "RimFoam", "WaterfallFoam" }
+	local order = { "ShallowWater", "ShallowWaterRound", "RimFoam", "WaterfallFoam", "RockRipples" }
 	for _, name in order do
 		local old = parent:FindFirstChild(name)
 		if old then
@@ -422,5 +463,34 @@ local function rimPart(water, width, inset)
 	return rimAlong(water.Parent, pts, true, width)
 end
 
-_G.waterKit = { build = build, dress = dress, upFace = upFace, rimAlong = rimAlong, rimPart = rimPart, builders = B }
+-- Fresh copy of ReplicatedStorage.Shared.WaterSurface (require caches the
+-- first load in Edit mode, so a synced edit would otherwise go unseen).
+local function surfaceModule()
+	local src = game:GetService("ReplicatedStorage").Shared.WaterSurface
+	return require(src:Clone())
+end
+
+local function surfaceFX(root)
+	root = root or workspace
+	local WS = surfaceModule()
+	local n = 0
+	for _, part in CollectionService:GetTagged("StylizedWater") do
+		if part:IsA("BasePart") and part:IsDescendantOf(root) and WS.build(part) then
+			n += 1
+		end
+	end
+	return n
+end
+
+local function rockRipples(parent, position, radius)
+	local kit = game:GetService("ServerStorage"):FindFirstChild("WaterKit")
+	local p = (kit and kit:FindFirstChild("RockRipples") or B.RockRipples()):Clone()
+	p.CFrame = CFrame.new(position + Vector3.new(0, 0.08, 0))
+	p:SetAttribute("RockRadius", radius)
+	p.Ripples.Size = rockRippleSize(radius)
+	p.Parent = parent
+	return p
+end
+
+_G.waterKit = { build = build, dress = dress, upFace = upFace, surfaceFX = surfaceFX, rockRipples = rockRipples, rimAlong = rimAlong, rimPart = rimPart, builders = B }
 return "installed _G.waterKit"

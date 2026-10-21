@@ -117,16 +117,29 @@ everyone to one spot, and a day/night cycle.
     counter-clockwise seen from above (bank on the right). Rim attachments point
     their X axis up: a non-FaceCamera Beam faces along its attachments' Axis,
     so identity attachments only lie flat along X.
+  - `RockRipples`: rings spreading from a rock or post standing in the water;
+    `waterKit.rockRipples(parent, surfacePoint, rockRadius)` sizes them.
   - `WaterfallFoam`: churned foam where a fall lands (a `Patch` decal, `Churn`
     foam blobs and `FoamRings` spreading out). Put it flat on the surface at
     the fall's foot together with `AmbientFX.WaterfallSpray` (spray, splash,
     droplets); map passes mark the spot `FX_FallSpray`.
   - `src/client/StylizedWater.luau` animates every part tagged `StylizedWater`:
     each Texture drifts by its `FlowU`/`FlowV` (studs/s) plus a slow
-    `SwayU`/`SwayV` over `SwayPeriod`, from the server clock so clients agree,
-    at 30 Hz and only within 260 studs of the camera. It scales `Glimmer`'s Rate
-    once by surface area (`GlimmerPer100`). Rim and foam beams scroll on the GPU
-    (`TextureSpeed`). No server work.
+    `SwayU`/`SwayV` over `SwayPeriod`, times the script's `FLOW` (3) and `SWAY`
+    (2.5), so one number retunes every placed pool (Cells flow ~1.2 studs/s, a
+    cell passes in ~4 s). `Glints` layers also fade in and out (`GLINT_PULSE`,
+    or a `Pulse` attribute). It runs from the server clock so clients agree, at
+    30 Hz and only within 260 studs of the camera. Rim and foam beams scroll on
+    the GPU (`TextureSpeed`). No server work.
+  - Ripple rings and sun glints: `src/shared/WaterSurface.luau` samples the
+    surface with rays, fills it with flat invisible boxes in a `WaterFX` folder
+    under the water part (so particles stay on the water whatever its shape)
+    and gives each a `Ripples` and `Glimmer` emitter rated by area
+    (`RIPPLES_PER_100`, `GLINTS_PER_100`); the part's own `Glimmer` is turned
+    off. The client rebuilds them on every water part at load. In Edit mode,
+    `waterKit.surfaceFX(root)` builds them so the surface moves without Play
+    (particles animate in Studio; Texture drift does not). Rerun it after
+    resizing a pool. Built on `Workspace.Map`'s water and the preview.
   - Textures are drawn by `art/water/draw_water.py` (ids in
     `art/water/assets.json`). Preview: `Workspace._WaterPreview` (place-only),
     a sand island at (3240, 200, 3240) with a cloverleaf pool, a library Blue
@@ -232,7 +245,8 @@ everyone to one spot, and a day/night cycle.
 - `assets/SoundGroups/Ambience.rbxm` (`SoundService.Ambience`), `tools/ambient_sounds_build.luau`.
 - `assets/AmbientFX.rbxm` (`ServerStorage.AmbientFX`), `tools/ambient_fx_build.luau`.
 - `assets/WaterKit.rbxm` (`ServerStorage.WaterKit`), `tools/water_kit_build.luau`
-  (`_G.waterKit`: build, dress, rimPart, rimAlong), `src/client/StylizedWater.luau`,
+  (`_G.waterKit`: build, dress, rimPart, rimAlong, surfaceFX, rockRipples),
+  `src/client/StylizedWater.luau`, `src/shared/WaterSurface.luau`,
   `art/water/`.
 
 ## Data flow

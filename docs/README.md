@@ -13,7 +13,7 @@ This page says where everything lives. Each system has a short design doc in
 | `src/client/` | `StarterPlayerScripts.Client` | input, prediction, HUD, effects |
 | `assets/*.rbxmx` | mapped instances | MCP-authored Studio instances (GUIs, remotes, templates, the map) |
 | `art/` | - | Blender sources and UI art scripts (not synced) |
-| `tools/` | - | `check.sh` (luau-lsp), rbxmx export/receive, rbxm export (keeps attributes, for VFX), VFX library search + index (`vfx_library.luau`, `vfx_library.json`), animation marker reader (`anim_markers.luau`), vfxia add-on unpacker (`vfx_addons.py`), duplicate finder |
+| `tools/` | - | `check.sh` (luau-lsp), rbxmx export/receive, rbxm export (keeps attributes, for VFX), VFX library search + index (`vfx_library.luau`, `vfx_library.json`), animation marker reader (`anim_markers.luau`), vfxia add-on unpacker (`vfx_addons.py`), VFX preview kit (`vfx_preview.luau`: clean scene, real CombatEffects call path, frozen captures), staging/export helpers (`vfx_stage.luau`, `vfx_export.sh`), library contact sheets (`vfx_contact_sheet.py`), duplicate finder |
 
 Entry points: `src/server/Main.server.luau` (requires every server module, loads
 profiles, wires remotes and hooks) and `src/client/Main.client.luau` (inits every

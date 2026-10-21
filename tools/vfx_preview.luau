@@ -16,13 +16,30 @@
 --       so a screen_capture shows that exact moment. Tweens keep running.
 --   P.clone(path)      clone a template (e.g. "Effects.PalmStrike.PalmStrike_T4"
 --       under ReplicatedStorage) into the scene.
---   P.clear(keepScene?) remove clones (and the scene unless keepScene), and
---       empty workspace.Terrain.TempVFX.
+--   P.clear(keepScene?) remove clones (and the scene unless keepScene), the
+--       fresh module copies, and empty workspace.Terrain.TempVFX.
+--   P.fresh(names)     fresh copies of client modules (StarterPlayerScripts.Client)
+--       plus a mirror of ReplicatedStorage.Shared in ServerStorage._PreviewModules,
+--       with `ReplicatedStorage.Shared` requires pointed at the mirror. Edit's
+--       require cache can hold stale versions of modules required earlier in the
+--       session (Config without Combat, say), so never require the live ones.
+--       The copy of TechniqueVFX gets: folder = the scene's _fxOut folder
+--       (screen_capture swaps the camera, and a Camera's children only render
+--       while it is current), cleanup disabled (frozen frames must survive until
+--       captured), and CameraShake/ImpactFrames attributes stripped before emit
+--       (ScreenEffects moves the editor camera and spoils the capture).
+--   P.castThrough({ id, level, freezeAt?, animation? }) -> summary string
+--       The real call path: plays the technique's Fists animation on the scene
+--       rig at the cast's playback speed (Rules.castProfile), calls
+--       CombatEffects.windup at start and CombatEffects.cast at Hit with the rig's
+--       live root and hands, then freezes particles at `freezeAt` seconds after
+--       cast start. Pass a level (1, 4, 7, 10 for tiers I-IV), not a tier.
 -- Typical camera for screen_capture: behind-right of the caster at player
 -- distance, e.g. C + (-12, 9, 5) looking at C + (4, 1, 0); top-down
 -- C + (0.1, 28, 0) -> C checks radii against the posts.
 
 local RS = game:GetService("ReplicatedStorage")
+local RIG_GROUP = "_VFXPreviewRig" -- unregistered again by P.clear
 local P = {}
 local S = nil
 
@@ -113,8 +130,25 @@ function P.scene(opts)
 	if rig then
 		local _, size = rig:GetBoundingBox()
 		rig:PivotTo(CFrame.lookAt(C + Vector3.new(0, size.Y / 2, 0), C + Vector3.new(1, size.Y / 2, 0)))
+		-- the game's ground rays skip player characters; Edit has none, so put the
+		-- stand-in in a collision group that ignores Default (default raycasts then
+		-- skip it). CanCollide/CanQuery don't work: an R6 Humanoid forces Torso
+		-- and Head CanCollide back on, and CanQuery is ignored while CanCollide.
+		local PhysicsService = game:GetService("PhysicsService")
+		if not PhysicsService:IsCollisionGroupRegistered(RIG_GROUP) then
+			PhysicsService:RegisterCollisionGroup(RIG_GROUP)
+		end
+		PhysicsService:CollisionGroupSetCollidable(RIG_GROUP, "Default", false)
+		for _, d in rig:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.CollisionGroup = RIG_GROUP
+			end
+		end
 		rig.Parent = folder
 	end
+	local out = Instance.new("Folder")
+	out.Name = "_fxOut"
+	out.Parent = folder
 	local enemies = {}
 	local names = opts.enemies or { "SpiritWolf", "StoneBoar" }
 	local offsets = opts.offsets or { Vector3.new(5.5, 0, 2.5), Vector3.new(8, 0, -3.5), Vector3.new(14, 0, 1), Vector3.new(20, 0, -2) }
@@ -130,6 +164,7 @@ function P.scene(opts)
 			local _, es = e:GetBoundingBox()
 			local p = C + offsets[i]
 			e:PivotTo(CFrame.lookAt(Vector3.new(p.X, ground(p) + es.Y / 2, p.Z), Vector3.new(C.X, ground(p) + es.Y / 2, C.Z)))
+			e:AddTag("Enemy") -- Hitbox.enemiesIn and the ground filter look for it
 			e.Parent = folder
 			table.insert(enemies, e)
 		end
@@ -183,6 +218,118 @@ function P.clear(keepScene)
 	if temp then
 		temp:ClearAllChildren()
 	end
+	local mods = game.ServerStorage:FindFirstChild("_PreviewModules")
+	if mods and not keepScene then
+		mods:Destroy()
+	end
+	if not keepScene then
+		local PhysicsService = game:GetService("PhysicsService")
+		if PhysicsService:IsCollisionGroupRegistered(RIG_GROUP) then
+			PhysicsService:UnregisterCollisionGroup(RIG_GROUP)
+		end
+	end
+	pcall(function()
+		game:GetService("RunService"):UnbindFromRenderStep("CombatShake")
+	end)
+end
+
+function P.fresh(names)
+	local holder = game.ServerStorage:FindFirstChild("_PreviewModules")
+	if holder then
+		holder:Destroy()
+	end
+	holder = Instance.new("Folder")
+	holder.Name = "_PreviewModules"
+	holder.Parent = game.ServerStorage
+	RS.Shared:Clone().Parent = holder
+	local client = game.StarterPlayer.StarterPlayerScripts.Client
+	for _, n in names do
+		local m = client[n]:Clone()
+		m.Source = m.Source:gsub("ReplicatedStorage%.Shared", 'game:GetService("ServerStorage")._PreviewModules.Shared')
+		m.Parent = holder
+	end
+	local tvModule = holder:FindFirstChild("TechniqueVFX")
+	if tvModule and S then
+		local TV = require(tvModule)
+		TV.folder = S.folder._fxOut
+		TV.cleanup = function() end
+		local emit = TV.emit
+		TV.emit = function(inst)
+			for _, d in inst:GetDescendants() do
+				d:SetAttribute("CameraShake", nil)
+				d:SetAttribute("ImpactFrames", nil)
+			end
+			emit(inst)
+		end
+	end
+	return holder
+end
+
+function P.castThrough(opts)
+	assert(S, "call P.scene first")
+	local RunService = game:GetService("RunService")
+	S.folder._fxOut:ClearAllChildren()
+	local temp = workspace.Terrain:FindFirstChild("TempVFX")
+	if temp then
+		temp:ClearAllChildren()
+	end
+	local holder = P.fresh({ "CombatEffects", "Sfx", "TechniqueVFX" })
+	local CE = require(holder.CombatEffects)
+	local Techniques = require(holder.Shared.Techniques)
+	local Rules = require(holder.Shared.ActionRules)
+	local def = Techniques.Defs[opts.id]
+	local profile = Rules.castProfile(def)
+	local rig, root = S.rig, S.rig.HumanoidRootPart
+	root.Anchored = true
+	local hum = rig:FindFirstChildOfClass("Humanoid")
+	local animator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
+	local track = animator:LoadAnimation(opts.animation or RS.Animations.Fists[tostring(def.animation)])
+	local t0 = os.clock()
+	while track.Length == 0 and os.clock() - t0 < 5 do
+		task.wait()
+	end
+	track:Play(0, 1, 0)
+	local dir = (root.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
+	local start, cast, err = os.clock(), false, nil
+	local ok, e = pcall(CE.windup, rig, opts.id, opts.level)
+	if not ok then
+		err = e
+	end
+	while true do
+		local t = os.clock() - start
+		track.TimePosition = math.min(t * profile.speed, track.Length - 0.01)
+		animator:StepAnimations(0)
+		if not cast and t >= profile.windup then
+			cast = true
+			local ok2, e2 = pcall(CE.cast, rig, opts.id, root.Position, dir, nil, opts.level)
+			if not ok2 then
+				err = e2
+			end
+		end
+		if (opts.freezeAt and t >= opts.freezeAt) or t > 3 then
+			break
+		end
+		RunService.Heartbeat:Wait()
+	end
+	if opts.freezeAt then
+		for _, r in { workspace.Terrain:FindFirstChild("TempVFX"), S.folder } do
+			if r then
+				for _, d in r:GetDescendants() do
+					if d:IsA("ParticleEmitter") then
+						d.TimeScale = 0
+					end
+				end
+			end
+		end
+	end
+	pcall(function()
+		RunService:UnbindFromRenderStep("CombatShake")
+	end)
+	local kids = {}
+	for _, d in S.folder._fxOut:GetChildren() do
+		table.insert(kids, d.Name)
+	end
+	return string.format("t=%.2f err=%s spawned=%s", os.clock() - start, tostring(err), table.concat(kids, ","))
 end
 
 _G.vfxPreview = P

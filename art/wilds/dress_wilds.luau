@@ -53,6 +53,14 @@ local function buildKit()
 				d:Destroy()
 			end
 		end
+		if c:IsA("Model") then
+			-- Some library models (Stone Rock Pack "Single Stone") keep their WorldPivot
+			-- hundreds of studs from the mesh, so PivotTo(spot) dropped the stone far
+			-- from the spot (the Wolf Den ring stones, the Middle's path stones). Pivot
+			-- every kit model at its bounding box's bottom centre, keeping the rotation.
+			local box, size = c:GetBoundingBox()
+			c.WorldPivot = CFrame.new(box.Position - Vector3.new(0, size.Y / 2, 0)) * c:GetPivot().Rotation
+		end
 		c.Parent = kit
 	end
 	local function byName(folder, name, size)

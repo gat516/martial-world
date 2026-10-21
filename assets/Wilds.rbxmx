@@ -1,12 +1,13 @@
 <roblox version="4">
- <Item class="Folder" referent="RBXE161"><Properties>
+ <Item class="Folder" referent="RBXE241"><Properties>
   <string name="Name">Wilds</string>
  </Properties>
-  <Item class="Folder" referent="RBXE162"><Properties>
+  <Item class="Folder" referent="RBXE242"><Properties>
    <string name="Name">Zones</string>
   </Properties>
-   <Item class="Part" referent="RBXE163"><Properties>
+   <Item class="Part" referent="RBXE243"><Properties>
     <string name="Name">WolfPocket</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
     <bool name="Anchored">true</bool>
     <bool name="CanCollide">false</bool>
     <bool name="CanTouch">false</bool>
@@ -19,11 +20,12 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
     <bool name="CanQuery">false</bool>
-    <BinaryString name="AttributesSerialize">AwAAAAUAAABFbmVteQIKAAAAU3Bpcml0V29sZgUAAABDb3VudAYAAAAAAAAIQAYAAABSYWRpdXMGAAAAAAAAPkA=</BinaryString>
+    <BinaryString name="AttributesSerialize">BgAAAAUAAABFbmVteQIKAAAAU3Bpcml0V29sZgUAAABDb3VudAYAAAAAAAAIQAYAAABSYWRpdXMGAAAAAAAAPkAHAAAAUG9pTmFtZQIQAAAAV29sZiBQb2NrZXQgbGFpcgQAAABLaW5kAgQAAABMYWlyBAAAAFpvbmUCBQAAAElubmVy</BinaryString>
    </Properties>
    </Item>
-   <Item class="Part" referent="RBXE164"><Properties>
+   <Item class="Part" referent="RBXE244"><Properties>
     <string name="Name">WolfDen</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
     <bool name="Anchored">true</bool>
     <bool name="CanCollide">false</bool>
     <bool name="CanTouch">false</bool>
@@ -36,11 +38,12 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
     <bool name="CanQuery">false</bool>
-    <BinaryString name="AttributesSerialize">AwAAAAUAAABFbmVteQIKAAAAU3Bpcml0V29sZgUAAABDb3VudAYAAAAAAAAQQAYAAABSYWRpdXMGAAAAAACAQUA=</BinaryString>
+    <BinaryString name="AttributesSerialize">BgAAAAUAAABFbmVteQIKAAAAU3Bpcml0V29sZgUAAABDb3VudAYAAAAAAAAQQAYAAABSYWRpdXMGAAAAAACAQUAHAAAAUG9pTmFtZQIZAAAAV29sZiBEZW4gbGFpciAoYm9zcyByaW5nKQQAAABLaW5kAgQAAABMYWlyBAAAAFpvbmUCBQAAAElubmVy</BinaryString>
    </Properties>
    </Item>
-   <Item class="Part" referent="RBXE165"><Properties>
+   <Item class="Part" referent="RBXE245"><Properties>
     <string name="Name">BoarMeadow</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
     <bool name="Anchored">true</bool>
     <bool name="CanCollide">false</bool>
     <bool name="CanTouch">false</bool>
@@ -53,11 +56,12 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
     <bool name="CanQuery">false</bool>
-    <BinaryString name="AttributesSerialize">AwAAAAUAAABFbmVteQIJAAAAU3RvbmVCb2FyBQAAAENvdW50BgAAAAAAAAhABgAAAFJhZGl1cwYAAAAAAABEQA==</BinaryString>
+    <BinaryString name="AttributesSerialize">BgAAAAUAAABFbmVteQIJAAAAU3RvbmVCb2FyBQAAAENvdW50BgAAAAAAAAhABgAAAFJhZGl1cwYAAAAAAABEQAcAAABQb2lOYW1lAhAAAABCb2FyIE1lYWRvdyBsYWlyBAAAAEtpbmQCBAAAAExhaXIEAAAAWm9uZQIFAAAASW5uZXI=</BinaryString>
    </Properties>
    </Item>
-   <Item class="Part" referent="RBXE166"><Properties>
+   <Item class="Part" referent="RBXE246"><Properties>
     <string name="Name">BoarField</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
     <bool name="Anchored">true</bool>
     <bool name="CanCollide">false</bool>
     <bool name="CanTouch">false</bool>
@@ -70,11 +74,12 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
     <bool name="CanQuery">false</bool>
-    <BinaryString name="AttributesSerialize">AwAAAAUAAABFbmVteQIJAAAAU3RvbmVCb2FyBQAAAENvdW50BgAAAAAAAABABgAAAFJhZGl1cwYAAAAAAIBBQA==</BinaryString>
+    <BinaryString name="AttributesSerialize">BgAAAAUAAABFbmVteQIJAAAAU3RvbmVCb2FyBQAAAENvdW50BgAAAAAAAABABgAAAFJhZGl1cwYAAAAAAIBBQAcAAABQb2lOYW1lAg8AAABCb2FyIEZpZWxkIGxhaXIEAAAAS2luZAIEAAAATGFpcgQAAABab25lAgUAAABJbm5lcg==</BinaryString>
    </Properties>
    </Item>
-   <Item class="Part" referent="RBXE167"><Properties>
+   <Item class="Part" referent="RBXE247"><Properties>
     <string name="Name">SerpentMarsh</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
     <bool name="Anchored">true</bool>
     <bool name="CanCollide">false</bool>
     <bool name="CanTouch">false</bool>
@@ -87,11 +92,12 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
     <bool name="CanQuery">false</bool>
-    <BinaryString name="AttributesSerialize">AwAAAAUAAABFbmVteQIMAAAAVmVub21TZXJwZW50BQAAAENvdW50BgAAAAAAAAhABgAAAFJhZGl1cwYAAAAAAIBBQA==</BinaryString>
+    <BinaryString name="AttributesSerialize">BgAAAAUAAABFbmVteQIMAAAAVmVub21TZXJwZW50BQAAAENvdW50BgAAAAAAAAhABgAAAFJhZGl1cwYAAAAAAIBBQAcAAABQb2lOYW1lAhIAAABTZXJwZW50IE1hcnNoIGxhaXIEAAAAS2luZAIEAAAATGFpcgQAAABab25lAgYAAABNaWRkbGU=</BinaryString>
    </Properties>
    </Item>
-   <Item class="Part" referent="RBXE168"><Properties>
+   <Item class="Part" referent="RBXE248"><Properties>
     <string name="Name">SerpentFen</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
     <bool name="Anchored">true</bool>
     <bool name="CanCollide">false</bool>
     <bool name="CanTouch">false</bool>
@@ -104,11 +110,12 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
     <bool name="CanQuery">false</bool>
-    <BinaryString name="AttributesSerialize">AwAAAAUAAABFbmVteQIMAAAAVmVub21TZXJwZW50BQAAAENvdW50BgAAAAAAAABABgAAAFJhZGl1cwYAAAAAAAA+QA==</BinaryString>
+    <BinaryString name="AttributesSerialize">BgAAAAUAAABFbmVteQIMAAAAVmVub21TZXJwZW50BQAAAENvdW50BgAAAAAAAABABgAAAFJhZGl1cwYAAAAAAAA+QAcAAABQb2lOYW1lAhAAAABTZXJwZW50IEZlbiBsYWlyBAAAAEtpbmQCBAAAAExhaXIEAAAAWm9uZQIGAAAATWlkZGxl</BinaryString>
    </Properties>
    </Item>
-   <Item class="Part" referent="RBXE169"><Properties>
+   <Item class="Part" referent="RBXE249"><Properties>
     <string name="Name">BossArena</string>
+    <BinaryString name="Tags">UE9J</BinaryString>
     <bool name="Anchored">true</bool>
     <bool name="CanCollide">false</bool>
     <bool name="CanTouch">false</bool>
@@ -121,18 +128,19 @@
     <token name="BottomSurface">0</token>
     <float name="Transparency">1</float>
     <bool name="CanQuery">false</bool>
-    <BinaryString name="AttributesSerialize">AwAAAAUAAABFbmVteQINAAAARWxkZXJXb2xmS2luZwUAAABDb3VudAYAAAAAAADwPwYAAABSYWRpdXMGAAAAAACARkA=</BinaryString>
+    <BinaryString name="AttributesSerialize">BgAAAAUAAABFbmVteQINAAAARWxkZXJXb2xmS2luZwUAAABDb3VudAYAAAAAAADwPwYAAABSYWRpdXMGAAAAAACARkAHAAAAUG9pTmFtZQIPAAAAQm9zcyBBcmVuYSBsYWlyBAAAAEtpbmQCBAAAAExhaXIEAAAAWm9uZQIGAAAATWlkZGxl</BinaryString>
    </Properties>
    </Item>
   </Item>
-  <Item class="Folder" referent="RBXE170"><Properties>
+  <Item class="Folder" referent="RBXE250"><Properties>
    <string name="Name">QiNodes</string>
   </Properties>
-   <Item class="Model" referent="RBXE171"><Properties>
+   <Item class="Model" referent="RBXE251"><Properties>
     <string name="Name">QiNode1</string>
-    <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
+    <BinaryString name="Tags">UE9J</BinaryString>
+    <BinaryString name="AttributesSerialize">BAAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVsBwAAAFBvaU5hbWUCCQAAAFFpIE5vZGUgMQQAAABLaW5kAgYAAABRaU5vZGUEAAAAWm9uZQIFAAAASW5uZXI=</BinaryString>
    </Properties>
-    <Item class="Part" referent="RBXE172"><Properties>
+    <Item class="Part" referent="RBXE252"><Properties>
      <string name="Name">Base</string>
      <bool name="Anchored">true</bool>
      <bool name="CanCollide">true</bool>
@@ -147,7 +155,7 @@
      <token name="shape">2</token>
     </Properties>
     </Item>
-    <Item class="Part" referent="RBXE156"><Properties>
+    <Item class="Part" referent="RBXE236"><Properties>
      <string name="Name">Crystal</string>
      <bool name="Anchored">true</bool>
      <bool name="CanCollide">false</bool>
@@ -163,14 +171,14 @@
      <BinaryString name="Tags">UWlOb2Rl</BinaryString>
      <BinaryString name="AttributesSerialize">AQAAAAYAAABSYWRpdXMGAAAAAAAAMkA=</BinaryString>
     </Properties>
-     <Item class="PointLight" referent="RBXE173"><Properties>
+     <Item class="PointLight" referent="RBXE253"><Properties>
       <string name="Name">Glow</string>
       <Color3 name="Color"><R>0.352941</R><G>0.901961</G><B>0.666667</B></Color3>
       <float name="Brightness">1.5</float>
       <float name="Range">14</float>
      </Properties>
      </Item>
-     <Item class="ProximityPrompt" referent="RBXE174"><Properties>
+     <Item class="ProximityPrompt" referent="RBXE254"><Properties>
       <string name="Name">GatherPrompt</string>
       <string name="ActionText">Gather Qi</string>
       <string name="ObjectText">Qi Node</string>
@@ -179,7 +187,7 @@
       <bool name="RequiresLineOfSight">false</bool>
      </Properties>
      </Item>
-     <Item class="ParticleEmitter" referent="RBXE175"><Properties>
+     <Item class="ParticleEmitter" referent="RBXE255"><Properties>
       <string name="Name">Motes</string>
       <ColorSequence name="Color">0 0.353 0.902 0.667 0 1 0.353 0.902 0.667 0 </ColorSequence>
       <float name="LightEmission">1</float>
@@ -193,11 +201,12 @@
      </Item>
     </Item>
    </Item>
-   <Item class="Model" referent="RBXE176"><Properties>
+   <Item class="Model" referent="RBXE256"><Properties>
     <string name="Name">QiNode2</string>
-    <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
+    <BinaryString name="Tags">UE9J</BinaryString>
+    <BinaryString name="AttributesSerialize">BAAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVsBwAAAFBvaU5hbWUCCQAAAFFpIE5vZGUgMgQAAABLaW5kAgYAAABRaU5vZGUEAAAAWm9uZQIFAAAASW5uZXI=</BinaryString>
    </Properties>
-    <Item class="Part" referent="RBXE177"><Properties>
+    <Item class="Part" referent="RBXE257"><Properties>
      <string name="Name">Base</string>
      <bool name="Anchored">true</bool>
      <bool name="CanCollide">true</bool>
@@ -212,7 +221,7 @@
      <token name="shape">2</token>
     </Properties>
     </Item>
-    <Item class="Part" referent="RBXE157"><Properties>
+    <Item class="Part" referent="RBXE237"><Properties>
      <string name="Name">Crystal</string>
      <bool name="Anchored">true</bool>
      <bool name="CanCollide">false</bool>
@@ -228,14 +237,14 @@
      <BinaryString name="Tags">UWlOb2Rl</BinaryString>
      <BinaryString name="AttributesSerialize">AQAAAAYAAABSYWRpdXMGAAAAAAAAMkA=</BinaryString>
     </Properties>
-     <Item class="PointLight" referent="RBXE178"><Properties>
+     <Item class="PointLight" referent="RBXE258"><Properties>
       <string name="Name">Glow</string>
       <Color3 name="Color"><R>0.352941</R><G>0.901961</G><B>0.666667</B></Color3>
       <float name="Brightness">1.5</float>
       <float name="Range">14</float>
      </Properties>
      </Item>
-     <Item class="ProximityPrompt" referent="RBXE179"><Properties>
+     <Item class="ProximityPrompt" referent="RBXE259"><Properties>
       <string name="Name">GatherPrompt</string>
       <string name="ActionText">Gather Qi</string>
       <string name="ObjectText">Qi Node</string>
@@ -244,7 +253,7 @@
       <bool name="RequiresLineOfSight">false</bool>
      </Properties>
      </Item>
-     <Item class="ParticleEmitter" referent="RBXE180"><Properties>
+     <Item class="ParticleEmitter" referent="RBXE260"><Properties>
       <string name="Name">Motes</string>
       <ColorSequence name="Color">0 0.353 0.902 0.667 0 1 0.353 0.902 0.667 0 </ColorSequence>
       <float name="LightEmission">1</float>
@@ -258,11 +267,12 @@
      </Item>
     </Item>
    </Item>
-   <Item class="Model" referent="RBXE181"><Properties>
+   <Item class="Model" referent="RBXE261"><Properties>
     <string name="Name">QiNode3</string>
-    <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
+    <BinaryString name="Tags">UE9J</BinaryString>
+    <BinaryString name="AttributesSerialize">BAAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVsBwAAAFBvaU5hbWUCCQAAAFFpIE5vZGUgMwQAAABLaW5kAgYAAABRaU5vZGUEAAAAWm9uZQIFAAAASW5uZXI=</BinaryString>
    </Properties>
-    <Item class="Part" referent="RBXE182"><Properties>
+    <Item class="Part" referent="RBXE262"><Properties>
      <string name="Name">Base</string>
      <bool name="Anchored">true</bool>
      <bool name="CanCollide">true</bool>
@@ -277,7 +287,7 @@
      <token name="shape">2</token>
     </Properties>
     </Item>
-    <Item class="Part" referent="RBXE158"><Properties>
+    <Item class="Part" referent="RBXE238"><Properties>
      <string name="Name">Crystal</string>
      <bool name="Anchored">true</bool>
      <bool name="CanCollide">false</bool>
@@ -293,14 +303,14 @@
      <BinaryString name="Tags">UWlOb2Rl</BinaryString>
      <BinaryString name="AttributesSerialize">AQAAAAYAAABSYWRpdXMGAAAAAAAAMkA=</BinaryString>
     </Properties>
-     <Item class="PointLight" referent="RBXE183"><Properties>
+     <Item class="PointLight" referent="RBXE263"><Properties>
       <string name="Name">Glow</string>
       <Color3 name="Color"><R>0.352941</R><G>0.901961</G><B>0.666667</B></Color3>
       <float name="Brightness">1.5</float>
       <float name="Range">14</float>
      </Properties>
      </Item>
-     <Item class="ProximityPrompt" referent="RBXE184"><Properties>
+     <Item class="ProximityPrompt" referent="RBXE264"><Properties>
       <string name="Name">GatherPrompt</string>
       <string name="ActionText">Gather Qi</string>
       <string name="ObjectText">Qi Node</string>
@@ -309,7 +319,7 @@
       <bool name="RequiresLineOfSight">false</bool>
      </Properties>
      </Item>
-     <Item class="ParticleEmitter" referent="RBXE185"><Properties>
+     <Item class="ParticleEmitter" referent="RBXE265"><Properties>
       <string name="Name">Motes</string>
       <ColorSequence name="Color">0 0.353 0.902 0.667 0 1 0.353 0.902 0.667 0 </ColorSequence>
       <float name="LightEmission">1</float>
@@ -323,11 +333,12 @@
      </Item>
     </Item>
    </Item>
-   <Item class="Model" referent="RBXE186"><Properties>
+   <Item class="Model" referent="RBXE266"><Properties>
     <string name="Name">QiNode4</string>
-    <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
+    <BinaryString name="Tags">UE9J</BinaryString>
+    <BinaryString name="AttributesSerialize">BAAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVsBwAAAFBvaU5hbWUCCQAAAFFpIE5vZGUgNAQAAABLaW5kAgYAAABRaU5vZGUEAAAAWm9uZQIGAAAATWlkZGxl</BinaryString>
    </Properties>
-    <Item class="Part" referent="RBXE187"><Properties>
+    <Item class="Part" referent="RBXE267"><Properties>
      <string name="Name">Base</string>
      <bool name="Anchored">true</bool>
      <bool name="CanCollide">true</bool>
@@ -342,7 +353,7 @@
      <token name="shape">2</token>
     </Properties>
     </Item>
-    <Item class="Part" referent="RBXE159"><Properties>
+    <Item class="Part" referent="RBXE239"><Properties>
      <string name="Name">Crystal</string>
      <bool name="Anchored">true</bool>
      <bool name="CanCollide">false</bool>
@@ -358,14 +369,14 @@
      <BinaryString name="Tags">UWlOb2Rl</BinaryString>
      <BinaryString name="AttributesSerialize">AQAAAAYAAABSYWRpdXMGAAAAAAAAMkA=</BinaryString>
     </Properties>
-     <Item class="PointLight" referent="RBXE188"><Properties>
+     <Item class="PointLight" referent="RBXE268"><Properties>
       <string name="Name">Glow</string>
       <Color3 name="Color"><R>0.352941</R><G>0.901961</G><B>0.666667</B></Color3>
       <float name="Brightness">1.5</float>
       <float name="Range">14</float>
      </Properties>
      </Item>
-     <Item class="ProximityPrompt" referent="RBXE189"><Properties>
+     <Item class="ProximityPrompt" referent="RBXE269"><Properties>
       <string name="Name">GatherPrompt</string>
       <string name="ActionText">Gather Qi</string>
       <string name="ObjectText">Qi Node</string>
@@ -374,7 +385,7 @@
       <bool name="RequiresLineOfSight">false</bool>
      </Properties>
      </Item>
-     <Item class="ParticleEmitter" referent="RBXE190"><Properties>
+     <Item class="ParticleEmitter" referent="RBXE270"><Properties>
       <string name="Name">Motes</string>
       <ColorSequence name="Color">0 0.353 0.902 0.667 0 1 0.353 0.902 0.667 0 </ColorSequence>
       <float name="LightEmission">1</float>
@@ -388,11 +399,12 @@
      </Item>
     </Item>
    </Item>
-   <Item class="Model" referent="RBXE191"><Properties>
+   <Item class="Model" referent="RBXE271"><Properties>
     <string name="Name">QiNode5</string>
-    <BinaryString name="AttributesSerialize">AQAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVs</BinaryString>
+    <BinaryString name="Tags">UE9J</BinaryString>
+    <BinaryString name="AttributesSerialize">BAAAAAsAAABQbGFjZWhvbGRlcgI/AAAAUWkgbm9kZTogcmVwbGFjZSB0aGUgY3J5c3RhbCBhbmQgYmFzZSB3aXRoIGEgQmxlbmRlci1tYWRlIG1vZGVsBwAAAFBvaU5hbWUCCQAAAFFpIE5vZGUgNQQAAABLaW5kAgYAAABRaU5vZGUEAAAAWm9uZQIGAAAATWlkZGxl</BinaryString>
    </Properties>
-    <Item class="Part" referent="RBXE192"><Properties>
+    <Item class="Part" referent="RBXE272"><Properties>
      <string name="Name">Base</string>
      <bool name="Anchored">true</bool>
      <bool name="CanCollide">true</bool>
@@ -407,7 +419,7 @@
      <token name="shape">2</token>
     </Properties>
     </Item>
-    <Item class="Part" referent="RBXE160"><Properties>
+    <Item class="Part" referent="RBXE240"><Properties>
      <string name="Name">Crystal</string>
      <bool name="Anchored">true</bool>
      <bool name="CanCollide">false</bool>
@@ -423,14 +435,14 @@
      <BinaryString name="Tags">UWlOb2Rl</BinaryString>
      <BinaryString name="AttributesSerialize">AQAAAAYAAABSYWRpdXMGAAAAAAAAMkA=</BinaryString>
     </Properties>
-     <Item class="PointLight" referent="RBXE193"><Properties>
+     <Item class="PointLight" referent="RBXE273"><Properties>
       <string name="Name">Glow</string>
       <Color3 name="Color"><R>0.352941</R><G>0.901961</G><B>0.666667</B></Color3>
       <float name="Brightness">1.5</float>
       <float name="Range">14</float>
      </Properties>
      </Item>
-     <Item class="ProximityPrompt" referent="RBXE194"><Properties>
+     <Item class="ProximityPrompt" referent="RBXE274"><Properties>
       <string name="Name">GatherPrompt</string>
       <string name="ActionText">Gather Qi</string>
       <string name="ObjectText">Qi Node</string>
@@ -439,7 +451,7 @@
       <bool name="RequiresLineOfSight">false</bool>
      </Properties>
      </Item>
-     <Item class="ParticleEmitter" referent="RBXE195"><Properties>
+     <Item class="ParticleEmitter" referent="RBXE275"><Properties>
       <string name="Name">Motes</string>
       <ColorSequence name="Color">0 0.353 0.902 0.667 0 1 0.353 0.902 0.667 0 </ColorSequence>
       <float name="LightEmission">1</float>
@@ -454,7 +466,7 @@
     </Item>
    </Item>
   </Item>
-  <Item class="Folder" referent="RBXE196"><Properties>
+  <Item class="Folder" referent="RBXE276"><Properties>
    <string name="Name">Enemies</string>
   </Properties>
   </Item>

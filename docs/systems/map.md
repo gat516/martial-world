@@ -211,6 +211,39 @@ Lighting instances (those are only the Edit-mode look).
 - Mirror symmetry only on the ceremonial axis (plaza); everything else is
   asymmetric.
 
+## Editor-only markers and the POI tour
+Decided 2026-10-21. Planning aids are for reviewing in Studio and never part of the game.
+- **Where they go:** everything editor-only lives under `Workspace._EditorMarkers`
+  (place-only Folder) or carries the CollectionService tag `EditorOnly`: gray blockouts
+  (`_EditorMarkers._InnerBlockout`), floating POI labels (`_EditorMarkers.POILabels`),
+  route strips, "later" markers. `src/server/EditorOnly.server.luau` destroys the folder
+  and every `EditorOnly` instance as the server starts, before anyone joins, so nothing of
+  them replicates. Every part in them is Anchored, CanCollide/CanQuery/CanTouch off, so
+  Edit-mode raycasts (spawns, treasures, audits) ignore them. Never leave a label, disc or
+  blockout anywhere else; build nothing there at runtime.
+- **POI tag:** every point of interest carries the tag `POI` with attributes `PoiName`,
+  `Kind` and `Zone` (`Sect`, `Inner`, `Middle`, `Outer`), and optionally `LabelNote`
+  (a route length, "(later)", a realm gate). Kinds: `Landmark` (a POI model), `BossRing`,
+  `Lair` (a `Wilds.Zones` disc), `QiNode`, `Cache`, `WeaponRack`, `Array`, `EventGround`,
+  `Find` (small finds between pockets), `Later` (flyer/climber spots stubbed for later).
+  The tag sits on the POI's root Model or Part (`Map.Ground.Wilds<Zone>.POIs.*`,
+  `Map.Markers.ManualCaches.Cache_*`, `Plaza.WeaponRack`, `Map.Markers.TeleportHome.*`, and in
+  `assets/Wilds.rbxmx` on `Wilds.QiNodes.QiNode*` and `Wilds.Zones.*`). Every new POI a pass
+  makes gets the tag in the same pass, so the tour and labels always cover everything.
+- **Tour and labels** (`tools/poi_tour.luau`; its Studio copy is the ModuleScript
+  `ServerStorage._EditorTools.PoiTour`, paste the file in again after editing it). In the
+  command bar: `local T = require(game.ServerStorage._EditorTools.PoiTour)`, then `T()`
+  prints every POI with a number, `T(12)` or `T("Wolf Den")` selects it and puts the camera
+  where a player would stand looking at it, `T.labels()` rebuilds one floating label per POI
+  ("#n Name", "Kind · Zone · note"), coloured by kind. Re-run `T.labels()` after adding or
+  moving POIs.
+- **Audit after a dressing pass:** a POI or cache must be visible and reachable from where
+  players walk: open standing ground within 8 studs, a clear line to it through visual
+  meshes (not only colliders), not inside a tent, rock or trunk, not buried or floating.
+  The first audit (2026-10-21) fixed four caches, a qi node inside a bush and a tree, the
+  Wolf Den's eight ring stones and 155 Middle dressing pieces placed hundreds of studs from
+  their spots, and ten floating lanterns (see "Wilds zones").
+
 ## Main peak
 Found by coordinates only; children may be restructured freely.
 
@@ -645,6 +678,18 @@ RUINED BORDERLANDS
   gate); world events land inside the zone discs (`Treasures.randomSpot`), which stay open;
   the Deserters' Camp is an outpost site for 3-5 enemies; ambush spots are the Hidden cleft,
   Giants Gully, the border gate, Bone Gully and the arena gate.
+- POI audit (2026-10-21, see "Editor-only markers and the POI tour"): the Stone Rock Pack's
+  "Single Stone" models keep their WorldPivot ~485 studs from the mesh, so every `PivotTo`
+  dropped the stone far from its spot: the Wolf Den's eight ring stones lay scattered from
+  (-939, 473) to (212, 1155) and 155 Middle dressing pieces (path stones, ground cover,
+  shrubs, 4 colliding rocks) sat off their spots. All 163 were moved onto their intended
+  spots (the pivot's X/Z) and grounded; 44 more (spirit-peak foliage, cache dressing) only
+  had their pivots reset. `dress_wilds.luau` now pivots every kit model at its bounding
+  box's bottom centre, as does the Studio `ServerStorage.WildsKit`. Also moved: four caches
+  (Hard constraints table), a tree and bush that hid QiNode2, the trunks round two caches
+  (to `ServerStorage._InnerWildsReplaced`), and ten lamps and lanterns floating 1-5 studs
+  up (QiSpringShrine's jade lamps, BambooHollow, BorderBridge, ShrineTerrace stair foot,
+  Graves, BrokenPagoda).
 
 ## Asset catalogue
 All under `ServerStorage.AssetLibrary` unless noted. Clone, don't move, the
@@ -759,15 +804,19 @@ From a read-only audit of the code (2026-10-20); code refs inline.
     | Manual | Cache id | Realm | Anchor | Spot |
     |---|---|---|---|---|
     | CrescentSweep | cache_crescentsweep | - | (-126, 8.05, 620) | in the bamboo at the south foot of Old Stone Hill's boulders, by the end of the Hidden trail (Inner) |
-    | RampagingTiger | cache_rampagingtiger | - | (318, 9.8, 611) | hunter's camp rise, end of the Camp trail (Inner, east) |
-    | HeavenSplitter | cache_heavensplitter | - | (-114, 12.3, 843) | river side of the ShrineBack ridge behind the shrine terrace (Inner, deep) |
-    | DragonPierce | cache_dragonpierce | QC3 | (-314, 8.17, 682) | tucked against the wolf den crag's south foot and its boulders (Inner, wolves) |
-    | GreatSageAwakening | cache_greatsageawakening | - | (-316, 7.3, 1088) | back of the SerpentGrotto, end of the Grotto trail (Middle) |
-    Coordinates come from `art/wilds/wilds_layout.luau` landforms; re-seat the
-    pedestals if the wilds terrain is re-run. The bamboo hollow and the
-    WolfDenCave are filled by the WildsInner BoulderPile hull colliders, so those
-    two caches sit just outside them; re-check each prompt is reachable (a clear
-    ray from open ground within 10 studs) after any dressing change.
+    | RampagingTiger | cache_rampagingtiger | - | (313, 8.7, 628) | hunter's camp rise, beside the tent's south end, 17 studs off the camp's back (Inner, east) |
+    | HeavenSplitter | cache_heavensplitter | - | (-100, 9.6, 816) | west foot of the Shrine Terrace's boulders, off the WestLoop (Inner, deep) |
+    | DragonPierce | cache_dragonpierce | QC3 | (-302, 8.0, 685) | in front of the wolf den crag's south boulders (Inner, wolves) |
+    | GreatSageAwakening | cache_greatsageawakening | - | (-297, 8.1, 1079) | at the SerpentGrotto's mouth, end of the Grotto trail (Middle) |
+    Re-seat the pedestals if the wilds terrain is re-run. The bamboo hollow, the
+    WolfDenCave and the grotto are filled by BoulderPile hull colliders, so caches
+    sit just outside them. The 2026-10-21 audit moved four that were unreachable or
+    hidden: HeavenSplitter sat inside a boulder pile and a tree trunk, DragonPierce
+    inside a boulder pile, GreatSageAwakening in the filled grotto (1 of 24 approach
+    spots could see it), RampagingTiger half behind the camp's crates. After any
+    dressing change re-run the audit (see "Editor-only markers and the POI tour"):
+    each cache needs open standing spots within 8 studs with a clear line to the
+    scroll, through visual meshes as well as colliders.
 - Free (no code reads them): `Map.Markers.*` (except the tagged TeleportHome arrays and ManualCaches), `Map.Clouds`, `Map.Ground`, tags
   SwayBridge, WindShake, SkyLantern. Place-only: `ReplicatedStorage.BuildCatalog`,
   `ReplicatedStorage.HerbModels`, `ServerStorage.PeakStash`.
@@ -799,6 +848,10 @@ From a read-only audit of the code (2026-10-20); code refs inline.
    balcony, a bridge, a spirit peak gate and the summit.
 
 ## Known gaps
+- Other WildsKit models had smaller pivot offsets (Wide_L 54 studs, Pine_A/C 36-38,
+  CliffMass_2/3 33), so the current Inner and Middle trees and cliff masses stand up to
+  that far from where the layout put them (their colliders follow them). Fixed in the kit;
+  the dressing is only right after `dress_wilds.luau` is re-run (the Inner rework).
 - No named attachment points for map VFX exist yet.
 - The wilds read flat: low ridges and rims under open sky, no tall walls and no
   waterfalls on the ground. Needs a walls-and-water pass (see "Verticality").

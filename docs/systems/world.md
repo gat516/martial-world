@@ -19,6 +19,20 @@ everyone to one spot, and a day/night cycle.
   down into a ground circle, clouds spiralling in, gold streaks and glints in
   the air (the user's Enkidu "Enuma Elish" reference, 2026-10-21). Recipe in
   [docs/vfx/style.md](../vfx/style.md), "World events and anomalies".
+- World-event look pass (plan approved 2026-10-21, `docs/vfx/world_events_plan.md`):
+  every event and anomaly is composed from one shared kit (light pillar, sky circle, sky
+  crack, cloud rings from the wisp arcs, ground circle, sky grade), recoloured and timed per
+  event. Decisions: world effects live in their own file (`ReplicatedStorage.WorldFX`, not
+  `Effects`); while an anomaly animates its copy of `Map.Clouds.Wisps` the client hides
+  the real ring locally; treasures lose the Neon pillar and their claim waits ~7 s for the
+  landing; screen effects stay gentle (a soft white flash when the heavens tear, an impact
+  frame or shake only near a landing); the sky clears (Atmosphere density and haze capped)
+  while a far layer is up; Beast Surge is a crimson vortex at the valley centre; Ginseng
+  publishes a guarded/free `state`; tribulation clouds are not part of it.
+- Far read (tested 2026-10-21): from the peaks the event grounds are 1000-1900 studs
+  away. At the default Atmosphere (density 0.36) only an additive white core survives that
+  distance; colour needs density ~0.28 and haze ~1.0, which `WorldFX.SkyGrade` applies,
+  weighted by the event's phase, whenever a far layer is up.
 - Ambience is client-side and in step across clients via the server clock.
 - Day/night: DayNight blends hourly keyframes (soft warm day with blue distance
   haze, golden hour before the ~18:00 sunset, violet dusk, a desaturated indigo
@@ -227,10 +241,12 @@ everyone to one spot, and a day/night cycle.
   (`CoreHeight` 5/6, disabled `ClaimPrompt`, `Label` billboard).
 - `src/server/Treasures.luau`: treasures on the wilds' event grounds when weather with
   `treasures` starts; first claim keeps it. `Treasures.randomSpot` (also used by
-  GuardedHerb and AuspiciousClouds) picks a random point within 0.9 of a random
-  `Workspace.Wilds.EventGrounds` disc's `Radius` (`assets/Wilds.rbxmx`; tagged `POI`,
-  Kind `EventGround`), raycasts to the ground and skips water, retrying up to 8 times;
-  it falls back to the `Wilds.Zones` beast discs only when no event ground exists.
+  GuardedHerb and AuspiciousClouds) is `src/server/EventGrounds.luau`'s `randomSpot`: a
+  random point within 0.9 of a random `Workspace.Wilds.EventGrounds` disc's `Radius`
+  (`assets/Wilds.rbxmx`; tagged `POI`, Kind `EventGround`), raycast to the ground,
+  skipping water, up to 8 tries; it falls back to the `Wilds.Zones` beast discs only when
+  no event ground exists. EventGrounds has no dependencies so Edit-mode previews can place
+  effects through it (it takes an optional `Random` for reproducible spots).
   Grounds: the Inner valley's three planned ones (West Field (-400, 1000) r 55, North
   Terrace (300, 680) r 48, East Flat (470, 1120) r 55; [map](map.md) "Inner Wilds rework")
   and two interim ones in the Ruined Borderlands (Graves Field (0, 1750) r 32, South Flat
@@ -239,6 +255,23 @@ everyone to one spot, and a day/night cycle.
   (`CFrame.new(spot) * template:GetPivot().Rotation`). `WorldTreasure`'s pivot is
   its `Ring`, a cylinder turned upright, so a bare `CFrame.new(spot)` lays the
   pillar on its side (AGENTS.md, "Luau pitfalls").
+- World FX kit (2026-10-21): templates in `ReplicatedStorage.WorldFX` (binary
+  `assets/WorldFX.rbxm`, built by `tools/worldfx_build.luau`, staged in
+  `ReplicatedStorage._StagingWorldFX`; `_G.worldfxStage.begin/finish/synced`). Runtime in
+  `src/client/WorldFX/`: `Kit.luau` (clone, upright `place` that keeps the pivot rotation
+  and honours `WorldY`, palette `paint` by `Tint`/`TintMix` attributes, beam width and fade
+  from the authored values, `emit` honouring `EmitCount`/`EmitDelay` without the Game
+  Module, one-BulkMoveTo `move`/`flush`, a replaceable `now` clock) and `SkyGrade.luau`
+  (DayNight calls `SkyGrade.adjust(k)` right after `WeatherFX.adjust(k)`; contributions
+  lean tint, atmosphere colour, density/haze caps, brightness, exposure, saturation and
+  contrast, each with a weight; pulses go on `Lighting.WorldFXGrade`, a clone of
+  `WorldFX.Grade`, never on DayNight's grade). Templates so far: `Grade`, `LightPillar`
+  (Core/Body/Haze/Flow beams to world Y 1400, rising Streaks and Motes in the lower 400
+  studs, a Puncture ring and billows on the cloud plane at Y 441, a Landing burst). Preview:
+  `tools/worldfx_preview.luau` (`_G.worldfxPreview`: fresh module copies pointed at the
+  staging templates and a fake clock, `spots(n, seed)` from the real EventGrounds,
+  `pillar`, `look`, lighting presets `day`/`night`/`mist`/`clear`, `clear`); everything
+  goes in `Workspace._WorldFxPreview`.
 - `src/server/QiNodes.luau`: wilds qi nodes (raw qi + stones, per-player cooldown).
 - `src/client/DayNight.luau`, `src/client/Music.luau` (zone music),
   `src/client/AmbientSounds.luau` (positional ambience and the valley bed).

@@ -1,8 +1,8 @@
 # World events and sky anomalies: look pass (PLAN, not committed)
 
 The world-fx agent's working plan, written down as it goes so a restart doesn't lose it.
-Nothing is built or exported yet. Status: the plan is done and waiting for the user's
-answers (end of file).
+Status: approved (section 10). Step 0 (groundwork, far-read test) is done; the treasure
+birth is next.
 
 ## 1. What plays today (read from code, 2026-10-21)
 
@@ -353,21 +353,41 @@ templates go there, staged in `ReplicatedStorage._StagingWorldFX`, and exported 
 6. **Beast Surge**: the crimson vortex and the zone grade.
 7. **Storm / Rain** overcast, if there's time.
 
-## 10. Open questions for the user
-1. WorldFX in its own file (`assets/WorldFX.rbxm` -> `ReplicatedStorage.WorldFX`)? Recommended.
-2. While an anomaly animates a copy of `Map.Clouds.Wisps`, hide the originals locally on the
-   client, so the ring itself comes alive? Or always add a second, coloured ring?
-3. Treasures: retire the Neon pillar `WorldTreasure` and delay the claim ~7 s until the
-   treasure has landed?
-4. Screen effects: a soft global white flash when the heavens tear, and an impact frame or
-   shake near a landing (within 150 / 80 studs)? Comfortable, or keep the screen clean?
-5. Heaven Split may thin the server-wide haze for its 2-3 minutes (the sky clears) if the
-   far test shows haze eating the pillars. OK to change the whole world's look that much?
-6. The Game Module (`ReplicatedStorage.vfx`) isn't in the place. Insert it (the plugin's code
-   button)? World FX don't depend on it, but add-on layers (Craters, ScreenEffects) do.
-7. Beast Surge: a crimson vortex over the valley and a red-tinted zone grade, fixed at the
-   valley centre. OK?
-8. Ginseng: changing the seal from vermilion to jade as the "free" signal needs a small
-   `state` field in the WorldEvents publish (framework change). OK?
-9. Tribulation clouds stay out of this pass (there is no tribulation weather or event yet).
-   Confirm?
+## 10. Decisions (user, 2026-10-21; the plan was approved with these picks)
+1. World effects live in their own file: `assets/WorldFX.rbxm` mapped to
+   `ReplicatedStorage.WorldFX`, staged in `ReplicatedStorage._StagingWorldFX`. The vfx and
+   world-fx agents no longer share a binary.
+2. While an anomaly animates its copy of `Map.Clouds.Wisps`, the client hides the real ring
+   locally, so the ring itself seems to come alive.
+3. The Neon `WorldTreasure` pillar is retired for treasures, and the claim waits ~7 s for
+   the landing.
+4. A soft white flash when the heavens tear; an impact frame or shake only near a landing,
+   kept gentle.
+5. Heaven Split may thin the haze server-wide if haze eats the pillars. The far-read test
+   (below) showed that it does, at any distance past ~800 studs.
+6. The Game Module is wanted, but the user inserts it from the vfx plugin. Build
+   plugin-compatible and play through the fallback until it's in.
+7. Beast Surge: the crimson vortex at the valley centre.
+8. Ginseng: add a `state` field to the WorldEvents publish.
+9. Tribulation clouds stay out of this pass.
+
+## 11. Far-read test (step 0, 2026-10-21)
+A bare LightPillar (white core 8 wide, violet body 50, accent haze 180, to Y 1400) at West
+Field (-400, 1000), captured from the plaza edge (0, 655, 120; ~1000 studs) and the far
+north spirit peak (-114, 565, -277; ~1330 studs):
+- Default day sky (density 0.36, haze 1.8): only the additive white core survives; every
+  coloured layer fogs to the sky colour. In Auspicious Mist weather (+0.1 density, +1.4
+  haze) nothing is visible at all.
+- Colour with LightEmission 0 doesn't help: a near-opaque violet slab still fogs out. The
+  Atmosphere density is what decides it, not haze or brightness.
+- Density 0.28, haze 1.0: the violet body and haze read clearly by day from both spots, and
+  the world still looks hazy. At night they glow strongly. At night with the default
+  0.36 / 1.6 it reads, but dimly.
+- So: while a far layer is up, SkyGrade caps density at ~0.28 and haze at ~1.0, weighted by
+  the event's phase ("the sky clears as heaven opens"). That's decision 5, applied to every
+  anomaly that drops treasures, not only Heaven Split, since their pillars are the far layer.
+- Up close (under ~150 studs) the 180-wide haze is a wall of light, so the pillar narrows and
+  fades its haze and body near the camera.
+- Upright: the LightPillar placed through `Kit.place` at three `EventGrounds.randomSpot`
+  spots (seed 7: East Flat, West Field, South Flat) with three yaws stood vertical in
+  side captures; top at Y 1400, puncture on the plane at Y 441 each time.

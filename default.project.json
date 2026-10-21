@@ -18,6 +18,9 @@
       "Effects": {
         "$path": "assets/Effects.rbxm"
       },
+      "WorldFX": {
+        "$path": "assets/WorldFX.rbxm"
+      },
       "BuildKit": {
         "$path": "assets/BuildKit.rbxmx"
       },

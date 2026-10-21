@@ -10,6 +10,7 @@ local TweenService = game:GetService("TweenService")
 
 local Items = require(ReplicatedStorage.Shared.Items)
 local Weather = require(ReplicatedStorage.Shared.Weather)
+local EventGrounds = require(script.Parent.EventGrounds)
 local Inventory = require(script.Parent.Inventory)
 local WeatherService = require(script.Parent.WeatherService)
 
@@ -36,43 +37,9 @@ local function pickTreasure(): Items.Item
 	return Items.Treasures[1]
 end
 
--- A random spot on open ground in one of the wilds' event grounds (Workspace.Wilds.EventGrounds:
--- flat clearings kept free of trees and rocks, Radius attribute; docs/systems/map.md). World
--- events (GuardedHerb, AuspiciousClouds) land here too. Falls back to the beast zones
--- (Wilds.Zones) only if no event ground exists. Never on water.
-function Treasures.randomSpot(): Vector3?
-	local function discs(folderName: string): { BasePart }
-		local list = {}
-		local folder = wilds:FindFirstChild(folderName)
-		for _, disc in (if folder then folder:GetChildren() else {}) do
-			if disc:IsA("BasePart") then
-				table.insert(list, disc)
-			end
-		end
-		return list
-	end
-	local grounds = discs("EventGrounds")
-	if #grounds == 0 then
-		grounds = discs("Zones")
-	end
-	if #grounds == 0 then
-		return nil
-	end
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = { grounds[1].Parent :: Instance, wilds:FindFirstChild("Enemies") :: Instance }
-	for _ = 1, 8 do
-		local ground = grounds[math.random(#grounds)]
-		local radius = ((ground:GetAttribute("Radius") :: number?) or 20) * 0.9
-		local a, r = math.random() * math.pi * 2, math.sqrt(math.random()) * radius
-		local at = ground.Position + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r)
-		local hit = workspace:Raycast(at + Vector3.new(0, 60, 0), Vector3.new(0, -160, 0), params)
-		if hit and hit.Material ~= Enum.Material.Water then
-			return hit.Position
-		end
-	end
-	return nil
-end
+-- A random spot on an event ground (EventGrounds.luau). World events (GuardedHerb,
+-- AuspiciousClouds) use it through here too.
+Treasures.randomSpot = EventGrounds.randomSpot
 
 local function fadeOut(model: Model)
 	local i = table.find(live, model)

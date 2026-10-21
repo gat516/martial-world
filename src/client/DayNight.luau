@@ -9,7 +9,7 @@
 -- set in the place.
 -- Lamps glow brighter and reach further after dark, and motes drift around the camera: peach
 -- petals by day, fireflies and spirit motes by night. Weather events lean the
--- look through WeatherFX.adjust.
+-- look through WeatherFX.adjust, then world events through WorldFX.SkyGrade.adjust.
 
 local CollectionService = game:GetService("CollectionService")
 local Lighting = game:GetService("Lighting")
@@ -18,6 +18,7 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Ambience
 local WeatherFX = require(script.Parent.WeatherFX)
+local SkyGrade = require(script.Parent.WorldFX.SkyGrade)
 
 local DayNight = {}
 
@@ -230,6 +231,7 @@ function DayNight.init()
 		local hour = DayNight.hour()
 		local k = sample(hour)
 		WeatherFX.adjust(k)
+		SkyGrade.adjust(k) -- world events and anomalies lean it after the weather
 		Lighting.ClockTime = hour
 		Lighting.Brightness = k.brightness
 		Lighting.ExposureCompensation = k.exposure

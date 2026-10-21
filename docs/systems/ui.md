@@ -36,6 +36,16 @@ cursor, settings and the admin panel.
   server's notify. While the Inventory is open, tapping a hotbar slot shows that
   art or item in the detail pane instead of casting or holding it, so arts on the
   hotbar can be comprehended too.
+- Sort and filter (`InventoryFilter`): once the Arts or Weapons tab holds 3 or
+  more entries, a square sort button closes the tab row. It opens a small menu of
+  class chips (All, Any for universal arts, then only the classes the player has)
+  over three sort pills (Arts: Level, Name, Bottleneck; Weapons: Grade, Class,
+  Name) and a caption naming the view ("Sword arts, highest level first"). Taps
+  apply at once; the button again, a tap outside or a tab switch closes it. While
+  a class is chosen the button turns gold wearing that class's icon. Unfiltered,
+  the Arts grid lists only arts off the hotbar; a class filter lists every art of
+  that class, hotbar ones included (slot number on PC, not draggable). Weapons keep
+  the equipped one first, then Bare Fists. The choice lasts the session, per tab.
 - Character window (`SelfCard`): the Self tile (`Buttons.SelfButton`, between
   Cultivate and Inventory) opens a compact Self card (realm and stage bar, spirit
   root row, equipped weapon badge); tapping the realm crest over the vitals is a
@@ -72,7 +82,8 @@ cursor, settings and the admin panel.
 - `Layout.luau`: device-specific layout flips; `Platform.luau`.
 - `Menus.luau`: the one-window rule and what hides while a window is open.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
-- `HotbarView.luau`, `Inventory.luau` (Pouch, Arts, Weapons tabs), `SlotArt.luau`
+- `HotbarView.luau`, `Inventory.luau` (Pouch, Arts, Weapons tabs), `InventoryFilter.luau`
+  (sort button and menu for Arts and Weapons), `SlotArt.luau`
   (slot painting, weapon art, the weapon badge), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).

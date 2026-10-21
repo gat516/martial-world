@@ -698,6 +698,22 @@ def icon_store():
     _icon_finish(m, "icon_store.png")
 
 
+def icon_sort():
+    """Sort and filter button icon (Inventory Arts and Weapons tabs), 128px:
+    three brush bars that shorten downward, with a small downward arrow."""
+    N = 128 * SS
+    m = Image.new("L", (N, N), 0)
+    d = ImageDraw.Draw(m)
+    h = 13 * SS  # bar thickness
+    for i, length in enumerate((76, 56, 36)):
+        y = (30 + i * 28) * SS
+        d.rounded_rectangle([18 * SS, y - h / 2, (18 + length) * SS, y + h / 2], radius=h / 2, fill=255)
+    x = 104 * SS
+    d.rectangle([x - 5 * SS, 24 * SS, x + 5 * SS, 84 * SS], fill=255)
+    d.polygon([(x - 17 * SS, 76 * SS), (x + 17 * SS, 76 * SS), (x, 104 * SS)], fill=255)
+    _icon_finish(m, "icon_sort.png")
+
+
 def key_cap():
     """The key cap on world prompts, 128x128: an ivory key with a bronze rim and
     a deeper bottom lip, so it reads as a key to press. The letter (or a gamepad
@@ -790,6 +806,9 @@ if __name__ == "__main__":
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "weapons":
         weapon_art()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "sort":
+        icon_sort()
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "build":
         build_art()

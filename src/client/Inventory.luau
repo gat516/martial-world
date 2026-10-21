@@ -12,6 +12,8 @@
 -- beside the hotbar button; it reads the reason ("Meditate first") while it can't.
 -- Items and arts in the grid can be dragged onto the hotbar (HotbarView); while
 -- the window is open, tapping a hotbar slot shows that slot here instead.
+-- Arts and Weapons sort and filter by class through InventoryFilter; a class
+-- filter on Arts lists that class's hotbar arts too (slot number on PC).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,6 +25,7 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local HotbarView = require(script.Parent.HotbarView)
 local Hud = require(script.Parent.Hud)
+local InventoryFilter = require(script.Parent.InventoryFilter)
 local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
@@ -95,20 +98,19 @@ local function weaponState(): ({ [string]: number }, string, { [string]: Dao })
 	return weapons.owned or {}, weapons.equipped or SlotArt.equipped(), s.dao or {}
 end
 
+-- The gate a technique is stuck at, or nil while its XP still flows.
+local function gateOf(owned: State.Technique): { insight: number, stones: number }?
+	if Techniques.bottleneck(owned.level) and owned.xp >= Techniques.xpToNext(owned.level) then
+		return Comprehension.GATES[owned.level]
+	end
+	return nil
+end
+
 local function entries(): ({ string }, boolean)
-	local list = {}
 	local s = State.current
-	local hasOwned = false
-	if tab == "Weapons" then
-		local owned = weaponState()
-		list = { Weapons.FIST }
-		for _, id in Weapons.Order do
-			if (owned[id] or 0) > 0 then
-				table.insert(list, id)
-			end
-		end
-		return list, true
-	elseif tab == "Pouch" then
+	if tab == "Pouch" then
+		InventoryFilter.update(tab, {}, 0)
+		local list, hasOwned = {}, false
 		for _, id in Items.Order do
 			if Items.count(s, id) > 0 then
 				hasOwned = true
@@ -117,17 +119,52 @@ local function entries(): ({ string }, boolean)
 				end
 			end
 		end
+		return list, hasOwned
+	end
+	-- Arts and Weapons: everything owned, then the tab's class filter and sort
+	local all = {}
+	local _, equipped = weaponState()
+	if tab == "Weapons" then
+		local owned = weaponState()
+		all = { Weapons.FIST }
+		for _, id in Weapons.Order do
+			if (owned[id] or 0) > 0 then
+				table.insert(all, id)
+			end
+		end
 	else
 		for _, id in Techniques.Order do
 			if s.techniques.owned[id] then
-				hasOwned = true
-				if not table.find(s.hotbar, id) then
-					table.insert(list, id)
-				end
+				table.insert(all, id)
 			end
 		end
 	end
-	return list, hasOwned
+	local classes = {}
+	for _, id in all do
+		classes[InventoryFilter.classOf(tab, id)] = true
+	end
+	InventoryFilter.update(tab, classes, #all)
+	local filter = InventoryFilter.filter(tab)
+	local list = {}
+	for _, id in all do
+		local onBar = tab == "Arts" and table.find(s.hotbar, id) ~= nil
+		-- unfiltered, the Arts grid lists only what's off the hotbar; a class
+		-- filter shows every art of that class, hotbar ones included
+		if (filter == "All" and not onBar) or (filter ~= "All" and InventoryFilter.classOf(tab, id) == filter) then
+			table.insert(list, id)
+		end
+	end
+	local function level(id: string): number
+		local known = s.techniques.owned[id]
+		return if known then known.level else 0
+	end
+	local function stuck(id: string): boolean
+		local known = s.techniques.owned[id]
+		return known ~= nil and gateOf(known) ~= nil
+	end
+	local pinned = if tab == "Weapons" then { if equipped == "" then Weapons.FIST else equipped, Weapons.FIST } else nil
+	InventoryFilter.order(tab, list, level, stuck, pinned)
+	return list, #all > 0
 end
 
 local function label(name: string): TextLabel
@@ -236,14 +273,6 @@ end
 
 local function stones(): number
 	return (Players.LocalPlayer:GetAttribute("Stones") :: number?) or 0
-end
-
--- The gate a technique is stuck at, or nil while its XP still flows.
-local function gateOf(owned: State.Technique): { insight: number, stones: number }?
-	if Techniques.bottleneck(owned.level) and owned.xp >= Techniques.xpToNext(owned.level) then
-		return Comprehension.GATES[owned.level]
-	end
-	return nil
 end
 
 local function paintCost(row: Frame, need: number, have: number)
@@ -416,8 +445,11 @@ local function render(animate: boolean?)
 		else
 			SlotArt.paint(cell, id, Items.count(s, id))
 		end
+		-- a filtered Arts grid also lists hotbar arts; with keys, say which slot
+		local onBar = if isWeapon then nil else table.find(s.hotbar, id)
 		local key = cell:FindFirstChild("KeyLabel") :: TextLabel
-		key.Visible = false
+		key.Visible = onBar ~= nil and not Platform.isTouch()
+		key.Text = if onBar then tostring(onBar) else ""
 		local halo = cell:FindFirstChild("Halo") :: GuiObject
 		halo.Visible = id == selected
 		cell.Activated:Connect(function()
@@ -427,7 +459,7 @@ local function render(animate: boolean?)
 				render()
 			end
 		end)
-		if not isWeapon then
+		if not isWeapon and not onBar then
 			HotbarView.draggable(cell, function()
 				return id
 			end)
@@ -582,6 +614,9 @@ function Inventory.init(gui: ScreenGui)
 	secondary = actions:FindFirstChild("Secondary") :: ImageButton
 	primary.Activated:Connect(onPrimary)
 	secondary.Activated:Connect(onSecondary)
+	InventoryFilter.init(window, function()
+		render()
+	end)
 	Menus.register(window, { keepHotbar = true, coversTiles = true })
 	ListWindow.bindClose(window)
 	local tabs = window:FindFirstChild("Tabs") :: Frame

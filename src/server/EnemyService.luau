@@ -151,6 +151,7 @@ type Enemy = {
 	hopPending: boolean,
 	followUp: string?, -- an attack to start as soon as it recovers (Enemies `followUp`)
 	followUpUntil: number, -- the follow-up lapses if no slot frees up by then
+	dashLength: number, -- the current lunge/charge's lane length (Enemies `stopPast`)
 	hopReadyAt: number,
 	hits: { number }, -- recent times it was hit (the hop's trigger)
 	orbitDir: number,
@@ -350,6 +351,7 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		hopPending = false,
 		followUp = nil,
 		followUpUntil = 0,
+		dashLength = 0,
 		hopReadyAt = 0,
 		hits = {},
 		orbitDir = if math.random() < 0.5 then 1 else -1,
@@ -769,6 +771,13 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 		shape = { kind = "howl", center = ground, radius = 8 }
 	else
 		local length = attack.length :: number
+		if attack.stopPast then
+			-- stop just past the target, not the full lane
+			local reach = flat(targetRoot.Position - enemy.root.Position).Magnitude + attack.stopPast
+			length = math.clamp(reach, attack.minRange or 0, length)
+		end
+		enemy.dashLength = length
+		enemy.model:SetAttribute("DashSeconds", length / (attack.dashSpeed or 1))
 		shape = {
 			kind = "box",
 			cframe = CFrame.lookAt(ground, ground + dir) * CFrame.new(0, 0, -length / 2),
@@ -784,7 +793,7 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 		-- whole move (and a breath) before choosing again
 		enemy.cooldowns[name] = now + attack.cooldown
 		local busy = if attack.kind == "leap" then attack.active or 0.45
-			elseif attack.dashSpeed then (attack.length or 0) / attack.dashSpeed
+			elseif attack.dashSpeed then enemy.dashLength / attack.dashSpeed
 			else 0
 		enemy.nextAttack = now + attack.windup + busy + attack.recover + 0.4
 		if attack.kind ~= "howl" then
@@ -877,7 +886,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 	enemy.followUp = attack.followUp
 	if attack.followUp then
 		-- through the dash and recover, plus a short wait for the attack slot
-		local dash = if attack.dashSpeed then (attack.length or 0) / attack.dashSpeed else 0
+		local dash = if attack.dashSpeed then enemy.dashLength / attack.dashSpeed else 0
 		enemy.followUpUntil = now + dash + attack.recover + FOLLOW_UP_WAIT
 	end
 	if enemy.dashTo then
@@ -890,7 +899,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 			-- the dash's line, so clients draw it where it is on the server, not a
 			-- ping behind (EnemyMotion)
 			startDash(enemy, to, attack.dashSpeed :: number)
-			enemy.stateUntil = now + (attack.length :: number) / (attack.dashSpeed :: number) + 0.1
+			enemy.stateUntil = now + enemy.dashLength / (attack.dashSpeed :: number) + 0.1
 		end
 		enemy.dashTo = nil
 	else
@@ -915,6 +924,13 @@ local function hop(enemy: Enemy, targetRoot: BasePart, now: number)
 	enemy.recoverFor = 0.1
 	enemy.stateUntil = now + h.seconds + 0.05
 	effectRemote:FireAllClients("enemyCue", enemy.model, "strike")
+end
+
+-- Whether to circle now: always, or with `waitFor` only while that attack is ready
+-- or nearly so (otherwise it closes in).
+local function circling(enemy: Enemy, circle: { radius: number, speed: number, waitFor: string? }, now: number): boolean
+	local waitFor = circle.waitFor
+	return waitFor == nil or now >= (enemy.cooldowns[waitFor] or 0) - 1
 end
 
 -- Circle the target at the pack's radius, facing it, switching direction now
@@ -975,7 +991,15 @@ local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.
 		return if distance <= enemy.attack.range then enemy.attack else nil
 	end
 	if not enemy.opened then
-		return if fits(enemy.def.attack) then enemy.def.attack else nil
+		local opener = enemy.def.attack
+		if fits(opener) then
+			return opener
+		end
+		-- too close for the opener: a closeOpener beast (the boar) uses its pool
+		local pack = enemy.def.pack
+		if not (pack and pack.closeOpener and distance < (opener.minRange or 0)) then
+			return nil
+		end
 	end
 	for _, a in pool do
 		if fits(a) then
@@ -1089,8 +1113,12 @@ local function think(enemy: Enemy, now: number)
 		startAttack(enemy, targetRoot, now, choice)
 	elseif pack and pack.hop and enemy.hopPending and now >= enemy.hopReadyAt then
 		hop(enemy, targetRoot, now)
-	elseif pack and pack.circle and distance <= pack.circle.radius + 6 then
+	elseif pack and pack.circle and distance <= pack.circle.radius + 6 and circling(enemy, pack.circle, now) then
 		orbit(enemy, targetRoot, pack.circle, now)
+	elseif pack and pack.circle and pack.circle.waitFor and distance <= 4 then
+		-- closed in and waiting on the gore: hold, facing the target
+		stop(enemy)
+		face(enemy, targetRoot.Position)
 	elseif def.attacks or distance > math.min(enemy.attack.range, 20) * 0.7 then
 		moveTo(enemy, targetRoot.Position)
 	else

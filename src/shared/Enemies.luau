@@ -49,13 +49,18 @@ export type Attack = {
 	arc: number?, -- leap: studs the body rises mid-flight (client only)
 	hopAfter: boolean?, -- attack pools: hop back once it recovers
 	followUp: string?, -- attack pools: this attack's name starts as soon as it recovers, if the target is in its range
+	stopPast: number?, -- lunge/charge: dash only to this many studs past the target (between minRange and length)
 }
 
 -- Pack behaviour for regular beasts with an attack pool.
 export type Pack = {
 	howl: Attack?, -- on first noticing a player (kind "howl", radius = who it calls)
 	hop: { distance: number, seconds: number, arc: number, cooldown: number, hits: number, window: number }?,
-	circle: { radius: number, speed: number }?, -- orbit the target while waiting to attack
+	-- orbit the target while waiting to attack; with waitFor, only while that attack is
+	-- ready (or within a second of it) and close in to melee otherwise
+	circle: { radius: number, speed: number, waitFor: string? }?,
+	-- target inside the opener's minRange at the start: use the pool instead of waiting
+	closeOpener: boolean?,
 }
 
 export type Drop = { item: string, chance: number }
@@ -132,6 +137,7 @@ local BOAR_CHARGE: Attack = {
 	length = 30,
 	width = 5,
 	dashSpeed = 55,
+	stopPast = 3, -- skids to a stop just past you, so the gore can follow
 	followUp = "gore",
 }
 
@@ -277,7 +283,10 @@ Enemies.Defs = {
 		attack = BOAR_CHARGE,
 		attacks = { BOAR_CHARGE, BOAR_GORE } :: { Attack },
 		pack = {
-			circle = { radius = 16, speed = 5 }, -- paces side to side at charging distance
+			-- paces side to side at charging distance while the charge is ready;
+			-- closes in to gore while it cools down
+			circle = { radius = 16, speed = 5, waitFor = "charge" },
+			closeOpener = true, -- rushed under 12 studs, it gores instead of waiting
 		},
 	},
 	VenomSerpent = {

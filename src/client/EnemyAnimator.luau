@@ -177,7 +177,9 @@ local function movePose(rig: Rig, family: Family, state: any, since: number): an
 		elseif attack and attack.kind == "leap" then
 			secs = attack.active or secs
 		elseif attack and attack.dashSpeed and attack.length then
-			secs = attack.length / attack.dashSpeed
+			-- a charge that stops past the target dashes for less than its full lane
+			local dashSecs = rig.model:GetAttribute("DashSeconds")
+			secs = if type(dashSecs) == "number" then dashSecs else attack.length / attack.dashSpeed
 		end
 		return poses.sample(move, "active", since / secs, { duration = secs })
 	elseif state == "recover" and move then

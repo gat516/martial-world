@@ -253,16 +253,29 @@ above; shared leg planting in `EnemyPoses/Quadruped.luau`, QA
 `art/enemies/quadrupeds/qa_quadruped_poses.luau`). EnemyAnimator loads the pose module
 only if it's there (`FindFirstChild`) and falls back to the generic pose. Tells: the Neon cracks
 `CrackL1/L2/R1/R2`, `CrackBack` (Chest) and `EyeL/EyeR` (Head); effect attachments
-`TuskTip` (Head), `Core` (Chest), `HoofFL_FX`, `HoofFR_FX`. It never hops. Waiting, it
-side-paces 16 studs out (`pack.circle`, 5 studs/s, facing you; it closes in from
-farther and backs out to 16 from closer); it charges down a 30-stud lane straight
-through you, and if you're within 7 studs when the charge's recover ends it gores at
-once (`followUp`: past its pause and the gore's cooldown, but it still waits for the
-attack slot, up to 1 s past the recover, `FOLLOW_UP_WAIT`). Up close it gores.
+`TuskTip` (Head), `Core` (Chest), `HoofFL_FX`, `HoofFR_FX`. It never hops.
+- **Pacing:** while the charge is ready (or within 1 s of it) it side-paces 16 studs
+  out (`pack.circle` with `waitFor = "charge"`, 5 studs/s, facing you; it closes in
+  from farther and backs out to 16 from closer). While the charge cools down it
+  closes in to gore range and gores, holding at 4 studs when the gore is cooling too.
+- **Charge:** straight through you, but only 3 studs past where you stood at the
+  windup (`stopPast`; the lane is clamped between 12 and 30 studs, and the telegraph
+  shows the real lane). EnemyAnimator times the dash pose from the `DashSeconds`
+  attribute.
+- **Follow-up:** if you're within 7 studs when the charge's recover ends it gores at
+  once (`followUp`: past its pause and the gore's cooldown, but it still waits for the
+  attack slot, up to 1 s past the recover, `FOLLOW_UP_WAIT`).
+- **Opener:** each engagement opens with the charge, but if you rush it inside the
+  charge's 12-stud minimum it uses its pool (the gore) instead of waiting
+  (`pack.closeOpener`; the wolf doesn't set it).
+
+Fix 2026-10-21: in play it only ever charged. The 30-stud dash left it far past you
+so the follow-up lapsed, circling held it at 16 studs, and the opener rule blocked the
+gore up close.
 
 | Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage (QC4 165 HP) | Cooldown |
 |---|---|---|---|---|---|---|
-| `charge` (opener) | charge | 1.0 / 0.55 (30 studs at 55/s, `dash`) / 0.7 | 12-28 | box 5 x 30 | 26 (16%) | 4 s, then the gore if close |
+| `charge` (opener) | charge | 1.0 / up to 0.55 (distance + 3, 12-30 studs at 55/s, `dash`) / 0.7 | 12-28 | box 5 x lane | 26 (16%) | 4 s, then the gore if close |
 | `gore` | cone | 0.6 / 0.15 (the hook: the first 0.15 s of recover) / 0.8 in all | 0-7 | cone r 7, 100 deg | 20 (12%) | 2.5 s |
 
 Cues as the wolf's: `windup` (Telegraph remote, `seconds` = the windup only),
@@ -374,7 +387,8 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - Packs and turns: `Config.Wilds.NEW_WOLF` (the wolf fight's switch, shipped on; it or NEW_BOAR turns on slots
   and dash-front hits for everyone), `NEW_BOAR` (the boar fight's switch, shipped on),
   `ATTACK_SLOTS`, `SLOT_GAP`, `ENGAGE_RESET`; per beast `attacks` (with `minRange`,
-  `notBefore`, `active`, `arc`, `hopAfter`, `followUp`) and `pack` (`howl`, `hop`, `circle`).
+  `notBefore`, `active`, `arc`, `hopAfter`, `followUp`, `stopPast`) and `pack` (`howl`, `hop`,
+  `circle` with optional `waitFor`, `closeOpener`).
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
   `ESCAPE_LEAD`; client `EnemyMotion` `LEAD_MAX`, `STALE`, `FOLLOW`, `TURN`, `SNAP`,
   `DASH_SLACK`.
@@ -383,6 +397,10 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   `Global.BEAST_HEALTH/BEAST_DAMAGE`, and kill qi through `Realms.enemyQi`.
 
 ## Known gaps
+- The Stone Boar's gore fix (shorter charge, closing in while the charge cools down,
+  goring when rushed) is untested in play: whether it now gores, whether the 4-stud
+  hold crowds the player, and whether it backs off to charge too often for the gore
+  to come up outside the follow-up.
 - The Inner and Middle regions are now zone boxes (map.md "Wilds zones"); the Outer
   region is still a placeholder ring. The middle and outer regions reuse ring-1 beasts
   until their own exist.

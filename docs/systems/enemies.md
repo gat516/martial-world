@@ -14,7 +14,9 @@ seeds, insight and technique manuals, and the main test of a player's realm.
 - Besides designated zones, players roaming open ground meet ambient packs drawn
   from the region they're in (`Regions.luau`: the Sect, Inner Wilds, Ruined
   Borderlands, Outer Wastes, each with the realm it's meant for), so deeper
-  regions are deadlier. The sect has no ambient beasts.
+  regions are deadlier. The sect has no ambient beasts, and none find a player
+  within 90 of the sect gate or 75 of the Inner and Middle wilds arrays
+  (`Spawns.Ambient.SAFE`; move these with the arrays).
 
 ## Key files
 - `src/shared/Enemies.luau`: defs (health, speeds, aggro/leash, attack and boss

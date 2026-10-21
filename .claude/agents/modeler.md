@@ -18,7 +18,18 @@ pattern.
   shape carries the detail.
 - Rock: crisp vertical stone columns (2D Voronoi, stacked segments, narrow
   grooves), light smoothing, crease shading around 28 degrees. Avoid noise-blob
-  "melted clay" rock.
+  "melted clay" rock. Columns are for the peaks and karst pillars only.
+- Ground-level cliffs, valley walls, shores and pool edges are piles of big,
+  chunky boulders, not columns or tiers: faceted, a few large planes each, soft
+  bevelled edges, light warm gray with a slight lavender tint, stacked
+  irregularly (big at the base, smaller up top), with greenery growing out of
+  the cracks. References: `docs/reference/rock_*` and
+  `map_enclosed_valley.webp`. The user rejected a tiered column-and-lawn-shelf
+  wall kit (2026-10-21).
+- Cohesion: every rock rests on the ground or on a bigger stone with real
+  overlap (nothing floating or over a void), rocks never poke up through grass,
+  and there are no see-through gaps or dark cores. Hide a crack with a stone
+  behind it. Check close up at eye level, not only from far away.
 - Grass only on real lawns and ledges (connected flats past a minimum area,
   near-flat), as slabs with one continuous overhanging turf edge. Never fleck
   grass onto every up-facing face.

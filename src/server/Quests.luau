@@ -16,6 +16,7 @@ local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
+local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -69,6 +70,14 @@ Quests.Beats = {
 		end,
 	},
 	{
+		id = "Root",
+		elder = "Qi flows in you now. Ride a teleport array to the Main Peak and lay your hand on the Testing Stone. Let us see your spirit root.",
+		objective = "Travel to the Main Peak and touch the Testing Stone",
+		done = function(_, data)
+			return Roots.tested(data.root)
+		end,
+	},
+	{
 		id = "Gate",
 		elder = "Your dantian is spent. Step onto a teleport array and ride it to the Sect Gate, then gather qi in the wilds.",
 		objective = "Stand on a teleport array, tap Travel, then Sect Gate",
@@ -119,12 +128,13 @@ Quests.Beats = {
 } :: { Beat }
 
 local FREE_PLAY = #Quests.Beats
-assert(Quests.Beats[3].id == "Gate", "GATE_BEAT must point at the Gate beat")
+assert(Quests.Beats[3].id == "Root", "TRAVEL_BEAT must point at the Root beat")
 
--- The teleport formation unlocks when the elder points you to the gate.
-local GATE_BEAT = 3
+-- The teleport formation unlocks when the elder sends you to the Testing Stone.
+-- (PlayerData's v5 migration assumes Root is the 3rd beat.)
+local TRAVEL_BEAT = 3
 function Quests.travelUnlocked(data: PlayerData.Data): boolean
-	return data.onboardingStep >= GATE_BEAT - 1
+	return data.onboardingStep >= TRAVEL_BEAT - 1
 end
 
 -- The quest board: what to aim for next, most pressing first.
@@ -148,6 +158,13 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 				then `Fill your bar, then survive {if stage.tribulation then stage.tribulation.seconds else 30} seconds of heavenly lightning on the main peak.`
 				else "Circulate raw qi from the wilds to fill your realm bar.",
 			progress = `{math.floor(data.cultivation)}/{stage.bar}`,
+		})
+	end
+	if not Roots.tested(data.root) then
+		table.insert(goals, 1, {
+			name = "Have your root tested",
+			detail = "Lay your hand on the Testing Stone on the Main Peak to learn your spirit root.",
+			progress = "0/1",
 		})
 	end
 	if data.stats.bossKills == 0 then

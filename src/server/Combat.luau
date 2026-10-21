@@ -12,6 +12,7 @@ local Rules = require(ReplicatedStorage.Shared.ActionRules)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
+local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 local Movement = require(script.Parent.Movement)
@@ -126,6 +127,12 @@ function Combat.power(player: Player): number
 	return if data then Cultivation.stage(data).power else 1
 end
 
+-- The player's spirit root perk of `kind` (Roots.perk), 0 while loading.
+local function rootPerk(player: Player, kind: Roots.Perk): number
+	local data = PlayerData.get(player)
+	return if data then Roots.perk(data.root, kind) else 0
+end
+
 --[[ Player damage ]]
 
 export type HurtResult = "hit" | "dodged" | "perfect" | "none"
@@ -158,6 +165,7 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source
 	if now < s.ironSkinUntil then
 		amount *= 1 - s.ironSkinReduction
 	end
+	amount *= 1 - rootPerk(player, "guard")
 	amount = math.floor(amount + 0.5)
 	if nonLethal then
 		amount = math.min(amount, math.max(0, humanoid.Health - 1))
@@ -223,6 +231,7 @@ local function damageSwing(player: Player, action: Rules.Action, claimed: { any 
 	local s = state(player)
 	local empower = if workspace:GetServerTimeNow() < s.empowerUntil then 1 + s.empower else 1
 	local damage = step.damage * Combat.power(player) * Weapons.multiplier(player, action.class) * empower
+		* (1 + rootPerk(player, "strike"))
 	local studs = step.push or 0
 	local facing = root.CFrame.LookVector * Vector3.new(1, 0, 1)
 	local landed = false
@@ -389,11 +398,12 @@ local function releaseTechnique(player: Player, action: Rules.Action, aim: Vecto
 		end
 	end
 	local level = data.techniques.owned[id].level
+	local rooted = 1 + Roots.perk(data.root, "technique") + Roots.match(data.root, def.element)
 	local function damageOf(index: number): number
 		local now = workspace:GetServerTimeNow()
 		local empower = if now < s.empowerUntil then 1 + s.empower else 1
 		local weapon = if def.weapon ~= "Any" then Weapons.multiplier(player, def.weapon) else 1
-		return Techniques.hitDamage(def, level, index) * Combat.power(player) * weapon * empower
+		return Techniques.hitDamage(def, level, index) * Combat.power(player) * weapon * empower * rooted
 	end
 
 	local origin = checkedOrigin(s, root, def, workspace:GetServerTimeNow() - action.started)

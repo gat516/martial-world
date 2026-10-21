@@ -260,4 +260,32 @@ Pacing.Weapons = {
 	XP_MANUAL = 25, -- learning one of the class's manuals
 }
 
+-- SPIRIT ROOTS (Roots.luau, server Roots; docs/systems/character.md). A root's
+-- element is rolled once at the Testing Stone; its grade starts at STARTING_GRADE
+-- for everyone and is raised by rare items. Grade multiplies passive and refining
+-- speed and the element's perk. Perks are kept small so no element is "the best".
+Pacing.Roots = {
+	-- roll weights (percent)
+	ODDS = { Fire = 18, Water = 18, Wood = 18, Metal = 18, Earth = 18, Lightning = 4, Wind = 3, Ice = 3 } :: { [string]: number },
+	STARTING_GRADE = "Spirit",
+	-- per grade: cultivation speed (passive and refining) and perk strength
+	GRADES = {
+		Spirit = { speed = 1.0, perk = 1.0 },
+		Earth = { speed = 1.1, perk = 1.5 },
+		Heaven = { speed = 1.25, perk = 2.0 },
+	} :: { [string]: { speed: number, perk: number } },
+	-- each element's perk at perk strength 1 (Roots.Elements says what kind it is)
+	PERKS = {
+		Fire = 0.08, -- share added to technique damage
+		Water = 0.02, -- share of max health healed per second out of combat
+		Wood = 0.25, -- share added to herb growth speed (while online)
+		Metal = 0.08, -- share added to weapon strike (M1) damage
+		Earth = 0.10, -- share added to max health
+		Lightning = 2, -- studs/s added to walk speed
+		Wind = 0.15, -- share added to jump height
+		Ice = 0.06, -- share cut from damage taken
+	} :: { [string]: number },
+	MATCH = 0.15, -- share added to techniques of your root's element
+}
+
 return Pacing

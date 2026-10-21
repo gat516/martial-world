@@ -18,6 +18,7 @@ local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
+local Roots = require(ReplicatedStorage.Shared.Roots)
 local Hud = require(script.Parent.Hud)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
@@ -175,6 +176,25 @@ local function build()
 		end })
 	end
 	section("Dao level", Weapons.MAX_LEVEL, daos)
+
+	local roots: { Chip } = {
+		{ label = "Reroll root", press = function()
+			invoke("root")
+		end },
+		{ label = "Raise grade", press = function()
+			invoke("rootGrade")
+		end },
+		{ label = "Untest root", press = function()
+			invoke("root", "")
+		end },
+	}
+	for _, id in Roots.Order do
+		local def = Roots.Elements[id]
+		table.insert(roots, { label = def.name, color = def.color, press = function()
+			invoke("root", id)
+		end })
+	end
+	section("Spirit root", nil, roots)
 
 	local items: { Chip } = {}
 	for _, id in Items.Order do

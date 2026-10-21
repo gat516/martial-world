@@ -1,7 +1,7 @@
 --!strict
 -- Admin tools behind the PC admin dashboard (AdminPanel.luau): force weather
 -- and world events, give items, seeds, weapons and Spirit Stones, set technique
--- and Dao levels, spawn beasts, and tend
+-- and Dao levels, set or reroll the spirit root, spawn beasts, and tend
 -- the garden instantly. Admins are the game's creator, the ids in Config.Admin.USER_IDS, and
 -- anyone in a Studio playtest. They're marked with the Admin attribute so the
 -- client shows the dashboard; the server re-checks every request.
@@ -26,6 +26,8 @@ local WeatherService = require(script.Parent.WeatherService)
 local Garden = require(script.Parent.Garden)
 local WorldEvents = require(script.Parent.WorldEvents)
 local Weapons = require(script.Parent.Weapons)
+local Roots = require(script.Parent.Roots)
+local RootDefs = require(ReplicatedStorage.Shared.Roots)
 
 local MAX_COUNT = 999
 local MAX_SPAWN = 10
@@ -174,6 +176,21 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 	stopEvents = function()
 		WorldEvents.stopAll()
 		return true, "Stopped every world event"
+	end,
+	-- set the spirit root's element ("" = untested again), or with no id reroll it
+	root = function(player, data, id)
+		if id ~= nil and not (id == "" or (type(id) == "string" and RootDefs.Elements[id])) then
+			return false, "Unknown element"
+		end
+		data.root.element = if id == nil then RootDefs.roll(Random.new()) else id
+		Roots.publish(player, data)
+		Cultivation.applyStats(player, data)
+		Cultivation.pushState(player)
+		return true, if data.root.element == "" then "Root untested" else `Root: {data.root.element}`
+	end,
+	rootGrade = function(player)
+		local ok, reason = Roots.raiseGrade(player)
+		return ok, if ok then "Root grade raised" else reason
 	end,
 	fillQi = function(player, data)
 		data.rawQi = Cultivation.stage(data).dantian

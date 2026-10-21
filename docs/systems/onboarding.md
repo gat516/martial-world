@@ -11,7 +11,8 @@ main peak, the sect gate and the wilds arrays, always from one array to another
   already past one skip straight through.
 - The elder speaks one line per beat; an objective line and a pulse on the right
   button show what to do.
-- Beats: Circulate -> Breakthrough -> Gate (travel unlocks here) -> FirstKill ->
+- Beats: Circulate -> Breakthrough -> Root (travel unlocks here: ride to the
+  Main Peak and touch the Testing Stone, see [character](character.md)) -> Gate -> FirstKill ->
   Technique (3 kills) -> Refine -> QC3 -> FreePlay (the top quest-board goal).
 - Travel can't be used to flee a fight (blocked while in combat or mid-action).
 - Travel only works standing on a teleport array: the Travel button shows only
@@ -49,4 +50,6 @@ then pivots the character onto that array.
 - Rewards shown on the board come from `Pacing.Rewards`.
 
 ## Known gaps
-- `GATE_BEAT` is an index asserted against the beat list; reordering beats needs care.
+- `TRAVEL_BEAT` is an index asserted against the beat list, and PlayerData's v5
+  migration assumes Root is the 3rd beat; reordering beats needs care.
+- Inserting Root shifted the analytics funnel's step numbers from 3 up.

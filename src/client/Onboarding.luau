@@ -19,6 +19,7 @@ local ELDER_SECONDS = 7
 local FOCUS = {
 	Circulate = "CultivateButton",
 	Breakthrough = "BreakthroughButton",
+	Root = "TravelButton",
 	Gate = "TravelButton",
 	FirstKill = "AttackButton",
 	Refine = "CultivateButton",

@@ -42,7 +42,8 @@ ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
 | Knockback / stagger | `src/shared/Knockback.luau` |
-| Techniques (and their visual tiers, `VISUAL_TIERS`) | `src/shared/Techniques.luau` |
+| Techniques (and their visual tiers, `VISUAL_TIERS`, elements) | `src/shared/Techniques.luau` |
+| Spirit roots: element odds, grades, perks, element match | `src/shared/Pacing.luau` `Roots`; elements in `src/shared/Roots.luau` |
 | Weapons, classes, grades; M1 chains per class | `src/shared/Weapons.luau`, `Config.Combat.CLASSES`; Dao comprehension in `Pacing.Weapons` |
 | Herbs and plants | `src/shared/Herbs.luau` |
 | Consumables (cores, treasures) | `src/shared/Items.luau` |
@@ -59,7 +60,7 @@ ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
 | Combat and action states | [combat](systems/combat.md) | Combat, Movement | ActionRules, Hitbox, Techniques, Knockback, Config.Combat | CombatController, ActionState, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |
 | Weapons, weapon Dao, manual caches, weapon racks | [weapons](systems/weapons.md) | Weapons, Combat, WorldCaches, Progression | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController, WorldCaches |
-| Character: spirit root, cultivation method, bloodline, character window (design only) | [character](systems/character.md) | - | - | - |
+| Character: spirit root (built); cultivation method, bloodline, character window (design) | [character](systems/character.md) | Roots (perks applied in Cultivation, Circulation, Combat, Garden) | Roots, Pacing.Roots, Techniques `element` | - |
 | Enemies, spawning, regions | [enemies](systems/enemies.md) | EnemyService, Spawner | Enemies, Spawns, Regions, Knockback | EnemyAnimator, EnemyBars, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
@@ -81,7 +82,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | Meditate | Event | both | `Meditation.handle(on)`; server fires `false` to stand you up | Meditation |
 | Sprint | Event | C->S | `Cultivation.setRunning` | Sprint |
 | Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync) | CombatController |
-| Effect | Event | S->C | many: "action", "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "boss", "used", "bolt", "tribulationStart/End" | CombatController, CombatEffects, Rewards |
+| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "boss", "used", "bolt", "tribulationStart/End" | CombatController, CombatEffects, Rewards |
 | Telegraph | Event | S->C | `EnemyService` (attack areas before they land) | Telegraphs |
 | PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot) | State (everything reads State) |
 | Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major) | BreakthroughView |
@@ -101,7 +102,7 @@ caster as `(caster, id, origin, dir, level, chain)`; `level` is the caster's
 technique level at cast time (picks the visual tier), `chain` the chain targets or nil.
 
 Besides remotes, the server publishes fast-changing values as attributes:
-player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`,
+player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`,
 `DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`; character `WeaponClass`; humanoid `BaseWalkSpeed`,
 `Running`, `ActionBusy`; enemy `AIState`, `Realm`; workspace `Weather`,
 `WeatherEnds`, `WorldEvents`; plot `Plants` (JSON).

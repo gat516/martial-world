@@ -17,8 +17,9 @@ local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
+local Roots = require(ReplicatedStorage.Shared.Roots)
 
-local SCHEMA_VERSION = 5
+local SCHEMA_VERSION = 6
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number, m: string? }
@@ -56,6 +57,7 @@ export type Data = {
 	weapons: { owned: { [string]: number }, equipped: string }, -- owned counts by weapon id; "" = Fist
 	dao: { [string]: Dao }, -- by class id; a missing class is level 0
 	caches: { [string]: boolean }, -- world ManualCache / WeaponRack anchors claimed, by Cache id
+	root: Roots.Root, -- spirit root; element "" until tested at the Testing Stone
 	peak: {
 		removed: { [string]: boolean },
 		placed: { Placed },
@@ -103,6 +105,7 @@ local function default(): Data
 		weapons = { owned = { [Weapons.STARTING] = 1 }, equipped = Weapons.STARTING },
 		dao = startingDao(),
 		caches = {},
+		root = Roots.new(),
 		peak = { removed = {}, placed = {}, plots = {} },
 	}
 end
@@ -155,11 +158,19 @@ local migrations: { [number]: (any) -> () } = {
 		d.dao = startingDao()
 		d.caches = {}
 	end,
+	-- v5 had no Root beat (now the 3rd): players already past Breakthrough skip
+	-- it (the quest board asks them to have their root tested instead)
+	[5] = function(d)
+		if (d.onboardingStep or 0) >= 2 then
+			d.onboardingStep += 1
+		end
+		d.root = Roots.new()
+	end,
 }
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

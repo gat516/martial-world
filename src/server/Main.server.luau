@@ -36,6 +36,7 @@ local Treasures = require(script.Parent.Treasures)
 local Settings = require(script.Parent.Settings)
 local Weapons = require(script.Parent.Weapons)
 local WorldCaches = require(script.Parent.WorldCaches)
+local Roots = require(script.Parent.Roots)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
 local joinedAt: { [Player]: number } = {}
@@ -144,6 +145,7 @@ local function onPlayerAdded(player: Player)
 		warn(`No free peak for {player.Name}; all peaks are taken`)
 	end
 	Weapons.watch(player)
+	Roots.publish(player, data)
 	Cultivation.pushState(player)
 end
 
@@ -237,6 +239,10 @@ end)
 EnemyService.start()
 Spawner.start()
 Quests.start()
+Roots.start()
+table.insert(Roots.onTested, function(player, element)
+	Analytics.event(player, "RootTested", 1, element)
+end)
 Inventory.start()
 Treasures.start()
 WorldCaches.start()

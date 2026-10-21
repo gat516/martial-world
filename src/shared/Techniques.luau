@@ -11,6 +11,7 @@
 -- circle may have `offset`: its centre that far ahead of the caster.
 -- damage is per hit (per tick for zones), before realm power and technique level.
 -- weapon: the class that must be equipped to cast it (Weapons.Classes), or "Any".
+-- element: its Roots element (Roots.Elements); a caster with that spirit root hits harder.
 --   Class techniques also scale with that class's grade and Dao comprehension.
 --
 -- Weapon-skill fields (the class techniques with their own clip):
@@ -43,6 +44,7 @@ export type Def = {
 	name: string,
 	kind: string,
 	weapon: string, -- a Weapons class id, or "Any"
+	element: string?, -- a Roots element: casters with that root deal Pacing.Roots.MATCH more
 	cooldown: number,
 	damage: number,
 	color: Color3,
@@ -79,6 +81,7 @@ Techniques.Defs = {
 		weapon = "Sword",
 		icon = "rbxassetid://100918699109239",
 		name = "Sword Qi Wave",
+		element = "Metal",
 		kind = "line",
 		cooldown = 6,
 		damage = 28,
@@ -95,6 +98,7 @@ Techniques.Defs = {
 		weapon = "Fist",
 		icon = "rbxassetid://98382420618802",
 		name = "Palm Strike",
+		element = "Earth",
 		kind = "circle",
 		cooldown = 8,
 		damage = 24,
@@ -110,6 +114,7 @@ Techniques.Defs = {
 		weapon = "Any",
 		icon = "rbxassetid://89161711966835",
 		name = "Lightning Talisman",
+		element = "Lightning",
 		kind = "chain",
 		cooldown = 10,
 		damage = 20,
@@ -127,6 +132,7 @@ Techniques.Defs = {
 		weapon = "Any",
 		icon = "rbxassetid://73960875385866",
 		name = "Iron Skin",
+		element = "Metal",
 		kind = "buff",
 		cooldown = 15,
 		damage = 0,
@@ -142,6 +148,7 @@ Techniques.Defs = {
 		weapon = "Any",
 		icon = "rbxassetid://123372008874762",
 		name = "Fire Seal",
+		element = "Fire",
 		kind = "zone",
 		cooldown = 12,
 		damage = 5,
@@ -161,6 +168,7 @@ Techniques.Defs = {
 		weapon = "Fist",
 		icon = "rbxassetid://81953324274209",
 		name = "Twin Phoenix Cannon",
+		element = "Fire",
 		kind = "line",
 		cooldown = 9,
 		damage = 14,
@@ -179,6 +187,7 @@ Techniques.Defs = {
 		weapon = "Sword",
 		icon = "rbxassetid://96346324489936",
 		name = "Moonflash Draw",
+		element = "Ice",
 		kind = "line",
 		cooldown = 7,
 		damage = 30,
@@ -201,6 +210,7 @@ Techniques.Defs = {
 		weapon = "Saber",
 		icon = "rbxassetid://104006341750065",
 		name = "Rampaging Tiger Cleave",
+		element = "Metal",
 		kind = "circle",
 		cooldown = 12,
 		damage = 9,
@@ -225,6 +235,7 @@ Techniques.Defs = {
 		weapon = "Greatsword",
 		icon = "rbxassetid://131580966208055",
 		name = "Heaven-Splitting Descent",
+		element = "Earth",
 		kind = "circle",
 		cooldown = 16,
 		damage = 60,
@@ -249,6 +260,7 @@ Techniques.Defs = {
 		weapon = "Guandao",
 		icon = "rbxassetid://110851099640824",
 		name = "Crescent Moon Sweep",
+		element = "Water",
 		kind = "circle",
 		cooldown = 9,
 		damage = 32,
@@ -266,6 +278,7 @@ Techniques.Defs = {
 		weapon = "Spear",
 		icon = "rbxassetid://123799153426166",
 		name = "Dragon-Piercing Thrust",
+		element = "Wood",
 		kind = "line",
 		cooldown = 8,
 		damage = 34,
@@ -286,6 +299,7 @@ Techniques.Defs = {
 		weapon = "Staff",
 		icon = "rbxassetid://115862718192751",
 		name = "Great Sage Awakening",
+		element = "Wind",
 		kind = "buff",
 		cooldown = 20,
 		damage = 12,

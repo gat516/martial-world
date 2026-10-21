@@ -16,6 +16,8 @@ local GardenConfig = require(ReplicatedStorage.Shared.Config).Garden
 local Movement = require(script.Parent.Movement)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
+local Roots = require(ReplicatedStorage.Shared.Roots)
+local StarterPlayer = game:GetService("StarterPlayer")
 local PlayerData = require(script.Parent.PlayerData)
 local WeatherService = require(script.Parent.WeatherService)
 
@@ -102,6 +104,7 @@ function Cultivation.rate(data: PlayerData.Data, now: number, player: Player?): 
 		* (1 + Cultivation.aura(data, now))
 		* (1 + WeatherService.bonus("passive"))
 		* (if spot then spot.multiplier else 1)
+		* Roots.speed(data.root)
 end
 
 -- Mirror the numbers that change every second (and that other players may show,
@@ -142,6 +145,7 @@ function Cultivation.pushState(player: Player)
 		weapons = data.weapons,
 		dao = data.dao,
 		caches = data.caches,
+		root = data.root,
 	})
 	for _, fn in Cultivation.onPush do
 		task.spawn(fn, player, data)
@@ -151,10 +155,13 @@ end
 function Cultivation.applyStats(player: Player, data: PlayerData.Data)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 	if humanoid then
-		local walkSpeed = Config.BASE_WALKSPEED + buffTotal(data, "WalkSpeed")
+		local walkSpeed = Config.BASE_WALKSPEED + buffTotal(data, "WalkSpeed") + Roots.perk(data.root, "walk")
 		humanoid:SetAttribute("BaseWalkSpeed", walkSpeed)
 		Movement.apply(humanoid)
-		local maxHealth = Cultivation.stage(data).health
+		local jump = 1 + Roots.perk(data.root, "jump")
+		humanoid.JumpHeight = StarterPlayer.CharacterJumpHeight * jump
+		humanoid.JumpPower = StarterPlayer.CharacterJumpPower * jump
+		local maxHealth = math.floor(Cultivation.stage(data).health * (1 + Roots.perk(data.root, "health")) + 0.5)
 		if humanoid.MaxHealth ~= maxHealth then
 			local fraction = humanoid.Health / humanoid.MaxHealth
 			humanoid.MaxHealth = maxHealth

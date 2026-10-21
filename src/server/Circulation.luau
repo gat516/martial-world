@@ -14,6 +14,7 @@ local Config = require(ReplicatedStorage.Shared.Config).Circulation
 local Refine = require(ReplicatedStorage.Shared.Pacing).Refine
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local Realms = require(ReplicatedStorage.Shared.Realms)
+local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
@@ -154,6 +155,7 @@ function Circulation.finish(player: Player, id: any, accuracy: any, purged: any)
 	local score = acc * Config.ACCURACY_WEIGHT + purgedShare * (1 - Config.ACCURACY_WEIGHT)
 	local efficiency = (Refine.EFFICIENCY_MIN + (Refine.EFFICIENCY_MAX - Refine.EFFICIENCY_MIN) * score)
 		* stage.refine
+		* Roots.speed(data.root)
 		* (1 + WeatherService.bonus("circulation"))
 
 	-- spend only what fills the bar; the rest stays in the dantian

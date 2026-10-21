@@ -74,8 +74,13 @@ changes your inner self happens seated, in one row of tiles above the vitals
   brings everything back. Passive cultivation keeps running.
 
 Still to come: Practise Dao (a short active drill with the equipped weapon for
-Dao XP, with a cooldown, never XP for sitting; appears with a second weapon
-class) and root actions on the Spirit Root page (raise grade, reroll).
+Dao XP, with a cooldown, never XP for sitting).
+
+**Root actions (server built, buttons to do).** The Spirit Root page offers the
+pills the player holds: Marrow Washing Pill (raise grade) and Root Rebirth Pill
+(reform the element), used with `InventoryAction "use"` (both refused unless
+seated). After a rebirth the page shows both elements and the player keeps one:
+`CultivationAction("root", keepNew)` (see [character](character.md)).
 
 ## Known gaps
 - `server/Meditation.luau` still reads the multipliers via the Config aliases.

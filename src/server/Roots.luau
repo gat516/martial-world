@@ -57,21 +57,85 @@ function Roots.test(player: Player)
 	end
 end
 
--- Raise a tested root one grade (rare items, admin). Returns false at the top.
+-- Why a root can't be raised a grade right now, or nil.
+function Roots.cantRaise(data: PlayerData.Data): string?
+	if not RootDefs.tested(data.root) then
+		return "Your root hasn't been tested yet."
+	end
+	if not RootDefs.nextGrade(data.root.grade) then
+		return "Your root can grow no purer."
+	end
+	return nil
+end
+
+-- Why a root can't be reformed right now, or nil.
+function Roots.cantReroll(data: PlayerData.Data): string?
+	if not RootDefs.tested(data.root) then
+		return "Your root hasn't been tested yet."
+	end
+	if data.root.pending ~= "" then
+		return "Your root is still reforming. Keep the new element or return to the old first."
+	end
+	return nil
+end
+
+-- Raise a tested root one grade (Marrow Washing Pill, admin). Returns false at the top.
 function Roots.raiseGrade(player: Player): (boolean, string?)
 	local data = PlayerData.get(player)
-	if not data or not RootDefs.tested(data.root) then
-		return false, "Your root hasn't been tested yet."
+	local why = if data then Roots.cantRaise(data) else "Still loading"
+	if not data or why then
+		return false, why
 	end
-	local nextGrade = RootDefs.nextGrade(data.root.grade)
-	if not nextGrade then
-		return false, "Your root can grow no purer."
-	end
+	local nextGrade = RootDefs.nextGrade(data.root.grade) :: string
 	data.root.grade = nextGrade
 	publish(player, data)
 	Cultivation.applyStats(player, data)
 	Cultivation.pushState(player)
 	Cultivation.notify(player, `Your spirit root grows purer: {nextGrade}-grade {data.root.element}!`)
+	return true, nil
+end
+
+-- Reform the root as another element (Root Rebirth Pill). The new element waits
+-- in `pending` until the player keeps it or returns to the old (Roots.choose);
+-- the grade carries over either way, so a reroll can't make a root weaker.
+function Roots.reroll(player: Player): (boolean, string?)
+	local data = PlayerData.get(player)
+	local why = if data then Roots.cantReroll(data) else "Still loading"
+	if not data or why then
+		return false, why
+	end
+	local new = data.root.element
+	for _ = 1, 20 do
+		new = RootDefs.roll(rng)
+		if new ~= data.root.element then
+			break
+		end
+	end
+	data.root.pending = new
+	Cultivation.pushState(player)
+	local def = RootDefs.Elements[new]
+	Cultivation.notify(player, `Your root dissolves and reforms: a {def.name} root! {def.blurb} Keep it, or return to {data.root.element}.`)
+	return true, nil
+end
+
+-- CultivationAction "root": keep the pending element (keepNew) or return to the old.
+function Roots.choose(player: Player, keepNew: any): (boolean, string?)
+	local data = PlayerData.get(player)
+	if not data or data.root.pending == "" then
+		return false, "Your root isn't reforming."
+	end
+	if keepNew == true then
+		data.root.element = data.root.pending
+	end
+	data.root.pending = ""
+	publish(player, data)
+	Cultivation.applyStats(player, data)
+	Cultivation.pushState(player)
+	local def = RootDefs.Elements[data.root.element]
+	Cultivation.notify(player, `Your spirit root settles: {data.root.grade}-grade {def.name}. {def.blurb}`)
+	if keepNew == true then
+		effectRemote:FireAllClients("root", player, def.id, data.root.grade, false)
+	end
 	return true, nil
 end
 

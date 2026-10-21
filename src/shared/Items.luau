@@ -10,6 +10,9 @@
 --   insight           insight points
 --   heal              share of max health restored
 --   buffs             timed effects, as herbs have
+--   rootGrade         raise the spirit root one grade (absorbed while meditating)
+--   rootReroll        reform the root as another element; the player then keeps
+--                     the new one or returns to the old (Roots.reroll / choose)
 -- Herbs are stored in data.herbs (the garden fills it); everything else in data.items.
 
 local Herbs = require(script.Parent.Herbs)
@@ -21,8 +24,10 @@ export type Use = {
 	insight: number?,
 	heal: number?,
 	buffs: { Herbs.Buff }?,
+	rootGrade: boolean?,
+	rootReroll: boolean?,
 }
-export type Category = "Herb" | "Core" | "Treasure"
+export type Category = "Herb" | "Core" | "Treasure" | "Pill"
 export type Item = {
 	id: string,
 	name: string,
@@ -51,7 +56,7 @@ Items.Rarities = {
 	Legendary = { order = 5, color = Color3.fromRGB(255, 185, 70) },
 } :: { [string]: { order: number, color: Color3 } }
 
-Items.CategoryNames = { Herb = "Spirit herb", Core = "Spirit core", Treasure = "Heavenly treasure" }
+Items.CategoryNames = { Herb = "Spirit herb", Core = "Spirit core", Treasure = "Heavenly treasure", Pill = "Spirit pill" }
 
 local HERB_GLYPHS = {
 	SpiritGrass = "草",
@@ -126,6 +131,31 @@ Items.Defs = {
 		use = { cultivationShare = 0.5, heal = 1, buffs = { { kind = "QiRate", amount = 1.0, seconds = 600 } } },
 		treasureWeight = 10,
 	},
+	-- spirit root pills: rare drops (the Elder Wolf King) and treasures
+	MarrowWashingPill = {
+		id = "MarrowWashingPill",
+		name = "Marrow Washing Pill",
+		category = "Pill",
+		rarity = "Legendary",
+		color = Color3.fromRGB(255, 215, 120),
+		glyph = "髓",
+		blurb = "Absorb it while meditating: your spirit root grows one grade purer",
+		lore = "It burns the impurities from bone and marrow. Few roots stay the same after one.",
+		use = { rootGrade = true },
+		treasureWeight = 4,
+	},
+	RootRebirthPill = {
+		id = "RootRebirthPill",
+		name = "Root Rebirth Pill",
+		category = "Pill",
+		rarity = "Epic",
+		color = Color3.fromRGB(190, 150, 255),
+		glyph = "根",
+		blurb = "Absorb it while meditating: your root reforms as another element. Keep either",
+		lore = "For a moment your root dissolves, and heaven decides again.",
+		use = { rootReroll = true },
+		treasureWeight = 5,
+	},
 } :: { [string]: Item }
 
 -- Slot images, by item id (art/ui/icons/icon_<id>.png)
@@ -163,7 +193,7 @@ for id, icon in ICONS do
 end
 
 Items.Order = table.clone(Herbs.Order)
-for _, id in { "LesserSpiritCore", "GreaterSpiritCore", "HeavenlyDew", "CloudPatternJade", "ImmortalPeach" } do
+for _, id in { "LesserSpiritCore", "GreaterSpiritCore", "HeavenlyDew", "CloudPatternJade", "ImmortalPeach", "MarrowWashingPill", "RootRebirthPill" } do
 	table.insert(Items.Order, id)
 end
 

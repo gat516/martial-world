@@ -153,7 +153,12 @@ Enemies.Defs = {
 		qiDrop = 160,
 		stones = { 60, 90 },
 		respawn = 180,
-		drops = { { item = "GreaterSpiritCore", chance = 1 }, { item = "LesserSpiritCore", chance = 1 } },
+		drops = {
+			{ item = "GreaterSpiritCore", chance = 1 },
+			{ item = "LesserSpiritCore", chance = 1 },
+			{ item = "MarrowWashingPill", chance = 0.05 },
+			{ item = "RootRebirthPill", chance = 0.08 },
+		},
 		bossDrops = {
 			manuals = { "RampagingTiger", "HeavenSplitter", "CrescentSweep", "GreatSageAwakening" },
 			weapons = { "AzureFrostJian", "CrimsonFangDadao", "MountainSplitterGreatsword", "GreenDragonGuandao", "SilverSerpentSpear", "CloudSageStaff" },

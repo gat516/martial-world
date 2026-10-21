@@ -8,7 +8,9 @@
 
 local Pacing = require(script.Parent.Pacing).Roots
 
-export type Root = { element: string, grade: string } -- element "" = not tested yet
+-- element "" = not tested yet; pending = a rerolled element waiting for the
+-- player to keep it or return to `element` ("" = none)
+export type Root = { element: string, grade: string, pending: string }
 
 -- What an element's perk changes (amounts in Pacing.Roots.PERKS):
 --   technique  share added to technique damage
@@ -53,7 +55,7 @@ Roots.Order = { "Fire", "Water", "Wood", "Metal", "Earth", "Lightning", "Wind", 
 Roots.GradeOrder = { "Spirit", "Earth", "Heaven" }
 
 function Roots.new(): Root
-	return { element = "", grade = Pacing.STARTING_GRADE }
+	return { element = "", grade = Pacing.STARTING_GRADE, pending = "" }
 end
 
 function Roots.tested(root: Root): boolean

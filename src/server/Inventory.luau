@@ -19,6 +19,7 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 local Progression = require(script.Parent.Progression)
+local Roots = require(script.Parent.Roots)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 local templates = ServerStorage:WaitForChild("ItemTemplates") :: Folder
@@ -140,6 +141,15 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	if onlyQi and data.rawQi >= stage.dantian then
 		return false, "Your dantian is already full."
 	end
+	if use.rootGrade or use.rootReroll then
+		if not (Cultivation.meditation and Cultivation.meditation(player)) then
+			return false, "Sit and meditate to absorb it."
+		end
+		local why = if use.rootGrade then Roots.cantRaise(data) else Roots.cantReroll(data)
+		if why then
+			return false, why
+		end
+	end
 	nextUse[player] = now + (if item.category == "Herb" then Items.HERB_EAT_SECONDS else Items.USE_COOLDOWN)
 	take(data, item.id)
 
@@ -155,6 +165,12 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	end
 	if use.insight then
 		Progression.grantInsight(player, use.insight, item.name)
+	end
+	if use.rootGrade then
+		Roots.raiseGrade(player)
+	end
+	if use.rootReroll then
+		Roots.reroll(player)
 	end
 	Cultivation.markActive(player)
 	Cultivation.applyStats(player, data)

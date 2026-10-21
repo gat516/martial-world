@@ -106,13 +106,21 @@ a short glow on the stone when `first` is false.
 Mortal grade means no root at all, so nobody is told their root is trash.
 - Spirit -> Earth -> Heaven raises passive and refining speed (roughly x1.0,
   x1.1, x1.25) and strengthens the element perk.
-- Raised by rare items: a **Marrow Washing Pill** (alchemy/garden or boss drop)
-  and the Auspicious Clouds sealed relic. It is a long-term goal, not a gate.
+- Raised by the **Marrow Washing Pill** (built: Legendary, `Items.luau`; 5% from
+  the Elder Wolf King, and a rare heavenly treasure). Later also alchemy and the
+  Auspicious Clouds relic. It is a long-term goal, not a gate.
 
-**Rerolls:** none at launch. A paid reroll turns the root into gacha; decide
-deliberately later (see [monetization](monetization.md)).
+**Rerolls (built, decided 2026-10-21): earned, never sold.** The **Root Rebirth
+Pill** (Epic; 8% from the Elder Wolf King, and a rare heavenly treasure)
+reforms the root as a different element (`Roots.reroll`, rolled with the usual
+odds). The new element waits in `data.root.pending` and the player chooses:
+keep it, or return to the old one (`Roots.choose`, `CultivationAction("root",
+keepNew)`). The grade carries over. So a reroll can never leave you worse off
+(principle 5), and it isn't gacha: no Robux, and you can always say no.
+Both pills are absorbed seated in meditation (`Inventory.use`, item uses
+`rootGrade` / `rootReroll`), from the meditation menu's Spirit Root page.
 
-**Data:** `data.root = { element: string, grade: string }` (schema v6); `""`
+**Data:** `data.root = { element: string, grade: string, pending: string }` (schema v6; `pending` filled by default); `""`
 element = not yet tested. Tuning in `Pacing.Roots`. Pushed in `PlayerState`
 (`root`); published as player attributes `Root` and `RootGrade` for others'
 nameplates and effects. Admin panel: "Spirit root" (reroll, set, untest,

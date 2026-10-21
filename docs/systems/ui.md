@@ -16,7 +16,8 @@ cursor, settings and the admin panel.
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
 - Seated: the meditation menu, a row of square tiles above the vitals that
   appear only when relevant (Circulate or Break Through, Comprehend, Method,
-  Spirit Root, Rise), a small panel for Comprehend / Method / Spirit Root, and
+  Spirit Root, Practise, Rise), a small panel for Comprehend / Method / Spirit
+  Root (root pills and the reform choice live on its Spirit Root page), and
   the lotus calm toggle that fades the HUD for a clean view (`Menus.setCalm`;
   also after 20 s idle; a tap brings it back). See [meditation](meditation.md).
   The standing Force Breakthrough pill (`Stack.BreakthroughButton`) is the only

@@ -5,7 +5,10 @@
 -- one row of tiles above the vitals (Stack.CultivatePrompt) that appear only when
 -- they matter: Circulate (an active minigame, played seated; when the realm bar
 -- is full it gives way to Break Through), Comprehend (a technique at a
--- bottleneck), Method (once you own one), Spirit Root (once tested), and Rise.
+-- bottleneck), Method (once you own one), Spirit Root (once tested; a seal dot
+-- while a reformed element waits for a choice), Practise (a weapon drill for
+-- Dao XP, from Pacing.DaoPractice.FROM until the class is mastered; dimmed with
+-- a countdown while resting), and Rise.
 -- Comprehend, Method and Spirit Root open a small panel (MeditationMenu).
 -- The calm view: the lotus toggle (Stack.CalmToggle) folds the tiles away and
 -- fades the rest of the HUD (Menus.setCalm) to just watch the world; it also
@@ -24,6 +27,10 @@ local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
+local Realms = require(ReplicatedStorage.Shared.Realms)
+local Weapons = require(ReplicatedStorage.Shared.Weapons)
 
 local BreakthroughView = require(script.Parent.BreakthroughView)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
@@ -45,6 +52,7 @@ local CALM_AFTER = 20 -- seconds seated without input before the HUD fades by it
 local TAP_DRIFT = 12 -- px a press may move and still be a tap (more is a camera drag)
 local TAP_SECONDS = 0.4 -- a longer press isn't a tap either
 local CALM_ICON = 0.55 -- the lotus's transparency while the view is calm
+local RESTING = 0.5 -- the Practise tile's transparency while the drill is on cooldown
 
 local Meditation = {}
 
@@ -67,6 +75,43 @@ local function tile(name: string): GuiObject
 	return row:FindFirstChild(name) :: GuiObject
 end
 
+-- Practise Dao: the equipped class, and whether the tile belongs on the row
+-- (reached Pacing.DaoPractice.FROM and that class isn't mastered yet).
+local function practiceClass(): string
+	local weapons = State.current.weapons
+	return Weapons.classOf(if weapons and weapons.equipped ~= "" then weapons.equipped else nil)
+end
+
+local function practiceOpen(): boolean
+	local from = Realms.ByKey[Pacing.DaoPractice.FROM]
+	local stage = Realms.byName(player:GetAttribute("Realm"))
+	if not (from and stage) or Realms.index(stage.major, stage.minor) < Realms.index(from.major, from.minor) then
+		return false
+	end
+	local dao = State.current.dao
+	local entry = dao and dao[practiceClass()]
+	return (if entry then entry.level else 0) < Weapons.MAX_LEVEL
+end
+
+-- Seconds until the next drill (0 = ready).
+local function practiceWait(): number
+	return math.max(0, (State.current.daoPracticeReady or 0) - os.time())
+end
+
+local function clock(seconds: number): string
+	return string.format("%d:%02d", seconds // 60, seconds % 60)
+end
+
+-- The tile's caption is its countdown while resting; dimmed until the drill opens.
+local function paintPractise()
+	local t = tile("Practise")
+	local wait = practiceWait()
+	local resting = wait > 0;
+	(t:FindFirstChild("Caption") :: TextLabel).Text = if resting then clock(wait) else "Practise";
+	(t:FindFirstChild("Icon") :: ImageLabel).ImageTransparency = if resting then RESTING else 0;
+	(t:FindFirstChild("Frame") :: ImageLabel).ImageTransparency = if resting then RESTING else 0
+end
+
 local function refresh()
 	local active = phase ~= "idle"
 	local seated = phase == "sitting" or phase == "seated"
@@ -87,6 +132,9 @@ local function refresh()
 	for _, page in { "Comprehend", "Method", "Root" } do
 		tile(page).Visible = relevant[page] == true
 	end
+	(tile("Root"):FindFirstChild("Badge") :: GuiObject).Visible = MeditationMenu.rootPending()
+	tile("Practise").Visible = practiceOpen()
+	paintPractise()
 	local root = SelfCard.currentRoot()
 	if root then
 		(tile("Root"):FindFirstChild("Icon") :: ImageLabel).Image = SelfCard.rootIcon(root.element)
@@ -178,6 +226,18 @@ end
 local function circulate()
 	Motion.setShown(row, false)
 	CirculationMinigame.start()
+	refresh()
+end
+
+-- Practise Dao from the seat; resting tells how long instead of asking the server.
+local function practise()
+	local wait = practiceWait()
+	if wait > 0 then
+		Hud.toast(`Rest your arms a while ({clock(wait)}).`)
+		return
+	end
+	Motion.setShown(row, false)
+	CirculationMinigame.practise()
 	refresh()
 end
 
@@ -277,6 +337,9 @@ function Meditation.init(gui: ScreenGui)
 		Root = function()
 			MeditationMenu.toggle("Root")
 		end,
+		Practise = function()
+			task.spawn(practise)
+		end,
 		Rise = function()
 			Meditation.stand()
 		end,
@@ -300,6 +363,16 @@ function Meditation.init(gui: ScreenGui)
 	player:GetAttributeChangedSignal("Cultivation"):Connect(refresh)
 	player:GetAttributeChangedSignal("CultivationMax"):Connect(refresh)
 	player:GetAttributeChangedSignal("Root"):Connect(refresh)
+	player:GetAttributeChangedSignal("Realm"):Connect(refresh)
+	-- the Practise countdown ticks while seated
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			if phase ~= "idle" then
+				paintPractise()
+			end
+		end
+	end)
 	State.onChanged(function()
 		refresh()
 	end)

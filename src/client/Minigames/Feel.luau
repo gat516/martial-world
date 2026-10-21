@@ -17,6 +17,7 @@ export type Info = {
 	impurities: number,
 	seed: number,
 	title: string?, -- replaces the game's TITLE (Practise Dao: "Sword Forms")
+	hint: string?, -- replaces the game's HINT / TOUCH_HINT (Practise Dao: weapon forms, not qi)
 }
 
 -- What the runner hands each game: the overlay's labels, plus

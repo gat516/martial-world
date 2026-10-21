@@ -568,12 +568,77 @@ def root_ice():
     ic.save("RootIce")
 
 
+
+# ---------------------------------------------------------------- spirit root pills
+
+def _pill(ic, color, cx=64, cy=62, r=34):
+    """A round alchemy pill: glow, ink-outlined ball, a soft rim highlight."""
+    ic.glow((cx, cy), r + 14, color, 150)
+    ic.shape(ellipse([cx - r, cy - r, cx + r, cy + r]), color, light=0.5, dark=0.4)
+
+
+def _sparkle(d, x, y, r, color):
+    """A four-point star (purifying qi)."""
+    pts = [(x, y - r), (x + r * 0.28, y - r * 0.28), (x + r, y), (x + r * 0.28, y + r * 0.28),
+           (x, y + r), (x - r * 0.28, y + r * 0.28), (x - r, y), (x - r * 0.28, y - r * 0.28)]
+    d.polygon([(px * SS, py * SS) for px, py in pts], fill=color)
+
+
+def marrow_washing_pill():
+    """Marrow Washing Pill (Legendary): a bright gold pill with a cloud curl on
+    its face and two sparks of purifying qi beside it. Glyph fallback 髓."""
+    ic = Icon()
+    _pill(ic, (255, 196, 70), cx=62, cy=66, r=36)
+    d = ImageDraw.Draw(ic.img)
+    pts = []
+    for i in range(60):
+        t = i / 59
+        r = 17 * (1 - 0.75 * t)
+        a = math.radians(200) + t * 2 * math.pi * 1.1
+        pts.append(((64 + r * math.cos(a)) * SS, (70 + r * math.sin(a)) * SS))
+    d.line(pts, fill=(160, 96, 20, 230), width=int(3.5 * SS), joint="curve")
+    ic.gloss([40, 38, 62, 54], 200)
+    star = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(star)
+    _sparkle(sd, 104, 26, 15, INK)
+    _sparkle(sd, 104, 26, 10, (255, 250, 225, 255))
+    _sparkle(sd, 22, 104, 11, INK)
+    _sparkle(sd, 22, 104, 7, (255, 250, 225, 255))
+    ic.img.alpha_composite(star)
+    ic.save("MarrowWashingPill")
+
+
+def root_rebirth_pill():
+    """Root Rebirth Pill (Epic): a violet pill split by an S curve (the root
+    reforming), a new sprout rising from its crown. Glyph fallback 根."""
+    ic = Icon()
+    ic.shape(leaf(66, 36, 30, 9, 0.55), (120, 205, 110), outline=4)
+    ic.shape(leaf(62, 36, 24, 8, -0.7), (120, 205, 110), outline=4)
+    _pill(ic, (185, 145, 255), cy=72, r=34)
+    half = Image.new("RGBA", (N, N), (0, 0, 0, 0))
+    hd = ImageDraw.Draw(half)
+    hd.pieslice([30 * SS, 38 * SS, 98 * SS, 106 * SS], 90, 270, fill=(70, 40, 140, 80))
+    hd.ellipse([47 * SS, 72 * SS, 81 * SS, 106 * SS], fill=(0, 0, 0, 0))
+    ic.img.alpha_composite(half)
+    d = ImageDraw.Draw(ic.img)
+    d.arc([47 * SS, 38 * SS, 81 * SS, 72 * SS], 270, 450, fill=(80, 50, 150, 230), width=3 * SS)
+    d.arc([47 * SS, 72 * SS, 81 * SS, 106 * SS], 90, 270, fill=(80, 50, 150, 230), width=3 * SS)
+    d.ellipse([60 * SS, 51 * SS, 68 * SS, 59 * SS], fill=(240, 230, 255, 255))
+    d.ellipse([60 * SS, 85 * SS, 68 * SS, 93 * SS], fill=(90, 60, 160, 255))
+    ic.gloss([40, 46, 58, 60], 180)
+    ic.save("RootRebirthPill")
+
+
 ROOTS = [root_fire, root_water, root_wood, root_metal, root_earth, root_lightning, root_wind, root_ice]
 
 
 if __name__ == "__main__":
     import sys
 
+    if sys.argv[1:] == ["pills"]:
+        marrow_washing_pill()
+        root_rebirth_pill()
+        sys.exit()
     if sys.argv[1:] == ["roots"]:
         for draw in ROOTS:
             draw()
@@ -599,3 +664,5 @@ if __name__ == "__main__":
     fist()
     for draw in ROOTS:
         draw()
+    marrow_washing_pill()
+    root_rebirth_pill()

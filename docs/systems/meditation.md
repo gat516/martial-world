@@ -53,7 +53,8 @@ changes your inner self happens seated, in one row of tiles above the vitals
 | Break Through | `CultivationAction "breakthrough"` (`BreakthroughView.attempt`) | bar full (replaces Circulate) |
 | Comprehend | panel: techniques at a bottleneck, their insight and stone cost, Comprehend (`InventoryAction "comprehend"`) | a technique is at one (`Bottleneck.list`) |
 | Method | panel: owned methods (qi, reaches, blurb); Use switches (`CultivationAction "method"`) | you own one (Foundation) |
-| Spirit Root | panel: the root's card and exact numbers (same text as the Self card) | root tested |
+| Spirit Root | panel: the root's card and exact numbers (same text as the Self card), root pills, the reform choice; a seal dot while a choice waits | root tested |
+| Practise | Practise Dao drill (`CirculationMinigame.practise`); dimmed with an m:ss countdown while resting, a tap toasts the wait | from `Pacing.DaoPractice.FROM`, until the equipped class's Dao is mastered |
 | Rise | stand up | always |
 
 - Square tiles in the top-right tiles' style (drawn icons from
@@ -73,20 +74,26 @@ changes your inner self happens seated, in one row of tiles above the vitals
   isn't a camera drag, any key, the lotus again, opening a menu or standing up
   brings everything back. Passive cultivation keeps running.
 
-**Practise Dao (server built, tile to do).** A 20 s drill with the equipped
+**Practise Dao (built).** The Practise tile (`CultivatePrompt.Practise`, crossed
+jian, `icon_practise` in `meditation_art`) runs a 20 s drill with the equipped
 weapon, played on a circulation minigame titled "<Class> Forms"
 (`CirculationMinigame.practise()` -> `CultivationAction "practiceStart" /
 "practiceFinish" / "practiceCancel"`, server `src/server/DaoPractice.luau`).
-Scored like a circulation run; pays up to `XP_SHARE` (25%) of the current Dao
+The hint comes from the run kind (Pulse's qi wording would read wrong). Scored like a circulation run; pays up to `XP_SHARE` (25%) of the current Dao
 level's XP, then a 5 min cooldown (`data.daoPracticeReadyUnix`, pushed as
 `daoPracticeReady`). Leaving early costs nothing and starts no cooldown. Unlocks
 at QC7 (`Pacing.DaoPractice.FROM`), never XP for sitting.
 
-**Root actions (server built, buttons to do).** The Spirit Root page offers the
-pills the player holds: Marrow Washing Pill (raise grade) and Root Rebirth Pill
-(reform the element), used with `InventoryAction "use"` (both refused unless
-seated). After a rebirth the page shows both elements and the player keeps one:
-`CultivationAction("root", keepNew)` (see [character](character.md)).
+**Root actions (built).** Under the root card the Spirit Root page lists the
+pills the player holds, each with Absorb (`InventoryAction "use"`, refused unless
+seated; refusals toast): Marrow Washing Pill ("Raise your root one grade"; at
+Heaven grade it says "Your root is at its purest." and has no button) and Root
+Rebirth Pill ("Reform as another element"). Holding neither, the note adds one
+quiet line: "Rare pills can purify or reform your root." While a reformed element
+is pending (`root.pending`), the page shows two rows instead, the current root
+("Return to <old>", lacquer) over the new one ("Keep <new>", jade), and calls
+`CultivationAction("root", keepNew)` (see [character](character.md)). The Spirit
+Root tile wears the seal dot (`Root.Badge`) until the choice is made.
 
 ## Known gaps
 - `server/Meditation.luau` still reads the multipliers via the Config aliases.

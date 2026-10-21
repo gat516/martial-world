@@ -994,6 +994,32 @@ def _petal_points(cx, base_y, length, width):
     return pts
 
 
+def icon_practise():
+    """Meditation menu: Practise Dao (a weapon drill). Two jian crossed point up,
+    guards and pommels clear of each other, a fuller groove down each blade."""
+    N = 128 * SS
+    u = SS
+    c = N / 2
+    mask = Image.new("L", (N, N), 0)
+
+    def blade(angle):
+        layer = Image.new("L", (N, N), 0)
+        ld = ImageDraw.Draw(layer)
+        # drawn upright about the centre, then rotated
+        ld.polygon([(c, 2 * u), (c - 10 * u, 18 * u), (c - 10 * u, 84 * u), (c + 10 * u, 84 * u), (c + 10 * u, 18 * u)], fill=255)
+        ld.rounded_rectangle([c - 24 * u, 82 * u, c + 24 * u, 94 * u], radius=6 * u, fill=255)  # guard
+        ld.rectangle([c - 6 * u, 92 * u, c + 6 * u, 112 * u], fill=255)  # grip
+        ld.ellipse([c - 10 * u, 106 * u, c + 10 * u, 126 * u], fill=255)  # pommel
+        return layer.rotate(angle, resample=Image.BICUBIC, center=(c, c))
+
+    for a in (38, -38):
+        mask.paste(255, (0, 0), blade(a))
+
+    def deco(d, u):
+        d.line([(c - 30 * u, 30 * u), (c - 40 * u, 42 * u)], fill=SHINE, width=3 * u)
+    _tile_icon(mask, "icon_practise.png", deco)
+
+
 def meditation_art():
     icon_circulate()
     icon_breakthrough()
@@ -1001,6 +1027,7 @@ def meditation_art():
     icon_method()
     icon_rise()
     icon_lotus()
+    icon_practise()
 
 
 if __name__ == "__main__":

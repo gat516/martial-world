@@ -78,7 +78,7 @@ local function play(info: Feel.Info, hold: { () -> () }): (number, number)
 		(find(name) :: Frame).Visible = name == stageName
 	end
 	(find("Title") :: TextLabel).Text = info.title or minigame.TITLE
-	local hint = if Platform.isTouch() and minigame.TOUCH_HINT then minigame.TOUCH_HINT else minigame.HINT;
+	local hint = info.hint or if Platform.isTouch() and minigame.TOUCH_HINT then minigame.TOUCH_HINT else minigame.HINT;
 	(find("Hint") :: TextLabel).Text = hint
 	local counted = false
 	local ui: Feel.Ui = {
@@ -138,7 +138,11 @@ end
 -- The server actions for each kind of run.
 local KINDS = {
 	circulation = { start = "start", finish = "finish", cancel = "cancel", left = "You stopped circulating. Your raw qi is untouched." },
-	dao = { start = "practiceStart", finish = "practiceFinish", cancel = "practiceCancel", left = "You set your weapon down. Nothing was lost." },
+	dao = {
+		start = "practiceStart", finish = "practiceFinish", cancel = "practiceCancel", left = "You set your weapon down. Nothing was lost.",
+		-- the drill plays Pulse; its qi wording would read wrong for weapon forms
+		hint = "Tap as each ring closes on its point to strike the form true. Strike purple points to clear bad habits.",
+	},
 }
 
 local function run(kind: string)
@@ -153,6 +157,7 @@ local function run(kind: string)
 		running = false
 		return
 	end
+	info.hint = info.hint or (actions :: any).hint
 
 	Controls.lock("Circulation")
 	overlay.Visible = true

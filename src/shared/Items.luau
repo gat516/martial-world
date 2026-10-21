@@ -170,6 +170,8 @@ local ICONS = {
 	HeavenlyDew = "rbxassetid://130425556372891",
 	CloudPatternJade = "rbxassetid://111675844442057",
 	ImmortalPeach = "rbxassetid://139842946222436",
+	MarrowWashingPill = "rbxassetid://104139998760801",
+	RootRebirthPill = "rbxassetid://89728852679228",
 }
 
 -- Herbs are items too

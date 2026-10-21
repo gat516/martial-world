@@ -8,7 +8,11 @@
 --   Method      owned cultivation methods (Shared.Methods); Use switches
 --               (CultivationAction "method"), the active one reads "Active".
 --   Root        the spirit root's card and its exact numbers (Note), the same
---               text as the Self card. Raising its grade or rerolling come later.
+--               text as the Self card, then a row per root pill the player holds
+--               (Marrow Washing raises the grade, Root Rebirth reforms the
+--               element; Absorb = InventoryAction "use"). While a reformed
+--               element is pending it shows the old and the new root instead,
+--               each with its choice (CultivationAction "root", keepNew).
 -- The panel is a window (Menus): the seated row and the HUD step aside while it's
 -- open, and its seal closes it. It sits where the vitals were, at the bottom
 -- of the stack, so the meditating character stays in view.
@@ -16,6 +20,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Items = require(ReplicatedStorage.Shared.Items)
 local Methods = require(ReplicatedStorage.Shared.Methods)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
@@ -27,6 +32,7 @@ local SelfCard = require(script.Parent.SelfCard)
 local State = require(script.Parent.State)
 
 local cultivationRemote = ReplicatedStorage.Remotes.CultivationAction :: RemoteFunction
+local inventoryRemote = ReplicatedStorage.Remotes.InventoryAction :: RemoteFunction
 local player = Players.LocalPlayer
 
 export type Page = "Comprehend" | "Method" | "Root"
@@ -41,6 +47,8 @@ local BOTTLENECK = Color3.fromRGB(255, 150, 110)
 local COST_OK = "#F0D28C"
 local COST_SHORT = "#FF826E"
 local TITLES: { [Page]: string } = { Comprehend = "Comprehend", Method = "Method", Root = "Spirit Root" }
+local PILLS = { "MarrowWashingPill", "RootRebirthPill" }
+local PILL_SUB = { MarrowWashingPill = "Raise your root one grade", RootRebirthPill = "Reform as another element" }
 local NEXT_TIER: { [number]: string } = { [3] = "Tier II", [6] = "Tier III", [9] = "Mastery" }
 
 local MeditationMenu = {}
@@ -51,7 +59,7 @@ local list: ScrollingFrame
 local template: GuiObject
 local note: TextLabel
 local page: Page = "Method"
-local switching = false
+local switching = false -- a method switch, pill or root choice is on its way to the server
 
 -- Which tiles have something to show.
 function MeditationMenu.relevant(): { [Page]: boolean }
@@ -79,6 +87,7 @@ type RowSpec = {
 	blurb: string,
 	action: string?, -- caption; nil hides the button
 	ready: boolean?, -- jade and bright; else lacquer and dimmed
+	plain: boolean?, -- lacquer but bright: a real choice that isn't the suggested one
 	onAction: (() -> ())?,
 }
 
@@ -112,9 +121,10 @@ local function addRow(order: number, spec: RowSpec)
 	if spec.action then
 		local label = button:FindFirstChild("Label") :: TextLabel
 		label.Text = spec.action
+		local bright = spec.ready or spec.plain
 		button.Image = if spec.ready then BUTTON_JADE else BUTTON_LACQUER
-		button.ImageTransparency = if spec.ready then 0 else 0.3
-		label.TextTransparency = if spec.ready then 0 else 0.3
+		button.ImageTransparency = if bright then 0 else 0.3
+		label.TextTransparency = if bright then 0 else 0.3
 		local onAction = spec.onAction
 		if onAction then
 			button.Activated:Connect(function()
@@ -153,16 +163,21 @@ local function comprehendRows(): number
 	return #ids
 end
 
-local function switchTo(id: string)
+-- One request at a time; a refusal toasts its reason (`always`: toast success too).
+local function send(remote: RemoteFunction, always: boolean, ...: any)
 	if switching then
 		return
 	end
 	switching = true
-	local ok, message = cultivationRemote:InvokeServer("method", id)
+	local ok, message = remote:InvokeServer(...)
 	switching = false
-	if not ok and message then
+	if message and (always or not ok) then
 		Hud.toast(message)
 	end
+end
+
+local function switchTo(id: string)
+	send(cultivationRemote, false, "method", id)
 end
 
 local function methodRows(): number
@@ -197,22 +212,89 @@ local function methodRows(): number
 	return n
 end
 
+-- One root as a row: its seal, name, grade and perk; `tag` leads the grade line.
+local function rootRow(order: number, element: string, grade: string, tag: string, spec: { action: string?, ready: boolean?, plain: boolean?, onAction: (() -> ())? })
+	local def = Roots.Elements[element]
+	addRow(order, {
+		icon = SelfCard.rootIcon(def.id),
+		name = `{def.name} Root`,
+		nameColor = def.color,
+		info = `{tag}{grade} grade`,
+		infoColor = SelfCard.gradeColor(grade),
+		sub = def.blurb,
+		blurb = "",
+		action = spec.action,
+		ready = spec.ready,
+		plain = spec.plain,
+		onAction = spec.onAction,
+	})
+end
+
+-- The pending choice after a Root Rebirth Pill: the old root, then the new.
+local function pendingRows(root: Roots.Root): number
+	local old, new = Roots.Elements[root.element], Roots.Elements[root.pending]
+	rootRow(1, root.element, root.grade, "Current · ", {
+		action = `Return to {old.name}`,
+		plain = true,
+		onAction = function()
+			send(cultivationRemote, false, "root", false)
+		end,
+	})
+	rootRow(2, root.pending, root.grade, "New · ", {
+		action = `Keep {new.name}`,
+		ready = true,
+		onAction = function()
+			send(cultivationRemote, false, "root", true)
+		end,
+	})
+	return 2
+end
+
+-- The root pills the player holds, each with Absorb (the server checks the seat).
+local function pillRows(root: Roots.Root): number
+	local items = State.current.items or {}
+	local n = 0
+	for i, id in PILLS do
+		local count = items[id] or 0
+		if count > 0 then
+			n += 1
+			local def = Items.Defs[id]
+			local purest = id == "MarrowWashingPill" and Roots.nextGrade(root.grade) == nil
+			addRow(10 + i, {
+				icon = def.icon or "",
+				name = def.name,
+				nameColor = Items.Rarities[def.rarity].color,
+				info = `Owned {count}`,
+				sub = if purest then "Your root is at its purest." else PILL_SUB[id],
+				blurb = "",
+				action = if purest then nil else "Absorb",
+				ready = true,
+				onAction = function()
+					send(inventoryRemote, false, "use", id)
+				end,
+			})
+		end
+	end
+	return n
+end
+
 local function rootRows(): number
 	local root = SelfCard.currentRoot()
 	if not root then
 		return 0
 	end
-	local def = Roots.Elements[root.element]
-	addRow(1, {
-		icon = SelfCard.rootIcon(def.id),
-		name = `{def.name} Root`,
-		nameColor = def.color,
-		info = `{root.grade} grade`,
-		infoColor = SelfCard.gradeColor(root.grade),
-		sub = def.blurb,
-		blurb = "",
-	})
-	return 1
+	local live = State.current.root
+	if live and live.pending ~= "" and Roots.Elements[live.pending] then
+		return pendingRows(live)
+	end
+	rootRow(1, root.element, root.grade, "", {})
+	return 1 + pillRows(root)
+end
+
+-- A reformed element is waiting for the player's choice.
+function MeditationMenu.rootPending(): boolean
+	local root = State.current.root
+	return root ~= nil and root.pending ~= nil and root.pending ~= ""
 end
 
 local function render()
@@ -226,7 +308,13 @@ local function render()
 	note.Visible = true
 	if page == "Root" then
 		local root = SelfCard.currentRoot()
-		note.Text = if root then SelfCard.rootDetail(root) else ""
+		if MeditationMenu.rootPending() then
+			note.Text = "Your root is reforming. Keep the new element, or return to the old. The grade stays."
+		elseif root and count <= 1 then
+			note.Text = `{SelfCard.rootDetail(root)}\nRare pills can purify or reform your root.`
+		else
+			note.Text = if root then SelfCard.rootDetail(root) else ""
+		end
 	elseif page == "Comprehend" and count == 0 then
 		note.Text = "No technique is at a bottleneck. Practise your arts until one is."
 	elseif page == "Method" and count == 0 then

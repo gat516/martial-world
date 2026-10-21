@@ -35,8 +35,9 @@ an `enemy-designer` brief.
 
 ## The method
 
-1. **Gather references.** Start from what the user gave you and
-   `docs/reference/vfx/`. Then find more: search YouTube for Roblox showcases
+1. **Gather references.** Start from what the user gave you and the
+   reference library, `docs/reference/vfx/README.md`: reuse its references and
+   breakdowns, and research only what it doesn't cover. Then find more: search YouTube for Roblox showcases
    of the same kind of effect ("roblox vfx showcase aura", "sol's rng aura",
    "roblox studio vfx <element> explosion"). Turn each video into a frame grid
    and look at it:
@@ -46,7 +47,10 @@ an `enemy-designer` brief.
    crashed it. Videos are cached in `~/.cache/ref_frames`; never save them
    in the repo (only the grids and stills go in `docs/reference/`).
    Zoom on the climax with a time window. Save stills the user gives you to
-   `docs/reference/vfx/` with a descriptive name.
+   `docs/reference/vfx/` with a descriptive name. Save grids you'll keep
+   there too (not only in the scratchpad), and add a row and a layer
+   breakdown to the library for every reference you used, in the same
+   commit as the effect.
 2. **Learn the technique.** When you don't know how a look is made, look it up
    before guessing: Roblox Creator Hub VFX tutorials, DevForum VFX threads,
    YouTube tutorials ("roblox studio vfx tutorial <thing>"). Note what you

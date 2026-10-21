@@ -64,20 +64,11 @@ below). Different games, same recipe:
 
 ### Reference index
 
-| Ref | What to take from it |
-|---|---|
-| `vortex_impact_ink_rings.webp`, [vortex short](https://www.youtube.com/shorts/0H9MIjJNO-Q) | a beam streak lands, a flat vortex opens: black swirl under white swirl strokes, a cyan accent, a green inner dome, black and white cube debris, 4-point glints; it collapses to a thin ring |
-| `slash_dome_ink_swirl.png` | a slash wrapped in a dome of curved white swirl strokes with a dark ink layer behind, smoke in the middle |
-| `star_glint_blade.png` | a single 4-point glint with a lens ring at the tip of a blade: one layer, perfectly timed, sells a whole move |
-| [Megumin explosion](https://www.youtube.com/watch?v=c_6YHwMt2cU) | anticipation as stacked magic circles rising one above another, light streaks shooting up, smoke ring, then a white-out, a pillar and a dome, then smoke filling the screen |
-| [Holy Aura](https://www.youtube.com/shorts/TC4Ryp9e0Kk) | an aura: ground magic circle, a light shaft from above, a halo ring at the head, overexposed glow on the body, sparkles and feathers drifting |
-| [Sol's RNG Luminosity](https://www.youtube.com/shorts/5bDNR9zqt4M) | a rare aura: a huge crystal star of textured shards with a white core, rays, a ground sigil, title text, snow-like sparkles; the cutscene darkens the world first |
-| `aura_clock_sigil_crystal_trees.png` | a rare aura as a scene: a turning clock sigil overhead, a glowing ground circle, crystal trees, orbiting dark orbs, star field |
-| [Sol's RNG Tomorrow](https://www.youtube.com/watch?v=pGb_klAsJB8) | the roll cutscene: the world fades to black, glyphs and a star burst on screen, white-out, then the aura on the player |
-| [Enkidu: Enuma Elish](https://www.youtube.com/watch?v=vgYRw8hRj0g) | a world-scale event: a golden magic circle in the sky, a light pillar down to a ground circle, a cloud vortex, gold streaks and glints everywhere, a palette flip at the climax |
-
-Study a video with `tools/ref_frames.py` (a frame grid, optionally of one
-time window); it is for looking, nothing from a video goes in the game.
+Every reference, with what to take from it and its layer breakdown, is in
+[docs/reference/vfx/README.md](../reference/vfx/README.md). Read it before
+researching; add to it after. Study a video with `tools/ref_frames.py` (a
+frame grid, optionally of one time window); it is for looking, nothing from a
+video goes in the game.
 
 ## Our version: xianxia and wuxia
 

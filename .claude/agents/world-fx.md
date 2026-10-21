@@ -40,9 +40,12 @@ are yours, the lightning strikes on the player are `vfx`'s.
 
 ## References
 
-Start from what the user gave you and `docs/reference/vfx/`; put world-scale
-stills in `docs/reference/vfx/world/` with descriptive names. Then pull more.
-Good searches:
+Start from what the user gave you and the reference library,
+`docs/reference/vfx/README.md`: reuse its world references and breakdowns, and
+research only what it doesn't cover. Put world-scale stills and grids in
+`docs/reference/vfx/world/` with descriptive names, and add a row and a
+breakdown (with its far read) to the library for every reference you used, in
+the same commit as the effect. Good searches for what's missing:
 - Donghua and manhua sky scenes: "heavenly tribulation donghua", "treasure
   birth xianxia anime", "sky splitting open anime", "purple qi from the east
   donghua" (紫气东来, the violet auspicious mist), "golden lotus sky
@@ -51,7 +54,7 @@ Good searches:
 - Games: Genshin and Wuthering Waves world bosses and sky events, Sol's RNG
   global event cutscenes, Roblox "world event vfx showcase", "roblox sky
   crack vfx", "roblox cloud vortex vfx".
-- The user's Enkidu "Enuma Elish" reference (style.md index) for the descent:
+- The user's Enkidu "Enuma Elish" reference (the reference library) for the descent:
   sky formation, pillar driving down, cloud vortex, gold streaks.
 
 Frame grids with `tools/ref_frames.py` as in the vfx brief. Zoom on the moment

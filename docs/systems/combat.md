@@ -194,6 +194,36 @@ checks a rebuild against the previous templates.
   shake at the landing, and a flame tongue under each burn hit; IV a flame
   `Pillar` at the landing, the move's one PointLight, and a big finale with an
   Explosion shake.
+- **Weapon skills with their own clip** (Heaven-Splitting Descent, Rampaging
+  Tiger Cleave) share `TechniqueFX/BladeSkill.luau`: the effect plays once per
+  cast (`claim`), on a clock that reads the move's playing AnimationTrack on
+  the caster (the caster's own, or the replicated one an observer sees), so
+  every beat lands on the clip's own pose even when the relay is late; beats
+  tied to a clip marker (`Hit` "n", `Leap`) fire on the marker, with the clip
+  time as the fallback. If the track stops before the last hit (a cancelled
+  cast) the rest is dropped. Without a track it runs from the first hit at
+  `def.castSpeed`. The blade draws its own arcs: the template's `Edge` Trails,
+  `Glow` beam and `Motes` move onto the held weapon's `Base`/`Tip`
+  attachments (a virtual blade off the right arm when no weapon is held) and
+  switch on for the windows where the sampled motion actually swings.
+  Previews: `_G.vfxSpecs.BladeKit.preview` (weapon rig, clip scrubbed at
+  castSpeed, root driven over `lungeWindow`).
+- **Heaven-Splitting Descent** (`HeavenSplitter_T1..T4`, authored at radius 12
+  centred 4 ahead; `TechniqueFX.HeavenSplitter`). Heaven-azure qi, white core
+  (gold at IV), ink scars. Light hits (Hit 1 sweep, Hit 2 rising cut): a light
+  impact on each enemy in the circle. Leap: a torus and dust ring at the feet,
+  II+ swirl rings rising up the body. Airborne: the blade glows and sheds
+  motes; III+ a faint rune seal opens over the landing circle (following the
+  predicted landing) and a vertical rift tears open in the sky above it; III+
+  a phantom greatsword (ForceField at III, Neon at IV) rides the real blade
+  down and bites the ground, holds and dissolves. Slam (last hit, at the
+  root's live position): a star flash where the blade bites, a fissure split
+  from there through the circle (Neon slit cooling to an ink scar), a torus
+  shockwave rolling out to the radius with a dust skirt and rays, heavy
+  impacts timed by the torus front; II+ a pillar of light collapses onto the
+  bite and an echo torus; III+ Craters rock ring, crater and cracks, rock
+  kicks, fissure cracks; IV a dome shell, the one PointLight, impact frames
+  and an Explosion quake.
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative

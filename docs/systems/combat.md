@@ -467,8 +467,15 @@ checks a rebuild against the previous templates.
   model's Base -> Tip) through the spin; every cut gets a crescent-moon
   flipbook plus the shared ink splat and star-burst flipbook. Impacts already
   fire as the heading passes (inside Hit 0.633 -> Hit Stop 0.75 plus the
-  follow-through). Layers T1 / T4: charge 8 / 8, release 6 / 6, sweep 4 / 5,
-  edge 3 / 4, ground 6 / 11, impact 10 / 16.
+  follow-through). QA pass 2026-10-21: the `Sweep` sheet rides the real
+  guandao: its heading is the live point's heading round the caster (sampled,
+  it starts at -142 deg, not -126, and leads the authored curve by 15-20 deg
+  through the spin), never behind the authored curve, so a frozen relay pose
+  still sweeps; the shared flare (part `Flare`) plays where the spin is
+  fastest (`WeaponFX.swing`), facing it; impact frames from III; a hit-pause
+  punch at III+; shake 0.9 / 1.4 / 2.2 / 3.0. Layers T1 / T4: charge 8 / 8,
+  release 6 / 6, flare 6 / 7, sweep 4 / 5, edge 3 / 4, ground 6 / 11, impact
+  10 / 17.
 - **Twin Phoenix Cannon** (`TwinPhoenixCannon_T1..T4`, authored at length 18
   and width 6; `TechniqueFX.TwinPhoenixCannon`). The skill animation throws
   two overhand forward punches, right fist at `Hit "1"`/`Release "1"` (0.30)

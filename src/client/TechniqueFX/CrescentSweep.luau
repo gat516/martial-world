@@ -50,6 +50,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		windup:Destroy() -- played at cast start (CombatEffects.windup)
 	end
 	local edgeT = TechniqueVFX.take(copy, "Edge")
+	local flare = TechniqueVFX.take(copy, "Flare")
 	if not sweep then
 		copy:Destroy()
 		return false
@@ -69,6 +70,16 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			end
 		end
 	end
+	-- the flare where the blade whips past fastest (the front of the spin)
+	WeaponFX.swing(character, timeline.active, function(at, swing)
+		WeaponFX.flare(flare, at, swing, 1)
+		if flare then
+			flare:Destroy()
+		end
+		if tier >= 3 then
+			CombatEffects.punch(at, if tier >= 4 then 0.7 else 0.45, Color3.fromRGB(110, 230, 160), timeline.active)
+		end
+	end, tipAt or (origin + dir * 3))
 	CastFX.keepCratersOffEnemies()
 	TechniqueVFX.emit(copy)
 	TechniqueVFX.cleanup(copy, 0.2)
@@ -99,8 +110,38 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		local k = math.clamp((t - active) / followTime, 0, 1)
 		return h0 - degrees - follow * (1 - (1 - k) ^ 2)
 	end
+	-- the sheet rides the real blade: the guandao's point heading round the
+	-- caster (unwrapped, only ever moving on), never behind the authored curve
+	-- (a frozen relay pose still sweeps). Sampled on the clip the point leads
+	-- the authored curve by ~15-20 deg through the middle of the spin.
+	local live = WeaponFX.rig(character)
+	local liveH: number? = nil
+	local function liveHeading(): number?
+		if not (live and live.real and live.to.Parent) then
+			return nil
+		end
+		local rel = facing:PointToObjectSpace(live.to.WorldPosition)
+		if Vector3.new(rel.X, 0, rel.Z).Magnitude < 1 then
+			return liveH
+		end
+		local raw = math.deg(math.atan2(rel.X, -rel.Z))
+		local ref = liveH or h0
+		local h = raw + 360 * math.round((ref - raw) / 360)
+		liveH = if liveH then math.min(liveH, h) else h
+		return liveH
+	end
+	if live and live.real then
+		local start = liveHeading()
+		if start and math.abs(start - h0) < 60 then
+			h0 = start
+		end
+	end
 	local function place(t: number)
 		local h = headingAt(t)
+		local lh = liveHeading()
+		if lh then
+			h = math.max(math.min(h, lh), h0 - degrees - follow)
+		end
 		-- the sheet rises a little toward the front of the spin (the tip runs
 		-- 0.6 -> 4.6 off the ground), sinking again round the back
 		local lift = math.cos(math.rad(h)) * tilt
@@ -136,6 +177,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			light.Brightness = 2.4 * (1 - 0.5 * t / total)
 		end
 	end, function()
+		WeaponFX.releaseRig(live)
 		if edge then
 			BladeSkill.setTrails(edge, false)
 			if edge.glow then

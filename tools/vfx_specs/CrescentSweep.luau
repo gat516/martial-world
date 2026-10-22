@@ -225,7 +225,7 @@ B.BLOCKS.csTip = function(root, tier, p)
 		Size = NS({ KP(0, 1), KP(1, 2.2 + tier * 0.3) }), Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
 		Lifetime = R(0.22), LightEmission = 0.4,
 	}, { EmitCount = 1 })
-	B.screenShake(root, tier, { parent = "Tip", magnitude = ({ 1, 1.4, 1.9, 2.5 })[tier], frames = tier >= 4 })
+	B.screenShake(root, tier, { parent = "Tip", magnitude = ({ 0.9, 1.4, 2.2, 3.0 })[tier], frames = tier >= 3 })
 	return tip
 end
 
@@ -264,7 +264,7 @@ return {
 	beats = {
 		{ block = "bladeCharge", params = { color = JADE, core = CORE, ink = INK, width = 0.6, full = true } },
 		{ block = "csTip" },
-		{ block = "bladeFlare", params = { part = "Tip", color = JADE, core = CORE, ink = INK } },
+		{ block = "bladeFlare", params = { part = "Flare", color = JADE, core = CORE, ink = INK } }, -- played where the spin is fastest (WeaponFX.swing)
 		{ block = "csEdge" },
 		{ block = "csSweep" },
 		{ block = "groundShockwave", params = pal({ radius = RADIUS, color = JADE }) },

@@ -93,50 +93,50 @@ local function stagger(t: number, d: number): Pose
 	return out
 end
 
--- Struck senseless: a hard snap back with the arms flung out, a slump, then a
--- punch-drunk loop. The head lolls round in circles, the hunched body drifts on
--- its feet and every 1.6 s nearly topples (alternating sides), catching itself
--- with a step and a flung arm. The arms hang limp and swing a beat behind the
--- body; the legs counter the body's lean so the feet stay under it. The last
--- 0.35 s shakes it off and straightens up.
+-- Struck senseless: a snap back with the arms thrown out, then an upright,
+-- drunken sway. The body rolls slowly side to side on a wide stance, every
+-- other swing going further (a near-fall, caught by a sideways step and the
+-- arms lifting for balance). The heavy head and limp arms trail the body by a
+-- beat. Everything moves on slow, continuous curves (one swing ~3 s), so it
+-- reads dazed, never twitchy. The last 0.35 s shakes it off.
 local function stun(t: number, d: number): Pose
 	local out = pose()
-	local hit = math.sin(math.clamp(t / 0.22, 0, 1) * math.pi) -- 0 -> 1 -> 0 over the snap
-	local daze = smooth((t - 0.1) / 0.35) * (1 - smooth((t - (d - 0.35)) / 0.35))
-	local loll = t * math.pi * 2 * 0.75
-	local drift = t * math.pi * 2 * 0.38
-	local cycle = t / 1.6
-	local side = if math.floor(cycle) % 2 == 0 then 1 else -1 -- 1: tips left
-	local lurch = math.max(0, math.sin((cycle % 1) * math.pi * 2)) ^ 4 * daze
+	local hit = math.sin(math.clamp(t / 0.25, 0, 1) * math.pi) -- 0 -> 1 -> 0 over the snap
+	local daze = smooth((t - 0.1) / 0.5) * (1 - smooth((t - (d - 0.35)) / 0.35))
+	local a = (t - 0.1) * math.pi * 2 * 0.32 -- the sway
+	local wide = 0.5 - 0.5 * math.cos(a * 0.5) -- every other swing goes further
 
-	local hunch = (-14 + 4 * math.cos(drift)) * daze
-	local sway = 7 * math.sin(drift) * daze + 11 * side * lurch
-	out.rootPitch = 22 * hit + hunch
+	local sway = (9 + 7 * wide) * math.sin(a) * daze -- +: tips left
+	local reach = smooth((math.abs(sway) - 8) / 7) -- how near a fall this swing is
 	out.rootRoll = sway
-	out.rootYaw = 8 * hit + 6 * math.sin(drift * 0.5) * daze
+	out.rootPitch = 14 * hit + (2 + 4 * math.cos(a * 2)) * daze
+	out.rootYaw = 6 * hit + 5 * math.sin(a * 0.5) * daze
 
-	out.neckPitch = 30 * hit + (-28 + 10 * math.sin(loll)) * daze
-	out.neckRoll = 20 * math.cos(loll) * daze
-	out.neckYaw = 12 * math.sin(loll * 0.5 + 0.7) * daze
+	-- the head is heavy: it tips the way the body went a beat ago
+	local late = a - 0.9
+	out.neckRoll = (14 + 6 * wide) * math.sin(late) * daze
+	out.neckPitch = 25 * hit + (-10 + 6 * math.cos(late * 2)) * daze
+	out.neckYaw = 8 * math.sin(a * 0.5 - 0.6) * daze
 	local off = math.clamp((t - (d - 0.35)) / 0.35, 0, 1)
 	if d > 0.8 then
-		out.neckYaw += 22 * math.sin(off * math.pi * 6) * math.sin(off * math.pi) -- shaking it off
+		out.neckYaw += 18 * math.sin(off * math.pi * 6) * math.sin(off * math.pi) -- shaking it off
 	end
 
-	-- limp arms hang plumb, a beat behind the body's drift; flung out on the hit
-	-- and to catch a near-fall
-	local lag = drift - 1.1
-	out.arm = 55 * hit
-	out.lArmPitch = -hunch * 0.85 + 10 * math.sin(lag) * daze
-	out.rArmPitch = -hunch * 0.85 + 10 * math.sin(lag - 0.5) * daze
-	out.lArmRoll = -sway * 0.85 - 6 * daze - 28 * lurch
-	out.rArmRoll = -sway * 0.85 + 6 * daze + 28 * lurch
+	-- loose arms hang plumb and trail the sway, lifting out for balance on a near-fall
+	local trail = 6 * math.sin(a - 1.3) * daze
+	out.arm = 40 * hit + (6 + 22 * reach) * daze
+	out.lArmRoll = -sway * 0.8 - trail
+	out.rArmRoll = -sway * 0.8 - trail
+	out.lArmPitch = -out.rootPitch * 0.8 + 6 * math.sin(a * 0.5 + 0.4) * daze
+	out.rArmPitch = -out.rootPitch * 0.8 + 6 * math.sin(a * 0.5 - 0.4) * daze
 
-	-- feet stay under the body, a wide unsteady stance; the falling side steps out
-	out.rightHip = -out.rootPitch * 0.85 + (if side < 0 then 10 * lurch else 0)
-	out.leftHip = -out.rootPitch * 0.85 + (if side > 0 then 10 * lurch else 0)
-	out.lHipRoll = -sway * 0.85 - 5 * daze - (if side > 0 then 14 * lurch else 0)
-	out.rHipRoll = -sway * 0.85 + 5 * daze + (if side < 0 then 14 * lurch else 0)
+	-- feet stay under the body on a wide stance; the falling side steps out
+	local fallLeft = if sway > 0 then reach else 0
+	local fallRight = if sway < 0 then reach else 0
+	out.rightHip = -out.rootPitch * 0.85
+	out.leftHip = -out.rootPitch * 0.85
+	out.lHipRoll = -sway * 0.85 - 6 * daze - 10 * fallLeft
+	out.rHipRoll = -sway * 0.85 + 6 * daze + 10 * fallRight
 	return out
 end
 

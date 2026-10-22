@@ -3,8 +3,9 @@
 -- built from tools/vfx_specs/SwordQiWave.luau). Called by CombatEffects.cast at
 -- Hit, for the caster and observers alike.
 --
--- The release flashes on the right hand (Fists.3 sweeps the right arm flat
--- across the front through Hit), then a crescent of Beams (part "Blade") flies
+-- The release flashes on the held jian's blade (the model's Base -> Tip, 0.8 of
+-- the way out; Fists.3 sweeps the right arm flat across the front through Hit,
+-- so the blade goes with it), its edge draws a ribbon through the cut, then a crescent of Beams (part "Blade") flies
 -- the line on the template's TravelCurve, drawing a glowing slit on the ground
 -- that cools into an ink scar. Every enemy on the line gets an impact as the
 -- blade's front reaches its near side; the blade ends in a terminal burst at
@@ -20,6 +21,8 @@ local TweenService = game:GetService("TweenService")
 local Client = script.Parent.Parent
 local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
+local WeaponFX = require(script.Parent.WeaponFX)
+local BladeSkill = require(script.Parent.BladeSkill)
 
 local SIDE = "Right" -- the striking arm in Fists.3 (def.hand when it's set)
 
@@ -166,13 +169,18 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	if windup then
 		windup:Destroy() -- played at cast start (CombatEffects.windup)
 	end
+	local edgeT = TechniqueVFX.take(copy, "Edge")
 	if not blade then
 		copy:Destroy()
 		return false
 	end
 
-	-- the release on the live hand (observers see it on the replicated pose)
-	local handAt = CastFX.handPosition(character, def.hand or SIDE) or (origin + dir * 1.2 + Vector3.new(0, 0.5, 0))
+	-- the release on the live blade, 0.8 of the way to the point (observers see
+	-- it on the replicated pose); the hand only when nothing is held
+	local rig = WeaponFX.rig(character)
+	local bladeAt = if rig and rig.real then rig:at(0.8) else nil
+	WeaponFX.releaseRig(rig)
+	local handAt = bladeAt or CastFX.handPosition(character, def.hand or SIDE) or (origin + dir * 1.2 + Vector3.new(0, 0.5, 0))
 	local hand = copy:FindFirstChild("Hand") :: BasePart?
 	if hand then
 		hand.CFrame = CFrame.lookAt(handAt, handAt + dir)
@@ -237,6 +245,28 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		path.CFrame = CFrame.lookAt((a + b) / 2, b) + Vector3.new(0, 0.2, 0)
 	end
 	CastFX.keepCratersOffEnemies()
+	-- the real edge draws its own ribbon through the cut (Hit -> Hit Stop and a beat on)
+	local edgeBlade = BladeSkill.blade(character)
+	local edge = if edgeBlade and edgeT then BladeSkill.edge(edgeT, edgeBlade) else nil
+	if edge then
+		BladeSkill.setTrails(edge, true)
+		if edge.glow then
+			edge.glow.Enabled = true
+		end
+		if edge.motes then
+			edge.motes.Enabled = true
+		end
+		task.delay(timeline.active + 0.1, function()
+			BladeSkill.setTrails(edge, false)
+			if edge.glow then
+				edge.glow.Enabled = false
+			end
+			if edge.motes then
+				edge.motes.Enabled = false
+			end
+			BladeSkill.release(edgeBlade, 0.9)
+		end)
+	end
 	TechniqueVFX.emit(copy) -- the release (flash, air rings, shake) and path aftermath
 	TechniqueVFX.cleanup(copy, 0.2)
 	if not TechniqueVFX.full and CastFX.nearCamera(origin, 45) then
@@ -354,8 +384,9 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		local along = target.progress * length
 		local progress = math.clamp((along - startAlong) / full, 0, 1)
 		local beyond = progress > stopProgress -- behind a wall: hit, but the blade never got there
-		local delay = if beyond then stopTime else CastFX.curveTime(travelCurve, travelTime, progress)
-		task.delay(delay, function()
+		local arrival = if beyond then stopTime else CastFX.curveTime(travelCurve, travelTime, progress)
+		-- squeezed into Hit -> Hit Stop (the damage number shows at Hit)
+		task.delay(WeaponFX.landing(arrival, travelTime, timeline.active), function()
 			if impact and not beyond then
 				CastFX.impactAt(impact, target, { Kick = 3, Quake = 1 })
 			end

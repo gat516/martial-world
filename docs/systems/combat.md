@@ -166,7 +166,19 @@ checks a rebuild against the previous templates.
   path cracks and the terminal crater; IV a gold core, three air rings, one
   point light riding the blade, a sword-intent crescent and impact frames at
   the release, and a quake on the first impact. Damage still lands on the
-  whole line at Hit; visual impacts follow the blade, up to ~0.36 s later.
+  whole line at Hit. Remade 2026-10-21 on the jian and the Hit window: the
+  0.32 s windup is a `Charge` along the model's Base -> Tip (dark beam under a
+  cyan one, motes, a point glint) instead of a hand gather; the release (star,
+  the shared flare, air rings) bursts on the blade 0.8 of the way to the tip,
+  not on the hand, and the real edge draws its own ribbon, glow and motes
+  (`Edge`, `BladeSkill.edge`) through the cut; the crescent has an ink crescent
+  under it and crosses the line in 0.12 s (was 0.36), the echoes trailing, with
+  every impact squeezed into Hit 0.35 -> Hit Stop 0.467 (`WeaponFX.landing`; a
+  sandbox run with a jian landed them 0.02-0.03 s after the release and the
+  terminal at 0.13 s) instead of up to ~0.36 s after the damage number; every
+  cut gets a cyan crescent flipbook and the shared ink splat and star-burst
+  flipbook. Layers T1 / T4: charge 8 / 8, release 8 / 12, edge 3 / 4, blade 11,
+  impact 10 / 16, terminal 10 / 16.
 - **Lightning Talisman** (`LightningTalisman_T1..T4`;
   `TechniqueFX.LightningTalisman`). At Hit a paper talisman card leaves the
   left hand (Fists.2) and tumbles to a point above the first target in

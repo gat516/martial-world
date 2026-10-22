@@ -48,6 +48,20 @@
 --       Explosion quake on the first impact, a big terminal burst (bubble,
 --       swirl, crater ring, shards), the longest scar.
 --
+-- Remade 2026-10-21 on the jian and the Hit window (the sword is held through
+-- Fists.3, so the arm's swing is the blade's):
+--   Windup (cast start -> Hit, 0.32 s): part "Charge" rides the model's Base ->
+--     Tip (WeaponFX.charge): a dark beam under a cyan one, motes along the edge
+--     and a glint at the point, instead of a hand gather.
+--   Release (Hit, part "Hand"): the star flash, flare (cross glint, star-burst
+--     flipbook over ink, sparks) and air rings burst on the blade, 0.8 of the
+--     way to the tip, not on the hand; the real edge draws its own ribbon,
+--     glow and motes ("Edge") through the cut.
+--   Travel: the crescent has an ink crescent under it (dark under light) and
+--     crosses the line in 0.12 s (was 0.36 s), the echo blades trailing, so
+--     each impact lands inside Hit -> Hit Stop (0.107 s) plus a frame or two
+--     instead of up to 0.3 s after the damage number; every cut also gets a
+--     cyan crescent-moon flipbook.
 -- Authored at length 32, width 5, active 0.107 s; the runtime rescales to the
 -- def and fits Phase "active" emitters (none critical here: the blade's travel
 -- is authored, like Palm Strike's ground torus, so it is seen).
@@ -83,7 +97,10 @@ local A = {
 	intent = id(13366366767), -- layered crescent slashes (mastery sword intent)
 	mote = id(9841260273), -- small glowing spindle mote
 	crackSmall = id(97725700315217), -- radial ground crack
+	crescentFlip = id(13972642464), -- 4x4 flipbook: a thin crescent moon sweeping and fading
 }
+local GRID4 = Enum.ParticleFlipbookLayout.Grid4x4
+local ONESHOT = Enum.ParticleFlipbookMode.OneShot
 
 -- The blade: a Part whose attachments and Beams draw a horizontal crescent
 -- (two tapered half-beams per layer, tips trailing back), plus wake trails,
@@ -122,7 +139,7 @@ B.BLOCKS.sqwBlade = function(root, tier, p)
 	for k, v in {
 		Span = span, Depth = depth, Height = 2.6,
 		Pitch = 16, Roll = -10, -- degrees: leading edge up so its face shows from behind the caster, left tip high like the sweep's end
-		TravelTime = 0.36, -- seconds to the full length
+		TravelTime = 0.12, -- seconds to the full length: inside Hit -> Hit Stop (0.107 s) plus a frame or two
 		TravelCurve = NS({ KP(0, 0), KP(0.25, 0.37), KP(0.5, 0.65), KP(0.75, 0.86), KP(1, 1) }), -- progress over time
 		Echoes = ({ 0, 1, 2, 2 })[tier], EchoDelay = 0.045, EchoScale = 0.82,
 	} do
@@ -131,6 +148,8 @@ B.BLOCKS.sqwBlade = function(root, tier, p)
 	local core = if tier >= 4 then GOLD_CORE else CORE
 	-- saturated and nearly solid, low LightEmission: additive white-out washes
 	-- the blade into the sky and the grass by day
+	-- dark under light: an ink crescent a hair under the bright ones, so the blade reads on grass at noon
+	crescent(blade, "Ink", span * 1.04, depth * 1.04, -0.05, span * 0.38, INK, 0.3, false, 0)
 	crescent(blade, "Edge", span, depth, 0, span * 0.34, EDGE, 0.04, false, 0.15)
 	crescent(blade, "Core", span * 0.94, depth * 0.9, 0.05, span * 0.16, core, 0, false, 0.4)
 	crescent(blade, "Glow", span * 1.1, depth * 1.08, 0.02, span * 0.46, CYAN, 0.4, true, 0.35)
@@ -218,9 +237,24 @@ B.BLOCKS.sqwPath = function(root, tier, p)
 end
 
 -- The horizontal crescent cut flashed through each target's body.
+-- The real blade's edge: the runtime moves Edge's Trails, Glow and Motes onto
+-- the held model's Base -> Tip for the cut.
+B.BLOCKS.sqwEdge = function(root, tier, p)
+	return _G.vfxSpecs.BladeKit.edge(root, tier, {
+		color = CYAN, core = if tier >= 4 then GOLD_CORE else CORE, tail = EDGE,
+		trailLife = { 0.16, 0.2, 0.24, 0.3 }, glowWidth = { 0.5, 0.7, 0.9, 1.1 }, moteRate = { 10, 16, 22, 30 },
+	})
+end
+
 B.BLOCKS.sqwSlash = function(root, tier, p)
 	local part = root:FindFirstChild(p.part or "Impact")
 	local body = part:FindFirstChild("Body")
+	B.emitter(body, "SlashFlip", {
+		Texture = A.crescentFlip, Color = CS(Color3.fromRGB(205, 240, 255)),
+		FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+		Size = NS({ KP(0, 2.2 + tier * 0.3), KP(1, 3.2 + tier * 0.4) }), Transparency = NS({ KP(0, 0), KP(0.7, 0.15), KP(1, 1) }),
+		Lifetime = R(0.3), LightEmission = 0.5, Rotation = R(-8, 8), ZOffset = 3.2,
+	}, { EmitCount = 1 })
 	return B.emitter(body, "Slash", {
 		Texture = A.slash, Color = CS(CORE, CYAN),
 		Size = NS({ KP(0, 1), KP(0.25, 2.6 + tier * 0.45), KP(1, 3.2 + tier * 0.5) }), Transparency = NS({ KP(0, 0), KP(0.55, 0.15), KP(1, 1) }),
@@ -275,10 +309,12 @@ return {
 	id = "SwordQiWave",
 	root = { attrs = { AuthoredActive = 0.107, AuthoredLength = 32, AuthoredWidth = 5 } },
 	beats = {
-		-- windup: qi gathers into the right hand as it swings in
-		{ block = "handGather", params = pal({ windup = 0.32, at = HAND_AT }) },
-		-- release off the hand-blade
+		-- windup: a charge along the real blade (Base -> Tip) as it swings in
+		{ block = "bladeCharge", params = { color = CYAN, core = CORE, ink = INK, width = 0.45 } },
+		-- release off the blade
 		{ block = "releaseFlash", params = pal({ part = "Hand", at = HAND_AT, light = false }) },
+		{ block = "bladeFlare", params = { part = "Hand", color = CYAN, core = CORE, ink = INK } },
+		{ block = "sqwEdge" },
 		{ block = "airShockwave", params = pal({ part = "Hand", at = HAND_AT, color = PALETTE.ringColor, travel = nil }) },
 		{ block = "sqwShake" },
 		{ block = "sqwIntent", from = 4 },

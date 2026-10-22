@@ -8,7 +8,14 @@
 -- server's enemyCue "snare". Contracts: the fight sheet in
 -- docs/systems/enemies.md (Nine-Tailed Fox).
 --
--- Barrage attacks (fangDance, tailLance, lanceFan, tailSnare, foxfireVolley,
+-- No copies of the fox's body anywhere (user, 2026-10-21: the Neon ghost
+-- heads, afterimages and death ghost looked bad): roars are thrown from the
+-- jaws (RoarBreath), the intro kindles from the ground, the phase break
+-- spirals up in ribbons, the death burns the body away (Dissolve) into nine
+-- streams. Ribbons and lances ride the live TailTip{i}_FX of the real tails.
+-- foxfireVolley's bolts are real projectiles drawn by the "foxfireBolt"
+-- ProjectileView drawer at the bottom of this file.
+-- Barrage attacks (fangDance, tailLance, lanceFan, tailSnare,
 -- rootfireEruption, nineTailFall) schedule each part at
 -- release + part.delay (release = the end of the windup); `part.ext` is the
 -- seconds before that the tail starts extending. Shapes, lengths and radii are
@@ -428,15 +435,17 @@ local function held(cue: Cue, name: string, frame: CFrame, o: Options?): BasePar
 	return effect
 end
 
--- A per-frame driver that stops at the distance cutoff or a cancel.
-local function drive(cue: Cue, duration: number, step: (number) -> (), finish: (() -> ())?, cancelOnGeneration: boolean?)
+-- A per-frame driver that stops at the distance cutoff or a cancel. `always`
+-- (the death) keeps driving after the fox is dead, while its model exists.
+local function drive(cue: Cue, duration: number, step: (number) -> (), finish: (() -> ())?, cancelOnGeneration: boolean?, always: boolean?)
 	local s = state(cue.model)
 	local generation = s.generation
 	local started = os.clock()
 	local connection: RBXScriptConnection
 	connection = RunService.RenderStepped:Connect(function()
 		local a = (os.clock() - started) / duration
-		local stop = a >= 1 or not alive(cue) or (cancelOnGeneration and s.generation ~= generation)
+		local live = if always then cue.model.Parent ~= nil else alive(cue)
+		local stop = a >= 1 or not live or (cancelOnGeneration and s.generation ~= generation)
 		if stop then
 			connection:Disconnect()
 			if finish then
@@ -672,82 +681,17 @@ local function waitForBody(cue: Cue)
 	end
 end
 
--- Ghost fox ------------------------------------------------------------------
+-- The roar, thrown from the jaws -------------------------------------------------
 
-local function bodyParts(cue: Cue, centre: Vector3?, radius: number?, limit: number): { BasePart }
-	local found = {}
-	for _, d in body(cue.model):GetDescendants() do
-		if d:IsA("BasePart") and d.Name ~= "HumanoidRootPart" and d.Transparency < 0.9 and not d:FindFirstAncestor("HealthBar") then
-			if not centre or (d.Position - centre).Magnitude <= (radius or 0) then
-				local v = d.Size.X * d.Size.Y * d.Size.Z
-				if v > 0.4 then
-					table.insert(found, d)
-				end
-			end
-		end
-	end
-	table.sort(found, function(a, b)
-		return a.Size.X * a.Size.Y * a.Size.Z > b.Size.X * b.Size.Y * b.Size.Z
-	end)
-	while #found > limit do
-		table.remove(found)
-	end
-	return found
-end
-
--- Translucent Neon copies of the fox's own parts that rise, swell and dissolve.
-local function ghost(parts: { BasePart }, life: number, travel: Vector3, swell: number, from: number, fadeIn: number, color: Color3)
-	if #parts == 0 then
-		return
-	end
-	local centre = Vector3.zero
-	for _, p in parts do
-		centre += p.Position
-	end
-	centre /= #parts
-	local copies = {}
-	for _, p in parts do
-		local c = p:Clone()
-		for _, child in c:GetChildren() do
-			if not child:IsA("DataModelMesh") then
-				child:Destroy()
-			end
-		end
-		c.Anchored, c.CanCollide, c.CanQuery, c.CanTouch, c.CastShadow, c.Massless = true, false, false, false, false, true
-		c.Material = Enum.Material.Neon
-		c.Color = color
-		c.Transparency = 1
-		c.Parent = TechniqueVFX.folder
-		table.insert(copies, { part = c, offset = p.Position - centre, rot = p.CFrame.Rotation, size = p.Size })
-	end
-	local started = os.clock()
-	local connection: RBXScriptConnection
-	connection = RunService.Heartbeat:Connect(function()
-		local a = (os.clock() - started) / life
-		if a >= 1 then
-			connection:Disconnect()
-			for _, c in copies do
-				c.part:Destroy()
-			end
-			return
-		end
-		local transparency = if a < fadeIn then 1 + (from - 1) * (a / fadeIn) else from + (1 - from) * ((a - fadeIn) / (1 - fadeIn))
-		local k = 1 + swell * a
-		local move = travel * (1 - (1 - a) * (1 - a))
-		for _, c in copies do
-			c.part.CFrame = CFrame.new(centre + c.offset * k + move) * c.rot
-			c.part.Size = c.size * k
-			c.part.Transparency = transparency
-		end
-	end)
-end
-
--- The head (parts within a few studs of the Mouth) rising out of the fox.
-local function ghostHead(cue: Cue, life: number, travel: Vector3, swell: number, from: number, fadeIn: number)
+-- Sound rings, wisps, streaks and breath fired forward out of the Mouth (the
+-- intro roar, the scream, the phase break). No copies of the fox's body: the
+-- user rejected the Neon ghost and afterimage copies (2026-10-21).
+local function roarBreath(cue: Cue, size: number, seq: ColorSequence)
 	local mouth = point(cue, "Mouth", { "Head", "Snout" })
-	local look = root(cue).CFrame.LookVector
-	local centre = mouth.Position - look * 2.4
-	ghost(bodyParts(cue, centre, 6.5, 24), life, travel, swell, from, fadeIn, PHASES[phaseOf(cue)].mid)
+	local look = flat(root(cue).CFrame.LookVector)
+	look = if look.Magnitude > 0.01 then look.Unit else Vector3.new(0, 0, -1)
+	-- aim a little down the line of the head, never into the sky
+	play("RoarBreath", CFrame.lookAt(mouth.Position, mouth.Position + look - Vector3.new(0, 0.12, 0)), { size = size, tint = seq })
 end
 
 -- Ribbons, threads, lanes ------------------------------------------------------
@@ -757,8 +701,10 @@ local function tweenFrom(a: number): number
 end
 
 -- A flying head with three trails behind it. `path(a)` gives its CFrame for
--- a = 0..1 over `duration`. o: width, wide / core (ColorSequence), tint,
--- lifeScale (longer trails), follow (a function returning a CFrame instead).
+-- a = 0..1 over `duration`. o: width (studs; match it to what it rides: a
+-- tail's lance is ~0.3, its flame ~1.2, its brush ~1.6), wide / core
+-- (ColorSequence), tint, lifeScale (longer trails), always (keeps flying
+-- through the death).
 local function ribbon(cue: Cue, duration: number, path: (number) -> CFrame, o: any?)
 	local base = template("Ribbon")
 	if not base then
@@ -774,6 +720,12 @@ local function ribbon(cue: Cue, duration: number, path: (number) -> CFrame, o: a
 	end
 	local seq = opts.tint or phaseSeq(phaseOf(cue))
 	tint(copy, seq)
+	-- the head (glow, tongues, sparks) is authored for a 2-stud ribbon
+	prepare(copy, math.clamp(width / 2, 0.4, 1.4))
+	if a0 and a1 then
+		a0.Position = Vector3.new(0, width / 2, 0)
+		a1.Position = Vector3.new(0, -width / 2, 0)
+	end
 	local last = seq.Keypoints[#seq.Keypoints].Value
 	local mid = seq.Keypoints[math.ceil(#seq.Keypoints / 2)].Value
 	local trails = {}
@@ -807,7 +759,7 @@ local function ribbon(cue: Cue, duration: number, path: (number) -> CFrame, o: a
 	end
 	drive(cue, duration, function(a)
 		copy.CFrame = path(a)
-	end, finish, false)
+	end, finish, false, opts.always)
 end
 
 -- Beams between two moving points (a thread of foxfire). `from` and `to`
@@ -956,21 +908,29 @@ end
 
 -- A lance from tail `i` down a box, landing at `landAbs` (the hit time).
 local function lanceStreak(cue: Cue, i: number, p: any, landAbs: number, ext: number, seq: ColorSequence, hitName: string?)
-	local from, far = boxEnds(p)
-	local endPoint = far + Vector3.new(0, 1.6, 0)
-	local frame, whip = tip(cue, i)
-	local origin = frame.Position
+	local _, far = boxEnds(p)
+	local endPoint = far + Vector3.new(0, 1.2, 0)
+	local _, whip = tip(cue, i)
 	afterAbs(cue, landAbs - ext, function()
 		local startFrame = tip(cue, i)
-		origin = startFrame.Position
-		play("TailIgnite", startFrame, { follow = whip, tint = seq })
-		local duration = math.max(0.1, ext)
-		ribbon(cue, duration, function(a)
-			local t = tweenFrom(a)
-			-- the head starts at the live tip and runs down the box
-			local pos = origin:Lerp(endPoint, t)
-			return CFrame.lookAt(pos, endPoint + (endPoint - origin).Unit * 0.01)
-		end, { width = 1.8, tint = seq, wide = ColorSequence.new(HOT, GOLD), core = ColorSequence.new(WHITE, HOT), lifeScale = 0.8 })
+		play("TailIgnite", startFrame, { follow = whip, tint = seq, size = 0.7 })
+		local duration = math.max(0.08, ext)
+		local started = os.clock()
+		local function reach(): Vector3
+			local a = math.clamp((os.clock() - started) / duration, 0, 1)
+			return (tip(cue, i)).Position:Lerp(endPoint, tweenFrom(a))
+		end
+		-- the lance: a thin beam that leaves the live tail tip (it keeps riding
+		-- the tail as the pose moves it) and runs down to the lane's end, held
+		-- a beat past the hit; a small head of foxfire leads it
+		thread(cue, "Thread", duration + 0.18, function()
+			return (tip(cue, i)).Position
+		end, reach, { tint = seq, width = 0.7 })
+		ribbon(cue, duration, function()
+			local pos = reach()
+			local dir = endPoint - pos
+			return if dir.Magnitude > 0.05 then CFrame.lookAt(pos, endPoint) else CFrame.new(pos)
+		end, { width = 0.9, tint = seq, wide = ColorSequence.new(HOT, GOLD), core = ColorSequence.new(WHITE, HOT), lifeScale = 0.7 })
 	end)
 	afterAbs(cue, landAbs, function()
 		play(hitName or "LanceHit", CFrame.new(endPoint) * facing(cue), { tint = seq })
@@ -1001,7 +961,8 @@ function W.intro(cue: Cue, c)
 			end
 		end)
 	end
-	ghostHead(cue, c.seconds * 0.9, root(cue).CFrame.LookVector * 3 + Vector3.new(0, 3.5, 0), 0.3, 0.7, 0.45)
+	-- foxfire wakes in the ground round it and climbs (no body copy)
+	held(cue, "Kindle", CFrame.new(pos) * facing(cue), { scale = 7, seconds = c.seconds, tint = phaseSeq(c.phase) })
 end
 
 function W.fangDance(cue: Cue, c)
@@ -1106,30 +1067,9 @@ function W.foxfireVolley(cue: Cue, c)
 			k += 1
 		end
 	end
-	for _, p in c.parts do
-		local tail = p.tail or 5
-		local at = c.release + (p.delay or 0)
-		if p.cframe then
-			lane(cue, p, at, seq)
-			local _, far = boxEnds(p)
-			local endPoint = far + Vector3.new(0, 1.2, 0)
-			afterAbs(cue, at, function()
-				local frame, whip = tip(cue, tail)
-				play("TailIgnite", frame, { follow = whip, tint = phaseSeq(phaseOf(cue)) })
-				local origin = frame.Position
-				local live = phaseSeq(phaseOf(cue))
-				ribbon(cue, 0.2, function(a)
-					local pos = origin:Lerp(endPoint, a)
-					return CFrame.lookAt(pos, endPoint + (endPoint - origin).Unit * 0.01)
-				end, { width = 2.2, tint = live, lifeScale = 0.9 })
-				afterAbs(cue, workspace:GetServerTimeNow() + 0.2, function()
-					local at_ = ground(cue, endPoint)
-					play("Burst", CFrame.new(at_ + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = math.max(2, (p.size and p.size.X or 3) * 0.8), tint = phaseSeq(phaseOf(cue)) })
-					shake(0.08, endPoint, 40)
-				end)
-			end)
-		end
-	end
+	-- the bolts themselves are real projectiles (cue "foxfireBolt", drawn by
+	-- the ProjectileView drawer below); the red lanes are the server's
+	-- warnLane, so nothing here marks the lanes or flies a bolt
 end
 
 local PLUNGE_TAILS = { 1, 3, 5, 7, 9 }
@@ -1260,7 +1200,6 @@ function W.mournfulScream(cue: Cue, c)
 		local f, whip = tip(cue, i)
 		held(cue, "TailFlare", f, { follow = whip, seconds = c.seconds, tint = phaseSeq(c.phase) })
 	end
-	ghostHead(cue, c.seconds * 0.9, root(cue).CFrame.LookVector * 4 + Vector3.new(0, 2, 0), 0.4, 0.65, 0.4)
 end
 
 function W.nineTailFall(cue: Cue, c)
@@ -1388,7 +1327,7 @@ local function takeOff(cue: Cue)
 	local frame, chest = point(cue, "Core", { "Chest" })
 	local offset = chest.CFrame:ToObjectSpace(frame)
 	local stopped = false
-	local width = if attack == "moonLeap" then 5 else 3.4
+	local width = if attack == "moonLeap" then 3 else 2.4
 	local template_ = template("Ribbon")
 	if template_ then
 		local copy = template_:Clone()
@@ -1561,7 +1500,8 @@ local function igniteTrail(cue: Cue, trail: { any }, release: number)
 	task.delay(math.max(0.1, lastTick + 0.6 - workspace:GetServerTimeNow()), stop)
 end
 
--- The pose of a roar: a ring racing out with a ghost fox head rising.
+-- The pose of a roar: rings racing out on the ground, the roar thrown from
+-- the jaws.
 local function roarBurst(cue: Cue)
 	local s = state(cue.model)
 	if os.clock() - s.roarAt < 12 or s.dead then
@@ -1571,7 +1511,7 @@ local function roarBurst(cue: Cue)
 	startAura(cue)
 	local at = ground(cue, root(cue).Position)
 	play("RoarWave", CFrame.new(at) * facing(cue), { tint = phaseSeq(phaseOf(cue)) })
-	ghostHead(cue, 1.1, root(cue).CFrame.LookVector * 7 + Vector3.new(0, 3, 0), 0.7, 0.4, 0.2)
+	roarBreath(cue, 1.2, phaseSeq(phaseOf(cue)))
 	flareAura(cue, 1.6)
 	shake(0.3, cue.root.Position, 90)
 end
@@ -1596,19 +1536,16 @@ local function sweepArc(cue: Cue, shape: any)
 	local half = math.rad(angle) / 2
 	local base = math.atan2(-look.X, -look.Z)
 	local floor = ground(cue, centre).Y
-	-- three tails (2, 5, 8) at three radii, each lengthening as it sweeps
-	for index, k in { 0.62, 0.82, 1.0 } do
-		task.delay((index - 1) * 0.03, function()
+	-- the three sweeping tails (2, 5, 8) each draw a white-gold crescent from
+	-- their own flame as the pose swings them, sized to the fur brush
+	for index, i in { 2, 5, 8 } do
+		task.delay((index - 1) * 0.02, function()
 			if not alive(cue) then
 				return
 			end
-			ribbon(cue, 0.28, function(a)
-				local t = tweenFrom(a)
-				local reach = radius * k * (0.55 + 0.45 * t) * 0.96
-				local theta = base - half + 2 * half * t
-				local pos = Vector3.new(centre.X - math.sin(theta) * reach, floor + 1.7 + index * 0.4, centre.Z - math.cos(theta) * reach)
-				return CFrame.new(pos)
-			end, { width = 2.6, tint = GOLD_SEQ, wide = ColorSequence.new(HOT, GOLD), core = ColorSequence.new(WHITE, HOT), lifeScale = 1.1 })
+			ribbon(cue, 0.34, function()
+				return CFrame.new((tip(cue, i)).Position)
+			end, { width = 1.6, tint = GOLD_SEQ, wide = ColorSequence.new(HOT, GOLD), core = ColorSequence.new(WHITE, HOT), lifeScale = 1.2 })
 		end)
 	end
 	-- the ends of the arc kick dust
@@ -1657,7 +1594,7 @@ function S.mournfulScream(cue: Cue, shape: any)
 	local radius = shapeRadius(shape, 22)
 	play("ScreamWave", CFrame.new(at + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = radius })
 	flareAura(cue, 1.4)
-	ghostHead(cue, 0.9, root(cue).CFrame.LookVector * 9 + Vector3.new(0, 2, 0), 0.8, 0.5, 0.15)
+	roarBreath(cue, 1.5, PALE_SEQ)
 	shake(0.35, cue.root.Position, 25)
 	-- the server fires no hit for a damage-0 attack: sting the local character
 	local character = Players.LocalPlayer and Players.LocalPlayer.Character
@@ -1687,14 +1624,28 @@ function S.veilBreak(cue: Cue)
 	play("Sigil", CFrame.new(at + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = radius * 1.1, tint = seq })
 	local frame, chest = point(cue, "Core", { "Chest" })
 	play("SpiritGlint", frame, { follow = chest, tint = seq })
-	ghostHead(cue, 1.5, root(cue).CFrame.LookVector * 10 + Vector3.new(0, 5, 0), 1.1, 0.3, 0.15)
-	if phase >= 3 then
-		task.delay(0.25, function()
-			if alive(cue) then
-				ghostHead(cue, 1.3, root(cue).CFrame.LookVector * 6 + Vector3.new(0, 9, 0), 1.5, 0.4, 0.2)
-			end
-		end)
+	roarBreath(cue, 1.4, seq)
+	-- the veil tears: foxfire spirals up round the fox (three strands, five
+	-- in the last phase) and bursts as one star over it
+	local base = ground(cue, root(cue).Position)
+	local apex = base + Vector3.new(0, 19, 0)
+	local strands = if phase >= 3 then 5 else 3
+	local rise = 0.85
+	for k = 1, strands do
+		local a0 = (k - 1) / strands * math.pi * 2
+		ribbon(cue, rise, function(a)
+			local t = tweenFrom(a)
+			local r = radius * 0.75 * (1 - t) + 1.2 * t
+			local theta = a0 + t * math.pi * 2.2
+			return CFrame.new(base + Vector3.new(math.cos(theta) * r, 1 + t * 18, math.sin(theta) * r))
+		end, { width = 1.4, tint = seq, lifeScale = 1.6 })
 	end
+	task.delay(rise, function()
+		if alive(cue) then
+			play("SpiritGlint", CFrame.new(apex), { tint = seq })
+			play("SoulRelease", CFrame.new(apex), { tint = seq, size = 0.8 })
+		end
+	end)
 	-- the tails re-ignite for the new phase (colour crossfades over 0.6 s)
 	s.phase = old
 	syncPhase(cue, 0.6)
@@ -1885,9 +1836,28 @@ function Fox.aggro(cue: Cue)
 	startAura(cue)
 end
 
--- Death: flames gutter out one by one (tails 1..9) while a ghost fox of the
--- body's own parts rises and dissolves into nine foxfire streams curling up;
--- the spirit core glints at the Core.
+-- One foxfire stream leaving a guttered tail: it lifts off the flame, curls
+-- once round the fox's axis and meets the others at `apex`.
+local STREAM_RISE = 1.1
+local function soulStream(cue: Cue, i: number, from: Vector3, apex: Vector3, seq: ColorSequence)
+	local out = flat(from - apex)
+	local r0 = math.max(2, out.Magnitude)
+	local a0 = math.atan2(out.Z, out.X)
+	local spin = if i % 2 == 0 then 1 else -1
+	ribbon(cue, STREAM_RISE, function(a)
+		local t = 1 - (1 - a) ^ 2
+		local theta = a0 + spin * t * math.pi * 0.9
+		local r = r0 * (1 - t) ^ 1.4
+		local y = from.Y + (apex.Y - from.Y) * (t ^ 0.8)
+		return CFrame.new(Vector3.new(apex.X + math.cos(theta) * r, y, apex.Z + math.sin(theta) * r))
+	end, { width = 1.1, tint = seq, lifeScale = 1.5, always = true })
+end
+
+-- Death: the flames gutter out one by one (tails 1..9) and each one leaves its
+-- tail as a foxfire stream that curls up over the fox, while the body burns
+-- away into rising flames and motes (Dissolve). The nine streams meet over it
+-- and the spirit core breaks free there (SpiritGlint + SoulRelease). No copy
+-- of the body: the old Neon ghost fox was rejected (user, 2026-10-21).
 function Fox.death(cue: Cue)
 	if not ours(cue) then
 		return
@@ -1910,6 +1880,11 @@ function Fox.death(cue: Cue)
 	for _, item in (s.aura and s.aura.items) or {} do
 		item.e.Enabled = item.tail ~= nil
 	end
+	local main = root(cue)
+	local apex = main.Position + Vector3.new(0, 15, 0)
+	play("Dissolve", main.CFrame, { follow = main, tint = seq, guard = function()
+		return cue.model.Parent ~= nil
+	end })
 	for i = 1, 9 do
 		task.delay(0.2 * (i - 1), function()
 			s.gutter[i] = true
@@ -1926,56 +1901,183 @@ function Fox.death(cue: Cue)
 			local frame, whip = tip(cue, i)
 			if cue.model.Parent then
 				play("TailIgnite", frame, { follow = whip, boost = 0.4, size = 0.6, tint = seq })
+				soulStream(cue, i, frame.Position, apex, seq)
 			end
 		end)
 	end
-	ghost(bodyParts(cue, nil, nil, 40), 3.4, Vector3.new(0, 14, 0), 0.16, 0.45, 0.25, PHASES[phase].mid)
-	task.delay(1.0, function()
-		if not cue.model.Parent then
-			return
-		end
-		local frame, chest = point(cue, "Core", { "Chest" })
-		play("SpiritGlint", chest.Parent and CFrame.new(chest.Position + Vector3.new(0, 0.5, 0)) or frame, { tint = seq })
-		shake(0.3, cue.root.Position, 120)
-	end)
-	-- the nine foxfire streams, from each tip, as the ghost dissolves
-	task.delay(1.6, function()
-		for i = 1, 9 do
-			if not cue.model.Parent then
-				return
-			end
-			local frame, whip = tip(cue, i)
-			local copy = make("Stream", frame, { seconds = 2.0, tint = seq })
-			if copy then
-				copy.Parent = TechniqueVFX.folder
-				for _, d in copy:GetDescendants() do
-					if d:IsA("ParticleEmitter") then
-						d.Enabled = true
-					end
-				end
-				local offset = whip.CFrame:ToObjectSpace(copy.CFrame)
-				local connection: RBXScriptConnection
-				local started = os.clock()
-				connection = RunService.RenderStepped:Connect(function()
-					if not copy.Parent then
-						connection:Disconnect()
-					elseif os.clock() - started > 2 or not whip.Parent then
-						connection:Disconnect()
-						for _, d in copy:GetDescendants() do
-							if d:IsA("ParticleEmitter") then
-								d.Enabled = false
-							end
-						end
-						task.delay(3, function()
-							copy:Destroy()
-						end)
-					else
-						copy.CFrame = whip.CFrame * offset
-					end
-				end)
-			end
-		end
+	-- the last stream arrives at 1.6 + STREAM_RISE: the core breaks free there
+	task.delay(1.6 + STREAM_RISE, function()
+		play("SpiritGlint", CFrame.new(apex), { tint = seq })
+		play("SoulRelease", CFrame.new(apex), { tint = seq })
+		shake(0.3, apex, 120)
 	end)
 end
+
+-- Foxfire bolts (foxfireVolley) ------------------------------------------------
+-- The volley's bolts are real projectiles (server Projectiles, cue
+-- "foxfireBolt", data = { tail, phase }); ProjectileView flies them and calls
+-- this drawer. In flight the bolt is the warning, so it is the brightest thing
+-- the fox throws: the Bolt template (core over a slate halo, star, flipbook
+-- flames, a comet tail of trails) with its Shadow on the ground beneath it.
+
+local BOLT_WIDTH = 1.7
+local BOLT_EASE = 0.15
+
+local function ownerCue(owner: Model?): Cue?
+	if not owner or not owner.Parent or owner:GetAttribute("Template") ~= TEMPLATE then
+		return nil
+	end
+	local found = (owner:FindFirstChild("Body") or owner):FindFirstChild("HumanoidRootPart", true)
+	local main = if found and found:IsA("BasePart") then found else owner.PrimaryPart
+	if not main then
+		return nil
+	end
+	return { model = owner, root = main, kind = "projectile", at = workspace:GetServerTimeNow() }
+end
+
+local function boltPhase(shot: any): number
+	local data = shot.data or {}
+	local phase = data.phase
+	if type(phase) ~= "number" and shot.owner then
+		phase = shot.owner:GetAttribute("Phase")
+	end
+	return if type(phase) == "number" then math.clamp(math.floor(phase), 1, 3) else 1
+end
+
+local function floorUnder(shot: any, position: Vector3, depth: number): Vector3?
+	local exclude = { TechniqueVFX.folder }
+	if shot.owner then
+		table.insert(exclude, shot.owner)
+	end
+	for _, player in Players:GetPlayers() do
+		if player.Character then
+			table.insert(exclude, player.Character)
+		end
+	end
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = exclude
+	local hit = workspace:Raycast(position + Vector3.new(0, 1, 0), Vector3.new(0, -depth, 0), params)
+	return hit and hit.Position
+end
+
+local function boltStart(shot: any)
+	local camera = workspace.CurrentCamera
+	local origin = shot.state.position
+	if camera and (origin - camera.CFrame.Position).Magnitude > MAX_DISTANCE + 60 then
+		return
+	end
+	local base = template("Bolt")
+	if not base then
+		return
+	end
+	local seq = phaseSeq(boltPhase(shot))
+	local copy = base:Clone()
+	tint(copy, seq)
+	local a0, a1 = copy:FindFirstChild("A0"), copy:FindFirstChild("A1")
+	if a0 and a1 then
+		a0.Position, a1.Position = Vector3.new(0, BOLT_WIDTH / 2, 0), Vector3.new(0, -BOLT_WIDTH / 2, 0)
+	end
+	local mid, edge = seq.Keypoints[2].Value, seq.Keypoints[#seq.Keypoints].Value
+	for _, t in copy:GetChildren() do
+		if t:IsA("Trail") then
+			if t.Name == "Wide" then
+				t.Color = ColorSequence.new(mid, edge)
+			elseif t.Name == "Core" then
+				t.Color = ColorSequence.new(WHITE, mid)
+			end
+		end
+	end
+	copy.CFrame = CFrame.new(origin)
+	copy.Parent = TechniqueVFX.folder
+	for _, d in copy:GetDescendants() do
+		if d:IsA("Trail") or d:IsA("ParticleEmitter") then
+			d.Enabled = true
+		end
+	end
+	shot.visual = copy
+	shot.boltBorn = os.clock()
+	-- the tail it leaves flares as it fires; the bolt is drawn leaving that
+	-- flame and eases onto the server's path (which starts at torso height
+	-- ahead of the fox) over BOLT_EASE
+	local cue = ownerCue(shot.owner)
+	local data = shot.data or {}
+	if cue and type(data.tail) == "number" then
+		local frame, whip = tip(cue, data.tail)
+		shot.boltFrom = frame.Position
+		copy.CFrame = CFrame.new(frame.Position)
+		play("TailIgnite", frame, { follow = whip, tint = seq, size = 0.8 })
+	end
+end
+
+local function boltStep(shot: any, position: Vector3, velocity: Vector3)
+	local copy = shot.visual
+	if typeof(copy) ~= "Instance" or not copy.Parent then
+		return
+	end
+	local from = shot.boltFrom
+	local age = os.clock() - (shot.boltBorn or 0)
+	if typeof(from) == "Vector3" and age < BOLT_EASE then
+		local k = age / BOLT_EASE
+		position = from:Lerp(position, k * k * (3 - 2 * k))
+	end
+	copy.CFrame = if velocity.Magnitude > 0.1 then CFrame.lookAt(position, position + velocity) else CFrame.new(position)
+	local shadow = copy:FindFirstChild("Shadow")
+	if shadow and shadow:IsA("BasePart") then
+		local floor = floorUnder(shot, position, 40)
+		for _, e in shadow:GetChildren() do
+			if e:IsA("ParticleEmitter") then
+				e.Enabled = floor ~= nil
+			end
+		end
+		if floor then
+			shadow.CFrame = CFrame.new(floor + Vector3.new(0, 0.12, 0))
+		end
+	end
+end
+
+local function boltFinish(shot: any, position: Vector3, reason: string)
+	local copy = shot.visual
+	shot.visual = nil
+	if typeof(copy) == "Instance" then
+		for _, d in copy:GetDescendants() do
+			if d:IsA("Trail") or d:IsA("ParticleEmitter") then
+				d.Enabled = false
+			end
+		end
+		task.delay(0.7, function()
+			copy:Destroy()
+		end)
+	end
+	if reason == "cancel" or reason == "owner" then
+		return
+	end
+	local camera = workspace.CurrentCamera
+	if camera and (position - camera.CFrame.Position).Magnitude > MAX_DISTANCE then
+		return
+	end
+	local seq = phaseSeq(boltPhase(shot))
+	local floor = floorUnder(shot, position, 8)
+	if floor then
+		play("Burst", CFrame.new(floor + Vector3.new(0, 0.05, 0)), { scale = 2.6, tint = seq })
+	end
+	if not floor and reason ~= "hit" then
+		-- ended in the air (the enemy "hit" cue draws the burst on a player)
+		play("Hit", CFrame.new(position), { tint = seq, size = 0.9 })
+	end
+	shake(0.08, position, 30)
+end
+
+do
+	local module = script.Parent.Parent:FindFirstChild("ProjectileView")
+	if module and module:IsA("ModuleScript") then
+		local ok, view = pcall(require, module)
+		if ok and type(view) == "table" and type((view :: any).register) == "function" then
+			(view :: any).register("foxfireBolt", { start = boltStart, step = boltStep, finish = boltFinish })
+		end
+	end
+end
+-- exposed for previews (a sandbox flies a fake shot through it)
+Fox.boltDrawer = { start = boltStart, step = boltStep, finish = boltFinish }
 
 return Fox

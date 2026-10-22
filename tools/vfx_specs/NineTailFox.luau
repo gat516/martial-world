@@ -55,7 +55,15 @@ local TEX = {
 	chips = id(425665059),
 	ink = id(16132530029),
 	petal = id(90111316485044),
+	moon = id(1084963972), -- a crisp crescent moon
+	wisp = id(15938018250), -- a long sinuous wisp stroke
+	flameFlip = id(17703378809), -- white flame flipbook, 4x4
+	spiritFlip = id(81332883799807), -- tall spirit flame flipbook, 2x2
+	twinkle = id(102648375149008), -- four-point star twinkle flipbook, 4x4
 }
+local GRID4 = Enum.ParticleFlipbookLayout.Grid4x4
+local GRID2 = Enum.ParticleFlipbookLayout.Grid2x2
+local ONESHOT = Enum.ParticleFlipbookMode.OneShot
 
 local FLAT = {
 	Orientation = Enum.ParticleOrientation.VelocityPerpendicular,
@@ -163,15 +171,16 @@ function _G.buildNineTailFoxFX(effects)
 	end
 
 	-- Aura (always on, clones are mounted by the runtime): low foxfire
-	-- tongues and motes on each tail tip, a faint ground mist and slate base.
+	-- tongues and motes on each tail tip, a faint ground mist and rising
+	-- twinkles round the paws. No disc under the fox.
 	do
 		local p = part(root, "AuraTail", Vector3.new(1, 1, 1))
-		em(p, "Flames", { Texture = TEX.flame, Color = FIRE, LightEmission = 1, Rate = 5, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(25, 25), Speed = R(1.5, 3.5), Lifetime = R(0.9, 1.5), Size = grow(2, 0.5), Transparency = NS({ KP(0, 0.5), KP(0.3, 0.35), KP(1, 1) }), Rotation = R(-15, 15), LockedToPart = false })
+		em(p, "Flames", { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, Rate = 5, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(25, 25), Speed = R(1.5, 3.5), Lifetime = R(0.9, 1.5), Size = grow(2, 0.5), Transparency = NS({ KP(0, 0.5), KP(0.3, 0.35), KP(1, 1) }), Rotation = R(-15, 15), LockedToPart = false })
 		em(p, "Motes", { Texture = TEX.dot, Color = CS(AZMID), LightEmission = 1, Rate = 3, SpreadAngle = Vector2.new(180, 180), Speed = R(0.5, 2), Acceleration = Vector3.new(0, 1.4, 0), Lifetime = R(1.8, 3), Size = grow(0.45, 0), Transparency = NS({ KP(0, 1), KP(0.2, 0.2), KP(0.8, 0.4), KP(1, 1) }) })
 	end
 	do
 		local p = part(root, "AuraGround", Vector3.new(16, 0.2, 16))
-		em(p, "Under", with(FLAT, { Texture = TEX.dot, Color = CS(INK), Rate = 0.35, Lifetime = R(3), Size = NS(18), Transparency = NS({ KP(0, 1), KP(0.2, 0.7), KP(0.8, 0.7), KP(1, 1) }), LockedToPart = true, ZOffset = 0.1 }))
+		em(p, "Motes", { Texture = TEX.twinkle, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = CS(AZMID), LightEmission = 1, Rate = 2.5, Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(25, 25), Speed = R(1, 2.5), Lifetime = R(1.6, 2.6), Size = grow(0.8, 0.3), Transparency = NS({ KP(0, 1), KP(0.2, 0.15), KP(0.8, 0.4), KP(1, 1) }), LockedToPart = false })
 		em(p, "Mist", { Texture = TEX.puff, Color = CS(PALE), Rate = 1.6, Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(20, 20), Speed = R(0.6, 1.4), Lifetime = R(3, 4.5), Size = grow(5, 11), Transparency = NS({ KP(0, 1), KP(0.25, 0.82), KP(1, 1) }), Rotation = R(0, 360), RotSpeed = R(-8, 8), LockedToPart = false, ZOffset = 0.2 }, nil)
 	end
 
@@ -181,16 +190,17 @@ function _G.buildNineTailFoxFX(effects)
 		local p = part(root, "TailIgnite", nil)
 		em(p, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 5, Lifetime = R(0.18), Size = grow(2, 7), Transparency = pop, ZOffset = 3 })
 		em(p, "Star", { Texture = TEX.glint, Color = FIRE, LightEmission = 1, Brightness = 4, Lifetime = R(0.3), Size = grow(1, 7, 0), ZOffset = 3 })
-		em(p, "Tongues", { Texture = TEX.flame, Color = FIRE, LightEmission = 1, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(30, 30), Speed = R(5, 11), Lifetime = R(0.6, 1), Size = grow(2.6, 0.5), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), Rotation = R(-20, 20) }, { EmitCount = 6 })
+		em(p, "Tongues", { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(30, 30), Speed = R(5, 11), Lifetime = R(0.6, 1), Size = grow(2.6, 0.5), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), Rotation = R(-20, 20) }, { EmitCount = 6 })
 		em(p, "Ring", { Texture = TEX.ringThin, Color = FIRE, LightEmission = 1, Lifetime = R(0.4), Size = grow(7, 1), Transparency = NS({ KP(0, 1), KP(0.2, 0.15), KP(1, 0.5) }), ZOffset = 1 })
 	end
 
-	-- Sigil (ground, authored r9): a slate base, a turning foxfire sigil and
+	-- Sigil (ground, authored r9): the sigil's own shape in ink beneath it
+	-- (never a filled disc), a turning foxfire sigil and
 	-- mandala, an edge ring, petals lifting off it, a low mist.
 	do
 		local p = part(root, "Sigil", Vector3.new(18, 0.2, 18), { AuthoredRadius = 9, AuthoredSeconds = 2.4 })
 		local g = att(p, "Ground", Vector3.new(0, 0.15, 0))
-		em(g, "Dark", with(FLAT, { Texture = TEX.dot, Color = CS(INK), Lifetime = R(2.4), Size = grow(2, 19, 19), Transparency = NS({ KP(0, 1), KP(0.2, 0.45), KP(0.85, 0.5), KP(1, 1) }), ZOffset = 0.1 }), NOTINT)
+		em(g, "Dark", with(FLAT, { Texture = TEX.sigil, Color = CS(INK), Lifetime = R(2.4), Size = grow(8.8, 18.4, 19.4), RotSpeed = R(36), Transparency = NS({ KP(0, 1), KP(0.15, 0.3), KP(0.8, 0.4), KP(1, 1) }), ZOffset = 0.1 }), NOTINT)
 		em(g, "Sigil", with(FLAT, { Texture = TEX.sigil, Color = FIRE, LightEmission = 1, Brightness = 2, Lifetime = R(2.4), Size = grow(8, 17, 18), RotSpeed = R(36), Transparency = NS({ KP(0, 1), KP(0.15, 0.2), KP(0.8, 0.3), KP(1, 1) }), ZOffset = 0.8 }))
 		em(g, "Mandala", with(FLAT, { Texture = TEX.mandala, Color = CS(PALE), LightEmission = 1, Lifetime = R(2.4), Size = grow(6, 13, 14), RotSpeed = R(-24), Transparency = NS({ KP(0, 1), KP(0.2, 0.4), KP(0.8, 0.5), KP(1, 1) }), ZOffset = 1 }))
 		em(g, "Ring", with(FLAT, { Texture = TEX.ringThick, Color = FIRE, LightEmission = 1, Lifetime = R(1), Size = grow(2, 19), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), ZOffset = 1.2 }))
@@ -274,7 +284,7 @@ function _G.buildNineTailFoxFX(effects)
 		em(g, "Scorch", with(FLAT, { Texture = TEX.ink, Color = CS(INK), Lifetime = R(2.5), Size = grow(4, 8, 8), Transparency = NS({ KP(0, 0.2), KP(0.6, 0.4), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 0.2 }), NOTINT)
 		em(g, "Ring", with(FLAT, { Texture = TEX.ringThick, Color = FIRE, LightEmission = 1, Lifetime = R(0.35), Size = grow(1, 11), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), ZOffset = 1 }))
 		em(g, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 5, Lifetime = R(0.14), Size = grow(4, 9), Transparency = pop, ZOffset = 3 })
-		em(g, "Tongues", { Texture = TEX.flame, Color = FIRE, LightEmission = 1, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40), Speed = R(8, 16), Lifetime = R(0.5, 0.9), Size = grow(3, 0.8), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), Rotation = R(-25, 25) }, { EmitCount = 6 })
+		em(g, "Tongues", { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40), Speed = R(8, 16), Lifetime = R(0.5, 0.9), Size = grow(3, 0.8), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), Rotation = R(-25, 25) }, { EmitCount = 6 })
 		em(g, "Petals", { Texture = TEX.petal, Color = FIRE, LightEmission = 1, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(60, 60), Speed = R(6, 14), Acceleration = Vector3.new(0, -8, 0), Lifetime = R(0.8, 1.4), Size = grow(1.4, 0.6), Rotation = R(0, 360), RotSpeed = R(-200, 200), Transparency = NS({ KP(0, 0.1), KP(1, 1) }) }, { EmitCount = 6 })
 		em(g, "Embers", { Texture = TEX.dot, Color = CS(AZMID), LightEmission = 1, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(70, 70), Speed = R(4, 14), Acceleration = Vector3.new(0, 4, 0), Lifetime = R(1, 1.8), Size = grow(0.35, 0), Transparency = NS({ KP(0, 0), KP(0.7, 0.3), KP(1, 1) }) }, { EmitCount = 10 })
 	end
@@ -293,7 +303,7 @@ function _G.buildNineTailFoxFX(effects)
 	-- TailFlare (scream tell, each lit tail): tongues lifting and a glow.
 	do
 		local p = part(root, "TailFlare", Vector3.new(2, 2, 2), { AuthoredSeconds = 1.4 })
-		em(p, "Tongues", { Texture = TEX.flame, Color = FIRE, LightEmission = 1, Rate = 16, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(20, 20), Speed = R(6, 12), Lifetime = R(0.7, 1.1), Size = grow(2.4, 0.6), Transparency = NS({ KP(0, 0.3), KP(1, 1) }), Rotation = R(-20, 20) }, { EmitDuration = 1.4 })
+		em(p, "Tongues", { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, Rate = 16, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(20, 20), Speed = R(6, 12), Lifetime = R(0.7, 1.1), Size = grow(2.4, 0.6), Transparency = NS({ KP(0, 0.3), KP(1, 1) }), Rotation = R(-20, 20) }, { EmitDuration = 1.4 })
 		em(p, "Glow", { Texture = TEX.dot, Color = FIRE, LightEmission = 1, Lifetime = R(1.4), Size = grow(0.5, 4), Transparency = NS({ KP(0, 0.9), KP(0.9, 0.2), KP(1, 1) }), LockedToPart = true })
 	end
 
@@ -333,6 +343,42 @@ function _G.buildNineTailFoxFX(effects)
 		em(p, "Head", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 4, Rate = 30, Lifetime = R(0.12), Size = grow(1.6, 0.8), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), LockedToPart = true, ZOffset = 2 })
 		em(p, "Tongues", { Texture = TEX.flame, Color = FIRE, LightEmission = 1, Rate = 24, Lifetime = R(0.25, 0.4), Size = grow(2.2, 0.3), Transparency = NS({ KP(0, 0.3), KP(1, 1) }), Rotation = R(-30, 30), LockedToPart = false })
 		em(p, "Sparks", { Texture = TEX.glint, Color = FIRE, LightEmission = 1, Rate = 20, SpreadAngle = Vector2.new(180, 180), Speed = R(2, 7), Lifetime = R(0.3, 0.6), Size = grow(0.5, 0), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), LockedToPart = false })
+	end
+
+	-- Bolt (foxfireVolley, a real projectile drawn by ProjectileView): a ball of
+	-- foxfire the player has to read and dodge. A white-hot core over a slate
+	-- halo, a turning star, flipbook flames streaming off it, sparks, and a
+	-- comet tail of three Trails (slate, phase glow, white core) between A0 and
+	-- A1 (the runtime sets their half-width). Its child part Shadow is moved
+	-- onto the ground under the bolt so its distance reads.
+	do
+		local p = part(root, "Bolt", Vector3.new(0.4, 0.4, 0.4))
+		local a0 = att(p, "A0", Vector3.new(0, 0.8, 0))
+		local a1 = att(p, "A1", Vector3.new(0, -0.8, 0))
+		for _, spec in { { "Dark", CS(SLATE), 0.4, 0.6, 1.5, 0 }, { "Wide", FIRE, 0.38, 0, 1.2, 1 }, { "Core", CS(WHITE), 0.24, 0, 0.45, 1 } } do
+			local t = Instance.new("Trail")
+			t.Name = spec[1]
+			t.Attachment0, t.Attachment1 = a0, a1
+			t.Color = spec[2]
+			t.LightEmission = spec[6]
+			t.LightInfluence = 0
+			t.Lifetime = spec[3]
+			t.MinLength = 0.05
+			t.FaceCamera = true
+			t.Enabled = false
+			t.Transparency = NS({ KP(0, spec[4]), KP(1, 1) })
+			t.WidthScale = NS({ KP(0, spec[5]), KP(1, 0) })
+			t.Parent = p
+		end
+		em(p, "Halo", { Texture = TEX.dot, Color = CS(SLATE), Rate = 14, Lifetime = R(0.16), Size = grow(4.6, 4), Transparency = NS({ KP(0, 0.55), KP(1, 1) }), LockedToPart = true, ZOffset = 0.5 }, NOTINT)
+		em(p, "Glow", { Texture = TEX.dot, Color = FIRE, LightEmission = 1, Brightness = 3, Rate = 24, Lifetime = R(0.14), Size = grow(4.4, 3.4), Transparency = NS({ KP(0, 0.25), KP(1, 1) }), LockedToPart = true, ZOffset = 1.5 })
+		em(p, "Core", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 6, Rate = 24, Lifetime = R(0.12), Size = grow(1.8, 1.4), Transparency = NS({ KP(0, 0), KP(1, 1) }), LockedToPart = true, ZOffset = 2.5 }, NOTINT)
+		em(p, "Star", { Texture = TEX.glint, Color = FIRE, LightEmission = 1, Brightness = 4, Rate = 5, Lifetime = R(0.3), Size = grow(3, 5, 2), Rotation = R(0, 360), RotSpeed = R(-180, 180), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), LockedToPart = true, ZOffset = 2 })
+		em(p, "Flames", { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, Rate = 30, SpreadAngle = Vector2.new(30, 30), Speed = R(1, 3), Lifetime = R(0.25, 0.4), Size = grow(2.6, 0.6), Transparency = NS({ KP(0, 0.15), KP(1, 1) }), Rotation = R(-40, 40), LockedToPart = false, ZOffset = 1 })
+		em(p, "Sparks", { Texture = TEX.twinkle, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, Rate = 16, SpreadAngle = Vector2.new(180, 180), Speed = R(2, 6), Lifetime = R(0.3, 0.6), Size = grow(0.9, 0.2), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), LockedToPart = false })
+		local shadow = part(p, "Shadow", Vector3.new(0.4, 0.2, 0.4))
+		em(shadow, "Shadow", with(FLAT, { Texture = TEX.dot, Color = CS(INK), Rate = 10, Lifetime = R(0.18), Size = NS(3.2), Transparency = NS({ KP(0, 0.55), KP(1, 0.8) }), LockedToPart = true, ZOffset = 0.1 }), NOTINT)
+		em(shadow, "Glow", with(FLAT, { Texture = TEX.ringThin, Color = FIRE, LightEmission = 1, Rate = 10, Lifetime = R(0.18), Size = NS(3.6), Transparency = NS({ KP(0, 0.45), KP(1, 0.8) }), LockedToPart = true, ZOffset = 0.2 }))
 	end
 
 	-- Thread: two Beams (foxfire halo and white core) between its `A` and
@@ -384,11 +430,18 @@ function _G.buildNineTailFoxFX(effects)
 		em(g, "Ring", with(FLAT, { Texture = TEX.ringDust, Color = CS(SLATE), Lifetime = R(0.5), Size = grow(2, 11), Transparency = NS({ KP(0, 0.35), KP(1, 1) }), ZOffset = 0.4 }), NOTINT)
 	end
 
-	-- Landing (ground, authored r6): slate dust ring, flat rings in two
-	-- sizes, dust, lotus petals thrown up, a flash.
+	-- Landing (ground, authored r6, the moon leap's touchdown; it carries the
+	-- beat alone, with no stock disc under it): a crescent moon on its slate
+	-- twin, foxfire tongues, slate dust ring, flat rings in two sizes, dust,
+	-- petals thrown up, a flash.
 	do
 		local p = part(root, "Landing", Vector3.new(12, 0.2, 12), { AuthoredRadius = 6 })
 		local g = att(p, "Ground", Vector3.new(0, 0.15, 0))
+		-- the moon the leap is named for: a crescent printed on the ground on
+		-- its slate twin, opening out, and foxfire tongues leaping off it
+		em(g, "MoonDark", with(FLAT, { Texture = TEX.moon, Color = CS(SLATE), Lifetime = R(0.9), Size = grow(6, 15.5), Rotation = R(-90), Transparency = NS({ KP(0, 0.35), KP(0.6, 0.5), KP(1, 1) }), ZOffset = 0.3 }), NOTINT)
+		em(g, "Moon", with(FLAT, { Texture = TEX.moon, Color = FIRE, LightEmission = 1, Brightness = 2, Lifetime = R(0.9), Size = grow(5.5, 14.5), Rotation = R(-90), Transparency = NS({ KP(0, 0), KP(0.6, 0.3), KP(1, 1) }), ZOffset = 0.9 }))
+		em(g, "Tongues", { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(25, 25), Speed = R(8, 14), Lifetime = R(0.5, 0.8), Size = grow(3, 0.8), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), Rotation = R(-20, 20) }, { EmitCount = 7 })
 		em(g, "DustRing", with(FLAT, { Texture = TEX.ringDust, Color = CS(SLATE), Lifetime = R(0.6), Size = grow(2, 20), Transparency = NS({ KP(0, 0.3), KP(1, 1) }), ZOffset = 0.4 }), NOTINT)
 		em(g, "Ring", with(FLAT, { Texture = TEX.ringThick, Color = FIRE, LightEmission = 1, Lifetime = R(0.4), Size = grow(1, 18), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), ZOffset = 1 }))
 		em(g, "RingSpiky", with(FLAT, { Texture = TEX.ringSpiky, Color = CS(PALE), LightEmission = 1, Lifetime = R(0.45), Size = grow(1, 13), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 1.2 }), { EmitDelay = 0.05 })
@@ -407,7 +460,7 @@ function _G.buildNineTailFoxFX(effects)
 		em(g, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 5, Lifetime = R(0.12), Size = grow(4, 9), Transparency = pop, ZOffset = 3 })
 		em(g, "Dust", { Texture = TEX.puff, Color = CS(DUST), Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180), Speed = R(8, 14), Drag = 4, Lifetime = R(0.6, 1), Size = grow(2, 5), Transparency = NS({ KP(0, 0.4), KP(1, 1) }), Rotation = R(0, 360) }, { EmitCount = 6 })
 		em(g, "Chips", { Texture = TEX.chips, Color = CS(DUST), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(50, 50), Speed = R(14, 26), Acceleration = Vector3.new(0, -70, 0), Lifetime = R(0.6, 0.9), Size = grow(0.8, 0.6), RotSpeed = R(-300, 300), Rotation = R(0, 360) }, { EmitCount = 7 })
-		em(g, "Tongues", { Texture = TEX.flame, Color = FIRE, LightEmission = 1, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(30, 30), Speed = R(6, 12), Lifetime = R(0.4, 0.7), Size = grow(2.4, 0.5), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), Rotation = R(-20, 20) }, { EmitCount = 4 })
+		em(g, "Tongues", { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(30, 30), Speed = R(6, 12), Lifetime = R(0.4, 0.7), Size = grow(2.4, 0.5), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), Rotation = R(-20, 20) }, { EmitCount = 4 })
 	end
 
 	-- Eruption (ground, authored r3.5): the earth cracks on a slate base, a
@@ -418,7 +471,7 @@ function _G.buildNineTailFoxFX(effects)
 		local g = att(p, "Ground", Vector3.new(0, 0.15, 0))
 		em(g, "CrackDark", with(FLAT, { Texture = TEX.crackHole, Color = CS(INK), Lifetime = R(3), Size = grow(4, 9, 9.5), Transparency = NS({ KP(0, 0.1), KP(0.7, 0.3), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 0.2 }), NOTINT)
 		em(g, "CrackLit", with(FLAT, { Texture = TEX.crackGlow, Color = FIRE, LightEmission = 1, Brightness = 2, Lifetime = R(0.9), Size = grow(5, 9), Transparency = NS({ KP(0, 0), KP(0.4, 0.2), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 0.5 }))
-		em(g, "Column", { Texture = TEX.flame, Color = FIRE, LightEmission = 1, Brightness = 2, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(6, 6), Speed = R(22, 36), Lifetime = R(0.55, 0.9), Size = grow(5, 2.6, 0.6), Transparency = NS({ KP(0, 0.1), KP(0.7, 0.3), KP(1, 1) }), Rotation = R(-15, 15) }, { EmitCount = 14 })
+		em(g, "Column", { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, Brightness = 2, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(6, 6), Speed = R(22, 36), Lifetime = R(0.55, 0.9), Size = grow(5, 2.6, 0.6), Transparency = NS({ KP(0, 0.1), KP(0.7, 0.3), KP(1, 1) }), Rotation = R(-15, 15) }, { EmitCount = 14 })
 		em(g, "Streaks", { Texture = TEX.line, Color = CS(WHITE), LightEmission = 1, Orientation = Enum.ParticleOrientation.VelocityParallel, Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(3, 3), Speed = R(36, 56), Lifetime = R(0.3, 0.5), Size = grow(12, 3), Transparency = NS({ KP(0, 0.1), KP(1, 1) }) }, { EmitCount = 10 })
 		em(g, "Ring", with(FLAT, { Texture = TEX.ringThick, Color = FIRE, LightEmission = 1, Lifetime = R(0.35), Size = grow(1, 12), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), ZOffset = 1 }))
 		em(g, "DustRing", with(FLAT, { Texture = TEX.ringDust, Color = CS(SLATE), Lifetime = R(0.5), Size = grow(2, 12), Transparency = NS({ KP(0, 0.3), KP(1, 1) }), ZOffset = 0.4 }), NOTINT)
@@ -433,17 +486,18 @@ function _G.buildNineTailFoxFX(effects)
 	do
 		local p = part(root, "StuckGlow", Vector3.new(2, 2, 2))
 		em(p, "Glow", { Texture = TEX.dot, Color = FIRE, LightEmission = 1, Brightness = 2, Rate = 5, Lifetime = R(0.8), Size = grow(3.6, 1.4), Transparency = NS({ KP(0, 0.6), KP(1, 1) }), LockedToPart = true, ZOffset = 1 })
-		em(p, "Tongues", { Texture = TEX.flame, Color = FIRE, LightEmission = 1, Rate = 8, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(25, 25), Speed = R(3, 7), Lifetime = R(0.6, 1), Size = grow(2.4, 0.5), Transparency = NS({ KP(0, 0.3), KP(1, 1) }), Rotation = R(-20, 20), LockedToPart = false })
+		em(p, "Tongues", { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, Rate = 8, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(25, 25), Speed = R(3, 7), Lifetime = R(0.6, 1), Size = grow(2.4, 0.5), Transparency = NS({ KP(0, 0.3), KP(1, 1) }), Rotation = R(-20, 20), LockedToPart = false })
 		em(p, "Embers", { Texture = TEX.dot, Color = CS(AZMID), LightEmission = 1, Rate = 10, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(60, 60), Speed = R(3, 9), Acceleration = Vector3.new(0, 3, 0), Lifetime = R(0.8, 1.4), Size = grow(0.4, 0), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), LockedToPart = false })
 	end
 
 	-- FireStrip (rate-based; the runtime sizes the part to a trail box and
-	-- scales the rates by its length): a lit foxfire strip on a slate scorch.
+	-- scales the rates by its length): lit fissures and flipbook flames on a
+	-- slate scorch.
 	do
 		local p = part(root, "FireStrip", Vector3.new(4, 1, 20))
 		em(p, "Scorch", with(FLAT, { Texture = TEX.ink, Color = CS(INK), Rate = 0.25, Shape = Enum.ParticleEmitterShape.Box, Lifetime = R(2.5), Size = NS(5), Transparency = NS({ KP(0, 1), KP(0.2, 0.35), KP(0.8, 0.45), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 0.2 }), NOTINT)
-		em(p, "Glow", with(FLAT, { Texture = TEX.dot, Color = FIRE, LightEmission = 1, Rate = 0.35, Shape = Enum.ParticleEmitterShape.Box, Lifetime = R(1.2), Size = NS(4.5), Transparency = NS({ KP(0, 1), KP(0.2, 0.55), KP(1, 1) }), ZOffset = 0.5 }))
-		em(p, "Flames", { Texture = TEX.flame, Color = FIRE, LightEmission = 1, Rate = 1.2, Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(10, 10), Speed = R(3, 6), Lifetime = R(0.6, 1), Size = grow(3.2, 0.6), Transparency = NS({ KP(0, 0.25), KP(0.6, 0.4), KP(1, 1) }), Rotation = R(-20, 20), LockedToPart = false })
+		em(p, "Glow", with(FLAT, { Texture = TEX.crackGlow, Color = FIRE, LightEmission = 1, Brightness = 2, Rate = 0.3, Shape = Enum.ParticleEmitterShape.Box, Lifetime = R(1.2), Size = NS(5), Rotation = R(0, 360), Transparency = NS({ KP(0, 1), KP(0.2, 0.3), KP(1, 1) }), ZOffset = 0.5 }))
+		em(p, "Flames", { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, Rate = 1.2, Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(10, 10), Speed = R(3, 6), Lifetime = R(0.6, 1), Size = grow(3.2, 0.6), Transparency = NS({ KP(0, 0.25), KP(0.6, 0.4), KP(1, 1) }), Rotation = R(-20, 20), LockedToPart = false })
 		em(p, "Embers", { Texture = TEX.dot, Color = CS(AZMID), LightEmission = 1, Rate = 0.5, Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40), Speed = R(3, 9), Acceleration = Vector3.new(0, 4, 0), Lifetime = R(0.8, 1.5), Size = grow(0.4, 0), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), LockedToPart = false })
 	end
 
@@ -486,16 +540,16 @@ function _G.buildNineTailFoxFX(effects)
 	end
 
 	-- FallSigil (ground, authored r5, held 1): a circle's sigil brightening
-	-- toward its own impact: slate base, turning mandala, a swelling fill, an
-	-- edge ring and petals.
+	-- toward its own impact: the mandala in ink beneath itself, the turning
+	-- mandala, rings closing in on the centre (the countdown) and an edge ring.
+	-- No filled disc; ten of these can be live at once, so it stays lean.
 	do
 		local p = part(root, "FallSigil", Vector3.new(10, 0.2, 10), { AuthoredRadius = 5, AuthoredSeconds = 1 })
 		local g = att(p, "Ground", Vector3.new(0, 0.2, 0))
-		em(g, "Dark", with(FLAT, { Texture = TEX.dot, Color = CS(INK), Lifetime = R(1), Size = grow(10.5, 10.5), Transparency = NS({ KP(0, 1), KP(0.15, 0.4), KP(1, 0.5) }), ZOffset = 0.1 }), NOTINT)
-		em(g, "Fill", with(FLAT, { Texture = TEX.dot, Color = FIRE, LightEmission = 0.9, Lifetime = R(1), Size = grow(1, 9.5), Transparency = NS({ KP(0, 0.85), KP(1, 0.45) }), ZOffset = 0.4 }))
+		em(g, "Dark", with(FLAT, { Texture = TEX.mandala, Color = CS(INK), Lifetime = R(1), Size = grow(10.2, 10.2), RotSpeed = R(60), Transparency = NS({ KP(0, 1), KP(0.15, 0.3), KP(1, 0.4) }), ZOffset = 0.1 }), NOTINT)
+		em(g, "Closing", with(FLAT, { Texture = TEX.ringThin, Color = FIRE, LightEmission = 1, Brightness = 2, Rate = 5, Lifetime = R(0.45), Size = grow(10, 1.5), Transparency = NS({ KP(0, 1), KP(0.25, 0.2), KP(1, 0.6) }), LockedToPart = true, ZOffset = 0.6 }), { EmitDuration = 1 })
 		em(g, "Mandala", with(FLAT, { Texture = TEX.mandala, Color = CS(PALE), LightEmission = 1, Lifetime = R(1), Size = grow(9.5, 9.5), RotSpeed = R(60), Transparency = NS({ KP(0, 1), KP(0.2, 0.55), KP(0.9, 0.2), KP(1, 1) }), ZOffset = 0.8 }))
 		em(g, "Edge", with(FLAT, { Texture = TEX.ringThick, Color = FIRE, LightEmission = 1, Lifetime = R(1), Size = grow(10, 10), Transparency = NS({ KP(0, 1), KP(0.15, 0.2), KP(0.9, 0), KP(1, 1) }), ZOffset = 1 }))
-		em(g, "Petals", { Texture = TEX.petal, Color = FIRE, LightEmission = 1, Rate = 8, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(30, 30), Speed = R(2, 6), Lifetime = R(0.8, 1.2), Size = grow(1.2, 0.5), Rotation = R(0, 360), RotSpeed = R(-90, 90), Transparency = NS({ KP(0, 0.5), KP(0.3, 0.2), KP(1, 1) }) }, { EmitDuration = 1 })
 	end
 
 	-- TailPillar (on a raised tail tip, growing over its hold): white-violet
@@ -542,13 +596,6 @@ function _G.buildNineTailFoxFX(effects)
 		em(g, "Embers", { Texture = TEX.dot, Color = CS(AZMID), LightEmission = 1, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(70, 70), Speed = R(8, 24), Acceleration = Vector3.new(0, 2, 0), Lifetime = R(1.2, 2.2), Size = grow(0.5, 0), Transparency = NS({ KP(0, 0), KP(0.7, 0.3), KP(1, 1) }) }, { EmitCount = 20 })
 	end
 
-	-- Stream (death, one per tail tip): foxfire curling upward in long wisps.
-	do
-		local p = part(root, "Stream", Vector3.new(1.6, 1.6, 1.6), { AuthoredSeconds = 2.4 })
-		em(p, "Tongues", { Texture = TEX.flame, Color = FIRE, LightEmission = 1, Brightness = 2, Rate = 12, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(14, 14), Speed = R(5, 9), Acceleration = Vector3.new(0, 3, 0), Lifetime = R(1.4, 2.2), Size = grow(2.8, 0.4), Transparency = NS({ KP(0, 0.3), KP(0.6, 0.4), KP(1, 1) }), Rotation = R(-30, 30), RotSpeed = R(-40, 40), LockedToPart = false }, { EmitDuration = 2.4 })
-		em(p, "Wisps", { Texture = TEX.dot, Color = CS(AZMID), LightEmission = 1, Rate = 10, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40), Speed = R(3, 8), Acceleration = Vector3.new(1.5, 5, 0), Lifetime = R(1.8, 2.8), Size = grow(0.5, 0), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), LockedToPart = false }, { EmitDuration = 2.4 })
-	end
-
 	-- SpiritGlint (at the Core): the spirit core's flash and star with motes.
 	-- Used (smaller) for stagger and for the death's last glint.
 	do
@@ -556,6 +603,56 @@ function _G.buildNineTailFoxFX(effects)
 		em(p, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 6, Lifetime = R(0.3), Size = grow(6, 20), Transparency = NS({ KP(0, 0), KP(0.4, 0.2), KP(1, 1) }), ZOffset = 3 })
 		em(p, "Star", { Texture = TEX.glint, Color = FIRE, LightEmission = 1, Brightness = 6, Lifetime = R(0.55), Size = grow(2, 18, 0), ZOffset = 3 })
 		em(p, "Motes", { Texture = TEX.glint, Color = FIRE, LightEmission = 1, SpreadAngle = Vector2.new(180, 180), Speed = R(6, 20), Drag = 2, Acceleration = Vector3.new(0, 5, 0), Lifetime = R(1, 1.8), Size = grow(0.8, 0), Transparency = NS({ KP(0, 0), KP(0.7, 0.2), KP(1, 1) }) }, { EmitCount = 14 })
+	end
+
+	-- RoarBreath (at the Mouth, -Z = where it looks): the roar itself, thrown
+	-- forward. Sound rings racing out on slate twins, wisp strokes and streaks
+	-- flying ahead, a breath of pale mist, a flash in the jaws. Plays for the
+	-- intro roar, the scream and the phase break (replaces the old Neon copy
+	-- of the fox's head).
+	do
+		local p = part(root, "RoarBreath", Vector3.new(0.6, 0.6, 0.6))
+		local ring = { Texture = TEX.ringThin, Orientation = Enum.ParticleOrientation.VelocityPerpendicular, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(4, 4), Speed = R(14, 42), Drag = 2.5, Lifetime = R(0.55, 0.7) }
+		em(p, "RingsDark", with(ring, { Color = CS(SLATE), Size = grow(3, 17), Transparency = NS({ KP(0, 0.4), KP(1, 1) }), ZOffset = 0.5 }), { EmitCount = 3, NoTint = true })
+		em(p, "Rings", with(ring, { Color = FIRE, LightEmission = 1, Brightness = 2, Size = grow(2.6, 16), Transparency = NS({ KP(0, 0.05), KP(0.7, 0.4), KP(1, 1) }), ZOffset = 1 }), { EmitCount = 3 })
+		em(p, "Wisps", { Texture = TEX.wisp, Color = FIRE, LightEmission = 1, Orientation = Enum.ParticleOrientation.VelocityParallel, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(22, 22), Speed = R(22, 36), Drag = 2, Lifetime = R(0.5, 0.8), Size = grow(4, 8), Transparency = NS({ KP(0, 0.25), KP(1, 1) }), ZOffset = 1.2 }, { EmitCount = 6 })
+		em(p, "Streaks", { Texture = TEX.line, Color = CS(WHITE), LightEmission = 1, Orientation = Enum.ParticleOrientation.VelocityParallel, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(28, 28), Speed = R(50, 80), Lifetime = R(0.2, 0.3), Size = grow(7, 1), Transparency = NS({ KP(0, 0), KP(1, 1) }) }, { EmitCount = 10 })
+		em(p, "Mist", { Texture = TEX.puff, Color = CS(PALE), EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(25, 25), Speed = R(14, 24), Drag = 3, Lifetime = R(0.7, 1.1), Size = grow(2.5, 9), Transparency = NS({ KP(0, 0.55), KP(1, 1) }), Rotation = R(0, 360), RotSpeed = R(-30, 30) }, { EmitCount = 6, NoTint = true })
+		em(p, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 5, Lifetime = R(0.14), Size = grow(3, 8), Transparency = pop, ZOffset = 3 })
+	end
+
+	-- Kindle (ground, authored r6, held 2.2: the intro): foxfire wakes in the
+	-- grass round the fox and climbs. Spirit-flame flipbook tongues, twinkles
+	-- and thin light streaks rising out of the sigil's area.
+	do
+		local p = part(root, "Kindle", Vector3.new(12, 0.4, 12), { AuthoredRadius = 6, AuthoredSeconds = 2.2 })
+		local box = { Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Top }
+		em(p, "Spirits", with(box, { Texture = TEX.spiritFlip, FlipbookLayout = GRID2, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, Brightness = 2, Rate = 12, SpreadAngle = Vector2.new(8, 8), Speed = R(3, 6), Acceleration = Vector3.new(0, 3, 0), Lifetime = R(0.9, 1.4), Size = grow(2.6, 3.4, 1.2), Transparency = NS({ KP(0, 1), KP(0.2, 0.25), KP(0.7, 0.4), KP(1, 1) }) }), { EmitDuration = 2.2 })
+		em(p, "Twinkles", with(box, { Texture = TEX.twinkle, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = CS(AZMID), LightEmission = 1, Brightness = 2, Rate = 14, SpreadAngle = Vector2.new(20, 20), Speed = R(3, 9), Lifetime = R(1, 1.8), Size = grow(1, 0.3), Transparency = NS({ KP(0, 1), KP(0.15, 0.1), KP(1, 1) }) }), { EmitDuration = 2.2 })
+		em(p, "Streaks", with(box, { Texture = TEX.line, Color = FIRE, LightEmission = 1, Orientation = Enum.ParticleOrientation.VelocityParallel, SpreadAngle = Vector2.new(3, 3), Rate = 6, Speed = R(18, 30), Lifetime = R(0.5, 0.8), Size = grow(6, 1.5), Transparency = NS({ KP(0, 0.6), KP(0.3, 0.2), KP(1, 1) }) }), { EmitDuration = 2.2 })
+	end
+
+	-- Dissolve (death, held 2.6, the box covers the fox's body): the body
+	-- burns away into foxfire. Flipbook flames, motes drifting up, wisp
+	-- strokes and twinkles leave every part of it (replaces the Neon ghost).
+	do
+		local p = part(root, "Dissolve", Vector3.new(7, 6, 15), { AuthoredSeconds = 2.6 })
+		local box = { Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Top, LockedToPart = false }
+		em(p, "Flames", with(box, { Texture = TEX.flameFlip, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = FIRE, LightEmission = 1, Brightness = 2, Rate = 20, SpreadAngle = Vector2.new(15, 15), Speed = R(3, 6), Acceleration = Vector3.new(0, 4, 0), Lifetime = R(0.8, 1.3), Size = grow(3.4, 1), Transparency = NS({ KP(0, 0.3), KP(0.6, 0.45), KP(1, 1) }), Rotation = R(-20, 20) }), { EmitDuration = 2.6 })
+		em(p, "Motes", with(box, { Texture = TEX.dot, Color = CS(AZMID), LightEmission = 1, Rate = 22, SpreadAngle = Vector2.new(40, 40), Speed = R(2, 6), Acceleration = Vector3.new(0.8, 5, 0), Lifetime = R(1.4, 2.4), Size = grow(0.45, 0), Transparency = NS({ KP(0, 0.1), KP(1, 1) }) }), { EmitDuration = 2.6 })
+		em(p, "Wisps", with(box, { Texture = TEX.wisp, Color = FIRE, LightEmission = 1, Orientation = Enum.ParticleOrientation.VelocityParallel, Rate = 4, SpreadAngle = Vector2.new(12, 12), Speed = R(6, 10), Lifetime = R(0.9, 1.4), Size = grow(3.5, 6), Transparency = NS({ KP(0, 1), KP(0.3, 0.35), KP(1, 1) }) }), { EmitDuration = 2.6 })
+		em(p, "Twinkles", with(box, { Texture = TEX.twinkle, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = CS(PALE), LightEmission = 1, Brightness = 2, Rate = 8, SpreadAngle = Vector2.new(60, 60), Speed = R(2, 5), Lifetime = R(0.8, 1.4), Size = grow(1.1, 0.3), Transparency = NS({ KP(0, 0.1), KP(1, 1) }) }), { EmitDuration = 2.6 })
+	end
+
+	-- SoulRelease (death, where the nine streams meet over the fox): the
+	-- spirit core breaks free. A ring opening on its slate twin, petals and
+	-- twinkles drifting down. SpiritGlint plays with it.
+	do
+		local p = part(root, "SoulRelease", Vector3.new(0.6, 0.6, 0.6))
+		em(p, "RingDark", { Texture = TEX.ringThin, Color = CS(SLATE), Lifetime = R(0.8), Size = grow(3, 26), Transparency = NS({ KP(0, 0.45), KP(1, 1) }), ZOffset = 0.5 }, NOTINT)
+		em(p, "Ring", { Texture = TEX.ringThin, Color = FIRE, LightEmission = 1, Brightness = 3, Lifetime = R(0.8), Size = grow(2.5, 24), Transparency = NS({ KP(0, 0), KP(0.7, 0.4), KP(1, 1) }), ZOffset = 1 })
+		em(p, "Petals", { Texture = TEX.petal, Color = FIRE, LightEmission = 1, SpreadAngle = Vector2.new(180, 180), Speed = R(6, 14), Drag = 1.5, Acceleration = Vector3.new(0, -3, 0), Lifetime = R(2, 3.2), Size = grow(1.4, 0.6), Rotation = R(0, 360), RotSpeed = R(-120, 120), Transparency = NS({ KP(0, 0.1), KP(0.8, 0.3), KP(1, 1) }) }, { EmitCount = 14 })
+		em(p, "Twinkles", { Texture = TEX.twinkle, FlipbookLayout = GRID4, FlipbookMode = ONESHOT, Color = CS(PALE), LightEmission = 1, Brightness = 2, SpreadAngle = Vector2.new(180, 180), Speed = R(4, 16), Drag = 2, Acceleration = Vector3.new(0, -2, 0), Lifetime = R(1.2, 2.2), Size = grow(1.2, 0.3), Transparency = NS({ KP(0, 0), KP(1, 1) }) }, { EmitCount = 18, NoTint = true })
 	end
 
 	root.Parent = effects

@@ -477,6 +477,15 @@ Sounds: `SFX.Enemies.NineTailFox` reuses the wolf, swing, fire-seal and thunder 
 (pitched), picked by id only, unlistened: replace them with fox sounds.
 Untested: everything (feel, lane reach against the animated tails, the pull on a client-owned
 character, the volley's lane gaps, boss HP, phone load of nine tails).
+Poses: `EnemyPoses/NineTailFox.luau` (notes in `RIGS.md` "Animating NineTailFoxB"), registered in
+`EnemyAnimator` as `NineTailFoxB` (`scale = 2.13`, `runFrom = 8.5`, death 3.2 s). The animator calls
+`NineTailFox.configure(template)` once (it reads each tail's ExtendAxis / ExtendMax / pivots and the
+`TailTip<i>_FX` lance end, so a rebuilt tail needs no code change), passes `stage` (the `Phase`
+attribute), `side` and `duration`, and scales with the module's `scaled` (which also scales the tail
+slides). The barrage parts are not sent to clients, so the poses time their tails from the module's
+`DEFAULT_PARTS`; if a timing ever differs, send them (a `Parts` attribute). `retreat` attacks (Moon
+Leap) take their flight length from `active` like leaps and bounds, and the server's 8-stud `DashArc`
+lifts the root so the flipping tails clear the floor.
 Effects: `Effects.NineTailFox` (34 templates, 158 authored emitters plus a Ribbon of 3 trails and
 Thread/Lane beams; builder `tools/vfx_specs/NineTailFox.luau`, installs `_G.buildNineTailFoxFX`),
 played by `EnemyFX/NineTailFox.luau` (gated to `NineTailFoxB`; found by `EnemyType`, no registry).

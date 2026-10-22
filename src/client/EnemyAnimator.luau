@@ -39,6 +39,11 @@ local JadeJiao = if jiaoModule then require(jiaoModule :: ModuleScript) :: any e
 local apeModule = script.Parent.EnemyPoses:FindFirstChild("ThunderApe")
 local ThunderApe = if apeModule then require(apeModule :: ModuleScript) :: any else nil
 
+-- the Nine-Tailed Fox's pose module (telescoping tails: it reads the rig once through configure)
+local foxModule = script.Parent.EnemyPoses:FindFirstChild("NineTailFox")
+local NineTailFox = if foxModule then require(foxModule :: ModuleScript) :: any else nil
+local foxConfigured = false
+
 local MAX_DISTANCE = 160
 local SMOOTHING = 14 -- how quickly joints settle toward their pose (per second)
 local MOVE_SMOOTHING = 30 -- faster during keyed moves, so snaps stay snappy
@@ -50,7 +55,7 @@ local DEATH_SECONDS = 0.6
 -- keyedBlend: blend from the preceding state for this many seconds, then sample
 -- keyed poses directly. This keeps the King's short tells and contact instants
 -- from trailing the server clock through the normal joint smoothing.
-type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number? }
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number?, fox: boolean? }
 
 local WOLF_MOVES = { bite = "FangSnap", pounce = "MoonPounce", leap = "MoonfallLeap", howl = "Howl", hop = "Hop" }
 local FAMILIES: { [string]: Family } = {
@@ -96,6 +101,21 @@ if ThunderApe then
 	}
 end
 
+-- Nine-Tailed Fox: unit-space poses, scaled once by `scaled` (it also scales the tail slides).
+-- `fox` makes withExtras pass the boss Phase as input.stage; the barrage parts are not sent to
+-- clients, so the module uses its DEFAULT_PARTS.
+if NineTailFox then
+	FAMILIES.NineTailFoxB = {
+		poses = NineTailFox, scale = 2.13, runFrom = 8.5, keyedBlend = 0.06, deathSeconds = 3.2, fox = true,
+		moves = {
+			intro = "Intro", fangDance = "FangDance", tailSweep = "TailSweep", tailLance = "TailLance",
+			lanceFan = "LanceFan", tailSnare = "TailSnare", rendingPounce = "RendingPounce",
+			foxfireVolley = "FoxfireVolley", rootfireEruption = "RootfireEruption", moonLeap = "MoonLeap",
+			mournfulScream = "MournfulScream", nineTailFall = "NineTailFall", veilBreak = "VeilBreak",
+		},
+	}
+end
+
 type Rig = {
 	model: Model,
 	root: BasePart,
@@ -137,6 +157,15 @@ local function watch(model: Instance)
 	local kind = model:GetAttribute("EnemyType")
 	local bodyName = model:GetAttribute("Template") or kind
 	local family = FAMILIES[bodyName :: string]
+	if family and family.fox and not foxConfigured then
+		-- read the tails' ExtendAxis / ExtendMax / pivots from the unrotated template once
+		local bodies = ReplicatedStorage:FindFirstChild("EnemyBodies")
+		local template = bodies and bodies:FindFirstChild(bodyName :: string)
+		if template then
+			foxConfigured = true
+			NineTailFox.configure(template, family.scale)
+		end
+	end
 	rigs[model] = {
 		model = model,
 		root = root,
@@ -162,6 +191,12 @@ end
 -- Serpent modules (poses.USES_HISTORY) also read the boss Phase, the drawn speed, the turn rate and
 -- the root's heading history (secondsAgo -> yaw), so the body follows the head's path.
 local function withExtras(rig: Rig, family: Family, input: any): any
+	if family.fox then
+		local phase = rig.model:GetAttribute("Phase")
+		input.stage = if type(phase) == "number" then phase else 1
+		input.side = input.side or rig.side
+		return input
+	end
 	if not family.poses.USES_HISTORY then
 		return input
 	end
@@ -261,7 +296,7 @@ local function movePose(rig: Rig, family: Family, state: any, since: number): an
 		local secs = poses.durations[move].active
 		if attackName == "hop" and def and def.pack and def.pack.hop then
 			secs = def.pack.hop.seconds
-		elseif attack and (attack.kind == "leap" or attack.kind == "bound") then
+		elseif attack and (attack.kind == "leap" or attack.kind == "bound" or attack.kind == "retreat") then
 			secs = attack.active or secs
 		elseif attack and attack.dashSpeed and attack.length then
 			-- a charge that stops past the target dashes for less than its full lane
@@ -277,7 +312,7 @@ local function movePose(rig: Rig, family: Family, state: any, since: number): an
 			secs = stormFor
 		end
 		-- an attack that strikes without a dash plays its active beat first
-		if attack and not attack.dashSpeed and attack.kind ~= "leap" and attack.kind ~= "bound" and has(poses, move, "active") then
+		if attack and not attack.dashSpeed and attack.kind ~= "leap" and attack.kind ~= "bound" and attack.kind ~= "retreat" and has(poses, move, "active") then
 			local active = poses.durations[move].active
 			if since < active then
 				return poses.sample(move, "active", since / active, withExtras(rig, family, { duration = active }))

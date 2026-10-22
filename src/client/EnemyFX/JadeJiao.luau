@@ -1,12 +1,12 @@
 --!strict
 -- Testbed Jade Jiao boss only. Plays the boss's own templates,
--- Effects.JadeJiao (built by tools/vfx_specs/JadeJiao.luau): acid venom-green
--- with white-hot centres, amber-gold for every warning tell, pale spirit-jade
--- for the phase 3 aura and the spirit beats. No crown, halo or ring over the
--- head, and no copies of the body: emerge, molt, ascension, phase and death
--- read through mist, motes, flares and a skyward stream (the user rejected
--- Neon afterimages of the bosses). Body hooks are looked up by name with
--- fallbacks, so a rebuilt body with the same hook names keeps working.
+-- Effects.JadeJiao (built by tools/vfx_specs/JadeJiao.luau, whose header holds
+-- every cue's intent and ms beat sheet), and its sounds from
+-- SFX.Enemies.JadeJiao on their beats. Venom-green with white-hot centres for
+-- the venom, soil and dust for the earth, pale spirit-jade only where its qi
+-- leaves the body; every bright layer on a slate twin. No crown, halo or ring
+-- over the head, no copies of the body, no ground markers (the telegraph owns
+-- where and when), and no shared Impact kit stacked on its own impacts.
 --
 -- Cues: ready (aura / dormant mound), aggro, windup, strike, dash, land, hit,
 -- stagger, death, plus enemyCue handlers phase, squeeze, coilBreak. Contact is
@@ -15,16 +15,9 @@
 -- attack and time, and each impact is played here when its own `seconds` run
 -- out (there is no per-circle strike cue). The lance and spray bolts are real
 -- projectiles: the "venomBolt" ProjectileView drawer flies them.
--- Attributes read: Burrowed, Phase, Coil*, Dash*; the body hooks are named in
--- the Jade Jiao fight sheet (Mouth, Core, Dive_FX, TailTip_FX, ...). A missing
--- part falls back to the Skull, the Body or the root.
---
--- Weight (Impact kit, EnemyFX/Impact.luau): pillarSlam, tailSweep, tailShove,
--- erupt/emerge and the pool globs layer a venom shockwave, mud and debris, a
--- contact flash and (erupt, emerge, the slam) a fading crack, with a camera
--- shake by distance. tailShove (the knock-back that makes range): the tail tell
--- and a body-wide shove of dust and shock. The venomBolt drawer adds a white-hot
--- core, a dark trail under a bright one, and an explosion where it lands.
+-- Attributes read: Burrowed, Phase, Coil*, Dash*; body hooks are looked up by
+-- name with fallbacks (Mouth, Core, Dive_FX, TailTip_FX, Coil_Tail6/12,
+-- Throat), so a rebuilt body with the same hook names keeps working.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -33,7 +26,7 @@ local CollectionService = game:GetService("CollectionService")
 local TweenService = game:GetService("TweenService")
 
 local TechniqueVFX = require(script.Parent.Parent.TechniqueVFX)
-local Impact = require(script.Parent.Impact)
+local Sfx = require(script.Parent.Parent.Sfx)
 
 type Cue = {
 	model: Model,
@@ -71,9 +64,12 @@ type State = {
 	coil: any?,
 	phaseSeen: number,
 	seen: { [number]: boolean },
+	lashDir: Vector3?,
+	stopLash: (() -> ())?,
 }
 
 local TEMPLATE = "JadeJiao"
+local SOUNDS = "Enemies/JadeJiao/"
 local WHITE = Color3.new(1, 1, 1)
 local VENOM = Color3.fromRGB(155, 255, 74)
 local VHOT = Color3.fromRGB(226, 255, 182)
@@ -137,6 +133,8 @@ local function state(model: Model): State
 			coil = nil,
 			phaseSeen = 0,
 			seen = {},
+			lashDir = nil,
+			stopLash = nil,
 		}
 		states[model] = s
 	end
@@ -251,6 +249,14 @@ local function prepare(copy: BasePart, scale: number)
 			d.Size = scaleSequence(d.Size, scale)
 			d.Speed = NumberRange.new(d.Speed.Min * scale, d.Speed.Max * scale)
 			d.Acceleration *= scale
+		elseif d:IsA("Model") and d:GetAttribute("MeshWave") then
+			-- 3D shocks: sizes and travel are studs
+			for _, key in { "FromSize", "ToSize", "FromOffset", "ToOffset" } do
+				local v = d:GetAttribute(key)
+				if typeof(v) == "Vector3" then
+					d:SetAttribute(key, v * scale)
+				end
+			end
 		end
 	end
 end
@@ -278,7 +284,7 @@ end
 -- Recolour the bright layers (not the ink and soil bases) of a clone.
 local function tint(copy: BasePart, color: Color3)
 	for _, d in copy:GetDescendants() do
-		if d:IsA("ParticleEmitter") and d.LightEmission > 0.3 then
+		if d:IsA("ParticleEmitter") and d.LightEmission > 0.3 and not d:GetAttribute("NoTint") then
 			d.Color = ColorSequence.new(WHITE, color)
 		end
 	end
@@ -424,6 +430,12 @@ local function shake(amount: number, position: Vector3?, radius: number?)
 	end
 end
 
+-- A sound from SFX.Enemies.JadeJiao on its beat, from where its cause is.
+-- `gap` keeps bursts (spray bolts, pools, rain drops) from stacking up.
+local function sound(name: string, at: (Vector3 | BasePart)?, gap: number?, speed: number?)
+	Sfx.play(SOUNDS .. name, at, gap, speed)
+end
+
 local function hurtShake(amount: number)
 	local ok, effects = pcall(require, script.Parent.Parent.CombatEffects)
 	if ok then
@@ -450,25 +462,20 @@ local function torsoOf(target: Model?): BasePart?
 	return if torso and torso:IsA("BasePart") then torso else nil
 end
 
--- Spirit beats: emitters mounted on body hooks, never copies of the body.
-local SPIRIT_HOOKS = { "Throat", "Core", "Coil_Tail6", "Coil_Tail12", "TailTip_FX" }
+-- Body hooks the skin, venom and qi leave from (never copies of the body).
+local BODY_HOOKS = { "Throat", "Core", "Coil_Tail6", "Coil_Tail12", "TailTip_FX" }
 
--- Scale flakes and jade motes shed off the hooks that exist on this body.
-local function shedAlong(cue: Cue, seconds: number, boostBy: number?, windup: boolean?)
-	for _, name in SPIRIT_HOOKS do
-		local frame, host = point(cue, name, { "Body" })
-		if windup then
-			windupPlay(cue, "ShedSkin", frame, { follow = host, seconds = seconds, boost = boostBy })
+-- `name` played on every body hook that exists: held through a windup when
+-- `seconds` is given (riding the hook), else a one-shot left in place.
+local function alongBody(cue: Cue, name: string, seconds: number?)
+	for _, hook in BODY_HOOKS do
+		local frame, host = point(cue, hook, { "Body" })
+		if seconds then
+			windupPlay(cue, name, frame, { follow = host, seconds = seconds })
 		else
-			play("ShedSkin", frame, { follow = host, seconds = seconds, boost = boostBy, tint = JADE })
+			play(name, frame)
 		end
 	end
-end
-
--- A spirit stream thrown skyward from a hook: flash, jade rays and motes.
-local function skyStream(cue: Cue, name: string, fallback: { string })
-	local frame = point(cue, name, fallback)
-	play("RainRelease", CFrame.lookAt(frame.Position, frame.Position + Vector3.new(0, 1, 0)))
 end
 
 -- Tell parts ---------------------------------------------------------------------
@@ -740,14 +747,11 @@ local function startAura(cue: Cue)
 	if s.aura or s.dead then
 		return
 	end
-	local main = root(cue)
 	local body = part(cue, { "Body" })
 	if body == cue.root then
 		return
 	end
 	local items: { any } = {}
-	local feet = ground(cue, main.Position).Y - main.Position.Y + 0.2
-	mount(main, "AuraGround", Vector3.new(0, feet, 0), "AuraGround", items)
 	for _, name in { "Body", "Neck3", "Tail5", "Tail10", "Tail15" } do
 		local p = part(cue, { name })
 		if p ~= cue.root then
@@ -810,6 +814,10 @@ end
 -- handle so a `hit` cue can stop it early.
 local function fly(cue: Cue, name: string, from: Vector3, to: Vector3, speed: number, arc: number, scale: number?, onLand: ((Vector3) -> ())?): Bolt?
 	local copy = make(name, CFrame.lookAt(from, to), { scale = scale })
+	local shadow = copy and copy:FindFirstChild("Shadow")
+	if shadow then
+		shadow:Destroy() -- only the real bolts track the floor
+	end
 	if not copy then
 		if onLand then
 			task.delay((to - from).Magnitude / speed, function()
@@ -865,15 +873,12 @@ local function fly(cue: Cue, name: string, from: Vector3, to: Vector3, speed: nu
 	}
 end
 
-local function boltImpact(position: Vector3)
-	play("BoltImpact", CFrame.new(position))
-end
-
 -- Venom bolts (venomLance, venomSpray): real boss projectiles. The server
 -- fires one per lane (cue "venomBolt", data.size = diameter 3.6 lance / 3
 -- spray) and ProjectileView flies them and calls this drawer; the lane
--- warnings are the server's. A bright glob with a streak and drips, an ink
--- shadow on the ground under it, a splat where the server ends it.
+-- warnings are the server's. Release: a jet of venom out of the mouth (once
+-- per volley). Flight: the writhing glob with its trails and a shadow on the
+-- ground under it. End: the splash, and its stain where it hits the floor.
 local BOLT_AUTHORED = 3 -- the VenomBolt template reads as a ~3-stud glob
 
 local function ownerCue(shot: any): Cue?
@@ -901,48 +906,56 @@ local function boltSize(shot: any): number
 	return if type(size) == "number" then size else 3
 end
 
+-- one random turn for a splat and its slate twin (they must match)
+local function turnSplat(copy: BasePart)
+	local turn = NumberRange.new(math.random(0, 359))
+	for _, d in copy:GetDescendants() do
+		if d:IsA("ParticleEmitter") then
+			d.Rotation = turn
+		end
+	end
+end
+
+-- a glob ends at `position`: the splash, and the stain if it is on the floor
+local function splat(position: Vector3, floor: Vector3?, scale: number, gap: number?)
+	play("BoltSplat", CFrame.new(position), { scale = scale })
+	if floor and position.Y - floor.Y < 6 then
+		play("GroundSplat", CFrame.new(floor), { scale = 3 * scale, edit = turnSplat })
+	end
+	sound("Splat", position, gap or 0.06)
+end
+
 local lastRelease: { [Model]: number } = {}
+
+-- the jet out of the mouth (the bolt's start, a pool lob, the rain)
+local function spit(at: Vector3, look: Vector3, boostBy: number?)
+	play("SpitRelease", CFrame.lookAt(at, at + look), { boost = boostBy })
+	sound("Spit", at, 0.12)
+end
 
 local function boltStart(shot: any)
 	local size = boltSize(shot)
 	local position = shot.state.position
 	local velocity = shot.state.velocity
-	local look = if velocity.Magnitude > 0.1 then position + velocity else position + Vector3.new(0, 0, -1)
-	-- one mouth flash per volley (the spray fires three at once)
+	local look = if velocity.Magnitude > 0.1 then velocity.Unit else Vector3.new(0, 0, -1)
+	-- one jet per volley (the spray fires three at once)
 	local owner = shot.owner
 	if owner and os.clock() - (lastRelease[owner] or 0) > 0.15 then
 		lastRelease[owner] = os.clock()
-		play("SpitRelease", CFrame.lookAt(position, look))
+		spit(position, look)
 	end
-	local glob = make("VenomBolt", CFrame.lookAt(position, look), { scale = size / BOLT_AUTHORED })
+	local glob = make("VenomBolt", CFrame.lookAt(position, position + look), { scale = size / BOLT_AUTHORED })
+	local shadow: BasePart? = nil
 	if glob then
+		local found = glob:FindFirstChild("Shadow")
+		if found and found:IsA("BasePart") then
+			shadow = found
+			found.Parent = TechniqueVFX.folder
+		end
 		glob.Parent = TechniqueVFX.folder
 		TechniqueVFX.enable(glob)
 	end
-	-- the shadow: the library's flat ink dot, locked to an invisible marker
-	local shadow: BasePart? = nil
-	local source = template("GroundGather")
-	local ground_ = source and source:FindFirstChild("Ground")
-	local ink = ground_ and ground_:FindFirstChild("Under")
-	if ink and ink:IsA("ParticleEmitter") then
-		local holder = Instance.new("Part")
-		holder.Name = "VenomBoltShadow"
-		holder.Anchored, holder.CanCollide, holder.CanQuery, holder.CanTouch, holder.CastShadow = true, false, false, false, false
-		holder.Transparency = 1
-		holder.Size = Vector3.new(0.2, 0.2, 0.2)
-		local e = ink:Clone()
-		e.LockedToPart = true
-		e.Lifetime = NumberRange.new(0.12)
-		e.Rate = 30
-		e.Size = NumberSequence.new(size * 1.1)
-		e.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.55), NumberSequenceKeypoint.new(1, 0.55) })
-		e.Enabled = false
-		e.Parent = holder
-		holder.CFrame = CFrame.new(position)
-		holder.Parent = TechniqueVFX.folder
-		shadow = holder
-	end
-	shot.visual = { glob = glob, shadow = shadow, core = Impact.shot({ radius = size * 0.5, element = "venom" }) }
+	shot.visual = { glob = glob, shadow = shadow }
 end
 
 local function boltStep(shot: any, position: Vector3, velocity: Vector3)
@@ -953,9 +966,6 @@ local function boltStep(shot: any, position: Vector3, velocity: Vector3)
 	if v.glob and v.glob.Parent then
 		v.glob.CFrame = if velocity.Magnitude > 0.1 then CFrame.lookAt(position, position + velocity) else CFrame.new(position)
 	end
-	if v.core then
-		v.core.move(position, velocity)
-	end
 	local shadow = v.shadow
 	if shadow then
 		local floor = floorUnder(shot, position)
@@ -965,7 +975,7 @@ local function boltStep(shot: any, position: Vector3, velocity: Vector3)
 			-- darker and tighter as the glob comes down
 			local height = math.max(0, position.Y - floor.Y)
 			local k = math.clamp(1 - height / 30, 0.25, 1)
-			e.Size = NumberSequence.new(boltSize(shot) * (1.6 - 0.6 * k))
+			e.Size = NumberSequence.new(boltSize(shot) * (0.8 - 0.3 * k))
 			e.Transparency = NumberSequence.new(0.85 - 0.35 * k)
 			e.Enabled = true
 		elseif e then
@@ -982,9 +992,6 @@ local function boltFinish(shot: any, position: Vector3, reason: string)
 			TechniqueVFX.disable(v.glob)
 			TechniqueVFX.cleanup(v.glob, 0.3)
 		end
-		if v.core then
-			v.core.stop()
-		end
 		if v.shadow then
 			local e = v.shadow:FindFirstChildOfClass("ParticleEmitter")
 			if e then
@@ -995,29 +1002,23 @@ local function boltFinish(shot: any, position: Vector3, reason: string)
 			end)
 		end
 	end
-	local size = boltSize(shot)
+	local scale = boltSize(shot) / BOLT_AUTHORED
 	if reason == "range" or reason == "lifetime" then
-		-- spent in the air: a small burst, no splat
-		play("BoltImpact", CFrame.new(position), { scale = size / BOLT_AUTHORED * 0.7 })
+		-- spent in the air: a small burst, no stain
+		play("BoltSplat", CFrame.new(position), { scale = scale * 0.7 })
 		return
 	end
-	play("BoltImpact", CFrame.new(position), { scale = size / BOLT_AUTHORED })
-	local floor = floorUnder(shot, position + Vector3.new(0, 1, 0))
-	if floor and position.Y - floor.Y < 6 then
-		-- the splat on the ground (PoolSplash: ring, ink splat, drops)
-		play("PoolSplash", CFrame.new(floor), { scale = size * 0.9 })
-		Impact.explode(floor, { radius = math.max(3.5, size * 1.2), element = "venom", dust = 0.5 })
-	end
-	shake(0.08, position, 40)
+	splat(position, floorUnder(shot, position + Vector3.new(0, 1, 0)), scale)
 end
 
 local ProjectileView = require(script.Parent.Parent.ProjectileView)
 ProjectileView.register("venomBolt", { start = boltStart, step = boltStep, finish = boltFinish })
 
--- Pools: a glob lobbed in an arc to each circle, then the 7 s hazard disc.
+-- Pools: the glob is spat (the release time the def gives) and lobbed in an
+-- arc to each circle, landing as the windup ends into the 7 s pool. The
+-- telegraph draws the circles.
 local function lobPool(cue: Cue, shape: any, seconds: number)
 	local center, radius = circleOf(shape, 4.5, cue)
-	play("MarkerLite", CFrame.new(ground(cue, center) + Vector3.new(0, 0.05, 0)), { scale = radius, seconds = seconds })
 	local launch = seconds * 0.42
 	local flight = math.max(0.25, seconds - launch)
 	task.delay(launch, function()
@@ -1028,35 +1029,36 @@ local function lobPool(cue: Cue, shape: any, seconds: number)
 		local spot = ground(cue, center)
 		local to = spot + Vector3.new(0, 0.4, 0)
 		local distance = (to - from).Magnitude
+		if os.clock() - (lastRelease[cue.model] or 0) > 0.15 then
+			lastRelease[cue.model] = os.clock()
+			spit(from, (to - from).Unit + Vector3.new(0, 0.6, 0))
+		end
 		fly(cue, "VenomBolt", from, to, distance / flight, math.clamp(distance * 0.35, 8, 26), 1.5, function(at)
 			local at2 = ground(cue, at)
-			play("PoolSplash", CFrame.new(at2), { scale = radius })
-			play("PoolDisc", CFrame.new(at2 + Vector3.new(0, 0.05, 0)), { scale = radius })
-			-- the pool is the scar; the landing is a small venom explosion
-			Impact.explode(at2, { radius = radius, element = "venom", scar = false, dust = 0.6, shake = 0.15, reach = 45 })
-			shake(0.1, at2, 50)
+			play("BoltSplat", CFrame.new(at2), { scale = 1.5 })
+			play("PoolDisc", CFrame.new(at2), { scale = radius, edit = turnSplat })
+			sound("PoolLand", at2, 0.08)
+			task.delay(0.15, function()
+				sound("PoolBubble", at2, 0.1)
+			end)
 		end)
 	end)
 end
 
--- Rain: marker, then a drop falling from high, a splash and a fume puff.
+-- Rain: each circle's drop falls from high and bursts as its windup ends.
+-- The telegraph draws the circle.
 local function rainDrop(cue: Cue, shape: any, seconds: number)
-	local center, radius = circleOf(shape, 4.5, cue)
+	local center = circleOf(shape, 4.5, cue)
 	local spot = ground(cue, center)
-	local marker = play("MarkerLite", CFrame.new(spot + Vector3.new(0, 0.05, 0)), { scale = radius, seconds = seconds })
 	local fall = math.min(0.4, seconds * 0.5)
 	task.delay(math.max(0, seconds - fall), function()
 		if not cue.model.Parent then
 			return
 		end
-		fly(cue, "RainDrop", spot + Vector3.new(0, 60, 0), spot + Vector3.new(0, 0.5, 0), 60 / fall, 0, 1, function(at)
-			play("RainSplash", CFrame.new(ground(cue, at)), { scale = radius })
-			shake(0.06, at, 40)
+		fly(cue, "VenomBolt", spot + Vector3.new(0, 60, 0), spot + Vector3.new(0, 0.5, 0), 60 / fall, 0, 1.3, function(at)
+			splat(at, ground(cue, at), 1.6, 0.1)
 		end)
 	end)
-	if marker then
-		marker.Name = "RainMarker"
-	end
 end
 
 -- Ridge (mireDive) -----------------------------------------------------------------
@@ -1155,17 +1157,21 @@ local function removeCoil(cue: Cue, quick: boolean?)
 		TechniqueVFX.disable(g)
 		TechniqueVFX.cleanup(g, 0.3)
 	end
-	for _, glow in coil.glows do
-		glow:Destroy()
-	end
-	for _, seg in coil.segments do
-		TweenService:Create(seg, TweenInfo.new(if quick then 0.15 else 0.6), { Transparency = 1 }):Play()
-		task.delay(0.7, function()
-			seg:Destroy()
-		end)
+	for _, it in coil.seams do
+		if it.p.Parent then
+			if quick then
+				it.p.Color = it.base
+			else
+				TweenService:Create(it.p, TweenInfo.new(0.5), { Color = it.base }):Play()
+			end
+		end
 	end
 end
 
+-- The ring is the body itself (the pose coils it round the circle), so no
+-- ground ring is drawn: the body slaps down (CoilSlam), its scale seams beat
+-- faster and faster toward the squeeze (the muscles tightening), and venom
+-- breathes off the two edges of the door left open (CoilGate), the way out.
 local function buildCoil(cue: Cue)
 	local s = state(cue.model)
 	local centre = cue.model:GetAttribute("CoilCenter")
@@ -1180,44 +1186,11 @@ local function buildCoil(cue: Cue)
 	local startedAt = workspace:GetServerTimeNow()
 	local endAt = if type(squeezeAt) == "number" then squeezeAt else startedAt + 3
 	local floor = ground(cue, centre)
-	play("CoilForm", CFrame.new(floor), { scale = radius })
-	shake(0.3, centre, radius + 60)
+	play("CoilSlam", CFrame.new(floor), { scale = radius })
+	sound("CoilSlam", floor)
 	local gapAngle = math.atan2(gapDir.X, gapDir.Z)
-	local segments: { BasePart } = {}
-	local count = 40
-	local chord = 2 * math.pi * radius / count
-	local gapEdges: { number } = { gapAngle - math.rad(half), gapAngle + math.rad(half) }
-	for i = 0, count - 1 do
-		local angle = (i + 0.5) / count * 2 * math.pi
-		local delta = math.abs((angle - gapAngle + math.pi) % (2 * math.pi) - math.pi)
-		local inGap = delta < math.rad(half)
-		local dir = Vector3.new(math.sin(angle), 0, math.cos(angle))
-		local seg = Instance.new("Part")
-		seg.Name = "JiaoCoilRing"
-		seg.Anchored, seg.CanCollide, seg.CanQuery, seg.CanTouch, seg.CastShadow = true, false, false, false, false
-		seg.Material = Enum.Material.Neon
-		local pos = centre + dir * radius
-		local y = ground(cue, pos).Y + 0.25
-		seg.CFrame = CFrame.lookAt(Vector3.new(pos.X, y, pos.Z), Vector3.new(pos.X, y, pos.Z) + Vector3.new(dir.Z, 0, -dir.X))
-		if inGap then
-			-- the door: sparse bright dashes
-			seg.Color = WHITE
-			seg.Size = Vector3.new(0.6, 0.3, chord * 0.35)
-			if i % 2 == 0 then
-				seg.Transparency = 0.1
-			else
-				seg.Transparency = 1
-			end
-		else
-			seg.Color = JADE
-			seg.Size = Vector3.new(1.4, 0.35, chord * 1.02)
-			seg.Transparency = 0.15
-		end
-		seg.Parent = TechniqueVFX.folder
-		table.insert(segments, seg)
-	end
 	local gates: { BasePart } = {}
-	for _, angle in gapEdges do
+	for _, angle in { gapAngle - math.rad(half), gapAngle + math.rad(half) } do
 		local pos = centre + Vector3.new(math.sin(angle), 0, math.cos(angle)) * radius
 		local gate = make("CoilGate", CFrame.new(ground(cue, pos)))
 		if gate then
@@ -1226,46 +1199,31 @@ local function buildCoil(cue: Cue)
 			table.insert(gates, gate)
 		end
 	end
-	-- body glow along the coil
-	local glows: { Instance } = {}
-	local hood = template("HoodFlare")
-	local hold = hood and hood:FindFirstChild("Hold")
-	for _, name in { "Coil_Tail3", "Coil_Tail6", "Coil_Tail9", "Coil_Tail12" } do
-		local a = find(cue, name)
-		if a and a:IsA("Attachment") and hold and hold:IsA("ParticleEmitter") then
-			local e = hold:Clone()
-			e.Color = ColorSequence.new(WHITE, JADE)
-			e.Rate = 10
-			e.Enabled = true
-			e.Parent = a
-			table.insert(glows, e)
+	local seams: { { p: BasePart, base: Color3 } } = {}
+	for _, name in SEAMS do
+		local p = find(cue, name)
+		if p and p:IsA("BasePart") then
+			local base = p:GetAttribute("TellBase")
+			table.insert(seams, { p = p, base = if typeof(base) == "Color3" then base else p.Color })
 		end
 	end
-	-- pulses tighten toward the squeeze: a ring each, shorter gaps
 	local remaining = math.max(0.5, endAt - startedAt)
-	for k = 1, 4 do
-		local when = remaining * (1 - 0.5 ^ k) - 0.1
-		task.delay(math.max(0.2, when), function()
-			if s.coil and s.coil.id == startedAt then
-				play("CoilPulse", CFrame.new(floor), { scale = radius })
-			end
-		end)
-	end
-	local clockStart = os.clock()
-	local connection = RunService.Heartbeat:Connect(function()
+	local beat = 0
+	local connection = RunService.Heartbeat:Connect(function(dt)
 		local phase = math.clamp((workspace:GetServerTimeNow() - startedAt) / remaining, 0, 1)
-		local pulse = 0.5 + 0.5 * math.sin((os.clock() - clockStart) * (4 + 14 * phase * phase))
-		local color = JADE:Lerp(WHITE, pulse * 0.8)
-		for _, seg in segments do
-			if seg.Color ~= WHITE and seg.Parent then
-				seg.Color = color
+		-- 1.5 beats a second rising to 7 at the squeeze
+		beat += dt * (1.5 + 5.5 * phase * phase)
+		local pulse = (0.5 + 0.5 * math.cos(beat * 2 * math.pi)) ^ 2
+		for _, it in seams do
+			if it.p.Parent then
+				it.p.Color = it.base:Lerp(JADE, 0.35 + 0.65 * pulse * (0.4 + 0.6 * phase))
 			end
 		end
-		if workspace:GetServerTimeNow() > endAt + 2 or not cue.model.Parent then
+		if workspace:GetServerTimeNow() > endAt + 1.2 or not cue.model.Parent then
 			removeCoil(cue)
 		end
 	end)
-	s.coil = { id = startedAt, centre = centre, radius = radius, segments = segments, gates = gates, glows = glows, connection = connection, floor = floor }
+	s.coil = { id = startedAt, centre = centre, radius = radius, gates = gates, seams = seams, connection = connection, floor = floor }
 end
 
 -- Cues -----------------------------------------------------------------
@@ -1305,12 +1263,16 @@ function Jiao.aggro(cue: Cue)
 	startAura(cue)
 end
 
-local function hoodFlare(cue: Cue, seconds: number, blaze: boolean?)
-	for _, name in { "HoodL_FX", "HoodR_FX" } do
-		local frame, hood = point(cue, name, { "HoodL", "HoodR" })
-		windupPlay(cue, "HoodFlare", frame, { follow = hood, seconds = math.min(seconds, 0.8), boost = if blaze then 1.8 else 1 })
-	end
+-- the hood's eye-spots light with the windup (Tell parts, no particles)
+local function hoodTell(cue: Cue, seconds: number, blaze: boolean?)
 	tellRun(cue, { "HoodSpotL", "HoodSpotR" }, if blaze then VHOT else VENOM, seconds)
+end
+
+local function bite(cue: Cue, aim: Vector3, scale: number?)
+	local mouth = point(cue, "Mouth", { "Snout", "Skull" })
+	play("FangSnap", CFrame.new(mouth.Position) * CFrame.lookAt(Vector3.zero, aim).Rotation, { scale = scale })
+	sound("Bite", mouth.Position, 0.08)
+	sound("BiteVenom", mouth.Position, 0.08)
 end
 
 -- one fang strike of the flurry (its own windup cue)
@@ -1325,22 +1287,62 @@ local function flurryStrike(cue: Cue, shape: any, seconds: number)
 		if not alive(cue) or cue.model:GetAttribute("Attack") ~= "fangFlurry" then
 			return
 		end
-		local mouth = point(cue, "Mouth", { "Snout", "Skull" })
-		local look = mouth.LookVector
-		local aim = look
-		local centre, radius = cue.root.Position, 12
-		if type(shape) == "table" and typeof(shape.center) == "Vector3" then
-			centre = shape.center
-			radius = if type(shape.radius) == "number" then shape.radius else 12
-			if typeof(shape.cframe) == "CFrame" then
-				aim = (shape.cframe :: CFrame).LookVector
-			end
+		local aim = point(cue, "Mouth", { "Snout", "Skull" }).LookVector
+		if type(shape) == "table" and typeof(shape.cframe) == "CFrame" then
+			aim = (shape.cframe :: CFrame).LookVector
 		end
-		play("FangSnap", CFrame.new(mouth.Position) * CFrame.lookAt(Vector3.zero, aim).Rotation, { scale = 0.8 })
-		local markAt = ground(cue, centre + Vector3.new(aim.X, 0, aim.Z).Unit * radius * 0.6)
-		play("GroundMark", CFrame.new(markAt), { scale = 4.5 })
-		shake(0.14, cue.root.Position, 70)
+		bite(cue, aim, 0.85)
 	end)
+end
+
+-- The lash: trails ride the tail tip from the lash's start to just past
+-- contact; the tip's last motion is kept so the impact's dust follows it.
+local function lash(cue: Cue, until_: number)
+	local s = state(cue.model)
+	if s.stopLash then
+		s.stopLash()
+	end
+	local tipAttachment = find(cue, "TailTip_FX")
+	local _, tipPart = point(cue, "TailTip_FX", { "Tail18" })
+	local function tipPosition(): Vector3
+		if tipAttachment and tipAttachment:IsA("Attachment") and tipAttachment.Parent then
+			return tipAttachment.WorldPosition
+		end
+		return tipPart.Position
+	end
+	local trail = make("TailLash", CFrame.new(tipPosition()))
+	if not trail then
+		return
+	end
+	trail.Parent = TechniqueVFX.folder
+	TechniqueVFX.enable(trail)
+	sound("Lash", tipPart, 0.2)
+	local last = tipPosition()
+	local connection: RBXScriptConnection
+	local function stop()
+		if s.stopLash == stop then
+			s.stopLash = nil
+		end
+		connection:Disconnect()
+		TechniqueVFX.disable(trail)
+		TechniqueVFX.cleanup(trail, 0.3)
+	end
+	connection = RunService.RenderStepped:Connect(function()
+		if not trail.Parent or not tipPart.Parent or workspace:GetServerTimeNow() > until_ or not alive(cue) then
+			stop()
+			return
+		end
+		local now = tipPosition()
+		local step = Vector3.new(now.X - last.X, 0, now.Z - last.Z)
+		if step.Magnitude > 0.05 then
+			s.lashDir = step.Unit
+			trail.CFrame = CFrame.lookAt(now, now + (now - last))
+		else
+			trail.Position = now
+		end
+		last = now
+	end)
+	s.stopLash = stop
 end
 
 function Jiao.windup(cue: Cue)
@@ -1387,144 +1389,97 @@ function Jiao.windup(cue: Cue)
 	s.shapes = { shape }
 	table.clear(s.seen)
 
-	-- every windup: amber star flare on both eyes, tell parts toward hot amber
+	-- every windup: the eyes catch the light as it fixes on its prey
 	for _, name in { "EyeL", "EyeR" } do
 		local eye = part(cue, { name })
 		if eye ~= cue.root then
-			windupPlay(cue, "EyeFlare", eye.CFrame, { follow = eye, seconds = math.min(seconds, 0.6) })
+			windupPlay(cue, "EyeFlare", eye.CFrame, { follow = eye })
 		end
 	end
 
 	local mouthFrame, skull = point(cue, "Mouth", { "Skull" })
 	if attack == "emerge" then
+		-- the ground heaves over the buried body
 		local spot = ground(cue, root(cue).Position)
-		windupPlay(cue, "EmergeBuild", CFrame.new(spot + Vector3.new(0, 0.05, 0)), { scale = 20, seconds = seconds })
+		windupPlay(cue, "EmergeBuild", CFrame.new(spot), { scale = 20, seconds = seconds })
 		s.holdHidden = true
 		tellRun(cue, withEyes({}), GOLD, seconds)
-		hoodFlare(cue, seconds)
+		hoodTell(cue, seconds)
 		refreshMode(cue)
-	elseif attack == "venomFang" then
-		windupPlay(cue, "FangTell", mouthFrame, { follow = skull, seconds = seconds })
-		tellRun(cue, withEyes({ "FangTipL", "FangTipR" }), GOLD, seconds)
-		hoodFlare(cue, seconds)
-	elseif attack == "fangFlurry" then
-		windupPlay(cue, "FangTell", mouthFrame, { follow = skull, seconds = seconds, boost = 1.4 })
-		tellRun(cue, withEyes({ "FangTipL", "FangTipR" }), GOLD, seconds)
-		hoodFlare(cue, seconds, true)
-		flurryStrike(cue, shape, seconds)
-	elseif attack == "tailShove" then
-		-- a quick coil-and-heave: the tail tip and the hood flare
-		local frame, tip = point(cue, "TailTip_FX", { "Tail18" })
-		windupPlay(cue, "TailTell", frame, { follow = tip, seconds = seconds, boost = 1.3 })
-		tellRun(cue, withEyes({ "TailTipGem" }), GOLD, seconds)
-		hoodFlare(cue, seconds)
-	elseif attack == "tailSweep" then
+	elseif attack == "venomFang" or attack == "fangFlurry" or attack == "pillarSlam" then
+		-- venom beads on the bared fangs
+		windupPlay(cue, "VenomWell", mouthFrame, { follow = skull, seconds = seconds })
+		tellRun(cue, withEyes(if attack == "pillarSlam" then {} else { "FangTipL", "FangTipR" }), GOLD, seconds)
+		hoodTell(cue, seconds, attack == "fangFlurry")
+		if attack == "fangFlurry" then
+			flurryStrike(cue, shape, seconds)
+		end
+	elseif attack == "tailShove" or attack == "tailSweep" then
+		-- the tip tenses at the top of the wind-up, then lashes into contact
 		local frame, tip = point(cue, "TailTip_FX", { "Tail18" })
 		windupPlay(cue, "TailTell", frame, { follow = tip, seconds = seconds })
-		local center, radius = circleOf(shape, 13, cue)
-		windupPlay(cue, "Marker", CFrame.new(ground(cue, center) + Vector3.new(0, 0.05, 0)), { scale = radius, seconds = seconds })
 		tellRun(cue, withEyes({ "TailTipGem" }), GOLD, seconds)
-		hoodFlare(cue, seconds)
-	elseif attack == "pillarSlam" then
-		windupPlay(cue, "SlamTell", mouthFrame, { follow = skull, seconds = seconds })
-		local center, radius = circleOf(shape, 6.5, cue)
-		local spot = ground(cue, center) + Vector3.new(0, 0.05, 0)
-		windupPlay(cue, "Marker", CFrame.new(spot), { scale = radius, seconds = seconds })
-		windupPlay(cue, "GroundGather", CFrame.new(spot), { scale = math.max(5, radius * 1.1), seconds = seconds })
-		tellRun(cue, withEyes({}), GOLD, seconds)
-		hoodFlare(cue, seconds)
+		hoodTell(cue, seconds)
+		local start = if attack == "tailSweep" then 0.56 else 0.79
+		local contact = cue.at + math.max(seconds, workspace:GetServerTimeNow() + seconds - cue.at)
+		windupBeat(cue, seconds, start, function()
+			lash(cue, contact + 0.15)
+		end)
 	elseif attack == "mireDive" then
-		local frame = point(cue, "Dive_FX", { "Body" })
-		local spot = ground(cue, frame.Position)
-		windupPlay(cue, "GroundGather", CFrame.new(spot + Vector3.new(0, 0.05, 0)), { scale = 9, seconds = seconds })
 		tellRun(cue, withEyes({}), GOLD, seconds)
-		hoodFlare(cue, seconds)
+		hoodTell(cue, seconds)
 	elseif attack == "erupt" then
 		local center, radius = circleOf(shape, 7, cue)
-		local spot = ground(cue, center) + Vector3.new(0, 0.05, 0)
-		windupPlay(cue, "EmergeBuild", CFrame.new(spot), { scale = math.max(8, radius * 1.6), seconds = seconds })
-		windupPlay(cue, "Marker", CFrame.new(spot), { scale = radius, seconds = seconds })
+		windupPlay(cue, "EmergeBuild", CFrame.new(ground(cue, center)), { scale = math.max(8, radius * 1.2), seconds = seconds })
 		s.holdHidden = false
 	elseif attack == "venomLance" or attack == "venomSpray" or attack == "venomPools" then
 		windupPlay(cue, "SpitGather", mouthFrame, { follow = skull, seconds = seconds, boost = if attack == "venomSpray" then 1.3 else 1 })
 		tellRun(cue, withEyes({ "ThroatSac" }), GOLD, seconds, nil, 0.35, if attack == "venomSpray" then 3 else nil)
-		if attack == "venomSpray" then
-			hoodFlare(cue, seconds, true)
-		else
-			hoodFlare(cue, seconds)
-		end
+		hoodTell(cue, seconds, attack == "venomSpray")
 		if attack == "venomPools" then
 			lobPool(cue, shape, seconds)
 		end
 	elseif attack == "jiaoCoil" then
-		local center, radius = circleOf(shape, 9, cue)
-		windupPlay(cue, "Marker", CFrame.new(ground(cue, center) + Vector3.new(0, 0.05, 0)), { scale = radius, seconds = seconds })
 		tellRun(cue, SEAMS, JADE, seconds, seconds * 0.08)
 		tellRun(cue, withEyes({}), GOLD, seconds)
+		-- the tail tip readies to wrap
 		local frame, tip = point(cue, "TailTip_FX", { "Tail18" })
 		windupBeat(cue, seconds, 0.55, function()
-			windupPlay(cue, "EyeFlare", frame, { follow = tip, tint = JADE, seconds = seconds * 0.4 })
+			windupPlay(cue, "EyeFlare", frame, { follow = tip, tint = JADE })
 		end)
-	elseif attack == "dreadHiss" or attack == "molt" or attack == "ascension" or attack == "venomRain" then
-		local jade = attack == "ascension" or attack == "venomRain"
-		if attack == "venomRain" then
-			windupPlay(cue, "RainGather", mouthFrame, { follow = skull, seconds = seconds })
-		else
-			windupPlay(cue, "RoarTell", mouthFrame, { follow = skull, seconds = seconds, tint = if jade then JADE else nil })
-		end
+	elseif attack == "dreadHiss" then
+		windupPlay(cue, "HissTell", mouthFrame, { follow = skull, seconds = seconds })
 		tellRun(cue, withEyes({ "ThroatSac" }), GOLD, seconds, nil, 0.25)
-		hoodFlare(cue, seconds, true)
-		if attack == "molt" or attack == "ascension" then
-			-- shed skin: flakes and motes drifting off body parts
-			shedAlong(cue, seconds, nil, true)
-			-- the phase move reads on the floor too (no stock howl disc for
-			-- bosses): mist and motes drawn in under the coils
-			windupPlay(cue, "GroundGather", CFrame.new(ground(cue, root(cue).Position)), {
-				scale = 14,
-				seconds = seconds,
-				tint = if attack == "ascension" then JADE else nil,
-			})
-		end
-		if attack == "ascension" then
-			-- a jade glow column gathering on the chest, rays standing up
-			local frame, core = point(cue, "Core", { "Body" })
-			windupPlay(cue, "RainGather", frame, { follow = core, seconds = seconds })
-		end
+		hoodTell(cue, seconds, true)
+	elseif attack == "molt" then
+		-- the old skin starts peeling off along the body
+		alongBody(cue, "ShedSkin", seconds)
+		tellRun(cue, withEyes({}), GOLD, seconds)
+		hoodTell(cue, seconds, true)
+	elseif attack == "ascension" then
+		-- jade qi drawn up the body into the chest
+		local frame, core = point(cue, "Core", { "Body" })
+		windupPlay(cue, "QiGather", frame, { follow = core, seconds = seconds })
+		tellRun(cue, SEAMS, JADE, seconds, seconds * 0.06)
+		tellRun(cue, withEyes({}), GOLD, seconds)
+		hoodTell(cue, seconds, true)
+	elseif attack == "venomRain" then
+		windupPlay(cue, "SpitGather", mouthFrame, { follow = skull, seconds = seconds, boost = 1.5 })
+		tellRun(cue, withEyes({ "ThroatSac" }), GOLD, seconds, nil, 0.4)
+		hoodTell(cue, seconds, true)
 	end
 end
 
-local function strikeWhip(cue: Cue, duration: number)
-	local frame, tip = point(cue, "TailTip_FX", { "Tail18" })
-	local trail = make("TailWhip", frame)
-	if not trail then
-		return
-	end
-	trail.Parent = TechniqueVFX.folder
-	TechniqueVFX.enable(trail)
-	local offset = tip.CFrame:ToObjectSpace(trail.CFrame)
-	local started = os.clock()
-	local connection: RBXScriptConnection
-	connection = RunService.RenderStepped:Connect(function()
-		if not trail.Parent or not tip.Parent or os.clock() - started > duration then
-			connection:Disconnect()
-			TechniqueVFX.disable(trail)
-			TechniqueVFX.cleanup(trail, 0.3)
-		else
-			trail.CFrame = tip.CFrame * offset
-		end
-	end)
-end
-
+-- The earth breaks and the serpent comes up through it (emerge, erupt).
 local function emergeBurst(cue: Cue, position: Vector3, radius: number)
 	local floor = ground(cue, position)
 	play("EmergeBurst", CFrame.new(floor) * facing(cue), { scale = radius })
-	-- venom mist bursting out of the hole, and a flare off the surfacing head
-	play("HissBurst", CFrame.new(floor) * facing(cue), { scale = radius * 0.8 })
-	local frame, skull = point(cue, "Mouth", { "Skull", "Head" })
-	play("PhaseFlare", frame, { follow = skull, boost = 0.6 })
-	Impact.ground(floor, { radius = radius, element = "venom", burst = true, scar = true, rocks = true, contact = false, look = facing(cue), shake = 0.5, reach = radius + 90 })
+	sound("EmergeBlast", floor)
+	task.delay(0.15, function()
+		sound("EmergeDebris", floor)
+	end)
 	flareAura(cue, 1.8)
-	shake(0.55, position, radius + 140)
+	shake(0.5, position, radius + 120)
 end
 
 function Jiao.strike(cue: Cue)
@@ -1556,49 +1511,70 @@ function Jiao.strike(cue: Cue)
 		refreshMode(cue)
 		setHidden(cue, false, 0.05)
 		showMound(cue, false)
-		local center, _ = circleOf(shape, 1, cue)
+		local center = circleOf(shape, 1, cue)
 		emergeBurst(cue, if shape then center else root(cue).Position, 20)
 	elseif attack == "erupt" then
 		s.holdHidden = false
 		setHidden(cue, false, 0.05)
 		local center, radius = circleOf(shape, 7, cue)
 		stopRidge(s)
-		emergeBurst(cue, center, math.max(8, radius * 1.6))
+		emergeBurst(cue, center, math.max(8, radius * 1.2))
 	elseif attack == "venomFang" then
-		local frame = point(cue, "Mouth", { "Skull" })
-		play("FangSnap", CFrame.new(frame.Position) * face)
-		play("SpitRelease", CFrame.new(frame.Position) * face)
-		shake(0.28, cue.root.Position, 70)
-	elseif attack == "tailSweep" then
-		local center, radius = circleOf(shape, 13, cue)
-		play("SweepImpact", CFrame.new(ground(cue, center)) * face, { scale = radius })
-		Impact.ground(ground(cue, center), { radius = radius, element = "venom", contact = false, look = face, dust = 1.2, shake = 0.3 })
-		strikeWhip(cue, 0.7)
-		shake(0.3, center, radius + 60)
-	elseif attack == "tailShove" then
-		local center, radius = circleOf(shape, 13, cue)
-		local at = ground(cue, center)
-		play("SweepImpact", CFrame.new(at) * face, { scale = radius, boost = 1.3 })
-		Impact.ground(at, { radius = radius, element = "venom", look = face, dust = 1.4, shake = 0.35 })
-		strikeWhip(cue, 0.5)
-		shake(0.3, center, radius + 60)
+		bite(cue, face.LookVector)
+	elseif attack == "tailSweep" or attack == "tailShove" then
+		local tipFrame = point(cue, "TailTip_FX", { "Tail18" })
+		local tipAt = tipFrame.Position
+		if attack == "tailSweep" then
+			-- the lash slaps the ground under the tip, dust kicked along its motion
+			local dir = s.lashDir or face.LookVector
+			local floor = ground(cue, tipAt)
+			play("TailImpact", CFrame.lookAt(floor, floor + Vector3.new(dir.X, 0, dir.Z)), { scale = 10 })
+			sound("TailSlam", floor)
+		else
+			-- the whip's air shove, outward from the body through the tip
+			local out = Vector3.new(tipAt.X - cue.root.Position.X, 0, tipAt.Z - cue.root.Position.Z)
+			out = if out.Magnitude > 0.1 then out.Unit else face.LookVector
+			play("ShoveBlast", CFrame.lookAt(tipAt, tipAt + out))
+			sound("ShoveBlast", tipAt)
+		end
 	elseif attack == "pillarSlam" then
 		local center, radius = circleOf(shape, 6.5, cue)
-		play("SlamImpact", CFrame.new(ground(cue, center)) * face, { scale = radius })
-		Impact.ground(ground(cue, center), { radius = math.max(radius, 9), element = "venom", scar = true, rocks = true, look = face, shake = 0.4 })
+		local floor = ground(cue, center)
+		play("SlamImpact", CFrame.new(floor) * face, { scale = radius })
+		sound("SlamImpact", floor)
+		task.delay(0.08, function()
+			sound("SlamRocks", floor)
+		end)
 		shake(0.36, center, radius + 60)
-	elseif attack == "venomLance" or attack == "venomSpray" then
-		-- the bolts are real projectiles (the venomBolt drawer above)
-		shake(0.14, cue.root.Position, 60)
+		-- the buried head tears free 860 ms into the recover
+		local stateAt = cue.model:GetAttribute("StateAt")
+		task.delay(0.86, function()
+			if alive(cue) and cue.model:GetAttribute("Attack") == "pillarSlam" and cue.model:GetAttribute("StateAt") == stateAt then
+				play("RipFree", CFrame.new(floor))
+				sound("RipFree", floor)
+			end
+		end)
+	elseif attack == "jiaoCoil" then
+		-- the ring forms when the rush ends (`land`); a short rush may skip it
+		local dashSeconds = cue.model:GetAttribute("DashSeconds")
+		local coilAt = cue.model:GetAttribute("CoilAt")
+		task.delay((if type(dashSeconds) == "number" then dashSeconds else 0.5) + 0.2, function()
+			local c = s.coil
+			if alive(cue) and not (c and c.id >= (if type(coilAt) == "number" then coilAt else 0)) then
+				buildCoil(cue)
+			end
+		end)
 	elseif attack == "dreadHiss" then
-		local center, radius = circleOf(shape, 14, cue)
-		local at = ground(cue, if shape then center else root(cue).Position)
-		play("HissBurst", CFrame.new(at) * face, { scale = math.max(10, radius) })
-		shake(0.3, at, radius + 60)
+		local mouth = point(cue, "Mouth", { "Skull" })
+		play("HissWave", CFrame.new(mouth.Position) * face)
+		play("HissDust", CFrame.new(ground(cue, mouth.Position)) * face, { scale = 30 })
+		sound("Hiss", mouth.Position)
+		sound("HissWave", mouth.Position)
+		shake(0.3, mouth.Position, 90)
 	elseif attack == "venomRain" then
-		local frame = point(cue, "Mouth", { "Skull" })
-		play("RainRelease", CFrame.lookAt(frame.Position, frame.Position + Vector3.new(0, 1, 0)))
-		shake(0.25, cue.root.Position, 100)
+		local mouth = point(cue, "Mouth", { "Skull" })
+		spit(mouth.Position, Vector3.new(0, 1, 0), 2)
+		sound("Geyser", mouth.Position)
 	end
 end
 
@@ -1606,22 +1582,26 @@ function Jiao.dash(cue: Cue)
 	if not alive(cue) then
 		return
 	end
-	local s = state(cue.model)
 	if cue.attack == "mireDive" then
 		local frame = point(cue, "Dive_FX", { "Body" })
 		local spot = ground(cue, frame.Position)
-		play("DiveBurst", CFrame.new(spot + Vector3.new(0, 0.05, 0)), { scale = 8 })
+		play("DiveBurst", CFrame.new(spot), { scale = 7 })
+		sound("Dive", spot)
+		sound("Burrow", cue.root)
 		setHidden(cue, true, 0.25)
 		startRidge(cue)
-		shake(0.22, spot, 90)
 	end
 end
 
 function Jiao.land(cue: Cue)
-	if not ours(cue) or cue.attack ~= "mireDive" then
+	if not ours(cue) then
 		return
 	end
-	stopRidge(state(cue.model))
+	if cue.attack == "mireDive" then
+		stopRidge(state(cue.model))
+	elseif cue.attack == "jiaoCoil" and alive(cue) then
+		buildCoil(cue)
+	end
 end
 
 function Jiao.hit(cue: Cue)
@@ -1636,22 +1616,23 @@ function Jiao.hit(cue: Cue)
 		return
 	end
 	local attack = cue.attack or ""
-	local s = state(cue.model)
 	local delta = root(cue).Position - torso.Position
 	local toward = Vector3.new(delta.X, 0, delta.Z)
 	toward = if toward.Magnitude > 0.1 then toward.Unit else Vector3.new(0, 0, -1)
-	local frame = CFrame.lookAt(torso.Position + toward * 0.9, torso.Position + toward * 1.9)
-	local name
+	-- on the near side of the torso, facing away from the boss (the blow's way)
+	local frame = CFrame.lookAt(torso.Position + toward * 0.9, torso.Position - toward)
+	local name, cry
 	if attack == "venomFang" or attack == "fangFlurry" then
-		name = "HitFang"
-	elseif attack == "tailSweep" then
-		name = "HitTail"
+		name, cry = "HitFang", "HitFang"
+	elseif attack == "tailSweep" or attack == "tailShove" then
+		name, cry = "HitTail", "HitTail"
 	elseif attack == "pillarSlam" or attack == "erupt" or attack == "jiaoCoil" or attack == "emerge" then
-		name = "HitHeavy"
+		name, cry = "HitHeavy", "HitHeavy"
 	else
-		name = "HitVenom"
+		name, cry = "HitVenom", "HitVenom"
 	end
 	play(name, frame)
+	sound(cry, torso.Position, 0.08)
 	if Players.LocalPlayer and cue.target == Players.LocalPlayer.Character then
 		hurtShake(if attack == "pillarSlam" or attack == "jiaoCoil" then 0.26 elseif attack == "venomFang" or attack == "tailSweep" then 0.2 else 0.14)
 	end
@@ -1665,17 +1646,22 @@ function Jiao.stagger(cue: Cue)
 	cancelWindup(s)
 	s.shapes = {}
 	stopRidge(s)
+	if s.stopLash then
+		s.stopLash()
+	end
 	s.latestAt = math.max(s.latestAt, cue.at)
 	if s.holdHidden then
 		s.holdHidden = false
 		refreshMode(cue)
 	end
 	local frame, core = point(cue, "Core", { "Body" })
-	play("PhaseFlare", frame, { follow = core, boost = 0.5 })
+	play("StaggerFlare", frame, { follow = core })
 end
 
 -- enemyCue handlers ---------------------------------------------------------------
 
+-- The phase step lands on the molt's or the ascension's release: phase 2 sheds
+-- the old skin all at once, phase 3 sends the jiao's qi surging up as it ascends.
 function Jiao.phase(cue: Cue)
 	if not alive(cue) then
 		return
@@ -1687,24 +1673,16 @@ function Jiao.phase(cue: Cue)
 	s.roarAt = os.clock()
 	revealPhase(cue)
 	local phase = cue.model:GetAttribute("Phase")
-	local big = type(phase) == "number" and phase >= 3
-	local at = ground(cue, root(cue).Position)
-	local face = facing(cue)
-	play("PhaseBurst", CFrame.new(at) * face, { boost = if big then 1.5 else 1, tint = nil })
 	local frame, core = point(cue, "Core", { "Body" })
-	play("PhaseFlare", frame, { follow = core, boost = if big then 1.6 else 1 })
-	skyStream(cue, "Mouth", { "Skull", "Head" })
-	if big then
-		-- phase 3: spirit motes shed along the whole body, a second stream
-		shedAlong(cue, 1.6, 1.5)
-		task.delay(0.3, function()
-			if cue.model.Parent then
-				skyStream(cue, "Core", { "Body" })
-			end
-		end)
+	if type(phase) == "number" and phase >= 3 then
+		play("AscendSurge", frame, { follow = core })
+		sound("Ascend", frame.Position)
+		shake(0.34, cue.root.Position, 140)
+	else
+		alongBody(cue, "ShedBurst")
+		sound("Molt", frame.Position)
 	end
 	flareAura(cue, 3)
-	shake(0.34, cue.root.Position, 140)
 end
 
 function Jiao.squeeze(cue: Cue)
@@ -1716,10 +1694,10 @@ function Jiao.squeeze(cue: Cue)
 		return
 	end
 	play("CoilSqueeze", CFrame.new(coil.floor), { scale = coil.radius })
-	for _, seg in coil.segments do
-		if seg.Parent and seg.Transparency < 1 then
-			seg.Color = WHITE
-			TweenService:Create(seg, TweenInfo.new(0.3), { Color = JADE }):Play()
+	sound("Squeeze", coil.floor)
+	for _, it in coil.seams do
+		if it.p.Parent then
+			it.p.Color = WHITE
 		end
 	end
 end
@@ -1733,12 +1711,12 @@ function Jiao.coilBreak(cue: Cue)
 		return
 	end
 	play("CoilBreak", CFrame.new(coil.floor), { scale = coil.radius })
+	sound("CoilBreak", coil.floor)
 	removeCoil(cue, true)
 end
 
--- Death: a collapsing gather, then a white-out burst, a venom splash, rays and a
--- pillar, while jade motes and scale flakes shed off the whole body and a
--- spirit stream leaves the chest skyward.
+-- Death: the body fades over a second (EnemyFX, FadeAt) while venom and qi
+-- bleed off every hook; as it goes, its spirit rises where the chest was.
 function Jiao.death(cue: Cue)
 	if not ours(cue) then
 		return
@@ -1751,21 +1729,21 @@ function Jiao.death(cue: Cue)
 	cancelWindup(s)
 	s.shapes = {}
 	stopRidge(s)
+	if s.stopLash then
+		s.stopLash()
+	end
 	removeCoil(cue, true)
 	showMound(cue, false)
 	setHidden(cue, false, 0.1)
 	applyAura(cue)
-	local frame, core = point(cue, "Core", { "Body" })
-	play("DeathBuild", frame, { follow = core, seconds = 0.9 })
-	shedAlong(cue, 3.0, 1.6)
-	local at = ground(cue, root(cue).Position)
-	local face = facing(cue)
-	task.delay(0.85, function()
-		local live = if core.Parent then core.Position else frame.Position
-		play("DeathBurst", CFrame.new(live))
-		play("DeathSpirit", CFrame.new(at + Vector3.new(0, 0.05, 0)) * face, { scale = 22 })
-		play("RainRelease", CFrame.lookAt(live, live + Vector3.new(0, 1, 0)))
-		shake(0.4, live, 180)
+	alongBody(cue, "DeathBleed")
+	local frame = point(cue, "Core", { "Body" })
+	local at = frame.Position + Vector3.new(0, 2, 0)
+	sound("DeathSlump", cue.root.Position)
+	task.delay(1, function()
+		play("SpiritRise", CFrame.new(at))
+		sound("SpiritRise", at)
+		shake(0.3, at, 160)
 	end)
 end
 

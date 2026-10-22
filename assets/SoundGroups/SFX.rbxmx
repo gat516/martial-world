@@ -214,17 +214,17 @@
     </Item>
     <Item class="Sound" referent="JJSFX4"><Properties>
      <string name="Name">Attack_emerge</string>
-     <Content name="SoundId"><url>rbxassetid://125555063571186</url></Content>
+     <Content name="SoundId"><url>rbxassetid://78919029033811</url></Content>
      <float name="Volume">1</float>
-     <float name="PlaybackSpeed">0.4</float>
+     <float name="PlaybackSpeed">0.82</float>
      <float name="RollOffMaxDistance">400</float>
     </Properties>
     </Item>
     <Item class="Sound" referent="JJSFX5"><Properties>
      <string name="Name">Attack_dreadHiss</string>
-     <Content name="SoundId"><url>rbxassetid://125555063571186</url></Content>
+     <Content name="SoundId"><url>rbxassetid://5297498542</url></Content>
      <float name="Volume">1</float>
-     <float name="PlaybackSpeed">0.7</float>
+     <float name="PlaybackSpeed">0.85</float>
      <float name="RollOffMaxDistance">400</float>
     </Properties>
     </Item>
@@ -238,34 +238,274 @@
     </Item>
     <Item class="Sound" referent="JJSFX7"><Properties>
      <string name="Name">Attack_ascension</string>
-     <Content name="SoundId"><url>rbxassetid://125555063571186</url></Content>
+     <Content name="SoundId"><url>rbxassetid://137463716</url></Content>
      <float name="Volume">1</float>
-     <float name="PlaybackSpeed">0.4</float>
+     <float name="PlaybackSpeed">0.9</float>
      <float name="RollOffMaxDistance">400</float>
     </Properties>
     </Item>
     <Item class="Sound" referent="JJSFX8"><Properties>
      <string name="Name">Attack_pillarSlam</string>
-     <Content name="SoundId"><url>rbxassetid://9117370218</url></Content>
+     <Content name="SoundId"><url>rbxassetid://5297498542</url></Content>
      <float name="Volume">1</float>
-     <float name="PlaybackSpeed">0.5</float>
+     <float name="PlaybackSpeed">0.75</float>
      <float name="RollOffMaxDistance">400</float>
     </Properties>
     </Item>
     <Item class="Sound" referent="JJSFX9"><Properties>
      <string name="Name">Attack_erupt</string>
-     <Content name="SoundId"><url>rbxassetid://9117370218</url></Content>
+     <Content name="SoundId"><url>rbxassetid://78919029033811</url></Content>
      <float name="Volume">1</float>
-     <float name="PlaybackSpeed">0.45</float>
+     <float name="PlaybackSpeed">1.4</float>
      <float name="RollOffMaxDistance">400</float>
     </Properties>
     </Item>
     <Item class="Sound" referent="JJSFX10"><Properties>
      <string name="Name">Attack_venomRain</string>
-     <Content name="SoundId"><url>rbxassetid://125555063571186</url></Content>
+     <Content name="SoundId"><url>rbxassetid://5297498542</url></Content>
      <float name="Volume">1</float>
      <float name="PlaybackSpeed">0.5</float>
      <float name="RollOffMaxDistance">400</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX20"><Properties>
+     <string name="Name">Bite</string>
+     <Content name="SoundId"><url>rbxassetid://4511723890</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX21"><Properties>
+     <string name="Name">BiteVenom</string>
+     <Content name="SoundId"><url>rbxassetid://3781479909</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX22"><Properties>
+     <string name="Name">Lash</string>
+     <Content name="SoundId"><url>rbxassetid://3755636152</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX23"><Properties>
+     <string name="Name">TailSlam</string>
+     <Content name="SoundId"><url>rbxassetid://112198630684733</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX24"><Properties>
+     <string name="Name">ShoveBlast</string>
+     <Content name="SoundId"><url>rbxassetid://112611832797358</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX25"><Properties>
+     <string name="Name">SlamImpact</string>
+     <Content name="SoundId"><url>rbxassetid://18506356852</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX26"><Properties>
+     <string name="Name">SlamRocks</string>
+     <Content name="SoundId"><url>rbxassetid://9118612665</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX27"><Properties>
+     <string name="Name">RipFree</string>
+     <Content name="SoundId"><url>rbxassetid://132758217</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX28"><Properties>
+     <string name="Name">EmergeBlast</string>
+     <Content name="SoundId"><url>rbxassetid://9114224354</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX29"><Properties>
+     <string name="Name">EmergeDebris</string>
+     <Content name="SoundId"><url>rbxassetid://134854740</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX30"><Properties>
+     <string name="Name">Dive</string>
+     <Content name="SoundId"><url>rbxassetid://103626556433205</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX31"><Properties>
+     <string name="Name">Burrow</string>
+     <Content name="SoundId"><url>rbxassetid://78919029033811</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX32"><Properties>
+     <string name="Name">Spit</string>
+     <Content name="SoundId"><url>rbxassetid://5845688763</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX33"><Properties>
+     <string name="Name">Splat</string>
+     <Content name="SoundId"><url>rbxassetid://8164951181</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX34"><Properties>
+     <string name="Name">PoolLand</string>
+     <Content name="SoundId"><url>rbxassetid://9119477732</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX35"><Properties>
+     <string name="Name">PoolBubble</string>
+     <Content name="SoundId"><url>rbxassetid://9113605402</url></Content>
+     <float name="Volume">0.4</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX36"><Properties>
+     <string name="Name">Geyser</string>
+     <Content name="SoundId"><url>rbxassetid://9120503305</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX37"><Properties>
+     <string name="Name">CoilSlam</string>
+     <Content name="SoundId"><url>rbxassetid://104313759544581</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX38"><Properties>
+     <string name="Name">Squeeze</string>
+     <Content name="SoundId"><url>rbxassetid://3739363791</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX39"><Properties>
+     <string name="Name">CoilBreak</string>
+     <Content name="SoundId"><url>rbxassetid://9118614718</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX40"><Properties>
+     <string name="Name">Hiss</string>
+     <Content name="SoundId"><url>rbxassetid://9120618797</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.75</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX41"><Properties>
+     <string name="Name">HissWave</string>
+     <Content name="SoundId"><url>rbxassetid://4580495407</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX42"><Properties>
+     <string name="Name">Molt</string>
+     <Content name="SoundId"><url>rbxassetid://6849041223</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX43"><Properties>
+     <string name="Name">Ascend</string>
+     <Content name="SoundId"><url>rbxassetid://9116385079</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX44"><Properties>
+     <string name="Name">HitFang</string>
+     <Content name="SoundId"><url>rbxassetid://102157587407122</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX45"><Properties>
+     <string name="Name">HitTail</string>
+     <Content name="SoundId"><url>rbxassetid://610359515</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX46"><Properties>
+     <string name="Name">HitHeavy</string>
+     <Content name="SoundId"><url>rbxassetid://441202925</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX47"><Properties>
+     <string name="Name">HitVenom</string>
+     <Content name="SoundId"><url>rbxassetid://3781479909</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX48"><Properties>
+     <string name="Name">DeathSlump</string>
+     <Content name="SoundId"><url>rbxassetid://3784889529</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="JJSFX49"><Properties>
+     <string name="Name">SpiritRise</string>
+     <Content name="SoundId"><url>rbxassetid://9116378941</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
     </Properties>
     </Item>
    </Item>

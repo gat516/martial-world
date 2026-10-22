@@ -1116,8 +1116,8 @@ centred under the coil, so the **mouth is about 24 studs ahead of the root centr
 body lies mostly behind and around it. QC7, 1500 HP, weight 9, walk 6, run 21 (+2.5% a phase;
 the player walks at 16), aggro 60, leash 130, `closeIn` 26 (holds just past the head). Poses
 `EnemyPoses/JadeJiao.luau`, effects `EnemyFX/JadeJiao.luau`, poison visuals `PoisonFX.luau`, boss
-bar theme `BossThemes.JadeJiao`, sounds `SFX.Enemies.JadeJiao` (existing serpent/boom ids
-pitched down, unheard).
+bar theme `BossThemes.JadeJiao`, sounds `SFX.Enemies.JadeJiao` (voices reuse serpent ids pitched
+down; the effect sounds are in the effects table below).
 
 Fight: it spawns `Burrowed` (an earth mound, immune, no lock-on) and every engagement opens with
 `emerge` (2.2 s, `pack.howl`; it surfaces at the end). The pattern rotates by range band and phase
@@ -1190,52 +1190,78 @@ peaks near 1000 studs/s in the last two frames of the sweep (the lag catch-up); 
 half reared for a ranged follow-up and sinks back if none comes; untested in Play (feel, the
 EnemyAnimator hand-offs at real frame rates, phones).
 
-Jade Jiao effects: `Effects.JadeJiao` (48 templates, 307 emitters; builder
-`tools/vfx_specs/JadeJiao.luau`, installs `_G.buildJadeJiaoFX`), handler `EnemyFX/JadeJiao.luau`.
-Acid venom-green (9BFF4A) with white-hot cores is the element, amber-gold only for warning tells,
-pale spirit-jade for the phase 3 aura, spirit beats and rain; every bright shape sits on a slate/ink
-copy. No crown or halo, and no Neon copies of the body (the user rejected boss afterimages,
-2026-10-21): the spirit beats are emitters on named body hooks (`Throat`, `Core`,
-`Coil_Tail6`, `Coil_Tail12`, `TailTip_FX`, `Mouth`, falling back to `Skull`/`Body`/root), so a
-rebuilt body with the same hook names keeps working. Sizes are read off each cue's shape (`AuthoredRadius`/`AuthoredSeconds`
-refit); only the dormant mound, earth ridge and coil ring are drawn in code (soil balls and neon
-segments, support only).
-- Aura (`ready`): ground array (ink, mandala, sigil), venom mist from 5 body parts, motes, mouth
-  breath; phase 3 adds jade wisps and motes; health scales the rates; cracks (`P2Crack*`) and
-  fins/whiskers (`P3*`) tween in on `Phase`. While `Burrowed` and idle: a soil dome, dust leak
-  and green glints at the root, the body hidden (`LocalTransparencyModifier`, one loop).
-- Every windup: `EyeFlare` on both eyes, tell parts (`Tell`/`TellBase`) dim to hot amber, hood
-  spots flare green, per-attack `Marker`/`MarkerLite` amber circle on the shape.
-- `emerge`/`erupt`: `EmergeBuild` (cracks and tremors) then `EmergeBurst` (column, rocks, rings,
-  flash, scorch, Craters, heavy shake), `HissBurst` venom mist rings on the hole (0.8x radius) and
-  `PhaseFlare` on the surfacing head; the body and dome stay hidden until contact (no stock howl
-  disc for bosses). `mireDive`: `GroundGather`, `DiveBurst` (collapsing hole), a moving soil ridge with
-  `RidgeFX` until `land`.
-- `venomFang`/`fangFlurry`: `FangTell`, `FangSnap`; each flurry strike is its own cue (snap at the
-  Mouth plus `GroundMark` on its cone); the snap adds `SpitRelease` at the Mouth. `tailSweep`: `TailTell`, `SweepImpact`, `TailWhip` trail.
-  `pillarSlam`: `SlamTell`, `GroundGather`, `SlamImpact` (scorch 6 s).
-- Spit: `SpitGather` + throat sac swell. Lance/spray bolts are real projectiles drawn by the
-  `venomBolt` ProjectileView drawer in the handler: `SpitRelease` once per volley, `VenomBolt`
-  scaled to `data.size` (3.6 lance / 3 spray), a flat ink shadow (the `GroundGather` ink emitter)
-  that darkens as the glob drops, and on end `BoltImpact` plus a `PoolSplash` splat when it
-  ends near the ground (`hit`/`terrain`); `range`/`lifetime` end in a small airburst. The lane
-  warnings are the server's. Pools lob a glob per circle into
-  `PoolSplash` + `PoolDisc` (7 s, the only persistent effect); rain: `RainGather`, `RainRelease`,
-  and per circle `MarkerLite`, `RainDrop`, `RainSplash` (light).
-- `jiaoCoil`: `Marker`, jade glow down `ScaleSeam1..9`, `CoilForm` on `CoilAt`; the ring is 40
-  neon segments at `CoilRadius` with the door gap at `CoilGap`/`CoilHalfAngle` (bright dashes and
-  two `CoilGate` light posts), pulses tightening to `CoilSqueezeAt`; `squeeze`/`coilBreak` cues.
-- `dreadHiss`: `RoarTell`, `HissBurst`. `molt`/`ascension`: `RoarTell`, `ShedSkin` on 5 hooks,
-  `GroundGather` under the coils (r14, jade for the ascension), and for the ascension `RainGather`
-  on the chest; then `phase`: `PhaseBurst`, `PhaseFlare`, `RainRelease` thrown skyward from the
-  Mouth; at phase 3 also `ShedSkin` x1.5 on every hook and a second skyward stream from `Core`.
-- Death: `DeathBuild` plus jade `ShedSkin` (3 s, x1.6) on every hook, then `DeathBurst`,
-  `DeathSpirit` and a `RainRelease` spirit stream skyward from the chest.
-- Players: `PoisonFX.luau` (green Highlight pulse, bubbles and drips by stacks, a screen-edge
-  tint for the local player) from `PoisonStacks`/`PoisonUntil`.
-Untested: all of it in play (placement on the animated body, follow smoothness, 40-stud read,
-phones, the Game Module path, the rain gather if the server sends no windup cue for the 2.0 s
-phase; the handler synthesises one from the `Attack` attribute after 0.25 s).
+Jade Jiao effects: `Effects.JadeJiao` (40 templates, 113 authored emitters, 18 mesh waves, the
+TailLash and VenomBolt trails; builder `tools/vfx_specs/JadeJiao.luau`, installs
+`_G.buildJadeJiaoFX`), played by `EnemyFX/JadeJiao.luau` (gated to Template `JadeJiao`).
+**Rebuilt 2026-10-22 with the intent-first method** (`.claude/agents/vfx.md`): the first pass was
+technically fine but random (307 emitters; amber marker circles and arrays redrawing every
+telegraph, the shared Impact kit stacked on every slam, sweep, emerge and pool, a skyward "spirit
+stream" on every phase and the rain, three peaks in the death). Now every layer is caused by the
+body doing the move, starts 20-150 ms behind its cause (EmitDelay), each beat has one hero on a
+slate twin of its own shape, and every peak has a sound. The spec header holds the ms beat sheet
+for every cue. Assets were searched fresh in the library from what each move causes (earth, dust,
+debris, liquid, splash, mist, air, sound, scales, spirit): 35 ids, all new to the game except the
+generic dot and the kept aura textures (5 flipbooks, 9 meshes as mesh waves). Look: venom-green
+with white-hot centres for the venom, soil and dust for the earth, pale spirit-jade only where its
+qi leaves the body (ascension, death); every bright layer on a slate twin. No crown or halo, no
+copies of the body, no ground markers (telegraphs.md: the telegraph owns where and when).
+Cut, and why: `Marker`/`MarkerLite`/`GroundMark` (redrew the telegraph), `GroundGather` (nothing in
+the ground gathers before a blow), the aura's always-on ground mandala and sigil, every `Impact`
+kit call and the bolts' `Impact.shot` core (doubled impacts), `HoodFlare` particles (the hood's
+Tell parts already light), the skyward `RainRelease` streams (no cause), the old death's
+white-out, rays and pillar (three peaks), the coil ring's 40 neon segments and ground pulses (the
+body is the ring), and shakes on small beats. Found and fixed: `buildCoil` was never called, so
+the coil, squeeze and break cues drew nothing; it now runs on the coil rush's `land` (with a
+fallback after `DashSeconds`).
+
+| Cue | Intent (what happens / feel / job) | Hero | Other layers (start) | Sound (beat) |
+|---|---|---|---|---|
+| every windup | the eyes fix on the prey / warning | `EyeFlare` glint (0-250) | Tell parts brighten in code | `Attack_<name>` voice (EnemySounds) |
+| `emerge` / `erupt` | the ground heaves, then the serpent breaks out of the earth / dread, arrival | `EmergeBurst`: a crown of earth heaving up (mesh) with venom shimmering inside it | `EmergeBuild` through the windup (cracks spreading, tremor dust, pebbles from 900, venom seeping from 1300); burst: flash +0, hole +0, rocks and Craters +30, dust ring +60, dust cloud +80, venom mist +120; shake | `Attack_emerge`/`Attack_erupt` rumble at the windup, `EmergeBlast` +0, `EmergeDebris` +150 |
+| `mireDive` | the head dives into the earth and a ridge runs under it / evasion | `DiveBurst`: soil splashing round the head (mesh) | hole, clods +20, dust +60; `RidgeFX` soil spray on the code-built ridge | `Dive`, `Burrow` at the dash |
+| `venomFang` / `fangFlurry` | venom beads on the bared fangs, the jaws snap shut / threat, melee | `FangSnap`: two ragged jaw crescents closing on slate twins | `VenomWell` drips through the windup; flash +0, venom flung +30 | `Bite` + `BiteVenom` per bite |
+| `tailSweep` | the tail winds high, trembles, lashes round the right and slaps down / weight | `TailImpact`: a wall of dust kicked along the lash under the tip | `TailTell` dust and glint at 400; `TailLash` trails ride the tip 450 to R+150; flash +0, rocks +20, slate shock ring +40, cloud +80 | `Lash` at the lash's start, `TailSlam` at contact |
+| `tailShove` | the coiled tail whips out and shoves you 36 studs / knock-back | `ShoveBlast`: a torn air front rushing outward on its slate twin | `TailTell`, `TailLash` 550-850; flash +0, speed lines +20, dust +30 | `Lash`, `ShoveBlast` |
+| `pillarSlam` | the head rears, drooling venom, drives into the ground, then tears free / impact | `SlamImpact`: a crown of earth thrown up round the head (two spike meshes) | `VenomWell`; flash +0, crater held 2.4 s, dirt +0, venom off the jaws +20, slate shock ring and Craters +40, dust ring +60, cloud +100; `RipFree` (rocks, dust) at R+860; shake | `Attack_pillarSlam` inhale, `SlamImpact` +0, `SlamRocks` +80, `RipFree` |
+| `venomLance` / `venomSpray` | venom pumped into the mouth and spat as a glob / dodge | the writhing glob (`VenomBolt`) on a slate halo | `SpitGather` (core on slate, drool, fume in the last 40%); `SpitRelease` jet on slate +0, mist +40; trails, drips, a shadow on the floor; `BoltSplat` (flash, splash on slate, drops +30, fume +80) and `GroundSplat` | `Spit` at release, `Splat` at the end |
+| `venomPools` | three globs lobbed into poison pools / area denial | `PoolDisc`: the puddle on its slate twin (7 s, the hazard) | `SpitGather`; spit and lob; `BoltSplat` on landing; bubbles and a thin fume | `Spit`, `PoolLand`, `PoolBubble` |
+| `venomRain` (P3) | venom gathered and spat into the sky, falling as nine drops / dread | the drops (`VenomBolt` falling 60 studs) | `SpitGather` x1.5; `SpitRelease` aimed up x2; each drop `BoltSplat` + `GroundSplat` | `Attack_venomRain` gulp, `Geyser` at release, `Splat` per drop |
+| `jiaoCoil` | the body slaps down round you, tightens, crushes / dread, escape through the door | `CoilSlam`: dust rising off the ring's rim | seams glow (windup) then beat faster toward the squeeze (code), `CoilGate` venom wisps at the door's edges; `CoilSqueeze` (air ring collapsing inward, dust shoved in, crush flash, venom forced up); `CoilBreak` (scales and dust flung out) | `CoilSlam`, `Squeeze`, `CoilBreak` |
+| `dreadHiss` | breath drawn in, then a hiss radiating all round / stagger | `HissWave`: a torn sound ring racing out to r30 on its slate twin | `HissTell` inhale (last 60%); second ring +120 (ForceField), breath +60, `HissDust` +80 | `Attack_dreadHiss` inhale, `Hiss` + `HissWave` at release |
+| `molt` / phase 2 | the old skin peels and sloughs off / power shift | `ShedBurst`: scales bursting off every body hook | `ShedSkin` flakes through the windup; P2 cracks reveal | `Molt` at the phase cue |
+| `ascension` / phase 3 | jade qi drawn into the chest surges up as it ascends / power shift | `AscendSurge`: a twisting jade column (ForceField over a soft Neon core) | `QiGather` (wisps in, core on slate), seams glow; flash +0, slate puff, motes +40; fins and whiskers reveal; shake | `Attack_ascension` charge, `Ascend` at the phase cue |
+| `hit` | the blow lands / hit confirm | `HitFang` spatter on slate, `HitTail` soft burst, `HitHeavy` flash and slate shock ring, `HitVenom` splat on slate | dust or a fume | `HitFang`, `HitTail`, `HitHeavy`, `HitVenom` |
+| `stagger` | a blow knocks scales loose / punish window | `StaggerFlare` scale chips | flash | `Hurt` (EnemySounds, unset) |
+| `death` | venom and qi bleed off the fading body, its spirit rises / release, reward | `SpiritRise` at 1000 where the chest was: a twisting jade column | `DeathBleed` on every hook 0-1000; flash, slate puff, spirit swirl +30, motes +60 | `DeathSlump` at 0, `SpiritRise` at 1000 |
+
+Sound ids (`SFX.Enemies.JadeJiao`, library names): Bite 4511723890 "Eat", BiteVenom and HitVenom
+3781479909 "Bloody Splat", Lash 3755636152 "Swing (8)", TailSlam 112198630684733 "Ground Slam",
+ShoveBlast 112611832797358 "Downslam Air", SlamImpact 18506356852 "Ground Slam (3)", SlamRocks
+9118612665 "Rock Impact", RipFree 132758217 "Collapse (3)", EmergeBlast 9114224354 "Earthquake
+Explosion", EmergeDebris 134854740 "Collapse (1)", Dive 103626556433205 "Earth Impact", Burrow
+78919029033811 "Earthquake debris", Spit 5845688763 "Blood Spew", Splat 8164951181 "Blood Splatter
+SFX", PoolLand 9119477732 "Splash impact", PoolBubble 9113605402 "Bubble Whoosh", Geyser 9120503305
+"Water Burst", CoilSlam 104313759544581 "Ground Slam (2)", Squeeze 3739363791 "Gore (2)", CoilBreak
+9118614718 "Rock Impact (2)", Hiss 9120618797 "Water Spray", HissWave 4580495407 "Wind Orb
+Activate", Molt 6849041223 "Gore (4)", Ascend 9116385079 "Magic Burst 4", HitFang 102157587407122
+"Heavy Stab (2)", HitTail 610359515 "Punch (2)", HitHeavy 441202925 "Punch", DeathSlump 3784889529
+"Collapse", SpiritRise 9116378941 "Magic Acceleration Musical Phasey Tones 1". Windup voices swapped
+because they played a roar or boom 1-2 s before the blow: `Attack_emerge` and `Attack_erupt` the
+earthquake rumble, `Attack_pillarSlam`, `Attack_dreadHiss` and `Attack_venomRain` an inhale
+(5297498542, pitched), `Attack_ascension` a charge (137463716). All load in Studio; picked by name
+and length, not listened to, and other creators' uploads may be silent in-game.
+Kept from the first pass: the aura on the body (`AuraBody`, `AuraBreath`; health scales the rates,
+phase 3 adds jade wisps and motes), the dormant mound (`MoundFX` and the code-built soil dome), the
+body hiding while burrowed, the phase reveal parts, the Tell parts, and `PoisonFX.luau` on players.
+Checked: every cue fired against the real body in a sandbox (`enemy_fx_smoke` with `stateful`, plus
+phase 3, the coil's land/squeeze/break with server-like `Coil*` attributes and the venomBolt drawer's
+start/step/finish: no errors, spawns counted); frozen captures of the emerge burst (+170, +600), a
+bite, the tail slap, the slam (+180, +300, two rounds), the hiss, the ascension surge, the death
+column and a pool landing (static pose, so the head and tail are not where the animation puts them).
+Untested: the look at play speed on the animated body (the lash trails and the bolt's flight cannot
+be frozen; the impacts land under the live tip and circles), the Disc-rim emitters of the coil
+beats, every sound in-game (permissions, loudness, fit), the Game Module path, phone load of the
+rain (nine drops, about 12 emitters each live for a second) and three pools (4 emitters each, 7 s).
 
 ### Template contract
 Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated

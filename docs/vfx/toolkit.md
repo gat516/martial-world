@@ -660,6 +660,17 @@ Thunder Ape pass (2026-10-22):
   call in `pcall` to read its errors.
 - Dust reaches roughly speed / Drag studs (about 110 with Drag 2.5 for r42).
 
+Jade Jiao pass (2026-10-22):
+- Check a texture's background on a `--size 420` sheet before you pick its
+  LightEmission: flipbooks drawn on black (9470659899, 14990829312) show as
+  black boxes unless LightEmission is 1.
+- Many sheets and splats fill only part of their cell or image (the tan dust
+  puff 11509655546 about half a cell, the splatter 243457340 about half the
+  image), so author their sizes 1.7-2x the area you want covered.
+- Never `open(p, "w").write(f(open(p).read()))` in Python: the write-open runs
+  first and empties the file (a shared doc was wiped this way). Read, close,
+  then write.
+
 ### Parallel vfx agents: merge, don't copy
 
 `assets/Effects.rbxm` is one file holding every group, and a sandbox's export

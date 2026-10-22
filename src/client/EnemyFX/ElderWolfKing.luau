@@ -1,34 +1,28 @@
 --!strict
 -- Testbed Elder Wolf King only. Plays the King's own templates,
--- Effects.ElderWolfKing (built by tools/vfx_specs/ElderWolfKing.luau): moon
--- silver on ink, gold for every warning tell, spirit-cyan spirit flourishes
--- (motes, flame bursts, light columns), jade only on the collar seal. No copy
--- of the body is ever drawn: the user found ghost/afterimage clones of the
--- bosses cheap (2026-10-21), so every flourish is particles from the set.
--- Cues: ready (aura on), aggro (roar), windup, strike, dash, land, hit,
--- stagger, death. Health drives the aura's intensity and the death build-up.
+-- Effects.ElderWolfKing (built by tools/vfx_specs/ElderWolfKing.luau, whose
+-- header holds each move's intent, beat sheet and layer sheet), and their
+-- sounds, SoundService.SFX.Enemies.ElderWolfKing.<Name> (Sfx.play, at the
+-- peak, from where the cause is). Moon-silver qi on ink and slate; gold only in
+-- the first-frame tells (eyes, raised claws). No copy of the body is ever
+-- drawn, and nothing redraws the telegraph's danger area.
+-- Cues: ready (aura on), aggro, windup, strike, dash, land, skid, hit,
+-- stagger, death. Health drives the aura's intensity.
 --
 -- Contact is `strike` (windup -> recover), not the end of active/recovery.
 -- Rush shares `strike`/`dash`, and ends on `land`. `seconds` is already the
 -- remaining windup; cue.at/StateAt and a generation cancel interrupted cues.
---
--- Weight (Impact kit, EnemyFX/Impact.luau): clawDown, crownfall and the
--- kingLeap landing layer a moonlight shockwave, dust and debris, a contact
--- flash and (crownfall, the leap) a burst and a fading crack, with a camera
--- shake by distance. kingLeap: a crouch tell and the landing marker's sigil,
--- dust and the rush trail at take-off, the landing slam, then the arrival
--- follow-up kingRake (both forepaws' tells, two claw slashes and a dust rake).
--- kingsRush / kingLeap skids plough dust from all four paws.
+-- Every effect layer comes from these templates (the shared Impact kit is not
+-- layered on top any more: its generic rings doubled the King's own impacts).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local CollectionService = game:GetService("CollectionService")
-local TweenService = game:GetService("TweenService")
 
 local TechniqueVFX = require(script.Parent.Parent.TechniqueVFX)
-local Impact = require(script.Parent.Impact)
+local Sfx = require(script.Parent.Parent.Sfx)
 
 type Cue = {
 	model: Model,
@@ -56,15 +50,16 @@ type State = {
 	roarAt: number,
 	flareUntil: number,
 	leapShape: any?,
+	stopCharge: (() -> ())?,
 }
 
 local TEMPLATE = "ElderWolfKingB"
 local WHITE = Color3.new(1, 1, 1)
 local MOON = Color3.fromRGB(226, 236, 250)
-local SPIRIT = Color3.fromRGB(150, 200, 238)
-local GOLD = Color3.fromRGB(255, 190, 70)
+local RIM = Color3.fromRGB(150, 178, 222)
+local GOLD = Color3.fromRGB(255, 200, 96)
 local HOT = Color3.fromRGB(255, 236, 176)
-local JADE = Color3.fromRGB(93, 187, 152)
+local SOUNDS = "Enemies/ElderWolfKing/"
 local EPSILON = 0.035
 local WINDUP = {
 	royalBite = 0.90,
@@ -194,6 +189,13 @@ end
 -- Templates are authored at the King's size; ground shapes carry an
 -- AuthoredRadius and are scaled to the live circle. Emit attributes, tags and
 -- textures survive on the runtime clone.
+local function scaleV(d: Instance, key: string, scale: number)
+	local v = d:GetAttribute(key)
+	if typeof(v) == "Vector3" then
+		d:SetAttribute(key, v * scale)
+	end
+end
+
 local function prepare(copy: BasePart, scale: number)
 	if math.abs(scale - 1) < 1e-3 then
 		return
@@ -210,6 +212,11 @@ local function prepare(copy: BasePart, scale: number)
 			d.Size = scaleSequence(d.Size, scale)
 			d.Speed = NumberRange.new(d.Speed.Min * scale, d.Speed.Max * scale)
 			d.Acceleration *= scale
+		elseif d:IsA("Model") and d:GetAttribute("MeshWave") then
+			-- 3D shock rings: sizes and travel are studs
+			for _, key in { "FromSize", "ToSize", "FromOffset", "ToOffset" } do
+				scaleV(d, key, scale)
+			end
 		end
 	end
 end
@@ -332,6 +339,10 @@ end
 
 local function cancelWindup(s: State)
 	s.generation += 1
+	if s.stopCharge then
+		s.stopCharge()
+		s.stopCharge = nil
+	end
 	for _, effect in s.windups do
 		effect:Destroy()
 	end
@@ -404,31 +415,20 @@ local function hurtShake(amount: number)
 	end
 end
 
-local function sealGlint(cue: Cue, windup: boolean)
-	local frame, follow = point(cue, "SealFX", { "Seal", "Chest" })
-	if windup then
-		windupPlay(cue, "BrowFlare", frame, { follow = follow, tint = JADE, seconds = 0.5 })
-	else
-		play("BrowFlare", frame, { follow = follow, tint = JADE })
-	end
-end
-
 local function facing(cue: Cue): CFrame
 	return root(cue).CFrame.Rotation
 end
 
--- Keep only the named emitters of a clone (and drop its ScreenEffects
--- shake), to borrow one layer group of a template as a flourish.
-local function only(names: { string }): (BasePart) -> ()
-	return function(copy: BasePart)
-		for _, d in copy:GetDescendants() do
-			if d:IsA("ParticleEmitter") and not table.find(names, d.Name) then
-				d:Destroy()
-			elseif d:IsA("Attachment") and d:GetAttribute("CameraShake") ~= nil then
-				d:Destroy()
-			end
-		end
-	end
+-- A peak's sound, from where its cause is.
+local function sound(name: string, at: (Vector3 | BasePart)?, gap: number?)
+	Sfx.play(SOUNDS .. name, at, gap)
+end
+
+-- A ground frame `forward` studs ahead of the root, `up` above the floor.
+local function ahead(cue: Cue, forward: number, up: number): CFrame
+	local r = root(cue)
+	local at = ground(cue, r.Position + r.CFrame.LookVector * forward)
+	return CFrame.new(at + Vector3.new(0, up, 0)) * facing(cue)
 end
 
 -- Aura ------------------------------------------------------------------
@@ -475,7 +475,7 @@ local function applyAura(cue: Cue)
 	elseif ratio <= 0.65 then
 		color = ColorSequence.new({ ColorSequenceKeypoint.new(0, WHITE), ColorSequenceKeypoint.new(0.5, HOT), ColorSequenceKeypoint.new(1, MOON) })
 	else
-		color = ColorSequence.new({ ColorSequenceKeypoint.new(0, WHITE), ColorSequenceKeypoint.new(1, MOON) })
+		color = ColorSequence.new({ ColorSequenceKeypoint.new(0, WHITE), ColorSequenceKeypoint.new(0.5, MOON), ColorSequenceKeypoint.new(1, RIM) })
 	end
 	for _, item in aura.items do
 		local e: ParticleEmitter = item.e
@@ -546,7 +546,7 @@ local function takeOff(cue: Cue)
 		return
 	end
 	local seconds = cue.model:GetAttribute("DashSeconds")
-	local duration = if type(seconds) == "number" then math.clamp(seconds, 0.05, 0.60) else 0.60
+	local duration = if type(seconds) == "number" then math.clamp(seconds, 0.05, 0.70) else 0.60
 	local age = math.max(0, workspace:GetServerTimeNow() - cue.at)
 	if age >= duration then
 		return
@@ -556,12 +556,11 @@ local function takeOff(cue: Cue)
 	s.rushAt = cue.at
 	s.latestAt = math.max(s.latestAt, cue.at)
 	if age <= 0.2 then
+		-- the hind legs drive off the ground
 		local left, right = pawGround(cue, "BL"), pawGround(cue, "BR")
 		local mid = (left.Position + right.Position) / 2
-		play("RushLaunch", CFrame.new(mid) * facing(cue))
-		if cue.attack == "kingLeap" then
-			Impact.takeoff(mid, { radius = 8, element = "moon", look = facing(cue), shake = 0.15, reach = 50 })
-		end
+		play("Launch", CFrame.new(mid) * facing(cue), { scale = if cue.attack == "kingLeap" then 1.3 else 1 })
+		sound("Launch", mid)
 	end
 	local frame, chest = point(cue, "Core", { "Chest" })
 	local trail = make("RushTrail", frame)
@@ -571,7 +570,7 @@ local function takeOff(cue: Cue)
 	trail.Parent = TechniqueVFX.folder
 	local wake = trail:FindFirstChild("Wake")
 	if wake and wake:IsA("Attachment") then
-		wake.Position = Vector3.new(0, -math.max(2, frame.Position.Y - ground(cue, frame.Position).Y), 0)
+		wake.Position = Vector3.new(0, -math.max(2, frame.Position.Y - ground(cue, frame.Position).Y), 2)
 	end
 	local offset = chest.CFrame:ToObjectSpace(trail.CFrame)
 	TechniqueVFX.enable(trail)
@@ -613,8 +612,8 @@ function King.ready(cue: Cue)
 	startAura(cue)
 end
 
--- Noticing a player lights the aura; the roar burst itself plays on the release
--- of the engage `roar` attack (King.strike), so it lines up with the stagger.
+-- Noticing a player lights the aura; the roar itself plays on the release of
+-- the engage `roar` attack (King.strike), so it lines up with the stagger.
 function King.aggro(cue: Cue)
 	if not ours(cue) then
 		return
@@ -622,6 +621,8 @@ function King.aggro(cue: Cue)
 	startAura(cue)
 end
 
+-- The engage roar's release: sound and air leave the mouth (RoarBlast), the
+-- blast shoves dust along the floor ahead (RoarGround), the mane flares.
 local function roarBurst(cue: Cue)
 	local s = state(cue.model)
 	if os.clock() - s.roarAt < 12 or s.dead then
@@ -629,16 +630,26 @@ local function roarBurst(cue: Cue)
 	end
 	s.roarAt = os.clock()
 	startAura(cue)
-	local frame = point(cue, "Mouth", { "Skull" })
-	play("Roar", CFrame.new(frame.Position) * facing(cue))
-	-- the spirit flourish: a spirit-flame burst off the head, and the howl
-	-- ring echoed by the chest's flare (no body copy)
-	local _, skull = point(cue, "Mouth", { "Skull" })
-	play("PhaseFlare", frame, { follow = skull, scale = 0.7, boost = 0.6, edit = only({ "Flames", "Ring", "Star", "Motes" }) })
-	local core, chest = point(cue, "Core", { "Chest" })
-	play("PhaseFlare", core, { follow = chest, boost = 0.5, edit = only({ "Flames", "Motes" }) })
+	local mouth = point(cue, "Mouth", { "Skull" })
+	local face = facing(cue)
+	play("RoarBlast", CFrame.new(mouth.Position) * face)
+	play("RoarGround", CFrame.new(ground(cue, mouth.Position) + Vector3.new(0, 0.1, 0)) * face)
 	flareAura(cue, 1.6)
-	shake(0.3, frame.Position, 90)
+	sound("RoarBlast", mouth.Position)
+	shake(0.3, mouth.Position, 90)
+end
+
+local function forepaws(cue: Cue, name: string, seconds: number, lift: number)
+	for _, side in { "FL", "FR" } do
+		local frame, paw = point(cue, "Paw" .. side .. "_FX", { "Paw" .. side, "LowerLeg" .. side })
+		windupPlay(cue, name, frame * CFrame.new(0, lift, 0), { follow = paw, seconds = seconds })
+	end
+end
+
+local function coil(cue: Cue, sides: { string }, seconds: number)
+	for _, side in sides do
+		windupPlay(cue, "Coil", pawGround(cue, side), { seconds = seconds })
+	end
 end
 
 function King.windup(cue: Cue)
@@ -659,13 +670,11 @@ function King.windup(cue: Cue)
 	s.windupAt = cue.at
 	s.latestAt = math.max(s.latestAt, cue.at)
 	s.shape = cue.shape
-	local shape = cue.shape
-	if attack ~= "packCall" then
-		for _, name in { "EyeL", "EyeR" } do
-			local eye = part(cue, { name })
-			if eye ~= cue.root then
-				windupPlay(cue, "BrowFlare", eye.CFrame, { follow = eye, seconds = math.min(seconds, 0.6) })
-			end
+	-- the King's intent flashes in its eyes on the first frame of every move
+	for _, name in { "EyeL", "EyeR" } do
+		local eye = part(cue, { name })
+		if eye ~= cue.root then
+			windupPlay(cue, "EyeGlint", eye.CFrame, { follow = eye, seconds = math.min(seconds, 0.6) })
 		end
 	end
 	if attack == "royalBite" then
@@ -675,59 +684,32 @@ function King.windup(cue: Cue)
 		local frame, paw = point(cue, "PawFL_FX", { "PawFL", "LowerLegFL" })
 		windupPlay(cue, "SwipeTell", frame * CFrame.new(0, 1.2, 0), { follow = paw, seconds = seconds })
 	elseif attack == "clawDown" then
-		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 4.5
-		local center = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else cue.root.CFrame:PointToWorldSpace(Vector3.new(1.7, 0, -7))
-		windupPlay(cue, "Marker", CFrame.new(ground(cue, center) + Vector3.new(0, 0.05, 0)), { scale = radius, seconds = seconds })
+		-- the paw is raised through the second half of the windup
 		windupBeat(cue, seconds, 0.5, function()
 			local frame, paw = point(cue, "PawFR_FX", { "PawFR", "LowerLegFR" })
-			windupPlay(cue, "ClawRaise", frame * CFrame.new(0, 1.5, 0), { follow = paw, seconds = seconds * 0.45 })
+			windupPlay(cue, "ClawRaise", frame * CFrame.new(0, 1.5, 0), { follow = paw, seconds = seconds * 0.5 })
 		end)
 	elseif attack == "kingsRush" then
-		local frame, chest = point(cue, "Core", { "Chest" })
-		windupPlay(cue, "RushCharge", frame, { follow = chest, seconds = seconds })
-		local at = ground(cue, root(cue).Position)
-		windupPlay(cue, "GroundArray", CFrame.new(at + Vector3.new(0, 0.05, 0)), { seconds = seconds })
+		coil(cue, { "BL", "BR" }, seconds)
 	elseif attack == "kingLeap" then
-		s.leapShape = shape
-		-- the crouch: the chest charges and the seal glints; the landing circle's sigil
-		local frame, chest = point(cue, "Core", { "Chest" })
-		local crouch = math.max(0.3, seconds * 0.6)
-		windupPlay(cue, "SlamTell", frame, { follow = chest, seconds = crouch })
-		if type(shape) == "table" and typeof(shape.center) == "Vector3" then
-			local radius = if type(shape.radius) == "number" then shape.radius else 14
-			windupPlay(cue, "Marker", CFrame.new(ground(cue, shape.center) + Vector3.new(0, 0.05, 0)), { scale = radius, seconds = seconds })
-		end
-		windupBeat(cue, crouch, 0.6, function()
-			sealGlint(cue, true)
-		end)
+		s.leapShape = cue.shape
+		coil(cue, { "FL", "FR", "BL", "BR" }, seconds)
 	elseif attack == "kingRake" then
-		for _, side in { "FL", "FR" } do
-			local frame, paw = point(cue, "Paw" .. side .. "_FX", { "Paw" .. side, "LowerLeg" .. side })
-			windupPlay(cue, "SwipeTell", frame * CFrame.new(0, 1.2, 0), { follow = paw, seconds = seconds })
-		end
+		forepaws(cue, "SwipeTell", seconds, 1.2)
 	elseif attack == "crownfall" then
-		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 13
-		local center = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else cue.root.CFrame:PointToWorldSpace(Vector3.new(0, 0, -3.5))
-		local frame, chest = point(cue, "Core", { "Chest" })
-		windupPlay(cue, "SlamTell", frame, { follow = chest, seconds = seconds })
-		windupPlay(cue, "Marker", CFrame.new(ground(cue, center) + Vector3.new(0, 0.05, 0)), { scale = radius, seconds = seconds })
-		windupBeat(cue, seconds, 0.6, function()
-			sealGlint(cue, true)
+		forepaws(cue, "CrownfallTell", seconds, 1.5)
+		-- the rising charge (0.98 s at 0.9 speed ~ 1.09 s) ends on contact
+		windupBeat(cue, seconds, math.max(0, 1 - 1.09 / seconds), function()
+			s.stopCharge = Sfx.play(SOUNDS .. "CrownfallCharge", root(cue))
 		end)
 	elseif attack == "roar" then
 		local frame, skull = point(cue, "Mouth", { "Skull" })
-		windupPlay(cue, "HowlTell", frame, { follow = skull, seconds = seconds })
+		windupPlay(cue, "RoarTell", frame, { follow = skull, seconds = seconds })
 	elseif attack == "packCall" then
 		local frame, skull = point(cue, "Mouth", { "Skull" })
 		windupPlay(cue, "HowlTell", frame, { follow = skull, seconds = seconds })
 		local at = ground(cue, root(cue).Position)
-		windupPlay(cue, "GroundArray", CFrame.new(at + Vector3.new(0, 0.05, 0)), { seconds = seconds, scale = 8, tint = SPIRIT })
-		-- spirit motes and pull lines gather into the body through the call
-		local core, chest = point(cue, "Core", { "Chest" })
-		windupPlay(cue, "DeathBuild", core, { follow = chest, seconds = seconds, scale = 0.75, edit = only({ "Gather", "Pull", "Cracks" }) })
-		windupBeat(cue, seconds, 0.65, function()
-			sealGlint(cue, true)
-		end)
+		windupPlay(cue, "HowlGather", CFrame.new(at + Vector3.new(0, 0.1, 0)), { seconds = seconds, scale = 11 })
 	end
 end
 
@@ -759,76 +741,56 @@ function King.strike(cue: Cue)
 		return
 	end
 	local face = facing(cue)
+	local shapeCenter = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else nil
+	local shapeRadius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else nil
 	if attack == "royalBite" then
 		local frame = point(cue, "Mouth", { "Snout", "Skull" })
 		play("BiteSnap", CFrame.new(frame.Position) * face)
-		-- the lunge: breath mist and sparks thrown forward off the jaws
-		play("Roar", CFrame.new(frame.Position) * face, { scale = 0.6, boost = 0.5, edit = only({ "Blast", "Sparks" }) })
+		sound("BiteSnap", frame.Position)
 		shake(0.26, cue.root.Position, 60)
 	elseif attack == "pawSwipe" then
-		local frame = point(cue, "PawFL_FX", { "PawFL", "LowerLegFL" })
-		play("SwipeSlash", CFrame.new(frame.Position) * face * CFrame.new(-3, 3, -3))
+		-- the foreleg sweeps the cone in front of the chest
+		local frame = ahead(cue, 12, 3)
+		play("SwipeSlash", frame)
+		sound("SwipeSlash", frame.Position)
 		shake(0.14, cue.root.Position, 50)
 	elseif attack == "clawDown" then
-		local position = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else cue.root.CFrame:PointToWorldSpace(Vector3.new(1.7, 0, -7))
-		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 4.5
-		play("ClawStrike", CFrame.new(ground(cue, position)) * face, { scale = radius })
-		Impact.ground(ground(cue, position), { radius = math.max(radius, 5), element = "moon", look = face, dust = 0.7, shake = 0.2 })
+		local position = ground(cue, shapeCenter or cue.root.CFrame:PointToWorldSpace(Vector3.new(1.7, 0, -7)))
+		play("ClawStrike", CFrame.new(position) * face, { scale = shapeRadius or 4.5 })
+		sound("ClawStrike", position)
 		shake(0.2, position, 55)
 	elseif attack == "crownfall" then
-		local position = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else cue.root.CFrame:PointToWorldSpace(Vector3.new(0, 0, -3.5))
-		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 13
-		play("SlamImpact", CFrame.new(ground(cue, position)) * face, { scale = radius })
-		Impact.ground(ground(cue, position), { radius = radius, element = "moon", scar = true, rocks = true, look = face, shake = 0.4 })
+		local position = ground(cue, shapeCenter or cue.root.CFrame:PointToWorldSpace(Vector3.new(0, 0, -3.5)))
+		local radius = shapeRadius or 13
+		play("CrownfallImpact", CFrame.new(position) * face, { scale = radius })
+		sound("CrownfallImpact", position)
+		task.delay(0.15, sound, "CrownfallRumble", position)
 		shake(0.34, position, radius + 40)
 	elseif attack == "kingRake" then
-		-- both forepaws rake across the cone
-		local look = if type(shape) == "table" and typeof(shape.cframe) == "CFrame" then shape.cframe.LookVector else root(cue).CFrame.LookVector
-		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 14
+		-- both forepaws rake the arrival cone, left then right
 		for i, side in { "FL", "FR" } do
 			task.delay((i - 1) * 0.08, function()
 				if cue.model.Parent then
-					local frame = point(cue, "Paw" .. side .. "_FX", { "Paw" .. side, "LowerLeg" .. side })
-					play("SwipeSlash", CFrame.new(frame.Position) * facing(cue) * CFrame.new(if side == "FL" then -3 else 3, 3, -3), { scale = 1.2 })
+					local frame = ahead(cue, 13, 3)
+					play("SwipeSlash", if side == "FL" then frame else frame * CFrame.Angles(0, 0, math.pi), { scale = 1.15 })
 				end
 			end)
 		end
-		Impact.swipe(ground(cue, root(cue).Position), look, { radius = radius, element = "moon", shake = 0.18 })
+		sound("Rake", ahead(cue, 13, 3).Position)
 		shake(0.2, cue.root.Position, 50)
 	elseif attack == "roar" then
 		roarBurst(cue)
 	elseif attack == "packCall" then
 		local health, max = cue.model:GetAttribute("Health"), cue.model:GetAttribute("MaxHealth")
 		local second = type(health) == "number" and type(max) == "number" and max > 0 and health / max <= 0.35
-		local at = ground(cue, root(cue).Position)
-		play("PhaseBurst", CFrame.new(at) * face, { boost = if second then 1.6 else 1 })
-		local frame, chest = point(cue, "Core", { "Chest" })
-		play("PhaseFlare", frame, { follow = chest, boost = if second then 1.6 else 1 })
-		-- the howl itself: sound rings out of the mouth, and a spirit light
-		-- column rising through the sigil (no body copy, no stock disc)
 		local mouth = point(cue, "Mouth", { "Skull" })
-		local howl = { boost = if second then 1.6 else 1, edit = only({ "Ring", "Ring2", "Ring3", "Flash", "Sparks", "Blast" }) }
-		play("Roar", CFrame.new(mouth.Position) * face, howl)
-		play("DeathSpirit", CFrame.new(at + Vector3.new(0, 0.05, 0)) * face, {
-			scale = 5,
-			edit = function(copy)
-				only({ "Pillar", "Spirits" })(copy)
-				for _, e in copy:GetDescendants() do
-					if e:IsA("ParticleEmitter") then
-						e:SetAttribute("EmitDuration", if second then 1.2 else 0.8)
-					end
-				end
-			end,
-		})
-		if second then
-			task.delay(0.3, function()
-				if cue.model.Parent then
-					local again = point(cue, "Mouth", { "Skull" })
-					play("Roar", CFrame.new(again.Position) * facing(cue), { scale = 1.3, edit = only({ "Ring", "Ring2", "Ring3" }) })
-				end
-			end)
-		end
-		sealGlint(cue, false)
+		local at = ground(cue, root(cue).Position)
+		-- the howl to the sky; its air shock sweeps the stun ring
+		play("HowlBlast", CFrame.new(mouth.Position) * face, { boost = if second then 1.5 else nil })
+		play("HowlGround", CFrame.new(at) * face, { scale = shapeRadius or 20, boost = if second then 1.4 else nil })
+		local neck = part(cue, { "Neck", "Chest" })
+		play("ManeFlare", neck.CFrame, { follow = neck, boost = if second then 1.6 else nil })
+		sound("HowlBlast", mouth.Position)
 		flareAura(cue, 3)
 		shake(0.3, cue.root.Position, 100)
 	end
@@ -844,7 +806,7 @@ end
 -- The arrival follow-up or skid replaces the model's Attack as the dash ends.
 local ARRIVE: { [string]: { [string]: boolean } } = {
 	kingLeap = { kingRake = true, kingLeapSkid = true },
-	kingsRush = { kingsRushSkid = true },
+	kingsRush = { kingsRushSkid = true, kingRake = true },
 }
 local function arrived(cue: Cue): boolean
 	local follow = ARRIVE[cue.attack or ""]
@@ -852,6 +814,13 @@ local function arrived(cue: Cue): boolean
 	local health = cue.model:GetAttribute("Health")
 	return follow ~= nil and type(now) == "string" and follow[now] == true and cue.model.Parent ~= nil
 		and not state(cue.model).dead and not (type(health) == "number" and health <= 0)
+end
+
+local function plough(cue: Cue, sides: { string })
+	for _, side in sides do
+		play("Skid", pawGround(cue, side))
+	end
+	sound("Skid", root(cue).Position, 0.3)
 end
 
 function King.land(cue: Cue)
@@ -870,9 +839,8 @@ function King.land(cue: Cue)
 		local center = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else root(cue).Position
 		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 14
 		local at = ground(cue, center)
-		play("SlamImpact", CFrame.new(at) * facing(cue), { scale = radius })
-		Impact.ground(at, { radius = radius, element = "moon", burst = true, scar = true, rocks = true, look = facing(cue), shake = 0.5, reach = radius + 60 })
-		sealGlint(cue, false)
+		play("LeapImpact", CFrame.new(at) * facing(cue), { scale = radius })
+		sound("LeapLand", at)
 		shake(0.34, at, radius + 40)
 		return
 	end
@@ -881,9 +849,7 @@ function King.land(cue: Cue)
 	end
 	s.landAt = cue.at
 	s.latestAt = math.max(s.latestAt, cue.at)
-	local left, right = pawGround(cue, "FL"), pawGround(cue, "FR")
-	play("RushSkid", CFrame.new((left.Position + right.Position) / 2) * left.Rotation)
-	Impact.skid({ left.Position, right.Position }, left.LookVector, { element = "moon", scale = 1.6, seconds = 0.3 })
+	plough(cue, { "FL", "FR" })
 	shake(0.18, cue.root.Position, 60)
 end
 
@@ -892,11 +858,7 @@ function King.skid(cue: Cue)
 	if not ours(cue) then
 		return
 	end
-	local feet = {}
-	for _, side in { "FL", "FR", "BL", "BR" } do
-		table.insert(feet, pawGround(cue, side).Position)
-	end
-	Impact.skid(feet, facing(cue).LookVector, { element = "moon", scale = 1.5, seconds = 0.45 })
+	plough(cue, { "FL", "FR", "BL", "BR" })
 	shake(0.12, cue.root.Position, 50)
 end
 
@@ -919,18 +881,15 @@ function King.hit(cue: Cue)
 	local toward = Vector3.new(delta.X, 0, delta.Z)
 	toward = if toward.Magnitude > 0.1 then toward.Unit else Vector3.new(0, 0, -1)
 	local frame = CFrame.lookAt(torso.Position + toward * 0.9, torso.Position + toward * 1.9)
-	if cue.attack == "pawSwipe" then
-		play("HitClaw", frame)
-	elseif cue.attack == "royalBite" then
-		play("HitBite", frame)
-	else
-		play("HitHeavy", frame)
-	end
+	local name = if cue.attack == "pawSwipe" or cue.attack == "kingRake" then "HitClaw" elseif cue.attack == "royalBite" then "HitBite" else "HitHeavy"
+	play(name, frame)
+	sound(name, torso.Position, 0.08)
 	if Players.LocalPlayer and target == Players.LocalPlayer.Character then
 		hurtShake(if cue.attack == "crownfall" then 0.26 elseif cue.attack == "royalBite" or cue.attack == "kingsRush" then 0.2 else 0.15)
 	end
 end
 
+-- Knocked back: qi is knocked out of the chest (EnemySounds plays Hurt).
 function King.stagger(cue: Cue)
 	if not ours(cue) or not current(cue, "stagger") then
 		return
@@ -941,11 +900,11 @@ function King.stagger(cue: Cue)
 	stopRush(s)
 	s.latestAt = math.max(s.latestAt, cue.at)
 	local frame, chest = point(cue, "Core", { "Chest" })
-	play("PhaseFlare", frame, { follow = chest, boost = 0.5 })
+	play("Stagger", frame, { follow = chest })
 end
 
--- Death: a collapsing gather while spirit flames and motes lift off the body,
--- then a white burst and a pillar, and motes linger. No body copy.
+-- Death: the King's qi leaks off the body (DeathLeak), then at 0.85 s its
+-- spirit breaks free upward (DeathRelease). EnemySounds plays the death cry.
 function King.death(cue: Cue)
 	if not ours(cue) then
 		return
@@ -960,29 +919,14 @@ function King.death(cue: Cue)
 	stopRush(s)
 	applyAura(cue)
 	local frame, chest = point(cue, "Core", { "Chest" })
-	play("DeathBuild", frame, { follow = chest, seconds = 0.9 })
-	play("PhaseFlare", frame, { follow = chest, scale = 1.3, boost = 0.8, edit = only({ "Flames", "Motes" }) })
-	-- the spirit leaving: motes rising off the whole body for about 3 s,
-	-- where the old ghost wolf rose
-	play("DeathSpirit", CFrame.new(ground(cue, root(cue).Position) + Vector3.new(0, 1, 0)) * facing(cue), {
-		edit = function(copy)
-			only({ "Spirits" })(copy)
-			for _, e in copy:GetDescendants() do
-				if e:IsA("ParticleEmitter") then
-					e.Size = scaleSequence(e.Size, 2.2)
-					e.Rate *= 1.5
-				end
-			end
-		end,
-	})
+	play("DeathLeak", frame, { follow = chest })
 	local at = ground(cue, root(cue).Position)
 	local face = facing(cue)
 	task.delay(0.85, function()
-		local live = chest.Parent and chest.Position or frame.Position
-		play("DeathBurst", CFrame.new(live))
-		play("DeathSpirit", CFrame.new(at + Vector3.new(0, 0.05, 0)) * face)
-		sealGlint(cue, false)
-		shake(0.34, live, 150)
+		play("DeathRelease", CFrame.new(at + Vector3.new(0, 0.05, 0)) * face)
+		sound("DeathRelease", at)
+		task.delay(0.3, sound, "DeathRumble", at)
+		shake(0.34, at, 150)
 	end)
 end
 

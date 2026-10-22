@@ -20,6 +20,7 @@ fails if a named group is missing from the export.
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -88,7 +89,11 @@ def main():
         json.dump({"name": "Effects", "tree": {"$path": merged}}, open(proj, "w"))
         out = os.path.join(tmp, "Effects.rbxm")
         subprocess.run([ROJO, "build", proj, "-o", out], check=True, capture_output=True)
-        os.replace(out, TARGET)
+        # the temp dir may be on another filesystem (WSL /tmp): copy next to
+        # the target first, then swap atomically
+        staged = TARGET + ".merging"
+        shutil.copyfile(out, staged)
+        os.replace(staged, TARGET)
     print("groups now:", " ".join(name_of(i) for i in broot.findall("Item")))
     print("wrote assets/Effects.rbxm")
 

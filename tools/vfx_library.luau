@@ -11,6 +11,9 @@
 -- kind is "image", "mesh", "flipbook" or "sound" (sounds also carry a name).
 -- Tiles only carry the asset id; to judge an image, fetch its thumbnail:
 -- https://thumbnails.roblox.com/v1/assets?assetIds=<id>&size=150x150&format=Png
+--   _G.vfxLibrary.dump(queries, name, limit?) -> posts index() to the receiver
+--     (tools/ensure_receiver.sh) as tools/frag/<name>.xml instead of returning
+--     it, for tools/vfx_contact_sheet.py's layer mode (one sheet per layer)
 -- tools/vfx_library.json is a keyword index built with index().
 
 local HttpService = game:GetService("HttpService")
@@ -83,15 +86,22 @@ local function search(query: string, limit: number?)
 	return results
 end
 
+local function index(queries, limit)
+	local out = {}
+	for _, q in queries do
+		out[q] = search(q, limit)
+	end
+	library().Text = ""
+	return HttpService:JSONEncode(out)
+end
+
 _G.vfxLibrary = {
 	search = search,
-	index = function(queries, limit)
-		local out = {}
-		for _, q in queries do
-			out[q] = search(q, limit)
-		end
-		library().Text = ""
-		return HttpService:JSONEncode(out)
+	index = index,
+	dump = function(queries, name, limit)
+		local json = index(queries, limit or 120)
+		HttpService:PostAsync("http://127.0.0.1:8766/" .. name, json)
+		return `{#queries} words -> tools/frag/{name}.xml ({#json} bytes)`
 	end,
 }
 return "vfxLibrary installed"

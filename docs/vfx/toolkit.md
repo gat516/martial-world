@@ -183,6 +183,15 @@ surprises you):
     than its name: a roar is "shockwave", "ring", "wind", "air", "dust", with
     sounds under "air" ("Air Blast"), "shockwave", "monster" and "scream".
     Search sounds by name ("explosion", "slash", "thunder").
+  - One call per effect: write the cause words for every layer, run
+    `_G.vfxLibrary.dump(words, "<name>")` (posts the live results to
+    `tools/frag/<name>.xml`), then
+    `~/.local/bin/uv run -q --with pillow python3 -I tools/vfx_contact_sheet.py OUT layers PLAN.json tools/frag/<name>.xml`
+    with `PLAN.json` = `{"<layer>": ["cause word", ...]}`: one sheet per layer
+    (images, flipbooks and meshes together) and that layer's sounds as text, in
+    seconds. Raw thumbnails are cached in `~/.cache/vfx_thumbs` and fetched 16 at
+    a time (the old serial fetch took over two minutes for ~900 tiles). Nothing
+    records which assets were picked; every effect searches fresh.
   - Never scroll the library window through to its end to list everything:
     loading every tile crashed the user's Studio (2026-10-22). Search instead.
   - Tiles only carry ids, so judge looks from thumbnails before using one, on a
@@ -582,6 +591,16 @@ Ask these in the plan, not after the build:
 - If the Game Module isn't in the place, still author the Emit attributes and
   say in-game module playback is untested.
 - Clean up everything: preview scene, clones, staging, `workspace.Terrain.TempVFX`.
+- Enemy effects: `tools/enemy_fx_shot.luau` (`_G.enemyFxShot`) clones the real
+  body, fires a cue sequence at its real moments with the model's
+  `Attack`/`AIState`/`StateAt` set as the server would, freezes particles and
+  mesh-wave tweens at `freeze` seconds and returns the camera for
+  `screen_capture`; one call per moment. Layers with an `EmitDelay` start about
+  0.1 s late in Edit mode (the Game Module's emit), so capture a peak at +150 ms
+  rather than +50.
+- `tools/enemy_fx_smoke.luau` takes `stateful = true` (and `wait`) for handlers
+  that guard on the model's state, as the bosses' do; without it they return
+  before spawning anything and the smoke run looks clean but tests nothing.
 - If a capture right after a big edit looks wrong (stale scene, empty sky),
   take it again before debugging; the first frame can lag the change.
 
@@ -616,7 +635,12 @@ away the other agent's shipped group. Instead, export under your own name
 It replaces or adds `Effects.<Group>` and leaves every other group as it is
 on disk; attributes, tags and Refs survive (a merge of a file with itself
 round-trips identically). Merge right before you commit, and stage only
-`assets/Effects.rbxm` plus your own files.
+`assets/Effects.rbxm` plus your own files. `execute_luau` refuses posts over
+1 MB, and the whole Effects folder is bigger, so export a temporary folder
+holding only a clone of your group (`ReplicatedStorage._Export<Group>`,
+exported under the name `Effects`, then destroyed); the merge only reads the
+named groups. Library meshes made with `CreateMeshPartAsync` carry their
+geometry into the file (about 40 KB per distinct mesh, shared between copies).
 
 ## Playing effects in-game
 

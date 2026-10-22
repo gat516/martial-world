@@ -40,6 +40,150 @@
      <float name="RollOffMaxDistance">250</float>
     </Properties>
     </Item>
+    <Item class="Sound" referent="EWKFX1"><Properties>
+     <string name="Name">BiteSnap</string>
+     <Content name="SoundId"><url>rbxassetid://71561010805690</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX2"><Properties>
+     <string name="Name">SwipeSlash</string>
+     <Content name="SoundId"><url>rbxassetid://116338527674024</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX3"><Properties>
+     <string name="Name">ClawStrike</string>
+     <Content name="SoundId"><url>rbxassetid://9118612665</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX4"><Properties>
+     <string name="Name">CrownfallCharge</string>
+     <Content name="SoundId"><url>rbxassetid://109903968999295</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX5"><Properties>
+     <string name="Name">CrownfallImpact</string>
+     <Content name="SoundId"><url>rbxassetid://100457174196725</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX6"><Properties>
+     <string name="Name">CrownfallRumble</string>
+     <Content name="SoundId"><url>rbxassetid://9114221327</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX7"><Properties>
+     <string name="Name">Launch</string>
+     <Content name="SoundId"><url>rbxassetid://3929467229</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX8"><Properties>
+     <string name="Name">LeapLand</string>
+     <Content name="SoundId"><url>rbxassetid://112198630684733</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX9"><Properties>
+     <string name="Name">Skid</string>
+     <Content name="SoundId"><url>rbxassetid://3848082818</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX10"><Properties>
+     <string name="Name">Rake</string>
+     <Content name="SoundId"><url>rbxassetid://118783238636456</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.95</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX11"><Properties>
+     <string name="Name">RoarBlast</string>
+     <Content name="SoundId"><url>rbxassetid://411274847</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX12"><Properties>
+     <string name="Name">HowlBlast</string>
+     <Content name="SoundId"><url>rbxassetid://357647862</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX13"><Properties>
+     <string name="Name">HitClaw</string>
+     <Content name="SoundId"><url>rbxassetid://8775748486</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX14"><Properties>
+     <string name="Name">HitBite</string>
+     <Content name="SoundId"><url>rbxassetid://203691785</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.95</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX15"><Properties>
+     <string name="Name">HitHeavy</string>
+     <Content name="SoundId"><url>rbxassetid://441202925</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX16"><Properties>
+     <string name="Name">Hurt</string>
+     <Content name="SoundId"><url>rbxassetid://1489924400</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX17"><Properties>
+     <string name="Name">DeathRelease</string>
+     <Content name="SoundId"><url>rbxassetid://9125635285</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="EWKFX18"><Properties>
+     <string name="Name">DeathRumble</string>
+     <Content name="SoundId"><url>rbxassetid://9116407532</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
    </Item>
    <Item class="Folder" referent="JJSFX0"><Properties>
     <string name="Name">JadeJiao</string>

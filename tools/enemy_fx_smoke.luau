@@ -11,8 +11,14 @@
 --     GoldenToad = { mod = "GoldenToad", hooks = { "Mouth", "TongueTip" },
 --       cues = { { "windup", "tongueLash" }, { "hit", "tongueLash" }, { "snare" }, { "death" } } },
 --   })
--- A cue is { name, attack?, seconds? }. Handlers run with a dummy target
+-- A cue is { name, attack?, seconds?, state? }. Handlers run with a dummy target
 -- character 14 studs ahead and a shape.center 18 studs ahead.
+-- `stateful = true` on a body's plan (for handlers that guard on the model's
+-- state, like the bosses'): before each cue the model gets Attack = attack,
+-- AIState = state (default by cue: windup/recover/dash/stagger), a fresh
+-- StateAt, and the cue's `at` is the server time now. `wait = s` holds each
+-- cue that long so delayed beats fire; spawns are then counted in
+-- TechniqueVFX.folder as well as the camera.
 
 local FLOOR = 648.6
 function _G.enemyFxSmoke(plan)
@@ -39,22 +45,48 @@ function _G.enemyFxSmoke(plan)
 			table.insert(out, `  hook {h}: {f and f.ClassName or "MISSING"}`)
 		end
 		local handlers = require(Client.EnemyFX[p.mod])
+		local DEFAULT_STATE = { windup = "windup", strike = "recover", dash = "dash", land = "recover", stagger = "stagger", hit = "recover", skid = "recover" }
+		local okTV, TV = pcall(require, Client.TechniqueVFX)
+		local folder = okTV and TV.folder or nil
+		-- count what each cue adds (net child counts hide spawns that were
+		-- already cleaned up by the end of a `wait`)
+		local added = 0
+		local conns = { cam.ChildAdded:Connect(function() added += 1 end) }
+		if folder and folder ~= cam then
+			table.insert(conns, folder.ChildAdded:Connect(function() added += 1 end))
+		end
+		local function count()
+			return added
+		end
 		for _, c in p.cues do
-			local before = #cam:GetChildren()
+			local before = count()
+			local at = 0
+			if p.stateful then
+				at = workspace:GetServerTimeNow()
+				m:SetAttribute("Attack", c[2])
+				m:SetAttribute("AIState", c[4] or DEFAULT_STATE[c[1]])
+				m:SetAttribute("StateAt", at)
+			end
 			local cue = {
 				model = m, root = root, kind = p.mod, attack = c[2], seconds = c[3],
 				shape = { center = Vector3.new(400, FLOOR, -18), radius = 5 },
-				target = target, at = 0,
+				target = target, at = at,
 			}
 			local fn = handlers[c[1]]
 			if not fn then
 				table.insert(out, `  {c[1]}: no handler`)
 			else
 				local ok, err = pcall(fn, cue)
-				table.insert(out, `  {c[1]} {c[2] or ""}: {ok and "ok" or ("ERROR " .. tostring(err))} (+{#cam:GetChildren() - before})`)
+				if p.wait then
+					task.wait(p.wait)
+				end
+				table.insert(out, `  {c[1]} {c[2] or ""}: {ok and "ok" or ("ERROR " .. tostring(err))} (+{count() - before})`)
 			end
 		end
 		task.wait(0.2)
+		for _, c in conns do
+			c:Disconnect()
+		end
 		m:Destroy()
 	end
 	target:Destroy()

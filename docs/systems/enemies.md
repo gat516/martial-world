@@ -682,61 +682,81 @@ and boar pairs and the spawn pad. Fight at QC9 for the intended comparison; the
 test kit gives equipment but does not change the player's realm.
 
 Effects: `src/client/EnemyFX/ElderWolfKing.luau`, gated to `ElderWolfKingB`; standard
-`windup`, `strike`, `dash`, `land`, `hit`, `stagger`, `death` cues. Every windup's
-`seconds` covers only the windup. Body hooks: `Mouth` (Skull), `Core` (Chest),
-`PawFL_FX`/`PawFR_FX`/`PawBL_FX`/`PawBR_FX` (the paws), `SealFX` (Seal).
-The existing `SFX.Enemies.ElderWolfKing` Aggro/Attack/Death sounds are reused.
-No new remotes.
+`windup`, `strike`, `dash`, `land`, `skid`, `hit`, `stagger`, `death` cues plus `ready`
+and `aggro` (the aura). Every windup's `seconds` covers only the windup. Body hooks:
+`Mouth` (Skull), `Core` (Chest), `PawFL_FX`/`PawFR_FX`/`PawBL_FX`/`PawBR_FX` (the
+paws), `EyeL`/`EyeR`, `Neck`. No new remotes.
 
-The King has its own effect set, `Effects.ElderWolfKing` (28 templates, about 190
-emitters; builder `tools/vfx_specs/ElderWolfKing.luau`, installs
-`_G.buildElderWolfKingFX`). It no longer uses the wolf or boar templates. Look:
-moon-silver qi on ink-slate; **gold is the warning tell** (every windup flare is
-gold, so gold means react); pale spirit-cyan for the spirit flourishes; jade
-only on the collar seal. No crown or halo (user, 2026-10-21). Identity comes from
-the aura (mane flames, spirit motes, breath mist) and from spirit flourishes built
-from the set's own templates: spirit-flame bursts, rising mote columns and howl
-rings. **No copy of the body, ever** (user, 2026-10-21: the Neon ghost/afterimage
-clones of the bosses looked bad, so the old `ghost` wolves were removed), and **no
-always-on ground circle**: the `AuraGround` template (ink disc + turning moon
-mandala) read as a pale circle under the King, so the handler no longer mounts it
-(it stays in `Effects.rbxm`, unused). The handler's `only({...})` edit keeps one
-layer group of a template (and drops its shake) to borrow it as a flourish. A
-particle's `Size` is a half-width, so the builder halves its authored diameters
-once in `em`.
+The King's effect set, `Effects.ElderWolfKing` (30 templates, 86 emitters, 21 mesh
+waves; builder `tools/vfx_specs/ElderWolfKing.luau`, installs
+`_G.buildElderWolfKingFX`), was rebuilt on 2026-10-22 with the intent-first method
+(`.claude/agents/vfx.md`). Each move has an intent, a ms beat sheet and a layer sheet
+(cause, role, library asset and why) in the builder's header, one hero per beat, and
+layers staggered behind their cause. The old set (28 templates, ~190 emitters) layered
+the shared `Impact` kit on top of its own impacts, redrew the danger area with a gold
+ground `Marker` and turning formation arrays, and popped most layers on one frame. All
+of that was cut.
 
-Cues (the handler is `EnemyFX/ElderWolfKing.luau`; `EnemyFX/init.luau` gained two
-generic cues, `ready` once per enemy when first seen and `aggro` on idle/return ->
-chase, for any beast that wants them):
+Look: moon-silver qi (white core, pale-blue rim) on ink and slate. The King's gold
+shows only on the first frame of a move (eyes, raised claws). Anything that hits the
+ground throws warm grey dust and debris. No crown or halo, no copy of the body, no
+always-on ground circle (user, 2026-10-21).
 
-| Beat | Layers / how it plays |
-|---|---|
-| Aura (`ready`, always on) | mane flames, spirit motes, crest embers, mouth mist: 4 light emitters mounted in the body, about 17 particles/s, nothing on the ground. Health scales it: rates x(1 + 1.2 x lost health), flames go silver -> gold-white (<=65%) -> gold (<=30%), embers appear below 70%, and Pack Call flares it x2.2 for 3 s |
-| Aggro roar (plays on the `roar` attack's release, via `strike`; `aggro` itself only lights the aura) | `Roar` at the Mouth (8: three sound rings, mist blast, flash, sparks, floor ring and dust), a spirit-flame burst off the head (`PhaseFlare` flames, ring, star, motes at 0.7 scale) and a lighter one off the mane (flames, motes), aura flare, small shake; 12 s gap. No stock howl disc (bosses skip it, `d1f8780`) |
-| Every windup | `BrowFlare` on both eyes (4: gold star, pop, held glow, needle) |
-| Royal Bite | windup `BiteTell` (8: gold motes drawn into the muzzle, two closing rings, ink + gold maw glow, fang glints flash at 0.62 s, mist); contact `BiteSnap` (13: upper and lower fang crescents, flash, star, spiky ring, rays, ink, embers, smoke, shake) plus breath mist and sparks thrown forward off the jaws (`Roar` blast + sparks at 0.6 scale) |
-| Paw Swipe | windup `SwipeTell` on the left paw (5, the loudest at its start: a big gold star at 0 s, three gold claw streaks, closing ring); contact `SwipeSlash` (9: three crescents and echo sweeping across the cone, claw rake, wind lines, sparks, smear) |
-| Claw Down | windup `Marker` on the locked circle (6) then `ClawRaise` on the right paw at 50% (5); contact `ClawStrike` (11: falling claws, lit crack over a dark crack, ring, dust, chips, embers, shake) |
-| King's Rush | windup `RushCharge` (6: motes and speed lines pulled in, swelling core, closing rings) + `GroundArray` under the King (5, gold); take-off `RushLaunch` (6); dash `RushTrail` (7: ink and white trails, wind, spirit glow, flames, floor dust); stop `RushSkid` (4) |
-| Crownfall | windup `SlamTell` on the chest (7) + `Marker` on the locked circle (6: boundary ring, ink under it, a disc that fills to contact, a turning array, a ring closing from outside, edge sparks; this is the radius read) + jade seal flare; contact `SlamImpact` (16: flash, star, three rings, dust wall, chips and rock chunks, rays, lit crack, **scorch that stays about 6 s and fades**, embers, settling smoke, a Craters rock ring and an Explosion shake) |
-| Pack Call (65% and 30%) | windup `HowlTell` (6: sound rings and arcs, glow, mist, spirit motes) + `GroundArray` in spirit-cyan + spirit motes and pull lines gathering into the chest (`DeathBuild` gather, pull, cracks at 0.75 scale, refit to the windup); release `PhaseBurst` (11: spirit sigil, three shock rings, light rays and a pillar, rising motes, flash, dust, shake) + `PhaseFlare` on the chest (5) + the howl out of the mouth (`Roar` rings, flash, sparks, blast; no shake) + a rising light column (`DeathSpirit` pillar and motes at r5, 0.8 s) + aura flare; at 30% (health <= 35%) counts x1.6, the column holds 1.2 s and a second, bigger howl ring set follows at 0.3 s |
-| Confirmed hits | `HitClaw` (swipe), `HitBite`, `HitHeavy` (claw, rush, slam): 6 to 8 layers each, short |
-| Stagger | a half-strength `PhaseFlare` on the chest |
-| Death | `DeathBuild` (5, 0.9 s collapsing gather) while spirit flames and motes burst off the body (`PhaseFlare` at 1.3 scale) and spirit motes rise off the whole body for about 3 s (`DeathSpirit` motes, larger and denser); at 0.85 s `DeathBurst` (9: white-out, star, ink splash, two rings, rays, motes, smoke, embers, shake) and `DeathSpirit` on the floor (6: sigil, pillar of rays, rising motes and petals for 3-4 s, smoke); the aura goes out |
+Shapes come from library flipbooks and meshes found by searching for what each move
+causes (air, dust, debris, light):
+- a dust puff opening into a ring (12360899465)
+- a star burst (13580358178)
+- air wisps (12094495797)
+- a twinkle (102648375149008)
+- a spirit flame (81332883799807)
+- rising smoke (17703378809)
+- swirl-ring and twisting-column meshes as 3D shocks (`MeshWave` models, played by
+  `TechniqueVFX.emit`; the handler scales them with the template)
 
-Shakes ride the templates' ScreenEffects attributes when the Game Module is
-present (`TechniqueVFX.full`) and fall back to `CombatEffects.shake` otherwise.
-`Craters` needs the Game Module too; the King's model is tagged `CraterIgnore`.
-Held templates carry `AuthoredSeconds` and ground ones `AuthoredRadius`; the handler
-refits them to the live windup and the locked circle. The stock red telegraph is
-unchanged and stays under the new markers.
+| Move | Intent | Anticipation | Peak (hero first) | Sound at the peak |
+|---|---|---|---|---|
+| every windup | the King's intent | `EyeGlint` on both eyes, 0-350 ms | - | voice: EnemySounds `Attack` |
+| Royal Bite | draws breath, snaps its jaws on the space in front | `BiteTell`: breath pulled into the jaws, maw glow on ink, fang glints in the last 250 ms | `BiteSnap`: two dark-rimmed crescents slam shut (hero), +30 ms air ring shoved forward, +50 spray | `BiteSnap` |
+| Paw Swipe | a quick foreleg sweep across the cone | `SwipeTell` on the left paw: star and gold claws, loudest on its first frame (short tell) | `SwipeSlash` 12 studs ahead: a brushed crescent sweeps across on a slate copy (hero), +20 claw rake, +50 wind, +60 grit | `SwipeSlash` |
+| Claw Down | the right paw rises and is driven into the ground | `ClawRaise` from 50% of the windup | `ClawStrike` on the locked circle: three claw gouges carved, qi burning in them (hero), flash, +30 ground shock, pebbles, dust | `ClawStrike` |
+| Crownfall | rears and slams both forepaws down | `CrownfallTell` on both forepaws: motes and air pulled in, glow accelerating, qi flames on the claws in the last 250 ms; a rising charge sound timed to end on contact (stops if interrupted) | `CrownfallImpact`: shockwave ring on a slate ring (hero), flash, carved crater with a lit crack cooling (fades over 6 s), Craters rocks, +30 pebbles, +60 dust wall, +250 settling smoke | `CrownfallImpact`, +150 `CrownfallRumble` |
+| King's Rush | coils on its hind legs and bursts through the air | `Coil` on the hind paws: dust and grit kicked back from 30% | take-off `Launch` (dust burst behind, flat shock); dash `RushTrail` (air rings peel off the muzzle, speed lines, ink and moon ribbons, wake dust); stop: `Skid` from the forepaws | `Launch`; `Skid` |
+| King's Leap | crouch, launch, the whole body lands | `Coil` on all four paws | take-off `Launch` at 1.3x; landing `LeapImpact`: a dust cloud bursting round the body (hero), shock ring on slate, flash, Craters rocks, pebbles. No crack (cracks are the paw slam's) | `Launch`; `LeapLand` |
+| King's Rake | both forepaws rake the arrival cone | `SwipeTell` on both forepaws | two `SwipeSlash` 13 studs ahead, left then mirrored right +80 ms | `Rake` |
+| Skids (`kingsRushSkid`, `kingLeapSkid`) | paws plough as the body swings round | - | `Skid` at all four paws | `Skid` |
+| Engage roar | a blast of air and sound from the mouth | `RoarTell`: breath pulled in hard, maw glow | `RoarBlast`: three sound rings travel out of the mouth +0/+80/+160 on a slate ring (hero), +40 air swirl, +50 wind lines; `RoarGround` dust shoved ahead +120; the aura flares | `RoarBlast` |
+| Pack Call (65%, 30%) | howls to the sky to call its spirit wolves | `HowlTell` (breath in, maw glow) and `HowlGather` (spirit motes rising in a ring round the King) | `HowlBlast`: the rings rise on an axis tilted 55 degrees up (hero); `ManeFlare` on the neck; `HowlGround` air shock over the stun radius with a dust skirt (dimmer, secondary); aura flared 3 s; the second call boosts counts | `HowlBlast` (a wolf howl) |
+| Confirmed hits | the blow landing on a player | - | `HitClaw` (swipe, rake), `HitBite`, `HitHeavy` (the rest) | `HitClaw`/`HitBite`/`HitHeavy` |
+| Stagger | qi knocked out of the chest | - | `Stagger` on the chest | `Hurt` (EnemySounds) |
+| Death | qi leaks from the body, then the spirit breaks free | `DeathLeak` on the body, 0-850 ms | `DeathRelease` at 850 ms: a twisting column rises (hero), spirit flames, flash, ground shock, dust, motes rising ~3 s | `DeathRelease`, +300 `DeathRumble`; voice: EnemySounds `Death` |
+| Aura (always on) | the King's qi | - | `AuraMane` (spirit flames, motes, embers below 70%), `AuraBreath` mist; health scales the rates and shifts the flames toward gold | - |
+
+Layers per peak: Bite 7, Swipe 7, Claw Down 7, Crownfall 10 (+ Craters), Rush take-off
+3 / dash 5, Leap landing 7 (+ Craters), Roar 9, Pack Call 8, hits 3, death 7.
+
+Sounds: 18 under `SFX.Enemies.ElderWolfKing`: BiteSnap, SwipeSlash, ClawStrike,
+CrownfallCharge, CrownfallImpact, CrownfallRumble, Launch, LeapLand, Skid, Rake,
+RoarBlast, HowlBlast, HitClaw, HitBite, HitHeavy, Hurt, DeathRelease, DeathRumble.
+They are library sounds: they load in Studio, but in-game permission is untested.
+
+Shakes ride the templates' ScreenEffects attributes when the Game Module is present
+(`TechniqueVFX.full`) and fall back to `CombatEffects.shake` otherwise. `Craters`
+needs the Game Module too; the King's model is tagged `CraterIgnore` when its aura
+starts. Held templates carry `AuthoredSeconds` and ground ones `AuthoredRadius`; the
+handler refits them to the live windup and the locked circle. The telegraph is
+unchanged and keeps the danger colour; no effect redraws the area.
 
 Windup tasks cancel when the state or attack changes; rush release/dash cues dedupe,
 and the trail stops on landing, interruption, death or its duration limit. Confirmed
 hit flashes allow the same attack's immediate windup-to-contact state transition,
 because its remote may arrive before the replicated phase update. Ground effects
-stay at the locked point; body effects follow their attachment's part. Layer details
-and library ids are in the builder.
+stay at the locked point; body effects follow their attachment's part.
+
+Known gaps (effects):
+- Crownfall's circle sits under the King's chest (offset -3.5), so the body hides
+  much of the impact from the side.
+- The Craters rocks didn't show in Edit-mode previews; untested in play.
+- Feel (shake strength, timing at play speed) and phone cost are untested.
 
 ### Nine-Tailed Fox (testbed trial)
 `Config.Wilds.NEW_NINE_TAIL_FOX = TESTBED` gates the def. FE1 boss, 2600 HP, weight 7,

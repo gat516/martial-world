@@ -95,41 +95,18 @@ motion. Left:
 - **Feel:** whether the combo still feels rushed under the new timings hasn't been
   judged.
 
-**Effects** (`src/client/EnemyFX/ThunderApe.luau`, `tools/vfx_specs/ThunderApe.luau`;
-pass committed `3d71470`, impact pass below). Done:
-- **Ghosts replaced:** `SpeedShed` (sparks, arcs and cloud where the body passed)
-  plus `LimbTrail` ribbons on rushes and leaps; the roar pushes forward instead of
-  a ghost head; `DeathSoul` spirit flames for the death ghost.
-- **Roars:** rebuilt `RoarGather`, `BeatGround` and `RoarShock`, reading without
-  the howl disc and with no ring around the head.
-- **Boulder:** the rip, a rock that rises to the fist and rides it, a charge, and
-  the `"boulder"` drawer with a tightening shadow and an impact. The release is
-  `seconds - 0.45`.
-- **Lance:** a fist-only windup (the only lane is `warnLane`) and the
-  `"thunderLance"` javelin drawer.
-- **Cheap reads fixed:** code bolts and the phase-2 ground disc.
-- **Impact pass (2026-10-22, the shared kit below):** thunderPound, the pound
-  wave, bodySlam, skyfall and judgment landings, bound landings and take-offs
-  layer shockwave, dust, debris, contact flash and (landings) burst and scar,
-  with a distance shake. rushSwipe and skyfallSweep reuse the club/backhand
-  tells and crescents plus a dust rake; `thunderRushSkid`/`skyfallSlamSkid`
-  plough dust from fists and feet. The boulder gets a dark wake and an earth
-  explosion; the lance a white-hot core, trail and a thunder explosion.
-  Landings now play when Attack has already moved on to the arrival follow-up
-  (`arrived`), and the leap circle is kept apart (`leapShape`) so the
-  follow-up's cone doesn't move the landing.
-
-Left, all untested:
-- captures of the dash shed and limb trails, `AuraGround`, the phase roar and
-  `BeatGround`;
-- night, the 40-stud read, and phone cost (`SpeedShed` is about 120 particles/s);
-- Game Module playback;
-- both drawers against the real server messages. The boulder jumps from the
-  animator's fist to the server's fire point `(7, 14, -2)` at hand-off, and the
-  rock's ride on the real lift pose is unchecked;
-- `LanceBolt`'s particles and trails, which never showed in Edit-mode captures;
-- the chest `SigilFlare` dark disc, which reads a bit blobby and should be toned
-  down.
+**Effects** (`src/client/EnemyFX/ThunderApe.luau`, `tools/vfx_specs/ThunderApe.luau`).
+Rebuilt intent-first on 2026-10-22 (49 templates, 30 effect sounds; the record and
+every move's beats are in [enemies.md](enemies.md), "Thunder Ape"). The shared
+`Impact` kit, the leaps' ground sigils, the roar's ground crack, `AuraGround`, the
+chest sigil flare and `DeathSoul` are gone. Left, all untested:
+- feel at play speed, the sound mix and whether the library sounds play in-game;
+- night, the 40-stud read and phone cost (the judgment landing is the heaviest
+  beat: 13 layers plus the bolt);
+- the code bolts, trails, dash layers and both drawers in flight (none freeze for
+  an Edit-mode still), and Game Module playback (add-on shakes);
+- the boulder still jumps from the animator's fist to the server's fire point
+  `(7, 14, -2)` at hand-off.
 
 ## Nine-Tailed Fox (`NineTailFoxB`, 2.13x, fur tails rebuilt `d775419`)
 **Animation** (`src/client/EnemyPoses/NineTailFox.luau`; part 1 is `b314d83`).

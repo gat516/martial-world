@@ -384,6 +384,246 @@
      <float name="RollOffMaxDistance">400</float>
     </Properties>
     </Item>
+    <Item class="Sound" referent="TAFX1"><Properties>
+     <string name="Name">SwingWhoosh</string>
+     <Content name="SoundId"><url>rbxassetid://8563136052</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX2"><Properties>
+     <string name="Name">PoundSlam</string>
+     <Content name="SoundId"><url>rbxassetid://100457174196725</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">350</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX3"><Properties>
+     <string name="Name">PoundDebris</string>
+     <Content name="SoundId"><url>rbxassetid://9114221327</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX4"><Properties>
+     <string name="Name">PoundWave</string>
+     <Content name="SoundId"><url>rbxassetid://71472197762839</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX5"><Properties>
+     <string name="Name">BellySlam</string>
+     <Content name="SoundId"><url>rbxassetid://112198630684733</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">350</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX6"><Properties>
+     <string name="Name">Launch</string>
+     <Content name="SoundId"><url>rbxassetid://231917806</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX7"><Properties>
+     <string name="Name">SkyfallLand</string>
+     <Content name="SoundId"><url>rbxassetid://18506356852</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">350</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX8"><Properties>
+     <string name="Name">JudgmentTakeoff</string>
+     <Content name="SoundId"><url>rbxassetid://12222030</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">450</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX9"><Properties>
+     <string name="Name">JudgmentBolt</string>
+     <Content name="SoundId"><url>rbxassetid://97075216347653</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">450</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX10"><Properties>
+     <string name="Name">JudgmentQuake</string>
+     <Content name="SoundId"><url>rbxassetid://9114224354</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">400</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX11"><Properties>
+     <string name="Name">RushLaunch</string>
+     <Content name="SoundId"><url>rbxassetid://125628300343935</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX12"><Properties>
+     <string name="Name">Skid</string>
+     <Content name="SoundId"><url>rbxassetid://78919029033811</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX13"><Properties>
+     <string name="Name">BoundLand</string>
+     <Content name="SoundId"><url>rbxassetid://79436646901611</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX14"><Properties>
+     <string name="Name">BoulderRip</string>
+     <Content name="SoundId"><url>rbxassetid://9118614718</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX15"><Properties>
+     <string name="Name">BoulderThrow</string>
+     <Content name="SoundId"><url>rbxassetid://608600954</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX16"><Properties>
+     <string name="Name">BoulderImpact</string>
+     <Content name="SoundId"><url>rbxassetid://9118612665</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX17"><Properties>
+     <string name="Name">LanceCharge</string>
+     <Content name="SoundId"><url>rbxassetid://17524153633</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">1.55</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX18"><Properties>
+     <string name="Name">LanceThrow</string>
+     <Content name="SoundId"><url>rbxassetid://79691416209600</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">350</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX19"><Properties>
+     <string name="Name">LanceImpact</string>
+     <Content name="SoundId"><url>rbxassetid://9119594718</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX20"><Properties>
+     <string name="Name">ChestBeat</string>
+     <Content name="SoundId"><url>rbxassetid://441202925</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.6</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX21"><Properties>
+     <string name="Name">Inhale</string>
+     <Content name="SoundId"><url>rbxassetid://5297498542</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX22"><Properties>
+     <string name="Name">RoarBlast</string>
+     <Content name="SoundId"><url>rbxassetid://411274847</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">400</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX23"><Properties>
+     <string name="Name">RoarCrackle</string>
+     <Content name="SoundId"><url>rbxassetid://9116273379</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">350</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX24"><Properties>
+     <string name="Name">StormRaise</string>
+     <Content name="SoundId"><url>rbxassetid://12222030</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">450</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX25"><Properties>
+     <string name="Name">BoltStrike</string>
+     <Content name="SoundId"><url>rbxassetid://6348945391</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">350</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX26"><Properties>
+     <string name="Name">PhaseSurge</string>
+     <Content name="SoundId"><url>rbxassetid://2674547670</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">400</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX27"><Properties>
+     <string name="Name">HitStorm</string>
+     <Content name="SoundId"><url>rbxassetid://9119594880</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX28"><Properties>
+     <string name="Name">HitHeavy</string>
+     <Content name="SoundId"><url>rbxassetid://610359515</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX29"><Properties>
+     <string name="Name">DeathCrackle</string>
+     <Content name="SoundId"><url>rbxassetid://74584231552865</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">350</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="TAFX30"><Properties>
+     <string name="Name">DeathRelease</string>
+     <Content name="SoundId"><url>rbxassetid://12222019</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">450</float>
+    </Properties>
+    </Item>
    </Item>
    <Item class="Folder" referent="NTFSFX0"><Properties>
     <string name="Name">NineTailFox</string>

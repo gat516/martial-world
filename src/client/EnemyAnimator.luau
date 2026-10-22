@@ -86,7 +86,7 @@ local DEATH_SECONDS = 0.6
 -- keyedBlend: blend from the preceding state for this many seconds, then sample
 -- keyed poses directly. This keeps the King's short tells and contact instants
 -- from trailing the server clock through the normal joint smoothing.
-type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean?, guard: boolean?, turnInPlace: boolean?, circleLoop: boolean?, loopSmoothing: number? }
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, seamless: boolean?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean?, guard: boolean?, turnInPlace: boolean?, circleLoop: boolean?, loopSmoothing: number? }
 
 -- `<attack>Skid` is the overshoot turn-around the server plays (AIState recover) when a
 -- charge, lunge or leap arrives with the target out of reach; see skidOf below.
@@ -108,10 +108,12 @@ if Boar then
 end
 
 -- Jade Jiao: the Template-keyed serpent family (Template "JadeJiao", real-stud poses, SCALE 1).
--- A longer keyed blend: a move can start from the resting coil or the walking S.
+-- A longer keyed blend: a move can start from the resting coil or the walking S. `seamless`: no
+-- blend between the phases of one attack (windup -> dash -> recover play on without a restart,
+-- so the strike's follow-through isn't smothered by a 0.2 s blend from a frozen frame).
 if JadeJiao then
 	FAMILIES.JadeJiao = {
-		poses = JadeJiao, scale = JadeJiao.SCALE, runFrom = 8.5, keyedBlend = 0.2, deathSeconds = 3.6, staggerSeconds = 0.4,
+		poses = JadeJiao, scale = JadeJiao.SCALE, runFrom = 8.5, keyedBlend = 0.2, seamless = true, deathSeconds = 3.6, staggerSeconds = 0.4,
 		moves = {
 			emerge = "Emerge", venomFang = "VenomFang", tailSweep = "TailSweep", pillarSlam = "PillarSlam",
 			fangFlurry = "FangFlurry", mireDive = "MireDive", erupt = "Erupt", venomLance = "VenomLance",
@@ -244,6 +246,8 @@ type Rig = {
 	still: number?, -- serpent families: seconds below the idle speed (0 while moving)
 	travel: number?, -- studs moved since it last started moving
 	rested: number?, -- how long it was still before it last started moving
+	calm: number?, -- serpent families: seconds still and out of any keyed move (frozen through a windup)
+	wasKeyed: boolean?, -- the last frame played a keyed move
 	deadAt: number?,
 	yawRate: number?, -- motion families: the root's smoothed turn rate (rad/s, + to its left)
 	lastYaw: number?,
@@ -364,6 +368,7 @@ local function withExtras(rig: Rig, family: Family, input: any): any
 	input.still = rig.still or 0
 	input.travel = rig.travel or 0
 	input.rested = rig.rested or 0
+	input.calm = rig.calm
 	input.turn = if n >= 2 then (history[n][2] - history[n - 1][2]) / math.max(1e-3, history[n][1] - history[n - 1][1]) else 0
 	input.yawAt = function(secondsAgo: number): number
 		local at = history[n][1] - secondsAgo
@@ -578,16 +583,27 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 		-- the slither's wave slides with the ground speed in every state (a run during a windup,
 		-- a dash), so the body never skates; still/travel drive the coil and uncoil
 		local loop = if speed <= family.runFrom then "walk" else "run"
+		-- calm: seconds still and out of any keyed move (the resting coil's clock). It freezes
+		-- through a windup (the move unwinds the coil it started from) and restarts after any
+		-- other keyed state, so a recover hands over to the S the move ended in.
 		if speed >= 0.6 then
 			rig.phase += family.poses.gaitRate(loop, speed, family.scale) * dt
 			if (rig.still or 0) > 0 then
-				rig.rested = rig.still
+				rig.rested = math.min(rig.still :: number, rig.calm or math.huge)
 				rig.travel = 0
 			end
 			rig.still = 0
+			rig.calm = 0
 			rig.travel = (rig.travel or 0) + speed * dt
 		else
 			rig.still = (rig.still or 99) + dt
+			if rig.wasKeyed then
+				if state ~= "windup" then
+					rig.calm = 0
+				end
+			else
+				rig.calm = (rig.calm or 99) + dt
+			end
 			rig.travel = 0
 		end
 		while #history > 2 and history[2][1] < now - 3 do
@@ -625,7 +641,10 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 		if state == "stagger" or (family.motion and state == "recover") then
 			rig.side = sideOf(rig)
 		end
-		if family.keyedBlend then
+		local within = family.seamless and (state == "dash" or state == "recover") and rig.wasKeyed
+		if within then
+			rig.blendPose = nil
+		elseif family.keyedBlend then
 			local from = {}
 			for _, name in family.poses.JOINTS do
 				local joint = rig.joints[name]
@@ -661,6 +680,7 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 		target = movePose(rig, family, state, since)
 	end
 	local keyed = target ~= nil
+	rig.wasKeyed = keyed
 	if not target then
 		target = loopPose(rig, family, dt)
 	end

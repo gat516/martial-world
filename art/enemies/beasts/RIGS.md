@@ -449,7 +449,11 @@ and is meaningless now). `slither_jade_jiao.luau` poses an anchored EditorOnly c
 curved track with belly traces for a visual check.
 
 **Coil and uncoil.** Idle gathers the S it stopped in into the reference's resting coil over
-1.2-4.5 s still (body first, tail last) and raises the neck back into the strike S. Starting to
+1.2-4.5 s of `calm` (EnemyAnimator: seconds still and out of any keyed move, frozen through a
+windup, restarted after any other keyed state; `rested` is capped by it), body first, tail last,
+and raises the neck back into the strike S within a second of `still` (QA pass 2026-10-22: the
+coil used to run on `still`, which counts attack time, so a recover popped the body into a coil
+and the head dropped toward the walk neck for three seconds after every attack). Starting to
 move from a coil, each bone leaves it once the head has travelled about 0.45 of its arc. A move
 started from a coil unwinds it over the first 0.6 s of the windup. Attack stances sit on the
 walk's S frozen at the current wave phase.
@@ -484,10 +488,35 @@ blends straight on. Measured by forward kinematics (bone capsules, `tools/frag` 
 tail clears the neck by >= 0.9 and the Body by >= 2.9 studs on every frame, lowest point >= -0.1.
 Learned: `ty` sweeps the tail counter-clockwise from above (behind -> right -> front), and bones 1-4
 take only 0.25-1.0 of it, so the tail swings like a boom about the Body's back end; sweeping
-it past about 160 degrees runs Tail10 through Neck3 (-4 studs at 180). A full `ty` turn (TailSweep's
-`TAU`) is not the identity on bones 1-3, so TailSweep's recover ends with those three bones turned
-(about 1.6, 3.1, 4.7 rad) and the next state's blend spins them back. Not checked: the tail against
-the player at the def's cone, feel in Play.
+it past about 160 degrees runs Tail10 through Neck3 (-4 studs at 180). **Never key a full `ty`
+turn**: it is not the identity on bones 1-3 (they end turned about 1.6, 3.1, 4.7 rad, a knot at
+the tail base, spun back by the next blend); the old TailSweep did this. Not checked: the tail
+against the player at the def's cone, feel in Play.
+
+**QA pass (2026-10-22)**, measured with a motion probe (each move played as EnemyAnimator does,
+30 Hz, forward kinematics on the template; mouth, tail tip and Body speeds per frame):
+- **TailSweep** is a 4 rad lash now, not a full circle: wind left and high (`ty` -1.55, `tup` 1.0:
+  tip 99 degrees left, 20 up; body `ryaw` -0.2 with the tail, head dipped and looking away), hold
+  0.40-0.45 s, then the body unwinds (`ryaw` +0.15) and the tail lashes behind and round the right,
+  coming down (`ty` 2.4, `tup` 0.3: tip 124 degrees right, 7 up at contact; overshoot `ty` 2.7), then
+  recoils to `ty` 1.3 and settles. Tail clear of the neck and Body by >= 2.9 studs on every key and
+  mid-lash sample. Tip peak about 1000 studs/s in the last two frames (the lag catch-up), against
+  1230 round the whole circle before. Variant B winds further (`ryaw` -0.5) and lashes to 2.1/2.45.
+- **TailShove**'s whip takes 0.15 s with an accelerating ease (it was a 0.08 s `snap`, fastest at its
+  start: 1000 studs/s at the tip); the cock holds 0.50-0.55 s. Tip peak 760.
+- **PillarSlam**'s recover: buried still for 0.3 s, then trembling and hauling back (`SLAM_STRAIN`,
+  rz -3.0), rips free at 0.86 s with the head tossed up, and settles over the last 0.3 s (it used to
+  pop upright in the last 0.14 s).
+- **Ring arch**: the free tail past the ring's end is weighted by arc length (it was whole bones, so a
+  bone flipped between ring and arch whenever the tightening changed the coverage: an 82-degree
+  one-frame pop at Tail17 on the squeeze; 49 degrees now, inside the deliberate 0.14 s squeeze snap).
+- **Seamless phases** (`FAMILIES.JadeJiao.seamless`): no keyed blend between windup, dash and
+  recover of one attack. The 0.2 s blend from the frozen last windup frame stopped every strike
+  dead for a frame and smothered its overshoot (the fang strike went 321 -> 0 -> 7 studs/s).
+- Gotchas: a strike that eases with `snap` reaches the hit pose about 0.05 s before contact and
+  decelerates into it, which reads as "snap and hold"; a lash or swing should use `in` instead, so it
+  is fastest at contact. The lag fade (`1 - smooth(0.8, 1, u)` in a windup) catches the tail tip up
+  in the last 20% of the windup, which doubles the tip's speed there.
 
 ## Thunder Ape B poses (`src/client/EnemyPoses/ThunderApe.luau`)
 

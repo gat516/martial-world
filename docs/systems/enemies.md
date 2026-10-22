@@ -1019,6 +1019,23 @@ re-aimed cones, bolt flight against terrain and uneven ground (the aimed slope e
 ground past the target), the dive under broken ground, the rain at 9 drops on mobile, brood
 slot sharing, difficulty (QC7).
 
+Motion (animation QA pass, 2026-10-22; details in `art/enemies/beasts/RIGS.md`, timings and cue
+moments unchanged): **Tail Sweep** is a wind-and-lash now, not a full circle: the coil swings out
+left and high while the body twists with it and the head dips and looks away, holds, then the
+body unwinds and the tail lashes behind and round the right flank, low at contact, and recoils
+(the full circle knotted the tail base through the recover and spun it back afterwards). **Tail
+Shove**'s whip accelerates into contact over 0.15 s (it was a two-frame jump). **Pillar Slam**'s
+head strains in the ground, rips free with a toss and settles (it popped upright at the end).
+The **coil ring**'s free tail no longer pops on the squeeze. Every attack plays on from windup into
+its release without the 0.2 s re-blend that stopped each strike dead for a frame
+(`FAMILIES.JadeJiao.seamless` in EnemyAnimator). After a move the head no longer drops toward the
+walk's low neck, and the resting coil gathers only once it is calm again (EnemyAnimator `calm`),
+so the body doesn't snap into a coil when a long move ends. Known motion gaps: the body and the
+coiled tail slide together with a strike's lunge (the tail doesn't anchor); the tail tip still
+peaks near 1000 studs/s in the last two frames of the sweep (the lag catch-up); Tail Shove ends
+half reared for a ranged follow-up and sinks back if none comes; untested in Play (feel, the
+EnemyAnimator hand-offs at real frame rates, phones).
+
 Jade Jiao effects: `Effects.JadeJiao` (48 templates, 307 emitters; builder
 `tools/vfx_specs/JadeJiao.luau`, installs `_G.buildJadeJiaoFX`), handler `EnemyFX/JadeJiao.luau`.
 Acid venom-green (9BFF4A) with white-hot cores is the element, amber-gold only for warning tells,

@@ -54,6 +54,7 @@ export type Input = {
 	still: number?, -- seconds the body has been still (0 while moving)
 	travel: number?, -- studs moved since it last started moving (0 while still)
 	rested: number?, -- how long it was still before it started moving (its coil level)
+	calm: number?, -- seconds still and out of any move (frozen through a windup): the coil's clock
 }
 type Stance = { [string]: number }
 type Key = { t: number, s: Stance, ease: string? }
@@ -127,6 +128,10 @@ local solver = Serpent.new({
 })
 JadeJiao.solver = solver
 local NT = #TAIL
+local TAIL_LEN = 0
+for kk = 1, NT do
+	TAIL_LEN += solver.len[kk]
+end
 
 --------------------------------------------------------------------------------
 -- Slither parameters (by ground speed)
@@ -379,12 +384,14 @@ local function compose(samples: { Stance }, ctx: Ctx): Pose
 
 	-- Tail
 	local Yt, Ut = table.create(NT), table.create(NT)
-	local used = 0
+	-- the free tail past the ring's end, by arc length (QA pass: it was counted in whole bones,
+	-- so a bone flipped between ring and arch whenever the tightening ring changed how many
+	-- bones it covered: an 80-degree pop at Tail17 on the squeeze)
+	local ringLen, freeLen, sAt = 0, 1, solver.bodyLen
 	if ring then
-		used = ring.used - 1
+		ringLen = ring.radius * ctx.arcs * ringA
+		freeLen = math.max(4, solver.bodyLen + TAIL_LEN - ringLen)
 	end
-	local tailJoin = 0
-	local curl = 0.9 * S0.arch
 	for k = 1, NT do
 		local lag = 0.011 * k
 		local ty = at(samples, "ty", lag)
@@ -393,19 +400,21 @@ local function compose(samples: { Stance }, ctx: Ctx): Pose
 		local wr = if restW then restW(k) else 0
 		local yaw = (pH[k] + (follow[k] or 0)) * (1 - wr) + solver.restYaw[k] * wr
 		local pitch = solver.restUp[k]
+		local l = solver.len[k]
+		local sStart = sAt
+		sAt += l
 		if ring then
 			local ringYaw = ring.headings[k]
-			local uncovered = k > used
 			local a = S0.arch
-			if uncovered and a > 0 then
+			local past = sStart + 0.5 * l - ringLen
+			local wf = math.clamp(past / l + 0.5, 0, 1)
+			if wf > 0 and a > 0 then
 				-- the free tail rises as a rattling arch on the ring's end, curling outward
-				tailJoin += 1
-				local m = math.max(1, NT - used)
-				local x = (tailJoin - 0.5) / m
-				curl += solver.len[k] / 6.5
-				pitch += a * 0.33 * math.sin(math.pi * x) ^ 0.8
-				ringYaw += a * curl
-				ringYaw += a * 0.05 * math.sin(t * 31 + k * 1.7)
+				local x = math.clamp(past / freeLen, 0, 1)
+				local curl = 0.9 * a + math.max(0, sAt - ringLen) / 6.5
+				pitch += wf * a * 0.33 * math.sin(math.pi * x) ^ 0.8
+				ringYaw += wf * a * curl
+				ringYaw += wf * a * 0.05 * math.sin(t * 31 + k * 1.7)
 			end
 			yaw += (ringYaw - yaw) * ringBlend
 		end
@@ -492,17 +501,28 @@ moves.VenomFang = {
 	recover = ph(0.78, { k(0, FANG_OVER), k(0.4, FANG_MID, "inOut"), k(1, IDLE, "inOut") }, nil, 1),
 }
 
--- TailSweep: the head dips and turns away, the tail rears on the other side, then the whole
--- tail lashes a full circle (the lag makes it whip from the root outwards)
-local SW_DIP = rise({ 28, 62, 26, 10, -6, -38 }, { Y = { -0.15, -0.3, -0.5, -0.6, -0.65, -0.7 }, jaw = 0.25, hood = 0.3, tup = 0.5, ty = -0.8, tamp = 0.5, tongue = 1 })
-local SW_WOUND = rise({ 26, 58, 24, 8, -8, -40 }, { Y = { -0.2, -0.4, -0.6, -0.7, -0.75, -0.8 }, jaw = 0.3, hood = 0.35, tup = 1.0, ty = -1.55, tamp = 0.4, ryaw = 0.18, rz = 0.6 })
-local SW_LASH = st(SW_WOUND, { ty = -1.55 + TAU, tup = 0.8, ryaw = -0.12, jaw = 0.15, Y = { 0, -0.1, -0.2, -0.25, -0.3, -0.3 }, rz = -0.4 })
-local SW_OVER = st(SW_LASH, { ty = -1.55 + TAU + 0.5, tup = 0.5, ryaw = -0.2 })
-local SW_REST = st(IDLE, { ty = TAU })
+-- TailSweep (QA pass 2026-10-22). Intent: the coil swings out to the left and up like a boom
+-- while the body twists the same way and the head dips and looks away; then the body unwinds
+-- first and the tail follows in one wide, heavy lash behind the boss and round its right flank,
+-- coming down as it goes so it skims the ground at contact. Dread on the wind, weight on the
+-- lash; the job is "get out of the 22-stud circle" (the lift and look-away read from 40 studs).
+-- Beats (windup 800 / active 140 / recover 860 ms): 0-200 dip, tail out left; 200-400 wind
+-- high (tip about 20 up, 80 degrees left); 400-450 hold and tremble (the telegraph); 450-800
+-- the lash, accelerating (tip from 80 left through behind to about 110 right, low) = contact;
+-- active: overshoot to the front-right; recover: the tail recoils halfway back with a bounce
+-- (0-260), then everything settles home (the opening). The old full-circle lash ended with
+-- Tail1-3 turned 90/180/270 degrees (a knot at the tail base all through the recover, spun back
+-- by the next blend) and crossed the circle at 1200 studs/s; this lash is 4 rad and returns.
+local SW_DIP = rise({ 28, 62, 26, 10, -6, -38 }, { Y = { -0.1, -0.2, -0.35, -0.45, -0.5, -0.55 }, jaw = 0.25, hood = 0.3, tup = 0.5, ty = -0.8, tamp = 0.5, tongue = 1, ryaw = -0.08 })
+local SW_WOUND = rise({ 26, 58, 24, 8, -8, -40 }, { Y = { -0.12, -0.25, -0.4, -0.5, -0.55, -0.6 }, jaw = 0.3, hood = 0.45, tup = 1.0, ty = -1.55, tamp = 0.4, ryaw = -0.2, rz = 0.6 })
+local SW_LASH = rise({ 40, 95, 50, 30, 12, -10 }, { Y = { 0, 0.1, 0.2, 0.3, 0.32, 0.2 }, jaw = 0.5, hood = 0.6, ty = 2.4, tup = 0.3, ryaw = 0.15, rz = -0.4, tamp = 0.7 })
+local SW_OVER = st(SW_LASH, { ty = 2.7, tup = 0.25, ryaw = 0.22, tamp = 0.9, jaw = 0.4 })
+local SW_RECOIL = rise({ 34, 75, 38, 18, 2, -20 }, { ty = 1.3, tup = 0.4, ryaw = 0.06, hood = 0.3, jaw = 0.2, tamp = 0.5 })
 moves.TailSweep = {
-	windup = ph(0.8, { k(0, IDLE), k(0.3, SW_DIP, "inOut"), k(0.6, SW_WOUND, "out"), k(0.64, SW_WOUND), k(1, SW_LASH, "in") }, function(u) return window(u, 0.3, 0.45, 0.6, 0.66) end),
+	windup = ph(0.8, { k(0, IDLE), k(0.25, SW_DIP, "inOut"), k(0.5, SW_WOUND, "out"), k(0.56, SW_WOUND), k(1, SW_LASH, "in") },
+		function(u) return window(u, 0.38, 0.5, 0.54, 0.6) end),
 	active = ph(0.14, { k(0, SW_LASH), k(1, SW_OVER, "out") }),
-	recover = ph(0.86, { k(0, SW_OVER), k(0.35, st(SW_REST, { ty = TAU - 0.05, tup = 0.15 }), "inOut"), k(1, SW_REST, "inOut") }, nil, 1),
+	recover = ph(0.86, { k(0, SW_OVER), k(0.3, SW_RECOIL, "out"), k(1, IDLE, "inOut") }, nil, 1),
 }
 
 -- TailShove (boss feel pass): the throw that makes range for the venom. The body hunkers and
@@ -524,8 +544,10 @@ local TS_RECOIL = rise({ 60, 115, 70, 50, 36, 8 }, { hood = 0.5, jaw = 0.25, rz 
 local TS_REAR = rise(LBACK, { hood = 0.85, jaw = 0.45, fang = 0.4, rz = 1.5, bp = 0.12, tamp = 0.4, tongue = 1 })
 local TS_READY = rise({ 70, 120, 85, 62, 50, 22 }, { hood = 0.6, jaw = 0.2, rz = 1.0, bp = 0.08, tamp = 0.35 })
 moves.TailShove = {
-	windup = ph(0.7, { k(0, IDLE), k(0.4, TS_COIL, "inOut"), k(0.8, TS_COCK, "out"), k(0.88, TS_COCK), k(1, TS_WHIP, "snap") },
-		function(u) return window(u, 0.4, 0.5, 0.82, 0.9) end),
+	-- QA pass: the whip was a 0.08 s "snap" (fastest at its start, 1000 studs/s, a teleport at
+	-- 30 fps); it now takes 0.15 s and accelerates into contact, the cock holds 50 ms before it
+	windup = ph(0.7, { k(0, IDLE), k(0.38, TS_COIL, "inOut"), k(0.72, TS_COCK, "out"), k(0.79, TS_COCK), k(1, TS_WHIP, "in") },
+		function(u) return window(u, 0.38, 0.48, 0.74, 0.8) end),
 	active = ph(0.14, { k(0, TS_WHIP), k(1, TS_FLICK, "out") }),
 	recover = ph(0.66, { k(0, TS_FLICK), k(0.3, TS_RECOIL, "inOut"), k(0.55, TS_REAR, "out"), k(0.75, TS_REAR), k(1, TS_READY, "inOut") }, nil, 1.3),
 }
@@ -536,12 +558,17 @@ local SLAM_UP = rise(COL, { bp = 0.32, hood = 0.7, jaw = 0.3, tamp = 0.5, tongue
 local SLAM_HANG = rise(COL, { bp = 0.36, hood = 0.8, jaw = 0.5, tamp = 0.4, fang = 0.6, E = { 82, 100, 94, 86, 74, 20 } })
 local SLAM_HIT = rise(SLAM, { jaw = 0.4, hood = 0.5, tamp = 0.5, rz = -3.4, ry = -0.2 })
 local SLAM_BURIED = st(SLAM_HIT, { ry = -0.7, jaw = 0.1, hood = 0.2 })
-local SLAM_FREE = rise({ 36, 80, 34, 12, -10, -40 }, { ry = -0.2, hood = 0.1, tamp = 0.5 })
+-- QA pass: the recover used to hold the buried pose dead still, then pop upright in the last
+-- 0.14 s. Now the head is stuck: the body trembles and hauls back against it (the
+-- anticipation of the yank), rips it free with a toss of the head and settles home slowly.
+local SLAM_STRAIN = st(SLAM_BURIED, { ry = -0.72, rz = -3.0, hood = 0.35, tamp = 0.8 })
+local SLAM_FREE = rise({ 38, 85, 40, 20, 0, -10 }, { ry = -0.1, hood = 0.15, jaw = 0.3, tamp = 0.6 })
 moves.PillarSlam = {
 	windup = ph(1.0, { k(0, IDLE), k(0.45, SLAM_UP, "outBack"), k(0.62, SLAM_HANG, "out"), k(0.84, SLAM_HANG), k(1, SLAM_HIT, "in") },
 		function(u) return window(u, 0.5, 0.62, 0.86, 0.95) end),
 	active = ph(0.15, { k(0, SLAM_HIT), k(1, SLAM_BURIED, "out") }),
-	recover = ph(1.15, { k(0, SLAM_BURIED), k(0.7, SLAM_BURIED), k(0.88, SLAM_FREE, "inOut"), k(1, IDLE, "inOut") }, nil, 1.2),
+	recover = ph(1.15, { k(0, SLAM_BURIED), k(0.25, SLAM_BURIED), k(0.6, SLAM_STRAIN, "inOut"), k(0.75, SLAM_FREE, "out"), k(1, IDLE, "inOut") },
+		function(u) return window(u, 0.2, 0.4, 0.6, 0.66) * 0.9 end, 1.2),
 }
 
 -- FangFlurry: coil back with the hood up, then three lunges at active u 0, 0.4, 1.0 (the third bigger)
@@ -807,12 +834,14 @@ variants.VenomFang.B = {
 	recover = ph(0.78, { k(0, FB_OVER), k(0.4, st(IDLE, { Y = { 0, 0, 0, -0.2, -0.3, -0.3 }, jaw = 0.1 }), "inOut"), k(1, IDLE, "inOut") }, nil, 1),
 }
 
--- TailSweep B "Spin": the body twists the other way as the tail winds, then unwinds with the lash
+-- TailSweep B "Spin": the body winds much further with the tail, then its unwinding throws the lash
+local SWB_WOUND = st(SW_WOUND, { ryaw = -0.5, ty = -1.1, tup = 1.1, rz = 1.0 })
+local SWB_LASH = st(SW_LASH, { ryaw = 0.4, ty = 2.1 })
 variants.TailSweep.B = {
-	windup = ph(0.8, { k(0, IDLE), k(0.35, st(SW_DIP, { ryaw = 0.5, ty = -0.4, tup = 0.7 }), "inOut"), k(0.62, st(SW_WOUND, { ryaw = 0.7, ty = -1.0, tup = 1.1, rz = 1.0 }), "out"),
-		k(0.66, st(SW_WOUND, { ryaw = 0.7, ty = -1.0, tup = 1.1, rz = 1.0 })), k(1, st(SW_LASH, { ryaw = -0.45 }), "in") }, function(u) return window(u, 0.3, 0.45, 0.6, 0.66) end),
-	active = ph(0.14, { k(0, st(SW_LASH, { ryaw = -0.45 })), k(1, st(SW_OVER, { ryaw = -0.3 }), "out") }),
-	recover = ph(0.86, { k(0, st(SW_OVER, { ryaw = -0.3 })), k(0.4, st(SW_REST, { tup = 0.1 }), "inOut"), k(1, SW_REST, "inOut") }, nil, 1),
+	windup = ph(0.8, { k(0, IDLE), k(0.3, st(SW_DIP, { ryaw = -0.3, ty = -0.5, tup = 0.7 }), "inOut"), k(0.55, SWB_WOUND, "out"),
+		k(0.63, SWB_WOUND), k(1, SWB_LASH, "in") }, function(u) return window(u, 0.4, 0.55, 0.6, 0.66) end),
+	active = ph(0.14, { k(0, SWB_LASH), k(1, st(SWB_LASH, { ryaw = 0.48, ty = 2.45, tup = 0.25 }), "out") }),
+	recover = ph(0.86, { k(0, st(SWB_LASH, { ryaw = 0.48, ty = 2.45, tup = 0.25 })), k(0.3, st(SW_RECOIL, { ryaw = 0.15 }), "out"), k(1, IDLE, "inOut") }, nil, 1),
 }
 
 -- PillarSlam B "Corkscrew": the column spirals up (a helix in the neck) before it drops
@@ -967,7 +996,7 @@ function JadeJiao.sample(move: string, phase: string, u: number, input: Input?):
 	-- a move started from a resting coil unwinds it over the first 0.6 s of the windup
 	local restW: ((number) -> number)? = nil
 	if phase == "windup" then
-		local c0 = coilLevel((inp.still or 0) - secs) * (1 - smooth(0, 0.6, secs))
+		local c0 = (if inp.calm then coilLevel(inp.calm) else coilLevel((inp.still or 0) - secs)) * (1 - smooth(0, 0.6, secs))
 		if c0 > 0.001 then
 			restW = function(i: number): number
 				return c0
@@ -1026,9 +1055,13 @@ local loops: { [string]: (number, number, Input?) -> Pose } = {}
 function loops.idle(t: number, speed: number, input: Input?): Pose
 	local inp = input or {}
 	local seed = inp.seed or 0
-	local c = coilLevel(inp.still or 99)
+	-- QA pass: the coil gathers on `calm` (still and out of any move), so a move's recover hands
+	-- over to the S it ended in instead of popping the body into a coil its attack time earned;
+	-- the neck rises into the strike S within a second of stopping (on `still`), so it no longer
+	-- drops toward the walk's low S for three seconds after every attack
+	local c = coilLevel(inp.calm or inp.still or 99)
 	local s = table.clone(IDLE)
-	local neck = mix(WALK_N, REST_E_DEG(), smooth(0, 0.6, c))
+	local neck = mix(WALK_N, REST_E_DEG(), smooth(0.1, 1.0, inp.still or 99))
 	for j = 1, 6 do
 		s[ENAME[j]] = D(neck[j])
 	end

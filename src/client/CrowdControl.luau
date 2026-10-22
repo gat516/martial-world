@@ -24,7 +24,8 @@ type Layer = { motor: Motor6D, original: CFrame }
 local layers: { [Model]: { Layer } } = {}
 local seen: { [Model]: number } = {} -- character -> CCStart already reacted to
 local STUMBLE_SECONDS = 0.25
-local knock: { away: Vector3, speed: number, at: number }? = nil -- the local player's knockback in play
+local KNOCK_MEAN_SPEED = 60 -- studs/s: knocks longer than KNOCK_SECONDS covers at this pace take longer
+local knock: { away: Vector3, speed: number, seconds: number, at: number }? = nil -- the local player's knockback in play
 
 local function smooth(t: number): number
 	t = math.clamp(t, 0, 1)
@@ -185,7 +186,8 @@ local function beforeAnimation()
 end
 
 -- The knockback from an enemy hit: a shove along the ground away from `from`,
--- easing off over KNOCK_SECONDS, so it covers `studs`. Wins over the stumble.
+-- easing off over KNOCK_SECONDS (longer for big throws, so a 36-stud shove reads as a
+-- throw rather than a teleport), so it covers `studs`. Wins over the stumble.
 local function knockback(): boolean
 	local k = knock
 	local character = Players.LocalPlayer.Character
@@ -195,7 +197,7 @@ local function knockback(): boolean
 		knock = nil
 		return false
 	end
-	local t = (os.clock() - k.at) / Config.KNOCK_SECONDS
+	local t = (os.clock() - k.at) / k.seconds
 	if t >= 1 then
 		knock = nil
 		return false
@@ -216,7 +218,8 @@ function CrowdControl.knock(from: Vector3, studs: number)
 		away = -root.CFrame.LookVector * Vector3.new(1, 0, 1)
 	end
 	-- linear ease-off: distance = speed * seconds / 2
-	knock = { away = away.Unit, speed = 2 * studs / Config.KNOCK_SECONDS, at = os.clock() }
+	local seconds = math.max(Config.KNOCK_SECONDS, studs / KNOCK_MEAN_SPEED)
+	knock = { away = away.Unit, speed = 2 * studs / seconds, seconds = seconds, at = os.clock() }
 end
 
 local function stumble(character: Model, humanoid: Humanoid, startedAt: number, now: number)

@@ -808,7 +808,8 @@ stagger or stun), capped at `KNOCK_MAX` (9). An attack's `knock` replaces it
 (`0` = none: the Jiao's coil, so the ring keeps its trap). A snare's pull
 replaces the shove. The server sends Effect `"knock"` (from, studs) to the hit
 player only and `CrowdControl.knock` shoves their own root away from the beast
-over `KNOCK_SECONDS` (0.22 s, easing off), taking over from the stagger's stumble
+over `KNOCK_SECONDS` (0.22 s, easing off; longer throws stretch to an average
+of `KNOCK_MEAN_SPEED` 60 studs/s, so the Jiao's 36-stud tail shove takes 0.6 s), taking over from the stagger's stumble
 while it plays. Untested in play: the shove fights the Humanoid's ground
 controller the same way the stumble does, so the real distance may come out
 shorter than `studs`.

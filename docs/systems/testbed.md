@@ -10,8 +10,9 @@ real game.
 ## Design intent
 - **Same code, different world.** `test.project.json` maps the same `src/` and
   `assets/` as `default.project.json`, so the testbed always runs the current
-  game. Only Workspace and a few Studio-only folders differ. Never fork scripts
-  for it: a testbed difference is a `Config.TESTBED` check in the real code.
+  game. Workspace, a few Studio-only folders and the testbed's native mouse-lock
+  setting differ. Never fork scripts for it: testbed-only code checks
+  `Config.TESTBED` in the shared source.
 - **Only what you trigger happens.** No timed world events, no rolled weather
   (forced weather clears back to Clear and stays there), no ambient encounters.
   Events tied to weather still fire when the admin dashboard forces that weather.
@@ -21,6 +22,13 @@ real game.
 - **Its own experience.** Separate DataStores, so testbed profiles never touch
   real ones. Admins there are the creator and `Config.Admin.USER_IDS`, as in the
   real game (anyone in Studio).
+- **Alt mouse lock in the testbed.** In the observed Studio Play client, Roblox
+  supplied no `PlayerScripts.PlayerModule` for `ShiftLock.luau` to rebind, so Shift
+  stayed native and Alt did nothing. `test.project.json` disables the native
+  Shift toggle with `StarterPlayer.EnableMouseLockOption = false`;
+  `TestbedAltMouseLock.client.luau` supplies Alt, mouse centering and shoulder
+  offset only when `Config.TESTBED` is true. The main project's setting and
+  `ShiftLock.luau` are unchanged. This needs a fresh testbed Play session to verify.
 
 ## World
 Everything sits at the real Hub's height (plaza floor Y 648.6, around the origin),
@@ -108,9 +116,9 @@ tuning.
 - Lighting is Studio's default; the real place's Sky, Atmosphere and post effects
   are place-only. So are the main place's map LocalScripts in StarterPlayerScripts
   (`BridgeSway`, `SkyLayerAtmosphere`, `SpiritLights`), which have nothing to act on here.
-- Joins can be slow in a busy Studio (several places open), so client code that waits
-  on Roblox's own modules or the HUD mustn't give up on a timeout (ShiftLock once fell
-  back to Shift this way).
+- Joins can be slow in a busy Studio (several places open). The previous
+  `ShiftLock` timeout was removed, but this testbed client had no `PlayerModule`
+  at all; the testbed Alt controller no longer waits for one.
 - Animations play only if the testbed experience's owner can use them (same
   creator as the uploads, or permission granted).
 - The King's new poses, effects, contact placement and QC9 difficulty are untested

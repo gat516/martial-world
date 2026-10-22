@@ -490,3 +490,43 @@ Feel pass (2026-10-22, arrivals, skids, bound modes, landings):
 - Safe ranges seen: head yaw 0.5 with the spine at 0.4 the other way; spine yaw 0.65 planted; root
   yaw 0.55 planted. The rush's gallop at 95 studs/s is averaged over three frames (a fist touchdown
   popped an elbow 0.6 rad in one frame).
+
+## Blood Centipede (101 parts, 43 joints, `build_blood_centipede.luau` / `rig_blood_centipede.luau`)
+
+Low grave-dweller, bone-white plates edged dull red. Body 15.4 studs skull to cerci
+(16.1 with the pincers, antennae to 17.1), 5.7 wide with the legs out, 3.0 tall at the
+antenna tips (plates 2.1 at the collar tapering to 1.8). Standalone export:
+`art/enemies/beasts/export/BloodCentipede.rbxm` (template `BloodCentipede`; Modeler A merges
+it into `Enemies.rbxm`). Faces -Z. The line runs Skull (front) -> Collar -> Seg1..12 -> Tail.
+
+**HRP** (the hit volume): 3.2 x 2.5 x 16.1, centred at (0, 1.3, -0.05), so z -8.1..8.0
+covers the whole line; bottom 0.05 above the ground, HipHeight 0.05. Model pivot = the HRP
+centre, identity rotation. Health bar 1 stud over the top (3.99).
+
+| Joint | Moves | Parent | Pivot (rest, model space) | Notes |
+|---|---|---|---|---|
+| JointRoot | Collar (the root plate) | HRP | (0, 1.3, -4.9) | bone, red skirt, CoreGlow |
+| JointHead | Skull | Collar | (0, 1.4, -5.4) | pitch nods the head; carries eyes, brow, maw |
+| JointJawL/R | JawL/R (pincer, with tip) | Skull | (+-0.95, 1.0, -7.1) | yaw closes it: JawL closes with -Y, JawR with +Y |
+| JointAntL/R | AntL/R (with tip) | Skull | (+-0.7, 2.2, -6.9) | whips; yaw sweeps, pitch lifts (-X = down) |
+| JointSeg1..12 | Seg<i> plate | Seg<i-1> (Seg1: Collar) | (0, 1.2, front edge of the plate: -4.3 + 0.8 (i-1)) | a chain: rotating one carries every plate behind it; yaw is the slither wave, pitch a hump |
+| JointLegL<i> / JointLegR<i> | one leg each | Seg<i> | on the plate's side, (+-(w/2+0.1), 0.95, plate centre) | single part, pivot at the body; X swings it fore/aft, Z lifts: a left leg lifts with -Z, a right leg with +Z |
+| JointTail | Tail (final plate + cerci) | Seg12 | (0, 1.2, 5.3) | yaw sways the cerci |
+
+Sign conventions are the shared ones above (X pitch, Y yaw, Z roll). Jaws: pincers rest
+slightly apart, tips ~0.6 from the midline; about 0.5 rad each way is a full close. Legs point out and
+down at about 45 degrees, so a roll of 0.4 rad (in the lift direction) lifts a foot clear of the ground; ripple them
+with a phase lag of about 0.3 s per segment along the chain.
+
+**Tells** (Neon, `Tell = true`): `EyeL/R` (skull front), `PincerTellL/R` (on the jaw bases),
+`SeamTell1..12` (a strip across each plate's front on top), `CoreGlow` (red ball in the
+collar seam, riding the Collar).
+
+**FX attachments**: `Mouth` (Skull, ahead of the maw), `Core` (Seg3, on the back),
+`Seg6_FX` (Seg6, on the back), `TailTip_FX` (Tail, behind the cerci).
+
+Gotchas: every segment, leg and detail has a unique name. Plates overlap their neighbours
+by 0.1 so a bend of up to about 0.25 rad per joint shows no gap; sharper bends open a slit
+on the outside of the curve (spread the wave across more segments). Legs are 0.34 thick and
+read as sticks head-on; they fan out of the skirt, so keep the swing small. Checks:
+`check_rig.luau` clean, `keyframe_test.luau` keyable (43 joints).

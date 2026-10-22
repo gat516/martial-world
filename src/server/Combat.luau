@@ -141,13 +141,15 @@ end
 
 --[[ Player damage ]]
 
-export type HurtResult = "hit" | "dodged" | "perfect" | "parried" | "blocked" | "broken" | "none"
+export type HurtResult = "hit" | "dodged" | "perfect" | "parried" | "deflected" | "blocked" | "broken" | "none"
 
 -- Damage a player from an enemy attack or hazard that resolves now. Dodging
 -- shortly before negates it; Iron Skin reduces it. `nonLethal` leaves them at 1.
 -- `source` names what hit them (an enemy id, "Tribulation"), for death analytics.
 -- `guard` (where the blow comes from, how heavy; Guard.Hit) makes the hit
 -- guardable (Guard.absorb). Guarded hits never flinch: "broken" staggers instead.
+-- "parried" should stagger the attacker; "deflected" (a chained parry with
+-- more blows coming) shouldn't.
 -- A hit resolved late (`guard.at`, EnemyService's race grace) is judged at the
 -- server time it landed.
 function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source: string?, guard: Guard.Hit?): (HurtResult, number)
@@ -178,8 +180,8 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source
 	local guarded: HurtResult? = nil
 	if guard then
 		local result, through = Guard.absorb(player, humanoid, root, amount, guard, now)
-		if result == "parried" then
-			return "parried", 0
+		if result == "parried" or result == "deflected" then
+			return result, 0
 		end
 		guarded, amount = result, through
 	end

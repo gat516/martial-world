@@ -159,6 +159,7 @@ type Enemy = {
 	landShape: Shape?, -- a leap's circle, resolved as it lands
 	landAttack: Enemies.Attack?, -- the leap that owns landShape (enemy.attack has moved on by then)
 	landFrom: Vector3?, -- where that leap took off (the guard judges the landing from there)
+	assault: { number }, -- os.clock() times the current attack's later blows are due (Guard's chain parry)
 	phase: number, -- rotating bosses: 1, then 2 and 3 as phase roars resolve
 	runBoost: number, -- run speed multiplier from phases
 	hopPending: boolean,
@@ -370,6 +371,7 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		recoverFor = def.attack.recover,
 		landShape = nil,
 		landAttack = nil,
+		assault = {},
 		phase = 1,
 		runBoost = 1,
 		hopPending = false,
@@ -780,12 +782,15 @@ local function reactTo(enemy: Enemy, attack: Enemies.Attack, player: Player, stu
 end
 
 -- A perfect parry (Guard): the beast is thrown off balance, whatever it was
--- doing. Bosses recover sooner.
-local function parried(enemy: Enemy)
+-- doing. Bosses recover sooner. `chain`: how many blows the player parried in
+-- a row; a chain's closing stagger runs longer (CHAIN_STAGGER_BONUS).
+local function parried(enemy: Enemy, chain: number?)
 	if enemies[enemy.model] ~= enemy or enemy.health <= 0 or enemy.state == "return" then
 		return
 	end
 	local Guarding = CombatConfig.GUARD
+	local bonus = math.min(Guarding.CHAIN_STAGGER_BONUS * math.max((chain or 1) - 1, 0), Guarding.CHAIN_STAGGER_MAX)
+	enemy.assault = {}
 	enemy.shape, enemy.dashTo, enemy.landShape = nil, nil, nil
 	enemy.strikeId += 1
 	enemy.hopPending = false
@@ -795,8 +800,58 @@ local function parried(enemy: Enemy)
 	enemy.mover.turn = false
 	stop(enemy)
 	setState(enemy, "stagger")
-	enemy.stateUntil = os.clock() + (if enemy.def.boss then Guarding.PARRY_STAGGER_BOSS else Guarding.PARRY_STAGGER)
+	enemy.stateUntil = os.clock() + (if enemy.def.boss then Guarding.PARRY_STAGGER_BOSS else Guarding.PARRY_STAGGER) + bonus
 	enemy.staggerImmuneUntil = enemy.stateUntil + Knockback.RESTAGGER
+end
+
+-- An attack in a pool or pattern, by name.
+local function findAttack(enemy: Enemy, name: string): Enemies.Attack?
+	for _, a in enemy.def.attacks or enemy.def.pattern or {} do
+		if attackName(a) == name then
+			return a
+		end
+	end
+	return nil
+end
+
+-- When the blows of the attack resolving now are due (os.clock()), for Guard's
+-- chain parry: barrage and retreat parts, cone `strikes`, a slam's wave and a
+-- `followUp` (after the dash or flight, the recover and its windup).
+local function planAssault(enemy: Enemy, attack: Enemies.Attack, shape: Shape, now: number)
+	local due: { number } = {}
+	if attack.kind == "barrage" or attack.kind == "retreat" then
+		for _, part in shape.parts or {} do
+			table.insert(due, now + (part.delay or 0))
+		end
+	end
+	for _, strike in attack.strikes or {} do
+		table.insert(due, now + strike.at)
+	end
+	if attack.wave and enemy.phase >= attack.wave.phase then
+		table.insert(due, now + attack.wave.delay)
+	end
+	local follow = attack.followUp and findAttack(enemy, attack.followUp)
+	if follow then
+		local travel = if attack.kind == "leap" then attack.active or 0.45
+			elseif attack.dashSpeed then (enemy.dashLength or 0) / attack.dashSpeed
+			else 0
+		local strikeAt = follow.windup + (if follow.kind == "leap" then follow.active or 0.45 else 0)
+		table.insert(due, now + travel + attack.recover + strikeAt)
+	end
+	enemy.assault = due
+end
+
+-- Seconds until this beast's next blow of the current assault, or nil when
+-- the blow landing now is its last.
+local function nextBlowIn(enemy: Enemy): number?
+	local now = os.clock()
+	local best: number? = nil
+	for _, t in enemy.assault do
+		if t > now + 0.05 and (best == nil or t < best) then
+			best = t
+		end
+	end
+	return if best then best - now else nil
 end
 
 -- Where a blow comes from (Guard.Hit), taken as it lands: `origin` when that
@@ -809,6 +864,8 @@ local function guardHit(enemy: Enemy, attack: Enemies.Attack, origin: Vector3?, 
 		heavy = CC.HEAVY_KINDS[attack.kind] == true,
 		dot = if dash then CombatConfig.GUARD.DASH_DOT else nil,
 		at = workspace:GetServerTimeNow(),
+		attacker = enemy.model,
+		nextIn = nextBlowIn(enemy),
 	}
 end
 
@@ -823,13 +880,24 @@ local function landOn(player: Player, resolve: () -> ())
 	end
 end
 
--- Combat.hurt for an enemy's attack, guardable as `hit` says.
+-- Combat.hurt for an enemy's attack, guardable as `hit` says. A parry that
+-- closes a chain (or stands alone) staggers the beast; "deflected" (a chained
+-- parry with more blows coming) lets the assault run on.
 local function hurtBy(enemy: Enemy, player: Player, damage: number, hit: Guard.Hit)
 	local result = Combat.hurt(player, damage, false, enemy.def.id, hit)
 	if result == "parried" then
-		parried(enemy)
+		parried(enemy, hit.chain)
 	end
 	return result
+end
+
+-- A chain whose next blow never came (the beast stopped, or its blows missed):
+-- the flurry is over and the beast reels all the same.
+Guard.onChainEnd = function(attacker: Instance, chain: number)
+	local enemy = enemies[attacker :: Model]
+	if enemy then
+		parried(enemy, chain)
+	end
 end
 
 -- Hurt one player with an attack, and show the hit to everyone (EnemyFX `hit`).
@@ -1513,6 +1581,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 	enemy.shape = nil
 	enemy.strikeId += 1
 	enemy.recoverFor = attack.recover
+	planAssault(enemy, attack, shape, now)
 	if attack.kind == "summon" then
 		summon(enemy, attack)
 	elseif attack.kind == "bound" then

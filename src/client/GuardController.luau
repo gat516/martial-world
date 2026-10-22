@@ -9,6 +9,11 @@
 -- FACE_RANGE (one winding up first, else the nearest; Movement applies
 -- ActionState.guardFacing), and the facing goes to the server with each raise
 -- and as it turns (op "guardLook"), so the front arc is judged on what you see.
+-- Clips come per weapon class (Animations.Guard.<WeaponClass>, "Fist" while
+-- the weapon is stowed), each of Hold, Parry, ParryAlt and Impact falling back
+-- to the generic Animations.Guard clip when the class has no id for it. A chain
+-- of parries alternates Parry and ParryAlt and climbs in pitch and punch; the
+-- blow that closes it (or the chain running dry, "chainEnd") lands a finisher.
 -- Server: src/server/Guard.luau. Meter: src/shared/GuardRules.luau.
 
 local CollectionService = game:GetService("CollectionService")
@@ -40,6 +45,10 @@ local LOWER_FADE = 0.15
 local REFUSED_WAIT = 0.25 -- after the server refuses a raise, wait this long before asking again
 local MIN_UP = 0.25 -- a tap keeps the guard pose up this long (the parry window outlives the press anyway)
 local PARRY_COLOR = Color3.fromRGB(255, 236, 190)
+local FINISH_COLOR = Color3.fromRGB(255, 214, 120)
+local CHAIN_PITCH = 0.07 -- each chained parry's cue plays this much higher...
+local CHAIN_PITCH_MAX = 1.35 -- ...up to this
+local CLIPS = { "Hold", "Parry", "ParryAlt", "Impact" }
 local LOOK_EVERY = 0.1 -- at most this often, while guarding, the facing goes to the server...
 local LOOK_TURN = math.cos(math.rad(8)) -- ...once it has turned this far
 local WINDUP_PULL = 20 -- a beast winding up or dashing counts this many studs nearer when picking whom to face
@@ -56,27 +65,96 @@ local raiseSeq = 0 -- the op that last raised the guard
 local sentLook: Vector3? = nil
 local sentLookAt = 0
 local guardCharacter: Model?
-local tracks: { [string]: AnimationTrack } = {} -- "Hold", "Parry", "Impact" from Animations.Guard
+local tracks: { [string]: AnimationTrack } = {} -- the clip set in use: Hold, Parry, ParryAlt, Impact
+local trackSets: { [string]: { [string]: AnimationTrack } } = {} -- loaded sets by class, this character
+local trackClass: string? = nil
+local classConnections: { RBXScriptConnection } = {}
 
-local function loadTracks(character: Model)
-	for _, track in tracks do
-		track:Destroy()
+-- The class whose clips play: the weapon's, or Fist while it's stowed.
+local function classOf(character: Model): string
+	if character:GetAttribute("WeaponStowed") == true then
+		return "Fist"
 	end
-	table.clear(tracks)
-	local folder = animations:FindFirstChild("Guard")
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
-	if not (folder and animator) then
-		return
-	end
-	for _, animation in folder:GetChildren() do
-		if animation:IsA("Animation") and animation.AnimationId ~= "" then
+	local class = character:GetAttribute("WeaponClass")
+	return if type(class) == "string" and class ~= "" then class else "Fist"
+end
+
+local function clip(folder: Instance?, name: string): Animation?
+	local found = folder and folder:FindFirstChild(name)
+	return if found and found:IsA("Animation") and found.AnimationId ~= "" then found else nil
+end
+
+-- One class's tracks: its own clip, else (ParryAlt) its own Parry, else the
+-- generic Animations.Guard clip of that name (ParryAlt: generic Parry).
+local function loadSet(animator: Animator, class: string): { [string]: AnimationTrack }
+	local generic = animations:FindFirstChild("Guard")
+	local own = generic and generic:FindFirstChild(class)
+	local set: { [string]: AnimationTrack } = {}
+	for _, name in CLIPS do
+		local animation = clip(own, name)
+			or (if name == "ParryAlt" then clip(own, "Parry") else nil)
+			or clip(generic, name)
+			or (if name == "ParryAlt" then clip(generic, "Parry") else nil)
+		if animation then
 			local track = animator:LoadAnimation(animation)
-			track.Looped = animation.Name == "Hold"
-			track.Priority = if animation.Name == "Hold" then Enum.AnimationPriority.Action else Enum.AnimationPriority.Action2
-			tracks[animation.Name] = track
+			track.Looped = name == "Hold"
+			track.Priority = if name == "Hold" then Enum.AnimationPriority.Action else Enum.AnimationPriority.Action2
+			set[name] = track
 		end
 	end
+	return set
+end
+
+-- Switch to the clips for the character's current class; a held guard swaps
+-- straight into the new Hold.
+local function applyClass(character: Model)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	if not animator then
+		return
+	end
+	local class = classOf(character)
+	if class == trackClass then
+		return
+	end
+	for _, track in tracks do
+		if track.IsPlaying then
+			track:Stop(RAISE_FADE)
+		end
+	end
+	trackClass = class
+	local set = trackSets[class]
+	if not set then
+		set = loadSet(animator, class)
+		trackSets[class] = set
+	end
+	tracks = set
+	local hold = tracks.Hold
+	if up and hold then
+		hold:Play(RAISE_FADE)
+	end
+end
+
+local function loadTracks(character: Model)
+	for _, connection in classConnections do
+		connection:Disconnect()
+	end
+	table.clear(classConnections)
+	for _, set in trackSets do
+		for _, track in set do
+			track:Destroy()
+		end
+	end
+	table.clear(trackSets)
+	tracks, trackClass = {}, nil
+	applyClass(character)
+	local function reapply()
+		if guardCharacter == character then
+			applyClass(character)
+		end
+	end
+	table.insert(classConnections, character:GetAttributeChangedSignal("WeaponClass"):Connect(reapply))
+	table.insert(classConnections, character:GetAttributeChangedSignal("WeaponStowed"):Connect(reapply))
 end
 
 local function play(name: string, fade: number)
@@ -242,9 +320,16 @@ local function onEffect(kind: string, ...: any)
 		if typeof(character) ~= "Instance" or not character:IsA("Model") or typeof(from) ~= "Vector3" then
 			return
 		end
+		-- chain parries: the blow's place in the chain, and whether it closed it
+		local n = if type(args[4]) == "number" then math.max(1, math.floor(args[4])) else 1
+		local closing = args[5] == true and n >= 2
 		local mine = character == player.Character
 		if outcome == "parried" then
-			GuardFX.parry(character, from, mine)
+			GuardFX.parry(character, from, mine, n, closing)
+		elseif outcome == "chainEnd" then
+			if n >= 2 then
+				GuardFX.finisher(character, from, mine, n)
+			end
 		elseif outcome == "blocked" then
 			GuardFX.blocked(character, from)
 		elseif outcome == "broken" then
@@ -254,12 +339,30 @@ local function onEffect(kind: string, ...: any)
 			return
 		end
 		local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
-		if outcome == "parried" then
-			play("Parry", 0.05)
+		local function finisherBeat()
+			-- a lower, heavier echo of the clash and the guard's thud under it
+			Sfx.play("Parry", nil, nil, 0.78)
+			task.delay(0.06, function()
+				Sfx.play("Block", nil, nil, 0.85)
+			end)
 			GuardBar.flash("parry")
-			Sfx.play("Parry")
 			if root then
-				CombatEffects.number(root.Position, "Parry!", PARRY_COLOR, 20)
+				CombatEffects.number(root.Position, `Deflect x{n}!`, FINISH_COLOR, 28)
+			end
+		end
+		if outcome == "parried" then
+			-- alternate sides down a chain: Parry, ParryAlt, Parry...
+			play(if n % 2 == 0 then "ParryAlt" else "Parry", 0.05)
+			GuardBar.flash("parry")
+			Sfx.play("Parry", nil, nil, math.min(1 + CHAIN_PITCH * (n - 1), CHAIN_PITCH_MAX))
+			if closing then
+				finisherBeat()
+			elseif root then
+				CombatEffects.number(root.Position, if n == 1 then "Parry!" else `x{n}`, PARRY_COLOR, 20 + math.min(n - 1, 5))
+			end
+		elseif outcome == "chainEnd" then
+			if n >= 2 then
+				finisherBeat()
 			end
 		elseif outcome == "blocked" then
 			play("Impact", 0.05)

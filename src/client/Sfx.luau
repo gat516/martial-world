@@ -19,8 +19,10 @@ local lastPlayed: { [string]: number } = {}
 
 -- `gap`: skip the play if this name went off less than `gap` seconds ago (for
 -- sounds that can arrive in bursts, like one hit per enemy struck).
+-- `speed` multiplies the template's playback speed (pitch), e.g. a rising
+-- chain of parries.
 -- Returns an optional, repeat-safe stop function for effects owned by an action.
-function Sfx.play(name: string, at: (Vector3 | BasePart)?, gap: number?): (() -> ())?
+function Sfx.play(name: string, at: (Vector3 | BasePart)?, gap: number?, speed: number?): (() -> ())?
 	local template: Instance? = group
 	for step in string.gmatch(name, "[^/]+") do
 		template = template and template:FindFirstChild(step)
@@ -36,7 +38,7 @@ function Sfx.play(name: string, at: (Vector3 | BasePart)?, gap: number?): (() ->
 
 	local sound = template:Clone()
 	sound.SoundGroup = group
-	sound.PlaybackSpeed *= 1 + (math.random() - 0.5) * PITCH_JITTER
+	sound.PlaybackSpeed *= (speed or 1) * (1 + (math.random() - 0.5) * PITCH_JITTER)
 	local holder: Instance
 	if typeof(at) == "Instance" then
 		holder = sound

@@ -120,6 +120,166 @@
     <Content name="AnimationId"><url>rbxassetid://136933091358616</url></Content>
    </Properties>
    </Item>
+   <Item class="Folder" referent="RBXAGC0"><Properties>
+    <string name="Name">Fist</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAGC0_0"><Properties>
+     <string name="Name">Hold</string>
+     <Content name="AnimationId"><url>rbxassetid://108492729753096</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC0_1"><Properties>
+     <string name="Name">Parry</string>
+     <Content name="AnimationId"><url>rbxassetid://71662429635317</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC0_2"><Properties>
+     <string name="Name">ParryAlt</string>
+     <Content name="AnimationId"><url>rbxassetid://93556726100571</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC0_3"><Properties>
+     <string name="Name">Impact</string>
+     <Content name="AnimationId"><url>rbxassetid://124944232562174</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAGC1"><Properties>
+    <string name="Name">Sword</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAGC1_0"><Properties>
+     <string name="Name">Hold</string>
+     <Content name="AnimationId"><url>rbxassetid://92408659576565</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC1_1"><Properties>
+     <string name="Name">Parry</string>
+     <Content name="AnimationId"><url>rbxassetid://91170775084983</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC1_2"><Properties>
+     <string name="Name">ParryAlt</string>
+     <Content name="AnimationId"><url>rbxassetid://105266736550165</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC1_3"><Properties>
+     <string name="Name">Impact</string>
+     <Content name="AnimationId"><url>rbxassetid://79710207509640</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAGC2"><Properties>
+    <string name="Name">Saber</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAGC2_0"><Properties>
+     <string name="Name">Hold</string>
+     <Content name="AnimationId"><url>rbxassetid://78611505969526</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC2_1"><Properties>
+     <string name="Name">Parry</string>
+     <Content name="AnimationId"><url>rbxassetid://108317786546976</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC2_2"><Properties>
+     <string name="Name">ParryAlt</string>
+     <Content name="AnimationId"><url>rbxassetid://90144539728419</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC2_3"><Properties>
+     <string name="Name">Impact</string>
+     <Content name="AnimationId"><url>rbxassetid://80482065051311</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAGC3"><Properties>
+    <string name="Name">Greatsword</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAGC3_0"><Properties>
+     <string name="Name">Hold</string>
+     <Content name="AnimationId"><url>rbxassetid://132876958523754</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC3_1"><Properties>
+     <string name="Name">Parry</string>
+     <Content name="AnimationId"><url>rbxassetid://104088898384264</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC3_2"><Properties>
+     <string name="Name">ParryAlt</string>
+     <Content name="AnimationId"><url>rbxassetid://93862158483825</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC3_3"><Properties>
+     <string name="Name">Impact</string>
+     <Content name="AnimationId"><url>rbxassetid://106912893883212</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAGC4"><Properties>
+    <string name="Name">Guandao</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAGC4_0"><Properties>
+     <string name="Name">Hold</string>
+     <Content name="AnimationId"><url>rbxassetid://94910534495435</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC4_1"><Properties>
+     <string name="Name">Parry</string>
+     <Content name="AnimationId"><url>rbxassetid://117756534049087</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC4_2"><Properties>
+     <string name="Name">ParryAlt</string>
+     <Content name="AnimationId"><url>rbxassetid://118221648664022</url></Content>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC4_3"><Properties>
+     <string name="Name">Impact</string>
+     <Content name="AnimationId"><url>rbxassetid://123203381343876</url></Content>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAGC5"><Properties>
+    <string name="Name">Spear</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAGC5_0"><Properties>
+     <string name="Name">Hold</string>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC5_1"><Properties>
+     <string name="Name">Parry</string>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC5_2"><Properties>
+     <string name="Name">ParryAlt</string>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC5_3"><Properties>
+     <string name="Name">Impact</string>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="RBXAGC6"><Properties>
+    <string name="Name">Staff</string>
+   </Properties>
+    <Item class="Animation" referent="RBXAGC6_0"><Properties>
+     <string name="Name">Hold</string>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC6_1"><Properties>
+     <string name="Name">Parry</string>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC6_2"><Properties>
+     <string name="Name">ParryAlt</string>
+    </Properties>
+    </Item>
+    <Item class="Animation" referent="RBXAGC6_3"><Properties>
+     <string name="Name">Impact</string>
+    </Properties>
+    </Item>
+   </Item>
   </Item>
   <Item class="Folder" referent="RBXAW1"><Properties>
    <string name="Name">Weapons</string>

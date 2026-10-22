@@ -13,6 +13,13 @@
 --            raise opens no window, so spamming the button never parries.
 --   broken   a blocked hit empties the meter: the guard drops, the player
 --            staggers (PlayerStun) and the meter comes back at BREAK_REFILL.
+--   deflected a chained parry: after a perfect parry, the same attacker's next
+--            blows of that assault (Hit.nextIn says one is due) are parried
+--            while the guard is up, if each lands within CHAIN_SLACK of when it
+--            was due. Only the last blow (no nextIn), the CHAIN_MAX-th, or a
+--            chain whose next blow never came (Guard.onChainEnd) staggers the
+--            attacker. Any blow of the chain that finds the guard down or comes
+--            from behind breaks it and lands as usual.
 --
 -- Where a blow comes from (`Hit.from`, set by EnemyService): melee from the
 -- beast, a dash or leap from where it set off (judged with the wider DASH_DOT,
@@ -33,7 +40,7 @@ local PlayerStun = require(script.Parent.PlayerStun)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 
-export type Result = "parried" | "blocked" | "broken"
+export type Result = "parried" | "deflected" | "blocked" | "broken"
 
 -- A guardable enemy blow (Combat.hurt's `guard`).
 export type Hit = {
@@ -41,7 +48,12 @@ export type Hit = {
 	heavy: boolean?, -- slams, charges and leaps drain more
 	dot: number?, -- the front arc for this blow (default FRONT_DOT)
 	at: number?, -- the server time it landed, when it was resolved later (RACE_GRACE)
+	attacker: Instance?, -- who struck, for chain parries
+	nextIn: number?, -- seconds until the attacker's next blow of this assault; nil on its last
+	chain: number?, -- filled in by absorb: this parry's place in its chain (1 = the timed one)
 }
+
+type Chain = { attacker: Instance, count: number, deadline: number, from: Vector3 }
 
 type State = {
 	character: Model?,
@@ -51,10 +63,15 @@ type State = {
 	seq: number, -- the client's latest guard op, echoed in guardMeter
 	look: Vector3?, -- the facing the client last reported while guarding
 	lookAt: number,
+	chain: Chain?, -- a chain parry waiting for the attacker's next blow
 }
 local states: { [Player]: State } = {}
 
 local Guard = {}
+
+-- EnemyService: a chain's next blow never came; stagger `attacker` (`chain`
+-- blows parried).
+Guard.onChainEnd = nil :: ((attacker: Instance, chain: number) -> ())?
 
 local function state(player: Player): State
 	local s = states[player]
@@ -67,6 +84,7 @@ local function state(player: Player): State
 		s.meter = GuardRules.new()
 		s.raisedAt, s.window = -math.huge, false
 		s.seq, s.look, s.lookAt = 0, nil, -math.huge
+		s.chain = nil
 	end
 	return s
 end
@@ -163,14 +181,36 @@ local function facing(s: State, root: BasePart, from: Vector3, dot: number, now:
 	return reported ~= nil and math.abs(now - s.lookAt) <= Config.LOOK_FRESH and toward:Dot(reported) >= dot
 end
 
--- An enemy hit of `amount` (Hit: where from, how heavy) landing at `now`.
+-- Wait for a chain's next blow; if it doesn't land by the deadline the
+-- flurry is over: tell everyone (Effect "guard" "chainEnd") and let
+-- EnemyService stagger the attacker.
+local function awaitNext(player: Player, s: State, chain: Chain)
+	task.delay(math.max(chain.deadline - workspace:GetServerTimeNow(), 0) + 0.05, function()
+		if states[player] ~= s or s.chain ~= chain then
+			return
+		end
+		s.chain = nil
+		effectRemote:FireAllClients("guard", player.Character, "chainEnd", chain.from, chain.count)
+		local hook = Guard.onChainEnd
+		if hook then
+			hook(chain.attacker, chain.count)
+		end
+	end)
+end
+
+-- An enemy hit of `amount` (Hit: where from, how heavy, who) landing at `now`.
 -- Returns nil when the guard doesn't take it (down, or hit from behind), else
--- the outcome and the damage that still gets through.
+-- the outcome and the damage that still gets through. A parry fills `hit.chain`.
 function Guard.absorb(player: Player, humanoid: Humanoid, root: BasePart, amount: number, hit: Hit, now: number): (Result?, number)
 	local s = state(player)
 	local from, heavy = hit.from, hit.heavy == true
 	local sinceRaise = now - s.raisedAt
 	local inWindow = s.window and sinceRaise >= -Config.PARRY_LATE and sinceRaise <= Config.PARRY_WINDOW + CombatConfig.IFRAME_SLACK
+	local chain = s.chain
+	local chained = chain ~= nil and hit.attacker ~= nil and chain.attacker == hit.attacker and now <= chain.deadline
+	if chained then
+		s.chain = nil -- this blow continues the chain or breaks it
+	end
 	if not s.meter.up and not inWindow then
 		return nil, amount
 	end
@@ -178,11 +218,24 @@ function Guard.absorb(player: Player, humanoid: Humanoid, root: BasePart, amount
 		return nil, amount
 	end
 	local character = player.Character
-	if inWindow then
-		GuardRules.refund(s.meter, Config.PARRY_REFUND, now)
+	if inWindow or (chained and s.meter.up) then
+		local count = if chained and chain then chain.count + 1 else 1
+		hit.chain = count
+		GuardRules.refund(s.meter, if count == 1 then Config.PARRY_REFUND else Config.CHAIN_REFUND, now)
 		mirror(player, s)
-		effectRemote:FireAllClients("guard", character, "parried", from)
-		return "parried", 0
+		local last = hit.attacker == nil or hit.nextIn == nil or count >= Config.CHAIN_MAX
+		if not last then
+			local nextChain: Chain = {
+				attacker = hit.attacker :: Instance,
+				count = count,
+				deadline = now + (hit.nextIn :: number) + Config.CHAIN_SLACK,
+				from = from,
+			}
+			s.chain = nextChain
+			awaitNext(player, s, nextChain)
+		end
+		effectRemote:FireAllClients("guard", character, "parried", from, count, last)
+		return if last then "parried" else "deflected", 0
 	end
 	if SharedConfig.TESTBED then
 		-- timing aid while tuning: how long before the hit the guard went up

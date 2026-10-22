@@ -80,7 +80,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Techniques (and their visual tiers, `VISUAL_TIERS`, elements) | `src/shared/Techniques.luau` |
 | Spirit roots: element odds, grades, perks, element match | `src/shared/Pacing.luau` `Roots`; elements in `src/shared/Roots.luau` |
 | Cultivation methods: qi speed, reach, root match | `src/shared/Pacing.luau` `Methods`; defs in `src/shared/Methods.luau` |
-| Guard: move speed, front arcs (melee, dash), chip, drain, regen, break, parry window and stagger, threat facing, race grace; cue volume | `Config.Combat.GUARD`; `assets/SoundGroups/SFX.rbxmx` (`GuardRaise`, `Parry`, `Block`, `GuardBreak`; [combat](systems/combat.md#guard-and-perfect-parry)) |
+| Guard: move speed, front arcs (melee, dash), chip, drain, regen, break, parry window and stagger, chain parry, threat facing, race grace; cue volume; per-class guard clips | `Config.Combat.GUARD`; `assets/Animations.rbxmx` (`Guard.<Class>`); `assets/SoundGroups/SFX.rbxmx` (`GuardRaise`, `Parry`, `Block`, `GuardBreak`; [combat](systems/combat.md#guard-and-perfect-parry)) |
 | Weapons, classes, grades; M1 chains per class | `src/shared/Weapons.luau`, `Config.Combat.CLASSES`; Dao comprehension in `Pacing.Weapons` |
 | Herbs and plants | `src/shared/Herbs.luau` |
 | Consumables (cores, treasures) | `src/shared/Items.luau` |

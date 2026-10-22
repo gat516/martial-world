@@ -393,6 +393,17 @@ return {
 			RACE_GRACE = 0.12, -- an unguarded hit waits up to half the player's ping (capped here) for a raise in flight
 			FACE_RANGE = 30, -- while guarding without a lock you turn to the most pressing beast this close (0 = off)
 			FACE_TURN = 18, -- how fast that turn closes (per second, exponential)
+			-- Chain parry: after a perfect parry, the same attacker's next blows of
+			-- the same assault (barrage bites, cone strikes, a follow-up combo, a
+			-- slam's wave) are parried while the guard stays up, if each lands within
+			-- CHAIN_SLACK of when it was due. The attacker staggers on the last one,
+			-- at CHAIN_MAX, or when the flurry stops coming. No re-press needed, so
+			-- PARRY_RECOVER doesn't apply inside a chain.
+			CHAIN_SLACK = 0.45, -- seconds past a blow's due time the chain still waits for it
+			CHAIN_MAX = 6, -- the sixth parried blow of a chain always staggers
+			CHAIN_REFUND = 0.05, -- guard back per chained parry (the first gives PARRY_REFUND)
+			CHAIN_STAGGER_BONUS = 0.12, -- the closing stagger is this much longer per chained blow
+			CHAIN_STAGGER_MAX = 0.5, -- at most this much longer
 		},
 
 		IN_COMBAT_SECONDS = 6, -- after being hurt, travel is blocked this long

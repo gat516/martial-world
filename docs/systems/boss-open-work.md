@@ -39,8 +39,17 @@ pivots and safe ranges are in its `art/enemies/<group>/RIGS.md`.
   for the names.
 - **Committing.** Other sessions leave staged files in the shared index. Commit
   through a temporary `GIT_INDEX_FILE` built from HEAD plus your own paths, then
-  `git reset` those paths. Commit RIGS.md and doc hunks straight away, or another
-  session's commit swallows them.
+  `git reset` those paths. Skipping the reset leaves the shared index holding the
+  old blobs, which then look like staged reverts of your commit, and the next
+  session's commit ships them (it happened twice on 2026-10-22). Commit RIGS.md and doc
+  hunks straight away, or another session's commit swallows them.
+- **One owner per shared file.** In a parallel pass, name one owner up front for each
+  file that several agents need, `EnemyAnimator.luau` above all. Put every attribute
+  the client reads into the contract before anyone starts: skids are read from
+  `AttackName`, while `Attack` keeps the parent's name.
+- **Never write onto the file you're reading.** `open(path, "w")` empties the file
+  before the transform runs, and if it raises, the file stays empty (this
+  happened to `Enemies.luau` and to this page). Write a temp file, then move it.
 - **QA.** Check visually, not only by numbers: capture key frames in your own
   sandbox. The animators' QA scripts are under `art/enemies/beasts/` and
   `art/enemies/quadrupeds/`.

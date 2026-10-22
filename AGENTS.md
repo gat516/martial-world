@@ -52,7 +52,7 @@ Split big map or content passes across several subagents when the parts don't sh
 - Give each agent sole ownership: its own folders in Studio (e.g. a staging area off the map, or `ServerStorage.<Thing>`) and its own files. One owner at a time for terrain, `wilds_layout.luau`, `dress_wilds.luau` and any Rojo-mapped asset.
 - Build in parallel, place in series. Builders make self-contained, tagged templates or prefabs away from the map; one map-builder places them, once the layout and terrain they sit on are done.
 - No one starts Play or touches terrain outside their own task. If Studio flips into Play, keep working on files and wait.
-- Commit immediately after staging, and only your own files and hunks. For shared docs (`map.md`, `README.md`), build the index blob from `git show HEAD:` plus your hunk. Check `git diff --cached --name-only` first. Two commits have been swallowed by parallel sessions so far.
+- Commit immediately after staging, and only your own files and hunks. For shared docs (`map.md`, `README.md`), build the index blob from `git show HEAD:` plus your hunk. Check `git diff --cached --name-only` first. After committing through a temporary `GIT_INDEX_FILE`, `git reset -- <your paths>` in the shared index, or it keeps the old blobs as staged reverts. Two commits have been swallowed by parallel sessions so far.
 - Split by zone only when the zones don't share code or layout files.
 
 ## Studio instances

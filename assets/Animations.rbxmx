@@ -125,22 +125,22 @@
    </Properties>
     <Item class="Animation" referent="RBXAGC0_0"><Properties>
      <string name="Name">Hold</string>
-     <Content name="AnimationId"><url>rbxassetid://108492729753096</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://129496318055813</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC0_1"><Properties>
      <string name="Name">Parry</string>
-     <Content name="AnimationId"><url>rbxassetid://71662429635317</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://107163359985201</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC0_2"><Properties>
      <string name="Name">ParryAlt</string>
-     <Content name="AnimationId"><url>rbxassetid://93556726100571</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://85002762531759</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC0_3"><Properties>
      <string name="Name">Impact</string>
-     <Content name="AnimationId"><url>rbxassetid://124944232562174</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://74020665856058</url></Content>
     </Properties>
     </Item>
    </Item>
@@ -149,22 +149,22 @@
    </Properties>
     <Item class="Animation" referent="RBXAGC1_0"><Properties>
      <string name="Name">Hold</string>
-     <Content name="AnimationId"><url>rbxassetid://92408659576565</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://82813124697662</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC1_1"><Properties>
      <string name="Name">Parry</string>
-     <Content name="AnimationId"><url>rbxassetid://91170775084983</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://120089481126275</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC1_2"><Properties>
      <string name="Name">ParryAlt</string>
-     <Content name="AnimationId"><url>rbxassetid://105266736550165</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://135062014559788</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC1_3"><Properties>
      <string name="Name">Impact</string>
-     <Content name="AnimationId"><url>rbxassetid://79710207509640</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://78852991238395</url></Content>
     </Properties>
     </Item>
    </Item>
@@ -221,22 +221,22 @@
    </Properties>
     <Item class="Animation" referent="RBXAGC4_0"><Properties>
      <string name="Name">Hold</string>
-     <Content name="AnimationId"><url>rbxassetid://94910534495435</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://138346742671760</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC4_1"><Properties>
      <string name="Name">Parry</string>
-     <Content name="AnimationId"><url>rbxassetid://117756534049087</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://100712668642187</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC4_2"><Properties>
      <string name="Name">ParryAlt</string>
-     <Content name="AnimationId"><url>rbxassetid://118221648664022</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://138151619877898</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC4_3"><Properties>
      <string name="Name">Impact</string>
-     <Content name="AnimationId"><url>rbxassetid://123203381343876</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://115904372977904</url></Content>
     </Properties>
     </Item>
    </Item>

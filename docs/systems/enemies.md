@@ -821,6 +821,12 @@ else reads it). The server uses only the root (its height and the model's bounds
 the rest is drawn by clients. Server code must never look for a body part or a
 Humanoid on a live enemy, and client code finds the body under `Body`.
 
+The user's reference bodies `StoneTortoiseB` (1.76x), `ShadowManeWolfB` (1.63x) and `VenomSerpentB`
+(1.40x) are in `assets/Enemies.rbxm` (brought in by `art/enemies/beasts/bring_in_wave1.luau`; look
+untouched). Their `HumanoidRootPart` is grown to the body's bounds and centred on them, so a spawn
+point is the body centre. Per-body numbers and attachments are in the RIGS.md of their group
+(`quadrupeds`, `wolf_family`, `beasts`). Nothing uses them until the wave-1 defs land.
+
 ## Key files
 - `src/shared/Enemies.luau`: defs (health, speeds, aggro/leash, attack and boss
   pattern, `qiDrop`, `stones`, `drops`, `bossDrops` (bosses' manual/weapon pool, see [weapons](weapons.md)), `realm`, `weight`). Kill qi scaling uses

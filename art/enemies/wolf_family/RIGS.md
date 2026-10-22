@@ -337,3 +337,14 @@ no `_StagingEnemies`, as in a sandbox): planted paws at 0, nothing sunk, lifted 
 (forepaw step 0.08), only the known merges (elbow ball into the chest bib 0.22, hock into thigh
 0.22). The howl pose is unchanged (its ring is removed elsewhere; the `howl` cue carries the new
 effect).
+
+## ShadowManeWolfB (the user's reference body, 1.63x, brought in 2026-10-22)
+
+`assets/Enemies.rbxm` template `ShadowManeWolfB`: the user's `ShadowManeWolf` kept as it looks, 6.5 x 9.1 x 21.3 studs, 106 parts, 26 motors (the shared skeleton plus JointMane, JointManeL/R and JointForelock; hocks `JointHockBL/BR` have a rotated frame at rest). Built by `art/enemies/beasts/bring_in_wave1.luau`. Attribute `Scale = 1.63` (the source carried a stale 1.15). `Wolf.scaled` multiplies JointRoot's translation by 1.63 once.
+
+- Pivot, root: the pivot is the `HumanoidRootPart` (identity rotation, Y 4.866 = root height, feet on Y 0). The root is 6.53 x 8.42 x 21.25, centred on the body's X/Z bounds; the hips' `JointRoot` is at root-relative (0, 0.47, +2.16).
+- Mouth is 10.48 studs in front of the root centre (Z -10.48, 5.15 up from the ground).
+- Rest pivots root-relative (X, Y up from the root, Z): JointSpine (0, 0.75, 0.66); JointNeck (0, 1.03, -4.11); JointHead (0, 1.03, -6.17); JointMane (0, 2.15, -3.08); JointLegFL/FR (+-1.31, -0.28, -3.27); JointLegBL/BR (+-1.31, -0.19, 3.09). Ground-up: legs hip 4.59 / 4.68, elbow and knee 2.53, wrist 0.60, hock 1.16.
+- Tells (Neon violet): `EyeL`, `EyeR`, and new thin bands `ManeTell1..3` (across the three dorsal mane wedges, Segment Mane) and `TailBrushTell` (across the brush, Segment TailTip), all with `TellBase`.
+- Attachments: `Mouth` (Skull), `Core` (Chest), `PawFL_FX`, `PawFR_FX`, `PawBL_FX`, `PawBR_FX` (on each paw, at Y 0), `ManeTop_FX` (Mane, top of the mane, 8.50 up).
+- `HealthBar` 1 stud over the top. check_rig clean, keyframe_test keyable (26 joints).

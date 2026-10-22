@@ -557,3 +557,14 @@ by 0.1 so a bend of up to about 0.25 rad per joint shows no gap; sharper bends o
 on the outside of the curve (spread the wave across more segments). Legs are 0.34 thick and
 read as sticks head-on; they fan out of the skirt, so keep the swing small. Checks:
 `check_rig.luau` clean, `keyframe_test.luau` keyable (43 joints).
+
+## VenomSerpentB (the user's reference body, 1.40x, brought in 2026-10-22)
+
+`assets/Enemies.rbxm` template `VenomSerpentB`: the user's row body `workspace.Folder.Model.VenomSerpent`, 5.13 x 7.00 x 15.93 studs, 84 parts, the 13 joints above. The old roster `VenomSerpent` template is a 17-part, joint-less stand-in (4.6 x 5.6 x 5.4), so it does not match; `VenomSerpentB` is the row body, kept exactly. Attribute `Scale = 1.40`.
+
+- Pivot, root: the pivot is the `HumanoidRootPart` (identity rotation, Y 2.379 = root height, feet/coil on Y 0). The root is 5.13 x 4.76 x 15.93, invisible, centred on the body's X/Z bounds.
+- Mouth is 7.09 studs in front of the root centre (Z -7.09, 5.66 up), the head at player height.
+- Rest pivots root-relative (X, Y up from the root, Z): JointRoot (0.67, -1.49, -2.25); JointNeck (0.04, -1.47, -3.16); JointHead (0.04, 3.29, -4.84). The rest of the table above applies; full numbers via `joint:GetPivot`-style reads of `Part0.CFrame * C0`.
+- Tells (Neon): `EyeL`, `EyeR`, `VenomSacL`, `VenomSacR`, `HoodSpotL`, `HoodSpotR`.
+- Attachments: `Mouth` (Skull), `SacL_FX`, `SacR_FX` (on the sacs), `TailTip_FX` (Tail5, at the barb tip, on the ground).
+- `HealthBar` 1 stud over the top. check_rig clean, keyframe_test keyable (13 joints).

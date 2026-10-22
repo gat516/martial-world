@@ -15,6 +15,7 @@ local Client = script.Parent.Parent
 local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
 local WeaponFX = require(script.Parent.WeaponFX)
+local BladeSkill = require(script.Parent.BladeSkill)
 
 local CLIP = { hit = 0.6333, hitStop = 0.75 } -- clip seconds (markers Hit / Hit Stop), until the def/ActionRules provide them
 
@@ -48,6 +49,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	if windup then
 		windup:Destroy() -- played at cast start (CombatEffects.windup)
 	end
+	local edgeT = TechniqueVFX.take(copy, "Edge")
 	if not sweep then
 		copy:Destroy()
 		return false
@@ -116,12 +118,34 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		light.Brightness = 2.4
 	end
 	local total = active + followTime
+	-- the real blade's own ribbon rides the guandao through the spin
+	local blade = BladeSkill.blade(character)
+	local edge = if blade and edgeT then BladeSkill.edge(edgeT, blade) else nil
+	if edge then
+		BladeSkill.setTrails(edge, true)
+		if edge.glow then
+			edge.glow.Enabled = true
+		end
+		if edge.motes then
+			edge.motes.Enabled = true
+		end
+	end
 	WeaponFX.drive(total, function(t)
 		place(t)
 		if light then
 			light.Brightness = 2.4 * (1 - 0.5 * t / total)
 		end
 	end, function()
+		if edge then
+			BladeSkill.setTrails(edge, false)
+			if edge.glow then
+				edge.glow.Enabled = false
+			end
+			if edge.motes then
+				edge.motes.Enabled = false
+			end
+			BladeSkill.release(blade, 0.9)
+		end
 		for _, d in sweep:GetDescendants() do
 			if d:IsA("Trail") or d:IsA("ParticleEmitter") then
 				(d :: any).Enabled = false

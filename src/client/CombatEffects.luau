@@ -225,7 +225,7 @@ function CombatEffects.windup(character: Model, id: string, level: number)
 	local charge = template and template:FindFirstChild("Charge")
 	if charge and def.weapon ~= "Any" and def.weapon ~= "Fist" then
 		local WeaponFX = require(script.Parent.TechniqueFX.WeaponFX)
-		if WeaponFX.charge(character, charge, CastFX.phases(def).windup, def.weapon == "Staff" or def.weapon == "Spear") then
+		if WeaponFX.charge(character, charge, CastFX.phases(def).windup, def.weapon == "Staff" or def.weapon == "Spear" or def.weapon == "Guandao") then
 			return
 		end
 	end

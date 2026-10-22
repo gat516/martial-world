@@ -39,6 +39,17 @@
 --       the windup.
 --   IV  gold edge, moon rising behind, light, frames, quake.
 --
+-- Remade 2026-10-21 on the guandao and the Hit window:
+--   Windup (0 -> Hit, 0.63 s): part "Charge" rides the whole pole (butt ->
+--     blade, WeaponFX.charge full): a dark beam under a jade one, motes along
+--     the shaft and a glint on the crescent blade as it is wound back.
+--   Release (Hit): the flash on the blade where the spin starts gets the shared
+--     flare (cross glint, star-burst flipbook over ink, sparks).
+--   Sweep (Hit -> Hit Stop + follow-through): beside the sheet (now over a dark
+--     ink sheet) the real blade's own ribbon, glow and motes ("Edge", riding
+--     the model's Base -> Tip), and every enemy the heading passes gets the
+--     moon crescent flipbook through the body. Impacts already fire as the
+--     heading passes, inside Hit -> Hit Stop.
 -- Authored at radius 11, active 0.117 s (Hit -> Hit Stop at speed 1).
 local B = _G.vfxBlocks
 local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
@@ -69,7 +80,10 @@ local A = {
 	slash = id(7216852121),
 	mote = id(9841260273),
 	knotRing = id(93858335764593), -- key-fret (meander) ring
+	crescentFlip = id(13972642464), -- 4x4 flipbook: a thin crescent moon sweeping and fading
 }
+local GRID4 = Enum.ParticleFlipbookLayout.Grid4x4
+local ONESHOT = Enum.ParticleFlipbookMode.OneShot
 
 local RADIUS = 11
 local REACH = 8.6 -- the blade's reach round the caster (sampled ~8)
@@ -112,6 +126,9 @@ B.BLOCKS.csSweep = function(root, tier, p)
 	local rim0 = B.attach(sweep, "Rim0", Vector3.new(0, 0.1, -REACH + 0.45))
 	local rim1 = B.attach(sweep, "Rim1", Vector3.new(0, 0.2, -REACH - 0.25))
 	local edge = if tier >= 4 then GOLD else CORE
+	-- dark under light: an ink sheet the jade one lies on
+	trail(sweep, "SheetInk", inner, outer, CS(INK), NS({ KP(0, 0.5), KP(0.6, 0.65), KP(1, 1) }),
+		({ 0.28, 0.32, 0.34, 0.38 })[tier], 0)
 	-- the sheet: transparent near the shaft, solid at the blade
 	trail(sweep, "Sheet", inner, outer, CS(DEEP, JADE), NS({ KP(0, ({ 0.35, 0.28, 0.22, 0.18 })[tier]), KP(0.5, 0.6), KP(1, 1) }),
 		({ 0.26, 0.3, 0.32, 0.36 })[tier], 0.3, NS({ KP(0, 1), KP(1, 1) }))
@@ -212,8 +229,23 @@ B.BLOCKS.csTip = function(root, tier, p)
 	return tip
 end
 
+-- The real blade's edge: the runtime moves Edge's Trails, Glow and Motes onto
+-- the held model's Base -> Tip for the spin.
+B.BLOCKS.csEdge = function(root, tier, p)
+	return _G.vfxSpecs.BladeKit.edge(root, tier, {
+		color = JADE, core = if tier >= 4 then GOLD else CORE, tail = DEEP,
+		trailLife = { 0.2, 0.24, 0.28, 0.34 }, glowWidth = { 0.7, 0.9, 1.1, 1.3 }, moteRate = { 12, 18, 24, 32 },
+	})
+end
+
 B.BLOCKS.csSlash = function(root, tier, p)
 	local body = root:FindFirstChild("Impact"):FindFirstChild("Body")
+	B.emitter(body, "SlashFlip", {
+		Texture = A.crescentFlip, Color = CS(Color3.fromRGB(205, 255, 225)),
+		FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+		Size = NS({ KP(0, 2.4 + tier * 0.3), KP(1, 3.4 + tier * 0.4) }), Transparency = NS({ KP(0, 0), KP(0.7, 0.15), KP(1, 1) }),
+		Lifetime = R(0.3), LightEmission = 0.5, Rotation = R(-8, 8), ZOffset = 3.2,
+	}, { EmitCount = 1 })
 	return B.emitter(body, "Slash", {
 		Texture = A.slash, Color = CS(CORE, JADE),
 		Size = NS({ KP(0, 1), KP(0.25, 2.8 + tier * 0.45), KP(1, 3.4 + tier * 0.5) }), Transparency = NS({ KP(0, 0), KP(0.55, 0.15), KP(1, 1) }),
@@ -230,8 +262,10 @@ return {
 	id = "CrescentSweep",
 	root = { attrs = { AuthoredActive = 0.117, AuthoredRadius = RADIUS } },
 	beats = {
-		{ block = "handGather", params = pal({ windup = 0.63, at = HAND_AT }) },
+		{ block = "bladeCharge", params = { color = JADE, core = CORE, ink = INK, width = 0.6, full = true } },
 		{ block = "csTip" },
+		{ block = "bladeFlare", params = { part = "Tip", color = JADE, core = CORE, ink = INK } },
+		{ block = "csEdge" },
 		{ block = "csSweep" },
 		{ block = "groundShockwave", params = pal({ radius = RADIUS, color = JADE }) },
 		{ block = "csGround" },

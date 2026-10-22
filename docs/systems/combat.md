@@ -339,7 +339,17 @@ checks a rebuild against the previous templates.
   swirl shell, a Craters ring erupting with the wave, impact bubbles and rock
   kicks; IV a gold edge, a jade-gold moon rising behind the caster, one point
   light on the sweep, impact frames at the release and a quake on the first
-  impact.
+  impact. Remade 2026-10-21 on the guandao and the Hit window: the 0.63 s
+  windup is a `Charge` along the whole pole (butt -> blade, `full`; dark beam
+  under a jade one, motes along the shaft, a glint on the blade) as it is
+  wound back; the release flash on the blade gets the shared flare (cross
+  glint, star-burst flipbook over ink, sparks); the sheet lies on a dark ink
+  sheet and the real blade draws its own ribbon, glow and motes (`Edge` on the
+  model's Base -> Tip) through the spin; every cut gets a crescent-moon
+  flipbook plus the shared ink splat and star-burst flipbook. Impacts already
+  fire as the heading passes (inside Hit 0.633 -> Hit Stop 0.75 plus the
+  follow-through). Layers T1 / T4: charge 8 / 8, release 6 / 6, sweep 4 / 5,
+  edge 3 / 4, ground 6 / 11, impact 10 / 16.
 - **Twin Phoenix Cannon** (`TwinPhoenixCannon_T1..T4`, authored at length 18
   and width 6; `TechniqueFX.TwinPhoenixCannon`). The skill animation throws
   two overhand forward punches, right fist at `Hit "1"`/`Release "1"` (0.30)

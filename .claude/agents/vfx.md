@@ -128,6 +128,32 @@ In order:
    burst plus a fading scorch for explosions and landings. Projectiles get a real
    in-flight body and a real explosion. No flat expanding discs for roars.
 
+## Enemy effects (user decisions, 2026-10-22)
+
+From the bestiary pass; the enemy-designer's brief gives the beats and timings.
+- **Element palette.** Each beast's effects carry its affinity (venom jade-green,
+  earth jade over umber, shadow ink and violet, fire red and gold, ice white-blue,
+  blood crimson), never the Spirit Wolf's pale blue or the King's gold on another
+  beast. The telegraph stays in the one danger colour.
+- **Readable beats.** `Tell` parts dim, then brighten across the windup
+  (`TellBase` keeps the original colour); every bright layer sits on a dark or
+  slate copy so it reads in daylight; every hit and landing gets dust, chips or a
+  flash. Regular beasts are small and clean (ring 1-2 sizes); no body copies or
+  afterimages, no always-on ground circles, no flat discs for roars, no crowns or
+  halos.
+- **Phones.** Pack beasts keep emitter counts low; a swarm (the Blood Bat) uses 1-3
+  emitters a beat and plays a shared beat (the shriek) on one beast only.
+- **Build on the shared kit.** `src/client/EnemyFX/BeastKit.luau` (lob, beam,
+  anchor point, tell sweep, attachment lookup by class) and `Impact`
+  (explode, ground, swipe, skid, shot, roar with a custom palette). Gate each
+  handler by the model's `Template`.
+- **Read the cue, don't assume.** A barrage's circles are in `shape.parts`; a lob
+  launches at the release time the brief gives (the pose throws at the same
+  moment); sizes come from the cue or the def, not constants, where they can.
+- **Check numerically.** Fire every cue against the real bodies with
+  `tools/enemy_fx_smoke.luau` (errors, spawn counts, missing hooks) before
+  committing; the user reviews the look.
+
 ## The plan
 
 - **References:** which ones, with the frame grid paths, and what you're

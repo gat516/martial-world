@@ -202,6 +202,38 @@ Follow `docs/systems/telegraphs.md`; in short:
 - Mix: most attacks get the standard telegraph, a few heavy ones get more. Plan
   for phones: thick edges, and timing that doesn't rely on colour.
 
+## The bestiary and its attacks (user decisions, 2026-10-22)
+
+- **Beasts first.** Regular enemies are spirit and demon beasts for now; cultivators
+  and bandits come later. Think cultivation: every beast has a realm, an element
+  affinity (its qi colour on the tells and effects, never on the telegraph) and a
+  spirit core it drops, and its attacks are beast techniques (a venom spit, a tongue
+  snare, a burrow and erupt, a shell guard, a shadow step), not plain bites. Keep
+  each moveset distinct from the bosses' and its siblings' (the Venom Serpent
+  doesn't repeat the Jade Jiao's lance, pools or dive).
+- **Mechanics the user has approved:** venom attacks apply poison; a defensive state
+  can really cut damage (Shell Guard lets 20% through); fliers fight at melee
+  height, and the perch after a dive is the player's window; pulls, slows (never a
+  root, the dodge ignores it), lifesteal and lingering patches are fine.
+- **Numbers are placeholders.** The user retunes every beast later, so don't spend
+  time balancing; a sanity check against the guidelines above is enough.
+- **The user's bodies stay as they are.** Bodies in the testbed's reference row
+  (`workspace.Folder.Model`) come in unchanged at the row's scale: no added
+  armour, details or tell bands. If a body lacks a part the fight needs (a tell
+  strip, a joint), say so on the card and ask.
+- **Contracts the briefs must pin down** (each cost a fix this pass):
+  - say whether pivots, root and paw offsets are in unit space or at the body's
+    scale (the user's row poses are 1x);
+  - give the release moment of every thrown or lobbed attack in seconds, so the
+    pose's throw and the VFX's launch agree;
+  - for a barrage, that the windup is one cue whose circles are in `shape.parts`
+    (`shape.center` is the beast's own spot);
+  - for a burrower, which moment clears `Burrowed` (the centipede's
+    `unburrowAt = "windup"` shows the body rising);
+  - measure reaches from the real root box and muzzle once the body has landed.
+- **Keep the pipeline full.** While the animators and vfx work, write the next
+  wave's cards and briefs, so a freed agent moves straight on to the next beast.
+
 ## Pitfalls
 
 - **Upright pivot.** `EnemyService.spawn` places a clone with

@@ -363,6 +363,27 @@ return {
 
 		IN_COMBAT_SECONDS = 6, -- after being hurt, travel is blocked this long
 
+		-- Player crowd control (src/server/PlayerStun.luau; see combat.md).
+		CC = {
+			FLINCH_SECONDS = 0.25, -- the hit reaction; never locks input
+			FLINCH_GAP = 0.3, -- a new flinch waits this long after the last one
+			FLINCH_MOVE = 0.75, -- walk speed share during a flinch
+			STAGGER_SECONDS = 0.75, -- default stagger length
+			STAGGER_MIN = 0.4,
+			STAGGER_MAX = 1.0,
+			STAGGER_MOVE = 0.2, -- walk speed share while staggered
+			STAGGER_PUSH = 14, -- studs/s the stumble shoves a player away from the source
+			STUN_SECONDS = 1.2, -- default stun length
+			STUN_MAX = 3, -- no single stun lasts longer
+			STUN_MIN = 0.4, -- diminished stuns shorter than this are ignored
+			-- After any stagger or stun ends the player can't be staggered or
+			-- stunned again for this long, and a stun landing within DR_WINDOW of
+			-- the previous one lasts DR_FACTOR as long per link in the chain.
+			IMMUNITY = 1.0,
+			DR_WINDOW = 6,
+			DR_FACTOR = 0.5,
+		},
+
 		-- Lock-on (client, LockOn.luau): a hard lock the camera and facing follow.
 		LOCK_RANGE = 45, -- enemies this close can be locked
 		LOCK_BREAK_RANGE = 60, -- the lock lets go past this

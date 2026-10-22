@@ -52,6 +52,7 @@ local WorldCaches = require(script.Parent.WorldCaches)
 local HeadLook = require(script.Parent.HeadLook)
 local HerbAnimator = require(script.Parent.HerbAnimator)
 local Movement = require(script.Parent.Movement)
+local CrowdControl = require(script.Parent.CrowdControl)
 local WorldPrompts = require(script.Parent.WorldPrompts)
 local RegionBanner = require(script.Parent.RegionBanner)
 local SelfCard = require(script.Parent.SelfCard)
@@ -62,6 +63,7 @@ local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") ::
 
 Hud.init(gui)
 HerbAnimator.init()
+CrowdControl.init()
 Menus.init(gui) -- before anything registers a window
 Motion.buttons(gui)
 ScrollHint.init(gui) -- the "more below" fade and chevron on every scrolling list

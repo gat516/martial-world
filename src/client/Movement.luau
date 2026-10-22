@@ -35,8 +35,11 @@ local function step()
 	local phase = Rules.phase(action, now)
 	local running = Sprint.isRunning() and ActionState.canSprint()
 	local base = humanoid:GetAttribute("BaseWalkSpeed") or Config.Cultivation.BASE_WALKSPEED
+	local crowd = humanoid:GetAttribute("CCMove")
+	local crowdLocked = ActionState.crowdLocked()
 	humanoid.WalkSpeed = (base + (if running then Config.Movement.RUN_BONUS else 0)) * multiplier
-	local committed = phase == "windup" or phase == "active"
+		* (if ActionState.crowdKind() and type(crowd) == "number" then crowd else 1)
+	local committed = phase == "windup" or phase == "active" or crowdLocked
 	if committed then
 		if jumpWasEnabled == nil then
 			jumpWasEnabled = humanoid:GetStateEnabled(Enum.HumanoidStateType.Jumping)
@@ -57,6 +60,8 @@ local function step()
 	if ActionState.locksFacing() then
 		humanoid.AutoRotate = false
 		root.CFrame = CFrame.lookAt(root.Position, root.Position + ActionState.facing)
+	elseif crowdLocked then
+		humanoid.AutoRotate = false -- reeling: no steering
 	elseif Meditation.isActive() then
 		-- seated: keep the facing you sat down with, even in shift lock
 		humanoid.AutoRotate = false

@@ -346,7 +346,7 @@ alive. Those wolves arrive already targeting and cannot howl in another pack.
 | King's Rush (`kingsRush`) | charge | 1.00 / lane / 1.00 | 30 | 7-wide lane, 12-30 long | 82 (25%) | 3.1 s |
 | Claw Down (`clawDown`) | slam | 0.55 / 0.12 / 0.85 | 11 | r 4.5 at local (1.7, 0, -7) | 46 (14%) | 1.8 s |
 | Crownfall (`crownfall`) | slam | 1.25 / 0.18 / 1.25 | 14 | r 13 at local (0, 0, -3.5) | 104 (32%) | 2.9 s |
-| Pack Call (`packCall`) | summon | 1.20 / 0.10 / 1.00 | threshold | no damage | 0 | 2.6 s |
+| Pack Call (`packCall`) | summon | 1.20 / 0.10 / 1.00 | threshold | no damage, but the howl stuns players within 20 studs for 1.0 s (`stun`, `PlayerStun`; the circle is telegraphed; a dodge evades it) | 0 | 2.6 s |
 
 Cooldowns start with the windup; the server always completes the attack and recover
 before starting the next one. Stationary attacks hit **at windup end**. Their active

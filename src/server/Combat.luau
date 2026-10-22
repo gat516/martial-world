@@ -17,6 +17,7 @@ local Cultivation = require(script.Parent.Cultivation)
 local EnemyHistory = require(script.Parent.EnemyHistory)
 local PlayerData = require(script.Parent.PlayerData)
 local Movement = require(script.Parent.Movement)
+local PlayerStun = require(script.Parent.PlayerStun)
 local Weapons = require(script.Parent.Weapons)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
@@ -174,6 +175,9 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source
 	humanoid:TakeDamage(amount)
 	s.lastHurt = os.clock()
 	effectRemote:FireClient(player, "hurt", amount)
+	if amount > 0 then
+		PlayerStun.apply(player, "flinch")
+	end
 	return "hit", amount
 end
 
@@ -557,6 +561,10 @@ function Combat.action(player: Player, message: any)
 		reply(player, s, sequence, false)
 		return
 	end
+	if PlayerStun.isLocked(player) then
+		reply(player, s, sequence, false)
+		return
+	end
 	local kind, id = message.kind, message.id
 	if kind == "cast" and (type(id) ~= "string" or not data.techniques.owned[id] or not table.find(data.hotbar, id)) then
 		reply(player, s, sequence, false)
@@ -595,6 +603,23 @@ function Combat.action(player: Player, message: any)
 	end
 	advance(player, s, now)
 	reply(player, s, sequence, true)
+end
+
+-- Dodge and dash-skill i-frames (the same window Combat.hurt honours).
+function Combat.evading(player: Player): boolean
+	local s = state(player)
+	local now = workspace:GetServerTimeNow()
+	local sinceDodge = now - s.lastDodge
+	return (sinceDodge >= 0 and sinceDodge <= Config.IFRAME_SECONDS + Config.IFRAME_SLACK) or now < s.invulnerableUntil
+end
+
+PlayerStun.shielded = Combat.evading
+-- A stagger or stun drops whatever the player was doing and tells their client.
+PlayerStun.onLock = function(player: Player)
+	local s = state(player)
+	Rules.cancel(s.actions, workspace:GetServerTimeNow())
+	s.suppressed = true
+	reply(player, s, 0, false)
 end
 
 RunService.Heartbeat:Connect(function()

@@ -38,6 +38,7 @@ local Config = require(ReplicatedStorage.Shared.Config).Wilds
 local DEFAULT_ROAM = 15 -- studs an enemy wanders from home unless told otherwise
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Knockback = require(ReplicatedStorage.Shared.Knockback)
+local PlayerStun = require(script.Parent.PlayerStun)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
@@ -831,6 +832,11 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	enemy.shape = shape
 	enemy.stateUntil = now + attack.windup
 	local name = attackName(attack)
+	local stun = attack.stun
+	if stun then
+		-- the exact area the roar will catch, drawn like any damaging telegraph
+		telegraphRemote:FireAllClients({ kind = "circle", center = ground, radius = stun.radius }, seconds, enemy.model, name, serverNow())
+	end
 	if def.attacks then
 		-- a pool: each attack keeps its own cooldown, and the beast waits out the
 		-- whole move (and a breath) before choosing again
@@ -1007,6 +1013,17 @@ local function resolveAttack(enemy: Enemy, now: number)
 		hurtAlongDash(enemy, attack, shape)
 	else
 		hurtIn(enemy, attack, shape)
+	end
+	local stun = attack.stun
+	if stun then
+		-- a roar: staggers or stuns every player standing in its circle
+		local area: Shape = { kind = "circle", center = groundAt(enemy.root.Position), radius = stun.radius }
+		for _, player in Players:GetPlayers() do
+			local root = playerRoot(player)
+			if root and caught(area, player, root) then
+				PlayerStun.apply(player, stun.kind :: any, stun.seconds, enemy.model)
+			end
+		end
 	end
 	if attack.hopAfter then
 		enemy.hopPending = true

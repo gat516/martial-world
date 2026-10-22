@@ -54,6 +54,7 @@ export type Attack = {
 	followUp: string?, -- attack pools: this attack's name starts as soon as it recovers, if the target is in its range
 	stopPast: number?, -- lunge/charge: dash only to this many studs past the target (between minRange and length)
 	thresholdOnly: boolean?, -- boss pattern: kept here for poses/cues, called only by summonAt
+	stun: { kind: string, radius: number, seconds: number? }?, -- on resolve, PlayerStun.apply("stagger" | "stun") to players in the circle (shown as its own telegraph)
 }
 
 -- Pack behaviour for regular beasts with an attack pool.
@@ -495,6 +496,8 @@ if NEW_WOLF_KING then
 		count = 2,
 		maxAlive = 2,
 		thresholdOnly = true,
+		-- the howl rattles anyone close: dodge out of the ring or through the roar
+		stun = { kind = "stun", radius = 20, seconds = 1.0 },
 	}
 	local king = Enemies.Defs.ElderWolfKing
 	king.body = "ElderWolfKingB"

@@ -38,7 +38,10 @@ scales all player damage.
 - `src/server/Movement.luau`, `src/client/Movement.luau`: the only writers of walk
   speed, jump and facing (actions, running, herb buffs, meditation all feed it).
 - `src/client/CombatController.luau`: input, prediction, buffering, animations.
-- `src/client/ActionState.luau`: local predicted action state.
+- `src/client/ActionState.luau`: local predicted action state, and
+  `crowdKind`/`crowdLocked` (the local player's flinch/stagger/stun).
+- `src/server/PlayerStun.luau`, `src/client/CrowdControl.luau`: player flinch,
+  stagger and stun ([Player crowd control](#player-crowd-control)).
 - `src/client/LockOn.luau`, `Sprint.luau`, `ShiftLock.luau` (Alt), `HeadLook.luau`.
   Sprint's loop is `Animations/Run` in `assets/Animations.rbxmx` (rbxassetid
   117319074411273, the new run clip; the old one was 81617655199380). Its
@@ -369,6 +372,47 @@ checks a rebuild against the previous templates.
   the place; without it (`TechniqueVFX.full` false) only the particles play and
   `CombatEffects.shake` stands in for the camera shake.
 
+## Player crowd control
+
+Bosses (and any enemy) can take a player's control for a moment, and every hit
+that lands makes the player react. One server API, `src/server/PlayerStun.luau`;
+the player is an R6 rig, so the reactions are procedural joint offsets drawn by
+`src/client/CrowdControl.luau` on every client (observers see them too).
+
+`PlayerStun.apply(player, kind, seconds?, source?)` returns `"applied"`,
+`"immune"`, `"evaded"` or `"ignored"`. `source` is a Model the player stumbles
+away from.
+
+| Kind | Length (`Config.Combat.CC`) | Effect |
+|---|---|---|
+| `"flinch"` | 0.25 s | a quick recoil pose. Never cancels or blocks an action; walking at 75%. Fired by `Combat.hurt` on every enemy hit that deals damage, so enemies don't call it. |
+| `"stagger"` | 0.75 s (0.4-1.0) | knocked off balance: cancels the current action, no attacking, dodging, casting, sprinting or jumping, walking at 20%, a short stumble away from `source`, camera shake. |
+| `"stun"` | `seconds` (default 1.2, at most 3) | cancels the action; no actions, no movement, no steering; dazed sway loop. |
+
+Protection, so a boss can't chain-lock a player:
+- A dodge's i-frames (or a dash skill's) dodge a stagger or stun: `"evaded"`.
+- After a stagger or stun ends, the player is immune to both for `IMMUNITY` (1 s).
+  A stun may replace a stagger in progress; nothing replaces a stun.
+- A stun landing within `DR_WINDOW` (6 s) of the end of the last one lasts
+  `DR_FACTOR` (half) as long per link in the chain (1.2, 0.6, then 0.3 s, which is
+  under `STUN_MIN` and ignored). A longer pause resets the chain.
+- Flinches never start during a stagger or stun, or within `FLINCH_GAP` of the last.
+
+Other API: `PlayerStun.isLocked(player)` (stagger or stun now), `kind(player)`,
+`remaining(player)`, `clear(player)`. State replicates as Humanoid attributes:
+`CCKind`, `CCStart`, `CCEnd` (server time), `CCMove` (walk speed share, applied by
+both `Movement` writers), `CCLock`, `CCFrom` (source position). No remote.
+Gating: server `Combat.action` refuses `begin` while locked and `PlayerStun`
+cancels the running action (`onLock`); client `ActionState.crowdLocked()` blocks
+`tryStart`, drops buffered inputs, sprint, approach and jumping.
+
+Enemy attacks can carry `stun = { kind, radius, seconds? }` (Enemies.luau): at
+the end of the windup every player inside that circle is hit with
+`PlayerStun.apply`, and the exact circle is telegraphed like a damaging attack.
+The new Elder Wolf King's Pack Call (the two health-threshold calls) has
+`stun = { kind = "stun", radius = 20, seconds = 1.0 }`; it only exists behind
+`Config.Wilds.NEW_WOLF_KING` (testbed). Dodge through the roar or stay out of the ring.
+
 ## Data flow
 Client presses -> `ActionRules` decides if legal -> plays locally and sends
 `Attack { begin }`; hit reports follow as `Attack { hit, targets }` -> server
@@ -393,13 +437,17 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   IV 10), and so where the comprehension bottlenecks sit; `TechniqueVFX.STEP_COUNT` is the extra particle count per level inside a tier.
 - `Knockback.luau`: `REALM_EXPONENT`, `MIN_DISTANCE`, `ARMOR_BREAK`, stun, base pushes.
 - Per stage (`Pacing.luau`): player `power` and `health` (curve and Adjust).
+- `Config.Combat.CC`: flinch, stagger and stun lengths, move shares, stumble push, immunity and diminishing returns.
 
 ## Known gaps
 - Palm Strike plays Fists.4, whose `Hit Stop` marker is at 0.45 s, but
   `Config.Combat.FIST_STEPS[4].hitStop` is 0.50: the hitbox window (and the
   effect's active phase, which follows Config) runs ~0.05 s of source time past
   the animation's marker. Effects follow Config until the two are aligned.
-- Enemy hits don't knock players back or stagger them yet.
+- Enemy hits flinch players but don't knock them back. Flinch, stagger and stun
+  are procedural R6 poses (untested in play, no authored clips) and there is no
+  dazed-stars effect yet: the VFX library has a `star` but no template is built.
+  The Elder Wolf King's `Roar` pose is still unplayed (its Pack Call keeps its own).
 - Sword Qi Wave's blade stops visually at walls, but its damage box still
   reaches through them.
 - Fire Seal's tick visuals are timed on the client from the cast, not from

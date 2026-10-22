@@ -73,7 +73,8 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
 | Testbed fight trials before shipping | `Config.Wilds.NEW_WOLF_KING` (King trial); `test.project.json` zones ([testbed](systems/testbed.md)) |
-| Knockback / stagger | `src/shared/Knockback.luau` |
+| Knockback / stagger (beasts) | `src/shared/Knockback.luau` |
+| Player flinch, stagger, stun: lengths, immunity, diminishing returns | `Config.Combat.CC`; API `PlayerStun.apply` ([combat](systems/combat.md#player-crowd-control)) |
 | Techniques (and their visual tiers, `VISUAL_TIERS`, elements) | `src/shared/Techniques.luau` |
 | Spirit roots: element odds, grades, perks, element match | `src/shared/Pacing.luau` `Roots`; elements in `src/shared/Roots.luau` |
 | Cultivation methods: qi speed, reach, root match | `src/shared/Pacing.luau` `Methods`; defs in `src/shared/Methods.luau` |
@@ -91,7 +92,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Cultivation, realms, breakthroughs, tribulation, insight | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, QiNodes | Pacing, Realms | Hud, BreakthroughView, CirculationMinigame |
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
-| Combat and action states | [combat](systems/combat.md) | Combat, Movement | ActionRules, Hitbox, Techniques, Knockback, Config.Combat | CombatController, ActionState, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |
+| Combat and action states | [combat](systems/combat.md) | Combat, Movement, PlayerStun | ActionRules, Hitbox, Techniques, Knockback, Config.Combat (`CC`: player flinch, stagger, stun) | CombatController, ActionState, CrowdControl, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |
 | Weapons, weapon Dao, manual caches, weapon racks | [weapons](systems/weapons.md) | Weapons, Combat, WorldCaches, Progression | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController, WorldCaches |
 | Character: spirit root, cultivation method (built); bloodline (design); character window | [character](systems/character.md), method aura brief [auras](systems/auras.md) | Roots (perks applied in Cultivation, Circulation, Combat, Garden), Methods (qi speed in Cultivation, Circulation, EnemyService, QiNodes) | Roots, Methods, Pacing.Roots, Pacing.Methods, Techniques `element` | RootFX (reveal pillar, each element in its methods' aura language), MethodAura (one aura per method while seated, from player attributes Meditating + Method; ignites on sit, switch and the Breakthrough remote) |
 | Enemies, spawning, regions, server/client split | [enemies](systems/enemies.md) | EnemyService, EnemyMover, EnemyHistory, Spawner | Enemies, Spawns, Regions, Knockback, Pacing.Danger | EnemyMotion, EnemyAnimator, EnemyPoses/*, EnemyFX/*, EnemyBars, EnemySounds, Telegraphs |

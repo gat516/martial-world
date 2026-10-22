@@ -9,8 +9,9 @@ local Movement = {}
 function Movement.apply(humanoid: Humanoid)
 	local base = humanoid:GetAttribute("BaseWalkSpeed") or Config.Cultivation.BASE_WALKSPEED
 	local multiplier = humanoid:GetAttribute("ActionMoveMultiplier") or 1
-	local running = humanoid:GetAttribute("Running") and not humanoid:GetAttribute("ActionBusy")
-	humanoid.WalkSpeed = (base + (if running then Config.Movement.RUN_BONUS else 0)) * multiplier
+	local running = humanoid:GetAttribute("Running") and not humanoid:GetAttribute("ActionBusy") and not humanoid:GetAttribute("CCLock")
+	local crowdControl = humanoid:GetAttribute("CCMove") or 1 -- flinch, stagger, stun (PlayerStun)
+	humanoid.WalkSpeed = (base + (if running then Config.Movement.RUN_BONUS else 0)) * multiplier * crowdControl
 end
 
 function Movement.action(humanoid: Humanoid, multiplier: number, busy: boolean)

@@ -508,7 +508,7 @@ end
 
 local function tryStart(kind: string, id: string?): boolean
 	local root = myRoot()
-	if not root then return false end
+	if not root or ActionState.crowdLocked() then return false end
 	local character = player.Character :: Model
 	if kind == "basic" and character:FindFirstChildOfClass("Tool") then return false end
 	if kind == "cast" and (not id or not State.current.techniques.owned[id] or not table.find(State.current.hotbar, id)) then
@@ -568,7 +568,7 @@ end
 
 local priorities = { basic = 1, cast = 2, dodge = 3 }
 request = function(kind: string, id: string?)
-	if not myRoot() then return end
+	if not myRoot() or ActionState.crowdLocked() then return end
 	local now = workspace:GetServerTimeNow()
 	if pending and pending.expires > now and priorities[pending.kind] > priorities[kind] then return end
 	if tryStart(kind, id) then
@@ -878,6 +878,12 @@ function CombatController.init(gui: ScreenGui)
 		if holding then
 			clearInputs()
 			if runtime and runtime.action.kind == "basic" then stopRuntime(true) end
+		end
+		-- Staggered or stunned: whatever was under way is dropped (the server
+		-- already cancelled it) and nothing buffers through the lock.
+		if ActionState.crowdLocked() then
+			pending = nil
+			if runtime then stopRuntime(true) end
 		end
 		-- Buffered cancels get the same ordering as an immediate button press.
 		if pending then

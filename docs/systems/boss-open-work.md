@@ -219,8 +219,8 @@ apex and hang, forepaws touch first), `KingRake` (opens on the landing compressi
 paw cocked wide, rakes across), `KingLeapSkid` and `KingsRushSkid` (brace, the head leads
 the live target yaw, hind end swings out, scrabble, square up), all checked numerically
 (RIGS.md). The rake uses the LEFT forepaw only (effects that tell both forepaws should
-follow it). `kingsRushSkid` waits on the server sending it. Left: feel in play, the dash's
-arc has no apex hang of its own (EnemyMotion's plain parabola), phone cost of the extra
+follow it; the vfx still tells both). `kingsRushSkid` is sent since `12b2610`, and leaps
+hang at the apex since `596ca4a`. Left: feel in play, phone cost of the extra
 secondary-motion samples.
 Done: ghosts and the always-on ground mandala and ink disc removed (`719fb5d`). The
 server side of `kingLeap` (r14 slam, heavy telegraph) -> `kingRake` (or

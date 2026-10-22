@@ -1946,6 +1946,9 @@ local function startBound(enemy: Enemy, targetRoot: BasePart, now: number, attac
 		enemy.boundMode = mode
 		enemy.dashFlight, enemy.dashArc = spec.active, spec.arc
 		enemy.model:SetAttribute("BoundMode", mode)
+		-- which way the hop travels across the body (+1 right, -1 left), so the windup leans into it
+		local across = enemy.root.CFrame.RightVector:Dot(flat(landing - enemy.root.Position))
+		enemy.model:SetAttribute("BoundSide", if across >= 0 then 1 else -1)
 	end
 	-- crouch facing the jump (over, flank) or the target (back, short); the air does the rest
 	if WEIGHTED and (mode == "over" or mode == "flank") then

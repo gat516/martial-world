@@ -457,7 +457,10 @@ coil or dive.
 | `venomSpit` (opener) | spit | 1.1 / - / 0.6 | 12-32 | circle r 5.5 on the target, lobbed gob lands at windup end | 15 (11%) + 1 poison stack 4 s | 2.6 s |
 | `hoodStrike` | lunge | 0.6 / 0.25 (up to 8 studs at 32/s, stops 4 short of you) / 0.8 | 2-12 | box 3.5 wide, dash + 7 (`reach`: the muzzle leads the root) | 14 (10%) + 1 poison stack | 3.2 s, then the backslide (`hop`) |
 
-Rushed inside 12 studs it strikes first (`closeOpener`). Dash skids turn it round
+Rushed inside 12 studs it strikes first (`closeOpener`). Poses: `EnemyPoses/VenomSerpent.luau` (a serpent family on `Serpent.luau`'s maths, QA'd on the
+roster body rebuilt at 1.4x, not yet on `VenomSerpentB`), registered as `VenomSerpentB` with
+`circleLoop` (its circle loop plays while it side-steps) and the moves `venomSpit`,
+`hoodStrike`, `hoodStrikeSkid`, `hop`. Dash skids turn it round
 (`hoodStrikeSkid`). The optional rear Tail Snap was cut: the pool picks by distance, not
 bearing, so it would fire at the face.
 

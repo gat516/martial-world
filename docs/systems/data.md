@@ -8,6 +8,9 @@ game (funnels, progression, custom events), and give admins test tools.
 - Profiles are session-locked so two servers can't overwrite each other when a
   player hops. If a load fails the player still plays but is never saved, so an
   outage can't wipe real progress.
+- An unpublished place (PlaceId 0, the local test build) can't reach DataStores,
+  so `PlayerData` swaps in an in-memory store there: profiles save and load, locks
+  included, for that session only. Published places always use the real store.
 - Schema changes go through numbered migrations.
 - Analytics must never break gameplay (every call is pcall'd).
 - Studio playtests and the [testbed](testbed.md) top up a test kit so systems can be tried at once

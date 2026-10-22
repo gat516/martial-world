@@ -4,6 +4,7 @@
 -- server may save it, so two servers can't overwrite each other's progress when a
 -- player hops. If a load fails the player still plays, but their profile is never
 -- saved, so a DataStore outage can't overwrite real progress with an empty profile.
+-- In an unpublished place (PlaceId 0) an in-memory store stands in for the session.
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
@@ -253,9 +254,41 @@ local function toRecord(stored: any): Record
 	return stored
 end
 
-local okStore, store = pcall(function()
-	return DataStoreService:GetDataStore(Config.STORE_NAME)
-end)
+-- An unpublished place (the local test build) can't reach DataStores at all, so
+-- it gets an in-memory stand-in: profiles save and load for the session only.
+local function memoryStore(): any
+	local records: { [string]: any } = {}
+	local function copy(v: any): any
+		if type(v) ~= "table" then
+			return v
+		end
+		local t = {}
+		for k, x in v do
+			t[k] = copy(x)
+		end
+		return t
+	end
+	return {
+		UpdateAsync = function(_, k: string, transform: (any) -> any): any
+			local new = transform(copy(records[k]))
+			if new == nil then
+				return copy(records[k])
+			end
+			records[k] = copy(new)
+			return copy(new)
+		end,
+	}
+end
+
+local okStore, store
+if game.PlaceId == 0 then
+	okStore, store = true, memoryStore()
+	warn("PlayerData: unpublished place, so profiles save in memory for this session only")
+else
+	okStore, store = pcall(function()
+		return DataStoreService:GetDataStore(Config.STORE_NAME)
+	end)
+end
 
 local jobId = if game.JobId ~= "" then game.JobId else "studio"
 

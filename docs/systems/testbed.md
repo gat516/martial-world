@@ -28,9 +28,11 @@ in AGENTS.md (Branches, Test build).
   `test.project.json` sets `StarterPlayer.GameSettingsAvatar = R6`, the property
   Game Settings > Avatar writes for an unpublished place. Rojo writes it only on a
   build, not over a live serve: rebuild the test build to pick it up.
-- **No DataStores in the test build.** An unpublished place can't reach DataStores
-  or other Open Cloud APIs ("must publish this place"), and Studio API access can
-  only be turned on for a published place. So profiles there don't load or save.
+- **Saves last one session.** An unpublished place can't reach DataStores or other
+  Open Cloud APIs ("must publish this place"), and Studio API access can only be
+  turned on for a published place. So `PlayerData` uses an in-memory store when
+  `PlaceId` is 0: rejoining in the same Play session keeps your profile; stopping
+  Play or rebuilding wipes it (user, 2026-10-22).
 - **Alt mouse lock in the testbed.** In the observed Studio Play client, Roblox
   supplied no `PlayerScripts.PlayerModule` for `ShiftLock.luau` to rebind, so Shift
   stayed native and Alt did nothing. `test.project.json` disables the native

@@ -193,6 +193,47 @@ points, trail height), the full cue path, how it reads at 40 studs and on
 phones, and the Game Module path (effects play on TechniqueVFX's fallback
 when the module isn't in the place).
 
+### Venom Serpent, Stone Tortoise and Shadow Mane Wolf effects (second bestiary wave)
+Handlers `EnemyFX/VenomSerpent.luau`, `StoneTortoise.luau`, `ShadowManeWolf.luau`
+(shared helpers in `EnemyFX/BeastKit.luau`: template playback, attachment lookup
+that tolerates a missing one, the dim-to-bright Tell strips, hit frame). Templates
+`ReplicatedStorage.Effects.<Beast>`, builders `tools/vfx_specs/<Beast>.luau`. Each
+handler only plays for the new bodies (`Template` = `VenomSerpentB`,
+`StoneTortoiseB`, `ShadowManeWolfB`); the old defs play nothing. Every bright layer
+sits on a dark copy so it reads in daylight; emitter counts are low (packs).
+Shared with the old effects: `Impact.explode/ground/swipe/skid/shot` (venom, earth
+and a violet-ink palette). Untested in play (built from the brief, checked
+numerically: builders run, `tools/check.sh` clean); feel and phone cost are the
+user's to review.
+
+| Beast / beat | Layers (templates) |
+|---|---|
+| Serpent windup (all) | EyeGlint star + held glow; Tell parts dim -> yellow |
+| spit windup | SacSwell on both sacs (glow, haze, drips); MouthDrip (drips, mist); at windup - 0.4 s the gob lob (`Impact.shot`, venom) to `shape.center` |
+| spit landing | `Impact.explode` venom + SpitSplash (splash, droplets, ring on slate, pool, glint) |
+| hoodStrike | windup HoodGlint (star, glow on slate) per HoodSpot; strike/dash Streak (streak on slate, drops) at the Mouth; land HopDust |
+| hit (strike, spit) | HitSplash (pop, splash, drops, poison bubbles) on the torso |
+| tailSnap | strike TailGlint (star, pop, sparks) + small `Impact.ground` at TailTip_FX |
+| hop | HopDust (dust, venom smear) |
+| stagger / death | StaggerFlash + flash; Death (venom mist, motes, core glint) |
+| Tortoise windup | EyeGlint on eyes and BrowMark; seams jade -> pale |
+| neckSnap / shellSnap | windup Breath (neckSnap); strike SnapBurst (jade streak, chips, dust); hit HitChips |
+| quakeStomp | windup ShellDust at the Core, FootPebbles at the four feet (hind feet twice: they dig); strike QuakeCrack (scar, jade crack glow, dust ring, chips, flash) + `Impact.ground` earth with rocks, shake 0.3 within 28 studs; hit HitJade |
+| shellGuard | the `Guarding` attribute (wired on `ready`): seams cold white-blue, GuardSheen + a faint Highlight sheen for the hold; each Health drop while guarding throws GuardSpark on the shell; the end plays GuardRelease |
+| stagger / death | StaggerChips + flash; Death (jade flash, crumble, chips, glint), seams go dark |
+| Mane windup | EyeGlint violet; mane-edge/tail Tell parts dim -> flare |
+| shadowStep | windup Gather; dash Takeoff, StepTrail on the Core host (smoke, streak, motes) and PawSmoke on 4 paws; land Arrive; skid `Impact.skid` |
+| shadowRake / maneRend | windup ClawGlint on a front paw (+ small ManeFlare for maneRend); maneRend strike ClawSweep x2 (0.35 s apart, second rolled to mirror) + swipe dust; hit ClawRake |
+| maneLash | windup ManeFlare (large) at ManeTop_FX; strike LashRing (ink, violet, flare rings, smoke, motes) + `Impact.ground` violet-ink; hit LashHit |
+| hop | HopSmoke (smoke puff, ink smear, violet smear) thrown backward |
+| stagger / death | StaggerFlash + flash; Death (ink smoke up, violet motes, glint) |
+
+Needs from the body contract: attachments `Mouth`, `Core`, `SacL/R_FX`, `TailTip_FX`
+(serpent); `Mouth`, `Core`, `Foot{FL,FR,BL,BR}_FX`, `NeckBase_FX` (tortoise);
+`Mouth`, `Core`, `Paw{FL,FR,BL,BR}_FX`, `ManeTop_FX` (mane); Neon `Tell` parts and
+`EyeL/R`, tortoise `BrowMark` and `SeamTell*`. The server must send the `hit`
+`enemyCue` once per player caught.
+
 ### Arrivals, skids and turning into moves (testbed, `Config.Wilds.WEIGHTED_MOVES`)
 The server side of telegraphs.md "Attacks that make sense" (2026-10-22 boss feel pass).
 `WEIGHTED_MOVES = TESTBED`: the main game keeps the old snap-and-slide until the user

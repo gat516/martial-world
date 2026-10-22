@@ -567,6 +567,42 @@ speed is 22.1 by `phaseSpeed` and P3 coil timings differ only in hold/stun/gap, 
 untested in play: the flurry's re-aimed cones, bolt arrival timing at latency, the dive
 under broken ground, the rain at 9 drops on mobile, brood slot sharing, difficulty (QC7).
 
+Jade Jiao effects: `Effects.JadeJiao` (48 templates, 307 emitters; builder
+`tools/vfx_specs/JadeJiao.luau`, installs `_G.buildJadeJiaoFX`), handler `EnemyFX/JadeJiao.luau`.
+Acid venom-green (9BFF4A) with white-hot cores is the element, amber-gold only for warning tells,
+pale spirit-jade for the phase 3 aura, ghost jiao and rain; every bright shape sits on a slate/ink
+copy. No crown or halo. Sizes are read off each cue's shape (`AuthoredRadius`/`AuthoredSeconds`
+refit); only the dormant mound, earth ridge and coil ring are drawn in code (soil balls and neon
+segments, support only).
+- Aura (`ready`): ground array (ink, mandala, sigil), venom mist from 5 body parts, motes, mouth
+  breath; phase 3 adds jade wisps and motes; health scales the rates; cracks (`P2Crack*`) and
+  fins/whiskers (`P3*`) tween in on `Phase`. While `Burrowed` and idle: a soil dome, dust leak
+  and green glints at the root, the body hidden (`LocalTransparencyModifier`, one loop).
+- Every windup: `EyeFlare` on both eyes, tell parts (`Tell`/`TellBase`) dim to hot amber, hood
+  spots flare green, per-attack `Marker`/`MarkerLite` amber circle on the shape.
+- `emerge`/`erupt`: `EmergeBuild` (cracks and tremors) then `EmergeBurst` (column, rocks, rings,
+  flash, scorch, Craters, heavy shake) and a ghost head; the body and dome stay hidden until
+  contact. `mireDive`: `GroundGather`, `DiveBurst` (collapsing hole), a moving soil ridge with
+  `RidgeFX` until `land`.
+- `venomFang`/`fangFlurry`: `FangTell`, `FangSnap`; each flurry strike is its own cue (snap at the
+  Mouth plus `GroundMark` on its cone). `tailSweep`: `TailTell`, `SweepImpact`, `TailWhip` trail.
+  `pillarSlam`: `SlamTell`, `GroundGather`, `SlamImpact` (scorch 6 s).
+- Spit: `SpitGather` + throat sac swell; lance/spray fly `VenomBolt` from the Mouth along each
+  lane at 75/s (stopped by the first `hit`) into `BoltImpact`; pools lob a glob per circle into
+  `PoolSplash` + `PoolDisc` (7 s, the only persistent effect); rain: `RainGather`, `RainRelease`,
+  and per circle `MarkerLite`, `RainDrop`, `RainSplash` (light).
+- `jiaoCoil`: `Marker`, jade glow down `ScaleSeam1..9`, `CoilForm` on `CoilAt`; the ring is 40
+  neon segments at `CoilRadius` with the door gap at `CoilGap`/`CoilHalfAngle` (bright dashes and
+  two `CoilGate` light posts), pulses tightening to `CoilSqueezeAt`; `squeeze`/`coilBreak` cues.
+- `dreadHiss`: `RoarTell`, `HissBurst`. `molt`/`ascension`: `RoarTell`, `ShedSkin` on the body,
+  then `phase`: `PhaseBurst`, `PhaseFlare`, ghost heads (two at phase 3).
+- Death: `DeathBuild`, a 40-part ghost rising 20 studs, then `DeathBurst`/`DeathSpirit`.
+- Players: `PoisonFX.luau` (green Highlight pulse, bubbles and drips by stacks, a screen-edge
+  tint for the local player) from `PoisonStacks`/`PoisonUntil`.
+Untested: all of it in play (placement on the animated body, follow smoothness, 40-stud read,
+phones, the Game Module path, the rain gather if the server sends no windup cue for the 2.0 s
+phase; the handler synthesises one from the `Attack` attribute after 0.25 s).
+
 ### Template contract
 Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated
 `HumanoidRootPart` as PrimaryPart standing on Y 0 (its height is the beast's root

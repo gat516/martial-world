@@ -221,7 +221,17 @@ From the bestiary pass; the enemy-designer's brief gives the beats and timings.
   moment); sizes come from the cue or the def, not constants, where they can.
 - **Check numerically.** Fire every cue against the real bodies with
   `tools/enemy_fx_smoke.luau` (errors, spawn counts, missing hooks) before
-  committing; the user reviews the look.
+  committing, with `stateful = true` for bosses: their handlers guard on the
+  model's `Attack`/`AIState`/`StateAt`, and without it every cue returns early
+  and still reads "ok". Preview the real cue path with
+  `tools/enemy_fx_shot.luau` (one call per review moment). The user reviews the
+  look.
+- **Don't double up or redraw** (Elder Wolf King pass, 2026-10-22). Don't layer
+  the shared `Impact` stacks on top of a boss's own impacts (the generic rings
+  doubled every hit), and don't redraw the telegraph's danger area with ground
+  markers or turning arrays: the telegraph owns where and when. A beast's own
+  qi (spirit flames, motes) shows where it really flares (aura, a call, death),
+  not bolted onto every attack.
 
 ## The plan
 

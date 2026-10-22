@@ -3,6 +3,8 @@
 A Roblox cultivation / martial-arts game, synced with Rojo (`default.project.json`).
 A second project, `test.project.json`, runs the same code in a baseplate
 [testbed](systems/testbed.md) for quick fights, animations and events.
+`main` is production; all work lands on `test` first and is playtested in the local
+test build (AGENTS.md: Branches, Test build).
 **Start with [the core loop](core-loop.md)**: cultivate until you hit a wall, go
 out and break it, come home stronger. Every system plugs into it.
 This page says where everything lives. Each system has a short design doc in
@@ -108,7 +110,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | UI and HUD | [ui](systems/ui.md) | - | - | Hud, SeatBars, GuardBar, Menus, Layout, Motion, BossBars, BossThemes, ScrollHint, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |
 | Map: layout, art direction, anchors scripts depend on | [map](systems/map.md) | Peaks (Map.Sect.SpiritPeaks), Tribulation (CENTER), Travel (TravelGate arrays) | Gates, Config.Travel, Config.Tribulation, Config.Build | DayNight (Map.Sect.Ambience), MyPeak |
-| Testbed place (baseplate arena, `test.project.json`) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |
+| Testbed / test build (local baseplate arena, `test.project.json`; branches and test build in AGENTS.md) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |
 | Monetization | [monetization](systems/monetization.md) | Receipts, Garden (Grow now) | Config.Garden.GROW_NOW | GardenView |
 
 ## Remotes (`ReplicatedStorage.Remotes`, `assets/Remotes.rbxmx`)

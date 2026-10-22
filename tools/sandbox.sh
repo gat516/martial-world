@@ -8,7 +8,8 @@
 #   tools/sandbox.sh close <name>   close that Studio window (no save prompt)
 #   tools/sandbox.sh list           list open sandboxes with their age
 #   tools/sandbox.sh prune <hours>  close every sandbox open longer than that
-#                                   (leftovers from agents that forgot)
+#                                   (leftovers from agents that forgot); never
+#                                   the shared test build (open test)
 #
 # Always close your sandbox before you report, even when the task failed or
 # was cut short: every one left open is a full Studio eating the user's RAM.
@@ -60,10 +61,10 @@ list)
 	;;
 prune)
 	[[ "$name" =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "usage: $0 prune <hours>" >&2; exit 2; }
-	ps "Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { \$_.MainWindowTitle -like '*mw-sandbox-*' -and ((Get-Date) - \$_.StartTime).TotalHours -gt $name } | ForEach-Object { Stop-Process -Id \$_.Id -Force; 'closed ' + \$_.MainWindowTitle }"
+	ps "Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { \$_.MainWindowTitle -like '*mw-sandbox-*' -and \$_.MainWindowTitle -notlike '*mw-sandbox-test.rbxl*' -and ((Get-Date) - \$_.StartTime).TotalHours -gt $name } | ForEach-Object { Stop-Process -Id \$_.Id -Force; 'closed ' + \$_.MainWindowTitle }"
 	;;
 *)
-	sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
 	exit 2
 	;;
 esac

@@ -3,9 +3,11 @@
 ## Purpose
 A separate place for trying things quickly: fight beasts you spawn, play
 animations and effects, start world events and force weather, without walking
-the real map. It's meant to be published as its **own experience** (not a place
-inside Martial World), so its saves, players and dev-only assets stay out of the
-real game.
+the real map. It runs locally as the **test build** (`mw-sandbox-test`, built from
+the `test` branch and kept live by Rojo), where every feature is playtested before
+it's pushed to `test`. Agent sandboxes are built from the same project. Publishing it
+as its own experience was dropped (user, 2026-10-22); branches and the test build are
+in AGENTS.md (Branches, Test build).
 
 ## Design intent
 - **Same code, different world.** `test.project.json` maps the same `src/` and
@@ -19,9 +21,9 @@ real game.
 - **Ready to test on join.** Onboarding is skipped (every beat marked done, so
   the HUD is never dimmed or guided), and every player gets the Studio test kit
   plus every technique and weapon, published or not.
-- **Its own experience.** Separate DataStores, so testbed profiles never touch
-  real ones. Admins there are the creator and `Config.Admin.USER_IDS`, as in the
-  real game (anyone in Studio).
+- **Local only.** It's never published, so it has no live players. Studio Play
+  uses the place's own DataStores (none, unless Studio API access is on), so
+  profiles never touch the real game's. Everyone in Studio is an admin.
 - **Alt mouse lock in the testbed.** In the observed Studio Play client, Roblox
   supplied no `PlayerScripts.PlayerModule` for `ShiftLock.luau` to rebind, so Shift
   stayed native and Alt did nothing. `test.project.json` disables the native
@@ -83,18 +85,19 @@ tuning.
 - `src/server/WorldEvents/init.luau` (no timer), `src/server/WeatherService.luau`
   (no rolls), `src/server/Spawner.luau` (no ambient encounters).
 
-## Setting it up
-1. In Studio, make a new place from the Baseplate template and delete its
-   `Baseplate` and `SpawnLocation` (the arena brings its own).
-2. In a terminal: `rojo serve test.project.json` (port 34873, so it can run
-   next to the main project's serve), and connect the Rojo plugin to that port.
-3. File > Publish to Roblox As > a **new experience**. Turn on Studio API access
-   (Game Settings > Security) if you want profiles saved between sessions.
+## Setting it up (the test build)
+1. Once: `git worktree add ../martial-world-test test` (the test checkout).
+2. In the test checkout: `tools/sandbox.sh open test` builds the place from
+   `test.project.json` and opens it in Studio as `mw-sandbox-test`.
+3. In the same checkout: `rojo serve test.project.json` (port 34873, so it can run
+   next to the main project's serve), and connect the Rojo plugin in that window
+   to that port.
+Nothing in it is saved. After a restart, repeat steps 2 and 3.
 
 ## Keeping it in sync
-- Code and mapped assets sync by themselves: open the testbed place, serve
-  `test.project.json`, then republish (File > Publish to Roblox). Commits that need
-  testbed testing end with `Testbed: re-sync and republish to test ...`.
+- Code and mapped assets sync by themselves: merging a feature branch into the
+  test checkout updates the open test build through Rojo. Commits that need
+  testing there end with `Test build: <what to test>`.
 - Every non-Workspace mapping in `default.project.json` must also be in
   `test.project.json`; `python3 tools/check_testbed.py` checks it.
 - Content moves between the places only through `assets/`: build a new enemy, effect
@@ -114,7 +117,7 @@ tuning.
    dummy mode, kill all, god mode, jump to any realm.
 5. Animation and VFX stage: freeze an enemy, trigger any attack on demand, loop,
    slow motion; fire any technique or effect.
-6. Publish.
+(Publishing it was dropped: it runs locally as the test build.)
 
 ## Known gaps
 - Garden, build mode and peaks can't be tested (no peaks; empty `HerbModels` and
@@ -125,8 +128,11 @@ tuning.
 - Joins can be slow in a busy Studio (several places open). The previous
   `ShiftLock` timeout was removed, but this testbed client had no `PlayerModule`
   at all; the testbed Alt controller no longer waits for one.
-- Animations play only if the testbed experience's owner can use them (same
-  creator as the uploads, or permission granted).
+- Animations play in Studio only if the logged-in user can use them (they're owned
+  by the main game's group).
+- The test build shows code and `assets/` only: the real map isn't in it, so map
+  work (and anything that needs `Workspace.Map`) is still tested in the user's own
+  copy of the main place.
 - The King's new poses, effects, contact placement and QC9 difficulty are untested
   in play, including latency and phone cost. The earlier Spirit Wolf fight was
   reviewed here before it shipped.

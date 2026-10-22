@@ -146,15 +146,20 @@ export type HurtResult = "hit" | "dodged" | "perfect" | "parried" | "blocked" | 
 -- Damage a player from an enemy attack or hazard that resolves now. Dodging
 -- shortly before negates it; Iron Skin reduces it. `nonLethal` leaves them at 1.
 -- `source` names what hit them (an enemy id, "Tribulation"), for death analytics.
--- `from` (the attacker's position) makes the hit guardable (Guard.absorb);
--- `heavy` drains more guard. Guarded hits never flinch: "broken" staggers instead.
-function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source: string?, from: Vector3?, heavy: boolean?): (HurtResult, number)
+-- `guard` (where the blow comes from, how heavy; Guard.Hit) makes the hit
+-- guardable (Guard.absorb). Guarded hits never flinch: "broken" staggers instead.
+-- A hit resolved late (`guard.at`, EnemyService's race grace) is judged at the
+-- server time it landed.
+function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source: string?, guard: Guard.Hit?): (HurtResult, number)
 	local root, humanoid = livingRoot(player)
 	if not root or not humanoid then
 		return "none", 0
 	end
 	local s = state(player)
 	local now = workspace:GetServerTimeNow()
+	if guard and guard.at then
+		now = math.min(now, guard.at)
+	end
 	local sinceDodge = now - s.lastDodge
 	if sinceDodge >= 0 and sinceDodge <= Config.IFRAME_SECONDS + Config.IFRAME_SLACK then
 		if not s.perfectUsed and sinceDodge <= Config.PERFECT_WINDOW + Config.IFRAME_SLACK then
@@ -171,8 +176,8 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source
 		return "dodged", 0
 	end
 	local guarded: HurtResult? = nil
-	if from then
-		local result, through = Guard.absorb(player, humanoid, root, amount, from, heavy == true, now)
+	if guard then
+		local result, through = Guard.absorb(player, humanoid, root, amount, guard, now)
 		if result == "parried" then
 			return "parried", 0
 		end
@@ -558,7 +563,13 @@ function Combat.action(player: Player, message: any)
 		end
 		local root, humanoid = livingRoot(player)
 		local free = root ~= nil and humanoid ~= nil and not humanoid.Sit and Rules.phase(s.actions.action, t) == "free" and not PlayerStun.isLocked(player)
-		Guard.set(player, message.on == true, t, free)
+		Guard.set(player, message.on == true, t, free, message.seq, message.look)
+		return
+	end
+	if message.op == "guardLook" then
+		-- the facing while guarding, a ping fresher than the replicated root
+		local t = message.time
+		Guard.look(player, message.look, if validTime(t) then t else now)
 		return
 	end
 	local sequence = message.sequence

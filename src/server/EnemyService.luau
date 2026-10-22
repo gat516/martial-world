@@ -53,6 +53,7 @@ local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Conf
 local FOLLOW_UP_WAIT = 1.0
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Combat = require(script.Parent.Combat)
+local Guard = require(script.Parent.Guard)
 local EnemyHistory = require(script.Parent.EnemyHistory)
 local EnemyMover = require(script.Parent.EnemyMover)
 local Cultivation = require(script.Parent.Cultivation)
@@ -157,6 +158,7 @@ type Enemy = {
 	recoverFor: number, -- recover seconds after the current dash
 	landShape: Shape?, -- a leap's circle, resolved as it lands
 	landAttack: Enemies.Attack?, -- the leap that owns landShape (enemy.attack has moved on by then)
+	landFrom: Vector3?, -- where that leap took off (the guard judges the landing from there)
 	phase: number, -- rotating bosses: 1, then 2 and 3 as phase roars resolve
 	runBoost: number, -- run speed multiplier from phases
 	hopPending: boolean,
@@ -797,9 +799,33 @@ local function parried(enemy: Enemy)
 	enemy.staggerImmuneUntil = enemy.stateUntil + Knockback.RESTAGGER
 end
 
--- Combat.hurt for an enemy's attack: guardable from the beast's position.
-local function hurtBy(enemy: Enemy, attack: Enemies.Attack, player: Player, damage: number)
-	local result = Combat.hurt(player, damage, false, enemy.def.id, enemy.root.Position, CC.HEAVY_KINDS[attack.kind] == true)
+-- Where a blow comes from (Guard.Hit), taken as it lands: `origin` when that
+-- isn't where the beast stands now (a dash's start, a leap's take-off, a
+-- projectile's launch point), else the beast. `dash` widens the front arc: the
+-- beast arrives on top of you, so its position would read as beside or behind.
+local function guardHit(enemy: Enemy, attack: Enemies.Attack, origin: Vector3?, dash: boolean?): Guard.Hit
+	return {
+		from = origin or enemy.root.Position,
+		heavy = CC.HEAVY_KINDS[attack.kind] == true,
+		dot = if dash then CombatConfig.GUARD.DASH_DOT else nil,
+		at = workspace:GetServerTimeNow(),
+	}
+end
+
+-- Run a blow's effect on `player`: now, or after Guard.lead when their guard
+-- is down, so a raise already in flight still guards it (judged at `hit.at`).
+local function landOn(player: Player, resolve: () -> ())
+	local lead = Guard.lead(player)
+	if lead > 0 then
+		task.delay(lead, resolve)
+	else
+		resolve()
+	end
+end
+
+-- Combat.hurt for an enemy's attack, guardable as `hit` says.
+local function hurtBy(enemy: Enemy, player: Player, damage: number, hit: Guard.Hit)
+	local result = Combat.hurt(player, damage, false, enemy.def.id, hit)
 	if result == "parried" then
 		parried(enemy)
 	end
@@ -807,24 +833,28 @@ local function hurtBy(enemy: Enemy, attack: Enemies.Attack, player: Player, dama
 end
 
 -- Hurt one player with an attack, and show the hit to everyone (EnemyFX `hit`).
-local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player)
-	local result = hurtBy(enemy, attack, player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage)
-	if result == "hit" and player.Character then
-		effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
-		local stun = attack.stun
-		reactTo(enemy, attack, player, if stun and stun.onHit then stun else nil, true)
-		local poison = attack.poison
-		if poison then
-			PlayerPoison.apply(player, poison.stacks, poison.seconds, enemy.def.id)
+-- `origin`/`dash`: where the blow comes from, for the guard (guardHit).
+local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player, origin: Vector3?, dash: boolean?)
+	local hit = guardHit(enemy, attack, origin, dash)
+	landOn(player, function()
+		local result = hurtBy(enemy, player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, hit)
+		if result == "hit" and player.Character then
+			effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
+			local stun = attack.stun
+			reactTo(enemy, attack, player, if stun and stun.onHit then stun else nil, true)
+			local poison = attack.poison
+			if poison then
+				PlayerPoison.apply(player, poison.stacks, poison.seconds, enemy.def.id)
+			end
 		end
-	end
+	end)
 end
 
-local function hurtIn(enemy: Enemy, attack: Enemies.Attack, shape: Shape)
+local function hurtIn(enemy: Enemy, attack: Enemies.Attack, shape: Shape, origin: Vector3?, dash: boolean?)
 	for _, player in Players:GetPlayers() do
 		local root = playerRoot(player)
 		if root and caught(shape, player, root) then
-			hurtPlayer(enemy, attack, player)
+			hurtPlayer(enemy, attack, player, origin, dash)
 		end
 	end
 end
@@ -837,6 +867,9 @@ local function hurtAlongDash(enemy: Enemy, attack: Enemies.Attack, shape: Shape)
 	local id = enemy.strikeId
 	local cframe, size = shape.cframe :: CFrame, shape.size :: Vector2
 	local speed = attack.dashSpeed :: number
+	-- the guard judges the blow from where the dash set off: by the time it
+	-- lands the beast is on top of (or past) the player
+	local origin = enemy.root.Position
 	for _, player in Players:GetPlayers() do
 		local root = playerRoot(player)
 		if root then
@@ -850,7 +883,7 @@ local function hurtAlongDash(enemy: Enemy, attack: Enemies.Attack, shape: Shape)
 					end
 					local root = playerRoot(player)
 					if root and caught(shape, player, root) then
-						hurtPlayer(enemy, attack, player)
+						hurtPlayer(enemy, attack, player, origin, true)
 					end
 				end)
 			end
@@ -1029,27 +1062,31 @@ local function pullPlayer(enemy: Enemy, player: Player, spec: { distance: number
 	end)
 end
 
-local function hurtPart(enemy: Enemy, attack: Enemies.Attack, part: any, player: Player)
-	local damage = attack.damage * (part.damageScale or 1) * Realms.ofBeast(enemy.def.realm).beastDamage
-	local result = hurtBy(enemy, attack, player, damage)
-	if result ~= "hit" or not player.Character then
-		return
-	end
-	effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
-	local hs = attack.hitStun
-	-- a snare's pull replaces the shove
-	reactTo(enemy, attack, player, if hs and part.stun then hs else nil, not (part.snare and attack.pull))
-	if part.snare and attack.pull then
-		pullPlayer(enemy, player, attack.pull)
-		local follow = attack.followUpOnHit
-		if follow then
-			-- after resolveAttack's own followUp bookkeeping, only because the snare caught someone
-			task.defer(function()
-				enemy.followUp = follow
-				enemy.followUpUntil = os.clock() + attack.recover + 1.5
-			end)
+-- `origin`: where a bolt was fired from, for the guard (guardHit).
+local function hurtPart(enemy: Enemy, attack: Enemies.Attack, part: any, player: Player, origin: Vector3?)
+	local hit = guardHit(enemy, attack, origin)
+	landOn(player, function()
+		local damage = attack.damage * (part.damageScale or 1) * Realms.ofBeast(enemy.def.realm).beastDamage
+		local result = hurtBy(enemy, player, damage, hit)
+		if result ~= "hit" or not player.Character then
+			return
 		end
-	end
+		effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
+		local hs = attack.hitStun
+		-- a snare's pull replaces the shove
+		reactTo(enemy, attack, player, if hs and part.stun then hs else nil, not (part.snare and attack.pull))
+		if part.snare and attack.pull then
+			pullPlayer(enemy, player, attack.pull)
+			local follow = attack.followUpOnHit
+			if follow then
+				-- after resolveAttack's own followUp bookkeeping, only because the snare caught someone
+				task.defer(function()
+					enemy.followUp = follow
+					enemy.followUpUntil = os.clock() + attack.recover + 1.5
+				end)
+			end
+		end
+	end)
 end
 
 -- Resolve a barrage or retreat: each part hits `delay` seconds after the windup, for
@@ -1074,7 +1111,7 @@ local function resolveParts(enemy: Enemy, attack: Enemies.Attack, shape: Shape)
 					owner = model, cue = "foxfireBolt", origin = origin, velocity = part.dir * BOLT_SPEED,
 					radius = BOLT_RADIUS, range = BOLT_RANGE, lifetime = 1.6,
 					onHit = function(player: Player, _position: Vector3)
-						hurtPart(enemy, attack, part, player)
+						hurtPart(enemy, attack, part, player, origin)
 						return nil
 					end,
 					data = { tail = part.tail, phase = enemy.phase },
@@ -1122,7 +1159,7 @@ local function launchLob(enemy: Enemy, attack: Enemies.Attack, shape: Shape, id:
 			data = proj.data,
 			onHit = function(player: Player)
 				hitSet[player] = true
-				hurtPlayer(enemy, attack, player)
+				hurtPlayer(enemy, attack, player, origin)
 				return nil
 			end,
 			onEnd = function(position: Vector3, reason: string)
@@ -1136,7 +1173,7 @@ local function launchLob(enemy: Enemy, attack: Enemies.Attack, shape: Shape, id:
 				for _, player in Players:GetPlayers() do
 					local root = playerRoot(player)
 					if root and not hitSet[player] and caught(splash, player, root) then
-						hurtPlayer(enemy, attack, player)
+						hurtPlayer(enemy, attack, player, origin)
 					end
 				end
 			end,
@@ -1161,7 +1198,7 @@ local function fireLance(enemy: Enemy, attack: Enemies.Attack)
 		lifetime = 1.5,
 		data = proj.data,
 		onHit = function(player: Player)
-			hurtPlayer(enemy, attack, player)
+			hurtPlayer(enemy, attack, player, origin)
 			return nil
 		end,
 	})
@@ -1491,6 +1528,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 	elseif attack.kind == "leap" then
 		enemy.landShape = shape -- resolves as it lands (think, dash)
 		enemy.landAttack = attack -- enemy.attack moves on at the end of this function
+		enemy.landFrom = enemy.root.Position -- the guard judges the landing from the take-off
 	elseif attack.kind == "barrage" or attack.kind == "retreat" then
 		resolveParts(enemy, attack, shape)
 	elseif attack.projectile then
@@ -1837,7 +1875,7 @@ local function think(enemy: Enemy, now: number)
 			local landing = enemy.landShape
 			if landing then
 				enemy.landShape = nil
-				hurtIn(enemy, enemy.landAttack or enemy.attack, landing)
+				hurtIn(enemy, enemy.landAttack or enemy.attack, landing, enemy.landFrom, true)
 			end
 			releaseSlot(enemy)
 			enemy.state = "recover"

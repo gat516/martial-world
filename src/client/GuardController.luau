@@ -5,20 +5,28 @@
 -- by itself while the input is still held. Raising it again within
 -- PARRY_RECOVER of the last raise can block but never parry. Attacks and casts
 -- don't start while it's up (CombatController.tryStart); a dodge does.
+-- While it's up without a lock-on you turn to the most pressing beast within
+-- FACE_RANGE (one winding up first, else the nearest; Movement applies
+-- ActionState.guardFacing), and the facing goes to the server with each raise
+-- and as it turns (op "guardLook"), so the front arc is judged on what you see.
 -- Server: src/server/Guard.luau. Meter: src/shared/GuardRules.luau.
 
+local CollectionService = game:GetService("CollectionService")
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local GuardConfig = require(ReplicatedStorage.Shared.Config).Combat.GUARD
 local GuardRules = require(ReplicatedStorage.Shared.GuardRules)
+local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local ActionState = require(script.Parent.ActionState)
 local BuildMode = require(script.Parent.BuildMode)
 local CombatEffects = require(script.Parent.CombatEffects)
 local GuardBar = require(script.Parent.GuardBar)
 local GuardFX = require(script.Parent.GuardFX)
+local LockOn = require(script.Parent.LockOn)
 local Sfx = require(script.Parent.Sfx)
 
 local remotes = ReplicatedStorage.Remotes
@@ -32,6 +40,9 @@ local LOWER_FADE = 0.15
 local REFUSED_WAIT = 0.25 -- after the server refuses a raise, wait this long before asking again
 local MIN_UP = 0.25 -- a tap keeps the guard pose up this long (the parry window outlives the press anyway)
 local PARRY_COLOR = Color3.fromRGB(255, 236, 190)
+local LOOK_EVERY = 0.1 -- at most this often, while guarding, the facing goes to the server...
+local LOOK_TURN = math.cos(math.rad(8)) -- ...once it has turned this far
+local WINDUP_PULL = 20 -- a beast winding up or dashing counts this many studs nearer when picking whom to face
 
 local GuardController = {}
 
@@ -40,6 +51,10 @@ local held = false -- the input is down
 local up = false -- predicted: the guard is raised
 local retryAt = 0
 local raisedAt = 0
+local seq = 0 -- numbers guard ops; the server echoes the latest in guardMeter
+local raiseSeq = 0 -- the op that last raised the guard
+local sentLook: Vector3? = nil
+local sentLookAt = 0
 local guardCharacter: Model?
 local tracks: { [string]: AnimationTrack } = {} -- "Hold", "Parry", "Impact" from Animations.Guard
 
@@ -71,6 +86,16 @@ local function play(name: string, fade: number)
 	end
 end
 
+local function flat(v: Vector3): Vector3?
+	local f = Vector3.new(v.X, 0, v.Z)
+	return if f.Magnitude > 0.01 then f.Unit else nil
+end
+
+local function myRoot(): BasePart?
+	local character = player.Character
+	return character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+end
+
 local function setUp(value: boolean, notify: boolean)
 	if up == value then
 		return
@@ -94,7 +119,77 @@ local function setUp(value: boolean, notify: boolean)
 		GuardFX.hold(character, value)
 	end
 	if notify and character then
-		attackRemote:FireServer({ op = "guard", character = character, on = value, time = now })
+		seq += 1
+		if value then
+			raiseSeq = seq
+		end
+		local root = myRoot()
+		local look = root and flat(root.CFrame.LookVector)
+		sentLook, sentLookAt = look, now
+		attackRemote:FireServer({ op = "guard", character = character, on = value, time = now, seq = seq, look = look })
+	end
+end
+
+-- Half a beast's footprint, so a big boss counts from its edge (cached per model).
+local reach: { [Model]: number } = setmetatable({}, { __mode = "k" }) :: any
+local function reachOf(model: Model): number
+	local r = reach[model]
+	if not r then
+		local size = model:GetExtentsSize()
+		r = math.max(size.X, size.Z) / 2
+		reach[model] = r
+	end
+	return r
+end
+
+-- Which way to face while guarding: toward the beast that's winding up or
+-- dashing at you, else the nearest, within FACE_RANGE of its edge. Nil with a
+-- lock (LockOn faces the target) or nothing near.
+local function threatFacing(root: BasePart): Vector3?
+	if GuardConfig.FACE_RANGE <= 0 or LockOn.target() then
+		return nil
+	end
+	local best: Vector3?, bestScore = nil, math.huge
+	for _, model in CollectionService:GetTagged("Enemy") do
+		if model:IsA("Model") and Hitbox.alive(model) and not model:GetAttribute("Burrowed") then
+			local offset = model:GetPivot().Position - root.Position
+			local dir = flat(offset)
+			local distance = Vector3.new(offset.X, 0, offset.Z).Magnitude - reachOf(model)
+			if dir and distance <= GuardConfig.FACE_RANGE then
+				local state = model:GetAttribute("AIState")
+				local score = distance - (if state == "windup" or state == "dash" then WINDUP_PULL else 0)
+				if score < bestScore then
+					best, bestScore = dir, score
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- Turn toward the threat while guarding, and keep the server's copy of the
+-- facing fresh (Guard.look).
+local function updateFacing(dt: number)
+	local root = myRoot()
+	local character = player.Character
+	if not (up and root and character) then
+		ActionState.guardFacing = nil
+		return
+	end
+	local want = threatFacing(root)
+	if want then
+		local current = ActionState.guardFacing or flat(root.CFrame.LookVector) or want
+		local alpha = 1 - math.exp(-GuardConfig.FACE_TURN * dt)
+		local blended = current:Lerp(want, alpha)
+		ActionState.guardFacing = if blended.Magnitude > 0.05 then blended.Unit else want
+	else
+		ActionState.guardFacing = nil
+	end
+	local now = workspace:GetServerTimeNow()
+	local look = ActionState.guardFacing or flat(root.CFrame.LookVector)
+	if look and now - sentLookAt >= LOOK_EVERY and (not sentLook or look:Dot(sentLook) < LOOK_TURN) then
+		sentLook, sentLookAt = look, now
+		attackRemote:FireServer({ op = "guardLook", character = character, time = now, look = look })
 	end
 end
 
@@ -127,7 +222,10 @@ local function onEffect(kind: string, ...: any)
 			return
 		end
 		meter.stored, meter.at = args[2], args[3]
-		if not args[4] and up then
+		-- a "down" answering an op older than our last raise is stale (we
+		-- lowered and raised again before it came back), not a refusal
+		local answered = if type(args[5]) == "number" then args[5] else math.huge
+		if not args[4] and up and answered >= raiseSeq then
 			-- refused or broken: lower without telling the server again
 			setUp(false, false)
 			retryAt = workspace:GetServerTimeNow() + REFUSED_WAIT
@@ -253,7 +351,8 @@ function GuardController.init(gui: ScreenGui)
 			setUp(true, true)
 		end
 	end)
-	RunService.RenderStepped:Connect(function()
+	RunService.RenderStepped:Connect(function(dt)
+		updateFacing(dt)
 		GuardBar.set(GuardRules.value(meter, workspace:GetServerTimeNow()), up)
 	end)
 end

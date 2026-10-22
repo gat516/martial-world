@@ -149,7 +149,7 @@ local function fireBolt(enemy, attack, shape, targetRoot: BasePart?)
 		radius = attack.boltRadius or 1.8,
 		range = shape.size.Y * 1.05,
 		onHit = function(player: Player)
-			ctx.hurtPlayer(enemy, attack, player)
+			ctx.hurtPlayer(enemy, attack, player, origin) -- guarded from the mouth it left
 			return nil
 		end,
 		data = { size = (attack.boltRadius or 1.8) * 2 },

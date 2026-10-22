@@ -10,6 +10,7 @@ local ActionState = {
 	basicHeld = false,
 	blocked = false,
 	guarding = false, -- GuardController: the guard is up (predicted)
+	guardFacing = nil :: Vector3?, -- GuardController: face this way while guarding (Movement)
 	facing = Vector3.zAxis,
 }
 

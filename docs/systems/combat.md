@@ -144,11 +144,28 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   a dodge does. Walking at `MOVE` (half) speed, no sprinting, no Auto approach.
   Right click still turns the camera when the mouse isn't locked (the binding
   passes the input on).
-- Only enemy attacks with a source position (`Combat.hurt`'s `from`: every
-  beast and boss hit through `hurtPlayer`/`hurtPart`, projectiles included,
-  from the beast's position) and from within ~100° of facing (`FRONT_DOT`)
-  can be guarded. Area strikes through `EnemyService.strike` (the
-  Tribulation's bolts) can't.
+- Only enemy blows with a source (`Combat.hurt`'s `guard`, a `Guard.Hit` built
+  by `guardHit` in EnemyService: every beast and boss hit through
+  `hurtPlayer`/`hurtPart`) from in front can be guarded. Area strikes through
+  `EnemyService.strike` (the Tribulation's bolts) can't. Where a blow comes
+  from: melee from the beast; lunges, charges and leaps from where the beast set
+  off, judged with the wider `DASH_DOT` (~117° either side), because the hit
+  lands as the beast arrives on top of you (its position then read as beside or
+  behind you, so charges often went through a raised guard); projectiles
+  (bolts, lances, lobs and their splash) from where they were fired. Everything
+  else within ~100° of facing (`FRONT_DOT`). Facing is the server's root or the
+  facing the client last reported while guarding (within `LOOK_FRESH`),
+  whichever passes: the replicated root is a ping or more behind a turn.
+- **Facing while guarding**: without a lock-on you turn toward the beast winding
+  up or dashing at you, else the nearest one, within `FACE_RANGE` of its edge
+  (`FACE_TURN` sets how fast; GuardController writes `ActionState.guardFacing`,
+  Movement applies it). Before, a free camera turned you the way you walked, so
+  backing off with the guard up showed the beast your back.
+- **Race grace**: an unguarded, guardable hit waits half the player's ping (at
+  most `RACE_GRACE`) before it resolves and is judged at the server time it
+  landed, so a guard or dodge pressed as the telegraph filled, still on its way
+  to the server, counts. A raise up to `PARRY_LATE` after that time still
+  parries (clock jitter). Nothing waits while the guard is up.
 - **Blocked**: `CHIP` (15%) of the damage gets through, with no flinch or
   knockback; the meter drains by the hit's share of max health times `DRAIN`
   (times `HEAVY_DRAIN` for slams, charges and leaps), at least `MIN_DRAIN`.
@@ -167,9 +184,13 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   of the last raise blocks but can't parry, so mashing never parries. In the
   testbed a blocked hit floats "early 0.xx s" (how long before it the guard went
   up), to tune the window.
-- Transport: Attack remote `op "guard"` (`on`, `time`); the server answers the
-  owner with Effect `"guardMeter"` (character, stored, at, up; the client's bar
-  runs `GuardRules.value` on it) and tells everyone the outcome with Effect
+- Transport: Attack remote `op "guard"` (`on`, `time`, `seq`, `look`) and, while
+  guarding, `op "guardLook"` (`time`, `look`; at most every 0.1 s once the
+  facing turned 8°); the server answers the owner with Effect `"guardMeter"`
+  (character, stored, at, up, the latest `seq` it applied; the client's bar
+  runs `GuardRules.value` on it, and a "down" answering an op older than its
+  last raise is ignored as stale rather than taken for a refusal, which used to
+  drop a quickly re-raised guard for 0.25 s) and tells everyone the outcome with Effect
   `"guard"` (character, `"parried" | "blocked" | "broken"`, attacker position).
   The Humanoid's `Guarding` attribute mirrors the guard for other clients.
 - Animations: `Animations.Guard.Hold` (loop, Action), `Parry` and `Impact`
@@ -198,8 +219,12 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   studs of the camera; bursts are skipped past 120 studs. Look unreviewed.
 - Known gaps: a client can claim its raise time within `MAX_LAG`, and
   re-raising every `PARRY_RECOVER` keeps a window open about half the time;
-  projectiles are judged from the beast, not the projectile; PvP hits aren't
-  guardable (there's no PvP).
+  the reported facing is trusted like the client-owned root, so a cheat could
+  guard from behind; the race grace delays an unguarded hit's damage and
+  reaction by up to `RACE_GRACE`; slam waves, pools, the coil squeeze and storm
+  bolts are judged from the beast's position; PvP hits aren't guardable (there's
+  no PvP). Untested in play: the threat facing, the dash origins and the race
+  grace.
 
 Templates: `ReplicatedStorage.Effects.Dodge`, built by
 `tools/vfx_specs/Dodge.luau` (`_G.buildDodgeFX(staging)`; no tiers).

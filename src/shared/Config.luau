@@ -366,7 +366,7 @@ return {
 		-- source position in front of the player can be guarded; hazards can't.
 		GUARD = {
 			MOVE = 0.5, -- walk speed share while guarding
-			FRONT_DOT = -0.2, -- guards hits from within ~100° either side of facing
+			FRONT_DOT = -0.2, -- guards hits from within ~100° either side of facing (melee, projectiles)
 			CHIP = 0.15, -- share of a blocked hit's damage that still gets through
 			DRAIN = 2.5, -- guard drained per share of max health a blocked hit would deal
 			HEAVY_DRAIN = 1.6, -- times that for slams, charges and leaps (Config CC.HEAVY_KINDS)
@@ -381,6 +381,14 @@ return {
 			PARRY_REFUND = 0.15, -- guard back on a perfect parry
 			PARRY_STAGGER = 0.9, -- seconds the parried beast is staggered
 			PARRY_STAGGER_BOSS = 0.45,
+			PARRY_LATE = 0.05, -- a raise this long after the hit's server time still parries (clock jitter)
+			-- Where a blow comes from (Guard.absorb): melee from the beast, dashes and
+			-- leaps from where the beast set off, projectiles from where they were fired.
+			DASH_DOT = -0.45, -- a dash or leap is guarded from within ~117° of facing (it arrives on top of you)
+			LOOK_FRESH = 0.5, -- the facing the client last reported while guarding counts this long
+			RACE_GRACE = 0.12, -- an unguarded hit waits up to half the player's ping (capped here) for a raise in flight
+			FACE_RANGE = 30, -- while guarding without a lock you turn to the most pressing beast this close (0 = off)
+			FACE_TURN = 18, -- how fast that turn closes (per second, exponential)
 		},
 
 		IN_COMBAT_SECONDS = 6, -- after being hurt, travel is blocked this long

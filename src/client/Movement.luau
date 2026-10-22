@@ -71,6 +71,10 @@ local function step()
 		if offset.Magnitude > 0.5 then
 			root.CFrame = CFrame.lookAt(root.Position, root.Position + offset)
 		end
+	elseif ActionState.guardFacing and not running then
+		-- guarding: face the beast coming at you, not the way you walk (GuardController)
+		humanoid.AutoRotate = false
+		root.CFrame = CFrame.lookAt(root.Position, root.Position + ActionState.guardFacing)
 	else
 		humanoid.AutoRotate = true
 		local camera = workspace.CurrentCamera

@@ -78,6 +78,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Techniques (and their visual tiers, `VISUAL_TIERS`, elements) | `src/shared/Techniques.luau` |
 | Spirit roots: element odds, grades, perks, element match | `src/shared/Pacing.luau` `Roots`; elements in `src/shared/Roots.luau` |
 | Cultivation methods: qi speed, reach, root match | `src/shared/Pacing.luau` `Methods`; defs in `src/shared/Methods.luau` |
+| Guard: move speed, front arc, chip, drain, regen, break, parry window and stagger | `Config.Combat.GUARD` ([combat](systems/combat.md#guard-and-perfect-parry)) |
 | Weapons, classes, grades; M1 chains per class | `src/shared/Weapons.luau`, `Config.Combat.CLASSES`; Dao comprehension in `Pacing.Weapons` |
 | Herbs and plants | `src/shared/Herbs.luau` |
 | Consumables (cores, treasures) | `src/shared/Items.luau` |
@@ -92,7 +93,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Cultivation, realms, breakthroughs, tribulation, insight | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, QiNodes | Pacing, Realms | Hud, BreakthroughView, CirculationMinigame |
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
-| Combat and action states | [combat](systems/combat.md) | Combat, Movement, PlayerStun | ActionRules, Hitbox, Techniques, Knockback, Config.Combat (`CC`: player flinch, stagger, stun) | CombatController, ActionState, CrowdControl, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |
+| Combat and action states | [combat](systems/combat.md) | Combat, Movement, PlayerStun, Guard | ActionRules, Hitbox, Techniques, Knockback, GuardRules, Config.Combat (`CC`: player flinch, stagger, stun; `GUARD`) | CombatController, ActionState, GuardController, GuardBar, GuardFX, CrowdControl, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock, TestbedAltMouseLock |
 | Weapons, weapon Dao, manual caches, weapon racks | [weapons](systems/weapons.md) | Weapons, Combat, WorldCaches, Progression | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController, WorldCaches |
 | Character: spirit root, cultivation method (built); bloodline (design); character window | [character](systems/character.md), method aura brief [auras](systems/auras.md) | Roots (perks applied in Cultivation, Circulation, Combat, Garden), Methods (qi speed in Cultivation, Circulation, EnemyService, QiNodes) | Roots, Methods, Pacing.Roots, Pacing.Methods, Techniques `element` | RootFX (reveal pillar, each element in its methods' aura language), MethodAura (one aura per method while seated, from player attributes Meditating + Method; ignites on sit, switch and the Breakthrough remote) |
 | Enemies, spawning, regions, server/client split, boss projectiles | [enemies](systems/enemies.md) | EnemyService, EnemyMover, EnemyHistory, Spawner, Projectiles | Enemies, Spawns, Regions, Knockback, Pacing.Danger, ProjectilePath | ProjectileView, EnemyMotion, EnemyAnimator, EnemyPoses/*, EnemyFX/*, EnemyBars, BossBars, BossThemes, EnemySounds, Telegraphs |
@@ -116,8 +117,8 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | CultivationAction | Function | C->S | `Circulation.handle` ("start", "finish", "cancel", "breakthrough", "method" id, "root" keepNew, "practiceStart/Finish/Cancel") | CirculationMinigame, BreakthroughView |
 | Meditate | Event | both | `Meditation.handle(on)`; server fires `false` to stand you up | Meditation |
 | Sprint | Event | C->S | `Cultivation.setRunning` | Sprint |
-| Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync) | CombatController |
-| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "method", "boss", "used", "bolt", "tribulationStart/End", "enemyCue" (to all: enemy model, cue name, target character; see enemies.md) | CombatController, CombatEffects, Rewards, RootFX, EnemyFX |
+| Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync; "guard" raises/lowers the guard) | CombatController |
+| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "method", "boss", "used", "bolt", "tribulationStart/End", "guardMeter" (owner: character, stored, at, up), "guard" (to all: character, parried/blocked/broken, attacker position), "enemyCue" (to all: enemy model, cue name, target character; see enemies.md) | CombatController, CombatEffects, Rewards, RootFX, EnemyFX |
 | Telegraph | Event | S->C | `EnemyService` (attack areas before they land: shape, seconds, enemy or nil, attack name, server start time) | Telegraphs, EnemyFX |
 | PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot) | State (everything reads State) |
 | Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major) | BreakthroughView |

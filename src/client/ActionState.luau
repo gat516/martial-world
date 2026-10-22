@@ -9,6 +9,7 @@ local ActionState = {
 	current = Rules.new(),
 	basicHeld = false,
 	blocked = false,
+	guarding = false, -- GuardController: the guard is up (predicted)
 	facing = Vector3.zAxis,
 }
 
@@ -35,7 +36,7 @@ function ActionState.crowdLocked(): boolean
 end
 
 function ActionState.canSprint(): boolean
-	return not ActionState.blocked and not ActionState.basicHeld and ActionState.phase() == "free" and not ActionState.crowdLocked()
+	return not ActionState.blocked and not ActionState.guarding and not ActionState.basicHeld and ActionState.phase() == "free" and not ActionState.crowdLocked()
 end
 
 function ActionState.locksFacing(): boolean
@@ -44,7 +45,7 @@ function ActionState.locksFacing(): boolean
 end
 
 function ActionState.canApproach(): boolean
-	return not ActionState.blocked and ActionState.phase() == "free" and not ActionState.crowdLocked()
+	return not ActionState.blocked and not ActionState.guarding and ActionState.phase() == "free" and not ActionState.crowdLocked()
 end
 
 return ActionState

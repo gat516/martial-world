@@ -4,7 +4,7 @@
 -- what players see. This only flips what differs by device:
 -- PC: no touch buttons (M1 swings, Q dashes, Space jumps); the stack may use the
 -- full width; slots show their names.
--- Touch: our own Strike, Jump and Dash cluster replaces Roblox's jump button and
+-- Touch: our own Strike, Jump, Dash and Guard cluster replaces Roblox's jump button and
 -- reaches past the right safe-area inset to the screen edge; slots drop their
 -- names for a bigger icon or glyph. The mini cooldown chips over the hotbar are
 -- PC and gamepad only (Dash and Strike show their own), and the vitals close up.
@@ -50,6 +50,7 @@ function Layout.apply()
 	local touch = Platform.isTouch()
 	local stack = find("Stack")
 	stack.Size = UDim2.new(1, if touch then -CLUSTER_ROOM else -24, 0.45, 0)
+	find("GuardBar").Size = stack.Size -- the guard bar sits on the stack's top edge
 
 	-- on touch the slots are too small for names: a bigger icon or glyph instead
 	local slots = (stack:FindFirstChild("Hotbar") :: Instance):FindFirstChild("Slots") :: Instance
@@ -75,8 +76,9 @@ function Layout.apply()
 	vitals.Position = UDim2.new(vitals.Position.X, if touch then UDim.new(y.Scale + TOUCH_VITALS_DROP, y.Offset) else y)
 
 	local strike, jump, dodge = find("AttackButton"), find("JumpButton"), find("DodgeButton")
+	local block = find("BlockButton")
 	local cluster = touch and clusterShown
-	strike.Visible, jump.Visible, dodge.Visible = cluster, cluster, cluster
+	strike.Visible, jump.Visible, dodge.Visible, block.Visible = cluster, cluster, cluster, cluster
 	if touch then
 		-- reach past the right inset: Strike in the corner, Jump left of it, Dash above it
 		local camera = workspace.CurrentCamera
@@ -85,6 +87,8 @@ function Layout.apply()
 		strike.Position = UDim2.new(1, right, 1, -EDGE)
 		jump.Position = UDim2.new(1, right - 80, 1, -EDGE - 35)
 		dodge.Position = UDim2.new(1, right - 35, 1, -EDGE - 80)
+		-- Guard above Dash, on the same arc from the Strike corner
+		block.Position = UDim2.new(1, right - 35, 1, -EDGE - 138)
 		-- Lock on the arc between Jump and Dash (LockOn shows it when there's something to lock)
 		find("LockButton").Position = UDim2.new(1, right - 95, 1, -EDGE - 100)
 		hideDefaultJump()

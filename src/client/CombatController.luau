@@ -23,6 +23,7 @@ local Menus = require(script.Parent.Menus)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local BuildMode = require(script.Parent.BuildMode)
 local CombatEffects = require(script.Parent.CombatEffects)
+local GuardController = require(script.Parent.GuardController)
 local Hud = require(script.Parent.Hud)
 local LockOn = require(script.Parent.LockOn)
 local Meditation = require(script.Parent.Meditation)
@@ -511,6 +512,8 @@ end
 local function tryStart(kind: string, id: string?): boolean
 	local root = myRoot()
 	if not root or ActionState.crowdLocked() then return false end
+	-- the guard is up: only a dodge breaks out of it (GuardController)
+	if ActionState.guarding and kind ~= "dodge" then return false end
 	local character = player.Character :: Model
 	if kind == "basic" and character:FindFirstChildOfClass("Tool") then return false end
 	if kind == "cast" and (not id or not State.current.techniques.owned[id] or not table.find(State.current.hotbar, id)) then
@@ -844,6 +847,7 @@ function CombatController.init(gui: ScreenGui)
 	end)
 	bindButtons(gui)
 	bindTapTargeting()
+	GuardController.init(gui)
 
 	-- Q dashes (Space stays jump; touch uses the Dash button)
 	ContextActionService:BindActionAtPriority("Dodge", function(_, inputState)

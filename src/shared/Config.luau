@@ -361,6 +361,28 @@ return {
 		PERFECT_ANIMATION_SECONDS = 16 / 60,
 		PERFECT_ANIMATION_GRACE = 0.25, -- late confirmation can finish the pose after the dash
 
+		-- Guard: hold right click / L2 / the Block button (src/server/Guard.luau,
+		-- src/shared/GuardRules.luau; see combat.md). Only enemy attacks with a
+		-- source position in front of the player can be guarded; hazards can't.
+		GUARD = {
+			MOVE = 0.5, -- walk speed share while guarding
+			FRONT_DOT = -0.2, -- guards hits from within ~100° either side of facing
+			CHIP = 0.15, -- share of a blocked hit's damage that still gets through
+			DRAIN = 2.5, -- guard drained per share of max health a blocked hit would deal
+			HEAVY_DRAIN = 1.6, -- times that for slams, charges and leaps (Config CC.HEAVY_KINDS)
+			MIN_DRAIN = 0.08, -- even a scratch costs this much guard
+			REGEN = 0.35, -- guard back per second once REGEN_DELAY has passed since the last drain
+			REGEN_DELAY = 1.2,
+			GUARDING_REGEN = 0.5, -- regen share while the guard is held
+			BREAK_STAGGER = 1.0, -- seconds staggered when the guard breaks
+			BREAK_REFILL = 0.5, -- the guard comes back this full after a break
+			PARRY_WINDOW = 0.18, -- a hit this soon after raising the guard is a perfect parry
+			PARRY_RECOVER = 0.5, -- raising again sooner than this after the last raise opens no window (no spamming)
+			PARRY_REFUND = 0.15, -- guard back on a perfect parry
+			PARRY_STAGGER = 0.9, -- seconds the parried beast is staggered
+			PARRY_STAGGER_BOSS = 0.45,
+		},
+
 		IN_COMBAT_SECONDS = 6, -- after being hurt, travel is blocked this long
 
 		-- Player crowd control (src/server/PlayerStun.luau; see combat.md).

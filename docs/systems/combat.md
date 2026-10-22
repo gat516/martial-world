@@ -12,6 +12,9 @@ scales all player damage.
 - Every enemy attack that hurts is telegraphed on the ground first, and dodging
   through it negates it. A **perfect dodge** (just before the hit) refunds
   technique cooldowns.
+- Holding **guard** (right click, L2, touch Block) blocks beast attacks from the
+  front at the cost of a guard bar; raising it just before a hit is a **perfect
+  parry** that staggers the beast ([Guard and perfect parry](#guard-and-perfect-parry)).
 - Souls-style lock-on (PC T/middle mouse, gamepad R3, touch Lock button) and a
   touch **Auto** mode that locks, closes in and strikes by itself so mobile
   players only dash and cast.
@@ -40,6 +43,9 @@ scales all player damage.
 - `src/client/CombatController.luau`: input, prediction, buffering, animations.
 - `src/client/ActionState.luau`: local predicted action state, and
   `crowdKind`/`crowdLocked` (the local player's flinch/stagger/stun).
+- `src/server/Guard.luau`, `src/client/GuardController.luau`,
+  `src/shared/GuardRules.luau` (the shared meter): guarding and perfect parries;
+  `src/client/GuardBar.luau` (the bar) and `src/client/GuardFX.luau` (visuals).
 - `src/server/PlayerStun.luau`, `src/client/CrowdControl.luau`: player flinch,
   stagger and stun ([Player crowd control](#player-crowd-control)).
 - `src/client/LockOn.luau`, `Sprint.luau`, `ShiftLock.luau` (Alt), `HeadLook.luau`.
@@ -91,6 +97,64 @@ comprehension, and each cast grants that class `Pacing.Weapons.XP_CAST` Dao XP.
 
 ## Dodge visuals
 Only the dodging player sees them (`CombatEffects`, from `CombatController`).
+## Guard and perfect parry
+Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
+`Config.Combat.GUARD`.
+- The guard goes up only between actions and while free to act, and drops when
+  an action starts or the player is staggered or stunned; while the input is
+  held it comes back up by itself. Attacks and casts don't start while it's up;
+  a dodge does. Walking at `MOVE` (half) speed, no sprinting, no Auto approach.
+  Right click still turns the camera when the mouse isn't locked (the binding
+  passes the input on).
+- Only enemy attacks with a source position (`Combat.hurt`'s `from`: every
+  beast and boss hit through `hurtPlayer`/`hurtPart`, projectiles included,
+  from the beast's position) and from within ~100° of facing (`FRONT_DOT`)
+  can be guarded. Area strikes through `EnemyService.strike` (the
+  Tribulation's bolts) can't.
+- **Blocked**: `CHIP` (15%) of the damage gets through, with no flinch or
+  knockback; the meter drains by the hit's share of max health times `DRAIN`
+  (times `HEAVY_DRAIN` for slams, charges and leaps), at least `MIN_DRAIN`.
+  The meter refills at `REGEN` a second once `REGEN_DELAY` has passed since the
+  last drain, at half that while guarding.
+- **Guard break**: a blocked hit that empties the meter drops the guard, staggers
+  the player for `BREAK_STAGGER` (PlayerStun; the usual stagger immunity
+  applies) and lets the chip through; the meter comes back at `BREAK_REFILL`
+  after the stagger and the delay. The input has to be pressed again.
+- **Perfect parry**: a hit landing within `PARRY_WINDOW` (+ `IFRAME_SLACK` for
+  latency) of raising the guard: no damage, `PARRY_REFUND` guard back, and the
+  beast staggers (`PARRY_STAGGER`, bosses `PARRY_STAGGER_BOSS`), which calls off
+  its windup, dash and follow-ups like a knockback stagger. Every hit inside the
+  window is parried (multi-hit strikes). Raising again within `PARRY_RECOVER`
+  of the last raise blocks but can't parry, so tapping never parries.
+- Transport: Attack remote `op "guard"` (`on`, `time`); the server answers the
+  owner with Effect `"guardMeter"` (character, stored, at, up; the client's bar
+  runs `GuardRules.value` on it) and tells everyone the outcome with Effect
+  `"guard"` (character, `"parried" | "blocked" | "broken"`, attacker position).
+  The Humanoid's `Guarding` attribute mirrors the guard for other clients.
+- Animations: `Animations.Guard.Hold` (loop, Action), `Parry` and `Impact`
+  (Action2), authored as KeyframeSequences in `art/player/guard/Guard.rbxm`.
+  Their AnimationIds are empty until the user publishes the clips; until then
+  the guard works with no pose. Sounds `SFX.Parry`, `SFX.Block`,
+  `SFX.GuardBreak` are played but don't exist yet (silent).
+- Visuals (`src/client/GuardFX.luau`, templates `ReplicatedStorage.GuardFX`
+  from `assets/GuardFX.rbxm`, built by `tools/guardfx_build.luau` in a sandbox;
+  kept out of `Effects.rbxm`). Palette white to pale gold to jade, away from the
+  gold perfect dodge. `parry` plays `Parry` (11 layers: white-hot flash, star
+  glint and flare cross, crack-star decal, spark and ember spray along the
+  deflect, crescent and outer arcs, two rings, a jade puff) at a contact point
+  2.4 studs in front of the torso toward the attacker; the parrying player also
+  gets a light shake and a 0.05 s grade and camera punch (`CombatEffects.punch`).
+  `blocked` plays `Block` (jade sparks and streaks, a faint ripple on a
+  shield-shaped plane). `guardBreak` plays `GuardBreak` (a cracking shield shell,
+  thrown jade shards and chips, sparks, a spiky ring, dust at the feet; a
+  heavier shake and jade grade for the player). `hold` puts a faint low-rate qi
+  shimmer (`Hold`) on both forearms while the guard is up, for anyone within 70
+  studs of the camera; bursts are skipped past 120 studs. Look unreviewed.
+- Known gaps: a client can claim its raise time within `MAX_LAG`, and
+  re-raising every `PARRY_RECOVER` keeps a window open about half the time;
+  projectiles are judged from the beast, not the projectile; PvP hits aren't
+  guardable (there's no PvP).
+
 Templates: `ReplicatedStorage.Effects.Dodge`, built by
 `tools/vfx_specs/Dodge.luau` (`_G.buildDodgeFX(staging)`; no tiers).
 - **Dodge** (`dashTrail`): one light qi streak along the path, two

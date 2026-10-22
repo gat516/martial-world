@@ -18,6 +18,9 @@
       "Effects": {
         "$path": "assets/Effects.rbxm"
       },
+      "GuardFX": {
+        "$path": "assets/GuardFX.rbxm"
+      },
       "WorldFX": {
         "$path": "assets/WorldFX.rbxm"
       },

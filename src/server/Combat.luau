@@ -18,6 +18,7 @@ local EnemyHistory = require(script.Parent.EnemyHistory)
 local PlayerData = require(script.Parent.PlayerData)
 local Movement = require(script.Parent.Movement)
 local PlayerStun = require(script.Parent.PlayerStun)
+local Guard = require(script.Parent.Guard)
 local Weapons = require(script.Parent.Weapons)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
@@ -136,14 +137,16 @@ end
 
 --[[ Player damage ]]
 
-export type HurtResult = "hit" | "dodged" | "perfect" | "none"
+export type HurtResult = "hit" | "dodged" | "perfect" | "parried" | "blocked" | "broken" | "none"
 
 -- Damage a player from an enemy attack or hazard that resolves now. Dodging
 -- shortly before negates it; Iron Skin reduces it. `nonLethal` leaves them at 1.
 -- `source` names what hit them (an enemy id, "Tribulation"), for death analytics.
-function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source: string?): (HurtResult, number)
-	local _, humanoid = livingRoot(player)
-	if not humanoid then
+-- `from` (the attacker's position) makes the hit guardable (Guard.absorb);
+-- `heavy` drains more guard. Guarded hits never flinch: "broken" staggers instead.
+function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source: string?, from: Vector3?, heavy: boolean?): (HurtResult, number)
+	local root, humanoid = livingRoot(player)
+	if not root or not humanoid then
 		return "none", 0
 	end
 	local s = state(player)
@@ -163,6 +166,14 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source
 	if now < s.invulnerableUntil then
 		return "dodged", 0
 	end
+	local guarded: HurtResult? = nil
+	if from then
+		local result, through = Guard.absorb(player, humanoid, root, amount, from, heavy == true, now)
+		if result == "parried" then
+			return "parried", 0
+		end
+		guarded, amount = result, through
+	end
 	if now < s.ironSkinUntil then
 		amount *= 1 - s.ironSkinReduction
 	end
@@ -175,6 +186,9 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source
 	humanoid:TakeDamage(amount)
 	s.lastHurt = os.clock()
 	effectRemote:FireClient(player, "hurt", amount)
+	if guarded then
+		return guarded, amount
+	end
 	if amount > 0 then
 		PlayerStun.apply(player, "flinch")
 	end
@@ -504,7 +518,7 @@ local function advance(player: Player, s: State, now: number)
 	end
 	local action = s.actions.action
 	local multiplier, busy = Rules.movement(action, now)
-	Movement.action(humanoid, multiplier, busy)
+	Movement.action(humanoid, multiplier * Guard.move(player), busy)
 end
 
 local function reply(player: Player, s: State, sequence: number, accepted: boolean)
@@ -522,6 +536,18 @@ function Combat.action(player: Player, message: any)
 	if message.op == "sync" then
 		advance(player, s, now)
 		reply(player, s, 0, false)
+		return
+	end
+	if message.op == "guard" then
+		-- raised only between actions and while free to act; an action still
+		-- running at the client's time `t` refuses the raise
+		local t = message.time
+		if not validTime(t) then
+			t = now
+		end
+		local root, humanoid = livingRoot(player)
+		local free = root ~= nil and humanoid ~= nil and not humanoid.Sit and Rules.phase(s.actions.action, t) == "free" and not PlayerStun.isLocked(player)
+		Guard.set(player, message.on == true, t, free)
 		return
 	end
 	local sequence = message.sequence
@@ -600,6 +626,7 @@ function Combat.action(player: Player, message: any)
 		return
 	end
 	s.released, s.suppressed = false, false
+	Guard.drop(player, t)
 	s.aim = root.CFrame.LookVector
 	local aim = message.aim
 	if typeof(aim) == "Vector3" then
@@ -636,6 +663,7 @@ PlayerStun.onLock = function(player: Player)
 	local s = state(player)
 	Rules.cancel(s.actions, workspace:GetServerTimeNow())
 	s.suppressed = true
+	Guard.drop(player, workspace:GetServerTimeNow())
 	reply(player, s, 0, false)
 end
 
@@ -648,6 +676,7 @@ end)
 
 function Combat.forget(player: Player)
 	states[player] = nil
+	Guard.forget(player)
 end
 
 Cultivation.inCombat = Combat.inCombat

@@ -102,6 +102,25 @@
    </Properties>
    </Item>
   </Item>
+  <Item class="Folder" referent="RBXAG0"><Properties>
+   <string name="Name">Guard</string>
+  </Properties>
+   <Item class="Animation" referent="RBXAG1"><Properties>
+    <string name="Name">Hold</string>
+    <Content name="AnimationId"><null></null></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXAG2"><Properties>
+    <string name="Name">Parry</string>
+    <Content name="AnimationId"><null></null></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXAG3"><Properties>
+    <string name="Name">Impact</string>
+    <Content name="AnimationId"><null></null></Content>
+   </Properties>
+   </Item>
+  </Item>
   <Item class="Folder" referent="RBXAW1"><Properties>
    <string name="Name">Weapons</string>
   </Properties>

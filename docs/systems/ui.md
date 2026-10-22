@@ -127,6 +127,16 @@ cursor, settings and the admin panel.
 - `Hud.luau`: vitals (health, qi, cultivation bars, realm crest), buffs, toasts.
   The crest is a shortcut to the character window (`SelfCard`).
 - `Layout.luau`: device-specific layout flips; `Platform.luau`.
+- Guard bar (`GuardBar.luau`, `Play.GuardBar`): a posture-style bar on the
+  Stack's top edge (Layout copies the Stack's size onto it). Art `guard_rim`,
+  `guard_fill`, `guard_seal`, `guard_cracks`, drawn by `art/ui/draw_guard.py`.
+  The fill drains toward the centre seal and warms toward red below 0.3; shown
+  only while the guard is held or not full, fading out when full and idle.
+  `GuardBar.set(ratio, active)` every frame (GuardController);
+  `GuardBar.flash` "parry" (pale-gold pop), "blocked" (shake), "break" (red
+  cracks, then hidden for `BREAK_HIDE`). `Play.BlockButton` ("Guard", 擋) is the
+  touch-only guard button above Dash, placed by `Layout.apply` (not yet checked
+  against the Lock button's arc on a phone); GuardController binds it.
 - `Menus.luau`: the one-window rule and what hides while a window is open.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
 - `HotbarView.luau`, `Inventory.luau` (Pouch, Arts, Weapons tabs), `InventoryFilter.luau`

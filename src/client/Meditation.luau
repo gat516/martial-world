@@ -22,7 +22,9 @@
 -- comes on by itself after CALM_AFTER seconds without input. A tap anywhere, a
 -- key, the lotus again, or standing up brings everything back. Passive
 -- cultivation runs either way.
--- The touch combat cluster hides while seated; the tile reads "Rise".
+-- The touch combat cluster hides while seated; the tile reads "Rise". The vitals
+-- step aside for the cultivation bars (SeatBars: realm, progress to the next
+-- breakthrough and past it, the dantian), via Menus.setSeated.
 -- Seated, the character is locked in place: no walking, jumping, or turning to
 -- follow the camera in shift lock (Movement.luau holds the facing). Getting up:
 -- Rise, the tile, or M. Taking damage knocks you straight out of it (no get-up
@@ -195,6 +197,7 @@ local function refresh()
 	calmToggle.ImageTransparency = if calm then CALM_ICON else 0;
 	(calmToggle:FindFirstChild("Icon") :: ImageLabel).ImageTransparency = if calm then CALM_ICON else 0
 	Layout.showCluster(not active)
+	Menus.setSeated(seated)
 end
 
 -- Call fn BLEND seconds before a non-looped track ends, so the next pose fades in

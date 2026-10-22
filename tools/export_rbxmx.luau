@@ -16,7 +16,7 @@ local PROPS = {
 	"TextStrokeColor3", "TextTruncate", "RichText", "FontFace", "LineHeight", "Image", "ImageColor3",
 	"ImageTransparency", "ScaleType", "SliceCenter", "SliceScale", "ImageRectOffset", "ImageRectSize",
 	"CanvasSize", "AutomaticCanvasSize", "ScrollBarThickness", "ScrollBarImageColor3",
-	"ScrollBarImageTransparency", "ScrollingDirection", "ElasticBehavior", "VerticalScrollBarInset",
+	"ScrollBarImageTransparency", "TopImage", "MidImage", "BottomImage", "ScrollingDirection", "ElasticBehavior", "VerticalScrollBarInset",
 	"ResetOnSpawn", "ZIndexBehavior", "IgnoreGuiInset", "DisplayOrder", "ScreenInsets",
 	"CornerRadius", "Color", "Thickness", "Transparency", "ApplyStrokeMode", "LineJoinMode", "Offset",
 	"FillDirection", "HorizontalAlignment", "VerticalAlignment", "SortOrder", "Padding", "Wraps",
@@ -45,7 +45,7 @@ local INT = {
 	DisplayOrder = true, FillDirectionMaxCells = true, Segments = true, MaxTextSize = true,
 	MinTextSize = true,
 }
-local CONTENT = { Image = true, Texture = true, TextureId = true, AnimationId = true, SoundId = true }
+local CONTENT = { Image = true, Texture = true, TextureId = true, AnimationId = true, SoundId = true, TopImage = true, MidImage = true, BottomImage = true }
 local RENAME = { Size = "size", Shape = "shape" } -- on parts only
 
 local function num(n: number): string

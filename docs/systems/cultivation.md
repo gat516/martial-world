@@ -50,8 +50,10 @@ felt in fights.
   `comprehend` (spends insight and stones to break a technique's bottleneck).
 - `src/server/QiNodes.luau`: raw qi (and stones) from wilds nodes.
 - `src/server/Inventory.luau` (`use`): consumables that add qi, cultivation, insight.
-- Client: `Hud.luau` (bars from attributes), `BreakthroughView.luau` (button and
-  light column), `CirculationMinigame.luau`.
+- Client: `SeatBars.luau` (the seated cultivation bar with its overflow chamber
+  and the dantian; cultivation is off the fighting HUD), `BreakthroughView.luau`
+  (button, light column and the "ready to break through" nudge),
+  `CirculationMinigame.luau`.
 
 ## Data flow
 1. Raw qi in (`data.rawQi`, capped by the stage's dantian): enemy kills
@@ -70,8 +72,11 @@ felt in fights.
    moves the realm (carrying the excess past the old bar, capped at
    `CARRY_SHARE` of the new one; a forced one starts in debt instead), heals, fires `Breakthrough` to everyone and the
    `onBreakthrough` hooks (analytics, peak tier).
-5. The HUD reads `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`
-   attributes every second and the `PlayerState` snapshot on change.
+5. The HUD reads `Realm`, `Cultivation`, `CultivationMax`, `CultivationCap`,
+   `BreakthroughReady`, `BreakthroughBlock`, `RawQi`, `DantianCap` attributes
+   every second and the `PlayerState` snapshot on change. Seated, `SeatBars`
+   shows the bar, the overflow past it and the dantian; standing, a ready player
+   gets a toast once and then now and then while idle ([ui](ui.md)).
 
 ## Player attributes (set every second by `Cultivation.publish`)
 - `Cultivation`: may exceed `CultivationMax` now, up to `CultivationCap`

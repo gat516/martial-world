@@ -16,6 +16,9 @@
 --     cooldown chips; the seated tiles; world prompts). The
 --     hotbar stays only for windows that drop onto it (the inventory).
 --   A minigame: everything but the minigame, tiles included.
+--   Seated (Menus.setSeated, from Meditation): the cultivation bars
+--     (Stack.SeatBars) take the vitals' place; health, qi and guard come back
+--     on standing.
 --   The calm view (Menus.setCalm, while meditating; nothing open): the gameplay
 --     HUD, the tiles and the hotbar fade away for a clean view of the world.
 --     Opening anything ends it.
@@ -36,10 +39,12 @@ export type Options = {
 local entries: { [GuiObject]: Options } = {}
 local current: GuiObject? = nil
 local calm = false
+local seated = false
 local listeners: { () -> () } = {}
 
 local play: GuiObject
 local vitals: GuiObject
+local seatBars: GuiObject
 local hotbar: GuiObject
 local tiles: GuiObject
 local chips: GuiObject -- PC only: Dash and Strike cooldown chips over the hotbar
@@ -54,7 +59,8 @@ local function update(fade: boolean?)
 		Motion.setShown(obj, shown and not calm, fade)
 	end
 	show(play, not any)
-	show(vitals, not any)
+	show(vitals, not any and not seated)
+	show(seatBars, not any and seated)
 	show(hotbar, not any or (entry :: Options).keepHotbar == true)
 	show(chips, not any and not Platform.isTouch())
 	-- the top-right tiles always fade (they're what the player just pressed)
@@ -149,6 +155,14 @@ function Menus.isCalm(): boolean
 	return calm
 end
 
+-- Seated in meditation: the cultivation bars stand in for the vitals.
+function Menus.setSeated(on: boolean)
+	if on ~= seated then
+		seated = on
+		update(true)
+	end
+end
+
 -- Called whenever what's open changes (or the calm view starts or ends).
 function Menus.onChanged(fn: () -> ())
 	table.insert(listeners, fn)
@@ -158,6 +172,7 @@ function Menus.init(gui: ScreenGui)
 	local stack = gui:FindFirstChild("Stack") :: Frame
 	play = gui:FindFirstChild("Play") :: Frame
 	vitals = stack:FindFirstChild("Vitals") :: Frame
+	seatBars = stack:FindFirstChild("SeatBars") :: Frame
 	hotbar = stack:FindFirstChild("Hotbar") :: Frame
 	tiles = gui:FindFirstChild("Buttons") :: Frame
 	chips = stack:FindFirstChild("Cooldowns") :: Frame

@@ -60,10 +60,12 @@ local RegionBanner = require(script.Parent.RegionBanner)
 local SelfCard = require(script.Parent.SelfCard)
 local RootReveal = require(script.Parent.RootReveal)
 local ScrollHint = require(script.Parent.ScrollHint)
+local SeatBars = require(script.Parent.SeatBars)
 
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
 Hud.init(gui)
+SeatBars.init(gui)
 HerbAnimator.init()
 CrowdControl.init()
 ProjectileView.init()

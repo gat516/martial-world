@@ -92,7 +92,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 
 | System | Doc | Server | Shared | Client |
 |---|---|---|---|---|
-| Cultivation, realms, breakthroughs, tribulation, insight | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, QiNodes | Pacing, Realms | Hud, BreakthroughView, CirculationMinigame |
+| Cultivation, realms, breakthroughs, tribulation, insight | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, QiNodes | Pacing, Realms | Hud, SeatBars, BreakthroughView, CirculationMinigame |
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
 | Combat and action states | [combat](systems/combat.md) | Combat, CombatQi, Movement, PlayerStun, Guard | ActionRules, Hitbox, Techniques, Knockback, GuardRules, Config.Combat (`CC`: player flinch, stagger, stun; `GUARD`) | CombatController, ActionState, GuardController, GuardBar, GuardFX, CrowdControl, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock, TestbedAltMouseLock |
@@ -103,7 +103,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
 | Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, WorldFX/* (Kit, SkyGrade, TreasureFX), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |
 | Onboarding, rewarded objectives, quest board, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Gates, Config.Travel, Pacing.Quests | Onboarding, TravelMenu, GateMarkers, Veil |
-| UI and HUD | [ui](systems/ui.md) | - | - | Hud, Menus, Layout, Motion, BossBars, BossThemes, ScrollHint, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
+| UI and HUD | [ui](systems/ui.md) | - | - | Hud, SeatBars, GuardBar, Menus, Layout, Motion, BossBars, BossThemes, ScrollHint, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |
 | Map: layout, art direction, anchors scripts depend on | [map](systems/map.md) | Peaks (Map.Sect.SpiritPeaks), Tribulation (CENTER), Travel (TravelGate arrays) | Gates, Config.Travel, Config.Tribulation, Config.Build | DayNight (Map.Sect.Ambience), MyPeak |
 | Testbed place (baseplate arena, `test.project.json`) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |

@@ -7,6 +7,8 @@
 -- One row along the bottom on every device; the Stack frame sizes it.
 -- An art whose weapon class isn't in hand dims and wears that class's badge; it
 -- still casts, and the server answers "Requires a ...".
+-- An art the player hasn't the combat qi for (Qi < Techniques.qiCost) dims too; it
+-- still casts, and the qi bar flashes the refusal (Hud, QiDenied).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -39,6 +41,8 @@ local KEYS = {
 	Enum.KeyCode.Nine,
 }
 local DRAG_PIXELS = 10 -- a press that moves this far becomes a drag
+local SHORT_ICON = 0.6 -- icon transparency on an art the player can't pay for
+local SHORT_FRAME = 0.3
 
 local HotbarView = {}
 
@@ -221,18 +225,54 @@ end
 
 --[[ Drawing ]]
 
+-- Whether the art in this slot costs more combat qi than the player has.
+local function short(id: string): boolean
+	local def = Techniques.Defs[id]
+	if not def then
+		return false
+	end
+	local ok, cost = pcall(function()
+		return (Techniques :: any).qiCost(def)
+	end)
+	local qi = tonumber(player:GetAttribute("Qi"))
+	return ok and typeof(cost) == "number" and qi ~= nil and qi < cost
+end
+local shortKey = "" -- which slots were short at the last render
+
 -- On touch, empty slots hide (less to look at) except while the inventory is
 -- open, when every slot is a drop target.
 local function render()
 	local s = State.current
 	local inventory = gui:FindFirstChild("Inventory") :: GuiObject
 	local showEmpty = not Platform.isTouch() or Menus.isOpen(inventory)
+	local key = {}
 	for i, slot in slots do
 		local id = s.hotbar[i] or ""
 		local item = Items.Defs[id]
 		SlotArt.paint(slot, if id ~= "" then id else nil, if item then Items.count(s, id) else nil)
 		SlotArt.gate(slot, id, false)
+		if short(id) then
+			key[i] = "1"
+			local icon = slot:FindFirstChild("Icon") :: ImageLabel
+			icon.ImageTransparency = math.max(icon.ImageTransparency, SHORT_ICON);
+			(slot:FindFirstChild("Glow") :: ImageLabel).Visible = false;
+			(slot:FindFirstChild("Frame") :: ImageLabel).ImageTransparency = SHORT_FRAME
+		else
+			key[i] = "0"
+		end
 		slot.Visible = showEmpty or id ~= ""
+	end
+	shortKey = table.concat(key)
+end
+
+-- Qi changes often (regen); repaint only when a slot's affordability flips.
+local function qiChanged()
+	local key = {}
+	for i in slots do
+		key[i] = if short(State.current.hotbar[i] or "") then "1" else "0"
+	end
+	if table.concat(key) ~= shortKey then
+		render()
 	end
 end
 
@@ -294,6 +334,7 @@ function HotbarView.init(screenGui: ScreenGui)
 	State.onChanged(render)
 	Menus.onChanged(render)
 	player:GetAttributeChangedSignal("Weapon"):Connect(render)
+	player:GetAttributeChangedSignal("Qi"):Connect(qiChanged)
 	RunService.RenderStepped:Connect(tick)
 end
 

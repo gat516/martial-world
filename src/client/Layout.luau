@@ -4,6 +4,7 @@
 -- what players see. This only flips what differs by device:
 -- PC: no touch buttons (M1 swings, Q dashes, Space jumps); the stack may use the
 -- full width; slots show their names.
+-- The seated cultivation bars (Stack.SeatBars) share the vitals' box and move with them.
 -- Touch: our own Strike, Jump, Dash and Guard cluster replaces Roblox's jump button and
 -- reaches past the right safe-area inset to the screen edge; slots drop their
 -- names for a bigger icon or glyph. The mini cooldown chips over the hotbar are
@@ -50,7 +51,6 @@ function Layout.apply()
 	local touch = Platform.isTouch()
 	local stack = find("Stack")
 	stack.Size = UDim2.new(1, if touch then -CLUSTER_ROOM else -24, 0.45, 0)
-	find("GuardBar").Size = stack.Size -- the guard bar sits on the stack's top edge
 
 	-- on touch the slots are too small for names: a bigger icon or glyph instead
 	local slots = (stack:FindFirstChild("Hotbar") :: Instance):FindFirstChild("Slots") :: Instance
@@ -74,6 +74,8 @@ function Layout.apply()
 	vitalsY = vitalsY or vitals.Position.Y
 	local y = vitalsY :: UDim
 	vitals.Position = UDim2.new(vitals.Position.X, if touch then UDim.new(y.Scale + TOUCH_VITALS_DROP, y.Offset) else y)
+	local seat = stack:FindFirstChild("SeatBars") :: GuiObject
+	seat.Position = vitals.Position
 
 	local strike, jump, dodge = find("AttackButton"), find("JumpButton"), find("DodgeButton")
 	local block = find("BlockButton")

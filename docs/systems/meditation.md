@@ -45,8 +45,11 @@ client fires `Meditate(false)`, or the server fires `Meditate(false)` to the cli
 ## The meditation menu (built 2026-10-21)
 **Self is what you are; meditation is what you work on.** The Self card is
 read-only (realm, root, method, equipped weapon, mastery). Everything that
-changes your inner self happens seated, in one row of tiles above the vitals
-(`Hud.Stack.CultivatePrompt`, `src/client/Meditation.luau`):
+changes your inner self happens seated. Sitting swaps the vitals for the
+cultivation bars (`Hud.Stack.SeatBars`, `src/client/SeatBars.luau`: realm,
+progress to the breakthrough lozenge and the overflow past it, the dantian;
+decided 2026-10-22, the progress bar lives here, not on the fighting HUD), with
+one row of tiles above them (`Hud.Stack.CultivatePrompt`, `src/client/Meditation.luau`):
 
 | Tile | Does | Appears when |
 |---|---|---|

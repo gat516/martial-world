@@ -4,14 +4,19 @@
 -- meditation menu's Break Through tile (Meditation calls attempt); standing, the
 -- Force Breakthrough button shows when badly hurt with the bar nearly full (the
 -- server also checks you're in combat, see Cultivation.luau).
+-- The ready nudge: when BreakthroughReady turns true, a toast says so once; after
+-- that it comes back only while the player is idle (no input for NUDGE_IDLE) and
+-- standing, at most every NUDGE_EVERY seconds, until they break through.
 
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Hud = require(script.Parent.Hud)
 local Menus = require(script.Parent.Menus)
+local Platform = require(script.Parent.Platform)
 local State = require(script.Parent.State)
 local Config = require(ReplicatedStorage.Shared.Pacing).Breakthrough
 
@@ -24,6 +29,9 @@ local COLUMN_HEIGHT = 80
 local MINOR_COLOR = Color3.fromRGB(150, 255, 210)
 local MAJOR_COLOR = Color3.fromRGB(255, 220, 120)
 local FADE_SECONDS = 1.6
+local NUDGE_FIRST = 4 -- seconds after joining before a standing-ready nudge
+local NUDGE_IDLE = 25 -- seconds without input before the nudge may repeat
+local NUDGE_EVERY = 150 -- seconds between repeats
 
 local BreakthroughView = {}
 
@@ -125,6 +133,57 @@ local function titleCard(gui: ScreenGui, stageName: string, major: boolean)
 	end)
 end
 
+-- "You feel ready to break through": once on becoming ready, then now and then
+-- while idle (see the header).
+local function nudges()
+	local lastInput = os.clock()
+	local lastNudge = -math.huge
+	local function ready(): boolean
+		return player:GetAttribute("BreakthroughReady") == true
+	end
+	local function nudge()
+		lastNudge = os.clock()
+		-- the server says "Sit and meditate to break through" when the bar first fills
+		if Hud.saidLately("break through", 10) then
+			return
+		end
+		local seated = State.current.meditation ~= nil
+		local how = if seated then "Break Through from your seat."
+			elseif Platform.isTouch() then "Meditate to try."
+			else "Meditate (M) to try."
+		Hud.toast(`You feel ready to break through. {how}`)
+	end
+	UserInputService.InputBegan:Connect(function()
+		lastInput = os.clock()
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if input.UserInputType ~= Enum.UserInputType.MouseMovement then
+			lastInput = os.clock()
+		end
+	end)
+	local was = ready()
+	player:GetAttributeChangedSignal("BreakthroughReady"):Connect(function()
+		local now = ready()
+		if now and not was then
+			task.delay(1.5, nudge) -- after the server's own notice, if it sends one
+		end
+		was = now
+	end)
+	task.delay(NUDGE_FIRST, function()
+		if ready() and lastNudge < 0 then
+			nudge()
+		end
+		while true do
+			task.wait(5)
+			local seated = State.current.meditation ~= nil
+			if ready() and not seated and not Menus.isOpen()
+				and os.clock() - lastInput >= NUDGE_IDLE and os.clock() - lastNudge >= NUDGE_EVERY then
+				nudge()
+			end
+		end
+	end)
+end
+
 function BreakthroughView.init(gui: ScreenGui)
 	local button = (gui:FindFirstChild("Stack") :: Frame):FindFirstChild("BreakthroughButton") :: ImageButton
 	local label = button:FindFirstChild("Label") :: TextLabel
@@ -155,6 +214,7 @@ function BreakthroughView.init(gui: ScreenGui)
 	end
 
 	button.Activated:Connect(BreakthroughView.attempt)
+	nudges()
 
 	local breakthroughRemote = remotes.Breakthrough :: RemoteEvent
 	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean)

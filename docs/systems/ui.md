@@ -32,7 +32,29 @@ cursor, settings and the admin panel.
   any window (reward card and minigames included) is open, so the mouse is free,
   and comes back when it closes (`ShiftLock`).
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
-- Seated: the meditation menu, a row of square tiles above the vitals that
+- The bottom-centre stack (user decision, 2026-10-22, from a Deepwoken-style
+  reference in our own style): one gilded mount (`Stack.Vitals`, art
+  `vitals_mount.png` from `art/ui/draw_vitals.py`) holding three bars, top to
+  bottom: health (thick, ten segments), combat qi (the mana techniques spend;
+  bright azure, with its number) and the guard posture trough (always shown,
+  dim while full and idle, draining toward the lacquer seal in the middle),
+  with the realm crest above and the hotbar below. Cultivation and the dantian
+  left the fighting HUD: they show while seated, in the same spot
+  (`Stack.SeatBars`). Health and qi have a pale trail that lingers on a drop.
+  A cast refused for qi (`QiDenied` changes) flashes the qi bar red and shakes
+  the mount; hotbar arts the player can't pay for (`Qi < Techniques.qiCost`)
+  dim like weapon-gated ones and still cast.
+- Breakthrough nudge: when `BreakthroughReady` turns true a toast says "You
+  feel ready to break through" once (skipped when the server just said so),
+  then again only while the player stands idle (no input for 25 s), at most
+  every 150 s (`BreakthroughView` NUDGE_*). No pulsing or central prompt.
+- Seated: the vitals give way to the cultivation bars (`Stack.SeatBars`, art
+  `seat_mount.png`; `Menus.setSeated`): the realm on a lacquer title band, the
+  cultivation bar up to a gold breakthrough lozenge, a short overflow chamber
+  past it (cultivation beyond the bar, up to `CultivationCap`), and the dantian
+  (raw qi) under them. The cultivation line reads the numbers, "Ready to break
+  through" in gold, or what blocks a full bar (`BreakthroughBlock`: insight,
+  method, peak). Then the meditation menu, a row of square tiles above them that
   appear only when relevant (Circulate or Break Through, Method, Spirit Root,
   Practice, Rise; Practice swaps in its own tiles: Technique, Weapon Dao,
   Back), a small panel for Comprehend / Method / Spirit
@@ -124,17 +146,21 @@ cursor, settings and the admin panel.
   scripts only find and fill them.
 
 ## Key files (all `src/client/`)
-- `Hud.luau`: vitals (health, qi, cultivation bars, realm crest), buffs, toasts.
-  The crest is a shortcut to the character window (`SelfCard`).
+- `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal
+  flash, realm crest), buffs, toasts (`Hud.saidLately` tells whether a toast was
+  just shown). `Hud.setBar` is the shared bar fill. The crest is a shortcut to
+  the character window (`SelfCard`).
+- `SeatBars.luau`: the seated cultivation, overflow and dantian bars.
 - `Layout.luau`: device-specific layout flips; `Platform.luau`.
-- Guard bar (`GuardBar.luau`, `Play.GuardBar`): a posture-style bar on the
-  Stack's top edge (Layout copies the Stack's size onto it). Art `guard_rim`,
-  `guard_fill`, `guard_seal`, `guard_cracks`, drawn by `art/ui/draw_guard.py`.
-  The fill drains toward the centre seal and warms toward red below 0.3; shown
-  only while the guard is held or not full, fading out when full and idle.
-  `GuardBar.set(ratio, active)` every frame (GuardController);
-  `GuardBar.flash` "parry" (pale-gold pop), "blocked" (shake), "break" (red
-  cracks, then hidden for `BREAK_HIDE`). `Play.BlockButton` ("Guard", 擋) is the
+- Guard bar (`GuardBar.luau`, `Stack.Vitals.GuardBar`): the posture trough in
+  the vitals mount, always shown. The fill drains toward the mount's centre
+  seal, warms toward red below 0.3 and sits at `IDLE_DIM` while full and not
+  held. `GuardBar.set(ratio, active)` every frame (GuardController);
+  `GuardBar.flash` "parry" (pale-gold flash), "blocked" (jolt and tick),
+  "break" (red `guard_cracks` over the trough, fill empty for `BREAK_HIDE`).
+  Per-frame changes go through UIGradient transparency and colour so the calm
+  view's fade can't fight them. `guard_rim`/`guard_fill`/`guard_seal` from
+  `art/ui/draw_guard.py` are no longer used. `Play.BlockButton` ("Guard", 擋) is the
   touch-only guard button above Dash, placed by `Layout.apply` (not yet checked
   against the Lock button's arc on a phone); GuardController binds it.
 - `Menus.luau`: the one-window rule and what hides while a window is open.
@@ -208,8 +234,10 @@ cursor, settings and the admin panel.
 
 ## Data flow
 Fast values come from player attributes (`Realm`, `Cultivation`,
-`CultivationMax`, `RawQi`, `DantianCap`, `Stones`), refreshed every second by
-the server. Everything else comes from the `PlayerState` snapshot into `State`.
+`CultivationMax`, `CultivationCap`, `BreakthroughReady`, `BreakthroughBlock`,
+`RawQi`, `DantianCap`, `Stones`, refreshed every second by the server; `Qi`,
+`QiMax`, `QiDenied` from `CombatQi` as they change; see [combat](combat.md)).
+Every reader defaults them to 0, false or "" until they arrive. Everything else comes from the `PlayerState` snapshot into `State`.
 Toasts arrive over `Notify`; rewards and combat feedback over `Effect`
 (a gained weapon is Effect "weapon", a cultivation method Effect "method",
 both shown in the reward feed).
@@ -219,4 +247,10 @@ both shown in the reward feed).
   constants (e.g. Motion, BreakthroughView).
 
 ## Known gaps
-- None tracked here; check `git log` for the latest UI work.
+- The vitals and seat bars were previewed in Studio's edit view at PC size and
+  at a phone-sized stack (380 px wide), not on a device or the emulator, and not
+  in play: the qi flash, trails, guard trough states, seated swap and nudge
+  timing are untested.
+- On a small phone the guard trough is about 5 px tall and the qi number about
+  8 px; enlarge the mount on touch if it reads poorly.
+- The hotbar shows no qi price; arts just dim when short.

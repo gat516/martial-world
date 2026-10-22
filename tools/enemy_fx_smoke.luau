@@ -1,0 +1,63 @@
+--!nocheck
+-- Smoke test for EnemyFX handlers against the real bodies, in a sandbox Studio
+-- (tools/sandbox.sh; Edit mode). Clones each body from ServerStorage.Enemies
+-- onto the baseplate, sets Template/EnemyType/Health, fires a list of cues at
+-- the handler module and reports errors, how many effect parts each cue
+-- spawned, and which named hooks (attachments / parts) are missing.
+-- Run tools/serve.sh, push edited src first (tools/push_src.luau; destroy the old
+-- module copies first, or require returns the cached version). Then:
+--   loadstring(game:GetService("HttpService"):GetAsync("http://127.0.0.1:8768/tools/enemy_fx_smoke.luau"))()
+--   return _G.enemyFxSmoke({
+--     GoldenToad = { mod = "GoldenToad", hooks = { "Mouth", "TongueTip" },
+--       cues = { { "windup", "tongueLash" }, { "hit", "tongueLash" }, { "snare" }, { "death" } } },
+--   })
+-- A cue is { name, attack?, seconds? }. Handlers run with a dummy target
+-- character 14 studs ahead and a shape.center 18 studs ahead.
+
+local FLOOR = 648.6
+function _G.enemyFxSmoke(plan)
+	local SS = game.ServerStorage.Enemies
+	local Client = game.StarterPlayer.StarterPlayerScripts.Client
+	local cam = workspace.CurrentCamera
+	local out = {}
+	local target = Instance.new("Model")
+	local tp = Instance.new("Part")
+	tp.Name, tp.Size, tp.Position, tp.Anchored = "HumanoidRootPart", Vector3.new(2, 2, 1), Vector3.new(400, FLOOR + 3, -14), true
+	tp.Parent = target
+	target.Parent = workspace
+	for template, p in plan do
+		local m = SS[template]:Clone()
+		m:PivotTo(m:GetPivot() + Vector3.new(400, FLOOR, 0))
+		m:SetAttribute("Template", template)
+		m:SetAttribute("EnemyType", p.mod)
+		m:SetAttribute("Health", 50)
+		m.Parent = workspace
+		local root = m.HumanoidRootPart
+		table.insert(out, `== {template}: root {root.Size}, faces {root.CFrame.LookVector}`)
+		for _, h in p.hooks or {} do
+			local f = m:FindFirstChild(h, true)
+			table.insert(out, `  hook {h}: {f and f.ClassName or "MISSING"}`)
+		end
+		local handlers = require(Client.EnemyFX[p.mod])
+		for _, c in p.cues do
+			local before = #cam:GetChildren()
+			local cue = {
+				model = m, root = root, kind = p.mod, attack = c[2], seconds = c[3],
+				shape = { center = Vector3.new(400, FLOOR, -18), radius = 5 },
+				target = target, at = 0,
+			}
+			local fn = handlers[c[1]]
+			if not fn then
+				table.insert(out, `  {c[1]}: no handler`)
+			else
+				local ok, err = pcall(fn, cue)
+				table.insert(out, `  {c[1]} {c[2] or ""}: {ok and "ok" or ("ERROR " .. tostring(err))} (+{#cam:GetChildren() - before})`)
+			end
+		end
+		task.wait(0.2)
+		m:Destroy()
+	end
+	target:Destroy()
+	return table.concat(out, "\n")
+end
+return true

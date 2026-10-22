@@ -234,6 +234,28 @@ Needs from the body contract: attachments `Mouth`, `SacL/R_FX`
 `EyeL/R`, tortoise `BrowMark` and `SeamTell*`. The server must send the `hit`
 `enemyCue` once per player caught.
 
+### Golden Toad and Blood Centipede effects (third wave)
+Handlers `EnemyFX/GoldenToad.luau`, `BloodCentipede.luau` on `BeastKit`; templates
+`ReplicatedStorage.Effects.GoldenToad` / `.BloodCentipede` (builders
+`tools/vfx_specs/<Beast>.luau`), gated by `Template` = the template name. Smoke test:
+`tools/enemy_fx_smoke.luau` (fires cues at the real bodies in a sandbox).
+
+| Beast / beat | Layers (templates) |
+|---|---|
+| Toad windup | EyeGlint (teal), SacTell/WartTell dim -> gold; SacGlow (glow, motes) on the sac; MouthMist for tongueLash/gulp |
+| tongueLash | strike: TongueBeam (slate base, pink tongue, pale shine) between `Mouth` and `TongueTip`, held ~0.3 s, + TipPop |
+| `snare` cue | TetherBeam (teal-gold on slate) from the Mouth to the caught player's torso for 0.4 s |
+| bogCroak | `Impact.roar` (teal-gold) + CroakRings (3 staggered rings) from the sac at 40% of the windup |
+| miasmaLob | windup - 0.4 s: a gob lobs (`BeastKit.lob`, `Impact.shot`) to `shape.center`; landing: `Impact.explode`; the server's `patch` cue (`Effect enemyPatch`, `shape.center/radius`, `seconds`) draws BogPuddle (dark pool, scum, rim, bubbles) refit to the patch length |
+| hit / hop / stagger / death | MudSplash; HopDust; StaggerFlash; Death (gold motes, bog mist, glint) |
+| Centipede windup | EyeGlint (red); seams and pincer Tells light front to back (`K.tell` sweep) |
+| pincerSnap / coilSweep | CrescentSnap (two blood crescents, flecks) at the Mouth; SweepArc (flat crescent on slate, dust fan) + `Impact.swipe` |
+| burrowDive / `Burrowed` | dash: DiveBurst; while `Burrowed`: plates fade, BurrowMound (earth hump, dirt, chips) rides the ground under the root and CrackStamp (crack + rust glow) is stamped along the lane every 0.14 s; the plates return when it clears |
+| erupt | Eruption (scar, rust glow, dust column, chips, flash, ring) + `Impact.ground` (rocks, shake 0.3 within 30) |
+| hit / stagger / death | BloodHit (splatter, drops, pop); StaggerFlash; Death (bone dust, red motes, glint) |
+
+The `snare` cue is the Fox's (`enemyCue`, target = the caught Character); `Burrowed` is set only for the dive and cleared by erupt (BossAttacks), the client hides the body. Untested in play.
+
 ### Arrivals, skids and turning into moves (testbed, `Config.Wilds.WEIGHTED_MOVES`)
 The server side of telegraphs.md "Attacks that make sense" (2026-10-22 boss feel pass).
 `WEIGHTED_MOVES = TESTBED`: the main game keeps the old snap-and-slide until the user

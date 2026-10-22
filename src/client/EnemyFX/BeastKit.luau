@@ -11,6 +11,7 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local TechniqueVFX = require(script.Parent.Parent.TechniqueVFX)
+local Impact = require(script.Parent.Impact)
 
 export type Cue = {
 	model: Model,
@@ -39,12 +40,22 @@ function Kit.new(group: string)
 		return if t and t:IsA("BasePart") then t else nil
 	end
 
+	-- The Attachment of that name (a part may share the name, e.g. TongueTip).
+	function K.attachment(model: Instance, name: string): Attachment?
+		for _, d in model:GetDescendants() do
+			if d.Name == name and d:IsA("Attachment") then
+				return d
+			end
+		end
+		return nil
+	end
+
 	-- The world CFrame of a named attachment (any depth), else of the first
 	-- fallback part (with offset), else the root; rotated to the root's facing.
 	function K.point(cue: Cue, attachment: string, parts: { string }?, offset: Vector3?): CFrame
 		local facing = cue.root.CFrame.Rotation
-		local a = cue.model:FindFirstChild(attachment, true)
-		if a and a:IsA("Attachment") then
+		local a = K.attachment(cue.model, attachment)
+		if a then
 			return CFrame.new(a.WorldPosition) * facing
 		end
 		for _, name in parts or {} do
@@ -59,8 +70,8 @@ function Kit.new(group: string)
 	-- The part holding a named attachment, else the first named part, else the root.
 	function K.host(cue: Cue, attachment: string?, parts: { string }?): BasePart
 		if attachment then
-			local a = cue.model:FindFirstChild(attachment, true)
-			if a and a:IsA("Attachment") and a.Parent and a.Parent:IsA("BasePart") then
+			local a = K.attachment(cue.model, attachment)
+			if a and a.Parent and a.Parent:IsA("BasePart") then
 				return a.Parent
 			end
 		end
@@ -191,8 +202,8 @@ function Kit.new(group: string)
 
 	-- The dim-then-bright Tell strips (TellBase keeps the authored colour) and
 	-- the eye star + held glow. Strips go back 0.2 s after the windup.
-	function K.tell(model: Model, seconds: number, lit: Color3, brow: BasePart?)
-		for _, eye in K.eyes(model) do
+	function K.tell(model: Model, seconds: number, lit: Color3, brow: BasePart?, eyeList: { BasePart }?, sweep: boolean?)
+		for _, eye in eyeList or K.eyes(model) do
 			K.play("EyeGlint", eye.CFrame, eye, function(clone)
 				K.duration(clone, seconds)
 			end)
@@ -202,14 +213,28 @@ function Kit.new(group: string)
 				K.duration(clone, seconds)
 			end)
 		end
-		for _, strip in K.tells(model) do
+		local strips = K.tells(model)
+		local root = model:FindFirstChild("HumanoidRootPart")
+		if sweep and root and root:IsA("BasePart") then
+			-- light them front to back across the first 60% of the windup
+			table.sort(strips, function(a, b)
+				return root.CFrame:PointToObjectSpace(a.Position).Z < root.CFrame:PointToObjectSpace(b.Position).Z
+			end)
+		end
+		for i, strip in strips do
 			local base = strip:GetAttribute("TellBase")
 			if typeof(base) ~= "Color3" then
 				base = strip.Color
 				strip:SetAttribute("TellBase", base)
 			end
 			strip.Color = (base :: Color3):Lerp(Color3.new(0, 0, 0), 0.45)
-			TweenService:Create(strip, TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Color = lit }):Play()
+			local delay = if sweep then (i - 1) / math.max(1, #strips) * seconds * 0.6 else 0
+			local length = math.max(0.05, seconds - delay)
+			task.delay(delay, function()
+				if strip.Parent then
+					TweenService:Create(strip, TweenInfo.new(length, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Color = lit }):Play()
+				end
+			end)
 			task.delay(seconds + 0.2, function()
 				if strip.Parent and strip:GetAttribute("TellHold") ~= true then
 					TweenService:Create(strip, TweenInfo.new(0.4), { Color = base :: Color3 }):Play()
@@ -269,6 +294,86 @@ function Kit.new(group: string)
 		for _, eye in K.eyes(model) do
 			TweenService:Create(eye, TweenInfo.new(0.2), { Transparency = 1, Color = color }):Play()
 		end
+	end
+
+	-- Beams from a template Part (its Beam children get the attachments): held
+	-- `seconds`, then fade out over 0.15 s. `tweak` edits the clone first.
+	function K.beam(name: string, a0: Attachment, a1: Attachment, seconds: number, tweak: ((BasePart) -> ())?): BasePart?
+		local template = K.template(name)
+		if not template then
+			return nil
+		end
+		local clone = template:Clone()
+		if tweak then
+			tweak(clone)
+		end
+		clone.Parent = TechniqueVFX.folder
+		for _, b in clone:GetChildren() do
+			if b:IsA("Beam") then
+				b.Attachment0, b.Attachment1 = a0, a1
+				b.Enabled = true
+			end
+		end
+		task.delay(seconds, function()
+			for _, b in clone:GetChildren() do
+				if b:IsA("Beam") then
+					TweenService:Create(b, TweenInfo.new(0.15), { Width0 = 0, Width1 = 0 }):Play()
+				end
+			end
+			task.delay(0.2, function()
+				clone:Destroy()
+			end)
+		end)
+		return clone
+	end
+
+	-- A temporary anchored attachment at a world position (for a beam end),
+	-- gone after `seconds`.
+	function K.anchorAt(position: Vector3, seconds: number): Attachment
+		local p = Instance.new("Part")
+		p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+		p.Transparency = 1
+		p.Size = Vector3.one * 0.2
+		p.Position = position
+		p.Parent = TechniqueVFX.folder
+		local a = Instance.new("Attachment")
+		a.Parent = p
+		task.delay(seconds, function()
+			p:Destroy()
+		end)
+		return a
+	end
+
+	-- A lobbed shot (Impact.shot) from `from` to `to` over `seconds` with an arc
+	-- of `height`; `onLand(position)` fires at the end (the shot has stopped).
+	function K.lob(from: Vector3, to: Vector3, seconds: number, height: number, shotOptions: any, onLand: ((Vector3) -> ())?)
+		local shot = Impact.shot(shotOptions)
+		local t0 = os.clock()
+		local previous = from
+		local connection
+		connection = RunService.RenderStepped:Connect(function(dt)
+			local u = math.clamp((os.clock() - t0) / seconds, 0, 1)
+			local position = from:Lerp(to, u) + Vector3.new(0, height * math.sin(math.pi * u), 0)
+			if shot then
+				shot.move(position, (position - previous) / math.max(dt, 1 / 120))
+			end
+			previous = position
+			if u >= 1 then
+				connection:Disconnect()
+				if shot then
+					shot.stop()
+				end
+				if onLand then
+					onLand(to)
+				end
+			end
+		end)
+	end
+
+	-- Torso of a Character (or nil).
+	function K.torso(target: Model?): BasePart?
+		local part = target and (target:FindFirstChild("UpperTorso") or target:FindFirstChild("Torso") or target:FindFirstChild("HumanoidRootPart"))
+		return if part and part:IsA("BasePart") then part else nil
 	end
 
 	return K

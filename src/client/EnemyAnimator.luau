@@ -48,7 +48,7 @@ local WOLF_MOVES = { bite = "FangSnap", pounce = "MoonPounce", leap = "MoonfallL
 local FAMILIES: { [string]: Family } = {
 	SpiritWolfB = { poses = Wolf, scale = 1, moves = WOLF_MOVES, runFrom = 9 },
 	ElderWolfKingB = {
-		poses = WolfKing, scale = 2.4, runFrom = 10, keyedBlend = 0.06, deathSeconds = 2.6,
+		poses = WolfKing, scale = 2.4, runFrom = 8.5, keyedBlend = 0.06, deathSeconds = 2.6,
 		moves = {
 			royalBite = "RoyalBite", kingsRush = "KingsRush", crownfall = "Crownfall",
 			pawSwipe = "PawSwipe", clawDown = "ClawDown", packCall = "PackCall",

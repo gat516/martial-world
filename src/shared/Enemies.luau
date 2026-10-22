@@ -503,7 +503,7 @@ if NEW_WOLF_KING then
 	king.body = "ElderWolfKingB"
 	king.health = 1900
 	king.walkSpeed = 5
-	king.runSpeed = 14
+	king.runSpeed = 20 -- the player walks at 16: a boss that runs slower never catches them
 	king.aggro = 55
 	king.leash = 110
 	king.attack = royalBite

@@ -358,7 +358,7 @@ runs at 50 studs/s (up to 0.60 s plus the mover's 0.10 s settling allowance).
 studs; the downward strike's circle is under the right forepaw. The offsets are
 locked with the telegraph, so the attack cannot track a late dodge.
 
-Health 1900, QC9, weight 7, walk/run 5/14, aggro 55, leash 110. Rewards, drops and
+Health 1900, QC9, weight 7, walk/run 5/20 (run raised from 14: the player walks at 16, so 14 could never close; King's Rush stays a 50/s dash), aggro 55, leash 110. Rewards, drops and
 respawn remain the existing boss's. The quick checks punish slow reactions without
 the damage of the big commitments; Crownfall punishes ignoring a long tell. These
 are starting values for the user's playtest, not measured difficulty.

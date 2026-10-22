@@ -309,39 +309,75 @@ function loops.walk(phase: number, speed: number, _input: Input?): Pose
 	return pose
 end
 
-local function gallop(phase: number, speed: number): Pose
-	local g = math.clamp(speed / 16, 0.7, 1.1)
-	local ampF, ampH = 0.68 * g, 0.58 * g
+-- THE BOUNDING GALLOP. A rotary four-beat gallop (hind left, hind right, fore left,
+-- fore right) at a real cycle rate: gallopRate(speed) cycles/s, not scaled by the
+-- body (heavy animals turn their legs over slowly and cover ground per bound).
+-- Each paw is down for STANCE of the cycle and, while down, slides back along the
+-- ground at EXACTLY the ground speed: its shoulder/hip angle sweeps +-a with a the
+-- angle whose reach covers speed * stance time (so there is no skating). Between
+-- stances there is a short flight (all four paws up) where the body rises. Speeds
+-- are real studs/s; the poses are in unit space (divide by the 2.4 scale).
+local STANCE = 0.32
+local OFFSETS = { BL = 0, BR = 0.1, FL = 0.5, FR = 0.6 }
+local LEG_EFF = 2.2 -- effective hip-to-paw reach in unit studs at the bend we plant with
+local GAIT_K = 1.0 -- calibrates stance sweep against measured skating
+
+WolfKing.GALLOP = { STANCE = STANCE, OFFSETS = OFFSETS }
+
+local function gallopRate(speed: number): number
+	return 0.9 + 0.014 * speed -- cycles per second
+end
+
+local function gallop(phase: number, speed: number, rate: number?): Pose
+	local f = rate or gallopRate(speed)
+	local half = GAIT_K * (speed / 2.4) * (STANCE / f) / 2 -- unit studs each side of the hip
+	local aHalf = math.asin(math.clamp(half / LEG_EFF, 0, 0.8))
+	local LEGS = rig.LEGS
+	local cyc = phase / TAU % 1
 	local pose: Pose = {}
 	local steps: { [string]: Step } = {}
-	local fore, hind = 0, 0
-	for tag, off in { FL = 0, FR = 0.1, BR = 0.5, BL = 0.6 } do
-		local ph = phase - off * TAU
+	local stance: { [string]: number } = { FL = 0, FR = 0, BL = 0, BR = 0 }
+	local reach: { [string]: Vector3 } = {}
+	for tag, off in OFFSETS do
 		local front = tag == "FL" or tag == "FR"
-		local amp = if front then ampF else ampH
-		local a, lift, w = Quadruped.legCycle(ph, amp)
-		if not front and a > 0 then
-			a *= 0.65 -- the reaching hind paws stay outside and behind the forepaws
+		local x = (cyc - off) % 1
+		local out = if tag == "BL" or tag == "FL" then -1 else 1
+		if x < STANCE then
+			-- stance: the paw is PLANTED and slides back at exactly the ground speed
+			-- (reach is in model space, +Z back), touching down ahead of the hip
+			local s = x / STANCE
+			stance[tag] = 1
+			reach[tag] = Vector3.new(out * 0.04, 0, half * (2 * s - 1) - 0.05)
+			pose[LEGS[tag].upper] = A(0, 0, out * (if front then 0.04 else 0.14))
+		else
+			-- swing: lift off, reach out ahead of the touchdown, pull back to land
+			local s = (x - STANCE) / (1 - STANCE)
+			local e = smooth(0, 1, s)
+			local a = -aHalf + 2 * aHalf * e + (if front then 0.3 else 0.2) * aHalf * math.sin(math.pi * s) ^ 2
+			local lift = math.sin(math.pi * math.min(1, s * 1.15)) ^ 0.8
+			rig.setLeg(pose, steps, tag, a, out * (if front then 0.04 else 0.16) * (0.4 + 0.6 * lift), lift, 0, if front then 0.42 else 0.26)
 		end
-		w *= math.clamp((0.45 - math.abs(math.sin(ph))) * 4, 0, 1)
-		local roll = if front then 0 else (if tag == "BL" then -0.22 else 0.22) * math.max(0, a / amp)
-		rig.setLeg(pose, steps, tag, a, roll, lift, w, if front then 0.52 else 0.32)
-		if front then fore += a / 2 else hind += a / 2 end
 	end
-	local s = math.clamp((hind - fore) / (ampF + ampH) * 2, -1, 1)
-	-- the body gathers and extends; the head, ears, mane and tail trail it
-	pose.JointRoot = R(0.06 * math.max(0, s) - 0.02 * math.abs(s) - 0.07 * math.abs(math.sin(phase * 2 - 0.3)), 0.06 * math.max(0, s), 0, 0.03 * math.sin(phase), -0.05 * s) -- heavy: each footfall slams the body down
-	pose.JointSpine = A(-0.08 * math.max(0, s) + 0.13 * math.max(0, -s), 0.03 * math.sin(phase + 0.4), 0.025 * math.sin(phase))
-	local sl = math.sin(phase - 0.9)
-	pose.JointNeck = A(-0.22 + 0.06 * sl, 0.03 * math.sin(phase - 0.5))
-	pose.JointHead = A(0.14 - 0.05 * math.sin(phase - 1.5), 0.03 * math.sin(phase - 1.1))
-	pose.JointJaw = A(-0.18 - 0.05 * math.sin(phase - 1.8))
-	pose.JointEarL, pose.JointEarR = A(0.65 + 0.1 * math.sin(phase - 2)), A(0.65 + 0.1 * math.sin(phase - 2.5))
-	pose.JointCrest = A(0.12 + 0.05 * math.sin(phase - 1.4))
-	pose.JointTail = A(-0.08 + 0.1 * math.sin(phase - 1.0), 0.08 * math.sin(phase * 0.5))
-	pose.JointTail2 = A(0.05 + 0.12 * math.sin(phase - 1.7), 0.09 * math.sin(phase * 0.5 - 0.7))
-	pose.JointTail3 = A(0.35 + 0.15 * math.sin(phase - 2.4), 0.1 * math.sin(phase * 0.5 - 1.4))
-	pose = regalia(pose, 0.18 + 0.05 * math.sin(phase - 1.1), 0.14 * math.sin(phase - 1.5), 0.16 + 0.05 * math.sin(phase - 1.1))
+	-- flight rises the body, stance settles it; the nose lifts as the hind legs drive
+	local flight = math.max(0, math.cos(TAU * 2 * (cyc - 0.46))) ^ 1.5
+	local drive = math.cos(TAU * (cyc - 0.2))
+	local heave = math.cos(TAU * (cyc - 0.35))
+	pose.JointRoot = R(0.1 * flight - 0.05 * (1 - flight), 0.07 * drive, 0, 0.02 * math.sin(TAU * cyc), 0.025 * math.sin(TAU * cyc * 2))
+	pose.JointSpine = A(-0.1 * heave, 0.03 * math.sin(TAU * cyc + 0.4), 0.025 * math.sin(TAU * cyc))
+	-- the head, ears, mane, seal and tail trail the body, each a little later
+	local function lag(d: number): number
+		return TAU * (cyc - d)
+	end
+	pose.JointNeck = A(-0.18 + 0.1 * math.cos(lag(0.38)), 0.03 * math.sin(lag(0.15)))
+	pose.JointHead = A(0.12 + 0.08 * math.cos(lag(0.45)), 0.03 * math.sin(lag(0.2)))
+	pose.JointJaw = A(-0.2 - 0.08 * math.max(0, math.cos(lag(0.5))))
+	pose.JointEarL, pose.JointEarR = A(0.65 + 0.12 * math.cos(lag(0.5))), A(0.65 + 0.12 * math.cos(lag(0.56)))
+	pose.JointCrest = A(0.12 + 0.06 * math.cos(lag(0.5)))
+	pose.JointTail = A(-0.08 + 0.12 * math.cos(lag(0.42)), 0.08 * math.sin(TAU * cyc * 0.5))
+	pose.JointTail2 = A(0.05 + 0.14 * math.cos(lag(0.5)), 0.09 * math.sin(TAU * cyc * 0.5 - 0.7))
+	pose.JointTail3 = A(0.35 + 0.16 * math.cos(lag(0.58)), 0.1 * math.sin(TAU * cyc * 0.5 - 1.4))
+	pose = regalia(pose, 0.18 + 0.05 * math.cos(lag(0.5)), 0.14 * math.sin(lag(0.55)), 0.16 + 0.05 * math.cos(lag(0.5)))
+	rig.plantLegs(pose, stance, false, reach)
 	rig.stepLegs(pose, steps)
 	return pose
 end
@@ -380,7 +416,7 @@ local launchPlanted = rig.plant(table.clone(RUSH_LAUNCH), HIND, COILED)
 local function rushStride(seconds: number): Pose
 	-- Elapsed seconds keep a short, wall-stopped dash from cramming two whole
 	-- strides into its shortened active phase. Blend out of the actual push pose.
-	local running = gallop(seconds * TAU * 3.0, 18)
+	local running = gallop(seconds * TAU * 2.2, 50, 2.2)
 	local mix = smooth(0, 0.06, seconds)
 	for _, name in WolfKing.JOINTS do
 		running[name] = (launchPlanted[name] or I):Lerp(running[name] or I, mix)
@@ -935,7 +971,7 @@ function WolfKing.gaitRate(loop: string, speed: number, scale: number?): number
 	if loop == "walk" then
 		return TAU * speed * 0.72 / (2 * LEG * math.sin(walkAmp(speed))) / s
 	elseif loop == "run" then
-		return TAU * (1.6 + 0.045 * speed) / s
+		return TAU * gallopRate(speed) -- real cycles/s (heavy bounds), not body-scaled
 	elseif loop == "circle" then
 		return TAU * math.min(speed * 0.72 / (2 * LEG * math.sin(circleAmp(speed))), 2.0) / s
 	end

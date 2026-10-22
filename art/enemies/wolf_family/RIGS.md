@@ -253,3 +253,21 @@ every move variant and loop; `_G.WOLF_POSE_ONLY = "ClawDown"` for one move,
   still clips ManeL/ManeR (0.6-1.2) and Neck (0.6) in PawSwipe, ClawDown, Crownfall and
   the Rush launch; PawBL/UpperLegBL "merge" of 0.3-0.9 shows in every bent hind pose
   including walk (a rig geometry issue, not a pose one); Crownfall elbows reach 1.34.
+
+#### King run (bounding gallop, replaces the old trot-like gallop)
+
+The old run turned over 0.9-1.0 cycles/s with paws sweeping +-0.6 rad on a 72-100% duty:
+hind paws skated at 50-65% of the ground speed (measured), with only a trace of
+suspension, so it read as jogging in place. `gallop` now is a rotary four-beat bound
+(BL, BR, FL, FR at cycle offsets 0 / 0.1 / 0.5 / 0.6, each paw down 32% of the cycle)
+at `0.9 + 0.014 * speed` cycles/s (1.10 at 14, 1.18 at 20: real rate, not divided by
+the 2.4 scale). A stance paw is PLANTED through `rig.plantLegs` with a reach that slides
+back at exactly the ground speed, so there is no skating by construction; swing paws
+reach 20-30% past the touchdown angle, and the body rises (about 0.1 unit) in the
+23% flight. Measure with `wolf_family/gait_king.luau` (`_G.GAIT = { loop = "run",
+speeds = { 14, 20 } }`): at 9, 14, 20 and 24 studs/s, stance skate means are within
++-2 studs/s, stance paws stay at Y 0 to 0.07, stride 12.8 / 16.9 studs, root bounce
+0.9 / 1.3 studs. King's Rush strides use the same gallop at speed 50, rate 2.2.
+Known: swing forelegs fold to elbow -1.4 to -1.7, hind knees to 1.7-1.9, and the hind
+paw merges 0.5-1.1 into the thigh as both hind legs gather; EnemyAnimator switches
+walk to run at 8.5 studs/s (`runFrom`). The King's testbed run speed is now 20.

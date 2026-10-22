@@ -92,6 +92,17 @@ function FlameRaven.windup(cue: Cue)
 	end
 	if attack == "emberFan" then
 		local shape = cue.shape
+		local parts = if type(shape) == "table" and type(shape.parts) == "table" then shape.parts else nil
+		if parts then
+			-- the server's `embers` barrage sends ONE windup cue (kind "multi", center = the raven's
+			-- own ground): lob each ember to its own circle's centre, `delay` after the first
+			for _, part in parts do
+				if typeof(part.center) == "Vector3" then
+					lobEmber(cue, part.center, math.max(0, seconds - LOB) + (part.delay or 0))
+				end
+			end
+			return
+		end
 		local center = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else nil
 		if center then
 			local f = fans[model]

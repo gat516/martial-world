@@ -36,10 +36,22 @@ end
 -- Joint offsets in torso axes (x right, y up, z back), degrees. Positive pitch
 -- leans the top back, positive hip swings the leg forward, arm out is +z for
 -- the right arm and -z for the left.
-type Pose = { rootPitch: number, rootRoll: number, rootYaw: number, neckPitch: number, neckRoll: number, arm: number, armSwing: number, rightHip: number, leftHip: number }
+-- The per-limb fields add on top (pitch: + swings the limb forward; roll: + moves
+-- the hand or foot to the right), for poses where the two sides differ.
+type Pose = {
+	rootPitch: number, rootRoll: number, rootYaw: number,
+	neckPitch: number, neckRoll: number, neckYaw: number,
+	arm: number, armSwing: number, rightHip: number, leftHip: number,
+	lArmPitch: number, rArmPitch: number, lArmRoll: number, rArmRoll: number, lHipRoll: number, rHipRoll: number,
+}
 
 local function pose(): Pose
-	return { rootPitch = 0, rootRoll = 0, rootYaw = 0, neckPitch = 0, neckRoll = 0, arm = 0, armSwing = 0, rightHip = 0, leftHip = 0 }
+	return {
+		rootPitch = 0, rootRoll = 0, rootYaw = 0,
+		neckPitch = 0, neckRoll = 0, neckYaw = 0,
+		arm = 0, armSwing = 0, rightHip = 0, leftHip = 0,
+		lArmPitch = 0, rArmPitch = 0, lArmRoll = 0, rArmRoll = 0, lHipRoll = 0, rHipRoll = 0,
+	}
 end
 
 local function flinch(t: number, d: number): Pose
@@ -81,18 +93,50 @@ local function stagger(t: number, d: number): Pose
 	return out
 end
 
+-- Struck senseless: a hard snap back with the arms flung out, a slump, then a
+-- punch-drunk loop. The head lolls round in circles, the hunched body drifts on
+-- its feet and every 1.6 s nearly topples (alternating sides), catching itself
+-- with a step and a flung arm. The arms hang limp and swing a beat behind the
+-- body; the legs counter the body's lean so the feet stay under it. The last
+-- 0.35 s shakes it off and straightens up.
 local function stun(t: number, d: number): Pose
-	local w = smooth(t / 0.12) * (1 - smooth((t - (d - 0.25)) / 0.25))
-	local wave = t * math.pi * 2 * 0.9
 	local out = pose()
-	out.rootPitch = (-12 + 3 * math.cos(wave * 2)) * w
-	out.rootRoll = 7 * math.sin(wave) * w
-	out.rootYaw = 5 * math.sin(wave * 0.5) * w
-	out.neckPitch = -18 * w
-	out.neckRoll = 14 * math.sin(wave - 0.9) * w
-	out.arm = (12 + 6 * math.sin(wave)) * w
-	out.armSwing = 8 * math.sin(wave + 0.6) * w
-	out.rightHip, out.leftHip = -7 * w, 7 * w
+	local hit = math.sin(math.clamp(t / 0.22, 0, 1) * math.pi) -- 0 -> 1 -> 0 over the snap
+	local daze = smooth((t - 0.1) / 0.35) * (1 - smooth((t - (d - 0.35)) / 0.35))
+	local loll = t * math.pi * 2 * 0.75
+	local drift = t * math.pi * 2 * 0.38
+	local cycle = t / 1.6
+	local side = if math.floor(cycle) % 2 == 0 then 1 else -1 -- 1: tips left
+	local lurch = math.max(0, math.sin((cycle % 1) * math.pi * 2)) ^ 4 * daze
+
+	local hunch = (-14 + 4 * math.cos(drift)) * daze
+	local sway = 7 * math.sin(drift) * daze + 11 * side * lurch
+	out.rootPitch = 22 * hit + hunch
+	out.rootRoll = sway
+	out.rootYaw = 8 * hit + 6 * math.sin(drift * 0.5) * daze
+
+	out.neckPitch = 30 * hit + (-28 + 10 * math.sin(loll)) * daze
+	out.neckRoll = 20 * math.cos(loll) * daze
+	out.neckYaw = 12 * math.sin(loll * 0.5 + 0.7) * daze
+	local off = math.clamp((t - (d - 0.35)) / 0.35, 0, 1)
+	if d > 0.8 then
+		out.neckYaw += 22 * math.sin(off * math.pi * 6) * math.sin(off * math.pi) -- shaking it off
+	end
+
+	-- limp arms hang plumb, a beat behind the body's drift; flung out on the hit
+	-- and to catch a near-fall
+	local lag = drift - 1.1
+	out.arm = 55 * hit
+	out.lArmPitch = -hunch * 0.85 + 10 * math.sin(lag) * daze
+	out.rArmPitch = -hunch * 0.85 + 10 * math.sin(lag - 0.5) * daze
+	out.lArmRoll = -sway * 0.85 - 6 * daze - 28 * lurch
+	out.rArmRoll = -sway * 0.85 + 6 * daze + 28 * lurch
+
+	-- feet stay under the body, a wide unsteady stance; the falling side steps out
+	out.rightHip = -out.rootPitch * 0.85 + (if side < 0 then 10 * lurch else 0)
+	out.leftHip = -out.rootPitch * 0.85 + (if side > 0 then 10 * lurch else 0)
+	out.lHipRoll = -sway * 0.85 - 5 * daze - (if side > 0 then 14 * lurch else 0)
+	out.rHipRoll = -sway * 0.85 + 5 * daze + (if side < 0 then 14 * lurch else 0)
 	return out
 end
 
@@ -188,11 +232,11 @@ local function animate()
 		local list: { Layer } = {}
 		local rootJoint = joint(character:FindFirstChild("HumanoidRootPart"), "RootJoint")
 		push(list, rootJoint, CFrame.Angles(deg(p.rootPitch), deg(p.rootYaw), deg(p.rootRoll)))
-		push(list, joint(torso, "Neck"), CFrame.Angles(deg(p.neckPitch), 0, deg(p.neckRoll)))
-		push(list, joint(torso, "Left Shoulder"), CFrame.Angles(deg(p.armSwing), 0, deg(-p.arm)))
-		push(list, joint(torso, "Right Shoulder"), CFrame.Angles(deg(-p.armSwing), 0, deg(p.arm)))
-		push(list, joint(torso, "Right Hip"), CFrame.Angles(deg(p.rightHip), 0, 0))
-		push(list, joint(torso, "Left Hip"), CFrame.Angles(deg(p.leftHip), 0, 0))
+		push(list, joint(torso, "Neck"), CFrame.Angles(deg(p.neckPitch), deg(p.neckYaw), deg(p.neckRoll)))
+		push(list, joint(torso, "Left Shoulder"), CFrame.Angles(deg(p.armSwing + p.lArmPitch), 0, deg(-p.arm + p.lArmRoll)))
+		push(list, joint(torso, "Right Shoulder"), CFrame.Angles(deg(-p.armSwing + p.rArmPitch), 0, deg(p.arm + p.rArmRoll)))
+		push(list, joint(torso, "Right Hip"), CFrame.Angles(deg(p.rightHip), 0, deg(p.rHipRoll)))
+		push(list, joint(torso, "Left Hip"), CFrame.Angles(deg(p.leftHip), 0, deg(p.lHipRoll)))
 		layers[character] = list
 	end
 end

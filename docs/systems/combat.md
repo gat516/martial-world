@@ -387,7 +387,7 @@ away from.
 |---|---|---|
 | `"flinch"` | 0.28 s | a hard recoil (torso snaps back ~24 deg, head whip, arms jolt) with a white pulse on the character and a camera shake for the local player. Never cancels or blocks an action; walking at 75%. Fired by `Combat.hurt` on every enemy hit that deals damage, so enemies don't call it. |
 | `"stagger"` | 0.75 s (0.4-1.0) | knocked off balance: cancels the current action, no attacking, dodging, casting, sprinting or jumping, walking at 20%, a short stumble away from `source`, camera shake. |
-| `"stun"` | `seconds` (default 1.2, at most 3) | cancels the action; no actions, no movement, no steering; dazed sway loop. |
+| `"stun"` | `seconds` (default 1.2, at most 3) | cancels the action; no actions, no movement, no steering. Pose: a snap back with the arms flung out, then a punch-drunk loop (head lolling in circles, hunched body drifting, a near-fall caught with a step every 1.6 s, limp arms swinging a beat behind), shaken off in the last 0.35 s. |
 
 Protection, so a boss can't chain-lock a player:
 - A dodge's i-frames (or a dash skill's) dodge a stagger or stun: `"evaded"`.

@@ -35,9 +35,11 @@
 --     shed); III+ a rune seal opens on the ground over the landing circle
 --     (faint, it marks r 12) and a vertical rift tears open in the sky above
 --     it; IV a giant phantom blade forms over the real one and follows it down.
---   Slam (last hit): a star flash where the blade bites the ground, a fissure
---     splits the ground from there through the circle (Neon slit cooling to an
---     ink scar), a torus shockwave rolls out to r 12 with a dust skirt; each
+--   Slam (last hit, at the swing's contact inside Hit 3 -> Hit Stop 3): a
+--     star flash where the blade bites the ground, a rend splits the ground
+--     from there through the circle (groundRend: a carved crack under an azure
+--     slit and a burning qi seam that cools, dust and chips kicked up as it
+--     opens), a torus shockwave rolls out to r 12 with a dust skirt; each
 --     enemy gets a heavy impact as the front reaches it. II+ a pillar of light
 --     drops onto the bite, an echo torus, rays; III+ Craters rock ring,
 --     crater and cracks, rock kicks; IV a dome shell, the one PointLight,
@@ -46,7 +48,12 @@
 --     `Charge` along the Base -> Tip (not a hand gather), every Hit marker flares
 --     on the live blade tip (`Flare`, 1.5x at the slam), and the slam's heavy
 --     impacts are squeezed into Hit 3 -> Hit Stop 3.
---   Aftermath: the fissure cools for ~1-2 s, motes rise from it (II+), the
+--   QA pass 2026-10-21: flares, light impacts and the slam fire at each swing's
+--     peak inside its Hit window (WeaponFX.swing; the markers fire with the
+--     blade still raised), the bite is where the point lands (~9 ahead), the
+--     Neon fissure is replaced by the rend, III+ impact frames, a harder
+--     shake and a hit-pause punch (CombatEffects.punch) at II+.
+--   Aftermath: the rend cools for ~1-2 s, motes rise from it (II+), the
 --     dust settles; the phantom (IV) dissolves where it bit.
 local KIT_ = function()
 	return _G.vfxSpecs.BladeKit
@@ -336,37 +343,21 @@ blocks.slam = function(root, tier)
 		light.Shadows = false
 		light.Parent = ground
 	end
-	B0.screenShake(root, tier, { parent = "Slam", magnitude = ({ 1.6, 2.2, 3.0, 3.8 })[tier], falloff = "30~110", frames = tier >= 4 })
+	B0.screenShake(root, tier, { parent = "Slam", magnitude = ({ 1.4, 2.2, 3.4, 4.6 })[tier], falloff = "30~110", frames = tier >= 3 })
 	return ground
 end
 
-blocks.fissure = function(root, tier)
-	local K = KIT_()
-	K.strips(root, tier, {
-		name = "Fissure", scar = "FissureScar", color = Color3.fromRGB(160, 186, 255), fadeColor = AZURE, ink = INK,
-		width = { { 0.34, 0.75 }, { 0.42, 0.9 }, { 0.5, 1.05 }, { 0.6, 1.25 } },
-		fade = { 0.5, 0.65, 0.8, 1.0 }, scarFade = { 1.2, 1.5, 1.8, 2.2 },
+-- the rend the blade splits into the ground, from the bite on through the
+-- circle (BladeSkill.rend): a black branching crack carved under a jagged
+-- slit tinted azure, a seam of azure qi streaks burning in it and cooling to
+-- ink, dust puffs and falling rock chips as it opens, a crack-web flash at the
+-- bite; II+ glowing star cracks along it and motes rising; III+ a wider web of
+-- cracks and Craters rock kicks
+blocks.rend = function(root, tier)
+	return _G.vfxBlocks.groundRend(root, tier, {
+		color = AZURE, core = coreOf(tier), ink = INK,
+		width = { 3, 3.5, 4.1, 4.8 }, seam = { 0.32, 0.4, 0.48, 0.58 }, stations = { 3, 3, 4, 5 },
 	})
-	local B0 = _G.vfxBlocks
-	local path = B0.part(root, "FissurePath", O * CFrame.new(0, 0.2, -8), V(0.8, 0.2, 14))
-	if tier >= 2 then
-		B0.emitter(path, "Motes", {
-			Texture = A.mote, Color = CS(coreOf(tier), AZURE),
-			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
-			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
-			Size = NS({ KP(0, 0.28), KP(0.5, 0.22), KP(1, 0) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.2), KP(1, 1) }),
-			Lifetime = R(0.8, 1.2), Speed = R(1.5, 3.5), Drag = 1, LightEmission = 0.5, Rotation = R(0, 360),
-		}, { EmitCount = ({ 0, 8, 12, 16 })[tier], EmitDelay = 0.1 })
-	end
-	if tier >= 3 then
-		B0.emitter(path, "Cracks", B0.flat({
-			Texture = A.crackSmall, Color = CS(INK), LightInfluence = 0.3,
-			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
-			Size = NS(1.5), Transparency = NS({ KP(0, 1), KP(0.05, 0.3), KP(0.6, 0.45), KP(1, 1) }),
-			Lifetime = R(1.3, 1.7), Rotation = R(0, 360), ZOffset = -0.5,
-		}), { EmitCount = ({ 0, 0, 5, 7 })[tier] })
-	end
-	return path
 end
 
 -- the slam's heavy impact on each enemy
@@ -380,7 +371,7 @@ end
 
 local spec = {
 	id = "HeavenSplitter",
-	root = { attrs = { AuthoredRadius = RADIUS, AuthoredOffset = OFFSET } },
+	root = { attrs = { AuthoredRadius = RADIUS, AuthoredOffset = OFFSET, RendOpen = 0.18 } },
 	blocks = blocks,
 	beats = {
 		{ block = "charge" },
@@ -393,7 +384,7 @@ local spec = {
 		{ block = "phantom", from = 3 },
 		{ block = "strike" },
 		{ block = "slam" },
-		{ block = "fissure" },
+		{ block = "rend" },
 		{ block = "impact" },
 	},
 }

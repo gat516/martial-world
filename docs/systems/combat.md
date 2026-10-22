@@ -312,12 +312,12 @@ checks a rebuild against the previous templates.
   predicted landing) and a vertical rift tears open in the sky above it; III+
   a phantom greatsword (ForceField at III, Neon at IV) rides the real blade
   down and bites the ground, holds and dissolves. Slam (last hit, at the
-  root's live position): a star flash where the blade bites, a fissure split
-  from there through the circle (Neon slit cooling to an ink scar), a torus
+  root's live position): a star flash where the blade bites, a rend split
+  from there through the circle (`Rend`/`RendKicks`, `BladeSkill.rend`), a torus
   shockwave rolling out to the radius with a dust skirt and rays, heavy
   impacts timed by the torus front; II+ a pillar of light collapses onto the
   bite and an echo torus; III+ Craters rock ring, crater and cracks, rock
-  kicks, fissure cracks; IV a dome shell, the one PointLight, impact frames
+  kicks, the rend's crack web and rock kicks; IV a dome shell, the one PointLight, impact frames
   and an Explosion quake. Remade 2026-10-21 on the greatsword and the clip's
   markers: the windup (0 -> Hit 1, 0.14 s at 1.3x) is a `Charge` along the
   model's Base -> Tip (dark beam under an azure one, motes, a point glint)
@@ -325,8 +325,16 @@ checks a rebuild against the previous templates.
   (`Flare`: cross glint, star-burst flipbook over an ink splat, sparks; 1.5x at
   the slam); the slam's heavy impacts are squeezed into Hit 3 -> Hit Stop 3
   (`WeaponFX.landing`) instead of following the 0.5 s torus; every impact also
-  carries the shared ink splat and star-burst flipbook. Layers T1 / T4:
-  charge 8 / 8, flare 4, light impact 8 / 12, slam 8 / 15, impact 8 / 14.
+  carries the shared ink splat and star-burst flipbook. QA pass 2026-10-21:
+  the flares, light impacts and the slam fire at each swing's peak inside its
+  Hit window (`WeaponFX.swing`; Hit 3 fires with the blade still overhead), so
+  the bite is under the point where it lands, ~9 studs ahead of the root (it
+  was clamped to 1.5 ahead); the Neon fissure is a rend (carved crack, azure
+  slit and seam cooling to ink, puffs, chips, star cracks at II+, a crack web
+  and rock kicks at III+); impact frames from III; a hit-pause punch at II+;
+  shake 1.4 / 2.2 / 3.4 / 4.6; a cancelled cast no longer leaves its template
+  copy behind. Layers T1 / T4: charge 8 / 8, flare 6 / 7, light impact 10 /
+  15, slam 8 / 15, rend 10 / 15, impact 10 / 17.
 - **Rampaging Tiger Cleave** (`RampagingTiger_T1..T4`, authored at radius 10
   around the caster; `TechniqueFX.RampagingTiger`). Tawny amber qi over black
   brush-ink, white-gold core at IV. Every cut flashes three claw strokes in the
@@ -398,8 +406,8 @@ checks a rebuild against the previous templates.
   the line) burst across the line as the front passes them. A ray stops it at
   a wall. Each enemy gets a crimson `impactStack` plus sparks punched out of
   its far side when the front reaches it, and the lance bursts at its end
-  (`Terminal`: impact stack and vortex). A dark `Furrow` follows the front
-  and fades. II adds a gold dragon helix coiled round the lance, path dust
+  (`Terminal`: impact stack and vortex). A rend opens in the ground under the
+  lance as its front passes (`Rend`/`RendKicks`, `BladeSkill.rend`) and cools. II adds a gold dragon helix coiled round the lance, path dust
   and motes, impact swirl; III a counter-wound second helix, impact bubbles
   and rock kicks, a Craters ring at the terminal, path cracks; IV a gold-white
   core, five rings, the dragon seal flashing at the point with impact frames,
@@ -413,7 +421,15 @@ checks a rebuild against the previous templates.
   squeezed into Hit 0.30 -> Hit Stop 0.40 (`WeaponFX.landing`; a sandbox run
   with a spear on the rig landed the impacts 0.06 s and the terminal 0.07 s
   after the release); impacts carry the shared ink splat and star-burst
-  flipbook. Layers T1 / T4: charge 8 / 8, release 9 / 13, lance 9 / 14,
+  flipbook. QA pass 2026-10-21: sampled on the clip, the head is out to the
+  right at Hit and points straight ahead ~1.6 right of the root's line at
+  3.1 high by Hit Stop, so the lance runs down that thrust line (`Lance`
+  attributes `Lateral`, `Height`, `StartAlong`) instead of the root's centre
+  line; the shared flare (now part `Flare`) plays on the live head where the
+  thrust peaks (`WeaponFX.swing`); the dark furrow is a rend (carved crack,
+  crimson slit and seam cooling, puffs and chips along the line, star cracks
+  at II+, a crack web and rock kicks at III+); a hit-pause punch on the
+  terminal at III+; shake 0.8 / 1.3 / 2.0 / 2.8. Layers T1 / T4: charge 8 / 8, release 9 / 13, lance 9 / 14,
   impact 9 / 15, terminal 9 / 15.
 - **Crescent Moon Sweep** (`CrescentSweep_T1..T4`, authored at radius 11;
   `TechniqueFX.CrescentSweep`). A jade crescent cut out of the air: the clip
@@ -647,4 +663,9 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   and neither do they see any weapon technique's `Charge`. The buff
   aura runs `def.seconds` from the cast on each client (it stops early only if
   the caster dies or leaves), not from a server buff start/end signal.
+- Heaven-Splitting Descent's first hit (def 0.18 -> 0.37 clip) ends before
+  the blade actually sweeps the front (0.45 -> 0.58), so its flare and light
+  impacts land at the window's end with the blade still out to the right.
+  Moving the hit (or the animation) is a gameplay call; the effects follow the
+  def.
 - `Dodge` and `Cast` remotes in `assets/Remotes.rbxmx` are unused.

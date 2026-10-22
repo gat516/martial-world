@@ -29,8 +29,14 @@
 --     ground shock) plus a spray of sparks punched out of its far side.
 --   Terminal (the line's end or the first wall, part "Terminal"): the lance
 --     bursts: a bigger impactStack, a vortex disc, III+ a Craters ring, IV a quake.
---   Aftermath: a straight dark furrow along the line ("Furrow"), dust thrown
---     to both sides along it and gold motes rising (II+, "Path").
+--   Aftermath: a rend torn in the ground along the line ("Rend"/"RendKicks",
+--     block groundRend): a carved crack under a crimson slit and qi seam that
+--     cools, dust and rock chips kicked up as the front passes, II+ glowing
+--     star cracks and motes, III+ a crack web and rock kicks.
+-- QA pass 2026-10-21: the lance runs down the spear's real thrust line (1.6
+-- right of the root at 3.1 high, sampled at Hit Stop), the flare plays on the
+-- live head at the thrust's peak (part "Flare"), the Neon-free rend replaces
+-- the furrow, harder shake at III+ and a hit-pause punch on the terminal.
 --
 -- Tiers:
 --   I   drill + core/glow beams, 2 rings along the line, release flash and
@@ -97,7 +103,7 @@ B.BLOCKS.dpLance = function(root, tier, p)
 	local run = LENGTH - 3
 	local lance = B.part(root, "Lance", LANCE_AT, Vector3.new(0.4, 0.4, run))
 	for k, v in {
-		Run = run, Height = HEIGHT,
+		Run = run, Height = 3.1, Lateral = 1.6, StartAlong = 1.5, -- the thrust line at Hit Stop (sampled on the clip)
 		TravelTime = 0.12, -- seconds for the front to reach the end: inside the thrust's Hit -> Hit Stop (0.1 s) plus a frame or two
 		TravelCurve = NS({ KP(0, 0), KP(0.3, 0.5), KP(0.6, 0.82), KP(1, 1) }),
 		Hold = 0.16, Fade = 0.28, -- beams hold at full length, then fade
@@ -225,7 +231,7 @@ B.BLOCKS.dpRelease = function(root, tier, p)
 end
 
 B.BLOCKS.dpShake = function(root, tier, p)
-	return B.screenShake(root, tier, { parent = "Tip", magnitude = ({ 0.9, 1.2, 1.6, 2.1 })[tier] })
+	return B.screenShake(root, tier, { parent = "Tip", magnitude = ({ 0.8, 1.3, 2.0, 2.8 })[tier] })
 end
 
 -- A spray of sparks punched out of each target's far side (the pierce).
@@ -270,39 +276,16 @@ B.BLOCKS.dpTerminal = function(root, tier, p)
 	return term
 end
 
--- The furrow along the line and what's thrown off it.
-B.BLOCKS.dpPath = function(root, tier, p)
-	local furrow = B.part(root, "Furrow", O * CFrame.new(0, 0.03, -LENGTH / 2), Vector3.new(({ 0.6, 0.7, 0.8, 0.95 })[tier], 0.06, LENGTH))
-	furrow.Material, furrow.Color = Enum.Material.SmoothPlastic, INK
-	furrow:SetAttribute("StartTransparency", 0.35)
-	furrow:SetAttribute("Fade", ({ 0.9, 1.1, 1.4, 1.8 })[tier])
-	furrow:SetAttribute("FadeDelay", 0.35)
-	local path = B.part(root, "Path", O * CFrame.new(0, 0.2, -LENGTH / 2), Vector3.new(1.5, 0.2, LENGTH))
-	if tier >= 2 then
-		B.emitter(path, "Dust", {
-			Texture = B.ASSETS.dust, Color = CS(B.COLORS.dust), LightInfluence = 0.5,
-			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
-			EmissionDirection = Enum.NormalId.Right, SpreadAngle = Vector2.new(20, 180),
-			Size = NS({ KP(0, 0.7), KP(1, 1.7) }), Transparency = NS({ KP(0, 0.4), KP(1, 1) }),
-			Lifetime = R(0.4, 0.6), Speed = R(8, 14), Drag = 5, Rotation = R(0, 360),
-		}, { EmitCount = ({ 0, 8, 11, 14 })[tier], EmitDelay = 0.05 })
-		B.emitter(path, "Motes", {
-			Texture = A.mote, Color = CS(CORE, GOLD),
-			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
-			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
-			Size = NS({ KP(0, 0.25), KP(0.5, 0.2), KP(1, 0) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.2), KP(1, 1) }),
-			Lifetime = R(0.7, 1.1), Speed = R(1.5, 3), Drag = 1, LightEmission = 0.5, Rotation = R(0, 360),
-		}, { EmitCount = ({ 0, 8, 12, 16 })[tier], EmitDelay = 0.12 })
-	end
-	if tier >= 3 then
-		B.emitter(path, "Cracks", B.flat({
-			Texture = A.crackSmall, Color = CS(INK), LightInfluence = 0.3,
-			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
-			Size = NS(1.3), Transparency = NS({ KP(0, 1), KP(0.05, 0.3), KP(0.6, 0.45), KP(1, 1) }),
-			Lifetime = R(1.1, 1.4), Rotation = R(0, 360), ZOffset = -0.5,
-		}), { EmitCount = ({ 0, 0, 4, 6 })[tier], EmitDelay = 0.1 })
-	end
-	return path
+-- The rend the lance tears in the ground under it (BladeSkill.rend): a
+-- carved black crack under a crimson slit, a crimson qi seam burning in it and
+-- cooling, dust puffs and rock chips kicked up along the line as the front
+-- passes; II+ glowing star cracks and gold-crimson motes; III+ a wider crack
+-- web and Craters rock kicks.
+B.BLOCKS.dpRend = function(root, tier, p)
+	return B.groundRend(root, tier, {
+		color = CRIMSON, core = CORE, ink = INK,
+		width = { 2.2, 2.6, 3, 3.6 }, seam = { 0.26, 0.32, 0.38, 0.46 }, stations = { 3, 4, 5, 6 },
+	})
 end
 
 local HAND_AT = O * CFrame.new(1.4, 3.2, 1.2) -- the right hand drawn back
@@ -313,12 +296,12 @@ return {
 	beats = {
 		{ block = "bladeCharge", params = { color = CRIMSON, core = CORE, ink = INK, width = 0.5, full = true } },
 		{ block = "dpRelease" },
-		{ block = "bladeFlare", params = { part = "Tip", color = CRIMSON, core = CORE, ink = INK } },
+		{ block = "bladeFlare", params = { part = "Flare", color = CRIMSON, core = CORE, ink = INK } },
 		{ block = "releaseFlash", params = pal({ part = "Tip", at = TIP_AT, light = false }) },
 		{ block = "airShockwave", params = pal({ part = "Tip", at = TIP_AT, color = PALETTE.ringColor, travel = nil }) },
 		{ block = "dpShake" },
 		{ block = "dpLance" },
-		{ block = "dpPath" },
+		{ block = "dpRend" },
 		{ block = "dpImpact" },
 		{ block = "dpThrough" },
 		{ block = "dpTerminal" },

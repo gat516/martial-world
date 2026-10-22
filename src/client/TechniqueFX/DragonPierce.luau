@@ -12,13 +12,21 @@
 -- across the line as the front passes their stations (II+ a dragon helix
 -- coils round the lance). Each enemy on the line gets an impact and a spray
 -- of sparks out of its far side when the front reaches it; the lance bursts
--- at the end of the line or at the first wall. A dark furrow lies along the
--- path and fades.
+-- at the end of the line or at the first wall. A rend opens in the ground
+-- under the lance as its front passes (BladeSkill.rend) and cools.
+--
+-- Alignment (sampled on the clip): at Hit the head is still out to the right
+-- (5.7 right, level with the root) and swings onto the thrust by Hit Stop,
+-- where the spear points straight ahead ~1.6 right of the root's line (the
+-- right-handed grip) at ~3.1 off the ground. The lance runs down that line
+-- (Lance attributes Lateral/Height), not the root's centre line; the flare
+-- plays on the live head where the thrust peaks (WeaponFX.swing).
 
 local Client = script.Parent.Parent
 local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
 local WeaponFX = require(script.Parent.WeaponFX)
+local BladeSkill = require(script.Parent.BladeSkill)
 
 local CLIP = { hit = 0.3, hitStop = 0.4 } -- clip seconds (markers Hit / Hit Stop), until the def/ActionRules provide them
 
@@ -35,12 +43,6 @@ local function setOn(inst: Instance, on: boolean)
 			d.Enabled = on
 		end
 	end
-end
-
-local function placeStrip(strip: BasePart, a: Vector3, b: Vector3)
-	local length = math.max((b - a).Magnitude, 0.05)
-	strip.Size = Vector3.new(strip.Size.X, strip.Size.Y, length)
-	strip.CFrame = CFrame.lookAt((a + b) / 2, b) + Vector3.new(0, strip.Size.Y / 2, 0)
 end
 
 local function cast(CombatEffects: any, def: any, level: number, character: Model?, origin: Vector3, dir: Vector3): boolean
@@ -63,7 +65,9 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	local impact = TechniqueVFX.take(copy, "Impact")
 	local terminal = TechniqueVFX.take(copy, "Terminal")
 	local lance = TechniqueVFX.take(copy, "Lance")
-	local furrow = TechniqueVFX.take(copy, "Furrow")
+	local rend = TechniqueVFX.take(copy, "Rend")
+	local rendKicks = TechniqueVFX.take(copy, "RendKicks")
+	local flare = TechniqueVFX.take(copy, "Flare")
 	local windup = TechniqueVFX.take(copy, "Windup")
 	if windup then
 		windup:Destroy() -- played at cast start (CombatEffects.windup)
@@ -76,11 +80,22 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	-- the live spear point (the hand when there's no weapon)
 	local tipAt = WeaponFX.tipPosition(character, def.hand or "Right") or (origin + dir * 2.5 + Vector3.new(0, 0.3, 0))
 
-	-- the lance runs from the point (projected onto the line) to the line's end
-	local flatTip = Vector3.new(tipAt.X, groundY, tipAt.Z) - ground
-	local startAlong = math.clamp(flatTip:Dot(dir), 1.2, math.min(6, length * 0.4))
-	local height = math.clamp(tipAt.Y - groundY, 2, 4.5)
+	-- the lance runs down the spear's thrust line (to the right of the root's
+	-- line, at the head's height when the thrust lands) from just ahead of the
+	-- caster to the line's end
+	local right = dir:Cross(Vector3.yAxis)
+	local lateral = math.clamp(num(lance, "Lateral", 1.6), -(width / 2 - 0.3), width / 2 - 0.3)
+	local startAlong = math.clamp(num(lance, "StartAlong", 1.5), 1, math.min(6, length * 0.4))
+	local height = math.clamp(num(lance, "Height", 3.1) + (tipAt.Y - groundY - 3.5) * 0.3, 2, 4.5)
+	ground += right * lateral
 	local start = ground + dir * startAlong + Vector3.new(0, height, 0)
+	-- the flare on the live spear head where the thrust peaks (Hit -> Hit Stop)
+	WeaponFX.swing(character, WeaponFX.hitWindow(def, 1), function(at, swing)
+		WeaponFX.flare(flare, at, swing, 1)
+		if flare then
+			flare:Destroy()
+		end
+	end, start)
 	-- the release bursts where the lance starts: at Hit the point is still out
 	-- to the side and swings onto the line by Hit Stop
 	local tip = copy:FindFirstChild("Tip") :: BasePart?
@@ -141,21 +156,10 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		light.Brightness = 2.4
 	end
 
-	-- the furrow along the path
+	-- the rend the lance tears in the ground under it, opening with the front
 	local endPoint = start + dir * reach
 	local endGround = Vector3.new(endPoint.X, CastFX.groundBelow(endPoint), endPoint.Z)
-	if furrow then
-		furrow.Transparency = num(furrow, "StartTransparency", 0.35)
-		furrow.CastShadow, furrow.CanCollide, furrow.CanQuery, furrow.CanTouch, furrow.Anchored = false, false, false, false, true
-		furrow.Parent = TechniqueVFX.folder
-		placeStrip(furrow, ground + dir * startAlong + Vector3.new(0, 0.03, 0), ground + dir * startAlong + dir * 0.05)
-	end
-	local path = copy:FindFirstChild("Path") :: BasePart?
-	if path then
-		local a = ground + dir * startAlong
-		path.Size = Vector3.new(width * 0.4, path.Size.Y, math.max(reach, 1))
-		path.CFrame = CFrame.lookAt((a + endGround) / 2, endGround) + Vector3.new(0, 0.2, 0)
-	end
+	BladeSkill.rend(rend, rendKicks, ground + dir * startAlong, endGround, stopTime)
 	CastFX.keepCratersOffEnemies()
 	TechniqueVFX.emit(copy) -- the release (vortex, flash, air rings, shake) and the path
 	TechniqueVFX.cleanup(copy, 0.2)
@@ -186,11 +190,11 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			WeaponFX.burst(terminal, CFrame.lookAt(floor, floor + dir), math.max(endPoint.Y - floor.Y, 1))
 			terminal:Destroy()
 		end
-		if furrow then
-			WeaponFX.fadeOut(furrow, num(furrow, "Fade", 1), num(furrow, "FadeDelay", 0.3))
-		end
 		if not TechniqueVFX.full and tier >= 3 and CastFX.nearCamera(endPoint, 45) then
-			CombatEffects.shake(0.15)
+			CombatEffects.shake(0.2)
+		end
+		if tier >= 3 then
+			CombatEffects.punch(endPoint, if tier >= 4 then 0.8 else 0.5, Color3.fromRGB(232, 66, 70), 0.08)
 		end
 	end
 	-- the beams' fade after the hold
@@ -209,10 +213,6 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		end
 		if head then
 			head.Position = Vector3.new(0, 0, z)
-		end
-		if furrow then
-			local g = ground + dir * (startAlong - z) + Vector3.new(0, 0.03, 0)
-			placeStrip(furrow, ground + dir * startAlong + Vector3.new(0, 0.03, 0), Vector3.new(g.X, groundY + 0.03, g.Z))
 		end
 		if t >= stopTime then
 			burst()

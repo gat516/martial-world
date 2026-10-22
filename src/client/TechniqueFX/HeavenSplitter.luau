@@ -62,8 +62,8 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	local mark = TechniqueVFX.take(copy, "Mark")
 	local rift = TechniqueVFX.take(copy, "Rift")
 	local phantom = TechniqueVFX.take(copy, "Phantom")
-	local fissure = TechniqueVFX.take(copy, "Fissure")
-	local fissureScar = TechniqueVFX.take(copy, "FissureScar")
+	local rend = TechniqueVFX.take(copy, "Rend")
+	local rendKicks = TechniqueVFX.take(copy, "RendKicks")
 	local slam = copy:FindFirstChild("Slam") :: BasePart?
 	if slam then
 		BladeSkill.fitRadius(slam, k)
@@ -96,18 +96,11 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		return lunge * math.clamp((window[2] - t) / math.max(window[2] - window[1], 0.1), 0, 1)
 	end
 
-	-- a flare on the real blade tip as each Hit marker fires
-	local function flareAt(scale: number)
-		if not (flare and blade) then
-			return
-		end
-		local tip = blade.tip.WorldPosition
-		local f = flare:Clone()
-		f.CFrame = CFrame.lookAt(tip, tip + dir)
-		f.Parent = TechniqueVFX.folder
-		TechniqueVFX.rescale(f, scale)
-		TechniqueVFX.emit(f)
-		TechniqueVFX.cleanup(f)
+	-- each Hit marker fires as a swing starts (the blade still raised); the
+	-- flare, the impacts and the slam's bite land where the blade does, at the
+	-- swing's peak inside that hit's Hit -> Hit Stop window
+	local function onSwing(index: number, fallback: Vector3, fn: (Vector3, Vector3) -> ())
+		WeaponFX.swing(character, WeaponFX.hitWindow(def, index), fn, fallback)
 	end
 
 	-- the blade's arcs
@@ -140,15 +133,17 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	for i = 1, #hits - 1 do
 		seq:at(hits[i], function()
 			local centre = centreNow()
-			flareAt(1)
-			if lightImpact then
-				for _, target in BladeSkill.circleTargets(centre, radius, character, 4) do
-					CastFX.impactAt(lightImpact, target)
-					if target.model.Parent then
-						CombatEffects.flash(target.model)
+			onSwing(i, centre + Vector3.new(0, 3, 0), function(at, swing)
+				WeaponFX.flare(flare, at, swing, 1)
+				if lightImpact then
+					for _, target in BladeSkill.circleTargets(centre, radius, character, 4) do
+						CastFX.impactAt(lightImpact, target)
+						if target.model.Parent then
+							CombatEffects.flash(target.model)
+						end
 					end
 				end
-			end
+			end)
 		end, { name = "Hit", value = tostring(i) })
 	end
 
@@ -303,17 +298,21 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 
 	-- the slam
 	seq:at(slamAt, function()
+		local c0 = centreNow()
+		onSwing(#hits, c0, function(tipAt, swing)
 		local centre, feet, look = centreNow()
 		copy:PivotTo(CFrame.lookAt(feet, feet + look))
 		if slam then
 			slam.CFrame = CFrame.lookAt(centre + Vector3.new(0, 0.2, 0), centre + Vector3.new(0, 0.2, 0) + look)
 		end
-		-- where the blade bites: under its tip, kept between the feet and the centre
+		-- where the blade bites: the ground under its point at contact (the clip
+		-- drives it ~9 studs ahead of the root), kept inside the circle
 		local bite = feet + look * math.min(offset * 0.7, 3)
 		if blade and blade.real then
-			local tip = blade.tip.WorldPosition
-			local along = math.clamp((Vector3.new(tip.X, 0, tip.Z) - Vector3.new(feet.X, 0, feet.Z)):Dot(look), 1.5, offset + 2)
-			bite = CastFX.groundAt(Vector3.new(feet.X, tip.Y, feet.Z) + look * along + Vector3.new(0, 2, 0))
+			local rel = Vector3.new(tipAt.X - feet.X, 0, tipAt.Z - feet.Z)
+			local along = math.clamp(rel:Dot(look), 1.5, offset + radius * 0.6)
+			local side = math.clamp(rel:Dot(look:Cross(Vector3.yAxis)), -2, 2)
+			bite = CastFX.groundAt(feet + look * along + look:Cross(Vector3.yAxis) * side + Vector3.new(0, 2, 0))
 		end
 		local strike = copy:FindFirstChild("Strike") :: BasePart?
 		if strike then
@@ -334,20 +333,15 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			dome:PivotTo(CFrame.lookAt(centre, centre + look))
 			TechniqueVFX.emit(dome)
 		end
-		-- the fissure: from the bite through the circle
-		local far = centre + look * radius * 0.85
-		far = CastFX.groundAt(far + Vector3.new(0, 1, 0))
-		local a = bite - look * 0.6
-		BladeSkill.strip(fissure, a + Vector3.new(0, 0.03, 0), far + Vector3.new(0, 0.03, 0), 0.16)
-		BladeSkill.strip(fissureScar, a + Vector3.new(0, 0.02, 0), far + Vector3.new(0, 0.02, 0), 0.16)
-		local path = copy:FindFirstChild("FissurePath") :: BasePart?
-		if path then
-			path.Size = Vector3.new(path.Size.X, path.Size.Y, math.max((far - a).Magnitude, 1))
-			path.CFrame = CFrame.lookAt((a + far) / 2, far) + Vector3.new(0, 0.2, 0)
-			TechniqueVFX.emit(path)
-		end
-		flareAt(1.5)
+		-- the rend: the blade splits the ground from the bite on through the circle
+		local far = CastFX.groundAt(bite + look * math.max(radius * 0.85, 4) + Vector3.new(0, 2, 0))
+		BladeSkill.rend(rend, rendKicks, bite - look * 0.4, far, BladeSkill.num(copy, "RendOpen", 0.18))
+		WeaponFX.flare(flare, Vector3.new(tipAt.X, math.max(tipAt.Y, bite.Y + 0.6), tipAt.Z), swing, 1.5) -- the point sinks into the ground
 		BladeSkill.shake(CombatEffects, tier, centre, 1.4)
+		-- the hit-pause of the slam (II+), hardest at mastery
+		if tier >= 2 then
+			CombatEffects.punch(bite, ({ 0, 0.45, 0.7, 1 })[tier], Color3.fromRGB(128, 156, 255), WeaponFX.hitWindow(def, #hits))
+		end
 		-- heavy impacts as the torus front reaches each enemy, squeezed into Hit 3 -> Hit Stop 3
 		local wave = slam and slam:FindFirstChild("GroundWave")
 		local duration = if wave then BladeSkill.num(wave, "Duration", 0.5) else 0.5
@@ -363,18 +357,22 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			end)
 		end
 		TechniqueVFX.cleanup(copy, 0.5)
+		end)
 	end, { name = "Hit", value = tostring(#hits) })
 
 	seq:start(function()
-		-- after the slam (or a cancelled cast): let the trails finish, then tidy up
+		-- after the slam (or a cancelled cast): let the trails finish, then tidy up.
+		-- Read the cut now: the clock extrapolates past the slam once stopped,
+		-- so a later check never saw the cancel and left the copy behind
+		local cut = clock.stopped() and clock.now() < slamAt
 		BladeSkill.release(blade, 0.6)
 		task.delay(3, function()
-			for _, p in { flare, lightImpact, impact, launch, mark, rift, phantom, fissure, fissureScar } do
+			for _, p in { flare, lightImpact, impact, launch, mark, rift, phantom, rend, rendKicks } do
 				if p then
 					p:Destroy()
 				end
 			end
-			if copy.Parent and clock.stopped() and clock.now() < slamAt then
+			if copy.Parent and cut then
 				copy:Destroy() -- cancelled before the slam
 			end
 		end)

@@ -45,7 +45,13 @@ local TIMING = {
 	BodySlam = { 1.10, 0.62, 1.10 }, -- 1.10 (dash ~0.62)
 	SkyfallSlam = { 1.20, 0.75, 1.10 }, -- 1.10 (flight)
 	ThunderRush = { 1.20, 0.70, 0.90 }, -- 0.90 (dash ~0.7)
-	Bound = { 0.45, 0.55, 0.25 }, -- 0.25 (flight)
+	Bound = { 0.45, 0.55, 0.35 }, -- 0.35 (flight: DashSeconds by BoundMode, over 0.80, flank 0.60, back 0.55, short 0.42)
+	-- the arrivals (started the moment a rush or leap lands with the target in reach) and the
+	-- skid-and-turn after a miss (a recover only; EnemyAnimator gives it the parent's recover)
+	RushSwipe = { 0.40, 0.12, 0.78 }, -- 0.90
+	SkyfallSweep = { 0.50, 0.12, 0.88 }, -- 1.00
+	ThunderRushSkid = { 0, 0, 0.90 }, -- thunderRush's 0.90
+	SkyfallSlamSkid = { 0, 0, 1.10 }, -- skyfallSlam's 1.10
 	BoulderHurl = { 1.70, 0.12, 0.78 }, -- 0.90
 	ThunderLance = { 1.40, 0.12, 0.78 }, -- 0.90
 	ThunderRoar = { 1.30, 0.20, 0.80 }, -- 1.00
@@ -457,8 +463,19 @@ end
 local function K(t: number, pose: Pose, plant: { string }?, reach: any?, ease: string?): any
 	return { t = t, pose = pose, plant = plant, reach = support(pose, plant, reach), ease = ease }
 end
-local function ph(duration: number, keys: { any }, overlay: any?, air: boolean?): Phase
+local function ph(duration: number, keys: { any }, overlay: any?, air: boolean?): any
 	return { duration = duration, keys = keys, overlay = overlay, air = air }
+end
+-- the reach spots raised by y (unit studs): a landing limb planted just before touchdown
+local function lifted(reach: { [string]: Vector3 }, y: number, only: { string }?): { [string]: Vector3 }
+	local out = {}
+	for tag, v in reach do
+		out[tag] = v
+	end
+	for _, tag in only or ALL do
+		out[tag] = (out[tag] or Vector3.zero) + V(0, y, 0)
+	end
+	return out
 end
 
 local SWAP = { FL = "FR", FR = "FL", BL = "BR", BR = "BL" }
@@ -521,6 +538,25 @@ local RDY = mk({ root = { -0.3, -0.05 }, spine = { -0.04 }, head = { -0.12 }, ja
 
 local moves: { [string]: { [string]: Phase } } = {}
 local variants: { [string]: { [string]: { [string]: Phase } } } = {}
+
+-- A skid-and-turn (a rush or leap that arrived with the target out of reach): the feet plant and
+-- brake, the body swings round toward the target with the head leading and the hips last, one
+-- arm steps across, then it settles. d = +1 turns right (the target on its right), -1 left; the
+-- server turns the root over the phase, so the yaws here are only the lead over it.
+local function skidTurn(dur: number, d: number, start: Pose, plant: { string }, reach: any, fz: number, hz: number, by: number, bp: number): Phase
+	local brake = mk({ root = { by, bp, 0, -0.12 * d, -0.05 * d }, spine = { 0.04, -0.3 * d }, head = { 0.1, -0.42 * d }, jaw = 0.55, brow = -0.3, beard = 0.4, mane = { -0.25, -0.2, -0.15 } })
+	local step = { 0.75, 0.15, -0.35 * d, 0.7, 0.1, 0.4 }
+	local swing = mk({ root = { -0.6, 0.03, 0, -0.08 * d, 0.05 * d }, spine = { -0.02, -0.22 * d }, head = { -0.05, -0.22 * d }, jaw = 0.4, brow = -0.35, beard = 0.15, mane = { 0.15, 0.2, 0.25 }, L = if d > 0 then step else nil, R = if d < 0 then step else nil })
+	local settle = mk({ root = { -0.45, -0.06, 0, -0.03 * d }, spine = { -0.03, -0.06 * d }, head = { -0.12, -0.08 * d }, jaw = 0.2, brow = -0.25, beard = 0.08, mane = { 0.08, 0.12, 0.16 } })
+	local spot = paws(fz, hz, 0.4, 0.3)
+	return ph(dur, {
+		K(0, start, plant, reach),
+		K(0.22, brake, ALL, spot, "out"),
+		K(0.5, swing, if d > 0 then SUP_L else SUP_R, spot, "inOut"),
+		K(0.75, settle, ALL, spot, "inOut"),
+		K(1, RDY, ALL, spot, "inOut"),
+	})
+end
 
 --------------------------------------------------------------------------------
 -- ClubSwing / Backhand / ThunderPound: the combo. Each ends on the ready pose the next
@@ -626,7 +662,7 @@ moves.BodySlam = {
 	active = ph(TIMING.BodySlam[2], {
 		K(0, BS_TIP, HIND, R_REAR),
 		K(0.5, BS_FALL, NONE, nil, "in"),
-		K(0.9, BS_PRONE, NONE, nil, "in"),
+		K(0.82, BS_PRONE, FRONT, lifted(BS_FWD, 0.9, FRONT), "in"), -- the fists reach for the ground
 		K(1, BS_SPLAT, FRONT, BS_FWD, "out"),
 	}, nil, true),
 	recover = ph(TIMING.BodySlam[3], {
@@ -654,12 +690,14 @@ end
 
 do
 	local s = leap(-0.85, 3.0, nil, 0)
-	local reach = paws(-1.2, 0.4, 0.5, 0.3)
+	-- the hind feet land forward under the hips: further back the thighs sank 0.6 studs in the crouch
+	local reach = paws(-1.2, 0.2, 0.5, 0.3)
+	local LOWH = paws(-1.0, 0.15, 0.3, 0.3)
 	moves.SkyfallSlam = {
 		windup = ph(TIMING.SkyfallSlam[1], {
 			K(0, RDY, ALL, R_RDY),
-			K(0.35, s.crouch, ALL, R_LOW, "inOut"),
-			K(0.78, s.coil, ALL, R_LOW, "inOut"),
+			K(0.35, s.crouch, ALL, LOWH, "inOut"),
+			K(0.78, s.coil, ALL, LOWH, "inOut"),
 			K(1, s.spring, HIND, R_REAR, "in"),
 		}, tremble(0.4, 0.85, 0.035, 11)),
 		active = ph(TIMING.SkyfallSlam[2], {
@@ -678,14 +716,14 @@ do
 		}),
 	}
 	local j = leap(-1.0, 3.1, nil, 0)
-	local jreach = paws(-1.3, 0.4, 0.5, 0.3)
+	local jreach = paws(-1.3, 0.2, 0.5, 0.3)
 	moves.Judgment = {
 		windup = ph(TIMING.Judgment[1], {
 			K(0, RDY, ALL, R_RDY),
-			K(0.2, j.crouch, ALL, R_LOW, "inOut"),
-			K(0.72, mix(j.crouch, j.coil, 0.7), ALL, R_LOW, "inOut"),
-			K(0.9, j.coil, ALL, R_LOW, "inOut"),
-			K(0.93, mix(j.coil, j.spring, 0.15), ALL, R_LOW, "in"),
+			K(0.2, j.crouch, ALL, LOWH, "inOut"),
+			K(0.72, mix(j.crouch, j.coil, 0.7), ALL, LOWH, "inOut"),
+			K(0.9, j.coil, ALL, LOWH, "inOut"),
+			K(0.93, mix(j.coil, j.spring, 0.15), ALL, LOWH, "in"),
 			K(1, j.spring, HIND, R_REAR),
 		}, chain(tremble(0.3, 0.93, 0.05, 8), function(u: number, secs: number, _): Pose
 			-- a quiver that builds into shaking before the spring
@@ -708,69 +746,238 @@ do
 			K(1, RDY, ALL, R_LOW, "inOut"),
 		}),
 	}
+
+	-- SkyfallSweep (the arrival when the target is still in reach): a backhand from the landing
+	-- crouch. The right arm comes up across the body (twisted left), then sweeps out flat to the
+	-- right at belly height; the fist steps back down in the recover.
+	local sload = mk({ root = { -0.75, -0.08, 0, 0.4 }, spine = { -0.08, 0.35 }, head = { 0.05, 0.1 }, jaw = 0.4, brow = -0.45, beard = 0.3, mane = { 0.05, 0.1, 0.15 }, R = { 0.6, 0.05, 0.75, 1.0, 0.2, 0.3 } })
+	local scontact = mk({ root = { -0.85, -0.15, 0, -0.4 }, spine = { -0.05, -0.5 }, head = { -0.05, 0.2 }, jaw = 0.55, brow = -0.4, beard = 0.15, mane = { 0.2, 0.25, 0.3 }, R = { 0.95, 1.15, -0.5, 0.1, -0.1, 0 } })
+	local sthrough = mk({ root = { -0.85, -0.18, 0, -0.5 }, spine = { -0.08, -0.65 }, head = { 0.0, 0.25 }, jaw = 0.35, brow = -0.35, beard = 0.3, mane = { 0.3, 0.35, 0.4 }, R = { 0.8, 1.4, -0.95, 0.05, -0.1, 0.1 } })
+	local sdown = mk({ root = { -0.75, -0.1, 0, -0.3 }, spine = { -0.06, -0.25 }, head = { -0.1, 0.15 }, jaw = 0.3, brow = -0.3, beard = 0.2, mane = { 0.1, 0.15, 0.2 }, R = { 0.95, 0.8, -0.4, 1.0, 0.1, 0.4 } })
+	local slift = mix(s.land, sload, 0.25)
+	slift.JointLegFR, slift.JointElbowFR, slift.JointWristFR = A(0.8, 0.2, 0), A(1.3), A(0.3) -- elbow folded: the fist clears the ground
+	moves.SkyfallSweep = {
+		windup = ph(TIMING.SkyfallSweep[1], {
+			K(0, s.land, ALL, reach),
+			K(0.2, slift, ALL, lifted(reach, 0.4, { "FR" }), "inOut"), -- the fist lifts off before the twist
+			K(0.5, sload, SUP_R, reach, "out"),
+			K(0.97, scontact, SUP_R, reach, "in"),
+			K(1, scontact, SUP_R, reach),
+		}),
+		active = ph(TIMING.SkyfallSweep[2], {
+			K(0, scontact, SUP_R, reach),
+			K(0.7, sthrough, SUP_R, reach, "out"),
+			K(1, sthrough, SUP_R, reach),
+		}),
+		recover = ph(TIMING.SkyfallSweep[3], {
+			K(0, sthrough, SUP_R, reach),
+			K(0.35, sdown, SUP_R, reach, "inOut"),
+			K(0.6, mix(sdown, RDY, 0.5), ALL, reach, "in"), -- the fist steps down
+			K(1, RDY, ALL, reach, "inOut"),
+		}),
+	}
+	-- the miss: rise out of the landing crouch and turn to find the target
+	moves.SkyfallSlamSkid = { recover = skidTurn(TIMING.SkyfallSlamSkid[3], 1, s.land, ALL, reach, -1.2, 0.2, -0.6, 0.0) }
+	variants.SkyfallSlamSkid = { A = moves.SkyfallSlamSkid, L = { recover = skidTurn(TIMING.SkyfallSlamSkid[3], -1, s.land, ALL, reach, -1.2, 0.2, -0.6, 0.0) } }
 end
 
 --------------------------------------------------------------------------------
--- ThunderRush and Bound
+-- ThunderRush and Bound, the rush's arrival (RushSwipe) and its skid-and-turn after a miss.
+-- Landings: the limbs that land are planted (solved) a moment BEFORE touchdown with their spots
+-- raised (`lifted`), so the free-to-planted switch blends over the descent instead of popping
+-- in the last frames, and the body compresses after contact, in the recover.
 
 do
 	local hunker = mk({ root = { -1.0, -0.04 }, spine = { -0.2 }, head = { -0.2 }, jaw = 0.25, brow = -0.45, beard = 0.15, mane = { 0.1, 0.15, 0.2 } })
 	local ready = mk({ root = { -1.05, -0.05, 0.1 }, spine = { -0.22 }, head = { -0.2 }, jaw = 0.3, brow = -0.5, beard = 0.1, mane = { 0.2, 0.25, 0.3 } })
 	local launch = mk({ root = { -0.7, -0.05 }, spine = { -0.1 }, head = { -0.2 }, jaw = 0.4, brow = -0.4, beard = 0, mane = { 0.4, 0.45, 0.5 } })
-	local skid = mk({ root = { -0.65, 0.12 }, spine = { 0.1 }, head = { 0.05 }, jaw = 0.5, brow = -0.3, beard = -0.4, mane = { 0.6, 0.65, 0.7 } })
-	local rest = mk({ root = { -0.5, -0.08 }, spine = { 0.0 }, head = { -0.1 }, jaw = 0.25, brow = -0.2, beard = 0.2, mane = { 0.1, 0.15, 0.2 } })
 	local RW = paws(-1.3, 0.6, 0.4, 0.3)
-	local SK = paws(-1.1, -0.9, 0.4, 0.3)
 	local from = rig.plant(table.clone(launch), HIND, RW)
-	local skidded = rig.plant(table.clone(skid), ALL, SK)
+	-- the last strides: the right arm draws back and out, the left fist and both feet brace, the
+	-- body twists right and sinks while the head stays on the target. RushSwipe and the skid start
+	-- from this pose.
+	local RUSH_END = mk({ root = { -0.85, -0.1, 0, -0.35 }, spine = { -0.12, -0.25 }, head = { -0.1, 0.4 }, jaw = 0.55, brow = -0.45, beard = 0.3, mane = { 0.5, 0.55, 0.6 }, R = { 0.8, 1.35, -0.9, 0.5, 0.0, 0.8 } })
+	local SW = paws(-1.1, -0.05, 0.45, 0.3)
+	local braced = rig.plant(table.clone(RUSH_END), SUP_R, support(RUSH_END, SUP_R, SW))
 	local function rush(u: number, secs: number, _i: any): Pose
-		local running = gallop(secs * TAU * 3.2, 95, 3.2)
-		local m, e = smooth(0, 0.16, secs), smooth(0.86, 1, u)
+		-- averaged over three frames: at 95 studs/s a fist's touchdown pops an elbow in one frame
+		local c, d = secs * TAU * 3.2, TAU * 3.2 / 60
+		local a0, a1, a2 = gallop(c - d, 95, 3.2), gallop(c, 95, 3.2), gallop(c + d, 95, 3.2)
+		local running: Pose = {}
+		for name, cf in a1 do
+			running[name] = (a0[name] or cf):Lerp(a2[name] or cf, 0.5):Lerp(cf, 1 / 3)
+		end
+		local m = smooth(0, 0.16, secs)
+		local draw, e = smooth(0.42, 0.8, u), smooth(0.6, 1, u)
 		for _, name in ThunderApe.JOINTS do
 			local g = (from[name] or I):Lerp(running[name] or I, m)
-			running[name] = g:Lerp(skidded[name] or I, e)
+			local w = if string.sub(name, -2) == "FR" then math.max(draw, e) else e
+			running[name] = g:Lerp(braced[name] or I, w)
 		end
 		return running
 	end
-	moves.ThunderRush = {
-		windup = ph(TIMING.ThunderRush[1], {
-			K(0, RDY, ALL, R_RDY),
-			K(0.3, hunker, ALL, RW, "out"),
-			K(0.82, ready, ALL, RW, "inOut"),
-			K(1, launch, HIND, RW, "in"),
-		}, tremble(0.3, 0.9, 0.035, 13)),
-		active = ph(TIMING.ThunderRush[2], { K(0, {}, NONE, nil), K(1, {}, NONE, nil) }, rush, true),
-		recover = ph(TIMING.ThunderRush[3], {
-			K(0, skid, ALL, SK),
-			K(0.35, skid, ALL, SK),
-			K(0.65, rest, ALL, R_LOW, "out"),
-			K(1, STAND, ALL, nil, "inOut"),
+	local rushWindup = ph(TIMING.ThunderRush[1], {
+		K(0, RDY, ALL, R_RDY),
+		K(0.3, hunker, ALL, RW, "out"),
+		K(0.82, ready, ALL, RW, "inOut"),
+		K(1, launch, HIND, RW, "in"),
+	}, tremble(0.3, 0.9, 0.035, 13))
+	local rushActive = ph(TIMING.ThunderRush[2], { K(0, {}, NONE, nil), K(1, {}, NONE, nil) }, rush, true)
+	-- no follow-up (nothing sent on arrival): the same skid-and-turn as a miss
+	moves.ThunderRush = { windup = rushWindup, active = rushActive, recover = skidTurn(TIMING.ThunderRush[3], 1, RUSH_END, SUP_R, SW, -1.0, -0.05, -0.8, 0.14) }
+	variants.ThunderRush = { A = moves.ThunderRush, L = { windup = rushWindup, active = rushActive, recover = skidTurn(TIMING.ThunderRush[3], -1, RUSH_END, SUP_R, SW, -1.0, -0.05, -0.8, 0.14) } }
+	moves.ThunderRushSkid = { recover = skidTurn(TIMING.ThunderRushSkid[3], 1, RUSH_END, SUP_R, SW, -1.0, -0.05, -0.8, 0.14) }
+	variants.ThunderRushSkid = { A = moves.ThunderRushSkid, L = { recover = skidTurn(TIMING.ThunderRushSkid[3], -1, RUSH_END, SUP_R, SW, -1.0, -0.05, -0.8, 0.14) } }
+
+	-- RushSwipe: the run carries into the blow. From the braced last stride the arm winds further
+	-- back and the hips sink, then the whole body unwinds into a flat sweep right to left at belly
+	-- height (under the beard). The fist steps back down in the recover.
+	local cock = mk({ root = { -0.95, -0.12, 0, -0.55 }, spine = { -0.05, -0.4 }, head = { -0.15, 0.5 }, jaw = 0.65, brow = -0.5, beard = 0.2, mane = { 0.35, 0.4, 0.45 }, R = { 0.75, 1.45, -1.1, 0.3, 0.0, 0.9 } })
+	local contact = mk({ root = { -0.85, -0.2, 0, 0.4 }, spine = { -0.05, 0.5 }, head = { 0.0, -0.15 }, jaw = 0.35, brow = -0.4, beard = 0.15, mane = { -0.05, 0, 0.05 }, R = { 0.95, 0.8, 0.9, 0.0, 0.2, 0 } })
+	local through = mk({ root = { -0.85, -0.25, 0, 0.55 }, spine = { -0.1, 0.65 }, head = { 0.15, -0.2 }, jaw = 0.25, brow = -0.35, beard = 0.3, mane = { -0.15, -0.1, 0 }, R = { 0.65, 0.5, 1.2, 0, 0.2, 0 } })
+	local down = mk({ root = { -0.7, -0.12, 0, 0.35 }, spine = { -0.08, 0.3 }, head = { -0.1, -0.15 }, jaw = 0.3, brow = -0.3, beard = 0.2, mane = { 0.0, 0.05, 0.1 }, R = { 0.95, 0.45, 0.4, 1.0, 0.1, 0.4 } })
+	moves.RushSwipe = {
+		windup = ph(TIMING.RushSwipe[1], {
+			K(0, RUSH_END, SUP_R, SW),
+			K(0.5, cock, SUP_R, SW, "out"),
+			K(0.97, contact, SUP_R, SW, "in"),
+			K(1, contact, SUP_R, SW),
+		}),
+		active = ph(TIMING.RushSwipe[2], {
+			K(0, contact, SUP_R, SW),
+			K(0.7, through, SUP_R, SW, "out"),
+			K(1, through, SUP_R, SW),
+		}),
+		recover = ph(TIMING.RushSwipe[3], {
+			K(0, through, SUP_R, SW),
+			K(0.35, down, SUP_R, SW, "inOut"),
+			K(0.6, mix(down, RDY, 0.5), ALL, SW, "in"), -- the right fist steps down
+			K(1, RDY, ALL, SW, "inOut"),
 		}),
 	}
 
-	local bc = mk({ root = { -0.75, -0.03 }, spine = { -0.12 }, head = { -0.18 }, jaw = 0.25, brow = -0.35, beard = 0.1, mane = { 0.1, 0.15, 0.2 }, L = { -0.3, 0.2, 0, 1.0, 0.0, 0.3 }, R = { -0.3, 0.2, 0, 1.0, 0.0, 0.3 } })
-	local bflight = mk({ root = { 0.1, -0.35 }, spine = { -0.1 }, head = { 0.15 }, jaw = 0.4, brow = -0.2, beard = -0.3, mane = { 0.6, 0.65, 0.7 }, L = { 1.7, 0.2, 0, 0.1, 0.1, 0.4 }, R = { 1.7, 0.2, 0, 0.1, 0.1, 0.4 }, BL = { 0.6, -0.5, 0.2 }, BR = { 0.6, -0.5, 0.2 } })
-	local bland = mk({ root = { -0.7, -0.05 }, spine = { -0.12 }, head = { -0.18 }, jaw = 0.2, brow = -0.35, beard = 0.2, mane = { 0.0, 0.05, 0.1 } })
-	local BR_ = paws(-1.0, 0.4, 0.4, 0.3)
-	moves.Bound = {
-		windup = ph(TIMING.Bound[1], {
-			K(0, RDY, ALL, R_RDY),
-			K(0.7, bc, ALL, R_LOW, "out"),
-			K(1, bc, ALL, R_LOW),
-		}),
-		active = ph(TIMING.Bound[2], {
-			K(0, bc, ALL, R_LOW),
-			K(0.12, mix(bc, bflight, 0.4), NONE, nil, "out"),
-			K(0.4, bflight, NONE, nil, "inOut"),
-			K(0.8, bflight, NONE, nil),
-			K(0.97, bland, ALL, BR_, "inOut"),
-			K(1, bland, ALL, BR_),
-		}, nil, true),
-		recover = ph(TIMING.Bound[3], {
-			K(0, bland, ALL, BR_),
-			K(1, RDY, ALL, R_RDY, "out"),
-		}),
+	-- Bound, by the server's BoundMode (input.mode): every mode crouches, springs, hangs at the
+	-- apex and lands planted-then-compressed. The lateral lean (toward the travel, after loading
+	-- the far side) and the head-leading twist come from motionLayer (velocity and turn rate), so
+	-- the twist of `over` happens in the air while the server turns the root.
+	local BW = paws(-0.6, 0.35, 0.35, 0.3) -- the landing spots, near the ready stance (no slide after)
+	local function hop(o: any): { [string]: Phase }
+		local w = ph(TIMING.Bound[1], o.windup)
+		w.lean = "windup"
+		local a = ph(TIMING.Bound[2], o.active, nil, true)
+		a.lean = "active"
+		a.lead = 1.6
+		local r = ph(TIMING.Bound[3], o.recover)
+		return { windup = w, active = a, recover = r }
+	end
+	local crouch = mk({ root = { -0.8, -0.03 }, spine = { -0.14 }, head = { -0.12 }, jaw = 0.25, brow = -0.35, beard = 0.1, mane = { 0.1, 0.15, 0.2 } })
+	local push = mk({ root = { -0.6, 0.04 }, spine = { -0.08 }, head = { -0.05 }, jaw = 0.4, brow = -0.3, beard = 0.0, mane = { 0.2, 0.25, 0.3 } })
+	local flight = mk({ root = { 0.1, -0.2 }, spine = { -0.06 }, head = { 0.1 }, jaw = 0.45, brow = -0.2, beard = -0.3, mane = { 0.6, 0.65, 0.7 }, L = { 1.5, 0.35, 0, 0.3, 0.1, 0.4 }, R = { 1.5, 0.35, 0, 0.3, 0.1, 0.4 }, BL = { 0.6, -0.6, 0.2 }, BR = { 0.6, -0.6, 0.2 } })
+	local hang = mk({ root = { 0.15, -0.12 }, spine = { -0.02 }, head = { 0.0 }, jaw = 0.5, brow = -0.15, beard = -0.2, mane = { 0.5, 0.55, 0.6 }, L = { 1.3, 0.55, 0, 0.45, 0.1, 0.5 }, R = { 1.3, 0.55, 0, 0.45, 0.1, 0.5 }, BL = { 0.7, -0.75, 0.2 }, BR = { 0.7, -0.75, 0.2 } })
+	-- reaching for the ground just before touchdown, and the contact itself (the legs still long)
+	-- (low enough that the planted knees stay bent: a nearly straight planted leg crosses 0 and the
+	-- solver flips branch for a frame)
+	local reachDown = mk({ root = { -0.3, -0.08 }, spine = { -0.05 }, head = { -0.02 }, jaw = 0.4, brow = -0.25, beard = -0.1, mane = { 0.4, 0.45, 0.5 }, BL = { 0.1, -0.45, 0.3 }, BR = { 0.1, -0.45, 0.3 } })
+	local touch = mk({ root = { -0.35, -0.05 }, spine = { -0.1 }, head = { -0.1 }, jaw = 0.3, brow = -0.35, beard = 0.1, mane = { 0.2, 0.25, 0.3 } })
+	local compress = mk({ root = { -0.95, -0.05 }, spine = { -0.2 }, head = { -0.22 }, jaw = 0.2, brow = -0.4, beard = 0.35, mane = { -0.2, -0.15, -0.1 } })
+	local landing = {
+		recover = {
+			K(0, touch, ALL, BW),
+			K(0.4, compress, ALL, BW, "out"),
+			K(1, RDY, ALL, BW, "inOut"),
+		},
 	}
+	-- flank: a side hop, lower arc, the body leaning into the travel
+	local flank = hop({
+		windup = {
+			K(0, RDY, ALL, R_RDY),
+			K(0.75, crouch, ALL, BW, "out"),
+			K(1, push, ALL, BW, "in"),
+		},
+		active = {
+			K(0, push, ALL, BW),
+			K(0.14, mix(push, flight, 0.5), NONE, nil, "out"),
+			K(0.42, flight, NONE, nil, "inOut"),
+			K(0.62, hang, NONE, nil, "inOut"),
+			K(0.85, reachDown, ALL, lifted(BW, 0.45), "inOut"),
+			K(1, touch, ALL, BW, "in"),
+		},
+		recover = landing.recover,
+	})
+	-- over: the highest arc, past the player. A counter-rise, the deepest crouch, the arms flung up
+	-- at the spring, a tuck and a long hang at the apex (the server turns the root to face back),
+	-- then the legs reach for the ground.
+	local overLook = mk({ root = { -0.2, 0.02 }, spine = { 0.02 }, head = { 0.15 }, jaw = 0.3, brow = -0.2, beard = 0.0, mane = { 0.15, 0.2, 0.25 } })
+	local overCrouch = mk({ root = { -1.0, -0.04 }, spine = { -0.18 }, head = { 0.0 }, jaw = 0.35, brow = -0.45, beard = 0.15, mane = { 0.05, 0.1, 0.15 } })
+	local overSpring = mk({ root = { -0.75, 0.12 }, spine = { 0.0 }, head = { 0.1 }, jaw = 0.55, brow = -0.2, beard = -0.1, mane = { 0.3, 0.35, 0.4 }, L = { 0.9, 0.3, 0, 0.6, 0, 0.5 }, R = { 0.9, 0.3, 0, 0.6, 0, 0.5 } })
+	local overLaunch = mk({ root = { 0.2, 0.3 }, spine = { 0.15 }, head = { 0.25 }, jaw = 0.75, brow = 0.1, beard = -0.3, mane = { 0.55, 0.6, 0.65 }, L = { 2.4, 0.5, 0, 0.4, -0.1, 0.7 }, R = { 2.4, 0.5, 0, 0.4, -0.1, 0.7 }, BL = { -0.5, 0.3, 0.5 }, BR = { -0.5, 0.3, 0.5 } })
+	local overTuck = mk({ root = { 0.35, 0.05 }, spine = { -0.1 }, head = { 0.05 }, jaw = 0.6, brow = -0.1, beard = -0.25, mane = { 0.45, 0.5, 0.55 }, L = { 1.2, 1.05, 0, 0.5, 0, 0.5 }, R = { 1.2, 1.05, 0, 0.5, 0, 0.5 }, BL = { 0.65, -0.8, 0.4 }, BR = { 0.65, -0.8, 0.4 } })
+	local overHang = mk({ root = { 0.2, -0.08 }, spine = { -0.12 }, head = { -0.1 }, jaw = 0.55, brow = -0.25, beard = -0.15, mane = { 0.35, 0.4, 0.45 }, L = { 0.95, 0.75, 0, 0.45, 0, 0.6 }, R = { 0.95, 0.75, 0, 0.45, 0, 0.6 }, BL = { 0.4, -0.5, 0.3 }, BR = { 0.4, -0.5, 0.3 } })
+	local over = hop({
+		windup = {
+			K(0, RDY, ALL, R_RDY),
+			K(0.2, overLook, ALL, BW, "inOut"),
+			K(0.7, overCrouch, ALL, BW, "inOut"),
+			K(1, overSpring, HIND, BW, "in"),
+		},
+		active = {
+			K(0, overSpring, HIND, BW),
+			K(0.15, overLaunch, NONE, nil, "out"),
+			K(0.38, overTuck, NONE, nil, "inOut"),
+			K(0.6, overHang, NONE, nil, "inOut"),
+			K(0.82, reachDown, ALL, lifted(BW, 0.5), "inOut"),
+			K(1, touch, ALL, BW, "in"),
+		},
+		recover = landing.recover,
+	})
+	-- back: a retreat hop away from the player, shoved off the knuckles. The weight rocks onto the
+	-- fists, the arms drive the body back and up, the feet land first and the fists come down after.
+	local backLoad = mk({ root = { -0.7, -0.1 }, spine = { -0.16 }, head = { 0.05 }, jaw = 0.35, brow = -0.4, beard = 0.1, mane = { 0.1, 0.15, 0.2 } })
+	local backShove = mk({ root = { -0.45, 0.12 }, spine = { 0.06 }, head = { 0.1 }, jaw = 0.5, brow = -0.3, beard = 0.0, mane = { -0.05, 0.0, 0.05 } })
+	local backOff = mk({ root = { -0.15, 0.3 }, spine = { 0.1 }, head = { 0.05 }, jaw = 0.5, brow = -0.3, beard = 0.1, mane = { -0.2, -0.15, -0.1 }, L = { 0.6, 0.3, 0, 0.1, 0.2, 0.4 }, R = { 0.6, 0.3, 0, 0.1, 0.2, 0.4 }, BL = { -0.1, 0.2, 0.1 }, BR = { -0.1, 0.2, 0.1 } })
+	local backFloat = mk({ root = { 0.0, 0.3 }, spine = { 0.15 }, head = { 0.0 }, jaw = 0.45, brow = -0.3, beard = 0.05, mane = { -0.1, -0.05, 0.0 }, L = { 0.9, 0.5, 0, 0.4, 0, 0.5 }, R = { 0.9, 0.5, 0, 0.4, 0, 0.5 }, BL = { -0.2, 0.3, 0.2 }, BR = { -0.2, 0.3, 0.2 } })
+	local backReach = mk({ root = { -0.1, 0.26 }, spine = { 0.1 }, head = { -0.02 }, jaw = 0.4, brow = -0.3, beard = 0.1, mane = { 0.05, 0.1, 0.15 }, L = { 1.0, 0.4, 0, 0.6, 0, 0.5 }, R = { 1.0, 0.4, 0, 0.6, 0, 0.5 } })
+	local backTouch = mk({ root = { -0.35, 0.2 }, spine = { 0.05 }, head = { -0.05 }, jaw = 0.35, brow = -0.35, beard = 0.15, mane = { 0.1, 0.15, 0.2 }, L = { 1.0, 0.4, 0, 0.8, 0, 0.5 }, R = { 1.0, 0.4, 0, 0.8, 0, 0.5 } })
+	local BK = paws(-0.9, 0.4, 0.35, 0.3)
+	local back = hop({
+		windup = {
+			K(0, RDY, ALL, R_RDY),
+			K(0.55, backLoad, ALL, BK, "inOut"),
+			K(1, backShove, ALL, BK, "in"),
+		},
+		active = {
+			K(0, backShove, ALL, BK),
+			K(0.14, backOff, NONE, nil, "out"),
+			K(0.5, backFloat, NONE, nil, "inOut"),
+			K(0.82, backReach, HIND, lifted(BW, 0.4, HIND), "inOut"),
+			K(1, backTouch, ALL, lifted(BW, 0.9, FRONT), "in"), -- the feet land, the fists still reaching
+		},
+		recover = {
+			K(0, backTouch, ALL, lifted(BW, 0.9, FRONT)),
+			K(0.5, compress, ALL, BW, "inOut"), -- the fists come down after the feet
+			K(1, RDY, ALL, BW, "inOut"),
+		},
+	})
+	-- short: a quick small hop
+	local shortCrouch = mk({ root = { -0.6, -0.03 }, spine = { -0.1 }, head = { -0.12 }, jaw = 0.25, brow = -0.35, beard = 0.1, mane = { 0.1, 0.15, 0.2 } })
+	local shortFlight = mk({ root = { 0.0, -0.12 }, spine = { -0.05 }, head = { 0.05 }, jaw = 0.4, brow = -0.25, beard = -0.15, mane = { 0.45, 0.5, 0.55 }, L = { 1.0, 0.3, 0, 0.4, 0.1, 0.4 }, R = { 1.0, 0.3, 0, 0.4, 0.1, 0.4 }, BL = { 0.4, -0.5, 0.2 }, BR = { 0.4, -0.5, 0.2 } })
+	local short = hop({
+		windup = {
+			K(0, RDY, ALL, R_RDY),
+			K(0.7, shortCrouch, ALL, BW, "out"),
+			K(1, push, ALL, BW, "in"),
+		},
+		active = {
+			K(0, push, ALL, BW),
+			K(0.18, mix(push, shortFlight, 0.5), NONE, nil, "out"),
+			K(0.5, shortFlight, NONE, nil, "inOut"),
+			K(0.8, reachDown, ALL, lifted(BW, 0.35), "inOut"),
+			K(1, touch, ALL, BW, "in"),
+		},
+		recover = landing.recover,
+	})
+	moves.Bound = flank
+	variants.Bound = { flank = flank, over = over, back = back, short = short }
 end
 
 --------------------------------------------------------------------------------
@@ -1134,7 +1341,7 @@ do
 	local lungeUp = mk({ root = { -0.2, 0.95 }, spine = { 0.15 }, head = { 0.3 }, jaw = 0.6, brow = 0.1, beard = -0.2, mane = { 0.4, 0.45, 0.5 }, L = { 1.8, 0.9, 0, 0.5, -0.1, 0.6 }, R = { 1.8, 0.9, 0, 0.5, -0.1, 0.6 } })
 	variants.BodySlam.B = {
 		windup = ph(TIMING.BodySlam[1], { K(0, RDY, ALL, R_RDY), K(0.3, BS_CROUCH, ALL, R_LOW, "inOut"), K(0.8, lungeUp, HIND, R_REAR, "inOut"), K(1, lungeUp, HIND, R_REAR) }, tremble(0.5, 0.95, 0.03)),
-		active = ph(TIMING.BodySlam[2], { K(0, lungeUp, HIND, R_REAR), K(0.45, BS_FALL, NONE, nil, "in"), K(0.9, BS_PRONE, NONE, nil, "in"), K(1, BS_SPLAT, FRONT, BS_FWD, "out") }, nil, true),
+		active = ph(TIMING.BodySlam[2], { K(0, lungeUp, HIND, R_REAR), K(0.45, BS_FALL, NONE, nil, "in"), K(0.82, BS_PRONE, FRONT, lifted(BS_FWD, 0.9, FRONT), "in"), K(1, BS_SPLAT, FRONT, BS_FWD, "out") }, nil, true),
 		recover = moves.BodySlam.recover,
 	}
 	local top = body(1.25, 0, 0.2, 0.4, 0.8, hitArm(1.25, 0.2), rarm(hitArm(1.25, 0.2)), 0.5)
@@ -1152,11 +1359,11 @@ do
 	local reach = paws(-1.6, 0.4, 0.5, 0.3)
 	local twist = mix(s.crouch, mk({ root = { -0.95, -0.2, 0, 0.35 }, spine = { -0.1, 0.25 }, head = { -0.2, -0.2 }, jaw = 0.3, brow = -0.4, mane = { 0.1, 0.15, 0.2 } }), 0.8)
 	variants.SkyfallSlam.B = {
-		windup = ph(TIMING.SkyfallSlam[1], { K(0, RDY, ALL, R_RDY), K(0.3, s.crouch, ALL, R_LOW, "out"), K(0.8, twist, ALL, R_LOW, "inOut"), K(1, s.spring, HIND, R_REAR, "in") }, tremble(0.4, 0.85, 0.03, 11)),
+		windup = ph(TIMING.SkyfallSlam[1], { K(0, RDY, ALL, R_RDY), K(0.3, s.crouch, ALL, paws(-1.0, 0.15, 0.3, 0.3), "out"), K(0.8, twist, ALL, paws(-1.0, 0.15, 0.3, 0.3), "inOut"), K(1, s.spring, HIND, R_REAR, "in") }, tremble(0.4, 0.85, 0.03, 11)),
 		active = moves.SkyfallSlam.active,
 		recover = moves.SkyfallSlam.recover,
 	}
-	local dig = paws(-1.0, 0.5, 0.5, 0.3)
+	local dig = paws(-1.0, 0.15, 0.5, 0.3)
 	variants.SkyfallSlam.C = {
 		windup = ph(TIMING.SkyfallSlam[1], { K(0, RDY, ALL, R_RDY), K(0.25, s.coil, ALL, dig, "inOut"), K(0.82, s.coil, ALL, dig), K(1, s.spring, HIND, R_REAR, "in") }, tremble(0.3, 0.88, 0.05, 14)),
 		active = moves.SkyfallSlam.active,
@@ -1166,7 +1373,7 @@ do
 end
 
 ThunderApe.VARIANTS = variants
-ThunderApe.VARIANT = { ClubSwing = "A", ThunderPound = "B", BodySlam = "C", SkyfallSlam = "C", StormCall = "A" }
+ThunderApe.VARIANT = { ClubSwing = "A", ThunderPound = "B", BodySlam = "C", SkyfallSlam = "C", StormCall = "A", Bound = "flank" }
 function ThunderApe.setVariant(move: string, v: string)
 	assert(variants[move] and variants[move][v], "no variant " .. move .. "." .. v)
 	ThunderApe.VARIANT[move] = v
@@ -1184,8 +1391,8 @@ end
 -- loads just before contact, and every impact dips the body and rebounds (applied before
 -- planting, so the legs compress with it). Pound, Skyfall and Judgment hardest.
 
-local DIP = { ClubSwing = 0.12, Backhand = 0.12, ThunderPound = 0.4, BodySlam = 0.15, SkyfallSlam = 0.35, Judgment = 0.5, ThunderLance = 0.1, BoulderHurl = 0.15, ThunderRush = 0.12, Bound = 0.12, Stagger = 0.1, ThunderRoar = 0.08, PhaseRoar = 0.1, Challenge = 0.05, StormCall = 0.05 }
-local LOAD = { ClubSwing = 0.1, Backhand = 0.1, ThunderPound = 0.12, ThunderLance = 0.06 }
+local DIP = { RushSwipe = 0.15, SkyfallSweep = 0.12, ThunderRushSkid = 0.1, SkyfallSlamSkid = 0.06, ClubSwing = 0.12, Backhand = 0.12, ThunderPound = 0.4, BodySlam = 0.15, SkyfallSlam = 0.35, Judgment = 0.5, ThunderLance = 0.1, BoulderHurl = 0.15, ThunderRush = 0.12, Bound = 0.12, Stagger = 0.1, ThunderRoar = 0.08, PhaseRoar = 0.1, Challenge = 0.05, StormCall = 0.05 }
+local LOAD = { RushSwipe = 0.08, SkyfallSweep = 0.08, ClubSwing = 0.1, Backhand = 0.1, ThunderPound = 0.12, ThunderLance = 0.06 }
 local function weightOverlay(move: string, phase: string)
 	return function(u: number, secs: number, _): Pose
 		if phase == "windup" then
@@ -1236,9 +1443,10 @@ ThunderApe.durations = Quadruped.durations(moves)
 -- phase boundary so poses stay continuous and contact is never late. After a hit they ring
 -- down (SETTLE).
 
-local function phaseOf(move: string, phase: string): Phase
+local function phaseOf(move: string, phase: string, pick: string?): Phase
 	local v = variants[move]
-	local p = if v then v[ThunderApe.VARIANT[move] or "A"][phase] else nil
+	local set = v and v[pick or ThunderApe.VARIANT[move] or "A"]
+	local p = if set then set[phase] else nil
 	if not p then
 		local m = moves[move]
 		p = m and m[phase]
@@ -1252,11 +1460,13 @@ local LAGS = {
 	JointBrow = 0.6, JointHead = 1.0, JointJaw = 1.3, JointMane1 = 1.4, JointMane2 = 1.9, JointMane3 = 2.5, JointBeard = 2.2,
 }
 local ARM_LAGS = { Elbow = 0.6, Wrist = 1.2, Fingers = 1.9 }
-local SETTLE = { ClubSwing = 0.9, Backhand = 0.9, ThunderPound = 1.6, BodySlam = 1.3, SkyfallSlam = 1.4, Judgment = 1.9, ThunderRush = 1.0, Bound = 0.8, BoulderHurl = 1.0, ThunderLance = 1.0, ThunderRoar = 0.6, PhaseRoar = 0.8, Challenge = 0.4, StormCall = 0.4, Stagger = 1.4 }
+local SETTLE = { RushSwipe = 0.9, SkyfallSweep = 0.9, ThunderRushSkid = 0.8, SkyfallSlamSkid = 0.6, ClubSwing = 0.9, Backhand = 0.9, ThunderPound = 1.6, BodySlam = 1.3, SkyfallSlam = 1.4, Judgment = 1.9, ThunderRush = 1.0, Bound = 0.8, BoulderHurl = 1.0, ThunderLance = 1.0, ThunderRoar = 0.6, PhaseRoar = 0.8, Challenge = 0.4, StormCall = 0.4, Stagger = 1.4 }
 local NOLAG = { ThunderRush = { active = true } }
 -- windups whose arms must land on their marks mid-phase (the chest beats, the boulder release):
 -- no arm whip there
-local EXACT_ARMS = { Challenge = true, ThunderRoar = true, PhaseRoar = true, BoulderHurl = true }
+local EXACT_ARMS = { Challenge = true, ThunderRoar = true, PhaseRoar = true, BoulderHurl = true, SkyfallSweep = true }
+-- (SkyfallSweep: its arm leaves the ground in the windup, and the whip read the planted wrist
+-- for 0.1 s after, then snapped)
 
 -- Easing. inOut is a sine here (peak speed 1.6x the mean) instead of the shared cubic
 -- (3x): a 30-stud body that parks on every key and then dashes between them reads as
@@ -1267,6 +1477,41 @@ EASE.inOut = function(a)
 end
 EASE.cubic = Quadruped.EASE.inOut -- the old snap, for strikes that want it
 local plantOf = Quadruped.plantOf
+
+-- Turning and travel, from EnemyAnimator's motion input (before planting, so the legs follow):
+-- * the head leads a turn of the root and the hips trail it (input.yawRate, rad/s, + to its left):
+--   during a windup the server turns the root toward the landing, in the air it finishes the
+--   twist (phase.lead scales it up there), in a skid it swings the body round.
+-- * a hop leans: the windup loads the far side (input.boundSide, the server's BoundSide when it
+--   sends one), the flight leans into the travel (input.vel in the root's frame) and straightens
+--   before touchdown.
+local function motionLayer(pose: Pose, p: any, u: number, input: any)
+	local rate = input.yawRate
+	if type(rate) == "number" and rate ~= 0 then
+		local k = math.clamp(rate * 0.12, -0.4, 0.4) * (p.lead or 0.6)
+		if p.mirror and (input.side or 1) < 0 then
+			k = -k -- the pose is mirrored after planting
+		end
+		pose.JointSpine = (pose.JointSpine or I) * A(0, 0.55 * k, 0)
+		pose.JointRoot = (pose.JointRoot or I) * A(0, -0.2 * k, 0)
+		pose.JointHead = (pose.JointHead or I) * A(0, 0.6 * k, 0)
+	end
+	local lean = p.lean
+	if lean then
+		local s0 = if type(input.boundSide) == "number" then math.clamp(input.boundSide, -1, 1) else 0
+		local v = input.vel
+		local sv = if typeof(v) == "Vector3" and v.Magnitude > 4 then math.clamp(1.6 * v.X / v.Magnitude, -1, 1) else s0
+		local roll
+		if lean == "windup" then
+			roll = 0.12 * s0 * smooth(0.25, 0.95, u)
+		else
+			local e = smooth(0, 0.3, u)
+			roll = 0.12 * s0 * (1 - e) - 0.24 * sv * e * (1 - smooth(0.7, 1, u))
+		end
+		pose.JointRoot = (pose.JointRoot or I) * A(0, 0, roll)
+		pose.JointSpine = (pose.JointSpine or I) * A(0, 0, 0.4 * roll)
+	end
+end
 
 -- the blended key pose at u (overlay applied, not planted, not mirrored) and its key pair
 local function blendKeys(p: Phase, u: number, input: Input): (Pose, any, any, number)
@@ -1298,7 +1543,20 @@ local function blendKeys(p: Phase, u: number, input: Input): (Pose, any, any, nu
 			pose[name] = (pose[name] or I) * cf
 		end
 	end
+	motionLayer(pose, p, u, input)
 	return pose, a, b, alpha
+end
+
+-- plantLegs re-solves a planted limb's middle joint onto the ground, so a raised spot (`lifted`)
+-- only aimed it. Lift those limbs to their spot's height: a landing limb reaches for the ground
+-- above it, then meets it.
+local function liftPlanted(pose: Pose, plant: { [string]: number }, reach: { [string]: Vector3 })
+	for tag, w in plant do
+		local r = reach[tag]
+		if w > 0.001 and r and r.Y > 0.001 then
+			rig.solveLeg(pose, LEGS[tag], w, r.Y, if LEGS[tag].front then -0.2 * r.Y else -0.3 * r.Y)
+		end
+	end
 end
 
 -- Keyed sampling with a smoother plant blend than Quadruped.samplePhase: that one blends the
@@ -1325,10 +1583,13 @@ local function plantedSample(p: Phase, u: number, input: Input): (Pose, { [strin
 	if same then
 		out = pose
 		rig.plantLegs(out, pa, p.air, reach)
+		liftPlanted(out, pa, reach)
 	else
 		local x, y = table.clone(pose), pose
 		rig.plantLegs(x, pa, p.air, reach)
 		rig.plantLegs(y, pb, p.air, reach)
+		liftPlanted(x, pa, reach)
+		liftPlanted(y, pb, reach)
 		out = {}
 		for name, cf in x do
 			out[name] = cf:Lerp(y[name] or I, alpha)
@@ -1430,10 +1691,21 @@ local function secondary(pose: Pose, move: string, phase: string, u: number, inp
 	end
 end
 
+-- moves picked by the server's BoundMode, and moves whose turn follows the target's side
+local MODED = { Bound = true }
+local SIDED = { ThunderRush = true, ThunderRushSkid = true, SkyfallSlamSkid = true }
+
 function ThunderApe.sample(move: string, phase: string, u: number, input: Input?): Pose
 	local inp: Input = input or {}
 	u = math.clamp(u, 0, 1)
-	local p = phaseOf(move, phase)
+	local x = inp :: any
+	local pick: string? = nil
+	if MODED[move] and type(x.mode) == "string" and variants[move][x.mode] then
+		pick = x.mode
+	elseif SIDED[move] and (x.side or 1) < 0 and variants[move].L then
+		pick = "L"
+	end
+	local p = phaseOf(move, phase, pick)
 	local pose, plant = plantedSample(p, u, inp)
 	secondary(pose, move, phase, u, inp, p, plant)
 	return pose

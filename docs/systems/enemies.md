@@ -218,7 +218,15 @@ approves it.
   parent's; `AttackName` equals `Attack` everywhere else), a 1-5 stud slide on along a
   charge or lunge (0.06 s of its dash speed, over 0.3 s), and a turn to the target over
   75% of the recover (at most 0.9 s).
-- **`DashSeconds`** is now also set for leaps and bounds (their real flight).
+- **`DashSeconds`** is now also set for leaps and bounds (their real flight);
+  `EnemyAnimator` times leap and bound poses by it.
+- **Client** (`EnemyAnimator`, `EnemyMotion`): a recover whose `AttackName` names another
+  move than `Attack` plays that move (the skids), timed by the parent's recover; an
+  arrival's dash -> windup holds the landing pose until `Attack` names the follow-up;
+  `motion` families (the ape) get `BoundMode`, `BoundSide`, the drawn velocity and the
+  turn rate as pose input. With the flag on, leaps and bounds fly a flatter-topped arc
+  (`EnemyMotion` `HANG`): same apex, flight time and landing, a quicker rise and drop
+  and a short hang at the top.
 - Users: Thunder Ape `thunderRush` -> `rushSwipe` / `thunderRushSkid`, `skyfallSlam` ->
   `skyfallSweep` / `skyfallSlamSkid`, its bound modes; Elder Wolf King `kingLeap` ->
   `kingRake` / `kingLeapSkid`; Spirit Wolf `pounceSkid`, `leapSkid` (skid only, when it

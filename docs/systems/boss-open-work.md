@@ -56,9 +56,10 @@ motion. Left:
 - **ClubSwing and Backhand:** the sweeps clip the beard by 1.6-1.9 and the jaw by
   about 1.2. Re-solve the contact and follow-through arms, and rework the
   anticipation for the 0.8 s windup.
-- **Landing pops:** BodySlam 0.67, ThunderRush 0.59, Bound 0.37, ThunderPound B
-  0.30 rad. The planned fix is a lifted landing pose solved just before touchdown.
-- **Judgment and Skyfall:** the deep crouches sink the thighs 0.6-1.2 studs.
+- **Landing pops** (feel pass, 2026-10-22): fixed with a lifted landing key (the limbs
+  that land are planted, raised, before touchdown): BodySlam 0.67 -> 0.24, ThunderRush
+  0.59 and Bound 0.37 -> under 0.2. ThunderPound B is still 0.30 (the hind legs at the
+  slam's own speed); the lifted key made it worse, so it is unchanged.
 - **Stagger:** a 0.66 rad pop, not reworked. **Death:** not reworked; it ends
   0.8 studs into the ground.
 - **Thunder Lance:** swap in the solved throw arm (in RIGS.md). The lance fires
@@ -67,15 +68,21 @@ motion. Left:
   recover. They should step.
 - **Small clips:** the beard sits about 0.8 into the chest, and the forearm grazes
   the skull in the boulder follow-through.
-- **Def changes wanted:** register `staggerSeconds = 0.45` on `ThunderApeB` in
-  `EnemyAnimator.luau` (it currently plays a 0.35 s pose in 0.28 s). (`bound`'s
-  recover is now 0.35 and the boulder comment says 1.25 s.)
-- **Arrivals (server done, 2026-10-22 feel pass, `WEIGHTED_MOVES`):** `thunderRush`
-  pulls up 12 short of where you stood and swipes (`rushSwipe`, 0.40 s), `skyfallSlam`
-  sweeps on landing (`skyfallSweep`, 0.50 s), a miss skids round (`thunderRushSkid`,
-  `skyfallSlamSkid` in `AttackName`). Bounds pick `over`/`flank`/`back`/`short`
-  (`BoundMode`, per-mode flight in `DashSeconds`), and the root turns during the
-  windup and in the air. Poses and effects for these, and feel, are open.
+- **Arrivals and bounds (feel pass, 2026-10-22, `WEIGHTED_MOVES`):** posed. The rush's
+  last strides draw the right arm back and brace, `RushSwipe` unwinds into a flat
+  belly-height sweep, `SkyfallSweep` backhands from the landing crouch, and both skids
+  brake, swing round head first with one arm stepping across, then settle (a left and a
+  right version by the target's side). `Bound` has one pose set per `BoundMode`:
+  `over` (counter-rise, deepest crouch, arms flung up, tuck and hang), `flank` (loads the
+  far side, leans into the travel), `back` (rocks onto the fists and shoves off; feet
+  land first, fists after), `short`. A head-leads-the-turn layer follows the root's turn
+  rate in every move (strongest in the air), and leaps and bounds hang at the apex
+  (`EnemyMotion`). The skyfall and judgment crouches no longer sink the thighs (the hind
+  feet land under the hips). Left: feel in play, the blend of the arrival hand-off (the
+  pose holds while `Attack` catches up with AIState), `BoundSide` (the lean's
+  anticipation only shows when the server sends it), effects for the new moves. The
+  sweeps' forearms still graze the beard (up to 0.9 studs), RushSwipe's right shin the
+  chest (0.9).
 - **Feel:** whether the combo still feels rushed under the new timings hasn't been
   judged.
 

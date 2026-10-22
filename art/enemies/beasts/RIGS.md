@@ -461,3 +461,32 @@ Animation pass 2 (partial, see the commit; the per-move rework is unfinished):
   `hitArm` clips the jaw and skull 2.5 studs; swap it in with the roar rework.
 - Thunder Lance throw arm solved toward the spawn point (16 ahead, 3.5 up): world pitch -0.07,
   out 0.56, yaw 0.58, elbow 1.53, wrist 1.2 with the root at (-0.45, -0.02, yaw 0.1) misses by 1.5.
+
+Feel pass (2026-10-22, arrivals, skids, bound modes, landings):
+- New moves: `RushSwipe`, `SkyfallSweep` (arrivals, stationary contact at the end of the
+  windup), `ThunderRushSkid`, `SkyfallSlamSkid` (recover only; variant `L` turns left, picked by
+  `input.side < 0`; `ThunderRush`'s own recover is the same skid). `Bound` has variants `flank`
+  (default), `over`, `back`, `short`, picked by `input.mode` (the server's `BoundMode`).
+- `motionLayer` (in `blendKeys`, before planting): the spine (0.55), head (0.6) and hips (-0.2) take
+  `clamp(yawRate * 0.12, +-0.4) * phase.lead` (lead 0.6 by default, 1.6 in bound flights), and a
+  phase with `lean` rolls the root toward `input.vel` (and loads the far side in the windup when
+  `BoundSide` is sent). EnemyAnimator passes `yawRate`, `vel`, `mode`, `boundSide` for families with
+  `motion = true`. QA scripts don't pass them: probe them by hand (a 4 rad/s turn in a planted windup
+  costs about 0.5 studs of thigh sink, within range).
+- **Lifted landing key** (`lifted(reach, y, tags)`): plant the landing limbs a moment before touchdown
+  with their spots raised by y, then the contact key at y 0. Gotcha: `plantLegs` re-solves a planted
+  middle joint onto the ground, so a raised spot only aims the limb; `liftPlanted` re-runs
+  `rig.solveLeg` with `clear = y` (and a little curl) so the limb really reaches for the ground.
+- Gotcha: a planted leg solved nearly straight (knee near 0) flips solver branch for a frame (a 1.2
+  rad knee pop on the `over` landing). Keep the pre-landing root low enough (-0.3 unit) that the
+  knees stay bent.
+- Gotcha: an arm that lifts off in a windup and is then whipped by the free-arm lag reads the planted
+  wrist for 0.1 s, then snaps (1 rad). Lift the fist planted-and-raised first, and list the move in
+  `EXACT_ARMS`.
+- Gotcha: root yaw past about 0.6 with the hind feet planted sinks the shins up to 0.9 studs (the
+  leg plane no longer contains the foot spot). Put sweep twist in the spine (support() follows it).
+- Hind feet under the hips (hz 0.15-0.2) in the deep landing crouches: the thighs no longer sink
+  (they sank 0.6 at hz 0.5 with the root at -1.1).
+- Safe ranges seen: head yaw 0.5 with the spine at 0.4 the other way; spine yaw 0.65 planted; root
+  yaw 0.55 planted. The rush's gallop at 95 studs/s is averaged over three frames (a fist touchdown
+  popped an elbow 0.6 rad in one frame).

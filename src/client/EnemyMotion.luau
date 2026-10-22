@@ -122,6 +122,17 @@ local function watch(model: Instance)
 	}
 end
 
+-- A leap's or bound's height, 0..1 over its flight (f, the share of the ground covered, which
+-- runs at a constant speed). WEIGHTED_MOVES: a quicker rise, a short hang at the apex and a
+-- quicker drop (same apex, same flight time, same landing); otherwise the plain parabola.
+local HANG = 2.6 -- 2 is the parabola; higher flattens the top and steepens the ends
+local function arcShape(f: number): number
+	if Config.WEIGHTED_MOVES then
+		return 1 - math.abs(2 * f - 1) ^ HANG
+	end
+	return 4 * f * (1 - f)
+end
+
 -- Where the beast is on the server about now, from what has replicated.
 local function predict(rig: Rig, ping: number, now: number, clock: number): Vector3
 	local model, position = rig.model, rig.last
@@ -134,7 +145,7 @@ local function predict(rig: Rig, ping: number, now: number, clock: number): Vect
 			local point = from + (if line.Magnitude > 0 then line.Unit * along else Vector3.zero)
 			local arc = model:GetAttribute("DashArc")
 			local f = if line.Magnitude > 0 then along / line.Magnitude else 1
-			local lift = if type(arc) == "number" and arc > 0 then arc * 4 * f * (1 - f) else 0
+			local lift = if type(arc) == "number" and arc > 0 then arc * arcShape(f) else 0
 			point = Vector3.new(point.X, position.Y + lift, point.Z)
 			if flat(point - position).Magnitude <= speed * (ping + STALE) + DASH_SLACK then
 				return point

@@ -55,9 +55,11 @@ local DEATH_SECONDS = 0.6
 -- keyedBlend: blend from the preceding state for this many seconds, then sample
 -- keyed poses directly. This keeps the King's short tells and contact instants
 -- from trailing the server clock through the normal joint smoothing.
-type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number?, fox: boolean? }
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean? }
 
-local WOLF_MOVES = { bite = "FangSnap", pounce = "MoonPounce", leap = "MoonfallLeap", howl = "Howl", hop = "Hop" }
+-- `<attack>Skid` is the overshoot turn-around the server plays (AIState recover) when a
+-- charge, lunge or leap arrives with the target out of reach; see skidOf below.
+local WOLF_MOVES = { bite = "FangSnap", pounce = "MoonPounce", leap = "MoonfallLeap", howl = "Howl", hop = "Hop", pounceSkid = "PounceSkid", leapSkid = "LeapSkid" }
 local FAMILIES: { [string]: Family } = {
 	SpiritWolfB = { poses = Wolf, scale = 1, moves = WOLF_MOVES, runFrom = 9 },
 	ElderWolfKingB = {
@@ -65,6 +67,7 @@ local FAMILIES: { [string]: Family } = {
 		moves = {
 			royalBite = "RoyalBite", kingsRush = "KingsRush", crownfall = "Crownfall",
 			pawSwipe = "PawSwipe", clawDown = "ClawDown", packCall = "PackCall", roar = "Roar",
+			kingLeap = "KingLeap", kingRake = "KingRake", kingLeapSkid = "KingLeapSkid", kingsRushSkid = "KingsRushSkid",
 		},
 	},
 }
@@ -82,7 +85,7 @@ if JadeJiao then
 			emerge = "Emerge", venomFang = "VenomFang", tailSweep = "TailSweep", pillarSlam = "PillarSlam",
 			fangFlurry = "FangFlurry", mireDive = "MireDive", erupt = "Erupt", venomLance = "VenomLance",
 			venomSpray = "VenomSpray", venomPools = "VenomPools", jiaoCoil = "JiaoCoil", dreadHiss = "DreadHiss",
-			molt = "Molt", ascension = "Ascension", venomRain = "VenomRain",
+			molt = "Molt", ascension = "Ascension", venomRain = "VenomRain", tailShove = "TailShove",
 		},
 	}
 end
@@ -91,8 +94,10 @@ end
 -- gaitRate take real speeds and divide by ThunderApe.SCALE themselves.
 if ThunderApe then
 	FAMILIES.ThunderApeB = {
-		poses = ThunderApe, scale = 3.71, runFrom = 10, keyedBlend = 0.06, deathSeconds = 3.2,
+		poses = ThunderApe, scale = 3.71, runFrom = 10, keyedBlend = 0.06, deathSeconds = 3.2, staggerSeconds = 0.45, motion = true,
 		moves = {
+			rushSwipe = "RushSwipe", thunderRushSkid = "ThunderRushSkid", skyfallSweep = "SkyfallSweep",
+			skyfallSlamSkid = "SkyfallSlamSkid",
 			challenge = "Challenge", clubSwing = "ClubSwing", backhand = "Backhand",
 			thunderPound = "ThunderPound", bodySlam = "BodySlam", skyfallSlam = "SkyfallSlam",
 			thunderRush = "ThunderRush", bound = "Bound", boulderHurl = "BoulderHurl",
@@ -134,6 +139,9 @@ type Rig = {
 	travel: number?, -- studs moved since it last started moving
 	rested: number?, -- how long it was still before it last started moving
 	deadAt: number?,
+	yawRate: number?, -- motion families: the root's smoothed turn rate (rad/s, + to its left)
+	lastYaw: number?,
+	dashName: any?, -- motion families: the Attack whose dash just ran
 }
 
 local rigs: { [Model]: Rig } = {}
@@ -195,6 +203,31 @@ end
 -- Serpent modules (poses.USES_HISTORY) also read the boss Phase, the drawn speed, the turn rate and
 -- the root's heading history (secondsAgo -> yaw), so the body follows the head's path.
 local function withExtras(rig: Rig, family: Family, input: any): any
+	if family.poses.LEAD then
+		-- the head-leads-the-turn moves (skids, follow-ups that turn on arrival): the live yaw
+		-- to the target (+ to the beast's left) and the side it was on when the state began
+		local id = rig.model:GetAttribute("Target")
+		local player = if type(id) == "number" then Players:GetPlayerByUserId(id) else nil
+		local target = player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if target and input.targetYaw == nil then
+			local to = rig.root.CFrame:PointToObjectSpace(target.Position)
+			input.targetYaw = math.atan2(-to.X, -to.Z)
+		end
+		input.side = input.side or rig.side
+	end
+	if family.motion then
+		-- the hop's landing mode and side, the drawn velocity in the root's frame and the turn
+		-- rate, so a pose leans into its travel and the head leads a turn
+		local model = rig.model
+		local mode, hopSide = model:GetAttribute("BoundMode"), model:GetAttribute("BoundSide")
+		local v = EnemyMotion.velocity(model)
+		input.mode = if type(mode) == "string" then mode else nil
+		input.boundSide = if type(hopSide) == "number" then hopSide else nil
+		input.vel = rig.root.CFrame:VectorToObjectSpace(Vector3.new(v.X, 0, v.Z))
+		input.yawRate = rig.yawRate or 0
+		input.side = input.side or rig.side
+		return input
+	end
 	if family.fox then
 		local phase = rig.model:GetAttribute("Phase")
 		input.stage = if type(phase) == "number" then phase else 1
@@ -264,6 +297,15 @@ local function attackOf(def: Enemies.Def?, name: string?): Enemies.Attack?
 	if howl and (howl.name or howl.kind) == name then
 		return howl
 	end
+	-- a follow-up started on arrival (`arrive`, e.g. the ape's rushSwipe) has its own timing
+	for _, list in { def.attacks or {}, def.pattern or {} } do
+		for _, a in list :: { any } do
+			local follow = a.arrive
+			if follow and (follow.name or follow.kind) == name then
+				return follow
+			end
+		end
+	end
 	return nil
 end
 
@@ -290,6 +332,16 @@ local function has(poses: any, move: string?, phase: string): boolean
 end
 
 -- The keyed move for this moment, or nil for the loops.
+-- The move a recover plays when AttackName names another one than Attack (a skid-and-turn,
+-- `<attack>Skid`, after a missed arrival), timed by the parent Attack's recover.
+local function skidOf(rig: Rig, family: Family): string?
+	local name = rig.model:GetAttribute("AttackName")
+	if type(name) == "string" and name ~= rig.model:GetAttribute("Attack") then
+		return family.moves[name]
+	end
+	return nil
+end
+
 local function movePose(rig: Rig, family: Family, state: any, since: number): any?
 	local poses, def = family.poses, rig.def
 	local attackName = rig.model:GetAttribute("Attack")
@@ -305,13 +357,22 @@ local function movePose(rig: Rig, family: Family, state: any, since: number): an
 		if attackName == "hop" and def and def.pack and def.pack.hop then
 			secs = def.pack.hop.seconds
 		elseif attack and (attack.kind == "leap" or attack.kind == "bound" or attack.kind == "retreat") then
-			secs = attack.active or secs
+			-- the real flight time (a bound's varies with its BoundMode)
+			local flight = rig.model:GetAttribute("DashSeconds")
+			secs = if type(flight) == "number" and flight > 0 then flight else attack.active or secs
 		elseif attack and attack.dashSpeed and attack.length then
 			-- a charge that stops past the target dashes for less than its full lane
 			local dashSecs = rig.model:GetAttribute("DashSeconds")
 			secs = if type(dashSecs) == "number" then dashSecs else attack.length / attack.dashSpeed
 		end
 		return poses.sample(move, "active", since / secs, withExtras(rig, family, { duration = secs }))
+	elseif state == "recover" and skidOf(rig, family) then
+		-- a skid-and-turn after a missed arrival: it lasts the parent's recover
+		local skid = skidOf(rig, family) :: string
+		local secs = if attack then attack.recover else 0.5
+		if has(poses, skid, "recover") then
+			return poses.sample(skid, "recover", since / secs, withExtras(rig, family, { duration = secs }))
+		end
 	elseif state == "recover" and move then
 		local secs = if attack then attack.recover else 0.5
 		-- a storm call's recover lasts as long as its bolts do (the server says how long)
@@ -409,10 +470,23 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 			table.remove(history, 1)
 		end
 	end
+	if family.motion then
+		local look = rig.root.CFrame.LookVector
+		local yaw = math.atan2(-look.X, -look.Z)
+		if rig.lastYaw and dt > 0 then
+			local d = (yaw - (rig.lastYaw :: number) + math.pi) % (2 * math.pi) - math.pi
+			local rate = rig.yawRate or 0
+			rig.yawRate = rate + (d / dt - rate) * math.min(1, dt * 8)
+		end
+		rig.lastYaw = yaw
+	end
 	local animationState = if dead then "dead" else state
 	if animationState ~= rig.lastState then
 		rig.lastState = animationState :: string?
-		if state == "stagger" then
+		if family.poses.LEAD and state ~= "stagger" then
+			rig.side = sideOf(rig)
+		end
+		if state == "stagger" or (family.motion and state == "recover") then
 			rig.side = sideOf(rig)
 		end
 		if family.keyedBlend then
@@ -438,6 +512,16 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 	else
 		local at = model:GetAttribute("StateAt")
 		since = math.max(0, workspace:GetServerTimeNow() - (if type(at) == "number" then at else 0))
+		-- an `arrive` follow-up: AIState turns dash -> windup a beat before Attack names the
+		-- follow-up, so hold the arrival pose until it does (it then blends in from here)
+		local attackName = model:GetAttribute("Attack")
+		if family.motion and state == "dash" then
+			rig.dashName = attackName
+		elseif family.motion and state == "windup" and attackName ~= nil and attackName == rig.dashName then
+			return
+		else
+			rig.dashName = nil
+		end
 		target = movePose(rig, family, state, since)
 	end
 	local keyed = target ~= nil

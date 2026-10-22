@@ -1,11 +1,11 @@
 --!strict
--- Jade Jiao: the 70-stud (contract units) jade python with a cobra hood, 37 joints
--- (art/enemies/beasts/RIGS.md "Jade Jiao"). Same pose API as WolfKing.luau; pure tables,
--- no instances and no gameplay decisions.
+-- Jade Jiao: the jade python with a cobra hood, 37 joints (art/enemies/beasts/RIGS.md
+-- "Jade Jiao"). Same pose API as WolfKing.luau; pure tables, no instances and no gameplay
+-- decisions.
 --
--- UNIT SPACE: pivots, root translations and lengths are the fight sheet's contract units;
--- the rig is SCALE (K = 3.17 / 1.9 = 1.668) times bigger and EnemyAnimator applies it ONCE to
--- JointRoot's translation (scaled()). Wave lengths and speeds are REAL studs.
+-- UNITS: real studs in model space (the rebuilt body, commit 33c253a; SCALE = 1). The body
+-- RESTS COILED (the reference's look): every tail bone has its own rest heading, and
+-- Serpent.luau composes each segment's absolute orientation with it.
 --
 -- Attack       Move         windup / active / pose recover    server recover
 -- emerge       Emerge         2.20 / 0.10 / 0.50                   0.60
@@ -27,10 +27,12 @@
 --
 -- A pose is built from a STANCE (a flat table of numbers keyed per phase and lerped) by
 -- compose(): the neck's elevations e1..e6 and headings y1..y6 (absolute, see Serpent.luau),
--- the Body's pitch/translation, the head roll, jaw, fangs, hood, tongue, and the tail's heading
--- bend `ty`, rear `tup`, slither amplitude `tamp`, plus the ring coil `ring`/`tight`/`arch`.
--- compose() adds the overlapping action: each neck joint and tail segment reads the stance a
--- little late (neck leads, head trails, tail whips last), fading to nothing at phase ends.
+-- the Body's lift/translation, the head roll, jaw, fangs, hood, tongue, and the tail's heading
+-- bend `ty`, rear `tup`, agitation `tamp`, plus the ring coil `ring`/`tight`/`arch`.
+-- The spine under every stance lies on the slither curve (Serpent.curve) at the wave phase
+-- EnemyAnimator keeps (input.wavePhase), so a move starts from the S the snake stopped in.
+-- Neck shapes in the move tables are authored as six numbers per the old 5-bone layout and
+-- remapped by st() (E / Y); `N` gives new-layout elevations directly.
 
 local Serpent = require(script.Parent.Serpent)
 
@@ -43,10 +45,14 @@ export type Input = {
 	seed: number?,
 	phase: number?, -- boss phase 1-3 (Phase attribute)
 	speed: number?, -- real studs/s
-	turn: number?, -- root yaw rate rad/s
-	yawAt: ((number) -> number)?, -- root heading secondsAgo
+	turn: number?, -- travel yaw rate rad/s
+	yawAt: ((number) -> number)?, -- travel heading secondsAgo
 	time: number?, -- a clock for ambient motion (os.clock)
 	radius: number?, -- CoilRadius in real studs (default COIL_RADIUS)
+	wavePhase: number?, -- the slither wave's phase (EnemyAnimator advances it with the distance moved)
+	still: number?, -- seconds the body has been still (0 while moving)
+	travel: number?, -- studs moved since it last started moving (0 while still)
+	rested: number?, -- how long it was still before it started moving (its coil level)
 }
 type Stance = { [string]: number }
 type Key = { t: number, s: Stance, ease: string? }
@@ -58,23 +64,24 @@ local TAU = Serpent.TAU
 local smooth, EASE = Serpent.smooth, Serpent.EASE
 local D = math.rad
 local I = CFrame.identity
-local SCALE = 3.17 / 1.9
+local SCALE = 1
 JadeJiao.SCALE = SCALE
-local WAVELENGTH = 17 * SCALE -- real studs between crests
+local RK = 1.1 -- stance root translations (rx, ry, rz) were authored for the old body: x 1.1 studs
+local WAVELENGTH = 30 -- arc studs between crests at a walk (about half the 55-stud ground spine)
 JadeJiao.WAVELENGTH = WAVELENGTH
-local COIL_R = 8 -- module units, 13.3 studs
-JadeJiao.COIL_RADIUS = COIL_R * SCALE
+local COIL_R = 11.9 -- real studs: the Body and the whole tail round a 280-degree ring
+JadeJiao.COIL_RADIUS = COIL_R
 JadeJiao.COIL_ARC = { D(280), D(300) } -- by boss phase
+local _ = I
 
 --------------------------------------------------------------------------------
--- Skeleton
+-- Skeleton (RIGS.md, real studs)
 
 local NECK = { "JointNeck", "JointNeck2", "JointNeck3", "JointNeck4", "JointNeck5", "JointHead" }
 local TAIL = { "JointTail" }
 for i = 2, 18 do
 	TAIL[i] = "JointTail" .. i
 end
-local TAIL_LEN = { 3, 3, 3, 3, 3, 3, 2.8, 2.8, 2.8, 2.8, 2.8, 2.8, 2.5, 2.5, 2.5, 2.5, 2.2, 2.0 }
 
 JadeJiao.JOINTS = { "JointRoot" }
 for _, n in NECK do
@@ -89,34 +96,53 @@ for _, n in TAIL do
 end
 
 local P: { [string]: Vector3 } = {
-	JointRoot = V(0, 1.9, 2.5),
-	JointNeck = V(0, 1.9, -1.0), JointNeck2 = V(0, 4.3, -3.8), JointNeck3 = V(0, 6.6, -2.8),
-	JointNeck4 = V(0, 8.6, -5.0), JointNeck5 = V(0, 9.6, -7.0), JointHead = V(0, 10.0, -8.6),
+	JointRoot = V(3.02, 3.25, -1.43),
+	JointNeck = V(0, 3.33, -4.13), JointNeck2 = V(0, 5.32, -6.83), JointNeck3 = V(0, 7.30, -9.52),
+	JointNeck4 = V(0, 11.11, -5.87), JointNeck5 = V(0, 13.81, -9.37), JointHead = V(0, 14.60, -11.59),
+}
+local TAIL_P = {
+	V(6.03, 3.17, 1.27), V(7.30, 3.10, 4.44), V(8.57, 3.02, 7.62), V(6.98, 2.94, 10.63), V(5.40, 2.86, 13.65),
+	V(2.96, 2.77, 14.39), V(0.53, 2.69, 15.13), V(-1.90, 2.60, 15.87), V(-4.02, 2.50, 14.81), V(-6.14, 2.39, 13.76),
+	V(-8.25, 2.29, 12.70), V(-8.89, 2.16, 10.58), V(-9.52, 2.03, 8.47), V(-10.16, 1.90, 6.35), V(-9.63, 1.78, 4.23),
+	V(-9.10, 1.65, 2.12), V(-8.57, 1.52, 0.00), V(-6.98, 1.33, -2.38),
 }
 local parent: { [string]: string } = {
 	JointNeck = "JointRoot", JointNeck2 = "JointNeck", JointNeck3 = "JointNeck2", JointNeck4 = "JointNeck3",
 	JointNeck5 = "JointNeck4", JointHead = "JointNeck5", JointTail = "JointRoot",
 }
-local TAIL_WIDTH0, TAIL_WIDTH1 = 3.6, 0.8
-do
-	local z = 6.0
-	for i = 1, 18 do
-		local w = TAIL_WIDTH0 + (TAIL_WIDTH1 - TAIL_WIDTH0) * (i - 1) / 17
-		P[TAIL[i]] = V(0, w / 2 + 0.1, z)
-		if i > 1 then
-			parent[TAIL[i]] = TAIL[i - 1]
-		end
-		z += TAIL_LEN[i]
+for i = 1, 18 do
+	P[TAIL[i]] = TAIL_P[i]
+	if i > 1 then
+		parent[TAIL[i]] = TAIL[i - 1]
 	end
 end
 JadeJiao.PIVOTS = P
 JadeJiao.PARENT = parent
+local HRP_Z = 5.65
 
 local solver = Serpent.new({
-	P = P, parent = parent, neck = NECK, tail = TAIL, tailLen = TAIL_LEN, scale = SCALE,
-	root = "JointRoot", rootPivotZ = 2.5, hrpZ = -1.5, bodyRear = 3.5,
+	P = P, root = "JointRoot", neck = NECK, tail = TAIL, tailEnd = V(-5.38, 1.14, -4.77),
+	mouth = V(0, 13.12, -18.51), hrpZ = HRP_Z,
 })
 JadeJiao.solver = solver
+local NT = #TAIL
+
+--------------------------------------------------------------------------------
+-- Slither parameters (by ground speed)
+
+-- heading amplitude (rad) and wavelength (arc studs): a deep S at a creep and walk, a little
+-- flatter and longer at a run
+local function slitherParams(speed: number): (number, number)
+	local f = smooth(6, 21, speed)
+	return 0.9 - 0.18 * f, WAVELENGTH + 4 * f
+end
+JadeJiao.slitherParams = slitherParams
+local TH_STANCE = 0.9 -- the S held under attack stances (the walk's, so a move starts where the walk stopped)
+
+-- coil level from the seconds spent still
+local function coilLevel(seconds: number): number
+	return smooth(1.2, 4.5, seconds)
+end
 
 --------------------------------------------------------------------------------
 -- Stances
@@ -144,18 +170,27 @@ for k in DEF do
 	table.insert(KEYS, k)
 end
 
--- a stance from a base and changes: E = { six elevations, degrees }, Y = { six headings, rad }
+-- the old neck layout (5 bones + skull) onto the new one: the old first bone is the new first
+-- two, the old 4th and 5th merge into the new 5th
+local function remap(v: { number }): { number }
+	return { v[1], v[1], v[2], v[3], (v[4] * 3.73 + v[5] * 2.75) / 6.48, v[6] }
+end
+
+-- a stance from a base and changes: E = { six elevations, degrees, old layout }, Y = { six
+-- headings, rad, old layout }, N = { six elevations, degrees, new layout }
 local function st(base: Stance, c: { [string]: any }?): Stance
 	local out = table.clone(base)
 	if c then
 		for k, v in c do
-			if k == "E" then
+			if k == "E" or k == "N" then
+				local e = if k == "E" then remap(v :: any) else v :: any
 				for j = 1, 6 do
-					out[ENAME[j]] = D((v :: any)[j])
+					out[ENAME[j]] = D(e[j])
 				end
 			elseif k == "Y" then
+				local y = remap(v :: any)
 				for j = 1, 6 do
-					out[YNAME[j]] = (v :: any)[j]
+					out[YNAME[j]] = y[j]
 				end
 			else
 				out[k] = v
@@ -193,7 +228,7 @@ local function keyed(keys: { Key }, u: number): Stance
 end
 
 local IDLE = st(DEF, { tamp = 0.35 })
--- neck shapes (degrees above horizontal, per segment, skull last)
+-- neck shapes (degrees above horizontal, per segment, skull last; old layout, remapped)
 local COL = { 80, 100, 92, 85, 72, 15 }
 local DRAW = { 55, 140, 62, 40, 22, -16 }
 local STRIKE = { 30, 45, 22, 12, 0, -18 }
@@ -206,10 +241,11 @@ local LFWD = { 30, 40, 25, 15, 5, 0 }
 local RAINE = { 85, 100, 95, 92, 88, 55 }
 local DROOP = { 25, 70, 30, 10, -5, -25 }
 local LIMP = { 8, 10, 3, -1, -5, -4 }
-local WALKE = { 32, 70, 28, 16, 6, -4 }
-local RUNE = { 18, 34, 10, 6, 0, -6 }
-local RING_E = { 45, 75, 40, 25, 10, -60 }
-local RING_W = { 0.35, 0.6, 0.85, 1, 1, 1 }
+-- locomotion necks (new layout): a lowered S at a walk, low and forward at a run
+local WALK_N = { 14, 24, 75, 26, 8, -2 }
+local RUN_N = { 6, 12, 45, 18, 4, -4 }
+local RING_E = { 45, 45, 75, 40, 18, -60 } -- new layout
+local RING_W = { 0.3, 0.4, 0.6, 0.85, 1, 1 }
 
 local SINK_Y = -6
 
@@ -240,25 +276,44 @@ end
 type Ctx = {
 	secs: number, -- ambient clock
 	wavePhase: number,
-	lat: number, -- slither amplitude, real studs (0: none)
+	th0: number, -- slither heading amplitude (rad)
+	wavelength: number,
 	yawAt: ((number) -> number)?,
 	speed: number,
+	turn: number,
 	phase: number, -- boss phase
-	radius: number, -- coil radius, module units
+	radius: number, -- coil radius, real studs
 	arcs: number,
 	seed: number,
-	look: number?, -- neck aim yaw (circle)
+	look: number?, -- head aim yaw (rad, + left)
+	neckPath: number?, -- 0..1: the lower neck follows the path (loops)
+	restW: ((i: number) -> number)?, -- per bone (0 = body, 1..18 tail): weight of the rest coil
 }
 
 local HOOD_BASE = { 0, 0.3, 0.55 }
+local NECK_PATH_W = { 1, 0.6, 0.2, 0, 0, 0 }
+local NECK_PATH_S = { -1.5, -4.5, -8, 0, 0, 0 }
+local CENTRE_W = { 0, 0.25, 0.8, 1, 1, 0 }
 
 local function compose(samples: { Stance }, ctx: Ctx): Pose
 	local S0 = samples[1]
 	local pose: Pose = {}
 	local t = ctx.secs
 
-	-- Body
-	local bp = S0.bp
+	-- the spine's ground curve, frozen in a stance or sliding in a loop
+	local c = solver.curve(ctx.wavePhase, ctx.th0, ctx.wavelength)
+	local front0 = P.JointNeck
+	local pYaw, pPivot, pH = solver.lay(c, front0)
+	local follow: { [number]: number } = {}
+	if ctx.yawAt and ctx.speed > 1 then
+		solver.follow(ctx.yawAt, ctx.speed, ctx.turn, follow)
+	end
+	local restW = ctx.restW
+	local wb = if restW then restW(0) else 0
+	local bodyYaw = (pYaw + (follow[0] or 0)) * (1 - wb) + solver.bodyRestYaw * wb
+	local pivot = pPivot:Lerp(solver.Pr, wb)
+
+	-- the ring coil
 	local ringA = S0.ring
 	local ring: any = nil
 	local Rr = ctx.radius * (1 - 0.12 * S0.tight)
@@ -266,21 +321,21 @@ local function compose(samples: { Stance }, ctx: Ctx): Pose
 		ring = solver.ring(Rr, ctx.arcs, ringA)
 	end
 	local ringBlend = smooth(0, 0.08, ringA)
-	local bodyWave = 0
-	local heads: { number } = {}
-	if ctx.lat > 0.01 then
-		bodyWave = solver.wave(ctx.wavePhase, ctx.lat * 1.0, WAVELENGTH, heads)
-	end
-	local bodyYaw = S0.ryaw + bodyWave
 	if ring then
 		bodyYaw += (ring.bodyYaw - bodyYaw) * ringBlend
+		pivot = pivot:Lerp(ring.pivot, ringBlend)
 	end
-	local rootT = V(S0.rx, S0.ry + 3.5 * math.sin(bp), S0.rz + 3.5 * (1 - math.cos(bp)))
-	if ring then
-		rootT += ring.root
-	end
-	local Rb = Serpent.ry(bodyYaw) * Serpent.rx(bp) * CFrame.Angles(0, 0, S0.rroll)
-	pose.JointRoot = CFrame.new(rootT) * Rb
+	bodyYaw += S0.ryaw
+
+	-- lift the front (bp) about the rear end, then the stance's own shift
+	local bp = S0.bp
+	local Rb0 = solver.bodyRot(bodyYaw, 0)
+	local Rb = solver.bodyRot(bodyYaw, bp, S0.rroll)
+	pivot += Rb0 * solver.rearRel - Rb * solver.rearRel
+	local shift = V(S0.rx, S0.ry, S0.rz) * RK
+	pivot += shift
+	pose.JointRoot = solver.rootTransform(Rb, pivot)
+	local base = solver.bodyEnds(Rb, pivot)
 
 	-- Neck
 	local E, Y = table.create(6), table.create(6)
@@ -289,22 +344,28 @@ local function compose(samples: { Stance }, ctx: Ctx): Pose
 		E[j] = at(samples, ENAME[j], lag)
 		Y[j] = at(samples, YNAME[j], lag) + S0.ryaw + (if ctx.look then ctx.look * math.min(1, j * 0.25) else 0)
 	end
-	-- the slither's wave on the lower neck; the head keeps aim (its heading is not waved)
-	if ctx.lat > 0.01 then
-		local k = TAU / WAVELENGTH
-		local amp = ctx.lat * k * k * 4.5 * SCALE
-		for j = 1, 5 do
-			local f = (1 - (j - 1) / 5)
-			Y[j] += amp * 0.5 * f * math.sin(ctx.wavePhase + k * (1 + j * 2.4) * SCALE) * 0.12
+	local np = ctx.neckPath or 0
+	if np > 0 then
+		-- the lower neck runs on along the path the body will take
+		for j = 1, 3 do
+			Y[j] += np * NECK_PATH_W[j] * c.theta(NECK_PATH_S[j])
 		end
 	end
 	local neckBlend = smooth(0.15, 0.7, ringA)
+	if neckBlend < 1 then
+		-- keep the head on the lane: cancel the neck base's sideways offset (the S under it)
+		local ref = solver.headAt(E, Y, V(shift.X, base.Y, base.Z))
+		local Yc = solver.centre(E, Y, base, ref.X, CENTRE_W)
+		for j = 1, 6 do
+			Y[j] = Yc[j]
+		end
+	end
 	if ring and neckBlend > 0 then
 		local RE = table.create(6)
 		for j = 1, 6 do
 			RE[j] = D(RING_E[j])
 		end
-		local Yr = solver.reach(RE, Rb, rootT, -Rr, -1.5, RING_W)
+		local Yr = solver.reach(RE, base, -Rr, HRP_Z, RING_W)
 		for j = 1, 6 do
 			E[j] += (RE[j] - E[j]) * neckBlend
 			Y[j] += (Yr[j] - Y[j]) * neckBlend
@@ -316,56 +377,57 @@ local function compose(samples: { Stance }, ctx: Ctx): Pose
 	end
 
 	-- Tail
-	local Yt, Ut = table.create(18), table.create(18)
-	local follow = table.create(18, 0)
-	if ctx.yawAt and ctx.speed > 1 then
-		solver.follow(ctx.yawAt, ctx.speed, follow)
-	end
+	local Yt, Ut = table.create(NT), table.create(NT)
 	local used = 0
 	if ring then
 		used = ring.used - 1
 	end
 	local tailJoin = 0
-	local curl = 0.9 * (S0.arch)
-	for k = 1, 18 do
+	local curl = 0.9 * S0.arch
+	for k = 1, NT do
 		local lag = 0.011 * k
 		local ty = at(samples, "ty", lag)
 		local up = at(samples, "tup", lag)
 		local w = math.min(1, k / 4)
-		local yaw = (heads[k] or 0) + ty * w + S0.ryaw + follow[k]
-		local pitch = up * math.sin(math.pi * math.min(1, k / 12))
+		local wr = if restW then restW(k) else 0
+		local yaw = (pH[k] + (follow[k] or 0)) * (1 - wr) + solver.restYaw[k] * wr
+		local pitch = solver.restUp[k]
 		if ring then
-			local ringYaw = ring.headings[k] or ring.endHeading
+			local ringYaw = ring.headings[k]
 			local uncovered = k > used
 			local a = S0.arch
 			if uncovered and a > 0 then
-				-- the free tail rises as a rattling arch on the ring's end, leaning outward
+				-- the free tail rises as a rattling arch on the ring's end, curling outward
 				tailJoin += 1
-				local m = math.max(1, 18 - used)
+				local m = math.max(1, NT - used)
 				local x = (tailJoin - 0.5) / m
-				-- curl outward on a small circle (radius ~6.5 studs) outside the ring's end, climbing a little
-				curl += TAIL_LEN[k] * SCALE / 6.5
+				curl += solver.len[k] / 6.5
 				pitch += a * 0.33 * math.sin(math.pi * x) ^ 0.8
 				ringYaw += a * curl
 				ringYaw += a * 0.05 * math.sin(t * 31 + k * 1.7)
 			end
 			yaw += (ringYaw - yaw) * ringBlend
 		end
+		-- the stance's bend and rear, and agitation toward the tip
+		yaw += ty * w + S0.ryaw
+		local f = (k - 1) / (NT - 1)
+		yaw += S0.tamp * 0.22 * smooth(0.3, 1, f) * math.sin(t * 4.2 - k * 0.55 + ctx.seed)
+		pitch += up * math.sin(math.pi * math.min(1, k / 12))
 		Yt[k], Ut[k] = yaw, pitch
 	end
 	local tl = solver.tailLocals(Yt, Ut, Rb)
-	for k = 1, 18 do
+	for k = 1, NT do
 		pose[TAIL[k]] = tl[k]
 	end
 
 	-- Head parts
 	local jaw = math.clamp(at(samples, "jaw", 0.14), 0, 1.2)
 	pose.JointJaw = CFrame.Angles(-0.95 * jaw, 0, 0)
-	local fang = math.min(math.clamp(at(samples, "fang", 0.14), 0, 1), math.max(0.35, jaw * 1.3))
+	local fang = math.min(math.clamp(at(samples, "fang", 0.14), 0, 1), math.max(0.0, jaw * 1.3))
 	pose.JointFangL = CFrame.Angles(1.45 * fang, 0, 0)
 	pose.JointFangR = CFrame.Angles(1.45 * fang, 0, 0)
-	local base = HOOD_BASE[math.clamp(ctx.phase, 1, 3)]
-	local flare = base + (1 - base) * math.clamp(at(samples, "hood", 0.06), 0, 1)
+	local hb = HOOD_BASE[math.clamp(ctx.phase, 1, 3)]
+	local flare = hb + (1 - hb) * math.clamp(at(samples, "hood", 0.06), 0, 1)
 	local quiver = 0.025 * math.sin(t * 7.3) * flare
 	pose.JointHoodL = CFrame.Angles(0, -(1.2 * flare + quiver), 0)
 	pose.JointHoodR = CFrame.Angles(0, 1.2 * flare + quiver, 0)
@@ -875,17 +937,22 @@ function JadeJiao.sample(move: string, phase: string, u: number, input: Input?):
 	local clock = inp.time or secs
 	local ph1 = inp.phase or 1
 	local arcs = JadeJiao.COIL_ARC[if ph1 >= 3 then 2 else 1]
-	local R = if inp.radius then inp.radius / SCALE else COIL_R
-	local tamp = samples[1].tamp
-	local ctx: Ctx = {
-		secs = clock, wavePhase = clock * 1.7, lat = 1.3 * SCALE * tamp, yawAt = nil, speed = 0,
-		phase = ph1, radius = R, arcs = arcs, seed = inp.seed or 0,
-	}
-	local pose = compose(samples, ctx)
-	if move == "Stagger" or move == "Death" then
-		-- no per-state offsets beyond the stance
+	local R = inp.radius or COIL_R
+	-- a move started from a resting coil unwinds it over the first 0.6 s of the windup
+	local restW: ((number) -> number)? = nil
+	if phase == "windup" then
+		local c0 = coilLevel((inp.still or 0) - secs) * (1 - smooth(0, 0.6, secs))
+		if c0 > 0.001 then
+			restW = function(i: number): number
+				return c0
+			end
+		end
 	end
-	return pose
+	local ctx: Ctx = {
+		secs = clock, wavePhase = inp.wavePhase or 0, th0 = TH_STANCE, wavelength = WAVELENGTH, yawAt = nil,
+		speed = 0, turn = 0, phase = ph1, radius = R, arcs = arcs, seed = inp.seed or 0, restW = restW,
+	}
+	return compose(samples, ctx)
 end
 
 --------------------------------------------------------------------------------
@@ -899,20 +966,14 @@ local function mix(a: { number }, b: { number }, t: number): { number }
 	return out
 end
 
--- the wave's crest rate: TAU * speed / wavelength (real studs), so crests stand still on the ground
+-- the wave's phase rate: k * the sliding speed, so the curve stays fixed on the ground while the
+-- body slides along it at `speed` mean ground speed
 function JadeJiao.gaitRate(loop: string, speed: number, scale: number?): number
 	if loop == "walk" or loop == "run" or loop == "circle" then
-		return TAU * speed / WAVELENGTH
+		local th0, wl = slitherParams(speed)
+		return TAU / wl * Serpent.slideSpeed(speed, th0)
 	end
 	return 1
-end
-
-local function loopCtx(phase: number, speed: number, input: Input?, lat: number): Ctx
-	local inp = input or {}
-	return {
-		secs = inp.time or os.clock(), wavePhase = phase, lat = lat, yawAt = inp.yawAt, speed = speed,
-		phase = inp.phase or 1, radius = COIL_R, arcs = JadeJiao.COIL_ARC[1], seed = inp.seed or 0,
-	}
 end
 
 local function REST_E_DEG(): { number }
@@ -923,12 +984,28 @@ local function REST_E_DEG(): { number }
 	return out
 end
 
+local function loopCtx(phase: number, speed: number, input: Input?): Ctx
+	local inp = input or {}
+	local th0, wl = slitherParams(speed)
+	return {
+		secs = inp.time or os.clock(), wavePhase = phase, th0 = th0, wavelength = wl, yawAt = inp.yawAt, speed = speed,
+		turn = inp.turn or 0, phase = inp.phase or 1, radius = COIL_R, arcs = JadeJiao.COIL_ARC[1], seed = inp.seed or 0,
+	}
+end
+
 local loops: { [string]: (number, number, Input?) -> Pose } = {}
--- idle: the reared S, a slow sway and breathing, tongue flicks, hood folded
+-- idle: the S it stopped in gathers into the resting coil (the reference's look) after 1.2 s,
+-- the head end first, and the neck rises back into the strike S; a slow sway, breathing and
+-- tongue flicks throughout. t is a clock; input.wavePhase the S it stopped in.
 function loops.idle(t: number, speed: number, input: Input?): Pose
 	local inp = input or {}
 	local seed = inp.seed or 0
+	local c = coilLevel(inp.still or 99)
 	local s = table.clone(IDLE)
+	local neck = mix(WALK_N, REST_E_DEG(), smooth(0, 0.6, c))
+	for j = 1, 6 do
+		s[ENAME[j]] = D(neck[j])
+	end
 	local sway = math.sin(t * 0.55 + seed)
 	for j = 1, 5 do
 		s[YNAME[j]] = 0.09 * sway * (0.4 + 0.15 * j) + 0.03 * math.sin(t * 1.3 + j)
@@ -939,52 +1016,74 @@ function loops.idle(t: number, speed: number, input: Input?): Pose
 	s.e5 += 0.03 * math.sin(t * 1.55 + seed - 1.0)
 	s.e6 += 0.04 * math.sin(t * 0.8 + 1)
 	s.hood = 0.03 * (0.5 + 0.5 * math.sin(t * 1.55))
-	s.ty = 0.2 * math.sin(t * 0.4 + seed)
-	local c = loopCtx(t * 0.7, 0, input, 1.0 * SCALE)
-	c.secs = t
-	return compose(same(s), c)
+	s.ty = 0.06 * math.sin(t * 0.4 + seed)
+	s.tamp = 0.25
+	local ctx = loopCtx(inp.wavePhase or 0, 0, input)
+	ctx.th0 = TH_STANCE
+	ctx.wavelength = WAVELENGTH
+	ctx.secs = t
+	ctx.restW = function(i: number): number
+		return smooth(0, 1, c * 1.6 - 0.6 * i / NT)
+	end
+	return compose(same(s), ctx)
 end
 
-local function slither(phase: number, speed: number, input: Input?, lat: number, neck: { number }, hood: number): Pose
+-- a move-start from a coil unwinds as the head travels: bone i leaves the coil once the head has
+-- gone about half its arc
+local function unwind(input: Input?): ((number) -> number)?
+	local inp = input or {}
+	local c0 = coilLevel(inp.rested or 0)
+	if c0 < 0.001 then
+		return nil
+	end
+	local travel = inp.travel or 99
+	return function(i: number): number
+		local s = if i == 0 then solver.sPivot else solver.arc[i] + solver.len[i] * 0.5
+		return c0 * (1 - smooth(s * 0.45 - 3, s * 0.45 + 5, travel))
+	end
+end
+
+local function slither(phase: number, speed: number, input: Input?, neck: { number }, look: number?): Pose
 	local s = st(IDLE, {})
 	for j = 1, 6 do
 		s[ENAME[j]] = D(neck[j])
 	end
-	s.hood = hood
-	s.tamp = 0
-	return compose(same(s), loopCtx(phase, speed, input, lat))
+	s.hood = 0
+	s.tamp = 0.15
+	local t = (input and input.time) or os.clock()
+	s.e6 += 0.03 * math.sin(t * 1.4) -- the head bobs a little, nothing frozen
+	local ctx = loopCtx(phase, speed, input)
+	ctx.neckPath = 1
+	ctx.look = look
+	ctx.restW = unwind(input)
+	return compose(same(s), ctx)
 end
 
 function loops.walk(phase: number, speed: number, input: Input?): Pose
-	local f = smooth(2, 8.5, speed)
-	return slither(phase, speed, input, (3.0 + 0.4 * f) * SCALE/ SCALE, mix(REST_E_DEG(), WALKE, f), 0)
+	local f = smooth(0.6, 6, speed)
+	return slither(phase, speed, input, mix(mix(REST_E_DEG(), WALK_N, 0.6), WALK_N, f))
 end
 
 function loops.run(phase: number, speed: number, input: Input?): Pose
-	local f = smooth(8, 22, speed)
-	return slither(phase, speed, input, (2.8 - 0.9 * f), mix(WALKE, RUNE, f), 0)
+	local f = smooth(8.5, 21, speed)
+	return slither(phase, speed, input, mix(WALK_N, RUN_N, f))
 end
 
--- circle: weave sideways while the head holds on the target
+-- circle: the same slither with the head held on the target
 function loops.circle(phase: number, speed: number, input: Input?): Pose
 	local inp = input or {}
-	local s = st(IDLE, {})
-	local neck = mix(REST_E_DEG(), WALKE, 0.6)
-	for j = 1, 6 do
-		s[ENAME[j]] = D(neck[j])
-	end
-	s.ty = 0.35 * (inp.dir or 1)
-	s.hood = 0.1
-	local c = loopCtx(phase, speed, input, 3.6 * SCALE)
-	c.look = math.clamp(((inp.targetYaw or 0) - 0), -0.7, 0.7) * 0.8
-	return compose(same(s), c)
+	local f = smooth(8.5, 21, speed)
+	return slither(phase, speed, input, mix(WALK_N, RUN_N, f), math.clamp(inp.targetYaw or 0, -0.7, 0.7) * 0.8)
 end
 
 JadeJiao.loops = loops
-JadeJiao.USES_HISTORY = true -- EnemyAnimator supplies phase, speed, turn, yawAt and time
+JadeJiao.USES_HISTORY = true -- EnemyAnimator supplies phase, speed, turn, yawAt, time, wavePhase, still, travel, rested
 
--- translations are in module units: EnemyAnimator applies SCALE once
+-- poses are in real studs (SCALE = 1); kept for the family API
 function JadeJiao.scaled(pose: Pose, scale: number): Pose
+	if scale == 1 then
+		return pose
+	end
 	local out = table.clone(pose)
 	local r = out.JointRoot
 	if r then

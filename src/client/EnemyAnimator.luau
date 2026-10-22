@@ -73,10 +73,11 @@ if Boar then
 	FAMILIES.StoneBoarB = { poses = Boar, scale = 1, moves = { charge = "Charge", gore = "Gore" }, runFrom = 8 }
 end
 
--- Jade Jiao: the Template-keyed serpent family (Template "JadeJiao", 1.668x the contract pose units)
+-- Jade Jiao: the Template-keyed serpent family (Template "JadeJiao", real-stud poses, SCALE 1).
+-- A longer keyed blend: a move can start from the resting coil or the walking S.
 if JadeJiao then
 	FAMILIES.JadeJiao = {
-		poses = JadeJiao, scale = JadeJiao.SCALE, runFrom = 8.5, keyedBlend = 0.08, deathSeconds = 3.6, staggerSeconds = 0.4,
+		poses = JadeJiao, scale = JadeJiao.SCALE, runFrom = 8.5, keyedBlend = 0.2, deathSeconds = 3.6, staggerSeconds = 0.4,
 		moves = {
 			emerge = "Emerge", venomFang = "VenomFang", tailSweep = "TailSweep", pillarSlam = "PillarSlam",
 			fangFlurry = "FangFlurry", mireDive = "MireDive", erupt = "Erupt", venomLance = "VenomLance",
@@ -128,7 +129,10 @@ type Rig = {
 	lastState: string?,
 	blendPose: { [string]: CFrame }?, -- keyed families: joints as the preceding state ended
 	side: number, -- stagger/death: +1 the target is on its right
-	yawHistory: { { number } }?, -- serpent families: { clock, root yaw } samples, newest last
+	yawHistory: { { number } }?, -- serpent families: { clock, travel yaw (unwrapped) } samples, newest last
+	still: number?, -- serpent families: seconds below the idle speed (0 while moving)
+	travel: number?, -- studs moved since it last started moving
+	rested: number?, -- how long it was still before it last started moving
 	deadAt: number?,
 }
 
@@ -209,6 +213,10 @@ local function withExtras(rig: Rig, family: Family, input: any): any
 	input.speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
 	input.time = os.clock()
 	input.radius = if type(radius) == "number" then radius else nil
+	input.wavePhase = rig.phase
+	input.still = rig.still or 0
+	input.travel = rig.travel or 0
+	input.rested = rig.rested or 0
 	input.turn = if n >= 2 then (history[n][2] - history[n - 1][2]) / math.max(1e-3, history[n][1] - history[n - 1][1]) else 0
 	input.yawAt = function(secondsAgo: number): number
 		local at = history[n][1] - secondsAgo
@@ -335,7 +343,7 @@ local function loopPose(rig: Rig, family: Family, dt: number): any
 	local frame = rig.root.CFrame
 	local local_ = frame:VectorToObjectSpace(flatVelocity)
 	local target = targetRoot(rig.model)
-	if target and poses.loops.circle and speed > 1 and math.abs(local_.X) > math.abs(local_.Z) then
+	if target and poses.loops.circle and not poses.USES_HISTORY and speed > 1 and math.abs(local_.X) > math.abs(local_.Z) then
 		local toTarget = frame:PointToObjectSpace(target.Position)
 		local input = {
 			dir = if local_.X < 0 then 1 else -1, -- -X is the wolf's left
@@ -347,7 +355,9 @@ local function loopPose(rig: Rig, family: Family, dt: number): any
 		return poses.loops.idle(os.clock(), speed, withExtras(rig, family, { seed = rig.seed }))
 	end
 	local loop = if speed <= family.runFrom then "walk" else "run"
-	rig.phase += poses.gaitRate(loop, speed, family.scale) * dt
+	if not poses.USES_HISTORY then -- serpents advance their wave in stepFamily, in every state
+		rig.phase += poses.gaitRate(loop, speed, family.scale) * dt
+	end
 	return poses.loops[loop](rig.phase, speed, withExtras(rig, family, { seed = rig.seed }))
 end
 
@@ -363,8 +373,38 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 			rig.yawHistory = history
 		end
 		local now = os.clock()
-		local _, yaw = rig.root.CFrame:ToEulerAnglesYXZ()
+		-- the travel heading (where the drawn body is going; its facing when slow), unwrapped so
+		-- the history interpolates across +-pi
+		local velocity = EnemyMotion.velocity(model)
+		local flat = Vector3.new(velocity.X, 0, velocity.Z)
+		local speed = flat.Magnitude
+		local yaw: number
+		if speed > 2 then
+			yaw = math.atan2(-flat.X, -flat.Z)
+		else
+			local _, y = rig.root.CFrame:ToEulerAnglesYXZ()
+			yaw = y
+		end
+		local last = history[#history]
+		if last then
+			yaw = last[2] + ((yaw - last[2] + math.pi) % (2 * math.pi) - math.pi)
+		end
 		table.insert(history, { now, yaw })
+		-- the slither's wave slides with the ground speed in every state (a run during a windup,
+		-- a dash), so the body never skates; still/travel drive the coil and uncoil
+		local loop = if speed <= family.runFrom then "walk" else "run"
+		if speed >= 0.6 then
+			rig.phase += family.poses.gaitRate(loop, speed, family.scale) * dt
+			if (rig.still or 0) > 0 then
+				rig.rested = rig.still
+				rig.travel = 0
+			end
+			rig.still = 0
+			rig.travel = (rig.travel or 0) + speed * dt
+		else
+			rig.still = (rig.still or 99) + dt
+			rig.travel = 0
+		end
 		while #history > 2 and history[2][1] < now - 3 do
 			table.remove(history, 1)
 		end

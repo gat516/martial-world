@@ -346,6 +346,7 @@ alive. Those wolves arrive already targeting and cannot howl in another pack.
 | King's Rush (`kingsRush`) | charge | 1.00 / lane / 1.00 | 30 | 7-wide lane, 12-30 long | 82 (25%) | 3.1 s |
 | Claw Down (`clawDown`) | slam | 0.55 / 0.12 / 0.85 | 11 | r 4.5 at local (1.7, 0, -7) | 46 (14%) | 1.8 s |
 | Crownfall (`crownfall`) | slam | 1.25 / 0.18 / 1.25 | 14 | r 13 at local (0, 0, -3.5) | 104 (32%) | 2.9 s |
+| Engage roar (`roar`, `pack.howl`) | howl | 1.00 / 0.10 / 0.80 | first engagement (`ENGAGE_RESET`), held until the target is within 24 | no damage; staggers players within 18 studs for 0.8 s (`stun`, `PlayerStun`; circle telegraphed; a dodge evades it). Doesn't consume the pattern | 0 | - |
 | Pack Call (`packCall`) | summon | 1.20 / 0.10 / 1.00 | threshold | no damage, but the howl stuns players within 20 studs for 1.0 s (`stun`, `PlayerStun`; the circle is telegraphed; a dodge evades it) | 0 | 2.6 s |
 
 Cooldowns start with the windup; the server always completes the attack and recover
@@ -398,7 +399,7 @@ chase, for any beast that wants them):
 | Beat | Layers / how it plays |
 |---|---|
 | Aura (`ready`, always on) | ground array (ink disc + turning mandala, 2), mane flames, spirit motes, crest embers, mouth mist: 6 light emitters mounted in the body, about 17 particles/s. Health scales it: rates x(1 + 1.2 x lost health), flames go silver -> gold-white (<=65%) -> gold (<=30%), embers appear below 70%, and Pack Call flares it x2.2 for 3 s |
-| Aggro roar (`aggro`) | `Roar` at the Mouth (8: three sound rings, mist blast, flash, sparks, floor ring and dust), a ghost head lunging out, aura flare, small shake; 12 s gap |
+| Aggro roar (plays on the `roar` attack's release, via `strike`; `aggro` itself only lights the aura) | `Roar` at the Mouth (8: three sound rings, mist blast, flash, sparks, floor ring and dust), a ghost head lunging out, aura flare, small shake; 12 s gap |
 | Every windup | `BrowFlare` on both eyes (4: gold star, pop, held glow, needle) |
 | Royal Bite | windup `BiteTell` (8: gold motes drawn into the muzzle, two closing rings, ink + gold maw glow, fang glints flash at 0.62 s, mist); contact `BiteSnap` (13: upper and lower fang crescents, flash, star, spiky ring, rays, ink, embers, smoke, shake) plus a short ghost-head lunge |
 | Paw Swipe | windup `SwipeTell` on the left paw (5, the loudest at its start: a big gold star at 0 s, three gold claw streaks, closing ring); contact `SwipeSlash` (9: three crescents and echo sweeping across the cone, claw rake, wind lines, sparks, smear) |

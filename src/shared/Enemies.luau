@@ -499,7 +499,22 @@ if NEW_WOLF_KING then
 		-- the howl rattles anyone close: dodge out of the ring or through the roar
 		stun = { kind = "stun", radius = 20, seconds = 1.0 },
 	}
+	-- The engage roar: a fresh engagement (Config.ENGAGE_RESET) opens with it
+	-- through pack.howl. No damage; staggers everyone within the ring unless they
+	-- dodge or back off. Timings match the authored Roar pose (1.0 / 0.1 / 0.8).
+	local roar: Attack = {
+		kind = "howl",
+		name = "roar",
+		damage = 0,
+		range = 0,
+		windup = 1.0,
+		recover = 0.9,
+		cooldown = 0,
+		radius = 30,
+		stun = { kind = "stagger", radius = 18, seconds = 0.8 },
+	}
 	local king = Enemies.Defs.ElderWolfKing
+	king.pack = { howl = roar }
 	king.body = "ElderWolfKingB"
 	king.health = 1900
 	king.walkSpeed = 5

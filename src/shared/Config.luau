@@ -365,7 +365,7 @@ return {
 
 		-- Player crowd control (src/server/PlayerStun.luau; see combat.md).
 		CC = {
-			FLINCH_SECONDS = 0.25, -- the hit reaction; never locks input
+			FLINCH_SECONDS = 0.28, -- the hit reaction; never locks input
 			FLINCH_GAP = 0.3, -- a new flinch waits this long after the last one
 			FLINCH_MOVE = 0.75, -- walk speed share during a flinch
 			STAGGER_SECONDS = 0.75, -- default stagger length

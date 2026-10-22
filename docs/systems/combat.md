@@ -385,7 +385,7 @@ away from.
 
 | Kind | Length (`Config.Combat.CC`) | Effect |
 |---|---|---|
-| `"flinch"` | 0.25 s | a quick recoil pose. Never cancels or blocks an action; walking at 75%. Fired by `Combat.hurt` on every enemy hit that deals damage, so enemies don't call it. |
+| `"flinch"` | 0.28 s | a hard recoil (torso snaps back ~24 deg, head whip, arms jolt) with a white pulse on the character and a camera shake for the local player. Never cancels or blocks an action; walking at 75%. Fired by `Combat.hurt` on every enemy hit that deals damage, so enemies don't call it. |
 | `"stagger"` | 0.75 s (0.4-1.0) | knocked off balance: cancels the current action, no attacking, dodging, casting, sprinting or jumping, walking at 20%, a short stumble away from `source`, camera shake. |
 | `"stun"` | `seconds` (default 1.2, at most 3) | cancels the action; no actions, no movement, no steering; dazed sway loop. |
 
@@ -409,7 +409,7 @@ cancels the running action (`onLock`); client `ActionState.crowdLocked()` blocks
 Enemy attacks can carry `stun = { kind, radius, seconds? }` (Enemies.luau): at
 the end of the windup every player inside that circle is hit with
 `PlayerStun.apply`, and the exact circle is telegraphed like a damaging attack.
-The new Elder Wolf King's Pack Call (the two health-threshold calls) has
+The new Elder Wolf King opens every fresh engagement with a `roar` (`pack.howl`, a `howl` attack, 1.0 s windup, no damage) that staggers players within 18 studs for 0.8 s; the server holds the roar until the target is within 24 studs so it can catch them (a dodge or backing off avoids it). Its Pack Call (the two health-threshold calls) also has
 `stun = { kind = "stun", radius = 20, seconds = 1.0 }`; it only exists behind
 `Config.Wilds.NEW_WOLF_KING` (testbed). Dodge through the roar or stay out of the ring.
 

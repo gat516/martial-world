@@ -51,7 +51,7 @@ local FAMILIES: { [string]: Family } = {
 		poses = WolfKing, scale = 2.4, runFrom = 8.5, keyedBlend = 0.06, deathSeconds = 2.6,
 		moves = {
 			royalBite = "RoyalBite", kingsRush = "KingsRush", crownfall = "Crownfall",
-			pawSwipe = "PawSwipe", clawDown = "ClawDown", packCall = "PackCall",
+			pawSwipe = "PawSwipe", clawDown = "ClawDown", packCall = "PackCall", roar = "Roar",
 		},
 	},
 }

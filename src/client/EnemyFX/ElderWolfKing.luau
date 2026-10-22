@@ -61,6 +61,7 @@ local WINDUP = {
 	pawSwipe = 0.45,
 	clawDown = 0.55,
 	packCall = 1.20,
+	roar = 1.00,
 }
 
 local King = {}
@@ -658,10 +659,16 @@ function King.ready(cue: Cue)
 	startAura(cue)
 end
 
+-- Noticing a player lights the aura; the roar burst itself plays on the release
+-- of the engage `roar` attack (King.strike), so it lines up with the stagger.
 function King.aggro(cue: Cue)
 	if not ours(cue) then
 		return
 	end
+	startAura(cue)
+end
+
+local function roarBurst(cue: Cue)
 	local s = state(cue.model)
 	if os.clock() - s.roarAt < 12 or s.dead then
 		return
@@ -672,7 +679,7 @@ function King.aggro(cue: Cue)
 	play("Roar", CFrame.new(frame.Position) * facing(cue))
 	ghostHead(cue, 1.0, root(cue).CFrame.LookVector * 7 + Vector3.new(0, 2, 0), 0.6, 0.45, 0.2)
 	flareAura(cue, 1.6)
-	shake(0.18, frame.Position, 90)
+	shake(0.3, frame.Position, 90)
 end
 
 function King.windup(cue: Cue)
@@ -730,6 +737,9 @@ function King.windup(cue: Cue)
 		windupBeat(cue, seconds, 0.6, function()
 			sealGlint(cue, true)
 		end)
+	elseif attack == "roar" then
+		local frame, skull = point(cue, "Mouth", { "Skull" })
+		windupPlay(cue, "HowlTell", frame, { follow = skull, seconds = seconds })
 	elseif attack == "packCall" then
 		local frame, skull = point(cue, "Mouth", { "Skull" })
 		windupPlay(cue, "HowlTell", frame, { follow = skull, seconds = seconds })
@@ -789,6 +799,8 @@ function King.strike(cue: Cue)
 		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 13
 		play("SlamImpact", CFrame.new(ground(cue, position)) * face, { scale = radius })
 		shake(0.34, position, radius + 40)
+	elseif attack == "roar" then
+		roarBurst(cue)
 	elseif attack == "packCall" then
 		local health, max = cue.model:GetAttribute("Health"), cue.model:GetAttribute("MaxHealth")
 		local second = type(health) == "number" and type(max) == "number" and max > 0 and health / max <= 0.35

@@ -980,8 +980,8 @@ end
 local function advancePattern(enemy: Enemy)
 	local pattern = enemy.def.pattern
 	if pattern then
-		if enemy.attack.thresholdOnly then
-			-- A phase call interrupts the upcoming move; it does not consume it.
+		if enemy.attack.thresholdOnly or (enemy.def.pack and enemy.attack == enemy.def.pack.howl) then
+			-- A phase call or the engage howl interrupts the upcoming move; it does not consume it.
 			enemy.attack = if enemy.patternIndex == 0 then enemy.def.attack else pattern[enemy.patternIndex]
 			return
 		end
@@ -1239,15 +1239,25 @@ local function think(enemy: Enemy, now: number)
 
 	-- a fresh engagement: the opener comes first, and a pack beast howls its pack in
 	local pack = def.pack
+	local roarPending = false
 	if now - enemy.lastEngaged > Config.ENGAGE_RESET then
-		enemy.engagedAt, enemy.opened = now, false
-		enemy.lastEngaged = now
-		if pack and pack.howl then
-			startAttack(enemy, targetRoot, now, pack.howl)
-			return
+		local howl = pack and pack.howl
+		if howl and howl.stun and flat(targetRoot.Position - position).Magnitude > howl.stun.radius + 6 then
+			-- an engage roar that staggers: hold it (the engagement stays fresh)
+			-- until the target has come close enough to be caught by it
+			roarPending = true
+		else
+			enemy.engagedAt, enemy.opened = now, false
+			enemy.lastEngaged = now
+			if howl then
+				startAttack(enemy, targetRoot, now, howl)
+				return
+			end
 		end
 	end
-	enemy.lastEngaged = now
+	if not roarPending then
+		enemy.lastEngaged = now
+	end
 
 	enemy.state = "chase"
 	setSpeed(enemy, def.runSpeed)

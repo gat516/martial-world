@@ -11,6 +11,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
 
 local Config = require(ReplicatedStorage.Shared.Config).Combat.CC
 local CombatEffects = require(script.Parent.CombatEffects)
@@ -43,8 +45,12 @@ end
 local function flinch(t: number, d: number): Pose
 	local e = smooth(t / 0.05) * (1 - smooth((t - 0.07) / math.max(0.05, d - 0.07)))
 	local p = pose()
-	p.rootPitch, p.rootRoll, p.neckPitch, p.arm = 12 * e, 4 * e, 9 * e, 24 * e
-	p.rightHip, p.leftHip = -6 * e, 4 * e
+	-- a hard snap: torso back, head whipped, arms jolted out and back, knees give
+	local whip = math.sin(math.clamp(t / 0.12, 0, 1) * math.pi) * (1 - smooth(t / d))
+	p.rootPitch, p.rootRoll, p.rootYaw = 24 * e, 7 * e, 5 * e
+	p.neckPitch, p.neckRoll = 22 * e + 12 * whip, 8 * whip
+	p.arm, p.armSwing = 46 * e, 20 * e
+	p.rightHip, p.leftHip = -12 * e, 8 * e
 	return p
 end
 
@@ -88,6 +94,18 @@ local function stun(t: number, d: number): Pose
 	out.armSwing = 8 * math.sin(wave + 0.6) * w
 	out.rightHip, out.leftHip = -7 * w, 7 * w
 	return out
+end
+
+-- A white pulse on the whole character: reads at a glance, local and observed.
+local function pulse(character: Model, strength: number)
+	local highlight = Instance.new("Highlight")
+	highlight.FillColor = Color3.new(1, 1, 1)
+	highlight.FillTransparency = 1 - strength
+	highlight.OutlineTransparency = 1
+	highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+	highlight.Parent = character
+	TweenService:Create(highlight, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { FillTransparency = 1 }):Play()
+	Debris:AddItem(highlight, 0.3)
 end
 
 local function restore(list: { Layer })
@@ -151,8 +169,11 @@ local function animate()
 		end
 		if seen[character] ~= startedAt then
 			seen[character] = startedAt
+			pulse(character, if kind == "flinch" then 0.7 else 0.55)
 			if character == me then
-				if kind == "stagger" then
+				if kind == "flinch" then
+					CombatEffects.shake(0.3)
+				elseif kind == "stagger" then
 					CombatEffects.shake(0.4)
 				elseif kind == "stun" then
 					CombatEffects.shake(0.3)

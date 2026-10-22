@@ -6,6 +6,17 @@ break through to the next stage. Stages raise health and damage, so progress is
 felt in fights.
 
 ## Design intent
+- **Two kinds of qi.** Raw qi (`data.rawQi`, the dantian) is cultivation's fuel:
+  gathered, then refined into the realm bar. **Combat qi** (the `Qi` attribute)
+  is the mana techniques spend: a separate, unsaved pool whose size grows with
+  the stage and which refills on its own ([combat](combat.md#combat-qi-technique-mana)).
+  Fighting never drains the dantian, and cultivating never drains combat qi.
+- **Cultivation runs past the bar.** Passive, refining and items keep filling
+  past `CultivationMax` up to the overflow cap (`OVERFLOW_CAP` x the bar) without
+  moving the realm, so a player who isn't ready (no insight, tribulation
+  cooldown, not seated) keeps progressing. A normal breakthrough carries the
+  excess into the next stage, at most `CARRY_SHARE` of the new bar. The
+  breakthrough requirement is still a full bar.
 - Two speeds: **passive** cultivation is always on (online, offline, faster while
   meditating) so nobody is ever stuck; **active** play (kill beasts / gather qi
   nodes, then refine with a skill minigame) is several times faster.
@@ -31,7 +42,8 @@ felt in fights.
 - `src/server/Cultivation.luau`: passive tick (1 s), rate formula, buffs, garden
   aura, breakthroughs (`breakthrough`, `advance`, `canForce`), qi deviation,
   idle warnings, offline/daily login claim, stats (health, walk speed),
-  `pushState` and the player attributes.
+  `pushState` and the player attributes; `cap`/`add` (the overflow cap) and
+  `block` (what stops a breakthrough).
 - `src/server/Circulation.luau`: refining runs (see [minigames](minigames.md)).
 - `src/server/Tribulation.luau`: the lightning trial for a major breakthrough.
 - `src/server/Progression.luau`: insight and technique manuals from kills, and
@@ -50,13 +62,31 @@ felt in fights.
    * weather` -> `data.cultivation`. A score under `DEVIATION_SCORE` deviates qi
    (no refining or passive for a while).
 3. Passive: `stage.passive * (1 + QiRate buffs) * (1 + garden aura) * (1 + weather)
-   * meditation multiplier` every second, up to the bar.
+   * meditation multiplier` every second, up to the overflow cap
+   (`Cultivation.cap`; everything that adds cultivation goes through
+   `Cultivation.add`, which stops there). Refining refuses to start at the cap.
 4. Breakthrough: `CultivationAction "breakthrough"` -> `Cultivation.breakthrough`
    checks insight, seat, bar; a major one calls `Tribulation.start`. `advance`
-   moves the realm, heals, fires `Breakthrough` to everyone and the
+   moves the realm (carrying the excess past the old bar, capped at
+   `CARRY_SHARE` of the new one; a forced one starts in debt instead), heals, fires `Breakthrough` to everyone and the
    `onBreakthrough` hooks (analytics, peak tier).
 5. The HUD reads `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`
    attributes every second and the `PlayerState` snapshot on change.
+
+## Player attributes (set every second by `Cultivation.publish`)
+- `Cultivation`: may exceed `CultivationMax` now, up to `CultivationCap`
+  (`floor(bar * OVERFLOW_CAP)`). Negative while in qi debt.
+- `CultivationMax`: the bar (the breakthrough requirement).
+- `BreakthroughBlock`: what stops a seated breakthrough, `""` when nothing does.
+  In order of precedence: `"peak"` (no stage beyond, FE1 today), `"insight"`
+  (insight earned is short; reported even before the bar is full, so the HUD can
+  warn early), `"method"` (the method can't reach the next stage), `"bar"` (not
+  full yet).
+- `BreakthroughReady`: `BreakthroughBlock == ""`: the bar is met, insight and
+  the method allow it, and a next stage exists. It does **not** count being
+  seated, the tribulation cooldown or another player's tribulation in progress;
+  the server still says why on the attempt.
+
 
 ## Insight: earned and spent
 `data.insightEarned` counts every insight gained and is what breakthroughs (and
@@ -77,7 +107,8 @@ breakthrough, and insight is a choice: which technique to deepen.
   `BEAST_HEALTH`, `BEAST_DAMAGE`, `TRIBULATION_DAMAGE`.
 - **Pacing.Refine / Income / Meditation / Breakthrough / Rewards**: run qi cost and
   efficiency, node/daily/offline/starting qi and the enemy-qi exponent,
-  meditation multipliers, forced-breakthrough thresholds, insight and manuals,
+  meditation multipliers, forced-breakthrough thresholds, the overflow cap past
+  the bar and the carry-over share (`OVERFLOW_CAP`, `CARRY_SHARE`), insight and manuals,
   and the kill-credit share (`Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`).
 - **Pacing.Comprehension**: insight and stones to break each technique bottleneck.
 - **Pacing.Methods**: the cultivation method's qi multiplier (passive, refining,
@@ -114,3 +145,9 @@ to Stone Boars).
 - Herb, core and treasure qi amounts are per item (Herbs/Items), not per stage, so
   flat-qi herbs matter less at high stages by design.
 - The `Breakthrough` analytics event's "seconds since" resets each session.
+- Overflow is untuned: `OVERFLOW_CAP` 1.5 and `CARRY_SHARE` 0.25 are first
+  guesses. Open question: should gains past the bar slow down (a lower rate
+  instead of only a cap), and should the QC9 -> FE1 tribulation carry as much as
+  a minor breakthrough?
+- The idle warning about a full bar fires at the bar, not at the cap; nothing
+  tells the player when the overflow cap is reached except refining refusing.

@@ -14,6 +14,7 @@ local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
+local CombatQi = require(script.Parent.CombatQi)
 local EnemyHistory = require(script.Parent.EnemyHistory)
 local PlayerData = require(script.Parent.PlayerData)
 local Movement = require(script.Parent.Movement)
@@ -43,6 +44,7 @@ type State = {
 	castOrigin: Vector3, -- root position when the current cast began (lunge checks)
 	lastHurt: number,
 	lastHurtBy: string,
+	lastDealt: number, -- os.clock() of the last damage dealt to an enemy (combat qi regen)
 }
 local states: { [Player]: State } = {}
 
@@ -73,6 +75,7 @@ local function state(player: Player): State
 			castOrigin = Vector3.zero,
 			lastHurt = -math.huge,
 			lastHurtBy = "Unknown",
+			lastDealt = -math.huge,
 		}
 		states[player] = s
 	end
@@ -117,6 +120,7 @@ function Combat.damageEnemy(player: Player, model: Model, amount: number, push: 
 	end
 	amount = math.floor(amount + 0.5)
 	model:SetAttribute("LastHitBy", player.UserId)
+	state(player).lastDealt = os.clock()
 	effectRemote:FireClient(player, "damage", model:GetPivot().Position, amount)
 	Cultivation.markActive(player)
 	if Combat.onEnemyDamaged then
@@ -218,6 +222,13 @@ end
 
 function Combat.inCombat(player: Player): boolean
 	return os.clock() - state(player).lastHurt < Config.IN_COMBAT_SECONDS
+end
+
+-- Hurt or dealing damage lately: combat qi regenerates at its slower rate.
+function Combat.fighting(player: Player): boolean
+	local s = state(player)
+	local now = os.clock()
+	return now - s.lastHurt < Config.IN_COMBAT_SECONDS or now - s.lastDealt < Config.IN_COMBAT_SECONDS
 end
 
 --[[ Basic attack ]]
@@ -620,11 +631,19 @@ function Combat.action(player: Player, message: any)
 		reply(player, s, sequence, false)
 		return
 	end
+	-- techniques spend combat qi (basic attacks, dashes and the guard are free)
+	local qiCost = if castDef then Techniques.qiCost(castDef) else 0
+	if qiCost > 0 and not CombatQi.has(player, qiCost) then
+		CombatQi.deny(player)
+		reply(player, s, sequence, false)
+		return
+	end
 	local nextAction = Rules.start(s.actions, kind, id, t, sequence, class)
 	if not nextAction then
 		reply(player, s, sequence, false)
 		return
 	end
+	CombatQi.spend(player, qiCost)
 	s.released, s.suppressed = false, false
 	Guard.drop(player, t)
 	s.aim = root.CFrame.LookVector
@@ -680,5 +699,6 @@ function Combat.forget(player: Player)
 end
 
 Cultivation.inCombat = Combat.inCombat
+CombatQi.fighting = Combat.fighting
 
 return Combat

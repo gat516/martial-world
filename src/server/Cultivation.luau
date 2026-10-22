@@ -1,8 +1,9 @@
 --!strict
 -- Passive cultivation fills the realm bar every second at the realm's slow rate,
 -- boosted by eaten-herb buffs, by the spirit aura of mature plants left growing in
--- the player's plots, and by meditating (Meditation.luau). It stops at a full bar;
--- breakthroughs move the player on. Cultivation goes negative after a forced
+-- the player's plots, and by meditating (Meditation.luau). It keeps filling past
+-- the bar up to the overflow cap (Pacing.Breakthrough.OVERFLOW_CAP) without moving
+-- the realm; breakthroughs move the player on and carry some of the excess. Cultivation goes negative after a forced
 -- breakthrough: that qi debt is paid off by the same sources before the bar fills.
 -- Also owns breakthroughs, qi deviation, the passive-progress warnings, per-realm
 -- character stats and the PlayerState push the HUD renders from.
@@ -90,6 +91,20 @@ function Cultivation.stage(data: PlayerData.Data): Realms.Stage
 	return Realms.get(data.realm.major, data.realm.minor)
 end
 
+-- The most cultivation the current stage holds: past the bar, up to the overflow cap.
+function Cultivation.cap(data: PlayerData.Data): number
+	return math.floor(Cultivation.stage(data).bar * Pacing.Breakthrough.OVERFLOW_CAP + 0.5)
+end
+
+-- Add `amount` cultivation, up to the overflow cap (never lowers it). Returns what was added.
+function Cultivation.add(data: PlayerData.Data, amount: number): number
+	local before = data.cultivation
+	if amount > 0 and before < Cultivation.cap(data) then
+		data.cultivation = math.min(Cultivation.cap(data), before + amount)
+	end
+	return data.cultivation - before
+end
+
 -- The active cultivation method's qi multiplier (passive, refining, gathering),
 -- with the bonus for matching the root's element.
 function Cultivation.methodSpeed(data: PlayerData.Data): number
@@ -104,6 +119,27 @@ local function methodLimit(data: PlayerData.Data, nextStage: Realms.Stage): stri
 	return "Your method can take you no further. Elder Qingyun may have a task for you, or seek a stronger method out in the world."
 end
 Cultivation.methodLimit = methodLimit
+
+-- What stops a seated breakthrough right now, "" when nothing does:
+-- "peak" (no stage beyond), "insight", "method", then "bar" (not full yet).
+-- Doesn't count the seat, the tribulation cooldown or a tribulation in progress.
+function Cultivation.block(data: PlayerData.Data): string
+	local stage = Cultivation.stage(data)
+	local nextStage = Realms.after(stage.major, stage.minor)
+	if not nextStage then
+		return "peak"
+	end
+	if data.insightEarned < stage.insight then
+		return "insight"
+	end
+	if methodLimit(data, nextStage) then
+		return "method"
+	end
+	if data.cultivation < stage.bar then
+		return "bar"
+	end
+	return ""
+end
 
 -- Set by Meditation: where the player is meditating and its passive multiplier,
 -- or nil when they aren't.
@@ -131,6 +167,10 @@ local function publish(player: Player, data: PlayerData.Data)
 	player:SetAttribute("Realm", stage.name)
 	player:SetAttribute("Cultivation", math.floor(data.cultivation))
 	player:SetAttribute("CultivationMax", stage.bar)
+	player:SetAttribute("CultivationCap", Cultivation.cap(data))
+	local block = Cultivation.block(data)
+	player:SetAttribute("BreakthroughBlock", block)
+	player:SetAttribute("BreakthroughReady", block == "")
 	player:SetAttribute("RawQi", math.floor(data.rawQi))
 	player:SetAttribute("DantianCap", stage.dantian)
 	player:SetAttribute("Stones", data.stones)
@@ -225,7 +265,9 @@ end
 Cultivation.startTribulation = nil :: ((Player) -> (boolean, string?))?
 
 -- Move the player up to the next stage, starting `debt` cultivation in the hole
--- (a forced breakthrough). Major breakthroughs are announced to everyone.
+-- (a forced breakthrough), or else with the excess past the old bar carried over
+-- (at most Pacing.Breakthrough.CARRY_SHARE of the new bar). Major breakthroughs
+-- are announced to everyone.
 function Cultivation.advance(player: Player, debt: number?)
 	local data = PlayerData.get(player)
 	if not data then
@@ -238,7 +280,12 @@ function Cultivation.advance(player: Player, debt: number?)
 	end
 	local major = nextStage.major ~= stage.major
 	data.realm = { major = nextStage.major, minor = nextStage.minor }
-	data.cultivation = -(debt or 0)
+	if debt then
+		data.cultivation = -debt
+	else
+		local excess = math.max(0, data.cultivation - stage.bar)
+		data.cultivation = math.floor(math.min(excess, nextStage.bar * Pacing.Breakthrough.CARRY_SHARE))
+	end
 	data.rawQi = math.min(data.rawQi, nextStage.dantian)
 	data.stats.breakthroughs += 1
 	local s = session(player)
@@ -358,8 +405,8 @@ local function warning(player: Player, data: PlayerData.Data, rate: number): str
 	return "You must go out and experience the world."
 end
 
--- On login: cultivation gathered while away (passive rate, up to the bar and the
--- offline cap), and the first-login-of-the-day raw qi bonus. Returns what was
+-- On login: cultivation gathered while away (passive rate, up to the overflow cap
+-- and the offline time cap), and the first-login-of-the-day raw qi bonus. Returns what was
 -- claimed, for the caller to report.
 function Cultivation.claimLogin(player: Player, data: PlayerData.Data): (number, number)
 	local now = os.time()
@@ -367,7 +414,7 @@ function Cultivation.claimLogin(player: Player, data: PlayerData.Data): (number,
 	local offline = 0
 	if data.lastLogoutUnix > 0 then
 		local away = math.clamp(now - data.lastLogoutUnix, 0, Pacing.Income.OFFLINE_MAX_HOURS * 3600)
-		offline = math.min(stage.passive * Pacing.Income.OFFLINE_RATE * away, stage.bar - data.cultivation)
+		offline = math.min(stage.passive * Pacing.Income.OFFLINE_RATE * away, Cultivation.cap(data) - data.cultivation)
 		offline = math.max(0, math.floor(offline))
 		data.cultivation += offline
 	end
@@ -425,7 +472,7 @@ task.spawn(function()
 				end
 				local bar = Cultivation.stage(data).bar
 				local rate = if Cultivation.deviated(player) then 0 else Cultivation.rate(data, now, player)
-				data.cultivation = math.min(bar, data.cultivation + rate * dt)
+				Cultivation.add(data, rate * dt)
 				publish(player, data)
 				local s = session(player)
 				if os.clock() - s.lastWarned >= Config.WARN_INTERVAL or (data.cultivation >= bar and not s.fullNoticed) then

@@ -219,6 +219,27 @@ Pacing.Breakthrough = {
 	FORCE_BAR_SHARE = 0.9, -- the bar must be at least this full to force it
 	FORCE_HEALTH_SHARE = 0.35, -- and health at most this share of max, in combat
 	FORCE_DEBT_SHARE = 0.5, -- debt: the bar's shortfall plus this share of the new bar
+	-- Past the bar: passive, refining and items keep filling cultivation up to
+	-- this share of the bar (the realm doesn't move until the player breaks
+	-- through). On a normal breakthrough the excess carries into the next stage,
+	-- at most CARRY_SHARE of the new bar. A forced breakthrough has no excess.
+	OVERFLOW_CAP = 1.5,
+	CARRY_SHARE = 0.25,
+}
+
+-- COMBAT QI (server CombatQi; docs/systems/combat.md). The mana techniques
+-- spend, separate from the raw qi in the dantian (which only feeds cultivation).
+-- Not saved: full on join, on respawn and after a breakthrough. Basic attacks,
+-- dashes and the guard are free.
+Pacing.CombatQi = {
+	-- the pool's size by stage; a stage missing here gets DEFAULT_MAX
+	MAX = { QC1 = 100, QC2 = 110, QC3 = 120, QC4 = 130, QC5 = 140, QC6 = 155, QC7 = 170, QC8 = 185, QC9 = 200, FE1 = 300 } :: { [string]: number },
+	DEFAULT_MAX = 100,
+	REGEN_SHARE = 0.04, -- of max per second while fighting (hurt or dealing damage in the last Combat.IN_COMBAT_SECONDS)
+	OUT_OF_COMBAT_SHARE = 0.2, -- of max per second otherwise (empty to full in 5 s)
+	REGEN_DELAY = 1.5, -- seconds after spending before regen resumes
+	-- a technique's cost when its Techniques def has no `qiCost`: cooldown seconds times this
+	COST_PER_COOLDOWN = 2.5,
 }
 
 -- INSIGHT AND MANUALS (Progression.luau). Insight gates the QC9 wall: with 3

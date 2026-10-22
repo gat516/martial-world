@@ -15,6 +15,7 @@
 --   levels     most levels in a circulation run
 --   tribulation the tribulation that guards a major breakthrough out of this stage
 --   beastHealth, beastDamage  multipliers for demon beasts whose realm is this stage
+--   combatQi   the combat qi pool's size (Pacing.CombatQi.MAX)
 
 local Pacing = require(script.Parent.Pacing)
 
@@ -37,6 +38,7 @@ export type Stage = {
 	tribulation: Pacing.Tribulation?,
 	beastHealth: number,
 	beastDamage: number,
+	combatQi: number,
 }
 
 local MAJOR_NAMES = {
@@ -80,6 +82,7 @@ for i, row in Pacing.Curve do
 		tribulation = tribulation,
 		beastHealth = (adjust.beastHealth or 1) * G.BEAST_HEALTH,
 		beastDamage = (adjust.beastDamage or 1) * G.BEAST_DAMAGE,
+		combatQi = Pacing.CombatQi.MAX[row.key] or Pacing.CombatQi.DEFAULT_MAX,
 	}
 	Realms.Stages[i] = stage
 	Realms.ByKey[row.key] = stage

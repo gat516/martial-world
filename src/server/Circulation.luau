@@ -106,8 +106,8 @@ function Circulation.start(player: Player): (boolean, any)
 		return false, "Your qi is still in deviation. Let it settle."
 	end
 	local stage = Cultivation.stage(data)
-	if data.cultivation >= stage.bar then
-		return false, "Your realm bar is full. Break through first."
+	if data.cultivation >= Cultivation.cap(data) then
+		return false, "Your meridians can hold no more. Break through first."
 	end
 	if not Circulation.enoughQi(data) then
 		return false, "Your dantian is nearly empty. Go out and gather qi."
@@ -178,16 +178,16 @@ function Circulation.finish(player: Player, id: any, cleared: any, accuracy: any
 		* (1 + WeatherService.bonus("circulation"))
 
 	-- each cleared level refines its share of a full run, and clearing every
-	-- level refines a bonus on top for free; spend only what fills the bar, the
-	-- rest stays in the dantian
+	-- level refines a bonus on top for free; spend only what fits under the overflow
+	-- cap (Cultivation.cap), the rest stays in the dantian
 	local allCleared = levels >= run.levels
 	local bonus = if allCleared then 1 + Refine.FULL_CLEAR_BONUS else 1
 	local qi = math.min(data.rawQi, fullRunQi(stage) * levels / run.levels)
-	local gain = math.min(qi * efficiency * bonus, stage.bar - data.cultivation)
+	local gain = math.min(qi * efficiency * bonus, Cultivation.cap(data) - data.cultivation)
 	efficiency *= bonus
 	local spent = math.ceil(gain / efficiency)
 	data.rawQi = math.max(0, data.rawQi - spent)
-	data.cultivation = math.min(stage.bar, data.cultivation + gain)
+	Cultivation.add(data, gain)
 	data.stats.circulationRuns += 1
 
 	local deviation = score < Refine.DEVIATION_SCORE

@@ -20,6 +20,10 @@ scales all player damage.
   players only dash and cast.
 - Getting hurt marks you in combat for a few seconds: no teleporting away, and
   it's the condition for a forced breakthrough.
+- **Techniques spend combat qi**, the mana pool (`Qi`), never the raw qi in the
+  dantian that feeds cultivation. Basic attacks, dashes and the guard are free,
+  so a player out of qi still fights with the weapon
+  ([Combat qi](#combat-qi-technique-mana)).
 
 ## Key files
 - `src/shared/ActionRules.luau`: the one action timeline (attack, cast, dodge),
@@ -37,7 +41,10 @@ scales all player damage.
   ratio and beast weight) and the stagger they cause.
 - `src/server/Combat.luau`: `action` (Attack remote: begin/hit/cancel/sync),
   damage validation, `damageEnemy`, `hurt` (i-frames, perfect dodge, Iron Skin,
-  non-lethal), `power` (the stage's `power`), `inCombat`, technique XP.
+  non-lethal), `power` (the stage's `power`), `inCombat`, `fighting` (hurt or
+  dealing damage lately), technique XP.
+- `src/server/CombatQi.luau`: the combat qi pool (`has`, `spend`, `deny`,
+  `refill`), its regen loop and the `Qi`/`QiMax`/`QiDenied` attributes.
 - `src/server/Movement.luau`, `src/client/Movement.luau`: the only writers of walk
   speed, jump and facing (actions, running, herb buffs, meditation all feed it).
 - `src/client/CombatController.luau`: input, prediction, buffering, animations.
@@ -94,6 +101,37 @@ comprehension, and each cast grants that class `Pacing.Weapons.XP_CAST` Dao XP.
 | CrescentSweep | Guandao | circle r 11 | 32 | - | 9 |
 | DragonPierce | Spear | line 22 x 4 | 34 | 8 | 8 |
 | GreatSageAwakening | Staff | buff 8 s: +25% all damage, +15% M1 speed; circle r 8 burst at the strike | 12 | - | 20 |
+
+## Combat qi (technique mana)
+Qi is the mana techniques spend; raw qi (`data.rawQi`, the dantian) is only for
+cultivation ([cultivation](cultivation.md)). The two never mix.
+- **Pool.** `src/server/CombatQi.luau`. Its size is the stage's
+  `Pacing.CombatQi.MAX` (QC1 100 ... QC9 200, FE1 300; Realms `combatQi`). Not
+  saved: full on join, on respawn and after a breakthrough. A larger pool after a
+  stage change keeps the current qi (a breakthrough refills it anyway).
+- **Regen.** Nothing for `REGEN_DELAY` (1.5 s) after a spend, then
+  `REGEN_SHARE` (4%) of max per second while fighting (`Combat.fighting`: hurt
+  or dealing damage within `Config.Combat.IN_COMBAT_SECONDS`), or
+  `OUT_OF_COMBAT_SHARE` (20%, empty to full in 5 s) otherwise. Ticks at 10 Hz.
+- **Cost.** `Techniques.qiCost(def)`: the def's `qiCost`, else `cooldown *
+  COST_PER_COOLDOWN` (2.5) rounded, so 6 s Sword Qi Wave costs 15 and 20 s Great
+  Sage Awakening 50. Iron Skin overrides to 25 (a defensive button shouldn't be
+  priced out). Basic attacks, dashes and the guard cost nothing.
+- **Authority.** `Combat.action` "begin" for a cast checks `CombatQi.has` after
+  the weapon check and refuses the begin when short (`reply` false, the client
+  rolls back like any refused action); the cost is spent only once
+  `ActionRules.start` accepts the cast (so a cast refused for its cooldown costs
+  nothing). Qi is spent at the begin, like the cooldown: a cast cancelled by a
+  pre-hit dodge is not refunded.
+- **Client early check.** `CombatController.cast` reads the `Qi` attribute and
+  doesn't start a cast it can't pay for.
+- **Refusal feedback.** Both sides set the player attribute `QiDenied` to
+  `workspace:GetServerTimeNow()` (the server's refusal replicates; the client's
+  early check sets it locally). The HUD flashes the qi bar on change. No toast
+  and no remote.
+- **Attributes (the HUD contract).** `Qi` (current, rounded to 0.1, written only
+  when it changes, ~10 Hz while regenerating), `QiMax`, `QiDenied`. A hotbar can
+  show each technique's price with `Techniques.qiCost`.
 
 ## Dodge visuals
 Only the dodging player sees them (`CombatEffects`, from `CombatController`).
@@ -731,8 +769,11 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   lag compensation) and `ESCAPE_LEAD` (enemy strikes spare a player already
   moving out, see [enemies](enemies.md) "Server and client"), lock-on and
   auto ranges, `IN_COMBAT_SECONDS`.
-- `Techniques.luau`: per-technique damage, cooldown, shape, cast timing,
-  `weapon`, and for weapon skills `hits`, `castSpeed`, `lunge`/`lungeWindow`.
+- `Techniques.luau`: per-technique damage, cooldown, `qiCost` (optional), shape,
+  cast timing, `weapon`, and for weapon skills `hits`, `castSpeed`,
+  `lunge`/`lungeWindow`.
+- `Pacing.CombatQi`: pool size by stage (`MAX`, `DEFAULT_MAX`), `REGEN_SHARE`,
+  `OUT_OF_COMBAT_SHARE`, `REGEN_DELAY`, `COST_PER_COOLDOWN` (the default cost).
 - `Config.Combat.LUNGE_SLACK`, `LUNGE_WALK_ALLOWANCE`: the server's lunge check.
   `VISUAL_TIERS` maps levels to the four visual tiers (I 1-3, II 4-6, III 7-9,
   IV 10), and so where the comprehension bottlenecks sit; `TechniqueVFX.STEP_COUNT` is the extra particle count per level inside a tier.
@@ -768,3 +809,10 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   Moving the hit (or the animation) is a gameplay call; the effects follow the
   def.
 - `Dodge` and `Cast` remotes in `assets/Remotes.rbxmx` are unused.
+- Combat qi is untuned and unplayed: pool sizes, regen rates and costs are first
+  guesses (three techniques cast on cooldown at QC1 drain the pool in roughly
+  20 s of fighting). Open questions: costs are flat while the pool grows with
+  the stage, so casting gets freer as players climb (scale costs with technique
+  level or stage?); should a dodge-cancelled cast refund its qi; should perfect
+  dodges or parries restore qi; should items or root perks touch combat qi.
+- Testbed casts cost qi like the main game (no free-qi flag).

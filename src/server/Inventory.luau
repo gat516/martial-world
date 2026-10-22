@@ -155,7 +155,7 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 
 	data.rawQi = math.min(stage.dantian, data.rawQi + qi)
 	if use.cultivationShare then
-		data.cultivation = math.min(stage.bar, data.cultivation + stage.bar * use.cultivationShare)
+		Cultivation.add(data, stage.bar * use.cultivationShare)
 	end
 	if use.heal and humanoid and humanoid.Health > 0 then
 		humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + humanoid.MaxHealth * use.heal)

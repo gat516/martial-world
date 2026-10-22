@@ -26,6 +26,9 @@
 --               seconds { from, to }, default 0 -> last hit); the server checks it
 --   fromStart   line: measured from where the cast began (a dash-slash's path)
 --   iframes     invulnerable for the lunge window
+--
+-- qiCost: combat qi the cast spends (Pacing.CombatQi; docs/systems/combat.md).
+--   Optional: Techniques.qiCost falls back to cooldown * Pacing.CombatQi.COST_PER_COOLDOWN.
 
 -- Windup changes playback speed so release still coincides with the source Hit
 -- pose. Movement is a fraction of buffed walking speed; zero roots the caster.
@@ -46,6 +49,7 @@ export type Def = {
 	weapon: string, -- a Weapons class id, or "Any"
 	element: string?, -- a Roots element: casters with that root deal Pacing.Roots.MATCH more
 	cooldown: number,
+	qiCost: number?, -- combat qi per cast; nil = derived from the cooldown (Techniques.qiCost)
 	damage: number,
 	color: Color3,
 	blurb: string,
@@ -72,6 +76,8 @@ export type Def = {
 	fromStart: boolean?,
 	iframes: boolean?,
 }
+
+local Pacing = require(script.Parent.Pacing)
 
 local Techniques = {}
 
@@ -135,6 +141,7 @@ Techniques.Defs = {
 		element = "Metal",
 		kind = "buff",
 		cooldown = 15,
+		qiCost = 25, -- a defensive panic button: cheaper than its cooldown says
 		damage = 0,
 		reduction = 0.5,
 		seconds = 4,
@@ -340,6 +347,12 @@ function Techniques.hitDamage(def: Def, level: number, index: number): number
 	local hit = def.hits and def.hits[index]
 	local base = if hit then hit.damage else def.damage
 	return base * (1 + Techniques.DAMAGE_PER_LEVEL * (level - 1))
+end
+
+-- Combat qi one cast spends: the def's `qiCost`, or its cooldown times
+-- Pacing.CombatQi.COST_PER_COOLDOWN (longer cooldowns are the bigger casts).
+function Techniques.qiCost(def: Def): number
+	return def.qiCost or math.floor(def.cooldown * Pacing.CombatQi.COST_PER_COOLDOWN + 0.5)
 end
 
 -- Whether a technique can be cast with `class` equipped.

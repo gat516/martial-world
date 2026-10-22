@@ -69,6 +69,8 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Enemy overhead bar danger tiers (realm-gap thresholds); their art, colours and omen lines | `src/shared/Pacing.luau` `Danger`; `STYLES` in `src/client/EnemyBars.luau` ([enemies](systems/enemies.md)) |
 | Practice Dao drill (unlock stage, cooldown, XP share, game) | `src/shared/Pacing.luau` `DaoPractice` ([meditation](systems/meditation.md)) |
 | Objective rewards (every onboarding beat and lesson, by id) | `src/shared/Pacing.luau` `Quests` ([onboarding](systems/onboarding.md)) |
+| Combat qi (technique mana): pool size per stage, regen, regen delay, default cost; per-technique cost | `src/shared/Pacing.luau` `CombatQi`; `qiCost` in `src/shared/Techniques.luau` ([combat](systems/combat.md#combat-qi-technique-mana)) |
+| Cultivation past the bar: overflow cap and how much carries over a breakthrough | `src/shared/Pacing.luau` `Breakthrough.OVERFLOW_CAP`, `CARRY_SHARE` ([cultivation](systems/cultivation.md)) |
 | Realm ladder names and helpers (built from Pacing) | `src/shared/Realms.luau` |
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
@@ -93,7 +95,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Cultivation, realms, breakthroughs, tribulation, insight | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, QiNodes | Pacing, Realms | Hud, BreakthroughView, CirculationMinigame |
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
-| Combat and action states | [combat](systems/combat.md) | Combat, Movement, PlayerStun, Guard | ActionRules, Hitbox, Techniques, Knockback, GuardRules, Config.Combat (`CC`: player flinch, stagger, stun; `GUARD`) | CombatController, ActionState, GuardController, GuardBar, GuardFX, CrowdControl, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock, TestbedAltMouseLock |
+| Combat and action states | [combat](systems/combat.md) | Combat, CombatQi, Movement, PlayerStun, Guard | ActionRules, Hitbox, Techniques, Knockback, GuardRules, Config.Combat (`CC`: player flinch, stagger, stun; `GUARD`) | CombatController, ActionState, GuardController, GuardBar, GuardFX, CrowdControl, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock, TestbedAltMouseLock |
 | Weapons, weapon Dao, manual caches, weapon racks | [weapons](systems/weapons.md) | Weapons, Combat, WorldCaches, Progression | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController, WorldCaches |
 | Character: spirit root, cultivation method (built); bloodline (design); character window | [character](systems/character.md), method aura brief [auras](systems/auras.md) | Roots (perks applied in Cultivation, Circulation, Combat, Garden), Methods (qi speed in Cultivation, Circulation, EnemyService, QiNodes) | Roots, Methods, Pacing.Roots, Pacing.Methods, Techniques `element` | RootFX (reveal pillar, each element in its methods' aura language), MethodAura (one aura per method while seated, from player attributes Meditating + Method; ignites on sit, switch and the Breakthrough remote) |
 | Enemies, spawning, regions, server/client split, boss projectiles | [enemies](systems/enemies.md); open boss work in [boss-open-work](systems/boss-open-work.md) | EnemyService, EnemyMover, EnemyHistory, Spawner, Projectiles | Enemies, Spawns, Regions, Knockback, Pacing.Danger, ProjectilePath | ProjectileView, EnemyMotion, EnemyAnimator, EnemyPoses/*, EnemyFX/*, EnemyBars, BossBars, BossThemes, EnemySounds, Telegraphs |
@@ -140,7 +142,9 @@ technique level at cast time (picks the visual tier), `chain` the chain targets 
 `Inventory.use` to `HerbAnimator` on every client after a successful herb use.
 
 Besides remotes, the server publishes fast-changing values as attributes:
-player `Realm`, `Cultivation`, `CultivationMax`, `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`, `Meditating` (seated; for others' method auras),
+player `Realm`, `Cultivation` (may exceed `CultivationMax`, up to `CultivationCap`), `CultivationMax`, `CultivationCap`,
+`BreakthroughReady`, `BreakthroughBlock` ([cultivation](systems/cultivation.md)), `Qi`, `QiMax`, `QiDenied` (combat qi,
+[combat](systems/combat.md#combat-qi-technique-mana)), `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`, `Meditating` (seated; for others' method auras),
 `DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`; character `WeaponClass`, `WeaponStowed`
 (combines Tool occupancy, `WeaponControlsLocked`, `WeaponBreakthroughUntil`); humanoid `BaseWalkSpeed`,
 `Running`, `ActionBusy`; enemy `Health`, `MaxHealth` (enemies have no Humanoid), `AIState`, `StateAt`, `Attack`, `DashFrom`/`DashTo`/`DashSpeed`/`DashAt`, `FadeAt`, `Realm`
@@ -154,7 +158,7 @@ requiring each other in circles: `Cultivation.onBreakthrough`, `.onPush`,
 `.onInsightBlocked`; `EnemyService.onKill`; `Circulation.onFinished`;
 `Tribulation.onFinished`; `Quests.onBeat`, `.onClaimed`; `Progression.onEarned`. Some are
 function slots set by the module that owns the answer: `Cultivation.meditation`
-(Meditation), `Cultivation.inCombat` (Combat), `Cultivation.startTribulation`
+(Meditation), `Cultivation.inCombat` (Combat), `CombatQi.fighting` (Combat), `Cultivation.startTribulation`
 (Tribulation), `Progression.slotTechnique` (Inventory).
 
 ## Where to look when...

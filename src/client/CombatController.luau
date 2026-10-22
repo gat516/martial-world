@@ -594,6 +594,13 @@ function CombatController.cast(id: string)
 		Hud.toast(Weapons.requires(def.weapon))
 		return
 	end
+	-- not enough combat qi: don't start the cast; the HUD flashes the qi bar
+	-- (the server refuses it too, and sets the same attribute)
+	local qi = player:GetAttribute("Qi")
+	if def and type(qi) == "number" and qi < Techniques.qiCost(def) then
+		player:SetAttribute("QiDenied", workspace:GetServerTimeNow())
+		return
+	end
 	request("cast", id)
 end
 

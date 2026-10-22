@@ -95,3 +95,78 @@ graze the round head's lower edge by up to 0.11; the dadao's spine passes
 through the left palm by about 0.2 (the palm grips it). The flung-back left
 hand in the saber Parry follow-through and the fist's outer palms don't reach
 their targets fully (arm length), which is intended. Not yet seen in Play.
+
+## Heavy two-handers (Greatsword, Guandao)
+
+Per-class guards that block and parry with the weapon itself. Each class folder
+holds `<Class>.rbxm` (a Folder `<Class>` with four KeyframeSequences) and
+`clips/` (one `.rbxm` per clip, uploaded). Built and checked by
+`build_heavy_guards.luau` (sandbox Studio, Edit mode; poses are authored in
+torso space: torso lean/turn, head, where the right fist grips and where the
+weapon points, and where the off hand goes, solved onto the rigid R6 arms).
+
+Keyed joints: Torso (lean at most 0.15 rad pitch, turn up to 0.48 rad in a
+parry's follow-through, 0.12 at rest), Head, Right Arm, Left Arm and the
+weapon joint (`Right Arm > HiltR` for the Greatsword, `Right Arm > Hilt` for
+the Guandao), which angles the weapon about the fist like the Greatsword M1
+clips do. Legs are unkeyed, so walking plays underneath. Every Parry, ParryAlt
+and Impact starts and ends on exactly the Hold clip's first frame. Parry and
+ParryAlt deflect to opposite sides and are back within a hair of Hold by
+0.28 s, so Parry > ParryAlt chains at ~0.3 s.
+
+| Clip | Length | Loop | Priority | Markers |
+|---|---|---|---|---|
+| `<Class>GuardHold` | 1.6 s | yes | Action | none (slow breath at 0.8 s) |
+| `<Class>GuardParry` | 0.40 s | no | Action2 | `Contact` at 0.08 s |
+| `<Class>GuardParryAlt` | 0.40 s | no | Action2 | `Contact` at 0.08 s |
+| `<Class>GuardImpact` | 0.25 s | no | Action2 | none (peak shove at 0.04 s) |
+
+### Greatsword
+
+Hold: blade slanted across the front of the body (fist low right, tip up past
+the left of the head), flat to the threat, the left fist braced on the back of
+the flat beside the face. Parry: the tip cocks further in (0.035 s), then a
+two-handed beat swings the flat out to the right (left hand drops onto the
+grip under the right fist) with the torso turning right; follow-through to
+0.15 s. ParryAlt: the tip comes upright, then the flat beats across to the
+left with the off hand still shoving on it, torso turning left. Impact: the
+flat is driven back toward the chest and the body rocks back (0.04 s), then
+rebounds.
+
+| Clip | Id |
+|---|---|
+| GreatswordGuardHold | rbxassetid://132876958523754 |
+| GreatswordGuardParry | rbxassetid://104088898384264 |
+| GreatswordGuardParryAlt | rbxassetid://93862158483825 |
+| GreatswordGuardImpact | rbxassetid://106912893883212 |
+
+### Guandao
+
+Hold: haft crosswise in front of the chest, blade end high on the right (about
+4 studs out, head height), butt low left, the crescent's flat to the front;
+the off hand slides along the haft to where it can reach. Parry: the blade end
+winds back (0.035 s), then the upper haft and blade heel sweep the blow out to
+the right with the torso turning right. ParryAlt: the butt end sweeps forward
+and out to the left, torso turning left. Impact: the haft is driven back toward
+the chest, the body rocks back and rebounds.
+
+| Clip | Id |
+|---|---|
+| GuandaoGuardHold | rbxassetid://94910534495435 |
+| GuandaoGuardParry | rbxassetid://117756534049087 |
+| GuandaoGuardParryAlt | rbxassetid://118221648664022 |
+| GuandaoGuardImpact | rbxassetid://123203381343876 |
+
+Checked numerically (every key plus in-betweens at quarter steps): the grip
+anchor stays on the fist (Guandao under 0.001 stud; Greatsword up to 0.13 in
+the fast beat in-betweens, since the HiltR pivot sits 0.38 from the grip and
+the joints interpolate separately), no weapon part enters the torso or head
+box beyond 0.13 (the Greatsword pommel brushing the hip in the beats), arms
+sink into the torso about as much as the generic guard's (0.2-0.3, the R6
+shoulder overlap), the Greatsword brace fist touches the flat (under 0.07 into
+the blade, up to 0.2 against a 1.3-stud head box at the cheek), the Guandao off
+hand stays within 0.27 of the haft axis (it lets go for 0.05 s while the
+Greatsword left hand moves to the grip), every weapon point stays above the
+floor, and each clip plays through an Animator with every keyed Transform
+arriving. Untested: the look (user review), feel in play, blending with the
+class idle/walk and M1 clips, and other clients' view.

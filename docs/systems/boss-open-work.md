@@ -180,6 +180,12 @@ with an uncoil and recoil. Left:
   neck solve cost about 1.4 ms per frame).
 - **Part budget:** the body is 220 parts, over the ~150 boss budget.
 
+**TailShove pose (2026-10-22, `JadeJiao.luau` `TailShove`):** coil and twist, the tail
+cocked out to the right, a low whip round to the front-right (contact at the end of the
+windup) with a release flick, then it rears back hood up and ends half reared, ready to
+spit. Clear of the neck and Body by forward kinematics (RIGS.md). Untested in play: the
+tail against the def's area and the blend into the ranged windup.
+
 **Effects** (`src/client/EnemyFX/JadeJiao.luau`). Done: ghosts replaced
 (`101bc37`) and the `venomBolt` drawer (`aafa851`). Impact pass (2026-10-22):
 pillarSlam, tailSweep, erupt/emerge and the pool globs layer venom shockwave,
@@ -201,10 +207,18 @@ ring has no collision, so you can walk out past the edge, not only through the g
 There is no poison cure and no HUD poison icon.
 
 ## Elder Wolf King
+**Animation** (`WolfKing.luau`, 2026-10-22): `KingLeap` (low coil, drive, stretched
+apex and hang, forepaws touch first), `KingRake` (opens on the landing compression, left
+paw cocked wide, rakes across), `KingLeapSkid` and `KingsRushSkid` (brace, the head leads
+the live target yaw, hind end swings out, scrabble, square up), all checked numerically
+(RIGS.md). The rake uses the LEFT forepaw only (effects that tell both forepaws should
+follow it). `kingsRushSkid` waits on the server sending it. Left: feel in play, the dash's
+arc has no apex hang of its own (EnemyMotion's plain parabola), phone cost of the extra
+secondary-motion samples.
 Done: ghosts and the always-on ground mandala and ink disc removed (`719fb5d`). The
 server side of `kingLeap` (r14 slam, heavy telegraph) -> `kingRake` (or
-`kingLeapSkid`) is in (2026-10-22); `kingsRush` still ends in a plain recover with no
-blow or skid.
+`kingLeapSkid`) is in (2026-10-22), and `kingsRush` now ends in the same `kingRake`
+(or `kingsRushSkid`).
 Impact pass (2026-10-22): clawDown and crownfall layer moonlight shockwave, dust,
 flash and (crownfall) a scar and rocks; new `kingLeap` (crouch tell and the
 landing sigil, rush trail and take-off dust, a landing slam with burst, scar and

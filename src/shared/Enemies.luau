@@ -554,7 +554,7 @@ if NEW_WOLF_KING then
 		width = 7,
 		dashSpeed = 50,
 		minRange = 12, -- the shortest rush lane, including when started close
-		stopPast = 3,
+		stopPast = if Wilds.WEIGHTED_MOVES then -4 else 3, -- pulls up short of you for the rake
 	}
 	local clawDown: Attack = {
 		kind = "slam",
@@ -639,6 +639,8 @@ if NEW_WOLF_KING then
 		arrive = kingRake,
 		skid = true,
 	}
+	-- the rush ends in the same rake (or kingsRushSkid)
+	kingsRush.arrive, kingsRush.skid = kingRake, true
 	local king = Enemies.Defs.ElderWolfKing
 	king.pack = { howl = roar }
 	king.body = "ElderWolfKingB"

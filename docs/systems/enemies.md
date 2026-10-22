@@ -376,7 +376,9 @@ The opener is Royal Bite. The repeating pattern is Paw Swipe -> King's Rush ->
 Claw Down -> Crownfall -> Royal Bite -> King's Leap (skipped when the target is
 closer than 12: it's a gap closer). King's Leap lands in its slam circle and, if the
 target is still within 18 and in front, rakes at once (`arrive` `kingRake`); a miss
-skids round (`kingLeapSkid`). Pack Call interrupts the next attack at 65%
+skids round (`kingLeapSkid`). King's Rush now pulls up 4 short of where the target
+stood (`WEIGHTED_MOVES`; 3 past without it) and ends in the same rake, or
+`kingsRushSkid`. Pack Call interrupts the next attack at 65%
 and 30% health, then resumes that attack; `thresholdOnly = true` keeps the call out
 of the normal rotation. It calls two Spirit Wolves, capped at two owned wolves
 alive. Those wolves arrive already targeting and cannot howl in another pack.

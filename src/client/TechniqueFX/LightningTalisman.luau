@@ -383,7 +383,7 @@ function Module.cast(CombatEffects: any, def: Techniques.Def, level: number, cha
 		flickers = attr(copy, "Flickers", 3), strands = attr(copy, "Strands", 1), forks = attr(copy, "Forks", 0),
 	}
 	local life = attr(copy, "BoltLife", 0.32)
-	local hop = attr(copy, "HopDelay", 0.09)
+	local hop = attr(copy, "HopDelay", 0.035)
 	local speed = attr(copy, "CardSpeed", 115)
 	local seals = attr(copy, "SealTargets", 0)
 	local skyStrike = attr(copy, "SkyStrike", false) and sky ~= nil
@@ -447,7 +447,7 @@ function Module.cast(CombatEffects: any, def: Techniques.Def, level: number, cha
 	if #models > 0 then
 		local first = hitOn(models[1], handAt, fallbacks[1], 1, dir)
 		local cardEnd = first.top
-		local flight = math.clamp((cardEnd - handAt).Magnitude / speed, 0.08, 0.22)
+		local flight = math.clamp((cardEnd - handAt).Magnitude / speed, 0.05, 0.12)
 		-- the card's flight
 		local card = cardTemplate:Clone()
 		at(0, function()
@@ -511,7 +511,7 @@ function Module.cast(CombatEffects: any, def: Techniques.Def, level: number, cha
 		local throw = dir * reach - Vector3.new(0, math.max(drop, 0), 0)
 		local hit = workspace:Raycast(handAt, throw, pathParams(character))
 		local stop = if hit then hit.Position - throw.Unit * 0.4 else handAt + throw
-		local flight = math.clamp((stop - handAt).Magnitude / speed, 0.08, 0.24)
+		local flight = math.clamp((stop - handAt).Magnitude / speed, 0.05, 0.14)
 		local card = cardTemplate:Clone()
 		showCard(card)
 		card.Parent = folder

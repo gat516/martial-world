@@ -367,7 +367,7 @@ spec = {
 	id = "LightningTalisman",
 	root = { attrs = { AuthoredWindup = 0.25 } },
 	tierAttrs = {
-		HopDelay = per({ 0.12, 0.11, 0.1, 0.09 }),
+		HopDelay = per({ 0.04, 0.035, 0.03, 0.028 }), -- remade 2026-10-21: the whole chain lands within ~0.15 s of Hit (was 0.12-0.09 s per hop)
 		Strands = per({ 1, 1, 2, 2 }),
 		Forks = per({ 0, 1, 1, 2 }),
 		BoltWidth = per({ 0.42, 0.46, 0.5, 0.56 }),
@@ -375,7 +375,7 @@ spec = {
 		Segments = per({ 5, 6, 6, 7 }),
 		Jitter = per({ 0.9, 1, 1.1, 1.25 }),
 		Flickers = per({ 3, 3, 3, 4 }),
-		CardSpeed = per({ 110, 115, 120, 125 }),
+		CardSpeed = per({ 200, 215, 230, 245 }), -- the card crosses in ~0.06-0.12 s so the first strike is inside Hit -> Hit Stop
 		SealTargets = per({ 0, 1, 9, 9 }),
 		SkyStrike = per({ false, false, false, true }),
 	},
@@ -386,6 +386,7 @@ spec = {
 		{ block = "LightningTalisman.handArcs" },
 		-- release off the left hand
 		{ block = "releaseFlash", params = { part = "Hand", at = O * CFrame.new(-1.5, 3.8, -2.4), color = VIOLET, core = CORE, light = false } },
+		{ block = "bladeFlare", params = { part = "Hand", color = VIOLET, core = CORE, ink = Color3.fromRGB(26, 18, 48) } },
 		{ block = "airShockwave", from = 2, params = { part = "Hand", count = 1, color = COLORS.ringColor } },
 		-- the card and the bolt look
 		{ block = "LightningTalisman.card" },

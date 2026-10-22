@@ -192,7 +192,7 @@ checks a rebuild against the previous templates.
   `TechniqueFX.LightningTalisman`). At Hit a paper talisman card leaves the
   left hand (Fists.2) and tumbles to a point above the first target in
   `chain`, where it flares and burns while a jagged bolt strikes down. Bolts
-  then hop along `chain` every `HopDelay` (0.12 to 0.09 s by tier), bowing over
+  then hop along `chain` every `HopDelay` (0.04 to 0.028 s by tier), bowing over
   the bodies. Each target gets an impact (flash, Neon impact torus, ground
   shock, crackle; II+ scorch and seals); the last gets a heavier finale with an
   electric ring, a ground splash and a shake (III+ Craters rocks). With no
@@ -205,7 +205,18 @@ checks a rebuild against the previous templates.
   `Strands`, `Forks`, `BoltWidth`, `BoltLife`, `Segments`, `Jitter`,
   `Flickers`, `CardSpeed`, `SealTargets`, `SkyStrike`). Damage lands at Hit;
   the hops are only a visual stagger. When `chain` is nil (Edit previews) the
-  module predicts it with Combat.chainTargets' rule.
+  module predicts it with Combat.chainTargets' rule. Remade 2026-10-21 for the
+  Hit window (bare hand, so the anchor stays on the live left palm): the card
+  now crosses in 0.05-0.12 s (`CardSpeed` 200-245 studs/s, was 110-125 and up
+  to 0.22 s) and the hops are 0.04-0.028 s apart (were 0.12-0.09 s), so the
+  first strike lands ~0.05 s after the release and the whole chain within
+  ~0.15 s instead of up to ~0.5 s after the damage number (a sandbox run
+  landed the first impact 0.03 s and the finale 0.1 s after the release); the
+  windup is a stream through 0.25 s; the release on the hand gets the shared
+  flare (violet cross glint, star-burst flipbook over ink, sparks); every
+  impact carries the shared ink splat and star-burst flipbook. Layers T1 / T4:
+  windup 4 / 6, hand release 7 / 9, card 5, impact 9 / 17, finale 15 / 20,
+  fizzle 11 / 17.
 - **Fire Seal** (`FireSeal_T1..T4`, authored at radius 8, a 0.214 s active
   window and 4 s; `TechniqueFX.FireSeal`). Fists.4 strikes with the left hand.
   Windup: qi gathers into the palm. At Hit the seal is thrown as a projectile

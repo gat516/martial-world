@@ -568,3 +568,44 @@ read as sticks head-on; they fan out of the skirt, so keep the swing small. Chec
 - Tells (Neon): `EyeL`, `EyeR`, `VenomSacL`, `VenomSacR`, `HoodSpotL`, `HoodSpotR`.
 - Attachments: `Mouth` (Skull), `SacL_FX`, `SacR_FX` (on the sacs), `TailTip_FX` (Tail5, at the barb tip, on the ground).
 - `HealthBar` 1 stud over the top. check_rig clean, keyframe_test keyable (13 joints).
+
+## Blood Bat (Iron-Winged, 40 parts, 13 joints, `build_blood_bat.luau` / `rig_blood_bat.luau`)
+
+A small swarm flier (wind-blood). Wingspan about 4.9 studs (5.2 bounding box), body 1.5 long,
+ears to Y 6.3. Standalone export `art/enemies/beasts/export/BloodBat.rbxm` (template
+`BloodBat`; Modeler A merges it into `Enemies.rbxm`). Faces -Z.
+
+**Flier convention** (matches the Flame Raven, `workspace.Folder.Model.FlameRaven` in the
+testbed): the model is built in place at hover height, the pivot is the HRP centre (not the
+ground) with identity rotation, and the HRP floats with HipHeight = its bottom. **HRP** 2.6 x
+2.4 x 2.6 centred at (0, 4.6, -0.2), bottom 3.4 (the raven's is 2.4 x 3 x 3 at Y 5, bottom
+3.5), so a grounded player's melee box reaches it. Body centre Y 4.6, feet down to Y 3.7.
+Root centre to the mouth (`Mouth` attachment) at rest: 1.3 studs forward (z -1.5 vs -0.2).
+
+| Joint | Moves (Part1) | Parent | Pivot | Notes |
+|---|---|---|---|---|
+| JointRoot | Body | HRP | (0, 4.6, 0) | hover bob, banking (roll Z) |
+| JointHead | Skull | Body | (0, 4.95, -0.6) | -X nods down |
+| JointJaw | Jaw | Skull | (0, 4.5, -0.65) | -X opens; reveals MouthTell |
+| JointEarL / R | EarL / R | Skull | (+-0.38, 5.3, -0.85) | roll Z flicks them: a left ear tilts out with +Z, a right ear with -Z |
+| JointWingL / R | WingL / R | Body | (+-0.5, 4.75, -0.2) | shoulder, **flap roll Z: L up = -Z, R up = +Z** |
+| JointWingL2 / R2 | WingL2 / R2 | WingL / R | (+-1.2, 5.1, -0.4) | elbow, same signs |
+| JointWingL3 / R3 | WingL3 / R3 | WingL2 / R2 | (+-2.0, 5.3, -0.65) | the wingtip finger, same signs; pitch X sweeps it back/forward |
+| JointLegL / R | LegL / R | Body | (+-0.3, 4.2, 0.4) | small hanging feet; +X swings the foot forward |
+
+Wing joints are the Flame Raven's convention (shoulder/elbow/wrist, roll about Z lifts), so
+one flap cycle can drive both: at rest the wings sit about 25 degrees up (half spread);
+a full downstroke is about 0.8 rad past rest on the shoulder, with the elbow and finger
+lagging a beat. Yaw (Y) at the shoulder sweeps a wing back (L: -Y, R: +Y).
+
+**Tells** (Neon, `Tell = true`): `EyeL/R`, `MouthTell` (on the jaw top, inside the mouth,
+visible when it opens), `WingEdgeTellL/R` (a strip on the metal leading bone of WingL2/R2),
+and `ChestCore` (the red chest glow, on the Body).
+
+**FX attachments**: `Mouth` (Skull), `Core` (Body, chest front), `WingTipL_FX` (WingL3),
+`WingTipR_FX` (WingR3).
+
+Gotchas: the membranes are 0.07 thick sheets, so they go edge-on from a level camera when
+the wings are near flat; keep a V of 0.3 rad or more. Ears are forward-facing triangles
+(two wedges) and read from the front. Checks: `check_rig.luau` clean, `keyframe_test.luau`
+keyable (13 joints).

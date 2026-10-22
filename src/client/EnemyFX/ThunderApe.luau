@@ -19,6 +19,7 @@ local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
 
 local TechniqueVFX = require(script.Parent.Parent.TechniqueVFX)
+local ProjectileView = require(script.Parent.Parent.ProjectileView)
 
 local TEMPLATE = "ThunderApeB"
 local WHITE = Color3.new(1, 1, 1)
@@ -36,11 +37,13 @@ local BEATS = {
 	phaseRoar = { 0.4, 0.8, 1.2 },
 }
 local WINDUP = {
-	challenge = 2.4, clubSwing = 0.55, backhand = 0.45, thunderPound = 0.6, bodySlam = 0.85, skyfallSlam = 1.65,
-	thunderRush = 0.9, bound = 0.25, boulderHurl = 1.0, thunderLance = 1.0, thunderRoar = 1.3, stormCall = 1.2,
+	challenge = 2.4, clubSwing = 0.8, backhand = 0.6, thunderPound = 0.85, bodySlam = 1.1, skyfallSlam = 1.95,
+	thunderRush = 1.2, bound = 0.45, boulderHurl = 1.7, thunderLance = 1.4, thunderRoar = 1.3, stormCall = 1.2,
 	judgment = 2.6, phaseRoar = 1.6,
 }
+-- fallbacks only: windup cues carry `seconds` (a leap's is windup + flight)
 local FLIGHT = { skyfallSlam = 0.75, judgment = 1.0 }
+local THROW_FLIGHT = 0.45 -- boulderHurl: the rock leaves the hand this long before the windup ends
 
 local Ape = {}
 local states = setmetatable({}, { __mode = "k" })
@@ -372,7 +375,9 @@ local function boltBeam(a, b, width, life, segs, jag)
 		points[i + 1] = at
 	end
 	local beams = {}
-	local widths = { Dark = 2.4, Glow = 1.9, Core = 0.55 }
+	-- a thin indigo edge, a soft cyan glow wider than it, a white-hot core:
+	-- a wide opaque Dark read as a grey tube against the sky
+	local widths = { Dark = 1.25, Glow = 2.6, Core = 0.5 }
 	for i = 1, n do
 		for _, template_beam in tpl:GetChildren() do
 			if template_beam:IsA("Beam") then
@@ -382,7 +387,7 @@ local function boltBeam(a, b, width, life, segs, jag)
 				beam.Width0, beam.Width1 = w, w
 				beam.Enabled = true
 				beam.Parent = holder
-				table.insert(beams, { beam = beam, w = w, base = if beam.Name == "Glow" then 0.2 elseif beam.Name == "Dark" then 0.15 else 0 })
+				table.insert(beams, { beam = beam, w = w, base = if beam.Name == "Glow" then 0.25 elseif beam.Name == "Dark" then 0.35 else 0 })
 			end
 		end
 	end
@@ -416,92 +421,13 @@ local function pillarBolt(top, bottom, width)
 	end
 end
 
+-- The body's box (for effects that cover the whole silhouette)
 ----------------------------------------------------------------------
--- Ghost afterimages: translucent cyan Neon copies of the body's own parts
-----------------------------------------------------------------------
 
-local function bodyParts(cue, centre, radius, limit)
-	local found = {}
-	for _, d in body(cue.model):GetDescendants() do
-		if d:IsA("BasePart") and d.Name ~= "HumanoidRootPart" and d.Transparency < 0.9 and not d:FindFirstAncestor("HealthBar") then
-			if not centre or (d.Position - centre).Magnitude <= (radius or 0) then
-				if d.Size.X * d.Size.Y * d.Size.Z > 6 then
-					table.insert(found, d)
-				end
-			end
-		end
-	end
-	table.sort(found, function(a, b)
-		return a.Size.X * a.Size.Y * a.Size.Z > b.Size.X * b.Size.Y * b.Size.Z
-	end)
-	while #found > limit do
-		table.remove(found)
-	end
-	return found
-end
-
-local function ghost(parts, life, travel, swell, from, fadeIn, color)
-	if #parts == 0 then
-		return
-	end
-	local centre = Vector3.zero
-	for _, p in parts do
-		centre += p.Position
-	end
-	centre /= #parts
-	local copies = {}
-	for _, p in parts do
-		local c = p:Clone()
-		for _, child in c:GetChildren() do
-			if not child:IsA("DataModelMesh") then
-				child:Destroy()
-			end
-		end
-		c.Anchored, c.CanCollide, c.CanQuery, c.CanTouch, c.CastShadow, c.Massless = true, false, false, false, false, true
-		c.Material = Enum.Material.Neon
-		c.Color = color or BRIGHT
-		c.Transparency = 1
-		c.Parent = TechniqueVFX.folder
-		table.insert(copies, { part = c, offset = p.Position - centre, rot = p.CFrame.Rotation, size = p.Size })
-	end
-	local started = os.clock()
-	local connection
-	connection = RunService.Heartbeat:Connect(function()
-		local a = (os.clock() - started) / life
-		if a >= 1 then
-			connection:Disconnect()
-			for _, c in copies do
-				c.part:Destroy()
-			end
-			return
-		end
-		local transparency = if a < fadeIn then 1 + (from - 1) * (a / fadeIn) else from + (1 - from) * ((a - fadeIn) / (1 - fadeIn))
-		local k = 1 + swell * a
-		local move = travel * (1 - (1 - a) * (1 - a))
-		for _, c in copies do
-			c.part.CFrame = CFrame.new(centre + c.offset * k + move) * c.rot
-			c.part.Size = c.size * k
-			c.part.Transparency = transparency
-		end
-	end)
-end
-
--- the head thrown forward (roars)
-local function ghostHead(cue, life, travel)
-	local skull = part(cue, { "Skull" })
-	if skull == cue.root then
-		return
-	end
-	ghost(bodyParts(cue, skull.Position, 14, 18), life, travel, 0.5, 0.5, 0.2)
-end
-
--- an afterimage of the fists and chest left behind
-local function afterimage(cue, life, limit)
-	local chest = part(cue, { "Chest" })
-	if chest == cue.root then
-		return
-	end
-	ghost(bodyParts(cue, chest.Position, 20, limit), life, Vector3.zero, 0.08, 0.5, 0.15)
+local function bodyBox(cue, shrink)
+	local cf, size = cue.model:GetBoundingBox()
+	local k = shrink or 1
+	return CFrame.new(cf.Position) * facing(cue), Vector3.new(size.X * k, size.Y * k, size.Z * k)
 end
 
 ----------------------------------------------------------------------
@@ -837,16 +763,6 @@ local function charge(cue, side, seconds, scale)
 	end
 end
 
-local function beat(cue, sides, scale)
-	for _, side in sides do
-		local frame, chest = point(cue, "ChestBeat" .. side .. "_FX", { "Chest" })
-		play("BeatPulse", frame, { follow = chest, scale = scale or 1 })
-	end
-	local frame, chest = point(cue, "Core", { "Chest" })
-	play("SigilFlare", frame, { follow = chest, rotate = false, seconds = 0.35, scale = 0.8 })
-	skyFlash(0.07)
-end
-
 local function groundFrame(cue, hook, fallback)
 	local frame = point(cue, hook, fallback)
 	return CFrame.new(ground(cue, frame.Position) + Vector3.new(0, 0.06, 0)) * facing(cue)
@@ -857,15 +773,48 @@ local function feetMid(cue)
 	return CFrame.new((l.Position + r.Position) / 2) * facing(cue), l, r
 end
 
+-- a chest beat: the ring and clap on the chest, the sigil flares, and the
+-- floor thumps under the feet
+local function beat(cue, sides, scale)
+	for _, side in sides do
+		local frame, chest = point(cue, "ChestBeat" .. side .. "_FX", { "Chest" })
+		play("BeatPulse", frame, { follow = chest, scale = scale or 1 })
+	end
+	local frame, chest = point(cue, "Core", { "Chest" })
+	play("SigilFlare", frame, { follow = chest, rotate = false, seconds = 0.35, scale = 0.8 })
+	play("BeatGround", (feetMid(cue)), { scale = scale or 1 })
+	skyFlash(0.07)
+end
+
+-- the roar's windup on the floor: the storm drawn in from the stun radius
+local function roarGather(cue, radius, seconds)
+	local main = root(cue)
+	local g = ground(cue, main.Position)
+	windupPlay(cue, "RoarGather", CFrame.new(g + Vector3.new(0, 0.5, 0)), { radius = radius, seconds = seconds })
+end
+
+-- the roar thrown forward from the mouth; its floor ring runs to the stun
+-- radius. The muzzle layers keep a fixed size (only the floor follows radius).
 local function roarRelease(cue, radius, strength)
 	local frame = point(cue, "Mouth", { "Skull" })
 	local g = ground(cue, frame.Position)
-	play("RoarShock", CFrame.new(frame.Position) * facing(cue), {
-		radius = radius,
+	local look = facing(cue).LookVector
+	-- tip the muzzle frame down a little, so the waves sweep the ground ahead
+	local aim = CFrame.lookAt(frame.Position, frame.Position + look - Vector3.new(0, 0.18, 0))
+	local base = template("RoarShock")
+	local authored = base and base:GetAttribute("AuthoredRadius")
+	local k = if type(authored) == "number" then radius / authored else 1
+	play("RoarShock", aim, {
 		edit = function(copy)
 			local floor = copy:FindFirstChild("Ground")
 			if floor then
-				floor.Position = Vector3.new(0, g.Y + 0.15 - frame.Position.Y, 0)
+				floor.CFrame = aim:ToObjectSpace(CFrame.new(Vector3.new(frame.Position.X, g.Y + 0.15, frame.Position.Z)))
+				for _, e in floor:GetChildren() do
+					if e:IsA("ParticleEmitter") then
+						e.Size = scaleSequence(e.Size, k)
+						e.Speed = NumberRange.new(e.Speed.Min * k, e.Speed.Max * k)
+					end
+				end
 			end
 		end,
 	})
@@ -902,9 +851,9 @@ end
 -- Dash trails
 ----------------------------------------------------------------------
 
-local function followTrail(cue, name, follow, localOffset, seconds, wakeDrop)
+local function followTrail(cue, name, follow, localOffset, seconds, wakeDrop, edit)
 	local s = state(cue.model)
-	local trail = make(name, follow.CFrame * CFrame.new(localOffset))
+	local trail = make(name, follow.CFrame * CFrame.new(localOffset), { edit = edit })
 	if not trail then
 		return
 	end
@@ -959,48 +908,57 @@ local function launch(cue)
 	local age = math.max(0, workspace:GetServerTimeNow() - cue.at)
 	cancelWindup(cue)
 	local chest = part(cue, { "Chest" })
+	-- the whole body sheds storm along its path (sparks, arcs, cloud left
+	-- hanging where it passed): the speed read, with no copies of the body
+	local function shed(seconds, density)
+		if seconds <= 0 then
+			return
+		end
+		local _, size = bodyBox(cue, 0.55)
+		followTrail(cue, "SpeedShed", chest, Vector3.zero, seconds, false, function(copy)
+			copy.Size = size
+			for _, e in copy:GetChildren() do
+				if e:IsA("ParticleEmitter") then
+					e.Rate *= density or 1
+				end
+			end
+		end)
+	end
+	local function limbs(seconds)
+		if seconds <= 0 then
+			return
+		end
+		for _, side in { "L", "R" } do
+			followTrail(cue, "LimbTrail", knuckle(cue, side), Vector3.zero, seconds)
+			followTrail(cue, "LimbTrail", part(cue, { "FootB" .. side }), Vector3.zero, seconds)
+		end
+	end
 	if attack == "bodySlam" then
 		local d = dashSeconds(cue, 0.47, 0.8)
 		if age < d then
 			followTrail(cue, "BodyTrail", chest, Vector3.new(0, -6, 0), d - age, true)
+			shed(d - age, 0.6)
 		end
 	elseif attack == "thunderRush" then
 		local d = dashSeconds(cue, 0.7, 1.2)
 		if age < d then
 			takeoff(cue, 0.8)
 			followTrail(cue, "BodyTrail", chest, Vector3.new(0, -6, 0), d - age, true)
-			for _, side in { "L", "R" } do
-				followTrail(cue, "LimbTrail", knuckle(cue, side), Vector3.zero, d - age)
-				followTrail(cue, "LimbTrail", part(cue, { "FootB" .. side }), Vector3.zero, d - age)
-			end
-			afterimage(cue, 0.6, 14)
-			task.delay(0.22, function()
-				if current(cue, "dash", 0.5) then
-					afterimage(cue, 0.5, 12)
-				end
-			end)
+			limbs(d - age)
+			shed(d - age, 1)
 		end
 	elseif attack == "skyfallSlam" then
 		takeoff(cue, 1.5)
-		local d = 0.75
-		followTrail(cue, "BodyTrail", chest, Vector3.new(0, -4, 0), d - age)
-		for i = 0, 3 do
-			task.delay(i * 0.17, function()
-				if cue.model.Parent and not s.dead then
-					afterimage(cue, 0.6, 14)
-				end
-			end)
-		end
+		local d = FLIGHT.skyfallSlam - age
+		followTrail(cue, "BodyTrail", chest, Vector3.new(0, -4, 0), d)
+		limbs(d)
+		shed(d, 1)
 	elseif attack == "judgment" then
 		-- the bolt strike on the ape is judgmentStrike (called from strike)
-		followTrail(cue, "BodyTrail", chest, Vector3.new(0, -4, 0), 1.0 - age)
-		for i = 0, 3 do
-			task.delay(i * 0.25, function()
-				if cue.model.Parent and not s.dead then
-					afterimage(cue, 0.7, 16)
-				end
-			end)
-		end
+		local d = FLIGHT.judgment - age
+		followTrail(cue, "BodyTrail", chest, Vector3.new(0, -4, 0), d)
+		limbs(d)
+		shed(d, 1.3)
 	elseif attack == "bound" then
 		takeoff(cue, 0.5)
 		for _, name in { "EyeL", "EyeR" } do
@@ -1009,7 +967,9 @@ local function launch(cue)
 				play("EyeFlare", eye.CFrame, { follow = eye })
 			end
 		end
-		afterimage(cue, 0.5, 12)
+		local d = dashSeconds(cue, 0.55, 0.8) - age
+		limbs(d)
+		shed(d, 0.5)
 	end
 end
 
@@ -1017,67 +977,284 @@ end
 -- Boulder
 ----------------------------------------------------------------------
 
-local function boulderImpact(cue, center, radius)
-	local g = ground(cue, center)
-	play("BoulderImpact", CFrame.new(g) * facing(cue), { radius = radius })
-	shake(0.25, g, 70)
-	if (workspace.CurrentCamera.CFrame.Position - g).Magnitude < 80 then
-		skyFlash(0.05)
-	end
-end
-
-local function throwBoulder(cue, center, radius, seconds)
+-- boulderHurl's windup (`seconds` from the cue): the rock is torn out of the
+-- floor at the right fist (0 -> rip), rides the fist up overhead, goes white
+-- with lightning for the last 0.25 s before the throw (THROW_FLIGHT before
+-- the windup ends). The flight is the server's projectile (cue "boulder",
+-- drawn by the drawer below), which takes this rock over when it spawns; an
+-- interrupted windup takes the rock away.
+local function boulderWindup(cue, seconds)
 	local s = state(cue.model)
 	local generation = s.generation
-	local fist = knuckle(cue, "R")
-	local start = fist.Position
-	local target = ground(cue, center) + Vector3.new(0, radius * 0.35, 0)
-	local rock = Instance.new("Part")
-	rock.Name = "ApeBoulder"
-	rock.Anchored, rock.CanCollide, rock.CanQuery, rock.CanTouch, rock.CastShadow = true, false, false, false, true
-	rock.Material = Enum.Material.Slate
-	rock.Color = Color3.fromRGB(70, 76, 90)
-	rock.Size = Vector3.new(radius * 0.7, radius * 0.6, radius * 0.7)
-	rock.CFrame = CFrame.new(start)
-	rock.Parent = TechniqueVFX.folder
-	local lumps = {}
-	for i = 1, 2 do
-		local lump = rock:Clone()
-		lump.Size = rock.Size * (0.55 + 0.15 * i)
-		lump.Parent = rock
-		table.insert(lumps, { part = lump, offset = CFrame.new((i - 1.5) * radius * 0.28, (i - 1.5) * radius * 0.15, (1.5 - i) * radius * 0.2) * CFrame.Angles(i, i * 2, 0) })
+	local release = math.max(0.3, seconds - THROW_FLIGHT)
+	local rip = math.min(0.6, release * 0.48)
+	local tpl = template("BoulderRock")
+	if not tpl then
+		return
 	end
+	local rock = tpl:Clone()
+	rock.Name = "ApeBoulder"
+	local half = rock.Size.Y / 2
+	local fist = knuckle(cue, "R")
+	local floor = ground(cue, fist.Position)
+	local buried = floor - Vector3.new(0, half * 0.9, 0)
+	local spin = CFrame.Angles(math.random() * 6, math.random() * 6, math.random() * 6)
+	rock.CFrame = CFrame.new(buried) * spin
+	rock.Parent = TechniqueVFX.folder
+	local skin = make("BoulderSkin", rock.CFrame)
+	if skin then
+		skin.Parent = TechniqueVFX.folder
+		TechniqueVFX.enable(skin)
+		for _, d in skin:GetDescendants() do
+			if d:IsA("Trail") then
+				d.Enabled = false
+			elseif d:IsA("ParticleEmitter") then
+				d.Rate *= 0.5
+			end
+		end
+	end
+	local held = { rock = rock, skin = skin, spin = spin }
 	s.boulder = rock
-	local skin = play("BoulderSkin", rock.CFrame, { follow = rock, scale = radius / 5 })
-	play("Shadow", CFrame.new(ground(cue, center) + Vector3.new(0, 0.05, 0)), { radius = radius, seconds = seconds })
-	local started = os.clock()
-	local height = math.max(14, (target - start).Magnitude * 0.25)
+	s.held = held
+	local charged = false
 	local connection
+	local function drop()
+		connection:Disconnect()
+		if s.held == held then
+			s.held = nil
+		end
+	end
+	-- the projectile drawer takes the rock and skin; nothing is destroyed here
+	function held.take()
+		drop()
+		if s.boulder == rock then
+			s.boulder = nil
+		end
+		return rock, skin
+	end
 	connection = RunService.RenderStepped:Connect(function()
-		local t = (os.clock() - started) / seconds
-		if s.generation ~= generation or not rock.Parent or s.boulder ~= rock then
-			connection:Disconnect()
+		local t = workspace:GetServerTimeNow() - cue.at
+		-- cancelWindup destroys s.boulder; the skin goes with it. A throw that
+		-- never arrives (0.6 s past release) is dropped the same way.
+		if s.generation ~= generation or s.boulder ~= rock or not rock.Parent or not fist.Parent or t > release + 0.6 then
+			drop()
 			rock:Destroy()
 			if skin then
 				skin:Destroy()
 			end
 			return
 		end
-		if t >= 1 then
-			connection:Disconnect()
-			rock:Destroy()
-			s.boulder = nil
-			boulderImpact(cue, center, radius)
-			return
+		local hold = fist.Position + Vector3.new(0, half * 0.85, 0)
+		local pos = hold
+		if t < rip then
+			local a = math.clamp(t / rip, 0, 1)
+			pos = buried:Lerp(hold, 1 - (1 - a) * (1 - a))
 		end
-		local pos = start:Lerp(target, t) + Vector3.new(0, 4 * height * t * (1 - t), 0)
-		local cf = CFrame.new(pos) * CFrame.Angles(t * 7, t * 5, 0)
-		rock.CFrame = cf
-		for _, l in lumps do
-			l.part.CFrame = cf * l.offset
+		rock.CFrame = CFrame.new(pos) * spin
+		if skin then
+			skin.CFrame = rock.CFrame
+		end
+		if not charged and t >= release - 0.25 then
+			charged = true
+			play("BoulderCharge", rock.CFrame, { follow = rock, rotate = false, seconds = math.max(0.1, release - t) })
+			skyFlicker(0.06)
 		end
 	end)
 end
+
+----------------------------------------------------------------------
+-- Projectiles (server-simulated; ProjectileView flies them and calls these)
+----------------------------------------------------------------------
+
+-- a cue-shaped table for helpers that take one (ground raycasts skip the ape)
+local function ownerCue(shot)
+	local model = shot.owner
+	local main = model and model:FindFirstChild("HumanoidRootPart")
+	if not (model and main and main:IsA("BasePart")) then
+		return nil
+	end
+	return { model = model, root = main, at = shot.startedAt }
+end
+
+local function floorUnder(shot, position)
+	local c = ownerCue(shot)
+	if c then
+		return ground(c, position)
+	end
+	local hit = workspace:Raycast(position, Vector3.new(0, -200, 0))
+	return if hit then hit.Position else position - Vector3.new(0, 10, 0)
+end
+
+-- the rock's diameter: data.size is its hit radius (5 -> a 10-stud rock)
+local function sizeOf(shot, fallback)
+	local data = shot.data
+	local size = data and data.size
+	return if type(size) == "number" then size * 2 else fallback
+end
+
+-- the boulder: the rock in the ape's hand flies on (or a fresh one appears at
+-- the shot), its skin's trails switch on, a shadow tracks under it and grows
+-- as it comes down; the impact plays where the server ended it
+local function boulderStart(shot)
+	local c = ownerCue(shot)
+	local s = c and state(c.model)
+	local rock, skin, spin
+	if s and s.held then
+		spin = s.held.spin
+		rock, skin = s.held.take()
+	end
+	local tpl = template("BoulderRock")
+	if not rock and tpl then
+		rock = tpl:Clone()
+		rock.Name = "ApeBoulder"
+		rock.Parent = TechniqueVFX.folder
+	end
+	if not rock then
+		return
+	end
+	spin = spin or CFrame.Angles(math.random() * 6, math.random() * 6, 0)
+	local diameter = sizeOf(shot, rock.Size.Magnitude / math.sqrt(3))
+	local k = diameter / (rock.Size.Magnitude / math.sqrt(3))
+	if math.abs(k - 1) > 0.05 then
+		rock.Size *= k
+	end
+	if not skin then
+		skin = make("BoulderSkin", rock.CFrame, { scale = k })
+		if skin then
+			skin.Parent = TechniqueVFX.folder
+			TechniqueVFX.enable(skin)
+		end
+	end
+	if skin then
+		for _, d in skin:GetDescendants() do
+			if d:IsA("Trail") then
+				d.Enabled = true
+			elseif d:IsA("ParticleEmitter") then
+				d.Enabled = true
+				d.Rate = math.max(d.Rate * 2, 8)
+			end
+		end
+	end
+	local shadow = make("BoulderShadow", CFrame.new(floorUnder(shot, shot.state.position)))
+	if shadow then
+		shadow.Parent = TechniqueVFX.folder
+		TechniqueVFX.enable(shadow)
+	end
+	local startY = shot.state.position.Y
+	shot.visual = { rock = rock, skin = skin, shadow = shadow, spin = spin, diameter = diameter, startY = startY, t = 0 }
+end
+
+local function boulderStep(shot, position, velocity, dt)
+	local v = shot.visual
+	if not v then
+		return
+	end
+	v.t += dt
+	v.rock.CFrame = CFrame.new(position) * v.spin * CFrame.Angles(v.t * 9, v.t * 6, 0)
+	if v.skin then
+		-- the skin keeps world up so its trail pair stays an upright ribbon
+		local flat = Vector3.new(velocity.X, 0, velocity.Z)
+		v.skin.CFrame = if flat.Magnitude > 0.1 then CFrame.lookAt(position, position + flat) else CFrame.new(position)
+	end
+	if v.shadow then
+		local floor = floorUnder(shot, position)
+		v.shadow.CFrame = CFrame.new(floor + Vector3.new(0, 0.05, 0))
+		local height = math.max(0, position.Y - floor.Y)
+		-- close to the floor: as wide as the rock and dark; high up: wide and faint
+		local near = math.clamp(1 - height / 40, 0, 1)
+		local radius = v.diameter * (0.55 + 0.6 * near)
+		for _, e in v.shadow:GetDescendants() do
+			if e:IsA("ParticleEmitter") then
+				e.Size = NumberSequence.new(if e.Name == "Rim" then radius * 1.06 else radius)
+				e.Transparency = NumberSequence.new(if e.Name == "Rim" then 0.75 - 0.5 * near else 0.75 - 0.45 * near)
+			end
+		end
+	end
+end
+
+local function boulderFinish(shot, position, _reason)
+	local v = shot.visual
+	shot.visual = nil
+	if v then
+		v.rock:Destroy()
+		for _, item in { v.skin, v.shadow } do
+			if item then
+				TechniqueVFX.disable(item)
+				TechniqueVFX.cleanup(item, 0.3)
+			end
+		end
+	end
+	local c = ownerCue(shot)
+	local radius = math.max(6, v and v.diameter or 10) -- the server splashes r10
+	local g = floorUnder(shot, position + Vector3.new(0, 4, 0))
+	play("BoulderImpact", CFrame.new(g), { radius = radius })
+	shake(0.25, g, 70)
+	if c and workspace.CurrentCamera and (workspace.CurrentCamera.CFrame.Position - g).Magnitude < 80 then
+		skyFlash(0.05)
+	end
+end
+
+-- the lance: a javelin of lightning along its velocity, scorch spots dropped
+-- on the floor under it every few studs, an end flash and bolt where it stops
+local function lanceStart(shot)
+	local frame = CFrame.lookAt(shot.state.position, shot.state.position + shot.state.velocity)
+	local bolt = make("LanceBolt", frame)
+	if not bolt then
+		return
+	end
+	bolt.Parent = TechniqueVFX.folder
+	TechniqueVFX.enable(bolt)
+	for _, d in bolt:GetDescendants() do
+		if d:IsA("Beam") or d:IsA("Trail") then
+			d.Enabled = true
+		end
+	end
+	play("LanceFlash", frame, { scale = 0.8 })
+	skyFlash(0.18)
+	shot.visual = { bolt = bolt, lastScorch = shot.state.position }
+end
+
+local function lanceStep(shot, position, velocity)
+	local v = shot.visual
+	if not v then
+		return
+	end
+	if velocity.Magnitude > 0.1 then
+		v.bolt.CFrame = CFrame.lookAt(position, position + velocity)
+	else
+		v.bolt.Position = position
+	end
+	if (position - v.lastScorch).Magnitude >= 11 then
+		v.lastScorch = position
+		local floor = floorUnder(shot, position)
+		if position.Y - floor.Y < 14 then
+			play("ScorchSpot", CFrame.new(floor + Vector3.new(0, 0.05, 0)) * CFrame.Angles(0, math.random() * 6, 0), { scale = 1.4 })
+		end
+	end
+end
+
+local function lanceFinish(shot, position, _reason)
+	local v = shot.visual
+	shot.visual = nil
+	if v then
+		TechniqueVFX.disable(v.bolt)
+		for _, d in v.bolt:GetDescendants() do
+			if d:IsA("Beam") then
+				d.Enabled = false
+			end
+		end
+		TechniqueVFX.cleanup(v.bolt, 0.3)
+	end
+	local floor = floorUnder(shot, position + Vector3.new(0, 2, 0))
+	play("LanceFlash", CFrame.new(position), { scale = 1.0 })
+	if position.Y - floor.Y < 14 then
+		play("BoltStrike", CFrame.new(floor), { radius = 5 })
+	end
+	shake(0.2, position, 60)
+end
+
+ProjectileView.register("boulder", { start = boulderStart, step = boulderStep, finish = boulderFinish })
+ProjectileView.register("thunderLance", { start = lanceStart, step = lanceStep, finish = lanceFinish })
 
 ----------------------------------------------------------------------
 -- Storm bolts and landings
@@ -1201,6 +1378,7 @@ function Ape.windup(cue)
 	end
 	if attack == "challenge" then
 		tellUp(cue, { "ChestSigil", "ChestBolt", "Eye" }, seconds)
+		roarGather(cue, 28, seconds)
 		atTime(cue, 0.4, function()
 			eyes(cue, 0.6)
 		end)
@@ -1249,49 +1427,20 @@ function Ape.windup(cue)
 		charge(cue, "L", seconds, 1.1)
 		charge(cue, "R", seconds, 1.1)
 	elseif attack == "boulderHurl" then
-		local radius, center = shapeCircle(shape, 10, cue.root.Position)
-		tellUp(cue, FIST_R, 0.6)
-		charge(cue, "R", 0.6, 1.2)
-		windupPlay(cue, "BoulderRip", groundFrame(cue, "FistR_FX", { "HandFR" }), { seconds = 0.6, scale = 1.6 })
-		atTime(cue, 0.6, function()
-			throwBoulder(cue, center, radius, math.max(0.15, cue.at + seconds - workspace:GetServerTimeNow()))
-		end)
+		local release = math.max(0.3, seconds - THROW_FLIGHT)
+		local rip = math.min(0.6, release * 0.48)
+		tellUp(cue, FIST_R, release)
+		windupPlay(cue, "BoulderRip", groundFrame(cue, "FistR_FX", { "HandFR" }), { seconds = rip, scale = 2.2 })
+		boulderWindup(cue, seconds)
 	elseif attack == "thunderLance" then
 		tellUp(cue, FIST_R, seconds * 0.9)
-		local start, look, length, width = lane(cue, shape)
+		-- the red lane is the server's warnLane; the javelin forms on the fist
+		local _, look = lane(cue, shape)
 		local k = knuckle(cue, "R")
 		windupPlay(cue, "LanceForm", CFrame.lookAt(k.Position, k.Position + look), { follow = k, rotate = false, seconds = seconds, scale = 1.6 })
-		local mid = ground(cue, start + look * length / 2) + Vector3.new(0, 0.3, 0)
-		local laneCF = CFrame.lookAt(mid, mid + look)
-		windupPlay(cue, "LaneCharge", laneCF, {
-			seconds = seconds,
-			edit = function(copy)
-				copy.Size = Vector3.new(width, 0.4, length)
-				local density = length / 42
-				for _, d in copy:GetDescendants() do
-					if d:IsA("ParticleEmitter") then
-						d.Rate *= density
-						d.Size = scaleSequence(d.Size, width / 3.5 * 0.7)
-					end
-				end
-			end,
-		})
-		-- a thin charged strip over the lane (a part, support only)
-		local strip = Instance.new("Part")
-		strip.Anchored, strip.CanCollide, strip.CanQuery, strip.CanTouch, strip.CastShadow = true, false, false, false, false
-		strip.Material = Enum.Material.Neon
-		strip.Color = BRIGHT
-		strip.Transparency = 0.85
-		strip.Size = Vector3.new(width * 0.5, 0.15, length)
-		strip.CFrame = laneCF
-		strip.Parent = TechniqueVFX.folder
-		TweenService:Create(strip, TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Transparency = 0.35 }):Play()
-		table.insert(s.windups, strip)
-		task.delay(seconds + 0.25, function()
-			strip:Destroy()
-		end)
 	elseif attack == "thunderRoar" or attack == "phaseRoar" then
 		tellUp(cue, nil, seconds * 0.95)
+		roarGather(cue, s.stunR or (if attack == "phaseRoar" then 34 else 42), seconds)
 		for i, t in BEATS[attack] do
 			atTime(cue, t, function()
 				beat(cue, if attack == "phaseRoar" and i == #BEATS.phaseRoar then { "L", "R" } else { if i % 2 == 1 then "L" else "R" }, if attack == "phaseRoar" then 1.4 else 1.1)
@@ -1367,7 +1516,6 @@ function Ape.strike(cue)
 	local face = facing(cue)
 	if attack == "challenge" then
 		roarRelease(cue, stunR or 28, 0.2)
-		ghostHead(cue, 1.0, cue.root.CFrame.LookVector * 14 + Vector3.new(0, 3, 0))
 	elseif attack == "thunderRoar" then
 		roarRelease(cue, stunR or 42, 0.25)
 	elseif attack == "phaseRoar" then
@@ -1385,7 +1533,6 @@ function Ape.strike(cue)
 			end)
 		end
 		flareAura(cue, 3)
-		ghostHead(cue, 1.2, cue.root.CFrame.LookVector * 16 + Vector3.new(0, 4, 0))
 	elseif attack == "clubSwing" or attack == "backhand" then
 		local side = if attack == "clubSwing" then "R" else "L"
 		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 30
@@ -1405,19 +1552,7 @@ function Ape.strike(cue)
 		skyFlash(0.12)
 		shake(0.3, center, 25)
 	elseif attack == "thunderLance" then
-		local start, look, length = lane(cue, shape)
-		local k = knuckle(cue, "R")
-		local from = k.Position
-		local to = ground(cue, start + look * length) + Vector3.new(0, 5, 0)
-		boltBeam(from, to, 5, 0.38, 14, 0.035)
-		boltBeam(from + Vector3.new(0, 1, 0), to + Vector3.new(0, 1, 0), 2.2, 0.3, 12, 0.06)
-		play("LanceFlash", CFrame.new(from) * face, { scale = 1.3 })
-		play("LanceFlash", CFrame.new(to) * face, { scale = 1.0 })
-		for i = 1, 8 do
-			local at = ground(cue, start + look * (length * (i - 0.5) / 8))
-			play("ScorchSpot", CFrame.new(at + Vector3.new(0, 0.05, 0)) * face, { scale = 1.4 })
-		end
-		skyFlash(0.25)
+		return -- the throw flash and the bolt are the projectile's (lanceStart)
 	elseif attack == "stormCall" then
 		local frame, chest = point(cue, "BackTop", { "Chest" })
 		play("PhaseArrival", frame, { follow = chest, boost = 0.4, scale = 0.5 })
@@ -1581,7 +1716,34 @@ function Ape.death(cue)
 			end
 		end)
 	end
-	ghost(bodyParts(cue, nil, nil, 36), 3.4, Vector3.new(0, 14, 0), 0.12, 0.55, 0.3)
+	-- the storm spirit streams up out of the whole body, ramping to a torrent
+	local boxFrame, boxSize = bodyBox(cue, 0.7)
+	local soul = play("DeathSoul", boxFrame, {
+		follow = chest,
+		rotate = false,
+		seconds = 3.0,
+		edit = function(copy)
+			copy.Size = boxSize
+		end,
+	})
+	if soul then
+		local rates = {}
+		for _, e in soul:GetChildren() do
+			if e:IsA("ParticleEmitter") then
+				rates[e] = e.Rate
+			end
+		end
+		task.spawn(function()
+			local started = os.clock()
+			while soul.Parent and os.clock() - started < 3.0 do
+				local k = 0.4 + 2.2 * ((os.clock() - started) / 3.0) ^ 2
+				for e, rate in rates do
+					e.Rate = rate * k
+				end
+				task.wait(0.1)
+			end
+		end)
+	end
 	task.spawn(function()
 		local started = os.clock()
 		while chest.Parent do

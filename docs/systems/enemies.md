@@ -566,35 +566,51 @@ module's loops divide speeds by its own `SCALE`). A storm call publishes its rea
 attribute for the pose's long channel; `bound` is treated like a leap (flight time from `active`, no active beat in recover).
 Untested: all of it (feel, numbers, wall/ground checks for the flank bound, the wave's readability).
 
-Effects (vfx agent): `Effects.ThunderApe` (51 templates, about 300 emitters; builder
-`tools/vfx_specs/ThunderApe.luau`, installs `_G.buildThunderApeFX`), handler `EnemyFX/ThunderApe.luau`
-(gated to `ThunderApeB`). Storm blue-white (`5BD8FF`, rim `B8F0FF`, white-hot core) over an indigo `1B2547`
-copy, violet `8F7BFF` only in phase 3, no gold, nothing over the head (cloud wisps on `BackTop` and the
-shoulders). Everything is authored at the 30-stud body and rescaled to each cue's `shape` (radius, centre,
-lane). The aura (`ready`, rebuilt on the `Phase` attribute, rates follow Health and flare on every windup):
-P1 forearm and knuckle sparks plus cloud wisps; P2 adds arcs (and code-drawn beams jumping between fists
-and shoulders), a burning chest sigil and a floor formation; P3 adds white-hot eyes (`TellBase` swapped),
-lightning streaming off `BackTop`, lifting fur motes and the violet accent. Per attack, layers per beat
-(windup / contact): challenge (3 chest beats, roar charge / shock rings, floor ring, ghost head) 7 / 10;
-clubSwing, backhand (fist charge, snap flare / crescent streak + burst) 9 / 17; thunderPound (twin charge /
-a ring at exactly the telegraph radius + a crack, forked arcs, chips and Craters at each fist) 16 / 20;
-poundWave (ring with a crackling front to the cue's radius over 0.45 s, small end burst) 7 + 4; bodySlam
-(sigil flare / body trail, belly dust wave) 6 / 7 + 7; skyfallSlam (sky sigil refit to windup + flight,
-charges / take-off, afterimages, lightning pillar landing with a long scorch) 16 / 7 + 18 + beams;
-thunderRush (charges / body, fist and foot trails, skid) 16 / 7 + 9 + 6; bound (eyes, afterimage, puffs) 4 /
-7; boulderHurl (rock rip, charge / thrown stone with a cyan skin, growing shadow, impact) 17 / 10;
-thunderLance (javelin forming, charged lane + a Neon strip part / full-lane bolt, flashes, scorch line)
-11 / 9; thunderRoar and phaseRoar (beats, charge / ring leaves the ape to the stun radius, floor ring, sky
-flicker, phase roar adds a burst and six visual bolts) 9 / 10 and 11; stormCall (cloud on the hump, sigil
-flare, arms, sky dim / `BoltWarn` 6 then `BoltStrike` 9 + a 62-stud beam per bolt, about 5 layers live
-each); judgment (dark cloud over the ape, ground sigil, sky dim, thunder rolls / bolt on the ape at take-off,
-pillar landing at r28, ring wave, stun flash on the hit); hits (storm, heavy, stun), stagger pop with a
-3x tell flicker and a Highlight, death (sigil overload, bolts lancing out faster and faster, ghost body,
-white burst, spirit core, motes, tells fade to slate). Bolts are jagged beams cloned from the `Bolt`
-template (`boltBeam` in the handler). Sky flicker, flash and the stormCall dim are a short-lived
-ColorCorrection (DayNight rewrites Lighting every frame). Untested in play: the look at 40 studs, the Game
-Module playback (add-on shakes, Craters, LightningBeams attributes on `Bolt`), placement on the live
-moving body, the phone cost of seven stormBolts, the thrown boulder (a three-part Slate cluster).
+Effects (vfx agent): `Effects.ThunderApe` (58 templates; builder `tools/vfx_specs/ThunderApe.luau`, installs
+`_G.buildThunderApeFX`), handler `EnemyFX/ThunderApe.luau` (gated to `ThunderApeB`). Storm blue-white (`5BD8FF`,
+rim `B8F0FF`, white-hot core) over an indigo `1B2547` copy, violet `8F7BFF` only in phase 3, no gold, nothing over
+the head (cloud wisps on `BackTop` and the shoulders). Everything is authored at the 30-stud body and rescaled to
+each cue's `shape`; windup effects are refit to the cue's `seconds` (the `WINDUP` table is only a fallback).
+
+Effects pass (2026-10-21, user: "the duplicated afterimages look bad"; the bosses' stock howl disc is gone):
+- **No body copies.** The Neon afterimages, ghost heads and death ghost are gone. Speed on a rush, leap or bound is
+  `SpeedShed` (a box sized to the torso that sheds sparks, forked arcs, indigo cloud and glints where the body
+  passed) plus `LimbTrail` ribbons on both fists and hind feet; the roar's push is the roar itself (below); the
+  death's spirit release is `DeathSoul` (a box over 70% of the body streaming cyan spirit flames, lines and motes up
+  over indigo smoke, its rates ramped 0.4x -> 2.6x over 3 s).
+- **Roars carry themselves.** Windup: `RoarGather` on the floor at the stun radius (dust and wind lines dragged in
+  from the cylinder wall, sparks lifting, a lit crack spreading under the feet, ground arcs) and `BeatGround` (a
+  floor thump ring) on every chest beat. Release: `RoarShock` throws the roar forward from the Mouth, tipped
+  slightly down: three rings (thick, spiky, crackling) fly out and widen, a cone of wind lines, forked arcs and a
+  storm-cloud gust; on the floor a shock ring over an indigo copy, a crackling ring, arcs, a dust ring and a dust
+  wall run to the stun radius (only the floor layers scale with it). No ring around the head any more.
+- **Boulder (projectile).** Windup (`seconds - 0.45` = the throw): `BoulderRip` at `FistR_FX` (bigger crack, dust
+  wall and plume, dust ring, chunks), the rock (`BoulderRock`, a 10-stud stone mesh, rbxassetid 17608108317) rises
+  out of the floor to the right fist by 0.6 s and rides it, `BoulderSkin` crackling on it, and `BoulderCharge` (big
+  forked arcs, glints, a closing ring, a star at the throw) for the last 0.25 s. The server's `boulder` projectile
+  takes that rock over (`ProjectileView` drawer): skin trails on, a `BoulderShadow` tracking under it that darkens
+  and tightens as it comes down, `BoulderImpact` (now with a plume, shock ring, dust ring and Craters rocks) at r10
+  where it ends. `data.size` is read as the hit radius (5 -> a 10-stud rock).
+- **Lance (projectile).** Windup: `LanceForm` on the fist only (the red lane is `warnLane`; `LaneCharge` and the
+  Neon strip part are gone). Flight: the `thunderLance` drawer flies `LanceBolt` (a 22-stud javelin: a jagged white
+  core beam over a cyan glow and an indigo edge, a white-hot head, crossed dark/bright trails, shed arcs and sparks),
+  drops a `ScorchSpot` every 11 studs when it is low, and ends with `LanceFlash` and a `BoltStrike` on the floor.
+  The client-timed lance streak and scorch line are gone.
+- **Smaller fixes.** Code bolts (`boltBeam`) are a thin indigo edge, a soft glow and a white core (the wide opaque
+  indigo read as grey tubes against the sky); `AuraGround` lost its filled indigo disc (a faint line formation,
+  occasional ground arcs and creeping slate mist remain).
+
+Per beat (windup / contact), unchanged where not listed above: clubSwing, backhand (fist charge, snap flare /
+crescent + burst) 9 / 17; thunderPound (twin charge / ring at the telegraph radius, cracks, arcs, chips, Craters)
+16 / 20; poundWave 7 + 4; bodySlam (sigil flare / body trail + shed, belly wave); skyfallSlam and judgment (sky
+sigil, charges / take-off, body and limb trails, shed, lightning pillar landing); stormCall (cloud on the hump, sigil
+flare, arm charges, sky dim / `BoltWarn` then `BoltStrike` + a beam per bolt); hits (storm, heavy, stun), stagger
+pop with a tell flicker and a Highlight; death (sigil overload, bolts lancing out, `DeathSoul`, white burst, spirit
+core, motes, tells fade to slate).
+Checked in a sandbox (Edit mode, fake cues, captures at noon): the roar windup and release, the boulder rip,
+charge, flight and impact, the lance in flight, the death at 2-2.6 s. Not checked visually: the dash shed and limb
+trails, `AuraGround`, the phase roar, night, 40 studs, phones, the Game Module (add-on shakes, Craters), the drawers
+against the real server messages, the rock's hand-off with the real lift pose.
 
 ### Jade Jiao (testbed trial)
 `Config.Wilds.NEW_JIAO = Config.TESTBED` gates the whole boss; **spawn it from the admin panel** (no

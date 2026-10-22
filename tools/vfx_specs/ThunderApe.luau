@@ -290,22 +290,62 @@ function _G.buildThunderApeFX(effects)
 		shake(p, "Custom,30~110,0.7,0.35,16,0.02,1;1;1,0.05;0.05;0.05")
 	end
 
-	-- RoarShock (the roar release, at the Mouth, authored r20): three shock
-	-- rings leave the muzzle on a vertical plane, a ring and dust ring sweep the
-	-- floor, a blast of cloud, flash, star, arcs.
+	-- RoarShock (the roar release, at the Mouth, facing the roar, authored r20):
+	-- the roar is thrown forward, not around the head: shock rings fly out of
+	-- the muzzle and widen as they go, a cone of wind lines and forked arcs, a
+	-- gust of storm cloud. On the floor (the Ground attachment, dropped to the
+	-- floor by code) a shock ring runs out to the stun radius over an indigo
+	-- copy, a dust wall is shoved outward, ground arcs and chips. Nothing stays
+	-- on the floor once it has passed: no disc.
 	do
 		local p = part(root, "RoarShock", Vector3.new(1, 1, 1), { AuthoredRadius = 20 })
-		em(p, "Ring", with(FACE, { Texture = TEX.ringThin, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Lifetime = R(0.5), Size = grow(3, 34), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), ZOffset = 1 }))
-		em(p, "Ring2", with(FACE, { Texture = TEX.ringThick, Color = CS(RIM), LightEmission = 1, Lifetime = R(0.6), Size = grow(3, 42), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), ZOffset = 1 }), { EmitDelay = 0.16 })
-		em(p, "Ring3", with(FACE, { Texture = TEX.ringSpiky, Color = CS(BRIGHT), LightEmission = 1, Lifetime = R(0.6), Size = grow(3, 48), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 1 }), { EmitDelay = 0.32 })
-		em(p, "Blast", { Texture = TEX.puff, Color = CS(DUST), EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(28, 28), Speed = R(34, 60), Drag = 3, Lifetime = R(0.9, 1.4), Size = grow(4, 14), Transparency = NS({ KP(0, 0.5), KP(1, 1) }), Rotation = R(0, 360) }, { EmitCount = 14 })
-		em(p, "Arcs", with(FACE, { Texture = TEX.radial, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Lifetime = R(0.35), Size = grow(8, 30), Transparency = NS({ KP(0, 0), KP(0.5, 0.4), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 1.5 }))
-		em(p, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 5, Lifetime = R(0.15), Size = grow(6, 20), Transparency = pop, ZOffset = 3 })
+		local fly = { Orientation = Enum.ParticleOrientation.VelocityPerpendicular, EmissionDirection = Enum.NormalId.Front, Speed = R(70), Drag = 2.2 }
+		em(p, "WaveDark", with(fly, { Texture = TEX.ringThick, Color = CS(INDIGO), Lifetime = R(0.55), Size = grow(6, 40), Transparency = NS({ KP(0, 0.35), KP(0.6, 0.5), KP(1, 1) }), ZOffset = 0.5 }), { EmitCount = 1 })
+		em(p, "Wave", with(fly, { Texture = TEX.ringThick, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Lifetime = R(0.55), Size = grow(5, 36), Transparency = NS({ KP(0, 0.05), KP(0.6, 0.3), KP(1, 1) }), ZOffset = 1 }), { EmitCount = 1 })
+		em(p, "Wave2", with(fly, { Texture = TEX.ringSpiky, Color = CS(RIM), LightEmission = 1, Speed = R(58), Lifetime = R(0.6), Size = grow(4, 34), Rotation = R(0, 360), Transparency = NS({ KP(0, 0.1), KP(0.6, 0.35), KP(1, 1) }), ZOffset = 1.1 }), { EmitDelay = 0.12 })
+		em(p, "Wave3", with(fly, { Texture = TEX.elecRing, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Speed = R(48), Lifetime = R(0.6), Size = grow(3, 30), RotSpeed = R(-140, 140), Rotation = R(0, 360), Transparency = NS({ KP(0, 0), KP(0.6, 0.3), KP(1, 1) }), ZOffset = 1.2 }), { EmitDelay = 0.24 })
+		em(p, "Breath", { Texture = TEX.line, Color = CS({ CK(0, WHITE), CK(1, RIM) }), LightEmission = 1, Orientation = Enum.ParticleOrientation.VelocityParallel, Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(22, 8), Speed = R(90, 150), Drag = 1.5, Lifetime = R(0.3, 0.5), Size = grow(20, 4), Transparency = NS({ KP(0, 0), KP(0.6, 0.2), KP(1, 1) }) }, { EmitCount = 20 })
+		em(p, "Forks", { Texture = TEX.fork, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(30, 20), Speed = R(40, 80), Drag = 2.5, Lifetime = R(0.18, 0.3), Size = grow(10, 16), Rotation = R(0, 360), Transparency = flicker(), ZOffset = 2 }, { EmitCount = 7 })
+		em(p, "Gust", { Texture = TEX.puff, Color = CS(DUST), EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(26, 18), Speed = R(40, 70), Drag = 2.5, Lifetime = R(0.9, 1.4), Size = grow(5, 18), Transparency = NS({ KP(0, 0.45), KP(1, 1) }), Rotation = R(0, 360), RotSpeed = R(-40, 40) }, { EmitCount = 12 })
+		em(p, "GustDark", { Texture = TEX.puff, Color = CS(INDIGO), EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(18, 12), Speed = R(30, 55), Drag = 2.5, Lifetime = R(0.8, 1.2), Size = grow(5, 15), Transparency = NS({ KP(0, 0.4), KP(1, 1) }), Rotation = R(0, 360), ZOffset = -0.5 }, { EmitCount = 7 })
+		em(p, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 5, Lifetime = R(0.14), Size = grow(5, 16), Transparency = pop, ZOffset = 3 })
 		em(p, "Star", { Texture = TEX.glint, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 5, Lifetime = R(0.3), Size = grow(2, 18, 0), ZOffset = 3 })
 		local g = att(p, "Ground", Vector3.new(0, -20, 0))
-		em(g, "Floor", with(FLAT, { Texture = TEX.ringThick, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Lifetime = R(0.55), Size = grow(2, 40), Transparency = NS({ KP(0, 0.15), KP(1, 1) }), ZOffset = 1 }))
-		em(g, "FloorDust", with(FLAT, { Texture = TEX.ringDust, Color = CS(SLATE), Lifetime = R(0.7), Size = grow(2, 38), Transparency = NS({ KP(0, 0.3), KP(1, 1) }), ZOffset = 0.4 }))
+		em(g, "FloorDark", with(FLAT, { Texture = TEX.ringThick, Color = CS(INDIGO), Lifetime = R(0.6), Size = grow(3, 42), Transparency = NS({ KP(0, 0.25), KP(0.7, 0.45), KP(1, 1) }), ZOffset = 0.3 }))
+		em(g, "Floor", with(FLAT, { Texture = TEX.ringThick, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Lifetime = R(0.6), Size = grow(2, 40), Transparency = NS({ KP(0, 0.05), KP(0.7, 0.25), KP(1, 1) }), ZOffset = 1 }))
+		em(g, "FloorCrackle", with(FLAT, { Texture = TEX.elecRing, Color = CS({ CK(0, WHITE), CK(1, RIM) }), LightEmission = 1, Lifetime = R(0.6), Size = grow(2, 39), RotSpeed = R(-120, 120), Rotation = R(0, 360), Transparency = NS({ KP(0, 0), KP(0.6, 0.3), KP(1, 1) }), ZOffset = 1.2 }), { EmitDelay = 0.05 })
+		em(g, "FloorArcs", with(FLAT, { Texture = TEX.radial, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Lifetime = R(0.45), Size = grow(10, 30), Transparency = NS({ KP(0, 0.1), KP(0.3, 0.6), KP(0.5, 0.1), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 0.9 }))
+		em(g, "FloorDust", with(FLAT, { Texture = TEX.ringDust, Color = CS(SLATE), Lifetime = R(0.75), Size = grow(3, 40), Transparency = NS({ KP(0, 0.25), KP(1, 1) }), ZOffset = 0.4 }))
+		em(g, "Wall", { Texture = TEX.puff, Color = CS(DUST), Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180), Speed = R(36, 52), Drag = 1.6, Lifetime = R(0.9, 1.3), Size = grow(4, 12), Transparency = NS({ KP(0, 0.35), KP(1, 1) }), Rotation = R(0, 360) }, { EmitCount = 22 })
+		em(g, "Chips", { Texture = TEX.chips, Color = CS(DUST), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(60, 60), Speed = R(20, 40), Acceleration = Vector3.new(0, -70, 0), Lifetime = R(0.6, 1.0), Size = grow(1.5, 1.0), RotSpeed = R(-300, 300), Rotation = R(0, 360) }, { EmitCount = 10 })
 		shake(p, "Custom,30~120,0.9,0.5,14,0.02,1;1;1,0.06;0.06;0.06")
+	end
+
+	-- RoarGather (roar windups, on the floor under the ape, authored r20 over
+	-- 1.3 s, refit): the storm draws in before the roar: dust and wind lines
+	-- dragged in along the ground from the stun radius, sparks lifting, a lit
+	-- crack spreading under the feet, ground arcs crackling faster.
+	do
+		local p = part(root, "RoarGather", Vector3.new(40, 0.4, 40), { AuthoredRadius = 20, AuthoredSeconds = 1.3 })
+		local edge = { Shape = Enum.ParticleEmitterShape.Cylinder, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward, EmissionDirection = Enum.NormalId.Top }
+		em(p, "InDust", with(edge, { Texture = TEX.puff, Color = CS(DUST), Rate = 32, Speed = R(16, 22), Lifetime = R(0.8, 1.0), Size = grow(6, 11, 3), Transparency = NS({ KP(0, 1), KP(0.3, 0.45), KP(1, 1) }), Rotation = R(0, 360), RotSpeed = R(-60, 60) }), { EmitDuration = 1.2 })
+		em(p, "InLines", with(edge, { Texture = TEX.line, Color = CS({ CK(0, WHITE), CK(1, RIM) }), LightEmission = 1, Brightness = 2, Orientation = Enum.ParticleOrientation.VelocityParallel, Rate = 22, Speed = R(30, 40), Lifetime = R(0.4, 0.55), Size = grow(14, 3), Transparency = NS({ KP(0, 1), KP(0.25, 0.2), KP(1, 0.9) }) }), { EmitDuration = 1.2 })
+		local g = att(p, "Ground", Vector3.new(0, 0.05, 0))
+		em(g, "CrackDark", with(FLAT, { Texture = TEX.crackHole, Color = CS(INDIGO), Lifetime = R(1.6), Size = grow(4, 16, 17), Transparency = NS({ KP(0, 0.4), KP(0.7, 0.2), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 0.2 }))
+		em(g, "CrackLit", with(FLAT, { Texture = TEX.crackGlow, Color = CS({ CK(0, WHITE), CK(0.3, BRIGHT), CK(1, INDIGO) }), LightEmission = 1, Brightness = 2, Lifetime = R(1.3), Size = grow(3, 15), Transparency = NS({ KP(0, 0.9), KP(0.8, 0.15), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 0.5 }))
+		em(g, "Arcs", with(FLAT, { Texture = TEX.radial, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Rate = 7, Lifetime = R(0.12, 0.2), Size = grow(10, 16), Transparency = flicker(), Rotation = R(0, 360), ZOffset = 1 }), { EmitDuration = 1.3 })
+		em(g, "Lift", { Texture = TEX.dot, Color = CS({ CK(0, RIM), CK(1, BRIGHT) }), LightEmission = 1, Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(20, 20), Speed = R(4, 10), Rate = 14, Lifetime = R(0.6, 1.0), Size = grow(0.7, 0), Transparency = NS({ KP(0, 0.1), KP(1, 1) }) }, { EmitDuration = 1.3 })
+	end
+
+	-- BeatGround (each chest beat thumps the floor under the ape): a dust ring,
+	-- a short bright ring over an indigo one, grit hopping.
+	do
+		local p = part(root, "BeatGround", Vector3.new(4, 0.2, 4))
+		local g = att(p, "Ground", Vector3.new(0, 0.25, 0))
+		em(g, "RingDark", with(FLAT, { Texture = TEX.ringThick, Color = CS(INDIGO), Lifetime = R(0.4), Size = grow(4, 30), Transparency = NS({ KP(0, 0.4), KP(1, 1) }), ZOffset = 0.3 }))
+		em(g, "Ring", with(FLAT, { Texture = TEX.ringThin, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Lifetime = R(0.35), Size = grow(3, 28), Transparency = NS({ KP(0, 0.15), KP(1, 1) }), ZOffset = 1 }))
+		em(g, "DustRing", with(FLAT, { Texture = TEX.ringDust, Color = CS(SLATE), Lifetime = R(0.5), Size = grow(3, 26), Transparency = NS({ KP(0, 0.35), KP(1, 1) }), ZOffset = 0.4 }))
+		em(g, "Grit", { Texture = TEX.chips, Color = CS(DUST), Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40), Speed = R(8, 16), Acceleration = Vector3.new(0, -60, 0), Lifetime = R(0.35, 0.55), Size = grow(1.0, 0.7), RotSpeed = R(-300, 300) }, { EmitCount = 6 })
 	end
 
 	----------------------------------------------------------------------
@@ -435,6 +475,19 @@ function _G.buildThunderApeFX(effects)
 		trail(p, "Dark", a, b, { Texture = TEX.streak, TextureMode = Enum.TextureMode.Stretch, Color = CS(INDIGO), Lifetime = 0.3, MinLength = 0.05, Transparency = NS({ KP(0, 0.3), KP(1, 1) }), WidthScale = NS({ KP(0, 1.2), KP(1, 0.3) }) })
 		trail(p, "Bright", a, b, { Texture = TEX.streak, TextureMode = Enum.TextureMode.Stretch, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Lifetime = 0.3, MinLength = 0.05, Transparency = NS({ KP(0, 0), KP(0.6, 0.4), KP(1, 1) }), WidthScale = NS({ KP(0, 0.8), KP(1, 0.1) }) })
 		em(p, "Sparks", { Texture = TEX.dot, Color = CS(RIM), LightEmission = 1, Rate = 14, SpreadAngle = Vector2.new(180, 180), Speed = R(2, 8), Lifetime = R(0.2, 0.4), Size = grow(0.7, 0) }, { EmitDuration = 0.7 })
+	end
+
+	-- SpeedShed (rushes and leaps, a box over the torso that follows it): the
+	-- body sheds storm as it moves: sparks, forked arcs and indigo cloud left
+	-- hanging where it passed, so the path reads as a wake of lightning. Code
+	-- sizes the box to the body.
+	do
+		local p = part(root, "SpeedShed", Vector3.new(12, 16, 12))
+		local box = { Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, SpreadAngle = Vector2.new(180, 180) }
+		em(p, "Sparks", with(box, { Texture = TEX.dot, Color = CS({ CK(0, WHITE), CK(0.4, RIM), CK(1, BRIGHT) }), LightEmission = 1, Rate = 70, Speed = R(0, 3), Lifetime = R(0.35, 0.6), Size = grow(0.9, 0), Transparency = NS({ KP(0, 0), KP(0.7, 0.2), KP(1, 1) }) }), { EmitDuration = 0.8 })
+		em(p, "Arcs", with(box, { Texture = TEX.zig, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Rate = 26, Speed = R(0), Lifetime = R(0.14, 0.26), Size = grow(7, 9), Rotation = R(0, 360), Transparency = flicker(), ZOffset = 2 }), { EmitDuration = 0.8 })
+		em(p, "Cloud", with(box, { Texture = TEX.puff, Color = CS(INDIGO), Rate = 18, Speed = R(0, 2), Lifetime = R(0.45, 0.7), Size = grow(6, 11), Rotation = R(0, 360), RotSpeed = R(-40, 40), Transparency = NS({ KP(0, 0.45), KP(1, 1) }), ZOffset = -0.5 }), { EmitDuration = 0.8 })
+		em(p, "Glints", with(box, { Texture = TEX.glint, Color = CS(WHITE), LightEmission = 1, Brightness = 3, Rate = 8, Speed = R(0), Lifetime = R(0.2), Size = grow(1, 6, 0), ZOffset = 3 }), { EmitDuration = 0.8 })
 	end
 
 	-- Takeoff (a leap or dash starts, under a foot, ground): a flat ring, a dust
@@ -607,22 +660,60 @@ function _G.buildThunderApeFX(effects)
 		em(g, "CrackDark", with(FLAT, { Texture = TEX.crackHole, Color = CS(INDIGO), Lifetime = R(2), Size = grow(6, 12, 12.5), Transparency = NS({ KP(0, 0.1), KP(0.6, 0.3), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 0.2 }))
 		em(g, "CrackLit", with(FLAT, { Texture = TEX.crackGlow, Color = CS({ CK(0, WHITE), CK(0.3, BRIGHT), CK(1, INDIGO) }), LightEmission = 1, Lifetime = R(0.6), Size = grow(6, 12), Transparency = NS({ KP(0, 0), KP(0.4, 0.2), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 0.5 }))
 		em(g, "Chips", { Texture = TEX.chips, Color = CS(DUST), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40), Speed = R(14, 30), Acceleration = Vector3.new(0, -60, 0), Lifetime = R(0.6, 1.0), Size = grow(1.6, 1.2), RotSpeed = R(-300, 300) }, { EmitCount = 10 })
-		em(g, "Chunks", { Texture = TEX.rock, Color = CS(SLATE), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(35, 35), Speed = R(10, 22), Acceleration = Vector3.new(0, -50, 0), Lifetime = R(0.7, 1.1), Size = grow(2.6, 2), RotSpeed = R(-200, 200) }, { EmitCount = 4 })
-		em(g, "Dust", { Texture = TEX.puff, Color = CS(DUST), Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180), Speed = R(8, 16), Drag = 3, Lifetime = R(0.8, 1.2), Size = grow(3, 9), Transparency = NS({ KP(0, 0.45), KP(1, 1) }), Rotation = R(0, 360) }, { EmitCount = 8 })
+		em(g, "Chunks", { Texture = TEX.rock, Color = CS(SLATE), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(45, 45), Speed = R(14, 28), Acceleration = Vector3.new(0, -60, 0), Lifetime = R(0.8, 1.2), Size = grow(3, 2.2), RotSpeed = R(-200, 200) }, { EmitCount = 8 })
+		em(g, "Dust", { Texture = TEX.puff, Color = CS(DUST), Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180), Speed = R(12, 22), Drag = 3, Lifetime = R(0.9, 1.4), Size = grow(4, 12), Transparency = NS({ KP(0, 0.35), KP(1, 1) }), Rotation = R(0, 360) }, { EmitCount = 16 })
+		em(g, "DustUp", { Texture = TEX.puff, Color = CS(DUST), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(35, 35), Speed = R(10, 20), Drag = 2.5, Lifetime = R(0.9, 1.3), Size = grow(4, 11), Transparency = NS({ KP(0, 0.4), KP(1, 1) }), Rotation = R(0, 360) }, { EmitCount = 8 })
+		em(g, "DustRing", with(FLAT, { Texture = TEX.ringDust, Color = CS(SLATE), Lifetime = R(0.6), Size = grow(3, 22), Transparency = NS({ KP(0, 0.25), KP(1, 1) }), ZOffset = 0.4 }))
 		local gather = att(p, "Gather", Vector3.new(0, 6, 0))
 		em(gather, "Sparks", { Texture = TEX.glint, Color = CS({ CK(0, BRIGHT), CK(1, WHITE) }), LightEmission = 1, Shape = Enum.ParticleEmitterShape.Sphere, ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward, Rate = 30, Lifetime = R(0.3, 0.45), Speed = R(14, 24), Size = grow(1.0, 0.1), Transparency = NS({ KP(0, 1), KP(0.2, 0.1), KP(1, 0.5) }) }, { EmitDuration = 0.6 })
 		em(g, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 4, Lifetime = R(0.14), Size = grow(5, 12), Transparency = pop, ZOffset = 3 })
 	end
 
-	-- BoulderSkin (rides the thrown boulder): crackling cyan arcs, a spark
-	-- trail, a glow over an indigo base, shed chips.
+	-- BoulderRock (the boulder itself, a stone mesh about 10 studs across:
+	-- support for the skin, trail and charge, which carry the look).
 	do
-		local p = part(root, "BoulderSkin", Vector3.new(7, 7, 7))
-		em(p, "GlowDark", { Texture = TEX.dot, Color = CS(INDIGO), Rate = 8, Lifetime = R(0.25), Size = grow(11, 11), Transparency = NS({ KP(0, 0.7), KP(1, 1) }), LockedToPart = true, ZOffset = 0.5 })
-		em(p, "Glow", { Texture = TEX.dot, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Rate = 8, Lifetime = R(0.25), Size = grow(9, 7), Transparency = NS({ KP(0, 0.55), KP(1, 1) }), LockedToPart = true, ZOffset = 1 })
-		em(p, "Arcs", { Texture = TEX.zig, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface, Rate = 18, Lifetime = R(0.12, 0.2), Size = grow(6, 5), Rotation = R(0, 360), Transparency = flicker(), LockedToPart = true, ZOffset = 2 })
-		em(p, "Trail", { Texture = TEX.dot, Color = CS({ CK(0, RIM), CK(1, BRIGHT) }), LightEmission = 1, Rate = 40, Lifetime = R(0.25, 0.4), Size = grow(1.4, 0), Speed = R(0, 3), SpreadAngle = Vector2.new(180, 180), Transparency = NS({ KP(0, 0), KP(1, 1) }) })
-		em(p, "Chips", { Texture = TEX.chips, Color = CS(DUST), Rate = 10, Speed = R(2, 8), SpreadAngle = Vector2.new(180, 180), Acceleration = Vector3.new(0, -30, 0), Lifetime = R(0.4, 0.7), Size = grow(1.2, 0.6), RotSpeed = R(-300, 300) })
+		local ok, rock = pcall(function()
+			return game:GetService("AssetService"):CreateMeshPartAsync("rbxassetid://17608108317")
+		end)
+		if not ok then
+			rock = Instance.new("Part")
+			rock.Shape = Enum.PartType.Ball
+		end
+		rock.Name = "BoulderRock"
+		rock.Anchored, rock.CanCollide, rock.CanQuery, rock.CanTouch, rock.CastShadow, rock.Massless = true, false, false, false, true, true
+		rock.Material = Enum.Material.Slate
+		rock.Color = Color3.fromRGB(78, 84, 98)
+		rock.Size = Vector3.new(10, 8.5, 9.5)
+		rock.Transparency = 0
+		rock.Parent = root
+	end
+
+	-- BoulderSkin (rides the boulder from the rip to the impact): crackling cyan
+	-- arcs on its surface, a glow over an indigo base, shed chips and sparks;
+	-- the Trail pair (dark under bright) is switched on by code at the throw.
+	do
+		local p = part(root, "BoulderSkin", Vector3.new(9, 9, 9))
+		em(p, "GlowDark", { Texture = TEX.dot, Color = CS(INDIGO), Rate = 8, Lifetime = R(0.25), Size = grow(15, 15), Transparency = NS({ KP(0, 0.75), KP(1, 1) }), LockedToPart = true, ZOffset = -1 })
+		em(p, "Glow", { Texture = TEX.dot, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Rate = 10, Lifetime = R(0.25), Size = grow(18, 15), Transparency = NS({ KP(0, 0.55), KP(1, 1) }), LockedToPart = true, ZOffset = 0.5 })
+		em(p, "Arcs", { Texture = TEX.zig, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface, Rate = 28, Lifetime = R(0.12, 0.2), Size = grow(10, 9), Rotation = R(0, 360), Transparency = flicker(), LockedToPart = true, ZOffset = 2 })
+		em(p, "Sparks", { Texture = TEX.dot, Color = CS({ CK(0, RIM), CK(1, BRIGHT) }), LightEmission = 1, Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface, Rate = 30, Lifetime = R(0.3, 0.5), Size = grow(1.2, 0), Speed = R(0, 3), SpreadAngle = Vector2.new(180, 180), Transparency = NS({ KP(0, 0), KP(1, 1) }) })
+		em(p, "Chips", { Texture = TEX.chips, Color = CS(DUST), Shape = Enum.ParticleEmitterShape.Sphere, Rate = 10, Speed = R(2, 8), SpreadAngle = Vector2.new(180, 180), Acceleration = Vector3.new(0, -40, 0), Lifetime = R(0.4, 0.7), Size = grow(1.4, 0.8), RotSpeed = R(-300, 300) })
+		local top = att(p, "TrailTop", Vector3.new(0, 4.5, 0))
+		local bottom = att(p, "TrailBottom", Vector3.new(0, -4.5, 0))
+		trail(p, "TrailDark", top, bottom, { Texture = TEX.streak, TextureMode = Enum.TextureMode.Stretch, Color = CS(INDIGO), Lifetime = 0.35, MinLength = 0.05, Transparency = NS({ KP(0, 0.25), KP(1, 1) }), WidthScale = NS({ KP(0, 1.3), KP(1, 0.3) }) })
+		trail(p, "TrailBright", top, bottom, { Texture = TEX.streak, TextureMode = Enum.TextureMode.Stretch, Color = CS({ CK(0, WHITE), CK(0.25, RIM), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 4, Lifetime = 0.4, MinLength = 0.05, Transparency = NS({ KP(0, 0), KP(0.6, 0.35), KP(1, 1) }), WidthScale = NS({ KP(0, 0.9), KP(1, 0.1) }) })
+	end
+
+	-- BoulderCharge (the hold overhead before the throw, 0.25 s authored, on
+	-- the rock): the stone goes white-hot with lightning: big forked arcs and
+	-- glints all over it, a ring closing on it, a star at the throw.
+	do
+		local p = part(root, "BoulderCharge", Vector3.new(10, 10, 10), { AuthoredSeconds = 0.25 })
+		em(p, "Glow", { Texture = TEX.dot, Color = CS({ CK(0, BRIGHT), CK(1, WHITE) }), LightEmission = 1, Brightness = 3, Lifetime = R(0.3), Size = grow(8, 20), Transparency = NS({ KP(0, 0.8), KP(0.85, 0.3), KP(1, 1) }), LockedToPart = true, ZOffset = 1 })
+		em(p, "Forks", { Texture = TEX.fork, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface, ShapeInOut = Enum.ParticleEmitterShapeInOut.Outward, Rate = 40, Speed = R(4, 10), Lifetime = R(0.1, 0.18), Size = grow(10, 14), Rotation = R(0, 360), Transparency = flicker(), ZOffset = 2.5 }, { EmitDuration = 0.25 })
+		em(p, "Glints", { Texture = TEX.glint, Color = CS(WHITE), LightEmission = 1, Brightness = 4, Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface, Rate = 20, Lifetime = R(0.15), Size = grow(1, 7, 0), ZOffset = 3, LockedToPart = true }, { EmitDuration = 0.25 })
+		em(p, "Ring", { Texture = TEX.ringThin, Color = CS(WHITE), LightEmission = 1, Lifetime = R(0.25), Size = grow(26, 10), Transparency = NS({ KP(0, 1), KP(0.2, 0.1), KP(1, 0) }), LockedToPart = true, ZOffset = 1.5 })
+		em(p, "Ready", { Texture = TEX.glint, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 6, Lifetime = R(0.3), Size = grow(2, 24, 0), ZOffset = 3, LockedToPart = true }, { EmitDelay = 0.22 })
 	end
 
 	-- Shadow (boulder, on the ground at the circle): a slate blot that swells
@@ -642,11 +733,15 @@ function _G.buildThunderApeFX(effects)
 		scorch(g, 3, 9, 12)
 		em(g, "Arcs", with(FLAT, { Texture = TEX.radial, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Lifetime = R(0.4), Size = grow(8, 16), Transparency = NS({ KP(0, 0), KP(0.4, 0.5), KP(0.55, 0.05), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 0.9 }))
 		em(g, "Ring", with(FLAT, { Texture = TEX.ringThick, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Lifetime = R(0.35), Size = grow(1, 12), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), ZOffset = 1.5 }))
-		em(g, "Wall", { Texture = TEX.puff, Color = CS(DUST), Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180), Speed = R(16, 28), Drag = 4, Lifetime = R(0.8, 1.2), Size = grow(3, 9), Transparency = NS({ KP(0, 0.4), KP(1, 1) }), Rotation = R(0, 360) }, { EmitCount = 12 })
+		em(g, "Wall", { Texture = TEX.puff, Color = CS(DUST), Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180), Speed = R(18, 30), Drag = 3, Lifetime = R(0.9, 1.4), Size = grow(4, 11), Transparency = NS({ KP(0, 0.3), KP(1, 1) }), Rotation = R(0, 360) }, { EmitCount = 18 })
+		em(g, "Plume", { Texture = TEX.puff, Color = CS(DUST), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(30, 30), Speed = R(14, 26), Drag = 2.5, Lifetime = R(1.0, 1.5), Size = grow(4, 10), Transparency = NS({ KP(0, 0.35), KP(1, 1) }), Rotation = R(0, 360), RotSpeed = R(-30, 30) }, { EmitCount = 8 })
+		em(g, "Shock", with(FLAT, { Texture = TEX.ringThin, Color = CS(WHITE), LightEmission = 1, Lifetime = R(0.45), Size = grow(2, 13), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), ZOffset = 1.6 }), { EmitDelay = 0.04 })
+		em(g, "DustRing", with(FLAT, { Texture = TEX.ringDust, Color = CS(SLATE), Lifetime = R(0.6), Size = grow(2, 12), Transparency = NS({ KP(0, 0.25), KP(1, 1) }), ZOffset = 0.4 }))
 		em(g, "Chips", { Texture = TEX.chips, Color = CS(DUST), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(60, 60), Speed = R(24, 46), Acceleration = Vector3.new(0, -80, 0), Lifetime = R(0.7, 1.1), Size = grow(1.8, 1.2), RotSpeed = R(-400, 400) }, { EmitCount = 12 })
 		em(g, "Chunks", { Texture = TEX.rock, Color = CS(SLATE), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(55, 55), Speed = R(18, 36), Acceleration = Vector3.new(0, -80, 0), Lifetime = R(0.7, 1.0), Size = grow(2.6, 2), RotSpeed = R(-300, 300) }, { EmitCount = 5 })
 		em(g, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 5, Lifetime = R(0.14), Size = grow(7, 16), Transparency = pop, ZOffset = 3 })
 		em(g, "Star", { Texture = TEX.glint, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 4, Lifetime = R(0.26), Size = grow(2, 13, 0), ZOffset = 3 })
+		craters(p, Vector3.new(0, 0.5, 0), 5, 7)
 		shake(p, "Custom,25~60,0.6,0.35,16,0.02,1;1;1,0.05;0.05;0.05")
 	end
 
@@ -664,22 +759,57 @@ function _G.buildThunderApeFX(effects)
 		em(p, "Ring", { Texture = TEX.ringThin, Color = CS(RIM), LightEmission = 1, Lifetime = R(0.9), Size = grow(16, 2), Transparency = NS({ KP(0, 1), KP(0.2, 0.2), KP(0.9, 0), KP(1, 1) }), LockedToPart = true, ZOffset = 1 }, { EmitDelay = 0.1 })
 	end
 
-	-- LaneCharge (thunderLance, the box 3.5 x 42): crackling arcs, sparks and a
-	-- glow strip along the lane, an indigo base under it. The box part carries
-	-- the emitters (Shape Box); code sizes it to the telegraph.
+	-- LanceBolt (the thunderLance projectile, flying along -Z): a javelin of
+	-- lightning about 22 studs long: a jagged white core beam over a wide cyan
+	-- glow and an indigo shadow beam, a white-hot head with a star, a crossed
+	-- trail pair (dark under bright, reads from any side), arcs and sparks
+	-- shed behind it so the path stays lit for a moment.
 	do
-		local p = part(root, "LaneCharge", Vector3.new(3.5, 0.4, 42), { AuthoredSeconds = 1.0 })
-		em(p, "Under", with(FLAT, { Texture = TEX.dot, Color = CS(INDIGO), Shape = Enum.ParticleEmitterShape.Box, Rate = 14, Lifetime = R(0.5), Size = grow(7, 6), Transparency = NS({ KP(0, 1), KP(0.2, 0.5), KP(0.8, 0.5), KP(1, 1) }), ZOffset = 0.2 }), { EmitDuration = 1.0 })
-		em(p, "Glow", with(FLAT, { Texture = TEX.dot, Color = CS(BRIGHT), LightEmission = 1, Shape = Enum.ParticleEmitterShape.Box, Rate = 16, Lifetime = R(0.35, 0.5), Size = grow(5, 4), Transparency = NS({ KP(0, 1), KP(0.3, 0.6), KP(1, 1) }), ZOffset = 0.5 }), { EmitDuration = 1.0 })
-		em(p, "Arcs", with(FLAT, { Texture = TEX.zig, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Shape = Enum.ParticleEmitterShape.Box, Rate = 26, Lifetime = R(0.12, 0.22), Size = grow(5, 4), Rotation = R(0, 360), Transparency = flicker(), ZOffset = 1 }), { EmitDuration = 1.0 })
-		em(p, "Sparks", { Texture = TEX.dot, Color = CS(RIM), LightEmission = 1, Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(30, 30), Speed = R(3, 10), Rate = 40, Lifetime = R(0.4, 0.8), Size = grow(0.6, 0), Transparency = NS({ KP(0, 0.1), KP(1, 1) }) }, { EmitDuration = 1.0 })
+		local p = part(root, "LanceBolt", Vector3.new(2, 2, 2))
+		local head = att(p, "Head", Vector3.new(0, 0, -4))
+		local tail = att(p, "Tail", Vector3.new(0, 0, 18))
+		local function beam(name, props)
+			local bm = Instance.new("Beam")
+			bm.Name = name
+			bm.Attachment0, bm.Attachment1 = tail, head
+			bm.FaceCamera = true
+			bm.Segments = 1
+			bm.LightInfluence = 0
+			bm.Enabled = false
+			for k, v in props do
+				bm[k] = v
+			end
+			bm.Parent = p
+		end
+		beam("Dark", { Color = CS(INDIGO), Transparency = NS({ KP(0, 1), KP(0.3, 0.35), KP(0.9, 0.25), KP(1, 0.6) }), Width0 = 4, Width1 = 2.5, ZOffset = 0 })
+		beam("Glow", { Texture = TEX.dot, TextureMode = Enum.TextureMode.Stretch, Color = CS(BRIGHT), LightEmission = 1, Brightness = 2, Transparency = NS({ KP(0, 1), KP(0.3, 0.35), KP(1, 0.15) }), Width0 = 6, Width1 = 4, ZOffset = 0.5 })
+		beam("Core", { Texture = TEX.zig, TextureMode = Enum.TextureMode.Stretch, TextureSpeed = 4, Color = CS({ CK(0, RIM), CK(1, WHITE) }), LightEmission = 1, Brightness = 4, Transparency = NS({ KP(0, 0.7), KP(0.4, 0.05), KP(1, 0) }), Width0 = 4, Width1 = 2.5, ZOffset = 1 })
+		local up, down = att(p, "TrailUp", Vector3.new(0, 1.6, 0)), att(p, "TrailDown", Vector3.new(0, -1.6, 0))
+		local left, right = att(p, "TrailL", Vector3.new(-1.6, 0, 0)), att(p, "TrailR", Vector3.new(1.6, 0, 0))
+		for _, pair in { { up, down, "V" }, { left, right, "H" } } do
+			trail(p, "Dark" .. pair[3], pair[1], pair[2], { Texture = TEX.streak, TextureMode = Enum.TextureMode.Stretch, Color = CS(INDIGO), Lifetime = 0.3, MinLength = 0.05, Transparency = NS({ KP(0, 0.3), KP(1, 1) }), WidthScale = NS({ KP(0, 1.4), KP(1, 0.2) }) })
+			trail(p, "Bright" .. pair[3], pair[1], pair[2], { Texture = TEX.streak, TextureMode = Enum.TextureMode.Stretch, Color = CS({ CK(0, WHITE), CK(0.4, RIM), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 3, Lifetime = 0.25, MinLength = 0.05, Transparency = NS({ KP(0, 0), KP(0.6, 0.4), KP(1, 1) }), WidthScale = NS({ KP(0, 1), KP(1, 0.1) }) })
+		end
+		em(head, "HeadGlow", { Texture = TEX.dot, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 4, Rate = 40, Lifetime = R(0.08, 0.12), Size = grow(9, 6), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), LockedToPart = true, ZOffset = 2 })
+		em(head, "HeadStar", { Texture = TEX.glint, Color = CS(WHITE), LightEmission = 1, Brightness = 5, Rate = 14, Lifetime = R(0.12), Size = grow(4, 12, 0), Rotation = R(0, 360), LockedToPart = true, ZOffset = 3 })
+		em(p, "Arcs", { Texture = TEX.zig, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Shape = Enum.ParticleEmitterShape.Box, Rate = 40, Lifetime = R(0.12, 0.22), Size = grow(6, 8), Rotation = R(0, 360), Transparency = flicker(), ZOffset = 2 })
+		em(p, "Sparks", { Texture = TEX.dot, Color = CS({ CK(0, RIM), CK(1, BRIGHT) }), LightEmission = 1, Rate = 60, SpreadAngle = Vector2.new(180, 180), Speed = R(2, 8), Lifetime = R(0.3, 0.5), Size = grow(0.9, 0), Transparency = NS({ KP(0, 0), KP(1, 1) }) })
+	end
+
+	-- BoulderShadow (follows under the thrown rock, on the floor): an indigo
+	-- blot with a cyan rim; code resizes it as the rock comes down.
+	do
+		local p = part(root, "BoulderShadow", Vector3.new(4, 0.2, 4))
+		local g = att(p, "Ground", Vector3.new(0, 0.15, 0))
+		em(g, "Blot", with(FLAT, { Texture = TEX.dot, Color = CS(INDIGO), Rate = 40, Lifetime = R(0.08), Size = NS(8), Transparency = NS(0.35), LockedToPart = true, ZOffset = 0.2 }))
+		em(g, "Rim", with(FLAT, { Texture = TEX.ringThin, Color = CS(BRIGHT), LightEmission = 1, Rate = 40, Lifetime = R(0.08), Size = NS(9), Transparency = NS(0.3), LockedToPart = true, ZOffset = 0.5 }))
 	end
 
 	-- LanceFlash (thunderLance strike, at each end of the bolt): a white flash,
 	-- a star and a ring. The bolt itself is code beams.
 	do
 		local p = part(root, "LanceFlash", Vector3.new(1, 1, 1))
-		em(p, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 7, Lifetime = R(0.2), Size = grow(10, 28), Transparency = pop, ZOffset = 3 })
+		em(p, "Flash", { Texture = TEX.dot, Color = CS(WHITE), LightEmission = 1, Brightness = 6, Lifetime = R(0.12), Size = grow(6, 16), Transparency = pop, ZOffset = 3 })
 		em(p, "Star", { Texture = TEX.glint, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 5, Lifetime = R(0.32), Size = grow(2, 24, 0), ZOffset = 3 })
 		em(p, "Ring", { Texture = TEX.ringSpiky, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Lifetime = R(0.3), Size = grow(2, 20), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), Rotation = R(0, 360), ZOffset = 2 })
 		em(p, "Sparks", { Texture = TEX.dot, Color = CS({ CK(0, RIM), CK(1, BRIGHT) }), LightEmission = 1, SpreadAngle = Vector2.new(180, 180), Speed = R(16, 40), Acceleration = Vector3.new(0, -24, 0), Lifetime = R(0.4, 0.9), Size = grow(0.7, 0) }, { EmitCount = 14 })
@@ -816,11 +946,14 @@ function _G.buildThunderApeFX(effects)
 		em(p, "Sigil", with(FACE, { Texture = TEX.sigil, Color = CS(BRIGHT), LightEmission = 1, Brightness = 1.5, Rate = 0.6, Lifetime = R(3), Size = NS(12), RotSpeed = R(25), Transparency = NS({ KP(0, 1), KP(0.2, 0.45), KP(0.8, 0.45), KP(1, 1) }), LockedToPart = true, ZOffset = 0.4 }))
 		em(p, "Glint", { Texture = TEX.glint, Color = CS(WHITE), LightEmission = 1, Rate = 0.8, Lifetime = R(0.5), Size = grow(1, 7, 0), LockedToPart = true, ZOffset = 1 })
 	end
-	-- AuraGround (P2+): a faint formation on the floor under the ape.
+	-- AuraGround (P2+): the floor answers the storm under the ape: a faint
+	-- turning formation (lines only, no filled disc), ground arcs that crackle
+	-- now and then, low slate mist creeping out.
 	do
 		local p = part(root, "AuraGround", Vector3.new(34, 0.2, 34))
-		em(p, "Under", with(FLAT, { Texture = TEX.dot, Color = CS(INDIGO), Rate = 0.35, Lifetime = R(3), Size = NS(36), Transparency = NS({ KP(0, 1), KP(0.2, 0.7), KP(0.8, 0.7), KP(1, 1) }), LockedToPart = true, ZOffset = 0.1 }))
-		em(p, "Array", with(FLAT, { Texture = TEX.mandala, Color = CS(RIM), LightEmission = 0.8, Rate = 0.35, Lifetime = R(3), Size = NS(32), RotSpeed = R(12), Transparency = NS({ KP(0, 1), KP(0.2, 0.7), KP(0.8, 0.7), KP(1, 1) }), LockedToPart = true, ZOffset = 0.4 }))
+		em(p, "Array", with(FLAT, { Texture = TEX.mandala, Color = CS(RIM), LightEmission = 0.8, Rate = 0.35, Lifetime = R(3), Size = NS(30), RotSpeed = R(12), Transparency = NS({ KP(0, 1), KP(0.2, 0.75), KP(0.8, 0.75), KP(1, 1) }), LockedToPart = true, ZOffset = 0.4 }))
+		em(p, "Arcs", with(FLAT, { Texture = TEX.radial, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Rate = 1.2, Lifetime = R(0.15, 0.25), Size = grow(8, 14), Transparency = flicker(), Rotation = R(0, 360), ZOffset = 1 }))
+		em(p, "Mist", { Texture = TEX.puff, Color = CS(SLATE), Shape = Enum.ParticleEmitterShape.Disc, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(80, 80), Rate = 2, Speed = R(1, 3), Lifetime = R(2.5, 3.5), Size = grow(5, 10), Rotation = R(0, 360), RotSpeed = R(-15, 15), Transparency = NS({ KP(0, 1), KP(0.3, 0.75), KP(1, 1) }) })
 	end
 	-- AuraCloud (shoulders and back, P1+): slow storm-cloud wisps.
 	do
@@ -891,6 +1024,19 @@ function _G.buildThunderApeFX(effects)
 		em(g, "Ring", with(FLAT, { Texture = TEX.ringThin, Color = CS(WHITE), LightEmission = 1, Lifetime = R(1.1), Size = grow(2, 60), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), ZOffset = 1.4 }), { EmitDelay = 0.2 })
 		em(g, "Smoke", { Texture = TEX.puff, Color = CS(DUST), Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(5, 180), Speed = R(10, 18), Drag = 3, Lifetime = R(1.4, 2.4), Size = grow(6, 18), Transparency = NS({ KP(0, 0.5), KP(1, 1) }), Rotation = R(0, 360) }, { EmitCount = 14 })
 		em(g, "Motes", { Texture = TEX.dot, Color = CS(RIM), LightEmission = 1, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(60, 60), Speed = R(1, 4), Acceleration = Vector3.new(0, 2.5, 0), Rate = 10, Lifetime = R(3, 5), Size = grow(0.7, 0), Transparency = NS({ KP(0, 1), KP(0.2, 0.3), KP(0.8, 0.5), KP(1, 1) }) }, { EmitDuration = 4.0 })
+	end
+
+	-- DeathSoul (death, a box over the whole body, sized by code, 3.0 s
+	-- authored): the storm spirit leaves the body: white-blue wisps and lines
+	-- stream up out of the whole silhouette over indigo smoke, slow at first,
+	-- then a torrent just before the burst.
+	do
+		local p = part(root, "DeathSoul", Vector3.new(16, 24, 16), { AuthoredSeconds = 3.0 })
+		local box = { Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume, EmissionDirection = Enum.NormalId.Top }
+		em(p, "Smoke", with(box, { Texture = TEX.puff, Color = CS(INDIGO), Rate = 10, SpreadAngle = Vector2.new(25, 25), Speed = R(4, 9), Lifetime = R(1.2, 1.8), Size = grow(5, 12), Rotation = R(0, 360), RotSpeed = R(-30, 30), Transparency = NS({ KP(0, 1), KP(0.25, 0.5), KP(1, 1) }), ZOffset = -0.5 }), { EmitDuration = 3.0 })
+		em(p, "Wisps", with(box, { Texture = TEX.flame, Color = CS({ CK(0, WHITE), CK(0.35, RIM), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Rate = 22, SpreadAngle = Vector2.new(10, 10), Speed = R(12, 22), Acceleration = Vector3.new(0, 8, 0), Lifetime = R(0.6, 0.95), Size = NS({ KP(0, 3), KP(0.3, 7), KP(1, 2) }), Rotation = R(-10, 10), Transparency = NS({ KP(0, 1), KP(0.15, 0.3), KP(0.7, 0.45), KP(1, 1) }), ZOffset = 1 }), { EmitDuration = 3.0 })
+		em(p, "Lines", with(box, { Texture = TEX.line, Color = CS({ CK(0, WHITE), CK(1, RIM) }), LightEmission = 1, Brightness = 2, Orientation = Enum.ParticleOrientation.VelocityParallel, Rate = 18, SpreadAngle = Vector2.new(6, 6), Speed = R(30, 55), Lifetime = R(0.4, 0.7), Size = grow(16, 3), Transparency = NS({ KP(0, 0.2), KP(1, 1) }) }), { EmitDuration = 3.0, EmitDelay = 0.8 })
+		em(p, "Motes", with(box, { Texture = TEX.glint, Color = CS({ CK(0, WHITE), CK(1, BRIGHT) }), LightEmission = 1, Brightness = 2, Rate = 16, SpreadAngle = Vector2.new(30, 30), Speed = R(6, 14), Acceleration = Vector3.new(0, 6, 0), Lifetime = R(1, 1.8), Size = grow(1.2, 0), Transparency = NS({ KP(0, 0.1), KP(1, 1) }) }), { EmitDuration = 3.0 })
 	end
 
 	root.Parent = effects

@@ -52,6 +52,7 @@ return {
 		} },
 		-- the release from the left palm, the drop to the ground, the shake
 		{ block = "releaseFlash" },
+		{ block = "bladeFlare", params = { part = "Palm" } },
 		{ block = "airShockwave" }, -- 3D rings flying forward off the palm (1/1/2/3)
 		{ block = "dropStreak" },
 		{ block = "screenShake", to = 3 },

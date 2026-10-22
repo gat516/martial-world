@@ -143,7 +143,16 @@ checks a rebuild against the previous templates.
   SimpleMeshVFX shell, a Craters rock ring erupting with the wave and rock
   kicks on the first three targets; IV a crater, a dome shell, a nimbus halo
   behind the head, one point light, ScreenEffects impact frames and an
-  Explosion shake on the first impact.
+  Explosion shake on the first impact. Remade 2026-10-21 for the Hit window
+  (bare hand, so the anchors stay on the live left palm): the windup qi is a
+  stream through the whole 0.38 s (the hand gather's `Gather` runs on
+  `Rate` + `EmitDuration`, scaled by `TechniqueVFX.fit`), the palm release
+  gets the shared flare (cross glint, star-burst flipbook over ink, sparks) and
+  a cross glint on the release flash, and every impact picks up the shared ink
+  splat and star-burst flipbook (smoke flipbook tail at III+). The wave front
+  was already fitted to Hit -> Hit Stop, so the sandbox run landed impacts
+  0.04-0.05 s after the release. Layers T1 / T4: windup 2 / 4, release 9 / 13,
+  ground 3 / 8, impact 8 / 14.
 - Techniques other than Palm Strike draw themselves in
   `Client.TechniqueFX.<Id>` (`{ cast = function(CombatEffects, def, level,
   character, origin, dir, chain): boolean }`; false falls back to the old

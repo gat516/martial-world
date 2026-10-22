@@ -204,6 +204,29 @@ Template `GoldenToad`, standalone export `art/enemies/beasts/export/GoldenToad.r
 - Gotchas: the tongue stub is inside the head at rest and only shows through the closed lips when the jaw opens, so open the jaw before the lash. The hind thigh/shin/foot overlap the flank plates by design (no slit); do not pitch a thigh past -0.8 or the haunch pokes through the back. A single front leg means walk and hop cycles must put the weight on the hind pair and the one front foot (a three-point stance).
 - Untested: no capture review done; the user reviews the look. Part count and sizes are numeric checks only (`check_rig` clean, `keyframe_test` keyable).
 
+## Frost Spider (30 joints, 76 parts, `build_frost_spider.luau` / `rig_frost_spider.luau`)
+
+Template `FrostSpider`, standalone export `art/enemies/beasts/export/FrostSpider.rbxm` (Modeler A merges it). A cultivated ice spider for Foundation: pale blue-white hide, chunky ice shards on the cephalothorax (4) and abdomen (5), dark slate joints, an icy-blue core glowing under the abdomen. Faces -Z, left is -X, ground Y 0, identity pivot. Bounds: x +-5.01 (legs out), y 0 to 4.76 (shard tips; the body is about 4), z -4.07 to 4.70. Lowest point Y 0.005 (feet touch, no sink).
+
+- HRP (hit volume, invisible): 6 x 3 x 7 at (0, 2, 0.7), bottom 0.5 above the ground (HipHeight 0.50); legs are not hit volume. Root centre to `Mouth`: 3.51 studs. HealthBar 1 stud over the model top.
+- All joint frames are identity in model space at the pivot; rotation about X is pitch (positive tips the far end down), about Z is roll (swings a leg out/in), about Y is yaw.
+- Segment names: `Body` (cephalothorax, root), `Abdomen`, `FangL/R`, `PedipalpL/R`, and per leg `Leg<X><n>`, `Knee<X><n>`, `Foot<X><n>` with X = L or R, n = 1 (front) to 4 (rear). No separate head: the eyes and face are on `Body`.
+
+| Joint | Moves | Parent | Pivot |
+|---|---|---|---|
+| JointRoot | Body | HRP | (0, 2.3, -0.5) |
+| JointAbdomen | Abdomen (core glow, veins, spinneret) | Body | (0, 2.3, 0.5): pitch negative lifts the tip up (web aim), 0 to -0.7 |
+| JointFangL / R | Fang (tell attached) | Body | (+-0.5, 2.2, -2.5): pitch positive swings the tip back/up, fold 0 to 0.9; yaw spreads |
+| JointPedipalpL / R | Pedipalp | Body | (+-1.0, 2.0, -2.4) |
+| JointLeg<X><n> | upper leg | Body | hip (+-1.3, 2.3, z), z = -1.9, -1.0, -0.1, 0.7 for n = 1..4 |
+| JointKnee<X><n> | lower leg | Leg | knee (+-3.0, 3.5, z + lean*0.9), lean = -0.9, -0.35, 0.35, 1.0 |
+| JointFoot<X><n> | foot | Knee | ankle (+-4.3, 1.2, z + lean*1.8) |
+
+- Legs at rest: out and up to the knee, then down to a tip at (+-4.8, 0.15, z + lean*2.2): front pair reach forward, rear pair back. Hip: roll lifts/lowers the knee (positive roll on R, negative on L raises it), pitch swings the leg fore/aft, yaw sweeps it. Tetrapod gait: L1 R2 L3 R4 against R1 L2 R3 L4.
+- Tells (Neon, `Tell`): `Eye1..6` (the face cluster), `FangTellL/R` (on the fangs), `FrostVeinTell1..4` (abdomen top), plus `CoreGlow` (the ball under the abdomen).
+- Attachments: `Mouth` (Body, front, below the eyes), `Spinneret` (on the Spinneret part at the abdomen tip, z 4.75; webs leave here), `Core` (Abdomen, under it), `FootL1_FX`..`FootR4_FX` on the ground under each foot tip.
+- Gotchas: keep the foot flat against the ground by counter-pitching the foot against leg + knee pitch. The abdomen overlaps the dark pedicel; lifting it more than 0.7 rad opens a slit under it. Legs cross over the body at hip roll past 1.0. Untested visually: check_rig clean, keyframe_test keyable only.
+
 ## Windup poses
 
 `poses.luau` holds a starting windup pose for each beast's main attack, keyed by Motor6D

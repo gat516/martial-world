@@ -110,16 +110,16 @@ B.ball("LegF", "LegFHip", 2.0, v(0, 2.3, -0.8), GOLD)
 B.limb("LegF", "LegF", v(0, 2.3, -0.8), v(0, 0.75, -1.0), 1.6, 1.6, GOLD, 0.3)
 B.ball("LegF", "LegFKnee", 1.5, v(0, 0.8, -1.0), GOLD)
 B.joint("JointLegF", "Body", "LegF", v(0, 2.3, -0.8))
-B.block("FootF", "FootF", v(2.4, 0.5, 2.2), v(0, 0.28, -1.5), GREEN)
+B.block("FootF", "FootF", v(2.4, 0.5, 2.2), v(0, 0.25, -1.5), GREEN)
 for i, x in { -0.85, 0, 0.85 } do
-	B.block("FootF", "ToeF" .. i, v(0.7, 0.4, 0.8), v(x, 0.23, -2.8), TOE)
+	B.block("FootF", "ToeF" .. i, v(0.7, 0.4, 0.8), v(x, 0.2, -2.8), TOE)
 end
 B.joint("JointFootF", "LegF", "FootF", v(0, 0.75, -1.0))
 
 -- Hind legs: thigh forward and out, shin back, foot flat -------------------------------------
 for _, s in { -1, 1 } do
 	local side = if s < 0 then "L" else "R"
-	local hip, knee, ankle = v(s * 1.7, 2.4, 2.3), v(s * 2.2, 1.5, 0.7), v(s * 2.3, 0.65, 3.5)
+	local hip, knee, ankle = v(s * 1.7, 2.4, 2.3), v(s * 2.2, 1.5, 0.7), v(s * 2.3, 0.72, 3.5)
 	B.ball("ThighB" .. side, "HaunchB" .. side, 2.5, hip, GOLD)
 	B.limb("ThighB" .. side, "ThighB" .. side, hip, knee, 1.9, 1.9, GOLD, 0.4)
 	B.ball("ThighB" .. side, "KneeB" .. side, 1.9, knee, GOLD)
@@ -127,9 +127,9 @@ for _, s in { -1, 1 } do
 	B.limb("LowerLegB" .. side, "LowerLegB" .. side, knee, ankle, 1.4, 1.3, GREEN, 0.4)
 	B.ball("LowerLegB" .. side, "AnkleB" .. side, 1.3, ankle, GREEN)
 	B.joint("JointLowerLegB" .. side, "ThighB" .. side, "LowerLegB" .. side, knee)
-	B.block("FootB" .. side, "FootB" .. side, v(1.8, 0.5, 2.6), v(s * 2.3, 0.28, 3.0), GREEN)
+	B.block("FootB" .. side, "FootB" .. side, v(1.8, 0.5, 2.6), v(s * 2.3, 0.25, 3.0), GREEN)
 	for i, dx in { -0.6, 0, 0.6 } do
-		B.block("FootB" .. side, "ToeB" .. side .. i, v(0.5, 0.4, 0.7), v(s * 2.3 + dx, 0.23, 1.5), TOE)
+		B.block("FootB" .. side, "ToeB" .. side .. i, v(0.5, 0.4, 0.7), v(s * 2.3 + dx, 0.2, 1.5), TOE)
 	end
 	B.joint("JointFootB" .. side, "LowerLegB" .. side, "FootB" .. side, ankle)
 end

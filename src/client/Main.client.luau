@@ -1,10 +1,11 @@
 --!strict
 -- Client entry: wires the HUD, circulation minigame, breakthroughs, combat (with
 -- telegraphs, lock-on and enemy health bars), the mouse cursor, travel (menu, array markers, fade), the hotbar, the inventory
--- (items and arts), seed picker, garden view, build mode, meditation, settings, zone music, beast sounds, positional ambient sound, the region entry banner, world event and heavenly treasure visuals, stylized water, and the character window
--- (realm crest) with the spirit root reveal card.
+-- (items and arts), seed picker, garden view, build mode, meditation, settings, zone music, beast sounds, positional ambient sound, the region entry banner, world event and heavenly treasure visuals, stylized water, the character window
+-- (realm crest) with the spirit root reveal card, and the character creator on join.
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Hud = require(script.Parent.Hud)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
@@ -61,6 +62,8 @@ local SelfCard = require(script.Parent.SelfCard)
 local RootReveal = require(script.Parent.RootReveal)
 local ScrollHint = require(script.Parent.ScrollHint)
 local SeatBars = require(script.Parent.SeatBars)
+local CharacterCreator = require(script.Parent.CharacterCreator.Controller)
+local Config = require(ReplicatedStorage.Shared.Config)
 
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
@@ -122,3 +125,8 @@ RootReveal.init(gui)
 Music.init()
 EnemySounds.init()
 AmbientSounds.init()
+-- The character screen on join. Test place only: its GUI is mapped in
+-- test.project.json alone until the user approves it for the main game.
+if Config.TESTBED then
+	CharacterCreator.init(Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("CharacterCreator") :: ScreenGui)
+end

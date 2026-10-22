@@ -38,6 +38,9 @@ local PROPS = {
 	"Part0", "Part1", "MeshType", "PrimaryPart", "AnimationId",
 	"FillColor", "OutlineColor", "FillTransparency", "OutlineTransparency", "DepthMode",
 	"SoundId", "Volume", "Looped", "PlaybackSpeed", "RollOffMaxDistance", "RollOffMinDistance",
+	-- rigs (Motor6D offsets, R6 humanoid) and ViewportFrames (lighting, camera)
+	"C0", "C1", "RigType", "DisplayDistanceType", "Ambient", "LightColor", "LightDirection", "CurrentCamera",
+	"FieldOfView", "GroupTransparency", "ShirtTemplate", "PantsTemplate",
 }
 
 local INT = {
@@ -45,7 +48,7 @@ local INT = {
 	DisplayOrder = true, FillDirectionMaxCells = true, Segments = true, MaxTextSize = true,
 	MinTextSize = true,
 }
-local CONTENT = { Image = true, Texture = true, TextureId = true, AnimationId = true, SoundId = true, TopImage = true, MidImage = true, BottomImage = true }
+local CONTENT = { Image = true, Texture = true, TextureId = true, AnimationId = true, SoundId = true, TopImage = true, MidImage = true, BottomImage = true, ShirtTemplate = true, PantsTemplate = true }
 local RENAME = { Size = "size", Shape = "shape" } -- on parts only
 
 local function num(n: number): string
@@ -169,7 +172,9 @@ local function emit(inst, depth)
 		local ok, v = pcall(function()
 			return inst[name]
 		end)
-		if ok and v ~= nil and typeof(v) ~= "RBXScriptSignal" and typeof(v) ~= "function" then
+		-- a child named like a property the class lacks (Backdrop.Image) reads as that child
+		local shadowed = typeof(v) == "Instance" and v.Parent == inst and v.Name == name
+		if ok and v ~= nil and not shadowed and typeof(v) ~= "RBXScriptSignal" and typeof(v) ~= "function" then
 			local okBase, d = pcall(function()
 				return base and base[name]
 			end)

@@ -4,3 +4,6 @@ art/fbx_export/
 .sandbox-*.project.json
 __pycache__/
 .claude/worktrees/
+# Roblox Open Cloud key (keep it out of git)
+API key.txt
+*api_key*

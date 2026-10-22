@@ -159,8 +159,15 @@ cursor, settings and the admin panel.
   would otherwise sit on the board and swallow attacks and camera drags.
 - UI work goes through the `ui-designer` subagent (AGENTS.md). GUIs are authored in
   Studio via MCP and exported to `assets/Hud.rbxmx`, `Rewards.rbxmx`, `Prompts.rbxmx`,
-  `Veil.rbxmx` (full-screen, no safe insets, above everything);
+  `Veil.rbxmx` (full-screen, no safe insets, above everything),
+  `CharacterCreator.rbxmx` (the join screen, see [character creator](character-creator.md));
   scripts only find and fill them.
+- Templates that scripts clone live in a `Templates` Frame with `Visible = false`,
+  never a Folder: GUI objects inside a Folder still draw.
+- `tools/export_rbxmx.luau` also writes rig joints (Motor6D C0/C1), Humanoid,
+  ViewportFrame lighting and camera, CanvasGroup fade and Shirt/Pants templates,
+  and skips a child whose name matches a property the class lacks (a Frame's
+  `Image` child once came out as a bogus `Image` property).
 
 ## Key files (all `src/client/`)
 - `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal
@@ -250,6 +257,8 @@ cursor, settings and the admin panel.
   `LockOn.luau` reticle and hint.
 - `Settings.luau` (volumes, Auto combat, lock hint), `AdminPanel.luau` (F2, admins on PC).
 - `State.luau`: the latest `PlayerState` snapshot with change listeners.
+- `CharacterCreator/` (the join screen: nav, viewport dummy, parchment panel); see
+  [character creator](character-creator.md).
 
 ## Data flow
 Fast values come from player attributes (`Realm`, `Cultivation`,

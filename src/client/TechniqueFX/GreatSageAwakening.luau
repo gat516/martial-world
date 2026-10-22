@@ -192,16 +192,33 @@ function GreatSageAwakening.windup(CombatEffects: any, def: any, level: number, 
 		TechniqueVFX.cleanup(gather)
 	end
 	local started = os.clock()
-	local follow
+	local follow: RBXScriptConnection
+	local unregister: () -> () = function() end
+	local function stop()
+		if stopped then
+			return
+		end
+		follow:Disconnect()
+		unregister()
+		stopped = true
+		stopTrails()
+	end
 	follow = RunService.RenderStepped:Connect(function()
 		if os.clock() - started > seconds or not root.Parent then
-			follow:Disconnect()
-			stopped = true
-			stopTrails()
+			stop()
 			return
 		end
 		if gather and gather.Parent then
 			gather.CFrame = handAt()
+		end
+	end)
+	-- a cancelled twirl (dodge, stun) drops its trails, seal and gather at once
+	unregister = WeaponFX.onCancel(character, function()
+		stop()
+		for _, p in { twirl, gather } do
+			if p then
+				p:Destroy()
+			end
 		end
 	end)
 	return true
@@ -405,6 +422,9 @@ function GreatSageAwakening.cast(CombatEffects: any, def: any, level: number, ch
 	end
 	if not TechniqueVFX.full and CastFX.nearCamera(origin, 45) then
 		CombatEffects.shake((CombatEffects.SHAKE_BY_TIER[tier] or 0.2) * 0.8)
+	end
+	if tier >= 2 then
+		CombatEffects.punch(origin, ({ 0, 0.35, 0.55, 0.8 })[tier], Color3.fromRGB(255, 200, 90), WeaponFX.hitWindow(def, 1))
 	end
 
 	-- impacts: every enemy inside the radius as the front reaches it

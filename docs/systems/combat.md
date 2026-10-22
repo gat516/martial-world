@@ -540,8 +540,11 @@ checks a rebuild against the previous templates.
   end bites, and every impact is squeezed into Hit 1.15 -> Hit Stop 1.25
   (`WeaponFX.landing`; a sandbox run with a staff landed them 0.04-0.05 s after
   the release). The `windup` hook now exists in `CombatEffects.windup`, so the
-  twirl plays. Layers T1 / T4: charge 8 / 8, twirl 3 / 4, slam 12 / 17, ground
-  4 / 10, impact 8 / 14.
+  twirl plays. QA pass 2026-10-21: a cancelled twirl (dodge, stun) drops its
+  trails, seal, gather and `Charge` at once (`WeaponFX.onCancel`) instead of
+  spinning on to the Hit time; a hit-pause punch on the slam at II+. Layers T1
+  / T4: charge 8 / 8, twirl 3 / 4, slam 14 / 19, ground 4 / 10, impact 10 /
+  17.
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative

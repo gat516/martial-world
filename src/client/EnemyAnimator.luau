@@ -124,10 +124,12 @@ if JadeJiao then
 end
 
 -- Thunder Ape: scale 3.71 is applied once to the sampled pose (`scaled`); the loops and
--- gaitRate take real speeds and divide by ThunderApe.SCALE themselves.
+-- gaitRate take real speeds and divide by ThunderApe.SCALE themselves. `seamless`: a strike's
+-- windup runs straight into its active beat and a leap's into its flight (the keyed blend from
+-- the frozen last windup frame dropped the fist to 0 studs/s for a frame at every release).
 if ThunderApe then
 	FAMILIES.ThunderApeB = {
-		poses = ThunderApe, scale = 3.71, runFrom = 10, keyedBlend = 0.06, deathSeconds = 3.2, staggerSeconds = 0.45, motion = true,
+		poses = ThunderApe, scale = 3.71, runFrom = 10, keyedBlend = 0.06, seamless = true, deathSeconds = 3.2, staggerSeconds = 0.45, motion = true,
 		moves = {
 			rushSwipe = "RushSwipe", thunderRushSkid = "ThunderRushSkid", skyfallSweep = "SkyfallSweep",
 			skyfallSlamSkid = "SkyfallSlamSkid",

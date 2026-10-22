@@ -928,6 +928,25 @@ module's loops divide speeds by its own `SCALE`). A storm call publishes its rea
 attribute for the pose's long channel; `bound` is treated like a leap (flight time from `active`, no active beat in recover).
 Untested: all of it (feel, numbers, wall/ground checks for the flank bound, the wave's readability).
 
+Animation QA (2026-10-22, animator; a motion probe, `art/enemies/motion_probe.luau`, plays each move
+the way EnemyAnimator does and measures per frame). Found and fixed, worst first:
+- The swinging fist went 6.8 studs into the ground in the club's and backhand's recovers (a free arm
+  blended toward a planted one), and every rear-up from all fours sank the thighs 2.5-3.2 studs
+  (the pound, the body slam, the roars, the stagger). Fixed in the pose module's plant blend.
+- Every strike and leap stopped dead for a frame at its release (the 0.06 s keyed blend restarted
+  from the frozen last windup frame). The family now has `seamless` (as the Jade Jiao): one
+  attack's windup, dash and recover play straight on.
+- Club and backhand stopped after the hit and restarted for the recover. The blow now carries
+  through: one decelerating sweep past the target across the active beat, the forearm folding,
+  the fist swinging back and reaching down to plant while the other arm lifts for the next blow.
+- The body slam's hind feet hung 1.3-2.2 studs under the floor through the fall and the prone
+  slide (now folded, drawn in under the hips as it pushes up); the death's kneel put the shins 3.4
+  under (1.9 now); a back hop's landing flipped an elbow 85 degrees (the fists land with the feet).
+Attack names, phase lengths, cue moments and the pose API are unchanged. Left: ClubSwing B (not the
+default) still sinks its fist in its recover; the combo hand-offs (recover -> next windup) still
+freeze the lifting arm for 0.06 s; the prone body and the pound's forearms brush 1.3-1.8 studs into
+the floor; the rush's arrival (dash -> swipe windup) holds one frame. Untested in Play.
+
 Effects (vfx agent): `Effects.ThunderApe` (58 templates; builder `tools/vfx_specs/ThunderApe.luau`, installs
 `_G.buildThunderApeFX`), handler `EnemyFX/ThunderApe.luau` (gated to `ThunderApeB`). Storm blue-white (`5BD8FF`,
 rim `B8F0FF`, white-hot core) over an indigo `1B2547` copy, violet `8F7BFF` only in phase 3, no gold, nothing over

@@ -623,6 +623,36 @@ Feel pass (2026-10-22, arrivals, skids, bound modes, landings):
   yaw 0.55 planted. The rush's gallop at 95 studs/s is averaged over three frames (a fist touchdown
   popped an elbow 0.6 rad in one frame).
 
+Motion QA (2026-10-22, `art/enemies/motion_probe.luau`: every move played as EnemyAnimator plays it,
+per-frame FK on the template; the static checks above missed all of these):
+- **A plant change between two keys** (`plantedSample`, the cross-plant blend). Each end's root drop
+  now counts a limb planted at one end only by how near that end is (a rear-up from all fours
+  dropped the root for the planted arms of the pitched torso and sank the thighs 2.5-3.2 studs),
+  the limbs planted at both ends are re-planted after the blend, and a changing limb that would dip
+  under the floor bends its middle joint only (the solver's foot levelling snapped a wrist 88
+  degrees). No floor clamp at either end any more: it re-solved a free arm passing near the ground
+  onto its other bend.
+- **Gotcha: a free arm blended toward a planted one swings through the ground.** The knuckle-walk
+  arm plants with the shoulder back (-0.5 to -0.9) and the elbow bent (1.1-1.7); a free arm is
+  authored forward. The joint blend passes through "straight down" and the fist went 6.8 studs under
+  in the combo's recovers. Fold the free arm first (elbow 1.7, shoulder near 0 world), then a
+  planted key with its spot raised (`lifted`), and give that key an authored elbow near the planted
+  solve's (the solver takes the bend nearest the authored one; a blend from 1.7 toward 0 crossed
+  between its two bends).
+- **Arm lag** reads at most a quarter of the phase back (it read 0.17 s back in a 0.33 s recover and
+  held the forearm straight while the shoulder swung) and fades out while the arm reaches down to
+  plant (weight cubed, and gone by 35% of a planting key pair).
+- `splitOut(h, total)` splits one decelerating sweep across a phase boundary (the club's contact ->
+  overshoot runs 0.26 s across its 0.12 s active beat), so the fist keeps moving through the hit.
+  A key at u 0.97 holding the contact pose to 1 is a dead frame at the release; key contact at 1.
+- A hop landing with the fists still reaching (raised 0.15-0.9) flipped the planted elbow 50-85
+  degrees in the recover's first frames once `seamless` stopped blending over it: land them together.
+- Free hind legs hanging straight from dropped hips go under the floor (the body slam's fall and
+  prone slide, 1.3-2.2 studs): fold the knees (-0.5 to -0.9) whenever the hips drop with the feet up.
+- Safe: kneeling sag root -1.0 with HIND planted at R_REAR (-1.4 put the shins 3.4 studs under).
+- Still under the floor at the prone and pound contacts: elbow tufts and the beard tip 1.3-1.8
+  studs (lying on the ground), the pound's forearms 1.3-1.6.
+
 ## Blood Centipede (101 parts, 43 joints, `build_blood_centipede.luau` / `rig_blood_centipede.luau`)
 
 Low grave-dweller, bone-white plates edged dull red. Body 15.4 studs skull to cerci

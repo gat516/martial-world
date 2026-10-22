@@ -623,6 +623,27 @@ property list, so it is wrong for effects. Use the binary exporter:
 5. Destroy the staging copy; with Rojo connected, check the real folder now
    holds your changes and there is one copy of it.
 
+### Capture gotchas (Nine-Tailed Fox pass, 2026-10-22)
+
+- A minimised sandbox window captures as a flat grey frame, and `AppActivate`
+  doesn't fix it. Restore it with PowerShell's user32 `ShowWindow(handle, 9)`.
+- After a library search the plugin's window sits over the viewport. Hide it
+  (`...Seperate.Library.Visible = false`) and the dev GUI
+  (`StarterGui.ShowDevelopmentGui = false`) for captures, then restore both.
+- Contact-sheet labels can drop the last digit of long ids. Grep the dump for
+  the id before using it ("Request asset was not found" at runtime otherwise).
+- Load `enemy_fx_shot.luau` once per session: reloading resets its state, so
+  earlier frozen scenes are never cleared and leak into later captures.
+- Camera-facing sprites centred on the floor get cut in half (a white box). Put
+  flashes and bursts on an attachment above the floor.
+- Beams and trails can't be frozen in Edit mode; judge them as templates.
+- Fade-strip textures on a beam fade toward `Attachment1`, dimming a lance's
+  business end. Use a plain gradient for the glow and a line texture for the
+  core.
+- Barrage cues: state-guarded handlers spawn nothing in a smoke run unless the
+  cue carries server-like `parts`; pass `shape` per cue to
+  `enemy_fx_smoke.luau`.
+
 ### Parallel vfx agents: merge, don't copy
 
 `assets/Effects.rbxm` is one file holding every group, and a sandbox's export

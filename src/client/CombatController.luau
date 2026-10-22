@@ -144,6 +144,8 @@ local function stopRuntime(suppress: boolean, completed: boolean?, blend: number
 	-- sound handles belong to this swing, so unrelated sounds keep playing.
 	old.suppressed, old.reported = true, true
 	if not finished then stopActionSounds(old) end
+	-- a cast cut short stops what its effects left running (the charge, a gather)
+	if not finished and old.action.kind == "cast" then CombatEffects.cancel(old.character) end
 	if suppress then
 		attackRemote:FireServer({ op = "cancel", character = old.character, sequence = old.action.sequence })
 	end
@@ -559,6 +561,7 @@ local function tryStart(kind: string, id: string?): boolean
 			if runtime == current then
 				current.suppressed = true
 				stopActionSounds(current)
+				if kind == "cast" then CombatEffects.cancel(character) end
 				attackRemote:FireServer({ op = "cancel", character = character, sequence = action.sequence })
 			end
 		end)

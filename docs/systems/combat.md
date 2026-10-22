@@ -272,6 +272,37 @@ checks a rebuild against the previous templates.
   switch on for the windows where the sampled motion actually swings.
   Previews: `_G.vfxSpecs.BladeKit.preview` (weapon rig, clip scrubbed at
   castSpeed, root driven over `lungeWindow`).
+- **Swing, cancel, punch and rend** (QA pass 2026-10-21, after the remake's
+  playtest: "some of it stucks or doesn't properly align with the weapon").
+  The long clips' `Hit` markers fire as a swing starts (the blade still raised
+  behind the head), so `WeaponFX.swing(character, window, onPeak)` tracks the
+  held weapon's point relative to the root through that hit's Hit -> Hit Stop
+  window and calls back on the frame after its speed peaks (where the blade
+  bites; the window's end otherwise) with the point, the swing direction and
+  the blade axis. Flares (`WeaponFX.flare`), claws, light impacts and slam
+  bites play there, facing the way the blade cuts rather than the root's look.
+  A cast cut short (dodge, stun, any action before it finishes) calls
+  `CombatEffects.cancel` from `CombatController` (`stopRuntime` and the track's
+  Stopped handler): `WeaponFX.cancel` runs what was registered with
+  `WeaponFX.onCancel` (the `Charge`, the default hand gather, Great Sage's
+  twirl, Twin Phoenix's left-fist gather), so nothing keeps glowing after a
+  dodge. Observers never get the cancel; their copies end on their timers.
+  Big hits add `CombatEffects.punch(at, strength, tint, seconds)`: a camera
+  push-in and a short contrast/saturation grade through the Hit -> Hit Stop
+  window (the hit-pause feel; II+ or III+ only, tier I stays clean). The
+  no-Game-Module shake `SHAKE_BY_TIER` is 0.12 / 0.2 / 0.32 / 0.46. A strike
+  that carves the ground uses `BladeSkill.rend` (block `groundRend`), not a
+  Neon slit: Textures on a part laid from the bite (a black branching crack, a
+  jagged slit tinted the element and cooling to ink, III+ a wider crack web),
+  flat Beams of the element's qi burning in the crack and cooling
+  (`GlowFade`), and `RendKicks` stations that kick a smoke-flipbook puff,
+  falling rock chips, II+ a glowing star crack and III+ Craters rock kicks as
+  the carving reaches them, with a crack-web flipbook flash, a dark crater
+  crack and a dust ring at the bite. The shared hit stack (`impactBurst`) and
+  blade flare (`bladeFlare`) gained a white-hot core (hard dot, Brightness 4)
+  and a thin shock ring over deeper ink, falling rock chips under the target
+  at II+ and a spiky star on the flare at III+; every technique template was
+  rebuilt with them.
 - **Heaven-Splitting Descent** (`HeavenSplitter_T1..T4`, authored at radius 12
   centred 4 ahead; `TechniqueFX.HeavenSplitter`). Heaven-azure qi, white core
   (gold at IV), ink scars. Light hits (Hit 1 sweep, Hit 2 rising cut): a light

@@ -314,7 +314,14 @@ function WeaponFX.charge(character: Model?, template: Instance?, seconds: number
 		end
 	end
 	holder:Destroy()
-	task.delay(seconds, function()
+	local stopped = false
+	local unregister: () -> () = function() end
+	local function stop()
+		if stopped then
+			return
+		end
+		stopped = true
+		unregister()
 		for _, d in rig.owned do
 			if d:IsA("ParticleEmitter") then
 				d.Enabled = false
@@ -331,8 +338,140 @@ function WeaponFX.charge(character: Model?, template: Instance?, seconds: number
 			end
 		end
 		WeaponFX.releaseRig(rig, lives + 0.3)
-	end)
+	end
+	-- stops at Hit, or at once if the cast is cut short
+	unregister = WeaponFX.onCancel(character, stop)
+	task.delay(seconds, stop)
 	return rig
+end
+
+-- ------------------------------------------------------------ cancel
+
+-- Things a cast left running that must stop if the cast is cut short (a
+-- dodge, a stun, another action before Hit): the windup's Charge, a gather
+-- between two blows, a twirl. `onCancel` registers a stopper for the
+-- character and returns a function that unregisters it (call it when the
+-- thing ends on its own); `cancel` runs and clears them all. CombatEffects
+-- .cancel calls it from the caster's CombatController when a cast stops
+-- without finishing; observers never get it (the server relays only the
+-- release), so their copies end on their own timers.
+local cancellers: { [Instance]: { [number]: () -> () } } = setmetatable({}, { __mode = "k" }) :: any
+local nextCancel = 0
+function WeaponFX.onCancel(character: Model?, stop: () -> ()): () -> ()
+	if not character then
+		return function() end
+	end
+	nextCancel += 1
+	local key = nextCancel
+	local list = cancellers[character]
+	if not list then
+		list = {}
+		cancellers[character] = list
+	end
+	list[key] = stop
+	return function()
+		local l = cancellers[character]
+		if l then
+			l[key] = nil
+		end
+	end
+end
+
+function WeaponFX.cancel(character: Model?)
+	local list = character and cancellers[character]
+	if not (character and list) then
+		return
+	end
+	cancellers[character] = nil
+	for _, stop in list do
+		local ok, err = pcall(stop)
+		if not ok then
+			warn("WeaponFX.cancel:", err)
+		end
+	end
+end
+
+-- ------------------------------------------------------------ the swing
+
+-- Where and which way the weapon is cutting during a hit window. Tracks the
+-- held weapon's point (Tip, else the striking hand) relative to the root
+-- every frame for `seconds` (Hit -> Hit Stop at the played speed) and calls
+-- `onPeak(at, swing, axis)` once: on the frame after the point's speed (the
+-- swing, not the lunge) peaks, which is where the blade bites, or at the end
+-- of the window with the fastest frame seen. `at` is the point's world
+-- position then, `swing` the unit direction it was travelling (world), `axis`
+-- the blade's root -> point direction. The Hit markers of the long weapon
+-- clips fire as a swing starts (the blade is still raised); the flare, the
+-- claw and the bite belong where it lands, inside the same window.
+function WeaponFX.swing(character: Model?, seconds: number, onPeak: (Vector3, Vector3, Vector3) -> (), fallback: Vector3?)
+	local rig = WeaponFX.rig(character)
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not (rig and root) then
+		local at = fallback or Vector3.zero
+		onPeak(at, Vector3.new(0, 0, -1), Vector3.new(0, 1, 0))
+		return
+	end
+	local function rel(): Vector3
+		return root.CFrame:PointToObjectSpace(rig.to.WorldPosition)
+	end
+	local prev = rel()
+	local prevAt = os.clock()
+	local started = prevAt
+	local best = { speed = 0, at = rig.to.WorldPosition, swing = root.CFrame.LookVector, axis = rig.to.WorldPosition - rig.from.WorldPosition }
+	local fired = false
+	local conn: RBXScriptConnection
+	local function fire(at: Vector3, swing: Vector3, axis: Vector3)
+		if fired then
+			return
+		end
+		fired = true
+		conn:Disconnect()
+		WeaponFX.releaseRig(rig)
+		local ok, err = pcall(onPeak, at, if swing.Magnitude > 1e-3 then swing.Unit else root.CFrame.LookVector, if axis.Magnitude > 1e-3 then axis.Unit else Vector3.yAxis)
+		if not ok then
+			warn("WeaponFX.swing:", err)
+		end
+	end
+	conn = game:GetService("RunService").Heartbeat:Connect(function()
+		local now = os.clock()
+		if not (root.Parent and rig.to.Parent) then
+			fire(best.at, best.swing, best.axis)
+			return
+		end
+		local p = rel()
+		local dt = math.max(now - prevAt, 1e-3)
+		local v = (p - prev) / dt
+		local speed = v.Magnitude
+		prev, prevAt = p, now
+		local at = rig.to.WorldPosition
+		local axis = at - rig.from.WorldPosition
+		local swing = root.CFrame:VectorToWorldSpace(v)
+		if speed > best.speed then
+			best = { speed = speed, at = at, swing = swing, axis = axis }
+		elseif best.speed > 14 and speed < best.speed * 0.6 then
+			fire(at, best.swing, axis) -- just past the peak: the bite
+			return
+		end
+		if now - started >= seconds then
+			fire(best.at, best.swing, best.axis)
+		end
+	end)
+end
+
+-- Play a copy of a template part (a `Flare`) at `at`, facing `toward`,
+-- rescaled by `scale`.
+function WeaponFX.flare(template: BasePart?, at: Vector3, toward: Vector3, scale: number?)
+	if not template then
+		return
+	end
+	local f = template:Clone()
+	f.CFrame = CFrame.lookAt(at, at + toward)
+	f.Parent = TechniqueVFX.folder
+	if scale and math.abs(scale - 1) > 1e-3 then
+		TechniqueVFX.rescale(f, scale)
+	end
+	TechniqueVFX.emit(f)
+	TechniqueVFX.cleanup(f)
 end
 
 -- Seconds from Hit to Hit Stop of hit `index` at the cast's playback speed

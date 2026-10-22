@@ -151,6 +151,21 @@ them in respect to our weapon models and hit / hit stop timings"):
 - **Dark under light, on every hit.** The impact stack carries an ink splat
   behind the white-hot star and a flipbook burst that opens and breaks up, so a
   hit reads on grass at noon; tier III+ adds a smoke flipbook tail.
+- **Land where the blade lands (QA pass, 2026-10-21).** On the long weapon
+  clips a `Hit` marker fires as the swing starts, with the blade still raised.
+  What belongs to the cut (the flare, a claw, the slam's bite and its crack)
+  plays at the swing's peak inside that hit's Hit -> Hit Stop window
+  (`WeaponFX.swing`), facing the swing, not the root. Anything a cast leaves
+  running registers with `WeaponFX.onCancel`, so a dodge or stun clears it.
+- **Ground cracks are carved, not drawn (user, 2026-10-21: the Neon crack "is
+  kinda eh").** A strike that splits the ground reads as the ground breaking:
+  a dark carved crack with the element's qi burning in it and cooling, debris
+  and dust kicked up along it as it opens, a shock at the bite. Never a flat
+  Neon strip.
+- **Oomph (user, 2026-10-21: "stuff just needs more oomph").** Every release
+  and hit has a white-hot frame, a shock ring and a dark base; big hits at
+  II+/III+ add a hit-pause punch (`CombatEffects.punch`) and a harder shake.
+  Tier I stays clean; the punch and impact frames are earned.
 
 ### World events and anomalies
 

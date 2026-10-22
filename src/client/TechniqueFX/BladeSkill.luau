@@ -446,6 +446,142 @@ function BladeSkill.strip(template: BasePart?, a: Vector3, b: Vector3, open: num
 	end)
 end
 
+-- Carve a rend (block groundRend: part `Rend` and its `RendKicks`) into the
+-- ground from the bite `a` toward `b` (ground points), opening over `open`
+-- seconds: the carving grows from the bite with its Textures held still on
+-- the ground (their U origin rides the part's +X edge, which stays on `a`),
+-- the qi seam burns in it and cools (GlowFade), the carving lingers
+-- (CarveHold) and fades (CarveFade); the stations along the path kick dust,
+-- chips and rocks as the carving reaches them. `widthScale` widens it.
+function BladeSkill.rend(template: BasePart?, kicksT: BasePart?, a: Vector3, b: Vector3, open: number, widthScale: number?)
+	local flat = Vector3.new(b.X - a.X, 0, b.Z - a.Z)
+	local length = flat.Magnitude
+	if length < 0.5 then
+		return
+	end
+	local dir = flat / length
+	local up = Vector3.yAxis
+	local ws = widthScale or 1
+	open = math.max(open, 0.02)
+	if kicksT then
+		local kicks = kicksT:Clone()
+		kicks.Size = Vector3.new(kicks.Size.X * ws, kicks.Size.Y, length)
+		kicks.CFrame = CFrame.lookAt((a + b) / 2, (a + b) / 2 + dir) + up * 0.2
+		for _, d in kicks:GetChildren() do
+			local along = d:GetAttribute("Along")
+			if d:IsA("Attachment") and type(along) == "number" then
+				local p = a + (b - a) * along
+				d.WorldPosition = Vector3.new(p.X, CastFX.groundBelow(p + up * 2) + 0.15, p.Z)
+				d:SetAttribute("EmitDelay", along * open)
+			end
+		end
+		kicks.Parent = TechniqueVFX.folder
+		TechniqueVFX.emit(kicks)
+		TechniqueVFX.cleanup(kicks, 0.3)
+	end
+	if not template then
+		return
+	end
+	local r = template:Clone()
+	local width = BladeSkill.num(r, "Width", r.Size.Z) * ws
+	-- child parts (the slit, III+ the crack web) ride along at their own widths
+	local layers: { { part: BasePart, width: number } } = {}
+	for _, c in r:GetChildren() do
+		if c:IsA("BasePart") then
+			table.insert(layers, { part = c, width = c.Size.Z * ws })
+		end
+	end
+	local textures: { Texture } = {}
+	for _, d in r:GetDescendants() do
+		if d:IsA("Texture") and d.Parent then
+			-- U runs the path once; V shows the middle `Band` of the image
+			-- across the part's width (thin drawn strokes read thick)
+			local w = if d.Parent == r then width else (d.Parent :: BasePart).Size.Z * ws
+			local band = math.clamp(BladeSkill.num(d, "Band", 1), 0.05, 1)
+			d.StudsPerTileU = length
+			d.StudsPerTileV = w / band
+			d.OffsetStudsV = (w / band - w) / 2
+			table.insert(textures, d)
+		end
+	end
+	local seamA = r:FindFirstChild("SeamA") :: Attachment?
+	local seamB = r:FindFirstChild("SeamB") :: Attachment?
+	local beams: { Beam } = {}
+	for _, d in r:GetChildren() do
+		if d:IsA("Beam") then
+			d.Width0 *= ws
+			d.Width1 *= ws
+			table.insert(beams, d)
+		end
+	end
+	local back = -dir -- the part's +X looks back at the bite
+	local function place(k: number)
+		local len = math.max(length * k, 0.05)
+		local centre = a + dir * (len / 2) + up * 0.05
+		local cf = CFrame.fromMatrix(centre, back, up)
+		r.Size = Vector3.new(len, r.Size.Y, width)
+		r.CFrame = cf
+		for i, l in layers do
+			l.part.Size = Vector3.new(len, l.part.Size.Y, l.width)
+			l.part.CFrame = cf + up * (0.01 * i)
+		end
+		local turn = CFrame.Angles(0, 0, math.pi / 2)
+		if seamA then
+			seamA.CFrame = CFrame.new(len / 2, 0.08, 0) * turn
+		end
+		if seamB then
+			seamB.CFrame = CFrame.new(-len / 2, 0.08, 0) * turn
+		end
+	end
+	place(0.02)
+	r.Parent = TechniqueVFX.folder
+	local glowColor = r:GetAttribute("GlowColor")
+	local inkColor = r:GetAttribute("InkColor")
+	local slit = r:FindFirstChild("Slit") :: Texture?
+	local brightness = BladeSkill.num(r, "Brightness", 3)
+	local glowFade = BladeSkill.num(r, "GlowFade", 0.6)
+	local carveHold = BladeSkill.num(r, "CarveHold", 1)
+	local carveFade = BladeSkill.num(r, "CarveFade", 1)
+	local baseT: { [Beam]: NumberSequence } = {}
+	for _, bm in beams do
+		baseT[bm] = bm.Transparency
+	end
+	BladeSkill.drive(open, function(t)
+		local k = math.clamp(t / open, 0, 1)
+		place(1 - (1 - k) ^ 2)
+	end, function()
+		place(1)
+		-- the seam cools: bright -> gone, the slit's tint -> ink
+		BladeSkill.drive(glowFade, function(t)
+			local f = math.clamp(t / glowFade, 0, 1)
+			for _, bm in beams do
+				bm.Brightness = brightness * (1 - f) ^ 2
+				local kps = {}
+				for _, kp in baseT[bm].Keypoints do
+					table.insert(kps, NumberSequenceKeypoint.new(kp.Time, kp.Value + (1 - kp.Value) * f * f))
+				end
+				bm.Transparency = NumberSequence.new(kps)
+			end
+			if slit and typeof(glowColor) == "Color3" and typeof(inkColor) == "Color3" then
+				slit.Color3 = glowColor:Lerp(inkColor, f)
+			end
+		end)
+		-- the carving lingers, then fades
+		local fades: { { tex: Texture, from: number } } = {}
+		for _, tex in textures do
+			table.insert(fades, { tex = tex, from = tex.Transparency })
+		end
+		BladeSkill.drive(carveHold + carveFade, function(t)
+			local f = math.clamp((t - carveHold) / carveFade, 0, 1)
+			for _, e in fades do
+				e.tex.Transparency = e.from + (1 - e.from) * f * f
+			end
+		end, function()
+			r:Destroy()
+		end)
+	end)
+end
+
 -- Seconds until a Quart-Out MeshWave of `duration` reaches `frac` of its size.
 function BladeSkill.quartTime(duration: number, frac: number): number
 	return duration * (1 - (1 - math.clamp(frac, 0, 1)) ^ 0.25)

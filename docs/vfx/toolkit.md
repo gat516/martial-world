@@ -466,6 +466,21 @@ Other sessions use the same Studio and the same `_G`. Before a capture run:
   verify numerically and leave the look to the user.
 - Several `GetObjects` animation loads in one `execute_luau` can drop the MCP
   connection ("Target is not reachable"); load two or three per call.
+- To make `screen_capture` see your sandbox, bring its window to the front
+  first: `powershell.exe -NoProfile -Command "$p = Get-Process RobloxStudioBeta | Where-Object { $_.MainWindowTitle -like '*mw-sandbox-<name>*' }; (New-Object -ComObject WScript.Shell).AppActivate($p.Id)"`.
+- A sandbox has the testbed's `Arena.Baseplate` (top at y 648.6) over
+  `vfxPreview.scene`'s default centre (y 640): pass `center = Vector3.new(400, 1200, 300)`.
+  The scene's rig is pivoted by its bounding box, weapon included, so it can
+  stand sunk into the floor; read heights from the root, not the floor.
+- A scrubbed track (`castThrough` plays at speed 0 and sets TimePosition)
+  never fires its markers, so BladeSkill beats tied to a marker run on their
+  fallback, 0.08 s late, in previews only.
+- Textures on a part's Top face: U runs along the part's X and its origin is
+  the +X edge, V runs along Z from the +Z edge. A strip that grows from one
+  end keeps its Texture still on the ground when that end is the +X edge.
+  StudsPerTileV larger than the part's width with OffsetStudsV = (tile -
+  width) / 2 shows only the middle band of the image (thin drawn strokes read
+  thick). A SurfaceGui on a part didn't show in a `screen_capture` at all.
 
 - The Game Module doesn't descend into Parts nested inside a Part, only into
   its emitters and attachments; emitting a Model reaches everything. Emit a

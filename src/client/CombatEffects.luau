@@ -74,7 +74,7 @@ local function burst(position: Vector3, props: { [string]: any }, count: number,
 	Debris:AddItem(anchor, life or 2)
 end
 
-local SHAKE_BY_TIER = { 0.14, 0.2, 0.28, 0.38 }
+local SHAKE_BY_TIER = { 0.12, 0.2, 0.32, 0.46 } -- tier I stays clean, IV hits hard
 
 -- Per-technique effect modules (Client.TechniqueFX.<Id>), each returning
 -- { cast = function(CombatEffects, def, level, character, origin, dir, chain): boolean }.
@@ -254,10 +254,12 @@ function CombatEffects.windup(character: Model, id: string, level: number)
 	-- qi gathers into the hand as it swings (the template's emitters are
 	-- LockedToPart; the spline paths follow the Wisps part via SyncPosition)
 	local started = os.clock()
-	local follow
+	local follow: RBXScriptConnection
+	local unregister: () -> () = function() end
 	follow = RunService.RenderStepped:Connect(function()
 		if os.clock() - started > seconds or not p.Parent or not root.Parent then
 			follow:Disconnect()
+			unregister()
 			return
 		end
 		local cf = at()
@@ -265,6 +267,11 @@ function CombatEffects.windup(character: Model, id: string, level: number)
 		if wisps then
 			wisps.CFrame = cf
 		end
+	end)
+	-- a cast cut short before Hit drops its gather at once
+	unregister = require(script.Parent.TechniqueFX.WeaponFX).onCancel(character, function()
+		follow:Disconnect()
+		p:Destroy()
 	end)
 end
 
@@ -443,14 +450,58 @@ function CombatEffects.shake(strength: number)
 	shakeStrength = math.max(shakeStrength * (shakeLeft / 0.2), strength)
 	shakeLeft = 0.2
 end
+
+-- The hit-pause feel of a big blow, for the Hit -> Hit Stop window: the
+-- camera punches in toward what it looks at and eases back, and the world
+-- grades hard for a beat (contrast and saturation up, a flash of the
+-- element's tint). `strength` 0..1 (tier IV slam ~1); only near the camera.
+local punchLeft, punchTotal, punchDepth = 0, 0.2, 0
+function CombatEffects.punch(at: Vector3, strength: number, tint: Color3?, seconds: number?)
+	if (workspace.CurrentCamera.CFrame.Position - at).Magnitude > 60 or strength <= 0 then
+		return
+	end
+	local hold = math.clamp(seconds or 0.1, 0.05, 0.2)
+	punchTotal = hold + 0.18
+	punchLeft = punchTotal
+	punchDepth = math.max(punchDepth * (punchLeft / punchTotal), 0.9 * strength)
+	local grade = Instance.new("ColorCorrectionEffect")
+	grade.TintColor = Color3.new(1, 1, 1):Lerp(tint or Color3.new(1, 1, 1), 0.35 * strength)
+	grade.Brightness = 0.06 * strength
+	grade.Contrast = 0.32 * strength
+	grade.Saturation = 0.25 * strength
+	grade.Parent = folder
+	task.delay(hold, function()
+		TweenService:Create(grade, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			TintColor = Color3.new(1, 1, 1), Brightness = 0, Contrast = 0, Saturation = 0,
+		}):Play()
+	end)
+	Debris:AddItem(grade, hold + 0.3)
+end
+
+-- A cast cut short: stop what its effects left running (TechniqueFX.WeaponFX).
+function CombatEffects.cancel(character: Model?)
+	local WeaponFX = require(script.Parent.TechniqueFX.WeaponFX)
+	WeaponFX.cancel(character)
+end
+
 -- after LockOn writes the camera (Camera + 1)
 RunService:BindToRenderStep("CombatShake", Enum.RenderPriority.Camera.Value + 2, function(dt: number)
+	local camera = workspace.CurrentCamera
+	if punchLeft > 0 then
+		punchLeft -= dt
+		-- in fast, out slow: a push along the view
+		local k = math.max(0, punchLeft / punchTotal)
+		local d = punchDepth * math.sin(math.pi * (1 - k) ^ 0.35) * k ^ 0.5
+		camera.CFrame *= CFrame.new(0, 0, -d)
+		if punchLeft <= 0 then
+			punchDepth = 0
+		end
+	end
 	if shakeLeft <= 0 then
 		return
 	end
 	shakeLeft -= dt
 	local s = shakeStrength * math.max(0, shakeLeft / 0.2)
-	local camera = workspace.CurrentCamera
 	camera.CFrame *= CFrame.new((math.random() - 0.5) * s, (math.random() - 0.5) * s, 0)
 end)
 

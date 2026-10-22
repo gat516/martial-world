@@ -98,6 +98,13 @@ B.ASSETS = {
 	glint = id(13366348510), -- crisp 4-point star
 	mote = id(9841260273), -- small glowing spindle mote
 	streaks = id(5699911427), -- vertical qi streaks (beam texture)
+	crackLine = id(7994629852), -- black branching crack, drawn left to right (a carved line)
+	crackWeb = id(7994630128), -- black branching crack web, wider
+	slit = id(85417574538516), -- a jagged slit with a pale rim, left to right (tint it)
+	crackStar = id(10365551764), -- white star crack (tint it: glowing radial crack)
+	crackFlip = id(13452217224), -- 4x4 flipbook: a crack web forming and breaking up (white)
+	rocks = id(130042646554310), -- 2x2 sheet of rock chips (FlipbookMode Random)
+	dot = id(9841273544), -- hard round dot (white-hot cores; no square edge)
 }
 
 B.COLORS = {
@@ -449,8 +456,20 @@ function B.bladeFlare(root, tier, p)
 	local f = B.part(root, pick(p, "part", "Flare"), O * CFrame.new(0, 3, -3), Vector3.new(1, 1, 1))
 	B.emitter(f, "Ink", {
 		Texture = A.ink, Color = CS(ink),
-		Size = NS({ KP(0, 1), KP(0.25, 2.2 + tier * 0.3), KP(1, 2.8 + tier * 0.3) }), Transparency = NS({ KP(0, 0.2), KP(0.6, 0.45), KP(1, 1) }),
-		Lifetime = R(0.3), LightEmission = 0, Rotation = R(0, 360), ZOffset = 0.8,
+		Size = NS({ KP(0, 1), KP(0.25, 2.4 + tier * 0.35), KP(1, 3 + tier * 0.35) }), Transparency = NS({ KP(0, 0.08), KP(0.6, 0.35), KP(1, 1) }),
+		Lifetime = R(0.32), LightEmission = 0, Rotation = R(0, 360), ZOffset = 0.8,
+	}, { EmitCount = 1 })
+	-- the white-hot core: one frame of near-white so bloom catches the release
+	B.emitter(f, "Core", {
+		Texture = A.dot, Color = CS(core),
+		Size = NS({ KP(0, 0.6), KP(0.2, 1.3 + tier * 0.25), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.15), KP(1, 1) }),
+		Lifetime = R(0.12), LightEmission = 1, Brightness = 4, ZOffset = 2.2,
+	}, { EmitCount = 1 })
+	-- a thin shock ring snapping open round the point
+	B.emitter(f, "Ring", {
+		Texture = A.thinRing, Color = CS(core, gold),
+		Size = NS({ KP(0, 0.4), KP(1, 3 + tier * 0.6) }), Transparency = NS({ KP(0, 0), KP(0.5, 0.2), KP(1, 1) }),
+		Lifetime = R(0.18), LightEmission = 0.8, Brightness = 2, ZOffset = 1.8,
 	}, { EmitCount = 1 })
 	B.emitter(f, "Burst", {
 		Texture = A.hitFlip, Color = CS(core, gold),
@@ -468,6 +487,14 @@ function B.bladeFlare(root, tier, p)
 		SpreadAngle = Vector2.new(60, 60), Size = NS({ KP(0, 0.22), KP(1, 0) }), Squash = NS({ KP(0, 2), KP(1, 1) }),
 		Transparency = NS(0), Lifetime = R(0.15, 0.3), Speed = R(16, 28), Drag = 6, LightEmission = 0.6,
 	}, { EmitCount = ({ 4, 6, 8, 10 })[tier] })
+	if tier >= 3 then
+		-- the spiky impact star at mastery: the cut bites the air
+		B.emitter(f, "Spikes", {
+			Texture = A.hitRing, Color = CS(gold),
+			Size = NS({ KP(0, 0.6), KP(1, 2.6 + tier * 0.4) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.25), KP(1, 1) }),
+			Lifetime = R(0.2), LightEmission = 0.6, Rotation = R(0, 360), ZOffset = 1.6,
+		}, { EmitCount = 1 })
+	end
 	return f
 end
 
@@ -495,8 +522,19 @@ function B.impactBurst(root, tier, p)
 	-- ~0.3 s (tail of the Hit -> Hit Stop stack)
 	B.emitter(body, "Ink", {
 		Texture = A.ink, Color = CS(pick(p, "ink", Cl.ink)),
-		Size = NS({ KP(0, 1.1), KP(0.2, 2.6 + tier * 0.3), KP(1, 3.3 + tier * 0.35) }), Transparency = NS({ KP(0, 0.15), KP(0.55, 0.4), KP(1, 1) }),
+		Size = NS({ KP(0, 1.1), KP(0.2, 2.8 + tier * 0.35), KP(1, 3.5 + tier * 0.4) }), Transparency = NS({ KP(0, 0.05), KP(0.55, 0.3), KP(1, 1) }),
 		Lifetime = R(0.36), LightEmission = 0, Rotation = R(0, 360), ZOffset = 2.1,
+	}, { EmitCount = 1 })
+	-- white-hot core and a shock ring snapping open: the frame the hit lands
+	B.emitter(body, "Core", {
+		Texture = A.dot, Color = CS(core),
+		Size = NS({ KP(0, 0.8), KP(0.2, 1.6 + tier * 0.3), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.15), KP(1, 1) }),
+		Lifetime = R(0.1), LightEmission = 1, Brightness = 4, ZOffset = 3.2,
+	}, { EmitCount = 1 })
+	B.emitter(body, "Shock", {
+		Texture = A.thinRing, Color = CS(core, gold),
+		Size = NS({ KP(0, 0.6), KP(1, 3.4 + tier * 0.6) }), Transparency = NS({ KP(0, 0), KP(0.5, 0.2), KP(1, 1) }),
+		Lifetime = R(0.16), LightEmission = 0.8, Brightness = 2, ZOffset = 2.9,
 	}, { EmitCount = 1 })
 	B.emitter(body, "HitFlip", {
 		Texture = A.hitFlip, Color = CS(core, gold),
@@ -511,6 +549,14 @@ function B.impactBurst(root, tier, p)
 		Lifetime = R(0.15, 0.3), Speed = R(30, 45), Drag = 8, LightEmission = 0.6, ZOffset = 2,
 	}, { EmitCount = ({ 6, 8, 10, 12 })[tier] })
 	if tier >= 2 then
+		-- chips knocked off the ground under the target (they fall)
+		B.emitter(impact, "Chips", {
+			Texture = A.rocks, Color = CS(pick(p, "chipColor", Color3.fromRGB(150, 138, 120))), LightInfluence = 0.8,
+			FlipbookLayout = Enum.ParticleFlipbookLayout.Grid2x2, FlipbookMode = Enum.ParticleFlipbookMode.Random,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40),
+			Size = NS({ KP(0, 0.32), KP(1, 0.22) }), Transparency = NS({ KP(0, 0), KP(0.8, 0), KP(1, 1) }),
+			Lifetime = R(0.5, 0.8), Speed = R(10, 16), Acceleration = Vector3.new(0, -55, 0), Rotation = R(0, 360), RotSpeed = R(-360, 360), ZOffset = 1,
+		}, { EmitCount = ({ 0, 3, 4, 6 })[tier] })
 		B.emitter(impact, "Dust", {
 			Texture = A.dust, Color = CS(Cl.dust), LightInfluence = 0.5,
 			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(80, 80),
@@ -541,6 +587,156 @@ function B.impactBurst(root, tier, p)
 		}), { EmitCount = 1 })
 	end
 	return impact
+end
+
+-- A rend carved into the ground by a strike (replaces the Neon slit). Two
+-- parts the runtime lays from the bite `a` toward `b` (BladeSkill.rend):
+--   p.part ("Rend"): grows from the bite along the path. Its X axis runs back
+--     toward the bite (a Texture's U origin sits on the part's +X edge, so the
+--     carving stays put on the ground as it grows); Textures on its top face:
+--     "Crack" (black branching crack, the carved line), "Slit" (a jagged slit
+--     with a pale rim, tinted the element, cooling to ink), and III+ a wider
+--     "Web" of cracks on child part "Spread". A flat Beam "Seam" of qi streaks
+--     (and a soft "SeamGlow") burns in the crack and cools (Brightness and
+--     Transparency driven by the runtime). Attributes: Width, CarveHold,
+--     CarveFade, GlowFade, GlowColor, InkColor, Brightness.
+--   p.part .. "Kicks" ("RendKicks"): stations along the path (attachments
+--     with `Along` 0..1; the runtime places them and sets EmitDelay to when
+--     the carving reaches them): a smoke-flipbook dust puff and falling rock
+--     chips at each, a glowing star crack (II+), a Craters rock kick (III+, at
+--     two stations); and the bite (Along 0): a crack-web flipbook flash in the
+--     element colour, a dark radial crater crack, a dust ring blowing out.
+--     II+ qi motes rise along the whole path (a Box emitter the runtime
+--     stretches).
+-- p.color (glow), p.core, p.ink, p.width {by tier}, p.stations {by tier}.
+function B.groundRend(root, tier, p)
+	local glow, core, ink = pick(p, "color", Cl.gold), pick(p, "core", Cl.core), pick(p, "ink", Cl.ink)
+	local name = pick(p, "part", "Rend")
+	local w = (pick(p, "width", { 2.6, 3, 3.5, 4.2 }))[tier] -- the carved crack's spread (its strokes scale with it)
+	local rend = B.part(root, name, O * CFrame.new(0, 0.05, -6), Vector3.new(10, 0.1, w))
+	for k, v in {
+		Width = w, CarveHold = ({ 0.7, 0.9, 1.1, 1.4 })[tier], CarveFade = ({ 0.8, 1, 1.2, 1.5 })[tier],
+		GlowFade = ({ 0.45, 0.6, 0.75, 0.95 })[tier], GlowColor = glow, InkColor = ink, Brightness = ({ 2.5, 3, 3.5, 4.5 })[tier],
+	} do
+		rend:SetAttribute(k, v)
+	end
+	-- `band`: the share of the image's height shown across the part (its
+	-- middle), so a thin drawn crack reads thick (the runtime tiles V to it)
+	local function texture(parent, tname, image, color, transparency, band)
+		local t = Instance.new("Texture")
+		t:SetAttribute("Band", band)
+		t.Name = tname
+		t.Face = Enum.NormalId.Top
+		t.Texture = image
+		t.Color3 = color
+		t.Transparency = transparency
+		t.StudsPerTileU, t.StudsPerTileV = 10, parent.Size.Z
+		t.ZIndex = 1
+		t.Parent = parent
+		return t
+	end
+	-- child parts ride the rend at their own widths (the runtime scales them)
+	texture(rend, "Crack", A.crackLine, Color3.new(1, 1, 1), 0, 0.45)
+	local slit = B.part(rend, "SlitPart", rend.CFrame, Vector3.new(10, 0.1, w * 0.45))
+	texture(slit, "Slit", A.slit, glow, 0, 0.3)
+	if tier >= 3 then
+		local spread = B.part(rend, "Spread", rend.CFrame, Vector3.new(10, 0.1, w * 1.6))
+		texture(spread, "Web", A.crackWeb, Color3.new(1, 1, 1), 0.35, 0.8)
+	end
+	-- the seam of qi burning in the crack: flat beams (attachments turned so
+	-- their X points up, the beam lies on the ground)
+	local flat = CFrame.Angles(0, 0, math.pi / 2)
+	local a0 = B.attach(rend, "SeamA", Vector3.new(5, 0.08, 0))
+	local a1 = B.attach(rend, "SeamB", Vector3.new(-5, 0.08, 0))
+	a0.CFrame, a1.CFrame = CFrame.new(5, 0.08, 0) * flat, CFrame.new(-5, 0.08, 0) * flat
+	local function seam(bname, width, texture, transparency, light)
+		local b = Instance.new("Beam")
+		b.Name = bname
+		b.Attachment0, b.Attachment1 = a0, a1
+		b.Width0, b.Width1 = width, width * 0.55
+		b.FaceCamera = false
+		b.Color = CS(core, glow)
+		b.LightEmission, b.LightInfluence = light, 0
+		b.Brightness = rend:GetAttribute("Brightness")
+		b.Transparency = NS({ KP(0, transparency), KP(0.85, transparency), KP(1, 1) })
+		if texture then
+			b.Texture, b.TextureMode, b.TextureLength, b.TextureSpeed = texture, Enum.TextureMode.Wrap, 2.5, 1.6
+		end
+		b.Segments = 1
+		b.ZOffset = 0.1
+		b.Parent = rend
+		return b
+	end
+	local sw = (pick(p, "seam", { 0.3, 0.36, 0.42, 0.5 }))[tier]
+	seam("Seam", sw, nil, 0, 1) -- the white-hot line in the crack
+	seam("SeamStreak", sw * 2.4, A.streaks, 0.15, 1) -- qi flowing along it
+	seam("SeamGlow", sw * 5, nil, 0.72, 1) -- the bloom round it
+
+	local kicks = B.part(root, name .. "Kicks", O * CFrame.new(0, 0.2, -6), Vector3.new(0.6, 0.2, 10))
+	local stations = (pick(p, "stations", { 2, 3, 4, 5 }))[tier]
+	for i = 1, stations do
+		local at = B.attach(kicks, "Kick" .. i, Vector3.zero, { Along = i / (stations + 0.5) })
+		B.emitter(at, "Puff", {
+			Texture = A.smokeFlip, Color = CS(Cl.dust), LightInfluence = 0.6,
+			FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(50, 50),
+			Size = NS({ KP(0, 1), KP(1, 2.4 + tier * 0.25) }), Transparency = NS({ KP(0, 0.35), KP(1, 1) }),
+			Lifetime = R(0.55, 0.8), Speed = R(2, 5), Drag = 3, Rotation = R(0, 360),
+		}, { EmitCount = if tier >= 3 then 2 else 1 })
+		B.emitter(at, "Chips", {
+			Texture = A.rocks, Color = CS(Color3.fromRGB(140, 128, 112)), LightInfluence = 0.8,
+			FlipbookLayout = Enum.ParticleFlipbookLayout.Grid2x2, FlipbookMode = Enum.ParticleFlipbookMode.Random,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(35, 35),
+			Size = NS({ KP(0, 0.3 + tier * 0.03), KP(1, 0.22) }), Transparency = NS({ KP(0, 0), KP(0.85, 0), KP(1, 1) }),
+			Lifetime = R(0.5, 0.8), Speed = R(9, 15), Acceleration = Vector3.new(0, -55, 0), Rotation = R(0, 360), RotSpeed = R(-400, 400),
+		}, { EmitCount = ({ 2, 3, 3, 4 })[tier] })
+		if tier >= 2 then
+			B.emitter(at, "Star", B.flat({
+				Texture = A.crackStar, Color = CS(core, glow),
+				Size = NS({ KP(0, 0.6), KP(0.15, 1.3 + tier * 0.2), KP(1, 1.5 + tier * 0.2) }), Transparency = NS({ KP(0, 0), KP(0.5, 0.25), KP(1, 1) }),
+				Lifetime = R(0.5), LightEmission = 1, Brightness = 2, Rotation = R(0, 360), ZOffset = 0.3,
+			}), { EmitCount = 1 })
+		end
+		if tier >= 3 and (i == 1 or i == stations) then
+			B.attach(at, "Kick", Vector3.zero, {
+				Shape = "Cone", ConeAngle = 70, Radius = 1.4, Fill = true, Variance = 0.5, Count = tier == 4 and 4 or 3, Duration = 0.04,
+				EmissionStart = "Progressive", EmissionEnd = "Random",
+				Size = Vector3.new(0.75, 0.55, 0.65), SizeScale = R(0.8, 1.2), SizeBias = 0.5,
+				Lifetime = R(0.9, 1.2), SpawnTime = R(0.05, 0.08), DespawnTime = R(0.3, 0.4),
+				AngleX = R(20, 45), AngleY = R(-30, 30), AngleZ = R(-15, 15),
+				Collision = false, MatchGround = true, YOffset = 0.3, RaycastDistance = 8,
+				UseMesh = true, MeshId = A.rockMesh,
+			}, "CraterVFX")
+		end
+	end
+	local bite = B.attach(kicks, "Bite", Vector3.zero, { Along = 0 })
+	B.emitter(bite, "Shock", B.flat({
+		Texture = A.crackFlip, Color = CS(core, glow),
+		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+		Size = NS({ KP(0, 2.6 + tier * 0.5), KP(1, 3.2 + tier * 0.6) }), Transparency = NS({ KP(0, 0), KP(0.7, 0.15), KP(1, 1) }),
+		Lifetime = R(0.5), LightEmission = 1, Brightness = 2, Rotation = R(0, 360), ZOffset = 0.4,
+	}), { EmitCount = 1 })
+	B.emitter(bite, "Crater", B.flat({
+		Texture = A.crack, Color = CS(ink), LightInfluence = 0.4,
+		Size = NS(2.6 + tier * 0.55), Transparency = NS({ KP(0, 1), KP(0.04, 0.05), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(({ 1.4, 1.7, 2, 2.4 })[tier]), Rotation = R(0, 360), ZOffset = 0.2,
+	}), { EmitCount = 1 })
+	B.emitter(bite, "Ring", B.flat({
+		Texture = A.splatFlip, Color = CS(Cl.dust), LightInfluence = 0.6,
+		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+		Size = NS({ KP(0, 1.5), KP(1, 4 + tier * 0.6) }), Transparency = NS({ KP(0, 0.2), KP(1, 1) }),
+		Lifetime = R(0.5), Rotation = R(0, 360), ZOffset = 0.3,
+	}), { EmitCount = 1 })
+	if tier >= 2 then
+		B.emitter(kicks, "Motes", {
+			Texture = A.mote, Color = CS(core, glow),
+			Shape = Enum.ParticleEmitterShape.Box, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(15, 15),
+			Size = NS({ KP(0, 0.28), KP(0.5, 0.22), KP(1, 0) }), Transparency = NS({ KP(0, 1), KP(0.15, 0.15), KP(1, 1) }),
+			Lifetime = R(0.8, 1.2), Speed = R(1.5, 3.5), Drag = 1, LightEmission = 0.8, Rotation = R(0, 360),
+		}, { EmitCount = ({ 0, 8, 12, 16 })[tier], EmitDelay = 0.12 })
+	end
+	return rend
 end
 
 -- A MeshWave (TechniqueVFX plays it, with or without the Game Module): a
@@ -736,7 +932,7 @@ local BLOCKS = {
 	handGather = B.handGather, impactBurst = B.impactBurst, impactShockwave = B.impactShockwave,
 	airShockwave = B.airShockwave, shockwaveShell = B.shockwaveShell, craterRing = B.craterRing,
 	screenShake = B.screenShake, impactStack = B.impactStack,
-	emitter = B.emitterBlock, bladeCharge = B.bladeCharge, bladeFlare = B.bladeFlare,
+	emitter = B.emitterBlock, bladeCharge = B.bladeCharge, bladeFlare = B.bladeFlare, groundRend = B.groundRend,
 }
 B.BLOCKS = BLOCKS
 

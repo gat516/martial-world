@@ -44,6 +44,10 @@ local foxModule = script.Parent.EnemyPoses:FindFirstChild("NineTailFox")
 local NineTailFox = if foxModule then require(foxModule :: ModuleScript) :: any else nil
 local foxConfigured = false
 
+-- the Shadow Mane Wolf's pose module (the wolf-family skeleton with its own leg solver)
+local maneModule = script.Parent.EnemyPoses:FindFirstChild("ShadowMane")
+local ShadowMane = if maneModule then require(maneModule :: ModuleScript) :: any else nil
+
 -- the Golden Toad's three-legged pose module (its own planter, not Quadruped's)
 local toadModule = script.Parent.EnemyPoses:FindFirstChild("GoldenToad")
 local GoldenToad = if toadModule then require(toadModule :: ModuleScript) :: any else nil
@@ -131,6 +135,17 @@ if VenomSerpent then
 		poses = VenomSerpent, scale = VenomSerpent.SCALE, runFrom = 7, keyedBlend = 0.15, staggerSeconds = 0.28,
 		deathSeconds = 0.9, circleLoop = true,
 		moves = { venomSpit = "VenomSpit", hoodStrike = "HoodStrike", hoodStrikeSkid = "HoodStrikeSkid", hop = "Hop" },
+	}
+end
+
+-- Shadow Mane Wolf: the wolf-family skeleton at 1.63x (scaled once; the module sets LEAD for the skid).
+if ShadowMane then
+	FAMILIES.ShadowManeWolfB = {
+		poses = ShadowMane, scale = 1.63, runFrom = 8, keyedBlend = 0.06, deathSeconds = 0.7,
+		moves = {
+			shadowStep = "ShadowStep", shadowRake = "ShadowRake", shadowStepSkid = "ShadowStepSkid",
+			maneRend = "ManeRend", maneLash = "ManeLash", hop = "Hop",
+		},
 	}
 end
 

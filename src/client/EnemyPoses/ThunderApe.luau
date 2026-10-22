@@ -9,24 +9,13 @@
 -- the shared planting solver (Quadruped.new): arms are "front legs" (shoulder, elbow,
 -- wrist = the fist), legs the "hind" ones.
 --
--- Move          pose move      windup / active / pose recover   server recover
--- challenge     Challenge      2.40 / 0.20 / 0.60               0.80
--- clubSwing     ClubSwing      0.55 / 0.12 / 0.18               0.30
--- backhand      Backhand       0.45 / 0.12 / 0.18               0.30
--- thunderPound  ThunderPound   0.60 / 0.18 / 1.12               1.30
--- bodySlam      BodySlam       0.85 / dash 0.47 / 1.10          1.10
--- skyfallSlam   SkyfallSlam    0.90 / flight 0.75 / 1.10        1.10
--- thunderRush   ThunderRush    0.90 / dash 0.55 / 0.90          0.90
--- bound         Bound          0.25 / flight 0.40 / 0.10        0.10
--- boulderHurl   BoulderHurl    1.00 / 0.12 / 0.78               0.90
--- thunderLance  ThunderLance   1.00 / 0.12 / 0.78               0.90
--- thunderRoar   ThunderRoar    1.30 / 0.20 / 0.80               1.00
--- phaseRoar     PhaseRoar      1.60 / 0.20 / 1.00               1.20
--- stormCall     StormCall      1.20 / 0.15 / input.duration     computed
--- judgment      Judgment       1.60 / flight 1.00 / 1.80        1.80
--- Stagger 0.35 and Death 3.2.
--- Stationary contact is the END of the windup. Dash/flight moves sample the active phase by
--- elapsed fraction of input.duration (the real seconds).
+-- The timings live in TIMING below, one line per move (seconds, the def's values; the pose
+-- recover of a stationary move is the server recover minus its active beat, which
+-- EnemyAnimator plays first). Every key is a fraction of its phase, so a def change is a
+-- one-line change here and the keys stretch with it.
+-- Stationary contact is the END of the windup (the combo lands at about 0.80, 1.85 and 3.0 s).
+-- Dash/flight moves sample the active phase by elapsed fraction of input.duration (the real
+-- seconds). The boulder leaves the hand at BOULDER_RELEASE (1.25 s of a 1.70 s windup).
 
 local Quadruped = require(script.Parent.Quadruped)
 
@@ -46,6 +35,30 @@ local FRONT = Quadruped.FRONT
 
 local SCALE = 3.71
 ThunderApe.SCALE = SCALE
+
+-- { windup, active, pose recover } in seconds. Server recover in the comment.
+local TIMING = {
+	Challenge = { 2.40, 0.20, 0.60 }, -- 0.80
+	ClubSwing = { 0.80, 0.12, 0.33 }, -- 0.45
+	Backhand = { 0.60, 0.12, 0.33 }, -- 0.45
+	ThunderPound = { 0.85, 0.18, 1.12 }, -- 1.30
+	BodySlam = { 1.10, 0.62, 1.10 }, -- 1.10 (dash ~0.62)
+	SkyfallSlam = { 1.20, 0.75, 1.10 }, -- 1.10 (flight)
+	ThunderRush = { 1.20, 0.70, 0.90 }, -- 0.90 (dash ~0.7)
+	Bound = { 0.45, 0.55, 0.25 }, -- 0.25 (flight)
+	BoulderHurl = { 1.70, 0.12, 0.78 }, -- 0.90
+	ThunderLance = { 1.40, 0.12, 0.78 }, -- 0.90
+	ThunderRoar = { 1.30, 0.20, 0.80 }, -- 1.00
+	PhaseRoar = { 1.60, 0.20, 1.00 }, -- 1.20
+	StormCall = { 1.20, 0.15, 3.00 }, -- the bolts' length (input.duration)
+	Judgment = { 1.60, 1.00, 1.80 }, -- 1.80 (flight)
+	Stagger = { 0, 0.35, 0 },
+	Death = { 0, 3.20, 0 },
+}
+ThunderApe.TIMING = TIMING
+-- seconds into the BoulderHurl windup when the boulder leaves the right hand
+local BOULDER_RELEASE = 1.25
+ThunderApe.BOULDER_RELEASE = BOULDER_RELEASE
 
 ThunderApe.JOINTS = {
 	"JointRoot", "JointSpine", "JointHead", "JointJaw",
@@ -173,16 +186,23 @@ local function runRate(speed: number): number
 	return 1.0 + 0.02 * speed -- cycles per second (real, heavy bounds)
 end
 
--- one limb at cycle position x of its own stance/swing; returns nothing, fills pose
-local function limb(pose: Pose, steps: { [string]: Step }, stance: { [string]: number }, reach: { [string]: Vector3 }, tag: string, x: number, st: number, half: number, bias: number, o: any)
+-- one limb at cycle position x of its own stance/swing; returns nothing, fills pose. ramp is
+-- the limb's share of the body's weight: it eases in over the first part of the stance and out
+-- over the last, so the root drop it asks for never jumps at a touchdown or a lift-off.
+local RAMP = 0.35
+local SWAP_TAG = { FL = "FR", FR = "FL", BL = "BR", BR = "BL" }
+local function limb(pose: Pose, steps: { [string]: Step }, stance: { [string]: number }, reach: { [string]: Vector3 }, ramp: { [string]: number }, tag: string, x: number, st: number, half: number, bias: number, o: any)
 	local front = LEGS[tag].front
 	local out = if tag == "FL" or tag == "BL" then -1 else 1
+	-- a sidestep mirrors its per-limb divisors when it goes the other way
+	local div = o.div and o.div[if (o.lateral or 1) < 0 then SWAP_TAG[tag] else tag]
 	if x < st then
 		local s = x / st
 		stance[tag] = 1
+		ramp[tag] = smooth(0, RAMP, s) * (1 - smooth(1 - RAMP, 1, s))
 		if o.lateral then
 			-- circle: sidestep, the limb slides across the ground via its roll
-			local roll = (o.lateral * half / o.div[tag]) * (2 * s - 1)
+			local roll = (o.lateral * half / div) * (2 * s - 1)
 			reach[tag] = V(0, 0, bias)
 			pose[LEGS[tag].upper] = A(0, 0, roll)
 		else
@@ -192,14 +212,18 @@ local function limb(pose: Pose, steps: { [string]: Step }, stance: { [string]: n
 	else
 		local s = (x - st) / (1 - st)
 		local e = smooth(0, 1, s)
-		local a0, a1 = angleAt(tag, bias + half), angleAt(tag, bias - half)
+		-- a sidestep plants at the same z it lifted from: only the roll travels
+		local zh = if o.lateral then 0 else half
+		local a0, a1 = angleAt(tag, bias + zh), angleAt(tag, bias - zh)
 		local a = a0 + (a1 - a0) * e + (o.over or 0.25) * math.abs(a1 - a0) * math.sin(math.pi * s) ^ 2
 		local lift = math.sin(math.pi * math.min(1, s * 1.12)) ^ 0.8
 		local roll = -out * (o.splay or 0.03) * (0.4 + 0.6 * lift)
 		if o.lateral then
-			roll = (o.lateral * half / o.div[tag]) * (1 - 2 * e)
+			roll = (o.lateral * half / div) * (1 - 2 * e)
 		end
 		rig.setLeg(pose, steps, tag, a, roll, lift, 0, (if front then o.clearF else o.clearH) or 0.4)
+		-- where it lifted off and where it will land, for the hand-off in finishGait
+		o.swing[tag] = { s = s, z0 = bias + zh, z1 = bias - zh }
 	end
 end
 
@@ -208,20 +232,62 @@ local function gait(cyc: number, speed: number, f: number, o: any): Pose
 	local steps: { [string]: Step } = {}
 	local stance: { [string]: number } = { FL = 0, FR = 0, BL = 0, BR = 0 }
 	local reach: { [string]: Vector3 } = {}
+	local ramp: { [string]: number } = {}
+	o.swing = {}
 	local u = speed / SCALE -- unit studs per second
 	for tag, off in o.off do
 		local st = o.stance[tag]
 		local half = math.min(u * st / f / 2 * (if LEGS[tag].front then (o.kF or 1) else (o.kH or 1)), o.maxHalf or 1.2)
-		limb(pose, steps, stance, reach, tag, (cyc - off) % 1, st, half, (if LEGS[tag].front then o.biasF else o.biasH) or 0, o)
+		limb(pose, steps, stance, reach, ramp, tag, (cyc - off) % 1, st, half, (if LEGS[tag].front then o.biasF else o.biasH) or 0, o)
 	end
-	return pose, steps, stance, reach
+	return pose, steps, stance, reach, ramp, o.swing
 end
 
-local function finishGait(pose: Pose, steps: any, stance: any, reach: any): Pose
-	-- air: skip the solver's floor clamp (stepLegs clears the swing legs itself; the clamp's
-	-- own re-solve could flip a nearly straight swing leg to its other branch for one frame)
-	rig.plantLegs(pose, stance, true, reach)
+-- A limb in stance never straightens past STRETCH of its length: near full extension a
+-- two-joint solve is hypersensitive (a 0.05 unit rise of the shoulder swung a planted elbow
+-- 0.25 rad in one frame of the gallop's bounce), so a limb the body has risen away from
+-- unloads and lifts off the ground instead, like a fist rolling off at push-off.
+local STRETCH = 0.985
+local function finishGait(pose: Pose, steps: any, stance: any, reach: any, ramp: any, swing: any): Pose
+	-- the root drops as far as the loaded limbs need, each weighted by its ramp, so the body
+	-- settles onto a landing limb over a few frames instead of snapping onto it. air: skip the
+	-- solver's floor clamp (stepLegs clears the swing legs itself; the clamp's re-solve could
+	-- flip a nearly straight swing leg to its other branch for one frame)
+	local drop = 0
+	local short: { [string]: number } = {}
+	for tag, w in ramp do
+		short[tag] = rig.reachShort(pose, tag, reach[tag], STRETCH)
+		drop = math.max(drop, short[tag] * w)
+	end
+	if drop > 0 then
+		pose.JointRoot = CFrame.new(0, -drop, 0) * (pose.JointRoot or I)
+	end
+	-- what the drop didn't cover, the limb's spot rises by (the fist or foot leaves the ground)
+	local function lifted(tag: string, z: Vector3, sh: number?): Vector3
+		local s = sh or (rig.reachShort(pose, tag, z, STRETCH) + drop)
+		return z + V(0, math.max(0, s - drop), 0)
+	end
+	for tag in ramp do
+		reach[tag] = lifted(tag, reach[tag], short[tag])
+	end
+	rig.plantLegs(pose, stance, true, reach, true)
 	rig.stepLegs(pose, steps)
+	-- A swing leg hands off to the stance solve at both ends: just after lift-off it starts from
+	-- the planted pose it left, and before touchdown it blends into the planted pose it lands
+	-- in, solved on the body as it is now (a lookup table can't know the body's pitch and roll,
+	-- and the difference popped 0.4-0.7 rad at every touchdown).
+	for tag, sw in swing or {} do
+		local leg = LEGS[tag]
+		for _, e in { { 1 - smooth(0, 0.4, sw.s), sw.z0 }, { smooth(0.4, 1, sw.s), sw.z1 } } do
+			if e[1] > 0.001 then
+				local probe = table.clone(pose)
+				rig.plantLegs(probe, Quadruped.plantOf({ tag }), true, { [tag] = lifted(tag, V(0, 0, e[2])) }, true)
+				for _, j in { leg.upper, leg.mid, leg.foot } do
+					pose[j] = (pose[j] or I):Lerp(probe[j] or I, e[1])
+				end
+			end
+		end
+	end
 	return pose
 end
 
@@ -267,7 +333,7 @@ local WALK = { off = WALK_OFF, stance = { BL = WALK_STANCE, BR = WALK_STANCE, FL
 
 function loops.walk(phase: number, speed: number, _input: Input?): Pose
 	local cyc = phase / TAU % 1
-	local pose, steps, stance, reach = gait(cyc, speed, speed / SCALE * WALK_STANCE / (2 * walkHalf), WALK)
+	local pose, steps, stance, reach, ramp, swing = gait(cyc, speed, speed / SCALE * WALK_STANCE / (2 * walkHalf), WALK)
 	local function lagf(d: number): number
 		return TAU * (cyc - d)
 	end
@@ -282,7 +348,7 @@ function loops.walk(phase: number, speed: number, _input: Input?): Pose
 	pose.JointBeard = A(0.02 + 0.1 * math.cos(lagf(0.35) * 2 + 1))
 	tufts(pose, cyc, 0.06, 0.1, function(d) return lagf(d) * 2 end)
 	pose.JointFingersFL = A(0.0)
-	return finishGait(pose, steps, stance, reach)
+	return finishGait(pose, steps, stance, reach, ramp, swing)
 end
 
 local CIRCLE = { off = WALK_OFF, stance = { BL = 0.62, BR = 0.62, FL = 0.62, FR = 0.62 }, biasF = 0.0, biasH = 0.0, clearF = 0.5, clearH = 0.35, over = 0.1, lateral = 1, maxHalf = 0.7, div = { FL = 2.8, FR = 3.6, BL = 2.4, BR = 2.5 } }
@@ -297,7 +363,7 @@ function loops.circle(phase: number, speed: number, input: Input?): Pose
 	local cyc = phase / TAU % 1
 	local cfg = table.clone(CIRCLE)
 	cfg.lateral = dir
-	local pose, steps, stance, reach = gait(cyc, speed, circleRate(speed), cfg)
+	local pose, steps, stance, reach, ramp, swing = gait(cyc, speed, circleRate(speed), cfg)
 	local function lagf(d: number): number
 		return TAU * (cyc - d)
 	end
@@ -310,7 +376,7 @@ function loops.circle(phase: number, speed: number, input: Input?): Pose
 	pose.JointBrow = A(-0.2)
 	pose.JointBeard = A(0.04 + 0.08 * math.cos(lagf(0.4) * 2))
 	tufts(pose, cyc, 0.14, 0.09, function(d) return lagf(d) * 2 end)
-	return finishGait(pose, steps, stance, reach)
+	return finishGait(pose, steps, stance, reach, ramp, swing)
 end
 
 -- THE KNUCKLE-GALLOP. A rotary four-beat bound: hind left, hind right, arm left, arm right.
@@ -320,7 +386,7 @@ local function gallop(phase: number, speed: number, rate: number?): Pose
 	local f = rate or runRate(speed)
 	local cyc = phase / TAU % 1
 	local cfg = { off = RUN_OFF, stance = RUN_STANCE, biasF = -0.1, biasH = 0.0, clearF = 0.7, clearH = 0.5, splay = 0.04, over = 0.35, maxHalf = 1.25, kF = 1.1 }
-	local pose, steps, stance, reach = gait(cyc, speed, f, cfg)
+	local pose, steps, stance, reach, ramp, swing = gait(cyc, speed, f, cfg)
 	local function lagf(d: number): number
 		return TAU * (cyc - d)
 	end
@@ -335,7 +401,7 @@ local function gallop(phase: number, speed: number, rate: number?): Pose
 	pose.JointBrow = A(-0.24 + 0.06 * math.cos(lagf(0.45)))
 	pose.JointBeard = A(0.08 + 0.12 * math.cos(lagf(0.55))) -- streams back, never into the chest drum
 	tufts(pose, cyc, 0.4, 0.16, function(d) return lagf(d) * 2 end)
-	return finishGait(pose, steps, stance, reach)
+	return finishGait(pose, steps, stance, reach, ramp, swing)
 end
 
 function loops.run(phase: number, speed: number, _input: Input?): Pose
@@ -469,19 +535,19 @@ local CS_THROUGH = mk({ root = { -0.5, -0.12, 0, 0.8 }, spine = { -0.15, 0.5 }, 
 local CHAIN_READY = mk({ root = { -0.35, -0.05, 0, 0.35 }, spine = { -0.05, 0.25 }, head = { -0.15, -0.2 }, jaw = 0.2, brow = -0.25, beard = 0.1, mane = { 0.05, 0.1, 0.15 }, L = { 1.3, 0.9, 0.0, 0.4, 0, 0.5 } })
 
 moves.ClubSwing = {
-	windup = ph(0.55, {
+	windup = ph(TIMING.ClubSwing[1], {
 		K(0, RDY, ALL, R_RDY),
 		K(0.2, CS_LOAD, SUP_R, R_LOW, "out"),
 		K(0.62, CS_RAISE, SUP_R, R_LOW, "inOut"),
 		K(0.97, CS_CONTACT, SUP_R, R_LOW, "in"),
 		K(1, CS_CONTACT, SUP_R, R_LOW),
 	}),
-	active = ph(0.12, {
+	active = ph(TIMING.ClubSwing[2], {
 		K(0, CS_CONTACT, SUP_R, R_LOW),
 		K(0.7, CS_THROUGH, SUP_R, R_LOW, "out"),
 		K(1, CS_THROUGH, SUP_R, R_LOW),
 	}),
-	recover = ph(0.18, {
+	recover = ph(TIMING.ClubSwing[3], {
 		K(0, CS_THROUGH, SUP_R, R_LOW),
 		K(0.7, CHAIN_READY, { "FR", "BL", "BR" }, R_LOW, "inOut"),
 		K(1, CHAIN_READY, { "FR", "BL", "BR" }, R_LOW),
@@ -490,18 +556,18 @@ moves.ClubSwing = {
 -- Backhand: the mirror, begun from the chain-ready pose
 do
 	moves.Backhand = {
-		windup = ph(0.45, mirrorKeys({
+		windup = ph(TIMING.Backhand[1], mirrorKeys({
 			K(0, mirror(CHAIN_READY), { "FL", "BL", "BR" }, R_LOW),
 			K(0.5, CS_RAISE, SUP_R, R_LOW, "inOut"),
 			K(0.97, CS_CONTACT, SUP_R, R_LOW, "in"),
 			K(1, CS_CONTACT, SUP_R, R_LOW),
 		})),
-		active = ph(0.12, mirrorKeys({
+		active = ph(TIMING.Backhand[2], mirrorKeys({
 			K(0, CS_CONTACT, SUP_R, R_LOW),
 			K(0.7, CS_THROUGH, SUP_R, R_LOW, "out"),
 			K(1, CS_THROUGH, SUP_R, R_LOW),
 		})),
-		recover = ph(0.18, mirrorKeys({
+		recover = ph(TIMING.Backhand[3], mirrorKeys({
 			K(0, CS_THROUGH, SUP_R, R_LOW),
 			K(0.7, CHAIN_READY, { "FR", "BL", "BR" }, R_LOW, "inOut"),
 			K(1, CHAIN_READY, { "FR", "BL", "BR" }, R_LOW),
@@ -518,19 +584,19 @@ local PD_CONTACT = mk({ root = { -0.7, -0.35 }, spine = { -0.15 }, head = { -0.2
 local PD_DEEP = mk({ root = { -0.55, -0.3 }, spine = { -0.2 }, head = { -0.2 }, jaw = 0.05, brow = -0.4, beard = 0.3, mane = { -0.2, -0.15, -0.1 }, L = { 0, -0.4 }, R = { 0, -0.4 } })
 local PD_LOW = mk({ root = { -0.75, -0.3 }, spine = { -0.12 }, head = { -0.2, 0, 0 }, jaw = 0.2, brow = -0.3, beard = 0.15, mane = { 0, 0.05, 0.1 }, L = { 0, 0.25 }, R = { 0, 0.25 } })
 moves.ThunderPound = {
-	windup = ph(0.6, {
+	windup = ph(TIMING.ThunderPound[1], {
 		K(0, BACKHAND_END, { "FL", "BL", "BR" }, R_LOW),
 		K(0.35, PD_RISE, HIND, R_REAR, "out"),
 		K(0.55, PD_PEAK, HIND, R_REAR, "inOut"),
 		K(0.97, PD_CONTACT, ALL, POUND_REACH, "in"),
 		K(1, PD_CONTACT, ALL, POUND_REACH),
 	}, tremble(0.4, 0.62, 0.03)),
-	active = ph(0.18, {
+	active = ph(TIMING.ThunderPound[2], {
 		K(0, PD_CONTACT, ALL, POUND_REACH),
 		K(0.3, PD_DEEP, ALL, POUND_REACH, "out"),
 		K(1, PD_LOW, ALL, POUND_REACH, "inOut"),
 	}),
-	recover = ph(1.12, {
+	recover = ph(TIMING.ThunderPound[3], {
 		K(0, PD_LOW, ALL, POUND_REACH),
 		K(0.2, PD_LOW, ALL, POUND_REACH),
 		K(0.55, RDY, ALL, R_LOW, "inOut"),
@@ -550,20 +616,20 @@ local BS_SPLAT = mk({ root = { -0.86, -0.62, -0.4 }, spine = { -0.25 }, head = {
 local BS_FWD = paws(-4.8, 0, 0.3, 0) -- fists lie flat out in front of the shoulders
 local BS_PUSH = mk({ root = { -0.2, -0.4 }, spine = { -0.1 }, head = { 0.1 }, jaw = 0.4, brow = -0.2, beard = 0.3, mane = { 0.0, 0.1, 0.15 } })
 moves.BodySlam = {
-	windup = ph(0.85, {
+	windup = ph(TIMING.BodySlam[1], {
 		K(0, RDY, ALL, R_RDY),
 		K(0.2, BS_CROUCH, ALL, R_LOW, "out"),
 		K(0.62, BS_TALL, HIND, R_REAR, "inOut"),
 		K(0.88, BS_TIP, HIND, R_REAR, "out"),
 		K(1, BS_TIP, HIND, R_REAR),
 	}, tremble(0.5, 0.95, 0.03)),
-	active = ph(0.62, {
+	active = ph(TIMING.BodySlam[2], {
 		K(0, BS_TIP, HIND, R_REAR),
 		K(0.5, BS_FALL, NONE, nil, "in"),
 		K(0.9, BS_PRONE, NONE, nil, "in"),
 		K(1, BS_SPLAT, FRONT, BS_FWD, "out"),
 	}, nil, true),
-	recover = ph(1.1, {
+	recover = ph(TIMING.BodySlam[3], {
 		K(0, BS_SPLAT, FRONT, BS_FWD),
 		K(0.25, BS_SPLAT, FRONT, BS_FWD),
 		K(0.65, BS_PUSH, FRONT, paws(-1.5, 0, 0.3, 0), "inOut"),
@@ -590,13 +656,13 @@ do
 	local s = leap(-0.85, 3.0, nil, 0)
 	local reach = paws(-1.2, 0.4, 0.5, 0.3)
 	moves.SkyfallSlam = {
-		windup = ph(0.9, {
+		windup = ph(TIMING.SkyfallSlam[1], {
 			K(0, RDY, ALL, R_RDY),
 			K(0.35, s.crouch, ALL, R_LOW, "inOut"),
 			K(0.78, s.coil, ALL, R_LOW, "inOut"),
 			K(1, s.spring, HIND, R_REAR, "in"),
 		}, tremble(0.4, 0.85, 0.035, 11)),
-		active = ph(0.75, {
+		active = ph(TIMING.SkyfallSlam[2], {
 			K(0, s.spring, HIND, R_REAR),
 			K(0.1, mix(s.spring, s.apex, 0.25), NONE, nil, "out"),
 			K(0.45, s.apex, NONE, nil, "out"),
@@ -604,7 +670,7 @@ do
 			K(0.97, s.land, ALL, reach, "inOut"),
 			K(1, s.land, ALL, reach),
 		}, nil, true),
-		recover = ph(1.1, {
+		recover = ph(TIMING.SkyfallSlam[3], {
 			K(0, s.land, ALL, reach),
 			K(0.2, s.land, ALL, reach),
 			K(0.55, s.settle, ALL, reach, "out"),
@@ -614,7 +680,7 @@ do
 	local j = leap(-1.0, 3.1, nil, 0)
 	local jreach = paws(-1.3, 0.4, 0.5, 0.3)
 	moves.Judgment = {
-		windup = ph(1.6, {
+		windup = ph(TIMING.Judgment[1], {
 			K(0, RDY, ALL, R_RDY),
 			K(0.2, j.crouch, ALL, R_LOW, "inOut"),
 			K(0.72, mix(j.crouch, j.coil, 0.7), ALL, R_LOW, "inOut"),
@@ -627,7 +693,7 @@ do
 			local f = secs * TAU * 14
 			return { JointRoot = R(-0.05 * k * math.abs(math.sin(f * 0.5)), 0.03 * k * math.sin(f), 0, 0.04 * k * math.sin(f * 0.7), 0.05 * k * math.sin(f * 1.3)), JointHead = A(0.06 * k * math.sin(f * 1.1)) }
 		end)),
-		active = ph(1.0, {
+		active = ph(TIMING.Judgment[2], {
 			K(0, j.spring, HIND, R_REAR),
 			K(0.08, mix(j.spring, j.apex, 0.2), NONE, nil, "out"),
 			K(0.5, j.apex, NONE, nil, "out"),
@@ -635,7 +701,7 @@ do
 			K(0.97, j.land, ALL, jreach, "inOut"),
 			K(1, j.land, ALL, jreach),
 		}, nil, true),
-		recover = ph(1.8, {
+		recover = ph(TIMING.Judgment[3], {
 			K(0, j.land, ALL, jreach),
 			K(0.7, mix(j.land, j.settle, 0.2), ALL, jreach, "out"),
 			K(0.9, j.settle, ALL, jreach, "inOut"),
@@ -667,14 +733,14 @@ do
 		return running
 	end
 	moves.ThunderRush = {
-		windup = ph(0.9, {
+		windup = ph(TIMING.ThunderRush[1], {
 			K(0, RDY, ALL, R_RDY),
 			K(0.3, hunker, ALL, RW, "out"),
 			K(0.82, ready, ALL, RW, "inOut"),
 			K(1, launch, HIND, RW, "in"),
 		}, tremble(0.3, 0.9, 0.035, 13)),
-		active = ph(0.7, { K(0, {}, NONE, nil), K(1, {}, NONE, nil) }, rush, true),
-		recover = ph(0.9, {
+		active = ph(TIMING.ThunderRush[2], { K(0, {}, NONE, nil), K(1, {}, NONE, nil) }, rush, true),
+		recover = ph(TIMING.ThunderRush[3], {
 			K(0, skid, ALL, SK),
 			K(0.35, skid, ALL, SK),
 			K(0.65, rest, ALL, R_LOW, "out"),
@@ -687,12 +753,12 @@ do
 	local bland = mk({ root = { -0.7, -0.05 }, spine = { -0.12 }, head = { -0.18 }, jaw = 0.2, brow = -0.35, beard = 0.2, mane = { 0.0, 0.05, 0.1 } })
 	local BR_ = paws(-1.0, 0.4, 0.4, 0.3)
 	moves.Bound = {
-		windup = ph(0.25, {
+		windup = ph(TIMING.Bound[1], {
 			K(0, RDY, ALL, R_RDY),
 			K(0.7, bc, ALL, R_LOW, "out"),
 			K(1, bc, ALL, R_LOW),
 		}),
-		active = ph(0.4, {
+		active = ph(TIMING.Bound[2], {
 			K(0, bc, ALL, R_LOW),
 			K(0.12, mix(bc, bflight, 0.4), NONE, nil, "out"),
 			K(0.4, bflight, NONE, nil, "inOut"),
@@ -700,7 +766,7 @@ do
 			K(0.97, bland, ALL, BR_, "inOut"),
 			K(1, bland, ALL, BR_),
 		}, nil, true),
-		recover = ph(0.1, {
+		recover = ph(TIMING.Bound[3], {
 			K(0, bland, ALL, BR_),
 			K(1, RDY, ALL, R_RDY, "out"),
 		}),
@@ -708,37 +774,58 @@ do
 end
 
 --------------------------------------------------------------------------------
--- BoulderHurl: a low scoop with both fists in the ground, the boulder lifted overhead, a
--- one-arm throw with the right arm released at 0.60 s, the follow-through held to 1.0 s.
+-- BoulderHurl (1.70 s windup, keyed in seconds of it): 0-0.6 rip the rock out of the ground
+-- (reach, dig in and strain, then a heave back onto the legs), 0.6-1.0 lift it overhead (the
+-- big two-armed silhouette), 1.0-1.25 rear back on the right arm and hold, 1.25 release (the
+-- right fist at the server's spawn point, root + (7, 14, -2) studs: solved against the rig,
+-- within about 2 studs), then the follow-through while it flies.
 
 do
-	local scoop = mk({ root = { -1.0, -0.05 }, spine = { -0.25 }, head = { -0.2 }, jaw = 0.3, brow = -0.45, beard = 0.2, mane = { 0.0, 0.05, 0.1 } })
-	local lift = mk({ root = { -0.3, 0.6 }, spine = { 0.1 }, head = { 0.1 }, jaw = 0.5, brow = -0.1, beard = 0.0, mane = { 0.3, 0.35, 0.4 }, L = { 2.7, 0.2, 0, 1.0, -0.4, 0.5 }, R = { 2.7, 0.2, 0, 1.0, -0.4, 0.5 } })
-	local rear = mk({ root = { -0.1, 0.95 }, spine = { 0.22 }, head = { 0.25, 0.1 }, jaw = 0.65, brow = 0.1, beard = -0.2, mane = { 0.45, 0.5, 0.55 }, L = { 2.3, 0.4, 0.3, 0.3, -0.1, 0.8 }, R = { 3.4, 0.55, 0, 1.5, -0.3, 0.3 } })
-	local release = mk({ root = { -0.4, 0.0, 0, 0.12 }, spine = { -0.05 }, head = { -0.1 }, jaw = 0.8, brow = 0.0, beard = 0.3, mane = { 0.2, 0.25, 0.3 }, L = { 1.9, 0.5, 0.3, 0.3, 0, 0.9 }, R = { 2.0, 0.1, 0.1, 0.0, 0.3, 1.1 } })
-	local through = mk({ root = { -0.55, -0.1, 0, 0.5 }, spine = { -0.2, 0.2 }, head = { -0.2 }, jaw = 0.6, brow = -0.25, beard = 0.5, mane = { -0.2, -0.1, 0 }, L = { 1.0, 0.4, 0, 0.2, 0, 0.6 }, R = { 1.1, -0.15, 0.4, 0.0, 0.4, 1.0 } })
-	local hold = mk({ root = { -0.6, -0.1, 0, 0.55 }, spine = { -0.22, 0.22 }, head = { -0.32 }, jaw = 0.5, brow = -0.3, beard = 0.45, mane = { -0.15, -0.05, 0.05 }, L = { 0.8, 0.45, 0, 0.2, 0, 0.5 }, R = { 0.9, -0.2, 0.5, 0.0, 0.4, 0.9 } })
-	local dig = paws(-1.5, 0.5, 0.5, 0.3)
+	local w = TIMING.BoulderHurl[1]
+	local function at(sec: number): number
+		return math.clamp(sec / w, 0, 1)
+	end
+	local reach = mk({ root = { -0.55, -0.12 }, spine = { -0.2 }, head = { -0.3 }, jaw = 0.25, brow = -0.35, beard = 0.15, mane = { 0.1, 0.15, 0.2 } })
+	local dig = mk({ root = { -0.9, -0.05 }, spine = { -0.28 }, head = { -0.25 }, jaw = 0.4, brow = -0.5, beard = 0.2, mane = { 0.05, 0.1, 0.15 }, L = { 0, 0, 0, 0, 0, 0.8 }, R = { 0, 0, 0, 0, 0, 0.8 } })
+	local strain = mk({ root = { -0.95, 0.05 }, spine = { -0.2 }, head = { -0.15 }, jaw = 0.6, brow = -0.5, beard = 0.25, mane = { 0.15, 0.2, 0.25 }, L = { 0, 0, 0, 0, 0, 0.9 }, R = { 0, 0, 0, 0, 0, 0.9 } })
+	-- the rip: thrown back onto the legs, the rock torn up to the belly in both hands
+	local heave = mk({ root = { -0.5, 0.45 }, spine = { 0.1 }, head = { 0.15 }, jaw = 0.85, brow = 0.0, beard = 0.0, mane = { 0.45, 0.5, 0.55 }, L = { 1.2, 0.3, 0.35, 1.3, 0.3, 0.7 }, R = { 1.2, 0.3, 0.35, 1.3, 0.3, 0.7 } })
+	local chest = mk({ root = { -0.35, 0.65 }, spine = { 0.12 }, head = { 0.2 }, jaw = 0.6, brow = 0.05, beard = -0.05, mane = { 0.35, 0.4, 0.45 }, L = { 2.0, 0.3, 0.3, 1.1, 0.0, 0.7 }, R = { 2.0, 0.3, 0.3, 1.1, 0.0, 0.7 } })
+	-- overhead: both arms up, the rock between the fists, chest out
+	local over = mk({ root = { -0.1, 0.9 }, spine = { 0.15 }, head = { 0.35 }, jaw = 0.7, brow = 0.2, beard = -0.25, mane = { 0.55, 0.6, 0.65 }, L = { 3.05, 0.35, 0, 0.45, -0.35, 0.8 }, R = { 3.05, 0.35, 0, 0.45, -0.35, 0.8 } })
+	-- rear back: the right arm cocked behind the head, the left pointing at the target
+	local cock = mk({ root = { -0.2, 1.0, 0, -0.25 }, spine = { 0.3, -0.1 }, head = { 0.25, 0.25 }, jaw = 0.55, brow = -0.15, beard = -0.2, mane = { 0.6, 0.65, 0.7 }, L = { 1.9, 0.35, 0.25, 0.25, 0, 0.6 }, R = { 3.5, 0.5, 0, 1.4, -0.4, 0.9 } })
+	local cock2 = mk({ root = { -0.3, 1.05, 0, -0.3 }, spine = { 0.34, -0.12 }, head = { 0.22, 0.3 }, jaw = 0.5, brow = -0.25, beard = -0.2, mane = { 0.65, 0.7, 0.75 }, L = { 1.85, 0.35, 0.25, 0.3, 0, 0.6 }, R = { 3.55, 0.5, 0, 1.5, -0.45, 0.9 } })
+	local release = mk({ root = { -0.7, 0.5, 0, 0.1 }, spine = { 0.1, 0.1 }, head = { 0.25 }, jaw = 0.8, brow = 0.1, beard = 0.2, mane = { 0.3, 0.35, 0.4 }, L = { 1.6, 0.4, 0.2, 0.3, 0, 0.6 }, R = { 1.05, 0.14, -0.13, 1.9, 1.0, 0.3 } })
+	local through = mk({ root = { -0.6, -0.05, 0, 0.45 }, spine = { -0.15, 0.2 }, head = { 0.0, -0.1 }, jaw = 0.6, brow = -0.2, beard = 0.4, mane = { -0.1, 0, 0.1 }, L = { 1.0, 0.4, 0, 0.2, 0, 0.6 }, R = { 1.1, -0.15, 0.4, 0.0, 0.4, 1.0 } })
+	-- watching it fly: the head lifts to follow the arc
+	local hold = mk({ root = { -0.6, -0.08, 0, 0.5 }, spine = { -0.18, 0.2 }, head = { 0.1, -0.15 }, jaw = 0.45, brow = -0.25, beard = 0.35, mane = { -0.05, 0.05, 0.1 }, L = { 0.8, 0.45, 0, 0.2, 0, 0.5 }, R = { 0.9, -0.2, 0.5, 0.0, 0.4, 0.9 } })
+	local hold2 = mk({ root = { -0.55, -0.06, 0, 0.48 }, spine = { -0.15, 0.18 }, head = { 0.05, -0.12 }, jaw = 0.35, brow = -0.3, beard = 0.3, mane = { 0.0, 0.05, 0.1 }, L = { 0.8, 0.45, 0, 0.2, 0, 0.5 }, R = { 0.85, -0.15, 0.45, 0.1, 0.3, 0.7 } })
+	local ground = paws(-1.9, 0.5, 0.15, 0.3) -- both fists close together, far ahead: the rock's spot
 	moves.BoulderHurl = {
-		windup = ph(1.0, {
+		windup = ph(w, {
 			K(0, RDY, ALL, R_RDY),
-			K(0.2, scoop, ALL, dig, "inOut"),
-			K(0.33, scoop, ALL, dig),
-			K(0.45, lift, HIND, R_REAR, "inOut"),
-			K(0.5, rear, HIND, R_REAR, "out"),
-			K(0.6, release, SUP_R, R_LOW, "in"),
-			K(0.72, through, SUP_R, R_LOW, "out"),
-			K(0.9, hold, SUP_R, R_LOW, "inOut"),
-			K(1, hold, SUP_R, R_LOW),
-		}),
-		active = ph(0.12, {
+			K(at(0.15), reach, ALL, ground, "inOut"),
+			K(at(0.35), dig, ALL, ground, "inOut"),
+			K(at(0.47), strain, ALL, ground, "inOut"),
+			K(at(0.6), heave, HIND, R_REAR, "out"),
+			K(at(0.8), chest, HIND, R_REAR, "inOut"),
+			K(at(1.0), over, HIND, R_REAR, "out"),
+			K(at(1.12), cock, HIND, R_REAR, "inOut"),
+			K(at(1.19), cock2, HIND, R_REAR, "inOut"),
+			K(at(BOULDER_RELEASE), release, HIND, R_REAR, "in"),
+			K(at(1.4), through, SUP_R, R_LOW, "out"),
+			K(1, hold, SUP_R, R_LOW, "inOut"),
+		}, chain(tremble(at(0.3), at(0.5), 0.04, 12), tremble(at(1.1), at(1.22), 0.03, 10))),
+		active = ph(TIMING.BoulderHurl[2], {
 			K(0, hold, SUP_R, R_LOW),
-			K(1, hold, SUP_R, R_LOW),
+			K(1, hold2, SUP_R, R_LOW, "inOut"),
 		}),
-		recover = ph(0.78, {
-			K(0, hold, SUP_R, R_LOW),
-			K(0.2, hold, SUP_R, R_LOW),
-			K(0.6, RDY, ALL, R_LOW, "inOut"),
+		recover = ph(TIMING.BoulderHurl[3], {
+			K(0, hold2, SUP_R, R_LOW),
+			K(0.25, hold2, SUP_R, R_LOW),
+			K(0.5, mk({ root = { -0.45, -0.06, 0, 0.25 }, spine = { -0.1, 0.1 }, head = { -0.05 }, jaw = 0.3, brow = -0.25, beard = 0.2, mane = { 0.05, 0.1, 0.15 }, R = { 0.5, 0.2, 0.2, 0.5, 0.1, 0.4 } }), SUP_R, R_LOW, "inOut"),
+			K(0.75, RDY, ALL, R_LOW, "inOut"),
 			K(1, STAND, ALL, nil, "inOut"),
 		}),
 	}
@@ -755,7 +842,7 @@ do
 	local throw = mk({ root = { -0.5, -0.05 }, spine = { -0.1 }, head = { -0.1 }, jaw = 0.8, brow = -0.15, beard = 0.3, mane = { 0.1, 0.15, 0.2 }, L = { 0.9, 0.5, 0, 0.3, 0, 0.5 }, R = { 1.75, 0.0, 0, 0.0, 0.0, 1.2 } })
 	local after = mk({ root = { -0.65, -0.1 }, spine = { -0.2 }, head = { -0.2 }, jaw = 0.5, brow = -0.3, beard = 0.4, mane = { -0.1, 0, 0.05 }, L = { 0.7, 0.5, 0, 0.3, 0, 0.5 }, R = { 1.2, 0.0, 0, 0.0, 0.3, 1.2 } })
 	moves.ThunderLance = {
-		windup = ph(1.0, {
+		windup = ph(TIMING.ThunderLance[1], {
 			K(0, RDY, ALL, R_RDY),
 			K(0.3, rise, HIND, R_REAR, "out"),
 			K(0.45, held, HIND, R_REAR, "inOut"),
@@ -764,12 +851,12 @@ do
 			K(0.99, throw, SUP_R, R_LOW, "in"),
 			K(1, throw, SUP_R, R_LOW),
 		}, tremble(0.4, 0.92, 0.03, 10)),
-		active = ph(0.12, {
+		active = ph(TIMING.ThunderLance[2], {
 			K(0, throw, SUP_R, R_LOW),
 			K(0.6, after, SUP_R, R_LOW, "out"),
 			K(1, after, SUP_R, R_LOW),
 		}),
-		recover = ph(0.78, {
+		recover = ph(TIMING.ThunderLance[3], {
 			K(0, after, SUP_R, R_LOW),
 			K(0.25, after, SUP_R, R_LOW),
 			K(0.65, RDY, ALL, R_LOW, "inOut"),
@@ -870,9 +957,9 @@ local function roarMove(dur: number, beats: { { any } }, riseT: number, archT: n
 		}),
 	}
 end
-moves.Challenge = roarMove(2.4, { { 0.55, "L" }, { 1.15, "R" }, { 1.75, "B" } }, 0.4, 2.0, 1.1, 0.2, 0.6)
-moves.ThunderRoar = roarMove(1.3, { { 0.45, "L" }, { 0.85, "R" } }, 0.3, 1.1, 1.05, 0.2, 0.8)
-moves.PhaseRoar = roarMove(1.6, { { 0.4, "L" }, { 0.8, "R" }, { 1.2, "B" } }, 0.28, 1.46, 1.2, 0.2, 1.0)
+moves.Challenge = roarMove(TIMING.Challenge[1], { { 0.55, "L" }, { 1.15, "R" }, { 1.75, "B" } }, 0.4, 2.0, 1.1, TIMING.Challenge[2], TIMING.Challenge[3])
+moves.ThunderRoar = roarMove(TIMING.ThunderRoar[1], { { 0.45, "L" }, { 0.85, "R" } }, 0.3, 1.1, 1.05, TIMING.ThunderRoar[2], TIMING.ThunderRoar[3])
+moves.PhaseRoar = roarMove(TIMING.PhaseRoar[1], { { 0.4, "L" }, { 0.8, "R" }, { 1.2, "B" } }, 0.28, 1.46, 1.2, TIMING.PhaseRoar[2], TIMING.PhaseRoar[3])
 
 --------------------------------------------------------------------------------
 -- StormCall: both arms rise to the sky, the channel pose held through 0.85 of the long
@@ -884,14 +971,14 @@ local function channelPose(pitch: number, arms: number, out: number, spineA: num
 end
 local function stormMove(chan: Pose, rise: Pose, coil: Pose, pump: any?): { [string]: Phase }
 	return {
-		windup = ph(1.2, {
+		windup = ph(TIMING.StormCall[1], {
 			K(0, RDY, ALL, R_RDY),
 			K(0.3, coil, ALL, R_LOW, "inOut"),
 			K(0.7, rise, HIND, R_REAR, "inOut"),
 			K(1, chan, HIND, R_REAR, "out"),
 		}, tremble(0.7, 1.0, 0.02)),
-		active = ph(0.15, { K(0, chan, HIND, R_REAR), K(1, chan, HIND, R_REAR) }, tremble(0, 1, 0.02, 12)),
-		recover = ph(3.0, {
+		active = ph(TIMING.StormCall[2], { K(0, chan, HIND, R_REAR), K(1, chan, HIND, R_REAR) }, tremble(0, 1, 0.02, 12)),
+		recover = ph(TIMING.StormCall[3], {
 			K(0, chan, HIND, R_REAR),
 			K(0.85, chan, HIND, R_REAR),
 			K(0.95, mix(chan, RDY, 0.8), HIND, R_LOW, "inOut"),
@@ -945,7 +1032,7 @@ do
 	local hit = mk({ root = { -0.4, 0.4, 0, 0.3, 0.18 }, spine = { 0.2, 0.2 }, head = { 0.35, 0.5 }, jaw = 0.6, brow = 0.25, beard = -0.3, mane = { 0.5, 0.55, 0.6 }, R = { 0.6, 0.9, 0, 0.9, 0, 0.5 } })
 	local rock = mk({ root = { -0.65, 0.5, 0, 0.25, 0.22 }, spine = { 0.15, 0.15 }, head = { 0.2, 0.35 }, jaw = 0.4, brow = 0.0, beard = -0.1, mane = { 0.4, 0.45, 0.5 }, R = { 0.35, 0.7, 0, 0.6, 0, 0.3 } })
 	local back = mk({ root = { -0.5, 0.0, 0, 0.1, 0.08 }, spine = { 0.0, 0.1 }, head = { -0.1, 0.15 }, jaw = 0.2, brow = -0.25, beard = 0.1, mane = { 0.1, 0.15, 0.2 } })
-	moves.Stagger = { active = ph(0.35, {
+	moves.Stagger = { active = ph(TIMING.Stagger[2], {
 		K(0, RDY, ALL, R_RDY),
 		K(0.18, hit, SUP_R, R_REAR, "out"),
 		K(0.5, rock, SUP_R, R_REAR, "inOut"),
@@ -965,7 +1052,7 @@ do
 	local fall = mk({ root = { -0.6, -0.5, -0.2, 0.0, 0.1 }, spine = { -0.3 }, head = { 0.2 }, jaw = 0.3, brow = -0.2, beard = 0.4, mane = { -0.2, -0.1, 0 }, L = { 1.7, 0.4, 0, 0.1, 0.1, 0.2 }, R = { 1.5, 0.5, 0, 0.15, 0.1, 0.2 }, BL = { 0.1, -1.1, 0.3 }, BR = { 0.1, -1.1, 0.3 } })
 	local prone = mk({ root = { -1.05, -0.6, -0.3, 0.0, 0.1 }, spine = { -0.2 }, head = { 0.3, 0.3 }, jaw = 0.3, brow = -0.1, beard = 0.5, mane = { -0.6, -0.5, -0.4 }, L = { 1.7, 1.0, 0, 0.0, 0.2, 0.2 }, R = { 1.6, 1.1, 0, 0.0, 0.2, 0.2 }, BL = { -0.7, 0, 0.3 }, BR = { -0.7, 0, 0.3 } })
 	local rest = mk({ root = { -1.08, -0.62, -0.3, 0.0, 0.1 }, spine = { -0.24 }, head = { 0.28, 0.35 }, jaw = 0.25, brow = -0.05, beard = 0.7, mane = { -0.7, -0.6, -0.5 }, L = { 1.7, 1.1, 0, 0.0, 0.2, 0.1 }, R = { 1.6, 1.2, 0, 0.0, 0.2, 0.1 }, BL = { -0.75, 0, 0.3 }, BR = { -0.75, 0, 0.3 } })
-	moves.Death = { active = ph(3.2, {
+	moves.Death = { active = ph(TIMING.Death[2], {
 		K(0, RDY, ALL, R_RDY),
 		K(0.035, hit, HIND, R_REAR, "out"),
 		K(0.15, stand, HIND, R_REAR, "inOut"),
@@ -1010,14 +1097,14 @@ do
 	local contactB = mk({ root = { -0.8, -0.2, 0, 0.6 }, spine = { -0.05, 0.4 }, head = { -0.2, -0.35 }, jaw = 0.3, brow = -0.35, beard = 0.15, mane = { -0.05, 0, 0.05 }, R = { 0.95, 0.5, 0.9, 0.0, 0.2, 0 } })
 	local throughB = mk({ root = { -0.85, -0.25, 0, 0.9 }, spine = { -0.1, 0.55 }, head = { -0.2, -0.45 }, jaw = 0.2, brow = -0.35, beard = 0.3, mane = { -0.15, -0.1, 0 }, R = { 0.7, 0.2, 1.2, 0, 0.2, 0 } })
 	variants.ClubSwing.B = {
-		windup = ph(0.55, { K(0, RDY, ALL, R_RDY), K(0.25, loadB, SUP_R, R_LOW, "out"), K(0.6, windB, SUP_R, R_LOW, "inOut"), K(0.97, contactB, SUP_R, R_LOW, "in"), K(1, contactB, SUP_R, R_LOW) }),
-		active = ph(0.12, { K(0, contactB, SUP_R, R_LOW), K(0.7, throughB, SUP_R, R_LOW, "out"), K(1, throughB, SUP_R, R_LOW) }),
-		recover = ph(0.18, { K(0, throughB, SUP_R, R_LOW), K(0.7, CHAIN_READY, { "FR", "BL", "BR" }, R_LOW, "inOut"), K(1, CHAIN_READY, { "FR", "BL", "BR" }, R_LOW) }),
+		windup = ph(TIMING.ClubSwing[1], { K(0, RDY, ALL, R_RDY), K(0.25, loadB, SUP_R, R_LOW, "out"), K(0.6, windB, SUP_R, R_LOW, "inOut"), K(0.97, contactB, SUP_R, R_LOW, "in"), K(1, contactB, SUP_R, R_LOW) }),
+		active = ph(TIMING.ClubSwing[2], { K(0, contactB, SUP_R, R_LOW), K(0.7, throughB, SUP_R, R_LOW, "out"), K(1, throughB, SUP_R, R_LOW) }),
+		recover = ph(TIMING.ClubSwing[3], { K(0, throughB, SUP_R, R_LOW), K(0.7, CHAIN_READY, { "FR", "BL", "BR" }, R_LOW, "inOut"), K(1, CHAIN_READY, { "FR", "BL", "BR" }, R_LOW) }),
 	}
 	local windC = mk({ root = { -0.4, -0.05, 0, -1.1 }, spine = { 0.05, -0.5 }, head = { 0.0, 0.6 }, jaw = 0.5, brow = -0.2, beard = 0.0, mane = { 0.35, 0.4, 0.45 }, R = { 2.2, 0.7, -0.4, 0.3, -0.2, 0.8 } })
 	local midC = mk({ root = { -0.5, -0.1, 0, -0.2 }, spine = { 0.0, -0.1 }, head = { -0.1, 0.1 }, jaw = 0.3, brow = -0.3, beard = 0.2, mane = { 0.0, 0.05, 0.1 }, R = { 1.8, 0.4, 0.2, 0.2, 0, 0.6 } })
 	variants.ClubSwing.C = {
-		windup = ph(0.55, { K(0, RDY, ALL, R_RDY), K(0.45, windC, SUP_R, R_REAR, "inOut"), K(0.75, midC, SUP_R, R_LOW, "in"), K(0.97, CS_CONTACT, SUP_R, R_LOW, "in"), K(1, CS_CONTACT, SUP_R, R_LOW) }),
+		windup = ph(TIMING.ClubSwing[1], { K(0, RDY, ALL, R_RDY), K(0.45, windC, SUP_R, R_REAR, "inOut"), K(0.75, midC, SUP_R, R_LOW, "in"), K(0.97, CS_CONTACT, SUP_R, R_LOW, "in"), K(1, CS_CONTACT, SUP_R, R_LOW) }),
 		active = moves.ClubSwing.active,
 		recover = moves.ClubSwing.recover,
 	}
@@ -1028,14 +1115,14 @@ end
 do
 	local pk = mk({ root = { 0.1, 1.3 }, spine = { 0.25 }, head = { 0.45 }, jaw = 0.85, brow = 0.25, beard = -0.3, mane = { 0.55, 0.6, 0.65 }, L = { 3.2, 0.3, 0, 0.5, -0.35, 1.0 }, R = { 3.2, 0.3, 0, 0.5, -0.35, 1.0 } })
 	variants.ThunderPound.B = {
-		windup = ph(0.6, { K(0, BACKHAND_END, { "FL", "BL", "BR" }, R_LOW), K(0.4, PD_PEAK, HIND, R_REAR, "out"), K(0.7, pk, HIND, R_REAR, "inOut"), K(0.97, PD_CONTACT, ALL, POUND_REACH, "in"), K(1, PD_CONTACT, ALL, POUND_REACH) }, tremble(0.5, 0.7, 0.04)),
+		windup = ph(TIMING.ThunderPound[1], { K(0, BACKHAND_END, { "FL", "BL", "BR" }, R_LOW), K(0.4, PD_PEAK, HIND, R_REAR, "out"), K(0.7, pk, HIND, R_REAR, "inOut"), K(0.97, PD_CONTACT, ALL, POUND_REACH, "in"), K(1, PD_CONTACT, ALL, POUND_REACH) }, tremble(0.5, 0.7, 0.04)),
 		active = moves.ThunderPound.active,
 		recover = moves.ThunderPound.recover,
 	}
 	local sq = mk({ root = { -1.0, -0.3 }, spine = { -0.1 }, head = { -0.2 }, jaw = 0.3, brow = -0.35, beard = 0.15, mane = { 0.1, 0.15, 0.2 } })
 	local up = mk({ root = { 0.6, 0.55 }, spine = { 0.2 }, head = { 0.3 }, jaw = 0.8, brow = 0.2, beard = -0.3, mane = { 0.5, 0.55, 0.6 }, L = { 3.1, 0.3, 0, 0.3, -0.2, 1.0 }, R = { 3.1, 0.3, 0, 0.3, -0.2, 1.0 }, BL = { 0.3, -0.1, 0.1 }, BR = { 0.3, -0.1, 0.1 } })
 	variants.ThunderPound.C = {
-		windup = ph(0.6, { K(0, BACKHAND_END, { "FL", "BL", "BR" }, R_LOW), K(0.25, sq, ALL, R_LOW, "inOut"), K(0.62, up, NONE, nil, "out"), K(0.97, PD_CONTACT, ALL, POUND_REACH, "in"), K(1, PD_CONTACT, ALL, POUND_REACH) }, nil, false),
+		windup = ph(TIMING.ThunderPound[1], { K(0, BACKHAND_END, { "FL", "BL", "BR" }, R_LOW), K(0.25, sq, ALL, R_LOW, "inOut"), K(0.62, up, NONE, nil, "out"), K(0.97, PD_CONTACT, ALL, POUND_REACH, "in"), K(1, PD_CONTACT, ALL, POUND_REACH) }, nil, false),
 		active = moves.ThunderPound.active,
 		recover = moves.ThunderPound.recover,
 	}
@@ -1046,13 +1133,13 @@ end
 do
 	local lungeUp = mk({ root = { -0.2, 0.95 }, spine = { 0.15 }, head = { 0.3 }, jaw = 0.6, brow = 0.1, beard = -0.2, mane = { 0.4, 0.45, 0.5 }, L = { 1.8, 0.9, 0, 0.5, -0.1, 0.6 }, R = { 1.8, 0.9, 0, 0.5, -0.1, 0.6 } })
 	variants.BodySlam.B = {
-		windup = ph(0.85, { K(0, RDY, ALL, R_RDY), K(0.3, BS_CROUCH, ALL, R_LOW, "inOut"), K(0.8, lungeUp, HIND, R_REAR, "inOut"), K(1, lungeUp, HIND, R_REAR) }, tremble(0.5, 0.95, 0.03)),
-		active = ph(0.62, { K(0, lungeUp, HIND, R_REAR), K(0.45, BS_FALL, NONE, nil, "in"), K(0.9, BS_PRONE, NONE, nil, "in"), K(1, BS_SPLAT, FRONT, BS_FWD, "out") }, nil, true),
+		windup = ph(TIMING.BodySlam[1], { K(0, RDY, ALL, R_RDY), K(0.3, BS_CROUCH, ALL, R_LOW, "inOut"), K(0.8, lungeUp, HIND, R_REAR, "inOut"), K(1, lungeUp, HIND, R_REAR) }, tremble(0.5, 0.95, 0.03)),
+		active = ph(TIMING.BodySlam[2], { K(0, lungeUp, HIND, R_REAR), K(0.45, BS_FALL, NONE, nil, "in"), K(0.9, BS_PRONE, NONE, nil, "in"), K(1, BS_SPLAT, FRONT, BS_FWD, "out") }, nil, true),
 		recover = moves.BodySlam.recover,
 	}
 	local top = body(1.25, 0, 0.2, 0.4, 0.8, hitArm(1.25, 0.2), rarm(hitArm(1.25, 0.2)), 0.5)
 	variants.BodySlam.C = {
-		windup = ph(0.85, { K(0, RDY, ALL, R_RDY), K(0.2, BS_CROUCH, ALL, R_LOW, "inOut"), K(0.5, BS_TALL, HIND, R_REAR, "inOut"), K(0.7, top, HIND, R_REAR, "in"), K(0.88, BS_TIP, HIND, R_REAR, "out"), K(1, BS_TIP, HIND, R_REAR) }, tremble(0.5, 0.95, 0.03)),
+		windup = ph(TIMING.BodySlam[1], { K(0, RDY, ALL, R_RDY), K(0.2, BS_CROUCH, ALL, R_LOW, "inOut"), K(0.5, BS_TALL, HIND, R_REAR, "inOut"), K(0.7, top, HIND, R_REAR, "in"), K(0.88, BS_TIP, HIND, R_REAR, "out"), K(1, BS_TIP, HIND, R_REAR) }, tremble(0.5, 0.95, 0.03)),
 		active = moves.BodySlam.active,
 		recover = moves.BodySlam.recover,
 	}
@@ -1065,13 +1152,13 @@ do
 	local reach = paws(-1.6, 0.4, 0.5, 0.3)
 	local twist = mix(s.crouch, mk({ root = { -0.95, -0.2, 0, 0.35 }, spine = { -0.1, 0.25 }, head = { -0.2, -0.2 }, jaw = 0.3, brow = -0.4, mane = { 0.1, 0.15, 0.2 } }), 0.8)
 	variants.SkyfallSlam.B = {
-		windup = ph(0.9, { K(0, RDY, ALL, R_RDY), K(0.3, s.crouch, ALL, R_LOW, "out"), K(0.8, twist, ALL, R_LOW, "inOut"), K(1, s.spring, HIND, R_REAR, "in") }, tremble(0.4, 0.85, 0.03, 11)),
+		windup = ph(TIMING.SkyfallSlam[1], { K(0, RDY, ALL, R_RDY), K(0.3, s.crouch, ALL, R_LOW, "out"), K(0.8, twist, ALL, R_LOW, "inOut"), K(1, s.spring, HIND, R_REAR, "in") }, tremble(0.4, 0.85, 0.03, 11)),
 		active = moves.SkyfallSlam.active,
 		recover = moves.SkyfallSlam.recover,
 	}
 	local dig = paws(-1.0, 0.5, 0.5, 0.3)
 	variants.SkyfallSlam.C = {
-		windup = ph(0.9, { K(0, RDY, ALL, R_RDY), K(0.25, s.coil, ALL, dig, "inOut"), K(0.82, s.coil, ALL, dig), K(1, s.spring, HIND, R_REAR, "in") }, tremble(0.3, 0.88, 0.05, 14)),
+		windup = ph(TIMING.SkyfallSlam[1], { K(0, RDY, ALL, R_RDY), K(0.25, s.coil, ALL, dig, "inOut"), K(0.82, s.coil, ALL, dig), K(1, s.spring, HIND, R_REAR, "in") }, tremble(0.3, 0.88, 0.05, 14)),
 		active = moves.SkyfallSlam.active,
 		recover = moves.SkyfallSlam.recover,
 	}
@@ -1098,7 +1185,7 @@ end
 -- planting, so the legs compress with it). Pound, Skyfall and Judgment hardest.
 
 local DIP = { ClubSwing = 0.12, Backhand = 0.12, ThunderPound = 0.4, BodySlam = 0.15, SkyfallSlam = 0.35, Judgment = 0.5, ThunderLance = 0.1, BoulderHurl = 0.15, ThunderRush = 0.12, Bound = 0.12, Stagger = 0.1, ThunderRoar = 0.08, PhaseRoar = 0.1, Challenge = 0.05, StormCall = 0.05 }
-local LOAD = { ClubSwing = 0.1, Backhand = 0.1, ThunderPound = 0.12, BoulderHurl = 0.08, ThunderLance = 0.06 }
+local LOAD = { ClubSwing = 0.1, Backhand = 0.1, ThunderPound = 0.12, ThunderLance = 0.06 }
 local function weightOverlay(move: string, phase: string)
 	return function(u: number, secs: number, _): Pose
 		if phase == "windup" then
@@ -1160,80 +1247,29 @@ local function phaseOf(move: string, phase: string): Phase
 	return p :: Phase
 end
 
-local LAG_SEC = 0.08
+local LAG_SEC = 0.09
 local LAGS = {
 	JointBrow = 0.6, JointHead = 1.0, JointJaw = 1.3, JointMane1 = 1.4, JointMane2 = 1.9, JointMane3 = 2.5, JointBeard = 2.2,
 }
-local ARM_LAGS = { Elbow = 0.5, Wrist = 1.0, Fingers = 1.6 }
-local SETTLE = { ClubSwing = 0.8, Backhand = 0.8, ThunderPound = 1.6, BodySlam = 1.3, SkyfallSlam = 1.4, Judgment = 1.9, ThunderRush = 1.0, Bound = 0.6, BoulderHurl = 1.0, ThunderLance = 1.0, ThunderRoar = 0.6, PhaseRoar = 0.8, Challenge = 0.4, StormCall = 0.4, Stagger = 1.3 }
+local ARM_LAGS = { Elbow = 0.6, Wrist = 1.2, Fingers = 1.9 }
+local SETTLE = { ClubSwing = 0.9, Backhand = 0.9, ThunderPound = 1.6, BodySlam = 1.3, SkyfallSlam = 1.4, Judgment = 1.9, ThunderRush = 1.0, Bound = 0.8, BoulderHurl = 1.0, ThunderLance = 1.0, ThunderRoar = 0.6, PhaseRoar = 0.8, Challenge = 0.4, StormCall = 0.4, Stagger = 1.4 }
 local NOLAG = { ThunderRush = { active = true } }
+-- windups whose arms must land on their marks mid-phase (the chest beats, the boulder release):
+-- no arm whip there
+local EXACT_ARMS = { Challenge = true, ThunderRoar = true, PhaseRoar = true, BoulderHurl = true }
 
-local function secondary(pose: Pose, move: string, phase: string, u: number, input: Input, p: Phase, plant: any)
-	local dur = input.duration or p.duration
-	local secs = u * dur
-	if NOLAG[move] and NOLAG[move][phase] then
-		return
-	end
-	local fade = if move == "Death" then smooth(0, 0.1, u) else smooth(0, 0.2, u) * (1 - smooth(0.8, 1, u))
-	if fade > 0.01 then
-		local cache: { [number]: Pose } = {}
-		local function at(k: number): Pose
-			local c = cache[k]
-			if not c then
-				c = (Quadruped.samplePhase(p, math.clamp(u - LAG_SEC * k * fade / dur, 0, 1), input))
-				cache[k] = c
-			end
-			return c
-		end
-		for name, k in LAGS do
-			local lag = at(k)
-			pose[name] = lag[name] or pose[name]
-		end
-		for _, side in { "L", "R" } do
-			local tag = "F" .. side
-			-- windup arms hit their marks exactly (chest beats, overhead peaks): the whip is for follow-through
-			if (plant[tag] or 0) < 0.001 and phase ~= "windup" then
-				for part, k in ARM_LAGS do
-					local name = "Joint" .. part .. tag
-					local lag = at(k)
-					pose[name] = lag[name] or pose[name]
-				end
-			end
-		end
-	end
-	local amp = SETTLE[move]
-	if amp and phase ~= "windup" then
-		local tc = secs + (if phase == "recover" and ThunderApe.durations[move] and not ({ SkyfallSlam = 1, Judgment = 1, BodySlam = 1, StormCall = 1 })[move] then (ThunderApe.durations[move].active or 0) else 0)
-		local function ring(delay: number, hz: number): number
-			local t = math.max(0, tc - delay)
-			return math.sin(t * TAU * hz) * math.exp(-4 * t) * amp
-		end
-		pose.JointHead = (pose.JointHead or I) * A(-0.1 * ring(0.03, 2.6), 0.04 * ring(0.05, 2.0))
-		pose.JointJaw = (pose.JointJaw or I) * A(-0.12 * math.max(0, ring(0.05, 3.2)))
-		pose.JointBrow = (pose.JointBrow or I) * A(0.1 * ring(0.04, 3.0))
-		pose.JointBeard = (pose.JointBeard or I) * A(0.3 * ring(0.08, 2.4))
-		pose.JointMane1 = (pose.JointMane1 or I) * A(0.18 * ring(0.06, 2.6))
-		pose.JointMane2 = (pose.JointMane2 or I) * A(0.22 * ring(0.1, 2.4))
-		pose.JointMane3 = (pose.JointMane3 or I) * A(0.26 * ring(0.14, 2.2))
-	end
-	-- held windups also shake the tufts and beard a little
-	if phase == "windup" then
-		local held = smooth(0.3, 0.5, u) * (1 - smooth(0.92, 1, u))
-		if held > 0 then
-			pose.JointMane2 = (pose.JointMane2 or I) * A(0.035 * held * math.sin(secs * 7.3))
-			pose.JointMane3 = (pose.JointMane3 or I) * A(0.045 * held * math.sin(secs * 6.1 + 1))
-			pose.JointBeard = (pose.JointBeard or I) * A(0.05 * held * math.sin(secs * 5.3 + 2))
-		end
-	end
+-- Easing. inOut is a sine here (peak speed 1.6x the mean) instead of the shared cubic
+-- (3x): a 30-stud body that parks on every key and then dashes between them reads as
+-- stiff and twitchy at once.
+local EASE: { [string]: (number) -> number } = table.clone(Quadruped.EASE)
+EASE.inOut = function(a)
+	return 0.5 - 0.5 * math.cos(math.pi * a)
 end
-
--- Keyed sampling with a smoother plant blend than Quadruped.samplePhase: that one blends the
--- plant WEIGHTS, and a two-joint solve at a half weight overshoots (an elbow flips through 1.5 rad
--- in a frame when a free arm lands). Here each leg is planted or free per key; across a key pair
--- where that differs, both ends are solved with their own plants and the SOLVED poses are blended.
-local EASE = Quadruped.EASE
+EASE.cubic = Quadruped.EASE.inOut -- the old snap, for strikes that want it
 local plantOf = Quadruped.plantOf
-local function plantedSample(p: Phase, u: number, input: Input): (Pose, { [string]: number })
+
+-- the blended key pose at u (overlay applied, not planted, not mirrored) and its key pair
+local function blendKeys(p: Phase, u: number, input: Input): (Pose, any, any, number)
 	local keys = p.keys
 	local a, b = keys[1], keys[1]
 	for i = 2, #keys do
@@ -1262,6 +1298,18 @@ local function plantedSample(p: Phase, u: number, input: Input): (Pose, { [strin
 			pose[name] = (pose[name] or I) * cf
 		end
 	end
+	return pose, a, b, alpha
+end
+
+-- Keyed sampling with a smoother plant blend than Quadruped.samplePhase: that one blends the
+-- plant WEIGHTS, and a two-joint solve at a half weight overshoots (an elbow flips through 1.5 rad
+-- in a frame when a free arm lands). Here each leg is planted or free per key; across a key pair
+-- where that differs, both ends are solved with their own plants and the SOLVED poses are blended.
+local function plantedSample(p: Phase, u: number, input: Input): (Pose, { [string]: number })
+	local pose, a, b, alpha = blendKeys(p, u, input)
+	-- the chest never stops breathing, even in a held pose (before planting, so the fists stay put)
+	local clock = os.clock()
+	pose.JointSpine = (pose.JointSpine or I) * A(0.018 * math.sin(clock * 1.35), 0.01 * math.sin(clock * 0.6), 0)
 	local pa, pb = plantOf(a.plant), plantOf(b.plant)
 	local reach, weights, same = {}, {}, true
 	for _, tag in ALL do
@@ -1298,21 +1346,96 @@ local function plantedSample(p: Phase, u: number, input: Input): (Pose, { [strin
 	return out, weights
 end
 
+local function secondary(pose: Pose, move: string, phase: string, u: number, input: Input, p: Phase, plant: any)
+	local dur = input.duration or p.duration
+	local secs = u * dur
+	if NOLAG[move] and NOLAG[move][phase] then
+		return
+	end
+	local fade = if move == "Death" then smooth(0, 0.1, u) else smooth(0, 0.2, u) * (1 - smooth(0.8, 1, u))
+	if fade > 0.01 then
+		local cache: { [number]: Pose } = {}
+		local function at(k: number): Pose
+			local c = cache[k]
+			if not c then
+				c = (blendKeys(p, math.clamp(u - LAG_SEC * k * fade / dur, 0, 1), input))
+				if p.mirror and (input.side or 1) < 0 then
+					c = mirror(c)
+				end
+				cache[k] = c
+			end
+			return c
+		end
+		for name, k in LAGS do
+			local lag = at(k)
+			pose[name] = lag[name] or pose[name]
+		end
+		-- free forearms, fists and fingers whip behind the shoulder, read off the PLANTED pose a
+		-- moment ago and weighted by how free the arm is (both continuous, so no frame jumps)
+		if not (phase == "windup" and EXACT_ARMS[move]) then
+			local armCache: { [number]: Pose } = {}
+			for _, side in { "L", "R" } do
+				local tag = "F" .. side
+				local free = 1 - (plant[tag] or 0)
+				if free > 0.001 then
+					for part, k in ARM_LAGS do
+						local lag = armCache[k]
+						if not lag then
+							lag = (plantedSample(p, math.clamp(u - LAG_SEC * k * fade / dur, 0, 1), input))
+							armCache[k] = lag
+						end
+						local name = "Joint" .. part .. tag
+						if lag[name] and pose[name] then
+							pose[name] = pose[name]:Lerp(lag[name], free)
+						end
+					end
+				end
+			end
+		end
+	end
+	local amp = SETTLE[move]
+	if amp and phase ~= "windup" then
+		local tc = secs + (if phase == "recover" and ThunderApe.durations[move] and not ({ SkyfallSlam = 1, Judgment = 1, BodySlam = 1, StormCall = 1, Bound = 1 })[move] then (ThunderApe.durations[move].active or 0) else 0)
+		local function ring(delay: number, hz: number): number
+			local t = math.max(0, tc - delay)
+			return math.sin(t * TAU * hz) * math.exp(-3.2 * t) * amp
+		end
+		pose.JointHead = (pose.JointHead or I) * A(-0.1 * ring(0.03, 2.6), 0.04 * ring(0.05, 2.0))
+		pose.JointJaw = (pose.JointJaw or I) * A(-0.12 * math.max(0, ring(0.05, 3.2)))
+		pose.JointBrow = (pose.JointBrow or I) * A(0.1 * ring(0.04, 3.0))
+		pose.JointBeard = (pose.JointBeard or I) * A(0.3 * ring(0.08, 2.4))
+		pose.JointMane1 = (pose.JointMane1 or I) * A(0.18 * ring(0.06, 2.6))
+		pose.JointMane2 = (pose.JointMane2 or I) * A(0.22 * ring(0.1, 2.4))
+		pose.JointMane3 = (pose.JointMane3 or I) * A(0.26 * ring(0.14, 2.2))
+	end
+	-- held windups also shake the tufts and beard a little
+	if phase == "windup" then
+		local held = smooth(0.3, 0.5, u) * (1 - smooth(0.92, 1, u))
+		if held > 0 then
+			pose.JointMane2 = (pose.JointMane2 or I) * A(0.035 * held * math.sin(secs * 7.3))
+			pose.JointMane3 = (pose.JointMane3 or I) * A(0.045 * held * math.sin(secs * 6.1 + 1))
+			pose.JointBeard = (pose.JointBeard or I) * A(0.05 * held * math.sin(secs * 5.3 + 2))
+		end
+	end
+	-- and nothing is ever frozen: the tufts stir, the beard sways, the brow twitches and the
+	-- head drifts on the wall clock (continuous across every phase and move)
+	if move ~= "Death" or u < 0.85 then
+		local c = os.clock()
+		pose.JointMane1 = (pose.JointMane1 or I) * A(0.035 * math.sin(c * 1.9), 0, 0.03 * math.sin(c * 1.3 + 0.5))
+		pose.JointMane2 = (pose.JointMane2 or I) * A(0.045 * math.sin(c * 1.7 + 0.8), 0, 0.035 * math.sin(c * 1.1 + 1.4))
+		pose.JointMane3 = (pose.JointMane3 or I) * A(0.055 * math.sin(c * 1.5 + 1.6), 0, 0.04 * math.sin(c * 0.9 + 2.2))
+		pose.JointBeard = (pose.JointBeard or I) * A(0.04 * math.sin(c * 1.2 + 0.3), 0, 0.03 * math.sin(c * 0.8))
+		pose.JointBrow = (pose.JointBrow or I) * A(0.025 * math.sin(c * 0.7) * math.sin(c * 2.3))
+		pose.JointHead = (pose.JointHead or I) * A(0.012 * math.sin(c * 0.9 + 1), 0.02 * math.sin(c * 0.45), 0)
+	end
+end
+
 function ThunderApe.sample(move: string, phase: string, u: number, input: Input?): Pose
 	local inp: Input = input or {}
 	u = math.clamp(u, 0, 1)
 	local p = phaseOf(move, phase)
 	local pose, plant = plantedSample(p, u, inp)
 	secondary(pose, move, phase, u, inp, p, plant)
-	if move == "Stagger" then
-		local e = smooth(0, 0.3, u) * (1 - smooth(0.4, 1, u))
-		local side = math.clamp(inp.side or 0, -1, 1)
-		pose.JointMane1 = (pose.JointMane1 or I) * A(0.3 * e)
-		pose.JointMane2 = (pose.JointMane2 or I) * A(0.35 * e)
-		pose.JointMane3 = (pose.JointMane3 or I) * A(0.4 * e)
-		pose.JointBeard = (pose.JointBeard or I) * A(-0.3 * e)
-		pose.JointHead = (pose.JointHead or I) * A(0, 0.1 * side * e)
-	end
 	return pose
 end
 

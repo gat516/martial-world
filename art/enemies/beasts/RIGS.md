@@ -308,64 +308,65 @@ a block on the Jaw (it opens with the jaw). Scutes span the cuts inside each ref
 so a sharp pitch at those joints lifts a scute edge (yaw is clean: the scutes sit on the bend
 axis). No crown or halo exists.
 
-**The pose module and fight numbers still use the old body** (contract units x 1.668, a straight
-rest tail along +Z, head pivot 16.7 high, tail 82 studs). Until the animator re-derives
-`EnemyPoses/JadeJiao.luau` from the table above, the snake animates wrongly in the testbed.
+The pose module was re-derived for this body (next section).
 
 ### Jade Jiao movement and poses (`src/client/EnemyPoses/JadeJiao.luau`, `Serpent.luau`)
 
-**Stale: written for the previous body** (contract units, K = 1.668, straight rest tail). The
-body above replaced it; the numbers below need re-deriving.
-
 Pose module in the WolfKing API (`JOINTS`, `loops` idle/walk/run/circle, `moves`, `durations`,
-`sample`, `gaitRate`, `VARIANTS`, `VARIANT`, `setVariant`, `setAll`, `scaled`). Pose units
-are the contract geometry (about 70 studs); EnemyAnimator applies **SCALE = 3.17 / 1.9 = 1.668**
-once to `JointRoot`'s translation (`scaled`), and the family scale is the same number.
-Registered by Template `JadeJiao`; the module sets `USES_HISTORY`, so EnemyAnimator also feeds
-it `input.phase` (Phase attribute), `speed`, `turn`, `time`, `radius` (CoilRadius attribute) and
-`yawAt(secondsAgo)` (the root's heading history, 3 s).
+`sample`, `gaitRate`, `VARIANTS`, `VARIANT`, `setVariant`, `setAll`, `scaled`). **Real studs,
+`SCALE = 1`** (the pivot table above is in the module). Registered by Template `JadeJiao`
+(keyedBlend 0.2 s); `USES_HISTORY` makes EnemyAnimator feed `phase`, `speed`, `turn`, `time`,
+`radius` (CoilRadius), `yawAt` (the TRAVEL heading history, velocity direction when faster than
+2 studs/s, unwrapped), `wavePhase` (the wave's phase, advanced with the ground speed in every
+state, not just the loops), `still` (seconds still), `travel` (studs since it started moving) and
+`rested` (how long it was still before that). The circle loop isn't used for serpents (a snake
+doesn't strafe; the walk/run follow the travel heading).
 
-**Axis correction.** The note in the joint table above ("+X leans the column forward/down, -X rears
-it back; Head: -X nose up") is wrong, measured on the real rig: **JointNeck..5 +X leans the
-column BACK (the forward end swings up), JointHead +X tips the nose UP**, like every other beast.
-Tail +X drops the tail, tail +Y swings it to +X (the beast's right), neck +Y turns left, fangs +X
-swing the tip down (1.45 used, 1.57 is straight down), hood L -Y / R +Y flares, jaw -X opens.
+**Rest-direction composition.** Every bone's absolute orientation is `Ry(heading) * Rx(-up) *
+Q^-1` with `Q` its rest direction (the coiled tail's rest headings unwrap from +0.84 at the Body
+to -3.73 at Tail18). Neck: `Ry(Y) * Rx(E - eps)`, rest elevations 36.4, 36.4, 133.8, 37.6, 19.6
+degrees, skull 0. Old-layout neck shapes in the move tables (`E`, `Y`) are remapped onto the new
+bones (old bone 1 -> new 1-2, old 4+5 -> new 5); `N` gives new-layout elevations. Stance root
+shifts `rx/ry/rz` are x1.1 studs.
 
-**Method.** Neck and tail joints are driven by the absolute orientation each segment should
-have (`Ry(heading) * Rx(pitch)` in model space, turned into local transforms by
-`Serpent.locals`), not by relative angles, so an upright neck bends about the real vertical.
-A move is a keyed stance (neck elevations e1..e6 above horizontal, headings y1..y6, body pitch,
-root translation, head roll, jaw, fangs, hood, tongue, tail bend `ty`, tail rear `tup`, slither
-amplitude `tamp`, `ring`/`tight`/`arch` for the coil) lerped per phase; neck and tail read the
-stance a little late (neck 0-0.14 s, tail 0.011 s per segment, fading to nothing at phase ends).
-Rest neck elevations are 40.6, 113.5, 42.3, 26.6, 14.0 degrees (skull 0).
+**Slither (path following).** The spine lies on a sine-generated ground curve, heading
+`th0 * cos(phase - k s)` (s = arc behind the neck base). Positions use the closed form in
+Bessel functions, the curve's mean line is the server root's lane (x = 0), and the phase advances
+at `k * v / J0(th0)` (the sliding speed), so the curve stays fixed on the ground and every belly
+point slides along one groove. Walk: th0 0.9 rad, wavelength 30 arc studs (about half the
+55-stud ground spine), lateral amplitude about +-3.9 studs; run (21): th0 0.72, wavelength 34.
+No taper: the whole body is on the path. Turning: a bone at arc s takes the travel heading from
+(s - 9.8) / v seconds ago (9.8 = neck base to root centre); bones ahead of the root extrapolate
+the turn rate. The lower neck follows the path ahead, then the neck is solved (`Serpent.centre`)
+so the head pivot stays on the lane and the skull keeps its aim. Locomotion necks (new layout):
+walk 14, 24, 75, 26, 8, -2 (head pivot about 12.9 high), run 6, 12, 45, 18, 4, -4 (about 9.6).
+**Measured** (`qa_jade_jiao.luau` skate, belly sideslip on the tail segments): walk 6 <= 0.7
+studs/s, 12 <= 1.1, 21 <= 1.0, 24 <= 1.2 (the "Root" column there reads the HRP-fixed rest pivot
+and is meaningless now). `slither_jade_jiao.luau` poses an anchored EditorOnly copy along a
+curved track with belly traces for a visual check.
 
-**Slither.** Tail headings are a travelling wave `lat * k * taper * cos(phase - k s)`
-(k = TAU / 28.4 studs, taper rising from the root to mid-tail then falling at the tip); the
-phase advances at TAU * speed / 28.4 (`gaitRate`, the real speed), so crests stand still on
-the ground. The head holds aim. Turning: each tail segment takes the root's heading from
-s / speed seconds ago (capped 2.5 s, +-1.6 rad). Peak lateral amplitude: walk 3.0-3.4 studs,
-run 2.8 falling to 1.9 (flatter, head about 15 studs high at 12 studs/s, 8.8 at 21).
+**Coil and uncoil.** Idle gathers the S it stopped in into the reference's resting coil over
+1.2-4.5 s still (body first, tail last) and raises the neck back into the strike S. Starting to
+move from a coil, each bone leaves it once the head has travelled about 0.45 of its arc. A move
+started from a coil unwinds it over the first 0.6 s of the windup. Attack stances sit on the
+walk's S frozen at the current wave phase.
 
-**Coil.** `Serpent.ring` lays the Body pivot and Tail1.. on a circle through the root centre
-(the HRP, point P) with the centre on the LEFT: each chord's heading is the tangent at its middle,
-so every pivot is on the circle (measured error 0.000 studs while it holds, under 0.3 through
-the squeeze). **Radius 8 module units = 13.3 studs** (the body is K times thicker, the ring
-26.7 across, inner clearance about 10 studs); arc 280 degrees (phase 3: 300). Tail1..11-12 are
-on the ring, the rest curl outward onto a small circle (radius 6.5) with a 0.33 rad arch, at most
-9 studs high and reaching at most 8 degrees into the door gap. The neck is solved per frame
-(`Serpent.reach`) so the skull hangs within 2 studs of the centre. During the hold the radius
-tightens by 12% (`tight` 0..1) and snaps another 7% at the squeeze (hold end), then unwinds.
-`input.radius` overrides the radius (EnemyAnimator reads the `CoilRadius` attribute).
+**Ring (JiaoCoil). Radius 11.9 studs** (`COIL_RADIUS`; the server's `coilRadius` should match):
+the neck base sits on the server root's centre (0, 5.65) heading back, the centre on the left at
+(-11.9, 5.65), and the Body plus the tail curl left round it (the whole 55.4 studs covers about
+267 of the 280 degrees, so the free-tail arch is short). Inner clearance about 8.6 studs from the
+centre. The neck hangs the head over the centre (`Serpent.reach`). The hold tightens 12% and the
+squeeze another 7% (about 9.8 studs, above the 9-stud self-overlap limit).
 
-**Verified (numbers, FK on the real template; `art/enemies/beasts/qa_jade_jiao.luau`).**
-Skate (belly points on the segment middles, sideslip across the segment axis, mean speed along it):
-walk 6: 1.0 / 0.6 error; 12: 1.6 / 1.0; 21: 1.8-2.3 / 1.2; 24: 2.7 / 1.4 studs/s. Sunk (MireDive end,
-Erupt/Emerge windup): the whole body is 1.8 studs under the ground at its highest point, head 12.7
-below. Rear heights (skull centre): rest 16.8, 15 contract 29, Ascension/Rain 31. Lowest point of
-every move and loop >= -0.5 except the buried PillarSlam head (-1.4, intended) and Death (-1.7, jaw).
-Untested: hood, fang and whisker ranges against the head, the hood against the neck at full flare,
-and everything in Play.
+**Checked** (`qa_jade_jiao.luau` moves): every move loads and poses; lowest point >= -0.25 except
+PillarSlam's buried head (-0.72, intended) and Death (-0.34). Sunk (MireDive, Erupt/Emerge
+windup): the highest point is 1.1 under the ground. Rear heights (skull): Molt 26.5, Ascension
+27.7, DreadHiss 27.6, PillarSlam hang 25.4.
+
+**Not done yet:** contact points against the re-fitted server areas (fang cone r 34, slam at
+(0, 0, -27), sweep r 22, mouth for the lance/spray 24.2 ahead and 13.1 up) are unmeasured; the
+coil ring's on-circle error and the free-tail arch weren't re-run; hood/fang/whisker clipping;
+everything in Play (feel, the EnemyAnimator blend, phone cost).
 
 ## Thunder Ape B poses (`src/client/EnemyPoses/ThunderApe.luau`)
 
@@ -415,3 +416,30 @@ Gotchas found while building it:
   (clips are small up to 2.2), hind knee -1.4, jaw 0 to 1.05, brow +-0.25, beard +-0.4.
 - Forearms and fists clip the beard in every chest-high sweep and chest beat (1 to 3 studs deep on
   a 28 stud body); thighs dip 0.5 to 1.8 studs into the ground in the deepest Judgment crouch.
+
+Animation pass 2 (partial, see the commit; the per-move rework is unfinished):
+- Timings live in `TIMING` (one line per move, the def's `122e93b` values; keys are fractions so a
+  def change is a one-line change). `BOULDER_RELEASE = 1.25`: the right fist sits about 3.6 studs
+  from the server's spawn point (root + (7, 14, -2)) at that frame.
+- Gait touchdowns: three causes of the 0.6-0.8 rad pops, all fixed in `finishGait`. (1) The root
+  drop jumped when the limiting limb entered or left stance: each limb's weight now ramps over the
+  first and last 35% of its stance. (2) The swing's end angles came from a lookup built with the
+  body level, so they missed the stance solve whenever the body pitched or rolled (circle 0.36 rad):
+  a swing limb now blends into the live planted solve over its last 60% and out of it over its
+  first 40%. (3) Near full extension a planted elbow is hypersensitive (a 0.05 unit rise of the
+  shoulder swung it 0.25 rad): stance limbs never stretch past 0.985 of their length, the fist lifts
+  off instead (`STRETCH`, via the new `rig.reachShort(.., stretch)` and `plantLegs(.., noDrop)`).
+  Gallop spikes 0.53-0.64 -> 0.24-0.32 (what is left is the fist's stop at touchdown), walk 0.25
+  -> 0.08-0.14, circle 0.36-0.49 -> 0.15 (and 0.02-0.09 the other way).
+- `continuity_ape.luau` now reports SPIKES (a joint's step on one frame minus the mean of its
+  neighbours' steps), not the raw step: a fast swing is not a pop. It also runs the circle both ways.
+- The inOut ease is a sine in this module (peak speed 1.6x the mean, not the cubic's 3x).
+- Free-arm follow-through is read off the planted pose a moment earlier and weighted by how free
+  the arm is (it popped 0.6 rad at recover starts when an arm changed plant); it now also runs in
+  windups except the roars and the boulder throw. The tufts, beard, brow and head drift on the wall
+  clock in every keyed move and the chest breathes before planting, so no held pose is frozen.
+- Chest beat arm solved against the rig with no clipping (torso-relative, with the head at +0.1):
+  upper arm 0.19 behind the torso line, out 1.22, yaw -0.48, elbow 1.83, wrist 1.15. The current
+  `hitArm` clips the jaw and skull 2.5 studs; swap it in with the roar rework.
+- Thunder Lance throw arm solved toward the spawn point (16 ahead, 3.5 up): world pitch -0.07,
+  out 0.56, yaw 0.58, elbow 1.53, wrist 1.2 with the root at (-0.45, -0.02, yaw 0.1) misses by 1.5.

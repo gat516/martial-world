@@ -25,8 +25,8 @@
 -- Wolf.luau can switch to this with no change in output (checked bit for bit over every
 -- move and loop), but wolf_family/qa_wolf_poses.luau requires a parentless clone of Wolf,
 -- which can't see a sibling module: switch both together.
--- It returns { P, LEGS, plantOf, samplePhase, plantLegs, solveLeg, setLeg, stepLegs,
--- sampler(moves, name), plant }. The free helpers are on Quadruped itself.
+-- It returns { P, LEGS, plantOf, samplePhase, plantLegs (noDrop: the caller set the drop),
+-- reachShort, solveLeg, setLeg, stepLegs, sampler(moves, name), plant }. The free helpers are on Quadruped itself.
 
 local Quadruped = {}
 
@@ -309,9 +309,9 @@ function Quadruped.new(spec: Spec)
 
 	-- how far the root must drop for a planted leg to reach its foot spot (the leg never
 	-- stretches past its rest length)
-	local function reachShort(pose: Pose, leg: Leg, target: Vector3): number
+	local function reachShort(pose: Pose, leg: Leg, target: Vector3, stretch: number?): number
 		local s = upperBase(pose, leg).Position
-		local lmax = (P[leg.foot] - P[leg.upper]).Magnitude
+		local lmax = (P[leg.foot] - P[leg.upper]).Magnitude * (stretch or 1)
 		local dx, dz = target.X - s.X, target.Z - s.Z
 		local h2 = dx * dx + dz * dz
 		local v = s.Y - target.Y
@@ -388,14 +388,18 @@ function Quadruped.new(spec: Spec)
 	-- plus reach[tag] (studs, model space), the root dropping if a leg can't reach it.
 	-- Then, unless the body is in the air (air: the client lifts it), any other foot that
 	-- would dip below the ground is planted where it is. Mutates pose.
-	local function plantLegs(pose: Pose, plant: Plant, air: boolean?, reach: { [string]: Vector3 }?)
+	-- noDrop: the root stays where it is and a leg that can't reach its spot straightens
+	-- toward it (the caller has already set a drop, e.g. one eased over a touchdown)
+	local function plantLegs(pose: Pose, plant: Plant, air: boolean?, reach: { [string]: Vector3 }?, noDrop: boolean?)
 		local targets = {}
 		local drop = 0
 		for tag, w in plant do
 			if w > 0.001 then
 				local leg = LEGS[tag]
 				targets[tag] = P[leg.foot] + ((reach and reach[tag]) or Vector3.zero)
-				drop = math.max(drop, reachShort(pose, leg, targets[tag]) * w)
+				if not noDrop then
+					drop = math.max(drop, reachShort(pose, leg, targets[tag]) * w)
+				end
 			end
 		end
 		if drop > 0 then
@@ -466,6 +470,12 @@ function Quadruped.new(spec: Spec)
 		P = P,
 		LEGS = LEGS,
 		plantLegs = plantLegs,
+		-- how far the root must drop for leg `tag` to reach its rest spot plus offset, with the
+		-- leg stretched to `stretch` (default 1) of its full length
+		reachShort = function(pose: Pose, tag: string, offset: Vector3?, stretch: number?): number
+			local leg = LEGS[tag]
+			return reachShort(pose, leg, P[leg.foot] + (offset or Vector3.zero), stretch)
+		end,
 		solveLeg = solveLeg,
 		soleY = soleY,
 		setLeg = setLeg,

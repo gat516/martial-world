@@ -35,6 +35,10 @@ local Boar = if boarModule then require(boarModule :: ModuleScript) :: any else 
 local jiaoModule = script.Parent.EnemyPoses:FindFirstChild("JadeJiao")
 local JadeJiao = if jiaoModule then require(jiaoModule :: ModuleScript) :: any else nil
 
+-- the Thunder Ape's knuckle-walker pose module (its gait divides speeds by its own SCALE)
+local apeModule = script.Parent.EnemyPoses:FindFirstChild("ThunderApe")
+local ThunderApe = if apeModule then require(apeModule :: ModuleScript) :: any else nil
+
 local MAX_DISTANCE = 160
 local SMOOTHING = 14 -- how quickly joints settle toward their pose (per second)
 local MOVE_SMOOTHING = 30 -- faster during keyed moves, so snaps stay snappy
@@ -73,6 +77,21 @@ if JadeJiao then
 			fangFlurry = "FangFlurry", mireDive = "MireDive", erupt = "Erupt", venomLance = "VenomLance",
 			venomSpray = "VenomSpray", venomPools = "VenomPools", jiaoCoil = "JiaoCoil", dreadHiss = "DreadHiss",
 			molt = "Molt", ascension = "Ascension", venomRain = "VenomRain",
+		},
+	}
+end
+
+-- Thunder Ape: scale 3.71 is applied once to the sampled pose (`scaled`); the loops and
+-- gaitRate take real speeds and divide by ThunderApe.SCALE themselves.
+if ThunderApe then
+	FAMILIES.ThunderApeB = {
+		poses = ThunderApe, scale = 3.71, runFrom = 10, keyedBlend = 0.06, deathSeconds = 3.2,
+		moves = {
+			challenge = "Challenge", clubSwing = "ClubSwing", backhand = "Backhand",
+			thunderPound = "ThunderPound", bodySlam = "BodySlam", skyfallSlam = "SkyfallSlam",
+			thunderRush = "ThunderRush", bound = "Bound", boulderHurl = "BoulderHurl",
+			thunderLance = "ThunderLance", thunderRoar = "ThunderRoar", stormCall = "StormCall",
+			judgment = "Judgment", phaseRoar = "PhaseRoar",
 		},
 	}
 end
@@ -242,7 +261,7 @@ local function movePose(rig: Rig, family: Family, state: any, since: number): an
 		local secs = poses.durations[move].active
 		if attackName == "hop" and def and def.pack and def.pack.hop then
 			secs = def.pack.hop.seconds
-		elseif attack and attack.kind == "leap" then
+		elseif attack and (attack.kind == "leap" or attack.kind == "bound") then
 			secs = attack.active or secs
 		elseif attack and attack.dashSpeed and attack.length then
 			-- a charge that stops past the target dashes for less than its full lane
@@ -252,8 +271,13 @@ local function movePose(rig: Rig, family: Family, state: any, since: number): an
 		return poses.sample(move, "active", since / secs, withExtras(rig, family, { duration = secs }))
 	elseif state == "recover" and move then
 		local secs = if attack then attack.recover else 0.5
+		-- a storm call's recover lasts as long as its bolts do (the server says how long)
+		local stormFor = rig.model:GetAttribute("RecoverFor")
+		if attack and attack.kind == "storm" and type(stormFor) == "number" then
+			secs = stormFor
+		end
 		-- an attack that strikes without a dash plays its active beat first
-		if attack and not attack.dashSpeed and attack.kind ~= "leap" and has(poses, move, "active") then
+		if attack and not attack.dashSpeed and attack.kind ~= "leap" and attack.kind ~= "bound" and has(poses, move, "active") then
 			local active = poses.durations[move].active
 			if since < active then
 				return poses.sample(move, "active", since / active, withExtras(rig, family, { duration = active }))

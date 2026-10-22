@@ -536,6 +536,9 @@ Server additions: attack kinds `lance`, `bound`, `storm`; fields `stun.onHit`, `
 already moved to the next pattern entry). `EnemyFX` windup cues now carry the telegraph's attack name, so
 `stormBolt` and `poundWave` arrive as `cue.attack` (other windups are unchanged). Sounds
 `SFX.Enemies.ThunderApe` reuse the King, boar and Thunder samples at low pitch (placeholders, not listened to).
+Poses: `EnemyPoses/ThunderApe.luau`, family `ThunderApeB` in `EnemyAnimator` (scale 3.71 applied once; the
+module's loops divide speeds by its own `SCALE`). A storm call publishes its real recover as the `RecoverFor`
+attribute for the pose's long channel; `bound` is treated like a leap (flight time from `active`, no active beat in recover).
 Untested: all of it (feel, numbers, wall/ground checks for the flank bound, the wave's readability).
 
 Effects (vfx agent): `Effects.ThunderApe` (51 templates, about 300 emitters; builder

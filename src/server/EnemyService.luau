@@ -1253,6 +1253,7 @@ local function callStorm(enemy: Enemy, attack: Enemies.Attack)
 	local interval, warning = attack.boltInterval or 0.45, attack.boltWindup or 0.9
 	local radius = attack.boltRadius or 8
 	enemy.recoverFor = math.max(attack.recover, interval * (bolts - 1) + warning + 0.3)
+	enemy.model:SetAttribute("RecoverFor", enemy.recoverFor) -- the pose holds its channel this long
 	local model = enemy.model
 	for i = 1, bolts do
 		task.delay((i - 1) * interval, function()

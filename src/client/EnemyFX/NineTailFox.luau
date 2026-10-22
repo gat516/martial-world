@@ -37,9 +37,9 @@ local SLATE = Color3.fromRGB(34, 42, 58)
 
 -- phase palettes: bright-layer tint (core -> edge) and the body's Tell colours
 local PHASES = {
-	{ mid = Color3.fromRGB(190, 232, 255), edge = Color3.fromRGB(110, 200, 255), eye = Color3.fromRGB(127, 216, 255), lit = Color3.fromRGB(159, 228, 255), dim = Color3.fromRGB(62, 110, 136) },
-	{ mid = Color3.fromRGB(205, 170, 255), edge = Color3.fromRGB(150, 90, 255), eye = Color3.fromRGB(176, 124, 255), lit = Color3.fromRGB(201, 160, 255), dim = Color3.fromRGB(90, 67, 136) },
-	{ mid = Color3.fromRGB(250, 215, 235), edge = Color3.fromRGB(225, 60, 130), eye = Color3.fromRGB(255, 120, 180), lit = Color3.fromRGB(255, 240, 246), dim = Color3.fromRGB(136, 68, 102) },
+	{ mid = Color3.fromRGB(190, 232, 255), edge = Color3.fromRGB(110, 200, 255), eye = Color3.fromRGB(127, 216, 255), lit = Color3.fromRGB(159, 228, 255), dim = Color3.fromRGB(70, 150, 215) },
+	{ mid = Color3.fromRGB(205, 170, 255), edge = Color3.fromRGB(150, 90, 255), eye = Color3.fromRGB(176, 124, 255), lit = Color3.fromRGB(201, 160, 255), dim = Color3.fromRGB(125, 95, 200) },
+	{ mid = Color3.fromRGB(250, 215, 235), edge = Color3.fromRGB(225, 60, 130), eye = Color3.fromRGB(255, 120, 180), lit = Color3.fromRGB(255, 240, 246), dim = Color3.fromRGB(190, 90, 140) },
 }
 -- which tails burn in each phase (the intro lights all nine in turn)
 local LIT = { { 2, 5, 8 }, { 2, 3, 4, 5, 7, 8 }, { 1, 2, 3, 4, 5, 6, 7, 8, 9 } }
@@ -486,13 +486,26 @@ local function tellParts(cue: Cue): { BasePart }
 	return list
 end
 
+-- Phase 1 reads straight from the body's own TellBase (a saturated azure);
+-- later phases recolour. Unlit tails and the thin whip lance are a lower
+-- intensity of the same hue, never near-black.
 local function tellColor(p: BasePart, phase: number): Color3
 	local look = PHASES[phase]
+	local base = p:GetAttribute("TellBase")
+	local lit, dim
+	if phase == 1 and typeof(base) == "Color3" then
+		lit, dim = base, base:Lerp(Color3.new(), 0.3)
+	else
+		lit, dim = (if p:GetAttribute("TailIndex") then look.lit else look.eye), look.dim
+	end
 	local index = p:GetAttribute("TailIndex")
 	if type(index) == "number" then
-		return if table.find(LIT[phase], index) then look.lit else look.dim
+		if p.Name:sub(-4) == "Whip" then
+			return dim
+		end
+		return if table.find(LIT[phase], index) then lit else dim
 	end
-	return look.eye
+	return lit
 end
 
 -- Recolour the Tell parts for a phase (instantly or over `fadeTime`).
@@ -520,7 +533,7 @@ local function tellPulse(cue: Cue, seconds: number)
 	end
 	for _, p in tellParts(cue) do
 		local base = (s.tellBase and s.tellBase[p]) or p.Color
-		p.Color = base:Lerp(Color3.new(), 0.5)
+		p.Color = base:Lerp(Color3.new(), 0.35)
 		local tween = TweenService:Create(p, TweenInfo.new(math.max(0.1, seconds), Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Color = base:Lerp(WHITE, 0.65) })
 		tween:Play()
 		table.insert(s.tells, tween)
@@ -1907,7 +1920,7 @@ function Fox.death(cue: Cue)
 			end
 			for p, _ in s.tellBase or {} do
 				if p.Parent and p:GetAttribute("TailIndex") == i then
-					TweenService:Create(p, TweenInfo.new(0.35), { Color = Color3.fromRGB(20, 24, 34) }):Play()
+					TweenService:Create(p, TweenInfo.new(0.35), { Color = (s.tellBase[p] or p.Color):Lerp(Color3.new(), 0.5) }):Play()
 				end
 			end
 			local frame, whip = tip(cue, i)

@@ -198,57 +198,124 @@ name. Use them as reference for the clips, not as final keys:
 
 ## Jade Jiao (boss, 37 joints, `build_jade_jiao.luau` / `rig_jade_jiao.luau`)
 
-Template `JadeJiao`, model attribute `Scale = 3.17`: built directly at **3.17x the roster
-Jade Python** (the user's reference size), not via `ScaleTo`. The build is authored in the
-fight sheet's contract units (about 1.9x the python) and lifted by **K = 3.17 / 1.9 = 1.668**
-about the model origin before export, so **multiply every contract number below by K**.
-Rest pose: the neck rears in an S, the hood is folded flat on the neck sides, the tail lies
-straight back along +Z. Faces -Z, left is -X, every joint frame is identity at rest, rotation
-about X is pitch. HRP (the only anchored part) = (7, 12, 14) x K = 11.7 x 20.0 x 23.4 centred
-(0, 10.84, -2.50), bottom 0.83 above the ground, Humanoid HipHeight 0.83. Bounding box
-about 15.7 wide x 23 tall (horns) x 115 long (whiskers and tail included); 177 parts.
+Template `JadeJiao`. **The body is the user's approved reference snake, part for part**:
+`workspace.Folder.Model.JadePython` in the testbed place (the roster Jade Python ScaleTo'd
+3.1746x), serialized read-only into `jade_python_ref.rbxm.b64` next to the build. The build
+moves it into model space, splits its neck and tail tubes into the extra jointed pieces the
+fight needs (cut square to each straight bone, every cut piece overlapping its neighbour by
+1.11 studs like the reference's own joints), and adds the fight's extras hidden at rest.
+`match_jade_jiao.luau` proves the rest look: every sampled point of the reference lies in a
+Jiao part of the same colour and the other way round (0 misses of 175k / 206k), and every
+point of the hood, fangs and tongue lies inside the reference's volume. Model attribute
+`Scale = 3.175` (informational; the body is at full size, no further scaling). 220 parts.
 
-Pivots below are in contract units; the real pivot is the value x K.
+**All numbers below are real studs in model space** (ground Y = 0, faces -Z, left is -X,
+origin at the roster python's origin). No K factor any more: the old contract-unit numbers
+(and `K = 3.17 / 1.9`) belong to the previous body and don't apply.
 
-| Joint | Moves (Part1) | Parent | Pivot (contract units) | Notes |
+**Rest pose = the reference's**: the Body lies on the ground diagonally under the neck
+(back end at x +6, right of the neck), the tail coils on the ground round the right, behind
+and the left, ending in front-left of the body (tip at (-3.9, 1.0, -7.0)); the neck rises
+in a strike S and holds the head level. **The tail segments do not point along +Z at rest**:
+every joint frame is still identity in model space, but each segment's rest heading differs
+(see the pivots), so a pose solver that sets absolute orientations must compose with each
+segment's rest direction (rest bone = next pivot - this pivot).
+
+HRP (the only anchored part, PrimaryPart, identity): **24.7 x 9.525 x 26.3 at (0, 6.35,
+5.65)**, bottom 1.59 above the ground (Humanoid HipHeight 1.59), so the root height is 6.35.
+It keeps the reference's height band and is widened to cover the coil's footprint (Body and
+Tail parts, x -12.3..12.3, z -7.5..18.8). Model pivot = the HRP. HealthBar 13.26 over the HRP
+centre (1 stud over the body's top at 18.61). Bounding box of the visible body 24.3 x 18.6
+x 37.7 (the reference's).
+
+| Joint | Moves (Part1) | Parent | Pivot (studs) | Notes |
 |---|---|---|---|---|
-| JointRoot | Body | HRP | (0, 1.9, 2.5) | hover, sink (y -6 x K = -10 for a burrow), whole-body pitch |
-| JointNeck | Neck1 | Body | (0, 1.9, -1.0) | +X leans the column forward/down, -X rears it back |
-| JointNeck2..5 | Neck2..Neck5 | previous Neck | (0,4.3,-3.8) (0,6.6,-2.8) (0,8.6,-5.0) (0,9.6,-7.0) | same sign; widths 3.8 3.5 3.2 2.9 2.6 |
-| JointHead | Skull | Neck5 | (0, 10.0, -8.6) | -X nose up, +X nose down |
-| JointJaw | Jaw | Skull | head frame (0,-1.6,0.5) | -X opens |
-| JointFangL/R | FangL/R | Skull | root on the palate, x +-0.95, y 8.4, z -12.1 about | folded back at rest (tip +Z). **+X swings the tip down and forward** (+1.57 rad points the tip straight down, about +2.2 down and forward) |
-| JointHoodL/R | HoodL/R | Neck4 | on the neck side, x +-1.5, y 9.1, z -6.4 | panel extends back (+Z) from the hinge; flare = **-Y on L, +Y on R**, about 1.2 rad gives about 6 x 5 contract studs facing front |
-| JointBarbelL1/R1 | BarbelL1/R1 | Skull | snout side (+-1.55,-0.3,-3.6 in head frame) | sweep: yaw, L -Y out; hidden at rest by sweeping back; first link |
-| JointBarbelL2/R2 | BarbelL2/R2 | Barbel*1 | end of link 1 | second link; `P3BarbelL/R` ride it |
-| JointTongue | Tongue | Jaw | floor of the mouth | -X lowers, yaw sways |
-| JointTongueTipL/R | TongueTipL/R | Tongue | tongue end | yaw +-0.4 at rest (fork); close with yaw toward 0 |
-| JointTail | Tail1 | Body | (0, 1.9, 6.0) | pitch (X) lifts, yaw (Y) curls |
-| JointTail2..18 | Tail2..18 | previous Tail | end of the previous segment | segment centreline lengths (contract units): Tail1-6 3.0, Tail7-12 2.8, Tail13-16 2.5, Tail17 2.2, Tail18 2.0; total 49, tip at z 55; widths taper 3.6 to 0.8; pivot height = half the next segment's width + 0.1 |
+| JointRoot | Body | HRP | (3.02, 3.25, -1.43) | the ground segment under the neck; bone (6.03, 3.17, 1.27) -> (0, 3.33, -4.13), 8.10 long |
+| JointNeck | Neck1 | Body | (0, 3.33, -4.13) | lower half of the reference Neck1, rises forward |
+| JointNeck2 | Neck2 | Neck1 | (0, 5.32, -6.83) | upper half of the reference Neck1 (new cut) |
+| JointNeck3 | Neck3 | Neck2 | (0, 7.30, -9.52) | reference Neck2: the S's back-rising limb |
+| JointNeck4 | Neck4 | Neck3 | (0, 11.11, -5.87) | reference Neck3: rises forward to the head; carries the hood |
+| JointNeck5 | Neck5 | Neck4 | (0, 13.81, -9.37) | reference Neck4: short, nearly level, under the head |
+| JointHead | Skull | Neck5 | (0, 14.60, -11.59) | horns, brow pearl, upper teeth, eyes ride the Skull |
+| JointJaw | Jaw | Skull | (0, 13.15, -12.15) | -X opens; the ThroatSac rides the jaw |
+| JointFangL/R | FangL/R | Skull | (-+0.85, 13.75, -18.53) | folded back (tip +Z) inside the snout block at rest; +X swings the tip down out through the lip (1.45 rad = down and a little forward, clear of the closed lip only once the jaw opens) |
+| JointHoodL/R | HoodL/R | Neck4 | (-+2.05, 13.54, -10.13) | panels 5.0 long x 2.8 tall folded inside Neck4's core block along its sides, hinged at the head end; flare L -Y, R +Y (1.2 rad tested) turns the jade face and eye-spot to the front |
+| JointBarbelL1/R1 | BarbelL1/R1 | Skull | (-+1.80, 13.67, -18.23) | at the snout's lower corners, droop back under the jaw line; **invisible until phase 3** (`PhaseReveal 3`) |
+| JointBarbelL2/R2 | BarbelL2/R2 | Barbel*1 | (-+2.90, 12.67, -16.73) | second link; `P3BarbelL/R` ride it (also phase 3) |
+| JointTongue | Tongue | Jaw | (0, 12.89, -12.89) | flat inside the jaw blocks under the mouth floor, 3.6 long forward; it has to lift above the jaw floor to show (jaw open, then -X/+X per taste; check against the jaw) |
+| JointTongueTipL/R | TongueTipL/R | Tongue | (0, 12.71, -16.49) | fork, yaw -+0.4 at rest |
+| JointTail | Tail1 | Body | (6.03, 3.17, 1.27) | reference Tail1, first half |
+| JointTail2..18 | Tail2..18 | previous Tail | below | |
 
-Segment lengths in studs: Tail1-6 5.0, Tail7-12 4.7, Tail13-16 4.2, Tail17 3.7, Tail18 3.3
-(x K, rounded). Body: z -1.0 to 6.0 contract (11.7 studs long), 6.3 wide. Neck widths x K:
-6.3 5.8 5.3 4.8 4.3. Skull about 9 x 7.3 x 5.3.
+Tail pivots (Tail_i's pivot; the next one ends it): Tail2 (7.30, 3.10, 4.44), Tail3 (8.57,
+3.02, 7.62), Tail4 (6.98, 2.94, 10.63), Tail5 (5.40, 2.86, 13.65), Tail6 (2.96, 2.77, 14.39),
+Tail7 (0.53, 2.69, 15.13), Tail8 (-1.90, 2.60, 15.87), Tail9 (-4.02, 2.50, 14.81), Tail10
+(-6.14, 2.39, 13.76), Tail11 (-8.25, 2.29, 12.70), Tail12 (-8.89, 2.16, 10.58), Tail13 (-9.52,
+2.03, 8.47), Tail14 (-10.16, 1.90, 6.35), Tail15 (-9.63, 1.78, 4.23), Tail16 (-9.10, 1.65,
+2.12), Tail17 (-8.57, 1.52, 0.00), Tail18 (-6.98, 1.33, -2.38); bone end (-5.38, 1.14, -4.77),
+TailTipGem point (-3.90, 0.96, -7.00).
 
-Coil: yaw each Tail_k by (length_k / radius) about Y at its pivot (the contracts' radius 8
-is x K in studs: 13.3 centreline radius, 26.7 across, because the body is K times thicker).
-Check at that curl (Tail1..12 per-joint yaw = length/8): `preview_jade_jiao.luau` reports
-no overlap between non-adjacent segments (adjacent ones overlap by design, hidden under the
-knuckle balls). Segments are cylinders with a ball on each start pivot, so bends close up
-cleanly without slits.
+Lengths (bone, pivot to pivot):
 
-Hooks (attachments): Mouth (Skull), FangL_FX/FangR_FX (on the fang tips), Throat (on the
-ThroatSac), Core, Dive_FX, Ground_Body, Ground_Tail4/9/14, Coil_Tail3/6/9/12 (belly edge
-under the segment), TailTip_FX, HoodL_FX/HoodR_FX (on the eye-spots).
-Tells (Neon, `Tell`, `TellBase`): EyeL/R, EyeSideL/R, BrowPearl, ThroatSac, FangTipL/R,
-HoodSpotL/R, ScaleSeam1..9, TailTipGem, VeinGem2..4. Hidden (Transparency 1, `PhaseReveal`):
-P2Crack1..6 (2), P3Fin1..5, P3BarbelL/R (3).
-Gotchas: the hood is flat slabs, so at rest it is a square plate on the neck side (it is
-not a flare); the hood hinges at the front edge so flare swings the rear edge out.
-No crown or halo exists. The `Scale` attribute is informational (the roster-python ratio);
-the body is already at full size.
+- Neck1-5: 3.35, 3.34, 5.28, 4.42, 2.36 (18.75 from the ground to the head pivot).
+- Body: 8.10.
+- Tail1-4: 3.42 each. Tail5-7: 2.54. Tail8-10: 2.37. Tail11-13: 2.21. Tail14-16: 2.19.
+  Tail17-18: 2.87. That's 47.3 to the last bone end, 50.0 to the tip gem.
+- Whole spine, tip to head pivot: 76.9.
+
+Each reference tail segment became 2-3 straight pieces (ref Tail1 -> 1-2, Tail2 -> 3-4,
+Tail3 -> 5-7, Tail4 -> 8-10, Tail5 -> 11-13, Tail6 -> 14-16, Tail7 -> 17-18), so the rest bends
+sit only at Tail3, 5, 8, 11, 14 and 17 (the reference's joints). Widths taper with the
+reference: Body 6.7, Tail1-2 6.4, Tail3-4 5.9, Tail5-7 5.2, Tail8-10 4.6, Tail11-13 3.8,
+Tail14-16 3.0, Tail17-18 2.2 (core width; the belly plate is 0.2 wider). The pivots sit on the
+bone, about half the tube height above the ground: 3.2 at Tail1 falling to 1.3 at Tail18.
+
+Rest heights: head pivot 14.60, skull centre 14.89 (old body: about 16.8), top of the horns
+18.61, snout tip z -18.88 (the head reaches 18.9 ahead of the model origin, 24.5 ahead of the
+HRP centre). Mouth attachment (0, 13.12, -18.51).
+
+**Coil check** (`preview_jade_jiao.luau`, Body fixed, Tail1..18 laid on one constant-curvature
+curve from Tail1's rest heading): no new contacts between non-adjacent segments at radius 9
+and up; at 8 the tip (Tail16-18) reaches the Body and Tail1 (the curve closes on itself:
+50 studs of tail is a full turn at radius 8); at 7 and below the tail overlaps its own first
+half. Tail5-7 and Tail8-10 touch at every radius (pieces of one reference segment, the scute
+on the middle piece meets the outer piece's padding; harmless). Pairs that already touch at
+rest (i, i+2 within the reference's padded tubes) are excluded. A 280-degree ring of the
+Body and the whole tail (58 studs) has a centreline radius of about 11.9; the Body and
+Tail1..12 (40.9 studs) about 8.4.
+
+Hooks (attachments): Mouth (Skull, under the snout tip), FangL_FX/FangR_FX (fang tips),
+Throat (ThroatSac, under the jaw), Core (Body, 0.5 over its top at (3.0, 5.0, -1.4)),
+Dive_FX (Body, the ground under the neck base, (0, 0, -4.13)), Ground_Body (ground under the
+Body centre), Ground_Tail4/9/14 (ground under the segment middle), Coil_Tail3/6/9/12 (the
+segment's belly height under its middle), TailTip_FX (Tail18, the tip gem point),
+HoodL_FX/HoodR_FX (the eye-spots).
+
+Tells (`Tell`, `TellBase`): EyeL/R, EyeSideL/R, BrowPearl, VeinGem2/3 (Neon, the
+reference's), FangTipL/R and HoodSpotL/R (Neon, hidden at rest), and these reference parts
+renamed so the fight's tells land on the approved look, **SmoothPlastic, coloured as before**
+(tellRun lerps their colour, so they light without glowing at rest): ThroatSac (the
+reference's cream `Throat` plate on the Jaw; the windup swell scales this block),
+ScaleSeam1..9 (the jade scutes of ref Neck1, Neck3, Body, Tail2..7; new segments Neck1/2,
+Neck4, Body, Tail3/4, 5-7, 8-10, 11-13, 14-16, 17/18 by centre), TailTipGem (the reference's
+dark tail-tip wedge). VeinGem4 no longer exists (the reference has two gems; nothing reads it).
+Hidden (Transparency 1, `PhaseReveal`): P2Crack1..6 (2) on the Body and Tail1..4 backs,
+P3Fin1..5 (3) on Neck1..5, BarbelL1/L2/R1/R2 and P3BarbelL/R (3).
+
+Gotchas: hood, fangs and tongue are inside other blocks at rest, so any pose that leaves them
+half out shows a cut panel; flare the hood at least 0.6 rad before it reads. The ThroatSac is
+a block on the Jaw (it opens with the jaw). Scutes span the cuts inside each reference segment,
+so a sharp pitch at those joints lifts a scute edge (yaw is clean: the scutes sit on the bend
+axis). No crown or halo exists.
+
+**The pose module and fight numbers still use the old body** (contract units x 1.668, a straight
+rest tail along +Z, head pivot 16.7 high, tail 82 studs). Until the animator re-derives
+`EnemyPoses/JadeJiao.luau` from the table above, the snake animates wrongly in the testbed.
 
 ### Jade Jiao movement and poses (`src/client/EnemyPoses/JadeJiao.luau`, `Serpent.luau`)
+
+**Stale: written for the previous body** (contract units, K = 1.668, straight rest tail). The
+body above replaced it; the numbers below need re-deriving.
 
 Pose module in the WolfKing API (`JOINTS`, `loops` idle/walk/run/circle, `moves`, `durations`,
 `sample`, `gaitRate`, `VARIANTS`, `VARIANT`, `setVariant`, `setAll`, `scaled`). Pose units

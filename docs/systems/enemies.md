@@ -584,8 +584,10 @@ moving body, the phone cost of seven stormBolts, the thrown boulder (a three-par
 
 ### Jade Jiao (testbed trial)
 `Config.Wilds.NEW_JIAO = Config.TESTBED` gates the whole boss; **spawn it from the admin panel** (no
-testbed zone). A 115-stud jade serpent (body `JadeJiao`, 37 joints, 3.17x the roster python, see
-`art/enemies/beasts/RIGS.md`), QC7, 1500 HP, weight 9, walk 6, run 21 (+2.5% a phase; the player
+testbed zone). A coiled jade serpent with a 77-stud spine, tail tip to head pivot (body `JadeJiao`:
+the user's approved reference snake, the roster python at 3.17x, split into 37 joints; see
+`art/enemies/beasts/RIGS.md`; the pose module and the reaches below still assume the previous
+115-stud body until re-derived), QC7, 1500 HP, weight 9, walk 6, run 21 (+2.5% a phase; the player
 walks at 16), aggro 60, leash 130. Poses `EnemyPoses/JadeJiao.luau`, effects
 `EnemyFX/JadeJiao.luau`, poison visuals `PoisonFX.luau`, boss bar theme `BossThemes.JadeJiao`,
 sounds `SFX.Enemies.JadeJiao` (existing serpent/boom ids pitched down, unheard).

@@ -278,6 +278,22 @@ The perch (root 1.5 studs lower after a dive) needs nothing: effects ride the bo
 read the root's ground. Whether the emberFan sends one windup per circle or one for
 all is unknown; both are handled. Untested in play.
 
+### Frost Spider effects (third wave)
+`EnemyFX/FrostSpider.luau`, templates `Effects.FrostSpider` (12, 39 emitters), builder
+`tools/vfx_specs/FrostSpider.luau`; ice white-blue on slate.
+
+| Beat | Layers (templates) |
+|---|---|
+| Windup | the six eyes (`Eye1..6`) EyeGlint; FangTell/FrostVeinTell/CoreGlow dim -> ice; FangGlint (slate base, star, chill) on each fang |
+| webShot | SpinneretGlow (glow, motes); at the strike a WebBeam thread (slate base + bright thread) to the landing for 0.4 s, then WebSplat (frost puffs, shards, glint) + `Impact.explode` ice |
+| `patch` cue (slow web, `Effect enemyPatch`) | WebPatch refit to `seconds`/`radius`: slate base, silk disc, dark and bright edge rings (the edge reads without colour), strands, twinkling glints; characters standing inside get FootFrost |
+| frostFang | strike: FangFrost (two ice crescents on slate, shards); hit: FrostHit (pop, crystals, stars, frost); skid: `Impact.skid` ice from the four front feet |
+| `slow` cue | FootFrost on both feet (slate base, rime ring, chill motes) for the rest of the slow (Humanoid `SlowUntil`, server time; else 1.5 s) |
+| hop / stagger / death | SkitterPuff; StaggerFlash; Death (shatters: 26 shards, flash, frost mist, glint) |
+
+Untested in play. Smoke-tested against the real body: `tools/enemy_fx_smoke.luau`
+(destroy the old module copies before `push_src`, or `require` returns the cached one).
+
 ### Arrivals, skids and turning into moves (testbed, `Config.Wilds.WEIGHTED_MOVES`)
 The server side of telegraphs.md "Attacks that make sense" (2026-10-22 boss feel pass).
 `WEIGHTED_MOVES = TESTBED`: the main game keeps the old snap-and-slide until the user

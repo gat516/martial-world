@@ -187,7 +187,7 @@ also follows a held weapon swapped mid-track, and the guard raised through
 GuardController's own right-click binding drove the Guandao. A weapon that hangs
 at rest under a posed guard means the generic `Animations.Guard` clips are
 playing (they don't key the weapon): a place not yet synced to the per-class
-GuardController, a stowed weapon (Fist), or Spear/Staff (no clips yet).
+GuardController, or a stowed weapon (Fist).
 
 Checked numerically (every key plus in-betweens at quarter steps): the grip
 anchor stays on the fist (Guandao under 0.001 stud; Greatsword up to 0.13 in
@@ -202,3 +202,94 @@ Greatsword left hand moves to the grip), every weapon point stays above the
 floor, and each clip plays through an Animator with every keyed Transform
 arriving. Untested: the look (user review), feel in play, blending with the
 class idle/walk and M1 clips, and other clients' view.
+
+## Polearms (Spear, Staff)
+
+Per-class guards that bar the threat with the shaft held sideways and deflect
+with it. Each class folder holds `<Class>.rbxm` (a Folder `<Class>` with four
+KeyframeSequences) and `clips/` (one `.rbxm` per clip, uploaded). Built and
+checked by `polearm_guard.luau` (sandbox Studio, Edit mode): poses are forward
+kinematics on the rigid R6 arms (torso lean/turn, the two arm aims, head), the
+shaft runs from the right fist through the left one, so the off hand is on the
+shaft by construction, and every clip is baked at 1/30 s so it stays there
+through the in-betweens. `Right Arm > Hilt` is keyed so the shaft points that
+way, with its spin about its own axis pinned to the world (blade, tassel and
+ribbon don't twist as the arms move).
+
+Keyed joints: Torso (lean at most 0.1 rad, turn up to 0.33 rad in a deflect,
+0.05 at rest), Head, Right Arm, Left Arm, Right Arm > Hilt. Legs unkeyed, so
+walking plays underneath. Every Parry, ParryAlt and Impact starts and ends on
+exactly the Hold clip's first frame.
+
+| Clip | Length | Loop | Priority | Markers |
+|---|---|---|---|---|
+| `<Class>GuardHold` | 1.6 s | yes | Action | none (slow breath at 0.8 s) |
+| `<Class>GuardParry` | 0.36 s | no | Action2 | `Contact` at 0.07 s |
+| `<Class>GuardParryAlt` | 0.36 s | no | Action2 | `Contact` at 0.07 s |
+| `<Class>GuardImpact` | 0.25 s | no | Action2 | none (peak shove at 0.05 s) |
+
+Parry and ParryAlt: a 0.035 s circling lead-in, the deflect snap at 0.07 s, a
+small overshoot to 0.13 s, an eased return to Hold by 0.36 s.
+
+### Spear
+
+Hold: the shaft level across the front of the chest about 1.5 studs out,
+hands wide (2.4 studs apart), right fist on the grip near the butt so the tip
+runs out about 6.4 studs to the left. Parry (lan): the tip end dips, then
+circles up and beats the blow out and up to the left (shaft up 39 deg, torso
+turning left). ParryAlt (na): the tip end rises, then rolls over and presses
+the blow down to the front-left while the butt comes up on the right (shaft
+down 20 deg, torso turning right). Impact: the bar is shoved down at the hands
+and the tip kicks up 15 deg, the body rocks back, then rebounds.
+
+| Clip | Id |
+|---|---|
+| SpearGuardHold | rbxassetid://108699202136111 |
+| SpearGuardParry | rbxassetid://89429906926556 |
+| SpearGuardParryAlt | rbxassetid://111482987339990 |
+| SpearGuardImpact | rbxassetid://116852337514503 |
+
+### Staff
+
+Hold: held mid-shaft, level across the chest about 1.5 studs out, hands 2.1
+studs apart, head end (ribbon) to the left. Parry: the staff wheels in the
+frontal plane, the head end whipping up and out on the left (up 50 deg) and
+the butt dropping by the right leg, torso turning left. ParryAlt: it wheels
+the other way, the butt end striking up on the right (shaft 42-45 deg), torso
+turning right. Impact: the bar is driven down and in, the body rocks back,
+then rebounds.
+
+| Clip | Id |
+|---|---|
+| StaffGuardHold | rbxassetid://71738214491638 |
+| StaffGuardParry | rbxassetid://135148093683500 |
+| StaffGuardParryAlt | rbxassetid://108288631910914 |
+| StaffGuardImpact | rbxassetid://97655702612404 |
+
+Verified on a player character in a sandbox Play session: an R6 body (the
+sandbox place spawns R15, so a stock R6 model was set as the character), the
+real `WeaponModels.Spear`/`Staff` attached the way `Weapons.apply` does it
+(PivotTo the motor's rest frame, parent, then `Hilt.Part0 = Right Arm`;
+`Weapons.equip` itself refused with "Still loading" since a local place has no
+DataStore), each clip played on the client's Animator and frozen at every key:
+the `Hilt` part's world CFrame matched the authored pose within 0.001 stud and
+0.1 deg in all eight clips. The uploaded assets reload with the same keyframes,
+Hilt poses, lengths, loop and priority.
+
+Chaining: Parry > ParryAlt every 0.3 s over Hold keeps the off hand within
+0.07 stud of the shaft only if the previous one-shot clip is stopped when the
+next starts (`track:Stop(fade)`). Left running, a finished non-looped track
+fades out for about 0.3 s holding its last frame at the same priority, the two
+blend, the off hand slides up to 0.4 stud off the shaft and the deflect plays
+at about half size. GuardController's `play()` doesn't stop the others yet.
+
+Checked numerically on every baked frame: off hand on the shaft (0 by
+construction, 0.07 at most between baked frames when played), no shaft sample
+in the torso or head (torso clearance at least 0.06), the shaft clears the
+legs at rest and at a 0.6 rad stride except the Spear lan follow-through and
+the Staff wheel's butt end, which brush a fully striding leg by under 0.02;
+the shaft enters the blocky R6 arm past the fist by up to 0.18 (Staff) / 0.15
+(Spear), both ends stay at least 0.15 above the floor, and an arm corner
+touches the head by at most 0.03 (Staff Impact). Untested: the look (user
+review), feel in play, blending with the class idle/walk and M1 clips, the
+real GuardController binding, and other clients' view.

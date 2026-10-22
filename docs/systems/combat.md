@@ -223,8 +223,12 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   (ParryAlt to the class's own Parry, then the generic Parry). A chain plays
   Parry on odd blows and ParryAlt on even ones. To add a class's ids, put
   `<Content name="AnimationId"><url>rbxassetid://ID</url></Content>` in its
-  empty Animation items (Spear and Staff are still empty). Fist, Sword, Saber,
-  Greatsword and Guandao are filled. Sources and ids are in
+  empty Animation items; every class is filled. Known gap: a chain plays each
+  clip without stopping the previous one-shot, and a finished non-looped track
+  lingers about 0.3 s on its last frame at the same priority, so the next
+  deflect blends with it at about half size (a two-handed off hand slides up to
+  0.4 stud off the shaft); stopping the other Parry/ParryAlt/Impact track with
+  the same fade fixes it. Sources and ids are in
   `art/player/guard/README.md`, published with
   `tools/upload_asset.py animation`. `SoundService.SFX` in
   `assets/SoundGroups/SFX.rbxmx` holds `GuardRaise` (soft cloth when the local

@@ -62,6 +62,7 @@ Split big map or content passes across several subagents when the parts don't sh
 - No one starts Play or touches terrain outside their own task. If Studio flips into Play, keep working on files and wait.
 - Commit immediately after staging, and only your own files and hunks. For shared docs (`map.md`, `README.md`), build the index blob from `git show HEAD:` plus your hunk. Check `git diff --cached --name-only` first. After committing through a temporary `GIT_INDEX_FILE`, `git reset -- <your paths>` in the shared index, or it keeps the old blobs as staged reverts. Two commits have been swallowed by parallel sessions so far.
 - Split by zone only when the zones don't share code or layout files.
+- Edit scripts read the whole file before opening it for writing: `s = open(p).read()`, then `open(p, "w")`. Never open a file for writing first (`with open(p, "w") as f: ... open(p).read()`), which truncates it. On 2026-10-22 this emptied `SFX.rbxmx` and `docs/systems/enemies.md` mid-pass, and other agents' uncommitted hunks were lost. Write to a temp file and rename for big files.
 
 ## Studio instances
 

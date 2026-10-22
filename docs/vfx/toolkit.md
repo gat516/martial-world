@@ -604,6 +604,20 @@ property list, so it is wrong for effects. Use the binary exporter:
 5. Destroy the staging copy; with Rojo connected, check the real folder now
    holds your changes and there is one copy of it.
 
+### Parallel vfx agents: merge, don't copy
+
+`assets/Effects.rbxm` is one file holding every group, and a sandbox's export
+holds the whole folder as it was when that sandbox opened. When two vfx
+agents run at once, copying an export over the file (`vfx_export.sh`) throws
+away the other agent's shipped group. Instead, export under your own name
+(`PostAsync("http://127.0.0.1:8766/Effects_<Group>.rbxm", ...)` lands in
+`tools/frag/Effects_<Group>.rbxm`) and splice only your groups in:
+`python3 tools/effects_merge.py tools/frag/Effects_<Group>.rbxm <Group> [...]`.
+It replaces or adds `Effects.<Group>` and leaves every other group as it is
+on disk; attributes, tags and Refs survive (a merge of a file with itself
+round-trips identically). Merge right before you commit, and stage only
+`assets/Effects.rbxm` plus your own files.
+
 ## Playing effects in-game
 
 - Client side, in the module that owns the moment (CombatEffects for casts and

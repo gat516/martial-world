@@ -789,7 +789,15 @@ projectiles use the same language, then the shot itself takes over:
   windup, then `fire` with `onHit = ctx.hurtPlayer(enemy, attack, player)` and
   register its drawer in that boss's EnemyFX. The knockback still pushes away
   from the boss, not along the shot.
-- Candidates: Thunder Ape `boulderHurl` (lob) and `thunderLance`; Jade Jiao
+- Converted (testbed, untested): Thunder Ape `boulderHurl` and `thunderLance` (`Attack.projectile`).
+  The lob warns its r10 landing circle for the whole 1.7 s windup (`warnLanding`, locked at windup start),
+  fires `cue "boulder"` at 1.25 s from the root-relative offset (7, 14, -2) (right hand overhead), radius 5,
+  gravity 160, aimed with `lobVelocity` to land on the circle 0.45 s later, `data = { size = 5 }`. A direct
+  hit hurts; on `onEnd` anyone else in the r10 circle takes the impact, only if it landed inside the circle.
+  The lance warns the 8 x 90 lane (`warnLane`, 1.4 s) and fires `cue "thunderLance"` at windup end from 16
+  studs ahead of the root at 3.5 studs above the ground: speed 150, radius 2.5 (matches the lane's half width),
+  range 74, `pierce`, `data = { length = 90, width = 8 }`. A stagger of the ape before the release cancels the
+  boulder's fire. Other candidates: Jade Jiao
   `venomLance` and `venomSpray`; Nine-Tailed Fox `foxfireVolley`. Each goes to
   the testbed first.
 

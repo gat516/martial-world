@@ -39,6 +39,7 @@ local DEFAULT_ROAM = 15 -- studs an enemy wanders from home unless told otherwis
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local PlayerStun = require(script.Parent.PlayerStun)
+local Projectiles = require(script.Parent.Projectiles)
 local PlayerPoison = require(script.Parent.PlayerPoison)
 local BossAttacks = require(script.Parent.BossAttacks)
 local Realms = require(ReplicatedStorage.Shared.Realms)
@@ -776,9 +777,38 @@ local function reactTo(enemy: Enemy, attack: Enemies.Attack, player: Player, stu
 	end
 end
 
+-- A perfect parry (Guard): the beast is thrown off balance, whatever it was
+-- doing. Bosses recover sooner.
+local function parried(enemy: Enemy)
+	if enemies[enemy.model] ~= enemy or enemy.health <= 0 or enemy.state == "return" then
+		return
+	end
+	local Guarding = CombatConfig.GUARD
+	enemy.shape, enemy.dashTo, enemy.landShape = nil, nil, nil
+	enemy.strikeId += 1
+	enemy.hopPending = false
+	enemy.followUp = nil
+	releaseSlot(enemy)
+	setSpeed(enemy, enemy.def.runSpeed)
+	enemy.mover.turn = false
+	stop(enemy)
+	setState(enemy, "stagger")
+	enemy.stateUntil = os.clock() + (if enemy.def.boss then Guarding.PARRY_STAGGER_BOSS else Guarding.PARRY_STAGGER)
+	enemy.staggerImmuneUntil = enemy.stateUntil + Knockback.RESTAGGER
+end
+
+-- Combat.hurt for an enemy's attack: guardable from the beast's position.
+local function hurtBy(enemy: Enemy, attack: Enemies.Attack, player: Player, damage: number)
+	local result = Combat.hurt(player, damage, false, enemy.def.id, enemy.root.Position, CC.HEAVY_KINDS[attack.kind] == true)
+	if result == "parried" then
+		parried(enemy)
+	end
+	return result
+end
+
 -- Hurt one player with an attack, and show the hit to everyone (EnemyFX `hit`).
 local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player)
-	local result = Combat.hurt(player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, false, enemy.def.id)
+	local result = hurtBy(enemy, attack, player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage)
 	if result == "hit" and player.Character then
 		effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
 		local stun = attack.stun
@@ -1001,7 +1031,7 @@ end
 
 local function hurtPart(enemy: Enemy, attack: Enemies.Attack, part: any, player: Player)
 	local damage = attack.damage * (part.damageScale or 1) * Realms.ofBeast(enemy.def.realm).beastDamage
-	local result = Combat.hurt(player, damage, false, enemy.def.id)
+	local result = hurtBy(enemy, attack, player, damage)
 	if result ~= "hit" or not player.Character then
 		return
 	end
@@ -1064,6 +1094,77 @@ local function resolveParts(enemy: Enemy, attack: Enemies.Attack, shape: Shape)
 			task.delay(part.delay, fire)
 		end
 	end
+end
+
+-- A lob (boulderHurl): released `release` seconds into the windup from the fist
+-- (a root-relative offset), arriving on the locked circle `flight` seconds later,
+-- exactly at windup end. A direct hit hurts; where it lands, anyone else in the
+-- circle takes the impact, but only if it landed inside the circle it showed.
+local function launchLob(enemy: Enemy, attack: Enemies.Attack, shape: Shape, id: number)
+	local proj = attack.projectile :: any
+	local model = enemy.model
+	local center = shape.center :: Vector3
+	task.delay(proj.release or 0, function()
+		if enemies[model] ~= enemy or enemy.health <= 0 or enemy.strikeId ~= id or enemy.state ~= "windup" then
+			return
+		end
+		local origin = enemy.root.CFrame:PointToWorldSpace(proj.origin)
+		local gravity = proj.gravity or 0
+		local hitSet: { [Player]: boolean } = {}
+		Projectiles.fire({
+			owner = model,
+			cue = proj.cue,
+			origin = origin,
+			velocity = Projectiles.lobVelocity(origin, center + Vector3.new(0, proj.radius, 0), proj.flight or 0.45, gravity),
+			radius = proj.radius,
+			gravity = gravity,
+			lifetime = (proj.flight or 0.45) + 1.5,
+			data = proj.data,
+			onHit = function(player: Player)
+				hitSet[player] = true
+				hurtPlayer(enemy, attack, player)
+				return nil
+			end,
+			onEnd = function(position: Vector3, reason: string)
+				if reason == "cancel" or reason == "owner" or enemies[model] ~= enemy then
+					return
+				end
+				if flat(position - center).Magnitude > (attack.radius :: number) then
+					return -- stopped short or wide of the circle it showed: no splash
+				end
+				local splash: Shape = { kind = "circle", center = center, radius = attack.radius }
+				for _, player in Players:GetPlayers() do
+					local root = playerRoot(player)
+					if root and not hitSet[player] and caught(splash, player, root) then
+						hurtPlayer(enemy, attack, player)
+					end
+				end
+			end,
+		})
+	end)
+end
+
+-- A lance (thunderLance): a straight bolt down the warned lane at windup end.
+local function fireLance(enemy: Enemy, attack: Enemies.Attack)
+	local proj = attack.projectile :: any
+	local look = flat(enemy.root.CFrame.LookVector)
+	local dir = if look.Magnitude > 0.1 then look.Unit else Vector3.zAxis
+	local origin = groundAt(enemy.root.Position) + dir * -proj.origin.Z + Vector3.new(0, 3.5, 0)
+	Projectiles.fire({
+		owner = enemy.model,
+		cue = proj.cue,
+		origin = origin,
+		velocity = dir * proj.speed,
+		radius = proj.radius,
+		range = proj.range,
+		pierce = proj.pierce,
+		lifetime = 1.5,
+		data = proj.data,
+		onHit = function(player: Player)
+			hurtPlayer(enemy, attack, player)
+			return nil
+		end,
+	})
 end
 
 local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, attack: Enemies.Attack)
@@ -1162,7 +1263,17 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	-- which attack, for per-attack poses and effects (EnemyAnimator, EnemyFX)
 	enemy.model:SetAttribute("Attack", name)
 	setState(enemy, "windup")
-	telegraphRemote:FireAllClients(shape, seconds, enemy.model, name, serverNow())
+	if attack.projectile then
+		-- a real projectile: warn the lane or the landing circle now, fire later
+		if attack.kind == "lance" then
+			Projectiles.warnLane(enemy.model, name, ground, dir, attack.length :: number, attack.width :: number, seconds)
+		else
+			Projectiles.warnLanding(enemy.model, name, shape.center :: Vector3, attack.radius :: number, seconds)
+			launchLob(enemy, attack, shape, enemy.strikeId)
+		end
+	else
+		telegraphRemote:FireAllClients(shape, seconds, enemy.model, name, serverNow())
+	end
 	if BossAttacks.SHAPED[attack.kind] then
 		BossAttacks.begin(enemy, attack)
 	end
@@ -1382,6 +1493,10 @@ local function resolveAttack(enemy: Enemy, now: number)
 		enemy.landAttack = attack -- enemy.attack moves on at the end of this function
 	elseif attack.kind == "barrage" or attack.kind == "retreat" then
 		resolveParts(enemy, attack, shape)
+	elseif attack.projectile then
+		if attack.kind == "lance" then
+			fireLance(enemy, attack)
+		end -- a lob was released mid-windup (launchLob)
 	elseif enemy.dashTo and TURNS then
 		hurtAlongDash(enemy, attack, shape)
 	else

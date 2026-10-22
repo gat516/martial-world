@@ -224,6 +224,20 @@ them only for work that needs them, and never start Play in them.
   poses whose blend put a fist 6.8 studs underground (Thunder Ape,
   2026-10-22). After switching on `seamless`, probe every move again: it
   exposes pops the old blend hid.
+- Probe the loops too (walk, gallop, circle), not only attacks, and scan
+  per-joint steps at 60 Hz over `M.sample(move, phase, u)`: 30 Hz under-reports
+  flips, and the Elder Wolf King's walk flipped its lower legs 60 degrees at
+  every footfall with every attack probe clean (2026-10-22). A variant that
+  probes at 0 studs/s isn't moving: an overlay on a planted joint is silently
+  undone by the plant solve.
+- Leg bend flips between a solver's two solutions: `Quadruped`'s opt-in
+  `steady = true` (the King only, notes in `wolf_family/RIGS.md`) carries a
+  foot being put down or picked up on an arc and keeps the natural fold. It
+  isn't a drop-in: a family's poses were tuned against the old blend, so
+  adopting it needs that family's own probe and pose QA. `seamlessStrike`
+  is the variant of `seamless` for families with dashes: stationary strikes
+  run straight on, dash phases keep their blend.
+- Studio MCP calls run one at a time; parallel `execute_luau` calls time out.
 - A planted limb blended toward a free one passes through "straight down".
   The solver takes the bend nearest the authored angle, so give planting keys
   an authored elbow or knee near the planted solution, or it flips mid-blend.

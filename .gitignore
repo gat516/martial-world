@@ -2,3 +2,5 @@
 tools/frag/
 art/fbx_export/
 .sandbox-*.project.json
+__pycache__/
+.claude/worktrees/

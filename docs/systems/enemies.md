@@ -591,6 +591,24 @@ lane on uneven ground, the perch drop reading as a landing, three or four bats' 
 whether overlapping shriek and dive windups feel fair (one slot at a time), the `slow` strength,
 and every number.
 
+### Next beasts: Blood-Fed Hound and Ember-Scale Pangolin (approved concepts, 2026-10-22)
+Approved as concepts; each goes to a fresh enemy-designer for a design card once the
+Toad, Centipede and Bat body rebuilds are done (so no more sandboxes open at once).
+- **Blood-Fed Hound** (QC7, Ruined Borderlands: Deserters' Camp, Bone Gully). A war-hound the
+  Blood Sect raises on cultivators' blood: hairless, scarred, ribs showing, a chain collar,
+  blood talismans nailed into its back like the Blood Sect Cultist's. A pack of 2-3 that
+  rushes straight in (the Shadow Mane flanks instead); its bite bleeds (the poison system,
+  reskinned); it hunts the lowest-health or bleeding player; under half health its talismans
+  burn and it speeds up. Wolf-family rig. It brings the blood cultivators into the wilds
+  before humanoid enemies can animate; later a Cultist handler can lead the pack.
+- **Ember-Scale Pangolin** (QC5-6, Ashen Hollow, the burned village). The "armour that
+  pierces mountains", come out of the village fire with scales of cooled ember glowing at
+  the seams. Roll charge (curls into a burning wheel, leaves an ember trail), curl guard (the
+  Tortoise's `guard`), a tail flail at players behind it; its scales scatter as embers on
+  death.
+- The cut Frost Spider leaves no FE1 (Outer Wastes) beast; either of these could move up, or
+  the slot waits for the Outer Wastes design.
+
 ### Elder Wolf King (testbed trial)
 User direction (2026-10-21): try the animation workflow on the wolf boss; make it
 reasonably hard, with real risk of dying, and add fast reaction checks: a paw swipe

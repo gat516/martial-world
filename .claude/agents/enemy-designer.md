@@ -162,8 +162,17 @@ Plus one line of open questions, if any. No lore, no difficulty tables, no
 reward math, no file lists. Write the modeler/vfx/animator briefs after the
 user approves, and return them with the approval reply.
 
-The main session keeps one enemy-designer session running across enemies and
-sends it the next enemy, so it doesn't re-read the codebase each time.
+**Design for the animation and VFX passes from the start** (user, 2026-10-22).
+Every beast gets an animator pass and a vfx pass, so the card and the code
+assume them: attacks are poses and beats an animator can key (a readable
+windup, a clear strike frame, a recover), the body has the joints those poses
+need (split segments, jointed tails, wings, jaws), and every tell, strike and
+hit has a named attach point or tell part and a cue for vfx to hang an effect
+on. Don't design an attack that only works as a hitbox, and don't leave a moment
+the effects or animation will need with nothing to attach to.
+
+Each enemy gets a fresh enemy-designer session (AGENTS.md, "Fresh agents per
+item"); carry what the next one needs in the docs.
 
 ## Bodies (user decisions, 2026-10-21)
 
@@ -173,7 +182,7 @@ sends it the next enemy, so it doesn't re-read the codebase each time.
   with block, limb, fin, tri and bevel helpers, and a `Segment` attribute on detail
   parts) plus `art/enemies/spirit_wolf/rig_wolf.luau` (the shared Motor6D
   assembler; every joint frame is identity in model space, and legacy names are
-  kept). Brief the modeler only for props, not for enemy bodies.
+  kept). The `modeler` builds the body from your brief, in Studio parts.
 - **Every humanoid enemy is a standard R6 rig** unless the user says otherwise:
   clone `Workspace.Rig`, keep the standard part and Motor6D names, and keep every
   limb visible. Part-built armour and outfits are welcome. Weld each piece to the

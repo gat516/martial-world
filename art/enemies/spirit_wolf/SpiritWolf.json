@@ -1,0 +1,1075 @@
+{
+ "units": "1 Blender unit = 1 stud. center/size in Blender axes (x, y forward, z up); roblox_center/roblox_size in model space (ground Y 0, faces -Z, left -X): Size = (bx, bz, by), centre = (cx, cz, -cy), each MeshPart's rotation = CFrame.Angles(0, math.pi, 0) (the FBX import's frame).",
+ "total_tris": 4220,
+ "center": [
+  0.0,
+  -0.41,
+  2.275
+ ],
+ "size": [
+  2.743,
+  10.66,
+  4.55
+ ],
+ "roblox_size": [
+  2.743,
+  4.55,
+  10.66
+ ],
+ "palette": {
+  "file": "SpiritWolfPalette.png",
+  "swatches": {
+   "slate": "#2F3B50",
+   "slatehi": "#46566E",
+   "cream": "#C8C1B0",
+   "shade": "#9E978A",
+   "ivory": "#EEE9DC",
+   "dark": "#1B1E25",
+   "mouth": "#6B2A33",
+   "eye": "#FF2B2B"
+  },
+  "note": "64x64, 4x4 grid of 16 px cells, rows mirrored; every face's UVs sit on one cell centre"
+ },
+ "joints": {
+  "JointRoot": {
+   "pivot": [
+    0,
+    2.85,
+    1.6
+   ],
+   "part0": null,
+   "part1": "Hips"
+  },
+  "JointSpine": {
+   "pivot": [
+    0,
+    3.0,
+    0.8
+   ],
+   "part0": "Hips",
+   "part1": "Chest"
+  },
+  "JointNeck": {
+   "pivot": [
+    0,
+    3.15,
+    -1.75
+   ],
+   "part0": "Chest",
+   "part1": "Neck"
+  },
+  "JointHead": {
+   "pivot": [
+    0,
+    3.15,
+    -2.85
+   ],
+   "part0": "Neck",
+   "part1": "Skull"
+  },
+  "JointJaw": {
+   "pivot": [
+    0,
+    2.75,
+    -3.4
+   ],
+   "part0": "Skull",
+   "part1": "Jaw"
+  },
+  "JointEarL": {
+   "pivot": [
+    -0.45,
+    3.7,
+    -3.15
+   ],
+   "part0": "Skull",
+   "part1": "EarL"
+  },
+  "JointEarR": {
+   "pivot": [
+    0.45,
+    3.7,
+    -3.15
+   ],
+   "part0": "Skull",
+   "part1": "EarR"
+  },
+  "JointTail": {
+   "pivot": [
+    0,
+    3.3,
+    2.75
+   ],
+   "part0": "Hips",
+   "part1": "TailBase"
+  },
+  "JointTail2": {
+   "pivot": [
+    0,
+    3.25,
+    3.75
+   ],
+   "part0": "TailBase",
+   "part1": "TailMid"
+  },
+  "JointTail3": {
+   "pivot": [
+    0,
+    3.4,
+    4.85
+   ],
+   "part0": "TailMid",
+   "part1": "TailTip"
+  },
+  "JointLegFL": {
+   "pivot": [
+    -0.7,
+    2.45,
+    -1.3
+   ],
+   "part0": "Chest",
+   "part1": "UpperLegFL"
+  },
+  "JointElbowFL": {
+   "pivot": [
+    -0.72,
+    1.35,
+    -1.25
+   ],
+   "part0": "UpperLegFL",
+   "part1": "LowerLegFL"
+  },
+  "JointWristFL": {
+   "pivot": [
+    -0.72,
+    0.32,
+    -1.35
+   ],
+   "part0": "LowerLegFL",
+   "part1": "PawFL"
+  },
+  "JointLegBL": {
+   "pivot": [
+    -0.7,
+    2.5,
+    2.1
+   ],
+   "part0": "Hips",
+   "part1": "UpperLegBL"
+  },
+  "JointKneeBL": {
+   "pivot": [
+    -0.75,
+    1.35,
+    1.8
+   ],
+   "part0": "UpperLegBL",
+   "part1": "LowerLegBL"
+  },
+  "JointHockBL": {
+   "pivot": [
+    -0.75,
+    0.62,
+    2.3
+   ],
+   "part0": "LowerLegBL",
+   "part1": "PawBL"
+  },
+  "JointLegFR": {
+   "pivot": [
+    0.7,
+    2.45,
+    -1.3
+   ],
+   "part0": "Chest",
+   "part1": "UpperLegFR"
+  },
+  "JointElbowFR": {
+   "pivot": [
+    0.72,
+    1.35,
+    -1.25
+   ],
+   "part0": "UpperLegFR",
+   "part1": "LowerLegFR"
+  },
+  "JointWristFR": {
+   "pivot": [
+    0.72,
+    0.32,
+    -1.35
+   ],
+   "part0": "LowerLegFR",
+   "part1": "PawFR"
+  },
+  "JointLegBR": {
+   "pivot": [
+    0.7,
+    2.5,
+    2.1
+   ],
+   "part0": "Hips",
+   "part1": "UpperLegBR"
+  },
+  "JointKneeBR": {
+   "pivot": [
+    0.75,
+    1.35,
+    1.8
+   ],
+   "part0": "UpperLegBR",
+   "part1": "LowerLegBR"
+  },
+  "JointHockBR": {
+   "pivot": [
+    0.75,
+    0.62,
+    2.3
+   ],
+   "part0": "LowerLegBR",
+   "part1": "PawBR"
+  }
+ },
+ "meshes": {
+  "Hips": {
+   "tris": 376,
+   "center": [
+    0.0,
+    -1.7,
+    3.018
+   ],
+   "size": [
+    2.16,
+    2.599,
+    1.935
+   ],
+   "roblox_center": [
+    0.0,
+    3.018,
+    1.7
+   ],
+   "roblox_size": [
+    2.16,
+    1.935,
+    2.599
+   ],
+   "joint": "JointRoot",
+   "textured": true,
+   "spec_center": [
+    0,
+    2.85,
+    1.9
+   ],
+   "spec_size": [
+    1.9,
+    1.7,
+    1.8
+   ]
+  },
+  "Chest": {
+   "tris": 474,
+   "center": [
+    0.0,
+    0.415,
+    3.076
+   ],
+   "size": [
+    2.324,
+    3.226,
+    2.711
+   ],
+   "roblox_center": [
+    0.0,
+    3.076,
+    -0.415
+   ],
+   "roblox_size": [
+    2.324,
+    2.711,
+    3.226
+   ],
+   "joint": "JointSpine",
+   "textured": true,
+   "spec_center": [
+    0,
+    2.9,
+    -0.5
+   ],
+   "spec_size": [
+    2.2,
+    2.0,
+    2.8
+   ]
+  },
+  "Neck": {
+   "tris": 364,
+   "center": [
+    0.0,
+    2.299,
+    3.376
+   ],
+   "size": [
+    2.743,
+    1.699,
+    2.348
+   ],
+   "roblox_center": [
+    0.0,
+    3.376,
+    -2.299
+   ],
+   "roblox_size": [
+    2.743,
+    2.348,
+    1.699
+   ],
+   "joint": "JointNeck",
+   "textured": true,
+   "spec_center": [
+    0,
+    3.05,
+    -2.35
+   ],
+   "spec_size": [
+    1.3,
+    1.3,
+    1.3
+   ]
+  },
+  "Skull": {
+   "tris": 406,
+   "center": [
+    0.0,
+    3.735,
+    3.1
+   ],
+   "size": [
+    2.0,
+    2.37,
+    1.36
+   ],
+   "roblox_center": [
+    0.0,
+    3.1,
+    -3.735
+   ],
+   "roblox_size": [
+    2.0,
+    1.36,
+    2.37
+   ],
+   "joint": "JointHead",
+   "textured": true,
+   "spec_center": [
+    0,
+    3.15,
+    -3.35
+   ],
+   "spec_size": [
+    1.45,
+    1.25,
+    1.3
+   ]
+  },
+  "Jaw": {
+   "tris": 208,
+   "center": [
+    0.0,
+    3.911,
+    2.67
+   ],
+   "size": [
+    0.68,
+    1.438,
+    0.5
+   ],
+   "roblox_center": [
+    0.0,
+    2.67,
+    -3.911
+   ],
+   "roblox_size": [
+    0.68,
+    0.5,
+    1.438
+   ],
+   "joint": "JointJaw",
+   "textured": true,
+   "spec_center": [
+    0,
+    2.55,
+    -4.05
+   ],
+   "spec_size": [
+    0.75,
+    0.3,
+    1.15
+   ]
+  },
+  "TailBase": {
+   "tris": 154,
+   "center": [
+    0.0,
+    -3.286,
+    3.25
+   ],
+   "size": [
+    0.842,
+    1.569,
+    0.721
+   ],
+   "roblox_center": [
+    0.0,
+    3.25,
+    3.286
+   ],
+   "roblox_size": [
+    0.842,
+    0.721,
+    1.569
+   ],
+   "joint": "JointTail",
+   "textured": true,
+   "spec_center": [
+    0,
+    3.25,
+    3.25
+   ],
+   "spec_size": [
+    0.7,
+    0.7,
+    1.1
+   ]
+  },
+  "TailMid": {
+   "tris": 196,
+   "center": [
+    0.0,
+    -4.308,
+    3.341
+   ],
+   "size": [
+    0.946,
+    1.714,
+    0.915
+   ],
+   "roblox_center": [
+    0.0,
+    3.341,
+    4.308
+   ],
+   "roblox_size": [
+    0.946,
+    0.915,
+    1.714
+   ],
+   "joint": "JointTail2",
+   "textured": true,
+   "spec_center": [
+    0,
+    3.3,
+    4.3
+   ],
+   "spec_size": [
+    0.8,
+    0.8,
+    1.2
+   ]
+  },
+  "TailTip": {
+   "tris": 178,
+   "center": [
+    0.0,
+    -5.141,
+    3.738
+   ],
+   "size": [
+    0.79,
+    1.197,
+    1.325
+   ],
+   "roblox_center": [
+    0.0,
+    3.738,
+    5.141
+   ],
+   "roblox_size": [
+    0.79,
+    1.325,
+    1.197
+   ],
+   "joint": "JointTail3",
+   "textured": true,
+   "spec_center": [
+    0,
+    3.75,
+    5.3
+   ],
+   "spec_size": [
+    0.6,
+    0.9,
+    0.9
+   ]
+  },
+  "EarL": {
+   "tris": 14,
+   "center": [
+    -0.45,
+    3.13,
+    3.975
+   ],
+   "size": [
+    0.42,
+    0.26,
+    0.95
+   ],
+   "roblox_center": [
+    -0.45,
+    3.975,
+    -3.13
+   ],
+   "roblox_size": [
+    0.42,
+    0.95,
+    0.26
+   ],
+   "joint": "JointEarL",
+   "textured": true,
+   "spec_center": [
+    -0.5,
+    4.05,
+    -3.1
+   ],
+   "spec_size": [
+    0.45,
+    0.75,
+    0.25
+   ]
+  },
+  "EyeL": {
+   "tris": 12,
+   "center": [
+    -0.375,
+    3.971,
+    3.305
+   ],
+   "size": [
+    0.293,
+    0.184,
+    0.129
+   ],
+   "roblox_center": [
+    -0.375,
+    3.305,
+    -3.971
+   ],
+   "roblox_size": [
+    0.293,
+    0.129,
+    0.184
+   ],
+   "joint": "Skull (welded)",
+   "textured": false,
+   "spec_center": [
+    -0.38,
+    3.3,
+    -3.98
+   ],
+   "spec_size": [
+    0.3,
+    0.14,
+    0.08
+   ]
+  },
+  "UpperLegFL": {
+   "tris": 140,
+   "center": [
+    -0.7,
+    1.175,
+    1.946
+   ],
+   "size": [
+    0.68,
+    1.05,
+    1.608
+   ],
+   "roblox_center": [
+    -0.7,
+    1.946,
+    -1.175
+   ],
+   "roblox_size": [
+    0.68,
+    1.608,
+    1.05
+   ],
+   "joint": "JointLegFL",
+   "textured": true,
+   "spec_center": [
+    -0.72,
+    1.9,
+    -1.3
+   ],
+   "spec_size": [
+    0.7,
+    1.3,
+    0.8
+   ]
+  },
+  "LowerLegFL": {
+   "tris": 112,
+   "center": [
+    -0.72,
+    1.27,
+    0.86
+   ],
+   "size": [
+    0.38,
+    0.458,
+    1.378
+   ],
+   "roblox_center": [
+    -0.72,
+    0.86,
+    -1.27
+   ],
+   "roblox_size": [
+    0.38,
+    1.378,
+    0.458
+   ],
+   "joint": "JointElbowFL",
+   "textured": true,
+   "spec_center": [
+    -0.72,
+    0.8,
+    -1.3
+   ],
+   "spec_size": [
+    0.45,
+    1.1,
+    0.5
+   ]
+  },
+  "PawFL": {
+   "tris": 208,
+   "center": [
+    -0.72,
+    1.71,
+    0.259
+   ],
+   "size": [
+    0.64,
+    1.22,
+    0.518
+   ],
+   "roblox_center": [
+    -0.72,
+    0.259,
+    -1.71
+   ],
+   "roblox_size": [
+    0.64,
+    0.518,
+    1.22
+   ],
+   "joint": "JointWristFL",
+   "textured": true,
+   "spec_center": [
+    -0.72,
+    0.15,
+    -1.6
+   ],
+   "spec_size": [
+    0.65,
+    0.3,
+    0.85
+   ]
+  },
+  "UpperLegBL": {
+   "tris": 112,
+   "center": [
+    -0.706,
+    -2.092,
+    1.986
+   ],
+   "size": [
+    0.848,
+    1.051,
+    1.721
+   ],
+   "roblox_center": [
+    -0.706,
+    1.986,
+    2.092
+   ],
+   "roblox_size": [
+    0.848,
+    1.721,
+    1.051
+   ],
+   "joint": "JointLegBL",
+   "textured": true,
+   "spec_center": [
+    -0.75,
+    1.95,
+    2.0
+   ],
+   "spec_size": [
+    0.85,
+    1.4,
+    1.0
+   ]
+  },
+  "LowerLegBL": {
+   "tris": 112,
+   "center": [
+    -0.75,
+    -2.022,
+    1.011
+   ],
+   "size": [
+    0.38,
+    0.857,
+    1.077
+   ],
+   "roblox_center": [
+    -0.75,
+    1.011,
+    2.022
+   ],
+   "roblox_size": [
+    0.38,
+    1.077,
+    0.857
+   ],
+   "joint": "JointKneeBL",
+   "textured": true,
+   "spec_center": [
+    -0.75,
+    1.0,
+    2.05
+   ],
+   "spec_size": [
+    0.45,
+    0.8,
+    0.5
+   ]
+  },
+  "PawBL": {
+   "tris": 222,
+   "center": [
+    -0.75,
+    -2.13,
+    0.4
+   ],
+   "size": [
+    0.64,
+    1.26,
+    0.8
+   ],
+   "roblox_center": [
+    -0.75,
+    0.4,
+    2.13
+   ],
+   "roblox_size": [
+    0.64,
+    0.8,
+    1.26
+   ],
+   "joint": "JointHockBL",
+   "textured": true,
+   "spec_center": [
+    -0.75,
+    0.35,
+    2.15
+   ],
+   "spec_size": [
+    0.6,
+    0.7,
+    0.85
+   ]
+  },
+  "EarR": {
+   "tris": 14,
+   "center": [
+    0.45,
+    3.13,
+    3.975
+   ],
+   "size": [
+    0.42,
+    0.26,
+    0.95
+   ],
+   "roblox_center": [
+    0.45,
+    3.975,
+    -3.13
+   ],
+   "roblox_size": [
+    0.42,
+    0.95,
+    0.26
+   ],
+   "joint": "JointEarR",
+   "textured": true,
+   "spec_center": [
+    0.5,
+    4.05,
+    -3.1
+   ],
+   "spec_size": [
+    0.45,
+    0.75,
+    0.25
+   ]
+  },
+  "EyeR": {
+   "tris": 12,
+   "center": [
+    0.375,
+    3.971,
+    3.308
+   ],
+   "size": [
+    0.292,
+    0.212,
+    0.128
+   ],
+   "roblox_center": [
+    0.375,
+    3.308,
+    -3.971
+   ],
+   "roblox_size": [
+    0.292,
+    0.128,
+    0.212
+   ],
+   "joint": "Skull (welded)",
+   "textured": false,
+   "spec_center": [
+    0.38,
+    3.3,
+    -3.98
+   ],
+   "spec_size": [
+    0.3,
+    0.14,
+    0.08
+   ]
+  },
+  "UpperLegFR": {
+   "tris": 140,
+   "center": [
+    0.7,
+    1.175,
+    1.946
+   ],
+   "size": [
+    0.68,
+    1.05,
+    1.608
+   ],
+   "roblox_center": [
+    0.7,
+    1.946,
+    -1.175
+   ],
+   "roblox_size": [
+    0.68,
+    1.608,
+    1.05
+   ],
+   "joint": "JointLegFR",
+   "textured": true,
+   "spec_center": [
+    0.72,
+    1.9,
+    -1.3
+   ],
+   "spec_size": [
+    0.7,
+    1.3,
+    0.8
+   ]
+  },
+  "LowerLegFR": {
+   "tris": 112,
+   "center": [
+    0.72,
+    1.27,
+    0.86
+   ],
+   "size": [
+    0.38,
+    0.458,
+    1.378
+   ],
+   "roblox_center": [
+    0.72,
+    0.86,
+    -1.27
+   ],
+   "roblox_size": [
+    0.38,
+    1.378,
+    0.458
+   ],
+   "joint": "JointElbowFR",
+   "textured": true,
+   "spec_center": [
+    0.72,
+    0.8,
+    -1.3
+   ],
+   "spec_size": [
+    0.45,
+    1.1,
+    0.5
+   ]
+  },
+  "PawFR": {
+   "tris": 208,
+   "center": [
+    0.72,
+    1.71,
+    0.259
+   ],
+   "size": [
+    0.64,
+    1.22,
+    0.518
+   ],
+   "roblox_center": [
+    0.72,
+    0.259,
+    -1.71
+   ],
+   "roblox_size": [
+    0.64,
+    0.518,
+    1.22
+   ],
+   "joint": "JointWristFR",
+   "textured": true,
+   "spec_center": [
+    0.72,
+    0.15,
+    -1.6
+   ],
+   "spec_size": [
+    0.65,
+    0.3,
+    0.85
+   ]
+  },
+  "UpperLegBR": {
+   "tris": 112,
+   "center": [
+    0.706,
+    -2.092,
+    1.986
+   ],
+   "size": [
+    0.848,
+    1.051,
+    1.721
+   ],
+   "roblox_center": [
+    0.706,
+    1.986,
+    2.092
+   ],
+   "roblox_size": [
+    0.848,
+    1.721,
+    1.051
+   ],
+   "joint": "JointLegBR",
+   "textured": true,
+   "spec_center": [
+    0.75,
+    1.95,
+    2.0
+   ],
+   "spec_size": [
+    0.85,
+    1.4,
+    1.0
+   ]
+  },
+  "LowerLegBR": {
+   "tris": 112,
+   "center": [
+    0.75,
+    -2.022,
+    1.011
+   ],
+   "size": [
+    0.38,
+    0.857,
+    1.077
+   ],
+   "roblox_center": [
+    0.75,
+    1.011,
+    2.022
+   ],
+   "roblox_size": [
+    0.38,
+    1.077,
+    0.857
+   ],
+   "joint": "JointKneeBR",
+   "textured": true,
+   "spec_center": [
+    0.75,
+    1.0,
+    2.05
+   ],
+   "spec_size": [
+    0.45,
+    0.8,
+    0.5
+   ]
+  },
+  "PawBR": {
+   "tris": 222,
+   "center": [
+    0.75,
+    -2.13,
+    0.4
+   ],
+   "size": [
+    0.64,
+    1.26,
+    0.8
+   ],
+   "roblox_center": [
+    0.75,
+    0.4,
+    2.13
+   ],
+   "roblox_size": [
+    0.64,
+    0.8,
+    1.26
+   ],
+   "joint": "JointHockBR",
+   "textured": true,
+   "spec_center": [
+    0.75,
+    0.35,
+    2.15
+   ],
+   "spec_size": [
+    0.6,
+    0.7,
+    0.85
+   ]
+  }
+ }
+}

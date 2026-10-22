@@ -245,7 +245,7 @@ function _G.buildStoneTortoiseFX(effects)
 	-- ShellDust (quakeStomp windup, at the Core): dust sheds off the shell and
 	-- pebbles drop from it.
 	do
-		local p = anchor("ShellDust", Vector3.new(7, 1, 9), root)
+		local p = anchor("ShellDust", Vector3.new(11, 1, 18), root)
 		emitter(p, "Dust", {
 			Texture = TEX.puff, Color = CS(UMBER), Lifetime = R(0.7, 1.1), Rate = 12,
 			Speed = R(0.5, 1.5), Acceleration = Vector3.new(0, -3, 0), Drag = 1,
@@ -340,10 +340,10 @@ function _G.buildStoneTortoiseFX(effects)
 	-- GuardSheen (shellGuard hold, at the Core, 2 s): a faint cold stone sheen
 	-- on the shell: a slow breathing glow and drifting motes.
 	do
-		local p = anchor("GuardSheen", Vector3.new(7, 2, 9), root)
+		local p = anchor("GuardSheen", Vector3.new(11, 2, 18), root)
 		emitter(p, "Sheen", {
 			Texture = TEX.dot, Color = CS(COLD), LightEmission = 0.8, Lifetime = R(0.9),
-			Rate = 3, Size = NS({ KP(0, 5), KP(0.5, 8), KP(1, 6) }),
+			Rate = 3, Size = NS({ KP(0, 10), KP(0.5, 16), KP(1, 12) }),
 			Transparency = NS({ KP(0, 1), KP(0.4, 0.88), KP(1, 1) }),
 			LockedToPart = true, ZOffset = 0,
 		}, { EmitDuration = 2.0 })
@@ -392,7 +392,7 @@ function _G.buildStoneTortoiseFX(effects)
 	-- Death (at the Core, body-sized): the shell cracks (a jade flash then a
 	-- fading glow), dust crumbles, chips fall, a core glint.
 	do
-		local p = anchor("Death", Vector3.new(7, 2, 9), root)
+		local p = anchor("Death", Vector3.new(11, 2, 18), root)
 		emitter(p, "Crumble", {
 			Texture = TEX.puff, Color = CS({ CK(0, UMBER), CK(1, ROCK) }),
 			Lifetime = R(0.9, 1.4), Rate = 22, Speed = R(1, 3), Drag = 1.5,

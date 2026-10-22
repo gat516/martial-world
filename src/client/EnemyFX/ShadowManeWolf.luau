@@ -116,7 +116,7 @@ end
 
 local function sweep(cue: Cue, roll: number)
 	local c = core(cue)
-	local at = c.Position + c.LookVector * 2.2 + Vector3.new(0, 0.2, 0)
+	local at = c.Position + c.LookVector * 4.2 - Vector3.new(0, 1.2, 0)
 	K.play("ClawSweep", CFrame.new(at) * c.Rotation * CFrame.Angles(0, 0, roll))
 end
 

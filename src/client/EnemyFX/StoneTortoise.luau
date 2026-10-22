@@ -86,6 +86,7 @@ function StoneTortoise.windup(cue: Cue)
 	K.tell(model, seconds, if attack == "shellGuard" then COLD else JADE_LIT, if brow and brow:IsA("BasePart") then brow else nil)
 	if attack == "neckSnap" then
 		K.play("Breath", mouth(cue), K.host(cue, "Mouth", { "Head" }), function(clone)
+			K.resize(clone, 1.5)
 			K.duration(clone, seconds)
 		end)
 	elseif attack == "quakeStomp" then
@@ -110,7 +111,9 @@ function StoneTortoise.strike(cue: Cue)
 	end
 	local attack = cue.attack
 	if attack == "neckSnap" or attack == "shellSnap" then
-		K.play("SnapBurst", mouth(cue))
+		K.play("SnapBurst", mouth(cue), nil, function(clone)
+			K.resize(clone, 1.6)
+		end)
 	elseif attack == "quakeStomp" then
 		local sum = Vector3.zero
 		for _, which in FRONT_FEET do

@@ -202,8 +202,9 @@ handler only plays for the new bodies (`Template` = `VenomSerpentB`,
 `StoneTortoiseB`, `ShadowManeWolfB`); the old defs play nothing. Every bright layer
 sits on a dark copy so it reads in daylight; emitter counts are low (packs).
 Shared with the old effects: `Impact.explode/ground/swipe/skid/shot` (venom, earth
-and a violet-ink palette). Untested in play (built from the brief, checked
-numerically: builders run, `tools/check.sh` clean); feel and phone cost are the
+and a violet-ink palette). Checked numerically against the real bodies in a sandbox (every attachment and Tell
+resolves, the model faces -Z at an identity pivot, every cue fires without error, the
+guard hold and the spit lob run); not played in a fight; feel and phone cost are the
 user's to review.
 
 | Beast / beat | Layers (templates) |
@@ -213,7 +214,6 @@ user's to review.
 | spit landing | `Impact.explode` venom + SpitSplash (splash, droplets, ring on slate, pool, glint) |
 | hoodStrike | windup HoodGlint (star, glow on slate) per HoodSpot; strike/dash Streak (streak on slate, drops) at the Mouth; land HopDust |
 | hit (strike, spit) | HitSplash (pop, splash, drops, poison bubbles) on the torso |
-| tailSnap | strike TailGlint (star, pop, sparks) + small `Impact.ground` at TailTip_FX |
 | hop | HopDust (dust, venom smear) |
 | stagger / death | StaggerFlash + flash; Death (venom mist, motes, core glint) |
 | Tortoise windup | EyeGlint on eyes and BrowMark; seams jade -> pale |
@@ -228,7 +228,7 @@ user's to review.
 | hop | HopSmoke (smoke puff, ink smear, violet smear) thrown backward |
 | stagger / death | StaggerFlash + flash; Death (ink smoke up, violet motes, glint) |
 
-Needs from the body contract: attachments `Mouth`, `Core`, `SacL/R_FX`, `TailTip_FX`
+Needs from the body contract: attachments `Mouth`, `SacL/R_FX`
 (serpent); `Mouth`, `Core`, `Foot{FL,FR,BL,BR}_FX`, `NeckBase_FX` (tortoise);
 `Mouth`, `Core`, `Paw{FL,FR,BL,BR}_FX`, `ManeTop_FX` (mane); Neon `Tell` parts and
 `EyeL/R`, tortoise `BrowMark` and `SeamTell*`. The server must send the `hit`

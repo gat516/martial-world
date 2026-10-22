@@ -403,7 +403,7 @@ function _G.buildShadowManeWolfFX(effects)
 	-- Death (at the Core, body-sized): the shadow dissolves upward as ink smoke
 	-- and violet motes, ends on a flare-white core glint.
 	do
-		local p = anchor("Death", Vector3.new(2.6, 2, 6), root)
+		local p = anchor("Death", Vector3.new(5, 3, 14), root)
 		smokeE(p, "Smoke", 24, { 1.8, 5 }, R(0.9, 1.4), R(2.5, 5), { Shape = Enum.ParticleEmitterShape.Box, SpreadAngle = Vector2.new(20, 20) }, { EmitDuration = 0.9 })
 		emitter(p, "Motes", {
 			Texture = TEX.dot, Color = CS({ CK(0, FLARE), CK(1, VIOLET) }),

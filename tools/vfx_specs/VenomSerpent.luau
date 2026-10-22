@@ -337,18 +337,6 @@ function _G.buildVenomSerpentFX(effects)
 		stack(p, "Smear", TEX.streak, C, { 3, 5 }, R(0.3), with(along, { Speed = R(10) }), { EmitCount = 2 })
 	end
 
-	-- TailGlint (tailSnap windup/strike, at TailTip_FX): a star and a ring.
-	do
-		local p = anchor("TailGlint", Vector3.new(0.3, 0.3, 0.3), root)
-		starE(p, "Star", RIM, 2.6, R(0.35))
-		emitter(p, "Pop", {
-			Texture = TEX.dot, Color = CS(MID), LightEmission = 1, Lifetime = R(0.25),
-			Size = NS({ KP(0, 0.6), KP(0.3, 1.6), KP(1, 0) }),
-			Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
-		})
-		sparkE(p, "Sparks", 5, MID, R(5, 9), R(0.25, 0.4))
-	end
-
 	-- StaggerFlash (at the Core): a white-green pop and star.
 	do
 		local p = anchor("StaggerFlash", Vector3.new(0.4, 0.4, 0.4), root)
@@ -363,7 +351,7 @@ function _G.buildVenomSerpentFX(effects)
 	-- Death (at the Core, body-sized): venom mist rising off the body, motes,
 	-- a yellow-white core glint.
 	do
-		local p = anchor("Death", Vector3.new(2, 1.5, 6), root)
+		local p = anchor("Death", Vector3.new(3, 1.5, 12), root)
 		emitter(p, "Mist", {
 			Texture = TEX.puff, Color = CS({ CK(0, MIST), CK(1, DARK) }),
 			LightEmission = 0.2, Lifetime = R(0.9, 1.4), Rate = 14,

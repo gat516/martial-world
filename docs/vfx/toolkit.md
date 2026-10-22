@@ -644,6 +644,22 @@ property list, so it is wrong for effects. Use the binary exporter:
   cue carries server-like `parts`; pass `shape` per cue to
   `enemy_fx_smoke.luau`.
 
+Thunder Ape pass (2026-10-22):
+- Only real flipbooks animate. Use ids the library marks as flipbooks, or test
+  an image sheet's grid before relying on it.
+- A layer can be blank on its first emit because its textures haven't loaded.
+  `ContentProvider:PreloadAsync` the template's texture Decals before the first
+  capture.
+- Solid Neon mesh waves read as plastic. ForceField material on a funnel or
+  twister mesh reads as moving air.
+- `enemy_fx_shot` fires every cue before it freezes: to capture a windup, pass
+  only the windup cue.
+- Beams fading on Heartbeat, rate-enabled emitters and short-lived held props
+  don't show in Edit-mode stills; verify them numerically.
+- `get_console_output` is flooded with plugin settings warnings; wrap a handler
+  call in `pcall` to read its errors.
+- Dust reaches roughly speed / Drag studs (about 110 with Drag 2.5 for r42).
+
 ### Parallel vfx agents: merge, don't copy
 
 `assets/Effects.rbxm` is one file holding every group, and a sandbox's export

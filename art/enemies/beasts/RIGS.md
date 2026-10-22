@@ -1,6 +1,7 @@
 # Roster beasts: rig notes for animators
 
-The Venom Serpent, Jade Python, Flame Raven and Thunder Ape templates live in
+The Venom Serpent, Jade Python, Flame Raven and Thunder Ape templates (and the boss
+Thunder Ape B, shipped in `assets/Enemies.rbxm`) live in
 `ServerStorage._RosterBeasts` (staging, not shipped yet). They are built from Studio parts
 by `build_<beast>.luau` and rigged by `rig_<beast>.luau` through `rig_core.luau`.
 
@@ -125,6 +126,56 @@ current trot gait reads as a knuckle-walk.
 The HRP is 4 tall, so EnemyAnimator strides it at scale 2: a slow, heavy gait.
 Tells: EyeL/R, ChestBoltL/R (beside the low head, and fully shown when it rears up), and
 ForeArm*Bolt on the front of each forearm.
+
+## Thunder Ape B (boss, 23 joints, 139 parts)
+
+Template `ThunderApeB` (`build_thunder_ape.luau` then `rig_thunder_ape.luau`, 1.8x of the
+Thunder Ape above, model attribute `Scale = 1.8`). The 18 joints above are unchanged in
+name, parent, sign and unit-space pivot. **Pose in unit space (scale 1); the template is
+already scaled, and every pivot below x 1.8 is the real one** (the `JointPivot` attributes on
+the segments are the scaled values). Hump about 12 studs, tallest crest tuft about 14.9;
+HRP 7.2 x 7.2 x 7.92 centred at Y 5.76, HipHeight 2.16.
+
+New joints (identity rotation at rest, pivots in unit space before scaling):
+
+| Joint | Moves (Part1) | Parent | Pivot | Sign |
+|---|---|---|---|---|
+| JointMane1 | Mane1 (front tuft, plus its two side tufts and base) | Chest | (0, 7.17, -0.47) | +X leans it back, -X forward |
+| JointMane2 | Mane2 (middle, tallest) | Chest | (0, 6.90, 0.39) | same |
+| JointMane3 | Mane3 (rear tuft) | Chest | (0, 6.64, 1.25) | same |
+| JointBrow | Brow (shelf, ridge, two side wings) | Skull | (0, 6.40, -2.65) | +X lifts the brow's front (raised, surprised), -X drops it over the eyes (rage). Small angles (about 0.25 max) |
+| JointBeard | Beard (main wedge, two side tufts, tip) | Jaw | (0, 5.15, -2.70) | +X swings the hanging beard forward, -X back. It follows the jaw, so add on top of the jaw's own swing |
+
+The head sits 0.45 higher than the old ape (skull centre Y 5.9; JointHead pivot unchanged
+at (0, 5.6, -1.6)), so the chest drum shows under the beard. The brow is no longer a Skull
+detail and the old Beard detail is now a segment, so keys on `Skull`/`Jaw` carry neither.
+The crest tufts are no longer Chest details (`Crest*` parts are gone; `Mane*` replace
+them). Mane segments lean back by default at rest (the wedge's own pitch), so 0 is
+the rest tilt.
+
+Knuckle plates (`KnucklePlateL/R`, spikes, studs, cracks) ride the **Fingers** segments, so
+they open with `JointFingersFL/FR`.
+
+Tells (Neon, `Tell = true`; `TellBase` = the original colour, 5BD8FF): `EyeL/R`, `ChestSigil1` (ring), `ChestSigil2` (boss), `ChestSigil3..5`
+(three bolts across the drum), `ChestBoltL1..3` / `ChestBoltR1..3` (beside the head),
+`ForeArmFLBolt1..3` / `ForeArmFRBolt1..3`, `KnuckleL1..3` / `KnuckleR1..3` (on the plates),
+`BackBolt1..3` (down the back under the crest). `ChestSigilDisc` (dark) is not a tell.
+
+Attachment hooks (Y up at rest; positions in unit space, world, at rest):
+
+| Hook | On | Position |
+|---|---|---|
+| Core | Chest | (0, 4.86, -1.97): drum centre, front face |
+| Mouth | Skull | (0, 5.40, -3.25) |
+| FistL_FX / FistR_FX | HandFL / HandFR | (-/+2.6, 0, -2.6): ground under the knuckle line |
+| FootBL_FX / FootBR_FX | FootBL / FootBR | (-/+1.4, 0, 1.9): under the heel |
+| BackTop | Chest | (0, 7.02, 0.53): top of the hump |
+| ShoulderL_FX / ShoulderR_FX | UpperArmFL / FR | (-/+2.2, 6.5, -0.8) |
+| ChestBeatL_FX / ChestBeatR_FX | Chest | (-/+0.85, 4.99, -1.88): where the fists land on a beat |
+
+Hooks ride their segment, so they move with it when posed (FistX_FX leaves the ground when
+the fist lifts). Beating: the arms are the front legs, so a beat is the shoulders swung in
+(+X up and forward) with the elbows bent so the fists meet the chest at the drum.
 
 ## Windup poses
 

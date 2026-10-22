@@ -121,6 +121,13 @@ In order:
 5. **It runs on phones:** richness from more kinds of layer, not more
    particles of one kind (budget in toolkit.md).
 
+6. **It doesn't fight the telegraph** (`docs/systems/telegraphs.md`). The
+   ground telegraph says where and when in one danger colour; your effect
+   carries the element and takes over at release. Every impact gets oomph from
+   the library: a shockwave ring, debris or dust, a contact flash, and a short
+   burst plus a fading scorch for explosions and landings. Projectiles get a real
+   in-flight body and a real explosion. No flat expanding discs for roars.
+
 ## The plan
 
 - **References:** which ones, with the frame grid paths, and what you're

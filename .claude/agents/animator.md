@@ -126,6 +126,11 @@ them only for work that needs them, and never start Play in them.
   or two behind for weight.
 - Pair every windup with the tell flare (Neon parts tagged `Tell`, or named
   `Tell*`); the eyes are often the only Neon.
+- Weight (`docs/systems/telegraphs.md`, "Attacks that make sense"): turn during
+  the anticipation or in the air, never after landing. Crouch before a jump,
+  hang at the apex, compress on landing. An overshoot is a skid and a turn with
+  the head leading. A charge or leap ends in its follow-up blow (a swipe), not a
+  stop.
 - Eye tells don't read straight side-on on some bodies: favour 3/4 framing in
   checks.
 

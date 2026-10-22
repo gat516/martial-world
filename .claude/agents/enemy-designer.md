@@ -183,6 +183,25 @@ sends it the next enemy, so it doesn't re-read the codebase each time.
   unjointed parts and rig faults. Then look at every pose capture critically: the
   checker can't see a misplaced piece that still touches something.
 
+## Telegraphs and attack feel (user decision, 2026-10-22)
+
+Follow `docs/systems/telegraphs.md`; in short:
+- One subdued danger language for every enemy (one colour, a bright thin edge, a
+  faint fill, a timing fill that reaches the edge on impact, a pulse just before
+  and a quick fade as the effect takes over). Never colour a telegraph by element;
+  the effect carries the element. `telegraph = "heavy"` only for a boss's big
+  blows.
+- Projectiles get no ground lane: aim rails during the windup for travelling
+  shots, a closing reticle where lobbed shots land, rails for beams.
+- Every movement ends in a blow: a charge ends in a swipe, a leap lands in its
+  slam and follows with a swipe if the target is in reach; otherwise it skids,
+  turns and recovers. Turn during anticipation or in the air, never after
+  landing. Vary the landing spots and arcs.
+- A beast with ranged attacks needs a move that makes the range (a shove, a
+  retreat, a burrow away); players are almost always close.
+- Mix: most attacks get the standard telegraph, a few heavy ones get more. Plan
+  for phones: thick edges, and timing that doesn't rely on colour.
+
 ## Pitfalls
 
 - **Upright pivot.** `EnemyService.spawn` places a clone with

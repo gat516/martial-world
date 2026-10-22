@@ -24,6 +24,8 @@ pivots and safe ranges are in its `art/enemies/<group>/RIGS.md`.
   glance. The player reported "zero reaction time" on the ape's boulder before its
   windups were lengthened (`122e93b`).
 - **Boss feel.** Grandeur without crowns, halos or rings over the head.
+- **Telegraphs and attack feel:** see [telegraphs](telegraphs.md) (one danger
+  language, projectile treatments, every movement ending in a blow, weight).
 - **Projectiles.** Boss projectiles are real objects in flight
   (`src/server/Projectiles.luau`). The projectile in flight is the warning, so
   its drawer must be bright, big and shadowed.

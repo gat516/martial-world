@@ -421,6 +421,7 @@ local spec = {
 	beats = {
 		{ block = "handGather", params = { color = FIRE, core = CORE, windup = 0.5 } },
 		{ block = "throw" },
+		{ block = "bladeFlare", params = { part = "Palm", color = FIRE, core = CORE, ink = Color3.fromRGB(44, 20, 12) } },
 		{ block = "landing" },
 		{ block = "zone" },
 		{ block = "pulse" },

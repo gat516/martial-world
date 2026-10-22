@@ -237,7 +237,14 @@ checks a rebuild against the previous templates.
   on the rim, `PulseCrown` spikes per tick, a Craters rock ring, scorch and
   shake at the landing, and a flame tongue under each burn hit; IV a flame
   `Pillar` at the landing, the move's one PointLight, and a big finale with an
-  Explosion shake.
+  Explosion shake. Remade 2026-10-21 for the Hit window (bare hand, so the
+  anchor stays on the live left palm): the 0.5 s windup is a stream through
+  the whole windup (not one burst), the release on the palm gets the shared
+  flare (fire-orange cross glint, star-burst flipbook over ink, sparks), and
+  every burn hit and the landing carry the shared ink splat and star-burst
+  flipbook. The seal's flight was already fitted to Hit -> Hit Stop (0.14 s).
+  Layers T1 / T4: windup 2 / 4, palm 10 / 11, landing 11 / 22, zone 2 / 3,
+  burn hit 4 / 5, finale 4 / 7.
 - **Weapon skills with their own clip** (Heaven-Splitting Descent, Rampaging
   Tiger Cleave) share `TechniqueFX/BladeSkill.luau`: the effect plays once per
   cast (`claim`), on a clock that reads the move's playing AnimationTrack on

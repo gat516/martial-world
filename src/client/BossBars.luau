@@ -2,18 +2,17 @@
 -- The screen health bar for the boss you're fighting (Play.BossBar), themed per
 -- boss (BossThemes.luau; fallback `default`). EnemyBars decides which boss it
 -- is for and calls show / hide / setHealth / setTier.
---   BossBar (CanvasGroup, slim: name row, 16px bar, an intro-only text row)
---   > Body > Glow, Bar (Back, Trail, Fill, Slips, Ticks, Cracks, Flare),
---   Ornament (> CapL, CapR), Emblem, NameLabel, RealmLabel, TitleLabel, OmenLabel.
--- The frame is the danger tier's overhead-bar rim (EnemyBars STYLES rim, art/ui
--- draw_ui.py eb_rim) at 2px per rim unit: CapL / CapR show its ends at native
--- aspect (the tier's diamond and the slanted blade tip), Ornament stretches one
--- clean column between them, and the slips lean with the slant. Emblem is a
--- small per-boss mark at the left end (a crop of the theme's ornament art).
+--   BossBar (CanvasGroup, slim: name row, 32px frame round a 16px channel,
+--   an intro-only text row) > Body > Bar (Back, Trail, Fill, Gloss, Ticks,
+--   Cracks, Flare), Frame, Emblem, NameLabel, RealmLabel, TitleLabel, OmenLabel.
+-- The look comes from drawn art (art/ui/draw_boss_bars.py): Frame is the
+-- 9-sliced gold rim with an emblem socket on the left and a talisman blade on
+-- the right; Gloss bevels the channel; Emblem is the boss's medallion
+-- (BossThemes `emblem`) in the socket. Back, Trail and Fill are plain frames
+-- under the art: a near-black backing, a pale trail, a saturated fill.
 -- It must stay out of the way of the fight: no screen darkening, no looping
--- pulses, small and short hit/phase feedback.
--- Same visual language as the regular overhead bars: ten talisman slips on the
--- bar, a realm tag, danger-tier colours (EnemyBars.STYLES, Pacing.Danger).
+-- pulses, small and short hit/phase feedback, no slip lines.
+-- The realm tag and omen take the danger-tier colours (EnemyBars.STYLES).
 --   Intro: the bar fades in, the fill sweeps up, the name and realm rise in;
 --     under the bar the theme's title shows, then the omen (picked from the
 --     theme's pool for the danger tier), and both fade out fully.
@@ -32,8 +31,7 @@ local Themes = require(script.Parent.BossThemes)
 local BIG_HIT = 0.05 -- fraction of max health that shakes the bar
 local CRACK_W = 1024 -- cracks image width, for the spread crop
 local CRACK_H = 56
-local FAR_RIM = "rbxassetid://110079661251126" -- enemybar_rim_far, for tiers with no rim of their own
-local GLOW_REST = 0.88 -- the halo behind the bar: faint and static
+local TICK = Color3.fromRGB(10, 8, 8)
 local TITLE_HOLD = 1.8 -- seconds the title shows in the intro before the omen
 local OMEN_HOLD = 2.6 -- seconds the omen shows before it fades out
 
@@ -45,17 +43,14 @@ type Refs = {
 	frame: CanvasGroup,
 	scale: UIScale,
 	body: Frame,
-	glow: ImageLabel,
 	bar: Frame,
 	trail: Frame,
 	fill: Frame,
 	gradient: UIGradient,
-	slips: Frame,
 	ticks: Frame,
 	cracks: ImageLabel,
 	flare: Frame,
-	ornament: ImageLabel,
-	caps: { ImageLabel },
+	art: ImageLabel,
 	emblem: ImageLabel,
 	name: TextLabel,
 	title: TextLabel,
@@ -102,7 +97,7 @@ local function phaseT(): number
 	return if #phases > 0 then phaseIdx / #phases else 0
 end
 
--- Fill gradient and ornament tint follow the phase (and instantly when silent).
+-- Fill gradient and frame tint follow the phase (and instantly when silent).
 local function dressPhase(animate: boolean)
 	local refs = r :: Refs
 	local t = phaseT()
@@ -110,12 +105,10 @@ local function dressPhase(animate: boolean)
 	local bot = lerpColor(theme.fill[2], theme.phaseFill[2], t)
 	refs.gradient.Color = ColorSequence.new(top, bot)
 	local tint = lerpColor(theme.tint, theme.phaseTint, t)
-	for _, img in { refs.ornament, refs.caps[1], refs.caps[2] } do
-		if animate then
-			tween(img, { ImageColor3 = tint }, 0.4)
-		else
-			img.ImageColor3 = tint
-		end
+	if animate then
+		tween(refs.art, { ImageColor3 = tint }, 0.4)
+	else
+		refs.art.ImageColor3 = tint
 	end
 end
 
@@ -136,13 +129,6 @@ local function setCracks(amount: number, animate: boolean)
 			(refs.cracks :: any)[k] = v
 		end
 	end
-end
-
--- The halo stays faint and still; it warms a touch with each phase.
-local function dressGlow()
-	local refs = r :: Refs
-	refs.glow.ImageColor3 = theme.glow
-	refs.glow.ImageTransparency = GLOW_REST - 0.06 * phaseT()
 end
 
 local function shake(strength: number)
@@ -202,10 +188,6 @@ local function dressTier(sweepOmen: boolean, delay: number)
 	refs.realm.TextColor3 = tagColor
 	refs.omen.TextColor3 = style.omen or tagColor
 	refs.omen.Text = pickOmen()
-	local rim = style.rim or FAR_RIM
-	for _, img in { refs.ornament, refs.caps[1], refs.caps[2] } do
-		img.Image = rim
-	end
 	if sweepOmen then
 		sweepLine(refs.omen, delay, OMEN_HOLD)
 	end
@@ -221,17 +203,11 @@ local function buildTicks()
 		tick.Name = `Tick{i}`
 		tick.AnchorPoint = Vector2.new(0.5, 0.5)
 		tick.Position = UDim2.fromScale(at, 0.5)
-		tick.Size = UDim2.new(0, 2, 0, 0)
-		tick.BackgroundColor3 = theme.flare
+		tick.Size = UDim2.new(0, 2, 1, 0) -- thin, dark, flush with the channel
+		tick.BackgroundColor3 = TICK
 		tick.BorderSizePixel = 0
 		tick.ZIndex = 8
 		tick.Parent = refs.ticks
-		local stroke = Instance.new("UIStroke") -- internals only: a dark edge on a bar mark
-		stroke.Color = Color3.fromRGB(6, 8, 12)
-		stroke.Thickness = 1
-		stroke.Parent = tick
-		local tall = tick
-		tween(tall, { Size = UDim2.new(0, 2, 1, 4) }, 0.25, 0.6 + i * 0.08)
 	end
 end
 
@@ -241,12 +217,11 @@ local function dressTicks(animate: boolean)
 		local tick = refs.ticks:FindFirstChild(`Tick{i}`) :: Frame?
 		if tick then
 			local crossed = i <= phaseIdx
-			local color = if crossed then Color3.fromRGB(70, 66, 62) else theme.flare
+			local fade = if crossed then 0.65 else 0.1
 			if animate and crossed then
-				tween(tick, { BackgroundColor3 = color, BackgroundTransparency = 0.35 }, 0.3)
+				tween(tick, { BackgroundTransparency = fade }, 0.3)
 			else
-				tick.BackgroundColor3 = color
-				tick.BackgroundTransparency = if crossed then 0.35 else 0
+				tick.BackgroundTransparency = fade
 			end
 		end
 	end
@@ -261,11 +236,9 @@ local function applyTheme(def: Enemies.Def?)
 	table.sort(phases, function(a, b)
 		return a > b
 	end)
-	local er = theme.emblemRect
-	refs.emblem.Image = theme.ornament
-	refs.emblem.ImageRectOffset = Vector2.new(er[1], er[2])
-	refs.emblem.ImageRectSize = Vector2.new(er[3], er[4])
-	refs.glow.ImageColor3 = theme.glow
+	-- a placeholder id (art not uploaded yet) leaves the socket empty
+	local emblem = if string.match(theme.emblem, "^rbxassetid://%d+$") then theme.emblem else Themes.default.emblem
+	refs.emblem.Image = if string.match(emblem, "^rbxassetid://%d+$") then emblem else ""
 	refs.trail.BackgroundColor3 = theme.trail
 	refs.cracks.ImageColor3 = theme.crack
 	refs.name.TextColor3 = theme.name
@@ -290,22 +263,18 @@ function BossBars.init(frame: CanvasGroup, tierStyles: { [string]: any })
 	local body = frame:WaitForChild("Body") :: Frame
 	local bar = body:WaitForChild("Bar") :: Frame
 	local fill = bar:WaitForChild("Fill") :: Frame
-	local ornament = body:WaitForChild("Ornament") :: ImageLabel
 	local refs: Refs = {
 		frame = frame,
 		scale = frame:WaitForChild("Motion") :: UIScale,
 		body = body,
-		glow = body:WaitForChild("Glow") :: ImageLabel,
 		bar = bar,
 		trail = bar:WaitForChild("Trail") :: Frame,
 		fill = fill,
 		gradient = fill:WaitForChild("UIGradient") :: UIGradient,
-		slips = bar:WaitForChild("Slips") :: Frame,
 		ticks = bar:WaitForChild("Ticks") :: Frame,
 		cracks = bar:WaitForChild("Cracks") :: ImageLabel,
 		flare = bar:WaitForChild("Flare") :: Frame,
-		ornament = ornament,
-		caps = { ornament:WaitForChild("CapL") :: ImageLabel, ornament:WaitForChild("CapR") :: ImageLabel },
+		art = body:WaitForChild("Frame") :: ImageLabel,
 		emblem = body:WaitForChild("Emblem") :: ImageLabel,
 		name = body:WaitForChild("NameLabel") :: TextLabel,
 		title = body:WaitForChild("TitleLabel") :: TextLabel,
@@ -352,7 +321,6 @@ function BossBars.show(boss: Model, def: Enemies.Def?, dangerTier: string, frac:
 	refs.omen.TextTransparency = 1
 	refs.omen.TextStrokeTransparency = 1
 	dressPhase(false)
-	dressGlow()
 	setCracks(if phaseIdx > 0 and #phases > 0 then phaseIdx / #phases else 0, false)
 	buildTicks()
 	dressTicks(false)
@@ -434,7 +402,6 @@ function BossBars.setHealth(frac: number)
 		shake(0.6)
 		dressPhase(true)
 		setCracks(phaseIdx / math.max(#phases, 1), true)
-		dressGlow()
 		dressTicks(true)
 		tween(refs.name, { TextColor3 = Color3.new(1, 1, 1) }, 0.1)
 		tween(refs.name, { TextColor3 = theme.name }, 0.3, 0.1)
@@ -443,7 +410,6 @@ function BossBars.setHealth(frac: number)
 		phaseIdx = idx
 		dressPhase(true)
 		setCracks(if #phases > 0 then phaseIdx / #phases else 0, true)
-		dressGlow()
 		dressTicks(false)
 	end
 end

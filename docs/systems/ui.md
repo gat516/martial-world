@@ -118,8 +118,8 @@ cursor, settings and the admin panel.
   the equipped one first, then Bare Fists. The choice lasts the session, per tab.
 - Character window (`SelfCard`): the Self tile (`Buttons.SelfButton`, between
   Cultivate and Inventory) opens the Self card (realm and stage bar, then a
-  scrolling list of rows: Spirit Root, Cultivation Method from Foundation, Weapon
-  Dao); tapping the realm crest over the vitals is a shortcut to it. Every row
+  scrolling list of rows: Dantian (raw qi, live; the only standing view of it),
+  Spirit Root, Cultivation Method from Foundation, Weapon Dao); tapping the realm crest over the vitals is a shortcut to it. Every row
   has the same shape: a seal, its kind in small gold capitals, the name (grade or
   level on the right) and its effects, one line each, gains in jade (decided
   2026-10-21; details in [character](character.md)). Switching methods lives in
@@ -269,4 +269,7 @@ both shown in the reward feed).
   in play: the qi flash, trails, guard trough states, seated swap and nudge
   timing are untested.
 - The cooldown chips are still plain Frames with UICorner/UIStroke, not drawn art.
+- Bar numbers over a bright fill show the black text stroke as a ghost of the
+  "/" at small sizes ("180 // 260"); the dantian texts use a lighter stroke
+  (0.35). Check the others in play.
 - The hotbar shows no qi price; arts just dim when short.

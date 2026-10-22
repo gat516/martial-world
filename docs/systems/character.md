@@ -272,6 +272,10 @@ each row is labelled by kind in small gold capitals, then names the thing, then
 shows only its effects, one line each, gains in jade and losses in a muted red,
 with the numbers taken from the shared defs. No flavour text, no techniques, no
 weapon names.
+- **Dantian** (5, decided 2026-10-22): "Raw qi", a violet bar ("180 / 260 raw
+  qi", from `RawQi` / `DantianCap`, live while the card is open) and one line on
+  refining it. Standing, this is the only place the dantian shows; the HUD shows
+  it only while seated.
 - **Spirit Root** (10): "Metal Root", grade on the right; the perk at this grade
   (`Pacing.Roots.PERKS` x grade), "+15% Metal technique damage"
   (`Pacing.Roots.MATCH`), and the grade's cultivation speed (`Roots.speed`).

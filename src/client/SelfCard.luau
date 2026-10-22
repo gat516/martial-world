@@ -11,6 +11,9 @@
 --   grade or level on the right) and Effects (what it does for the player, one
 --   line each, gains in jade; no flavour text). The numbers come from the shared
 --   defs (Roots/Pacing.Roots, Methods, Weapons/Pacing.Weapons).
+--     5   Dantian, "DANTIAN": raw qi in the dantian (RawQi / DantianCap) as a
+--         bar, live while the card is open. Standing, this is the only place the
+--         dantian shows (the HUD shows it only while seated, SeatBars).
 --     10  Root, "SPIRIT ROOT": the perk at this grade, the element's technique
 --         bonus, the cultivation speed from the grade.
 --     12-19 free for root actions (a Reroll button, a stored-roots strip).
@@ -239,6 +242,20 @@ local function renderDao()
 	effects.Text = table.concat(lines, "\n")
 end
 
+-- Raw qi in the dantian (refined into cultivation by Circulate).
+local function renderDantian()
+	local row = selfPage:FindFirstChild("Dantian") :: GuiObject
+	local raw = tonumber(player:GetAttribute("RawQi")) or 0
+	local room = tonumber(player:GetAttribute("DantianCap")) or 0
+	local bar = (row:FindFirstChild("Lines") :: Instance):FindFirstChild("Bar") :: Instance
+	local fill = (bar:FindFirstChild("Bar") :: Instance):FindFirstChild("Fill") :: Frame
+	Motion.ease(fill, { Size = UDim2.fromScale(if room > 0 then math.clamp(raw / room, 0, 1) else 0, 1) })
+	fill.Visible = raw > 0;
+	(bar:FindFirstChild("Value") :: TextLabel).Text = if room > 0
+		then `{math.floor(raw)} / {math.floor(room)} raw qi`
+		else `{math.floor(raw)} raw qi`
+end
+
 local function renderRealm()
 	local header = (window:FindFirstChild("Body") :: Instance):FindFirstChild("Header") :: Instance;
 	(header:FindFirstChild("Realm") :: TextLabel).Text = player:GetAttribute("Realm") or ""
@@ -363,6 +380,7 @@ local function render()
 		renderDao()
 		renderRealm()
 		renderMethod()
+		renderDantian()
 	end
 end
 
@@ -376,6 +394,7 @@ function SelfCard.open()
 	renderDao()
 	renderRealm()
 	renderMethod()
+	renderDantian()
 	selfPage.CanvasPosition = Vector2.zero
 	seenOnce = true
 	newDot.Visible = false
@@ -448,7 +467,7 @@ function SelfCard.init(gui: ScreenGui)
 	State.onChanged(function()
 		render()
 	end)
-	for _, attr in { "Root", "RootGrade", "Realm", "Cultivation", "CultivationMax", "Weapon", "Method" } do
+	for _, attr in { "Root", "RootGrade", "Realm", "Cultivation", "CultivationMax", "Weapon", "Method", "RawQi", "DantianCap" } do
 		player:GetAttributeChangedSignal(attr):Connect(render)
 	end
 	render()

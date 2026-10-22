@@ -109,8 +109,8 @@ them only for work that needs them, and never start Play in them.
 - Only key joints. Trim pieces are welded riders and have no keys of their own.
 - Publishing a clip (one that ships as an `Animation` in `assets/Animations.rbxmx`,
   e.g. a player move): export each KeyframeSequence as its own binary `.rbxm`
-  (root = the KeyframeSequence) and run `python3 tools/upload_animation.py
-  <files>`. It uploads through Open Cloud with the key in
+  (root = the KeyframeSequence) and run `python3 tools/upload_asset.py
+  animation <files>` (AGENTS.md, Uploading to Roblox). It uploads through Open Cloud with the key in
   `~/.config/roblox/api_key` (never read, print or copy the key yourself), owned
   by the main game's group, grants the testbed universe Use, and prints the
   `rbxassetid://` ids. Put the ids in the `Animation` instances (property-only

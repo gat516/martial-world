@@ -300,3 +300,11 @@ Check with `screen_capture` from several angles, day and night (set
 untested. Commit one pass per commit, staging only your files. Studio-only
 changes under `Workspace.Map` aren't in git, so list them in the commit body and
 remind the user to save the place.
+
+## Uploading to Roblox
+
+Publish your own assets; never ask the user to. Ambient sounds as files (wind, water, birds for a zone): `python3 tools/upload_asset.py audio <files>`. It prints the
+`rbxassetid://` ids (owned by the main game's group, the testbed granted Use);
+record them where the asset lives. The Open Cloud key in
+`~/.config/roblox/api_key` is never read, printed or copied by you; only the
+script touches it. Details: AGENTS.md, Uploading to Roblox.

@@ -229,3 +229,11 @@ from disk, and rerun it.
 
 When done, report what changed, what you previewed (and on which device), and what
 is untested, then commit with a message that says why.
+
+## Uploading to Roblox
+
+Publish your own assets; never ask the user to. Images keep going through `upload_image` (above). UI sounds (clicks, opens, rewards) as files: `python3 tools/upload_asset.py audio <files>`. It prints the
+`rbxassetid://` ids (owned by the main game's group, the testbed granted Use);
+record them where the asset lives. The Open Cloud key in
+`~/.config/roblox/api_key` is never read, printed or copied by you; only the
+script touches it. Details: AGENTS.md, Uploading to Roblox.

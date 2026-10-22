@@ -173,3 +173,11 @@ Commit the `.rbxm`, scripts, specs, references and docs together.
 End every report with **Workflow learnings** and **Workflow optimization**,
 as the vfx brief describes. Don't edit this file yourself; the main session
 folds your sections in.
+
+## Uploading to Roblox
+
+Publish your own assets; never ask the user to. Event sounds and ambience you make or source as files: `python3 tools/upload_asset.py audio <files>`. Textures you draw: the MCP's `upload_image`. It prints the
+`rbxassetid://` ids (owned by the main game's group, the testbed granted Use);
+record them where the asset lives. The Open Cloud key in
+`~/.config/roblox/api_key` is never read, printed or copied by you; only the
+script touches it. Details: AGENTS.md, Uploading to Roblox.

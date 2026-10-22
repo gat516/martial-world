@@ -19,7 +19,7 @@ Guard break needs no clip (the existing stagger plays).
 
 ## Published
 
-Uploaded with `python3 tools/upload_animation.py art/player/guard/clips/*.rbxm`
+Uploaded with `python3 tools/upload_asset.py animation art/player/guard/clips/*.rbxm`
 (group 772472600, testbed universe granted Use), in `Animations.Guard`:
 
 | Clip | Animation | Id |

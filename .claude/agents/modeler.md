@@ -289,3 +289,11 @@ hand them to the `animator` agent and the enemy-designer.
 - Report what changed, what you looked at (angles), and what is untested (the
   user playtests), then commit the scripts, FBX, JSON and .blend with a message
   that says why.
+
+## Uploading to Roblox
+
+Publish your own assets; never ask the user to. Clips for a rig: `python3 tools/upload_asset.py animation <files>`. A finished model that should exist as a Roblox asset (for InsertService or the Toolbox): `python3 tools/upload_asset.py model <.fbx/.rbxm>`; the Studio import pipeline stays the default for meshes. It prints the
+`rbxassetid://` ids (owned by the main game's group, the testbed granted Use);
+record them where the asset lives. The Open Cloud key in
+`~/.config/roblox/api_key` is never read, printed or copied by you; only the
+script touches it. Details: AGENTS.md, Uploading to Roblox.

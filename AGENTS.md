@@ -29,7 +29,6 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 - Then run everything at once: `modeler`, `vfx`, `animator` and the same `enemy-designer` session (SendMessage, so it keeps its context) wiring the code against those contracts. The animator only waits for the modeler when joints change. The designer hooks in each delivery as it lands, then tunes and ships. Keep that one designer session for the next enemy too. (The Spirit Wolf ran these in series and took over an hour; most of it was agents waiting on each other.)
 - Keep enemy passes lean: vfx builds straight from the brief (no plan step, no reference research unless the user gave a link) and reuses existing enemy effects where they fit; animators reuse the shared planting solver and QA scripts; every agent checks numerically and leaves visual review to the user.
 - New or reworked fights go to the testbed first: the new behaviour sits behind a flag that is on only in the testbed (`Config.TESTBED`), so the user fights it there before it ships. Flip the flag for the main game only after the user approves.
-- Publishing animation clips: `python3 tools/upload_animation.py <one-KeyframeSequence .rbxm files>` uploads them through Open Cloud (key in `~/.config/roblox/api_key`, outside the repo; never print, copy or commit it), owned by the main game's group with the testbed granted Use, and prints the ids. Don't ask the user to publish through the Animation Editor.
 - Enemy animation (cycles, attack windups, stagger, death, on beasts or R6 humanoids) goes to the `animator` subagent. It works from each rig's `art/enemies/<group>/RIGS.md` and the bear/tiger reference in `docs/reference/animation/`.
 
 ## Testbed
@@ -73,6 +72,13 @@ Split big map or content passes across several subagents when the parts don't sh
   Never leave a staging copy behind (StarterGui copies them into every player). Changing properties of existing managed instances in place is fine, as is writing property changes straight into the `.rbxmx`.
 - Never delete, replace or rebuild over Studio instances you didn't create in this task, even ones that look like leaked copies of your own work: they may be the user's hand edits (a vfx agent wiped the user's hand-placed aura sigils this way). Ask first. Before a builder regenerates a template, check the live one for changes that aren't in the builder and report them.
 - Run `tools/find_duplicates.luau` (through `execute_luau`) only when the user explicitly asks for a duplicate check. It is not a prerequisite for committing.
+
+## Uploading to Roblox
+
+Every agent publishes its own assets; don't ask the user to upload or publish anything.
+- Animations, audio and models: `python3 tools/upload_asset.py <animation|audio|model> <files>` uploads through Open Cloud, owned by the main game's group (772472600), grants the testbed universe Use on animations and audio so they play in both places, and prints the `rbxassetid://` ids. An animation file is a `.rbxm` whose root is one KeyframeSequence (see the script's help for splitting a folder of clips). Record the ids where the asset lives (the `Animation`/`Sound` instance, `art/.../README.md` or `assets.json`).
+- Images (UI art, emitter textures): the Studio MCP's `upload_image`, as the ui-designer does (it returns the image id; Open Cloud would return a Decal).
+- The Open Cloud key is in `~/.config/roblox/api_key`, outside the repo. Never read, print, copy or commit it; only the script touches it.
 
 ## Luau pitfalls
 

@@ -221,3 +221,11 @@ End every report with **Workflow learnings** (what cost time, gotchas,
 tuning numbers that felt right or wrong) and **Workflow optimization** (ranked
 changes; build the small, worthwhile ones and commit them, list the rest).
 Don't edit this file yourself; the main session folds your sections in.
+
+## Uploading to Roblox
+
+Publish your own assets; never ask the user to. Sounds that aren't in the asset library or the Creator Store (your own or edited files): `python3 tools/upload_asset.py audio <files>`, then point the `SoundService.SFX` Sound at the id. Clips: `python3 tools/upload_asset.py animation <files>`. It prints the
+`rbxassetid://` ids (owned by the main game's group, the testbed granted Use);
+record them where the asset lives. The Open Cloud key in
+`~/.config/roblox/api_key` is never read, printed or copied by you; only the
+script touches it. Details: AGENTS.md, Uploading to Roblox.

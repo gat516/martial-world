@@ -1331,66 +1331,6 @@
     </Properties>
     </Item>
    </Item>
-   <Item class="Folder" referent="W2F8"><Properties>
-    <string name="Name">GoldenToad</string>
-   </Properties>
-    <Item class="Sound" referent="W2S1"><Properties>
-     <string name="Name">Aggro</string>
-     <Content name="SoundId"><url>rbxassetid://9117352636</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">0.7</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-    <Item class="Sound" referent="W2S2"><Properties>
-     <string name="Name">Attack</string>
-     <Content name="SoundId"><url>rbxassetid://9117370226</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">1.0</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-    <Item class="Sound" referent="W2S3"><Properties>
-     <string name="Name">Death</string>
-     <Content name="SoundId"><url>rbxassetid://9117369876</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">0.9</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-    <Item class="Sound" referent="W2S4"><Properties>
-     <string name="Name">Attack_bogCroak</string>
-     <Content name="SoundId"><url>rbxassetid://9120790124</url></Content>
-     <float name="Volume">0.9</float>
-     <float name="PlaybackSpeed">0.5</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-    <Item class="Sound" referent="W2S5"><Properties>
-     <string name="Name">Attack_tongueLash</string>
-     <Content name="SoundId"><url>rbxassetid://123796710194563</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">0.9</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-    <Item class="Sound" referent="W2S6"><Properties>
-     <string name="Name">Attack_gulp</string>
-     <Content name="SoundId"><url>rbxassetid://9117370226</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">1.1</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-    <Item class="Sound" referent="W2S7"><Properties>
-     <string name="Name">Attack_miasmaLob</string>
-     <Content name="SoundId"><url>rbxassetid://9120049821</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">0.8</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-   </Item>
    <Item class="Folder" referent="W2F15"><Properties>
     <string name="Name">BloodCentipede</string>
    </Properties>

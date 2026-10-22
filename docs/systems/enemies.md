@@ -105,7 +105,7 @@ attribute when the cue fires). Skipped past 220 studs from the camera. Server
 code never plays effects; if a cue is missing, add an attribute, a field on the
 telegraph, or an `enemyCue` (below), not a server-side effect.
 
-A barrage's windup (the Fox's, the Toad's tongue, the Raven's embers) is ONE `windup` cue whose
+A barrage's windup (the Fox's, the Raven's embers) is ONE `windup` cue whose
 `shape` is `{ kind = "multi", parts, center }`: the real circles, lanes and cones are in
 `shape.parts` (each with its own centre or box, `radius` and `delay`), and `shape.center` is
 the beast's own ground position, not the target. Read `shape.parts`, never `shape.center`, for
@@ -240,27 +240,21 @@ Needs from the body contract: attachments `Mouth`, `SacL/R_FX`
 `EyeL/R`, tortoise `BrowMark` and `SeamTell*`. The server must send the `hit`
 `enemyCue` once per player caught.
 
-### Golden Toad and Blood Centipede effects (third wave)
-Handlers `EnemyFX/GoldenToad.luau`, `BloodCentipede.luau` on `BeastKit`; templates
-`ReplicatedStorage.Effects.GoldenToad` / `.BloodCentipede` (builders
-`tools/vfx_specs/<Beast>.luau`), gated by `Template` = the template name. Smoke test:
-`tools/enemy_fx_smoke.luau` (fires cues at the real bodies in a sandbox).
+### Blood Centipede effects (third wave)
+Handler `EnemyFX/BloodCentipede.luau` on `BeastKit`; template
+`ReplicatedStorage.Effects.BloodCentipede` (builder `tools/vfx_specs/BloodCentipede.luau`),
+gated by `Template` = the template name. Smoke test: `tools/enemy_fx_smoke.luau` (fires cues
+at the real bodies in a sandbox).
 
 | Beast / beat | Layers (templates) |
 |---|---|
-| Toad windup | EyeGlint (teal), SacTell/WartTell dim -> gold; SacGlow (glow, motes) on the sac; MouthMist for tongueLash/gulp |
-| tongueLash | strike: TongueBeam (slate base, pink tongue, pale shine) between `Mouth` and `TongueTip`, held ~0.3 s, + TipPop |
-| `snare` cue | TetherBeam (teal-gold on slate) from the Mouth to the caught player's torso for 0.4 s |
-| bogCroak | `Impact.roar` (teal-gold) + CroakRings (3 staggered rings) from the sac at 40% of the windup |
-| miasmaLob | windup - 0.4 s: a gob lobs (`BeastKit.lob`, `Impact.shot`) to `shape.center`; landing: `Impact.explode`; the server's `patch` cue (`Effect enemyPatch`, `shape.center/radius`, `seconds`) draws BogPuddle (dark pool, scum, rim, bubbles) refit to the patch length |
-| hit / hop / stagger / death | MudSplash; HopDust; StaggerFlash; Death (gold motes, bog mist, glint) |
 | Centipede windup | EyeGlint (red); seams and pincer Tells light front to back (`K.tell` sweep) |
 | pincerSnap / coilSweep | CrescentSnap (two blood crescents, flecks) at the Mouth; SweepArc (flat crescent on slate, dust fan) + `Impact.swipe` |
 | burrowDive / `Burrowed` | dash: DiveBurst; while `Burrowed`: plates fade, BurrowMound (earth hump, dirt, chips) rides the ground under the root and CrackStamp (crack + rust glow) is stamped along the lane every 0.14 s; the plates return when it clears |
 | erupt | Eruption (scar, rust glow, dust column, chips, flash, ring) + `Impact.ground` (rocks, shake 0.3 within 30) |
 | hit / stagger / death | BloodHit (splatter, drops, pop); StaggerFlash; Death (bone dust, red motes, glint) |
 
-The `snare` cue is the Fox's (`enemyCue`, target = the caught Character); `Burrowed` is set only for the dive and cleared by erupt (BossAttacks), the client hides the body. Untested in play.
+`Burrowed` is set only for the dive and cleared by erupt (BossAttacks), the client hides the body. Untested in play.
 
 ### Flame Raven and Iron-Winged Blood Bat effects (third wave)
 Handlers `EnemyFX/FlameRaven.luau` (Template `FlameRavenB`) and `BloodBat.luau`;
@@ -456,8 +450,8 @@ for the user's playtest, not balance; the user retunes them.
 
 User decisions (2026-10-22): the serpent's strike and spit apply poison (the existing
 `PlayerPoison`); Shell Guard is a real damage-reduction state; the Tortoise sits at mid tier
-(QC6); the user retunes every number later. A Toad and a Blood Centipede body are also being
-built (no fights yet), and the Flame Raven (flies at melee height) is next.
+(QC6); the user retunes every number later. A Blood Centipede body is also being built (no
+fight yet), and the Flame Raven (flies at melee height) is next.
 
 New server mechanics (`EnemyService`, `Combat`, fields in `Enemies.luau`):
 - **`guard`** (attack kind): no damage. After its windup it holds as AIState `dash` for `hold`
@@ -521,30 +515,29 @@ A step that ends with the target off its nose skids round (`shadowStepSkid`). So
 (`SFX.Enemies.StoneTortoise`, `ShadowManeWolf`, the serpent's additions) reuse existing ids
 pitched, picked by description and unheard.
 
-### Third bestiary wave: Golden Toad, Blood Centipede, Flame Raven, Blood Bat (testbed)
-Four more regular beasts on bodies already in `assets/Enemies.rbxm` (templates `GoldenToad`,
+### Third bestiary wave: Blood Centipede, Flame Raven, Blood Bat (testbed)
+Three more regular beasts on bodies already in `assets/Enemies.rbxm` (templates
 `BloodCentipede`, `FlameRavenB`, `BloodBat`; RIGS.md has each rig), behind
-`Config.Wilds.NEW_TOAD`, `NEW_CENTIPEDE`, `NEW_RAVEN`, `NEW_BAT` (all
+`Config.Wilds.NEW_CENTIPEDE`, `NEW_RAVEN`, `NEW_BAT` (all
 `= TESTBED`; none has an old def, so each exists only while its flag is on, and none is in an
-ambient pack yet). Testbed zones: `ToadPair` (-180, 0), `CentipedeSolo` (180, 0), `RavenSolo`
+ambient pack yet). Testbed zones: `CentipedeSolo` (180, 0), `RavenSolo`
 (-180, -160), `BatSwarm` (4 bats, 180, -160), all Y 648.6. They fit
-realms and regions like this: Toad QC3 (Inner marsh), Centipede QC6 (Ruined Borderlands), Raven
+realms and regions like this: Centipede QC6 (Ruined Borderlands), Raven
 QC8 and Bat QC8 (deep Borderlands). Numbers are first guesses; the
-user retunes them. A beast of each element is an affinity: toad water-venom, centipede
-earth-blood, raven fire, bat wind-blood. The user cut the Frost Spider (FE1, ice trapper) on
-2026-10-22; its body, fight, effects and sounds are gone, but the `slow` and slow `patch`
-mechanics it used stay for a later beast. On the same day the user asked for a modeling pass
-on the Toad, Centipede and Bat bodies (the first builds read as weak).
+user retunes them. A beast of each element is an affinity: centipede earth-blood, raven fire,
+bat wind-blood. On 2026-10-22 the user cut the Frost Spider (FE1, ice trapper) and the Golden Toad (QC3,
+bog ambusher; its rebuild still looked bad); their bodies, fights, effects and sounds are
+gone, but the mechanics they used (`slow`, `patch`, the snare `pull`) stay for later beasts.
+The same day the user asked for a modeling pass on the Centipede and Bat bodies (the first
+builds read as weak).
 
 New server mechanics (`EnemyService`, `BossAttacks`, `PlayerSlow`, fields in `Enemies.luau`):
-- **Tongue pull**: the Toad's `tongueLash` is the Fox's `snare` barrage (a lane, `pull`,
-  `followUpOnHit`), so a caught player is yanked to 4 studs and `gulp` follows only on a catch.
 - **`slow`** (attack field, `PlayerSlow.luau`, unused since the Spider was cut): a landed hit slows the player's walk by `factor`
   for `seconds` (Humanoid attributes `SlowMove`, `SlowUntil`, read by both `Movement`s). It
   refreshes and keeps the stronger factor; it never stacks or roots, and a dodge ignores it. The
   `slow` enemyCue draws it.
-- **`patch`** (spit field): the landing circle lingers `seconds` as a poison (Toad miasma) or
-  slow patch (no beast uses a slow one now). `BossAttacks.addPatch` shares the Jiao's pool list, ticking every 0.5 s
+- **`patch`** (spit field): the landing circle lingers `seconds` as a poison or slow pool (no
+  beast uses either now). `BossAttacks.addPatch` shares the Jiao's pool list, ticking every 0.5 s
   for a slow and 1 s for poison; clients get `Effect "enemyPatch"` (EnemyFX handler `patch`,
   `cue.shape = { center, radius, effect }`, `cue.seconds`).
 - **`leech`** (Bat): a landed hit heals the beast that share of its damage and fires the `leech`
@@ -569,10 +562,6 @@ New server mechanics (`EnemyService`, `BossAttacks`, `PlayerSlow`, fields in `En
 
 | Beast | Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage |
 |---|---|---|---|---|---|---|
-| Toad (QC3, 90 HP) | `tongueLash` (opener) | barrage snare + pull 4 | 0.7 / - / 0.9 | 4-18 | lane 2.4 x 18 | 12 |
-| | `gulp` (followUpOnHit) | cone | 0.35 / - / 0.8 | 9 | r 7, 90 deg | 14 |
-| | `bogCroak` | howl + stagger 0.7 s | 1.0 / - / 0.8 | 10 | circle r 10 | 0 |
-| | `miasmaLob` | spit + poison patch 3 s | 1.0 / - / 0.7 | 10-24 | circle r 4 | 10 + poison |
 | Centipede (QC6, 320 HP) | `pincerSnap` (opener) | cone | 0.6 / - / 0.9 | 14 | r 11, 60 deg | 18 |
 | | `coilSweep` | cone | 0.9 / - / 1.0 | 10 | r 12, 200 deg | 22 |
 | | `burrowDive` | burrow, then `erupt` | 0.5 / up to 30 studs at 40/s / 0.1 | 8-32 | lane 5 wide | 0 |
@@ -585,15 +574,15 @@ New server mechanics (`EnemyService`, `BossAttacks`, `PlayerSlow`, fields in `En
 | | `sonicShriek` | howl + stagger 0.6 s, `slot` | 1.0 / - / 0.8 | 10 | circle r 10 | 0 |
 
 Sounds reuse existing ids pitched, picked by description and unheard
-(`SFX.Enemies.GoldenToad`, `BloodCentipede`, `FlameRaven`, `BloodBat`). Untested in
-play: all of it. Specifically the tongue pull on a client-owned character, the centipede's dive
+(`SFX.Enemies.BloodCentipede`, `FlameRaven`, `BloodBat`). Untested in
+play: all of it. Specifically the centipede's dive
 lane on uneven ground, the perch drop reading as a landing, three or four bats' phone cost and
 whether overlapping shriek and dive windups feel fair (one slot at a time), the `slow` strength,
 and every number.
 
 ### Next beasts: Blood-Fed Hound and Ember-Scale Pangolin (approved concepts, 2026-10-22)
 Approved as concepts; each goes to a fresh enemy-designer for a design card once the
-Toad, Centipede and Bat body rebuilds are done (so no more sandboxes open at once).
+Centipede and Bat body rebuilds are done (so no more sandboxes open at once).
 - **Blood-Fed Hound** (QC7, Ruined Borderlands: Deserters' Camp, Bone Gully). A war-hound the
   Blood Sect raises on cultivators' blood: hairless, scarred, ribs showing, a chain collar,
   blood talismans nailed into its back like the Blood Sect Cultist's. A pack of 2-3 that

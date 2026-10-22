@@ -51,7 +51,7 @@ local CC = CombatConfig.CC
 -- with shareTurns so its summoned pack cannot cover its tells with another hit.
 local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Config.NEW_THUNDER_APE or Config.NEW_NINE_TAIL_FOX or Config.NEW_JIAO
 	or Config.NEW_SERPENT or Config.NEW_TORTOISE or Config.NEW_SHADOW_MANE
-	or Config.NEW_TOAD or Config.NEW_CENTIPEDE or Config.NEW_RAVEN or Config.NEW_BAT
+	or Config.NEW_CENTIPEDE or Config.NEW_RAVEN or Config.NEW_BAT
 -- how long a follow-up (Enemies `followUp`) waits past its recover for the attack slot
 local FOLLOW_UP_WAIT = 1.0
 -- Turning into moves and arriving with weight (Config.Wilds.WEIGHTED_MOVES; telegraphs.md
@@ -1733,7 +1733,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 		end
 	end
 	if attack.patch and shape.center then
-		-- a spit leaves a lingering patch where it landed (toad miasma)
+		-- a spit leaves a lingering patch where it landed (a poison or slow pool)
 		BossAttacks.addPatch(enemy, shape.center :: Vector3, attack.radius :: number, attack.patch)
 	end
 	if attack.phaseStep then

@@ -507,10 +507,9 @@ return {
 		NEW_SERPENT = TESTBED,
 		NEW_TORTOISE = TESTBED,
 		NEW_SHADOW_MANE = TESTBED,
-		-- THE THIRD WAVE (enemies.md "Third bestiary wave"): the Golden Toad, Blood Centipede,
-		-- Flame Raven and Iron-Winged Blood Bat (the Frost Spider was cut). Testbed only until
+		-- THE THIRD WAVE (enemies.md "Third bestiary wave"): the Blood Centipede, Flame
+		-- Raven and Iron-Winged Blood Bat (the Golden Toad and Frost Spider were cut). Testbed only until
 		-- approved; each has no old def, so it exists only while its flag is on.
-		NEW_TOAD = TESTBED,
 		NEW_CENTIPEDE = TESTBED,
 		NEW_RAVEN = TESTBED,
 		NEW_BAT = TESTBED,

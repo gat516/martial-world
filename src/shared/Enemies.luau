@@ -220,7 +220,6 @@ local NEW_NINE_TAIL_FOX = Wilds.NEW_NINE_TAIL_FOX
 local NEW_SERPENT = Wilds.NEW_SERPENT
 local NEW_TORTOISE = Wilds.NEW_TORTOISE
 local NEW_SHADOW_MANE = Wilds.NEW_SHADOW_MANE
-local NEW_TOAD = Wilds.NEW_TOAD
 local NEW_CENTIPEDE = Wilds.NEW_CENTIPEDE
 local NEW_RAVEN = Wilds.NEW_RAVEN
 local NEW_BAT = Wilds.NEW_BAT
@@ -1220,55 +1219,9 @@ if NEW_SHADOW_MANE then
 	} :: Def
 end
 
--- THE THIRD WAVE (testbed only, Config.Wilds.NEW_TOAD / NEW_CENTIPEDE / NEW_RAVEN /
+-- THE THIRD WAVE (testbed only, Config.Wilds.NEW_CENTIPEDE / NEW_RAVEN /
 -- NEW_BAT). Like the second wave, first guesses for the user's playtest, not balance. Reaches
 -- are measured from the root centre (RIGS.md has each body's root box and mouth distance).
-
--- Golden Toad (QC3, player 140 HP): a bog ambusher. Its tongue lashes down a lane and yanks a
--- caught player in (the Fox's snare barrage), the gulp follows only on a catch, its croak
--- staggers a circle, and it lobs a bubbling poison puddle from range. Hops 6 studs back after.
-if NEW_TOAD then
-	local gulp: Attack = {
-		kind = "cone", name = "gulp", damage = 14, range = 9, windup = 0.35, recover = 0.8,
-		cooldown = 0, radius = 7, angle = 90, chainOnly = true, hopAfter = true,
-	}
-	local tongueLash: Attack = {
-		kind = "barrage", barrage = "snare", name = "tongueLash", damage = 12, range = 18, minRange = 4,
-		windup = 0.7, recover = 0.9, cooldown = 3.5, length = 18, width = 2.4,
-		pull = { distance = 4, seconds = 0.3 }, followUpOnHit = "gulp", hopAfter = true,
-	}
-	local bogCroak: Attack = {
-		kind = "howl", name = "bogCroak", damage = 0, range = 10, windup = 1.0, recover = 0.8,
-		cooldown = 9, radius = 10, stun = { kind = "stagger", radius = 10, seconds = 0.7 },
-	}
-	local miasmaLob: Attack = {
-		kind = "spit", name = "miasmaLob", damage = 10, range = 24, minRange = 10, windup = 1.0,
-		recover = 0.7, cooldown = 6, radius = 4, poison = { stacks = 1, seconds = 4 },
-		patch = { seconds = 3, effect = "poison" },
-	}
-	Enemies.Defs.GoldenToad = {
-		id = "GoldenToad",
-		name = "Golden Toad",
-		body = "GoldenToad",
-		realm = { "QiCondensation", 3 },
-		weight = 1.2,
-		health = 90,
-		walkSpeed = 3,
-		runSpeed = 7,
-		aggro = 30,
-		leash = 70,
-		qiDrop = 22,
-		stones = { 4, 8 },
-		respawn = 30,
-		drops = { { item = "LesserSpiritCore", chance = 0.3 } },
-		attack = tongueLash,
-		attacks = { bogCroak, miasmaLob, tongueLash, gulp } :: { Attack },
-		pack = {
-			hop = { distance = 6, seconds = 0.3, arc = 1.2, cooldown = 3, hits = 99, window = 1 },
-			closeOpener = true,
-		},
-	} :: Def
-end
 
 -- Blood Centipede (QC6, player 220 HP): a low grave-hunter, 16 studs long. Pincers first, a wide
 -- sweep when flanked, and a burrow dive that runs underground (immune, no damage) to the

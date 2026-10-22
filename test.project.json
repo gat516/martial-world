@@ -489,52 +489,6 @@
               }
             }
           },
-          "ToadPair": {
-            "$className": "Part",
-            "$attributes": {
-              "Enemy": "GoldenToad",
-              "Count": 2,
-              "Radius": 12
-            },
-            "$properties": {
-              "Anchored": true,
-              "CanCollide": false,
-              "CanTouch": false,
-              "CanQuery": false,
-              "Transparency": 1,
-              "Size": [
-                4,
-                1,
-                4
-              ],
-              "CFrame": {
-                "CFrame": {
-                  "position": [
-                    -180,
-                    648.6,
-                    0
-                  ],
-                  "orientation": [
-                    [
-                      1,
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      1,
-                      0
-                    ],
-                    [
-                      0,
-                      0,
-                      1
-                    ]
-                  ]
-                }
-              }
-            }
-          },
           "CentipedeSolo": {
             "$className": "Part",
             "$attributes": {

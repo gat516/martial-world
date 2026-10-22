@@ -8,8 +8,8 @@
 -- module copies first, or require returns the cached version). Then:
 --   loadstring(game:GetService("HttpService"):GetAsync("http://127.0.0.1:8768/tools/enemy_fx_smoke.luau"))()
 --   return _G.enemyFxSmoke({
---     GoldenToad = { mod = "GoldenToad", hooks = { "Mouth", "TongueTip" },
---       cues = { { "windup", "tongueLash" }, { "hit", "tongueLash" }, { "snare" }, { "death" } } },
+--     BloodCentipede = { mod = "BloodCentipede", hooks = { "Mouth" },
+--       cues = { { "windup", "pincerSnap" }, { "strike", "pincerSnap" }, { "death" } } },
 --   })
 -- A cue is { name, attack?, seconds?, state?, shape = ? } (shape overrides the
 -- default, e.g. a boss barrage's parts built like the server's). Handlers run with a dummy target

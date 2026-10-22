@@ -46,8 +46,8 @@ on the baseplate unchanged.
   `SerpentPair` (2 Venom Serpents at (-90, 648.6, 80)), `TortoiseSolo` (one Stone
   Tortoise at (100, 648.6, 80)) and `ManePair` (2 Shadow Mane Wolves at (0, 648.6, 140))
   test the second bestiary wave behind `NEW_SERPENT` / `NEW_TORTOISE` / `NEW_SHADOW_MANE`.
-  The third wave has `ToadPair` (-180, 0), `CentipedeSolo` (180, 0), `RavenSolo` (-180, -160),
-  and `BatSwarm` (4 bats, 180, -160), behind `NEW_TOAD` /
+  The third wave has `CentipedeSolo` (180, 0), `RavenSolo` (-180, -160),
+  and `BatSwarm` (4 bats, 180, -160), behind
   `NEW_CENTIPEDE` / `NEW_RAVEN` / `NEW_BAT`.
 - New bosses (Thunder Ape, Nine-Tailed Fox, Jade Jiao) get no zone: the user
   spawns them from the admin panel's "Spawn beasts" list (every def shows there,

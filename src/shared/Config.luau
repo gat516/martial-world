@@ -434,6 +434,10 @@ return {
 		-- THE THUNDER APE TRIAL: a 30-stud storm boss (FE1) with fast combos, jump
 		-- slams, lightning and a stagger roar. Testbed only until the user approves.
 		NEW_THUNDER_APE = TESTBED,
+		-- THE NINE-TAILED FOX TRIAL: an FE1 duelist boss with telescoping tails (lances,
+		-- sweeps, a snare), foxfire volleys, tail-plunge eruptions, a scream stun and
+		-- retreat flips. Testbed only until the user approves.
+		NEW_NINE_TAIL_FOX = TESTBED,
 		-- attack slots (EnemyService): at most this many beasts (non-bosses, plus
 		-- bosses with shareTurns) wind up or strike at one player at once; the next waits
 		-- SLOT_GAP after the last one resolved, so a pack takes turns. Short tells

@@ -426,6 +426,61 @@ because its remote may arrive before the replicated phase update. Ground effects
 stay at the locked point; body effects follow their attachment's part. Layer details
 and library ids are in the builder.
 
+### Nine-Tailed Fox (testbed trial)
+`Config.Wilds.NEW_NINE_TAIL_FOX = TESTBED` gates the def. FE1 boss, 2600 HP, weight 7,
+walk 8 / run 22, `body = "NineTailFoxB"` (2.13x, nine telescoping tails; `RIGS.md`
+"NineTailFoxB": reach 8.7 studs at rest, 21.4 extended, so every tail lane is 18-20
+studs, shortened from the 30 first designed). Spawn it from the admin panel's "Spawn beasts" list (no testbed zone). Sheets for the build agents: the fox contracts (kept in the
+session scratchpad, folded in here).
+
+Fight: a fresh engagement opens with `intro` (2.2 s, no damage). Then a **random pick**
+(`def.spacing`, `EnemyService.foxAttack`) among the pool attacks that fit phase, range
+band and cooldown (cooldowns x1 / 0.85 / 0.7 by phase), never the same twice in a row
+and never a crowd-control attack within `windup + recover + 2` s of the last one. The
+fox circles at 24 studs (`pack.circle`, waiting on the volley) and closes in when the
+volley is cooling. **Moon Leap** is not in the draw: after 2 melee attacks in a row, 2.5 s
+within 14 studs, or 12% of max health lost in 3 s, it backflips 34 studs away (leaving a
+fire trail) and follows with a Foxfire Volley. Phases at 66% and 33% (`veilBreak`,
+reusing the Thunder Ape's `phaseCall` / `phaseStep` and `Phase` attribute).
+
+| Attack (`name`) | Kind | Windup / active / recover | Area (from the fox's root) | Damage (FE1 500 HP) | Notes |
+|---|---|---|---|---|---|
+| `intro` | howl | 2.2 / - / 0.8 | ring | 0 | opener |
+| `fangDance` | barrage `fangs` | 0.65 / 0.12 / 1.2 | 3 cones r 20, 80 deg, at +0, +0.4, +0.8 s | 28 each | melee, range 18 |
+| `tailSweep` | cone | 0.9 / 0.25 / 1.1 | r 18, 200 deg | 55 | range 16 |
+| `tailLance` | barrage `lance` | 0.6 / 0.1 / 0.8 | box 20 x 4 | 60 | 5-24 |
+| `lanceFan` | barrage `lanceFan` | 0.95 / 0.1 / 1.1 (P3 1.8) | 20 x 4 boxes: P1 3 at +-22, P2 5 at +-40, P3 5 then back; 0.18 s apart | 45 each | 5-24 |
+| `tailSnare` | barrage `snare` | 0.85 / 0.1 / 0.9 | box 20 x 4 | 40 | pulls the hit player to 11 studs in 0.45 s (a 0.45 s stagger), then `fangDance` follows (only on a hit) |
+| `rendingPounce` | lunge | 0.75 / dash / 1.0 | box 8 x 30 at 55/s | 75 | 18-36 |
+| `foxfireVolley` | barrage `volley` | 1.1 / 0.1 / 1.0 (P3 1.8) | 5 lanes 56 x 4 at 20 deg steps; P3 7 lanes at 15 deg in two waves 0.7 s apart | 40 each | 20-70 |
+| `rootfireEruption` (P2) | barrage `ringHeart` | 1.5 / 0.1 / 1.6 | 4 circles r 5 on a ring of 11 round the target, then r 7 under it at +0.8 s | 55 each | heart staggers 0.6 s |
+| `moonLeap` | retreat | 0.4 / 0.6 flight / 0.4 | landing ring + trail box 34 x 6 ticking at +0.5, 1.0, 1.5 s | 12 per tick | then Foxfire Volley |
+| `mournfulScream` (P2) | howl + stun | 1.4 / 0.3 / 1.6 | circle r 30 | 0 | stun 1.2 s, cooldown 14 s |
+| `nineTailFall` (P3) | barrage `spiral` | 1.8 / 0.1 / 2.0 | 9 circles r 7 spiralling out from the target, 0.2 s apart, then r 20 under the fox at +1.9 s | 55 each, 110 final | the final circle staggers 0.6 s |
+| `veilBreak` | howl + stagger | 1.6 / 0.2 / 1.0 | circle r 16 | 0 | phase step, stagger 0.6 s |
+
+New server mechanics (all in `EnemyService`, defs in `Enemies.luau`):
+- **`barrage`**: parts (box / circle / cone plus `delay`, `ext`, `tail`) computed at the windup's
+  start from where the target stands (locked, fair), sent as Telegraph shape
+  `{ kind = "multi", pattern, parts }`; `Telegraphs` draws each part filling until the windup
+  plus its delay, and any shape with `parts` (the retreat's trail too, `hidden` ones skipped).
+  Parts hit `delay` s after release for whoever stands in them; the beast's next attack or a
+  stagger calls the rest off (`strikeId`). Part flags: `stun` (the attack's `hitStun`),
+  `snare` (the attack's `pull`), `damageScale`.
+- **`retreat`**: damage-free flip away (`distance`, `active`, `arc`) plus the fire-trail parts.
+- **`spacing`** (`def.spacing`): the random pick and retreat triggers above.
+- Windup cues carry the telegraph's `attack` name (the Thunder Ape's change), and a snared
+  player gets `enemyCue "snare"` with their Character.
+- Cut for now (later add-ons): snapBite, tailWhirl, crossLash, wispRain, phantomStep (blink),
+  mirrorVeil (illusion clones).
+Sounds: `SFX.Enemies.NineTailFox` reuses the wolf, swing, fire-seal and thunder clips
+(pitched), picked by id only, unlistened: replace them with fox sounds.
+Untested: everything (feel, lane reach against the animated tails, the pull on a client-owned
+character, the volley's lane gaps, boss HP, phone load of nine tails).
+Pose module and effects are being built in parallel (`EnemyPoses/NineTailFox.luau`,
+`EnemyFX/NineTailFox.luau`); the EnemyAnimator family (`scale = 2.13`) is registered when the
+pose module lands.
+
 ### Thunder Ape (testbed trial)
 A 30-stud storm boss for Foundation 1 (`Config.Wilds.NEW_THUNDER_APE = TESTBED`; flip it to ship).
 Body `ThunderApeB` (3.71x the roster ape; root box 14.8 x 14.8 x 16.3, so every reach below is measured from

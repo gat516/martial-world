@@ -81,6 +81,15 @@ function Telegraphs.show(shape: any, seconds: number, _model: Instance?, _attack
 	local outline: { BasePart } = {}
 	local fill: { BasePart } = {}
 	local lift = Vector3.new(0, LIFT, 0)
+	-- a barrage or retreat (Nine-Tailed Fox): each sub-area fills until the windup ends
+	-- plus its own delay, so a sequence reads left to right or ring by ring
+	if shape.parts then
+		for _, sub in shape.parts do
+			if not sub.hidden then
+				Telegraphs.show(sub, seconds + (sub.delay or 0), nil, nil, nil)
+			end
+		end
+	end
 	if shape.kind == "box" then
 		local cframe = shape.cframe + lift
 		local size = shape.size :: Vector2

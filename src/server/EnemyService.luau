@@ -44,7 +44,7 @@ local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
 -- Attack slots and dash-front hits for the new fights; a boss opts into slots
 -- with shareTurns so its summoned pack cannot cover its tells with another hit.
-local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Config.NEW_THUNDER_APE
+local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Config.NEW_THUNDER_APE or Config.NEW_NINE_TAIL_FOX
 -- how long a follow-up (Enemies `followUp`) waits past its recover for the attack slot
 local FOLLOW_UP_WAIT = 1.0
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
@@ -115,6 +115,8 @@ export type Shape = {
 	size: Vector2?, -- box: width, length
 	center: Vector3?, -- circle
 	radius: number?, -- circle
+	parts: { any }?, -- barrage/retreat: timed sub-areas (see buildParts), drawn by Telegraphs
+	pattern: string?, -- barrage: the pattern name
 }
 
 type Enemy = {
@@ -794,6 +796,206 @@ local function startDash(enemy: Enemy, to: Vector3, speed: number, arc: number?)
 	enemy.state = "dash"
 end
 
+--[[ Barrages (Nine-Tailed Fox): timed sub-areas ]]
+-- A barrage is computed once at the START of the windup from where the target stands
+-- then, so every area is locked, telegraphed and fair. Parts are plain shapes
+-- (kind/shape "box" | "circle" | "cone", the fields `caught` and Telegraphs read) plus
+-- `delay` (seconds after the windup ends that the part hits), `ext` (seconds before
+-- `delay` that the tail starts extending), `tail` (1..9, the tail that lances, fires
+-- or plunges), and optional `damageScale`, `stun` (hitStun applies) and `snare`
+-- (the attack's `pull` applies). Sent to clients as Telegraph shape
+-- { kind = "multi" | "howl", pattern, parts }. Patterns: see buildParts.
+local function boxPart(facing: CFrame, yaw: number, length: number, width: number, delay: number, tail: number, ext: number?): any
+	return {
+		kind = "box", shape = "box",
+		cframe = facing * CFrame.Angles(0, yaw, 0) * CFrame.new(0, 0, -length / 2),
+		size = Vector2.new(width, length), delay = delay, tail = tail, ext = ext,
+	}
+end
+
+local function circlePart(center: Vector3, radius: number, delay: number, tail: number): any
+	return { kind = "circle", shape = "circle", center = groundAt(center), radius = radius, delay = delay, tail = tail }
+end
+
+local function buildParts(enemy: Enemy, attack: Enemies.Attack, ground: Vector3, dir: Vector3, targetRoot: BasePart): Shape
+	local facing = CFrame.lookAt(ground, ground + dir)
+	local target = groundAt(targetRoot.Position)
+	local phase = enemy.phase
+	local length, width = attack.length or 20, attack.width or 4
+	local pattern = attack.barrage or "lance"
+	local parts: { any } = {}
+	if pattern == "fangs" then
+		-- three cones, one per bite, all facing where the target stood
+		for i = 1, 3 do
+			table.insert(parts, {
+				kind = "cone", shape = "cone", center = ground, cframe = facing, radius = attack.radius,
+				size = Vector2.new(attack.angle :: number, 0), delay = (i - 1) * 0.4, tail = 0,
+			})
+		end
+	elseif pattern == "lance" then
+		table.insert(parts, boxPart(facing, 0, length, width, 0, 5, 0.2))
+	elseif pattern == "snare" then
+		local part = boxPart(facing, 0, length, width, 0, 5, 0.2)
+		part.snare = true
+		table.insert(parts, part)
+	elseif pattern == "lanceFan" then
+		-- tails lance in a sweep across the fan: left to right, P3 back again
+		local angles = if phase >= 2 then { 40, 20, 0, -20, -40 } else { 22, 0, -22 }
+		local tails = if phase >= 2 then { 1, 3, 5, 7, 9 } else { 3, 5, 7 }
+		for i, a in angles do
+			table.insert(parts, boxPart(facing, math.rad(a), length, width, (i - 1) * 0.18, tails[i], 0.2))
+		end
+		if phase >= 3 then
+			local n = #angles
+			for i = n, 1, -1 do
+				table.insert(parts, boxPart(facing, math.rad(angles[i]), length, width, n * 0.18 + 0.3 + (n - i) * 0.18, tails[i], 0.2))
+			end
+		end
+	elseif pattern == "volley" then
+		-- foxfire bolts down long lanes. P1-2: five lanes; P3: seven, in two waves with
+		-- the gaps swapped (odd lanes first, even lanes 0.7 s later)
+		local count = if phase >= 3 then 7 else 5
+		local step = if phase >= 3 then 15 else 20
+		for i = 1, count do
+			local a = (count + 1) / 2 - i
+			local wave = if phase >= 3 and i % 2 == 0 then 0.7 else 0
+			local tail = math.clamp(math.floor((i - 1) * 8 / (count - 1) + 1.5), 1, 9)
+			table.insert(parts, boxPart(facing, math.rad(a * step), length, width, wave + (i % 2) * 0.05 + (i - 1) * 0.04, tail, 0))
+		end
+	elseif pattern == "ringHeart" then
+		-- four eruptions on a ring round the target, then one under them
+		local ring = attack.ring or 11
+		local plunge = { 1, 3, 7, 9 }
+		for i = 1, 4 do
+			local a = math.rad(45 + 90 * (i - 1)) + math.atan2(-dir.X, -dir.Z)
+			local at = target + Vector3.new(-math.sin(a), 0, -math.cos(a)) * ring
+			table.insert(parts, circlePart(at, attack.radius :: number, 0, plunge[i]))
+		end
+		local heart = circlePart(target, attack.heartRadius or 7, 0.8, 5)
+		heart.stun = true
+		table.insert(parts, heart)
+	elseif pattern == "spiral" then
+		-- nine tails slam down in a spiral round the target, then the fox's own ring
+		local start = math.atan2(-dir.X, -dir.Z)
+		for i = 1, 9 do
+			local a = start + math.rad(40) * (i - 1)
+			local r = 5 + (i - 1) * 1.6
+			local at = target + Vector3.new(-math.sin(a), 0, -math.cos(a)) * r
+			table.insert(parts, circlePart(at, attack.radius :: number, 0.2 * (i - 1), i))
+		end
+		local last = circlePart(ground, attack.finalRadius or 20, 1.9, 0)
+		last.stun = true
+		last.damageScale = 2
+		table.insert(parts, last)
+	end
+	return { kind = "multi", pattern = pattern, parts = parts, center = ground }
+end
+
+-- A backflip: straight away from the target `distance` studs, leaving a fire trail on
+-- the ground it crosses (three ticks at 0.5, 1.0, 1.5 s after the take-off, a scaled
+-- hit each). The shape is a harmless ring at the landing plus the trail parts; the
+-- second and third trail boxes repeat the first, so Telegraphs draws only one.
+local function buildRetreat(enemy: Enemy, attack: Enemies.Attack, ground: Vector3, dir: Vector3): Shape
+	local distance = attack.distance or 30
+	local land = groundAt(ground - dir * distance)
+	local facing = CFrame.lookAt(ground, ground - dir)
+	local parts: { any } = {}
+	for i, delay in { 0.5, 1.0, 1.5 } do
+		local part = boxPart(facing, 0, distance, attack.width or 6, delay, 0)
+		part.damageScale = attack.trailScale or 0.3
+		part.hidden = i > 1
+		table.insert(parts, part)
+	end
+	return { kind = "howl", center = land, radius = 8, parts = parts, pattern = "trail" }
+end
+
+-- Yank a player toward the beast over `spec.seconds`, until `spec.distance` studs
+-- from its root. Server moves the character (untested against client physics).
+local function pullPlayer(enemy: Enemy, player: Player, spec: { distance: number, seconds: number })
+	local root = playerRoot(player)
+	if not root then
+		return
+	end
+	local start = root.Position
+	local toward = flat(enemy.root.Position - start)
+	local travel = toward.Magnitude - spec.distance
+	if travel <= 0 then
+		return
+	end
+	local dir = toward.Unit
+	effectRemote:FireAllClients("enemyCue", enemy.model, "snare", player.Character)
+	PlayerStun.apply(player, "stagger", spec.seconds, enemy.model)
+	task.spawn(function()
+		local t0 = os.clock()
+		while true do
+			local r = playerRoot(player)
+			if not r or enemies[enemy.model] ~= enemy then
+				return
+			end
+			local a = math.min((os.clock() - t0) / spec.seconds, 1)
+			local p = start + dir * travel * a
+			r.CFrame = CFrame.new(p.X, r.Position.Y, p.Z) * r.CFrame.Rotation
+			if a >= 1 then
+				return
+			end
+			task.wait()
+		end
+	end)
+end
+
+local function hurtPart(enemy: Enemy, attack: Enemies.Attack, part: any, player: Player)
+	local damage = attack.damage * (part.damageScale or 1) * Realms.ofBeast(enemy.def.realm).beastDamage
+	local result = Combat.hurt(player, damage, false, enemy.def.id)
+	if result ~= "hit" or not player.Character then
+		return
+	end
+	effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
+	local hs = attack.hitStun
+	if hs and part.stun then
+		PlayerStun.apply(player, hs.kind :: any, hs.seconds, enemy.model)
+	end
+	if part.snare and attack.pull then
+		pullPlayer(enemy, player, attack.pull)
+		local follow = attack.followUpOnHit
+		if follow then
+			-- after resolveAttack's own followUp bookkeeping, only because the snare caught someone
+			task.defer(function()
+				enemy.followUp = follow
+				enemy.followUpUntil = os.clock() + attack.recover + 1.5
+			end)
+		end
+	end
+end
+
+-- Resolve a barrage or retreat: each part hits `delay` seconds after the windup, for
+-- whoever stands in it then. A stagger of the beast or its next attack calls the
+-- rest off (strikeId); resolveAttack has already bumped it for this attack.
+local function resolveParts(enemy: Enemy, attack: Enemies.Attack, shape: Shape)
+	local id = enemy.strikeId
+	if attack.recoverP3 and enemy.phase >= 3 then
+		enemy.recoverFor = attack.recoverP3
+	end
+	local model = enemy.model
+	for _, part in shape.parts or {} do
+		local function fire()
+			if enemies[model] ~= enemy or enemy.health <= 0 or enemy.strikeId ~= id then
+				return
+			end
+			for _, player in Players:GetPlayers() do
+				local root = playerRoot(player)
+				if root and caught(part, player, root) then
+					hurtPart(enemy, attack, part, player)
+				end
+			end
+		end
+		if (part.delay or 0) <= 0 then
+			fire()
+		else
+			task.delay(part.delay, fire)
+		end
+	end
+end
+
 local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, attack: Enemies.Attack)
 	local def = enemy.def
 	enemy.attack = attack
@@ -829,6 +1031,11 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 			radius = attack.radius,
 			size = Vector2.new(attack.angle :: number, 0),
 		}
+	elseif attack.kind == "barrage" then
+		shape = buildParts(enemy, attack, ground, dir, targetRoot)
+	elseif attack.kind == "retreat" then
+		shape = buildRetreat(enemy, attack, ground, dir)
+		enemy.dashTo = shape.center
 	elseif attack.kind == "summon" or attack.kind == "howl" or attack.kind == "storm" then
 		shape = { kind = "howl", center = ground, radius = 8 }
 	elseif attack.kind == "lance" then
@@ -1094,6 +1301,8 @@ local function resolveAttack(enemy: Enemy, now: number)
 	elseif attack.kind == "leap" then
 		enemy.landShape = shape -- resolves as it lands (think, dash)
 		enemy.landAttack = attack -- enemy.attack moves on at the end of this function
+	elseif attack.kind == "barrage" or attack.kind == "retreat" then
+		resolveParts(enemy, attack, shape)
 	elseif enemy.dashTo and TURNS then
 		hurtAlongDash(enemy, attack, shape)
 	else
@@ -1131,7 +1340,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 	end
 	if enemy.dashTo then
 		local to = enemy.dashTo :: Vector3
-		if attack.kind == "leap" or attack.kind == "bound" then
+		if attack.kind == "leap" or attack.kind == "bound" or attack.kind == "retreat" then
 			local flight = attack.active or 0.45
 			startDash(enemy, to, math.max(flat(to - enemy.root.Position).Magnitude / flight, 1), attack.arc)
 			enemy.stateUntil = now + flight
@@ -1255,6 +1464,102 @@ local function startBound(enemy: Enemy, targetRoot: BasePart, now: number, attac
 	telegraphRemote:FireAllClients(enemy.shape, attack.windup, enemy.model, attackName(attack), serverNow())
 end
 
+-- Spacing bosses (def.spacing, the Nine-Tailed Fox): a random pick among the pool
+-- attacks that fit the phase, range band and cooldown (cooldowns shrink by phase),
+-- never the same twice in a row, never crowd control straight after crowd control.
+-- The backflip (`spacing.leap`) is not in the draw: it fires when the fox has made
+-- `meleeChain` melee attacks in a row, been `closeRange` close for `closeSeconds`,
+-- or lost `hurtFraction` of its health in `hurtSeconds`.
+type FoxState = { engagedAt: number, last: string?, melee: number, closeSince: number?, ccUntil: number, health: { { number } } }
+local foxStates: { [Enemy]: FoxState } = setmetatable({}, { __mode = "k" }) :: any
+
+local function isCC(a: Enemies.Attack): boolean
+	return a.stun ~= nil or a.hitStun ~= nil
+end
+
+local function foxAttack(enemy: Enemy, distance: number, now: number, slotOk: boolean): Enemies.Attack?
+	local def = enemy.def
+	local sp = def.spacing :: any
+	local st = foxStates[enemy]
+	if not st or st.engagedAt ~= enemy.engagedAt then
+		st = { engagedAt = enemy.engagedAt, last = nil, melee = 0, closeSince = nil, ccUntil = 0, health = {} }
+		foxStates[enemy] = st
+	end
+	-- recent health, for the hurt trigger
+	table.insert(st.health, { now, enemy.health })
+	while #st.health > 1 and now - st.health[1][1] > sp.hurtSeconds + 1 do
+		table.remove(st.health, 1)
+	end
+	local lost = 0
+	for _, sample in st.health do
+		if now - sample[1] <= sp.hurtSeconds + 1 then
+			lost = math.max(lost, sample[2] - enemy.health)
+		end
+	end
+	if distance <= sp.closeRange then
+		st.closeSince = st.closeSince or now
+	else
+		st.closeSince = nil
+	end
+	if now < enemy.nextAttack or not slotOk then
+		return nil
+	end
+	local scale = (sp.cooldownScale :: { number })[enemy.phase] or 1
+	local function ready(a: Enemies.Attack): boolean
+		return now >= (enemy.cooldowns[attackName(a)] or 0) - a.cooldown * (1 - scale)
+	end
+	local pool = def.attacks :: { Enemies.Attack }
+	local function pick(a: Enemies.Attack): Enemies.Attack
+		local name = attackName(a)
+		st.last = name
+		if isCC(a) then
+			st.ccUntil = now + a.windup + a.recover + 2
+		end
+		if distance <= sp.closeRange or a.range <= sp.closeRange + 2 then
+			st.melee += 1
+		else
+			st.melee = 0
+		end
+		return a
+	end
+	local leap: Enemies.Attack? = nil
+	for _, a in pool do
+		if attackName(a) == sp.leap then
+			leap = a
+		end
+	end
+	if leap and ready(leap) and (leap.phase or 1) <= enemy.phase then
+		local tooClose = st.closeSince ~= nil and now - st.closeSince >= sp.closeSeconds
+		if st.melee >= sp.meleeChain or tooClose or lost >= enemy.maxHealth * sp.hurtFraction then
+			st.melee, st.closeSince = 0, nil
+			table.clear(st.health)
+			st.last = attackName(leap)
+			return leap
+		end
+	end
+	local fits: { Enemies.Attack } = {}
+	for _, a in pool do
+		local name = attackName(a)
+		if
+			a ~= leap
+			and not a.thresholdOnly
+			and not a.chainOnly
+			and (a.phase or 1) <= enemy.phase
+			and distance <= a.range
+			and distance >= (a.minRange or 0)
+			and name ~= st.last
+			and ready(a)
+			and not (isCC(a) and now < st.ccUntil)
+		then
+			table.insert(fits, a)
+		end
+	end
+	if #fits == 0 then
+		return nil
+	end
+	return pick(fits[math.random(#fits)])
+end
+
 local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.Attack?
 	local slotOk = not (TURNS and (not enemy.def.boss or enemy.def.shareTurns)
 		and enemy.target and not slotFree(enemy.target, now))
@@ -1278,6 +1583,9 @@ local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.
 		else
 			return nil
 		end
+	end
+	if enemy.def.spacing then
+		return foxAttack(enemy, distance, now, slotOk)
 	end
 	if now < enemy.nextAttack or not slotOk then
 		return nil

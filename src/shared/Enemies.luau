@@ -13,6 +13,13 @@
 --   lance   a long lane (box) hit all at once when the windup ends (no dash)
 --   bound   no telegraph, no damage: hops to a flank spot `landMin`-`landMax` studs from
 --           the target over `active` seconds (arc is client-only)
+--   barrage Nine-Tailed Fox: timed sub-areas computed at the windup's start from where the
+--           target stands (`barrage` names the pattern: fangs, lance, lanceFan, snare,
+--           volley, ringHeart, spiral; EnemyService buildParts), each hitting `delay`
+--           seconds after the windup. Sent to clients as Telegraph shape "multi"
+--   retreat no hit of its own: a backflip `distance` studs straight away over `active`
+--           seconds (arc is client-only) leaving a three-tick fire trail (`trailScale`
+--           of `damage` per tick, `width` wide)
 --   storm   `bolts` lightning strikes after the windup, each a circle on where the target
 --           stands `boltInterval` apart, hitting `boltWindup` later (`damage` per bolt)
 -- Lunges and charges hit each player when the dash front reaches them, not when
@@ -34,7 +41,7 @@
 -- far player hits knock it back (Knockback.luau).
 
 export type Attack = {
-	kind: string, -- "lunge" | "charge" | "spit" | "cone" | "slam" | "summon" | "leap" | "howl" | "lance" | "bound" | "storm"
+	kind: string, -- "lunge" | "charge" | "spit" | "cone" | "slam" | "summon" | "leap" | "howl" | "lance" | "bound" | "storm" | "barrage" | "retreat"
 	name: string?, -- shown to clients as the model's Attack attribute (default: kind); name it when one beast has two of a kind
 	damage: number,
 	range: number, -- start the attack when the target is this close
@@ -58,6 +65,16 @@ export type Attack = {
 	hopAfter: boolean?, -- attack pools: hop back once it recovers
 	followUp: string?, -- attack pools: this attack's name starts as soon as it recovers, if the target is in its range
 	stopPast: number?, -- lunge/charge: dash only to this many studs past the target (between minRange and length)
+	barrage: string?, -- barrage: the pattern name (see the kind list above)
+	ring: number?, -- ringHeart: radius of the eruption ring round the target
+	heartRadius: number?, -- ringHeart: the centre circle's radius
+	finalRadius: number?, -- spiral: the circle under the beast at the end
+	distance: number?, -- retreat: studs it flips away
+	trailScale: number?, -- retreat: damage share of each fire-trail tick
+	pull: { distance: number, seconds: number }?, -- barrage part with `snare`: yanks a hit player to this far from the beast
+	hitStun: { kind: string, seconds: number }?, -- barrage parts flagged `stun`: PlayerStun.apply on hit players
+	recoverP3: number?, -- barrage: recover seconds in phase 3 (its parts run longer)
+	followUpOnHit: string?, -- barrage: this attack follows only if a snare caught someone
 	thresholdOnly: boolean?, -- boss pattern: kept here for poses/cues, called only by summonAt
 	stun: { kind: string, radius: number, seconds: number? }?, -- on resolve, PlayerStun.apply("stagger" | "stun") to players in the circle (shown as its own telegraph)
 }
@@ -99,6 +116,7 @@ export type Def = {
 	body: string?, -- the template in ServerStorage.Enemies to draw (default: id)
 	pattern: { Attack }?, -- bosses: attacks used in rotation after `attack`
 	summonAt: { number }?, -- bosses: health fractions that trigger a summon
+	spacing: { leap: string, meleeChain: number, closeRange: number, closeSeconds: number, hurtFraction: number, hurtSeconds: number, cooldownScale: { number } }?, -- boss: random pool pick with retreat triggers (EnemyService foxAttack)
 	rotate: boolean?, -- boss: pick the next pattern attack that fits the range band and phase (not strictly in order)
 	phaseCall: Attack?, -- boss: the attack the `summonAt` thresholds call (a phase roar), instead of a summon
 	phaseSpeed: number?, -- boss: run speed multiplier gained at each phase step
@@ -112,6 +130,7 @@ local NEW_WOLF = Wilds.NEW_WOLF
 local NEW_BOAR = Wilds.NEW_BOAR
 local NEW_WOLF_KING = Wilds.NEW_WOLF_KING
 local NEW_THUNDER_APE = Wilds.NEW_THUNDER_APE
+local NEW_NINE_TAIL_FOX = Wilds.NEW_NINE_TAIL_FOX
 
 local Enemies = {}
 
@@ -649,6 +668,115 @@ if NEW_THUNDER_APE then
 			thunderRoar, bound, stormCall, judgment, backhand, thunderPound, phaseRoar, challenge,
 		} :: { Attack },
 		rotate = true,
+		resetOnEvade = true,
+	} :: Def
+end
+
+-- THE NINE-TAILED FOX (Config.Wilds.NEW_NINE_TAIL_FOX, testbed only): an FE1 duelist
+-- boss with telescoping tails (NineTailFoxB at 2.13x: tails reach 8.7 studs at rest,
+-- 21.4 extended, so lances and sweeps are 18-20 studs, not the 30 first sketched).
+-- A random pool pick with spacing triggers (EnemyService foxAttack); phases at 66% and
+-- 33% (veilBreak, `Phase` attribute); every hit is 8-25% of an FE1 player's 500 HP.
+-- Cut for now, listed in enemies.md as later add-ons: snapBite, tailWhirl, crossLash,
+-- wispRain, phantomStep, mirrorVeil.
+if NEW_NINE_TAIL_FOX then
+	local function atk(a: Attack): Attack
+		return a
+	end
+	local intro = atk({
+		kind = "howl", name = "intro", damage = 0, range = 0, windup = 2.2, recover = 0.8,
+		cooldown = 0, radius = 8, chainOnly = true,
+	})
+	local fangDance = atk({
+		kind = "barrage", barrage = "fangs", name = "fangDance", damage = 28, range = 18, windup = 0.65,
+		recover = 1.2, cooldown = 3.0, radius = 20, angle = 80,
+	})
+	local tailSweep = atk({
+		kind = "cone", name = "tailSweep", damage = 55, range = 16, windup = 0.9, recover = 1.1,
+		cooldown = 3.5, radius = 18, angle = 200,
+	})
+	local tailLance = atk({
+		kind = "barrage", barrage = "lance", name = "tailLance", damage = 60, range = 24, minRange = 5,
+		windup = 0.6, recover = 0.8, cooldown = 2.4, length = 20, width = 4,
+	})
+	local lanceFan = atk({
+		kind = "barrage", barrage = "lanceFan", name = "lanceFan", damage = 45, range = 24, minRange = 5,
+		windup = 0.95, recover = 1.1, recoverP3 = 1.8, cooldown = 4.5, length = 20, width = 4,
+	})
+	local tailSnare = atk({
+		kind = "barrage", barrage = "snare", name = "tailSnare", damage = 40, range = 24, minRange = 8,
+		windup = 0.85, recover = 0.9, cooldown = 6.0, length = 20, width = 4,
+		pull = { distance = 11, seconds = 0.45 }, followUpOnHit = "fangDance",
+	})
+	local rendingPounce = atk({
+		kind = "lunge", name = "rendingPounce", damage = 75, range = 36, minRange = 18, windup = 0.75,
+		recover = 1.0, cooldown = 4.0, length = 30, width = 8, dashSpeed = 55,
+	})
+	local foxfireVolley = atk({
+		kind = "barrage", barrage = "volley", name = "foxfireVolley", damage = 40, range = 70, minRange = 20,
+		windup = 1.1, recover = 1.0, recoverP3 = 1.8, cooldown = 6.5, length = 56, width = 4,
+	})
+	local rootfireEruption = atk({
+		kind = "barrage", barrage = "ringHeart", name = "rootfireEruption", damage = 55, range = 55, minRange = 8,
+		windup = 1.5, recover = 1.6, cooldown = 8.0, radius = 5, ring = 11, heartRadius = 7, phase = 2,
+		hitStun = { kind = "stagger", seconds = 0.6 },
+	})
+	local moonLeap = atk({
+		kind = "retreat", name = "moonLeap", damage = 40, range = 200, windup = 0.4, active = 0.6, arc = 8,
+		recover = 0.4, cooldown = 7.0, distance = 34, width = 6, trailScale = 0.3, followUp = "foxfireVolley",
+	})
+	local mournfulScream = atk({
+		kind = "howl", name = "mournfulScream", damage = 0, range = 28, windup = 1.4, recover = 1.6,
+		cooldown = 14.0, radius = 8, phase = 2, stun = { kind = "stun", radius = 30, seconds = 1.2 },
+	})
+	local nineTailFall = atk({
+		kind = "barrage", barrage = "spiral", name = "nineTailFall", damage = 55, range = 45, windup = 1.8,
+		recover = 2.0, cooldown = 12.0, radius = 7, finalRadius = 20, phase = 3,
+		hitStun = { kind = "stagger", seconds = 0.6 },
+	})
+	local veilBreak = atk({
+		kind = "howl", name = "veilBreak", damage = 0, range = 60, windup = 1.6, recover = 1.0,
+		cooldown = 0, radius = 8, thresholdOnly = true, phaseStep = true,
+		stun = { kind = "stagger", radius = 16, seconds = 0.6 },
+	})
+	local pool: { Attack } = {
+		fangDance, tailSweep, tailLance, lanceFan, tailSnare, rendingPounce, foxfireVolley, rootfireEruption,
+		moonLeap, mournfulScream, nineTailFall, veilBreak, intro,
+	}
+	Enemies.Defs.NineTailFox = {
+		id = "NineTailFox",
+		name = "Nine-Tailed Fox",
+		realm = { "Foundation", 1 },
+		weight = 7,
+		boss = true,
+		health = 2600,
+		walkSpeed = 8,
+		runSpeed = 22, -- the player walks at 16
+		aggro = 70,
+		leash = 160,
+		qiDrop = 280,
+		stones = { 110, 170 },
+		respawn = 300,
+		body = "NineTailFoxB",
+		drops = {
+			{ item = "GreaterSpiritCore", chance = 1 },
+			{ item = "LesserSpiritCore", chance = 1 },
+			{ item = "MarrowWashingPill", chance = 0.08 },
+			{ item = "RootRebirthPill", chance = 0.12 },
+		},
+		-- placeholder pool until the user picks this boss's rewards (same as the King's)
+		bossDrops = Enemies.Defs.ElderWolfKing.bossDrops,
+		summonAt = { 0.66, 0.33 }, -- the boss bar's phase ticks; phaseCall answers them
+		phaseCall = veilBreak,
+		pack = { howl = intro, circle = { radius = 24, speed = 14, waitFor = "foxfireVolley" } },
+		attack = fangDance,
+		attacks = pool,
+		pattern = pool,
+		spacing = {
+			leap = "moonLeap", meleeChain = 2, closeRange = 14, closeSeconds = 2.5,
+			hurtFraction = 0.12, hurtSeconds = 3, cooldownScale = { 1, 0.85, 0.7 },
+		},
+		shareTurns = true,
 		resetOnEvade = true,
 	} :: Def
 end

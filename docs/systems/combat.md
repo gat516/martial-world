@@ -320,7 +320,18 @@ checks a rebuild against the previous templates.
   and motes, impact swirl; III a counter-wound second helix, impact bubbles
   and rock kicks, a Craters ring at the terminal, path cracks; IV a gold-white
   core, five rings, the dragon seal flashing at the point with impact frames,
-  one point light on the lance head and a quake at the terminal.
+  one point light on the lance head and a quake at the terminal. Remade
+  2026-10-21 on the spear and the thrust's window: the 0.3 s windup is a
+  `Charge` along the whole spear (butt -> head, `full`: a dark beam under a
+  crimson one, motes along the shaft, a glint on the head) instead of a hand
+  gather; the release on the live spear head gets the shared flare (cross
+  glint, star-burst flipbook over ink, sparks); the lance has an ink beam under
+  its glow; the front crosses the line in 0.12 s (was 0.16) and every impact is
+  squeezed into Hit 0.30 -> Hit Stop 0.40 (`WeaponFX.landing`; a sandbox run
+  with a spear on the rig landed the impacts 0.06 s and the terminal 0.07 s
+  after the release); impacts carry the shared ink splat and star-burst
+  flipbook. Layers T1 / T4: charge 8 / 8, release 9 / 13, lance 9 / 14,
+  impact 9 / 15, terminal 9 / 15.
 - **Crescent Moon Sweep** (`CrescentSweep_T1..T4`, authored at radius 11;
   `TechniqueFX.CrescentSweep`). A jade crescent cut out of the air: the clip
   winds the guandao back low behind the left hip, then from Hit to Hit Stop

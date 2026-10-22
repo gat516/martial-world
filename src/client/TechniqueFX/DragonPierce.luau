@@ -241,8 +241,9 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		local along = target.progress * length
 		local frac = math.clamp((along - startAlong) / run, 0, 1)
 		local beyond = frac > stopFrac
-		local delay = if beyond then stopTime else CastFX.curveTime(curve, travelTime, frac)
-		task.delay(delay, function()
+		local arrival = if beyond then stopTime else CastFX.curveTime(curve, travelTime, frac)
+		-- squeezed into the thrust's Hit -> Hit Stop (the damage number shows at Hit)
+		task.delay(WeaponFX.landing(arrival, travelTime, WeaponFX.hitWindow(def, 1)), function()
 			if impact and not beyond then
 				CastFX.impactAt(impact, target, { Kick = 3, Quake = 1 })
 			end

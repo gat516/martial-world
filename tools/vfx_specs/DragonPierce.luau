@@ -43,6 +43,13 @@
 --       the release with impact frames, one point light on the lance head,
 --       a quake on the terminal burst.
 --
+-- Remade 2026-10-21 on the spear and the Hit window: the 0.3 s windup is a
+-- `Charge` along the whole spear (butt -> head, WeaponFX.charge full: a dark
+-- beam under a crimson one, motes along the shaft, a glint on the head), the
+-- release on the live spear head gets the shared flare (cross glint,
+-- star-burst flipbook over ink, sparks), the lance has an ink beam under its
+-- glow, and the front crosses the line in 0.12 s with every impact squeezed
+-- into the thrust's Hit 0.30 -> Hit Stop 0.40 window.
 -- Authored along -Z at length 22, width 4.
 local B = _G.vfxBlocks
 local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
@@ -91,7 +98,7 @@ B.BLOCKS.dpLance = function(root, tier, p)
 	local lance = B.part(root, "Lance", LANCE_AT, Vector3.new(0.4, 0.4, run))
 	for k, v in {
 		Run = run, Height = HEIGHT,
-		TravelTime = 0.16, -- seconds for the front to reach the end
+		TravelTime = 0.12, -- seconds for the front to reach the end: inside the thrust's Hit -> Hit Stop (0.1 s) plus a frame or two
 		TravelCurve = NS({ KP(0, 0), KP(0.3, 0.5), KP(0.6, 0.82), KP(1, 1) }),
 		Hold = 0.16, Fade = 0.28, -- beams hold at full length, then fade
 		Rings = ({ 2, 3, 4, 5 })[tier],
@@ -152,6 +159,7 @@ B.BLOCKS.dpLance = function(root, tier, p)
 		b.Enabled = false
 		b.Parent = lance
 	end
+	beam("Ink", 1.4, ({ 3.2, 3.6, 4, 4.6 })[tier], INK, 0.45, 0) -- dark under light: the lance reads on grass at noon
 	beam("Core", 0.35, ({ 0.6, 0.7, 0.8, 0.95 })[tier], core, 0, 0.5)
 	beam("Glow", 1.2, ({ 2.4, 2.8, 3.2, 3.8 })[tier], CRIMSON, 0.45, 0.35)
 	-- the lance head: a hot point riding the front
@@ -303,8 +311,9 @@ return {
 	id = "DragonPierce",
 	root = { attrs = { AuthoredActive = 0.1, AuthoredLength = LENGTH, AuthoredWidth = 4 } },
 	beats = {
-		{ block = "handGather", params = pal({ windup = 0.3, at = HAND_AT }) },
+		{ block = "bladeCharge", params = { color = CRIMSON, core = CORE, ink = INK, width = 0.5, full = true } },
 		{ block = "dpRelease" },
+		{ block = "bladeFlare", params = { part = "Tip", color = CRIMSON, core = CORE, ink = INK } },
 		{ block = "releaseFlash", params = pal({ part = "Tip", at = TIP_AT, light = false }) },
 		{ block = "airShockwave", params = pal({ part = "Tip", at = TIP_AT, color = PALETTE.ringColor, travel = nil }) },
 		{ block = "dpShake" },

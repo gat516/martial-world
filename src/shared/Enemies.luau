@@ -598,41 +598,41 @@ if NEW_THUNDER_APE then
 		return a
 	end
 	local clubSwing = atk({
-		kind = "cone", name = "clubSwing", damage = 50, range = 26, windup = 0.55, recover = 0.30,
-		cooldown = 0.9, radius = 30, angle = 110, followUp = "backhand",
+		kind = "cone", name = "clubSwing", damage = 50, range = 26, windup = 0.80, recover = 0.45,
+		cooldown = 1.3, radius = 30, angle = 110, followUp = "backhand",
 	})
 	local backhand = atk({
-		kind = "cone", name = "backhand", damage = 50, range = 26, windup = 0.45, recover = 0.30,
-		cooldown = 0.8, radius = 30, angle = 120, chainOnly = true, followUp = "thunderPound",
+		kind = "cone", name = "backhand", damage = 50, range = 26, windup = 0.60, recover = 0.45,
+		cooldown = 1.1, radius = 30, angle = 120, chainOnly = true, followUp = "thunderPound",
 	})
 	local thunderPound = atk({
-		kind = "slam", name = "thunderPound", damage = 110, range = 28, windup = 0.60, recover = 1.30,
-		cooldown = 2.4, radius = 15, offset = Vector3.new(0, 0, -18), chainOnly = true,
+		kind = "slam", name = "thunderPound", damage = 110, range = 28, windup = 0.85, recover = 1.30,
+		cooldown = 2.65, radius = 15, offset = Vector3.new(0, 0, -18), chainOnly = true,
 		wave = { radius = 34, delay = 0.45, scale = 0.5, phase = 2 },
 	})
 	local bodySlam = atk({
-		kind = "lunge", name = "bodySlam", damage = 140, range = 38, windup = 0.85, recover = 1.10,
-		cooldown = 3.2, length = 34, width = 20, dashSpeed = 55, react = "stagger",
+		kind = "lunge", name = "bodySlam", damage = 140, range = 38, windup = 1.10, recover = 1.10,
+		cooldown = 3.45, length = 34, width = 20, dashSpeed = 55, react = "stagger",
 	})
 	local skyfallSlam = atk({
-		kind = "leap", name = "skyfallSlam", damage = 150, range = 55, minRange = 22, windup = 0.90,
-		active = 0.75, arc = 26, recover = 1.10, cooldown = 3.3, radius = 20,
+		kind = "leap", name = "skyfallSlam", damage = 150, range = 55, minRange = 22, windup = 1.20,
+		active = 0.75, arc = 26, recover = 1.10, cooldown = 3.6, radius = 20,
 	})
 	local thunderRush = atk({
-		kind = "charge", name = "thunderRush", damage = 140, range = 80, minRange = 24, windup = 0.90,
-		recover = 0.90, cooldown = 3.1, length = 64, width = 14, dashSpeed = 95, stopPast = 12,
+		kind = "charge", name = "thunderRush", damage = 140, range = 80, minRange = 24, windup = 1.20,
+		recover = 0.90, cooldown = 3.4, length = 64, width = 14, dashSpeed = 95, stopPast = 12,
 	})
 	local bound = atk({
-		kind = "bound", name = "bound", damage = 0, range = 200, windup = 0.25, active = 0.40, arc = 10,
-		recover = 0.10, cooldown = 0.8, landMin = 22, landMax = 28,
+		kind = "bound", name = "bound", damage = 0, range = 200, windup = 0.45, active = 0.55, arc = 10,
+		recover = 0.25, cooldown = 1.3, landMin = 22, landMax = 28,
 	})
 	local boulderHurl = atk({
-		kind = "spit", name = "boulderHurl", damage = 70, range = 85, minRange = 28, windup = 1.00,
-		recover = 0.90, cooldown = 2.4, radius = 10,
+		kind = "spit", name = "boulderHurl", damage = 70, range = 85, minRange = 45, windup = 1.70,
+		recover = 0.90, cooldown = 3.2, radius = 10,
 	})
 	local thunderLance = atk({
-		kind = "lance", name = "thunderLance", damage = 120, range = 85, minRange = 20, windup = 1.00,
-		recover = 0.90, cooldown = 2.4, length = 90, width = 8, phase = 2,
+		kind = "lance", name = "thunderLance", damage = 120, range = 85, minRange = 20, windup = 1.40,
+		recover = 0.90, cooldown = 2.9, length = 90, width = 8, phase = 2,
 	})
 	local thunderRoar = atk({
 		kind = "howl", name = "thunderRoar", damage = 0, range = 45, windup = 1.30, recover = 1.00,

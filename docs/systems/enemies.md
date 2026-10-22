@@ -528,14 +528,14 @@ the `Phase` model attribute (1-3), fires `enemyCue "phase"` and applies `phaseSp
 
 | Attack | Kind | Windup / active / recover | Area (from centre) | Damage (500 HP player) | Phase |
 |---|---|---|---|---|---|
-| `clubSwing` -> `backhand` -> `thunderPound` | cone r30 110 deg / cone r30 120 deg / slam r15 at 18 ahead | .55/-/.30, .45/-/.30, .60/-/1.30 | | 50, 50, 110 | 1 |
+| `clubSwing` -> `backhand` -> `thunderPound` | cone r30 110 deg / cone r30 120 deg / slam r15 at 18 ahead | .80/-/.45, .60/-/.45, .85/-/1.30 | | 50, 50, 110 | 1 |
 | `poundWave` (cue only) | ring from the pound, r34, 0.45 s later, spares the slam's own circle | | | 55 | 2+ |
-| `bodySlam` | lunge box 20 x 34 at 55/s | .85 / ~.62 / 1.10 | | 140 | 1 |
-| `skyfallSlam` | leap r20 on the target, arc 26, range 22-55 | .90 / .75 / 1.10 | | 150 | 1 |
-| `thunderRush` | charge box 14 x 64 at 95/s, 12 past the target | .90 / ~.7 / .90 | | 140 | 1 |
-| `bound` | hop to a flank spot 22-28 from the target, no telegraph (an empty `bound` shape so the windup cue fires) | .25 / .40 / .10 | | 0 | 1 |
-| `boulderHurl` | spit r10 on the target, range 28-85 | 1.0 / - / .90 | | 70 | 1 |
-| `thunderLance` | `lance` box 8 x 90 | 1.0 / - / .90 | | 120 | 2+ |
+| `bodySlam` | lunge box 20 x 34 at 55/s | 1.10 / ~.62 / 1.10 | | 140 | 1 |
+| `skyfallSlam` | leap r20 on the target, arc 26, range 22-55 | 1.20 / .75 / 1.10 | | 150 | 1 |
+| `thunderRush` | charge box 14 x 64 at 95/s, 12 past the target | 1.20 / ~.7 / .90 | | 140 | 1 |
+| `bound` | hop to a flank spot 22-28 from the target, no telegraph (an empty `bound` shape so the windup cue fires) | .45 / .55 / .25 | | 0 | 1 |
+| `boulderHurl` | spit r10 on the target, range 45-85 (flight always readable) | 1.7 / - / .90 (rip 0-.6, lift .6-1.0, rear back 1.0-1.25, release 1.25, flight to 1.7) | | 70 | 1 |
+| `thunderLance` | `lance` box 8 x 90 | 1.4 / - / .90 | | 120 | 2+ |
 | `thunderRoar` | howl, stun circle r42, stagger 0.9 s | 1.3 / - / 1.0 | | 0 | 2+ |
 | `stormCall` | `storm`: 5 bolts (7 in P3), 0.45 s apart on where the target stands, r8, 0.9 s warning each (`stormBolt` telegraphs) | 1.2 / - / ~3.0 | | 70 each | 2+ |
 | `judgment` | leap r28, arc 48, range 25-70, stuns 1.0 s only players its damage hit (`stun.onHit`) | 1.6 / 1.0 / 1.8 | | 190 | 3 |

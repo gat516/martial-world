@@ -1,8 +1,10 @@
 --!strict
 -- Testbed Elder Wolf King only. Plays the King's own templates,
 -- Effects.ElderWolfKing (built by tools/vfx_specs/ElderWolfKing.luau): moon
--- silver on ink, gold for every warning tell, spirit-cyan ghost-wolf
--- flourishes (cloned body parts, `ghost`), jade only on the collar seal.
+-- silver on ink, gold for every warning tell, spirit-cyan spirit flourishes
+-- (motes, flame bursts, light columns), jade only on the collar seal. No copy
+-- of the body is ever drawn: the user found ghost/afterimage clones of the
+-- bosses cheap (2026-10-21), so every flourish is particles from the set.
 -- Cues: ready (aura on), aggro (roar), windup, strike, dash, land, hit,
 -- stagger, death. Health drives the aura's intensity and the death build-up.
 --
@@ -403,82 +405,18 @@ local function facing(cue: Cue): CFrame
 	return root(cue).CFrame.Rotation
 end
 
--- Ghost wolf: translucent Neon copies of the King's own parts that rise,
--- swell and dissolve. The spirit-wolf flourish of the howl, the bite, the
--- roar and the death. `parts` is capped by the caller (phones).
-local function bodyParts(cue: Cue, centre: Vector3?, radius: number?, limit: number): { BasePart }
-	local found: { BasePart } = {}
-	for _, d in body(cue.model):GetDescendants() do
-		if d:IsA("BasePart") and d.Name ~= "HumanoidRootPart" and d.Transparency < 0.9 and not d:FindFirstAncestor("HealthBar") then
-			if not centre or (d.Position - centre).Magnitude <= (radius or 0) then
-				local v = d.Size.X * d.Size.Y * d.Size.Z
-				if v > 0.4 then
-					table.insert(found, d)
-				end
+-- Keep only the named emitters of a clone (and drop its ScreenEffects
+-- shake), to borrow one layer group of a template as a flourish.
+local function only(names: { string }): (BasePart) -> ()
+	return function(copy: BasePart)
+		for _, d in copy:GetDescendants() do
+			if d:IsA("ParticleEmitter") and not table.find(names, d.Name) then
+				d:Destroy()
+			elseif d:IsA("Attachment") and d:GetAttribute("CameraShake") ~= nil then
+				d:Destroy()
 			end
 		end
 	end
-	table.sort(found, function(a, b)
-		return a.Size.X * a.Size.Y * a.Size.Z > b.Size.X * b.Size.Y * b.Size.Z
-	end)
-	while #found > limit do
-		table.remove(found)
-	end
-	return found
-end
-
-local function ghost(parts: { BasePart }, life: number, travel: Vector3, swell: number, from: number, fadeIn: number, color: Color3?)
-	if #parts == 0 then
-		return
-	end
-	local centre = Vector3.zero
-	for _, p in parts do
-		centre += p.Position
-	end
-	centre /= #parts
-	local copies: { { part: BasePart, offset: Vector3, rot: CFrame, size: Vector3 } } = {}
-	for _, p in parts do
-		local c = p:Clone()
-		for _, child in c:GetChildren() do
-			if not child:IsA("DataModelMesh") then
-				child:Destroy()
-			end
-		end
-		c.Anchored, c.CanCollide, c.CanQuery, c.CanTouch, c.CastShadow, c.Massless = true, false, false, false, false, true
-		c.Material = Enum.Material.Neon
-		c.Color = color or SPIRIT
-		c.Transparency = 1
-		c.Parent = TechniqueVFX.folder
-		table.insert(copies, { part = c, offset = p.Position - centre, rot = p.CFrame.Rotation, size = p.Size })
-	end
-	local started = os.clock()
-	local connection: RBXScriptConnection
-	connection = RunService.Heartbeat:Connect(function()
-		local a = (os.clock() - started) / life
-		if a >= 1 then
-			connection:Disconnect()
-			for _, c in copies do
-				c.part:Destroy()
-			end
-			return
-		end
-		local transparency = if a < fadeIn then 1 + (from - 1) * (a / fadeIn) else from + (1 - from) * ((a - fadeIn) / (1 - fadeIn))
-		local k = 1 + swell * a
-		local move = travel * (1 - (1 - a) * (1 - a))
-		for _, c in copies do
-			c.part.CFrame = CFrame.new(centre + c.offset * k + move) * c.rot
-			c.part.Size = c.size * k
-			c.part.Transparency = transparency
-		end
-	end)
-end
-
-local function ghostHead(cue: Cue, life: number, travel: Vector3, swell: number, from: number, fadeIn: number)
-	local skull = part(cue, { "Skull" })
-	if skull == cue.root then
-		return
-	end
-	ghost(bodyParts(cue, skull.Position, 7, 22), life, travel, swell, from, fadeIn)
 end
 
 -- Aura ------------------------------------------------------------------
@@ -533,12 +471,10 @@ local function applyAura(cue: Cue)
 		if item.name == "Embers" then
 			e.Rate = math.max(0, 0.7 - ratio) * 14 * flare
 		else
-			e.Rate = item.base * (if item.name == "Under" or item.name == "Array" then 1 else k)
+			e.Rate = item.base * k
 		end
 		if item.name == "Flames" then
 			e.Color = color
-		elseif item.name == "Array" then
-			e.Color = if ratio <= 0.30 then ColorSequence.new(HOT) else ColorSequence.new(MOON)
 		end
 	end
 end
@@ -557,8 +493,10 @@ local function startAura(cue: Cue)
 		return
 	end
 	local items: { any } = {}
-	local feet = ground(cue, main.Position).Y - main.Position.Y + 0.2
-	mount(main, "AuraGround", Vector3.new(0, feet, 0), "AuraGround", items)
+	-- No ground layer: the AuraGround template (ink disc + turning moon
+	-- mandala) read as a pale circle always under the King (user,
+	-- 2026-10-21), and its ink disc showed as a dark ring on grass. The
+	-- template stays in Effects.ElderWolfKing but is not mounted.
 	mount(neck, "AuraMane", Vector3.zero, "AuraMane", items, { "Flames" })
 	mount(chest, "AuraMotes", Vector3.new(0, 1.5, 0), "AuraMane", items, { "Motes" })
 	mount(crest, "AuraEmbers", Vector3.zero, "AuraMane", items, { "Embers" })
@@ -677,7 +615,12 @@ local function roarBurst(cue: Cue)
 	startAura(cue)
 	local frame = point(cue, "Mouth", { "Skull" })
 	play("Roar", CFrame.new(frame.Position) * facing(cue))
-	ghostHead(cue, 1.0, root(cue).CFrame.LookVector * 7 + Vector3.new(0, 2, 0), 0.6, 0.45, 0.2)
+	-- the spirit flourish: a spirit-flame burst off the head, and the howl
+	-- ring echoed by the chest's flare (no body copy)
+	local _, skull = point(cue, "Mouth", { "Skull" })
+	play("PhaseFlare", frame, { follow = skull, scale = 0.7, boost = 0.6, edit = only({ "Flames", "Ring", "Star", "Motes" }) })
+	local core, chest = point(cue, "Core", { "Chest" })
+	play("PhaseFlare", core, { follow = chest, boost = 0.5, edit = only({ "Flames", "Motes" }) })
 	flareAura(cue, 1.6)
 	shake(0.3, frame.Position, 90)
 end
@@ -745,7 +688,9 @@ function King.windup(cue: Cue)
 		windupPlay(cue, "HowlTell", frame, { follow = skull, seconds = seconds })
 		local at = ground(cue, root(cue).Position)
 		windupPlay(cue, "GroundArray", CFrame.new(at + Vector3.new(0, 0.05, 0)), { seconds = seconds, scale = 8, tint = SPIRIT })
-		ghostHead(cue, seconds, root(cue).CFrame.LookVector * 3 + Vector3.new(0, 3, 0), 0.4, 0.7, 0.4)
+		-- spirit motes and pull lines gather into the body through the call
+		local core, chest = point(cue, "Core", { "Chest" })
+		windupPlay(cue, "DeathBuild", core, { follow = chest, seconds = seconds, scale = 0.75, edit = only({ "Gather", "Pull", "Cracks" }) })
 		windupBeat(cue, seconds, 0.65, function()
 			sealGlint(cue, true)
 		end)
@@ -783,7 +728,8 @@ function King.strike(cue: Cue)
 	if attack == "royalBite" then
 		local frame = point(cue, "Mouth", { "Snout", "Skull" })
 		play("BiteSnap", CFrame.new(frame.Position) * face)
-		ghostHead(cue, 0.4, root(cue).CFrame.LookVector * 5, 0.25, 0.3, 0.1)
+		-- the lunge: breath mist and sparks thrown forward off the jaws
+		play("Roar", CFrame.new(frame.Position) * face, { scale = 0.6, boost = 0.5, edit = only({ "Blast", "Sparks" }) })
 		shake(0.26, cue.root.Position, 60)
 	elseif attack == "pawSwipe" then
 		local frame = point(cue, "PawFL_FX", { "PawFL", "LowerLegFL" })
@@ -808,11 +754,27 @@ function King.strike(cue: Cue)
 		play("PhaseBurst", CFrame.new(at) * face, { boost = if second then 1.6 else 1 })
 		local frame, chest = point(cue, "Core", { "Chest" })
 		play("PhaseFlare", frame, { follow = chest, boost = if second then 1.6 else 1 })
-		ghostHead(cue, 1.4, root(cue).CFrame.LookVector * 9 + Vector3.new(0, 4, 0), 1.0, 0.3, 0.15)
+		-- the howl itself: sound rings out of the mouth, and a spirit light
+		-- column rising through the sigil (no body copy, no stock disc)
+		local mouth = point(cue, "Mouth", { "Skull" })
+		local howl = { boost = if second then 1.6 else 1, edit = only({ "Ring", "Ring2", "Ring3", "Flash", "Sparks", "Blast" }) }
+		play("Roar", CFrame.new(mouth.Position) * face, howl)
+		play("DeathSpirit", CFrame.new(at + Vector3.new(0, 0.05, 0)) * face, {
+			scale = 5,
+			edit = function(copy)
+				only({ "Pillar", "Spirits" })(copy)
+				for _, e in copy:GetDescendants() do
+					if e:IsA("ParticleEmitter") then
+						e:SetAttribute("EmitDuration", if second then 1.2 else 0.8)
+					end
+				end
+			end,
+		})
 		if second then
-			task.delay(0.25, function()
+			task.delay(0.3, function()
 				if cue.model.Parent then
-					ghostHead(cue, 1.2, root(cue).CFrame.LookVector * 6 + Vector3.new(0, 8, 0), 1.4, 0.4, 0.2)
+					local again = point(cue, "Mouth", { "Skull" })
+					play("Roar", CFrame.new(again.Position) * facing(cue), { scale = 1.3, edit = only({ "Ring", "Ring2", "Ring3" }) })
 				end
 			end)
 		end
@@ -889,8 +851,8 @@ function King.stagger(cue: Cue)
 	play("PhaseFlare", frame, { follow = chest, boost = 0.5 })
 end
 
--- Death: a collapsing gather, then a white burst and a pillar, while a ghost
--- wolf the shape of the body rises and dissolves and motes linger.
+-- Death: a collapsing gather while spirit flames and motes lift off the body,
+-- then a white burst and a pillar, and motes linger. No body copy.
 function King.death(cue: Cue)
 	if not ours(cue) then
 		return
@@ -906,7 +868,20 @@ function King.death(cue: Cue)
 	applyAura(cue)
 	local frame, chest = point(cue, "Core", { "Chest" })
 	play("DeathBuild", frame, { follow = chest, seconds = 0.9 })
-	ghost(bodyParts(cue, nil, nil, 40), 3.6, Vector3.new(0, 16, 0), 0.18, 0.4, 0.3)
+	play("PhaseFlare", frame, { follow = chest, scale = 1.3, boost = 0.8, edit = only({ "Flames", "Motes" }) })
+	-- the spirit leaving: motes rising off the whole body for about 3 s,
+	-- where the old ghost wolf rose
+	play("DeathSpirit", CFrame.new(ground(cue, root(cue).Position) + Vector3.new(0, 1, 0)) * facing(cue), {
+		edit = function(copy)
+			only({ "Spirits" })(copy)
+			for _, e in copy:GetDescendants() do
+				if e:IsA("ParticleEmitter") then
+					e.Size = scaleSequence(e.Size, 2.2)
+					e.Rate *= 1.5
+				end
+			end
+		end,
+	})
 	local at = ground(cue, root(cue).Position)
 	local face = facing(cue)
 	task.delay(0.85, function()

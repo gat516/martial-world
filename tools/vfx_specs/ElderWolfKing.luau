@@ -9,8 +9,9 @@
 -- Runtime: src/client/EnemyFX/ElderWolfKing.luau (cue -> template, placement).
 --
 -- Identity: moon-silver qi on ink-slate, gold for every warning tell (so a
--- gold flare always means "react"), pale spirit-cyan for the ghost-wolf
+-- gold flare always means "react"), pale spirit-cyan for the spirit
 -- flourishes, a little jade only on the collar seal. No crown or halo motif.
+-- The runtime never clones the King's body (no ghost/afterimage copies).
 -- Every template is an invisible anchored Part (centre = pivot, -Z = facing
 -- or blow direction). Ground templates have their centre on the floor.
 -- `AuthoredSeconds` (windup holds) and `AuthoredRadius` (ground shapes) tell
@@ -442,7 +443,7 @@ function _G.buildElderWolfKingFX(effects)
 
 	-- HowlTell (Pack Call windup, at the Mouth, 1.20 s): rings of sound leave
 	-- the muzzle, a swelling spirit glow, mist, a rush of spirit motes drawn
-	-- in then thrown up. The ghost wolf head rises in code.
+	-- in then thrown up.
 	do
 		local p = part(root, "HowlTell", Vector3.new(8, 8, 8), { AuthoredSeconds = 1.2 })
 		em(p, "Waves", { Texture = TEX.ringThin, Color = CS({ CK(0, WHITE), CK(1, SPIRIT) }), LightEmission = 1, Brightness = 2, Rate = 4, Lifetime = R(0.55), Size = grow(2, 14), Transparency = NS({ KP(0, 0.2), KP(1, 1) }), ZOffset = 1 }, { EmitDuration = 1.2, EmitDelay = 0.1 })
@@ -455,8 +456,8 @@ function _G.buildElderWolfKingFX(effects)
 
 	-- PhaseBurst (Pack Call release, floor under the King, authored r14): the
 	-- fight escalates. A spirit sigil blooms and spins out, three shock
-	-- rings, a pillar of light rays, spirit motes spiralling up, a ghost-wolf
-	-- howl (code), dust and embers. Code scales EmitCounts for the second call.
+	-- rings, a pillar of light rays, spirit motes spiralling up, dust and
+	-- embers. Code scales EmitCounts for the second call.
 	do
 		local p = part(root, "PhaseBurst", Vector3.new(28, 0.2, 28), { AuthoredRadius = 14 })
 		local g = att(p, "Ground", Vector3.new(0, 0.2, 0))
@@ -487,7 +488,7 @@ function _G.buildElderWolfKingFX(effects)
 
 	-- Roar (aggro, at the Mouth, facing out): an arena entrance. Three
 	-- sound rings, a blast of mist and dust forward, a flat ring on the floor,
-	-- flash, sparks. The ghost head flourish is added in code.
+	-- flash, sparks.
 	do
 		local p = part(root, "Roar", Vector3.new(0.4, 0.4, 0.4))
 		em(p, "Ring", { Texture = TEX.ringThin, Color = CS({ CK(0, WHITE), CK(1, SPIRIT) }), LightEmission = 1, Brightness = 2, Lifetime = R(0.5), Size = grow(2, 20), Transparency = NS({ KP(0, 0.1), KP(1, 1) }), ZOffset = 1 }, { EmitCount = 1 })
@@ -528,7 +529,9 @@ function _G.buildElderWolfKingFX(effects)
 		em(p, "Dust", { Texture = TEX.puff, Color = CS(DUST), SpreadAngle = Vector2.new(180, 180), Speed = R(6, 14), Drag = 3, Lifetime = R(0.5, 0.9), Size = grow(2, 5), Transparency = NS({ KP(0, 0.45), KP(1, 1) }), Rotation = R(0, 360) }, { EmitCount = 5 })
 	end)
 
-	-- Aura parts (always on; the runtime clones each emitter into the body):
+	-- Aura parts (always on; the runtime clones each emitter into the body).
+	-- AuraGround is no longer mounted (it read as a pale circle under the
+	-- King, user 2026-10-21); drop it on the next rebuild of this set.
 	-- kept light. `BaseRate` is the rate at full health; code scales it up
 	-- and shifts the colour as the King is hurt.
 	do
@@ -547,7 +550,7 @@ function _G.buildElderWolfKingFX(effects)
 		em(p, "Mist", { Texture = TEX.puff, Color = CS(MOON), Rate = 3.5, EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(20, 20), Speed = R(2, 4), Drag = 1, Acceleration = Vector3.new(0, 0.8, 0), Lifetime = R(1.1, 1.7), Size = grow(0.8, 3.6), Transparency = NS({ KP(0, 0.7), KP(0.3, 0.55), KP(1, 1) }), Rotation = R(0, 360) })
 	end
 
-	-- Death, in four pieces the runtime sequences with a rising ghost wolf:
+	-- Death, in pieces the runtime sequences (with spirit motes rising):
 	-- DeathBuild (collapsing gather), DeathBurst (the final burst),
 	-- DeathSpirit (the release column and lingering motes).
 	do

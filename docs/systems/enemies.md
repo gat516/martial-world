@@ -387,13 +387,18 @@ The King has its own effect set, `Effects.ElderWolfKing` (28 templates, about 19
 emitters; builder `tools/vfx_specs/ElderWolfKing.luau`, installs
 `_G.buildElderWolfKingFX`). It no longer uses the wolf or boar templates. Look:
 moon-silver qi on ink-slate; **gold is the warning tell** (every windup flare is
-gold, so gold means react); pale spirit-cyan for the ghost-wolf flourishes; jade
+gold, so gold means react); pale spirit-cyan for the spirit flourishes; jade
 only on the collar seal. No crown or halo (user, 2026-10-21). Identity comes from
-the aura (mane flames, spirit motes, breath mist, a turning ground array) and from
-**ghost wolves**: translucent Neon copies of the King's own parts (`ghost` in the
-handler: the head for roar/howl/bite, up to 40 body parts for the death) that rise,
-swell and dissolve. A particle's `Size` is a half-width, so the builder halves its
-authored diameters once in `em`.
+the aura (mane flames, spirit motes, breath mist) and from spirit flourishes built
+from the set's own templates: spirit-flame bursts, rising mote columns and howl
+rings. **No copy of the body, ever** (user, 2026-10-21: the Neon ghost/afterimage
+clones of the bosses looked bad, so the old `ghost` wolves were removed), and **no
+always-on ground circle**: the `AuraGround` template (ink disc + turning moon
+mandala) read as a pale circle under the King, so the handler no longer mounts it
+(it stays in `Effects.rbxm`, unused). The handler's `only({...})` edit keeps one
+layer group of a template (and drops its shake) to borrow it as a flourish. A
+particle's `Size` is a half-width, so the builder halves its authored diameters
+once in `em`.
 
 Cues (the handler is `EnemyFX/ElderWolfKing.luau`; `EnemyFX/init.luau` gained two
 generic cues, `ready` once per enemy when first seen and `aggro` on idle/return ->
@@ -401,18 +406,18 @@ chase, for any beast that wants them):
 
 | Beat | Layers / how it plays |
 |---|---|
-| Aura (`ready`, always on) | ground array (ink disc + turning mandala, 2), mane flames, spirit motes, crest embers, mouth mist: 6 light emitters mounted in the body, about 17 particles/s. Health scales it: rates x(1 + 1.2 x lost health), flames go silver -> gold-white (<=65%) -> gold (<=30%), embers appear below 70%, and Pack Call flares it x2.2 for 3 s |
-| Aggro roar (plays on the `roar` attack's release, via `strike`; `aggro` itself only lights the aura) | `Roar` at the Mouth (8: three sound rings, mist blast, flash, sparks, floor ring and dust), a ghost head lunging out, aura flare, small shake; 12 s gap |
+| Aura (`ready`, always on) | mane flames, spirit motes, crest embers, mouth mist: 4 light emitters mounted in the body, about 17 particles/s, nothing on the ground. Health scales it: rates x(1 + 1.2 x lost health), flames go silver -> gold-white (<=65%) -> gold (<=30%), embers appear below 70%, and Pack Call flares it x2.2 for 3 s |
+| Aggro roar (plays on the `roar` attack's release, via `strike`; `aggro` itself only lights the aura) | `Roar` at the Mouth (8: three sound rings, mist blast, flash, sparks, floor ring and dust), a spirit-flame burst off the head (`PhaseFlare` flames, ring, star, motes at 0.7 scale) and a lighter one off the mane (flames, motes), aura flare, small shake; 12 s gap. No stock howl disc (bosses skip it, `d1f8780`) |
 | Every windup | `BrowFlare` on both eyes (4: gold star, pop, held glow, needle) |
-| Royal Bite | windup `BiteTell` (8: gold motes drawn into the muzzle, two closing rings, ink + gold maw glow, fang glints flash at 0.62 s, mist); contact `BiteSnap` (13: upper and lower fang crescents, flash, star, spiky ring, rays, ink, embers, smoke, shake) plus a short ghost-head lunge |
+| Royal Bite | windup `BiteTell` (8: gold motes drawn into the muzzle, two closing rings, ink + gold maw glow, fang glints flash at 0.62 s, mist); contact `BiteSnap` (13: upper and lower fang crescents, flash, star, spiky ring, rays, ink, embers, smoke, shake) plus breath mist and sparks thrown forward off the jaws (`Roar` blast + sparks at 0.6 scale) |
 | Paw Swipe | windup `SwipeTell` on the left paw (5, the loudest at its start: a big gold star at 0 s, three gold claw streaks, closing ring); contact `SwipeSlash` (9: three crescents and echo sweeping across the cone, claw rake, wind lines, sparks, smear) |
 | Claw Down | windup `Marker` on the locked circle (6) then `ClawRaise` on the right paw at 50% (5); contact `ClawStrike` (11: falling claws, lit crack over a dark crack, ring, dust, chips, embers, shake) |
 | King's Rush | windup `RushCharge` (6: motes and speed lines pulled in, swelling core, closing rings) + `GroundArray` under the King (5, gold); take-off `RushLaunch` (6); dash `RushTrail` (7: ink and white trails, wind, spirit glow, flames, floor dust); stop `RushSkid` (4) |
 | Crownfall | windup `SlamTell` on the chest (7) + `Marker` on the locked circle (6: boundary ring, ink under it, a disc that fills to contact, a turning array, a ring closing from outside, edge sparks; this is the radius read) + jade seal flare; contact `SlamImpact` (16: flash, star, three rings, dust wall, chips and rock chunks, rays, lit crack, **scorch that stays about 6 s and fades**, embers, settling smoke, a Craters rock ring and an Explosion shake) |
-| Pack Call (65% and 30%) | windup `HowlTell` (6: sound rings and arcs, glow, mist, spirit motes) + `GroundArray` in spirit-cyan + a ghost head; release `PhaseBurst` (11: spirit sigil, three shock rings, light rays and a pillar, rising motes, flash, dust, shake) + `PhaseFlare` on the chest (5) + a bigger ghost head + aura flare; at 30% (health <= 35%) counts x1.6 and a second ghost head |
+| Pack Call (65% and 30%) | windup `HowlTell` (6: sound rings and arcs, glow, mist, spirit motes) + `GroundArray` in spirit-cyan + spirit motes and pull lines gathering into the chest (`DeathBuild` gather, pull, cracks at 0.75 scale, refit to the windup); release `PhaseBurst` (11: spirit sigil, three shock rings, light rays and a pillar, rising motes, flash, dust, shake) + `PhaseFlare` on the chest (5) + the howl out of the mouth (`Roar` rings, flash, sparks, blast; no shake) + a rising light column (`DeathSpirit` pillar and motes at r5, 0.8 s) + aura flare; at 30% (health <= 35%) counts x1.6, the column holds 1.2 s and a second, bigger howl ring set follows at 0.3 s |
 | Confirmed hits | `HitClaw` (swipe), `HitBite`, `HitHeavy` (claw, rush, slam): 6 to 8 layers each, short |
 | Stagger | a half-strength `PhaseFlare` on the chest |
-| Death | `DeathBuild` (5, 0.9 s collapsing gather) while a ghost of the whole body (40 parts, 3.6 s) rises 16 studs and dissolves; at 0.85 s `DeathBurst` (9: white-out, star, ink splash, two rings, rays, motes, smoke, embers, shake) and `DeathSpirit` on the floor (6: sigil, pillar of rays, rising motes and petals for 3-4 s, smoke); the aura goes out |
+| Death | `DeathBuild` (5, 0.9 s collapsing gather) while spirit flames and motes burst off the body (`PhaseFlare` at 1.3 scale) and spirit motes rise off the whole body for about 3 s (`DeathSpirit` motes, larger and denser); at 0.85 s `DeathBurst` (9: white-out, star, ink splash, two rings, rays, motes, smoke, embers, shake) and `DeathSpirit` on the floor (6: sigil, pillar of rays, rising motes and petals for 3-4 s, smoke); the aura goes out |
 
 Shakes ride the templates' ScreenEffects attributes when the Game Module is
 present (`TechniqueVFX.full`) and fall back to `CombatEffects.shake` otherwise.

@@ -1,5 +1,6 @@
 ---
 name: vfx
+model: opus
 description: Makes this game's visual effects (technique casts, hits, auras, breakthroughs, enemy attacks, ambient effects; sky-scale world events go to world-fx) the way Roblox VFX artists do. Works from reference videos and tutorials, breaks a reference down into layers, translates it into xianxia motifs, and plans a timed beat sheet where every layer is caused by the action and one hero sells it, and builds it from the vfxia plugin's asset library and add-ons (parts only in support). Builds in Studio through the MCP, previews in Edit mode, compares against the reference, exports templates to assets/ and wires playback into the client scripts.
 ---
 

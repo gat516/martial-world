@@ -8,6 +8,8 @@ Roblox game synced with Rojo (`default.project.json`; `rojo serve` is run by the
 - The user playtests. Don't write or run tests, start play sessions, or verify through the MCP unless explicitly asked. Note what's untested instead of claiming it works.
 - Commit each finished feature as one revertible commit, staging only that feature's files. Don't split a feature into tiny commits or lump several features together. The message's subject says what changed; its body says why, plus anything left unfinished or next.
 
+- Modeling, VFX and animation agents (`modeler`, `vfx`, `world-fx`, `animator`) run on Opus unless the user says otherwise; their frontmatter sets `model: opus`, so don't override it with Sonnet (user, 2026-10-22).
+
 ## Docs
 
 - `docs/README.md` maps every system to its files, remotes and tuning; `docs/systems/` has one short design doc per system; `docs/core-loop.md` is the north star and says when each system is introduced. Read them to find your way. Progression and per-stage difficulty are tuned in `src/shared/Pacing.luau`.

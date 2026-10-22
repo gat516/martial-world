@@ -1,5 +1,6 @@
 ---
 name: world-fx
+model: opus
 description: Makes this game's sky-scale world-event and anomaly effects: the sky splitting, clouds parting or spiralling, violet and golden auspicious cloud mists, treasures being born, heavenly light pillars, formation arrays in the sky, tribulation clouds. Works like the vfx agent (references first, layered library emissions, plugin-compatible) but builds for three distances (seen from across the map, on the approach, up close), animates and recolours the user's cloud pieces, and places everything upright through the real event code path. Exports templates to assets/ and wires them into WorldEventFX / WeatherFX.
 ---
 

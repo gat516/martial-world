@@ -680,8 +680,12 @@ segments, support only).
 - `venomFang`/`fangFlurry`: `FangTell`, `FangSnap`; each flurry strike is its own cue (snap at the
   Mouth plus `GroundMark` on its cone); the snap adds `SpitRelease` at the Mouth. `tailSweep`: `TailTell`, `SweepImpact`, `TailWhip` trail.
   `pillarSlam`: `SlamTell`, `GroundGather`, `SlamImpact` (scorch 6 s).
-- Spit: `SpitGather` + throat sac swell; lance/spray fly `VenomBolt` from the Mouth along each
-  lane at 75/s (stopped by the first `hit`) into `BoltImpact`; pools lob a glob per circle into
+- Spit: `SpitGather` + throat sac swell. Lance/spray bolts are real projectiles drawn by the
+  `venomBolt` ProjectileView drawer in the handler: `SpitRelease` once per volley, `VenomBolt`
+  scaled to `data.size` (3.6 lance / 3 spray), a flat ink shadow (the `GroundGather` ink emitter)
+  that darkens as the glob drops, and on end `BoltImpact` plus a `PoolSplash` splat when it
+  ends near the ground (`hit`/`terrain`); `range`/`lifetime` end in a small airburst. The lane
+  warnings are the server's. Pools lob a glob per circle into
   `PoolSplash` + `PoolDisc` (7 s, the only persistent effect); rain: `RainGather`, `RainRelease`,
   and per circle `MarkerLite`, `RainDrop`, `RainSplash` (light).
 - `jiaoCoil`: `Marker`, jade glow down `ScaleSeam1..9`, `CoilForm` on `CoilAt`; the ring is 40

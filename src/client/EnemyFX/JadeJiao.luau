@@ -10,10 +10,11 @@
 --
 -- Cues: ready (aura / dormant mound), aggro, windup, strike, dash, land, hit,
 -- stagger, death, plus enemyCue handlers phase, squeeze, coilBreak. Contact is
--- `strike` for stationary attacks. Multi-circle and multi-lane attacks (spray
--- lanes, pools, flurry strikes, rain drops) deliver several windup cues: they
--- are deduped by attack and time, and each impact is played here when its own
--- `seconds` run out (there is no per-circle strike cue).
+-- `strike` for stationary attacks. Multi-circle attacks (pools, flurry
+-- strikes, rain drops) deliver several windup cues: they are deduped by
+-- attack and time, and each impact is played here when its own `seconds` run
+-- out (there is no per-circle strike cue). The lance and spray bolts are real
+-- projectiles: the "venomBolt" ProjectileView drawer flies them.
 -- Attributes read: Burrowed, Phase, Coil*, Dash*; the body hooks are named in
 -- the Jade Jiao fight sheet (Mouth, Core, Dive_FX, TailTip_FX, ...). A missing
 -- part falls back to the Skull, the Body or the root.
@@ -53,7 +54,6 @@ type State = {
 	roarAt: number,
 	flareUntil: number,
 	stopRidge: (() -> ())?,
-	bolts: { Bolt },
 	dome: BasePart?,
 	moundFX: BasePart?,
 	hidden: boolean,
@@ -74,7 +74,6 @@ local GOLD = Color3.fromRGB(255, 190, 70)
 local HOT = Color3.fromRGB(255, 236, 176)
 local SOIL = Color3.fromRGB(92, 72, 50)
 local EPSILON = 0.035
-local BOLT_SPEED = 75
 
 local WINDUP = {
 	emerge = 2.2,
@@ -120,7 +119,6 @@ local function state(model: Model): State
 			roarAt = -math.huge,
 			flareUntil = 0,
 			stopRidge = nil,
-			bolts = {},
 			dome = nil,
 			moundFX = nil,
 			hidden = false,
@@ -436,17 +434,6 @@ local function circleOf(shape: any, fallbackRadius: number, cue: Cue): (Vector3,
 		return shape.center, r
 	end
 	return cue.root.Position, fallbackRadius
-end
-
--- a box lane: start (the attacker's end) to the far end, along the ground
-local function laneOf(shape: any, cue: Cue): (Vector3, Vector3)
-	if type(shape) == "table" and typeof(shape.cframe) == "CFrame" and typeof(shape.size) == "Vector2" then
-		local cf: CFrame = shape.cframe
-		local length = (shape.size :: Vector2).Y
-		return cf:PointToWorldSpace(Vector3.new(0, 0, length / 2)), cf:PointToWorldSpace(Vector3.new(0, 0, -length / 2))
-	end
-	local mouth = point(cue, "Mouth", { "Skull" }).Position
-	return mouth, mouth + root(cue).CFrame.LookVector * 40
 end
 
 local function torsoOf(target: Model?): BasePart?
@@ -873,29 +860,143 @@ local function boltImpact(position: Vector3)
 	play("BoltImpact", CFrame.new(position))
 end
 
--- Fire one bolt per lane, from the Mouth to the lane's end (or the first hit).
-local function fireLanes(cue: Cue, lanes: { any })
-	local s = state(cue.model)
-	local mouth = point(cue, "Mouth", { "Skull" }).Position
-	play("SpitRelease", CFrame.lookAt(mouth, mouth + root(cue).CFrame.LookVector))
-	for _, shape in lanes do
-		local _, finish = laneOf(shape, cue)
-		local target = ground(cue, finish) + Vector3.new(0, 1.6, 0)
-		local bolt
-		bolt = fly(cue, "VenomBolt", mouth, target, BOLT_SPEED, 0, 1, function(at)
-			boltImpact(at)
-			if bolt then
-				local i = table.find(s.bolts, bolt)
-				if i then
-					table.remove(s.bolts, i)
-				end
-			end
-		end)
-		if bolt then
-			table.insert(s.bolts, bolt)
+-- Venom bolts (venomLance, venomSpray): real boss projectiles. The server
+-- fires one per lane (cue "venomBolt", data.size = diameter 3.6 lance / 3
+-- spray) and ProjectileView flies them and calls this drawer; the lane
+-- warnings are the server's. A bright glob with a streak and drips, an ink
+-- shadow on the ground under it, a splat where the server ends it.
+local BOLT_AUTHORED = 3 -- the VenomBolt template reads as a ~3-stud glob
+
+local function ownerCue(shot: any): Cue?
+	local model = shot.owner
+	local main = model and model:FindFirstChild("HumanoidRootPart")
+	if not (model and main and main:IsA("BasePart")) then
+		return nil
+	end
+	return { model = model, root = main, kind = "projectile", at = shot.startedAt } :: any
+end
+
+local function floorUnder(shot: any, position: Vector3): Vector3?
+	local c = ownerCue(shot)
+	if c then
+		local spot = ground(c, position)
+		return if position.Y - spot.Y < 60 then spot else nil
+	end
+	local hit = workspace:Raycast(position, Vector3.new(0, -60, 0))
+	return hit and hit.Position
+end
+
+local function boltSize(shot: any): number
+	local data = shot.data
+	local size = data and data.size
+	return if type(size) == "number" then size else 3
+end
+
+local lastRelease: { [Model]: number } = {}
+
+local function boltStart(shot: any)
+	local size = boltSize(shot)
+	local position = shot.state.position
+	local velocity = shot.state.velocity
+	local look = if velocity.Magnitude > 0.1 then position + velocity else position + Vector3.new(0, 0, -1)
+	-- one mouth flash per volley (the spray fires three at once)
+	local owner = shot.owner
+	if owner and os.clock() - (lastRelease[owner] or 0) > 0.15 then
+		lastRelease[owner] = os.clock()
+		play("SpitRelease", CFrame.lookAt(position, look))
+	end
+	local glob = make("VenomBolt", CFrame.lookAt(position, look), { scale = size / BOLT_AUTHORED })
+	if glob then
+		glob.Parent = TechniqueVFX.folder
+		TechniqueVFX.enable(glob)
+	end
+	-- the shadow: the library's flat ink dot, locked to an invisible marker
+	local shadow: BasePart? = nil
+	local source = template("GroundGather")
+	local ground_ = source and source:FindFirstChild("Ground")
+	local ink = ground_ and ground_:FindFirstChild("Under")
+	if ink and ink:IsA("ParticleEmitter") then
+		local holder = Instance.new("Part")
+		holder.Name = "VenomBoltShadow"
+		holder.Anchored, holder.CanCollide, holder.CanQuery, holder.CanTouch, holder.CastShadow = true, false, false, false, false
+		holder.Transparency = 1
+		holder.Size = Vector3.new(0.2, 0.2, 0.2)
+		local e = ink:Clone()
+		e.LockedToPart = true
+		e.Lifetime = NumberRange.new(0.12)
+		e.Rate = 30
+		e.Size = NumberSequence.new(size * 1.1)
+		e.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.55), NumberSequenceKeypoint.new(1, 0.55) })
+		e.Enabled = false
+		e.Parent = holder
+		holder.CFrame = CFrame.new(position)
+		holder.Parent = TechniqueVFX.folder
+		shadow = holder
+	end
+	shot.visual = { glob = glob, shadow = shadow }
+end
+
+local function boltStep(shot: any, position: Vector3, velocity: Vector3)
+	local v = shot.visual
+	if not v then
+		return
+	end
+	if v.glob and v.glob.Parent then
+		v.glob.CFrame = if velocity.Magnitude > 0.1 then CFrame.lookAt(position, position + velocity) else CFrame.new(position)
+	end
+	local shadow = v.shadow
+	if shadow then
+		local floor = floorUnder(shot, position)
+		local e = shadow:FindFirstChildOfClass("ParticleEmitter")
+		if floor and e then
+			shadow.CFrame = CFrame.new(floor + Vector3.new(0, 0.15, 0))
+			-- darker and tighter as the glob comes down
+			local height = math.max(0, position.Y - floor.Y)
+			local k = math.clamp(1 - height / 30, 0.25, 1)
+			e.Size = NumberSequence.new(boltSize(shot) * (1.6 - 0.6 * k))
+			e.Transparency = NumberSequence.new(0.85 - 0.35 * k)
+			e.Enabled = true
+		elseif e then
+			e.Enabled = false
 		end
 	end
 end
+
+local function boltFinish(shot: any, position: Vector3, reason: string)
+	local v = shot.visual
+	shot.visual = nil
+	if v then
+		if v.glob then
+			TechniqueVFX.disable(v.glob)
+			TechniqueVFX.cleanup(v.glob, 0.3)
+		end
+		if v.shadow then
+			local e = v.shadow:FindFirstChildOfClass("ParticleEmitter")
+			if e then
+				e.Enabled = false
+			end
+			task.delay(0.3, function()
+				v.shadow:Destroy()
+			end)
+		end
+	end
+	local size = boltSize(shot)
+	if reason == "range" or reason == "lifetime" then
+		-- spent in the air: a small burst, no splat
+		play("BoltImpact", CFrame.new(position), { scale = size / BOLT_AUTHORED * 0.7 })
+		return
+	end
+	play("BoltImpact", CFrame.new(position), { scale = size / BOLT_AUTHORED })
+	local floor = floorUnder(shot, position + Vector3.new(0, 1, 0))
+	if floor and position.Y - floor.Y < 6 then
+		-- the splat on the ground (PoolSplash: ring, ink splat, drops)
+		play("PoolSplash", CFrame.new(floor), { scale = size * 0.9 })
+	end
+	shake(0.08, position, 40)
+end
+
+local ProjectileView = require(script.Parent.Parent.ProjectileView)
+ProjectileView.register("venomBolt", { start = boltStart, step = boltStep, finish = boltFinish })
 
 -- Pools: a glob lobbed in an arc to each circle, then the 7 s hazard disc.
 local function lobPool(cue: Cue, shape: any, seconds: number)
@@ -1453,7 +1554,7 @@ function Jiao.strike(cue: Cue)
 		play("SlamImpact", CFrame.new(ground(cue, center)) * face, { scale = radius })
 		shake(0.36, center, radius + 60)
 	elseif attack == "venomLance" or attack == "venomSpray" then
-		fireLanes(cue, if #shapes > 0 then shapes else { shape })
+		-- the bolts are real projectiles (the venomBolt drawer above)
 		shake(0.14, cue.root.Position, 60)
 	elseif attack == "dreadHiss" then
 		local center, radius = circleOf(shape, 14, cue)
@@ -1502,15 +1603,6 @@ function Jiao.hit(cue: Cue)
 	end
 	local attack = cue.attack or ""
 	local s = state(cue.model)
-	-- a projectile stops on the first player it caught
-	if attack == "venomLance" or attack == "venomSpray" then
-		for _, bolt in table.clone(s.bolts) do
-			if (bolt.position() - torso.Position).Magnitude < 40 then
-				bolt.stop(torso.Position)
-				break
-			end
-		end
-	end
 	local delta = root(cue).Position - torso.Position
 	local toward = Vector3.new(delta.X, 0, delta.Z)
 	toward = if toward.Magnitude > 0.1 then toward.Unit else Vector3.new(0, 0, -1)

@@ -31,6 +31,7 @@ local Client = script.Parent.Parent
 local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
 local BladeSkill = require(script.Parent.BladeSkill)
+local WeaponFX = require(script.Parent.WeaponFX)
 
 local TwinPhoenixCannon = {}
 
@@ -390,13 +391,16 @@ local function fire(CombatEffects: any, copy: Model, b: Blast)
 		end
 	end, burst)
 
-	-- impacts: every enemy on the line as the bird's front reaches it
+	-- impacts: every enemy on the line as the bird's front reaches it, squeezed
+	-- into this blow's Hit -> Hit Stop window (the damage number shows at Hit)
+	local window = WeaponFX.hitWindow(def, b.index)
 	local targets = CastFX.targets({ kind = "line", origin = origin, dir = dir, length = length, width = width, character = b.character })
 	for _, target in targets do
 		local along = target.progress * length
 		local progress = math.clamp((along - startAlong) / full, 0, 1)
 		local beyond = progress > stopProgress
-		task.delay(if beyond then stopTime else CastFX.curveTime(curve, travelTime, progress), function()
+		local arrival = if beyond then stopTime else CastFX.curveTime(curve, travelTime, progress)
+		task.delay(WeaponFX.landing(arrival, travelTime, window), function()
 			if impact and not beyond then
 				CastFX.impactAt(impact, target, { Kick = 2, Quake = 1 })
 			end

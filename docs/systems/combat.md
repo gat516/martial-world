@@ -328,7 +328,18 @@ checks a rebuild against the previous templates.
   kicks, a terminal Craters ring and a small shake; IV 3 air rings, white-gold
   heads, the one light riding the golden bird and a fire dome with a spike
   crown and an Explosion quake at its terminal. Damage lands on the server's
-  hit times; visual impacts follow the bird, up to ~0.28 s later.
+  hit times. Remade 2026-10-21 for the hit windows: each bird flies in 0.15 s
+  (0.17 s gold) and every impact is squeezed into that blow's Hit -> Hit Stop
+  window (`WeaponFX.hitWindow`/`landing`, floor 0.1 s) instead of trailing the
+  damage number by up to 0.28 s. Layers added: a spiky flame-aura flipbook
+  `Plume` streaming back off each bird's head, a `FistFlame` flipbook on the
+  charging fist through the windup (and the left fist between the blasts), a
+  coloured fire-flipbook `MuzzleFire` over an ink splat at each release, an
+  ink splat and fire-flipbook `Bloom` (II+ a smoke flipbook) at each terminal,
+  and the shared hit stack's ink splat and star-burst flipbook on every
+  impact. The windup is a stream through 0.30 s, not one burst. Layers per
+  beat for one bird (T1 / T4): windup 6 / 9, release 6 / 10, travel 10 / 11,
+  impact 9 / 15, terminal 13 / 21, tail 2 / 3.
 - **Great Sage Awakening** (`GreatSageAwakening_T1..T4`, authored at radius
   8 and 8 s; `TechniqueFX.GreatSageAwakening`). The Monkey King wakes: his
   golden circlet, golden flame, the somersault cloud, fiery eyes. The staff

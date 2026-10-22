@@ -76,7 +76,14 @@ local A = {
 	torus = id(471124075),
 	crownLow = id(489415286),
 	crack = id(97725700315217),
+	flameAura = id(81332883799807), -- 2x2 flipbook: a spiky white flame aura (tintable): the bird's plume and the fist ablaze
+	fireFlip = id(13344777062), -- 4x4 flipbook: coloured flames rising and breaking up (muzzle fire, terminal bloom)
+	smokeFlip = id(14200879082), -- 4x4 flipbook: a smoke burst
+	ink = id(16132530029), -- black ink splat (dark base)
 }
+local GRID4 = Enum.ParticleFlipbookLayout.Grid4x4
+local GRID2 = Enum.ParticleFlipbookLayout.Grid2x2
+local ONESHOT, LOOP = Enum.ParticleFlipbookMode.OneShot, Enum.ParticleFlipbookMode.Loop
 
 -- Palettes: particles take the light tones; Neon meshes bloom toward white,
 -- so they take deeper ones.
@@ -176,7 +183,7 @@ function blocks.blast(root, tier, p)
 	local blast = B().part(root, "Blast" .. key, O * CFrame.new(0, 2.4, -2), V(span, 0.3, depth))
 	for k, v in {
 		Span = span, Height = 2.4, Pitch = 10,
-		TravelTime = if big then 0.28 else 0.26,
+		TravelTime = if big then 0.17 else 0.15, -- the front reaches the line's end inside ~Hit -> Hit Stop (+0.1 s floor)
 		TravelCurve = NS({ KP(0, 0), KP(0.2, 0.36), KP(0.5, 0.7), KP(0.75, 0.9), KP(1, 1) }),
 	} do
 		blast:SetAttribute(k, v)
@@ -213,6 +220,16 @@ function blocks.blast(root, tier, p)
 		Acceleration = V(0, 4, 0), Rate = ({ 22, 28, 36, 45 })[tier],
 	})
 	shed:SetAttribute("Shed", true)
+	-- the phoenix's plume: a spiky flame aura flipbook streaming back off the head
+	local plume = B().emitter(blast, "Plume", {
+		Texture = A.flameAura, Color = CS({ CK(0, core), CK(0.4, c.color), CK(1, c.edge) }),
+		FlipbookLayout = GRID2, FlipbookMode = LOOP, FlipbookFramerate = NumberRange.new(14),
+		EmissionDirection = Enum.NormalId.Back, SpreadAngle = Vector2.new(8, 8),
+		Size = NS({ KP(0, span * 0.22), KP(0.3, span * 0.34), KP(1, span * 0.08) }), Transparency = NS({ KP(0, 0.45), KP(0.4, 0.3), KP(1, 1) }),
+		Lifetime = R(0.16, 0.24), Speed = R(2, 5), Drag = 2, LightEmission = 0.55, LightInfluence = 0, Rotation = R(-8, 8),
+		Rate = ({ 14, 16, 18, 22 })[tier], ZOffset = -0.3,
+	})
+	plume:SetAttribute("Shed", true)
 	if tier >= 2 then
 		local feathers = B().emitter(blast, "Feathers", {
 			Texture = A.flame, Color = CS({ CK(0, c.core), CK(0.4, c.color), CK(1, c.edge) }),
@@ -244,6 +261,23 @@ function blocks.fist(root, tier, p)
 	local q = pal(key, { part = part, at = FIST_AT[key], light = false })
 	B().releaseFlash(root, tier, q)
 	B().airShockwave(root, tier, pal(key, { part = part, at = FIST_AT[key], color = PAL[key].ringColor }))
+	-- the fire the fist throws: coloured flame flipbook off the knuckles over a dark ink splat
+	B().emitterBlock(root, tier, {
+		part = part, name = "Ink", props = {
+			Texture = A.ink, Color = CS(Color3.fromRGB(40, 20, 16)),
+			Size = NS({ KP(0, 1.2), KP(0.25, 2.8 + tier * 0.3), KP(1, 3.4 + tier * 0.3) }), Transparency = NS({ KP(0, 0.2), KP(0.6, 0.45), KP(1, 1) }),
+			Lifetime = R(0.32), LightEmission = 0, Rotation = R(0, 360), ZOffset = 0.8,
+		}, attrs = { EmitCount = 1 },
+	})
+	B().emitterBlock(root, tier, {
+		part = part, name = "MuzzleFire", props = {
+			Texture = A.fireFlip, Color = CS(Color3.new(1, 1, 1)),
+			FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+			EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(6, 6), Speed = R(4, 8),
+			Size = NS({ KP(0, 1.6 + tier * 0.3), KP(1, 3.2 + tier * 0.5) }), Transparency = NS({ KP(0, 0.05), KP(0.7, 0.2), KP(1, 1) }),
+			Lifetime = R(0.36), LightEmission = 0.35, LightInfluence = 0, Rotation = R(-10, 10), ZOffset = 1.2,
+		}, attrs = { EmitCount = 1 },
+	})
 	if tier >= 3 then
 		B().emitterBlock(root, tier, {
 			part = part, name = "Seal", flat = true, dir = Enum.NormalId.Front, attrs = { EmitCount = 1 },
@@ -318,6 +352,27 @@ function blocks.terminal(root, tier, p)
 		Size = NS({ KP(0, 0.25), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(1, 1) }),
 		Lifetime = R(0.6, 1), Speed = R(8, 14), Drag = 2.5, Acceleration = V(0, 3, 0), LightEmission = 0.5,
 	}, { EmitCount = ({ 6, 8, 10, 14 })[tier] })
+	-- the explosion's body: a coloured fire flipbook blooming at the bird's height over an ink splat
+	B().emitter(term.Body, "Ink", {
+		Texture = A.ink, Color = CS(Color3.fromRGB(40, 20, 16)),
+		Size = NS({ KP(0, 2), KP(0.25, 5 * k), KP(1, 6.5 * k) }), Transparency = NS({ KP(0, 0.2), KP(0.6, 0.45), KP(1, 1) }),
+		Lifetime = R(0.5), LightEmission = 0, Rotation = R(0, 360), ZOffset = 1.6,
+	}, { EmitCount = 1 })
+	B().emitter(term.Body, "Bloom", {
+		Texture = A.fireFlip, Color = CS(Color3.new(1, 1, 1)),
+		FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(10, 10), Speed = R(0, 2),
+		Size = NS({ KP(0, 3 * k), KP(1, (5 + tier * 0.6) * k) }), Transparency = NS({ KP(0, 0.05), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(0.55), LightEmission = 0.35, LightInfluence = 0, Rotation = R(-8, 8), ZOffset = 2,
+	}, { EmitCount = 1 })
+	if tier >= 2 then
+		B().emitter(term.Body, "Smoke", {
+			Texture = A.smokeFlip, Color = CS(Color3.fromRGB(70, 56, 52)), LightInfluence = 0.4,
+			FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+			Size = NS({ KP(0, 2.4 * k), KP(1, 4.6 * k) }), Transparency = NS({ KP(0, 0.45), KP(1, 1) }),
+			Lifetime = R(0.9), Rotation = R(0, 360), ZOffset = 1,
+		}, { EmitCount = 1 })
+	end
 	if tier >= 2 then
 		B().emitter(term, "Scorch", B().flat({
 			Texture = A.crack, Color = CS(CHAR), LightInfluence = 0.3,
@@ -387,10 +442,24 @@ local spec = {
 	root = { attrs = { AuthoredActive = 0.08, AuthoredLength = LENGTH, AuthoredWidth = WIDTH } },
 	blocks = blocks,
 	beats = {
-		-- windup: crimson qi into the right fist (caster only)
+		-- windup: crimson qi into the right fist (caster only), the fist ablaze
 		{ block = "handGather", params = pal("R", { windup = 0.30, at = FIST_AT.R }) },
+		{ block = "emitter", params = { part = "Windup", name = "FistFlame", props = {
+			Texture = A.flameAura, Color = CS({ CK(0, PAL.R.core), CK(0.4, PAL.R.color), CK(1, PAL.R.edge) }),
+			FlipbookLayout = GRID2, FlipbookMode = LOOP, FlipbookFramerate = NumberRange.new(14),
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(20, 20), Speed = R(1, 3),
+			Size = NS({ KP(0, 1.4), KP(0.4, 2.2), KP(1, 0.6) }), Transparency = NS({ KP(0, 0.6), KP(0.3, 0.25), KP(1, 1) }),
+			Lifetime = R(0.22, 0.3), LightEmission = 0.5, Rotation = R(-10, 10), LockedToPart = true, Rate = 18, ZOffset = 0.5,
+		}, attrs = { EmitDuration = 0.30 } } },
 		-- between the blasts: gold qi into the left fist (everyone)
 		{ block = "handGather", params = pal("L", { part = "Gather", windup = 0.45, at = GATHER_AT, wisps = false }) },
+		{ block = "emitter", params = { part = "Gather", name = "FistFlame", props = {
+			Texture = A.flameAura, Color = CS({ CK(0, PAL.L.core), CK(0.4, PAL.L.color), CK(1, PAL.L.edge) }),
+			FlipbookLayout = GRID2, FlipbookMode = LOOP, FlipbookFramerate = NumberRange.new(14),
+			EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(20, 20), Speed = R(1, 3),
+			Size = NS({ KP(0, 1.6), KP(0.4, 2.6), KP(1, 0.7) }), Transparency = NS({ KP(0, 0.6), KP(0.3, 0.25), KP(1, 1) }),
+			Lifetime = R(0.22, 0.3), LightEmission = 0.5, Rotation = R(-10, 10), LockedToPart = true, Rate = 20, ZOffset = 0.5,
+		}, attrs = { EmitDuration = 0.45 } } },
 		{ block = "fist", params = { key = "R" } },
 		{ block = "fist", params = { key = "L" } },
 		{ block = "blast", params = { key = "R" } },

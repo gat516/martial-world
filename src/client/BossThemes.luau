@@ -25,10 +25,10 @@ local Themes = {}
 -- uses that theme's original `ornament` frame and layout instead; a real id
 -- switches BossBars to the v2 layout (BossBars.V2_LAYOUT).
 Themes.FRAMES = {
-	ElderWolfKing = "PASTE-ID:bossbar2_wolf.png",
-	NineTailFox = "PASTE-ID:bossbar2_fox.png",
-	ThunderApe = "PASTE-ID:bossbar2_ape.png",
-	JadeJiao = "PASTE-ID:bossbar2_jiao.png",
+	ElderWolfKing = "rbxassetid://85713488525884",
+	NineTailFox = "rbxassetid://125779427553923",
+	ThunderApe = "rbxassetid://132057270134812",
+	JadeJiao = "rbxassetid://136838237260119",
 }
 
 export type Theme = {

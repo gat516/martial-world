@@ -212,9 +212,9 @@ cursor, settings and the admin panel.
   v2 frame is shown (realm small at the bar's right end below it; title, then
   omen, on one row under the middle). Their ids go in the `ASSET IDS` block at
   the top of `BossThemes.luau` (`Themes.FRAMES`, keyed by def id) and in
-  `assets.json`; while one is still a `PASTE-ID:` placeholder that boss keeps its
-  original frame and layout.
-  Gaps: the v2 frames and the layout switch are not uploaded or seen in Studio
+  `assets.json`; a `PASTE-ID:` placeholder would keep that boss on its
+  original frame and layout. All four are uploaded and wired.
+  Gaps: the v2 frames and the layout switch are not seen in Studio
   yet; the fox, jiao and
   ape bars are untested until those bosses are in play; the phase cracks are
   one shared image.

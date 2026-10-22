@@ -44,6 +44,12 @@ local foxModule = script.Parent.EnemyPoses:FindFirstChild("NineTailFox")
 local NineTailFox = if foxModule then require(foxModule :: ModuleScript) :: any else nil
 local foxConfigured = false
 
+-- the fliers' pose modules (a shared wing flap; hover pivots, loops too fast for the usual smoothing)
+local ravenModule = script.Parent.EnemyPoses:FindFirstChild("FlameRaven")
+local FlameRaven = if ravenModule then require(ravenModule :: ModuleScript) :: any else nil
+local batModule = script.Parent.EnemyPoses:FindFirstChild("BloodBat")
+local BloodBat = if batModule then require(batModule :: ModuleScript) :: any else nil
+
 -- the Blood Centipede's pose module (a segmented serpent family: heading history, burrow)
 local centipedeModule = script.Parent.EnemyPoses:FindFirstChild("BloodCentipede")
 local BloodCentipede = if centipedeModule then require(centipedeModule :: ModuleScript) :: any else nil
@@ -80,7 +86,7 @@ local DEATH_SECONDS = 0.6
 -- keyedBlend: blend from the preceding state for this many seconds, then sample
 -- keyed poses directly. This keeps the King's short tells and contact instants
 -- from trailing the server clock through the normal joint smoothing.
-type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean?, guard: boolean?, turnInPlace: boolean?, circleLoop: boolean? }
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean?, guard: boolean?, turnInPlace: boolean?, circleLoop: boolean?, loopSmoothing: number? }
 
 -- `<attack>Skid` is the overshoot turn-around the server plays (AIState recover) when a
 -- charge, lunge or leap arrives with the target out of reach; see skidOf below.
@@ -139,6 +145,26 @@ if VenomSerpent then
 		poses = VenomSerpent, scale = VenomSerpent.SCALE, runFrom = 7, keyedBlend = 0.15, staggerSeconds = 0.28,
 		deathSeconds = 0.9, circleLoop = true,
 		moves = { venomSpit = "VenomSpit", hoodStrike = "HoodStrike", hoodStrikeSkid = "HoodStrikeSkid", hop = "Hop" },
+	}
+end
+
+-- Fliers: the flap is 2.4 Hz (raven) and ~7 Hz (bat), so their loops use a much faster smoothing
+-- (`loopSmoothing`) than the usual SMOOTHING 14/s, which would flatten them.
+if FlameRaven then
+	FAMILIES.FlameRavenB = {
+		poses = FlameRaven, scale = 1, runFrom = 12, keyedBlend = 0.08, deathSeconds = 1.5, staggerSeconds = 0.3,
+		loopSmoothing = 60,
+		moves = {
+			talonDive = "TalonDive", talonRake = "TalonRake", emberFan = "EmberFan", windGust = "WindGust",
+			hop = "Hop", talonDiveSkid = "TalonDiveSkid",
+		},
+	}
+end
+if BloodBat then
+	FAMILIES.BloodBat = {
+		poses = BloodBat, scale = 1, runFrom = 14, keyedBlend = 0.06, deathSeconds = 1.2, staggerSeconds = 0.25,
+		loopSmoothing = 60,
+		moves = { bloodDive = "BloodDive", sonicShriek = "SonicShriek", hop = "Hop", bloodDiveSkid = "BloodDiveSkid" },
 	}
 end
 
@@ -641,7 +667,7 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 	if family.scale ~= 1 then
 		target = family.poses.scaled(target, family.scale)
 	end
-	local alpha = math.min(1, dt * (if keyed then MOVE_SMOOTHING else SMOOTHING))
+	local alpha = math.min(1, dt * (if keyed then MOVE_SMOOTHING else (family.loopSmoothing or SMOOTHING)))
 	local blend = if family.keyedBlend then math.clamp(since / family.keyedBlend, 0, 1) else 1
 	blend = 1 - (1 - blend) ^ 2
 	for _, name in family.poses.JOINTS do

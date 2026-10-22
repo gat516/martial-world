@@ -23,6 +23,7 @@
 -- molt         Molt           1.60 / 0.10 / 0.80                   0.90
 -- ascension    Ascension      2.00 / 0.10 / 0.90                   1.00
 -- venomRain    VenomRain      2.00 / 0.20 / 4.80 (rain 2.6, tail 0.9, exhaustion 1.3)   5.00
+-- tailShove    TailShove      0.70 / 0.14 / 0.66                   0.80 (ends reared, ready to spit)
 -- Stagger 0.4, Death 3.6. Contact is the END of windup for stationary attacks.
 --
 -- A pose is built from a STANCE (a flat table of numbers keyed per phase and lerped) by
@@ -502,6 +503,31 @@ moves.TailSweep = {
 	windup = ph(0.8, { k(0, IDLE), k(0.3, SW_DIP, "inOut"), k(0.6, SW_WOUND, "out"), k(0.64, SW_WOUND), k(1, SW_LASH, "in") }, function(u) return window(u, 0.3, 0.45, 0.6, 0.66) end),
 	active = ph(0.14, { k(0, SW_LASH), k(1, SW_OVER, "out") }),
 	recover = ph(0.86, { k(0, SW_OVER), k(0.35, st(SW_REST, { ty = TAU - 0.05, tup = 0.15 }), "inOut"), k(1, SW_REST, "inOut") }, nil, 1),
+}
+
+-- TailShove (boss feel pass): the throw that makes range for the venom. The body hunkers and
+-- twists to its right with the neck drawn back into a tight S (the head stays on the target),
+-- the tail swings out to its right side and lifts, cocked (tip about 70 degrees round, 11 studs
+-- up); then the body unwinds and the tail whips low round to the front-right (tip at 139 degrees
+-- at contact = end of windup, 157 after the flick that ends the follow-through: the release),
+-- the reared neck leaning left out of its way (measured clear of the neck and Body by forward
+-- kinematics, tools/frag probe). The tail recoils the way it came, and
+-- the head rears back high, hood up, ready to spit (the AI follows with a ranged attack).
+local TS_COIL = rise(DRAW, { hood = 0.7, jaw = 0.4, tongue = 1, rz = 1.2, ry = -0.12, ryaw = -0.32, rroll = 0.03,
+	Y = { 0, 0, 0.1, 0.2, 0.3, 0.32 }, ty = 1.0, tup = 0.6, tamp = 0.3 })
+local TS_COCK = st(TS_COIL, { rz = 1.5, ry = -0.16, ryaw = -0.42, ty = 1.6, tup = 0.9, jaw = 0.5, hood = 0.8,
+	Y = { 0, 0, 0.12, 0.24, 0.36, 0.4 } })
+local TS_WHIP = rise(LBACK, { hood = 0.8, jaw = 0.6, fang = 0.6, rz = 1.6, ry = -0.15, ryaw = 0.3, rroll = -0.04,
+	Y = { 0, 0.15, 0.3, 0.4, 0.45, 0.25 }, ty = 2.6, tup = 0.25, tamp = 0.6 })
+local TS_FLICK = st(TS_WHIP, { ryaw = 0.36, ty = 2.85, tup = 0.45, tamp = 0.9, jaw = 0.45, Y = { 0, 0.18, 0.36, 0.48, 0.52, 0.3 } })
+local TS_RECOIL = rise({ 60, 115, 70, 50, 36, 8 }, { hood = 0.5, jaw = 0.25, rz = 0.9, ryaw = 0.1, ty = 1.4, tup = 0.15, tamp = 0.5 })
+local TS_REAR = rise(LBACK, { hood = 0.85, jaw = 0.45, fang = 0.4, rz = 1.5, bp = 0.12, tamp = 0.4, tongue = 1 })
+local TS_READY = rise({ 70, 120, 85, 62, 50, 22 }, { hood = 0.6, jaw = 0.2, rz = 1.0, bp = 0.08, tamp = 0.35 })
+moves.TailShove = {
+	windup = ph(0.7, { k(0, IDLE), k(0.4, TS_COIL, "inOut"), k(0.8, TS_COCK, "out"), k(0.88, TS_COCK), k(1, TS_WHIP, "snap") },
+		function(u) return window(u, 0.4, 0.5, 0.82, 0.9) end),
+	active = ph(0.14, { k(0, TS_WHIP), k(1, TS_FLICK, "out") }),
+	recover = ph(0.66, { k(0, TS_FLICK), k(0.3, TS_RECOIL, "inOut"), k(0.55, TS_REAR, "out"), k(0.75, TS_REAR), k(1, TS_READY, "inOut") }, nil, 1.3),
 }
 
 -- PillarSlam: rise to about 15, hang and tremble, then the whole column drops head-first and the

@@ -26,7 +26,8 @@ local ServerStorage = game:GetService("ServerStorage")
 -- module and Wolf still finds its siblings
 local Wolf = require(game:GetService("StarterPlayer").StarterPlayerScripts.Client.EnemyPoses:Clone().Wolf)
 
-local template = ServerStorage._StagingEnemies.SpiritWolf_B
+local staging = ServerStorage:FindFirstChild("_StagingEnemies")
+local template = if staging and staging:FindFirstChild("SpiritWolf_B") then staging.SpiritWolf_B else ServerStorage.Enemies.SpiritWolfB -- a sandbox has only the shipped template
 local hrp = template.HumanoidRootPart
 local GROUND = hrp.Position.Y - 2.6
 

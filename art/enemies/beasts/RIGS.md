@@ -368,6 +368,24 @@ windup): the highest point is 1.1 under the ground. Rear heights (skull): Molt 2
 coil ring's on-circle error and the free-tail arch weren't re-run; hood/fang/whisker clipping;
 everything in Play (feel, the EnemyAnimator blend, phone cost).
 
+**TailShove** (boss feel pass, 2026-10-22; attack `tailShove`, the throw that makes range for the
+venom). Windup 0.70 / active 0.14 / recover 0.66 (the def's 0.70 / 0.80; the active plays at the start of the recover). The body twists
+right (`ryaw` -0.42) with the neck in a tight drawn-back S and the head kept on the target, the
+tail swings out to its right side and lifts (`ty` 1.6, `tup` 0.9: tip about 70 degrees round from
+straight behind and 11 studs up at u 0.9), then the body unwinds (`ryaw` +0.3) and the tail whips
+low to the front-right: tip at 139 degrees at contact (end of windup), 157 after the flick that
+ends the active (the release). The neck is reared high (skull 21.8) and leans left (`Y` up to
+0.52) out of the tail's way. Recover: the tail recoils the way it came, the head rears back (LBACK,
+hood 0.85) at u 0.55-0.75 and it ends half reared, hood up (`TS_READY`), so a ranged windup
+blends straight on. Measured by forward kinematics (bone capsules, `tools/frag` probe, not kept):
+tail clears the neck by >= 0.9 and the Body by >= 2.9 studs on every frame, lowest point >= -0.1.
+Learned: `ty` sweeps the tail counter-clockwise from above (behind -> right -> front), and bones 1-4
+take only 0.25-1.0 of it, so the tail swings like a boom about the Body's back end; sweeping
+it past about 160 degrees runs Tail10 through Neck3 (-4 studs at 180). A full `ty` turn (TailSweep's
+`TAU`) is not the identity on bones 1-3, so TailSweep's recover ends with those three bones turned
+(about 1.6, 3.1, 4.7 rad) and the next state's blend spins them back. Not checked: the tail against
+the player at the def's cone, feel in Play.
+
 ## Thunder Ape B poses (`src/client/EnemyPoses/ThunderApe.luau`)
 
 Procedural pose module, same API as `WolfKing.luau` (`sample`, `moves`, `durations`, `loops`,

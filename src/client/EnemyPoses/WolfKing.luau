@@ -14,6 +14,10 @@
 -- pawSwipe     PawSwipe      0.45 / 0.12 / 0.63                   0.75
 -- clawDown     ClawDown      0.55 / 0.12 / 0.73                   0.85
 -- packCall     PackCall      1.20 / 0.10 / 0.90                   1.00
+-- kingLeap     KingLeap      1.10 / dash 0.70 (air, arc 16) / 1.00  (lands at the end of the dash)
+-- kingRake     KingRake      0.50 / 0.14 / 0.76                   0.90 (windup opens on the landing)
+-- kingLeapSkid KingLeapSkid  recover 1.00 (the leap's recover)    (mirror; head leads input.targetYaw)
+-- kingsRushSkid KingsRushSkid recover 1.00 (the rush's recover)   (mirror; head leads input.targetYaw)
 --
 -- Stationary contact is the END of windup, when damage and strike VFX resolve.
 -- Its active pose is follow-through at the beginning of the server's recover;
@@ -626,6 +630,253 @@ do
 end
 
 --------------------------------------------------------------------------------
+-- KING'S LEAP, its follow-up rake and the skids (boss feel pass, 2026-10-22).
+-- kingLeap (leap): a low coiled crouch (the server turns the root to the landing over
+-- the windup), an explosive take-off, the body stretched long at the apex with the
+-- forepaws reaching, then the paws reach down and touch. The slam resolves at
+-- touchdown (end of the dash). On arrival the server starts kingRake (its windup opens
+-- with the landing compression, then the left paw cocks wide and rakes across) or, when
+-- the target is out of reach, the recover kingLeapSkid (land, brace, head leads the turn,
+-- hind end swings out, short scrabble). kingsRushSkid is the same turn out of the rush.
+-- No pose rotates the root: the server owns the yaw, the head and chest lead it through
+-- the live input.targetYaw (EnemyAnimator passes it for every move in WolfKing.LEAD).
+
+local LEAP_COIL = paws(-0.12, 0.6, 0.12, 0.12)
+local LANDED = paws(-0.45, 0.35, 0.24, 0.2) -- splayed wide where the forepaws touched
+local LEAP_SET = regalia(with(STAND, {
+	JointRoot = R(-0.28, -0.08, 0.1), JointSpine = A(0.1),
+	JointNeck = A(-0.3), JointHead = A(0.22), JointJaw = A(-0.12),
+	JointEarL = A(0.2), JointEarR = A(0.2), JointCrest = A(-0.3),
+	JointTail = A(0.3), JointTail2 = A(0.12), JointTail3 = A(0.1),
+}), 0.2, 0.15, 0.1)
+local LEAP_GATHER = regalia(with(LEAP_SET, {
+	JointRoot = R(-0.4, -0.06, 0.14), JointSpine = A(0.03),
+	JointNeck = A(-0.34), JointHead = A(0.3), JointJaw = A(-0.25),
+	JointCrest = A(-0.35), JointTail = A(0.42), JointTail2 = A(0.2), JointTail3 = A(0.15),
+}), 0.25, 0.2, 0.12)
+-- the hind legs drive, still on the ground; the forelegs fold up off it
+local LEAP_DRIVE = regalia(with(LEAP_GATHER, {
+	JointRoot = R(0.05, 0.28, -0.05), JointSpine = A(-0.04),
+	JointNeck = A(0.05), JointHead = A(0.1), JointJaw = A(-0.35),
+	JointLegFL = A(0.7, 0, -0.25), JointElbowFL = A(-0.6), JointWristFL = A(-0.2),
+	JointLegFR = A(0.7, 0, 0.25), JointElbowFR = A(-0.6), JointWristFR = A(-0.2),
+	JointCrest = A(-0.1), JointTail = A(0.15), JointTail2 = A(0.05), JointTail3 = A(0.1),
+}), 0.35, 0.32, -0.2)
+-- off the ground: hind legs thrown out straight behind, forelegs tucked
+local LEAP_OFF = regalia(with(LEAP_DRIVE, {
+	JointRoot = R(0.3, 0.22), JointSpine = A(-0.06),
+	JointNeck = A(0.08),
+	JointLegFL = A(0.8, 0, -0.42), JointElbowFL = A(-0.4), JointWristFL = A(0.1),
+	JointLegFR = A(0.8, 0, 0.42), JointElbowFR = A(-0.4), JointWristFR = A(0.1),
+	JointLegBL = A(-1.0, 0, -0.06), JointKneeBL = A(-0.3), JointHockBL = A(-0.4),
+	JointLegBR = A(-0.95, 0, 0.06), JointKneeBR = A(-0.3), JointHockBR = A(-0.4),
+	JointTail = A(0.05), JointTail2 = A(-0.05), JointTail3 = A(0.15),
+}), 0.5, 0.4, -0.3)
+-- the apex: stretched long and level, forepaws reaching, jaw open, mane streaming back
+local LEAP_APEX = regalia(with(LEAP_OFF, {
+	JointRoot = R(0.3, 0.02), JointSpine = A(-0.08),
+	JointNeck = A(0.1), JointHead = A(0.02), JointJaw = A(-0.55),
+	JointEarL = A(0.3), JointEarR = A(0.3), JointCrest = A(-0.05),
+	JointLegFL = A(0.95, 0, -0.3), JointElbowFL = A(0.2), JointWristFL = A(-0.3), -- with the manes flared wide, clear
+	JointLegFR = A(0.92, 0, 0.3), JointElbowFR = A(0.2), JointWristFR = A(-0.3),
+	JointLegBL = A(-1.0, 0, -0.06), JointKneeBL = A(-0.3), JointHockBL = A(-0.4),
+	JointLegBR = A(-0.95, 0, 0.06), JointKneeBR = A(-0.3), JointHockBR = A(-0.4),
+	JointTail = A(-0.05), JointTail2 = A(-0.05), JointTail3 = A(0.1),
+}), 0.5, 0.35, -0.3)
+-- the hang: the same stretch, the hind legs starting to come through
+local LEAP_HANG = regalia(with(LEAP_APEX, {
+	JointRoot = R(0.3, -0.04), JointNeck = A(0.1), JointHead = A(0.06), JointJaw = A(-0.6),
+	JointLegFL = A(0.92, 0, -0.3), JointLegFR = A(0.9, 0, 0.3),
+	JointLegBL = A(-0.8, 0, -0.06), JointKneeBL = A(-0.2), JointLegBR = A(-0.78, 0, 0.06), JointKneeBR = A(-0.2),
+}), 0.5, 0.25, -0.3)
+-- falling: nose down, head up on the target, forepaws reaching down, claws out, hind
+-- legs under the body for the landing, tail up for balance, mane flaring forward
+local LEAP_FALL = regalia(with(LEAP_HANG, {
+	JointRoot = R(0.3, -0.24), JointSpine = A(0.02),
+	JointNeck = A(0.12), JointHead = A(0.22), JointJaw = A(-0.75),
+	JointCrest = A(-0.15), JointEarL = A(0.25), JointEarR = A(0.25),
+	JointLegFL = A(0.72, 0, -0.1), JointElbowFL = A(0.1), JointWristFL = A(0.35),
+	JointLegFR = A(0.72, 0, 0.1), JointElbowFR = A(0.1), JointWristFR = A(0.35),
+	JointLegBL = A(0.25, 0, -0.06), JointKneeBL = A(-0.55), JointHockBL = A(0.25),
+	JointLegBR = A(0.25, 0, 0.06), JointKneeBR = A(-0.55), JointHockBR = A(0.25),
+	JointTail = A(-0.4), JointTail2 = A(-0.1), JointTail3 = A(0.2),
+}), 0.25, -0.2, 0.05)
+-- touchdown: the forepaws take the ground first (planted, so they meet Y 0 whatever
+-- the arc is doing at the very end of the dash)
+local LEAP_TOUCH = regalia(with(LEAP_FALL, {
+	JointRoot = R(0.15, -0.1), JointNeck = A(-0.05), JointHead = A(0.25),
+	JointLegBL = A(0.25, 0, -0.06), JointKneeBL = A(-0.4), JointHockBL = A(0.2),
+	JointLegBR = A(0.25, 0, 0.06), JointKneeBR = A(-0.4), JointHockBR = A(0.2),
+}), 0.3, -0.3, 0.05)
+-- the landing compression: chest dropped onto bent forelegs, spine flexed, head held up
+-- on the target, jaw open; mane and seal fling forward, the tail whips up
+local LAND_CRUSH = regalia(with(STAND, {
+	JointRoot = R(-0.4, -0.1, -0.05), JointSpine = A(0.12),
+	JointNeck = A(-0.3), JointHead = A(0.3), JointJaw = A(-0.5),
+	JointEarL = A(0.2), JointEarR = A(0.2), JointCrest = A(0),
+	JointTail = A(-0.3), JointTail2 = A(0.15), JointTail3 = A(0.3),
+}), 0.3, -0.35, 0.05)
+local LAND_HOLD = regalia(with(LAND_CRUSH, {
+	JointRoot = R(-0.34, -0.07, -0.03), JointNeck = A(-0.25), JointJaw = A(-0.35),
+	JointTail = A(0.1), JointTail2 = A(0.15),
+}), 0.25, 0.25, 0.1)
+
+-- KingRake: up out of the crouch onto the right forepaw, the left paw cocked high and
+-- wide with the chest twisted away (the 120-degree arc's start), then raked across.
+local RAKE_COCK = regalia(with(LAND_HOLD, {
+	JointRoot = R(-0.2, 0.05, 0.05, 0.04, -0.05), JointSpine = A(0, 0.26),
+	JointNeck = A(-0.18, 0.2), JointHead = A(0.14, 0.05), JointJaw = A(-0.45),
+	JointLegFL = A(1.28, 0.6, -0.7), JointElbowFL = A(1.05), JointWristFL = A(-1.6),
+	JointEarL = A(0.25), JointEarR = A(0.25), JointCrest = A(-0.3),
+	JointTail = A(-0.3, 0.15), JointTail2 = A(-0.05),
+}), 0.6, -0.22, -0.3)
+local RAKE_CONTACT = regalia(with(RAKE_COCK, {
+	JointRoot = R(-0.16, -0.04, -0.1, -0.03, 0.04), JointSpine = A(0, -0.22),
+	JointNeck = A(-0.2, -0.12), JointHead = A(0.08, -0.05), JointJaw = A(-0.3),
+	JointLegFL = A(1.0, -0.25, -0.25), JointElbowFL = A(0.25), JointWristFL = A(-0.7),
+	JointTail = A(-0.25, -0.2),
+}), 0.6, -0.2, -0.3)
+local RAKE_THROUGH = regalia(with(RAKE_CONTACT, {
+	JointRoot = R(-0.2, -0.04, -0.06, -0.04, 0.05), JointSpine = A(0, -0.3),
+	JointNeck = A(-0.24, -0.18), JointHead = A(0.05, -0.08),
+	JointLegFL = A(0.5, -0.32, -0.1), JointElbowFL = A(-0.2), JointWristFL = A(-0.35),
+	JointTail = A(-0.1, -0.3),
+}), 0.4, 0.2, -0.1)
+local RAKE_BRACE = paws(-0.35, 0.3, 0.14, 0.16)
+
+-- Skids (authored for the target on the King's RIGHT; mirror plays the left): the
+-- forepaws brace far ahead with the chest reared back against the slide, the hind end
+-- swings out to the outside of the turn and scrabbles (one hind paw, the other, then
+-- the inside forepaw steps round), and the body squares up as the server's yaw lands.
+local SKID_BRAKE = regalia(with(SPENT, {
+	JointRoot = R(-0.32, 0.1, 0.1, -0.03, -0.05), JointSpine = A(0.04),
+	JointNeck = A(-0.05), JointHead = A(0.16), JointJaw = A(-0.35),
+	JointEarL = A(0.3), JointEarR = A(0.3), JointCrest = A(0.1),
+	JointTail = A(0.05, -0.45), JointTail2 = A(0.05, -0.3), JointTail3 = A(0.25, -0.2),
+}), 0.4, 0.3, 0.1)
+local SKID_SCRAB = regalia(with(SKID_BRAKE, {
+	JointRoot = R(-0.28, 0.06, 0.06, -0.02, -0.06),
+	JointLegBL = A(0.3, 0, -0.1), JointKneeBL = A(-1.2), JointHockBL = A(0.6), -- the King's big hind paw needs this fold to clear
+	JointTail = A(0.1, -0.35), JointTail2 = A(0.05, -0.35),
+}), 0.36, 0.2, 0.08)
+local SKID_SCRAB2 = regalia(with(SKID_SCRAB, {
+	JointRoot = R(-0.24, 0.04, 0.04, -0.01, -0.05),
+	JointLegBR = A(0.3, 0, -0.1), JointKneeBR = A(-1.2), JointHockBR = A(0.6), -- the King's big hind paw needs this fold to clear
+	JointTail = A(0.1, -0.2), JointTail2 = A(0.08, -0.25),
+}), 0.3, 0.1, 0.06)
+local SKID_STEP = regalia(with(SPENT, {
+	JointRoot = R(-0.18, 0.02, 0, 0, -0.03), JointNeck = A(-0.12), JointHead = A(0.14), JointJaw = A(-0.2),
+	JointLegFR = A(0.6, 0, 0.25), JointElbowFR = A(-1.1), JointWristFR = A(0.4),
+	JointTail = A(0.15, -0.1),
+}), 0.22, 0.05, 0.05)
+local SKID_BRAKED = { FL = V(-0.05, 0, -0.5), FR = V(0.12, 0, -0.45), BL = V(-0.38, 0, 0.45), BR = V(-0.18, 0, 0.5) }
+local SKID_SCRABBED = { FL = V(-0.04, 0, -0.42), FR = V(0.1, 0, -0.4), BL = V(-0.2, 0, 0.3), BR = V(-0.24, 0, 0.36) }
+local SKID_SQUARED = { FL = V(-0.04, 0, -0.3), FR = V(0.12, 0, -0.25), BL = V(-0.12, 0, 0.22), BR = V(-0.1, 0, 0.2) }
+
+-- the head leads a turn: chest, neck and head toward the target (live yaw, + left),
+-- by `env`; manes swing out against the turn. `sign` -1 in the skids' authored
+-- (target on the right) frame, which mirror flips, or the signed yaw (follow-ups).
+local function leadOverlay(env: (number) -> number, signed: boolean)
+	return function(u: number, _secs: number, input: Input): Pose
+		local yaw = input.targetYaw
+		local e = env(u)
+		if yaw == nil then
+			yaw = if signed then 0 else -1.3
+		end
+		local turn = if signed then math.clamp(yaw, -1.4, 1.4) else -math.min(math.abs(yaw), 1.4)
+		local f = turn / 1.4 * e
+		-- measured (qa_wolf_king_poses): a bigger neck or head share swings the inside
+		-- mane into the crest and the inside ear into the mane, so the inside mane flares
+		-- out, the crest lies flat and the head rolls away from the turn
+		return {
+			JointSpine = A(0, 0.22 * f), JointNeck = A(0, 0.3 * f), JointHead = A(0, 0.2 * f, -0.2 * f),
+			JointManeL = A(0, 0, -0.5 * math.max(0, f)), JointManeR = A(0, 0, 0.5 * math.max(0, -f)),
+			JointCrest = A(0.35 * math.abs(f)),
+			JointTail = A(0, 0.2 * f), JointTail2 = A(0, 0.15 * f),
+		}
+	end
+end
+
+local function skidKeys(entry: { any }, brakeAt: number): { any }
+	local keys = table.clone(entry)
+	local s = (1 - brakeAt) / 0.88 -- the authored skid fills [brakeAt, 1]
+	local function at(x: number): number
+		return brakeAt + (x - 0.12) * s
+	end
+	table.insert(keys, hold(brakeAt, SKID_BRAKE, ALL, SKID_BRAKED, "out"))
+	table.insert(keys, hold(at(0.3), SKID_SCRAB, { "FL", "FR", "BR" }, SKID_BRAKED, "inOut"))
+	table.insert(keys, hold(at(0.44), SKID_SCRAB2, { "FL", "FR", "BL" }, SKID_SCRABBED, "inOut"))
+	table.insert(keys, hold(at(0.6), SKID_STEP, { "FL", "BL", "BR" }, SKID_SCRABBED, "inOut"))
+	table.insert(keys, hold(at(0.76), SPENT, ALL, SKID_SQUARED, "inOut"))
+	table.insert(keys, hold(1, STAND, ALL, nil, "inOut"))
+	return keys
+end
+local skidLead = leadOverlay(function(u) return smooth(0, 0.14, u) * (1 - smooth(0.7, 1, u)) end, false)
+
+moves.KingLeap = {
+	windup = ph(1.1, {
+		hold(0, STAND, ALL), hold(0.2, LEAP_SET, ALL, LEAP_COIL, "out"),
+		hold(0.62, LEAP_GATHER, ALL, LEAP_COIL, "inOut"), hold(1, LEAP_GATHER, ALL, LEAP_COIL),
+	}, function(u, secs, _)
+		-- the held coil trembles and the tail tip twitches; a last hip shimmy before launch
+		local held = smooth(0.55, 0.65, u)
+		local shimmy = Quadruped.bump(u, 0.78, 0.96) * math.sin(secs * TAU * 6)
+		local tr = 0.012 * held * math.sin(secs * TAU * 11)
+		return {
+			JointRoot = R(tr, 0, 0, 0.03 * shimmy), JointSpine = A(0, -0.04 * shimmy),
+			JointTail3 = A(0, 0.25 * held * math.sin(secs * TAU * 2.5)),
+		}
+	end),
+	active = { duration = 0.7, air = true, keys = {
+		hold(0, LEAP_GATHER, ALL, LEAP_COIL),
+		hold(0.1, LEAP_DRIVE, HIND, LEAP_COIL, "out"),
+		hold(0.2, LEAP_OFF, NONE, nil, "out"),
+		hold(0.44, LEAP_APEX, NONE, nil, "out"),
+		hold(0.62, LEAP_HANG, NONE, nil, "inOut"),
+		hold(0.86, LEAP_FALL, NONE, nil, "inOut"),
+		hold(1, LEAP_TOUCH, Quadruped.FRONT, paws(-0.6, 0.2, 0.2, 0.1), "in"),
+	} },
+	recover = ph(1.0, {
+		hold(0, LEAP_TOUCH, Quadruped.FRONT, paws(-0.6, 0.2, 0.2, 0.1)),
+		hold(0.08, LAND_CRUSH, ALL, LANDED, "out"), hold(0.3, LAND_HOLD, ALL, LANDED, "out"),
+		hold(0.62, SPENT, ALL, BRACED, "inOut"), hold(1, STAND, ALL, nil, "inOut"),
+	}),
+}
+
+moves.KingRake = {
+	-- landing absorbed by u 0.16, held to 0.34 (eyes on the target, the head leading any
+	-- turn the server makes), cocked by 0.68, held, raked at 0.97 (contact = end of windup)
+	windup = ph(0.5, {
+		hold(0, LEAP_TOUCH, ALL, LANDED),
+		hold(0.16, LAND_CRUSH, ALL, LANDED, "out"), hold(0.34, LAND_HOLD, ALL, LANDED, "out"),
+		hold(0.68, RAKE_COCK, SUPPORT_RIGHT, RAKE_BRACE, "out"), hold(0.86, RAKE_COCK, SUPPORT_RIGHT, RAKE_BRACE),
+		hold(0.97, RAKE_CONTACT, SUPPORT_RIGHT, RAKE_BRACE, "in"), hold(1, RAKE_CONTACT, SUPPORT_RIGHT, RAKE_BRACE),
+	}, leadOverlay(function(u) return smooth(0, 0.12, u) * (1 - smooth(0.55, 0.8, u)) end, true)),
+	active = ph(0.14, {
+		hold(0, RAKE_CONTACT, SUPPORT_RIGHT, RAKE_BRACE), hold(0.8, RAKE_THROUGH, SUPPORT_RIGHT, RAKE_BRACE, "out"),
+		hold(1, RAKE_THROUGH, SUPPORT_RIGHT, RAKE_BRACE),
+	}),
+	recover = ph(0.9, {
+		hold(0, RAKE_THROUGH, SUPPORT_RIGHT, RAKE_BRACE), hold(0.32, SPENT, ALL, BRACED, "out"),
+		hold(0.6, SPENT, ALL, BRACED), hold(1, STAND, ALL, nil, "inOut"),
+	}),
+}
+
+moves.KingLeapSkid = {
+	recover = { duration = 1.0, mirror = true, overlay = skidLead, keys = skidKeys({
+		hold(0, LEAP_TOUCH, Quadruped.FRONT, paws(-0.6, 0.2, 0.2, 0.1)),
+		hold(0.08, LAND_CRUSH, ALL, LANDED, "out"),
+	}, 0.22) },
+}
+moves.KingsRushSkid = {
+	recover = { duration = 1.0, mirror = true, overlay = skidLead, keys = skidKeys({
+		hold(0, RUSH_SKID, ALL, SKIDDED),
+	}, 0.12) },
+}
+
+WolfKing.LEAD = { KingRake = true, KingLeapSkid = true, KingsRushSkid = true }
+
+--------------------------------------------------------------------------------
 -- VARIANTS. Every attack has 2-3 authored shapes with identical phase durations
 -- (the defs own the timing): "A" is the original pass above, "B" and "C" are
 -- alternates for comparison. Switch with WolfKing.VARIANT.<Move> = "B", or
@@ -886,7 +1137,10 @@ local LAGS = {
 	JointNeck = 0.5, JointHead = 1, JointJaw = 1.3, JointEarL = 1.6, JointEarR = 2.1, JointCrest = 1.2,
 	JointTail = 0.8, JointTail2 = 1.6, JointTail3 = 2.4, JointManeL = 1.4, JointManeR = 1.9, JointSeal = 2.6,
 }
-local SETTLE = { Roar = 0.4, RoyalBite = 1, PawSwipe = 0.8, ClawDown = 1, Crownfall = 1.5, KingsRush = 0.8, Stagger = 1.3, PackCall = 0.3 }
+local SETTLE = { Roar = 0.4, RoyalBite = 1, PawSwipe = 0.8, ClawDown = 1, Crownfall = 1.5, KingsRush = 0.8, Stagger = 1.3, PackCall = 0.3,
+	KingLeap = 1.5, KingRake = 1, KingLeapSkid = 1.2, KingsRushSkid = 0.8 }
+-- moves whose WINDUP opens on an impact (the rake starts at the leap's touchdown) ring too
+local SETTLE_WINDUP = { KingRake = 1.4 }
 
 local function secondary(pose: Pose, move: string, phase: string, u: number, input: Input?)
 	local dur = (input and input.duration) or WolfKing.durations[move][phase] or 0.5
@@ -923,8 +1177,8 @@ local function secondary(pose: Pose, move: string, phase: string, u: number, inp
 	if move == "ClawDown" or move == "Crownfall" then
 		pose.JointManeR = (pose.JointManeR or I):Lerp(A(0, 0, -0.1), up)
 	end
-	local amp = SETTLE[move]
-	if amp and phase ~= "windup" then
+	local amp = if phase == "windup" then SETTLE_WINDUP[move] else SETTLE[move]
+	if amp then
 		local tc = secs + (if phase == "recover" and move ~= "KingsRush" then (WolfKing.durations[move].active or 0) else 0)
 		local function ring(delay: number, hz: number): number
 			local t = math.max(0, tc - delay)

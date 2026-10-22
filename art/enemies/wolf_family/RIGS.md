@@ -271,3 +271,69 @@ speeds = { 14, 20 } }`): at 9, 14, 20 and 24 studs/s, stance skate means are wit
 Known: swing forelegs fold to elbow -1.4 to -1.7, hind knees to 1.7-1.9, and the hind
 paw merges 0.5-1.1 into the thigh as both hind legs gather; EnemyAnimator switches
 walk to run at 8.5 studs/s (`runFrom`). The King's testbed run speed is now 20.
+
+#### King's Leap, Rake and the skids (boss feel pass, 2026-10-22)
+
+New moves in `WolfKing.luau` for the contract's `kingLeap` -> arrive `kingRake`, miss ->
+`kingLeapSkid`, and `kingsRushSkid` (the rush's overshoot). Designed timing (the defs win):
+KingLeap windup 1.10 / dash 0.70 (`air`, arc 16) / recover 1.00; KingRake 0.50 / 0.14 / 0.76 (server recover 0.90); the skids
+are recovers timed by the parent attack's recover. The server keeps `Attack` = the parent and
+puts the skid's name in `AttackName` during the recover (the King skids for any miss; the Spirit Wolf only when the
+target ends up more than 60 degrees off its nose); EnemyAnimator has to read `AttackName` for the skid move.
+
+- **KingLeap:** set (u 0.2) and gather into a low coil (root -0.4 unit, hind paws 0.6 back,
+  forepaws 0.12 ahead), held from 0.62 with a tremble, a tail-tip twitch and a hip shimmy at
+  0.78-0.96. Dash: hind legs drive (still planted) to 0.1, off the ground by 0.2 (hind legs thrown
+  back, forelegs folded), the apex stretch at 0.44 and a hang to 0.62 (forelegs reaching, manes
+  flared wide), falling by 0.86 (nose down, head up on the target, claws out, tail up), and at 1.0
+  the forepaws are planted (they meet Y 0 whatever the arc does at the very end). The slam
+  resolves at that touchdown.
+- **KingRake** opens on the landing: absorbed by u 0.16 (chest dropped on the forelegs, head
+  up, jaw open, mane and seal flung forward), held to 0.34, up onto the right forepaw with the
+  left paw cocked high and wide and the chest twisted away by 0.68, raked across at 0.97
+  (contact = end of windup), follow-through in the active. A landing ring-down runs in this
+  windup (`SETTLE_WINDUP`).
+  `kingsRush` also arrives into `kingRake` (same pose): there the landing compression reads as
+  the braking plant out of the gallop, blended over the 0.06 s keyed blend. Not checked in play.
+- **Skids** (mirror, authored for the target on the right): brace (forepaws 0.5 ahead, chest
+  reared back against the slide, hind paws swung 0.2-0.4 out to the outside of the turn),
+  scrabble (BL, then BR lifted about 0.4 studs, then the inside forepaw steps round), square up
+  by 0.76, stand. The leap skid lands first (LAND_CRUSH by 0.08, the skid from 0.22).
+- **Turning:** no pose yaws the root (the server owns it and turns during the crouch, in the air
+  or through these skids). `leadOverlay` turns the chest 0.22, neck 0.3 and head 0.2 rad toward
+  the live `input.targetYaw` (clamped at 1.4), rolls the head away 0.2, flares the inside mane
+  0.5 and lays the crest flat, so the head leads and everything unwinds as the server's yaw lands.
+  `WolfKing.LEAD` lists the moves; EnemyAnimator passes `targetYaw` and `side` for any module with
+  a `LEAD` table.
+
+Measured (`qa_wolf_king_poses.luau`, scaled 2.4): planted paws at 0, nothing sunk past -0.05 studs
+(the bent forearm's edge in the coil and the landing) except the dash's falling frames (u 0.8-0.9,
+forepaws up to 0.35 under the virtual floor while the arc still holds the body several studs up).
+Clips are at or under the rig's existing levels (KingsRush's launch puts the forearm 0.78 into
+the neck): forearm into mane up to 0.52 in the dash, Crest/Mane up to 0.66 in the skids, ear into
+mane up to 0.55, plus the PawB/UpperLegB merge (up to 1.0) every bent hind pose already shows.
+
+Learned on this body:
+- **Raised or reaching forelegs vs the manes:** folding the manes in (Z toward the neck) makes it
+  worse (1.1 at the apex). Flaring them out 0.5 with pitch -0.3 and rolling the forelegs out 0.3
+  clears them (0.0), and the flare reads in flight. The same flare clears the rake's paw (0.93 ->
+  0.11), so the PawSwipe "fold the mane in" trick isn't used for KingRake.
+- **Pinned ears** past about 0.3 put the ears into the manes (0.5-0.8) with the neck low;
+  keep 0.2-0.3 in crouches and landings.
+- **Crest bristle vs a turning neck:** a neck yaw swings the inside mane into a bristled crest
+  (1.3); lay the crest flat (+0.1 to +0.25) and flare the inside mane while the head leads.
+- **The King's hind paw needs a deeper fold to lift:** the Spirit Wolf's scrabble angles (hip
+  -0.35, knee -0.7) leave the King's bigger paw on the floor clamp; hip +0.3, knee -1.2, hock
+  +0.6 lifts it about 0.4 studs.
+
+## Spirit Wolf B skids (`Wolf.luau`)
+
+`PounceSkid` (recover 0.9, out of the pounce's airborne stretch) and `LeapSkid` (recover 1.1,
+lands squashed first): the same brace, scrabble, step and square-up as the King's skids, mirror,
+with the chest, neck and head leading the live `targetYaw` (`Wolf.LEAD`). Attack names
+`pounceSkid` / `leapSkid` (the server's `<attack>Skid` for an overshoot). Measured
+(`qa_wolf_poses.luau`, which now falls back to `ServerStorage.Enemies.SpiritWolfB` when there is
+no `_StagingEnemies`, as in a sandbox): planted paws at 0, nothing sunk, lifted paws 0.23-0.25
+(forepaw step 0.08), only the known merges (elbow ball into the chest bib 0.22, hock into thigh
+0.22). The howl pose is unchanged (its ring is removed elsewhere; the `howl` cue carries the new
+effect).

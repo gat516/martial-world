@@ -41,6 +41,8 @@
 --   MoonPounce    windup 0.7, active 0.3 (the dash), recover 0.9
 --   MoonfallLeap  windup 1.0, active 0.45 (flight, air), recover 1.1 (land)
 --   Hop           active 0.25 (air)
+--   PounceSkid    recover 0.9 (the pounce overshot: brace, head leads, hind swings out; mirror)
+--   LeapSkid      recover 1.1 (the leap missed: land, then the same skid-and-turn; mirror)
 --   Stagger       active 0.28 (0.2-0.36 works: it snaps in by u 0.2)
 --   Death         active 0.6, then hold u = 1 until the fade (mirror)
 -- LOOPS: idle; walk (trot) up to 8 studs/s; run (gallop) from about 11 to 18+;
@@ -1009,6 +1011,86 @@ moves.Death = {
 		},
 	},
 }
+
+-- Skids: the pounce or leap overshot (the server's `<attack>Skid` recover, timed by the
+-- attack's recover). Authored for the target on the wolf's RIGHT; mirror plays the left.
+-- The head snaps round at once and leads (the overlay turns the chest, neck and head
+-- toward the live input.targetYaw, so they unwind as the server's yaw catches up), the
+-- forepaws brace far ahead with the chest reared back against the slide, the hind end
+-- swings out to the outside of the turn and scrabbles (one hind paw, the other, then the
+-- inside forepaw steps round), and it squares up, alert. No pose turns the root.
+local SKID_BRAKE: Pose = {
+	JointRoot = R(-0.28, 0.1, 0.1, -0.03, -0.06),
+	JointSpine = A(0.04),
+	JointNeck = A(0.02),
+	JointHead = A(0.15),
+	JointJaw = A(-0.35),
+	JointEarL = A(0.6), JointEarR = A(0.6),
+	JointCrest = A(-0.25),
+	JointTail = A(0.1, -0.45), JointTail2 = A(0.05, -0.3), JointTail3 = A(0.25, -0.2),
+}
+local SKID_SCRAB = with(SKID_BRAKE, {
+	JointRoot = R(-0.24, 0.06, 0.06, -0.02, -0.07),
+	JointLegBL = A(-0.35, 0, -0.1), JointKneeBL = A(-1.0), JointHockBL = A(0.5),
+	JointTail = A(0.1, -0.35), JointTail2 = A(0.05, -0.35),
+})
+local SKID_SCRAB2 = with(SKID_SCRAB, {
+	JointRoot = R(-0.2, 0.04, 0.04, -0.01, -0.05),
+	JointLegBR = A(-0.35, 0, -0.1), JointKneeBR = A(-1.0), JointHockBR = A(0.5),
+	JointTail = A(0.1, -0.2), JointTail2 = A(0.08, -0.25),
+})
+local SKID_STEP = with(TIRED, {
+	JointRoot = R(-0.14, 0.02, 0, 0, -0.03), JointHead = A(0.12), JointJaw = A(-0.25),
+	JointEarL = A(0.25), JointEarR = A(0.25),
+	JointLegFR = A(0.6, 0, 0.2), JointElbowFR = A(-1.1), JointWristFR = A(0.4),
+	JointTail = A(0.25, -0.1),
+})
+local SKID_BRAKED = { FL = V(-0.05, 0, -0.5), FR = V(0.12, 0, -0.45), BL = V(-0.38, 0, 0.45), BR = V(-0.18, 0, 0.5) }
+local SKID_SCRABBED = { FL = V(-0.04, 0, -0.42), FR = V(0.1, 0, -0.4), BL = V(-0.2, 0, 0.3), BR = V(-0.24, 0, 0.36) }
+local SKID_SQUARED = { FL = V(-0.04, 0, -0.3), FR = V(0.12, 0, -0.25), BL = V(-0.12, 0, 0.22), BR = V(-0.1, 0, 0.2) }
+
+-- the turn lead in the authored (target on the right) frame: negative yaw turns right
+local function skidLead(u: number, _secs: number, input: Input): Pose
+	local e = smooth(0, 0.14, u) * (1 - smooth(0.7, 1, u))
+	local yaw = input.targetYaw or -1.3
+	local f = -math.min(math.abs(yaw), 1.4) / 1.4 * e
+	return {
+		JointSpine = A(0, 0.2 * f), JointNeck = A(0, 0.35 * f, 0.04 * f), JointHead = A(0, 0.3 * f, 0.06 * f),
+		JointTail = A(0, 0.2 * f), JointTail2 = A(0, 0.15 * f),
+	}
+end
+
+local function skid(entry: { Key }, brakeAt: number): Phase
+	local keys = table.clone(entry)
+	local s = (1 - brakeAt) / 0.88 -- the skid's own keys fill [brakeAt, 1]
+	local function at(x: number): number
+		return brakeAt + (x - 0.12) * s
+	end
+	for _, k in {
+		{ t = brakeAt, pose = SKID_BRAKE, ease = "out", plant = ALL, reach = SKID_BRAKED },
+		{ t = at(0.3), pose = SKID_SCRAB, ease = "inOut", plant = { "FL", "FR", "BR" }, reach = SKID_BRAKED },
+		{ t = at(0.44), pose = SKID_SCRAB2, ease = "inOut", plant = { "FL", "FR", "BL" }, reach = SKID_SCRABBED },
+		{ t = at(0.6), pose = SKID_STEP, ease = "inOut", plant = { "FL", "BL", "BR" }, reach = SKID_SCRABBED },
+		{ t = at(0.76), pose = TIRED, ease = "inOut", plant = ALL, reach = SKID_SQUARED },
+		{ t = 1, pose = ALERT, ease = "inOut", plant = ALL },
+	} :: { Key } do
+		table.insert(keys, k)
+	end
+	return { duration = 1.0, mirror = true, overlay = skidLead, keys = keys }
+end
+
+-- PounceSkid: out of the pounce's airborne stretch (recover 0.9)
+moves.PounceSkid = { recover = skid({ { t = 0, pose = POUNCE_SHUT } }, 0.1) }
+moves.PounceSkid.recover.duration = 0.9
+-- LeapSkid: lands squashed first, then skids round (recover 1.1)
+moves.LeapSkid = { recover = skid({
+	{ t = 0, pose = LEAP_DOWN },
+	{ t = 0.07, pose = LAND_SQUASH, ease = "out", plant = ALL, reach = SPLAYED },
+}, 0.2) }
+moves.LeapSkid.recover.duration = 1.1
+
+-- moves that read input.targetYaw (EnemyAnimator passes it, and the side, for these)
+Wolf.LEAD = { PounceSkid = true, LeapSkid = true }
 
 Wolf.moves = moves
 

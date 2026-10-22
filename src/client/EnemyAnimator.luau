@@ -44,6 +44,10 @@ local foxModule = script.Parent.EnemyPoses:FindFirstChild("NineTailFox")
 local NineTailFox = if foxModule then require(foxModule :: ModuleScript) :: any else nil
 local foxConfigured = false
 
+-- the Blood Centipede's pose module (a segmented serpent family: heading history, burrow)
+local centipedeModule = script.Parent.EnemyPoses:FindFirstChild("BloodCentipede")
+local BloodCentipede = if centipedeModule then require(centipedeModule :: ModuleScript) :: any else nil
+
 -- the Shadow Mane Wolf's pose module (the wolf-family skeleton with its own leg solver)
 local maneModule = script.Parent.EnemyPoses:FindFirstChild("ShadowMane")
 local ShadowMane = if maneModule then require(maneModule :: ModuleScript) :: any else nil
@@ -135,6 +139,14 @@ if VenomSerpent then
 		poses = VenomSerpent, scale = VenomSerpent.SCALE, runFrom = 7, keyedBlend = 0.15, staggerSeconds = 0.28,
 		deathSeconds = 0.9, circleLoop = true,
 		moves = { venomSpit = "VenomSpit", hoodStrike = "HoodStrike", hoodStrikeSkid = "HoodStrikeSkid", hop = "Hop" },
+	}
+end
+
+-- Blood Centipede: real-stud poses, wave kept fixed to the ground like the serpents'.
+if BloodCentipede then
+	FAMILIES.BloodCentipede = {
+		poses = BloodCentipede, scale = 1, runFrom = 12, keyedBlend = 0.1, staggerSeconds = 0.4, deathSeconds = 2.0,
+		moves = { pincerSnap = "PincerSnap", coilSweep = "CoilSweep", burrowDive = "BurrowDive", erupt = "Erupt" },
 	}
 end
 
@@ -273,6 +285,8 @@ end
 -- Serpent modules (poses.USES_HISTORY) also read the boss Phase, the drawn speed, the turn rate and
 -- the root's heading history (secondsAgo -> yaw), so the body follows the head's path.
 local function withExtras(rig: Rig, family: Family, input: any): any
+	-- burrowers (the Blood Centipede): underground, between the dive's windup and its erupt
+	input.burrowed = rig.model:GetAttribute("Burrowed") == true
 	if family.guard then
 		local stamp = rig.hitStamp
 		input.hitAt = if stamp then os.clock() - stamp else nil

@@ -50,6 +50,8 @@ The testbed is a separate experience: a baseplate arena where the user fights sp
 
 ## Fresh agents per item
 
+Before a multi-agent pass, the orchestrator says how many agents will run at once and how many sandbox Studios that opens, on top of the user's own open Studios. Each Studio is a few GB of RAM, and the user's Studio has crashed under load. It asks the user how much to run in parallel, unless they already said for this pass (user, 2026-10-22). Agents that run one after another share one sandbox.
+
 Spawn a new subagent for each item of a pass (each boss, each beast, each effect set), with a self-contained brief, instead of sending the next item to an agent that has finished one (user, 2026-10-22). A long-lived agent piles up context and tokens. Carry anything the next agent needs in its brief or the docs. This applies to every subagent type.
 
 ## Parallel agents

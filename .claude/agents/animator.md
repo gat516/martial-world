@@ -238,6 +238,22 @@ them only for work that needs them, and never start Play in them.
   is the variant of `seamless` for families with dashes: stationary strikes
   run straight on, dash phases keep their blend.
 - Studio MCP calls run one at a time; parallel `execute_luau` calls time out.
+- Read the per-frame speed of every hero tip (each tail and limb tip), not
+  only the mouth and chest: one frame at 500+ studs/s between frames near 50
+  is a branch jump, even when the joint-step summary and `lows` look fine. Use
+  the probe's `setup` hook for families with a `configure` step (otherwise
+  tail geometry is wrong) and its `steps` list (Nine-Tailed Fox, 2026-10-22).
+- An IK or aim solve that picks between branches must stay continuous: find
+  the solution once on a fixed side, then blend params from the keys to it.
+  Re-solving every frame at blended targets near a singular point jumps.
+- Land a strike on the windup's end (W), never "contact at W-0.02, then hold":
+  that leaves a dead frame seamless blending can't hide.
+- A free leg lying near the floor (curled, sitting, on its side) fights the
+  floor clamp every frame. Plant it with a sliding reach, or skip the clamp
+  (`air`) for that phase.
+- Compare pose QA against HEAD, not absolute allowances: push HEAD's source
+  into the sandbox module, run the QA, then restore yours, so only new flags
+  show.
 - A planted limb blended toward a free one passes through "straight down".
   The solver takes the bend nearest the authored angle, so give planting keys
   an authored elbow or knee near the planted solution, or it flips mid-blend.

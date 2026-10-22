@@ -72,10 +72,31 @@ motion. Left:
 - **Feel:** whether the combo still feels rushed under the new timings hasn't been
   judged.
 
-**Effects** (`src/client/EnemyFX/ThunderApe.luau`, `tools/vfx_specs/ThunderApe.luau`).
-The Opus pass was still running when this page was written: ghost removal, a
-clean-up for boss grandeur, the boulder and lance projectile drawers, and
-retiming to `122e93b`. Check `git log` for its commit and update this section.
+**Effects** (`src/client/EnemyFX/ThunderApe.luau`, `tools/vfx_specs/ThunderApe.luau`;
+pass committed `3d71470`). Done:
+- **Ghosts replaced:** `SpeedShed` (sparks, arcs and cloud where the body passed)
+  plus `LimbTrail` ribbons on rushes and leaps; the roar pushes forward instead of
+  a ghost head; `DeathSoul` spirit flames for the death ghost.
+- **Roars:** rebuilt `RoarGather`, `BeatGround` and `RoarShock`, reading without
+  the howl disc and with no ring around the head.
+- **Boulder:** the rip, a rock that rises to the fist and rides it, a charge, and
+  the `"boulder"` drawer with a tightening shadow and an impact. The release is
+  `seconds - 0.45`.
+- **Lance:** a fist-only windup (the only lane is `warnLane`) and the
+  `"thunderLance"` javelin drawer.
+- **Cheap reads fixed:** code bolts and the phase-2 ground disc.
+
+Left, all untested:
+- captures of the dash shed and limb trails, `AuraGround`, the phase roar and
+  `BeatGround`;
+- night, the 40-stud read, and phone cost (`SpeedShed` is about 120 particles/s);
+- Game Module playback;
+- both drawers against the real server messages. The boulder jumps from the
+  animator's fist to the server's fire point `(7, 14, -2)` at hand-off, and the
+  rock's ride on the real lift pose is unchecked;
+- `LanceBolt`'s particles and trails, which never showed in Edit-mode captures;
+- the chest `SigilFlare` dark disc, which reads a bit blobby and should be toned
+  down.
 
 ## Nine-Tailed Fox (`NineTailFoxB`, 2.13x, fur tails rebuilt `d775419`)
 **Animation** (`src/client/EnemyPoses/NineTailFox.luau`; part 1 is `b314d83`).

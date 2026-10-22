@@ -86,15 +86,18 @@ local DEATH_SECONDS = 0.6
 -- keyedBlend: blend from the preceding state for this many seconds, then sample
 -- keyed poses directly. This keeps the King's short tells and contact instants
 -- from trailing the server clock through the normal joint smoothing.
-type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, seamless: boolean?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean?, guard: boolean?, turnInPlace: boolean?, circleLoop: boolean?, loopSmoothing: number? }
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, seamless: boolean?, seamlessStrike: boolean?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean?, guard: boolean?, turnInPlace: boolean?, circleLoop: boolean?, loopSmoothing: number? }
 
 -- `<attack>Skid` is the overshoot turn-around the server plays (AIState recover) when a
 -- charge, lunge or leap arrives with the target out of reach; see skidOf below.
 local WOLF_MOVES = { bite = "FangSnap", pounce = "MoonPounce", leap = "MoonfallLeap", howl = "Howl", hop = "Hop", pounceSkid = "PounceSkid", leapSkid = "LeapSkid" }
 local FAMILIES: { [string]: Family } = {
 	SpiritWolfB = { poses = Wolf, scale = 1, moves = WOLF_MOVES, runFrom = 9 },
+	-- seamlessStrike: a stationary strike's windup runs straight into its recover (the blend from
+	-- the frozen contact frame stopped the paw or jaw dead for a frame at every release); the
+	-- dash phases keep the blend (a 50 st/s gallop into a planted skid needs it).
 	ElderWolfKingB = {
-		poses = WolfKing, scale = 2.4, runFrom = 8.5, keyedBlend = 0.06, deathSeconds = 2.6,
+		poses = WolfKing, scale = 2.4, runFrom = 8.5, keyedBlend = 0.06, seamlessStrike = true, deathSeconds = 2.6,
 		moves = {
 			royalBite = "RoyalBite", kingsRush = "KingsRush", crownfall = "Crownfall",
 			pawSwipe = "PawSwipe", clawDown = "ClawDown", packCall = "PackCall", roar = "Roar",
@@ -636,6 +639,7 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 	end
 	local animationState = if dead then "dead" else state
 	if animationState ~= rig.lastState then
+		local prev = rig.lastState
 		rig.lastState = animationState :: string?
 		if family.poses.LEAD and state ~= "stagger" then
 			rig.side = sideOf(rig)
@@ -643,7 +647,8 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 		if state == "stagger" or (family.motion and state == "recover") then
 			rig.side = sideOf(rig)
 		end
-		local within = family.seamless and (state == "dash" or state == "recover") and rig.wasKeyed
+		local within = ((family.seamless and (state == "dash" or state == "recover"))
+			or (family.seamlessStrike and state == "recover" and prev == "windup")) and rig.wasKeyed
 		if within then
 			rig.blendPose = nil
 		elseif family.keyedBlend then

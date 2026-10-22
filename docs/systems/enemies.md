@@ -758,6 +758,48 @@ Known gaps (effects):
 - The Craters rocks didn't show in Edit-mode previews; untested in play.
 - Feel (shake strength, timing at play speed) and phone cost are untested.
 
+#### Animation QA (2026-10-22)
+
+A motion probe over the real state timeline (`art/enemies/motion_probe.luau`, 30 Hz, plus
+per-frame joint steps at 60 Hz) found the King's worst problems in the legs, not the poses:
+- **Leg flips.** The shared one-joint leg solve picked between its two bends by a threshold,
+  so a lower leg flipped 60-160 degrees in one frame at every footfall of the walk and gallop,
+  every paw lift and plant in the attacks, the skids' steps and the death roll (keyed moves
+  aren't smoothed, so these showed raw). The King now opts into `Quadruped`'s `steady` solver
+  (`steady = true` in its spec; no other family changes): gait swings always take the natural
+  fold, a foot being put down or picked up travels on a low arc from its authored spot to its
+  plant (solved in full, levelled as it lands) instead of blending joint angles through the
+  floor, a planted foot is only levelled after its solve, and the floor clamp lifts a dipping
+  foot only as far as it dips. Worst one-frame steps: walk 60 -> 18, gallop 140 -> 60,
+  attacks 85-160 -> under 55 (the rest are real fast lifts and the take-offs), death 118 -> 16.
+- **A dead frame at every release.** The 0.06 s keyed blend restarted from the frozen contact
+  frame. `seamlessStrike` on the King's family plays a stationary strike's windup straight
+  into its recover (the dash phases keep the blend).
+- **The rush's pawing never moved** (an overlay on planted shoulders that the plant solve
+  undid): each forepaw now lifts, digs in ahead and drags back, left then right.
+
+Per move (intent, then what changed; timings and cue moments are unchanged):
+- **Paw Swipe:** the chest rears up off the striking paw, then drives down and forward
+  through the sweep; the head looks with the cocked paw and leads the sweep across.
+- **Claw Down:** the mass rises over the hind legs as the paw goes up, then the forebody
+  drives down onto the claw (the body used to stay still while only the arm moved).
+- **Royal Bite:** the held rear keeps loading (higher, wider jaw, onto the haunches) instead
+  of a dead hold, then drops.
+- **Crownfall:** it reaches the top earlier, hangs there still rising, and drops in 80 ms
+  (was 130 ms): the paws and jaw hit at 130-150 studs/s, up from 90.
+- **Pack Call and the engage roar:** the windup draws breath (chest and head rising, jaw part
+  open) and the jaw opens wide at the release, where the howl and its effects go out; the
+  forepaws come down as the air goes out. They used to hold the jaw wide early and, for Pack
+  Call, close it at the release.
+- **Skids:** the inside forepaw's step reaches round with the bend it plants with.
+
+Known gaps (animation): the rush's arrival into the rake or skid still blends from the frozen
+gallop frame (one dead frame, a claw about 0.6 studs into the floor for two frames); the
+gallop still steps a joint up to 60 degrees a frame at lift-off (smoothed by the loop
+blend); the bent hind paw's merge into the thigh and the raised forearm into the manes are
+rig geometry, as before. Feel in Play, the hand-off from EnemyAnimator's blends at real
+frame rates and phone cost are untested.
+
 ### Nine-Tailed Fox (testbed trial)
 `Config.Wilds.NEW_NINE_TAIL_FOX = TESTBED` gates the def. FE1 boss, 2600 HP, weight 7,
 walk 8 / run 22, `body = "NineTailFoxB"` (2.13x, nine extending fox tails: gold stem, cream brush, foxfire lance and flame; `RIGS.md`

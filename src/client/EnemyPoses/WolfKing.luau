@@ -23,7 +23,7 @@
 -- Its active pose is follow-through at the beginning of the server's recover;
 -- the pose recover uses the remainder. Rush samples its strides by elapsed
 -- seconds, with the real DashSeconds passed as input.duration.
--- Stagger 0.28 and Death 0.60 retain the shared wolf timing and mirrored fall.
+-- Stagger 0.28 and Death 2.6 (the family's deathSeconds) reuse the shared wolf keys and mirrored fall.
 -- Mane and seal poses stay behind the body at contact, then swing through.
 
 local Quadruped = require(script.Parent.Quadruped)
@@ -71,6 +71,7 @@ local rig = Quadruped.new({
 		hind = { V(-0.34, -0.62, -0.98), V(0.34, -0.62, -0.98), V(-0.34, -0.62, 0.075), V(0.34, -0.62, 0.075) },
 	},
 	curl = { front = -1.0, hind = -0.6 },
+	steady = true, -- no one-frame leg flips (Quadruped spec.steady)
 })
 
 local function regalia(pose: Pose, spread: number, seal: number, pitch: number?): Pose
@@ -180,17 +181,22 @@ local SWIPE_LIFT = regalia(with(STAND, {
 	JointEarL = A(0.35), JointEarR = A(0.35), JointCrest = A(-0.28),
 	JointTail = A(-0.25, 0.1),
 }), 0.25, -0.12, -0.05)
+-- QA 2026-10-22: the chest rears up and back off the striking paw at the peak and drives
+-- down and forward through contact (it used to hang still, 8 st/s, while only the paw
+-- moved); the head looks with the cocked paw, then leads the sweep across (it went the
+-- other way). Root yaw stays as it was: more slides the planted paws.
 local SWIPE_PEAK = regalia(with(SWIPE_LIFT, {
-	JointSpine = A(0, 0.1),
+	JointRoot = R(-0.08, 0.05, 0.04, 0.05, -0.05), JointSpine = A(-0.05, 0.1),
+	JointNeck = A(-0.12, 0.12), JointHead = A(0.12, 0.05),
 	JointLegFL = A(1.22, 0.45, -0.6), JointElbowFL = A(1.0), JointWristFL = A(-1.55),
 }), 0.35, -0.2, -0.08)
 local SWIPE_CONTACT = regalia(with(SWIPE_LIFT, {
-	JointRoot = R(-0.12, -0.03, -0.08, -0.05, 0.03), JointSpine = A(0, -0.12),
-	JointNeck = A(-0.15, 0.1), JointHead = A(0.1, 0.05),
+	JointRoot = R(-0.17, -0.06, -0.12, -0.05, 0.03), JointSpine = A(0.04, -0.12),
+	JointNeck = A(-0.2, -0.07), JointHead = A(0.08, -0.04),
 	JointLegFL = A(1.0, -0.25, -0.25), JointElbowFL = A(0.25), JointWristFL = A(-0.7),
 }), 0.35, -0.2, -0.08)
 local SWIPE_THROUGH = regalia(with(SWIPE_CONTACT, {
-	JointRoot = R(-0.16, -0.02, -0.04, -0.06, 0.04),
+	JointRoot = R(-0.19, -0.04, -0.08, -0.06, 0.04), JointNeck = A(-0.22, -0.1),
 	JointLegFL = A(0.55, -0.3, -0.1), JointElbowFL = A(-0.2), JointWristFL = A(-0.35),
 }), 0.16, 0.18, 0.12)
 
@@ -203,16 +209,20 @@ local CLAW_LIFT = regalia(with(STAND, {
 	JointEarL = A(0.4), JointEarR = A(0.4), JointCrest = A(-0.25),
 	JointTail = A(-0.25, -0.1),
 }), 0.25, -0.12, -0.05)
+-- QA 2026-10-22: the forebody rises and rocks back over the hind legs as the paw goes up,
+-- then drives down onto the paw (the chest moved 8 st/s through the whole strike: an arm
+-- swinging on a still body). The weight behind the claw is what reads at range.
 local CLAW_PEAK = regalia(with(CLAW_LIFT, {
+	JointRoot = R(-0.06, 0.06, 0.05, 0, 0.05), JointSpine = A(-0.03),
 	JointLegFR = A(1.18, -0.1, 0.6), JointElbowFR = A(1.1), JointWristFR = A(-1.7),
-	JointNeck = A(-0.35, 0.12),
+	JointNeck = A(-0.3, 0.12),
 }), 0.3, -0.18, -0.08)
 local CLAW_STRIKE = regalia(with(SPENT, {
-	JointRoot = R(-0.16, -0.05, -0.14), JointSpine = A(0.03),
+	JointRoot = R(-0.21, -0.1, -0.16), JointSpine = A(0.06),
 	JointNeck = A(-0.2, 0.06), JointHead = A(0.08), JointCrest = A(-0.22),
 }), 0.3, -0.18, -0.08)
 local CLAW_THROUGH = regalia(with(CLAW_STRIKE, {
-	JointRoot = R(-0.22, -0.06, -0.14), JointNeck = A(-0.18),
+	JointRoot = R(-0.23, -0.07, -0.15), JointNeck = A(-0.18),
 	JointCrest = A(0.1),
 }), 0.12, 0.22, 0.16)
 
@@ -622,10 +632,19 @@ do
 		JointLegFR = A(0.55, 0, 0.1), JointElbowFR = A(0.6), JointWristFR = A(-1.1),
 		JointEarL = A(0.5), JointEarR = A(0.5), JointCrest = A(-0.55), JointTail = A(-0.4), JointTail2 = A(-0.1),
 	}), 0.6, -0.2, -0.1)
+	-- QA 2026-10-22: rise drawing breath (jaw part open, still climbing), the jaw opens wide
+	-- at the release with the roar's sound and rings, holds through the active and into the
+	-- recover (it used to be wide from 0.5 s, half a second before the sound)
+	local inhale = regalia(with(rise, { JointJaw = A(-0.3) }), 0.5, -0.16, -0.08)
+	local full = regalia(with(rise, { JointRoot = R(-0.12, 0.31, 0.08), JointNeck = A(0.46), JointHead = A(0.26), JointJaw = A(-0.4) }), 0.62, -0.2, -0.1)
+	local roar = regalia(with(full, { JointJaw = A(-0.9), JointHead = A(0.29) }), 0.72, -0.24, -0.12)
 	moves.Roar = {
-		windup = ph(1.0, { hold(0, STAND, ALL), hold(0.2, with(STAND, { JointNeck = A(-0.2), JointRoot = R(-0.12, -0.05) }), ALL, BRACED, "inOut"), hold(0.5, rise, HIND, REARED, "out"), hold(1, rise, HIND, REARED) }),
-		active = ph(0.1, { hold(0, rise, HIND, REARED), hold(1, rise, HIND, REARED) }),
-		recover = ph(0.8, { hold(0, rise, HIND, REARED), hold(0.45, SPENT, ALL, BRACED, "inOut"), hold(1, STAND, ALL, nil, "inOut") }),
+		windup = ph(1.0, {
+			hold(0, STAND, ALL), hold(0.2, with(STAND, { JointNeck = A(-0.2), JointRoot = R(-0.12, -0.05) }), ALL, BRACED, "inOut"),
+			hold(0.5, inhale, HIND, REARED, "out"), hold(0.88, full, HIND, REARED, "inOut"), hold(1, roar, HIND, REARED, "out"),
+		}),
+		active = ph(0.1, { hold(0, roar, HIND, REARED), hold(1, roar, HIND, REARED) }),
+		recover = ph(0.8, { hold(0, roar, HIND, REARED), hold(0.2, roar, HIND, REARED), hold(0.55, SPENT, ALL, BRACED, "inOut"), hold(1, STAND, ALL, nil, "inOut") }),
 	}
 end
 
@@ -766,7 +785,9 @@ local SKID_SCRAB2 = regalia(with(SKID_SCRAB, {
 }), 0.3, 0.1, 0.06)
 local SKID_STEP = regalia(with(SPENT, {
 	JointRoot = R(-0.18, 0.02, 0, 0, -0.03), JointNeck = A(-0.12), JointHead = A(0.14), JointJaw = A(-0.2),
-	JointLegFR = A(0.6, 0, 0.25), JointElbowFR = A(-1.1), JointWristFR = A(0.4),
+	-- the inside forepaw lifts and reaches round with the elbow bent the way it plants
+	-- (folding it back made the steady solve reverse the bend mid-step, 73 deg a frame)
+	JointLegFR = A(0.55, 0, 0.25), JointElbowFR = A(0.45), JointWristFR = A(-0.55),
 	JointTail = A(0.15, -0.1),
 }), 0.22, 0.05, 0.05)
 local SKID_BRAKED = { FL = V(-0.05, 0, -0.5), FR = V(0.12, 0, -0.45), BL = V(-0.38, 0, 0.45), BR = V(-0.18, 0, 0.5) }
@@ -899,9 +920,14 @@ do
 	}), 0.4, -0.2, -0.08)
 	local thru = regalia(with(drop, { JointRoot = R(-0.12, -0.12, -0.12), JointNeck = A(-0.34, -0.05) }), 0.18, 0.2, 0.14)
 	local sit, lunge = paws(-0.05, 0.3, 0.08, 0.1), paws(-0.3, 0.2, 0.1, 0.1)
+	-- QA 2026-10-22: the held rear keeps loading (higher, wider, sinking onto the haunches)
+	-- instead of a dead hold, so the coil is still building when it drops
+	local rearDeep = regalia(with(rear, {
+		JointRoot = R(-0.06, 0.15, 0.12), JointSpine = A(-0.11), JointNeck = A(0.35), JointHead = A(0.23), JointJaw = A(-0.86),
+	}), 0.52, -0.25, -0.12)
 	variants.RoyalBite.B = {
 		windup = ph(0.9, {
-			hold(0, STAND, ALL), hold(0.4, rear, ALL, sit, "inOut"), hold(0.88, rear, ALL, sit),
+			hold(0, STAND, ALL), hold(0.4, rear, ALL, sit, "inOut"), hold(0.88, rearDeep, ALL, sit, "inOut"),
 			hold(0.985, drop, ALL, lunge, "in"), hold(1, drop, ALL, lunge),
 		}),
 		active = ph(0.16, { hold(0, drop, ALL, lunge), hold(0.7, thru, ALL, lunge, "out"), hold(1, thru, ALL, lunge) }),
@@ -982,10 +1008,14 @@ end
 do
 	local up = regalia(with(CROWN_PEAK, { JointRoot = R(-0.1, 0.4, 0.1, 0.05), JointSpine = A(-0.2), JointNeck = A(0.1), JointHead = A(0.18), JointLegFL = A(1.0, 0.1, -0.55), JointElbowFL = A(1.2), JointWristFL = A(-2.0), JointLegFR = A(1.0, -0.1, 0.55), JointElbowFR = A(1.2), JointWristFR = A(-2.0) }), 0.55, -0.26, -0.12)
 	local mid = regalia(with(up, { JointRoot = R(-0.06, 0.25, 0.14, 0.05), JointLegFL = A(1.1, 0.1, -0.5), JointLegFR = A(1.1, -0.1, 0.5) }), 0.48, -0.22, -0.08)
+	local hang = regalia(with(up, { JointRoot = R(-0.11, 0.43, 0.1, 0.05), JointNeck = A(0.14), JointJaw = A(-0.7) }), 0.58, -0.28, -0.12)
 	variants.Crownfall.B = {
 		windup = ph(1.25, {
-			hold(0, STAND, ALL), hold(0.22, RUSH_LOAD, ALL, COILED, "out"), hold(0.45, mid, HIND, REARED, "inOut"), hold(0.78, up, HIND, REARED, "out"),
-			hold(0.88, up, HIND, REARED), hold(0.985, CROWN_CONTACT, ALL, SPLAYED, "in"), hold(1, CROWN_CONTACT, ALL, SPLAYED),
+			-- QA 2026-10-22: it reaches the top by 0.74 and hangs there still rising a little,
+			-- then drops in 80 ms (it used to sink for 130 ms, the biggest hit landing softer
+			-- than the paw swipe)
+			hold(0, STAND, ALL), hold(0.22, RUSH_LOAD, ALL, COILED, "out"), hold(0.45, mid, HIND, REARED, "inOut"), hold(0.74, up, HIND, REARED, "out"),
+			hold(0.92, hang, HIND, REARED, "inOut"), hold(0.985, CROWN_CONTACT, ALL, SPLAYED, "in"), hold(1, CROWN_CONTACT, ALL, SPLAYED),
 		}),
 		active = moves.Crownfall.active,
 		recover = moves.Crownfall.recover,
@@ -1006,18 +1036,34 @@ end
 
 -- KingsRush B "Pawing": scrapes the ground with alternating forepaws, then launches.
 -- C "Head-low": lowers the head between the shoulders and trembles.
+-- QA 2026-10-22: the pawing was an overlay on the planted shoulders, which the plant solve
+-- put straight back (the paws moved 0 st/s). Now each forepaw lifts, reaches ahead, digs in
+-- and drags back to the coil (the left, then the right), the shoulders rocking with it.
 do
-	local function paw(u: number, secs: number, _): Pose
-		local k = smooth(0.2, 0.3, u) * (1 - smooth(0.75, 0.85, u))
-		local a = 0.35 * k * math.max(0, math.sin(secs * TAU * 2.2))
-		local b = 0.35 * k * math.max(0, -math.sin(secs * TAU * 2.2))
-		return { JointLegFL = A(a), JointLegFR = A(b) }
+	local function scrape(tag: string, z: number): { [string]: Vector3 }
+		local r = table.clone(COILED)
+		r[tag] = Vector3.new(r[tag].X, 0, z)
+		return r
 	end
+	local function lifted(tag: string): Pose
+		local s = if tag == "FL" then -1 else 1
+		return with(RUSH_LOAD, {
+			JointRoot = R(-0.33, -0.02, 0.1, 0, 0.03 * s),
+			[if tag == "FL" then "JointLegFL" else "JointLegFR"] = A(0.55, 0, 0.12 * s),
+			[if tag == "FL" then "JointElbowFL" else "JointElbowFR"] = A(0.4),
+			[if tag == "FL" then "JointWristFL" else "JointWristFR"] = A(-0.5),
+		})
+	end
+	local digL, digR = scrape("FL", -0.85), scrape("FR", -0.85)
 	variants.KingsRush.B = {
 		windup = ph(1.0, {
-			hold(0, STAND, ALL), hold(0.24, RUSH_LOAD, ALL, COILED, "out"), hold(0.8, RUSH_LOAD, ALL, COILED),
+			hold(0, STAND, ALL), hold(0.24, RUSH_LOAD, ALL, COILED, "out"),
+			hold(0.33, lifted("FL"), { "FR", "BL", "BR" }, COILED, "out"), hold(0.41, RUSH_LOAD, ALL, digL, "in"),
+			hold(0.52, RUSH_LOAD, ALL, COILED, "inOut"),
+			hold(0.6, lifted("FR"), { "FL", "BL", "BR" }, COILED, "out"), hold(0.68, RUSH_LOAD, ALL, digR, "in"),
+			hold(0.79, RUSH_LOAD, ALL, COILED, "inOut"),
 			hold(0.92, RUSH_READY, ALL, COILED, "inOut"), hold(1, RUSH_LAUNCH, HIND, COILED, "in"),
-		}, paw),
+		}),
 		active = moves.KingsRush.active,
 		recover = moves.KingsRush.recover,
 	}
@@ -1039,10 +1085,25 @@ end
 -- howl": three throat pulses, jaw working.
 do
 	local rise = regalia(with(CALL_PEAK, { JointRoot = R(-0.14, 0.3, 0.1), JointSpine = A(-0.14), JointNeck = A(0.45), JointHead = A(0.3), JointLegFL = A(0.5, 0, -0.1), JointElbowFL = A(0.6), JointWristFL = A(-1.1), JointLegFR = A(0.5, 0, 0.1), JointElbowFR = A(0.6), JointWristFR = A(-1.1) }), 0.55, -0.18, -0.1)
+	-- QA 2026-10-22: the windup draws breath (chest and head rising, jaw part open, still
+	-- climbing through the hold) and the jaw opens wide only at the release, where the howl
+	-- and its effects go out; the forepaws come down as the air is pushed out and the jaw
+	-- stays open into the recover. It used to hold the jaw wide from 0.4 s and close it at
+	-- the release.
+	local inhale = regalia(with(rise, { JointJaw = A(-0.28) }), 0.5, -0.16, -0.08)
+	local full = regalia(with(rise, { JointRoot = R(-0.15, 0.33, 0.1), JointNeck = A(0.48), JointHead = A(0.3), JointJaw = A(-0.38) }), 0.6, -0.2, -0.1)
+	local howl = regalia(with(full, { JointJaw = A(-0.88), JointHead = A(0.32) }), 0.68, -0.22, -0.12)
+	local blast = regalia(with(CALL_AFTER, { JointNeck = A(0.42), JointHead = A(0.28), JointJaw = A(-0.9) }), 0.65, 0.12, 0.04)
 	variants.PackCall.B = {
-		windup = ph(1.2, { hold(0, STAND, ALL), hold(0.4, rise, HIND, REARED, "inOut"), hold(1, rise, HIND, REARED) }),
-		active = ph(0.1, { hold(0, rise, HIND, REARED), hold(1, CALL_AFTER, ALL, BRACED, "out") }),
-		recover = moves.PackCall.recover,
+		windup = ph(1.2, {
+			hold(0, STAND, ALL), hold(0.4, inhale, HIND, REARED, "inOut"), hold(0.86, full, HIND, REARED, "inOut"),
+			hold(1, howl, HIND, REARED, "out"),
+		}),
+		active = ph(0.1, { hold(0, howl, HIND, REARED), hold(1, blast, ALL, BRACED, "out") }),
+		recover = ph(0.9, {
+			hold(0, blast, ALL, BRACED), hold(0.3, CALL_AFTER, ALL, BRACED, "inOut"), hold(0.58, SPENT, ALL, BRACED, "inOut"),
+			hold(1, STAND, ALL, nil, "inOut"),
+		}),
 	}
 	variants.PackCall.C = {
 		windup = ph(1.2, { hold(0, STAND, ALL), hold(0.25, CALL_RISE, ALL, BRACED, "out"), hold(0.45, CALL_PEAK, ALL, BRACED, "inOut"), hold(1, CALL_PEAK, ALL, BRACED) },

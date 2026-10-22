@@ -178,7 +178,7 @@ shared two-joint planting and gait solver, with the wolf pivots and the King's
 wider, longer paw soles from `build_elder_wolf_king.luau`. Walk and circle use a
 four-beat gait with a 72% stance; its stride clock uses that stance fraction when
 matching paw travel to root speed. Run uses an asymmetric gallop. Rush strides use
-elapsed seconds at three cycles per second, rather than forcing a fixed number
+elapsed seconds at 2.2 cycles per second, rather than forcing a fixed number
 of strides into a short dash. The seal and manes trail the body in gait curves;
 on attacks they hold their windup flare through contact and then swing through.
 
@@ -204,7 +204,7 @@ the front limbs lift while the rear paws support the body.
 `ElderWolfKingB` only, it blends from the preceding state's transforms for 0.06 s,
 then applies keyed poses directly from `StateAt`, so normal smoothing cannot
 delay a fast release past its hit instant. Locomotion keeps normal smoothing.
-Stagger (0.28 s) and mirrored death (0.60 s) reuse the shared wolf keys with
+Stagger (0.28 s) and mirrored death (2.6 s, `deathSeconds`) reuse the shared wolf keys with
 King-specific mane and seal follow-through.
 
 **Authored ranges, not newly validated:** the raised forepaws use upper-leg
@@ -244,7 +244,7 @@ every move variant and loop; `_G.WOLF_POSE_ONLY = "ClawDown"` for one move,
 - **Death** is 2.6 s (`Family.deathSeconds` in EnemyAnimator): a thrown-back hit held
   u 0.1-0.3 (burst key for the effect), reeling sway, the roll, a bounce, rest. **Roar**
   (aggro) exists as a move (1.0 / 0.1 / 0.8, held rear-up from u 0.5) but nothing plays
-  it: EnemyAnimator has no engage attribute.
+  it: EnemyAnimator has no engage attribute. (Since then the `roar` attack, `pack.howl`, plays it.)
 - **Gotchas learned:** root YAW or large root roll with planted hind paws breaks the
   planting (the two-joint solve is in the leg's plane only) and merges the hind paw
   into the thigh by 0.6-1.1; keep root yaw under ~0.05 and turn with the spine and
@@ -325,6 +325,41 @@ Learned on this body:
 - **The King's hind paw needs a deeper fold to lift:** the Spirit Wolf's scrabble angles (hip
   -0.35, knee -0.7) leave the King's bigger paw on the floor clamp; hip +0.3, knee -1.2, hock
   +0.6 lifts it about 0.4 studs.
+
+#### King animation QA (2026-10-22): the steady leg solver
+
+`WolfKing.luau` builds its rig with `Quadruped.new({ ..., steady = true })` (opt-in; Wolf.luau
+has its own solver copy and the other Quadruped families don't set it). What it changes, and
+why (measured with the motion probe and per-frame joint steps at 60 Hz):
+- `solveLeg` (the gait's one-joint solve) always takes the natural-fold bend. The default picks
+  the bend nearest the authored angle with a sign penalty, which jumps between the two bends
+  when either crosses the threshold: the walk's forepaws flipped 60 deg a frame at every
+  touchdown, the gallop's hocks 130.
+- A partly planted foot (`0 < plant < 1`, a paw being put down or picked up) is no longer
+  blended in joint angles (that swung the paw up to a metre through the floor, and the floor
+  clamp then flipped between two equally near bends: 85-160 deg a frame in the swipe, claw,
+  rake, crownfall, rush and skids). `stepToward` moves the foot pivot from where the authored
+  pose holds it to its spot along a 0.3-unit arc, solves both joints in full, levels the foot
+  by the plant weight, eases from a solve on the authored pose's bend side to the planted side
+  when they differ, and near weight 0 returns to the authored angles (the in-plane solve can't
+  hold a rolled or turned upper leg).
+- A fully planted foot gets the two-joint solve and a level, not a second one-joint solve.
+- The floor clamp (`raiseLeg`) turns the middle joint the least that lifts a dipping free foot
+  back to the ground and turns the foot back by as much, instead of snapping it to rest height.
+- Front legs plant with the elbow POSITIVE (lower leg forward: `knee = -1`) but swing folded
+  NEGATIVE. Author a paw that lifts and replants (a skid step, a scrape) with a positive elbow,
+  or the solve reverses the bend mid-step (the skid's step was 73 deg a frame).
+- Not for other families as is: it changes how every transition between plant sets moves
+  (the arc, the end blends), so a family that adopts it needs its own probe and pose QA pass.
+  Its poses were tuned against the old blend. The gallop still steps up to 60 deg a frame at
+  lift-off (stance planted on the knee side, swing on the fold side).
+
+Safe ranges seen clean on the King with it (pose QA, scaled 2.4): a striking forepaw's chest
+drop to -0.21 unit with pitch -0.1 (ClawDown; -0.26 pushed the hind paw 0.7 into the thigh and
+the forearm 0.1 under the floor); a swipe's rear-up to pitch 0.05 / z 0.04 (0.09 / 0.1 put the
+hind paws 0.75 into the thighs); neck yaw at contact to 0.07 (0.14 swung the inside mane 0.45
+into the crest); howl and roar head-back to neck 0.48 / head 0.32 (0.52 / 0.36 put the crest
+into the skull). Planted root yaw stays under 0.05 (above).
 
 ## Spirit Wolf B skids (`Wolf.luau`)
 

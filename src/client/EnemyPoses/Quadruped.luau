@@ -22,6 +22,16 @@
 --   spec.curl    { front = number, hind = number }: the foot's pitch at full swing
 --                lift (negative tips the toe down)
 --   spec.lift    the middle joint's bend at full swing lift (times fold), default 0.3
+--   spec.steady  opt-in (the Elder Wolf King): solves that can't flip a leg in one frame.
+--                A solved middle joint always takes the natural-fold bend (the default
+--                picks the bend nearest the authored angle and penalises the other sign,
+--                so it jumps between the two bends, 60-130 deg in a frame, whenever the
+--                authored angle or the solution crosses the threshold: every footfall of a
+--                walk or gallop, every paw lift and plant). A foot being put down or picked
+--                up travels on a low arc to its spot (stepToward) instead of blending joint
+--                angles through the floor; a planted foot is only levelled after its solve;
+--                the floor clamp raises a free foot only as far as it dips. Measured on the
+--                King only (wolf_family/RIGS.md): a family that adopts it needs its own pass.
 -- Wolf.luau can switch to this with no change in output (checked bit for bit over every
 -- move and loop), but wolf_family/qa_wolf_poses.luau requires a parentless clone of Wolf,
 -- which can't see a sibling module: switch both together.
@@ -285,12 +295,14 @@ export type Spec = {
 	sole: { front: { Vector3 }, hind: { Vector3 } },
 	curl: { front: number, hind: number },
 	lift: number?,
+	steady: boolean?,
 }
 
 function Quadruped.new(spec: Spec)
 	local P, LEGS, SOLE = spec.P, spec.legs, spec.sole
 	local ROOT, SPINE = spec.root, spec.spine
 	local LIFT = spec.lift or 0.3
+	local STEADY = spec.steady == true
 
 	-- the frame a leg's upper joint turns in, before its own Transform
 	local function upperBase(pose: Pose, leg: Leg): CFrame
@@ -323,7 +335,7 @@ function Quadruped.new(spec: Spec)
 
 	-- Two-joint solve in the leg's own plane: turns the upper and middle joints so the
 	-- foot pivot lands on target (model space), blended by w. Authored roll is kept.
-	local function reachLeg(pose: Pose, leg: Leg, target: Vector3, w: number)
+	local function reachLeg(pose: Pose, leg: Leg, target: Vector3, w: number, knee: number?)
 		local t = upperBase(pose, leg):PointToObjectSpace(target)
 		local u, d = P[leg.mid] - P[leg.upper], P[leg.foot] - P[leg.mid]
 		local l1, l2 = math.sqrt(u.Y * u.Y + u.Z * u.Z), math.sqrt(d.Y * d.Y + d.Z * d.Z)
@@ -332,7 +344,7 @@ function Quadruped.new(spec: Spec)
 		local phi = math.atan2(t.Z, t.Y)
 		local alpha = math.acos(math.clamp((l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist), -1, 1))
 		-- the leg points down, so +alpha puts the middle joint forward (-Z) of the line
-		local upperDir = phi + alpha * leg.knee
+		local upperDir = phi + alpha * (knee or leg.knee)
 		local ky, kz = l1 * math.cos(upperDir), l1 * math.sin(upperDir)
 		local lowerDir = math.atan2(t.Z - kz, t.Y - ky)
 		local upper = wrap(upperDir - ang(u))
@@ -362,7 +374,8 @@ function Quadruped.new(spec: Spec)
 			return math.abs(m - authored) + (if m * sign < -0.15 then 2 else 0)
 		end
 		local m1, m2 = wrap(th + ac), wrap(th - ac)
-		local solved = if cost(m1) <= cost(m2) then m1 else m2
+		-- spec.steady: always the natural fold (a gait's swing; planted feet don't come here)
+		local solved = if STEADY then wrap(th - leg.fold * ac) elseif cost(m1) <= cost(m2) then m1 else m2
 		local m = authored + (solved - authored) * w
 		pose[leg.mid] = A(m)
 		-- level the foot: no pitch, then no roll, in model space
@@ -382,6 +395,81 @@ function Quadruped.new(spec: Spec)
 			lo = math.min(lo, (foot * v).Y)
 		end
 		return lo
+	end
+
+	-- spec.steady's floor clamp: turns the middle joint the least that lifts the foot's
+	-- lowest corner back to the ground (the turn nearest the authored one, so it grows
+	-- from zero as the foot starts to dip; at most to the highest the joint can lift it).
+	-- The foot turns back by as much, so it keeps its angle and only rises.
+	local function raiseLeg(pose: Pose, leg: Leg)
+		local d = P[leg.foot] - P[leg.mid]
+		for _ = 1, 4 do
+			local dip = -soleY(pose, leg)
+			if dip <= 0.005 then
+				return
+			end
+			local K, Pc, Qs = coeffs(midBase(pose, leg), d)
+			local len = math.sqrt(Pc * Pc + Qs * Qs)
+			local m0 = pitchOf(pose[leg.mid])
+			local y0 = K + Pc * math.cos(m0) + Qs * math.sin(m0)
+			local th, ac = math.atan2(Qs, Pc), math.acos(math.clamp((y0 + dip + 0.002 - K) / len, -1, 1))
+			local m1, m2 = wrap(th + ac), wrap(th - ac)
+			local m = if math.abs(wrap(m1 - m0)) <= math.abs(wrap(m2 - m0)) then m1 else m2
+			pose[leg.mid] = A(m)
+			pose[leg.foot] = A(m0 - m) * (pose[leg.foot] or I)
+		end
+	end
+
+	-- spec.steady's partial plant (a foot being put down or picked up): the foot pivot
+	-- travels from where the authored pose holds it to its spot along a low arc, solved
+	-- in full, and the foot levels as it lands. Blending the joint angles instead swings
+	-- the paw through the floor (a metre down on the King) and the floor clamp then has
+	-- two equally near bends to flip between.
+	local STEP_ARC = 0.3
+	-- levels the foot (no pitch, then no roll, in model space) as solveLeg does, by w
+	local function levelFoot(pose: Pose, leg: Leg, w: number)
+		local fb = midBase(pose, leg) * (pose[leg.mid] or I) * CFrame.new(P[leg.foot] - P[leg.mid])
+		local _, _, _, _, _, _, _, r11, r12 = fb:GetComponents()
+		local f = math.atan2(r12, r11)
+		local _, _, _, _, _, _, s10, s11 = (fb * A(f)):GetComponents()
+		local g = math.atan2(-s10, s11)
+		pose[leg.foot] = (pose[leg.foot] or I):Lerp(A(f) * A(0, 0, g), w)
+	end
+	local function stepToward(pose: Pose, leg: Leg, target: Vector3, w: number)
+		local d = P[leg.foot] - P[leg.mid]
+		local mb = midBase(pose, leg)
+		local from = (mb * (pose[leg.mid] or I) * CFrame.new(d)).Position
+		local at = from:Lerp(target, w) + Vector3.new(0, 4 * w * (1 - w) * STEP_ARC, 0)
+		local authored = pose[leg.foot] or I
+		-- the side the authored pose bends its middle joint to (see reachLeg): when it is
+		-- not the planted side, ease from a solve on the authored side to the planted one
+		local ub = upperBase(pose, leg)
+		local kp = ub:PointToObjectSpace((ub * (pose[leg.upper] or I) * CFrame.new(P[leg.mid] - P[leg.upper])).Position)
+		local fp = ub:PointToObjectSpace(from)
+		local bend = wrap(math.atan2(kp.Z, kp.Y) - math.atan2(fp.Z, fp.Y))
+		local side = if bend >= 0 then 1 else -1
+		-- (a nearly straight authored leg has no side to keep: fade it in by the bend)
+		local keep = (1 - w) * smooth(0, 0.12, math.abs(bend))
+		local up0, mid0 = pose[leg.upper] or I, pose[leg.mid] or I
+		if side ~= leg.knee and keep > 0 then
+			reachLeg(pose, leg, at, 1, side)
+			local upA, midA = pose[leg.upper], pose[leg.mid]
+			pose[leg.upper], pose[leg.mid] = up0, mid0
+			reachLeg(pose, leg, at, 1)
+			pose[leg.upper] = pose[leg.upper]:Lerp(upA, keep)
+			pose[leg.mid] = pose[leg.mid]:Lerp(midA, keep)
+		else
+			reachLeg(pose, leg, at, 1)
+		end
+		-- just lifted (or about to land from the air): the authored angles themselves, since
+		-- the in-plane solve can't hold a leg the pose has rolled or turned out of its plane
+		local free = 1 - smooth(0, 0.3, w)
+		if free > 0 then
+			pose[leg.upper] = (pose[leg.upper] :: CFrame):Lerp(up0, free)
+			pose[leg.mid] = (pose[leg.mid] :: CFrame):Lerp(mid0, free)
+		end
+		pose[leg.foot] = authored
+		levelFoot(pose, leg, w)
 	end
 
 	-- Solves the planted legs onto the ground: each planted foot goes to its rest spot
@@ -407,13 +495,26 @@ function Quadruped.new(spec: Spec)
 		end
 		for tag, target in targets do
 			local leg, w = LEGS[tag], plant[tag]
-			reachLeg(pose, leg, target, w)
-			solveLeg(pose, leg, w)
+			if STEADY and w < 0.999 then
+				stepToward(pose, leg, target, w)
+			elseif STEADY then
+				-- the solve already puts the pivot on its spot: only level the foot (a second,
+				-- one-joint solve could take the other bend)
+				reachLeg(pose, leg, target, 1)
+				levelFoot(pose, leg, 1)
+			else
+				reachLeg(pose, leg, target, w)
+				solveLeg(pose, leg, w)
+			end
 		end
 		if not air then
 			for tag, leg in LEGS do
 				if (plant[tag] or 0) < 0.999 and soleY(pose, leg) < -0.005 then
-					solveLeg(pose, leg, 1)
+					if STEADY then
+						raiseLeg(pose, leg)
+					else
+						solveLeg(pose, leg, 1)
+					end
 				end
 			end
 		end

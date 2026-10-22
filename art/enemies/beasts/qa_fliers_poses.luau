@@ -21,7 +21,14 @@ local WING = {
 	bat = { WingL = 1, WingR = 1, WingL2 = 1, WingR2 = 1, WingL3 = 1, WingR3 = 1, WingLSkin = 1, WingRSkin = 1, WingL2Skin = 1,
 		WingR2Skin = 1, WingL3Skin = 1, WingR3Skin = 1, WingClawL = 1, WingClawR = 1, WingEdgeTellL = 1, WingEdgeTellR = 1 },
 }
-local MEMBRANE = { WingLSkin = 1, WingRSkin = 1, WingL2Skin = 1, WingR2Skin = 1, WingL3Skin = 1, WingR3Skin = 1 }
+-- the bat's skins: every Wing*Skin* part (Parts are thin along Y, the triangle skins are
+-- WedgeParts thin along X, so their normal is the RightVector)
+local function membraneNormal(part)
+	if not part.Name:match("^Wing[LR]%d?Skin") then
+		return nil
+	end
+	return if part:IsA("WedgePart") then part.CFrame.RightVector else part.CFrame.UpVector
+end
 
 local folder = workspace:FindFirstChild("_FlierQA") or Instance.new("Folder")
 folder.Name = "_FlierQA"
@@ -116,8 +123,9 @@ local function run(who)
 							hi = math.max(hi, y)
 						end
 					end
-					if MEMBRANE[part.Name] and who == "bat" then
-						local ub = m.Body.CFrame:VectorToObjectSpace(part.CFrame.UpVector)
+					local normal = who == "bat" and membraneNormal(part)
+					if normal then
+						local ub = m.Body.CFrame:VectorToObjectSpace(normal)
 						vmin = math.min(vmin, math.acos(math.clamp(math.abs(ub.Y), 0, 1)))
 					end
 				end
@@ -135,7 +143,7 @@ local function run(who)
 	end
 	-- loops
 	for _, loop in { "idle", "walk", "run", "circle" } do
-		local vmin, nclip = math.huge, 0
+		local vmin, nclip, which = math.huge, 0, {}
 		for i = 0, 15 do
 			local p
 			if loop == "idle" then
@@ -148,16 +156,24 @@ local function run(who)
 			for k in overlapSet() do
 				if not base[k] then
 					nclip += 1
+					which[k] = true
 				end
 			end
 			for _, part in parts do
-				if MEMBRANE[part.Name] and who == "bat" then
-					local ub = m.Body.CFrame:VectorToObjectSpace(part.CFrame.UpVector)
+				local normal = who == "bat" and membraneNormal(part)
+				if normal then
+					local ub = m.Body.CFrame:VectorToObjectSpace(normal)
 					vmin = math.min(vmin, math.acos(math.clamp(math.abs(ub.Y), 0, 1)))
 				end
 			end
 		end
-		say("loop %-7s clips %d%s", loop, nclip, if who == "bat" then string.format("  bodyFrameElev %.2f", vmin) else "")
+		local list = {}
+		for k in which do
+			table.insert(list, k)
+		end
+		table.sort(list)
+		say("loop %-7s clips %d%s%s", loop, nclip, if who == "bat" then string.format("  bodyFrameElev %.2f", vmin) else "",
+			if #list > 0 then "  (" .. table.concat(list, ",") .. ")" else "")
 	end
 	-- drift: with the last pose, riders keep their offset to their parent (welds); report the rest pose delta of a few
 	pose({})

@@ -1,7 +1,7 @@
 --!nocheck
 -- Rigs ServerStorage._RosterBeasts.BloodBat (build_blood_bat.luau) with the shared
 -- rig_core.luau, then adds the FX attachments. Run in Edit mode through execute_luau;
--- re-runnable. 16 joints: see RIGS.md "Blood Bat".
+-- re-runnable. 13 joints: see RIGS.md "Blood Bat".
 -- Flier convention as the Flame Raven's: the model is built in place at hover height, the
 -- pivot is the HRP centre (not the ground) with identity rotation, and the HRP floats at
 -- HipHeight = its bottom. HRP 2.6 x 2.4 x 2.6 centred at (0, 4.6, -0.2): bottom 3.4, so a
@@ -36,8 +36,13 @@ local function attach(partName, name, worldPos)
 	a.Position = part.CFrame:PointToObjectSpace(worldPos)
 	a.Parent = part
 end
-attach("Skull", "Mouth", Vector3.new(0, 4.5, -1.5))
-attach("Body", "Core", Vector3.new(0, 4.65, -0.95))
-attach("WingL3", "WingTipL_FX", Vector3.new(-2.45, 4.85, 0.1))
-attach("WingR3", "WingTipR_FX", Vector3.new(2.45, 4.85, 0.1))
+-- the outer tip of a wing's leading finger (the WingL3 / WingR3 bone, built along its -Z)
+local function tip(name)
+	local p = model[name]
+	return (p.CFrame * CFrame.new(0, 0, -(p.Size.Z - 0.12) / 2)).Position
+end
+attach("Skull", "Mouth", Vector3.new(0, 4.6, -1.5)) -- in front of the snout, between the fangs
+attach("Body", "Core", Vector3.new(0, 4.3, -0.77)) -- the front of the ChestCore
+attach("WingL3", "WingTipL_FX", tip("WingL3"))
+attach("WingR3", "WingTipR_FX", tip("WingR3"))
 return msg .. ("\nHRP %s at %s, top %.2f"):format(tostring(hrpSize), tostring(hrpPos), top)

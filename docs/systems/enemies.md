@@ -533,7 +533,12 @@ builds read as weak). The Centipede is rebuilt (128 parts, same 43 joints and na
 and bone with roof-tile plates, bigger hooked pincers, two-piece legs; RIGS.md has the moved leg,
 pincer and antenna pivots). Open: the animator re-QAs the leg ripple (neighbouring legs pass
 through each other, as on the old body) and the pincer close (the hooks cross at a full slam),
-and its effects are still tuned to the old bone-and-rust palette.
+and its effects are still tuned to the old bone-and-rust palette. The Bat is rebuilt (48 parts, same 13
+joints, names and pivots; a real three-finger iron hand with scalloped crimson skin, taller
+ears, a rust pug snout and chest bib; Mouth, Core and the wing-tip attachments moved onto the
+new geometry). Open: in Stagger, and briefly in the Death flail, the longer hand passes into
+the body; scaling Stagger's wing yaw to 0.7x clears it (a pose-module change for the
+animator), and `poses_blood_bat.md` still has the old skin-tilt numbers.
 
 New server mechanics (`EnemyService`, `BossAttacks`, `PlayerSlow`, fields in `Enemies.luau`):
 - **`slow`** (attack field, `PlayerSlow.luau`, unused since the Spider was cut): a landed hit slows the player's walk by `factor`

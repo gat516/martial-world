@@ -19,7 +19,8 @@ local top, minZ, maxZ = -math.huge, math.huge, -math.huge
 for _, d in model:GetDescendants() do
 	if d:IsA("BasePart") and d.Name ~= "HumanoidRootPart" and d.Transparency < 1 then
 		top = math.max(top, d.Position.Y + extent(d, "Y"))
-		if not d.Name:match("^Jaw") and not d.Name:match("^Ant") then
+		local seg = d:GetAttribute("Segment") or d.Name
+		if not seg:match("^Jaw") and not seg:match("^Ant") then
 			minZ = math.min(minZ, d.Position.Z - extent(d, "Z"))
 		end
 		maxZ = math.max(maxZ, d.Position.Z + extent(d, "Z"))
@@ -49,8 +50,10 @@ local function attach(partName, name, worldPos)
 	a.Parent = part
 end
 local skull = model.Skull
-attach("Skull", "Mouth", Vector3.new(0, 1.0, skull.Position.Z - skull.Size.Z / 2 - 0.4))
+-- between the pincer hooks' bases, where they close (the tips meet ~9.25 ahead of the centre)
+attach("Skull", "Mouth", Vector3.new(0, 1.1, skull.Position.Z - skull.Size.Z / 2 - 1.0))
 attach("Seg3", "Core", Vector3.new(0, 1.5, model.Seg3.Position.Z))
 attach("Seg6", "Seg6_FX", Vector3.new(0, 1.6, model.Seg6.Position.Z))
-attach("Tail", "TailTip_FX", Vector3.new(0, 0.75, model.Tail.Position.Z + 2.4))
+-- behind the rear spines' tips, on the midline
+attach("Tail", "TailTip_FX", Vector3.new(0, 1.2, model.SpineTipL.Position.Z + 0.9))
 return msg .. ("\nHRP %s at %s, top %.2f, z %.1f..%.1f"):format(tostring(hrpSize), tostring(hrpPos), top, minZ, maxZ)

@@ -11,6 +11,8 @@
 --   GAP   a plate/skull/jaw that no longer touches the part it hangs from (oriented boxes, 0.02 slack)
 --   CLIP / MERGE  non-adjacent segments interpenetrating that did not at rest (0.08), and the same
 --         between segments two joints apart (0.15)
+--   LEGCLIP a leg cutting 0.08 into its neighbour legs on the same side or a plate other than its own
+--         (pairs that did not touch at rest)
 -- Run in Edit mode through execute_luau in a sandbox (module pushed with tools/push_src.luau, or
 -- the sandbox's own copy). Options (globals): _G.CP_ONLY = "CoilSweep" (one move or loop),
 -- _G.CP_VERBOSE = true (print every pose).
@@ -18,7 +20,8 @@
 local ServerStorage = game:GetService("ServerStorage")
 local C = require(game:GetService("StarterPlayer").StarterPlayerScripts.Client.EnemyPoses:Clone().BloodCentipede)
 
-local template = ServerStorage.Enemies.BloodCentipede
+-- _G.CP_TARGET = "_RosterBeasts" checks the staging body (ServerStorage._RosterBeasts.BloodCentipede)
+local template = (if _G.CP_TARGET then ServerStorage[_G.CP_TARGET] else ServerStorage.Enemies).BloodCentipede
 local hrp = template.HumanoidRootPart
 local GROUND = 0
 
@@ -222,6 +225,23 @@ local function check(label, pose, buried)
 			local chain = parentOf[parentOf[a] or ""] == b or parentOf[parentOf[b] or ""] == a
 			if dd > (if chain then 0.15 else 0.08) then
 				table.insert(issues, ("%s %s/%s %.2f"):format(if chain then "MERGE" else "CLIP", a, b, dd))
+			end
+		end
+	end
+	-- legs: a leg against its neighbour legs on the same side and against the other plates
+	-- (not its own), flagged when they cut in deeper than 0.08 and did not touch at rest
+	for i = 1, 12 do
+		for _, side in { "L", "R" } do
+			local a = "Leg" .. side .. i
+			local others = { "Leg" .. side .. (i - 1), "Leg" .. side .. (i + 1), "Seg" .. (i - 1), "Seg" .. (i + 1), "Collar", "Tail" }
+			for _, b in others do
+				local key = if a < b then a .. "|" .. b else b .. "|" .. a
+				if boxes[b] and restDepth[key] and restDepth[key] < 0 and (sph[a].c - sph[b].c).Magnitude <= sph[a].r + sph[b].r then
+					local dd = segDepth(boxes, a, b)
+					if dd > 0.08 then
+						table.insert(issues, ("LEGCLIP %s/%s %.2f"):format(a, b, dd))
+					end
+				end
 			end
 		end
 	end

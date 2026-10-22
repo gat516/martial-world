@@ -60,6 +60,12 @@ Stagger/Death, a short burrow lane, walk 3/6/11 and run 14/18 at 16 phases with 
 turn, idle at 61 clocks) and flags plate steps over 0.25, plates under the ground (-0.02) or feet,
 pincers and antennae under -0.15 (rest is -0.07), a floating body, gaps between a plate and its parent,
 clips and merges. Result: 2 flagged (the clamped hard run turn above), 0 sunk, 0 gaps, 0 clips.
+Re-run on the rebuilt body (2026-10-22, `_G.CP_TARGET = "_RosterBeasts"` checks the staging copy): still
+0 sunk, 0 gaps, 0 clips; BurrowDive ends at top -0.57, Erupt starts at -0.33. The new LEGCLIP pass
+(legs against same-side neighbour legs and other plates) flags the ripple swinging neighbouring legs
+through each other, up to 0.47 deep (0.43 on the old body), and femurs grazing neighbouring slab
+undersides by up to 0.19 at full swing: an animator follow-up (smaller swing or more lag on the
+lifted leg), not a body fault.
 `keyframe_test`: keyable (43 joints).
 
 ## Untested / requests

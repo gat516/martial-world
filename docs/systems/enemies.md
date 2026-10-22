@@ -529,7 +529,11 @@ bat wind-blood. On 2026-10-22 the user cut the Frost Spider (FE1, ice trapper) a
 bog ambusher; its rebuild still looked bad); their bodies, fights, effects and sounds are
 gone, but the mechanics they used (`slow`, `patch`, the snare `pull`) stay for later beasts.
 The same day the user asked for a modeling pass on the Centipede and Bat bodies (the first
-builds read as weak).
+builds read as weak). The Centipede is rebuilt (128 parts, same 43 joints and names, crimson
+and bone with roof-tile plates, bigger hooked pincers, two-piece legs; RIGS.md has the moved leg,
+pincer and antenna pivots). Open: the animator re-QAs the leg ripple (neighbouring legs pass
+through each other, as on the old body) and the pincer close (the hooks cross at a full slam),
+and its effects are still tuned to the old bone-and-rust palette.
 
 New server mechanics (`EnemyService`, `BossAttacks`, `PlayerSlow`, fields in `Enemies.luau`):
 - **`slow`** (attack field, `PlayerSlow.luau`, unused since the Spider was cut): a landed hit slows the player's walk by `factor`

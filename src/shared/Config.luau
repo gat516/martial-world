@@ -376,7 +376,7 @@ return {
 			GUARDING_REGEN = 0.5, -- regen share while the guard is held
 			BREAK_STAGGER = 1.0, -- seconds staggered when the guard breaks
 			BREAK_REFILL = 0.5, -- the guard comes back this full after a break
-			PARRY_WINDOW = 0.18, -- a hit this soon after raising the guard is a perfect parry
+			PARRY_WINDOW = 0.22, -- a hit this soon after pressing guard is a perfect parry, even if it was let go
 			PARRY_RECOVER = 0.5, -- raising again sooner than this after the last raise opens no window (no spamming)
 			PARRY_REFUND = 0.15, -- guard back on a perfect parry
 			PARRY_STAGGER = 0.9, -- seconds the parried beast is staggered

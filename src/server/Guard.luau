@@ -6,8 +6,9 @@
 --
 --   blocked  a hit from the front while the guard is up: CHIP of the damage gets
 --            through and the meter drains by its share of max health.
---   parried  the hit lands within PARRY_WINDOW of raising the guard: nothing
---            gets through, some guard comes back and the beast staggers
+--   parried  the hit lands within PARRY_WINDOW of raising the guard, even if
+--            the button was already let go (a tap parries): nothing gets
+--            through, some guard comes back and the beast staggers
 --            (EnemyService). Raising again within PARRY_RECOVER of the last
 --            raise opens no window, so spamming the button never parries.
 --   broken   a blocked hit empties the meter: the guard drops, the player
@@ -17,7 +18,8 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
+local SharedConfig = require(ReplicatedStorage.Shared.Config)
+local CombatConfig = SharedConfig.Combat
 local Config = CombatConfig.GUARD
 local GuardRules = require(ReplicatedStorage.Shared.GuardRules)
 local PlayerStun = require(script.Parent.PlayerStun)
@@ -98,7 +100,9 @@ end
 -- that still gets through.
 function Guard.absorb(player: Player, humanoid: Humanoid, root: BasePart, amount: number, from: Vector3, heavy: boolean, now: number): (Result?, number)
 	local s = state(player)
-	if not s.meter.up then
+	local sinceRaise = now - s.raisedAt
+	local inWindow = s.window and sinceRaise >= 0 and sinceRaise <= Config.PARRY_WINDOW + CombatConfig.IFRAME_SLACK
+	if not s.meter.up and not inWindow then
 		return nil, amount
 	end
 	local toward = (from - root.Position) * Vector3.new(1, 0, 1)
@@ -107,12 +111,15 @@ function Guard.absorb(player: Player, humanoid: Humanoid, root: BasePart, amount
 		return nil, amount
 	end
 	local character = player.Character
-	local sinceRaise = now - s.raisedAt
-	if s.window and sinceRaise >= 0 and sinceRaise <= Config.PARRY_WINDOW + CombatConfig.IFRAME_SLACK then
+	if inWindow then
 		GuardRules.refund(s.meter, Config.PARRY_REFUND, now)
 		mirror(player, s)
 		effectRemote:FireAllClients("guard", character, "parried", from)
 		return "parried", 0
+	end
+	if SharedConfig.TESTBED then
+		-- timing aid while tuning: how long before the hit the guard went up
+		effectRemote:FireClient(player, "guardEarly", sinceRaise)
 	end
 	local chip = amount * Config.CHIP
 	local left = GuardRules.drain(s.meter, GuardRules.cost(amount, humanoid.MaxHealth, heavy), now)

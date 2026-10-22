@@ -121,11 +121,14 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   applies) and lets the chip through; the meter comes back at `BREAK_REFILL`
   after the stagger and the delay. The input has to be pressed again.
 - **Perfect parry**: a hit landing within `PARRY_WINDOW` (+ `IFRAME_SLACK` for
-  latency) of raising the guard: no damage, `PARRY_REFUND` guard back, and the
+  latency) of raising the guard, even if the button was already let go (a tap
+  parries; the pose stays up at least 0.25 s): no damage, `PARRY_REFUND` guard back, and the
   beast staggers (`PARRY_STAGGER`, bosses `PARRY_STAGGER_BOSS`), which calls off
   its windup, dash and follow-ups like a knockback stagger. Every hit inside the
   window is parried (multi-hit strikes). Raising again within `PARRY_RECOVER`
-  of the last raise blocks but can't parry, so tapping never parries.
+  of the last raise blocks but can't parry, so mashing never parries. In the
+  testbed a blocked hit floats "early 0.xx s" (how long before it the guard went
+  up), to tune the window.
 - Transport: Attack remote `op "guard"` (`on`, `time`); the server answers the
   owner with Effect `"guardMeter"` (character, stored, at, up; the client's bar
   runs `GuardRules.value` on it) and tells everyone the outcome with Effect

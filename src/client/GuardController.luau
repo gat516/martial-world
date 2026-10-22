@@ -30,6 +30,7 @@ local player = Players.LocalPlayer
 local RAISE_FADE = 0.08 -- the guard pose blends in this fast; the clip itself starts in guard
 local LOWER_FADE = 0.15
 local REFUSED_WAIT = 0.25 -- after the server refuses a raise, wait this long before asking again
+local MIN_UP = 0.25 -- a tap keeps the guard pose up this long (the parry window outlives the press anyway)
 local PARRY_COLOR = Color3.fromRGB(255, 236, 190)
 
 local GuardController = {}
@@ -38,6 +39,7 @@ local meter = GuardRules.new()
 local held = false -- the input is down
 local up = false -- predicted: the guard is raised
 local retryAt = 0
+local raisedAt = 0
 local guardCharacter: Model?
 local tracks: { [string]: AnimationTrack } = {} -- "Hold", "Parry", "Impact" from Animations.Guard
 
@@ -79,6 +81,7 @@ local function setUp(value: boolean, notify: boolean)
 	GuardRules.setUp(meter, value, now)
 	local character = player.Character
 	if value then
+		raisedAt = now
 		play("Hold", RAISE_FADE)
 	else
 		local hold = tracks.Hold
@@ -129,6 +132,12 @@ local function onEffect(kind: string, ...: any)
 			retryAt = workspace:GetServerTimeNow() + REFUSED_WAIT
 		end
 		meter.up = up
+	elseif kind == "guardEarly" then
+		-- testbed only: a blocked hit says how long before it the guard went up
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		if root and type(args[1]) == "number" then
+			CombatEffects.number(root.Position, string.format("early %.2fs", args[1]), Color3.fromRGB(200, 220, 255), 16)
+		end
 	elseif kind == "guard" then
 		local character, outcome, from = args[1], args[2], args[3]
 		if typeof(character) ~= "Instance" or not character:IsA("Model") or typeof(from) ~= "Vector3" then
@@ -235,7 +244,9 @@ function GuardController.init(gui: ScreenGui)
 
 	RunService.Heartbeat:Connect(function()
 		local now = workspace:GetServerTimeNow()
-		if up and not (held and canRaise()) then
+		if up and not canRaise() then
+			setUp(false, true)
+		elseif up and not held and now - raisedAt >= MIN_UP then
 			setUp(false, true)
 		elseif not up and held and now >= retryAt and canRaise() then
 			setUp(true, true)

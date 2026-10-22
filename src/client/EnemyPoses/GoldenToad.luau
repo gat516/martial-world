@@ -36,7 +36,7 @@
 --                 lids lifted; held to 1.0. active 0.1: the croak (head thrust, the sac
 --                 crushes, the back jiggles). recover 0.8: decaying throat pulses.
 --   MiasmaLob   windup 1.0: a deep crouch, retching heaves, then the head rears back with
---                 the jaw wide (0.7-0.8); the GOB LEAVES THE MOUTH AT u = 0.8 s (the head
+--                 the jaw wide (0.4-0.57); the GOB LEAVES THE MOUTH AT u = 0.6 s (the head
 --                 snaps forward and up), 0.8-1.0 follow-through. active 0.1, recover 0.8.
 --   Hop         active 0.35 (air, the backslide): push off, tuck, reach for the ground.
 --               recover 0.3 (not in the def; the landing compress and back jiggle).
@@ -533,17 +533,17 @@ moves.MiasmaLob = {
 		duration = 1.0,
 		keys = {
 			{ t = 0, pose = STAND, plant = ALL },
-			{ t = 0.25, pose = LOB_DEEP, ease = "out", plant = ALL },
-			{ t = 0.65, pose = LOB_SWELL, ease = "inOut", plant = ALL },
-			-- the head rears back (0.65-0.8 s), then the throw at 0.8 s
-			{ t = 0.78, pose = LOB_REAR, ease = "inOut", plant = ALL },
-			{ t = 0.8, pose = LOB_REAR, plant = ALL },
-			{ t = 0.88, pose = LOB_FLING, ease = "in", plant = ALL, reach = LOB_REACH },
+			{ t = 0.18, pose = LOB_DEEP, ease = "out", plant = ALL },
+			{ t = 0.4, pose = LOB_SWELL, ease = "inOut", plant = ALL },
+			-- the head rears back (0.4-0.57 s), then the throw at 0.6 s
+			{ t = 0.57, pose = LOB_REAR, ease = "inOut", plant = ALL },
+			{ t = 0.6, pose = LOB_REAR, plant = ALL },
+			{ t = 0.67, pose = LOB_FLING, ease = "in", plant = ALL, reach = LOB_REACH },
 			{ t = 1, pose = with(LOB_FLING, { JointRoot = RT(0, -0.15, -0.35, 0.1), JointHead = A(0.05), JointSac = SAC(0.0) }), ease = "out", plant = ALL, reach = LOB_REACH },
 		},
 		-- retching heaves while it swells
 		overlay = function(u, secs)
-			local r = smooth(0.25, 0.35, u) * (1 - smooth(0.62, 0.7, u))
+			local r = smooth(0.18, 0.25, u) * (1 - smooth(0.38, 0.45, u))
 			local h = math.max(0, math.sin(TAU * 3.0 * secs))
 			return {
 				JointSac = CFrame.new(0, -0.15 * r * h, -0.12 * r * h),
@@ -621,14 +621,14 @@ moves.Hop = {
 			{ t = 0.22, pose = HOP_PUSH, ease = "in", plant = { "BL", "BR" } },
 			{ t = 0.4, pose = HOP_TUCK, ease = "out", plant = {} },
 			{ t = 0.85, pose = HOP_REACH, ease = "inOut", plant = {} },
-			{ t = 1, pose = with(HOP_REACH, { JointRoot = RT(0, -0.1, 0.0, 0.05) }), ease = "in", plant = ALL },
+			{ t = 1, pose = with(HOP_REACH, { JointRoot = RT(0, -0.3, 0.05, 0.0), JointBack = A(0.05) }), ease = "in", plant = ALL },
 		},
 	},
 	recover = {
 		duration = 0.3,
 		keys = {
-			{ t = 0, pose = with(HOP_REACH, { JointRoot = RT(0, -0.1, 0.0, 0.05) }), plant = ALL },
-			{ t = 0.25, pose = merge({ JointRoot = RT(0, -0.6, 0.1, -0.04), JointHead = A(-0.08), JointBack = A(0.05) }, LIDS(0.1)), ease = "out", plant = ALL },
+			{ t = 0, pose = with(HOP_REACH, { JointRoot = RT(0, -0.3, 0.05, 0.0), JointBack = A(0.05) }), plant = ALL },
+			{ t = 0.4, pose = merge({ JointRoot = RT(0, -0.55, 0.1, -0.04), JointHead = A(-0.08), JointBack = A(0.05) }, LIDS(0.1)), ease = "out", plant = ALL },
 			{ t = 1, pose = STAND, ease = "inOut", plant = ALL },
 		},
 		overlay = function(_, secs)
@@ -748,7 +748,7 @@ end
 -- over 2/3 of the cycle and steps forward in 1/3. The shell... the body leans away from
 -- the stepping leg, dips as it lands, and the head bobs forward on the front step.
 function loops.walk(phase: number, speed: number, _input: Input?): Pose
-	local S = 0.6
+	local S = 1.0
 	local beta = 2 / 3
 	local cA = (phase / TAU) % 1
 	local reach: { [string]: Vector3 } = {}
@@ -763,12 +763,12 @@ function loops.walk(phase: number, speed: number, _input: Input?): Pose
 			local s = (c - beta) / (1 - beta)
 			z = S * (1 - 2 * smoothstep(s))
 			y = (if tag == "FL" then 0.32 else 0.38) * math.sin(math.pi * s) ^ 0.8
-			out = 0.25 * math.sin(math.pi * s)
+			out = (if tag == "FL" then 0.25 else 0.5) * math.sin(math.pi * s)
 			swing[tag] = math.sin(math.pi * s)
 		end
 		local side = if tag == "BL" then -1 elseif tag == "BR" then 1 else 0
 		-- the hind feet stay forward of their rest spots: sliding back lowers the knee into the ground
-		reach[tag] = V(side * out, y, z + (if side ~= 0 then -0.5 else 0))
+		reach[tag] = V(side * out, y, z + (if side ~= 0 then -0.8 else 0.35))
 		flex[tag] = 0 -- toes up would put the toe tips into the belly and the sac
 	end
 	-- the weight goes onto the legs that are down: away from the stepping side
@@ -847,12 +847,12 @@ loops.circle = loops.walk
 GoldenToad.loops = loops
 
 -- radians per second of the loop phase so the planted feet do not skate. The walk's feet
--- slide back 2 S = 1.2 studs over 2/3 of the cycle; the run's over 0.4 of it (1.8 studs).
+-- slide back 2 S = 2.0 studs over 2/3 of the cycle; the run's over 0.4 of it (1.8 studs).
 function GoldenToad.gaitRate(loop: string, speed: number, scale: number?): number
 	local s = scale or 1
 	local v = math.max(speed, 0.2) / s
 	if loop == "walk" or loop == "circle" then
-		return TAU * (2 / 3) * v / 1.2
+		return TAU * (2 / 3) * v / 2.0
 	elseif loop == "run" then
 		return TAU * RUN_STANCE * v / 1.8
 	end

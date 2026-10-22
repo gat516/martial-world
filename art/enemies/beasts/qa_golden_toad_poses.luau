@@ -42,6 +42,8 @@ local CONFIGS = {
 			-- forelimb overlap the chest
 			if pair:find("^Body|Foot") or pair:find("^Foot%a+|Thigh") then
 				return 0.7
+			elseif pair:find("^FootB%a|FootF") then
+				return 0.2 -- the hind foot steps forward beside the front foot
 			elseif pair:find("^FootF|Sac") then
 				return 0.15
 			elseif pair:find("^Back|LowerLeg") then

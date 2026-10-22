@@ -1539,50 +1539,6 @@
     </Properties>
     </Item>
    </Item>
-   <Item class="Folder" referent="W2F34"><Properties>
-    <string name="Name">FrostSpider</string>
-   </Properties>
-    <Item class="Sound" referent="W2S29"><Properties>
-     <string name="Name">Aggro</string>
-     <Content name="SoundId"><url>rbxassetid://125555063571186</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">1.6</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-    <Item class="Sound" referent="W2S30"><Properties>
-     <string name="Name">Attack</string>
-     <Content name="SoundId"><url>rbxassetid://9120049821</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">1.6</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-    <Item class="Sound" referent="W2S31"><Properties>
-     <string name="Name">Death</string>
-     <Content name="SoundId"><url>rbxassetid://131702952954629</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">1.4</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-    <Item class="Sound" referent="W2S32"><Properties>
-     <string name="Name">Attack_webShot</string>
-     <Content name="SoundId"><url>rbxassetid://123796710194563</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">1.2</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-    <Item class="Sound" referent="W2S33"><Properties>
-     <string name="Name">Attack_frostFang</string>
-     <Content name="SoundId"><url>rbxassetid://97491288736522</url></Content>
-     <float name="Volume">0.8</float>
-     <float name="PlaybackSpeed">1.0</float>
-     <float name="RollOffMaxDistance">150</float>
-    </Properties>
-    </Item>
-   </Item>
   </Item>
   <Item class="Sound" referent="SGSFX20"><Properties>
    <string name="Name">FireSeal</string>

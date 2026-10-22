@@ -1,5 +1,6 @@
 --!strict
--- Slow on players (the Frost Spider's chill and web patches). Server authority. A slow
+-- Slow on players (an attack's `slow` and slow `patch`; no beast uses it since the Frost
+-- Spider was cut). Server authority. A slow
 -- scales walking speed by `factor` until it expires (re-applying refreshes it and keeps the
 -- stronger factor; it never stacks, never roots, and a dodge or dash skill ignores it since
 -- those move the character by impulses, not by WalkSpeed). Humanoid attributes, read by

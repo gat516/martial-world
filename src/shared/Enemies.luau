@@ -224,7 +224,6 @@ local NEW_TOAD = Wilds.NEW_TOAD
 local NEW_CENTIPEDE = Wilds.NEW_CENTIPEDE
 local NEW_RAVEN = Wilds.NEW_RAVEN
 local NEW_BAT = Wilds.NEW_BAT
-local NEW_SPIDER = Wilds.NEW_SPIDER
 
 local Enemies = {}
 
@@ -1221,8 +1220,8 @@ if NEW_SHADOW_MANE then
 	} :: Def
 end
 
--- THE THIRD WAVE (testbed only, Config.Wilds.NEW_TOAD / NEW_CENTIPEDE / NEW_RAVEN / NEW_BAT /
--- NEW_SPIDER). Like the second wave, first guesses for the user's playtest, not balance. Reaches
+-- THE THIRD WAVE (testbed only, Config.Wilds.NEW_TOAD / NEW_CENTIPEDE / NEW_RAVEN /
+-- NEW_BAT). Like the second wave, first guesses for the user's playtest, not balance. Reaches
 -- are measured from the root centre (RIGS.md has each body's root box and mouth distance).
 
 -- Golden Toad (QC3, player 140 HP): a bog ambusher. Its tongue lashes down a lane and yanks a
@@ -1392,46 +1391,6 @@ if NEW_BAT then
 		pack = {
 			hop = { distance = 8, seconds = 0.3, arc = 2, cooldown = 2, hits = 99, window = 1 },
 			circle = { radius = 9, speed = 12 },
-			closeOpener = true,
-		},
-	} :: Def
-end
-
--- Frost Spider (FE1, player 500 HP): a trapper. It webs from range (a slowing patch), closes
--- while you are slowed, bites with a chill and skitters back. Its core is a new higher-grade
--- drop that needs its own item and art; until then it drops the Greater core.
-if NEW_SPIDER then
-	local slowWeb = { factor = 0.5, seconds = 1.0 }
-	local webShot: Attack = {
-		kind = "spit", name = "webShot", damage = 25, range = 30, minRange = 12, windup = 0.9,
-		recover = 0.7, cooldown = 5, radius = 5, slow = { factor = 0.5, seconds = 2 },
-		patch = { seconds = 4, effect = "slow", slow = slowWeb },
-	}
-	local frostFang: Attack = {
-		kind = "lunge", name = "frostFang", damage = 60, range = 14, minRange = 3, windup = 0.7,
-		recover = 0.9, cooldown = 3.2, length = 10, width = 3.5, dashSpeed = 38, stopPast = -2, reach = 4,
-		slow = { factor = 0.6, seconds = 1.5 }, skid = true, hopAfter = true,
-	}
-	Enemies.Defs.FrostSpider = {
-		id = "FrostSpider",
-		name = "Frost Spider",
-		body = "FrostSpider",
-		realm = { "Foundation", 1 },
-		weight = 3,
-		health = 420,
-		walkSpeed = 6,
-		runSpeed = 14,
-		aggro = 50,
-		leash = 100,
-		qiDrop = 110,
-		stones = { 30, 50 },
-		respawn = 60,
-		drops = { { item = "GreaterSpiritCore", chance = 0.6 }, { item = "LesserSpiritCore", chance = 0.5 } },
-		attack = webShot,
-		attacks = { webShot, frostFang } :: { Attack },
-		pack = {
-			hop = { distance = 10, seconds = 0.35, arc = 0, cooldown = 3, hits = 99, window = 1 },
-			circle = { radius = 18, speed = 6 },
 			closeOpener = true,
 		},
 	} :: Def

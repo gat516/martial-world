@@ -508,13 +508,12 @@ return {
 		NEW_TORTOISE = TESTBED,
 		NEW_SHADOW_MANE = TESTBED,
 		-- THE THIRD WAVE (enemies.md "Third bestiary wave"): the Golden Toad, Blood Centipede,
-		-- Flame Raven, Iron-Winged Blood Bat and Frost Spider. Testbed only until approved; each
-		-- has no old def, so it exists only while its flag is on.
+		-- Flame Raven and Iron-Winged Blood Bat (the Frost Spider was cut). Testbed only until
+		-- approved; each has no old def, so it exists only while its flag is on.
 		NEW_TOAD = TESTBED,
 		NEW_CENTIPEDE = TESTBED,
 		NEW_RAVEN = TESTBED,
 		NEW_BAT = TESTBED,
-		NEW_SPIDER = TESTBED,
 		-- THE BOSS FEEL PASS (telegraphs.md, "Attacks that make sense"): beasts turn into
 		-- leaps, bounds, charges and lunges over the windup and finish their yaw in the air,
 		-- start an attack's `arrive` follow-up on arrival, and skid round (`<name>Skid`) to

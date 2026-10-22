@@ -283,22 +283,6 @@ emitters; the swarm gets 1 to 3 emitters a beat, the single shrieker plays
 The perch (root 1.5 studs lower after a dive) needs nothing: effects ride the body and
 read the root's ground. The emberFan sends one windup for all three circles (`shape.parts`). Untested in play.
 
-### Frost Spider effects (third wave)
-`EnemyFX/FrostSpider.luau`, templates `Effects.FrostSpider` (12, 39 emitters), builder
-`tools/vfx_specs/FrostSpider.luau`; ice white-blue on slate.
-
-| Beat | Layers (templates) |
-|---|---|
-| Windup | the six eyes (`Eye1..6`) EyeGlint; FangTell/FrostVeinTell/CoreGlow dim -> ice; FangGlint (slate base, star, chill) on each fang |
-| webShot | SpinneretGlow (glow, motes); at the strike a WebBeam thread (slate base + bright thread) to the landing for 0.4 s, then WebSplat (frost puffs, shards, glint) + `Impact.explode` ice |
-| `patch` cue (slow web, `Effect enemyPatch`) | WebPatch refit to `seconds`/`radius`: slate base, silk disc, dark and bright edge rings (the edge reads without colour), strands, twinkling glints; characters standing inside get FootFrost |
-| frostFang | strike: FangFrost (two ice crescents on slate, shards); hit: FrostHit (pop, crystals, stars, frost); skid: `Impact.skid` ice from the four front feet |
-| `slow` cue | FootFrost on both feet (slate base, rime ring, chill motes) for the rest of the slow (Humanoid `SlowUntil`, server time; else 1.5 s) |
-| hop / stagger / death | SkitterPuff; StaggerFlash; Death (shatters: 26 shards, flash, frost mist, glint) |
-
-Untested in play. Smoke-tested against the real body: `tools/enemy_fx_smoke.luau`
-(destroy the old module copies before `push_src`, or `require` returns the cached one).
-
 ### Arrivals, skids and turning into moves (testbed, `Config.Wilds.WEIGHTED_MOVES`)
 The server side of telegraphs.md "Attacks that make sense" (2026-10-22 boss feel pass).
 `WEIGHTED_MOVES = TESTBED`: the main game keeps the old snap-and-slide until the user
@@ -537,28 +521,30 @@ A step that ends with the target off its nose skids round (`shadowStepSkid`). So
 (`SFX.Enemies.StoneTortoise`, `ShadowManeWolf`, the serpent's additions) reuse existing ids
 pitched, picked by description and unheard.
 
-### Third bestiary wave: Golden Toad, Blood Centipede, Flame Raven, Blood Bat, Frost Spider (testbed)
-Five more regular beasts on bodies already in `assets/Enemies.rbxm` (templates `GoldenToad`,
-`BloodCentipede`, `FlameRavenB`, `BloodBat`, `FrostSpider`; RIGS.md has each rig), behind
-`Config.Wilds.NEW_TOAD`, `NEW_CENTIPEDE`, `NEW_RAVEN`, `NEW_BAT`, `NEW_SPIDER` (all
+### Third bestiary wave: Golden Toad, Blood Centipede, Flame Raven, Blood Bat (testbed)
+Four more regular beasts on bodies already in `assets/Enemies.rbxm` (templates `GoldenToad`,
+`BloodCentipede`, `FlameRavenB`, `BloodBat`; RIGS.md has each rig), behind
+`Config.Wilds.NEW_TOAD`, `NEW_CENTIPEDE`, `NEW_RAVEN`, `NEW_BAT` (all
 `= TESTBED`; none has an old def, so each exists only while its flag is on, and none is in an
 ambient pack yet). Testbed zones: `ToadPair` (-180, 0), `CentipedeSolo` (180, 0), `RavenSolo`
-(-180, -160), `BatSwarm` (4 bats, 180, -160), `SpiderSolo` (0, -170), all Y 648.6. They fit
+(-180, -160), `BatSwarm` (4 bats, 180, -160), all Y 648.6. They fit
 realms and regions like this: Toad QC3 (Inner marsh), Centipede QC6 (Ruined Borderlands), Raven
-QC8 and Bat QC8 (deep Borderlands), Spider FE1 (Outer Wastes). Numbers are first guesses; the
+QC8 and Bat QC8 (deep Borderlands). Numbers are first guesses; the
 user retunes them. A beast of each element is an affinity: toad water-venom, centipede
-earth-blood, raven fire, bat wind-blood, spider ice. The Spider's higher-grade core item is
-still open (it drops Greater cores until the user picks art for a new one).
+earth-blood, raven fire, bat wind-blood. The user cut the Frost Spider (FE1, ice trapper) on
+2026-10-22; its body, fight, effects and sounds are gone, but the `slow` and slow `patch`
+mechanics it used stay for a later beast. On the same day the user asked for a modeling pass
+on the Toad, Centipede and Bat bodies (the first builds read as weak).
 
 New server mechanics (`EnemyService`, `BossAttacks`, `PlayerSlow`, fields in `Enemies.luau`):
 - **Tongue pull**: the Toad's `tongueLash` is the Fox's `snare` barrage (a lane, `pull`,
   `followUpOnHit`), so a caught player is yanked to 4 studs and `gulp` follows only on a catch.
-- **`slow`** (attack field, `PlayerSlow.luau`): a landed hit slows the player's walk by `factor`
+- **`slow`** (attack field, `PlayerSlow.luau`, unused since the Spider was cut): a landed hit slows the player's walk by `factor`
   for `seconds` (Humanoid attributes `SlowMove`, `SlowUntil`, read by both `Movement`s). It
   refreshes and keeps the stronger factor; it never stacks or roots, and a dodge ignores it. The
   `slow` enemyCue draws it.
 - **`patch`** (spit field): the landing circle lingers `seconds` as a poison (Toad miasma) or
-  slow (Spider web) patch. `BossAttacks.addPatch` shares the Jiao's pool list, ticking every 0.5 s
+  slow patch (no beast uses a slow one now). `BossAttacks.addPatch` shares the Jiao's pool list, ticking every 0.5 s
   for a slow and 1 s for poison; clients get `Effect "enemyPatch"` (EnemyFX handler `patch`,
   `cue.shape = { center, radius, effect }`, `cue.seconds`).
 - **`leech`** (Bat): a landed hit heals the beast that share of its damage and fires the `leech`
@@ -597,11 +583,9 @@ New server mechanics (`EnemyService`, `BossAttacks`, `PlayerSlow`, fields in `En
 | | `windGust` | cone, knock 10, then hop back 8 | 0.5 / - / 0.7 | 9 | r 10, 70 deg | 8 |
 | Bat (QC8, 60 HP, swarm of 4) | `bloodDive` (opener) | charge, leech 0.5, hop away | 0.6 / up to 14 studs at 30/s / 0.8 | 6-16 | lane 2.5 | 12 |
 | | `sonicShriek` | howl + stagger 0.6 s, `slot` | 1.0 / - / 0.8 | 10 | circle r 10 | 0 |
-| Spider (FE1, 420 HP) | `webShot` (opener) | spit + slow patch 4 s | 0.9 / - / 0.7 | 12-30 | circle r 5 | 25 + slow 2 s |
-| | `frostFang` | lunge, reach 4, slow 1.5 s, hop back 10 | 0.7 / up to 10 studs at 38/s / 0.9 | 3-14 | box 3.5 wide | 60 |
 
 Sounds reuse existing ids pitched, picked by description and unheard
-(`SFX.Enemies.GoldenToad`, `BloodCentipede`, `FlameRaven`, `BloodBat`, `FrostSpider`). Untested in
+(`SFX.Enemies.GoldenToad`, `BloodCentipede`, `FlameRaven`, `BloodBat`). Untested in
 play: all of it. Specifically the tongue pull on a client-owned character, the centipede's dive
 lane on uneven ground, the perch drop reading as a landing, three or four bats' phone cost and
 whether overlapping shriek and dive windups feel fair (one slot at a time), the `slow` strength,

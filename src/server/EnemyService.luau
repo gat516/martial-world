@@ -39,12 +39,14 @@ local DEFAULT_ROAM = 15 -- studs an enemy wanders from home unless told otherwis
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local PlayerStun = require(script.Parent.PlayerStun)
+local PlayerPoison = require(script.Parent.PlayerPoison)
+local BossAttacks = require(script.Parent.BossAttacks)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
 -- Attack slots and dash-front hits for the new fights; a boss opts into slots
 -- with shareTurns so its summoned pack cannot cover its tells with another hit.
-local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Config.NEW_THUNDER_APE or Config.NEW_NINE_TAIL_FOX
+local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Config.NEW_THUNDER_APE or Config.NEW_NINE_TAIL_FOX or Config.NEW_JIAO
 -- how long a follow-up (Enemies `followUp`) waits past its recover for the attack slot
 local FOLLOW_UP_WAIT = 1.0
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
@@ -323,6 +325,9 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 	if def.phaseCall then
 		model:SetAttribute("Phase", 1)
 	end
+	if def.startsBurrowed then
+		model:SetAttribute("Burrowed", true)
+	end
 	model:AddTag("Enemy")
 	model.Parent = liveFolder
 	EnemyHistory.track(model, standin.radius, standin.height)
@@ -508,6 +513,7 @@ function EnemyService.died(enemy: Enemy)
 		return
 	end
 	enemies[enemy.model] = nil
+	BossAttacks.died(enemy)
 	releaseSlot(enemy)
 	dismissSummons(enemy)
 	local position = enemy.root.Position
@@ -603,6 +609,7 @@ local function resetAtHome(enemy: Enemy)
 	if enemy.def.phaseCall then
 		enemy.model:SetAttribute("Phase", 1)
 	end
+	BossAttacks.reset(enemy)
 	enemy.nextAttack = 0
 	enemy.lastEngaged = -math.huge
 	enemy.opened = false
@@ -674,6 +681,7 @@ Combat.onEnemyDamaged = function(model: Model, player: Player, amount: number, p
 	end
 	enemy.damagers[player] = (enemy.damagers[player] or 0) + amount
 	setHealth(enemy, enemy.health - amount)
+	BossAttacks.damaged(enemy, amount, os.clock())
 	-- pressed too hard: a pack beast hops back after enough hits in a short window
 	local hop = enemy.def.pack and enemy.def.pack.hop
 	if hop then
@@ -739,6 +747,10 @@ local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player)
 		local stun = attack.stun
 		if stun and stun.onHit then
 			PlayerStun.apply(player, stun.kind :: any, stun.seconds, enemy.model)
+		end
+		local poison = attack.poison
+		if poison then
+			PlayerPoison.apply(player, poison.stacks, poison.seconds, enemy.def.id)
 		end
 	end
 end
@@ -1031,6 +1043,8 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 			radius = attack.radius,
 			size = Vector2.new(attack.angle :: number, 0),
 		}
+	elseif BossAttacks.SHAPED[attack.kind] then
+		shape = BossAttacks.shape(enemy, attack, targetRoot, ground, dir)
 	elseif attack.kind == "barrage" then
 		shape = buildParts(enemy, attack, ground, dir, targetRoot)
 	elseif attack.kind == "retreat" then
@@ -1091,6 +1105,9 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	enemy.model:SetAttribute("Attack", name)
 	setState(enemy, "windup")
 	telegraphRemote:FireAllClients(shape, seconds, enemy.model, name, serverNow())
+	if BossAttacks.SHAPED[attack.kind] then
+		BossAttacks.begin(enemy, attack)
+	end
 end
 
 -- A spot 18-25 studs from `center` on ground a beast can stand on (a downward ray
@@ -1235,7 +1252,7 @@ local function callStorm(enemy: Enemy, attack: Enemies.Attack)
 	local bolts = if enemy.phase >= 3 then attack.boltsP3 or attack.bolts or 5 else attack.bolts or 5
 	local interval, warning = attack.boltInterval or 0.45, attack.boltWindup or 0.9
 	local radius = attack.boltRadius or 8
-	enemy.recoverFor = interval * (bolts - 1) + warning + 0.3
+	enemy.recoverFor = math.max(attack.recover, interval * (bolts - 1) + warning + 0.3)
 	local model = enemy.model
 	for i = 1, bolts do
 		task.delay((i - 1) * interval, function()
@@ -1248,7 +1265,7 @@ local function callStorm(enemy: Enemy, attack: Enemies.Attack)
 				return
 			end
 			local shape: Shape = { kind = "circle", center = groundAt(root.Position), radius = radius }
-			telegraphRemote:FireAllClients(shape, warning, model, "stormBolt", serverNow())
+			telegraphRemote:FireAllClients(shape, warning, model, attack.boltName or "stormBolt", serverNow())
 			task.delay(warning, function()
 				if enemies[model] == enemy and enemy.health > 0 then
 					hurtIn(enemy, attack, shape)
@@ -1294,6 +1311,8 @@ local function resolveAttack(enemy: Enemy, now: number)
 		-- no damage: the hop below is all it does
 	elseif attack.kind == "storm" then
 		callStorm(enemy, attack)
+	elseif BossAttacks.OWNED[attack.kind] then
+		BossAttacks.resolve(enemy, attack, shape, now)
 	elseif attack.kind == "howl" then
 		if callPack(enemy, attack, now) == 0 and attack.summons then
 			reinforce(enemy, attack)
@@ -1318,6 +1337,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 		enemy.model:SetAttribute("Phase", enemy.phase)
 		effectRemote:FireAllClients("enemyCue", enemy.model, "phase")
 	end
+	BossAttacks.resolved(enemy, attack, now)
 	local stun = attack.stun
 	if stun and not stun.onHit then
 		-- a roar: staggers or stuns every player standing in its circle
@@ -1348,7 +1368,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 			-- the dash's line, so clients draw it where it is on the server, not a
 			-- ping behind (EnemyMotion)
 			startDash(enemy, to, attack.dashSpeed :: number)
-			enemy.stateUntil = now + enemy.dashLength / (attack.dashSpeed :: number) + 0.1
+			enemy.stateUntil = now + math.max(enemy.dashLength / (attack.dashSpeed :: number), attack.dashMin or 0) + 0.1
 		end
 		enemy.dashTo = nil
 	else
@@ -1629,12 +1649,15 @@ local function think(enemy: Enemy, now: number)
 	if enemy.state == "windup" then
 		if now >= enemy.stateUntil then
 			resolveAttack(enemy, now)
+		else
+			BossAttacks.windupTick(enemy)
 		end
 		return
 	elseif enemy.state == "dash" then
 		if now >= enemy.stateUntil then
 			stop(enemy)
 			setSpeed(enemy, def.runSpeed)
+			BossAttacks.landed(enemy)
 			-- a leap lands now
 			local landing = enemy.landShape
 			if landing then
@@ -1670,6 +1693,7 @@ local function think(enemy: Enemy, now: number)
 		enemy.target = nil
 		releaseSlot(enemy)
 		dismissSummons(enemy)
+		BossAttacks.disengaged(enemy)
 		enemy.state = "return"
 		setSpeed(enemy, def.runSpeed)
 		moveTo(enemy, home(enemy))
@@ -1689,6 +1713,7 @@ local function think(enemy: Enemy, now: number)
 			-- wounded boss and its pack waiting beside the respawn pad.
 			releaseSlot(enemy)
 			dismissSummons(enemy)
+			BossAttacks.disengaged(enemy)
 			enemy.state = "return"
 			setSpeed(enemy, def.runSpeed)
 			moveTo(enemy, home(enemy))
@@ -1736,8 +1761,9 @@ local function think(enemy: Enemy, now: number)
 		for i, at in def.summonAt do
 			if fraction <= at and not enemy.summonsDone[i] then
 				enemy.summonsDone[i] = true
-				if def.phaseCall then
-					startAttack(enemy, targetRoot, now, def.phaseCall)
+				local call = if def.phaseCalls then def.phaseCalls[i] else def.phaseCall
+				if call then
+					startAttack(enemy, targetRoot, now, call)
 					return
 				end
 				for _, a in def.pattern do
@@ -1894,6 +1920,42 @@ local function moveAll(dt: number)
 		EnemyHistory.record(enemy.model, enemy.root.Position, stamp)
 	end
 end
+
+BossAttacks.init({
+	groundAt = groundAt,
+	flat = flat,
+	playerRoot = playerRoot,
+	caught = caught,
+	inside = EnemyService.inside,
+	hurtPlayer = hurtPlayer,
+	hurtIn = hurtIn,
+	serverNow = serverNow,
+	moveTo = moveTo,
+	setSpeed = setSpeed,
+	face = face,
+	telegraph = function(shape: Shape, seconds: number, model: Model, name: string)
+		telegraphRemote:FireAllClients(shape, seconds, model, name, serverNow())
+	end,
+	cue = function(model: Model, name: string)
+		effectRemote:FireAllClients("enemyCue", model, name)
+	end,
+	alive = function(enemy: Enemy): boolean
+		return enemies[enemy.model] == enemy and enemy.health > 0
+	end,
+	valid = function(enemy: Enemy, id: number): boolean
+		return enemies[enemy.model] == enemy and enemy.health > 0 and enemy.strikeId == id
+	end,
+	-- a coil broken in its hold: stagger it where it lies
+	stagger = function(enemy: Enemy, seconds: number)
+		enemy.shape, enemy.dashTo, enemy.landShape = nil, nil, nil
+		enemy.strikeId += 1
+		releaseSlot(enemy)
+		stop(enemy)
+		enemy.mover.turn = false
+		setState(enemy, "stagger")
+		enemy.stateUntil = os.clock() + seconds
+	end,
+})
 
 function EnemyService.start()
 	task.spawn(function()

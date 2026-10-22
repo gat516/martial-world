@@ -516,6 +516,57 @@ already moved to the next pattern entry). `EnemyFX` windup cues now carry the te
 `SFX.Enemies.ThunderApe` reuse the King, boar and Thunder samples at low pitch (placeholders, not listened to).
 Untested: all of it (feel, numbers, wall/ground checks for the flank bound, the wave's readability).
 
+### Jade Jiao (testbed trial)
+`Config.Wilds.NEW_JIAO = Config.TESTBED` gates the whole boss; **spawn it from the admin panel** (no
+testbed zone). A 115-stud jade serpent (body `JadeJiao`, 37 joints, 3.17x the roster python, see
+`art/enemies/beasts/RIGS.md`), QC7, 1500 HP, weight 9, walk 6, run 21 (+2.5% a phase; the player
+walks at 16), aggro 60, leash 130. Poses `EnemyPoses/JadeJiao.luau`, effects
+`EnemyFX/JadeJiao.luau`, poison visuals `PoisonFX.luau`, boss bar theme `BossThemes.JadeJiao`,
+sounds `SFX.Enemies.JadeJiao` (existing serpent/boom ids pitched down, unheard).
+
+Fight: it spawns `Burrowed` (an earth mound, immune, no lock-on) and every engagement opens with
+`emerge` (2.2 s, `pack.howl`; it surfaces at the end). The pattern rotates by range band and phase
+(`rotate`); thresholds 66/33/12% call molt (phase 2, 2 Venom Serpents), ascension (phase 3, 2 more,
+then `venomRain` as its follow-up) and venomRain again at 12%.
+
+| Attack (`name`) | Kind | Windup / recover | Reach from the root | Damage (QC7 255 HP) | CC |
+|---|---|---|---|---|---|
+| `venomLance` | bolt, 1 lane 4 x 72 at 75/s | 0.7 / 0.8 | 18-70 | 28 + poison | flinch |
+| `venomFang` | cone r 24, 80 deg | 0.75 / 0.9 | 22 | 36 + poison | flinch |
+| `pillarSlam` | slam r 11 at (0,0,-18) | 1.0 / 1.3 | 26 | 61 | stagger 0.7 |
+| `tailSweep` | slam r 21 at (0,0,5) | 0.8 / 1.0 | 20 | 31 | stagger 0.5 |
+| `mireDive` (P2) | burrow, lane 5 wide up to 56 at 75/s, no damage; follow-up `erupt` | 0.8 / 0.1 | 20-56 | 0 | none |
+| `erupt` | slam r 12 at the root, surfaces it | 0.85 / 1.1 | chained | 56 | stagger 0.8 |
+| `dreadHiss` (P2) | howl, stagger circle r 23 | 1.1 / 0.9 | 24 | 0 | stagger 0.8 |
+| `venomSpray` (P2) | bolt, lanes 0/-22/+22, 3.6 x 62 | 1.0 / 1.2 | 18-60 | 20 a lane + poison | flinch |
+| `jiaoCoil` (P2) | coil: circle r 15 on the target | 1.5 / 4.4 | 8-45 | 20 + squeeze 71 | stun 1.4 (P3 1.6) |
+| `fangFlurry` (P2) | cone r 20, then re-aimed cones at +0.4 s (r 20) and +1.0 s (r 25, 90 deg) | 0.9 / 2.1 | 20 | 18 a strike + poison | flinch |
+| `venomPools` (P2) | 3 circles r 7 (target, +-11 sideways) leaving poison pools 7 s | 1.0 / 0.9 | 14-60 | 18 + poison | flinch |
+| `molt`, `ascension` | summon 2 Venom Serpents, phase step | 1.6 / 0.9, 2.0 / 1.0 | threshold | 0 | none |
+| `venomRain` | storm: 9 circles r 7, one every 0.3 s from the release, each on where the target stands then and striking 0.9 s after it shows | 2.0 / 5.0 | threshold | 26 a drop | flinch |
+| `emerge` | howl, the entrance | 2.2 / 0.6 | engage | 0 | none |
+
+Mechanics (`src/server/BossAttacks.luau`, hooks in EnemyService): `bolt` hurts the first player on each
+lane as the front arrives (the server simulates no projectile); `pools` hurt at windup end and
+leave hazard circles that add a poison stack a second; `burrow` sets `Burrowed` (model attribute,
+cleared by any attack with `unburrow` or when it loses its target; `Combat.damageEnemy` ignores a
+burrowed model and LockOn skips it); `coil` locks its circle on the target, the boss runs
+to a point `coilRadius` 13.3 from the centre during the windup, a landed hit stuns and sets
+`CoilCenter/CoilRadius/CoilGap/CoilHalfAngle/CoilAt/CoilSqueezeAt`; at the squeeze (dash +
+`hold` 3.0 s, P3 2.6) everyone inside r 15 and outside the gap takes damage (no CC: stun
+immunity would swallow it); 3% of max health dealt during the hold breaks the ring (stagger
+0.9 s, cue `coilBreak`). Poison: `PlayerPoison` (3 stacks, 1.2% max health a stack each second,
+5 s refreshed, never lethal, no flinch; attributes `PoisonStacks`/`PoisonUntil`).
+Attack fields `poison`, `strikes`, `lanes`, `flank`, `unburrow`, `dashMin`, `boltName`,
+def `phaseCalls`, `startsBurrowed` are documented in Enemies.luau.
+
+Known gaps: the server hitbox is the root box, so tail and body hits don't register (only
+the areas above hurt); the coil ring has no collision, so anyone who leaves past r 15 (not
+only through the door) escapes the squeeze; no poison cure and no HUD icon; P3's run
+speed is 22.1 by `phaseSpeed` and P3 coil timings differ only in hold/stun/gap, not recover;
+untested in play: the flurry's re-aimed cones, bolt arrival timing at latency, the dive
+under broken ground, the rain at 9 drops on mobile, brood slot sharing, difficulty (QC7).
+
 ### Template contract
 Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated
 `HumanoidRootPart` as PrimaryPart standing on Y 0 (its height is the beast's root
@@ -617,7 +668,7 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - Kill credit share: `Pacing.Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`.
 - Movement: `Config.Wilds.MOVE_TICK` (step and replication rate), `WALK_SLOPE`,
   `CLIMB`, `FALL_SPEED`, `TURN_RATE`, `CROWD`.
-- Packs and turns: `Config.Wilds.NEW_WOLF` (the wolf fight's switch, shipped on; it or NEW_BOAR turns on slots
+- Packs and turns: `NEW_JIAO` (Jade Jiao trial, testbed only), `Config.Wilds.NEW_WOLF` (the wolf fight's switch, shipped on; it or NEW_BOAR turns on slots
   and dash-front hits for everyone), `NEW_BOAR` (the boar fight's switch, shipped on),
   `NEW_WOLF_KING` (King trial, testbed only),
   `ATTACK_SLOTS`, `SLOT_GAP`, `ENGAGE_RESET`; per beast `attacks` (with `minRange`,

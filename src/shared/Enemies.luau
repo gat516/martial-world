@@ -76,7 +76,24 @@ export type Attack = {
 	recoverP3: number?, -- barrage: recover seconds in phase 3 (its parts run longer)
 	followUpOnHit: string?, -- barrage: this attack follows only if a snare caught someone
 	thresholdOnly: boolean?, -- boss pattern: kept here for poses/cues, called only by summonAt
-	stun: { kind: string, radius: number, seconds: number? }?, -- on resolve, PlayerStun.apply("stagger" | "stun") to players in the circle (shown as its own telegraph)
+	stun: { kind: string, radius: number, seconds: number?, onHit: boolean?, secondsP3: number? }?, -- on resolve, PlayerStun.apply("stagger" | "stun") to players in the circle (shown as its own telegraph)
+	-- Jade Jiao kinds (BossAttacks.luau): "bolt" (fast venom lanes), "pools" (circles that leave
+	-- poison pools), "burrow" (dive underground along a lane, no damage), "coil" (trap ring)
+	poison: { stacks: number, seconds: number }?, -- a landed hit adds poison stacks (PlayerPoison)
+	lanes: { number }?, -- bolt: lane angles in degrees from the target direction (default { 0 })
+	boltSpeed: number?, -- bolt: studs per second the front travels (a hit lands as it arrives)
+	strikes: { { at: number, radius: number, angle: number } }?, -- cone: follow-up cones `at` seconds after the first, re-aimed
+	flank: number?, -- pools: studs either side of the target the two extra circles sit
+	poolSeconds: number?, -- pools: how long each circle stays as a poison pool
+	unburrow: boolean?, -- surfaces the beast (clears its Burrowed attribute) when it resolves
+	coilRadius: number?, -- coil: the ring's centreline radius (the telegraph circle is `radius`)
+	hold: number?, -- coil: seconds from the ring forming (after the dash) to the squeeze
+	holdP3: number?,
+	halfAngle: number?, -- coil: half width in degrees of the door gap
+	halfAngleP3: number?,
+	squeezeDamage: number?, -- coil: damage at the squeeze to anyone inside the ring and outside the gap
+	dashMin: number?, -- a dash lasts at least this long
+	boltName: string?, -- storm: the name its circles' telegraphs carry (default "stormBolt")
 }
 
 -- Pack behaviour for regular beasts with an attack pool.
@@ -121,6 +138,8 @@ export type Def = {
 	phaseCall: Attack?, -- boss: the attack the `summonAt` thresholds call (a phase roar), instead of a summon
 	phaseSpeed: number?, -- boss: run speed multiplier gained at each phase step
 	closeIn: number?, -- boss: stops closing in this near its target (default 0.7 x min(range, 20))
+	phaseCalls: { Attack }?, -- boss: per `summonAt` threshold, the attack it calls (else phaseCall)
+	startsBurrowed: boolean?, -- boss: spawns and resets with Burrowed = true (immune and hidden until its opener surfaces it)
 	shareTurns: boolean?, -- boss joins its summons' attack slots instead of overlapping their blows
 	resetOnEvade: boolean?, -- return home, heal/reset the fight and dismiss owned summons on losing the target
 }
@@ -129,6 +148,7 @@ local Wilds = require(script.Parent.Config).Wilds
 local NEW_WOLF = Wilds.NEW_WOLF
 local NEW_BOAR = Wilds.NEW_BOAR
 local NEW_WOLF_KING = Wilds.NEW_WOLF_KING
+local NEW_JIAO = Wilds.NEW_JIAO
 local NEW_THUNDER_APE = Wilds.NEW_THUNDER_APE
 local NEW_NINE_TAIL_FOX = Wilds.NEW_NINE_TAIL_FOX
 
@@ -668,6 +688,135 @@ if NEW_THUNDER_APE then
 			thunderRoar, bound, stormCall, judgment, backhand, thunderPound, phaseRoar, challenge,
 		} :: { Attack },
 		rotate = true,
+		resetOnEvade = true,
+	} :: Def
+end
+
+-- THE JADE JIAO (Config.Wilds.NEW_JIAO, testbed only): a 115-stud jade serpent boss for
+-- QC7 (player 255 HP, power 1.76). The body is 3.17x the roster python (root box
+-- 11.7 x 20 x 23.4, the head about 14.5 studs ahead of the root), so every reach is
+-- measured from the root centre and clears the head. Shares of a QC7 player's health:
+-- fang 14% (+poison), flurry 7% a strike, sweep 12%, slam 24%, erupt 22%, lance 11%,
+-- spray 8% a lane, pools 7% (+poison), coil 8% + squeeze 28%, rain 10% a drop. Crowd
+-- control rides `stun.onHit` (PlayerStun), the coil stuns 1.4 s and the squeeze is
+-- damage only (a stun's immunity window would swallow its CC). Mechanics for bolt,
+-- pools, burrow and coil live in BossAttacks.luau; poison in PlayerPoison.luau.
+-- Design and contracts: the enemy-designer's Jade Jiao sheet.
+if NEW_JIAO then
+	local function atk(a: Attack): Attack
+		return a
+	end
+	local venom = { stacks = 1, seconds = 5 }
+	local venomLance = atk({
+		kind = "bolt", name = "venomLance", damage = 28, range = 70, minRange = 18, windup = 0.70,
+		recover = 0.80, cooldown = 1.5, lanes = { 0 }, boltSpeed = 75, length = 72, width = 4, poison = venom,
+	})
+	local venomFang = atk({
+		kind = "cone", name = "venomFang", damage = 36, range = 22, windup = 0.75, recover = 0.90,
+		cooldown = 1.65, radius = 24, angle = 80, poison = venom,
+	})
+	local pillarSlam = atk({
+		kind = "slam", name = "pillarSlam", damage = 61, range = 26, windup = 1.00, recover = 1.30,
+		cooldown = 2.3, radius = 11, offset = Vector3.new(0, 0, -18),
+		stun = { kind = "stagger", radius = 0, seconds = 0.7, onHit = true },
+	})
+	local tailSweep = atk({
+		kind = "slam", name = "tailSweep", damage = 31, range = 20, windup = 0.80, recover = 1.00,
+		cooldown = 1.8, radius = 21, offset = Vector3.new(0, 0, 5),
+		stun = { kind = "stagger", radius = 0, seconds = 0.5, onHit = true },
+	})
+	local mireDive = atk({
+		kind = "burrow", name = "mireDive", damage = 0, range = 56, minRange = 20, windup = 0.80, recover = 0.10,
+		cooldown = 1.0, length = 56, width = 5, dashSpeed = 75, stopPast = 0, followUp = "erupt", phase = 2,
+	})
+	local erupt = atk({
+		kind = "slam", name = "erupt", damage = 56, range = 200, windup = 0.85, recover = 1.10,
+		cooldown = 1.0, radius = 12, offset = Vector3.new(0, 0, 0), chainOnly = true, unburrow = true,
+		stun = { kind = "stagger", radius = 0, seconds = 0.8, onHit = true },
+	})
+	local dreadHiss = atk({
+		kind = "howl", name = "dreadHiss", damage = 0, range = 24, windup = 1.10, recover = 0.90,
+		cooldown = 2.0, radius = 1, phase = 2, stun = { kind = "stagger", radius = 23, seconds = 0.8 },
+	})
+	local venomSpray = atk({
+		kind = "bolt", name = "venomSpray", damage = 20, range = 60, minRange = 18, windup = 1.00,
+		recover = 1.20, cooldown = 2.0, lanes = { 0, -22, 22 }, boltSpeed = 75, length = 62, width = 3.6,
+		poison = venom, phase = 2,
+	})
+	local jiaoCoil = atk({
+		kind = "coil", name = "jiaoCoil", damage = 20, range = 45, minRange = 8, windup = 1.50, recover = 4.40,
+		cooldown = 4.0, radius = 15, coilRadius = 13.3, dashSpeed = 40, length = 40, dashMin = 0.45,
+		hold = 3.0, holdP3 = 2.6, halfAngle = 40, halfAngleP3 = 30, squeezeDamage = 71, phase = 2,
+		stun = { kind = "stun", radius = 0, seconds = 1.4, secondsP3 = 1.6, onHit = true },
+	})
+	local fangFlurry = atk({
+		kind = "cone", name = "fangFlurry", damage = 18, range = 20, windup = 0.90, recover = 2.10,
+		cooldown = 3.0, radius = 20, angle = 70, poison = venom, phase = 2,
+		strikes = { { at = 0.4, radius = 20, angle = 70 }, { at = 1.0, radius = 25, angle = 90 } },
+	})
+	local venomPools = atk({
+		kind = "pools", name = "venomPools", damage = 18, range = 60, minRange = 14, windup = 1.00,
+		recover = 0.90, cooldown = 2.0, radius = 7, flank = 11, poolSeconds = 7, poison = venom, phase = 2,
+	})
+	local molt = atk({
+		kind = "summon", name = "molt", damage = 0, range = 80, windup = 1.60, recover = 0.90, cooldown = 0,
+		summons = "VenomSerpent", count = 2, maxAlive = 2, thresholdOnly = true, phaseStep = true,
+	})
+	local ascension = atk({
+		kind = "summon", name = "ascension", damage = 0, range = 80, windup = 2.00, recover = 1.00, cooldown = 0,
+		summons = "VenomSerpent", count = 2, maxAlive = 2, thresholdOnly = true, phaseStep = true,
+		followUp = "venomRain",
+	})
+	-- Rain: 9 circles one every 0.3 s from the release, each on where the target stands
+	-- then and striking 0.9 s after it shows (EnemyService callStorm).
+	local venomRain = atk({
+		kind = "storm", name = "venomRain", damage = 26, range = 200, windup = 2.00, recover = 5.00, cooldown = 0,
+		bolts = 9, boltInterval = 0.3, boltWindup = 0.9, boltRadius = 7, boltName = "venomRain",
+		thresholdOnly = true, chainOnly = true,
+	})
+	-- the entrance: a fresh engagement opens with it (pack.howl). No damage, no stun.
+	local emerge = atk({
+		kind = "howl", name = "emerge", damage = 0, range = 0, windup = 2.20, recover = 0.60, cooldown = 0,
+		radius = 1, chainOnly = true, unburrow = true,
+	})
+	Enemies.Defs.JadeJiao = {
+		id = "JadeJiao",
+		name = "Jade Jiao",
+		realm = { "QiCondensation", 7 },
+		weight = 9,
+		boss = true,
+		health = 1500,
+		walkSpeed = 6,
+		runSpeed = 21, -- the player walks at 16; phases add phaseSpeed
+		phaseSpeed = 1.025,
+		aggro = 60,
+		leash = 130,
+		closeIn = 16,
+		qiDrop = 130,
+		stones = { 50, 80 },
+		respawn = 240,
+		drops = {
+			{ item = "GreaterSpiritCore", chance = 1 },
+			{ item = "LesserSpiritCore", chance = 1 },
+			{ item = "MarrowWashingPill", chance = 0.06 },
+			{ item = "RootRebirthPill", chance = 0.10 },
+		},
+		-- placeholder pool until the user picks this boss's rewards (same as the King's)
+		bossDrops = Enemies.Defs.ElderWolfKing.bossDrops,
+		-- thresholds: molt (phase 2), ascension then rain (phase 3), and the rain again at
+		-- 12%. The boss bar draws a tick at each.
+		summonAt = { 0.66, 0.33, 0.12 },
+		phaseCall = molt,
+		phaseCalls = { molt, ascension, venomRain },
+		startsBurrowed = true,
+		pack = { howl = emerge },
+		attack = venomLance,
+		pattern = {
+			venomLance, venomFang, pillarSlam, tailSweep, mireDive, erupt, dreadHiss, venomSpray, jiaoCoil,
+			fangFlurry, venomPools, molt, ascension, venomRain, emerge,
+		} :: { Attack },
+		rotate = true,
+		shareTurns = true,
 		resetOnEvade = true,
 	} :: Def
 end

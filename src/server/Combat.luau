@@ -111,8 +111,8 @@ end
 -- EnemyService owns enemy health and applies it (Combat.onEnemyDamaged); `push`,
 -- if any, knocks it back.
 function Combat.damageEnemy(player: Player, model: Model, amount: number, push: Vector3?)
-	if not Hitbox.alive(model) then
-		return
+	if not Hitbox.alive(model) or model:GetAttribute("Burrowed") then
+		return -- underground (the Jade Jiao's dive) it can't be touched
 	end
 	amount = math.floor(amount + 0.5)
 	model:SetAttribute("LastHitBy", player.UserId)
@@ -179,6 +179,23 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source
 		PlayerStun.apply(player, "flinch")
 	end
 	return "hit", amount
+end
+
+-- Damage over time (poison): ignores dodges, no flinch, no hurt flash, and never
+-- kills (leaves them at 1). Still counts as being in combat.
+function Combat.dot(player: Player, amount: number, source: string?)
+	local _, humanoid = livingRoot(player)
+	if not humanoid then
+		return
+	end
+	amount = math.min(math.floor(amount + 0.5), math.max(0, humanoid.Health - 1))
+	if amount <= 0 then
+		return
+	end
+	local s = state(player)
+	s.lastHurtBy = source or "Unknown"
+	humanoid:TakeDamage(amount)
+	s.lastHurt = os.clock()
 end
 
 function Combat.lastHurtBy(player: Player): string

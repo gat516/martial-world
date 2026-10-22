@@ -138,7 +138,7 @@ local function candidates(range: number): { Model }
 		return found
 	end
 	for _, model in CollectionService:GetTagged("Enemy") do
-		if model:IsA("Model") and Hitbox.alive(model) and (model:GetPivot().Position - root.Position).Magnitude <= range then
+		if model:IsA("Model") and Hitbox.alive(model) and not model:GetAttribute("Burrowed") and (model:GetPivot().Position - root.Position).Magnitude <= range then
 			table.insert(found, model)
 		end
 	end

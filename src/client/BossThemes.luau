@@ -111,7 +111,7 @@ Themes.NineTailFox = {
 } :: Theme
 
 -- Venom green and jade scales: cold-blooded, coiled, patient.
-Themes.JadePython = {
+Themes.JadeJiao = {
 	title = "Coiled Terror of the Jade Marsh",
 	ornament = "rbxassetid://118897029575199",
 	emblemRect = { 50, 5, 110, 110 }, -- the serpent head

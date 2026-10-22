@@ -438,6 +438,9 @@ return {
 		-- sweeps, a snare), foxfire volleys, tail-plunge eruptions, a scream stun and
 		-- retreat flips. Testbed only until the user approves.
 		NEW_NINE_TAIL_FOX = TESTBED,
+		-- THE JADE JIAO TRIAL: a 115-stud venom serpent boss (QC7) with burrow ambushes,
+		-- poison, a coil trap and phase moves. Testbed only until the user approves.
+		NEW_JIAO = TESTBED,
 		-- attack slots (EnemyService): at most this many beasts (non-bosses, plus
 		-- bosses with shareTurns) wind up or strike at one player at once; the next waits
 		-- SLOT_GAP after the last one resolved, so a pack takes turns. Short tells

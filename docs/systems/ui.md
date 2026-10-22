@@ -164,14 +164,16 @@ cursor, settings and the admin panel.
   `BIG_HIT` (5%) or more give a 1-3px nudge and a quick flash; the trail drains
   after the fill. Crossing a threshold flashes the bar, nudges it, spreads faint
   cracks from the centre, warms the fill and frame tint and fades the tick.
-  Gaps: the new art is drawn but NOT uploaded (the Studio MCP was down): the
-  frame, gloss and emblem ids are `TODO-upload` in `assets.json` /
-  `BossThemes.luau` and the `Frame` / `Gloss` images are empty in `Hud.rbxmx`,
-  so until then the bar shows only the backing, trail and fill. Upload the seven
-  PNGs, put the ids in `assets.json`, `BossThemes` (`emblem`) and the `Frame` /
-  `Gloss` `Image` in `Hud.rbxmx`, then check the slice in Studio. The fox,
-  python and ape themes are untested until those bosses exist; the phase cracks
-  are one shared image.
+  Asset ids: every boss bar image id is pasted in one place, the `ASSET IDS`
+  block at the top of `BossThemes.luau` (`Themes.ART.frame`, `Themes.ART.gloss`)
+  and each theme's `emblem`, and recorded in `art/ui/assets.json`. `Hud.rbxmx`
+  holds no ids: `BossBars` sets the images. A value still `PASTE-ID:...` is a
+  placeholder and that image is hidden (a missing emblem falls back to the
+  default's), so the bar degrades to backing, trail and fill.
+  Gaps: the art is drawn but not uploaded yet (the user uploads it from
+  `art/fbx_export/`); once it is, check the 9-slice in Studio. The fox, python
+  and ape themes are untested until those bosses exist; the phase cracks are one
+  shared image.
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`
   (spirit root reveal card).
 - `Onboarding.luau`, `Guide.luau` (spotlight, dim, walking path), `TravelMenu.luau` (with `GateMarkers.luau` over arrays and

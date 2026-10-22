@@ -93,6 +93,17 @@ local function lerpColor(a: Color3, b: Color3, t: number): Color3
 	return a:Lerp(b, math.clamp(t, 0, 1))
 end
 
+-- A real asset id, or nil while BossThemes still holds a "PASTE-ID:" placeholder.
+local function uploaded(id: string?): string?
+	return if id and string.match(id, "^rbxassetid://%d+$") then id else nil
+end
+
+-- Show an image only once its art is uploaded, never a broken one.
+local function setArt(img: ImageLabel, id: string?)
+	img.Image = id or ""
+	img.Visible = id ~= nil
+end
+
 local function phaseT(): number
 	return if #phases > 0 then phaseIdx / #phases else 0
 end
@@ -236,9 +247,8 @@ local function applyTheme(def: Enemies.Def?)
 	table.sort(phases, function(a, b)
 		return a > b
 	end)
-	-- a placeholder id (art not uploaded yet) leaves the socket empty
-	local emblem = if string.match(theme.emblem, "^rbxassetid://%d+$") then theme.emblem else Themes.default.emblem
-	refs.emblem.Image = if string.match(emblem, "^rbxassetid://%d+$") then emblem else ""
+	-- an id not uploaded yet falls back to the default emblem, else hides it
+	setArt(refs.emblem, uploaded(theme.emblem) or uploaded(Themes.default.emblem))
 	refs.trail.BackgroundColor3 = theme.trail
 	refs.cracks.ImageColor3 = theme.crack
 	refs.name.TextColor3 = theme.name
@@ -286,6 +296,8 @@ function BossBars.init(frame: CanvasGroup, tierStyles: { [string]: any })
 	for _, label in { refs.name, refs.title, refs.realm, refs.omen } do
 		refs.home[label] = label.Position
 	end
+	setArt(refs.art, uploaded(Themes.ART.frame))
+	setArt(bar:WaitForChild("Gloss") :: ImageLabel, uploaded(Themes.ART.gloss))
 	r = refs
 	styles = tierStyles
 	frame.Visible = false

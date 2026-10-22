@@ -516,6 +516,36 @@ already moved to the next pattern entry). `EnemyFX` windup cues now carry the te
 `SFX.Enemies.ThunderApe` reuse the King, boar and Thunder samples at low pitch (placeholders, not listened to).
 Untested: all of it (feel, numbers, wall/ground checks for the flank bound, the wave's readability).
 
+Effects (vfx agent): `Effects.ThunderApe` (51 templates, about 300 emitters; builder
+`tools/vfx_specs/ThunderApe.luau`, installs `_G.buildThunderApeFX`), handler `EnemyFX/ThunderApe.luau`
+(gated to `ThunderApeB`). Storm blue-white (`5BD8FF`, rim `B8F0FF`, white-hot core) over an indigo `1B2547`
+copy, violet `8F7BFF` only in phase 3, no gold, nothing over the head (cloud wisps on `BackTop` and the
+shoulders). Everything is authored at the 30-stud body and rescaled to each cue's `shape` (radius, centre,
+lane). The aura (`ready`, rebuilt on the `Phase` attribute, rates follow Health and flare on every windup):
+P1 forearm and knuckle sparks plus cloud wisps; P2 adds arcs (and code-drawn beams jumping between fists
+and shoulders), a burning chest sigil and a floor formation; P3 adds white-hot eyes (`TellBase` swapped),
+lightning streaming off `BackTop`, lifting fur motes and the violet accent. Per attack, layers per beat
+(windup / contact): challenge (3 chest beats, roar charge / shock rings, floor ring, ghost head) 7 / 10;
+clubSwing, backhand (fist charge, snap flare / crescent streak + burst) 9 / 17; thunderPound (twin charge /
+a ring at exactly the telegraph radius + a crack, forked arcs, chips and Craters at each fist) 16 / 20;
+poundWave (ring with a crackling front to the cue's radius over 0.45 s, small end burst) 7 + 4; bodySlam
+(sigil flare / body trail, belly dust wave) 6 / 7 + 7; skyfallSlam (sky sigil refit to windup + flight,
+charges / take-off, afterimages, lightning pillar landing with a long scorch) 16 / 7 + 18 + beams;
+thunderRush (charges / body, fist and foot trails, skid) 16 / 7 + 9 + 6; bound (eyes, afterimage, puffs) 4 /
+7; boulderHurl (rock rip, charge / thrown stone with a cyan skin, growing shadow, impact) 17 / 10;
+thunderLance (javelin forming, charged lane + a Neon strip part / full-lane bolt, flashes, scorch line)
+11 / 9; thunderRoar and phaseRoar (beats, charge / ring leaves the ape to the stun radius, floor ring, sky
+flicker, phase roar adds a burst and six visual bolts) 9 / 10 and 11; stormCall (cloud on the hump, sigil
+flare, arms, sky dim / `BoltWarn` 6 then `BoltStrike` 9 + a 62-stud beam per bolt, about 5 layers live
+each); judgment (dark cloud over the ape, ground sigil, sky dim, thunder rolls / bolt on the ape at take-off,
+pillar landing at r28, ring wave, stun flash on the hit); hits (storm, heavy, stun), stagger pop with a
+3x tell flicker and a Highlight, death (sigil overload, bolts lancing out faster and faster, ghost body,
+white burst, spirit core, motes, tells fade to slate). Bolts are jagged beams cloned from the `Bolt`
+template (`boltBeam` in the handler). Sky flicker, flash and the stormCall dim are a short-lived
+ColorCorrection (DayNight rewrites Lighting every frame). Untested in play: the look at 40 studs, the Game
+Module playback (add-on shakes, Craters, LightningBeams attributes on `Bolt`), placement on the live
+moving body, the phone cost of seven stormBolts, the thrown boulder (a three-part Slate cluster).
+
 ### Jade Jiao (testbed trial)
 `Config.Wilds.NEW_JIAO = Config.TESTBED` gates the whole boss; **spawn it from the admin panel** (no
 testbed zone). A 115-stud jade serpent (body `JadeJiao`, 37 joints, 3.17x the roster python, see

@@ -3,9 +3,7 @@
 -- Adding a boss = one entry here; any def without one uses `default`.
 --   title      intro line under the bar ("Sovereign of the Silver Peaks")
 --   emblem     the medallion in the frame's left socket (art/ui/draw_boss_bars.py
---              bossbar_emblem_*.png, drawn for 24px). A "TODO-upload:" value
---              means the art is drawn but not uploaded yet: the socket shows
---              the default emblem, or stays empty.
+--              bossbar_emblem_*.png, drawn for 24px); see ASSET IDS below.
 --   fill       { top, bottom } of the health gradient, saturated so it reads hard
 --              against the near-black backing; phaseFill is the colour it
 --              shifts toward as phases pass (lerped by phase / phases)
@@ -18,6 +16,16 @@
 --              below/even/above/far/deadly); a missing tier falls back to default.
 --              One is picked at random per fight. Keep lines under ~26 characters.
 local Themes = {}
+
+-- ASSET IDS: paste each uploaded rbxassetid:// here (and record it in
+-- art/ui/assets.json). Every boss bar image id lives in this file: the two
+-- below and each theme's `emblem`. A value still starting with "PASTE-ID:" is
+-- a placeholder; BossBars hides that image (the bar then shows only its
+-- backing, trail and fill, and a missing emblem falls back to the default's).
+Themes.ART = {
+	frame = "PASTE-ID:bossbar_frame.png", -- Body.Frame, the 9-sliced rim
+	gloss = "PASTE-ID:bossbar_gloss.png", -- Bar.Gloss, the channel bevel
+}
 
 export type Theme = {
 	title: string,
@@ -39,7 +47,7 @@ local c = Color3.fromRGB
 
 Themes.default = {
 	title = "Calamity of the Wilds",
-	emblem = "TODO-upload:bossbar_emblem_default.png",
+	emblem = "PASTE-ID:bossbar_emblem_default.png",
 	fill = { c(236, 66, 52), c(136, 16, 20) },
 	phaseFill = { c(255, 120, 60), c(170, 40, 20) },
 	trail = c(255, 236, 200),
@@ -61,7 +69,7 @@ Themes.default = {
 -- Moon-silver on ink-slate; gold is the warning colour; spirit-cyan ghosts; jade seal.
 Themes.ElderWolfKing = {
 	title = "Sovereign of the Silver Peaks",
-	emblem = "TODO-upload:bossbar_emblem_wolf.png",
+	emblem = "PASTE-ID:bossbar_emblem_wolf.png",
 	fill = { c(120, 214, 255), c(22, 92, 178) },
 	phaseFill = { c(255, 214, 120), c(190, 120, 40) },
 	trail = c(240, 250, 255),
@@ -83,7 +91,7 @@ Themes.ElderWolfKing = {
 -- Foxfire and tail-magic.
 Themes.NineTailFox = {
 	title = "Matriarch of the Foxfire Mists",
-	emblem = "TODO-upload:bossbar_emblem_fox.png",
+	emblem = "PASTE-ID:bossbar_emblem_fox.png",
 	fill = { c(255, 160, 70), c(196, 58, 32) },
 	phaseFill = { c(190, 140, 255), c(96, 52, 190) },
 	trail = c(255, 240, 220),
@@ -105,7 +113,7 @@ Themes.NineTailFox = {
 -- Venom green and jade scales: cold-blooded, coiled, patient.
 Themes.JadeJiao = {
 	title = "Coiled Terror of the Jade Marsh",
-	emblem = "TODO-upload:bossbar_emblem_serpent.png",
+	emblem = "PASTE-ID:bossbar_emblem_serpent.png",
 	fill = { c(130, 232, 90), c(18, 116, 58) },
 	phaseFill = { c(214, 255, 70), c(110, 150, 20) },
 	trail = c(240, 255, 210),
@@ -127,7 +135,7 @@ Themes.JadeJiao = {
 -- Storm and lightning: static, ozone, brute weight, a light touch of wildness.
 Themes.ThunderApe = {
 	title = "Thunderlord of the Storm Crags",
-	emblem = "TODO-upload:bossbar_emblem_storm.png",
+	emblem = "PASTE-ID:bossbar_emblem_storm.png",
 	fill = { c(120, 176, 255), c(40, 64, 206) },
 	phaseFill = { c(255, 240, 150), c(230, 150, 40) },
 	trail = c(255, 250, 210),

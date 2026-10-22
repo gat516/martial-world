@@ -33,15 +33,29 @@ style: no "use these textures", no recipes copied from the last build. What
 one effect used is history in its system doc, not guidance for the next. The
 first aura pass looked generic because it reused one technique's picks.
 
+**Every layer is caused; one hero (user, 2026-10-22).** The effects so far
+were often technically fine but felt random: layers added because they looked
+cool, no clear start, peak and end, nothing tied to the action, everything
+popping on the same frame. So every effect starts from an intent (what is
+happening, what the player should feel, its gameplay job) and a beat sheet
+in ms, and each layer must answer what caused it, where it comes from,
+where its energy goes and why it lasts that long, or it is cut. The action
+decides shape, origin, direction and timing; the theme (element, motif)
+decides colour and texture only. One hero layer sells the moment; the rest
+support it, smaller, dimmer and staggered 30-150 ms behind their cause.
+Subtract before you add. The method is in `.claude/agents/vfx.md`, and user
+notes are turned into fixes with [translator.md](translator.md).
+
 ## What the references teach
 
 The references are Roblox showcase effects (`docs/reference/vfx/`, the videos
 below). Different games, same recipe:
 
-1. **Many layers, one silhouette.** A single beat stacks 6 to 15 emitters: a
+1. **Many layers, one silhouette.** A big beat can stack 6 to 15 emitters: a
    white-hot flash, a star glint, a ring or two, streaks, sparkles, debris,
-   smoke, and a sigil underneath. Each layer is simple; the stack reads as one
-   bold shape.
+   smoke, and a sigil underneath. Each layer is simple and each is caused by
+   the moment; the stack reads as one bold shape with one hero. The count
+   follows from the causes, never the other way round.
 2. **White-hot core, colour at the edges.** The centre of every bright thing
    is near-white (LightEmission 1, Brightness 2 to 10, so bloom catches it).
    The colour lives in the falloff, the rims and the secondary layers.
@@ -188,8 +202,12 @@ path; event effects have come out lying on their side before.
 
 ## Quality bar
 
+- Every layer has a cause, one hero leads, starts are staggered, and there is
+  exactly one peak frame. Score readability, hierarchy, timing, causality and
+  fit 1-5 on the same frozen moments each round, and fix the three worst.
 - Put a reference frame next to your capture at the same moment. If yours has
-  fewer layers, less contrast or less motion, it isn't done.
+  less contrast, less motion or a weaker silhouette, it isn't done; fewer
+  layers is fine when the cut ones had no cause.
 - Count layers per beat in the plan and the report.
 - Read it at play speed, at 10 and 40 studs, on green grass at noon and at
   night. Daylight is where thin, single-layer effects disappear.

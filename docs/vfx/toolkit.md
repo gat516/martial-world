@@ -186,6 +186,16 @@ surprises you):
     many library images that render fine. Render-test instead.
   - Search fresh for every effect, with words from its own references and
     idea. Don't start from ids another effect used.
+  - Known gap (audit, 2026-10-22): the shipped templates (`Effects`,
+    `AmbientFX`, `WorldFX`, `GuardFX`) use 201 of the 7,087 assets, 12 of
+    the 41 flipbooks and 12 of the 77 meshes, and ten generic textures (the
+    soft glow 9841273544 and 867619398, the ring mesh 471124075, stock
+    sparks and impact rings) are about half of all texture uses. About 690
+    Neon parts are still doing the drawing. Hero and secondary layers should
+    get a texture, flipbook or mesh with the action's own shape; keep the
+    generic glows and sparks for cores and sparkles. To redo the audit,
+    `rojo build` each `.rbxm` to an `.rbxmx` in your scratchpad and count
+    the `rbxassetid://` ids against `vfx_library.json`.
   - Flipbook ids in `vfx_library.json` are sprite sheets: put them on a
     ParticleEmitter with `FlipbookLayout` Grid2x2 or Grid4x4 (read the grid
     off a large thumbnail); no mesh needed.

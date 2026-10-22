@@ -9,7 +9,9 @@ This page says where everything lives. Each system has a short design doc in
 [`systems/`](systems/) (purpose, design intent, files, data flow, tuning knobs, gaps).
 Visual effects have their own pair: [`vfx/style.md`](vfx/style.md) (how effects
 should look, from the reference videos) and [`vfx/toolkit.md`](vfx/toolkit.md)
-(the vfxia plugin, asset library and Studio pipeline).
+(the vfxia plugin, asset library and Studio pipeline), plus
+[`vfx/translator.md`](vfx/translator.md) (the user's plain words, such as
+"messy" or "weak", mapped to causes and property fixes).
 
 ## Layout
 

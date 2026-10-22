@@ -76,7 +76,10 @@ them only for work that needs them, and never start Play in them.
      differ from the stock one; a death effect (dissolve to qi motes, a spirit
      core glint); for bosses, an arrival and a phase change. Give the timing
      from your attack table (windup, active, recover) and the element and
-     colours. Keep it to the beast's tier: ring-1 beasts are small and clean
+     colours, and per effect one line of intent: what is physically
+     happening (air from the mouth, mass hitting the ground), what the
+     player should feel, and its job (telegraph, hit confirm, flavour). The
+     vfx agent builds its causes and its one hero from that line. Keep it to the beast's tier: ring-1 beasts are small and clean
      (style.md's scale rule).
    When the main session spawns you again with their results, you integrate.
 3. **Rig and template.** Put the body together as an enemy model like the

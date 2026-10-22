@@ -101,7 +101,12 @@ camera and HUD back.
 - Preview framing and drag feel: constants at the top of `Preview.luau`.
 
 ## Known gaps
-- Testbed only (`Rules.SHOW_ON_JOIN = Config.TESTBED`) until the user approves it.
+- Test place only until the user approves it (user, 2026-10-22: it syncs to the
+  test place alone). The GUI is mapped in `test.project.json` only, not
+  `default.project.json`; `Main.client` inits the screen and `Main.server` starts
+  `CharacterIdentity` only under `Config.TESTBED`; `Rules.SHOW_ON_JOIN` is
+  `Config.TESTBED` too. Shipping it: map the GUI in `default.project.json` and
+  drop those three checks.
 - Nothing is saved: race, last name, first name and look live for the session, so
   a rejoin rolls again and shows the screen again. Wire `CharacterIdentity.load`
   and `onConfirmed`/`onRerolled` into `PlayerData` to keep them. Until then, don't

@@ -272,7 +272,9 @@ WorldCaches.start()
 WeatherService.start()
 Garden.start()
 Receipts.start()
-CharacterIdentity.start() -- race and last name rolls, paid rerolls (registers with Receipts)
+if Config.TESTBED then
+	CharacterIdentity.start() -- race and last name rolls, paid rerolls; test place only for now
+end
 WorldEvents.init()
 table.insert(EnemyService.onKill, Garden.onKill);
 

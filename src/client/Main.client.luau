@@ -5,6 +5,7 @@
 -- (realm crest) with the spirit root reveal card, and the character creator on join.
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Hud = require(script.Parent.Hud)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
@@ -62,6 +63,7 @@ local RootReveal = require(script.Parent.RootReveal)
 local ScrollHint = require(script.Parent.ScrollHint)
 local SeatBars = require(script.Parent.SeatBars)
 local CharacterCreator = require(script.Parent.CharacterCreator.Controller)
+local Config = require(ReplicatedStorage.Shared.Config)
 
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
@@ -123,5 +125,8 @@ RootReveal.init(gui)
 Music.init()
 EnemySounds.init()
 AmbientSounds.init()
--- The character screen on join (testbed only until approved; Rules.SHOW_ON_JOIN).
-CharacterCreator.init(Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("CharacterCreator") :: ScreenGui)
+-- The character screen on join. Test place only: its GUI is mapped in
+-- test.project.json alone until the user approves it for the main game.
+if Config.TESTBED then
+	CharacterCreator.init(Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("CharacterCreator") :: ScreenGui)
+end

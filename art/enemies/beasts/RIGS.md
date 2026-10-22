@@ -299,3 +299,52 @@ below. Rear heights (skull centre): rest 16.8, 15 contract 29, Ascension/Rain 31
 every move and loop >= -0.5 except the buried PillarSlam head (-1.4, intended) and Death (-1.7, jaw).
 Untested: hood, fang and whisker ranges against the head, the hood against the neck at full flare,
 and everything in Play.
+
+## Thunder Ape B poses (`src/client/EnemyPoses/ThunderApe.luau`)
+
+Procedural pose module, same API as `WolfKing.luau` (`sample`, `moves`, `durations`, `loops`,
+`JOINTS` (the 23), `gaitRate`, `scaled`, `plant`, `VARIANTS`, `VARIANT`, `setVariant`,
+`setAll`) plus `.BEATS` and `.SCALE`. It poses in unit space; **register it with
+`scale = 3.71`** (the gait loops divide speeds by `ThunderApe.SCALE` themselves, and
+`scaled()` multiplies the root translation). Built on `Quadruped.new`: the arms are the "front
+legs" (shoulder, elbow, wrist = the fist, `fold = +1`, `knee = -1`), the legs the hind ones.
+Checks: `gait_ape.luau` (skate per limb), `qa_thunder_ape_poses.luau` (sunk, gaps, clipping,
+ranges per key), `contacts_ape.luau` (fists against the areas, chest beats against
+`ChestBeat*_FX`), `continuity_ape.luau` (phase-boundary jumps and per-frame pops). Run in a
+sandbox after `tools/push_src.luau`; `_G.APE_ONLY`, `_G.APE_KEYS`, `_G.APE_BRIEF` limit the QA.
+
+Variants (identical phase lengths, contact stays at the end of the windup). Default in bold.
+
+| Move | Variants |
+|---|---|
+| ClubSwing | **A** overhead club (arm over the head, diagonal sweep), B low hook (wide crouch, flat sweep), C corkscrew spin |
+| ThunderPound | A tall rise, **B** tallest rear-up with a hang at the top, C spring-slam (leaves the ground) |
+| BodySlam | A rear up and tip, B shorter lunge, **C** chest beat at the top, then the fall |
+| SkyfallSlam | A crouch and spring, B twisting spring, **C** long coil, fists dug in, shaking |
+| StormCall | **A** arms in a V, B alternating pumps, C wide fists clenched, leaning far back |
+
+Gotchas found while building it:
+- **Arms are exactly straight at rest** (reach 4.44, vertical drop 4.35), so a planted arm has no
+  slack: root pitch above 0 raises the shoulders and the solver drops the whole body
+  (pitch 0.2 costs 0.7 unit). Rear-ups (pitch above about 0.3) plant HIND only; a crouch with
+  fists planted wants pitch about 0 and the fists forward (y -1.1 needs `fz` about -1.2 for an
+  elbow of 1.1; nose-down pitch folds the elbow past 2 rad and sinks the forearm).
+- A planted fist follows the shoulder when the torso twists (`support()` in K adds the shoulder's
+  shift to the reach); without it a 0.8 rad twist drops the body 1.5 units.
+- Quadruped.samplePhase blends plant WEIGHTS and a half-weight two-joint solve overshoots (an
+  elbow flipped 1.5 rad in one frame). `plantedSample` solves both ends of a key pair with their
+  own plants and blends the solved poses. Between two keys that are both planted it is a live solve.
+- Arm lag (elbow, wrist, fingers) is only for follow-through (not windups, so beats and peaks hit
+  their marks) and only on arms that are free through the whole key pair.
+- Gait floor clamp off (`plantLegs(.., air = true)`): its re-solve flipped a nearly straight swing
+  knee for one frame at 4 studs/s walk (1.96 rad).
+- Euler angles of a blended shoulder read as jumps near +-pi/2; compare with axis-angle.
+- The beard rides the jaw and head: `mk` adds `0.6 * jaw` and `-0.6 * min(0, head)` to it so it
+  clears the chest drum.
+- Chest beat arm (solved offline, torso-relative so it works at any rear-up): upper arm along the
+  torso (+0.19), out +0.06, yaw -0.8, elbow 1.78, wrist 1.65 puts the fist centre 4 studs off the
+  hook along the plate normal (measured 2.5 to 4 studs from `ChestBeat*_FX` at each beat time).
+- Safe ranges seen: shoulder -0.7 to 3.5 world pitch (overhead about 3.0), elbow up to 1.9 planted
+  (clips are small up to 2.2), hind knee -1.4, jaw 0 to 1.05, brow +-0.25, beard +-0.4.
+- Forearms and fists clip the beard in every chest-high sweep and chest beat (1 to 3 studs deep on
+  a 28 stud body); thighs dip 0.5 to 1.8 studs into the ground in the deepest Judgment crouch.

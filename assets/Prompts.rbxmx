@@ -166,7 +166,7 @@
     <string name="Name">List</string>
     <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>1</XS><XO>-8</XO><YS>0</YS><YO>-6</YO></UDim2>
+    <UDim2 name="Position"><XS>1</XS><XO>-8</XO><YS>0.129545</YS><YO>-4</YO></UDim2>
     <UDim2 name="Size"><XS>0</XS><XO>176</XO><YS>0</YS><YO>140</YO></UDim2>
    </Properties>
     <Item class="UIListLayout" referent="RBX21"><Properties>
@@ -178,4 +178,5 @@
     </Item>
    </Item>
   </Item>
- </Item></roblox>
+ </Item>
+</roblox>

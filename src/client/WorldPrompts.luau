@@ -8,7 +8,8 @@
 -- Dash buttons, growing upward. A card on a plant or bed ended up wherever the
 -- camera put it, under the hotbar or the thumbstick, so players tilted the camera
 -- to tap it. Dock mirrors Hud.Stack's box (same position, size and constraints),
--- so the column always sits just over the stack; keep the two in step. The card's
+-- so the column always sits just over the vitals plate (its List starts at the
+-- plate's top; Layout copies the stack's size onto the dock); keep the two in step. The card's
 -- object line ("Huge Dewy Spirit Grass", "Herb Bed") says what it acts on, and the
 -- PlantTag still marks the plant in the world.
 --

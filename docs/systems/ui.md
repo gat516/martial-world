@@ -38,7 +38,19 @@ cursor, settings and the admin panel.
   bottom: health (thick, ten segments), combat qi (the mana techniques spend;
   bright azure, with its number) and the guard posture trough (always shown,
   dim while full and idle, draining toward the lacquer seal in the middle),
-  with the realm crest above and the hotbar below. Cultivation and the dantian
+  with the realm crest above and the hotbar below. Compact pass (user,
+  2026-10-22, from a phone screenshot): the plate is notched (a full-width body
+  for health and qi, a narrower tab under its middle for the guard) and sits
+  right on the hotbar; the PC Dash/Strike cooldown chips (`Stack.Cooldowns`)
+  tuck into the left notch instead of a row of their own. Ornament is trimmed to
+  a gilt rim, end lozenges and small curls so the bars get the height, not the
+  frame. Fills are bright (crimson health, azure qi, lit pale-gold guard) and
+  authored full, so the edit view and the first frame read full. On short
+  screens (`Platform.isSmall`) the stack takes at most 30% of the height
+  (`Layout` SMALL_HEIGHT_SHARE; it was 45%, which on a landscape phone in the
+  device emulator, which gets the PC layout, filled over half the screen).
+  The seated tiles, lotus, Force Breakthrough pill and the touch prompt dock's
+  column sit just above the plate and moved down with it. Cultivation and the dantian
   left the fighting HUD: they show while seated, in the same spot
   (`Stack.SeatBars`). Health and qi have a pale trail that lingers on a drop.
   A cast refused for qi (`QiDenied` changes) flashes the qi bar red and shakes
@@ -153,7 +165,7 @@ cursor, settings and the admin panel.
 - `SeatBars.luau`: the seated cultivation, overflow and dantian bars.
 - `Layout.luau`: device-specific layout flips; `Platform.luau`.
 - Guard bar (`GuardBar.luau`, `Stack.Vitals.GuardBar`): the posture trough in
-  the vitals mount, always shown. The fill drains toward the mount's centre
+  the vitals plate's tab, always shown. The fill drains toward the mount's centre
   seal, warms toward red below 0.3 and sits at `IDLE_DIM` while full and not
   held. `GuardBar.set(ratio, active)` every frame (GuardController);
   `GuardBar.flash` "parry" (pale-gold flash), "blocked" (jolt and tick),
@@ -248,9 +260,8 @@ both shown in the reward feed).
 
 ## Known gaps
 - The vitals and seat bars were previewed in Studio's edit view at PC size and
-  at a phone-sized stack (380 px wide), not on a device or the emulator, and not
+  at a phone-sized stack (426 px wide), not on a device or the emulator, and not
   in play: the qi flash, trails, guard trough states, seated swap and nudge
   timing are untested.
-- On a small phone the guard trough is about 5 px tall and the qi number about
-  8 px; enlarge the mount on touch if it reads poorly.
+- The cooldown chips are still plain Frames with UICorner/UIStroke, not drawn art.
 - The hotbar shows no qi price; arts just dim when short.

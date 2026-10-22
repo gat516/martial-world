@@ -4,11 +4,12 @@
 -- what players see. This only flips what differs by device:
 -- PC: no touch buttons (M1 swings, Q dashes, Space jumps); the stack may use the
 -- full width; slots show their names.
--- The seated cultivation bars (Stack.SeatBars) share the vitals' box and move with them.
+-- The seated cultivation bars (Stack.SeatBars) share the vitals' box. On short
+-- screens the stack takes at most SMALL_HEIGHT_SHARE of the height.
 -- Touch: our own Strike, Jump, Dash and Guard cluster replaces Roblox's jump button and
 -- reaches past the right safe-area inset to the screen edge; slots drop their
--- names for a bigger icon or glyph. The mini cooldown chips over the hotbar are
--- PC and gamepad only (Dash and Strike show their own), and the vitals close up.
+-- names for a bigger icon or glyph. The mini cooldown chips in the vitals plate's
+-- notch are PC and gamepad only (Dash and Strike show their own).
 -- The top-left corner is always left to Roblox's chat.
 
 local Players = game:GetService("Players")
@@ -18,7 +19,8 @@ local Platform = require(script.Parent.Platform)
 
 local CLUSTER_ROOM = 320 -- touch: width the stack leaves free (twice the cluster, so it stays centred)
 local EDGE = 12 -- touch: the cluster's gap from the screen edge
-local TOUCH_VITALS_DROP = 0.1 -- touch: how far the vitals move down the stack (share of its height)
+local HEIGHT_SHARE = 0.45 -- the most of the screen's height the stack may take
+local SMALL_HEIGHT_SHARE = 0.3 -- on short screens (Platform.isSmall), phones and small windows
 
 local player = Players.LocalPlayer
 
@@ -26,7 +28,6 @@ local Layout = {}
 
 local gui: ScreenGui
 local clusterShown = true -- false while seated (Meditation)
-local vitalsY: UDim? = nil -- the vitals' authored height in the stack
 
 local function find(name: string): GuiObject
 	return gui:FindFirstChild(name, true) :: GuiObject
@@ -50,7 +51,18 @@ end
 function Layout.apply()
 	local touch = Platform.isTouch()
 	local stack = find("Stack")
-	stack.Size = UDim2.new(1, if touch then -CLUSTER_ROOM else -24, 0.45, 0)
+	-- short screens cap the stack lower: at 0.45 a landscape phone (or the device
+	-- emulator, which reports a mouse and so gets the PC layout) gave nearly half
+	-- the screen to the vitals and hotbar
+	local share = if Platform.isSmall() then SMALL_HEIGHT_SHARE else HEIGHT_SHARE
+	stack.Size = UDim2.new(1, if touch then -CLUSTER_ROOM else -24, share, 0)
+	-- the touch prompt dock mirrors the stack's box (WorldPrompts)
+	local playerGui = player:FindFirstChild("PlayerGui")
+	local prompts = playerGui and playerGui:FindFirstChild("Prompts")
+	local dock = prompts and prompts:FindFirstChild("Dock") :: GuiObject?
+	if dock then
+		dock.Size = stack.Size
+	end
 
 	-- on touch the slots are too small for names: a bigger icon or glyph instead
 	local slots = (stack:FindFirstChild("Hotbar") :: Instance):FindFirstChild("Slots") :: Instance
@@ -68,14 +80,8 @@ function Layout.apply()
 	end
 
 	-- touch: the big Dash and Strike buttons show their own cooldowns, so the mini
-	-- chips go (Menus shows them on PC) and the vitals sit down closer to the
-	-- hotbar in the gap they leave
-	local vitals = stack:FindFirstChild("Vitals") :: GuiObject
-	vitalsY = vitalsY or vitals.Position.Y
-	local y = vitalsY :: UDim
-	vitals.Position = UDim2.new(vitals.Position.X, if touch then UDim.new(y.Scale + TOUCH_VITALS_DROP, y.Offset) else y)
-	local seat = stack:FindFirstChild("SeatBars") :: GuiObject
-	seat.Position = vitals.Position
+	-- chips (tucked into the vitals plate's left notch on PC) go; Menus shows them
+	-- on PC. The vitals sit right on the hotbar on every device.
 
 	local strike, jump, dodge = find("AttackButton"), find("JumpButton"), find("DodgeButton")
 	local block = find("BlockButton")

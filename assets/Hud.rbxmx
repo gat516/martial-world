@@ -5904,8 +5904,8 @@ Owned 0 · 0 placed · peak cap 120</string>
    <Item class="Frame" referent="RBX608"><Properties>
     <string name="Name">Vitals</string>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.0357143</XS><XO>0</XO><YS>-0.0923079</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0.928571</XS><XO>0</XO><YS>0.581818</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.0357143</XS><XO>0</XO><YS>0.129545</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.928571</XS><XO>0</XO><YS>0.445455</YS><YO>0</YO></UDim2>
     <int name="ZIndex">5</int>
    </Properties>
     <Item class="Frame" referent="RBX609"><Properties>
@@ -5913,20 +5913,20 @@ Owned 0 · 0 placed · peak cap 120</string>
      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0745098</G><B>0.0862745</B></Color3>
      <int name="BorderSizePixel">0</int>
      <bool name="ClipsDescendants">true</bool>
-     <UDim2 name="Position"><XS>0.125</XS><XO>0</XO><YS>0.414062</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.75</XS><XO>0</XO><YS>0.171875</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.095</XS><XO>0</XO><YS>0.397959</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.81</XS><XO>0</XO><YS>0.214286</YS><YO>0</YO></UDim2>
     </Properties>
      <Item class="Frame" referent="RBX610"><Properties>
       <string name="Name">Fill</string>
       <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
      </Properties>
       <Item class="UIGradient" referent="RBX611"><Properties>
        <string name="Name">Theme</string>
        <float name="Rotation">90</float>
-       <ColorSequence name="Color">0 0.588235 0.909804 1 0 1 0.156863 0.509804 0.843137 0 </ColorSequence>
+       <ColorSequence name="Color">0 0.588235 0.92549 1 0 1 0.141176 0.588235 0.960784 0 </ColorSequence>
       </Properties>
       </Item>
      </Item>
@@ -5935,7 +5935,7 @@ Owned 0 · 0 placed · peak cap 120</string>
       <Color3 name="BackgroundColor3"><R>1</R><G>0.956863</G><B>0.839216</B></Color3>
       <float name="BackgroundTransparency">0.45</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      </Properties>
      </Item>
      <Item class="Frame" referent="RBX613"><Properties>
@@ -5953,20 +5953,20 @@ Owned 0 · 0 placed · peak cap 120</string>
      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0745098</G><B>0.0862745</B></Color3>
      <int name="BorderSizePixel">0</int>
      <bool name="ClipsDescendants">true</bool>
-     <UDim2 name="Position"><XS>0.125</XS><XO>0</XO><YS>0.140625</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.75</XS><XO>0</XO><YS>0.21875</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.095</XS><XO>0</XO><YS>0.0714286</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.81</XS><XO>0</XO><YS>0.285714</YS><YO>0</YO></UDim2>
     </Properties>
      <Item class="Frame" referent="RBX615"><Properties>
       <string name="Name">Fill</string>
       <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
      </Properties>
       <Item class="UIGradient" referent="RBX616"><Properties>
        <string name="Name">Theme</string>
        <float name="Rotation">90</float>
-       <ColorSequence name="Color">0 0.431373 0.882353 0.584314 0 1 0.156863 0.584314 0.34902 0 </ColorSequence>
+       <ColorSequence name="Color">0 1 0.407843 0.360784 0 1 0.768627 0.117647 0.156863 0 </ColorSequence>
       </Properties>
       </Item>
      </Item>
@@ -5975,7 +5975,7 @@ Owned 0 · 0 placed · peak cap 120</string>
       <Color3 name="BackgroundColor3"><R>1</R><G>0.956863</G><B>0.839216</B></Color3>
       <float name="BackgroundTransparency">0.45</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      </Properties>
      </Item>
     </Item>
@@ -5984,14 +5984,14 @@ Owned 0 · 0 placed · peak cap 120</string>
      <float name="BackgroundTransparency">1</float>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">3</int>
-     <Content name="Image"><url>rbxassetid://125421602907590</url></Content>
+     <Content name="Image"><url>rbxassetid://131037361865917</url></Content>
     </Properties>
     </Item>
     <Item class="TextLabel" referent="RBX619"><Properties>
      <string name="Name">HealthText</string>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>0.125</XS><XO>0</XO><YS>0.15625</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.75</XS><XO>0</XO><YS>0.195312</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.095</XS><XO>0</XO><YS>0.0816327</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.81</XS><XO>0</XO><YS>0.265306</YS><YO>0</YO></UDim2>
      <int name="ZIndex">6</int>
      <string name="Text">100 / 100</string>
      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
@@ -6004,7 +6004,7 @@ Owned 0 · 0 placed · peak cap 120</string>
     </Properties>
      <Item class="UITextSizeConstraint" referent="RBX620"><Properties>
       <string name="Name">UITextSizeConstraint</string>
-      <int name="MaxTextSize">13</int>
+      <int name="MaxTextSize">14</int>
      </Properties>
      </Item>
     </Item>
@@ -6012,8 +6012,8 @@ Owned 0 · 0 placed · peak cap 120</string>
      <string name="Name">Crest</string>
      <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.144231</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.461538</XS><XO>0</XO><YS>0.360577</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.0714286</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.4615</XS><XO>0</XO><YS>0.470958</YS><YO>0</YO></UDim2>
      <int name="ZIndex">4</int>
      <Content name="Image"><url>rbxassetid://102415598703650</url></Content>
     </Properties>
@@ -6053,8 +6053,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <Item class="TextLabel" referent="RBX626"><Properties>
      <string name="Name">QiText</string>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>0.125</XS><XO>0</XO><YS>0.421875</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.75</XS><XO>0</XO><YS>0.15625</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.095</XS><XO>0</XO><YS>0.403061</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.81</XS><XO>0</XO><YS>0.204082</YS><YO>0</YO></UDim2>
      <int name="ZIndex">6</int>
      <string name="Text">100 / 100</string>
      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
@@ -6066,7 +6066,7 @@ Owned 0 · 0 placed · peak cap 120</string>
     </Properties>
      <Item class="UITextSizeConstraint" referent="RBX627"><Properties>
       <string name="Name">UITextSizeConstraint</string>
-      <int name="MaxTextSize">11</int>
+      <int name="MaxTextSize">12</int>
       <int name="MinTextSize">6</int>
      </Properties>
      </Item>
@@ -6076,8 +6076,8 @@ Owned 0 · 0 placed · peak cap 120</string>
      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0745098</G><B>0.0862745</B></Color3>
      <int name="BorderSizePixel">0</int>
      <bool name="ClipsDescendants">true</bool>
-     <UDim2 name="Position"><XS>0.2625</XS><XO>0</XO><YS>0.648438</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.475</XS><XO>0</XO><YS>0.125</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.3</XS><XO>0</XO><YS>0.704082</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.4</XS><XO>0</XO><YS>0.173469</YS><YO>0</YO></UDim2>
     </Properties>
      <Item class="Frame" referent="RBX629"><Properties>
       <string name="Name">Fill</string>
@@ -6091,8 +6091,8 @@ Owned 0 · 0 placed · peak cap 120</string>
       <Item class="UIGradient" referent="RBX630"><Properties>
        <string name="Name">Theme</string>
        <float name="Rotation">90</float>
-       <ColorSequence name="Color">0 1 0.956863 0.803922 0 1 0.807843 0.588235 0.258824 0 </ColorSequence>
-       <NumberSequence name="Transparency">0 0.45 0 1 0.45 0 </NumberSequence>
+       <ColorSequence name="Color">0 1 0.980392 0.862745 0 1 0.941176 0.729412 0.313726 0 </ColorSequence>
+       <NumberSequence name="Transparency">0 0.12 0 1 0.12 0 </NumberSequence>
       </Properties>
       </Item>
      </Item>
@@ -6113,8 +6113,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <Item class="ImageLabel" referent="RBX633"><Properties>
      <string name="Name">GuardCracks</string>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>0.2375</XS><XO>0</XO><YS>0.585938</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.525</XS><XO>0</XO><YS>0.25</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.275</XS><XO>0</XO><YS>0.653061</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.45</XS><XO>0</XO><YS>0.295918</YS><YO>0</YO></UDim2>
      <int name="ZIndex">5</int>
      <Content name="Image"><url>rbxassetid://84683360975013</url></Content>
     </Properties>
@@ -8104,7 +8104,7 @@ Owned 0 · 0 placed · peak cap 120</string>
     <string name="Name">CultivatePrompt</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>-0.162308</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.0995455</YS><YO>0</YO></UDim2>
     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0.4</YS><YO>0</YO></UDim2>
     <bool name="Visible">false</bool>
     <int name="ZIndex">21</int>
@@ -9091,7 +9091,7 @@ Owned 0 · 0 placed · peak cap 120</string>
     <string name="Name">BreakthroughButton</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>-0.363636</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>-0.0784266</YS><YO>0</YO></UDim2>
     <UDim2 name="Size"><XS>0.357143</XS><XO>0</XO><YS>0.27972</YS><YO>0</YO></UDim2>
     <bool name="Visible">false</bool>
     <int name="ZIndex">21</int>
@@ -9133,8 +9133,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <string name="Name">Cooldowns</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.3</XS><XO>0</XO><YS>0.495</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0.25</XS><XO>0</XO><YS>0.15</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.198214</XS><XO>0</XO><YS>0.497727</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.136364</YS><YO>0</YO></UDim2>
    </Properties>
     <Item class="Frame" referent="RBX946"><Properties>
      <string name="Name">Dash</string>
@@ -9239,7 +9239,7 @@ Owned 0 · 0 placed · peak cap 120</string>
     <string name="Name">CalmToggle</string>
     <Vector2 name="AnchorPoint"><X>0</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.5</XS><XO>191</XO><YS>-0.162308</YS><YO>-4</YO></UDim2>
+    <UDim2 name="Position"><XS>0.5</XS><XO>191</XO><YS>0.0995455</YS><YO>-4</YO></UDim2>
     <UDim2 name="Size"><XS>0.3</XS><XO>0</XO><YS>0.3</YS><YO>0</YO></UDim2>
     <bool name="Visible">false</bool>
     <int name="ZIndex">21</int>
@@ -9276,8 +9276,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <string name="Name">SeatBars</string>
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
-    <UDim2 name="Position"><XS>0.0357143</XS><XO>0</XO><YS>-0.0923079</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0.928571</XS><XO>0</XO><YS>0.581818</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.0357143</XS><XO>0</XO><YS>0.129545</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.928571</XS><XO>0</XO><YS>0.445455</YS><YO>0</YO></UDim2>
     <bool name="Visible">false</bool>
    </Properties>
     <Item class="ImageLabel" referent="RBX964"><Properties>
@@ -9285,7 +9285,7 @@ Owned 0 · 0 placed · peak cap 120</string>
      <float name="BackgroundTransparency">1</float>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">3</int>
-     <Content name="Image"><url>rbxassetid://102701146851814</url></Content>
+     <Content name="Image"><url>rbxassetid://117726772074075</url></Content>
     </Properties>
     </Item>
     <Item class="Frame" referent="RBX965"><Properties>
@@ -9293,8 +9293,8 @@ Owned 0 · 0 placed · peak cap 120</string>
      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0745098</G><B>0.0862745</B></Color3>
      <int name="BorderSizePixel">0</int>
      <bool name="ClipsDescendants">true</bool>
-     <UDim2 name="Position"><XS>0.125</XS><XO>0</XO><YS>0.296875</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.6475</XS><XO>0</XO><YS>0.21875</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.095</XS><XO>0</XO><YS>0.244898</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.7175</XS><XO>0</XO><YS>0.367347</YS><YO>0</YO></UDim2>
     </Properties>
      <Item class="Frame" referent="RBX966"><Properties>
       <string name="Name">Fill</string>
@@ -9316,8 +9316,8 @@ Owned 0 · 0 placed · peak cap 120</string>
      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0745098</G><B>0.0862745</B></Color3>
      <int name="BorderSizePixel">0</int>
      <bool name="ClipsDescendants">true</bool>
-     <UDim2 name="Position"><XS>0.8125</XS><XO>0</XO><YS>0.335938</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.0625</XS><XO>0</XO><YS>0.140625</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.84625</XS><XO>0</XO><YS>0.326531</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.05875</XS><XO>0</XO><YS>0.204082</YS><YO>0</YO></UDim2>
     </Properties>
      <Item class="Frame" referent="RBX969"><Properties>
       <string name="Name">Fill</string>
@@ -9339,8 +9339,8 @@ Owned 0 · 0 placed · peak cap 120</string>
      <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0745098</G><B>0.0862745</B></Color3>
      <int name="BorderSizePixel">0</int>
      <bool name="ClipsDescendants">true</bool>
-     <UDim2 name="Position"><XS>0.125</XS><XO>0</XO><YS>0.578125</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.75</XS><XO>0</XO><YS>0.140625</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.3</XS><XO>0</XO><YS>0.704082</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.4</XS><XO>0</XO><YS>0.173469</YS><YO>0</YO></UDim2>
     </Properties>
      <Item class="Frame" referent="RBX972"><Properties>
       <string name="Name">Fill</string>
@@ -9360,8 +9360,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <Item class="TextLabel" referent="RBX974"><Properties>
      <string name="Name">Title</string>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>0.375</XS><XO>0</XO><YS>0.09375</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.25</XS><XO>0</XO><YS>0.140625</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.375</XS><XO>0</XO><YS>0.0510204</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.25</XS><XO>0</XO><YS>0.153061</YS><YO>0</YO></UDim2>
      <int name="ZIndex">6</int>
      <string name="Text">Qi Condensation 1</string>
      <Color3 name="TextColor3"><R>0.980392</R><G>0.886275</G><B>0.627451</B></Color3>
@@ -9381,8 +9381,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <Item class="TextLabel" referent="RBX976"><Properties>
      <string name="Name">CultivationText</string>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>0.125</XS><XO>0</XO><YS>0.3125</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.6475</XS><XO>0</XO><YS>0.1875</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.095</XS><XO>0</XO><YS>0.265306</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.7175</XS><XO>0</XO><YS>0.326531</YS><YO>0</YO></UDim2>
      <int name="ZIndex">6</int>
      <string name="Text">Cultivation 0 / 100</string>
      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
@@ -9402,8 +9402,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <Item class="TextLabel" referent="RBX978"><Properties>
      <string name="Name">DantianText</string>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>0.125</XS><XO>0</XO><YS>0.582031</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.75</XS><XO>0</XO><YS>0.132812</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.3</XS><XO>0</XO><YS>0.709184</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.4</XS><XO>0</XO><YS>0.163265</YS><YO>0</YO></UDim2>
      <int name="ZIndex">6</int>
      <string name="Text">Dantian 0 / 100</string>
      <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>

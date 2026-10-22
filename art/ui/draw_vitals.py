@@ -1,44 +1,49 @@
 """Draws the vitals mount (health, qi, guard) and the seated cultivation mount.
 
-vitals_mount.png  1600x256, Stretch at its native 6.25:1 (Hud.Stack.Vitals.Mount).
-                  Three windows the fills show through, top to bottom: health
-                  (thick, ten segments), qi (combat qi, the bright azure bar) and
-                  guard (a shorter posture trough under a lacquer seal in the
-                  middle; the fill drains toward the seal).
-seat_mount.png    1600x256, Stretch at 6.25:1 (Hud.Stack.SeatBars.Mount), shown in
-                  the vitals' place while seated. A realm title band on top, the
-                  cultivation window with a breakthrough lozenge at its right end
-                  and a short overflow chamber past it (cultivation beyond the
-                  breakthrough mark), and the dantian (raw qi) window under it.
-Both are drawn over their fills, so each window is cut clear and glazed.
-The window boxes (VITALS2, SEAT) are what the Studio layout copies, as scale.
-Run: uv run --with pillow --with numpy python art/ui/draw_vitals.py
+Both are one notched plate (1600x196, Stretch at its native 8.16:1): a full-width
+upper body and a narrower tab under its middle, so the PC cooldown chips tuck into
+the left notch instead of taking a row of their own (user, 2026-10-22). Ornament is
+trimmed to a gilt rim, end lozenges and small curls so the bars get the height.
+vitals_mount.png  Hud.Stack.Vitals.Mount: health (thick, ten segments) and combat
+                  qi in the body, the guard trough in the tab under a lacquer seal
+                  (the fill drains toward the seal).
+seat_mount.png    Hud.Stack.SeatBars.Mount, in the vitals' place while seated: a realm
+                  title band, the cultivation window with a breakthrough lozenge and a
+                  short overflow chamber past it, and the dantian (raw qi) in the tab.
+Both are drawn over their fills, so each window is cut clear and glazed. The window
+boxes (VITALS2, SEAT, NOTCH_LEFT) are what the Studio layout copies, as scale.
+Run: uv run --with pillow --with numpy python art/ui/draw_vitals.py [preview]
 """
 import math
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 from draw_ui import (
     GOLD, GOLD_HI, GOLD_LO, INK, SS, canvas, finish, gradient_rect, bevel_border,
     lozenge, meander_band, shadow_under, spiral,
 )
 
-W, H = 1600, 256
+W, H = 1600, 196
+# The plate is notched (user, 2026-10-22): a full-width upper body holds health and
+# qi; a narrower tab under its middle holds the bottom row (guard; the dantian when
+# seated). The PC cooldown chips (Stack.Cooldowns) tuck into the left notch beside
+# the tab, so they no longer take their own row above the hotbar.
+UPPER = (120, 4, 1480, 128)
+TAB = (440, 96, 1160, 192)
+NOTCH_LEFT = (120, 128, 440, 196)  # where the chips sit
 VITALS2 = {
-    "plate": (170, 20, 1430, 214),
-    "health": (200, 36, 1400, 92),
-    "qi": (200, 106, 1400, 150),
-    "guard": (420, 166, 1180, 198),
-    "seal": (800, 182, 30),
+    "health": (152, 14, 1448, 70),
+    "qi": (152, 78, 1448, 120),
+    "guard": (480, 138, 1120, 172),
+    "seal": (800, 155, 26),
     "segments": 10,
 }
 SEAT = {
-    "plate": (170, 20, 1430, 214),
-    "title": (560, 22, 1040, 62),
-    "cultivation": (200, 76, 1236, 132),
-    "mark": (1268, 104, 26),
-    "overflow": (1300, 86, 1400, 122),
-    "dantian": (200, 148, 1400, 184),
+    "title": (600, 10, 1000, 40),
+    "cultivation": (152, 48, 1300, 120),
+    "mark": (1328, 84, 22),
+    "overflow": (1354, 64, 1448, 104),
+    "dantian": (480, 138, 1120, 172),
 }
 WINDOW_RIM = (205, 170, 95, 220)
 
@@ -47,36 +52,36 @@ def s(v):
     return v * SS
 
 
-def plate_and_horns(img, plate):
+def plate_and_horns(img, plate=None):
+    """The notched lacquer plate: the upper body and the tab under it, one gilt
+    outline, small cloud curls at the outer ends and at the two steps."""
+    body = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    for box in (UPPER, TAB):
+        gradient_rect(body, [s(v) for v in box], (34, 40, 44), (12, 15, 18), radius=s(14))
+    # one silhouette, then the gilt rim traced around it
+    alpha = body.getchannel("A")
+    edge = alpha.filter(ImageFilter.MaxFilter(s(6) + 1))
+    rim = Image.new("RGBA", img.size, GOLD)
+    rim.putalpha(edge)
+    lo = Image.new("RGBA", img.size, GOLD_LO)
+    lo.putalpha(alpha.filter(ImageFilter.MaxFilter(s(8) + 1)))
+    img.alpha_composite(lo)
+    img.alpha_composite(rim)
+    inner = alpha.filter(ImageFilter.MinFilter(s(3) + 1))
+    body.putalpha(inner)
+    img.alpha_composite(body)
     d = ImageDraw.Draw(img)
-    cx = W * SS / 2
-    # ruyi pendant under the middle, behind the plate
-    y = plate[3]
-    tip = [(cx - s(80), s(y - 8)), (cx + s(80), s(y - 8)), (cx + s(30), s(y + 20)), (cx, s(y + 36)), (cx - s(30), s(y + 20))]
-    d.polygon(tip, fill=GOLD_LO)
-    inner = [(cx - s(66), s(y - 6)), (cx + s(66), s(y - 6)), (cx + s(23), s(y + 17)), (cx, s(y + 29)), (cx - s(23), s(y + 17))]
-    d.polygon(inner, fill=(30, 22, 16, 255))
+    # a fine hairline just inside the upper body's top edge (top light)
+    d.line([(s(UPPER[0] + 20), s(UPPER[1] + 3)), (s(UPPER[2] - 20), s(UPPER[1] + 3))], fill=(255, 236, 180, 140), width=s(1))
+    # end caps: a lozenge on each outer end, a small curl beside it
+    my = (UPPER[1] + UPPER[3]) / 2
     for side in (-1, 1):
-        spiral(d, cx + side * s(40), s(y + 6), s(10), 1.1, math.pi * 0.5, side, s(3), GOLD)
-    lozenge(d, cx, s(y + 18), s(9), s(2))
-
-    box = [s(v) for v in plate]
-    gradient_rect(img, box, (34, 40, 44), (12, 15, 18), radius=s(16))
-    d = ImageDraw.Draw(img)
-    bevel_border(d, box, s(6), radius=s(16))
-
-    # horns: cloud scrolls rising off each end
-    for side in (-1, 1):
-        ex = cx + side * (W / 2 - plate[0]) * SS
-        top = plate[1]
-        sweep = [(ex, s(top + 22)), (ex + side * s(44), s(top + 2)), (ex + side * s(86), s(top + 16))]
-        d.line(sweep, fill=GOLD_LO, width=s(15), joint="curve")
-        d.line(sweep, fill=GOLD, width=s(10), joint="curve")
-        spiral(d, ex + side * s(104), s(top + 52), s(36), 1.4, math.pi if side > 0 else 0, -side, s(12), GOLD_LO)
-        spiral(d, ex + side * s(104), s(top + 52), s(36), 1.4, math.pi if side > 0 else 0, -side, s(8), GOLD)
-        spiral(d, ex + side * s(66), s(plate[3] - 10), s(22), 1.2, -math.pi * 0.5, side, s(8), GOLD)
-        spiral(d, ex + side * s(130), s(top - 2), s(13), 1.1, math.pi * 0.5, side, s(5), GOLD)
-        lozenge(d, ex, s((plate[1] + plate[3]) / 2), s(22), s(4))
+        ex = s(UPPER[0] if side < 0 else UPPER[2])
+        lozenge(d, ex, s(my), s(18), s(4))
+        spiral(d, ex + side * s(4), s(my + 34), s(10), 1.1, math.pi * 0.5, side, s(4), GOLD)
+        # curl at the step where the tab leaves the body
+        sx = s(TAB[0] if side < 0 else TAB[2])
+        spiral(d, sx - side * s(2), s(UPPER[3] + 16), s(11), 1.1, -math.pi * 0.5, -side, s(4), GOLD)
 
 
 def cut(img, boxes, radius):
@@ -117,53 +122,35 @@ def seal_diamond(d, cx, cy, r):
 def vitals_mount():
     v = VITALS2
     img = canvas(W, H)
-    plate_and_horns(img, v["plate"])
-    d = ImageDraw.Draw(img)
-    gx0, gy0, gx1, gy1 = v["guard"]
-    gm = (gy0 + gy1) / 2
-    # meander bands either side of the guard trough
-    meander_band(d, s(v["plate"][0] + 46), s(gx0 - 26), s(gm), s(10), (205, 170, 95, 190), int(1.6 * SS))
-    meander_band(d, s(gx1 + 26), s(v["plate"][2] - 46), s(gm), s(10), (205, 170, 95, 190), int(1.6 * SS))
+    plate_and_horns(img)
     cut(img, [v["health"], v["qi"], v["guard"]], [8, 7, 6])
     d = ImageDraw.Draw(img)
     hx0, hy0, hx1, hy1 = [s(x) for x in v["health"]]
     seg = (hx1 - hx0) / v["segments"]
     for i in range(1, v["segments"]):
         x = hx0 + seg * i
-        d.line([(x, hy0), (x, hy1)], fill=(10, 14, 16, 230), width=s(5))
-        d.line([(x + s(3), hy0 + s(2)), (x + s(3), hy1 - s(2))], fill=(255, 255, 255, 40), width=s(1))
-    # qi: faint quarter ticks, so spending reads at a glance
-    qx0, qy0, qx1, qy1 = [s(x) for x in v["qi"]]
-    for i in (1, 2, 3):
-        x = qx0 + (qx1 - qx0) * i / 4
-        d.line([(x, qy0), (x, qy0 + s(10))], fill=(10, 14, 16, 200), width=s(4))
-        d.line([(x, qy1 - s(10)), (x, qy1)], fill=(10, 14, 16, 200), width=s(4))
+        d.line([(x, hy0), (x, hy1)], fill=(10, 14, 16, 200), width=s(4))
     glaze(img, v["health"], 8, 3, rim=GOLD, gloss=46)
     glaze(img, v["qi"], 7, 3, rim=GOLD)
-    glaze(img, v["guard"], 6, 2)
+    glaze(img, v["guard"], 6, 3, rim=GOLD)
     d = ImageDraw.Draw(img)
     cx, cy, r = v["seal"]
     seal_diamond(d, s(cx), s(cy), s(r))
-    finish(shadow_under(img, blur=4, offset=3), "vitals_mount.png")
+    finish(shadow_under(img, blur=3, offset=2), "vitals_mount.png")
 
 
 def seat_mount():
     v = SEAT
     img = canvas(W, H)
-    plate_and_horns(img, v["plate"])
-    d = ImageDraw.Draw(img)
-    # title band: a lacquer-red strip with gold rails behind the realm name
+    plate_and_horns(img)
     tx0, ty0, tx1, ty1 = [s(x) for x in v["title"]]
     gradient_rect(img, [tx0, ty0, tx1, ty1], (70, 26, 22), (34, 12, 10), radius=s(8))
     d = ImageDraw.Draw(img)
     d.rounded_rectangle([tx0, ty0, tx1, ty1], radius=s(8), outline=GOLD, width=s(3))
-    for side in (-1, 1):
-        ex = tx0 if side < 0 else tx1
-        lozenge(d, ex, (ty0 + ty1) / 2, s(14), s(3))
-        meander_band(d, *(sorted([ex + side * s(24), ex + side * s(150)])), (ty0 + ty1) / 2, s(10), (205, 170, 95, 190), int(1.6 * SS))
+    for ex in (tx0, tx1):
+        lozenge(d, ex, (ty0 + ty1) / 2, s(12), s(3))
     cut(img, [v["cultivation"], v["overflow"], v["dantian"]], [8, 6, 6])
     d = ImageDraw.Draw(img)
-    # fifths on the cultivation window
     cx0, cy0, cx1, cy1 = [s(x) for x in v["cultivation"]]
     for i in range(1, 5):
         x = cx0 + (cx1 - cx0) * i / 5
@@ -171,41 +158,42 @@ def seat_mount():
         d.line([(x, cy1 - s(10)), (x, cy1)], fill=(10, 14, 16, 200), width=s(4))
     glaze(img, v["cultivation"], 8, 3, rim=GOLD, gloss=46)
     glaze(img, v["overflow"], 6, 2)
-    glaze(img, v["dantian"], 6, 2)
+    glaze(img, v["dantian"], 6, 3, rim=GOLD)
     d = ImageDraw.Draw(img)
-    # the breakthrough mark between the bar and its overflow chamber
     mx, my, mr = v["mark"]
-    d.line([(s(mx), s(v["cultivation"][1] - 6)), (s(mx), s(v["cultivation"][3] + 6))], fill=GOLD_LO, width=s(6))
     lozenge(d, s(mx), s(my), s(mr), s(5))
-    finish(shadow_under(img, blur=4, offset=3), "seat_mount.png")
+    finish(shadow_under(img, blur=3, offset=2), "seat_mount.png")
 
 
 def preview():
-    """Both mounts at real in-game size (520 px wide, the Stack's max) on grey."""
+    """Both mounts at real in-game size on grey: 520 px wide (the Stack's PC max)
+    and 320 px (a landscape phone), with full fills and two chip dots in the notch."""
     import os
     here = os.path.dirname(os.path.abspath(__file__))
     out = os.environ.get("PREVIEW", os.path.join(here, "preview_vitals.png"))
-    bg = Image.new("RGBA", (1100, 260), (110, 110, 110, 255))
+    bg = Image.new("RGBA", (900, 200), (110, 110, 110, 255))
     y = 10
-    for name, fills in (("vitals_mount.png", (("health", 0.7, (60, 190, 110)), ("qi", 0.55, (90, 200, 255)), ("guard", 0.6, (245, 220, 150)))),
-                        ("seat_mount.png", (("cultivation", 1.0, (230, 190, 90)), ("overflow", 0.4, (255, 235, 160)), ("dantian", 0.35, (170, 140, 255))))):
+    for name, boxes, fills in (
+        ("vitals_mount.png", VITALS2, (("health", 1.0, (255, 92, 84)), ("qi", 1.0, (120, 220, 255)), ("guard", 1.0, (255, 236, 170)))),
+        ("seat_mount.png", SEAT, (("cultivation", 1.0, (240, 200, 100)), ("overflow", 0.4, (255, 240, 180)), ("dantian", 0.35, (180, 150, 255)))),
+    ):
         im = Image.open(os.path.join(here, name))
-        boxes = VITALS2 if name.startswith("vitals") else SEAT
-        layer = Image.new("RGBA", im.size, (14, 19, 22, 0))
+        layer = Image.new("RGBA", im.size, (0, 0, 0, 0))
         ld = ImageDraw.Draw(layer)
         for key, frac, col in fills:
             x0, y0, x1, y1 = boxes[key]
             ld.rectangle([x0, y0, x1, y1], fill=(14, 19, 22, 255))
-            if key == "guard":
-                c, half = (x0 + x1) / 2, (x1 - x0) / 2 * frac
-                ld.rectangle([c - half, y0, c + half, y1], fill=col + (255,))
-            else:
-                ld.rectangle([x0, y0, x0 + (x1 - x0) * frac, y1], fill=col + (255,))
+            ld.rectangle([x0, y0, x0 + (x1 - x0) * frac, y1], fill=col + (255,))
         layer.alpha_composite(im)
-        for scale, x in ((520 / 1600, 10), (330 / 1600, 560)):
-            small = layer.resize((int(1600 * scale), int(256 * scale)), Image.LANCZOS)
+        nx0, ny0, nx1, ny1 = NOTCH_LEFT
+        for cx in (nx0 + (nx1 - nx0) * 0.38, nx0 + (nx1 - nx0) * 0.62):
+            r = (ny1 - ny0) * 0.4
+            ld = ImageDraw.Draw(layer)
+            ld.ellipse([cx - r, (ny0 + ny1) / 2 - r, cx + r, (ny0 + ny1) / 2 + r], fill=(16, 18, 18, 220), outline=(240, 226, 190, 200), width=3)
+        for scale, x in ((520 / 1600, 10), (320 / 1600, 560)):
+            small = layer.resize((int(W * scale), int(H * scale)), Image.LANCZOS)
             bg.alpha_composite(small, (x, y))
-        y += 120
+        y += 90
     bg.save(out)
     print("preview", out)
 

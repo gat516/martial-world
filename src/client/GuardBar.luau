@@ -1,6 +1,6 @@
 --!strict
 -- The guard (posture) trough: the third bar in the vitals mount (Stack.Vitals.GuardBar,
--- under health and qi, behind the mount's lacquer seal). It is always there, so the
+-- in the plate's tab under health and qi, behind the lacquer seal). It is always there, so the
 -- guard is readable at a glance: dim while full and idle, bright while held or
 -- recovering. The pale-gold fill drains toward the centre seal and warms toward red
 -- below LOW.
@@ -17,7 +17,7 @@ local RunService = game:GetService("RunService")
 
 local BREAK_HIDE = 1.1 -- seconds the fill stays empty after a break, so it reads as shattered
 local LOW = 0.3 -- below this the fill warms toward red
-local IDLE_DIM = 0.45 -- fill transparency while full and not held
+local IDLE_DIM = 0.12 -- fill transparency while full and not held (still clearly lit)
 local WHITE = Color3.new(1, 1, 1)
 local WARN = Color3.fromRGB(255, 120, 100)
 local PARRY = Color3.fromRGB(255, 246, 200)

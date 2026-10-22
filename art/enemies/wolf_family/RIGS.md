@@ -216,3 +216,40 @@ clearance against the King's larger skull, shoulder pads and mane, the ClawDown
 contact, death against the ground, phase blending, phone cost and readability
 at 40 studs remain for review. No KeyframeSequences or uploaded clips were made;
 the live game currently uses procedural poses.
+
+#### King animation rework (stiffness pass)
+
+Numeric QA: `wolf_family/qa_wolf_king_poses.luau` (King template, poses scaled 2.4x,
+every move variant and loop; `_G.WOLF_POSE_ONLY = "ClawDown"` for one move,
+`_G.WK_VARIANT = "B"` for one variant). Run one or two moves per `execute_luau` call
+(a full run drops the connection). Push edited modules first (`tools/push_src.luau`).
+
+- **Variants.** Each attack has "A" (original) plus "B"/"C" with identical phase
+  durations. Switch with `WolfKing.VARIANT.ClawDown = "B"`, `WolfKing.setVariant(move, v)`
+  or `WolfKing.setAll(v)` (only moves that have it). Shipped defaults: RoyalBite B
+  (haunch-sit hammer), KingsRush B (pawing), Crownfall B (tall rear-up), PackCall B
+  (rear-up howl), PawSwipe A, ClawDown A. C: RoyalBite head-whip, PawSwipe stamp-cock
+  with tremble, ClawDown hook (draw back first), Crownfall slow squat then late rise,
+  KingsRush head-low shudder, PackCall pulsed howl.
+- **Secondary motion** (`secondary` in `WolfKing.sample`): neck, head, jaw, ears, crest,
+  tail chain, manes and seal each lag the body by their own amount (0.04-0.18 s,
+  faded to 0 at every phase boundary so contact is never late), tremble while a
+  windup is held, and ring down after impact (SETTLE per move). `weightOverlay` adds
+  root breathing, a crunch before contact and an impact dip BEFORE planting, so the
+  legs compress with it. Cost: each keyed sample runs the sampler 13 times.
+- **Locomotion:** idle breathes (chest leads head), shifts weight over the paws, looks
+  about, flicks the tail and ears on separate clocks. Walk holds the head high with
+  chest dips on forepaw footfalls and opposed shoulder/hip sway. Run slams the body
+  down each footfall; head, ears, tail trail with phase offsets.
+- **Death** is 2.6 s (`Family.deathSeconds` in EnemyAnimator): a thrown-back hit held
+  u 0.1-0.3 (burst key for the effect), reeling sway, the roll, a bounce, rest. **Roar**
+  (aggro) exists as a move (1.0 / 0.1 / 0.8, held rear-up from u 0.5) but nothing plays
+  it: EnemyAnimator has no engage attribute.
+- **Gotchas learned:** root YAW or large root roll with planted hind paws breaks the
+  planting (the two-joint solve is in the leg's plane only) and merges the hind paw
+  into the thigh by 0.6-1.1; keep root yaw under ~0.05 and turn with the spine and
+  neck. A raised forepaw at pitch 1.1+ goes through the neck and skull unless rolled
+  outward 0.5-0.65 (left negative, right positive). Remaining: the raised lower leg
+  still clips ManeL/ManeR (0.6-1.2) and Neck (0.6) in PawSwipe, ClawDown, Crownfall and
+  the Rush launch; PawBL/UpperLegBL "merge" of 0.3-0.9 shows in every bent hind pose
+  including walk (a rig geometry issue, not a pose one); Crownfall elbows reach 1.34.

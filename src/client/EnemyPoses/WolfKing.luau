@@ -133,8 +133,8 @@ local RUSH_READY = with(RUSH_LOAD, {
 })
 local RUSH_LAUNCH = regalia(with(RUSH_READY, {
 	JointRoot = R(-0.18, 0.08, -0.04), JointSpine = A(0.03),
-	JointLegFL = A(0.95, 0, -0.08), JointElbowFL = A(-0.8), JointWristFL = A(-0.2),
-	JointLegFR = A(0.95, 0, 0.08), JointElbowFR = A(-0.8), JointWristFR = A(-0.2),
+	JointLegFL = A(0.95, 0, -0.3), JointElbowFL = A(-0.8), JointWristFL = A(-0.2),
+	JointLegFR = A(0.95, 0, 0.3), JointElbowFR = A(-0.8), JointWristFR = A(-0.2),
 }), 0.25, 0.28, 0.2)
 local RUSH_SKID = regalia(with(SPENT, {
 	JointRoot = R(-0.25, 0.07, 0.1), JointSpine = A(-0.06),
@@ -147,15 +147,15 @@ local RUSH_SKID = regalia(with(SPENT, {
 local CROWN_RISE = regalia(with(STAND, {
 	JointRoot = R(-0.12, 0.28, 0.18), JointSpine = A(-0.08),
 	JointNeck = A(0.1), JointHead = A(0.1), JointJaw = A(-0.4),
-	JointLegFL = A(1.1, 0.1, -0.12), JointElbowFL = A(0.85), JointWristFL = A(-1.7),
-	JointLegFR = A(1.1, -0.1, 0.12), JointElbowFR = A(0.85), JointWristFR = A(-1.7),
+	JointLegFL = A(1.1, 0.1, -0.5), JointElbowFL = A(0.85), JointWristFL = A(-1.7),
+	JointLegFR = A(1.1, -0.1, 0.5), JointElbowFR = A(0.85), JointWristFR = A(-1.7),
 	JointEarL = A(0.45), JointEarR = A(0.45), JointCrest = A(-0.5),
 	JointTail = A(-0.45), JointTail2 = A(-0.15),
 }), 0.42, -0.22, -0.08)
 local CROWN_PEAK = regalia(with(CROWN_RISE, {
 	JointRoot = R(-0.08, 0.32, 0.16), JointNeck = A(0.2), JointJaw = A(-0.6),
-	JointLegFL = A(1.25, 0.1, -0.12), JointElbowFL = A(0.9), JointWristFL = A(-2.0),
-	JointLegFR = A(1.25, -0.1, 0.12), JointElbowFR = A(0.9), JointWristFR = A(-2.0),
+	JointLegFL = A(1.25, 0.1, -0.55), JointElbowFL = A(0.9), JointWristFL = A(-2.0),
+	JointLegFR = A(1.25, -0.1, 0.55), JointElbowFR = A(0.9), JointWristFR = A(-2.0),
 }), 0.5, -0.26, -0.1)
 local CROWN_CONTACT = regalia(with(SPENT, {
 	JointRoot = R(-0.38, -0.08, -0.06), JointSpine = A(0.05),
@@ -172,22 +172,22 @@ local CROWN_SETTLE = regalia(with(CROWN_CONTACT, {
 local SWIPE_LIFT = regalia(with(STAND, {
 	JointRoot = R(-0.12, 0.02, 0.05, 0.05, -0.05), JointSpine = A(0, 0.08),
 	JointNeck = A(-0.18, -0.08), JointHead = A(0.12, -0.05), JointJaw = A(-0.18),
-	JointLegFL = A(0.9, 0.25, -0.18), JointElbowFL = A(0.65), JointWristFL = A(-1.0),
+	JointLegFL = A(0.9, 0.25, -0.5), JointElbowFL = A(0.65), JointWristFL = A(-1.0),
 	JointEarL = A(0.35), JointEarR = A(0.35), JointCrest = A(-0.28),
 	JointTail = A(-0.25, 0.1),
 }), 0.25, -0.12, -0.05)
 local SWIPE_PEAK = regalia(with(SWIPE_LIFT, {
 	JointSpine = A(0, 0.1),
-	JointLegFL = A(1.22, 0.38, -0.2), JointElbowFL = A(1.0), JointWristFL = A(-1.55),
+	JointLegFL = A(1.22, 0.45, -0.6), JointElbowFL = A(1.0), JointWristFL = A(-1.55),
 }), 0.35, -0.2, -0.08)
 local SWIPE_CONTACT = regalia(with(SWIPE_LIFT, {
 	JointRoot = R(-0.12, -0.03, -0.08, -0.05, 0.03), JointSpine = A(0, -0.12),
 	JointNeck = A(-0.15, 0.1), JointHead = A(0.1, 0.05),
-	JointLegFL = A(1.0, -0.42, 0.1), JointElbowFL = A(0.25), JointWristFL = A(-0.7),
+	JointLegFL = A(1.0, -0.25, -0.25), JointElbowFL = A(0.25), JointWristFL = A(-0.7),
 }), 0.35, -0.2, -0.08)
 local SWIPE_THROUGH = regalia(with(SWIPE_CONTACT, {
 	JointRoot = R(-0.16, -0.02, -0.04, -0.06, 0.04),
-	JointLegFL = A(0.55, -0.5, 0.12), JointElbowFL = A(-0.2), JointWristFL = A(-0.35),
+	JointLegFL = A(0.55, -0.3, -0.1), JointElbowFL = A(-0.2), JointWristFL = A(-0.35),
 }), 0.16, 0.18, 0.12)
 
 -- ClawDown: the RIGHT paw lifts above a lowered head, then drives straight
@@ -195,12 +195,12 @@ local SWIPE_THROUGH = regalia(with(SWIPE_CONTACT, {
 local CLAW_LIFT = regalia(with(STAND, {
 	JointRoot = R(-0.1, 0.03, 0.03, 0, 0.05), JointSpine = A(0.02),
 	JointNeck = A(-0.3, 0.1), JointHead = A(0.06), JointJaw = A(-0.12),
-	JointLegFR = A(0.95, -0.12, 0.1), JointElbowFR = A(0.8), JointWristFR = A(-1.2),
+	JointLegFR = A(0.95, -0.1, 0.5), JointElbowFR = A(0.8), JointWristFR = A(-1.2),
 	JointEarL = A(0.4), JointEarR = A(0.4), JointCrest = A(-0.25),
 	JointTail = A(-0.25, -0.1),
 }), 0.25, -0.12, -0.05)
 local CLAW_PEAK = regalia(with(CLAW_LIFT, {
-	JointLegFR = A(1.18, -0.16, 0.1), JointElbowFR = A(1.1), JointWristFR = A(-1.7),
+	JointLegFR = A(1.18, -0.1, 0.6), JointElbowFR = A(1.1), JointWristFR = A(-1.7),
 	JointNeck = A(-0.35, 0.12),
 }), 0.3, -0.18, -0.08)
 local CLAW_STRIKE = regalia(with(SPENT, {
@@ -255,19 +255,32 @@ end
 function loops.idle(clock: number, _speed: number, input: Input?): Pose
 	local seed = (input and input.seed) or 0
 	local breath = math.sin(clock * TAU / 4.2 + seed)
-	local look = 0.1 * math.sin(clock * 0.24 + seed)
+	-- the chest rises first, then the head and tail follow it
+	local chest = math.sin(clock * TAU / 4.2 + seed - 0.35)
+	local look = 0.12 * math.sin(clock * 0.24 + seed) + 0.05 * math.sin(clock * 0.61 + seed * 2)
+	local lookLate = 0.12 * math.sin(clock * 0.24 + seed - 0.7) + 0.05 * math.sin(clock * 0.61 + seed * 2 - 0.9)
 	local slot = math.floor(clock / 6)
 	local at = slot * 6 + Quadruped.hash(slot, seed) * 2
 	local ear = Quadruped.bump(clock, at, at + 0.32)
+	local slot2 = math.floor(clock / 4.5)
+	local at2 = slot2 * 4.5 + Quadruped.hash(slot2, seed + 3) * 2.5
+	local earR = Quadruped.bump(clock, at2, at2 + 0.28)
+	local flick = Quadruped.bump(clock, at + 1.2, at + 2.0) * math.sin((clock - at) * 18)
+	-- weight drifts side to side over the planted paws
+	local shift = math.sin(clock * 0.31 + seed)
 	local pose = regalia(with(STAND, {
-		JointRoot = R(0.012 * breath), JointSpine = A(0.012 * breath),
-		JointNeck = A(-0.08 + 0.008 * breath, look), JointHead = A(0.08, look * 0.5),
-		JointEarL = A(0.08 + 0.3 * ear), JointEarR = A(0.08 + 0.12 * ear),
-		JointTail = A(0.12, 0.08 * math.sin(clock * 1.1)),
-		JointTail2 = A(0.1, 0.06 * math.sin(clock * 1.1 - 0.6)),
-		JointTail3 = A(0.08, 0.06 * math.sin(clock * 1.1 - 1.2)),
-	}), 0.1 + 0.015 * math.sin(clock * TAU / 4.2 + seed - 0.5), 0.025 * math.sin(clock * 1.1 - 0.8))
-	return rig.plant(pose)
+		JointRoot = R(-0.01 + 0.014 * breath, 0.006 * breath, 0, 0.01 * shift, 0.025 * shift),
+		JointSpine = A(0.014 * chest, 0.012 * math.sin(clock * 0.5 + seed), -0.012 * shift),
+		JointNeck = A(-0.08 + 0.012 * chest, look),
+		JointHead = A(0.08 + 0.012 * math.sin(clock * 0.9 + seed), lookLate * 0.7),
+		JointJaw = A(-0.02 - 0.01 * math.max(0, math.sin(clock * 0.37 + seed))),
+		JointEarL = A(0.08 + 0.3 * ear), JointEarR = A(0.08 + 0.25 * earR),
+		JointTail = A(0.12 + 0.02 * breath, 0.1 * math.sin(clock * 0.9) + 0.12 * flick),
+		JointTail2 = A(0.1, 0.08 * math.sin(clock * 0.9 - 0.7) + 0.16 * flick),
+		JointTail3 = A(0.08, 0.08 * math.sin(clock * 0.9 - 1.4) + 0.2 * flick),
+	}), 0.1 + 0.02 * math.sin(clock * TAU / 4.2 + seed - 0.9), 0.03 * math.sin(clock * 1.1 - 0.8))
+	local sway = 0.04 * shift
+	return rig.plant(pose, ALL, { FL = V(0, 0, 0.02 * shift), FR = V(0, 0, -0.02 * shift), BL = V(sway * 0.4, 0, 0), BR = V(sway * 0.4, 0, 0) })
 end
 
 function loops.walk(phase: number, speed: number, _input: Input?): Pose
@@ -278,15 +291,19 @@ function loops.walk(phase: number, speed: number, _input: Input?): Pose
 		rig.setLeg(pose, steps, tag, a, 0, lift, w, 0.28)
 	end
 	local bob = math.sin(phase * 4)
-	pose.JointRoot = R(-0.035 + 0.018 * bob, 0.015 * math.sin(phase * 2), 0, 0, 0.025 * math.sin(phase))
-	pose.JointSpine = A(0, 0.025 * math.sin(phase - 0.2))
-	pose.JointNeck = A(-0.14 + 0.02 * bob)
-	pose.JointHead = A(0.1 - 0.015 * bob)
-	pose.JointEarL, pose.JointEarR = A(0.15), A(0.15)
-	pose.JointCrest = A(-0.08)
-	pose.JointTail = A(0.05, 0.08 * math.sin(phase - 0.4))
-	pose.JointTail2 = A(0.08, 0.07 * math.sin(phase - 1.0))
-	pose.JointTail3 = A(0.15, 0.06 * math.sin(phase - 1.6))
+	-- a footfall dips the chest (the forepaws land at phase 0.25 and 0.75), a hind
+	-- footfall dips the hips; shoulders and hips sway against each other
+	local chestDip = math.max(0, math.sin(phase * 2 - 0.5)) * 0.03
+	pose.JointRoot = R(-0.04 + 0.022 * bob, 0.015 * math.sin(phase * 2) + 0.01 * chestDip, 0, 0.03 * math.sin(phase - 0.3), 0.04 * math.sin(phase))
+	pose.JointSpine = A(chestDip - 0.01, 0.045 * math.sin(phase - 0.2), -0.035 * math.sin(phase))
+	pose.JointNeck = A(0.06 + 0.03 * math.sin(phase * 4 - 0.9), 0.05 * math.sin(phase - 0.9)) -- regal: head held high
+	pose.JointHead = A(0.0 - 0.025 * math.sin(phase * 4 - 1.7), 0.04 * math.sin(phase - 1.5))
+	pose.JointJaw = A(-0.03 - 0.015 * math.sin(phase * 4 - 2.2))
+	pose.JointEarL, pose.JointEarR = A(0.15 + 0.05 * math.sin(phase * 4 - 2)), A(0.15 + 0.05 * math.sin(phase * 4 - 2.6))
+	pose.JointCrest = A(-0.08 + 0.03 * math.sin(phase * 4 - 1.2))
+	pose.JointTail = A(0.05 + 0.03 * math.sin(phase * 4 - 1.1), 0.12 * math.sin(phase - 0.4))
+	pose.JointTail2 = A(0.08 + 0.04 * math.sin(phase * 4 - 1.8), 0.1 * math.sin(phase - 1.0))
+	pose.JointTail3 = A(0.15 + 0.04 * math.sin(phase * 4 - 2.5), 0.09 * math.sin(phase - 1.6))
 	pose = regalia(pose, 0.13 + 0.035 * math.sin(phase * 2 - 0.55), 0.065 * math.sin(phase * 2 - 0.9), 0.025 * math.sin(phase * 2 - 0.55))
 	rig.stepLegs(pose, steps)
 	return pose
@@ -312,17 +329,19 @@ local function gallop(phase: number, speed: number): Pose
 		if front then fore += a / 2 else hind += a / 2 end
 	end
 	local s = math.clamp((hind - fore) / (ampF + ampH) * 2, -1, 1)
-	pose.JointRoot = R(0.06 * math.max(0, s), -0.05 * s)
-	pose.JointSpine = A(-0.08 * math.max(0, s) + 0.13 * math.max(0, -s))
-	pose.JointNeck = A(-0.22 + 0.05 * s)
-	pose.JointHead = A(0.14 - 0.03 * s)
-	pose.JointJaw = A(-0.18)
-	pose.JointEarL, pose.JointEarR = A(0.65), A(0.65)
-	pose.JointCrest = A(0.12)
-	pose.JointTail = A(-0.08 + 0.06 * s, 0.04 * math.sin(phase))
-	pose.JointTail2 = A(0.05, 0.05 * math.sin(phase - 0.7))
-	pose.JointTail3 = A(0.35, 0.05 * math.sin(phase - 1.4))
-	pose = regalia(pose, 0.18 + 0.04 * math.sin(phase - 0.55), 0.12 * math.sin(phase - 0.9), 0.16 + 0.04 * math.sin(phase - 0.55))
+	-- the body gathers and extends; the head, ears, mane and tail trail it
+	pose.JointRoot = R(0.06 * math.max(0, s) - 0.02 * math.abs(s) - 0.07 * math.abs(math.sin(phase * 2 - 0.3)), 0.06 * math.max(0, s), 0, 0.03 * math.sin(phase), -0.05 * s) -- heavy: each footfall slams the body down
+	pose.JointSpine = A(-0.08 * math.max(0, s) + 0.13 * math.max(0, -s), 0.03 * math.sin(phase + 0.4), 0.025 * math.sin(phase))
+	local sl = math.sin(phase - 0.9)
+	pose.JointNeck = A(-0.22 + 0.06 * sl, 0.03 * math.sin(phase - 0.5))
+	pose.JointHead = A(0.14 - 0.05 * math.sin(phase - 1.5), 0.03 * math.sin(phase - 1.1))
+	pose.JointJaw = A(-0.18 - 0.05 * math.sin(phase - 1.8))
+	pose.JointEarL, pose.JointEarR = A(0.65 + 0.1 * math.sin(phase - 2)), A(0.65 + 0.1 * math.sin(phase - 2.5))
+	pose.JointCrest = A(0.12 + 0.05 * math.sin(phase - 1.4))
+	pose.JointTail = A(-0.08 + 0.1 * math.sin(phase - 1.0), 0.08 * math.sin(phase * 0.5))
+	pose.JointTail2 = A(0.05 + 0.12 * math.sin(phase - 1.7), 0.09 * math.sin(phase * 0.5 - 0.7))
+	pose.JointTail3 = A(0.35 + 0.15 * math.sin(phase - 2.4), 0.1 * math.sin(phase * 0.5 - 1.4))
+	pose = regalia(pose, 0.18 + 0.05 * math.sin(phase - 1.1), 0.14 * math.sin(phase - 1.5), 0.16 + 0.05 * math.sin(phase - 1.1))
 	rig.stepLegs(pose, steps)
 	return pose
 end
@@ -511,13 +530,388 @@ moves.PackCall = {
 
 -- Reuse the shared flinch and mirrored fall, with the King's sole dimensions.
 -- These tables are read only; King-specific secondary motion is added below.
+local function ph(duration: number, keys: { any }, overlay: any?): Phase
+	return { duration = duration, keys = keys, overlay = overlay }
+end
+local function hold(t: number, pose: Pose, plant: { string }, reach: any?, ease: string?): any
+	return { t = t, pose = pose, plant = plant, reach = reach, ease = ease }
+end
+
 moves.Stagger = Wolf.moves.Stagger
-moves.Death = Wolf.moves.Death
-local sampleKeyed = rig.sampler(moves, "WolfKing")
+
+-- Death: a long, weighty collapse (DEATH_SECONDS 2.6 for this family, see
+-- EnemyAnimator). Keys come from the Spirit Wolf's fall (hit, mid-roll, overshoot,
+-- rest) stretched out: a thrown-back hit held as the burst key (u 0.12-0.3), a
+-- reeling sway while the legs give, then the roll, a bounce and the rest.
+do
+	local k = Wolf.moves.Death.active.keys
+	local hit, mid, over, rest = k[2], k[3], k[4], k[5]
+	-- the King's thicker flank rests 0.43 studs lower than the wolf's: lift the fall
+	local function lift(pose: Pose, y: number): Pose
+		return with(pose, { JointRoot = CFrame.new(0, y, 0) * (pose.JointRoot or I) })
+	end
+	mid = { pose = lift(mid.pose, 0.06) }
+	over = { pose = lift(over.pose, 0.18) }
+	rest = { pose = lift(rest.pose, 0.18) }
+	moves.Death = { active = {
+		duration = 2.6, mirror = true,
+		keys = {
+			{ t = 0, pose = STAND, plant = ALL },
+			{ t = 0.1, pose = hit.pose, ease = "out", plant = ALL, reach = hit.reach },
+			{ t = 0.3, pose = hit.pose, plant = ALL, reach = hit.reach },
+			{ t = 0.62, pose = mid.pose, ease = "inOut" },
+			{ t = 0.84, pose = over.pose, ease = "in" },
+			{ t = 0.92, pose = rest.pose, ease = "out" },
+			{ t = 1, pose = rest.pose },
+		},
+		overlay = function(u, secs, _)
+			local sway = smooth(0.1, 0.3, u) * (1 - smooth(0.3, 0.6, u))
+			return { JointRoot = R(0, 0, 0, 0.04 * sway * math.sin(secs * 5), 0.05 * sway * math.sin(secs * 3.3)),
+				JointHead = A(0.06 * sway * math.sin(secs * 4)) }
+		end,
+	} }
+end
+
+-- Roar: an aggro / intimidation pose for the engage moment. EnemyAnimator has no
+-- hook for it yet (no attribute names this beat), so it is authored but unplayed.
+-- windup 1.0 (rear up, jaw wide: hold u 0.45-1 for the effect), active 0.1, recover 0.8.
+do
+	local rise = regalia(with(STAND, {
+		JointRoot = R(-0.1, 0.28, 0.08), JointSpine = A(-0.12), JointNeck = A(0.45), JointHead = A(0.28), JointJaw = A(-0.85),
+		JointLegFL = A(0.45, 0, -0.1), JointElbowFL = A(0.55), JointWristFL = A(-1.0),
+		JointLegFR = A(0.55, 0, 0.1), JointElbowFR = A(0.6), JointWristFR = A(-1.1),
+		JointEarL = A(0.5), JointEarR = A(0.5), JointCrest = A(-0.55), JointTail = A(-0.4), JointTail2 = A(-0.1),
+	}), 0.6, -0.2, -0.1)
+	moves.Roar = {
+		windup = ph(1.0, { hold(0, STAND, ALL), hold(0.2, with(STAND, { JointNeck = A(-0.2), JointRoot = R(-0.12, -0.05) }), ALL, BRACED, "inOut"), hold(0.5, rise, HIND, REARED, "out"), hold(1, rise, HIND, REARED) }),
+		active = ph(0.1, { hold(0, rise, HIND, REARED), hold(1, rise, HIND, REARED) }),
+		recover = ph(0.8, { hold(0, rise, HIND, REARED), hold(0.45, SPENT, ALL, BRACED, "inOut"), hold(1, STAND, ALL, nil, "inOut") }),
+	}
+end
+
+--------------------------------------------------------------------------------
+-- VARIANTS. Every attack has 2-3 authored shapes with identical phase durations
+-- (the defs own the timing): "A" is the original pass above, "B" and "C" are
+-- alternates for comparison. Switch with WolfKing.VARIANT.<Move> = "B", or
+-- WolfKing.setVariant("ClawDown", "C"), or WolfKing.setAll("B"). Default "A".
+-- Contact stays at the END of windup in every variant.
+
+local variants: { [string]: { [string]: { [string]: Phase } } } = {}
+for _, name in { "RoyalBite", "KingsRush", "Crownfall", "PawSwipe", "ClawDown", "PackCall" } do
+	variants[name] = { A = moves[name] }
+end
+
+-- RoyalBite B "Hammer": sit back on the haunches, jaw wide, then drop the whole
+-- forebody onto the target with the forepaws reaching.
+do
+	local rear = regalia(with(BITE_REAR, {
+		JointRoot = R(-0.05, 0.12, 0.1), JointSpine = A(-0.1), JointNeck = A(0.3), JointHead = A(0.2), JointJaw = A(-0.78),
+	}), 0.45, -0.22, -0.1)
+	local drop = regalia(with(BITE_CONTACT, {
+		JointRoot = R(-0.1, -0.1, -0.1), JointSpine = A(0.08), JointNeck = A(-0.34), JointHead = A(-0.1),
+	}), 0.4, -0.2, -0.08)
+	local thru = regalia(with(drop, { JointRoot = R(-0.12, -0.12, -0.12), JointNeck = A(-0.34, -0.05) }), 0.18, 0.2, 0.14)
+	local sit, lunge = paws(-0.05, 0.3, 0.08, 0.1), paws(-0.3, 0.2, 0.1, 0.1)
+	variants.RoyalBite.B = {
+		windup = ph(0.9, {
+			hold(0, STAND, ALL), hold(0.4, rear, ALL, sit, "inOut"), hold(0.88, rear, ALL, sit),
+			hold(0.985, drop, ALL, lunge, "in"), hold(1, drop, ALL, lunge),
+		}),
+		active = ph(0.16, { hold(0, drop, ALL, lunge), hold(0.7, thru, ALL, lunge, "out"), hold(1, thru, ALL, lunge) }),
+		recover = ph(0.84, { hold(0, thru, ALL, lunge), hold(0.3, SPENT, ALL, BRACED, "out"), hold(0.6, SPENT, ALL, BRACED), hold(1, STAND, ALL, nil, "inOut") }),
+	}
+	-- C "Snap": head cocked to the left and held, then whipped across to the right.
+	local cock = regalia(with(BITE_REAR, { JointRoot = R(0, 0.05, 0.1), JointNeck = A(0.2, 0.35), JointHead = A(0.12, 0.25), JointSpine = A(-0.05, 0.12) }), 0.38, -0.18, -0.08)
+	local whip = regalia(with(BITE_CONTACT, { JointRoot = R(-0.12, -0.04, -0.12), JointNeck = A(-0.2, -0.35), JointHead = A(-0.05, -0.2), JointSpine = A(0.05, -0.12) }), 0.35, -0.18, -0.08)
+	local whipThru = regalia(with(whip, { JointNeck = A(-0.26, -0.42), JointHead = A(0.02, -0.25) }), 0.18, 0.2, 0.14)
+	variants.RoyalBite.C = {
+		windup = ph(0.9, {
+			hold(0, STAND, ALL), hold(0.3, cock, ALL, BRACED, "out"), hold(0.7, cock, ALL, BRACED, "inOut"),
+			hold(0.9, with(cock, { JointJaw = A(-0.8) }), ALL, BRACED, "inOut"), hold(0.985, whip, ALL, BRACED, "in"), hold(1, whip, ALL, BRACED),
+		}),
+		active = ph(0.16, { hold(0, whip, ALL, BRACED), hold(0.6, whipThru, ALL, BRACED, "out"), hold(1, whipThru, ALL, BRACED) }),
+		recover = ph(0.84, { hold(0, whipThru, ALL, BRACED), hold(0.25, SPENT, ALL, BRACED, "out"), hold(0.55, SPENT, ALL, BRACED), hold(1, STAND, ALL, nil, "inOut") }),
+	}
+end
+
+-- PawSwipe B "Wide backhand": the left paw winds up high and far out, the body rolls
+-- away from it, then the whole torso whips through. C "Stamp-cock": a quick lift,
+-- a trembling held cock, then a late snap.
+do
+	local lift = regalia(with(SWIPE_LIFT, { JointRoot = R(-0.12, 0.04, 0.05, 0.03, -0.04), JointLegFL = A(1.05, 0.5, -0.6), JointSpine = A(0, 0.2) }), 0.3, -0.12, -0.05)
+	local peak = regalia(with(lift, { JointRoot = R(-0.12, 0.05, 0.05, 0.04, -0.05), JointLegFL = A(1.3, 0.6, -0.7), JointElbowFL = A(1.05), JointWristFL = A(-1.6), JointSpine = A(0, 0.28), JointNeck = A(-0.16, 0.18) }), 0.38, -0.2, -0.08)
+	local contact = regalia(with(SWIPE_CONTACT, { JointRoot = R(-0.12, -0.02, -0.1, -0.03, 0.04), JointSpine = A(0, -0.22), JointLegFL = A(1.0, -0.25, -0.25) }), 0.35, -0.2, -0.08)
+	local thru = regalia(with(SWIPE_THROUGH, { JointRoot = R(-0.14, -0.02, -0.06, -0.04, 0.05), JointSpine = A(0, -0.26), JointLegFL = A(0.5, -0.3, -0.1) }), 0.16, 0.18, 0.12)
+	variants.PawSwipe.B = {
+		windup = ph(0.45, {
+			hold(0, STAND, ALL), hold(0.4, lift, SUPPORT_RIGHT, BRACED, "inOut"), hold(0.72, peak, SUPPORT_RIGHT, BRACED, "out"),
+			hold(0.97, contact, SUPPORT_RIGHT, BRACED, "in"), hold(1, contact, SUPPORT_RIGHT, BRACED),
+		}),
+		active = ph(0.12, { hold(0, contact, SUPPORT_RIGHT, BRACED), hold(0.8, thru, SUPPORT_RIGHT, BRACED, "out"), hold(1, thru, SUPPORT_RIGHT, BRACED) }),
+		recover = ph(0.63, { hold(0, thru, SUPPORT_RIGHT, BRACED), hold(0.4, SPENT, ALL, BRACED, "out"), hold(0.65, SPENT, ALL, BRACED), hold(1, STAND, ALL, nil, "inOut") }),
+	}
+	local quick = regalia(with(SWIPE_LIFT, { JointLegFL = A(1.1, 0.3, -0.2), JointElbowFL = A(0.8), JointWristFL = A(-1.3) }), 0.3, -0.12, -0.05)
+	variants.PawSwipe.C = {
+		windup = ph(0.45, {
+			hold(0, STAND, ALL), hold(0.14, quick, SUPPORT_RIGHT, BRACED, "out"), hold(0.2, SWIPE_PEAK, SUPPORT_RIGHT, BRACED, "out"),
+			hold(0.9, SWIPE_PEAK, SUPPORT_RIGHT, BRACED), hold(0.99, SWIPE_CONTACT, SUPPORT_RIGHT, BRACED, "in"), hold(1, SWIPE_CONTACT, SUPPORT_RIGHT, BRACED),
+		}, function(u, secs, _)
+			local tr = 0.02 * math.sin(secs * TAU * 12) * smooth(0.25, 0.4, u) * (1 - smooth(0.85, 0.95, u))
+			return { JointLegFL = A(tr, 0, tr), JointRoot = R(0, tr) }
+		end),
+		active = moves.PawSwipe.active,
+		recover = moves.PawSwipe.recover,
+	}
+end
+
+-- ClawDown B "Rear and chop": shoulders rise, head high, paw goes very high, then
+-- the whole forebody chops down. C "Hook": the paw draws back behind the shoulder
+-- (anticipation), then swings through an arc into the strike.
+do
+	local lift = regalia(with(CLAW_LIFT, { JointRoot = R(-0.08, 0.12, 0.03, 0, 0.05), JointNeck = A(0.05, 0.1), JointHead = A(0.1), JointLegFR = A(1.1, -0.1, 0.55), JointElbowFR = A(0.9), JointWristFR = A(-1.5) }), 0.28, -0.12, -0.05)
+	local peak = regalia(with(lift, { JointRoot = R(-0.1, 0.18, 0.03, 0, 0.06), JointNeck = A(0.12, 0.12), JointLegFR = A(1.3, -0.1, 0.65), JointElbowFR = A(1.15), JointWristFR = A(-1.9) }), 0.34, -0.18, -0.08)
+	variants.ClawDown.B = {
+		windup = ph(0.55, {
+			hold(0, STAND, ALL), hold(0.3, lift, SUPPORT_LEFT, BRACED, "inOut"), hold(0.6, peak, SUPPORT_LEFT, BRACED, "out"),
+			hold(0.84, peak, SUPPORT_LEFT, BRACED), hold(0.97, CLAW_STRIKE, ALL, CLAW_CONTACT, "in"), hold(1, CLAW_STRIKE, ALL, CLAW_CONTACT),
+		}),
+		active = moves.ClawDown.active,
+		recover = moves.ClawDown.recover,
+	}
+	local draw = regalia(with(CLAW_LIFT, { JointRoot = R(-0.12, -0.02, 0.03, 0.03, 0.04), JointLegFR = A(0.2, -0.1, 0.3), JointElbowFR = A(0.2), JointWristFR = A(-0.4), JointNeck = A(-0.28, 0.12) }), 0.25, -0.1, -0.05)
+	local arc = regalia(with(CLAW_PEAK, { JointRoot = R(-0.1, 0.02, 0.03, -0.02, 0.04), JointLegFR = A(1.2, -0.1, 0.6) }), 0.3, -0.18, -0.08)
+	variants.ClawDown.C = {
+		windup = ph(0.55, {
+			hold(0, STAND, ALL), hold(0.3, draw, SUPPORT_LEFT, BRACED, "inOut"), hold(0.5, draw, SUPPORT_LEFT, BRACED),
+			hold(0.78, arc, SUPPORT_LEFT, BRACED, "out"), hold(0.97, CLAW_STRIKE, ALL, CLAW_CONTACT, "in"), hold(1, CLAW_STRIKE, ALL, CLAW_CONTACT),
+		}),
+		active = moves.ClawDown.active,
+		recover = moves.ClawDown.recover,
+	}
+end
+
+-- Crownfall B "Rear-up": a tall rise on the hind legs, forepaws tucked, then a
+-- crashing drop. C "Slow coil": a long squat, a late rise and a fast slam.
+do
+	local up = regalia(with(CROWN_PEAK, { JointRoot = R(-0.1, 0.4, 0.1, 0.05), JointSpine = A(-0.2), JointNeck = A(0.1), JointHead = A(0.18), JointLegFL = A(1.0, 0.1, -0.55), JointElbowFL = A(1.2), JointWristFL = A(-2.0), JointLegFR = A(1.0, -0.1, 0.55), JointElbowFR = A(1.2), JointWristFR = A(-2.0) }), 0.55, -0.26, -0.12)
+	local mid = regalia(with(up, { JointRoot = R(-0.06, 0.25, 0.14, 0.05), JointLegFL = A(1.1, 0.1, -0.5), JointLegFR = A(1.1, -0.1, 0.5) }), 0.48, -0.22, -0.08)
+	variants.Crownfall.B = {
+		windup = ph(1.25, {
+			hold(0, STAND, ALL), hold(0.22, RUSH_LOAD, ALL, COILED, "out"), hold(0.45, mid, HIND, REARED, "inOut"), hold(0.78, up, HIND, REARED, "out"),
+			hold(0.88, up, HIND, REARED), hold(0.985, CROWN_CONTACT, ALL, SPLAYED, "in"), hold(1, CROWN_CONTACT, ALL, SPLAYED),
+		}),
+		active = moves.Crownfall.active,
+		recover = moves.Crownfall.recover,
+	}
+	local squat = regalia(with(RUSH_LOAD, { JointRoot = R(-0.3, -0.18, 0.06), JointNeck = A(-0.3), JointJaw = A(-0.3) }), 0.4, 0.1, 0.05)
+	variants.Crownfall.C = {
+		windup = ph(1.25, {
+			hold(0, STAND, ALL), hold(0.35, squat, ALL, COILED, "inOut"), hold(0.62, squat, ALL, COILED),
+			hold(0.82, CROWN_PEAK, HIND, REARED, "out"), hold(0.985, CROWN_CONTACT, ALL, SPLAYED, "in"), hold(1, CROWN_CONTACT, ALL, SPLAYED),
+		}, function(u, secs, _)
+			local tr = 0.025 * math.sin(secs * TAU * 8) * smooth(0.3, 0.4, u) * (1 - smooth(0.55, 0.62, u))
+			return { JointRoot = R(0, tr) }
+		end),
+		active = moves.Crownfall.active,
+		recover = moves.Crownfall.recover,
+	}
+end
+
+-- KingsRush B "Pawing": scrapes the ground with alternating forepaws, then launches.
+-- C "Head-low": lowers the head between the shoulders and trembles.
+do
+	local function paw(u: number, secs: number, _): Pose
+		local k = smooth(0.2, 0.3, u) * (1 - smooth(0.75, 0.85, u))
+		local a = 0.35 * k * math.max(0, math.sin(secs * TAU * 2.2))
+		local b = 0.35 * k * math.max(0, -math.sin(secs * TAU * 2.2))
+		return { JointLegFL = A(a), JointLegFR = A(b) }
+	end
+	variants.KingsRush.B = {
+		windup = ph(1.0, {
+			hold(0, STAND, ALL), hold(0.24, RUSH_LOAD, ALL, COILED, "out"), hold(0.8, RUSH_LOAD, ALL, COILED),
+			hold(0.92, RUSH_READY, ALL, COILED, "inOut"), hold(1, RUSH_LAUNCH, HIND, COILED, "in"),
+		}, paw),
+		active = moves.KingsRush.active,
+		recover = moves.KingsRush.recover,
+	}
+	local low = regalia(with(RUSH_LOAD, { JointNeck = A(-0.5), JointHead = A(0.3), JointJaw = A(-0.3), JointRoot = R(-0.42, -0.1, 0.1) }), 0.3, 0.2, 0.08)
+	variants.KingsRush.C = {
+		windup = ph(1.0, {
+			hold(0, STAND, ALL), hold(0.3, low, ALL, COILED, "inOut"), hold(0.85, low, ALL, COILED),
+			hold(0.94, RUSH_READY, ALL, COILED, "inOut"), hold(1, RUSH_LAUNCH, HIND, COILED, "in"),
+		}, function(u, secs, _)
+			local tr = 0.03 * math.sin(secs * TAU * 10) * smooth(0.3, 0.45, u) * (1 - smooth(0.8, 0.9, u))
+			return { JointRoot = R(0, 0, 0, tr), JointNeck = A(0, tr) }
+		end),
+		active = moves.KingsRush.active,
+		recover = moves.KingsRush.recover,
+	}
+end
+
+-- PackCall B "Rear howl": forepaws lift, body sits back, head thrown up. C "Pulsed
+-- howl": three throat pulses, jaw working.
+do
+	local rise = regalia(with(CALL_PEAK, { JointRoot = R(-0.14, 0.3, 0.1), JointSpine = A(-0.14), JointNeck = A(0.45), JointHead = A(0.3), JointLegFL = A(0.5, 0, -0.1), JointElbowFL = A(0.6), JointWristFL = A(-1.1), JointLegFR = A(0.5, 0, 0.1), JointElbowFR = A(0.6), JointWristFR = A(-1.1) }), 0.55, -0.18, -0.1)
+	variants.PackCall.B = {
+		windup = ph(1.2, { hold(0, STAND, ALL), hold(0.4, rise, HIND, REARED, "inOut"), hold(1, rise, HIND, REARED) }),
+		active = ph(0.1, { hold(0, rise, HIND, REARED), hold(1, CALL_AFTER, ALL, BRACED, "out") }),
+		recover = moves.PackCall.recover,
+	}
+	variants.PackCall.C = {
+		windup = ph(1.2, { hold(0, STAND, ALL), hold(0.25, CALL_RISE, ALL, BRACED, "out"), hold(0.45, CALL_PEAK, ALL, BRACED, "inOut"), hold(1, CALL_PEAK, ALL, BRACED) },
+			function(u, secs, _)
+				local p = math.max(0, math.sin(secs * TAU * 1.25)) * smooth(0.3, 0.45, u)
+				return { JointNeck = A(0.07 * p), JointJaw = A(-0.15 * p), JointManeL = A(0, 0, -0.1 * p), JointManeR = A(0, 0, 0.1 * p) }
+			end),
+		active = moves.PackCall.active,
+		recover = moves.PackCall.recover,
+	}
+end
+
+WolfKing.VARIANTS = variants
+-- defaults: the boss-tier big windups (B) on the three big attacks and the howl
+WolfKing.VARIANT = { RoyalBite = "B", KingsRush = "B", Crownfall = "B", PawSwipe = "A", ClawDown = "A", PackCall = "B" }
+function WolfKing.setVariant(move: string, v: string)
+	assert(variants[move] and variants[move][v], "no variant " .. move .. "." .. v)
+	WolfKing.VARIANT[move] = v
+end
+function WolfKing.setAll(v: string)
+	for move, list in variants do
+		if list[v] then
+			WolfKing.VARIANT[move] = v
+		end
+	end
+end
+
+-- Root weight (before planting, so the legs compress with it): a held windup
+-- breathes and trembles, a crunch of anticipation loads just before contact, and
+-- every impact dips the body and rebounds (Crownfall and the Rush skid hardest).
+local DIP = { RoyalBite = 0.07, PawSwipe = 0.05, ClawDown = 0.08, Crownfall = 0.16, KingsRush = 0.1, PackCall = 0.03 }
+local LOAD = { RoyalBite = 0.08, PawSwipe = 0.05, ClawDown = 0.07, Crownfall = 0.1, KingsRush = 0.0, PackCall = 0.0 }
+local function weightOverlay(move: string, phase: string)
+	return function(u: number, secs: number, _): Pose
+		if phase == "windup" then
+			local held = smooth(0.3, 0.5, u) * (1 - smooth(0.9, 1, u))
+			local crunch = Quadruped.bump(u, 0.78, 0.99) * (LOAD[move] or 0)
+			local y = -0.012 * held * (0.5 + 0.5 * math.sin(secs * 7)) - crunch
+			return { JointRoot = R(y, 0.008 * held * math.sin(secs * 9 + 1) - crunch * 0.4, 0, 0.006 * held * math.sin(secs * 5.3), 0.008 * held * math.sin(secs * 4.1)) }
+		end
+		local tc = secs + (if phase == "recover" and move ~= "KingsRush" then (WolfKing.durations[move].active or 0) else 0)
+		local k = DIP[move] or 0
+		if phase == "active" and move == "KingsRush" then
+			k = 0
+		end
+		local dip = k * math.exp(-4 * tc) * math.max(0, math.sin(tc * TAU * 2.0))
+		return { JointRoot = R(-dip, -dip * 0.6) }
+	end
+end
+local wrapped: { [any]: boolean } = {}
+for move, list in variants do
+	for _, phases in list do
+		for name, phase in phases do
+			if not wrapped[phase] then
+				wrapped[phase] = true
+				local extra, old = weightOverlay(move, name), phase.overlay
+				phase.overlay = function(u, secs, input)
+					local out = if old then old(u, secs, input) else {}
+					local add = extra(u, secs, input)
+					for j, cf in add do
+						out[j] = (out[j] or I) * cf
+					end
+					return out
+				end
+			end
+		end
+	end
+end
+
+local samplers: { [string]: { [string]: any } } = {}
+for move, list in variants do
+	samplers[move] = {}
+	for v, phases in list do
+		samplers[move][v] = rig.sampler({ [move] = phases }, "WolfKing")
+	end
+end
+local sampleStock = rig.sampler(moves, "WolfKing")
+local function sampleKeyed(move: string, phase: string, u: number, input: Input?): Pose
+	local list = samplers[move]
+	if list then
+		return list[WolfKing.VARIANT[move]](move, phase, u, input)
+	end
+	return sampleStock(move, phase, u, input)
+end
+
+-- OVERLAPPING ACTION. The head, jaw, ears, tail chain, manes and seal follow the
+-- body late, each by its own lag (so the neck leads, the head trails, the tail
+-- whips last), and ring down after a hit. The lag fades to zero at every phase
+-- boundary so poses stay continuous, and contact is never late.
+local LAG_SEC = 0.075
+local LAGS = {
+	JointNeck = 0.5, JointHead = 1, JointJaw = 1.3, JointEarL = 1.6, JointEarR = 2.1, JointCrest = 1.2,
+	JointTail = 0.8, JointTail2 = 1.6, JointTail3 = 2.4, JointManeL = 1.4, JointManeR = 1.9, JointSeal = 2.6,
+}
+local SETTLE = { Roar = 0.4, RoyalBite = 1, PawSwipe = 0.8, ClawDown = 1, Crownfall = 1.5, KingsRush = 0.8, Stagger = 1.3, PackCall = 0.3 }
+
+local function secondary(pose: Pose, move: string, phase: string, u: number, input: Input?)
+	local dur = (input and input.duration) or WolfKing.durations[move][phase] or 0.5
+	local secs = u * dur
+	local fade = if move == "Death" then smooth(0, 0.2, u) else smooth(0, 0.2, u) * (1 - smooth(0.8, 1, u))
+	if move == "KingsRush" and phase == "active" then
+		return
+	end
+	if fade > 0.01 then
+		local lagged = sampleKeyed(move, phase, math.clamp(u - LAG_SEC * fade / dur, 0, 1), input)
+		for name, k in LAGS do
+			local lag = sampleKeyed(move, phase, math.clamp(u - LAG_SEC * k * fade / dur, 0, 1), input)
+			pose[name] = lag[name] or lagged[name] or pose[name]
+		end
+	end
+	local held = if phase == "windup" then smooth(0.3, 0.5, u) * (1 - smooth(0.92, 1, u)) else 0
+	if held > 0 then
+		pose.JointNeck = (pose.JointNeck or I) * A(0, 0.012 * held * math.sin(secs * 6.1))
+		pose.JointHead = (pose.JointHead or I) * A(0.015 * held * math.sin(secs * 8.3 + 1))
+		pose.JointTail = (pose.JointTail or I) * A(0, 0.035 * held * math.sin(secs * 3.1))
+		pose.JointTail2 = (pose.JointTail2 or I) * A(0, 0.04 * held * math.sin(secs * 3.1 - 0.7))
+		pose.JointEarL = (pose.JointEarL or I) * A(0.05 * held * math.sin(secs * 11))
+		pose.JointEarR = (pose.JointEarR or I) * A(0.05 * held * math.sin(secs * 9.3 + 2))
+		pose.JointManeL = (pose.JointManeL or I) * A(0, 0, 0.03 * held * math.sin(secs * 4.4))
+		pose.JointManeR = (pose.JointManeR or I) * A(0, 0, -0.03 * held * math.sin(secs * 3.7 + 1))
+	end
+	-- the raised paw sweeps through its own side's mane blades: fold that mane in
+	-- while the paw is up (windup after 0.15, through the follow-through, eased out
+	-- over the recover)
+	local up = if phase == "windup" then smooth(0.1, 0.35, u) elseif phase == "active" then 1 else 1 - smooth(0, 0.5, u)
+	if move == "PawSwipe" or move == "Crownfall" then
+		pose.JointManeL = (pose.JointManeL or I):Lerp(A(0, 0, 0.1), up)
+	end
+	if move == "ClawDown" or move == "Crownfall" then
+		pose.JointManeR = (pose.JointManeR or I):Lerp(A(0, 0, -0.1), up)
+	end
+	local amp = SETTLE[move]
+	if amp and phase ~= "windup" then
+		local tc = secs + (if phase == "recover" and move ~= "KingsRush" then (WolfKing.durations[move].active or 0) else 0)
+		local function ring(delay: number, hz: number): number
+			local t = math.max(0, tc - delay)
+			return math.sin(t * TAU * hz) * math.exp(-4.5 * t) * amp
+		end
+		pose.JointNeck = (pose.JointNeck or I) * A(-0.09 * ring(0.02, 3.0), 0.04 * ring(0.05, 2.3))
+		pose.JointHead = (pose.JointHead or I) * A(-0.15 * ring(0.05, 3.2))
+		pose.JointJaw = (pose.JointJaw or I) * A(-0.1 * math.max(0, ring(0.06, 3.5)))
+		pose.JointTail = (pose.JointTail or I) * A(0.18 * ring(0.08, 2.6), 0.14 * ring(0.1, 1.9))
+		pose.JointTail2 = (pose.JointTail2 or I) * A(0.2 * ring(0.14, 2.6), -0.18 * ring(0.16, 1.9))
+		pose.JointTail3 = (pose.JointTail3 or I) * A(0.22 * ring(0.2, 2.6), 0.22 * ring(0.22, 1.9))
+		pose.JointEarL = (pose.JointEarL or I) * A(0.3 * ring(0.08, 4.2))
+		pose.JointEarR = (pose.JointEarR or I) * A(0.3 * ring(0.12, 3.8))
+		pose.JointManeL = (pose.JointManeL or I) * A(0, 0, 0.14 * ring(0.1, 2.9))
+		pose.JointManeR = (pose.JointManeR or I) * A(0, 0, -0.12 * ring(0.15, 2.5))
+		pose.JointSeal = (pose.JointSeal or I) * A(0.2 * ring(0.18, 2.4))
+	end
+end
 
 function WolfKing.sample(move: string, phase: string, u: number, input: Input?): Pose
 	local pose = sampleKeyed(move, phase, u, input)
 	u = math.clamp(u, 0, 1)
+	secondary(pose, move, phase, u, input)
 	if move == "Stagger" then
 		local e = smooth(0, 0.28, u) * (1 - smooth(0.4, 1, u))
 		local side = math.clamp((input and input.side) or 0, -1, 1)

@@ -42,13 +42,13 @@ local DEATH_SECONDS = 0.6
 -- keyedBlend: blend from the preceding state for this many seconds, then sample
 -- keyed poses directly. This keeps the King's short tells and contact instants
 -- from trailing the server clock through the normal joint smoothing.
-type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number? }
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number? }
 
 local WOLF_MOVES = { bite = "FangSnap", pounce = "MoonPounce", leap = "MoonfallLeap", howl = "Howl", hop = "Hop" }
 local FAMILIES: { [string]: Family } = {
 	SpiritWolfB = { poses = Wolf, scale = 1, moves = WOLF_MOVES, runFrom = 9 },
 	ElderWolfKingB = {
-		poses = WolfKing, scale = 2.4, runFrom = 10, keyedBlend = 0.06,
+		poses = WolfKing, scale = 2.4, runFrom = 10, keyedBlend = 0.06, deathSeconds = 2.6,
 		moves = {
 			royalBite = "RoyalBite", kingsRush = "KingsRush", crownfall = "Crownfall",
 			pawSwipe = "PawSwipe", clawDown = "ClawDown", packCall = "PackCall",
@@ -274,7 +274,7 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 			rig.side = sideOf(rig)
 		end
 		since = os.clock() - (rig.deadAt :: number)
-		target = family.poses.sample("Death", "active", since / DEATH_SECONDS, { side = rig.side })
+		target = family.poses.sample("Death", "active", since / (family.deathSeconds or DEATH_SECONDS), { side = rig.side })
 	else
 		local at = model:GetAttribute("StateAt")
 		since = math.max(0, workspace:GetServerTimeNow() - (if type(at) == "number" then at else 0))

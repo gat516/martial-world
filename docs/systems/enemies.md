@@ -519,8 +519,9 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   `Global.BEAST_HEALTH/BEAST_DAMAGE`, and kill qi through `Realms.enemyQi`.
 
 ## Known gaps
-- The Elder Wolf King trial is untested in play and has no visual/numeric pose QA
-  in this pass: fast tells on a moving camera and at latency, paw contact against
+- The Elder Wolf King's animation was reworked (secondary motion, attack variants,
+  2.6 s death; see `art/enemies/wolf_family/RIGS.md`, numeric pose QA only, known clips
+  listed there). The trial is untested in play: fast tells on a moving camera and at latency, paw contact against
   the locked circles, the full cue path, shared slots with two wolves, abandonment
   reset, QC9 difficulty and phone cost need the user's testbed review. The test
   kit does not raise the player's realm; lower-realm fights are deliberately much

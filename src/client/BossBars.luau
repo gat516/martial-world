@@ -248,7 +248,9 @@ local function applyTheme(def: Enemies.Def?)
 	table.sort(phases, function(a, b)
 		return a > b
 	end)
-	refs.ornament.Image = theme.ornament
+	-- the per-boss v2 frame once uploaded, else the original art
+	local v2 = (Themes.FRAMES :: { [string]: string })[id]
+	refs.ornament.Image = if v2 and string.match(v2, "^rbxassetid://%d+$") then v2 else theme.ornament
 	refs.glow.ImageColor3 = theme.glow
 	refs.trail.BackgroundColor3 = theme.trail
 	refs.cracks.ImageColor3 = theme.crack

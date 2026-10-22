@@ -160,8 +160,20 @@ cursor, settings and the admin panel.
   `BIG_HIT` (5%) or more. Crossing a threshold flashes the bar, nudges it,
   spreads faint cracks from the centre, warms the fill and frame colours and
   greys the tick.
-  Gaps: the fox, jiao and ape frames are untested until those bosses are in
-  play; the phase cracks are one shared image.
+  v2 frames (user, 2026-10-21): each of the four bosses gets its own frame
+  (`bossbar2_wolf/fox/ape/jiao.png`, `draw_boss_bars.py v2_*`; run it with `v2`
+  to redraw only these), same canvas, window and text areas, each built
+  differently with the identity in the rim itself, no emblem or medallion
+  ("tacky"): wolf in weathered iron with a frost-fur ruff above and fangs below;
+  fox in slim red lacquer and gold, nine tails curling off the right end; ape a
+  broken stone slab clamped in bronze, split by lightning; jiao a thin jade
+  channel with the body wrapping under and round it, head and horns over the left
+  end. Their ids go in the `ASSET IDS` block at the top of `BossThemes.luau`
+  (`Themes.FRAMES`, keyed by def id) and in `assets.json`; while one is still a
+  `PASTE-ID:` placeholder that boss keeps its original `ornament` frame.
+  Gaps: the v2 frames are not uploaded or seen in Studio yet; the fox, jiao and
+  ape bars are untested until those bosses are in play; the phase cracks are
+  one shared image.
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`
   (spirit root reveal card).
 - `Onboarding.luau`, `Guide.luau` (spotlight, dim, walking path), `TravelMenu.luau` (with `GateMarkers.luau` over arrays and

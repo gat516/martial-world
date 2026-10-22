@@ -2,8 +2,9 @@
 -- Per-boss health bar themes (BossBars.luau reads these). Key = enemy def id.
 -- Adding a boss = one entry here; any def without one uses `default`.
 --   title      line under the name, shown in the intro ("Sovereign of the Silver Peaks")
---   ornament   the boss's frame art, shown whole (art/ui/draw_boss_bars.py,
---              1024x256, bar window in the middle; never crop it)
+--   ornament   the boss's original frame art, shown whole (art/ui/draw_boss_bars.py,
+--              1024x256, bar window in the middle; never crop it); a v2 frame in
+--              FRAMES below replaces it once uploaded
 --   fill       { top, bottom } of the health gradient, saturated so it reads
 --              hard against the dark window; phaseFill is the colour
 --              it shifts toward as phases pass (lerped by phase / phases)
@@ -17,6 +18,17 @@
 --              below/even/above/far/deadly); a missing tier falls back to default.
 --              One is picked at random per fight. Keep lines under ~26 characters.
 local Themes = {}
+
+-- ASSET IDS: the per-boss v2 frames (art/ui/draw_boss_bars.py v2_*), keyed by
+-- def id. Paste each uploaded rbxassetid:// here (and record it in
+-- art/ui/assets.json). While a value still starts with "PASTE-ID:" the bar
+-- uses that theme's original `ornament` frame instead.
+Themes.FRAMES = {
+	ElderWolfKing = "PASTE-ID:bossbar2_wolf.png",
+	NineTailFox = "PASTE-ID:bossbar2_fox.png",
+	ThunderApe = "PASTE-ID:bossbar2_ape.png",
+	JadeJiao = "PASTE-ID:bossbar2_jiao.png",
+}
 
 export type Theme = {
 	title: string,
@@ -105,26 +117,26 @@ Themes.NineTailFox = {
 	},
 } :: Theme
 
--- Venom green and jade scales: cold-blooded, coiled, patient.
+-- Jade scales and deep water: a flood dragon, horned and whiskered, coiling.
 Themes.JadeJiao = {
-	title = "Coiled Terror of the Jade Marsh",
+	title = "Flood Dragon of the Jade Abyss",
 	ornament = "rbxassetid://118897029575199",
-	fill = { c(130, 232, 90), c(18, 116, 58) },
-	phaseFill = { c(214, 255, 70), c(110, 150, 20) },
-	trail = c(240, 255, 210),
-	glow = c(110, 230, 120),
+	fill = { c(110, 236, 190), c(14, 120, 100) },
+	phaseFill = { c(190, 255, 244), c(40, 170, 170) },
+	trail = c(240, 255, 236),
+	glow = c(110, 230, 190),
 	tint = c(255, 255, 255),
-	phaseTint = c(226, 255, 170),
-	name = c(214, 250, 200),
-	titleColor = c(170, 226, 150),
-	crack = c(214, 255, 120),
-	flare = c(200, 255, 190),
+	phaseTint = c(200, 255, 236),
+	name = c(214, 250, 230),
+	titleColor = c(150, 226, 200),
+	crack = c(200, 255, 236),
+	flare = c(200, 255, 236),
 	omens = {
-		below = { "Scales whisper on stone", "Something sheds its skin", "The reeds hold their breath", "A slow hiss in the damp" },
-		even = { "A cold eye tracks you", "The air turns damp and still", "It has not blinked once", "You feel measured, not hunted" },
-		above = { "Cold coils tighten around you", "Venom beads in the air", "Its tongue tastes your fear", "The ground slithers beneath you" },
-		far = { "Your limbs grow slow and cold", "It waits for the venom to work", "You are already in its coils", "Patience is its sharpest fang" },
-		deadly = { "Heaven forbids this fight", "One bite and you are stone", "It swallows light, then you", "Flee, or be digested" },
+		below = { "Ripples cross still water", "The pool is deeper than it looks", "A scale glints in the reeds", "Mist curls off the water" },
+		even = { "The water holds its breath", "Something vast turns below", "Your footing feels like a shore", "A cold current brushes you" },
+		above = { "The tide rises around your feet", "Its coils stir the depths", "The air grows heavy with rain", "Jade eyes open in the water" },
+		far = { "The flood answers its call", "You are a leaf on its river", "Its coils could drown a valley", "The rain will not stop" },
+		deadly = { "Heaven forbids this fight", "The abyss has opened its jaws", "Rivers rise to bury you", "Flee, or join the drowned" },
 	},
 } :: Theme
 

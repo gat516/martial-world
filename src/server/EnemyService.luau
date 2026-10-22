@@ -41,6 +41,7 @@ local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local PlayerStun = require(script.Parent.PlayerStun)
 local Projectiles = require(script.Parent.Projectiles)
 local PlayerPoison = require(script.Parent.PlayerPoison)
+local PlayerSlow = require(script.Parent.PlayerSlow)
 local BossAttacks = require(script.Parent.BossAttacks)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
@@ -50,6 +51,7 @@ local CC = CombatConfig.CC
 -- with shareTurns so its summoned pack cannot cover its tells with another hit.
 local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Config.NEW_THUNDER_APE or Config.NEW_NINE_TAIL_FOX or Config.NEW_JIAO
 	or Config.NEW_SERPENT or Config.NEW_TORTOISE or Config.NEW_SHADOW_MANE
+	or Config.NEW_TOAD or Config.NEW_CENTIPEDE or Config.NEW_RAVEN or Config.NEW_BAT or Config.NEW_SPIDER
 -- how long a follow-up (Enemies `followUp`) waits past its recover for the attack slot
 local FOLLOW_UP_WAIT = 1.0
 -- Turning into moves and arriving with weight (Config.Wilds.WEIGHTED_MOVES; telegraphs.md
@@ -976,6 +978,18 @@ local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player, 
 			if poison then
 				PlayerPoison.apply(player, poison.stacks, poison.seconds, enemy.def.id)
 			end
+			local slow = attack.slow
+			if slow then
+				PlayerSlow.apply(player, slow.factor, slow.seconds)
+				effectRemote:FireAllClients("enemyCue", enemy.model, "slow", player.Character)
+			end
+			local leech = attack.leech
+			if leech and enemy.health > 0 then
+				-- the bat drinks: it heals a share of what it dealt, up to its maximum
+				local dealt = attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage
+				setHealth(enemy, enemy.health + dealt * leech)
+				effectRemote:FireAllClients("enemyCue", enemy.model, "leech", player.Character)
+			end
 		end
 	end)
 end
@@ -1110,6 +1124,14 @@ local function buildParts(enemy: Enemy, attack: Enemies.Attack, ground: Vector3,
 			local lane = boxPart(facing, math.rad(a * step), length, width, wave + (i % 2) * 0.05 + (i - 1) * 0.04, tail, 0)
 			lane.bolt = true -- resolved by a projectile fired at `delay`, not an instant lane hit
 			table.insert(parts, lane)
+		end
+	elseif pattern == "embers" then
+		-- the Flame Raven's fan: three ember lobs, on the target and either side of it, a beat apart
+		local flank = attack.flank or 9
+		local across = Vector3.new(-dir.Z, 0, dir.X)
+		for i, side in { 0, -1, 1 } do
+			local at = groundAt(target + across * flank * side)
+			table.insert(parts, circlePart(at, attack.radius :: number, (i - 1) * 0.15, 5))
 		end
 	elseif pattern == "ringHeart" then
 		-- four eruptions on a ring round the target, then one under them
@@ -1449,7 +1471,7 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	else
 		enemy.nextAttack = now + attack.cooldown
 	end
-	if TURNS and (not def.boss or def.shareTurns) and attack.damage > 0 and enemy.target then
+	if TURNS and (not def.boss or def.shareTurns) and (attack.damage > 0 or attack.slot) and enemy.target then
 		takeSlot(enemy, enemy.target)
 	end
 	-- which attack, for per-attack poses and effects (EnemyAnimator, EnemyFX). A
@@ -1705,6 +1727,10 @@ local function resolveAttack(enemy: Enemy, now: number)
 		if attack.wave and enemy.phase >= attack.wave.phase then
 			callWave(enemy, attack, shape)
 		end
+	end
+	if attack.patch and shape.center then
+		-- a spit leaves a lingering patch where it landed (toad miasma, spider web)
+		BossAttacks.addPatch(enemy, shape.center :: Vector3, attack.radius :: number, attack.patch)
 	end
 	if attack.phaseStep then
 		enemy.phase += 1
@@ -2241,6 +2267,10 @@ local function think(enemy: Enemy, now: number)
 			end
 			local parent = enemy.dashAttack
 			enemy.dashAttack = nil
+			if parent and parent.perch then
+				-- a flier lands low after a dive: its hit volume follows the body down
+				enemy.mover.rootHeight = enemy.rootHeight - parent.perch
+			end
 			if parent and arrive(enemy, parent, now) then
 				return
 			end
@@ -2254,6 +2284,7 @@ local function think(enemy: Enemy, now: number)
 			return
 		end
 		enemy.mover.turn = true
+		enemy.mover.rootHeight = enemy.rootHeight
 		enemy.state = "chase"
 	elseif enemy.state == "return" then
 		if flat(position - home(enemy)).Magnitude < 8 then
@@ -2527,6 +2558,9 @@ BossAttacks.init({
 	end,
 	cue = function(model: Model, name: string)
 		effectRemote:FireAllClients("enemyCue", model, name)
+	end,
+	patchCue = function(model: Model, center: Vector3, radius: number, seconds: number, effect: string?)
+		effectRemote:FireAllClients("enemyPatch", model, center, radius, seconds, effect)
 	end,
 	alive = function(enemy: Enemy): boolean
 		return enemies[enemy.model] == enemy and enemy.health > 0

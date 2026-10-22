@@ -39,6 +39,7 @@ local function step()
 	local crowdLocked = ActionState.crowdLocked()
 	humanoid.WalkSpeed = (base + (if running then Config.Movement.RUN_BONUS else 0)) * multiplier
 		* (if ActionState.crowdKind() and type(crowd) == "number" then crowd else 1)
+		* (if type(humanoid:GetAttribute("SlowMove")) == "number" then humanoid:GetAttribute("SlowMove") :: number else 1)
 	local committed = phase == "windup" or phase == "active" or crowdLocked
 	if committed then
 		if jumpWasEnabled == nil then

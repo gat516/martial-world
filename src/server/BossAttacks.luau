@@ -19,6 +19,7 @@
 local Players = game:GetService("Players")
 
 local PlayerPoison = require(script.Parent.PlayerPoison)
+local PlayerSlow = require(script.Parent.PlayerSlow)
 local Projectiles = require(script.Parent.Projectiles)
 
 local BossAttacks = {}
@@ -36,7 +37,7 @@ local MOUTH_HEIGHT = 13 -- default mouth height above the ground (attack.mouthHe
 
 local ctx: any = nil
 local states = setmetatable({}, { __mode = "k" }) :: { [any]: any }
-local pools: { { center: Vector3, radius: number, expires: number, nextTick: number, source: string } } = {}
+local pools: { { center: Vector3, radius: number, expires: number, nextTick: number, source: string, effect: string?, slow: { factor: number, seconds: number }? } } = {}
 local poolLoop = false
 
 function BossAttacks.init(context: any)
@@ -171,12 +172,17 @@ local function poolTicks()
 				if now >= pool.expires then
 					table.remove(pools, i)
 				elseif now >= pool.nextTick then
-					pool.nextTick = now + 1
+					local slows = pool.effect == "slow"
+					pool.nextTick = now + (if slows then 0.5 else 1)
 					local area = { kind = "circle", center = pool.center, radius = pool.radius }
 					for _, player in Players:GetPlayers() do
 						local root = ctx.playerRoot(player)
 						if root and ctx.inside(area, root.Position) then
-							PlayerPoison.apply(player, 1, 5, pool.source)
+							if slows and pool.slow then
+								PlayerSlow.apply(player, pool.slow.factor, pool.slow.seconds)
+							else
+								PlayerPoison.apply(player, 1, 5, pool.source)
+							end
 						end
 					end
 				end
@@ -308,6 +314,24 @@ function BossAttacks.resolve(enemy, attack, shape, now: number)
 	elseif attack.kind == "coil" then
 		startCoil(enemy, attack, shape, now)
 	end
+end
+
+-- A lingering patch (a spit's `patch`): a circle on the ground for `patch.seconds` that
+-- poisons (`effect` "poison") or slows (`effect` "slow", `patch.slow`) whoever stands in it.
+-- Clients draw it from the Effect remote's enemyPatch (EnemyFX `patch`).
+function BossAttacks.addPatch(enemy, center: Vector3, radius: number, patch)
+	local stamp = workspace:GetServerTimeNow()
+	table.insert(pools, {
+		center = center,
+		radius = patch.radius or radius,
+		expires = stamp + patch.seconds,
+		nextTick = stamp + 0.25,
+		source = enemy.def.id,
+		effect = patch.effect,
+		slow = patch.slow,
+	})
+	ctx.patchCue(enemy.model, center, patch.radius or radius, patch.seconds, patch.effect)
+	poolTicks()
 end
 
 -- after any attack resolved (attack is the one that just did)

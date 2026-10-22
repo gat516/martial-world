@@ -469,6 +469,68 @@ A step that ends with the target off its nose skids round (`shadowStepSkid`). So
 (`SFX.Enemies.StoneTortoise`, `ShadowManeWolf`, the serpent's additions) reuse existing ids
 pitched, picked by description and unheard.
 
+### Third bestiary wave: Golden Toad, Blood Centipede, Flame Raven, Blood Bat, Frost Spider (testbed)
+Five more regular beasts on bodies already in `assets/Enemies.rbxm` (templates `GoldenToad`,
+`BloodCentipede`, `FlameRavenB`, `BloodBat`, `FrostSpider`; RIGS.md has each rig), behind
+`Config.Wilds.NEW_TOAD`, `NEW_CENTIPEDE`, `NEW_RAVEN`, `NEW_BAT`, `NEW_SPIDER` (all
+`= TESTBED`; none has an old def, so each exists only while its flag is on, and none is in an
+ambient pack yet). Testbed zones: `ToadPair` (-180, 0), `CentipedeSolo` (180, 0), `RavenSolo`
+(-180, -160), `BatSwarm` (4 bats, 180, -160), `SpiderSolo` (0, -170), all Y 648.6. They fit
+realms and regions like this: Toad QC3 (Inner marsh), Centipede QC6 (Ruined Borderlands), Raven
+QC8 and Bat QC8 (deep Borderlands), Spider FE1 (Outer Wastes). Numbers are first guesses; the
+user retunes them. A beast of each element is an affinity: toad water-venom, centipede
+earth-blood, raven fire, bat wind-blood, spider ice. The Spider's higher-grade core item is
+still open (it drops Greater cores until the user picks art for a new one).
+
+New server mechanics (`EnemyService`, `BossAttacks`, `PlayerSlow`, fields in `Enemies.luau`):
+- **Tongue pull**: the Toad's `tongueLash` is the Fox's `snare` barrage (a lane, `pull`,
+  `followUpOnHit`), so a caught player is yanked to 4 studs and `gulp` follows only on a catch.
+- **`slow`** (attack field, `PlayerSlow.luau`): a landed hit slows the player's walk by `factor`
+  for `seconds` (Humanoid attributes `SlowMove`, `SlowUntil`, read by both `Movement`s). It
+  refreshes and keeps the stronger factor; it never stacks or roots, and a dodge ignores it. The
+  `slow` enemyCue draws it.
+- **`patch`** (spit field): the landing circle lingers `seconds` as a poison (Toad miasma) or
+  slow (Spider web) patch. `BossAttacks.addPatch` shares the Jiao's pool list, ticking every 0.5 s
+  for a slow and 1 s for poison; clients get `Effect "enemyPatch"` (EnemyFX handler `patch`,
+  `cue.shape = { center, radius, effect }`, `cue.seconds`).
+- **`leech`** (Bat): a landed hit heals the beast that share of its damage and fires the `leech`
+  cue. **`slot`**: a zero-damage attack (the shriek) still takes the attack slot.
+- **Burrow for a regular beast** (Centipede): the Jiao's `burrow` kind and a `followUp` slam
+  (`erupt`, `unburrow`) work for any def; the lane ends on the target's spot (`stopPast = 0`).
+  It spawns surfaced; only the dive is underground (`Burrowed`).
+- **Flier height**: a flier's root already sits at its template height (Y 5.0 raven, 4.6 bat), so
+  the hit volume is at melee reach. `perch` (a dash field, the raven's talonDive = 1.5) lowers
+  `enemy.mover.rootHeight` for the dive's recover (its hit volume follows the body down) and
+  restores it when the beast stands again. The animator may add Y on `JointRoot`.
+- **Barrage pattern `embers`** (Raven): three circles (`radius`, the middle on the target and one
+  `flank` studs either side) hitting 0 / 0.15 / 0.3 s after the windup.
+
+| Beast | Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage |
+|---|---|---|---|---|---|---|
+| Toad (QC3, 90 HP) | `tongueLash` (opener) | barrage snare + pull 4 | 0.7 / - / 0.9 | 4-18 | lane 2.4 x 18 | 12 |
+| | `gulp` (followUpOnHit) | cone | 0.35 / - / 0.8 | 9 | r 7, 90 deg | 14 |
+| | `bogCroak` | howl + stagger 0.7 s | 1.0 / - / 0.8 | 10 | circle r 10 | 0 |
+| | `miasmaLob` | spit + poison patch 3 s | 1.0 / - / 0.7 | 10-24 | circle r 4 | 10 + poison |
+| Centipede (QC6, 320 HP) | `pincerSnap` (opener) | cone | 0.6 / - / 0.9 | 14 | r 11, 60 deg | 18 |
+| | `coilSweep` | cone | 0.9 / - / 1.0 | 10 | r 12, 200 deg | 22 |
+| | `burrowDive` | burrow, then `erupt` | 0.5 / up to 30 studs at 40/s / 0.1 | 8-32 | lane 5 wide | 0 |
+| | `erupt` (followUp) | slam, stagger | 0.7 / - / 1.1 | chained | circle r 6.5 | 30 |
+| Raven (QC8, 260 HP) | `talonDive` (opener) | charge, arrive `talonRake`, perch 1.5 | 0.8 / up to 20 studs at 34/s / 1.2 | 10-24 | lane 3 | 20 |
+| | `talonRake` (arrive) | cone | 0.35 / - / 1.0 | 9 | r 8, 100 deg | 24 |
+| | `emberFan` | barrage embers | 1.0 / - / 0.9 | 8-24 | 3 circles r 3.5 | 18 each |
+| | `windGust` | cone, knock 10, then hop back 8 | 0.5 / - / 0.7 | 9 | r 10, 70 deg | 8 |
+| Bat (QC8, 60 HP, swarm of 4) | `bloodDive` (opener) | charge, leech 0.5, hop away | 0.6 / up to 14 studs at 30/s / 0.8 | 6-16 | lane 2.5 | 12 |
+| | `sonicShriek` | howl + stagger 0.6 s, `slot` | 1.0 / - / 0.8 | 10 | circle r 10 | 0 |
+| Spider (FE1, 420 HP) | `webShot` (opener) | spit + slow patch 4 s | 0.9 / - / 0.7 | 12-30 | circle r 5 | 25 + slow 2 s |
+| | `frostFang` | lunge, reach 4, slow 1.5 s, hop back 10 | 0.7 / up to 10 studs at 38/s / 0.9 | 3-14 | box 3.5 wide | 60 |
+
+Sounds reuse existing ids pitched, picked by description and unheard
+(`SFX.Enemies.GoldenToad`, `BloodCentipede`, `FlameRaven`, `BloodBat`, `FrostSpider`). Untested in
+play: all of it. Specifically the tongue pull on a client-owned character, the centipede's dive
+lane on uneven ground, the perch drop reading as a landing, three or four bats' phone cost and
+whether overlapping shriek and dive windups feel fair (one slot at a time), the `slow` strength,
+and every number.
+
 ### Elder Wolf King (testbed trial)
 User direction (2026-10-21): try the animation workflow on the wolf boss; make it
 reasonably hard, with real risk of dying, and add fast reaction checks: a paw swipe

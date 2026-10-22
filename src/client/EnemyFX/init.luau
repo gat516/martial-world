@@ -31,6 +31,8 @@
 -- hit).
 -- Server-sent cues ride the Effect remote, to all clients:
 --   Effect:FireAllClients("enemyCue", model, name, target?)
+-- and, for a spit's lingering patch, Effect:FireAllClients("enemyPatch", model, center, radius,
+-- seconds, effect): handler `patch` with shape = { center, radius, effect } and seconds.
 -- where name is a handler name ("hit", "land", ...) and target an optional
 -- Character. EnemyFX calls the beast's handler with the model's current Attack.
 -- Cues past MAX_DISTANCE from the camera are skipped. Every beast's body fades
@@ -228,7 +230,12 @@ function EnemyFX.init()
 	end)
 	-- server-sent cues with no attribute of their own (hit, non-dash landings)
 	local effect = ReplicatedStorage.Remotes.Effect :: RemoteEvent
-	effect.OnClientEvent:Connect(function(kind, model, name, target)
+	effect.OnClientEvent:Connect(function(kind, model, name, target, patchSeconds, patchEffect)
+		if kind == "enemyPatch" and typeof(model) == "Instance" and model:IsA("Model") and typeof(name) == "Vector3" then
+			-- a lingering patch a spit left (EnemyFX `patch`): shape.center, shape.radius, shape.effect, seconds
+			fire(model, "patch", { shape = { center = name, radius = target, effect = patchEffect }, seconds = patchSeconds })
+			return
+		end
 		if kind ~= "enemyCue" or typeof(model) ~= "Instance" or not model:IsA("Model") or type(name) ~= "string" then
 			return
 		end

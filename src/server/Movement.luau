@@ -11,7 +11,8 @@ function Movement.apply(humanoid: Humanoid)
 	local multiplier = humanoid:GetAttribute("ActionMoveMultiplier") or 1
 	local running = humanoid:GetAttribute("Running") and not humanoid:GetAttribute("ActionBusy") and not humanoid:GetAttribute("CCLock")
 	local crowdControl = humanoid:GetAttribute("CCMove") or 1 -- flinch, stagger, stun (PlayerStun)
-	humanoid.WalkSpeed = (base + (if running then Config.Movement.RUN_BONUS else 0)) * multiplier * crowdControl
+	local slow = humanoid:GetAttribute("SlowMove") or 1 -- chill and webs (PlayerSlow)
+	humanoid.WalkSpeed = (base + (if running then Config.Movement.RUN_BONUS else 0)) * multiplier * crowdControl * slow
 end
 
 function Movement.action(humanoid: Humanoid, multiplier: number, busy: boolean)

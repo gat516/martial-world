@@ -488,6 +488,236 @@
                 }
               }
             }
+          },
+          "ToadPair": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "GoldenToad",
+              "Count": 2,
+              "Radius": 12
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    -180,
+                    648.6,
+                    0
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "CentipedeSolo": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "BloodCentipede",
+              "Count": 1,
+              "Radius": 12
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    180,
+                    648.6,
+                    0
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "RavenSolo": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "FlameRaven",
+              "Count": 1,
+              "Radius": 12
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    -180,
+                    648.6,
+                    -160
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "BatSwarm": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "BloodBat",
+              "Count": 4,
+              "Radius": 10
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    180,
+                    648.6,
+                    -160
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "SpiderSolo": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "FrostSpider",
+              "Count": 1,
+              "Radius": 12
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    0,
+                    648.6,
+                    -170
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
           }
         },
         "EventGrounds": {

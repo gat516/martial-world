@@ -112,6 +112,17 @@ export type Attack = {
 	-- lunge/charge: studs the hit box runs past the dash's end, for a head or muzzle that leads
 	-- the root (the serpent's strike); the telegraph shows it too
 	reach: number?,
+	-- Third wave: `leech` heals the beast this share of the damage a landed hit dealt (the bat);
+	-- `slot` takes an attack slot even with no damage (the bat's shriek); `slow` slows a player a
+	-- landed hit catches (PlayerSlow); `patch` (spit) leaves a lingering circle at the landing for
+	-- `seconds`, poisoning it ("poison") or slowing it ("slow" with `slow`), drawn by EnemyFX `patch`;
+	-- `perch` (a dash/charge) lowers the beast's root that many studs for the recover, so a flier's
+	-- hit volume follows it down after a dive
+	leech: number?,
+	slot: boolean?,
+	slow: { factor: number, seconds: number }?,
+	patch: { seconds: number, effect: string, slow: { factor: number, seconds: number }?, radius: number? }?,
+	perch: number?,
 	lanes: { number }?, -- bolt: lane angles in degrees from the target direction (default { 0 })
 	boltSpeed: number?, -- bolt: studs per second the front travels (a hit lands as it arrives)
 	strikes: { { at: number, radius: number, angle: number } }?, -- cone: follow-up cones `at` seconds after the first, re-aimed
@@ -208,6 +219,11 @@ local NEW_NINE_TAIL_FOX = Wilds.NEW_NINE_TAIL_FOX
 local NEW_SERPENT = Wilds.NEW_SERPENT
 local NEW_TORTOISE = Wilds.NEW_TORTOISE
 local NEW_SHADOW_MANE = Wilds.NEW_SHADOW_MANE
+local NEW_TOAD = Wilds.NEW_TOAD
+local NEW_CENTIPEDE = Wilds.NEW_CENTIPEDE
+local NEW_RAVEN = Wilds.NEW_RAVEN
+local NEW_BAT = Wilds.NEW_BAT
+local NEW_SPIDER = Wilds.NEW_SPIDER
 
 local Enemies = {}
 
@@ -1200,6 +1216,222 @@ if NEW_SHADOW_MANE then
 			hop = { distance = 10, seconds = 0.3, arc = 0.6, cooldown = 3, hits = 99, window = 1 },
 			circle = { radius = 18, speed = 7 },
 			closeOpener = true, -- rushed under 11 studs, it uses its pool instead of waiting
+		},
+	} :: Def
+end
+
+-- THE THIRD WAVE (testbed only, Config.Wilds.NEW_TOAD / NEW_CENTIPEDE / NEW_RAVEN / NEW_BAT /
+-- NEW_SPIDER). Like the second wave, first guesses for the user's playtest, not balance. Reaches
+-- are measured from the root centre (RIGS.md has each body's root box and mouth distance).
+
+-- Golden Toad (QC3, player 140 HP): a bog ambusher. Its tongue lashes down a lane and yanks a
+-- caught player in (the Fox's snare barrage), the gulp follows only on a catch, its croak
+-- staggers a circle, and it lobs a bubbling poison puddle from range. Hops 6 studs back after.
+if NEW_TOAD then
+	local gulp: Attack = {
+		kind = "cone", name = "gulp", damage = 14, range = 9, windup = 0.35, recover = 0.8,
+		cooldown = 0, radius = 7, angle = 90, chainOnly = true, hopAfter = true,
+	}
+	local tongueLash: Attack = {
+		kind = "barrage", barrage = "snare", name = "tongueLash", damage = 12, range = 18, minRange = 4,
+		windup = 0.7, recover = 0.9, cooldown = 3.5, length = 18, width = 2.4,
+		pull = { distance = 4, seconds = 0.3 }, followUpOnHit = "gulp", hopAfter = true,
+	}
+	local bogCroak: Attack = {
+		kind = "howl", name = "bogCroak", damage = 0, range = 10, windup = 1.0, recover = 0.8,
+		cooldown = 9, radius = 10, stun = { kind = "stagger", radius = 10, seconds = 0.7 },
+	}
+	local miasmaLob: Attack = {
+		kind = "spit", name = "miasmaLob", damage = 10, range = 24, minRange = 10, windup = 1.0,
+		recover = 0.7, cooldown = 6, radius = 4, poison = { stacks = 1, seconds = 4 },
+		patch = { seconds = 3, effect = "poison" },
+	}
+	Enemies.Defs.GoldenToad = {
+		id = "GoldenToad",
+		name = "Golden Toad",
+		body = "GoldenToad",
+		realm = { "QiCondensation", 3 },
+		weight = 1.2,
+		health = 90,
+		walkSpeed = 3,
+		runSpeed = 7,
+		aggro = 30,
+		leash = 70,
+		qiDrop = 22,
+		stones = { 4, 8 },
+		respawn = 30,
+		drops = { { item = "LesserSpiritCore", chance = 0.3 } },
+		attack = tongueLash,
+		attacks = { bogCroak, miasmaLob, tongueLash, gulp } :: { Attack },
+		pack = {
+			hop = { distance = 6, seconds = 0.3, arc = 1.2, cooldown = 3, hits = 99, window = 1 },
+			closeOpener = true,
+		},
+	} :: Def
+end
+
+-- Blood Centipede (QC6, player 220 HP): a low grave-hunter, 16 studs long. Pincers first, a wide
+-- sweep when flanked, and a burrow dive that runs underground (immune, no damage) to the
+-- target's spot and erupts there. It spawns surfaced.
+if NEW_CENTIPEDE then
+	local erupt: Attack = {
+		kind = "slam", name = "erupt", damage = 30, range = 40, windup = 0.7, recover = 1.1,
+		cooldown = 0, radius = 6.5, chainOnly = true, unburrow = true, react = "stagger",
+	}
+	local pincerSnap: Attack = {
+		kind = "cone", name = "pincerSnap", damage = 18, range = 14, windup = 0.6, recover = 0.9,
+		cooldown = 2.2, radius = 11, angle = 60,
+	}
+	local coilSweep: Attack = {
+		kind = "cone", name = "coilSweep", damage = 22, range = 10, windup = 0.9, recover = 1.0,
+		cooldown = 4, radius = 12, angle = 200,
+	}
+	local burrowDive: Attack = {
+		kind = "burrow", name = "burrowDive", damage = 0, range = 32, minRange = 8, windup = 0.5,
+		recover = 0.1, cooldown = 9, length = 30, width = 5, dashSpeed = 40, stopPast = 0,
+		followUp = "erupt",
+	}
+	Enemies.Defs.BloodCentipede = {
+		id = "BloodCentipede",
+		name = "Blood Centipede",
+		body = "BloodCentipede",
+		realm = { "QiCondensation", 6 },
+		weight = 2.2,
+		health = 320,
+		walkSpeed = 6,
+		runSpeed = 18,
+		aggro = 40,
+		leash = 90,
+		qiDrop = 44,
+		stones = { 8, 14 },
+		respawn = 45,
+		drops = { { item = "LesserSpiritCore", chance = 0.45 }, { item = "GreaterSpiritCore", chance = 0.04 } },
+		attack = pincerSnap,
+		attacks = { coilSweep, burrowDive, pincerSnap, erupt } :: { Attack },
+		pack = { closeOpener = true },
+	} :: Def
+end
+
+-- Flame Raven (QC8, player 290 HP): a hovering fire-crow at head height. It dives in a lane and
+-- rakes, perching low and exposed afterwards, fans three ember lobs onto closing circles, and
+-- beats a gust that shoves you off and hops it back.
+if NEW_RAVEN then
+	local talonRake: Attack = {
+		kind = "cone", name = "talonRake", damage = 24, range = 9, windup = 0.35, recover = 1.0,
+		cooldown = 0, radius = 8, angle = 100, chainOnly = true,
+	}
+	local talonDive: Attack = {
+		kind = "charge", name = "talonDive", damage = 20, range = 24, minRange = 10, windup = 0.8,
+		recover = 1.2, cooldown = 5, length = 20, width = 3, dashSpeed = 34, arrive = talonRake,
+		skid = true, perch = 1.5,
+	}
+	local emberFan: Attack = {
+		kind = "barrage", barrage = "embers", name = "emberFan", damage = 18, range = 24, minRange = 8,
+		windup = 1.0, recover = 0.9, cooldown = 6, radius = 3.5, flank = 9,
+	}
+	local windGust: Attack = {
+		kind = "cone", name = "windGust", damage = 8, range = 9, windup = 0.5, recover = 0.7,
+		cooldown = 4, radius = 10, angle = 70, knock = 10, hopAfter = true,
+	}
+	Enemies.Defs.FlameRaven = {
+		id = "FlameRaven",
+		name = "Flame Raven",
+		body = "FlameRavenB",
+		realm = { "QiCondensation", 8 },
+		weight = 0.6,
+		health = 260,
+		walkSpeed = 8,
+		runSpeed = 16,
+		aggro = 50,
+		leash = 100,
+		qiDrop = 70,
+		stones = { 14, 24 },
+		respawn = 60,
+		drops = { { item = "LesserSpiritCore", chance = 0.5 }, { item = "GreaterSpiritCore", chance = 0.1 } },
+		attack = talonDive,
+		attacks = { windGust, talonDive, emberFan, talonRake } :: { Attack },
+		pack = {
+			hop = { distance = 8, seconds = 0.35, arc = 1.5, cooldown = 3, hits = 99, window = 1 },
+			circle = { radius = 12, speed = 8 },
+			closeOpener = true,
+		},
+	} :: Def
+end
+
+-- Iron-Winged Blood Bat (QC8, player 290 HP): one of a swarm of 3-4. It stoops in a lane, drinks
+-- half of what it deals and flaps away; one bat at a time lets out a shriek that staggers a
+-- circle (`slot` shares the attack slot, so shrieks don't stack).
+if NEW_BAT then
+	local bloodDive: Attack = {
+		kind = "charge", name = "bloodDive", damage = 12, range = 16, minRange = 6, windup = 0.6,
+		recover = 0.8, cooldown = 3, length = 14, width = 2.5, dashSpeed = 30, leech = 0.5, skid = true,
+		hopAfter = true,
+	}
+	local sonicShriek: Attack = {
+		kind = "howl", name = "sonicShriek", damage = 0, range = 10, windup = 1.0, recover = 0.8,
+		cooldown = 10, radius = 10, slot = true, stun = { kind = "stagger", radius = 10, seconds = 0.6 },
+	}
+	Enemies.Defs.BloodBat = {
+		id = "BloodBat",
+		name = "Iron-Winged Blood Bat",
+		body = "BloodBat",
+		realm = { "QiCondensation", 8 },
+		weight = 0.4,
+		health = 60,
+		walkSpeed = 10,
+		runSpeed = 20,
+		aggro = 45,
+		leash = 90,
+		qiDrop = 20,
+		stones = { 3, 6 },
+		respawn = 40,
+		drops = { { item = "LesserSpiritCore", chance = 0.25 } },
+		attack = bloodDive,
+		attacks = { sonicShriek, bloodDive } :: { Attack },
+		pack = {
+			hop = { distance = 8, seconds = 0.3, arc = 2, cooldown = 2, hits = 99, window = 1 },
+			circle = { radius = 9, speed = 12 },
+			closeOpener = true,
+		},
+	} :: Def
+end
+
+-- Frost Spider (FE1, player 500 HP): a trapper. It webs from range (a slowing patch), closes
+-- while you are slowed, bites with a chill and skitters back. Its core is a new higher-grade
+-- drop that needs its own item and art; until then it drops the Greater core.
+if NEW_SPIDER then
+	local slowWeb = { factor = 0.5, seconds = 1.0 }
+	local webShot: Attack = {
+		kind = "spit", name = "webShot", damage = 25, range = 30, minRange = 12, windup = 0.9,
+		recover = 0.7, cooldown = 5, radius = 5, slow = { factor = 0.5, seconds = 2 },
+		patch = { seconds = 4, effect = "slow", slow = slowWeb },
+	}
+	local frostFang: Attack = {
+		kind = "lunge", name = "frostFang", damage = 60, range = 14, minRange = 3, windup = 0.7,
+		recover = 0.9, cooldown = 3.2, length = 10, width = 3.5, dashSpeed = 38, stopPast = -2, reach = 4,
+		slow = { factor = 0.6, seconds = 1.5 }, skid = true, hopAfter = true,
+	}
+	Enemies.Defs.FrostSpider = {
+		id = "FrostSpider",
+		name = "Frost Spider",
+		body = "FrostSpider",
+		realm = { "Foundation", 1 },
+		weight = 3,
+		health = 420,
+		walkSpeed = 6,
+		runSpeed = 14,
+		aggro = 50,
+		leash = 100,
+		qiDrop = 110,
+		stones = { 30, 50 },
+		respawn = 60,
+		drops = { { item = "GreaterSpiritCore", chance = 0.6 }, { item = "LesserSpiritCore", chance = 0.5 } },
+		attack = webShot,
+		attacks = { webShot, frostFang } :: { Attack },
+		pack = {
+			hop = { distance = 10, seconds = 0.35, arc = 0, cooldown = 3, hits = 99, window = 1 },
+			circle = { radius = 18, speed = 6 },
+			closeOpener = true,
 		},
 	} :: Def
 end

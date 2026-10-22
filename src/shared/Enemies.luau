@@ -632,11 +632,11 @@ if NEW_THUNDER_APE then
 		wave = { radius = 34, delay = 0.45, scale = 0.5, phase = 2 },
 	})
 	local bodySlam = atk({
-		kind = "lunge", name = "bodySlam", damage = 140, range = 38, windup = 1.10, recover = 1.10,
+		kind = "lunge", name = "bodySlam", telegraph = "heavy", damage = 140, range = 38, windup = 1.10, recover = 1.10,
 		cooldown = 3.45, length = 34, width = 20, dashSpeed = 55, react = "stagger",
 	})
 	local skyfallSlam = atk({
-		kind = "leap", name = "skyfallSlam", damage = 150, range = 55, minRange = 22, windup = 1.20,
+		kind = "leap", name = "skyfallSlam", telegraph = "heavy", damage = 150, range = 55, minRange = 22, windup = 1.20,
 		active = 0.75, arc = 26, recover = 1.10, cooldown = 3.6, radius = 20,
 	})
 	local thunderRush = atk({
@@ -673,7 +673,7 @@ if NEW_THUNDER_APE then
 		boltRadius = 8,
 	})
 	local judgment = atk({
-		kind = "leap", name = "judgment", damage = 190, range = 70, minRange = 25, windup = 1.60,
+		kind = "leap", name = "judgment", telegraph = "heavy", damage = 190, range = 70, minRange = 25, windup = 1.60,
 		active = 1.00, arc = 48, recover = 1.80, cooldown = 5.0, radius = 28, phase = 3,
 		stun = { kind = "stun", radius = 0, seconds = 1.0, onHit = true },
 	})
@@ -765,7 +765,7 @@ if NEW_JIAO then
 		cooldown = 1.0, length = 56, width = 6, dashSpeed = 75, stopPast = 0, followUp = "erupt", phase = 2,
 	})
 	local erupt = atk({
-		kind = "slam", name = "erupt", damage = 56, range = 200, windup = 0.85, recover = 1.10,
+		kind = "slam", name = "erupt", telegraph = "heavy", damage = 56, range = 200, windup = 0.85, recover = 1.10,
 		cooldown = 1.0, radius = 14, offset = Vector3.new(0, 0, 0), chainOnly = true, unburrow = true,
 		stun = { kind = "stagger", radius = 0, seconds = 0.8, onHit = true },
 	})
@@ -779,7 +779,7 @@ if NEW_JIAO then
 		mouth = 24.2, mouthHeight = 13.1, boltRadius = 1.5, poison = venom, phase = 2,
 	})
 	local jiaoCoil = atk({
-		kind = "coil", name = "jiaoCoil", damage = 20, range = 45, minRange = 8, windup = 1.50, recover = 4.40,
+		kind = "coil", name = "jiaoCoil", telegraph = "heavy", damage = 20, range = 45, minRange = 8, windup = 1.50, recover = 4.40,
 		cooldown = 4.0, radius = 13.5, coilRadius = 11.9, dashSpeed = 40, length = 40, dashMin = 0.45,
 		hold = 3.0, holdP3 = 2.6, halfAngle = 40, halfAngleP3 = 30, squeezeDamage = 71, phase = 2,
 		knock = 0, -- a shove would throw players out of the ring it traps them in
@@ -915,7 +915,7 @@ if NEW_NINE_TAIL_FOX then
 		cooldown = 14.0, radius = 8, phase = 2, stun = { kind = "stun", radius = 30, seconds = 1.2 },
 	})
 	local nineTailFall = atk({
-		kind = "barrage", barrage = "spiral", name = "nineTailFall", damage = 55, range = 45, windup = 1.8,
+		kind = "barrage", barrage = "spiral", name = "nineTailFall", telegraph = "heavy", damage = 55, range = 45, windup = 1.8,
 		recover = 2.0, cooldown = 12.0, radius = 7, finalRadius = 20, phase = 3,
 		hitStun = { kind = "stagger", seconds = 0.6 },
 	})

@@ -112,6 +112,10 @@ return {
 	-- beasts, onboarding is skipped and every player gets the full test kit
 	-- (docs/systems/testbed.md).
 	TESTBED = TESTBED,
+	-- The new telegraph language (docs/systems/telegraphs.md): one danger orange,
+	-- glowing edges, timing fills, rails and reticles for projectiles, no howl
+	-- rings. Testbed only until the user approves; `true` ships it.
+	NEW_TELEGRAPHS = TESTBED,
 
 	Data = {
 		STORE_NAME = "PlayerData_v1",

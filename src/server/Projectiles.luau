@@ -7,11 +7,13 @@
 --
 -- Warning the player (the windup half; the projectile is the warning in flight):
 --   Projectiles.warnLane(owner, name, origin, dir, length, width, seconds)
---       a straight shot: the red lane it flies down, filling until release
+--       a straight shot: the lane it flies down (a box with `aim = "rails"`, which
+--       the new telegraph look draws as two rails that vanish on release)
 --   Projectiles.warnLanding(owner, name, at, radius, seconds)
---       a lob: its landing circle; pass windup + flight so it fills at touchdown
+--       a lob: its landing circle (`lob = true`: a reticle whose ring closes onto
+--       the edge); pass windup + flight so it arrives at touchdown
 --   Projectiles.mark(player, owner, name, seconds)
---       a homing shot: a red ring under the target that follows them
+--       a homing shot: a ring under the target that follows them
 --
 -- Firing:
 --   local id = Projectiles.fire({
@@ -259,7 +261,9 @@ end
 
 Projectiles.lobVelocity = ProjectilePath.lob
 
--- Warnings, through the same red telegraphs as melee (Telegraphs.luau). `name`
+-- Warnings, through the Telegraph remote like melee (Telegraphs.luau draws them;
+-- docs/systems/telegraphs.md). The shapes stay plain box/circle so EnemyFX windup
+-- cues read them as before; `aim` and `lob` only change how they're drawn. `name`
 -- is the attack name the telegraph carries (EnemyFX can key off it).
 function Projectiles.warnLane(owner: Model?, name: string, origin: Vector3, dir: Vector3, length: number, width: number, seconds: number)
 	local d = flat(dir)
@@ -268,11 +272,11 @@ function Projectiles.warnLane(owner: Model?, name: string, origin: Vector3, dir:
 	end
 	-- origin: the ground point the lane starts from
 	local cframe = CFrame.lookAt(origin, origin + d) * CFrame.new(0, 0, -length / 2)
-	telegraphRemote:FireAllClients({ kind = "box", cframe = cframe, size = Vector2.new(width, length) }, seconds, owner, name, now())
+	telegraphRemote:FireAllClients({ kind = "box", aim = "rails", cframe = cframe, size = Vector2.new(width, length) }, seconds, owner, name, now())
 end
 
 function Projectiles.warnLanding(owner: Model?, name: string, at: Vector3, radius: number, seconds: number)
-	telegraphRemote:FireAllClients({ kind = "circle", center = at, radius = radius }, seconds, owner, name, now())
+	telegraphRemote:FireAllClients({ kind = "circle", lob = true, center = at, radius = radius }, seconds, owner, name, now())
 end
 
 -- A homing shot's warning: a red ring under `player` that follows them for `seconds`.

@@ -94,3 +94,57 @@ camera. So the edges and timing fill are thick and high-contrast, never colour
 alone (the pulse and fill carry the timing too). Windups follow the
 enemy-designer's minimums, and sustained effects stay within the phone
 particle budgets in `docs/vfx/style.md`.
+
+## Implementation (`Config.NEW_TELEGRAPHS`)
+The new look is on in the testbed only (`NEW_TELEGRAPHS = TESTBED` in `Config.luau`);
+the main game still draws the old red shapes until the user approves. Setting it to
+`true` ships it. Both looks live in `src/client/Telegraphs.luau` (`legacyShow` is
+the old one).
+
+- **Building blocks.** Circles and boxes are one flat part each with a SurfaceGui
+  on top: rounded or square Frames whose `UIStroke` is the edge, a wider faint
+  stroke for the glow, a Frame for the faint fill and one for the timing fill. Cones
+  are one anchor part with Beams lying flat: Bezier arcs (90 degrees at most each)
+  and two sides for the edge and glow, triangle slices (20 degrees at most) for the
+  fills. A cone of 359 degrees or more draws as a circle. No neon wedges.
+- **Over time.** One RenderStepped loop (connected only while something shows)
+  drives every telegraph from its start: timing fill `k` = elapsed / seconds, the
+  pulse (edge to full opacity, width swells by `PULSE_WIDEN` and back) in the last
+  `PULSE` s (`HEAVY_PULSE` for heavy), then a `FADE` s fade.
+- **Tier.** Read from the attack def by the telegraph's attack name and the model's
+  `EnemyType` (searched through `attacks`, `rotate`, phases and `arrive`
+  follow-ups, cached). `telegraph = "heavy"` today: Thunder Ape `bodySlam`,
+  `skyfallSlam`, `judgment`; fox `nineTailFall`; Jiao `erupt`, `jiaoCoil`. A new
+  heavy attack only needs the field (the Wolf King's `kingLeap` once it lands).
+  Telegraphs sent without a model (`EnemyService.strike`) are standard.
+- **Barrages** (`shape.parts`): each part draws its edge and a light timing fill
+  (`BARRAGE_TIMING`) but no faint fill of its own, so overlaps stay clear. Barrage
+  `bolt` lanes (the fox's volley) draw as rails.
+- **Projectiles.** `Projectiles.warnLane` sends a box with `aim = "rails"`, and a
+  `bolt` attack's own lanes (the Jiao) are recognised by the def's kind: both
+  draw two `RAIL_WIDTH` rails along the lane's sides that run out from the mouth
+  in `RAIL_DRAW` s, fade toward the far end, pulse before release and vanish in
+  `RAIL_FADE` s. `Projectiles.warnLanding` sends a circle with `lob = true`: a
+  reticle (edge, four ticks, centre dot) with a ring that closes from
+  `RETICLE_START` radii onto the edge, arriving at touchdown. The homing mark
+  (`projectileMark`) is a standard circle of `MARK_RADIUS` that follows the target
+  (`Telegraphs.follow`). The shapes stay `box`/`circle`, so EnemyFX windup cues
+  read them unchanged.
+- **Pools.** An attack with `poolSeconds` (Jiao `venomPools`) keeps each circle's
+  edge at `LINGER_OPACITY`, breathing every `LINGER_BREATH` s, for the pool's life.
+- **Howls** (`kind = "howl"`, summons, roars, the fox's retreat marker) draw nothing
+  for any enemy; their `parts` (the retreat's fire trail) still draw.
+- **Mobile.** Edge width is `EDGE_SHARE` of the radius or half-width, clamped to
+  `EDGE_MIN` 0.5 .. `EDGE_MAX` 1.3 studs; timing is carried by the fill growing and
+  the pulse, not by colour.
+- **Previews.** `Telegraphs.still(shape, seconds, t, parent, model?, attack?)` draws
+  one frozen moment into a folder in Edit mode (SurfaceGuis can take a frame or two
+  to appear in a capture).
+
+Knobs (top of `Telegraphs.luau`): `DANGER`, `EDGE_*`, `GLOW_*`, `FILL_OPACITY`,
+`TIMING_OPACITY`, `HEAVY_*`, `PULSE`, `PULSE_WIDEN`, `FADE`, `BARRAGE_TIMING`,
+`LINGER_*`, `RAIL_*`, `RETICLE_START`, `MARK_RADIUS`.
+
+Known gaps: the shapes lie flat at the centre's height, so they float or sink on
+slopes as the old ones did; a projectile's ground shadow in flight belongs to its
+drawer (ProjectileView, vfx) and isn't drawn yet for every cue; untested on a phone.

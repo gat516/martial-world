@@ -14,8 +14,9 @@
 -- A cue with no drawer shows a plain red ball, in the testbed only, so the
 -- backend can be fought before its effect exists.
 --
--- Also draws a homing shot's warning ("projectileMark"): a red ring under the
--- marked player that follows them until the shot leaves.
+-- Also draws a homing shot's warning ("projectileMark"): a ring under the marked
+-- player that follows them until the shot leaves (Telegraphs.follow in the new
+-- telegraph look, Config.NEW_TELEGRAPHS; a red pulsing ring otherwise).
 
 local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -24,6 +25,7 @@ local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local ProjectilePath = require(ReplicatedStorage.Shared.ProjectilePath)
+local Telegraphs = require(script.Parent.Telegraphs)
 
 export type Shot = {
 	id: number,
@@ -150,6 +152,14 @@ end
 local function mark(player: Player, seconds: number, startedAt: number)
 	local left = seconds - (workspace:GetServerTimeNow() - startedAt)
 	if left <= 0 then
+		return
+	end
+	if Telegraphs.NEW then
+		Telegraphs.follow(function(): Vector3?
+			local character = player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			return root and root.Position - Vector3.new(0, 3, 0)
+		end, left)
 		return
 	end
 	local ring = Instance.new("Part")

@@ -140,9 +140,9 @@ effects are placed once on a raycast that skips characters and the wolf.
 | windup bite | `Breath` (wisp, motes drawn in) at Mouth | |
 | windup pounce | `Gather` (motes in, streaks in, chest glow) at Core, refit to the windup | `PawDust` at both hind paws at 5/7 of the windup, if still winding up |
 | windup leap | `LeapSigil` (crescent moon, slate shadow, pale ring) at `shape.center`, refit to windup + 0.45 s flight and scaled to `shape.radius` (authored r5); `LeapGlint` 1.6 studs over the Skull | the stock red circle still draws |
-| windup howl | `HowlRings` (3 rings + slate ring) at Mouth; `CrestGlow` (glow, rising motes) on `Crest` | stock howl ring still draws |
+| windup howl | `HowlRings` (3 rings + slate ring) at Mouth; `CrestGlow` (glow, rising motes) on `Crest` | stock howl ring still draws (none under `NEW_TELEGRAPHS`) |
 
-Bosses get no stock howl ring: `Telegraphs` skips the pale swelling disc for any `howl` shape from a boss def (roars, intros, phase calls, the fox's leap marker, the Jiao's emerge), since each boss's EnemyFX plays its own effect there. Damaging and crowd-control areas still draw.
+Bosses get no stock howl ring: `Telegraphs` skips the pale swelling disc for any `howl` shape from a boss def (roars, intros, phase calls, the fox's leap marker, the Jiao's emerge), since each boss's EnemyFX plays its own effect there. Under `Config.NEW_TELEGRAPHS` (testbed only for now) no enemy gets one: a `howl` shape draws nothing, and the wolf's `howl` windup cue carries its roar effect. Damaging and crowd-control areas still draw (in the new look: [telegraphs.md](telegraphs.md)).
 | strike bite | `FangSnap` (2 crescents x core/rim/slate, glint) at Mouth | |
 | strike/dash pounce, leap | `DashDust` (dust ring, low puffs, motes) between the hind paws; `MoonTrail` (bright trail, slate trail, shed motes) on Chest | trail ends at `land` or after 0.3 s (pounce) / 0.45 s (leap); leap trail is silver |
 | strike/land hop | `PawDust` (puff, grit) at both hind paws | |

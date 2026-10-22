@@ -91,8 +91,9 @@ a breakthrough makes the same beast look tamer.
 Omen lines are short xianxia warnings under the bar (under the skull for
 deadly), one picked at random per beast per tier so it never flickers; the pools
 live in `STYLES` in `EnemyBars.luau` (keep lines under ~24 characters). Bosses
-skip all of this: their overhead bar stays off and the screen `Play.BossBar` is
-unchanged. Art: `art/ui/draw_ui.py enemybar` (`EB` geometry, `EB_TIERS`
+skip all of this: their overhead bar stays off and the boss you fight gets the
+themed screen bar instead (`BossBars.luau`, see [ui](ui.md)), dressed with the
+same tiers and per-boss omen pools. Art: `art/ui/draw_ui.py enemybar` (`EB` geometry, `EB_TIERS`
 colours), ids in `art/ui/assets.json` (`enemybar_*`).
 
 ### Adding a beast's effects (EnemyFX)
@@ -462,7 +463,8 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
   paws solved onto the ground; `WolfKing.luau` adds the King's boss moves and mane/seal
   motion; format at Wolf's top and in `wolf_family/RIGS.md`),
   `EnemyMotion.luau` (builds and draws the predicted body), `EnemyFX/` (per-beast cues,
-  death fade), `EnemyBars.luau` (overhead and boss bars), `EnemySounds.luau`,
+  death fade), `EnemyBars.luau` (overhead bars; picks the boss), `BossBars.luau` and
+  `BossThemes.luau` (the themed screen boss bar), `EnemySounds.luau`,
   `Telegraphs.luau`.
 - Models: `ServerStorage.Enemies` (binary `assets/Enemies.rbxm`; it keeps Motor6D
   C0/C1, attributes and attachments). To change it: clone it to
@@ -520,6 +522,8 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - Overhead bar danger tiers: `Pacing.Danger` (`BELOW_AT`, `ABOVE_AT`, `FAR_AT`,
   `DEADLY_AT`, in realm stages); per-tier rim art, colours and omen pools in
   `EnemyBars.luau` `STYLES`; show time `SHOW_AFTER_HURT`, ghost drain `TRAIL`.
+- Boss bar: one entry per boss def id in `BossThemes.luau` (title, frame art,
+  colours, omen pools; thresholds come from `summonAt`); `BIG_HIT` in `BossBars.luau`.
 - Kill credit share: `Pacing.Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`.
 - Movement: `Config.Wilds.MOVE_TICK` (step and replication rate), `WALK_SLOPE`,
   `CLIMB`, `FALL_SPEED`, `TURN_RATE`, `CROWD`.

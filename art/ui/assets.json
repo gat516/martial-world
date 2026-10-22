@@ -129,5 +129,13 @@
   "mg_note_impure.png": "rbxassetid://72392262787490",
   "gather_bowl.png": "rbxassetid://80503927067544",
   "mg_glow.png": "rbxassetid://117458769929844",
-  "pulse_path.png": "rbxassetid://90247115334267"
+  "pulse_path.png": "rbxassetid://90247115334267",
+  "bossbar_glow.png": "rbxassetid://75581889172354",
+  "bossbar_storm.png": "rbxassetid://75169654856352",
+  "bossbar_wolf.png": "rbxassetid://108424250959271",
+  "bossbar_fox.png": "rbxassetid://115218564552084",
+  "bossbar_generic.png": "rbxassetid://130685924906772",
+  "bossbar_cracks.png": "rbxassetid://80216185509648",
+  "bossbar_vignette.png": "rbxassetid://85286107244565",
+  "bossbar_serpent.png": "rbxassetid://118897029575199"
 }

@@ -10,7 +10,8 @@
 -- the player breaks through. The top tier hides the bar and health entirely and
 -- shows a pulsing skull seal whenever the beast is in range, as a warning.
 -- Bosses skip the overhead bar: the boss you're fighting (locked, or the nearest
--- one hunting you) fills the screen bar, Play.BossBar (NameLabel, Bar > Fill, Trail).
+-- one hunting you) gets the themed screen bar, Play.BossBar (BossBars.luau,
+-- BossThemes.luau), dressed with the same danger tiers (STYLES) as the overhead bars.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -21,6 +22,7 @@ local TweenService = game:GetService("TweenService")
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local LockOn = require(script.Parent.LockOn)
+local BossBars = require(script.Parent.BossBars)
 local Motion = require(script.Parent.Motion)
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Realms = require(ReplicatedStorage.Shared.Realms)
@@ -78,10 +80,6 @@ type Watched = {
 }
 local watched: { [Model]: Watched } = {}
 
-local bossBar: GuiObject?
-local bossFill: GuiObject?
-local bossTrail: GuiObject?
-local bossName: TextLabel?
 local shownBoss: Model? = nil
 
 -- Enemy health is in attributes (EnemyService; enemies have no Humanoid).
@@ -124,6 +122,14 @@ local function tierFor(gap: number): string
 		return "below"
 	end
 	return "even"
+end
+
+local function tierOfDef(def: Enemies.Def?): string
+	if not (def and def.realm) then
+		return "even"
+	end
+	local beast = Realms.ofBeast(def.realm)
+	return tierFor(Realms.index(beast.major, beast.minor) - playerIndex())
 end
 
 local function loop(entry: Watched, inst: Instance, props: { [string]: any }, info: TweenInfo)
@@ -245,8 +251,8 @@ local function watch(model: Instance)
 		end
 		last = now
 		setBar(fill, trail, fraction(model))
-		if shownBoss == model and bossFill then
-			setBar(bossFill, bossTrail, fraction(model))
+		if shownBoss == model then
+			BossBars.setHealth(fraction(model))
 		end
 	end
 	model:GetAttributeChangedSignal("Health"):Connect(show)
@@ -287,37 +293,23 @@ local function activeBoss(): Model?
 end
 
 local function updateBoss()
-	if not (bossBar and bossFill) then
-		return
-	end
 	local boss = activeBoss()
 	if boss ~= shownBoss then
 		shownBoss = boss
 		if boss then
-			local entry = watched[boss]
 			local def = Enemies.Defs[boss:GetAttribute("EnemyType") :: string? or ""]
-			if bossName then
-				bossName.Text = if def then def.name else boss.Name
-			end
-			local value = fraction(entry.model)
-			bossFill.Size = UDim2.fromScale(value, 1)
-			if bossTrail then
-				bossTrail.Size = bossFill.Size
-			end
+			BossBars.show(boss, def, tierOfDef(def), fraction(boss))
+		else
+			BossBars.hide()
 		end
-		bossBar.Visible = boss ~= nil
 	end
 end
 
 function EnemyBars.init(gui: ScreenGui)
 	local play = gui:FindFirstChild("Play") :: Frame
-	bossBar = play:FindFirstChild("BossBar") :: GuiObject?
+	local bossBar = play:FindFirstChild("BossBar") :: CanvasGroup?
 	if bossBar then
-		bossBar.Visible = false
-		Motion.appear(bossBar)
-		bossFill = bossBar:FindFirstChild("Fill", true) :: GuiObject?
-		bossTrail = bossBar:FindFirstChild("Trail", true) :: GuiObject?
-		bossName = bossBar:FindFirstChild("NameLabel", true) :: TextLabel?
+		BossBars.init(bossBar, play:FindFirstChild("BossVignette") :: ImageLabel?, STYLES)
 	end
 	for _, model in CollectionService:GetTagged("Enemy") do
 		task.spawn(watch, model)
@@ -327,6 +319,9 @@ function EnemyBars.init(gui: ScreenGui)
 	player:GetAttributeChangedSignal("Realm"):Connect(function()
 		for _, entry in watched do
 			restyle(entry)
+		end
+		if shownBoss then
+			BossBars.setTier(tierOfDef(Enemies.Defs[shownBoss:GetAttribute("EnemyType") :: string? or ""]))
 		end
 	end)
 

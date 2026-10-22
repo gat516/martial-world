@@ -31,6 +31,10 @@ local WolfKing = require(script.Parent.EnemyPoses.WolfKing)
 local boarModule = script.Parent.EnemyPoses:FindFirstChild("Boar")
 local Boar = if boarModule then require(boarModule :: ModuleScript) :: any else nil
 
+-- the Jade Jiao's serpent pose module (it needs heading history and the boss Phase)
+local jiaoModule = script.Parent.EnemyPoses:FindFirstChild("JadeJiao")
+local JadeJiao = if jiaoModule then require(jiaoModule :: ModuleScript) :: any else nil
+
 local MAX_DISTANCE = 160
 local SMOOTHING = 14 -- how quickly joints settle toward their pose (per second)
 local MOVE_SMOOTHING = 30 -- faster during keyed moves, so snaps stay snappy
@@ -42,7 +46,7 @@ local DEATH_SECONDS = 0.6
 -- keyedBlend: blend from the preceding state for this many seconds, then sample
 -- keyed poses directly. This keeps the King's short tells and contact instants
 -- from trailing the server clock through the normal joint smoothing.
-type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number? }
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number? }
 
 local WOLF_MOVES = { bite = "FangSnap", pounce = "MoonPounce", leap = "MoonfallLeap", howl = "Howl", hop = "Hop" }
 local FAMILIES: { [string]: Family } = {
@@ -60,6 +64,19 @@ if Boar then
 	FAMILIES.StoneBoarB = { poses = Boar, scale = 1, moves = { charge = "Charge", gore = "Gore" }, runFrom = 8 }
 end
 
+-- Jade Jiao: the Template-keyed serpent family (Template "JadeJiao", 1.668x the contract pose units)
+if JadeJiao then
+	FAMILIES.JadeJiao = {
+		poses = JadeJiao, scale = JadeJiao.SCALE, runFrom = 8.5, keyedBlend = 0.08, deathSeconds = 3.6, staggerSeconds = 0.4,
+		moves = {
+			emerge = "Emerge", venomFang = "VenomFang", tailSweep = "TailSweep", pillarSlam = "PillarSlam",
+			fangFlurry = "FangFlurry", mireDive = "MireDive", erupt = "Erupt", venomLance = "VenomLance",
+			venomSpray = "VenomSpray", venomPools = "VenomPools", jiaoCoil = "JiaoCoil", dreadHiss = "DreadHiss",
+			molt = "Molt", ascension = "Ascension", venomRain = "VenomRain",
+		},
+	}
+end
+
 type Rig = {
 	model: Model,
 	root: BasePart,
@@ -72,6 +89,7 @@ type Rig = {
 	lastState: string?,
 	blendPose: { [string]: CFrame }?, -- keyed families: joints as the preceding state ended
 	side: number, -- stagger/death: +1 the target is on its right
+	yawHistory: { { number } }?, -- serpent families: { clock, root yaw } samples, newest last
 	deadAt: number?,
 }
 
@@ -120,6 +138,36 @@ local function watch(model: Instance)
 			rigs[model] = nil
 		end
 	end)
+end
+
+-- Serpent modules (poses.USES_HISTORY) also read the boss Phase, the drawn speed, the turn rate and
+-- the root's heading history (secondsAgo -> yaw), so the body follows the head's path.
+local function withExtras(rig: Rig, family: Family, input: any): any
+	if not family.poses.USES_HISTORY then
+		return input
+	end
+	local history = rig.yawHistory :: { { number } }
+	local velocity = EnemyMotion.velocity(rig.model)
+	local phase = rig.model:GetAttribute("Phase")
+	local radius = rig.model:GetAttribute("CoilRadius")
+	local n = #history
+	input.phase = if type(phase) == "number" then phase else 1
+	input.speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
+	input.time = os.clock()
+	input.radius = if type(radius) == "number" then radius else nil
+	input.turn = if n >= 2 then (history[n][2] - history[n - 1][2]) / math.max(1e-3, history[n][1] - history[n - 1][1]) else 0
+	input.yawAt = function(secondsAgo: number): number
+		local at = history[n][1] - secondsAgo
+		for i = n, 2, -1 do
+			if history[i - 1][1] <= at then
+				local a, b = history[i - 1], history[i]
+				local f = (at - a[1]) / math.max(1e-6, b[1] - a[1])
+				return a[2] + (b[2] - a[2]) * f
+			end
+		end
+		return history[1][2]
+	end
+	return input
 end
 
 local function pose(rig: Rig, name: string, target: CFrame, alpha: number)
@@ -186,10 +234,10 @@ local function movePose(rig: Rig, family: Family, state: any, since: number): an
 	local move = if type(attackName) == "string" then family.moves[attackName] else nil
 	local attack = attackOf(def, attackName :: string?)
 	if state == "stagger" then
-		return poses.sample("Stagger", "active", since / STAGGER_SECONDS, { side = rig.side })
+		return poses.sample("Stagger", "active", since / (family.staggerSeconds or STAGGER_SECONDS), withExtras(rig, family, { side = rig.side, duration = family.staggerSeconds }))
 	elseif state == "windup" and has(poses, move, "windup") then
 		local secs = if attack then attack.windup else poses.durations[move].windup
-		return poses.sample(move, "windup", since / secs, { duration = secs })
+		return poses.sample(move, "windup", since / secs, withExtras(rig, family, { duration = secs }))
 	elseif state == "dash" and has(poses, move, "active") then
 		local secs = poses.durations[move].active
 		if attackName == "hop" and def and def.pack and def.pack.hop then
@@ -201,20 +249,20 @@ local function movePose(rig: Rig, family: Family, state: any, since: number): an
 			local dashSecs = rig.model:GetAttribute("DashSeconds")
 			secs = if type(dashSecs) == "number" then dashSecs else attack.length / attack.dashSpeed
 		end
-		return poses.sample(move, "active", since / secs, { duration = secs })
+		return poses.sample(move, "active", since / secs, withExtras(rig, family, { duration = secs }))
 	elseif state == "recover" and move then
 		local secs = if attack then attack.recover else 0.5
 		-- an attack that strikes without a dash plays its active beat first
 		if attack and not attack.dashSpeed and attack.kind ~= "leap" and has(poses, move, "active") then
 			local active = poses.durations[move].active
 			if since < active then
-				return poses.sample(move, "active", since / active, { duration = active })
+				return poses.sample(move, "active", since / active, withExtras(rig, family, { duration = active }))
 			end
 			since -= active
 			secs = math.max(0.05, secs - active)
 		end
 		if has(poses, move, "recover") then
-			return poses.sample(move, "recover", since / secs, { duration = secs })
+			return poses.sample(move, "recover", since / secs, withExtras(rig, family, { duration = secs }))
 		end
 	end
 	return nil
@@ -235,13 +283,13 @@ local function loopPose(rig: Rig, family: Family, dt: number): any
 			targetYaw = math.atan2(-toTarget.X, -toTarget.Z),
 		}
 		rig.phase += poses.gaitRate("circle", speed, family.scale) * dt
-		return poses.loops.circle(rig.phase, speed, input)
+		return poses.loops.circle(rig.phase, speed, withExtras(rig, family, input))
 	elseif speed < 0.6 then
-		return poses.loops.idle(os.clock(), speed, { seed = rig.seed })
+		return poses.loops.idle(os.clock(), speed, withExtras(rig, family, { seed = rig.seed }))
 	end
 	local loop = if speed <= family.runFrom then "walk" else "run"
 	rig.phase += poses.gaitRate(loop, speed, family.scale) * dt
-	return poses.loops[loop](rig.phase, speed)
+	return poses.loops[loop](rig.phase, speed, withExtras(rig, family, { seed = rig.seed }))
 end
 
 local function stepFamily(rig: Rig, family: Family, dt: number)
@@ -249,6 +297,19 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 	local state = model:GetAttribute("AIState")
 	local health = model:GetAttribute("Health")
 	local dead = type(health) == "number" and health <= 0
+	if family.poses.USES_HISTORY then
+		local history = rig.yawHistory
+		if not history then
+			history = {}
+			rig.yawHistory = history
+		end
+		local now = os.clock()
+		local _, yaw = rig.root.CFrame:ToEulerAnglesYXZ()
+		table.insert(history, { now, yaw })
+		while #history > 2 and history[2][1] < now - 3 do
+			table.remove(history, 1)
+		end
+	end
 	local animationState = if dead then "dead" else state
 	if animationState ~= rig.lastState then
 		rig.lastState = animationState :: string?
@@ -274,7 +335,7 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 			rig.side = sideOf(rig)
 		end
 		since = os.clock() - (rig.deadAt :: number)
-		target = family.poses.sample("Death", "active", since / (family.deathSeconds or DEATH_SECONDS), { side = rig.side })
+		target = family.poses.sample("Death", "active", since / (family.deathSeconds or DEATH_SECONDS), withExtras(rig, family, { side = rig.side, duration = family.deathSeconds }))
 	else
 		local at = model:GetAttribute("StateAt")
 		since = math.max(0, workspace:GetServerTimeNow() - (if type(at) == "number" then at else 0))

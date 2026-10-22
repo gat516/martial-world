@@ -247,3 +247,55 @@ Gotchas: the hood is flat slabs, so at rest it is a square plate on the neck sid
 not a flare); the hood hinges at the front edge so flare swings the rear edge out.
 No crown or halo exists. The `Scale` attribute is informational (the roster-python ratio);
 the body is already at full size.
+
+### Jade Jiao movement and poses (`src/client/EnemyPoses/JadeJiao.luau`, `Serpent.luau`)
+
+Pose module in the WolfKing API (`JOINTS`, `loops` idle/walk/run/circle, `moves`, `durations`,
+`sample`, `gaitRate`, `VARIANTS`, `VARIANT`, `setVariant`, `setAll`, `scaled`). Pose units
+are the contract geometry (about 70 studs); EnemyAnimator applies **SCALE = 3.17 / 1.9 = 1.668**
+once to `JointRoot`'s translation (`scaled`), and the family scale is the same number.
+Registered by Template `JadeJiao`; the module sets `USES_HISTORY`, so EnemyAnimator also feeds
+it `input.phase` (Phase attribute), `speed`, `turn`, `time`, `radius` (CoilRadius attribute) and
+`yawAt(secondsAgo)` (the root's heading history, 3 s).
+
+**Axis correction.** The note in the joint table above ("+X leans the column forward/down, -X rears
+it back; Head: -X nose up") is wrong, measured on the real rig: **JointNeck..5 +X leans the
+column BACK (the forward end swings up), JointHead +X tips the nose UP**, like every other beast.
+Tail +X drops the tail, tail +Y swings it to +X (the beast's right), neck +Y turns left, fangs +X
+swing the tip down (1.45 used, 1.57 is straight down), hood L -Y / R +Y flares, jaw -X opens.
+
+**Method.** Neck and tail joints are driven by the absolute orientation each segment should
+have (`Ry(heading) * Rx(pitch)` in model space, turned into local transforms by
+`Serpent.locals`), not by relative angles, so an upright neck bends about the real vertical.
+A move is a keyed stance (neck elevations e1..e6 above horizontal, headings y1..y6, body pitch,
+root translation, head roll, jaw, fangs, hood, tongue, tail bend `ty`, tail rear `tup`, slither
+amplitude `tamp`, `ring`/`tight`/`arch` for the coil) lerped per phase; neck and tail read the
+stance a little late (neck 0-0.14 s, tail 0.011 s per segment, fading to nothing at phase ends).
+Rest neck elevations are 40.6, 113.5, 42.3, 26.6, 14.0 degrees (skull 0).
+
+**Slither.** Tail headings are a travelling wave `lat * k * taper * cos(phase - k s)`
+(k = TAU / 28.4 studs, taper rising from the root to mid-tail then falling at the tip); the
+phase advances at TAU * speed / 28.4 (`gaitRate`, the real speed), so crests stand still on
+the ground. The head holds aim. Turning: each tail segment takes the root's heading from
+s / speed seconds ago (capped 2.5 s, +-1.6 rad). Peak lateral amplitude: walk 3.0-3.4 studs,
+run 2.8 falling to 1.9 (flatter, head about 15 studs high at 12 studs/s, 8.8 at 21).
+
+**Coil.** `Serpent.ring` lays the Body pivot and Tail1.. on a circle through the root centre
+(the HRP, point P) with the centre on the LEFT: each chord's heading is the tangent at its middle,
+so every pivot is on the circle (measured error 0.000 studs while it holds, under 0.3 through
+the squeeze). **Radius 8 module units = 13.3 studs** (the body is K times thicker, the ring
+26.7 across, inner clearance about 10 studs); arc 280 degrees (phase 3: 300). Tail1..11-12 are
+on the ring, the rest curl outward onto a small circle (radius 6.5) with a 0.33 rad arch, at most
+9 studs high and reaching at most 8 degrees into the door gap. The neck is solved per frame
+(`Serpent.reach`) so the skull hangs within 2 studs of the centre. During the hold the radius
+tightens by 12% (`tight` 0..1) and snaps another 7% at the squeeze (hold end), then unwinds.
+`input.radius` overrides the radius (EnemyAnimator reads the `CoilRadius` attribute).
+
+**Verified (numbers, FK on the real template; `art/enemies/beasts/qa_jade_jiao.luau`).**
+Skate (belly points on the segment middles, sideslip across the segment axis, mean speed along it):
+walk 6: 1.0 / 0.6 error; 12: 1.6 / 1.0; 21: 1.8-2.3 / 1.2; 24: 2.7 / 1.4 studs/s. Sunk (MireDive end,
+Erupt/Emerge windup): the whole body is 1.8 studs under the ground at its highest point, head 12.7
+below. Rear heights (skull centre): rest 16.8, 15 contract 29, Ascension/Rain 31. Lowest point of
+every move and loop >= -0.5 except the buried PillarSlam head (-1.4, intended) and Death (-1.7, jaw).
+Untested: hood, fang and whisker ranges against the head, the hood against the neck at full flare,
+and everything in Play.

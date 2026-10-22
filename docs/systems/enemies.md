@@ -565,11 +565,19 @@ New server mechanics (`EnemyService`, `BossAttacks`, `PlayerSlow`, fields in `En
   cue. **`slot`**: a zero-damage attack (the shriek) still takes the attack slot.
 - **Burrow for a regular beast** (Centipede): the Jiao's `burrow` kind and a `followUp` slam
   (`erupt`, `unburrow`) work for any def; the lane ends on the target's spot (`stopPast = 0`).
-  It spawns surfaced; only the dive is underground (`Burrowed`).
+  It spawns surfaced; only the dive is underground (`Burrowed`). The erupt sets `unburrowAt =
+  "windup"` so `Burrowed` clears as its windup starts and the animator's rise out of the ground
+  is seen (the Jiao's erupt still surfaces at resolve); the handler bursts the mound as the
+  plates return and the ground break lands with the strike.
 - **Flier height**: a flier's root already sits at its template height (Y 5.0 raven, 4.6 bat), so
   the hit volume is at melee reach. `perch` (a dash field, the raven's talonDive = 1.5) lowers
   `enemy.mover.rootHeight` for the dive's recover (its hit volume follows the body down) and
-  restores it when the beast stands again. The animator may add Y on `JointRoot`.
+  restores it when the beast stands again (the drop therefore also covers the arrive `talonRake`'s
+  windup, active and recover, and the skid). The animator may add Y on `JointRoot`, but the
+  perch drop itself is the server's. The restore is a snap, so the root pops up 1.5 studs at the
+  end of the recover unless the client eases the drawn body (untested).
+- **Pose smoothing for fast loops** (`EnemyAnimator` family field `loopSmoothing`): loops are
+  lerped at 14/s, which cuts off near 2 Hz; the Raven (2.4 Hz flap) and Bat (about 7 Hz) use 60.
 - **Barrage pattern `embers`** (Raven): three circles (`radius`, the middle on the target and one
   `flank` studs either side) hitting 0 / 0.15 / 0.3 s after the windup.
 

@@ -74,7 +74,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
 | Testbed fight trials before shipping | `Config.Wilds.NEW_WOLF_KING` (King trial); `test.project.json` zones ([testbed](systems/testbed.md)) |
 | Knockback / stagger (beasts) | `src/shared/Knockback.luau` |
-| Player flinch, stagger, stun: lengths, immunity, diminishing returns | `Config.Combat.CC`; API `PlayerStun.apply` ([combat](systems/combat.md#player-crowd-control)) |
+| Player flinch, stagger, stun: lengths, immunity, diminishing returns; which enemy hits stagger; knockback on the player | `Config.Combat.CC` (`HEAVY_KINDS`, `STAGGER_WEIGHT`, `KNOCK_*`); per attack `react`/`knock`, per beast `knock` in `Enemies.luau`; API `PlayerStun.apply` ([combat](systems/combat.md#player-crowd-control)) |
 | Techniques (and their visual tiers, `VISUAL_TIERS`, elements) | `src/shared/Techniques.luau` |
 | Spirit roots: element odds, grades, perks, element match | `src/shared/Pacing.luau` `Roots`; elements in `src/shared/Roots.luau` |
 | Cultivation methods: qi speed, reach, root match | `src/shared/Pacing.luau` `Methods`; defs in `src/shared/Methods.luau` |

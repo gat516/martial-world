@@ -6,7 +6,8 @@
 -- after Animator, like HerbAnimator: the layer is removed before the next
 -- animation pass, so it never accumulates and rides over whatever track plays.
 -- The local player also gets the stumble shove and a little camera shake; their
--- input is gated in ActionState/CombatController/Movement.
+-- input is gated in ActionState/CombatController/Movement. Enemy hits knock the
+-- local player back (Effect "knock" from EnemyService: from where, how far).
 -- No dazed-stars effect: nothing in the VFX library fits yet (see combat.md).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,6 +24,7 @@ type Layer = { motor: Motor6D, original: CFrame }
 local layers: { [Model]: { Layer } } = {}
 local seen: { [Model]: number } = {} -- character -> CCStart already reacted to
 local STUMBLE_SECONDS = 0.25
+local knock: { away: Vector3, speed: number, at: number }? = nil -- the local player's knockback in play
 
 local function smooth(t: number): number
 	t = math.clamp(t, 0, 1)
@@ -182,6 +184,41 @@ local function beforeAnimation()
 	end
 end
 
+-- The knockback from an enemy hit: a shove along the ground away from `from`,
+-- easing off over KNOCK_SECONDS, so it covers `studs`. Wins over the stumble.
+local function knockback(): boolean
+	local k = knock
+	local character = Players.LocalPlayer.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not (k and root and humanoid and humanoid.Health > 0) then
+		knock = nil
+		return false
+	end
+	local t = (os.clock() - k.at) / Config.KNOCK_SECONDS
+	if t >= 1 then
+		knock = nil
+		return false
+	end
+	local shove = k.away * k.speed * (1 - t)
+	root.AssemblyLinearVelocity = Vector3.new(shove.X, root.AssemblyLinearVelocity.Y, shove.Z)
+	return true
+end
+
+function CrowdControl.knock(from: Vector3, studs: number)
+	local character = Players.LocalPlayer.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not root or studs <= 0 then
+		return
+	end
+	local away = (root.Position - from) * Vector3.new(1, 0, 1)
+	if away.Magnitude < 0.1 then
+		away = -root.CFrame.LookVector * Vector3.new(1, 0, 1)
+	end
+	-- linear ease-off: distance = speed * seconds / 2
+	knock = { away = away.Unit, speed = 2 * studs / Config.KNOCK_SECONDS, at = os.clock() }
+end
+
 local function stumble(character: Model, humanoid: Humanoid, startedAt: number, now: number)
 	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not root or humanoid:GetAttribute("CCKind") ~= "stagger" or now - startedAt > STUMBLE_SECONDS then
@@ -200,6 +237,7 @@ end
 local function animate()
 	local now = workspace:GetServerTimeNow()
 	local me = Players.LocalPlayer.Character
+	local knocked = knockback()
 	for _, player in Players:GetPlayers() do
 		local character = player.Character
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -224,7 +262,7 @@ local function animate()
 				end
 			end
 		end
-		if character == me then
+		if character == me and not knocked then
 			stumble(character, humanoid, startedAt, now)
 		end
 		local t, d = now - startedAt, endsAt - startedAt
@@ -244,6 +282,12 @@ end
 function CrowdControl.init()
 	RunService.PreAnimation:Connect(beforeAnimation)
 	RunService.PreSimulation:Connect(animate)
+	local effectRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Effect") :: RemoteEvent
+	effectRemote.OnClientEvent:Connect(function(kind: string, from: any, studs: any)
+		if kind == "knock" and typeof(from) == "Vector3" and type(studs) == "number" then
+			CrowdControl.knock(from, studs)
+		end
+	end)
 end
 
 return CrowdControl

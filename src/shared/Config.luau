@@ -373,6 +373,20 @@ return {
 			STAGGER_MAX = 1.0,
 			STAGGER_MOVE = 0.2, -- walk speed share while staggered
 			STAGGER_PUSH = 14, -- studs/s the stumble shoves a player away from the source
+			-- Enemy hits pick a reaction (EnemyService.reaction): an attack's
+			-- `react`, else "stagger" for a HEAVY_KINDS attack from a beast of at
+			-- least STAGGER_WEIGHT, else the flinch every hit gives.
+			HEAVY_KINDS = { slam = true, charge = true, leap = true },
+			STAGGER_WEIGHT = 2.5, -- the Stone Boar and up; wolves and serpents only flinch
+			-- Knockback on the player from an enemy hit (EnemyService.knockback): the
+			-- beast's `knock` studs, else KNOCK_BASE + KNOCK_PER_WEIGHT * weight,
+			-- times KNOCK_BY_REACT for the reaction it caused, capped at KNOCK_MAX.
+			-- An attack's own `knock` replaces all of that (0 = none).
+			KNOCK_BASE = 1.5,
+			KNOCK_PER_WEIGHT = 0.5, -- wolf ~2 studs, boar ~2.8, wolf king 5, ape 6
+			KNOCK_BY_REACT = { flinch = 1, stagger = 1.5, stun = 1.5 },
+			KNOCK_MAX = 9,
+			KNOCK_SECONDS = 0.22, -- the shove plays out over this long, easing off
 			STUN_SECONDS = 1.2, -- default stun length
 			STUN_MAX = 3, -- no single stun lasts longer
 			STUN_MIN = 0.4, -- diminished stuns shorter than this are ignored

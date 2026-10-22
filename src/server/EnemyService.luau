@@ -44,6 +44,7 @@ local BossAttacks = require(script.Parent.BossAttacks)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
+local CC = CombatConfig.CC
 -- Attack slots and dash-front hits for the new fights; a boss opts into slots
 -- with shareTurns so its summoned pack cannot cover its tells with another hit.
 local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Config.NEW_THUNDER_APE or Config.NEW_NINE_TAIL_FOX or Config.NEW_JIAO
@@ -739,15 +740,49 @@ local function attackName(attack: Enemies.Attack): string
 	return attack.name or attack.kind
 end
 
+-- The reaction a landed hit causes: the attack's `react`, else a stagger from a
+-- heavy blow (Config.Combat.CC.HEAVY_KINDS) by a heavy beast, else the flinch
+-- Combat.hurt already gave.
+function EnemyService.reaction(def: Enemies.Def, attack: Enemies.Attack): string
+	if attack.react then
+		return attack.react
+	end
+	return if CC.HEAVY_KINDS[attack.kind] and def.weight >= CC.STAGGER_WEIGHT then "stagger" else "flinch"
+end
+
+-- Studs a landed hit shoves the player away from the beast (Config.Combat.CC.KNOCK_*).
+function EnemyService.knockback(def: Enemies.Def, attack: Enemies.Attack, react: string): number
+	if attack.knock then
+		return attack.knock
+	end
+	local base = def.knock or (CC.KNOCK_BASE + CC.KNOCK_PER_WEIGHT * def.weight)
+	return math.min(base * (CC.KNOCK_BY_REACT[react] or 1), CC.KNOCK_MAX)
+end
+
+-- What every landed hit does on top of the damage: the reaction (a stun from
+-- `stun.onHit`/`hitStun` wins over `react`) and the shove, which the hit
+-- player's own client plays (CrowdControl, Effect "knock").
+local function reactTo(enemy: Enemy, attack: Enemies.Attack, player: Player, stun: { kind: string, seconds: number? }?, shove: boolean)
+	local kind, seconds = EnemyService.reaction(enemy.def, attack), attack.reactSeconds
+	if stun then
+		kind, seconds = stun.kind, stun.seconds
+	end
+	if kind ~= "flinch" then
+		PlayerStun.apply(player, kind :: any, seconds, enemy.model)
+	end
+	local studs = if shove then EnemyService.knockback(enemy.def, attack, kind) else 0
+	if studs > 0 then
+		effectRemote:FireClient(player, "knock", enemy.root.Position, studs)
+	end
+end
+
 -- Hurt one player with an attack, and show the hit to everyone (EnemyFX `hit`).
 local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player)
 	local result = Combat.hurt(player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, false, enemy.def.id)
 	if result == "hit" and player.Character then
 		effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
 		local stun = attack.stun
-		if stun and stun.onHit then
-			PlayerStun.apply(player, stun.kind :: any, stun.seconds, enemy.model)
-		end
+		reactTo(enemy, attack, player, if stun and stun.onHit then stun else nil, true)
 		local poison = attack.poison
 		if poison then
 			PlayerPoison.apply(player, poison.stacks, poison.seconds, enemy.def.id)
@@ -963,9 +998,8 @@ local function hurtPart(enemy: Enemy, attack: Enemies.Attack, part: any, player:
 	end
 	effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
 	local hs = attack.hitStun
-	if hs and part.stun then
-		PlayerStun.apply(player, hs.kind :: any, hs.seconds, enemy.model)
-	end
+	-- a snare's pull replaces the shove
+	reactTo(enemy, attack, player, if hs and part.stun then hs else nil, not (part.snare and attack.pull))
 	if part.snare and attack.pull then
 		pullPlayer(enemy, player, attack.pull)
 		local follow = attack.followUpOnHit
@@ -1287,6 +1321,7 @@ local function callWave(enemy: Enemy, attack: Enemies.Attack, slam: Shape)
 	local weak: Enemies.Attack = table.clone(attack)
 	weak.damage = attack.damage * wave.scale
 	weak.wave = nil
+	weak.react = "flinch" -- the outer wave only rocks them
 	task.delay(wave.delay, function()
 		if enemies[model] ~= enemy or enemy.health <= 0 then
 			return

@@ -511,7 +511,7 @@ away from.
 
 | Kind | Length (`Config.Combat.CC`) | Effect |
 |---|---|---|
-| `"flinch"` | 0.28 s | a hard recoil (torso snaps back ~24 deg, head whip, arms jolt) with a white pulse on the character and a camera shake for the local player. Never cancels or blocks an action; walking at 75%. Fired by `Combat.hurt` on every enemy hit that deals damage, so enemies don't call it. |
+| `"flinch"` | 0.28 s | a hard recoil (torso snaps back ~24 deg, head whip, arms jolt) with a white pulse on the character and a camera shake for the local player. Never cancels or blocks an action; walking at 75%. Fired by `Combat.hurt` on every enemy hit that deals damage, so enemies don't call it; heavier hits upgrade it ([below](#enemy-hits-reaction-level-and-knockback)). |
 | `"stagger"` | 0.75 s (0.4-1.0) | knocked off balance: cancels the current action, no attacking, dodging, casting, sprinting or jumping, walking at 20%, a short stumble away from `source`, camera shake. |
 | `"stun"` | `seconds` (default 1.2, at most 3) | cancels the action; no actions, no movement, no steering. Pose: a snap back with the arms thrown out, then an upright drunken sway on a wide stance (one swing ~3 s; every other swing nearly falls and is caught with a sideways step, the arms lifting for balance; the heavy head and loose arms trail a beat behind), shaken off in the last 0.35 s. |
 
@@ -534,6 +534,35 @@ cancels the running action (`onLock`); client `ActionState.crowdLocked()` blocks
 
 Enemy attacks can carry `stun = { kind, radius, seconds? }` (Enemies.luau): at
 the end of the windup every player inside that circle is hit with
+### Enemy hits: reaction level and knockback
+
+Every enemy hit that lands (`hurtPlayer`/`hurtPart` in EnemyService) picks one of
+the three levels (`EnemyService.reaction`):
+1. a stun or stagger the attack carries for its hits (`stun.onHit`, a barrage's
+   `hitStun` on parts flagged `stun`), else
+2. the attack's own `react` (`"flinch" | "stagger" | "stun"`, length
+   `reactSeconds`), else
+3. `"stagger"` for a heavy blow (`CC.HEAVY_KINDS`: slam, charge, leap) from a
+   beast of weight `CC.STAGGER_WEIGHT` (2.5, the Stone Boar) or more, else
+4. the flinch `Combat.hurt` already gave.
+
+So wolves and serpents only flinch, the boar's charge staggers, boss slams,
+charges and leaps stagger, the Thunder Ape's Body Slam staggers (`react`) and
+Judgment and the Jiao's coil stun (`stun.onHit`). A slam's outer pound wave only
+flinches. Protection (immunity, i-frames) applies as above.
+
+The hit also knocks the player back, by the enemy (`EnemyService.knockback`):
+the beast's `knock` studs, else `KNOCK_BASE + KNOCK_PER_WEIGHT * weight` (wolf ~2,
+boar ~2.8, wolf king and fox 5, ape and jiao 6), times `KNOCK_BY_REACT` (1.5 for a
+stagger or stun), capped at `KNOCK_MAX` (9). An attack's `knock` replaces it
+(`0` = none: the Jiao's coil, so the ring keeps its trap). A snare's pull
+replaces the shove. The server sends Effect `"knock"` (from, studs) to the hit
+player only and `CrowdControl.knock` shoves their own root away from the beast
+over `KNOCK_SECONDS` (0.22 s, easing off), taking over from the stagger's stumble
+while it plays. Untested in play: the shove fights the Humanoid's ground
+controller the same way the stumble does, so the real distance may come out
+shorter than `studs`.
+
 `PlayerStun.apply`, and the exact circle is telegraphed like a damaging attack.
 The new Elder Wolf King opens every fresh engagement with a `roar` (`pack.howl`, a `howl` attack, 1.0 s windup, no damage) that staggers players within 18 studs for 0.8 s; the server holds the roar until the target is within 24 studs so it can catch them (a dodge or backing off avoids it). Its Pack Call (the two health-threshold calls) also has
 `stun = { kind = "stun", radius = 20, seconds = 1.0 }`; it only exists behind

@@ -76,6 +76,9 @@ export type Attack = {
 	recoverP3: number?, -- barrage: recover seconds in phase 3 (its parts run longer)
 	followUpOnHit: string?, -- barrage: this attack follows only if a snare caught someone
 	thresholdOnly: boolean?, -- boss pattern: kept here for poses/cues, called only by summonAt
+	react: string?, -- "flinch" | "stagger" | "stun": the reaction a landed hit causes (default: see Config.Combat.CC.HEAVY_KINDS)
+	reactSeconds: number?, -- stagger/stun length for `react` (default: the kind's)
+	knock: number?, -- studs a landed hit shoves the player away (default: the beast's `knock`; 0 = none)
 	stun: { kind: string, radius: number, seconds: number?, onHit: boolean?, secondsP3: number? }?, -- on resolve, PlayerStun.apply("stagger" | "stun") to players in the circle (shown as its own telegraph)
 	-- Jade Jiao kinds (BossAttacks.luau): "bolt" (fast venom lanes), "pools" (circles that leave
 	-- poison pools), "burrow" (dive underground along a lane, no damage), "coil" (trap ring)
@@ -127,6 +130,7 @@ export type Def = {
 	boss: boolean?,
 	realm: { any }, -- { major, minor } on the Realms ladder
 	weight: number,
+	knock: number?, -- studs its hits shove a player (default from weight, Config.Combat.CC.KNOCK_BASE)
 	attack: Attack, -- the only attack, the opener of an attack pool, or the opener of a boss pattern
 	attacks: { Attack }?, -- regular beasts: the pool it picks from (see the header)
 	pack: Pack?,
@@ -608,7 +612,7 @@ if NEW_THUNDER_APE then
 	})
 	local bodySlam = atk({
 		kind = "lunge", name = "bodySlam", damage = 140, range = 38, windup = 0.85, recover = 1.10,
-		cooldown = 3.2, length = 34, width = 20, dashSpeed = 55,
+		cooldown = 3.2, length = 34, width = 20, dashSpeed = 55, react = "stagger",
 	})
 	local skyfallSlam = atk({
 		kind = "leap", name = "skyfallSlam", damage = 150, range = 55, minRange = 22, windup = 0.90,
@@ -747,6 +751,7 @@ if NEW_JIAO then
 		kind = "coil", name = "jiaoCoil", damage = 20, range = 45, minRange = 8, windup = 1.50, recover = 4.40,
 		cooldown = 4.0, radius = 15, coilRadius = 13.3, dashSpeed = 40, length = 40, dashMin = 0.45,
 		hold = 3.0, holdP3 = 2.6, halfAngle = 40, halfAngleP3 = 30, squeezeDamage = 71, phase = 2,
+		knock = 0, -- a shove would throw players out of the ring it traps them in
 		stun = { kind = "stun", radius = 0, seconds = 1.4, secondsP3 = 1.6, onHit = true },
 	})
 	local fangFlurry = atk({

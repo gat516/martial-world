@@ -477,9 +477,31 @@ Sounds: `SFX.Enemies.NineTailFox` reuses the wolf, swing, fire-seal and thunder 
 (pitched), picked by id only, unlistened: replace them with fox sounds.
 Untested: everything (feel, lane reach against the animated tails, the pull on a client-owned
 character, the volley's lane gaps, boss HP, phone load of nine tails).
-Pose module and effects are being built in parallel (`EnemyPoses/NineTailFox.luau`,
-`EnemyFX/NineTailFox.luau`); the EnemyAnimator family (`scale = 2.13`) is registered when the
-pose module lands.
+Effects: `Effects.NineTailFox` (34 templates, 158 authored emitters plus a Ribbon of 3 trails and
+Thread/Lane beams; builder `tools/vfx_specs/NineTailFox.luau`, installs `_G.buildNineTailFoxFX`),
+played by `EnemyFX/NineTailFox.luau` (gated to `NineTailFoxB`; found by `EnemyType`, no registry).
+Look: foxfire azure with a white-hot core (P1), violet (P2), white-hot with a crimson edge (P3),
+re-tinted per cue from the model's `Phase`; slate base under every bright layer; lances and tail
+strikes white-gold (never tinted), scream pale blue-white. Layers: aura = low tongues on each tail
+tip (lit tails burn brighter: 3 / 6 / 9 by phase) plus ground mist; `Tell` parts dim to half then
+brighten through each windup and are recoloured per phase. Per cue: `intro` nine `TailIgnite` in turn,
+`Sigil`, ghost-fox head, `RoarWave` at release; `fangDance` `Breath` then `FangSnap` per cone;
+`tailSweep` tips 2/5/8 glow, three white-gold crescent ribbons across the cone; `tailLance` /
+`lanceFan` `TipCharge` + `Lane` line, a ribbon streak from `TailTip{tail}_FX` at part time minus `ext`,
+`LanceHit` at the far end; `tailSnare` white thread along the lane, and on `enemyCue "snare"` a coil
+ribbon round the torso tethered to the tip; `rendingPounce` `Gather`, dash ribbon, `Dust`, skid;
+`foxfireVolley` tips flare outside-in, a bolt ribbon per lane and a `Burst`; `rootfireEruption`
+`PlungeImpact` at the five tips at 60% of the windup, `RootVein` ribbons to the circles, `Eruption`
+per circle (heart bigger, shake within 12), `StuckGlow` on the buried tips for 0.85 s; `moonLeap`
+`Gather` at the hind paws, moon ribbon, `FireStrip` segments along `shape.parts` (identical boxes
+merged, flares at each part's `delay`); `mournfulScream` `ScreamTell` + `TailFlare`, `ScreamWave` to
+the shape radius, `StunSting` on the local character inside it; `nineTailFall` `TailPillar` per tail,
+`FallSigil` per circle brightening to its impact, `PlungeImpact` then `Eruption`, `FallBurst` under
+the fox; `veilBreak` `Gather` + `Sigil`, release `PhaseBurst`, colour crossfade and re-ignite for the
+new phase; death gutters the flames 1..9, a 40-part ghost fox, nine `Stream`s, `SpiritGlint`.
+All sizes, lengths and centres come from the cue's shape; cues past 220 studs are skipped.
+Untested: the look in Studio (the user reviews), the Game Module playback of the templates, phone load of
+`nineTailFall` (about 70 emitters live for its 2 s), ribbon widths against the real tail sizes.
 
 ### Thunder Ape (testbed trial)
 A 30-stud storm boss for Foundation 1 (`Config.Wilds.NEW_THUNDER_APE = TESTBED`; flip it to ship).

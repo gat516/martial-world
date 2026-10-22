@@ -134,46 +134,34 @@ cursor, settings and the admin panel.
   (slot painting, weapon art, the weapon badge), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
-- Boss health bar: `BossBars.luau` drives `Play.BossBar`, a slim CanvasGroup at the
-  top centre (0.46 of the width, max 460x62, so narrower on phones): the name row
-  (name centred, realm tag right), a 32px frame round a 16px channel, and one
-  intro-only text row under it. It must not block the fight (the first version,
-  600x150 with a pulsing vignette and halo, did; user, 2026-10-21): no screen
-  darkening, no looping pulses, small and short hit and phase feedback.
-  Look (user, 2026-10-21): purpose-drawn image art, not crops of old art and not
-  plain Roblox shapes; the fill must contrast hard with the backing; no slip lines
-  (they read as a ruler); the emblem sits in the frame, not floating beside it.
-  Art from `art/ui/draw_boss_bars.py`, drawn for the real size at 2x:
-  `bossbar_frame.png` (`Body.Frame`, 9-sliced `Rect(68, 31, 188, 33)`, scale 0.5:
-  a gold rim, an emblem socket on the left, a talisman blade with a jade stud on
-  the right), `bossbar_gloss.png` (`Bar.Gloss`, the channel bevel over the fill)
-  and one `bossbar_emblem_<boss>.png` medallion per boss (`Body.Emblem`, 24px in
-  the socket). Under the art, `Bar` (x 27 to width-30, y 25) holds plain frames:
-  a near-black `Back`, a pale `Trail` and a saturated `Fill` with a top-light
-  `UIGradient`. Phase ticks are 2px dark lines flush with the channel.
+- Boss health bar: `BossBars.luau` drives `Play.BossBar` (a CanvasGroup, top centre,
+  `FitWithinMaxSize` 4:1, 0.44 of the width, max 400x100, so smaller on phones).
+  The design is the original one (55e39fb), toned down (user, 2026-10-21): the
+  first version (600x150, a pulsing screen vignette and halo, a lingering omen,
+  big shakes) blocked the fight; slimmer rebuilds from cropped or new generic
+  art were rejected. Rules: show each boss's frame art whole, never cropped; no
+  screen darkening and no looping pulses; small, short hit and phase feedback.
   `BossThemes.luau` holds one table per boss def id (`ElderWolfKing`,
-  `NineTailFox`, `JadeJiao`, `ThunderApe`, plus `default`): title, emblem, fill
-  and phase fill, trail, frame tint, text colours, omen pools per tier. Adding a
-  boss is one table entry (an unlisted boss gets `default`). `EnemyBars.luau`
-  picks the boss (locked, else the nearest hunting you within `BOSS_RANGE`) and
-  the danger tier (`Pacing.Danger`, `STYLES`, re-picked on breakthrough), which
-  colours the realm tag and omen.
-  Intro: the bar fades in, the fill sweeps up, name and realm rise in; under the
-  bar the theme title shows (`TITLE_HOLD`), then the omen (`OMEN_HOLD`), and both
-  fade out fully (a breakthrough mid-fight shows the new omen once). Hits of
-  `BIG_HIT` (5%) or more give a 1-3px nudge and a quick flash; the trail drains
-  after the fill. Crossing a threshold flashes the bar, nudges it, spreads faint
-  cracks from the centre, warms the fill and frame tint and fades the tick.
-  Asset ids: every boss bar image id is pasted in one place, the `ASSET IDS`
-  block at the top of `BossThemes.luau` (`Themes.ART.frame`, `Themes.ART.gloss`)
-  and each theme's `emblem`, and recorded in `art/ui/assets.json`. `Hud.rbxmx`
-  holds no ids: `BossBars` sets the images. A value still `PASTE-ID:...` is a
-  placeholder and that image is hidden (a missing emblem falls back to the
-  default's), so the bar degrades to backing, trail and fill.
-  Gaps: the 9-slice frame and emblems are uploaded but not yet checked in
-  Studio. The fox, python
-  and ape themes are untested until those bosses exist; the phase cracks are one
-  shared image.
+  `NineTailFox`, `JadeJiao`, `ThunderApe`, plus `default`). `EnemyBars.luau` picks
+  the boss (locked, else the nearest hunting you within `BOSS_RANGE`) and the
+  danger tier (`Pacing.Danger`, `STYLES`, re-picked on breakthrough). A theme is a
+  title line, a frame image (1024x256, bar hole at x168-856 y110-146, name plate
+  above, realm plaque below; `art/ui/draw_boss_bars.py`, ids `bossbar_*` in
+  `assets.json`), saturated fill colours (top-light vertical gradient), a pale
+  trail, a static glow colour, a phase colour, and omen pools per tier (random
+  per fight, short lines). Adding a boss is one table entry (an unlisted boss
+  gets `default`).
+  Intro: the bar fades in, the fill sweeps up, name and realm rise in; the
+  theme title shows under the name (`TITLE_HOLD`), then the omen (`OMEN_HOLD`),
+  and both fade out fully (a breakthrough mid-fight shows the new omen once).
+  The halo behind the bar is faint and static (`GLOW_REST`). The bar has ten
+  talisman slips, a tick at each phase threshold (`def.summonAt`, or
+  `theme.phases`), a trail, and a 1-3px nudge and quick flash on hits of
+  `BIG_HIT` (5%) or more. Crossing a threshold flashes the bar, nudges it,
+  spreads faint cracks from the centre, warms the fill and frame colours and
+  greys the tick.
+  Gaps: the fox, jiao and ape frames are untested until those bosses are in
+  play; the phase cracks are one shared image.
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`
   (spirit root reveal card).
 - `Onboarding.luau`, `Guide.luau` (spotlight, dim, walking path), `TravelMenu.luau` (with `GateMarkers.luau` over arrays and

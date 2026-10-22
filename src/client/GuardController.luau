@@ -157,11 +157,21 @@ local function loadTracks(character: Model)
 	table.insert(classConnections, character:GetAttributeChangedSignal("WeaponStowed"):Connect(reapply))
 end
 
+-- A one-shot stops the others first: a finished track lingers on its last
+-- frame at the same priority and would halve the next deflect in a chain.
 local function play(name: string, fade: number)
 	local track = tracks[name]
-	if track then
-		track:Play(fade)
+	if not track then
+		return
 	end
+	if name ~= "Hold" then
+		for other, t in tracks do
+			if other ~= "Hold" and other ~= name and t.IsPlaying then
+				t:Stop(fade)
+			end
+		end
+	end
+	track:Play(fade)
 end
 
 local function flat(v: Vector3): Vector3?

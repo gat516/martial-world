@@ -22,11 +22,13 @@
 -- always read from the cue (cue.shape / shape.parts / shape.trail), never
 -- hardcoded, since the designer may retune them. Tails are followed through
 -- TailTip{i}_FX, which rides the extending whip.
--- Weight (Impact kit, EnemyFX/Impact.luau): every rootfire eruption and tail
--- plunge lands with a foxfire shockwave, dust and a contact flash in the
--- phase's colour; the eruption's heart and NineTailFall's final burst add the
--- explosion and a fading scorched crack; the foxfire bolts explode where they
--- land.
+-- Rebuilt 2026-10-22 (intent-first pass, .claude/agents/vfx.md): every layer
+-- is caused by the move and staggered behind its cause inside the templates
+-- (EmitDelay), one hero per peak, nothing redraws the telegraph (no ground
+-- sigils or lane lines), and each impact is its own stack (the shared Impact
+-- kit is no longer layered on top). Beat sheets: tools/vfx_specs/NineTailFox.luau.
+-- Sounds: SoundService.SFX.Enemies.NineTailFox.<Name>, played at the beat's
+-- moment and place through `sound` (EnemySounds plays the windup voices).
 -- Phone budget: cues past 220 studs are skipped (EnemyFX) and per-frame
 -- follow work stops at the same distance.
 
@@ -37,9 +39,10 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local TechniqueVFX = require(script.Parent.Parent.TechniqueVFX)
-local Impact = require(script.Parent.Impact)
+local Sfx = require(script.Parent.Parent.Sfx)
 
 local TEMPLATE = "NineTailFoxB"
+local SOUNDS = "Enemies/NineTailFox/"
 local MAX_DISTANCE = 220
 local EPSILON = 0.035
 local WHITE = Color3.new(1, 1, 1)
@@ -57,7 +60,6 @@ local PHASES = {
 -- which tails burn in each phase (the intro lights all nine in turn)
 local LIT = { { 2, 5, 8 }, { 2, 3, 4, 5, 7, 8 }, { 1, 2, 3, 4, 5, 6, 7, 8, 9 } }
 local GOLD_SEQ = ColorSequence.new({ ColorSequenceKeypoint.new(0, WHITE), ColorSequenceKeypoint.new(0.5, HOT), ColorSequenceKeypoint.new(1, GOLD) })
-local PALE_SEQ = ColorSequence.new({ ColorSequenceKeypoint.new(0, WHITE), ColorSequenceKeypoint.new(1, PALE) })
 
 local WINDUP = {
 	intro = 2.2, fangDance = 0.65, tailSweep = 0.9, tailLance = 0.6, lanceFan = 0.95, tailSnare = 0.85,
@@ -125,10 +127,10 @@ local function phaseSeq(phase: number): ColorSequence
 	return ColorSequence.new({ ColorSequenceKeypoint.new(0, WHITE), ColorSequenceKeypoint.new(0.4, p.mid), ColorSequenceKeypoint.new(1, p.edge) })
 end
 
--- The Impact kit's palette for a phase: the phase's foxfire over its slate base.
-local function impactPalette(phase: number)
-	local p = PHASES[phase]
-	return { core = WHITE:Lerp(p.mid, 0.25), color = p.mid, dark = SLATE }
+-- A sound from SFX.Enemies.NineTailFox at its beat's moment and place.
+-- `gap` keeps bursts (bolts, eruptions, nine plunges) from stacking up.
+local function sound(name: string, at: (Vector3 | BasePart)?, gap: number?, speed: number?)
+	Sfx.play(SOUNDS .. name, at, gap, speed)
 end
 
 -- The cue is still the live one (King's generation check).
@@ -256,6 +258,14 @@ local function prepare(copy: BasePart, scale: number)
 			d.Size = scaleSequence(d.Size, scale)
 			d.Speed = NumberRange.new(d.Speed.Min * scale, d.Speed.Max * scale)
 			d.Acceleration *= scale
+		elseif d:IsA("Model") and d:GetAttribute("MeshWave") then
+			-- 3D shocks: sizes and travel are studs
+			for _, key in { "FromSize", "ToSize", "FromOffset", "ToOffset" } do
+				local v = d:GetAttribute(key)
+				if typeof(v) == "Vector3" then
+					d:SetAttribute(key, v * scale)
+				end
+			end
 		end
 	end
 end
@@ -279,11 +289,19 @@ local function retime(copy: BasePart, seconds: number)
 	end
 end
 
--- Recolour the bright layers (not slate bases, not NoTint ones).
+-- Recolour the bright layers (not slate bases, not NoTint ones); Neon mesh
+-- waves take the sequence's edge colour (Neon already glows it pale).
 local function tint(copy: Instance, color: ColorSequence)
+	local keys = color.Keypoints
+	local mid = keys[#keys].Value
 	for _, d in copy:GetDescendants() do
 		if d:IsA("ParticleEmitter") and d.LightEmission > 0.3 and not d:GetAttribute("NoTint") then
 			d.Color = color
+		elseif d:IsA("Model") and d:GetAttribute("MeshWave") and not d:GetAttribute("NoTint") then
+			local mesh = d:FindFirstChild("Mesh")
+			if mesh and mesh:IsA("BasePart") and mesh.Material == Enum.Material.Neon then
+				mesh.Color = mid
+			end
 		end
 	end
 end
@@ -841,25 +859,6 @@ local function thread(cue: Cue, name: string, duration: number, from: () -> Vect
 	return stop
 end
 
--- A thin lit sigil line on the ground along a damage box, until `untilAbs`.
-local function lane(cue: Cue, p: any, untilAbs: number, tintSeq: ColorSequence?)
-	if type(p) ~= "table" or p.hidden or typeof(p.cframe) ~= "CFrame" or typeof(p.size) ~= "Vector2" then
-		return
-	end
-	local s = state(cue.model)
-	local cf: CFrame = p.cframe
-	local length = p.size.Y
-	local a = ground(cue, (cf * CFrame.new(0, 0, length / 2)).Position) + Vector3.new(0, 0.3, 0)
-	local b = ground(cue, (cf * CFrame.new(0, 0, -length / 2)).Position) + Vector3.new(0, 0.3, 0)
-	local duration = math.max(0.1, untilAbs - workspace:GetServerTimeNow() + 0.12)
-	local stop = thread(cue, "Lane", duration, function()
-		return a
-	end, function()
-		return b
-	end, { flat = true, tint = tintSeq, width = math.clamp(p.size.X / 3, 0.6, 1.6) })
-	table.insert(s.windups, { Destroy = stop })
-end
-
 -- A lance-length streak along a box from a tail tip (white-gold) with a
 -- trailing ribbon, snapping at the far end.
 local function boxEnds(p: any): (Vector3, Vector3)
@@ -926,6 +925,7 @@ local function lanceStreak(cue: Cue, i: number, p: any, landAbs: number, ext: nu
 	afterAbs(cue, landAbs - ext, function()
 		local startFrame = tip(cue, i)
 		play("TailIgnite", startFrame, { follow = whip, tint = seq, size = 0.7 })
+		sound("LanceOut", startFrame.Position, 0.06)
 		local duration = math.max(0.08, ext)
 		local started = os.clock()
 		local function reach(): Vector3
@@ -945,8 +945,9 @@ local function lanceStreak(cue: Cue, i: number, p: any, landAbs: number, ext: nu
 		end, { width = 0.9, tint = seq, wide = ColorSequence.new(HOT, GOLD), core = ColorSequence.new(WHITE, HOT), lifeScale = 0.7 })
 	end)
 	afterAbs(cue, landAbs, function()
-		play(hitName or "LanceHit", CFrame.new(endPoint) * facing(cue), { tint = seq })
-		shake(0.1, endPoint, 40)
+		local at = ground(cue, far)
+		play(hitName or "LanceHit", CFrame.new(at + Vector3.new(0, 0.1, 0)) * facing(cue), { tint = seq })
+		sound("LanceHit", at, 0.06)
 	end)
 end
 
@@ -955,15 +956,15 @@ end
 local W = {}
 
 function W.intro(cue: Cue, c)
-	-- nine flames ignite one by one, the sigil blooms, the mist swells
-	local pos = ground(cue, root(cue).Position) + Vector3.new(0, 0.05, 0)
-	held(cue, "Sigil", CFrame.new(pos) * facing(cue), { scale = 10, seconds = c.seconds })
+	-- the nine flames catch one by one, then breath is drawn into the jaws
+	-- for the howl (no ground sigil, nothing kindled out of the ground)
 	local step = math.max(0.08, (c.seconds - 0.5) / 9)
 	for i = 1, 9 do
 		local at = c.now + 0.25 + (i - 1) * step
 		afterAbs(cue, at, function()
 			local frame, whip = tip(cue, i)
 			play("TailIgnite", frame, { follow = whip, tint = phaseSeq(c.phase) })
+			sound("Ignite", frame.Position, 0.05, 0.9 + i * 0.04)
 			local state_ = state(cue.model)
 			for p, base in state_.tellBase or {} do
 				if p:GetAttribute("TailIndex") == i then
@@ -973,8 +974,11 @@ function W.intro(cue: Cue, c)
 			end
 		end)
 	end
-	-- foxfire wakes in the ground round it and climbs (no body copy)
-	held(cue, "Kindle", CFrame.new(pos) * facing(cue), { scale = 7, seconds = c.seconds, tint = phaseSeq(c.phase) })
+	local inhale = math.min(0.6, c.seconds)
+	afterAbs(cue, c.release - inhale, function()
+		local frame, head = point(cue, "Mouth", { "Head", "Snout" })
+		held(cue, "RoarTell", frame, { follow = head, seconds = inhale, tint = phaseSeq(c.phase) })
+	end)
 end
 
 function W.fangDance(cue: Cue, c)
@@ -987,7 +991,7 @@ function W.fangDance(cue: Cue, c)
 				local mouth = point(cue, "Mouth", { "Head", "Snout" })
 				local look = if typeof(p.cframe) == "CFrame" then p.cframe.LookVector else root(cue).CFrame.LookVector
 				play("FangSnap", CFrame.lookAt(mouth.Position, mouth.Position + look), { tint = phaseSeq(phaseOf(cue)) })
-				shake(0.1, cue.root.Position, 50)
+				sound("Snap", mouth.Position, 0.1)
 			end)
 		end
 	end
@@ -1007,7 +1011,6 @@ function W.tailLance(cue: Cue, c)
 	tailGlow(cue, tail, c.seconds + (p and p.delay or 0), GOLD_SEQ)
 	if p and p.cframe then
 		local at = c.release + (p.delay or 0)
-		lane(cue, p, at, GOLD_SEQ)
 		lanceStreak(cue, tail, p, at, p.ext or 0.2, GOLD_SEQ)
 	end
 end
@@ -1022,7 +1025,6 @@ function W.lanceFan(cue: Cue, c)
 			tipCharge(cue, tail, math.max(0.2, at - c.now - 0.1), GOLD_SEQ)
 		end
 		if p.cframe then
-			lane(cue, p, at, GOLD_SEQ)
 			lanceStreak(cue, tail, p, at, p.ext or 0.2, GOLD_SEQ)
 		end
 	end
@@ -1038,13 +1040,13 @@ function W.tailSnare(cue: Cue, c)
 	if p and p.cframe then
 		local at = c.release + (p.delay or 0)
 		local ext = p.ext or 0.2
-		lane(cue, p, at, ColorSequence.new(WHITE, PALE))
 		local near, far = boxEnds(p)
 		afterAbs(cue, at - ext, function()
 			local frame, whip = tip(cue, tail)
+			sound("SnareLash", frame.Position, 0.1)
 			local started = os.clock()
 			local stop
-			stop = thread(cue, "Thread", ext + 0.6, function()
+			stop = thread(cue, "Whip", ext + 0.6, function()
 				return (tip(cue, tail)).Position
 			end, function()
 				local a = math.clamp((os.clock() - started) / math.max(0.05, ext), 0, 1)
@@ -1056,9 +1058,18 @@ function W.tailSnare(cue: Cue, c)
 	end
 end
 
+-- The hind paws dig in to spring (a crouch kicks dirt), at `at` (server time).
+local function pawsDig(cue: Cue, at: number, radius: number)
+	afterAbs(cue, at, function()
+		for _, side in { "BL", "BR" } do
+			local frame = point(cue, `Paw{side}_FX`, { `PawB{side:sub(2)}`, "Chest" })
+			play("Dust", CFrame.new(ground(cue, frame.Position) + Vector3.new(0, 0.08, 0)) * facing(cue), { scale = radius })
+		end
+	end)
+end
+
 function W.rendingPounce(cue: Cue, c)
-	local frame, chest = point(cue, "Core", { "Chest" })
-	held(cue, "Gather", frame, { follow = chest, seconds = c.seconds, scale = 4, tint = phaseSeq(c.phase) })
+	pawsDig(cue, c.now + c.seconds * 0.4, 2.2)
 end
 
 function W.foxfireVolley(cue: Cue, c)
@@ -1110,6 +1121,8 @@ function W.rootfireEruption(cue: Cue, c)
 			play("PlungeImpact", CFrame.new(at + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = 3.5, tint = phaseSeq(phaseOf(cue)) })
 		end
 		shake(0.14, cue.root.Position, 60)
+		sound("Plunge", cue.root.Position)
+		sound("Rumble", cue.root.Position)
 		local used = {}
 		for _, circle in circles do
 			local best, bestD = nil, math.huge
@@ -1187,28 +1200,20 @@ function W.rootfireEruption(cue: Cue, c)
 			local pos = ground(cue, circle.center)
 			local live = phaseSeq(phaseOf(cue))
 			play("Eruption", CFrame.new(pos + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = circle.radius or 3.5, tint = live })
-			local pal = impactPalette(phaseOf(cue))
 			if heart then
-				Impact.explode(pos, { radius = (circle.radius or 5) * 1.2, element = "fox", palette = pal, rocks = true, shake = 0.3, reach = 40 })
-			else
-				Impact.ground(pos, { radius = (circle.radius or 3.5) * 1.3, element = "fox", palette = pal, dust = 0.6, shake = 0.12, reach = 25 })
-			end
-			if heart then
+				-- the heart is the one peak of the attack: it also bursts
 				play("Burst", CFrame.new(pos + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = (circle.radius or 5) * 1.1, tint = live })
-				shake(0.28, pos, 12)
+				sound("HeartBurst", pos)
+				shake(0.28, pos, 40)
 			else
-				shake(0.1, pos, 25)
+				sound("Eruption", pos, 0.08)
 			end
 		end)
 	end
 end
 
 function W.moonLeap(cue: Cue, c)
-	local seq = phaseSeq(c.phase)
-	for _, side in { "BL", "BR" } do
-		local frame, paw = point(cue, `Paw{side}_FX`, { `PawB{side:sub(2)}`, "Chest" })
-		held(cue, "Gather", frame, { follow = paw, seconds = c.seconds, scale = 2.4, tint = seq })
-	end
+	pawsDig(cue, c.now + c.seconds * 0.35, 2.6)
 end
 
 function W.mournfulScream(cue: Cue, c)
@@ -1229,26 +1234,22 @@ function W.nineTailFall(cue: Cue, c)
 			local at = c.release + (p.delay or 0)
 			local final = p.tail == nil or p.tail == 0
 			local center = p.center
-			-- the circle's sigil brightens until its own impact, staggered
-			afterAbs(cue, c.now + 0.08 * count, function()
-				local seconds = math.max(0.3, at - workspace:GetServerTimeNow())
-				held(cue, "FallSigil", CFrame.new(ground(cue, center) + Vector3.new(0, 0.05, 0)), { scale = p.radius or 5, seconds = seconds, tint = phaseSeq(phaseOf(cue)) })
-			end)
+			-- (the telegraph marks each circle; no sigil of our own on it)
 			if not final then
 				local tail = p.tail
-				-- the tail rises with a growing white-violet pillar over it
+				-- the raised tail draws foxfire in and its flame swells to its plunge
 				local frame, whip = tip(cue, tail)
-				held(cue, "TailPillar", frame, { follow = whip, seconds = math.max(0.4, at - c.now - 0.1), tint = seq })
+				held(cue, "TailRise", frame, { follow = whip, seconds = math.max(0.4, at - c.now - 0.1), tint = seq })
 				afterAbs(cue, at - 0.05, function()
 					local live = phaseSeq(phaseOf(cue))
 					local tipFrame = tip(cue, tail)
 					local pos = ground(cue, center)
 					play("PlungeImpact", CFrame.new(ground(cue, tipFrame.Position) + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = 3.5, tint = live })
+					sound("FallPlunge", tipFrame.Position, 0.12)
 					task.delay(0.07, function()
 						if cue.model.Parent then
 							play("Eruption", CFrame.new(pos + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = p.radius or 5, tint = live })
-							Impact.ground(pos, { radius = (p.radius or 5) * 1.2, element = "fox", palette = impactPalette(phaseOf(cue)), dust = 0.7, shake = 0.15, reach = 30 })
-							shake(0.12, pos, 30)
+							sound("Eruption", pos, 0.12)
 						end
 					end)
 				end)
@@ -1256,7 +1257,8 @@ function W.nineTailFall(cue: Cue, c)
 				afterAbs(cue, at, function()
 					local pos = ground(cue, center)
 					play("FallBurst", CFrame.new(pos + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = p.radius or 14, tint = phaseSeq(phaseOf(cue)) })
-					Impact.ground(pos, { radius = p.radius or 14, element = "fox", palette = impactPalette(phaseOf(cue)), burst = true, scar = true, rocks = true, shake = 0.55, reach = (p.radius or 14) + 60 })
+					sound("FallSlam", pos)
+					sound("FallBlast", pos)
 					shake(0.45, pos, (p.radius or 14) + 45)
 				end)
 			end
@@ -1266,9 +1268,7 @@ end
 
 function W.veilBreak(cue: Cue, c)
 	local frame, chest = point(cue, "Core", { "Chest" })
-	held(cue, "Gather", frame, { follow = chest, seconds = c.seconds, scale = 12, boost = 2, tint = phaseSeq(c.phase) })
-	local pos = ground(cue, root(cue).Position) + Vector3.new(0, 0.05, 0)
-	held(cue, "Sigil", CFrame.new(pos) * facing(cue), { scale = 7, seconds = c.seconds, tint = phaseSeq(c.phase) })
+	held(cue, "Gather", frame, { follow = chest, seconds = c.seconds, scale = 9, tint = phaseSeq(c.phase) })
 end
 
 function Fox.windup(cue: Cue)
@@ -1343,6 +1343,7 @@ local function takeOff(cue: Cue)
 			local at = ground(cue, frame.Position) + Vector3.new(0, 0.08, 0)
 			play("Dust", CFrame.new(at) * facing(cue), { scale = if attack == "moonLeap" then 3.5 else 3 })
 		end
+		sound(if attack == "moonLeap" then "LeapOff" else "Dash", root(cue))
 	end
 	local frame, chest = point(cue, "Core", { "Chest" })
 	local offset = chest.CFrame:ToObjectSpace(frame)
@@ -1417,6 +1418,7 @@ local function igniteTrail(cue: Cue, trail: { any }, release: number)
 		return
 	end
 	local seq = phaseSeq(phaseOf(cue))
+	sound("TrailIgnite", root(cue))
 	local ticks = {}
 	local strips = {}
 	local lastTick = release + 1.5
@@ -1520,8 +1522,8 @@ local function igniteTrail(cue: Cue, trail: { any }, release: number)
 	task.delay(math.max(0.1, lastTick + 0.6 - workspace:GetServerTimeNow()), stop)
 end
 
--- The pose of a roar: rings racing out on the ground, the roar thrown from
--- the jaws.
+-- The intro's howl: a blast of air and sound out of the jaws (RoarBreath),
+-- shoving dust off the ground in front of the head (RoarWave).
 local function roarBurst(cue: Cue)
 	local s = state(cue.model)
 	if os.clock() - s.roarAt < 12 or s.dead then
@@ -1529,9 +1531,14 @@ local function roarBurst(cue: Cue)
 	end
 	s.roarAt = os.clock()
 	startAura(cue)
-	local at = ground(cue, root(cue).Position)
-	play("RoarWave", CFrame.new(at) * facing(cue), { tint = phaseSeq(phaseOf(cue)) })
-	roarBreath(cue, 1.2, phaseSeq(phaseOf(cue)))
+	local mouth = point(cue, "Mouth", { "Head", "Snout" })
+	local look = flat(root(cue).CFrame.LookVector)
+	look = if look.Magnitude > 0.01 then look.Unit else Vector3.new(0, 0, -1)
+	roarBreath(cue, 1, phaseSeq(phaseOf(cue)))
+	local at = ground(cue, mouth.Position + look * 5)
+	play("RoarWave", CFrame.new(at + Vector3.new(0, 0.1, 0)) * facing(cue), { tint = phaseSeq(phaseOf(cue)) })
+	sound("Roar", mouth.Position)
+	sound("AirBlast", mouth.Position)
 	flareAura(cue, 1.6)
 	shake(0.3, cue.root.Position, 90)
 end
@@ -1574,7 +1581,7 @@ local function sweepArc(cue: Cue, shape: any)
 		local pos = Vector3.new(centre.X - math.sin(theta) * radius * 0.9, floor, centre.Z - math.cos(theta) * radius * 0.9)
 		task.delay(0.14 + (if sign > 0 then 0.14 else 0), function()
 			if alive(cue) then
-				play("Dust", CFrame.new(pos + Vector3.new(0, 0.08, 0)), { scale = 3.5 })
+				play("Dust", CFrame.new(pos + Vector3.new(0, 0.08, 0)), { scale = 3 })
 			end
 		end)
 	end
@@ -1592,11 +1599,8 @@ end
 
 function S.tailSweep(cue: Cue, shape: any)
 	sweepArc(cue, shape)
-	for _, i in { 2, 5, 8 } do
-		local frame, whip = tip(cue, i)
-		play("TailIgnite", frame, { follow = whip, tint = GOLD_SEQ })
-	end
-	shake(0.18, cue.root.Position, 60)
+	sound("Sweep", root(cue))
+	shake(0.12, cue.root.Position, 60)
 end
 
 function S.rendingPounce(cue: Cue)
@@ -1612,10 +1616,13 @@ end
 function S.mournfulScream(cue: Cue, shape: any)
 	local at = ground(cue, root(cue).Position)
 	local radius = shapeRadius(shape, 22)
+	-- a scream radiates all round (no breath thrown forward)
 	play("ScreamWave", CFrame.new(at + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = radius })
+	local throat = point(cue, "Throat", { "Neck", "Chest" })
+	sound("Scream", throat.Position)
+	sound("ScreamShock", at)
 	flareAura(cue, 1.4)
-	roarBreath(cue, 1.5, PALE_SEQ)
-	shake(0.35, cue.root.Position, 25)
+	shake(0.35, cue.root.Position, radius + 5)
 	-- the server fires no hit for a damage-0 attack: sting the local character
 	local character = Players.LocalPlayer and Players.LocalPlayer.Character
 	local torso = torsoOf(character)
@@ -1628,27 +1635,33 @@ end
 
 function S.veilBreak(cue: Cue)
 	local s = state(cue.model)
-	-- Phase is written at this very release: wait a beat for it
 	local old = s.phase
+	local radius = shapeRadius(s.shapeAtRelease, 10)
+	-- the one peak, on the release frame: the old veil (in the phase colour
+	-- it had) bursts off the chest, then hits the ground
+	local oldSeq = phaseSeq(math.clamp(if old > 0 then old else phaseOf(cue), 1, 3))
+	local at = ground(cue, root(cue).Position)
+	local frame = point(cue, "Core", { "Chest" })
+	play("PhaseBurst", frame, { size = radius / 13, tint = oldSeq })
+	play("PhaseRing", CFrame.new(at + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = radius, tint = oldSeq })
+	sound("VeilBurst", frame.Position)
+	shake(0.4, cue.root.Position, 80)
+	-- Phase is written at this very release: wait a beat for it (the
+	-- follow-through below wears the new phase's colour)
 	for _ = 1, 8 do
 		if phaseOf(cue) ~= old then
 			break
 		end
 		task.wait(0.04)
 	end
+	if not alive(cue) then
+		return
+	end
 	local phase = phaseOf(cue)
 	local seq = phaseSeq(phase)
-	local at = ground(cue, root(cue).Position)
-	local radius = shapeRadius(s.shapeAtRelease, 10)
-	play("PhaseBurst", CFrame.new(at + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = radius, tint = seq })
-	play("Sigil", CFrame.new(at + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = radius * 1.1, tint = seq })
-	local frame, chest = point(cue, "Core", { "Chest" })
-	play("SpiritGlint", frame, { follow = chest, tint = seq })
-	roarBreath(cue, 1.4, seq)
-	-- the veil tears: foxfire spirals up round the fox (three strands, five
-	-- in the last phase) and bursts as one star over it
+	-- follow-through: shreds of the torn veil spiral up round the fox (three,
+	-- five in the last phase) and fade out over it
 	local base = ground(cue, root(cue).Position)
-	local apex = base + Vector3.new(0, 19, 0)
 	local strands = if phase >= 3 then 5 else 3
 	local rise = 0.85
 	for k = 1, strands do
@@ -1660,12 +1673,6 @@ function S.veilBreak(cue: Cue)
 			return CFrame.new(base + Vector3.new(math.cos(theta) * r, 1 + t * 18, math.sin(theta) * r))
 		end, { width = 1.4, tint = seq, lifeScale = 1.6 })
 	end
-	task.delay(rise, function()
-		if alive(cue) then
-			play("SpiritGlint", CFrame.new(apex), { tint = seq })
-			play("SoulRelease", CFrame.new(apex), { tint = seq, size = 0.8 })
-		end
-	end)
 	-- the tails re-ignite for the new phase (colour crossfades over 0.6 s)
 	s.phase = old
 	syncPhase(cue, 0.6)
@@ -1682,7 +1689,6 @@ function S.veilBreak(cue: Cue)
 		end
 	end
 	flareAura(cue, 3)
-	shake(0.4, cue.root.Position, 80)
 end
 
 function Fox.strike(cue: Cue)
@@ -1739,11 +1745,17 @@ function Fox.land(cue: Cue)
 	local centre = ground(cue, (left.Position + right.Position) / 2) + Vector3.new(0, 0.08, 0)
 	if attack == "moonLeap" then
 		play("Landing", CFrame.new(centre) * facing(cue), { scale = 6, tint = phaseSeq(phaseOf(cue)) })
+		sound("Land", centre)
 		shake(0.2, cue.root.Position, 60)
 	else
-		play("Dust", CFrame.new(centre) * facing(cue), { scale = 4.5 })
-		play("Dust", CFrame.new(centre) * facing(cue) * CFrame.new(0, 0, -2), { scale = 3 })
-		shake(0.16, cue.root.Position, 50)
+		-- the forepaws plant, then the skid carries on a little
+		play("Dust", CFrame.new(centre) * facing(cue), { scale = 4 })
+		local skid = CFrame.new(centre) * facing(cue) * CFrame.new(0, 0, -2.5)
+		task.delay(0.1, function()
+			play("Dust", skid, { scale = 3 })
+		end)
+		sound("Skid", centre)
+		shake(0.12, cue.root.Position, 50)
 	end
 end
 
@@ -1768,12 +1780,16 @@ function Fox.hit(cue: Cue)
 	local attack = cue.attack or ""
 	if LANCE_FAMILY[attack] then
 		play("Hit", frame, { tint = GOLD_SEQ })
+		sound("HitStab", torso.Position, 0.08)
 	elseif attack == "tailSweep" or attack == "rendingPounce" then
 		play("HitHeavy", frame, { tint = GOLD_SEQ })
+		sound("HitHeavy", torso.Position, 0.08)
 	elseif PHASE_FAMILY[attack] or attack == "moonLeap" then
 		play("HitHeavy", frame, { tint = phaseSeq(phaseOf(cue)) })
+		sound("HitFire", torso.Position, 0.08)
 	else
 		play("Hit", frame, { tint = phaseSeq(phaseOf(cue)) })
+		sound("HitFire", torso.Position, 0.08)
 	end
 	if Players.LocalPlayer and target == Players.LocalPlayer.Character then
 		hurtShake(if attack == "nineTailFall" then 0.26 elseif attack == "tailSweep" or attack == "rootfireEruption" then 0.2 else 0.14)
@@ -1802,8 +1818,8 @@ function Fox.snare(cue: Cue)
 	local tail = s.snareTail or 5
 	local white = ColorSequence.new(WHITE, PALE)
 	local duration = 0.45
-	local started = os.clock()
-	thread(cue, "Thread", duration, function()
+	sound("SnarePull", torso)
+	thread(cue, "Whip", duration, function()
 		return (tip(cue, tail)).Position
 	end, function()
 		return torso.Position
@@ -1816,7 +1832,7 @@ function Fox.snare(cue: Cue)
 	end, { width = 0.9, tint = white, wide = ColorSequence.new(WHITE, PALE), core = ColorSequence.new(WHITE, WHITE), lifeScale = 1.4 })
 	task.delay(duration, function()
 		if torso.Parent then
-			play("Hit", CFrame.new(torso.Position), { tint = white })
+			play("Hit", CFrame.new(torso.Position), { tint = white, size = 0.7 })
 		end
 	end)
 end
@@ -1902,6 +1918,7 @@ function Fox.death(cue: Cue)
 	end
 	local main = root(cue)
 	local apex = main.Position + Vector3.new(0, 15, 0)
+	sound("DeathGutter", main.Position)
 	play("Dissolve", main.CFrame, { follow = main, tint = seq, guard = function()
 		return cue.model.Parent ~= nil
 	end })
@@ -1927,8 +1944,8 @@ function Fox.death(cue: Cue)
 	end
 	-- the last stream arrives at 1.6 + STREAM_RISE: the core breaks free there
 	task.delay(1.6 + STREAM_RISE, function()
-		play("SpiritGlint", CFrame.new(apex), { tint = seq })
 		play("SoulRelease", CFrame.new(apex), { tint = seq })
+		sound("SoulRelease", apex)
 		shake(0.3, apex, 120)
 	end)
 end
@@ -2027,6 +2044,7 @@ local function boltStart(shot: any)
 		shot.boltFrom = frame.Position
 		copy.CFrame = CFrame.new(frame.Position)
 		play("TailIgnite", frame, { follow = whip, tint = seq, size = 0.8 })
+		sound("BoltLaunch", frame.Position, 0.05)
 	end
 end
 
@@ -2080,13 +2098,13 @@ local function boltFinish(shot: any, position: Vector3, reason: string)
 	local floor = floorUnder(shot, position, 8)
 	if floor then
 		play("Burst", CFrame.new(floor + Vector3.new(0, 0.05, 0)), { scale = 2.6, tint = seq })
-		Impact.explode(floor, { radius = 3.5, element = "fox", palette = impactPalette(boltPhase(shot)), dust = 0.5, shake = 0.1, reach = 30 })
+		sound("BoltBurst", floor, 0.08)
 	end
 	if not floor and reason ~= "hit" then
 		-- ended in the air (the enemy "hit" cue draws the burst on a player)
 		play("Hit", CFrame.new(position), { tint = seq, size = 0.9 })
+		sound("BoltBurst", position, 0.08)
 	end
-	shake(0.08, position, 30)
 end
 
 do

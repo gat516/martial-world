@@ -422,25 +422,25 @@
     </Item>
     <Item class="Sound" referent="NTFSFX5"><Properties>
      <string name="Name">Attack_intro</string>
-     <Content name="SoundId"><url>rbxassetid://9120788137</url></Content>
-     <float name="Volume">1.2</float>
-     <float name="PlaybackSpeed">0.9</float>
+     <Content name="SoundId"><url>rbxassetid://3748209484</url></Content>
+     <float name="Volume">1.0</float>
+     <float name="PlaybackSpeed">1.9</float>
      <float name="RollOffMaxDistance">250</float>
     </Properties>
     </Item>
     <Item class="Sound" referent="NTFSFX6"><Properties>
      <string name="Name">Attack_mournfulScream</string>
-     <Content name="SoundId"><url>rbxassetid://9120790124</url></Content>
-     <float name="Volume">1.3</float>
-     <float name="PlaybackSpeed">1.6</float>
+     <Content name="SoundId"><url>rbxassetid://5297498542</url></Content>
+     <float name="Volume">1.1</float>
+     <float name="PlaybackSpeed">0.75</float>
      <float name="RollOffMaxDistance">300</float>
     </Properties>
     </Item>
     <Item class="Sound" referent="NTFSFX7"><Properties>
      <string name="Name">Attack_veilBreak</string>
-     <Content name="SoundId"><url>rbxassetid://9120790529</url></Content>
-     <float name="Volume">1.2</float>
-     <float name="PlaybackSpeed">1.2</float>
+     <Content name="SoundId"><url>rbxassetid://5696557721</url></Content>
+     <float name="Volume">1.1</float>
+     <float name="PlaybackSpeed">1.27</float>
      <float name="RollOffMaxDistance">300</float>
     </Properties>
     </Item>
@@ -502,9 +502,9 @@
     </Item>
     <Item class="Sound" referent="NTFSFX15"><Properties>
      <string name="Name">Attack_nineTailFall</string>
-     <Content name="SoundId"><url>rbxassetid://118195482769396</url></Content>
-     <float name="Volume">1.2</float>
-     <float name="PlaybackSpeed">0.8</float>
+     <Content name="SoundId"><url>rbxassetid://74686546597444</url></Content>
+     <float name="Volume">1.1</float>
+     <float name="PlaybackSpeed">1.0</float>
      <float name="RollOffMaxDistance">300</float>
     </Properties>
     </Item>
@@ -522,6 +522,254 @@
      <float name="Volume">1</float>
      <float name="PlaybackSpeed">1.5</float>
      <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX1"><Properties>
+     <string name="Name">Ignite</string>
+     <Content name="SoundId"><url>rbxassetid://1538607239</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX2"><Properties>
+     <string name="Name">Roar</string>
+     <Content name="SoundId"><url>rbxassetid://5727297364</url></Content>
+     <float name="Volume">1.2</float>
+     <float name="PlaybackSpeed">1.25</float>
+     <float name="RollOffMaxDistance">350</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX3"><Properties>
+     <string name="Name">AirBlast</string>
+     <Content name="SoundId"><url>rbxassetid://411274847</url></Content>
+     <float name="Volume">1.0</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX4"><Properties>
+     <string name="Name">Snap</string>
+     <Content name="SoundId"><url>rbxassetid://4958427918</url></Content>
+     <float name="Volume">1.0</float>
+     <float name="PlaybackSpeed">1.3</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX5"><Properties>
+     <string name="Name">Sweep</string>
+     <Content name="SoundId"><url>rbxassetid://3809084884</url></Content>
+     <float name="Volume">1.1</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX6"><Properties>
+     <string name="Name">LanceOut</string>
+     <Content name="SoundId"><url>rbxassetid://118783238636456</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">1.1</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX7"><Properties>
+     <string name="Name">LanceHit</string>
+     <Content name="SoundId"><url>rbxassetid://79436646901611</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">1.15</float>
+     <float name="RollOffMaxDistance">220</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX8"><Properties>
+     <string name="Name">SnareLash</string>
+     <Content name="SoundId"><url>rbxassetid://75422951</url></Content>
+     <float name="Volume">1.0</float>
+     <float name="PlaybackSpeed">1.1</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX9"><Properties>
+     <string name="Name">SnarePull</string>
+     <Content name="SoundId"><url>rbxassetid://116338527674024</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">1.2</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX10"><Properties>
+     <string name="Name">Dash</string>
+     <Content name="SoundId"><url>rbxassetid://3929467229</url></Content>
+     <float name="Volume">1.0</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX11"><Properties>
+     <string name="Name">Skid</string>
+     <Content name="SoundId"><url>rbxassetid://231917806</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">1.1</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX12"><Properties>
+     <string name="Name">BoltLaunch</string>
+     <Content name="SoundId"><url>rbxassetid://96144156475300</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1.1</float>
+     <float name="RollOffMaxDistance">220</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX13"><Properties>
+     <string name="Name">BoltBurst</string>
+     <Content name="SoundId"><url>rbxassetid://3763467590</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">1.1</float>
+     <float name="RollOffMaxDistance">220</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX14"><Properties>
+     <string name="Name">Plunge</string>
+     <Content name="SoundId"><url>rbxassetid://71472197762839</url></Content>
+     <float name="Volume">1.1</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX15"><Properties>
+     <string name="Name">Rumble</string>
+     <Content name="SoundId"><url>rbxassetid://9114221327</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX16"><Properties>
+     <string name="Name">Eruption</string>
+     <Content name="SoundId"><url>rbxassetid://6952411082</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX17"><Properties>
+     <string name="Name">HeartBurst</string>
+     <Content name="SoundId"><url>rbxassetid://331888892</url></Content>
+     <float name="Volume">1.1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX18"><Properties>
+     <string name="Name">LeapOff</string>
+     <Content name="SoundId"><url>rbxassetid://3809085250</url></Content>
+     <float name="Volume">1.0</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX19"><Properties>
+     <string name="Name">TrailIgnite</string>
+     <Content name="SoundId"><url>rbxassetid://8597296318</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX20"><Properties>
+     <string name="Name">Land</string>
+     <Content name="SoundId"><url>rbxassetid://74149238738530</url></Content>
+     <float name="Volume">1.0</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX21"><Properties>
+     <string name="Name">Scream</string>
+     <Content name="SoundId"><url>rbxassetid://3041462242</url></Content>
+     <float name="Volume">1.2</float>
+     <float name="PlaybackSpeed">1.15</float>
+     <float name="RollOffMaxDistance">350</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX22"><Properties>
+     <string name="Name">ScreamShock</string>
+     <Content name="SoundId"><url>rbxassetid://107099176643351</url></Content>
+     <float name="Volume">1.0</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX23"><Properties>
+     <string name="Name">FallPlunge</string>
+     <Content name="SoundId"><url>rbxassetid://120935595628430</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1.2</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX24"><Properties>
+     <string name="Name">FallSlam</string>
+     <Content name="SoundId"><url>rbxassetid://100457174196725</url></Content>
+     <float name="Volume">1.2</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">400</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX25"><Properties>
+     <string name="Name">FallBlast</string>
+     <Content name="SoundId"><url>rbxassetid://122258480286280</url></Content>
+     <float name="Volume">1.1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">400</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX26"><Properties>
+     <string name="Name">VeilBurst</string>
+     <Content name="SoundId"><url>rbxassetid://9116385087</url></Content>
+     <float name="Volume">1.2</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">350</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX27"><Properties>
+     <string name="Name">HitFire</string>
+     <Content name="SoundId"><url>rbxassetid://3763467590</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">1.3</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX28"><Properties>
+     <string name="Name">HitStab</string>
+     <Content name="SoundId"><url>rbxassetid://107563238507399</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX29"><Properties>
+     <string name="Name">HitHeavy</string>
+     <Content name="SoundId"><url>rbxassetid://6947964914</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX30"><Properties>
+     <string name="Name">DeathGutter</string>
+     <Content name="SoundId"><url>rbxassetid://9116407532</url></Content>
+     <float name="Volume">1.0</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="NTFFX31"><Properties>
+     <string name="Name">SoulRelease</string>
+     <Content name="SoundId"><url>rbxassetid://131722051883127</url></Content>
+     <float name="Volume">1.0</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">350</float>
     </Properties>
     </Item>
    </Item>

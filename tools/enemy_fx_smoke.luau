@@ -11,7 +11,8 @@
 --     GoldenToad = { mod = "GoldenToad", hooks = { "Mouth", "TongueTip" },
 --       cues = { { "windup", "tongueLash" }, { "hit", "tongueLash" }, { "snare" }, { "death" } } },
 --   })
--- A cue is { name, attack?, seconds?, state? }. Handlers run with a dummy target
+-- A cue is { name, attack?, seconds?, state?, shape = ? } (shape overrides the
+-- default, e.g. a boss barrage's parts built like the server's). Handlers run with a dummy target
 -- character 14 studs ahead and a shape.center 18 studs ahead.
 -- `stateful = true` on a body's plan (for handlers that guard on the model's
 -- state, like the bosses'): before each cue the model gets Attack = attack,
@@ -69,7 +70,7 @@ function _G.enemyFxSmoke(plan)
 			end
 			local cue = {
 				model = m, root = root, kind = p.mod, attack = c[2], seconds = c[3],
-				shape = { center = Vector3.new(400, FLOOR, -18), radius = 5 },
+				shape = c.shape or { center = Vector3.new(400, FLOOR, -18), radius = 5 },
 				target = target, at = at,
 			}
 			local fn = handlers[c[1]]

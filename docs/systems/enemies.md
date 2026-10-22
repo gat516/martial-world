@@ -847,8 +847,14 @@ New server mechanics (all in `EnemyService`, defs in `Enemies.luau`):
   player gets `enemyCue "snare"` with their Character.
 - Cut for now (later add-ons): snapBite, tailWhirl, crossLash, wispRain, phantomStep (blink),
   mirrorVeil (illusion clones).
-Sounds: `SFX.Enemies.NineTailFox` reuses the wolf, swing, fire-seal and thunder clips
-(pitched), picked by id only, unlistened: replace them with fox sounds.
+Sounds: `SFX.Enemies.NineTailFox`. The voices (Aggro, Attack, Death, Hurt and most
+`Attack_<name>`, played by `EnemySounds` at the windup's start) still reuse the wolf, swing,
+fire-seal and thunder clips. Four windup voices were swapped in the effects pass (2026-10-22)
+because their old clip was the release's cry, heard 1.4-2.2 s early: `Attack_intro` a rising
+fire charge (3748209484), `Attack_mournfulScream` an inhale (5297498542), `Attack_veilBreak` a
+magic charge (5696557721), `Attack_nineTailFall` a soul-beam charge (74686546597444), each pitched
+to end on its release. The effect sounds are played by `EnemyFX/NineTailFox` on their beat (table
+below).
 Untested: everything (feel, lane reach against the animated tails, the pull on a client-owned
 character, the volley's lane gaps, boss HP, phone load of nine tails).
 **Foxfire volley = projectiles** (testbed): the windup keeps the barrage's lane warnings (the lanes the
@@ -869,66 +875,74 @@ slides). The barrage parts are not sent to clients, so the poses time their tail
 `DEFAULT_PARTS`; if a timing ever differs, send them (a `Parts` attribute). `retreat` attacks (Moon
 Leap) take their flight length from `active` like leaps and bounds, and the server's 8-stud `DashArc`
 lifts the root so the flipping tails clear the floor.
-Effects: `Effects.NineTailFox` (38 templates, 183 authored emitters plus the Ribbon and Bolt trails
-and the Thread/Lane beams; builder `tools/vfx_specs/NineTailFox.luau`, installs `_G.buildNineTailFoxFX`),
-played by `EnemyFX/NineTailFox.luau` (gated to `NineTailFoxB`; found by `EnemyType`, no registry).
+Effects: `Effects.NineTailFox` (37 templates, 110 authored emitters, 20 mesh waves, Ribbon/Bolt
+trails and Thread/Whip beams; builder `tools/vfx_specs/NineTailFox.luau`, installs
+`_G.buildNineTailFoxFX`), played by `EnemyFX/NineTailFox.luau` (gated to `NineTailFoxB`; found by
+`EnemyType`, no registry). **Rebuilt 2026-10-22 with the intent-first method**
+(`.claude/agents/vfx.md`): the first pass was technically fine but random (layers added because
+they looked cool, everything on one frame, ground sigils and lane lines redrawing the telegraph,
+the shared Impact kit stacked on every eruption). Now every layer is caused by the move, starts
+staggered 20-150 ms behind its cause (EmitDelay in the templates), each beat has one hero on a
+slate twin of its own shape, and each impact is its own stack. The spec header holds the ms beat
+sheet for every cue; the assets were searched fresh in the library from what each move causes
+(air, dust, debris, light, fire), 36 ids of which 20 are new to the game (9 flipbooks, 8 meshes).
 Look: foxfire azure with a white-hot core (P1), violet (P2), white-hot with a crimson edge (P3),
-re-tinted per cue from the model's `Phase`; every bright shape sits on a slate copy of its own shape
-(never a filled disc); lances and tail strikes white-gold (never tinted), scream pale blue-white.
-Flames are the library's white flame flipbook (4x4), the intro's the spirit-flame flipbook (2x2),
-sparkles a star-twinkle flipbook. **No copies of the fox's body** (user, 2026-10-21: the Neon ghost
-heads, afterimages and death ghost looked bad), and no stock howl disc (`d1f8780`): every beat is
-carried by the fox's own emitters, ribbons and beams.
-Layers: aura = low flipbook tongues on each tail tip (lit tails burn brighter: 3 / 6 / 9 by phase),
-ground mist and rising twinkles round the paws (no dark disc under the fox); `Tell` parts dim then
-brighten through each windup and are recoloured per phase. Per cue:
-- `intro`: `Sigil` (r 10), `Kindle` (spirit flames, twinkles and streaks climbing out of the ground
-  round it, r 7, held for the windup), nine `TailIgnite` in turn; release `RoarWave` on the ground
-  and `RoarBreath` from the Mouth (sound rings on slate twins, wisp strokes, streaks, breath mist).
-- `fangDance` `Breath` then `FangSnap` per cone.
-- `tailSweep`: tips 2/5/8 charge and glow; on the strike each of those tails draws a white-gold
-  ribbon (1.6 wide, the fur brush) from its own live `TailTip_FX` as the pose swings it; `Dust` at
-  the arc's ends.
-- `tailLance` / `lanceFan`: `TipCharge` + `Lane` line; at part time minus `ext` the tail ignites and
-  a thin lance beam (`Thread`, 0.7 width scale) leaves the live tip and runs down to the lane's far
-  end, held 0.18 s, led by a 0.9-wide ribbon head; `LanceHit` at the far end. The tails lance from
-  12-18 studs up, so the lance is a diagonal from the real flame to the ground.
-- `tailSnare` white thread along the lane; `enemyCue "snare"` a coil ribbon round the torso tethered
-  to the tip. `rendingPounce` `Gather`, a 2.4-wide white-gold dash ribbon, `Dust`, skid.
-- `foxfireVolley`: tips flare outside-in through the windup; the bolts are real projectiles (cue
-  `foxfireBolt`), drawn by the `ProjectileView` drawer registered at the bottom of the handler: the
-  `Bolt` template (white-hot core over a slate halo, phase glow, turning star, flipbook flames,
-  twinkles, a comet tail of slate / phase / white trails 1.7 wide) leaves `TailTip{data.tail}_FX`
-  and eases onto the server path over 0.15 s; its `Shadow` (a 3-stud ink spot and faint ring) rides
-  the ground under it. Finish: `Burst` on the ground (air `Hit` if it ended in the air and not on
-  a player; the enemy `hit` cue draws player hits). The barrage lanes are the warning; the
-  handler draws none of its own and no client-timed bolts.
-- `rootfireEruption` `PlungeImpact` at the five tips at 60% of the windup, vein ribbons to the
-  circles, `Eruption` per circle (heart bigger), `StuckGlow` on the buried tips for 0.85 s.
-- `moonLeap`: `Gather` at the hind paws, a 3-wide moon ribbon on the chest, `FireStrip` segments
-  along `shape.trail` (lit fissures and flipbook flames on a slate scorch; identical boxes merged,
-  flares at each part's `delay`); `land` plays `Landing` (a crescent moon printed on the ground on
-  its slate twin, flipbook tongues, rings, dust, petals, flash) with no disc under it.
-- `mournfulScream` `ScreamTell` + `TailFlare`; release `ScreamWave` to the shape radius,
-  `RoarBreath` (pale, 1.5x), `StunSting` on the local character inside it.
-- `nineTailFall` `TailPillar` per tail, `FallSigil` per circle (the mandala on its ink twin, rings
-  closing in to the centre as the countdown, an edge ring; no filled disc), `PlungeImpact` then
-  `Eruption`, `FallBurst` under the fox.
-- `veilBreak`: `Gather` + `Sigil`; release `PhaseBurst`, `Sigil`, `SpiritGlint` on the Core,
-  `RoarBreath`, three foxfire ribbons (five in phase 3) spiralling up round the fox to 19 studs
-  where `SpiritGlint` + `SoulRelease` burst, colour crossfade and re-ignite for the new phase.
-- death: the flames gutter 1..9 (0.2 s apart); each guttering tail sends a foxfire stream ribbon
-  curling up to a point 15 studs over the fox (1.1 s); `Dissolve` burns the body away meanwhile
-  (flipbook flames, motes, wisps and twinkles out of a box over the body, 2.6 s); when the last
-  stream arrives, `SpiritGlint` + `SoulRelease` (ring on its slate twin, petals and twinkles drifting
-  down) at that point.
-All sizes, lengths and centres come from the cue's shape; cues past 220 studs are skipped.
-Captured in a sandbox with the real pose module driving the tails (fake cues): intro, lance, sweep,
-volley bolts, veil break, nine-tail fall at night, death. Edit-mode trails render as straight chords
-(low frame rate), so the ribbons' curves are only seen in play.
-Untested: the look and feel at play speed (the user reviews), the Game Module playback of the
-templates, the bolt drawer against the live server path, phone load of `nineTailFall` (about 60
-emitters live for its 2 s) and of the death (Dissolve about 100 particles).
+re-tinted per cue from the model's `Phase` (Neon mesh waves take the edge colour); lances and tail
+strikes white-gold, the scream pale. **No copies of the fox's body** (user, 2026-10-21), no stock
+howl disc, no ground sigils (telegraphs.md: the telegraph alone says where).
+Cut in this pass, and why: the intro's ground `Sigil` and `Kindle` (nothing in the ground lit), the
+lit `Lane` line along lance boxes and the `FallSigil` on each Nine-Tail Fall circle (the telegraph's
+job), the moon printed on the leap's landing (a landing is weight: dust and a shock), the phase
+break's second peak over the fox and its forward roar, the forward roar on the scream (a scream
+radiates), the TailIgnite flares on the sweep's strike (same frame as the ribbons), the shared
+`Impact` kit calls (they doubled every impact), and shakes on the small beats (bites, lance hits,
+bolt bursts).
+
+| Cue | Intent (what happens / feel / job) | Hero | Other layers (start) | Sound (beat) |
+|---|---|---|---|---|
+| `intro` | nine flames catch one by one, breath drawn in, then a howl blasts air and sound out of the jaws / dread / arrival | `RoarBreath`: a spiked air front (mesh `blastBowl`) opening forward from the Mouth | `TailIgnite` x9 (250-2000 ms), `RoarTell` inhale (last 600), release: flash +0, sound rings on slate +50/+140, speed lines +30, breath mist +80, `RoarWave` dust off the ground under the head +80; shake | `Ignite` per tail (rising pitch), `Roar` + `AirBlast` at release |
+| `fangDance` | three snapping bites of foxfire jaws / threat / melee hit confirm | `FangSnap` reach crescent flying ~12 studs down the cone, on its slate twin | `Breath` licks in the jaws (windup), jaws closing +0, flash +0, embers +50 | `Snap` per bite |
+| `tailSweep` | three burning tails swing through 200 deg / weight / wide melee | white-gold ribbons riding the live tips 2/5/8 | `TipCharge` + `TailGlow` (windup), `Dust` at the arc's ends +140/+280; light shake | `Sweep` at the strike |
+| `tailLance` / `lanceFan` | a tail spears down a lane into the earth / precision / lane hit | the lance beam (`Thread`) leaving the live tip, led by a ribbon head | `TipCharge`, `TailIgnite` at launch; `LanceHit` at the hit: star +0, earth splash on slate +20, chips +30, scar +50, dust +60 | `LanceOut` at launch, `LanceHit` at the hit |
+| `tailSnare` / `snare` | a tail lashes out like a whip, then coils and yanks / danger / pull | the wavy `Whip` beam, then the coil ribbon round the torso | `TipCharge`, tether `Whip` shrinking, small flash on arrival | `SnareLash` at the lash, `SnarePull` on the pull |
+| `rendingPounce` | the fox crouches, springs and rakes through / speed / dash hit | the white-gold dash ribbon on the chest | `Dust` at the hind paws at 40% of the windup, take-off dust, skid dust +0/+100 on landing | `Dash` at take-off, `Skid` on landing |
+| `foxfireVolley` | tails flare and throw balls of foxfire / dodge / projectiles | `Bolt`: a turning striped orb on a slate halo (white core, flame tongues, comet trail, ground shadow) | `TipCharge` outside in; `Burst` on landing: flash and burst on slate +0, shock ring +30, tongues +40, scar +60, smoke +120 | `BoltLaunch` per bolt, `BoltBurst` per landing (gap-limited) |
+| `rootfireEruption` | five tails drive into the earth, fire runs underground and erupts / dread / area denial | `Eruption`: flame spikes rising out of the ground (mesh `spikes`) on a slate twin | `TailGlow` to 60%, `PlungeImpact` at the tips (star, splash crown on slate, chips, scar held while buried, dust), fissure ribbons to the circles, `StuckGlow`; the heart adds `Burst` + shake | `Plunge` + `Rumble` at the plunge, `Eruption` per circle, `HeartBurst` at the heart |
+| `moonLeap` | a backflip away, burning tails scorching a trail, a heavy landing / evasion / zone | the moon-crescent streak on the chest in flight | `Dust` at the hind paws, `FireStrip` along the trail (flares on each tick), `Landing`: flash, shock ring, dust ring, kick, tongues | `LeapOff`, `TrailIgnite` at take-off, `Land` |
+| `mournfulScream` | breath drawn in, then a scream radiating all round / dread / stun | `ScreamWave`: torn sound rings racing out at head height to the shape radius, on a slate twin | `ScreamTell` inhale, `TailFlare` on lit tails (windup); speed lines +20, spiky ground shock +40, dust +100, second ring +120; `StunSting` stars on the local stunned player | `Attack_mournfulScream` inhale at the windup, `Scream` + `ScreamShock` at release |
+| `nineTailFall` | each tail rises and swells, then all nine slam down in a spiral and the last one under the fox / climax / P3 ultimate | `FallBurst`: a 40-stud burst and shock ring on slate twins | `TailRise` per tail, per circle `PlungeImpact` then `Eruption` +70; final flame spikes +30, chips +40, column +50, scar +60, dust ring +80, smoke +200; heavy shake | `FallPlunge` per plunge, `FallSlam` + `FallBlast` at the final |
+| `veilBreak` | foxfire drawn into the chest tears the fox's veil off / power shift / phase step | `PhaseBurst`: a swirled veil shell bursting off the chest (in the old phase's colour) on a slate twin | `Gather` (wisps in, core on slate, orb forming in the last 500), release on the frame: streaks +20, `PhaseRing` shock +60 and dust +90; follow-through: veil shreds spiral up and fade, the new phase's tails re-ignite 80 ms apart; shake | `Attack_veilBreak` charge at the windup, `VeilBurst` at release |
+| `hit` | the blow lands on the player / hit confirm | `Hit` flame burst, or `HitHeavy` rend crescent on slate | contact star +0, embers +30 | `HitStab` (lances), `HitHeavy` (sweep, pounce), `HitFire` (foxfire) |
+| `stagger` | the fox's qi is knocked loose / punish window | `SpiritGlint` on the Core | embers +30 | `Hurt` (EnemySounds) |
+| `death` | the flames gutter tail by tail into streams that meet over the fox as the body burns away / release / reward | `SoulRelease` (spirit swirl bloom) where the streams meet at 2.7 s | gutter puffs 0.2 s apart, `Dissolve` (flames, ash, motes) over the body, glint, ring, twinkles drifting down | `DeathGutter` at the death, `SoulRelease` at the peak |
+
+Sound ids (library names; `PlaybackSpeed` in `SFX.rbxmx`): Ignite 1538607239 "Fire (62)", Roar
+5727297364 "DragonRoar", AirBlast 411274847 "Air Blast", Snap 4958427918 "SlashTempo", Sweep
+3809084884 "WindWoosh", LanceOut 118783238636456 "Stab Wind", LanceHit 79436646901611 "Ground
+Impact", SnareLash 75422951 "FireSlash", SnarePull 116338527674024 "Magic Wind Cut", Dash 3929467229
+"Dash", Skid 231917806 "Stomp", BoltLaunch 96144156475300 "Magic Bullet Fire", BoltBurst and HitFire
+3763467590 "FireHit", Plunge 71472197762839 "Earth Slam", Rumble 9114221327 "Earthquake Debris",
+Eruption 6952411082 "Fire Pillar", HeartBurst 331888892 "FireExplosion", LeapOff 3809085250
+"WindWoosh (2)", TrailIgnite 8597296318 "Fire (66)", Land 74149238738530 "Ground Impact (2)", Scream
+3041462242 "Scream", ScreamShock 107099176643351 "Shockwave Impact", FallPlunge 120935595628430
+"Ground Impact (3)", FallSlam 100457174196725 "Heavy Ground Slam", FallBlast 122258480286280 "big
+magic explosion", VeilBurst 9116385087 "Magic Burst 5", HitStab 107563238507399 "Lance Stab",
+HitHeavy 6947964914 "Hit (16)", DeathGutter 9116407532 "Magic Rumbling Decay 1", SoulRelease
+131722051883127 "Magic crystal sparkle 2". All load in Studio; picked by name and length, not
+listened to, and other creators' uploads may be silent in-game.
+Aura (unchanged): low flipbook tongues on each tail tip (lit tails burn brighter: 3 / 6 / 9 by
+phase), ground mist and rising twinkles round the paws; `Tell` parts dim then brighten through each
+windup and are recoloured per phase. All sizes, lengths and centres come from the cue's shape; cues
+past 220 studs are skipped.
+Checked: every cue fired against the real body in a sandbox (no errors, hooks present, spawns
+counted; `tools/enemy_fx_smoke.luau` with server-like barrage shapes), frozen captures of the intro
+howl, a bite, the lance hit, the eruption ring, the scream, the final fall, the veil break, the
+death peak and a bolt in flight and bursting (static pose, so the tails do not move).
+Untested: the look and feel at play speed with the animated tails (the user reviews; beams and
+trails cannot be frozen in Edit mode, so the lance, whip and ribbons were only checked as
+templates), every sound in-game (permissions, loudness, fit), the Game Module playback of the
+templates, phone load of `nineTailFall` (nine eruptions and the final, about 55 emitters live for
+2 s) and the death.
 
 ### Thunder Ape (testbed trial)
 A 30-stud storm boss for Foundation 1 (`Config.Wilds.NEW_THUNDER_APE = TESTBED`; flip it to ship).

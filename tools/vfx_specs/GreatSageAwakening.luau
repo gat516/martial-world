@@ -14,6 +14,13 @@
 -- The motif: the Great Sage (the Monkey King) wakes: his golden circlet,
 -- golden flame, the somersault cloud, fiery golden eyes.
 --
+-- Remade 2026-10-21 on the staff and the Hit window: the twirl's trails ride the
+-- staff's real ends (its `butt` and `Tip`/head attachments; the old Base was a
+-- hand's width from the head, not the far end), a `Charge` runs along the whole
+-- staff while it spins, the slam gets the shared flare (cross glint, star-burst
+-- flipbook over ink, sparks) where the end bites, and every impact is squeezed
+-- into Hit 1.15 -> Hit Stop 1.25.
+--
 -- THE SHOT, tier by tier
 --
 -- I (levels 1-3), "the circlet"
@@ -342,8 +349,11 @@ local spec = {
 	blocks = blocks,
 	beats = {
 		{ block = "handGather", params = pal({ windup = WINDUP, at = HAND_AT, wisps = false }) },
+		-- gold motes and a dark-under-gold beam along the whole staff (butt -> head) while it spins
+		{ block = "bladeCharge", params = { color = GOLD, core = CORE, ink = Color3.fromRGB(58, 32, 14), width = 0.55, full = true } },
 		{ block = "twirl" },
 		{ block = "slam" },
+		{ block = "bladeFlare", params = { part = "Slam", color = GOLD, core = CORE, ink = Color3.fromRGB(58, 32, 14) } },
 		{ block = "groundShockwave", params = pal({ radius = RADIUS, lifetime = 0.3 }) },
 		{ block = "awaken" },
 		{ block = "impactStack", params = { burst = pal(), wave = pal() } },

@@ -415,7 +415,18 @@ checks a rebuild against the previous templates.
   Craters rock ring, impact bubbles and kicks, and two glowing golden eyes;
   IV a second torus, a taller pillar with a spike crown, an Explosion quake,
   a turning halo behind the back and the move's one light (flashed at the
-  strike, then a soft gold glow for the buff).
+  strike, then a soft gold glow for the buff). Remade 2026-10-21 on the staff
+  and the Hit window: the twirl's trails and the buff's arcs now ride the
+  staff's real ends (the model's `butt` and `Tip`; `Base` is only the grip side
+  of the head, so the old trail started a hand's width from the head), a
+  `Charge` (a dark beam under a gold one, motes along the whole staff,
+  `WeaponFX.charge` full) runs along it while it spins, the slam gets the
+  shared flare (cross glint, star-burst flipbook over ink, sparks) where the
+  end bites, and every impact is squeezed into Hit 1.15 -> Hit Stop 1.25
+  (`WeaponFX.landing`; a sandbox run with a staff landed them 0.04-0.05 s after
+  the release). The `windup` hook now exists in `CombatEffects.windup`, so the
+  twirl plays. Layers T1 / T4: charge 8 / 8, twirl 3 / 4, slam 12 / 17, ground
+  4 / 10, impact 8 / 14.
 - 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
   or without the Game Module: a Model with `MeshWave = true` and a child
   `Mesh` part (Transparency 1 in the template), tweened at emit time relative
@@ -518,10 +529,10 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   the seal to land (~0.24 s after the first damage tick).
 - An interrupted enemy windup's telegraph still plays out on clients.
 - Great Sage Awakening's twirl (`TechniqueFX.GreatSageAwakening.windup`: the
-  staff trails, ground seal and rising streaks) only plays once
-  `CombatEffects.windup` hands off to a technique module's `windup`, which it
-  doesn't yet (it plays the template's `Windup` hand gather), and observers
-  only get the cast at the first hit, so they never see the twirl. The buff
+  staff trails, ground seal and rising streaks) plays on the caster only
+  (`CombatEffects.windup` hands off to a technique module's `windup`), and
+  observers only get the cast at the first hit, so they never see the twirl,
+  and neither do they see any weapon technique's `Charge`. The buff
   aura runs `def.seconds` from the cast on each client (it stops early only if
   the caster dies or leaves), not from a server buff start/end signal.
 - `Dodge` and `Cast` remotes in `assets/Remotes.rbxmx` are unused.

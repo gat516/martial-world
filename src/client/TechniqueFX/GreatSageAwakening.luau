@@ -26,6 +26,7 @@ local TweenService = game:GetService("TweenService")
 local Client = script.Parent.Parent
 local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
+local WeaponFX = require(script.Parent.WeaponFX)
 
 local GreatSageAwakening = {}
 
@@ -85,6 +86,8 @@ local function weaponEnds(character: Model?): (Attachment?, Attachment?)
 		if d:IsA("Attachment") then
 			if d.Name == "Tip" and not tip then
 				tip = d
+			elseif d.Name == "butt" then
+				base = d -- the staff's far end (Base is only the grip side of the head)
 			elseif d.Name == "Base" and not base then
 				base = d
 			end
@@ -155,6 +158,8 @@ function GreatSageAwakening.windup(CombatEffects: any, def: any, level: number, 
 		return false
 	end
 	local seconds = GreatSageAwakening.windupSeconds(def)
+	-- motes and a dark-under-gold beam along the whole staff while it spins
+	WeaponFX.charge(character, template:FindFirstChild("Charge"), seconds, true)
 	local feet = CastFX.groundAt(root.Position)
 	local look = Vector3.new(root.CFrame.LookVector.X, 0, root.CFrame.LookVector.Z)
 	look = if look.Magnitude > 0.1 then look.Unit else Vector3.new(0, 0, -1)
@@ -407,8 +412,10 @@ function GreatSageAwakening.cast(CombatEffects: any, def: any, level: number, ch
 	if impact then
 		local targets = CastFX.targets({ kind = "circle", origin = origin, dir = dir, radius = radius, character = character })
 		for _, target in targets do
-			local delay = if front and front:IsA("ParticleEmitter") then CastFX.frontTime(front, target.progress) else 0.1 * target.progress
-			task.delay(delay, function()
+			local arrival = if front and front:IsA("ParticleEmitter") then CastFX.frontTime(front, target.progress) else 0.1 * target.progress
+			local travel = if front and front:IsA("ParticleEmitter") then front.Lifetime.Max else 0.1
+			-- squeezed into the strike's Hit -> Hit Stop (the damage number shows at Hit)
+			task.delay(WeaponFX.landing(arrival, travel, WeaponFX.hitWindow(def, 1)), function()
 				CastFX.impactAt(impact, target, { Kick = 3, Quake = 1 })
 				if target.model.Parent then
 					CombatEffects.flash(target.model)

@@ -154,20 +154,40 @@ rebounds.
 
 ### Guandao
 
-Hold: haft crosswise in front of the chest, blade end high on the right (about
-4 studs out, head height), butt low left, the crescent's flat to the front;
-the off hand slides along the haft to where it can reach. Parry: the blade end
-winds back (0.035 s), then the upper haft and blade heel sweep the blow out to
-the right with the torso turning right. ParryAlt: the butt end sweeps forward
-and out to the left, torso turning left. Impact: the haft is driven back toward
-the chest, the body rocks back and rebounds.
+Held sideways like a bar (reworked after the first playtest): the haft level
+across the front of the chest about 1.5 studs out, both fists on it about
+shoulder width apart (rigid R6 arms put a chest-height bar there with the arms
+straight forward), blade end out to the right, butt to the left, the
+crescent's flat to the front. Parry: the bar draws in (0.035 s), then the haft
+and blade heel sweep the blow out to the right, the blade end swinging forward,
+torso turning right. ParryAlt: the bar turns left with the body and the butt
+end sweeps up and out to the left while the blade end dips on the right.
+Impact: the bar is driven down and back toward the chest, the body rocks back
+and rebounds.
 
 | Clip | Id |
 |---|---|
-| GuandaoGuardHold | rbxassetid://94910534495435 |
-| GuandaoGuardParry | rbxassetid://117756534049087 |
-| GuandaoGuardParryAlt | rbxassetid://118221648664022 |
-| GuandaoGuardImpact | rbxassetid://123203381343876 |
+| GuandaoGuardHold | rbxassetid://138346742671760 |
+| GuandaoGuardParry | rbxassetid://100712668642187 |
+| GuandaoGuardParryAlt | rbxassetid://138151619877898 |
+| GuandaoGuardImpact | rbxassetid://115904372977904 |
+
+Replaced (first, diagonal-haft version): 94910534495435, 117756534049087,
+118221648664022, 123203381343876.
+
+Verified on a real R6 player character in sandbox Play sessions: the weapon
+equipped through `WeaponAction("equip")` (server `Weapons.apply`, the real
+`WeaponModels`; for the reworked Guandao a line-for-line copy of
+`Weapons.apply` run on the server, as a Studio control lock kept the weapon
+stowed), the clips loaded from `Animations.Guard.<Class>` on the
+Humanoid's Animator, frozen at each clip's key time. The weapon's `Hilt`/`HiltR`
+Motor6D takes the clip's Transform and the tip lands within 0.07 stud of the
+authored torso-space pose in all eight clips, with the grip on the fist; it
+also follows a held weapon swapped mid-track, and the guard raised through
+GuardController's own right-click binding drove the Guandao. A weapon that hangs
+at rest under a posed guard means the generic `Animations.Guard` clips are
+playing (they don't key the weapon): a place not yet synced to the per-class
+GuardController, a stowed weapon (Fist), or Spear/Staff (no clips yet).
 
 Checked numerically (every key plus in-betweens at quarter steps): the grip
 anchor stays on the fist (Guandao under 0.001 stud; Greatsword up to 0.13 in
@@ -177,7 +197,7 @@ box beyond 0.13 (the Greatsword pommel brushing the hip in the beats), arms
 sink into the torso about as much as the generic guard's (0.2-0.3, the R6
 shoulder overlap), the Greatsword brace fist touches the flat (under 0.07 into
 the blade, up to 0.2 against a 1.3-stud head box at the cheek), the Guandao off
-hand stays within 0.27 of the haft axis (it lets go for 0.05 s while the
+hand stays within 0.2 of the haft axis (it lets go for 0.05 s while the
 Greatsword left hand moves to the grip), every weapon point stays above the
 floor, and each clip plays through an Animator with every keyed Transform
 arriving. Untested: the look (user review), feel in play, blending with the

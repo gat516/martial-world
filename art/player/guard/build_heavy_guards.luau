@@ -319,90 +319,96 @@ GS.rebound = {
 	off = { seg = GS_FLAT.seg, pref = 0.3 },
 }
 
--- Guandao: haft crosswise in front of the chest, blade end high on the right, butt low
--- left, the crescent's flat to the front (edge up) so it reads face-on; the off hand slides on the haft below the grip.
-local GD_HAFT = { seg = { V(0, 0, 2.9), V(0, 0, 5.1) }, pref = 0.4, face = V(0, 0, -1) }
+-- Guandao: held sideways like a bar, the haft level across the front of the chest with
+-- both fists on it about shoulder width apart, blade end out to the right, butt to the
+-- left, the crescent's flat to the front (edge up) so it reads face-on. R6 arms are rigid,
+-- so a bar at chest height sits about 1.5 studs out with the arms straight forward.
+local GD_HAFT = { seg = { V(0, 0, 2.9), V(0, 0, 5.1) }, pref = 0.15, face = V(0, 0, -1) }
+local GD_UP = V(0, -1, 0.35)
 local GD = {}
 GD.hold = {
-	torso = { pitch = 0.08, yaw = 0.1 },
-	head = { pitch = 0.1, yaw = -0.1 },
-	grip = V(0.85, 0.6, -1.4),
-	point = V(0.85, 0.45, -0.2),
-	up = V(0, -1, 0.35),
+	torso = { pitch = 0.08, yaw = 0.0 },
+	head = { pitch = 0.08, yaw = 0.0 },
+	grip = V(0.7, 0.45, -1.5),
+	point = V(1, 0.04, -0.04),
+	up = GD_UP,
 	off = GD_HAFT,
 }
 GD.inhale = {
-	torso = { pitch = 0.05, yaw = 0.1 },
-	head = { pitch = 0.08, yaw = -0.1 },
-	grip = V(0.85, 0.68, -1.4),
-	point = V(0.85, 0.5, -0.2),
-	up = V(0, -1, 0.35),
+	torso = { pitch = 0.05, yaw = 0.0 },
+	head = { pitch = 0.06, yaw = 0.0 },
+	grip = V(0.7, 0.55, -1.48),
+	point = V(1, 0.05, -0.04),
+	up = GD_UP,
 	off = GD_HAFT,
 }
--- parry right: the upper haft and blade heel sweep the blow out to the right
+-- parry right: the bar draws in to the left, then the haft and blade heel sweep the blow
+-- out to the right, the blade end swinging forward
 GD.cockR = {
-	torso = { pitch = 0.1, yaw = 0.24 },
-	head = { pitch = 0.1, yaw = -0.16 },
-	grip = V(0.75, 0.5, -0.95),
-	point = V(0.85, 0.55, 0.05),
-	up = V(0, -1, 0.35),
+	torso = { pitch = 0.1, yaw = 0.2 },
+	head = { pitch = 0.08, yaw = -0.12 },
+	grip = V(0.6, 0.4, -1.45),
+	point = V(1, 0.0, 0.1),
+	up = GD_UP,
 	off = GD_HAFT,
 }
 GD.sweepR = {
-	torso = { pitch = 0.12, yaw = -0.34 },
-	head = { pitch = 0.06, yaw = 0.14 },
-	grip = V(1.05, 0.55, -1.5),
-	point = V(0.9, 0.55, -0.35),
-	up = V(0.3, -1, 0.4),
-	off = { seg = GD_HAFT.seg, pref = 0.3 },
+	torso = { pitch = 0.12, yaw = -0.36 },
+	head = { pitch = 0.06, yaw = 0.16 },
+	grip = V(0.95, 0.5, -1.5),
+	point = V(1, 0.2, -0.38),
+	up = GD_UP,
+	off = GD_HAFT,
 }
 GD.followR = {
-	torso = { pitch = 0.13, yaw = -0.4 },
-	head = { pitch = 0.06, yaw = 0.18 },
-	grip = V(1.15, 0.5, -1.45),
-	point = V(0.9, 0.5, -0.3),
-	up = V(0.3, -1, 0.4),
-	off = { seg = GD_HAFT.seg, pref = 0.3 },
+	torso = { pitch = 0.13, yaw = -0.42 },
+	head = { pitch = 0.06, yaw = 0.2 },
+	grip = V(1.05, 0.5, -1.45),
+	point = V(1, 0.25, -0.45),
+	up = GD_UP,
+	off = GD_HAFT,
 }
--- parry left: the butt end sweeps forward and out to the left
+-- parry left: the blade end draws back, then the bar turns left with the body and the butt
+-- end sweeps up and out to the left (the blade end dips on the right)
 GD.cockL = {
-	torso = { pitch = 0.1, yaw = -0.08 },
-	head = { pitch = 0.1, yaw = -0.04 },
-	grip = V(0.95, 0.6, -1.35),
-	point = V(0.85, 0.35, -0.35),
-	up = V(0, -1, 0.35),
+	torso = { pitch = 0.1, yaw = -0.12 },
+	head = { pitch = 0.08, yaw = 0.06 },
+	grip = V(0.75, 0.45, -1.45),
+	point = V(1, 0.0, -0.2),
+	up = GD_UP,
 	off = GD_HAFT,
 }
 GD.sweepL = {
-	torso = { pitch = 0.12, yaw = 0.42 },
-	head = { pitch = 0.06, yaw = -0.3 },
-	grip = V(0.6, 0.5, -0.7),
-	point = V(0.95, 0.3, 0.25),
-	up = V(0, -1, 0.45),
-	off = { seg = GD_HAFT.seg, pref = 0.6, face = V(-1, 0, -1).Unit },
+	torso = { pitch = 0.12, yaw = 0.4 },
+	head = { pitch = 0.06, yaw = -0.28 },
+	grip = V(0.65, 0.35, -1.5),
+	point = V(1, -0.35, 0.12),
+	up = GD_UP,
+	off = { seg = GD_HAFT.seg, pref = 0.15, face = V(-1, 0, -1).Unit },
 }
 GD.followL = {
-	torso = { pitch = 0.13, yaw = 0.48 },
-	head = { pitch = 0.06, yaw = -0.34 },
-	grip = V(0.55, 0.45, -0.65),
-	point = V(0.95, 0.3, 0.35),
-	up = V(0, -1, 0.45),
-	off = { seg = GD_HAFT.seg, pref = 0.6, face = V(-1, 0, -1).Unit },
+	torso = { pitch = 0.13, yaw = 0.46 },
+	head = { pitch = 0.06, yaw = -0.32 },
+	grip = V(0.65, 0.3, -1.5),
+	point = V(1, -0.45, 0.15),
+	up = GD_UP,
+	off = { seg = GD_HAFT.seg, pref = 0.15, face = V(-1, 0, -1).Unit },
 }
+-- impact: the bar is driven down and back toward the chest, the body rocks back
 GD.shove = {
-	torso = { pitch = -0.08, yaw = 0.12 },
-	head = { pitch = 0.2, yaw = -0.1 },
-	grip = V(0.85, 0.45, -0.9),
-	point = V(0.85, 0.5, -0.1),
-	up = V(0, -1, 0.35),
+	torso = { pitch = -0.1, yaw = 0.0 },
+	head = { pitch = 0.18, yaw = 0.0 },
+	grip = V(0.7, -0.15, -1.35),
+	point = V(1, 0.02, 0.0),
+	up = GD_UP,
 	off = GD_HAFT,
 }
 GD.rebound = {
-	torso = { pitch = 0.12, yaw = 0.1 },
-	head = { pitch = 0.12, yaw = -0.1 },
-	grip = V(0.85, 0.6, -1.45),
-	point = V(0.85, 0.42, -0.25),
-	up = V(0, -1, 0.35),
+	torso = { pitch = 0.11, yaw = 0.0 },
+	head = { pitch = 0.1, yaw = 0.0 },
+	grip = V(0.7, 0.5, -1.52),
+	point = V(1, 0.04, -0.06),
+	up = GD_UP,
 	off = GD_HAFT,
 }
 

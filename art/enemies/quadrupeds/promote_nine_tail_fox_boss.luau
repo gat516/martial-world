@@ -9,9 +9,13 @@ local ServerStorage = game:GetService("ServerStorage")
 local source = assert(ServerStorage._RosterQuadrupeds:FindFirstChild("NineTailFoxB"), "build and rig first")
 local enemies = assert(ServerStorage:FindFirstChild("Enemies"), "missing Enemies")
 assert(not ServerStorage:FindFirstChild("_StagingFoxEnemies"), "staging already exists")
-assert(not enemies:FindFirstChild("NineTailFoxB"), "NineTailFoxB already shipped; inspect before replacing")
 local staging = enemies:Clone()
 staging.Name = "_StagingFoxEnemies"
+-- a rebuild replaces the shipped body (check the user's place for hand edits to it first)
+local old = staging:FindFirstChild("NineTailFoxB")
+if old then
+	old:Destroy()
+end
 local model = source:Clone()
 model.Parent = staging
 staging.Parent = ServerStorage

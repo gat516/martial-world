@@ -9,12 +9,12 @@
 -- user's NineTailFox_R reference row). EnemyAnimator multiplies pose translations by Scale.
 -- Numbers in comments below are pre-scale (x0.8875 for the final body).
 --
--- TAILS. Tail i (1 = far left .. 9 = far right) is four nested sleeves on a straight axis:
--- Tail<i> (gold base) > Tail<i>Mid > Tail<i>Tip (cream brush) > Tail<i>Whip (thin lance, azure
--- flame wedge at its end), each narrower than the one around it. Geometry is straight; the S
--- curve is the pose's job. Lengths, rest overlaps and the full-extension overlap below fix
--- the rest reach (~10) and the full reach (~24); nine_tail_fox_boss_tails.luau holds the numbers
--- (the rig derives each joint's ExtendMax from them).
+-- TAILS. Tail i (1 = far left .. 9 = far right) is four segments on one straight axis: the gold
+-- stem Tail<i>, the gold-to-cream neck Tail<i>Mid, the cream brush Tail<i>Tip and the Neon
+-- foxfire lance Tail<i>Whip (tip spindle, teardrop flame). The neck, brush and lance slide out
+-- along the axis to extend the tail; at rest the brush hides everything behind it. Geometry is
+-- straight; the S curve is the pose's job. nine_tail_fox_boss_tails.luau holds the numbers and
+-- the look (the rig derives the joints and ExtendMax from them).
 
 local BASE = "http://127.0.0.1:8767/"
 local HttpService = game:GetService("HttpService")
@@ -30,8 +30,8 @@ local GOLD_MID = Color3.fromHex("E8C984") -- gold fading to cream (tail middle s
 local GOLD_DK = Color3.fromHex("8A5E24") -- paws
 local INK = Color3.fromHex("2A2430") -- stockings, ear backs, nose, eyeliner
 local EAR_IN = Color3.fromHex("D98C9C")
-local FOXFIRE = Color3.fromHex("7FD8FF") -- the tell colour (vfx recolours by phase)
-local LANCE = Color3.fromHex("C4E8F4") -- cream shading to azure
+local FOXFIRE = Color3.fromHex("7FD8FF") -- the eye / chest tell colour (vfx recolours by phase)
+local TAILFIRE = Color3.fromHex("3C93E6") -- the tail flames and lances: saturated azure (pale tints bloom to white)
 
 local TAIL = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/nine_tail_fox_boss_tails.luau?" .. os.clock()))()
 
@@ -102,36 +102,61 @@ for _, s in { -1, 1 } do
 	block("Paw" .. b, "Foot" .. b, v(1.1, 0.7, 1.6), v(x, 0.35, 4.0), GOLD_DK)
 end
 
--- Nine telescoping tails --------------------------------------------------------------------
+-- Nine extending fox tails (layout and look: nine_tail_fox_boss_tails.luau) ---------------
 block("Tail", "Tail", v(2.6, 2.4, 3.0), TAIL.root + v(0, -0.4, -0.6), GOLD)
 local lay = TAIL.layout()
-local dia = TAIL.dia
+local G = TAIL.geo
 for i = 1, 9 do
-	local d = TAIL.dir(i)
-	local p0 = TAIL.root
-	local function at(s)
-		return p0 + d * s
-	end
 	local n = "Tail" .. i
-	cyl(n, n, at(lay.baseS), at(lay.baseE), dia[1], GOLD)
-	cyl(n .. "Mid", n .. "Mid", at(lay.midS), at(lay.midE), dia[2], GOLD_MID)
-	cyl(n .. "Tip", n .. "Tip", at(lay.tipS), at(lay.tipE), dia[3], CREAM)
-	cyl(n .. "Whip", n .. "Whip", at(lay.whipS), at(lay.whipE), dia[4], LANCE)
-
-	-- fur: a swept tuft on the base's upper side, one on the brush's end (vertical face to the
-	-- root, slope down to the tip, so it sweeps toward the tail end)
-	local function fur(seg, name, s, size, r)
-		local look = CFrame.lookAt(at(s), at(s) + d, Vector3.yAxis)
-		local cf = look * CFrame.new(0, r - 0.35 + size.Y / 2, 0)
-		return add(seg, name, "WedgePart", size, cf, if seg == n then GOLD else CREAM)
+	local function frame(s)
+		return TAIL.frame(i, s)
 	end
-	fur(n, n .. "FurA", 3.4, v(0.5, 1.3, 3.2), dia[1] / 2)
-	fur(n .. "Tip", n .. "FurB", lay.tipE - 0.7, v(0.4, 1.0, 1.6), dia[3] / 2)
+	-- a box along the axis from s0 to s1, w across the fan, h through it
+	local function box(seg, name, s0, s1, w, h, color)
+		return add(seg, name, "Part", v(w, h, s1 - s0), frame((s0 + s1) / 2), color)
+	end
+	local out = TAIL.outer(i)
+	-- a fur tuft on side `side` (+1 / -1 across the fan): its foot is buried at r0 from the axis,
+	-- its slope rises to r1 at s1, where its tall face looks toward the tip
+	local function tuft(seg, name, f, side, color)
+		local fr = frame((f.s0 + f.s1) / 2)
+		local o = fr.RightVector * side
+		local h = f.r1 - f.r0
+		local c = fr.Position + o * (f.r0 + h / 2)
+		return add(seg, name, "WedgePart", v(f.t, h, f.s1 - f.s0), CFrame.fromMatrix(c, o:Cross(fr.LookVector), o), color)
+	end
+	-- a wedge on the axis from s0 to s1, w across and h through the fan: its flat face lies on
+	-- the outer edge, its full-height face at s0 (tallAtStart) or s1, the slope on the inner side
+	local function lean(seg, name, s0, s1, w, h, tallAtStart, color)
+		local fr = frame((s0 + s1) / 2)
+		local y = -fr.RightVector * out -- from the flat (outer) face toward the slope
+		local z = if tallAtStart then -fr.LookVector else fr.LookVector
+		return add(seg, name, "WedgePart", v(h, w, s1 - s0), CFrame.fromMatrix(fr.Position, y:Cross(z), y), color)
+	end
 
-	-- the foxfire flame at the lance end (a wedge carrying on along the axis)
-	local fl = CFrame.lookAt(at(lay.whipE), at(lay.whipE) + d) * CFrame.Angles(-math.pi / 2, 0, 0) * CFrame.new(0, 0.65, 0)
-	local flame = tell(add(n .. "Whip", n .. "Flame", "WedgePart", v(0.9, 1.8, 0.9), fl, FOXFIRE))
+	-- gold stem, one tuft on its inner edge sweeping toward the tip
+	box(n, n, G.stem.s0, G.stem.s1, G.stem.w, G.stem.h, GOLD)
+	tuft(n, n .. "FurA", G.stemFur, G.stemFur.side * out, GOLD)
+	-- the neck: slim, gold fading to cream, flaring into the brush on both edges
+	box(n .. "Mid", n .. "Mid", G.neck.s0, G.neck.s1, G.neck.w, G.neck.h, GOLD_MID)
+	tuft(n .. "Mid", n .. "MidFurA", G.neckFur, out, GOLD_MID)
+	tuft(n .. "Mid", n .. "MidFurB", G.neckFur, -out, GOLD_MID)
+	-- the brush: cream core, fluff on both edges, its end flicking outward to a point
+	box(n .. "Tip", n .. "Tip", G.brush.s0, G.brush.s1, G.brush.w, G.brush.h, CREAM)
+	tuft(n .. "Tip", n .. "FurC", G.brushFur, out, CREAM)
+	tuft(n .. "Tip", n .. "FurD", G.brushFur, -out, CREAM)
+	lean(n .. "Tip", n .. "TipEnd", G.brushEnd.s0, G.brushEnd.s1, G.brush.w, G.brush.h, true, CREAM)
+	-- the lance: a Neon foxfire core hidden in the brush at rest, bared as the tail stretches;
+	-- it carries the cream tip spindle and the teardrop flame
+	local lance = tell(box(n .. "Whip", n .. "Whip", G.lance.s0, G.lance.s1, G.lance.w, G.lance.h, TAILFIRE))
+	lance.CFrame += lance.CFrame.RightVector * (out * G.lance.off)
+	lance:SetAttribute("TailIndex", i)
+	local sp = G.spindle
+	lean(n .. "Whip", n .. "WhipFurA", sp.s0, sp.sm, sp.w, sp.h, false, CREAM)
+	lean(n .. "Whip", n .. "WhipFurB", sp.sm, sp.s1, sp.w, sp.h, true, CREAM)
+	local flame = tell(ball(n .. "Whip", n .. "Flame", G.flame.d, frame(G.flame.s).Position, TAILFIRE))
 	flame:SetAttribute("TailIndex", i)
+	tell(lean(n .. "Whip", n .. "FlameTip", G.flame.s, G.flame.tip, G.flame.tipW, G.flame.tipW, true, TAILFIRE)):SetAttribute("TailIndex", i)
 end
 
 for _, p in P.model:GetChildren() do

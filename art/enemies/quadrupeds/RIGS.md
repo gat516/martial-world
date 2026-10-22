@@ -117,9 +117,9 @@ A lowered root sinks the feet unless the legs bend to match. `plant_feet.luau` s
 | `plant_feet.luau` | solves planted legs for a pose |
 | `qa_quadruped_poses.luau` | numeric QA for a pose module in `src/client/EnemyPoses/` (feet, sinking with the culprit segment, gaps, clipping, range); the boar's config |
 
-## NineTailFoxB (boss body, Scale 2.13, 56 joints, 132 parts)
+## NineTailFoxB (boss body, Scale 2.13, 56 joints, 195 parts)
 
-Template `NineTailFoxB` in `assets/Enemies.rbxm` (testbed-only gate). Scripts: `build_nine_tail_fox_boss.luau`, `rig_nine_tail_fox_boss.luau`, `nine_tail_fox_boss_tails.luau` (shared tail numbers), `qa_nine_tail_fox_boss.luau`, `promote_nine_tail_fox_boss.luau`.
+Template `NineTailFoxB` in `assets/Enemies.rbxm` (testbed-only gate). Scripts: `build_nine_tail_fox_boss.luau`, `rig_nine_tail_fox_boss.luau`, `nine_tail_fox_boss_tails.luau` (shared tail numbers and look), `qa_nine_tail_fox_boss.luau` (tail stress poses), `preview_nine_tail_fox_boss.luau` (posed copies for captures), `promote_nine_tail_fox_boss.luau`.
 
 - **Scale 2.13** (model attribute `Scale`), matching the user's `NineTailFox_R` reference row: bbox about 15.8 x 16.5 x 20.5 (reference 14.9 x 16.4 x 22.0), HRP at Y 5.54 (= 2.6 x 2.13), shoulder about 6.7, head top about 9.8. Built at 2.4x coordinates then `ScaleTo(2.13 / 2.4)` in the rig script, so do not scale it again; EnemyAnimator multiplies pose translations by `Scale`. Pose unit space = the old roster fox.
 - Faces -Z, left is -X. Every joint frame is identity at rest, so pitch is rotation about X, yaw Y, roll Z. All pivots below are world coordinates at rest, ground Y 0.
@@ -145,16 +145,25 @@ Template `NineTailFoxB` in `assets/Enemies.rbxm` (testbed-only gate). Scripts: `
 
 ### Tails (36 motors, i = 1 far left .. 9 far right, 5 centre)
 
-Each tail is four nested straight sleeves along its own axis, narrower each step (final studs, lengths x diameter): `Tail<i>` base 6.2 x 2.66 (gold), `Tail<i>Mid` 7.1 x 2.22 (gold to cream), `Tail<i>Tip` 7.1 x 1.77 (cream brush), `Tail<i>Whip` 7.5 x 0.71 (thin lance). Fur wedges are welded to the base and tip; `Tail<i>Flame` (Neon Tell, `TailIndex=i`) is welded at the whip end. Rest sleeve overlaps: mid 85% inside the base, tip 85% inside the mid, whip 95% inside the tip.
+Rebuilt 2026-10-21: the first tails were four nested cylinders per tail and read as telescope tubes (rejected). **The kinematics did not change**: same pivots, `ExtendAxis`, `ExtendMax` and formula, so pose code written against the first body still works. Only the parts on each segment changed (no cylinders anywhere). Final studs, length x width across the fan x depth through it:
+
+| Segment (Motor6D) | Parts | Look | At rest | As it extends |
+|---|---|---|---|---|
+| `Tail<i>` (JointTail<i>) | stem 6.0 x 1.11 x 1.11, `Tail<i>FurA` tuft on the inner edge | gold | first 3.0 studs show, the rest is inside the brush | stays put |
+| `Tail<i>Mid` (JointTail<i>Mid) | neck 5.4 x 0.75 x 0.75, `MidFurA` / `MidFurB` tufts flaring toward the tip | gold to cream | hidden | slides out from under the stem's tuft and flares into the brush |
+| `Tail<i>Tip` (JointTail<i>Tip) | brush 4.26 x 1.33 x 1.64, fluff tufts `FurC` / `FurD` (about 1.95 across), `TipEnd` flick (1.6 long, flat on the outer edge, sloping to a point) | cream | the main visible body of the tail | moves out with its neck |
+| `Tail<i>Whip` (JointTail<i>Whip) | `Tail<i>Whip` lance 3.86 x 0.27 (Neon Tell, offset 0.22 toward the outer edge), tip spindle `WhipFurA` / `WhipFurB` (2.66 long, 0.98 x 0.89), `Tail<i>Flame` ball 1.15 + `Tail<i>FlameTip` tongue 1.95 (Neon Tells) | cream tip, azure foxfire | only the flame shows, past the brush's point | the spindle and flame run ahead of the brush; the lance glows in the gap past e = 0.62 (about 1.9 studs at full) |
+
+"Outer edge" = away from the fan's centre (tails 6-9 toward +X, 1-5 toward -X): the brush end, spindle and flame tongue keep a flat face there, so every tail ends in a flick curling outward.
 
 | Joint | Moves | Parent | Pivot | Sign convention |
 |---|---|---|---|---|
-| JointTail<i> | Tail<i> (base, fur) | Tail | the tail root (every tail hinges at the hub, e.g. tail 5 at (0, 7.19, 5.15)) | fan with roll `-t*k`, `t=(i-5)/4`; pitch -0.25 (forward) to +0.5 (swept back) |
-| JointTail<i>Mid | Tail<i>Mid | Tail<i> | the base's mouth (tail 5: (0, 12.28, 8.71)) | slides along `ExtendAxis`; curl by small rotations |
-| JointTail<i>Tip | Tail<i>Tip | Tail<i>Mid | the mid's mouth (tail 5: (0, 13.15, 9.32)) | same |
-| JointTail<i>Whip | Tail<i>Whip | Tail<i>Tip | the tip's mouth (tail 5: (0, 14.02, 9.93)) | same |
+| JointTail<i> | Tail<i> (stem, tuft) | Tail | the tail root (every tail hinges at the hub, e.g. tail 5 at (0, 7.19, 5.15)) | fan with roll `-t*k`, `t=(i-5)/4`; pitch -0.25 (forward) to +0.5 (swept back) |
+| JointTail<i>Mid | Tail<i>Mid (neck, tufts) | Tail<i> | 6.21 along the axis (tail 5: (0, 12.28, 8.71)) | slides along `ExtendAxis`; curl by small rotations |
+| JointTail<i>Tip | Tail<i>Tip (brush, fluff, flick) | Tail<i>Mid | 7.28 along the axis (tail 5: (0, 13.15, 9.32)) | same |
+| JointTail<i>Whip | Tail<i>Whip (lance, spindle, flame) | Tail<i>Tip | 8.34 along the axis (tail 5: (0, 14.02, 9.93)) | same |
 
-Extension (translation): `Transform = rotation * CFrame.new(ExtendAxis * e)` with rotation LAST so the hinge stays at the parent's mouth at every extension. `ExtendAxis` is the unit tail direction in the parent frame at rest (identical for Mid, Tip and Whip of a tail):
+Extension (translation): `Transform = rotation * CFrame.new(ExtendAxis * ExtendMax * e)`, `e` a fraction 0..1, rotation LAST so the hinge stays at the parent's mouth at every extension. `ExtendAxis` is the unit tail direction in the parent frame at rest (identical for Mid, Tip and Whip of a tail):
 
 | Tail | ExtendAxis | Tail | ExtendAxis |
 |---|---|---|---|
@@ -164,26 +173,23 @@ Extension (translation): `Transform = rotation * CFrame.new(ExtendAxis * e)` wit
 | 4 | (-0.279, 0.903, 0.327) | 9 | (0.745, 0.386, 0.544) |
 | 5 | (0, 0.819, 0.573) | | |
 
-`ExtendMax` (full travel, studs): Mid 3.90, Tip 3.90, Whip 4.90, so full extension adds 12.7 studs. Odd tails sit further back (larger +Z component) so the fan has depth.
+`ExtendMax` (full travel, studs): **Mid 3.90, Tip 3.90, Whip 4.90**, so full extension adds 12.71 studs. Each segment's offset from rest along the axis at extension e: neck `3.90e`, brush `7.80e`, lance/flame `12.71e`.
 
-- Reach from the tail root to the lance end: **8.72 at rest, 21.43 fully extended** (the brief's 10 / 24 at 2.4x; everything scales with 2.13). Half extension (e = 0.5) gives 15.1.
-- At full extension each sleeve still overlaps its parent by 30% of its own length (minimum 0.30; the brief's floor is 0.25). Do not exceed `ExtendMax`. Take `e` as a fraction 0..1 of `ExtendMax`, not studs.
-- Safe rotations (QA clean: no poke-through, no body hits, drift under 0.001):
-  - `JointTail<i>`: pitch -0.25 .. +0.5 at any extension; roll up to `-t * 0.55` for fan spread at any extension (the outer tails then reach roughly horizontal; beyond that they droop into the hind legs); narrow fan up to `+t * 0.4`.
-  - Mid / Tip / Whip curl: at rest and half extension up to +-0.1 / +-0.12 / 0.2 rad (the S curve) is invisible; at full extension keep bends under about 0.1 / 0.1 / 0.22 rad. Bends of 0.3 / 0.3 / 0.5 at full extension still keep the 30% overlap, but the child edge pokes about 0.9 studs past its parent's wall.
-  - Plunge (rootfire eruption, tails 1,3,5,7,9 down): base pitch +1.0 with full extension plants the lance ends about 1 stud above the ground, clear of the hind legs. Pitch 1.7 with full extension sinks 8 studs below the floor and slices through the hind thighs, so scale the pitch down as extension rises (about 1.15 rad max at e = 1, larger only at lower extension) and keep the fan splayed (roll outward) so the odd tails clear `UpperLegB*`.
-  - Low rest fan (roll `-t*0.55`) puts the outer tail tips about 5.1 above the ground; nothing in the tails reaches the floor in any rest, swept, raised or fanned pose.
+- Reach from the tail root to `TailTip<i>_FX` (the flame ball's centre, 0.16 past the old lance end): **8.87 at rest, 15.2 at half, 21.6 at full**. The flame tongue reaches 1.95 further: about 10.8 at rest and 23.5 at full. The joint-chain lance end the pose module uses without `configure` is still 8.72 / 21.43.
+- Safe rotations (qa_nine_tail_fox_boss: no gaps, no exposed back ends, nothing through the body):
+  - `JointTail<i>`: pitch -0.25 .. +0.5 at any extension; roll up to `-t * 0.55` for fan spread; narrow fan up to `+t * 0.4`. Plunge (odd tails pitched +1.0 at full extension) plants the flames about 1 stud above the ground; 1.15 with a splayed roll (`-t * 0.9`) sinks 8 into the floor (meant for the eruption only).
+  - Mid / Tip / Whip curl: the pose module's default S curve (`shp`, curl 0.6: Mid pitch 0.042, Tip 0.054, Whip 0.12 with rolls up to 0.03 / 0.036 / 0.06, scaled by `1 - 0.45e`) is clean at every extension. **At rest the Whip curl only tilts the flame, and the hidden lance runs 5 studs behind its hinge**: Whip pitch beyond about 0.12 (or roll beyond about 0.06) at e < 0.3 pushes the lance through the brush (curl x1.5 at rest: 0.22 out). Let the Whip curl grow with extension instead: at e >= 0.5 up to 0.2, at full up to 0.22 (0.5 bends still keep everything joined, the lance's back end shows about 0.05). Mid / Tip up to 0.1 / 0.12 at any extension.
 - Detail parts carry a `Segment` attribute and are welded to their segment; names are unique so clips can key every joint.
 
 ### Tells, attachments and template
 
-- Neon Tells (`Tell=true`, `TellBase` = original colour, pale azure #7FD8FF): `EyeL`, `EyeR`, `BrowMark`, `ChestMark` (neon disc under a cream cover so only the crescent shows), `Tail1Flame` .. `Tail9Flame` (`TailIndex`).
-- Attachments (identity world rotation, ride their segment): `Mouth` (Head, snout tip), `Core` (Chest), `Throat` (Neck), `PawFL_FX`, `PawFR_FX`, `PawBL_FX`, `PawBR_FX` (ground under each paw), `TailRoot_FX` (Tail), `TailBase<i>_FX` (Tail<i>, at the root), `TailTip<i>_FX` (Tail<i>Whip, at the lance end, rides the extension).
+- Neon Tells (`Tell=true`, `TellBase` = original colour, pale azure #7FD8FF): `EyeL`, `EyeR`, `BrowMark`, `ChestMark` (neon disc under a cream cover so only the crescent shows), `Tail<i>Flame` (ball), `Tail<i>FlameTip` (tongue) and `Tail<i>Whip` (the lance), all with `TailIndex = i`. The tail flames are saturated azure #3C93E6 (the user's reference colour; pale tints bloom to white) until the vfx repaints them by phase.
+- Attachments (identity world rotation, ride their segment): `Mouth` (Head, snout tip), `Core` (Chest), `Throat` (Neck), `PawFL_FX`, `PawFR_FX`, `PawBL_FX`, `PawBR_FX` (ground under each paw), `TailRoot_FX` (Tail), `TailBase<i>_FX` (Tail<i>, at the root), `TailTip<i>_FX` (Tail<i>Whip, at the flame ball's centre, rides the extension).
 - Template: HumanoidRootPart (invisible, identity rotation, PrimaryPart, Y 5.54), R15-type Humanoid with Animator, `HealthBar` on the HRP about 1 stud above the top (tail tips), identity-rotation WorldPivot, Atomic streaming, attribute `Scale = 2.13`, no scripts.
 
 ### Checks run
 
-`check_rig.luau`: clean (132 parts). `keyframe_test.luau`: keyable (56 joints). `qa_nine_tail_fox_boss.luau`: 16 tail stress poses (rest, full, fanned, narrow, swept, raised, plunge, bends); reach, overlap and drift numbers above. Not checked by capture; the user reviews the look in Studio.
+`check_rig.luau`: clean (195 parts). `keyframe_test.luau`: keyable (56 joints). `qa_nine_tail_fox_boss.luau`: 18 tail poses (rest curl at e 0 / 0.25 / 0.5 / 0.75 / 1, straight, curl x1.5, fan, narrow, swept, raised, plunges, bends); numbers above. Captured at rest, half and full extension, fanned and plunged (behind, 3/4 and side).
 
 ### Animating NineTailFoxB (`src/client/EnemyPoses/NineTailFox.luau`)
 

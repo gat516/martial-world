@@ -428,8 +428,8 @@ and library ids are in the builder.
 
 ### Nine-Tailed Fox (testbed trial)
 `Config.Wilds.NEW_NINE_TAIL_FOX = TESTBED` gates the def. FE1 boss, 2600 HP, weight 7,
-walk 8 / run 22, `body = "NineTailFoxB"` (2.13x, nine telescoping tails; `RIGS.md`
-"NineTailFoxB": reach 8.7 studs at rest, 21.4 extended, so every tail lane is 18-20
+walk 8 / run 22, `body = "NineTailFoxB"` (2.13x, nine extending fox tails: gold stem, cream brush, foxfire lance and flame; `RIGS.md`
+"NineTailFoxB": reach 8.9 studs at rest, 21.6 extended, so every tail lane is 18-20
 studs, shortened from the 30 first designed). Spawn it from the admin panel's "Spawn beasts" list (no testbed zone). Sheets for the build agents: the fox contracts (kept in the
 session scratchpad, folded in here).
 

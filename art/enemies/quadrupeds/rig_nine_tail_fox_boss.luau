@@ -103,7 +103,7 @@ hook("TailRoot_FX", "Tail", TAIL.root)
 for i = 1, 9 do
 	local d = TAIL.dir(i)
 	hook("TailBase" .. i .. "_FX", "Tail" .. i, TAIL.root)
-	hook("TailTip" .. i .. "_FX", "Tail" .. i .. "Whip", TAIL.root + d * lay.whipE)
+	hook("TailTip" .. i .. "_FX", "Tail" .. i .. "Whip", TAIL.root + d * TAIL.geo.flame.s) -- the foxfire ball's centre
 end
 
 -- final scale: about the HRP pivot, then re-ground (the HRP's Y is the root height)

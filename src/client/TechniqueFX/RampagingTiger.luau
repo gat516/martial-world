@@ -103,7 +103,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	local launch = TechniqueVFX.take(copy, "Launch")
 	local wheel = TechniqueVFX.take(copy, "Wheel")
 	local gouge = TechniqueVFX.take(copy, "Gouge")
-	local gougeScar = TechniqueVFX.take(copy, "GougeScar")
+	local gougeKicks = TechniqueVFX.take(copy, "GougeKicks")
 	local slam = copy:FindFirstChild("Slam") :: BasePart?
 	if slam then
 		BladeSkill.fitRadius(slam, k)
@@ -123,18 +123,13 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		return pos, CastFX.groundAt(pos), look
 	end
 
-	-- a flare on the real blade tip as each Hit marker fires
-	local function flareAt(scale: number)
-		if not (flare and blade) then
-			return
-		end
-		local tip = blade.tip.WorldPosition
-		local f = flare:Clone()
-		f.CFrame = CFrame.lookAt(tip, tip + dir)
-		f.Parent = TechniqueVFX.folder
-		TechniqueVFX.rescale(f, scale)
-		TechniqueVFX.emit(f)
-		TechniqueVFX.cleanup(f)
+	-- each Hit marker fires as a swing starts (the dadao still raised: the
+	-- first cut's marker has the point behind the head); the claw, the flare
+	-- and the impacts land where the blade cuts, at the swing's peak inside
+	-- that hit's Hit -> Hit Stop window (WeaponFX.swing)
+	local function onSwing(index: number, fn: (Vector3, Vector3) -> ())
+		local pos = here()
+		WeaponFX.swing(character, WeaponFX.hitWindow(def, index), fn, pos + Vector3.new(0, 2, 0))
 	end
 
 	if edge then
@@ -161,19 +156,21 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	-- the cut and the spin hits: claw strokes in the air, impacts on the circle
 	for i = 1, #hits - 1 do
 		seq:at(hits[i], function()
-			local pos, feet, look = here()
-			local roll, at = clawPose(i, #hits)
-			local cf = CFrame.lookAt(pos, pos + look) * CFrame.new(at) * CFrame.Angles(0, 0, math.rad(roll))
-			flashClaw(claw, cf, 1)
-			flareAt(1)
-			if impact then
-				for _, target in BladeSkill.circleTargets(feet, radius, character, 4) do
-					CastFX.impactAt(impact, target, { Kick = 0, Quake = 0 })
-					if target.model.Parent then
-						CombatEffects.flash(target.model)
+			onSwing(i, function(tipAt, swing)
+				local pos, feet, look = here()
+				local roll, at = clawPose(i, #hits)
+				local cf = CFrame.lookAt(pos, pos + look) * CFrame.new(at) * CFrame.Angles(0, 0, math.rad(roll))
+				flashClaw(claw, cf, 1)
+				WeaponFX.flare(flare, tipAt, swing, 1)
+				if impact then
+					for _, target in BladeSkill.circleTargets(feet, radius, character, 4) do
+						CastFX.impactAt(impact, target, { Kick = 0, Quake = 0 })
+						if target.model.Parent then
+							CombatEffects.flash(target.model)
+						end
 					end
 				end
-			end
+			end)
 		end, { name = "Hit", value = tostring(i) })
 	end
 
@@ -252,17 +249,24 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 
 	-- the landing cleave
 	seq:at(landAt, function()
+		onSwing(#hits, function(tipAt, swing)
 		local pos, feet, look = here()
 		copy:PivotTo(CFrame.lookAt(feet, feet + look))
+		-- the bite: under the point as the cleave lands (it drives down in front
+		-- and on past the right foot), kept in front of the feet
 		local bite = feet + look * 2.6
 		if blade and blade.real then
-			local tip = blade.tip.WorldPosition
-			local along = math.clamp((Vector3.new(tip.X, 0, tip.Z) - Vector3.new(feet.X, 0, feet.Z)):Dot(look), 1.5, 4)
-			bite = CastFX.groundAt(Vector3.new(feet.X, pos.Y, feet.Z) + look * along)
+			local rel = Vector3.new(tipAt.X - feet.X, 0, tipAt.Z - feet.Z)
+			local along = math.clamp(rel:Dot(look), 1.5, 4)
+			local side = math.clamp(rel:Dot(look:Cross(Vector3.yAxis)), -1.5, 1.5)
+			bite = CastFX.groundAt(Vector3.new(feet.X, pos.Y, feet.Z) + look * along + look:Cross(Vector3.yAxis) * side)
 		end
 		local roll, at = clawPose(#hits, #hits)
 		flashClaw(claw, CFrame.lookAt(pos, pos + look) * CFrame.new(at) * CFrame.Angles(0, 0, math.rad(roll)), 1)
-		flareAt(1.5)
+		WeaponFX.flare(flare, Vector3.new(tipAt.X, math.max(tipAt.Y, bite.Y + 0.6), tipAt.Z), swing, 1.5)
+		if tier >= 2 then
+			CombatEffects.punch(bite, ({ 0, 0.4, 0.6, 0.85 })[tier], Color3.fromRGB(255, 150, 90), WeaponFX.hitWindow(def, #hits))
+		end
 		if tier >= 4 and claw then
 			-- the giant claw standing over the strike
 			local g = BladeSkill.num(claw, "GiantScale", 2.4)
@@ -301,8 +305,8 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 				local d = (CFrame.fromAxisAngle(Vector3.yAxis, math.rad(-i * 6)) :: CFrame):VectorToWorldSpace(look)
 				local a = bite + right * (i * spread * 0.6) - look * 0.4
 				local b = CastFX.groundAt(a + d * length * (1 - math.abs(i) * 0.15) + Vector3.new(0, 1, 0))
-				BladeSkill.strip(gouge, a + Vector3.new(0, 0.03, 0), b + Vector3.new(0, 0.03, 0), 0.14)
-				BladeSkill.strip(gougeScar, a + Vector3.new(0, 0.02, 0), b + Vector3.new(0, 0.02, 0), 0.14)
+				-- a claw rend each; the middle one kicks the dust and chips
+				BladeSkill.rend(gouge, if i == 0 then gougeKicks else nil, a, b, 0.14 + math.abs(i) * 0.03)
 			end
 			local path = copy:FindFirstChild("GougePath") :: BasePart?
 			if path then
@@ -327,17 +331,20 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			end)
 		end
 		TechniqueVFX.cleanup(copy, 0.5)
+		end)
 	end, { name = "Hit", value = tostring(#hits) })
 
 	seq:start(function()
+		-- read the cut now (a stopped clock extrapolates past the landing later)
+		local cut = clock.stopped() and clock.now() < landAt
 		BladeSkill.release(blade, 0.6)
 		task.delay(3, function()
-			for _, p in { claw, impact, flare, launch, wheel, gouge, gougeScar } do
+			for _, p in { claw, impact, flare, launch, wheel, gouge, gougeKicks } do
 				if p then
 					p:Destroy()
 				end
 			end
-			if copy.Parent and clock.stopped() and clock.now() < landAt then
+			if copy.Parent and cut then
 				copy:Destroy()
 			end
 		end)

@@ -343,8 +343,8 @@ checks a rebuild against the previous templates.
   torus and dust ring. II+ while the blade wheels (1.0-1.78 clip) a spinning
   amber swirl ring stands in its circle at the right side (`Wheel`, sized to
   the blade's reach; III+ a counter-turning ForceField ring, embers). Landing
-  (last hit): flash where the blade bites, three claw gouges fanned forward
-  (Neon slits cooling to ink), roar rings thrown forward (1/1/2/3), a torus
+  (last hit): flash where the blade bites, three claw rends fanned forward
+  (`Gouge`/`GougeKicks`, `BladeSkill.rend`), roar rings thrown forward (1/1/2/3), a torus
   shockwave to the radius, heavy impacts by the front; III+ Craters rock
   ring, cracks, rock kicks; IV a giant claw over the strike, a swirl shell,
   the one PointLight, impact frames and a quake. Remade 2026-10-21 on the
@@ -355,8 +355,17 @@ checks a rebuild against the previous templates.
   star-burst flipbook over an ink splat, sparks; 1.5x at the landing); and the
   landing's heavy impacts are squeezed into Hit 4 -> Hit Stop 4 (0.117 s,
   `WeaponFX.landing`) rather than following the 0.46 s torus out to r 10. All
-  hits also get the shared ink splat and star-burst flipbook. Layers T1 / T4:
-  charge 8 / 8, cut flare 4, claw 12, impact 8 / 14, landing 8 / 14.
+  hits also get the shared ink splat and star-burst flipbook. QA pass
+  2026-10-21: each Hit marker fires with the dadao still raised (Hit 1 has the
+  point behind the head), so the claws, flares and impacts of every cut and the
+  landing fire at the swing's peak inside its Hit window (`WeaponFX.swing`),
+  the flare facing the swing; the landing bites under the point at contact;
+  the Neon gouges are three claw rends (carved cracks under amber seams that
+  cool; the middle one kicks dust and chips); impact frames from III; a
+  hit-pause punch on the landing at II+; shake 1.1 / 1.8 / 2.8 / 3.8; a
+  cancelled cast no longer leaves its template copy behind. Layers T1 / T4:
+  charge 8 / 8, cut flare 6 / 7, claw 12, impact 10 / 17, landing 8 / 14,
+  rends 9 / 14.
 - **Moonflash Draw** (`MoonflashDraw_T1..T4`, authored along a 14-stud dash
   with width 5; `TechniqueFX.MoonflashDraw`). An iaido dash-cut in silver
   moonlight: the clip draws the blade from the right hip and sweeps it flat

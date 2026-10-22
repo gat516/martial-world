@@ -28,8 +28,9 @@
 --     swirl ring stands in the blade's circle at the right side and turns
 --     with it (III+ a second, counter-turning ForceField ring); each spin hit
 --     flashes vertical claw strokes and impacts.
---   Landing (last hit): a flash where the blade bites, three claw gouges torn
---     into the ground ahead (Neon slits cooling to ink scars), a torus
+--   Landing (last hit, at the cleave's contact): a flash where the blade
+--     bites, three claw rends torn into the ground ahead (groundRend: carved
+--     cracks under amber slits and seams that cool, dust and chips), a torus
 --     shockwave to r 10 around the caster with a dust skirt, "roar" rings
 --     thrown forward off the strike (1/1/2/3), heavy impacts timed by the
 --     front. III+ Craters rock ring, cracks, rock kicks; IV a giant claw
@@ -41,6 +42,11 @@
 -- landing flare on the live blade tip (`Flare`: cross glint, star-burst
 -- flipbook over an ink splat, sparks) as the Hit marker fires, and the
 -- landing's heavy impacts are squeezed into Hit 4 -> Hit Stop 4.
+-- QA pass 2026-10-21: the claws, flares and impacts of each cut and the
+-- landing fire at the swing's peak inside its Hit window (WeaponFX.swing: the
+-- markers fire with the blade still raised behind the head), the bite is
+-- under the point at contact, the Neon gouges are claw rends, III+ impact
+-- frames and a harder shake, II+ a hit-pause punch on the landing.
 local KIT_ = function()
 	return _G.vfxSpecs.BladeKit
 end
@@ -253,20 +259,19 @@ blocks.slam = function(root, tier)
 		light.Shadows = false
 		light.Parent = ground
 	end
-	B0.screenShake(root, tier, { parent = "Slam", magnitude = ({ 1.2, 1.7, 2.3, 3.0 })[tier], falloff = "25~95", frames = tier >= 4 })
+	B0.screenShake(root, tier, { parent = "Slam", magnitude = ({ 1.1, 1.8, 2.8, 3.8 })[tier], falloff = "25~95", frames = tier >= 3 })
 	return ground
 end
 
 blocks.gouges = function(root, tier)
-	local K = KIT_()
-	K.strips(root, tier, {
-		name = "Gouge", scar = "GougeScar", color = Color3.fromRGB(255, 160, 60), fadeColor = N_AMBER, ink = INK,
-		width = { { 0.34, 0.7 }, { 0.38, 0.8 }, { 0.44, 0.9 }, { 0.5, 1.0 } },
-		fade = { 0.45, 0.55, 0.7, 0.85 }, scarFade = { 1.0, 1.3, 1.6, 2.0 },
+	-- three claw rends (groundRend, narrow): a carved crack under an amber slit
+	-- and an amber seam that cools; the middle one kicks dust and chips
+	local gouge = _G.vfxBlocks.groundRend(root, tier, {
+		part = "Gouge", color = AMBER, core = coreOf(tier), ink = INK,
+		width = { 1.2, 1.4, 1.6, 1.9 }, seam = { 0.18, 0.22, 0.26, 0.3 }, stations = { 2, 2, 3, 3 },
 	})
-	local gouge = root:FindFirstChild("Gouge")
 	gouge:SetAttribute("Length", ({ 5, 6, 7.5, 9 })[tier])
-	gouge:SetAttribute("Spread", 1.0) -- studs between the claw lines
+	gouge:SetAttribute("Spread", 2.2) -- spacing of the claw lines (x0.6 studs off the middle)
 	local B0 = _G.vfxBlocks
 	if tier >= 2 then
 		local path = B0.part(root, "GougePath", O * CFrame.new(0, 0.2, -5), V(2.4, 0.2, 7))

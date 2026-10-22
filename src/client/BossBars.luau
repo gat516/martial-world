@@ -4,7 +4,12 @@
 -- is for and calls show / hide / setHealth / setTier.
 --   BossBar (CanvasGroup, slim: name row, 16px bar, an intro-only text row)
 --   > Body > Glow, Bar (Back, Trail, Fill, Slips, Ticks, Cracks, Flare),
---   Ornament (> CapL, CapR), NameLabel, RealmLabel, TitleLabel, OmenLabel.
+--   Ornament (> CapL, CapR), Emblem, NameLabel, RealmLabel, TitleLabel, OmenLabel.
+-- The frame is the danger tier's overhead-bar rim (EnemyBars STYLES rim, art/ui
+-- draw_ui.py eb_rim) at 2px per rim unit: CapL / CapR show its ends at native
+-- aspect (the tier's diamond and the slanted blade tip), Ornament stretches one
+-- clean column between them, and the slips lean with the slant. Emblem is a
+-- small per-boss mark at the left end (a crop of the theme's ornament art).
 -- It must stay out of the way of the fight: no screen darkening, no looping
 -- pulses, small and short hit/phase feedback.
 -- Same visual language as the regular overhead bars: ten talisman slips on the
@@ -27,6 +32,7 @@ local Themes = require(script.Parent.BossThemes)
 local BIG_HIT = 0.05 -- fraction of max health that shakes the bar
 local CRACK_W = 1024 -- cracks image width, for the spread crop
 local CRACK_H = 56
+local FAR_RIM = "rbxassetid://110079661251126" -- enemybar_rim_far, for tiers with no rim of their own
 local GLOW_REST = 0.88 -- the halo behind the bar: faint and static
 local TITLE_HOLD = 1.8 -- seconds the title shows in the intro before the omen
 local OMEN_HOLD = 2.6 -- seconds the omen shows before it fades out
@@ -50,6 +56,7 @@ type Refs = {
 	flare: Frame,
 	ornament: ImageLabel,
 	caps: { ImageLabel },
+	emblem: ImageLabel,
 	name: TextLabel,
 	title: TextLabel,
 	realm: TextLabel,
@@ -195,6 +202,10 @@ local function dressTier(sweepOmen: boolean, delay: number)
 	refs.realm.TextColor3 = tagColor
 	refs.omen.TextColor3 = style.omen or tagColor
 	refs.omen.Text = pickOmen()
+	local rim = style.rim or FAR_RIM
+	for _, img in { refs.ornament, refs.caps[1], refs.caps[2] } do
+		img.Image = rim
+	end
 	if sweepOmen then
 		sweepLine(refs.omen, delay, OMEN_HOLD)
 	end
@@ -250,10 +261,10 @@ local function applyTheme(def: Enemies.Def?)
 	table.sort(phases, function(a, b)
 		return a > b
 	end)
-	refs.ornament.Image = theme.ornament
-	for _, cap in refs.caps do
-		cap.Image = theme.ornament
-	end
+	local er = theme.emblemRect
+	refs.emblem.Image = theme.ornament
+	refs.emblem.ImageRectOffset = Vector2.new(er[1], er[2])
+	refs.emblem.ImageRectSize = Vector2.new(er[3], er[4])
 	refs.glow.ImageColor3 = theme.glow
 	refs.trail.BackgroundColor3 = theme.trail
 	refs.cracks.ImageColor3 = theme.crack
@@ -295,6 +306,7 @@ function BossBars.init(frame: CanvasGroup, tierStyles: { [string]: any })
 		flare = bar:WaitForChild("Flare") :: Frame,
 		ornament = ornament,
 		caps = { ornament:WaitForChild("CapL") :: ImageLabel, ornament:WaitForChild("CapR") :: ImageLabel },
+		emblem = body:WaitForChild("Emblem") :: ImageLabel,
 		name = body:WaitForChild("NameLabel") :: TextLabel,
 		title = body:WaitForChild("TitleLabel") :: TextLabel,
 		realm = body:WaitForChild("RealmLabel") :: TextLabel,

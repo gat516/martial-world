@@ -6,12 +6,11 @@ by BossBars.luau / Hud.BossBar:
     name plate  x 236..788  y 4..100     (name + title text sit on it)
     bar window  x 168..856  y 110..146   (transparent hole; the fill shows through)
     realm plaque x 392..632 y 154..186   (realm text)
-The HUD shows only a slim crop of these (Hud.BossBar, 25px tall): Ornament
-stretches the uniform column x300..302 of rows 100..157 across the middle, and
-CapL / CapR show x140..232 and x792..884 of the same rows at native aspect (gem
-and rim corner; the big motifs and plates are cropped away). Keep the rim and
-gems inside those rects. A dedicated slim cap art per boss would read cleaner
-(the fox's tails leave an orange edge in the cap crop).
+The HUD no longer shows these frames whole: the boss bar's frame is the danger
+tier's overhead-bar rim (draw_ui.py eb_rim), and each theme shows a small crop of
+its motif (BossThemes emblemRect) as the emblem at the bar's left end. Keep the
+motifs where those rects expect them. Next step once uploads work again: draw a
+dedicated boss rim and small emblems here instead of reusing crops.
 The motif for each boss is drawn on the left end and mirrored to the right.
 No crowns or halos (rejected motif).
 Run: uv run --with pillow --with numpy python art/ui/draw_boss_bars.py

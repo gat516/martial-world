@@ -146,11 +146,15 @@ cursor, settings and the admin panel.
   the danger tier (`Pacing.Danger`, `STYLES`, re-picked on breakthrough). A theme
   is a title line, a frame image, fill/trail/glow colours, a phase colour, and
   omen pools per tier (random per fight, short lines). Adding a boss is one table
-  entry (an unlisted boss gets `default`). The frame images are the 1024x256 art
-  from `art/ui/draw_boss_bars.py` (ids `bossbar_*` in `assets.json`), shown only
-  as a crop: `Ornament` stretches a uniform column of the rim (x300, rows
-  100..157) and its children `CapL` / `CapR` show the rim ends with their gems
-  (x140..232 and x792..884) at native aspect; the big motifs are cropped away.
+  entry (an unlisted boss gets `default`). Shape (the user wanted the slim bar
+  to keep a distinctive silhouette, 2026-10-21): the frame is the danger tier's
+  overhead-bar rim (`STYLES` rim, `draw_ui.py eb_rim`; deadly uses the far rim)
+  at 2px per rim unit, so it has the tier's diamond on the left and a slanted
+  blade tip on the right. `Ornament` stretches one clean rim column (x240,
+  4px) and its children `CapL` / `CapR` show the ends (x0..56 and x464..544) at
+  native aspect; the slip lines are rotated 26.57 degrees to lean with the slant.
+  `Emblem` (28px, left of the rim) is a crop of the theme's `bossbar_*` art
+  (`emblemRect`: wolf head, tail fan, serpent head, storm cloud, gold spiral).
   Intro: the bar fades in, the fill sweeps up, name and realm rise in; under the
   bar the theme title shows (`TITLE_HOLD`), then the omen (`OMEN_HOLD`), and both
   fade out fully (a breakthrough mid-fight shows the new omen once). The halo
@@ -160,10 +164,10 @@ cursor, settings and the admin panel.
   Crossing a threshold flashes the bar, nudges it, spreads faint cracks from the
   centre, warms the fill and frame colours and greys the tick.
   Gaps: the thunder ape, fox and python themes are untested until those bosses
-  exist (ids are guesses); the phase cracks are one shared image; the fox cap
-  crop shows an orange edge of its tails (slim per-boss cap art would be cleaner);
-  the slim layout is unverified in Studio (built on disk while the Studio MCP was
-  down).
+  exist (ids are guesses); the phase cracks are one shared image; the frame and
+  emblems reuse existing art because nothing could be uploaded (Studio MCP down):
+  a dedicated boss rim and small drawn emblems in `draw_boss_bars.py` would be
+  cleaner; the layout is unverified in Studio.
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`
   (spirit root reveal card).
 - `Onboarding.luau`, `Guide.luau` (spotlight, dim, walking path), `TravelMenu.luau` (with `GateMarkers.luau` over arrays and

@@ -2,13 +2,15 @@
 -- Per-boss health bar themes (BossBars.luau reads these). Key = enemy def id.
 -- Adding a boss = one entry here; any def without one uses `default`.
 --   title      intro line under the bar ("Sovereign of the Silver Peaks")
---   ornament   frame art (art/ui/draw_boss_bars.py, 1024x256); the HUD shows
---              only a slim crop of the rim and end gems (see that script)
+--   ornament   the boss art sheet (art/ui/draw_boss_bars.py, 1024x256); the HUD
+--              shows only the emblemRect crop of it, { x, y, w, h } in image
+--              pixels, as the small emblem at the bar's left end (the frame
+--              itself is the danger tier's rim)
 --   fill       { top, bottom } of the health gradient; phaseFill is the colour
 --              it shifts toward as phases pass (lerped by phase / phases)
 --   trail      delayed-damage trail colour
 --   glow       faint static halo behind the bar (tints bossbar_glow.png)
---   tint       ornament colour at rest; phaseTint what it warms to in the last phase
+--   tint       rim colour at rest; phaseTint what it warms to in the last phase
 --   name/titleColor  text colours; crack  the crack overlay colour; flare  the flash
 --   phases     optional override of the thresholds; default is def.summonAt
 --              (health fractions where the fight changes, ticks + flare + cracks)
@@ -20,6 +22,7 @@ local Themes = {}
 export type Theme = {
 	title: string,
 	ornament: string,
+	emblemRect: { number },
 	fill: { Color3 },
 	phaseFill: { Color3 },
 	trail: Color3,
@@ -39,6 +42,7 @@ local c = Color3.fromRGB
 Themes.default = {
 	title = "Calamity of the Wilds",
 	ornament = "rbxassetid://130685924906772",
+	emblemRect = { 10, 70, 140, 120 }, -- the gold spiral
 	fill = { c(196, 52, 44), c(110, 14, 18) },
 	phaseFill = { c(255, 120, 60), c(170, 40, 20) },
 	trail = c(236, 198, 120),
@@ -62,6 +66,7 @@ Themes.default = {
 Themes.ElderWolfKing = {
 	title = "Sovereign of the Silver Peaks",
 	ornament = "rbxassetid://108424250959271",
+	emblemRect = { 0, 20, 160, 120 }, -- the wolf head
 	fill = { c(206, 222, 240), c(88, 108, 140) },
 	phaseFill = { c(255, 214, 120), c(190, 120, 40) },
 	trail = c(120, 232, 236),
@@ -82,9 +87,10 @@ Themes.ElderWolfKing = {
 } :: Theme
 
 -- Foxfire and tail-magic.
-Themes.NineTailedFox = {
+Themes.NineTailFox = {
 	title = "Matriarch of the Foxfire Mists",
 	ornament = "rbxassetid://115218564552084",
+	emblemRect = { 0, 40, 165, 165 }, -- the tail fan
 	fill = { c(255, 168, 84), c(176, 56, 60) },
 	phaseFill = { c(190, 140, 255), c(96, 52, 190) },
 	trail = c(160, 190, 255),
@@ -108,6 +114,7 @@ Themes.NineTailedFox = {
 Themes.JadePython = {
 	title = "Coiled Terror of the Jade Marsh",
 	ornament = "rbxassetid://118897029575199",
+	emblemRect = { 50, 5, 110, 110 }, -- the serpent head
 	fill = { c(150, 232, 96), c(26, 110, 66) },
 	phaseFill = { c(214, 255, 70), c(110, 150, 20) },
 	trail = c(210, 240, 110),
@@ -131,6 +138,7 @@ Themes.JadePython = {
 Themes.ThunderApe = {
 	title = "Thunderlord of the Storm Crags",
 	ornament = "rbxassetid://75169654856352",
+	emblemRect = { 110, 0, 105, 100 }, -- the storm cloud
 	fill = { c(190, 226, 255), c(70, 110, 220) },
 	phaseFill = { c(255, 240, 150), c(230, 150, 40) },
 	trail = c(255, 244, 170),

@@ -843,6 +843,11 @@ local function startDash(enemy: Enemy, to: Vector3, speed: number, arc: number?)
 	enemy.state = "dash"
 end
 
+local Projectiles = require(script.Parent.Projectiles)
+-- foxfireVolley bolts: speed studs/s, hit radius, range from the start point, how far ahead of
+-- the fox's root they spawn along the lane, and their height above the ground (player torso)
+local BOLT_SPEED, BOLT_RADIUS, BOLT_RANGE, BOLT_START, BOLT_HEIGHT = 70, 1.5, 50, 6, 3.5
+
 --[[ Barrages (Nine-Tailed Fox): timed sub-areas ]]
 -- A barrage is computed once at the START of the windup from where the target stands
 -- then, so every area is locked, telegraphed and fair. Parts are plain shapes
@@ -857,6 +862,8 @@ local function boxPart(facing: CFrame, yaw: number, length: number, width: numbe
 		kind = "box", shape = "box",
 		cframe = facing * CFrame.Angles(0, yaw, 0) * CFrame.new(0, 0, -length / 2),
 		size = Vector2.new(width, length), delay = delay, tail = tail, ext = ext,
+		-- the lane's ground origin and unit direction (foxfireVolley fires its bolt along it)
+		origin = facing.Position, dir = (facing * CFrame.Angles(0, yaw, 0)).LookVector,
 	}
 end
 
@@ -907,7 +914,9 @@ local function buildParts(enemy: Enemy, attack: Enemies.Attack, ground: Vector3,
 			local a = (count + 1) / 2 - i
 			local wave = if phase >= 3 and i % 2 == 0 then 0.7 else 0
 			local tail = math.clamp(math.floor((i - 1) * 8 / (count - 1) + 1.5), 1, 9)
-			table.insert(parts, boxPart(facing, math.rad(a * step), length, width, wave + (i % 2) * 0.05 + (i - 1) * 0.04, tail, 0))
+			local lane = boxPart(facing, math.rad(a * step), length, width, wave + (i % 2) * 0.05 + (i - 1) * 0.04, tail, 0)
+			lane.bolt = true -- resolved by a projectile fired at `delay`, not an instant lane hit
+			table.insert(parts, lane)
 		end
 	elseif pattern == "ringHeart" then
 		-- four eruptions on a ring round the target, then one under them
@@ -1025,6 +1034,21 @@ local function resolveParts(enemy: Enemy, attack: Enemies.Attack, shape: Shape)
 	for _, part in shape.parts or {} do
 		local function fire()
 			if enemies[model] ~= enemy or enemy.health <= 0 or enemy.strikeId ~= id then
+				return
+			end
+			if part.bolt then
+				-- a foxfire bolt down the (already warned) lane at player-torso height, from
+				-- just ahead of the fox; clients draw it from the tail `data.tail`
+				local origin = part.origin + part.dir * BOLT_START + Vector3.new(0, BOLT_HEIGHT, 0)
+				Projectiles.fire({
+					owner = model, cue = "foxfireBolt", origin = origin, velocity = part.dir * BOLT_SPEED,
+					radius = BOLT_RADIUS, range = BOLT_RANGE, lifetime = 1.6,
+					onHit = function(player: Player, _position: Vector3)
+						hurtPart(enemy, attack, part, player)
+						return nil
+					end,
+					data = { tail = part.tail, phase = enemy.phase },
+				})
 				return
 			end
 			for _, player in Players:GetPlayers() do

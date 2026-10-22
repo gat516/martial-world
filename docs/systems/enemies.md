@@ -459,7 +459,7 @@ reusing the Thunder Ape's `phaseCall` / `phaseStep` and `Phase` attribute).
 | `lanceFan` | barrage `lanceFan` | 0.95 / 0.1 / 1.1 (P3 1.8) | 20 x 4 boxes: P1 3 at +-22, P2 5 at +-40, P3 5 then back; 0.18 s apart | 45 each | 5-24 |
 | `tailSnare` | barrage `snare` | 0.85 / 0.1 / 0.9 | box 20 x 4 | 40 | pulls the hit player to 11 studs in 0.45 s (a 0.45 s stagger), then `fangDance` follows (only on a hit) |
 | `rendingPounce` | lunge | 0.75 / dash / 1.0 | box 8 x 30 at 55/s | 75 | 18-36 |
-| `foxfireVolley` | barrage `volley` | 1.1 / 0.1 / 1.0 (P3 1.8) | 5 lanes 56 x 4 at 20 deg steps; P3 7 lanes at 15 deg in two waves 0.7 s apart | 40 each | 20-70 |
+| `foxfireVolley` | barrage `volley` | 1.1 / 0.1 / 1.0 (P3 1.8) | 5 lanes 56 x 4 at 20 deg steps; P3 7 lanes at 15 deg in two waves 0.7 s apart | 40 each | 20-70; **converted to real projectiles** (below) |
 | `rootfireEruption` (P2) | barrage `ringHeart` | 1.5 / 0.1 / 1.6 | 4 circles r 5 on a ring of 11 round the target, then r 7 under it at +0.8 s | 55 each | heart staggers 0.6 s |
 | `moonLeap` | retreat | 0.4 / 0.6 flight / 0.4 | landing ring + trail box 34 x 6 ticking at +0.5, 1.0, 1.5 s | 12 per tick | then Foxfire Volley |
 | `mournfulScream` (P2) | howl + stun | 1.4 / 0.3 / 1.6 | circle r 30 | 0 | stun 1.2 s, cooldown 14 s |
@@ -484,6 +484,15 @@ Sounds: `SFX.Enemies.NineTailFox` reuses the wolf, swing, fire-seal and thunder 
 (pitched), picked by id only, unlistened: replace them with fox sounds.
 Untested: everything (feel, lane reach against the animated tails, the pull on a client-owned
 character, the volley's lane gaps, boss HP, phone load of nine tails).
+**Foxfire volley = projectiles** (testbed): the windup keeps the barrage's lane warnings (the lanes the
+bolts fly down; no second warning is drawn). At each lane's `delay` after release (P1-2 `(i-1) x
+0.04 + (i odd 0.05)` s, i.e. a quick left-to-right fan over about 0.2 s; P3 odd lanes first, even lanes
+0.7 s later) the server calls `Projectiles.fire` with `cue = "foxfireBolt"`, origin 6 studs ahead of
+the fox's root along the lane at 3.5 studs above the ground (player torso height; the tail tips are
+not readable on the server, so clients draw the start from the tail), velocity lane direction x 70
+studs/s, radius 1.5, range 50, lifetime 1.6, no pierce, stopped by the map. `onHit` goes through
+`hurtPart` (40 damage, dodges and flinch apply); `data = { tail = 1..9, phase = 1..3 }`. A stagger of
+the fox or its next attack calls unfired bolts off (strikeId); bolts already in flight keep flying.
 Poses: `EnemyPoses/NineTailFox.luau` (notes in `RIGS.md` "Animating NineTailFoxB"), registered in
 `EnemyAnimator` as `NineTailFoxB` (`scale = 2.13`, `runFrom = 8.5`, death 3.2 s). The animator calls
 `NineTailFox.configure(template)` once (it reads each tail's ExtendAxis / ExtendMax / pivots and the
@@ -763,7 +772,7 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
   dedicated fights, sounds or VFX. The Flame Raven's server stand-in would take its whole 15-stud wingspan as a
   hitbox.
 
-## Boss projectiles (backend built, no attack uses it yet)
+## Boss projectiles (backend built; the Nine-Tailed Fox's foxfireVolley uses it)
 
 User decision (2026-10-21): real projectiles are for **bosses only**. Regular
 beasts (the Venom Serpent's spit) keep their ground circles, and player

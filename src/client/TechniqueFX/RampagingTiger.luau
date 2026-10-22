@@ -15,6 +15,7 @@ local Client = script.Parent.Parent
 local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
 local BladeSkill = require(script.Parent.BladeSkill)
+local WeaponFX = require(script.Parent.WeaponFX)
 
 local HITS = { 0.4833, 1.0333, 1.3167, 1.7833 } -- until def.hits exists
 local LEAP = 0.95
@@ -98,6 +99,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	local edgeT = TechniqueVFX.take(copy, "Edge")
 	local claw = TechniqueVFX.take(copy, "Claw")
 	local impact = TechniqueVFX.take(copy, "Impact")
+	local flare = TechniqueVFX.take(copy, "Flare")
 	local launch = TechniqueVFX.take(copy, "Launch")
 	local wheel = TechniqueVFX.take(copy, "Wheel")
 	local gouge = TechniqueVFX.take(copy, "Gouge")
@@ -119,6 +121,20 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	local function here(): (Vector3, Vector3, Vector3)
 		local pos, look = BladeSkill.facing(character, origin, dir)
 		return pos, CastFX.groundAt(pos), look
+	end
+
+	-- a flare on the real blade tip as each Hit marker fires
+	local function flareAt(scale: number)
+		if not (flare and blade) then
+			return
+		end
+		local tip = blade.tip.WorldPosition
+		local f = flare:Clone()
+		f.CFrame = CFrame.lookAt(tip, tip + dir)
+		f.Parent = TechniqueVFX.folder
+		TechniqueVFX.rescale(f, scale)
+		TechniqueVFX.emit(f)
+		TechniqueVFX.cleanup(f)
 	end
 
 	if edge then
@@ -149,6 +165,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			local roll, at = clawPose(i, #hits)
 			local cf = CFrame.lookAt(pos, pos + look) * CFrame.new(at) * CFrame.Angles(0, 0, math.rad(roll))
 			flashClaw(claw, cf, 1)
+			flareAt(1)
 			if impact then
 				for _, target in BladeSkill.circleTargets(feet, radius, character, 4) do
 					CastFX.impactAt(impact, target, { Kick = 0, Quake = 0 })
@@ -245,6 +262,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		end
 		local roll, at = clawPose(#hits, #hits)
 		flashClaw(claw, CFrame.lookAt(pos, pos + look) * CFrame.new(at) * CFrame.Angles(0, 0, math.rad(roll)), 1)
+		flareAt(1.5)
 		if tier >= 4 and claw then
 			-- the giant claw standing over the strike
 			local g = BladeSkill.num(claw, "GiantScale", 2.4)
@@ -296,8 +314,10 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		BladeSkill.shake(CombatEffects, tier, feet, 1.2)
 		local wave = slam and slam:FindFirstChild("GroundWave")
 		local duration = if wave then BladeSkill.num(wave, "Duration", 0.46) else 0.46
+		-- heavy impacts as the torus front reaches each, squeezed into Hit 4 -> Hit Stop 4
+		local window = WeaponFX.hitWindow(def, #hits)
 		for _, target in BladeSkill.circleTargets(feet, radius, character, 6) do
-			task.delay(BladeSkill.quartTime(duration, target.progress), function()
+			task.delay(WeaponFX.landing(BladeSkill.quartTime(duration, target.progress), duration, window), function()
 				if impact then
 					CastFX.impactAt(impact, target, { Kick = 3, Quake = 1 })
 				end
@@ -312,7 +332,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	seq:start(function()
 		BladeSkill.release(blade, 0.6)
 		task.delay(3, function()
-			for _, p in { claw, impact, launch, wheel, gouge, gougeScar } do
+			for _, p in { claw, impact, flare, launch, wheel, gouge, gougeScar } do
 				if p then
 					p:Destroy()
 				end

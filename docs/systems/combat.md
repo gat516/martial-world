@@ -248,7 +248,16 @@ checks a rebuild against the previous templates.
   (Neon slits cooling to ink), roar rings thrown forward (1/1/2/3), a torus
   shockwave to the radius, heavy impacts by the front; III+ Craters rock
   ring, cracks, rock kicks; IV a giant claw over the strike, a swirl shell,
-  the one PointLight, impact frames and a quake.
+  the one PointLight, impact frames and a quake. Remade 2026-10-21 on the
+  saber and the clip's markers: the windup (0 -> Hit 1, 0.48 s) is a `Charge`
+  along the dadao's Base -> Tip (dark beam under an amber one, motes, a point
+  glint) instead of a hand gather; each cut (Hit 1-3) and the landing (Hit 4)
+  flare on the live blade tip as the marker fires (`Flare`: cross glint,
+  star-burst flipbook over an ink splat, sparks; 1.5x at the landing); and the
+  landing's heavy impacts are squeezed into Hit 4 -> Hit Stop 4 (0.117 s,
+  `WeaponFX.landing`) rather than following the 0.46 s torus out to r 10. All
+  hits also get the shared ink splat and star-burst flipbook. Layers T1 / T4:
+  charge 8 / 8, cut flare 4, claw 12, impact 8 / 14, landing 8 / 14.
 - **Moonflash Draw** (`MoonflashDraw_T1..T4`, authored along a 14-stud dash
   with width 5; `TechniqueFX.MoonflashDraw`). An iaido dash-cut in silver
   moonlight: the clip draws the blade from the right hip and sweeps it flat

@@ -36,6 +36,11 @@
 --     standing over the strike, a swirl shell, the one PointLight, impact
 --     frames and an Explosion quake.
 --   Aftermath: the gouges cool over ~1-2 s, embers drift up (II+).
+-- Remade 2026-10-21 on the saber (weapon models, Hit windows): the windup is a
+-- `Charge` along the dadao's Base -> Tip (not a hand gather), each cut and the
+-- landing flare on the live blade tip (`Flare`: cross glint, star-burst
+-- flipbook over an ink splat, sparks) as the Hit marker fires, and the
+-- landing's heavy impacts are squeezed into Hit 4 -> Hit Stop 4.
 local KIT_ = function()
 	return _G.vfxSpecs.BladeKit
 end
@@ -68,7 +73,12 @@ local A = {
 	swirl = id(129778117978668),
 	swirl2 = id(73349240058321),
 	swirlRing = id(122217820569960),
+	glint = id(13366348510), -- crisp 4-point star
+	hitFlip = id(13580358178), -- 4x4 flipbook: a spiky star burst opening and breaking up
+	ink = id(16132530029), -- black ink splat
 }
+local GRID4 = Enum.ParticleFlipbookLayout.Grid4x4
+local ONESHOT = Enum.ParticleFlipbookMode.OneShot
 
 local function pal(core)
 	return {
@@ -86,6 +96,38 @@ blocks.windup = function(root, tier)
 	local p = pal(coreOf(tier))
 	p.windup, p.at, p.wisps = 0.4, HAND_AT, false
 	return _G.vfxBlocks.handGather(root, tier, p)
+end
+
+blocks.charge = function(root, tier)
+	return _G.vfxBlocks.bladeCharge(root, tier, { color = AMBER, core = coreOf(tier), ink = INK, width = 0.5 })
+end
+
+-- The flare on the blade tip at each cut (the runtime puts it on the live tip).
+blocks.flare = function(root, tier)
+	local B0 = _G.vfxBlocks
+	local f = B0.part(root, "Flare", O * CFrame.new(0, 3, -3), V(1, 1, 1))
+	B0.emitter(f, "Ink", {
+		Texture = A.ink, Color = CS(INK),
+		Size = NS({ KP(0, 1), KP(0.25, 2.2 + tier * 0.3), KP(1, 2.8 + tier * 0.3) }), Transparency = NS({ KP(0, 0.2), KP(0.6, 0.45), KP(1, 1) }),
+		Lifetime = R(0.3), LightEmission = 0, Rotation = R(0, 360), ZOffset = 0.8,
+	}, { EmitCount = 1 })
+	B0.emitter(f, "Burst", {
+		Texture = A.hitFlip, Color = CS(coreOf(tier), AMBER),
+		FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+		Size = NS({ KP(0, 1.8 + tier * 0.25), KP(1, 2.8 + tier * 0.35) }), Transparency = NS({ KP(0, 0.1), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(0.28), LightEmission = 0.6, Rotation = R(0, 360), ZOffset = 1.4,
+	}, { EmitCount = 1 })
+	B0.emitter(f, "Glint", {
+		Texture = A.glint, Color = CS(coreOf(tier)),
+		Size = NS({ KP(0, 0.4), KP(0.25, 2 + tier * 0.35), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(0.28), LightEmission = 0.85, Rotation = R(-12, 12), ZOffset = 2,
+	}, { EmitCount = 1 })
+	B0.emitter(f, "Sparks", {
+		Texture = A.spindle, Color = CS(coreOf(tier), AMBER), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		SpreadAngle = Vector2.new(60, 60), Size = NS({ KP(0, 0.22), KP(1, 0) }), Squash = NS({ KP(0, 2), KP(1, 1) }),
+		Transparency = NS(0), Lifetime = R(0.15, 0.3), Speed = R(16, 28), Drag = 6, LightEmission = 0.6,
+	}, { EmitCount = ({ 4, 6, 8, 10 })[tier] })
+	return f
 end
 
 blocks.edge = function(root, tier)
@@ -244,8 +286,9 @@ local spec = {
 	root = { attrs = { AuthoredRadius = RADIUS } },
 	blocks = blocks,
 	beats = {
-		{ block = "windup" },
+		{ block = "charge" },
 		{ block = "edge" },
+		{ block = "flare" },
 		{ block = "claw" },
 		{ block = "impact" },
 		{ block = "launch" },

@@ -44,6 +44,10 @@ local foxModule = script.Parent.EnemyPoses:FindFirstChild("NineTailFox")
 local NineTailFox = if foxModule then require(foxModule :: ModuleScript) :: any else nil
 local foxConfigured = false
 
+-- the small Venom Serpent's pose module (a serpent family like the Jiao: heading history and LEAD)
+local serpentModule = script.Parent.EnemyPoses:FindFirstChild("VenomSerpent")
+local VenomSerpent = if serpentModule then require(serpentModule :: ModuleScript) :: any else nil
+
 -- the Stone Tortoise's quadruped pose module (unit space, scaled once; no circling, so its
 -- `circle` loop is the turn in place)
 local tortoiseModule = script.Parent.EnemyPoses:FindFirstChild("StoneTortoise")
@@ -60,7 +64,7 @@ local DEATH_SECONDS = 0.6
 -- keyedBlend: blend from the preceding state for this many seconds, then sample
 -- keyed poses directly. This keeps the King's short tells and contact instants
 -- from trailing the server clock through the normal joint smoothing.
-type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean?, guard: boolean?, turnInPlace: boolean? }
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean?, guard: boolean?, turnInPlace: boolean?, circleLoop: boolean? }
 
 -- `<attack>Skid` is the overshoot turn-around the server plays (AIState recover) when a
 -- charge, lunge or leap arrives with the target out of reach; see skidOf below.
@@ -109,6 +113,16 @@ if ThunderApe then
 			thunderLance = "ThunderLance", thunderRoar = "ThunderRoar", stormCall = "StormCall",
 			judgment = "Judgment", phaseRoar = "PhaseRoar",
 		},
+	}
+end
+
+-- Venom Serpent: real-stud poses (SCALE 1) of the 1.40x body. `circleLoop` calls its circle loop
+-- (a sideways sway on the target) when it side-steps, as the wolves' do.
+if VenomSerpent then
+	FAMILIES.VenomSerpentB = {
+		poses = VenomSerpent, scale = VenomSerpent.SCALE, runFrom = 7, keyedBlend = 0.15, staggerSeconds = 0.28,
+		deathSeconds = 0.9, circleLoop = true,
+		moves = { venomSpit = "VenomSpit", hoodStrike = "HoodStrike", hoodStrikeSkid = "HoodStrikeSkid", hop = "Hop" },
 	}
 end
 
@@ -429,13 +443,15 @@ local function loopPose(rig: Rig, family: Family, dt: number): any
 	local frame = rig.root.CFrame
 	local local_ = frame:VectorToObjectSpace(flatVelocity)
 	local target = targetRoot(rig.model)
-	if target and poses.loops.circle and not poses.USES_HISTORY and speed > 1 and math.abs(local_.X) > math.abs(local_.Z) then
+	if target and poses.loops.circle and (family.circleLoop or not poses.USES_HISTORY) and speed > 1 and math.abs(local_.X) > math.abs(local_.Z) then
 		local toTarget = frame:PointToObjectSpace(target.Position)
 		local input = {
 			dir = if local_.X < 0 then 1 else -1, -- -X is the wolf's left
 			targetYaw = math.atan2(-toTarget.X, -toTarget.Z),
 		}
-		rig.phase += poses.gaitRate("circle", speed, family.scale) * dt
+		if not poses.USES_HISTORY then -- serpents advance their wave in stepFamily
+			rig.phase += poses.gaitRate("circle", speed, family.scale) * dt
+		end
 		return poses.loops.circle(rig.phase, speed, withExtras(rig, family, input))
 	elseif family.turnInPlace and speed < 0.6 and math.abs(rig.yawRate or 0) > 0.25 then
 		-- a standing turn: the feet shuffle round (+1 turns left, the way yaw increases)

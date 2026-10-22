@@ -217,6 +217,23 @@ them only for work that needs them, and never start Play in them.
   frame around other sessions' ScreenGuis.
 - Previews: anchor every part and tag the folder `EditorOnly`, or Play drops the
   cut-motor copies in a heap.
+- Run `art/enemies/motion_probe.luau` first on any keyed family (set
+  `_G.MOTION = { module, template, def, scale, keyedBlend, seamless, heroes,
+  moves }`; the Ape's config, with heroes `HandFR.FistR_FX`, `Skull.Mouth` and
+  `Chest.Core`, is the example). Use `lows = true`: static key QA passed
+  poses whose blend put a fist 6.8 studs underground (Thunder Ape,
+  2026-10-22). After switching on `seamless`, probe every move again: it
+  exposes pops the old blend hid.
+- A planted limb blended toward a free one passes through "straight down".
+  The solver takes the bend nearest the authored angle, so give planting keys
+  an authored elbow or knee near the planted solution, or it flips mid-blend.
+  Express overlap lag as a fraction of the phase (capped near 25%), not in
+  absolute seconds, or short phases break.
+- Shared files (`EnemyAnimator.luau`, `Quadruped.luau`, `Serpent.luau`, shared
+  docs): other animators edit them at the same time. Run `git diff <file>`
+  right before staging and stage only your hunks (`git add -p` or a blob from
+  `git show HEAD:<file>` plus your hunk), never `git add` the whole file. A
+  parallel commit nearly swallowed another agent's hunks.
 - Static pose QA (lowest point, continuity tables) misses motion bugs. Probe
   motion over the real state timeline instead: windup, dash, recover, the keyed
   blends between them and the hand-off into idle, sampled per frame with part

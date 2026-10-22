@@ -107,8 +107,15 @@ them only for work that needs them, and never start Play in them.
    don't know how a look is made, look up the technique (Creator Hub,
    DevForum, a tutorial) and note it in your report.
 5. **Cast every layer from the library.** The plugin's library is the
-   standard; don't invent ids. Search `tools/vfx_library.json` and the live
-   search for each layer, judge them on contact sheets, and pick per layer,
+   standard; don't invent ids. **Search by what the action causes, not by its
+   name** (user, 2026-10-22). The library's tags are sparse: "roar", "growl"
+   and "beast" find nothing, but a roar pushes air and sound out of the mouth,
+   so search "shockwave", "wave", "ring", "wind", "air" and "dust", and for
+   sound "air", "shockwave", "monster" and "scream". Do the same for every
+   layer: write down its cause (step 4), turn that into the physical things
+   it makes (air, sound, heat, dust, debris, light, liquid), and search
+   those words and their synonyms. Search the live library and
+   `tools/vfx_library.json` for each layer, judge them on contact sheets, and pick per layer,
    saying which asset and why in the plan. The hero and secondary layers get
    a texture, flipbook or mesh with the action's own shape (a roar's sound
    cone, a claw's crescent, an ink splash, a carved crack), not the stock

@@ -179,8 +179,10 @@ surprises you):
     builds that window hidden when Studio starts, so search works without
     anyone opening it; if it errors, ask the user to click vfxLib once. The
     search only matches the library's own tags, which are sparse ("roar" finds
-    nothing, "ink" one image), so try several words, and search sounds by
-    name ("explosion", "slash", "thunder").
+    nothing, "ink" one image), so search by what the action causes rather
+    than its name: a roar is "shockwave", "ring", "wind", "air", "dust", with
+    sounds under "air" ("Air Blast"), "shockwave", "monster" and "scream".
+    Search sounds by name ("explosion", "slash", "thunder").
   - Never scroll the library window through to its end to list everything:
     loading every tile crashed the user's Studio (2026-10-22). Search instead.
   - Tiles only carry ids, so judge looks from thumbnails before using one, on a

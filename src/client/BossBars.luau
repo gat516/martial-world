@@ -29,6 +29,17 @@ local BIG_HIT = 0.05 -- fraction of max health that shakes the bar
 local CRACK_W = 1024 -- cracks image width, for the spread crop
 local CRACK_H = 56
 local GLOW_REST = 0.88 -- the halo behind the bar: faint and static
+-- The slender per-boss v2 frames (BossThemes.FRAMES; art/ui/draw_boss_bars.py
+-- V2_WIN = 64,112 to 960,144 on the 1024x256 canvas): a longer, thinner bar,
+-- the name as plain text above it, the realm small at the bar's right end below
+-- it, and the intro title and omen sharing one row under the bar's middle.
+local V2_LAYOUT = {
+	bar = { pos = UDim2.fromScale(64 / 1024, 112 / 256), size = UDim2.fromScale(896 / 1024, 32 / 256), anchor = Vector2.zero },
+	name = { pos = UDim2.fromScale(0.5, 16 / 256), size = UDim2.fromScale(0.6, 40 / 256), anchor = Vector2.new(0.5, 0) },
+	realm = { pos = UDim2.fromScale(960 / 1024, 152 / 256), size = UDim2.fromScale(0.18, 24 / 256), anchor = Vector2.new(1, 0), align = Enum.TextXAlignment.Right },
+	title = { pos = UDim2.fromScale(0.5, 152 / 256), size = UDim2.fromScale(0.5, 26 / 256), anchor = Vector2.new(0.5, 0) },
+	omen = { pos = UDim2.fromScale(0.5, 150 / 256), size = UDim2.fromScale(0.5, 30 / 256), anchor = Vector2.new(0.5, 0) },
+}
 local TITLE_HOLD = 1.8 -- seconds the title shows in the intro before the omen
 local OMEN_HOLD = 2.6 -- seconds the omen shows before it fades out
 
@@ -55,7 +66,11 @@ type Refs = {
 	realm: TextLabel,
 	omen: TextLabel,
 	home: { [TextLabel]: UDim2 },
+	layouts: { [string]: { [GuiObject]: Placement } },
 }
+
+-- Where a piece sits; each frame style has its own (see V2_LAYOUT).
+type Placement = { pos: UDim2, size: UDim2, anchor: Vector2, align: Enum.TextXAlignment? }
 
 local BossBars = {}
 local r: Refs? = nil
@@ -249,8 +264,19 @@ local function applyTheme(def: Enemies.Def?)
 		return a > b
 	end)
 	-- the per-boss v2 frame once uploaded, else the original art
+	-- the per-boss v2 frame once uploaded (with its own layout), else the original art
 	local v2 = (Themes.FRAMES :: { [string]: string })[id]
-	refs.ornament.Image = if v2 and string.match(v2, "^rbxassetid://%d+$") then v2 else theme.ornament
+	local useV2 = v2 ~= nil and string.match(v2, "^rbxassetid://%d+$") ~= nil
+	refs.ornament.Image = if useV2 then v2 :: string else theme.ornament
+	for inst, p in refs.layouts[if useV2 then "v2" else "original"] do
+		inst.Position = p.pos
+		inst.Size = p.size
+		inst.AnchorPoint = p.anchor
+		if inst:IsA("TextLabel") then
+			(inst :: TextLabel).TextXAlignment = p.align or Enum.TextXAlignment.Center
+			refs.home[inst :: TextLabel] = p.pos
+		end
+	end
 	refs.glow.ImageColor3 = theme.glow
 	refs.trail.BackgroundColor3 = theme.trail
 	refs.cracks.ImageColor3 = theme.crack
@@ -296,8 +322,16 @@ function BossBars.init(frame: CanvasGroup, tierStyles: { [string]: any })
 		realm = body:WaitForChild("RealmLabel") :: TextLabel,
 		omen = body:WaitForChild("OmenLabel") :: TextLabel,
 		home = {},
+		layouts = { original = {}, v2 = {} },
 	}
-	-- authored positions, so a show that interrupts an intro never drifts them
+	-- authored positions (the original art's layout), so a show that interrupts an
+	-- intro never drifts them; and the v2 frames' layout for the same pieces
+	local pieces: { [string]: GuiObject } = { bar = bar, name = refs.name, realm = refs.realm, title = refs.title, omen = refs.omen }
+	for key, inst in pieces do
+		local align = if inst:IsA("TextLabel") then (inst :: TextLabel).TextXAlignment else nil
+		refs.layouts.original[inst] = { pos = inst.Position, size = inst.Size, anchor = inst.AnchorPoint, align = align }
+		refs.layouts.v2[inst] = (V2_LAYOUT :: any)[key]
+	end
 	for _, label in { refs.name, refs.title, refs.realm, refs.omen } do
 		refs.home[label] = label.Position
 	end

@@ -491,31 +491,30 @@ def cracks_png():
     print("wrote bossbar_cracks.png")
 
 
-# ================================================================ v2: one design per boss
-# Four frames that each carry their boss in the rim itself (no emblem or medallion),
-# each built differently: silhouette, material, rim weight and where the ornament
-# sits. Same 1024x256 canvas and the same bar window (WIN) and text areas as above,
-# so they drop into Hud.BossBar unchanged. Drawn to read at ~400px wide (0.39x).
-#   bossbar2_wolf.png  weathered iron, frost fur ruff above, fangs hanging below
-#   bossbar2_fox.png   red lacquer and gold, slim; nine tails curl off the right end
-#   bossbar2_ape.png   a broken stone slab clamped in bronze, split by lightning
-#   bossbar2_jiao.png  thin jade channel; the jiao's body wraps under and round it
+# ================================================================ v2: one slender frame per boss
+# One family, four bosses: a long thin bar, a thin dark rim hugging it, pointed or
+# shaped ends, and small organic accents growing out of the rim with one small motif
+# at top-centre. No plaques (the name is plain stroked text above the bar), no
+# emblem or medallion. Each boss differs in rim material and texture, end finials
+# and the top motif, never by recolour. Same 1024x256 canvas as the originals, but
+# a longer, thinner window (V2_WIN), so BossBars switches the layout with the art:
+#   name text above the bar, realm small at the right above it, the intro title and
+#   omen below. Drawn smooth and anti-aliased; reads at ~400px wide (0.39x).
+#   bossbar2_wolf.png  dark iron, frost tufts and tiny fangs, a fur-crest motif
+#   bossbar2_fox.png   black lacquer with gold lines, foxfire wisps, a curled tail
+#   bossbar2_ape.png   rough dark bronze, lightning hairlines, notched ends, a storm cloud
+#   bossbar2_jiao.png  jade with fine scales, fin curls at the ends, pearl and horns
 WHITE = (255, 255, 255, 255)
+V2_WIN = (64, 112, 960, 144)  # mirrored in BossBars.luau (V2_LAYOUT)
 
 
-def mask_of(draw_fn):
-    m = layer()
-    draw_fn(m)
-    return m
-
-
-def punch(img, box=WIN, r=2, shadow=190):
+def punch(img, box, r=2, shadow=200):
     """Cut the bar window out and darken its edge (the fill shows through)."""
     x0, y0, x1, y1 = box
     hole = Image.new("L", img.size, 255)
     ImageDraw.Draw(hole).rounded_rectangle([x0 * S, y0 * S, x1 * S, y1 * S], radius=r * S, fill=0)
     img.putalpha(ImageChops.multiply(img.getchannel("A"), hole))
-    ImageDraw.Draw(img).rounded_rectangle([x0 * S, y0 * S, x1 * S, y1 * S], radius=r * S, outline=(0, 0, 0, shadow), width=int(2 * S))
+    ImageDraw.Draw(img).rounded_rectangle([x0 * S, y0 * S, x1 * S, y1 * S], radius=r * S, outline=(0, 0, 0, shadow), width=int(2.2 * S))
     return img
 
 
@@ -531,422 +530,238 @@ def grain(img, strength, seed, blur=1.0, cell=4):
     return Image.fromarray(a.astype(np.uint8), "RGBA")
 
 
-def chamfer(x0, y0, x1, y1, c):
-    return [(x0 + c, y0), (x1 - c, y0), (x1, y0 + c), (x1, y1 - c), (x1 - c, y1), (x0 + c, y1), (x0, y1 - c), (x0, y0 + c)]
+def rim_shape(m, pad, tip, ends="point", notch=0):
+    """The thin rim round V2_WIN: pad px of band, ends `tip` px past the window.
+    ends: "point" (arrow tips) or "blunt" (squared ends with a notch cut in)."""
+    x0, y0, x1, y1 = V2_WIN
+    cy = (y0 + y1) / 2
+    t, b = y0 - pad, y1 + pad
+    if ends == "point":
+        pts = [(x0 - 4, t), (x1 + 4, t), (x1 + tip, cy), (x1 + 4, b), (x0 - 4, b), (x0 - tip, cy)]
+    else:
+        e0, e1 = x0 - tip, x1 + tip
+        pts = [(e0 + 4, t), (e1 - 4, t), (e1, t + 4), (e1, cy - notch), (e1 - notch, cy), (e1, cy + notch),
+               (e1, b - 4), (e1 - 4, b), (e0 + 4, b), (e0, b - 4), (e0, cy + notch), (e0 + notch, cy),
+               (e0, cy - notch), (e0, t + 4)]
+    poly(m, pts, WHITE)
+    return pts
 
 
-def feather_plate(img, x0, x1, y0, y1, color, alpha, fx=70, fy=12):
-    """A soft ink banner behind the name, fading at its ends."""
-    xs = np.arange(W * S) / S
-    fade = np.clip(np.minimum(xs - x0, x1 - xs) / fx, 0, 1)
-    fade = fade * fade * (3 - 2 * fade)
-    ys = np.arange(H * S) / S
-    vert = np.clip(np.minimum(ys - y0, y1 - ys) / fy, 0, 1)
-    pl = np.zeros((H * S, W * S, 4), np.uint8)
-    pl[..., :3] = color
-    pl[..., 3] = (fade[None, :] * vert[:, None] * alpha).astype(np.uint8)
-    return Image.alpha_composite(img, Image.fromarray(pl, "RGBA")), fade
+def chevrons(img, color, inset, tip, w=1.6):
+    """A fine chevron line inside each pointed end, echoing the tip."""
+    x0, y0, x1, y1 = V2_WIN
+    cy = (y0 + y1) / 2
+    for sx, ex in ((-1, x0), (1, x1)):
+        a = (ex + sx * 2, y0 - inset)
+        m = (ex + sx * (tip - inset * 2.2), cy)
+        b = (ex + sx * 2, y1 + inset)
+        line(img, [a, m, b], color, w)
 
 
-def rivet(img, x, y, r, face, ink):
-    circ(img, x, y, r + 1.2, ink)
-    circ(img, x, y, r, face)
-    circ(img, x - r * 0.35, y - r * 0.35, r * 0.38, (255, 255, 255, 220))
+def finish_rim(img, pts, top, bot, ink, hi, pad, seed=None, grain_k=0.0):
+    x0, y0, x1, y1 = V2_WIN
+    m = layer()
+    poly(m, pts, WHITE)
+    m = shade(m, top, bot, y0 - pad, y1 + pad)
+    if grain_k:
+        m = grain(m, grain_k, seed, blur=0.5, cell=3)
+    img.alpha_composite(outline(m, ink, 1.8))
+    line(img, [(x0 - 2, y0 - pad + 1.6), (x1 + 2, y0 - pad + 1.6)], hi, 1.1)  # lit top edge
+
+
+def drip(img, x, y, length, width, top, bot, ink):
+    """A small hanging point (icicle, fang, moss drip) from the rim's underside."""
+    d = layer()
+    poly(d, bez((x - width / 2, y), (x - width * 0.2, y + length * 0.6), (x + width * 0.15, y + length))
+         + bez((x + width * 0.15, y + length), (x + width * 0.3, y + length * 0.5), (x + width / 2, y)), WHITE)
+    img.alpha_composite(outline(shade(d, top, bot, y, y + length), ink, 1.3))
+
+
+def tufts(img, cx, base, n, h, spread, top, bot, ink, lean=0.0):
+    """A small cluster of pointed fur/grass tufts rising from the rim."""
+    t = layer()
+    for i in range(n):
+        u = (i - (n - 1) / 2) / max(1, (n - 1) / 2)
+        x = cx + u * spread
+        hh = h * (1 - 0.45 * abs(u))
+        lx = u * spread * 0.35 + lean
+        poly(t, [(x - 5, base + 2), (x - 1 + lx * 0.5, base - hh * 0.6), (x + lx, base - hh), (x + 2 + lx * 0.6, base - hh * 0.5), (x + 5, base + 2)], WHITE)
+    img.alpha_composite(outline(shade(t, top, bot, base - h, base), ink, 1.3))
+
+
+def wisp(img, x, y, s, color):
+    """A tiny flame wisp with a soft glow (foxfire)."""
+    f = layer()
+    poly(f, [(x - 4 * s, y + 2 * s), (x - 1 * s, y - 7 * s), (x + 1 * s, y - 13 * s), (x + 4 * s, y - 3 * s), (x + 4 * s, y + 2 * s), (x, y + 5 * s)], color + (255,))
+    circ(f, x, y + 1 * s, 4 * s, color + (255,))
+    img.alpha_composite(glow_under(f, color, 5, 0.9))
+    circ(img, x, y + 1 * s, 1.8 * s, (246, 240, 255, 255))
 
 
 # ---------------------------------------------------------------- Elder Wolf King v2
 def v2_wolf():
-    """Weathered iron: a heavy chamfered band, iron end blocks with hanging fangs,
-    and a frost-fur ruff rising above the rim to frame an iron name plaque."""
+    """Dark weathered iron with arrow tips; frost tufts on the rim, tiny fangs
+    and icicles beneath the ends, a small fur crest with a frost gem at top-centre."""
     INK = (8, 10, 14, 255)
-    IRON_T, IRON_B = (176, 188, 204), (60, 68, 84)
-    FROST_T, FROST_B = (248, 252, 255), (124, 146, 178)
-    x0, y0, x1, y1 = WIN
+    IRON_T, IRON_B = (124, 134, 152), (30, 34, 44)
+    FROST_T, FROST_B = (248, 252, 255), (130, 152, 186)
+    x0, y0, x1, y1 = V2_WIN
     img = layer()
-    rng = np.random.default_rng(3)
-
-    # fur ruff: tufts leaning out from the centre, tallest where they frame the plate
-    fur = layer()
-    for i in range(46):
-        x = 196 + i * (828 - 196) / 45
-        d = min(abs(x - 300), abs(x - 724))
-        h = 22 + 44 * max(0.0, 1 - d / 150) + rng.uniform(-5, 5)
-        lean = (x - 512) / 512 * 26 + rng.uniform(-4, 4)
-        w = 12
-        poly(fur, [(x - w, 100), (x - 3 + lean * 0.45, 100 - h * 0.62), (x + lean, 100 - h),
-                   (x + 4 + lean * 0.5, 100 - h * 0.5), (x + w, 100)], WHITE)
-    fur = shade(fur, FROST_T, FROST_B, 30, 102)
-    sd = ImageDraw.Draw(fur)
-    for i in range(46):  # strand lines
-        x = 196 + i * (828 - 196) / 45
-        d = min(abs(x - 300), abs(x - 724))
-        h = 18 + 36 * max(0.0, 1 - d / 150)
-        lean = (x - 512) / 512 * 26
-        sd.line([(x * S, 99 * S), ((x + lean * 0.8) * S, (100 - h * 0.75) * S)], fill=(96, 116, 150, 200), width=int(1.4 * S))
-    fur = outline(fur, INK, 1.8)
-    img.alpha_composite(glow_under(fur, (160, 225, 255), 6, 0.35))
-
-    # iron: chamfered band round the window and squat end blocks
-    rim = layer()
-    poly(rim, chamfer(x0 - 22, y0 - 15, x1 + 22, y1 + 15, 9), WHITE)
-    for cx in (x0 - 34, x1 + 34):
-        poly(rim, chamfer(cx - 22, 88, cx + 22, 168, 12), WHITE)
-    rim = grain(shade(rim, IRON_T, IRON_B, 88, 168), 0.22, 5)
-    rim = outline(rim, INK, 2.2)
-    img.alpha_composite(rim)
-    line(img, [(x0 - 13, y0 - 12), (x1 + 13, y0 - 12)], (230, 240, 252, 230), 1.6)  # lit top bevel
-    line(img, [(x0 - 13, y1 + 12), (x1 + 13, y1 + 12)], (30, 36, 48, 230), 1.6)
-    for cx in (x0 - 34, x1 + 34):
-        poly(img, chamfer(cx - 15, 98, cx + 15, 158, 8), None, (24, 30, 40, 255), 1.6)
-        rivet(img, cx, 128, 5, (210, 222, 236, 255), INK)
-    for x in range(214, 830, 62):
-        rivet(img, x, y0 - 7.5, 2.8, (206, 218, 232, 255), INK)
-        rivet(img, x, y1 + 7.5, 2.8, (170, 182, 198, 255), INK)
-
-    # fangs hanging from the end blocks
-    fg = layer()
-    for bx, length, width, curve in [(x0 - 44, 70, 20, 12), (x0 - 20, 42, 13, 7)]:
-        left = bez((bx - width / 2, 164), (bx - width / 2 + curve * 0.2, 164 + length * 0.6), (bx + curve, 164 + length))
-        right = bez((bx + curve, 164 + length), (bx + width / 2 + curve * 0.55, 164 + length * 0.45), (bx + width / 2, 164))
-        poly(fg, left + right, WHITE)
-    fg = shade(fg, (252, 248, 236), (168, 150, 124), 164, 234)
-    fg = Image.alpha_composite(fg, ImageOps.mirror(fg))
-    fg = outline(fg, INK, 1.8)
-    img.alpha_composite(fg)
-    for bx, length in [(x0 - 44, 70), (1024 - (x0 - 44), 70)]:
-        line(img, [(bx - 5, 170), (bx - 2, 164 + length * 0.55)], (255, 255, 255, 210), 1.3)
-
-    # frost rime crusting the top of the band and blocks
-    fr = layer()
-    for i in range(70):
-        x = rng.uniform(x0 - 50, x1 + 50)
-        y = (88 if abs(x - (x0 - 34)) < 22 or abs(x - (x1 + 34)) < 22 else y0 - 15) + rng.uniform(-1, 3)
-        r = rng.uniform(2.5, 6)
-        ImageDraw.Draw(fr).ellipse([(x - r) * S, (y - r * 0.55) * S, (x + r) * S, (y + r * 0.55) * S], fill=(244, 250, 255, 235))
-    img.alpha_composite(fr)
-    for i in range(14):  # crystal glints
-        x, y = rng.uniform(x0 - 40, x1 + 40), rng.choice([y0 - 14, y1 + 14]) + rng.uniform(-2, 2)
-        lozenge(img, x, y, 3.2, (220, 250, 255, 255), (60, 120, 160, 255))
-
-    # iron name plaque (over the ruff's middle) and realm tab
-    pl = layer()
-    poly(pl, chamfer(300, 10, 724, 96, 14), WHITE)
-    pl = outline(grain(shade(pl, (44, 52, 66), (14, 18, 26), 10, 96), 0.12, 9), INK, 2.2)
-    img.alpha_composite(pl)
-    poly(img, chamfer(306, 16, 718, 90, 10), None, (150, 168, 192, 200), 1.2)
-    tab = layer()
-    poly(tab, chamfer(404, 154, 620, 188, 8), WHITE)
-    img.alpha_composite(outline(shade(tab, (44, 52, 66), (16, 20, 28), 154, 188), INK, 2))
-    poly(img, chamfer(409, 158, 615, 184, 6), None, (150, 168, 192, 180), 1.1)
-    return punch(img)
+    pts = rim_shape(layer(), 7, 40)
+    # frost tufts along the top, behind the rim
+    for cx in (150, 330, 694, 874):
+        tufts(img, cx, y0 - 5, 4, 12, 12, FROST_T, FROST_B, INK, lean=(cx - 512) / 512 * 6)
+    tufts(img, 512, y0 - 5, 7, 24, 30, FROST_T, FROST_B, INK)  # the crest
+    finish_rim(img, pts, IRON_T, IRON_B, INK, (220, 230, 244, 220), 7, seed=5, grain_k=0.22)
+    chevrons(img, (200, 214, 232, 200), 3, 40)
+    # tiny fangs and icicles under the ends
+    for x, ln, w in ((x0 + 16, 16, 7), (x0 + 30, 10, 5), (x1 - 16, 16, 7), (x1 - 30, 10, 5)):
+        drip(img, x, y1 + 6, ln, w, (252, 248, 238), (176, 160, 136), INK)
+    for x in (260, 420, 604, 764):
+        drip(img, x, y1 + 6, 8, 4, (236, 246, 255), (140, 170, 200), INK)
+    # frost gem in the crest
+    lozenge(img, 512, y0 - 9, 6.5, (180, 236, 255, 255), INK)
+    circ(img, 510.5, y0 - 11, 1.4, (255, 255, 255, 255))
+    return punch(img, V2_WIN)
 
 
 # ---------------------------------------------------------------- Nine-Tailed Fox v2
 def v2_fox():
-    """Slim red lacquer with gold pinstripes; a gold ruyi spear-point on the left,
-    and nine tails sweeping up off the right end with foxfire at their tips.
-    Asymmetric on purpose."""
-    INK = (24, 6, 10, 255)
-    LAC_T, LAC_B = (222, 58, 46), (110, 12, 22)
-    GOLD = (246, 206, 120, 255)
-    FIRE = (150, 120, 255)
-    x0, y0, x1, y1 = WIN
+    """Black lacquer with fine gold lines; gold hook-curls at the ends, tiny
+    foxfire wisps, and a small curled tail at top-centre."""
+    INK = (14, 4, 8, 255)
+    LAC_T, LAC_B = (54, 16, 22), (14, 3, 6)
+    GOLD = (240, 198, 112, 255)
+    FIRE = (150, 124, 255)
+    x0, y0, x1, y1 = V2_WIN
+    cy = (y0 + y1) / 2
     img = layer()
-
-    # tails first (behind the rim end): fanned up and curling back to the left
-    bx, by = x1 + 8, 128
-    tails = []
-    for i in range(9):
-        ang = math.radians(-8 - i * 13.5)
-        r = 128 - abs(i - 4) * 6
-        tip = (bx + 30 + r * math.cos(ang), by + r * math.sin(ang) * 0.92)
-        c1 = (bx + 46, by + 2)
-        c2 = (tip[0] + 34 * math.cos(ang + 0.9), tip[1] + 34 * math.sin(ang + 0.9))
-        tails.append((bez3((bx, by), c1, c2, tip, 70), tip, ang))
-    for pts, tip, ang in reversed(tails):
-        t = layer()
-        tube(t, pts, 22, 5, (236, 96, 40), (255, 236, 212), 0.35)
-        img.alpha_composite(outline(t, INK, 1.5))
-    for pts, tip, ang in tails[::2]:  # foxfire on alternate tips
-        f = layer()
-        fx, fy = tip
-        poly(f, [(fx - 5, fy + 2), (fx, fy - 16), (fx + 5, fy + 2), (fx, fy + 6)], FIRE + (255,))
-        circ(f, fx, fy + 1, 5, FIRE + (255,))
-        img.alpha_composite(glow_under(f, FIRE, 6, 0.9))
-        circ(img, fx, fy, 2.2, (240, 236, 255, 255))
-
-    # lacquer band with gold pinstripes
-    band = layer()
-    rrect(band, (x0 - 11, y0 - 9, x1 + 14, y1 + 9), 10, WHITE)
-    band = outline(shade(band, LAC_T, LAC_B, y0 - 9, y1 + 9), INK, 2)
-    img.alpha_composite(band)
+    pts = rim_shape(layer(), 6, 30)
+    # gold hook-curls springing from each end
+    for sx, ex in ((-1, x0 - 30), (1, x1 + 30)):
+        h = layer()
+        curl = []
+        for k in range(50):
+            a = k / 49 * 1.5 * math.pi
+            r = 11 * (1 - k / 70)
+            curl.append((ex - sx * 4 + sx * (8 + math.sin(a) * r), cy - 14 + math.cos(a) * r - 4))
+        tube(h, [(ex, cy)] + bez((ex, cy), (ex + sx * 8, cy - 6), curl[0], 12) + curl, 3.4, 1.4, (250, 216, 140), (190, 130, 50))
+        img.alpha_composite(outline(h, INK, 1.1))
+    finish_rim(img, pts, LAC_T, LAC_B, INK, (255, 220, 160, 140), 6)
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle([(x0 - 8) * S, (y0 - 6) * S, (x1 + 11) * S, (y1 + 6) * S], radius=8 * S, outline=GOLD, width=int(1.6 * S))
-    line(img, [(x0 + 4, y0 - 7.5), (x1 - 4, y0 - 7.5)], (255, 236, 200, 150), 0.8)
-
-    # gold ruyi spear-point on the left end
-    sp = layer()
-    poly(sp, [(x0 - 10, y0 - 7), (x0 - 46, y0 - 7), (x0 - 70, 128), (x0 - 46, y1 + 7), (x0 - 10, y1 + 7)], WHITE)
-    poly(sp, [(x0 - 66, 118), (x0 - 112, 128), (x0 - 66, 138)], WHITE)
-    sp = outline(shade(sp, (255, 232, 160), (170, 104, 36), 108, 148), INK, 1.8)
-    img.alpha_composite(sp)
+    line(img, [(x0 - 2, y0 - 3), (x1 + 2, y0 - 3)], GOLD, 1.0)  # gold pinstripes
+    line(img, [(x0 - 2, y1 + 3), (x1 + 2, y1 + 3)], GOLD, 1.0)
+    chevrons(img, GOLD, 2.5, 30, 1.3)
+    for x in range(x0 + 112, x1 - 50, 224):  # small gold studs along the rim
+        lozenge(img, x, y0 - 3, 3.2, GOLD, INK)
+        lozenge(img, x, y1 + 3, 3.2, GOLD, INK)
+    # foxfire wisps at the ends
+    wisp(img, x0 - 16, y0 - 10, 0.9, FIRE)
+    wisp(img, x1 + 14, y0 - 12, 0.8, FIRE)
+    wisp(img, x1 + 26, y1 + 12, 0.6, FIRE)
+    # the curled tail at top-centre: a plume rising off the rim and hooking over
     t = layer()
-    pts = []
-    for k in range(60):  # ruyi curl on the spear
-        a = k / 59 * 1.7 * math.pi
-        r = 12 * (1 - k / 75)
-        pts.append((x0 - 40 + math.cos(a + math.pi) * r, 128 + math.sin(a + math.pi) * r))
-    tube(t, pts, 4.5, 2, (120, 30, 30), (90, 16, 20))
-    img.alpha_composite(t)
-    for fx, fy in [(x0 - 100, 98), (x0 - 82, 160)]:  # stray foxfire
-        f = layer()
-        poly(f, [(fx - 4, fy + 2), (fx, fy - 12), (fx + 4, fy + 2), (fx, fy + 5)], FIRE + (255,))
-        circ(f, fx, fy + 1, 4, FIRE + (255,))
-        img.alpha_composite(glow_under(f, FIRE, 5, 0.8))
-
-    # lacquer cartouche for the name, and a small realm pill
-    pl = layer()
-    rrect(pl, (300, 12, 724, 94), 30, WHITE)
-    img.alpha_composite(outline(shade(pl, (40, 12, 20), (14, 4, 8), 12, 94), INK, 2))
-    d = ImageDraw.Draw(img)
-    d.rounded_rectangle([300 * S, 12 * S, 724 * S, 94 * S], radius=30 * S, outline=GOLD, width=int(2 * S))
-    d.rounded_rectangle([307 * S, 19 * S, 717 * S, 87 * S], radius=24 * S, outline=(246, 206, 120, 120), width=int(1 * S))
-    for cx in (300, 724):
-        lozenge(img, cx, 53, 9, GOLD, INK)
-    pq = layer()
-    rrect(pq, (408, 155, 616, 186), 15, WHITE)
-    img.alpha_composite(outline(shade(pq, (40, 12, 20), (16, 4, 8), 155, 186), INK, 1.8))
-    ImageDraw.Draw(img).rounded_rectangle([408 * S, 155 * S, 616 * S, 186 * S], radius=15 * S, outline=GOLD, width=int(1.5 * S))
-    return punch(img, r=3)
+    path = bez3((498, y0 - 3), (476, y0 - 30), (508, y0 - 50), (538, y0 - 34), 80)
+    tube(t, path, 7, 3, (226, 92, 40), (250, 196, 150), 1.6)
+    tip = layer()
+    tube(tip, path[56:], 9.5, 3, (255, 236, 214), (255, 250, 240), 0.6)
+    t.alpha_composite(tip)
+    img.alpha_composite(glow_under(outline(t, INK, 1.4), FIRE, 6, 0.35))
+    return punch(img, V2_WIN)
 
 
 # ---------------------------------------------------------------- Thunder Ape v2
-def jag(pts, amp, rng, step=10):
-    """Roughen a polyline into a broken-stone edge."""
-    out = []
-    for (ax, ay), (bx, by) in zip(pts, pts[1:]):
-        n = max(1, int(math.hypot(bx - ax, by - ay) / step))
-        for k in range(n):
-            t = k / n
-            out.append((ax + (bx - ax) * t + rng.uniform(-amp, amp) * 0.5, ay + (by - ay) * t + rng.uniform(-amp, amp)))
-    out.append(pts[-1])
-    return out
-
-
-def bolt_path(p0, p1, rng, segs=7, amp=7):
-    pts = [p0]
-    for k in range(1, segs):
-        t = k / segs
-        pts.append((p0[0] + (p1[0] - p0[0]) * t + rng.uniform(-amp, amp), p0[1] + (p1[1] - p0[1]) * t + rng.uniform(-amp, amp)))
-    pts.append(p1)
-    return pts
-
-
 def v2_ape():
-    """A broken stone slab, thick and blocky, clamped in bronze at the ends and
-    split by glowing lightning cracks; a rough slate lintel carries the name."""
-    INK = (10, 10, 12, 255)
-    STONE_T, STONE_B = (150, 144, 132), (62, 58, 54)
-    BRZ_T, BRZ_B = (234, 176, 96), (112, 64, 28)
-    ARC = (120, 200, 255)
-    x0, y0, x1, y1 = WIN
+    """Rough dark bronze, blunt notched ends, a few faint lightning hairlines in
+    the rim, and a small storm-cloud tuft with a bolt at top-centre."""
+    INK = (10, 9, 8, 255)
+    BRZ_T, BRZ_B = (112, 84, 56), (30, 22, 16)
+    ARC = (130, 205, 255)
+    x0, y0, x1, y1 = V2_WIN
     rng = np.random.default_rng(11)
     img = layer()
-
-    # the slab: jagged top and bottom edges, broken chunky ends
-    outline_pts = (
-        jag([(118, 96), (300, 92), (512, 94), (724, 92), (906, 96)], 5, rng)
-        + jag([(906, 96), (930, 84), (944, 112), (926, 150), (946, 178), (900, 168)], 7, rng, 8)
-        + jag([(900, 168), (724, 166), (512, 164), (300, 166), (124, 168)], 5, rng)
-        + jag([(124, 168), (80, 180), (94, 140), (74, 104), (100, 80), (118, 96)], 7, rng, 8)
-    )
-    slab = layer()
-    poly(slab, outline_pts, WHITE)
-    slab = grain(shade(slab, STONE_T, STONE_B, 84, 182), 0.32, 13, blur=0.6, cell=3)
-    img.alpha_composite(outline(slab, INK, 2.4))
-    # chipped bevel: light flecks on the top edge, dark pits
-    for i in range(46):
-        x = rng.uniform(110, 910)
-        poly(img, [(x, 97 + rng.uniform(0, 3)), (x + rng.uniform(6, 14), 98 + rng.uniform(0, 3)), (x + rng.uniform(2, 8), 103)], (196, 190, 176, 200))
-    for i in range(30):
-        x, y = rng.uniform(100, 920), rng.choice([rng.uniform(150, 163), rng.uniform(100, 106)])
-        circ(img, x, y, rng.uniform(1, 2.2), (40, 36, 34, 200))
-
-    # lightning cracks through the stone (never across the window)
-    cr = layer()
-    paths = [bolt_path((x0 - 6, 104), (96, 92), rng), bolt_path((x0 - 30, 150), (88, 172), rng),
-             bolt_path((x1 + 6, 152), (934, 172), rng), bolt_path((x1 + 30, 104), (936, 92), rng),
-             bolt_path((360, 98), (420, 108), rng, 4, 3), bolt_path((640, 162), (700, 158), rng, 4, 3)]
-    for p in paths:
-        line(cr, p, ARC + (255,), 3.4)
-    glow = cr.filter(ImageFilter.GaussianBlur(4 * S))
-    img.alpha_composite(glow)
-    img.alpha_composite(glow)
-    for p in paths:
-        line(img, p, (30, 50, 90, 255), 3.6)
-        line(img, p, (236, 248, 255, 255), 1.6)
-
-    # bronze clamps round the ends
-    for cx in (x0 - 22, x1 + 22):
-        c = layer()
-        poly(c, [(cx - 15, 86), (cx + 15, 86), (cx + 17, 172), (cx - 17, 172)], WHITE)
-        c = outline(grain(shade(c, BRZ_T, BRZ_B, 86, 172), 0.15, 21), INK, 2)
-        img.alpha_composite(c)
-        line(img, [(cx - 12, 92), (cx + 12, 92)], (255, 228, 170, 230), 1.4)
-        for yy in (100, 156):
-            rivet(img, cx, yy, 3.4, (250, 210, 140, 255), INK)
-
-    # rough slate lintel for the name, a crack glowing at one corner
-    lt = layer()
-    poly(lt, jag([(292, 12), (512, 8), (732, 12)], 4, rng) + jag([(732, 12), (740, 54), (734, 96)], 4, rng)
-         + jag([(734, 96), (512, 100), (290, 96)], 4, rng) + jag([(290, 96), (284, 54), (292, 12)], 4, rng), WHITE)
-    lt = grain(shade(lt, (66, 66, 72), (30, 30, 36), 8, 100), 0.25, 17, blur=0.6, cell=3)
-    img.alpha_composite(outline(lt, INK, 2.2))
-    p = bolt_path((732, 30), (700, 10), rng, 4, 4)
-    c2 = layer()
-    line(c2, p, ARC + (255,), 3)
-    img.alpha_composite(c2.filter(ImageFilter.GaussianBlur(3 * S)))
-    line(img, p, (236, 248, 255, 255), 1.4)
-    # bronze realm tablet
-    tb = layer()
-    poly(tb, jag([(404, 156), (620, 156)], 2, rng) + [(624, 188), (400, 188)], WHITE)
-    img.alpha_composite(outline(grain(shade(tb, (120, 78, 40), (60, 34, 16), 156, 188), 0.12, 23), INK, 2))
-    line(img, [(408, 160), (616, 160)], (255, 214, 150, 200), 1.1)
-    return punch(img, r=1)
+    pts = rim_shape(layer(), 8, 24, ends="blunt", notch=11)
+    finish_rim(img, pts, BRZ_T, BRZ_B, INK, (236, 196, 140, 170), 8, seed=13, grain_k=0.35)
+    # faint lightning hairlines running in the rim
+    for (ax, ay, bx, by) in ((x0 + 40, y0 - 4, x0 + 150, y0 - 5), (x1 - 170, y1 + 4, x1 - 60, y1 + 5), (380, y1 + 5, 450, y1 + 4)):
+        p = [(ax, ay)]
+        for k in range(1, 6):
+            t = k / 6
+            p.append((ax + (bx - ax) * t, ay + (by - ay) * t + rng.uniform(-2.2, 2.2)))
+        p.append((bx, by))
+        g = layer()
+        line(g, p, ARC + (255,), 2.4)
+        img.alpha_composite(g.filter(ImageFilter.GaussianBlur(2.2 * S)))
+        line(img, p, (220, 242, 255, 220), 0.9)
+    # notched end caps get a lit bevel
+    for ex in (x0 - 22, x1 + 22):
+        line(img, [(ex + (4 if ex < 512 else -4), y0 - 6), (ex + (4 if ex < 512 else -4), y1 + 6)], (210, 170, 110, 140), 1.0)
+    # storm-cloud tuft with a little bolt at top-centre
+    c = layer()
+    for cx, cyy, r in ((490, y0 - 15, 11), (511, y0 - 24, 14), (533, y0 - 15, 11), (512, y0 - 11, 11)):
+        circ(c, cx, cyy, r, WHITE)
+    img.alpha_composite(outline(shade(c, (150, 158, 184), (52, 56, 76), y0 - 38, y0 - 2), INK, 1.4))
+    b = layer()
+    poly(b, [(518, y0 - 18), (504, y0 - 2), (512, y0 - 2), (504, y0 + 10), (524, y0 - 8), (515, y0 - 8), (524, y0 - 18)], WHITE)
+    bb = outline(shade(b, (255, 252, 200), (250, 196, 70), y0 - 18, y0 + 10), INK, 1.0)
+    img.alpha_composite(glow_under(bb, ARC, 4, 0.7))
+    return punch(img, V2_WIN, r=1)
 
 
 # ---------------------------------------------------------------- Jade Jiao v2
-def body_path():
-    """The jiao's centreline: head above the left end, round the end, under the
-    bar, round the right end and up into a trailing tail fin."""
-    pts = []
-    pts += bez3((122, 74), (86, 92), (80, 160), (138, 186), 40)  # neck down round the left end
-    for k in range(1, 81):  # along under the bar, gently weaving
-        t = k / 80
-        x = 138 + (884 - 138) * t
-        pts.append((x, 186 + 7 * math.sin(t * 3 * math.pi)))
-    pts += bez3((884, 186), (950, 180), (958, 110), (906, 84), 40)[1:]  # round the right end
-    pts += bez3((906, 84), (880, 72), (860, 66), (836, 60), 20)[1:]  # tail trailing back
-    return pts
-
-
 def v2_jiao():
-    """A thin dark-jade channel; the jiao's scaled body wraps under and round the
-    bar, horned head rising over the left end, whiskers trailing, tail fin up on
-    the right; waves curl below; a jade pearl carries the realm."""
-    INK = (6, 20, 18, 255)
-    JADE_T, JADE_B = (160, 240, 196), (22, 112, 92)
-    BELLY = (236, 232, 190)
-    HORN = (238, 214, 140)
-    x0, y0, x1, y1 = WIN
+    """Jade with a fine scale texture, small fin curls sweeping back from each
+    end, and a luminous pearl between two tiny horns at top-centre."""
+    INK = (4, 22, 18, 255)
+    JADE_T, JADE_B = (126, 210, 176), (18, 84, 70)
+    x0, y0, x1, y1 = V2_WIN
+    cy = (y0 + y1) / 2
     img = layer()
-
-    # soft dark-teal banner for the name
-    img, _ = feather_plate(img, 280, 744, 10, 98, (6, 30, 30), 215, 80, 14)
-    for y in (14, 94):
-        t = layer()
-        pts = [(x, y + 2.2 * math.sin((x - 280) / 22)) for x in range(300, 726, 3)]
-        line(t, pts, (150, 230, 200, 200), 1.3)
-        img.alpha_composite(t)
-
-    # waves curling under each end
-    for sx in (1, -1):
-        w = layer()
-        cx = 150 if sx == 1 else 874
-        for k, (ox, oy, r) in enumerate([(0, 222, 22), (40 * sx, 230, 16)]):
-            pts = []
-            for i in range(50):
-                a = i / 49 * 1.6 * math.pi
-                rr = r * (1 - i / 70)
-                pts.append((cx + ox + sx * math.cos(a + math.pi) * rr, oy + math.sin(a + math.pi) * rr))
-            tube(w, pts, 7, 2.5, (110, 210, 220), (236, 252, 255))
-        img.alpha_composite(outline(w, INK, 1.4))
-
-    # the body: jade tube, belly stripe toward the bar, scale arcs, dorsal fins
-    path = body_path()
-    n = len(path)
-    fins = layer()
-    for k in range(10, n - 30, 9):
-        (ax, ay), (bx, by) = path[k], path[k + 1]
-        dx, dy = bx - ax, by - ay
-        L = math.hypot(dx, dy) or 1
-        nx, ny = dy / L, -dx / L  # outward (away from the bar)
-        w = 15
-        px, py = ax + nx * w * 0.6, ay + ny * w * 0.6
-        poly(fins, [(px - dx / L * 6, py - dy / L * 6), (px + nx * 11 + dx / L * 4, py + ny * 11 + dy / L * 4), (px + dx / L * 6, py + dy / L * 6)], WHITE)
-    fins = outline(shade(fins, (120, 220, 200), (30, 120, 110), 60, 230), INK, 1.2)
-    img.alpha_composite(fins)
-    body = layer()
-    widths = [10 + 7 * math.sin(min(1.0, k / 30) * math.pi / 2) - (5 * max(0, k - (n - 70)) / 70) for k in range(n)]
-    d = ImageDraw.Draw(body)
-    for k, (x, y) in enumerate(path):
-        r = widths[k]
-        d.ellipse([(x - r) * S, (y - r) * S, (x + r) * S, (y + r) * S], fill=WHITE)
-    body = shade(body, JADE_T, JADE_B, 60, 210)
-    sc = ImageDraw.Draw(body)
-    for k in range(4, n - 6, 3):  # scale arcs
-        x, y = path[k]
-        r = widths[k] * 0.62
-        sc.arc([(x - r) * S, (y - r) * S, (x + r) * S, (y + r) * S], 20, 160, fill=(18, 90, 72, 210), width=int(1.3 * S))
-    body = outline(body, INK, 1.8)
-    img.alpha_composite(body)
-    belly = layer()
-    for k in range(6, n - 20):
-        (ax, ay), (bx, by) = path[k], path[min(k + 1, n - 1)]
-        dx, dy = bx - ax, by - ay
-        L = math.hypot(dx, dy) or 1
-        nx, ny = -dy / L, dx / L  # toward the bar
-        r = widths[k] * 0.32
-        ox, oy = ax + nx * widths[k] * 0.55, ay + ny * widths[k] * 0.55
-        ImageDraw.Draw(belly).ellipse([(ox - r) * S, (oy - r) * S, (ox + r) * S, (oy + r) * S], fill=BELLY + (255,))
-    img.alpha_composite(belly)
-    # tail fin
-    tf = layer()
-    poly(tf, [(840, 60), (812, 34), (826, 58), (796, 50), (824, 70), (842, 66)], WHITE)
-    img.alpha_composite(outline(shade(tf, (170, 240, 220), (40, 140, 120), 34, 70), INK, 1.4))
-
-    # the head over the left end, facing the name
-    hd = layer()
-    hx, hy = 122, 66
-    poly(hd, [(hx - 22, hy + 8), (hx - 14, hy - 12), (hx + 6, hy - 18), (hx + 30, hy - 10), (hx + 52, hy - 4),
-              (hx + 56, hy + 4), (hx + 34, hy + 8), (hx + 46, hy + 16), (hx + 20, hy + 20), (hx - 8, hy + 22)], WHITE)
-    hd = outline(shade(hd, JADE_T, JADE_B, hy - 18, hy + 22), INK, 1.8)
-    img.alpha_composite(hd)
-    line(img, [(hx + 34, hy + 8), (hx + 52, hy + 2)], INK, 1.2)  # mouth line
-    circ(img, hx + 14, hy - 6, 4, INK)
-    circ(img, hx + 14, hy - 6, 2.6, (250, 214, 70, 255))
-    circ(img, hx + 15, hy - 7, 0.9, INK)
-    for (a, b, c) in [((hx - 4, hy - 14), (hx - 24, hy - 40), (hx - 40, hy - 44)), ((hx + 4, hy - 16), (hx - 2, hy - 44), (hx - 14, hy - 58))]:
-        h = layer()
-        tube(h, bez(a, b, c, 30), 6, 2.4, HORN, (255, 244, 210))
-        mid = bez(a, b, c, 30)[18]
-        tube(h, bez(mid, (mid[0] - 2, mid[1] - 10), (mid[0] + 6, mid[1] - 16), 14), 3.4, 1.6, HORN, (255, 244, 210))
-        img.alpha_composite(outline(h, INK, 1.2))
-    for (a, b, c) in [((hx + 50, hy + 2), (hx + 80, hy + 4), (hx + 92, hy + 30)), ((hx + 48, hy + 8), (hx + 64, hy + 30), (hx + 54, hy + 52))]:
+    pts = rim_shape(layer(), 7, 34)
+    # swept fins: three rays and a membrane rising back along the rim from each tip
+    for sx, ex in ((-1, x0 - 34), (1, x1 + 34)):
+        f = layer()
+        base = ex - sx * 12
+        poly(f, [(base, y0 - 4), (base - sx * 2, y0 - 24), (base - sx * 16, y0 - 12), (base - sx * 20, y0 - 28),
+                 (base - sx * 32, y0 - 10), (base - sx * 40, y0 - 22), (base - sx * 52, y0 - 4)], WHITE)
+        f = outline(shade(f, (176, 244, 220), (30, 128, 110), y0 - 28, y0), INK, 1.2)
+        img.alpha_composite(f)
+    m = layer()
+    poly(m, pts, WHITE)
+    m = shade(m, JADE_T, JADE_B, y0 - 7, y1 + 7)
+    sd = ImageDraw.Draw(m)
+    for row, yy in enumerate((y0 - 4, y1 + 4)):  # fine scale arcs along the band
+        for x in range(int(x0 - 10), int(x1 + 10), 9):
+            xx = x + (4.5 if row else 0)
+            sd.arc([(xx - 5) * S, (yy - 4) * S, (xx + 5) * S, (yy + 4) * S], 20, 160, fill=(12, 70, 58, 210), width=int(1.0 * S))
+    img.alpha_composite(outline(m, INK, 1.8))
+    line(img, [(x0 - 2, y0 - 5.4), (x1 + 2, y0 - 5.4)], (214, 255, 236, 200), 1.0)
+    chevrons(img, (200, 250, 230, 190), 3, 34)
+    # whisker curls trailing off the tips
+    for sx, ex in ((-1, x0 - 34), (1, x1 + 34)):
         wsk = layer()
-        tube(wsk, bez(a, b, c, 40), 2.8, 1.0, (236, 228, 180), (200, 240, 220))
-        img.alpha_composite(outline(wsk, INK, 0.8))
-
-    # thin dark-jade channel round the window (over the body)
-    ch = layer()
-    rrect(ch, (x0 - 8, y0 - 7, x1 + 8, y1 + 7), 8, WHITE)
-    img.alpha_composite(outline(shade(ch, (40, 120, 104), (10, 44, 40), y0 - 7, y1 + 7), INK, 1.8))
-    ImageDraw.Draw(img).rounded_rectangle([(x0 - 5) * S, (y0 - 4.5) * S, (x1 + 5) * S, (y1 + 4.5) * S], radius=6 * S, outline=(170, 240, 210, 170), width=int(1.1 * S))
-
-    # jade pearl plaque for the realm, sitting on the body
-    pq = layer()
-    ImageDraw.Draw(pq).ellipse([402 * S, 154 * S, 622 * S, 190 * S], fill=WHITE)
-    pq = glow_under(outline(shade(pq, (44, 120, 104), (10, 46, 40), 154, 190), INK, 1.8), (150, 255, 220), 6, 0.6)
-    img.alpha_composite(pq)
-    ImageDraw.Draw(img).ellipse([408 * S, 158 * S, 616 * S, 186 * S], outline=(190, 250, 225, 170), width=int(1.1 * S))
-    return punch(img, r=3)
+        tube(wsk, bez((ex, cy), (ex + sx * 14, cy + 4), (ex + sx * 10, cy + 18), 30), 2.2, 0.9, (226, 230, 186), (190, 240, 220))
+        img.alpha_composite(outline(wsk, INK, 0.7))
+    # the flaming pearl at top-centre: a luminous jade pearl with three flame licks
+    fl = layer()
+    for ang, ln in ((-90, 22), (-140, 16), (-40, 16)):
+        a = math.radians(ang)
+        bx, by = 512 + math.cos(a) * 8, y0 - 14 + math.sin(a) * 8
+        tx, ty = 512 + math.cos(a) * (8 + ln), y0 - 14 + math.sin(a) * (8 + ln)
+        tube(fl, bez((bx, by), ((bx + tx) / 2 + 5, (by + ty) / 2), (tx, ty), 24), 7, 1.5, (120, 230, 200), (230, 255, 246))
+    img.alpha_composite(glow_under(outline(fl, INK, 1.0), (150, 255, 220), 5, 0.6))
+    p = layer()
+    circ(p, 512, y0 - 14, 11, WHITE)
+    p = shade(p, (240, 255, 250), (110, 214, 184), y0 - 25, y0 - 3)
+    img.alpha_composite(glow_under(outline(p, INK, 1.3), (160, 255, 220), 6, 0.7))
+    circ(img, 508, y0 - 18, 3, (255, 255, 255, 240))
+    return punch(img, V2_WIN, r=3)
 
 
 def build_v2():
     for fn, name in ((v2_wolf, "bossbar2_wolf.png"), (v2_fox, "bossbar2_fox.png"),
                      (v2_ape, "bossbar2_ape.png"), (v2_jiao, "bossbar2_jiao.png")):
         finish(fn(), name)
-
 
 
 def build():

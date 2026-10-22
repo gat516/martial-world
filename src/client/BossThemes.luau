@@ -19,10 +19,11 @@
 --              One is picked at random per fight. Keep lines under ~26 characters.
 local Themes = {}
 
--- ASSET IDS: the per-boss v2 frames (art/ui/draw_boss_bars.py v2_*), keyed by
--- def id. Paste each uploaded rbxassetid:// here (and record it in
+-- ASSET IDS: the per-boss slender v2 frames (art/ui/draw_boss_bars.py v2_*),
+-- keyed by def id. Paste each uploaded rbxassetid:// here (and record it in
 -- art/ui/assets.json). While a value still starts with "PASTE-ID:" the bar
--- uses that theme's original `ornament` frame instead.
+-- uses that theme's original `ornament` frame and layout instead; a real id
+-- switches BossBars to the v2 layout (BossBars.V2_LAYOUT).
 Themes.FRAMES = {
 	ElderWolfKing = "PASTE-ID:bossbar2_wolf.png",
 	NineTailFox = "PASTE-ID:bossbar2_fox.png",

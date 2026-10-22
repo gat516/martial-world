@@ -749,6 +749,33 @@ Humanoid on a live enemy, and client code finds the body under `Body`.
   dedicated fights, sounds or VFX. The Flame Raven's server stand-in would take its whole 15-stud wingspan as a
   hitbox.
 
+## Boss projectiles (design, not built)
+
+User decision (2026-10-21): real projectiles are for **bosses only**. Regular
+beasts (the Venom Serpent's spit) keep their ground circles, and player
+techniques keep resolving at Hit with the flight drawn on top.
+
+A projectile is a real object in flight: it hits whoever it reaches when it
+reaches them, so a player beats it by sidestepping or dashing through it (dodge
+i-frames pass through it; a last-moment dodge counts as a perfect one), and
+walls or rising ground stop it. The hit uses the attack's reaction and
+knockback ([combat](combat.md#enemy-hits-reaction-level-and-knockback)).
+
+Planned shape (to confirm before building):
+- One server module simulating each projectile from its spawn (origin,
+  direction, speed, start time, optional gravity arc or slight homing),
+  sweeping a sphere from its last position to its new one each Heartbeat
+  against players and terrain, with the same high-ping grace as `caught`
+  (`ESCAPE_LEAD`). Clients get one spawn message and draw the flight
+  themselves (an EnemyFX cue); nothing replicates per frame.
+- The telegraph is a short aim line in the windup, then the projectile
+  itself. Lobbed shots keep a landing circle.
+- First candidates: Thunder Ape `boulderHurl` (lobbed, landing circle) and
+  `thunderLance`; Jade Jiao `venomLance` and `venomSpray` (today a moving hit
+  front down a lane); Nine-Tailed Fox `foxfireVolley`. Each conversion needs
+  its effect reworked to fly from the projectile (vfx agent) and goes to the
+  testbed first.
+
 ## Data flow
 Spawner decides where -> `EnemyService.spawn` clones the type's root-only stand-in,
 sets its health attributes and tags it `Enemy` -> every client builds its body ->

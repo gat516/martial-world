@@ -185,6 +185,182 @@ function WeaponFX.worldParams(character: Model?): RaycastParams
 	return params
 end
 
+-- ------------------------------------------------------------ the held weapon
+
+-- The held weapon's span in world space, read off its model's attachments
+-- (WeaponModels contract): `Tip` is the point; the root is `Base` (the blade
+-- starts at the guard), or in `full` mode the grip end (`butt` on a staff, else
+-- `grip`), so a staff glows end to end and a spear along its whole shaft. With
+-- no weapon it is a virtual blade off the right arm (a fist is not a sword,
+-- but the effect keeps its place). Everything made on a rig rides the weapon
+-- part, so it follows the swing and is gone with `release`.
+export type Rig = {
+	part: BasePart, -- the weapon part the attachments ride (the Hilt/HiltR joint part)
+	from: Attachment, -- root end
+	to: Attachment, -- point
+	real: boolean, -- false: a virtual blade off the arm
+	length: number, -- studs, root -> point
+	at: (self: Rig, f: number) -> Vector3, -- world point `f` (0 root .. 1 point) along it now
+	attach: (self: Rig, f: number, name: string?) -> Attachment, -- an attachment riding the weapon at `f`
+	owned: { Instance },
+}
+
+function WeaponFX.rig(character: Model?, full: boolean?): Rig?
+	if not character then
+		return nil
+	end
+	local owned: { Instance } = {}
+	local part: BasePart? = nil
+	local from: Attachment? = nil
+	local to: Attachment? = nil
+	for _, child in character:GetChildren() do
+		if not (child:IsA("Model") or child:IsA("Tool") or child:IsA("Accessory")) then
+			continue
+		end
+		local tip = child:FindFirstChild("Tip", true) or child:FindFirstChild("tip", true)
+		if tip and tip:IsA("Attachment") and tip.Parent and tip.Parent:IsA("BasePart") then
+			local root: Instance? = nil
+			if full then
+				root = child:FindFirstChild("butt", true) or child:FindFirstChild("grip", true)
+			end
+			root = root or child:FindFirstChild("Base", true) or child:FindFirstChild("guard", true) or child:FindFirstChild("grip", true)
+			if root and root:IsA("Attachment") then
+				part, from, to = tip.Parent :: BasePart, root, tip
+				break
+			end
+		end
+	end
+	local rig: any = { owned = owned }
+	if part and from and to then
+		rig.part, rig.from, rig.to, rig.real = part, from, to, true
+	else
+		local arm = character:FindFirstChild("Right Arm") or character:FindFirstChild("RightHand")
+		if not (arm and arm:IsA("BasePart")) then
+			return nil
+		end
+		local down = -arm.CFrame.UpVector
+		local hand = arm.Position + down * (arm.Size.Y / 2)
+		local function virtual(name: string, at: Vector3): Attachment
+			local a = Instance.new("Attachment")
+			a.Name = name
+			a.Parent = arm
+			a.WorldPosition = at
+			table.insert(owned, a)
+			return a
+		end
+		rig.part, rig.real = arm, false
+		rig.from, rig.to = virtual("_RigFrom", hand + down * 0.6), virtual("_RigTo", hand + down * 4.2)
+	end
+	function rig:at(f: number): Vector3
+		local a, b = self.from.WorldPosition, self.to.WorldPosition
+		return a + (b - a) * f
+	end
+	function rig:attach(f: number, name: string?): Attachment
+		local a = Instance.new("Attachment")
+		a.Name = name or "_RigAt"
+		a.Parent = self.part
+		a.WorldPosition = self:at(f)
+		table.insert(self.owned, a)
+		return a
+	end
+	rig.length = (rig.to.WorldPosition - rig.from.WorldPosition).Magnitude
+	return rig :: Rig
+end
+
+function WeaponFX.releaseRig(rig: Rig?, delay: number?)
+	if not rig then
+		return
+	end
+	task.delay(delay or 0, function()
+		for _, inst in rig.owned do
+			inst:Destroy()
+		end
+	end)
+end
+
+-- Anticipation on the weapon itself. `template` is the technique's `Charge`
+-- part: its Attachments carry an `At` attribute (0 root .. 1 point) and are
+-- moved onto the weapon at that fraction, with their emitters; Beams/Trails
+-- find their own attachments (a Beam named `Glow` between `At` 0 and 1 draws
+-- the blade wreathed in qi). Everything loops for `seconds` (the windup, to
+-- Hit), then stops and cleans itself up; `onHit` (the Hit moment, cast start
+-- + seconds) is left to the caller. Returns the rig, or nil without a template.
+function WeaponFX.charge(character: Model?, template: Instance?, seconds: number, full: boolean?): Rig?
+	if not (character and template) then
+		return nil
+	end
+	local rig = WeaponFX.rig(character, full)
+	if not rig then
+		return nil
+	end
+	local holder = template:Clone()
+	local list = holder:GetDescendants()
+	local lives = 0.6
+	for _, d in list do
+		if d:IsA("Attachment") and type(d:GetAttribute("At")) == "number" then
+			d.Parent = rig.part
+			d.WorldPosition = rig:at(d:GetAttribute("At") :: number)
+			table.insert(rig.owned, d)
+		end
+	end
+	for _, d in list do
+		if d:IsA("Beam") or d:IsA("Trail") then
+			d.Parent = rig.part
+			table.insert(rig.owned, d)
+			;(d :: any).Enabled = true
+		elseif d:IsA("ParticleEmitter") then
+			lives = math.max(lives, d.Lifetime.Max)
+			d.Enabled = true
+		end
+	end
+	holder:Destroy()
+	task.delay(seconds, function()
+		for _, d in rig.owned do
+			if d:IsA("ParticleEmitter") then
+				d.Enabled = false
+			end
+			if d:IsA("Attachment") then
+				for _, e in d:GetChildren() do
+					if e:IsA("ParticleEmitter") then
+						e.Enabled = false
+					end
+				end
+			end
+			if d:IsA("Beam") or d:IsA("Trail") then
+				(d :: any).Enabled = false
+			end
+		end
+		WeaponFX.releaseRig(rig, lives + 0.3)
+	end)
+	return rig
+end
+
+-- Seconds from Hit to Hit Stop of hit `index` at the cast's playback speed
+-- (def.hits[i].stop - .time, the clip's own markers), else the whole active
+-- window of the cast profile.
+function WeaponFX.hitWindow(def: any, index: number?): number
+	local h = type(def.hits) == "table" and def.hits[index or 1]
+	local speed = if type(def.castSpeed) == "number" and def.castSpeed > 0 then def.castSpeed else 1
+	if type(h) == "table" then
+		local stop = h.stop or h.hitStop
+		if type(h.time) == "number" and type(stop) == "number" and stop > h.time then
+			return (stop - h.time) / speed
+		end
+	end
+	local ok, phases = pcall(CastFX.phases, def)
+	return if ok and type(phases) == "table" then phases.active else 0.1
+end
+
+-- Seconds after Hit when something travelling the line should land its hits so
+-- every impact stays inside the active window (Hit -> Hit Stop) plus a little
+-- slack: a damage number appears at Hit, so the hit it belongs to must not
+-- trail it by more than a few frames. `arrival` is when the projectile front
+-- reaches the target on its own clock, `travel` its full flight.
+function WeaponFX.landing(arrival: number, travel: number, active: number): number
+	local window = math.max(active, 0.1)
+	return math.min(arrival * window / math.max(travel, 1e-3), window)
+end
+
 -- Fire a detached template part at a CFrame with its Body attachment raised.
 function WeaponFX.burst(part: BasePart?, cframe: CFrame, bodyHeight: number?)
 	if not part then

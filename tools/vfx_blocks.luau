@@ -91,6 +91,13 @@ B.ASSETS = {
 	rockMesh = id(17608108317), -- Inno stylized Rock_03 (Craters UseMesh)
 	torusMesh = id(471124075), -- torus ring mesh (MeshSize 150 x 9.51 x 150; lies flat in XZ)
 	swirlRingMesh = id(122217820569960), -- flat swirl ring (impact swirl)
+	ink = id(16132530029), -- black ink splat (the dark base under a bright hit)
+	hitFlip = id(13580358178), -- 4x4 flipbook: a spiky star burst opening and breaking up (tintable white)
+	splatFlip = id(12360899465), -- 4x4 flipbook: a blotch blowing out into a ragged ring (tintable white)
+	smokeFlip = id(14200879082), -- 4x4 flipbook: a smoke burst
+	glint = id(13366348510), -- crisp 4-point star
+	mote = id(9841260273), -- small glowing spindle mote
+	streaks = id(5699911427), -- vertical qi streaks (beam texture)
 }
 
 B.COLORS = {
@@ -102,6 +109,7 @@ B.COLORS = {
 	ring = Color3.fromRGB(255, 240, 205), -- Neon torus rings (impact, air, ground wave)
 	groundRing = Color3.fromRGB(255, 224, 150), -- the ground shock under a target
 	swirl = Color3.fromRGB(255, 214, 130), -- impact swirl and bubble
+	ink = Color3.fromRGB(30, 24, 34), -- the dark base under bright layers
 }
 
 local A, Cl = B.ASSETS, B.COLORS
@@ -263,6 +271,12 @@ function B.releaseFlash(root, tier, p)
 		Size = NS({ KP(0, 0.8), KP(1, 1.6 + tier * 0.3) }), Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
 		Lifetime = R(0.22), LightEmission = 0.4,
 	}, { EmitCount = 1 })
+	-- a crisp cross glint that outlives the flash (the eye keeps the release)
+	B.emitter(part, "Glint", {
+		Texture = A.glint, Color = CS(core),
+		Size = NS({ KP(0, 0.4), KP(0.25, 1.8 + tier * 0.4), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(0.3), LightEmission = 0.8, Rotation = R(-10, 10), ZOffset = 1.5,
+	}, { EmitCount = 1 })
 	if tier >= 2 then
 		B.emitter(part, "Sparks", {
 			Texture = A.spindle, Color = CS(core), Orientation = Enum.ParticleOrientation.VelocityParallel,
@@ -325,7 +339,8 @@ function B.handGather(root, tier, p)
 		ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface,
 		Size = NS({ KP(0, 0.25), KP(1, 0.05) }), Transparency = NS({ KP(0, 1), KP(0.3, 0.2), KP(1, 0) }),
 		Lifetime = R(0.3), Speed = R(7, 9), LightEmission = 0.6, LockedToPart = true,
-	}, { EmitCount = ({ 5, 7, 9, 12 })[tier] })
+		Rate = ({ 26, 34, 42, 54 })[tier], -- a stream through the whole windup, not one burst
+	}, { EmitDuration = pick(p, "windup", 0.38) })
 	B.emitter(windup, "Charge", {
 		Texture = A.glow, Color = CS(core),
 		Size = NS({ KP(0, 0.1), KP(1, 0.7 + tier * 0.12) }), Transparency = NS({ KP(0, 0.8), KP(1, 0.2) }),
@@ -369,6 +384,63 @@ function B.handGather(root, tier, p)
 	return windup
 end
 
+-- Anticipation on the real weapon (the runtime's WeaponFX.charge rides it on
+-- the held model's Base -> Tip, or grip/butt -> Tip when p.full): part
+-- "Charge" whose Attachments carry `At` (0 root .. 1 point). A dark beam under
+-- a bright one wreathes the blade, qi motes loop off it and a glint blinks at
+-- the point. Everything is disabled until the runtime turns it on at cast
+-- start; it stops at Hit. p.color, p.core, p.ink, p.width (beam studs).
+function B.bladeCharge(root, tier, p)
+	local gold, core, ink = pick(p, "color", Cl.gold), pick(p, "core", Cl.core), pick(p, "ink", Cl.ink)
+	local charge = B.part(root, "Charge", O * CFrame.new(0, 3, -1), Vector3.new(1, 1, 1))
+	local from, to = pick(p, "from", 0), pick(p, "to", 1)
+	local a0 = B.attach(charge, "Edge0", Vector3.zero, { At = from })
+	local a1 = B.attach(charge, "Edge1", Vector3.new(0, 0.5, 0), { At = to })
+	local w = pick(p, "width", 0.5)
+	local function beam(name, width, color, transparency, light, texture)
+		local b = Instance.new("Beam")
+		b.Name = name
+		b.Attachment0, b.Attachment1 = a0, a1
+		b.Width0, b.Width1 = width, width * 0.55
+		b.FaceCamera = true
+		b.Color = CS(color)
+		b.LightEmission, b.LightInfluence = light, 0
+		b.Transparency = NS(transparency)
+		if texture then
+			b.Texture, b.TextureMode, b.TextureLength = texture, Enum.TextureMode.Wrap, 3
+			b.TextureSpeed = -2
+		end
+		b.Segments = 1
+		b.Enabled = false
+		b.Parent = charge
+		return b
+	end
+	beam("Dark", w * 2.4, ink, 0.55, 0, nil) -- dark base: reads on grass at noon
+	beam("Glow", w * 1.3, gold, 0.25, 0.6, nil)
+	beam("Core", w * 0.45, core, 0.05, 0.9, nil)
+	local rate = ({ 16, 22, 28, 36 })[tier]
+	for i, at in ({ 0.3, 0.6, 0.9 }) do
+		local a = B.attach(charge, "Mote" .. i, Vector3.zero, { At = from + (to - from) * at })
+		B.emitter(a, "Motes", {
+			Texture = A.mote, Color = CS(core, gold),
+			SpreadAngle = Vector2.new(180, 180), Size = NS({ KP(0, 0.28), KP(1, 0) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+			Lifetime = R(0.3, 0.5), Speed = R(1, 3.5), Drag = 2, LightEmission = 0.7, Rotation = R(0, 360), Rate = rate * 0.4,
+		})
+	end
+	local point = B.attach(charge, "Point", Vector3.zero, { At = to })
+	B.emitter(point, "Glint", {
+		Texture = A.glint, Color = CS(core),
+		Size = NS({ KP(0, 0.3), KP(0.4, 1.2 + tier * 0.25), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(1, 1) }),
+		Lifetime = R(0.18), LightEmission = 0.9, Rotation = R(-15, 15), Rate = 7 + tier * 2, ZOffset = 1,
+	})
+	B.emitter(point, "Halo", {
+		Texture = A.glow, Color = CS(gold),
+		Size = NS({ KP(0, 0.4), KP(1, 1.5 + tier * 0.25) }), Transparency = NS({ KP(0, 0.55), KP(1, 1) }),
+		Lifetime = R(0.25), LightEmission = 0.5, Rate = 10,
+	})
+	return charge
+end
+
 function B.impactBurst(root, tier, p)
 	local gold, core = pick(p, "color", Cl.gold), pick(p, "core", Cl.core)
 	local impact = B.part(root, pick(p, "part", "Impact"), pick(p, "at", O * CFrame.new(0, 0.15, -6)))
@@ -388,6 +460,20 @@ function B.impactBurst(root, tier, p)
 		Size = NS({ KP(0, 0.5), KP(1, 2.2 + tier * 0.35) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.25), KP(1, 1) }),
 		Lifetime = R(0.2), LightEmission = 0.45, Rotation = R(0, 360), ZOffset = 2.8,
 	}, { EmitCount = 1 })
+	-- dark base: an ink splat sits behind the bright layers so the hit reads on
+	-- grass at noon, and a flipbook star burst opens and breaks up over the same
+	-- ~0.3 s (tail of the Hit -> Hit Stop stack)
+	B.emitter(body, "Ink", {
+		Texture = A.ink, Color = CS(pick(p, "ink", Cl.ink)),
+		Size = NS({ KP(0, 1.1), KP(0.2, 2.6 + tier * 0.3), KP(1, 3.3 + tier * 0.35) }), Transparency = NS({ KP(0, 0.15), KP(0.55, 0.4), KP(1, 1) }),
+		Lifetime = R(0.36), LightEmission = 0, Rotation = R(0, 360), ZOffset = 2.1,
+	}, { EmitCount = 1 })
+	B.emitter(body, "HitFlip", {
+		Texture = A.hitFlip, Color = CS(core, gold),
+		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+		Size = NS({ KP(0, 2.4 + tier * 0.3), KP(1, 3.4 + tier * 0.4) }), Transparency = NS({ KP(0, 0.1), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(0.3), LightEmission = 0.6, Rotation = R(0, 360), ZOffset = 2.7,
+	}, { EmitCount = 1 })
 	B.emitter(body, "Sparks", {
 		Texture = A.spindle, Color = CS(core), Orientation = Enum.ParticleOrientation.VelocityParallel,
 		SpreadAngle = Vector2.new(180, 180),
@@ -401,6 +487,14 @@ function B.impactBurst(root, tier, p)
 			Size = NS({ KP(0, 0.6), KP(1, 1.5) }), Transparency = NS({ KP(0, 0.45), KP(1, 1) }),
 			Lifetime = R(0.4, 0.6), Speed = R(6, 10), Drag = 4, Rotation = R(0, 360), ZOffset = 1,
 		}, { EmitCount = ({ 0, 3, 4, 5 })[tier] })
+	end
+	if tier >= 3 then
+		B.emitter(body, "Smoke", {
+			Texture = A.smokeFlip, Color = CS(Cl.dust), LightInfluence = 0.4,
+			FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+			Size = NS({ KP(0, 1.6), KP(1, 3.2) }), Transparency = NS({ KP(0, 0.55), KP(1, 1) }),
+			Lifetime = R(0.7), Rotation = R(0, 360), ZOffset = 1.5,
+		}, { EmitCount = 1 })
 	end
 	if tier >= 3 then
 		B.emitter(body, "Shards", {
@@ -612,7 +706,7 @@ local BLOCKS = {
 	handGather = B.handGather, impactBurst = B.impactBurst, impactShockwave = B.impactShockwave,
 	airShockwave = B.airShockwave, shockwaveShell = B.shockwaveShell, craterRing = B.craterRing,
 	screenShake = B.screenShake, impactStack = B.impactStack,
-	emitter = B.emitterBlock,
+	emitter = B.emitterBlock, bladeCharge = B.bladeCharge,
 }
 B.BLOCKS = BLOCKS
 

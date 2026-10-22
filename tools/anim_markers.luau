@@ -31,8 +31,12 @@ _G.animMarkers = function(animation)
 	for _, d in asset:GetDescendants() do
 		if d:IsA("Keyframe") then
 			length = math.max(length, d.Time)
-			for _, m in d:GetMarkers() do
-				table.insert(markers, { name = m.Name, time = d.Time, value = m.Value })
+			-- markers live as KeyframeMarker children; GetMarkers() returns
+			-- nothing for assets loaded with GetObjects, so read the instances
+			for _, m in d:GetChildren() do
+				if m:IsA("KeyframeMarker") then
+					table.insert(markers, { name = m.Name, time = d.Time, value = m.Value })
+				end
 			end
 		elseif d:IsA("MarkerCurve") then
 			for _, m in d:GetMarkers() do

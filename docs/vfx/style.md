@@ -134,6 +134,24 @@ Anticipation in the striking limb, release flash, travel, impact stack, tail.
 Sync to the animation's markers ([toolkit.md](toolkit.md)). Tiers add layers:
 tier I is a clean 4 to 6 layer stack, tier IV adds the screen and the world.
 
+The remake rules (user, 2026-10-21: "the design of all of them are great ... remake
+them in respect to our weapon models and hit / hit stop timings"):
+- **A weapon technique comes off the weapon, not the hand.** The anticipation
+  is a `Charge` part that rides the held model's `Base` -> `Tip` span (a dark
+  beam under a bright one, motes along the edge, a glint at the point;
+  `WeaponFX.charge`), the release flashes at the live `Tip`, trails and arcs
+  sit on the real blade length. A staff or spear glows end to end (`full`).
+  Fist and bare-hand techniques keep the hand.
+- **The cast has three clocks, and every layer sits on one.** Windup (cast
+  start -> `Hit`): the charge, a stream through the whole windup rather than
+  one burst. Active (`Hit` -> `Hit Stop`): the release, the travel and every
+  impact stack; a projectile's arrival is squeezed into this window
+  (`WeaponFX.landing`) because the damage number shows at `Hit`. Recovery
+  (after `Hit Stop`): the tail (embers, scars, smoke) keeps its own fade.
+- **Dark under light, on every hit.** The impact stack carries an ink splat
+  behind the white-hot star and a flipbook burst that opens and breaks up, so a
+  hit reads on grass at noon; tier III+ adds a smoke flipbook tail.
+
 ### World events and anomalies
 
 The loudest effects in the game. They are seen from across the map, so they

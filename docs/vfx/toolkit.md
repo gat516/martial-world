@@ -267,6 +267,18 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
   Hit. The Fists animations are R6. Palm Strike (Fists.4) strikes with the
   left arm, which is still sweeping in at Hit and fully extended ~0.04 s
   later.
+- A weapon technique anchors to the held weapon model (`ServerStorage.WeaponModels`:
+  `Tip` and `Base` attachments on the joint part, plus `grip`/`butt`/`head` anchors).
+  `WeaponFX.rig(character, full)` returns the live span (`Base` -> `Tip`, or
+  `butt`/`grip` -> `Tip` with `full`, a virtual 4-stud blade off the arm when
+  nothing is held) with `at(f)` and `attach(f)` (attachments that ride the
+  weapon). A template's `Charge` part (block `bladeCharge`: Attachments with an
+  `At` attribute 0..1) is played on it by `CombatEffects.windup` for every
+  technique whose `weapon` is a class: `WeaponFX.charge` moves the attachments
+  (with their emitters, Beams and Trails) onto the weapon and stops them at
+  Hit. `TechniqueVFX.spawn` strips `Charge` from the release copy. A technique
+  module can also export `windup(CombatEffects, def, level, character, seconds)`
+  and return true to replace the default.
 - Charge gathers into that limb during windup, and the release visibly travels
   from it to where the gameplay shape starts (e.g. hand → ground → ring).
   Gameplay shapes stay centred where the hitbox is (circles on the caster's
@@ -438,6 +450,23 @@ Other sessions use the same Studio and the same `_G`. Before a capture run:
 
 ### Module and add-on gotchas
 
+- `tools/vfx_session.luau` is over Studio's 200,000-character Script.Source
+  limit, so the one-line bootstrap fails. Load the helpers file by file instead:
+  for each of `export_rbxm`, `anim_markers`, `vfx_diff`, `vfx_blocks`,
+  `vfx_preview`, `vfx_stage` (`vfx_blocks` again after editing it, and the spec),
+  `Instance.new("ModuleScript")`, `Source = HttpService:GetAsync("http://127.0.0.1:8766/<name>.luau")`,
+  `require`. A fresh sandbox has no `workspace.Rig`: make one with
+  `Players:CreateHumanoidModelFromDescription(Instance.new("HumanoidDescription"), Enum.HumanoidRigType.R6)`
+  named `Rig`, and hang a weapon on it like `Weapons.apply` does
+  (`weapon:PivotTo(arm.CFrame * joint.C0 * joint.C1:Inverse() * hilt.PivotOffset)`, parent it, then
+  `joint.Part0 = arm`). Push edited `src/` modules with `tools/push_src.luau` before a preview.
+- `screen_capture` captures whichever Studio is in front, not the `studio_id` you pass,
+  so with several Studios open (the user's, other sandboxes) a capture can show
+  somebody else's scene. Check the capture is yours before trusting it; otherwise
+  verify numerically and leave the look to the user.
+- Several `GetObjects` animation loads in one `execute_luau` can drop the MCP
+  connection ("Target is not reachable"); load two or three per call.
+
 - The Game Module doesn't descend into Parts nested inside a Part, only into
   its emitters and attachments; emitting a Model reaches everything. Emit a
   SplineVFX part nested in another part on its own.
@@ -565,6 +594,9 @@ effect, read that animation's markers (animation events):
    `_G.animMarkers("ReplicatedStorage.Animations.Fists.4")` (or an Animation
    instance, or an `rbxassetid://` id). It returns the length and every marker
    with its time and value.
+   Markers are `KeyframeMarker` instances under each Keyframe: `tools/anim_markers.luau`
+   reads them (its first version read `GetMarkers()`, which returns nothing for
+   assets loaded with `GetObjects`).
 3. Design the effect around the events it has. Today the Fists animations
    carry `Hit` (release, the hitbox opens) and `Hit Stop` (the hitbox closes):
    charge during windup, release and the impact burst at `Hit`, the strongest
@@ -589,7 +621,11 @@ effect, read that animation's markers (animation events):
      scales Lifetime and EmitDelay.
    - Time per-target impacts from the wave emitter's own Size curve (when the
      front reaches that distance, `frontTime` in CombatEffects), not from
-     constants.
+     constants. A projectile's arrival is then squeezed into the blow's window:
+     `WeaponFX.hitWindow(def, i)` is hit i's Hit -> Hit Stop at play speed and
+     `WeaponFX.landing(arrival, travel, window)` returns the delay (never later
+     than max(window, 0.1 s)), so the impact stack lands with the damage number
+     instead of up to 0.3 s after it. Authored flights are 0.12-0.18 s.
 5. **Stop and report** if the effect needs events the animation doesn't have.
    For example, a held beam with no start/end markers, a barrage with one `Hit`
    for many blows, or a charge with no release marker. Say which animation,

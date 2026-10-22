@@ -208,6 +208,27 @@ function CombatEffects.windup(character: Model, id: string, level: number)
 		return
 	end
 	local def = Techniques.Defs[id]
+	-- a technique that draws its own anticipation (a twirl, a charge that is
+	-- not a hand gather) takes over from here
+	local own = techniqueModule(id)
+	if own and type(own.windup) == "function" then
+		local ok, handled = pcall(own.windup, CombatEffects, def, level, character, CastFX.phases(def).windup)
+		if not ok then
+			warn(`TechniqueFX.{id}.windup:`, handled)
+		elseif handled then
+			return
+		end
+	end
+	-- weapon skills charge along the real blade (its `Charge` part), not in
+	-- the hand: the weapon model's Base/Tip attachments say where it is
+	local template = TechniqueVFX.template(id, level)
+	local charge = template and template:FindFirstChild("Charge")
+	if charge and def.weapon ~= "Any" and def.weapon ~= "Fist" then
+		local WeaponFX = require(script.Parent.TechniqueFX.WeaponFX)
+		if WeaponFX.charge(character, charge, CastFX.phases(def).windup, def.weapon == "Staff" or def.weapon == "Spear") then
+			return
+		end
+	end
 	local function at(): CFrame
 		local hand = CastFX.handPosition(character, def.hand)
 		return if hand then CFrame.lookAt(hand, hand + root.CFrame.LookVector) else root.CFrame * CFrame.new(0, 0, -1.2)

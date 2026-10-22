@@ -313,6 +313,11 @@ function TechniqueVFX.fit(inst: Instance, phase: string?, authored: number?, act
 		if type(delay) == "number" then
 			d:SetAttribute("EmitDelay", delay * k)
 		end
+		-- a stream that runs for the authored phase runs for the real one
+		local duration = d:GetAttribute("EmitDuration")
+		if type(duration) == "number" and duration > 0 then
+			d:SetAttribute("EmitDuration", duration * k)
+		end
 	end
 end
 
@@ -353,6 +358,12 @@ function TechniqueVFX.spawn(id: string, level: number, cframe: CFrame): (Model?,
 		return nil, tier
 	end
 	local copy = template:Clone()
+	-- `Charge` is the anticipation along the held weapon, played at cast start
+	-- by CombatEffects.windup (WeaponFX.charge); the release never plays it
+	local charge = copy:FindFirstChild("Charge")
+	if charge then
+		charge:Destroy()
+	end
 	stepCounts(copy, step)
 	copy:PivotTo(cframe)
 	copy.Parent = TechniqueVFX.folder

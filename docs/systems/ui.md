@@ -170,8 +170,8 @@ cursor, settings and the admin panel.
   holds no ids: `BossBars` sets the images. A value still `PASTE-ID:...` is a
   placeholder and that image is hidden (a missing emblem falls back to the
   default's), so the bar degrades to backing, trail and fill.
-  Gaps: the art is drawn but not uploaded yet (the user uploads it from
-  `art/fbx_export/`); once it is, check the 9-slice in Studio. The fox, python
+  Gaps: the 9-slice frame and emblems are uploaded but not yet checked in
+  Studio. The fox, python
   and ape themes are untested until those bosses exist; the phase cracks are one
   shared image.
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`

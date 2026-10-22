@@ -23,8 +23,8 @@ local Themes = {}
 -- a placeholder; BossBars hides that image (the bar then shows only its
 -- backing, trail and fill, and a missing emblem falls back to the default's).
 Themes.ART = {
-	frame = "PASTE-ID:bossbar_frame.png", -- Body.Frame, the 9-sliced rim
-	gloss = "PASTE-ID:bossbar_gloss.png", -- Bar.Gloss, the channel bevel
+	frame = "rbxassetid://138795396175478", -- Body.Frame, the 9-sliced rim
+	gloss = "rbxassetid://99818947891977", -- Bar.Gloss, the channel bevel
 }
 
 export type Theme = {
@@ -47,7 +47,7 @@ local c = Color3.fromRGB
 
 Themes.default = {
 	title = "Calamity of the Wilds",
-	emblem = "PASTE-ID:bossbar_emblem_default.png",
+	emblem = "rbxassetid://137597767183814",
 	fill = { c(236, 66, 52), c(136, 16, 20) },
 	phaseFill = { c(255, 120, 60), c(170, 40, 20) },
 	trail = c(255, 236, 200),
@@ -69,7 +69,7 @@ Themes.default = {
 -- Moon-silver on ink-slate; gold is the warning colour; spirit-cyan ghosts; jade seal.
 Themes.ElderWolfKing = {
 	title = "Sovereign of the Silver Peaks",
-	emblem = "PASTE-ID:bossbar_emblem_wolf.png",
+	emblem = "rbxassetid://95837482059535",
 	fill = { c(120, 214, 255), c(22, 92, 178) },
 	phaseFill = { c(255, 214, 120), c(190, 120, 40) },
 	trail = c(240, 250, 255),
@@ -91,7 +91,7 @@ Themes.ElderWolfKing = {
 -- Foxfire and tail-magic.
 Themes.NineTailFox = {
 	title = "Matriarch of the Foxfire Mists",
-	emblem = "PASTE-ID:bossbar_emblem_fox.png",
+	emblem = "rbxassetid://136055338533795",
 	fill = { c(255, 160, 70), c(196, 58, 32) },
 	phaseFill = { c(190, 140, 255), c(96, 52, 190) },
 	trail = c(255, 240, 220),
@@ -113,7 +113,7 @@ Themes.NineTailFox = {
 -- Venom green and jade scales: cold-blooded, coiled, patient.
 Themes.JadeJiao = {
 	title = "Coiled Terror of the Jade Marsh",
-	emblem = "PASTE-ID:bossbar_emblem_serpent.png",
+	emblem = "rbxassetid://102132008384241",
 	fill = { c(130, 232, 90), c(18, 116, 58) },
 	phaseFill = { c(214, 255, 70), c(110, 150, 20) },
 	trail = c(240, 255, 210),
@@ -135,7 +135,7 @@ Themes.JadeJiao = {
 -- Storm and lightning: static, ozone, brute weight, a light touch of wildness.
 Themes.ThunderApe = {
 	title = "Thunderlord of the Storm Crags",
-	emblem = "PASTE-ID:bossbar_emblem_storm.png",
+	emblem = "rbxassetid://132316172976874",
 	fill = { c(120, 176, 255), c(40, 64, 206) },
 	phaseFill = { c(255, 240, 150), c(230, 150, 40) },
 	trail = c(255, 250, 210),

@@ -131,11 +131,11 @@
   "mg_glow.png": "rbxassetid://117458769929844",
   "pulse_path.png": "rbxassetid://90247115334267",
   "bossbar_cracks.png": "rbxassetid://80216185509648",
-  "bossbar_frame.png": "PASTE-ID",
-  "bossbar_gloss.png": "PASTE-ID",
-  "bossbar_emblem_default.png": "PASTE-ID",
-  "bossbar_emblem_wolf.png": "PASTE-ID",
-  "bossbar_emblem_fox.png": "PASTE-ID",
-  "bossbar_emblem_serpent.png": "PASTE-ID",
-  "bossbar_emblem_storm.png": "PASTE-ID"
+  "bossbar_frame.png": "rbxassetid://138795396175478",
+  "bossbar_gloss.png": "rbxassetid://99818947891977",
+  "bossbar_emblem_default.png": "rbxassetid://137597767183814",
+  "bossbar_emblem_wolf.png": "rbxassetid://95837482059535",
+  "bossbar_emblem_fox.png": "rbxassetid://136055338533795",
+  "bossbar_emblem_serpent.png": "rbxassetid://102132008384241",
+  "bossbar_emblem_storm.png": "rbxassetid://132316172976874"
 }

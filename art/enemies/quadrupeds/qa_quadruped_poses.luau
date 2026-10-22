@@ -40,11 +40,37 @@ local CONFIGS = {
 		speeds = { idle = { 0 }, walk = { 3, 6 }, run = { 12, 14 }, circle = { 5 } },
 	},
 }
+CONFIGS.NineTailFox = {
+	module = "NineTailFox",
+	template = function()
+		return ServerStorage.Enemies.NineTailFoxB
+	end,
+	groundBelowHRP = 5.54,
+	scale = 2.13, -- the module's poses are unit space; EnemyAnimator applies the scale
+	feet = { "PawFL", "PawFR", "PawBL", "PawBR" },
+	mids = { "JointLowerLegFL", "JointLowerLegFR", "JointLowerLegBL", "JointLowerLegBR" },
+	range = 1.9,
+	skipPattern = "^Tail%d", -- tails are checked on their own until the rebuilt geometry lands
+	mergeOk = { ["Hips|LowerLegBL"] = 0.7, ["Hips|LowerLegBR"] = 0.7, ["Chest|LowerLegFL"] = 0.4, ["Chest|LowerLegFR"] = 0.4, ["LowerLegFL|Neck"] = 0.3, ["LowerLegFR|Neck"] = 0.3 },
+	input = { stage = 2 },
+	speeds = { idle = { 0 }, walk = { 4, 8 }, run = { 9, 14, 22, 24 }, circle = { 6 } },
+}
 local cfg = CONFIGS[_G.QP_CONFIG or "Boar"]
-
 local Poses = require(game:GetService("StarterPlayer").StarterPlayerScripts.Client.EnemyPoses:Clone()[cfg.module])
+if _G.QP_VARIANT and Poses.setAll then
+	Poses.setAll(_G.QP_VARIANT)
+end
+local function unit(pose)
+	if cfg.scale then
+		return Poses.scaled(pose, cfg.scale)
+	end
+	return pose
+end
 
 local template = cfg.template()
+if Poses.configure then
+	Poses.configure(template) -- read the rig's own tail data
+end
 local hrp = template.HumanoidRootPart
 local GROUND = hrp.Position.Y - cfg.groundBelowHRP
 
@@ -159,6 +185,7 @@ local PAWS = cfg.feet
 local MIDS = cfg.mids
 
 local function check(label, pose)
+	pose = unit(pose)
 	local boxes = solve(pose)
 	local issues = {}
 	local all = {}
@@ -186,14 +213,14 @@ local function check(label, pose)
 		table.insert(slide, ("%+.2f"):format(z))
 	end
 	for seg, parent in parentOf do
-		if boxes[seg] and boxes[parent] and segDepth(boxes, seg, parent) < -0.02 then
+		if not (cfg.skipPattern and (seg:match(cfg.skipPattern) or parent:match(cfg.skipPattern))) and boxes[seg] and boxes[parent] and segDepth(boxes, seg, parent) < -0.02 then
 			table.insert(issues, "GAP " .. parent .. "/" .. seg)
 		end
 	end
 	for i, a in segs do
 		for j = i + 1, #segs do
 			local b = segs[j]
-			if not adjacent(a, b) and restDepth[a .. "|" .. b] < 0 then
+			if not adjacent(a, b) and restDepth[a .. "|" .. b] < 0 and not (cfg.skipPattern and (a:match(cfg.skipPattern) or b:match(cfg.skipPattern))) then
 				local dd = segDepth(boxes, a, b)
 				local chain = parentOf[parentOf[a] or ""] == b or parentOf[parentOf[b] or ""] == a
 				local allow = (cfg.mergeOk and (cfg.mergeOk[a .. "|" .. b] or cfg.mergeOk[b .. "|" .. a])) or (if chain then 0.15 else 0.08)
@@ -245,7 +272,7 @@ for move, phases in Poses.moves do
 			table.sort(list)
 			for _, u in list do
 				for _, side in (p.mirror and { 1, -1 } or { 1 }) do
-					local pose = Poses.sample(move, phaseName, u, { side = side })
+					local pose = Poses.sample(move, phaseName, u, { side = side, stage = 2, duration = if move == "RendingPounce" and phaseName == "active" then 0.55 else nil })
 					table.insert(out, check(("%s.%s %.2f%s"):format(move, phaseName, u, side < 0 and " L" or ""), pose))
 				end
 			end
@@ -291,6 +318,7 @@ if _G.QP_PREVIEW then
 		else
 			pose = Poses.sample(spec[1], spec[2], spec[3], spec[4] or {})
 		end
+		pose = unit(pose)
 		local copy = template:Clone()
 		copy.Name = ("%02d_%s_%s_%s"):format(i, tostring(spec[1]), tostring(spec[2]), tostring(spec[3]))
 		copy:PivotTo(CFrame.new(-200 - (i - 1) * 14 - 7, 400 + cfg.groundBelowHRP, 3100) * CFrame.Angles(0, math.pi / 2, 0))

@@ -2,19 +2,21 @@
 -- The screen health bar for the boss you're fighting (Play.BossBar), themed per
 -- boss (BossThemes.luau; fallback `default`). EnemyBars decides which boss it
 -- is for and calls show / hide / setHealth / setTier.
---   BossBar (CanvasGroup) > Body > Glow, Bar (Back, Trail, Fill, Slips, Ticks,
---   Cracks, Flare), Ornament, NameLabel, TitleLabel, RealmLabel, OmenLabel;
---   Play.BossVignette is the screen-edge darkening for the top danger tiers.
+--   BossBar (CanvasGroup, slim: name row, 16px bar, an intro-only text row)
+--   > Body > Glow, Bar (Back, Trail, Fill, Slips, Ticks, Cracks, Flare),
+--   Ornament (> CapL, CapR), NameLabel, RealmLabel, TitleLabel, OmenLabel.
+-- It must stay out of the way of the fight: no screen darkening, no looping
+-- pulses, small and short hit/phase feedback.
 -- Same visual language as the regular overhead bars: ten talisman slips on the
--- bar, a realm tag, danger-tier dressing (EnemyBars.STYLES, Pacing.Danger) and an
--- omen line, just grander.
---   Intro: the frame pops in, the fill sweeps up, name, title, realm and the omen
---     (picked from the theme's pool for the danger tier) rise in one after another.
+-- bar, a realm tag, danger-tier colours (EnemyBars.STYLES, Pacing.Danger).
+--   Intro: the bar fades in, the fill sweeps up, the name and realm rise in;
+--     under the bar the theme's title shows, then the omen (picked from the
+--     theme's pool for the danger tier), and both fade out fully.
 --   Hits: the fill drops at once, the trail drains after it; a hit of BIG_HIT or
---     more shakes the frame and flashes the fill.
+--     more gives a small nudge and flash.
 --   Phases (def.summonAt, or theme.phases): a tick on the bar for each; crossing
---     one flares the bar, shakes it, and spreads cracks, warms the colours and
---     brightens the glow for the rest of the fight.
+--     one flashes the bar, nudges it, spreads faint cracks and warms the
+--     colours for the rest of the fight.
 
 local TweenService = game:GetService("TweenService")
 
@@ -25,8 +27,9 @@ local Themes = require(script.Parent.BossThemes)
 local BIG_HIT = 0.05 -- fraction of max health that shakes the bar
 local CRACK_W = 1024 -- cracks image width, for the spread crop
 local CRACK_H = 56
-local TIER_RANK = { below = 0, even = 0, above = 1, far = 2, deadly = 3 }
-local VIGNETTE = { far = Color3.fromRGB(70, 20, 110), deadly = Color3.fromRGB(110, 8, 14) }
+local GLOW_REST = 0.88 -- the halo behind the bar: faint and static
+local TITLE_HOLD = 1.8 -- seconds the title shows in the intro before the omen
+local OMEN_HOLD = 2.6 -- seconds the omen shows before it fades out
 
 local TRAIL = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.45)
 local QUAD = Enum.EasingStyle.Quad
@@ -46,11 +49,12 @@ type Refs = {
 	cracks: ImageLabel,
 	flare: Frame,
 	ornament: ImageLabel,
+	caps: { ImageLabel },
 	name: TextLabel,
 	title: TextLabel,
 	realm: TextLabel,
 	omen: TextLabel,
-	vignette: ImageLabel?,
+	home: { [TextLabel]: UDim2 },
 }
 
 local BossBars = {}
@@ -65,7 +69,6 @@ local lastFrac = 1
 local tier = "even"
 local omens: { [string]: string } = {}
 local token = 0 -- bumped on every show/hide so stale delayed steps stop
-local loops: { Tween } = {}
 local live: { Tween } = {}
 local shakeToken = 0
 local intro = false
@@ -75,19 +78,6 @@ local function tween(inst: Instance, props: { [string]: any }, time: number, del
 	table.insert(live, t)
 	t:Play()
 	return t
-end
-
-local function loopTween(inst: Instance, props: { [string]: any }, time: number)
-	local t = TweenService:Create(inst, TweenInfo.new(time, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), props)
-	table.insert(loops, t)
-	t:Play()
-end
-
-local function stopLoops()
-	for _, t in loops do
-		t:Cancel()
-	end
-	table.clear(loops)
 end
 
 local function stopLive()
@@ -113,10 +103,12 @@ local function dressPhase(animate: boolean)
 	local bot = lerpColor(theme.fill[2], theme.phaseFill[2], t)
 	refs.gradient.Color = ColorSequence.new(top, bot)
 	local tint = lerpColor(theme.tint, theme.phaseTint, t)
-	if animate then
-		tween(refs.ornament, { ImageColor3 = tint }, 0.6)
-	else
-		refs.ornament.ImageColor3 = tint
+	for _, img in { refs.ornament, refs.caps[1], refs.caps[2] } do
+		if animate then
+			tween(img, { ImageColor3 = tint }, 0.4)
+		else
+			img.ImageColor3 = tint
+		end
 	end
 end
 
@@ -128,10 +120,10 @@ local function setCracks(amount: number, animate: boolean)
 		Size = UDim2.fromScale(amount, 1),
 		ImageRectSize = Vector2.new(w, CRACK_H),
 		ImageRectOffset = Vector2.new((CRACK_W - w) / 2, 0),
-		ImageTransparency = if amount > 0 then 0.12 else 1,
+		ImageTransparency = if amount > 0 then 0.45 else 1,
 	}
 	if animate then
-		tween(refs.cracks, props, 0.7)
+		tween(refs.cracks, props, 0.4)
 	else
 		for k, v in props do
 			(refs.cracks :: any)[k] = v
@@ -139,36 +131,26 @@ local function setCracks(amount: number, animate: boolean)
 	end
 end
 
--- The halo's strength and pulse follow the danger tier and the phase.
+-- The halo stays faint and still; it warms a touch with each phase.
 local function dressGlow()
 	local refs = r :: Refs
-	for _, t in loops do
-		if t.Instance == refs.glow then
-			t:Cancel()
-		end
-	end
-	local rank = TIER_RANK[tier] or 0
-	local level = math.clamp(0.82 - 0.09 * rank - 0.2 * phaseT(), 0.12, 0.9)
 	refs.glow.ImageColor3 = theme.glow
-	refs.glow.ImageTransparency = level
-	if rank >= 1 or phaseIdx > 0 then
-		loopTween(refs.glow, { ImageTransparency = math.max(level - 0.2, 0.05) }, 1.3 - 0.2 * rank)
-	end
+	refs.glow.ImageTransparency = GLOW_REST - 0.06 * phaseT()
 end
 
 local function shake(strength: number)
 	local refs = r :: Refs
 	shakeToken += 1
 	local mine = shakeToken
-	local mag = 2 + 7 * math.clamp(strength, 0, 1)
+	local mag = 1 + 2 * math.clamp(strength, 0, 1) -- pixels; a nudge, not a quake
 	task.spawn(function()
-		for i = 1, 6 do
+		for i = 1, 4 do
 			if mine ~= shakeToken then
 				return
 			end
-			local k = (1 - i / 7) * mag
-			refs.body.Position = UDim2.fromOffset(math.random(-100, 100) / 100 * k, math.random(-100, 100) / 100 * k * 0.6)
-			task.wait(0.035)
+			local k = (1 - i / 5) * mag
+			refs.body.Position = UDim2.fromOffset(math.random(-100, 100) / 100 * k, math.random(-100, 100) / 100 * k * 0.5)
+			task.wait(0.03)
 		end
 		if mine == shakeToken then
 			refs.body.Position = UDim2.new()
@@ -195,68 +177,26 @@ local function pickOmen(): string
 	return line
 end
 
-local function setOmenText(sweep: boolean, delay: number)
+-- One intro line under the bar: rise in, hold, fade fully out.
+local function sweepLine(label: TextLabel, delay: number, hold: number)
+	local refs = r :: Refs
+	local home = refs.home[label]
+	label.TextTransparency = 1
+	label.TextStrokeTransparency = 1
+	label.Position = home + UDim2.fromOffset(0, 4)
+	tween(label, { Position = home, TextTransparency = 0, TextStrokeTransparency = 0 }, 0.3, delay)
+	tween(label, { TextTransparency = 1, TextStrokeTransparency = 1 }, 0.4, delay + 0.3 + hold)
+end
+
+local function dressTier(sweepOmen: boolean, delay: number)
 	local refs = r :: Refs
 	local style = styles[tier] or {}
 	local tagColor = style.tag or theme.titleColor
 	refs.realm.TextColor3 = tagColor
 	refs.omen.TextColor3 = style.omen or tagColor
 	refs.omen.Text = pickOmen()
-	local rest = if (TIER_RANK[tier] or 0) >= 1 then 0.12 else 0.35
-	local mine = token
-	if not sweep then
-		refs.omen.TextTransparency = rest
-		refs.omen.TextStrokeTransparency = rest
-		return
-	end
-	refs.omen.TextTransparency = 1
-	refs.omen.TextStrokeTransparency = 1
-	refs.omen.Position = UDim2.new(0.5, -90, 0.8, 0)
-	tween(refs.omen, { Position = UDim2.fromScale(0.5, 0.8), TextTransparency = 0, TextStrokeTransparency = 0 }, 0.55, delay, Enum.EasingStyle.Quint)
-	-- calm tiers let the line fade after a few seconds; the heavy ones keep it
-	tween(refs.omen, { TextTransparency = rest, TextStrokeTransparency = rest }, 0.8, delay + 3.2)
-	if (TIER_RANK[tier] or 0) < 1 then
-		task.delay(delay + 3.2 + 0.8, function()
-			if mine == token and r then
-				tween(refs.omen, { TextTransparency = 1, TextStrokeTransparency = 1 }, 0.5)
-			end
-		end)
-	end
-end
-
-local function dressTier(sweepOmen: boolean, delay: number)
-	local refs = r :: Refs
-	dressGlow()
-	setOmenText(sweepOmen, delay)
-	local vig = refs.vignette
-	if vig then
-		local color = VIGNETTE[tier]
-		for _, t in loops do
-			if t.Instance == vig then
-				t:Cancel()
-			end
-		end
-		if color then
-			vig.ImageColor3 = color
-			vig.Visible = true
-			tween(vig, { ImageTransparency = 0.62 }, 1.2)
-			-- a slow pressure pulse
-			task.delay(1.2, function()
-				if r and model and vig.Visible then
-					loopTween(vig, { ImageTransparency = 0.38 }, 1.6)
-				end
-			end)
-		else
-			tween(vig, { ImageTransparency = 1 }, 0.4)
-		end
-	end
-	for _, t in loops do
-		if t.Instance == refs.scale then
-			t:Cancel()
-		end
-	end
-	if (TIER_RANK[tier] or 0) >= 2 then
-		loopTween(refs.scale, { Scale = 1.02 }, 1.6)
+	if sweepOmen then
+		sweepLine(refs.omen, delay, OMEN_HOLD)
 	end
 end
 
@@ -270,7 +210,7 @@ local function buildTicks()
 		tick.Name = `Tick{i}`
 		tick.AnchorPoint = Vector2.new(0.5, 0.5)
 		tick.Position = UDim2.fromScale(at, 0.5)
-		tick.Size = UDim2.new(0, 3, 0, 0)
+		tick.Size = UDim2.new(0, 2, 0, 0)
 		tick.BackgroundColor3 = theme.flare
 		tick.BorderSizePixel = 0
 		tick.ZIndex = 8
@@ -280,7 +220,7 @@ local function buildTicks()
 		stroke.Thickness = 1
 		stroke.Parent = tick
 		local tall = tick
-		tween(tall, { Size = UDim2.new(0, 3, 1, 12) }, 0.35, 0.9 + i * 0.12, Enum.EasingStyle.Back)
+		tween(tall, { Size = UDim2.new(0, 2, 1, 4) }, 0.25, 0.6 + i * 0.08)
 	end
 end
 
@@ -292,7 +232,7 @@ local function dressTicks(animate: boolean)
 			local crossed = i <= phaseIdx
 			local color = if crossed then Color3.fromRGB(70, 66, 62) else theme.flare
 			if animate and crossed then
-				tween(tick, { BackgroundColor3 = color, BackgroundTransparency = 0.35 }, 0.5)
+				tween(tick, { BackgroundColor3 = color, BackgroundTransparency = 0.35 }, 0.3)
 			else
 				tick.BackgroundColor3 = color
 				tick.BackgroundTransparency = if crossed then 0.35 else 0
@@ -311,6 +251,9 @@ local function applyTheme(def: Enemies.Def?)
 		return a > b
 	end)
 	refs.ornament.Image = theme.ornament
+	for _, cap in refs.caps do
+		cap.Image = theme.ornament
+	end
 	refs.glow.ImageColor3 = theme.glow
 	refs.trail.BackgroundColor3 = theme.trail
 	refs.cracks.ImageColor3 = theme.crack
@@ -332,11 +275,12 @@ local function phaseOf(frac: number): number
 	return n
 end
 
-function BossBars.init(frame: CanvasGroup, vignette: ImageLabel?, tierStyles: { [string]: any })
+function BossBars.init(frame: CanvasGroup, tierStyles: { [string]: any })
 	local body = frame:WaitForChild("Body") :: Frame
 	local bar = body:WaitForChild("Bar") :: Frame
 	local fill = bar:WaitForChild("Fill") :: Frame
-	r = {
+	local ornament = body:WaitForChild("Ornament") :: ImageLabel
+	local refs: Refs = {
 		frame = frame,
 		scale = frame:WaitForChild("Motion") :: UIScale,
 		body = body,
@@ -349,18 +293,21 @@ function BossBars.init(frame: CanvasGroup, vignette: ImageLabel?, tierStyles: { 
 		ticks = bar:WaitForChild("Ticks") :: Frame,
 		cracks = bar:WaitForChild("Cracks") :: ImageLabel,
 		flare = bar:WaitForChild("Flare") :: Frame,
-		ornament = body:WaitForChild("Ornament") :: ImageLabel,
+		ornament = ornament,
+		caps = { ornament:WaitForChild("CapL") :: ImageLabel, ornament:WaitForChild("CapR") :: ImageLabel },
 		name = body:WaitForChild("NameLabel") :: TextLabel,
 		title = body:WaitForChild("TitleLabel") :: TextLabel,
 		realm = body:WaitForChild("RealmLabel") :: TextLabel,
 		omen = body:WaitForChild("OmenLabel") :: TextLabel,
-		vignette = vignette,
+		home = {},
 	}
+	-- authored positions, so a show that interrupts an intro never drifts them
+	for _, label in { refs.name, refs.title, refs.realm, refs.omen } do
+		refs.home[label] = label.Position
+	end
+	r = refs
 	styles = tierStyles
 	frame.Visible = false
-	if vignette then
-		vignette.Visible = false
-	end
 end
 
 function BossBars.active(): Model?
@@ -374,7 +321,6 @@ function BossBars.show(boss: Model, def: Enemies.Def?, dangerTier: string, frac:
 		return
 	end
 	token += 1
-	stopLoops()
 	stopLive()
 	model = boss
 	tier = dangerTier
@@ -386,48 +332,39 @@ function BossBars.show(boss: Model, def: Enemies.Def?, dangerTier: string, frac:
 
 	refs.frame.Visible = true
 	refs.frame.GroupTransparency = 1
-	refs.scale.Scale = 0.88
+	refs.scale.Scale = 0.96
 	refs.body.Position = UDim2.new()
 	refs.fill.Size = UDim2.fromScale(0, 1)
 	refs.trail.Size = UDim2.fromScale(0, 1)
 	refs.flare.BackgroundTransparency = 1
+	refs.omen.TextTransparency = 1
+	refs.omen.TextStrokeTransparency = 1
 	dressPhase(false)
+	dressGlow()
 	setCracks(if phaseIdx > 0 and #phases > 0 then phaseIdx / #phases else 0, false)
 	buildTicks()
 	dressTicks(false)
 
-	tween(refs.frame, { GroupTransparency = 0 }, 0.35)
-	tween(refs.scale, { Scale = 1 }, 0.45, 0, Enum.EasingStyle.Back)
-	tween(refs.fill, { Size = UDim2.fromScale(frac, 1) }, 0.9, 0.2, Enum.EasingStyle.Quint)
-	tween(refs.trail, { Size = UDim2.fromScale(frac, 1) }, 0.9, 0.2, Enum.EasingStyle.Quint)
-	-- name, title, realm rise in turn
-	local rise = { { refs.name, 0.3 }, { refs.title, 0.55 }, { refs.realm, 0.8 } }
-	for _, step in rise do
+	tween(refs.frame, { GroupTransparency = 0 }, 0.25)
+	tween(refs.scale, { Scale = 1 }, 0.25)
+	tween(refs.fill, { Size = UDim2.fromScale(frac, 1) }, 0.6, 0.1, Enum.EasingStyle.Quint)
+	tween(refs.trail, { Size = UDim2.fromScale(frac, 1) }, 0.6, 0.1, Enum.EasingStyle.Quint)
+	-- name and realm rise in and stay
+	for _, step in { { refs.name, 0.15 }, { refs.realm, 0.3 } } do
 		local label, delay = step[1] :: TextLabel, step[2] :: number
-		local home = label.Position
-		label.Position = home + UDim2.fromOffset(0, 10)
+		local home = refs.home[label]
+		label.Position = home + UDim2.fromOffset(0, 4)
 		label.TextTransparency = 1
 		label.TextStrokeTransparency = 1
-		tween(label, { Position = home, TextTransparency = 0, TextStrokeTransparency = 0 }, 0.5, delay)
+		tween(label, { Position = home, TextTransparency = 0, TextStrokeTransparency = 0 }, 0.3, delay)
 	end
-	dressTier(true, 1.0)
-	for _, t in loops do
-		if t.Instance == refs.glow then
-			t:Cancel() -- the intro flash owns the halo until dressGlow runs again below
-		end
-	end
+	-- under the bar: the title, then the omen, each fading out fully
+	sweepLine(refs.title, 0.4, TITLE_HOLD)
+	dressTier(true, 0.4 + 0.3 + TITLE_HOLD + 0.4)
 	local mine = token
-	task.delay(1.1, function()
+	task.delay(0.7, function()
 		if mine == token then
 			intro = false
-		end
-	end)
-	-- the first flash of the halo
-	refs.glow.ImageTransparency = 0.1
-	tween(refs.glow, { ImageTransparency = 0.7 }, 1.0, 0.1)
-	task.delay(1.15, function()
-		if mine == token and model == boss then
-			dressGlow()
 		end
 	end)
 end
@@ -440,18 +377,11 @@ function BossBars.hide()
 	model = nil
 	token += 1
 	local mine = token
-	stopLoops()
 	stopLive()
-	tween(refs.frame, { GroupTransparency = 1 }, 0.35)
-	if refs.vignette then
-		tween(refs.vignette, { ImageTransparency = 1 }, 0.5)
-	end
-	task.delay(0.55, function()
+	tween(refs.frame, { GroupTransparency = 1 }, 0.25)
+	task.delay(0.3, function()
 		if mine == token and r then
 			refs.frame.Visible = false
-			if refs.vignette then
-				refs.vignette.Visible = false
-			end
 		end
 	end)
 end
@@ -479,7 +409,7 @@ function BossBars.setHealth(frac: number)
 	end
 	if delta > 0 then
 		local big = math.clamp(delta / (BIG_HIT * 3), 0, 1)
-		flash(frac, if delta >= BIG_HIT then 0.35 else 0.8, if delta >= BIG_HIT then 0.3 else 0.18)
+		flash(frac, if delta >= BIG_HIT then 0.6 else 0.88, if delta >= BIG_HIT then 0.18 else 0.1)
 		if delta >= BIG_HIT then
 			shake(big)
 		end
@@ -488,15 +418,14 @@ function BossBars.setHealth(frac: number)
 	local idx = phaseOf(frac)
 	if idx > phaseIdx then
 		phaseIdx = idx
-		flash(1, 0.1, 0.9, theme.flare)
-		shake(1)
+		flash(1, 0.5, 0.3, theme.flare)
+		shake(0.6)
 		dressPhase(true)
 		setCracks(phaseIdx / math.max(#phases, 1), true)
 		dressGlow()
 		dressTicks(true)
-		refs.glow.ImageTransparency = 0
-		tween(refs.name, { TextColor3 = Color3.new(1, 1, 1) }, 0.12)
-		tween(refs.name, { TextColor3 = theme.name }, 0.7, 0.12)
+		tween(refs.name, { TextColor3 = Color3.new(1, 1, 1) }, 0.1)
+		tween(refs.name, { TextColor3 = theme.name }, 0.3, 0.1)
 	elseif idx < phaseIdx then
 		-- healed back above a threshold
 		phaseIdx = idx

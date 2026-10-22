@@ -1,12 +1,13 @@
 --!strict
 -- Per-boss health bar themes (BossBars.luau reads these). Key = enemy def id.
 -- Adding a boss = one entry here; any def without one uses `default`.
---   title      line under the name ("Sovereign of the Silver Peaks")
---   ornament   frame art (art/ui/draw_boss_bars.py, 1024x256, window hole mid)
+--   title      intro line under the bar ("Sovereign of the Silver Peaks")
+--   ornament   frame art (art/ui/draw_boss_bars.py, 1024x256); the HUD shows
+--              only a slim crop of the rim and end gems (see that script)
 --   fill       { top, bottom } of the health gradient; phaseFill is the colour
 --              it shifts toward as phases pass (lerped by phase / phases)
 --   trail      delayed-damage trail colour
---   glow       halo behind the bar (tints bossbar_glow.png)
+--   glow       faint static halo behind the bar (tints bossbar_glow.png)
 --   tint       ornament colour at rest; phaseTint what it warms to in the last phase
 --   name/titleColor  text colours; crack  the crack overlay colour; flare  the flash
 --   phases     optional override of the thresholds; default is def.summonAt

@@ -309,7 +309,7 @@ function EnemyBars.init(gui: ScreenGui)
 	local play = gui:FindFirstChild("Play") :: Frame
 	local bossBar = play:FindFirstChild("BossBar") :: CanvasGroup?
 	if bossBar then
-		BossBars.init(bossBar, play:FindFirstChild("BossVignette") :: ImageLabel?, STYLES)
+		BossBars.init(bossBar, STYLES)
 	end
 	for _, model in CollectionService:GetTagged("Enemy") do
 		task.spawn(watch, model)

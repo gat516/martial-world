@@ -6,6 +6,12 @@ by BossBars.luau / Hud.BossBar:
     name plate  x 236..788  y 4..100     (name + title text sit on it)
     bar window  x 168..856  y 110..146   (transparent hole; the fill shows through)
     realm plaque x 392..632 y 154..186   (realm text)
+The HUD shows only a slim crop of these (Hud.BossBar, 25px tall): Ornament
+stretches the uniform column x300..302 of rows 100..157 across the middle, and
+CapL / CapR show x140..232 and x792..884 of the same rows at native aspect (gem
+and rim corner; the big motifs and plates are cropped away). Keep the rim and
+gems inside those rects. A dedicated slim cap art per boss would read cleaner
+(the fox's tails leave an orange edge in the cap crop).
 The motif for each boss is drawn on the left end and mirrored to the right.
 No crowns or halos (rejected motif).
 Run: uv run --with pillow --with numpy python art/ui/draw_boss_bars.py
@@ -490,19 +496,6 @@ def cracks_png():
     print("wrote bossbar_cracks.png")
 
 
-def vignette_png():
-    """Screen-edge darkening for high danger tiers (white alpha; tinted in code)."""
-    w, h = 512, 288
-    ys, xs = np.mgrid[0:h, 0:w]
-    d = np.sqrt(((xs - w / 2) / (w / 2)) ** 2 + ((ys - h / 2) / (h / 2)) ** 2)
-    a = np.clip((d - 0.62) / 0.55, 0, 1) ** 1.5
-    out = np.zeros((h, w, 4), np.uint8)
-    out[..., :3] = 255
-    out[..., 3] = (a * 255).astype(np.uint8)
-    Image.fromarray(out, "RGBA").save(os.path.join(OUT, "bossbar_vignette.png"))
-    print("wrote bossbar_vignette.png")
-
-
 def build():
     compose(WOLF, wolf_motif, "bossbar_wolf.png")
     compose(FOX, fox_motif, "bossbar_fox.png", fox_behind)
@@ -511,7 +504,6 @@ def build():
     compose(GEN, gen_motif, "bossbar_generic.png")
     glow_png()
     cracks_png()
-    vignette_png()
 
 
 if __name__ == "__main__":

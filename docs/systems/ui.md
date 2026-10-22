@@ -134,24 +134,36 @@ cursor, settings and the admin panel.
   (slot painting, weapon art, the weapon badge), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
-- Boss health bar: `BossBars.luau` drives `Play.BossBar` (a CanvasGroup, top-centre,
-  `FitWithinMaxSize` 4:1, max 600x150) and `Play.BossVignette`; `BossThemes.luau`
-  holds one table per boss def id (`ElderWolfKing`, `NineTailedFox`, `JadePython`,
-  `ThunderApe`, plus `default`). `EnemyBars.luau` picks the boss (locked, else the
-  nearest hunting you within `BOSS_RANGE`) and the danger tier (`Pacing.Danger`,
-  `STYLES`, re-picked on breakthrough). A theme is a title line, a frame image
-  (1024x256, bar hole at x168-856 y110-146, name plate above, realm plaque below;
-  `art/ui/draw_boss_bars.py`, ids `bossbar_*` in `assets.json`), fill/trail/glow
-  colours, a phase colour, and omen pools per tier (random per fight, short lines).
-  Adding a boss is one table entry (an unlisted boss gets `default`).
-  Intro: pop in, the fill sweeps up, name, title, realm and the omen rise in turn;
-  far and deadly tiers add a pulsing screen-edge vignette and a halo pulse. The bar
-  has ten talisman slips, a tick at each phase threshold (`def.summonAt`, or
-  `theme.phases`), a trail, and a shake and flash on hits of `BIG_HIT` (5%) or more.
-  Crossing a threshold flares the bar, shakes it, spreads cracks from the centre,
-  warms the fill and frame colours, brightens the halo and greys the tick.
-  Gaps: the thunder ape, fox and python themes and art are untested until those
-  bosses exist (ids are guesses); the phase cracks are one shared image.
+- Boss health bar: `BossBars.luau` drives `Play.BossBar`, a slim CanvasGroup at the
+  top centre (0.46 of the width, max 460x62, so narrower on phones): the name row
+  (name centred, realm tag right), a 16px bar in a 25px frame, and one intro-only
+  text row under it. It must not block the fight (the first version, max
+  600x150 with a pulsing screen vignette and halo, did; user, 2026-10-21): no
+  screen darkening, no looping pulses, small and short hit and phase feedback.
+  `BossThemes.luau` holds one table per boss def id (`ElderWolfKing`,
+  `NineTailedFox`, `JadePython`, `ThunderApe`, plus `default`). `EnemyBars.luau`
+  picks the boss (locked, else the nearest hunting you within `BOSS_RANGE`) and
+  the danger tier (`Pacing.Danger`, `STYLES`, re-picked on breakthrough). A theme
+  is a title line, a frame image, fill/trail/glow colours, a phase colour, and
+  omen pools per tier (random per fight, short lines). Adding a boss is one table
+  entry (an unlisted boss gets `default`). The frame images are the 1024x256 art
+  from `art/ui/draw_boss_bars.py` (ids `bossbar_*` in `assets.json`), shown only
+  as a crop: `Ornament` stretches a uniform column of the rim (x300, rows
+  100..157) and its children `CapL` / `CapR` show the rim ends with their gems
+  (x140..232 and x792..884) at native aspect; the big motifs are cropped away.
+  Intro: the bar fades in, the fill sweeps up, name and realm rise in; under the
+  bar the theme title shows (`TITLE_HOLD`), then the omen (`OMEN_HOLD`), and both
+  fade out fully (a breakthrough mid-fight shows the new omen once). The halo
+  behind the bar is faint and static (`GLOW_REST`). The bar has ten talisman
+  slips, a tick at each phase threshold (`def.summonAt`, or `theme.phases`), a
+  trail, and a 1-3px nudge and quick flash on hits of `BIG_HIT` (5%) or more.
+  Crossing a threshold flashes the bar, nudges it, spreads faint cracks from the
+  centre, warms the fill and frame colours and greys the tick.
+  Gaps: the thunder ape, fox and python themes are untested until those bosses
+  exist (ids are guesses); the phase cracks are one shared image; the fox cap
+  crop shows an orange edge of its tails (slim per-boss cap art would be cleaner);
+  the slim layout is unverified in Studio (built on disk while the Studio MCP was
+  down).
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`
   (spirit root reveal card).
 - `Onboarding.luau`, `Guide.luau` (spotlight, dim, walking path), `TravelMenu.luau` (with `GateMarkers.luau` over arrays and

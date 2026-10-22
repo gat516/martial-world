@@ -2,7 +2,8 @@
 -- Searches the VFX plugin's (vfxia) Asset Library from the Studio MCP, by typing
 -- into the library window's own search box and reading the tiles it shows. The
 -- user must have opened the Asset Library window once this Studio session, in
--- Edit mode (it lives in CoreGui.RobloxGui.Selection.Seperate.Library; closing
+-- Edit mode (it lives in CoreGui.ViewSelectorScreenGui.Selection.Seperate.Library,
+-- formerly under RobloxGui; closing
 -- it only hides it). Run this file once through
 -- execute_luau: it installs
 --   _G.vfxLibrary.search(query, limit?) -> { { id, kind, name? } }
@@ -15,9 +16,16 @@
 local HttpService = game:GetService("HttpService")
 
 local function library()
-	local node = game:GetService("CoreGui"):FindFirstChild("RobloxGui")
-	for _, name in { "Selection", "Seperate", "Library" } do
-		node = node and node:FindFirstChild(name)
+	-- the plugin has parented its window under both of these
+	local node
+	for _, root in { "ViewSelectorScreenGui", "RobloxGui" } do
+		node = game:GetService("CoreGui"):FindFirstChild(root)
+		for _, name in { "Selection", "Seperate", "Library" } do
+			node = node and node:FindFirstChild(name)
+		end
+		if node then
+			break
+		end
 	end
 	-- search keeps working after the window is closed, as long as it was opened once
 	assert(node, "Open the VFX plugin's Asset Library window in Edit mode first")

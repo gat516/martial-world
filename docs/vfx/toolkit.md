@@ -164,17 +164,25 @@ surprises you):
 ## The asset library (textures, meshes, sounds)
 
 - Build effects from the plugin's Asset Library. You pick the assets yourself:
-  - `tools/vfx_library.json` lists the whole library (7,087 usable assets:
-    6,218 images, 41 mesh flipbooks, 77 meshes, 751 named sounds), in library
-    order, each with `kind` and the search `keywords` it matched (ring, slash,
+  - `tools/vfx_library.json` lists 7,087 assets (6,218 images, 41 mesh
+    flipbooks, 77 meshes, 751 named sounds), in library order, each with `kind` and the search `keywords` it matched (ring, slash,
     lightning, flame, smoke, crack, rune, seal, aura, beam...). Grep it
     first. Keywords come from a fixed word list, so an asset can fit without
-    matching your word.
+    matching your word. It is not the whole library: it was built from
+    keyword searches, and the window only lists tiles as you scroll, so each
+    search returned what had loaded. Scrolling the window to the end passed
+    7,600 tiles and was still growing (2026-10-22), so expect 10,000+.
   - For other words, search live: run `tools/vfx_library.luau` through
     `execute_luau`, then `_G.vfxLibrary.search("vortex", 40)`. It types into
-    the plugin's own library search, so the user must have opened the Asset
-    Library window once this Studio session (it keeps working after the window
-    is closed). If it errors, ask the user to open it.
+    the plugin's own library search (the vfxLib window, under
+    `CoreGui.ViewSelectorScreenGui.Selection.Seperate.Library`). The plugin
+    builds that window hidden when Studio starts, so search works without
+    anyone opening it; if it errors, ask the user to click vfxLib once. The
+    search only matches the library's own tags, which are sparse ("roar" finds
+    nothing, "ink" one image), so try several words, and search sounds by
+    name ("explosion", "slash", "thunder").
+  - Never scroll the library window through to its end to list everything:
+    loading every tile crashed the user's Studio (2026-10-22). Search instead.
   - Tiles only carry ids, so judge looks from thumbnails before using one, on a
     contact sheet: `~/.local/bin/uv run -q --with pillow python3 -I tools/vfx_contact_sheet.py OUT NAME kw1,kw2 [kind] [max]`
     (or `ids:a;b;c` instead of keywords) writes a labelled sheet with a
@@ -218,6 +226,9 @@ surprises you):
   keep the returned ids in `art/<x>/assets.json` and stop the server after.
 - Sounds belong with `SoundService.SFX` / `src/client/Sfx.luau`; don't hide
   Sounds inside effect templates unless the plugin should emit them with it.
+  Library sounds are other creators' uploads, so one may not play in our
+  experience if its owner hasn't made it public; say in the report that
+  in-game playback is untested, and swap any the user reports as silent.
 
 ## Building and previewing in Studio
 

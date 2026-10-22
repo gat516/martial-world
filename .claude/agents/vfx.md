@@ -118,6 +118,14 @@ them only for work that needs them, and never start Play in them.
    (audit, 2026-10-22). Search per effect from its own idea; reusing a good
    asset where it fits is fine. Once picked, keep the assets fixed through
    the review rounds unless a note is about a layer's shape.
+   **Sound comes with the effect** (user, 2026-10-22). The library also holds
+   named sounds (search "explosion", "slash", "thunder"...). Give the peak a
+   sound, plus the windup or tail when it has a job (a rising charge, a long
+   rumble), with the same causality as the layers: the sound comes from the
+   cause and lands on its beat. Add each as a Sound under `SoundService.SFX`
+   (`assets/SoundGroups/SFX.rbxmx`, folders like `Enemies/<Beast>/Roar`) and
+   play it with `Sfx.play` at the beat's moment, at the effect's position.
+   Replace a sound that's already wired only when the task asks for it.
 6. **Plan, then build.** Send the plan (below) before building unless told to
    go straight on. Enemy effects from an enemy-designer brief skip the plan:
    the brief is the plan, so build straight away and reuse other enemies'
@@ -210,7 +218,8 @@ From the bestiary pass; the enemy-designer's brief gives the beats and timings.
 - **Layer sheet:** one row per layer: role (hero, secondary, tertiary,
   environment, feel), its cause and origin, library asset and why, carrier,
   start and end in ms, motion, colour, dark base yes/no, and the xianxia
-  motif. Say the layer count per beat.
+  motif. Say the layer count per beat. Sounds get rows too: name, library
+  id, beat and start ms.
 - **Plugin features:** which add-ons and Game Module calls, per layer.
 - **Scaling:** what each tier or grade adds (new layers, not only bigger).
 - **Budget** at the top tier, and any one light.

@@ -67,8 +67,10 @@ Work in a disposable sandbox Studio, not the user's. The main session
 opens it for you (`tools/sandbox.sh open <name>` builds a fresh place from
 `test.project.json` (repo code and `assets/`, no
 `Workspace.Map` or `AssetLibrary`) and gives its `studio_id` in your brief: pass it on
-every call. Don't open, close or reuse sandboxes yourself; the main session
-closes yours after you report. If your brief has no sandbox or it doesn't
+every call. Don't open or close sandboxes yourself; the main session
+keeps yours open and may hand it to the next agent, so leave it clean when you
+report (no preview scenes, staging copies or temp folders; your built
+templates stay in place, matching your export). If your brief has no sandbox or it doesn't
 answer, say so and stop. Rojo isn't connected there, so you may edit the
 mapped instances in place without a staging copy; export what you build to
 `assets/` (Rojo then brings it into the user's places). Nothing else in it is saved. A

@@ -161,9 +161,11 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		if not (type(id) == "string" and Enemies.Defs[id] and count and root) then
 			return false, "Unknown beast or count"
 		end
+		-- bosses are huge (the Thunder Ape is ~30 studs tall): put them well clear
+		local ahead = if Enemies.Defs[id].boss then 45 else 14
 		for i = 1, count do
 			local a = (i / count) * math.pi * 2
-			local at = (root.CFrame * CFrame.new(math.cos(a) * 4, 0, -14 + math.sin(a) * 4)).Position
+			local at = (root.CFrame * CFrame.new(math.cos(a) * 4, 0, -ahead + math.sin(a) * 4)).Position
 			EnemyService.spawn(id, at)
 		end
 		return true, `Spawned {count} {Enemies.Defs[id].name}`

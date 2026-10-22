@@ -35,6 +35,9 @@ on the baseplate unchanged.
   at (100, 648.6, -40)) and `WolfKingTrial` (one Elder Wolf King at
   (0, 648.6, -300)), respawning like any zone. The King stands farther beyond the
   event ground, away from the pairs and spawn pad.
+- New bosses (Thunder Ape, Nine-Tailed Fox, Jade Jiao) get no zone: the user
+  spawns them from the admin panel's "Spawn beasts" list (every def shows there,
+  testbed-only defs included), and bosses land 45 studs ahead of the player.
 - `Workspace.Map.Sect.SpiritPeaks`: an empty stub, so `Peaks` and `MyPeak` load
   (nobody gets a peak).
 - Place-only, kept on purpose (not in git, never synced back): the enemy pose-preview rigs

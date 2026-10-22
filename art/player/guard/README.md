@@ -1,6 +1,7 @@
 # Guard animations (player, R6)
 
-`Guard.rbxm` holds a Folder `Guard` with three KeyframeSequences. They key only
+`Guard.rbxm` holds a Folder `Guard` with three KeyframeSequences; `clips/` has
+each one as its own `.rbxm` for uploading. They key only
 Neck (Head pose), Left and Right Shoulder (arm poses) and a small RootJoint lean
 (at most 0.1 rad pitch, 0.16 rad twist). Legs are unkeyed, so walking plays
 underneath. They are authored for the R6 rig, bare-handed or with a weapon in the
@@ -16,12 +17,15 @@ chin tucked, slight forward lean.
 GuardParry and GuardImpact start and end on exactly the GuardHold pose.
 Guard break needs no clip (the existing stagger plays).
 
-## Publishing
+## Published
 
-1. In Studio, insert `art/player/guard/Guard.rbxm` (Insert from file).
-2. Put an R6 rig in the workspace, open the Animation Editor, and load each
-   KeyframeSequence from the `Guard` folder (right-click it > Open in Animation
-   Editor, or File > Import).
-3. Check priority, Loop and the `Contact` marker on GuardParry, then Publish to
-   Roblox (Animation Editor menu > Save to Roblox).
-4. Paste the three asset ids back to the main session.
+Uploaded with `python3 tools/upload_animation.py art/player/guard/clips/*.rbxm`
+(group 772472600, testbed universe granted Use), in `Animations.Guard`:
+
+| Clip | Animation | Id |
+|---|---|---|
+| GuardHold | `Guard.Hold` | rbxassetid://78908975484990 |
+| GuardParry | `Guard.Parry` | rbxassetid://123895539094624 |
+| GuardImpact | `Guard.Impact` | rbxassetid://136933091358616 |
+
+Ids are immutable: after changing a clip, re-upload it and swap the id.

@@ -107,17 +107,17 @@
   </Properties>
    <Item class="Animation" referent="RBXAG1"><Properties>
     <string name="Name">Hold</string>
-    <Content name="AnimationId"><null></null></Content>
+    <Content name="AnimationId"><url>rbxassetid://78908975484990</url></Content>
    </Properties>
    </Item>
    <Item class="Animation" referent="RBXAG2"><Properties>
     <string name="Name">Parry</string>
-    <Content name="AnimationId"><null></null></Content>
+    <Content name="AnimationId"><url>rbxassetid://123895539094624</url></Content>
    </Properties>
    </Item>
    <Item class="Animation" referent="RBXAG3"><Properties>
     <string name="Name">Impact</string>
-    <Content name="AnimationId"><null></null></Content>
+    <Content name="AnimationId"><url>rbxassetid://136933091358616</url></Content>
    </Properties>
    </Item>
   </Item>

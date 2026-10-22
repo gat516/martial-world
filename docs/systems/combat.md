@@ -135,9 +135,9 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   `"guard"` (character, `"parried" | "blocked" | "broken"`, attacker position).
   The Humanoid's `Guarding` attribute mirrors the guard for other clients.
 - Animations: `Animations.Guard.Hold` (loop, Action), `Parry` and `Impact`
-  (Action2), authored as KeyframeSequences in `art/player/guard/Guard.rbxm`.
-  Their AnimationIds are empty until the user publishes the clips; until then
-  the guard works with no pose. Sounds `SFX.Parry`, `SFX.Block`,
+  (Action2), authored as KeyframeSequences in `art/player/guard/Guard.rbxm` and
+  published with `tools/upload_animation.py` (ids in
+  `art/player/guard/README.md`). Sounds `SFX.Parry`, `SFX.Block`,
   `SFX.GuardBreak` are played but don't exist yet (silent).
 - Visuals (`src/client/GuardFX.luau`, templates `ReplicatedStorage.GuardFX`
   from `assets/GuardFX.rbxm`, built by `tools/guardfx_build.luau` in a sandbox;

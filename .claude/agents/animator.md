@@ -107,6 +107,14 @@ them only for work that needs them, and never start Play in them.
   `Animator:StepAnimations(dt)` with dt > 0 (a 0 step applies nothing) and read
   each Motor6D's Transform.
 - Only key joints. Trim pieces are welded riders and have no keys of their own.
+- Publishing a clip (one that ships as an `Animation` in `assets/Animations.rbxmx`,
+  e.g. a player move): export each KeyframeSequence as its own binary `.rbxm`
+  (root = the KeyframeSequence) and run `python3 tools/upload_animation.py
+  <files>`. It uploads through Open Cloud with the key in
+  `~/.config/roblox/api_key` (never read, print or copy the key yourself), owned
+  by the main game's group, grants the testbed universe Use, and prints the
+  `rbxassetid://` ids. Put the ids in the `Animation` instances (property-only
+  edit straight into `Animations.rbxmx`). Procedural enemy poses need none of this.
 
 ## What reads at 40 studs
 

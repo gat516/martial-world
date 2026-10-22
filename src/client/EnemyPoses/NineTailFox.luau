@@ -153,35 +153,274 @@ local function tailJoints(out: Pose, i: number, q: Q)
 	out[n .. "Whip"] = CFrame.Angles(wc, 0, wl) * CFrame.new(d * (e * x[3]))
 end
 
--- forward kinematics of one tail (unit space, model frame): the lance end for the pose's
--- root and fan transforms. Used to plant the plunging tails and by the QA.
+-- Per tail rig data in unit model space (ground Y 0, the model at the origin): the joint pivots
+-- { base, mid, tip, whip, flame centre } and, per segment, its visible parts as boxes in the
+-- segment's rest joint frame ({ offset CFrame, half size }). Defaults lie along DIR; configure()
+-- reads the real ones from the template.
+local PIV: { { Vector3 } } = {}
+local BOX: { { { { any } } } } = {}
+for i = 1, 9 do
+	local d, L = DIR[i], LAYI[i]
+	PIV[i] = { TL.root, TL.root + d * L.baseE, TL.root + d * L.midE, TL.root + d * L.tipE, TL.root + d * L.whipE }
+	BOX[i] = { {}, {}, {}, { { CFrame.new(d * (L.whipE - L.tipE)), V(0.3, 0.3, 0.3) } } }
+end
+
+-- forward kinematics of one tail (unit space, model frame): the four joint frames after their
+-- Transforms, for the pose's root and hub. Used to plant the plunging tails, by the floor guard
+-- and by the QA.
+local function hubW(pose: Pose): CFrame
+	return CFrame.new(P.JointRoot) * (pose.JointRoot or I) * CFrame.new(P.JointTail - P.JointRoot) * (pose.JointTail or I)
+end
 local function tailRootW(pose: Pose): CFrame
-	local rootW = CFrame.new(P.JointRoot) * (pose.JointRoot or I)
-	local hub = rootW * CFrame.new(P.JointTail - P.JointRoot) * (pose.JointTail or I)
-	return hub * CFrame.new(TL.root - P.JointTail)
+	return hubW(pose) * CFrame.new(TL.root - P.JointTail)
+end
+local function tailFrames(i: number, pose: Pose, q: Q): (CFrame, CFrame, CFrame, CFrame)
+	local d, pv, x = DIR[i], PIV[i], EXTI[i]
+	local e = clamp(q.e, 0, 1)
+	local f0 = hubW(pose) * CFrame.new(pv[1] - P.JointTail) * CFrame.Angles(0, q.w, 0) * CFrame.Angles(q.p, 0, q.r)
+	local f1 = f0 * CFrame.new(pv[2] - pv[1]) * CFrame.Angles(q.a, 0, q.la) * CFrame.new(d * (e * x[1]))
+	local f2 = f1 * CFrame.new(pv[3] - pv[2]) * CFrame.Angles(q.b, 0, q.lb) * CFrame.new(d * (e * x[2]))
+	local wc, wl = whipBend(q)
+	local f3 = f2 * CFrame.new(pv[4] - pv[3]) * CFrame.Angles(wc, 0, wl) * CFrame.new(d * (e * x[3]))
+	return f0, f1, f2, f3
 end
 local function tailEnd(i: number, pose: Pose, q: Q): Vector3
-	local d = DIR[i]
-	local f = tailRootW(pose) * CFrame.Angles(0, q.w, 0) * CFrame.Angles(q.p, 0, q.r)
-	local e = clamp(q.e, 0, 1)
-	local L, x = LAYI[i], EXTI[i]
-	f = f * CFrame.new(d * L.baseE) * CFrame.Angles(q.a, 0, q.la) * CFrame.new(d * (e * x[1]))
-	f = f * CFrame.new(d * (L.midE - L.baseE)) * CFrame.Angles(q.b, 0, q.lb) * CFrame.new(d * (e * x[2]))
-	f = f * CFrame.new(d * (L.tipE - L.midE)) * CFrame.Angles(select(1, whipBend(q)), 0, select(2, whipBend(q))) * CFrame.new(d * (e * x[3]))
-	return (f * CFrame.new(d * (L.whipE - L.tipE))).Position
+	local _, _, _, f3 = tailFrames(i, pose, q)
+	return f3 * (PIV[i][5] - PIV[i][4])
 end
+-- the lowest point of any part of tail i (unit studs above the ground)
+local function tailLow(i: number, pose: Pose, q: Q): number
+	local fs = { tailFrames(i, pose, q) }
+	local lo = math.huge
+	for k = 1, 4 do
+		local f = fs[k]
+		for _, b in BOX[i][k] do
+			local cf, h = f * b[1], b[2]
+			local y = cf.Y - (abs(cf.RightVector.Y) * h.X + abs(cf.UpVector.Y) * h.Y + abs(cf.LookVector.Y) * h.Z)
+			if y < lo then
+				lo = y
+			end
+		end
+	end
+	return lo
+end
+-- The head guard. The head sits right over the fore legs, so a head dipped low, a forebody
+-- pitched down or fore legs folded up under a rear (plus the follow-through's overshoot) can
+-- push the muzzle, jaw or ruff into the forearms. After the legs are planted, the guard tests
+-- the head side (Neck, Head, Jaw) against the fore legs with the rig's real boxes and, if they
+-- meet, lifts the neck and head by the least amount that clears them. configure() reads the
+-- boxes; without it the guard is off.
+type Box = { any } -- { offset CFrame in the segment's joint frame, half size, bounding radius }
+local BODY: { piv: { [string]: Vector3 }, parent: { [string]: string? }, boxes: { [string]: { Box } } } = { piv = {}, parent = {}, boxes = {} }
+local GUARD_HEAD = { "JointNeck", "JointHead", "JointJaw" }
+local GUARD_LEGS = { "JointLegFL", "JointLowerLegFL", "JointPawFL", "JointLegFR", "JointLowerLegFR", "JointPawFR" }
+local guardOn = false
+
+local function bodyFrames(pose: Pose, names: { string }, out: { [string]: CFrame })
+	local function frame(name: string): CFrame
+		local f = out[name]
+		if f then
+			return f
+		end
+		local parent = BODY.parent[name]
+		if parent then
+			f = frame(parent) * CFrame.new(BODY.piv[name] - BODY.piv[parent]) * (pose[name] or I)
+		else
+			f = CFrame.new(BODY.piv[name]) * (pose[name] or I)
+		end
+		out[name] = f
+		return f
+	end
+	for _, n in names do
+		frame(n)
+	end
+end
+
+-- oriented box overlap depth (positive = overlapping by that much), as the QA measures it
+local function boxDepth(ca: CFrame, ea: Vector3, cb: CFrame, eb: Vector3): number
+	local axA = { ca.RightVector, ca.UpVector, ca.LookVector }
+	local axB = { cb.RightVector, cb.UpVector, cb.LookVector }
+	local d = cb.Position - ca.Position
+	local best = math.huge
+	local function test(ax: Vector3)
+		local ra = abs(axA[1]:Dot(ax)) * ea.X + abs(axA[2]:Dot(ax)) * ea.Y + abs(axA[3]:Dot(ax)) * ea.Z
+		local rb = abs(axB[1]:Dot(ax)) * eb.X + abs(axB[2]:Dot(ax)) * eb.Y + abs(axB[3]:Dot(ax)) * eb.Z
+		best = math.min(best, ra + rb - abs(d:Dot(ax)))
+	end
+	for a = 1, 3 do
+		test(axA[a])
+		test(axB[a])
+		if best < 0 then
+			return best
+		end
+	end
+	for a = 1, 3 do
+		for b = 1, 3 do
+			local c = axA[a]:Cross(axB[b])
+			if c.Magnitude > 1e-4 then
+				test(c.Unit)
+				if best < 0 then
+					return best
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- the deepest overlap between the head side and the fore legs (unit studs)
+local function headPen(pose: Pose, legFrames: { [string]: CFrame }): number
+	local fr = table.clone(legFrames)
+	for _, n in GUARD_HEAD do
+		fr[n] = nil
+	end
+	bodyFrames(pose, GUARD_HEAD, fr)
+	local worst = -math.huge
+	local legBoxes = {}
+	for _, ln in GUARD_LEGS do
+		for _, b in BODY.boxes[ln] or {} do
+			table.insert(legBoxes, { fr[ln] * b[1], b[2], b[3], b })
+		end
+	end
+	for _, hn in GUARD_HEAD do
+		for _, hb in BODY.boxes[hn] or {} do
+			local hc = fr[hn] * hb[1]
+			for _, lb in legBoxes do
+				-- pairs that already touch at rest (the ruff over the shoulders) are not clips
+				if not (hb[4] and hb[4][lb[4]]) and (hc.Position - lb[1].Position).Magnitude < hb[3] + lb[3] then
+					local dd = boxDepth(hc, hb[2], lb[1], lb[2])
+					if dd > worst then
+						worst = dd
+					end
+				end
+			end
+		end
+	end
+	return worst
+end
+
+local GUARD_SLACK = 0.02
+local function guardHead(pose: Pose)
+	if not guardOn then
+		return
+	end
+	local legFrames: { [string]: CFrame } = {}
+	bodyFrames(pose, GUARD_LEGS, legFrames)
+	if headPen(pose, legFrames) <= GUARD_SLACK then
+		return
+	end
+	local neck0, head0 = pose.JointNeck or I, pose.JointHead or I
+	local function at(k: number): number
+		pose.JointNeck = A(0.55 * k) * neck0
+		pose.JointHead = head0 * A(0.45 * k)
+		return headPen(pose, legFrames)
+	end
+	local lo, hi = 0, 1
+	if at(hi) > GUARD_SLACK then
+		-- can't clear it by lifting: take the lift that leaves the least overlap
+		local best, bestK = math.huge, 0
+		for k = 0, 1, 0.125 do
+			local p = at(k)
+			if p < best then
+				best, bestK = p, k
+			end
+		end
+		at(bestK)
+		return
+	end
+	for _ = 1, 7 do
+		local mid = (lo + hi) / 2
+		if at(mid) > GUARD_SLACK then
+			lo = mid
+		else
+			hi = mid
+		end
+	end
+	at(hi)
+end
+NineTailFox.guardHead = guardHead
+NineTailFox.headPen = function(pose: Pose): number
+	local fr = {}
+	bodyFrames(pose, GUARD_LEGS, fr)
+	return headPen(pose, fr)
+end
+function NineTailFox.setGuard(on: boolean)
+	guardOn = on and BODY.piv.JointNeck ~= nil
+end
+
+local function readBody(motors: { [string]: Motor6D }, segParts: { [string]: { BasePart } }, origin: Vector3, sc: number)
+	local byPart1: { [BasePart]: string } = {}
+	for name, m in motors do
+		if not string.find(name, "^JointTail%d") and m.Part1 then
+			byPart1[m.Part1 :: BasePart] = name
+		end
+	end
+	for name, m in motors do
+		if not string.find(name, "^JointTail%d") and m.Part0 and m.Part1 then
+			local pw = (m.Part0 :: BasePart).CFrame:PointToWorldSpace(m.C0.Position)
+			BODY.piv[name] = (pw - origin) / sc
+			BODY.parent[name] = byPart1[m.Part0 :: BasePart]
+			local list = {}
+			local frame = CFrame.new(pw)
+			for _, part in segParts[(m.Part1 :: BasePart).Name] or {} do
+				local s = part.Size
+				if math.min(s.X, s.Y, s.Z) >= 0.3 then -- eyes, liners and marks don't collide
+					local off = frame:ToObjectSpace(part.CFrame)
+					table.insert(list, { off - off.Position + off.Position / sc, s / (2 * sc), s.Magnitude / (2 * sc) })
+				end
+			end
+			BODY.boxes[name] = list
+		end
+	end
+	guardOn = BODY.piv.JointNeck ~= nil and BODY.piv.JointLegFL ~= nil
+	if guardOn then
+		-- mark the head/leg box pairs that overlap at rest
+		local fr = {}
+		bodyFrames({}, GUARD_LEGS, fr)
+		bodyFrames({}, GUARD_HEAD, fr)
+		for _, hn in GUARD_HEAD do
+			for _, hb in BODY.boxes[hn] or {} do
+				hb[4] = {}
+				for _, ln in GUARD_LEGS do
+					for _, lb in BODY.boxes[ln] or {} do
+						if boxDepth(fr[hn] * hb[1], hb[2], fr[ln] * lb[1], lb[2]) > 0 then
+							hb[4][lb] = true
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 -- Reads the tails from a rig (any Instance holding the Motor6Ds): ExtendAxis / ExtendMax on each
--- Mid, Tip and Whip motor, pivots from the motors' rest positions and the lance end from the
--- TailTip<i>_FX attachment. Call once with the model template before sampling; `scale` is the
--- model's Scale attribute. Without it the built-in 2.13 layout is used.
+-- Mid, Tip and Whip motor, pivots from the motors' rest positions, the flame centre from the
+-- TailTip<i>_FX attachment and every visible tail part's box. Call once with the model template
+-- (unposed) before sampling; `scale` is the model's Scale attribute. Without it the built-in 2.13
+-- layout is used.
 function NineTailFox.configure(model: Instance, scale: number?)
 	local sc = scale or (model:GetAttribute("Scale") :: number?) or SCALE
 	local motors: { [string]: Motor6D } = {}
+	local segParts: { [string]: { BasePart } } = {}
+	local hrp: BasePart? = nil
 	for _, m in model:GetDescendants() do
 		if m:IsA("Motor6D") then
 			motors[m.Name] = m
+		elseif m:IsA("BasePart") then
+			if m.Name == "HumanoidRootPart" then
+				hrp = m
+			elseif m.Transparency < 1 then
+				local seg = (m:GetAttribute("Segment") :: string?) or m.Name
+				segParts[seg] = segParts[seg] or {}
+				table.insert(segParts[seg], m)
+			end
 		end
 	end
+	if not hrp then
+		return
+	end
+	-- the model's origin: under the HRP on the ground (the HRP rests 2.6 unit studs up)
+	local origin = (hrp :: BasePart).Position - V(0, 2.6 * sc, 0)
 	local function pivot(m: Motor6D): Vector3
 		return (m.Part0 :: BasePart).CFrame:PointToWorldSpace(m.C0.Position)
 	end
@@ -197,19 +436,33 @@ function NineTailFox.configure(model: Instance, scale: number?)
 				((tip:GetAttribute("ExtendMax") :: number?) or EXT[2] * sc) / sc,
 				((whip:GetAttribute("ExtendMax") :: number?) or EXT[3] * sc) / sc,
 			}
-			local p0 = pivot(base)
-			local d = DIR[i]
-			local L = { baseE = (pivot(mid) - p0):Dot(d) / sc, midE = (pivot(tip) - p0):Dot(d) / sc, tipE = (pivot(whip) - p0):Dot(d) / sc, whipE = LAYI[i].whipE }
-			local att = model:FindFirstChild("TailTip" .. i .. "_FX", true) :: Attachment?
-			if att then
-				L.whipE = (att.WorldPosition - p0):Dot(d) / sc
+			local pw: { Vector3 } = {}
+			for k, m in { base, mid, tip, whip } do
+				pw[k] = pivot(m)
 			end
-			LAYI[i] = L
+			local att = model:FindFirstChild("TailTip" .. i .. "_FX", true) :: Attachment?
+			pw[5] = if att then att.WorldPosition else pw[4] + DIR[i] * (LAYI[i].whipE - LAYI[i].tipE) * sc
+			local p0, d = pw[1], DIR[i]
+			LAYI[i] = { baseE = (pw[2] - p0):Dot(d) / sc, midE = (pw[3] - p0):Dot(d) / sc, tipE = (pw[4] - p0):Dot(d) / sc, whipE = (pw[5] - p0):Dot(d) / sc }
+			for k = 1, 5 do
+				PIV[i][k] = (pw[k] - origin) / sc
+			end
+			for k, m in { base, mid, tip, whip } do
+				local list = {}
+				local frame = CFrame.new(pw[k])
+				for _, part in segParts[(m.Part1 :: BasePart).Name] or {} do
+					local off = frame:ToObjectSpace(part.CFrame)
+					table.insert(list, { off - off.Position + off.Position / sc, part.Size / (2 * sc) })
+				end
+				BOX[i][k] = list
+			end
 		end
 	end
+	readBody(motors, segParts, origin, sc)
 	table.clear(aimCache)
 end
 NineTailFox.tailEnd = tailEnd
+NineTailFox.tailLow = tailLow
 NineTailFox.TAIL_DIR = DIR
 
 local JOINTS: { string } = {
@@ -384,6 +637,7 @@ local function applyLegs(pose: Pose, swing: { [string]: any }, stance: { [string
 		rig.plantLegs(pose, { [tag] = 1 }, false, { [tag] = sw.target })
 		rig.solveLeg(pose, LEGS[tag], 1, sw.clear, sw.flex)
 	end
+	guardHead(pose)
 end
 
 -- tails driven by a travelling wave: base pitch/roll and the small bends each lag the last
@@ -647,7 +901,7 @@ end
 local function register(name: string, v: string, W: number, Act: number, Rec: number, windup: Phase, active: Phase, recover: Phase, tail: TailSpec)
 	variants[name] = variants[name] or {}
 	if tail.floor == nil and name ~= "MoonLeap" then
-		tail.floor = 0.1 -- no tail ever dips under the floor (the flip is lifted by the server, so it is exempt)
+		tail.floor = 0.03 -- no tail part ever dips under the floor (the flip is lifted by the server, so it is exempt)
 	end
 	variants[name][v] = { windup = windup, active = active, recover = recover, tail = tail, total = W + Act + Rec }
 	DUR[name] = { W, Act, Rec }
@@ -816,13 +1070,16 @@ local function buildTails(pose: Pose, v: Variant, s: number, ctx: any, mirror: b
 			q = table.clone(q)
 			q.w, q.r, q.la, q.lb, q.lc = -q.w, -q.r, -q.la, -q.lb, -q.lc
 		end
-		if spec.floor and tailEnd(n, pose, q).Y < spec.floor then
+		-- the floor guard: a plunging tail keeps only its lance end off the floor (the flame stabs in);
+		-- every other tail keeps all of its parts above it
+		local low = if solved[n] then function(qq: Q): number return tailEnd(n, pose, qq).Y end else function(qq: Q): number return tailLow(n, pose, qq) end
+		if spec.floor and low(q) < spec.floor then
 			local safe = (spec.floorSafe or REST_T)(n, ctx)
 			local lo, hi = 0, 1
 			local floorY = spec.floor
 			for _ = 1, 10 do
 				local mid = (lo + hi) / 2
-				if tailEnd(n, pose, lerpQ(q, safe, mid)).Y < floorY then
+				if low(lerpQ(q, safe, mid)) < floorY then
 					lo = mid
 				else
 					hi = mid
@@ -834,31 +1091,107 @@ local function buildTails(pose: Pose, v: Variant, s: number, ctx: any, mirror: b
 	end
 end
 
--- head, jaw and ears trail the body by their own lag; the previous phase supplies the
--- time before the phase's start so the trail is continuous across phase boundaries
-local LAGS = { JointNeck = 0.4, JointHead = 1, JointJaw = 1.3, JointEarL = 1.7, JointEarR = 2.2 }
-local LAG_SEC = 0.07
-local PHASES = { "windup", "active", "recover" }
-local function lagged(v: Variant, move: string, phaseName: string, secs: number, input: any): { [string]: Pose }
-	local out = {}
-	local idx = table.find(PHASES, phaseName) :: number
-	for name, k in LAGS do
-		local sec = secs - LAG_SEC * k
-		local pi, ps = idx, phaseName
-		while sec < 0 and pi > 1 do
-			pi -= 1
-			ps = PHASES[pi]
-			sec += DUR[move][pi]
-		end
-		local phase: Phase = (v :: any)[ps]
-		if not phase then
-			phase, sec = (v :: any)[phaseName], 0
-		end
-		local dur = phase.duration
-		local pose = Quadruped.samplePhase(phase, clamp(sec / dur, 0, 1), input)
-		out[name] = pose
+-- Follow-through. The body's upper joints ride a damped spring behind their keys: a joint that
+-- has been moving lags, overshoots the key it arrives at and rings back, so every key lands
+-- with weight and settles instead of stopping dead. Stateless: the keyed pose (overlays left
+-- out, so trembles stay crisp) is sampled at earlier times on a fixed grid (continuous across
+-- phase boundaries) and weighted by each joint's spring impulse response. The result is added
+-- on top of the full pose as a correction, scaled by the joint's gain.
+-- The correction saturates at `cap` radians (and cap / 3 unit studs of slide), so a snap
+-- from a full rear to a slam still lags and rings without folding the neck through the legs.
+--   joint = { delay s, natural Hz, damping ratio, gain, cap }
+local SPRING: { [string]: { number } } = {
+	JointRoot = { 0, 1.9, 0.42, 0.6, 0.07 },
+	JointChest = { 0.015, 2.1, 0.38, 0.85, 0.1 },
+	JointNeck = { 0.025, 2.2, 0.34, 0.85, 0.14 },
+	JointHead = { 0.045, 2.4, 0.3, 0.9, 0.16 },
+	JointJaw = { 0.02, 3.2, 0.4, 0.5, 0.12 },
+	JointEarL = { 0.1, 3.0, 0.2, 1, 0.35 },
+	JointEarR = { 0.13, 2.8, 0.2, 1, 0.35 },
+	JointTail = { 0.05, 1.5, 0.3, 1, 0.2 },
+}
+local TAP_DT, TAPS = 0.05, 10
+local SPRING_W: { [string]: { number } } = {}
+for name, s in SPRING do
+	local w, sum = {}, 0
+	local om, z = TAU * s[2], s[3]
+	local od = om * math.sqrt(1 - z * z)
+	for k = 0, TAPS do
+		local t = k * TAP_DT - s[1]
+		local h = if t > 0 then math.exp(-z * om * t) * sin(od * t) else 0
+		w[k] = h
+		sum += h
 	end
-	return out
+	for k = 0, TAPS do
+		w[k] /= sum
+	end
+	SPRING_W[name] = w
+end
+local PHASES = { "windup", "active", "recover" }
+local bare: { [any]: Phase } = {}
+-- the keyed pose `back` seconds before secs into phaseName, walking back across phases
+local function keyedAt(v: Variant, move: string, phaseName: string, secs: number, curDur: number, input: any): Pose
+	local idx = table.find(PHASES, phaseName) :: number
+	local pi, sec, dur = idx, secs, curDur
+	while sec < 0 and pi > 1 and (v :: any)[PHASES[pi - 1]] do
+		pi -= 1
+		dur = DUR[move][pi]
+		sec += dur
+	end
+	local phase: Phase = (v :: any)[PHASES[pi]]
+	if (phase :: any).keepOverlay and pi < idx then
+		-- an overlay-driven phase (the pounce's bounding) is too costly to resample: hold the
+		-- start of the next phase instead
+		pi += 1
+		phase, sec, dur = (v :: any)[PHASES[pi]], 0, if pi == idx then curDur else DUR[move][pi]
+	end
+	do
+		local b = bare[phase]
+		if not b then
+			b = table.clone(phase) :: any
+			b.overlay = nil
+			bare[phase] = b :: any
+		end
+		phase = b :: any
+	end
+	return (Quadruped.samplePhase(phase, clamp(sec / dur, 0, 1), if pi == idx then input else { side = input.side, stage = input.stage }))
+end
+local function followThrough(pose: Pose, v: Variant, move: string, phaseName: string, secs: number, dur: number, input: any)
+	if ((v :: any)[phaseName] :: any).keepOverlay then
+		return
+	end
+	local grid: { Pose } = {}
+	for k = 0, TAPS do
+		grid[k] = keyedAt(v, move, phaseName, secs - k * TAP_DT, dur, input)
+	end
+	local now = grid[0]
+	for name, w in SPRING_W do
+		local x = now[name] or I
+		local xr = x.Rotation:Inverse()
+		local rv, dp = Vector3.zero, Vector3.zero
+		for k = 1, TAPS do
+			if w[k] ~= 0 then
+				local xk = grid[k][name] or I
+				local axis, angle = (xr * xk.Rotation):ToAxisAngle()
+				if angle > 1e-6 then
+					rv += axis * (angle * w[k])
+				end
+				dp += (xk.Position - x.Position) * w[k]
+			end
+		end
+		local g, cap = SPRING[name][4], SPRING[name][5]
+		local mag = rv.Magnitude * g
+		local cf = pose[name] or I
+		if mag > 1e-6 then
+			cf = cf * CFrame.fromAxisAngle(rv.Unit, cap * math.tanh(mag / cap))
+		end
+		dp *= g
+		local slide = dp.Magnitude
+		if slide > 1e-6 then
+			dp = dp.Unit * (cap / 3) * math.tanh(slide * 3 / cap)
+		end
+		pose[name] = cf + dp
+	end
 end
 
 local lifeHook: any
@@ -873,19 +1206,12 @@ local function sampleMove(move: string, phaseName: string, u: number, input: Inp
 	local dur = inp.duration or phase.duration
 	local secs = u * dur
 	local pose, plant, reach = Quadruped.samplePhase(phase, u, inp)
-	-- trailing joints
-	if move ~= "Death" or true then
-		local fade = if phaseName == "active" and move == "RendingPounce" then 0 else 1
-		if fade > 0 then
-			for name, lp in lagged(v, move, phaseName, secs, inp) do
-				pose[name] = lp[name] or pose[name]
-			end
-		end
-	end
+	followThrough(pose, v, move, phaseName, secs, dur, inp)
 	if lifeHook then
 		lifeHook(move, phaseName, u, secs, pose)
 	end
 	rig.plantLegs(pose, plant, phase.air, reach)
+	guardHead(pose)
 	-- tails: s = seconds from the windup start, release at s = windup
 	local W, Act = DUR[move][1], DUR[move][2]
 	local s = if phaseName == "windup" then W - (1 - u) * dur elseif phaseName == "active" then W + secs else W + Act + secs
@@ -1210,7 +1536,7 @@ do
 				local k = smooth(0.35, 0.5, u) * (1 - smooth(0.9, 1, u))
 				return { JointRoot = R(0, 0, 0, 0.07 * k * sin(secs * 22), 0.05 * k * sin(secs * 22 + 1.2)), JointTail = A(0, 0.2 * k * sin(secs * 22 + 0.8)) }
 			end }),
-			{ duration = Act, keys = { { t = 0, pose = {}, plant = NONE }, { t = 1, pose = {}, plant = NONE } }, overlay = function(_u: number, secs: number, input: any): Pose
+			{ duration = Act, keepOverlay = true, keys = { { t = 0, pose = {}, plant = NONE }, { t = 1, pose = {}, plant = NONE } }, overlay = function(_u: number, secs: number, input: any): Pose
 				return stride(secs, input.duration or Act)
 			end },
 			ph(Rec, { K(0, skid, HIND, skidR), K(0.2, skid, ALL, skidR, "out"), K(0.55, with(skid, { JointRoot = R(-0.25) }), ALL, BRACE, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }),

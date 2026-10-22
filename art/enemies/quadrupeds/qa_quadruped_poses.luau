@@ -50,8 +50,12 @@ CONFIGS.NineTailFox = {
 	feet = { "PawFL", "PawFR", "PawBL", "PawBR" },
 	mids = { "JointLowerLegFL", "JointLowerLegFR", "JointLowerLegBL", "JointLowerLegBR" },
 	range = 1.9,
-	skipPattern = "^Tail%d", -- tails are checked on their own until the rebuilt geometry lands
-	mergeOk = { ["Hips|LowerLegBL"] = 0.7, ["Hips|LowerLegBR"] = 0.7, ["Chest|LowerLegFL"] = 0.4, ["Chest|LowerLegFR"] = 0.4, ["LowerLegFL|Neck"] = 0.3, ["LowerLegFR|Neck"] = 0.3 },
+	-- tail against tail is not checked (the fan crosses and nests by design; the chain gaps and the
+	-- hidden lance are qa_nine_tail_fox_boss's job); tail against body, floor and gaps are
+	tailPattern = "^Tail%d",
+	-- the knee balls ride up into the hips' underside in a crouch, hidden in the fur mass; the
+	-- elbow tops into the chest the same way. Anything past these depths shows.
+	mergeOk = _G.QP_MERGEOK or { ["Hips|LowerLegBL"] = 0.3, ["Hips|LowerLegBR"] = 0.3, ["Chest|LowerLegFL"] = 0.3, ["Chest|LowerLegFR"] = 0.3 },
 	input = { stage = 2 },
 	speeds = { idle = { 0 }, walk = { 4, 8 }, run = { 9, 14, 22, 24 }, circle = { 6 } },
 }
@@ -220,7 +224,8 @@ local function check(label, pose)
 	for i, a in segs do
 		for j = i + 1, #segs do
 			local b = segs[j]
-			if not adjacent(a, b) and restDepth[a .. "|" .. b] < 0 and not (cfg.skipPattern and (a:match(cfg.skipPattern) or b:match(cfg.skipPattern))) then
+			if not adjacent(a, b) and restDepth[a .. "|" .. b] < 0 and not (cfg.skipPattern and (a:match(cfg.skipPattern) or b:match(cfg.skipPattern)))
+				and not (cfg.tailPattern and a:match(cfg.tailPattern) and b:match(cfg.tailPattern)) then
 				local dd = segDepth(boxes, a, b)
 				local chain = parentOf[parentOf[a] or ""] == b or parentOf[parentOf[b] or ""] == a
 				local allow = (cfg.mergeOk and (cfg.mergeOk[a .. "|" .. b] or cfg.mergeOk[b .. "|" .. a])) or (if chain then 0.15 else 0.08)

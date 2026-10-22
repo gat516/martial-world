@@ -68,7 +68,8 @@
     "StarterPlayer": {
       "$properties": {
         "CameraMaxZoomDistance": 30,
-        "EnableMouseLockOption": false
+        "EnableMouseLockOption": false,
+        "GameSettingsAvatar": "R6"
       },
       "StarterPlayerScripts": {
         "Client": {

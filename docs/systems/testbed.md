@@ -24,6 +24,13 @@ in AGENTS.md (Branches, Test build).
 - **Local only.** It's never published, so it has no live players. Studio Play
   uses the place's own DataStores (none, unless Studio API access is on), so
   profiles never touch the real game's. Everyone in Studio is an admin.
+- **R6 only, like the real game.** A local file has no experience settings, so
+  `test.project.json` sets `StarterPlayer.GameSettingsAvatar = R6`, the property
+  Game Settings > Avatar writes for an unpublished place. Rojo writes it only on a
+  build, not over a live serve: rebuild the test build to pick it up.
+- **No DataStores in the test build.** An unpublished place can't reach DataStores
+  or other Open Cloud APIs ("must publish this place"), and Studio API access can
+  only be turned on for a published place. So profiles there don't load or save.
 - **Alt mouse lock in the testbed.** In the observed Studio Play client, Roblox
   supplied no `PlayerScripts.PlayerModule` for `ShiftLock.luau` to rebind, so Shift
   stayed native and Alt did nothing. `test.project.json` disables the native

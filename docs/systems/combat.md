@@ -269,6 +269,20 @@ checks a rebuild against the previous templates.
   three afterimages, one point light on the front, a crescent moon rising
   behind the finish, impact frames at the sheathe and a quake on the first
   impact. `WeaponFX` (same folder) holds the helpers the weapon skills share.
+  Remade 2026-10-21 on the jian itself (`WeaponFX.rig`, the model's Base ->
+  Tip): the windup is a `Charge` along the blade (dark beam under a cold bright
+  one, motes, a glint at the point: the blade catching the light as it clears
+  the scabbard, 0.067 s); the draw flash, moon and air rings burst on the
+  blade 0.8 of the way to the tip rather than on the hand; through the dash an
+  `Edge` rides Base -> Tip (a solid moon ribbon, II+ a long afterimage, a Glow
+  beam, shed motes); the crescent front has an ink crescent under it; every cut
+  gets a crescent-moon flipbook (and the shared ink splat and star-burst
+  flipbook), fired as the front passes it, so all of it sits inside the
+  lunge window (Hit 0.067 -> Hit Stop 0.233, the clip's Lunge markers); a
+  `SheatheGlint` (star, halo, crescent flipbook, motes) flares on the live tip
+  as the blade is put away, 0.12 s after the dash. Layers T1 / T4: charge 8 /
+  8, release 5 / 8, edge 3 / 4, travel 13 / 13, impact 10 / 16, sheathe 4 / 9,
+  finish 3 / 4.
 - **Dragon-Piercing Thrust** (`DragonPierce_T1..T4`, authored at length 22
   and width 4; `TechniqueFX.DragonPierce`). A red-tasselled spear dragon in
   crimson and gold: the clip draws the spear back along the right side, then

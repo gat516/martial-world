@@ -45,6 +45,20 @@
 --       light riding the front, a rising crescent moon at the finish, impact
 --       frames at the sheathe and a quake on the first impact.
 --
+-- Remade 2026-10-21 (weapon models and Hit windows): the jian is the blade.
+--   Windup (0 -> Hit, 0.067 s): part "Charge" rides the model's Base -> Tip
+--     (WeaponFX.charge): a dark beam under a cold bright one, motes and a glint
+--     at the point, the blade catching the light as it clears the scabbard.
+--   Release (Hit): the moon flash and air rings burst on the blade, 0.8 of the
+--     way to the tip (not on the hand).
+--   Dash (Hit -> Hit Stop + 0.06): part "Edge" rides Base -> Tip: a solid
+--     moon ribbon (II+ a longer afterimage), the blade wreathed in a Glow beam
+--     and shedding motes; the crescent front gets a dark ink crescent under it.
+--     Impacts fire as the front passes each target, so they sit inside the
+--     lunge window (Hit -> Hit Stop) on the clip's own Lunge markers.
+--   Sheathe (a beat after the dash): "SheatheGlint" flares on the blade tip, a
+--     cold star, a ring and a crescent flipbook, as the blade is put away;
+--     each target cut flashes a crescent flipbook as well.
 -- Authored along -Z at length 14, width 5, active 0.16 s.
 local B = _G.vfxBlocks
 local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new
@@ -77,7 +91,11 @@ local A = {
 	mote = id(9841260273), -- glowing spindle mote
 	crackSmall = id(97725700315217),
 	star4 = id(13271628051),
+	crescentFlip = id(13972642464), -- 4x4 flipbook: a thin crescent moon sweeping and fading (cold edge)
+	ring = id(9841273159), -- clean thin ring
 }
+local GRID4 = Enum.ParticleFlipbookLayout.Grid4x4
+local ONESHOT = Enum.ParticleFlipbookMode.OneShot
 
 local SPAN = { 6, 6.5, 7, 8 }
 local HEIGHT = 3.4 -- the blade's arc, chest height
@@ -143,6 +161,8 @@ B.BLOCKS.mfdFront = function(root, tier, p)
 		front:SetAttribute(k, v)
 	end
 	local core = if tier >= 4 then GOLD_CORE else CORE
+	-- dark under light: an ink crescent a hair under the bright ones, so the arc reads on grass at noon
+	crescent(front, "Ink", span * 1.04, depth * 1.04, -0.04, span * 0.36, INK, 0.3, false, 0)
 	crescent(front, "Edge", span, depth, 0, span * 0.3, EDGE, 0.05, false, 0.2)
 	crescent(front, "Core", span * 0.94, depth * 0.9, 0.05, span * 0.14, core, 0, false, 0.45)
 	crescent(front, "Glow", span * 1.1, depth * 1.1, 0.02, span * 0.42, MOON, 0.45, true, 0.35)
@@ -268,6 +288,13 @@ end
 B.BLOCKS.mfdSlash = function(root, tier, p)
 	local part = root:FindFirstChild(p.part or "Impact")
 	local body = part:FindFirstChild("Body")
+	-- the moon's own edge sweeping through the body: a crescent flipbook
+	B.emitter(body, (p.name or "Slash") .. "Flip", {
+		Texture = A.crescentFlip, Color = CS(Color3.new(1, 1, 1)),
+		FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+		Size = NS({ KP(0, 2.4 + tier * 0.3), KP(1, 3.4 + tier * 0.4) }), Transparency = NS({ KP(0, 0), KP(0.7, 0.15), KP(1, 1) }),
+		Lifetime = R(0.3), LightEmission = 0.5, Rotation = p.rotation or R(-8, 8), ZOffset = 3.2,
+	}, { EmitCount = 1 })
 	return B.emitter(body, p.name or "Slash", {
 		Texture = p.texture or A.slash, Color = CS(CORE, MOON),
 		Size = NS({ KP(0, 1), KP(0.25, 2.8 + tier * 0.45), KP(1, 3.4 + tier * 0.5) }), Transparency = NS({ KP(0, 0), KP(0.55, 0.15), KP(1, 1) }),
@@ -348,6 +375,42 @@ B.BLOCKS.mfdFinish = function(root, tier, p)
 	return fin
 end
 
+-- The real blade's edge: the runtime moves Edge's Trails, Glow beam and Motes
+-- onto the held model's Base -> Tip for the dash.
+B.BLOCKS.mfdEdge = function(root, tier, p)
+	return _G.vfxSpecs.BladeKit.edge(root, tier, {
+		color = MOON, core = if tier >= 4 then GOLD_CORE else CORE, tail = EDGE,
+		trailLife = { 0.18, 0.22, 0.26, 0.32 }, glowWidth = { 0.6, 0.8, 1, 1.2 }, moteRate = { 10, 16, 22, 30 },
+	})
+end
+
+-- The flare on the blade tip as it is put away (a beat after the dash).
+B.BLOCKS.mfdSheatheGlint = function(root, tier, p)
+	local g = B.part(root, "SheatheGlint", O * CFrame.new(0, HEIGHT, -4), Vector3.new(1, 1, 1))
+	B.emitter(g, "Star", {
+		Texture = A.star4, Color = CS(CORE),
+		Size = NS({ KP(0, 0.5), KP(0.3, 2.8 + tier * 0.5), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.2), KP(1, 1) }),
+		Lifetime = R(0.38), LightEmission = 0.9, Rotation = R(-10, 10), ZOffset = 1,
+	}, { EmitCount = 1 })
+	B.emitter(g, "Halo", {
+		Texture = A.ring, Color = CS(MOON),
+		Size = NS({ KP(0, 0.4), KP(1, 2.6 + tier * 0.4) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+		Lifetime = R(0.34), LightEmission = 0.6, ZOffset = 0.5,
+	}, { EmitCount = 1 })
+	B.emitter(g, "Crescent", {
+		Texture = A.crescentFlip, Color = CS(Color3.new(1, 1, 1)),
+		FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+		Size = NS({ KP(0, 2), KP(1, 3.4 + tier * 0.4) }), Transparency = NS({ KP(0, 0), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(0.4), LightEmission = 0.55, Rotation = R(-40, -20), ZOffset = 1.2,
+	}, { EmitCount = 1 })
+	B.emitter(g, "Motes", {
+		Texture = A.mote, Color = CS(CORE, MOON), SpreadAngle = Vector2.new(180, 180),
+		Size = NS({ KP(0, 0.28), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(1, 1) }),
+		Lifetime = R(0.4, 0.8), Speed = R(2, 6), Drag = 2, LightEmission = 0.6, Rotation = R(0, 360), Acceleration = Vector3.new(0, 1.5, 0),
+	}, { EmitCount = 4 + tier * 2 })
+	return g
+end
+
 B.BLOCKS.mfdShake = function(root, tier, p)
 	return B.screenShake(root, tier, { parent = "Hand", magnitude = ({ 0.7, 1, 1.4, 1.8 })[tier] })
 end
@@ -356,13 +419,16 @@ return {
 	id = "MoonflashDraw",
 	root = { attrs = { AuthoredActive = 0.16, AuthoredLength = 14, AuthoredWidth = 5 } },
 	beats = {
+		-- the blade catches the light as it clears the scabbard (along Base -> Tip)
+		{ block = "bladeCharge", params = { color = MOON, core = CORE, ink = INK, width = 0.4 } },
 		{ block = "mfdGlint" },
-		-- the draw on the hand
+		-- the draw, on the blade
 		{ block = "mfdDraw" },
 		{ block = "releaseFlash", params = pal({ part = "Hand", at = HAND_AT, light = false }) },
 		{ block = "airShockwave", params = pal({ part = "Hand", at = HAND_AT, color = PALETTE.ringColor }) },
 		{ block = "mfdShake" },
 		-- the dash: the arc riding the front, the streak, the slit
+		{ block = "mfdEdge" },
 		{ block = "mfdFront" },
 		{ block = "mfdStreak" },
 		{ block = "mfdCut" },
@@ -371,6 +437,7 @@ return {
 		{ block = "mfdImpact" },
 		{ block = "mfdSlash" },
 		{ block = "mfdSheathe", from = 2 },
+		{ block = "mfdSheatheGlint" },
 		-- the dash end
 		{ block = "mfdFinish" },
 	},

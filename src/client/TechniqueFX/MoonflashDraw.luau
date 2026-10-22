@@ -22,6 +22,7 @@ local Client = script.Parent.Parent
 local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
 local WeaponFX = require(script.Parent.WeaponFX)
+local BladeSkill = require(script.Parent.BladeSkill)
 
 local SIDE = "Right" -- the drawing hand
 local CLIP = { hit = 0.0667, hitStop = 0.2333 } -- clip seconds, used until the def/ActionRules provide them
@@ -120,13 +121,19 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	if windup then
 		windup:Destroy() -- played at cast start (CombatEffects.windup)
 	end
+	local edgeT = TechniqueVFX.take(copy, "Edge")
+	local glint = TechniqueVFX.take(copy, "SheatheGlint")
 	if not front then
 		copy:Destroy()
 		return false
 	end
 
-	-- the draw on the live hand
-	local handAt = CastFX.handPosition(character, def.hand or SIDE) or (origin + dir * 1.2 + Vector3.new(0, 0.5, 0))
+	-- the draw on the live blade (the jian's Base -> Tip off the weapon model),
+	-- 0.8 of the way to the point; the hand only when nothing is held
+	local rig = WeaponFX.rig(character)
+	local bladeAt = if rig and rig.real then rig:at(0.8) else nil
+	WeaponFX.releaseRig(rig)
+	local handAt = bladeAt or CastFX.handPosition(character, def.hand or SIDE) or (origin + dir * 1.2 + Vector3.new(0, 0.5, 0))
 	local hand = copy:FindFirstChild("Hand") :: BasePart?
 	if hand then
 		hand.CFrame = CFrame.lookAt(handAt, handAt + dir)
@@ -199,6 +206,18 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	end
 	if light then
 		light.Brightness = 2.2
+	end
+	-- the real edge: trails, glow and motes ride the blade through the dash
+	local blade = BladeSkill.blade(character)
+	local edge = if blade and edgeT then BladeSkill.edge(edgeT, blade) else nil
+	if edge then
+		BladeSkill.setTrails(edge, true)
+		if edge.glow then
+			edge.glow.Enabled = true
+		end
+		if edge.motes then
+			edge.motes.Enabled = true
+		end
 	end
 	local streakA0 = streak and streak:FindFirstChild("A0") :: Attachment?
 	local streakA1 = streak and streak:FindFirstChild("A1") :: Attachment?
@@ -288,6 +307,19 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		if light then
 			light.Brightness = 0
 		end
+		if edge then
+			-- the ribbon lets go a beat after the dash, its tail fading by itself
+			task.delay(0.12, function()
+				BladeSkill.setTrails(edge, false)
+				if edge.glow then
+					edge.glow.Enabled = false
+				end
+				if edge.motes then
+					edge.motes.Enabled = false
+				end
+			end)
+			BladeSkill.release(blade, 0.9)
+		end
 		for _, c in crescents do
 			setOn(c.part, false)
 			task.delay(0.4, function()
@@ -301,6 +333,13 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		-- slit flares before it cools
 		local delay = num(copy, "SheatheDelay", 0.12)
 		task.delay(delay, function()
+			-- the blade is put away: a flare on the real tip
+			if glint then
+				local r = WeaponFX.rig(character)
+				local tipAt = if r then r.to.WorldPosition else endAt + dir * 2 + Vector3.new(0, 2, 0)
+				WeaponFX.releaseRig(r)
+				WeaponFX.burst(glint, CFrame.lookAt(tipAt, tipAt + dir))
+			end
 			if sheathe then
 				for i, target in struck do
 					local s = sheathe:Clone()

@@ -21,14 +21,17 @@
 --     template = "ThunderApeB",       -- ServerStorage.Enemies.<template>
 --     def = "ThunderApe",             -- Enemies.Defs.<def> (attack timings)
 --     scale = 3.71, keyedBlend = 0.06, seamless = false, -- the family's EnemyAnimator values
+--     seamlessStrike = false,         -- (or this: stationary strikes only, dashes keep the blend)
 --     heroes = { fistR = "HandFR.FistR_FX", mouth = "Skull.Mouth", chest = "Chest" },
 --     moves = { "clubSwing", { attack = "thunderRush", dash = 0.55, next = "rushSwipe" },
 --               { attack = "bound", dash = 0.8, input = { mode = "over" } }, "Stagger", "Death" },
 --     input = { side = 1 },           -- extra input every sample gets
 --     dt = 1/30, lead = 0.2, tail = 0.6, quiet = false, positions = false,
 --     lows = false, lowLimit = 0.5,   -- list every frame whose lowest point is under the floor
+--     steps = false, stepLimit = 25,  -- list every frame whose worst joint step is over stepLimit deg
 --     hang = 2.6,                     -- EnemyMotion's arc shape (WEIGHTED_MOVES)
 --     staggerSeconds = 0.45, deathSeconds = 3.2, map = { attack = "Move" },
+--     setup = function(M, template) M.configure(template, 2.13) end, -- optional, before sampling
 --   }
 --   loadstring(game:GetService("HttpService"):GetAsync("http://127.0.0.1:8767/motion_probe.luau"))()
 -- A move is an attack name (its move is the name capitalised, or `map[attack]`), or a spec
@@ -64,6 +67,10 @@ assert(okE, Enemies)
 local def = Enemies.Defs[cfg.def] or error("no def " .. tostring(cfg.def))
 local template = ServerStorage.Enemies:FindFirstChild(cfg.template) or error("no template " .. tostring(cfg.template))
 local hrp = template.HumanoidRootPart
+-- `setup(M, template)`: a module that reads its rig first (NineTailFox.configure) gets it here
+if cfg.setup then
+	cfg.setup(M, template)
+end
 local scale = cfg.scale or 1
 local keyedBlend = cfg.keyedBlend
 local seamless = cfg.seamless
@@ -293,8 +300,11 @@ for _, entry in cfg.moves do
 			local target = sampler(tt, T + tt)
 			local keyed = target ~= nil and st ~= "idle"
 			if st ~= lastState then
+				local prev = lastState
 				lastState = st
-				local within = seamless and (st == "dash" or st == "recover") and wasKeyed
+				-- seamlessStrike (EnemyAnimator's flag): only a stationary windup -> recover runs on
+				local within = ((seamless and (st == "dash" or st == "recover"))
+					or (cfg.seamlessStrike and st == "recover" and prev == "windup")) and wasKeyed
 				if within then
 					blendFrom = nil
 				elseif keyedBlend then
@@ -411,6 +421,17 @@ for _, entry in cfg.moves do
 			end
 		end
 		say("     below floor: %s", if #ls > 0 then table.concat(ls, ", ") else "none")
+	end
+	if cfg.steps then
+		-- every frame whose worst joint step is over stepLimit deg (a flip shows as one big frame)
+		local ls = {}
+		for i = 2, #frames do
+			local f = frames[i]
+			if f.jd > (cfg.stepLimit or 25) then
+				table.insert(ls, string.format("%.2f %s %.0f %s", f.t, f.st, f.jd, f.jn))
+			end
+		end
+		say("     big steps: %s", if #ls > 0 then table.concat(ls, ", ") else "none")
 	end
 	if cfg.positions then
 		local key = heroNames[1]

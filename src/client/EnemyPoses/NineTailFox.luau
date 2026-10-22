@@ -685,7 +685,8 @@ function loops.idle(clock: number, _speed: number, input: Input?): Pose
 	})
 	pose.JointEarR = A(0.08 + 0.26 * earR, 0, -0.2)
 	local fan = 0.3 + 0.05 * sin(clock * 0.55 + seed) + 0.03 * breath
-	tailsWave(pose, shp({ fan = fan, lift = 0.02 * breath }), nil, clock * 1.5 + seed, 0.5, 0.1, 0.07, 0.04)
+	-- (QA 2026-10-22: 0.1 / 0.07 / 0.04 moved the tips 1-2 studs/s, a fan that read as frozen at range)
+	tailsWave(pose, shp({ fan = fan, lift = 0.02 * breath }), nil, clock * 1.5 + seed, 0.5, 0.16, 0.12, 0.1)
 	local sway = 0.04 * shift
 	return rig.plant(pose, ALL, { FL = V(0, 0, 0.02 * shift), FR = V(0, 0, -0.02 * shift), BL = V(sway * 0.4, 0, 0), BR = V(sway * 0.4, 0, 0) })
 end
@@ -812,44 +813,72 @@ local function aimShape(azf: (number, any) -> number, el: number, e: number, hoo
 end
 NineTailFox.aimQ = aimQ
 
--- bisection on base pitch (roll 0) for the lance end to touch height tipY in this pose
-local function groundQ(i: number, pose: Pose, az: number, e: number, tipY: number, keep: Q?): Q
+-- The pitch (and yaw) for tail i's lance end to touch height tipY at azimuth az in this pose.
+-- The end height is a sinusoid in the base pitch: from its peak (the tail standing up) it falls
+-- both ways, over the back (pitch rising, the yaw turned round to face az) and over the head
+-- (pitch falling). `branch` picks one: 1 back (the default), -1 forward. Each is the first
+-- crossing from the peak, so the answer moves smoothly with the body. (Testing only the ends
+-- of -0.6..2.9 flipped between a solve and "unreachable, pitch 2.9" as the body dropped: a
+-- 20-stud jump of a planted tail in NineTailFall and Rootfire.)
+local PMIN, PMAX = -2.9, 2.9
+local function groundQ(i: number, pose: Pose, az: number, e: number, tipY: number, keep: Q?, branch: number?): Q
 	local q = zeroQ()
 	q.e = e
 	if keep then
 		q.r, q.a, q.b, q.c, q.la, q.lb, q.lc = keep.r, keep.a, keep.b, keep.c, keep.la, keep.lb, keep.lc
 	end
+	local dir = branch or 1
 	local function y(p: number): number
 		q.p = p
 		return tailEnd(i, pose, q).Y
 	end
-	-- pitch for the lance end to reach tipY at the current yaw (end height falls as the pitch rises)
-	local function solveP()
-		local lo, hi = -0.6, 2.9
-		if y(hi) > tipY then
-			return hi
-		elseif y(lo) < tipY then
-			return lo
+	local function solveP(): number
+		local lo0, hi0 = if dir > 0 then -0.6 else PMIN, if dir > 0 then PMAX else 0.6
+		local peak, peakY = lo0, -math.huge
+		for p = lo0, hi0 + 1e-6, 0.25 do
+			local yy = y(p)
+			if yy > peakY then
+				peak, peakY = p, yy
+			end
 		end
-		for _ = 1, 16 do
-			local mid = (lo + hi) / 2
+		if peakY < tipY then
+			return peak
+		end
+		local a, b = peak, nil :: number?
+		local stop = if dir > 0 then PMAX else PMIN
+		local p = peak
+		while (p - stop) * dir < -1e-6 do
+			p = clamp(p + 0.25 * dir, PMIN, PMAX)
+			if y(p) < tipY then
+				b = p
+				break
+			end
+			a = p
+		end
+		if not b then
+			return stop
+		end
+		local hi = b :: number
+		for _ = 1, 12 do
+			local mid = (a + hi) / 2
 			if y(mid) > tipY then
-				lo = mid
+				a = mid
 			else
 				hi = mid
 			end
 		end
-		return (lo + hi) / 2
+		return (a + hi) / 2
 	end
 	-- the yaw turns about the (body-tilted) tail root: iterate pitch and yaw onto the height and azimuth
 	local rootPos = tailRootW(pose).Position
-	q.w = az - (math.atan2(-DIR[i].X, -DIR[i].Z)) -- a first guess
-	for _ = 1, 4 do
+	local d = DIR[i]
+	q.w = az - math.atan2(-d.X * dir, -d.Z * dir) -- a first guess (the tail leaning toward az)
+	for _ = 1, 5 do
 		q.p = solveP()
 		local w = q.w
 		q.w = 0
 		local v = tailEnd(i, pose, q) - rootPos
-		q.w = (az - math.atan2(-v.X, -v.Z) + math.pi) % TAU - math.pi
+		q.w = w + ((az - math.atan2(-v.X, -v.Z) - w + math.pi) % TAU - math.pi)
 		if abs(q.w - w) < 1e-3 then
 			break
 		end
@@ -868,7 +897,7 @@ type TailSpec = {
 	lagFn: ((number) -> number)?, -- explicit lag per tail instead
 	wave: number?, -- amplitude of the always-on travelling wave
 	atk: ((number, number, any) -> (number, Q?))?, -- tail i at s -> weight, params it blends toward
-	ground: ((number, number, any) -> (number, number, number, number))?, -- -> weight, az, e, tipY
+	ground: ((number, number, any) -> (number, number, number, number, number?))?, -- -> weight, az, e, tipY, branch? (1 over the back, -1 over the head, nil the nearer)
 	floorSafe: Shape?, -- what a floor-clipping tail eases toward (default the rest shape)
 	floor: number?, -- a tail whose lance end would dip under this height (unit studs) is eased toward its rest shape until it clears
 }
@@ -948,6 +977,12 @@ local function partsOf(ctx: any, i: number): { PartDef }
 		end
 	end
 	return out
+end
+
+-- an ease-in from a to b: fastest at b (a blow that lands, not one that settles onto its target)
+local function slamIn(a: number, b: number, x: number): number
+	local k = clamp((x - a) / (b - a), 0, 1)
+	return k * k
 end
 
 local function snapUp(x: number): number
@@ -1038,28 +1073,38 @@ local function buildTails(pose: Pose, v: Variant, s: number, ctx: any, mirror: b
 	if spec.ground then
 		for n = 1, 9 do
 			local i = if mirror then 10 - n else n
-			local gw, az, e, tipY = spec.ground(i, s, ctx)
+			local gw, az, e, tipY, branch = spec.ground(i, s, ctx)
 			if gw > 0.001 then
 				-- solved on the (already mirrored) body with the real tail n: the azimuth mirrors, the shape doesn't
 				if mirror then
 					az = -az
 				end
-				-- the lance end travels from where the keys hold it down to the floor along its own
-				-- height (never swinging through the floor on the way), extension and azimuth blending too
+				-- the plunge: solve where the tail lands (the lance end on the floor at the plunge's
+				-- azimuth) and blend the tail's own params from the keys to that, so it swings over and
+				-- down in one arc and hands back to the keys exactly (gw 0 = the keyed tail). Solving
+				-- each frame at a blended height and azimuth instead jumped 10-20 studs in a frame
+				-- wherever the keyed end stood over the root (its azimuth spins there) and at the
+				-- hand-back, where the solve found another pitch/yaw branch than the keys.
 				local qk = qs[n]
 				if mirror then
 					qk = table.clone(qk)
 					qk.w, qk.r, qk.la, qk.lb, qk.lc = -qk.w, -qk.r, -qk.la, -qk.lb, -qk.lc
 				end
-				local endK = tailEnd(n, pose, qk)
-				local v = endK - tailRootW(pose).Position
-				local azK = math.atan2(-v.X, -v.Z)
-				local gk = gw * gw * (3 - 2 * gw)
-				local azE = azK + ((az - azK + math.pi) % TAU - math.pi) * gk
-				local keep = 1 - gk
-				local kq = zeroQ()
-				kq.r, kq.a, kq.b, kq.c, kq.la, kq.lb, kq.lc = qk.r * keep, qk.a * keep, qk.b * keep, qk.c * keep, qk.la * keep, qk.lb * keep, qk.lc * keep
-				qs[n] = groundQ(n, pose, azE, qk.e + (e - qk.e) * gk, endK.Y + (tipY - endK.Y) * gk, kq)
+				local gk = gw -- each move eases its own plunge (a slam lands fast, not on a smoothstep)
+				-- over the head or over the back: the landing nearer the keyed tail (the shorter swing)
+				local function near(qq: Q): Q
+					-- the turn nearest the keyed one (a 2 pi wrap is the same pose, but not under a lerp)
+					qq.w = qk.w + ((qq.w - qk.w + math.pi) % TAU - math.pi)
+					return qq
+				end
+				local qg = near(groundQ(n, pose, az, e, tipY, nil, branch or 1))
+				if not branch then
+					local qf = near(groundQ(n, pose, az, e, tipY, nil, -1))
+					if abs(qf.p - qk.p) + abs(qf.w - qk.w) < abs(qg.p - qk.p) + abs(qg.w - qk.w) then
+						qg = qf
+					end
+				end
+				qs[n] = lerpQ(qk, qg, gk)
 				solved[n] = true
 			end
 		end
@@ -1273,7 +1318,13 @@ lifeHook = lifeOverlay
 do
 	local W, Act, Rec = 2.2, 0.2, 0.8
 	local sleepy = curOver({ n = -0.3, h = -0.35, j = -0.05, y = -1.74, ch = 0.08 })
-	local sit = B({ y = -1.05, pitch = 0.1, ch = 0.12, n = 0.15, h = -0.08, hr = 0.14, e = 0.15, t = 0.3, legs = merge(FL(0.15, 0, 0), FRr(0.15, 0, 0), BLg(0.5, -1.5, 0.6, -0.85), BRg(0.4, -1.5, 0.6, 0.85)) })
+	-- The forepaws slide back under the chest before it pushes up, planted all the way (the
+	-- spots are where the curled pose lays them, unit studs from rest): lying to sitting through
+	-- the floor clamp flipped both forearms 150 degrees in one frame.
+	local lyingR = { FL = V(-0.86, 0, -1.98), FR = V(-1.42, 0, -2.08), BL = V(0, 0, 0), BR = V(0, 0, 0) }
+	local gatherR = { FL = V(-0.55, 0, -1.05), FR = V(-0.85, 0, -1.1), BL = V(0, 0, 0), BR = V(0, 0, 0) }
+	local gather = curOver({ n = 0.08, h = -0.12, j = -0.05, y = -1.5, pitch = 0.0, ch = 0.12 })
+	local sit = B({ y = -0.95, pitch = 0.38, ch = 0.1, n = 0.05, h = -0.08, hr = 0.14, e = 0.15, t = 0.3, legs = merge(FL(0.15, 0, 0), FRr(0.15, 0, 0), BLg(0.5, -1.5, 0.6, -0.85), BRg(0.4, -1.5, 0.6, 0.85)) })
 	local sitR = paws(-0.35, -0.6, 0.12, 0.25)
 	local stretch = B({ y = -0.25, pitch = -0.2, ch = -0.1, n = 0.0, h = 0.0, j = -0.75, e = 0.3, t = 0.7, hr = 0 })
 	local stretchR = paws(-0.75, 0.2, 0.5, 0.12)
@@ -1287,8 +1338,8 @@ do
 		TK(W + Act + Rec, T_REST),
 	}
 	register("Intro", "A", W, Act, Rec,
-		ph(W, { K(0, CURLED, NONE), K(0.45, sleepy, NONE, nil, "inOut"), K(0.85, sit, NONE, nil, "inOut"), K(1.25, stretch, ALL, stretchR, "inOut"),
-			K(1.65, arch, ALL, paws(-0.4, 0.1, 0.1, 0.12), "inOut"), K(1.95, peak, HIND, peakR, "out"), K(W, peak, HIND, peakR) }),
+		ph(W, { K(0, CURLED, NONE), K(0.1, CURLED, FRONT, lyingR), K(0.45, sleepy, FRONT, lyingR, "inOut"), K(0.66, gather, FRONT, gatherR, "inOut"), K(0.85, sit, ALL, sitR, "inOut"), K(1.25, stretch, ALL, stretchR, "inOut"),
+			K(1.65, arch, ALL, paws(-0.4, 0.1, 0.1, 0.12), "inOut"), K(1.95, peak, HIND, peakR, "out"), K(W, peak, HIND, peakR) }, { air = true }), -- hand-placed paws: no floor clamp (it flipped the lying forearms)
 		ph(Act, { K(0, peak, HIND, peakR), K(Act, after, HIND, peakR, "out") }),
 		ph(Rec, { K(0, after, HIND, peakR), K(0.4, with(STAND, {}), ALL, BRACE, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }),
 		{ keys = tailKeys, lag = 0.2 })
@@ -1296,8 +1347,8 @@ do
 	local tall = B({ y = -0.05, pitch = 0.78, ch = 0.15, n = 0.55, h = 0.3, hr = 0, j = -0.9, e = 0.55, ef = 0.3, t = -0.2, legs = merge(FL(0.45, -1.4, 0.2), FRr(0.45, -1.4, 0.2)) })
 	local crouch = B({ y = -0.75, pitch = -0.05, ch = -0.1, n = -0.2, h = -0.12, e = 0.4, t = 0.5 })
 	register("Intro", "B", W, Act, Rec,
-		ph(W, { K(0, CURLED, NONE), K(0.5, sleepy, NONE, nil, "inOut"), K(1.0, sit, NONE, nil, "inOut"), K(1.45, crouch, ALL, LOWR, "inOut"),
-			K(1.95, tall, HIND, REARR, "out"), K(W, tall, HIND, REARR) }),
+		ph(W, { K(0, CURLED, NONE), K(0.1, CURLED, FRONT, lyingR), K(0.5, sleepy, FRONT, lyingR, "inOut"), K(0.75, gather, FRONT, gatherR, "inOut"), K(1.0, sit, ALL, sitR, "inOut"), K(1.45, crouch, ALL, LOWR, "inOut"),
+			K(1.95, tall, HIND, REARR, "out"), K(W, tall, HIND, REARR) }, { air = true }), -- hand-placed paws: no floor clamp (it flipped the lying forearms)
 		ph(Act, { K(0, tall, HIND, REARR), K(Act, with(tall, { JointNeck = A(0.45) }), HIND, REARR, "out") }),
 		ph(Rec, { K(0, tall, HIND, REARR), K(0.4, crouch, ALL, LOWR, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }),
 		{ keys = tailKeys, lag = 0.2 })
@@ -1334,7 +1385,7 @@ do
 		end
 		table.insert(tl, TK(W + Act + Rec, T_REST))
 		register("FangDance", v, W, Act, Rec,
-			ph(W, { K(0, STAND, ALL), K(0.3, rock, ALL, rockR, "inOut"), K(0.5, rock, ALL, rockR), K(0.58, open, ALL, rockR, "inOut"), K(W - 0.02, with(s1, {}), ALL, r1, "in"), K(W, s1, ALL, r1) }, { overlay = function(u: number, secs: number, _: any): Pose
+			ph(W, { K(0, STAND, ALL), K(0.3, rock, ALL, rockR, "inOut"), K(0.5, rock, ALL, rockR), K(0.58, open, ALL, rockR, "inOut"), K(W, s1, ALL, r1, "in") }, { overlay = function(u: number, secs: number, _: any): Pose
 				local k = smooth(0.1, 0.3, u) * (1 - smooth(0.78, 0.9, u))
 				return { JointNeck = A(0, weave * k * sin(secs * 11)), JointHead = A(0.03 * k * sin(secs * 13 + 1), weave * 0.5 * k * sin(secs * 11 - 0.6), 0.12 * k * sin(secs * 11 - 1.2)) }
 			end }),
@@ -1397,29 +1448,56 @@ end
 -- TAILLANCE 0.6 / 0.1 / 0.7: tail 5 coils tight (tip aimed at the target), the forebody
 -- dips and the head tracks; at contact it extends fully along the facing line (about 0.2 s,
 -- ending on the hit) and retracts smoothly. The other tails flare.
+-- Intent: a scorpion's sting thrown by the whole body. The fox rocks its weight back onto its
+-- haunches while the tail coils (the chin tucks, eyes on the target), creeps a little deeper
+-- into the hold, then drives the body forward off the hind legs as the tail lances out, so
+-- the lunge sells the reach; the overshoot and rebound after the hit are the opening.
+-- Beats (ms from the windup): 0-250 rock back (ease out); 250-420 creep deeper and slow to
+-- a hold (the telegraph's read); 420-600 the body drives forward with the tail (ease in,
+-- fastest at contact, 600); 600-700 overshoot past the strike; 700-880 rebound past neutral
+-- onto the haunches; 880-1300 settle to the stand.
+-- (QA 2026-10-22: the load and strike poses were nearly the same, chest 7 studs/s: the tail
+-- did the whole attack on a body that hardly moved.)
+local function addO(base: { [string]: any }, o: { [string]: any }): { [string]: any }
+	local out = table.clone(base)
+	for k, v in o do
+		out[k] = if type(v) == "number" and type(out[k]) == "number" then out[k] + v else v
+	end
+	return out
+end
 do
 	local W, Act, Rec = 0.6, 0.1, 0.7
 	local function build(v: string, coilEl: number, coilHook: number, laneEl: number, dip: number, bodyO: { [string]: any })
 		local coil: Shape = function(i, _) return aimQ(i, 0, math.rad(coilEl), 0, coilHook) end
 		local aim: Shape = function(i, _) return aimQ(i, 0, math.rad(laneEl), 1, 0) end
-		local load = B(merge({ y = -0.3 * dip, ch = -0.18 * dip, n = -0.1, h = -0.15, ny = 0, e = 0.5, t = 0.3 }, bodyO) :: any)
-		local strike = B(merge({ y = -0.22 * dip, ch = -0.28 * dip, n = -0.22, h = -0.1, e = 0.55, t = 0.2 }, bodyO) :: any)
+		local load = B(addO({ y = -0.28 * dip, pitch = 0.1, z = 0.2, ch = 0.06, n = 0.1, h = -0.12, e = 0.6, t = 0.3 }, bodyO) :: any)
+		local deep = B(addO({ y = -0.3 * dip, pitch = 0.13, z = 0.23, ch = 0.08, n = 0.12, h = -0.14, e = 0.65, t = 0.32 }, bodyO) :: any)
+		local strike = B(addO({ y = -0.2 * dip, pitch = -0.1, z = -0.26, ch = -0.24 * dip, n = -0.24, h = -0.08, e = 0.35, t = 0.15 }, bodyO) :: any)
+		local over = B(addO({ y = -0.16 * dip, pitch = -0.12, z = -0.27, ch = -0.24 * dip, n = -0.3, h = -0.06, e = 0.3, t = 0.12 }, bodyO) :: any)
+		local rebound = B(addO({ y = -0.2 * dip, pitch = 0.04, z = 0.06, ch = 0.0, n = 0.02, h = -0.12, e = 0.5, t = 0.25 }, bodyO) :: any)
 		local reach = paws(-0.2 * dip, 0.15, 0.08, 0.1)
 		local tl = { TK(0, T_REST), TK(0.3, T_FLARE), TK(W, shp({ fan = 0.6, lift = -0.3, e = 0.1 })), TK(W + Act + 0.3, T_FLARE), TK(W + Act + Rec, T_REST) }
 		register("TailLance", v, W, Act, Rec,
-			ph(W, { K(0, STAND, ALL), K(0.25, load, ALL, reach, "out"), K(0.5, load, ALL, reach), K(W - 0.02, strike, ALL, reach, "in"), K(W, strike, ALL, reach) }),
-			ph(Act, { K(0, strike, ALL, reach), K(Act, strike, ALL, reach) }),
-			ph(Rec, { K(0, strike, ALL, reach), K(0.3, with(load, { JointRoot = R(-0.1) }), ALL, BRACE, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }),
+			ph(W, { K(0, STAND, ALL), K(0.25, load, ALL, reach, "out"), K(0.42, deep, ALL, reach, "inOut"), K(W, strike, ALL, reach, "in") }),
+			ph(Act, { K(0, strike, ALL, reach), K(Act, over, ALL, reach, "out") }),
+			ph(Rec, { K(0, over, ALL, reach), K(0.18, rebound, ALL, reach, "inOut"), K(0.42, with(STAND, { JointRoot = R(-0.08) }), ALL, BRACE, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }),
 			{ keys = tl, lag = 0.03, atk = lanceAtk(W, { coil = coil, aim = aim, c0 = 0.08, c1 = 0.4, hold = 0.12, ret = 0.45 }) })
 	end
 	build("A", 62, -1.5, 22, 1, {})
 	-- B: the tail rears tall and straight like a scorpion's, the body low and coiled
-	build("B", 84, -0.5, 18, 1.5, { pitch = 0.05, e = 0.6 })
+	build("B", 84, -0.5, 18, 1.5, { pitch = 0.05, e = 0.05 })
 end
 
 ------------------------------------------------------------------------------------
 -- LANCEFAN 0.95 / 0.1 / 1.0: the tails coil and fan; each lance extends in sequence at its
 -- part's time (0.18 s apart); phase 3 returns on a second set.
+-- Intent: a volley of stings. The fox draws back onto its haunches while the tails coil and
+-- fan (the read), then lunges into the first lance; every lance that leaves kicks the body
+-- back a touch and turns the shoulders toward its lane, so the fan reads as fired from the
+-- body, left to right, not as tails moving on their own.
+-- Beats (ms): 0-400 rock back (ease out); 400-800 creep deeper, slowing to a hold; 800-950
+-- the lunge into the first lance (ease in, contact at 950); then one recoil per lance (a
+-- 20 ms rise, a 110 ms decay) on the held lunge; the recover comes back as before.
 do
 	local W, Act, Rec = 0.95, 0.1, 1.0
 	local function build(v: string, coilK: number, coilEl: number, laneEl: number, bodyO: { [string]: any }, cross: number)
@@ -1429,25 +1507,45 @@ do
 		end
 		local coil: Shape = function(i, ctx) return aimQ(i, laneAz(i, ctx) * coilK, math.rad(coilEl), 0, -1.2) end
 		local aim: Shape = function(i, ctx) return aimQ(i, laneAz(i, ctx) * cross, math.rad(laneEl), 1, 0) end
-		local load = B(merge({ y = -0.35, ch = -0.12, n = 0.0, h = -0.12, e = 0.5, t = 0.35 }, bodyO) :: any)
-		local strike = B(merge({ y = -0.25, ch = -0.2, n = -0.14, h = -0.1, e = 0.55, t = 0.2 }, bodyO) :: any)
-		local sweep = with(strike, { JointRoot = R(-0.22, 0, 0, 0.06) })
+		local load = B(addO({ y = -0.33, pitch = 0.08, z = 0.22, ch = 0.04, n = 0.08, h = -0.12, e = 0.6, t = 0.35 }, bodyO) :: any)
+		local deep = B(addO({ y = -0.37, pitch = 0.1, z = 0.28, ch = 0.06, n = 0.1, h = -0.14, e = 0.65, t = 0.37 }, bodyO) :: any)
+		local strike = B(addO({ y = -0.25, pitch = -0.07, z = -0.2, ch = -0.2, n = -0.18, h = -0.1, e = 0.4, t = 0.2 }, bodyO) :: any)
+		local sweep = with(strike, { JointRoot = R(-0.22, -0.07, -0.22, 0.06) })
 		local reach = paws(-0.25, 0.2, 0.1, 0.12)
+		-- each lance's recoil: the root kicks back and up a little, the shoulders turn to its lane
+		local function recoil(s: number, input: any): Pose
+			local stage = input.stage or 1
+			local z, pitch, yaw = 0, 0, 0
+			for _, p in input.parts or defaultParts("LanceFan", stage) do
+				local t0 = W + (p.delay or 0)
+				if s > t0 - 0.03 then
+					local k = smooth(t0 - 0.03, t0 + 0.02, s) * math.exp(-9 * math.max(0, s - t0 - 0.02))
+					z += 0.06 * k
+					pitch += 0.025 * k
+					yaw += 0.1 * (-(p.tail - 5) / 4) * k
+				end
+			end
+			return { JointRoot = R(0, pitch, z), JointChest = A(0, clamp(yaw, -0.12, 0.12)) }
+		end
 		local tl = {
 			TK(0, T_REST), TK(0.45, shp({ fan = 0.55, lift = -0.3, e = 0.12 })), TK(W + Act + 0.5, shp({ fan = 0.5, lift = -0.2, e = 0.1 })), TK(W + Act + Rec, T_REST),
 		}
 		register("LanceFan", v, W, Act, Rec,
-			ph(W, { K(0, STAND, ALL), K(0.4, load, ALL, reach, "out"), K(0.8, load, ALL, reach), K(W - 0.02, strike, ALL, reach, "in"), K(W, strike, ALL, reach) }),
-			ph(Act, { K(0, strike, ALL, reach), K(Act, sweep, ALL, reach, "out") }),
+			ph(W, { K(0, STAND, ALL), K(0.4, load, ALL, reach, "out"), K(0.8, deep, ALL, reach, "inOut"), K(W, strike, ALL, reach, "in") }),
+			ph(Act, { K(0, strike, ALL, reach), K(Act, sweep, ALL, reach, "out") }, { overlay = function(_u: number, secs: number, input: any): Pose
+				return recoil(W + secs, input)
+			end }),
 			-- the pose holds the lunge long enough for the (later) lances of the second set, then comes back
-			ph(Rec, { K(0, sweep, ALL, reach), K(0.55, with(strike, { JointRoot = R(-0.22, 0, 0, -0.06) }), ALL, reach, "inOut"), K(0.8, with(load, { JointRoot = R(-0.12) }), ALL, BRACE, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }),
+			ph(Rec, { K(0, sweep, ALL, reach), K(0.55, with(strike, { JointRoot = R(-0.22, -0.05, -0.16, -0.06) }), ALL, reach, "inOut"), K(0.8, with(load, { JointRoot = R(-0.12) }), ALL, BRACE, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }, { overlay = function(_u: number, secs: number, input: any): Pose
+				return recoil(W + Act + secs, input)
+			end }),
 			{ keys = tl, lag = 0.02, atk = lanceAtk(W, { coil = coil, aim = aim, c0 = 0.1, c1 = 0.55, hold = 0.12, ret = 0.4 }) })
 	end
 	build("A", 0.5, 62, 16, {}, 1)
 	-- B: tall tight spirals, flat lances, the forebody rears slightly
 	build("B", 0.3, 80, 12, { pitch = 0.12, ch = 0.05, n = 0.05 }, 1)
 	-- C: the tails coil outward and the lances converge across the middle before fanning
-	build("C", 1.8, 50, 18, { y = -0.4 }, -0.4)
+	build("C", 1.8, 50, 18, { y = -0.05 }, -0.4)
 end
 
 ------------------------------------------------------------------------------------
@@ -1583,7 +1681,7 @@ do
 		local thrustR = paws(-0.3, 0.25, 0.1, 0.12)
 		local dipP = with(thrust, { JointRoot = R(-0.2, -0.05) })
 		register("FoxfireVolley", v, W, Act, Rec,
-			ph(W, { K(0, STAND, ALL), K(0.3, with(rear, { JointRoot = R(-0.3, 0) }), ALL, LOWR, "inOut"), K(0.65, rear, HIND, rearR, "out"), K(0.98, rear, HIND, rearR), K(W - 0.02, thrust, ALL, thrustR, "in"), K(W, thrust, ALL, thrustR) }),
+			ph(W, { K(0, STAND, ALL), K(0.3, with(rear, { JointRoot = R(-0.3, 0) }), ALL, LOWR, "inOut"), K(0.65, rear, HIND, rearR, "out"), K(0.98, rear, HIND, rearR), K(W, thrust, ALL, thrustR, "in") }),
 			ph(Act, { K(0, thrust, ALL, thrustR), K(Act, dipP, ALL, thrustR, "out") }),
 			ph(Rec, { K(0, dipP, ALL, thrustR), K(0.3, with(rear, { JointRoot = R(-0.1) }), ALL, BRACE, "inOut"), K(0.55, with(STAND, { JointRoot = R(-0.1) }), ALL, BRACE, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }),
 			{ keys = { TK(0, T_REST), TK(0.4, T_UPH), TK(W + Act + Rec, T_REST) }, lag = 0.02, atk = volleyAtk(archAt, el, 14) })
@@ -1622,8 +1720,9 @@ do
 			if i % 2 == 0 then
 				return 0, 0, 0, 0
 			end
-			local w = smooth(plungeAt - 0.12, plungeAt + 0.06, s) * (1 - smooth(W + Act + 0.8, W + Act + 1.25, s))
-			return w, plungeAz(i), ePlunge, 0.3
+			-- a stab: accelerates into the ground and lands on plungeAt (the vfx's PlungeImpact cue)
+			local w = slamIn(plungeAt - 0.18, plungeAt, s) * (1 - smooth(W + Act + 0.8, W + Act + 1.25, s))
+			return w, plungeAz(i), ePlunge, 0.3, -1 -- over the head, the way the arch already leans
 		end
 		local rear = B({ y = -0.05, pitch = 0.72, ch = 0.14, n = 0.4, h = 0.2, hr = 0, j = -0.5, e = 0.5, t = -0.2, legs = merge(FL(0.45, -1.4, 0.2), FRr(0.45, -1.4, 0.2)) })
 		local coil = B({ y = -0.55, pitch = 0.0, ch = -0.12, n = -0.1, h = -0.1, e = 0.5, t = 0.4 })
@@ -1691,7 +1790,7 @@ do
 		local tl = {
 			TK(0, T_REST), TK(0.15, aimShape(azLane(30 * math.pi / 180), math.rad(38), 0.25)),
 			TK(W + 0.02, shp({ fan = 0.5, lift = -0.3, e = 0.9, curl = 0.3 })), TK(W + 0.06, shp({ fan = 0.5, lift = -0.25, e = 1, curl = 0.3 })),
-			TK(W + 0.15, shp({ fan = 0.3, lift = -0.1, e = 0.1, hook = -1 }), "in"), TK(W + 0.5, shp({ fan = 0.25, lift = -0.05, e = 0.08, hook = -1 })),
+			TK(W + 0.15, shp({ fan = 0.3, lift = -0.75, e = 0.1, hook = -1 }), "in"), TK(W + 0.5, shp({ fan = 0.25, lift = -0.7, e = 0.08, hook = -1 })),
 			TK(W + 0.58, shp({ fan = 0.4, lift = 0.0, e = 0.3 })),
 			TK(W + Act + 0.1, T_FLARE), TK(W + Act + Rec, T_REST),
 		}
@@ -1760,8 +1859,9 @@ do
 		end
 		local ground = function(i: number, s: number, ctx: any): (number, number, number, number)
 			local t = hitTime(i, ctx)
-			local w = smooth(t - 0.28, t - 0.02, s) * (1 - smooth(W + Act + 1.15 + 0.05 * (i - 1), W + Act + 1.5 + 0.05 * (i - 1), s))
-			return w, math.rad(AZ[i]), ePlunge, 0.3
+			-- each slam accelerates into the floor and lands on its circle's hit time
+			local w = slamIn(t - 0.26, t, s) * (1 - smooth(W + Act + 1.15 + 0.05 * (i - 1), W + Act + 1.5 + 0.05 * (i - 1), s))
+			return w, math.rad(AZ[i]), ePlunge, 0.3, 1 -- over the back (the fan stands overhead; the head side clips)
 		end
 		local up = shp({ fan = fanWide, lift = -0.61, e = 1 })
 		local rear = B({ y = -0.05, pitch = 0.85, ch = 0.16, n = 0.45, h = 0.2, hr = 0, j = -0.5, e = 0.55, ef = 0.25, t = -0.2, legs = merge(FL(0.45, -1.4, 0.2), FRr(0.45, -1.4, 0.2)) })
@@ -1876,7 +1976,9 @@ do
 	local rest = B({ y = -1.7, pitch = 0.0, roll = 1.5, ch = 0.0, n = -0.25, h = -0.25, hr = 0.15, j = -0.1, e = 0.3, t = 0.0, legs = merge(FL(0.4, -0.7, -0.2), FRr(0.2, -0.4, -0.1), BLg(0.4, -0.7, 0.1), BRg(0.1, -0.4, 0.1)) })
 	local win: Phase = ph(3.2, { K(0, STAND, ALL), K(0.12, hit, ALL, hitR, "out"), K(0.5, hit, ALL, hitR), K(1.1, sag, ALL, sagR, "inOut"), K(1.5, sag2, ALL, sagR, "inOut"),
 		K(1.95, fall, NONE, nil, "in"), K(2.15, bounce, NONE, nil, "out"), K(2.5, rest, NONE, nil, "inOut"), K(3.2, rest, NONE) },
-		{ mirror = true, overlay = function(u: number, secs: number, _: any): Pose
+		-- air: no floor clamp. Lying on its side the legs' plane is level, and the clamp's in-plane
+		-- solve toggled on and off every frame (lower legs and paws 100-122 deg a frame, 2.0-2.6 s)
+		{ mirror = true, air = true, overlay = function(u: number, secs: number, _: any): Pose
 			local k = smooth(0.12, 0.4, u / 1) * (1 - smooth(0.4, 0.62, u))
 			return { JointRoot = R(0, 0, 0, 0.05 * k * sin(secs * 5), 0.05 * k * sin(secs * 3.3)), JointHead = A(0.06 * k * sin(secs * 4)) }
 		end })

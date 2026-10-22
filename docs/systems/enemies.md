@@ -944,6 +944,46 @@ templates), every sound in-game (permissions, loudness, fit), the Game Module pl
 templates, phone load of `nineTailFall` (nine eruptions and the final, about 55 emitters live for
 2 s) and the death.
 
+#### Animation QA (2026-10-22)
+A motion probe over the real state timeline (`art/enemies/motion_probe.luau`, every move at 30 and
+60 Hz, `lows`, plus the new `steps` list of big one-frame joint steps) ranked the Fox's problems:
+1. **Plunging tails teleported.** Rootfire Eruption's tails 1 and 9 and Nine-Tail Fall's tails 1-3
+   jumped 10-20 studs in one frame (505-562 studs/s, the base joint 160-177 deg) while planted and
+   when handing back to their keys. The plunge solve (`groundQ`) tested only the ends of its pitch
+   range, so it flipped to "unreachable" as the body dropped, and it was re-solved each frame at a
+   blended height and azimuth that spins when the keyed tail stands over its root. Now the solve
+   takes the first crossing after the end height's peak on a chosen side (`ground` returns a
+   `branch`: Rootfire over the head, Nine-Tail Fall over the back) and the tail blends its own
+   params from the keys to that landing. Each plunge eases in and lands on its time (Rootfire at
+   `plungeAt`, the vfx's PlungeImpact; each Fall slam on its circle's hit time), instead of
+   settling onto the floor on a double smoothstep. Tips now peak 170-390 studs/s.
+2. **A dead frame at every stationary release** (the keyed blend restarting from the frozen
+   contact frame): the family takes EnemyAnimator's `seamlessStrike`; the pounce and Moon Leap keep
+   their dash blends (full `seamless` stepped the leap's forelegs 72-80 deg at take-off and
+   landing). Fang Dance and Foxfire Volley lost a 20 ms hold before contact that stopped the body
+   and tails dead for a frame.
+3. **The body did not carry the tail attacks** (the stiffness): Tail Lance's load and strike were
+   nearly the same pose (chest 7 studs/s). It now rocks back onto its haunches as the tail coils,
+   creeps deeper into the hold, drives forward off the hind legs as the lance leaves (ease in,
+   fastest at contact), overshoots and rebounds (chest 27, mouth 99 -> 162 studs/s, root travel
+   0.7 -> 1.2). Lance Fan does the same and each lance kicks the body back and turns the shoulders
+   toward its lane (mouth 85 -> 193). Idle tails sway wider (tips 1-2 studs/s read as frozen).
+4. **Leg flips**: the intro's forearms flipped 150-160 deg in a frame rising from the curl (the
+   floor clamp's two bends). The forepaws now stay planted and slide back under the chest
+   (`gather`) into a real sit (chest up, pitch 0.38); the intro windup and the death skip the
+   floor clamp (`air`), which on its side toggled every frame (lower legs 100-122 deg a frame).
+5. Moon Leap's tail flame went 1.9 studs into the floor mid-flip: the tails tuck forward over the
+   back (lift -0.75) for the inversion.
+Not taken: `Quadruped.steady` (the King's solver) made the intro and the pounce worse here and the
+poses are tuned against the old blend. Left: the intro still starts with a 0.06 s blend from
+standing into the curl (the fox idles standing before the engagement; a curled idle before aggro
+would fix it, a design call); the pounce's bound steps the forelegs 60-78 deg a frame at 55
+studs/s (the run gait at that speed); the death's collapse steps one shoulder 105 deg and sinks a
+paw 1.3 studs for 0.2 s; Fang Dance's bites end in a one-frame stop before each recoil; plunging
+tails now pass through the hind thighs (0.7-1.2 studs) where they used to pass through the chest
+(1.4-1.7), since a straight tail from the hub to the floor must cross the flank. Timings, cue
+moments and the pose API are unchanged. Untested in Play.
+
 ### Thunder Ape (testbed trial)
 A 30-stud storm boss for Foundation 1 (`Config.Wilds.NEW_THUNDER_APE = TESTBED`; flip it to ship).
 Body `ThunderApeB` (3.71x the roster ape; root box 14.8 x 14.8 x 16.3, so every reach below is measured from

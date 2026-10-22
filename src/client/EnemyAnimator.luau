@@ -222,10 +222,13 @@ end
 
 -- Nine-Tailed Fox: unit-space poses, scaled once by `scaled` (it also scales the tail slides).
 -- `fox` makes withExtras pass the boss Phase as input.stage; the barrage parts are not sent to
--- clients, so the module uses its DEFAULT_PARTS.
+-- clients, so the module uses its DEFAULT_PARTS. `seamlessStrike`: every stationary strike stopped
+-- dead for a frame at its release (the blend from the frozen contact frame); the pounce and Moon
+-- Leap keep their blends into and out of the dash (full `seamless` stepped the leap's forelegs
+-- 72-80 deg a frame at take-off and landing).
 if NineTailFox then
 	FAMILIES.NineTailFoxB = {
-		poses = NineTailFox, scale = 2.13, runFrom = 8.5, keyedBlend = 0.06, deathSeconds = 3.2, fox = true,
+		poses = NineTailFox, scale = 2.13, runFrom = 8.5, keyedBlend = 0.06, seamlessStrike = true, deathSeconds = 3.2, fox = true,
 		moves = {
 			intro = "Intro", fangDance = "FangDance", tailSweep = "TailSweep", tailLance = "TailLance",
 			lanceFan = "LanceFan", tailSnare = "TailSnare", rendingPounce = "RendingPounce",

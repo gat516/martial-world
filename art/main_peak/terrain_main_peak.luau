@@ -9,8 +9,9 @@ _G.MAIN_PEAK_JSON.
 
   terrace  Grass out to the rim (less a little, the mesh turf lip covers the edge), the ring walk in
            Cobblestone, surface at Y 582; the rock under it is sunk TERRAIN_SINK in the mesh
-  ledge    the plaza ledge (Y 614) as Grass out to its edge, none on the south where there is no ledge
-  shelves  each pine / waterfall cliff shelf's sunk basin as Grass; the shrine ledge stays bare stone
+  ledge    the plaza ledge (Y 614) as Grass out to its edge, none on the south where there is no ledge, and only
+           over the rock's sunk ledge flat (never past its lip)
+  shelves  off (SHELF_BASINS): every cliff shelf stays bare stone, like the shrine ledge
 Pools, streams and their basins are dress_main_peak.luau's (it carves into this terrain).
 
 Global terrain colours (Terrain:SetMaterialColor is place-wide; spirit peaks use the same) are set here too and
@@ -167,12 +168,31 @@ local function terrace()
 		else
 			mat = Enum.Material.Grass
 		end
+		-- the deeper layers near the rim show through crevices in the cliff columns: Rock there, not green patches
+		if y < Y - VOXEL and r > rim0 - 12 then
+			mat = Enum.Material.Rock
+		end
 		return mat, occ(rim - r, top - y)
 	end)
 end
 
 -- the plaza ledge at Y 614: grass out to its outer edge; nothing where the ledge is narrower than 3
 local LEDGE_OUT, LEDGE_LIFT = _G.MP_LEDGE_OUT or 0.5, _G.MP_LEDGE_LIFT or 0.8
+-- a ledge voxel column is only written where the rock's sunk ledge flat is right under it (its top within 3 studs
+-- under Y): past the rock's lip, over the mesa's hollows and inside the rock there is no grass, so nothing green
+-- hangs over the cliff (the outline alone let the lawn overhang the lip as a green sheet; user, 2026-10-20)
+local ledgeRock = RaycastParams.new()
+ledgeRock.FilterType = Enum.RaycastFilterType.Include
+ledgeRock.FilterDescendantsInstances = { workspace.Map.Sect.MainPeak:WaitForChild("Rock") }
+local ledgeSupport = {}
+local function onLedgeRock(x, z, Y)
+	local key = x .. "," .. z
+	if ledgeSupport[key] == nil then
+		local hit = workspace:Raycast(Vector3.new(x, Y + 10, z), Vector3.new(0, -14, 0), ledgeRock)
+		ledgeSupport[key] = hit ~= nil and hit.Position.Y > Y - 3 and hit.Position.Y < Y + 0.5
+	end
+	return ledgeSupport[key]
+end
 local function ledge()
 	local Y = T.ledge_y
 	local cx, cz = T.plaza[1], T.plaza[2]
@@ -180,19 +200,33 @@ local function ledge()
 		local dx, dz = x - cx, z - cz
 		local d = math.sqrt(dx * dx + dz * dz)
 		local e = sample(T.ledge, math.atan2(dz, dx))
-		if e[2] < 3 then
+		if e[2] < 3 or not onLedgeRock(x, z, Y) then
 			return nil, 0
 		end
 		-- the shelf is only 9-12 studs deep (two or three voxels), so the voxels' rounding would sink it under the
 		-- rock: aim a little high and out to the edge (the turf-lip mesh hides the outer stud)
 		local mat = (e[1] - d < BORDER) and Enum.Material.LeafyGrass or Enum.Material.Grass
-		return mat, occ(e[1] + LEDGE_OUT - d, Y + LEDGE_LIFT - y)
+		-- every layer reaches the edge (the columns are already limited to the rock's ledge flat, onLedgeRock): an
+		-- inset lower layer left the top layer a lone 0.2-occupancy cell at the edge, which renders as a thin green
+		-- curl floating over the stone. The lower layers are Rock (tinted like the mesh), so where they show on the
+		-- cliff face under the lip they read as stone, not as a green band
+		local edge = e[1] + LEDGE_OUT
+		if y < Y - VOXEL / 2 then
+			mat = Enum.Material.Rock
+		end
+		return mat, occ(edge - d, Y + LEDGE_LIFT - y)
 	end)
 end
 
 -- the cliff shelves' basins (pine and waterfall shelves; the shrine ledge stays bare stone)
 local LEDGE_RECESS = 1.2
+-- off: the basin blocks leaked out between the shelves' column stumps as green cubes and drips down the cliff
+-- (user, 2026-10-20); the pine and waterfall shelves stay bare stone like the shrine ledge
+local SHELF_BASINS = _G.MP_SHELF_BASINS == true
 local function shelves()
+	if not SHELF_BASINS then
+		return
+	end
 	for _, l in data.anchors.ledges do
 		if l.kind ~= "shrine" then
 			local top = l.top[2] - LEDGE_RECESS + 0.8 -- just under the stone lip around the basin

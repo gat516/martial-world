@@ -60,6 +60,41 @@ with the head level at player-head height.
 
 Tells (Neon, `Tell` attribute): EyeL/R, VenomSacL/R on the jowls, HoodSpotL/R.
 
+### Venom Serpent poses (`src/client/EnemyPoses/VenomSerpent.luau`)
+
+Authored in real studs for VenomSerpentB (1.40x, the roster body x 1.4; `SCALE = 1`), model space
+with the ground at Y 0 and the HRP centre at x/z 0. Joint pivots at 1.40x (the roster's x 1.4):
+Root (0.63, 0.89, 0.07); Neck (0, 0.91, -0.84), Neck2 (0, 2.45, -1.96), Neck3 (0, 4.13, -2.45), Head
+(0, 5.67, -2.52); Tail (1.26, 0.87, 0.98), Tail2 (1.12, 0.81, 3.22), Tail3 (-0.56, 0.73, 4.76), Tail4
+(-1.82, 0.63, 6.72), Tail5 (-0.98, 0.50, 8.68), tail end (1.17, 0.26, 9.84); mouth (0, 6.06, -4.84).
+Bones: Neck 1.9, Neck2 1.75, Neck3 1.54 long; the head to the mouth 2.33. The module checks out
+against the rig to 0.004 studs. The pose maths is `Serpent.luau`'s (absolute orientations per bone).
+
+- **Neck angles** (stance keys e1..e4, degrees): e1..e3 are the bones' elevations above horizontal
+  (rest 54 / 73.7 / 87.4, 90 vertical, past 90 leans back); e4 is the HEAD's absolute pitch (0 = the
+  rest, level; + noses up). Y headings are absolute per bone (+ turns left); the module adds Z leans
+  (roll about the forward axis, + tips the bone toward the beast's left).
+- **A near-vertical column cannot sway by yaw** (heading about the vertical only twists it). The
+  idle's lateral S and the "keep the head over the lane" correction are Z leans (up to ~0.25 rad).
+- **The gooseneck**: the skull sits at an 87 degree elbow to Neck3, baked into the geometry. The head
+  joint's local angle is `e4 - (e3 - 87.4)`, so laying the neck forward with a level head needs a huge
+  hinge angle (a wedge of sky). Keep every neck joint's relative bend within about 0.55 rad
+  (e1 - 54, (e2 - e1) - 19.7, (e3 - e2) - 13.7, e4 - (e3 - 87.4)); the strike keeps Neck3 at 50-60
+  degrees and the head down instead of stretching it flat. The death lies at 0.8 rad on the head joint.
+- **Hood**: flare 0..1.15 rad (L = -Y, R = +Y). The plate meets the skull more as the head pitches up
+  (box-overlap depth at flare 1.0: 0.27 level, 0.40 at +0.3 rad) and the jaw as it pitches down. The
+  moves keep the hood at 0.8 or less when the head is more than 0.3 rad off level.
+- **Death on its side buries a hood**: rolling the neck past about 1.2 rad pushes one hood plate 0.5 to
+  2 studs under the floor. The death collapses forward and rolls only 0.1-0.3 rad.
+- **Neck1 sinks** when its elevation drops under about 35 degrees without lifting the front: the walk and
+  strikes add `bp` (front lift about the rear end) 0.05-0.1.
+- The Body is a 2.2 stud rigid block, so the slither lays it on the chord of the wave (Serpent.lay); with
+  wavelength 10.5 and heading amplitude 0.8 (0.65 at a run) the belly sideslip stays under 2 studs/s up
+  to 9 studs/s.
+- Tongue and sacs have no joints: a tongue flick is a jaw tick, the sacs swell through the VFX.
+- Checking the slither: `qa_venom_serpent_poses.luau` takes a Body block's position, not
+  `Part0 * C0`: for JointRoot that is the static rest pivot and fakes a sideslip.
+
 ## Jade Python (14 joints, elite)
 
 A thick horned python lying in a loose coil, with the front raised in a strike S.

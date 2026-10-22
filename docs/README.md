@@ -110,7 +110,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | UI and HUD | [ui](systems/ui.md) | - | - | Hud, SeatBars, GuardBar, Menus, Layout, Motion, BossBars, BossThemes, ScrollHint, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |
 | Map: layout, art direction, anchors scripts depend on | [map](systems/map.md) | Peaks (Map.Sect.SpiritPeaks), Tribulation (CENTER), Travel (TravelGate arrays) | Gates, Config.Travel, Config.Tribulation, Config.Build | DayNight (Map.Sect.Ambience), MyPeak |
-| Testbed / test build (local baseplate arena, `test.project.json`; branches and test build in AGENTS.md) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |
+| Testbed / test build (local baseplate arena, `test.project.json`; branches and test build in AGENTS.md) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), ForceR6 (R6 when unpublished), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |
 | Monetization | [monetization](systems/monetization.md) | Receipts, Garden (Grow now) | Config.Garden.GROW_NOW | GardenView |
 
 ## Remotes (`ReplicatedStorage.Remotes`, `assets/Remotes.rbxmx`)

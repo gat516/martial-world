@@ -24,10 +24,11 @@ in AGENTS.md (Branches, Test build).
 - **Local only.** It's never published, so it has no live players. Studio Play
   uses the place's own DataStores (none, unless Studio API access is on), so
   profiles never touch the real game's. Everyone in Studio is an admin.
-- **R6 only, like the real game.** A local file has no experience settings, so
-  `test.project.json` sets `StarterPlayer.GameSettingsAvatar = R6`, the property
-  Game Settings > Avatar writes for an unpublished place. Rojo writes it only on a
-  build, not over a live serve: rebuild the test build to pick it up.
+- **R6 only, like the real game.** The avatar type is an experience setting, and a
+  local file has none (StarterPlayer's old `GameSettingsAvatar` property is gone), so
+  it spawned R15. In an unpublished place, `ForceR6.server.luau` puts an R6
+  `StarterCharacter` (blank body; your clothes and accessories still load) in
+  StarterPlayer and respawns anyone already in.
 - **Saves last one session.** An unpublished place can't reach DataStores or other
   Open Cloud APIs ("must publish this place"), and Studio API access can only be
   turned on for a published place. So `PlayerData` uses an in-memory store when

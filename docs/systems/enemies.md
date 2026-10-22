@@ -353,6 +353,80 @@ picked by description, unheard): `Attack_charge` (Pig Grunts 2, deep, 0.85 pitch
 skid as a charge ends); the old boar picks these up too. The testbed's
 `Wilds.Zones.BoarPair` keeps two at (100, 648.6, -40).
 
+### Second bestiary wave: Venom Serpent, Stone Tortoise, Shadow Mane Wolf (testbed)
+Three regular beasts with their own bodies, behind `Config.Wilds.NEW_SERPENT`,
+`NEW_TORTOISE` and `NEW_SHADOW_MANE` (all `= TESTBED`; they turn on attack slots and
+dash-front hits like the other new fights). The Tortoise and the Shadow Mane have no old
+def, so they exist only while their flag is on; with `NEW_SERPENT` off the old one-spit
+serpent stays (the Jade Jiao's molt still summons whichever `VenomSerpent` is live). They
+are in no ambient pack yet: the testbed zones `SerpentPair` (-90, 648.6, 80), `TortoiseSolo`
+(100, 648.6, 80) and `ManePair` (0, 648.6, 140) keep them for the user to fight. Each is a
+Studio-part body with its own pose module and effects (below). All numbers are first guesses
+for the user's playtest, not balance; the user retunes them.
+
+User decisions (2026-10-22): the serpent's strike and spit apply poison (the existing
+`PlayerPoison`); Shell Guard is a real damage-reduction state; the Tortoise sits at mid tier
+(QC6); the user retunes every number later. A Toad and a Blood Centipede body are also being
+built (no fights yet), and the Flame Raven (flies at melee height) is next.
+
+New server mechanics (`EnemyService`, `Combat`, fields in `Enemies.luau`):
+- **`guard`** (attack kind): no damage. After its windup it holds as AIState `dash` for `hold`
+  seconds (`DashSeconds` carries the hold) with the model attributes `Guarding = true` and
+  `GuardReduction` (`reduction`, 0.8); `Combat.damageEnemy` lets only `1 - reduction` of a
+  player hit through (at least 1) and drops its knockback. `Guarding` clears the tick the state
+  leaves `dash` (the hold ends, a stagger breaks it). When the hold ends its `arrive` follow-up
+  starts at once if the target is in range and within the arrive angle of its nose, else it
+  recovers. Works without `WEIGHTED_MOVES` (the only arrive that does).
+- **`flankPoint`** (lunge field): the lane ends that many studs beside the target, approached
+  60 degrees off the line to it on a random side, and the windup turns toward that point, so
+  the beast comes in on a flank. Its `arrive` follow-up turns into the target.
+- Poison rides the existing `poison` field on spit and lunge hits (`hurtPlayer` applies it).
+
+**Venom Serpent** (QC3, 80 HP, weight 0.8, `body = "VenomSerpentB"`, the user's reference
+cobra at 1.40x). A skirmisher: it circles 14 studs out (`pack.circle`, 5 studs/s), spits from
+10 to 32 studs, strikes when you come inside 10, then slides back 9 studs (`pack.hop`, only
+after a strike: `hits = 99`). It does not repeat the Jiao's lance, fang cone, spray, pools,
+coil or dive.
+
+| Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage (QC3 140 HP) | Cooldown |
+|---|---|---|---|---|---|---|
+| `venomSpit` (opener) | spit | 1.1 / - / 0.6 | 10-32 | circle r 5.5 on the target, lobbed gob lands at windup end | 15 (11%) + 1 poison stack 4 s | 2.6 s |
+| `hoodStrike` | lunge | 0.6 / 0.25 (8 studs at 32/s) / 0.8 | 2-10 | box 3 x 8 | 14 (10%) + 1 poison stack | 3.2 s, then the backslide (`hop`) |
+
+Rushed inside 10 studs it strikes first (`closeOpener`). Dash skids turn it round
+(`hoodStrikeSkid`). The optional rear Tail Snap was cut: the pool picks by distance, not
+bearing, so it would fire at the face.
+
+**Stone Tortoise** (QC6, 450 HP, weight 6, walk 3.5 / run 6, `body = "StoneTortoiseB"`, the
+user's reference at 1.76x, 13.3 x 13.9 x 22). Slow and heavy: it walks into you and picks from
+a pool; Shell Guard first (after 5 s, every 14 s), then the stomp, then the snap. Reaches are
+measured from the root centre and are provisional until the body's root box is read (the box
+covers the whole shell).
+
+| Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage (QC6 220 HP) | Cooldown |
+|---|---|---|---|---|---|---|
+| `neckSnap` (opener) | cone | 0.7 / 0.12 / 0.9 | 17 | r 18, 60 deg | 24 (11%) | 2.5 s |
+| `quakeStomp` | slam | 1.2 / 0.15 / 1.4 | 14 | r 9 at (0, 0, -9) | 40 (18%), stagger | 5 s |
+| `shellGuard` | guard | 0.5 / hold 2.0 / 0.5 | 20, not before 5 s | none; takes 20% damage | 0 | 14 s |
+| `shellSnap` (`arrive` of shellGuard, `chainOnly`) | cone | 0.35 / - / 1.0 | 18 | r 18, 70 deg | 24 (11%) | - |
+
+**Shadow Mane Wolf** (QC6, 300 HP, weight 1.8, walk 9 / run 20, `body = "ShadowManeWolfB"`, the
+user's reference at 1.63x on the wolf-family rig). A flanker with no howl: it circles wide
+(`pack.circle` 14 studs, 7 studs/s), comes in on a flank, and fades back after a rend
+(`pack.hop` 7 studs in 0.3 s, only after `maneRend`). Pool order: lash when hugged, rend, then
+the step; rushed inside 8 it uses its pool (`closeOpener`).
+
+| Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage (QC6 220 HP) | Cooldown |
+|---|---|---|---|---|---|---|
+| `shadowStep` (opener) | lunge, `flankPoint` 6 | 0.7 / 0.3-0.5 (up to 24 studs at 45/s) / 0.9 | 8-24 | 3-wide lane to a point 6 studs beside the target | 12 (5%) | 3.5 s |
+| `shadowRake` (`arrive`, `chainOnly`) | cone | 0.4 / - / 0.9 | 12 | r 9, 100 deg | 22 (10%) | - |
+| `maneRend` | cone + second cone at +0.35 s | 0.6 / 0.12 / 1.0 | 7 | r 8, 90 deg, twice | 16 (7%) a strike | 2.4 s, then the fade back |
+| `maneLash` | slam | 0.8 / 0.15 / 1.1 | 5 | circle r 8 on the wolf | 20 (9%) | 6 s |
+
+A step that ends with the target off its nose skids round (`shadowStepSkid`). Sounds
+(`SFX.Enemies.StoneTortoise`, `ShadowManeWolf`, the serpent's additions) reuse existing ids
+pitched, picked by description and unheard.
+
 ### Elder Wolf King (testbed trial)
 User direction (2026-10-21): try the animation workflow on the wolf boss; make it
 reasonably hard, with real risk of dying, and add fast reaction checks: a paw swipe
@@ -1046,6 +1120,11 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   wilds: the leap's flight over broken ground (EnemyMover can stop it short at a wall;
   the hit still resolves on the circle), the GateWolves pair in the FirstKill beat,
   and phones with a pack of four. Its sounds were picked unheard.
+- The second bestiary wave (Venom Serpent, Stone Tortoise, Shadow Mane Wolf) is untested in
+  play and mostly unbuilt as of the server pass: reaches on the big Tortoise and the Mane's
+  flank lane against the real bodies, whether Shell Guard's 20% reads (and its snap-out
+  `arrive`), the serpent's poison at QC3, the poison-hop backslide, and every number. Rewards are
+  placeholders; the Tortoise drops a Lesser core (and a small chance of a Greater).
 - The Stone Boar fight shipped untested in play (not fought in the testbed first): its
   poses in EnemyAnimator, whether pacing at 16 studs reads as
   stalking, the gore's reach (range 7 against a cone of radius 7), the follow-up's wait

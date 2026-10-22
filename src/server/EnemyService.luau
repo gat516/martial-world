@@ -49,6 +49,7 @@ local CC = CombatConfig.CC
 -- Attack slots and dash-front hits for the new fights; a boss opts into slots
 -- with shareTurns so its summoned pack cannot cover its tells with another hit.
 local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Config.NEW_THUNDER_APE or Config.NEW_NINE_TAIL_FOX or Config.NEW_JIAO
+	or Config.NEW_SERPENT or Config.NEW_TORTOISE or Config.NEW_SHADOW_MANE
 -- how long a follow-up (Enemies `followUp`) waits past its recover for the attack slot
 local FOLLOW_UP_WAIT = 1.0
 -- Turning into moves and arriving with weight (Config.Wilds.WEIGHTED_MOVES; telegraphs.md
@@ -1340,16 +1341,28 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	enemy.attack = attack
 	stop(enemy)
 	enemy.mover.turn = false
+	-- a flanking lunge (the Shadow Mane's shadowStep) ends `flankPoint` studs beside the
+	-- target, 60 degrees off the line to it on a random side, instead of running through it
+	local flankPoint: Vector3? = nil
+	if attack.kind == "lunge" and attack.flankPoint and not arriving then
+		local toTarget = flat(targetRoot.Position - enemy.root.Position)
+		if toTarget.Magnitude > 0.1 then
+			local side = if math.random() < 0.5 then 1 else -1
+			local away = CFrame.Angles(0, side * math.rad(60), 0):VectorToWorldSpace(toTarget.Unit)
+			flankPoint = targetRoot.Position - away * attack.flankPoint
+		end
+	end
+	local aim = flankPoint or targetRoot.Position
 	if arriving then
 		turnToward(enemy, targetRoot.Position, attack.windup * ARRIVE_TURN)
 	elseif attack.kind == "leap" or attack.kind == "charge" or attack.kind == "lunge" then
 		-- the body turns into the line during the anticipation, not after it
-		turnToward(enemy, targetRoot.Position, attack.windup * WINDUP_TURN)
+		turnToward(enemy, aim, attack.windup * WINDUP_TURN)
 	else
 		face(enemy, targetRoot.Position)
 	end
 	local ground = groundAt(enemy.root.Position)
-	local dir = flat(targetRoot.Position - enemy.root.Position)
+	local dir = flat(aim - enemy.root.Position)
 	dir = if dir.Magnitude > 0.1 then dir.Unit else flat(enemy.root.CFrame.LookVector).Unit
 
 	local shape: Shape
@@ -1384,7 +1397,7 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	elseif attack.kind == "retreat" then
 		shape = buildRetreat(enemy, attack, ground, dir)
 		enemy.dashTo = shape.center
-	elseif attack.kind == "summon" or attack.kind == "howl" or attack.kind == "storm" then
+	elseif attack.kind == "summon" or attack.kind == "howl" or attack.kind == "storm" or attack.kind == "guard" then
 		shape = { kind = "howl", center = ground, radius = 8 }
 	elseif attack.kind == "lance" then
 		-- a lane hit all at once when the windup ends; no dash
@@ -1396,7 +1409,9 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 		}
 	else
 		local length = attack.length :: number
-		if attack.stopPast then
+		if flankPoint then
+			length = math.clamp(flat(flankPoint - enemy.root.Position).Magnitude, 4, length)
+		elseif attack.stopPast then
 			-- stop just past the target, not the full lane
 			local reach = flat(targetRoot.Position - enemy.root.Position).Magnitude + attack.stopPast
 			length = math.clamp(reach, attack.minRange or 0, length)
@@ -1722,7 +1737,18 @@ local function resolveAttack(enemy: Enemy, now: number)
 		local dash = if attack.dashSpeed then enemy.dashLength / attack.dashSpeed else 0
 		enemy.followUpUntil = now + dash + attack.recover + FOLLOW_UP_WAIT
 	end
-	if enemy.dashTo then
+	if attack.kind == "guard" then
+		-- Shell Guard: hunker down for `hold` seconds as AIState dash (clients pose it
+		-- from the Attack name), taking `reduction` less from player hits (Combat.damageEnemy
+		-- reads Guarding); the `arrive` follow-up snaps out of it when the hold ends
+		local hold = attack.hold or 2
+		enemy.model:SetAttribute("Guarding", true)
+		enemy.model:SetAttribute("GuardReduction", attack.reduction or 0.8)
+		enemy.model:SetAttribute("DashSeconds", hold)
+		enemy.dashAttack = attack
+		startDash(enemy, enemy.root.Position, 1)
+		enemy.stateUntil = now + hold
+	elseif enemy.dashTo then
 		local to = enemy.dashTo :: Vector3
 		enemy.dashAttack = attack
 		if attack.kind == "leap" or attack.kind == "bound" or attack.kind == "retreat" then
@@ -2165,7 +2191,7 @@ end
 -- keeps the attack slot); otherwise a beast with `skid` skids round to face it (one
 -- without a follow-up only when the target is off its nose). False: recover as usual.
 local function arrive(enemy: Enemy, parent: Enemies.Attack, now: number): boolean
-	if not WEIGHTED or not (parent.arrive or parent.skid) then
+	if not (WEIGHTED or parent.kind == "guard") or not (parent.arrive or parent.skid) then
 		return false
 	end
 	local target = enemy.target
@@ -2415,6 +2441,11 @@ local function thinkAll()
 				warn(`EnemyService: {enemy.def.id} errored: {err}`)
 			end
 			setState(enemy, enemy.state)
+			if enemy.state ~= "dash" and enemy.model:GetAttribute("Guarding") then
+				-- the hold ended, or a stagger broke it
+				enemy.model:SetAttribute("Guarding", nil)
+				enemy.model:SetAttribute("GuardReduction", nil)
+			end
 			-- who it's after, so clients can turn its head and aim effects
 			local targetId = enemy.target and enemy.target.UserId
 			if targetId ~= enemy.targetId then

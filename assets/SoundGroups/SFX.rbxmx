@@ -530,6 +530,174 @@
      <float name="RollOffMaxDistance">120</float>
     </Properties>
     </Item>
+    <Item class="Sound" referent="WV1"><Properties>
+     <string name="Name">Attack_venomSpit</string>
+     <Content name="SoundId"><url>rbxassetid://9120049821</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV2"><Properties>
+     <string name="Name">Attack_hoodStrike</string>
+     <Content name="SoundId"><url>rbxassetid://125555063571186</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1.5</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV3"><Properties>
+     <string name="Name">Hurt</string>
+     <Content name="SoundId"><url>rbxassetid://82235785832022</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1.3</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="WVF12"><Properties>
+    <string name="Name">StoneTortoise</string>
+   </Properties>
+    <Item class="Sound" referent="WV4"><Properties>
+     <string name="Name">Aggro</string>
+     <Content name="SoundId"><url>rbxassetid://9117344368</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.5</float>
+     <float name="RollOffMaxDistance">160</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV5"><Properties>
+     <string name="Name">Attack</string>
+     <Content name="SoundId"><url>rbxassetid://9117370218</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.5</float>
+     <float name="RollOffMaxDistance">160</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV6"><Properties>
+     <string name="Name">Death</string>
+     <Content name="SoundId"><url>rbxassetid://9117369876</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.5</float>
+     <float name="RollOffMaxDistance">160</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV7"><Properties>
+     <string name="Name">Attack_quakeStomp</string>
+     <Content name="SoundId"><url>rbxassetid://9117357588</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.45</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV8"><Properties>
+     <string name="Name">Attack_shellGuard</string>
+     <Content name="SoundId"><url>rbxassetid://9117370226</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.6</float>
+     <float name="RollOffMaxDistance">160</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV9"><Properties>
+     <string name="Name">Attack_shellSnap</string>
+     <Content name="SoundId"><url>rbxassetid://9117370226</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">160</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV10"><Properties>
+     <string name="Name">Hurt</string>
+     <Content name="SoundId"><url>rbxassetid://9117352636</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.5</float>
+     <float name="RollOffMaxDistance">160</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV11"><Properties>
+     <string name="Name">Land</string>
+     <Content name="SoundId"><url>rbxassetid://9114034583</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">160</float>
+    </Properties>
+    </Item>
+   </Item>
+   <Item class="Folder" referent="WVF22"><Properties>
+    <string name="Name">ShadowManeWolf</string>
+   </Properties>
+    <Item class="Sound" referent="WV13"><Properties>
+     <string name="Name">Aggro</string>
+     <Content name="SoundId"><url>rbxassetid://9120788137</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV14"><Properties>
+     <string name="Name">Attack</string>
+     <Content name="SoundId"><url>rbxassetid://97491288736522</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.75</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV15"><Properties>
+     <string name="Name">Death</string>
+     <Content name="SoundId"><url>rbxassetid://77414722255060</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.6</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV16"><Properties>
+     <string name="Name">Attack_shadowStep</string>
+     <Content name="SoundId"><url>rbxassetid://9120788137</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV17"><Properties>
+     <string name="Name">Attack_shadowRake</string>
+     <Content name="SoundId"><url>rbxassetid://97491288736522</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV18"><Properties>
+     <string name="Name">Attack_maneRend</string>
+     <Content name="SoundId"><url>rbxassetid://97491288736522</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV19"><Properties>
+     <string name="Name">Attack_maneLash</string>
+     <Content name="SoundId"><url>rbxassetid://123796710194563</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV20"><Properties>
+     <string name="Name">Hurt</string>
+     <Content name="SoundId"><url>rbxassetid://77414722255060</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">1.2</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <Item class="Sound" referent="WV21"><Properties>
+     <string name="Name">Land</string>
+     <Content name="SoundId"><url>rbxassetid://9114101585</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
    </Item>
   </Item>
   <Item class="Sound" referent="SGSFX20"><Properties>

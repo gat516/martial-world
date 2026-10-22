@@ -350,6 +350,144 @@
                 }
               }
             }
+          },
+          "SerpentPair": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "VenomSerpent",
+              "Count": 2,
+              "Radius": 12
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    -90,
+                    648.6,
+                    80
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "TortoiseSolo": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "StoneTortoise",
+              "Count": 1,
+              "Radius": 12
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    100,
+                    648.6,
+                    80
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "ManePair": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "ShadowManeWolf",
+              "Count": 2,
+              "Radius": 14
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    0,
+                    648.6,
+                    140
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
           }
         },
         "EventGrounds": {

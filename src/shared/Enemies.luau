@@ -44,7 +44,7 @@
 -- far player hits knock it back (Knockback.luau).
 
 export type Attack = {
-	kind: string, -- "lunge" | "charge" | "spit" | "cone" | "slam" | "summon" | "leap" | "howl" | "lance" | "bound" | "storm" | "barrage" | "retreat"
+	kind: string, -- "lunge" | "charge" | "spit" | "cone" | "slam" | "summon" | "leap" | "howl" | "lance" | "bound" | "storm" | "barrage" | "retreat" | "guard"
 	name: string?, -- shown to clients as the model's Attack attribute (default: kind); name it when one beast has two of a kind
 	damage: number,
 	range: number, -- start the attack when the target is this close
@@ -100,6 +100,15 @@ export type Attack = {
 	-- Jade Jiao kinds (BossAttacks.luau): "bolt" (fast venom lanes), "pools" (circles that leave
 	-- poison pools), "burrow" (dive underground along a lane, no damage), "coil" (trap ring)
 	poison: { stacks: number, seconds: number }?, -- a landed hit adds poison stacks (PlayerPoison)
+	-- guard (Stone Tortoise shellGuard): no damage; hunkers down for `hold` seconds (AIState dash,
+	-- model attributes Guarding + GuardReduction) while player hits do (1 - `reduction`) of
+	-- their damage and shove nothing (Combat.damageEnemy); its `arrive` follow-up snaps out of
+	-- the hold if the target is in its range and in front, else it recovers
+	reduction: number?,
+	-- lunge (Shadow Mane shadowStep): the lane ends this many studs beside the target, approached
+	-- 60 degrees off the line to it on a random side, so the beast comes in on a flank instead of
+	-- through the target; an `arrive` rake follows
+	flankPoint: number?,
 	lanes: { number }?, -- bolt: lane angles in degrees from the target direction (default { 0 })
 	boltSpeed: number?, -- bolt: studs per second the front travels (a hit lands as it arrives)
 	strikes: { { at: number, radius: number, angle: number } }?, -- cone: follow-up cones `at` seconds after the first, re-aimed
@@ -193,6 +202,9 @@ local NEW_WOLF_KING = Wilds.NEW_WOLF_KING
 local NEW_JIAO = Wilds.NEW_JIAO
 local NEW_THUNDER_APE = Wilds.NEW_THUNDER_APE
 local NEW_NINE_TAIL_FOX = Wilds.NEW_NINE_TAIL_FOX
+local NEW_SERPENT = Wilds.NEW_SERPENT
+local NEW_TORTOISE = Wilds.NEW_TORTOISE
+local NEW_SHADOW_MANE = Wilds.NEW_SHADOW_MANE
 
 local Enemies = {}
 
@@ -1046,6 +1058,144 @@ if NEW_NINE_TAIL_FOX then
 		},
 		shareTurns = true,
 		resetOnEvade = true,
+	} :: Def
+end
+
+-- THE SECOND BESTIARY WAVE (testbed only, Config.Wilds.NEW_SERPENT / NEW_TORTOISE /
+-- NEW_SHADOW_MANE). Numbers are first guesses for the user's playtest, not balance.
+
+-- Venom Serpent (QC3, player 140 HP, power 1.2): the small cobra, a skirmisher. It circles
+-- 14 studs out and spits (a lobbed gob onto a closing circle, 1 poison stack), darts in
+-- with a hooded strike when you come close (poison), and slides back after it. Shares of
+-- a QC3 player's health: spit 11%, strike 10%. The Jade Jiao's moves (lance, fang,
+-- spray, pools, coil, dive) are not repeated.
+if NEW_SERPENT then
+	local venom = { stacks = 1, seconds = 4 }
+	local venomSpit: Attack = {
+		kind = "spit", name = "venomSpit", damage = 15, range = 32, minRange = 10, windup = 1.1,
+		recover = 0.6, cooldown = 2.6, radius = 5.5, poison = venom,
+	}
+	local hoodStrike: Attack = {
+		kind = "lunge", name = "hoodStrike", damage = 14, range = 10, minRange = 2, windup = 0.6,
+		recover = 0.8, cooldown = 3.2, length = 8, width = 3, dashSpeed = 32, poison = venom,
+		skid = true, hopAfter = true, -- the backslide: pack.hop below
+	}
+	Enemies.Defs.VenomSerpent = {
+		id = "VenomSerpent",
+		name = "Venom Serpent",
+		body = "VenomSerpentB",
+		realm = { "QiCondensation", 3 },
+		weight = 0.8,
+		health = 80,
+		walkSpeed = 5,
+		runSpeed = 9,
+		aggro = 45,
+		leash = 80,
+		qiDrop = 20,
+		stones = { 4, 8 },
+		respawn = 25,
+		drops = { { item = "LesserSpiritCore", chance = 0.25 } },
+		attack = venomSpit,
+		attacks = { venomSpit, hoodStrike } :: { Attack },
+		pack = {
+			-- player hits never trigger the backslide (hits = 99); only hoodStrike's hopAfter does
+			hop = { distance = 9, seconds = 0.35, arc = 0, cooldown = 3, hits = 99, window = 1 },
+			circle = { radius = 14, speed = 5 },
+			closeOpener = true, -- rushed under 10 studs, it strikes instead of waiting
+		},
+	} :: Def
+end
+
+-- Stone Tortoise (QC6, player 220 HP, power 1.6): the user's reference tortoise at 1.76x
+-- (13.3 x 13.9 x 22), a slow tank that owns the ground around its feet. Neck Snap is the
+-- quick check, Quake Stomp the big one, Shell Guard the lesson in patience (hits do 20%
+-- for 2 s, then it snaps out). Reaches are measured from the root centre; the root box
+-- covers the whole shell, so the cone and stomp circle start at its front edge.
+if NEW_TORTOISE then
+	local shellSnap: Attack = {
+		kind = "cone", name = "shellSnap", damage = 24, range = 18, windup = 0.35, recover = 1.0,
+		cooldown = 0, radius = 18, angle = 70, chainOnly = true,
+	}
+	local neckSnap: Attack = {
+		kind = "cone", name = "neckSnap", damage = 24, range = 17, windup = 0.7, recover = 0.9,
+		cooldown = 2.5, radius = 18, angle = 60,
+	}
+	local quakeStomp: Attack = {
+		kind = "slam", name = "quakeStomp", damage = 40, range = 14, windup = 1.2, recover = 1.4,
+		cooldown = 5, radius = 9, offset = Vector3.new(0, 0, -9), react = "stagger",
+	}
+	local shellGuard: Attack = {
+		kind = "guard", name = "shellGuard", damage = 0, range = 20, notBefore = 5, windup = 0.5,
+		recover = 0.5, cooldown = 14, hold = 2.0, reduction = 0.8, arrive = shellSnap,
+	}
+	Enemies.Defs.StoneTortoise = {
+		id = "StoneTortoise",
+		name = "Stone Tortoise",
+		body = "StoneTortoiseB",
+		realm = { "QiCondensation", 6 },
+		weight = 6,
+		health = 450,
+		walkSpeed = 3.5,
+		runSpeed = 6,
+		aggro = 35,
+		leash = 70,
+		qiDrop = 48,
+		stones = { 10, 18 },
+		respawn = 60,
+		drops = {
+			{ item = "LesserSpiritCore", chance = 0.5 },
+			{ item = "GreaterSpiritCore", chance = 0.05 },
+		},
+		attack = neckSnap,
+		attacks = { shellGuard, quakeStomp, neckSnap, shellSnap } :: { Attack },
+	} :: Def
+end
+
+-- Shadow Mane Wolf (QC6, player 220 HP, power 1.6): a flanker on the wolf-family rig at
+-- 1.63x. It circles wide, comes in on a flank (shadowStep, ending in a rake), tears with a
+-- double rake, lashes with its mane when you hug it, and fades back after a rend. No howl.
+-- Shares of a QC6 player's health: step lane 5%, rake 10%, rend 7% a strike, lash 9%.
+if NEW_SHADOW_MANE then
+	local shadowRake: Attack = {
+		kind = "cone", name = "shadowRake", damage = 22, range = 12, windup = 0.4, recover = 0.9,
+		cooldown = 0, radius = 9, angle = 100, chainOnly = true,
+	}
+	local shadowStep: Attack = {
+		kind = "lunge", name = "shadowStep", damage = 12, range = 24, minRange = 8, windup = 0.7,
+		recover = 0.9, cooldown = 3.5, length = 24, width = 3, dashSpeed = 45, flankPoint = 6,
+		arrive = shadowRake, skid = true,
+	}
+	local maneRend: Attack = {
+		kind = "cone", name = "maneRend", damage = 16, range = 7, windup = 0.6, recover = 1.0,
+		cooldown = 2.4, radius = 8, angle = 90, strikes = { { at = 0.35, radius = 8, angle = 90 } },
+		hopAfter = true, -- fadeBack: pack.hop
+	}
+	local maneLash: Attack = {
+		kind = "slam", name = "maneLash", damage = 20, range = 5, windup = 0.8, recover = 1.1,
+		cooldown = 6, radius = 8,
+	}
+	Enemies.Defs.ShadowManeWolf = {
+		id = "ShadowManeWolf",
+		name = "Shadow Mane Wolf",
+		body = "ShadowManeWolfB",
+		realm = { "QiCondensation", 6 },
+		weight = 1.8,
+		health = 300,
+		walkSpeed = 9,
+		runSpeed = 20,
+		aggro = 48,
+		leash = 100,
+		qiDrop = 40,
+		stones = { 8, 14 },
+		respawn = 40,
+		drops = { { item = "LesserSpiritCore", chance = 0.4 } },
+		attack = shadowStep,
+		attacks = { maneLash, maneRend, shadowStep, shadowRake } :: { Attack },
+		pack = {
+			hop = { distance = 7, seconds = 0.3, arc = 0.6, cooldown = 3, hits = 99, window = 1 },
+			circle = { radius = 14, speed = 7 },
+			closeOpener = true, -- rushed under 8 studs, it uses its pool instead of waiting
+		},
 	} :: Def
 end
 

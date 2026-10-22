@@ -118,6 +118,12 @@ function Combat.damageEnemy(player: Player, model: Model, amount: number, push: 
 	if not Hitbox.alive(model) or model:GetAttribute("Burrowed") then
 		return -- underground (the Jade Jiao's dive) it can't be touched
 	end
+	if model:GetAttribute("Guarding") then
+		-- hunkered in its shell (the Stone Tortoise's shellGuard): most of the blow is
+		-- soaked up and nothing shoves it
+		amount = math.max(amount * (1 - (model:GetAttribute("GuardReduction") or 0.8)), 1)
+		push = nil
+	end
 	amount = math.floor(amount + 0.5)
 	model:SetAttribute("LastHitBy", player.UserId)
 	state(player).lastDealt = os.clock()

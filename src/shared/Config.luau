@@ -500,6 +500,13 @@ return {
 		-- THE JADE JIAO TRIAL: a 115-stud venom serpent boss (QC7) with burrow ambushes,
 		-- poison, a coil trap and phase moves. Testbed only until the user approves.
 		NEW_JIAO = TESTBED,
+		-- THE SECOND BESTIARY WAVE (enemies.md "Venom Serpent", "Stone Tortoise", "Shadow Mane
+		-- Wolf"): three regular beasts with their own bodies, poses and effects. Testbed only
+		-- until the user approves; false keeps the old Venom Serpent (one spit). The Tortoise
+		-- and the Shadow Mane have no old def, so they exist only with their flag.
+		NEW_SERPENT = TESTBED,
+		NEW_TORTOISE = TESTBED,
+		NEW_SHADOW_MANE = TESTBED,
 		-- THE BOSS FEEL PASS (telegraphs.md, "Attacks that make sense"): beasts turn into
 		-- leaps, bounds, charges and lunges over the windup and finish their yaw in the air,
 		-- start an attack's `arrive` follow-up on arrival, and skid round (`<name>Skid`) to

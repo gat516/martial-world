@@ -43,6 +43,9 @@ on the baseplate unchanged.
   at (100, 648.6, -40)) and `WolfKingTrial` (one Elder Wolf King at
   (0, 648.6, -300)), respawning like any zone. The King stands farther beyond the
   event ground, away from the pairs and spawn pad.
+  `SerpentPair` (2 Venom Serpents at (-90, 648.6, 80)), `TortoiseSolo` (one Stone
+  Tortoise at (100, 648.6, 80)) and `ManePair` (2 Shadow Mane Wolves at (0, 648.6, 140))
+  test the second bestiary wave behind `NEW_SERPENT` / `NEW_TORTOISE` / `NEW_SHADOW_MANE`.
 - New bosses (Thunder Ape, Nine-Tailed Fox, Jade Jiao) get no zone: the user
   spawns them from the admin panel's "Spawn beasts" list (every def shows there,
   testbed-only defs included), and they land right in front of the player, just clear of their body.

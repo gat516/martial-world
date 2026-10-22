@@ -608,5 +608,33 @@
    <float name="RollOffMinDistance">80</float>
   </Properties>
   </Item>
+  <Item class="Sound" referent="GSFX84"><Properties>
+   <string name="Name">GuardRaise</string>
+   <Content name="SoundId"><url>rbxassetid://126422687387943</url></Content>
+   <float name="Volume">0.28</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="GSFX85"><Properties>
+   <string name="Name">Parry</string>
+   <Content name="SoundId"><url>rbxassetid://84338662037070</url></Content>
+   <float name="Volume">0.8</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="GSFX86"><Properties>
+   <string name="Name">Block</string>
+   <Content name="SoundId"><url>rbxassetid://74105007560914</url></Content>
+   <float name="Volume">0.5</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
+  <Item class="Sound" referent="GSFX87"><Properties>
+   <string name="Name">GuardBreak</string>
+   <Content name="SoundId"><url>rbxassetid://91638768113300</url></Content>
+   <float name="Volume">0.8</float>
+   <float name="RollOffMaxDistance">150</float>
+  </Properties>
+  </Item>
  </Item>
 </roblox>

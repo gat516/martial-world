@@ -137,8 +137,13 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
 - Animations: `Animations.Guard.Hold` (loop, Action), `Parry` and `Impact`
   (Action2), authored as KeyframeSequences in `art/player/guard/Guard.rbxm` and
   published with `tools/upload_asset.py animation` (ids in
-  `art/player/guard/README.md`). Sounds `SFX.Parry`, `SFX.Block`,
-  `SFX.GuardBreak` are played but don't exist yet (silent).
+  `art/player/guard/README.md`). `SoundService.SFX` in
+  `assets/SoundGroups/SFX.rbxmx` holds `GuardRaise` (soft cloth when the local
+  guard rises), `Parry` (bright metal clash), `Block` (muted plate hit) and
+  `GuardBreak` (brittle shatter). `GuardController` plays them locally through
+  `Sfx`; the Settings SFX slider scales all four. Files, CC0 sources, upload
+  ids and template volumes are in `art/sfx/guard/README.md`. Sound levels have
+  not been heard in play yet.
 - Visuals (`src/client/GuardFX.luau`, templates `ReplicatedStorage.GuardFX`
   from `assets/GuardFX.rbxm`, built by `tools/guardfx_build.luau` in a sandbox;
   kept out of `Effects.rbxm`). Palette white to pale gold to jade, away from the

@@ -83,6 +83,7 @@ local function setUp(value: boolean, notify: boolean)
 	if value then
 		raisedAt = now
 		play("Hold", RAISE_FADE)
+		Sfx.play("GuardRaise")
 	else
 		local hold = tracks.Hold
 		if hold then

@@ -441,6 +441,36 @@ function B.bladeCharge(root, tier, p)
 	return charge
 end
 
+-- The flare a blade throws as a Hit marker fires: the runtime puts part
+-- "Flare" on the live Tip. A cross glint over a flipbook star burst over an ink
+-- splat, and sparks along the cut. p.color, p.core, p.ink, p.part ("Flare").
+function B.bladeFlare(root, tier, p)
+	local gold, core, ink = pick(p, "color", Cl.gold), pick(p, "core", Cl.core), pick(p, "ink", Cl.ink)
+	local f = B.part(root, pick(p, "part", "Flare"), O * CFrame.new(0, 3, -3), Vector3.new(1, 1, 1))
+	B.emitter(f, "Ink", {
+		Texture = A.ink, Color = CS(ink),
+		Size = NS({ KP(0, 1), KP(0.25, 2.2 + tier * 0.3), KP(1, 2.8 + tier * 0.3) }), Transparency = NS({ KP(0, 0.2), KP(0.6, 0.45), KP(1, 1) }),
+		Lifetime = R(0.3), LightEmission = 0, Rotation = R(0, 360), ZOffset = 0.8,
+	}, { EmitCount = 1 })
+	B.emitter(f, "Burst", {
+		Texture = A.hitFlip, Color = CS(core, gold),
+		FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot,
+		Size = NS({ KP(0, 1.8 + tier * 0.25), KP(1, 2.8 + tier * 0.35) }), Transparency = NS({ KP(0, 0.1), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(0.28), LightEmission = 0.6, Rotation = R(0, 360), ZOffset = 1.4,
+	}, { EmitCount = 1 })
+	B.emitter(f, "Glint", {
+		Texture = A.glint, Color = CS(core),
+		Size = NS({ KP(0, 0.4), KP(0.25, 2 + tier * 0.35), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(0.7, 0.2), KP(1, 1) }),
+		Lifetime = R(0.28), LightEmission = 0.85, Rotation = R(-12, 12), ZOffset = 2,
+	}, { EmitCount = 1 })
+	B.emitter(f, "Sparks", {
+		Texture = A.spindle, Color = CS(core, gold), Orientation = Enum.ParticleOrientation.VelocityParallel,
+		SpreadAngle = Vector2.new(60, 60), Size = NS({ KP(0, 0.22), KP(1, 0) }), Squash = NS({ KP(0, 2), KP(1, 1) }),
+		Transparency = NS(0), Lifetime = R(0.15, 0.3), Speed = R(16, 28), Drag = 6, LightEmission = 0.6,
+	}, { EmitCount = ({ 4, 6, 8, 10 })[tier] })
+	return f
+end
+
 function B.impactBurst(root, tier, p)
 	local gold, core = pick(p, "color", Cl.gold), pick(p, "core", Cl.core)
 	local impact = B.part(root, pick(p, "part", "Impact"), pick(p, "at", O * CFrame.new(0, 0.15, -6)))
@@ -706,7 +736,7 @@ local BLOCKS = {
 	handGather = B.handGather, impactBurst = B.impactBurst, impactShockwave = B.impactShockwave,
 	airShockwave = B.airShockwave, shockwaveShell = B.shockwaveShell, craterRing = B.craterRing,
 	screenShake = B.screenShake, impactStack = B.impactStack,
-	emitter = B.emitterBlock, bladeCharge = B.bladeCharge,
+	emitter = B.emitterBlock, bladeCharge = B.bladeCharge, bladeFlare = B.bladeFlare,
 }
 B.BLOCKS = BLOCKS
 

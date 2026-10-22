@@ -235,7 +235,15 @@ checks a rebuild against the previous templates.
   impacts timed by the torus front; II+ a pillar of light collapses onto the
   bite and an echo torus; III+ Craters rock ring, crater and cracks, rock
   kicks, fissure cracks; IV a dome shell, the one PointLight, impact frames
-  and an Explosion quake.
+  and an Explosion quake. Remade 2026-10-21 on the greatsword and the clip's
+  markers: the windup (0 -> Hit 1, 0.14 s at 1.3x) is a `Charge` along the
+  model's Base -> Tip (dark beam under an azure one, motes, a point glint)
+  instead of a hand gather; each Hit marker flares on the live blade tip
+  (`Flare`: cross glint, star-burst flipbook over an ink splat, sparks; 1.5x at
+  the slam); the slam's heavy impacts are squeezed into Hit 3 -> Hit Stop 3
+  (`WeaponFX.landing`) instead of following the 0.5 s torus; every impact also
+  carries the shared ink splat and star-burst flipbook. Layers T1 / T4:
+  charge 8 / 8, flare 4, light impact 8 / 12, slam 8 / 15, impact 8 / 14.
 - **Rampaging Tiger Cleave** (`RampagingTiger_T1..T4`, authored at radius 10
   around the caster; `TechniqueFX.RampagingTiger`). Tawny amber qi over black
   brush-ink, white-gold core at IV. Every cut flashes three claw strokes in the

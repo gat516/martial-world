@@ -16,6 +16,7 @@ local Client = script.Parent.Parent
 local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
 local BladeSkill = require(script.Parent.BladeSkill)
+local WeaponFX = require(script.Parent.WeaponFX)
 
 local HITS = { 0.1833, 1.0167, 2.1167 } -- until def.hits exists
 local LEAP = 1.10
@@ -54,6 +55,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		windup:Destroy() -- played at cast start (CombatEffects.windup)
 	end
 	local edgeT = TechniqueVFX.take(copy, "Edge")
+	local flare = TechniqueVFX.take(copy, "Flare")
 	local lightImpact = TechniqueVFX.take(copy, "LightImpact")
 	local impact = TechniqueVFX.take(copy, "Impact")
 	local launch = TechniqueVFX.take(copy, "Launch")
@@ -94,6 +96,20 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		return lunge * math.clamp((window[2] - t) / math.max(window[2] - window[1], 0.1), 0, 1)
 	end
 
+	-- a flare on the real blade tip as each Hit marker fires
+	local function flareAt(scale: number)
+		if not (flare and blade) then
+			return
+		end
+		local tip = blade.tip.WorldPosition
+		local f = flare:Clone()
+		f.CFrame = CFrame.lookAt(tip, tip + dir)
+		f.Parent = TechniqueVFX.folder
+		TechniqueVFX.rescale(f, scale)
+		TechniqueVFX.emit(f)
+		TechniqueVFX.cleanup(f)
+	end
+
 	-- the blade's arcs
 	if edge then
 		for _, w in SWINGS do
@@ -124,6 +140,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	for i = 1, #hits - 1 do
 		seq:at(hits[i], function()
 			local centre = centreNow()
+			flareAt(1)
 			if lightImpact then
 				for _, target in BladeSkill.circleTargets(centre, radius, character, 4) do
 					CastFX.impactAt(lightImpact, target)
@@ -329,12 +346,14 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			path.CFrame = CFrame.lookAt((a + far) / 2, far) + Vector3.new(0, 0.2, 0)
 			TechniqueVFX.emit(path)
 		end
+		flareAt(1.5)
 		BladeSkill.shake(CombatEffects, tier, centre, 1.4)
-		-- heavy impacts as the torus front reaches each enemy
+		-- heavy impacts as the torus front reaches each enemy, squeezed into Hit 3 -> Hit Stop 3
 		local wave = slam and slam:FindFirstChild("GroundWave")
 		local duration = if wave then BladeSkill.num(wave, "Duration", 0.5) else 0.5
+		local window = WeaponFX.hitWindow(def, #hits)
 		for _, target in BladeSkill.circleTargets(centre, radius, character, 6) do
-			task.delay(BladeSkill.quartTime(duration, target.progress), function()
+			task.delay(WeaponFX.landing(BladeSkill.quartTime(duration, target.progress), duration, window), function()
 				if impact then
 					CastFX.impactAt(impact, target, { Kick = 3, Quake = 1 })
 				end
@@ -350,7 +369,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		-- after the slam (or a cancelled cast): let the trails finish, then tidy up
 		BladeSkill.release(blade, 0.6)
 		task.delay(3, function()
-			for _, p in { lightImpact, impact, launch, mark, rift, phantom, fissure, fissureScar } do
+			for _, p in { flare, lightImpact, impact, launch, mark, rift, phantom, fissure, fissureScar } do
 				if p then
 					p:Destroy()
 				end

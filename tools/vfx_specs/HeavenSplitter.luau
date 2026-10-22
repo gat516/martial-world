@@ -42,6 +42,10 @@
 --     drops onto the bite, an echo torus, rays; III+ Craters rock ring,
 --     crater and cracks, rock kicks; IV a dome shell, the one PointLight,
 --     impact frames and an Explosion quake.
+--   Remade 2026-10-21 on the greatsword and the clip's markers: the windup is a
+--     `Charge` along the Base -> Tip (not a hand gather), every Hit marker flares
+--     on the live blade tip (`Flare`, 1.5x at the slam), and the slam's heavy
+--     impacts are squeezed into Hit 3 -> Hit Stop 3.
 --   Aftermath: the fissure cools for ~1-2 s, motes rise from it (II+), the
 --     dust settles; the phantom (IV) dissolves where it bit.
 local KIT_ = function()
@@ -95,11 +99,17 @@ end
 
 local blocks = {}
 
-blocks.windup = function(root, tier)
-	local p = pal(coreOf(tier))
-	p.windup, p.at, p.wisps = 0.14, HAND_AT, false
-	return _G.vfxBlocks.handGather(root, tier, p)
+-- anticipation along the greatsword (Base -> Tip), played at cast start; the
+-- hand gather below is only the fallback for a missing weapon rig
+blocks.charge = function(root, tier)
+	return _G.vfxBlocks.bladeCharge(root, tier, { color = AZURE, core = coreOf(tier), ink = INK, width = 0.6 })
 end
+
+-- the flare on the live blade tip as each Hit marker fires (1.5x at the slam)
+blocks.flare = function(root, tier)
+	return _G.vfxBlocks.bladeFlare(root, tier, { color = AZURE, core = coreOf(tier), ink = INK })
+end
+
 
 blocks.edge = function(root, tier)
 	return KIT_().edge(root, tier, { color = AZURE, core = coreOf(tier), tail = N_PALE, trailLife = { 0.18, 0.22, 0.26, 0.32 }, glowWidth = { 0.35, 0.45, 0.55, 0.7 } })
@@ -373,8 +383,9 @@ local spec = {
 	root = { attrs = { AuthoredRadius = RADIUS, AuthoredOffset = OFFSET } },
 	blocks = blocks,
 	beats = {
-		{ block = "windup" },
+		{ block = "charge" },
 		{ block = "edge" },
+		{ block = "flare" },
 		{ block = "lightImpact" },
 		{ block = "launch" },
 		{ block = "mark", from = 3 },

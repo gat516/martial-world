@@ -2,8 +2,11 @@
 -- Testbed Jade Jiao boss only. Plays the boss's own templates,
 -- Effects.JadeJiao (built by tools/vfx_specs/JadeJiao.luau): acid venom-green
 -- with white-hot centres, amber-gold for every warning tell, pale spirit-jade
--- for the phase 3 aura and the ghost jiao (translucent Neon copies of the
--- snake's own parts). No crown, halo or ring over the head.
+-- for the phase 3 aura and the spirit beats. No crown, halo or ring over the
+-- head, and no copies of the body: emerge, molt, ascension, phase and death
+-- read through mist, motes, flares and a skyward stream (the user rejected
+-- Neon afterimages of the bosses). Body hooks are looked up by name with
+-- fallbacks, so a rebuilt body with the same hook names keeps working.
 --
 -- Cues: ready (aura / dormant mound), aggro, windup, strike, dash, land, hit,
 -- stagger, death, plus enemyCue handlers phase, squeeze, coilBreak. Contact is
@@ -451,80 +454,25 @@ local function torsoOf(target: Model?): BasePart?
 	return if torso and torso:IsA("BasePart") then torso else nil
 end
 
--- Ghost jiao: translucent Neon copies of the snake's own parts that rise,
--- swell and dissolve. `parts` is capped by the caller (phones).
-local function bodyParts(cue: Cue, centre: Vector3?, radius: number?, limit: number): { BasePart }
-	local found: { BasePart } = {}
-	for _, d in cue.model:GetDescendants() do
-		if d:IsA("BasePart") and d.Name ~= "HumanoidRootPart" and d.Transparency < 0.9 and not d:FindFirstAncestor("HealthBar") and d:GetAttribute("Tell") == nil then
-			if not centre or (d.Position - centre).Magnitude <= (radius or 0) then
-				if d.Size.X * d.Size.Y * d.Size.Z > 0.4 then
-					table.insert(found, d)
-				end
-			end
+-- Spirit beats: emitters mounted on body hooks, never copies of the body.
+local SPIRIT_HOOKS = { "Throat", "Core", "Coil_Tail6", "Coil_Tail12", "TailTip_FX" }
+
+-- Scale flakes and jade motes shed off the hooks that exist on this body.
+local function shedAlong(cue: Cue, seconds: number, boostBy: number?, windup: boolean?)
+	for _, name in SPIRIT_HOOKS do
+		local frame, host = point(cue, name, { "Body" })
+		if windup then
+			windupPlay(cue, "ShedSkin", frame, { follow = host, seconds = seconds, boost = boostBy })
+		else
+			play("ShedSkin", frame, { follow = host, seconds = seconds, boost = boostBy, tint = JADE })
 		end
 	end
-	table.sort(found, function(a, b)
-		return a.Size.X * a.Size.Y * a.Size.Z > b.Size.X * b.Size.Y * b.Size.Z
-	end)
-	while #found > limit do
-		table.remove(found)
-	end
-	return found
 end
 
-local function ghost(parts: { BasePart }, life: number, travel: Vector3, swell: number, from: number, fadeIn: number, color: Color3?)
-	if #parts == 0 then
-		return
-	end
-	local centre = Vector3.zero
-	for _, p in parts do
-		centre += p.Position
-	end
-	centre /= #parts
-	local copies: { { part: BasePart, offset: Vector3, rot: CFrame, size: Vector3 } } = {}
-	for _, p in parts do
-		local c = p:Clone()
-		for _, child in c:GetChildren() do
-			if not child:IsA("DataModelMesh") then
-				child:Destroy()
-			end
-		end
-		c.Anchored, c.CanCollide, c.CanQuery, c.CanTouch, c.CastShadow, c.Massless = true, false, false, false, false, true
-		c.Material = Enum.Material.Neon
-		c.Color = color or JADE
-		c.Transparency = 1
-		c.Parent = TechniqueVFX.folder
-		table.insert(copies, { part = c, offset = p.Position - centre, rot = p.CFrame.Rotation, size = p.Size })
-	end
-	local started = os.clock()
-	local connection: RBXScriptConnection
-	connection = RunService.Heartbeat:Connect(function()
-		local a = (os.clock() - started) / life
-		if a >= 1 then
-			connection:Disconnect()
-			for _, c in copies do
-				c.part:Destroy()
-			end
-			return
-		end
-		local transparency = if a < fadeIn then 1 + (from - 1) * (a / fadeIn) else from + (1 - from) * ((a - fadeIn) / (1 - fadeIn))
-		local k = 1 + swell * a
-		local move = travel * (1 - (1 - a) * (1 - a))
-		for _, c in copies do
-			c.part.CFrame = CFrame.new(centre + c.offset * k + move) * c.rot
-			c.part.Size = c.size * k
-			c.part.Transparency = transparency
-		end
-	end)
-end
-
-local function ghostHead(cue: Cue, life: number, travel: Vector3, swell: number, from: number, fadeIn: number, color: Color3?)
-	local skull = part(cue, { "Skull" })
-	if skull == cue.root then
-		return
-	end
-	ghost(bodyParts(cue, skull.Position, 12, 24), life, travel, swell, from, fadeIn, color)
+-- A spirit stream thrown skyward from a hook: flash, jade rays and motes.
+local function skyStream(cue: Cue, name: string, fallback: { string })
+	local frame = point(cue, name, fallback)
+	play("RainRelease", CFrame.lookAt(frame.Position, frame.Position + Vector3.new(0, 1, 0)))
 end
 
 -- Tell parts ---------------------------------------------------------------------
@@ -1403,15 +1351,19 @@ function Jiao.windup(cue: Cue)
 		hoodFlare(cue, seconds, true)
 		if attack == "molt" or attack == "ascension" then
 			-- shed skin: flakes and motes drifting off body parts
-			for _, name in { "Core", "Throat", "Coil_Tail6", "Coil_Tail12", "TailTip_FX" } do
-				local frame, host = point(cue, name, { "Body" })
-				windupPlay(cue, "ShedSkin", frame, { follow = host, seconds = seconds })
-			end
+			shedAlong(cue, seconds, nil, true)
+			-- the phase move reads on the floor too (no stock howl disc for
+			-- bosses): mist and motes drawn in under the coils
+			windupPlay(cue, "GroundGather", CFrame.new(ground(cue, root(cue).Position)), {
+				scale = 14,
+				seconds = seconds,
+				tint = if attack == "ascension" then JADE else nil,
+			})
 		end
 		if attack == "ascension" then
-			ghostHead(cue, seconds, root(cue).CFrame.LookVector * 5 + Vector3.new(0, 6, 0), 0.5, 0.7, 0.4, JADE)
-		elseif attack == "venomRain" then
-			ghostHead(cue, seconds, Vector3.new(0, 10, 0), 0.4, 0.75, 0.4, JADE)
+			-- a jade glow column gathering on the chest, rays standing up
+			local frame, core = point(cue, "Core", { "Body" })
+			windupPlay(cue, "RainGather", frame, { follow = core, seconds = seconds })
 		end
 	end
 end
@@ -1439,8 +1391,12 @@ local function strikeWhip(cue: Cue, duration: number)
 end
 
 local function emergeBurst(cue: Cue, position: Vector3, radius: number)
-	play("EmergeBurst", CFrame.new(ground(cue, position)) * facing(cue), { scale = radius })
-	ghostHead(cue, 1.0, root(cue).CFrame.LookVector * 14 + Vector3.new(0, 6, 0), 0.5, 0.45, 0.2)
+	local floor = ground(cue, position)
+	play("EmergeBurst", CFrame.new(floor) * facing(cue), { scale = radius })
+	-- venom mist bursting out of the hole, and a flare off the surfacing head
+	play("HissBurst", CFrame.new(floor) * facing(cue), { scale = radius * 0.8 })
+	local frame, skull = point(cue, "Mouth", { "Skull", "Head" })
+	play("PhaseFlare", frame, { follow = skull, boost = 0.6 })
 	flareAura(cue, 1.8)
 	shake(0.55, position, radius + 140)
 end
@@ -1485,7 +1441,7 @@ function Jiao.strike(cue: Cue)
 	elseif attack == "venomFang" then
 		local frame = point(cue, "Mouth", { "Skull" })
 		play("FangSnap", CFrame.new(frame.Position) * face)
-		ghostHead(cue, 0.45, root(cue).CFrame.LookVector * 7, 0.25, 0.3, 0.1)
+		play("SpitRelease", CFrame.new(frame.Position) * face)
 		shake(0.28, cue.root.Position, 70)
 	elseif attack == "tailSweep" then
 		local center, radius = circleOf(shape, 13, cue)
@@ -1611,11 +1567,13 @@ function Jiao.phase(cue: Cue)
 	play("PhaseBurst", CFrame.new(at) * face, { boost = if big then 1.5 else 1, tint = nil })
 	local frame, core = point(cue, "Core", { "Body" })
 	play("PhaseFlare", frame, { follow = core, boost = if big then 1.6 else 1 })
-	ghostHead(cue, 1.4, root(cue).CFrame.LookVector * 12 + Vector3.new(0, 6, 0), 1.0, 0.3, 0.15, JADE)
+	skyStream(cue, "Mouth", { "Skull", "Head" })
 	if big then
+		-- phase 3: spirit motes shed along the whole body, a second stream
+		shedAlong(cue, 1.6, 1.5)
 		task.delay(0.3, function()
 			if cue.model.Parent then
-				ghostHead(cue, 1.3, root(cue).CFrame.LookVector * 8 + Vector3.new(0, 12, 0), 1.4, 0.4, 0.2, JADE)
+				skyStream(cue, "Core", { "Body" })
 			end
 		end)
 	end
@@ -1653,7 +1611,8 @@ function Jiao.coilBreak(cue: Cue)
 end
 
 -- Death: a collapsing gather, then a white-out burst, a venom splash, rays and a
--- pillar, while a ghost of the whole body (up to 40 parts) rises and dissolves.
+-- pillar, while jade motes and scale flakes shed off the whole body and a
+-- spirit stream leaves the chest skyward.
 function Jiao.death(cue: Cue)
 	if not ours(cue) then
 		return
@@ -1672,13 +1631,14 @@ function Jiao.death(cue: Cue)
 	applyAura(cue)
 	local frame, core = point(cue, "Core", { "Body" })
 	play("DeathBuild", frame, { follow = core, seconds = 0.9 })
-	ghost(bodyParts(cue, nil, nil, 40), 3.6, Vector3.new(0, 20, 0), 0.18, 0.4, 0.3, JADE)
+	shedAlong(cue, 3.0, 1.6)
 	local at = ground(cue, root(cue).Position)
 	local face = facing(cue)
 	task.delay(0.85, function()
 		local live = if core.Parent then core.Position else frame.Position
 		play("DeathBurst", CFrame.new(live))
 		play("DeathSpirit", CFrame.new(at + Vector3.new(0, 0.05, 0)) * face, { scale = 22 })
+		play("RainRelease", CFrame.lookAt(live, live + Vector3.new(0, 1, 0)))
 		shake(0.4, live, 180)
 	end)
 end

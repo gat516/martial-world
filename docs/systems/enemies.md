@@ -636,8 +636,11 @@ under broken ground, the rain at 9 drops on mobile, brood slot sharing, difficul
 Jade Jiao effects: `Effects.JadeJiao` (48 templates, 307 emitters; builder
 `tools/vfx_specs/JadeJiao.luau`, installs `_G.buildJadeJiaoFX`), handler `EnemyFX/JadeJiao.luau`.
 Acid venom-green (9BFF4A) with white-hot cores is the element, amber-gold only for warning tells,
-pale spirit-jade for the phase 3 aura, ghost jiao and rain; every bright shape sits on a slate/ink
-copy. No crown or halo. Sizes are read off each cue's shape (`AuthoredRadius`/`AuthoredSeconds`
+pale spirit-jade for the phase 3 aura, spirit beats and rain; every bright shape sits on a slate/ink
+copy. No crown or halo, and no Neon copies of the body (the user rejected boss afterimages,
+2026-10-21): the spirit beats are emitters on named body hooks (`Throat`, `Core`,
+`Coil_Tail6`, `Coil_Tail12`, `TailTip_FX`, `Mouth`, falling back to `Skull`/`Body`/root), so a
+rebuilt body with the same hook names keeps working. Sizes are read off each cue's shape (`AuthoredRadius`/`AuthoredSeconds`
 refit); only the dormant mound, earth ridge and coil ring are drawn in code (soil balls and neon
 segments, support only).
 - Aura (`ready`): ground array (ink, mandala, sigil), venom mist from 5 body parts, motes, mouth
@@ -647,11 +650,12 @@ segments, support only).
 - Every windup: `EyeFlare` on both eyes, tell parts (`Tell`/`TellBase`) dim to hot amber, hood
   spots flare green, per-attack `Marker`/`MarkerLite` amber circle on the shape.
 - `emerge`/`erupt`: `EmergeBuild` (cracks and tremors) then `EmergeBurst` (column, rocks, rings,
-  flash, scorch, Craters, heavy shake) and a ghost head; the body and dome stay hidden until
-  contact. `mireDive`: `GroundGather`, `DiveBurst` (collapsing hole), a moving soil ridge with
+  flash, scorch, Craters, heavy shake), `HissBurst` venom mist rings on the hole (0.8x radius) and
+  `PhaseFlare` on the surfacing head; the body and dome stay hidden until contact (no stock howl
+  disc for bosses). `mireDive`: `GroundGather`, `DiveBurst` (collapsing hole), a moving soil ridge with
   `RidgeFX` until `land`.
 - `venomFang`/`fangFlurry`: `FangTell`, `FangSnap`; each flurry strike is its own cue (snap at the
-  Mouth plus `GroundMark` on its cone). `tailSweep`: `TailTell`, `SweepImpact`, `TailWhip` trail.
+  Mouth plus `GroundMark` on its cone); the snap adds `SpitRelease` at the Mouth. `tailSweep`: `TailTell`, `SweepImpact`, `TailWhip` trail.
   `pillarSlam`: `SlamTell`, `GroundGather`, `SlamImpact` (scorch 6 s).
 - Spit: `SpitGather` + throat sac swell; lance/spray fly `VenomBolt` from the Mouth along each
   lane at 75/s (stopped by the first `hit`) into `BoltImpact`; pools lob a glob per circle into
@@ -660,9 +664,12 @@ segments, support only).
 - `jiaoCoil`: `Marker`, jade glow down `ScaleSeam1..9`, `CoilForm` on `CoilAt`; the ring is 40
   neon segments at `CoilRadius` with the door gap at `CoilGap`/`CoilHalfAngle` (bright dashes and
   two `CoilGate` light posts), pulses tightening to `CoilSqueezeAt`; `squeeze`/`coilBreak` cues.
-- `dreadHiss`: `RoarTell`, `HissBurst`. `molt`/`ascension`: `RoarTell`, `ShedSkin` on the body,
-  then `phase`: `PhaseBurst`, `PhaseFlare`, ghost heads (two at phase 3).
-- Death: `DeathBuild`, a 40-part ghost rising 20 studs, then `DeathBurst`/`DeathSpirit`.
+- `dreadHiss`: `RoarTell`, `HissBurst`. `molt`/`ascension`: `RoarTell`, `ShedSkin` on 5 hooks,
+  `GroundGather` under the coils (r14, jade for the ascension), and for the ascension `RainGather`
+  on the chest; then `phase`: `PhaseBurst`, `PhaseFlare`, `RainRelease` thrown skyward from the
+  Mouth; at phase 3 also `ShedSkin` x1.5 on every hook and a second skyward stream from `Core`.
+- Death: `DeathBuild` plus jade `ShedSkin` (3 s, x1.6) on every hook, then `DeathBurst`,
+  `DeathSpirit` and a `RainRelease` spirit stream skyward from the chest.
 - Players: `PoisonFX.luau` (green Highlight pulse, bubbles and drips by stacks, a screen-edge
   tint for the local player) from `PoisonStacks`/`PoisonUntil`.
 Untested: all of it in play (placement on the animated body, follow smoothness, 40-stud read,

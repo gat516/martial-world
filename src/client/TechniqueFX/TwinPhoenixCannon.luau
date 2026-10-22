@@ -202,14 +202,21 @@ local function gather(copy: Instance, character: Model?, seconds: number)
 	TechniqueVFX.emit(part)
 	TechniqueVFX.cleanup(part, 0.2)
 	local started = os.clock()
-	local follow
+	local follow: RBXScriptConnection
+	local unregister: () -> () = function() end
 	follow = RunService.RenderStepped:Connect(function()
 		local now = at()
 		if os.clock() - started > seconds or not part.Parent or not now then
 			follow:Disconnect()
+			unregister()
 			return
 		end
 		part.CFrame = now
+	end)
+	-- the cast cut short between the blasts: the gather goes with it
+	unregister = WeaponFX.onCancel(character, function()
+		follow:Disconnect()
+		part:Destroy()
 	end)
 end
 
@@ -370,6 +377,10 @@ local function fire(CombatEffects: any, copy: Model, b: Blast)
 			TechniqueVFX.cleanup(terminal)
 			if not TechniqueVFX.full and tier >= 3 and CastFX.nearCamera(floor, 45) then
 				CombatEffects.shake(if b.index == 2 then 0.2 else 0.12)
+			end
+			-- the golden finisher lands with a hit-pause (III+)
+			if b.index == 2 and tier >= 3 then
+				CombatEffects.punch(floor, if tier >= 4 then 0.75 else 0.45, Color3.fromRGB(255, 200, 110), 0.08)
 			end
 		end
 		for _, s in strips do

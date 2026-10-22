@@ -506,7 +506,11 @@ checks a rebuild against the previous templates.
   and the shared hit stack's ink splat and star-burst flipbook on every
   impact. The windup is a stream through 0.30 s, not one burst. Layers per
   beat for one bird (T1 / T4): windup 6 / 9, release 6 / 10, travel 10 / 11,
-  impact 9 / 15, terminal 13 / 21, tail 2 / 3.
+  impact 11 / 18, terminal 13 / 21, tail 2 / 3. QA pass 2026-10-21: a cast cut
+  short between the blasts drops the left-fist gather at once
+  (`WeaponFX.onCancel`; the second bird was already dropped with the track),
+  and the golden finisher's terminal lands with a hit-pause punch at III+.
+  The burnt streak is still a Neon line (not a rend).
 - **Great Sage Awakening** (`GreatSageAwakening_T1..T4`, authored at radius
   8 and 8 s; `TechniqueFX.GreatSageAwakening`). The Monkey King wakes: his
   golden circlet, golden flame, the somersault cloud, fiery eyes. The staff

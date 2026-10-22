@@ -38,6 +38,30 @@ pattern.
 - Keep triangle counts sane: a big environment piece is ~10-20k tris, a whole
   peak ~55k across its parts, a prop a few hundred to a few thousand.
 
+## Intent first
+
+Lessons from the vfx agent (2026-10-22): work that skips the intent comes out
+technically fine but random. Before building, write 2-3 sentences: what the
+thing is and what it does (a storm ape that slams and roars, a tea table
+players sit at), what the player should feel looking at it (threat, calm,
+awe), and its gameplay job (a silhouette read from 40 studs, the parts that
+tell an attack, a landmark, a seat). Then plan in that order:
+- **One hero.** The one shape that sells it (the loud silhouette element in
+  "What reads and what looks off"); secondary shapes support it, smaller and
+  quieter; detail last, and only where it's seen.
+- **Every part has a reason:** anatomy, function, the rig (it moves on a joint)
+  or the fight (a `Tell`, a weak point). No reason, cut it. Subtract before you
+  add.
+- **The action decides form, the theme decides surface.** What a body does
+  (slams, coils, flies) sets its proportions and joints; its element (thunder,
+  venom) only sets colour, material and accents.
+
+Turning the user's words into fixes: "generic" means no hero shape, so push
+one silhouette element. "Messy" or "busy" means too many equal parts, so cut
+and group them. "Cheap" or "flat" means no value range or no hierarchy, so
+add value contrast and trim edges. "Doesn't read" means the hero is too
+small or the same value as the body. "Looks off" means check the list below.
+
 ## Your own Studio (sandbox)
 
 Work in a disposable sandbox Studio, not the user's. The main session

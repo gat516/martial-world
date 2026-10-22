@@ -32,6 +32,34 @@ what's untested.
   cloth) for attacks, or make EnemyAnimator blend with your clip.
 - `docs/systems/enemies.md` (AI states, attack kinds) and `combat.md`.
 
+## Intent first, then a beat sheet
+
+Lessons from the vfx agent (2026-10-22): work that skips the intent comes out
+technically fine but random. Before keying a clip, write:
+- **Intent (2-3 sentences):** what the body is physically doing (a lunge
+  throws the mass forward off the back legs, a roar fills the chest then pushes
+  air out), what the player should feel (dread, weight, threat, relief), and
+  the clip's gameplay job (telegraph the dodge, sell the hit, show the stagger).
+- **Beat sheet in ms**, matched to the attack table: anticipation (inward,
+  coiling, slowing to a hold), the release (fast, the big pose), follow-through
+  (overshoot, settle), recovery (the opening the player punishes). Fast in,
+  slow out; one strongest pose; the windup ends on the telegraph's frame.
+- **Every motion is caused.** Secondary motion comes from a force: the tail
+  counters the hips, the head lags then whips, the mane trails the turn, the
+  feet push before the body moves. No cause, cut it. One hero motion leads each
+  beat (the root crouch, the jaw, the arm arc) and the rest follow it a few
+  frames late. Subtract before you add.
+
+Turning the user's words into fixes:
+| They say | Usual cause | Fix |
+|---|---|---|
+| stiff, robotic | everything moves together and stops dead | offset the chain (root, spine, head, tail) a few frames each; overshoot and settle; add a breath on holds |
+| floaty | linear timing, no weight | fast in, slow out; compress on landing; shorter airborne arcs or a hang only at the apex |
+| weak, no impact | the release eases in; no anticipation | a deeper coil before, a snap to the hit pose in 1-3 frames, hold it a beat |
+| can't tell what it's doing | the hero motion is small (ears, hands) | read the "What reads at 40 studs" list; push the root, head, tail, arms |
+| unfair, too fast | the windup doesn't read for its whole length | a clear hold at the end of the anticipation, on the telegraph's frame |
+| jittery, messy | too many joints doing their own thing | cut to one hero motion and its caused follow-through |
+
 ## Your own Studio (sandbox)
 
 Work in a disposable sandbox Studio, not the user's. The main session

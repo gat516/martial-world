@@ -1498,6 +1498,10 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	if BossAttacks.SHAPED[attack.kind] then
 		BossAttacks.begin(enemy, attack)
 	end
+	if attack.unburrowAt == "windup" then
+		-- the rise is animated over the windup (the centipede's erupt): surface as it starts
+		enemy.model:SetAttribute("Burrowed", nil)
+	end
 end
 
 -- A spot 18-25 studs from `center` on ground a beast can stand on (a downward ray

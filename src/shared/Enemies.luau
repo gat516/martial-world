@@ -129,6 +129,7 @@ export type Attack = {
 	flank: number?, -- pools: studs either side of the target the two extra circles sit
 	poolSeconds: number?, -- pools: how long each circle stays as a poison pool
 	unburrow: boolean?, -- surfaces the beast (clears its Burrowed attribute) when it resolves
+	unburrowAt: string?, -- "windup": surfaces it as the windup STARTS instead, so a rise animated over the windup is seen (the Blood Centipede's erupt); the Jiao keeps resolve
 	coilRadius: number?, -- coil: the ring's centreline radius (the telegraph circle is `radius`)
 	hold: number?, -- coil: seconds from the ring forming (after the dash) to the squeeze
 	holdP3: number?,
@@ -1276,7 +1277,7 @@ end
 if NEW_CENTIPEDE then
 	local erupt: Attack = {
 		kind = "slam", name = "erupt", damage = 30, range = 40, windup = 0.7, recover = 1.1,
-		cooldown = 0, radius = 6.5, chainOnly = true, unburrow = true, react = "stagger",
+		cooldown = 0, radius = 6.5, chainOnly = true, unburrow = true, unburrowAt = "windup", react = "stagger",
 	}
 	local pincerSnap: Attack = {
 		kind = "cone", name = "pincerSnap", damage = 18, range = 14, windup = 0.6, recover = 0.9,

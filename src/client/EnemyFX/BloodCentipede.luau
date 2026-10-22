@@ -198,6 +198,11 @@ function BloodCentipede.ready(cue: Cue)
 		else
 			stop()
 			hide(false)
+			if model:GetAttribute("Attack") == "erupt" and model:GetAttribute("AIState") == "windup" then
+				-- the server surfaces it as the erupt windup starts (unburrowAt): the mound bursts
+				-- as the plates come back; the ground break still lands with the strike
+				Impact.ground(underRoot(cue), { palette = PALETTE, radius = 4.5, rocks = true, scar = false, shake = 0, reach = 0 })
+			end
 		end
 	end)
 	if model:GetAttribute("Burrowed") == true then

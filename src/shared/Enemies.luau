@@ -96,7 +96,28 @@ export type Attack = {
 	halfAngleP3: number?,
 	squeezeDamage: number?, -- coil: damage at the squeeze to anyone inside the ring and outside the gap
 	dashMin: number?, -- a dash lasts at least this long
+	mouth: number?, -- bolt: studs from the root centre to the mouth (the lanes start there)
+	mouthHeight: number?, -- bolt: how high the mouth is above the ground
 	boltName: string?, -- storm: the name its circles' telegraphs carry (default "stormBolt")
+	-- Thunder Ape kit
+	phase: number?, -- rotating bosses (`rotate`): the lowest phase that uses this attack
+	chainOnly: boolean?, -- rotating bosses: only started as another attack's followUp
+	phaseStep: boolean?, -- resolving this attack moves the boss to its next phase (Phase attribute)
+	landMin: number?, -- bound: nearest and farthest landing from the target
+	landMax: number?,
+	bolts: number?, -- storm: strikes (`boltsP3` from phase 3)
+	boltsP3: number?,
+	boltWindup: number?,
+	boltInterval: number?,
+	boltRadius: number?,
+	-- slam: a second ring from the same centre `delay` s after contact (from `phase`),
+	-- `scale` x damage, sparing anyone the slam itself already caught
+	wave: { radius: number, delay: number, scale: number, phase: number }?,
+	-- boss attacks that fly a real projectile (Projectiles.luau) instead of resolving an
+	-- area at windup end. cue: the drawer clients use. A lob (spit) fires `release` seconds
+	-- into the windup and lands `flight` s later on the locked circle; a lane (lance) fires
+	-- at windup end at `speed`. `origin`: root-relative offset (the server has no body).
+	projectile: { cue: string, release: number?, radius: number, origin: Vector3, flight: number?, gravity: number?, speed: number?, range: number?, pierce: boolean?, data: { [string]: any }? }?,
 }
 
 -- Pack behaviour for regular beasts with an attack pool.
@@ -629,10 +650,18 @@ if NEW_THUNDER_APE then
 	local boulderHurl = atk({
 		kind = "spit", name = "boulderHurl", damage = 70, range = 85, minRange = 45, windup = 1.70,
 		recover = 0.90, cooldown = 3.2, radius = 10,
+		projectile = {
+			cue = "boulder", release = 1.25, flight = 0.45, gravity = 160, radius = 5,
+			origin = Vector3.new(7, 14, -2), data = { size = 5 },
+		},
 	})
 	local thunderLance = atk({
 		kind = "lance", name = "thunderLance", damage = 120, range = 85, minRange = 20, windup = 1.40,
 		recover = 0.90, cooldown = 2.9, length = 90, width = 8, phase = 2,
+		projectile = {
+			cue = "thunderLance", radius = 2.5, speed = 150, range = 74, pierce = true,
+			origin = Vector3.new(0, 0, -16), data = { length = 90, width = 8 },
+		},
 	})
 	local thunderRoar = atk({
 		kind = "howl", name = "thunderRoar", damage = 0, range = 45, windup = 1.30, recover = 1.00,
@@ -696,10 +725,11 @@ if NEW_THUNDER_APE then
 	} :: Def
 end
 
--- THE JADE JIAO (Config.Wilds.NEW_JIAO, testbed only): a 115-stud jade serpent boss for
--- QC7 (player 255 HP, power 1.76). The body is 3.17x the roster python (root box
--- 11.7 x 20 x 23.4, the head about 14.5 studs ahead of the root), so every reach is
--- measured from the root centre and clears the head. Shares of a QC7 player's health:
+-- THE JADE JIAO (Config.Wilds.NEW_JIAO, testbed only): a jade serpent boss for
+-- QC7 (player 255 HP, power 1.76). The body is the user's reference python at 3.17x
+-- (24 x 19 x 38 studs; root box 24.7 x 9.5 x 26.3 centred under the coil, the skull
+-- about 17 studs and the fang tips about 24 studs ahead of the root, head 14.6 up), so
+-- every reach is measured from the root centre and clears the head. Shares of a QC7 player's health:
 -- fang 14% (+poison), flurry 7% a strike, sweep 12%, slam 24%, erupt 22%, lance 11%,
 -- spray 8% a lane, pools 7% (+poison), coil 8% + squeeze 28%, rain 10% a drop. Crowd
 -- control rides `stun.onHit` (PlayerStun), the coil stuns 1.4 s and the squeeze is
@@ -712,55 +742,56 @@ if NEW_JIAO then
 	end
 	local venom = { stacks = 1, seconds = 5 }
 	local venomLance = atk({
-		kind = "bolt", name = "venomLance", damage = 28, range = 70, minRange = 18, windup = 0.70,
-		recover = 0.80, cooldown = 1.5, lanes = { 0 }, boltSpeed = 75, length = 72, width = 4, poison = venom,
+		kind = "bolt", name = "venomLance", damage = 28, range = 70, minRange = 26, windup = 0.70,
+		recover = 0.80, cooldown = 1.5, lanes = { 0 }, boltSpeed = 75, length = 72, width = 3.6, poison = venom,
+		mouth = 24.2, mouthHeight = 13.1, boltRadius = 1.8,
 	})
 	local venomFang = atk({
-		kind = "cone", name = "venomFang", damage = 36, range = 22, windup = 0.75, recover = 0.90,
-		cooldown = 1.65, radius = 24, angle = 80, poison = venom,
+		kind = "cone", name = "venomFang", damage = 36, range = 30, windup = 0.75, recover = 0.90,
+		cooldown = 1.65, radius = 34, angle = 80, poison = venom,
 	})
 	local pillarSlam = atk({
-		kind = "slam", name = "pillarSlam", damage = 61, range = 26, windup = 1.00, recover = 1.30,
-		cooldown = 2.3, radius = 11, offset = Vector3.new(0, 0, -18),
+		kind = "slam", name = "pillarSlam", damage = 61, range = 36, windup = 1.00, recover = 1.30,
+		cooldown = 2.3, radius = 9, offset = Vector3.new(0, 0, -27),
 		stun = { kind = "stagger", radius = 0, seconds = 0.7, onHit = true },
 	})
 	local tailSweep = atk({
 		kind = "slam", name = "tailSweep", damage = 31, range = 20, windup = 0.80, recover = 1.00,
-		cooldown = 1.8, radius = 21, offset = Vector3.new(0, 0, 5),
+		cooldown = 1.8, radius = 22, offset = Vector3.new(0, 0, 0),
 		stun = { kind = "stagger", radius = 0, seconds = 0.5, onHit = true },
 	})
 	local mireDive = atk({
-		kind = "burrow", name = "mireDive", damage = 0, range = 56, minRange = 20, windup = 0.80, recover = 0.10,
-		cooldown = 1.0, length = 56, width = 5, dashSpeed = 75, stopPast = 0, followUp = "erupt", phase = 2,
+		kind = "burrow", name = "mireDive", damage = 0, range = 56, minRange = 30, windup = 0.80, recover = 0.10,
+		cooldown = 1.0, length = 56, width = 6, dashSpeed = 75, stopPast = 0, followUp = "erupt", phase = 2,
 	})
 	local erupt = atk({
 		kind = "slam", name = "erupt", damage = 56, range = 200, windup = 0.85, recover = 1.10,
-		cooldown = 1.0, radius = 12, offset = Vector3.new(0, 0, 0), chainOnly = true, unburrow = true,
+		cooldown = 1.0, radius = 14, offset = Vector3.new(0, 0, 0), chainOnly = true, unburrow = true,
 		stun = { kind = "stagger", radius = 0, seconds = 0.8, onHit = true },
 	})
 	local dreadHiss = atk({
-		kind = "howl", name = "dreadHiss", damage = 0, range = 24, windup = 1.10, recover = 0.90,
-		cooldown = 2.0, radius = 1, phase = 2, stun = { kind = "stagger", radius = 23, seconds = 0.8 },
+		kind = "howl", name = "dreadHiss", damage = 0, range = 30, windup = 1.10, recover = 0.90,
+		cooldown = 2.0, radius = 1, phase = 2, stun = { kind = "stagger", radius = 30, seconds = 0.8 },
 	})
 	local venomSpray = atk({
-		kind = "bolt", name = "venomSpray", damage = 20, range = 60, minRange = 18, windup = 1.00,
-		recover = 1.20, cooldown = 2.0, lanes = { 0, -22, 22 }, boltSpeed = 75, length = 62, width = 3.6,
-		poison = venom, phase = 2,
+		kind = "bolt", name = "venomSpray", damage = 20, range = 60, minRange = 26, windup = 1.00,
+		recover = 1.20, cooldown = 2.0, lanes = { 0, -22, 22 }, boltSpeed = 75, length = 62, width = 3,
+		mouth = 24.2, mouthHeight = 13.1, boltRadius = 1.5, poison = venom, phase = 2,
 	})
 	local jiaoCoil = atk({
 		kind = "coil", name = "jiaoCoil", damage = 20, range = 45, minRange = 8, windup = 1.50, recover = 4.40,
-		cooldown = 4.0, radius = 15, coilRadius = 13.3, dashSpeed = 40, length = 40, dashMin = 0.45,
+		cooldown = 4.0, radius = 13.5, coilRadius = 11.9, dashSpeed = 40, length = 40, dashMin = 0.45,
 		hold = 3.0, holdP3 = 2.6, halfAngle = 40, halfAngleP3 = 30, squeezeDamage = 71, phase = 2,
 		knock = 0, -- a shove would throw players out of the ring it traps them in
 		stun = { kind = "stun", radius = 0, seconds = 1.4, secondsP3 = 1.6, onHit = true },
 	})
 	local fangFlurry = atk({
-		kind = "cone", name = "fangFlurry", damage = 18, range = 20, windup = 0.90, recover = 2.10,
-		cooldown = 3.0, radius = 20, angle = 70, poison = venom, phase = 2,
-		strikes = { { at = 0.4, radius = 20, angle = 70 }, { at = 1.0, radius = 25, angle = 90 } },
+		kind = "cone", name = "fangFlurry", damage = 18, range = 28, windup = 0.90, recover = 2.10,
+		cooldown = 3.0, radius = 30, angle = 70, poison = venom, phase = 2,
+		strikes = { { at = 0.4, radius = 30, angle = 70 }, { at = 1.0, radius = 36, angle = 90 } },
 	})
 	local venomPools = atk({
-		kind = "pools", name = "venomPools", damage = 18, range = 60, minRange = 14, windup = 1.00,
+		kind = "pools", name = "venomPools", damage = 18, range = 60, minRange = 24, windup = 1.00,
 		recover = 0.90, cooldown = 2.0, radius = 7, flank = 11, poolSeconds = 7, poison = venom, phase = 2,
 	})
 	local molt = atk({
@@ -796,7 +827,7 @@ if NEW_JIAO then
 		phaseSpeed = 1.025,
 		aggro = 60,
 		leash = 130,
-		closeIn = 16,
+		closeIn = 26, -- stops just past the head, not inside the body
 		qiDrop = 130,
 		stones = { 50, 80 },
 		respawn = 240,

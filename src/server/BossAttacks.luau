@@ -1,8 +1,9 @@
 --!nonstrict
 -- Attack kinds for the Jade Jiao that EnemyService doesn't know on its own, kept
 -- here so the state machine only needs a few hooks (all called from EnemyService):
---   bolt     fast venom lanes from the mouth (`lanes` angles). Each lane hurts the first
---            player on it when the front (`boltSpeed`) reaches them, then stops.
+--   bolt     venom lanes from the mouth (`lanes` angles): the windup shows each lane
+--            (Projectiles.warnLane), the release fires one real projectile down each
+--            (Projectiles.fire, cue "venomBolt"), aimed down to the target's height.
 --   pools    circles (one on the target, two `flank` studs either side) that hurt at
 --            windup end and then stay `poolSeconds` as poison pools.
 --   burrow   no damage: it dives (sets Burrowed, so it can't be hit or locked) and
@@ -17,6 +18,7 @@
 local Players = game:GetService("Players")
 
 local PlayerPoison = require(script.Parent.PlayerPoison)
+local Projectiles = require(script.Parent.Projectiles)
 
 local BossAttacks = {}
 
@@ -28,7 +30,8 @@ BossAttacks.OWNED = { bolt = true, pools = true, coil = true, burrow = true }
 local BREAK_SHARE = 0.03 -- of max health, dealt during a coil's hold, breaks it
 local BREAK_STAGGER = 0.9
 local UNWIND = 1.4 -- the ring's attributes stay this long after the squeeze
-local MOUTH_AHEAD = 15 -- studs from the root centre to the mouth
+local MOUTH_AHEAD = 24 -- default studs from the root centre to the mouth (attack.mouth)
+local MOUTH_HEIGHT = 13 -- default mouth height above the ground (attack.mouthHeight)
 
 local ctx: any = nil
 local states = setmetatable({}, { __mode = "k" }) :: { [any]: any }
@@ -69,7 +72,7 @@ function BossAttacks.shape(enemy, attack, targetRoot: BasePart, ground: Vector3,
 	table.clear(s.extras)
 	if attack.kind == "bolt" then
 		local length = attack.length
-		local start = ground + dir * MOUTH_AHEAD
+		local start = ground + dir * (attack.mouth or MOUTH_AHEAD)
 		local list = {}
 		for _, degrees in attack.lanes or { 0 } do
 			local d = CFrame.Angles(0, math.rad(degrees), 0):VectorToWorldSpace(dir)
@@ -104,7 +107,13 @@ end
 function BossAttacks.begin(enemy, attack)
 	local s = state(enemy)
 	for _, shape in s.extras do
-		ctx.telegraph(shape, attack.windup, enemy.model, name(attack))
+		if attack.kind == "bolt" then
+			local look = shape.cframe.LookVector
+			local start = shape.cframe.Position - look * (shape.size.Y / 2)
+			Projectiles.warnLane(enemy.model, name(attack), start, look, shape.size.Y, shape.size.X, attack.windup)
+		else
+			ctx.telegraph(shape, attack.windup, enemy.model, name(attack))
+		end
 	end
 end
 
@@ -120,33 +129,31 @@ end
 
 --[[ Resolving ]]
 
-local function boltLane(enemy, attack, shape, hit: { [Player]: boolean })
-	local cframe, size = shape.cframe, shape.size
-	local first, firstAlong: Player?, number = nil, math.huge
-	for _, player in Players:GetPlayers() do
-		local root = ctx.playerRoot(player)
-		if root and not hit[player] and ctx.inside(shape, root.Position) then
-			local p = cframe:PointToObjectSpace(root.Position)
-			local along = math.clamp(size.Y / 2 - p.Z, 0, size.Y)
-			if along < firstAlong then
-				first, firstAlong = player, along
-			end
-		end
+-- One bolt down a lane: from the mouth, aimed down to the target's height over its
+-- distance (kept between 12 studs and the lane's length), straight, no pierce.
+local function fireBolt(enemy, attack, shape, targetRoot: BasePart?)
+	local look = shape.cframe.LookVector
+	local start = shape.cframe.Position - look * (shape.size.Y / 2)
+	local origin = start + Vector3.new(0, attack.mouthHeight or MOUTH_HEIGHT, 0)
+	local slope = 0
+	if targetRoot then
+		local far = math.clamp(ctx.flat(targetRoot.Position - start).Magnitude, 12, shape.size.Y)
+		slope = (targetRoot.Position.Y - origin.Y) / far
 	end
-	if not first then
-		return
-	end
-	hit[first] = true
-	local player = first
-	task.delay(firstAlong / (attack.boltSpeed or 75), function()
-		if not ctx.alive(enemy) then
-			return
-		end
-		local root = ctx.playerRoot(player)
-		if root and ctx.caught(shape, player, root) then
+	local speed = attack.boltSpeed or 75
+	Projectiles.fire({
+		owner = enemy.model,
+		cue = "venomBolt",
+		origin = origin,
+		velocity = (look + Vector3.yAxis * slope).Unit * speed,
+		radius = attack.boltRadius or 1.8,
+		range = shape.size.Y * 1.05,
+		onHit = function(player: Player)
 			ctx.hurtPlayer(enemy, attack, player)
-		end
-	end)
+			return nil
+		end,
+		data = { size = (attack.boltRadius or 1.8) * 2 },
+	})
 end
 
 local function poolTicks()
@@ -260,10 +267,11 @@ end
 function BossAttacks.resolve(enemy, attack, shape, now: number)
 	local s = state(enemy)
 	if attack.kind == "bolt" then
-		local hit = {}
-		boltLane(enemy, attack, shape, hit)
+		local player = enemy.target
+		local targetRoot = player and ctx.playerRoot(player)
+		fireBolt(enemy, attack, shape, targetRoot)
 		for _, lane in s.extras do
-			boltLane(enemy, attack, lane, hit)
+			fireBolt(enemy, attack, lane, targetRoot)
 		end
 	elseif attack.kind == "pools" then
 		local all = { shape, table.unpack(s.extras) }
@@ -377,11 +385,13 @@ end
 
 -- it lost its target: it comes up (a beast walking home isn't underground)
 function BossAttacks.disengaged(enemy)
+	Projectiles.cancelOwner(enemy.model)
 	clearCoil(enemy)
 	enemy.model:SetAttribute("Burrowed", nil)
 end
 
 function BossAttacks.died(enemy)
+	Projectiles.cancelOwner(enemy.model)
 	clearCoil(enemy)
 	enemy.model:SetAttribute("Burrowed", nil)
 end

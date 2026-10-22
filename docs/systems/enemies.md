@@ -379,32 +379,50 @@ Effects: `src/client/EnemyFX/ElderWolfKing.luau`, gated to `ElderWolfKingB`; sta
 The existing `SFX.Enemies.ElderWolfKing` Aggro/Attack/Death sounds are reused.
 No new remotes.
 
-The King's FX handler reuses `Effects.SpiritWolf` and `Effects.StoneBoar` through
-`TechniqueVFX`; it does not add or re-export `Effects.rbxm`. Runtime clones keep
-the plugin attributes, textures and layer counts, with silver `#E4E9EE`, rim
-`#9EB0C1`, slate `#252C3A`, amber `#FFC85A` warnings and jade `#5DBB98` seal glints.
-Scale, palette and cue timing are in `EnemyFX/ElderWolfKing.luau`; retime the
-fallback `WINDUP` table there if the attack definitions change.
+The King has its own effect set, `Effects.ElderWolfKing` (28 templates, about 190
+emitters; builder `tools/vfx_specs/ElderWolfKing.luau`, installs
+`_G.buildElderWolfKingFX`). It no longer uses the wolf or boar templates. Look:
+moon-silver qi on ink-slate; **gold is the warning tell** (every windup flare is
+gold, so gold means react); pale spirit-cyan for the ghost-wolf flourishes; jade
+only on the collar seal. No crown or halo (user, 2026-10-21). Identity comes from
+the aura (mane flames, spirit motes, breath mist, a turning ground array) and from
+**ghost wolves**: translucent Neon copies of the King's own parts (`ghost` in the
+handler: the head for roar/howl/bite, up to 40 body parts for the death) that rise,
+swell and dissolve. A particle's `Size` is a half-width, so the builder halves its
+authored diameters once in `em`.
 
-| Beat | Reused templates and placement |
+Cues (the handler is `EnemyFX/ElderWolfKing.luau`; `EnemyFX/init.luau` gained two
+generic cues, `ready` once per enemy when first seen and `aggro` on idle/return ->
+chase, for any beast that wants them):
+
+| Beat | Layers / how it plays |
 |---|---|
-| Every windup | StoneBoar `EyeGlint` on both eyes; the stock ground outline/fill stays visible |
-| Royal Bite | SpiritWolf `Breath` at Mouth, then `FangSnap` crescents at contact |
-| Paw Swipe | StoneBoar `TuskGlint` on the left shoulder, then a short diagonal `GoreHook` at the left paw |
-| Claw Down | StoneBoar `TuskGlint` on the raised right paw, then SpiritWolf `ClawRake` moving down and `PawDust` at the locked circle |
-| King's Rush | SpiritWolf `Gather`, hind-paw `PawDust`, take-off `DashDust` and body `MoonTrail`; StoneBoar `Skid` at the forepaws when it stops |
-| Crownfall | SpiritWolf `Gather`, a jade StoneBoar `TuskGlint` on SealFX, then SpiritWolf `Landing` scaled to the locked circle's radius (crack, ring, wave, dust, chips and flash) |
-| Pack Call | SpiritWolf `HowlRings` and `CrestGlow`, jade seal glint, a short extra ring burst as wolves arrive |
-| Confirmed hits | SpiritWolf `ClawRake` / `BiteHit` or StoneBoar `GoreHit` / `ChargeHit`, chosen by attack |
-| Stagger / death | SpiritWolf `StaggerFlash` / `Death` qi motes, with a final seal glint |
+| Aura (`ready`, always on) | ground array (ink disc + turning mandala, 2), mane flames, spirit motes, crest embers, mouth mist: 6 light emitters mounted in the body, about 17 particles/s. Health scales it: rates x(1 + 1.2 x lost health), flames go silver -> gold-white (<=65%) -> gold (<=30%), embers appear below 70%, and Pack Call flares it x2.2 for 3 s |
+| Aggro roar (`aggro`) | `Roar` at the Mouth (8: three sound rings, mist blast, flash, sparks, floor ring and dust), a ghost head lunging out, aura flare, small shake; 12 s gap |
+| Every windup | `BrowFlare` on both eyes (4: gold star, pop, held glow, needle) |
+| Royal Bite | windup `BiteTell` (8: gold motes drawn into the muzzle, two closing rings, ink + gold maw glow, fang glints flash at 0.62 s, mist); contact `BiteSnap` (13: upper and lower fang crescents, flash, star, spiky ring, rays, ink, embers, smoke, shake) plus a short ghost-head lunge |
+| Paw Swipe | windup `SwipeTell` on the left paw (5, the loudest at its start: a big gold star at 0 s, three gold claw streaks, closing ring); contact `SwipeSlash` (9: three crescents and echo sweeping across the cone, claw rake, wind lines, sparks, smear) |
+| Claw Down | windup `Marker` on the locked circle (6) then `ClawRaise` on the right paw at 50% (5); contact `ClawStrike` (11: falling claws, lit crack over a dark crack, ring, dust, chips, embers, shake) |
+| King's Rush | windup `RushCharge` (6: motes and speed lines pulled in, swelling core, closing rings) + `GroundArray` under the King (5, gold); take-off `RushLaunch` (6); dash `RushTrail` (7: ink and white trails, wind, spirit glow, flames, floor dust); stop `RushSkid` (4) |
+| Crownfall | windup `SlamTell` on the chest (7) + `Marker` on the locked circle (6: boundary ring, ink under it, a disc that fills to contact, a turning array, a ring closing from outside, edge sparks; this is the radius read) + jade seal flare; contact `SlamImpact` (16: flash, star, three rings, dust wall, chips and rock chunks, rays, lit crack, **scorch that stays about 6 s and fades**, embers, settling smoke, a Craters rock ring and an Explosion shake) |
+| Pack Call (65% and 30%) | windup `HowlTell` (6: sound rings and arcs, glow, mist, spirit motes) + `GroundArray` in spirit-cyan + a ghost head; release `PhaseBurst` (11: spirit sigil, three shock rings, light rays and a pillar, rising motes, flash, dust, shake) + `PhaseFlare` on the chest (5) + a bigger ghost head + aura flare; at 30% (health <= 35%) counts x1.6 and a second ghost head |
+| Confirmed hits | `HitClaw` (swipe), `HitBite`, `HitHeavy` (claw, rush, slam): 6 to 8 layers each, short |
+| Stagger | a half-strength `PhaseFlare` on the chest |
+| Death | `DeathBuild` (5, 0.9 s collapsing gather) while a ghost of the whole body (40 parts, 3.6 s) rises 16 studs and dissolves; at 0.85 s `DeathBurst` (9: white-out, star, ink splash, two rings, rays, motes, smoke, embers, shake) and `DeathSpirit` on the floor (6: sigil, pillar of rays, rising motes and petals for 3-4 s, smoke); the aura goes out |
+
+Shakes ride the templates' ScreenEffects attributes when the Game Module is
+present (`TechniqueVFX.full`) and fall back to `CombatEffects.shake` otherwise.
+`Craters` needs the Game Module too; the King's model is tagged `CraterIgnore`.
+Held templates carry `AuthoredSeconds` and ground ones `AuthoredRadius`; the handler
+refits them to the live windup and the locked circle. The stock red telegraph is
+unchanged and stays under the new markers.
 
 Windup tasks cancel when the state or attack changes; rush release/dash cues dedupe,
 and the trail stops on landing, interruption, death or its duration limit. Confirmed
 hit flashes allow the same attack's immediate windup-to-contact state transition,
 because its remote may arrive before the replicated phase update. Ground effects
 stay at the locked point; body effects follow their attachment's part. Layer details
-and library IDs remain in the two existing template builders and effect sections
-above; no new library assets were chosen for this pass.
+and library ids are in the builder.
 
 ### Template contract
 Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated

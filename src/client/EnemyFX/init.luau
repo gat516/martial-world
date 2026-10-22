@@ -14,6 +14,8 @@
 --   land(cue)     a dash ended (AIState left "dash"): a lunge skids to a stop,
 --                 a leap modelled as a dash touches down. Also sent by the
 --                 server for moves that aren't dashes (below).
+--   ready(cue)    the enemy was first seen (once): start ambient effects
+--   aggro(cue)    it noticed a player (idle or returning -> chase)
 --   hit(cue)      the blow caught a player: cue.target is their Character.
 --                 Only from the server (below).
 -- A cue is { model, root, kind, attack, shape, seconds, target, at } (`at` =
@@ -124,8 +126,16 @@ local function watch(model: Instance)
 		return
 	end
 	local previous = model:GetAttribute("AIState")
+	task.spawn(function()
+		if model:WaitForChild("HumanoidRootPart", 5) then
+			fire(model, "ready")
+		end
+	end)
 	model:GetAttributeChangedSignal("AIState"):Connect(function()
 		local state = model:GetAttribute("AIState")
+		if state == "chase" and (previous == "idle" or previous == "return") then
+			fire(model, "aggro")
+		end
 		if previous == "windup" and (state == "dash" or state == "recover") then
 			fire(model, "strike")
 		end

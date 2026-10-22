@@ -39,14 +39,15 @@ an `enemy-designer` brief.
 
 ## Your own Studio (sandbox)
 
-Work in your own disposable Studio, not the user's: `tools/sandbox.sh open <name>`
-builds a fresh place from `test.project.json` (repo code and `assets/`, no
-`Workspace.Map` or `AssetLibrary`) and opens it; find its id with
-`list_roblox_studios` (it's named `mw-sandbox-<name>.rbxl`) and pass it as
-`studio_id` on every call. Rojo isn't connected there, so you may edit the
+Work in a disposable sandbox Studio, not the user's. The main session
+opens it for you (`tools/sandbox.sh open <name>` builds a fresh place from
+`test.project.json` (repo code and `assets/`, no
+`Workspace.Map` or `AssetLibrary`) and gives its `studio_id` in your brief: pass it on
+every call. Don't open, close or reuse sandboxes yourself; the main session
+closes yours after you report. If your brief has no sandbox or it doesn't
+answer, say so and stop. Rojo isn't connected there, so you may edit the
 mapped instances in place without a staging copy; export what you build to
-`assets/` (Rojo then brings it into the user's places), and
-`tools/sandbox.sh close <name>` before you report, even when the task failed or was cut short (`tools/sandbox.sh list` shows what is still open). Nothing else in it is saved. A
+`assets/` (Rojo then brings it into the user's places). Nothing else in it is saved. A
 sandbox only holds what's in git: hand edits the user hasn't exported live
 only in their place, so check there (read-only) before regenerating a
 template they may have touched. The user's own Studios are for playing; touch
@@ -107,7 +108,11 @@ them only for work that needs them, and never start Play in them.
    don't know how a look is made, look up the technique (Creator Hub,
    DevForum, a tutorial) and note it in your report.
 5. **Cast every layer from the library.** The plugin's library is the
-   standard; don't invent ids. **Search by what the action causes, not by its
+   standard; don't invent ids. Load `tools/vfx_library.luau` and search live
+   first thing. **If the library can't be reached** (the search errors or
+   returns nothing for common words like "ring" and "smoke"), stop and report
+   it as an issue; no workarounds (no building from the JSON index alone, ids
+   from other effects or hand-made textures) (user, 2026-10-22). **Search by what the action causes, not by its
    name** (user, 2026-10-22). The library's tags are sparse: "roar", "growl"
    and "beast" find nothing, but a roar pushes air and sound out of the mouth,
    so search "shockwave", "wave", "ring", "wind", "air" and "dust", and for

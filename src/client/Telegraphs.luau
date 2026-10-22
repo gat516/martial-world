@@ -8,6 +8,8 @@ local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
+local Enemies = require(ReplicatedStorage.Shared.Enemies)
+
 local RED = Color3.fromRGB(255, 40, 30)
 local LIFT = 0.15 -- studs above the ground, so the decal doesn't z-fight
 local THICKNESS = 0.2
@@ -110,7 +112,14 @@ function Telegraphs.show(shape: any, seconds: number, _model: Instance?, _attack
 		TweenService:Create(grow, TweenInfo.new(seconds, Enum.EasingStyle.Linear), { Size = Vector3.new(THICKNESS * 1.2, r * 2, r * 2) }):Play()
 		table.insert(fill, grow)
 	elseif shape.kind == "howl" then
-		-- a summon: a pale ring that swells around the caster (no damage)
+		-- a summon: a pale ring that swells around the caster (no damage). Bosses
+		-- skip it: their roars, intros and phase calls have their own effects
+		-- (EnemyFX), and the flat disc under them read as a cheap placeholder.
+		local id = _model and _model:GetAttribute("EnemyType")
+		local def = type(id) == "string" and (Enemies.Defs :: any)[id]
+		if def and def.boss then
+			return
+		end
 		local center = shape.center + lift
 		local ring = part(Vector3.new(THICKNESS, 2, 2), CFrame.new(center) * CFrame.Angles(0, 0, math.rad(90)), 0.4, Enum.PartType.Cylinder)
 		ring.Color = Color3.fromRGB(255, 220, 150)

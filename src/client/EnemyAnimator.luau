@@ -44,6 +44,10 @@ local foxModule = script.Parent.EnemyPoses:FindFirstChild("NineTailFox")
 local NineTailFox = if foxModule then require(foxModule :: ModuleScript) :: any else nil
 local foxConfigured = false
 
+-- the Golden Toad's three-legged pose module (its own planter, not Quadruped's)
+local toadModule = script.Parent.EnemyPoses:FindFirstChild("GoldenToad")
+local GoldenToad = if toadModule then require(toadModule :: ModuleScript) :: any else nil
+
 -- the Frost Spider's eight-leg pose module (its own two-bone IK planter; unit scale)
 local spiderModule = script.Parent.EnemyPoses:FindFirstChild("FrostSpider")
 local FrostSpider = if spiderModule then require(spiderModule :: ModuleScript) :: any else nil
@@ -127,6 +131,14 @@ if VenomSerpent then
 		poses = VenomSerpent, scale = VenomSerpent.SCALE, runFrom = 7, keyedBlend = 0.15, staggerSeconds = 0.28,
 		deathSeconds = 0.9, circleLoop = true,
 		moves = { venomSpit = "VenomSpit", hoodStrike = "HoodStrike", hoodStrikeSkid = "HoodStrikeSkid", hop = "Hop" },
+	}
+end
+
+-- Golden Toad: unit scale; hop is the backslide (the client lifts the body by the server's DashArc).
+if GoldenToad then
+	FAMILIES.GoldenToad = {
+		poses = GoldenToad, scale = 1, runFrom = 5,
+		moves = { tongueLash = "TongueLash", gulp = "Gulp", bogCroak = "BogCroak", miasmaLob = "MiasmaLob", hop = "Hop" },
 	}
 end
 

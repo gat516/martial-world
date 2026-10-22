@@ -43,35 +43,38 @@ local WEAPON = {
 local P = {}
 
 P.Sword = {
+	-- raised guard: hand forward at the right chest, the blade slanting up and to the left
+	-- across the front of the face (tip past the centreline, about head-top height),
+	-- left sword-finger at the right wrist
 	hold = {
-		torso = { 0.08, 0.15, 0 }, head = { 0.14, -0.14, 0 },
-		r = V(1.1, 1.45, -1.15), b = V(-0.72, -0.62, -0.32),
-		l = V(-1.5, 2.0, 0.35), lf = V(0, 0, -1), -- sword-finger arched above the head
+		torso = { 0.08, 0.12, 0 }, head = { 0.12, -0.1, 0 },
+		r = V(0.95, 0.9, -1.4), b = V(-0.6, 0.75, -0.25),
+		l = V(0.1, 0.35, -1.35), lf = V(1, 0, 0),
 	},
-	-- Parry: the hanging blade flicks up and out to the right (tiao), tip leading
+	-- Parry: the raised blade snaps over to the right (wrist flick), edge driving the blow out
 	parry = {
-		{ t = 0.07, torso = { 0.09, 0.02, 0 }, head = { 0.12, -0.04, 0 },
-			r = V(0.85, 1.28, -1.42), b = V(0.32, 0.86, -0.4), l = V(-1.35, 2.0, 0.4), lf = V(0, 0, -1), ease = "out" },
-		{ t = 0.15, torso = { 0.08, -0.16, 0 }, head = { 0.12, 0.14, 0 },
-			r = V(1.05, 1.36, -1.28), b = V(0.86, 0.48, -0.18), l = V(-1.4, 1.95, 0.45), lf = V(0, 0, -1) },
-		{ t = 0.24, torso = { 0.08, 0.06, 0 }, head = { 0.13, -0.06, 0 },
-			r = V(1.1, 1.45, -1.25), b = V(0.05, -0.2, -0.98), l = V(-1.32, 2.02, 0.38), lf = V(0, 0, -1) },
+		{ t = 0.07, torso = { 0.09, -0.08, 0 }, head = { 0.12, 0.06, 0 },
+			r = V(1.15, 1.0, -1.4), b = V(0.55, 0.8, -0.25), l = V(-0.1, 0.35, -1.3), lf = V(1, 0, 0), ease = "out" },
+		{ t = 0.15, torso = { 0.08, -0.22, 0 }, head = { 0.12, 0.18, 0 },
+			r = V(1.25, 0.9, -1.25), b = V(0.9, 0.35, -0.25), l = V(-0.2, 0.3, -1.25), lf = V(1, 0, 0) },
+		{ t = 0.24, torso = { 0.08, 0.02, 0 }, head = { 0.12, -0.02, 0 },
+			r = V(1.05, 0.95, -1.4), b = V(0.1, 0.95, -0.3), l = V(0.05, 0.35, -1.32), lf = V(1, 0, 0) },
 	},
-	-- ParryAlt: the blade sweeps flat to the left and wraps past the left side (lan)
+	-- ParryAlt: the blade beats down and out to the left, flat sweeping the blow aside
 	parryAlt = {
-		{ t = 0.07, torso = { 0.09, 0.3, 0 }, head = { 0.12, -0.26, 0 },
-			r = V(0.6, 1.0, -1.5), b = V(-0.9, 0.22, -0.36), l = V(-1.45, 2.05, 0.3), lf = V(0, 0, -1), ease = "out" },
-		{ t = 0.15, torso = { 0.1, 0.4, 0 }, head = { 0.12, -0.34, 0 },
-			r = V(0.5, 0.95, -1.5), b = V(-0.85, -0.25, 0.3), l = V(-1.5, 2.0, 0.3), lf = V(0, 0, -1) },
-		{ t = 0.24, torso = { 0.09, 0.22, 0 }, head = { 0.13, -0.2, 0 },
-			r = V(0.95, 1.3, -1.3), b = V(-0.55, -0.45, -0.7), l = V(-1.28, 2.05, 0.33), lf = V(0, 0, -1) },
+		{ t = 0.07, torso = { 0.09, 0.3, 0 }, head = { 0.12, -0.24, 0 },
+			r = V(0.6, 1.0, -1.5), b = V(-0.9, 0.3, -0.3), l = V(-1.3, 0.25, -0.75), lf = V(0, 0, -1), ease = "out" },
+		{ t = 0.15, torso = { 0.1, 0.4, 0 }, head = { 0.12, -0.32, 0 },
+			r = V(0.5, 0.85, -1.5), b = V(-0.85, -0.3, -0.1), l = V(-1.6, 0.2, -0.45), lf = V(0, 0, -1) },
+		{ t = 0.24, torso = { 0.09, 0.2, 0 }, head = { 0.12, -0.16, 0 },
+			r = V(0.8, 0.9, -1.45), b = V(-0.45, 0.7, -0.5), l = V(-0.2, 0.32, -1.3), lf = V(1, 0, 0) },
 	},
-	-- Impact: the hit shoves the blade back, the body gives a little
+	-- Impact: the hit shoves the raised blade back toward the body, the body gives a little
 	impact = {
-		{ t = 0.05, torso = { -0.05, 0.2, 0 }, head = { 0.0, -0.16, 0 },
-			r = V(1.12, 1.55, -1.0), b = V(-0.8, -0.54, -0.08), l = V(-1.4, 1.85, 0.5), lf = V(0, 0, -1), ease = "out" },
-		{ t = 0.13, torso = { 0.1, 0.14, 0 }, head = { 0.16, -0.13, 0 },
-			r = V(1.1, 1.42, -1.25), b = V(-0.7, -0.64, -0.36), l = V(-1.3, 2.08, 0.33), lf = V(0, 0, -1) },
+		{ t = 0.05, torso = { -0.05, 0.16, 0 }, head = { 0.0, -0.12, 0 },
+			r = V(0.95, 1.0, -1.2), b = V(-0.6, 0.78, -0.08), l = V(0.12, 0.4, -1.25), lf = V(1, 0, 0), ease = "out" },
+		{ t = 0.13, torso = { 0.1, 0.11, 0 }, head = { 0.14, -0.09, 0 },
+			r = V(0.95, 0.88, -1.45), b = V(-0.6, 0.74, -0.3), l = V(0.1, 0.34, -1.36), lf = V(1, 0, 0) },
 	},
 	length = { parry = 0.34, parryAlt = 0.34, impact = 0.25 },
 	contact = 0.07,
@@ -112,44 +115,45 @@ P.Saber = {
 	contact = 0.08,
 }
 
--- Fist: cross hands (shizi shou), wrists crossed in front of the chest, right in front
+-- Fist: a boxing guard, both fists up by the chin, elbows in, chin down, a light bounce
 P.Fist = {
+	holdLength = 0.8, bounce = 1.6,
 	hold = {
-		torso = { 0.08, 0, 0 }, head = { 0.08, 0, 0 },
-		r = V(-0.1, 0.5, -1.3), rf = V(0, 1, 0.3),
-		l = V(0.1, 0.36, -1.25), lf = V(0, 1, 0.3),
+		torso = { 0.12, -0.12, 0 }, head = { 0.2, 0.1, 0 },
+		r = V(0.62, 1.32, -1.2), rf = V(0, 1, 0),
+		l = V(-0.6, 1.38, -1.32), lf = V(0, 1, 0),
 	},
-	-- Parry: the right palm catches and leads the strike out to the right (lu), left guards centre
+	-- Parry: the right glove swats the blow across, in front of the face, and snaps back
 	parry = {
-		{ t = 0.07, torso = { 0.08, -0.24, 0 }, head = { 0.07, 0.18, 0 },
-			r = V(1.08, 1.32, -1.42), rf = V(-1, 0.3, 0), l = V(0.15, 0.4, -1.3), lf = V(0, 1, 0.3), ease = "out" },
-		{ t = 0.15, torso = { 0.08, -0.4, 0 }, head = { 0.07, 0.3, 0 },
-			r = V(1.65, 1.1, -0.95), rf = V(-1, 0.2, -0.5), l = V(0.18, 0.4, -1.3), lf = V(0, 1, 0.3) },
-		{ t = 0.24, torso = { 0.08, -0.12, 0 }, head = { 0.08, 0.08, 0 },
-			r = V(0.3, 0.75, -1.3), rf = V(0, 1, 0.3), l = V(0.12, 0.38, -1.28), lf = V(0, 1, 0.3) },
+		{ t = 0.07, torso = { 0.12, 0.2, 0 }, head = { 0.12, -0.1, -0.08 },
+			r = V(0.3, 0.95, -1.45), rf = V(-1, 0.3, 0), l = V(-0.65, 1.32, -1.25), lf = V(0, 1, 0), ease = "out" },
+		{ t = 0.14, torso = { 0.12, 0.28, 0 }, head = { 0.12, -0.16, -0.1 },
+			r = V(0.1, 0.8, -1.4), rf = V(-1, 0.2, 0), l = V(-0.65, 1.3, -1.25), lf = V(0, 1, 0) },
+		{ t = 0.23, torso = { 0.12, -0.08, 0 }, head = { 0.2, 0.07, 0 },
+			r = V(0.55, 1.3, -1.3), rf = V(0, 1, 0), l = V(-0.62, 1.36, -1.3), lf = V(0, 1, 0) },
 	},
-	-- ParryAlt: the same with the left palm, out to the left
+	-- ParryAlt: the left glove swats it across the other way
 	parryAlt = {
-		{ t = 0.07, torso = { 0.08, 0.24, 0 }, head = { 0.07, -0.18, 0 },
-			l = V(-1.08, 1.32, -1.42), lf = V(1, 0.3, 0), r = V(-0.15, 0.45, -1.3), rf = V(0, 1, 0.3), ease = "out" },
-		{ t = 0.15, torso = { 0.08, 0.4, 0 }, head = { 0.07, -0.3, 0 },
-			l = V(-1.65, 1.1, -0.95), lf = V(1, 0.2, -0.5), r = V(-0.18, 0.45, -1.3), rf = V(0, 1, 0.3) },
-		{ t = 0.24, torso = { 0.08, 0.12, 0 }, head = { 0.08, -0.08, 0 },
-			l = V(-0.3, 0.7, -1.3), lf = V(0, 1, 0.3), r = V(-0.12, 0.5, -1.28), rf = V(0, 1, 0.3) },
+		{ t = 0.07, torso = { 0.12, -0.36, 0 }, head = { 0.12, 0.24, 0.08 },
+			l = V(-0.3, 0.98, -1.48), lf = V(1, 0.3, 0), r = V(0.65, 1.28, -1.15), rf = V(0, 1, 0), ease = "out" },
+		{ t = 0.14, torso = { 0.12, -0.44, 0 }, head = { 0.12, 0.3, 0.1 },
+			l = V(-0.1, 0.82, -1.42), lf = V(1, 0.2, 0), r = V(0.65, 1.28, -1.15), rf = V(0, 1, 0) },
+		{ t = 0.23, torso = { 0.12, -0.16, 0 }, head = { 0.2, 0.13, 0 },
+			l = V(-0.5, 1.36, -1.38), lf = V(0, 1, 0), r = V(0.63, 1.3, -1.18), rf = V(0, 1, 0) },
 	},
-	-- Impact: the crossed wrists are driven in toward the chest
+	-- Impact: the gloves are driven back toward the face, the body rocks back
 	impact = {
-		{ t = 0.05, torso = { -0.06, 0, 0 }, head = { -0.02, 0, 0 },
-			r = V(-0.08, 0.58, -1.1), rf = V(0, 1, 0.3), l = V(0.08, 0.44, -1.06), lf = V(0, 1, 0.3), ease = "out" },
-		{ t = 0.13, torso = { 0.11, 0, 0 }, head = { 0.1, 0, 0 },
-			r = V(-0.1, 0.48, -1.32), rf = V(0, 1, 0.3), l = V(0.1, 0.34, -1.27), lf = V(0, 1, 0.3) },
+		{ t = 0.05, torso = { -0.04, -0.12, 0 }, head = { 0.1, 0.1, 0 },
+			r = V(0.62, 1.42, -1.0), rf = V(0, 1, 0), l = V(-0.6, 1.46, -1.08), lf = V(0, 1, 0), ease = "out" },
+		{ t = 0.13, torso = { 0.15, -0.12, 0 }, head = { 0.22, 0.1, 0 },
+			r = V(0.62, 1.3, -1.25), rf = V(0, 1, 0), l = V(-0.6, 1.36, -1.37), lf = V(0, 1, 0) },
 	},
-	length = { parry = 0.34, parryAlt = 0.34, impact = 0.25 },
+	length = { parry = 0.3, parryAlt = 0.3, impact = 0.25 },
 	contact = 0.07,
 }
 
 M.Poses = P
-M.HOLD_LENGTH = 2.0 -- breathing loop
+M.HOLD_LENGTH = 2.0 -- breathing loop (a class's holdLength overrides it)
 
 ----------------------------------------------------------------------------
 -- rig
@@ -467,13 +471,14 @@ function M.build()
 		ks.Name = class .. "GuardHold"
 		ks.Loop = true
 		ks.Priority = Enum.AnimationPriority.Action
+		local holdLength = spec.holdLength or M.HOLD_LENGTH
 		keyframe(class, 0, holdTf, "inout").Parent = ks
-		local midTf, midDiag = M.solve(class, breathe(spec.hold, 1))
-		keyframe(class, M.HOLD_LENGTH / 2, midTf, "inout").Parent = ks
-		keyframe(class, M.HOLD_LENGTH, holdTf, "inout").Parent = ks
+		local midTf, midDiag = M.solve(class, breathe(spec.hold, spec.bounce or 1))
+		keyframe(class, holdLength / 2, midTf, "inout").Parent = ks
+		keyframe(class, holdLength, holdTf, "inout").Parent = ks
 		ks.Parent = folder
 		clips[class].Hold = ks
-		diags[class].Hold = { { t = 0, tf = holdTf, d = holdDiag }, { t = M.HOLD_LENGTH / 2, tf = midTf, d = midDiag } }
+		diags[class].Hold = { { t = 0, tf = holdTf, d = holdDiag }, { t = holdLength / 2, tf = midTf, d = midDiag } }
 
 		for clipKey, specKey in { Parry = "parry", ParryAlt = "parryAlt", Impact = "impact" } do
 			local k = Instance.new("KeyframeSequence")

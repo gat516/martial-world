@@ -44,22 +44,25 @@ uploading.
 Every clip keys Torso (RootJoint), Head (Neck), Left and Right Arm, and for
 weapons the weapon joint under Right Arm (`HiltR` for the jian, `Hilt` for the
 dadao), the same Motor6D the M1 clips key to angle the blade. Legs are unkeyed,
-so walking plays underneath. Hold is Action and loops (2.0 s breath); Parry,
+so walking plays underneath. Hold is Action and loops (2.0 s breath; Fist 0.8 s bounce); Parry,
 ParryAlt and Impact are Action2 and start and end on exactly the Hold pose, so
 Parry, Hold, ParryAlt, Hold chain at 0.3-0.4 s intervals and auto-parries
 alternate sides. `Contact` is the deflect snap (the parry flash and sound go
 there).
 
-- **Fist**: cross hands (shizi shou), wrists crossed in front of the chest.
-  Parry: the right palm catches and leads the strike out to the right while the
-  torso turns into it, the left palm guards the centre. ParryAlt: the same with
-  the left palm, out to the left. Impact: the crossed wrists are driven in
-  toward the chest, the body leans back.
-- **Sword (jian)**: hanging guard, hand high on the right, blade slanting down
-  across the front of the body (edge out), left sword-finger arched above the
-  head. Parry: a wrist flick (tiao) that whips the tip up and out to the right.
-  ParryAlt: the blade sweeps flat to the left and wraps past the left side
-  (lan). Impact: the blade is shoved back and up, the torso gives.
+- **Fist**: a boxing guard (the user's call): both fists up by the chin,
+  elbows in, chin down, a light bounce. Parry: the right glove swats the blow
+  across the body, the torso turning into it, and snaps back. ParryAlt: the
+  left glove the other way. Impact: the gloves are driven back toward the face
+  and the body rocks back.
+- **Sword (jian)**: raised guard, hand forward at the right chest, blade
+  slanting up and to the left across the front of the face (tip past the
+  centreline at head-top height, about 2.3 studs out), left sword-finger low at
+  the centre. Parry: the raised blade snaps over to the right (wrist flick).
+  ParryAlt: the blade beats down and out to the left, the left hand opening
+  out to the side. Impact: the blade is shoved back toward the body, the torso
+  gives. (The first version's hanging guard, blade slanting down, didn't read
+  as a guard.)
 - **Saber (dadao)**: spine-braced block, blade diagonal up and to the left
   across the front, edge out, the left palm pressing its back. Parry: a heavy
   beat-aside to the right (big torso turn, the left hand lets go and swings
@@ -68,14 +71,14 @@ there).
 
 | Class | Clip | Length | Priority | Contact | Id |
 |---|---|---|---|---|---|
-| Fist | FistGuardHold | 2.00 s loop | Action | | rbxassetid://108492729753096 |
-| Fist | FistGuardParry | 0.34 s | Action2 | 0.07 s | rbxassetid://71662429635317 |
-| Fist | FistGuardParryAlt | 0.34 s | Action2 | 0.07 s | rbxassetid://93556726100571 |
-| Fist | FistGuardImpact | 0.25 s | Action2 | | rbxassetid://124944232562174 |
-| Sword | SwordGuardHold | 2.00 s loop | Action | | rbxassetid://92408659576565 |
-| Sword | SwordGuardParry | 0.34 s | Action2 | 0.07 s | rbxassetid://91170775084983 |
-| Sword | SwordGuardParryAlt | 0.34 s | Action2 | 0.07 s | rbxassetid://105266736550165 |
-| Sword | SwordGuardImpact | 0.25 s | Action2 | | rbxassetid://79710207509640 |
+| Fist | FistGuardHold | 0.80 s loop | Action | | rbxassetid://129496318055813 |
+| Fist | FistGuardParry | 0.30 s | Action2 | 0.07 s | rbxassetid://107163359985201 |
+| Fist | FistGuardParryAlt | 0.30 s | Action2 | 0.07 s | rbxassetid://85002762531759 |
+| Fist | FistGuardImpact | 0.25 s | Action2 | | rbxassetid://74020665856058 |
+| Sword | SwordGuardHold | 2.00 s loop | Action | | rbxassetid://82813124697662 |
+| Sword | SwordGuardParry | 0.34 s | Action2 | 0.07 s | rbxassetid://120089481126275 |
+| Sword | SwordGuardParryAlt | 0.34 s | Action2 | 0.07 s | rbxassetid://135062014559788 |
+| Sword | SwordGuardImpact | 0.25 s | Action2 | | rbxassetid://78852991238395 |
 | Saber | SaberGuardHold | 2.00 s loop | Action | | rbxassetid://78611505969526 |
 | Saber | SaberGuardParry | 0.40 s | Action2 | 0.08 s | rbxassetid://108317786546976 |
 | Saber | SaberGuardParryAlt | 0.40 s | Action2 | 0.08 s | rbxassetid://90144539728419 |
@@ -87,14 +90,23 @@ assets with `tools/anim_markers.luau`.
 
 Checked numerically on a stock R6 rig with the real Jian/Dadao models, stepped
 at 60 fps through each clip with the Animator (keys play back within 0.001 rad):
-the blade stays at least 0.24 studs off the head and torso in every frame (jian
-closest at the ParryAlt wrap, 0.15 s), the wrist (weapon joint) turns at most
-48 degrees (jian) / 57 degrees (dadao). Known contact: the fist's crossed arms
-overlap each other by up to 0.3 studs at the wrists (rigid R6 arms crossing) and
-graze the round head's lower edge by up to 0.11; the dadao's spine passes
-through the left palm by about 0.2 (the palm grips it). The flung-back left
-hand in the saber Parry follow-through and the fist's outer palms don't reach
-their targets fully (arm length), which is intended. Not yet seen in Play.
+the blade stays at least 0.57 studs off the head and torso in every frame, the
+wrist (weapon joint) turns at most 49 degrees (jian) / 57 degrees (dadao).
+Known contact: the boxing gloves graze the round head's edge by up to 0.13
+mid-swat (rigid R6 arms crossing the face); the dadao's spine passes through
+the left palm by about 0.2 (the palm grips it). The flung-back left hands (saber
+Parry, sword ParryAlt) don't reach their targets fully (arm length), which is
+intended.
+
+Also checked in Play mode in a sandbox on a real R6 character (StarterCharacter
+R6, weapon equipped through `WeaponAction` so the server attaches the real
+model): playing the uploaded ids through the character's Animator puts the jian
+tip where the solver says (Sword Hold tip at Torso (-0.93, 3.28, -2.30), the
+same as the rig check), so the `HiltR`/`Hilt` keys drive the weapon in game.
+A clip that doesn't key the held weapon's joint (for example a Saber clip while
+holding the jian, whose joint is `HiltR`) leaves the blade at rest, pointing
+straight out from the fist. GuardController's real input path wasn't driven
+(the sandbox's client had a control lock up).
 
 ## Heavy two-handers (Greatsword, Guandao)
 

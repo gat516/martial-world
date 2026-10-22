@@ -11,7 +11,10 @@
 --            the chest, dust kick at the hind paws at 5/7 of the windup.
 --            leap: a crescent moon turning inside the landing circle (over the
 --            stock red telegraph) and a glint above the head as it rears.
---            howl: sound rings from the Mouth, moon-glow on the crest.
+--            howl: with Config.NEW_TELEGRAPHS (the stock ring is gone) the
+--            roar (Impact.roar): sound rings and breath out of the jaws, dust
+--            and grit blown forward off the ground, from 30% of the windup;
+--            otherwise the old sound rings. Moon-glow on the crest either way.
 --   strike   bite: fangs snap shut ahead of the muzzle. hop: paw dust.
 --            pounce/leap: take-off (also from dash, whichever comes first).
 --   dash     pounce/leap take-off: dust burst at the hind paws, moonlight
@@ -20,6 +23,8 @@
 --            light shake within 8 studs of the local player. hop: paw dust.
 --   hit      on cue.target: bite/leap red-white sparks and ink; pounce claw rake.
 --   stagger  white body flash, star pop, eyes flicker.
+--   skid     pounceSkid / leapSkid (overshoot turn-around): dust sprayed from
+--            all four planted paws over the turn (Impact.skid).
 --   death    eyes fade (0.2 s), qi motes rise through the body's 1 s fade, a
 --            gold-white spirit-core glint.
 
@@ -29,6 +34,8 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local TechniqueVFX = require(script.Parent.Parent.TechniqueVFX)
+local Config = require(ReplicatedStorage.Shared.Config)
+local Impact = require(script.Parent.Impact)
 
 type Cue = {
 	model: Model,
@@ -371,7 +378,20 @@ function SpiritWolf.windup(cue: Cue)
 			play("LeapGlint", CFrame.new(skull.Position + Vector3.new(0, 1.6, 0)), skull)
 		end
 	elseif attack == "howl" then
-		play("HowlRings", point(model, cue, "Mouth", { "Snout", "Skull" }, Vector3.new(0, 0, -0.6)))
+		if (Config :: any).NEW_TELEGRAPHS then
+			-- the roar: the head is up by ~30% of the windup, then it carries to the end
+			task.delay(seconds * 0.3, function()
+				if model.Parent and model:GetAttribute("AIState") == "windup" then
+					local mouth = point(model, cue, "Mouth", { "Snout", "Skull" }, Vector3.new(0, 0, -0.6))
+					-- out ahead of the wolf, tilted up with the raised head
+					local look = bodyRoot(model, cue).CFrame.LookVector + Vector3.new(0, 0.3, 0)
+					local from = mouth.Position
+					Impact.roar(CFrame.lookAt(from, from + look), ground(from, model), { element = "moon", seconds = seconds * 0.7 })
+				end
+			end)
+		else
+			play("HowlRings", point(model, cue, "Mouth", { "Snout", "Skull" }, Vector3.new(0, 0, -0.6)))
+		end
 		local crest = partNamed(model, { "Crest", "ChestTop", "Chest" })
 		if crest then
 			play("CrestGlow", crest.CFrame, crest)
@@ -431,6 +451,20 @@ function SpiritWolf.land(cue: Cue)
 		local at = ground(front.Position + facing.LookVector * 1.5, model)
 		play("Skid", CFrame.new(at + Vector3.new(0, 0.1, 0)) * facing)
 	end
+end
+
+-- An overshoot's skid-and-turn: all four paws plough dust ahead of the slide.
+function SpiritWolf.skid(cue: Cue)
+	local model = cue.model
+	local feet = {}
+	for _, cf in hindPaws(model, cue) do
+		table.insert(feet, cf.Position)
+	end
+	for _, side in { "L", "R" } do
+		local cf = point(model, cue, "PawF" .. side .. "_FX", { "FootF" .. side, "PawF" .. side }, Vector3.new(0, -0.2, 0))
+		table.insert(feet, ground(cf.Position, model))
+	end
+	Impact.skid(feet, bodyRoot(model, cue).CFrame.LookVector, { element = "moon", scale = 0.7, seconds = 0.35 })
 end
 
 function SpiritWolf.hit(cue: Cue)

@@ -11,6 +11,14 @@
 -- Contact is `strike` (windup -> recover), not the end of active/recovery.
 -- Rush shares `strike`/`dash`, and ends on `land`. `seconds` is already the
 -- remaining windup; cue.at/StateAt and a generation cancel interrupted cues.
+--
+-- Weight (Impact kit, EnemyFX/Impact.luau): clawDown, crownfall and the
+-- kingLeap landing layer a moonlight shockwave, dust and debris, a contact
+-- flash and (crownfall, the leap) a burst and a fading crack, with a camera
+-- shake by distance. kingLeap: a crouch tell and the landing marker's sigil,
+-- dust and the rush trail at take-off, the landing slam, then the arrival
+-- follow-up kingRake (both forepaws' tells, two claw slashes and a dust rake).
+-- kingsRush / kingLeap skids plough dust from all four paws.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,6 +28,7 @@ local CollectionService = game:GetService("CollectionService")
 local TweenService = game:GetService("TweenService")
 
 local TechniqueVFX = require(script.Parent.Parent.TechniqueVFX)
+local Impact = require(script.Parent.Impact)
 
 type Cue = {
 	model: Model,
@@ -46,6 +55,7 @@ type State = {
 	aura: any?,
 	roarAt: number,
 	flareUntil: number,
+	leapShape: any?,
 }
 
 local TEMPLATE = "ElderWolfKingB"
@@ -61,6 +71,8 @@ local WINDUP = {
 	kingsRush = 1.00,
 	crownfall = 1.25,
 	pawSwipe = 0.45,
+	kingLeap = 1.6,
+	kingRake = 0.45,
 	clawDown = 0.55,
 	packCall = 1.20,
 	roar = 1.00,
@@ -526,7 +538,7 @@ end
 -- Rush -----------------------------------------------------------------
 
 local function takeOff(cue: Cue)
-	if not current(cue, "dash") or cue.attack ~= "kingsRush" then
+	if not current(cue, "dash") or (cue.attack ~= "kingsRush" and cue.attack ~= "kingLeap") then
 		return
 	end
 	local s = state(cue.model)
@@ -545,7 +557,11 @@ local function takeOff(cue: Cue)
 	s.latestAt = math.max(s.latestAt, cue.at)
 	if age <= 0.2 then
 		local left, right = pawGround(cue, "BL"), pawGround(cue, "BR")
-		play("RushLaunch", CFrame.new((left.Position + right.Position) / 2) * facing(cue))
+		local mid = (left.Position + right.Position) / 2
+		play("RushLaunch", CFrame.new(mid) * facing(cue))
+		if cue.attack == "kingLeap" then
+			Impact.takeoff(mid, { radius = 8, element = "moon", look = facing(cue), shake = 0.15, reach = 50 })
+		end
 	end
 	local frame, chest = point(cue, "Core", { "Chest" })
 	local trail = make("RushTrail", frame)
@@ -671,6 +687,24 @@ function King.windup(cue: Cue)
 		windupPlay(cue, "RushCharge", frame, { follow = chest, seconds = seconds })
 		local at = ground(cue, root(cue).Position)
 		windupPlay(cue, "GroundArray", CFrame.new(at + Vector3.new(0, 0.05, 0)), { seconds = seconds })
+	elseif attack == "kingLeap" then
+		s.leapShape = shape
+		-- the crouch: the chest charges and the seal glints; the landing circle's sigil
+		local frame, chest = point(cue, "Core", { "Chest" })
+		local crouch = math.max(0.3, seconds * 0.6)
+		windupPlay(cue, "SlamTell", frame, { follow = chest, seconds = crouch })
+		if type(shape) == "table" and typeof(shape.center) == "Vector3" then
+			local radius = if type(shape.radius) == "number" then shape.radius else 14
+			windupPlay(cue, "Marker", CFrame.new(ground(cue, shape.center) + Vector3.new(0, 0.05, 0)), { scale = radius, seconds = seconds })
+		end
+		windupBeat(cue, crouch, 0.6, function()
+			sealGlint(cue, true)
+		end)
+	elseif attack == "kingRake" then
+		for _, side in { "FL", "FR" } do
+			local frame, paw = point(cue, "Paw" .. side .. "_FX", { "Paw" .. side, "LowerLeg" .. side })
+			windupPlay(cue, "SwipeTell", frame * CFrame.new(0, 1.2, 0), { follow = paw, seconds = seconds })
+		end
 	elseif attack == "crownfall" then
 		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 13
 		local center = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else cue.root.CFrame:PointToWorldSpace(Vector3.new(0, 0, -3.5))
@@ -715,7 +749,7 @@ function King.strike(cue: Cue)
 	s.shape = nil
 	cancelWindup(s)
 	local attack = cue.attack
-	if attack == "kingsRush" then
+	if attack == "kingsRush" or attack == "kingLeap" then
 		takeOff(cue)
 		return
 	end
@@ -739,12 +773,28 @@ function King.strike(cue: Cue)
 		local position = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else cue.root.CFrame:PointToWorldSpace(Vector3.new(1.7, 0, -7))
 		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 4.5
 		play("ClawStrike", CFrame.new(ground(cue, position)) * face, { scale = radius })
+		Impact.ground(ground(cue, position), { radius = math.max(radius, 5), element = "moon", look = face, dust = 0.7, shake = 0.2 })
 		shake(0.2, position, 55)
 	elseif attack == "crownfall" then
 		local position = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else cue.root.CFrame:PointToWorldSpace(Vector3.new(0, 0, -3.5))
 		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 13
 		play("SlamImpact", CFrame.new(ground(cue, position)) * face, { scale = radius })
+		Impact.ground(ground(cue, position), { radius = radius, element = "moon", scar = true, rocks = true, look = face, shake = 0.4 })
 		shake(0.34, position, radius + 40)
+	elseif attack == "kingRake" then
+		-- both forepaws rake across the cone
+		local look = if type(shape) == "table" and typeof(shape.cframe) == "CFrame" then shape.cframe.LookVector else root(cue).CFrame.LookVector
+		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 14
+		for i, side in { "FL", "FR" } do
+			task.delay((i - 1) * 0.08, function()
+				if cue.model.Parent then
+					local frame = point(cue, "Paw" .. side .. "_FX", { "Paw" .. side, "LowerLeg" .. side })
+					play("SwipeSlash", CFrame.new(frame.Position) * facing(cue) * CFrame.new(if side == "FL" then -3 else 3, 3, -3), { scale = 1.2 })
+				end
+			end)
+		end
+		Impact.swipe(ground(cue, root(cue).Position), look, { radius = radius, element = "moon", shake = 0.18 })
+		shake(0.2, cue.root.Position, 50)
 	elseif attack == "roar" then
 		roarBurst(cue)
 	elseif attack == "packCall" then
@@ -791,20 +841,63 @@ function King.dash(cue: Cue)
 	takeOff(cue)
 end
 
+-- The arrival follow-up or skid replaces the model's Attack as the dash ends.
+local ARRIVE: { [string]: { [string]: boolean } } = {
+	kingLeap = { kingRake = true, kingLeapSkid = true },
+	kingsRush = { kingsRushSkid = true },
+}
+local function arrived(cue: Cue): boolean
+	local follow = ARRIVE[cue.attack or ""]
+	local now = cue.model:GetAttribute("Attack")
+	local health = cue.model:GetAttribute("Health")
+	return follow ~= nil and type(now) == "string" and follow[now] == true and cue.model.Parent ~= nil
+		and not state(cue.model).dead and not (type(health) == "number" and health <= 0)
+end
+
 function King.land(cue: Cue)
-	if not ours(cue) or not current(cue) or cue.attack ~= "kingsRush" then
+	if not ours(cue) or (cue.attack ~= "kingsRush" and cue.attack ~= "kingLeap") or not (current(cue) or arrived(cue)) then
 		return
 	end
 	local s = state(cue.model)
 	stopRush(s)
-	if cue.model:GetAttribute("AIState") ~= "recover" or math.abs(s.landAt - cue.at) <= EPSILON then
+	if math.abs(s.landAt - cue.at) <= EPSILON then
+		return
+	end
+	if cue.attack == "kingLeap" then
+		s.landAt = cue.at
+		s.latestAt = math.max(s.latestAt, cue.at)
+		local shape = s.leapShape
+		local center = if type(shape) == "table" and typeof(shape.center) == "Vector3" then shape.center else root(cue).Position
+		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 14
+		local at = ground(cue, center)
+		play("SlamImpact", CFrame.new(at) * facing(cue), { scale = radius })
+		Impact.ground(at, { radius = radius, element = "moon", burst = true, scar = true, rocks = true, look = facing(cue), shake = 0.5, reach = radius + 60 })
+		sealGlint(cue, false)
+		shake(0.34, at, radius + 40)
+		return
+	end
+	if cue.model:GetAttribute("AIState") ~= "recover" and not arrived(cue) then
 		return
 	end
 	s.landAt = cue.at
 	s.latestAt = math.max(s.latestAt, cue.at)
 	local left, right = pawGround(cue, "FL"), pawGround(cue, "FR")
 	play("RushSkid", CFrame.new((left.Position + right.Position) / 2) * left.Rotation)
+	Impact.skid({ left.Position, right.Position }, left.LookVector, { element = "moon", scale = 1.6, seconds = 0.3 })
 	shake(0.18, cue.root.Position, 60)
+end
+
+-- kingsRushSkid / kingLeapSkid: all four paws plough as the body swings round.
+function King.skid(cue: Cue)
+	if not ours(cue) then
+		return
+	end
+	local feet = {}
+	for _, side in { "FL", "FR", "BL", "BR" } do
+		table.insert(feet, pawGround(cue, side).Position)
+	end
+	Impact.skid(feet, facing(cue).LookVector, { element = "moon", scale = 1.5, seconds = 0.45 })
+	shake(0.12, cue.root.Position, 50)
 end
 
 function King.hit(cue: Cue)

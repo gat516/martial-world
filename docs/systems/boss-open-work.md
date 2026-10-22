@@ -75,7 +75,7 @@ motion. Left:
   judged.
 
 **Effects** (`src/client/EnemyFX/ThunderApe.luau`, `tools/vfx_specs/ThunderApe.luau`;
-pass committed `3d71470`). Done:
+pass committed `3d71470`, impact pass below). Done:
 - **Ghosts replaced:** `SpeedShed` (sparks, arcs and cloud where the body passed)
   plus `LimbTrail` ribbons on rushes and leaps; the roar pushes forward instead of
   a ghost head; `DeathSoul` spirit flames for the death ghost.
@@ -87,6 +87,16 @@ pass committed `3d71470`). Done:
 - **Lance:** a fist-only windup (the only lane is `warnLane`) and the
   `"thunderLance"` javelin drawer.
 - **Cheap reads fixed:** code bolts and the phase-2 ground disc.
+- **Impact pass (2026-10-22, the shared kit below):** thunderPound, the pound
+  wave, bodySlam, skyfall and judgment landings, bound landings and take-offs
+  layer shockwave, dust, debris, contact flash and (landings) burst and scar,
+  with a distance shake. rushSwipe and skyfallSweep reuse the club/backhand
+  tells and crescents plus a dust rake; `thunderRushSkid`/`skyfallSlamSkid`
+  plough dust from fists and feet. The boulder gets a dark wake and an earth
+  explosion; the lance a white-hot core, trail and a thunder explosion.
+  Landings now play when Attack has already moved on to the arrival follow-up
+  (`arrived`), and the leap circle is kept apart (`leapShape`) so the
+  follow-up's cone doesn't move the landing.
 
 Left, all untested:
 - captures of the dash shed and limb trails, `AuraGround`, the phase roar and
@@ -133,7 +143,11 @@ and a head guard that lifts the head and neck off the forearms. Left:
   `DEFAULT_PARTS` timing. If it's off, add a `Parts` attribute from the server.
 
 **Effects** (`src/client/EnemyFX/NineTailFox.luau`; pass committed `5bc6e02`).
-Done: ghosts replaced (Kindle, RoarBreath, foxfire spiral, Dissolve and tail
+Impact pass (2026-10-22): rootfire eruptions and tail plunges land with a
+shockwave, dust and flash in the phase colour; the eruption heart and
+NineTailFall's final burst add the explosion, rocks and a scar; foxfire bolts
+explode where they land (the bolt itself already had its core, slate halo and
+trails, so it is unchanged). Done: ghosts replaced (Kindle, RoarBreath, foxfire spiral, Dissolve and tail
 streams into SoulRelease), discs and slabs removed, lances and sweep ribbons
 follow the real tails, and the `foxfireBolt` drawer. Left, all untested:
 - feel at play speed (Edit mode draws trails as straight chords);
@@ -162,7 +176,11 @@ with an uncoil and recoil. Left:
 - **Part budget:** the body is 220 parts, over the ~150 boss budget.
 
 **Effects** (`src/client/EnemyFX/JadeJiao.luau`). Done: ghosts replaced
-(`101bc37`) and the `venomBolt` drawer (`aafa851`). Left:
+(`101bc37`) and the `venomBolt` drawer (`aafa851`). Impact pass (2026-10-22):
+pillarSlam, tailSweep, erupt/emerge and the pool globs layer venom shockwave,
+mud, debris, flash and (slam, erupt) a scar; new `tailShove` (tail tell, a
+body-wide shove of dust and shock); the venom bolt gets a white-hot core, a
+dark trail under a bright one and an explosion on the ground. Left:
 - a full quality pass sized for the rebuilt, smaller body;
 - the ascension windup, which is quieter than it was with the ghost head;
 - the always-on aura `Under` disc, which still needs checking against the
@@ -174,12 +192,38 @@ There is no poison cure and no HUD poison icon.
 
 ## Elder Wolf King
 Done: ghosts and the always-on ground mandala and ink disc removed (`719fb5d`).
+Impact pass (2026-10-22): clawDown and crownfall layer moonlight shockwave, dust,
+flash and (crownfall) a scar and rocks; new `kingLeap` (crouch tell and the
+landing sigil, rush trail and take-off dust, a landing slam with burst, scar and
+rocks), `kingRake` (both forepaws' tells, two slashes, a dust rake), and
+`kingsRushSkid`/`kingLeapSkid` dust from all four paws.
 Left: judge in play whether the rising light columns (Pack Call, Death) read. The
 unused `AuraGround` template is still in `Effects.rbxm`; drop it on the next
 rebuild. Open from earlier: its trial zone `WolfKingTrial` still auto-spawns,
 while the other bosses spawn only from the admin panel.
 
 ## All bosses
+- **Impact kit (2026-10-22):** `src/client/EnemyFX/Impact.luau` plays
+  `Effects.EnemyImpact` (builder `tools/vfx_specs/EnemyImpact.luau`), layered
+  on every boss's ground blows, landings, skids and projectile ends (and the
+  normal wolf's roar). Templates are authored at radius 10 in neutral colours;
+  each layer's `Role` attribute is painted from the element palette (thunder,
+  venom, fox, moon, earth), and the shake falls off with distance. Layers:
+  `Shock` (Neon torus wave and echo, bright front, rough ring, rays, dark
+  crater; 6), `Dust` (skirt, smoke ring, flipbook plume, rock chips; 4),
+  `Contact` (flash, flipbook star, glint, sparks, ink; 5), `Burst` (splat
+  flipbook, flame tongues, embers, dark smoke; 4), `Scar` (scorch, crack web,
+  burning crack cooling to dark, smoulder; 4, fades over 3.5 s), `Rocks`
+  (Craters ring, Game Module only), `Roar`/`RoarDust` (sound rings, breath,
+  motes; forward dust, grit, ring), `Skid` (spray, chips, scuff, puff), `Shot`
+  (core over a dark disc, halo, glint, shed sparks, dark and bright trails).
+  A heavy landing is about 100 particles one-shot. Untested: everything at play
+  speed and in a real fight (only Edit-mode stills of a landing, the roar and a
+  bolt were checked), the arrival follow-ups and skids against the combat
+  agent's live cues (the skid is detected from `Attack` or `AttackName` ending
+  in `Skid`), Craters rocks and Game Module playback, phone cost with several
+  impacts at once, and whether the extra shakes double up with the templates'
+  ScreenEffects shakes when the Game Module is present.
 - **Drops:** the Thunder Ape and the fox reuse the Wolf King's drop pool as a
   placeholder.
 - **Testbed camera:** `CameraMaxZoomDistance` is 30, the ape's height. Raise it

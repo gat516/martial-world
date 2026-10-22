@@ -10,6 +10,13 @@
 -- stormBolt and poundWave circles (AIState is recover then, so no state guard)
 -- and twice for the roars (howl ring + stun circle): deduped by `at`. A
 -- generation counter cancels everything an interrupted windup scheduled.
+--
+-- Weight (Impact kit, EnemyFX/Impact.luau): every ground blow and landing
+-- layers a shockwave, dust and debris, a contact flash and (landings) a burst
+-- and a fading scorched crack over the storm effects, with a camera shake by
+-- distance. The arrival follow-ups (rushSwipe after thunderRush, skyfallSweep
+-- after skyfallSlam) reuse the club and backhand reads plus a dust rake; the
+-- `*Skid` turn-arounds plough dust from all four limbs.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,6 +27,7 @@ local Lighting = game:GetService("Lighting")
 
 local TechniqueVFX = require(script.Parent.Parent.TechniqueVFX)
 local ProjectileView = require(script.Parent.Parent.ProjectileView)
+local Impact = require(script.Parent.Impact)
 
 local TEMPLATE = "ThunderApeB"
 local WHITE = Color3.new(1, 1, 1)
@@ -37,6 +45,7 @@ local BEATS = {
 	phaseRoar = { 0.4, 0.8, 1.2 },
 }
 local WINDUP = {
+	rushSwipe = 0.35, skyfallSweep = 0.45,
 	challenge = 2.4, clubSwing = 0.8, backhand = 0.6, thunderPound = 0.85, bodySlam = 1.1, skyfallSlam = 1.95,
 	thunderRush = 1.2, bound = 0.45, boulderHurl = 1.7, thunderLance = 1.4, thunderRoar = 1.3, stormCall = 1.2,
 	judgment = 2.6, phaseRoar = 1.6,
@@ -842,9 +851,11 @@ local function lane(cue, shape)
 end
 
 local function takeoff(cue, scale)
-	local _, l, r = feetMid(cue)
+	local mid, l, r = feetMid(cue)
 	play("Takeoff", l, { scale = scale })
 	play("Takeoff", r, { scale = scale })
+	-- the ground gives under the push-off
+	Impact.takeoff(mid.Position, { radius = 6 * scale, element = "thunder", look = mid, dust = 0.8 })
 end
 
 ----------------------------------------------------------------------
@@ -1141,7 +1152,9 @@ local function boulderStart(shot)
 		TechniqueVFX.enable(shadow)
 	end
 	local startY = shot.state.position.Y
-	shot.visual = { rock = rock, skin = skin, shadow = shadow, spin = spin, diameter = diameter, startY = startY, t = 0 }
+	-- a dark dust wake under a storm-lit streak, so the rock reads against sky and grass
+	local streak = Impact.shot({ radius = diameter * 0.45, element = "thunder", core = false })
+	shot.visual = { rock = rock, skin = skin, shadow = shadow, spin = spin, diameter = diameter, startY = startY, t = 0, streak = streak }
 end
 
 local function boulderStep(shot, position, velocity, dt)
@@ -1151,6 +1164,9 @@ local function boulderStep(shot, position, velocity, dt)
 	end
 	v.t += dt
 	v.rock.CFrame = CFrame.new(position) * v.spin * CFrame.Angles(v.t * 9, v.t * 6, 0)
+	if v.streak then
+		v.streak.move(position, velocity)
+	end
 	if v.skin then
 		-- the skin keeps world up so its trail pair stays an upright ribbon
 		local flat = Vector3.new(velocity.X, 0, velocity.Z)
@@ -1177,6 +1193,9 @@ local function boulderFinish(shot, position, _reason)
 	shot.visual = nil
 	if v then
 		v.rock:Destroy()
+		if v.streak then
+			v.streak.stop()
+		end
 		for _, item in { v.skin, v.shadow } do
 			if item then
 				TechniqueVFX.disable(item)
@@ -1188,6 +1207,7 @@ local function boulderFinish(shot, position, _reason)
 	local radius = math.max(6, v and v.diameter or 10) -- the server splashes r10
 	local g = floorUnder(shot, position + Vector3.new(0, 4, 0))
 	play("BoulderImpact", CFrame.new(g), { radius = radius })
+	Impact.explode(g, { radius = radius, element = "earth", rocks = true, shake = 0.35, reach = 70 })
 	shake(0.25, g, 70)
 	if c and workspace.CurrentCamera and (workspace.CurrentCamera.CFrame.Position - g).Magnitude < 80 then
 		skyFlash(0.05)
@@ -1211,7 +1231,7 @@ local function lanceStart(shot)
 	end
 	play("LanceFlash", frame, { scale = 0.8 })
 	skyFlash(0.18)
-	shot.visual = { bolt = bolt, lastScorch = shot.state.position }
+	shot.visual = { bolt = bolt, lastScorch = shot.state.position, core = Impact.shot({ radius = 2.5, element = "thunder" }) }
 end
 
 local function lanceStep(shot, position, velocity)
@@ -1223,6 +1243,9 @@ local function lanceStep(shot, position, velocity)
 		v.bolt.CFrame = CFrame.lookAt(position, position + velocity)
 	else
 		v.bolt.Position = position
+	end
+	if v.core then
+		v.core.move(position, velocity)
 	end
 	if (position - v.lastScorch).Magnitude >= 11 then
 		v.lastScorch = position
@@ -1244,11 +1267,15 @@ local function lanceFinish(shot, position, _reason)
 			end
 		end
 		TechniqueVFX.cleanup(v.bolt, 0.3)
+		if v.core then
+			v.core.stop()
+		end
 	end
 	local floor = floorUnder(shot, position + Vector3.new(0, 2, 0))
 	play("LanceFlash", CFrame.new(position), { scale = 1.0 })
 	if position.Y - floor.Y < 14 then
 		play("BoltStrike", CFrame.new(floor), { radius = 5 })
+		Impact.explode(floor, { radius = 7, element = "thunder", shake = 0.25, reach = 55 })
 	end
 	shake(0.2, position, 60)
 end
@@ -1285,6 +1312,7 @@ local function pillarLanding(cue, center, radius, big)
 		end,
 	})
 	pillarBolt(g + Vector3.new(0, if big then 90 else 46, 0), g, if big then 14 else 6)
+	Impact.ground(g, { radius = radius, element = "thunder", burst = true, scar = true, rocks = true, look = facing(cue), shake = if big then 0.7 else 0.55, reach = radius + 70 })
 	shake(if big then 0.55 else 0.4, g, radius + 60)
 	skyFlash(if big then 0.4 else 0.22)
 end
@@ -1333,6 +1361,7 @@ local function poundWave(cue)
 	play("PoundWave", CFrame.new(g + Vector3.new(0, 0.05, 0)), { radius = radius, seconds = seconds })
 	task.delay(seconds, function()
 		play("PoundWaveEnd", CFrame.new(g + Vector3.new(0, 1, 0)), { scale = radius / 16 })
+		Impact.ground(g, { radius = radius, element = "thunder", contact = false, dust = 0.6, shake = 0.2 })
 	end)
 end
 
@@ -1372,6 +1401,9 @@ function Ape.windup(cue)
 	s.windupAt = cue.at
 	s.latestAt = math.max(s.latestAt, cue.at)
 	s.shape = shape
+	if attack == "skyfallSlam" or attack == "judgment" then
+		s.leapShape = shape -- the arrival follow-up's windup replaces s.shape before touchdown
+	end
 	s.stunR = if (attack == "thunderRoar" or attack == "phaseRoar") and isCircle then shape.radius else nil
 	if attack ~= "bound" then
 		flareAura(cue, math.min(seconds, 1.2) + 0.3)
@@ -1398,11 +1430,11 @@ function Ape.windup(cue)
 		return
 	end
 	eyes(cue, seconds)
-	if attack == "clubSwing" or attack == "backhand" then
-		local side = if attack == "clubSwing" then "R" else "L"
+	if attack == "clubSwing" or attack == "backhand" or attack == "rushSwipe" or attack == "skyfallSweep" then
+		local side = if attack == "clubSwing" or attack == "rushSwipe" then "R" else "L"
 		tellUp(cue, if side == "R" then FIST_R else FIST_L, seconds * 0.9)
 		charge(cue, side, seconds, 1.4)
-		if attack == "backhand" then
+		if attack ~= "clubSwing" then
 			local k = knuckle(cue, side)
 			windupPlay(cue, "SnapFlare", k.CFrame, { follow = k, scale = 1.3 })
 		end
@@ -1533,8 +1565,8 @@ function Ape.strike(cue)
 			end)
 		end
 		flareAura(cue, 3)
-	elseif attack == "clubSwing" or attack == "backhand" then
-		local side = if attack == "clubSwing" then "R" else "L"
+	elseif attack == "clubSwing" or attack == "backhand" or attack == "rushSwipe" or attack == "skyfallSweep" then
+		local side = if attack == "clubSwing" or attack == "rushSwipe" then "R" else "L"
 		local radius = if type(shape) == "table" and type(shape.radius) == "number" then shape.radius else 30
 		local k = knuckle(cue, side)
 		local look = if type(shape) == "table" and typeof(shape.cframe) == "CFrame" then shape.cframe.LookVector else cue.root.CFrame.LookVector
@@ -1542,6 +1574,8 @@ function Ape.strike(cue)
 		local g = ground(cue, origin)
 		play("Crescent" .. side, CFrame.new(Vector3.new(k.Position.X, g.Y + 7, k.Position.Z)) * CFrame.lookAt(Vector3.zero, look).Rotation * CFrame.new(0, 0, -4), { scale = radius / 15 })
 		play("StrikeBurst", CFrame.new(g + look * radius * 0.55 + Vector3.new(0, 4, 0)) * face, { scale = 1.6 })
+		-- the knuckles rake the floor: dust fanned along the cone, a contact flash
+		Impact.swipe(g, look, { radius = radius, element = "thunder", shake = if attack == "clubSwing" or attack == "backhand" then 0.12 else 0.18 })
 		shake(0.14, cue.root.Position, 70)
 	elseif attack == "thunderPound" then
 		local radius, center = shapeCircle(shape, 15, cue.root.Position)
@@ -1549,6 +1583,7 @@ function Ape.strike(cue)
 			play("PoundFist", groundFrame(cue, "Fist" .. side .. "_FX", { "HandF" .. side }), { scale = 1.6 })
 		end
 		play("PoundRing", CFrame.new(ground(cue, center) + Vector3.new(0, 0.05, 0)) * face, { radius = radius })
+		Impact.ground(ground(cue, center), { radius = radius, element = "thunder", scar = true, rocks = true, look = face, shake = 0.4 })
 		skyFlash(0.12)
 		shake(0.3, center, 25)
 	elseif attack == "thunderLance" then
@@ -1568,8 +1603,25 @@ function Ape.dash(cue)
 	launch(cue)
 end
 
+-- The arrival follow-ups and skids replace the model's Attack as the dash ends,
+-- so a landing is also live when Attack has moved on to its own follow-up.
+local ARRIVE = {
+	thunderRush = { rushSwipe = true, thunderRushSkid = true },
+	skyfallSlam = { skyfallSweep = true, skyfallSlamSkid = true },
+}
+local function arrived(cue)
+	local follow = ARRIVE[cue.attack or ""]
+	local now = cue.model:GetAttribute("Attack")
+	if not (follow and type(now) == "string" and follow[now]) then
+		return false
+	end
+	local s = state(cue.model)
+	local health = cue.model:GetAttribute("Health")
+	return cue.model.Parent ~= nil and not s.dead and not (type(health) == "number" and health <= 0)
+end
+
 function Ape.land(cue)
-	if not ours(cue) or not current(cue, nil, 1.2) then
+	if not ours(cue) or not (current(cue, nil, 1.2) or arrived(cue)) then
 		return
 	end
 	local s = state(cue.model)
@@ -1585,28 +1637,45 @@ function Ape.land(cue)
 	s.latestAt = math.max(s.latestAt, cue.at)
 	local face = facing(cue)
 	if attack == "skyfallSlam" then
-		local radius, center = shapeCircle(s.shape, 20, cue.root.Position)
+		local radius, center = shapeCircle(s.leapShape or s.shape, 20, cue.root.Position)
 		pillarLanding(cue, center, radius, false)
 	elseif attack == "judgment" then
-		local radius, center = shapeCircle(s.shape, 28, cue.root.Position)
+		local radius, center = shapeCircle(s.leapShape or s.shape, 28, cue.root.Position)
 		pillarLanding(cue, center, radius, true)
 		play("PoundWave", CFrame.new(ground(cue, center) + Vector3.new(0, 0.05, 0)), { radius = radius, seconds = 0.6 })
 		play("PoundWaveEnd", CFrame.new(ground(cue, center) + Vector3.new(0, 1, 0)), { scale = radius / 14 })
 	elseif attack == "bodySlam" then
 		local g = ground(cue, part(cue, { "Chest" }).Position)
 		play("BellyWave", CFrame.new(g + Vector3.new(0, 0.06, 0)) * face)
+		Impact.ground(g, { radius = 16, element = "thunder", scar = true, rocks = true, burst = true, look = face, shake = 0.5, reach = 80 })
 		skyFlash(0.1)
 		shake(0.35, g, 90)
 	elseif attack == "thunderRush" then
 		local frame = groundFrame(cue, "FistL_FX", { "HandFL" })
 		local right = groundFrame(cue, "FistR_FX", { "HandFR" })
 		play("RushSkid", CFrame.new((frame.Position + right.Position) / 2) * face, { scale = 1.5 })
+		Impact.skid({ frame.Position, right.Position }, face.LookVector, { element = "thunder", scale = 2.6, seconds = 0.3 })
 		shake(0.25, cue.root.Position, 80)
 	elseif attack == "bound" then
 		local frame = feetMid(cue)
 		play("Takeoff", frame, { scale = 0.5 })
 		play("PoundWaveEnd", frame * CFrame.new(0, 1, 0), { scale = 0.5 })
+		Impact.ground(frame.Position, { radius = 9, element = "thunder", contact = false, look = face, shake = 0.25, reach = 60 })
 	end
+end
+
+-- thunderRushSkid / skyfallSlamSkid: the knuckles and feet plough as the body
+-- swings round to the target.
+function Ape.skid(cue)
+	if not ours(cue) then
+		return
+	end
+	local feet = {}
+	for _, spec in { { "FistL_FX", "HandFL" }, { "FistR_FX", "HandFR" }, { "FootBL_FX", "FootBL" }, { "FootBR_FX", "FootBR" } } do
+		table.insert(feet, groundFrame(cue, spec[1], { spec[2] }).Position)
+	end
+	Impact.skid(feet, facing(cue).LookVector, { element = "thunder", scale = 2.4, seconds = 0.45 })
+	shake(0.18, cue.root.Position, 60)
 end
 
 function Ape.hit(cue)

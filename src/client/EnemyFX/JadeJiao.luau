@@ -18,6 +18,13 @@
 -- Attributes read: Burrowed, Phase, Coil*, Dash*; the body hooks are named in
 -- the Jade Jiao fight sheet (Mouth, Core, Dive_FX, TailTip_FX, ...). A missing
 -- part falls back to the Skull, the Body or the root.
+--
+-- Weight (Impact kit, EnemyFX/Impact.luau): pillarSlam, tailSweep, tailShove,
+-- erupt/emerge and the pool globs layer a venom shockwave, mud and debris, a
+-- contact flash and (erupt, emerge, the slam) a fading crack, with a camera
+-- shake by distance. tailShove (the knock-back that makes range): the tail tell
+-- and a body-wide shove of dust and shock. The venomBolt drawer adds a white-hot
+-- core, a dark trail under a bright one, and an explosion where it lands.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -26,6 +33,7 @@ local CollectionService = game:GetService("CollectionService")
 local TweenService = game:GetService("TweenService")
 
 local TechniqueVFX = require(script.Parent.Parent.TechniqueVFX)
+local Impact = require(script.Parent.Impact)
 
 type Cue = {
 	model: Model,
@@ -79,6 +87,7 @@ local WINDUP = {
 	emerge = 2.2,
 	venomFang = 0.75,
 	tailSweep = 0.8,
+	tailShove = 0.7,
 	pillarSlam = 1.0,
 	fangFlurry = 0.9,
 	mireDive = 0.8,
@@ -933,7 +942,7 @@ local function boltStart(shot: any)
 		holder.Parent = TechniqueVFX.folder
 		shadow = holder
 	end
-	shot.visual = { glob = glob, shadow = shadow }
+	shot.visual = { glob = glob, shadow = shadow, core = Impact.shot({ radius = size * 0.5, element = "venom" }) }
 end
 
 local function boltStep(shot: any, position: Vector3, velocity: Vector3)
@@ -943,6 +952,9 @@ local function boltStep(shot: any, position: Vector3, velocity: Vector3)
 	end
 	if v.glob and v.glob.Parent then
 		v.glob.CFrame = if velocity.Magnitude > 0.1 then CFrame.lookAt(position, position + velocity) else CFrame.new(position)
+	end
+	if v.core then
+		v.core.move(position, velocity)
 	end
 	local shadow = v.shadow
 	if shadow then
@@ -970,6 +982,9 @@ local function boltFinish(shot: any, position: Vector3, reason: string)
 			TechniqueVFX.disable(v.glob)
 			TechniqueVFX.cleanup(v.glob, 0.3)
 		end
+		if v.core then
+			v.core.stop()
+		end
 		if v.shadow then
 			local e = v.shadow:FindFirstChildOfClass("ParticleEmitter")
 			if e then
@@ -991,6 +1006,7 @@ local function boltFinish(shot: any, position: Vector3, reason: string)
 	if floor and position.Y - floor.Y < 6 then
 		-- the splat on the ground (PoolSplash: ring, ink splat, drops)
 		play("PoolSplash", CFrame.new(floor), { scale = size * 0.9 })
+		Impact.explode(floor, { radius = math.max(3.5, size * 1.2), element = "venom", dust = 0.5 })
 	end
 	shake(0.08, position, 40)
 end
@@ -1016,6 +1032,8 @@ local function lobPool(cue: Cue, shape: any, seconds: number)
 			local at2 = ground(cue, at)
 			play("PoolSplash", CFrame.new(at2), { scale = radius })
 			play("PoolDisc", CFrame.new(at2 + Vector3.new(0, 0.05, 0)), { scale = radius })
+			-- the pool is the scar; the landing is a small venom explosion
+			Impact.explode(at2, { radius = radius, element = "venom", scar = false, dust = 0.6, shake = 0.15, reach = 45 })
 			shake(0.1, at2, 50)
 		end)
 	end)
@@ -1394,6 +1412,12 @@ function Jiao.windup(cue: Cue)
 		tellRun(cue, withEyes({ "FangTipL", "FangTipR" }), GOLD, seconds)
 		hoodFlare(cue, seconds, true)
 		flurryStrike(cue, shape, seconds)
+	elseif attack == "tailShove" then
+		-- a quick coil-and-heave: the tail tip and the hood flare
+		local frame, tip = point(cue, "TailTip_FX", { "Tail18" })
+		windupPlay(cue, "TailTell", frame, { follow = tip, seconds = seconds, boost = 1.3 })
+		tellRun(cue, withEyes({ "TailTipGem" }), GOLD, seconds)
+		hoodFlare(cue, seconds)
 	elseif attack == "tailSweep" then
 		local frame, tip = point(cue, "TailTip_FX", { "Tail18" })
 		windupPlay(cue, "TailTell", frame, { follow = tip, seconds = seconds })
@@ -1498,6 +1522,7 @@ local function emergeBurst(cue: Cue, position: Vector3, radius: number)
 	play("HissBurst", CFrame.new(floor) * facing(cue), { scale = radius * 0.8 })
 	local frame, skull = point(cue, "Mouth", { "Skull", "Head" })
 	play("PhaseFlare", frame, { follow = skull, boost = 0.6 })
+	Impact.ground(floor, { radius = radius, element = "venom", burst = true, scar = true, rocks = true, contact = false, look = facing(cue), shake = 0.5, reach = radius + 90 })
 	flareAura(cue, 1.8)
 	shake(0.55, position, radius + 140)
 end
@@ -1547,11 +1572,20 @@ function Jiao.strike(cue: Cue)
 	elseif attack == "tailSweep" then
 		local center, radius = circleOf(shape, 13, cue)
 		play("SweepImpact", CFrame.new(ground(cue, center)) * face, { scale = radius })
+		Impact.ground(ground(cue, center), { radius = radius, element = "venom", contact = false, look = face, dust = 1.2, shake = 0.3 })
 		strikeWhip(cue, 0.7)
+		shake(0.3, center, radius + 60)
+	elseif attack == "tailShove" then
+		local center, radius = circleOf(shape, 13, cue)
+		local at = ground(cue, center)
+		play("SweepImpact", CFrame.new(at) * face, { scale = radius, boost = 1.3 })
+		Impact.ground(at, { radius = radius, element = "venom", look = face, dust = 1.4, shake = 0.35 })
+		strikeWhip(cue, 0.5)
 		shake(0.3, center, radius + 60)
 	elseif attack == "pillarSlam" then
 		local center, radius = circleOf(shape, 6.5, cue)
 		play("SlamImpact", CFrame.new(ground(cue, center)) * face, { scale = radius })
+		Impact.ground(ground(cue, center), { radius = math.max(radius, 9), element = "venom", scar = true, rocks = true, look = face, shake = 0.4 })
 		shake(0.36, center, radius + 60)
 	elseif attack == "venomLance" or attack == "venomSpray" then
 		-- the bolts are real projectiles (the venomBolt drawer above)

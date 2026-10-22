@@ -529,6 +529,14 @@ Ask these in the plan, not after the build:
   note the clock with each one.
 - `tools/receive_rbxmx.py` dies with the session; `tools/ensure_receiver.sh`
   before loading tools over HTTP.
+  It serves only plain `<name>.luau` paths: a cache-busting query string
+  (`...luau?x=1`) returns 404.
+- Previewing a runtime module (an `EnemyFX` helper) in Edit mode: point
+  `TechniqueVFX.folder` at a workspace folder and stub `TechniqueVFX.cleanup`
+  for the session, or the clones are destroyed (with their frozen particles)
+  before `screen_capture` runs. Pass the capture's own `camera_position` and
+  `look_at_position`; setting `CurrentCamera` alone isn't what the capture
+  shows.
 
 `tools/vfx_preview.luau` also has the lower-level calls (run it through
 `execute_luau`; it installs `_G.vfxPreview`):

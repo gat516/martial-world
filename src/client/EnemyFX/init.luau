@@ -18,6 +18,14 @@
 --   aggro(cue)    it noticed a player (idle or returning -> chase)
 --   hit(cue)      the blow caught a player: cue.target is their Character.
 --                 Only from the server (below).
+--   skid(cue)     an overshoot skid-and-turn started: the Attack (or
+--                 AttackName) attribute became `<move>Skid` (cue.attack is that
+--                 name). Beasts without a handler get the shared dust spray from
+--                 the feet (Impact.skid).
+-- `land` carries the attack that was dashing (an arrival follow-up such as
+-- rushSwipe may already have replaced the model's Attack when it fires).
+-- EnemyFX/Impact is the shared impact kit (shockwaves, dust, bursts, scars,
+-- roars, skids, projectile cores), not a beast.
 -- A cue is { model, root, kind, attack, shape, seconds, target, at } (`at` =
 -- server time the cue began; shape and seconds only on windup, target only on
 -- hit).
@@ -71,6 +79,23 @@ local function handlersFor(kind: string): Handlers?
 	return cached or nil
 end
 
+-- A beast with no skid handler: dust from under each side of the root.
+local function defaultSkid(cue: Cue)
+	local ok, Impact = pcall(require, script.Impact)
+	if not ok then
+		return
+	end
+	local root = cue.root
+	local half = root.Size.X / 2
+	local look = root.CFrame.LookVector
+	local feet = {}
+	for _, side in { -1, 1 } do
+		local at = root.CFrame:PointToWorldSpace(Vector3.new(side * half * 0.8, 0, -root.Size.Z * 0.3))
+		table.insert(feet, (Impact :: any).floor(at, { cue.model }))
+	end
+	(Impact :: any).skid(feet, look, { scale = math.clamp(root.Size.X / 3, 0.6, 3), seconds = 0.35 })
+end
+
 local function fire(model: Model, name: string, extra: { shape: any?, seconds: number?, target: Model?, at: number?, attack: string? }?)
 	local root = model:FindFirstChild("HumanoidRootPart")
 	local kind = model:GetAttribute("EnemyType")
@@ -83,6 +108,9 @@ local function fire(model: Model, name: string, extra: { shape: any?, seconds: n
 	end
 	local set = handlersFor(kind)
 	local fn = set and set[name]
+	if not fn and name == "skid" then
+		fn = defaultSkid
+	end
 	if not fn then
 		return
 	end
@@ -128,6 +156,8 @@ local function watch(model: Instance)
 		return
 	end
 	local previous = model:GetAttribute("AIState")
+	local dashAttack: string? = nil
+	local lastSkid = 0
 	task.spawn(function()
 		if model:WaitForChild("HumanoidRootPart", 5) then
 			fire(model, "ready")
@@ -141,13 +171,31 @@ local function watch(model: Instance)
 		if previous == "windup" and (state == "dash" or state == "recover") then
 			fire(model, "strike")
 		end
+		if state == "dash" then
+			local a = model:GetAttribute("Attack")
+			dashAttack = if type(a) == "string" then a else nil
+		end
 		if state == "dash" or state == "stagger" then
 			fire(model, state :: string)
 		end
 		if previous == "dash" and state ~= "dash" then
-			fire(model, "land")
+			fire(model, "land", { attack = dashAttack })
 		end
 		previous = state
+	end)
+	-- an overshoot's skid-and-turn (the server names it `<move>Skid`)
+	local function skidCheck(name: string)
+		local value = model:GetAttribute(name)
+		if type(value) == "string" and value:sub(-4) == "Skid" and os.clock() - lastSkid > 0.3 then
+			lastSkid = os.clock()
+			fire(model, "skid", { attack = value })
+		end
+	end
+	model:GetAttributeChangedSignal("Attack"):Connect(function()
+		skidCheck("Attack")
+	end)
+	model:GetAttributeChangedSignal("AttackName"):Connect(function()
+		skidCheck("AttackName")
 	end)
 	model:GetAttributeChangedSignal("FadeAt"):Connect(function()
 		fade(model)

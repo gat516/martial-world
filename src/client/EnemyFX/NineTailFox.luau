@@ -22,6 +22,11 @@
 -- always read from the cue (cue.shape / shape.parts / shape.trail), never
 -- hardcoded, since the designer may retune them. Tails are followed through
 -- TailTip{i}_FX, which rides the extending whip.
+-- Weight (Impact kit, EnemyFX/Impact.luau): every rootfire eruption and tail
+-- plunge lands with a foxfire shockwave, dust and a contact flash in the
+-- phase's colour; the eruption's heart and NineTailFall's final burst add the
+-- explosion and a fading scorched crack; the foxfire bolts explode where they
+-- land.
 -- Phone budget: cues past 220 studs are skipped (EnemyFX) and per-frame
 -- follow work stops at the same distance.
 
@@ -32,6 +37,7 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local TechniqueVFX = require(script.Parent.Parent.TechniqueVFX)
+local Impact = require(script.Parent.Impact)
 
 local TEMPLATE = "NineTailFoxB"
 local MAX_DISTANCE = 220
@@ -117,6 +123,12 @@ end
 local function phaseSeq(phase: number): ColorSequence
 	local p = PHASES[phase]
 	return ColorSequence.new({ ColorSequenceKeypoint.new(0, WHITE), ColorSequenceKeypoint.new(0.4, p.mid), ColorSequenceKeypoint.new(1, p.edge) })
+end
+
+-- The Impact kit's palette for a phase: the phase's foxfire over its slate base.
+local function impactPalette(phase: number)
+	local p = PHASES[phase]
+	return { core = WHITE:Lerp(p.mid, 0.25), color = p.mid, dark = SLATE }
 end
 
 -- The cue is still the live one (King's generation check).
@@ -1175,6 +1187,12 @@ function W.rootfireEruption(cue: Cue, c)
 			local pos = ground(cue, circle.center)
 			local live = phaseSeq(phaseOf(cue))
 			play("Eruption", CFrame.new(pos + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = circle.radius or 3.5, tint = live })
+			local pal = impactPalette(phaseOf(cue))
+			if heart then
+				Impact.explode(pos, { radius = (circle.radius or 5) * 1.2, element = "fox", palette = pal, rocks = true, shake = 0.3, reach = 40 })
+			else
+				Impact.ground(pos, { radius = (circle.radius or 3.5) * 1.3, element = "fox", palette = pal, dust = 0.6, shake = 0.12, reach = 25 })
+			end
 			if heart then
 				play("Burst", CFrame.new(pos + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = (circle.radius or 5) * 1.1, tint = live })
 				shake(0.28, pos, 12)
@@ -1229,6 +1247,7 @@ function W.nineTailFall(cue: Cue, c)
 					task.delay(0.07, function()
 						if cue.model.Parent then
 							play("Eruption", CFrame.new(pos + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = p.radius or 5, tint = live })
+							Impact.ground(pos, { radius = (p.radius or 5) * 1.2, element = "fox", palette = impactPalette(phaseOf(cue)), dust = 0.7, shake = 0.15, reach = 30 })
 							shake(0.12, pos, 30)
 						end
 					end)
@@ -1237,6 +1256,7 @@ function W.nineTailFall(cue: Cue, c)
 				afterAbs(cue, at, function()
 					local pos = ground(cue, center)
 					play("FallBurst", CFrame.new(pos + Vector3.new(0, 0.05, 0)) * facing(cue), { scale = p.radius or 14, tint = phaseSeq(phaseOf(cue)) })
+					Impact.ground(pos, { radius = p.radius or 14, element = "fox", palette = impactPalette(phaseOf(cue)), burst = true, scar = true, rocks = true, shake = 0.55, reach = (p.radius or 14) + 60 })
 					shake(0.45, pos, (p.radius or 14) + 45)
 				end)
 			end
@@ -2060,6 +2080,7 @@ local function boltFinish(shot: any, position: Vector3, reason: string)
 	local floor = floorUnder(shot, position, 8)
 	if floor then
 		play("Burst", CFrame.new(floor + Vector3.new(0, 0.05, 0)), { scale = 2.6, tint = seq })
+		Impact.explode(floor, { radius = 3.5, element = "fox", palette = impactPalette(boltPhase(shot)), dust = 0.5, shake = 0.1, reach = 30 })
 	end
 	if not floor and reason ~= "hit" then
 		-- ended in the air (the enemy "hit" cue draws the burst on a player)

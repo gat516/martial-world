@@ -1,0 +1,358 @@
+--!nocheck
+-- Numeric QA for the Stone Tortoise pose module (a copy of qa_quadruped_poses.luau with the
+-- tortoise's config; the poses are unit space, the 1x StoneTortoise_R). For every move
+-- phase (at its key times and between them, both sides for mirrored moves) and every
+-- loop (16 phases, a few speeds) it poses the template by forward kinematics, without
+-- touching the place, and reports:
+--   feet    the lowest point of each foot segment (should be 0 when planted) and of the
+--           whole body (below -0.02 is sunk into the ground)
+--   gap     a joint whose child segment no longer touches its parent segment (a slit
+--           of sky), oriented boxes with 0.02 slack
+--   clip    two segments that don't overlap at rest and do now, by more than 0.08
+--   merge   the same between segments two joints apart, only past 0.15
+--   range   middle joints past 1.35 rad (the rig's tested range)
+-- Run in Edit mode through execute_luau. The module comes from the Rojo-synced folder
+-- StarterPlayerScripts.Client.EnemyPoses (a fresh clone, so Quadruped is found and the
+-- require cache never serves a stale copy).
+--   _G.QP_CONFIG = "StoneTortoise" (default) picks the CONFIGS entry below.
+--   _G.QP_ONLY = "Charge" limits it to one move or loop.
+--   _G.QP_PROBE = true returns check(label, pose) and the module instead of running.
+--   _G.QP_PREVIEW = { { "Charge", "windup", 0.3 }, { "loop", "run", 2.0, 12 } } also
+--   leaves anchored, posed copies in Workspace._QuadrupedPoses (EditorOnly).
+
+local ServerStorage = game:GetService("ServerStorage")
+
+local CONFIGS = {
+	StoneTortoise = {
+		module = "StoneTortoise",
+		template = function()
+			return ServerStorage.Enemies.StoneTortoiseB
+		end,
+		groundBelowHRP = 4.2296, -- the HRP is 2.4 x 1.76 above the ground
+		scale = 1.76, -- the module's poses are unit space (the 1x roster tortoise); EnemyAnimator applies the scale
+		feet = { "FootFL", "FootFR", "FootBL", "FootBR" },
+		mids = { "JointLegFL", "JointLegFR", "JointLegBL", "JointLegBR" },
+		range = 1.0,
+		-- the legs draw up into the shell and the feet into its rim in the tuck, and the hips sit in
+		-- the belly: hidden by the shell mass
+		mergeOk = _G.QP_MERGEOK or {},
+		-- how deep (studs, scaled body) a pair may overlap before it is reported: the feet sit under a
+		-- shell that drops over them, the neck slides into the shell's front lip, and in a tuck, a
+		-- hit or the death the feet, the legs and the face are drawn right into the rim
+		allow = function(label, a, b)
+			local deep = label:find("ShellGuard") or label:find("ShellSnap") or label:find("Death") or label:find("Stagger")
+			local pair = a .. "|" .. b
+			if pair:find("^Foot%a%a|Shell$") or pair:find("^Shell|Foot%a%a$") or pair:find("^Foot%a%a|UpperLeg") then
+				return if deep then 2.6 elseif label:find("^circle") then 1.1 else 0.9
+			elseif pair:find("Head|Shell") or pair:find("Shell|Head") then
+				return if deep then 2.4 else 1.3
+			elseif pair:find("Jaw|Shell") or pair:find("Shell|Jaw") then
+				return if deep then 1.6 else 0.4
+			end
+			return nil
+		end,
+		speeds = { idle = { 0 }, walk = { 1.5, 3.5 }, run = { 6 }, circle = { 1 } },
+	},
+}
+local cfg = CONFIGS[_G.QP_CONFIG or "StoneTortoise"]
+local Poses = require(game:GetService("StarterPlayer").StarterPlayerScripts.Client.EnemyPoses:Clone()[cfg.module])
+if _G.QP_VARIANT and Poses.setAll then
+	Poses.setAll(_G.QP_VARIANT)
+end
+local function unit(pose)
+	if cfg.scale then
+		return Poses.scaled(pose, cfg.scale)
+	end
+	return pose
+end
+
+local template = cfg.template()
+if Poses.configure then
+	Poses.configure(template) -- read the rig's own tail data
+end
+local hrp = template.HumanoidRootPart
+local GROUND = hrp.Position.Y - cfg.groundBelowHRP
+
+local motors, segOf = {}, {}
+for _, m in template:GetDescendants() do
+	if m:IsA("Motor6D") then
+		table.insert(motors, m)
+	end
+end
+-- each visible part and its offset to its segment
+local members = {}
+for _, d in template:GetDescendants() do
+	if d:IsA("BasePart") and d ~= hrp and d.Transparency < 1 then
+		local seg = d:GetAttribute("Segment") or d.Name
+		local segPart = template:FindFirstChild(seg)
+		members[seg] = members[seg] or {}
+		table.insert(members[seg], { part = d, off = segPart.CFrame:ToObjectSpace(d.CFrame), size = d.Size })
+		segOf[d] = seg
+	end
+end
+
+local function solve(pose)
+	local world = { [hrp] = hrp.CFrame }
+	local pending = #motors
+	while pending > 0 do
+		for _, m in motors do
+			if world[m.Part0] and not world[m.Part1] then
+				world[m.Part1] = world[m.Part0] * m.C0 * (pose[m.Name] or CFrame.identity) * m.C1:Inverse()
+				pending -= 1
+			end
+		end
+	end
+	local boxes = {}
+	for seg, list in members do
+		local segPart = template:FindFirstChild(seg)
+		boxes[seg] = {}
+		for _, e in list do
+			table.insert(boxes[seg], { cf = world[segPart] * e.off, size = e.size, name = e.part.Name })
+		end
+	end
+	return boxes
+end
+
+local function lowest(list)
+	local lo = math.huge
+	for _, b in list do
+		local cf, s = b.cf, b.size / 2
+		lo = math.min(lo, cf.Y - (math.abs(cf.UpVector.Y) * s.Y + math.abs(cf.RightVector.Y) * s.X + math.abs(cf.LookVector.Y) * s.Z))
+	end
+	return lo - GROUND
+end
+
+-- SAT: returns the smallest penetration depth (negative = separated by that much)
+local function depth(a, b)
+	local ca, cb = a.cf, b.cf
+	local ea, eb = a.size / 2, b.size / 2
+	local axA = { ca.RightVector, ca.UpVector, ca.LookVector }
+	local axB = { cb.RightVector, cb.UpVector, cb.LookVector }
+	local d = cb.Position - ca.Position
+	local axes = {}
+	for i = 1, 3 do
+		table.insert(axes, axA[i])
+		table.insert(axes, axB[i])
+		for j = 1, 3 do
+			local c = axA[i]:Cross(axB[j])
+			if c.Magnitude > 1e-4 then
+				table.insert(axes, c.Unit)
+			end
+		end
+	end
+	local best = math.huge
+	for _, ax in axes do
+		local ra = math.abs(axA[1]:Dot(ax)) * ea.X + math.abs(axA[2]:Dot(ax)) * ea.Y + math.abs(axA[3]:Dot(ax)) * ea.Z
+		local rb = math.abs(axB[1]:Dot(ax)) * eb.X + math.abs(axB[2]:Dot(ax)) * eb.Y + math.abs(axB[3]:Dot(ax)) * eb.Z
+		best = math.min(best, ra + rb - math.abs(d:Dot(ax)))
+	end
+	return best
+end
+
+local function segDepth(boxes, s1, s2)
+	local best = -math.huge
+	for _, a in boxes[s1] do
+		for _, b in boxes[s2] do
+			best = math.max(best, depth(a, b))
+		end
+	end
+	return best
+end
+
+local segs = {}
+for seg in members do
+	table.insert(segs, seg)
+end
+table.sort(segs)
+local parentOf = {}
+for _, m in motors do
+	parentOf[m.Part1.Name] = m.Part0.Name
+end
+local function adjacent(a, b)
+	return parentOf[a] == b or parentOf[b] == a or (parentOf[a] and parentOf[a] == parentOf[b])
+end
+
+local restBoxes = solve({})
+local restDepth = {}
+for i, a in segs do
+	for j = i + 1, #segs do
+		restDepth[a .. "|" .. segs[j]] = segDepth(restBoxes, a, segs[j])
+	end
+end
+
+local PAWS = cfg.feet
+local MIDS = cfg.mids
+
+local function check(label, pose)
+	pose = unit(pose)
+	local boxes = solve(pose)
+	local issues = {}
+	local all = {}
+	for _, list in boxes do
+		for _, b in list do
+			table.insert(all, b)
+		end
+	end
+	local body = lowest(all)
+	if body < -0.02 then
+		local worst, wy = "?", math.huge
+		for seg, list in boxes do
+			local y = lowest(list)
+			if y < wy then
+				worst, wy = seg, y
+			end
+		end
+		table.insert(issues, ("SUNK %.3f (%s)"):format(body, worst))
+	end
+	local feet = {}
+	local slide = {}
+	for _, p in PAWS do
+		table.insert(feet, ("%.2f"):format(lowest(boxes[p])))
+		local z = boxes[p][1].cf.Z - restBoxes[p][1].cf.Z
+		table.insert(slide, ("%+.2f"):format(z))
+	end
+	for seg, parent in parentOf do
+		if not (cfg.skipPattern and (seg:match(cfg.skipPattern) or parent:match(cfg.skipPattern))) and boxes[seg] and boxes[parent] and segDepth(boxes, seg, parent) < -0.02 then
+			table.insert(issues, "GAP " .. parent .. "/" .. seg)
+		end
+	end
+	for i, a in segs do
+		for j = i + 1, #segs do
+			local b = segs[j]
+			if not adjacent(a, b) and restDepth[a .. "|" .. b] < 0 and not (cfg.skipPattern and (a:match(cfg.skipPattern) or b:match(cfg.skipPattern)))
+				and not (cfg.tailPattern and a:match(cfg.tailPattern) and b:match(cfg.tailPattern)) then
+				local dd = segDepth(boxes, a, b)
+				local chain = parentOf[parentOf[a] or ""] == b or parentOf[parentOf[b] or ""] == a
+				local allow = (cfg.allow and cfg.allow(label, a, b)) or (cfg.mergeOk and (cfg.mergeOk[a .. "|" .. b] or cfg.mergeOk[b .. "|" .. a])) or (if chain then 0.15 else 0.08)
+				if dd > allow then
+					table.insert(issues, ("%s %s/%s %.2f"):format(if chain then "MERGE" else "CLIP", a, b, dd))
+				end
+			end
+		end
+	end
+	for _, j in MIDS do
+		local x = pose[j] and pose[j]:ToEulerAnglesXYZ() or 0
+		if math.abs(x) > cfg.range then
+			table.insert(issues, ("RANGE %s %.2f"):format(j, x))
+		end
+	end
+	local rootY = (pose.JointRoot or CFrame.identity).Y
+	local mids = {}
+	for _, j in MIDS do
+		table.insert(mids, ("%.2f"):format(pose[j] and pose[j]:ToEulerAnglesXYZ() or 0))
+	end
+	return ("%-28s feet %s body %.2f rootY %.2f mids %s pawZ %s%s"):format(label, table.concat(feet, " "), body, rootY, table.concat(mids, " "), table.concat(slide, " "),
+		#issues > 0 and ("  !! " .. table.concat(issues, "; ")) or "")
+end
+
+if _G.QP_PROBE then
+	return check, Poses
+end
+
+local out = {}
+local ONLY = _G.QP_ONLY
+for move, phases in Poses.moves do
+	if ONLY and ONLY ~= move then
+		continue
+	end
+	for _, phaseName in { "windup", "active", "recover" } do
+		local p = phases[phaseName]
+		if p then
+			local us = {}
+			for _, k in p.keys do
+				us[k.t] = true
+			end
+			for i = 0, 10 do
+				us[i / 10] = true
+			end
+			local list = {}
+			for u in us do
+				table.insert(list, u)
+			end
+			table.sort(list)
+			for _, u in list do
+				for _, side in (p.mirror and { 1, -1 } or { 1 }) do
+					local pose = Poses.sample(move, phaseName, u, { side = side, stage = 2, duration = if move == "RendingPounce" and phaseName == "active" then 0.55 else nil })
+					table.insert(out, check(("%s.%s %.2f%s"):format(move, phaseName, u, side < 0 and " L" or ""), pose))
+				end
+			end
+		end
+	end
+	task.wait()
+end
+for name, speeds in cfg.speeds do
+	if ONLY and ONLY ~= name then
+		continue
+	end
+	for _, speed in speeds do
+		for i = 0, 15 do
+			local ph = i / 16 * math.pi * 2
+			local pose = Poses.loops[name](if name == "idle" then i * 0.7 else ph, speed, { dir = 1, targetYaw = 0.3, seed = 1 })
+			table.insert(out, check(("%s %d %.2f"):format(name, speed, ph), pose))
+		end
+	end
+	task.wait()
+end
+
+-- posed copies for review
+if _G.QP_PREVIEW then
+	local folder = workspace:FindFirstChild("_QuadrupedPoses")
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = "_QuadrupedPoses"
+		folder:AddTag("EditorOnly")
+		folder.Parent = workspace
+	end
+	folder:ClearAllChildren()
+	local plate = Instance.new("Part")
+	plate.Name = "Plate"
+	plate.Anchored = true
+	plate.Size = Vector3.new(14 * #_G.QP_PREVIEW + 10, 1, 24)
+	plate.CFrame = CFrame.new(-200 - 7 * #_G.QP_PREVIEW, 399.5, 3100)
+	plate.Color = Color3.fromHex("6E7F5A")
+	plate.Parent = folder
+	for i, spec in _G.QP_PREVIEW do
+		local pose
+		if spec[1] == "loop" then
+			pose = Poses.loops[spec[2]](spec[3], spec[4] or 8, spec[5] or {})
+		else
+			pose = Poses.sample(spec[1], spec[2], spec[3], spec[4] or {})
+		end
+		pose = unit(pose)
+		local copy = template:Clone()
+		copy.Name = ("%02d_%s_%s_%s"):format(i, tostring(spec[1]), tostring(spec[2]), tostring(spec[3]))
+		copy:PivotTo(CFrame.new(-200 - (i - 1) * 14 - 7, 400 + cfg.groundBelowHRP, 3100) * CFrame.Angles(0, math.pi / 2, 0))
+		copy.HumanoidRootPart.Anchored = true
+		copy.Parent = folder
+		local world = { [copy.HumanoidRootPart] = copy.HumanoidRootPart.CFrame }
+		local ms = {}
+		for _, m in copy:GetDescendants() do
+			if m:IsA("Motor6D") then
+				table.insert(ms, m)
+			end
+		end
+		local pending = #ms
+		while pending > 0 do
+			for _, m in ms do
+				if world[m.Part0] and not world[m.Part1] then
+					world[m.Part1] = world[m.Part0] * m.C0 * (pose[m.Name] or CFrame.identity) * m.C1:Inverse()
+					pending -= 1
+				end
+			end
+		end
+		for _, m in ms do
+			m.Part1 = nil
+		end
+		for part, cf in world do
+			part.CFrame = cf
+		end
+		for _, d in copy:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.Anchored = true
+			end
+		end
+		task.wait()
+	end
+end
+
+return table.concat(out, "\n")

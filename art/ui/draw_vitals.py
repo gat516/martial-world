@@ -7,9 +7,13 @@ trimmed to a gilt rim, end lozenges and small curls so the bars get the height.
 vitals_mount.png  Hud.Stack.Vitals.Mount: health (thick, ten segments) and combat
                   qi in the body, the guard trough in the tab under a lacquer seal
                   (the fill drains toward the seal).
-seat_mount.png    Hud.Stack.SeatBars.Mount, in the vitals' place while seated: a realm
-                  title band, the cultivation window with a breakthrough lozenge and a
-                  short overflow chamber past it, and the dantian (raw qi) in the tab.
+seat_mount.png    Hud.Stack.SeatBars.Mount, in the vitals' place while seated (the realm
+                  crest sits above it, as over the vitals): one cultivation track with
+                  the breakthrough mark inside it at BREAK (80%) and the overflow past
+                  the mark, and the dantian (raw qi) in the tab.
+fill_sheen.png    16x64, Stretch over every bar fill: top lip, soft inner glow, darker
+                  belly (white/black only, so the fill's colour shows through).
+fill_edge.png     48x64, the soft bright leading edge at a fill's right end.
 Both are drawn over their fills, so each window is cut clear and glazed. The window
 boxes (VITALS2, SEAT, NOTCH_LEFT) are what the Studio layout copies, as scale.
 Run: uv run --with pillow --with numpy python art/ui/draw_vitals.py [preview]
@@ -38,13 +42,17 @@ VITALS2 = {
     "seal": (800, 155, 26),
     "segments": 10,
 }
+# The cultivation track is one window: the bar up to the breakthrough mark (BREAK,
+# 80% along), then the overflow stretch past it (cultivation beyond the bar, up to
+# CultivationCap). The game lays CultivationBar over the first part and
+# OverflowBar over the rest.
 SEAT = {
-    "title": (600, 10, 1000, 40),
-    "cultivation": (152, 48, 1300, 120),
-    "mark": (1328, 84, 22),
-    "overflow": (1354, 64, 1448, 104),
+    "track": (152, 26, 1448, 112),
     "dantian": (480, 138, 1120, 172),
 }
+BREAK = 0.8
+SEAT["cultivation"] = (152, 26, round(152 + (1448 - 152) * BREAK), 112)
+SEAT["overflow"] = (SEAT["cultivation"][2], 26, 1448, 112)
 WINDOW_RIM = (205, 170, 95, 220)
 
 
@@ -143,26 +151,62 @@ def seat_mount():
     v = SEAT
     img = canvas(W, H)
     plate_and_horns(img)
-    tx0, ty0, tx1, ty1 = [s(x) for x in v["title"]]
-    gradient_rect(img, [tx0, ty0, tx1, ty1], (70, 26, 22), (34, 12, 10), radius=s(8))
-    d = ImageDraw.Draw(img)
-    d.rounded_rectangle([tx0, ty0, tx1, ty1], radius=s(8), outline=GOLD, width=s(3))
-    for ex in (tx0, tx1):
-        lozenge(d, ex, (ty0 + ty1) / 2, s(12), s(3))
-    cut(img, [v["cultivation"], v["overflow"], v["dantian"]], [8, 6, 6])
-    d = ImageDraw.Draw(img)
-    cx0, cy0, cx1, cy1 = [s(x) for x in v["cultivation"]]
-    for i in range(1, 5):
-        x = cx0 + (cx1 - cx0) * i / 5
-        d.line([(x, cy0), (x, cy0 + s(10))], fill=(10, 14, 16, 200), width=s(4))
-        d.line([(x, cy1 - s(10)), (x, cy1)], fill=(10, 14, 16, 200), width=s(4))
-    glaze(img, v["cultivation"], 8, 3, rim=GOLD, gloss=46)
-    glaze(img, v["overflow"], 6, 2)
+    cut(img, [v["track"], v["dantian"]], [8, 6])
+    glaze(img, v["track"], 8, 3, rim=GOLD, gloss=40)
     glaze(img, v["dantian"], 6, 3, rim=GOLD)
     d = ImageDraw.Draw(img)
-    mx, my, mr = v["mark"]
-    lozenge(d, s(mx), s(my), s(mr), s(5))
+    # the breakthrough mark inside the track: a gilt divider with a lozenge on
+    # the rim above it, so the overflow reads as the same bar running on
+    mx = s(v["cultivation"][2])
+    y0, y1 = s(v["track"][1]), s(v["track"][3])
+    d.line([(mx, y0), (mx, y1)], fill=GOLD_LO, width=s(5))
+    d.line([(mx, y0), (mx, y1)], fill=GOLD, width=s(2))
+    lozenge(d, mx, y0 - s(2), s(13), s(3))
     finish(shadow_under(img, blur=3, offset=2), "seat_mount.png")
+
+
+def fill_sheen():
+    """fill_sheen.png 16x64, Stretch over any bar fill (white and black only, so
+    it works on every colour): a bright lip along the top, a soft lighter core
+    (the inner glow) and a darker belly. Identical in every column."""
+    w, h = 16, 64
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    for y in range(h):
+        t = y / (h - 1)
+        if t < 0.12:
+            a = int(170 * (1 - t / 0.12) + 60)
+            c = (255, 255, 255, a)
+        elif t < 0.5:
+            k = 1 - abs(t - 0.32) / 0.2
+            c = (255, 255, 255, int(max(0, k) * 46))
+        else:
+            k = (t - 0.5) / 0.5
+            c = (0, 0, 0, int(k * k * 110))
+        for x in range(w):
+            img.putpixel((x, y), c)
+    img.save(__import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "fill_sheen.png"))
+    print("wrote fill_sheen.png", img.size)
+
+
+def fill_edge():
+    """fill_edge.png 48x64: the bright leading edge at a fill's right end, a white
+    glow brightest at the right, fading left (anchored at the fill's right edge)."""
+    w, h = 48, 64
+    img = Image.new("RGBA", (w * SS, h * SS), (0, 0, 0, 0))
+    layer = Image.new("L", img.size, 0)
+    ld = ImageDraw.Draw(layer)
+    for i in range(w * SS):
+        t = i / (w * SS - 1)
+        ld.line([(i, 0), (i, h * SS)], fill=int(255 * t ** 2.2 * 0.85))
+    # soften top and bottom so it sits inside the trough
+    mask = Image.new("L", img.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, s(6), w * SS, (h - 6) * SS], radius=s(10), fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(s(4)))
+    from PIL import ImageChops
+    alpha = ImageChops.multiply(layer, mask)
+    white = Image.new("RGBA", img.size, (255, 255, 255, 255))
+    white.putalpha(alpha)
+    finish(white, "fill_edge.png")
 
 
 def preview():
@@ -175,7 +219,7 @@ def preview():
     y = 10
     for name, boxes, fills in (
         ("vitals_mount.png", VITALS2, (("health", 1.0, (255, 92, 84)), ("qi", 1.0, (120, 220, 255)), ("guard", 1.0, (255, 236, 170)))),
-        ("seat_mount.png", SEAT, (("cultivation", 1.0, (240, 200, 100)), ("overflow", 0.4, (255, 240, 180)), ("dantian", 0.35, (180, 150, 255)))),
+        ("seat_mount.png", SEAT, (("cultivation", 1.0, (240, 200, 100)), ("overflow", 0.4, (255, 240, 180)), ("dantian", 0.7, (180, 150, 255)))),
     ):
         im = Image.open(os.path.join(here, name))
         layer = Image.new("RGBA", im.size, (0, 0, 0, 0))
@@ -202,5 +246,7 @@ if __name__ == "__main__":
     import sys
     vitals_mount()
     seat_mount()
+    fill_sheen()
+    fill_edge()
     if len(sys.argv) > 1 and sys.argv[1] == "preview":
         preview()

@@ -2,12 +2,12 @@
 -- The seated cultivation view (Hud.Stack.SeatBars, art seat_mount.png): while
 -- meditating it takes the vitals' place (Menus.setSeated), so the progress toward
 -- the next breakthrough lives in the meditation view, not on the fighting HUD.
---   Title           the realm (Realm)
---   CultivationBar  Cultivation / CultivationMax up to the breakthrough lozenge;
---                   gold, brighter once the breakthrough is ready
---   OverflowBar     the chamber past the lozenge: cultivation beyond the bar, up to
+--   TitleCrest      the realm (Realm), on the same crest the vitals wear
+--   CultivationBar  Cultivation / CultivationMax: the track up to the breakthrough
+--                   mark (80% along, drawn in seat_mount.png)
+--   OverflowBar     the same track past the mark: cultivation beyond the bar, up to
 --                   CultivationCap (the server lets it run past and carries a share
---                   into the next stage)
+--                   into the next stage), in a paler gold
 --   DantianBar      raw qi in the dantian (RawQi / DantianCap), refined by Circulate
 -- The cultivation line reads the numbers, or why a full bar can't break through yet
 -- (BreakthroughBlock). Every attribute defaults to 0 / "" until the server sets it.
@@ -36,7 +36,7 @@ end
 
 function SeatBars.init(gui: ScreenGui)
 	local root = (gui:FindFirstChild("Stack") :: Instance):FindFirstChild("SeatBars") :: Frame
-	local title = root:FindFirstChild("Title") :: TextLabel
+	local title = (root:FindFirstChild("TitleCrest") :: Instance):FindFirstChild("Title") :: TextLabel
 	local cultivationBar = root:FindFirstChild("CultivationBar") :: Frame
 	local overflowBar = root:FindFirstChild("OverflowBar") :: Frame
 	local dantianBar = root:FindFirstChild("DantianBar") :: Frame

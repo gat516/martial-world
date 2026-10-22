@@ -45,12 +45,16 @@ cursor, settings and the admin panel.
   tuck into the left notch instead of a row of their own. Ornament is trimmed to
   a gilt rim, end lozenges and small curls so the bars get the height, not the
   frame. Fills are bright (crimson health, azure qi, lit pale-gold guard) and
-  authored full, so the edit view and the first frame read full. On short
+  authored full, so the edit view and the first frame read full. Every bar fill
+  (vitals and seated) wears `Sheen` (`fill_sheen.png`: top lip, soft inner glow,
+  darker belly) and, except the centre-draining guard, a soft bright leading
+  `Edge` (`fill_edge.png`), both white/black so the fill colour shows through. On short
   screens (`Platform.isSmall`) the stack takes at most 30% of the height
   (`Layout` SMALL_HEIGHT_SHARE; it was 45%, which on a landscape phone in the
   device emulator, which gets the PC layout, filled over half the screen).
   The seated tiles, lotus, Force Breakthrough pill and the touch prompt dock's
-  column sit just above the plate and moved down with it. Cultivation and the dantian
+  column sit just above the plate and moved down with it; the lotus is centred
+  on the tiles' frames, 14 px past the last tile (`Meditation` LOTUS_GAP). Cultivation and the dantian
   left the fighting HUD: they show while seated, in the same spot
   (`Stack.SeatBars`). Health and qi have a pale trail that lingers on a drop.
   A cast refused for qi (`QiDenied` changes) flashes the qi bar red and shakes
@@ -61,10 +65,11 @@ cursor, settings and the admin panel.
   then again only while the player stands idle (no input for 25 s), at most
   every 150 s (`BreakthroughView` NUDGE_*). No pulsing or central prompt.
 - Seated: the vitals give way to the cultivation bars (`Stack.SeatBars`, art
-  `seat_mount.png`; `Menus.setSeated`): the realm on a lacquer title band, the
-  cultivation bar up to a gold breakthrough lozenge, a short overflow chamber
-  past it (cultivation beyond the bar, up to `CultivationCap`), and the dantian
-  (raw qi) under them. The cultivation line reads the numbers, "Ready to break
+  `seat_mount.png`, the same notched plate; `Menus.setSeated`): the realm on
+  the same crest the vitals wear (`TitleCrest`), one cultivation track with the
+  breakthrough mark inside it at 80% and the overflow (cultivation beyond the
+  bar, up to `CultivationCap`) as the paler stretch past the mark, and the
+  dantian (raw qi) in the tab under it. The cultivation line reads the numbers, "Ready to break
   through" in gold, or what blocks a full bar (`BreakthroughBlock`: insight,
   method, peak). Then the meditation menu, a row of square tiles above them that
   appear only when relevant (Circulate or Break Through, Method, Spirit Root,

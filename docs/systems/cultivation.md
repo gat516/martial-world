@@ -50,7 +50,7 @@ felt in fights.
   `comprehend` (spends insight and stones to break a technique's bottleneck).
 - `src/server/QiNodes.luau`: raw qi (and stones) from wilds nodes.
 - `src/server/Inventory.luau` (`use`): consumables that add qi, cultivation, insight.
-- Client: `SeatBars.luau` (the seated cultivation bar with its overflow chamber
+- Client: `SeatBars.luau` (the seated cultivation track with its overflow past the mark
   and the dantian; cultivation is off the fighting HUD), `BreakthroughView.luau`
   (button, light column and the "ready to break through" nudge),
   `CirculationMinigame.luau`.

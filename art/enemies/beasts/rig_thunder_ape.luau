@@ -1,5 +1,5 @@
 --!nocheck
--- Rigs ServerStorage._RosterBeasts.ThunderApeB at 1.8x (build_thunder_ape.luau) with the shared
+-- Rigs ServerStorage._RosterBeasts.ThunderApeB at 3.71x (build_thunder_ape.luau) with the shared
 -- rig_core.luau. Run in Edit mode through execute_luau; re-runnable.
 --
 -- Joints (all frames identity in model space, rotation about X is pitch):
@@ -18,7 +18,7 @@
 
 local BASE = "http://127.0.0.1:8767/beasts/"
 local rig = loadstring(game:GetService("HttpService"):GetAsync(BASE .. "rig_core.luau?" .. os.clock()))()
-local SCALE = 1.8 -- build_thunder_ape.luau's SCALE
+local SCALE = 3.71 -- build_thunder_ape.luau's SCALE
 local model = game:GetService("ServerStorage")._RosterBeasts.ThunderApeB
 local cf, size = model:GetBoundingBox()
 local out = rig({

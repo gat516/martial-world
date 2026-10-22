@@ -1,5 +1,5 @@
 --!nocheck
--- Thunder Ape B (boss, 1.8x): see art/enemies/beasts/RIGS.md. Authored in the old ape's
+-- Thunder Ape B (boss, 3.71x): see art/enemies/beasts/RIGS.md. Authored in the old ape's
 -- unit space and scaled by SCALE about the ground origin at the end (sizes, positions,
 -- JointPivot attributes, hooks), so rig_thunder_ape.luau's HRP numbers times SCALE fit.
 -- Thunder Ape (elite brute): a knuckle-walking storm ape built from Studio parts. Run in
@@ -30,7 +30,7 @@ local BONE = Color3.fromHex("EEE9DC")
 local MOUTH = Color3.fromHex("6B2A33")
 local BOLT = Color3.fromHex("5BD8FF") -- tells
 local SLATE = Color3.fromHex("3A4452") -- stone-iron knuckle plates
-local SCALE = 1.8 -- hump about 12 studs, about 18 reared up
+local SCALE = 3.71 -- matches the user's reference row ThunderApe (28 studs tall)
 
 -- A zigzag bolt of n neon dashes on a surface frame, running down its local -Y; m = -1
 -- mirrors it, so left and right bolts are mirror images.
@@ -59,7 +59,7 @@ end
 B.on(cf, "Chest", "Belly", "Part", v(2.3, 1.1, 1.6), CFrame.new(0, -1.25, 0.3), STORM_DK)
 -- dark hide chest plate carrying the thunder drum: ring, centre boss and three bolts
 local plate = cf * CFrame.new(0, -0.15, -1.45)
-B.on(plate, "Chest", "ChestHide", "Part", v(2.9, 2.2, 0.2), CFrame.identity, HIDE)
+B.on(plate, "Chest", "ChestHide", "Part", v(2.9, 2.7, 0.2), CFrame.new(0, -0.25, 0), HIDE)
 local face = plate * CFrame.new(0, -0.35, -0.1) -- the plate's front face, drum centre
 local function drum(name, d, h, color, class)
 	local p = B.on(face * CFrame.Angles(0, math.pi / 2, 0), "Chest", name, "Part", v(h, d, d), CFrame.new(h / 2 - 0.0, 0, 0) * CFrame.identity, color)

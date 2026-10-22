@@ -256,6 +256,28 @@ Handlers `EnemyFX/GoldenToad.luau`, `BloodCentipede.luau` on `BeastKit`; templat
 
 The `snare` cue is the Fox's (`enemyCue`, target = the caught Character); `Burrowed` is set only for the dive and cleared by erupt (BossAttacks), the client hides the body. Untested in play.
 
+### Flame Raven and Iron-Winged Blood Bat effects (third wave)
+Handlers `EnemyFX/FlameRaven.luau` (Template `FlameRavenB`) and `BloodBat.luau`;
+templates `Effects.FlameRaven` (10, 34 emitters) and `Effects.BloodBat` (8, 15
+emitters; the swarm gets 1 to 3 emitters a beat, the single shrieker plays
+`Impact.roar`).
+
+| Beast / beat | Layers (templates) |
+|---|---|
+| Raven windup | EyeGlint (gold); the eight primaries and Crest Tells dim -> gold; TipFlare (soot base, flame glow, sparks) on both wing tips and the crest |
+| talonDive | dash: EmberTrail on both wing tips for 0.6 s (smoke, flame, embers); land: small EmberBurst under the talons; skid: `Impact.skid` fire palette |
+| talonRake / windGust | FlameSlash (3-claw on soot, sparks, glint) at Talons_FX; GustBlast (wind streaks, dust fan, sparks) + `Impact.swipe` r10 |
+| emberFan | each windup cue with a `shape` lobs an ember (`BeastKit.lob`) from the Mouth to land at the windup's end (+0.15 s per extra cue); one lone cue adds two lobs 9 studs either side. EmberBurst (scorch, rings, flame, sparks, flash) + `Impact.explode` |
+| hit / hop / stagger / death | HitFlame; WingPuff; StaggerFlash; Death (feathers go to ash: ash, embers, glint) |
+| Bat windup | EyeGlint (crimson); WingEdgeTell, MouthTell, ChestCore dim -> flare |
+| bloodDive | dash: DiveStreak (2 emitters) on the Core; `leech` cue: a LeechMote trail flies from the target's torso to the bat's Core in 0.5 s, then ChestFlash |
+| sonicShriek | `Impact.roar` (crimson/pale palette) from 40% of the windup |
+| hit / hop / stagger / death | BiteHit (3); HopPuff (2); StaggerFlash (1); Death (feathers, blood mist) |
+
+The perch (root 1.5 studs lower after a dive) needs nothing: effects ride the body and
+read the root's ground. Whether the emberFan sends one windup per circle or one for
+all is unknown; both are handled. Untested in play.
+
 ### Arrivals, skids and turning into moves (testbed, `Config.Wilds.WEIGHTED_MOVES`)
 The server side of telegraphs.md "Attacks that make sense" (2026-10-22 boss feel pass).
 `WEIGHTED_MOVES = TESTBED`: the main game keeps the old snap-and-slide until the user

@@ -86,13 +86,15 @@ tuning.
   (no rolls), `src/server/Spawner.luau` (no ambient encounters).
 
 ## Setting it up (the test build)
+Any dev can do this on their own machine.
 1. Once: `git worktree add ../martial-world-test test` (the test checkout).
 2. In the test checkout: `tools/sandbox.sh open test` builds the place from
    `test.project.json` and opens it in Studio as `mw-sandbox-test`.
 3. In the same checkout: `rojo serve test.project.json` (port 34873, so it can run
    next to the main project's serve), and connect the Rojo plugin in that window
    to that port.
-Nothing in it is saved. After a restart, repeat steps 2 and 3.
+Without WSL, replace step 2 with `rojo build test.project.json -o mw-sandbox-test.rbxl`
+and open that file in Studio. Nothing in it is saved. After a restart, repeat steps 2 and 3.
 
 ## Keeping it in sync
 - Code and mapped assets sync by themselves: merging a feature branch into the
@@ -104,9 +106,6 @@ Nothing in it is saved. After a restart, repeat steps 2 and 3.
   or template in either place, export it, map it, and both places get it. No
   copy-and-paste between places.
 - New code that waits on map instances needs a stub here or a `Config.TESTBED` guard.
-
-`rojo build` doesn't work for now (for either project): some `.rbxmx` files store
-`LightInfluence` as an enum where Rojo 7.7 expects a float. Live serve tolerates it.
 
 ## Phases (planned)
 1. Scaffolding: project, switches, bare arena. **Done.**

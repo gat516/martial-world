@@ -37,7 +37,7 @@ on the baseplate unchanged.
   event ground, away from the pairs and spawn pad.
 - New bosses (Thunder Ape, Nine-Tailed Fox, Jade Jiao) get no zone: the user
   spawns them from the admin panel's "Spawn beasts" list (every def shows there,
-  testbed-only defs included), and bosses land 45 studs ahead of the player.
+  testbed-only defs included), and they land right in front of the player, just clear of their body.
 - `Workspace.Map.Sect.SpiritPeaks`: an empty stub, so `Peaks` and `MyPeak` load
   (nobody gets a peak).
 - Place-only, kept on purpose (not in git, never synced back): the enemy pose-preview rigs

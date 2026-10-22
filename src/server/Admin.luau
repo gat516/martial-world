@@ -8,6 +8,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local ServerStorage = game:GetService("ServerStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local BuildItems = require(ReplicatedStorage.Shared.BuildItems)
@@ -161,8 +162,12 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		if not (type(id) == "string" and Enemies.Defs[id] and count and root) then
 			return false, "Unknown beast or count"
 		end
-		-- bosses are huge (the Thunder Ape is ~30 studs tall): put them well clear
-		local ahead = if Enemies.Defs[id].boss then 45 else 14
+		-- right in front of the player, just clear of the body however big it is
+		-- (the Thunder Ape is ~30 studs tall)
+		local def = Enemies.Defs[id]
+		local template = ServerStorage.Enemies:FindFirstChild(def.body or id)
+		local size = if template and template:IsA("Model") then template:GetExtentsSize() else Vector3.zero
+		local ahead = math.max(14, math.max(size.X, size.Z) / 2 + 6)
 		for i = 1, count do
 			local a = (i / count) * math.pi * 2
 			local at = (root.CFrame * CFrame.new(math.cos(a) * 4, 0, -ahead + math.sin(a) * 4)).Position

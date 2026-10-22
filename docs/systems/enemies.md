@@ -484,7 +484,7 @@ pose module lands.
 ### Thunder Ape (testbed trial)
 A 30-stud storm boss for Foundation 1 (`Config.Wilds.NEW_THUNDER_APE = TESTBED`; flip it to ship).
 Body `ThunderApeB` (3.71x the roster ape; root box 14.8 x 14.8 x 16.3, so every reach below is measured from
-its centre and starts past ~15 studs). No testbed zone: spawn it from the admin panel ("Spawn beasts"), which puts bosses 45 studs ahead.
+its centre and starts past ~15 studs). No testbed zone: spawn it from the admin panel ("Spawn beasts"), which puts it just in front of the player, clear of its body.
 3000 HP, FE1, weight 9 (a FE1 fist cannot shove it), walk 8, run 22 (the player walks 16; each phase x1.09),
 aggro 90, leash 240, `resetOnEvade`. A fresh engagement opens with `challenge` (2.4 s entrance, no damage,
 `pack.howl`). `def.rotate` picks the next pattern attack whose phase, range band and cooldown fit

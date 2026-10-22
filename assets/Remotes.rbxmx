@@ -44,5 +44,7 @@
    <string name="Name">WeaponAction</string>
   </Properties>
   </Item>
+  <Item class="RemoteFunction" referent="RBX19"><Properties><string name="Name">CharacterAction</string></Properties>
+  </Item>
  </Item>
 </roblox>

@@ -91,6 +91,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Build items | `src/shared/BuildItems.luau` |
 | Weather | `src/shared/Weather.luau` |
 | World events | `src/shared/WorldEvents.luau` |
+| Character screen: races, last names, rarity colours, outfits, hair colours, reroll products and prices, the world backdrop, name rules, when it shows | `src/shared/CharacterCreator/` (one module each; [character creator](systems/character-creator.md)); look in `src/client/CharacterCreator/Theme.luau` |
 
 ## Systems
 
@@ -111,7 +112,8 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |
 | Map: layout, art direction, anchors scripts depend on | [map](systems/map.md) | Peaks (Map.Sect.SpiritPeaks), Tribulation (CENTER), Travel (TravelGate arrays) | Gates, Config.Travel, Config.Tribulation, Config.Build | DayNight (Map.Sect.Ambience), MyPeak |
 | Testbed / test build (local baseplate arena, `test.project.json`; branches and test build in AGENTS.md) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |
-| Monetization | [monetization](systems/monetization.md) | Receipts, Garden (Grow now) | Config.Garden.GROW_NOW | GardenView |
+| Monetization | [monetization](systems/monetization.md) | Receipts, Garden (Grow now), CharacterIdentity (rerolls) | Config.Garden.GROW_NOW, CharacterCreator.Products | GardenView, CharacterCreator |
+| Character creator (join screen: outfit, hair, race and last name, first name) | [character-creator](systems/character-creator.md) | CharacterIdentity | CharacterCreator/* | CharacterCreator/* |
 
 ## Remotes (`ReplicatedStorage.Remotes`, `assets/Remotes.rbxmx`)
 
@@ -136,6 +138,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only) | AdminPanel |
+| CharacterAction | Function | C->S | `CharacterIdentity.handle` (`state`, `templates`, `hair`, `reroll`, `confirm`) | CharacterCreator.Bridge |
 | WeaponAction | Function | C->S | `Weapons.handle` ("equip", weaponId / "unequip" / "stow", character, boolean) | Inventory (Weapons tab), WeaponAnimator (cosmetic control locks) |
 | Dodge, Cast | Event | - | unused (combat moved onto Attack) | - |
 

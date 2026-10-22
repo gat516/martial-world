@@ -63,6 +63,9 @@
       },
       "Veil": {
         "$path": "assets/Veil.rbxmx"
+      },
+      "CharacterCreator": {
+        "$path": "assets/CharacterCreator.rbxmx"
       }
     },
     "StarterPlayer": {

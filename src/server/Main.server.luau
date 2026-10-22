@@ -38,6 +38,7 @@ local Weapons = require(script.Parent.Weapons)
 local WorldCaches = require(script.Parent.WorldCaches)
 local Roots = require(script.Parent.Roots)
 local Methods = require(script.Parent.Methods)
+local CharacterIdentity = require(script.Parent.CharacterIdentity)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
 local joinedAt: { [Player]: number } = {}
@@ -186,6 +187,7 @@ Players.PlayerRemoving:Connect(function(player)
 	Quests.forget(player)
 	Meditation.forget(player)
 	Inventory.forget(player)
+	CharacterIdentity.forget(player)
 	Cultivation.forget(player)
 end)
 
@@ -270,10 +272,12 @@ WorldCaches.start()
 WeatherService.start()
 Garden.start()
 Receipts.start()
+CharacterIdentity.start() -- race and last name rolls, paid rerolls (registers with Receipts)
 WorldEvents.init()
 table.insert(EnemyService.onKill, Garden.onKill);
 
 (remotes.GardenAction :: RemoteFunction).OnServerInvoke = guarded(Garden.handle);
 (remotes.AdminAction :: RemoteFunction).OnServerInvoke = guarded(Admin.handle);
+(remotes.CharacterAction :: RemoteFunction).OnServerInvoke = guarded(CharacterIdentity.handle);
 
 (remotes.InventoryAction :: RemoteFunction).OnServerInvoke = guarded(Inventory.handle)

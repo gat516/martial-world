@@ -1,0 +1,345 @@
+--!strict
+-- Server side of the character screen (docs/systems/character-creator.md): the
+-- free first roll of race and last name, paid rerolls, hair-id validation and
+-- loading, and Enter World. Everything persistent or random is decided here; the
+-- client only previews.
+--
+-- State lives on the player as attributes (they replicate, so the screen just
+-- reads them): Race, Surname, FirstName, CharacterConfirmed. Nothing is saved to
+-- the DataStore yet: `onConfirmed`, `onRerolled` and `load` are the hooks for
+-- that, so a rejoin rolls again until a save is wired in.
+--
+-- CharacterAction (RemoteFunction) actions, each returning (ok, payload|message):
+--   "state"              -> { products = { RerollRace = {price, live}, ... }, mock }
+--   "templates"          -> { [catalogId]: templateImage } for every Clothing option
+--   "hair", id           -> validates the catalog id is hair and hands the client a
+--                           copy of the accessory (parented in its PlayerGui) to preview
+--   "reroll", kind       -> kind "Race" | "Surname". Live product: returns
+--                           { productId } and the client prompts the purchase; the
+--                           reroll happens in the receipt handler. Mock (id 0): rerolls
+--                           at once, Studio and testbed only.
+--   "confirm", look      -> checks and applies the look; fires onConfirmed
+
+local InsertService = game:GetService("InsertService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TextService = game:GetService("TextService")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local CC = ReplicatedStorage.Shared.CharacterCreator
+local Clothing = require(CC.Clothing)
+local HairColors = require(CC.HairColors)
+local Products = require(CC.Products)
+local Races = require(CC.Races)
+local Rules = require(CC.Rules)
+local Surnames = require(CC.Surnames)
+local Receipts = require(script.Parent.Receipts)
+
+export type Look = {
+	Shirt: string, -- Clothing option Id
+	Pants: string,
+	HairId: number?, -- catalog id of a hair accessory, or nil for none
+	HairColor: string, -- HairColors Id
+	FirstName: string,
+}
+
+local HAIR_COOLDOWN = 1.5 -- seconds between hair loads per player
+local PREVIEW_FOLDER = "CharacterPreview" -- in PlayerGui: only that player sees it
+
+local random = Random.new()
+local looks: { [Player]: Look } = {}
+local lastHair: { [Player]: number } = {}
+local hairCache: { [number]: Accessory | false } = {} -- false = not a hair we can load
+local templates: { [number]: string }? = nil
+
+local CharacterIdentity = {}
+-- Integration hooks: append functions.
+CharacterIdentity.onConfirmed = {} :: { (Player, Look) -> () }
+CharacterIdentity.onRerolled = {} :: { (Player, string, string) -> () } -- player, kind, new key
+
+local KINDS = {
+	Race = { defs = Races :: { [string]: any }, product = Products.RerollRace },
+	Surname = { defs = Surnames :: { [string]: any }, product = Products.RerollSurname },
+}
+
+local function mockAllowed(): boolean
+	return RunService:IsStudio() or Config.TESTBED
+end
+
+local function roll(player: Player, kind: string)
+	local key = Rules.roll(KINDS[kind].defs, random)
+	player:SetAttribute(kind, key)
+	for _, hook in CharacterIdentity.onRerolled do
+		task.spawn(hook, player, kind, key)
+	end
+	return key
+end
+
+-- Gives a player their race and last name. `saved` (from a future save) keeps
+-- what they had; anything missing or no longer in the config is rolled, free.
+function CharacterIdentity.load(player: Player, saved: { Race: string?, Surname: string? }?)
+	for kind, entry in KINDS do
+		local key = saved and (saved :: any)[kind]
+		if key and entry.defs[key] then
+			player:SetAttribute(kind, key)
+		else
+			player:SetAttribute(kind, Rules.roll(entry.defs, random))
+		end
+	end
+end
+
+local function optionById(list: { Clothing.Option }, id: string): Clothing.Option?
+	for _, option in list do
+		if option.Id == id then
+			return option
+		end
+	end
+	return nil
+end
+
+local function colorById(id: string): Color3?
+	for _, entry in HairColors do
+		if entry.Id == id then
+			return entry.Color
+		end
+	end
+	return nil
+end
+
+-- Catalog Shirt/Pants id -> the template image the Shirt/Pants instance needs.
+local function templateOf(assetId: number): string?
+	local ok, model = pcall(InsertService.LoadAsset, InsertService, assetId)
+	if not ok or not model then
+		warn(`CharacterIdentity: couldn't load clothing {assetId}`)
+		return nil
+	end
+	local clothing = model:FindFirstChildWhichIsA("Clothing", true)
+	local template = if clothing and clothing:IsA("Shirt")
+		then clothing.ShirtTemplate
+		elseif clothing and clothing:IsA("Pants") then clothing.PantsTemplate
+		else nil
+	model:Destroy()
+	return template
+end
+
+local function allTemplates(): { [number]: string }
+	if not templates then
+		local found = {}
+		for _, list in { Clothing.Shirt, Clothing.Pants } do
+			for _, option in list do
+				if option.AssetId > 0 and not found[option.AssetId] then
+					found[option.AssetId] = templateOf(option.AssetId)
+				end
+			end
+		end
+		templates = found
+	end
+	return templates :: { [number]: string }
+end
+
+-- Loads a hair accessory by catalog id, after checking the catalog says it's hair.
+local function loadHair(id: number): Accessory?
+	local cached = hairCache[id]
+	if cached ~= nil then
+		return if cached then cached else nil
+	end
+	local okInfo, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, id, Enum.InfoType.Asset)
+	if not okInfo or type(info) ~= "table" or not Rules.HAIR_ASSET_TYPES[info.AssetTypeId] then
+		hairCache[id] = false
+		return nil
+	end
+	local okLoad, model = pcall(InsertService.LoadAsset, InsertService, id)
+	local accessory = okLoad and model and model:FindFirstChildWhichIsA("Accessory")
+	if accessory then
+		accessory.Parent = nil
+		model:Destroy()
+		hairCache[id] = accessory
+		return accessory
+	end
+	if okLoad and model then
+		model:Destroy()
+	end
+	hairCache[id] = false
+	return nil
+end
+
+local function filterName(player: Player, name: string): string?
+	local ok, result = pcall(TextService.FilterStringAsync, TextService, name, player.UserId)
+	if not ok then
+		return nil
+	end
+	local okText, text = pcall((result :: TextFilterResult).GetNonChatStringForBroadcastAsync, result)
+	if not okText or text ~= name then
+		return nil -- filtered (tags) or the filter is down: refuse rather than guess
+	end
+	return text
+end
+
+local function dress(player: Player, look: Look)
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not (character and humanoid) then
+		return
+	end
+	local shirt = optionById(Clothing.Shirt, look.Shirt)
+	local pants = optionById(Clothing.Pants, look.Pants)
+	local okDesc, description = pcall(humanoid.GetAppliedDescription, humanoid)
+	if okDesc and description then
+		if shirt and shirt.AssetId > 0 then
+			description.Shirt = shirt.AssetId
+		end
+		if pants and pants.AssetId > 0 then
+			description.Pants = pants.AssetId
+		end
+		if look.HairId then
+			description.HairAccessory = tostring(look.HairId)
+		end
+		local ok, err = pcall(humanoid.ApplyDescription, humanoid, description)
+		if not ok then
+			warn("CharacterIdentity: couldn't dress", player.Name, err)
+		end
+	end
+	local color = colorById(look.HairColor)
+	if color then
+		for _, accessory in character:GetChildren() do
+			if accessory:IsA("Accessory") and accessory.AccessoryType == Enum.AccessoryType.Hair then
+				Rules.tintHair(accessory, color)
+			end
+		end
+	end
+end
+
+local function confirm(player: Player, raw: any): (boolean, any)
+	if type(raw) ~= "table" then
+		return false, "Bad request"
+	end
+	if not optionById(Clothing.Shirt, raw.Shirt) or not optionById(Clothing.Pants, raw.Pants) then
+		return false, "Pick a shirt and pants"
+	end
+	if not colorById(raw.HairColor) then
+		return false, "Pick a hair colour"
+	end
+	local hairId: number? = nil
+	if raw.HairId ~= nil then
+		if type(raw.HairId) ~= "number" or not loadHair(raw.HairId) then
+			return false, "That hair can't be used"
+		end
+		hairId = raw.HairId
+	end
+	local name, why = Rules.checkFirstName(if type(raw.FirstName) == "string" then raw.FirstName else "")
+	if not name then
+		return false, why
+	end
+	if not filterName(player, name :: string) then
+		return false, "Choose a different name"
+	end
+	local look: Look = {
+		Shirt = raw.Shirt,
+		Pants = raw.Pants,
+		HairId = hairId,
+		HairColor = raw.HairColor,
+		FirstName = name :: string,
+	}
+	looks[player] = look
+	player:SetAttribute("FirstName", look.FirstName)
+	player:SetAttribute("CharacterConfirmed", true)
+	if Rules.APPLY_TO_CHARACTER then
+		task.spawn(dress, player, look)
+	end
+	for _, hook in CharacterIdentity.onConfirmed do
+		task.spawn(hook, player, look)
+	end
+	return true, look
+end
+
+function CharacterIdentity.handle(player: Player, action: any, arg: any): (boolean, any)
+	if action == "state" then
+		local products = {}
+		for kind, entry in KINDS do
+			products[kind] = { price = entry.product.RobuxPrice, live = entry.product.ProductId ~= 0 }
+		end
+		return true, { products = products, mock = mockAllowed() }
+	elseif action == "templates" then
+		return true, allTemplates()
+	elseif action == "hair" then
+		if type(arg) ~= "number" or arg ~= math.floor(arg) or arg <= 0 then
+			return false, "That isn't a valid asset ID"
+		end
+		local now = os.clock()
+		if now - (lastHair[player] or 0) < HAIR_COOLDOWN then
+			return false, "Slow down"
+		end
+		lastHair[player] = now
+		local hair = loadHair(arg)
+		if not hair then
+			return false, "That ID isn't a hair accessory"
+		end
+		local gui = player:FindFirstChildOfClass("PlayerGui")
+		if not gui then
+			return false, "Try again"
+		end
+		local folder = gui:FindFirstChild(PREVIEW_FOLDER)
+		if not folder then
+			folder = Instance.new("Folder")
+			folder.Name = PREVIEW_FOLDER
+			folder.Parent = gui
+		end
+		(folder :: Instance):ClearAllChildren()
+		local copy = hair:Clone()
+		copy.Name = tostring(arg)
+		copy.Parent = folder
+		return true, copy
+	elseif action == "reroll" then
+		local entry = KINDS[arg]
+		if not entry then
+			return false, "Bad request"
+		end
+		if entry.product.ProductId ~= 0 then
+			return true, { productId = entry.product.ProductId }
+		elseif mockAllowed() then
+			return true, { rolled = roll(player, arg) }
+		end
+		return false, "Not available yet"
+	elseif action == "confirm" then
+		return confirm(player, arg)
+	end
+	return false, "Bad request"
+end
+
+function CharacterIdentity.look(player: Player): Look?
+	return looks[player]
+end
+
+function CharacterIdentity.forget(player: Player)
+	looks[player] = nil
+	lastHair[player] = nil
+end
+
+function CharacterIdentity.start()
+	-- Paid rerolls: only through Roblox's receipt, never on the client's word.
+	for kind, entry in KINDS do
+		if entry.product.ProductId ~= 0 then
+			Receipts.register(entry.product.ProductId, function(player)
+				roll(player, kind)
+				return true
+			end)
+		end
+	end
+	local function watch(player: Player)
+		CharacterIdentity.load(player, nil)
+		player.CharacterAdded:Connect(function()
+			local look = looks[player]
+			if look and Rules.APPLY_TO_CHARACTER then
+				task.defer(dress, player, look)
+			end
+		end)
+	end
+	Players.PlayerAdded:Connect(watch)
+	for _, player in Players:GetPlayers() do
+		task.spawn(watch, player)
+	end
+end
+
+return CharacterIdentity

@@ -217,6 +217,24 @@ them only for work that needs them, and never start Play in them.
   frame around other sessions' ScreenGuis.
 - Previews: anchor every part and tag the folder `EditorOnly`, or Play drops the
   cut-motor copies in a heap.
+- Static pose QA (lowest point, continuity tables) misses motion bugs. Probe
+  motion over the real state timeline instead: windup, dash, recover, the keyed
+  blends between them and the hand-off into idle, sampled per frame with part
+  speeds and joint steps. On the Jade Jiao (2026-10-22) every top problem
+  showed only there: a 1260 studs/s spin-back, a dead frame at each release,
+  an idle pop.
+- The keyed blend at windup -> recover restarts from the frozen last windup
+  frame and kills follow-through on keyed families (a strike went 321, 0, 7
+  studs/s). EnemyAnimator's family flag `seamless` plays one attack's phases
+  straight on; try it on any keyed family with a hitch at release.
+- A pose that grows with time spent still needs a clock that excludes attack
+  time. `still` counts it, so idle loops pop after long moves; use `calm`
+  (seconds still and out of any move).
+- The `snap` ease is fastest at its start: good for a head strike that hits
+  and holds, a teleport on a whip or lash (use `in`).
+- Weight chain coverage by arc length, not whole segments, or rings pop.
+- Rough speed budget: a hero part at most ~600 studs/s at contact, and no
+  one-frame joint step over ~45 degrees outside deliberate snaps.
 
 ## When done
 

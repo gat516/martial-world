@@ -186,8 +186,12 @@ checks a rebuild against the previous templates.
   sandbox run with a jian landed them 0.02-0.03 s after the release and the
   terminal at 0.13 s) instead of up to ~0.36 s after the damage number; every
   cut gets a cyan crescent flipbook and the shared ink splat and star-burst
-  flipbook. Layers T1 / T4: charge 8 / 8, release 8 / 12, edge 3 / 4, blade 11,
-  impact 10 / 16, terminal 10 / 16.
+  flipbook. QA pass 2026-10-21: the Neon `Cut` slit and ink `Scar` are a cut
+  carved into the ground under the blade's path (`Cut`/`CutKicks`,
+  `BladeSkill.rend`: carved crack, cyan seam cooling, puffs and chips, star
+  cracks at II+, a crack web and rock kicks at III+). Layers T1 / T4: charge
+  8 / 8, release 8 / 12, edge 3 / 4, blade 11, cut 9 / 15, impact 11 / 18,
+  terminal 11 / 18.
 - **Lightning Talisman** (`LightningTalisman_T1..T4`;
   `TechniqueFX.LightningTalisman`). At Hit a paper talisman card leaves the
   left hand (Fists.2) and tumbles to a point above the first target in

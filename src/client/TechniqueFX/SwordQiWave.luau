@@ -6,8 +6,8 @@
 -- The release flashes on the held jian's blade (the model's Base -> Tip, 0.8 of
 -- the way out; Fists.3 sweeps the right arm flat across the front through Hit,
 -- so the blade goes with it), its edge draws a ribbon through the cut, then a crescent of Beams (part "Blade") flies
--- the line on the template's TravelCurve, drawing a glowing slit on the ground
--- that cools into an ink scar. Every enemy on the line gets an impact as the
+-- the line on the template's TravelCurve, carving a cut into the ground under
+-- it (BladeSkill.rend: a carved crack with cyan qi burning in it and cooling). Every enemy on the line gets an impact as the
 -- blade's front reaches its near side; the blade ends in a terminal burst at
 -- max range, or earlier where a wall or rising ground stops it.
 --
@@ -121,27 +121,6 @@ local function drive(seconds: number, onStep: (number) -> (), onDone: () -> ())
 	tween:Play()
 end
 
--- A ground strip (the cut or the scar) from `a` to `b` (ground points).
-local function placeStrip(strip: BasePart, a: Vector3, b: Vector3, width: number)
-	local length = math.max((b - a).Magnitude, 0.05)
-	strip.Size = Vector3.new(width, strip.Size.Y, length)
-	strip.CFrame = CFrame.lookAt((a + b) / 2, b) + Vector3.new(0, strip.Size.Y / 2, 0)
-end
-
-local function fadeStrip(strip: BasePart, seconds: number, delay: number, color: Color3?)
-	local goal: { [string]: any } = { Transparency = 1 }
-	if color then
-		goal.Color = color
-	end
-	local tween = TweenService:Create(strip, TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, delay), goal)
-	TechniqueVFX.waves[tween] = true
-	tween.Completed:Once(function()
-		TechniqueVFX.waves[tween] = nil
-		strip:Destroy()
-	end)
-	tween:Play()
-end
-
 local function cast(CombatEffects: any, def: any, level: number, character: Model?, origin: Vector3, dir: Vector3): boolean
 	dir = Vector3.new(dir.X, 0, dir.Z)
 	if dir.Magnitude < 0.01 then
@@ -163,8 +142,8 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	local impact = TechniqueVFX.take(copy, "Impact")
 	local terminal = TechniqueVFX.take(copy, "Terminal")
 	local blade = TechniqueVFX.take(copy, "Blade")
-	local cut = TechniqueVFX.take(copy, "Cut")
-	local scar = TechniqueVFX.take(copy, "Scar")
+	local rend = TechniqueVFX.take(copy, "Cut")
+	local rendKicks = TechniqueVFX.take(copy, "CutKicks")
 	local windup = TechniqueVFX.take(copy, "Windup")
 	if windup then
 		windup:Destroy() -- played at cast start (CombatEffects.windup)
@@ -227,16 +206,9 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		local p = pointAt(progress)
 		return Vector3.new(p.X, groundY + (endGround - groundY) * (progress / stopProgress) + 0.03, p.Z)
 	end
-	local strips: { { part: BasePart, width: number } } = {}
-	for _, s in { cut, scar } do
-		if s then
-			s.Transparency = num(s, "StartTransparency", 0.2)
-			s.CastShadow, s.CanCollide, s.CanQuery, s.CanTouch, s.Anchored = false, false, false, false, true
-			s.Parent = TechniqueVFX.folder
-			table.insert(strips, { part = s, width = s.Size.X * widthScale })
-			placeStrip(s, cutStart, cutStart + dir * 0.05, s.Size.X)
-		end
-	end
+	-- the cut the blade carves in the ground under its path (BladeSkill.rend),
+	-- opening as it flies
+	BladeSkill.rend(rend, rendKicks, cutStart, groundAlong(stopProgress), stopTime, math.sqrt(widthScale))
 	-- the path box covers the stretch actually flown, for the motes and cracks
 	local path = copy:FindFirstChild("Path") :: BasePart?
 	if path then
@@ -317,9 +289,6 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			end
 		end
 		local p = math.min(sample(travelCurve, math.min(t, stopTime) / travelTime), stopProgress)
-		for _, s in strips do
-			placeStrip(s.part, cutStart, groundAlong(p), s.width)
-		end
 		if light then
 			light.Brightness = 2.5 * (1 - 0.6 * p)
 		end
@@ -353,11 +322,6 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			TechniqueVFX.emit(b)
 			TechniqueVFX.cleanup(b)
 			terminal:Destroy()
-		end
-		for _, s in strips do
-			local part = s.part
-			local colorAttr = part:GetAttribute("FadeColor")
-			fadeStrip(part, num(part, "Fade", 0.6), num(part, "FadeDelay", 0), if typeof(colorAttr) == "Color3" then colorAttr else nil)
 		end
 		if not TechniqueVFX.full and tier >= 3 and CastFX.nearCamera(endPoint, 45) then
 			CombatEffects.shake(0.15)

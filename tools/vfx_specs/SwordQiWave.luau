@@ -30,9 +30,10 @@
 --   Terminal (where the blade ends, part "Terminal"): the blade bursts. A
 --     bigger impactStack (standing torus, ground shock, flash, sparks) so the
 --     projectile never just vanishes.
---   Aftermath (parts "Cut", "Scar", "Path"): a glowing Neon slit drawn on the
---     ground behind the blade as it flies, cooling into a dark ink scar that
---     lingers and fades; II+ qi motes rise off the cut.
+--   Aftermath (parts "Cut", "CutKicks", "Path"): a cut carved into the ground
+--     under the blade as it flies (groundRend: a carved crack, a cyan seam
+--     cooling to ink, dust and chips kicked up), lingering and fading; II+ qi
+--     motes rise off the cut. (QA pass 2026-10-21: was a Neon slit.)
 --
 -- What each tier adds:
 --   I   one crescent (span 5), 1 air ring, impact ring + ground shock, a small
@@ -193,24 +194,15 @@ B.BLOCKS.sqwBlade = function(root, tier, p)
 	return blade
 end
 
--- The cut drawn on the ground behind the blade: a glowing Neon slit and the
--- dark ink scar it cools into (the runtime stretches both along the path).
+-- The cut carved in the ground under the blade's path (BladeSkill.rend): a
+-- carved crack under a cyan slit and a cyan seam that cools, dust and chips
+-- as the blade passes; II+ glowing star cracks and motes, III+ a crack web
+-- and rock kicks. (Was a Neon slit cooling to an ink scar.)
 B.BLOCKS.sqwCut = function(root, tier, p)
-	local function strip(name, material, color, width, attrs, thick)
-		local s = B.part(root, name, O * CFrame.new(0, 0.05, -16), Vector3.new(width, thick, 1))
-		s.Material, s.Color = material, color
-		for k, v in attrs do
-			s:SetAttribute(k, v)
-		end
-		return s
-	end
-	strip("Cut", Enum.Material.Neon, Color3.fromRGB(120, 215, 255), ({ 0.22, 0.26, 0.3, 0.36 })[tier], {
-		StartTransparency = 0.35, Fade = ({ 0.45, 0.55, 0.65, 0.8 })[tier], FadeColor = CYAN,
-	}, 0.1) -- a hair above the scar, so the two never z-fight
-	strip("Scar", Enum.Material.SmoothPlastic, INK, ({ 0.5, 0.6, 0.7, 0.85 })[tier], {
-		StartTransparency = 0.35, Fade = ({ 1.0, 1.25, 1.5, 1.9 })[tier], FadeDelay = 0.25,
-	}, 0.06)
-	return root:FindFirstChild("Cut")
+	return B.groundRend(root, tier, {
+		part = "Cut", color = CYAN, core = CORE, ink = INK,
+		width = { 1.6, 1.9, 2.2, 2.6 }, seam = { 0.2, 0.24, 0.28, 0.34 }, stations = { 2, 3, 4, 5 },
+	})
 end
 
 -- Aftermath emitters spread over the whole path (a Box the runtime sizes to it).

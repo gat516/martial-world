@@ -426,6 +426,41 @@ because its remote may arrive before the replicated phase update. Ground effects
 stay at the locked point; body effects follow their attachment's part. Layer details
 and library ids are in the builder.
 
+### Thunder Ape (testbed trial)
+A 30-stud storm boss for Foundation 1 (`Config.Wilds.NEW_THUNDER_APE = TESTBED`; flip it to ship).
+Body `ThunderApeB` (3.71x the roster ape; root box 14.8 x 14.8 x 16.3, so every reach below is measured from
+its centre and starts past ~15 studs). Testbed zone `ThunderApeTrial` at (0, 648.6, -700).
+3000 HP, FE1, weight 9 (a FE1 fist cannot shove it), walk 8, run 22 (the player walks 16; each phase x1.09),
+aggro 90, leash 240, `resetOnEvade`. A fresh engagement opens with `challenge` (2.4 s entrance, no damage,
+`pack.howl`). `def.rotate` picks the next pattern attack whose phase, range band and cooldown fit
+(`rotateAttack`), so a boulder is skipped at melee; `chainOnly` attacks (`backhand`, `thunderPound`,
+`challenge`) only start as a `followUp`, which now also searches `def.pattern`. Phases: `summonAt`
+{0.66, 0.33} (the boss bar's ticks) call `def.phaseCall` (`phaseRoar`, `phaseStep`), which on resolving raises
+the `Phase` model attribute (1-3), fires `enemyCue "phase"` and applies `phaseSpeed`.
+
+| Attack | Kind | Windup / active / recover | Area (from centre) | Damage (500 HP player) | Phase |
+|---|---|---|---|---|---|
+| `clubSwing` -> `backhand` -> `thunderPound` | cone r30 110 deg / cone r30 120 deg / slam r15 at 18 ahead | .55/-/.30, .45/-/.30, .60/-/1.30 | | 50, 50, 110 | 1 |
+| `poundWave` (cue only) | ring from the pound, r34, 0.45 s later, spares the slam's own circle | | | 55 | 2+ |
+| `bodySlam` | lunge box 20 x 34 at 55/s | .85 / ~.62 / 1.10 | | 140 | 1 |
+| `skyfallSlam` | leap r20 on the target, arc 26, range 22-55 | .90 / .75 / 1.10 | | 150 | 1 |
+| `thunderRush` | charge box 14 x 64 at 95/s, 12 past the target | .90 / ~.7 / .90 | | 140 | 1 |
+| `bound` | hop to a flank spot 22-28 from the target, no telegraph (an empty `bound` shape so the windup cue fires) | .25 / .40 / .10 | | 0 | 1 |
+| `boulderHurl` | spit r10 on the target, range 28-85 | 1.0 / - / .90 | | 70 | 1 |
+| `thunderLance` | `lance` box 8 x 90 | 1.0 / - / .90 | | 120 | 2+ |
+| `thunderRoar` | howl, stun circle r42, stagger 0.9 s | 1.3 / - / 1.0 | | 0 | 2+ |
+| `stormCall` | `storm`: 5 bolts (7 in P3), 0.45 s apart on where the target stands, r8, 0.9 s warning each (`stormBolt` telegraphs) | 1.2 / - / ~3.0 | | 70 each | 2+ |
+| `judgment` | leap r28, arc 48, range 25-70, stuns 1.0 s only players its damage hit (`stun.onHit`) | 1.6 / 1.0 / 1.8 | | 190 | 3 |
+| `phaseRoar` | howl, stun circle r34, stagger 0.8 s | 1.6 / - / 1.2 | | 0 | 66% / 33% |
+
+Server additions: attack kinds `lance`, `bound`, `storm`; fields `stun.onHit`, `phase`, `chainOnly`, `phaseStep`,
+`landMin/Max`, `bolts/boltsP3/boltWindup/boltInterval/boltRadius`, `wave`; def fields `rotate`, `phaseCall`,
+`phaseSpeed`, `closeIn`. A leap's landing now hits with the leap's own attack (`landAttack`; `enemy.attack` has
+already moved to the next pattern entry). `EnemyFX` windup cues now carry the telegraph's attack name, so
+`stormBolt` and `poundWave` arrive as `cue.attack` (other windups are unchanged). Sounds
+`SFX.Enemies.ThunderApe` reuse the King, boar and Thunder samples at low pitch (placeholders, not listened to).
+Untested: all of it (feel, numbers, wall/ground checks for the flank bound, the wave's readability).
+
 ### Template contract
 Templates in `ServerStorage.Enemies` stay ordinary rigs: an unrotated
 `HumanoidRootPart` as PrimaryPart standing on Y 0 (its height is the beast's root

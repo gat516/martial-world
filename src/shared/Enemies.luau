@@ -10,6 +10,11 @@
 --   leap    a circle on the target's ground, then the beast flies there over
 --           `active` seconds and the circle resolves as it lands
 --   howl    no area, no damage: calls packmates within `radius` onto its target
+--   lance   a long lane (box) hit all at once when the windup ends (no dash)
+--   bound   no telegraph, no damage: hops to a flank spot `landMin`-`landMax` studs from
+--           the target over `active` seconds (arc is client-only)
+--   storm   `bolts` lightning strikes after the windup, each a circle on where the target
+--           stands `boltInterval` apart, hitting `boltWindup` later (`damage` per bolt)
 -- Lunges and charges hit each player when the dash front reaches them, not when
 -- the windup ends, so the blow lands as the beast arrives.
 -- Regular beasts with `attacks` pick from that pool each time (in order: the
@@ -29,7 +34,7 @@
 -- far player hits knock it back (Knockback.luau).
 
 export type Attack = {
-	kind: string, -- "lunge" | "charge" | "spit" | "cone" | "slam" | "summon" | "leap" | "howl"
+	kind: string, -- "lunge" | "charge" | "spit" | "cone" | "slam" | "summon" | "leap" | "howl" | "lance" | "bound" | "storm"
 	name: string?, -- shown to clients as the model's Attack attribute (default: kind); name it when one beast has two of a kind
 	damage: number,
 	range: number, -- start the attack when the target is this close
@@ -94,6 +99,10 @@ export type Def = {
 	body: string?, -- the template in ServerStorage.Enemies to draw (default: id)
 	pattern: { Attack }?, -- bosses: attacks used in rotation after `attack`
 	summonAt: { number }?, -- bosses: health fractions that trigger a summon
+	rotate: boolean?, -- boss: pick the next pattern attack that fits the range band and phase (not strictly in order)
+	phaseCall: Attack?, -- boss: the attack the `summonAt` thresholds call (a phase roar), instead of a summon
+	phaseSpeed: number?, -- boss: run speed multiplier gained at each phase step
+	closeIn: number?, -- boss: stops closing in this near its target (default 0.7 x min(range, 20))
 	shareTurns: boolean?, -- boss joins its summons' attack slots instead of overlapping their blows
 	resetOnEvade: boolean?, -- return home, heal/reset the fight and dismiss owned summons on losing the target
 }
@@ -102,6 +111,7 @@ local Wilds = require(script.Parent.Config).Wilds
 local NEW_WOLF = Wilds.NEW_WOLF
 local NEW_BOAR = Wilds.NEW_BOAR
 local NEW_WOLF_KING = Wilds.NEW_WOLF_KING
+local NEW_THUNDER_APE = Wilds.NEW_THUNDER_APE
 
 local Enemies = {}
 
@@ -528,6 +538,119 @@ if NEW_WOLF_KING then
 	king.summonAt = { 0.65, 0.30 }
 	king.shareTurns = true
 	king.resetOnEvade = true
+end
+
+-- THE THUNDER APE (Config.Wilds.NEW_THUNDER_APE, testbed only): a 30-stud storm
+-- boss for Foundation 1 (player 500 HP, power 3). The body is 3.71x the old ape
+-- (ThunderApeB, root box 14.8 x 14.8 x 16.3, body radius ~15), so every reach is
+-- measured from its centre and starts past ~15 studs: melee cones reach 30, the pound
+-- lands 18 ahead. Shares of the player's health at FE1: club/backhand 10%, pound 22%
+-- (wave 11%), body slam 28%, skyfall 30%, rush 28%, boulder 14%, lance 24%, bolt 14%,
+-- judgment 38% + stun. Roars stagger. Chain: clubSwing -> backhand -> thunderPound.
+-- Design and contracts: the enemy-designer's Thunder Ape sheet (timings the pose and
+-- effect modules hardcode: challenge beats 0.55/1.15/1.75, roars 0.45/0.85 and
+-- 0.4/0.8/1.2, boulder released at 0.60 s).
+if NEW_THUNDER_APE then
+	local function atk(a: Attack): Attack
+		return a
+	end
+	local clubSwing = atk({
+		kind = "cone", name = "clubSwing", damage = 50, range = 26, windup = 0.55, recover = 0.30,
+		cooldown = 0.9, radius = 30, angle = 110, followUp = "backhand",
+	})
+	local backhand = atk({
+		kind = "cone", name = "backhand", damage = 50, range = 26, windup = 0.45, recover = 0.30,
+		cooldown = 0.8, radius = 30, angle = 120, chainOnly = true, followUp = "thunderPound",
+	})
+	local thunderPound = atk({
+		kind = "slam", name = "thunderPound", damage = 110, range = 28, windup = 0.60, recover = 1.30,
+		cooldown = 2.4, radius = 15, offset = Vector3.new(0, 0, -18), chainOnly = true,
+		wave = { radius = 34, delay = 0.45, scale = 0.5, phase = 2 },
+	})
+	local bodySlam = atk({
+		kind = "lunge", name = "bodySlam", damage = 140, range = 38, windup = 0.85, recover = 1.10,
+		cooldown = 3.2, length = 34, width = 20, dashSpeed = 55,
+	})
+	local skyfallSlam = atk({
+		kind = "leap", name = "skyfallSlam", damage = 150, range = 55, minRange = 22, windup = 0.90,
+		active = 0.75, arc = 26, recover = 1.10, cooldown = 3.3, radius = 20,
+	})
+	local thunderRush = atk({
+		kind = "charge", name = "thunderRush", damage = 140, range = 80, minRange = 24, windup = 0.90,
+		recover = 0.90, cooldown = 3.1, length = 64, width = 14, dashSpeed = 95, stopPast = 12,
+	})
+	local bound = atk({
+		kind = "bound", name = "bound", damage = 0, range = 200, windup = 0.25, active = 0.40, arc = 10,
+		recover = 0.10, cooldown = 0.8, landMin = 22, landMax = 28,
+	})
+	local boulderHurl = atk({
+		kind = "spit", name = "boulderHurl", damage = 70, range = 85, minRange = 28, windup = 1.00,
+		recover = 0.90, cooldown = 2.4, radius = 10,
+	})
+	local thunderLance = atk({
+		kind = "lance", name = "thunderLance", damage = 120, range = 85, minRange = 20, windup = 1.00,
+		recover = 0.90, cooldown = 2.4, length = 90, width = 8, phase = 2,
+	})
+	local thunderRoar = atk({
+		kind = "howl", name = "thunderRoar", damage = 0, range = 45, windup = 1.30, recover = 1.00,
+		cooldown = 3.0, radius = 8, phase = 2, stun = { kind = "stagger", radius = 42, seconds = 0.9 },
+	})
+	local stormCall = atk({
+		kind = "storm", name = "stormCall", damage = 70, range = 90, windup = 1.20, recover = 3.0,
+		cooldown = 4.8, phase = 2, bolts = 5, boltsP3 = 7, boltWindup = 0.9, boltInterval = 0.45,
+		boltRadius = 8,
+	})
+	local judgment = atk({
+		kind = "leap", name = "judgment", damage = 190, range = 70, minRange = 25, windup = 1.60,
+		active = 1.00, arc = 48, recover = 1.80, cooldown = 5.0, radius = 28, phase = 3,
+		stun = { kind = "stun", radius = 0, seconds = 1.0, onHit = true },
+	})
+	local phaseRoar = atk({
+		kind = "howl", name = "phaseRoar", damage = 0, range = 60, windup = 1.60, recover = 1.20,
+		cooldown = 0, radius = 8, thresholdOnly = true, phaseStep = true,
+		stun = { kind = "stagger", radius = 34, seconds = 0.8 },
+	})
+	-- the entrance: a fresh engagement opens with it (pack.howl). No damage, no stun.
+	local challenge = atk({
+		kind = "howl", name = "challenge", damage = 0, range = 0, windup = 2.40, recover = 0.80,
+		cooldown = 0, radius = 30, chainOnly = true,
+	})
+	Enemies.Defs.ThunderApe = {
+		id = "ThunderApe",
+		name = "Thunder Ape",
+		realm = { "Foundation", 1 },
+		weight = 9,
+		boss = true,
+		health = 3000,
+		walkSpeed = 8,
+		runSpeed = 22, -- the player walks at 16; phases add phaseSpeed
+		phaseSpeed = 1.09,
+		aggro = 90,
+		leash = 240,
+		closeIn = 20,
+		qiDrop = 300,
+		stones = { 120, 180 },
+		respawn = 300,
+		body = "ThunderApeB",
+		drops = {
+			{ item = "GreaterSpiritCore", chance = 1 },
+			{ item = "LesserSpiritCore", chance = 1 },
+			{ item = "MarrowWashingPill", chance = 0.08 },
+			{ item = "RootRebirthPill", chance = 0.12 },
+		},
+		-- placeholder pool until the user picks this boss's rewards (same as the King's)
+		bossDrops = Enemies.Defs.ElderWolfKing.bossDrops,
+		summonAt = { 0.66, 0.33 }, -- the boss bar's phase ticks; phaseCall answers them
+		phaseCall = phaseRoar,
+		pack = { howl = challenge },
+		attack = clubSwing,
+		pattern = {
+			clubSwing, bound, boulderHurl, bodySlam, skyfallSlam, bound, thunderRush, thunderLance,
+			thunderRoar, bound, stormCall, judgment, backhand, thunderPound, phaseRoar, challenge,
+		} :: { Attack },
+		rotate = true,
+		resetOnEvade = true,
+	} :: Def
 end
 
 return Enemies

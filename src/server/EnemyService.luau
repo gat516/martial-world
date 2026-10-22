@@ -44,7 +44,7 @@ local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
 -- Attack slots and dash-front hits for the new fights; a boss opts into slots
 -- with shareTurns so its summoned pack cannot cover its tells with another hit.
-local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING
+local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Config.NEW_THUNDER_APE
 -- how long a follow-up (Enemies `followUp`) waits past its recover for the attack slot
 local FOLLOW_UP_WAIT = 1.0
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
@@ -150,6 +150,9 @@ type Enemy = {
 	strikeId: number, -- bumped when an attack resolves or breaks; pending dash hits check it
 	recoverFor: number, -- recover seconds after the current dash
 	landShape: Shape?, -- a leap's circle, resolved as it lands
+	landAttack: Enemies.Attack?, -- the leap that owns landShape (enemy.attack has moved on by then)
+	phase: number, -- rotating bosses: 1, then 2 and 3 as phase roars resolve
+	runBoost: number, -- run speed multiplier from phases
 	hopPending: boolean,
 	followUp: string?, -- an attack to start as soon as it recovers (Enemies `followUp`)
 	followUpUntil: number, -- the follow-up lapses if no slot frees up by then
@@ -315,6 +318,9 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 	model:SetAttribute("Health", health)
 	model:SetAttribute("AIState", "idle")
 	model:SetAttribute("StateAt", serverNow())
+	if def.phaseCall then
+		model:SetAttribute("Phase", 1)
+	end
 	model:AddTag("Enemy")
 	model.Parent = liveFolder
 	EnemyHistory.track(model, standin.radius, standin.height)
@@ -352,6 +358,9 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		strikeId = 0,
 		recoverFor = def.attack.recover,
 		landShape = nil,
+		landAttack = nil,
+		phase = 1,
+		runBoost = 1,
 		hopPending = false,
 		followUp = nil,
 		followUpUntil = 0,
@@ -568,7 +577,8 @@ local function moveTo(enemy: Enemy, at: Vector3)
 end
 
 local function setSpeed(enemy: Enemy, speed: number)
-	enemy.mover.speed = speed
+	-- phases speed up the chase, not dashes (those pass their own speed)
+	enemy.mover.speed = if speed == enemy.def.runSpeed then speed * enemy.runBoost else speed
 end
 
 local function setHealth(enemy: Enemy, health: number)
@@ -587,6 +597,10 @@ local function resetAtHome(enemy: Enemy)
 	table.clear(enemy.cooldowns)
 	enemy.attack = enemy.def.attack
 	enemy.patternIndex = 0
+	enemy.phase, enemy.runBoost = 1, 1
+	if enemy.def.phaseCall then
+		enemy.model:SetAttribute("Phase", 1)
+	end
 	enemy.nextAttack = 0
 	enemy.lastEngaged = -math.huge
 	enemy.opened = false
@@ -720,6 +734,10 @@ local function hurtPlayer(enemy: Enemy, attack: Enemies.Attack, player: Player)
 	local result = Combat.hurt(player, attack.damage * Realms.ofBeast(enemy.def.realm).beastDamage, false, enemy.def.id)
 	if result == "hit" and player.Character then
 		effectRemote:FireAllClients("enemyCue", enemy.model, "hit", player.Character)
+		local stun = attack.stun
+		if stun and stun.onHit then
+			PlayerStun.apply(player, stun.kind :: any, stun.seconds, enemy.model)
+		end
 	end
 end
 
@@ -811,8 +829,16 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 			radius = attack.radius,
 			size = Vector2.new(attack.angle :: number, 0),
 		}
-	elseif attack.kind == "summon" or attack.kind == "howl" then
+	elseif attack.kind == "summon" or attack.kind == "howl" or attack.kind == "storm" then
 		shape = { kind = "howl", center = ground, radius = 8 }
+	elseif attack.kind == "lance" then
+		-- a lane hit all at once when the windup ends; no dash
+		local length = attack.length :: number
+		shape = {
+			kind = "box",
+			cframe = CFrame.lookAt(ground, ground + dir) * CFrame.new(0, 0, -length / 2),
+			size = Vector2.new(attack.width :: number, length),
+		}
 	else
 		local length = attack.length :: number
 		if attack.stopPast then
@@ -833,7 +859,7 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	enemy.stateUntil = now + attack.windup
 	local name = attackName(attack)
 	local stun = attack.stun
-	if stun then
+	if stun and not stun.onHit then
 		-- the exact area the roar will catch, drawn like any damaging telegraph
 		telegraphRemote:FireAllClients({ kind = "circle", center = ground, radius = stun.radius }, seconds, enemy.model, name, serverNow())
 	end
@@ -988,11 +1014,65 @@ local function advancePattern(enemy: Enemy)
 		for _ = 1, #pattern do
 			enemy.patternIndex = enemy.patternIndex % #pattern + 1
 			enemy.attack = pattern[enemy.patternIndex]
-			if not enemy.attack.thresholdOnly then
+			if not enemy.attack.thresholdOnly and not enemy.attack.chainOnly then
 				return
 			end
 		end
 	end
+end
+
+-- A storm call's lightning: bolt i picks where the target stands when its turn
+-- comes (so keep moving), shows a circle for boltWindup, then strikes. The beast
+-- stays in recover meanwhile; a stagger of it doesn't call the bolts off.
+local function callStorm(enemy: Enemy, attack: Enemies.Attack)
+	local bolts = if enemy.phase >= 3 then attack.boltsP3 or attack.bolts or 5 else attack.bolts or 5
+	local interval, warning = attack.boltInterval or 0.45, attack.boltWindup or 0.9
+	local radius = attack.boltRadius or 8
+	enemy.recoverFor = interval * (bolts - 1) + warning + 0.3
+	local model = enemy.model
+	for i = 1, bolts do
+		task.delay((i - 1) * interval, function()
+			if enemies[model] ~= enemy or enemy.health <= 0 then
+				return
+			end
+			local player = enemy.target
+			local root = player and playerRoot(player)
+			if not root then
+				return
+			end
+			local shape: Shape = { kind = "circle", center = groundAt(root.Position), radius = radius }
+			telegraphRemote:FireAllClients(shape, warning, model, "stormBolt", serverNow())
+			task.delay(warning, function()
+				if enemies[model] == enemy and enemy.health > 0 then
+					hurtIn(enemy, attack, shape)
+				end
+			end)
+		end)
+	end
+end
+
+-- A slam's second ring (attack.wave): same centre, wider, half damage later,
+-- and not for anyone the slam's own circle already caught.
+local function callWave(enemy: Enemy, attack: Enemies.Attack, slam: Shape)
+	local wave = attack.wave :: any
+	local center = slam.center :: Vector3
+	local shape: Shape = { kind = "circle", center = center, radius = wave.radius }
+	local model = enemy.model
+	telegraphRemote:FireAllClients(shape, wave.delay, model, "poundWave", serverNow())
+	local weak: Enemies.Attack = table.clone(attack)
+	weak.damage = attack.damage * wave.scale
+	weak.wave = nil
+	task.delay(wave.delay, function()
+		if enemies[model] ~= enemy or enemy.health <= 0 then
+			return
+		end
+		for _, player in Players:GetPlayers() do
+			local root = playerRoot(player)
+			if root and flat(root.Position - center).Magnitude > (slam.radius :: number) + PLAYER_RADIUS and caught(shape, player, root) then
+				hurtPlayer(enemy, weak, player)
+			end
+		end
+	end)
 end
 
 local function resolveAttack(enemy: Enemy, now: number)
@@ -1003,19 +1083,34 @@ local function resolveAttack(enemy: Enemy, now: number)
 	enemy.recoverFor = attack.recover
 	if attack.kind == "summon" then
 		summon(enemy, attack)
+	elseif attack.kind == "bound" then
+		-- no damage: the hop below is all it does
+	elseif attack.kind == "storm" then
+		callStorm(enemy, attack)
 	elseif attack.kind == "howl" then
 		if callPack(enemy, attack, now) == 0 and attack.summons then
 			reinforce(enemy, attack)
 		end
 	elseif attack.kind == "leap" then
 		enemy.landShape = shape -- resolves as it lands (think, dash)
+		enemy.landAttack = attack -- enemy.attack moves on at the end of this function
 	elseif enemy.dashTo and TURNS then
 		hurtAlongDash(enemy, attack, shape)
 	else
 		hurtIn(enemy, attack, shape)
+		if attack.wave and enemy.phase >= attack.wave.phase then
+			callWave(enemy, attack, shape)
+		end
+	end
+	if attack.phaseStep then
+		enemy.phase += 1
+		enemy.runBoost *= enemy.def.phaseSpeed or 1
+		setSpeed(enemy, enemy.def.runSpeed)
+		enemy.model:SetAttribute("Phase", enemy.phase)
+		effectRemote:FireAllClients("enemyCue", enemy.model, "phase")
 	end
 	local stun = attack.stun
-	if stun then
+	if stun and not stun.onHit then
 		-- a roar: staggers or stuns every player standing in its circle
 		local area: Shape = { kind = "circle", center = groundAt(enemy.root.Position), radius = stun.radius }
 		for _, player in Players:GetPlayers() do
@@ -1036,7 +1131,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 	end
 	if enemy.dashTo then
 		local to = enemy.dashTo :: Vector3
-		if attack.kind == "leap" then
+		if attack.kind == "leap" or attack.kind == "bound" then
 			local flight = attack.active or 0.45
 			startDash(enemy, to, math.max(flat(to - enemy.root.Position).Magnitude / flight, 1), attack.arc)
 			enemy.stateUntil = now + flight
@@ -1050,7 +1145,7 @@ local function resolveAttack(enemy: Enemy, now: number)
 	else
 		releaseSlot(enemy)
 		enemy.state = "recover"
-		enemy.stateUntil = now + attack.recover
+		enemy.stateUntil = now + enemy.recoverFor
 	end
 	advancePattern(enemy)
 end
@@ -1099,6 +1194,67 @@ end
 
 -- The attack to start now, if any: the opener first in a fresh engagement, then
 -- the first in the pool whose range band holds the target and whose cooldown is up.
+-- Rotating bosses (def.rotate): the next attack in the pattern whose phase, range
+-- band and cooldown fit, scanning on from where the rotation stands, so a boulder
+-- is skipped at melee and a pound at range. Chain-only and threshold attacks never
+-- come from here.
+local function rotateAttack(enemy: Enemy, distance: number, now: number): Enemies.Attack?
+	local pattern = enemy.def.pattern :: { Enemies.Attack }
+	local n = #pattern
+	local start = math.max(enemy.patternIndex, 1)
+	for step = 0, n - 1 do
+		local i = (start - 1 + step) % n + 1
+		local a = pattern[i]
+		if
+			not a.chainOnly
+			and not a.thresholdOnly
+			and (a.phase or 1) <= enemy.phase
+			and distance <= a.range
+			and distance >= (a.minRange or 0)
+			and now >= (enemy.cooldowns[attackName(a)] or 0)
+		then
+			enemy.patternIndex = i
+			return a
+		end
+	end
+	return nil
+end
+
+-- A bound: no damage, no area. It crouches (windup), then hops to a flank spot
+-- landMin-landMax studs from the target (a random side, on ground within 10 studs of
+-- the target's height) and chases again. Clients get a Telegraph with an empty
+-- "bound" shape so the windup cue fires.
+local function startBound(enemy: Enemy, targetRoot: BasePart, now: number, attack: Enemies.Attack)
+	enemy.attack = attack
+	stop(enemy)
+	enemy.mover.turn = false
+	face(enemy, targetRoot.Position)
+	local center = targetRoot.Position
+	local base = groundAt(center)
+	local away = flat(enemy.root.Position - center)
+	away = if away.Magnitude > 0.1 then away.Unit else Vector3.xAxis
+	local point: Vector3? = nil
+	for _ = 1, 8 do
+		local side = if math.random() < 0.5 then 1 else -1
+		local dir = CFrame.Angles(0, side * math.rad(60 + math.random() * 90), 0):VectorToWorldSpace(away)
+		local dist = (attack.landMin or 22) + math.random() * ((attack.landMax or 28) - (attack.landMin or 22))
+		local probe = center + dir * dist
+		local hit = workspace:Raycast(probe + Vector3.new(0, 60, 0), Vector3.new(0, -160, 0), groundParams())
+		if hit and math.abs(hit.Position.Y - base.Y) <= 10 then
+			point = hit.Position
+			break
+		end
+	end
+	point = point or groundAt(center + away * (attack.landMin or 22))
+	enemy.dashTo = point
+	enemy.shape = { kind = "bound", center = point, radius = 0 }
+	enemy.stateUntil = now + attack.windup
+	enemy.nextAttack = now + attack.cooldown
+	enemy.model:SetAttribute("Attack", attackName(attack))
+	setState(enemy, "windup")
+	telegraphRemote:FireAllClients(enemy.shape, attack.windup, enemy.model, attackName(attack), serverNow())
+end
+
 local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.Attack?
 	local slotOk = not (TURNS and (not enemy.def.boss or enemy.def.shareTurns)
 		and enemy.target and not slotFree(enemy.target, now))
@@ -1109,7 +1265,7 @@ local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.
 	local followUp = enemy.followUp
 	if followUp then
 		local chosen: Enemies.Attack? = nil
-		for _, a in enemy.def.attacks or {} do
+		for _, a in enemy.def.attacks or enemy.def.pattern or {} do
 			if attackName(a) == followUp then
 				chosen = a
 			end
@@ -1133,6 +1289,9 @@ local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.
 			and (a.notBefore == nil or now - enemy.engagedAt >= a.notBefore)
 	end
 	local pool = enemy.def.attacks
+	if not pool and enemy.def.rotate then
+		return rotateAttack(enemy, distance, now)
+	end
 	if not pool then
 		return if distance <= enemy.attack.range then enemy.attack else nil
 	end
@@ -1172,7 +1331,7 @@ local function think(enemy: Enemy, now: number)
 			local landing = enemy.landShape
 			if landing then
 				enemy.landShape = nil
-				hurtIn(enemy, enemy.attack, landing)
+				hurtIn(enemy, enemy.landAttack or enemy.attack, landing)
 			end
 			releaseSlot(enemy)
 			enemy.state = "recover"
@@ -1269,6 +1428,10 @@ local function think(enemy: Enemy, now: number)
 		for i, at in def.summonAt do
 			if fraction <= at and not enemy.summonsDone[i] then
 				enemy.summonsDone[i] = true
+				if def.phaseCall then
+					startAttack(enemy, targetRoot, now, def.phaseCall)
+					return
+				end
 				for _, a in def.pattern do
 					if a.kind == "summon" then
 						startAttack(enemy, targetRoot, now, a)
@@ -1284,6 +1447,8 @@ local function think(enemy: Enemy, now: number)
 		local away = flat(position - targetRoot.Position)
 		away = if away.Magnitude > 0.1 then away.Unit else Vector3.xAxis
 		moveTo(enemy, position + away * 10)
+	elseif choice and choice.kind == "bound" then
+		startBound(enemy, targetRoot, now, choice)
 	elseif choice then
 		startAttack(enemy, targetRoot, now, choice)
 	elseif pack and pack.hop and enemy.hopPending and now >= enemy.hopReadyAt then
@@ -1294,7 +1459,7 @@ local function think(enemy: Enemy, now: number)
 		-- closed in and waiting on the gore: hold, facing the target
 		stop(enemy)
 		face(enemy, targetRoot.Position)
-	elseif def.attacks or distance > math.min(enemy.attack.range, 20) * 0.7 then
+	elseif def.attacks or distance > (def.closeIn or math.min(enemy.attack.range, 20) * 0.7) then
 		moveTo(enemy, targetRoot.Position)
 	else
 		stop(enemy)

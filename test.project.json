@@ -346,6 +346,52 @@
                 }
               }
             }
+          },
+          "ThunderApeTrial": {
+            "$className": "Part",
+            "$attributes": {
+              "Enemy": "ThunderApe",
+              "Count": 1,
+              "Radius": 12
+            },
+            "$properties": {
+              "Anchored": true,
+              "CanCollide": false,
+              "CanTouch": false,
+              "CanQuery": false,
+              "Transparency": 1,
+              "Size": [
+                4,
+                1,
+                4
+              ],
+              "CFrame": {
+                "CFrame": {
+                  "position": [
+                    0,
+                    648.6,
+                    -700
+                  ],
+                  "orientation": [
+                    [
+                      1,
+                      0,
+                      0
+                    ],
+                    [
+                      0,
+                      1,
+                      0
+                    ],
+                    [
+                      0,
+                      0,
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
           }
         },
         "EventGrounds": {

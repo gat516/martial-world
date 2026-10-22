@@ -71,7 +71,7 @@ local function handlersFor(kind: string): Handlers?
 	return cached or nil
 end
 
-local function fire(model: Model, name: string, extra: { shape: any?, seconds: number?, target: Model?, at: number? }?)
+local function fire(model: Model, name: string, extra: { shape: any?, seconds: number?, target: Model?, at: number?, attack: string? }?)
 	local root = model:FindFirstChild("HumanoidRootPart")
 	local kind = model:GetAttribute("EnemyType")
 	if not (root and root:IsA("BasePart") and type(kind) == "string") then
@@ -86,7 +86,9 @@ local function fire(model: Model, name: string, extra: { shape: any?, seconds: n
 	if not fn then
 		return
 	end
-	local attack = model:GetAttribute("Attack")
+	-- a windup cue carries the telegraph's own attack name (a boss's sub-telegraphs such
+	-- as stormBolt differ from the model's Attack); other cues use the model's
+	local attack = if extra and extra.attack then extra.attack else model:GetAttribute("Attack")
 	local at = model:GetAttribute("StateAt")
 	local cue: Cue = {
 		model = model,
@@ -169,11 +171,11 @@ function EnemyFX.init()
 	end)
 	-- the windup cue rides the telegraph, which carries the attack's area
 	local telegraph = ReplicatedStorage.Remotes.Telegraph :: RemoteEvent
-	telegraph.OnClientEvent:Connect(function(shape, seconds, model, _attack, startedAt)
+	telegraph.OnClientEvent:Connect(function(shape, seconds, model, attackName, startedAt)
 		if typeof(model) == "Instance" and model:IsA("Model") and type(seconds) == "number" then
 			local at = if type(startedAt) == "number" then startedAt else workspace:GetServerTimeNow()
 			local left = math.max(0, seconds - (workspace:GetServerTimeNow() - at))
-			fire(model, "windup", { shape = shape, seconds = left, at = at })
+			fire(model, "windup", { shape = shape, seconds = left, at = at, attack = if type(attackName) == "string" then attackName else nil })
 		end
 	end)
 	-- server-sent cues with no attribute of their own (hit, non-dash landings)

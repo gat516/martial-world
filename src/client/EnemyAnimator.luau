@@ -44,6 +44,11 @@ local foxModule = script.Parent.EnemyPoses:FindFirstChild("NineTailFox")
 local NineTailFox = if foxModule then require(foxModule :: ModuleScript) :: any else nil
 local foxConfigured = false
 
+-- the Stone Tortoise's quadruped pose module (unit space, scaled once; no circling, so its
+-- `circle` loop is the turn in place)
+local tortoiseModule = script.Parent.EnemyPoses:FindFirstChild("StoneTortoise")
+local StoneTortoise = if tortoiseModule then require(tortoiseModule :: ModuleScript) :: any else nil
+
 local MAX_DISTANCE = 160
 local SMOOTHING = 14 -- how quickly joints settle toward their pose (per second)
 local MOVE_SMOOTHING = 30 -- faster during keyed moves, so snaps stay snappy
@@ -55,7 +60,7 @@ local DEATH_SECONDS = 0.6
 -- keyedBlend: blend from the preceding state for this many seconds, then sample
 -- keyed poses directly. This keeps the King's short tells and contact instants
 -- from trailing the server clock through the normal joint smoothing.
-type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean? }
+type Family = { poses: any, scale: number, moves: { [string]: string }, runFrom: number, keyedBlend: number?, deathSeconds: number?, staggerSeconds: number?, fox: boolean?, motion: boolean?, guard: boolean?, turnInPlace: boolean? }
 
 -- `<attack>Skid` is the overshoot turn-around the server plays (AIState recover) when a
 -- charge, lunge or leap arrives with the target out of reach; see skidOf below.
@@ -107,6 +112,16 @@ if ThunderApe then
 	}
 end
 
+-- Stone Tortoise: unit-space poses scaled once by `scaled`. `guard` supplies input.hitAt (seconds
+-- since the last hit landed during Shell Guard's hold); `turnInPlace` plays loops.circle (the
+-- shuffle) while it yaws standing still.
+if StoneTortoise then
+	FAMILIES.StoneTortoiseB = {
+		poses = StoneTortoise, scale = 1.76, runFrom = 4.5, guard = true, turnInPlace = true,
+		moves = { neckSnap = "NeckSnap", quakeStomp = "QuakeStomp", shellGuard = "ShellGuard", shellSnap = "ShellSnap" },
+	}
+end
+
 -- Nine-Tailed Fox: unit-space poses, scaled once by `scaled` (it also scales the tail slides).
 -- `fox` makes withExtras pass the boss Phase as input.stage; the barrage parts are not sent to
 -- clients, so the module uses its DEFAULT_PARTS.
@@ -142,6 +157,8 @@ type Rig = {
 	yawRate: number?, -- motion families: the root's smoothed turn rate (rad/s, + to its left)
 	lastYaw: number?,
 	dashName: any?, -- motion families: the Attack whose dash just ran
+	lastHealth: number?, -- guard families: Health last frame
+	hitStamp: number?, -- guard families: os.clock() of the last hit during Shell Guard's hold
 }
 
 local rigs: { [Model]: Rig } = {}
@@ -203,6 +220,10 @@ end
 -- Serpent modules (poses.USES_HISTORY) also read the boss Phase, the drawn speed, the turn rate and
 -- the root's heading history (secondsAgo -> yaw), so the body follows the head's path.
 local function withExtras(rig: Rig, family: Family, input: any): any
+	if family.guard then
+		local stamp = rig.hitStamp
+		input.hitAt = if stamp then os.clock() - stamp else nil
+	end
 	if family.poses.LEAD then
 		-- the head-leads-the-turn moves (skids, follow-ups that turn on arrival): the live yaw
 		-- to the target (+ to the beast's left) and the side it was on when the state began
@@ -356,6 +377,10 @@ local function movePose(rig: Rig, family: Family, state: any, since: number): an
 		local secs = poses.durations[move].active
 		if attackName == "hop" and def and def.pack and def.pack.hop then
 			secs = def.pack.hop.seconds
+		elseif attack and attack.kind == "guard" then
+			-- Shell Guard's hold: the server sends its length as DashSeconds
+			local hold = rig.model:GetAttribute("DashSeconds")
+			secs = if type(hold) == "number" and hold > 0 then hold else attack.hold or secs
 		elseif attack and (attack.kind == "leap" or attack.kind == "bound" or attack.kind == "retreat") then
 			-- the real flight time (a bound's varies with its BoundMode)
 			local flight = rig.model:GetAttribute("DashSeconds")
@@ -412,6 +437,10 @@ local function loopPose(rig: Rig, family: Family, dt: number): any
 		}
 		rig.phase += poses.gaitRate("circle", speed, family.scale) * dt
 		return poses.loops.circle(rig.phase, speed, withExtras(rig, family, input))
+	elseif family.turnInPlace and speed < 0.6 and math.abs(rig.yawRate or 0) > 0.25 then
+		-- a standing turn: the feet shuffle round (+1 turns left, the way yaw increases)
+		rig.phase += poses.gaitRate("circle", 1, family.scale) * dt
+		return poses.loops.circle(rig.phase, 1, withExtras(rig, family, { dir = if (rig.yawRate :: number) > 0 then 1 else -1, seed = rig.seed }))
 	elseif speed < 0.6 then
 		return poses.loops.idle(os.clock(), speed, withExtras(rig, family, { seed = rig.seed }))
 	end
@@ -470,7 +499,19 @@ local function stepFamily(rig: Rig, family: Family, dt: number)
 			table.remove(history, 1)
 		end
 	end
-	if family.motion then
+	if family.guard then
+		-- hits that land during Shell Guard's hold, from the health the server keeps current
+		local hp = model:GetAttribute("Health")
+		if type(hp) == "number" then
+			if rig.lastHealth and hp < (rig.lastHealth :: number) and model:GetAttribute("Guarding") then
+				rig.hitStamp = os.clock()
+			elseif not model:GetAttribute("Guarding") then
+				rig.hitStamp = nil
+			end
+			rig.lastHealth = hp
+		end
+	end
+	if family.motion or family.turnInPlace then
 		local look = rig.root.CFrame.LookVector
 		local yaw = math.atan2(-look.X, -look.Z)
 		if rig.lastYaw and dt > 0 then

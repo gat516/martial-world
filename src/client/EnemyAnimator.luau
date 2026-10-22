@@ -44,6 +44,10 @@ local foxModule = script.Parent.EnemyPoses:FindFirstChild("NineTailFox")
 local NineTailFox = if foxModule then require(foxModule :: ModuleScript) :: any else nil
 local foxConfigured = false
 
+-- the Frost Spider's eight-leg pose module (its own two-bone IK planter; unit scale)
+local spiderModule = script.Parent.EnemyPoses:FindFirstChild("FrostSpider")
+local FrostSpider = if spiderModule then require(spiderModule :: ModuleScript) :: any else nil
+
 -- the small Venom Serpent's pose module (a serpent family like the Jiao: heading history and LEAD)
 local serpentModule = script.Parent.EnemyPoses:FindFirstChild("VenomSerpent")
 local VenomSerpent = if serpentModule then require(serpentModule :: ModuleScript) :: any else nil
@@ -123,6 +127,14 @@ if VenomSerpent then
 		poses = VenomSerpent, scale = VenomSerpent.SCALE, runFrom = 7, keyedBlend = 0.15, staggerSeconds = 0.28,
 		deathSeconds = 0.9, circleLoop = true,
 		moves = { venomSpit = "VenomSpit", hoodStrike = "HoodStrike", hoodStrikeSkid = "HoodStrikeSkid", hop = "Hop" },
+	}
+end
+
+-- Frost Spider: unit scale; frostFangSkid is the lunge's missed-arrival skid, hop the skitter back.
+if FrostSpider then
+	FAMILIES.FrostSpider = {
+		poses = FrostSpider, scale = 1, runFrom = 9, keyedBlend = 0.08, deathSeconds = 1.3, staggerSeconds = 0.35,
+		moves = { webShot = "WebShot", frostFang = "FrostFang", hop = "Hop", frostFangSkid = "FrostFangSkid" },
 	}
 end
 

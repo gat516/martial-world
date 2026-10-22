@@ -128,7 +128,7 @@ a shallow V at rest, which is the top of a flap.
 | JointHead | Skull | Neck | legacy |
 | JointJaw | Jaw | Skull | the lower beak; -X opens |
 | JointCrest | Crest | Skull | the ember crest; -X stands it upright (flare) |
-| JointShoulderL / R | UpperWingL / R | Body | flap: **L up = -Z, R up = +Z**; sweep back = -Y on L, +Y on R |
+| JointShoulderL / R | UpperWingL / R | Body | flap: **L up = -Z, R up = +Z**; sweep back = +Y on L, -Y on R (measured; first notes had it reversed) |
 | JointElbowL / R | ForeWingL / R | UpperWing | same signs as the shoulder |
 | JointWristL / R | WingTipL / R | ForeWing | the primaries; same signs |
 | JointTail | Tail | Body | the fan; +X lifts it |
@@ -149,7 +149,7 @@ Tells: the EyeL/R, the Crest, and the 8 primary tips (WingTip*Primary*Tip).
 
 | Raven joint | Bat joint | Moves | Rest pivot (root-relative) | Axes |
 |---|---|---|---|---|
-| JointShoulderL / R | JointWingL / R | UpperWingL / R | (+-0.75, 1.15, -0.10) | flap roll Z: L up = -Z, R up = +Z; sweep back = -Y on L, +Y on R |
+| JointShoulderL / R | JointWingL / R | UpperWingL / R | (+-0.75, 1.15, -0.10) | flap roll Z: L up = -Z, R up = +Z; sweep back = +Y on L, -Y on R (measured; first notes had it reversed) |
 | JointElbowL / R | JointWingL2 / R2 | ForeWingL / R | (+-2.55, 1.75, 0.10) | same signs |
 | JointWristL / R | JointWingL3 / R3 | WingTipL / R (the primaries) | (+-4.05, 2.40, 0.35) | same signs |
 
@@ -672,7 +672,7 @@ Root centre to the mouth (`Mouth` attachment) at rest: 1.3 studs forward (z -1.5
 Wing joints are the Flame Raven's convention (shoulder/elbow/wrist, roll about Z lifts), so
 one flap cycle can drive both: at rest the wings sit about 25 degrees up (half spread);
 a full downstroke is about 0.8 rad past rest on the shoulder, with the elbow and finger
-lagging a beat. Yaw (Y) at the shoulder sweeps a wing back (L: -Y, R: +Y).
+lagging a beat. Yaw (Y) at the shoulder sweeps a wing back (L: +Y, R: -Y; measured). The three membrane skins rest at signed elevations +0.45, +0.25 and -0.61 (the finger skin slopes down): keep shoulder >= 0.34, elbow >= 0.54, finger <= 0.74 (pose_bat: Flap floor/ceil).
 
 **Tells** (Neon, `Tell = true`): `EyeL/R`, `MouthTell` (on the jaw top, inside the mouth,
 visible when it opens), `WingEdgeTellL/R` (a strip on the metal leading bone of WingL2/R2),

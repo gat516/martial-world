@@ -177,6 +177,33 @@ Hooks ride their segment, so they move with it when posed (FistX_FX leaves the g
 the fist lifts). Beating: the arms are the front legs, so a beat is the shoulders swung in
 (+X up and forward) with the elbows bent so the fists meet the chest at the drum.
 
+## Golden Toad (16 joints, 72 parts, `build_golden_toad.luau` / `rig_golden_toad.luau`)
+
+Template `GoldenToad`, standalone export `art/enemies/beasts/export/GoldenToad.rbxm` (Modeler A merges it into `Enemies.rbxm`). A cultivated bog toad with three legs: two folded hind legs and one centred front leg. Faces -Z, left is -X, ground Y 0, identity-rotation pivot at the HRP. Body bounds 6.6 wide (x +-3.3), 5.55 tall, 9.1 long (z -4.84..4.30). Gold hide, green flanks, dark warty back, pale-gold throat sac, teal eyes.
+
+- HRP (hit volume, invisible): 5 x 4 x 8.4 at (0, 2.3, 0), bottom 0.3 above the ground (HipHeight 0.30). Root centre to the mouth at rest: 4.48 studs; the mouth is at z -4.4.
+- Every joint frame is identity in model space at the pivot, so rotation about X is pitch. Positive pitch (about X) tips the front down.
+
+| Joint | Moves | Parent | Pivot (x, y, z) | Notes |
+|---|---|---|---|---|
+| JointRoot | Body | HRP | (0, 2.5, 0.8) | bob / pitch the whole toad |
+| JointBack | Back (warty back, WartTell1..4) | Body | (0, 4.0, -0.8) | small pitch and roll sway, +-0.15 |
+| JointHead | Head (eyes, lids, brow) | Body | (0, 3.5, -1.9) | pitch up to open for the tongue, +-0.4 |
+| JointJaw | Jaw | Head | (0, 3.1, -2.0) | positive pitch opens, 0 to 0.9 |
+| JointTongue | Tongue stub + TongueTip | Head | (0, 3.15, -3.3) | translation only: z 0 (rests inside the mouth) to -14 (full lash); keep it level, it passes through the snout |
+| JointSac | Sac + SacTell | Body | (0, 3.0, -2.2) | translate (0, -0.5, -0.6) when swollen; a scale cannot be keyed, so slide it |
+| JointEyeL / JointEyeR | LidL / LidR | Head | (+-1.15, 4.75, -2.7) | positive pitch drops the lid over the eye, 0 to 0.9 |
+| JointLegF | Front leg column | Body | (0, 2.3, -0.8) | pitch 0 to 0.5 swings the leg back |
+| JointFootF | FootF + toes | LegF | (0, 0.75, -1.0) | keep the sole level: counter the leg's pitch |
+| JointLegBL / JointLegBR | Hind thigh + haunch + knee ball | Body | (+-1.7, 2.4, 2.3) | the hop and crouch: pitch -0.6 extends the thigh back, +0.4 folds it |
+| JointLowerLegBL / BR | Shin + ankle | Thigh | (+-2.2, 1.5, 0.7) | knee: pitch up to +-1.2 |
+| JointFootBL / BR | Hind foot + toes | Shin | (+-2.3, 0.65, 3.5) | ankle: counter thigh + shin pitch to plant |
+
+- Tells (Neon, each carries `Tell`): `EyeL`, `EyeR` (teal) on the Head, `SacTell` (gold) on the Sac, `WartTell1..4` (amber) on the Back. The Back sway moves WartTell with it.
+- Attachments: `Mouth` and `TongueTip` ride JointHead / JointTongue (the VFX beam runs Mouth to TongueTip; the tip is at (0, 3.15, -3.95) at rest, so 14 studs of lash puts it near z -18); `SacL_FX` (Sac, front of the throat), `Core` (Body, chest), `FootF_FX`, `FootBL_FX`, `FootBR_FX` on the ground under each foot.
+- Gotchas: the tongue stub is inside the head at rest and only shows through the closed lips when the jaw opens, so open the jaw before the lash. The hind thigh/shin/foot overlap the flank plates by design (no slit); do not pitch a thigh past -0.8 or the haunch pokes through the back. A single front leg means walk and hop cycles must put the weight on the hind pair and the one front foot (a three-point stance).
+- Untested: no capture review done; the user reviews the look. Part count and sizes are numeric checks only (`check_rig` clean, `keyframe_test` keyable).
+
 ## Windup poses
 
 `poses.luau` holds a starting windup pose for each beast's main attack, keyed by Motor6D

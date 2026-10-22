@@ -30,7 +30,7 @@ local TEMPLATE = "ShadowManeWolfB"
 local LIT = Color3.fromRGB(214, 196, 255)
 local WINDUP = { shadowStep = 0.7, shadowRake = 0.4, maneRend = 0.6, maneLash = 0.8 }
 local DASH_TRAIL = 0.4
-local LASH_RADIUS = 8
+local LASH_RADIUS = 12 -- the def's maneLash radius
 local PALETTE = {
 	core = Color3.fromRGB(214, 196, 255),
 	color = Color3.fromRGB(138, 92, 255),

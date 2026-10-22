@@ -418,51 +418,52 @@ New server mechanics (`EnemyService`, `Combat`, fields in `Enemies.luau`):
   leaves `dash` (the hold ends, a stagger breaks it). When the hold ends its `arrive` follow-up
   starts at once if the target is in range and within the arrive angle of its nose, else it
   recovers. Works without `WEIGHTED_MOVES` (the only arrive that does).
+- **`reach`** (lunge/charge field): studs the hit box runs past the dash's end, for a muzzle that leads the root (the serpent's strike); the telegraph shows it.
 - **`flankPoint`** (lunge field): the lane ends that many studs beside the target, approached
   60 degrees off the line to it on a random side, and the windup turns toward that point, so
   the beast comes in on a flank. Its `arrive` follow-up turns into the target.
 - Poison rides the existing `poison` field on spit and lunge hits (`hurtPlayer` applies it).
 
 **Venom Serpent** (QC3, 80 HP, weight 0.8, `body = "VenomSerpentB"`, the user's reference
-cobra at 1.40x). A skirmisher: it circles 14 studs out (`pack.circle`, 5 studs/s), spits from
-10 to 32 studs, strikes when you come inside 10, then slides back 9 studs (`pack.hop`, only
+cobra at 1.40x, root 5.1 x 4.8 x 15.9, muzzle 7.1 ahead of the root centre). A skirmisher: it circles
+14 studs out (`pack.circle`, 5 studs/s), spits from 12 to 32 studs, strikes when you come inside 12, then slides back 9 studs (`pack.hop`, only
 after a strike: `hits = 99`). It does not repeat the Jiao's lance, fang cone, spray, pools,
 coil or dive.
 
 | Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage (QC3 140 HP) | Cooldown |
 |---|---|---|---|---|---|---|
-| `venomSpit` (opener) | spit | 1.1 / - / 0.6 | 10-32 | circle r 5.5 on the target, lobbed gob lands at windup end | 15 (11%) + 1 poison stack 4 s | 2.6 s |
-| `hoodStrike` | lunge | 0.6 / 0.25 (8 studs at 32/s) / 0.8 | 2-10 | box 3 x 8 | 14 (10%) + 1 poison stack | 3.2 s, then the backslide (`hop`) |
+| `venomSpit` (opener) | spit | 1.1 / - / 0.6 | 12-32 | circle r 5.5 on the target, lobbed gob lands at windup end | 15 (11%) + 1 poison stack 4 s | 2.6 s |
+| `hoodStrike` | lunge | 0.6 / 0.25 (up to 8 studs at 32/s, stops 4 short of you) / 0.8 | 2-12 | box 3.5 wide, dash + 7 (`reach`: the muzzle leads the root) | 14 (10%) + 1 poison stack | 3.2 s, then the backslide (`hop`) |
 
-Rushed inside 10 studs it strikes first (`closeOpener`). Dash skids turn it round
+Rushed inside 12 studs it strikes first (`closeOpener`). Dash skids turn it round
 (`hoodStrikeSkid`). The optional rear Tail Snap was cut: the pool picks by distance, not
 bearing, so it would fire at the face.
 
 **Stone Tortoise** (QC6, 450 HP, weight 6, walk 3.5 / run 6, `body = "StoneTortoiseB"`, the
 user's reference at 1.76x, 13.3 x 13.9 x 22). Slow and heavy: it walks into you and picks from
 a pool; Shell Guard first (after 5 s, every 14 s), then the stomp, then the snap. Reaches are
-measured from the root centre and are provisional until the body's root box is read (the box
-covers the whole shell).
+measured from the root centre: the root box is 13.3 x 8.5 x 22.0, the beak 10.8 ahead (11.5
+stretched), the fore feet 3.3 ahead, so the stomp circle sits under the fore feet.
 
 | Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage (QC6 220 HP) | Cooldown |
 |---|---|---|---|---|---|---|
-| `neckSnap` (opener) | cone | 0.7 / 0.12 / 0.9 | 17 | r 18, 60 deg | 24 (11%) | 2.5 s |
-| `quakeStomp` | slam | 1.2 / 0.15 / 1.4 | 14 | r 9 at (0, 0, -9) | 40 (18%), stagger | 5 s |
-| `shellGuard` | guard | 0.5 / hold 2.0 / 0.5 | 20, not before 5 s | none; takes 20% damage | 0 | 14 s |
-| `shellSnap` (`arrive` of shellGuard, `chainOnly`) | cone | 0.35 / - / 1.0 | 18 | r 18, 70 deg | 24 (11%) | - |
+| `neckSnap` (opener) | cone | 0.7 / 0.12 / 0.9 | 13 | r 14, 60 deg | 24 (11%) | 2.5 s |
+| `quakeStomp` | slam | 1.2 / 0.15 / 1.4 | 13 | r 10 at (0, 0, -3.3) | 40 (18%), stagger | 5 s |
+| `shellGuard` | guard | 0.5 / hold 2.0 / 0.5 | 16, not before 5 s | none; takes 20% damage | 0 | 14 s |
+| `shellSnap` (`arrive` of shellGuard, `chainOnly`) | cone | 0.35 / - / 1.0 | 14 | r 14, 70 deg | 24 (11%) | - |
 
 **Shadow Mane Wolf** (QC6, 300 HP, weight 1.8, walk 9 / run 20, `body = "ShadowManeWolfB"`, the
-user's reference at 1.63x on the wolf-family rig). A flanker with no howl: it circles wide
-(`pack.circle` 14 studs, 7 studs/s), comes in on a flank, and fades back after a rend
-(`pack.hop` 7 studs in 0.3 s, only after `maneRend`). Pool order: lash when hugged, rend, then
-the step; rushed inside 8 it uses its pool (`closeOpener`).
+user's reference at 1.63x on the wolf-family rig, root 6.5 x 8.4 x 21.3, muzzle 10.5 ahead of the
+root centre). A flanker with no howl: it circles wide (`pack.circle` 18 studs, 7 studs/s), comes in on a flank, and fades back after a rend
+(`pack.hop` 10 studs in 0.3 s, only after `maneRend`). Pool order: lash when hugged, rend, then
+the step; rushed inside 11 it uses its pool (`closeOpener`).
 
 | Attack (`name`) | Kind | Windup / active / recover | Range | Area | Damage (QC6 220 HP) | Cooldown |
 |---|---|---|---|---|---|---|
-| `shadowStep` (opener) | lunge, `flankPoint` 6 | 0.7 / 0.3-0.5 (up to 24 studs at 45/s) / 0.9 | 8-24 | 3-wide lane to a point 6 studs beside the target | 12 (5%) | 3.5 s |
-| `shadowRake` (`arrive`, `chainOnly`) | cone | 0.4 / - / 0.9 | 12 | r 9, 100 deg | 22 (10%) | - |
-| `maneRend` | cone + second cone at +0.35 s | 0.6 / 0.12 / 1.0 | 7 | r 8, 90 deg, twice | 16 (7%) a strike | 2.4 s, then the fade back |
-| `maneLash` | slam | 0.8 / 0.15 / 1.1 | 5 | circle r 8 on the wolf | 20 (9%) | 6 s |
+| `shadowStep` (opener) | lunge, `flankPoint` 8 | 0.7 / 0.3-0.5 (up to 26 studs at 45/s) / 0.9 | 11-26 | 5-wide lane to a point 8 studs beside the target | 12 (5%) | 3.5 s |
+| `shadowRake` (`arrive`, `chainOnly`) | cone | 0.4 / - / 0.9 | 14 | r 13, 100 deg | 22 (10%) | - |
+| `maneRend` | cone + second cone at +0.35 s | 0.6 / 0.12 / 1.0 | 11 | r 12, 90 deg, twice | 16 (7%) a strike | 2.4 s, then the fade back |
+| `maneLash` | slam | 0.8 / 0.15 / 1.1 | 8 | circle r 12 on the wolf | 20 (9%) | 6 s |
 
 A step that ends with the target off its nose skids round (`shadowStepSkid`). Sounds
 (`SFX.Enemies.StoneTortoise`, `ShadowManeWolf`, the serpent's additions) reuse existing ids

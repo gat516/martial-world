@@ -109,6 +109,9 @@ export type Attack = {
 	-- 60 degrees off the line to it on a random side, so the beast comes in on a flank instead of
 	-- through the target; an `arrive` rake follows
 	flankPoint: number?,
+	-- lunge/charge: studs the hit box runs past the dash's end, for a head or muzzle that leads
+	-- the root (the serpent's strike); the telegraph shows it too
+	reach: number?,
 	lanes: { number }?, -- bolt: lane angles in degrees from the target direction (default { 0 })
 	boltSpeed: number?, -- bolt: studs per second the front travels (a hit lands as it arrives)
 	strikes: { { at: number, radius: number, angle: number } }?, -- cone: follow-up cones `at` seconds after the first, re-aimed
@@ -1072,12 +1075,13 @@ end
 if NEW_SERPENT then
 	local venom = { stacks = 1, seconds = 4 }
 	local venomSpit: Attack = {
-		kind = "spit", name = "venomSpit", damage = 15, range = 32, minRange = 10, windup = 1.1,
+		kind = "spit", name = "venomSpit", damage = 15, range = 32, minRange = 12, windup = 1.1,
 		recover = 0.6, cooldown = 2.6, radius = 5.5, poison = venom,
 	}
 	local hoodStrike: Attack = {
-		kind = "lunge", name = "hoodStrike", damage = 14, range = 10, minRange = 2, windup = 0.6,
-		recover = 0.8, cooldown = 3.2, length = 8, width = 3, dashSpeed = 32, poison = venom,
+		kind = "lunge", name = "hoodStrike", damage = 14, range = 12, minRange = 2, windup = 0.6,
+		recover = 0.8, cooldown = 3.2, length = 8, width = 3.5, dashSpeed = 32, poison = venom,
+		stopPast = -4, reach = 7, -- the muzzle leads the root by 7.1: the root stops 4 short, the head lands 3 past
 		skid = true, hopAfter = true, -- the backslide: pack.hop below
 	}
 	Enemies.Defs.VenomSerpent = {
@@ -1101,7 +1105,7 @@ if NEW_SERPENT then
 			-- player hits never trigger the backslide (hits = 99); only hoodStrike's hopAfter does
 			hop = { distance = 9, seconds = 0.35, arc = 0, cooldown = 3, hits = 99, window = 1 },
 			circle = { radius = 14, speed = 5 },
-			closeOpener = true, -- rushed under 10 studs, it strikes instead of waiting
+			closeOpener = true, -- rushed under 12 studs, it strikes instead of waiting
 		},
 	} :: Def
 end
@@ -1109,23 +1113,24 @@ end
 -- Stone Tortoise (QC6, player 220 HP, power 1.6): the user's reference tortoise at 1.76x
 -- (13.3 x 13.9 x 22), a slow tank that owns the ground around its feet. Neck Snap is the
 -- quick check, Quake Stomp the big one, Shell Guard the lesson in patience (hits do 20%
--- for 2 s, then it snaps out). Reaches are measured from the root centre; the root box
--- covers the whole shell, so the cone and stomp circle start at its front edge.
+-- for 2 s, then it snaps out). Reaches are measured from the root centre (13.3 x 8.5 x 22
+-- box; the beak is 10.8 ahead, 11.5 stretched; the fore feet 3.3 ahead), so the stomp
+-- circle sits under the fore feet and the cone reaches the stretched beak plus a stud or two.
 if NEW_TORTOISE then
 	local shellSnap: Attack = {
-		kind = "cone", name = "shellSnap", damage = 24, range = 18, windup = 0.35, recover = 1.0,
-		cooldown = 0, radius = 18, angle = 70, chainOnly = true,
+		kind = "cone", name = "shellSnap", damage = 24, range = 14, windup = 0.35, recover = 1.0,
+		cooldown = 0, radius = 14, angle = 70, chainOnly = true,
 	}
 	local neckSnap: Attack = {
-		kind = "cone", name = "neckSnap", damage = 24, range = 17, windup = 0.7, recover = 0.9,
-		cooldown = 2.5, radius = 18, angle = 60,
+		kind = "cone", name = "neckSnap", damage = 24, range = 13, windup = 0.7, recover = 0.9,
+		cooldown = 2.5, radius = 14, angle = 60,
 	}
 	local quakeStomp: Attack = {
-		kind = "slam", name = "quakeStomp", damage = 40, range = 14, windup = 1.2, recover = 1.4,
-		cooldown = 5, radius = 9, offset = Vector3.new(0, 0, -9), react = "stagger",
+		kind = "slam", name = "quakeStomp", damage = 40, range = 13, windup = 1.2, recover = 1.4,
+		cooldown = 5, radius = 10, offset = Vector3.new(0, 0, -3.3), react = "stagger",
 	}
 	local shellGuard: Attack = {
-		kind = "guard", name = "shellGuard", damage = 0, range = 20, notBefore = 5, windup = 0.5,
+		kind = "guard", name = "shellGuard", damage = 0, range = 16, notBefore = 5, windup = 0.5,
 		recover = 0.5, cooldown = 14, hold = 2.0, reduction = 0.8, arrive = shellSnap,
 	}
 	Enemies.Defs.StoneTortoise = {
@@ -1157,22 +1162,22 @@ end
 -- Shares of a QC6 player's health: step lane 5%, rake 10%, rend 7% a strike, lash 9%.
 if NEW_SHADOW_MANE then
 	local shadowRake: Attack = {
-		kind = "cone", name = "shadowRake", damage = 22, range = 12, windup = 0.4, recover = 0.9,
-		cooldown = 0, radius = 9, angle = 100, chainOnly = true,
+		kind = "cone", name = "shadowRake", damage = 22, range = 14, windup = 0.4, recover = 0.9,
+		cooldown = 0, radius = 13, angle = 100, chainOnly = true,
 	}
 	local shadowStep: Attack = {
-		kind = "lunge", name = "shadowStep", damage = 12, range = 24, minRange = 8, windup = 0.7,
-		recover = 0.9, cooldown = 3.5, length = 24, width = 3, dashSpeed = 45, flankPoint = 6,
+		kind = "lunge", name = "shadowStep", damage = 12, range = 26, minRange = 11, windup = 0.7,
+		recover = 0.9, cooldown = 3.5, length = 26, width = 5, dashSpeed = 45, flankPoint = 8,
 		arrive = shadowRake, skid = true,
 	}
 	local maneRend: Attack = {
-		kind = "cone", name = "maneRend", damage = 16, range = 7, windup = 0.6, recover = 1.0,
-		cooldown = 2.4, radius = 8, angle = 90, strikes = { { at = 0.35, radius = 8, angle = 90 } },
+		kind = "cone", name = "maneRend", damage = 16, range = 11, windup = 0.6, recover = 1.0,
+		cooldown = 2.4, radius = 12, angle = 90, strikes = { { at = 0.35, radius = 12, angle = 90 } },
 		hopAfter = true, -- fadeBack: pack.hop
 	}
 	local maneLash: Attack = {
-		kind = "slam", name = "maneLash", damage = 20, range = 5, windup = 0.8, recover = 1.1,
-		cooldown = 6, radius = 8,
+		kind = "slam", name = "maneLash", damage = 20, range = 8, windup = 0.8, recover = 1.1,
+		cooldown = 6, radius = 12,
 	}
 	Enemies.Defs.ShadowManeWolf = {
 		id = "ShadowManeWolf",
@@ -1192,9 +1197,9 @@ if NEW_SHADOW_MANE then
 		attack = shadowStep,
 		attacks = { maneLash, maneRend, shadowStep, shadowRake } :: { Attack },
 		pack = {
-			hop = { distance = 7, seconds = 0.3, arc = 0.6, cooldown = 3, hits = 99, window = 1 },
-			circle = { radius = 14, speed = 7 },
-			closeOpener = true, -- rushed under 8 studs, it uses its pool instead of waiting
+			hop = { distance = 10, seconds = 0.3, arc = 0.6, cooldown = 3, hits = 99, window = 1 },
+			circle = { radius = 18, speed = 7 },
+			closeOpener = true, -- rushed under 11 studs, it uses its pool instead of waiting
 		},
 	} :: Def
 end

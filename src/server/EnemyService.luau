@@ -1418,10 +1418,12 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 		end
 		enemy.dashLength = length
 		enemy.model:SetAttribute("DashSeconds", length / (attack.dashSpeed or 1))
+		-- the hit box runs `reach` past the dash's end for a muzzle that leads the root
+		local boxLength = length + (attack.reach or 0)
 		shape = {
 			kind = "box",
-			cframe = CFrame.lookAt(ground, ground + dir) * CFrame.new(0, 0, -length / 2),
-			size = Vector2.new(attack.width :: number, length),
+			cframe = CFrame.lookAt(ground, ground + dir) * CFrame.new(0, 0, -boxLength / 2),
+			size = Vector2.new(attack.width :: number, boxLength),
 		}
 		enemy.dashTo = enemy.root.Position + dir * length
 	end

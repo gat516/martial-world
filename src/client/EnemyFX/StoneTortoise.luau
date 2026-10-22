@@ -32,10 +32,11 @@ local TEMPLATE = "StoneTortoiseB"
 local JADE_LIT = Color3.fromRGB(190, 255, 225)
 local COLD = Color3.fromRGB(190, 225, 255)
 local WINDUP = { neckSnap = 0.7, quakeStomp = 1.2, shellGuard = 0.5, shellSnap = 0.35 }
-local QUAKE_RADIUS = 9
+local QUAKE_RADIUS = 10 -- the def's quakeStomp radius, centred under the fore feet
 local SHAKE = 0.3
 local SHAKE_REACH = 28
 local FEET = { "FL", "FR", "BL", "BR" }
+local FRONT_FEET = { "FL", "FR" }
 
 local K = Kit.new("StoneTortoise")
 local StoneTortoise = {}
@@ -112,10 +113,10 @@ function StoneTortoise.strike(cue: Cue)
 		K.play("SnapBurst", mouth(cue))
 	elseif attack == "quakeStomp" then
 		local sum = Vector3.zero
-		for _, which in FEET do
+		for _, which in FRONT_FEET do
 			sum += foot(cue, which)
 		end
-		local at = sum / #FEET
+		local at = sum / #FRONT_FEET
 		local face = cue.root.CFrame.Rotation
 		K.play("QuakeCrack", CFrame.new(at + Vector3.new(0, 0.08, 0)) * face, nil, function(clone)
 			K.resize(clone, QUAKE_RADIUS / ((clone:GetAttribute("AuthoredRadius") :: number?) or 9))

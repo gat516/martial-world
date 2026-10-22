@@ -12,7 +12,8 @@
 --   howl    no area, no damage: calls packmates within `radius` onto its target
 --   lance   a long lane (box) hit all at once when the windup ends (no dash)
 --   bound   no telegraph, no damage: hops to a flank spot `landMin`-`landMax` studs from
---           the target over `active` seconds (arc is client-only)
+--           the target over `active` seconds (arc is client-only); with `boundModes`, a
+--           landing mode each time (over, flank, back, short; EnemyService startBound)
 --   barrage Nine-Tailed Fox: timed sub-areas computed at the windup's start from where the
 --           target stands (`barrage` names the pattern: fangs, lance, lanceFan, snare,
 --           volley, ringHeart, spiral; EnemyService buildParts), each hitting `delay`
@@ -23,7 +24,9 @@
 --   storm   `bolts` lightning strikes after the windup, each a circle on where the target
 --           stands `boltInterval` apart, hitting `boltWindup` later (`damage` per bolt)
 -- Lunges and charges hit each player when the dash front reaches them, not when
--- the windup ends, so the blow lands as the beast arrives.
+-- the windup ends, so the blow lands as the beast arrives. With Config.Wilds.WEIGHTED_MOVES
+-- a lunge, charge, leap or bound can end in an `arrive` follow-up (started on arrival when
+-- the target is in its range and in front) or a `skid` round to face the target.
 -- Regular beasts with `attacks` pick from that pool each time (in order: the
 -- first whose range band holds the target and whose own cooldown is up), open
 -- every engagement with `attack`, and may howl, hop back and circle (`pack`).
@@ -64,7 +67,21 @@ export type Attack = {
 	arc: number?, -- leap: studs the body rises mid-flight (client only)
 	hopAfter: boolean?, -- attack pools: hop back once it recovers
 	followUp: string?, -- attack pools: this attack's name starts as soon as it recovers, if the target is in its range
-	stopPast: number?, -- lunge/charge: dash only to this many studs past the target (between minRange and length)
+	stopPast: number?, -- lunge/charge: dash only to this many studs past the target (between minRange and length; negative stops short)
+	-- lunge/charge/leap/bound (WEIGHTED_MOVES): an attack started the moment the dash or leap
+	-- arrives, if the target is within its `range` and at most ~100 degrees off the nose
+	-- (its windup turns into it). Also list it in the pattern or pool with chainOnly, so
+	-- clients find its timing.
+	arrive: Attack?,
+	-- lunge/charge/leap (WEIGHTED_MOVES): on arrival with no follow-up to start, skid round
+	-- to face the target over the recover (AttackName `<name>Skid`). With `arrive`: when it
+	-- misses; without: when the target ends up more than ~60 degrees off the nose.
+	skid: boolean?,
+	-- bound: landing modes (EnemyService startBound), each with its flight seconds and arc
+	boundModes: { [string]: { active: number, arc: number } }?,
+	rangedNext: { string }?, -- rotating bosses: after this attack, only these until one fires (or rangedWait passes)
+	rangedWait: number?, -- seconds past the recover that rangedNext holds (default 2.5)
+	telegraph: string?, -- "heavy": the stronger telegraph tier (telegraphs.md)
 	barrage: string?, -- barrage: the pattern name (see the kind list above)
 	ring: number?, -- ringHeart: radius of the eruption ring round the target
 	heartRadius: number?, -- ringHeart: the centre circle's radius
@@ -296,6 +313,7 @@ Enemies.Defs = {
 			length = 12,
 			width = 3.5,
 			dashSpeed = 40,
+			skid = true, -- overshoots turn round (pounceSkid)
 		},
 		attacks = {
 			{
@@ -311,6 +329,7 @@ Enemies.Defs = {
 				recover = 1.1,
 				cooldown = 9,
 				radius = 5,
+				skid = true, -- leapSkid
 			},
 			{
 				kind = "lunge",
@@ -324,6 +343,7 @@ Enemies.Defs = {
 				length = 12,
 				width = 3.5,
 				dashSpeed = 40,
+				skid = true,
 			},
 			{
 				kind = "cone",
@@ -497,7 +517,7 @@ Enemies.Defs = {
 
 -- A boss animation/fight trial, isolated from the main game's older King by
 -- Config.Wilds.NEW_WOLF_KING. At QC9 (330 HP), the quick checks take 10-14%,
--- the bite 19%, the rush 25% and Crownfall 32%. Small mistakes accumulate;
+-- the bite 19%, the rush 25%, Crownfall 32%, the King's Leap 26% and its rake 12%. Small mistakes accumulate;
 -- every heavy hit is reactable and every attack leaves time to answer it.
 if NEW_WOLF_KING then
 	local royalBite: Attack = {
@@ -587,6 +607,38 @@ if NEW_WOLF_KING then
 		radius = 30,
 		stun = { kind = "stagger", radius = 18, seconds = 0.8 },
 	}
+	-- King's Leap: a high pounce onto where the target stood (a gap closer: skipped
+	-- under minRange), the slam circle on landing, then the rake if they're still in
+	-- reach and in front (the leap is the warning; the rake shows its own cone). Missed:
+	-- kingLeapSkid, round to face them.
+	local kingRake: Attack = {
+		kind = "cone",
+		name = "kingRake",
+		damage = 40,
+		range = 18,
+		windup = 0.5,
+		recover = 0.9,
+		cooldown = 0,
+		radius = 16,
+		angle = 120,
+		chainOnly = true,
+	}
+	local kingLeap: Attack = {
+		kind = "leap",
+		name = "kingLeap",
+		telegraph = "heavy",
+		damage = 86,
+		range = 42,
+		minRange = 12,
+		windup = 1.1,
+		active = 0.7,
+		arc = 16,
+		recover = 1.0,
+		cooldown = 3.2,
+		radius = 14,
+		arrive = kingRake,
+		skid = true,
+	}
 	local king = Enemies.Defs.ElderWolfKing
 	king.pack = { howl = roar }
 	king.body = "ElderWolfKingB"
@@ -598,7 +650,7 @@ if NEW_WOLF_KING then
 	king.attack = royalBite
 	-- Quick checks alternate with the big commitments. Pack Call is included so
 	-- clients can find its timing, but the server calls it only at the thresholds.
-	king.pattern = { pawSwipe, kingsRush, clawDown, crownfall, royalBite, packCall }
+	king.pattern = { pawSwipe, kingsRush, clawDown, crownfall, royalBite, kingLeap, packCall, kingRake }
 	king.summonAt = { 0.65, 0.30 }
 	king.shareTurns = true
 	king.resetOnEvade = true
@@ -609,11 +661,14 @@ end
 -- (ThunderApeB, root box 14.8 x 14.8 x 16.3, body radius ~15), so every reach is
 -- measured from its centre and starts past ~15 studs: melee cones reach 30, the pound
 -- lands 18 ahead. Shares of the player's health at FE1: club/backhand 10%, pound 22%
--- (wave 11%), body slam 28%, skyfall 30%, rush 28%, boulder 14%, lance 24%, bolt 14%,
--- judgment 38% + stun. Roars stagger. Chain: clubSwing -> backhand -> thunderPound.
+-- (wave 11%), body slam 28%, skyfall 30% + sweep 11%, rush 22% + swipe 12%, boulder 14%,
+-- lance 24%, bolt 14%, judgment 38% + stun. Roars stagger. Chain: clubSwing -> backhand
+-- -> thunderPound. Arrivals (WEIGHTED_MOVES): thunderRush stops short of where you
+-- stood and swipes (rushSwipe), skyfallSlam lands and sweeps (skyfallSweep); a miss
+-- skids round. Bounds pick over/flank/back/short, never twice running.
 -- Design and contracts: the enemy-designer's Thunder Ape sheet (timings the pose and
 -- effect modules hardcode: challenge beats 0.55/1.15/1.75, roars 0.45/0.85 and
--- 0.4/0.8/1.2, boulder released at 0.60 s).
+-- 0.4/0.8/1.2, boulder released at 1.25 s).
 if NEW_THUNDER_APE then
 	local function atk(a: Attack): Attack
 		return a
@@ -640,12 +695,29 @@ if NEW_THUNDER_APE then
 		active = 0.75, arc = 26, recover = 1.10, cooldown = 3.6, radius = 20,
 	})
 	local thunderRush = atk({
-		kind = "charge", name = "thunderRush", damage = 140, range = 80, minRange = 24, windup = 1.20,
-		recover = 0.90, cooldown = 3.4, length = 64, width = 14, dashSpeed = 95, stopPast = 12,
+		kind = "charge", name = "thunderRush", damage = 110, range = 80, minRange = 24, windup = 1.20,
+		recover = 0.90, cooldown = 3.4, length = 64, width = 14, dashSpeed = 95,
+		stopPast = -12, -- commits to the line and pulls up just short of you, for the swipe
 	})
+	-- the arrivals: short windups, since the rush or leap itself was the warning
+	local rushSwipe = atk({
+		kind = "cone", name = "rushSwipe", damage = 60, range = 32, windup = 0.40, recover = 0.90,
+		cooldown = 0, radius = 30, angle = 110, chainOnly = true,
+	})
+	local skyfallSweep = atk({
+		kind = "cone", name = "skyfallSweep", damage = 55, range = 34, windup = 0.50, recover = 1.00,
+		cooldown = 0, radius = 32, angle = 140, chainOnly = true,
+	})
+	thunderRush.arrive, thunderRush.skid = rushSwipe, true
+	skyfallSlam.arrive, skyfallSlam.skid = skyfallSweep, true
 	local bound = atk({
 		kind = "bound", name = "bound", damage = 0, range = 200, windup = 0.45, active = 0.55, arc = 10,
-		recover = 0.25, cooldown = 1.3, landMin = 22, landMax = 28,
+		recover = 0.35, cooldown = 1.3, landMin = 22, landMax = 28,
+		-- flight seconds (DashSeconds) and arc per landing mode (BoundMode)
+		boundModes = {
+			over = { active = 0.80, arc = 24 }, flank = { active = 0.60, arc = 11 },
+			back = { active = 0.55, arc = 9 }, short = { active = 0.42, arc = 5 },
+		},
 	})
 	local boulderHurl = atk({
 		kind = "spit", name = "boulderHurl", damage = 70, range = 85, minRange = 45, windup = 1.70,
@@ -719,6 +791,7 @@ if NEW_THUNDER_APE then
 		pattern = {
 			clubSwing, bound, boulderHurl, bodySlam, skyfallSlam, bound, thunderRush, thunderLance,
 			thunderRoar, bound, stormCall, judgment, backhand, thunderPound, phaseRoar, challenge,
+			rushSwipe, skyfallSweep,
 		} :: { Attack },
 		rotate = true,
 		resetOnEvade = true,
@@ -730,7 +803,7 @@ end
 -- (24 x 19 x 38 studs; root box 24.7 x 9.5 x 26.3 centred under the coil, the skull
 -- about 17 studs and the fang tips about 24 studs ahead of the root, head 14.6 up), so
 -- every reach is measured from the root centre and clears the head. Shares of a QC7 player's health:
--- fang 14% (+poison), flurry 7% a strike, sweep 12%, slam 24%, erupt 22%, lance 11%,
+-- fang 14% (+poison), flurry 7% a strike, sweep 12%, shove 7%, slam 24%, erupt 22%, lance 11%,
 -- spray 8% a lane, pools 7% (+poison), coil 8% + squeeze 28%, rain 10% a drop. Crowd
 -- control rides `stun.onHit` (PlayerStun), the coil stuns 1.4 s and the squeeze is
 -- damage only (a stun's immunity window would swallow its CC). Mechanics for bolt,
@@ -759,6 +832,14 @@ if NEW_JIAO then
 		kind = "slam", name = "tailSweep", damage = 31, range = 20, windup = 0.80, recover = 1.00,
 		cooldown = 1.8, radius = 22, offset = Vector3.new(0, 0, 0),
 		stun = { kind = "stagger", radius = 0, seconds = 0.5, onHit = true },
+	})
+	-- Tail Shove: the coil whips out and throws anyone close 36 studs clear, then it holds
+	-- and shoots from range (rangedNext): the Jiao makes its own range.
+	local tailShove = atk({
+		kind = "slam", name = "tailShove", damage = 18, range = 22, windup = 0.70, recover = 0.80,
+		cooldown = 1.0, radius = 20, offset = Vector3.new(0, 0, 0), knock = 36,
+		stun = { kind = "stagger", radius = 0, seconds = 0.5, onHit = true },
+		rangedNext = { "venomLance", "venomSpray", "venomPools" }, rangedWait = 2.5,
 	})
 	local mireDive = atk({
 		kind = "burrow", name = "mireDive", damage = 0, range = 56, minRange = 30, windup = 0.80, recover = 0.10,
@@ -848,7 +929,7 @@ if NEW_JIAO then
 		pack = { howl = emerge },
 		attack = venomLance,
 		pattern = {
-			venomLance, venomFang, pillarSlam, tailSweep, mireDive, erupt, dreadHiss, venomSpray, jiaoCoil,
+			venomLance, venomFang, tailShove, pillarSlam, tailSweep, mireDive, erupt, dreadHiss, venomSpray, jiaoCoil,
 			fangFlurry, venomPools, molt, ascension, venomRain, emerge,
 		} :: { Attack },
 		rotate = true,

@@ -3,7 +3,8 @@
 -- here so the state machine only needs a few hooks (all called from EnemyService):
 --   bolt     venom lanes from the mouth (`lanes` angles): the windup shows each lane
 --            (Projectiles.warnLane), the release fires one real projectile down each
---            (Projectiles.fire, cue "venomBolt"), aimed down to the target's height.
+--            (Projectiles.fire, cue "venomBolt"), aimed down to the target's height. With
+--            the target inside `minRange` at the release, nothing fires.
 --   pools    circles (one on the target, two `flank` studs either side) that hurt at
 --            windup end and then stay `poolSeconds` as poison pools.
 --   burrow   no damage: it dives (sets Burrowed, so it can't be hit or locked) and
@@ -269,6 +270,10 @@ function BossAttacks.resolve(enemy, attack, shape, now: number)
 	if attack.kind == "bolt" then
 		local player = enemy.target
 		local targetRoot = player and ctx.playerRoot(player)
+		if targetRoot and attack.minRange and ctx.flat(targetRoot.Position - enemy.root.Position).Magnitude < attack.minRange then
+			-- the target came inside the bolt's minRange during the windup: no point-blank shot
+			return
+		end
 		fireBolt(enemy, attack, shape, targetRoot)
 		for _, lane in s.extras do
 			fireBolt(enemy, attack, lane, targetRoot)

@@ -193,6 +193,37 @@ points, trail height), the full cue path, how it reads at 40 studs and on
 phones, and the Game Module path (effects play on TechniqueVFX's fallback
 when the module isn't in the place).
 
+### Arrivals, skids and turning into moves (testbed, `Config.Wilds.WEIGHTED_MOVES`)
+The server side of telegraphs.md "Attacks that make sense" (2026-10-22 boss feel pass).
+`WEIGHTED_MOVES = TESTBED`: the main game keeps the old snap-and-slide until the user
+approves it.
+- **Turning into the move.** A leap, bound, charge or lunge no longer snaps to face the
+  target at windup start: the root turns toward where it goes over the first 60% of
+  the windup (`EnemyMover.turnTo`, an eased timed yaw that wins over walking turns and
+  works standing still). A leap or bound then finishes its yaw in the air, over 80% of
+  the flight, to touch down facing the target (or along the flight when the target is
+  still on the landing spot). Nothing turns after landing except an `arrive` follow-up
+  turning into its own blow.
+- **`arrive`** (attack field, an ordinary attack): started the moment the parent's dash,
+  leap or bound arrives, with no recover between, if the target is within the
+  follow-up's `range` and at most 100 degrees off the nose (its windup turns into it,
+  over 70% of the windup). It keeps the attack slot, sends its own telegraph, windup
+  and strike cues under its own name (AIState goes dash -> windup, so the parent's
+  `land` cue still carries the parent's name), and a pattern boss resumes the attack
+  it cut in front of. List it in the pattern or pool with `chainOnly` so clients find
+  its timing.
+- **`skid`** (attack field): no follow-up to start (the arrive missed, or there is none
+  and the target is more than 60 degrees off the nose): AIState `recover` for the
+  parent's recover, model attribute `AttackName = "<name>Skid"` (`Attack` stays the
+  parent's; `AttackName` equals `Attack` everywhere else), a 1-5 stud slide on along a
+  charge or lunge (0.06 s of its dash speed, over 0.3 s), and a turn to the target over
+  75% of the recover (at most 0.9 s).
+- **`DashSeconds`** is now also set for leaps and bounds (their real flight).
+- Users: Thunder Ape `thunderRush` -> `rushSwipe` / `thunderRushSkid`, `skyfallSlam` ->
+  `skyfallSweep` / `skyfallSlamSkid`, its bound modes; Elder Wolf King `kingLeap` ->
+  `kingRake` / `kingLeapSkid`; Spirit Wolf `pounceSkid`, `leapSkid` (skid only, when it
+  overshoots). The Jade Jiao's `tailShove` uses `rangedNext` (below).
+
 ### Spirit Wolf (shipped)
 History: the new fight went to the **testbed first** behind `Config.Wilds.NEW_WOLF`;
 the user fought it there and approved it, and it shipped to the main game on
@@ -245,6 +276,10 @@ The fight:
 | `pounce` (opener) | lunge | 0.7 / 0.3 (12 studs at 40/s) / 0.9 | 5-12 | box 3.5 x 12 | 16 (13%) | 3.5 s |
 | `leap` | leap | 1.0 / 0.45 flight / 1.1 | 12-24, not before 6 s | circle r 5 on the target, telegraph runs to touchdown | 18 (15%) | 9 s |
 | `howl` | howl | 0.8 / - / 0.2 | first notice | stock howl ring | 0 | once per engagement; rallies, or calls 1-3 wolves |
+
+Testbed (`WEIGHTED_MOVES`): a pounce or leap that ends with the target more than 60
+degrees off its nose skids round to face it over the recover (`pounceSkid`, `leapSkid`)
+instead of sliding and snapping; the windup turns into the lunge or leap.
 
 Health 80 (was 60), QC2, weight 1. Sanity check against a QC2 sword player (power
 1.10, chain about 44 damage per 2.25 s): roughly 8 s to kill one wolf with realistic
@@ -338,7 +373,10 @@ shipped templates are retained. The promotion script refuses to replace an exist
 staging folder or B template.
 
 The opener is Royal Bite. The repeating pattern is Paw Swipe -> King's Rush ->
-Claw Down -> Crownfall -> Royal Bite. Pack Call interrupts the next attack at 65%
+Claw Down -> Crownfall -> Royal Bite -> King's Leap (skipped when the target is
+closer than 12: it's a gap closer). King's Leap lands in its slam circle and, if the
+target is still within 18 and in front, rakes at once (`arrive` `kingRake`); a miss
+skids round (`kingLeapSkid`). Pack Call interrupts the next attack at 65%
 and 30% health, then resumes that attack; `thresholdOnly = true` keeps the call out
 of the normal rotation. It calls two Spirit Wolves, capped at two owned wolves
 alive. Those wolves arrive already targeting and cannot howl in another pack.
@@ -350,6 +388,8 @@ alive. Those wolves arrive already targeting and cannot howl in another pack.
 | King's Rush (`kingsRush`) | charge | 1.00 / lane / 1.00 | 30 | 7-wide lane, 12-30 long | 82 (25%) | 3.1 s |
 | Claw Down (`clawDown`) | slam | 0.55 / 0.12 / 0.85 | 11 | r 4.5 at local (1.7, 0, -7) | 46 (14%) | 1.8 s |
 | Crownfall (`crownfall`) | slam | 1.25 / 0.18 / 1.25 | 14 | r 13 at local (0, 0, -3.5) | 104 (32%) | 2.9 s |
+| King's Leap (`kingLeap`, heavy telegraph) | leap | 1.10 / 0.70 flight (arc 16) / 1.00 (the skid) | 12-42 | r 14 on where the target stood, telegraph runs to touchdown | 86 (26%) | 3.2 s |
+| King's Rake (`kingRake`, `arrive`) | cone | 0.50 / - / 0.90 | 18 on landing | r 16, 120 deg | 40 (12%) | - |
 | Engage roar (`roar`, `pack.howl`) | howl | 1.00 / 0.10 / 0.80 | first engagement (`ENGAGE_RESET`), held until the target is within 24 | no damage; staggers players within 18 studs for 0.8 s (`stun`, `PlayerStun`; circle telegraphed; a dodge evades it). Doesn't consume the pattern | 0 | - |
 | Pack Call (`packCall`) | summon | 1.20 / 0.10 / 1.00 | threshold | no damage, but the howl stuns players within 20 studs for 1.0 s (`stun`, `PlayerStun`; the circle is telegraphed; a dodge evades it) | 0 | 2.6 s |
 
@@ -546,9 +586,11 @@ the `Phase` model attribute (1-3), fires `enemyCue "phase"` and applies `phaseSp
 | `clubSwing` -> `backhand` -> `thunderPound` | cone r30 110 deg / cone r30 120 deg / slam r15 at 18 ahead | .80/-/.45, .60/-/.45, .85/-/1.30 | | 50, 50, 110 | 1 |
 | `poundWave` (cue only) | ring from the pound, r34, 0.45 s later, spares the slam's own circle | | | 55 | 2+ |
 | `bodySlam` | lunge box 20 x 34 at 55/s | 1.10 / ~.62 / 1.10 | | 140 | 1 |
-| `skyfallSlam` | leap r20 on the target, arc 26, range 22-55 | 1.20 / .75 / 1.10 | | 150 | 1 |
-| `thunderRush` | charge box 14 x 64 at 95/s, 12 past the target | 1.20 / ~.7 / .90 | | 140 | 1 |
-| `bound` | hop to a flank spot 22-28 from the target, no telegraph (an empty `bound` shape so the windup cue fires) | .45 / .55 / .25 | | 0 | 1 |
+| `skyfallSlam` | leap r20 on the target, arc 26, range 22-55; `arrive` `skyfallSweep`, else `skyfallSlamSkid` | 1.20 / .75 / 1.10 | | 150 | 1 |
+| `skyfallSweep` | cone r32 140 deg backhand on landing (target within 34, in front) | .50 / - / 1.00 | | 55 | 1 |
+| `thunderRush` | charge box 14 x 24-64 at 95/s, pulls up 12 short of where the target stood; `arrive` `rushSwipe`, else `thunderRushSkid` | 1.20 / ~.5 / .90 | | 110 | 1 |
+| `rushSwipe` | cone r30 110 deg at the end of the rush (target within 32, in front) | .40 / - / .90 | | 60 | 1 |
+| `bound` | hop, no telegraph (an empty `bound` shape so the windup cue fires); landing mode `BoundMode` (never twice running): `over` past the target 22-28 (target within 50; flight .80, arc 24, turns in the air to face back), `flank` left or right 22-28 (.60, arc 11), `back` a retreat hop 14-20 farther away (target within 40; .55, arc 9), `short` a small hop round the target at the same distance (.42, arc 5) | .45 / per mode / .35 | | 0 | 1 |
 | `boulderHurl` | spit r10 on the target, range 45-85 (flight always readable) | 1.7 / - / .90 (rip 0-.6, lift .6-1.0, rear back 1.0-1.25, release 1.25, flight to 1.7) | | 70 | 1 |
 | `thunderLance` | `lance` box 8 x 90 | 1.4 / - / .90 | | 120 | 2+ |
 | `thunderRoar` | howl, stun circle r42, stagger 0.9 s | 1.3 / - / 1.0 | | 0 | 2+ |
@@ -635,6 +677,7 @@ then `venomRain` as its follow-up) and venomRain again at 12%.
 | `venomFang` | cone r 34, 80 deg | 0.75 / 0.9 | 30 | 36 + poison | flinch |
 | `pillarSlam` | slam r 9 at (0,0,-27) | 1.0 / 1.3 | 36 | 61 | stagger 0.7 |
 | `tailSweep` | slam r 22 at the root | 0.8 / 1.0 | 20 | 31 | stagger 0.5 |
+| `tailShove` | slam r 20 at the root, throws a hit player 36 studs out (`knock`); then `rangedNext` | 0.7 / 0.8 | 22 | 18 | stagger 0.5 |
 | `mireDive` (P2) | burrow, lane 6 wide up to 56 at 75/s, no damage; follow-up `erupt` | 0.8 / 0.1 | 30-56 | 0 | none |
 | `erupt` | slam r 14 at the root, surfaces it | 0.85 / 1.1 | chained | 56 | stagger 0.8 |
 | `dreadHiss` (P2) | howl, stagger circle r 30 | 1.1 / 0.9 | 30 | 0 | stagger 0.8 |
@@ -661,6 +704,10 @@ to a point `coilRadius` from the centre during the windup, a landed hit stuns an
 stun immunity would swallow it); 3% of max health dealt during the hold breaks the ring (stagger
 0.9 s, cue `coilBreak`). Poison: `PlayerPoison` (3 stacks, 1.2% max health a stack each second,
 5 s refreshed, never lethal, no flinch; attributes `PoisonStacks`/`PoisonUntil`).
+Making its own range: after `tailShove` the boss only picks `venomLance`, `venomSpray`
+or `venomPools` (`rangedNext`), holding still and facing the target meanwhile, for up to
+2.5 s past the recover (`rangedWait`). A bolt whose target came inside its `minRange`
+during the windup doesn't fire.
 Attack fields `poison`, `strikes`, `lanes`, `flank`, `unburrow`, `dashMin`, `mouth`,
 `mouthHeight`, `boltName`, def `phaseCalls`, `startsBurrowed` are documented in Enemies.luau.
 
@@ -893,6 +940,10 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   `notBefore`, `active`, `arc`, `hopAfter`, `followUp`, `stopPast`) and `pack` (`howl`, `hop`,
   `circle` with optional `waitFor`, `closeOpener`); boss `pattern`, `summonAt`,
   `shareTurns`, `resetOnEvade`, and attack `offset` / `thresholdOnly`.
+- Arrivals (`Config.Wilds.WEIGHTED_MOVES`, testbed only): attack `arrive`, `skid`,
+  `boundModes`, `rangedNext`/`rangedWait`, negative `stopPast`; EnemyService
+  `WINDUP_TURN`, `AIR_TURN`, `ARRIVE_TURN`, `ARRIVE_ANGLE`, `SKID_ANGLE`, `SKID_SLIDE`,
+  `SKID_SLIDE_SECONDS`, `SKID_TURN`, `OVER_MAX`, `BACK_MAX`.
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
   `ESCAPE_LEAD`; client `EnemyMotion` `LEAD_MAX`, `STALE`, `FOLLOW`, `TURN`, `SNAP`,
   `DASH_SLACK`.
@@ -919,7 +970,14 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - The Inner and Middle regions are now zone boxes (map.md "Wilds zones"); the Outer
   region is still a placeholder ring. The middle and outer regions reuse ring-1 beasts
   until their own exist.
-- Enemy hits don't knock players back yet.
+- Arrivals, skids and turning into moves (`WEIGHTED_MOVES`) are untested in play:
+  whether the eased windup turn reads, the ape's `over` bound (a 180-degree air turn
+  over 0.64 s), skid slides against walls, the follow-ups' short windups (rushSwipe
+  0.4 s right after a dodge of the rush), the Jiao holding still for its shot, and the
+  36-stud tail shove, which the client plays over the stock `KNOCK_SECONDS` 0.22 s
+  (a near-teleport; CrowdControl should stretch long knocks). The pose modules time a
+  bound's flight from `active`, not the per-mode `DashSeconds`, until the animators
+  read it.
 - The tiered overhead bars are untested in play: the aura pulse, sheen sweep and
   skull pulse, the restyle on breakthrough, and how the 150x62 px billboard reads
   on a phone with several beasts on screen. No shipped beast is far or deadly to a

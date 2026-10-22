@@ -68,9 +68,14 @@ motion. Left:
 - **Small clips:** the beard sits about 0.8 into the chest, and the forearm grazes
   the skull in the boulder follow-through.
 - **Def changes wanted:** register `staggerSeconds = 0.45` on `ThunderApeB` in
-  `EnemyAnimator.luau` (it currently plays a 0.35 s pose in 0.28 s). Raise
-  `bound`'s recover from 0.25 to 0.35. Fix the stale "boulder released at 0.60 s"
-  comment in `Enemies.luau`.
+  `EnemyAnimator.luau` (it currently plays a 0.35 s pose in 0.28 s). (`bound`'s
+  recover is now 0.35 and the boulder comment says 1.25 s.)
+- **Arrivals (server done, 2026-10-22 feel pass, `WEIGHTED_MOVES`):** `thunderRush`
+  pulls up 12 short of where you stood and swipes (`rushSwipe`, 0.40 s), `skyfallSlam`
+  sweeps on landing (`skyfallSweep`, 0.50 s), a miss skids round (`thunderRushSkid`,
+  `skyfallSlamSkid` in `AttackName`). Bounds pick `over`/`flank`/`back`/`short`
+  (`BoundMode`, per-mode flight in `DashSeconds`), and the root turns during the
+  windup and in the air. Poses and effects for these, and feel, are open.
 - **Feel:** whether the combo still feels rushed under the new timings hasn't been
   judged.
 
@@ -186,12 +191,20 @@ dark trail under a bright one and an explosion on the ground. Left:
 - the always-on aura `Under` disc, which still needs checking against the
   no-disc rule.
 
+**Fight (server done, 2026-10-22):** `tailShove` throws close players 36 studs out and
+the boss then holds for a ranged attack (`rangedNext`); bolts no longer fire at a target
+inside their `minRange`. Open: its pose and effect, and the client's 0.22 s knock reading
+as a teleport at 36 studs.
+
 **Gaps:** the server hitbox is the root box, so tail hits don't register. The coil
 ring has no collision, so you can walk out past the edge, not only through the gap.
 There is no poison cure and no HUD poison icon.
 
 ## Elder Wolf King
-Done: ghosts and the always-on ground mandala and ink disc removed (`719fb5d`).
+Done: ghosts and the always-on ground mandala and ink disc removed (`719fb5d`). The
+server side of `kingLeap` (r14 slam, heavy telegraph) -> `kingRake` (or
+`kingLeapSkid`) is in (2026-10-22); `kingsRush` still ends in a plain recover with no
+blow or skid.
 Impact pass (2026-10-22): clawDown and crownfall layer moonlight shockwave, dust,
 flash and (crownfall) a scar and rocks; new `kingLeap` (crouch tell and the
 landing sigil, rush trail and take-off dust, a landing slam with burst, scar and

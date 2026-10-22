@@ -51,6 +51,20 @@ local CC = CombatConfig.CC
 local TURNS = Config.NEW_WOLF or Config.NEW_BOAR or Config.NEW_WOLF_KING or Config.NEW_THUNDER_APE or Config.NEW_NINE_TAIL_FOX or Config.NEW_JIAO
 -- how long a follow-up (Enemies `followUp`) waits past its recover for the attack slot
 local FOLLOW_UP_WAIT = 1.0
+-- Turning into moves and arriving with weight (Config.Wilds.WEIGHTED_MOVES; telegraphs.md
+-- "Attacks that make sense"): a leap, bound, charge or lunge turns toward where it goes
+-- over WINDUP_TURN of its windup, a leap or bound finishes its yaw by AIR_TURN of the
+-- flight, an `arrive` follow-up turns into its blow over ARRIVE_TURN of its windup, and
+-- may start only with the target within ARRIVE_ANGLE of the facing. A beast with `skid`
+-- and no follow-up skids round when the target ends up more than SKID_ANGLE off its nose.
+local WEIGHTED = Config.WEIGHTED_MOVES
+local WINDUP_TURN, AIR_TURN, ARRIVE_TURN = 0.6, 0.8, 0.7
+local ARRIVE_ANGLE, SKID_ANGLE = 100, 60
+-- a skid slides on along a charge or lunge by SKID_SLIDE s of its dash speed (1-5 studs)
+-- over SKID_SLIDE_SECONDS, and turns to the target over SKID_TURN of its recover (at most 0.9 s)
+local SKID_SLIDE, SKID_SLIDE_SECONDS, SKID_TURN = 0.06, 0.3, 0.75
+-- bound landing modes (Enemies `boundModes`): never the same twice in a row
+local BOUND_MODES = { "over", "flank", "back", "short" }
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Combat = require(script.Parent.Combat)
 local Guard = require(script.Parent.Guard)
@@ -172,6 +186,13 @@ type Enemy = {
 	orbitDir: number,
 	orbitSwitchAt: number,
 	targetId: number?, -- the Target attribute last sent
+	dashAttack: Enemies.Attack?, -- the attack whose dash, leap or bound is under way (its `arrive` and `skid`)
+	resume: Enemies.Attack?, -- pattern bosses: the queued attack an `arrive` follow-up cut in front of
+	dashFlight: number?, -- a bound's flight seconds and arc for its landing mode
+	dashArc: number?,
+	boundMode: string?, -- the last bound's landing mode (BoundMode attribute)
+	preferNext: { string }?, -- after a `rangedNext` attack: only these, until preferUntil
+	preferUntil: number,
 }
 
 local enemies: { [Model]: Enemy } = {}
@@ -384,6 +405,13 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		orbitDir = if math.random() < 0.5 then 1 else -1,
 		orbitSwitchAt = 0,
 		targetId = nil,
+		dashAttack = nil,
+		resume = nil,
+		dashFlight = nil,
+		dashArc = nil,
+		boundMode = nil,
+		preferNext = nil,
+		preferUntil = 0,
 	}
 	enemies[model] = enemy
 	return model
@@ -576,7 +604,36 @@ local function face(enemy: Enemy, toward: Vector3)
 	local p = enemy.root.Position
 	local look = Vector3.new(toward.X, p.Y, toward.Z)
 	if (look - p).Magnitude > 0.1 then
+		enemy.mover.yaw = nil
 		enemy.root.CFrame = CFrame.lookAt(p, look)
+	end
+end
+
+-- Turn toward `toward` over `seconds` (EnemyMover.turnTo), or snap like `face` without
+-- WEIGHTED_MOVES.
+local function turnToward(enemy: Enemy, toward: Vector3, seconds: number)
+	if not WEIGHTED then
+		face(enemy, toward)
+		return
+	end
+	EnemyMover.turnTo(enemy.mover, flat(toward - enemy.root.Position), seconds, os.clock())
+end
+
+-- Which attack this is, for per-attack poses and effects (EnemyAnimator, EnemyFX).
+-- AttackName follows Attack, except in a skid, where it says `<attack>Skid`.
+local function setAttack(enemy: Enemy, name: string)
+	enemy.model:SetAttribute("Attack", name)
+	enemy.model:SetAttribute("AttackName", name)
+end
+
+-- An attack broken before it resolved (stagger, parry): a pattern boss goes back to
+-- the attack an `arrive` follow-up had cut in front of.
+local function dropArrive(enemy: Enemy)
+	enemy.dashAttack = nil
+	enemy.mover.yaw = nil
+	if enemy.resume then
+		enemy.attack = enemy.resume
+		enemy.resume = nil
 	end
 end
 
@@ -622,6 +679,8 @@ local function resetAtHome(enemy: Enemy)
 	enemy.shape, enemy.dashTo, enemy.landShape = nil, nil, nil
 	enemy.hopPending = false
 	enemy.followUp = nil
+	enemy.dashAttack, enemy.resume, enemy.preferNext = nil, nil, nil
+	enemy.boundMode = nil
 	enemy.strikeId += 1
 end
 
@@ -669,6 +728,7 @@ local function knock(enemy: Enemy, player: Player, push: Vector3)
 	enemy.strikeId += 1
 	enemy.hopPending = false
 	enemy.followUp = nil
+	dropArrive(enemy)
 	releaseSlot(enemy)
 	setSpeed(enemy, enemy.def.runSpeed)
 	enemy.mover.turn = false
@@ -795,6 +855,7 @@ local function parried(enemy: Enemy, chain: number?)
 	enemy.strikeId += 1
 	enemy.hopPending = false
 	enemy.followUp = nil
+	dropArrive(enemy)
 	releaseSlot(enemy)
 	setSpeed(enemy, enemy.def.runSpeed)
 	enemy.mover.turn = false
@@ -1272,12 +1333,21 @@ local function fireLance(enemy: Enemy, attack: Enemies.Attack)
 	})
 end
 
-local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, attack: Enemies.Attack)
+-- `arriving`: an `arrive` follow-up, started the moment its parent's dash or leap
+-- arrived (think), turning into the blow over its windup.
+local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, attack: Enemies.Attack, arriving: boolean?)
 	local def = enemy.def
 	enemy.attack = attack
 	stop(enemy)
 	enemy.mover.turn = false
-	face(enemy, targetRoot.Position)
+	if arriving then
+		turnToward(enemy, targetRoot.Position, attack.windup * ARRIVE_TURN)
+	elseif attack.kind == "leap" or attack.kind == "charge" or attack.kind == "lunge" then
+		-- the body turns into the line during the anticipation, not after it
+		turnToward(enemy, targetRoot.Position, attack.windup * WINDUP_TURN)
+	else
+		face(enemy, targetRoot.Position)
+	end
 	local ground = groundAt(enemy.root.Position)
 	local dir = flat(targetRoot.Position - enemy.root.Position)
 	dir = if dir.Magnitude > 0.1 then dir.Unit else flat(enemy.root.CFrame.LookVector).Unit
@@ -1365,9 +1435,16 @@ local function startAttack(enemy: Enemy, targetRoot: BasePart, now: number, atta
 	if TURNS and (not def.boss or def.shareTurns) and attack.damage > 0 and enemy.target then
 		takeSlot(enemy, enemy.target)
 	end
-	-- which attack, for per-attack poses and effects (EnemyAnimator, EnemyFX)
-	enemy.model:SetAttribute("Attack", name)
-	setState(enemy, "windup")
+	-- which attack, for per-attack poses and effects (EnemyAnimator, EnemyFX). A
+	-- follow-up changes AIState first, so the parent's `land` cue still carries the
+	-- parent's name.
+	if arriving then
+		setState(enemy, "windup")
+		setAttack(enemy, name)
+	else
+		setAttack(enemy, name)
+		setState(enemy, "windup")
+	end
 	if attack.projectile then
 		-- a real projectile: warn the lane or the landing circle now, fire later
 		if attack.kind == "lance" then
@@ -1634,6 +1711,11 @@ local function resolveAttack(enemy: Enemy, now: number)
 	if attack.hopAfter then
 		enemy.hopPending = true
 	end
+	if attack.rangedNext then
+		-- it made its own range (the Jiao's tail shove): a ranged attack comes next
+		enemy.preferNext = attack.rangedNext
+		enemy.preferUntil = now + attack.recover + (attack.rangedWait or 2.5)
+	end
 	enemy.followUp = attack.followUp
 	if attack.followUp then
 		-- through the dash and recover, plus a short wait for the attack slot
@@ -1642,10 +1724,24 @@ local function resolveAttack(enemy: Enemy, now: number)
 	end
 	if enemy.dashTo then
 		local to = enemy.dashTo :: Vector3
+		enemy.dashAttack = attack
 		if attack.kind == "leap" or attack.kind == "bound" or attack.kind == "retreat" then
-			local flight = attack.active or 0.45
-			startDash(enemy, to, math.max(flat(to - enemy.root.Position).Magnitude / flight, 1), attack.arc)
+			local flight = enemy.dashFlight or attack.active or 0.45
+			local arc = enemy.dashArc or attack.arc
+			enemy.dashFlight, enemy.dashArc = nil, nil
+			enemy.model:SetAttribute("DashSeconds", flight)
+			startDash(enemy, to, math.max(flat(to - enemy.root.Position).Magnitude / flight, 1), arc)
 			enemy.stateUntil = now + flight
+			if WEIGHTED and attack.kind ~= "retreat" then
+				-- the yaw finishes in the air: touch down facing the target (or along
+				-- the flight when it still stands on the landing spot)
+				local targetRoot = enemy.target and playerRoot(enemy.target)
+				local facing = if targetRoot then flat(targetRoot.Position - to) else Vector3.zero
+				if facing.Magnitude < 3 then
+					facing = flat(to - enemy.root.Position)
+				end
+				EnemyMover.turnTo(enemy.mover, facing, flight * AIR_TURN, os.clock())
+			end
 		else
 			-- the dash's line, so clients draw it where it is on the server, not a
 			-- ping behind (EnemyMotion)
@@ -1658,7 +1754,13 @@ local function resolveAttack(enemy: Enemy, now: number)
 		enemy.state = "recover"
 		enemy.stateUntil = now + enemy.recoverFor
 	end
-	advancePattern(enemy)
+	if enemy.resume then
+		-- an `arrive` follow-up: the pattern carries on from the attack it cut in front of
+		enemy.attack = enemy.resume
+		enemy.resume = nil
+	else
+		advancePattern(enemy)
+	end
 end
 
 -- Hop back from the target (no damage), then circle again.
@@ -1670,7 +1772,8 @@ local function hop(enemy: Enemy, targetRoot: BasePart, now: number)
 	local away = flat(position - targetRoot.Position)
 	away = if away.Magnitude > 0.1 then away.Unit else -flat(enemy.root.CFrame.LookVector).Unit
 	face(enemy, targetRoot.Position)
-	enemy.model:SetAttribute("Attack", "hop")
+	setAttack(enemy, "hop")
+	enemy.dashAttack = nil
 	startDash(enemy, position + away * h.distance, h.distance / h.seconds, h.arc)
 	enemy.recoverFor = 0.1
 	enemy.stateUntil = now + h.seconds + 0.05
@@ -1712,6 +1815,26 @@ end
 local function rotateAttack(enemy: Enemy, distance: number, now: number): Enemies.Attack?
 	local pattern = enemy.def.pattern :: { Enemies.Attack }
 	local n = #pattern
+	local prefer = enemy.preferNext
+	if prefer and now >= enemy.preferUntil then
+		enemy.preferNext, prefer = nil, nil
+	end
+	if prefer then
+		-- after an attack with `rangedNext`: one of those, or nothing yet (it holds)
+		for i, a in pattern do
+			if
+				table.find(prefer, attackName(a))
+				and (a.phase or 1) <= enemy.phase
+				and distance <= a.range
+				and distance >= (a.minRange or 0)
+			then
+				enemy.preferNext = nil
+				enemy.patternIndex = i
+				return a
+			end
+		end
+		return nil
+	end
 	local start = math.max(enemy.patternIndex, 1)
 	for step = 0, n - 1 do
 		local i = (start - 1 + step) % n + 1
@@ -1731,37 +1854,110 @@ local function rotateAttack(enemy: Enemy, distance: number, now: number): Enemie
 	return nil
 end
 
--- A bound: no damage, no area. It crouches (windup), then hops to a flank spot
--- landMin-landMax studs from the target (a random side, on ground within 10 studs of
--- the target's height) and chases again. Clients get a Telegraph with an empty
--- "bound" shape so the windup cue fires.
+-- A bound: no damage, no area. It crouches (windup), then hops and chases again.
+-- Without `boundModes` it lands on a flank spot landMin-landMax studs from the target
+-- (a random side). With them (the Thunder Ape) each bound picks a landing mode, never
+-- the last one, sent as the BoundMode attribute at windup, each with its own arc and
+-- flight (DashArc, DashSeconds):
+--   over   past the target, on the far side (target within OVER_MAX), turning in the
+--          air to land facing back at it; the highest arc
+--   flank  to the target's left or right
+--   back   a retreat hop straight away (target within BACK_MAX)
+--   short  a small hop round the target at about the same distance
+-- Every landing is on ground within 10 studs of the target's height. Clients get a
+-- Telegraph with an empty "bound" shape so the windup cue fires.
+local OVER_MAX, BACK_MAX = 50, 40
+
+local function boundPoint(enemy: Enemy, attack: Enemies.Attack, targetRoot: BasePart, mode: string): Vector3?
+	local center = targetRoot.Position
+	local base = groundAt(center)
+	local position = enemy.root.Position
+	local away = flat(position - center)
+	local distance = away.Magnitude
+	away = if distance > 0.1 then away.Unit else Vector3.xAxis
+	local landMin, landMax = attack.landMin or 22, attack.landMax or 28
+	for _ = 1, 8 do
+		local side = if math.random() < 0.5 then 1 else -1
+		local probe: Vector3
+		if mode == "over" then
+			local dir = CFrame.Angles(0, math.rad((math.random() * 2 - 1) * 20), 0):VectorToWorldSpace(-away)
+			probe = center + dir * (landMin + math.random() * (landMax - landMin))
+		elseif mode == "back" then
+			local dir = CFrame.Angles(0, math.rad((math.random() * 2 - 1) * 25), 0):VectorToWorldSpace(away)
+			probe = center + dir * math.min(distance + 14 + math.random() * 6, landMax + 22)
+		elseif mode == "short" then
+			local dir = CFrame.Angles(0, side * math.rad(25 + math.random() * 15), 0):VectorToWorldSpace(away)
+			probe = center + dir * math.clamp(distance, landMin, landMax + 10)
+		else -- flank
+			local dir = CFrame.Angles(0, side * math.rad(60 + math.random() * 90), 0):VectorToWorldSpace(away)
+			probe = center + dir * (landMin + math.random() * (landMax - landMin))
+		end
+		local hit = workspace:Raycast(probe + Vector3.new(0, 60, 0), Vector3.new(0, -160, 0), groundParams())
+		if hit and math.abs(hit.Position.Y - base.Y) <= 10 then
+			return hit.Position
+		end
+	end
+	return nil
+end
+
 local function startBound(enemy: Enemy, targetRoot: BasePart, now: number, attack: Enemies.Attack)
 	enemy.attack = attack
 	stop(enemy)
 	enemy.mover.turn = false
-	face(enemy, targetRoot.Position)
 	local center = targetRoot.Position
-	local base = groundAt(center)
-	local away = flat(enemy.root.Position - center)
-	away = if away.Magnitude > 0.1 then away.Unit else Vector3.xAxis
+	local distance = flat(enemy.root.Position - center).Magnitude
+	local modes = attack.boundModes
+	local mode = "flank"
 	local point: Vector3? = nil
-	for _ = 1, 8 do
-		local side = if math.random() < 0.5 then 1 else -1
-		local dir = CFrame.Angles(0, side * math.rad(60 + math.random() * 90), 0):VectorToWorldSpace(away)
-		local dist = (attack.landMin or 22) + math.random() * ((attack.landMax or 28) - (attack.landMin or 22))
-		local probe = center + dir * dist
-		local hit = workspace:Raycast(probe + Vector3.new(0, 60, 0), Vector3.new(0, -160, 0), groundParams())
-		if hit and math.abs(hit.Position.Y - base.Y) <= 10 then
-			point = hit.Position
-			break
+	if modes then
+		local fits: { string } = {}
+		for _, m in BOUND_MODES do
+			if modes[m] and m ~= enemy.boundMode
+				and not (m == "over" and distance > OVER_MAX)
+				and not (m == "back" and distance > BACK_MAX)
+			then
+				table.insert(fits, m)
+			end
 		end
+		-- a random fit first, then the rest in order, until one has ground to land on
+		if #fits > 0 then
+			local first = math.random(#fits)
+			fits[1], fits[first] = fits[first], fits[1]
+		end
+		for _, m in fits do
+			point = boundPoint(enemy, attack, targetRoot, m)
+			if point then
+				mode = m
+				break
+			end
+		end
+	else
+		point = boundPoint(enemy, attack, targetRoot, "flank")
 	end
-	point = point or groundAt(center + away * (attack.landMin or 22))
-	enemy.dashTo = point
-	enemy.shape = { kind = "bound", center = point, radius = 0 }
+	if not point then
+		local away = flat(enemy.root.Position - center)
+		away = if away.Magnitude > 0.1 then away.Unit else Vector3.xAxis
+		point = groundAt(center + away * (attack.landMin or 22))
+		mode = "flank"
+	end
+	local landing = point :: Vector3
+	if modes then
+		local spec = modes[mode] or {}
+		enemy.boundMode = mode
+		enemy.dashFlight, enemy.dashArc = spec.active, spec.arc
+		enemy.model:SetAttribute("BoundMode", mode)
+	end
+	-- crouch facing the jump (over, flank) or the target (back, short); the air does the rest
+	if WEIGHTED and (mode == "over" or mode == "flank") then
+		turnToward(enemy, landing, attack.windup * WINDUP_TURN)
+	else
+		turnToward(enemy, center, attack.windup * WINDUP_TURN)
+	end
+	enemy.dashTo = landing
+	enemy.shape = { kind = "bound", center = landing, radius = 0 }
 	enemy.stateUntil = now + attack.windup
 	enemy.nextAttack = now + attack.cooldown
-	enemy.model:SetAttribute("Attack", attackName(attack))
+	setAttack(enemy, attackName(attack))
 	setState(enemy, "windup")
 	telegraphRemote:FireAllClients(enemy.shape, attack.windup, enemy.model, attackName(attack), serverNow())
 end
@@ -1893,7 +2089,8 @@ local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.
 		return nil
 	end
 	local function fits(a: Enemies.Attack): boolean
-		return distance <= a.range
+		return not a.chainOnly
+			and distance <= a.range
 			and distance >= (a.minRange or 0)
 			and now >= (enemy.cooldowns[attackName(a)] or 0)
 			and (a.notBefore == nil or now - enemy.engagedAt >= a.notBefore)
@@ -1903,7 +2100,13 @@ local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.
 		return rotateAttack(enemy, distance, now)
 	end
 	if not pool then
-		return if distance <= enemy.attack.range then enemy.attack else nil
+		local queued = enemy.attack
+		if WEIGHTED and queued.kind == "leap" and distance < (queued.minRange or 0) then
+			-- too close to leap at (the Wolf King's kingLeap): the pattern moves on
+			advancePattern(enemy)
+			return nil
+		end
+		return if distance <= queued.range then queued else nil
 	end
 	if not enemy.opened then
 		local opener = enemy.def.attack
@@ -1922,6 +2125,65 @@ local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.
 		end
 	end
 	return nil
+end
+
+-- A skid-and-turn: the dash is over but its target isn't where the blow can land.
+-- It recovers as usual (the parent's recover), with AttackName `<parent>Skid` (Attack
+-- stays the parent's), sliding on a little after a charge or lunge while it swings
+-- round to face the target, and is facing it before the recover ends.
+local function skid(enemy: Enemy, parent: Enemies.Attack, targetRoot: BasePart, now: number)
+	local model = enemy.model
+	model:SetAttribute("AttackName", attackName(parent) .. "Skid")
+	releaseSlot(enemy)
+	enemy.state = "recover"
+	enemy.stateUntil = now + enemy.recoverFor
+	enemy.mover.turn = false
+	local from, to = model:GetAttribute("DashFrom"), model:GetAttribute("DashTo")
+	if parent.dashSpeed and typeof(from) == "Vector3" and typeof(to) == "Vector3" and flat(to - from).Magnitude > 1 then
+		local studs = math.clamp(parent.dashSpeed * SKID_SLIDE, 1, 5)
+		setSpeed(enemy, studs / SKID_SLIDE_SECONDS)
+		moveTo(enemy, enemy.root.Position + flat(to - from).Unit * studs)
+	end
+	EnemyMover.turnTo(enemy.mover, flat(targetRoot.Position - enemy.root.Position), math.min(enemy.recoverFor * SKID_TURN, 0.9), now)
+end
+
+-- How far (degrees) the target is off the beast's nose.
+local function offNose(enemy: Enemy, targetRoot: BasePart): number
+	local to = flat(targetRoot.Position - enemy.root.Position)
+	local look = flat(enemy.root.CFrame.LookVector)
+	if to.Magnitude < 0.5 or look.Magnitude < 0.1 then
+		return 0
+	end
+	return math.deg(math.acos(math.clamp(to.Unit:Dot(look.Unit), -1, 1)))
+end
+
+-- A dash, leap or bound just arrived (WEIGHTED_MOVES). With the target in reach and
+-- in front, the parent's `arrive` follow-up starts at once (no recover between, and it
+-- keeps the attack slot); otherwise a beast with `skid` skids round to face it (one
+-- without a follow-up only when the target is off its nose). False: recover as usual.
+local function arrive(enemy: Enemy, parent: Enemies.Attack, now: number): boolean
+	if not WEIGHTED or not (parent.arrive or parent.skid) then
+		return false
+	end
+	local target = enemy.target
+	local targetRoot = target and playerRoot(target)
+	if not targetRoot then
+		return false
+	end
+	local follow = parent.arrive
+	local distance = flat(targetRoot.Position - enemy.root.Position).Magnitude
+	if follow and distance <= follow.range and offNose(enemy, targetRoot) <= ARRIVE_ANGLE then
+		if enemy.def.pattern then
+			enemy.resume = enemy.resume or enemy.attack
+		end
+		startAttack(enemy, targetRoot, now, follow, true)
+		return true
+	end
+	if not parent.skid or (not follow and offNose(enemy, targetRoot) <= SKID_ANGLE) then
+		return false
+	end
+	skid(enemy, parent, targetRoot, now)
+	return true
 end
 
 local function think(enemy: Enemy, now: number)
@@ -1945,6 +2207,11 @@ local function think(enemy: Enemy, now: number)
 			if landing then
 				enemy.landShape = nil
 				hurtIn(enemy, enemy.landAttack or enemy.attack, landing, enemy.landFrom, true)
+			end
+			local parent = enemy.dashAttack
+			enemy.dashAttack = nil
+			if parent and arrive(enemy, parent, now) then
+				return
 			end
 			releaseSlot(enemy)
 			enemy.state = "recover"
@@ -2073,6 +2340,10 @@ local function think(enemy: Enemy, now: number)
 		orbit(enemy, targetRoot, pack.circle, now)
 	elseif pack and pack.circle and pack.circle.waitFor and distance <= 4 then
 		-- closed in and waiting on the gore: hold, facing the target
+		stop(enemy)
+		face(enemy, targetRoot.Position)
+	elseif enemy.preferNext and now < enemy.preferUntil then
+		-- it just made its range (rangedNext): hold it, facing the target, for the shot
 		stop(enemy)
 		face(enemy, targetRoot.Position)
 	elseif def.attacks or distance > (def.closeIn or math.min(enemy.attack.range, 20) * 0.7) then
@@ -2231,6 +2502,7 @@ BossAttacks.init({
 	stagger = function(enemy: Enemy, seconds: number)
 		enemy.shape, enemy.dashTo, enemy.landShape = nil, nil, nil
 		enemy.strikeId += 1
+		dropArrive(enemy)
 		releaseSlot(enemy)
 		stop(enemy)
 		enemy.mover.turn = false

@@ -9,6 +9,9 @@
 --   push           a knockback velocity until pushUntil, instead of walking
 --   turn           face the walking direction (off while attacking)
 --   look           face this point instead while walking (circling a target)
+--   yaw            a timed turn (EnemyMover.turnTo) that wins over turn and look, even
+--                  standing still: windups turn into the move, leaps finish their yaw in
+--                  the air, skids swing round to the target
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -25,6 +28,7 @@ export type Mover = {
 	push: Vector3?,
 	pushUntil: number,
 	nudge: Vector3, -- crowding velocity from neighbours, set each step by EnemyService
+	yaw: { from: CFrame, to: CFrame, start: number, seconds: number }?,
 }
 
 local EnemyMover = {}
@@ -45,11 +49,40 @@ function EnemyMover.new(root: BasePart, rootHeight: number, radius: number, spee
 		push = nil,
 		pushUntil = 0,
 		nudge = Vector3.zero,
+		yaw = nil,
 	}
 end
 
 function EnemyMover.moving(m: Mover, now: number): boolean
-	return m.goal ~= nil or (m.push ~= nil and now < m.pushUntil) or m.nudge.Magnitude > 0.01
+	return m.goal ~= nil or m.yaw ~= nil or (m.push ~= nil and now < m.pushUntil) or m.nudge.Magnitude > 0.01
+end
+
+-- Turn to face `dir` (flat) over `seconds`, eased, from wherever it faces now.
+function EnemyMover.turnTo(m: Mover, dir: Vector3, seconds: number, now: number)
+	local flatDir = Vector3.new(dir.X, 0, dir.Z)
+	if flatDir.Magnitude < 0.1 then
+		return
+	end
+	local to = CFrame.lookAt(Vector3.zero, flatDir.Unit)
+	if seconds <= 0 then
+		m.yaw = nil
+		m.root.CFrame = CFrame.new(m.root.Position) * to
+		return
+	end
+	m.yaw = { from = m.root.CFrame.Rotation, to = to, start = now, seconds = seconds }
+end
+
+-- The timed turn's rotation now, or nil; clears it once done.
+local function yawNow(m: Mover, now: number): CFrame?
+	local spin = m.yaw
+	if not spin then
+		return nil
+	end
+	local a = math.clamp((now - spin.start) / spin.seconds, 0, 1)
+	if a >= 1 then
+		m.yaw = nil
+	end
+	return spin.from:Lerp(spin.to, a * a * (3 - 2 * a))
 end
 
 -- Ground height under `position`, or nil over nothing.
@@ -64,6 +97,13 @@ function EnemyMover.step(m: Mover, dt: number, now: number, params: RaycastParam
 	local root = m.root
 	local cframe = root.CFrame
 	local position = cframe.Position
+	local spun = yawNow(m, now)
+	-- a turn in place still has to land when the move below is cut short
+	local function turnOnly()
+		if spun then
+			root.CFrame = CFrame.new(position) * spun
+		end
+	end
 
 	local velocity = Vector3.zero
 	if m.push and now < m.pushUntil then
@@ -84,6 +124,7 @@ function EnemyMover.step(m: Mover, dt: number, now: number, params: RaycastParam
 	velocity += m.nudge
 	local move = flat(velocity) * dt
 	if move.Magnitude < 0.001 then
+		turnOnly()
 		return
 	end
 
@@ -95,6 +136,7 @@ function EnemyMover.step(m: Mover, dt: number, now: number, params: RaycastParam
 		normal = if normal.Magnitude > 0.01 then normal.Unit else -move.Unit
 		move -= normal * math.min(0, move:Dot(normal))
 		if move.Magnitude < 0.001 or workspace:Raycast(position, move.Unit * reach, params) then
+			turnOnly()
 			return
 		end
 	end
@@ -103,10 +145,12 @@ function EnemyMover.step(m: Mover, dt: number, now: number, params: RaycastParam
 	local nextXZ = position + move
 	local floor = ground(nextXZ, m.rootHeight + Config.CLIMB, params)
 	if not floor then
+		turnOnly()
 		return
 	end
 	local standY = floor + m.rootHeight
 	if standY - position.Y > Config.CLIMB + move.Magnitude then
+		turnOnly()
 		return
 	end
 	local y = math.max(standY, position.Y - Config.FALL_SPEED * dt)
@@ -114,7 +158,9 @@ function EnemyMover.step(m: Mover, dt: number, now: number, params: RaycastParam
 
 	local rotation = cframe.Rotation
 	local look = m.look and flat(m.look - nextPosition)
-	if look and look.Magnitude > 0.1 then
+	if spun then
+		rotation = spun
+	elseif look and look.Magnitude > 0.1 then
 		rotation = rotation:Lerp(CFrame.lookAt(Vector3.zero, look.Unit), math.min(1, dt * Config.TURN_RATE))
 	elseif m.turn then
 		local facing = CFrame.lookAt(Vector3.zero, move.Unit)

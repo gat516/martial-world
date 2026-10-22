@@ -500,6 +500,12 @@ return {
 		-- THE JADE JIAO TRIAL: a 115-stud venom serpent boss (QC7) with burrow ambushes,
 		-- poison, a coil trap and phase moves. Testbed only until the user approves.
 		NEW_JIAO = TESTBED,
+		-- THE BOSS FEEL PASS (telegraphs.md, "Attacks that make sense"): beasts turn into
+		-- leaps, bounds, charges and lunges over the windup and finish their yaw in the air,
+		-- start an attack's `arrive` follow-up on arrival, and skid round (`<name>Skid`) to
+		-- face a target they overshot. Testbed only until the user approves; the bosses'
+		-- new moves also sit behind their own NEW_* flags.
+		WEIGHTED_MOVES = TESTBED,
 		-- attack slots (EnemyService): at most this many beasts (non-bosses, plus
 		-- bosses with shareTurns) wind up or strike at one player at once; the next waits
 		-- SLOT_GAP after the last one resolved, so a pack takes turns. Short tells

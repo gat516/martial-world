@@ -105,6 +105,12 @@ attribute when the cue fires). Skipped past 220 studs from the camera. Server
 code never plays effects; if a cue is missing, add an attribute, a field on the
 telegraph, or an `enemyCue` (below), not a server-side effect.
 
+A barrage's windup (the Fox's, the Toad's tongue, the Raven's embers) is ONE `windup` cue whose
+`shape` is `{ kind = "multi", parts, center }`: the real circles, lanes and cones are in
+`shape.parts` (each with its own centre or box, `radius` and `delay`), and `shape.center` is
+the beast's own ground position, not the target. Read `shape.parts`, never `shape.center`, for
+where a barrage lands.
+
 Where each cue comes from (`EnemyFX/init.luau`):
 | Cue | Source |
 |---|---|
@@ -267,7 +273,7 @@ emitters; the swarm gets 1 to 3 emitters a beat, the single shrieker plays
 | Raven windup | EyeGlint (gold); the eight primaries and Crest Tells dim -> gold; TipFlare (soot base, flame glow, sparks) on both wing tips and the crest |
 | talonDive | dash: EmberTrail on both wing tips for 0.6 s (smoke, flame, embers); land: small EmberBurst under the talons; skid: `Impact.skid` fire palette |
 | talonRake / windGust | FlameSlash (3-claw on soot, sparks, glint) at Talons_FX; GustBlast (wind streaks, dust fan, sparks) + `Impact.swipe` r10 |
-| emberFan | each windup cue with a `shape` lobs an ember (`BeastKit.lob`) from the Mouth to land at the windup's end (+0.15 s per extra cue); one lone cue adds two lobs 9 studs either side. EmberBurst (scorch, rings, flame, sparks, flash) + `Impact.explode` |
+| emberFan | each windup cue with a `shape` lobs an ember (`BeastKit.lob`) from the Mouth to land at the windup's end (+0.15 s per extra cue); the barrage sends one cue, so the handler lobs one ember to each circle in `shape.parts`. EmberBurst (scorch, rings, flame, sparks, flash) + `Impact.explode` |
 | hit / hop / stagger / death | HitFlame; WingPuff; StaggerFlash; Death (feathers go to ash: ash, embers, glint) |
 | Bat windup | EyeGlint (crimson); WingEdgeTell, MouthTell, ChestCore dim -> flare |
 | bloodDive | dash: DiveStreak (2 emitters) on the Core; `leech` cue: a LeechMote trail flies from the target's torso to the bat's Core in 0.5 s, then ChestFlash |
@@ -275,8 +281,7 @@ emitters; the swarm gets 1 to 3 emitters a beat, the single shrieker plays
 | hit / hop / stagger / death | BiteHit (3); HopPuff (2); StaggerFlash (1); Death (feathers, blood mist) |
 
 The perch (root 1.5 studs lower after a dive) needs nothing: effects ride the body and
-read the root's ground. Whether the emberFan sends one windup per circle or one for
-all is unknown; both are handled. Untested in play.
+read the root's ground. The emberFan sends one windup for all three circles (`shape.parts`). Untested in play.
 
 ### Frost Spider effects (third wave)
 `EnemyFX/FrostSpider.luau`, templates `Effects.FrostSpider` (12, 39 emitters), builder

@@ -320,6 +320,8 @@ point is the body centre. Per-body numbers and attachments are in the RIGS.md of
 (`quadrupeds`, `wolf_family`, `beasts`). Nothing uses them until the wave-1 defs land.
 
 ## Key files
+- Craft docs: [animating](../enemies/animating.md) (motion QA, blending, planting) and
+  [enemy effects](../vfx/enemy-effects.md) (palette, readable beats, smoke tests).
 - `src/shared/Enemies.luau`: defs (health, speeds, aggro/leash, attack and boss
   pattern, `qiDrop`, `stones`, `drops`, `bossDrops` (bosses' manual/weapon pool, see [weapons](weapons.md)), `realm`, `weight`). Kill qi scaling uses
   `Pacing.Income.ENEMY_QI_EXPONENT` through `Realms.enemyQi`.

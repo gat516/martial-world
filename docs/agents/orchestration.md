@@ -122,10 +122,22 @@ terrain, `wilds_layout.luau`, `dress_wilds.luau` and any Rojo-mapped asset.
 | Enemy animation | `animator` | from each rig's `art/enemies/<group>/RIGS.md` |
 | Map layout, landforms, dressing, lighting | `map-builder` | plans against [map](../systems/map.md) |
 | Meshes, props, held weapons | `modeler` | Blender pipeline |
+| Docs, agent files and skills: fold learnings, dedupe, fix stale, split | `docs-keeper` | `/tidy-docs`; docs only, never code or assets |
 
 Modeling, VFX and animation agents (`modeler`, `enemy-modeler`, `vfx`, `world-fx`,
 `animator`) run on Opus. Their frontmatter sets `model: opus`; don't override it
 with Sonnet (user, 2026-10-22).
+
+### Skills, learnings and the docs-keeper
+
+Agents preload the shared skills they use on every task (`skills:` in their
+frontmatter), so a brief doesn't need to repeat the sandbox, export, upload or
+commit rules: give the `studio_id`, the task, and the contracts. Agents end their
+reports with **Workflow learnings** and **Workflow optimization**. Collect those, and
+after a batch of work lands (or when `python3 tools/docs_lint.py` reports agent
+files over budget), run `/tidy-docs` with the learnings pasted in. The
+`docs-keeper` puts each one in its home (agent file, skill or system doc) on its
+own branch, and you merge it like any feature.
 
 ### The enemy pipeline
 

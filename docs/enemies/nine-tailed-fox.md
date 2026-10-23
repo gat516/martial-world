@@ -69,7 +69,7 @@ Effects: `Effects.NineTailFox` (37 templates, 110 authored emitters, 20 mesh wav
 trails and Thread/Whip beams; builder `tools/vfx_specs/NineTailFox.luau`, installs
 `_G.buildNineTailFoxFX`), played by `EnemyFX/NineTailFox.luau` (gated to `NineTailFoxB`; found by
 `EnemyType`, no registry). **Rebuilt 2026-10-22 with the intent-first method**
-(`.claude/agents/vfx.md`): the first pass was technically fine but random (layers added because
+(`.claude/skills/vfx-method/SKILL.md`): the first pass was technically fine but random (layers added because
 they looked cool, everything on one frame, ground sigils and lane lines redrawing the telegraph,
 the shared Impact kit stacked on every eruption). Now every layer is caused by the move, starts
 staggered 20-150 ms behind its cause (EmitDelay in the templates), each beat has one hero on a

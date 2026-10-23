@@ -312,7 +312,7 @@ the peak swaps its look at Foundation only.
 
 ## 7. World events and tribulation VFX
 Per [progression](progression.md) "World events" and
-[world events plan](vfx/world_events_plan.md): resume `world-fx` (Heaven Split,
+[world events plan](vfx/world_events.md): resume `world-fx` (Heaven Split,
 Beast Surge, new events) and rebuild the tribulation (clouds, bolts, eye, aftermath).
 Tribulations stay rare, so the VFX can be big.
 

@@ -23,6 +23,7 @@ ones your task touches. For the setting in brief, read
 | [wilds](../map/wilds.md) | Inner Wilds and Ruined Borderlands as built: boxes, `art/wilds/` scripts, layout, encounter spaces | any wilds map pass |
 | [inner-wilds-rework](../map/inner-wilds-rework.md) | the Inner walled-valley plan (proposed 2026-10-21) and its build log: walls, pockets, event grounds, finds, prefabs, water, POI pass, dressing | Inner Wilds pockets, walls, water, finds or POIs |
 | [editor-markers](../map/editor-markers.md) | `_EditorMarkers`/`EditorOnly`, the `POI` tag, the POI tour, hand-pass flags, the POI audit | tagging POIs, flagging hand passes, auditing a pass |
+| [build-checks](../map/build-checks.md) | the checks every pass runs: pivots, seating, POI reachability, clearance, walls, the user's hand edits | before calling any map pass done |
 | [asset-catalogue](../map/asset-catalogue.md) | AssetLibrary pieces by need, and what to avoid | choosing dressing |
 
 ## World at a glance
@@ -354,7 +355,7 @@ From a read-only audit of the code (2026-10-20); code refs inline.
   SwayBridge, WindShake, SkyLantern. Place-only: `ReplicatedStorage.BuildCatalog`,
   `ReplicatedStorage.HerbModels`, `ServerStorage.PeakStash`.
 - Collision matches looks: raycast-check walkable areas in Edit mode after every
-  change. Meshes follow `.claude/agents/modeler.md` (build script in `art/`, FBX +
+  change. Meshes follow the `mesh-pipeline` skill (build script in `art/`, FBX +
   bounds JSON, batched import via `art/fbx_export/`, `place_*.luau`).
 
 ## Passes (in order)

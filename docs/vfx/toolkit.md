@@ -3,7 +3,7 @@ The core every vfx and world-fx agent reads: what the plugin, library and Game M
 # VFX toolkit
 
 How effects should look is in [style.md](style.md); how to work is in the agent's brief
-(`.claude/agents/vfx.md`, `world-fx.md`). This page is the tools. Read it, then only the
+(`.claude/skills/vfx-method/SKILL.md`, plus `.claude/agents/vfx.md` and `world-fx.md`). This page is the tools. Read it, then only the
 topic files your task needs (index at the bottom).
 
 ## The three tools

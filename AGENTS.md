@@ -47,6 +47,7 @@ The testbed is a baseplate arena (`test.project.json`, `Config.TESTBED` true; [t
 
 ## Studio
 
+- **Sandboxes only for parallel work.** Agents running one at a time use the Studio, Blender and checkout already open. A new sandbox (Studio, Blender window, worktree) is for an agent running alongside another, or when nothing is open. At most 4 Blenders at once, all visible (user, 2026-10-23).
 - **Sandbox agents** work only in the sandbox whose `studio_id` their brief gives. They never open or close Studios, never start Play, export to `assets/`, and leave it clean. If the brief has no sandbox, say so and stop. Details: the `sandbox-studio` skill.
 - Create persistent instances (RemoteEvents, GUIs, parts, folders, templates) with the Roblox Studio MCP in edit mode. Game scripts reference them; don't build them at runtime with `Instance.new` or "create if missing" fallbacks. Runtime cloning of templates and short-lived effects is fine.
 - Rojo doesn't write Studio edits back to disk. To keep MCP-authored instances, export them under `assets/` and map them (the `studio-export` skill: binary `export_rbxm` for anything with attributes, tags or rigs). Edit scripts on disk under `src/`, not in Studio.

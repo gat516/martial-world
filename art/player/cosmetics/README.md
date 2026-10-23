@@ -4,7 +4,7 @@
 preview runs on the client). It holds one binary file per set, and each file is
 a Folder of rigged Accessory prototypes. Traits looks up an accessory id through
 every set. Sets: `Fox.rbxm` (Spirit Fox, below), `Crane.rbxm` (Beast Folk Crane, below),
-`Tiger.rbxm` (Beast Folk Tiger, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Dragonblood, Demonic Human, Ghost).
+`Tiger.rbxm` (Beast Folk Tiger, below), `Dragonblood.rbxm` (Dragonblood, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Demonic Human, Ghost).
 
 
 New and reworked cosmetics are modeled in Blender by the `modeler` (user,
@@ -51,6 +51,19 @@ rig, colours, asset ids and the Studio build (`tiger/place_tiger_cosmetics.luau`
 | `TigerEarsRound`, `TigerTailCurl`, `TigerWhiskersMarks` | Cub: plump round ears, thick low tail curling up, three short whiskers | Beast Folk Tiger (default) |
 | `TigerEarsPinned`, `TigerTailLash`, `TigerWhiskersFine` | Feral: ears pinned flat, long level tail, long drooped whiskers | nothing yet (style picker) |
 | `TigerEarsTufted`, `TigerTailCrown`, `TigerWhiskersCurl` | Regal: upright tufted ears, high question-mark tail, curled whiskers | nothing yet (style picker) |
+
+## Dragonblood (`assets/Cosmetics/Dragonblood.rbxm`)
+
+Skinned Blender meshes with bones: three looks for the Dragonblood race, each horns
+(HatAttachment) and a tail (WaistBackAttachment). Model, rig, colours, asset ids and the
+Studio build (`dragonblood/place_dragonblood_cosmetics.luau`) are in
+[`dragonblood/README.md`](dragonblood/README.md).
+
+| Accessory | Look | Worn by |
+| --- | --- | --- |
+| `DragonHornsAntler`, `DragonTailTuft` | Antler: wide-V ivory antlers with gold tines, scaled tail with a cream tuft | Dragonblood |
+| `DragonHornsCelestial`, `DragonTailRising` | Celestial: long low jade antler with a crown of tines, tail rising into a tall plume | nothing yet (style picker) |
+| `DragonHornsCub`, `DragonTailStub` | Cub: short chunky curled horns, stubby tail with a flame tuft | nothing yet (style picker) |
 
 ## Beast Folk (`assets/Cosmetics/BeastFolk.rbxm`)
 
@@ -123,7 +136,8 @@ the name `BeastFolk` instead.
 ## Spirits (`assets/Cosmetics/Spirits.rbxm`)
 
 The Folder `Spirits` (mapped into `ReplicatedStorage.Cosmetics`) holds one
-Accessory per race, as named in `src/shared/Identity/Races.luau`. They are built
+Accessory per race, as named in `src/shared/Identity/Races.luau` (`DragonHorns` is now an
+unused leftover: Dragonblood wears the Blender-made Dragonblood set above). They are built
 by `build_spirit_cosmetics.luau` in the fox and Beast Folk shape language: plain
 SmoothPlastic, Neon only where something glows, invisible 0.2 Handles, and every
 part unanchored and Massless with CanCollide, CanQuery and CanTouch off. Each is
@@ -132,7 +146,7 @@ one telling feature on a plain R6 cultivator, not a costume.
 | Accessory | Race | Attaches (R6) | Parts | Look |
 | --- | --- | --- | --- | --- |
 | `StoneShards` | Stone Spirit | BodyBackAttachment | 21 | grey-brown stone shards (block body + wedge chisel cap, diamond-turned) on two shoulder crusts, 2 per shoulder leaning out and back, 2 between the shoulder blades; 3 shards carry flush Neon jade vein insets |
-| `DragonHorns` | Dragonblood | HatAttachment | 11 | antler beams from the temples sweeping up and back, ivory to pale gold, two gold tines each |
+| `DragonHorns` | unused (Dragonblood wears the Dragonblood set above) | HatAttachment | 11 | antler beams from the temples sweeping up and back, ivory to pale gold, two gold tines each |
 | `DemonHorns` | Demonic Human | HatAttachment | 7 | short thick horns from the upper forehead, rising out and hooking forward, black to crimson tip; no tines |
 | `GhostWisps` | Ghost | BodyBackAttachment | 10 | three Neon soul flames (core, tapered tongue leaning outward, faint shell): one over each shoulder beside the face, one on the upper back, plus one mist emitter |
 

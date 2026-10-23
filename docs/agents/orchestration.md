@@ -52,6 +52,19 @@ It replaces publishing the testbed as its own experience, which didn't work out
 
 ## Sandboxes
 
+**Only for parallel work** (user, 2026-10-23). This applies to every kind of
+sandbox: Studio, Blender, worktrees, anything later.
+- When agents run one at a time, they use what's already up: the user's open
+  Studio or the test build, the live Blender, the current checkout.
+- Open a new one only for an agent that runs alongside another, or when nothing
+  suitable is open.
+
+**Blender:**
+- At most 4 Blenders at once (the user: "9 is a lot").
+- Every one is visible. One agent uses the Blender MCP (the user's live Blender).
+  Each parallel modeler gets its own window through `tools/blender_live.sh`.
+- Queue the rest, and start a fresh agent per item as one finishes.
+
 Agents that build or preview without the map (vfx, world-fx templates,
 enemy-modeler, modeler props, animator, enemy-designer, ui-designer) work in a
 sandbox Studio that the main session runs (user, 2026-10-22):

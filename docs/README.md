@@ -114,6 +114,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Testbed / test build (local baseplate arena, `test.project.json`; branches and test build in AGENTS.md) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |
 | Monetization | [monetization](systems/monetization.md) | Receipts, Garden (Grow now), CharacterIdentity (rerolls) | Config.Garden.GROW_NOW, CharacterCreator.Products | GardenView, CharacterCreator |
 | Character creator (join screen: outfit, hair, race and last name, first name) | [character-creator](systems/character-creator.md) | CharacterIdentity | CharacterCreator/* | CharacterCreator/* |
+| Nameplates (name and title over every player's head) | [nameplates](systems/nameplates.md) | - (reads player attributes) | CharacterCreator.Surnames | Nameplates (template `ReplicatedStorage.Nameplate`, `assets/Nameplate.rbxmx`) |
 
 ## Remotes (`ReplicatedStorage.Remotes`, `assets/Remotes.rbxmx`)
 

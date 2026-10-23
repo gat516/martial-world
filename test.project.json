@@ -10,6 +10,9 @@
       "Remotes": {
         "$path": "assets/Remotes.rbxmx"
       },
+      "Nameplate": {
+        "$path": "assets/Nameplate.rbxmx"
+      },
       "Animations": {
         "$path": "assets/Animations.rbxmx"
       },

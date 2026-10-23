@@ -52,10 +52,14 @@ them; they are not part of this overhaul unless the user says so.
    soft light), no text, no watermarks, no drop shadows baked in.
 5. **Check in Studio at real size** on the phone emulator before calling anything done.
 
-> **Art policy (2026-10-22): the generator draws finished pieces at fixed sizes (short,
-> medium, long where width varies); we crop, slice and tint them but never rebuild or
-> repaint them. See [codex-brief](codex-brief.md).** The prompts below are the older
-> whole-sheet wording; use the brief's piece list and sizes.
+> **Workflow (user, 2026-10-22): reference image first, extend the Figma kit's style (with
+> a motif of its own where an element needs one), the ui-designer writes a Codex sheet
+> request, the user runs it in Codex, Codex only generates and commits the sources, and
+> the ui-designer cuts them with `tools/ui_assemble.py`, composes in the Figma kit, then
+> builds in Studio.** Full steps: `.claude/agents/ui-designer.md`, "How UI art is made".
+> Sheets: [codex-sheets](codex-sheets.md). The rules above and the prompts below are the
+> older wording; where they disagree, the workflow wins (ornaments never stretch, plain
+> middles do).
 
 ## UI kit in Figma (2026-10-22)
 The source of truth for the overhaul's look is now a Figma kit: [Martial World UI Kit](https://www.figma.com/design/9u6RPHLelUJF6aABm6mY7y)

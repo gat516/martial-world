@@ -13,7 +13,7 @@ masters, events, tribulation, rifts, leaderboards). Done so far: the first ornam
 
 Attach to every conversation:
 1. `docs/reference/ui/dialogue_prompt_reference.webp` (on `progression-bible`).
-2. The HUD vitals reference (red and blue bars, ruby studs, "Qi Condensation 1" plaque).
+2. `docs/reference/ui/hud_vitals_reference.webp` (red and blue bars, ruby studs, plaques).
 3. The first ornament sheet, as the style to match.
 
 ## Shared rules (paste first, every time)

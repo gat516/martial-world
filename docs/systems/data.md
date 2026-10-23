@@ -35,6 +35,10 @@ game (funnels, progression, custom events), and give admins test tools.
   stones, buildItems, spawn, growAll, mutateAll, wild, event, stopEvents, fillQi,
   techniqueLevel (set a technique to any level, learning it if needed),
   weapon, allWeapons, daoLevel (set a weapon class's Dao comprehension).
+  The F2 panel's "UI previews" section opens screens in the running client (build
+  mode, catalog, shop, the death screen, reward and rank cards, dialogue, herbarium,
+  sect board, events): the Studio command bar can't, since its `require` gets a
+  fresh, never-initialised copy of each module.
   Admins: the creator, `Config.Admin.USER_IDS`, anyone in Studio.
 - `src/server/Main.server.luau`: join/leave order, `applyTestKit`, hook wiring.
 

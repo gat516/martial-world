@@ -423,6 +423,12 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   attributes until it's regenerated from `build_vfx_session.py`
   (`vfx_preview.luau` already sets them).
 - One ring of wilds: three beasts and one boss.
+- **Open idea, undecided (user, 2026-10-23): boss variants.** A stronger version of a boss
+  reads as one at a glance: an extra aura, a darkened or corrupted palette, and a heavier
+  vfx pass on the same attacks. It may be how tiers show up: a rarer variant met in the
+  world (a corrupted Thunder Ape) rather than a difficulty mode the player picks. This
+  sits alongside roadmap principle 1 ("No difficulty modes with scaling"); the user
+  hasn't chosen between them. Raise it on a boss design card; don't build it unasked.
 - No difficulty-tier system yet (user wants bosses at several tiers: bigger areas, faster
   windups, more follow-ups, still possible). The next boss designer proposes the tier table
   and builds per-tier scaling on a def's attacks once the user approves it. No existing

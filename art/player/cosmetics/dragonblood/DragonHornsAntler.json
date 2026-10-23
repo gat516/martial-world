@@ -1,0 +1,201 @@
+{
+ "name": "DragonHornsAntler",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) from the attachment; mesh Size = (bx, bz, by), CFrame relative to the attachment = CFrame.new(-cx, cz, cy), no rotation",
+ "colors": {
+  "Horn": [
+   0.855,
+   0.776,
+   0.604
+  ],
+  "HornTip": [
+   0.672,
+   0.402,
+   0.077
+  ]
+ },
+ "shade": {
+  "file": "dragon_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.58,
+  "fade_to_white_at_v": 0.5
+ },
+ "meshes": {
+  "DragonHornsAntler_LeftHorn": {
+   "region": "Horn",
+   "tris": 620,
+   "center": [
+    0.532,
+    0.179,
+    0.303
+   ],
+   "size": [
+    0.795,
+    0.764,
+    1.346
+   ]
+  },
+  "DragonHornsAntler_LeftHornTip": {
+   "region": "HornTip",
+   "tris": 706,
+   "center": [
+    0.803,
+    0.44,
+    0.94
+   ],
+   "size": [
+    0.668,
+    0.877,
+    0.739
+   ]
+  },
+  "DragonHornsAntler_RightHorn": {
+   "region": "Horn",
+   "tris": 620,
+   "center": [
+    -0.532,
+    0.179,
+    0.303
+   ],
+   "size": [
+    0.795,
+    0.764,
+    1.346
+   ]
+  },
+  "DragonHornsAntler_RightHornTip": {
+   "region": "HornTip",
+   "tris": 706,
+   "center": [
+    -0.803,
+    0.44,
+    0.94
+   ],
+   "size": [
+    0.668,
+    0.877,
+    0.739
+   ]
+  }
+ },
+ "tris_total": 2652,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "HornLBase": {
+   "parent": "Root",
+   "head": [
+    0.3,
+    -0.02,
+    -0.34
+   ],
+   "tail": [
+    0.343,
+    0.029,
+    -0.006
+   ],
+   "roblox_head": [
+    -0.3,
+    -0.34,
+    -0.02
+   ],
+   "deform": true
+  },
+  "HornL": {
+   "parent": "HornLBase",
+   "head": [
+    0.343,
+    0.029,
+    -0.006
+   ],
+   "tail": [
+    0.932,
+    0.551,
+    0.837
+   ],
+   "roblox_head": [
+    -0.343,
+    -0.006,
+    0.029
+   ],
+   "deform": true
+  },
+  "HornRBase": {
+   "parent": "Root",
+   "head": [
+    -0.3,
+    -0.02,
+    -0.34
+   ],
+   "tail": [
+    -0.343,
+    0.029,
+    -0.006
+   ],
+   "roblox_head": [
+    0.3,
+    -0.34,
+    -0.02
+   ],
+   "deform": true
+  },
+  "HornR": {
+   "parent": "HornRBase",
+   "head": [
+    -0.343,
+    0.029,
+    -0.006
+   ],
+   "tail": [
+    -0.932,
+    0.551,
+    0.837
+   ],
+   "roblox_head": [
+    0.343,
+    -0.006,
+    0.029
+   ],
+   "deform": true
+  }
+ },
+ "label": "Antler",
+ "mood": "regal (approved look)",
+ "proportions": {
+  "head_size": [
+   1.198,
+   1.198,
+   1.017
+  ],
+  "height_above_head": 1.309,
+  "height_to_head": 1.29,
+  "root_diameter": 0.341,
+  "root_to_head_width": 0.28,
+  "span": 2.275,
+  "span_to_head_width": 1.9,
+  "reach_behind_head": 0.28
+ }
+}

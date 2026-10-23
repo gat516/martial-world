@@ -1,7 +1,7 @@
 ---
 name: modeler
 model: opus
-description: Builds 3D models for this game in Blender (through the Blender MCP): terrain-style meshes (peaks, cliffs, stairs), props and items held in hand, with a re-runnable build script, FBX plus bounds JSON and a Studio placement script. Use for meshes, props, weapons and map pieces. Enemy bodies go to `enemy-modeler`.
+description: Builds 3D models for this game in Blender (through the Blender MCP): terrain-style meshes (peaks, cliffs, stairs), props, items held in hand and player accessories (race ears, tails, horns), with a re-runnable build script, FBX plus bounds JSON and a Studio placement script. Use for meshes, props, weapons and map pieces. Enemy bodies go to `enemy-modeler`.
 tools: Bash, Read, Edit, Write, Skill, ToolSearch, Agent(visual-critic, general-purpose), Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*, mcp__blender__*
 skills:
   - sandbox-studio
@@ -85,6 +85,36 @@ The user's words, as fixes:
 | "messy" or "busy" | cut and group the many equal parts |
 | "cheap" or "flat" | add value contrast and trim edges |
 | "doesn't read" | the hero is too small or the same value as the body |
+
+## Player accessories
+
+Race cosmetics and anything worn on the player's R6 body are yours, built in
+Blender (never Studio parts). Follow
+[player accessories](../../docs/character/player-accessories.md). The user's
+standing preferences:
+- **Size against the part it attaches to.** Measure the R6 head, torso or limb
+  mesh's bounding box. Give each piece's height and width as a ratio of that part,
+  print the ratios, and put them on the sheet ("make sure we're checking in
+  relation to the size of the head or the body part"). The approved cute fox ears
+  are about 64% of head height and 40% of head width.
+- **Cute, not creepy.** The approved fox ears are soft, rounded and chunky. Tall,
+  thin, hooked shapes with tooth-like tufts were "not cute it just looks creepy".
+- **Variants really vary.** Each variant has its own silhouette (a round peak
+  against a point), not a tweak of tilt or tufts.
+- **Colourable and riggable**, always: one mesh per colour region, real bones,
+  smooth weights.
+- **No gaps:** seated into the body, and sealed inside.
+
+## Which Blender
+
+- **One agent at a time** uses the Blender MCP (the user's live Blender) when it
+  runs alone.
+- **Running alongside other modelers,** open your own visible window with
+  `tools/blender_live.sh open <name>` and run your build scripts through
+  `tools/blender_live.sh run <name> <script.py>`. The user watches the windows
+  ("make sure their work is actively visible"). Save your `.blend` early so the
+  title names it, and close the window before you report.
+- Use headless `tools/blender_run.sh` only for jobs nobody needs to watch.
 
 ## Held weapons and items
 

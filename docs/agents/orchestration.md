@@ -52,6 +52,19 @@ It replaces publishing the testbed as its own experience, which didn't work out
 
 ## Sandboxes
 
+**Only for parallel work** (user, 2026-10-23). This applies to every kind of
+sandbox: Studio, Blender, worktrees, anything later.
+- When agents run one at a time, they use what's already up: the user's open
+  Studio or the test build, the live Blender, the current checkout.
+- Open a new one only for an agent that runs alongside another, or when nothing
+  suitable is open.
+
+**Blender:**
+- At most 4 Blenders at once (the user: "9 is a lot").
+- Every one is visible. One agent uses the Blender MCP (the user's live Blender).
+  Each parallel modeler gets its own window through `tools/blender_live.sh`.
+- Queue the rest, and start a fresh agent per item as one finishes.
+
 Agents that build or preview without the map (vfx, world-fx templates,
 enemy-modeler, modeler props, animator, enemy-designer, ui-designer) work in a
 sandbox Studio that the main session runs (user, 2026-10-22):
@@ -166,6 +179,7 @@ terrain, `wilds_layout.luau`, `dress_wilds.luau` and any Rojo-mapped asset.
 | Enemy animation | `animator` | from each rig's `art/enemies/<group>/RIGS.md` |
 | Map layout, landforms, dressing, lighting | `map-builder` | plans against [map](../systems/map.md) |
 | Meshes, props, held weapons | `modeler` | Blender pipeline |
+| Player / R6 assets (race cosmetics, accessories worn on the player) | `modeler` | Blender, never Studio parts (user, 2026-10-23, after the part-built race looks: "that sucked") |
 | Docs, agent files and skills: fold learnings, dedupe, fix stale, split | `docs-keeper` | `/tidy-docs`; docs only, never code or assets |
 
 Modeling, VFX and animation agents (`modeler`, `enemy-modeler`, `vfx`, `world-fx`,

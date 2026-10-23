@@ -19,7 +19,7 @@ local function clone(name: string): any
 	return (templates:FindFirstChild(name) :: Instance):Clone()
 end
 
--- A card, swatch or slot card: the cream ring round its well while selected.
+-- A swatch or slot card: the cream ring round its well while selected.
 function Components.setSelected(wellArt: GuiObject, on: boolean)
 	local halo = wellArt:FindFirstChild("Halo") :: GuiObject?
 	if halo then
@@ -70,7 +70,7 @@ function Components.link(parent: Instance, text: string, order: number, onClick:
 	return link
 end
 
--- kind: "CardGrid" (three per row) or "SwatchGrid" (six per row)
+-- kind: "SwatchGrid" (six per row)
 function Components.grid(parent: Instance, kind: string, order: number, name: string?): Frame
 	local grid = clone(kind)
 	grid.Name = name or kind
@@ -79,28 +79,33 @@ function Components.grid(parent: Instance, kind: string, order: number, name: st
 	return grid
 end
 
-export type CardOptions = {
-	id: string,
-	caption: string,
-	order: number,
-	onClick: () -> (),
-}
-
--- An outfit card: a plain well whose `View` (a ViewportFrame with a WorldModel
--- `World`) the caller fills with a dressed dummy, the name under it.
-function Components.card(parent: Instance, opts: CardOptions)
-	local card = clone("Card") :: ImageButton
-	card.Name = opts.id
-	card.LayoutOrder = opts.order
-	;(card:FindFirstChild("Caption") :: TextLabel).Text = opts.caption
-	local wellArt = card:FindFirstChild("Well") :: ImageLabel
-	card.Activated:Connect(opts.onClick)
-	card.Parent = parent
+-- An arrow picker in a plain well: a lacquer arrow on each side, the pick's name
+-- centred with "1 / 3" under it. It wraps around; the caller keeps the index.
+-- step(-1) or step(1) is called on a press.
+function Components.arrowRow(parent: Instance, name: string, order: number, step: (number) -> ())
+	local row = clone("ArrowRow") :: ImageLabel
+	row.Name = name
+	row.LayoutOrder = order
+	local value = row:FindFirstChild("Value") :: TextLabel
+	local count = row:FindFirstChild("Count") :: TextLabel
+	local prev = row:FindFirstChild("Prev") :: ImageButton
+	local nextButton = row:FindFirstChild("Next") :: ImageButton
+	prev.Activated:Connect(function()
+		step(-1)
+	end)
+	nextButton.Activated:Connect(function()
+		step(1)
+	end)
+	row.Parent = parent
 	return {
-		button = card,
-		view = wellArt:FindFirstChild("View") :: ViewportFrame,
-		setSelected = function(on: boolean)
-			Components.setSelected(wellArt, on)
+		root = row,
+		-- label: an optional gold prefix ("Tail") before the pick's name
+		set = function(text: string, index: number, total: number, label: string?)
+			value.Text = if label then `<font color="#{Theme.Color.Gold:ToHex()}">{label}:</font> {text}` else text
+			count.Text = `{index} / {total}`
+			-- one option: nothing to step through
+			prev.Visible = total > 1
+			nextButton.Visible = total > 1
 		end,
 	}
 end

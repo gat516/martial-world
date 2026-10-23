@@ -1,11 +1,14 @@
 # Player cosmetics
 
-`assets/Cosmetics.rbxm` (binary) is the folder `Cosmetics` with two rigged
-Accessory prototypes for players who have the fox trait (the Spirit Fox race).
-Built from plain parts by `build_fox_cosmetics.luau`; colours are plain
+`assets/Cosmetics/` is `ReplicatedStorage.Cosmetics` (mapped in both projects):
+one binary `.rbxm` per set, each a Folder of rigged Accessories, built from plain
+parts by a script here. Who wears what is in
+[identity](../../../docs/systems/identity.md) (Cosmetics).
+
+## Fox (`Fox.rbxm`, `build_fox_cosmetics.luau`)
+
+For players with the fox trait (the Spirit Fox race). Colours are plain
 SmoothPlastic (fox orange, cream inner ear, dark ear tips, white tail tip).
-It isn't mapped in the project files yet: map it to `ServerStorage.Cosmetics`
-in both `default.project.json` and `test.project.json`.
 
 | Accessory | Handle attachment | Attaches to (R6) | Parts |
 | --- | --- | --- | --- |
@@ -49,8 +52,7 @@ relative to the head and torso).
 ## Rebuild
 
 Run `build_fox_cosmetics.luau` in Edit mode through the Studio MCP
-(`execute_luau`). It replaces `ServerStorage.Cosmetics.FoxEars` and `.FoxTail`.
-The tunables are at the top. Then export the folder with
-`tools/export_rbxm.luau` (`_G.exportRbxm("ServerStorage.Cosmetics")`) to
-`assets/Cosmetics.rbxm`. Once the file is mapped, build in an unmapped staging
-copy, as AGENTS.md describes.
+(`execute_luau`). It builds `ServerStorage.Cosmetics.FoxEars` and `.FoxTail` (tunables at the
+top); put them in a Folder named `Fox` and export that with
+`tools/export_rbxm.luau` to `assets/Cosmetics/Fox.rbxm`. In a Rojo-connected
+place, build in an unmapped staging copy, as AGENTS.md describes.

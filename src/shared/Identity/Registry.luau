@@ -358,6 +358,17 @@ function Registry.cosmetics(data: any): { [string]: boolean }
 	return set
 end
 
+-- A fresh character of this race and variant, holding only its innate traits,
+-- shaped like a profile so `cosmetics` and `stat` read it (the creator preview,
+-- before the slot is played).
+function Registry.fresh(raceId: string, variantId: string): { identity: Identity }
+	local traits = {}
+	for _, id in Registry.innate(raceId, variantId) do
+		traits[id] = { src = "innate", t = 0 }
+	end
+	return { identity = { race = raceId, variant = variantId, traits = traits } }
+end
+
 --[[ Config check ]]
 
 -- Every problem in the config, as readable lines (also warned once at load, so a

@@ -46,7 +46,7 @@ screen it extends ([character creator](character-creator.md)).
 | A new trait category | a new file in `Traits/`; its name is the category |
 | Release, hide, disable; Roll / Select / Unlock; unlock requirements | `src/shared/Identity/Availability.luau` |
 | A new kind of unlock requirement | one checker in `src/shared/Identity/Requirements.luau` |
-| Accessories a race, variant or trait wears (`Cosmetics`) | `ServerStorage.Cosmetics` (`assets/Cosmetics.rbxm`), ids listed on the definition |
+| Accessories a race, variant or trait wears (`Cosmetics`) | `ReplicatedStorage.Cosmetics` (`assets/Cosmetics/<set>.rbxm`, one Folder per set), ids listed on the definition |
 | Passive or ability code for a `Mechanics` id | register `Traits.mechanics[id] = { attach, detach }` (server) |
 
 Each file's header lists its fields. The vocabulary:
@@ -158,14 +158,30 @@ marked; Hidden and Disabled ones never show. There's no race or variant picker
 
 ## Cosmetics
 Races, variants and traits can name accessories to wear (`Cosmetics = { ... }`,
-ids of Accessories in `ServerStorage.Cosmetics`, `assets/Cosmetics.rbxm`, mapped
-in both projects). Fox Cunning (Spirit Fox's innate trait) wears `FoxEars` and
-`FoxTail`, a rigged prototype (user, 2026-10-23; the build and joint names are in
-`art/player/cosmetics/README.md`). `Traits.applyBody` adds the ones the profile
+ids of Accessories anywhere under `ReplicatedStorage.Cosmetics`). That's the
+folder `assets/Cosmetics/` (mapped in both projects), one `.rbxm` per set, each a
+Folder of Accessories, so sets are built and exported separately. It's in
+ReplicatedStorage because the creator preview wears them too. The builds and
+joint names are in `art/player/cosmetics/README.md`.
+
+| Who | Wears | Set |
+|---|---|---|
+| Fox Cunning (Spirit Fox's innate trait) | FoxEars, FoxTail | Fox (rpker's prototype, user 2026-10-23) |
+| Beast Folk Wolf / Tiger / Crane / Serpent | WolfEars, WolfTail / TigerEars, TigerTail / CraneCrest, CraneTail / SerpentScales, SerpentTail | BeastFolk |
+| Stone Spirit / Dragonblood / Demonic Human / Ghost | StoneShards / DragonHorns / DemonHorns / GhostWisps | Spirits |
+
+Human (the plain race) and Giant (its look is its size) wear nothing (user,
+2026-10-23: "no need to go super crazy"). `Traits.applyBody` adds the ones the profile
 calls for and removes the rest (each worn one carries a `Cosmetic` attribute with
 its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the
 body. A missing template warns once and is skipped.
+
+The creator's preview dummy wears the drawn race's look too (`Look.race`):
+`Registry.fresh(race, variant)` stands in for a new character (only innate
+traits), and `Preview.setRaceLook` puts its cosmetics on (rigid copies, no
+joints, at scale 1) and scales the body, feet kept on the pedestal. It follows
+every race reroll, and the slot screen shows each slot's race the same way.
 
 ## Body size
 The `size` modifier (Titan Frame: 15% larger, user 2026-10-23; 25% was too big) scales the character with

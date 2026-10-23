@@ -8,7 +8,7 @@ marked built; nothing here has been playtested.
 
 ## Principles (from the user)
 1. **Nobody is barred by skill.** Bosses, tribulations and difficulty never gate
-   progress. No difficulty modes with scaling. Mobile players always have a road.
+   progress. No difficulty modes with scaling. Mobile players always have a road. (Open against boss tiers and variants: [enemies](systems/enemies.md), Known gaps.)
 2. **Two ways to climb, both complete:** the fighter (hunt, bosses, events) and the
    gardener (meditate, garden, seclusion, building, non-combat quests). Fighters are
    faster. Gardeners are never stuck.

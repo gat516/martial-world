@@ -16,13 +16,15 @@ local A = {
 	card_quest = "rbxassetid://120119552621110",
 	rays_boss = "rbxassetid://95676207958916",
 	ribbon_crimson = { "rbxassetid://121316271063702", "rbxassetid://128154077838383", "rbxassetid://108527414387394" },
-	row = { "rbxassetid://131136100986471", "rbxassetid://87781159514052", "rbxassetid://102937063527812" },
 	coin = "rbxassetid://91563334675271",
 	tile_neutral = "rbxassetid://121233995525578",
 	gem_gold = "rbxassetid://103434738704063",
 	glyph_stone = "rbxassetid://76651936131955",
 	emblem_peak = "rbxassetid://102118062177874",
 	glint = "rbxassetid://131306954850384",
+	plaque = "rbxassetid://131186990824070", -- toast_plaque.png
+	disc = "rbxassetid://120857701622858", -- art_disc.png
+	ruby_stud = "rbxassetid://73915978017269", -- codex/cut/ornament_ruby_stud.png
 }
 
 local CREAM = Color3.fromRGB(250, 236, 195)
@@ -120,57 +122,64 @@ local canvas = new("Frame", {
 new("UIScale", { Name = "UiScale" }, canvas)
 
 -- Feed ------------------------------------------------------------------------------
+-- Rows are the toast's plaque (art/ui/toast_plaque.png, pointed bevelled ends), plain:
+-- the colour sits on the icon's seal disc (art_disc), not on a frame. 34 px rows,
+-- 6 px apart; the disc's left edge and the count's right edge both 4 px inside the
+-- points (docs/ui/rewards.md, "Feed").
 local feed = new("Frame", {
 	Name = "Feed",
 	AnchorPoint = Vector2.new(1, 1),
 	Position = UDim2.new(1, -12, 0.58, 0),
 	Size = UDim2.new(0, 264, 0.3, 0),
 }, canvas)
-new("UISizeConstraint", { MaxSize = Vector2.new(264, 184) }, feed)
+new("UISizeConstraint", { MaxSize = Vector2.new(264, 196) }, feed)
 new("UIListLayout", {
 	HorizontalAlignment = Enum.HorizontalAlignment.Right,
 	VerticalAlignment = Enum.VerticalAlignment.Bottom,
 	SortOrder = Enum.SortOrder.LayoutOrder,
-	Padding = UDim.new(0, 4),
+	Padding = UDim.new(0, 6),
 }, feed)
 do
-	local e = new("Frame", { Name = "EntryTemplate", Size = UDim2.fromOffset(250, 30), Visible = false, ZIndex = 2 }, feed)
-	new("UIScale", { Name = "Motion" }, e)
-	-- the row art's body (rim to rim) is rows 29-147 of 164: the art is 164/118 of the entry
-	local holder = new("Frame", {
-		Name = "Plate",
-		AnchorPoint = Vector2.new(0.5, 88 / 164),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(1, 164 / 118),
+	local H = 34
+	local point = 36 * H / 96 -- the plaque's point depth at this height
+	local e = new("ImageLabel", {
+		Name = "EntryTemplate",
+		Size = UDim2.fromOffset(256, H),
+		Image = A.plaque,
+		ScaleType = Enum.ScaleType.Slice,
+		SliceCenter = Rect.new(48, 47, 464, 49),
+		SliceScale = H / 96,
+		Visible = false,
 		ZIndex = 2,
-	}, e)
-	strip(holder, A.row, { 190 / 164, 1, 192 / 164 }, 2)
-	local badge = new("ImageLabel", {
-		Name = "Badge",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0, 44, 0.5, 0),
-		Size = UDim2.fromOffset(28, 26),
-		ScaleType = Enum.ScaleType.Fit,
-		Image = A.coin,
+	}, feed)
+	new("UIScale", { Name = "Motion" }, e)
+	local disc = new("ImageLabel", {
+		Name = "Disc",
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, math.round(point) + 4, 0.5, 0),
+		Size = UDim2.fromOffset(24, 24),
+		Image = A.disc,
+		ImageColor3 = Color3.fromRGB(160, 188, 204),
 		ZIndex = 3,
 	}, e)
-	iconSlot(badge, 4, 0.56)
+	iconSlot(disc, 4, 0.62)
 	text("NameLabel", {
 		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 64, 0.5, 0),
-		Size = UDim2.new(1, -146, 0, 20),
+		Position = UDim2.new(0, math.round(point) + 4 + 24 + 8, 0.5, 0),
+		Size = UDim2.new(1, -(math.round(point) + 36 + 52 + 8 + math.round(point) + 4), 0, 20),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextTruncate = Enum.TextTruncate.AtEnd,
+		TextSize = 15,
 		Text = "Spirit Stones",
 		ZIndex = 3,
 	}, e)
 	text("CountLabel", {
 		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -30, 0.5, 0),
+		Position = UDim2.new(1, -(math.round(point) + 4), 0.5, 0),
 		Size = UDim2.fromOffset(52, 22),
 		TextXAlignment = Enum.TextXAlignment.Right,
 		FontFace = NUM,
-		TextSize = 17,
+		TextSize = 16,
 		TextColor3 = GOLD,
 		Text = "x24",
 		ZIndex = 3,
@@ -445,45 +454,53 @@ text("Hint", {
 	ZIndex = 13,
 }, art)
 
--- The Hud toast (only its subtree): the kit's Frame/Toast plate with gold studs.
+-- The Hud toast (only its subtree): the plaque (toast_plaque, pointed bevelled ends,
+-- dark lacquer) with a kit ruby_stud set into each end. Hud.placeToast sizes the
+-- message to its text and places the toast in Roblox's top bar row (docs/ui/rewards.md).
 local toast = game:GetService("StarterGui").Hud:FindFirstChild("Toast")
 if toast then
-	toast.Image = "rbxassetid://134839830771603"
+	toast.Image = A.plaque
 	toast.ScaleType = Enum.ScaleType.Slice
-	toast.SliceCenter = Rect.new(40, 4, 216, 94)
-	toast.SliceScale = 0.5
+	toast.SliceCenter = Rect.new(48, 47, 464, 49)
+	toast.SliceScale = 0.375 -- 36 px tall
+	toast.AnchorPoint = Vector2.new(0.5, 0.5)
+	toast.Position = UDim2.new(0.5, 0, 0, 30)
+	toast.AutomaticSize = Enum.AutomaticSize.XY
+	toast.Size = UDim2.fromOffset(0, 0)
+	for _, name in { "UIListLayout", "UISizeConstraint" } do
+		local c = toast:FindFirstChild(name)
+		if c then
+			c:Destroy()
+		end
+	end
 	local pad = toast:FindFirstChildOfClass("UIPadding")
 	pad.PaddingTop = UDim.new(0, 10)
 	pad.PaddingBottom = UDim.new(0, 10)
-	pad.PaddingLeft = UDim.new(0, 20)
-	pad.PaddingRight = UDim.new(0, 20)
-	toast:FindFirstChildOfClass("UISizeConstraint").MaxSize = Vector2.new(500, 220)
-	if not toast:FindFirstChildOfClass("UIListLayout") then
-		new("UIListLayout", {
-			FillDirection = Enum.FillDirection.Horizontal,
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			VerticalAlignment = Enum.VerticalAlignment.Center,
-			HorizontalAlignment = Enum.HorizontalAlignment.Center,
-			Padding = UDim.new(0, 14),
-		}, toast)
-	end
-	for i, name in { "StudL", "StudR" } do
-		if not toast:FindFirstChild(name) then
-			new("ImageLabel", {
-				Name = name,
-				LayoutOrder = if i == 1 then 1 else 3,
-				Size = UDim2.fromOffset(22, 22),
-				ScaleType = Enum.ScaleType.Fit,
-				Image = "rbxassetid://115297870306868",
-				ZIndex = 21,
-			}, toast)
-		end
-	end
+	pad.PaddingLeft = UDim.new(0, 34)
+	pad.PaddingRight = UDim.new(0, 34)
 	local message = toast:FindFirstChild("Message")
-	message.LayoutOrder = 2
+	message.AutomaticSize = Enum.AutomaticSize.None
+	message.Size = UDim2.fromOffset(200, 20)
+	message.TextWrapped = true
 	message.TextSize = 16
-	message.TextColor3 = CREAM
-	message:FindFirstChildOfClass("UISizeConstraint").MaxSize = Vector2.new(380, 200)
+	message.LineHeight = 1
+	message.TextColor3 = Color3.fromRGB(250, 236, 200)
+	message.TextStrokeColor3 = Color3.fromRGB(12, 6, 4)
+	local mc = message:FindFirstChildOfClass("UISizeConstraint")
+	if mc then
+		mc:Destroy()
+	end
+	-- studs sit in the ends: 16 px from each tip, outside the padded text box
+	for name, x in { StudL = UDim.new(0, -18), StudR = UDim.new(1, 18) } do
+		local stud = toast:FindFirstChild(name) or new("ImageLabel", { Name = name }, toast)
+		stud.Image = A.ruby_stud
+		stud.ScaleType = Enum.ScaleType.Fit
+		stud.AnchorPoint = Vector2.new(0.5, 0.5)
+		stud.Position = UDim2.new(x, UDim.new(0.5, 0))
+		stud.Size = UDim2.fromOffset(20, 20)
+		stud.LayoutOrder = 0
+		stud.ZIndex = 21
+	end
 end
 
 return "built"

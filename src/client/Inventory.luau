@@ -1,12 +1,16 @@
 --!strict
--- The Inventory window (the Inventory tile, or ` on a keyboard). Two tabs:
---   Weapons & Arts: one section per weapon class (the class in hand first, then
---     universal arts, then the rest): its glyph and Dao level, the class's weapons
---     (Bare Fists under Fist), a gold rule, then the arts that need it. The class
---     rail and the search box (InventoryFilter) narrow it.
+-- The Inventory window (the Inventory tile, or ` on a keyboard). Three tabs (user,
+-- 2026-10-23: weapons and arts in one spot was confusing):
+--   Weapons: one section per weapon class (the class in hand first): its glyph and
+--     Dao level, then the class's weapons (Bare Fists under Fist), each shown as its
+--     real model (WeaponView).
+--   Arts: one section per weapon class the arts need (the class in hand first, then
+--     universal arts, then the rest), each art its glyph on a seal disc.
 --   Pouch: one section per kind of item (herbs, cores, treasures, pills).
--- Every cell sits on its rarity frame (Rarity: bronze, silver, jade, violet, gold),
--- names show under it, arts wear their class glyph, the weapon in hand its seal,
+-- The class rail and the search box (InventoryFilter) narrow every tab.
+-- Every cell is a plain slot with its rarity in colour (SlotArt, Rarity: bronze,
+-- silver, jade, violet, gold), names show under it (one size, two lines, then
+-- truncated), arts wear their class glyph, the weapon in hand its seal,
 -- the slot number shows for hotbar entries (keyboards), and anything not yet
 -- looked at a NEW tag (Fresh; the tabs and the Inventory tile count them).
 -- The detail pane says in plain words what the chosen thing is (grade gem and
@@ -42,7 +46,7 @@ local State = require(script.Parent.State)
 
 local inventoryRemote = ReplicatedStorage.Remotes.InventoryAction :: RemoteFunction
 
-type Tab = "Arsenal" | "Pouch"
+type Tab = "Weapons" | "Arts" | "Pouch"
 type Dao = { level: number, xp: number }
 type Section = {
 	key: string, -- class id, "Any", or item category
@@ -50,8 +54,7 @@ type Section = {
 	glyph: string,
 	color: Color3,
 	info: string,
-	weapons: { string },
-	entries: { string }, -- arts, or items on the Pouch tab
+	entries: { string }, -- weapons, arts or items
 }
 
 -- tab art: gold for the open tab, lacquer for the other (art/ui/assets.json)
@@ -77,7 +80,12 @@ local TIER_NAMES = { "Tier I", "Tier II", "Tier III", "Mastery" }
 local FIST_BLURB = "Palm and fist, always at hand. Choosing them puts your weapon away."
 local CATEGORY_ORDER = { "Herb", "Pill", "Core", "Treasure" }
 local CATEGORY_TITLES = { Herb = "Spirit herbs", Core = "Spirit cores", Treasure = "Heavenly treasures", Pill = "Spirit pills" }
-local POUCH_EMPTY = "Your pouch is empty. Harvest herbs, hunt spirit beasts for their cores, and watch the skies for heavenly treasures."
+local EMPTY_TEXT: { [Tab]: string } = {
+	Weapons = "No weapons yet. Sect racks and fallen foes give them up.",
+	Arts = "You know no arts yet. Manuals drop from spirit beasts and wait in hidden caches.",
+	Pouch = "Your pouch is empty. Harvest herbs, hunt spirit beasts for their cores, and watch the skies for heavenly treasures.",
+}
+local TABS: { Tab } = { "Weapons", "Arts", "Pouch" }
 
 local Inventory = {}
 
@@ -85,7 +93,6 @@ local window: Frame
 local grid: ScrollingFrame
 local sectionTemplate: Frame
 local cellTemplate: GuiButton
-local splitTemplate: GuiObject
 local info: ScrollingFrame
 local actions: Frame
 local primary: ImageButton
@@ -93,7 +100,7 @@ local secondary: ImageButton
 local tabButtons: { [Tab]: ImageButton } = {}
 local daoList: Frame
 local daoRows: { [string]: Frame } = {}
-local tab: Tab = "Arsenal"
+local tab: Tab = "Weapons"
 local selected: string? = nil
 local shownEquipped: string? = nil -- the weapon in hand at the last render, to pop its seal when it changes
 local techniqueRow: Frame -- the chosen art's level and XP bar (a RowTemplate clone)
@@ -168,72 +175,77 @@ end
 
 --[[ What the tabs hold ]]
 
-local function arsenalSections(): { Section }
-	local s = State.current
-	local owned, _, dao = weaponState()
-	local held = heldId()
-	local byClass: { [string]: Section } = {}
-	local function section(key: string): Section
-		local found = byClass[key]
-		if found then
-			return found
-		end
-		local class = Weapons.Classes[key]
-		local made: Section
-		if class then
-			local level = (dao[key] or { level = 0 }).level or 0
-			made = {
-				key = key,
-				title = class.name,
-				glyph = SlotArt.classGlyph(key),
-				color = SlotArt.classColor(key),
-				info = `{class.dao} · Lv {level}`,
-				weapons = {},
-				entries = {},
-			}
-		else
-			made = {
-				key = key,
-				title = "Universal arts",
-				glyph = "",
-				color = SlotArt.classColor("Any"),
-				info = "any weapon",
-				weapons = {},
-				entries = {},
-			}
-		end
-		byClass[key] = made
-		return made
+-- The class in hand first, then (arts) universal arts, then the other classes.
+local function classOrder(withAny: boolean): { string }
+	local heldClass = Weapons.classOf(heldId())
+	local order = { heldClass }
+	if withAny then
+		table.insert(order, "Any")
 	end
-	table.insert(section(Weapons.FIST).weapons, Weapons.FIST)
-	for _, id in Weapons.Order do
-		if (owned[id] or 0) > 0 then
-			table.insert(section(Weapons.classOf(id)).weapons, id)
-		end
-	end
-	for _, id in Techniques.Order do
-		if s.techniques.owned[id] then
-			table.insert(section(SlotArt.techniqueClass(id) or "Any").entries, id)
-		end
-	end
-	-- the class in hand first, then universal arts (usable with anything), then the rest
-	local heldClass = Weapons.classOf(held)
-	local order = { heldClass, "Any" }
 	for _, classId in Weapons.ClassOrder do
 		if classId ~= heldClass then
 			table.insert(order, classId)
 		end
 	end
+	return order
+end
+
+local function classSection(key: string): Section
+	local class = Weapons.Classes[key]
+	if class then
+		local _, _, dao = weaponState()
+		local level = (dao[key] or { level = 0 }).level or 0
+		return {
+			key = key,
+			title = class.name,
+			glyph = SlotArt.classGlyph(key),
+			color = SlotArt.classColor(key),
+			info = `{class.dao} · Lv {level}`,
+			entries = {},
+		}
+	end
+	return { key = key, title = "Universal arts", glyph = "", color = SlotArt.classColor("Any"), info = "any weapon", entries = {} }
+end
+
+local function gather(byClass: { [string]: Section }, withAny: boolean, pinned: string?): { Section }
 	local list = {}
-	for _, key in order do
+	for _, key in classOrder(withAny) do
 		local sec = byClass[key]
 		if sec then
-			sortEntries(sec.weapons, held)
-			sortEntries(sec.entries)
+			sortEntries(sec.entries, pinned)
 			table.insert(list, sec)
 		end
 	end
 	return list
+end
+
+local function weaponSections(): { Section }
+	local owned = weaponState()
+	local byClass: { [string]: Section } = {}
+	local function add(classId: string, id: string)
+		byClass[classId] = byClass[classId] or classSection(classId)
+		table.insert(byClass[classId].entries, id)
+	end
+	add(Weapons.FIST, Weapons.FIST)
+	for _, id in Weapons.Order do
+		if (owned[id] or 0) > 0 then
+			add(Weapons.classOf(id), id)
+		end
+	end
+	return gather(byClass, false, heldId())
+end
+
+local function artSections(): { Section }
+	local s = State.current
+	local byClass: { [string]: Section } = {}
+	for _, id in Techniques.Order do
+		if s.techniques.owned[id] then
+			local key = SlotArt.techniqueClass(id) or "Any"
+			byClass[key] = byClass[key] or classSection(key)
+			table.insert(byClass[key].entries, id)
+		end
+	end
+	return gather(byClass, true, nil)
 end
 
 local function pouchSections(): { Section }
@@ -266,7 +278,6 @@ local function pouchSections(): { Section }
 				glyph = icon,
 				color = DAO_NAME_EQUIPPED,
 				info = "",
-				weapons = {},
 				entries = ids,
 			})
 		end
@@ -296,7 +307,7 @@ end
 -- seen on the bar.
 local function newCounts(): { [Tab]: number }
 	local s = State.current
-	local counts: { [Tab]: number } = { Arsenal = 0, Pouch = 0 }
+	local counts: { [Tab]: number } = { Weapons = 0, Arts = 0, Pouch = 0 }
 	local owned = weaponState()
 	local function count(t: Tab, id: string)
 		if Fresh.isNew(id) and not table.find(s.hotbar, id) then
@@ -305,11 +316,11 @@ local function newCounts(): { [Tab]: number }
 	end
 	for _, id in Weapons.Order do
 		if (owned[id] or 0) > 0 then
-			count("Arsenal", id)
+			count("Weapons", id)
 		end
 	end
 	for id in s.techniques.owned do
-		count("Arsenal", id)
+		count("Arts", id)
 	end
 	for _, id in Items.Order do
 		if Items.count(s, id) > 0 then
@@ -349,7 +360,7 @@ local function refreshNew()
 	for name, button in tabButtons do
 		paintCount(button:FindFirstChild("NewCount") :: GuiObject?, counts[name])
 	end
-	paintCount(newDot, counts.Arsenal + counts.Pouch)
+	paintCount(newDot, counts.Weapons + counts.Arts + counts.Pouch)
 	for id, cell in cells do
 		local isNew = Fresh.isNew(id);
 		(cell:FindFirstChild("NewTag") :: GuiObject).Visible = isNew
@@ -422,7 +433,6 @@ local function setHeader(id: string?)
 	end
 	local preview = header:FindFirstChild("Preview") :: GuiObject
 	SlotArt.paint(preview, id, nil, "")
-	SlotArt.tile(preview, id)
 	local rarity = Rarity.of(id)
 	label("NameLabel").Text = nameOf(id)
 	local gradeRow = header:FindFirstChild("GradeRow", true) :: Frame
@@ -623,14 +633,14 @@ local function renderDetail(animate: boolean?)
 	setHeader(id)
 	label("Hint").Visible = id == nil
 	if not id then
-		-- nothing chosen: what Dao comprehension stands at, for the weapons tab
+		-- nothing chosen: what Dao comprehension stands at, on the Weapons tab
 		showActions(false)
 		setText("Status", "")
 		setText("Pairs", "")
 		setText("Blurb", "")
 		setText("Lore", "")
-		daoList.Visible = tab == "Arsenal"
-		if tab == "Arsenal" then
+		daoList.Visible = tab == "Weapons"
+		if tab == "Weapons" then
 			renderDao(nil, animate == true)
 		end
 		return
@@ -704,8 +714,7 @@ local function makeCell(id: string, order: number, held: string, equipChanged: b
 	else
 		SlotArt.paint(cell, id, Items.count(s, id))
 	end
-	SlotArt.tile(cell, id)
-	-- the class glyph on arts (a weapon is drawn as its glyph already)
+	-- the class glyph on arts (a weapon shows its model)
 	local badge = cell:FindFirstChild("WeaponBadge") :: ImageLabel
 	if technique then
 		SlotArt.gate(cell, id, true)
@@ -765,7 +774,7 @@ local function render(animate: boolean?)
 	end
 	table.clear(cells)
 	local s = State.current
-	local sections = if tab == "Arsenal" then arsenalSections() else pouchSections()
+	local sections = if tab == "Weapons" then weaponSections() elseif tab == "Arts" then artSections() else pouchSections()
 	local chips: { InventoryFilter.Chip } = {}
 	for _, sec in sections do
 		local pouch = tab == "Pouch"
@@ -782,18 +791,13 @@ local function render(animate: boolean?)
 		if filter ~= "All" and filter ~= sec.key then
 			continue
 		end
-		local weapons, entries = {}, {}
-		for _, id in sec.weapons do
-			if InventoryFilter.matches(words(id)) then
-				table.insert(weapons, id)
-			end
-		end
+		local entries = {}
 		for _, id in sec.entries do
 			if InventoryFilter.matches(words(id)) then
 				table.insert(entries, id)
 			end
 		end
-		if #weapons + #entries == 0 then
+		if #entries == 0 then
 			continue
 		end
 		order += 1
@@ -812,24 +816,10 @@ local function render(animate: boolean?)
 		title.Position = UDim2.new(0, if sec.glyph ~= "" then 26 else 0, 0.5, 0);
 		(header:FindFirstChild("Info") :: TextLabel).Text = sec.info
 		local row = frame:FindFirstChild("Cells") :: Frame
-		local n = 0
-		for _, id in weapons do
-			n += 1
+		for n, id in entries do
 			makeCell(id, n, held, equipChanged).Parent = row
 		end
-		if #weapons > 0 and #entries > 0 then
-			n += 1
-			local split = splitTemplate:Clone()
-			split.Name = "Split"
-			split.LayoutOrder = n
-			split.Visible = true
-			split.Parent = row
-		end
-		for _, id in entries do
-			n += 1
-			makeCell(id, n, held, equipChanged).Parent = row
-		end
-		listed += #weapons + #entries
+		listed += #entries
 		frame.Parent = grid
 	end
 	-- a hotbar slot tapped while open stays chosen though the grid may not list it
@@ -837,7 +827,7 @@ local function render(animate: boolean?)
 		selected = nil
 	end
 	local empty = window:FindFirstChild("Empty") :: TextLabel
-	empty.Text = if InventoryFilter.searching() then "Nothing here matches your search." else POUCH_EMPTY
+	empty.Text = if InventoryFilter.searching() then "Nothing here matches your search." else EMPTY_TEXT[tab]
 	empty.Visible = listed == 0
 	renderDetail(animate)
 	refreshNew()
@@ -864,7 +854,7 @@ local function tapSlot(i: number): boolean
 	if there == "" then
 		return true
 	end
-	local nextTab: Tab = if Items.Defs[there] then "Pouch" else "Arsenal"
+	local nextTab: Tab = if Items.Defs[there] then "Pouch" else "Arts"
 	if nextTab ~= tab then
 		tab = nextTab
 	end
@@ -884,7 +874,7 @@ local function tapWeapon()
 		HotbarView.equipWeapon(if id == heldId() then Weapons.FIST else id)
 		return
 	end
-	tab = "Arsenal"
+	tab = "Weapons"
 	choose(heldId())
 	render()
 end
@@ -918,13 +908,21 @@ local function onSecondary()
 end
 
 -- PC: the window keeps its authored place, centred on screen. Touch: the hotbar
--- stays up as a drop target (drawn over the window), so the window fills the
--- space above it instead, which keeps it centred in the free area.
+-- stays up as a drop target (drawn over the window), so the window fills the space
+-- between Roblox's top bar and the hotbar instead: it starts below the bar, so its
+-- top-left never crowds Roblox's menu and chat buttons and the bar's row stays free
+-- for toasts. The title plaque (which rides on the window's top edge) is left out
+-- there: it would reach back into the bar, and the chosen tab already says where
+-- you are.
+local TOUCH_TOP_GAP = 6
+local TOUCH_HOTBAR_ROOM = 70
 local function layout()
 	if Platform.isTouch() then
+		local top = Platform.topbar(window.Parent :: GuiBase2d) + TOUCH_TOP_GAP
 		window.AnchorPoint = Vector2.new(0.5, 0)
-		window.Position = UDim2.new(0.5, 0, 0, 8)
-		window.Size = UDim2.new(0.94, 0, 1, -70)
+		window.Position = UDim2.new(0.5, 0, 0, top)
+		window.Size = UDim2.new(0.94, 0, 1, -(top + TOUCH_HOTBAR_ROOM));
+		(window:FindFirstChild("TitlePlaque") :: GuiObject).Visible = false
 	end
 end
 
@@ -938,13 +936,13 @@ local function setOpen(open: boolean)
 		Menus.close(window)
 	end
 end
+Inventory.setOpen = setOpen
 
 function Inventory.init(gui: ScreenGui)
 	window = gui:FindFirstChild("Inventory") :: Frame
 	grid = window:FindFirstChild("Grid") :: ScrollingFrame
 	sectionTemplate = grid:FindFirstChild("SectionTemplate") :: Frame
 	cellTemplate = grid:FindFirstChild("CellTemplate") :: GuiButton
-	splitTemplate = grid:FindFirstChild("SplitTemplate") :: GuiObject
 	local detail = window:FindFirstChild("Detail") :: Frame
 	info = detail:FindFirstChild("Info") :: ScrollingFrame
 	daoList = info:FindFirstChild("DaoList") :: Frame
@@ -989,7 +987,7 @@ function Inventory.init(gui: ScreenGui)
 	Menus.register(window, { keepHotbar = true })
 	ListWindow.bindClose(window)
 	local tabs = window:FindFirstChild("Tabs") :: Frame
-	for _, name: Tab in { "Arsenal" :: Tab, "Pouch" :: Tab } do
+	for _, name in TABS do
 		local button = tabs:FindFirstChild(`{name}Tab`) :: ImageButton
 		tabButtons[name] = button
 		button.Activated:Connect(function()
@@ -1009,6 +1007,11 @@ function Inventory.init(gui: ScreenGui)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if not processed and input.KeyCode == Enum.KeyCode.Backquote then
 			setOpen(not window.Visible)
+		end
+	end)
+	Platform.topbarChanged(function()
+		if window.Visible then
+			layout()
 		end
 	end)
 	State.onChanged(function()

@@ -16,6 +16,9 @@
       "Animations": {
         "$path": "assets/Animations.rbxmx"
       },
+      "WeaponModels": {
+        "$path": "assets/WeaponModels.rbxm"
+      },
       "Ambience": {
         "$path": "assets/Ambience.rbxmx"
       },

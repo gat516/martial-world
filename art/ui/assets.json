@@ -439,5 +439,10 @@
   "codex/cut/ornament_catalog_tab_capL.png": "rbxassetid://131535347767578",
   "codex/cut/ornament_prompt_banner_capL_plain.png": "rbxassetid://90608147104400",
   "codex/cut/ornament_prompt_banner_capR_plain.png": "rbxassetid://71127881430076",
-  "cultivation/meditation_card.png": "rbxassetid://138141038466824"
+  "cultivation/meditation_card.png": "rbxassetid://138141038466824",
+  "slot_plain.png": "rbxassetid://85613268683045",
+  "slot_edge.png": "rbxassetid://104219227467575",
+  "slot_wash.png": "rbxassetid://115790870697812",
+  "art_disc.png": "rbxassetid://120857701622858",
+  "toast_plaque.png": "rbxassetid://131186990824070"
 }

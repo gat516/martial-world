@@ -250,7 +250,6 @@ function HotbarView.draggable(button: GuiButton, getId: () -> string?, from: (nu
 				g.Size = UDim2.fromOffset(56, 56)
 				g.ZIndex = 50
 				SlotArt.paint(g, id, Items.Defs[id] and Items.count(State.current, id) or nil, "")
-				SlotArt.tile(g, id)
 				SlotArt.gate(g, id, true)
 				local key = g:FindFirstChild("KeyLabel") :: GuiObject
 				key.Visible = false
@@ -310,9 +309,13 @@ local function render()
 		SlotArt.gate(slot, id, false)
 		if short(id) then
 			key[i] = "1"
-			local icon = slot:FindFirstChild("Icon") :: ImageLabel
-			icon.ImageTransparency = math.max(icon.ImageTransparency, SHORT_ICON);
-			(slot:FindFirstChild("Glow") :: ImageLabel).Visible = false;
+			local well = SlotArt.well(slot)
+			local icon = well:FindFirstChild("Icon") :: ImageLabel
+			icon.ImageTransparency = math.max(icon.ImageTransparency, SHORT_ICON)
+			local disc = well:FindFirstChild("Disc") :: ImageLabel?
+			if disc then
+				disc.ImageTransparency = math.max(disc.ImageTransparency, SHORT_ICON)
+			end
 			(slot:FindFirstChild("Frame") :: ImageLabel).ImageTransparency = SHORT_FRAME
 		else
 			key[i] = "0"
@@ -320,13 +323,12 @@ local function render()
 		slot.Visible = showEmpty or id ~= ""
 	end
 	shortKey = table.concat(key)
-	-- the weapon slot: the weapon in hand on its grade frame, only while the
-	-- Inventory is open (it's a drop target, not part of the fighting HUD)
+	-- the weapon slot: the weapon in hand (its model, on its grade's edge), only
+	-- while the Inventory is open (it's a drop target, not part of the fighting HUD)
 	local held = SlotArt.equipped()
 	local weaponId = if held == "" then Weapons.FIST else held
-	SlotArt.paint(weaponSlot, weaponId, nil, "")
-	SlotArt.tile(weaponSlot, weaponId)
 	weaponSlot.Visible = Menus.isOpen(inventory)
+	SlotArt.paint(weaponSlot, weaponId, nil, "")
 end
 
 -- Qi changes often (regen); repaint only when a slot's affordability flips.

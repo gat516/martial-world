@@ -8,7 +8,7 @@ Run with a Python that has Pillow:  python art/ui/draw_ui.py  (writes PNGs besid
 import math
 import os
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 OUT = os.path.dirname(os.path.abspath(__file__))
 SS = 4  # supersampling
@@ -191,7 +191,6 @@ def slot_glow():
     mask = mask.filter(ImageFilter.GaussianBlur(14 * SS))
     clip = Image.new("L", img.size, 0)
     ImageDraw.Draw(clip).rounded_rectangle([m, m, S * SS - m, S * SS - m], radius=8 * SS, fill=255)
-    from PIL import ImageChops
 
     mask = ImageChops.multiply(mask, clip)
     white = Image.new("RGBA", img.size, (255, 255, 255, 255))
@@ -560,7 +559,6 @@ def tile_select():
     glow = glow.filter(ImageFilter.GaussianBlur(7 * SS))
     clip = Image.new("L", img.size, 0)
     ImageDraw.Draw(clip).rounded_rectangle([m, m, S * SS - m, S * SS - m], radius=14 * SS, fill=255)
-    from PIL import ImageChops
 
     glow = ImageChops.multiply(glow, clip).point(lambda v: v * 150 // 255)
     rim = Image.new("L", img.size, 0)
@@ -947,7 +945,6 @@ def icon_lotus():
     """The calm-view toggle while meditating: a lotus. A tall middle petal, two
     leaning beside it and two low outer ones on a flat pad, drawn back to front,
     each with its own ink edge so the petals read apart."""
-    from PIL import ImageChops
     N = 128 * SS
     u = SS
     c = N / 2
@@ -2078,10 +2075,159 @@ def toast_plate():
     img.save(os.path.join(OUT, "toast_plate.png"))
     print("wrote toast_plate.png", img.size)
 
+# --- Plain slots, art discs and the toast tag (2026-10-23) --------------------------
+# The user called the ornate rarity tiles on every Inventory cell "very very tacky":
+# things that repeat get no ornament. A slot is a quiet ink well; rarity shows as a
+# thin tinted edge and a faint wash rising from the bottom, both white and tinted in
+# game. Simple procedural shapes, so drawn here rather than generated.
+
+SLOT_R = 14  # corner radius at 128 px
+
+
+def slot_plain():
+    """The plain slot well, 128 px: ink lacquer, lighter at the top, a dark inner
+    line. 9-slice SliceCenter Rect(24, 24, 104, 104), SliceScale 0.5 (52 px slot).
+    The rarity edge (slot_edge) and wash (slot_wash) sit on top, tinted."""
+    S = 128
+    img = canvas(S, S)
+    m = 2 * SS
+    box = [m, m, S * SS - m, S * SS - m]
+    gradient_rect(img, box, (30, 40, 46), (13, 18, 23), radius=SLOT_R * SS)
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle(box, radius=SLOT_R * SS, outline=(4, 8, 10, 220), width=2 * SS)
+    finish(img, "slot_plain.png")
+
+
+def slot_edge():
+    """The rarity edge, 128 px: a white ring on slot_plain's outline, tinted by tier.
+    9-slice SliceCenter Rect(24, 24, 104, 104), SliceScale 0.5 (a 2 px ring on 52 px)."""
+    S = 128
+    img = canvas(S, S)
+    m = 2 * SS
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([m, m, S * SS - m, S * SS - m], radius=SLOT_R * SS, outline=(255, 255, 255, 255), width=4 * SS)
+    finish(img, "slot_edge.png")
+
+
+def slot_wash():
+    """The rarity wash, 128 px: white inside slot_plain's shape, clear at mid height
+    rising to 45 % at the bottom, tinted by tier. 9-slice like slot_plain (the left and
+    right strips carry the vertical fade, which is uniform along nothing else)."""
+    S = 128
+    img = canvas(S, S)
+    m = 2 * SS
+    grad = Image.new("L", (S * SS, S * SS), 0)
+    gd = ImageDraw.Draw(grad)
+    for y in range(S * SS):
+        t = max(0.0, (y / (S * SS) - 0.4) / 0.6)
+        gd.line([(0, y), (S * SS, y)], fill=int(115 * t * t))
+    mask = Image.new("L", (S * SS, S * SS), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([m, m, S * SS - m, S * SS - m], radius=SLOT_R * SS, fill=255)
+    alpha = ImageChops.multiply(grad, mask)
+    white = Image.new("RGBA", (S * SS, S * SS), (255, 255, 255, 0))
+    white.putalpha(alpha)
+    finish(white, "slot_wash.png")
+
+
+def art_disc():
+    """The seal disc behind an art's glyph, 128 px, grey so one tint (the art's
+    colour) gives a dark coloured face and a brighter rim. Lit from the upper left.
+    Stretch, square."""
+    S = 128
+    img = canvas(S, S)
+    c = S * SS / 2
+    r = c - 2 * SS
+    face = Image.new("RGBA", (S * SS, S * SS), (0, 0, 0, 0))
+    px = face.load()
+    for y in range(S * SS):
+        for x in range(S * SS):
+            dx, dy = x - c, y - c
+            if dx * dx + dy * dy <= r * r:
+                t = (dx + dy) / (2 * r)  # -0.7 upper left .. 0.7 lower right
+                v = int(66 - 22 * t)
+                px[x, y] = (v, v, v, 255)
+    img.alpha_composite(face)
+    d = ImageDraw.Draw(img)
+    d.ellipse([c - r, c - r, c + r, c + r], outline=(225, 225, 225, 255), width=4 * SS)
+    d.ellipse([c - r + 4 * SS, c - r + 4 * SS, c + r - 4 * SS, c + r - 4 * SS], outline=(40, 40, 40, 200), width=2 * SS)
+    finish(img, "art_disc.png")
+
+
+def toast_plaque():
+    """The toast's and reward feed rows' plaque, 512 x 96 (user, 2026-10-23: "change the
+    shape"; reference docs/reference/ui/hud_vitals_reference.webp, its name plaques):
+    a dark lacquer body with pointed ends cut flat at the tip (bevelled), a gold rim lit along its upper
+    edges and shaded along its lower ones, a thin inner gold line, a lit top edge and
+    an inner shade. The toast sets a kit ruby_stud into each end as its own image
+    (so a two-line toast can't smear it); feed rows stay plain.
+    9-slice SliceCenter Rect(48, 47, 464, 49) (the points are the corners, split
+    inside the tips' flat), SliceScale 0.375 for a 36 px toast, 34/96 for a feed row."""
+    W, H = 512, 96
+    img = canvas(W, H)
+    p = 36  # point depth
+    m = 2
+
+    def hexagon(i):
+        k = i * 0.41  # keeps the bevel parallel when inset
+        f = 3  # half the flat at each tip: the bevel's end, and a clean 9-slice strip
+        return [((m + i) * SS, (H / 2 - f) * SS), ((m + p + k) * SS, (m + i) * SS), ((W - m - p - k) * SS, (m + i) * SS),
+                ((W - m - i) * SS, (H / 2 - f) * SS), ((W - m - i) * SS, (H / 2 + f) * SS),
+                ((W - m - p - k) * SS, (H - m - i) * SS), ((m + p + k) * SS, (H - m - i) * SS), ((m + i) * SS, (H / 2 + f) * SS)]
+
+    d = ImageDraw.Draw(img)
+    # rim: gold, lit above the centre line, shaded below it
+    d.polygon(hexagon(0), fill=GOLD)
+    lit = canvas(W, H)
+    ImageDraw.Draw(lit).polygon(hexagon(0), fill=GOLD_HI)
+    lit = lit.crop((0, 0, W * SS, int(H * SS * 0.3)))
+    img.alpha_composite(lit)
+    shade = canvas(W, H)
+    ImageDraw.Draw(shade).polygon(hexagon(0), fill=GOLD_LO)
+    shade = shade.crop((0, int(H * SS * 0.72), W * SS, H * SS))
+    img.alpha_composite(shade, (0, int(H * SS * 0.72)))
+    d.polygon(hexagon(1.2), fill=GOLD)
+    # body: dark lacquer, warmer and lighter at the top
+    body = Image.new("RGBA", (W * SS, H * SS))
+    bd = ImageDraw.Draw(body)
+    for y in range(H * SS):
+        t = y / (H * SS)
+        c = (int(50 - 26 * t), int(29 - 15 * t), int(22 - 11 * t), 250)
+        bd.line([(0, y), (W * SS, y)], fill=c)
+    mask = Image.new("L", (W * SS, H * SS), 0)
+    ImageDraw.Draw(mask).polygon(hexagon(5), fill=255)
+    img.paste(body, (0, 0), mask)
+    # inner shade pooling at the rim, a lit line under the top edge
+    inner = Image.new("L", (W * SS, H * SS), 0)
+    ImageDraw.Draw(inner).polygon(hexagon(5), fill=150)
+    ImageDraw.Draw(inner).polygon(hexagon(14), fill=0)
+    inner = inner.filter(ImageFilter.GaussianBlur(5 * SS))
+    inner = ImageChops.multiply(inner, mask)
+    dark = Image.new("RGBA", (W * SS, H * SS), (6, 3, 2, 255))
+    dark.putalpha(inner)
+    img.alpha_composite(dark)
+    d = ImageDraw.Draw(img)
+    top = hexagon(6.5)
+    d.line([top[1], top[2]], fill=(255, 214, 160, 70), width=1 * SS)
+    # thin inner gold line
+    d.line(hexagon(9) + [hexagon(9)[0]], fill=(214, 172, 92, 150), width=int(1.5 * SS), joint="curve")
+    finish(img, "toast_plaque.png")
+
+
+def plain_art():
+    slot_plain()
+    slot_edge()
+    slot_wash()
+    art_disc()
+    toast_plaque()
+
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "toast":
         toast_plate()
+        sys.exit()
+    if len(sys.argv) > 1 and sys.argv[1] == "plain":
+        plain_art()
         sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "enemybar":
         enemy_bar_art()

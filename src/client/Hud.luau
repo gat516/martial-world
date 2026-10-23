@@ -10,14 +10,19 @@
 
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
+local TextService = game:GetService("TextService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Items = require(ReplicatedStorage.Shared.Items)
+local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
+local Platform = require(script.Parent.Platform)
 local State = require(script.Parent.State)
 
 local TOAST_SECONDS = 3.2
 local TOAST_QUEUE_MAX = 4 -- older pending toasts are dropped past this
+local TOAST_GAP = 8 -- px kept from Roblox's buttons, the tiles, windows and the edges
+local TOAST_MAX_TEXT = 380 -- widest a toast's text runs before it wraps
 local BUFF_LABELS = { QiRate = "cultivation", WalkSpeed = "speed" }
 
 local player = Players.LocalPlayer
@@ -28,6 +33,54 @@ local gui: ScreenGui
 local queue: { string } = {}
 local showing = false
 local said: { [string]: number } = {} -- message -> os.clock() it was queued
+
+-- Where the toast goes: the row of Roblox's top bar, which windows never use (they
+-- start below it; user, 2026-10-23: a toast landed on the open Inventory's title).
+-- Centred on the screen when it fits, else slid clear of Roblox's buttons on the
+-- left and, while they show, the top-right tiles. Should an open window or the
+-- build banner still reach it, it goes below that, or above it.
+local function placeToast(toast: GuiObject)
+	local message = toast:FindFirstChild("Message") :: TextLabel
+	local pad = toast:FindFirstChild("UIPadding") :: UIPadding
+	local padX = pad.PaddingLeft.Offset + pad.PaddingRight.Offset
+	local origin = gui.AbsolutePosition
+	local barBottom, freeLeft = Platform.topbar(gui)
+	local left, right = freeLeft + TOAST_GAP, gui.AbsoluteSize.X - TOAST_GAP
+	local open = Menus.current()
+	local tiles = gui:FindFirstChild("Buttons") :: GuiObject?
+	if not open and tiles and tiles.Visible then
+		right = math.min(right, tiles.AbsolutePosition.X - origin.X - TOAST_GAP)
+	end
+	-- the text's own size at the lane's width (one line when it fits, else wrapped)
+	local params = Instance.new("GetTextBoundsParams")
+	params.Text = message.Text
+	params.Font = message.FontFace
+	params.Size = message.TextSize
+	params.Width = math.clamp(right - left - padX, 160, TOAST_MAX_TEXT)
+	local ok, bounds = pcall(TextService.GetTextBoundsAsync, TextService, params)
+	if ok then
+		message.Size = UDim2.fromOffset(math.ceil(bounds.X) + 1, math.ceil(bounds.Y))
+	end
+	local size = Vector2.new(message.Size.X.Offset + padX, message.Size.Y.Offset + pad.PaddingTop.Offset + pad.PaddingBottom.Offset)
+	local x = math.clamp(gui.AbsoluteSize.X / 2, left + size.X / 2, math.max(left + size.X / 2, right - size.X / 2))
+	local y = if barBottom >= size.Y then barBottom / 2 else (if barBottom > 0 then 4 else 10) + size.Y / 2
+	-- an open window or the build banner in the way: go below it, or above it
+	local banner = gui:FindFirstChild("BuildBanner") :: GuiObject?
+	for _, obstacle in { open, if banner and banner.Visible then banner else nil } do
+		if obstacle and obstacle.Visible then
+			local p, s = obstacle.AbsolutePosition - origin, obstacle.AbsoluteSize
+			local top, bottom = y - size.Y / 2, y + size.Y / 2
+			if x + size.X / 2 > p.X and x - size.X / 2 < p.X + s.X and bottom > p.Y and top < p.Y + s.Y then
+				if p.Y + s.Y + TOAST_GAP + size.Y <= gui.AbsoluteSize.Y then
+					y = p.Y + s.Y + TOAST_GAP + size.Y / 2
+				else
+					y = math.max(size.Y / 2, p.Y - TOAST_GAP - size.Y / 2)
+				end
+			end
+		end
+	end
+	toast.Position = UDim2.fromOffset(math.round(x), math.round(y))
+end
 
 -- Toasts queue up instead of overwriting each other, so simultaneous news (an
 -- insight and a manual from one kill) are all readable. Repeats are skipped.
@@ -50,9 +103,10 @@ function Hud.toast(message: string)
 		local first = true
 		while #queue > 0 do
 			label.Text = table.remove(queue, 1) :: string
+			placeToast(toast)
 			toast.Visible = true
 			if first then
-				Motion.fadeIn(toast) -- the kit's toast plate eases in
+				Motion.fadeIn(toast) -- eases in
 				first = false
 			end
 			-- longer messages stay up a little longer
@@ -232,6 +286,17 @@ function Hud.init(screenGui: ScreenGui)
 
 	local notifyRemote = ReplicatedStorage.Remotes.Notify :: RemoteEvent
 	notifyRemote.OnClientEvent:Connect(Hud.toast)
+	-- a window opening or the top bar changing moves a toast that's up
+	local function replace()
+		local toast = gui:FindFirstChild("Toast") :: GuiObject
+		if toast.Visible then
+			placeToast(toast)
+		end
+	end
+	Menus.onChanged(function()
+		task.defer(replace)
+	end)
+	Platform.topbarChanged(replace)
 
 	State.onChanged(function()
 		renderBuffs()

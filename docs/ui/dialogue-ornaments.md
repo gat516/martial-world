@@ -64,3 +64,88 @@ The title crest has a cloud in the middle of its top edge, so it is cut in five 
 (`capL`, `midL`, `centre`, `midR`, `capR`; the two strips stretch equally). In the kit:
 `Frame/Window`, `Frame/Title Crest`, `Button/Back Seal`, `Button/Checkbox`, `Button/Slider`,
 and `Button/Close Seal` reskinned with the new art.
+
+## Sheet B3: quest log and sect board
+Three multi-piece sheets under `art/ui/codex/b3/`, named in `PIECE_SHEETS`: `notice_board`
+(`board_header`, `notice_paper`, `notice_torn`: the torn, ink-smeared notice is the demon
+chain's clue), `rank_crests` (`crest_outer`, `crest_inner`, `crest_core`, all with an empty
+navy centre for an emblem) and `quest_tokens` (`contribution_token`, `quest_scroll`,
+`daily_seal`, `weekly_seal`; the two seals' centres are empty). The board header is a
+three-part piece; its wood is lit brighter in the middle than at the ends, so it is in
+`SLICE3_EDGE_STRIP` and its stretch strip comes from beside the left cap, which keeps both
+joins seamless. In the kit: the `Ornament/Quest & Sect/*` components and
+`Frame/Board Header` (live label over the stretched wood). The small red nick on the torn
+notice's left edge is in the generated art.
+
+## Sheets A5, A6, B1, B2, B4 and C1
+All named in `PIECE_SHEETS` (four or five pieces per file, reading order) and in the kit
+as one ornament group per sheet. Cutter rules they added:
+- **White glyphs (A5, A6, `WHITE_SHEETS`):** 32 glyphs: `glyph_talk`, `_bag`, `_leave`,
+  `_quest`, `_purse`, `_bow`, `_fight`, `_heart`, `_lock`, `_question`, `_exclaim`, `_give`,
+  `_harvest`, `_rush`, `_plant`, `_chest`; `element_metal`, `_wood`, `_water`, `_fire`,
+  `_earth`, `_lightning`, `_wind`, `_ice`; `weapon_sword`, `_spear`, `_saber`, `_fist`,
+  `_staff`; `glyph_spirit_stone`, `_qi`, `_insight`. Their colour is set to pure white,
+  because the despill and pink fix tint near-white cream and speckled. Tint them in
+  Roblox with `ImageColor3`.
+- **Light on black (`LIGHT_SHEETS`):** `rays_boss`, `rays_milestone`,
+  `foundation_ring_jade`, `heartbeat_ring`, `death_vignette` are keyed by brightness
+  (brightness is opacity), and the whole canvas is the piece, since the glow fades to
+  the edges. Use them with additive-looking placement over dark UI; the vignette is
+  16:9 and full-screen.
+- **Violet (`NO_DESPILL`):** the despill reads violet as magenta spill and turns it blue,
+  so `gem_violet`, `tile_violet`, `tag_violet` and `herb_tier_5` skip it.
+
+Pieces: B1 `card_boss`, `card_quest`, `objective_banner`, `ribbon_crimson`, `ribbon_jade`
+(the last three are three-part); B2 `tile_neutral`/`_grey`/`_jade`/`_violet`/`_gold`,
+`item_slot`, `item_slot_selected`, `coin_frame`, `gem_grey`/`_jade`/`_violet`/`_gold`;
+B4 `crack_hairline`/`_split`/`_shattered`, `tier_t1`..`t4`, `dao_ring`, `bloodline_pure`,
+`bloodline_inherited`, `heaven_mark`; C1 `herbarium_book`, `herb_card`,
+`herb_card_empty`, `herb_tier_1`..`5`, `tag_bronze`/`_jade`/`_crimson`/`_violet`/`_gold`,
+`seed_packet`. In the kit they are plain ornament components (`Ornament/<sheet group>/*`);
+nothing is composed into frames or screens yet beyond the HUD's dash and strike seals,
+which use `element_wind` and `weapon_sword`.
+
+## Sheets C2, C3, C4 and C6
+Named in `PIECE_SHEETS`, one kit ornament group per sheet:
+- **C2 building:** `set_courtyard`, `set_jade_pavilion`, `set_cloud_palace`,
+  `set_herb_house`, `set_library`, `set_formation` (set medallions), `catalog_tab` and
+  `catalog_tab_selected` (three-part), `peak_meter`.
+- **C3 Halls and masters:** `shield_round`/`_kite`/`_banner`/`_hexagon`/`_lotus`,
+  `crest_ring_cloud`/`_dragon`/`_plain`, `emblem_sword`/`_peak`/`_lotus`/`_crane`/
+  `_tortoise`/`_flame`, `lineage_card`, `seat_plate` and `epithet_ribbon` (three-part),
+  `ceremony_frame`. `c3/nine_seat_fan` is only an arrangement example of nine seat
+  plates, so it is in `SKIP_SOURCES` and not cut; build the fan from `seat_plate`.
+- **C4 world events:** `event_scroll` (three-part), `countdown_ring`, `pin_gold`/
+  `_jade`/`_crimson`/`_violet`, `direction_chip`, `decree_card`, `tribulation_ribbon`
+  (three-part), `rift_card`, `rift_tag`. The ribbon's sparks reach toward the card, so
+  that sheet groups with a 4 px gap (`SHEET_GAPS`). The violet pin and the rift pieces
+  are in `NO_DESPILL`. A tiny speck under `event_scroll`'s right end is in the art.
+- **C6 Blood Sect:** the first ornament sheet redrawn in blackened iron and crimson,
+  named after it with a `blood_` prefix: `blood_name_scroll`, `_double_cloud`,
+  `_single_cloud`, `_cloud_wisp`, `_panel_corner`, `_portrait_corner`, `_scroll_stud`,
+  `_ruby_stud`, `_gold_stud` (a copper-red diamond), `_keyplate`, `_chevron`.
+
+## Sheet C5 and the light sheet
+- **C5 leaderboards and paths:** `leaderboard_row` and `leaderboard_row_you` (three-part),
+  `path_orthodox`, `path_rogue`, `path_blood` (the Blood Sect crest: demon path only),
+  `medal_gold`, `medal_silver`, `medal_bronze` (rings with an empty centre for the rank).
+- **Light effects (`art/ui/codex/light_effects/`):** `fx_shockwave`, `fx_qi_wisp`,
+  `fx_gold_dust`, `fx_sparkle`, `fx_glow`, `fx_glint`, keyed by brightness like the other
+  `LIGHT_SHEETS`. These sheets hold three effects each and the dust is loose specks, so
+  they are split into columns at the darkest column near each third, not by shape, then
+  trimmed to the glow.
+
+## Sheet A4: portraits are gray silhouettes
+NPC portraits are never shown painted (user, 2026-10-22: the painted busts looked bad).
+Each NPC is a flat gray silhouette of its figure, on transparency, so the Portrait frame
+supplies the backdrop. Codex's painted busts in `art/ui/codex/a4/` are only the source for
+the shape. `tools/ui_silhouette.py` makes them (`ui_assemble.py` skips the `a4` folder):
+`uv run --with rembg --with onnxruntime --with pillow --with numpy --with scipy python tools/ui_silhouette.py`.
+It masks the figure with rembg (the first run downloads a 179 MB model), fills robe
+holes, squares off the shoulders below 60 % height, and writes
+`art/ui/codex/cut/portrait_<name>.png` in gray `#767A84`: `elder_qingyun`, `herbalist`,
+`weapon_rack_keeper`, `unnamed_silhouette`, `unknown_silhouette` (the "???" figure loses
+its question mark; add it back as live text if it is wanted). In the kit they are the
+`Ornament/Portraits/*` components, and a row of `Frame/Portrait` instances shows each in
+its frame. A new NPC's portrait goes the same way: a Codex bust with A4's framing, then
+the silhouette tool.

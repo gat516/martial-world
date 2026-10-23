@@ -117,12 +117,91 @@ PIECE_SHEETS = {
     "a3/controls": ["scroll_thumb", "slider_knob", "checkbox", "checkmark"],
     "a3/corners": ["window_corner", "window_corner_small"],
     "a3/title_and_seals": ["title_crest", "close_seal", "back_seal"],
+    "b3/notice_board": ["board_header", "notice_paper", "notice_torn"],
+    "b3/rank_crests": ["crest_outer", "crest_inner", "crest_core"],
+    "b3/quest_tokens": ["contribution_token", "quest_scroll", "daily_seal", "weekly_seal"],
+    # A5 and A6 are white glyphs, four per file.
+    "a5/01_speech_bag_leave_scroll": ["glyph_talk", "glyph_bag", "glyph_leave", "glyph_quest"],
+    "a5/02_purse_bow_sword_heart": ["glyph_purse", "glyph_bow", "glyph_fight", "glyph_heart"],
+    "a5/03_lock_question_exclamation_hand": ["glyph_lock", "glyph_question", "glyph_exclaim", "glyph_give"],
+    "a5/04_harvest_hourglass_seedling_chest": ["glyph_harvest", "glyph_rush", "glyph_plant", "glyph_chest"],
+    "a6/a6_01_metal_wood_water_fire": ["element_metal", "element_wood", "element_water", "element_fire"],
+    "a6/a6_02_earth_lightning_wind_ice": ["element_earth", "element_lightning", "element_wind", "element_ice"],
+    "a6/a6_03_sword_spear_saber_fist": ["weapon_sword", "weapon_spear", "weapon_saber", "weapon_fist"],
+    "a6/a6_04_staff_spiritstone_qi_insight": ["weapon_staff", "glyph_spirit_stone", "glyph_qi", "glyph_insight"],
+    "b1/boss_victory_card": ["card_boss"],
+    "b1/quest_complete_card": ["card_quest"],
+    "b1/objective_and_ribbons": ["objective_banner", "ribbon_crimson", "ribbon_jade"],
+    "b1/boss_rays": ["rays_boss"],
+    "b1/milestone_rays": ["rays_milestone"],
+    "b2/reward_tiles": ["tile_neutral", "tile_grey", "tile_jade", "tile_violet", "tile_gold"],
+    "b2/item_slots": ["item_slot", "item_slot_selected"],
+    "b2/currency_gems": ["coin_frame", "gem_grey", "gem_jade", "gem_violet", "gem_gold"],
+    "b4/foundation_cracks": ["crack_hairline", "crack_split", "crack_shattered"],
+    "b4/deep_foundation_jade_ring": ["foundation_ring_jade"],
+    "b4/technique_tiers": ["tier_t1", "tier_t2", "tier_t3", "tier_t4"],
+    "b4/dao_nine_notch_ring": ["dao_ring"],
+    "b4/bloodline_and_heaven_marks": ["bloodline_pure", "bloodline_inherited", "heaven_mark"],
+    "b4/death_save_vignette": ["death_vignette"],
+    "b4/heartbeat_pulse_ring": ["heartbeat_ring"],
+    "c1/herbarium_book": ["herbarium_book"],
+    "c1/herb_entry_cards": ["herb_card", "herb_card_empty"],
+    "c1/tier_badges_bronze_silver_gold": ["herb_tier_1", "herb_tier_2", "herb_tier_3"],
+    "c1/tier_badges_jade_violet": ["herb_tier_4", "herb_tier_5"],
+    "c1/mutation_tags": ["tag_bronze", "tag_jade", "tag_crimson", "tag_violet", "tag_gold"],
+    "c1/seed_packet_tile": ["seed_packet"],
+    "c2/building_emblems_1": ["set_courtyard", "set_jade_pavilion", "set_cloud_palace"],
+    "c2/building_emblems_2": ["set_herb_house", "set_library", "set_formation"],
+    "c2/catalog_tabs": ["catalog_tab", "catalog_tab_selected"],
+    "c2/peak_score_meter": ["peak_meter"],
+    "c3/crest_shapes": ["shield_round", "shield_kite", "shield_banner", "shield_hexagon", "shield_lotus"],
+    "c3/crest_borders": ["crest_ring_cloud", "crest_ring_dragon", "crest_ring_plain"],
+    "c3/emblems_sword_peak_lotus": ["emblem_sword", "emblem_peak", "emblem_lotus"],
+    "c3/emblems_crane_tortoise_flame": ["emblem_crane", "emblem_tortoise", "emblem_flame"],
+    "c3/lineage_card": ["lineage_card"],
+    "c3/seat_plate": ["seat_plate"],
+    "c3/epithet_ribbon": ["epithet_ribbon"],
+    "c3/ceremony_frame": ["ceremony_frame"],
+    "c4/event_scroll_countdown": ["event_scroll", "countdown_ring"],
+    "c4/event_map_markers": ["pin_gold", "pin_jade", "pin_crimson", "pin_violet", "direction_chip"],
+    "c4/tribulation_card_ribbon": ["decree_card", "tribulation_ribbon"],
+    "c4/rift_card_tag": ["rift_card", "rift_tag"],
+    # C6 redraws the first ornament sheet for the Blood Sect, piece for piece.
+    "c6/thorn_clouds": ["blood_name_scroll", "blood_double_cloud", "blood_single_cloud", "blood_cloud_wisp"],
+    "c6/thorn_corners": ["blood_panel_corner", "blood_portrait_corner"],
+    "c6/thorn_studs": ["blood_scroll_stud", "blood_ruby_stud", "blood_gold_stud"],
+    "c6/thorn_keyplate_chevron": ["blood_keyplate", "blood_chevron"],
+    "c5/leaderboard_rows": ["leaderboard_row", "leaderboard_row_you"],
+    "c5/path_crests": ["path_orthodox", "path_rogue", "path_blood"],
+    "c5/rank_medals": ["medal_gold", "medal_silver", "medal_bronze"],
+    "light_effects/shockwave_qi_dust": ["fx_shockwave", "fx_qi_wisp", "fx_gold_dust"],
+    "light_effects/sparkle_glow_glint": ["fx_sparkle", "fx_glow", "fx_glint"],
 }
+# Sources that are only arrangement examples, not pieces (nine seat plates in a fan).
+SKIP_SOURCES = {"c3/nine_seat_fan"}
+# White glyph sheets: drawn pure white, so the colour is set to white (the despill tints
+# near-white cream).
+WHITE_SHEETS = {k for k in PIECE_SHEETS if k.startswith(("a5/", "a6/"))}
+# Violet has red and blue above green, which the despill reads as magenta spill and
+# turns blue; these pieces keep their keyed colour without it.
+NO_DESPILL = {"gem_violet", "tile_violet", "tag_violet", "herb_tier_5", "pin_violet", "rift_card", "rift_tag"}
+# Light pieces drawn on black instead of magenta: keyed by brightness, and the whole
+# canvas is the piece (the glow fades out toward its edges).
+LIGHT_SHEETS = {"b1/boss_rays", "b1/milestone_rays", "b4/deep_foundation_jade_ring",
+                "b4/death_save_vignette", "b4/heartbeat_pulse_ring",
+                "light_effects/shockwave_qi_dust", "light_effects/sparkle_glow_glint"}
+# A light sheet with several effects is split into columns, one effect each (a dust
+# cluster is loose specks, so shapes can't be grouped): each cut is the darkest column
+# within a sixth of the sheet of the even split. Each piece is trimmed to its glow.
+LIGHT_ALPHA_TRIM = 6  # of 255; fainter glow at a column's edge is cut off
 SHEET_GROUP_GAP = 16  # px; parts of one piece closer than this belong together
+# Sheets whose pieces sit closer than that (the tribulation ribbon's sparks reach toward
+# the card beside it).
+SHEET_GAPS = {"c4/tribulation_card_ribbon": 4}
 SHEET_MIN_AREA = 400  # px; smaller islands are generator noise
 
 
-def key_sheet(im):
+def key_sheet(im, despill=True):
     """Alpha-keyed RGBA array for a sheet on noisy, near-magenta ground.
 
     Generators paint the "flat" magenta with drift and dark flecks, so the key
@@ -138,6 +217,8 @@ def key_sheet(im):
     bg = np.median(border, axis=0)
     safe = np.maximum(alpha, 1e-3)[..., None]
     rgb = np.clip((a - (1 - alpha)[..., None] * bg) / safe, 0, 255)
+    if not despill:
+        return np.dstack([rgb, alpha * 255])
     # Despill: the generator tints outlines and shading toward magenta (dark
     # outlines come out (119, 11, 49), not brown). Art never has both red and
     # blue above green except as spill, so take that excess off both.
@@ -151,14 +232,22 @@ def key_sheet(im):
     return np.dstack([rgb, alpha * 255])
 
 
-def sheet_pieces(arr):
+def key_light(im):
+    """Alpha-keyed RGBA array for light drawn on black: brightness is opacity."""
+    a = np.asarray(im.convert("RGB")).astype(np.float32)
+    alpha = np.clip((a.max(-1) - 6) / 249, 0, 1)  # the black ground has faint noise
+    rgb = np.clip(a / np.maximum(alpha, 1e-3)[..., None], 0, 255)
+    return np.dstack([rgb, alpha * 255])
+
+
+def sheet_pieces(arr, gap=SHEET_GROUP_GAP):
     """Boxes of the pieces on a keyed sheet, in reading order, plus the noise-free alpha."""
     from PIL import ImageFilter
     alpha = arr[..., 3]
     core = Image.fromarray(((alpha > 128) * 255).astype(np.uint8))
     step = 4
     small = core.resize((core.width // step, core.height // step), Image.BOX)
-    grown = small.filter(ImageFilter.MaxFilter(2 * (SHEET_GROUP_GAP // step) + 1))
+    grown = small.filter(ImageFilter.MaxFilter(2 * (gap // step) + 1))
     groups = components(np.asarray(grown) > 0)
     boxes, keep = [], np.zeros(alpha.shape, bool)
     for _, (x1, y1, x2, y2) in groups:
@@ -187,20 +276,37 @@ def sheet_pieces(arr):
 def cut_piece_sheet(sheet, src):
     """Cut every piece of an ornament sheet. Returns contact rows and manifest entries."""
     names = PIECE_SHEETS[sheet]
-    arr = key_sheet(src)
-    boxes, clean = sheet_pieces(arr)
-    arr[..., 3] = clean
-    h, w = clean.shape
+    light = sheet in LIGHT_SHEETS
+    arr = key_light(src) if light else key_sheet(src)
+    if sheet in WHITE_SHEETS:
+        arr[..., :3] = 255
+    raw = key_sheet(src, despill=False) if NO_DESPILL & set(names) else None
+    if light:
+        h, w = arr.shape[:2]
+        boxes, n = [], len(names)
+        lit = arr[..., 3].max(0)
+        cuts = [0] + [int(np.argmin(lit[w * i // n - w // 6 : w * i // n + w // 6]) + w * i // n - w // 6)
+                      for i in range(1, n)] + [w]
+        for i in range(n):
+            x0, x1 = cuts[i], cuts[i + 1]
+            ys, xs = np.nonzero(arr[:, x0:x1, 3] > LIGHT_ALPHA_TRIM)
+            boxes.append((x0 + xs.min(), ys.min(), x0 + xs.max() + 1, ys.max() + 1) if len(names) > 1 else (0, 0, w, h))
+    else:
+        boxes, clean = sheet_pieces(arr, SHEET_GAPS.get(sheet, SHEET_GROUP_GAP))
+        arr[..., 3] = clean
+        h, w = clean.shape
     if len(boxes) != len(names):
         return [(sheet, src, None, [f"found {len(boxes)} pieces, the list names {len(names)}"], [], f"{w} x {h}")], {}
     rows, entries = [], {}
     for name, (x1, y1, x2, y2) in zip(names, boxes):
         errs = []
-        if x1 < EDGE_MARGIN or y1 < EDGE_MARGIN or x2 > w - EDGE_MARGIN or y2 > h - EDGE_MARGIN:
+        if not light and (x1 < EDGE_MARGIN or y1 < EDGE_MARGIN or x2 > w - EDGE_MARGIN or y2 > h - EDGE_MARGIN):
             errs.append("touches the sheet edge (clipped?)")
         pad = 2
         box = (max(0, x1 - pad), max(0, y1 - pad), min(w, x2 + pad), min(h, y2 + pad))
         full = arr[box[1]:box[3], box[0]:box[2]]
+        if name in NO_DESPILL:
+            full = np.dstack([raw[box[1]:box[3], box[0]:box[2], :3], full[..., 3]])
         piece = fit(to_image(full), MAX_TEX, MAX_TEX)
         f = f"ornament_{name}.png"
         piece.save(OUT / f)
@@ -214,7 +320,13 @@ def cut_piece_sheet(sheet, src):
 
 # Pieces with ornate ends and a plain middle (buttons, banners): also cut as left cap,
 # a narrow middle strip to stretch, and right cap, from the full-resolution art.
-SLICE3 = {"response_button", "response_button_hi", "prompt_banner", "title_crest"}
+SLICE3 = {"response_button", "response_button_hi", "prompt_banner", "title_crest", "board_header",
+          "objective_banner", "ribbon_crimson", "ribbon_jade", "catalog_tab", "catalog_tab_selected",
+          "seat_plate", "epithet_ribbon", "event_scroll", "tribulation_ribbon",
+          "leaderboard_row", "leaderboard_row_you"}
+# Pieces whose plain middle is lit brighter than its ends (the notice board's wood): their
+# strip is taken next to the left cap, so both joins match, not from the bright centre.
+SLICE3_EDGE_STRIP = {"board_header"}
 SLICE3_TOL = (3, 6)  # smoothed alpha and brightness differences that still count as "plain"
 
 
@@ -246,7 +358,8 @@ def slice3(name, full, errs):
 
     left, right = span(w // 2)
     if right - left >= w * 0.2:
-        parts = {"capL": full[:, : left + 2], "mid": strip_at(w // 2, left, right), "capR": full[:, right - 1 :]}
+        c = left + 2 + 16 if name in SLICE3_EDGE_STRIP else w // 2
+        parts = {"capL": full[:, : left + 2], "mid": strip_at(c, left, right), "capR": full[:, right - 1 :]}
     else:
         # An ornament sits in the centre (a title crest's cloud): five parts, the two
         # plain stretches either side of it stretch equally.
@@ -354,8 +467,39 @@ def check(alpha, region):
     return (bx1 + x1, by1 + y1, bx2 + x1, by2 + y1), errs
 
 
+def bleed(arr, passes=24):
+    """Give fully transparent pixels the colour of their nearest visible neighbours.
+
+    Keying leaves junk RGB under alpha 0 and in faint edge pixels (keyed magenta despills to pure green), and
+    both downscaling here and Roblox's texture filtering mix that colour into the
+    edges, which showed as green fringes along stretched rails. Visible pixels are
+    untouched; only what sits under alpha 0 changes.
+    """
+    arr = arr.copy()
+    known = arr[..., 3] >= 128  # colour only from mostly opaque art; faint edges carry keyed green too
+    if known.all() or not known.any():
+        return arr
+    rgb = np.where(known[..., None], arr[..., :3], 0).astype(np.float64)
+    w = known.astype(np.float64)
+    for _ in range(passes):
+        if known.all():
+            break
+        acc = np.zeros_like(rgb)
+        cnt = np.zeros_like(w)
+        for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)):
+            acc += np.roll(np.roll(rgb * w[..., None], dy, 0), dx, 1)
+            cnt += np.roll(np.roll(w, dy, 0), dx, 1)
+        grow = ~known & (cnt > 0)
+        rgb[grow] = acc[grow] / cnt[grow][:, None]
+        w = np.where(grow, 1.0, w)
+        known = known | grow
+    rgb[~known] = rgb[known].mean(0)  # far from any art: the art's average colour
+    arr[..., :3] = np.where((arr[..., 3] >= 128)[..., None], arr[..., :3], rgb)
+    return arr
+
+
 def to_image(arr):
-    return Image.fromarray(np.round(arr).astype(np.uint8), "RGBA")
+    return Image.fromarray(np.round(bleed(arr)).astype(np.uint8), "RGBA")
 
 
 def fit(im, w, h):
@@ -503,10 +647,11 @@ def main():
     rows, missing = [], []
     failed = False
     # One-piece images Codex drops into a sheet folder (art/ui/codex/a2/<piece>.png) are
-    # cut without a PIECE_SHEETS entry, named after the file.
+    # cut without a PIECE_SHEETS entry, named after the file. a4 portraits go through
+    # tools/ui_silhouette.py instead.
     for p in sorted(SRC.glob("*/*.png")):
         key_name = f"{p.parent.name}/{p.stem}"
-        if p.parent.name != "cut" and key_name not in PIECE_SHEETS:
+        if p.parent.name not in ("cut", "a4") and key_name not in PIECE_SHEETS and key_name not in SKIP_SOURCES:
             PIECE_SHEETS[key_name] = [p.stem]
     for name in list(PIECES) + list(ICON_SHEETS) + list(PIECE_SHEETS):
         if only and name not in only:

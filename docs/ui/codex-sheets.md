@@ -67,6 +67,9 @@ left, on the misty navy backdrop from the reference, square, no frame.
 5. The "???" silhouette: dark head and shoulders with a cream question mark.
 ```
 Masters get portraits once they are cast (roadmap 3d).
+The game never shows these painted: `tools/ui_silhouette.py` turns each into a flat gray
+silhouette ([dialogue-ornaments](dialogue-ornaments.md#sheet-a4-portraits-are-gray-silhouettes)),
+so only the outline (hair, headwear, shoulders) has to read.
 
 ### A5. Glyph sheet: interaction and dialogue (white)
 ```text

@@ -145,6 +145,7 @@ on the misty navy portrait backdrop of the reference (no frame; the panel frames
 | 30 | `portrait_silhouette` | an unnamed figure as a dark silhouette on the backdrop |
 | 31 | `portrait_unknown` | the "???" silhouette: a plain dark head-and-shoulders with a cream question mark |
 Masters get their portraits once they are cast (see [roadmap](../roadmap.md)).
+Shown in game as flat gray silhouettes, not painted ([dialogue-ornaments](dialogue-ornaments.md#sheet-a4-portraits-are-gray-silhouettes)).
 
 **Phase 1 is 31 images.** Stats, currency and status icons are generated with their
 phases (below).

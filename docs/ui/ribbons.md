@@ -52,6 +52,7 @@ Per screen:
 | Reward banner (`Rewards.luau`) | 56 | 24 | 1.6 x h | 600 (keeps its own cloud ribbons) |
 | Herbarium title (`Herbarium.luau`) | 50 | 22 | 1.6 x h | 60 % of the window |
 | Tribulation ribbon (`Events/TribulationView.luau`) | 96 / 62 phone | 26 / 17 | 1.6 x h | the slot (720 / 460) |
+| Slot screen title (`CharacterCreator/Controller.luau`, `gold`) | 48 | Merriweather Bold 21 | 1.6 x h | the panel's inner width (432) |
 | Lineage epithet (`Sect/Lineage.luau`) | 26 card, 28 ceremony | Builder Sans Bold 13, cream on near-black stroke | 1.6 x h | 244 card / 300 ceremony |
 
 ## Measured (2026-10-23, sandbox Edit view)

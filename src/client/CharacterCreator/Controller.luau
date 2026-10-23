@@ -27,6 +27,7 @@ local Menus = require(script.Parent.Parent.Menus)
 local Motion = require(script.Parent.Parent.Motion)
 local Platform = require(script.Parent.Parent.Platform)
 local Preview = require(script.Parent.Preview)
+local Ribbon = require(script.Parent.Parent.Ribbon)
 local State = require(script.Parent.State)
 local Theme = require(script.Parent.Theme)
 
@@ -257,7 +258,7 @@ local function refresh()
 	local creator = mode ~= "slots"
 	local head = panel:FindFirstChild("Head") :: Frame
 	;(head:FindFirstChild("Tabs") :: Frame).Visible = creator
-	;(head:FindFirstChild("Title") :: TextLabel).Visible = not creator
+	;(head:FindFirstChild("Title") :: Frame).Visible = not creator
 	local p, s, q = primary(), secondary(), quiet()
 	local label = p:FindFirstChild("Label") :: TextLabel
 	local secondLabel = s:FindFirstChild("Label") :: TextLabel
@@ -660,11 +661,20 @@ function Controller.init(screen: ScreenGui)
 	end
 
 	Preview.init(root:FindFirstChild("Preview") :: ViewportFrame, templates)
+	-- the slot screen's title on the gold house plaque (docs/ui/ribbons.md)
+	local plaque = (panel:FindFirstChild("Head") :: Frame):FindFirstChild("Title") :: Frame
+	task.spawn(Ribbon.fit, plaque, "Choose your cultivator", {
+		style = "gold",
+		textSize = 21,
+		height = plaque.Size.Y.Offset,
+		maxWidth = 432,
+	})
 
 	local ctx = {
 		state = state,
 		defs = Defs,
 		components = Components,
+		templates = templates,
 		preview = Preview,
 		bridge = Bridge,
 		theme = Theme,

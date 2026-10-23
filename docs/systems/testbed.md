@@ -66,6 +66,7 @@ on the baseplate unchanged.
   testbed-only defs included), and they land right in front of the player, just clear of their body.
 - `Workspace.Map.Sect.SpiritPeaks`: an empty stub, so `Peaks` and `MyPeak` load
   (nobody gets a peak).
+- `Workspace.Arena.TribulationPlatform`: a 72-stud slab at (0, 649, 240); in the testbed `Config.Tribulation.CENTER` points at it, since the main peak's platform isn't there. Jump with the admin actions `realm` (`"QC9"`) and `tribulation`.
 - Place-only, kept on purpose (not in git, never synced back): the enemy pose-preview rigs
   (rest and windup statues) in Workspace, and a spare copy of map pieces (bamboo,
   waterfall parts, `Snd_*` sounds, the `F01`-`F31` set dressing) loose in ServerStorage.

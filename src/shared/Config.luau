@@ -533,7 +533,7 @@ return {
 	-- The heavenly tribulation's arena. How hard it is (length, strike rate and
 	-- damage, fail cooldown) is per stage: Pacing.Curve `tribulation`.
 	Tribulation = {
-		CENTER = Vector3.new(2, 857, -86), -- on the main peak's tribulation platform
+		CENTER = if TESTBED then Vector3.new(0, 650, 240) else Vector3.new(2, 857, -86), -- the main peak's tribulation platform (the testbed's own slab)
 		ARENA_RADIUS = 34, -- stepping farther out than this fails the tribulation
 		STRIKE_RADIUS = 5,
 		RETURN_DELAY = 4, -- seconds after it ends before the challenger is sent down to the plaza

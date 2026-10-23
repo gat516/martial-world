@@ -65,8 +65,12 @@ on the baseplate unchanged.
 - New bosses (Thunder Ape, Nine-Tailed Fox, Jade Jiao) get no zone: the user
   spawns them from the admin panel's "Spawn beasts" list (every def shows there,
   testbed-only defs included), and they land right in front of the player, just clear of their body.
-- `Workspace.Map.Sect.SpiritPeaks`: an empty stub, so `Peaks` and `MyPeak` load
-  (nobody gets a peak).
+- `Workspace.Map.Sect.SpiritPeaks.TestPeak` (user, 2026-10-23): a flat, empty peak
+  on the arena floor, centred on the spawn pad: an invisible `Plateau` at
+  (0, 648.6, 40) (the build radius is measured from it), an empty `Placed` folder and
+  `Owner` "". The first player to join gets it, so build mode and on-peak
+  meditation work there. No terrain, starter pieces, stele, array or spawn of its
+  own (everyone still spawns on the pad).
 - `Workspace.Arena.TribulationPlatform`: a 72-stud slab at (0, 649, 240); in the testbed `Config.Tribulation.CENTER` points at it, since the main peak's platform isn't there. Jump with the admin actions `realm` (`"QC9"`) and `tribulation`.
 - Place-only, kept on purpose (not in git, never synced back): the enemy pose-preview rigs
   (rest and windup statues) in Workspace, and a spare copy of map pieces (bamboo,
@@ -131,8 +135,9 @@ and open that file in Studio. Nothing in it is saved. After a restart, repeat st
 (Publishing it was dropped: it runs locally as the test build.)
 
 ## Known gaps
-- Garden, build mode and peaks can't be tested (no peaks; empty `HerbModels` and
-  `BuildCatalog`). The Guarded Herb event has no herb models to grow.
+- Build mode opens on the test peak, but `BuildCatalog` and `HerbModels` are empty
+  stubs, so there is nothing to place and no garden plots or herb models (they're
+  place-only in the main game). Only the first player gets the peak. The Guarded Herb event has no herb models to grow.
 - Lighting is Studio's default; the real place's Sky, Atmosphere and post effects
   are place-only. So are the main place's map LocalScripts in StarterPlayerScripts
   (`BridgeSway`, `SkyLayerAtmosphere`, `SpiritLights`), which have nothing to act on here.

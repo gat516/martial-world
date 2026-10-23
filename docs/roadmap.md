@@ -90,9 +90,8 @@ bounties, sect tasks, contribution and a Pavilion shop (never qi).
 - **Player groups sit under it as Halls.** A Hall is 10-30 players with a shared
   name, banner, a hall they furnish together, a shared plot, and a small board of
   group goals. A Hall can belong to the sect, the Blood Sect or be independent, so
-  every path can form one. "Cliques" is the wrong word; **Hall** fits the genre.
-  Names considered: Hall, Lineage (a master and disciples, mentoring), Clan
-  (friends and family), Banner.
+  every path can form one. **Hall is the name (user, 2026-10-22).** Lineage is
+  kept for the mentor tie below.
 - **Lineage as a light mentor tie inside a Hall:** a senior takes a junior, both earn
   contribution when the junior advances. It helps new players, which helps retention.
 - **Contribution is soft.** The sect board offers tasks; nothing nags. At most one
@@ -114,6 +113,17 @@ feel the big ones.
   sound for milestones (a breakthrough, a first of a category, a bloodline, a rank).
 - **The card shows what changed:** the stat deltas, the new unlock, and one line on
   what to do next ("Your foundation is firm. The Outer Wastes are open.").
+- **One card, three jobs (user, 2026-10-22).** The boss victory card
+  (`Rewards.luau`, `StarterGui.Rewards.BossReward`: a title, a subtitle, reward tiles
+  that land on it, rays, tap to close) is reused for **quest completion** and for
+  **onboarding objectives**, which are two different things with different looks:
+  - *Boss victory:* as today ("Victory", "<boss> defeated").
+  - *Quest complete:* "Quest complete" with the quest's name; tiles for stones, qi,
+    contribution and a manual; the sect or Hall crest. Rare and weighty.
+  - *Onboarding objective:* "Objective complete", lighter and quicker (a smaller card
+    or banner, short life), because the hook fires many in a few minutes. Same tiles.
+  The server sends one Effect with a `kind`, a title and a subtitle (today it is
+  `"boss"` with a name and qi); `openCard` takes those instead of hard-coding "Victory".
 - **Never block play;** big cards are skippable and queue, one at a time.
 - **Build:** a reward-banner component in the HUD, fed by one server event with a tier;
   existing "breakthrough" cards fold into it. `ui-designer`, designed with the user.
@@ -335,6 +345,5 @@ run alongside them. Before spawning, ask how many agents and sandbox Studios at 
 - Does the Herbarium reward cosmetics only, or small solidity?
 - Which building sets are robux and which are earnable? (earnable first)
 - Rebirth: is it a full reset (keeping the legacy) or a parallel second character?
-- Hall, Lineage, Clan or Banner for player groups? (proposal: Hall, with Lineage as the mentor tie)
 - How hinted is the demon secret: rumours only, or does the elder give a nudge?
 - Does the demon path keep its own home peak look, or reuse the sect's with a demon skin?

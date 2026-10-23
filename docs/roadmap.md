@@ -207,12 +207,13 @@ and goals that don't end**, not from more linear stages. Proposed, in priority o
      town or guild board, picks up scavenged materials and finds secret places;
      gardening, alchemy and building are first-class. Same quest system, filtered
      by affiliation.
-   - **When you choose:** keep the sect start (built and tested) and add the **path
-     fork at QR1**, when the loop is learned: be promoted Inner Disciple, quit as a
-     rogue, or take a demon bloodline and be cast out. This needs nothing from
-     character creation. **Reincarnation** then lets a new life start as a mortal in
-     a village and choose a path from the start (the mortal-start idea lives
-     there). The character-creation dev can later add a path pick on top.
+   - **How you reach each (revised 2026-10-22):**
+     - *Sect* is the default. *Rogue* is open: leave the sect from the elder or board.
+     - *Demon is a secret, never a menu.* No UI offers it. Players discover it, and
+       it is the "how to become a demon in Martial World" video. See "The demon
+       secret" below.
+   - **Reincarnation** lets a new life start as a mortal in a village and choose from
+     the start; the character-creation dev can add a visible pick on top later.
    - Each path has its own quests, a few exclusive arts and cosmetics, and building
      sets, so a second life isn't the same game.
 3. **Secret realms, mixed (user, 2026-10-22).** Not all procedural:
@@ -237,6 +238,35 @@ and goals that don't end**, not from more linear stages. Proposed, in priority o
 - Build order: the flags and paths first (they shape data), rebirth after the
   first full playthrough exists, rifts after the secret-place tooling, then
   leaderboards and festivals.
+
+### The demon secret (a discoverable chain)
+Made to be found, shared and filmed. Nothing says "demon" in the UI; the clues
+live in the world, and each step is a place or a thing a creator can show.
+1. **Rumours.** Odd lines from NPCs, a defaced notice on the board, a Blood Sect
+   cultist's dying words, a torn page in a ruin. They point at the Ruined
+   Borderlands and a hidden altar.
+2. **The talisman.** Blood Sect cultists (the cultist enemies, once wired) rarely
+   drop a *blood talisman*; collect a few.
+3. **The forbidden manual.** A hidden ruin (a secret place with its own small
+   route) holds a forbidden manual. A clue found elsewhere reveals where.
+4. **The demon essence.** A demon-beast core from a boss (a Roaming Beast King or
+   the Jade Jiao) or a rare drop. Needs the right moment: a **Blood Moon** weather
+   (a rare world event) opens the altar.
+5. **The ritual.** At the blood altar, on a Blood Moon night: the essence is
+   consumed and the bloodline awakens (a short ritual cutscene). Horns, a tail or
+   wings appear on your character, visible to everyone. A server-wide line:
+   "A demon has risen."
+6. **The expulsion.** The sect's elders confront you (a short cinematic) and you are
+   cast out. Sect board and Pavilion close; the Blood Sect outpost opens. Optional
+   redemption later (purify the bloodline) for story.
+- **Guardrails:** optional (never required for the ladder), never PvP-for-progress,
+  every step doable on mobile, no step needs a coin flip you can't retry (rare drops
+  have pity), and a hint trail exists for players who ask the elder, so it's findable
+  without a wiki.
+- **Other hidden chains** can follow the same pattern for other bloodlines and
+  heaven-defying roots (a dragon, a phoenix), each a discoverable secret.
+- Needs: the cultist enemies wired, a hidden ruin, the Blood Moon weather and
+  altar (world-fx), the awakening ritual and expulsion cutscene, and the blood garden.
 
 ## 10. Order of work and who does it
 
@@ -270,5 +300,5 @@ run alongside them. Before spawning, ask how many agents and sandbox Studios at 
 - Does the Herbarium reward cosmetics only, or small solidity?
 - Which building sets are robux and which are earnable? (earnable first)
 - Rebirth: is it a full reset (keeping the legacy) or a parallel second character?
-- Path fork: at QR1 (proposed), or a mortal start with the choice at QC3-5?
+- How hinted is the demon secret: rumours only, or does the elder give a nudge?
 - Does the demon path keep its own home peak look, or reuse the sect's with a demon skin?

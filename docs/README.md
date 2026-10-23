@@ -70,6 +70,8 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 (attributes `PoiName`, `Kind`, `Zone`, optional `LabelNote`); see
 [editor-markers](map/editor-markers.md).
 
+The whole plan from QC1 to FE9 (stages, regions, sect quests, optional bosses) is in [progression](progression.md).
+
 ## Where to tune things
 
 | Want to change | File |

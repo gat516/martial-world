@@ -1,5 +1,11 @@
 # Bloodline
 
+> **Planned change (2026-10-22, [progression](../progression.md)):** bloodlines replace
+> races, with cosmetic traits (horns, tails, wings, see-through spirits), found or
+> bought, earlier than FE. Heaven-defying bloodlines and roots trigger a tribulation at
+> every major breakthrough. A demon bloodline can get the player expelled from the sect.
+> The text below is the old plan until this is built.
+
 Covers the bloodline layer (design only, not built): what it is, finding and intake, what it gives, swapping, data; read it before building bloodlines.
 
 **What it is:** a special power in your body, awakened from a found essence.

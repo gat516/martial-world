@@ -6,6 +6,10 @@ break through to the next stage. Stages raise health and damage, so progress is
 felt in fights.
 
 ## Design intent
+- **Planned (2026-10-22, [progression](../progression.md)):** a Qi Refining major
+  after Qi Condensation, stages up to FE9, and tribulations only for
+  heaven-defying bloodlines or roots (every major for them). Not built; the text
+  below describes what is built.
 - **Two kinds of qi.** Raw qi (`data.rawQi`, the dantian) is cultivation's fuel:
   gathered, then refined into the realm bar. **Combat qi** (the `Qi` attribute)
   is the mana techniques spend: a separate, unsaved pool whose size grows with

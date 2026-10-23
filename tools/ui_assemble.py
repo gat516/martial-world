@@ -171,6 +171,11 @@ PIECE_SHEETS = {
     "c6/thorn_corners": ["blood_panel_corner", "blood_portrait_corner"],
     "c6/thorn_studs": ["blood_scroll_stud", "blood_ruby_stud", "blood_gold_stud"],
     "c6/thorn_keyplate_chevron": ["blood_keyplate", "blood_chevron"],
+    "c5/leaderboard_rows": ["leaderboard_row", "leaderboard_row_you"],
+    "c5/path_crests": ["path_orthodox", "path_rogue", "path_blood"],
+    "c5/rank_medals": ["medal_gold", "medal_silver", "medal_bronze"],
+    "light_effects/shockwave_qi_dust": ["fx_shockwave", "fx_qi_wisp", "fx_gold_dust"],
+    "light_effects/sparkle_glow_glint": ["fx_sparkle", "fx_glow", "fx_glint"],
 }
 # Sources that are only arrangement examples, not pieces (nine seat plates in a fan).
 SKIP_SOURCES = {"c3/nine_seat_fan"}
@@ -183,7 +188,12 @@ NO_DESPILL = {"gem_violet", "tile_violet", "tag_violet", "herb_tier_5", "pin_vio
 # Light pieces drawn on black instead of magenta: keyed by brightness, and the whole
 # canvas is the piece (the glow fades out toward its edges).
 LIGHT_SHEETS = {"b1/boss_rays", "b1/milestone_rays", "b4/deep_foundation_jade_ring",
-                "b4/death_save_vignette", "b4/heartbeat_pulse_ring"}
+                "b4/death_save_vignette", "b4/heartbeat_pulse_ring",
+                "light_effects/shockwave_qi_dust", "light_effects/sparkle_glow_glint"}
+# A light sheet with several effects is split into columns, one effect each (a dust
+# cluster is loose specks, so shapes can't be grouped): each cut is the darkest column
+# within a sixth of the sheet of the even split. Each piece is trimmed to its glow.
+LIGHT_ALPHA_TRIM = 6  # of 255; fainter glow at a column's edge is cut off
 SHEET_GROUP_GAP = 16  # px; parts of one piece closer than this belong together
 # Sheets whose pieces sit closer than that (the tribulation ribbon's sparks reach toward
 # the card beside it).
@@ -273,7 +283,14 @@ def cut_piece_sheet(sheet, src):
     raw = key_sheet(src, despill=False) if NO_DESPILL & set(names) else None
     if light:
         h, w = arr.shape[:2]
-        boxes = [(0, 0, w, h)]
+        boxes, n = [], len(names)
+        lit = arr[..., 3].max(0)
+        cuts = [0] + [int(np.argmin(lit[w * i // n - w // 6 : w * i // n + w // 6]) + w * i // n - w // 6)
+                      for i in range(1, n)] + [w]
+        for i in range(n):
+            x0, x1 = cuts[i], cuts[i + 1]
+            ys, xs = np.nonzero(arr[:, x0:x1, 3] > LIGHT_ALPHA_TRIM)
+            boxes.append((x0 + xs.min(), ys.min(), x0 + xs.max() + 1, ys.max() + 1) if len(names) > 1 else (0, 0, w, h))
     else:
         boxes, clean = sheet_pieces(arr, SHEET_GAPS.get(sheet, SHEET_GROUP_GAP))
         arr[..., 3] = clean
@@ -305,7 +322,8 @@ def cut_piece_sheet(sheet, src):
 # a narrow middle strip to stretch, and right cap, from the full-resolution art.
 SLICE3 = {"response_button", "response_button_hi", "prompt_banner", "title_crest", "board_header",
           "objective_banner", "ribbon_crimson", "ribbon_jade", "catalog_tab", "catalog_tab_selected",
-          "seat_plate", "epithet_ribbon", "event_scroll", "tribulation_ribbon"}
+          "seat_plate", "epithet_ribbon", "event_scroll", "tribulation_ribbon",
+          "leaderboard_row", "leaderboard_row_you"}
 # Pieces whose plain middle is lit brighter than its ends (the notice board's wood): their
 # strip is taken next to the left cap, so both joins match, not from the bright centre.
 SLICE3_EDGE_STRIP = {"board_header"}

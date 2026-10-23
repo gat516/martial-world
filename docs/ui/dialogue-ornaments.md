@@ -125,6 +125,16 @@ Named in `PIECE_SHEETS`, one kit ornament group per sheet:
   `_single_cloud`, `_cloud_wisp`, `_panel_corner`, `_portrait_corner`, `_scroll_stud`,
   `_ruby_stud`, `_gold_stud` (a copper-red diamond), `_keyplate`, `_chevron`.
 
+## Sheet C5 and the light sheet
+- **C5 leaderboards and paths:** `leaderboard_row` and `leaderboard_row_you` (three-part),
+  `path_orthodox`, `path_rogue`, `path_blood` (the Blood Sect crest: demon path only),
+  `medal_gold`, `medal_silver`, `medal_bronze` (rings with an empty centre for the rank).
+- **Light effects (`art/ui/codex/light_effects/`):** `fx_shockwave`, `fx_qi_wisp`,
+  `fx_gold_dust`, `fx_sparkle`, `fx_glow`, `fx_glint`, keyed by brightness like the other
+  `LIGHT_SHEETS`. These sheets hold three effects each and the dust is loose specks, so
+  they are split into columns at the darkest column near each third, not by shape, then
+  trimmed to the glow.
+
 ## Sheet A4: portraits are gray silhouettes
 NPC portraits are never shown painted (user, 2026-10-22: the painted busts looked bad).
 Each NPC is a flat gray silhouette of its figure, on transparency, so the Portrait frame

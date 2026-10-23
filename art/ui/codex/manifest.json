@@ -4132,5 +4132,359 @@
         ]
       }
     }
+  },
+  "ornament_leaderboard_row": {
+    "sheet": "c5/leaderboard_rows",
+    "size": [
+      1024,
+      81
+    ],
+    "source_box": [
+      43,
+      137,
+      2128,
+      301
+    ],
+    "tiles": [
+      {
+        "file": "ornament_leaderboard_row.png",
+        "x": 0,
+        "width": 1024,
+        "height": 81
+      }
+    ],
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_leaderboard_row_capL.png",
+        "size": [
+          190,
+          164
+        ]
+      },
+      "mid": {
+        "file": "ornament_leaderboard_row_mid.png",
+        "size": [
+          32,
+          164
+        ]
+      },
+      "capR": {
+        "file": "ornament_leaderboard_row_capR.png",
+        "size": [
+          192,
+          164
+        ]
+      }
+    }
+  },
+  "ornament_leaderboard_row_you": {
+    "sheet": "c5/leaderboard_rows",
+    "size": [
+      1024,
+      81
+    ],
+    "source_box": [
+      42,
+      409,
+      2127,
+      574
+    ],
+    "tiles": [
+      {
+        "file": "ornament_leaderboard_row_you.png",
+        "x": 0,
+        "width": 1024,
+        "height": 81
+      }
+    ],
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_leaderboard_row_you_capL.png",
+        "size": [
+          192,
+          165
+        ]
+      },
+      "mid": {
+        "file": "ornament_leaderboard_row_you_mid.png",
+        "size": [
+          32,
+          165
+        ]
+      },
+      "capR": {
+        "file": "ornament_leaderboard_row_you_capR.png",
+        "size": [
+          191,
+          165
+        ]
+      }
+    }
+  },
+  "ornament_path_orthodox": {
+    "sheet": "c5/path_crests",
+    "size": [
+      550,
+      540
+    ],
+    "source_box": [
+      159,
+      81,
+      709,
+      621
+    ],
+    "tiles": [
+      {
+        "file": "ornament_path_orthodox.png",
+        "x": 0,
+        "width": 550,
+        "height": 540
+      }
+    ],
+    "flags": []
+  },
+  "ornament_path_rogue": {
+    "sheet": "c5/path_crests",
+    "size": [
+      548,
+      539
+    ],
+    "source_box": [
+      815,
+      82,
+      1363,
+      621
+    ],
+    "tiles": [
+      {
+        "file": "ornament_path_rogue.png",
+        "x": 0,
+        "width": 548,
+        "height": 539
+      }
+    ],
+    "flags": []
+  },
+  "ornament_path_blood": {
+    "sheet": "c5/path_crests",
+    "size": [
+      557,
+      549
+    ],
+    "source_box": [
+      1468,
+      76,
+      2025,
+      625
+    ],
+    "tiles": [
+      {
+        "file": "ornament_path_blood.png",
+        "x": 0,
+        "width": 557,
+        "height": 549
+      }
+    ],
+    "flags": []
+  },
+  "ornament_medal_gold": {
+    "sheet": "c5/rank_medals",
+    "size": [
+      570,
+      562
+    ],
+    "source_box": [
+      112,
+      64,
+      682,
+      626
+    ],
+    "tiles": [
+      {
+        "file": "ornament_medal_gold.png",
+        "x": 0,
+        "width": 570,
+        "height": 562
+      }
+    ],
+    "flags": []
+  },
+  "ornament_medal_silver": {
+    "sheet": "c5/rank_medals",
+    "size": [
+      573,
+      566
+    ],
+    "source_box": [
+      798,
+      60,
+      1371,
+      626
+    ],
+    "tiles": [
+      {
+        "file": "ornament_medal_silver.png",
+        "x": 0,
+        "width": 573,
+        "height": 566
+      }
+    ],
+    "flags": []
+  },
+  "ornament_medal_bronze": {
+    "sheet": "c5/rank_medals",
+    "size": [
+      570,
+      563
+    ],
+    "source_box": [
+      1486,
+      62,
+      2056,
+      625
+    ],
+    "tiles": [
+      {
+        "file": "ornament_medal_bronze.png",
+        "x": 0,
+        "width": 570,
+        "height": 563
+      }
+    ],
+    "flags": []
+  },
+  "ornament_fx_shockwave": {
+    "sheet": "light_effects/shockwave_qi_dust",
+    "size": [
+      687,
+      524
+    ],
+    "source_box": [
+      72,
+      93,
+      759,
+      617
+    ],
+    "tiles": [
+      {
+        "file": "ornament_fx_shockwave.png",
+        "x": 0,
+        "width": 687,
+        "height": 524
+      }
+    ],
+    "flags": []
+  },
+  "ornament_fx_qi_wisp": {
+    "sheet": "light_effects/shockwave_qi_dust",
+    "size": [
+      310,
+      681
+    ],
+    "source_box": [
+      920,
+      28,
+      1230,
+      709
+    ],
+    "tiles": [
+      {
+        "file": "ornament_fx_qi_wisp.png",
+        "x": 0,
+        "width": 310,
+        "height": 681
+      }
+    ],
+    "flags": []
+  },
+  "ornament_fx_gold_dust": {
+    "sheet": "light_effects/shockwave_qi_dust",
+    "size": [
+      785,
+      584
+    ],
+    "source_box": [
+      1336,
+      64,
+      2121,
+      648
+    ],
+    "tiles": [
+      {
+        "file": "ornament_fx_gold_dust.png",
+        "x": 0,
+        "width": 785,
+        "height": 584
+      }
+    ],
+    "flags": []
+  },
+  "ornament_fx_sparkle": {
+    "sheet": "light_effects/sparkle_glow_glint",
+    "size": [
+      520,
+      463
+    ],
+    "source_box": [
+      106,
+      106,
+      626,
+      569
+    ],
+    "tiles": [
+      {
+        "file": "ornament_fx_sparkle.png",
+        "x": 0,
+        "width": 520,
+        "height": 463
+      }
+    ],
+    "flags": []
+  },
+  "ornament_fx_glow": {
+    "sheet": "light_effects/sparkle_glow_glint",
+    "size": [
+      517,
+      483
+    ],
+    "source_box": [
+      813,
+      97,
+      1330,
+      580
+    ],
+    "tiles": [
+      {
+        "file": "ornament_fx_glow.png",
+        "x": 0,
+        "width": 517,
+        "height": 483
+      }
+    ],
+    "flags": []
+  },
+  "ornament_fx_glint": {
+    "sheet": "light_effects/sparkle_glow_glint",
+    "size": [
+      675,
+      169
+    ],
+    "source_box": [
+      1455,
+      254,
+      2130,
+      423
+    ],
+    "tiles": [
+      {
+        "file": "ornament_fx_glint.png",
+        "x": 0,
+        "width": 675,
+        "height": 169
+      }
+    ],
+    "flags": []
   }
 }

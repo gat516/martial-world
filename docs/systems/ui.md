@@ -119,6 +119,19 @@ cursor, settings and the admin panel.
   splits icon sheets on a 4 x 3 grid, and writes `manifest.json` (sizes, tiles,
   flags) plus `contact_sheet.png`. The user approves the contact sheet before
   anything is uploaded. Run with `uv run --with pillow --with numpy`.
+- Display-sized copies (`ui_assemble.py --sized`, its `SIZED` table): Roblox draws GUI
+  images without mipmaps, so a source shown at a fifth of its size aliases (thin gilt
+  lines break up, curls go soft; "you can kinda tell that the resolution sucks",
+  2026-10-23). Anything shown far below its source gets a Lanczos copy at about 2x its
+  largest baseline display size in `art/ui/sized/<stem>_h<height>.png` (resampling
+  only). A 9-sliced copy keeps its proportions: SliceCenter x height/source height,
+  SliceScale divided by the same. Aim for a source 1.5-2.5x the displayed size.
+- Plates whose ornaments run the art's full height (cloud-cap tabs, tags) are never one
+  9-sliced image: Roblox crops the caps. They are three ImageLabels (`CapL`, `Mid`,
+  `CapR`, the `SLICE3` cuts) in an `Art` frame under the button, a horizontal
+  UIListLayout (padding -1 so no seam shows), caps at their true aspect
+  (UIAspectRatioConstraint, height-dominant) and the middle a `UIFlexItem` Fill. A
+  `Selected` state is a second such frame. Text stays on the button above `Art`.
 - Pieces derived from cuts are rebuilt by their own scripts, never by hand:
   `art/ui/creator/build.py`, `art/ui/cultivation/derive.py`, `art/ui/events/mirror.py`
   (its window-corner mirrors are also copied to `codex/cut/ornament_window_corner_small_*`),

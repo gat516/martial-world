@@ -90,6 +90,30 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   moved to `WNgoTL6QGdTEBy693Me8Y8`), so this was composed from the cuts and checked in
   Studio; the uploaded class_* and tech_* frames sit on the kit's Example page.
 
+## Art sizes (2026-10-23, "you can kinda tell that the resolution sucks")
+
+Every image the Inventory and hotbar show is drawn from a source about 1.5-2.5x its
+displayed size (`art/ui/sized/`, [ui](../systems/ui.md) "Display-sized copies"); the
+tab pills and their NEW counts, chips, gems, seals and glyphs used to be shown at a
+fifth to a fifteenth of their source and aliased. Measured at 1920x1080 (the window
+and stack are the same pixel size at 1366x768):
+
+| Piece | Shown | Was (source, effective) | Now |
+| --- | --- | --- | --- |
+| Tab pills, Sort, Use/Hold (`button_*`) | 36 px tall | 128 px, SliceScale 0.30 (3.3x) | `_h64`, Rect(32,20,224,44), 0.60 (1.7x) |
+| Tab NEW counts (crimson tag) | 40x16 | 378x101 squashed to 28x16 | three parts `ornament_tag_crimson_*_h40` (2.5x), true aspect |
+| Rail chips (`item_slot`) | 40x39 | 468 px (11.7x) | `_h80` (2x) |
+| Search (`note_panel`) | 152x36 | SliceScale 0.20 (5x) | `_h96`, Rect(24,24,168,72), 0.533 (1.9x) |
+| Window (`panel_frame`) | 760x500 | 1024, 0.30 (3.3x) | `_h512`, Rect(100,100,412,412), 0.60 (1.7x) |
+| Title plaque, close seal | 320x40, 44 | 1024x128, 128 (3.2x, 2.9x) | `_h80` (2x), `_h96` (2.2x) |
+| NEW chip, seal mark, art disc | 14, 22, 28-48 | 64, 128, 128 (4.5-5.8x) | `_h32`, `_h48`, `_h96` (2-3.4x) |
+| Weapon badge, class glyphs | 22, 16-24 | 128, 256 (5.8x, 8-16x) | `_h48`, `_h64` (2-4x) |
+| Dao bar rim | 16 | 0.17 (6x) | `_h32`, Rect(12,12,116,20), 0.67 (2x) |
+| Grade gems, insight and stone icons | 13-22 | 303-317, 128 | `_h40`, `_h48` |
+
+Item icons stay at 128 px (40 px in a cell, 28 on the hotbar: 3.2-4.6x); redrawing
+`draw_icons.py` at 64 px would bring them in line.
+
 ## Rarity ladder (`Rarity.luau`)
 
 | Tier | Colour (slot edge and wash) | Gem | Items (`Items.Rarities`) | Weapons and arts (`Weapons.Grades`) |

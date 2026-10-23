@@ -18,16 +18,16 @@ local Weapons = require(ReplicatedStorage.Shared.Weapons)
 
 export type Tier = { gem: string, gemColor: Color3 }
 
-local GEM_GREY = "rbxassetid://100159022686196"
+local GEM_GREY = "rbxassetid://96114278793922"
 local WHITE = Color3.new(1, 1, 1)
 
 local TIERS: { Tier } = {
 	-- the kit has no bronze gem: the grey one, tinted
 	{ gem = GEM_GREY, gemColor = Color3.fromRGB(226, 170, 112) },
 	{ gem = GEM_GREY, gemColor = WHITE },
-	{ gem = "rbxassetid://75556176975753", gemColor = WHITE },
-	{ gem = "rbxassetid://123797664259882", gemColor = WHITE },
-	{ gem = "rbxassetid://103434738704063", gemColor = WHITE },
+	{ gem = "rbxassetid://102856809937873", gemColor = WHITE },
+	{ gem = "rbxassetid://88914333550017", gemColor = WHITE },
+	{ gem = "rbxassetid://132181007541831", gemColor = WHITE },
 }
 local PLAIN_COLOR = Color3.fromRGB(236, 214, 180)
 

@@ -64,13 +64,13 @@ local CLASS_ICONS: { [string]: string } = {
 }
 -- White class glyphs (art/ui/glyphs, draw_class_glyphs.py), tinted by CLASS_COLORS
 local CLASS_GLYPHS: { [string]: string } = {
-	Fist = "rbxassetid://104207538401146",
-	Sword = "rbxassetid://133108477410682",
-	Saber = "rbxassetid://131762442903132",
-	Greatsword = "rbxassetid://140142107031077",
-	Guandao = "rbxassetid://132296972269637",
-	Spear = "rbxassetid://102648443555194",
-	Staff = "rbxassetid://76027373176155",
+	Fist = "rbxassetid://121264210892533",
+	Sword = "rbxassetid://92216583348567",
+	Saber = "rbxassetid://92852547529431",
+	Greatsword = "rbxassetid://134500316582683",
+	Guandao = "rbxassetid://98474731700076",
+	Spear = "rbxassetid://126263695149867",
+	Staff = "rbxassetid://118649402299519",
 }
 local CLASS_COLORS: { [string]: Color3 } = {
 	Fist = Color3.fromRGB(240, 214, 176),

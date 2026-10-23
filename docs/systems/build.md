@@ -46,6 +46,16 @@ benefits (meditation seats, garden plots, garden boosters).
   <peak>" tag when the full banner would reach Roblox's top-left buttons
   (`BuildMode.refreshBanner`, `Platform.topbar`). Catalog tiles have 4 px above the
   first row so the 5% hover swell isn't cropped.
+- Art (2026-10-23, "inventory / shop buttons are still clipping on pc"): the category
+  tabs, set tabs, the Owned toggle and the Herbalist's Buy/Sell tabs are three-part
+  plates (`Art` + `Selected` frames of `CapL`/`Mid`/`CapR`, the
+  `ornament_catalog_tab[_selected]` SLICE3 cuts at 80 px), not one 9-sliced image,
+  which Roblox cropped flat at the cloud caps. The tile badge is the jade tag in three
+  parts (`ornament_tag_jade_*_h40`). Tiles and the detail well are `item_slot_h184`
+  9-sliced at its one middle row and column (Rect(92,91,93,92); SliceScale 0.45 on
+  tiles, 0.85 on the well) so only plain bar stretches; the owned count (`xN`) moved
+  from the top-right, where the badge ran into it, to the preview's bottom-right.
+  Every other image is a display-sized copy ([ui](ui.md), "Display-sized copies").
 - The peak-score gauge (C2 `peak_meter`, under the category tabs) shows the player
   attributes `PeakScore` and `PeakScoreCap` (the fill is score/cap) and stays hidden
   until the server sets `PeakScore`, and on windows whose body is under 300 px tall

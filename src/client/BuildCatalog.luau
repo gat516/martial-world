@@ -47,12 +47,12 @@ local BUILD_TOP = 90 -- build mode: px above the window (the banner, 8-60, plus 
 
 -- C2 set medallions (art/ui/assets.json codex/cut/ornament_set_*), by BuildItems.Sets id
 local MEDALLIONS: { [string]: string } = {
-	courtyard = "rbxassetid://120831295641856",
-	jadePavilion = "rbxassetid://90919915124494",
-	cloudPalace = "rbxassetid://74021227668189",
-	herbHouse = "rbxassetid://136542278409967",
-	library = "rbxassetid://82554223828998",
-	formation = "rbxassetid://113855491383173",
+	courtyard = "rbxassetid://138701417199242",
+	jadePavilion = "rbxassetid://111553924418106",
+	cloudPalace = "rbxassetid://94168235901862",
+	herbHouse = "rbxassetid://80692960435091",
+	library = "rbxassetid://111391672724648",
+	formation = "rbxassetid://89809400578494",
 }
 local SET_PREFIX = "set:"
 

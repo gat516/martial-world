@@ -51,7 +51,8 @@ It's a template: the look and every list come from config, and the gameplay hook
 - `src/client/CharacterCreator/`: Theme (colours, fonts, sizes, tweens), State
   (the previewed look), Components (nav button, card, swatch, section header,
   rarity pill, Robux button, summary row, text field, all cloned from the GUI's
-  `Templates`), Preview (viewport dummy), Backdrop (live camera or image), Bridge
+  `Templates`), Preview (viewport dummy; it makes the viewport's Camera itself, since a
+  Camera saved inside a ViewportFrame is lost in the Rojo sync), Backdrop (live camera or image), Bridge
   (every server call, plus the `onEnterWorld` hook), Tabs/* (one per tab),
   Controller (`init`, `open`).
 - `assets/CharacterCreator.rbxmx` (`StarterGui.CharacterCreator`): the ScreenGui

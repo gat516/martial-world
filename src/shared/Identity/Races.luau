@@ -127,7 +127,28 @@ local Races: { [string]: Race } = {
 		Weight = 6,
 		Icon = "",
 		InnateTraits = { "DemonicQi" },
-		Cosmetics = { "DemonHorns" },
+		-- horns and tail are free picks, any horns with any tail (user, 2026-10-23); the
+		-- skinned Blender sets in Cosmetics/DemonicHuman replace the part-built DemonHorns
+		Looks = {
+			{
+				Id = "Horns",
+				DisplayName = "Horns",
+				Options = {
+					{ Id = "Ram", DisplayName = "Ram", Cosmetics = { "DemonHornsRam" } },
+					{ Id = "Swept", DisplayName = "Swept", Cosmetics = { "DemonHornsSwept" } },
+					{ Id = "Crescent", DisplayName = "Crescent", Cosmetics = { "DemonHornsCrescent" } },
+				},
+			},
+			{
+				Id = "Tail",
+				DisplayName = "Tail",
+				Options = {
+					{ Id = "Whip", DisplayName = "Whip", Cosmetics = { "DemonTailWhip" } },
+					{ Id = "Hook", DisplayName = "Hook", Cosmetics = { "DemonTailHook" } },
+					{ Id = "Trail", DisplayName = "Trail", Cosmetics = { "DemonTailTrail" } },
+				},
+			},
+		},
 	},
 	Ghost = {
 		DisplayName = "Ghost",

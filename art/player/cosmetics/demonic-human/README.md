@@ -141,18 +141,57 @@ One armature per set. `Root` is the attachment point, doesn't deform and is neve
 
 The purple flame wisp in the reference is an effect, not a mesh (it goes to `vfx`). Each tail
 JSON's `anchors.vfx_wisp` is the point to attach it: on the whip just above the spade, riding
-`Tail5`. It's given in attachment space (Blender `point` and Roblox `roblox`). The Studio import
-should add an Attachment `VfxWisp` there, parented so it follows `Tail5`. `anchors.spade_tip` is
-the spade's point.
+`Tail5`. It's given in attachment space (Blender `point` and Roblox `roblox`). In Studio it's the
+Bone `VfxWisp` under `Tail5` (a Bone is an Attachment, so an emitter parented to it follows
+the bent tail). `anchors.spade_tip` is the spade's point.
+
+## In Studio
+
+`assets/Cosmetics/DemonicHuman.rbxm` (`ReplicatedStorage.Cosmetics.DemonicHuman`) holds the six
+Accessories. They are the Demonic Human's two `Looks` in `src/shared/Identity/Races.luau`:
+Horns (Ram default, Swept, Crescent) and Tail (Whip default, Hook, Trail). They replace the
+part-built `DemonHorns` in `Spirits.rbxm`, now unused.
+
+| Set | Model asset (upload_asset.py model) |
+| --- | --- |
+| `DemonHornsRam` | `rbxassetid://104240639883325` |
+| `DemonHornsSwept` | `rbxassetid://91155159356769` |
+| `DemonHornsCrescent` | `rbxassetid://76884423324639` |
+| `DemonTailWhip` | `rbxassetid://77065104204562` |
+| `DemonTailHook` | `rbxassetid://127951709677269` |
+| `DemonTailTrail` | `rbxassetid://124396960304633` |
+
+Shade ramp: the shared `rbxassetid://124559907609415` (`demonic_shade.png` is byte-identical
+to `fox_shade.png`).
+
+**Rebuild** (in a sandbox, no FBX import step):
+1. Upload the changed FBX with `python3 tools/upload_asset.py model <Set>.fbx` and put
+   the new id in `place_demonic_human_cosmetics.luau` (`ASSETS`).
+2. Insert each model asset into Workspace as `_Import<Set>` (Studio MCP `insert_asset`).
+3. Run `place_demonic_human_cosmetics.luau` through `execute_luau` (paste it, or serve the
+   worktree with `tools/serve.sh <port>` and `loadstring(HttpService:GetAsync(url))()`).
+   It turns each import into the Accessory `<Set>` in `ReplicatedStorage.Cosmetics.DemonicHuman`,
+   adds the tails' `VfxWisp` bone and deletes the imports. Sets without an import keep their
+   current template. Sandbox only: never build inside the Rojo-mapped Cosmetics folder in a
+   connected place.
+4. Export the folder: `_G.exportRbxm("ReplicatedStorage.Cosmetics.DemonicHuman")`
+   (`tools/export_rbxm.luau`) posted to the receiver, then move the file to
+   `assets/Cosmetics/DemonicHuman.rbxm`.
+
+**Accessory layout** (as the Dragonblood's): `Handle` is an invisible 0.2 cube at the
+attachment point holding the `HatAttachment` / `WaistBackAttachment` and the bones;
+AccessoryType Hat (horns) or Waist (tails); the skinned MeshParts are welded to it, each with
+a `Region` attribute and a SurfaceAppearance (ColorMap the shade ramp). To tint a region, set
+both the MeshPart's `Color` and its `SurfaceAppearance.Color`.
+
+**Checked in the sandbox** (2026-10-23): worn on R6 rigs from behind, each set seats on the
+head or waist; bending `Tail1..Tail5` (-25 degrees each) curls the whip smoothly and moves
+`Tail5` 2.7 studs, and a horn bone tilts its horn; after `ScaleTo(1.15)` the horns sit on the
+head at 1.15x.
 
 ## Not done yet
 
-- **Studio import** (a separate agent):
-  - upload the six FBX;
-  - turn each into an Accessory as `place_fox_cosmetics.luau` does, with the `Region` attributes
-    and SurfaceAppearances;
-  - export `assets/Cosmetics/<Set>.rbxm`;
-  - name them in the Demonic Human's `Cosmetics` (the race has no variants file yet).
 - **Untested in game:** running clearance against real animations (checked only against limb
   boxes), horns with tall hats and hair, the read on a phone, and the near-black at distance.
 - **Bones don't move yet:** nothing drives them; the shared sway script is planned.
+- **Flame wisp:** the `vfx` pass, at `VfxWisp`.

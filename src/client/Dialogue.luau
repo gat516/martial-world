@@ -26,9 +26,10 @@
 -- is a menu (Menus): opening it closes any other window and hides the HUD and the
 -- world prompts, and it holds the keys it uses while open (so Space doesn't jump).
 --
--- Layouts: Canvas.Desktop (1920x1080 baseline, responses in a column beside the
--- panel) or Canvas.Phone (844x390, smaller portrait, responses in a 2x2 grid
--- below), picked once by UiScale.isPhone(); UiScale fits the canvas.
+-- Layouts: a bar along the bottom of the screen. Canvas.Desktop (1920x1080
+-- baseline, responses in a column above the bar's right end) or Canvas.Phone
+-- (844x390, a shorter bar, responses in a 2x2 grid above the name tab, right-
+-- aligned), picked once by UiScale.isPhone(); UiScale fits the canvas.
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")

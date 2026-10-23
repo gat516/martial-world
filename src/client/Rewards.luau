@@ -41,23 +41,23 @@ local UiScale = require(script.Parent.UiScale)
 
 -- Kit cuts (art/ui/assets.json, "codex/cut/ornament_*.png")
 local ART = {
-	card_boss = "rbxassetid://100896009110132",
-	card_quest = "rbxassetid://131887987223152",
+	card_boss = "rbxassetid://139872711040576",
+	card_quest = "rbxassetid://120119552621110",
 	rays_boss = "rbxassetid://95676207958916",
 	rays_milestone = "rbxassetid://80839452828081",
-	coin = "rbxassetid://122895207713170",
-	emblem_peak = "rbxassetid://140093948593748",
-	emblem_lotus = "rbxassetid://96308465813779",
+	coin = "rbxassetid://91563334675271",
+	emblem_peak = "rbxassetid://102118062177874",
+	emblem_lotus = "rbxassetid://113579784709637",
 	glyph_stone = "rbxassetid://76651936131955",
 	glyph_qi = "rbxassetid://106989489487468",
 	glyph_insight = "rbxassetid://98394523996866",
 }
 local TILES = {
-	neutral = { tile = "rbxassetid://88319270048737" },
-	grey = { tile = "rbxassetid://87507886886715", gem = "rbxassetid://108721805932431" },
-	jade = { tile = "rbxassetid://136998144393835", gem = "rbxassetid://121793265149448" },
-	violet = { tile = "rbxassetid://109769132951760", gem = "rbxassetid://80848783636466" },
-	gold = { tile = "rbxassetid://116953659868130", gem = "rbxassetid://113499507353464" },
+	neutral = { tile = "rbxassetid://121233995525578" },
+	grey = { tile = "rbxassetid://133101112606015", gem = "rbxassetid://100159022686196" },
+	jade = { tile = "rbxassetid://77864281472596", gem = "rbxassetid://75556176975753" },
+	violet = { tile = "rbxassetid://135960798811647", gem = "rbxassetid://123797664259882" },
+	gold = { tile = "rbxassetid://138359555176757", gem = "rbxassetid://103434738704063" },
 }
 -- rarities and grades onto the kit's tile edges: the Inventory's ladder (Rarity.luau),
 -- bronze, silver, jade, violet, gold
@@ -77,17 +77,17 @@ local TIER_OF = {
 type Strip = { images: { string }, ratios: { number }, centre: number }
 local STRIPS: { [string]: Strip } = {
 	crimson = {
-		images = { "rbxassetid://88509373721773", "rbxassetid://128464788151154", "rbxassetid://83023082053681" },
+		images = { "rbxassetid://121316271063702", "rbxassetid://128154077838383", "rbxassetid://108527414387394" },
 		ratios = { 242 / 151, 244 / 151 },
 		centre = 76 / 151,
 	},
 	jade = {
-		images = { "rbxassetid://109580115149704", "rbxassetid://113774506947277", "rbxassetid://91958402469694" },
+		images = { "rbxassetid://107068274389031", "rbxassetid://72502727273386", "rbxassetid://124632452296572" },
 		ratios = { 242 / 151, 244 / 151 },
 		centre = 76 / 151,
 	},
 	gold = { -- the navy-and-gold objective banner
-		images = { "rbxassetid://119139657535251", "rbxassetid://80539539030570", "rbxassetid://97843165727884" },
+		images = { "rbxassetid://138264404301051", "rbxassetid://88637856112299", "rbxassetid://121398639569390" },
 		ratios = { 233 / 125, 233 / 125 },
 		centre = 72 / 125,
 	},

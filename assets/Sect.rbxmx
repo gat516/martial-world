@@ -32,7 +32,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>152</XO><YS>0</YS><YO>178</YO></UDim2>
      <int name="ZIndex">2</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://90490047569154</url></Content>
+     <Content name="Image"><url>rbxassetid://84506106098889</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
      <Item class="UIScale" referent="RBX6"><Properties>
@@ -46,7 +46,7 @@
       <UDim2 name="Position"><XS>0</XS><XO>10</XO><YS>0</YS><YO>14</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>36</XO><YS>0</YS><YO>36</YO></UDim2>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://106060017423704</url></Content>
+      <Content name="Image"><url>rbxassetid://81289518125968</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
       <Item class="TextLabel" referent="RBX8"><Properties>
@@ -74,7 +74,7 @@
       <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>28</YO></UDim2>
       <bool name="Visible">false</bool>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://91621349016159</url></Content>
+      <Content name="Image"><url>rbxassetid://136192962735236</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -140,7 +140,7 @@
        <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>1</YO></UDim2>
        <UDim2 name="Size"><XS>0</XS><XO>22</XO><YS>0</YS><YO>22</YO></UDim2>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://79606202552274</url></Content>
+       <Content name="Image"><url>rbxassetid://78420035937603</url></Content>
        <token name="ScaleType">3</token>
       </Properties>
       </Item>
@@ -185,7 +185,7 @@
        <bool name="Visible">false</bool>
        <int name="ZIndex">4</int>
        <bool name="AutoButtonColor">false</bool>
-       <Content name="Image"><url>rbxassetid://126741295868833</url></Content>
+       <Content name="Image"><url>rbxassetid://100335366464739</url></Content>
        <token name="ScaleType">3</token>
       </Properties>
        <Item class="UIScale" referent="RBX18"><Properties>
@@ -217,7 +217,7 @@
       <UDim2 name="Size"><XS>0</XS><XO>72</XO><YS>0</YS><YO>72</YO></UDim2>
       <bool name="Visible">false</bool>
       <int name="ZIndex">5</int>
-      <Content name="Image"><url>rbxassetid://112909686555386</url></Content>
+      <Content name="Image"><url>rbxassetid://138534415579442</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
       <Item class="TextLabel" referent="RBX21"><Properties>
@@ -242,7 +242,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>152</XO><YS>0</YS><YO>178</YO></UDim2>
      <int name="ZIndex">2</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://127619220042490</url></Content>
+     <Content name="Image"><url>rbxassetid://133926014768956</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
      <Item class="UIScale" referent="RBX23"><Properties>
@@ -294,7 +294,7 @@
        <int name="BorderSizePixel">0</int>
        <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://84648351088790</url></Content>
+       <Content name="Image"><url>rbxassetid://131535347767578</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX29"><Properties>
@@ -304,7 +304,7 @@
        <UDim2 name="Position"><XS>0</XS><XO>63</XO><YS>0</YS><YO>0</YO></UDim2>
        <UDim2 name="Size"><XS>1</XS><XO>-126</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://72696102961161</url></Content>
+       <Content name="Image"><url>rbxassetid://79945454605526</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX30"><Properties>
@@ -315,7 +315,7 @@
        <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
        <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://124302332724117</url></Content>
+       <Content name="Image"><url>rbxassetid://102820507183523</url></Content>
       </Properties>
       </Item>
      </Item>
@@ -334,7 +334,7 @@
        <int name="BorderSizePixel">0</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://106060017423704</url></Content>
+       <Content name="Image"><url>rbxassetid://81289518125968</url></Content>
        <token name="ScaleType">3</token>
       </Properties>
        <Item class="TextLabel" referent="RBX33"><Properties>
@@ -363,7 +363,7 @@
        <UDim2 name="Size"><XS>0</XS><XO>44</XO><YS>0</YS><YO>22</YO></UDim2>
        <bool name="Visible">false</bool>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://91621349016159</url></Content>
+       <Content name="Image"><url>rbxassetid://136192962735236</url></Content>
        <token name="ScaleType">3</token>
       </Properties>
       </Item>
@@ -418,7 +418,7 @@
       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>16</XO><YS>0</YS><YO>13</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://73993469486423</url></Content>
+      <Content name="Image"><url>rbxassetid://104701721574504</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -495,7 +495,7 @@
       <int name="LayoutOrder">1</int>
       <UDim2 name="Size"><XS>0</XS><XO>26</XO><YS>0</YS><YO>26</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://79606202552274</url></Content>
+      <Content name="Image"><url>rbxassetid://78420035937603</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -530,7 +530,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://126561870696733</url></Content>
+      <Content name="Image"><url>rbxassetid://88874318052189</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -542,7 +542,7 @@
       <UDim2 name="Position"><XS>0.498</XS><XO>0</XO><YS>0.501946</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0.699012</XS><XO>0</XO><YS>0.699012</YS><YO>0</YO></UDim2>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://107958650185594</url></Content>
+      <Content name="Image"><url>rbxassetid://87978968249190</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -554,7 +554,7 @@
       <UDim2 name="Position"><XS>0.498699</XS><XO>0</XO><YS>0.503988</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0.369711</XS><XO>0</XO><YS>0.369711</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://110257360020817</url></Content>
+      <Content name="Image"><url>rbxassetid://135400255039980</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -566,7 +566,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>56</XO><YS>0</YS><YO>56</YO></UDim2>
      <int name="ZIndex">2</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://88319270048737</url></Content>
+     <Content name="Image"><url>rbxassetid://121233995525578</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
      <Item class="UIScale" referent="RBX51"><Properties>
@@ -581,7 +581,7 @@
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0.64</XS><XO>0</XO><YS>0.64</YS><YO>0</YO></UDim2>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://126561870696733</url></Content>
+      <Content name="Image"><url>rbxassetid://88874318052189</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -675,7 +675,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Size"><XS>0</XS><XO>73</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://79312643255119</url></Content>
+      <Content name="Image"><url>rbxassetid://95251628130740</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX60"><Properties>
@@ -685,7 +685,7 @@
       <UDim2 name="Position"><XS>0</XS><XO>72</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>1</XS><XO>-135</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://116835115427453</url></Content>
+      <Content name="Image"><url>rbxassetid://108061494886289</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX61"><Properties>
@@ -696,7 +696,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://80365745244853</url></Content>
+      <Content name="Image"><url>rbxassetid://138895210723444</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX62"><Properties>
@@ -729,7 +729,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Size"><XS>0</XS><XO>28</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://107864840680140</url></Content>
+      <Content name="Image"><url>rbxassetid://75937412563606</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX65"><Properties>
@@ -739,7 +739,7 @@
       <UDim2 name="Position"><XS>0</XS><XO>27</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>1</XS><XO>-54</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://139296439499578</url></Content>
+      <Content name="Image"><url>rbxassetid://113079179115835</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX66"><Properties>
@@ -750,7 +750,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>28</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://82832327144258</url></Content>
+      <Content name="Image"><url>rbxassetid://92991046819891</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX67"><Properties>
@@ -856,7 +856,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-6</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>560</XO><YS>0</YS><YO>70</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://125268979730627</url></Content>
+      <Content name="Image"><url>rbxassetid://98933942560382</url></Content>
       <float name="ImageTransparency">0.86</float>
      </Properties>
      </Item>
@@ -867,7 +867,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">3</int>
-     <Content name="Image"><url>rbxassetid://104712765053279</url></Content>
+     <Content name="Image"><url>rbxassetid://77530675334215</url></Content>
      <token name="ScaleType">1</token>
      <Rect2D name="SliceCenter"><min><X>476</X><Y>296</Y></min><max><X>484</X><Y>304</Y></max></Rect2D>
      <float name="SliceScale">0.2</float>
@@ -888,7 +888,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Size"><XS>0</XS><XO>83</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://129734092430160</url></Content>
+      <Content name="Image"><url>rbxassetid://107934856230795</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX79"><Properties>
@@ -898,7 +898,7 @@
       <UDim2 name="Position"><XS>0</XS><XO>82</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>1</XS><XO>-163</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://133871515973376</url></Content>
+      <Content name="Image"><url>rbxassetid://119902879650391</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX80"><Properties>
@@ -909,7 +909,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://79587842780065</url></Content>
+      <Content name="Image"><url>rbxassetid://85674715623471</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX81"><Properties>
@@ -937,7 +937,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>48</XO><YS>0</YS><YO>44</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://123993787841180</url></Content>
+     <Content name="Image"><url>rbxassetid://114481069197353</url></Content>
     </Properties>
      <Item class="UIScale" referent="RBX83"><Properties>
       <string name="Name">Motion</string>
@@ -980,7 +980,7 @@
        <int name="BorderSizePixel">0</int>
        <UDim2 name="Size"><XS>0</XS><XO>34</XO><YS>0</YS><YO>34</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://100972767076174</url></Content>
+       <Content name="Image"><url>rbxassetid://135179512944595</url></Content>
        <token name="ScaleType">3</token>
       </Properties>
        <Item class="ImageLabel" referent="RBX88"><Properties>
@@ -991,7 +991,7 @@
         <UDim2 name="Position"><XS>0.498</XS><XO>0</XO><YS>0.517</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
         <int name="ZIndex">3</int>
-        <Content name="Image"><url>rbxassetid://140093948593748</url></Content>
+        <Content name="Image"><url>rbxassetid://102118062177874</url></Content>
         <token name="ScaleType">3</token>
        </Properties>
        </Item>
@@ -1029,7 +1029,7 @@
         <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>0</XS><XO>32</XO><YS>0</YS><YO>32</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://79606202552274</url></Content>
+        <Content name="Image"><url>rbxassetid://78420035937603</url></Content>
         <token name="ScaleType">3</token>
        </Properties>
        </Item>
@@ -1143,7 +1143,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-6</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>560</XO><YS>0</YS><YO>70</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://125268979730627</url></Content>
+      <Content name="Image"><url>rbxassetid://98933942560382</url></Content>
       <float name="ImageTransparency">0.86</float>
      </Properties>
      </Item>
@@ -1154,7 +1154,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">3</int>
-     <Content name="Image"><url>rbxassetid://104712765053279</url></Content>
+     <Content name="Image"><url>rbxassetid://77530675334215</url></Content>
      <token name="ScaleType">1</token>
      <Rect2D name="SliceCenter"><min><X>476</X><Y>296</Y></min><max><X>484</X><Y>304</Y></max></Rect2D>
      <float name="SliceScale">0.2</float>
@@ -1175,7 +1175,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://121155858743627</url></Content>
+      <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX105"><Properties>
@@ -1185,7 +1185,7 @@
       <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://77750472638110</url></Content>
+      <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX106"><Properties>
@@ -1196,7 +1196,7 @@
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://126214334515284</url></Content>
+      <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX107"><Properties>
@@ -1207,7 +1207,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://123468701383865</url></Content>
+      <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX108"><Properties>
@@ -1218,7 +1218,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://139949631719973</url></Content>
+      <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX109"><Properties>
@@ -1246,7 +1246,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>48</XO><YS>0</YS><YO>44</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://123993787841180</url></Content>
+     <Content name="Image"><url>rbxassetid://114481069197353</url></Content>
     </Properties>
      <Item class="UIScale" referent="RBX111"><Properties>
       <string name="Name">Motion</string>
@@ -1379,7 +1379,7 @@
          <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
          <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>0</YS><YO>32</YO></UDim2>
          <int name="ZIndex">2</int>
-         <Content name="Image"><url>rbxassetid://91621349016159</url></Content>
+         <Content name="Image"><url>rbxassetid://136192962735236</url></Content>
          <token name="ScaleType">3</token>
         </Properties>
         </Item>
@@ -1426,7 +1426,7 @@
        <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>52</YO></UDim2>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>8</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://79772589523351</url></Content>
+       <Content name="Image"><url>rbxassetid://99789570259645</url></Content>
       </Properties>
       </Item>
       <Item class="ScrollingFrame" referent="RBX127"><Properties>
@@ -1531,7 +1531,7 @@
          <int name="BorderSizePixel">0</int>
          <UDim2 name="Size"><XS>0</XS><XO>75</XO><YS>1</YS><YO>0</YO></UDim2>
          <int name="ZIndex">2</int>
-         <Content name="Image"><url>rbxassetid://130770055922793</url></Content>
+         <Content name="Image"><url>rbxassetid://103325733131207</url></Content>
         </Properties>
         </Item>
         <Item class="ImageLabel" referent="RBX138"><Properties>
@@ -1541,7 +1541,7 @@
          <UDim2 name="Position"><XS>0</XS><XO>74</XO><YS>0</YS><YO>0</YO></UDim2>
          <UDim2 name="Size"><XS>1</XS><XO>-134</XO><YS>1</YS><YO>0</YO></UDim2>
          <int name="ZIndex">2</int>
-         <Content name="Image"><url>rbxassetid://136559648678130</url></Content>
+         <Content name="Image"><url>rbxassetid://139057087376197</url></Content>
         </Properties>
         </Item>
         <Item class="ImageLabel" referent="RBX139"><Properties>
@@ -1552,7 +1552,7 @@
          <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
          <UDim2 name="Size"><XS>0</XS><XO>61</XO><YS>1</YS><YO>0</YO></UDim2>
          <int name="ZIndex">2</int>
-         <Content name="Image"><url>rbxassetid://134404309615983</url></Content>
+         <Content name="Image"><url>rbxassetid://103887198028992</url></Content>
         </Properties>
         </Item>
         <Item class="ImageLabel" referent="RBX140"><Properties>
@@ -1615,7 +1615,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-6</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>560</XO><YS>0</YS><YO>70</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://125268979730627</url></Content>
+      <Content name="Image"><url>rbxassetid://98933942560382</url></Content>
       <float name="ImageTransparency">0.86</float>
      </Properties>
      </Item>
@@ -1626,7 +1626,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">3</int>
-     <Content name="Image"><url>rbxassetid://104712765053279</url></Content>
+     <Content name="Image"><url>rbxassetid://77530675334215</url></Content>
      <token name="ScaleType">1</token>
      <Rect2D name="SliceCenter"><min><X>476</X><Y>296</Y></min><max><X>484</X><Y>304</Y></max></Rect2D>
      <float name="SliceScale">0.2</float>
@@ -1647,7 +1647,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://121155858743627</url></Content>
+      <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX149"><Properties>
@@ -1657,7 +1657,7 @@
       <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://77750472638110</url></Content>
+      <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX150"><Properties>
@@ -1668,7 +1668,7 @@
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://126214334515284</url></Content>
+      <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX151"><Properties>
@@ -1679,7 +1679,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://123468701383865</url></Content>
+      <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX152"><Properties>
@@ -1690,7 +1690,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://139949631719973</url></Content>
+      <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX153"><Properties>
@@ -1718,7 +1718,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>48</XO><YS>0</YS><YO>44</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://123993787841180</url></Content>
+     <Content name="Image"><url>rbxassetid://114481069197353</url></Content>
     </Properties>
      <Item class="UIScale" referent="RBX155"><Properties>
       <string name="Name">Motion</string>
@@ -1770,7 +1770,7 @@
         <int name="BorderSizePixel">0</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://126561870696733</url></Content>
+        <Content name="Image"><url>rbxassetid://88874318052189</url></Content>
         <token name="ScaleType">3</token>
        </Properties>
        </Item>
@@ -1782,7 +1782,7 @@
         <UDim2 name="Position"><XS>0.498</XS><XO>0</XO><YS>0.501946</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>0.699012</XS><XO>0</XO><YS>0.699012</YS><YO>0</YO></UDim2>
         <int name="ZIndex">3</int>
-        <Content name="Image"><url>rbxassetid://107958650185594</url></Content>
+        <Content name="Image"><url>rbxassetid://87978968249190</url></Content>
         <token name="ScaleType">3</token>
        </Properties>
        </Item>
@@ -1794,7 +1794,7 @@
         <UDim2 name="Position"><XS>0.498699</XS><XO>0</XO><YS>0.503988</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>0.369711</XS><XO>0</XO><YS>0.369711</YS><YO>0</YO></UDim2>
         <int name="ZIndex">4</int>
-        <Content name="Image"><url>rbxassetid://110257360020817</url></Content>
+        <Content name="Image"><url>rbxassetid://135400255039980</url></Content>
         <token name="ScaleType">3</token>
        </Properties>
        </Item>
@@ -1835,7 +1835,7 @@
         <int name="BorderSizePixel">0</int>
         <UDim2 name="Size"><XS>0</XS><XO>75</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://130770055922793</url></Content>
+        <Content name="Image"><url>rbxassetid://103325733131207</url></Content>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX167"><Properties>
@@ -1845,7 +1845,7 @@
         <UDim2 name="Position"><XS>0</XS><XO>74</XO><YS>0</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>1</XS><XO>-134</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://136559648678130</url></Content>
+        <Content name="Image"><url>rbxassetid://139057087376197</url></Content>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX168"><Properties>
@@ -1856,7 +1856,7 @@
         <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>0</XS><XO>61</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://134404309615983</url></Content>
+        <Content name="Image"><url>rbxassetid://103887198028992</url></Content>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX169"><Properties>
@@ -1867,7 +1867,7 @@
         <UDim2 name="Position"><XS>0</XS><XO>24</XO><YS>0</YS><YO>24</YO></UDim2>
         <UDim2 name="Size"><XS>0</XS><XO>15</XO><YS>0</YS><YO>12</YO></UDim2>
         <int name="ZIndex">3</int>
-        <Content name="Image"><url>rbxassetid://73993469486423</url></Content>
+        <Content name="Image"><url>rbxassetid://104701721574504</url></Content>
         <token name="ScaleType">3</token>
        </Properties>
        </Item>
@@ -2054,7 +2054,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-6</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>560</XO><YS>0</YS><YO>70</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://125268979730627</url></Content>
+      <Content name="Image"><url>rbxassetid://98933942560382</url></Content>
       <float name="ImageTransparency">0.86</float>
      </Properties>
      </Item>
@@ -2065,7 +2065,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">3</int>
-     <Content name="Image"><url>rbxassetid://104712765053279</url></Content>
+     <Content name="Image"><url>rbxassetid://77530675334215</url></Content>
      <token name="ScaleType">1</token>
      <Rect2D name="SliceCenter"><min><X>476</X><Y>296</Y></min><max><X>484</X><Y>304</Y></max></Rect2D>
      <float name="SliceScale">0.2</float>
@@ -2086,7 +2086,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://121155858743627</url></Content>
+      <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX192"><Properties>
@@ -2096,7 +2096,7 @@
       <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://77750472638110</url></Content>
+      <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX193"><Properties>
@@ -2107,7 +2107,7 @@
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://126214334515284</url></Content>
+      <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX194"><Properties>
@@ -2118,7 +2118,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://123468701383865</url></Content>
+      <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX195"><Properties>
@@ -2129,7 +2129,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://139949631719973</url></Content>
+      <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX196"><Properties>
@@ -2157,7 +2157,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>48</XO><YS>0</YS><YO>44</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://123993787841180</url></Content>
+     <Content name="Image"><url>rbxassetid://114481069197353</url></Content>
     </Properties>
      <Item class="UIScale" referent="RBX198"><Properties>
       <string name="Name">Motion</string>
@@ -2209,7 +2209,7 @@
         <int name="BorderSizePixel">0</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://126561870696733</url></Content>
+        <Content name="Image"><url>rbxassetid://88874318052189</url></Content>
         <token name="ScaleType">3</token>
        </Properties>
        </Item>
@@ -2221,7 +2221,7 @@
         <UDim2 name="Position"><XS>0.498</XS><XO>0</XO><YS>0.501946</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>0.699012</XS><XO>0</XO><YS>0.699012</YS><YO>0</YO></UDim2>
         <int name="ZIndex">3</int>
-        <Content name="Image"><url>rbxassetid://107958650185594</url></Content>
+        <Content name="Image"><url>rbxassetid://87978968249190</url></Content>
         <token name="ScaleType">3</token>
        </Properties>
        </Item>
@@ -2233,7 +2233,7 @@
         <UDim2 name="Position"><XS>0.498699</XS><XO>0</XO><YS>0.503988</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>0.369711</XS><XO>0</XO><YS>0.369711</YS><YO>0</YO></UDim2>
         <int name="ZIndex">4</int>
-        <Content name="Image"><url>rbxassetid://110257360020817</url></Content>
+        <Content name="Image"><url>rbxassetid://135400255039980</url></Content>
         <token name="ScaleType">3</token>
        </Properties>
        </Item>
@@ -2378,7 +2378,7 @@
           <int name="BorderSizePixel">0</int>
           <UDim2 name="Size"><XS>0</XS><XO>45</XO><YS>1</YS><YO>0</YO></UDim2>
           <int name="ZIndex">2</int>
-          <Content name="Image"><url>rbxassetid://135339835194474</url></Content>
+          <Content name="Image"><url>rbxassetid://138264404301051</url></Content>
          </Properties>
          </Item>
          <Item class="ImageLabel" referent="RBX219"><Properties>
@@ -2388,7 +2388,7 @@
           <UDim2 name="Position"><XS>0</XS><XO>44</XO><YS>0</YS><YO>0</YO></UDim2>
           <UDim2 name="Size"><XS>1</XS><XO>-88</XO><YS>1</YS><YO>0</YO></UDim2>
           <int name="ZIndex">2</int>
-          <Content name="Image"><url>rbxassetid://123715019997108</url></Content>
+          <Content name="Image"><url>rbxassetid://88637856112299</url></Content>
          </Properties>
          </Item>
          <Item class="ImageLabel" referent="RBX220"><Properties>
@@ -2399,7 +2399,7 @@
           <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
           <UDim2 name="Size"><XS>0</XS><XO>45</XO><YS>1</YS><YO>0</YO></UDim2>
           <int name="ZIndex">2</int>
-          <Content name="Image"><url>rbxassetid://97843165727884</url></Content>
+          <Content name="Image"><url>rbxassetid://121398639569390</url></Content>
          </Properties>
          </Item>
         </Item>
@@ -2412,7 +2412,7 @@
        <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>76</YO></UDim2>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>8</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://79772589523351</url></Content>
+       <Content name="Image"><url>rbxassetid://99789570259645</url></Content>
       </Properties>
       </Item>
       <Item class="TextLabel" referent="RBX222"><Properties>
@@ -2499,7 +2499,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-6</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>560</XO><YS>0</YS><YO>70</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://125268979730627</url></Content>
+      <Content name="Image"><url>rbxassetid://98933942560382</url></Content>
       <float name="ImageTransparency">0.86</float>
      </Properties>
      </Item>
@@ -2510,7 +2510,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">3</int>
-     <Content name="Image"><url>rbxassetid://104712765053279</url></Content>
+     <Content name="Image"><url>rbxassetid://77530675334215</url></Content>
      <token name="ScaleType">1</token>
      <Rect2D name="SliceCenter"><min><X>476</X><Y>296</Y></min><max><X>484</X><Y>304</Y></max></Rect2D>
      <float name="SliceScale">0.2</float>
@@ -2531,7 +2531,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://121155858743627</url></Content>
+      <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX233"><Properties>
@@ -2541,7 +2541,7 @@
       <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://77750472638110</url></Content>
+      <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX234"><Properties>
@@ -2552,7 +2552,7 @@
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://126214334515284</url></Content>
+      <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX235"><Properties>
@@ -2563,7 +2563,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://123468701383865</url></Content>
+      <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX236"><Properties>
@@ -2574,7 +2574,7 @@
       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://139949631719973</url></Content>
+      <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX237"><Properties>
@@ -2602,7 +2602,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>48</XO><YS>0</YS><YO>44</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://123993787841180</url></Content>
+     <Content name="Image"><url>rbxassetid://114481069197353</url></Content>
     </Properties>
      <Item class="UIScale" referent="RBX239"><Properties>
       <string name="Name">Motion</string>
@@ -2638,7 +2638,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Size"><XS>0</XS><XO>480</XO><YS>0</YS><YO>148</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://125394393665213</url></Content>
+      <Content name="Image"><url>rbxassetid://128388388714944</url></Content>
      </Properties>
       <Item class="ImageLabel" referent="RBX243"><Properties>
        <string name="Name">Portrait</string>
@@ -2725,7 +2725,7 @@
         <int name="BorderSizePixel">0</int>
         <UDim2 name="Size"><XS>0</XS><XO>73</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">3</int>
-        <Content name="Image"><url>rbxassetid://79312643255119</url></Content>
+        <Content name="Image"><url>rbxassetid://95251628130740</url></Content>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX250"><Properties>
@@ -2735,7 +2735,7 @@
         <UDim2 name="Position"><XS>0</XS><XO>72</XO><YS>0</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>1</XS><XO>-135</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">3</int>
-        <Content name="Image"><url>rbxassetid://116835115427453</url></Content>
+        <Content name="Image"><url>rbxassetid://108061494886289</url></Content>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX251"><Properties>
@@ -2746,7 +2746,7 @@
         <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">3</int>
-        <Content name="Image"><url>rbxassetid://80365745244853</url></Content>
+        <Content name="Image"><url>rbxassetid://138895210723444</url></Content>
        </Properties>
        </Item>
        <Item class="TextLabel" referent="RBX252"><Properties>
@@ -2868,7 +2868,7 @@
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://117636632855322</url></Content>
+     <Content name="Image"><url>rbxassetid://130621948579282</url></Content>
     </Properties>
     </Item>
     <Item class="TextLabel" referent="RBX263"><Properties>
@@ -2992,7 +2992,7 @@
        <int name="BorderSizePixel">0</int>
        <UDim2 name="Size"><XS>0</XS><XO>73</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://79312643255119</url></Content>
+       <Content name="Image"><url>rbxassetid://95251628130740</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX272"><Properties>
@@ -3002,7 +3002,7 @@
        <UDim2 name="Position"><XS>0</XS><XO>72</XO><YS>0</YS><YO>0</YO></UDim2>
        <UDim2 name="Size"><XS>1</XS><XO>-135</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://116835115427453</url></Content>
+       <Content name="Image"><url>rbxassetid://108061494886289</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX273"><Properties>
@@ -3013,7 +3013,7 @@
        <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
        <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://80365745244853</url></Content>
+       <Content name="Image"><url>rbxassetid://138895210723444</url></Content>
       </Properties>
       </Item>
       <Item class="TextLabel" referent="RBX274"><Properties>
@@ -3052,7 +3052,7 @@
        <int name="BorderSizePixel">0</int>
        <UDim2 name="Size"><XS>0</XS><XO>75</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://130770055922793</url></Content>
+       <Content name="Image"><url>rbxassetid://103325733131207</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX278"><Properties>
@@ -3062,7 +3062,7 @@
        <UDim2 name="Position"><XS>0</XS><XO>74</XO><YS>0</YS><YO>0</YO></UDim2>
        <UDim2 name="Size"><XS>1</XS><XO>-134</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://136559648678130</url></Content>
+       <Content name="Image"><url>rbxassetid://139057087376197</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX279"><Properties>
@@ -3073,7 +3073,7 @@
        <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
        <UDim2 name="Size"><XS>0</XS><XO>61</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://134404309615983</url></Content>
+       <Content name="Image"><url>rbxassetid://103887198028992</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX280"><Properties>
@@ -3114,7 +3114,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>44</XO><YS>0</YS><YO>40</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://123993787841180</url></Content>
+     <Content name="Image"><url>rbxassetid://114481069197353</url></Content>
     </Properties>
      <Item class="UIScale" referent="RBX283"><Properties>
       <string name="Name">Motion</string>

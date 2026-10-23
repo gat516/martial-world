@@ -89,6 +89,13 @@ cursor, settings and the admin panel.
   splits icon sheets on a 4 x 3 grid, and writes `manifest.json` (sizes, tiles,
   flags) plus `contact_sheet.png`. The user approves the contact sheet before
   anything is uploaded. Run with `uv run --with pillow --with numpy`.
+- Pieces derived from cuts are rebuilt by their own scripts, never by hand:
+  `art/ui/creator/build.py`, `art/ui/cultivation/derive.py`, `art/ui/events/mirror.py`
+  (its window-corner mirrors are also copied to `codex/cut/ornament_window_corner_small_*`),
+  `art/ui/dialogue/derive.py`, `tools/ui_compose_sect.py`, and `tools/key_inner.py` for
+  `ornament_item_slot_selected_ring`. After a cutter fix, re-run them, upload the
+  changed PNGs and swap the ids everywhere (`assets/`, `src/`, `tools/*.luau`,
+  `assets.json`): asset ids are immutable.
 - Ornament sheets (many pieces on one magenta sheet) are cut by the same tool,
   found by shape and named from its `PIECE_SHEETS`; the first is documented in
   [dialogue ornaments](../ui/dialogue-ornaments.md).

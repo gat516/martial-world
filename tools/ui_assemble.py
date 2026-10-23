@@ -323,7 +323,7 @@ def cut_piece_sheet(sheet, src):
 SLICE3 = {"response_button", "response_button_hi", "prompt_banner", "title_crest", "board_header",
           "objective_banner", "ribbon_crimson", "ribbon_jade", "catalog_tab", "catalog_tab_selected",
           "seat_plate", "epithet_ribbon", "event_scroll", "tribulation_ribbon",
-          "leaderboard_row", "leaderboard_row_you"}
+          "leaderboard_row", "leaderboard_row_you", "rift_tag"}
 # Pieces whose plain middle is lit brighter than its ends (the notice board's wood): their
 # strip is taken next to the left cap, so both joins match, not from the bright centre.
 SLICE3_EDGE_STRIP = {"board_header"}

@@ -48,7 +48,7 @@
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://130901052756136</url></Content>
+     <Content name="Image"><url>rbxassetid://113047048810013</url></Content>
     </Properties>
     </Item>
     <Item class="Frame" referent="RBX9"><Properties>
@@ -117,7 +117,7 @@
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>2</YO></UDim2>
      <UDim2 name="Size"><XS>0</XS><XO>310</XO><YS>0</YS><YO>51</YO></UDim2>
      <int name="ZIndex">6</int>
-     <Content name="Image"><url>rbxassetid://95353971374237</url></Content>
+     <Content name="Image"><url>rbxassetid://138401354239168</url></Content>
     </Properties>
      <Item class="TextLabel" referent="RBX18"><Properties>
       <string name="Name">Title</string>
@@ -151,7 +151,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>44</XO><YS>0</YS><YO>40</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://83459426451363</url></Content>
+     <Content name="Image"><url>rbxassetid://114481069197353</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
      <Item class="UIScale" referent="RBX21"><Properties>
@@ -185,7 +185,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>46</XO><YS>0</YS><YO>42</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://137362984017235</url></Content>
+     <Content name="Image"><url>rbxassetid://73842302611492</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
      <Item class="UIScale" referent="RBX24"><Properties>
@@ -201,7 +201,7 @@
       <float name="Rotation">90</float>
       <UDim2 name="Size"><XS>0.42</XS><XO>0</XO><YS>0.42</YS><YO>0</YO></UDim2>
       <int name="ZIndex">7</int>
-      <Content name="Image"><url>rbxassetid://121338588606030</url></Content>
+      <Content name="Image"><url>rbxassetid://135150260758364</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -215,7 +215,7 @@
      <UDim2 name="Size"><XS>0</XS><XO>46</XO><YS>0</YS><YO>42</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://137362984017235</url></Content>
+     <Content name="Image"><url>rbxassetid://73842302611492</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
      <Item class="UIScale" referent="RBX27"><Properties>
@@ -231,7 +231,7 @@
       <float name="Rotation">-90</float>
       <UDim2 name="Size"><XS>0.42</XS><XO>0</XO><YS>0.42</YS><YO>0</YO></UDim2>
       <int name="ZIndex">7</int>
-      <Content name="Image"><url>rbxassetid://121338588606030</url></Content>
+      <Content name="Image"><url>rbxassetid://135150260758364</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -259,7 +259,7 @@
      <bool name="Visible">false</bool>
      <int name="ZIndex">3</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://104079026611080</url></Content>
+     <Content name="Image"><url>rbxassetid://81261875456130</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX31"><Properties>
@@ -344,7 +344,7 @@
       <UDim2 name="Position"><XS>0.123894</XS><XO>0</XO><YS>0.126582</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0.27</XS><XO>0</XO><YS>0.175</YS><YO>0</YO></UDim2>
       <int name="ZIndex">7</int>
-      <Content name="Image"><url>rbxassetid://87704479944542</url></Content>
+      <Content name="Image"><url>rbxassetid://114223152322030</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
       <Item class="TextLabel" referent="RBX40"><Properties>
@@ -412,7 +412,7 @@
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">5</int>
-       <Content name="Image"><url>rbxassetid://108721805932431</url></Content>
+       <Content name="Image"><url>rbxassetid://100159022686196</url></Content>
        <token name="ScaleType">3</token>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX46"><Properties>
@@ -445,7 +445,7 @@
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.615</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0.8</XS><XO>0</XO><YS>0.03</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://79772589523351</url></Content>
+      <Content name="Image"><url>rbxassetid://99789570259645</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -499,7 +499,7 @@ Largest ×3.4</string>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>15</YO></UDim2>
        <bool name="Visible">false</bool>
        <int name="ZIndex">5</int>
-       <Content name="Image"><url>rbxassetid://98643070071584</url></Content>
+       <Content name="Image"><url>rbxassetid://101467676951805</url></Content>
        <token name="ScaleType">1</token>
        <Rect2D name="SliceCenter"><min><X>96</X><Y>30</Y></min><max><X>276</X><Y>70</Y></max></Rect2D>
        <float name="SliceScale">0.148515</float>

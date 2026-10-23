@@ -3822,7 +3822,30 @@
         "height": 150
       }
     ],
-    "flags": []
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_rift_tag_capL.png",
+        "size": [
+          231,
+          150
+        ]
+      },
+      "mid": {
+        "file": "ornament_rift_tag_mid.png",
+        "size": [
+          32,
+          150
+        ]
+      },
+      "capR": {
+        "file": "ornament_rift_tag_capR.png",
+        "size": [
+          139,
+          150
+        ]
+      }
+    }
   },
   "ornament_blood_name_scroll": {
     "sheet": "c6/thorn_clouds",

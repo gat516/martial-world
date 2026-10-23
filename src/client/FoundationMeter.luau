@@ -26,9 +26,9 @@ export type State = {
 }
 
 local CRACKS = {
-	"rbxassetid://103121406237935", -- crack_hairline
-	"rbxassetid://85815494954691", -- crack_split
-	"rbxassetid://99541441031291", -- crack_shattered
+	"rbxassetid://107322079054926", -- crack_hairline
+	"rbxassetid://139598561995314", -- crack_split
+	"rbxassetid://116569550244371", -- crack_shattered
 }
 local CRACK_NAMES = { "hairline cracks", "a split foundation", "a shattered foundation" }
 local FILL = Color3.fromRGB(226, 178, 84)

@@ -39,10 +39,10 @@ local URGENT = 60 -- seconds left when the time turns lacquer red
 local URGENT_COLOR = Color3.fromRGB(255, 120, 100)
 
 local PINS = {
-	gold = "rbxassetid://140034976306899",
-	jade = "rbxassetid://125833552344790",
-	crimson = "rbxassetid://92114884196856",
-	violet = "rbxassetid://102174260949277",
+	gold = "rbxassetid://96305267556093",
+	jade = "rbxassetid://92544899232500",
+	crimson = "rbxassetid://91686137821368",
+	violet = "rbxassetid://105425408900947",
 }
 
 -- pin: PINS key; glyph: one character in the pin's head; short: the chip's name;

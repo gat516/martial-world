@@ -40,8 +40,8 @@ export type Entry = {
 export type Book = { entries: { Entry }, title: string? }
 
 local PER_PAGE = 6
-local CARD = "rbxassetid://104079026611080" -- C1 herb_card
-local CARD_EMPTY = "rbxassetid://90082762893744" -- C1 herb_card_empty
+local CARD = "rbxassetid://81261875456130" -- C1 herb_card
+local CARD_EMPTY = "rbxassetid://121322032200176" -- C1 herb_card_empty
 local INK = Color3.fromRGB(62, 38, 18)
 local FADED = Color3.fromRGB(110, 106, 100)
 local GREY = Color3.fromRGB(150, 150, 150)

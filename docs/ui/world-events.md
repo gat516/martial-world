@@ -121,9 +121,6 @@ can't flip images). Measured holes the layout centres on (share of each image):
 scroll paper rows 0.204-0.741; ribbon band 0.226-0.667; ring hole centre (0.496, 0.497);
 pin head (0.51, 0.473); chip plate x 0.221-0.853, y 0.26-0.83; decree interior
 x 0.102-0.900, y 0.111-0.899; rift interior below 0.19; button icon ring (0.321, 0.543).
-- **Cutter follow-up (ui-assemble):** `rift_tag` was cut three-part by adding it to
-  `SLICE3` in `tools/ui_assemble.py` on a scratch copy; the same one-word change belongs
-  in the cutter on `ui-assemble` so a re-cut keeps `ornament_rift_tag_capL/_mid/_capR`.
 
 ## Known gaps
 - Untested in play: the herald queue and timings, the pins and chips against real

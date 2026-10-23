@@ -76,7 +76,7 @@
         <int name="LayoutOrder">1</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://90852865444525</url></Content>
+        <Content name="Image"><url>rbxassetid://131136100986471</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX13"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
@@ -91,7 +91,7 @@
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://120707014056985</url></Content>
+        <Content name="Image"><url>rbxassetid://87781159514052</url></Content>
        </Properties>
         <Item class="UIFlexItem" referent="RBX15"><Properties>
          <string name="Name">UIFlexItem</string>
@@ -105,7 +105,7 @@
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://101821756222961</url></Content>
+        <Content name="Image"><url>rbxassetid://102937063527812</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX17"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
@@ -123,7 +123,7 @@
       <UDim2 name="Position"><XS>0</XS><XO>44</XO><YS>0.5</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>28</XO><YS>0</YS><YO>26</YO></UDim2>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://122895207713170</url></Content>
+      <Content name="Image"><url>rbxassetid://91563334675271</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
       <Item class="ImageLabel" referent="RBX19"><Properties>
@@ -301,7 +301,7 @@
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">5</int>
-       <Content name="Image"><url>rbxassetid://88509373721773</url></Content>
+       <Content name="Image"><url>rbxassetid://121316271063702</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX36"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
@@ -316,7 +316,7 @@
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">5</int>
-       <Content name="Image"><url>rbxassetid://128464788151154</url></Content>
+       <Content name="Image"><url>rbxassetid://128154077838383</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX38"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -330,7 +330,7 @@
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">5</int>
-       <Content name="Image"><url>rbxassetid://83023082053681</url></Content>
+       <Content name="Image"><url>rbxassetid://108527414387394</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX40"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
@@ -370,7 +370,7 @@
       <UDim2 name="Position"><XS>-0.2</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">8</int>
-      <Content name="Image"><url>rbxassetid://108563894970515</url></Content>
+      <Content name="Image"><url>rbxassetid://131306954850384</url></Content>
       <float name="ImageTransparency">1</float>
       <token name="ScaleType">3</token>
      </Properties>
@@ -451,7 +451,7 @@
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">11</int>
-     <Content name="Image"><url>rbxassetid://100896009110132</url></Content>
+     <Content name="Image"><url>rbxassetid://139872711040576</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX53"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
@@ -466,7 +466,7 @@
       <UDim2 name="Size"><XS>0.083</XS><XO>0</XO><YS>0.13</YS><YO>0</YO></UDim2>
       <bool name="Visible">false</bool>
       <int name="ZIndex">12</int>
-      <Content name="Image"><url>rbxassetid://140093948593748</url></Content>
+      <Content name="Image"><url>rbxassetid://102118062177874</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -497,7 +497,7 @@
         <int name="LayoutOrder">1</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">12</int>
-        <Content name="Image"><url>rbxassetid://88509373721773</url></Content>
+        <Content name="Image"><url>rbxassetid://121316271063702</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX59"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
@@ -512,7 +512,7 @@
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">12</int>
-        <Content name="Image"><url>rbxassetid://128464788151154</url></Content>
+        <Content name="Image"><url>rbxassetid://128154077838383</url></Content>
        </Properties>
         <Item class="UIFlexItem" referent="RBX61"><Properties>
          <string name="Name">UIFlexItem</string>
@@ -526,7 +526,7 @@
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">12</int>
-        <Content name="Image"><url>rbxassetid://83023082053681</url></Content>
+        <Content name="Image"><url>rbxassetid://108527414387394</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX63"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
@@ -566,7 +566,7 @@
        <UDim2 name="Position"><XS>-0.2</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
        <UDim2 name="Size"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">15</int>
-       <Content name="Image"><url>rbxassetid://108563894970515</url></Content>
+       <Content name="Image"><url>rbxassetid://131306954850384</url></Content>
        <float name="ImageTransparency">1</float>
        <token name="ScaleType">3</token>
       </Properties>
@@ -635,7 +635,7 @@
          <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
          <UDim2 name="Size"><XS>0</XS><XO>60</XO><YS>0</YS><YO>60</YO></UDim2>
          <int name="ZIndex">13</int>
-         <Content name="Image"><url>rbxassetid://122895207713170</url></Content>
+         <Content name="Image"><url>rbxassetid://91563334675271</url></Content>
          <token name="ScaleType">3</token>
         </Properties>
          <Item class="ImageLabel" referent="RBX75"><Properties>
@@ -675,7 +675,7 @@
           <UDim2 name="Size"><XS>0</XS><XO>20</XO><YS>0</YS><YO>20</YO></UDim2>
           <bool name="Visible">false</bool>
           <int name="ZIndex">15</int>
-          <Content name="Image"><url>rbxassetid://113499507353464</url></Content>
+          <Content name="Image"><url>rbxassetid://103434738704063</url></Content>
           <token name="ScaleType">3</token>
          </Properties>
          </Item>

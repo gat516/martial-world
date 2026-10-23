@@ -27,12 +27,21 @@ when titles come in (user, 2026-10-23).
   xianxia ("Li Wei"). Until a player has both, it falls back to their Roblox
   DisplayName (the main game has no character screen yet).
 - Roblox's own humanoid name is turned off, so there's only ever one name.
-- It's cut off by `BillboardGui.MaxDistance` (60 studs), not faded.
+- It's cut off by `BillboardGui.MaxDistance` (measured from the camera), not
+  faded: 60 studs for others, 18 for your own, so your own goes when you zoom
+  the camera out (user, 2026-10-23).
+- The testbed has a stand-in player beside the spawn pad ("Li Wei", title
+  "Disciple of the Azure Peak") so a lone tester can see someone else's card
+  (user, 2026-10-23). It's any model tagged `NameplateTarget` carrying the same
+  attributes as a player.
 
 ## Key files
 - `src/client/Nameplates.luau`: clones the template per character, adorns it to
   the Head, keeps it in `PlayerGui.Nameplates` (local only) and repaints on the
-  attributes below. `MAX_DISTANCE` and the default title colour are at its top.
+  attributes below; also plates models tagged `NameplateTarget`.
+  `MAX_DISTANCE`, `OWN_MAX_DISTANCE` and the default title colour are at its top.
+- `src/server/TestbedDummy.luau` (testbed only, started from `Main.server`): the
+  stand-in player, an anchored R6 body in the ranger outfit.
   `Nameplates.nameOf(player)` gives the shown name to anything else that needs it.
 - `assets/Nameplate.rbxmx` (`ReplicatedStorage.Nameplate`, mapped in both
   projects): the BillboardGui (StudsOffset 0, 2.1, 0; LightInfluence 0) with a
@@ -53,7 +62,7 @@ shows them:
 ## Known gaps
 - Untested in play with several players (shown on others, cut at 60 studs) and
   on a real phone; previewed only in Studio's Edit view on PC with stand-in rigs.
-- No titles exist yet, so the title line never shows until something sets `Title`.
+- No titles exist yet, so the title line only shows on the testbed stand-in.
 - Very long titles wrap or truncate at the minimum size rather than widening the
   card; keep titles to a few words.
 - It isn't `AlwaysOnTop`, so walls and terrain between you and a player hide

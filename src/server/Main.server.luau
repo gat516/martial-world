@@ -39,6 +39,7 @@ local WorldCaches = require(script.Parent.WorldCaches)
 local Roots = require(script.Parent.Roots)
 local Methods = require(script.Parent.Methods)
 local CharacterIdentity = require(script.Parent.CharacterIdentity)
+local TestbedDummy = require(script.Parent.TestbedDummy)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
 local joinedAt: { [Player]: number } = {}
@@ -274,6 +275,7 @@ Garden.start()
 Receipts.start()
 if Config.TESTBED then
 	CharacterIdentity.start() -- race and last name rolls, paid rerolls; test place only for now
+	TestbedDummy.start() -- a stand-in player to see namecards on
 end
 WorldEvents.init()
 table.insert(EnemyService.onKill, Garden.onKill);

@@ -2,7 +2,7 @@
 name: enemy-modeler
 model: opus
 description: Builds and rigs this game's enemy bodies from Studio parts, from an enemy-designer brief and the user's image references (asks for them before building). Beasts on Motor6D rigs, humanoids on stock R6 rigs with part-built armour welded per limb, with the joints, tell parts and effect attachments the fight needs, so the animator can key them in Moon Animator or the Animation Editor and vfx has every hook. Use for new enemy and boss bodies, body reworks and rig fixes. Props, weapons and terrain meshes go to `modeler`.
-tools: Bash, Read, Edit, Write, Skill, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*
+tools: Bash, Read, Edit, Write, Skill, ToolSearch, Agent(visual-critic, general-purpose), Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*
 skills:
   - sandbox-studio
   - visual-gate

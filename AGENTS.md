@@ -17,7 +17,8 @@ first. A subagent doing one task doesn't need it.
 
 Every turn re-sends the whole context, so anything that enters it is paid for again on every later turn. Subagent runs are about three quarters of the project's spend (`python3 tools/token_report.py`).
 - **Captures cost the most.** A Studio `screen_capture` is ~1.7k tokens and stays for the rest of the run; map and vfx runs have averaged 20-30. Check by numbers first (positions, bounds, `AbsolutePosition`, raycasts) and capture only to confirm a look, once per change, not after each tweak. Give `blender__look` a small `max_size`. Don't Read back images you've already seen.
-- **Read narrowly.** Grep for the spot, then Read with `offset`/`limit`. Read a doc's index and the one part you need. Don't re-read what you just wrote or read.
+- **Read narrowly.** Grep for the spot (`grep -n ... | head`), then read about 60 lines around it (Read with `offset`/`limit`, or `sed -n 'a,bp'`); never `cat` or `sed` a whole script or doc. `sed -n` dumps were a quarter of all Bash output in the visual runs. Read a doc's index and the one part you need. Don't re-read what you just wrote or read.
+- **Scripts go in files.** A Python or Luau helper you'll run more than once goes in a scratch file (or `tools/`, if `docs/tools.md` doesn't already list one) and is run by path; each inline heredoc stays in context for the rest of the run. Small edits use Edit, not a Python rewrite script.
 - **Keep output short.** Trim command output with `tail`, `head` or `grep`; have Luau and Python print a summary, not instance-tree dumps.
 - **One deliverable per run.** When a run has grown long (dozens of captures, 100+ turns), commit, then hand back with what's next instead of pushing on; a fresh agent picks it up from the branch.
 

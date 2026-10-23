@@ -103,28 +103,44 @@ each beast, each effect set) with a self-contained brief, instead of sending the
 next item to an agent that has finished one (user, 2026-10-22). Long-lived agents
 pile up context. Carry what the next agent needs in its brief or in the docs.
 
+**Run the main session from the test checkout.** Agent types, their `tools:`
+lists, skills and `.claude/settings.json` load from the checkout the session
+starts in, once, at startup. Until 2026-10-23 every session started in the main
+checkout, on a branch from 10-22: none of the visual-loop runs loaded the
+allowlists, `visual-gate`, the critic ("Agent type 'visual-critic' not found") or
+the 1-hour subagent cache. Start orchestrating sessions in `../martial-world-test`
+(or a checkout of the latest `test`), and restart after merging agent or skill
+changes. `tools/token_report.py` shows it: a run whose per-turn tool schemas
+still list `Artifact` launched without its allowlist.
+
 **Keep runs short and briefs lean (2026-10-23).** Every turn re-reads the whole
-context, so a 90-turn run at 250k tokens costs far more than two 45-turn runs. Past
-runs had a median of 70-90 turns, peaked at 170-280k, and took over 600 SendMessage
-follow-ups.
-- **Fixes after review go to a fresh agent**, briefed with the branch, the
-  `studio_id` and the list of fixes, not by SendMessage to the agent that built it.
-  Each message to an old agent re-reads all its context. SendMessage only for a
-  quick question, or where the pipeline below says so.
+context, so cost grows with turns times context. The first visual-loop day ran
+ui-designer at a median 141 turns and 340k peak (one lint pass: 380 turns, 760k),
+vfx at 119 and 300k, animator at 110 and 370k; Bash output (mostly `sed -n` file
+dumps) filled more of that context than captures did.
+- **Human review resumes; fix rounds after that start fresh.** Relay the user's
+  pick or note with SendMessage within the hour (the cache holds for an hour).
+  After two review rounds, or when the user answers later than that, start a
+  fresh agent from the agent's last handoff status line (branch, stage call,
+  open choice) plus the note, not a third resume.
+- **Fixes after a finished run go to a fresh agent**, briefed with the branch, the
+  `studio_id` and the list of fixes.
 - **Briefs point, they don't paste.** Name the doc parts and files to read; don't
   paste doc text, AGENTS.md rules or the preloaded skills into the brief.
 - **Ask for a short report.** The agent-report skill sets its shape; a report is
   read once by you, but anything you quote from it into the next brief is paid again.
-- **Measure.** `python3 tools/token_report.py --days 7` shows the main/subagent
-  split, each agent type's launch size, turns, peak context and captures per run,
-  and the tool results that fill context. Run it after a big pass.
+- **Measure.** `python3 tools/token_report.py --days 1` shows the main/subagent
+  split and, per agent type, launch size, turns, peak context, captures per run
+  and the tool schemas loaded per turn. Run it after a big pass.
 
 **Tool allowlists.** Every agent file sets `tools:`. Without it an agent loads every
 tool schema in the session (the Artifact tool alone is ~9k tokens) on every turn,
 about 18k tokens before it does anything. When an agent needs a new tool or MCP
 server, add it to that agent's `tools:` line (whole servers as `mcp__<server>__*`;
 the Figma server is `mcp__3c3ea100-5a4a-43ab-8480-10c29c81d158__*`). Keep
-`SubagentHandback` in every list: it's how the agent delivers its report.
+`SubagentHandback` in every list: it's how the agent delivers its report. Visual
+agents carry `Agent(visual-critic, general-purpose)` so they can call the critic
+and nothing else.
 
 **Split big passes** across agents when the parts don't share state. Give each one
 sole ownership of its Studio folders and files. Build in parallel and place in

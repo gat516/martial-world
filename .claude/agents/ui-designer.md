@@ -2,7 +2,7 @@
 name: ui-designer
 description: Designs, builds and checks this game's Roblox UI (HUD, hotbar, windows, buttons, icons). Use for any UI look, layout or flow change. Starts every new look from a reference image (asks the user for one), extends the Figma UI kit's style, writes the Codex sheet requests for new art, cuts the generated sheets into assets itself with tools/ui_assemble.py, composes in the Figma kit, then uploads to Roblox, builds in Studio through the MCP, previews in Edit mode (and the device emulator), exports to assets/, and keeps the flow simple and mobile-first.
 model: opus
-tools: Bash, Read, Edit, Write, Skill, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*, mcp__3c3ea100-5a4a-43ab-8480-10c29c81d158__*
+tools: Bash, Read, Edit, Write, Skill, ToolSearch, Agent(visual-critic, general-purpose), Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*, mcp__3c3ea100-5a4a-43ab-8480-10c29c81d158__*
 skills:
   - sandbox-studio
   - visual-gate

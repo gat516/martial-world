@@ -84,7 +84,6 @@ colours. The region banner stays quiet while a boss bar is up (both use the top 
 - Previewed in Studio's edit view at 560x104 and at 288 and 371 px wide (wolf and fox
   fills, crossed pips and cracks); the intro, trail, flashes, crack pop-in and phase
   colour shift are untested in play, as are the fox, jiao and ape fights.
-- The vitals HUD (`hud-compact`) has since moved from 45-degree slants to pointed ends with
-  gentler cuts; the boss bar keeps the 45-degree trough the user approved. Align them if
-  the user wants one shape.
+- The boss bar keeps its 45-degree trough while the vitals HUD uses pointed ends (user,
+  2026-10-23: "boss bars 45 looks fine"); they stay different on purpose.
 - On a phone the realm line is about 10 px tall.

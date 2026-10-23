@@ -64,7 +64,7 @@ them; they are not part of this overhaul unless the user says so.
 
 ## UI kit in Figma (2026-10-22)
 The source of truth for the overhaul's look is now a Figma kit: [Martial World UI Kit](https://www.figma.com/design/9u6RPHLelUJF6aABm6mY7y)
-(user's account, Starter plan: 3 pages max). Parts, not screens:
+(user's account, Starter plan: 3 pages max; master copy `art/ui/figma/Martial World UI Kit.fig`; importing it and connecting Figma: [figma-kit](figma-kit.md)). Parts, not screens:
 - **Foundations:** colour variables (Primitives, aliased by Theme), type (Cormorant Garamond for
   labels and titles, Fredoka for numbers; Cinzel only for kit headers, since it renders 1 as I).
 - **Kit:** ornaments cut from the two reference images (dialogue sheet, HUD vitals) and mirrored

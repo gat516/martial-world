@@ -3,10 +3,9 @@
 ## Purpose
 A namecard floating over every other player's head that disappears past a
 distance. Your own name isn't over your head on your screen (others still see
-it): it sits on its own small plaque at the top of the HUD vitals, over the realm
-plaque and the health bar (`Hud.Stack.Vitals.NamePlaque`, see [ui](ui.md); user,
-2026-10-23). Room is kept above the name for a title, for
-when titles come in (user, 2026-10-23).
+it), and it isn't on the HUD either (user, 2026-10-22: a name row made the vitals
+stack too tall on phones, and your own name tells you nothing). Room is kept above
+the name for a title, for when titles come in (user, 2026-10-23).
 
 ## Design intent
 - A small namecard, not bare text, but light enough that a crowd of players

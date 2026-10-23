@@ -150,16 +150,16 @@
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-10</YO></UDim2>
-   <UDim2 name="Size"><XS>1</XS><XO>-320</XO><YS>0.45</YS><YO>0</YO></UDim2>
+   <UDim2 name="Size"><XS>1</XS><XO>-320</XO><YS>0.39</YS><YO>0</YO></UDim2>
   </Properties>
    <Item class="UIAspectRatioConstraint" referent="RBX18"><Properties>
     <string name="Name">UIAspectRatioConstraint</string>
-    <float name="AspectRatio">3.25581</float>
+    <float name="AspectRatio">3.75839</float>
    </Properties>
    </Item>
    <Item class="UISizeConstraint" referent="RBX19"><Properties>
     <string name="Name">UISizeConstraint</string>
-    <Vector2 name="MaxSize"><X>560</X><Y>172</Y></Vector2>
+    <Vector2 name="MaxSize"><X>560</X><Y>149</Y></Vector2>
    </Properties>
    </Item>
    <Item class="Frame" referent="RBX20"><Properties>

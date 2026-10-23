@@ -19,9 +19,11 @@ local Platform = require(script.Parent.Platform)
 
 local CLUSTER_ROOM = 320 -- touch: width the stack leaves free (twice the cluster, so it stays centred)
 local EDGE = 12 -- touch: the cluster's gap from the screen edge
-local HEIGHT_SHARE = 0.45 -- the most of the screen's height the stack may take
-local SMALL_HEIGHT_SHARE = 0.36 -- on short screens (Platform.isSmall), phones and small windows (0.3 before
--- the name plaque joined the stack, 2026-10-23; 0.36 keeps the bars as wide on a phone)
+-- The most of the screen's height the stack may take. Both shares were cut by the
+-- name row's 13.4% when the name plaque left the stack (2026-10-22), so the bars
+-- keep their width where height is the limit.
+local HEIGHT_SHARE = 0.39
+local SMALL_HEIGHT_SHARE = 0.31 -- on short screens (Platform.isSmall), phones and small windows
 
 local player = Players.LocalPlayer
 
@@ -52,7 +54,7 @@ end
 function Layout.apply()
 	local touch = Platform.isTouch()
 	local stack = find("Stack")
-	-- short screens cap the stack lower: at 0.45 a landscape phone (or the device
+	-- short screens cap the stack lower: at the full share a landscape phone (or the device
 	-- emulator, which reports a mouse and so gets the PC layout) gave nearly half
 	-- the screen to the vitals and hotbar
 	local share = if Platform.isSmall() then SMALL_HEIGHT_SHARE else HEIGHT_SHARE

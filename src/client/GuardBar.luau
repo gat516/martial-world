@@ -26,10 +26,10 @@ local TICK = Color3.fromRGB(255, 255, 255)
 local GuardBar = {}
 
 local trough: Frame? = nil
-local fill: Frame
+local fill: ImageLabel
 local fillTheme: UIGradient
 local flashFade: UIGradient
-local flashFrame: Frame
+local flashFrame: ImageLabel
 local cracksFade: UIGradient
 
 local target = 1
@@ -68,7 +68,7 @@ local function step(dt: number)
 	end
 	fill.Size = UDim2.fromScale(clamp01(ratioShown), 1)
 	fill.Visible = ratioShown > 0.015
-	fill.BackgroundColor3 = WHITE:Lerp(WARN, clamp01(1 - ratioShown / LOW))
+	fill.ImageColor3 = WHITE:Lerp(WARN, clamp01(1 - ratioShown / LOW))
 	-- the jolt on a blocked hit
 	fill.Position = UDim2.new(0.5, math.round(math.sin(shakeT * 70) * 3 * tickA), 0, 0)
 
@@ -83,7 +83,7 @@ local function step(dt: number)
 	local flashA = math.max(parryA, tickA * 0.6)
 	if flashA > 0 or lastFlash ~= 0 then
 		lastFlash = flashA
-		flashFrame.BackgroundColor3 = if parryA >= tickA then PARRY else TICK
+		flashFrame.ImageColor3 = if parryA >= tickA then PARRY else TICK
 		fade(flashFade, 1 - flashA)
 	end
 	local crackA = clamp01(breakA * 2.2)
@@ -97,9 +97,9 @@ function GuardBar.init(gui: ScreenGui)
 	local vitals = gui:FindFirstChild("Vitals", true) :: Frame
 	local bar = vitals:FindFirstChild("GuardBar") :: Frame
 	trough = bar
-	fill = bar:FindFirstChild("Fill") :: Frame
+	fill = bar:FindFirstChild("Fill") :: ImageLabel
 	fillTheme = fill:FindFirstChild("Theme") :: UIGradient
-	flashFrame = bar:FindFirstChild("Flash") :: Frame
+	flashFrame = bar:FindFirstChild("Flash") :: ImageLabel
 	flashFade = flashFrame:FindFirstChild("Fade") :: UIGradient
 	cracksFade = (vitals:FindFirstChild("GuardCracks") :: Instance):FindFirstChild("Fade") :: UIGradient
 	RunService.RenderStepped:Connect(step)

@@ -104,7 +104,7 @@ cursor, settings and the admin panel.
 
 ## Key files (all `src/client/`)
 - `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal
-  flash, realm plaque `Crest`, your name on `NamePlaque`), buffs, toasts (`Hud.saidLately` tells whether a toast was
+  flash, realm plaque `Crest`; no name plaque), buffs, toasts (`Hud.saidLately` tells whether a toast was
   just shown). `Hud.setBar` is the shared bar fill. The crest is a shortcut to
   the character window (`SelfCard`).
 - `SeatBars.luau`: the seated cultivation, overflow and dantian bars.

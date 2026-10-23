@@ -1,9 +1,9 @@
 --!strict
--- The vitals mount at the bottom (Stack.Vitals, art vitals_mount.png): segmented
+-- The vitals mount at the bottom (Stack.Vitals, art in art/ui/figma): segmented
 -- health, the combat qi bar (Qi/QiMax, the mana techniques spend) and the guard
--- trough (GuardBar.luau drives that one), with the realm plaque (Crest) above it and
--- your own name on the small plaque above that (NamePlaque; Nameplates.nameOf, the
--- same name others see over your head, which you don't get yourself). A refused
+-- trough (GuardBar.luau drives that one), with the realm plaque (Crest) on top. Your
+-- own name isn't on the HUD (user, 2026-10-22: a name row made the stack too tall on
+-- phones and told you nothing). A refused
 -- cast (QiDenied changes) flashes the qi bar and shakes the mount. Cultivation and
 -- the dantian aren't here: they show while seated (SeatBars.luau). Also active
 -- buffs with countdowns, and toasts. The top-left corner is left to Roblox's chat.
@@ -14,7 +14,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Items = require(ReplicatedStorage.Shared.Items)
 local Motion = require(script.Parent.Motion)
-local Nameplates = require(script.Parent.Nameplates)
 local State = require(script.Parent.State)
 
 local TOAST_SECONDS = 3.2
@@ -110,11 +109,11 @@ local shakeHome: UDim2? = nil -- where the mount sits while a shake plays
 -- Fill eases to the value; a pale trail (if the bar has one) lingers where a
 -- drop started, then follows, so a hit or a spend reads as a chunk.
 function Hud.setBar(bar: Frame, value: number, max: number, label: TextLabel?, text: string?)
-	local fill = bar:FindFirstChild("Fill") :: Frame
+	local fill = bar:FindFirstChild("Fill") :: GuiObject
 	local ratio = if max > 0 then math.clamp(value / max, 0, 1) else 0
 	Motion.ease(fill, { Size = UDim2.fromScale(ratio, 1) })
 	fill.Visible = value > 0
-	local trail = bar:FindFirstChild("Trail") :: Frame?
+	local trail = bar:FindFirstChild("Trail") :: GuiObject?
 	if trail then
 		if ratio >= trail.Size.X.Scale then
 			Motion.ease(trail, { Size = UDim2.fromScale(ratio, 1) })
@@ -128,12 +127,32 @@ function Hud.setBar(bar: Frame, value: number, max: number, label: TextLabel?, t
 end
 local setBar = Hud.setBar
 
+-- The bar fills, trails and flashes are 9-sliced images with pointed or rounded
+-- ends (art/ui/hud_fill_*.png, 64 px tall). Keeping SliceScale at height / 64
+-- keeps the ends in proportion at any stack size; the authored values fit the PC
+-- stack, so Studio's edit view already matches.
+local SLANT_SOURCE_HEIGHT = 64
+local SLANTED = { Fill = true, Trail = true, Flash = true, Sheen = true }
+local function keepSlants(root: Instance)
+	for _, image in root:GetDescendants() do
+		if image:IsA("ImageLabel") and SLANTED[image.Name] and image.ScaleType == Enum.ScaleType.Slice then
+			local function fit()
+				if image.AbsoluteSize.Y > 0 then
+					image.SliceScale = image.AbsoluteSize.Y / SLANT_SOURCE_HEIGHT
+				end
+			end
+			image:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+			fit()
+		end
+	end
+end
+
 -- A refused cast: the qi bar flashes red and the mount gives a short shake.
 local function denyFlash(vitals: Frame, qiBar: Frame)
-	local flash = qiBar:FindFirstChild("Flash") :: Frame
-	flash.BackgroundColor3 = DENY_COLOR
-	flash.BackgroundTransparency = 0.2
-	Motion.tween(flash, { BackgroundTransparency = 1 }, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+	local flash = qiBar:FindFirstChild("Flash") :: ImageLabel
+	flash.ImageColor3 = DENY_COLOR
+	flash.ImageTransparency = 0.2
+	Motion.tween(flash, { ImageTransparency = 1 }, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
 	if shakeHome then
 		return -- already shaking; the flash above is enough
 	end
@@ -168,23 +187,13 @@ function Hud.init(screenGui: ScreenGui)
 	local qiBar = vitals:FindFirstChild("QiBar") :: Frame
 	local qiText = vitals:FindFirstChild("QiText") :: TextLabel
 	local healthText = vitals:FindFirstChild("HealthText") :: TextLabel
+	keepSlants(gui:FindFirstChild("Stack") :: Frame)
 
 	local function showRealm()
 		realmLabel.Text = player:GetAttribute("Realm") or ""
 	end
 	player:GetAttributeChangedSignal("Realm"):Connect(showRealm)
 	showRealm()
-
-	-- your name, as the overhead namecard writes it ("Surname FirstName", else DisplayName)
-	local nameLabel = (vitals:FindFirstChild("NamePlaque") :: Frame):FindFirstChild("NameText") :: TextLabel
-	local function showName()
-		nameLabel.Text = Nameplates.nameOf(player)
-	end
-	for _, attr in { "FirstName", "Surname" } do
-		player:GetAttributeChangedSignal(attr):Connect(showName)
-	end
-	player:GetPropertyChangedSignal("DisplayName"):Connect(showName)
-	showName()
 
 	-- combat qi (Qi/QiMax; 0 until the server publishes them)
 	local function showQi()

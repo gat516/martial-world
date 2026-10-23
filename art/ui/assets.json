@@ -154,13 +154,18 @@
   "fill_sheen.png": "rbxassetid://126298791053398",
   "fill_edge.png": "rbxassetid://137294413403090",
   "nameplate_band.png": "rbxassetid://77034028645753",
-  "figma/hud_vitals_plate.png": "rbxassetid://137432768410137",
-  "figma/hud_vitals_rims.png": "rbxassetid://76012083356462",
-  "figma/hud_seat_rims.png": "rbxassetid://85602247556020",
+  "figma/hud_vitals_plate.png": "rbxassetid://103643790825633",
+  "figma/hud_vitals_rims.png": "rbxassetid://121965209987311",
+  "figma/hud_seat_rims.png": "rbxassetid://89526083485279",
   "figma/hud_realm_plaque.png": "rbxassetid://101769565128619",
   "figma/hud_round_seal.png": "rbxassetid://110597592925588",
   "codex/cut/ornament_item_slot.png": "rbxassetid://107221511179183",
   "codex/cut/ornament_item_slot_selected_ring.png": "rbxassetid://103050874376027",
   "codex/cut/ornament_element_wind.png": "rbxassetid://122365888885545",
-  "codex/cut/ornament_weapon_sword.png": "rbxassetid://89469461530270"
+  "codex/cut/ornament_weapon_sword.png": "rbxassetid://89469461530270",
+  "figma/hud_seat_plate.png": "rbxassetid://85056314500119",
+  "hud_fill_r.png": "rbxassetid://110563143475115",
+  "hud_sheen_r.png": "rbxassetid://115735879137600",
+  "hud_fill_lr.png": "rbxassetid://116430934310015",
+  "hud_sheen_lr.png": "rbxassetid://124847141666734"
 }

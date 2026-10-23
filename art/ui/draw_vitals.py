@@ -1,11 +1,22 @@
 """Draws the bar fill overlays shared by every HUD bar (vitals and seated).
 
-The vitals and seated mounts (vitals_mount.png, seat_mount.png), the name and realm
-plaques and the cooldown chips are drawn by draw_vitals.ps1 since the reference
-redesign (user, 2026-10-23); this file keeps only the fill overlays:
-fill_sheen.png    16x64, Stretch over every bar fill: top lip, soft inner glow, darker
+The vitals mounts, plaques and chips now come from the Figma kit (art/ui/figma);
+the old ones (vitals_mount.png, seat_mount.png, ...) were drawn by draw_vitals.ps1
+(unused now). This file draws the bar fills and their overlays:
+fill_sheen.png    16x64 (no longer used; the slanted sheens below replace it): top lip, glow, darker
                   belly (white/black only, so the fill's colour shows through).
-fill_edge.png     48x64, the soft bright leading edge at a fill's right end.
+fill_edge.png     48x64, the soft bright leading edge at a fill's right end (no longer
+                  used by the vitals; the slanted fills below light their own edge).
+hud_fill_r.png / hud_sheen_r.png     160x64, the slanted vitals fills (2026-10-23):
+                  square left end, right end cut at 45 degrees. Fill and Trail use
+                  hud_fill_r (white, tinted by the bar's Theme gradient or colour),
+                  the Fill's Sheen child hud_sheen_r (top lip, darker belly, lit
+                  slanted leading edge). Slice, SliceCenter Rect(2, 31, 96, 33),
+                  SliceScale = bar height / 64 (Hud keeps it in step).
+hud_fill_lr.png / hud_sheen_lr.png   192x64, the same with both ends cut (a
+                  parallelogram): the guard, which drains toward its centre seal, and
+                  the seated overflow, which starts on the breakthrough mark's slant.
+                  Slice, SliceCenter Rect(64, 31, 128, 33).
 Run: uv run --with pillow --with numpy python art/ui/draw_vitals.py
 """
 from PIL import Image, ImageDraw, ImageFilter
@@ -62,6 +73,59 @@ def fill_edge():
 
 
 
+SLANT_H = 64  # source height; the cut leans one px per px of height (45 degrees)
+
+
+def _slant_poly(w, both):
+    """The fill shape at SS: square or slanted left end, right end slanted."""
+    h = SLANT_H
+    left_top = h if both else 0
+    return [(s(left_top), 0), (s(w), 0), (s(w - h), s(h)), (0, s(h))]
+
+
+def _slant_mask(w, both):
+    mask = Image.new("L", (s(w), s(SLANT_H)), 0)
+    ImageDraw.Draw(mask).polygon(_slant_poly(w, both), fill=255)
+    return mask
+
+
+def slant_fill(name, w, both):
+    """Plain white slanted fill (tinted in game)."""
+    img = Image.new("RGBA", (s(w), s(SLANT_H)), (255, 255, 255, 0))
+    img.putalpha(_slant_mask(w, both))
+    finish(img, name)
+
+
+def slant_sheen(name, w, both):
+    """The overlay for a slanted fill: the fill_sheen rows (lip, glow, belly) plus a
+    lit band along each slanted end, inside the same shape."""
+    import numpy as np
+    W, H = s(w), s(SLANT_H)
+    ys, xs = np.mgrid[0:H, 0:W].astype(np.float64)
+    t = ys / (H - 1)
+    white = np.where(t < 0.12, 170 * (1 - t / 0.12) + 60, np.where(t < 0.5, np.clip(1 - np.abs(t - 0.32) / 0.2, 0, 1) * 46, 0))
+    black = np.where(t >= 0.5, ((t - 0.5) / 0.5) ** 2 * 110, 0)
+    # distance (in source px) inside the right slant: x + y = W at the edge
+    d_right = (W - (xs + ys)) / np.sqrt(2) / SS
+    edge = np.clip(1 - d_right / 7, 0, 1) ** 1.6 * 200
+    if both:
+        d_left = ((xs + ys) - H) / np.sqrt(2) / SS
+        edge = np.maximum(edge, np.clip(1 - d_left / 7, 0, 1) ** 1.6 * 200)
+    white = np.maximum(white, edge)
+    a = np.clip(white + black, 0, 255)
+    rgb = np.where(white >= black, 255, 0)
+    out = np.dstack([rgb, rgb, rgb, a]).astype(np.uint8)
+    img = Image.fromarray(out, "RGBA")
+    mask = _slant_mask(w, both)
+    from PIL import ImageChops
+    img.putalpha(ImageChops.multiply(img.getchannel("A"), mask))
+    finish(img, name)
+
+
 if __name__ == "__main__":
     fill_sheen()
     fill_edge()
+    slant_fill("hud_fill_r.png", 160, False)
+    slant_sheen("hud_sheen_r.png", 160, False)
+    slant_fill("hud_fill_lr.png", 192, True)
+    slant_sheen("hud_sheen_lr.png", 192, True)

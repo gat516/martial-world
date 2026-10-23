@@ -24,6 +24,7 @@ PIECES = {
     "hud_seat_rims": ((40, 200, 520, 65), (1024, 128)),
     "hud_realm_plaque": ((40, 290, 357, 26), None),
     "hud_round_seal": ((40, 340, 64, 64), None),
+    "hud_seat_plate": ((40, 420, 520, 65), (1024, 128)),
 }
 
 

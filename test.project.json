@@ -291,7 +291,34 @@
         "Sect": {
           "$className": "Folder",
           "SpiritPeaks": {
-            "$className": "Folder"
+            "$className": "Folder",
+            "TestPeak": {
+              "$className": "Model",
+              "$attributes": {
+                "Owner": "",
+                "OwnerName": ""
+              },
+              "Plateau": {
+                "$className": "Part",
+                "$properties": {
+                  "Anchored": true,
+                  "CanCollide": false,
+                  "CanTouch": false,
+                  "CanQuery": false,
+                  "Transparency": 1,
+                  "Size": [94, 1, 94],
+                  "CFrame": {
+                    "CFrame": {
+                      "position": [0, 648.6, 40],
+                      "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+                    }
+                  }
+                }
+              },
+              "Placed": {
+                "$className": "Folder"
+              }
+            }
           }
         }
       },

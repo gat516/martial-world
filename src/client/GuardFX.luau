@@ -5,11 +5,12 @@
 -- tools/guardfx_build.luau) and play through the vfxia Game Module via
 -- TechniqueVFX, so what plays is what the plugin's Emit button shows.
 --
--- Chain parries escalate with what's there: each deflect throws to alternate
--- sides (Parry right, ParryAlt left, matching the clips), the burst grows and
--- the shake and punch climb; the blow that closes a chain, or the chain running
--- dry, adds a finisher (an oversized Parry, a second delayed one and a wide
--- Block ripple). No new templates.
+-- Chain parries escalate: each deflect throws to alternate sides (Parry right,
+-- ParryAlt left, matching the clips), the burst grows, more sparks fly, the
+-- shake and punch climb, and the Parry template's chain layers join in (an
+-- emitter's `Chain` attribute is the first blow that shows it: a crescent at 2,
+-- a wider shock ring at 3, a gold qi ring at 4). The blow that closes a chain,
+-- or the chain running dry, adds the ParryFinish burst.
 --
 -- Every call is cosmetic: a missing template warns once and does nothing.
 -- Screen extras (shake, the grade/camera punch) run only for the local player.
@@ -62,13 +63,17 @@ local function toward(root: BasePart, from: Vector3): Vector3
 end
 
 -- A positioned copy of a template (scaled by `scale`), played and cleaned up.
-local function play(name: string, cframe: CFrame, scale: number?)
+-- `prepare` adjusts the copy before it plays.
+local function play(name: string, cframe: CFrame, scale: number?, prepare: ((Model) -> ())?)
 	local source = template(name)
 	if not (source and source:IsA("Model")) then
 		return
 	end
 	local copy = source:Clone()
 	copy:PivotTo(cframe)
+	if prepare then
+		prepare(copy)
+	end
 	if scale then
 		TechniqueVFX.rescale(copy, scale)
 	end
@@ -77,24 +82,22 @@ local function play(name: string, cframe: CFrame, scale: number?)
 	TechniqueVFX.cleanup(copy, 0.2)
 end
 
--- The closing beat of a chain: an oversized clash, a second one a beat later
--- and a wide ripple, with a heavy shake and a longer gold punch.
+-- The closing beat of a chain: the ParryFinish burst a beat after the last
+-- clash, with a heavy shake and a longer gold punch.
 local function finish(contact: Vector3, dir: Vector3, n: number, isLocal: boolean)
 	local up = CFrame.lookAt(contact, contact + (dir + Vector3.new(0, 0.35, 0)).Unit)
-	local big = 1.45 + 0.05 * math.min(n, CHAIN_STEPS)
-	play("Parry", up, big)
 	task.delay(0.06, function()
-		play("Parry", up * CFrame.Angles(0, 0, math.rad(45)), big * 1.15)
-		play("Block", CFrame.lookAt(contact, contact + dir), 1.7)
+		play("ParryFinish", up, 1 + 0.05 * math.min(n - 1, CHAIN_STEPS))
+		if isLocal then
+			CombatEffects.shake(0.65)
+			CombatEffects.punch(contact, 0.95, FINISH_TINT, 0.1)
+		end
 	end)
-	if isLocal then
-		CombatEffects.shake(0.65)
-		CombatEffects.punch(contact, 0.95, FINISH_TINT, 0.1)
-	end
 end
 
--- A crisp metallic clash where the strike met the guard: white-hot star glint,
--- sparks along the deflect, crescent arc and a quick ring. `from` is the attacker.
+-- A crisp metallic clash where the strike met the guard: a white-hot flash and
+-- impact star over a dark splat, sparks thrown along the deflect, a fast shock
+-- ring on the guard plane and falling embers. `from` is the attacker.
 -- `chain` (default 1): the blow's place in a chain parry; from the second on the
 -- deflect alternates sides and grows. `closing`: it ended the chain (finisher).
 function GuardFX.parry(character: Model, from: Vector3, isLocal: boolean, chain: number?, closing: boolean?)
@@ -114,7 +117,24 @@ function GuardFX.parry(character: Model, from: Vector3, isLocal: boolean, chain:
 	-- the deflect throws outward and a touch up
 	local aim = (dir + right * side * SIDE_THROW + Vector3.new(0, 0.18, 0)).Unit
 	local step = math.min(n - 1, CHAIN_STEPS)
-	play("Parry", CFrame.lookAt(contact, contact + aim), if step > 0 then 1 + CHAIN_GROW * step else nil)
+	play("Parry", CFrame.lookAt(contact, contact + aim), if step > 0 then 1 + CHAIN_GROW * step else nil, function(copy)
+		for _, e in copy:GetDescendants() do
+			if not e:IsA("ParticleEmitter") then
+				continue
+			end
+			local from = e:GetAttribute("Chain")
+			if type(from) == "number" and n < from then
+				e:Destroy()
+			elseif e.Name == "Sparks" then
+				e:SetAttribute("EmitCount", 12 + 3 * step)
+			elseif e.Name == "Arc" and side < 0 then
+				-- the crescent sweeps to the deflect's side
+				e.Rotation = NumberRange.new(160, 200)
+			elseif e.Name == "Arc" then
+				e.Rotation = NumberRange.new(-20, 20)
+			end
+		end
+	end)
 	if closing then
 		finish(root.Position + CHEST + dir * 2.4, dir, n, isLocal)
 	elseif isLocal then

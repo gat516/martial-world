@@ -26,3 +26,4 @@ What each script in `tools/` does. Read it when you need a tool and don't know i
 - docs lint (`docs_lint.py`: broken links, missing paths, over-budget agents/skills/docs, text duplicated across agents and skills)
 - duplicate finder
 - POI tour and labels (`poi_tour.luau`, Studio copy `ServerStorage._EditorTools.PoiTour`)
+- modeling checks ([modeling-checks](enemies/modeling-checks.md)): `model_shot.luau` (standard grey-box shots and capture presets, the 40-stud view, a four-view sheet), `fidelity_check.py` (silhouette IoU against a reference image, with a composite for a critic), `parts_audit.luau` (loose, kissing, hidden and z-fighting parts, part budget); Blender side `art/rig/silhouette_render.py`

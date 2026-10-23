@@ -55,7 +55,7 @@ One doc per enemy (fight, numbers, effects, its own gaps). Read only the one you
 
 A new enemy gets its own file here and a row in this table.
 
-Shared parts (not one enemy): [arrivals.md](../enemies/arrivals.md) (arrive follow-ups, skids, turning into moves), [projectiles.md](../enemies/projectiles.md) (boss projectiles), [animating.md](../enemies/animating.md) (motion QA).
+Shared parts (not one enemy): [arrivals.md](../enemies/arrivals.md) (arrive follow-ups, skids, turning into moves), [projectiles.md](../enemies/projectiles.md) (boss projectiles), [animating.md](../enemies/animating.md) (motion QA), [modeling-checks.md](../enemies/modeling-checks.md) (shots, silhouette fidelity against the reference, parts audit).
 
 ## Boss rules (user decisions)
 Apply to every boss pass.
@@ -353,7 +353,8 @@ point is the body centre. Per-body numbers and attachments are in the RIGS.md of
   animations move it.
 - **Animator-ready:** every keyed part has a unique name (clips key by part name),
   each Humanoid has an Animator, and cloth, weapons and sway pieces get their own
-  joints. Every template passes `check_rig.luau` and `keyframe_test.luau`.
+  joints. Every template passes `check_rig.luau` and `keyframe_test.luau`; a body built to a
+  reference is scored against it with the [modeling checks](../enemies/modeling-checks.md).
 - **Previews** posed in Edit mode are anchored and tagged `EditorOnly`.
 - **Roster in review** (staging bodies), each group in its own staging folder:
   `ServerStorage._RosterWolves`, `_RosterQuadrupeds`, `_RosterBeasts`, `_RosterBandits`

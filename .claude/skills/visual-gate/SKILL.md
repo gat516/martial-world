@@ -52,6 +52,10 @@ exemplars and rejects from `docs/reference/approved/README.md`; the sheet paths;
 the lint output (paste it, it's short); anything the user has said about this
 item. Nothing else: it must not inherit your reasoning.
 
+If the Agent tool says the `visual-critic` type isn't available (agent types load
+when a session starts), spawn `general-purpose` with `model: "opus"` and tell it
+to read and follow `.claude/agents/visual-critic.md` first; same inputs.
+
 Read the verdict:
 - **SHIP**: go to 4.
 - **FIX**: apply the three fixes (subtract first), re-lint, re-sheet, one more

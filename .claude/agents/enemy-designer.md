@@ -140,7 +140,8 @@ briefs to the main session, which runs `enemy-modeler`, `animator` and `vfx` in
 parallel while you wire the code (the animator waits for the modeler only when
 joints change). Fix the contracts up front so nobody waits on anyone:
 - **Body (`enemy-modeler`; skip it when the body is unchanged):** concept and
-  references, silhouette and hero shape, size against the R6 rig, segment list
+  image references (the modeler won't build without them; ask the user for them
+  and put them in `docs/reference/enemies/<enemy>/`), silhouette and hero shape, size against the R6 rig, segment list
   with names, joint pivots (each limb, head, tail, jaw, cloth, weapon and sway
   joints) and their rest poses, the part budget (about 80 for a pack beast, about
   150 for a boss), palette, tell parts as their own parts, and named effect

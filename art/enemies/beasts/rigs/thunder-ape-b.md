@@ -184,3 +184,32 @@ per-frame FK on the template; the static checks above missed all of these):
 - Safe: kneeling sag root -1.0 with HIND planted at R_REAR (-1.4 put the shins 3.4 studs under).
 - Still under the floor at the prone and pound contacts: elbow tufts and the beard tip 1.3-1.8
   studs (lying on the ground), the pound's forearms 1.3-1.6.
+
+Motion pass (A1, 2026-10-23; measured with `art/enemies/motion_audit.luau`, family `ThunderApe`):
+- **Body overlap** (`overlap` in `plantedSample`, before planting): the chest keeps its keyed world
+  aim, the root turns to where the keys will have it 0.05 s later (the spine takes up the
+  difference) and the skull points where the keys had it 0.1 s ago (soft cap 1.4 rad). Lags read
+  ACROSS phase boundaries (`keyedBack`/`keyedAhead`: the family is `seamless`), fade in over a
+  windup's first 0.12 s and out over the last phase's end. Gotchas: a lagged CHEST (tried first)
+  leaves the shoulders high at a slam or throw, so the planting fists drag the hips 8 studs down;
+  a hip lead over a cyclic overlay (the rush gallop) or a bound's straight-legged shove-off sinks
+  feet or flips knees (`NOLAG`, `LEAD_SCALE.Bound = 0`); a soft cap under ~1.2 rad saturates on
+  the 12-16 rad/s slams and throws and the skull peaks with the chest again; a trailing skull drops
+  the beard into the chest drum, so the beard swings forward by the skull's drop (`headDrop`).
+- **Landing / lifting arms in a cross-plant blend:** the live planted solve against a body still
+  reared or pitched lands on the other elbow bend (-0.8, then +0.4 in a frame). Arms now blend from
+  their solve AT the key (`solvedKey`, cached) and hand over to the live solve over the last 75%;
+  an arm lifting off holds the body up by `(1 - alpha)^3` (by `1 - alpha` it sank the thighs 1.6).
+  Hind legs stay on the live solve (the handover flipped a knee 91 degrees). The under-floor fix
+  bends the middle joint and levels a fist by how near its planted end is; not in air phases.
+- **Velocity-carrying eases:** `"h<m0>,<m1>"` in `EASE` is a Hermite with start and end slopes
+  (1 = the segment's mean speed). Use it so a key hands its speed on instead of parking (the
+  probe's stop metric flags any 80% one-frame drop from 20+ studs/s, e.g. a fist planted with an
+  "out" ease into an "inOut").
+- **Safe ranges seen:** skull trailing its keys by up to ~1 rad in a slam reads fine and clips
+  little with the beard compensation; release arm (world pitch 2.2, elbow 1.9) with the root at
+  pitch 0.02 puts the boulder fist 2.7 studs from the server spawn point. Landing crouch root
+  -1.0 (skyfall) / -0.85 (judgment): deeper folds the planted elbows past 1.9 with the DIP overlay.
+- Probe artifacts to ignore: a standalone backhand or club recover ends twisted on all fours for the
+  next blow, so the idle hand-off shows a hitch; the boulder's chain is read at W (the settle), not
+  the release (measured at the release: hips > chest +1f, chest > skull +3f).

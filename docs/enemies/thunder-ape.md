@@ -132,27 +132,25 @@ Left after the 2026-10-21 build and the first Opus quality pass (moved from the 
 Body: `ThunderApeB`, 3.71x, about 30 studs tall.
 
 **Animation** (`src/client/EnemyPoses/ThunderApe.luau`; part 1 is `130f0b5`). Done:
-timings match `122e93b`, the boulder throw beats (release at 1.25 s, fist within
-3.6 studs of the spawn point), gait touchdown pops, and continuous secondary
-motion. Left:
-- **Chest beats:** swap the solved beat arm (written in RIGS.md) into the three
-  roars, Death's beat and BodySlam C. The current arm clips the jaw and skull by
-  about 2.5 studs.
-- **ClubSwing and Backhand:** the sweeps clip the beard by 1.6-1.9 and the jaw by
-  about 1.2. Re-solve the contact and follow-through arms, and rework the
-  anticipation for the 0.8 s windup.
-- **Landing pops** (feel pass, 2026-10-22): fixed with a lifted landing key (the limbs
-  that land are planted, raised, before touchdown): BodySlam 0.67 -> 0.24, ThunderRush
-  0.59 and Bound 0.37 -> under 0.2. ThunderPound B is still 0.30 (the hind legs at the
-  slam's own speed); the lifted key made it worse, so it is unchanged.
-- **Stagger:** a 0.66 rad pop, not reworked. **Death:** not reworked; it ends
-  0.8 studs into the ground.
-- **Thunder Lance:** swap in the solved throw arm (in RIGS.md). The lance fires
-  from 16 ahead and 3.5 up.
+timings match `122e93b`, the boulder throw beats (release at 1.25 s, fist 2.7 studs
+from the spawn point), gait touchdown pops, continuous secondary motion, and the
+motion pass (A1, 2026-10-23; before and after numbers in its commit, rig notes in `art/enemies/beasts/rigs/thunder-ape-b.md`): the hips
+lead and the skull trails every keyed move (no move turns as one block), every fist
+under 560 studs/s and every one-frame joint step under 45 degrees, no fist parks inside
+the boulder or club windups, skyfall and judgment land on long legs and compress
+(1.5-2.2 studs), the combo hands off on all four fists, the solved chest-beat arm is in
+the roars, Death and BodySlam C, and the club/backhand sweeps pass under the head
+(forearm into beard 0.7, was 2.6). Left:
 - **Recovers:** the fists slide up to about 7 studs along the ground in the pound
   recover. They should step.
-- **Small clips:** the beard sits about 0.8 into the chest, and the forearm grazes
-  the skull in the boulder follow-through.
+- **Small clips:** the beard sits about 1-1.5 into the chest in the sweeps and leaps;
+  SkyfallSweep's forearm grazes the skull (1.0); ClubSwing variants B and C (not the
+  default) still clip and sink a shin (1.2).
+- **Thunder Lance:** the solved throw arm (RIGS) is not swapped in; the throw keeps the
+  extended javelin arm, which reads better.
+- **Hand-offs to idle:** a backhand or club recover ends twisted on all fours for the next
+  blow; if a combo is cut short, idle pulls it straight in a few frames.
+- **Death:** ends 1.8 under the floor (lying shins), as before.
 - **Arrivals and bounds (feel pass, 2026-10-22, `WEIGHTED_MOVES`):** posed. The rush's
   last strides draw the right arm back and brace, `RushSwipe` unwinds into a flat
   belly-height sweep, `SkyfallSweep` backhands from the landing crouch, and both skids
@@ -165,11 +163,9 @@ motion. Left:
   (`EnemyMotion`). The skyfall and judgment crouches no longer sink the thighs (the hind
   feet land under the hips). Left: feel in play, the blend of the arrival hand-off (the
   pose holds while `Attack` catches up with AIState), `BoundSide` (the lean's
-  anticipation only shows when the server sends it), effects for the new moves. The
-  sweeps' forearms still graze the beard (up to 0.9 studs), RushSwipe's right shin the
-  chest (0.9).
-- **Feel:** whether the combo still feels rushed under the new timings hasn't been
-  judged.
+  anticipation only shows when the server sends it), effects for the new moves.
+- **Feel:** whether the combo still feels rushed, and whether the trailing head (0.1 s
+  behind the chest in world aim) wobbles on fast turns in play, hasn't been judged.
 
 **Effects** (`src/client/EnemyFX/ThunderApe.luau`, `tools/vfx_specs/ThunderApe.luau`).
 Rebuilt intent-first on 2026-10-22 (49 templates, 30 effect sounds; the record and

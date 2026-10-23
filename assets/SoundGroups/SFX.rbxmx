@@ -1977,6 +1977,92 @@
     </Properties>
     </Item>
    </Item>
+   <Item class="Folder" referent="GSAFX1"><Properties>
+    <string name="Name">GreatSageAwakening</string>
+   </Properties>
+    <!-- SwordSpinning: the staff whirling, from the Twirl start to the strike -->
+    <Item class="Sound" referent="GSAFX2"><Properties>
+     <string name="Name">Spin</string>
+     <Content name="SoundId"><url>rbxassetid://7769030990</url></Content>
+     <float name="Volume">0.55</float>
+     <float name="PlaybackSpeed">1.0</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- WindWhirl: the rush rising as the spin speeds up, cut at the strike -->
+    <Item class="Sound" referent="GSAFX3"><Properties>
+     <string name="Name">Whirl</string>
+     <Content name="SoundId"><url>rbxassetid://8520504070</url></Content>
+     <float name="Volume">0.5</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- Metal (3): the iron-shod staff end biting the ground -->
+    <Item class="Sound" referent="GSAFX4"><Properties>
+     <string name="Name">Bite</string>
+     <Content name="SoundId"><url>rbxassetid://4072627278</url></Content>
+     <float name="Volume">0.8</float>
+     <float name="PlaybackSpeed">0.75</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <!-- Earth Slam: the ground taking the blow -->
+    <Item class="Sound" referent="GSAFX5"><Properties>
+     <string name="Name">Slam</string>
+     <Content name="SoundId"><url>rbxassetid://71472197762839</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <!-- Magic Rumbling Decay 1: the low tail under the slam -->
+    <Item class="Sound" referent="GSAFX6"><Properties>
+     <string name="Name">Tail</string>
+     <Content name="SoundId"><url>rbxassetid://9116407532</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <!-- Transform: the Sage wakes as the sigil unfolds behind the head -->
+    <Item class="Sound" referent="GSAFX7"><Properties>
+     <string name="Name">Awaken</string>
+     <Content name="SoundId"><url>rbxassetid://6497101230</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <!-- Magic Glow Constant Pulsing Warbled Hum Ring: the sigil holding (II+), looped, low -->
+    <Item class="Sound" referent="GSAFX8"><Properties>
+     <string name="Name">Hum</string>
+     <Content name="SoundId"><url>rbxassetid://9125636597</url></Content>
+     <float name="Volume">0.18</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">60</float>
+     <bool name="Looped">true</bool>
+    </Properties>
+    </Item>
+    <!-- Magic Hit: a staff swing flaring the sigil (IV) -->
+    <Item class="Sound" referent="GSAFX9"><Properties>
+     <string name="Name">Pulse</string>
+     <Content name="SoundId"><url>rbxassetid://78280083196784</url></Content>
+     <float name="Volume">0.35</float>
+     <float name="PlaybackSpeed">1.2</float>
+     <float name="RollOffMaxDistance">100</float>
+    </Properties>
+    </Item>
+    <!-- Wind Orb Activate: the buff running out -->
+    <Item class="Sound" referent="GSAFX10"><Properties>
+     <string name="Name">End</string>
+     <Content name="SoundId"><url>rbxassetid://4580495407</url></Content>
+     <float name="Volume">0.45</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">120</float>
+    </Properties>
+    </Item>
+   </Item>
   </Item>
   <!-- Guard sound choices from the user (2026-10-21). The current client plays
        Parry for every perfect parry and Block for every successful guard.

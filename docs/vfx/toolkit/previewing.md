@@ -104,6 +104,13 @@ The critic step judges one image plus the lint printouts, never a pile of captur
   `Weapons.apply`), clip scrubbed at `castSpeed`, root driven over `lungeWindow`. It also
   gives `_G.reviewLoop.start({ id, levels = { 10, 1 }, every = 4 })`, a repeating cast on
   a grass plate for someone watching the sandbox window (`_G.reviewLoop.stop()`).
+- Skill previews: the green spheres on the rig and weapon in close captures are Studio's
+  attachment gizmos, not effects. The scene's rig stands ~2 studs sunk (the hanging staff
+  counts in its bounding box), which hides head-height and ground layers; lift it onto the
+  floor before judging them. A buff aura driven by Heartbeat keeps running after the freeze
+  (and cleans itself up `def.seconds` later); set the fresh module's `frozen` flag
+  (`ServerStorage._PreviewModules.TechniqueFX.<Id>`) after `drive` to hold it. SurfaceGui
+  images take a second to load the first time: wait before the capture.
 - The editor camera turns back toward `Camera.Focus` a moment after you set its CFrame:
   set `Focus` to the look-at point too, or the view swings away.
 - A scrubbed track (`castThrough` plays at speed 0 and sets TimePosition) never fires its

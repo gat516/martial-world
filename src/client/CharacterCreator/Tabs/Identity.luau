@@ -2,11 +2,43 @@
 -- Identity tab: the race and last name the server rolled (shown from the
 -- player's Race and Surname attributes, with a paid Change button each) and the
 -- first name the player types. No suggestions and no free reroll: the first
--- roll happened on join.
+-- roll happened on join. Under each block, the full list of races or last names
+-- with rarity and chance (user, 2026-10-23).
 
 local MarketplaceService = game:GetService("MarketplaceService")
 
 local Identity = {}
+
+-- Every race or last name with its rarity and chance, rarest first, as rows
+-- from `order` up (the player's own is marked).
+local function oddsList(ctx: any, page: ScrollingFrame, title: string, defs: { [string]: any }, attribute: string, order: number)
+	local components, rarities, rules = ctx.components, ctx.defs.Rarities, ctx.defs.Rules
+	components.sectionHeader(page, title, order)
+	local keys = {}
+	for key in defs do
+		table.insert(keys, key)
+	end
+	table.sort(keys, function(a, b)
+		if defs[a].Weight ~= defs[b].Weight then
+			return defs[a].Weight < defs[b].Weight
+		end
+		return defs[a].DisplayName < defs[b].DisplayName
+	end)
+	local rows = {}
+	for index, key in keys do
+		rows[key] = components.summaryRow(page, defs[key].DisplayName, order + index)
+	end
+	local function paint(current: string?)
+		for key, row in rows do
+			local chance = rules.chance(defs, key)
+			local text = if chance >= 1 then `{math.floor(chance + 0.5)}%` else `{math.floor(chance * 10 + 0.5) / 10}%`
+			row.set(if key == current then `{text}  (yours)` else text, nil, defs[key].Rarity, rarities)
+		end
+	end
+	ctx.onAttribute(attribute, function(key)
+		paint(key)
+	end)
+end
 
 local function rerollFlow(ctx: any, block: any, kind: string)
 	local button = block.change
@@ -65,13 +97,14 @@ function Identity.build(page: ScrollingFrame, ctx: any)
 	race.change.button.Activated:Connect(function()
 		task.spawn(rerollFlow, ctx, race, "Race")
 	end)
+	oddsList(ctx, page, "All Races", defs.Races, "Race", 100)
 
 	-- First Name
-	components.sectionHeader(page, "First Name", 3)
+	components.sectionHeader(page, "First Name", 200)
 	local field = components.textField(page, {
 		name = "FirstNameField",
 		placeholder = "Enter a first name",
-		order = 4,
+		order = 201,
 		counter = true,
 	})
 	local box: TextBox = field.input
@@ -104,8 +137,8 @@ function Identity.build(page: ScrollingFrame, ctx: any)
 	validate()
 
 	-- Last Name
-	components.sectionHeader(page, "Last Name", 5)
-	local surname = components.identityBlock(page, "SurnameBlock", "Change Last Name", 6)
+	components.sectionHeader(page, "Last Name", 300)
+	local surname = components.identityBlock(page, "SurnameBlock", "Change Last Name", 301)
 	surname.change.setPrice(defs.Products.RerollSurname.RobuxPrice)
 	ctx.onAttribute("Surname", function(key: string?, changed: boolean)
 		local def = key and defs.Surnames[key]
@@ -123,6 +156,7 @@ function Identity.build(page: ScrollingFrame, ctx: any)
 	surname.change.button.Activated:Connect(function()
 		task.spawn(rerollFlow, ctx, surname, "Surname")
 	end)
+	oddsList(ctx, page, "All Last Names", defs.Surnames, "Surname", 400)
 end
 
 return Identity

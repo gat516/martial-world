@@ -24,6 +24,7 @@ local dummy: Model
 local base: CFrame
 local hairs: { [number]: Accessory } = {} -- by Hair tab slot
 local avatarSkin: Color3? = nil -- the avatar's skin, for when there's no character to copy
+local chosenSkin: Color3? = nil -- a SkinColors pick; nil keeps the avatar's skin
 local yaw, target = START_YAW, START_YAW
 local dragging: InputObject? = nil
 local lastX = 0
@@ -31,13 +32,15 @@ local stepper: RBXScriptConnection? = nil
 
 -- The local player's skin on the dummy, from their character or, before one
 -- has spawned, from their avatar (Preview.setSkin).
+-- A skin picked on the Clothes tab (Preview.chooseSkin) wins over both.
 local function copySkin()
 	local character = Players.LocalPlayer and Players.LocalPlayer.Character
-	if not character then
-		if avatarSkin then
+	local flat = chosenSkin or (if character then nil else avatarSkin)
+	if flat or not character then
+		if flat then
 			for _, part in dummy:GetChildren() do
 				if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-					part.Color = avatarSkin
+					part.Color = flat
 				end
 			end
 		end
@@ -157,6 +160,12 @@ end
 -- The avatar's skin colour, used while the player has no character yet.
 function Preview.setSkin(color: Color3?)
 	avatarSkin = color
+	copySkin()
+end
+
+-- The skin picked on the Clothes tab (nil goes back to the avatar's own).
+function Preview.chooseSkin(color: Color3?)
+	chosenSkin = color
 	copySkin()
 end
 

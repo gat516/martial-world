@@ -20,7 +20,7 @@ function Confirm.build(page: ScrollingFrame, ctx: any)
 
 	components.sectionHeader(page, "Your Character", 1)
 	local rows = {}
-	for order, key in { "Shirt", "Pants", "Hair ID", "Hair Color", "Race", "First Name", "Last Name" } do
+	for order, key in { "Shirt", "Pants", "Skin", "Hair ID", "Hair Color", "Race", "First Name", "Last Name" } do
 		rows[key] = components.summaryRow(page, key, 1 + order)
 	end
 	local reason = components.note(page, "", 20, "Reason")
@@ -40,6 +40,8 @@ function Confirm.build(page: ScrollingFrame, ctx: any)
 
 		rows.Shirt.set(if shirt then shirt.DisplayName else "-")
 		rows.Pants.set(if pants then pants.DisplayName else "-")
+		local skin = find(defs.SkinColors, state:get("SkinColor"))
+		rows.Skin.set(if skin then skin.DisplayName else "-", skin and skin.Color)
 		rows["Hair ID"].set(if #hairIds > 0 then table.concat(hairIds, ", ") else "None")
 		rows["Hair Color"].set(if color then color.DisplayName else "-", color and color.Color)
 		rows.Race.set(if race then race.DisplayName else "...", nil, race and race.Rarity, defs.Rarities)

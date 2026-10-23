@@ -100,7 +100,7 @@
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>440</XO><YS>0</YS><YO>35</YO></UDim2>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://109654303489676</url></Content>
+       <Content name="Image"><url>rbxassetid://104821601185231</url></Content>
       </Properties>
       </Item>
       <Item class="TextLabel" referent="RBX15"><Properties>

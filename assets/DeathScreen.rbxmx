@@ -14,6 +14,7 @@
    <bool name="Visible">false</bool>
    <Content name="Image"><url>rbxassetid://101629899434809</url></Content>
    <float name="ImageTransparency">0.3</float>
+   <BinaryString name="AttributesSerialize">AgAAAAoAAABMaW50SWdub3JlAhQAAABvdmVyc2l6ZSxlZGdlLW1hcmdpbhAAAABMaW50SWdub3JlUmVhc29uAkoAAABmdWxsLXNjcmVlbiBzb2Z0IHZpZ25ldHRlOyBhIHNtb290aCBncmFkaWVudCB1cHNjYWxlcyB3aXRob3V0IHZpc2libGUgbG9zcw==</BinaryString>
   </Properties>
   </Item>
   <Item class="Frame" referent="RBX3"><Properties>
@@ -56,6 +57,7 @@
       <UDim2 name="Size"><XS>0</XS><XO>1280</XO><YS>0</YS><YO>320</YO></UDim2>
       <Content name="Image"><url>rbxassetid://107683658291420</url></Content>
       <float name="ImageTransparency">0.12</float>
+      <BinaryString name="AttributesSerialize">AgAAAAoAAABMaW50SWdub3JlAg0AAABvdmVyc2l6ZSxjbGlwEAAAAExpbnRJZ25vcmVSZWFzb24CkwAAAHNvZnQgaW5rIHdhc2ggYmVoaW5kIHRoZSB0ZXh0LCB3aWRlciB0aGFuIGEgcGhvbmUgY2FudmFzIG9uIHB1cnBvc2U7IGl0IGZhZGVzIG91dCBiZWZvcmUgdGhlIGVkZ2UsIHNvIG5laXRoZXIgdGhlIHVwc2NhbGUgbm9yIHRoZSBzY3JlZW4gZWRnZSBzaG93cw==</BinaryString>
      </Properties>
      </Item>
      <Item class="Frame" referent="RBX10"><Properties>
@@ -98,9 +100,9 @@
        <string name="Name">Divider</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">2</int>
-       <UDim2 name="Size"><XS>0</XS><XO>440</XO><YS>0</YS><YO>35</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>452</XO><YS>0</YS><YO>47</YO></UDim2>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://104821601185231</url></Content>
+       <Content name="Image"><url>rbxassetid://122351460606213</url></Content>
       </Properties>
       </Item>
       <Item class="TextLabel" referent="RBX15"><Properties>

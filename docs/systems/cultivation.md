@@ -59,7 +59,11 @@ felt in fights.
   `WorldFX.Tribulation`): a storm wheel of cloud arcs over the platform with lightning
   flickering inside round an eye, a seal and closing ring under each telegraph, the bolt
   and its impact and scorch, and on success gold light pouring through as the clouds part
-  ([tribulation look](../vfx/world_events/tribulation.md)).
+  ([tribulation look](../vfx/world_events/tribulation.md)). The strikes are planned up
+  front (`schedule`: the interval shrinks from `intervalStart` to `intervalEnd`), so
+  the start tells clients how many there are; on screen the challenger gets the
+  Heaven's Decree card and a strikes-left counter, spectators a short ribbon
+  (`src/client/Events/TribulationView.luau`, [world events UI](../ui/world-events.md)).
 - `src/server/Progression.luau`: insight and technique manuals from kills, and
   `comprehend` (spends insight and stones to break a technique's bottleneck).
 - `src/server/QiNodes.luau`: raw qi (and stones) from wilds nodes.

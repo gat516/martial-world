@@ -75,7 +75,9 @@ cursor, settings and the admin panel.
 - UI work goes through the `ui-designer` subagent (AGENTS.md). GUIs are authored in
   Studio via MCP and exported to `assets/Hud.rbxmx`, `Rewards.rbxmx`, `Prompts.rbxmx`,
   `Veil.rbxmx` (full-screen, no safe insets, above everything),
-  `CharacterCreator.rbxmx` (the join screen, see [character creator](character-creator.md));
+  `CharacterCreator.rbxmx` (the join screen, see [character creator](character-creator.md)),
+  `Events.rbxmx` (world events, tribulation, rifts, leaderboards; built by
+  `tools/events_ui_build.luau`);
   scripts only find and fill them.
 - Generated art (Codex, the UI overhaul) is never repainted: `tools/ui_assemble.py`
   cuts `art/ui/codex/<name>.png` (the names in its `PIECES` and `ICON_SHEETS`, the
@@ -101,6 +103,8 @@ cursor, settings and the admin panel.
 - [Boss health bar](../ui/boss-bars.md)
 - [Dialogue ornaments](../ui/dialogue-ornaments.md)
 - [Character window](../character/character-window.md)
+- [World events, tribulation and rifts](../ui/world-events.md) (`StarterGui.Events`)
+- [Leaderboards, path crests and the Blood Sect skin](../ui/leaderboards.md)
 
 ## Key files (all `src/client/`)
 - `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal
@@ -118,6 +122,8 @@ cursor, settings and the admin panel.
   (slot painting, weapon art, the weapon badge), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
+- `Events/` (`StarterGui.Events`, fitted by `UiScale`): `Gui` (slots, templates, the
+  herald queue), `WorldEventView`, `TribulationView`, `RiftCard`, `Leaderboards`, `Themes`.
 - Boss health bar: `BossBars.luau` drives `Play.BossBar`; themes in
   `BossThemes.luau`, boss pick in `EnemyBars.luau`. See [boss bar](../ui/boss-bars.md).
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`

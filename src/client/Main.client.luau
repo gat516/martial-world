@@ -65,6 +65,7 @@ local ScrollHint = require(script.Parent.ScrollHint)
 local SeatBars = require(script.Parent.SeatBars)
 local Nameplates = require(script.Parent.Nameplates)
 local CharacterCreator = require(script.Parent.CharacterCreator.Controller)
+local WorldEventView = require(script.Parent.Events.WorldEventView)
 local Config = require(ReplicatedStorage.Shared.Config)
 
 -- The character screen on join. Test place only: its GUI is mapped in
@@ -143,3 +144,6 @@ Music.init()
 EnemySounds.init()
 AmbientSounds.init()
 Nameplates.init()
+-- the Events screen: world-event heralds, trackers and pins (tribulation cards come
+-- through CombatController; Events.Leaderboards and Events.RiftCard wait for their systems)
+WorldEventView.init()

@@ -85,6 +85,12 @@ For the setting and where each zone, beast and event ground is, see
   drawn client-side from the published position).
 - `src/client/WorldEventFX.luau` draws the AuspiciousClouds kinds; details in
   [event-fx](../world/event-fx.md).
+- `src/client/Events/WorldEventView.luau` puts every running event on screen from the
+  same attribute: an event scroll that unrolls with its name when it starts, a
+  countdown ring with the time left at the top centre, a coloured pin over its spot
+  and an edge chip pointing to it when it's off screen
+  ([world events UI](../ui/world-events.md)). The announce toast still carries the
+  flavour line.
 - `src/server/Treasures.luau`: treasures on the wilds' event grounds when weather with
   `treasures` starts; first claim keeps it. Each birth is published in the workspace
   attribute `HeavenlyTreasures` (JSON `{ key, at, color, weather, born }`) and drawn by

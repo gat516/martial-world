@@ -852,5 +852,248 @@
       }
     ],
     "flags": []
+  },
+  "ornament_board_header": {
+    "sheet": "b3/notice_board",
+    "size": [
+      845,
+      159
+    ],
+    "source_box": [
+      54,
+      263,
+      899,
+      422
+    ],
+    "tiles": [
+      {
+        "file": "ornament_board_header.png",
+        "x": 0,
+        "width": 845,
+        "height": 159
+      }
+    ],
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_board_header_capL.png",
+        "size": [
+          237,
+          159
+        ]
+      },
+      "mid": {
+        "file": "ornament_board_header_mid.png",
+        "size": [
+          32,
+          159
+        ]
+      },
+      "capR": {
+        "file": "ornament_board_header_capR.png",
+        "size": [
+          234,
+          159
+        ]
+      }
+    }
+  },
+  "ornament_notice_paper": {
+    "sheet": "b3/notice_board",
+    "size": [
+      500,
+      584
+    ],
+    "source_box": [
+      981,
+      63,
+      1481,
+      647
+    ],
+    "tiles": [
+      {
+        "file": "ornament_notice_paper.png",
+        "x": 0,
+        "width": 500,
+        "height": 584
+      }
+    ],
+    "flags": []
+  },
+  "ornament_notice_torn": {
+    "sheet": "b3/notice_board",
+    "size": [
+      500,
+      600
+    ],
+    "source_box": [
+      1607,
+      62,
+      2107,
+      662
+    ],
+    "tiles": [
+      {
+        "file": "ornament_notice_torn.png",
+        "x": 0,
+        "width": 500,
+        "height": 600
+      }
+    ],
+    "flags": []
+  },
+  "ornament_crest_outer": {
+    "sheet": "b3/rank_crests",
+    "size": [
+      536,
+      508
+    ],
+    "source_box": [
+      71,
+      83,
+      607,
+      591
+    ],
+    "tiles": [
+      {
+        "file": "ornament_crest_outer.png",
+        "x": 0,
+        "width": 536,
+        "height": 508
+      }
+    ],
+    "flags": []
+  },
+  "ornament_crest_inner": {
+    "sheet": "b3/rank_crests",
+    "size": [
+      584,
+      562
+    ],
+    "source_box": [
+      794,
+      59,
+      1378,
+      621
+    ],
+    "tiles": [
+      {
+        "file": "ornament_crest_inner.png",
+        "x": 0,
+        "width": 584,
+        "height": 562
+      }
+    ],
+    "flags": []
+  },
+  "ornament_crest_core": {
+    "sheet": "b3/rank_crests",
+    "size": [
+      631,
+      625
+    ],
+    "source_box": [
+      1516,
+      36,
+      2147,
+      661
+    ],
+    "tiles": [
+      {
+        "file": "ornament_crest_core.png",
+        "x": 0,
+        "width": 631,
+        "height": 625
+      }
+    ],
+    "flags": []
+  },
+  "ornament_contribution_token": {
+    "sheet": "b3/quest_tokens",
+    "size": [
+      444,
+      436
+    ],
+    "source_box": [
+      45,
+      128,
+      489,
+      564
+    ],
+    "tiles": [
+      {
+        "file": "ornament_contribution_token.png",
+        "x": 0,
+        "width": 444,
+        "height": 436
+      }
+    ],
+    "flags": []
+  },
+  "ornament_quest_scroll": {
+    "sheet": "b3/quest_tokens",
+    "size": [
+      566,
+      280
+    ],
+    "source_box": [
+      537,
+      252,
+      1103,
+      532
+    ],
+    "tiles": [
+      {
+        "file": "ornament_quest_scroll.png",
+        "x": 0,
+        "width": 566,
+        "height": 280
+      }
+    ],
+    "flags": []
+  },
+  "ornament_daily_seal": {
+    "sheet": "b3/quest_tokens",
+    "size": [
+      437,
+      442
+    ],
+    "source_box": [
+      1149,
+      128,
+      1586,
+      570
+    ],
+    "tiles": [
+      {
+        "file": "ornament_daily_seal.png",
+        "x": 0,
+        "width": 437,
+        "height": 442
+      }
+    ],
+    "flags": []
+  },
+  "ornament_weekly_seal": {
+    "sheet": "b3/quest_tokens",
+    "size": [
+      453,
+      433
+    ],
+    "source_box": [
+      1677,
+      122,
+      2130,
+      555
+    ],
+    "tiles": [
+      {
+        "file": "ornament_weekly_seal.png",
+        "x": 0,
+        "width": 453,
+        "height": 433
+      }
+    ],
+    "flags": []
   }
 }

@@ -65,6 +65,18 @@ The title crest has a cloud in the middle of its top edge, so it is cut in five 
 `Frame/Window`, `Frame/Title Crest`, `Button/Back Seal`, `Button/Checkbox`, `Button/Slider`,
 and `Button/Close Seal` reskinned with the new art.
 
+## Sheet B3: quest log and sect board
+Three multi-piece sheets under `art/ui/codex/b3/`, named in `PIECE_SHEETS`: `notice_board`
+(`board_header`, `notice_paper`, `notice_torn`: the torn, ink-smeared notice is the demon
+chain's clue), `rank_crests` (`crest_outer`, `crest_inner`, `crest_core`, all with an empty
+navy centre for an emblem) and `quest_tokens` (`contribution_token`, `quest_scroll`,
+`daily_seal`, `weekly_seal`; the two seals' centres are empty). The board header is a
+three-part piece; its wood is lit brighter in the middle than at the ends, so it is in
+`SLICE3_EDGE_STRIP` and its stretch strip comes from beside the left cap, which keeps both
+joins seamless. In the kit: the `Ornament/Quest & Sect/*` components and
+`Frame/Board Header` (live label over the stretched wood). The small red nick on the torn
+notice's left edge is in the generated art.
+
 ## Sheet A4: portraits are gray silhouettes
 NPC portraits are never shown painted (user, 2026-10-22: the painted busts looked bad).
 Each NPC is a flat gray silhouette of its figure, on transparency, so the Portrait frame

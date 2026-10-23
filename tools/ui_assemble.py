@@ -117,6 +117,9 @@ PIECE_SHEETS = {
     "a3/controls": ["scroll_thumb", "slider_knob", "checkbox", "checkmark"],
     "a3/corners": ["window_corner", "window_corner_small"],
     "a3/title_and_seals": ["title_crest", "close_seal", "back_seal"],
+    "b3/notice_board": ["board_header", "notice_paper", "notice_torn"],
+    "b3/rank_crests": ["crest_outer", "crest_inner", "crest_core"],
+    "b3/quest_tokens": ["contribution_token", "quest_scroll", "daily_seal", "weekly_seal"],
 }
 SHEET_GROUP_GAP = 16  # px; parts of one piece closer than this belong together
 SHEET_MIN_AREA = 400  # px; smaller islands are generator noise
@@ -214,7 +217,10 @@ def cut_piece_sheet(sheet, src):
 
 # Pieces with ornate ends and a plain middle (buttons, banners): also cut as left cap,
 # a narrow middle strip to stretch, and right cap, from the full-resolution art.
-SLICE3 = {"response_button", "response_button_hi", "prompt_banner", "title_crest"}
+SLICE3 = {"response_button", "response_button_hi", "prompt_banner", "title_crest", "board_header"}
+# Pieces whose plain middle is lit brighter than its ends (the notice board's wood): their
+# strip is taken next to the left cap, so both joins match, not from the bright centre.
+SLICE3_EDGE_STRIP = {"board_header"}
 SLICE3_TOL = (3, 6)  # smoothed alpha and brightness differences that still count as "plain"
 
 
@@ -246,7 +252,8 @@ def slice3(name, full, errs):
 
     left, right = span(w // 2)
     if right - left >= w * 0.2:
-        parts = {"capL": full[:, : left + 2], "mid": strip_at(w // 2, left, right), "capR": full[:, right - 1 :]}
+        c = left + 2 + 16 if name in SLICE3_EDGE_STRIP else w // 2
+        parts = {"capL": full[:, : left + 2], "mid": strip_at(c, left, right), "capR": full[:, right - 1 :]}
     else:
         # An ornament sits in the centre (a title crest's cloud): five parts, the two
         # plain stretches either side of it stretch equally.

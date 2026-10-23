@@ -31,7 +31,10 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
    the `.blend` and a README.
 4. **Import** in a sandbox, by a fresh agent with the sandbox's `studio_id`:
    - upload each FBX as a model (`tools/upload_asset.py model`) and the shade ramp
-     with the MCP's `upload_image`, then `insert_asset` each model as
+     with the MCP's `upload_image` (it only takes http URLs; when that's blocked,
+     reuse the shared ramp: build it with the fox's settings so it matches
+     `fox_shade.png` byte for byte and use `rbxassetid://124559907609415`), then
+     `insert_asset` each model as
      `Workspace._Import<Set>`. There's no manual FBX import step.
    - a `place_<race>_cosmetics.luau` script turns the imports into Accessories: the
      importer's RootPart becomes an invisible 0.2 Handle at the attachment, holding

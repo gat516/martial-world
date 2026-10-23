@@ -33,7 +33,7 @@ and `tools/vfx_texture_audit.py` (plus `enemy_fx_smoke` for cues) to zero FAIL,
 one six-moment sheet, a `visual-critic` round. "Thrown all over the place" and
 "spawns above the player" are what the origin check exists to catch. If the brief
 lacks a required field from [briefs](../../docs/agents/briefs.md), ask once and
-stop.
+stop. **Review mode:** `human` unless the brief says the user is away: lint, stage it, say your pick, end your turn; the critic loop only in `critic` mode (`visual-gate`, 0a).
 
 ## Read first
 

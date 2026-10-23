@@ -36,7 +36,7 @@ row body: it comes in as is), `check_rig`, `keyframe_test`, `tools/parts_audit.l
 and `tools/fidelity_check.py` against the reference to zero FAIL, one
 `model_shot` four-view plus the fidelity composite, a `visual-critic` round. If the
 brief lacks a required field from [briefs](../../docs/agents/briefs.md), ask once
-and stop.
+and stop. **Review mode:** `human` unless the brief says the user is away: lint, stage it, say your pick, end your turn; the critic loop only in `critic` mode (`visual-gate`, 0a).
 
 ## Read first
 

@@ -226,7 +226,8 @@ The user can't steer what they can't see (user, 2026-10-23).
 - **In the sandbox window:** every visual agent keeps `tools/review_stage.luau`
   showing its current state (a model turning beside an R6, a clip or cast looping
   with effects and sounds, a UI screen with sample data) and refreshes it after
-  each build round. It never stops for a look; the user flags it if they want a
+  each build round, then names the stop call (`_G.reviewStage.stop()`) in its
+  report; [tools](../tools.md) has the modes. It never stops for a look; the user flags it if they want a
   change. Say in the brief when the user is away so variants get picked by the
   critic instead of waiting.
 - **In the app:** the title-bar menu > Background tasks lists running agents,

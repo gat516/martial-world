@@ -23,12 +23,14 @@ local ID = {
 	pin_jade = "rbxassetid://92544899232500",
 	pin_crimson = "rbxassetid://91686137821368",
 	pin_violet = "rbxassetid://105425408900947",
-	chip = "rbxassetid://138155653227573",
-	chipLeft = "rbxassetid://114252110178880",
+	plaqueL = "rbxassetid://118333801422561", -- the gold house plaque (docs/ui/ribbons.md)
+	plaqueMid = "rbxassetid://99954964250094",
+	plaqueR = "rbxassetid://137033002952842",
+	chevron = "rbxassetid://135150260758364",
 	decree = "rbxassetid://102556841868642",
-	ribbonL = "rbxassetid://87558172133894",
-	ribbonMid = "rbxassetid://70611511118059",
-	ribbonR = "rbxassetid://90935397356167",
+	ribbonL = "rbxassetid://84782963669301", -- the ruby house plaque (the cut tribulation_ribbon crowded its text)
+	ribbonMid = "rbxassetid://120248080624596",
+	ribbonR = "rbxassetid://104762954477486",
 	rift = "rbxassetid://82197237997542",
 	tagL = "rbxassetid://115422265874458",
 	tagMid = "rbxassetid://85077577596248",
@@ -194,7 +196,7 @@ local SLOTS = {
 		Tracker = { UDim2.new(0.5, 0, 0, 98), Vector2.new(560, 44), Vector2.new(0.5, 0) },
 		Counter = { UDim2.new(0.5, 0, 0, 152), Vector2.new(56, 72), Vector2.new(0.5, 0) },
 		Chips = { UDim2.fromScale(0.5, 0.5), Vector2.new(844 - 24, 46), Vector2.new(0.5, 0.5) },
-		Decree = { UDim2.new(0.5, 0, 0, 68), Vector2.new(150, 192), Vector2.new(0.5, 0) },
+		Decree = { UDim2.new(0.5, 0, 0, 68), Vector2.new(180, 230), Vector2.new(0.5, 0) },
 		Rift = { UDim2.fromScale(0.5, 0.5), Vector2.new(250, 341), Vector2.new(0.5, 0.5) },
 		Board = { UDim2.fromScale(0.5, 0.5), Vector2.new(600, 350), Vector2.new(0.5, 0.5) },
 	},
@@ -249,19 +251,20 @@ do
 	}, root, 30, 14)
 end
 
--- Ribbon: the tribulation warning (dark band rows 0.226-0.667).
+-- Ribbon: the tribulation warning, the ruby house plaque (band rows 23-72 of 96);
+-- TribulationView fits it to the message (Ribbon.fit).
 do
 	local root = frame("Ribbon", { Size = UDim2.fromScale(1, 1) }, templates)
 	motion(root)
 	strip(root, {
-		{ "CapL", ID.ribbonL, 322, 177 },
-		{ "Mid", ID.ribbonMid, 32, 177, true },
-		{ "CapR", ID.ribbonR, 290, 177 },
+		{ "CapL", ID.ribbonL, 62, 96 },
+		{ "Mid", ID.ribbonMid, 32, 96, true },
+		{ "CapR", ID.ribbonR, 62, 96 },
 	})
 	text("Label", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.446),
-		Size = UDim2.fromScale(0.72, 0.3),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.72, 50 / 96),
 		ZIndex = 2,
 		FontFace = TITLE,
 		Text = "The heavens descend on Wei Lan",
@@ -306,27 +309,35 @@ do
 	}, root)
 end
 
--- Edge chip pointing at an off-screen event (plate 0.221-0.853 x, 0.26-0.83 y;
--- mirrored for the left edge).
-for _, side in { "Right", "Left" } do
-	local root = img("Chip" .. side, if side == "Right" then ID.chip else ID.chipLeft, { Size = UDim2.fromScale(4, 1) }, templates)
-	aspect(root, 475 / 147, Enum.DominantAxis.Height)
-	motion(root)
-	local cx = if side == "Right" then 0.537 else 0.463
+-- Edge chip for an off-screen event: the gold house plaque (WorldEventView fits it
+-- to the name and moves it along the screen's border) with the name and distance on
+-- one line, and the kit's gold chevron orbiting it, turned toward the event.
+do
+	local root = frame("EdgeChip", { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(204, 44) }, templates)
+	local plate = frame("Plate", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(204, 44),
+	}, root)
+	local art = frame("Art", { Size = UDim2.fromScale(1, 1) }, plate)
+	img("CapL", ID.plaqueL, { Size = UDim2.fromOffset(28, 44) }, art)
+	img("Mid", ID.plaqueMid, { Position = UDim2.fromOffset(28, 0), Size = UDim2.new(1, -56, 1, 0) }, art)
+	img("CapR", ID.plaqueR, { AnchorPoint = Vector2.new(1, 0), Position = UDim2.fromScale(1, 0), Size = UDim2.fromOffset(28, 44) }, art)
 	text("Title", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(cx, 0.44),
-		Size = UDim2.fromScale(0.56, 0.27),
-		Text = "Ginseng",
-	}, root, 16, 10)
-	text("Distance", {
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.new(1, -90, 66 / 112, 0),
+		TextScaled = false,
+		TextSize = 16,
+		RichText = true,
+		Text = 'Ginseng  ·  <font color="#E6BE5C">240m</font>',
+	}, plate)
+	img("Pointer", ID.chevron, {
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(cx, 0.68),
-		Size = UDim2.fromScale(0.56, 0.22),
-		FontFace = NUMBER,
-		Text = "240m",
-		TextColor3 = GOLD,
-	}, root, 13, 10)
+		Position = UDim2.new(0.5, 114, 0.5, 0),
+		Size = UDim2.fromOffset(26, 16),
+		Rotation = -90,
+	}, root)
 end
 
 -- The pin over the event in the world (head 0.219-0.80 x, 0.243-0.703 y).

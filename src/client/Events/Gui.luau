@@ -64,8 +64,8 @@ function Gui.slot(name: string): Frame
 	return layout:FindFirstChild(name) :: Frame
 end
 
--- A fresh copy of a template (EventScroll, Ribbon, TrackerEntry, ChipRight,
--- ChipLeft, EventPin, Decree, StrikeCounter, RiftCard, RiftTag, Board, Row, RowYou).
+-- A fresh copy of a template (EventScroll, Ribbon, TrackerEntry, EdgeChip,
+-- EventPin, Decree, StrikeCounter, RiftCard, RiftTag, Board, Row, RowYou).
 function Gui.clone(name: string): any
 	Gui.init()
 	return (templates:FindFirstChild(name) :: Instance):Clone()

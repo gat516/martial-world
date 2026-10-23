@@ -2,34 +2,69 @@
 
 Covers the `RampagingTiger` technique effect (templates `RampagingTiger_T1..T4`, spec `tools/vfx_specs/RampagingTiger.luau`, `TechniqueFX.RampagingTiger`); read it when changing that effect, with the shared pipeline in [technique visuals](../technique-visuals.md) (weapon-skill helpers: `BladeSkill`, `WeaponFX`, swing/cancel/punch/rend).
 
-Templates `RampagingTiger_T1..T4`, authored at radius 10
-around the caster; `TechniqueFX.RampagingTiger`. Tawny amber qi over black
-brush-ink, white-gold core at IV. Every cut flashes three claw strokes in the
-air (`Claw`: amber Beams over ink, diagonal for Hit 1, vertical for the spin
-hits and the landing) and an impact on each enemy in the circle. Leap: a
-torus and dust ring. II+ while the blade wheels (1.0-1.78 clip) a spinning
-amber swirl ring stands in its circle at the right side (`Wheel`, sized to
-the blade's reach; III+ a counter-turning ForceField ring, embers). Landing
-(last hit): flash where the blade bites, three claw rends fanned forward
-(`Gouge`/`GougeKicks`, `BladeSkill.rend`), roar rings thrown forward (1/1/2/3), a torus
-shockwave to the radius, heavy impacts by the front; III+ Craters rock
-ring, cracks, rock kicks; IV a giant claw over the strike, a swirl shell,
-the one PointLight, impact frames and a quake. Remade 2026-10-21 on the
-saber and the clip's markers: the windup (0 -> Hit 1, 0.48 s) is a `Charge`
-along the dadao's Base -> Tip (dark beam under an amber one, motes, a point
-glint) instead of a hand gather; each cut (Hit 1-3) and the landing (Hit 4)
-flare on the live blade tip as the marker fires (`Flare`: cross glint,
-star-burst flipbook over an ink splat, sparks; 1.5x at the landing); and the
-landing's heavy impacts are squeezed into Hit 4 -> Hit Stop 4 (0.117 s,
-`WeaponFX.landing`) rather than following the 0.46 s torus out to r 10. All
-hits also get the shared ink splat and star-burst flipbook. QA pass
-2026-10-21: each Hit marker fires with the dadao still raised (Hit 1 has the
-point behind the head), so the claws, flares and impacts of every cut and the
-landing fire at the swing's peak inside its Hit window (`WeaponFX.swing`),
-the flare facing the swing; the landing bites under the point at contact;
-the Neon gouges are three claw rends (carved cracks under amber seams that
-cool; the middle one kicks dust and chips); impact frames from III; a
-hit-pause punch on the landing at II+; shake 1.1 / 1.8 / 2.8 / 3.8; a
-cancelled cast no longer leaves its template copy behind. Layers T1 / T4:
-charge 8 / 8, cut flare 6 / 7, claw 12, impact 10 / 17, landing 8 / 14,
-rends 9 / 14.
+Templates `RampagingTiger_T1..T4`, authored at radius 10 around the caster;
+`TechniqueFX.RampagingTiger`. Tawny amber qi over black brush-ink, white-gold
+core at IV. Heavy pass 2026-10-23: the spec header holds the intent, beat sheet
+and layer sheet; the animation, markers and def are untouched (the def's
+weapon is the Saber / dadao).
+
+**Beats** (clip markers drive them; real ms at castSpeed 1): the Charge along
+the dadao (0-480); Hit 1 at 480, the diagonal cut; the Leap at 950; the wheel
+1000-1780 (spin hits 1033, 1317); the landing cleave at 1783, the one peak;
+follow-through to ~2200, dissipation to ~3500.
+
+**Shipped look: direction A, "Tiger's claws"** (`spec.variant = "A"`):
+- Every cut: three claw strokes (`Claw`, amber Beams over ink) in world space,
+  running along the caster's look into the circle in a plane standing on that
+  line, rolled -35 deg for Hit 1's diagonal and upright for the spin hits; a
+  tip flare (`Flare`: ink splat, star-burst flipbook, glint, all flat in the
+  claws' plane; sparks) at the blade's peak; a light impact per enemy.
+- Leap: a ragged wind-ring mesh and a dust ring at the feet.
+- The wheel (all tiers): `Wheel` stands in the blade's circle at the right
+  side; each `Wheel*` emitter (VelocityPerpendicular, so it lies in the wheel
+  plane) fires once per `Step` degrees the tip turns, sized to the blade's
+  reach and rolled to the tip's angle (`RollSign` -1, `RollOffset`), so claw
+  crescents (2x2 flipbook, amber over ink) tear round behind the tip. III+
+  embers.
+- Landing (Hit 4, at the swing's peak): the HERO is a giant three-claw rake on
+  `Cleave`, a world-space plane along the cut (normal = swing x blade, kept
+  near level; each emitter rolled by the swing's angle, clamped +-35 deg), on
+  an ink copy: edge-on from behind, the full rake from the side. Then the core
+  flash, an ink splat on the ground, chips, the tip flare in the cut's plane,
+  three claw rends torn forward (`Gouge`/`GougeKicks`, `BladeSkill.rend`), a
+  ragged shock ring and dust wall to r 10 (`Slam`; heavy impacts as the front
+  reaches each enemy), III+ Craters rock ring and cracks, IV the one
+  PointLight (2.5, 0.5 s). Hit-pause punch II+, shake 1.1 / 1.8 / 2.8 / 3.8,
+  impact frames III+.
+- Cut in this pass: the torus waves, the forward "roar" rings, the IV giant
+  Beam claw, the IV swirl shell dome, the flat hit-ring splash.
+- **No camera-facing shapes** (user, 2026-10-23): every shaped layer lies in a
+  world plane set by the cut. Only round dust, motes, chips, sparks, the blade
+  glow beams and the shared per-enemy impact (`impactStack`) face the camera.
+  Built from library textures, flipbooks and meshes on emitters and beams;
+  parts are invisible carriers only.
+
+**Direction B, "Ink-brush cleave"** (`spec.variant = "B"`, finished): the
+wheel is an ink ensō with an amber edge (brush crescent, longer life); the
+landing hero is a huge brush stroke in the cut's plane over an umber dust
+burst, with the same splat, rends and shock. Switch in the sandbox with
+`_G.vfxSpecs.RampagingTiger.variant = "B"` then `.build(ReplicatedStorage.Effects.RampagingTiger)`.
+
+**Sounds** (`SoundService.SFX.Techniques.RampagingTiger`, library ids, played
+with `Sfx.play` at the beat and position): `Cut` (Swing (7), Hit 1),
+`SpinCut` (Swing (3), Hits 2-3), `Hit` per enemy (gap 0.05), `Leap`
+(WindWoosh, at the feet), `Whirl` (Magic WHOOSH, follows the wheel, cut at its
+end), and at the bite `Bite` (Energy Sword Impact), `Slam` (Earth Slam, the
+loudest) and III+ `Rumble` (Earthquake Debris).
+
+**Layer counts** (emitters + beams per template): T1 53, T2 59, T3 66, T4 67;
+per beat at T4: cut 3 claw strokes x2 beams + flare 4,
+wheel 2 (+ embers), landing hero 2 + strike 3 + slam 2-4 + rends.
+
+**Open items**
+- B is slated to become Inkfall Cleave: its own def, templates and
+  TechniqueFX module; the look is finished here.
+- The per-enemy impact stack (shared `impactStack`) still faces the camera;
+  ask before reorienting it, it is shared by every technique.
+- Untested in play: feel at speed, the sounds' mix, phone cost, the rake's
+  roll on real swings (Edit-mode previews scrub the clip).

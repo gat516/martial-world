@@ -20,7 +20,7 @@
 --                             unlocks, resolved by the server's Traits.mechanics
 --                             registry (none are built yet; unknown ids are inert)
 --   Cosmetics                 optional accessory ids every member wears
---                             (ServerStorage.Cosmetics; see Traits/Racial.luau)
+--                             (ReplicatedStorage.Cosmetics; see Traits/Racial.luau)
 --
 -- Existing races (Human, Spirit Fox, Stone Spirit, Dragonblood) are placeholders
 -- from the character screen; the four after them were added 2026-10-23.
@@ -64,6 +64,7 @@ local Races: { [string]: Race } = {
 		Weight = 10,
 		Icon = "",
 		Modifiers = { health = 0.05, walk = -1 },
+		Cosmetics = { "StoneShards" },
 	},
 	Dragonblood = {
 		DisplayName = "Dragonblood",
@@ -71,6 +72,7 @@ local Races: { [string]: Race } = {
 		Rarity = "Legendary",
 		Weight = 3,
 		Icon = "",
+		Cosmetics = { "DragonHorns" },
 	},
 
 	BeastFolk = {
@@ -89,6 +91,7 @@ local Races: { [string]: Race } = {
 		Weight = 6,
 		Icon = "",
 		InnateTraits = { "DemonicQi" },
+		Cosmetics = { "DemonHorns" },
 	},
 	Ghost = {
 		DisplayName = "Ghost",
@@ -97,6 +100,7 @@ local Races: { [string]: Race } = {
 		Weight = 2,
 		Icon = "",
 		InnateTraits = { "Incorporeal" },
+		Cosmetics = { "GhostWisps" },
 	},
 	Giant = {
 		DisplayName = "Giant",

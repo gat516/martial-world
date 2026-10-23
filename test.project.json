@@ -10,6 +10,9 @@
       "Remotes": {
         "$path": "assets/Remotes.rbxmx"
       },
+      "Cosmetics": {
+        "$path": "assets/Cosmetics"
+      },
       "Nameplate": {
         "$path": "assets/Nameplate.rbxmx"
       },
@@ -816,9 +819,6 @@
       },
       "WaterKit": {
         "$path": "assets/WaterKit.rbxm"
-      },
-      "Cosmetics": {
-        "$path": "assets/Cosmetics.rbxm"
       },
       "WeaponModels": {
         "$path": "assets/WeaponModels.rbxm"

@@ -22,7 +22,7 @@ local Themes = {}
 -- the Figma kit's `Export / Roblox Boss Bar` sheet). A boss's own motif frame
 -- goes in its theme's `mount` once the Codex motif sheet is cut and composed.
 Themes.MOUNT = "rbxassetid://83502281009955" -- 560x104, PC
-Themes.MOUNT_PHONE = "rbxassetid://124885336851121" -- 280x52 (bossbar_mount_phone.png)
+Themes.MOUNT_PHONE = "rbxassetid://113383840348386" -- 280x52 (bossbar_mount_phone.png)
 
 export type Theme = {
 	title: string,

@@ -164,9 +164,17 @@ def build(src: Path, out: Path, angle: float, ruby_size: float, ruby_cx: float, 
     for name, img in (("bossbar_plate", plate), ("bossbar_mount", mount)):
         full = Image.fromarray(np.clip(img, 0, 255).round().astype(np.uint8), "RGBA")
         for suffix, (w, h) in SIZES.items():
+            piece = full
+            if name == "bossbar_mount" and suffix == "_phone":
+                # phones drop the plaque and its curls (ornament shrinks first): at
+                # ~270 px the plaque held the name to 11 px, so the name stands as
+                # live text in that band instead (BossBars.applyDevice)
+                arr = np.asarray(full).copy()
+                arr[: round(PLAQUE_KEEP * K)] = 0
+                piece = Image.fromarray(arr, "RGBA")
             pad = round(PAD_TOP * w / BOX_W)
             padded = Image.new("RGBA", (w, h + pad))
-            padded.paste(full.resize((w, h), Image.LANCZOS), (0, pad))
+            padded.paste(piece.resize((w, h), Image.LANCZOS), (0, pad))
             padded.save(out / f"{name}{suffix}.png")
     geo = {
         "angle": angle,

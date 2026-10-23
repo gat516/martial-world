@@ -12,15 +12,23 @@ pulses; small, short hit and phase feedback; smaller on phones.
 
 ## Design (2026-10-23, slim pass; user: "lighter slant, straight cuts, smaller on phones with the name only")
 `BossBars.luau` drives `Play.BossBar`: a plain Frame (not a CanvasGroup: its render
-texture softened the whole bar, "looks kinda low res") at the top centre (y 64), laid out
+texture softened the whole bar, "looks kinda low res") at the top centre, laid out
 on a 560x104 box (`UIAspectRatioConstraint` 5.385, `MaxSize` 560x104). PC: 0.44 of the
 width, so the full 560x104. Phones (`UiScale.isPhone()`, decided once): 0.36 of the Hud's
-safe-area width, about 270x50 on an 844x390 phone, showing only the name plaque and the
-bar; the realm line is hidden, and the intro's title and omen get a larger label
-(0.9x0.28 of the box) so they stay readable while they show. Top to bottom:
+safe-area width, about 270x50 on an 844x390 phone (iPhone 13 landscape), showing only the
+name and the bar: the phone mount has no plaque (at that width the plaque held the name
+to 11 px, so the ornament went and the name stands as live text across the band, 0.7x0.3
+of the box, 15 px on an 844 phone, 13 px on a 667 one), the realm line is hidden, and the
+intro's title and omen get a larger label (0.9x0.28 of the box) so they stay readable
+while they show.
+Height: the bar sits up in the top bar's row (y 12, level with the top-right tiles)
+whenever it clears the tiles and Roblox's own top-bar buttons by 8 px, else at its
+authored y 64 under the row (`placeLift`, tweened 0.22 s). PC always clears them. On a
+phone the tiles fold down to Inventory and Settings in combat (`TileFold`, the player's
+`InCombat` attribute), which frees the room; the lift reads the fold's end state, so it
+moves with the fold. Toasts treat the bar as an obstacle and go under it. Top to bottom:
 - the kit's name plaque (brown lacquer plate with `curl_diamond` scroll ends) with the
-  boss name live on it (`NameLabel`, Merriweather, max 18 px; on phones 0.34x0.22 of the
-  box, about 11 px text on an 844 phone, 9 px on a 667 one);
+  boss name live on it (`NameLabel`, Merriweather, max 18 px);
 - the bar: a dark navy plate with a thin gilt rim (the vitals mount's body), a trough
   whose right end leans 15 degrees from vertical, straight segment cuts every tenth, a
   small gold diamond cap on the left end and the kit ruby stud (30 px) as the matching
@@ -59,7 +67,7 @@ The PNGs are made by `tools/boss_bar_reshape.py` from the sheet's last 45-degree
 body, gilt and trough from that export's own columns along the new outline, redraws the
 1 px rim and the cuts, places the kit's `ornament_ruby_stud` cut, and writes
 `art/ui/figma/boss/bossbar_plate.png`, `bossbar_mount.png` (560x108) and `*_phone.png`
-(280x54), each with its top margin. To re-export from Figma instead (the sheet is current
+(280x54; the phone mount without the plaque), each with its top margin. To re-export from Figma instead (the sheet is current
 now): export the sheet at scale 2 twice with `download_assets` (as is, and with the
 sheet's fill set to black; set it back after), run `uv run --with pillow --with numpy
 python tools/figma_boss_export.py light.png dark.png`, then resize to the sizes above with
@@ -105,4 +113,4 @@ colours. The region banner stays quiet while a boss bar is up (both use the top 
   fox, jiao and ape fights and a real phone.
 - The boss bar keeps a slanted trough end while the vitals HUD uses pointed ends (user,
   2026-10-23); they stay different on purpose.
-- On a 667x375 phone the name renders about 9 px.
+- The lift and the tile fold are untested in play (the stage shows their end state).

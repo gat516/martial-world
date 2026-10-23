@@ -1,13 +1,13 @@
 --!nocheck
 -- Spirit Fox ears and tails: turns the six imported skinned FBX models into
--- Accessory templates in ReplicatedStorage.Cosmetics.Fox. Run in Edit mode through the
--- Studio MCP (execute_luau, paste the file) after inserting each set's model asset
--- (ASSETS below, uploaded with tools/upload_asset.py model) into Workspace as
--- `_Import<Set>`. It rebuilds the accessory of every set that has an import
--- (the others keep their current template, so re-importing just the ears is
--- fine), removes the old part-built FoxEars / FoxTail prototypes and deletes the
--- import models. One
--- ChangeHistoryService recording, so Ctrl+Z undoes it.
+-- Accessory templates in ReplicatedStorage.Cosmetics.Fox. Run in Edit mode in a SANDBOX
+-- (no Rojo) through the Studio MCP (execute_luau, paste the file) after inserting each
+-- set's model asset (ASSETS below, uploaded with tools/upload_asset.py model) into
+-- Workspace as `_Import<Set>`. It creates the Fox folder if it's missing, rebuilds the
+-- accessory of every set that has an import (the others keep their current template, so
+-- re-importing just the ears is fine), removes the old part-built FoxEars / FoxTail
+-- prototypes and deletes the import models. One ChangeHistoryService recording, so Ctrl+Z
+-- undoes it. Then export the folder to assets/Cosmetics/Fox.rbxm (README.md).
 --
 -- What the importer gives: a Model with an invisible `RootPart` (the FBX origin,
 -- which is the attachment point) holding the Bones (Root -> ...), the skinned
@@ -29,14 +29,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 
--- Uploaded model assets (tools/upload_asset.py model, 2026-10-23)
+-- Uploaded model assets (tools/upload_asset.py model, 2026-10-23: remade tails, reseated ears)
 local ASSETS = {
-	FoxTailPlume = 103142310298137,
-	FoxTailCrescent = 91533908538003,
-	FoxTailWisp = 95800596652636,
-	FoxEarsSleek = 98916068347166,
-	FoxEarsBroad = 124732163729948,
-	FoxEarsLong = 115950384313807,
+	FoxTailPlume = 71354378311713,
+	FoxTailCrescent = 98562055201314,
+	FoxTailWisp = 124262191773339,
+	FoxEarsSleek = 105185934344338,
+	FoxEarsBroad = 94717437969286,
+	FoxEarsLong = 76197929865694,
 }
 local SHADE = "rbxassetid://124559907609415" -- fox_shade.png (Studio MCP upload_image)
 
@@ -148,8 +148,17 @@ local rebuilt = {}
 local recording = ChangeHistoryService:TryBeginRecording("Fox cosmetics (skinned)")
 local ok, err = pcall(function()
 	local cosmetics = ReplicatedStorage:FindFirstChild("Cosmetics")
-	local folder = cosmetics and cosmetics:FindFirstChild("Fox")
-	assert(folder, "ReplicatedStorage.Cosmetics.Fox is missing")
+	if not cosmetics then -- a sandbox built before Cosmetics was mapped (never in a Rojo place)
+		cosmetics = Instance.new("Folder")
+		cosmetics.Name = "Cosmetics"
+		cosmetics.Parent = ReplicatedStorage
+	end
+	local folder = cosmetics:FindFirstChild("Fox")
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = "Fox"
+		folder.Parent = cosmetics
+	end
 	local built = {}
 	for _, setName in ORDER do
 		local imports = {}
@@ -160,6 +169,10 @@ local ok, err = pcall(function()
 		end
 		assert(#imports <= 1, `expected at most one Workspace._Import{setName}, found {#imports}`)
 		if imports[1] then
+			local link = imports[1]:FindFirstChildOfClass("PackageLink")
+			if link then
+				link:Destroy()
+			end
 			built[setName] = build(setName, SETS[setName], imports[1])
 			imports[1]:Destroy()
 		else

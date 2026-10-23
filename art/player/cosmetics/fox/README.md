@@ -191,24 +191,25 @@ Hinge data per bone (attachment space, Blender axes and Roblox) is in each JSON 
 
 | Set | Model asset (upload_asset.py model) |
 | --- | --- |
-| `FoxTailPlume` | `rbxassetid://103142310298137` |
-| `FoxTailCrescent` | `rbxassetid://91533908538003` |
-| `FoxTailWisp` | `rbxassetid://95800596652636` |
-| `FoxEarsSleek` | `rbxassetid://98916068347166` |
-| `FoxEarsBroad` | `rbxassetid://124732163729948` |
-| `FoxEarsLong` | `rbxassetid://115950384313807` |
+| `FoxTailPlume` | `rbxassetid://71354378311713` |
+| `FoxTailCrescent` | `rbxassetid://98562055201314` |
+| `FoxTailWisp` | `rbxassetid://124262191773339` |
+| `FoxEarsSleek` | `rbxassetid://105185934344338` |
+| `FoxEarsBroad` | `rbxassetid://94717437969286` |
+| `FoxEarsLong` | `rbxassetid://76197929865694` |
 
 `fox_shade.png` is `rbxassetid://124559907609415` (Studio MCP `upload_image`).
 
-All six ids above are older builds: the remade tails and the reworked ears (2026-10-23) still
-need uploading and placing.
+The ids are the remade tails and reseated ears (2026-10-23), placed and exported to
+`assets/Cosmetics/Fox.rbxm`.
 
 **Rebuild** (in a sandbox, no FBX import step):
 1. Upload the changed FBX with `python3 tools/upload_asset.py model <Set>.fbx` and put the new
    id in `place_fox_cosmetics.luau` (`ASSETS`).
 2. Insert each model asset into Workspace as `_Import<Set>` (Studio MCP `insert_asset`).
 3. Run `place_fox_cosmetics.luau` through `execute_luau`. It turns each import into the
-   Accessory `<Set>` in `ReplicatedStorage.Cosmetics.Fox` and deletes the imports. Sets without an
+   Accessory `<Set>` in `ReplicatedStorage.Cosmetics.Fox` (creating the folder if missing),
+   drops the inserted PackageLink and deletes the imports. Sets without an
    import keep their current template, so re-doing only the ears means uploading and
    inserting only the three ear sets.
 4. Export with `tools/export_rbxm.luau` (`_G.exportRbxm("ReplicatedStorage.Cosmetics.Fox")`) to
@@ -218,8 +219,9 @@ need uploading and placing.
 at the attachment point; it holds the `HatAttachment` / `WaistBackAttachment` and the bones
 (`Root` -> ...). The skinned MeshParts sit beside it, welded to it. Skinning works on a
 worn accessory: bending `Tail1..Tail5` or `EarL`/`EarR` (`Bone.Transform`) deforms the
-meshes, and `Model:ScaleTo(1.15)` scales meshes, bones and placement together (both
-checked in edit mode on R6 dummies). Animate the bones with `Bone.Transform` (curl about
+meshes, and `Model:ScaleTo(1.15)` scales meshes, bones and placement together (all checked in
+edit mode on R6 dummies from `CharacterCreatorGui.Templates.Dummy`, 2026-10-23: tails curled
+and ears folded, ear bases seated with no gap, bones and attachments exact at 1.15). Animate the bones with `Bone.Transform` (curl about
 local Z, wag about local X, ears fold about local Z and flick about local X).
 
 **Recolour.** Each MeshPart has a `Region` attribute (`FurOuter`, `FurInner`, `FurTip`) and a

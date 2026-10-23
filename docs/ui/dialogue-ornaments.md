@@ -38,3 +38,19 @@ Codex then redrew every A1 piece alone at full size (`art/ui/codex/a1/*.png`). T
 listed after `sheet_a1` in `PIECE_SHEETS`, so they win: the grey-blue ink clouds, the red
 chop-style seals (open centre), the redesigned vertical divider and sharper dividers and
 small plaque end. The kit uses them; the sheet cuts are the fallback.
+
+## Sheet A2 and three-part pieces
+Codex delivers one piece per file now (`art/ui/codex/a2/*.png`); the cutter picks up any
+one-piece file in a sheet folder automatically, named after the file, so no
+`PIECE_SHEETS` entry is needed. A2: `response_button`, `response_button_hi`,
+`prompt_banner`, `hold_ring`.
+
+Buttons and banners (`SLICE3` in the cutter) are also cut, from the full-resolution art,
+into `_capL`, `_mid` (a 32 px strip from the plain middle) and `_capR`. The split is where
+the shape and smoothed brightness stop matching the centre column, because generated
+middles carry painted texture and glow. Caps never stretch; the strip is stretched to fit
+the label (in Figma an image fill set to stretch, in Roblox a `ScaleType.Stretch` image or
+a `SliceCenter` over the three parts). In the kit, `Button/Response` and the new
+`Frame/Prompt Banner` are built this way; the left response cap holds the icon ring and
+the prompt's key letter is live text on the key plate. The red ribbon tip at each
+button's right end is in the generated art.

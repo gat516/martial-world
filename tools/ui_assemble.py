@@ -110,6 +110,10 @@ PIECE_SHEETS = {
     "a1/ink_cloud_wide": ["inkwash_b"],
     "a1/seal_square": ["seal_square"],
     "a1/seal_round": ["seal_round"],
+    "a2/response_button_normal": ["response_button"],
+    "a2/response_button_highlight": ["response_button_hi"],
+    "a2/interaction_prompt_banner": ["prompt_banner"],
+    "a2/hold_ring_track": ["hold_ring"],
 }
 SHEET_GROUP_GAP = 16  # px; parts of one piece closer than this belong together
 SHEET_MIN_AREA = 400  # px; smaller islands are generator noise
@@ -193,13 +197,58 @@ def cut_piece_sheet(sheet, src):
             errs.append("touches the sheet edge (clipped?)")
         pad = 2
         box = (max(0, x1 - pad), max(0, y1 - pad), min(w, x2 + pad), min(h, y2 + pad))
-        piece = fit(to_image(arr[box[1]:box[3], box[0]:box[2]]), MAX_TEX, MAX_TEX)
+        full = arr[box[1]:box[3], box[0]:box[2]]
+        piece = fit(to_image(full), MAX_TEX, MAX_TEX)
         f = f"ornament_{name}.png"
         piece.save(OUT / f)
         entries[f"ornament_{name}"] = {"sheet": sheet, "size": [piece.width, piece.height], "source_box": list(map(int, box)),
                                        "tiles": [{"file": f, "x": 0, "width": piece.width, "height": piece.height}], "flags": errs}
+        if name in SLICE3:
+            entries[f"ornament_{name}"]["slice3"] = slice3(name, full, errs)
         rows.append((f"{sheet}: {name}", src.crop(box), piece, errs, [], f"{piece.width} x {piece.height}"))
     return rows, entries
+
+
+# Pieces with ornate ends and a plain middle (buttons, banners): also cut as left cap,
+# a narrow middle strip to stretch, and right cap, from the full-resolution art.
+SLICE3 = {"response_button", "response_button_hi", "prompt_banner"}
+SLICE3_TOL = (3, 6)  # smoothed alpha and brightness differences that still count as "plain"
+
+
+def slice3(name, full, errs):
+    """Split a horizontal piece at the plain middle. Returns the caps' widths and files.
+
+    Generated middles carry painted texture and glow, so columns are compared by
+    shape (alpha) and brightness, each smoothed over 15 px along the length.
+    """
+    h, w = full.shape[:2]
+    kernel = np.ones(15) / 15
+    smooth = lambda a: np.array([np.convolve(row, kernel, mode="same") for row in a])
+    alpha = smooth(full[..., 3])
+    lum = smooth(full[..., :3].mean(-1) * full[..., 3] / 255)
+    c = w // 2
+    plain = (np.abs(alpha - alpha[:, [c]]).mean(0) < SLICE3_TOL[0]) & (np.abs(lum - lum[:, [c]]).mean(0) < SLICE3_TOL[1])
+    left = c
+    while left > 0 and plain[left - 1]:
+        left -= 1
+    right = c
+    while right < w - 1 and plain[right + 1]:
+        right += 1
+    if right - left < w * 0.2:
+        errs.append("no plain middle wide enough to stretch")
+    strip = max(8, min(32, (right - left) // 4))
+    parts = {
+        "capL": full[:, : left + 2],
+        "mid": full[:, w // 2 - strip // 2 : w // 2 + strip // 2],
+        "capR": full[:, right - 1 :],
+    }
+    out = {}
+    for part, a in parts.items():
+        im = fit(to_image(a), MAX_TEX, MAX_TEX)
+        f = f"ornament_{name}_{part}.png"
+        im.save(OUT / f)
+        out[part] = {"file": f, "size": [im.width, im.height]}
+    return out
 
 
 def key(im):
@@ -439,6 +488,12 @@ def main():
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     rows, missing = [], []
     failed = False
+    # One-piece images Codex drops into a sheet folder (art/ui/codex/a2/<piece>.png) are
+    # cut without a PIECE_SHEETS entry, named after the file.
+    for p in sorted(SRC.glob("*/*.png")):
+        key_name = f"{p.parent.name}/{p.stem}"
+        if p.parent.name != "cut" and key_name not in PIECE_SHEETS:
+            PIECE_SHEETS[key_name] = [p.stem]
     for name in list(PIECES) + list(ICON_SHEETS) + list(PIECE_SHEETS):
         if only and name not in only:
             continue

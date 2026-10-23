@@ -1,6 +1,6 @@
 --!nocheck
 -- Spirit Fox ears and tails: turns the six imported skinned FBX models into
--- Accessory templates in ServerStorage.Cosmetics. Run in Edit mode through the
+-- Accessory templates in ReplicatedStorage.Cosmetics.Fox. Run in Edit mode through the
 -- Studio MCP (execute_luau, paste the file) after inserting each set's model asset
 -- (ASSETS below, uploaded with tools/upload_asset.py model) into Workspace as
 -- `_Import<Set>`. It rebuilds the accessory of every set that has an import
@@ -26,7 +26,7 @@
 -- Recolour a region by setting both the MeshPart's Color and its
 -- SurfaceAppearance.Color (the SurfaceAppearance shows over the part colour).
 
-local ServerStorage = game:GetService("ServerStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 
 -- Uploaded model assets (tools/upload_asset.py model, 2026-10-23)
@@ -147,8 +147,9 @@ end
 local rebuilt = {}
 local recording = ChangeHistoryService:TryBeginRecording("Fox cosmetics (skinned)")
 local ok, err = pcall(function()
-	local folder = ServerStorage:FindFirstChild("Cosmetics")
-	assert(folder, "ServerStorage.Cosmetics is missing")
+	local cosmetics = ReplicatedStorage:FindFirstChild("Cosmetics")
+	local folder = cosmetics and cosmetics:FindFirstChild("Fox")
+	assert(folder, "ReplicatedStorage.Cosmetics.Fox is missing")
 	local built = {}
 	for _, setName in ORDER do
 		local imports = {}

@@ -6,6 +6,8 @@
 --                  field on the Hair tab, Rules.MAX_HAIRS of them), or nil
 --   HairColor      HairColors Id
 --   SkinColor      SkinColors Id ("Avatar" keeps the avatar's own skin)
+--   RaceLook       the race's free looks (Races.Looks): { [slot Id]: option Id };
+--                  a race change resets it to that race's defaults (Fate step)
 --   FirstName      the raw text in the field (checked with Rules.checkFirstName)
 --   Tab            the open tab's Id
 -- Race and last name are not here: they're the server's, read from the
@@ -22,6 +24,7 @@ export type Values = {
 	Hair3: number?,
 	HairColor: string,
 	SkinColor: string,
+	RaceLook: { [string]: string },
 	FirstName: string,
 	Tab: string,
 }
@@ -41,6 +44,7 @@ function State.new(defs: any): State
 			Hair3 = nil,
 			HairColor = defs.HairColors[1].Id,
 			SkinColor = defs.SkinColors[1].Id,
+			RaceLook = {},
 			FirstName = "",
 			Tab = "Appearance",
 		} :: Values,
@@ -54,14 +58,16 @@ function State.get(self: State, key: string): any
 end
 
 -- Starts over from a look (a slot's saved look, or nil for the defaults). Every
--- listener hears each value, so the tabs and the preview repaint.
-function State.load(self: State, defs: any, look: { [string]: any }?, firstName: string?)
+-- listener hears each value, so the tabs and the preview repaint. race: the
+-- slot's race, whose look picks are kept (others fall back to its defaults).
+function State.load(self: State, defs: any, look: { [string]: any }?, firstName: string?, race: string?)
 	local hairs = if look and type(look.HairIds) == "table" then look.HairIds else {}
 	local values = {
 		Shirt = look and look.Shirt or defs.Clothing.Shirt[1].Id,
 		Pants = look and look.Pants or defs.Clothing.Pants[1].Id,
 		HairColor = look and look.HairColor or defs.HairColors[1].Id,
 		SkinColor = look and look.SkinColor or defs.SkinColors[1].Id,
+		RaceLook = defs.Registry.lookPicks(race, look and look.RaceLook),
 		FirstName = firstName or "",
 	}
 	for key, value in values do
@@ -118,7 +124,7 @@ function State.missing(self: State, rules: any, race: string?, surname: string?)
 		table.insert(out, { tab = "Name", field = "FirstName", label = "first name" })
 	end
 	if not race or not surname then
-		table.insert(out, { tab = "Name", field = "Roll", label = "race and clan (still being drawn)" })
+		table.insert(out, { tab = "Fate", field = "Roll", label = "race and clan (still being drawn)" })
 	end
 	return out
 end
@@ -132,6 +138,7 @@ function State.look(self: State): { [string]: any }
 		HairIds = self:hairIds(),
 		HairColor = v.HairColor,
 		SkinColor = v.SkinColor,
+		RaceLook = v.RaceLook,
 		FirstName = v.FirstName,
 	}
 end

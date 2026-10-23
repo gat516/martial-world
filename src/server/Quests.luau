@@ -2,7 +2,8 @@
 -- Onboarding (the scripted first ten minutes) and the quest board.
 --
 -- Onboarding is a list of beats, one system each, kept by id (data.beats). Each
--- beat has a one-line elder line, a short objective, a condition checked every
+-- beat has a one-line elder line (beside the guide), a short conversation for
+-- when the player talks to the elder (`talk`), a short objective, a condition checked every
 -- second, and a guide: what the client should point at right now (a button to
 -- spotlight, maybe dimming the rest of the HUD, or a place to walk to). Players
 -- already past a beat skip straight through. After the last beat the objective
@@ -73,11 +74,17 @@ local REWARDS = Pacing.Quests
 
 export type Guide = { button: string?, to: string?, dim: boolean?, place: string?, point: boolean?, say: string? }
 
+-- What the elder says when the player talks to him (the dialogue screen,
+-- docs/ui/dialogue.md): 2-4 short lines and the player's reply (the lit
+-- response; "Farewell." is always offered too). One new idea, said plainly.
+export type Talk = { lines: { string }, reply: string }
+
 -- A rewarded objective. Beats and lessons are Quests with a few fields more;
 -- a future quest system's defs use the same shape.
 export type Quest = {
 	id: string, -- also its key in data.quests and Pacing.Quests
-	elder: string, -- the elder's one line when it begins
+	elder: string, -- the elder's one line when it begins (beside the guide)
+	talk: Talk?, -- the conversation when the player talks to him during it
 	objective: string, -- the objective line
 	progress: ((PlayerData.Data) -> string)?, -- shown after the objective, e.g. "1/3"
 	done: (Player, PlayerData.Data) -> boolean,
@@ -303,6 +310,14 @@ Quests.Beats = {
 		id = "Circulate",
 		reward = REWARDS.Circulate,
 		elder = "Welcome home, disciple. This peak is yours. Circulate the qi already stirring in your dantian.",
+		talk = {
+			lines = {
+				"Welcome home, disciple. This peak is yours now.",
+				"Qi already stirs in your dantian. Sit, and circulate it through your meridians.",
+				"Guide it out of the maze. Slowly; qi does not like to be rushed.",
+			},
+			reply = "I will try, Elder.",
+		},
 		objective = "Tap Cultivate, then Circulate, and guide your qi out of the maze",
 		done = function(_, data)
 			return data.stats.circulationRuns >= 1
@@ -315,6 +330,13 @@ Quests.Beats = {
 		id = "Breakthrough",
 		reward = REWARDS.Breakthrough,
 		elder = "Good. Your meridians brim with qi. Sit in meditation and break through!",
+		talk = {
+			lines = {
+				"Good. Your meridians brim with qi.",
+				"When your realm bar is full, sit in meditation and break through.",
+			},
+			reply = "I am ready.",
+		},
 		objective = "Fill your realm bar, then meditate and tap Break Through",
 		done = function(_, data)
 			return data.stats.breakthroughs >= 1
@@ -325,6 +347,13 @@ Quests.Beats = {
 		id = "Root",
 		reward = REWARDS.Root,
 		elder = "Qi flows in you now. Ride the teleport formation to the Main Peak and lay your hand on the Testing Stone. Let us see your spirit root.",
+		talk = {
+			lines = {
+				"Qi flows in you now. Next, let us see what root it grows from.",
+				"Ride the teleport formation to the Main Peak and lay your hand on the Testing Stone.",
+			},
+			reply = "To the Testing Stone.",
+		},
 		objective = "Travel to the Main Peak and touch the Testing Stone",
 		done = function(_, data)
 			return Roots.tested(data.root)
@@ -341,6 +370,14 @@ Quests.Beats = {
 		id = "Gate",
 		reward = REWARDS.Gate,
 		elder = "Your dantian is spent. Spirit wolves prowl just past the Sect Gate. Go, and take their qi!",
+		talk = {
+			lines = {
+				"Your dantian is spent. Sitting on a peak refills it too slowly.",
+				"Spirit wolves prowl just past the Sect Gate. Their qi is yours to take.",
+				"Ride the formation there. Go!",
+			},
+			reply = "I am going.",
+		},
 		objective = "Tap Travel, then Sect Gate",
 		done = function(player, _)
 			return nearGate(player)
@@ -353,6 +390,13 @@ Quests.Beats = {
 		id = "FirstKill",
 		reward = REWARDS.FirstKill,
 		elder = "Spirit wolves prowl beyond the gate. Strike them, and dodge when the ground glows red.",
+		talk = {
+			lines = {
+				"Strike the wolves, and watch the ground.",
+				"When it glows red, dodge. A wise disciple is never where the bite lands.",
+			},
+			reply = "I will be careful.",
+		},
 		objective = "Defeat a spirit wolf",
 		done = function(_, data)
 			return data.stats.kills >= 1
@@ -365,6 +409,13 @@ Quests.Beats = {
 		id = "Technique",
 		reward = REWARDS.Technique,
 		elder = "Every beast you slay teaches you something. Defeat a few more; a technique manual awaits.",
+		talk = {
+			lines = {
+				"Every beast you slay teaches you something.",
+				"Defeat a few more. A technique manual awaits the patient hunter.",
+			},
+			reply = "A few more, then.",
+		},
 		objective = "Defeat 3 enemies to earn a technique manual",
 		progress = function(data)
 			return `{math.min(data.stats.kills, 3)}/3`
@@ -382,6 +433,13 @@ Quests.Beats = {
 		id = "Refine",
 		reward = REWARDS.Refine,
 		elder = "Your dantian swells. Refine that qi at a glowing qi node, or back on your peak.",
+		talk = {
+			lines = {
+				"Your dantian swells, but raw qi is not yet your own.",
+				"Refine it: circulate at a glowing qi node, or back on your peak.",
+			},
+			reply = "I will refine it.",
+		},
 		objective = "Circulate at a qi node or on your peak",
 		-- a bar already full (passive cultivation while hunting) can't take a
 		-- run, so it moves on to QC3, which breaks through
@@ -396,6 +454,13 @@ Quests.Beats = {
 		id = "QC3",
 		reward = REWARDS.QC3,
 		elder = "First kills grant insight. You will need it to reach Qi Refining. Now break through again.",
+		talk = {
+			lines = {
+				"First kills grant insight. Every realm ahead will ask for it.",
+				"Fill your bar once more, and break through again.",
+			},
+			reply = "Again, then.",
+		},
 		objective = "Reach Qi Condensation 3",
 		done = function(_, data)
 			return stageIndex(data) >= 3
@@ -405,6 +470,15 @@ Quests.Beats = {
 	{
 		id = "FreePlay",
 		elder = "You walk the path on your own now. The quest board on the main peak holds your next goals.",
+		talk = {
+			lines = {
+				"The third stage already. Then hear the whole path once, and remember it.",
+				"Cultivate until you hit a wall. Go out and break it. Come home stronger.",
+				"Every realm is that, again and again.",
+				"The quest board on the Main Peak holds your next steps.",
+			},
+			reply = "I understand, Elder.",
+		},
 		objective = "",
 		done = function()
 			return false
@@ -419,6 +493,13 @@ Quests.Lessons = {
 		-- first so no standing lesson (DaoPractice holds for good) hides it
 		id = "RootPill",
 		elder = "A root pill! It can temper your very root. Sit in meditation, open your Spirit Root and absorb it.",
+		talk = {
+			lines = {
+				"A root pill! It can temper your very root.",
+				"Sit in meditation, open your Spirit Root, and absorb it.",
+			},
+			reply = "I will absorb it.",
+		},
 		objective = "Meditate, open Spirit Root and absorb the pill",
 		reward = REWARDS.RootPill,
 		-- not `early`: a pill absorbed mid-tutorial would purify the root the Testing
@@ -444,6 +525,13 @@ Quests.Lessons = {
 	{
 		id = "Home",
 		elder = "Your peak can grow with you. Plant a seed in your garden; herbs feed your cultivation and sell for Spirit Stones.",
+		talk = {
+			lines = {
+				"Your peak can grow with you.",
+				"Plant a seed in your garden. Herbs feed your cultivation and sell for Spirit Stones.",
+			},
+			reply = "I will plant one.",
+		},
 		objective = "Plant a seed in your garden",
 		reward = REWARDS.Home,
 		when = function(_, data)
@@ -465,6 +553,13 @@ Quests.Lessons = {
 	{
 		id = "Bottleneck",
 		elder = "Your technique has hit a bottleneck. Sit in meditation and comprehend it; insight opens the way.",
+		talk = {
+			lines = {
+				"Your technique has hit a bottleneck. Swinging harder will not break it.",
+				"Sit in meditation and comprehend it. Insight opens the way.",
+			},
+			reply = "I will sit with it.",
+		},
 		objective = "Meditate and comprehend your technique",
 		reward = REWARDS.Bottleneck,
 		when = function(_, data)
@@ -483,6 +578,13 @@ Quests.Lessons = {
 	{
 		id = "WeaponRack",
 		elder = "A cultivator need not keep to one blade. The sect's weapon rack on the Main Peak lends each disciple one weapon of every kind.",
+		talk = {
+			lines = {
+				"A cultivator need not keep to one blade.",
+				"The weapon rack on the Main Peak lends each disciple one weapon of every kind. Take one.",
+			},
+			reply = "I will choose one.",
+		},
 		objective = "Take a new kind of weapon from the Main Peak rack",
 		reward = REWARDS.WeaponRack,
 		when = function(_, data)
@@ -504,6 +606,13 @@ Quests.Lessons = {
 	{
 		id = "DaoPractice",
 		elder = "Your body is ready for more than brawling. While you meditate, practice your weapon's forms to deepen its Dao.",
+		talk = {
+			lines = {
+				"Your body is ready for more than brawling.",
+				"While you meditate, practice your weapon's forms. That is how its Dao deepens.",
+			},
+			reply = "I will practice.",
+		},
 		objective = "Meditate and practice your weapon's Dao",
 		reward = REWARDS.DaoPractice,
 		when = function(_, data)
@@ -520,6 +629,13 @@ Quests.Lessons = {
 	{
 		id = "Method",
 		elder = "A true cultivation method! See it on your Self card. Should you find others, switch between them while you meditate.",
+		talk = {
+			lines = {
+				"A true cultivation method! You can see it on your Self card.",
+				"Should you find others, switch between them while you meditate.",
+			},
+			reply = "Thank you, Elder.",
+		},
 		objective = "Gain a cultivation method",
 		reward = REWARDS.Method,
 		when = function(_, data)
@@ -742,6 +858,7 @@ local lastSent: { [Player]: string } = {}
 local sessionLessons: { [Player]: { [string]: boolean } } = {} -- lessons shown this session
 local claimed: { [Player]: string } = {} -- the early lesson holding the guide during the beats
 local pillsHeld: { [Player]: number } = {}
+local guidingNow: { [Player]: Lesson } = {} -- the lesson whose guide last showed (talk)
 
 local function key(guide: Guide?): string
 	if not guide then
@@ -798,7 +915,7 @@ local function earlyLesson(player: Player, data: PlayerData.Data, beatGuide: Gui
 	return nil, nil
 end
 
-local function push(player: Player, data: PlayerData.Data, repeatElder: boolean?)
+local function push(player: Player, data: PlayerData.Data)
 	local beat, index = current(data)
 	local guide: Guide? = if beat.guide then beat.guide(player, data) else nil
 	local lesson: Lesson? = nil -- a lesson saying its line now
@@ -811,6 +928,7 @@ local function push(player: Player, data: PlayerData.Data, repeatElder: boolean?
 			guide = guiding.guide(player, data)
 		end
 	end
+	guidingNow[player] = guiding
 	-- the objective line: a guiding lesson's (while unclaimed), the current
 	-- beat, the first open lesson, then the top quest board goal
 	local shown: Quest? = nil
@@ -837,13 +955,12 @@ local function push(player: Player, data: PlayerData.Data, repeatElder: boolean?
 		reward = reward, -- shown after the objective ("Reward: ...")
 		travel = Quests.travelUnlocked(data),
 		goals = Quests.goals(data),
-		repeatElder = repeatElder,
 		guide = guide,
 		lesson = if lesson then { id = lesson.id, elder = lesson.elder } else nil,
 	}
 	-- only send when something visible changed
 	local sendKey = `{payload.step}|{objective}|{reward or ""}|{#payload.goals}|{key(guide)}`
-	if lastSent[player] ~= sendKey or repeatElder or lesson then
+	if lastSent[player] ~= sendKey or lesson then
 		lastSent[player] = sendKey
 		questRemote:FireClient(player, payload)
 	end
@@ -886,19 +1003,44 @@ function Quests.check(player: Player)
 	end
 end
 
--- The elder repeats your current beat's line, or the top goal in free play.
+-- What the elder says when talked to: the current beat's conversation; in free
+-- play the guiding (or first open) lesson's while unclaimed, the loop once
+-- (FreePlay's talk, data.lessons.Loop), then the top quest board goal.
+-- `board` offers the quest board as a response (free play).
+-- A quest without its own conversation falls back on its elder line.
+local function talkOf(quest: Quest): Talk
+	return quest.talk or { lines = { quest.elder }, reply = "I understand, Elder." }
+end
+
+local function conversation(player: Player, data: PlayerData.Data): (Talk, boolean)
+	local beat = current(data)
+	if beat.id ~= "FreePlay" then
+		return talkOf(beat), false
+	end
+	local guiding = guidingNow[player]
+	local lesson = if guiding and not data.quests[guiding.id] then guiding else openLesson(player, data)
+	if lesson then
+		return talkOf(lesson), true
+	end
+	if not data.lessons.Loop then
+		data.lessons.Loop = true
+		return talkOf(beat), true
+	end
+	local top = Quests.goals(data)[1]
+	if top then
+		return { lines = { `Your next step: {top.name}.`, top.detail }, reply = "I will see to it." }, true
+	end
+	return { lines = { "Keep cultivating. The path is long, and you are on it." }, reply = "I will, Elder." }, true
+end
+
+-- The elder's Talk prompt: the client opens the dialogue screen (Onboarding).
 function Quests.talk(player: Player)
 	local data = PlayerData.get(player)
 	if not data then
 		return
 	end
-	local beat = current(data)
-	if beat.id == "FreePlay" then
-		local top = Quests.goals(data)[1]
-		Cultivation.notify(player, if top then `Elder Qingyun: "{top.detail}"` else `Elder Qingyun: "Keep cultivating."`)
-	else
-		push(player, data, true)
-	end
+	local talk, board = conversation(player, data)
+	questRemote:FireClient(player, { talk = { lines = talk.lines, reply = talk.reply, board = board } })
 end
 
 function Quests.start()
@@ -933,6 +1075,7 @@ function Quests.forget(player: Player)
 	sessionLessons[player] = nil
 	claimed[player] = nil
 	pillsHeld[player] = nil
+	guidingNow[player] = nil
 end
 
 return Quests

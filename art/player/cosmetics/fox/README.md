@@ -1,8 +1,9 @@
 # Spirit Fox cosmetics (Blender, skinned)
 
 Fox ears and fox tails for the Spirit Fox race's R6 avatar. Three tails and three ear shapes
-ship as the Spirit Fox variants Plume (Plume + Sleek), Crescent (Crescent + Broad) and Wisp
-(Wisp + Long) (`src/shared/Identity/Variants/SpiritFox.luau`); any ears go with any tail.
+ship as the Spirit Fox race's free Looks, Tail (Plume, Crescent, Wisp) and Ears (Sleek,
+Broad, Long), picked separately on the creator's Fate step (`Looks` in
+`src/shared/Identity/Races.luau`); any ears go with any tail.
 
 | Set | Attaches to (R6) | Meshes (one MeshPart each) | Tris |
 | --- | --- | --- | --- |
@@ -207,11 +208,11 @@ need uploading and placing.
    id in `place_fox_cosmetics.luau` (`ASSETS`).
 2. Insert each model asset into Workspace as `_Import<Set>` (Studio MCP `insert_asset`).
 3. Run `place_fox_cosmetics.luau` through `execute_luau`. It turns each import into the
-   Accessory `<Set>` in `ServerStorage.Cosmetics` and deletes the imports. Sets without an
+   Accessory `<Set>` in `ReplicatedStorage.Cosmetics.Fox` and deletes the imports. Sets without an
    import keep their current template, so re-doing only the ears means uploading and
    inserting only the three ear sets.
-4. Export with `tools/export_rbxm.luau` (`_G.exportRbxm("ServerStorage.Cosmetics")`) to
-   `assets/Cosmetics.rbxm`.
+4. Export with `tools/export_rbxm.luau` (`_G.exportRbxm("ReplicatedStorage.Cosmetics.Fox")`) to
+   `assets/Cosmetics/Fox.rbxm`.
 
 **Accessory layout.** `Handle` is the importer's `RootPart` shrunk to an invisible 0.2 cube
 at the attachment point; it holds the `HatAttachment` / `WaistBackAttachment` and the bones

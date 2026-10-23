@@ -15,9 +15,9 @@ only at join; there is no in-game switch.
   free the first time New is pressed there, kept when the slot is deleted. So
   delete-then-new gives the same draw (no free reroll), and an account sees at
   most `Slots.MAX` free draws ever. Robux rerolls work on new and existing
-  characters (the creator's Name / Identity step).
+  characters (the creator's Fate step).
 - The first name is set once: Edit look changes the look only (the name shows,
-  locked, on the Identity step). Names are identity; a rename would be its own
+  locked, on the Name step). Names are identity; a rename would be its own
   feature.
 - The screen is calm and readable like the creator (same stage, same panel) and
   matches the rest of the UI: the house window frame, the title on the gold house

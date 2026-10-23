@@ -1,0 +1,135 @@
+{
+ "name": "TigerWhiskersCurl",
+ "attachment": "FaceFrontAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  -0.6,
+  2.5
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy), no rotation",
+ "colors": {
+  "FurOuter": [
+   0.78,
+   0.25,
+   0.035
+  ],
+  "FurStripe": [
+   0.045,
+   0.022,
+   0.014
+  ],
+  "FurTip": [
+   0.92,
+   0.89,
+   0.83
+  ],
+  "FurInner": [
+   0.93,
+   0.82,
+   0.7
+  ],
+  "Whiskers": [
+   0.06,
+   0.035,
+   0.025
+  ]
+ },
+ "shade": {
+  "file": "tiger_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.6,
+  "fade_to_white_at_v": 0.4
+ },
+ "meshes": {
+  "TigerWhiskersCurl_Whiskers": {
+   "region": "Whiskers",
+   "tris": 504,
+   "center": [
+    0.0,
+    0.063,
+    -0.095
+   ],
+   "size": [
+    1.683,
+    0.268,
+    0.323
+   ],
+   "roblox_center": [
+    -0.0,
+    -0.095,
+    0.063
+   ]
+  }
+ },
+ "tris_total": 504,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "WhiskerL": {
+   "parent": "Root",
+   "head": [
+    0.34,
+    0.155,
+    -0.17
+   ],
+   "tail": [
+    0.659,
+    0.011,
+    -0.17
+   ],
+   "roblox_head": [
+    -0.34,
+    -0.17,
+    0.155
+   ],
+   "deform": true
+  },
+  "WhiskerR": {
+   "parent": "Root",
+   "head": [
+    -0.34,
+    0.155,
+    -0.17
+   ],
+   "tail": [
+    -0.659,
+    0.011,
+    -0.17
+   ],
+   "roblox_head": [
+    0.34,
+    -0.17,
+    0.155
+   ],
+   "deform": true
+  }
+ },
+ "mood": "proud",
+ "sizes": {
+  "span": 1.683,
+  "past_head_side": 0.243,
+  "span_vs_head_width": 1.4,
+  "past_side_vs_head_width": 0.2,
+  "height_vs_head": 0.32,
+  "tris": 504,
+  "mood": "proud"
+ }
+}

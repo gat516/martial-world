@@ -23,7 +23,8 @@
 --                           the slot is remembered (Account.rerollFor) and the client
 --                           prompts the purchase; the reroll happens in the receipt
 --                           handler. Mock (id 0): rerolls at once, Studio and testbed only.
---   "confirm", look      -> checks the look. New slot: also the first name, then the
+--   "confirm", look      -> checks the look (RaceLook against the slot's race's
+--                           Looks). New slot: also the first name, then the
 --                           slot is filled and played. Edit: the look only (the first
 --                           name is locked once a slot is named).
 --   "slotHairs", id      -> { {id, accessory} } preview copies of a slot's hairs
@@ -59,6 +60,7 @@ export type Look = {
 	HairIds: { number }, -- catalog ids of hair accessories, up to Rules.MAX_HAIRS (empty for none)
 	HairColor: string, -- HairColors Id
 	SkinColor: string, -- SkinColors Id ("Avatar" keeps the avatar's skin)
+	RaceLook: { [string]: string }, -- the race's free looks (Races.Looks): slot Id -> option Id
 	FirstName: string,
 }
 
@@ -373,6 +375,10 @@ local function confirm(player: Player, raw: any): (boolean, any)
 	if not skinById(raw.SkinColor) then
 		return false, "Pick a skin colour"
 	end
+	local race = player:GetAttribute("Race")
+	if not Registry.checkLook(race, raw.RaceLook) then
+		return false, "Pick your race's look again"
+	end
 	local hairIds: { number } = {}
 	if type(raw.HairIds) ~= "table" then
 		return false, "Bad request"
@@ -393,6 +399,7 @@ local function confirm(player: Player, raw: any): (boolean, any)
 		HairIds = hairIds,
 		HairColor = raw.HairColor,
 		SkinColor = raw.SkinColor,
+		RaceLook = Registry.lookPicks(race, raw.RaceLook), -- Traits.applyBody wears these (Registry.cosmetics)
 	}
 	if editing then
 		return Slots.commitEdit(player, stored)
@@ -420,6 +427,7 @@ function CharacterIdentity.enter(player: Player, id: string, data: PlayerData.Da
 		HairIds = if type(saved.HairIds) == "table" then saved.HairIds else {},
 		HairColor = saved.HairColor or HairColors[1].Id,
 		SkinColor = saved.SkinColor or "Avatar",
+		RaceLook = Registry.lookPicks(data.identity.race, saved.RaceLook),
 		FirstName = character.firstName or "",
 	}
 	looks[player] = look

@@ -20,7 +20,7 @@
 --   Excludes                  optional trait ids it can't be held with
 --   Modifiers                 stat modifiers (Registry.MODIFIERS)
 --   Cosmetics                 optional accessory ids worn while it's active
---                             (ServerStorage.Cosmetics, e.g. "FoxTailPlume")
+--                             (ReplicatedStorage.Cosmetics, assets/Cosmetics/, e.g. "FoxTailPlume")
 --   Mechanics                 optional passive or ability ids (server
 --                             Traits.mechanics); none are built yet
 -- Whether a trait is released, hidden for testing or disabled lives in

@@ -1,0 +1,297 @@
+{
+ "name": "CraneFanAscendant",
+ "attachment": "WaistBackAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.5,
+  0.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X = avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy), no rotation",
+ "colors": {
+  "FeatherMain": [
+   0.86,
+   0.87,
+   0.85
+  ],
+  "FeatherAccent": [
+   0.022,
+   0.024,
+   0.032
+  ],
+  "Crest": [
+   0.5,
+   0.035,
+   0.04
+  ]
+ },
+ "shade": {
+  "file": "crane_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "CraneFanAscendant_Fan": {
+   "region": "FeatherMain",
+   "tris": 2034,
+   "center": [
+    -0.0,
+    0.351,
+    0.545
+   ],
+   "size": [
+    2.121,
+    0.931,
+    1.0
+   ]
+  },
+  "CraneFanAscendant_FanAccent": {
+   "region": "FeatherAccent",
+   "tris": 1634,
+   "center": [
+    0.0,
+    0.498,
+    0.828
+   ],
+   "size": [
+    3.519,
+    1.429,
+    1.508
+   ]
+  }
+ },
+ "tris_total": 3668,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "FanBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    -0.1,
+    0.35
+   ],
+   "tail": [
+    0.0,
+    0.084,
+    0.522
+   ],
+   "roblox_head": [
+    -0.0,
+    0.35,
+    -0.1
+   ],
+   "deform": true
+  },
+  "FanL2": {
+   "parent": "FanBase",
+   "head": [
+    0.246,
+    -0.046,
+    0.336
+   ],
+   "tail": [
+    0.966,
+    0.111,
+    0.293
+   ],
+   "roblox_head": [
+    -0.246,
+    0.336,
+    -0.046
+   ],
+   "deform": true
+  },
+  "FanL2Tip": {
+   "parent": "FanL2",
+   "head": [
+    0.966,
+    0.111,
+    0.293
+   ],
+   "tail": [
+    1.685,
+    0.269,
+    0.251
+   ],
+   "roblox_head": [
+    -0.966,
+    0.293,
+    0.111
+   ],
+   "deform": true
+  },
+  "FanL1": {
+   "parent": "FanBase",
+   "head": [
+    0.167,
+    0.046,
+    0.469
+   ],
+   "tail": [
+    0.658,
+    0.475,
+    0.816
+   ],
+   "roblox_head": [
+    -0.167,
+    0.469,
+    0.046
+   ],
+   "deform": true
+  },
+  "FanL1Tip": {
+   "parent": "FanL1",
+   "head": [
+    0.658,
+    0.475,
+    0.816
+   ],
+   "tail": [
+    1.148,
+    0.903,
+    1.163
+   ],
+   "roblox_head": [
+    -0.658,
+    0.816,
+    0.475
+   ],
+   "deform": true
+  },
+  "FanC": {
+   "parent": "FanBase",
+   "head": [
+    0.0,
+    0.084,
+    0.522
+   ],
+   "tail": [
+    0.0,
+    0.622,
+    1.028
+   ],
+   "roblox_head": [
+    -0.0,
+    0.522,
+    0.084
+   ],
+   "deform": true
+  },
+  "FanCTip": {
+   "parent": "FanC",
+   "head": [
+    0.0,
+    0.622,
+    1.028
+   ],
+   "tail": [
+    0.0,
+    1.16,
+    1.533
+   ],
+   "roblox_head": [
+    -0.0,
+    1.028,
+    0.622
+   ],
+   "deform": true
+  },
+  "FanR1": {
+   "parent": "FanBase",
+   "head": [
+    -0.167,
+    0.046,
+    0.469
+   ],
+   "tail": [
+    -0.658,
+    0.475,
+    0.816
+   ],
+   "roblox_head": [
+    0.167,
+    0.469,
+    0.046
+   ],
+   "deform": true
+  },
+  "FanR1Tip": {
+   "parent": "FanR1",
+   "head": [
+    -0.658,
+    0.475,
+    0.816
+   ],
+   "tail": [
+    -1.148,
+    0.903,
+    1.163
+   ],
+   "roblox_head": [
+    0.658,
+    0.816,
+    0.475
+   ],
+   "deform": true
+  },
+  "FanR2": {
+   "parent": "FanBase",
+   "head": [
+    -0.246,
+    -0.046,
+    0.336
+   ],
+   "tail": [
+    -0.966,
+    0.111,
+    0.293
+   ],
+   "roblox_head": [
+    0.246,
+    0.336,
+    -0.046
+   ],
+   "deform": true
+  },
+  "FanR2Tip": {
+   "parent": "FanR2",
+   "head": [
+    -0.966,
+    0.111,
+    0.293
+   ],
+   "tail": [
+    -1.685,
+    0.269,
+    0.251
+   ],
+   "roblox_head": [
+    0.966,
+    0.293,
+    0.111
+   ],
+   "deform": true
+  }
+ },
+ "direction": "Ascendant",
+ "mood": "bold"
+}

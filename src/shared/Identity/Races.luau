@@ -105,7 +105,10 @@ local Races: { [string]: Race } = {
 		Rarity = "Legendary",
 		Weight = 3,
 		Icon = "",
-		Cosmetics = { "DragonHorns" },
+		-- Antler (the remodelled DragonHorns) is the look; the Celestial
+		-- (DragonHornsCelestial, DragonTailRising) and Cub (DragonHornsCub,
+		-- DragonTailStub) sets are in Cosmetics/Dragonblood for a later style picker.
+		Cosmetics = { "DragonHornsAntler", "DragonTailTuft" },
 	},
 
 	BeastFolk = {

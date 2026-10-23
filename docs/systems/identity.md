@@ -187,7 +187,8 @@ joint names are in `art/player/cosmetics/README.md`; how new ones are made is
 | Beast Folk Wolf / Serpent | WolfEars, WolfTail / SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
 | Beast Folk Tiger | TigerEarsRound, TigerTailCurl, TigerWhiskersMarks | Tiger (skinned Blender meshes) |
 | Beast Folk Crane | CraneHeadCascade, CraneFanCascade | Crane (skinned Blender meshes) |
-| Stone Spirit / Dragonblood / Demonic Human / Ghost | StoneShards / DragonHorns / DemonHorns / GhostWisps | Spirits (part-built placeholders) |
+| Dragonblood | DragonHornsAntler, DragonTailTuft | Dragonblood (skinned Blender meshes) |
+| Stone Spirit / Demonic Human / Ghost | StoneShards / DemonHorns / GhostWisps | Spirits (part-built placeholders) |
 
 Spirit Fox's three tails and three ear shapes are its `Looks` (Tail, Ears), each
 picked freely and separately on the creator's Fate step (user, 2026-10-23: purely
@@ -207,6 +208,10 @@ the Fate step (a variant-level Looks list doesn't exist yet: Looks are per race)
 The Tiger set holds three looks, each ears, a tail and whiskers (FaceFrontAttachment):
 Cub (the Tiger variant's default), Feral and Regal. Feral and Regal aren't worn by
 anything yet; they wait for a style picker (`art/player/cosmetics/tiger/README.md`).
+
+The Dragonblood set holds three looks, each horns and a tail: Antler (worn; the
+user's favourite part-built DragonHorns, remodelled), Celestial and Cub. Celestial and
+Cub wait for a style picker (`art/player/cosmetics/dragonblood/README.md`).
 
 Human (the plain race) and Giant (its look is its size) wear nothing (user,
 2026-10-23: "no need to go super crazy"). `Traits.applyBody` adds the ones the profile

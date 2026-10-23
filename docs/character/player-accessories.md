@@ -13,12 +13,17 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
    one live Blender, scene `Cosmetics`, beside the untouched `R6Reference`
    collection (from `art/rig/r6_rigged.fbx`); each set in its own collection, other
    sets hidden, not deleted.
-   **Parallel modelers don't share the live Blender** (one process, one active
-   scene: `look` and context collide). Each runs its own headless Blender through
-   `tools/blender_run.sh <script.py> [file.blend] [KEY=VALUE...]`: the build script
-   imports `art/rig/r6_rigged.fbx`, saves the race's `.blend`, renders its sheet
-   tiles and exports. Each works in its own worktree. Only one agent at a time uses
-   the live MCP Blender, so the user can watch it.
+   **Parallel modelers don't share the live Blender**: it's one process with one
+   active scene, so `look` and context collide.
+   - Each parallel modeler opens its own visible window,
+     `tools/blender_live.sh open <race>`, and runs its build script there with
+     `tools/blender_live.sh run <race> <script.py>`.
+   - The build script imports `art/rig/r6_rigged.fbx`, saves the race's `.blend`,
+     renders the sheet tiles and exports.
+   - Each modeler works in its own worktree.
+   - At most 4 Blenders at once (counting the live one), all visible so the user
+     can watch.
+   - Headless `tools/blender_run.sh` is only for jobs nobody needs to watch.
 2. **Directions first.** 2-3 directions on one sheet, then stop for the user's pick.
    The user often keeps all of them as variants.
 3. **Polish, export, commit.** One FBX + JSON per set under
@@ -71,10 +76,21 @@ first note (a pi turn) put the tail in front of the body.
 - **Read as the material.** Fur is layered clumps graded big at the base to small
   at the tip, with a tapering end: not a smooth tube, not pinecone rows of equal
   scales (both rejected on the fox).
+- **Size against the part it attaches to.** Measure the R6 head, torso or limb
+  mesh's bounding box, and give each piece's height and width as a ratio of it.
+  Print the ratios and put them on the sheet. The user's words: "make sure we're
+  checking in relation to the size of the head or the body part the accessory is
+  attaching to".
+- **Cute is the approved fox direction.** "YES, the cute set for foxes is
+  perfect. that is the exact direction i want to go in": soft, rounded, chunky.
+  The pass after it ran tall and thin, with tooth-like inner tufts: "now we're
+  going too long", "not cute it just looks creepy". Once a look is approved, lock
+  it and only polish.
 - **Ears: short and solid.** The fox's first ears were "too tall. make them
   cute" and "too thin.. why are they so thin?" (user, 2026-10-23).
-  - Height: about 0.6-0.9 studs on the blocky R6 head, unless the brief says
-    otherwise.
+  - Size: the approved cute fox ears are about 64% of the head's height with a
+    base about 40% of its width (R6 head mesh 1.20 wide, 1.02 tall). Use that as
+    the bar unless the brief says otherwise.
   - Body: a solid, rounded cup with depth front to back, wide at the base. Not a
     flat card.
   - Inner fur: a few soft, chunky, rounded tufts that fill the cup, not thin needle
@@ -101,15 +117,31 @@ first note (a pi turn) put the tail in front of the body.
   both moods, "cool / tuff / aggressive and cute".
 - **Clear the body.** Ears clear a normal hair accessory and work bald; tails clear
   the legs and arms at rest and while running.
-- **Budget:** ears about 1,500 tris a pair, a tail about 4,000 (6,000 at most).
+- **Budget:** ears about 1,500 tris a pair, horns 2,000-3,500 a pair, a tail about
+  4,000 (6,000 at most).
 - **Sheet:** front, side, back, rear three-quarter, bent pose, a seating close-up
   and a bent close-up, one row per direction.
 - **Keep what the user likes.** When the user approves a placeholder's design,
   remodel that same look in Blender and don't redesign it. Dragonblood's
   part-built antlers are one: "i actually really like what we have going on for
-  dragonblood already" (`briefs/dragonblood.md`).
+  dragonblood already" (`briefs/dragonblood.md`). The Blender remodel
+  (`dragonblood/`, Antler) keeps it, with the beams splayed in a wide V and
+  longer tines, as the user asked at the pick.
+- **Scales and tufts** (user, 2026-10-23, on the first Dragonblood tails: "less like a
+  pickle with a cotton ball"): scales are flat, tight, overlapping plates, not bumps,
+  and a tip tuft grows out of the tail (fur starting among the last scales, short at
+  the root and long at the end, one flame-shaped plume), never a ball stuck on the end.
 - **One checkout unless parallel.** Races run one at a time in the shared
   `race-cosmetics` checkout. A worktree is only for an agent running alongside
   another one (AGENTS.md, Branches).
 - **Effects aren't meshes.** Flames, qi wisps and mist (Demonic Human's flame,
   Ghost's wisps) go to `vfx`; the modeler builds only the solid pieces.
+
+## Next: bringing them to life
+
+The accessories are rigged, but nothing moves the bones yet. Planned once the remade fox tails are in (user approved, 2026-10-23):
+- one client script that drives every worn accessory's bones by name
+- tails (`Tail1..`) sway with lag down the chain, faster while running, settling when the player stops
+- ears (`EarL`/`EarR`) twitch now and then
+
+Every race gets it for free, as long as it uses the standard bone names.

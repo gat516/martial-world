@@ -22,3 +22,7 @@ Modeling requirements:
 - Strong silhouette from front, side, and back.
 - Stripes should be represented in a clean, stylized way through material regions or simple texturing, not hyper-detailed fur.
 - Keep the tail readable and not too thin.
+
+## User addition (2026-10-23)
+
+"for the tiger, we'll add whiskers." Whiskers are their own accessory (`TigerWhiskers`, FaceFrontAttachment): a few stylised, tapered strands per cheek, seated flush on the face, thick enough to read, own colour region and a bone per side.

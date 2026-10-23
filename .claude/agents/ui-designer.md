@@ -26,9 +26,10 @@ Your work goes through the `visual-gate` skill (preloaded), and for UI that mean
   needs a `LintIgnoreReason`.
 - **Run the export round-trip check** after every export (`docs/ui/slicing.md`):
   the file must hold what the sandbox shows.
-- **One sheet, one critic round:** the changed screen at PC and phone size with the
-  changed element enlarged, judged by `visual-critic` before you report. Quote its
-  verdict in the report.
+- **Review mode:** `human` unless the brief says the user is away: lint, put the
+  screen on the stage (`_G.reviewStage.ui{}`), say what you'd ship, end your turn.
+  In `critic` mode: one sheet (the changed screen at PC and phone size, the changed
+  element enlarged) and one critic round, verdict quoted in the report.
 - If the brief lacks a required field from
   [briefs](../../docs/agents/briefs.md) (a reference, the exemplar to match, the
   footprint ceiling), ask once and stop.

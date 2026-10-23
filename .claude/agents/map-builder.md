@@ -24,7 +24,7 @@ ambient sounds, `shared-commit` for every commit.
 lines, a gray blockout of 2-3 compositions before any dressing, the checks in
 [build-checks](../../docs/map/build-checks.md) to zero FAIL, one eye-level sheet
 (day and night), a `visual-critic` round. If the brief lacks a required field from
-[briefs](../../docs/agents/briefs.md), ask once and stop.
+[briefs](../../docs/agents/briefs.md), ask once and stop. **Review mode:** `human` unless the brief says the user is away: lint, stage it, say your pick, end your turn; the critic loop only in `critic` mode (`visual-gate`, 0a).
 
 ## Read first
 

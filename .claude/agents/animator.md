@@ -26,7 +26,7 @@ the family's pose QA to zero FAIL, one `anim_filmstrip` sheet (two captures), a
 `visual-critic` round. "Stiff" has numbers now: a chain lag of 0 frames is a FAIL
 you fix before anyone looks. If the brief lacks a required field from
 [briefs](../../docs/agents/briefs.md) (the attack table, the rig section), ask
-once and stop.
+once and stop. **Review mode:** `human` unless the brief says the user is away: lint, stage it, say your pick, end your turn; the critic loop only in `critic` mode (`visual-gate`, 0a).
 
 ## Read first
 

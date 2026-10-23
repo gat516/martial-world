@@ -29,7 +29,7 @@ lines, 2-3 blockout directions on one render before detailing, the silhouette
 render scored with `tools/fidelity_check.py` against the reference, the
 mesh-pipeline checks and `tools/parts_audit.luau` once it's placed, one sheet, a
 `visual-critic` round. If the brief lacks a required field from
-[briefs](../../docs/agents/briefs.md), ask once and stop.
+[briefs](../../docs/agents/briefs.md), ask once and stop. **Review mode:** `human` unless the brief says the user is away: lint, stage it, say your pick, end your turn; the critic loop only in `critic` mode (`visual-gate`, 0a).
 
 ## Style
 

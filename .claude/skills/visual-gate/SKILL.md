@@ -19,7 +19,7 @@ name is not.
 
 ## 0a. Two review modes (user, 2026-10-23)
 
-The brief says `Review: human` or `Review: critic`.
+The brief says `Review: human` or `Review: critic`; if it says nothing, it's **human**.
 - **human** (the user is at their desk, watching the stage): no self-review
   captures and no critic. Run the lints, put the thing on the review stage, post
   a `## Status:` line saying what's on it and what you'd pick, and **end your

@@ -37,6 +37,13 @@ chips as round dark gold-rimmed discs (`vitals_chip.png`, a `Shade` clipped
 in each `Cooldown`) under the plate's left end. Seated, the same plate style
 with the realm plaque and no name plaque. Art: `art/ui/draw_vitals.ps1`
 (PowerShell; `draw_vitals.py` now only draws `fill_sheen`/`fill_edge`).
+Proposed next (Figma kit, Example page `HUD`, 2026-10-22, not built in game): the
+same layout without the name plaque, because the extra row makes the stack too
+tall on phones and your own name tells you nothing. The realm plaque alone sits on
+the plate's top edge, the guard trough hangs in a narrower tray with a stud at each
+top corner, and the Dash/Strike discs tuck onto the plate's lower-left edge, so the
+whole stack is about as tall as the plate plus plaque. If the user wants the name
+back, it goes into the realm plaque's text (`CJ · Qi Condensation 1`), not a row.
 The seated tiles, lotus, Force Breakthrough pill and the touch prompt dock's
 column sit just above the plate and moved down with it; the lotus is centred
 on the tiles' frames, 14 px past the last tile (`Meditation` LOTUS_GAP). Cultivation and the dantian

@@ -77,6 +77,34 @@ joins seamless. In the kit: the `Ornament/Quest & Sect/*` components and
 `Frame/Board Header` (live label over the stretched wood). The small red nick on the torn
 notice's left edge is in the generated art.
 
+## Sheets A5, A6, B1, B2, B4 and C1
+All named in `PIECE_SHEETS` (four or five pieces per file, reading order) and in the kit
+as one ornament group per sheet. Cutter rules they added:
+- **White glyphs (A5, A6, `WHITE_SHEETS`):** 32 glyphs: `glyph_talk`, `_bag`, `_leave`,
+  `_quest`, `_purse`, `_bow`, `_fight`, `_heart`, `_lock`, `_question`, `_exclaim`, `_give`,
+  `_harvest`, `_rush`, `_plant`, `_chest`; `element_metal`, `_wood`, `_water`, `_fire`,
+  `_earth`, `_lightning`, `_wind`, `_ice`; `weapon_sword`, `_spear`, `_saber`, `_fist`,
+  `_staff`; `glyph_spirit_stone`, `_qi`, `_insight`. Their colour is set to pure white,
+  because the despill and pink fix tint near-white cream and speckled. Tint them in
+  Roblox with `ImageColor3`.
+- **Light on black (`LIGHT_SHEETS`):** `rays_boss`, `rays_milestone`,
+  `foundation_ring_jade`, `heartbeat_ring`, `death_vignette` are keyed by brightness
+  (brightness is opacity), and the whole canvas is the piece, since the glow fades to
+  the edges. Use them with additive-looking placement over dark UI; the vignette is
+  16:9 and full-screen.
+- **Violet (`NO_DESPILL`):** the despill reads violet as magenta spill and turns it blue,
+  so `gem_violet`, `tile_violet`, `tag_violet` and `herb_tier_5` skip it.
+
+Pieces: B1 `card_boss`, `card_quest`, `objective_banner`, `ribbon_crimson`, `ribbon_jade`
+(the last three are three-part); B2 `tile_neutral`/`_grey`/`_jade`/`_violet`/`_gold`,
+`item_slot`, `item_slot_selected`, `coin_frame`, `gem_grey`/`_jade`/`_violet`/`_gold`;
+B4 `crack_hairline`/`_split`/`_shattered`, `tier_t1`..`t4`, `dao_ring`, `bloodline_pure`,
+`bloodline_inherited`, `heaven_mark`; C1 `herbarium_book`, `herb_card`,
+`herb_card_empty`, `herb_tier_1`..`5`, `tag_bronze`/`_jade`/`_crimson`/`_violet`/`_gold`,
+`seed_packet`. In the kit they are plain ornament components (`Ornament/<sheet group>/*`);
+nothing is composed into frames or screens yet beyond the HUD's dash and strike seals,
+which use `element_wind` and `weapon_sword`.
+
 ## Sheet A4: portraits are gray silhouettes
 NPC portraits are never shown painted (user, 2026-10-22: the painted busts looked bad).
 Each NPC is a flat gray silhouette of its figure, on transparency, so the Portrait frame

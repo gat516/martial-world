@@ -33,6 +33,7 @@ sandbox.
 | bodies | Jade Jiao rebuilt with a cobra hood and 18 segments; fox and ape redesigned | "BRO WHYAAAAGH", "the fox looks like shit, ape kinda overdoes it, jiao looks stupid" | match the reference row exactly; no redesign without asking |
 | vfx | Cloned-body ghost afterimages on bosses; the flat howl disc | "really don't look too good", "couldn't give that a vfx effect? lol" | no body copies, no flat discs |
 | vfx | A yellow circle for the perfect dodge | "why are we spawning a yellow circle... doesn't make sense" | every layer caused by the action |
+| vfx | Camera-facing effects: the Rampaging Tiger claws that faced the player instead of the swing | "facing the player and not the direction the player is clawing in... we want the visual effects to feel physical" | no BillboardGuis or camera-facing planes; orient by the action in world space |
 | vfx | Crown or halo motifs | "that'd look stupid lol" | none; the exception the user asked for (2026-10-23) is Great Sage Awakening's sigil: a flat glyph disc fixed to the back of the head in its own frame, never a billboard or a ring |
 | vfx | Technique effects by the first Sonnet pass | "very misaligned and make no sense, like I'm just throwing vfx all over the place" | origin check; effects from the hand or mouth |
 | vfx | Neon ground crack under Dragon Piercing / Heaven Splitting | "kinda eh" | cracks only from impacts |

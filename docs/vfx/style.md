@@ -4,6 +4,13 @@ How this game's effects should look and the rules for getting there (techniques,
 
 ## User decisions
 
+- **Effects are physical, never camera-facing (user, 2026-10-23).** No BillboardGuis,
+  no camera-facing planes or cards, nothing that turns or re-aims as the camera or
+  the character moves. A slash lives along the blade's travel toward the targets, a
+  sigil sits in the body's frame, a shockwave lies on the ground; seen from the side
+  they go edge-on and foreshorten like real objects. Particles may face the camera
+  only when they are round and small (sparks, motes, dust), where facing can't be read.
+
 - **Library emissions, layered (2026-10-21).** Effects are built the way Roblox VFX artists
   build them: the plugin's library emissions, layered thick, following references. Parts and
   meshes support the emissions; they are not the effect. The first aura pass (part shells,

@@ -319,7 +319,8 @@ def lint_dump(doc, art, findings):
     # the outermost one
     leaving = set()
     for it in items:
-        if it.get("clip") and not it.get("canvas") and not inside(it.get("hover") or it["rect"], it["clip"]):
+        if it.get("clip") and not it.get("canvas") and not it.get("bare") \
+                and not inside(it.get("hover") or it["rect"], it["clip"]):
             leaving.add((it["gui"], it.get("scene", "base"), it["path"], it["clipPath"]))
     by_parent = defaultdict(dict)  # (gui, scene, parent path) -> {path: item}
     caps = defaultdict(list)  # (gui, scene) -> ribbon caps
@@ -356,7 +357,7 @@ def lint_dump(doc, art, findings):
         # clipping (a UiScale canvas is the screen in baseline units; its own rect
         # is the limit for its children, so the canvas itself isn't checked)
         parent_path = it["path"].rsplit(".", 1)[0] if "." in it["path"] else ""
-        if not it.get("canvas") and it.get("clip") and not skipped(it, "clip"):
+        if not it.get("canvas") and not it.get("bare") and it.get("clip") and not skipped(it, "clip"):
             box = it.get("hover") or r
             # an image's clear margin may leave the clipper: only its drawn part counts
             vis = visible_rect(it, art)

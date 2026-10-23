@@ -37,6 +37,7 @@ local function scaleU(u, f)
 end
 
 local changed, manual = {}, {}
+local rows = {} -- layout rows whose pieces gained top and bottom margins -> growth
 for _, root in ipairs(roots) do
 	for _, o in ipairs(root:GetDescendants()) do
 		if (o:IsA("ImageLabel") or o:IsA("ImageButton")) and o.Image ~= "" then
@@ -48,6 +49,33 @@ for _, root in ipairs(roots) do
 					continue
 				end
 				local inLayout = o.Parent and hasLayout(o.Parent)
+				local ratio = o:FindFirstChildOfClass("UIAspectRatioConstraint")
+				if inLayout and ratio and e.t == 0 and e.b == 0 and not hasLayout(o) then
+					-- a ribbon cap in its Art row: wider by its outer margin, same height
+					ratio.AspectRatio = ratio.AspectRatio * (1 + e.l + e.r)
+					o.Image = e.new
+					table.insert(changed, o:GetFullName())
+					continue
+				end
+				if inLayout and not hasLayout(o) and (e.t > 0 or e.b > 0) then
+					-- a ribbon piece with top and bottom margins (the whole ribbon has the
+					-- same): its row grows by them about its centre, widths by the outer
+					-- margin; a row sized by its parent grows itself instead
+					local fx, fy = 1 + e.l + e.r, 1 + e.t + e.b
+					if ratio then
+						ratio.AspectRatio = ratio.AspectRatio * fx / fy
+					end
+					local s = o.Size
+					if s.Y.Scale > 0 and s.Y.Offset == 0 then
+						rows[o.Parent] = math.max(rows[o.Parent] or 1, fy)
+						o.Size = UDim2.new(s.X.Scale, px(s.X.Offset * (if ratio then 1 else fx)), s.Y.Scale, 0)
+					else
+						o.Size = UDim2.new(s.X.Scale, px(s.X.Offset * (if ratio then 1 else fx)), s.Y.Scale, px(s.Y.Offset * fy))
+					end
+					o.Image = e.new
+					table.insert(changed, o:GetFullName())
+					continue
+				end
 				if inLayout or hasLayout(o) then
 					o.Image = e.new
 					table.insert(manual, o:GetFullName() .. (if inLayout then " (in a layout)" else " (has a layout)"))
@@ -84,6 +112,23 @@ for _, root in ipairs(roots) do
 				table.insert(changed, o:GetFullName())
 			end
 		end
+	end
+end
+for row, fy in pairs(rows) do
+	local other = false
+	for _, c in ipairs(row:GetChildren()) do
+		if c:IsA("GuiObject") and not (c:IsA("ImageLabel") or c:IsA("ImageButton")) then
+			other = true
+		end
+	end
+	if other or (row.Parent and hasLayout(row.Parent)) then
+		table.insert(manual, row:GetFullName() .. " (a row to grow by " .. string.format("%.3f", fy) .. " by hand)")
+	else
+		local s, p, a = row.Size, row.Position, row.AnchorPoint
+		local k = (a.Y - 0.5) * (fy - 1)
+		row.Size = UDim2.new(s.X, UDim.new(s.Y.Scale * fy, px(s.Y.Offset * fy)))
+		row.Position = UDim2.new(p.X, UDim.new(p.Y.Scale + s.Y.Scale * k, px(p.Y.Offset + s.Y.Offset * k)))
+		table.insert(changed, row:GetFullName() .. " (row x" .. string.format("%.3f", fy) .. ")")
 	end
 end
 return ("ui_margin: %d grown in place; %d need a hand fix:\n%s"):format(#changed, #manual, table.concat(manual, "\n"))

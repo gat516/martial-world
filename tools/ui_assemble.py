@@ -659,7 +659,8 @@ SIZED_DIR = ROOT / "art" / "ui" / "sized"
 SIZED_REGISTRY = SIZED_DIR / "sized.json"
 SIZED_MARGIN = 0.05
 JOIN_SUFFIXES = {"_capL": ["right"], "_capR": ["left"], "_mid": ["left", "right"],
-                 "_midL": ["left", "right"], "_midR": ["left", "right"], "_centre": ["left", "right"]}
+                 "_midL": ["left", "right"], "_midR": ["left", "right"], "_centre": ["left", "right"],
+                 "_capL_curl": ["right"], "_capR_curl": ["left"]}
 
 
 def sized_registry():

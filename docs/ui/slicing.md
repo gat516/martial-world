@@ -56,7 +56,15 @@ least a screen pixel on every side that doesn't join another piece, and the elem
 grown by that margin so the art stays put. `tools/ui_margin.py` does it from the lint's
 findings (plan, upload, `ids`, then `tools/ui_margin.luau` in Studio; read its
 docstring). Images code swaps into the same element (rarity tiles, gems, studs,
-medallions) are one family with one margin (`FAMILIES` there).
+medallions) are one family with one margin (`FAMILIES` there). Ribbon caps get their
+margin on the outer end only (the band stays level with an unmargined middle); with
+`--vertical` a whole ribbon (caps and middles) gets the same top and bottom margin and
+its row grows to match. An image that already had a margin is compensated relative to
+it. Icon crops keep a margin in `tools/icon_rects.py` (`PAD`). Not yet margined (still
+edge-margin FAILs, 2026-10-23): the glyph family (`Glyphs.luau`, code swaps them
+everywhere), the Sect crest composites (shields, rings, emblems: `Sect/Art.Size`/`Hole`
+place the layers), the boss bar mounts (`BossThemes`), the Events windows' themed
+corners (`Events/Themes` sets their aspect), and icons drawn to their own border.
 
 ## Export round-trip check
 

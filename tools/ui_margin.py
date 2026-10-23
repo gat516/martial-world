@@ -55,7 +55,14 @@ FAMILIES = [
     r"ornament_herb_card",  # Herbarium cards (empty / found)
     r"ornament_herb_tier_",  # HerbArt tiers
     r"ornament_(daily|weekly)_seal",  # Sect notices
+    r"ornament_catalog_tab(_selected)?_(capL|capR|mid)",  # tabs and quest rows swap to selected
 ]
+
+
+def ribbon_prefix(src):
+    """The ribbon a SLICE3/crest piece belongs to (path up to _capL/_mid/...), or None."""
+    m = re.match(r"(.*)_(capL|capR|mid|midL|midR|centre)(_curl)?\.png$", src)
+    return m.group(1) if m else None
 
 
 def source_of(rel, registry):
@@ -128,6 +135,12 @@ def plan(args):
             continue
         src, _ = source_of(rel, registry)
         group = {rel}
+        if args.vertical and ribbon_prefix(src):
+            # a whole ribbon (caps and middles) shares its top and bottom margins
+            for f in ids_by_file:
+                if ribbon_prefix(source_of(f, registry)[0]) == ribbon_prefix(src) and f not in sliced \
+                        and not (skip and skip.search(f)):
+                    group.add(f)
         for fam in FAMILIES:
             if re.search(fam, src):
                 for f in ids_by_file:
@@ -136,6 +149,20 @@ def plan(args):
         seen |= group
         groups.append(sorted(group))
 
+    import copy
+    before = copy.deepcopy(registry)  # what the existing sized copies were made with
+
+    def old_layout(f):
+        """(art w, art h, margins) of an existing file: a sized copy's own margin
+        (an earlier pass may have given it one), or the whole image as art."""
+        src, old_h = source_of(f, before)
+        if old_h is not None and src in before:
+            ssz = Image.open(os.path.join(ART, src)).size
+            _, aw, ah, mg = ui_assemble.sized_layout(src, before[src], old_h, ssz)
+            return aw, ah, mg
+        w, h = Image.open(os.path.join(ART, f)).size
+        return w, h, [0, 0, 0, 0]
+
     entries = []
     for group in groups:
         disp = [v for f in group for v in displays.get(f, [])] or [1]
@@ -143,6 +170,16 @@ def plan(args):
         joins = set()
         for f in group:
             joins |= flagged.get(f, set())
+        # a ribbon cap gets its margin on the outer end only (top and bottom margins
+        # would shrink its band against an unmargined middle), unless --vertical
+        # margins the whole ribbon alike
+        stem = os.path.splitext(os.path.basename(source_of(group[0], registry)[0]))[0]
+        stem = re.sub(r"_h\d+$", "", stem)
+        if not args.vertical:
+            if re.search(r"_capL(_|$)", stem):
+                joins |= {"right", "top", "bottom"}
+            elif re.search(r"_capR(_|$)", stem):
+                joins |= {"left", "top", "bottom"}
         srcs = sorted({source_of(f, registry)[0] for f in group})
         sizes = {s: Image.open(os.path.join(ART, s)).size for s in srcs}
         h = min(min(sz[1] for sz in sizes.values()), int(math.ceil(2 * hi / 8) * 8))
@@ -156,12 +193,16 @@ def plan(args):
                 entry["heights"].append(h)
                 entry["heights"].sort()
             entry.setdefault("margins", {})[str(h)] = m
-            if joins:
+            if args.vertical and ribbon_prefix(src):
+                entry["joins"] = ui_assemble.sized_joins(src, {})  # inner sides only
+            elif joins:
                 entry["joins"] = sorted(set(entry.get("joins", ui_assemble.sized_joins(src, {}))) | joins)
             name, aw, ah, margins = ui_assemble.sized_layout(src, entry, h, sizes[src])
+            oaw, oah, omg = old_layout(f)
             for old_id in ids_by_file.get(f, []):
                 entries.append({"old_id": old_id, "old_file": f, "source": src, "file": "sized/" + name,
-                                "art": [aw, ah], "margins": margins, "displays": [round(lo, 1), round(hi, 1)]})
+                                "art": [aw, ah], "margins": margins, "old_art": [oaw, oah], "old_margins": omg,
+                                "displays": [round(lo, 1), round(hi, 1)]})
     if not args.dry:
         with open(ui_assemble.SIZED_REGISTRY, "w") as fh:
             json.dump(registry, fh, indent=1, sort_keys=True)
@@ -194,9 +235,17 @@ def ids(args):
         assets[e["file"]] = new
         aw, ah = e["art"]
         ml, mt, mr, mb = e["margins"]
+        oaw, oah = e.get("old_art", e["art"])
+        ol, ot, orr, ob = e.get("old_margins", [0, 0, 0, 0])
+        # margins as shares of the extent the element shows now (the old image, which
+        # may carry a margin of its own), so the Studio script's growth lands the art
+        # where it was
+        ex, ey = 1 + (ol + orr) / oaw, 1 + (ot + ob) / oah
+        l, r = (ml / aw - ol / oaw) / ex, (mr / aw - orr / oaw) / ex
+        t, b = (mt / ah - ot / oah) / ey, (mb / ah - ob / oah) / ey
         swaps[e["old_id"]] = new
-        table.append(f'\t["{e["old_id"]}"] = {{ new = "{new}", l = {ml / aw:.6f}, t = {mt / ah:.6f}, '
-                     f'r = {mr / aw:.6f}, b = {mb / ah:.6f} }}, -- {e["old_file"]} -> {e["file"]}')
+        table.append(f'\t["{e["old_id"]}"] = {{ new = "{new}", l = {l:.6f}, t = {t:.6f}, '
+                     f'r = {r:.6f}, b = {b:.6f} }}, -- {e["old_file"]} -> {e["file"]}')
     with open(assets_path, "w") as fh:
         json.dump(assets, fh, indent=2)
         fh.write("\n")
@@ -227,6 +276,8 @@ def main():
     p.add_argument("--out", required=True)
     p.add_argument("--only")
     p.add_argument("--skip", help="regex of files to leave out")
+    p.add_argument("--vertical", action="store_true",
+                   help="margin whole ribbons (caps and middles) top and bottom alike")
     p.add_argument("--dry", action="store_true", help="print the plan, write nothing")
     p.set_defaults(fn=plan)
     q = sub.add_parser("ids")

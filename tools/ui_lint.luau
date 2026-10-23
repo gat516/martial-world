@@ -222,6 +222,8 @@ local function record(o, stand, view, clipRect, clipPath, clipInst, scene, items
 		rotation = o.Rotation,
 		zIndex = o.ZIndex,
 		canvas = isCanvas(o),
+		-- a Frame that draws nothing itself (its children are checked on their own)
+		bare = o.ClassName == "Frame" and o.BackgroundTransparency >= 1 or nil,
 		detached = detached or nil,
 		skip = skip,
 		siblings = 0,

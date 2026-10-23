@@ -110,6 +110,49 @@ Quest = { id, kind = "chapter" | "daily" | "weekly" | "spirit" | "other", name,
   `Emblem` child): `crest_outer`, `crest_inner` or `crest_core`, with the sect's emblem
   (`emblem_peak`, `SectRank.EMBLEM`) centred on that crest's measured hole
   (`Art.Hole`), at 72 % of it.
+- **Rank-up uses the shared Rewards card** (roadmap 3c: one card, three jobs); there is
+  no card of our own. `SectRank.rankUp(rank, line?)` calls
+  `Rewards.show({ tier = "card", kind = "rank", title = "Inner Disciple",
+  subtitle = "The sect raises you in rank", flavour = line,
+  crest = { image, emblem, hole } })`, where `crest` carries the rank crest's image id,
+  the emblem's id and the hole (centre and size as fractions of the crest image). The
+  card shows the crest image only until its `Crest` gets an `Emblem` child
+  ([reward banners](rewards.md)).
+
+**The real system provides:** the task list per player (dailies reset by day like the
+daily login, weeklies by week), take/claim remotes, the contribution total and the
+week's share against the cap, and when to pin the torn notice.
+
+## Quest log (`QuestLog`)
+`QuestLog.open(log)`, `QuestLog.update(quests)`, `QuestLog.close()`.
+```
+log   = { quests = { Quest }, selected = id?, tracked = id?, onTrack = (id?) -> () }
+Quest = { id, kind = "chapter" | "daily" | "weekly" | "spirit" | "other", name,
+          giver?, place?, description, status?,
+          objectives = { { text, progress?, goal?, done? } },
+          rewards = { { kind = "contribution" | "stones" | "qi" | "insight", amount } } }
+```
+- **List** (left, 256 wide): `catalog_tab` three-part rows, 52 tall (48 px on a phone,
+  a full thumb target), the selected one on `catalog_tab_selected`. Kind badge (seal
+  with its character, the quest scroll for chapters, the gold quest glyph otherwise),
+  the name, and a second line (`status`, else the first open objective with its count).
+- **Detail** (right): the badge, the title (Merriweather 19), "From <giver> · <place>",
+  a `divider_diamond`, then a scrolling description and objectives (checkmark when
+  done, a gold ◇ otherwise, "1 / 3" counts on the right), and a footer with reward chips
+  (token, jade spirit-stone and qi glyphs, gold insight) and the **Track** button
+  (`response_button_hi` three-part with the quest glyph in its ring). Track toggles
+  "Tracking" (jade) and calls `onTrack`; the HUD objective line follows it.
+
+**The real system provides:** the player's quests in display order (built on
+`Quests.Quest`, `data.quests`), the tracked id and a remote for tracking.
+
+## Rank and contribution (`SectRank`)
+- `SectRank.set({ rank = "Outer" | "Inner" | "Core", contribution, week?, weekCap? })`
+  paints the board's status row; the counter counts up from the last shown value.
+- `SectRank.paintCrest(imageLabel, rank)` paints any `RankCrest` (an ImageLabel with an
+  `Emblem` child): `crest_outer`, `crest_inner` or `crest_core`, with the sect's emblem
+  (`emblem_peak`, `SectRank.EMBLEM`) centred on that crest's measured hole
+  (`Art.Hole`), at 72 % of it.
 - **Rank-up uses the shared Rewards card** (roadmap 3c: one card, three jobs), being
   built on branch `ui-rewards`; there is no card of our own. `SectRank.rankUp(rank,
   line?)` calls

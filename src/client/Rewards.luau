@@ -14,7 +14,7 @@
 --   card    one card, three jobs (spec.kind): "boss" victory (crimson card, boss
 --           rays), "quest" complete (gold and jade card with the crest), and
 --           "milestone" (a breakthrough or bloodline: the quest card with the
---           milestone rays). It shows reward tiles, stat deltas, the new unlock and
+--           milestone rays; "rank", a sect rank-up, shows the rank crest). It shows reward tiles, stat deltas, the new unlock and
 --           one line of flavour. Skippable (click or tap after a beat), closes by
 --           itself, and queues one at a time; it waits while another window is open.
 -- Fed by the server's Effect events: "stones", "loot", "insight", "manual",
@@ -59,18 +59,18 @@ local TILES = {
 	violet = { tile = "rbxassetid://109769132951760", gem = "rbxassetid://80848783636466" },
 	gold = { tile = "rbxassetid://116953659868130", gem = "rbxassetid://113499507353464" },
 }
--- rarities and grades onto the kit's tile edges (no blue tile yet: Rare and Spirit
--- use violet until Codex sheet B2's blue tile exists)
+-- rarities and grades onto the kit's tile edges: the Inventory's ladder (Rarity.luau),
+-- bronze, silver, jade, violet, gold
 local TIER_OF = {
-	Common = "grey",
-	Uncommon = "jade",
-	Rare = "violet",
+	Common = "neutral",
+	Uncommon = "grey",
+	Rare = "jade",
 	Epic = "violet",
 	Legendary = "gold",
-	Mortal = "grey",
-	Spirit = "violet",
-	Earth = "gold",
-	Heaven = "violet",
+	Mortal = "neutral",
+	Spirit = "jade",
+	Earth = "violet",
+	Heaven = "gold",
 }
 -- Three-part ribbons: images, cap aspect ratios, and the height (0-1) of the body's
 -- centre, where the title sits.
@@ -122,6 +122,18 @@ local KINDS: { [string]: Kind } = {
 	quest = {
 		art = ART.card_quest,
 		ratio = 1024 / 652,
+		ribbon = "jade",
+		crest = ART.emblem_peak,
+		ribbonY = 0.315,
+		ribbonH = 0.15,
+		bodyTop = 0.395,
+		bodyBottom = 0.95,
+	},
+	rank = { -- a sect rank-up: the quest card with the rank crest (spec.crest)
+		art = ART.card_quest,
+		ratio = 1024 / 652,
+		rays = ART.rays_milestone,
+		raysAt = Vector3.new(0.5, 0.12, 1.1),
 		ribbon = "jade",
 		crest = ART.emblem_peak,
 		ribbonY = 0.315,
@@ -183,12 +195,13 @@ export type Spec = {
 	tagColor: Color3?,
 	hold: number?,
 	-- card
-	kind: string?, -- "boss" | "quest" | "milestone"
+	kind: string?, -- "boss" | "quest" | "milestone" | "rank"
 	items: { Item }?,
 	stats: { Stat }?,
 	unlock: string?,
 	flavour: string?,
-	crest: string?, -- image id for the quest or milestone crest slot
+	crest: (string | { image: string })?, -- image id for the crest slot (Sect rank-ups pass
+	-- { image, emblem, hole }; only the image shows until the Crest has an Emblem child)
 	life: number?,
 }
 
@@ -595,7 +608,8 @@ local function openCard(spec: Spec)
 	cardArt.Image = kind.art;
 	(cardArt:FindFirstChildOfClass("UIAspectRatioConstraint") :: UIAspectRatioConstraint).AspectRatio = kind.ratio
 	local crest = cardArt:FindFirstChild("Crest") :: ImageLabel
-	crest.Image = spec.crest or kind.crest or ""
+	local crestSpec = spec.crest
+	crest.Image = (if type(crestSpec) == "table" then crestSpec.image else crestSpec) or kind.crest or ""
 	crest.Visible = kind.crest ~= nil
 	local ribbon = cardArt:FindFirstChild("Ribbon") :: Frame
 	ribbon.Position = UDim2.fromScale(0.5, kind.ribbonY)

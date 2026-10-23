@@ -19,6 +19,9 @@ Card jobs (`spec.kind`):
   turning slowly behind the whole card. Title "Victory", subtitle "<boss> defeated".
 - `quest`: gold-and-jade `card_quest`, jade ribbon under the crest slot, the sect
   crest (`emblem_peak` by default, `spec.crest` to change it). Rare and weighty.
+- `rank`: a sect rank-up (`SectRank.rankUp`): the quest card with a jade ribbon,
+  `rays_milestone`, and the rank crest from `spec.crest` (`{ image, emblem, hole }` or an
+  image id); the rank's line goes in `flavour`.
 - `milestone`: the quest card with a crimson ribbon, `emblem_lotus` in the crest and
   `rays_milestone` glowing from the crest. Breakthroughs use it today ("Breakthrough" or
   "Major Breakthrough", the stage, health/power/combat qi/passive deltas from the
@@ -49,14 +52,16 @@ Rewards.show({ tier = "card", kind = "quest", title = "Quest Complete",
 	stats = { { name = "Health", from = 140, to = 165 } },
 	unlock = "The Inner Wilds array is open", flavour = "One line on what to do next.",
 	crest = nil, life = 7 })
-Rewards.preview(tier, kind)  -- sample content: ("card", "boss"|"quest"|"milestone"), ("banner", "jade"|"gold"|"crimson"), ("feed"), ("small")
+Rewards.preview(tier, kind)  -- sample content: ("card", "boss"|"quest"|"milestone"|"rank"), ("banner", "jade"|"gold"|"crimson"), ("feed"), ("small")
 ```
 
 Keys (feed rows and card tiles): `stones`, `qi`, `insight`, `contribution` (currency:
 coin frame), `manual:<technique>`, `weapon:<id>`, `method:<id>`, or an `Items` id.
-Item tiles take the edge of their rarity or grade: Common/Mortal grey, Uncommon jade,
-Rare/Epic/Spirit/Heaven violet, Legendary/Earth gold, manuals neutral (no blue tile yet:
-Codex sheet B2b).
+Item tiles take the edge of their rarity or grade on the Inventory's ladder
+([inventory](inventory.md), `Rarity.luau`): Common/Mortal bronze (`neutral`),
+Uncommon silver (`grey`), Rare/Spirit jade, Epic/Earth violet, Legendary/Heaven gold;
+manuals neutral. One ladder everywhere (decided at the UI merge, 2026-10-23), so no
+blue tier is needed.
 
 Server side: `Effect "reward"` with a spec table goes straight to `Rewards.show`, so a
 new system picks its own tier without a new remote. What a real system must send:
@@ -113,7 +118,8 @@ Kit cuts in `art/ui/codex/cut/` (sheets B1, B2, A6, C3, C5, light effects; ids i
 `WNgoTL6QGdTEBy693Me8Y8`).
 
 ## Known gaps
-- No blue tile or gem for Rare items and Spirit weapons (Codex sheet B2b).
+- A `rank` card shows only the rank crest ring: the card's `Crest` needs an authored
+  `Emblem` child to draw `spec.crest.emblem` on the crest's hole.
 - `contribution` uses a 功 glyph in the coin; the kit's `contribution_token` could
   replace it.
 - `Hud.Banner` and `Hud.Flash` (the old breakthrough title card and flash) are unused

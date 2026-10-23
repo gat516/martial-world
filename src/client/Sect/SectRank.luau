@@ -12,6 +12,7 @@
 --   SectRank.rankUp(rank, line?)  -- the milestone card through Rewards.show
 --   SectRank.preview()
 
+local Rewards = require(script.Parent.Parent.Rewards)
 local Art = require(script.Parent.Art)
 local Ui = require(script.Parent.Ui)
 
@@ -75,29 +76,23 @@ function SectRank.set(state: State)
 	end
 end
 
--- The rank-up moment: the shared milestone card (Rewards.show, roadmap 3c,
--- built on branch ui-rewards), never a card of our own. Until Rewards.show
--- exists this only warns.
+-- The rank-up moment: the shared Rewards card (kind "rank", roadmap 3c), never a
+-- card of our own. Only the crest image shows until the card's Crest gets an
+-- Emblem child (docs/ui/sect-board.md).
 function SectRank.rankUp(rank: Rank, line: string?)
 	local def = SectRank.RANKS[rank]
-	local ok, Rewards = pcall(require, script.Parent.Parent:FindFirstChild("Rewards") :: ModuleScript)
-	local show = ok and (Rewards :: any).show
-	if type(show) ~= "function" then
-		warn("SectRank.rankUp: Rewards.show isn't available yet (branch ui-rewards)")
-		return
-	end
-	show({
+	Rewards.show({
 		tier = "card",
 		kind = "rank",
 		title = def.name,
 		subtitle = "The sect raises you in rank",
-		line = line,
+		flavour = line,
 		crest = { image = Art.Id[def.crest], emblem = Art.Id[SectRank.EMBLEM], hole = Art.Hole[def.crest] },
 	})
 end
 
 -- Sample content: the board's status row through all three ranks, the counter
--- ticking up, then the rank-up card (if Rewards.show exists).
+-- ticking up, then the rank-up card.
 function SectRank.preview()
 	local board = Ui.window("Board")
 	Ui.open(board)

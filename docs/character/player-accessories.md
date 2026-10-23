@@ -116,6 +116,9 @@ first note (a pi turn) put the tail in front of the body.
   another one (AGENTS.md, Branches).
 - **Effects aren't meshes.** Flames, qi wisps and mist (Demonic Human's flame,
   Ghost's wisps) go to `vfx`; the modeler builds only the solid pieces.
+  Ghost's trailing silk is the exception that proves it: solid, closed ribbons that fade
+  through an alpha ramp (`ghost_fade.png`, SurfaceAppearance `AlphaMode = Transparency`), with
+  any mist on top left to `vfx` (`art/player/cosmetics/ghost/`).
 
 ## Next: bringing them to life
 

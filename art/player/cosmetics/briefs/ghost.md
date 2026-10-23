@@ -27,3 +27,6 @@ Modeling requirements:
 - If using sleeves, make them feel like spectral extensions.
 - If using a lower-body wisp, it should replace the feel of legs visually without becoming a full-body model.
 - Prioritize material treatment, silhouette, and translucency over geometry complexity.
+
+Built: `art/player/cosmetics/ghost/` (README). Three variants kept (2026-10-23): Sleeves + torn
+strip, Train + swallowtail banner, Stole + square seal.

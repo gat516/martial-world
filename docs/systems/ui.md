@@ -111,6 +111,8 @@ cursor, settings and the admin panel.
 - [Herbarium and the garden windows](../ui/herbarium.md) (Herbalist, seed picker, planting bar, plant tag, build catalog look)
 - [World events, tribulation and rifts](../ui/world-events.md) (`StarterGui.Events`)
 - [Leaderboards, path crests and the Blood Sect skin](../ui/leaderboards.md)
+- [Sect board, quest log, rank and contribution](../ui/sect-board.md) (ready to wire)
+- [Halls, masters and lineage](../ui/halls-masters.md) (ready to wire)
 
 ## Key files (all `src/client/`)
 - `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal
@@ -143,6 +145,10 @@ cursor, settings and the admin panel.
   shared with the prompts). See [dialogue](../ui/dialogue.md).
 - `Events/` (`StarterGui.Events`, fitted by `UiScale`): `Gui` (slots, templates, the
   herald queue), `WorldEventView`, `TribulationView`, `RiftCard`, `Leaderboards`, `Themes`.
+- `Sect/` (`SectBoard`, `QuestLog`, `SectRank`, `HallCrest`, `HallPanel`, `Lineage`,
+  shared `Ui` and `Art`): the sect, quest, Hall and lineage windows in
+  `StarterGui.Sect`, fitted by `UiScale` at the phone baseline. Not called by the game
+  yet; each has a `.preview()`.
 - Boss health bar: `BossBars.luau` drives `Play.BossBar`; themes in
   `BossThemes.luau`, boss pick in `EnemyBars.luau`. See [boss bar](../ui/boss-bars.md).
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`

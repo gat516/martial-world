@@ -63,6 +63,9 @@
       "Events": {
         "$path": "assets/Events.rbxmx"
       },
+      "Sect": {
+        "$path": "assets/Sect.rbxmx"
+      },
       "Prompts": {
         "$path": "assets/Prompts.rbxmx"
       },

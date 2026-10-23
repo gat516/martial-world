@@ -60,6 +60,16 @@ function Bridge.loadHair(id: number): (boolean, any)
 	return false, if type(payload) == "string" then payload else "That hair couldn't be loaded"
 end
 
+-- The player's own avatar as a starting look: (true, { skin: Color3?, hairs =
+-- { { id, accessory } } }) or (false, message).
+function Bridge.getDefaults(): (boolean, any)
+	local ok, payload = invoke("defaults")
+	if ok and type(payload) == "table" and type(payload.hairs) == "table" then
+		return true, payload
+	end
+	return false, payload
+end
+
 -- A paid reroll of "Race" or "Surname". Returns:
 --   "prompted", productId  the purchase prompt is up; the attribute changes if bought
 --   "rolled", key          a mock reroll (Studio/testbed) already happened

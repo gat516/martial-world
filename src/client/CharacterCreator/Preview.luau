@@ -22,16 +22,25 @@ local viewport: ViewportFrame
 local camera: Camera
 local dummy: Model
 local base: CFrame
-local hair: Accessory? = nil
+local hairs: { [number]: Accessory } = {} -- by Hair tab slot
+local avatarSkin: Color3? = nil -- the avatar's skin, for when there's no character to copy
 local yaw, target = START_YAW, START_YAW
 local dragging: InputObject? = nil
 local lastX = 0
 local stepper: RBXScriptConnection? = nil
 
--- The local player's skin on the dummy, when their avatar has one to copy.
+-- The local player's skin on the dummy, from their character or, before one
+-- has spawned, from their avatar (Preview.setSkin).
 local function copySkin()
 	local character = Players.LocalPlayer and Players.LocalPlayer.Character
 	if not character then
+		if avatarSkin then
+			for _, part in dummy:GetChildren() do
+				if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+					part.Color = avatarSkin
+				end
+			end
+		end
 		return
 	end
 	local colors = character:FindFirstChildOfClass("BodyColors")
@@ -145,12 +154,20 @@ function Preview.setClothing(kind: string, template: string)
 	end
 end
 
--- Puts a hair accessory on the dummy (nil takes it off). The accessory is
--- cloned, anchored and placed by its attachment, so turning the dummy carries it.
-function Preview.setHair(source: Accessory?)
-	if hair then
-		hair:Destroy()
-		hair = nil
+-- The avatar's skin colour, used while the player has no character yet.
+function Preview.setSkin(color: Color3?)
+	avatarSkin = color
+	copySkin()
+end
+
+-- Puts a hair accessory on the dummy in a Hair tab slot (nil takes that one
+-- off). The accessory is cloned, anchored and placed by its attachment, so
+-- turning the dummy carries it.
+function Preview.setHair(slot: number, source: Accessory?)
+	local old = hairs[slot]
+	if old then
+		old:Destroy()
+		hairs[slot] = nil
 	end
 	if not source then
 		return
@@ -180,11 +197,11 @@ function Preview.setHair(source: Accessory?)
 		handle.CFrame = head.CFrame * CFrame.new(0, head.Size.Y / 2, 0) * accessory.AttachmentPoint:Inverse()
 	end
 	accessory.Parent = dummy
-	hair = accessory
+	hairs[slot] = accessory
 end
 
 function Preview.tintHair(color: Color3, tint: (Accessory, Color3) -> ())
-	if hair then
+	for _, hair in hairs do
 		tint(hair, color)
 	end
 end

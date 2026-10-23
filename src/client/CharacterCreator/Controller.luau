@@ -14,6 +14,7 @@ local Backdrop = require(script.Parent.Backdrop)
 local Bridge = require(script.Parent.Bridge)
 local Components = require(script.Parent.Components)
 local Defs = require(script.Parent.Defs)
+local Menus = require(script.Parent.Parent.Menus)
 local Motion = require(script.Parent.Parent.Motion)
 local Preview = require(script.Parent.Preview)
 local State = require(script.Parent.State)
@@ -178,6 +179,7 @@ function Controller.open()
 	isOpen = true
 	veil.BackgroundTransparency = 0
 	gui.Enabled = true
+	Menus.setScreen(true) -- no attacks or prompts behind the screen
 	setHud(false)
 	setControls(false)
 	Backdrop.open(gui:FindFirstChild("Backdrop") :: Frame, Defs.Background)
@@ -197,6 +199,7 @@ function Controller.close()
 	Backdrop.close()
 	setControls(true)
 	setHud(true)
+	Menus.setScreen(false)
 	gui.Enabled = false
 	veil.BackgroundTransparency = 1
 end

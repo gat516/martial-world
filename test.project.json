@@ -39,6 +39,14 @@
       },
       "HerbModels": {
         "$className": "Folder"
+      },
+      "CharacterCreatorGui": {
+        "$path": "assets/CharacterCreator.rbxmx"
+      }
+    },
+    "Players": {
+      "$properties": {
+        "CharacterAutoLoads": false
       }
     },
     "ReplicatedFirst": {
@@ -63,9 +71,6 @@
       },
       "Veil": {
         "$path": "assets/Veil.rbxmx"
-      },
-      "CharacterCreator": {
-        "$path": "assets/CharacterCreator.rbxmx"
       }
     },
     "StarterPlayer": {

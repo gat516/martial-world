@@ -55,11 +55,23 @@ It's a template: the look and every list come from config, and the gameplay hook
   Camera saved inside a ViewportFrame is lost in the Rojo sync), Backdrop (live camera or image), Bridge
   (every server call, plus the `onEnterWorld` hook), Tabs/* (one per tab),
   Controller (`init`, `open`).
-- `assets/CharacterCreator.rbxmx` (`StarterGui.CharacterCreator`): the ScreenGui
-  shell and templates, including a plain R6 dummy for the preview.
+- `assets/CharacterCreator.rbxmx` (`ReplicatedStorage.CharacterCreatorGui`): the
+  ScreenGui shell and templates, including a plain R6 dummy for the preview.
+  `Main.client` clones it into `PlayerGui.CharacterCreator` at start, before the
+  Hud exists: StarterGui only reaches PlayerGui once a character spawns.
+
+## Joining the world (test place)
+- Nobody stands in the world behind the screen (user, 2026-10-23): the test place
+  has `Players.CharacterAutoLoads` off (`test.project.json`), so a player has no
+  character until Enter World, and the server's first `confirm` spawns them
+  (`LoadCharacter`). With auto loading off Roblox doesn't respawn the dead, so
+  `CharacterIdentity` does, after `Players.RespawnTime`.
+- While the screen is open `Menus.setScreen(true)` makes `Menus.isOpen()` true,
+  so combat, prompts and anything else gated on an open menu stay shut, even when
+  the screen is reopened over a live character.
 
 ## Screen layout
-- `StarterGui.CharacterCreator` (DisplayOrder 20, ignores the inset, starts
+- `PlayerGui.CharacterCreator` (DisplayOrder 20, ignores the inset, starts
   disabled; `Controller.open` enables it): `Backdrop` (image, mist, vignette),
   `Root` (`Nav`, `Preview`, `Panel`), `Veil` (open/close fade) and `Templates`
   (a hidden Frame of everything Components clones, plus the R6 `Dummy`).
@@ -70,22 +82,27 @@ It's a template: the look and every list come from config, and the gameplay hook
 - Tab pages are ScrollingFrames in the `Pages` CanvasGroup, so a tab switch fades
   and slides the whole page. Each page's canvas follows its list's content size.
 - Buttons with a `Motion` UIScale get the shared hover and press (`Motion.buttons`).
-- The preview dummy is anchored and turned with `PivotTo`; a hair accessory is
+- Hair: up to `Rules.MAX_HAIRS` (3) accessories, one id field each (user,
+  2026-10-23); an emptied field takes its hair off. The fields start with the
+  player's own Roblox hair (the server's `defaults`), and the preview takes the
+  avatar's skin until a character exists.
+- The preview dummy is anchored and turned with `PivotTo`; each hair accessory is
   anchored and placed by matching its Handle attachment to the dummy's (else the
   head top + `AttachmentPoint`).
 
 ## Data flow
 Join -> server rolls `Race` and `Surname` (player attributes) -> client opens the
 screen if `Rules.SHOW_ON_JOIN` and `CharacterConfirmed` isn't set -> `CharacterAction`
-`state` (prices, live or mock) and `templates` (catalog id -> clothing image, looked
-up once by the server) -> picks update the preview locally -> Apply hair:
+`state` (prices, live or mock), `templates` (catalog id -> clothing image, looked
+up once by the server) and `defaults` (once: the avatar's skin and up to 3 hairs,
+each with a preview copy) -> picks update the preview locally -> Apply hair:
 `hair, id` -> server checks the catalog, loads the accessory, puts a copy in that
 player's `PlayerGui.CharacterPreview` and returns it -> preview wears and tints it.
 Change Race / Last Name: `reroll, kind` -> live product: client prompts the purchase
 and `Receipts` calls the reroll; mock (id 0, Studio or testbed): rerolled at once ->
 the attribute changes and the screen updates. Enter World: `confirm, look` -> server
-checks everything, sets `FirstName` and `CharacterConfirmed`, dresses the character
-(and again on respawn), runs `onConfirmed` -> the screen fades out and gives the
+checks everything (each of `HairIds`), sets `FirstName` and `CharacterConfirmed`,
+spawns the character if there is none yet, dresses it (and again on respawn), runs `onConfirmed` -> the screen fades out and gives the
 camera and HUD back.
 
 ## Tuning knobs
@@ -103,11 +120,16 @@ camera and HUD back.
 
 ## Known gaps
 - Test place only until the user approves it (user, 2026-10-22: it syncs to the
-  test place alone). The GUI is mapped in `test.project.json` only, not
-  `default.project.json`; `Main.client` inits the screen and `Main.server` starts
-  `CharacterIdentity` only under `Config.TESTBED`; `Rules.SHOW_ON_JOIN` is
-  `Config.TESTBED` too. Shipping it: map the GUI in `default.project.json` and
-  drop those three checks.
+  test place alone). The GUI and `CharacterAutoLoads = false` are in
+  `test.project.json` only, not `default.project.json`; `Main.client` inits the
+  screen and `Main.server` starts `CharacterIdentity` only under `Config.TESTBED`;
+  `Rules.SHOW_ON_JOIN` is `Config.TESTBED` too. Shipping it: map the GUI and the
+  Players property in `default.project.json` and drop those three checks. Check
+  first that nothing in the main game expects a character at join.
+- No title screen yet: the user wants joining to land on a title or menu screen
+  first (2026-10-23). For now the character screen is that first screen.
+- The chosen hair colour tints every hair, the avatar's own included (it starts
+  Ink Black), so their hair loses its texture. A "natural" option is a next step.
 - Nothing is saved: race, last name, first name and look live for the session, so
   a rejoin rolls again and shows the screen again. Wire `CharacterIdentity.load`
   and `onConfirmed`/`onRerolled` into `PlayerData` to keep them. Until then, don't

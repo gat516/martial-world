@@ -33,14 +33,14 @@ function Confirm.build(page: ScrollingFrame, ctx: any)
 		local shirt = find(defs.Clothing.Shirt, state:get("Shirt"))
 		local pants = find(defs.Clothing.Pants, state:get("Pants"))
 		local color = find(defs.HairColors, state:get("HairColor"))
-		local hairId = state:get("HairId")
+		local hairIds = state:hairIds()
 		local race = defs.Races[player:GetAttribute("Race") or ""]
 		local surname = defs.Surnames[player:GetAttribute("Surname") or ""]
 		local name, why = rules.checkFirstName(state:get("FirstName"))
 
 		rows.Shirt.set(if shirt then shirt.DisplayName else "-")
 		rows.Pants.set(if pants then pants.DisplayName else "-")
-		rows["Hair ID"].set(if hairId then tostring(hairId) else "None")
+		rows["Hair ID"].set(if #hairIds > 0 then table.concat(hairIds, ", ") else "None")
 		rows["Hair Color"].set(if color then color.DisplayName else "-", color and color.Color)
 		rows.Race.set(if race then race.DisplayName else "...", nil, race and race.Rarity, defs.Rarities)
 		rows["First Name"].set(name or "Not chosen")

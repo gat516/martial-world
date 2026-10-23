@@ -74,15 +74,19 @@ local function fit()
 end
 
 -- Each page scrolls when its content outgrows it (AutomaticCanvasSize doesn't
--- count rows that size themselves; docs/systems/ui.md).
+-- count rows that size themselves; docs/systems/ui.md). AbsoluteContentSize is
+-- in screen pixels, after the panel's Fit UIScale, while CanvasSize is scaled
+-- by it again, so divide it back out or a shrunk panel cuts the bottom off.
 local function sizeCanvas(page: ScrollingFrame)
 	local layout = page:FindFirstChildOfClass("UIListLayout") :: UIListLayout
 	local padding = page:FindFirstChildOfClass("UIPadding")
+	local fitScale = panel:FindFirstChild("Fit") :: UIScale
 	local function update()
 		local extra = if padding then padding.PaddingTop.Offset + padding.PaddingBottom.Offset else 0
-		page.CanvasSize = UDim2.fromOffset(0, layout.AbsoluteContentSize.Y + extra)
+		page.CanvasSize = UDim2.fromOffset(0, layout.AbsoluteContentSize.Y / math.max(fitScale.Scale, 0.01) + extra)
 	end
 	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(update)
+	fitScale:GetPropertyChangedSignal("Scale"):Connect(update)
 	update()
 end
 

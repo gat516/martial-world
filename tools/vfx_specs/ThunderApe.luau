@@ -81,25 +81,25 @@
 -- KnuckleCharge secondary: lightning gathering in the fist -> crackle-arc flipbook 11492870634 (4x4, arcs appearing and dying) over an indigo core; star 13908198788 for "now"
 -- SwingArc     HERO: the fist sweeping the air -> heavy smeared crescent 88807999398470 on a slate copy; secondary arcs 76973563852665 (2x2 bold arcs, random frame); environment grit: dust flipbook 11989899750
 -- FistTrail    secondary: the charged fist carrying through -> Trail with the electric strip 10528782340 over an indigo trail
--- PoundImpact  HERO: shock ring mesh 129778117978668 on slate; secondary flash flipbook 12156297119 (4x4 star shrinking), crater 11705672210 + carved cracks 7994630128, lit cracks 301851161 (radial lightning cracks), crack arcs 11492870634, heaved rock mesh 89195313060285; tertiary rock chunks flipbook 126533699507957 (4x4 tumbling rock), dust wall 11989899750; environment settle 71869624437521 (4x4 puff breaking up)
+-- PoundImpact  HERO: shock ring mesh 129778117978668 on slate; secondary flash flipbook 12156297119 (4x4 star shrinking), crater 11705672210 + carved cracks 7994630128, lit cracks 301851161 (radial lightning cracks), crack arcs 11492870634, heaved rock mesh 89195313060285; tertiary rock chunks 130042646554310 (2x2 chunks), dust wall 11989899750; environment settle 71869624437521 (4x4 puff breaking up)
 -- PoundWave    HERO: the travelling front -> ragged shard ring mesh 1726537151 (Slate), crackling ring 7150933366, dust ring 16505105356; End: dust 11989899750 and arcs 76973563852665 off the ring surface
 -- ChestCharge  secondary: lightning gathering on the chest -> 11492870634 + indigo core
 -- BowWave      HERO (dash): air shoved ahead of the body -> soft air ring 15611866526 facing the run, air streaks flipbook 15107683952 streaming back
 -- SpeedShed    tertiary: lightning shed where the body passed -> 76973563852665
--- BellyImpact  HERO: the belly landing -> dust cloud 11989899750 bursting out; secondary swirl shock ring mesh 73349240058321 on slate, flash 12156297119, chunks 126533699507957; environment settle 71869624437521
--- Coil / Launch / Skid  secondary: feet and fists digging, pushing off, ploughing -> dust 11989899750, chunks 126533699507957, swirl ring mesh 73349240058321 (Launch)
+-- BellyImpact  HERO: the belly landing -> dust cloud 11989899750 bursting out; secondary swirl shock ring mesh 73349240058321 on slate, flash 12156297119, chunks 130042646554310; environment settle 71869624437521
+-- Coil / Launch / Skid  secondary: feet and fists digging, pushing off, ploughing -> dust 11989899750, chunks 130042646554310, swirl ring mesh 73349240058321 (Launch)
 -- LimbTrail    tertiary: limbs streaking through the air -> Trail 10528782340 over indigo
 -- SkyfallImpact HERO: blade shock ring mesh 122007796695786 on slate; secondary flash, crater 11705672210 + cracks 7994630128 + lit 301851161, ground forks 914595092 (forked bolt laid flat), heaved rock 89195313060285; tertiary chunks, dust wall; environment settle
 -- JudgeCloud   secondary: the storm gathering over the landing -> cloud flipbook 14050526759 (2x2 puffs) in indigo, arcs 11492870634 in it
 -- BoltHit      secondary: the bolt striking the ape at take-off -> flash 12156297119, discharge 528280947 (spider burst of arcs)
 -- JudgmentImpact HERO: the bolt's discharge ring -> crackling ring 7150933366 over a dust ring 16505105356, spike flare mesh 102470267627424 rising; secondary blade shock mesh on slate, flash, crater, cracks, forks 914595092; tertiary chunks, dust wall; environment settle
--- BoulderRip   secondary: the floor torn open -> cracks 7994630128, dust plume 11989899750, chunks 126533699507957
--- BoulderRock / BoulderSkin  the rock (stone mesh 17608108317, from the old set) shedding grit (chunks, dust) and a dust Trail in flight
+-- BoulderRip   secondary: the floor torn open -> cracks 7994630128, dust plume 11989899750 (no chunk particles on the throw: user, 2026-10-23)
+-- BoulderRock / BoulderSkin  the rock (stone mesh 17608108317, from the old set) shedding dust and a dust Trail in flight
 -- BoulderCharge secondary: the ape charging the rock -> 76973563852665, star 13908198788
 -- BoulderShadow environment: the rock's shadow on the floor -> dot 9841273544 (a soft dark disc, cores/shadows only)
--- BoulderImpact HERO: the rock shattering -> chunks 126533699507957 thrown out; secondary dust burst 11989899750, flash, discharge 7216850580 (the rock's charge), shock ring mesh 73349240058321 on slate, crater 11705672210
+-- BoulderImpact HERO: the rock shattering -> rock flipbook 126533699507957 (4x4, a rock tumbling and crumbling to grit), boulder-sized pieces on a dark base, over the dust; tertiary small chips 626588936 (few, short); no settle haze (the dust is aftermath, 0.5 s); secondary dust burst 11989899750, flash, discharge 7216850580 (the rock's charge), shock ring mesh 73349240058321 on slate, crater 11705672210
 -- LanceForm    secondary: lightning drawn into the fist, a javelin growing -> 11492870634 inward, electric strip 10528782340, star 13908198788
--- LanceBolt    HERO (flight): the javelin -> Beams (indigo, glow, electric strip core 10528782340), Trails, shed arcs 76973563852665
+-- LanceBolt    HERO (flight): the javelin, tip on the projectile, 14-stud shaft trailing (AuthoredLength) -> Beams (indigo, glow, electric strip core 10528782340), Trails, shed arcs 76973563852665
 -- LanceFlash   secondary: the throw / the end -> flash 12156297119, discharge 528280947
 -- ScorchSpot   environment: the bolt burning the floor it passes low over -> scorch 7216852679 dark
 -- ChestBeat    secondary: a fist hitting the chest -> swirl ring mesh 73349240058321 thumped forward, zigzag sparks flipbook 12517923720, flash
@@ -152,6 +152,8 @@ local TEX = {
 	dust = id(11989899750), -- 4x4: a dust burst breaking up
 	settle = id(71869624437521), -- 4x4: a puff breaking into shreds
 	chunks = id(130042646554310), -- 2x2: four rock chunks
+	rockBreak = id(126533699507957), -- 4x4: one rock tumbling and crumbling to grit
+	rockShard = id(626588936), -- one hard-edged rock (small chips only)
 	cloud = id(14050526759), -- 2x2 cloud puffs
 	crater = id(11705672210),
 	crackDark = id(7994630128),
@@ -576,7 +578,6 @@ function _G.buildThunderApeFX(effects)
 		local g = att(p, "Ground", Vector3.new(0, 0.2, 0))
 		em(g, "Cracks", with(FLAT, earthy({ Texture = TEX.crackDark, Color = CS(SCORCH), Lifetime = R(3), Size = NS(9), Rotation = R(0, 360), Transparency = seq(0, 0.05, 0.8, 0.1, 1, 1), ZOffset = 0.2 })))
 		em(lift(g, 2.2), "Plume", grid4(earthy({ Texture = TEX.dust, Color = CS(DUST), EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(35, 35), Speed = R(8, 14), Drag = 2, Rate = 12, Lifetime = R(0.8, 1.1), Size = seq(0, 3, 1, 6), Transparency = DUSTFADE, Rotation = R(0, 360) })), { EmitDuration = 0.6 })
-		em(p, "Chunks", rocks({ Shape = Enum.ParticleEmitterShape.Box, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40), Speed = R(16, 24), Acceleration = Vector3.new(0, -100, 0), Rate = 12, Lifetime = R(0.6, 0.9), Size = NS(1), RotSpeed = R(-200, 200) }), { EmitDuration = 0.6 })
 	end
 
 	-- BoulderRock (the boulder itself, a stone mesh about 10 studs across).
@@ -598,11 +599,10 @@ function _G.buildThunderApeFX(effects)
 		rock.Parent = root
 	end
 
-	-- BoulderSkin (rides the rock from the rip to the impact): grit falling off
-	-- it; the dust Trail is switched on by code at the throw.
+	-- BoulderSkin (rides the rock from the rip to the impact): dust falling off
+	-- it (no grit chunks: user, 2026-10-23); the dust Trail is switched on by code at the throw.
 	do
 		local p = part(root, "BoulderSkin", Vector3.new(9, 9, 9))
-		em(p, "Grit", rocks({ Shape = Enum.ParticleEmitterShape.Sphere, Speed = R(1, 4), SpreadAngle = Vector2.new(180, 180), Acceleration = Vector3.new(0, -60, 0), Rate = 6, Lifetime = R(0.5, 0.8), Size = NS(0.5), RotSpeed = R(-200, 200) }), {})
 		em(p, "Dust", grid4(earthy({ Texture = TEX.dust, Color = CS(DUST), Shape = Enum.ParticleEmitterShape.Sphere, Speed = R(0, 2), Rate = 5, Lifetime = R(0.6, 0.9), Size = seq(0, 2, 1, 4), Transparency = seq(0, 0.5, 1, 1), Rotation = R(0, 360) })), {})
 		local top = att(p, "TrailTop", Vector3.new(0, 3.5, 0))
 		local bottom = att(p, "TrailBottom", Vector3.new(0, -3.5, 0))
@@ -639,13 +639,13 @@ function _G.buildThunderApeFX(effects)
 	do
 		local p = part(root, "BoulderImpact", Vector3.new(1, 1, 1), { AuthoredRadius = 10 })
 		local g = att(p, "Ground", Vector3.new(0, 1.5, 0))
-		em(g, "Shatter", rocks({ EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(70, 70), Speed = R(30, 50), Acceleration = Vector3.new(0, -120, 0), Lifetime = R(0.8, 1.2), Size = NS(2.1), Rotation = R(0, 360), RotSpeed = R(-260, 260) }), { EmitCount = 16 })
-		dustWall(g, "DustBurst", 10, R(18, 28), seq(0, 3.5, 1, 7.5), 0.03)
-		flash(att(p, "Up", Vector3.new(0, 3, 0)), "Flash", 8, 0, 0.18)
-		em(p, "Discharge", { Texture = TEX.plasma, Color = STORM, LightEmission = 1, Brightness = 3, Lifetime = R(0.16), Size = seq(0, 5, 1, 8), Rotation = R(0, 360), Transparency = FLICK, ZOffset = 2 }, { EmitCount = 1, EmitDelay = 0.02 })
+		em(g, "Shatter", rocks({ Texture = TEX.rockBreak, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot, Color = CS(Color3.fromRGB(64, 60, 58)), LightInfluence = 0.2, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(70, 70), Speed = R(22, 36), Acceleration = Vector3.new(0, -120, 0), Lifetime = R(0.8, 1.1), Size = seq(0, 3.2, 0.6, 3, 1, 2), Rotation = R(0, 360), RotSpeed = R(-200, 200), ZOffset = 1.5 }), { EmitCount = 10 })
+		em(g, "Chips", rocks({ Texture = TEX.rockShard, FlipbookLayout = Enum.ParticleFlipbookLayout.None, Color = CS(Color3.fromRGB(78, 72, 68)), LightInfluence = 0.4, EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(60, 60), Speed = R(20, 34), Acceleration = Vector3.new(0, -120, 0), Lifetime = R(0.4, 0.6), Size = seq(0, 0.7, 1, 0.4), Rotation = R(0, 360), RotSpeed = R(-300, 300), ZOffset = 1.6 }), { EmitCount = 8, EmitDelay = 0.02 })
+		dustWall(g, "DustBurst", 6, R(14, 22), seq(0, 2.2, 1, 4.5), 0.03, R(0.45, 0.6))
+		flash(att(p, "Up", Vector3.new(0, 3, 0)), "Flash", 5, 0, 0.14)
+		em(p, "Discharge", { Texture = TEX.plasma, Color = STORM, LightEmission = 1, Brightness = 2, Lifetime = R(0.14), Size = seq(0, 3, 1, 5), Rotation = R(0, 360), Transparency = FLICK, ZOffset = 2 }, { EmitCount = 1, EmitDelay = 0.02 })
 		shockRing(p, MESH.swirlRing, 11, 0.02, 0.28)
 		em(att(p, "Floor", Vector3.new(0, 0.2, 0)), "Crater", with(FLAT, earthy({ Texture = TEX.crater, Color = CS(WHITE), Lifetime = R(3.5), Size = NS(6), Rotation = R(0, 360), Transparency = seq(0, 0, 0.8, 0, 1, 1), ZOffset = 0.1 })))
-		settle(g, 4, seq(0, 5, 1, 8), 0.25)
 		shake(p, "Custom,20~90,1.4,0.4,14,0.02,1;1;1,0.1;0.1;0.1")
 	end
 
@@ -660,11 +660,14 @@ function _G.buildThunderApeFX(effects)
 		em(p, "Glint", { Texture = TEX.glint, Color = STORM, LightEmission = 1, Brightness = 4, Lifetime = R(0.2), Size = seq(0, 0, 0.25, 6, 1, 0), LockedToPart = true, ZOffset = 3 }, { EmitCount = 1, EmitDelay = 1.22 })
 	end
 
-	-- LanceBolt (flies with the projectile, -Z = travel): the javelin.
+	-- LanceBolt (flies with the projectile, -Z = travel): the javelin. The tip
+	-- sits on the projectile (where it hits); the 14-stud shaft trails back, so
+	-- at release it reaches from 16 ahead back to the fist: one bolt leaving
+	-- the hand.
 	do
-		local p = part(root, "LanceBolt", Vector3.new(1, 1, 1))
-		local head = att(p, "Head", CFrame.new(0, 0, -5) * CFrame.Angles(0, 0, math.pi / 2))
-		local tail = att(p, "Tail", CFrame.new(0, 0, 9) * CFrame.Angles(0, 0, math.pi / 2))
+		local p = part(root, "LanceBolt", Vector3.new(1, 1, 1), { AuthoredLength = 14 })
+		local head = att(p, "Head", CFrame.Angles(0, 0, math.pi / 2))
+		local tail = att(p, "Tail", CFrame.new(0, 0, 14) * CFrame.Angles(0, 0, math.pi / 2))
 		for _, b in { { "Dark", INDIGO, 0, 3.2, "", 0.3 }, { "Glow", BRIGHT, 1, 2.6, "", 0.45 }, { "Core", WHITE, 1, 2.2, TEX.strip, 0 } } do
 			local beam = Instance.new("Beam")
 			beam.Name = b[1]

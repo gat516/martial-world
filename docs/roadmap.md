@@ -84,35 +84,43 @@ bounties, sect tasks, contribution and a Pavilion shop (never qi).
   chains per region. UI by the ui-designer.
 
 ## 4. Techniques and weapons (why they feel lackluster, and the fix)
-**What exists:** 12 techniques (5 any-weapon, one skill per weapon class). They
+**What exists:** 12 techniques (5 any-weapon, one skill per weapon class; the table in [combat](systems/combat.md)). They
 are mostly damage with a cooldown, plus a comprehension bottleneck. I haven't
 playtested them; this diagnosis is from the numbers and docs.
 
 **Why they feel weak:** there is one skill per class, so there's no choice; nothing
 rewards using them over M1; no enemy asks for a technique; and nothing combines.
 
-**The fix, in four layers:**
-1. **Give every class a progression of its own, 4 skills per class** (28 class
-   skills): an opener, a mobility or defence move, an area move, and an ultimate.
-   Unlocked by Dao level and manuals (so exploring keeps paying).
-2. **Give them jobs.** Statuses the game already has (poison, slow, stun,
+**The fix, in four layers (revised 2026-10-22: fewer techniques, deeper ones):**
+1. **Three skills per weapon class (21), found as manuals, unlocked by weapon
+   mastery.** A technique can be learned any time, but it can only be *equipped*
+   once that class's Dao level reaches its threshold: about level 2, 5 and 8 for
+   the three skills (Dao runs 0-10). So mastery of a weapon is what opens its arts.
+2. **Techniques deepen instead of multiplying.** Each technique levels up
+   (existing comprehension) through its visual tiers T1-T4 ([vfx style](vfx/style.md)),
+   so one skill grows from a plain cast into a spectacle. No new content per level
+   beyond the tiers.
+3. **Give them jobs.** Statuses the game already has (poison, slow, stun,
    bleed) plus a few new ones (burn, chill, break): each class owns a status
    (sword: bleed; spear: pierce armor; staff: stun; greatsword: break guard).
-3. **Make enemies ask for them.** Armoured beasts (the Stone Tortoise) need
+4. **Make enemies ask for them.** Armoured beasts (the Stone Tortoise) need
    guard-break; fliers (the Flame Raven) need ranged or pull; packs reward area
    moves; bosses have weak points and openers that a technique exploits. Enemy
-   designers bake this into each beast's card.
-4. **Make them combine.** Root element resonance (matching element = more damage
-   exists); add **combo windows** (a status plus a technique = a bonus), and a
-   short **forms** loadout: the hotbar's techniques form a "style" with a small
-   passive when you pair certain ones (Sword + Wind, Staff + Lightning).
-- **Quantity target:** about 50 techniques across the game: 28 class skills, 10
-  any-weapon, 12 elemental, found as manuals (caches, ruins, bosses, events,
-  milestones), never from a shop.
-- **Visuals:** each needs T1-T4 tiers ([vfx style](vfx/style.md)); it may launch
-  with T1. `vfx` agent per technique batch.
-- **Build order:** statuses and combo rules, then re-pass the 12 existing
-  techniques, then a class at a time (new fresh agent per class).
+   designers bake this into each beast's card. Root element resonance (exists)
+   and combo windows (a status plus a technique = a bonus) reward pairing.
+- **Quantity target:** about 28: 21 class skills (3 per class, the 7 that exist
+  are the first of each), plus 7 any-weapon arts (the 5 existing and 2 elemental).
+  Cut from the earlier 50; more can come later as manuals.
+- **Weapon and arts UI is a separate flow fix.** The Inventory holds the pouch,
+  arts and weapons in tabs and the player juggles badges and "Requires a sword".
+  Proposal: an **Arms window per weapon** (Dao level, its three skill slots and
+  their unlock levels) and a **hotbar preset per weapon**, so swapping weapons
+  swaps the arts row, and a quick-swap on the HUD badge. To scope with the
+  ui-designer after the user lists what is clunky now.
+- **Visuals:** `vfx` agent per technique batch.
+- **Build order:** statuses and combo rules, then the Arms window and per-weapon
+  presets, then re-pass the existing techniques, then a class at a time (fresh
+  agent per class).
 
 ## 5. The spirit garden
 **Today:** about 11 herbs in 3 soils (bed, pond, grove), 7 mutations, sizes,

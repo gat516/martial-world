@@ -30,6 +30,10 @@ discipline, each on a lit plate in front of a parked camera:
 - `enemy{ template, cue }`: the beast playing the move with its effect cues
 - `ui{ screen, size }`: the ScreenGui with sample data at phone or PC size
 - `stop()` clears it.
+Loading: serve your worktree on a port of your own (`python3 -m http.server <port>`
+from the worktree root; the shared ports may serve another checkout), set
+`_G.REVIEW_STAGE = { base = "http://127.0.0.1:<port>/" }`, then load
+`tools/review_stage.luau` through `execute_luau`. Details: `docs/tools.md`.
 Leaving the stage running is the one exception to leaving the sandbox clean:
 name the stop call in your report. Never pause for the user's review; they flag
 you if they want a change. Until the tool lands on your branch, improvise the

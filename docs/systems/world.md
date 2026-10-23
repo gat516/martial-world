@@ -39,7 +39,8 @@ For the setting and where each zone, beast and event ground is, see
   landing; screen effects stay gentle (a soft white flash when the heavens tear, an impact
   frame or shake only near a landing); the sky clears (Atmosphere density and haze capped)
   while a far layer is up; Beast Surge is a crimson vortex at the valley centre; Ginseng
-  publishes a guarded/free `state`; tribulation clouds are not part of it.
+  publishes a guarded/free `state`. Tribulation clouds came later, in their own pass
+  ([tribulation](../vfx/world_events/tribulation.md)).
 - Far read (tested 2026-10-21): from the peaks the event grounds are 1000-1900 studs
   away. At the default Atmosphere (density 0.36) only an additive white core survives that
   distance; colour needs density ~0.28 and haze ~1.0, which `WorldFX.SkyGrade` applies,

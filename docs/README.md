@@ -39,7 +39,8 @@ client module against `StarterGui.Hud`).
 Mapped assets: `Remotes`, `Animations`, `Ambience`, `Effects` (binary
 `assets/Effects.rbxm`, VFX templates with plugin attributes), `WorldFX` (binary
 `assets/WorldFX.rbxm`, the sky-scale world-event kit built by `tools/worldfx_build.luau`:
-Grade, LightPillar, SkyRift, Meteor, SkyCircle, GroundCircle, CloudRing;
+Grade, LightPillar, SkyRift, Meteor, SkyCircle, GroundCircle, CloudRing; and
+`Tribulation` (Vortex, Seal, Strike, Scorch, Finale) built by `tools/vfx_specs/Tribulation.luau`;
 see [event-fx](world/event-fx.md)), `BuildKit`, `GardenKit`
 (ReplicatedStorage); `HerbMorsel` (ReplicatedStorage, temporary eating prop);
 `Hud`, `Rewards`, `Prompts` (StarterGui); `Music`, `SFX`, `Ambience` (binary
@@ -110,7 +111,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 | Enemies, spawning, regions, server/client split, boss projectiles | [enemies](systems/enemies.md) (core + one doc per enemy in [enemies/](enemies/)); open boss work in each boss doc's "Open work", boss rules in [enemies](systems/enemies.md#boss-rules-user-decisions); telegraph language and attack feel in [telegraphs](systems/telegraphs.md) | EnemyService, EnemyMover, EnemyHistory, Spawner, Projectiles | Enemies, Spawns, Regions, Knockback, Pacing.Danger, ProjectilePath | ProjectileView, EnemyMotion, EnemyAnimator, EnemyPoses/*, EnemyFX/*, EnemyBars, BossBars, BossThemes, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
-| Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, WorldFX/* (Kit, SkyGrade, TreasureFX), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |
+| Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, WorldFX/* (Kit, SkyGrade, TreasureFX, TribulationFX), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |
 | Onboarding, rewarded objectives, quest board, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Gates, Config.Travel, Pacing.Quests | Onboarding, TravelMenu, GateMarkers, Veil |
 | UI and HUD | [ui](systems/ui.md) (core + [ui/](ui/): vitals stack, inventory, boss bar) | - | - | Hud, SeatBars, GuardBar, Menus, Layout, Motion, BossBars, BossThemes, ScrollHint, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |

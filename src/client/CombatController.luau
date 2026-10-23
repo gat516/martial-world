@@ -31,6 +31,7 @@ local Planting = require(script.Parent.Planting)
 local Platform = require(script.Parent.Platform)
 local Sfx = require(script.Parent.Sfx)
 local State = require(script.Parent.State)
+local TribulationFX = require(script.Parent.WorldFX.TribulationFX)
 
 local remotes = ReplicatedStorage.Remotes
 local attackRemote = remotes.Attack :: RemoteEvent
@@ -820,11 +821,23 @@ local function onEffect(kind: string, ...: any)
 			CombatEffects.number(root.Position, item.name, item.color, 16)
 		end
 	elseif kind == "bolt" then
-		CombatEffects.bolt(args[1])
+		if TribulationFX.ready() then
+			TribulationFX.strike(args[1])
+		else
+			CombatEffects.bolt(args[1])
+		end
 	elseif kind == "tribulationStart" then
-		CombatEffects.storm(args[1], args[2])
+		if TribulationFX.ready() then
+			TribulationFX.start(args[2])
+		else
+			CombatEffects.storm(args[1], args[2])
+		end
 	elseif kind == "tribulationEnd" then
-		CombatEffects.storm(args[1], nil)
+		if TribulationFX.ready() then
+			TribulationFX.finish(args[2] == true)
+		else
+			CombatEffects.storm(args[1], nil)
+		end
 	elseif kind == "cast" then
 		local caster = args[1] :: Player
 		-- payload: caster, id, origin, dir, level, chain

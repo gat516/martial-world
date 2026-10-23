@@ -174,6 +174,16 @@ local FLOAT_LIFE = 1.1
 
 export type Item = { key: string, amount: number }
 export type Stat = { name: string, from: any, to: any }
+
+-- A crest frame with an emblem in its hole. size: the crest image's pixel size;
+-- hole: its empty centre (centre and size as fractions of the image, Sect/Art.Hole).
+type CrestSpec = {
+	image: string,
+	emblem: string?,
+	size: Vector2?,
+	hole: { centre: Vector2, size: Vector2 }?,
+}
+
 export type Spec = {
 	tier: string, -- "small" | "feed" | "banner" | "card"
 	-- small
@@ -200,8 +210,8 @@ export type Spec = {
 	stats: { Stat }?,
 	unlock: string?,
 	flavour: string?,
-	crest: (string | { image: string })?, -- image id for the crest slot (Sect rank-ups pass
-	-- { image, emblem, hole }; only the image shows until the Crest has an Emblem child)
+	crest: (string | CrestSpec)?, -- image id for the crest slot, or a rank crest with an
+	-- emblem centred on its hole (SectRank.rankUp)
 	life: number?,
 }
 
@@ -611,6 +621,22 @@ local function openCard(spec: Spec)
 	local crestSpec = spec.crest
 	crest.Image = (if type(crestSpec) == "table" then crestSpec.image else crestSpec) or kind.crest or ""
 	crest.Visible = kind.crest ~= nil
+	local emblem = crest:FindFirstChild("Emblem") :: ImageLabel
+	emblem.Visible = false
+	if type(crestSpec) == "table" and crestSpec.emblem and crestSpec.size and crestSpec.hole then
+		-- The crest is drawn Fit in its box: map the hole (fractions of the image)
+		-- into the box. The box's aspect is its scale size times the card's.
+		local boxAspect = crest.Size.X.Scale / crest.Size.Y.Scale * kind.ratio
+		local imageAspect = crestSpec.size.X / crestSpec.size.Y
+		local w = math.min(1, imageAspect / boxAspect)
+		local h = math.min(1, boxAspect / imageAspect)
+		local hole = crestSpec.hole
+		emblem.Image = crestSpec.emblem
+		emblem.Position = UDim2.fromScale((1 - w) / 2 + hole.centre.X * w, (1 - h) / 2 + hole.centre.Y * h)
+		-- a square (UIAspectRatioConstraint) 72 % of the hole's smaller side, as SectRank does
+		emblem.Size = UDim2.fromScale(hole.size.X * w * 0.72, hole.size.Y * h * 0.72)
+		emblem.Visible = true
+	end
 	local ribbon = cardArt:FindFirstChild("Ribbon") :: Frame
 	ribbon.Position = UDim2.fromScale(0.5, kind.ribbonY)
 	ribbon.Size = UDim2.fromScale(0.74, kind.ribbonH)

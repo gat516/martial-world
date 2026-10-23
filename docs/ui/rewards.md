@@ -20,8 +20,10 @@ Card jobs (`spec.kind`):
 - `quest`: gold-and-jade `card_quest`, jade ribbon under the crest slot, the sect
   crest (`emblem_peak` by default, `spec.crest` to change it). Rare and weighty.
 - `rank`: a sect rank-up (`SectRank.rankUp`): the quest card with a jade ribbon,
-  `rays_milestone`, and the rank crest from `spec.crest` (`{ image, emblem, hole }` or an
-  image id); the rank's line goes in `flavour`.
+  `rays_milestone`, and the rank crest from `spec.crest` (`{ image, emblem, size, hole }`
+  or an image id); the emblem is drawn in the crest's `Emblem` child, a square 72 % of the
+  hole's smaller side, centred on the hole as `SectRank.paintCrest` does. The rank's line
+  goes in `flavour`.
 - `milestone`: the quest card with a crimson ribbon, `emblem_lotus` in the crest and
   `rays_milestone` glowing from the crest. Breakthroughs use it today ("Breakthrough" or
   "Major Breakthrough", the stage, health/power/combat qi/passive deltas from the
@@ -80,7 +82,8 @@ desktop baseline 1920x1080, phone 844x390, one layout for both). Inside it:
 - `Banner` (620x118 at the top centre, 64 px down): `Kicker`, `Ribbon` (440x56, `Art`
   plus `Title` on the body's centre row), `Tag`, `Subtitle` (hidden on small phones).
 - `Card` (62 % x 84 %, aspect 1.57, at most 600x382, 10 px above centre): `Rays`,
-  `Art` (its aspect set per job: 1.718 boss, 1.571 quest), with `Crest`, `Ribbon`,
+  `Art` (its aspect set per job: 1.718 boss, 1.571 quest), with `Crest` (and its hidden
+  `Emblem`), `Ribbon`,
   `Body` (a centred list: `Subtitle`, `List` of `RewardTemplate` tiles 64x82 with 14 px
   gaps, `Stats`, `Unlock`, `Flavour`) and `Hint` under the card.
 Per-job positions (ribbon, body, rays) are fractions of the card art measured in the
@@ -97,6 +100,8 @@ centre row (263.4 = 263.4); ribbon titles on the body's centre row (311.5, 116.3
 tiles 103/103 px from the list edges with 14/14/14 gaps; toast 20/20 padding, 14/14
 gaps, message and studs on the centre line; feed badge, name and count on the row
 centre, 30/30 px from the ends. Phone card: 514x328, 21 px from the top, hint inside.
+Rank emblem (rank card, 1024/652 art): its centre lands on each crest's hole centre to
+0.01 px (crest_outer, crest_inner, crest_core), 25.0/23.5/20.7 px in 50 px crests.
 
 ## Toast
 
@@ -118,8 +123,6 @@ Kit cuts in `art/ui/codex/cut/` (sheets B1, B2, A6, C3, C5, light effects; ids i
 `WNgoTL6QGdTEBy693Me8Y8`).
 
 ## Known gaps
-- A `rank` card shows only the rank crest ring: the card's `Crest` needs an authored
-  `Emblem` child to draw `spec.crest.emblem` on the crest's hole.
 - `contribution` uses a 功 glyph in the coin; the kit's `contribution_token` could
   replace it.
 - `Hud.Banner` and `Hud.Flash` (the old breakthrough title card and flash) are unused

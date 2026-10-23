@@ -87,7 +87,12 @@ function SectRank.rankUp(rank: Rank, line: string?)
 		title = def.name,
 		subtitle = "The sect raises you in rank",
 		flavour = line,
-		crest = { image = Art.Id[def.crest], emblem = Art.Id[SectRank.EMBLEM], hole = Art.Hole[def.crest] },
+		crest = {
+			image = Art.Id[def.crest],
+			emblem = Art.Id[SectRank.EMBLEM],
+			size = Art.Size[def.crest],
+			hole = Art.Hole[def.crest],
+		},
 	})
 end
 

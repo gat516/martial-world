@@ -296,16 +296,30 @@ local art = new("ImageLabel", {
 	ZIndex = 11,
 }, card)
 aspect(art, 1024 / 596)
-new("ImageLabel", {
-	Name = "Crest",
-	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.fromScale(0.5, 90 / 652),
-	Size = UDim2.fromScale(0.083, 0.13),
-	ScaleType = Enum.ScaleType.Fit,
-	Image = A.emblem_peak,
-	Visible = false,
-	ZIndex = 12,
-}, art)
+do
+	local crest = new("ImageLabel", {
+		Name = "Crest",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 90 / 652),
+		Size = UDim2.fromScale(0.083, 0.13),
+		ScaleType = Enum.ScaleType.Fit,
+		Image = A.emblem_peak,
+		Visible = false,
+		ZIndex = 12,
+	}, art)
+	-- a rank crest's emblem, placed on the crest's hole by Rewards.openCard
+	local emblem = new("ImageLabel", {
+		Name = "Emblem",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BorderSizePixel = 0,
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.5, 0.5),
+		ScaleType = Enum.ScaleType.Fit,
+		Visible = false,
+		ZIndex = 13,
+	}, crest)
+	new("UIAspectRatioConstraint", { AspectRatio = 1 }, emblem)
+end
 do
 	local ribbon = new("Frame", {
 		Name = "Ribbon",

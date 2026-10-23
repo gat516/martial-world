@@ -1,0 +1,269 @@
+{
+ "name": "DemonTailTrail",
+ "attachment": "WaistBackAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.5,
+  0.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Horn": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "HornVein": [
+   0.5,
+   0.02,
+   0.03
+  ],
+  "Tail": [
+   0.034,
+   0.028,
+   0.034
+  ],
+  "Spade": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "TailVein": [
+   0.5,
+   0.02,
+   0.03
+  ]
+ },
+ "shade": {
+  "file": "demonic_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "DemonTailTrail_Tail": {
+   "region": "Tail",
+   "tris": 1296,
+   "center": [
+    0.57,
+    1.232,
+    -0.188
+   ],
+   "size": [
+    1.496,
+    3.306,
+    2.311
+   ]
+  },
+  "DemonTailTrail_Spade": {
+   "region": "Spade",
+   "tris": 224,
+   "center": [
+    1.338,
+    2.731,
+    -0.501
+   ],
+   "size": [
+    0.5,
+    0.439,
+    0.767
+   ]
+  },
+  "DemonTailTrail_TailVein": {
+   "region": "TailVein",
+   "tris": 664,
+   "center": [
+    0.761,
+    1.48,
+    -0.182
+   ],
+   "size": [
+    1.569,
+    2.618,
+    1.997
+   ]
+  }
+ },
+ "tris_total": 2184,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "TailBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    -0.35,
+    0.55
+   ],
+   "tail": [
+    -0.0,
+    -0.308,
+    0.57
+   ],
+   "roblox_head": [
+    -0.0,
+    0.55,
+    -0.35
+   ],
+   "deform": true
+  },
+  "Tail1": {
+   "parent": "TailBase",
+   "head": [
+    -0.0,
+    -0.308,
+    0.57
+   ],
+   "tail": [
+    0.015,
+    0.563,
+    0.733
+   ],
+   "roblox_head": [
+    0.0,
+    0.57,
+    -0.308
+   ],
+   "deform": true
+  },
+  "Tail2": {
+   "parent": "Tail1",
+   "head": [
+    0.015,
+    0.563,
+    0.733
+   ],
+   "tail": [
+    0.079,
+    1.29,
+    0.141
+   ],
+   "roblox_head": [
+    -0.015,
+    0.733,
+    0.563
+   ],
+   "deform": true
+  },
+  "Tail3": {
+   "parent": "Tail2",
+   "head": [
+    0.079,
+    1.29,
+    0.141
+   ],
+   "tail": [
+    0.182,
+    1.871,
+    -0.6
+   ],
+   "roblox_head": [
+    -0.079,
+    0.141,
+    1.29
+   ],
+   "deform": true
+  },
+  "Tail4": {
+   "parent": "Tail3",
+   "head": [
+    0.182,
+    1.871,
+    -0.6
+   ],
+   "tail": [
+    0.528,
+    2.485,
+    -1.206
+   ],
+   "roblox_head": [
+    -0.182,
+    -0.6,
+    1.871
+   ],
+   "deform": true
+  },
+  "Tail5": {
+   "parent": "Tail4",
+   "head": [
+    0.528,
+    2.485,
+    -1.206
+   ],
+   "tail": [
+    1.185,
+    2.776,
+    -0.831
+   ],
+   "roblox_head": [
+    -0.528,
+    -1.206,
+    2.485
+   ],
+   "deform": true
+  }
+ },
+ "variant": "Trail",
+ "mood": "dangerous, prowling",
+ "proportions": {
+  "length": 4.939,
+  "length_to_torso_height": 2.47,
+  "thickness": 0.31,
+  "thickness_to_torso_width": 0.17,
+  "spade_length": 0.85,
+  "spade_length_to_torso_width": 0.45,
+  "spade_span": 0.789,
+  "torso_size": [
+   1.87,
+   1.022,
+   2.0
+  ]
+ },
+ "limb_clearance_running": 0.249,
+ "tightest_limb": "LeftLeg at [0.181, 2.161, -0.523], swing 57 deg",
+ "anchors": {
+  "vfx_wisp": {
+   "point": [
+    1.091,
+    2.803,
+    -1.001
+   ],
+   "note": "on the whip just above the spade; the purple flame wisp (VFX) attaches here, riding Tail5",
+   "roblox": [
+    -1.091,
+    -1.001,
+    2.803
+   ]
+  },
+  "spade_tip": {
+   "point": [
+    1.574,
+    2.666,
+    -0.128
+   ],
+   "roblox": [
+    -1.574,
+    -0.128,
+    2.666
+   ]
+  }
+ }
+}

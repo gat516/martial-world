@@ -167,6 +167,13 @@ its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the
 body. A missing template warns once and is skipped.
 
+Demonic Human has three horn sets (`DemonHornsRam`, `DemonHornsSwept`,
+`DemonHornsCrescent`) and three spaded tails (`DemonTailWhip`, `DemonTailHook`,
+`DemonTailTrail`). The user kept all three directions as variants (2026-10-23), and any
+horns go with any tail. They are built and exported in Blender
+(`art/player/cosmetics/demonic-human/`) but aren't in Studio or named on the race yet.
+Its flame wisp is VFX, attached at each tail's `vfx_wisp` anchor.
+
 ## Body size
 The `size` modifier (Titan Frame: 15% larger, user 2026-10-23; 25% was too big) scales the character with
 `Model:ScaleTo` on the server (`Traits.applySize`, clamped 0.5 to 2), so parts,

@@ -1,0 +1,222 @@
+{
+ "name": "DemonHornsSwept",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Horn": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "HornVein": [
+   0.5,
+   0.02,
+   0.03
+  ],
+  "Tail": [
+   0.034,
+   0.028,
+   0.034
+  ],
+  "Spade": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "TailVein": [
+   0.5,
+   0.02,
+   0.03
+  ]
+ },
+ "shade": {
+  "file": "demonic_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "DemonHornsSwept_LeftHorn": {
+   "region": "Horn",
+   "tris": 778,
+   "center": [
+    0.369,
+    0.357,
+    0.174
+   ],
+   "size": [
+    0.595,
+    1.365,
+    0.893
+   ]
+  },
+  "DemonHornsSwept_LeftHornVein": {
+   "region": "HornVein",
+   "tris": 256,
+   "center": [
+    0.484,
+    0.419,
+    0.208
+   ],
+   "size": [
+    0.269,
+    1.06,
+    0.505
+   ]
+  },
+  "DemonHornsSwept_RightHorn": {
+   "region": "Horn",
+   "tris": 778,
+   "center": [
+    -0.369,
+    0.357,
+    0.174
+   ],
+   "size": [
+    0.595,
+    1.365,
+    0.893
+   ]
+  },
+  "DemonHornsSwept_RightHornVein": {
+   "region": "HornVein",
+   "tris": 256,
+   "center": [
+    -0.484,
+    0.419,
+    0.208
+   ],
+   "size": [
+    0.269,
+    1.06,
+    0.505
+   ]
+  }
+ },
+ "tris_total": 2068,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "HornLBase": {
+   "parent": "Root",
+   "head": [
+    0.24,
+    -0.16,
+    -0.24
+   ],
+   "tail": [
+    0.276,
+    -0.202,
+    0.001
+   ],
+   "roblox_head": [
+    -0.24,
+    -0.24,
+    -0.16
+   ],
+   "deform": true
+  },
+  "HornL": {
+   "parent": "HornLBase",
+   "head": [
+    0.276,
+    -0.202,
+    0.001
+   ],
+   "tail": [
+    0.461,
+    0.359,
+    0.318
+   ],
+   "roblox_head": [
+    -0.276,
+    0.001,
+    -0.202
+   ],
+   "deform": true
+  },
+  "HornRBase": {
+   "parent": "Root",
+   "head": [
+    -0.24,
+    -0.16,
+    -0.24
+   ],
+   "tail": [
+    -0.276,
+    -0.202,
+    0.001
+   ],
+   "roblox_head": [
+    0.24,
+    -0.24,
+    -0.16
+   ],
+   "deform": true
+  },
+  "HornR": {
+   "parent": "HornRBase",
+   "head": [
+    -0.276,
+    -0.202,
+    0.001
+   ],
+   "tail": [
+    -0.461,
+    0.359,
+    0.318
+   ],
+   "roblox_head": [
+    0.276,
+    0.001,
+    -0.202
+   ],
+   "deform": true
+  }
+ },
+ "variant": "Swept",
+ "mood": "refined, aristocratic",
+ "proportions": {
+  "height_above_head": 0.619,
+  "height_to_head": 0.61,
+  "span": 1.332,
+  "span_to_head": 1.11,
+  "base_diameter": 0.31,
+  "base_to_head": 0.26,
+  "length": 1.768,
+  "length_to_head": 1.74,
+  "past_head_back": 0.441,
+  "head_size": [
+   1.198,
+   1.198,
+   1.017
+  ]
+ },
+ "seating": {
+  "exit_s": 0.14,
+  "root_depth_min": 0.147
+ }
+}

@@ -106,12 +106,10 @@ bars, fills and procedural pieces, never for frames, panels, buttons or ornament
   something the player didn't ask for. Menus and minigames hide the gameplay HUD
   (src/client/Menus.luau hides the `Play` frame; the Inventory keeps the hotbar
   visible for drops).
-- One menu at a time: opening a menu closes any other, and pressing its button
-  again closes it. Fewer controls on screen, especially on touch: tuck secondary
-  actions behind one button and show the rest only when it matters. Key hints
-  (like an "M") show only for keyboard input, never on touch.
-- Every control should do something useful. If a prompt does one trivial thing
-  (sit/stand), rethink the interaction instead of polishing the prompt.
+- One menu at a time (opening one closes the rest; its button toggles it). Fewer
+  controls on screen, especially on touch: secondary actions behind one button.
+  Key hints (an "M") only for keyboard input. A control that does one trivial
+  thing (sit/stand) gets rethought, not polished.
 - Cultivation/wuxia feel: ink wash, aged paper and scrolls, jade, lacquer red,
   bronze/gold trim, brush strokes, seal-stamp accents. Keep it restrained. Compact
   means less padding, not smaller pieces; keep sizes, tighten gaps.
@@ -120,38 +118,27 @@ bars, fills and procedural pieces, never for frames, panels, buttons or ornament
   to make the other three is fine. If a piece blurs when shrunk or stretched, ask for a
   bigger regeneration rather than fighting it. Mobile first, and check at real size on
   the phone emulator.
-- **Scale from a baseline, not by hand (user, 2026-10-22).** Lay each ScreenGui out once
-  at a baseline resolution (desktop 1920x1080, phone landscape about 844x390; see
-  docs/ui/overhaul-plan.md) and fit it with one authored `UIScale` per ScreenGui,
-  driven by a shared client module, instead of per-device offsets. A phone gets its
-  own layout and a text-size floor, not just a smaller desktop. Author art at about
-  2x its baseline display size, capped at 1024 px (Roblox has no vector images).
-- Default to uploaded art. Frames, buttons, panels, pills and icons are cut generated
-  images (see "How UI art is made"), 9-sliced where they stretch. Studio instances are
-  layout plus text on top of that art. Plain Frames with UICorner/UIStroke look
-  off-putting; use them only for internals (bar fills, text). When unsure, draw it.
-- Alignment matters: buttons in a row share size, anchor point, baseline and
-  spacing (use a UIListLayout or UIGridLayout, not hand-placed offsets). Check
-  every row in a screenshot before saving.
-- **Check centring and padding by numbers, not by eye (user, 2026-10-23).** A guard
-  bar shipped visibly off centre in its tray. Before committing, compare every placed
-  element's AbsolutePosition/AbsoluteSize centre with its container's, at PC and
-  phone sizes in edit mode, and check that paddings that should match do (left =
-  right, top = bottom, equal gaps between repeated items). Baked frame art has its own
-  margins: measure where the hole actually is in the PNG, not where the box is. Fix
-  anything more than 1 px off, and put the numbers in your report.
-- UI should feel alive but snappy: open/close menus with a tween (fade plus a
-  slight scale or slide), give buttons hover/press feedback, ease prompts in and
-  out, animate value changes. Use 0.15-0.3s, with shared tween helpers in one
-  module.
-- Legibility beats style. Small text: Builder Sans Bold
-  (`rbxasset://fonts/families/BuilderSans.json`), light colour, `TextStrokeColor3`
-  near black, `TextStrokeTransparency = 0`, at least ~11px on PC. Merriweather only
-  for titles. Never put a UIStroke on a TextLabel (it strokes the glyphs and blurs
-  them). On touch, hide text that would render tiny (slot names) and enlarge the
-  icon instead.
-- The user reviews by screenshot. Show a preview before saving, and ask when a
-  request is ambiguous rather than guessing at a big redesign.
+- **Scale from a baseline, not by hand (user, 2026-10-22).** One canvas per
+  ScreenGui at 1920x1080 or 844x390, fitted by `UiScale.fit` (its header has the
+  authoring shape); a phone gets its own layout and text floor. Art at about 2x its
+  display size, capped at 1024 px.
+- Default to uploaded art ("How UI art is made"); Studio instances are layout plus
+  text on top of it. Plain Frames with UICorner/UIStroke only for internals.
+- **Centring and padding by numbers, not by eye (user, 2026-10-23).** A guard bar
+  shipped off centre in its tray. Rows use a UIListLayout or UIGridLayout, never
+  hand offsets; `ui_lint` reports centre offsets and uneven paddings at PC and
+  phone sizes, and anything over 1 px is fixed before export. Baked frame art has
+  its own margins: measure the hole in the PNG, not the box. Put the numbers in
+  your report.
+- Alive but snappy: menus tween open and closed (fade plus a slight scale or
+  slide), buttons give hover and press feedback, values animate; 0.15-0.3 s via
+  the shared tween helpers.
+- Legibility beats style. Small text: Builder Sans Bold, light colour, near-black
+  `TextStrokeColor3` with `TextStrokeTransparency = 0`, at least ~11 px on PC;
+  Merriweather only for titles. Never a UIStroke on a TextLabel (it blurs the
+  glyphs). On touch, hide text that would render tiny and enlarge the icon.
+- The user reviews in Studio. Ask when a request is ambiguous rather than
+  guessing at a big redesign; send directions, not a finished guess.
 
 ## Lessons from the overhaul playtest (user, 2026-10-23/24)
 

@@ -19,7 +19,7 @@ and retry later.
 Skills for the rest: `mesh-pipeline` for every landform mesh, `upload-asset` for
 ambient sounds, `shared-commit` for every commit.
 
-**The gate.** Your work goes through the `visual-gate` skill (preloaded): status
+**The gate.** An area ships through `visual-gate` (preloaded): status
 lines, a gray blockout of 2-3 compositions before any dressing, the checks in
 [build-checks](../../docs/map/build-checks.md) to zero FAIL, one eye-level sheet
 (day and night), a `visual-critic` round. If the brief lacks a required field from

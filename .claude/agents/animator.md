@@ -18,7 +18,7 @@ there.
 Follow AGENTS.md. Use `upload-asset` to publish a clip, and `shared-commit` for
 every commit (shared animation files take hunks only).
 
-**The gate.** Your work goes through the `visual-gate` skill (preloaded): status
+**The gate.** A clip isn't done when it plays; it's done when the gate passes (`visual-gate`, preloaded): status
 lines, the three hero poses as directions before keying a new clip, the
 `motion_probe` metrics (hitches, stops dead, chain lag, anticipation, lows) and
 the family's pose QA to zero FAIL, one `anim_filmstrip` sheet (two captures), a

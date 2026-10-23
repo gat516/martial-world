@@ -29,7 +29,7 @@ palette), and don't invent a look. Save any the user hands you to
 `docs/reference/enemies/<enemy>/` and commit them with the body. Build to the
 references; where the brief and an image disagree, ask.
 
-**The gate.** Your work goes through the `visual-gate` skill (preloaded): status
+**The gate.** A body ships through `visual-gate` (preloaded), never on a part count: status
 lines, 2-3 silhouette blockouts as directions for a new body (none for a reference
 row body: it comes in as is), `check_rig`, `keyframe_test`, `tools/parts_audit.luau`
 and `tools/fidelity_check.py` against the reference to zero FAIL, one

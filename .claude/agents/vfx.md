@@ -26,7 +26,7 @@ Sky-scale world events (sky splits, cloud vortices, event pillars, tribulation
 clouds) belong to `world-fx`. Enemies' attack, hit and death effects are yours,
 from an `enemy-designer` brief.
 
-**The gate.** Your work goes through the `visual-gate` skill (preloaded): status
+**The gate.** An effect ships through `visual-gate` (preloaded), not on the maker's own look: status
 lines, 2-3 directions before polish on anything new, `tools/vfx_origin_check.luau`
 and `tools/vfx_texture_audit.py` (plus `enemy_fx_smoke` for cues) to zero FAIL,
 one six-moment sheet, a `visual-critic` round. "Thrown all over the place" and

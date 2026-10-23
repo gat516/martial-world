@@ -18,9 +18,26 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
 3. **Polish, export, commit.** One FBX + JSON per set under
    `art/player/cosmetics/<race>/`, a re-runnable `build_<race>.py`, `make_sheet.py`,
    the `.blend` and a README.
-4. **Import** in a sandbox: upload, build one Accessory per set in
-   `assets/Cosmetics.rbxm`, wire the race or variant `Cosmetics`, merge to the test
-   build. The fox (`art/player/cosmetics/fox/`) is the worked example of every step.
+4. **Import** in a sandbox, by a fresh agent with the sandbox's `studio_id`:
+   - upload each FBX as a model (`tools/upload_asset.py model`) and the shade ramp
+     with the MCP's `upload_image`, then `insert_asset` each model as
+     `Workspace._Import<Set>`. There's no manual FBX import step.
+   - a `place_<race>_cosmetics.luau` script turns the imports into Accessories: the
+     importer's RootPart becomes an invisible 0.2 Handle at the attachment, holding
+     the bones; the skinned MeshParts are welded to it, each with a `Region`
+     attribute.
+   - export the set's Folder to `assets/Cosmetics/<Set>.rbxm` (mapped to
+     `ReplicatedStorage.Cosmetics`, one file per set, so the creator preview can
+     wear them), and name the accessories in the race's or variant's `Cosmetics`.
+   - check that the bones deform when worn, and that the accessory still fits after
+     `ScaleTo(1.15)`.
+5. **Merge to the test build** for the user to see in game.
+
+The fox (`art/player/cosmetics/fox/`) is the worked example of every step.
+
+**Space.** Each FBX is in its attachment's space. A Blender point `(x, y, z)` is
+Roblox `(-x, z, y)` from the attachment, with no extra rotation. The fox README's
+first note (a pi turn) put the tail in front of the body.
 
 ## Rules
 
@@ -40,18 +57,35 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
   each joint, transforms applied. The sheet shows a bent pose.
 - **Recolourable by region.** Each colour region is its own mesh (outer, inner,
   tip, veins...), with a material named by region (`FurOuter`, `FurInner`,
-  `FurTip`). Shading comes from a greyscale ramp texture tinted by Color, so a
-  race or bloodline recolour is one Color per part.
+  `FurTip`). Shading comes from a greyscale ramp texture in a SurfaceAppearance
+  tinted by its Color. The SurfaceAppearance covers the part colour, so a race or
+  bloodline recolour sets both the MeshPart's Color and `SurfaceAppearance.Color`.
 - **Read as the material.** Fur is layered clumps graded big at the base to small
   at the tip, with a tapering end: not a smooth tube, not pinecone rows of equal
   scales (both rejected on the fox).
-- **Cute, not tall.** Ears stay compact and appealing on the blocky R6 head; the
-  fox's 1.2-stud ears were "too tall. make them cute" (user, 2026-10-23). Keep
-  ears to about 0.6-0.9 studs unless the brief says otherwise.
+- **Ears: short and solid.** The fox's first ears were "too tall. make them
+  cute" and "too thin.. why are they so thin?" (user, 2026-10-23).
+  - Height: about 0.6-0.9 studs on the blocky R6 head, unless the brief says
+    otherwise.
+  - Body: a solid, rounded cup with depth front to back, wide at the base. Not a
+    flat card.
+  - Inner fur: a few soft, chunky, rounded tufts that fill the cup, not thin needle
+    spikes ("and the 'fur' thats in the inside").
+  - Read: judge it from game-camera distance, not only up close.
+- **Moods as variants.** The user wants both "cool / tuff / aggressive and cute"
+  variants. Sharper, swept-back shapes with darker tips sit beside soft, rounded
+  ones.
 - **Clear the body.** Ears clear a normal hair accessory and work bald; tails clear
   the legs and arms at rest and while running.
 - **Budget:** ears about 1,500 tris a pair, a tail about 4,000 (6,000 at most).
 - **Sheet:** front, side, back, rear three-quarter, bent pose, a seating close-up
   and a bent close-up, one row per direction.
+- **Keep what the user likes.** When the user approves a placeholder's design,
+  remodel that same look in Blender and don't redesign it. Dragonblood's
+  part-built antlers are one: "i actually really like what we have going on for
+  dragonblood already" (`briefs/dragonblood.md`).
+- **One checkout unless parallel.** Races run one at a time in the shared
+  `race-cosmetics` checkout. A worktree is only for an agent running alongside
+  another one (AGENTS.md, Branches).
 - **Effects aren't meshes.** Flames, qi wisps and mist (Demonic Human's flame,
   Ghost's wisps) go to `vfx`; the modeler builds only the solid pieces.

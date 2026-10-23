@@ -5,8 +5,8 @@
 --   slots: pick a slot. Play, Edit look and Delete for a named one; Create on
 --          an empty one; "Name & play" on an unnamed one (a profile from before
 --          slots). Nothing is in the world until a slot is played.
---   new:   the creator for a new character: Appearance, Hair, Name. Next walks
---          the steps; Enter World (on Name) needs a first name.
+--   new:   the creator for a new character: Appearance, Hair, Fate, Name. Next
+--          walks the steps; Enter World (on Name) needs a first name.
 --   edit:  the creator on a slot's look: the same steps, the name locked, Save
 --          look on every step, Cancel back to the slots.
 -- While open it hides the Hud, parks the camera (Backdrop) and stops the
@@ -34,6 +34,7 @@ local Theme = require(script.Parent.Theme)
 local TabModules = {
 	Appearance = require(script.Parent.Tabs.Appearance),
 	Hair = require(script.Parent.Tabs.Hair),
+	Fate = require(script.Parent.Tabs.Fate),
 	-- not Tabs.Name: that's the folder's own Name property ("Tabs")
 	Name = require(script.Parent.Tabs:FindFirstChild("Name") :: ModuleScript),
 }
@@ -345,7 +346,7 @@ local function previewSlot(slot: Summary?)
 	local sub = if race then `{Defs.Registry.label(slot.race, slot.variant)}  ·  {realmName(slot.realm)}` else realmName(slot.realm)
 	setNameplate(if slot.named then fullName(slot.surname, slot.firstName) else "Unnamed cultivator", sub)
 	Look.apply(slot.look, {})
-	Look.race(slot.race, slot.variant)
+	Look.race(slot.race, slot.variant, slot.look and slot.look.RaceLook)
 	task.spawn(function()
 		local hairs = if slot.named then Bridge.slotHairs(slot.id) else {}
 		if mine == previewToken and #hairs > 0 then
@@ -485,8 +486,9 @@ local function openCreator(id: string, which: string)
 	end
 	if which == "edit" then
 		session = { id = id, firstName = payload.firstName }
-		state:load(Defs, payload.look, payload.firstName)
+		state:load(Defs, payload.look, payload.firstName, player:GetAttribute("Race"))
 		handles.Appearance.reset()
+		handles.Fate.reset()
 		handles.Name.reset("edit", payload.firstName)
 		local look = payload.look
 		task.spawn(function()
@@ -495,12 +497,13 @@ local function openCreator(id: string, which: string)
 		end)
 	else
 		session = { id = id }
-		state:load(Defs, nil, nil)
+		state:load(Defs, nil, nil, player:GetAttribute("Race"))
 		handles.Appearance.reset()
 		handles.Hair.reset(nil)
+		handles.Fate.reset()
 		handles.Name.reset("new", nil)
 	end
-	Look.race(player:GetAttribute("Race"), player:GetAttribute("RaceVariant"))
+	Look.race(player:GetAttribute("Race"), player:GetAttribute("RaceVariant"), state:get("RaceLook"))
 	setMode(which)
 	paintCreatorName()
 end
@@ -715,6 +718,8 @@ function Controller.init(screen: ScreenGui)
 			refresh()
 			if key == "FirstName" then
 				paintCreatorName()
+			elseif key == "RaceLook" then
+				Look.race(player:GetAttribute("Race"), player:GetAttribute("RaceVariant"), state:get("RaceLook"))
 			end
 		end
 	end)
@@ -724,7 +729,7 @@ function Controller.init(screen: ScreenGui)
 				refresh()
 				paintCreatorName()
 				if attribute ~= "Surname" then
-					Look.race(player:GetAttribute("Race"), player:GetAttribute("RaceVariant"))
+					Look.race(player:GetAttribute("Race"), player:GetAttribute("RaceVariant"), state:get("RaceLook"))
 				end
 			end
 		end)

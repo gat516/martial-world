@@ -3,8 +3,8 @@
 ## Purpose
 The join screen's creator: pick a starting outfit (shirt and pants), skin, hair
 (any catalog hair accessory by id, plus a colour), see the race and clan the
-server drew for the slot (paid rerolls), choose a first name, and enter the
-world. It opens from the slot screen ([save slots](save-slots.md)) for a new
+server drew for the slot (paid rerolls) and pick the race's free looks (tail and
+ear shapes and the like), choose a first name, and enter the world. It opens from the slot screen ([save slots](save-slots.md)) for a new
 character, or on a slot's look to edit it. It's a template: the look and every
 list come from config; what a race does is [identity](identity.md).
 
@@ -22,16 +22,20 @@ list come from config; what a race does is [identity](identity.md).
   frame (`panel_frame.png`) on the panel and the modal cards; the Inventory's gold
   and lacquer pills for the step tabs (gold = current) and every button (gold = the
   one thing to press); plain ink wells (`slot_plain.png`) with a thin dim edge
-  (`slot_edge.png`) for swatches, outfit cards, slot cards, text fields and the
+  (`slot_edge.png`) for swatches, arrow pickers, slot cards, text fields and the
   race and clan rows, the chosen one wearing the Inventory's cream ring 3 px
   outside; the slot screen's title on the gold house plaque (`Ribbon.luau`,
   [ribbons](../ui/ribbons.md)); one diamond divider; the Inventory's close seal on
   the odds card. No ornament on anything that repeats; no crests, corner sets,
   halos, ink wash, vignette or seals.
-- **Outfit cards show the outfit, all the same way:** a small live R6 dummy in the
-  card's well (a ViewportFrame, the WeaponView pattern) wearing that piece and the
-  other piece the player has chosen, in their skin, framed on the torso and arms
-  (shirts) or the legs (pants). Never the raw clothing template image.
+- **Arrows, not grids** (user, 2026-10-23: "these basically need to shift to
+  arrows"). Shirt, pants and a race's looks are each one arrow picker: a lacquer
+  arrow at each end, the pick's name centred with "1 / 3" under it, wrapping round.
+  The big preview character shows the pick; there are no per-option thumbnails.
+- **Fate has its own step** (user, 2026-10-23): race (rolled, paid Change), the
+  race's free looks under "Look" (hidden when it has none), clan (rolled, paid
+  Change), the note and the odds link. Traits come only with rolled variants;
+  looks carry no stats, so they're free ([identity](identity.md) Looks).
 - **Calm motion:** a 0.15 s fade and 8 px slide between steps, Motion's hover and
   press on buttons. No flashes, shakes, pulses or full-screen darkening.
 - **Mobile first:** the panel scales with the screen height and floors at 0.8, so
@@ -59,17 +63,19 @@ list come from config; what a race does is [identity](identity.md).
 
 ## Flow
 - **New** (from the slot screen's Create, or Name & play on a migrated profile):
-  steps Appearance (skin, shirt, pants), Hair (up to 3 ids, colour), Name (first
-  name, then the race and clan rows with Change, a note that they stay with the
-  slot, and a link to the odds). Tabs at the top of the panel jump between
+  steps Appearance (skin, shirt, pants), Hair (up to 3 ids, colour), Fate (the
+  race row with Change, an arrow picker per look the race has, the clan row with
+  Change, a note that they stay with the slot, and a link to the odds), Name
+  (first name only). Tabs at the top of the panel jump between
   steps; the footer has Back (on the first step: back to the slots) and "Next:
   <step>", or Enter World on Name.
-- **Edit** (Edit look): the same steps, the last one titled Identity with the
-  first name shown locked ("A cultivator's name is set once"); rerolls still
-  work there. Footer: Cancel and Save look (on every step). Save returns to the
+- **Edit** (Edit look): the same steps, the Name step showing the first name
+  locked ("A cultivator's name is set once"); rerolls and looks still work on
+  Fate. Footer: Cancel and Save look (on every step). Save returns to the
   slot screen.
 - Defaults: the ranger shirt and pants, the avatar's own skin, the first hair
-  colour, the avatar's own hairs (up to 3; edit starts from the slot's saved
+  colour, each look's first option (a race reroll resets the looks to the new
+  race's defaults), the avatar's own hairs (up to 3; edit starts from the slot's saved
   look). `State.missing` is the one list of what blocks Enter World.
 - The Odds card (centred, no dimming) lists every race and clan with its rarity
   and chance, rarest first, the player's own marked.
@@ -85,7 +91,8 @@ list come from config; what a race does is [identity](identity.md).
   - `Surnames.luau`: last names / clans (DisplayName, Glyph, Rarity, Weight).
   - `Rarities.luau`: tiers (label, colour, order), shared by races and clans.
   - `Clothing.luau`: Shirt and Pants options (Id, DisplayName, catalog AssetId or
-    Template image; `Thumbnail` is no longer shown, the cards dress a dummy).
+    Template image; `Thumbnail` is no longer shown: the picker shows the name and
+    the preview wears it).
   - `HairColors.luau`, `SkinColors.luau` (the first, `Avatar`, keeps the player's own skin).
   - `Products.luau`: reroll developer product ids and the price shown.
   - `Background.luau`: Live or Image, vantage tag / CFrame, sway, blur, fallback image.
@@ -98,12 +105,12 @@ list come from config; what a race does is [identity](identity.md).
 - `src/client/CharacterCreator/`: Theme (colours, pill art, well edge, tweens,
   steps, fit), State (the
   previewed look; `load` starts over from a look), Components (tab, section, note,
-  link, card, swatch, text field, fate row, slot card, odds row, all cloned from
+  link, arrow row, swatch, text field, fate row, slot card, odds row, all cloned from
   the GUI's `Templates`), Look (a whole look on the preview), Preview (viewport
   dummy; it makes the viewport's Camera itself, since a Camera saved inside a
   ViewportFrame is lost in the Rojo sync), Backdrop, Bridge (every server call),
-  Modals (odds, delete confirm), Tabs/Appearance (with the outfit cards' dummies),
-  Hair, Name, Controller (`init`, `open`, the slot screen and the creator, `fit`,
+  Modals (odds, delete confirm), Tabs/Appearance (skin, shirt and pants
+  pickers), Hair, Fate (race, looks, clan, rerolls), Name (first name), Controller (`init`, `open`, the slot screen and the creator, `fit`,
   the title plaque).
 - `assets/CharacterCreator.rbxmx` (`ReplicatedStorage.CharacterCreatorGui`): the
   ScreenGui and templates, including a plain R6 dummy for the preview. Built by
@@ -128,17 +135,21 @@ list come from config; what a race does is [identity](identity.md).
   preview 16-428; 667x375 scale 0.8, panel 384x342, preview 15.5-250.5. At every
   size: right margin 16, the tab row, card rows, slot cards and buttons inset 24
   design px on both sides (28.8 / 20.5 / 19.2 px), tab gaps equal, the plaque and
-  its text centred on the panel (dx 0), every well, dummy view, swatch chip and
+  its text centred on the panel (dx 0), every well, swatch chip and
   button label centred to 0.00 px, the delete card centred on the screen and its
-  buttons 36 design px in on both sides.
-- Panel: `Head` (step tabs: three 136x44 pills, 12 apart; or the slot screen's
-  title plaque, 48 tall, fitted to its text), `Pages` (a CanvasGroup of
-  ScrollingFrames: Slots, Appearance, Hair, Name; each canvas follows its list),
+  buttons 36 design px in on both sides. Four tabs (same day, 1920x1080 stage):
+  inset 24.00 / 24.00, gaps 8.00; every arrow row 24 in on both sides, its
+  arrows 6 in at each end and vertically centred (dy 0.00), the pick's name
+  centred (dx 0.00); arrows 56 design px (44.8 px at the phone floor).
+- Panel: `Head` (step tabs: four 102x44 pills, 8 apart, filling the 432 px row,
+  labels Builder Sans Bold 16; or the slot screen's title plaque, 48 tall, fitted to its text), `Pages` (a CanvasGroup of
+  ScrollingFrames: Slots, Appearance, Hair, Fate, Name; each canvas follows its list),
   `Footer` (divider, a status line, `Buttons`: Quiet (Delete), Secondary, Primary).
 - Wells (`Templates`): a swatch is a 60 px well with a rounded colour chip (8 px
-  in); an outfit card is 132x156, its well 120x112 at the top (the dummy's
-  `View` 4 px inside it) and its name under it (Builder Sans Bold 15, two lines);
-  each well's `Edge` is tinted (150, 140, 120) at 0.35, its `Halo` (cream ring)
+  in); an arrow row (`ArrowRow`) is a 68 px well, a 56x56 lacquer pill with a
+  chevron 6 px in at each end, the pick's name (Merriweather 20, RichText for a
+  gold "Tail:" prefix) and "1 / 3" (Builder Sans Bold 15, muted) centred between;
+  the arrows hide when there's only one option; each well's `Edge` is tinted (150, 140, 120) at 0.35, its `Halo` (cream ring)
   shows while chosen (`Components.setSelected`).
 - Buttons with a `Motion` UIScale get the shared hover and press (`Motion.buttons`).
 - The preview dummy is anchored and turned with `PivotTo`; each hair accessory is
@@ -201,14 +212,14 @@ profile (`character.look`, `character.firstName`).
 - Hair loads through `InsertService:LoadAsset`; a catalog hair Roblox won't load
   that way is refused with "That ID isn't a hair accessory".
 - Untested in play: everything (server calls, the flow between the slot screen
-  and the creator, rerolls, hair on the dummy, the backdrop camera, the outfit
-  cards' dummies). The layout was previewed in Studio's Edit view with sample
+  and the creator, rerolls, hair on the dummy, the backdrop camera, the arrow
+  pickers, the Fate step, look picks on the preview and on the spawned
+  character, a reroll resetting the looks). The layout was previewed in Studio's Edit view with sample
   data built from the templates, not the client modules.
-- The placeholder outfits (AssetId 0, no template) show the bare body on their
-  card until they get real ids.
-- The outfit cards' dummies copy the stage dummy's skin when the skin changes;
-  if the avatar's own skin arrives later (a character spawning), they keep the
-  previous colour until the next change.
+- The placeholder outfits (AssetId 0, no template) show the bare body on the
+  preview until they get real ids.
+- Only Spirit Fox has looks to pick today (tail and ears, three each); the
+  other races' cosmetics are single pieces, so their Fate step has no Look rows.
 - The `templates` reply is a table keyed by catalog id; over a RemoteFunction a
   sparse numeric-key table can arrive with string keys, so the client looks ids
   up both ways.

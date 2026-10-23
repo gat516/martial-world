@@ -16,9 +16,14 @@ screen it extends ([character creator](character-creator.md)).
   variant `Wolf`, so anything can ask "is this Beast Folk?" and "which beast?".
   There is no Beast Folk Fox: foxes are the Spirit Fox race, which holds the fox
   traits (Fox Cunning innate, Nine Tails exclusive) (user, 2026-10-23). Its
-  variants (Plume, Crescent, Wisp) are tail and ear shapes, looks only.
+  tail and ear shapes are free looks, not variants (below).
   Variants are a per-race module (`Variants/<Race>.luau`), so any race can get
   variants the same way.
+- **Variants carry traits, looks are free** (user, 2026-10-23). A variant with
+  traits or stats (Beast Folk Wolf, Tiger...) is rolled with the race and
+  rerolled for Robux. A purely cosmetic choice inside a race (Spirit Fox's tail
+  and ears) is a `Looks` slot on the race: the player picks it with arrows on the
+  creator's Fate step, free, and can change it whenever they edit the look.
 - **Availability is one file.** Release, hide or switch off any race, variant
   or trait, and say how it's obtained, without touching its definition. Serpent
   stays Hidden (testable by admins only) until its content is done (user,
@@ -42,7 +47,7 @@ screen it extends ([character creator](character-creator.md)).
 |---|---|
 | Race definitions (names, rarity, roll weight, innate traits, modifiers, mechanics, which variants module) | `src/shared/Identity/Races.luau` |
 | Beast Folk variants (same fields) | `src/shared/Identity/Variants/BeastFolk.luau` |
-| Spirit Fox variants (tail and ears) | `src/shared/Identity/Variants/SpiritFox.luau` |
+| Free looks a race offers (Spirit Fox's tail and ears: `Looks`) | `src/shared/Identity/Races.luau` |
 | Trait definitions: racial / variant traits | `src/shared/Identity/Traits/Racial.luau` |
 | Trait definitions: general traits | `src/shared/Identity/Traits/General.luau` |
 | A new trait category | a new file in `Traits/`; its name is the category |
@@ -75,6 +80,14 @@ Each file's header lists its fields. The vocabulary:
   Plus `size`: a share added to body size (Titan Frame: 0.15, 15% larger; see
   Body size below).
 - **Excludes** (traits): traits it can't be held with.
+- **Looks** (races): free cosmetic picks, a list of slots `{ Id, DisplayName,
+  Options = { { Id, DisplayName, Cosmetics } } }`; the first option is the
+  default. The pick is the slot's look field `RaceLook = { [slot]: option }`
+  (`character.look.RaceLook` in the slot's profile). `Registry.lookPicks(race,
+  raw)` fills in defaults and drops anything that isn't the race's (so picks
+  saved for another race fall back after a reroll), `Registry.checkLook` is the
+  server's check on confirm, and `Registry.cosmetics` adds the picked options'
+  Cosmetics. Anything with traits or stats is a variant instead.
 
 A variant's trait pool is its race's and its own innate traits plus every
 trait whose Access names it (`Registry.traitPool`).
@@ -150,8 +163,9 @@ Every action toasts the server's message and reloads the target (`traitInfo`),
 which also reloads when the target's Race/Traits attributes change.
 
 ## Character screen
-The creator's Name step shows the race row as "Beast Folk (Wolf)" in the
-variant's rarity, and so do the nameplate under the preview and the slot cards
+The creator's Fate step shows the race row as "Beast Folk (Wolf)" in the
+variant's rarity, then an arrow picker per `Looks` slot of the race ("Tail:
+Plume 1 / 3"; none when it has no looks), then the clan; so do the nameplate under the preview and the slot cards
 (`Registry.label`). The odds card lists the rollable races
 (`Registry.racePool("Roll")`), then "<Race> variants" for each race with variants
 (`Registry.variantPool(race, "Roll")`, chances within the race), the player's own
@@ -169,26 +183,28 @@ joint names are in `art/player/cosmetics/README.md`; how new ones are made is
 
 | Who | Wears | Set |
 |---|---|---|
-| Spirit Fox Plume / Crescent / Wisp (variants) | FoxTailPlume, FoxEarsSleek / FoxTailCrescent, FoxEarsBroad / FoxTailWisp, FoxEarsLong | Fox (skinned Blender meshes) |
+| Spirit Fox (Looks: Tail Plume / Crescent / Wisp, Ears Sleek / Broad / Long, picked freely) | FoxTailPlume / FoxTailCrescent / FoxTailWisp, FoxEarsSleek / FoxEarsBroad / FoxEarsLong | Fox (skinned Blender meshes) |
 | Beast Folk Wolf / Tiger / Crane / Serpent | WolfEars, WolfTail / TigerEars, TigerTail / CraneCrest, CraneTail / SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
 | Stone Spirit / Dragonblood / Demonic Human / Ghost | StoneShards / DragonHorns / DemonHorns / GhostWisps | Spirits (part-built placeholders) |
 
-Spirit Fox's variants (Plume Common 45, Crescent Uncommon 35, Wisp Rare 20) each
-pair one tail with one ear shape, with their own bones (`EarL`/`EarR`,
-`Tail1..Tail5`) and a recolourable part per colour region
-(`art/player/cosmetics/fox/README.md`). The fox traits stay on the race and the
-variants add no stats (user, 2026-10-23: "we can add them it all in as variants").
+Spirit Fox's three tails and three ear shapes are its `Looks` (Tail, Ears), each
+picked freely and separately on the creator's Fate step (user, 2026-10-23: purely
+cosmetic pieces are free arrow picks, not rolled variants; they were rolled
+variants pairing one tail with one ear shape before). Each has its own bones
+(`EarL`/`EarR`, `Tail1..Tail5`) and a recolourable part per colour region
+(`art/player/cosmetics/fox/README.md`). The fox traits stay on the race. A Spirit
+Fox saved with an old variant drops it on its next join (`Slots.fate` clears the
+variant of a race without variants) and wears the default looks until edited.
 
 Human (the plain race) and Giant (its look is its size) wear nothing (user,
 2026-10-23: "no need to go super crazy"). `Traits.applyBody` adds the ones the profile
 calls for and removes the rest (each worn one carries a `Cosmetic` attribute with
 its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the
-body. A missing template warns once and is skipped. A Spirit Fox saved before the
-variants draws one on its next join (`Traits.load`, `Slots.fate`).
+body. A missing template warns once and is skipped.
 
 The creator's preview dummy wears the drawn race's look too (`Look.race`):
-`Registry.fresh(race, variant)` stands in for a new character (only innate
+`Registry.fresh(race, variant, raceLook)` stands in for a new character (only innate
 traits), and `Preview.setRaceLook` puts its cosmetics on (rigid copies, no
 joints, at scale 1) and scales the body, feet kept on the pedestal; the camera
 pulls back by the same share so a bigger body still fits the stage (user,

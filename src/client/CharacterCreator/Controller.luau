@@ -33,7 +33,8 @@ local Theme = require(script.Parent.Theme)
 local TabModules = {
 	Appearance = require(script.Parent.Tabs.Appearance),
 	Hair = require(script.Parent.Tabs.Hair),
-	Name = require(script.Parent.Tabs.Name),
+	-- not Tabs.Name: that's the folder's own Name property ("Tabs")
+	Name = require(script.Parent.Tabs:FindFirstChild("Name") :: ModuleScript),
 }
 
 local player = Players.LocalPlayer

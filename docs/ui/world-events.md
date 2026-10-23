@@ -30,7 +30,7 @@ Slots (baseline px; anchor top-centre unless noted):
 | Tracker | y 116, 900x72 | y 98, 560x44 | countdown rings (row, centred) |
 | Counter | y 216, 84x106 | y 152, 56x72 | strike counter |
 | Chips | centre, y 0.42, full width minus 24 per side, 59 tall | y 0.5, minus 12, 46 tall | edge chips |
-| Decree | y 96, 280x359 | y 68, 150x192 | Heaven's Decree card |
+| Decree | y 96, 280x359 | y 68, 180x230 | Heaven's Decree card |
 | Rift | centred, 380x519 | centred, 250x341 | rift card |
 | Board | centred, 720x600 | centred, 600x350 | leaderboard window |
 
@@ -71,13 +71,17 @@ planned time instead of chaining waits (no drift).
 - **Challenger:** the `decree_card` ("Heaven's Decree", the strike count large in gold,
   "strikes of heavenly lightning", a line on what to do) fades in high on the screen, off
   the character, with one `fx_glint` sweep across its top edge, and holds 2.6 s (the
-  bolts start at once). On the phone it keeps only the title and the count. Then the
+  bolts start at once). On the phone (180x230) it drops the kicker and footer and sets its
+  lines at fixed sizes with a 14 px floor (title 16, count 36, "heavenly strikes" 14, the
+  body line 14 in up to three lines), all inside the art's interior. Then the
   strike counter: a `countdown_ring` under the top centre with the strikes left and
-  "strikes left" under it; each bolt ticks it down with one short pop and an
+  "strikes left" under it (14 px on the phone, just under the ring); each bolt ticks it down with one short pop and an
   `fx_sparkle` flash, gold for the last three. At the end it fades and the ribbon says
   "The heavens relent. You endured." or "The lightning overwhelmed you".
-- **Everyone else:** the `tribulation_ribbon` (three-part) for 3.4 s: "The heavens descend
-  on <name>", unless a menu is open.
+- **Everyone else:** the ribbon for 3.4 s: "The heavens descend on <name>", unless a menu
+  is open. It's the ruby house plaque fitted to the message ([ribbons](ribbons.md); 26 px,
+  17 on the phone, centred in its slot); the cut `tribulation_ribbon`'s cloud-and-lightning
+  caps took 215 of the phone's 460 px and crowded the text.
 - No darkening, no looping pulse (the user's taste from the boss bar). Without a strike
   count (an older server), the decree shows 雷 and no counter.
 

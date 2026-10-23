@@ -44,8 +44,9 @@ Entries show in the order given (sort by tier, then Herbs.Order). It registers w
 `StarterGui.Herbarium` (`assets/Herbarium.rbxmx`): `Canvas` (fitted by `UiScale`) >
 `Window` (the open book: `UIAspectRatioConstraint` 1024:562, max 1000x549, 0.94x0.86 of
 the canvas, so 611x335 on an 844x390 phone) > `Book`, `LeftPage`/`RightPage` (equal
-461-px-wide frames centred on each paper, grids of 3x2 cards), `TitlePlaque` (title
-crest on the top edge), `Close` (close seal on the top-right corner), `PrevButton` /
+461-px-wide frames centred on each paper, grids of 3x2 cards), `TitlePlaque` (the gold house
+plaque on the top edge, 50 tall, fitted to the title by `Ribbon.fit`, style `gold_curl`,
+22 px; see [ribbons](ribbons.md)), `Close` (close seal on the top-right corner), `PrevButton` /
 `NextButton` (navy back seals with the gold chevron, half over the side edges, dimmed
 at the ends), `Footer` (page and discovered count on the bottom cover edge) and the
 hidden `CardTemplate`.

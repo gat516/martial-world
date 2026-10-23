@@ -65,7 +65,7 @@ the screen (the centre-of-screen rule for panels the player reads).
 | Panel | 1000 x 250, top at 42 | 600 x 200, top at 34 |
 | Portrait | 206 square, 22 from the panel's left, top and bottom | 164 square, 18 in |
 | Text box | portrait + 14 to 22 from the right; text 24 px, padding 30/26 | portrait + 10 to 18 in; text 18 px, padding 20/18 |
-| Name tab | 58 tall at x 30, fitted to the name (Merriweather Bold 24) | 46 tall at x 22 (19 px) |
+| Name tab | 58 tall at x 30, fitted to the name (Merriweather Bold 24), at most 600 wide | 46 tall at x 22 (19 px), at most 360 |
 | Responses | a column of 4 (460 x 56, gap 8) beside the panel, 20 px right, centred on it | a 2 x 2 grid below the panel (296 x 48, gap 8), panel-wide |
 
 Measured in Studio (2026-10-23): the block centre is the screen centre on both; portrait
@@ -85,9 +85,11 @@ All cut art, never repainted (ids in `art/ui/assets.json`):
 - Portrait frame and text-box frame: `ornament_portrait_corner`, mirrored and railed the
   same way (`pcorner_*`). The portrait backdrop is a navy gradient with a soft blue
   `fx_glow`; the text box has two faint `inkwash_b` clouds along its bottom.
-- Name tab: `ornament_objective_banner` in three parts, standing in until a proper name
-  tab is generated (Codex sheet A7). The name is live text, centred on the plate's
-  visible middle (0.584 of its height).
+- Name tab: the ruby house plaque ([ribbons](ribbons.md), `Ribbon.fit` style `ruby`):
+  pointed ends with a ruby stud, a dark lacquer middle sized to the name with even room
+  to each stud (23.5 px on PC, 18 on the phone), the name centred on the plain band. A
+  long name grows the tab to 60 % of the panel, then shrinks to 85 %, then truncates.
+  (The objective banner's cloud caps it used before crowded the name and ran under it.)
 - Responses: `response_button` and `response_button_hi`, three parts each (caps never
   stretch, the middle strip does), white glyphs tinted cream in the ring.
 - Chevron: `ornament_chevron`. Portraits: `portrait_*` (gray silhouettes); the "???"
@@ -134,7 +136,7 @@ and on a full-size stack 52.
 - Nothing opens the dialogue yet; the elder's Talk is still a toast.
 - Not play-tested: typing, input binding, gamepad focus, the Menus hand-off, the hold
   ring's sweep under a real hold, and the Dock's Fit on a real phone.
-- The name tab is a stand-in (objective banner); gold (masters) and crimson (demons)
-  tabs, and a crisper large portrait corner, wait on Codex sheet A7.
+- Gold (masters) and crimson (demons) name tabs, and a crisper large portrait corner,
+  wait on Codex sheet A7; the `gold` plaque style can stand in for masters.
 - Pressed and disabled response states are tints of the normal art.
 - No Figma mock of these screens: the kit's MCP allowance ran out on 2026-10-23.

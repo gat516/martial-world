@@ -55,8 +55,9 @@ teachers = { { name = "The Crane Sage", since = "since Foundation 1" } }  -- up 
 ```
 - **Lineage card** (`lineage_card`, 480x148): the master's gray silhouette in the
   portrait window (measured hole 51,47 to 278,273 of 1024x316), "The Turtle Saint",
-  their title and what they teach, and the **epithet ribbon** (`epithet_ribbon`,
-  three-part, 244x26) centred on the card's ribbon slot with the player's epithet in ink:
+  their title and what they teach, and the **epithet plaque** (the gold house
+  plaque, [ribbons](ribbons.md), 26 tall, fitted to the text, at most 244 wide) centred on
+  the card's ribbon slot with the player's epithet in cream (Builder Sans Bold 13):
   "Second Brother of the Turtle Saint" (`Lineage.epithet(seat, address, epithet)`).
 - **Also taught by** (right): the other masters (a second at FE1, a third at FE5),
   or "No other teachers yet", and "First Court · 7 / 9 seats".
@@ -73,8 +74,8 @@ onDecline? })`: the `ceremony_frame` card (640x295, red and gold) with the maste
 silhouette in the left medallion and the disciple's in the right (round CanvasGroups
 centred on the measured holes, so the silhouettes' square shoulders are clipped to the
 circle), their names and roles under them, and in the middle "Master and Disciple",
-"Lin Yue bows to the Turtle Saint / and takes the second seat.", the epithet ribbon
-(it widens in a beat after the card opens) and **Bow** (`response_button_hi` with the
+"Lin Yue bows to the Turtle Saint / and takes the second seat.", the epithet plaque
+(28 tall, at most 300 wide; it settles 8 px down a beat after the card opens) and **Bow** (`response_button_hi` with the
 bow glyph). Bow calls `onBow` and closes; the close seal declines (`onDecline`). The
 cinematic beat around it (camera, tea or bow animation) is `vfx`'s; the card is the
 moment's UI.

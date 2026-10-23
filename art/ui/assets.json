@@ -439,5 +439,15 @@
   "codex/cut/ornament_catalog_tab_capL.png": "rbxassetid://131535347767578",
   "codex/cut/ornament_prompt_banner_capL_plain.png": "rbxassetid://90608147104400",
   "codex/cut/ornament_prompt_banner_capR_plain.png": "rbxassetid://71127881430076",
-  "cultivation/meditation_card.png": "rbxassetid://138141038466824"
+  "cultivation/meditation_card.png": "rbxassetid://138141038466824",
+  "plaque/plaque_gold_capL.png": "rbxassetid://118333801422561",
+  "plaque/plaque_gold_capR.png": "rbxassetid://137033002952842",
+  "plaque/plaque_gold_capL_curl.png": "rbxassetid://120355976804968",
+  "plaque/plaque_gold_capR_curl.png": "rbxassetid://94321697996859",
+  "plaque/plaque_gold_mid.png": "rbxassetid://99954964250094",
+  "plaque/plaque_ruby_capL.png": "rbxassetid://84782963669301",
+  "plaque/plaque_ruby_capR.png": "rbxassetid://104762954477486",
+  "plaque/plaque_ruby_capL_curl.png": "rbxassetid://91394554610042",
+  "plaque/plaque_ruby_capR_curl.png": "rbxassetid://115839665280602",
+  "plaque/plaque_ruby_mid.png": "rbxassetid://120248080624596"
 }

@@ -15,16 +15,17 @@ ScreenGui (`assets/Rewards.rbxmx`, `StarterGui.Rewards`). The toast (the `Hud`'s
 | `card` | one card, three jobs; reward tiles, stat deltas, the new unlock, one line of flavour; tap or click to skip | boss victory (`Effect "boss"`), breakthroughs (`BreakthroughView`), quests later |
 
 Card jobs (`spec.kind`):
-- `boss`: crimson-and-gold `card_boss`, crimson ribbon on its header strip, `rays_boss`
+- `boss`: crimson-and-gold `card_boss`, the ruby title plaque (`ruby_curl`,
+  [ribbons](ribbons.md)) on its header strip, `rays_boss`
   turning slowly behind the whole card. Title "Victory", subtitle "<boss> defeated".
-- `quest`: gold-and-jade `card_quest`, jade ribbon under the crest slot, the sect
+- `quest`: gold-and-jade `card_quest`, the gold title plaque (`gold_curl`) under the crest slot, the sect
   crest (`emblem_peak` by default, `spec.crest` to change it). Rare and weighty.
-- `rank`: a sect rank-up (`SectRank.rankUp`): the quest card with a jade ribbon,
+- `rank`: a sect rank-up (`SectRank.rankUp`): the quest card with the gold plaque,
   `rays_milestone`, and the rank crest from `spec.crest` (`{ image, emblem, size, hole }`
   or an image id); the emblem is drawn in the crest's `Emblem` child, a square 72 % of the
   hole's smaller side, centred on the hole as `SectRank.paintCrest` does. The rank's line
   goes in `flavour`.
-- `milestone`: the quest card with a crimson ribbon, `emblem_lotus` in the crest and
+- `milestone`: the quest card with the gold plaque, `emblem_lotus` in the crest and
   `rays_milestone` glowing from the crest. Breakthroughs use it today ("Breakthrough" or
   "Major Breakthrough", the stage, health/power/combat qi/passive deltas from the
   stage before, "The <array> array is open" when the stage opens a travel array);
@@ -79,13 +80,17 @@ desktop baseline 1920x1080, phone 844x390, one layout for both). Inside it:
   row so the rims sit on the row's edges), `Badge` (coin or tile) with `Icon`/`Glyph`,
   `NameLabel`, `CountLabel`.
 - `Floats.FloatTemplate`.
-- `Banner` (620x118 at the top centre, 64 px down): `Kicker`, `Ribbon` (440x56, `Art`
-  plus `Title` on the body's centre row), `Tag`, `Subtitle` (hidden on small phones).
+- `Banner` (620x118 at the top centre, 64 px down): `Kicker`, `Ribbon` (56 tall, `Art`
+  plus `Title`; fitted to the title by `Ribbon.fit`, 24 px, at most 600 wide, keeping
+  its jade, crimson or navy-gold cloud ribbons), `Tag`, `Subtitle` (hidden on small phones).
 - `Card` (62 % x 84 %, aspect 1.57, at most 600x382, 10 px above centre): `Rays`,
   `Art` (its aspect set per job: 1.718 boss, 1.571 quest), with `Crest` (and its hidden
   `Emblem`), `Ribbon`,
   `Body` (a centred list: `Subtitle`, `List` of `RewardTemplate` tiles 64x82 with 14 px
   gaps, `Stats`, `Unlock`, `Flavour`) and `Hint` under the card.
+The card's title plaque fits its title ([ribbons](ribbons.md)): the plain middle is the
+title plus even padding, at least 36 % of the card wide, at most 84 %; the text is 0.47 of
+the plaque's height (28 on PC), shrinks to 85 % and then truncates.
 Per-job positions (ribbon, body, rays) are fractions of the card art measured in the
 PNGs, in `KINDS` in `Rewards.luau`. Fonts: Merriweather for titles and the italic
 subtitle and flavour, Builder Sans Bold for small text, Fredoka One for counts (the kit's

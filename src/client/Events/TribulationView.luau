@@ -16,6 +16,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
 local Menus = require(script.Parent.Parent.Menus)
+local Ribbon = require(script.Parent.Parent.Ribbon)
 local Gui = require(script.Parent.Gui)
 
 local player = Players.LocalPlayer
@@ -28,6 +29,20 @@ local CREAM = Color3.fromRGB(250, 236, 195)
 local POP = TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 local FLASH = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local GLINT = TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+local RIBBON_TEXT = 26 -- the ribbon's message, baseline pixels (desktop)
+local RIBBON_TEXT_PHONE = 17
+-- The decree card on the phone (180 x 230 slot): fixed sizes with a 14 px floor
+-- instead of the desktop's scaled text, in the art's interior (x 0.102-0.900,
+-- y 0.111-0.899). Each entry: centre y, height (shares of the card), text size.
+local PHONE_DECREE: { [string]: { number } } = {
+	Title = { 0.21, 0.09, 16 },
+	Divider = { 0.27, 0.035, 0 },
+	Count = { 0.38, 0.17, 36 },
+	Unit = { 0.505, 0.08, 14 },
+	Body = { 0.68, 0.25, 14 },
+}
+local PHONE_UNIT = "heavenly strikes" -- "strikes of heavenly lightning" won't fit 14 px on one line
+local PHONE_COUNTER_LABEL = 14
 
 local TribulationView = {}
 
@@ -39,11 +54,20 @@ local counter: Frame? = nil
 -- The ribbon through the herald queue.
 local function ribbon(message: string, hold: number?)
 	Gui.herald(function()
-		local r = Gui.place("Ribbon", "Ribbon") :: Frame;
-		(r:FindFirstChild("Label") :: TextLabel).Text = message
-		r.Position = UDim2.fromOffset(0, -10)
+		local slot = Gui.slot("Ribbon")
+		local r = Gui.place("Ribbon", "Ribbon") :: Frame
+		-- fitted to the message, centred in its slot (docs/ui/ribbons.md)
+		r.AnchorPoint = Vector2.new(0.5, 0)
+		r.Position = UDim2.new(0.5, 0, 0, -10)
+		Ribbon.fit(r, message, {
+			style = "ruby", -- the house plaque; the cut ribbon's cloud-and-lightning caps crowded the text
+			label = "Label",
+			textSize = if Gui.isPhone() then RIBBON_TEXT_PHONE else RIBBON_TEXT,
+			maxWidth = slot.Size.X.Offset,
+			height = slot.Size.Y.Offset,
+		})
 		Gui.fadeIn(r)
-		TweenService:Create(r, POP, { Position = UDim2.fromOffset(0, 0) }):Play()
+		TweenService:Create(r, POP, { Position = UDim2.new(0.5, 0, 0, 0) }):Play()
 		task.wait(hold or RIBBON_HOLD)
 		Gui.fadeOut(r, function()
 			r:Destroy()
@@ -83,9 +107,25 @@ local function showDecree(strikes: number?)
 		unit.Text = "heavenly lightning gathers"
 	end
 	if Gui.isPhone() then
-		-- the small card keeps the title and the count; the lines under them won't fit legibly
-		for _, name in { "Kicker", "Body", "Footer" } do
+		-- the small card drops the kicker and footer and sets its lines at fixed,
+		-- readable sizes (14 px floor) instead of scaling them down
+		for _, name in { "Kicker", "Footer" } do
 			(card:FindFirstChild(name) :: TextLabel).Visible = false
+		end
+		unit.Text = if strikes then PHONE_UNIT else "lightning gathers"
+		for name, spec in PHONE_DECREE do
+			local item = card:FindFirstChild(name) :: GuiObject
+			item.Position = UDim2.fromScale(0.5, spec[1])
+			item.Size = UDim2.fromScale(0.8, spec[2])
+			if item:IsA("TextLabel") then
+				item.TextScaled = false
+				item.TextSize = spec[3]
+				item.TextWrapped = name == "Body"
+				local limit = item:FindFirstChildOfClass("UITextSizeConstraint")
+				if limit then
+					limit:Destroy()
+				end
+			end
 		end
 	end
 	Gui.fadeIn(card)
@@ -110,6 +150,14 @@ local function showCounter(strikes: number)
 	end
 	local c = Gui.place("StrikeCounter", "Counter") :: Frame
 	counter = c
+	if Gui.isPhone() then
+		-- "strikes left" at the phone's 14 px floor, hanging just under the ring
+		local label = c:FindFirstChild("Label") :: TextLabel
+		label.TextScaled = false
+		label.TextSize = PHONE_COUNTER_LABEL
+		label.Size = UDim2.new(2, 0, 0, PHONE_COUNTER_LABEL + 4)
+		label.Position = UDim2.new(0.5, 0, 1, 6)
+	end
 	setCount(strikes, false)
 	Gui.fadeIn(c)
 end

@@ -18,6 +18,7 @@ local Movement = require(script.Parent.Movement)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Roots = require(ReplicatedStorage.Shared.Roots)
+local Registry = require(ReplicatedStorage.Shared.Identity.Registry) -- race, variant and trait modifiers
 local Methods = require(ReplicatedStorage.Shared.Methods)
 local StarterPlayer = game:GetService("StarterPlayer")
 local PlayerData = require(script.Parent.PlayerData)
@@ -215,13 +216,13 @@ end
 function Cultivation.applyStats(player: Player, data: PlayerData.Data)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 	if humanoid then
-		local walkSpeed = Config.BASE_WALKSPEED + buffTotal(data, "WalkSpeed") + Roots.perk(data.root, "walk")
+		local walkSpeed = Config.BASE_WALKSPEED + buffTotal(data, "WalkSpeed") + Roots.perk(data.root, "walk") + Registry.stat(data, "walk")
 		humanoid:SetAttribute("BaseWalkSpeed", walkSpeed)
 		Movement.apply(humanoid)
-		local jump = 1 + Roots.perk(data.root, "jump")
+		local jump = 1 + Roots.perk(data.root, "jump") + Registry.stat(data, "jump")
 		humanoid.JumpHeight = StarterPlayer.CharacterJumpHeight * jump
 		humanoid.JumpPower = StarterPlayer.CharacterJumpPower * jump
-		local maxHealth = math.floor(Cultivation.stage(data).health * (1 + Roots.perk(data.root, "health")) + 0.5)
+		local maxHealth = math.floor(Cultivation.stage(data).health * (1 + Roots.perk(data.root, "health") + Registry.stat(data, "health")) + 0.5)
 		if humanoid.MaxHealth ~= maxHealth then
 			local fraction = humanoid.Health / humanoid.MaxHealth
 			humanoid.MaxHealth = maxHealth

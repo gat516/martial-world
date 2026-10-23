@@ -40,6 +40,7 @@ local Roots = require(script.Parent.Roots)
 local Methods = require(script.Parent.Methods)
 local CharacterIdentity = require(script.Parent.CharacterIdentity)
 local TestbedDummy = require(script.Parent.TestbedDummy)
+local Traits = require(script.Parent.Traits)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
 local joinedAt: { [Player]: number } = {}
@@ -160,6 +161,9 @@ local function onPlayerAdded(player: Player)
 	end
 	Weapons.watch(player)
 	Roots.publish(player, data)
+	if Config.TESTBED then
+		CharacterIdentity.load(player, data) -- race, variant, last name and traits (Traits.luau); test place only for now
+	end
 	Cultivation.pushState(player)
 	Methods.giveStarter(player) -- already at Foundation from before methods existed
 end
@@ -189,6 +193,7 @@ Players.PlayerRemoving:Connect(function(player)
 	Meditation.forget(player)
 	Inventory.forget(player)
 	CharacterIdentity.forget(player)
+	Traits.forget(player)
 	Cultivation.forget(player)
 end)
 
@@ -276,6 +281,10 @@ Receipts.start()
 if Config.TESTBED then
 	CharacterIdentity.start() -- race and last name rolls, paid rerolls; test place only for now
 	TestbedDummy.start() -- a stand-in player to see namecards on
+	-- traits with an Unlock requirement are checked whenever one could have been met
+	table.insert(EnemyService.onKill, Traits.check)
+	table.insert(Cultivation.onBreakthrough, Traits.check)
+	table.insert(Quests.onClaimed, Traits.check)
 end
 WorldEvents.init()
 table.insert(EnemyService.onKill, Garden.onKill);

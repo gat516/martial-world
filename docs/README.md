@@ -101,7 +101,8 @@ What we build next and in what order (solidity, onboarding, sect, techniques, ga
 | Build items | `src/shared/BuildItems.luau` |
 | Weather | `src/shared/Weather.luau` |
 | World events | `src/shared/WorldEvents.luau` |
-| Character screen: races, last names, rarity colours, outfits, hair colours, reroll products and prices, the world backdrop, name rules, when it shows | `src/shared/CharacterCreator/` (one module each; [character creator](systems/character-creator.md)); look in `src/client/CharacterCreator/Theme.luau` |
+| Races, Beast Folk variants, traits, who can get them and how | `src/shared/Identity/` ([identity](systems/identity.md#where-to-edit)) |
+| Character screen: last names, rarity colours, outfits, hair colours, reroll products and prices, the world backdrop, name rules, when it shows | `src/shared/CharacterCreator/` (one module each; [character creator](systems/character-creator.md)); look in `src/client/CharacterCreator/Theme.luau` |
 
 ## Systems
 
@@ -124,6 +125,7 @@ What we build next and in what order (solidity, onboarding, sect, techniques, ga
 | Testbed / test build (local baseplate arena, `test.project.json`; branches and test build in AGENTS.md) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), ForceR6 (R6 when unpublished), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |
 | Monetization | [monetization](systems/monetization.md) | Receipts, Garden (Grow now), CharacterIdentity (rerolls) | Config.Garden.GROW_NOW, CharacterCreator.Products | GardenView, CharacterCreator |
 | Character creator (join screen: outfit, skin, hair, race and last name, first name) | [character-creator](systems/character-creator.md) | CharacterIdentity, TestbedDummy (testbed stand-in) | CharacterCreator/* | CharacterCreator/* |
+| Races, Beast Folk variants and traits (config-driven; availability in one file; admin trait tools) | [identity](systems/identity.md) | Traits, CharacterIdentity, Admin (trait*) | Identity/* (Races, Variants/, Traits/, Availability, Requirements, Registry) | CharacterCreator (race block), AdminPanel |
 | Nameplates (namecard and title over every other player's head; your own name is on the vitals) | [nameplates](systems/nameplates.md) | - (reads player attributes) | CharacterCreator.Surnames | Nameplates (template `ReplicatedStorage.Nameplate`, `assets/Nameplate.rbxmx`), Hud (`NamePlaque`) |
 
 ## Remotes, attributes and hooks

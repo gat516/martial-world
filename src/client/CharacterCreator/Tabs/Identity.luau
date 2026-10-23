@@ -81,23 +81,36 @@ function Identity.build(page: ScrollingFrame, ctx: any)
 	components.sectionHeader(page, "Race", 1)
 	local race = components.identityBlock(page, "RaceBlock", "Change Race", 2)
 	race.change.setPrice(defs.Products.RerollRace.RobuxPrice)
-	ctx.onAttribute("Race", function(key: string?, changed: boolean)
-		local def = key and defs.Races[key]
+	-- the race and, for races with variants (Beast Folk), the variant: "Beast Folk (Fox)"
+	local function paintRace(changed: boolean)
+		local player = ctx.player
+		local key = player:GetAttribute("Race")
+		local variantKey = player:GetAttribute("RaceVariant")
+		local def = defs.Registry.race(key)
+		local variant = defs.Registry.variant(key, variantKey)
+		local shown = variant or def
 		race.set({
-			title = if def then def.DisplayName else "Unknown",
-			note = if def then def.Description else "Your race is drawn when you arrive.",
-			rarity = def and def.Rarity,
+			title = if def then defs.Registry.label(key, variantKey) else "Unknown",
+			note = if variant then `{def.Description} {variant.Description}` elseif def then def.Description else "Your race is drawn when you arrive.",
+			rarity = shown and shown.Rarity,
 			rarities = defs.Rarities,
-			icon = def and def.Icon,
+			icon = shown and (if shown.Icon ~= "" then shown.Icon else def.Icon),
 		})
 		if changed then
 			race.reveal()
 		end
+	end
+	ctx.onAttribute("Race", function(_, changed: boolean)
+		paintRace(changed)
+	end)
+	ctx.player:GetAttributeChangedSignal("RaceVariant"):Connect(function()
+		paintRace(true)
 	end)
 	race.change.button.Activated:Connect(function()
 		task.spawn(rerollFlow, ctx, race, "Race")
 	end)
-	oddsList(ctx, page, "All Races", defs.Races, "Race", 100)
+	-- only the races the roll can give right now (Availability: Released + Roll)
+	oddsList(ctx, page, "All Races", defs.Registry.racePool("Roll"), "Race", 100)
 
 	-- First Name
 	components.sectionHeader(page, "First Name", 200)

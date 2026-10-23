@@ -5,9 +5,10 @@
 -- client only previews.
 --
 -- State lives on the player as attributes (they replicate, so the screen just
--- reads them): Race, Surname, FirstName, CharacterConfirmed. Nothing is saved to
--- the DataStore yet: `onConfirmed`, `onRerolled` and `load` are the hooks for
--- that, so a rejoin rolls again until a save is wired in.
+-- reads them): Race, RaceVariant, Surname, FirstName, CharacterConfirmed. Race,
+-- variant and last name are saved in the profile (`identity`, owned by
+-- Traits.luau, which also rolls and checks races and variants against
+-- Shared.Identity); the first name and look aren't saved yet.
 --
 -- CharacterAction (RemoteFunction) actions, each returning (ok, payload|message):
 --   "state"              -> { products = { RerollRace = {price, live}, ... }, mock }
@@ -16,6 +17,9 @@
 --                           copy of the accessory (parented in its PlayerGui) to preview
 --   "defaults"           -> once: { skin, hairs = { {id, accessory} } } from the
 --                           player's own avatar, the screen's starting look
+--   "choices"            -> { races = {ids}, variants = {ids} } the player may pick
+--                           right now (Availability Select, or Unlock with Requires met)
+--   "choose", kind, id   -> kind "Race" | "Variant": picks one of those (Traits.choose)
 --   "reroll", kind       -> kind "Race" | "Surname". Live product: returns
 --                           { productId } and the client prompts the purchase; the
 --                           reroll happens in the receipt handler. Mock (id 0): rerolls
@@ -37,11 +41,13 @@ local CC = ReplicatedStorage.Shared.CharacterCreator
 local Clothing = require(CC.Clothing)
 local HairColors = require(CC.HairColors)
 local Products = require(CC.Products)
-local Races = require(CC.Races)
+local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local SkinColors = require(CC.SkinColors)
 local Rules = require(CC.Rules)
 local Surnames = require(CC.Surnames)
 local Receipts = require(script.Parent.Receipts)
+local PlayerData = require(script.Parent.PlayerData)
+local Traits = require(script.Parent.Traits)
 
 export type Look = {
 	Shirt: string, -- Clothing option Id
@@ -69,34 +75,47 @@ CharacterIdentity.onConfirmed = {} :: { (Player, Look) -> () }
 CharacterIdentity.onRerolled = {} :: { (Player, string, string) -> () } -- player, kind, new key
 
 local KINDS = {
-	Race = { defs = Races :: { [string]: any }, product = Products.RerollRace },
-	Surname = { defs = Surnames :: { [string]: any }, product = Products.RerollSurname },
+	Race = { product = Products.RerollRace },
+	Surname = { product = Products.RerollSurname },
 }
 
 local function mockAllowed(): boolean
 	return RunService:IsStudio() or Config.TESTBED
 end
 
-local function roll(player: Player, kind: string)
-	local key = Rules.roll(KINDS[kind].defs, random)
-	player:SetAttribute(kind, key)
-	for _, hook in CharacterIdentity.onRerolled do
-		task.spawn(hook, player, kind, key)
+-- A fresh roll of "Race" (with its variant, through Traits) or "Surname", saved
+-- in the profile. Returns the new key, or nil while the profile isn't loaded.
+local function roll(player: Player, kind: string): string?
+	local data = PlayerData.get(player)
+	if not data then
+		return nil
+	end
+	local key: string?
+	if kind == "Race" then
+		key = Traits.rollRace(player, data)
+	else
+		key = Rules.roll(Surnames :: any, random)
+		data.identity.surname = key :: string
+		player:SetAttribute("Surname", key)
+	end
+	if key then
+		for _, hook in CharacterIdentity.onRerolled do
+			task.spawn(hook, player, kind, key)
+		end
 	end
 	return key
 end
 
--- Gives a player their race and last name. `saved` (from a future save) keeps
--- what they had; anything missing or no longer in the config is rolled, free.
-function CharacterIdentity.load(player: Player, saved: { Race: string?, Surname: string? }?)
-	for kind, entry in KINDS do
-		local key = saved and (saved :: any)[kind]
-		if key and entry.defs[key] then
-			player:SetAttribute(kind, key)
-		else
-			player:SetAttribute(kind, Rules.roll(entry.defs, random))
-		end
+-- Gives a player their race, variant and last name from the saved profile; a
+-- new player, or one whose race or variant the config dropped, rolls for free.
+function CharacterIdentity.load(player: Player, data: PlayerData.Data)
+	Traits.load(player, data)
+	local surname = data.identity.surname
+	if not (Surnames :: any)[surname] then
+		surname = Rules.roll(Surnames :: any, random)
+		data.identity.surname = surname
 	end
+	player:SetAttribute("Surname", surname)
 end
 
 local function optionById(list: { Clothing.Option }, id: string): Clothing.Option?
@@ -384,7 +403,7 @@ local function confirm(player: Player, raw: any): (boolean, any)
 	return true, look
 end
 
-function CharacterIdentity.handle(player: Player, action: any, arg: any): (boolean, any)
+function CharacterIdentity.handle(player: Player, action: any, arg: any, ...: any): (boolean, any)
 	if action == "state" then
 		local products = {}
 		for kind, entry in KINDS do
@@ -438,6 +457,23 @@ function CharacterIdentity.handle(player: Player, action: any, arg: any): (boole
 			return true, { rolled = roll(player, arg) }
 		end
 		return false, "Not available yet"
+	elseif action == "choices" then
+		local data = PlayerData.get(player)
+		if not data then
+			return false, "Try again"
+		end
+		local races, variants = {}, {}
+		for id in Registry.choosableRaces(data) do
+			table.insert(races, id)
+		end
+		for id in Registry.choosableVariants(data.identity.race, data) do
+			table.insert(variants, id)
+		end
+		table.sort(races)
+		table.sort(variants)
+		return true, { races = races, variants = variants }
+	elseif action == "choose" then
+		return Traits.choose(player, arg, ...)
 	elseif action == "confirm" then
 		return confirm(player, arg)
 	end
@@ -465,7 +501,7 @@ function CharacterIdentity.start()
 		end
 	end
 	local function watch(player: Player)
-		CharacterIdentity.load(player, nil)
+		-- race, variant and last name load from the profile in Main (CharacterIdentity.load)
 		player.CharacterAdded:Connect(function(character)
 			local look = looks[player]
 			if look and Rules.APPLY_TO_CHARACTER then

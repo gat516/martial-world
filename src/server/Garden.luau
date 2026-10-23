@@ -25,6 +25,7 @@ local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local Weather = require(ReplicatedStorage.Shared.Weather)
 local Roots = require(ReplicatedStorage.Shared.Roots)
+local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
@@ -378,7 +379,7 @@ local function tendGarden(player: Player, def: Weather.Def, seconds: number)
 			local at = stemWorld(plot, plant) or Vector3.zero
 			local growth, luck = boostAt(boosts, at)
 			local growing = Herbs.progress(plant, now) < 1
-			local rate = (g.growth or 1) - 1 + growth + Roots.perk(data.root, "growth")
+			local rate = (g.growth or 1) - 1 + growth + Roots.perk(data.root, "growth") + Registry.stat(data, "growth")
 			if growing and rate > 0 then
 				plant.b += seconds * rate
 				changed = true

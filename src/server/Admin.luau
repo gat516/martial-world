@@ -2,10 +2,11 @@
 -- Admin tools behind the PC admin dashboard (AdminPanel.luau): force weather
 -- and world events, give items, seeds, weapons and Spirit Stones, set technique
 -- and Dao levels, set or reroll the spirit root, spawn beasts, and tend
--- the garden instantly. Admins are the game's creator, the ids in Config.Admin.USER_IDS, and
+-- the garden instantly, and manage any player's race, variant and traits. Admins are the game's creator, the ids in Config.Admin.USER_IDS, and
 -- anyone in a Studio playtest. They're marked with the Admin attribute so the
 -- client shows the dashboard; the server re-checks every request.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
@@ -32,6 +33,7 @@ local RootDefs = require(ReplicatedStorage.Shared.Roots)
 local Methods = require(script.Parent.Methods)
 local MethodDefs = require(ReplicatedStorage.Shared.Methods)
 local Realms = require(ReplicatedStorage.Shared.Realms)
+local Traits = require(script.Parent.Traits)
 
 local MAX_COUNT = 999
 local MAX_SPAWN = 10
@@ -48,6 +50,33 @@ end
 
 local function amount(n: any, max: number): number?
 	return if type(n) == "number" and n == n // 1 and n >= 1 and n <= max then n else nil
+end
+
+-- The player an admin action is for: a UserId, a name, a unique name prefix, or
+-- nil for the admin themself.
+local function targetOf(admin: Player, who: any): (Player?, string?)
+	if who == nil or who == "" then
+		return admin, nil
+	elseif type(who) == "number" then
+		local found = Players:GetPlayerByUserId(who)
+		return found, if found then nil else "Player not in this server"
+	elseif type(who) ~= "string" then
+		return nil, "Bad player"
+	end
+	local query = string.lower(who)
+	local matches = {}
+	for _, p in Players:GetPlayers() do
+		local name, display = string.lower(p.Name), string.lower(p.DisplayName)
+		if name == query or display == query then
+			return p, nil
+		elseif string.sub(name, 1, #query) == query or string.sub(display, 1, #query) == query then
+			table.insert(matches, p)
+		end
+	end
+	if #matches == 1 then
+		return matches[1], nil
+	end
+	return nil, if #matches == 0 then `No player matches "{who}"` else `"{who}" matches {#matches} players`
 end
 
 local function rootOf(player: Player): BasePart?
@@ -229,6 +258,7 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		data.tribulationReadyUnix = 0
 		Cultivation.applyStats(player, data)
 		Cultivation.pushState(player)
+		Traits.check(player) -- realm-gated traits unlock as if broken through
 		return true, `Realm: {key}`
 	end,
 	-- face the current stage's heavenly tribulation now
@@ -243,6 +273,50 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		data.rawQi = Cultivation.stage(data).dantian
 		Cultivation.pushState(player)
 		return true, "Dantian filled"
+	end,
+
+	-- Trait management (docs/systems/identity.md). Each takes a target: a UserId
+	-- or a name (exact, else the only name or display name starting with it; nil
+	-- = yourself). Grants and race changes go through Traits, the same code
+	-- normal play uses, so admin tests can't drift from the real rules.
+	traitInfo = function(player, _, who)
+		local target, why = targetOf(player, who)
+		if not target then
+			return false, why
+		end
+		local info = Traits.describe(target)
+		return info ~= nil, info or "Player not loaded"
+	end,
+	traitGrant = function(player, _, who, id, force)
+		local target, why = targetOf(player, who)
+		if not target then
+			return false, why
+		end
+		return Traits.adminGrant(target, id, force)
+	end,
+	traitRemove = function(player, _, who, id)
+		local target, why = targetOf(player, who)
+		if not target then
+			return false, why
+		end
+		return Traits.adminRemove(target, id)
+	end,
+	-- race id and variant id ("" or nil = land on one)
+	traitSetRace = function(player, _, who, raceId, variantId)
+		local target, why = targetOf(player, who)
+		if not target then
+			return false, why
+		end
+		return Traits.adminSetRace(target, raceId, variantId)
+	end,
+	-- re-run innate and unlock checks now
+	traitSync = function(player, _, who)
+		local target, why = targetOf(player, who)
+		if not target then
+			return false, why
+		end
+		Traits.check(target)
+		return true, `Synced {target.Name}'s traits`
 	end,
 }
 

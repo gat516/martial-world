@@ -13,6 +13,7 @@ local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local Knockback = require(ReplicatedStorage.Shared.Knockback)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Roots = require(ReplicatedStorage.Shared.Roots)
+local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Cultivation = require(script.Parent.Cultivation)
 local CombatQi = require(script.Parent.CombatQi)
 local EnemyHistory = require(script.Parent.EnemyHistory)
@@ -139,10 +140,11 @@ function Combat.power(player: Player): number
 	return if data then Cultivation.stage(data).power else 1
 end
 
--- The player's spirit root perk of `kind` (Roots.perk), 0 while loading.
+-- The player's spirit root perk of `kind` (Roots.perk) plus their race, variant
+-- and trait modifiers of the same kind (Shared.Identity.Registry), 0 while loading.
 local function rootPerk(player: Player, kind: Roots.Perk): number
 	local data = PlayerData.get(player)
-	return if data then Roots.perk(data.root, kind) else 0
+	return if data then Roots.perk(data.root, kind) + Registry.stat(data, kind) else 0
 end
 
 --[[ Player damage ]]
@@ -481,7 +483,7 @@ local function releaseTechnique(player: Player, action: Rules.Action, aim: Vecto
 		end
 	end
 	local level = data.techniques.owned[id].level
-	local rooted = 1 + Roots.perk(data.root, "technique") + Roots.match(data.root, def.element)
+	local rooted = 1 + Roots.perk(data.root, "technique") + Registry.stat(data, "technique") + Roots.match(data.root, def.element)
 	local function damageOf(index: number): number
 		local now = workspace:GetServerTimeNow()
 		local empower = if now < s.empowerUntil then 1 + s.empower else 1

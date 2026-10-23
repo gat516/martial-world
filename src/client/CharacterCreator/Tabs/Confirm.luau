@@ -34,7 +34,8 @@ function Confirm.build(page: ScrollingFrame, ctx: any)
 		local pants = find(defs.Clothing.Pants, state:get("Pants"))
 		local color = find(defs.HairColors, state:get("HairColor"))
 		local hairIds = state:hairIds()
-		local race = defs.Races[player:GetAttribute("Race") or ""]
+		local raceKey, variantKey = player:GetAttribute("Race"), player:GetAttribute("RaceVariant")
+		local race = defs.Registry.variant(raceKey, variantKey) or defs.Registry.race(raceKey)
 		local surname = defs.Surnames[player:GetAttribute("Surname") or ""]
 		local name, why = rules.checkFirstName(state:get("FirstName"))
 
@@ -44,7 +45,7 @@ function Confirm.build(page: ScrollingFrame, ctx: any)
 		rows.Skin.set(if skin then skin.DisplayName else "-", skin and skin.Color)
 		rows["Hair ID"].set(if #hairIds > 0 then table.concat(hairIds, ", ") else "None")
 		rows["Hair Color"].set(if color then color.DisplayName else "-", color and color.Color)
-		rows.Race.set(if race then race.DisplayName else "...", nil, race and race.Rarity, defs.Rarities)
+		rows.Race.set(if race then defs.Registry.label(raceKey, variantKey) else "...", nil, race and race.Rarity, defs.Rarities)
 		rows["First Name"].set(name or "Not chosen")
 		rows["Last Name"].set(if surname then surname.DisplayName else "...", nil, surname and surname.Rarity, defs.Rarities)
 
@@ -60,6 +61,7 @@ function Confirm.build(page: ScrollingFrame, ctx: any)
 	refresh()
 	state:onChanged(refresh)
 	ctx.onAttribute("Race", refresh)
+	player:GetAttributeChangedSignal("RaceVariant"):Connect(refresh)
 	ctx.onAttribute("Surname", refresh)
 
 	enter.button.Activated:Connect(function()

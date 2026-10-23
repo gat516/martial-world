@@ -21,9 +21,10 @@ local function action(): RemoteFunction
 	return remote :: RemoteFunction
 end
 
-local function invoke(name: string, arg: any?): (boolean, any)
+local function invoke(name: string, ...: any): (boolean, any)
+	local args = table.pack(...)
 	local ok, success, payload = pcall(function()
-		return action():InvokeServer(name, arg)
+		return action():InvokeServer(name, table.unpack(args, 1, args.n))
 	end)
 	if not ok then
 		return false, "Couldn't reach the sect. Try again."
@@ -68,6 +69,18 @@ function Bridge.getDefaults(): (boolean, any)
 		return true, payload
 	end
 	return false, payload
+end
+
+-- The races and variants this player may pick right now (Availability Select, or
+-- Unlock with Requires met): (true, { races = {ids}, variants = {ids} }).
+function Bridge.getChoices(): (boolean, any)
+	return invoke("choices")
+end
+
+-- Picks a race or variant ("Race" | "Variant", id); the server checks it's allowed.
+-- (true, "Beast Folk (Fox)") or (false, message).
+function Bridge.choose(kind: string, id: string): (boolean, any)
+	return invoke("choose", kind, id)
 end
 
 -- A paid reroll of "Race" or "Surname". Returns:

@@ -35,7 +35,7 @@ It's a template: the look and every list come from config, and the gameplay hook
 ## Key files
 - `src/shared/CharacterCreator/` (`ReplicatedStorage.Shared.CharacterCreator`), one
   module per thing to tune:
-  - `Races.luau`: races (DisplayName, Description, Rarity, Weight, Icon).
+  - Races moved to `Shared.Identity` (Races, Beast Folk variants, traits and who can get them): see [identity](identity.md). The race block shows race and variant ("Beast Folk (Fox)"), and the odds list only the races the roll can give.
   - `Surnames.luau`: last names (DisplayName, Glyph, Rarity, Weight).
   - `Rarities.luau`: tiers (label, colour, order), shared by races and last names.
   - `Clothing.luau`: Shirt and Pants options (Id, DisplayName, catalog AssetId or Template image,
@@ -143,14 +143,11 @@ camera and HUD back.
   first (2026-10-23). For now the character screen is that first screen.
 - The chosen hair colour tints every hair, the avatar's own included (it starts
   Ink Black), so their hair loses its texture. A "natural" option is a next step.
-- Nothing is saved: race, last name, first name and look live for the session, so
-  a rejoin rolls again and shows the screen again. Wire `CharacterIdentity.load`
-  and `onConfirmed`/`onRerolled` into `PlayerData` to keep them. Until then, don't
-  create the live reroll products (a bought reroll would be lost on rejoin).
+- The first name and look aren't saved: a rejoin shows the screen again (race, variant and last name are saved in the profile's `identity`, see [identity](identity.md)). Wire `onConfirmed` into `PlayerData` to keep the rest. The paid race reroll is now safe to make live; the surname reroll too.
 - Apart from the ranger shirt and pants, clothing ids and product ids are
   placeholders (0): those outfit cards show names only and dress nothing until
   real catalog ids or templates go in.
-- Races and last names are placeholders with no gameplay effect.
+- Last names are placeholders with no gameplay effect; races now carry innate traits and modifiers ([identity](identity.md)), with first-guess values.
 - Hair loads through `InsertService:LoadAsset`; a catalog hair Roblox won't load
   that way is refused with "That ID isn't a hair accessory".
 - Untested in play: everything (drag-rotate, server calls, hair and clothing on

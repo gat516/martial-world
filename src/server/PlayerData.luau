@@ -19,6 +19,7 @@ local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
 local Roots = require(ReplicatedStorage.Shared.Roots)
+local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 
 local SCHEMA_VERSION = 9
 
@@ -65,6 +66,7 @@ export type Data = {
 	dao: { [string]: Dao }, -- by class id; a missing class is level 0
 	caches: { [string]: boolean }, -- world ManualCache / WeaponRack anchors claimed, by Cache id
 	root: Roots.Root, -- spirit root; element "" until tested at the Testing Stone
+	identity: Registry.Identity, -- race, Beast Folk variant, last name and traits (docs/systems/identity.md); race "" until rolled
 	peak: {
 		removed: { [string]: boolean },
 		placed: { Placed },
@@ -120,6 +122,7 @@ local function default(): Data
 		caches = {},
 		root = Roots.new(),
 		peak = { removed = {}, placed = {}, plots = {} },
+		identity = { race = "", variant = "", surname = "", traits = {} },
 	}
 end
 
@@ -207,7 +210,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

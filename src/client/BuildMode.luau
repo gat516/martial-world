@@ -80,8 +80,6 @@ local itemLabel: TextLabel
 local row: Frame
 local banner: Frame? -- Hud.BuildBanner: "Build mode · <peak>", the Place / Move / Store tabs and Exit
 local tilesFrame: GuiObject? -- the top-right tiles; build mode's banner replaces them
-local toast: GuiObject?
-local toastHome: UDim2? = nil
 local building = false -- a build session is open (banner up)
 
 local session: Session = "idle"
@@ -676,9 +674,6 @@ local function refreshBanner()
 	if tilesFrame and building then
 		tilesFrame.Visible = false
 	end
-	if toast and toastHome then
-		toast.Position = if building then toastHome + UDim2.fromOffset(0, 62) else toastHome
-	end
 	if not building then
 		return
 	end
@@ -1140,8 +1135,6 @@ function BuildMode.init(gui: ScreenGui)
 
 	banner = gui:FindFirstChild("BuildBanner") :: Frame?
 	tilesFrame = gui:FindFirstChild("Buttons") :: GuiObject?
-	toast = gui:FindFirstChild("Toast") :: GuiObject?
-	toastHome = toast and toast.Position
 
 	BuildCatalog.init(gui, {
 		place = beginPlace,

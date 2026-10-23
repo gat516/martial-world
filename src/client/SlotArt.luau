@@ -1,14 +1,21 @@
 --!strict
--- Paints a framed slot (the hotbar's SlotTemplate, the Inventory's CellTemplate and
--- Preview) for a technique, an item, a weapon (or "Fist", bare hands), or nothing:
--- its icon or glyph, its name, the glow in its rarity, grade or technique color, and
--- the count in the corner. Empty slots fade back.
+-- Paints a slot (the hotbar's SlotTemplate and slots, the weapon slot, the drag ghost,
+-- the Inventory's CellTemplate and Preview) for a technique, an item, a weapon (or
+-- "Fist", bare hands), or nothing.
+-- A slot is a plain ink well (Frame, art/ui/slot_plain.png) with its rarity in colour,
+-- not ornament (user, 2026-10-23: the gold rarity tiles on every cell were "very very
+-- tacky"): a thin tinted edge (Edge) and a faint wash rising from the bottom (Wash),
+-- in the Rarity ladder's colour (bronze, silver, jade, violet, gold; ungraded and
+-- empty slots get a dim neutral edge). On it:
+--   items: their icon (or glyph), cropped to its drawn area and fitted in the slot's
+--     Icon box (IconRects), so every icon centres with even padding;
+--   arts: their glyph on a seal disc (Disc, art/ui/art_disc.png) in the art's colour;
+--   weapons: the real model in the slot's Model ViewportFrame (WeaponView), or the
+--     class glyph in the class colour where a slot has no viewport (and Bare Fists).
 -- Also owns the weapon art (icons by model and by class, art/ui/assets.json), the
--- class glyphs and colours shared by weapon cells, art badges, the Inventory's
--- class rail and section headers, and the hotbar (classGlyph, classColor), the
--- weapon badge on technique slots (gate) and the rarity frame (tile, Rarity).
--- Weapons are drawn as their class glyph in their class colour, so a weapon and
--- the arts it unlocks wear the same mark.
+-- class glyphs and colours shared by art badges, the Inventory's class rail and
+-- section headers, and the hotbar (classGlyph, classColor), and the weapon badge on
+-- technique slots (gate).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,13 +23,26 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
+local IconRects = require(script.Parent.IconRects)
 local Rarity = require(script.Parent.Rarity)
 local State = require(script.Parent.State)
+local WeaponView = require(script.Parent.WeaponView)
 
 local SlotArt = {}
 
 local WHITE = Color3.new(1, 1, 1)
 local GATED_ICON = 0.6 -- icon transparency of a hotbar art whose weapon isn't in hand
+local NO_GRADE = Color3.fromRGB(150, 140, 120) -- the edge of ungraded things and empty slots
+local EDGE_EMPTY = 0.55 -- edge transparency on an empty slot
+local WASH = 0.35 -- the rarity wash's transparency (its art already fades to clear)
+local DISC_DARK = 0.15 -- how far an art's disc tint leans to black
+local ART_GLYPH = 0.55 -- how far an art's glyph leans to white on its disc
+-- what fills the slot's Well (the icon box, authored per slot): items and models the
+-- whole box (icons are cropped to their drawn area), an art's glyph the middle of
+-- its disc, a class glyph a little less than the box
+local FILL_ITEM = 1
+local FILL_ART = 0.6
+local FILL_GLYPH = 0.86
 
 -- art/ui/draw_icons.py; a weapon def's own icon wins over its model's
 local MODEL_ICONS: { [string]: string } = {
@@ -79,21 +99,52 @@ function SlotArt.classColor(classId: string): Color3
 	return CLASS_COLORS[classId] or CLASS_COLORS.Any
 end
 
--- The rarity frame on an Inventory cell or preview (its Frame child): the kit
--- tile of its tier, the plain slot for Bare Fists. Hides the old glow. Call
--- after paint.
-function SlotArt.tile(slot: GuiObject, id: string?)
-	local frame = slot:FindFirstChild("Frame") :: ImageLabel
-	frame.Image = Rarity.tile(Rarity.of(id).tier)
-	frame.ImageColor3 = WHITE
-	local glow = slot:FindFirstChild("Glow") :: ImageLabel?
-	if glow then
-		glow.Visible = false
+-- Put an image in an icon box, cropped to its drawn area (IconRects) and fitted,
+-- so it sits centred in the box with even padding whatever margin its source has.
+function SlotArt.setIcon(icon: ImageLabel, image: string)
+	icon.Image = image
+	icon.ScaleType = Enum.ScaleType.Fit
+	local rect = IconRects[string.match(image, "%d+$") or ""]
+	if rect then
+		icon.ImageRectOffset = Vector2.new(rect[1], rect[2])
+		icon.ImageRectSize = Vector2.new(rect[3], rect[4])
+	else
+		icon.ImageRectOffset = Vector2.zero
+		icon.ImageRectSize = Vector2.zero
+	end
+end
+
+-- The box a slot's icon, disc, glyph and model fill (its Well; old slots: itself).
+function SlotArt.well(slot: Instance): Instance
+	return slot:FindFirstChild("Well") or slot
+end
+
+local function fill(icon: GuiObject, share: number)
+	icon.AnchorPoint = Vector2.new(0.5, 0.5)
+	icon.Position = UDim2.fromScale(0.5, 0.5)
+	icon.Size = UDim2.fromScale(share, share)
+end
+
+-- The rarity edge and wash of a slot: the tier's colour, or a dim neutral edge for
+-- ungraded things (Bare Fists) and empty slots.
+local function paintRarity(slot: GuiObject, id: string?, filled: boolean)
+	local edge = slot:FindFirstChild("Edge") :: ImageLabel?
+	local wash = slot:FindFirstChild("Wash") :: ImageLabel?
+	local rarity = Rarity.of(id)
+	local graded = filled and rarity.tier ~= nil
+	if edge then
+		edge.ImageColor3 = if graded then rarity.color else NO_GRADE
+		edge.ImageTransparency = if filled then 0 else EDGE_EMPTY
+	end
+	if wash then
+		wash.Visible = graded
+		wash.ImageColor3 = rarity.color
+		wash.ImageTransparency = WASH
 	end
 end
 
 -- A weapon's illustrated icon (rewards, the character card); Weapons.FIST is bare
--- hands. Slots draw weapons as their class glyph instead (paint).
+-- hands. Slots show the model instead (paint).
 function SlotArt.weaponIcon(weaponId: string): string
 	local def = Weapons.Defs[weaponId]
 	if not def then
@@ -146,23 +197,29 @@ function SlotArt.gate(slot: GuiObject, id: string?, inventory: boolean): boolean
 		if need then
 			-- a badge that is the glyph itself, or a ring holding it (the hotbar's)
 			local glyph = (badge:FindFirstChild("Icon") :: ImageLabel?) or badge
-			glyph.Image = SlotArt.classGlyph(need)
+			SlotArt.setIcon(glyph, SlotArt.classGlyph(need))
 			glyph.ImageColor3 = SlotArt.classColor(need)
 			glyph.ImageTransparency = if missing and not always then 0.15 else 0
 		end
 	end
 	if missing and not always then
-		(slot:FindFirstChild("Icon") :: ImageLabel).ImageTransparency = GATED_ICON;
-		(slot:FindFirstChild("Glow") :: ImageLabel).Visible = false
+		local well = SlotArt.well(slot);
+		(well:FindFirstChild("Icon") :: ImageLabel).ImageTransparency = GATED_ICON
+		local disc = well:FindFirstChild("Disc") :: ImageLabel?
+		if disc then
+			disc.ImageTransparency = GATED_ICON
+		end
 	end
 	return missing
 end
 
 -- countText overrides the corner text ("" hides it).
 function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: string?)
-	local icon = slot:FindFirstChild("Icon") :: ImageLabel
-	local glyph = slot:FindFirstChild("Glyph") :: TextLabel
-	local glow = slot:FindFirstChild("Glow") :: ImageLabel
+	local well = SlotArt.well(slot)
+	local icon = well:FindFirstChild("Icon") :: ImageLabel
+	local glyph = well:FindFirstChild("Glyph") :: TextLabel
+	local disc = well:FindFirstChild("Disc") :: ImageLabel?
+	local model = well:FindFirstChild("Model") :: ViewportFrame?
 	local corner = slot:FindFirstChild("CountLabel") :: TextLabel
 	local name = slot:FindFirstChild("NameLabel") :: TextLabel?
 	local frame = slot:FindFirstChild("Frame") :: ImageLabel
@@ -170,23 +227,38 @@ function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: 
 	local item = id and Items.Defs[id]
 	local weapon = id and not technique and not item and (Weapons.Defs[id] ~= nil or id == Weapons.FIST)
 	icon.Image = ""
+	icon.Visible = true
 	glyph.Text = ""
-	glow.Visible = false
+	if well ~= slot then
+		fill(icon, FILL_ITEM)
+	end
 	corner.Text = countText or ""
-	frame.ImageTransparency = if technique or item or weapon then 0 else 0.5
+	if disc then
+		disc.Visible = false
+	end
+	local filled = (technique or item or weapon) and true or false
+	frame.ImageTransparency = if filled then 0 else 0.35
+	paintRarity(slot, id, filled)
 	if name then
 		name.Text = if technique then technique.name elseif item then item.name elseif weapon and id then SlotArt.weaponName(id) else ""
 	end
+	local shown = false -- whether the Model viewport shows a weapon
 	if technique then
-		icon.Image = technique.icon
-		icon.ImageColor3 = technique.color:Lerp(WHITE, 0.35)
+		SlotArt.setIcon(icon, technique.icon)
 		icon.ImageTransparency = 0
-		glow.ImageColor3 = technique.color
-		glow.Visible = true
+		if disc then
+			disc.Visible = true
+			disc.ImageColor3 = technique.color:Lerp(Color3.new(), DISC_DARK)
+			disc.ImageTransparency = 0
+			icon.ImageColor3 = technique.color:Lerp(WHITE, ART_GLYPH)
+			fill(icon, FILL_ART)
+		else
+			icon.ImageColor3 = technique.color:Lerp(WHITE, 0.35)
+		end
 	elseif item then
 		local empty = (count or 0) <= 0
 		if item.icon then
-			icon.Image = item.icon
+			SlotArt.setIcon(icon, item.icon)
 			icon.ImageColor3 = WHITE
 			icon.ImageTransparency = if empty then 0.6 else 0
 		else
@@ -194,21 +266,29 @@ function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: 
 			glyph.TextColor3 = item.color:Lerp(WHITE, 0.45)
 			glyph.TextTransparency = if empty then 0.6 else 0
 		end
-		glow.ImageColor3 = Items.rarityColor(item)
-		glow.Visible = not empty
 		if countText == nil then
 			corner.Text = if count then `x{count}` else ""
 		end
 	elseif weapon and id then
-		local classId = Weapons.classOf(id)
-		icon.Image = SlotArt.classGlyph(classId)
-		icon.ImageColor3 = SlotArt.classColor(classId)
-		icon.ImageTransparency = 0
-		glow.ImageColor3 = SlotArt.weaponColor(id)
-		glow.Visible = true
+		if model and id ~= Weapons.FIST then
+			shown = WeaponView.show(model, id)
+		end
+		if not shown then
+			local classId = Weapons.classOf(id)
+			SlotArt.setIcon(icon, SlotArt.classGlyph(classId))
+			icon.ImageColor3 = SlotArt.classColor(classId)
+			icon.ImageTransparency = 0
+			if well ~= slot then
+				fill(icon, FILL_GLYPH)
+			end
+		end
+		icon.Visible = not shown
 		if countText == nil then
 			corner.Text = if count and count > 1 then `x{count}` else ""
 		end
+	end
+	if model and not shown then
+		WeaponView.show(model, nil)
 	end
 end
 

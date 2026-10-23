@@ -67,18 +67,16 @@ function Layout.apply()
 		dock.Size = stack.Size
 	end
 
-	-- on touch the slots are too small for names: a bigger icon or glyph instead
+	-- on touch the slots are too small for names: a bigger icon well, centred, instead.
+	-- PC: the well sits centred in the space above the one-line name strip.
 	local slots = (stack:FindFirstChild("Hotbar") :: Instance):FindFirstChild("Slots") :: Instance
 	for _, slot in slots:GetChildren() do
 		local name = slot:FindFirstChild("NameLabel") :: GuiObject?
 		if name and slot.Name ~= "SlotTemplate" then
 			name.Visible = not touch
-			local icon = slot:FindFirstChild("Icon") :: GuiObject
-			local glyph = slot:FindFirstChild("Glyph") :: GuiObject
-			icon.Size = if touch then UDim2.fromScale(0.62, 0.62) else UDim2.fromScale(0.52, 0.52)
-			icon.Position = if touch then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 0.42)
-			glyph.Size = if touch then UDim2.fromScale(0.58, 0.58) else UDim2.fromScale(0.46, 0.46)
-			glyph.Position = if touch then UDim2.fromScale(0.5, 0.48) else UDim2.fromScale(0.5, 0.34)
+			local well = slot:FindFirstChild("Well") :: GuiObject
+			well.Size = if touch then UDim2.fromScale(0.64, 0.64) else UDim2.fromScale(0.54, 0.54)
+			well.Position = if touch then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 0.355)
 		end
 	end
 

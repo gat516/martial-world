@@ -57,7 +57,8 @@ shallow-water surfaces, rim foam and waterfall foam; see [water](world/water.md)
 `WeaponModels` (binary `assets/WeaponModels.rbxm`, weapon
 models: one Model per class weapon joined to the Right Arm by its `Hilt`/`HiltR` Motor6D, plus
 Dizi, Zither, SpiritStone and the ManualScroll prop; built by `art/weapons/place_weapons.luau`)
-(ServerStorage). Never restructure these by hand in Studio: see
+(ServerStorage; the same file is also mapped to `ReplicatedStorage.WeaponModels` so the
+client can draw weapons in Inventory slots, `WeaponView`). Never restructure these by hand in Studio: see
 AGENTS.md, "Studio". `Workspace.Map` (peaks, plaza, cliffs, bridges,
 ground, `Map.Sect.Ambience` lights) is place-only, not Rojo-mapped: see
 [map](systems/map.md).
@@ -114,7 +115,7 @@ What we build next and in what order (solidity, onboarding, sect, techniques, ga
 | Weapons, weapon Dao, manual caches, weapon racks | [weapons](systems/weapons.md) | Weapons, Combat, WorldCaches, Progression | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController, WorldCaches |
 | Character: spirit root, cultivation method (built); bloodline (design); character window | [character](systems/character.md) (core + [character/](character/): spirit root, method, bloodline, character window, later layers), method aura rules [auras](systems/auras.md) (one file per method in [auras/](auras/)) | Roots (perks applied in Cultivation, Circulation, Combat, Garden), Methods (qi speed in Cultivation, Circulation, EnemyService, QiNodes) | Roots, Methods, Pacing.Roots, Pacing.Methods, Techniques `element` | RootFX (reveal pillar, each element in its methods' aura language), MethodAura (one aura per method while seated, from player attributes Meditating + Method; ignites on sit, switch and the Breakthrough remote) |
 | Enemies, spawning, regions, server/client split, boss projectiles | [enemies](systems/enemies.md) (core + one doc per enemy in [enemies/](enemies/)); open boss work in each boss doc's "Open work", boss rules in [enemies](systems/enemies.md#boss-rules-user-decisions); telegraph language and attack feel in [telegraphs](systems/telegraphs.md) | EnemyService, EnemyMover, EnemyHistory, Spawner, Projectiles | Enemies, Spawns, Regions, Knockback, Pacing.Danger, ProjectilePath | ProjectileView, EnemyMotion, EnemyAnimator, EnemyPoses/*, EnemyFX/*, EnemyBars, BossBars, BossThemes, EnemySounds, Telegraphs |
-| Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt |
+| Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt, WeaponView, IconRects |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
 | Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, Events/WorldEventView, Events/TribulationView, WorldFX/* (Kit, SkyGrade, TreasureFX, TribulationFX), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |
 | Onboarding, rewarded objectives, quest board, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Gates, Config.Travel, Pacing.Quests | Onboarding, TravelMenu, GateMarkers, Veil |

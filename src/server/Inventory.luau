@@ -195,7 +195,7 @@ end
 --[[ Hotbar ]]
 
 local MAX_SEEN = 64 -- ids per "seen" call
-local VIEW_TABS = { Arsenal = true, Pouch = true }
+local VIEW_TABS = { Weapons = true, Arts = true, Pouch = true }
 local VIEW_SORTS = { New = true, Grade = true, Alphabetical = true }
 
 -- Whether the player has any of this item, art or weapon right now.
@@ -288,7 +288,19 @@ function Inventory.handle(player: Player, action: any, a: any, b: any, c: any): 
 			end
 		end
 	elseif action == "view" then
-		local view = VIEW_TABS[a] and data.inventoryView[a]
+		local views = data.inventoryView
+		-- profiles from before the Weapons/Arts split saved one "Arsenal" view: both
+		-- tabs start from it (no schema step: the client maps it the same way)
+		local old = views.Arsenal
+		if VIEW_TABS[a] and type(old) == "table" then
+			views.Weapons = views.Weapons or { sort = old.sort, filter = old.filter }
+			views.Arts = views.Arts or { sort = old.sort, filter = old.filter }
+			views.Arsenal = nil
+		end
+		if VIEW_TABS[a] and not views[a] then
+			views[a] = { sort = "New", filter = "All" }
+		end
+		local view = VIEW_TABS[a] and views[a]
 		if not view or not VIEW_SORTS[b] or type(c) ~= "string" or #c > 24 or not string.match(c, "^%a+$") then
 			return false, nil
 		end

@@ -65,7 +65,7 @@ export type Data = {
 	dao: { [string]: Dao }, -- by class id; a missing class is level 0
 	caches: { [string]: boolean }, -- world ManualCache / WeaponRack anchors claimed, by Cache id
 	seen: { [string]: number }, -- items, arts and weapons the Inventory has shown, by os.time() first seen (0 = before v10); held and not here = NEW
-	inventoryView: { [string]: { sort: string, filter: string } }, -- the Inventory's sort and class/kind filter, per tab (Arsenal, Pouch)
+	inventoryView: { [string]: { sort: string, filter: string } }, -- the Inventory's sort and class/kind filter, per tab (Weapons, Arts, Pouch; older profiles: Arsenal, mapped to both on first use)
 	root: Roots.Root, -- spirit root; element "" until tested at the Testing Stone
 	peak: {
 		removed: { [string]: boolean },
@@ -119,7 +119,11 @@ local function default(): Data
 		settings = { music = 1, sfx = 1, autoAttack = true, lockHint = true },
 		weapons = { owned = { [Weapons.STARTING] = 1 }, equipped = Weapons.STARTING },
 		seen = { LightningTalisman = 0, [Weapons.STARTING] = 0 }, -- the starting kit isn't NEW
-		inventoryView = { Arsenal = { sort = "New", filter = "All" }, Pouch = { sort = "New", filter = "All" } },
+		inventoryView = {
+			Weapons = { sort = "New", filter = "All" },
+			Arts = { sort = "New", filter = "All" },
+			Pouch = { sort = "New", filter = "All" },
+		},
 		dao = startingDao(),
 		caches = {},
 		root = Roots.new(),

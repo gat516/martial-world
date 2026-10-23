@@ -10,7 +10,7 @@ ScreenGui (`assets/Rewards.rbxmx`, `StarterGui.Rewards`). The toast (the `Hud`'s
 | Tier | Looks like | Used by |
 | --- | --- | --- |
 | `small` | a number or short line with a white kit glyph, rising 40 px and fading over 1.1 s | ready for floating gains (qi, stones); nothing calls it yet |
-| `feed` | a row in the reward feed (right side, above the touch cluster): the kit's leaderboard row, a coin (currency) or rarity tile (items) with the icon, the name in its colour, a count that climbs | stones, loot, insight, manuals, weapons, methods (`Effect`) |
+| `feed` | a row in the reward feed (right side, above the touch cluster): the toast's plaque, plain; the icon on a seal disc in its rarity or currency colour, the name, a count that climbs | stones, loot, insight, manuals, weapons, methods (`Effect`) |
 | `banner` | kicker, a three-part ribbon with the title, a tag and a subtitle, top centre; jade, gold (the navy objective banner) or crimson | the region entry banner (`RegionBanner.luau`); notable gains and onboarding objectives later |
 | `card` | one card, three jobs; reward tiles, stat deltas, the new unlock, one line of flavour; tap or click to skip | boss victory (`Effect "boss"`), breakthroughs (`BreakthroughView`), quests later |
 
@@ -34,8 +34,9 @@ Rules: one card at a time, queued; a card waits while another window or minigame
 open and opens when it closes. It is a `Menus` window (the HUD steps aside, shift lock
 frees the mouse), closes on a click or tap after 1 s, or by itself after 7 s (5 s for a
 minor breakthrough). Rewards that arrive within 1.5 s of a boss card (open or queued)
-land on it as tiles. The feed hides while a card is open (the card shows the tiles; on a
-phone the feed would sit on it). Banners queue (three at most) and are cleared by any
+land on it as tiles. The feed never draws over an open window: while one covers its
+column (the reward card, or the Inventory on a phone) it hides and its rows wait, then
+show for their full time when the window closes; on PC a centred window leaves it up. Banners queue (three at most) and are cleared by any
 window or card. Motion: cards pop (Menus/Motion), the title ribbon gets one gold glint
 sweep, banners fade in and out, feed rows and tiles pop on each gain. No screen
 darkening, no looping pulses, no shakes (user taste, 2026-10-23); the only continuous
@@ -58,7 +59,7 @@ Rewards.preview(tier, kind)  -- sample content: ("card", "boss"|"quest"|"milesto
 ```
 
 Keys (feed rows and card tiles): `stones`, `qi`, `insight`, `contribution` (currency:
-coin frame), `manual:<technique>`, `weapon:<id>`, `method:<id>`, or an `Items` id.
+coin frame on card tiles, a disc in the currency's colour on feed rows), `manual:<technique>`, `weapon:<id>`, `method:<id>`, or an `Items` id.
 Item tiles take the edge of their rarity or grade on the Inventory's ladder
 ([inventory](inventory.md), `Rarity.luau`): Common/Mortal bronze (`neutral`),
 Uncommon silver (`grey`), Rare/Spirit jade, Epic/Earth violet, Legendary/Heaven gold;
@@ -74,10 +75,13 @@ stats, unlock and flavour (empty lines hide). Quests and bloodlines don't send i
 
 The ScreenGui holds one `Canvas` with the authored `UiScale` (fitted by `UiScale.fit`:
 desktop baseline 1920x1080, phone 844x390, one layout for both). Inside it:
-- `Feed` (as before: bottom-right anchor at 58 % height, 264 wide, rows 250x30, 4 px
-  apart). Row: `Plate.Art` (CapL, Mid with a fill flex, CapR; the art is 164/118 of the
-  row so the rims sit on the row's edges), `Badge` (coin or tile) with `Icon`/`Glyph`,
-  `NameLabel`, `CountLabel`.
+- `Feed` (bottom-right anchor at 58 % height, 264 wide, rows 256x34, 6 px apart; user,
+  2026-10-23: "too bundled together and the icons dont fit"). Row (`EntryTemplate`):
+  the toast's plaque, 9-sliced (SliceScale 34/96); `Disc` (`art_disc`, 24 px, tinted
+  the look's colour leaned 20 % to black) with its `Icon` (cropped to its drawn area,
+  `SlotArt.setIcon`, 62 % of the disc) or `Glyph`; `NameLabel` (Builder Sans Bold 15,
+  8 px after the disc, truncated); `CountLabel` (Fredoka One 16, gold). The disc's left
+  edge and the count's right edge both sit 4 px inside the plaque's points.
 - `Floats.FloatTemplate`.
 - `Banner` (620x118 at the top centre, 64 px down): `Kicker`, `Ribbon` (440x56, `Art`
   plus `Title` on the body's centre row), `Tag`, `Subtitle` (hidden on small phones).
@@ -92,33 +96,56 @@ subtitle and flavour, Builder Sans Bold for small text, Fredoka One for counts (
 Cormorant Garamond and Fredoka aren't Roblox fonts).
 
 Rebuild the GUI with `tools/rewards_gui_build.luau` (sandbox only; it also sets the Hud
-toast's subtree), then export.
+toast's subtree), then export. To rebuild only the feed, run its helpers and its
+"Feed" block against the existing `Canvas` (the 2026-10-23 pass did that).
 
 Measured in edit view (1060x784, scale 1) and on an 844x390 phone canvas: card, ribbon,
 body, crest and hint centres all on the canvas centre (530.0); crest on the slot's
 centre row (263.4 = 263.4); ribbon titles on the body's centre row (311.5, 116.3);
-tiles 103/103 px from the list edges with 14/14/14 gaps; toast 20/20 padding, 14/14
-gaps, message and studs on the centre line; feed badge, name and count on the row
-centre, 30/30 px from the ends. Phone card: 514x328, 21 px from the top, hint inside.
+tiles 103/103 px from the list edges with 14/14/14 gaps (toast and feed: see "Toast").
+Phone card: 514x328, 21 px from the top, hint inside.
 Rank emblem (rank card, 1024/652 art): its centre lands on each crest's hole centre to
 0.01 px (crest_outer, crest_inner, crest_core), 25.0/23.5/20.7 px in 50 px crests.
 
 ## Toast
 
-`Hud.Toast` is the kit's `Frame/Toast` (Figma node 4:70): a navy plate at 95 %
-fading out over the ends, gold rules top and bottom (`art/ui/toast_plate.png`, redrawn
-from the kit's numbers by `draw_ui.py toast`, SliceCenter Rect(40, 4, 216, 94),
-SliceScale 0.5), a kit `gold_stud` at each end, the message in Builder Sans Bold 16
-cream. It grows with the text (up to 380 px wide, wraps to more lines) and fades in and
-out (`Motion.fadeIn/fadeOut`); the queue and timing are unchanged.
+`Hud.Toast` (user, 2026-10-23: "lackluster", then "change the shape"; reference
+`docs/reference/ui/hud_vitals_reference.webp`, its name plaques): a dark lacquer plaque
+with pointed, bevelled ends, a gold rim lit along its upper edges and shaded along its
+lower ones, a thin inner gold line, a lit top edge and an inner shade
+(`art/ui/toast_plaque.png`, `draw_ui.py plain`, SliceCenter Rect(48, 47, 464, 49),
+SliceScale 0.375 for 36 px). A kit `ruby_stud` (20 px) is set into each end, 15 px
+from the tip, part of the shape rather than floating off it. The message is Builder
+Sans Bold 16 cream with a near-black stroke; `Hud.placeToast` sizes it to its text
+(`TextService:GetTextBoundsAsync`, up to 380 px, then two lines) and the plaque grows
+around it (34 px sides, 10 px top and bottom).
+
+Where: the row of Roblox's top bar (`Platform.topbar`, `GuiService.TopbarInset`),
+centred on the screen when it fits, else slid clear of Roblox's menu and chat buttons
+on the left and, while they show, the top-right tiles; vertically centred in the bar.
+Windows start below the bar, so a toast never lands on one (the phone Inventory's
+title used to take it, `4.png`); if an open window or the build banner still reaches
+the toast, it moves below that (or above it). It fades in and out
+(`Motion.fadeIn/fadeOut`); the queue and timing are unchanged. Feed rows use the same
+plaque, plain, so the two read as one family.
+
+Measured 2026-10-23 (sandbox preview, faked top bar 58 px PC / 44 px phone): 36 px
+tall; message centre on the plaque centre to 0.0 px; studs 15.0 / 15.0 px from the
+tips and on the centre line; 7.5 / 7.5 px from the studs to the text. 1366x768: at
+x 490 (centred, dx 0.0), y 11 in the bar, window top 134. 667x375 with the Inventory
+open: one line, y 4 in the 44 px bar, slid 7.5 px right of centre to clear Roblox's
+buttons, window top 50; never overlapping. Feed rows (PC, scale 0.726): icon centre on
+disc centre, disc, name and count on the row's centre line, all 0.00 px; 6 px between
+rows; 17 px from each end to the disc and the count.
 
 ## Art
 
 Kit cuts in `art/ui/codex/cut/` (sheets B1, B2, A6, C3, C5, light effects; ids in
 `art/ui/assets.json`): `card_boss`, `card_quest`, `rays_boss`, `rays_milestone`,
-`ribbon_crimson_*`, `ribbon_jade_*`, `objective_banner_*`, `leaderboard_row_*`,
-`tile_*`, `gem_*`, `coin_frame`, `glyph_spirit_stone`, `glyph_qi`, `glyph_insight`,
-`emblem_peak`, `emblem_lotus`, `fx_glint`, `gold_stud`. The Figma mock is
+`ribbon_crimson_*`, `ribbon_jade_*`, `objective_banner_*`, `tile_*` (card tiles),
+`gem_*`, `coin_frame`, `glyph_spirit_stone`, `glyph_qi`, `glyph_insight`,
+`emblem_peak`, `emblem_lotus`, `fx_glint`, `ruby_stud` (toast). Drawn: `toast_plaque`
+(toast and feed rows) and `art_disc` (feed discs), `art/ui/draw_ui.py plain`. The Figma mock is
 "Rewards / Cards, feed, toast (mock)" on the kit's Example page (file
 `WNgoTL6QGdTEBy693Me8Y8`).
 

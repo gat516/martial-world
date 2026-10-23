@@ -63,10 +63,17 @@ glyphs at 60%, left edge on the plate body's left edge, 2 px above the slots).
 Seated has its own plate and rims (`hud_seat_plate.png`, `hud_seat_rims.png`)
 and the same plaque. Each image is laid out on the
 Vitals box's own bar positions and fills its box exactly (Stretch, no slicing),
-so moving a bar means moving it in the Figma sheet too. Hotbar slots wear the
-kit's `item_slot` cut (empty slots at half transparency, as before) and the held
-slot's `Halo` is `item_slot_selected` with its middle keyed out
-(`tools/key_inner.py`), drawn over the frame. `draw_vitals.ps1`'s
+so moving a bar means moving it in the Figma sheet too. Hotbar slots are the
+Inventory's plain slot (2026-10-23, [inventory](inventory.md) "Slots"): an ink well
+(`slot_plain`, empty slots at 35 % transparency) with the rarity as a thin tinted
+`Edge` and a faint `Wash`, the icon in a `Well` box (arts on their seal `Disc`), and
+the held item's `Halo` the same edge ring in cream, 3 px outside the slot. On PC the
+name is one line of Builder Sans Bold 11 in a strip at the bottom (truncated with an
+ellipsis; two lines left a 21 px icon), the well centred in the space above it
+(28 px, 0.00 px off centre, 12 px at the sides and 4.7 px above and below); on touch
+names hide and the well (64 %) is centred on the slot, 9.4 px from the edges
+(`Layout`). The weapon slot shows the model in hand (its `Model` viewport, 6 px
+from the edges). Phone hotbar size is unchanged. `draw_vitals.ps1`'s
 `vitals_mount`, `seat_mount`, `realm_plaque`, `vitals_chip` and `name_plaque`
 are no longer used, nor are `fill_sheen`/`fill_edge` (still drawn by
 `draw_vitals.py`, which now also draws the shaped fills).

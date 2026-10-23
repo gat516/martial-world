@@ -1,18 +1,19 @@
 --!strict
 -- Finding things in the Inventory: the chip rail, the sort button and the search box.
---   Rail (Inventory.Rail): All, then one chip per section the tab has. On
---   Weapons & Arts a chip is a weapon class (its glyph in its colour, the same mark
---   the weapon cells, art badges, section headers and hotbar badges wear) or Any
---   for universal arts; on Pouch a kind of item (its first item's icon). A chip
+--   Rail (Inventory.Rail): All, then one chip per section the tab has. On Weapons
+--   and Arts a chip is a weapon class (its glyph in its colour, the same mark the
+--   art badges, section headers and hotbar badges wear), or Any for universal arts;
+--   on Pouch a kind of item (its first item's icon). A chip
 --   shows that section alone; All (or the chosen chip again) shows every section.
 --   Sort (Inventory.SortButton): a tap steps New -> Grade -> Alphabetical. New:
 --   NEW things first, then the most recently first seen (Fresh.seenAt); Grade: best
 --   tier first; Alphabetical: by name. The weapon in hand stays first in its row.
---   Search (Inventory.Search.Box): typed text narrows both tabs to entries whose
+--   Search (Inventory.Search.Box): typed text narrows every tab to entries whose
 --   name, class or kind, or grade contains it; the x clears it.
 -- Sort and filter are kept per tab in the profile (PlayerData.inventoryView,
 -- InventoryAction "view"), the same place NEW sightings live, so the Inventory
--- reopens as the player left it on any device. No saved choice: New, All.
+-- reopens as the player left it on any device. No saved choice: New, All. Profiles
+-- from before the Weapons/Arts split saved one "Arsenal" view: both tabs start from it.
 -- Search lasts while the window is open.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -38,9 +39,10 @@ local chipTemplate: ImageButton
 local sortButton: ImageButton
 local box: TextBox
 local clear: GuiButton
-local tab = "Arsenal"
+local tab = "Weapons"
 local views: { [string]: View } = {
-	Arsenal = { sort = "New", filter = ALL },
+	Weapons = { sort = "New", filter = ALL },
+	Arts = { sort = "New", filter = ALL },
 	Pouch = { sort = "New", filter = ALL },
 }
 local loaded = false -- views taken from the profile once
@@ -98,7 +100,13 @@ local function load(snapshot: any)
 		return
 	end
 	loaded = true
-	for name, saved in snapshot.inventoryView do
+	local all = table.clone(snapshot.inventoryView)
+	local old = all.Arsenal
+	if type(old) == "table" then
+		all.Weapons = all.Weapons or old
+		all.Arts = all.Arts or old
+	end
+	for name, saved in all do
 		local view = views[name]
 		if view and type(saved) == "table" then
 			view.sort = if table.find(SORTS, saved.sort) then saved.sort else view.sort

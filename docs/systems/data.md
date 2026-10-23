@@ -26,7 +26,10 @@ game (funnels, progression, custom events), and give admins test tools.
   pay out once on the next join; v9 -> v10 adds `seen`, the items, arts and
   weapons the Inventory has shown (id -> os.time() first seen; everything a v9
   profile owned counts as seen at 0), and `inventoryView`, the Inventory's sort
-  and filter per tab (see [inventory](../ui/inventory.md))), load with session
+  and filter per tab: `Weapons`, `Arts`, `Pouch`; a profile saved before the
+  Weapons/Arts split holds one `Arsenal` view, which both tabs start from (the
+  client maps it on load and the server's first "view" save splits it; no schema
+  step) (see [inventory](../ui/inventory.md))), load with session
   lock, autosave, release on leave.
 - `src/server/Settings.luau` + `src/client/Settings.luau` (`SaveSettings` remote).
 - `src/server/Analytics.luau`: onboarding funnel, realm progression events,

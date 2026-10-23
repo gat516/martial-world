@@ -4,10 +4,13 @@
 --   small   a floating number or short line that rises and fades (spec.text, an
 --           optional icon key or image, a colour, and `at`: a world point or a
 --           screen point in 0-1 scale; default just above the bottom stack).
---   feed    a row in the reward feed (spec.key, spec.amount). Gaining the same thing
---           again while its row is up adds to it and pops the count ("x23" -> "x24"),
---           so fast farming reads as one climbing number. Rows fade a few seconds
---           after their last gain; the oldest go first when the feed is full.
+--   feed    a row in the reward feed (spec.key, spec.amount): the toast's plaque, plain,
+--           with the icon on a seal disc in its rarity or currency colour, the name
+--           and the count inside the body. Gaining the same thing again while its
+--           row is up adds to it and pops the count ("x23" -> "x24"), so fast
+--           farming reads as one climbing number. Rows fade a few seconds after their
+--           last gain; the oldest go first when the feed is full. The feed never
+--           draws over an open window: it waits (rows held) while one covers it.
 --   banner  a ribbon across the top: kicker, title, tag, subtitle, in a jade,
 --           gold or crimson style (the region entry banner, notable gains,
 --           onboarding objectives). One at a time, queued; cleared by a menu.
@@ -161,7 +164,8 @@ local QI_COLOR = Color3.fromRGB(120, 235, 180)
 local CREAM = Color3.fromRGB(250, 236, 195)
 
 local ENTRY_LIFE = 3.5 -- seconds a feed row stays after its last gain
-local ENTRY_STEP = 34 -- feed row height plus padding, for the visible cap
+local ENTRY_STEP = 38 -- feed row height plus padding, for the visible cap
+local DISC_DARK = 0.2 -- how far a feed row's disc tint leans to black
 local CARD_COLLECT = 1.5 -- seconds after a boss card that rewards join it
 local CARD_MIN = 1.0 -- seconds before a click can close a card
 local CARD_LIFE = 7 -- a card closes by itself after this
@@ -301,10 +305,32 @@ local function lookOf(key: string): Look?
 		}
 end
 
--- The frame (coin or rarity tile), icon or glyph, gem, name and count on a feed row
--- or a card tile.
+-- A feed row: the icon (cropped and centred, SlotArt.setIcon) or glyph on its disc in
+-- the look's colour, the name, the count.
+local function paintRow(frame: GuiObject, look: Look, count: number)
+	local disc = frame:FindFirstChild("Disc") :: ImageLabel
+	disc.ImageColor3 = look.color:Lerp(Color3.new(), DISC_DARK)
+	local icon = disc:FindFirstChild("Icon") :: ImageLabel
+	local glyph = disc:FindFirstChild("Glyph") :: TextLabel
+	SlotArt.setIcon(icon, look.icon or "")
+	icon.ImageColor3 = look.tint or Color3.new(1, 1, 1)
+	icon.Visible = look.icon ~= nil
+	glyph.Text = look.glyph or ""
+	glyph.TextColor3 = look.color:Lerp(Color3.new(1, 1, 1), 0.5)
+	glyph.Visible = look.icon == nil
+	local name = frame:FindFirstChild("NameLabel") :: TextLabel
+	name.Text = look.name
+	name.TextColor3 = if look.coin then CREAM else look.color:Lerp(Color3.new(1, 1, 1), 0.25);
+	(frame:FindFirstChild("CountLabel") :: TextLabel).Text = `x{count}`
+end
+
+-- The frame (coin or rarity tile), icon or glyph, gem, name and count on a card tile.
 local function paint(frame: GuiObject, look: Look, count: number)
-	local holder = (frame:FindFirstChild("Badge") or frame:FindFirstChild("Tile")) :: ImageLabel
+	if frame:FindFirstChild("Disc") then
+		paintRow(frame, look, count)
+		return
+	end
+	local holder = frame:FindFirstChild("Tile") :: ImageLabel
 	local tier = TILES[look.tier or "neutral"] or TILES.neutral
 	holder.Image = if look.coin then ART.coin else tier.tile
 	local gem = holder:FindFirstChild("Gem") :: ImageLabel?
@@ -321,10 +347,7 @@ local function paint(frame: GuiObject, look: Look, count: number)
 	glyph.TextColor3 = look.color
 	glyph.Visible = look.icon == nil
 	local name = frame:FindFirstChild("NameLabel", true) :: TextLabel
-	name.Text = look.name
-	if holder.Name == "Badge" then
-		name.TextColor3 = if look.coin then CREAM else look.color
-	end
+	name.Text = look.name;
 	(frame:FindFirstChild("CountLabel", true) :: TextLabel).Text = `x{count}`
 end
 
@@ -401,6 +424,23 @@ local function showSmall(spec: Spec)
 end
 
 -- Feed ----------------------------------------------------------------------------
+
+-- Whether the open window (any Menus window, the reward card included) covers the
+-- feed's column; the feed waits for it to close (user, 2026-10-23: nothing draws
+-- over an open window).
+local function feedCovered(): boolean
+	local open = Menus.current()
+	if not open or not open.Visible then
+		return false
+	end
+	local a, as = feed.AbsolutePosition, feed.AbsoluteSize
+	local b, bs = open.AbsolutePosition, open.AbsoluteSize
+	return a.X < b.X + bs.X and a.X + as.X > b.X and a.Y < b.Y + bs.Y and a.Y + as.Y > b.Y
+end
+
+local function refreshFeed()
+	feed.Visible = current == nil and not feedCovered()
+end
 
 local function capacity(): number
 	return math.max(1, math.floor((feed.AbsoluteSize.Y / (canvas:FindFirstChild("UiScale") :: UIScale).Scale + 4) / ENTRY_STEP))
@@ -599,7 +639,7 @@ local function closeCard()
 	end
 	current = nil
 	Motion.close(card)
-	feed.Visible = true
+	task.delay(0.3, refreshFeed)
 	if rayConn then
 		rayConn:Disconnect()
 		rayConn = nil
@@ -801,6 +841,7 @@ function Rewards.init()
 	card.Visible = false
 	Menus.register(card, { close = closeCard })
 	Menus.onChanged(function()
+		task.defer(refreshFeed)
 		if Menus.isOpen() then
 			clearBanner()
 		else
@@ -852,7 +893,9 @@ function Rewards.init()
 			task.wait(0.25)
 			local now = os.clock()
 			for key, e in entries do
-				if now - e.last > ENTRY_LIFE then
+				if not feed.Visible then
+					e.last = now -- held while a window covers the feed
+				elseif now - e.last > ENTRY_LIFE then
 					fadeAway(e.frame, 0.35)
 					entries[key] = nil
 				end

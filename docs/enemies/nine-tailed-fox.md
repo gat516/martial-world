@@ -165,14 +165,42 @@ A motion probe over the real state timeline (`art/enemies/motion_probe.luau`, ev
 5. Moon Leap's tail flame went 1.9 studs into the floor mid-flip: the tails tuck forward over the
    back (lift -0.75) for the inversion.
 Not taken: `Quadruped.steady` (the King's solver) made the intro and the pounce worse here and the
-poses are tuned against the old blend. Left: the intro still starts with a 0.06 s blend from
-standing into the curl (the fox idles standing before the engagement; a curled idle before aggro
-would fix it, a design call); the pounce's bound steps the forelegs 60-78 deg a frame at 55
-studs/s (the run gait at that speed); the death's collapse steps one shoulder 105 deg and sinks a
-paw 1.3 studs for 0.2 s; Fang Dance's bites end in a one-frame stop before each recoil; plunging
+poses are tuned against the old blend. (The intro pop, the pounce's bound steps, the death's
+shoulder step and Fang Dance's stops were fixed by the 2026-10-23 motion pass, below.) Plunging
 tails now pass through the hind thighs (0.7-1.2 studs) where they used to pass through the chest
 (1.4-1.7), since a straight tail from the hub to the floor must cross the flank. Timings, cue
 moments and the pose API are unchanged. Untested in Play.
+
+## Motion pass (2026-10-23, audit item A2)
+Intent: the fox fights like a dancer. Every stationary move's body now ripples: the keyed body is
+re-timed link by link (`RIPPLE` in the module), the hips reading the keys 3 frames ahead, the
+chest 2, the neck 1 and the head on the beat, each link's world rotation averaged over a few frames
+(wider toward the head) and the tail hub trailing the hips, so each strike starts in the hips and
+arrives at the head on the contact frame, and keys that stopped dead now ease into their holds.
+Stagger and Death take the blow from outside (the hips first, the head trails by up to 3 frames);
+Moon Leap resamples the flip itself; the pounce keeps its own timing. Other changes:
+- **Intro** opens from the standing idle (the fox never idles curled, so the first frame popped
+  95 deg / 150 studs/s): a bow-stretch with a yawn, back onto the haunches, up through the arch,
+  head thrown back for the howl at the release; tails sweep low with the bow, then unfurl 0.2 s
+  apart. Timings and the intro cues are unchanged.
+- **Pounce** bound is laid out for 32 studs/s (`STRIDE_SPEED`): at 55 the stance legs swept their
+  range in three frames and flipped 80-115 deg a frame; the windup ends still loaded (the rise is
+  in the dash). **Death** legs are filtered through the collapse (`LEG_SMOOTH`, it flipped 100 deg),
+  the down-side legs roll a little and the head guard lets go as it falls (`GUARD_OFF`).
+- **Head guard** lift is capped by the overlap depth and takes the smallest clearing lift: it used
+  to jump straight to a big lift (head pops of 50-70 studs/s, most of the "stops dead").
+- Plunging tails stop 0.42 unit over the floor (rootfire low -0.63 -> -0.34; Nine-Tail Fall -0.56 -> -0.27).
+
+Probe (`motion_audit.luau`, before -> after): body chain BLOCK in 10 moves -> none of the ten
+(Moon Leap reads BLOCK on its mid-flip speed plateau, though the links lag 1-3 frames on the rise
+and fall); head stops dead Fang Dance 4 -> 0, Foxfire Volley 3 -> 0, Rootfire 3 -> 0, Moon Leap +
+Volley 6 -> 1, every move at most 1; intro worst step 95 -> 27 deg, hero 150 -> 36 studs/s; leg
+steps pounce 115 -> 47 (the take-off paw, baseline 46), Death 100 -> 30, Moon Leap 72 -> under 45.
+Left: Fang Dance's and Tail Snare's planted forelegs step 57 deg on each snap (the IK as the root
+drops; a leg filter sank the paws), the pounce's take-off paw 47, Death's forepaw still dips about
+1.3 studs for 0.15 s as it rolls over, tail segments (stem > mid > tip) still turn together.
+Untested in Play: feel, the ripple against EnemyAnimator's blends, cost (the ripple samples six
+keyed poses a frame, about the follow-through spring's cost again).
 
 ## Open work
 
@@ -186,7 +214,7 @@ purpose), a capped follow-through spring on the body, head, ears and tail hub,
 and a head guard that lifts the head and neck off the forearms. Left:
 - **Hind knees into the hips:** walk 0.48, run 0.68, RendingPounce 0.78,
   MoonLeap 0.59, Death 0.87 studs.
-- **Intro and the curled sleep:** paw/thigh 0.89, play-bow paw/paw 0.40.
+- **Intro:** the curl is gone (2026-10-23); the bow-stretch clips the forearms into the neck 0.15 unit and the sit's hind paws 0.30 into the thighs.
 - **Death legs:** the hind paw sinks 0.72 into the hips and a hind leg 0.51 into
   the ground.
 - **Tails through the body:**
@@ -205,7 +233,7 @@ and a head guard that lifts the head and neck off the forearms. Left:
   always-on tail wave. Only the shared spring is in.
 - **B/C variants:** not re-run through QA. **Visual review:** only about four
   poses captured.
-- **Def changes wanted:** `rendingPounce` windup 0.75 → about 1.0 (room for the
+- **Def changes wanted (proposal, not applied):** `rendingPounce` windup 0.75 → about 1.0 (room for the
   haunch wiggle) and `moonLeap` recover 0.4 → about 0.6. `veilBreak` drops from
   the full rear in the last 0.03-0.15 s: re-key it inside 1.6 s or allow 1.8.
 - **Barrage timing:** `input.parts` isn't sent to the client, so the tails use

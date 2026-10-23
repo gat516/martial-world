@@ -107,6 +107,21 @@ Row 2: three sect rank crests, each a gold-framed emblem with an empty centre: O
 Row 3: a contribution token (a jade-and-gold coin with a cloud motif); a quest scroll seal (a rolled scroll with a red wax seal); a daily-task seal and a weekly-task seal (round, different rims).
 ```
 
+### B3b. Notice board backing (requested 2026-10-23, not generated yet)
+The sect board ([sect board](sect-board.md)) is built today as a kit window (navy lacquer
+inside the cut window corners) with the `board_header` plaque and the pinned notices. A
+wooden backing would make it read as a notice board. Attach the B3 sheet as the style to
+match (the header plaque's wood and gold trim).
+```text
+One piece, as large as you can: a wide notice-board panel, 2:1, dark weathered wood planks
+running horizontally inside a gold-trimmed frame with small gold corner brackets and a few
+iron nail heads near the corners. Ornament only in the four corners; the frame's straight
+edges plain and identical along their length; the planks in the middle plain and calm
+(no knots or nails there), so it can be 9-sliced and notices pinned anywhere. No text.
+```
+It replaces `Board.Body`'s navy fill and the window frame for the board only (cut with
+`ui_assemble.py`, 9-sliced at its corners); the notices, header and status row stay.
+
 ### B4. Character, foundation and combat (roadmap 1, 4)
 ```text
 Row 1: a foundation crack overlay set for a small round meter: hairline crack, split crack, shattered, drawn in dark ink with faint gold edges, on magenta.

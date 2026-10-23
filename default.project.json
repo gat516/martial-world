@@ -54,6 +54,9 @@
       "Rewards": {
         "$path": "assets/Rewards.rbxmx"
       },
+      "Sect": {
+        "$path": "assets/Sect.rbxmx"
+      },
       "Prompts": {
         "$path": "assets/Prompts.rbxmx"
       },

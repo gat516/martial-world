@@ -43,7 +43,7 @@ Grade, LightPillar, SkyRift, Meteor, SkyCircle, GroundCircle, CloudRing; and
 `Tribulation` (Vortex, Seal, Strike, Scorch, Finale) built by `tools/vfx_specs/Tribulation.luau`;
 see [event-fx](world/event-fx.md)), `BuildKit`, `GardenKit`
 (ReplicatedStorage); `HerbMorsel` (ReplicatedStorage, temporary eating prop);
-`Hud`, `Rewards`, `Prompts` (StarterGui); `Music`, `SFX`, `Ambience` (binary
+`Hud`, `Rewards`, `Sect`, `Prompts` (StarterGui); `Music`, `SFX`, `Ambience` (binary
 `assets/SoundGroups/Ambience.rbxm`, positional ambient sound templates placed by
 `AmbientSound`-tagged anchors; see [ambient-sound](world/ambient-sound.md))
 (SoundService); `Wilds`, `Hub` (Workspace); `Enemies` (binary `assets/Enemies.rbxm`, so rigs keep their Motor6D C0/C1, `Tell`
@@ -118,7 +118,7 @@ What we build next and in what order (solidity, onboarding, sect, techniques, ga
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
 | Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, WorldFX/* (Kit, SkyGrade, TreasureFX, TribulationFX), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |
 | Onboarding, rewarded objectives, quest board, travel | [onboarding](systems/onboarding.md) | Quests, Travel | Gates, Config.Travel, Pacing.Quests | Onboarding, TravelMenu, GateMarkers, Veil |
-| UI and HUD | [ui](systems/ui.md) (core + [ui/](ui/): vitals stack, inventory, boss bar, [overhaul plan and Figma kit](ui/overhaul-plan.md), [Codex sheets](ui/codex-sheets.md), [dialogue ornaments](ui/dialogue-ornaments.md)) | - | - | Hud, SeatBars, GuardBar, Menus, Layout, Motion, BossBars, BossThemes, ScrollHint, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel |
+| UI and HUD | [ui](systems/ui.md) (core + [ui/](ui/): vitals stack, inventory, boss bar, [overhaul plan and Figma kit](ui/overhaul-plan.md), [Codex sheets](ui/codex-sheets.md), [dialogue ornaments](ui/dialogue-ornaments.md), [sect board](ui/sect-board.md), [halls and masters](ui/halls-masters.md)) | - | - | Hud, SeatBars, GuardBar, Menus, Layout, Motion, BossBars, BossThemes, ScrollHint, WorldPrompts, Rewards, Cursor, Settings, Platform, ListWindow, AdminPanel, Sect/* |
 | Data, settings, analytics, admin | [data](systems/data.md) | PlayerData, Settings, Analytics, Admin | Config.Data | State, Settings, AdminPanel |
 | Map: layout, art direction, anchors scripts depend on | [map](systems/map.md) | Peaks (Map.Sect.SpiritPeaks), Tribulation (CENTER), Travel (TravelGate arrays) | Gates, Config.Travel, Config.Tribulation, Config.Build | DayNight (Map.Sect.Ambience), MyPeak |
 | Testbed / test build (local baseplate arena, `test.project.json`; branches and test build in AGENTS.md) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), ForceR6 (R6 when unpublished), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |

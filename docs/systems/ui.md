@@ -101,6 +101,8 @@ cursor, settings and the admin panel.
 - [Boss health bar](../ui/boss-bars.md)
 - [Dialogue ornaments](../ui/dialogue-ornaments.md)
 - [Character window](../character/character-window.md)
+- [Sect board, quest log, rank and contribution](../ui/sect-board.md) (ready to wire)
+- [Halls, masters and lineage](../ui/halls-masters.md) (ready to wire)
 
 ## Key files (all `src/client/`)
 - `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal
@@ -118,6 +120,10 @@ cursor, settings and the admin panel.
   (slot painting, weapon art, the weapon badge), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
+- `Sect/` (`SectBoard`, `QuestLog`, `SectRank`, `HallCrest`, `HallPanel`, `Lineage`,
+  shared `Ui` and `Art`): the sect, quest, Hall and lineage windows in
+  `StarterGui.Sect`, fitted by `UiScale` at the phone baseline. Not called by the game
+  yet; each has a `.preview()`.
 - Boss health bar: `BossBars.luau` drives `Play.BossBar`; themes in
   `BossThemes.luau`, boss pick in `EnemyBars.luau`. See [boss bar](../ui/boss-bars.md).
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`

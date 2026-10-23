@@ -39,7 +39,9 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
      `ScaleTo(1.15)`.
 5. **Merge to the test build** for the user to see in game.
 
-The fox (`art/player/cosmetics/fox/`) is the worked example of every step.
+The fox (`art/player/cosmetics/fox/`) is the worked example of every step. The tiger
+(`art/player/cosmetics/tiger/`) adds patterned fur, ear markings, whiskers (a third accessory
+on FaceFrontAttachment), size ratios and a limb-clearance check.
 
 **Space.** Each FBX is in its attachment's space. A Blender point `(x, y, z)` is
 Roblox `(-x, z, y)` from the attachment, with no extra rotation. The fox README's
@@ -78,6 +80,20 @@ first note (a pi turn) put the tail in front of the body.
   - Inner fur: a few soft, chunky, rounded tufts that fill the cup, not thin needle
     spikes ("and the 'fur' thats in the inside").
   - Read: judge it from game-camera distance, not only up close.
+- **Markings must not read as faces.** A small white spot inside a dark oval on each ear back
+  read as a pair of eyes from behind (tiger, user 2026-10-23). Put the dark across the
+  ear's tip, rim to rim, and keep the light mark small, soft and wide, at the dark's edge.
+- **Patterns follow the fur.** Hard-edged rings over a tube read as a caterpillar ("furrier,
+  less segmented"). Colour whole clumps instead. Tail clump rows are staggered, so a single
+  coloured row checkers with its neighbours; a stripe needs two rows (tiger, `PATTERN`).
+- **Whiskers stay simple.** "they dont have to wrap around the face" (user, 2026-10-23): a
+  root point sunk into each cheek, then a few thick, closed, tapered strands sticking straight
+  out sideways, fanned, with at most a gentle curl. Never fitted along the face's curve.
+- **Size against the part it attaches to.** Measure the R6 part's bounding box and give each
+  piece's height and width as a ratio of it, printed and on the sheet. The approved cute fox
+  ears stand 64% of head height on a base 40% of head width (head 1.20 x 1.02); tall, thin
+  ears read "creepy". Tails also get a limb-clearance check with the legs and arms swung
+  (tiger `limb_clearance`).
 - **Variants really vary.** "when i mean variant make it really vary. instead of
   pointy, give it a round peak" (user, 2026-10-23). Each variant has its own
   silhouette, recognisable at game distance: a round soft peak against a sharp

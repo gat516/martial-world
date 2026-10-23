@@ -54,7 +54,10 @@ local Variants: { [string]: Variant } = {
 		Icon = "",
 		InnateTraits = { "TigerClaws" },
 		Modifiers = { strike = 0.04 },
-		Cosmetics = { "TigerEars", "TigerTail" },
+		-- Cub is the default look; the Feral (TigerEarsPinned, TigerTailLash,
+		-- TigerWhiskersFine) and Regal (TigerEarsTufted, TigerTailCrown,
+		-- TigerWhiskersCurl) sets are in Cosmetics/Tiger for a later style picker.
+		Cosmetics = { "TigerEarsRound", "TigerTailCurl", "TigerWhiskersMarks" },
 	},
 	Crane = {
 		DisplayName = "Crane",

@@ -184,7 +184,8 @@ joint names are in `art/player/cosmetics/README.md`; how new ones are made is
 | Who | Wears | Set |
 |---|---|---|
 | Spirit Fox (Looks: Tail Plume / Crescent / Wisp, Ears Sleek / Broad / Long, picked freely) | FoxTailPlume / FoxTailCrescent / FoxTailWisp, FoxEarsSleek / FoxEarsBroad / FoxEarsLong | Fox (skinned Blender meshes) |
-| Beast Folk Wolf / Tiger / Serpent | WolfEars, WolfTail / TigerEars, TigerTail / SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
+| Beast Folk Wolf / Serpent | WolfEars, WolfTail / SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
+| Beast Folk Tiger | TigerEarsRound, TigerTailCurl, TigerWhiskersMarks | Tiger (skinned Blender meshes) |
 | Beast Folk Crane | CraneHeadCascade, CraneFanCascade | Crane (skinned Blender meshes) |
 | Stone Spirit / Dragonblood / Demonic Human / Ghost | StoneShards / DragonHorns / DemonHorns / GhostWisps | Spirits (part-built placeholders) |
 
@@ -202,6 +203,10 @@ plumes) and a tail fan: Cascade (the Crane variant's default), Scholar and Ascen
 Scholar and Ascendant aren't worn by anything yet; they can become Crane `Looks` on
 the Fate step (a variant-level Looks list doesn't exist yet: Looks are per race)
 (`art/player/cosmetics/crane/README.md`).
+
+The Tiger set holds three looks, each ears, a tail and whiskers (FaceFrontAttachment):
+Cub (the Tiger variant's default), Feral and Regal. Feral and Regal aren't worn by
+anything yet; they wait for a style picker (`art/player/cosmetics/tiger/README.md`).
 
 Human (the plain race) and Giant (its look is its size) wear nothing (user,
 2026-10-23: "no need to go super crazy"). `Traits.applyBody` adds the ones the profile

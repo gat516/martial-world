@@ -70,6 +70,8 @@ The source of truth for the overhaul's look is now a Figma kit: [Martial World U
 - **Example:** one 1920 x 1080 screen built only from kit instances, including the proposed compact
   HUD (your name inside the realm plaque, one row instead of two).
 
+Every piece of art still to generate, as Codex sheets: [codex-sheets](codex-sheets.md).
+
 Known limits: the cut ornaments are 30-200 px, so they set the style but must be regenerated at
 about 4x before shipping; the key plate has its E baked in. Pieces go to Roblox through the Studio
 MCP's `upload_image`, which takes Figma asset URLs.

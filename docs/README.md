@@ -71,7 +71,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 [editor-markers](map/editor-markers.md).
 
 The whole plan from QC1 to FE9 (stages, regions, sect quests, optional bosses) is in [progression](progression.md).
-The UI screens we need and their art prompts are in [ui overhaul plan](ui/overhaul-plan.md). What to give the image generator so the art scales is in [codex brief](ui/codex-brief.md).
+The UI screens we need and their art prompts are in [ui overhaul plan](ui/overhaul-plan.md). Every piece of art to generate, as Codex sheets, is in [codex sheets](ui/codex-sheets.md) (the older per-piece list: [codex brief](ui/codex-brief.md)).
 What we build next and in what order (solidity, onboarding, sect, techniques, garden, building) is in [roadmap](roadmap.md).
 
 ## Where to tune things

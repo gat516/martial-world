@@ -587,6 +587,9 @@ return {
 		HERBS_EACH = 5, -- every herb type
 		SEEDS_EACH = 5, -- every seed type
 		ITEMS_EACH = 2, -- every spirit core and treasure
+		-- not root pills: the RootPill lesson would purify the root before the tutorial's own
+		-- root reveal is digested (give them from the admin panel)
+		SKIP_ITEMS = { MarrowWashingPill = true, RootRebirthPill = true } :: { [string]: boolean },
 		STONES = 3000, -- Spirit Stones, to try the Spirit Market
 		ALL_TECHNIQUES = false, -- own every technique, to test them without earning manuals
 		ALL_WEAPONS = false, -- own every weapon, to test each class

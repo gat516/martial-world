@@ -63,7 +63,7 @@ analytics `SessionLength`, `PlayerData.release` (final save), every module's `fo
 ## Tuning knobs
 - `Config.Data`: store name, autosave, lock timings, starting seeds.
 - `Config.Slots`: on/off, slot cap, trash days, delete token time, QuickPlay.
-- `Config.TestKit` (`ALL_TECHNIQUES`, `ALL_WEAPONS`); `Config.Admin.USER_IDS`.
+- `Config.TestKit` (`ALL_TECHNIQUES`, `ALL_WEAPONS`, `SKIP_ITEMS`: items the kit never tops up, the root pills); `Config.Admin.USER_IDS`.
 - Starting raw qi: `Pacing.Income.STARTING_RAW_QI`; starting stones: `Config.Economy`.
 
 ## Known gaps

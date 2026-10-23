@@ -421,7 +421,8 @@ Quests.Lessons = {
 		elder = "A root pill! It can temper your very root. Sit in meditation, open your Spirit Root and absorb it.",
 		objective = "Meditate, open Spirit Root and absorb the pill",
 		reward = REWARDS.RootPill,
-		early = true,
+		-- not `early`: a pill absorbed mid-tutorial would purify the root the Testing
+		-- Stone just revealed; it waits for free play
 		persist = true,
 		-- until the first pill is absorbed (data.lessons.RootPillUsed, set in check)
 		when = function(_, data)

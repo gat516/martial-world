@@ -91,7 +91,7 @@ local function applyTestKit(data: PlayerData.Data)
 	end
 	for _, id in Items.Order do
 		local bag = Items.bag(data, id)
-		if not Herbs.Defs[id] then
+		if not Herbs.Defs[id] and not kit.SKIP_ITEMS[id] then
 			bag[id] = math.max(bag[id] or 0, kit.ITEMS_EACH)
 		end
 		if bag[id] then

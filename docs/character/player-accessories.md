@@ -101,13 +101,20 @@ first note (a pi turn) put the tail in front of the body.
   both moods, "cool / tuff / aggressive and cute".
 - **Clear the body.** Ears clear a normal hair accessory and work bald; tails clear
   the legs and arms at rest and while running.
-- **Budget:** ears about 1,500 tris a pair, a tail about 4,000 (6,000 at most).
+- **Budget:** ears about 1,500 tris a pair, horns 2,000-3,500 a pair, a tail about
+  4,000 (6,000 at most).
 - **Sheet:** front, side, back, rear three-quarter, bent pose, a seating close-up
   and a bent close-up, one row per direction.
 - **Keep what the user likes.** When the user approves a placeholder's design,
   remodel that same look in Blender and don't redesign it. Dragonblood's
   part-built antlers are one: "i actually really like what we have going on for
-  dragonblood already" (`briefs/dragonblood.md`).
+  dragonblood already" (`briefs/dragonblood.md`). The Blender remodel
+  (`dragonblood/`, Antler) keeps it, with the beams splayed in a wide V and
+  longer tines, as the user asked at the pick.
+- **Scales and tufts** (user, 2026-10-23, on the first Dragonblood tails: "less like a
+  pickle with a cotton ball"): scales are flat, tight, overlapping plates, not bumps,
+  and a tip tuft grows out of the tail (fur starting among the last scales, short at
+  the root and long at the end, one flame-shaped plume), never a ball stuck on the end.
 - **One checkout unless parallel.** Races run one at a time in the shared
   `race-cosmetics` checkout. A worktree is only for an agent running alongside
   another one (AGENTS.md, Branches).

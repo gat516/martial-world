@@ -124,6 +124,15 @@ The genre's heart, and a strong retention and social hook.
     by the server), and quests the master sets from the board.
   - *A master can guard a disciple's tribulation* (heaven-defier): stand with them,
     share the spectacle.
+- **Numbered seats and master epithets (user, 2026-10-22).** Masters have epithets, and
+  disciples hold a numbered seat: "Second Brother of the Turtle Saint", "Third Sister
+  of the Sword Immortal". Epithets draw on the beast saints and genre titles (Turtle
+  Saint, Azure Dragon Elder, Sword Immortal, Crane Sage, Thunder Venerable, Herb
+  Mother). Seats are **cohorts of nine** per master, filled in the order players pick
+  that master, so seniority is earned by joining early. Friends can join the same
+  cohort by invite. A full cohort opens another (a "Second Court" of the same saint).
+  The wording (Brother, Sister, or a neutral "Sibling") is the player's own choice.
+  Later seats can be given up and refilled, so early seats stay prestigious.
 - **Visible lineage.** The Self card and nameplate show "Disciple of X", "Senior
   Brother of Y". A Hall can be a master's household.
 - **Drama hooks.** If a disciple takes the demon path, their master (NPC or player)

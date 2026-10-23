@@ -24,13 +24,28 @@ them; they are not part of this overhaul unless the user says so.
 2. **Mobile first, and careful.** The phone is the smallest target (about 360 x 640
    logical, a thumb-sized touch target of at least 44-48 px high, body text at least
    14 px). Design the phone layout first, then widen it.
-3. **Resolution.** Roblox shrinks anything over 1024 px on its long side, so slice a
-   sheet into pieces of at most 1024 px. Pieces that stretch are **9-sliced**:
-   ornate corners only, plain repeatable edges (see the 9-slice rules in the agent
-   file). Never bake text into art. If a piece blurs when shrunk or stretched past
-   its intended scale, **do not fight it: ask for another asset at the right size**
-   (a small, a medium and a large variant is normal). We will generate more assets
-   rather than ship a blurry one.
+3. **Resolution and scaling: design once at a baseline, let a scaler fit it
+   (user, 2026-10-22; the general industry practice).** Not every part of that
+   advice applies in Roblox, so this is the adapted version:
+   - **Roblox has no vector images** (no SVG on an ImageLabel) and caps textures at
+     1024 px on the long side, so the "4K source" version is out. Raster only.
+   - **Author each layout once at a baseline**, and scale the whole thing with a
+     `UIScale` rather than redrawing per screen. Proposed baselines (verify in the
+     device emulator): **desktop 1920 x 1080** and **phone landscape about 844 x 390**.
+     A shared client module (`UiScale.luau`, to be written) picks the baseline by
+     platform and sets scale = min(viewportWidth / baseWidth, viewportHeight /
+     baseHeight), clamped, on one authored `UIScale` per ScreenGui. Per-frame
+     `Motion` UIScales stay as they are and multiply on top.
+   - **A phone is not a shrunken desktop.** Text at a small scale is unreadable, so
+     the phone has its own baseline *and its own layout* (smaller portrait,
+     stacked buttons), and a floor on text size. Never rely on shrinking alone.
+   - **Art: author at about 2x the largest size it will show on its baseline, capped
+     at 1024 px.** Shrinking a high-resolution raster stays crisp; scaling a small one
+     up blurs. Pieces that would exceed 1024 px on their long side are **9-sliced**
+     (ornate corners, plain repeatable edges, see the agent's 9-slice rules), or
+     split into parts.
+   - Never bake text into art. If a piece still blurs at some size, **generate
+     another asset** (small, medium, large) instead of stretching one.
 4. **Generation requests:** a flat single-colour background (pure white or chroma
    green, nothing painted behind it), one family per sheet, plenty of space
    between pieces so they cut apart cleanly, the same lighting everywhere (top-left
@@ -150,8 +165,8 @@ See [roadmap](../roadmap.md) section 3c (one card, three jobs).
   centre; a heavenly-decree card, black and gold with lightning-thread corners*.
 
 ## Responsive rules (every screen)
-- Design the phone first; the same art scales up by anchoring and slicing, not by
-  redrawing.
+- Design the phone first; the same art scales up by the baseline scaler, anchoring and
+  slicing, not by redrawing.
 - Touch targets at least 44-48 px; at most one dialogue panel and one prompt visible
   at a time; reserve the thumbstick and action cluster zones.
 - Dialogue panel: on phones, portrait shrinks to a small frame at the left or a

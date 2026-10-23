@@ -35,6 +35,12 @@ already paid for; don't relearn them.
   into art. If a piece blurs when shrunk or stretched, don't fight it: ask for more
   assets (small, medium and large variants). Mobile first, and check at real size on
   the phone emulator.
+- **Scale from a baseline, not by hand (user, 2026-10-22).** Lay each ScreenGui out once
+  at a baseline resolution (desktop 1920x1080, phone landscape about 844x390; see
+  docs/ui/overhaul-plan.md) and fit it with one authored `UIScale` per ScreenGui,
+  driven by a shared client module, instead of per-device offsets. A phone gets its
+  own layout and a text-size floor, not just a smaller desktop. Author art at about
+  2x its baseline display size, capped at 1024 px (Roblox has no vector images).
 - Default to drawn, uploaded art. Frames, buttons, panels, pills and icons are
   images you draw and upload (9-sliced where they stretch). Studio instances are
   layout plus text on top of that art. Plain Frames with UICorner/UIStroke look

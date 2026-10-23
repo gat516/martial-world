@@ -103,6 +103,7 @@ What we build next and in what order (solidity, onboarding, sect, techniques, ga
 | Weather | `src/shared/Weather.luau` |
 | World events | `src/shared/WorldEvents.luau` |
 | Races, Beast Folk variants, traits, who can get them and how | `src/shared/Identity/` ([identity](systems/identity.md#where-to-edit)) |
+| How player accessories (race ears, tails, horns) are made: Blender pipeline, seating, rig, recolour rules | [player accessories](character/player-accessories.md) |
 | Character screen: last names, rarity colours, outfits, hair colours, reroll products and prices, the world backdrop, name rules, when it shows | `src/shared/CharacterCreator/` (one module each; [character creator](systems/character-creator.md)); look in `src/client/CharacterCreator/Theme.luau` |
 
 ## Systems

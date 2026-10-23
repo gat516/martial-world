@@ -70,6 +70,7 @@ method. Bloodlines are the first thing past that.
 | Bloodline | design | [bloodline](../character/bloodline.md) |
 | Character window | built (Self card v2, root reveal card) | [character window](../character/character-window.md) |
 | Realm milestones, later layers | ideas | [later layers](../character/later-layers.md) |
+| Player accessories (race cosmetics) | pipeline and rules | [player accessories](../character/player-accessories.md) |
 
 ## Open questions
 - The sect library needs a place in the hub (`map-builder`). The Testing Stone

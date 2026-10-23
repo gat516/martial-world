@@ -170,7 +170,8 @@ joint names are in `art/player/cosmetics/README.md`; how new ones are made is
 | Who | Wears | Set |
 |---|---|---|
 | Spirit Fox Plume / Crescent / Wisp (variants) | FoxTailPlume, FoxEarsSleek / FoxTailCrescent, FoxEarsBroad / FoxTailWisp, FoxEarsLong | Fox (skinned Blender meshes) |
-| Beast Folk Wolf / Tiger / Crane / Serpent | WolfEars, WolfTail / TigerEars, TigerTail / CraneCrest, CraneTail / SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
+| Beast Folk Wolf / Tiger / Serpent | WolfEars, WolfTail / TigerEars, TigerTail / SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
+| Beast Folk Crane | CraneHeadCascade, CraneFanCascade | Crane (skinned Blender meshes) |
 | Stone Spirit / Dragonblood / Demonic Human / Ghost | StoneShards / DragonHorns / DemonHorns / GhostWisps | Spirits (part-built placeholders) |
 
 Spirit Fox's variants (Plume Common 45, Crescent Uncommon 35, Wisp Rare 20) each
@@ -178,6 +179,11 @@ pair one tail with one ear shape, with their own bones (`EarL`/`EarR`,
 `Tail1..Tail5`) and a recolourable part per colour region
 (`art/player/cosmetics/fox/README.md`). The fox traits stay on the race and the
 variants add no stats (user, 2026-10-23: "we can add them it all in as variants").
+
+The Crane set holds three looks, each a head piece (red crest and white-and-black
+plumes) and a tail fan: Cascade (the Crane variant's default), Scholar and Ascendant.
+Scholar and Ascendant aren't worn by anything yet; they wait for a style picker
+(`art/player/cosmetics/crane/README.md`).
 
 Human (the plain race) and Giant (its look is its size) wear nothing (user,
 2026-10-23: "no need to go super crazy"). `Traits.applyBody` adds the ones the profile

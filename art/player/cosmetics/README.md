@@ -3,8 +3,8 @@
 `assets/Cosmetics/` is mapped to `ReplicatedStorage.Cosmetics` (the creator
 preview runs on the client). It holds one binary file per set, and each file is
 a Folder of rigged Accessory prototypes. Traits looks up an accessory id through
-every set. Sets: `Fox.rbxm` (Spirit Fox, below), `BeastFolk.rbxm` (the Beast Folk
-variants) and `Spirits.rbxm` (Stone Spirit, Dragonblood, Demonic Human, Ghost).
+every set. Sets: `Fox.rbxm` (Spirit Fox, below), `Crane.rbxm` (Beast Folk Crane, below),
+`BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Dragonblood, Demonic Human, Ghost).
 
 
 New and reworked cosmetics are modeled in Blender by the `modeler` (user,
@@ -27,11 +27,25 @@ Model, rig, colours, asset ids and the Studio build (`fox/place_fox_cosmetics.lu
 Export the `Fox` folder (`_G.exportRbxm("ReplicatedStorage.Cosmetics.Fox")`, or from a
 sandbox's staging folder) to `assets/Cosmetics/Fox.rbxm`.
 
+## Crane (`assets/Cosmetics/Crane.rbxm`)
+
+Skinned Blender meshes with bones: three looks for the Beast Folk Crane, each a head
+piece (crest and plumes, HatAttachment) and a tail fan (WaistBackAttachment). Model,
+rig, colours, asset ids and the Studio build (`crane/place_crane_cosmetics.luau`) are in
+[`crane/README.md`](crane/README.md).
+
+| Accessory | Look | Worn by |
+| --- | --- | --- |
+| `CraneHeadCascade`, `CraneFanCascade` | raised red crown, plumes draping over the nape, long trailing train | Beast Folk Crane (default) |
+| `CraneHeadScholar`, `CraneFanScholar` | flat red crown cap, streamer plumes, compact half-fan | nothing yet (style picker) |
+| `CraneHeadAscendant`, `CraneFanAscendant` | tall flame crest feather, swept-up wing plumes, sunburst fan | nothing yet (style picker) |
+
 ## Beast Folk (`assets/Cosmetics/BeastFolk.rbxm`)
 
 The Folder `BeastFolk` (mapped into `ReplicatedStorage.Cosmetics`) holds eight
-rigged Accessories, two per Beast Folk variant, as listed in
-`src/shared/Identity/Variants/BeastFolk.luau`. They are built by
+rigged Accessories, two per Beast Folk variant. The Crane variant now wears the
+Blender-made Crane set above, so `CraneCrest` and `CraneTail` here are unused
+leftovers. They are built by
 `build_beastfolk_cosmetics.luau` in the fox set's shape language: plain
 SmoothPlastic, invisible 0.2 Handles, and every part unanchored and Massless with
 CanCollide, CanQuery and CanTouch off. Each set has one loud piece: the wolf's

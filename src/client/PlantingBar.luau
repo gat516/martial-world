@@ -1,6 +1,6 @@
 --!strict
 -- The slim bar shown while planting (Hud.PlantingBar), in the look of the build
--- placement controls: the seed (icon or colour), how many are left, whether the
+-- placement controls: the seed (its art in a kit item slot), how many are left, whether the
 -- spot under the pointer works, and Change seed / Done. It sits at the bottom
 -- and registers with Menus, so the gameplay HUD steps aside while the screen
 -- centre stays clear for aiming at the soil.
@@ -14,7 +14,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
-local Items = require(ReplicatedStorage.Shared.Items)
+local HerbArt = require(script.Parent.HerbArt)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
@@ -30,8 +30,7 @@ local PlantingBar = {}
 local bar: Frame
 local seedLabel: TextLabel
 local status: TextLabel
-local swatch: Frame
-local icon: ImageLabel
+local swatch: ImageLabel
 local callbacks: Callbacks
 local quiet = false -- closing by hide() or a seed switch, not by the player
 local switching = false -- waiting for the seed picker to hand back a seed
@@ -44,11 +43,8 @@ end
 
 function PlantingBar.show(info: Info)
 	local herb = Herbs.Defs[info.herb]
-	local item = Items.Defs[info.herb]
 	switching = false
-	swatch.BackgroundColor3 = if herb then herb.color else Color3.new(1, 1, 1)
-	icon.Image = if item and item.icon then item.icon else ""
-	swatch.BackgroundTransparency = if icon.Image ~= "" then 1 else 0
+	HerbArt.paint(swatch, info.herb)
 	local name = if herb then herb.name else info.herb
 	seedLabel.Text = `{name} seeds · {info.count} left`
 	status.Text = info.status
@@ -75,8 +71,7 @@ function PlantingBar.init(gui: ScreenGui, c: Callbacks)
 	local info = bar:FindFirstChild("Info") :: Frame
 	seedLabel = info:FindFirstChild("SeedLabel") :: TextLabel
 	status = info:FindFirstChild("Status") :: TextLabel
-	swatch = info:FindFirstChild("Swatch") :: Frame
-	icon = swatch:FindFirstChild("Icon") :: ImageLabel
+	swatch = info:FindFirstChild("Swatch") :: ImageLabel
 	local row = bar:FindFirstChild("Row") :: Frame
 	local switchButton = row:FindFirstChild("SwitchButton") :: GuiButton
 	local doneButton = row:FindFirstChild("DoneButton") :: GuiButton

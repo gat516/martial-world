@@ -54,6 +54,9 @@
       "Rewards": {
         "$path": "assets/Rewards.rbxmx"
       },
+      "Herbarium": {
+        "$path": "assets/Herbarium.rbxmx"
+      },
       "Prompts": {
         "$path": "assets/Prompts.rbxmx"
       },

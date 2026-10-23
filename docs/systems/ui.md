@@ -105,6 +105,7 @@ cursor, settings and the admin panel.
 - [Dialogue ornaments](../ui/dialogue-ornaments.md)
 - [Dialogue screen and interaction prompts](../ui/dialogue.md)
 - [Character window](../character/character-window.md)
+- [Herbarium and the garden windows](../ui/herbarium.md) (Herbalist, seed picker, planting bar, plant tag, build catalog look)
 
 ## Key files (all `src/client/`)
 - `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal

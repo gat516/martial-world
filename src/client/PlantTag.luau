@@ -1,14 +1,15 @@
 --!strict
 -- A small card floating over one plant (Hud.PlantTag, a BillboardGui template):
--- its title ("Huge Dewy Spirit Grass"), rarity and size ("×2.4"), its mutations as
--- chips in their colours, and a growth bar with the time left, or "Ready to
--- harvest". One card at a time; GardenView decides which plant it follows.
+-- its title ("Huge Dewy Spirit Grass"), its rarity gem, rarity and size ("×2.4"),
+-- its mutations as kit tag ribbons (HerbArt.MutationTag picks the ribbon), and a
+-- growth bar with the time left, or "Ready to harvest". One card at a time; GardenView decides which plant it follows.
 -- Always on top, and it fades out past MaxDistance (authored on the template).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Items = require(ReplicatedStorage.Shared.Items)
+local HerbArt = require(script.Parent.HerbArt)
 local Motion = require(script.Parent.Motion)
 
 export type Mutation = { name: string, color: Color3 }
@@ -76,7 +77,8 @@ function PlantTag.show(part: BasePart, info: Info)
 	local rarity = Items.Rarities[info.rarity]
 	local rarityColor = if rarity then rarity.color else info.color;
 	(card:FindFirstChild("Title") :: TextLabel).Text = info.title;
-	(card:FindFirstChild("Meta") :: TextLabel).Text = `<font color="{hex(rarityColor)}">{info.rarity}</font>  ·  {sizeText(info.size)}`
+	(card:FindFirstChild("Meta", true) :: TextLabel).Text = `<font color="{hex(rarityColor)}">{info.rarity}</font>  ·  {sizeText(info.size)}`
+	HerbArt.gem(card:FindFirstChild("Gem", true) :: ImageLabel, info.rarity)
 
 	-- mutation chips (rebuilt only when they change)
 	local chips = card:FindFirstChild("Chips") :: Frame
@@ -97,10 +99,9 @@ function PlantTag.show(part: BasePart, info: Info)
 			local chip = template:Clone()
 			chip.Name = "Chip"
 			chip.LayoutOrder = i
-			chip.ImageColor3 = m.color
+			chip.Image = HerbArt.tagFor(m.name)
 			local label = chip:FindFirstChild("Label") :: TextLabel
 			label.Text = m.name
-			label.TextColor3 = m.color
 			chip.Visible = true
 			chip.Parent = chips
 		end
@@ -109,9 +110,10 @@ function PlantTag.show(part: BasePart, info: Info)
 
 	-- growth, or ready
 	local growth = card:FindFirstChild("Growth") :: Frame
-	local ready = card:FindFirstChild("Ready") :: TextLabel
+	local readyRow = card:FindFirstChild("ReadyRow") :: Frame
+	local ready = readyRow:FindFirstChild("Ready") :: TextLabel
 	growth.Visible = not info.ready
-	ready.Visible = info.ready
+	readyRow.Visible = info.ready
 	ready.Text = if info.regrows then "Ready to pick" else "Ready to harvest"
 	if not info.ready then
 		local track = growth:FindFirstChild("Track") :: Frame

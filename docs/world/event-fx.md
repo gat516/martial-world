@@ -35,6 +35,13 @@ How world events and heavenly treasures are drawn on clients: the Auspicious Clo
   far always (pillar beams, puncture, sky circle, rifts, arcs), mid within 650 (streaks,
   motes, flow, arc mist, rift flicker, shards, rain), close within 300 (ground sigil
   emitters, mist bank, light). Joining mid-birth skips the bursts and fades in over 1.5 s.
+- Heavenly tribulation (TribulationFX, 2026-10-22): the storm wheel over the main peak's
+  platform, the strike seals, bolts and scorches, and the survived/failed clear, driven by
+  the existing tribulationStart / bolt / tribulationEnd Effect kinds and the Telegraph
+  remote (source "Tribulation"); templates `WorldFX.Tribulation` (Vortex, Seal, Strike,
+  Scorch, Finale, built by `tools/vfx_specs/Tribulation.luau`); SkyGrade keys `Tribulation`
+  (near the peak) and `TribulationClear` (global haze cap). As built, budget and gaps:
+  [tribulation](../vfx/world_events/tribulation.md).
 - World FX kit (2026-10-21): templates in `ReplicatedStorage.WorldFX` (binary
   `assets/WorldFX.rbxm`, built by `tools/worldfx_build.luau`, staged in
   `ReplicatedStorage._StagingWorldFX`; `_G.worldfxStage.begin/finish/synced`). Runtime in

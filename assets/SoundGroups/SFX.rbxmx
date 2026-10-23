@@ -1788,6 +1788,46 @@
    <float name="RollOffMaxDistance">150</float>
   </Properties>
   </Item>
+  <!-- Heavenly tribulation (WorldFX/TribulationFX): Rumble from the storm's eye, Charge as a
+       strike's seal forms, Crack at a close strike (Thunder plays for every bolt), Clear when
+       the trial is survived. Library sounds; in-game playback untested. -->
+  <Item class="Folder" referent="TRIBSFX1"><Properties>
+   <string name="Name">Tribulation</string>
+  </Properties>
+   <Item class="Sound" referent="TRIBSFX2"><Properties>
+    <string name="Name">Rumble</string>
+    <Content name="SoundId"><url>rbxassetid://12222030</url></Content>
+    <float name="Volume">0.8</float>
+    <float name="PlaybackSpeed">0.8</float>
+    <float name="RollOffMinDistance">120</float>
+    <float name="RollOffMaxDistance">1800</float>
+   </Properties>
+   </Item>
+   <Item class="Sound" referent="TRIBSFX3"><Properties>
+    <string name="Name">Charge</string>
+    <Content name="SoundId"><url>rbxassetid://17524153633</url></Content>
+    <float name="Volume">0.35</float>
+    <float name="RollOffMinDistance">12</float>
+    <float name="RollOffMaxDistance">120</float>
+   </Properties>
+   </Item>
+   <Item class="Sound" referent="TRIBSFX4"><Properties>
+    <string name="Name">Crack</string>
+    <Content name="SoundId"><url>rbxassetid://9119594718</url></Content>
+    <float name="Volume">0.7</float>
+    <float name="RollOffMinDistance">20</float>
+    <float name="RollOffMaxDistance">200</float>
+   </Properties>
+   </Item>
+   <Item class="Sound" referent="TRIBSFX5"><Properties>
+    <string name="Name">Clear</string>
+    <Content name="SoundId"><url>rbxassetid://140049602451857</url></Content>
+    <float name="Volume">0.9</float>
+    <float name="RollOffMinDistance">120</float>
+    <float name="RollOffMaxDistance">1500</float>
+   </Properties>
+   </Item>
+  </Item>
   <Item class="Sound" referent="SGSFX30"><Properties>
    <string name="Name">Thunder</string>
    <Content name="SoundId"><url>rbxassetid://118195482769396</url></Content>

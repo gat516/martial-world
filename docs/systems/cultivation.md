@@ -46,6 +46,11 @@ felt in fights.
   `block` (what stops a breakthrough).
 - `src/server/Circulation.luau`: refining runs (see [minigames](minigames.md)).
 - `src/server/Tribulation.luau`: the lightning trial for a major breakthrough.
+  Every client draws it with `src/client/WorldFX/TribulationFX.luau` (templates
+  `WorldFX.Tribulation`): a storm wheel of cloud arcs over the platform with lightning
+  flickering inside round an eye, a seal and closing ring under each telegraph, the bolt
+  and its impact and scorch, and on success gold light pouring through as the clouds part
+  ([tribulation look](../vfx/world_events/tribulation.md)).
 - `src/server/Progression.luau`: insight and technique manuals from kills, and
   `comprehend` (spends insight and stones to break a technique's bottleneck).
 - `src/server/QiNodes.luau`: raw qi (and stones) from wilds nodes.

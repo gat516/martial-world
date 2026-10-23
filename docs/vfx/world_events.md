@@ -18,6 +18,7 @@ as-built behaviour, files and tuning are in [event-fx.md](../world/event-fx.md) 
 | Auspicious Clouds / Violet Cloud Mist / Golden Auspicious Clouds | `WorldEvents/AuspiciousClouds.luau`, `client/WorldEventFX.luau`, `Effects.AuspiciousClouds` | Existing look (wisp patterns descend and turn, a Column through the cloud plane and a Whirl on it, seal and unseal bursts, a bobbing relic); kit lift is plan | [auspicious_clouds.md](world_events/auspicious_clouds.md) |
 | Thousand-Year Ginseng (`GuardedHerb`) | `WorldEvents/GuardedHerb.luau` | Plan. Today `ItemTemplates.WorldTreasure` x3 as a beacon (80-stud Neon cylinder, glass shell, orb, ring, one emitter, PointLight, herb-tinted), top at Y ~250 under the cloud plane, so the peaks can't see it | [ginseng.md](world_events/ginseng.md) |
 | Beast Surge | `WorldEvents/BeastSurge.luau` | Plan. No visuals and no `at` (covers the whole zone) | [beast_surge.md](world_events/beast_surge.md) |
+| Heavenly tribulation (storm wheel, seals, bolts, clear) | `server/Tribulation.luau`, `client/WorldFX/TribulationFX.luau`, `WorldFX.Tribulation` | **Built** (2026-10-22) | [tribulation.md](world_events/tribulation.md) |
 | Rain, Storm, Windy (weather) | `client/WeatherFX.luau` | Plan, only if cheap: Storm and Rain clone in a `Terrain.Clouds` template and tween it (Storm cover ~0.8, dark indigo; Rain ~0.55, grey) so the sky over the peaks goes overcast; Windy gets nothing new. The place has no `Terrain.Clouds` today | (this line) |
 
 ## Decisions (user, 2026-10-21)
@@ -43,7 +44,8 @@ as-built behaviour, files and tuning are in [event-fx.md](../world/event-fx.md) 
    motion is code) but keep Emit attributes for the plugin.
 7. Beast Surge: the crimson vortex at the valley centre.
 8. Ginseng: add a `state` field to the WorldEvents publish.
-9. Tribulation clouds stay out of this pass.
+9. Tribulation clouds stayed out of this pass; they got their own pass on 2026-10-22
+   ([tribulation.md](world_events/tribulation.md)), which also draws the bolts.
 
 ## Where people watch from
 
@@ -148,6 +150,7 @@ the thunder flash keeps riding `k.brightness`.
 | One treasure | 3 beams, 2 SurfaceGuis (sky circle), 4-6 arcs, ~20 huge particles | 6 arcs, ~40 particles | ~150 particles, 1 PointLight on the orb |
 | Heaven Split (crack + 4 treasures) | crack ~30 beams, curtains 8, parting arcs 8, ~40 particles; plus 4 x the treasure far layer | camera-local motes ~30 | the nearest treasure only |
 | Auspicious Clouds + kit | existing build + 3 beams, 2 SurfaceGuis, 4 arcs | existing | existing |
+| Tribulation | 12 arcs, 2 SurfaceGuis, ~12 huge particles, flicker 1-2/s, ~33 beams per bolt for 0.45 s | 1 crawling arc beam | ~20 particles/s, ~50 per strike, seal and scorch; 1 PointLight |
 
 A phone 600 studs from a treasure renders its far layer only: about 3 beams, 1-2 SurfaceGuis,
 6-10 arcs (~12k tris) and ~20 slow particles per treasure. Mid and close emitters switch off

@@ -155,6 +155,19 @@ The genre's heart, and a strong retention and social hook.
     creators will film.
   - *Abuse limits:* no sale or trade of rites, disciple must be a real account past a
     minimum age and realm, one inheritance per account per life.
+- **Several masters, up to a limit (user, 2026-10-22).** You take one **primary master**
+  at QR1 (your cohort and seat), then learn from more as you grow: a second at FE1, a
+  third at FE5, **three at most**. Each teaches its own specialty (a weapon class,
+  alchemy, a signature art) and has its own trial chain and gifts. Rules:
+  - the primary master is your cohort and seat ("Second Brother of the Turtle Saint");
+    the others are teachers, shown as "also taught by...";
+  - a master's gift (art, herb, rite) is given once per master per life, so hopping to
+    farm gifts does nothing;
+  - leaving a master has a cooldown, and an NPC master remembers (a line, a cold
+    reception); a player master is notified;
+  - the one-bloodline slot still holds, so masters cannot stack bloodlines;
+  - a **player master** has its own cap on disciples, separate from how many masters a
+    player can have.
 - **Visible lineage.** The Self card and nameplate show "Disciple of X", "Senior
   Brother of Y". A Hall can be a master's household.
 - **Drama hooks.** If a disciple takes the demon path, their master (NPC or player)

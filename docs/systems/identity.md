@@ -166,6 +166,11 @@ calls for and removes the rest (each worn one carries a `Cosmetic` attribute wit
 its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the
 body. A missing template warns once and is skipped.
+The prototypes' replacements are skinned Blender meshes in `art/player/cosmetics/fox/`:
+three tails (`FoxTailPlume`, `FoxTailCrescent`, `FoxTailWisp`) and three ear shapes
+(`FoxEarsSleek`, `FoxEarsBroad`, `FoxEarsLong`), each with its own bone rig (`EarL`/`EarR`,
+`Tail1..Tail5`) and per-region recolourable parts. They're exported but not yet imported into
+`Cosmetics` (user, 2026-10-23: "we can add them it all in as variants").
 
 ## Body size
 The `size` modifier (Titan Frame: 15% larger, user 2026-10-23; 25% was too big) scales the character with

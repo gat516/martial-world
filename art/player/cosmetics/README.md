@@ -1,5 +1,8 @@
 # Player cosmetics
 
+The Blender replacements (skinned, three tail and three ear variants) are in
+[`fox/`](fox/README.md); they replace the part-built prototypes below once imported.
+
 `assets/Cosmetics.rbxm` (binary) is the folder `Cosmetics` with two rigged
 Accessory prototypes for players who have the fox trait (the Spirit Fox race).
 Built from plain parts by `build_fox_cosmetics.luau`; colours are plain

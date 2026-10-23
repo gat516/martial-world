@@ -1,12 +1,14 @@
 --!strict
 -- Onboarding and quest board UI: the objective tracker under the top-right tiles
 -- (with the objective's reward, when it has one),
--- the elder's one-line guidance (shown once per beat, never blocking), the
+-- the elder's one-line guidance (shown once per beat, never blocking), his
+-- conversation on the dialogue screen when the player talks to him, the
 -- server's guide (Guide: a pulsing or spotlit control, a path to walk), the
 -- Travel button appearing when the formation is taught, and the quest board.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Dialogue = require(script.Parent.Dialogue)
 local Guide = require(script.Parent.Guide)
 local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
@@ -58,11 +60,40 @@ local function renderBoard()
 	ListWindow.fill(window, "ItemTemplate", "EatButton", rows)
 end
 
+local function openBoard()
+	local window = gui:FindFirstChild("QuestBoardWindow") :: Frame
+	renderBoard()
+	Menus.open(window)
+end
+
+-- The elder's conversation (Quests.talk): his lines, then the player's reply,
+-- the quest board in free play, and Farewell.
+local function talk(t: any)
+	local responses: { Dialogue.Response } = { { text = t.reply, icon = "talk", highlight = true } }
+	local boardAt: number? = nil
+	if t.board then
+		table.insert(responses, { text = "What should I aim for next?", icon = "quest" })
+		boardAt = #responses
+	end
+	table.insert(responses, { text = "Farewell.", icon = "leave", cancel = true })
+	local choice = Dialogue.open({
+		speaker = "Elder Qingyun",
+		portrait = "elder_qingyun",
+		lines = t.lines,
+		responses = responses,
+	})
+	if choice and choice == boardAt then
+		openBoard()
+	end
+end
+
 local function onState(state: any)
 	if state.openBoard then
-		local window = gui:FindFirstChild("QuestBoardWindow") :: Frame
-		renderBoard()
-		Menus.open(window)
+		openBoard()
+		return
+	end
+	if state.talk then
+		task.spawn(talk, state.talk)
 		return
 	end
 	goals = state.goals or {}
@@ -84,8 +115,6 @@ local function onState(state: any)
 		if not (first and state.beat == "FreePlay") then
 			showElder(state.elder)
 		end
-	elseif state.repeatElder then
-		showElder(state.elder)
 	end
 	-- a first-encounter lesson (Quests.Lessons): its line, once
 	if state.lesson then

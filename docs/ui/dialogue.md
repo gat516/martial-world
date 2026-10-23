@@ -8,9 +8,12 @@ Built 2026-10-23. Composed from the cut art in Studio (the Figma kit was over it
 limit that day), by `tools/build_dialogue.luau` and `tools/build_prompts.luau`.
 
 ## Dialogue: API
-Ready to wire; nothing in the game opens it yet. The elder's onboarding lines
-([roadmap](../roadmap.md) section 2) and the NPC masters ([section 3d](../roadmap/relationships.md)) are its users.
-Today the elder's Talk prompt still answers with a toast (`Quests.talk`).
+Its first user is Elder Qingyun's Talk prompt (wired 2026-10-23, see
+[onboarding](../systems/onboarding.md) "Talking to the elder"); the NPC masters
+([roadmap section 3d](../roadmap/relationships.md)) come next. The server sends the
+conversation in `QuestState` `{ talk = { lines, reply, board } }` and
+`Onboarding.luau` opens it; the choice stays on the client (its responses only close
+the screen or open the quest board), so no C->S remote was needed.
 
 ```lua
 local choice = Dialogue.open({
@@ -38,8 +41,9 @@ local choice = Dialogue.open({
   game never calls it.
 - What a real system must provide: the speaker's name, a portrait key (a new NPC needs
   a gray silhouette, never a painted bust, uploaded and added to `PORTRAITS`), the lines,
-  and what each response does once `open` returns. Server-driven dialogue will need a
-  remote that sends this table and takes back the choice; not built.
+  and what each response does once `open` returns. A response the server must act on
+  (accept a quest, give an item) will need a C->S remote that takes back the choice;
+  not built.
 
 ## Dialogue: behaviour
 - It's a menu (`Menus.register`): opening it closes any other window, hides the gameplay
@@ -133,8 +137,7 @@ height / 149, clamped to 0.85..1, so on a phone the cards are 44 px tall (as bef
 and on a full-size stack 52.
 
 ## Known gaps
-- Nothing opens the dialogue yet; the elder's Talk is still a toast.
-- Not play-tested: typing, input binding, gamepad focus, the Menus hand-off, the hold
+- Not play-tested: the elder's conversations, typing, input binding, gamepad focus, the Menus hand-off, the hold
   ring's sweep under a real hold, and the Dock's Fit on a real phone.
 - Gold (masters) and crimson (demons) name tabs, and a crisper large portrait corner,
   wait on Codex sheet A7; the `gold` plaque style can stand in for masters.

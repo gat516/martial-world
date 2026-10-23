@@ -7,7 +7,7 @@ the real map. It runs locally as the **test build** (`mw-sandbox-test`, built fr
 the `test` branch and kept live by Rojo), where every feature is playtested before
 it's pushed to `test`. Agent sandboxes are built from the same project. Publishing it
 as its own experience was dropped (user, 2026-10-22); branches and the test build are
-in AGENTS.md (Branches, Test build).
+in AGENTS.md (Branches) and [orchestration](../agents/orchestration.md#test-build).
 
 ## Design intent
 - **Same code, different world.** `test.project.json` maps the same `src/` and

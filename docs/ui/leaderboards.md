@@ -60,7 +60,7 @@ version are swapped (`blood_panel_corner`, `blood_ruby_stud`); gold pieces witho
 crest, rows, dividers) are tinted crimson-copper with `ImageColor3`. The leaderboard uses
 it: the window takes the blood skin automatically for a viewer on the demon path.
 The rest of C6 (`blood_name_scroll`, `blood_double_cloud`, `blood_keyplate`, ...) is cut
-on `ui-assemble` for later Blood Sect screens (the outpost board, the blood garden).
+(`art/ui/codex/cut/ornament_blood_*.png`) for later Blood Sect screens (the outpost board, the blood garden).
 
 ## Previews and checks
 Previewed in the sandbox's Edit view at both baselines (`tools/events_ui_preview.luau`),

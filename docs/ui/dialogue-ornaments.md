@@ -1,7 +1,7 @@
 # Dialogue ornaments
 
 The first generated ornament sheet is `art/ui/codex/ornaments_filled_source.png`
-(Codex, 1536 x 1024, sheet A of [codex-sheets](codex-sheets.md) on `progression-bible`):
+(Codex, 1536 x 1024, sheet A of [codex-sheets](codex-sheets.md)):
 filled xiangyun clouds, fine gold corners and an empty key plate, eleven isolated
 pieces on near-magenta. No text is baked into the art.
 
@@ -10,8 +10,9 @@ pieces in reading order). It keys by hue, not one colour, because the generator'
 magenta drifts and has dark flecks; it despills the magenta tint the generator puts on
 outlines and highlights; it finds each piece by shape, so pieces may sit anywhere on
 the sheet. Cuts are full resolution, `art/ui/codex/cut/ornament_<name>.png`, with
-sizes and source boxes in `art/ui/codex/manifest.json`, and a review sheet in
-`art/ui/codex/contact_sheet.png`.
+sizes and source boxes in `art/ui/codex/manifest.json`. Each run also writes a review
+sheet, `contact_sheet.png` in the same folder (each source beside its cut on a checker); it is
+regenerated, not committed.
 
 Pieces, rows left to right:
 1. `name_scroll`, `double_cloud`, `single_cloud`, `cloud_wisp`.

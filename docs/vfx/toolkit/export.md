@@ -37,7 +37,7 @@ throws away any group another agent shipped since. Instead:
   reads the named groups.
 - Merge right before you commit, and commit a blob built from HEAD plus your group
   (`EFFECTS_TARGET=<copy of HEAD's file> tools/effects_merge.py ...`, then
-  `git update-index --cacheinfo`), as AGENTS.md "Parallel agents" says: a merge left in the
+  `git update-index --cacheinfo`), as the `shared-commit` skill says: a merge left in the
   working tree gets swept into another session's commit.
 
 ## Ownership when several vfx agents share a worktree and Studio

@@ -13,7 +13,7 @@ effect used, and nothing records which assets were picked.
   vfxLib window, `CoreGui.ViewSelectorScreenGui.Selection.Seperate.Library`). The plugin
   builds that window hidden when Studio starts, but a fresh sandbox has no library until the
   user clicks vfxLib once; if search errors, ask for that click. If the library can't be
-  reached at all, flag it and stop (AGENTS.md): no falling back to the JSON index, old ids
+  reached at all, flag it and stop (the `vfx-method` skill): no falling back to the JSON index, old ids
   or hand-made textures.
 - The search only matches the library's own tags, which are sparse ("roar" finds nothing,
   "ink" one image), so search by what the action causes rather than its name: a roar is

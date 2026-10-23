@@ -10,7 +10,7 @@ Building templates in Studio: where they live, template layout and attributes, a
   Emit attributes on the root. A new mapped folder is created in Edit mode, exported
   ([export.md](export.md)) and mapped next to `Ambience` in both `default.project.json` and
   `test.project.json`.
-- Never build inside the mapped folder (AGENTS.md, "Studio instances"). Clone it to
+- Never build inside the mapped folder (AGENTS.md, "Studio"; the `studio-export` skill). Clone it to
   `ReplicatedStorage._StagingEffects`, work there, export, destroy the staging copy, and let
   Rojo patch the real one from the file. That applies to every change, even an attribute
   tweak (Rojo doesn't write back), so batch tweaks into one staging pass. `vfxStage` does

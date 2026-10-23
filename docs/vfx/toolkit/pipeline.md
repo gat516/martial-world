@@ -64,7 +64,7 @@ instead: [export.md](export.md).)
   wipe that edit, which is usually the user's. Diff it, fold it into the spec, report it,
   then `begin(who, { acceptEdits = true })`.
 - It also warns about effect-looking instances loose in Workspace; report those and never
-  delete them unasked (AGENTS.md, "Studio instances").
+  delete them unasked (AGENTS.md, "Studio").
 - To rebuild only some auras, `_G.buildMethodAura(staging, { only = { "BlazingHeart" } })`
   leaves the other methods untouched.
 - `finish()` stamps, exports and destroys the staging copy. `tools/vfx_export.sh [names]`

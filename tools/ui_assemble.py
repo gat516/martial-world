@@ -503,10 +503,11 @@ def main():
     rows, missing = [], []
     failed = False
     # One-piece images Codex drops into a sheet folder (art/ui/codex/a2/<piece>.png) are
-    # cut without a PIECE_SHEETS entry, named after the file.
+    # cut without a PIECE_SHEETS entry, named after the file. a4 portraits go through
+    # tools/ui_silhouette.py instead.
     for p in sorted(SRC.glob("*/*.png")):
         key_name = f"{p.parent.name}/{p.stem}"
-        if p.parent.name != "cut" and key_name not in PIECE_SHEETS:
+        if p.parent.name not in ("cut", "a4") and key_name not in PIECE_SHEETS:
             PIECE_SHEETS[key_name] = [p.stem]
     for name in list(PIECES) + list(ICON_SHEETS) + list(PIECE_SHEETS):
         if only and name not in only:

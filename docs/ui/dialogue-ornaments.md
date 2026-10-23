@@ -64,3 +64,18 @@ The title crest has a cloud in the middle of its top edge, so it is cut in five 
 (`capL`, `midL`, `centre`, `midR`, `capR`; the two strips stretch equally). In the kit:
 `Frame/Window`, `Frame/Title Crest`, `Button/Back Seal`, `Button/Checkbox`, `Button/Slider`,
 and `Button/Close Seal` reskinned with the new art.
+
+## Sheet A4: portraits are gray silhouettes
+NPC portraits are never shown painted (user, 2026-10-22: the painted busts looked bad).
+Each NPC is a flat gray silhouette of its figure, on transparency, so the Portrait frame
+supplies the backdrop. Codex's painted busts in `art/ui/codex/a4/` are only the source for
+the shape. `tools/ui_silhouette.py` makes them (`ui_assemble.py` skips the `a4` folder):
+`uv run --with rembg --with onnxruntime --with pillow --with numpy --with scipy python tools/ui_silhouette.py`.
+It masks the figure with rembg (the first run downloads a 179 MB model), fills robe
+holes, squares off the shoulders below 60 % height, and writes
+`art/ui/codex/cut/portrait_<name>.png` in gray `#767A84`: `elder_qingyun`, `herbalist`,
+`weapon_rack_keeper`, `unnamed_silhouette`, `unknown_silhouette` (the "???" figure loses
+its question mark; add it back as live text if it is wanted). In the kit they are the
+`Ornament/Portraits/*` components, and a row of `Frame/Portrait` instances shows each in
+its frame. A new NPC's portrait goes the same way: a Codex bust with A4's framing, then
+the silhouette tool.

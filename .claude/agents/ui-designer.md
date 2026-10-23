@@ -42,7 +42,9 @@ This is the workflow for every new screen, element or restyle. Don't skip a step
    finds pieces by shape and caps them at 1024 px. Then look at every cut yourself, on
    navy, at 100 % and enlarged: pink fringes, stray specks, clipped edges, a piece
    count that doesn't match. Fix problems in the cutter or ask for a regeneration,
-   never by repainting the art. Commit the sources, cuts and manifest.
+   never by repainting the art. Commit the sources, cuts and manifest. NPC portraits
+   (`a4/`) are the exception: `tools/ui_silhouette.py` turns them into flat gray
+   silhouettes, the only way portraits are shown ([dialogue-ornaments](../../docs/ui/dialogue-ornaments.md)).
 6. **Compose in the Figma kit.** Put cuts into the kit's ornament components (resize the
    component to the new proportions and re-anchor its instances) or new components, and
    build the screen there from kit instances. Check with a screenshot from inside

@@ -127,6 +127,7 @@ local function onPlayerAdded(player: Player)
 		humanoid.Died:Connect(function()
 			player:SetAttribute("Died", true)
 			Analytics.event(player, "Death", 1, Combat.lastHurtBy(player))
+			Combat.died(player, character, Players.RespawnTime, Config.Spawn.RESPAWN_AT_HUB and not Config.TESTBED)
 		end)
 	end)
 	if player.Character then

@@ -233,6 +233,36 @@ function Combat.lastHurtBy(player: Player): string
 	return state(player).lastHurtBy
 end
 
+-- Tell the player what killed them, for the death screen (Effect "died", see
+-- docs/ui/death-screen.md). Call it from Humanoid.Died, before the character goes.
+--   cause "fall": the body dropped out of the world (or its root is already gone);
+--   "tribulation" or "enemy" (with `source`, the enemy's def id): the last hurt,
+--   if it landed within IN_COMBAT_SECONDS; otherwise "unknown" (a reset, say).
+--   `poisoned`: poison was still in them (PlayerPoison's PoisonStacks).
+-- `respawn` is the seconds until the respawn, `hub` whether it's at the main peak.
+function Combat.died(player: Player, character: Model, respawn: number, hub: boolean)
+	local s = state(player)
+	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local cause, source = "unknown", nil
+	if not root or root.Parent == nil or root.Position.Y < workspace.FallenPartsDestroyHeight + 50 then
+		cause = "fall"
+	elseif os.clock() - s.lastHurt < Config.IN_COMBAT_SECONDS then
+		if s.lastHurtBy == "Tribulation" then
+			cause = "tribulation"
+		elseif s.lastHurtBy ~= "Unknown" then
+			cause, source = "enemy", s.lastHurtBy
+		end
+	end
+	local stacks = character:GetAttribute("PoisonStacks")
+	effectRemote:FireClient(player, "died", {
+		cause = cause,
+		source = source,
+		poisoned = typeof(stacks) == "number" and stacks > 0,
+		respawn = respawn,
+		hub = hub,
+	})
+end
+
 function Combat.inCombat(player: Player): boolean
 	return os.clock() - state(player).lastHurt < Config.IN_COMBAT_SECONDS
 end

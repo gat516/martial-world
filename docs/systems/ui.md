@@ -77,6 +77,7 @@ cursor, settings and the admin panel.
 - UI work goes through the `ui-designer` subagent (AGENTS.md). GUIs are authored in
   Studio via MCP and exported to `assets/Hud.rbxmx`, `Rewards.rbxmx`, `Prompts.rbxmx`, `Dialogue.rbxmx`,
   `Veil.rbxmx` (full-screen, no safe insets, above everything),
+  `DeathScreen.rbxmx` (see [death screen](../ui/death-screen.md)),
   `CharacterCreator.rbxmx` (the join screen, see [character creator](character-creator.md)),
   `Events.rbxmx` (world events, tribulation, rifts, leaderboards; built by
   `tools/events_ui_build.luau`);
@@ -104,6 +105,7 @@ cursor, settings and the admin panel.
 - [Inventory windows](../ui/inventory.md)
 - [Boss health bar](../ui/boss-bars.md)
 - [Reward banners: floats, feed, banner, card; the toast](../ui/rewards.md)
+- [Death screen: cause-keyed lines and the respawn countdown](../ui/death-screen.md) (`StarterGui.DeathScreen`)
 - [Dialogue ornaments](../ui/dialogue-ornaments.md)
 - [Dialogue screen and interaction prompts](../ui/dialogue.md)
 - [Cultivation UI: seated tiles, meditation panel, breakthrough card, foundation meter, death-save, Dao ring, tier frames, bloodline marks](../ui/cultivation.md)

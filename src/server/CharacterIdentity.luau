@@ -332,6 +332,10 @@ local function confirm(player: Player, raw: any): (boolean, any)
 	if type(raw) ~= "table" then
 		return false, "Bad request"
 	end
+	-- the client gates Enter World on these too, but only as UX: check them here
+	if not Races[player:GetAttribute("Race") or ""] or not Surnames[player:GetAttribute("Surname") or ""] then
+		return false, "Your race and last name are still being drawn"
+	end
 	if not optionById(Clothing.Shirt, raw.Shirt) or not optionById(Clothing.Pants, raw.Pants) then
 		return false, "Pick a shirt and pants"
 	end

@@ -87,6 +87,23 @@ function State.hairIds(self: State): { number }
 	return ids
 end
 
+export type Missing = { tab: string, field: string, label: string }
+
+-- What still blocks Enter World, in the order the player should fix it. Only the
+-- first name has no default; race and last name come from the server's roll
+-- (attributes) and are only missing until it lands. Outfit, skin and hair colour
+-- start picked, and hair is optional. The server checks all of it again.
+function State.missing(self: State, rules: any, race: string?, surname: string?): { Missing }
+	local out = {}
+	if not rules.checkFirstName(self.values.FirstName) then
+		table.insert(out, { tab = "Identity", field = "FirstName", label = "first name" })
+	end
+	if not race or not surname then
+		table.insert(out, { tab = "Identity", field = "Roll", label = "race and last name (still being drawn)" })
+	end
+	return out
+end
+
 -- The Look the server's "confirm" action takes.
 function State.look(self: State): { [string]: any }
 	local v = self.values

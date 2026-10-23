@@ -15,7 +15,8 @@
 -- the worst one-frame joint step (deg, axis-angle) and where, the lowest point against the
 -- rest pose (a sinking or lifting body), and how far the root travels.
 --
--- Use (art/enemies is served on 8767 by tools/serve.sh):
+-- Start from the family's shared spec in art/enemies/motion_specs.luau (add a family that isn't
+-- there yet). Use (art/enemies is served on 8767 by tools/serve.sh):
 --   _G.MOTION = {
 --     module = "ThunderApe",          -- EnemyPoses/<module>
 --     template = "ThunderApeB",       -- ServerStorage.Enemies.<template>
@@ -481,7 +482,7 @@ for _, entry in cfg.moves do
 	local acc = 0
 	for _, s in states do
 		acc += s[2]
-		table.insert(bounds, string.format("%s->%.2f", s[1], acc))
+		table.insert(bounds, string.format("%s->%.3f", s[1], acc))
 	end
 	local popMax, popT, popN = 0, 0, ""
 	local loMin, loMax, loT, loWho = math.huge, -math.huge, 0, ""

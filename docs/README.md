@@ -4,7 +4,7 @@ A Roblox cultivation / martial-arts game, synced with Rojo (`default.project.jso
 A second project, `test.project.json`, runs the same code in a baseplate
 [testbed](systems/testbed.md) for quick fights, animations and events.
 `main` is production; all work lands on `test` first and is playtested in the local
-test build (AGENTS.md: Branches, Test build).
+test build (AGENTS.md "Branches"; [orchestration](agents/orchestration.md#test-build)).
 **Start with [the core loop](core-loop.md)**: cultivate until you hit a wall, go
 out and break it, come home stronger. Every system plugs into it.
 This page says where everything lives. For the setting and zones in brief, read
@@ -74,7 +74,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 
 The whole plan from QC1 to FE9 (stages, regions, sect quests, optional bosses) is in [progression](progression.md).
 The UI screens we need and their art prompts are in [ui overhaul plan](ui/overhaul-plan.md). Every piece of art to generate, as Codex sheets, is in [codex sheets](ui/codex-sheets.md) (the older per-piece list: [codex brief](ui/codex-brief.md)).
-What we build next and in what order (solidity, onboarding, sect, techniques, garden, building) is in [roadmap](roadmap.md).
+What we build next and in what order (solidity, onboarding, sect, techniques, garden, building) is in [roadmap](roadmap.md) (relationships and replayability are parts in [roadmap/](roadmap/)).
 
 ## Where to tune things
 
@@ -114,7 +114,7 @@ What we build next and in what order (solidity, onboarding, sect, techniques, ga
 | Combat and action states | [combat](systems/combat.md); [guard and parry](combat/guard-parry.md), [technique visuals](combat/technique-visuals.md) (one file per technique in [combat/techniques/](combat/techniques/)) | Combat, CombatQi, Movement, PlayerStun, Guard | ActionRules, Hitbox, Techniques, Knockback, GuardRules, Config.Combat (`CC`: player flinch, stagger, stun; `GUARD`) | CombatController, ActionState, GuardController, GuardBar, GuardFX, CrowdControl, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock, TestbedAltMouseLock |
 | Weapons, weapon Dao, manual caches, weapon racks | [weapons](systems/weapons.md) | Weapons, Combat, WorldCaches, Progression | Weapons, Config.Combat.CLASSES, Pacing.Weapons | WeaponAnimator, CombatController, WorldCaches |
 | Character: spirit root, cultivation method (built); bloodline (design); character window | [character](systems/character.md) (core + [character/](character/): spirit root, method, bloodline, character window, later layers), method aura rules [auras](systems/auras.md) (one file per method in [auras/](auras/)) | Roots (perks applied in Cultivation, Circulation, Combat, Garden), Methods (qi speed in Cultivation, Circulation, EnemyService, QiNodes) | Roots, Methods, Pacing.Roots, Pacing.Methods, Techniques `element` | RootFX (reveal pillar, each element in its methods' aura language), MethodAura (one aura per method while seated, from player attributes Meditating + Method; ignites on sit, switch and the Breakthrough remote) |
-| Enemies, spawning, regions, server/client split, boss projectiles | [enemies](systems/enemies.md) (core + one doc per enemy in [enemies/](enemies/)); open boss work in each boss doc's "Open work", boss rules in [enemies](systems/enemies.md#boss-rules-user-decisions); telegraph language and attack feel in [telegraphs](systems/telegraphs.md) | EnemyService, EnemyMover, EnemyHistory, Spawner, Projectiles | Enemies, Spawns, Regions, Knockback, Pacing.Danger, ProjectilePath | ProjectileView, EnemyMotion, EnemyAnimator, EnemyPoses/*, EnemyFX/*, EnemyBars, BossBars, BossThemes, EnemySounds, Telegraphs |
+| Enemies, spawning, regions, server/client split, boss projectiles | [enemies](systems/enemies.md) (core + one doc per enemy in [enemies/](enemies/), plus [projectiles](enemies/projectiles.md) and [arrivals](enemies/arrivals.md)); open boss work in each boss doc's "Open work", boss rules in [enemies](systems/enemies.md#boss-rules-user-decisions); telegraph language and attack feel in [telegraphs](systems/telegraphs.md) | EnemyService, EnemyMover, EnemyHistory, Spawner, Projectiles | Enemies, Spawns, Regions, Knockback, Pacing.Danger, ProjectilePath | ProjectileView, EnemyMotion, EnemyAnimator, EnemyPoses/*, EnemyFX/*, EnemyBars, BossBars, BossThemes, EnemySounds, Telegraphs |
 | Garden, herbs, items | [garden](systems/garden.md) | Garden, Inventory | Herbs, Items, Hotbar | GardenView, Planting, PlantingBar, SeedPicker, PlantTag, HerbShop, Inventory, HotbarView, SlotArt, WeaponView, IconRects |
 | Build mode and peaks | [build](systems/build.md) | Build, Peaks | BuildItems, Placement, Peak, Config.Build | BuildMode, BuildCatalog, MyPeak, MarketRange |
 | Weather, world events, treasures, ambience, stylized water | [world](systems/world.md) | WeatherService, WorldEvents/*, Treasures, EventGrounds | Weather, WorldEvents | WeatherFX, WorldEventFX, Events/WorldEventView, Events/TribulationView, WorldFX/* (Kit, SkyGrade, TreasureFX, TribulationFX), DayNight, Music, AmbientSounds, StylizedWater (+ Shared.WaterSurface) |

@@ -57,7 +57,7 @@ waterfalls, wells, a shrine) for an example of how the plugin lays an effect out
   when the user asks.
 - **Never build inside a mapped folder.** Stage (`ReplicatedStorage._StagingEffects`, via
   `vfxStage`), export, destroy the staging copy, let Rojo patch. Never delete or rebuild over
-  Studio instances you didn't create (AGENTS.md, "Studio instances").
+  Studio instances you didn't create (AGENTS.md, "Studio").
 - **Export binary** (`tools/export_rbxm.luau`, keeps attributes and tags), never
   `export_rbxmx.luau`. **Merge, don't copy** your group into `assets/Effects.rbxm`
   (`tools/effects_merge.py`), right before committing: [toolkit/export.md](toolkit/export.md).

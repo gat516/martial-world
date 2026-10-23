@@ -55,6 +55,8 @@ One doc per enemy (fight, numbers, effects, its own gaps). Read only the one you
 
 A new enemy gets its own file here and a row in this table.
 
+Shared parts (not one enemy): [arrivals.md](../enemies/arrivals.md) (arrive follow-ups, skids, turning into moves), [projectiles.md](../enemies/projectiles.md) (boss projectiles), [animating.md](../enemies/animating.md) (motion QA).
+
 ## Boss rules (user decisions)
 Apply to every boss pass.
 - **Bodies match the user's reference.** Bosses are sized and shaped like the
@@ -187,47 +189,10 @@ ignores a second `land` within 0.3 s).
 
 Bosses get no stock howl ring: `Telegraphs` skips the pale swelling disc for any `howl` shape from a boss def (roars, intros, phase calls, the fox's leap marker, the Jiao's emerge), since each boss's EnemyFX plays its own effect there. Under `Config.NEW_TELEGRAPHS` (testbed only for now) no enemy gets one: a `howl` shape draws nothing, and the wolf's `howl` windup cue carries its roar effect. Damaging and crowd-control areas still draw (in the new look: [telegraphs.md](telegraphs.md)).
 
-### Arrivals, skids and turning into moves (testbed, `Config.Wilds.WEIGHTED_MOVES`)
-The server side of telegraphs.md "Attacks that make sense" (2026-10-22 boss feel pass).
-`WEIGHTED_MOVES = TESTBED`: the main game keeps the old snap-and-slide until the user
-approves it.
-- **Turning into the move.** A leap, bound, charge or lunge no longer snaps to face the
-  target at windup start: the root turns toward where it goes over the first 60% of
-  the windup (`EnemyMover.turnTo`, an eased timed yaw that wins over walking turns and
-  works standing still). A leap or bound then finishes its yaw in the air, over 80% of
-  the flight, to touch down facing the target (or along the flight when the target is
-  still on the landing spot). Nothing turns after landing except an `arrive` follow-up
-  turning into its own blow.
-- **`arrive`** (attack field, an ordinary attack): started the moment the parent's dash,
-  leap or bound arrives, with no recover between, if the target is within the
-  follow-up's `range` and at most 100 degrees off the nose (its windup turns into it,
-  over 70% of the windup). It keeps the attack slot, sends its own telegraph, windup
-  and strike cues under its own name (AIState goes dash -> windup, so the parent's
-  `land` cue still carries the parent's name), and a pattern boss resumes the attack
-  it cut in front of. List it in the pattern or pool with `chainOnly` so clients find
-  its timing.
-- **`skid`** (attack field): no follow-up to start (the arrive missed, or there is none
-  and the target is more than 60 degrees off the nose): AIState `recover` for the
-  parent's recover, model attribute `AttackName = "<name>Skid"` (`Attack` stays the
-  parent's; `AttackName` equals `Attack` everywhere else), a 1-5 stud slide on along a
-  charge or lunge (0.06 s of its dash speed, over 0.3 s), and a turn to the target over
-  75% of the recover (at most 0.9 s).
-- **`DashSeconds`** is now also set for leaps and bounds (their real flight);
-  `EnemyAnimator` times leap and bound poses by it.
-- **Client** (`EnemyAnimator`, `EnemyMotion`): a recover whose `AttackName` names another
-  move than `Attack` plays that move (the skids), timed by the parent's recover; an
-  arrival's dash -> windup holds the landing pose until `Attack` names the follow-up;
-  `motion` families (the ape) get `BoundMode`, `BoundSide`, the drawn velocity and the
-  turn rate as pose input. With the flag on, leaps and bounds fly a flatter-topped arc
-  (`EnemyMotion` `HANG`): same apex, flight time and landing, a quicker rise and drop
-  and a short hang at the top.
-- Users: Thunder Ape `thunderRush` -> `rushSwipe` / `thunderRushSkid`, `skyfallSlam` ->
-  `skyfallSweep` / `skyfallSlamSkid`, its bound modes; Elder Wolf King `kingLeap` ->
-  `kingRake` / `kingLeapSkid`; Spirit Wolf `pounceSkid`, `leapSkid` (skid only, when it
-  overshoots). The Jade Jiao's `tailShove` uses `rangedNext` ([jade-jiao.md](../enemies/jade-jiao.md)).
+### Arrivals, skids and turning into moves
+Testbed only (`Config.Wilds.WEIGHTED_MOVES`): [arrivals.md](../enemies/arrivals.md) (`arrive`, `skid`, eased windup turns, flight yaw, client poses, its gaps).
 
-
-Bosses' impacts (2026-10-22):
+### Boss impacts (2026-10-22)
 `src/client/EnemyFX/Impact.luau` plays
 `Effects.EnemyImpact` (builder `tools/vfx_specs/EnemyImpact.luau`), layered
 on every boss's ground blows, landings, skids and projectile ends (and the
@@ -392,70 +357,8 @@ point is the body centre. Per-body numbers and attachments are in the RIGS.md of
   dedicated fights, sounds or VFX. The Flame Raven's server stand-in would take its whole 15-stud wingspan as a
   hitbox.
 
-## Boss projectiles (backend built; the Nine-Tailed Fox's foxfireVolley uses it)
-
-User decision (2026-10-21): real projectiles are for **bosses only**. Regular
-beasts (the Venom Serpent's spit) keep their ground circles, and player
-techniques keep resolving at Hit with the flight drawn on top.
-
-A projectile is a real object in flight: it hits whoever it reaches when it
-reaches them, so a player beats it by sidestepping or dashing through it, and
-walls or rising ground stop it. The hit goes through the boss's `hurtPlayer`,
-so dodges, reactions and knockback apply
-([combat](combat.md#enemy-hits-reaction-level-and-knockback)).
-
-**Warning the player.** Melee reads at a glance from the red ground fill;
-projectiles use the same language, then the shot itself takes over:
-- Straight shot: in the windup, the red lane it will fly down
-  (`Projectiles.warnLane`), filling until release. In flight, the shot is the
-  warning: its effect must be bright and big, with a ground shadow under it so
-  its distance reads, and a whoosh (vfx agent).
-- Lob: its landing circle (`Projectiles.warnLanding`), sent for windup + flight
-  so the fill completes at touchdown.
-- Homing shot: no lane (it follows you); a red ring under the target player that
-  follows them through the windup (`Projectiles.mark`).
-- Not built: a screen-edge arrow for a shot aimed at you from off screen (UI).
-
-**Backend** (`src/server/Projectiles.luau`, `src/shared/ProjectilePath.luau`,
-`src/client/ProjectileView.luau`):
-- `Projectiles.fire(spec)` -> id. Spec: `owner` (the boss model; never hit, the
-  shot ends if it leaves), `cue` (what clients draw), `origin`, `velocity`,
-  `radius`, `gravity` (0 straight), `homing = { player, turn }` (deg/s),
-  `range`, `lifetime` (default 4 s), `pierce`, `terrain = false` to pass through
-  the map, `ignore`, `onHit(player, position)` (return false: not a hit, fly
-  on), `onEnd(position, reason)` (`hit`, `terrain`, `range`, `lifetime`,
-  `owner`, `cancel`), `data` (passed to the drawer). `Projectiles.lobVelocity`
-  aims a lob onto a point in a given flight time. Also `cancel(id)`,
-  `cancelOwner(model)`, `position(id)`. At most 80 in flight.
-- Each Heartbeat the server steps the path and spherecasts the step against the
-  map (skipping characters, live enemies and zones), then checks every player
-  once per shot: hit when the step's segment comes within radius + 1.5 of their
-  root, both where the server sees them and where their movement carries them
-  within half their ping (the same grace as ground areas, `ESCAPE_LEAD`). A
-  player in dodge i-frames (`Combat.evading`) is passed through; `onHit` still
-  runs so the perfect dodge is granted.
-- Clients get Effect `"projectile"` (spawn info with server start time) and
-  `"projectileEnd"` (id, position, reason); nothing replicates per frame.
-  ProjectileView catches a late spawn up by server time, flies it on the same
-  `ProjectilePath` rule, and calls the drawer registered for its cue
-  (`ProjectileView.register(cue, { start, step, finish })`). A homing shot may
-  drift slightly on clients by the target's replication lag. In the testbed an
-  unregistered cue draws a red debug ball; in the main game it draws nothing.
-- Untested in play. Converting a boss attack: in its resolve, warn in the
-  windup, then `fire` with `onHit = ctx.hurtPlayer(enemy, attack, player)` and
-  register its drawer in that boss's EnemyFX. The knockback still pushes away
-  from the boss, not along the shot.
-- Converted (testbed, untested): Thunder Ape `boulderHurl` and `thunderLance` (`Attack.projectile`).
-  The lob warns its r10 landing circle for the whole 1.7 s windup (`warnLanding`, locked at windup start),
-  fires `cue "boulder"` at 1.25 s from the root-relative offset (7, 14, -2) (right hand overhead), radius 5,
-  gravity 160, aimed with `lobVelocity` to land on the circle 0.45 s later, `data = { size = 5 }`. A direct
-  hit hurts; on `onEnd` anyone else in the r10 circle takes the impact, only if it landed inside the circle.
-  The lance warns the 8 x 90 lane (`warnLane`, 1.4 s) and fires `cue "thunderLance"` at windup end from 16
-  studs ahead of the root at 3.5 studs above the ground: speed 150, radius 2.5 (matches the lane's half width),
-  range 74, `pierce`, `data = { length = 90, width = 8 }`. A stagger of the ape before the release cancels the
-  boulder's fire. Other candidates: Jade Jiao
-  `venomLance` and `venomSpray`; Nine-Tailed Fox `foxfireVolley`. Each goes to
-  the testbed first.
+## Boss projectiles
+Real projectiles are for bosses only (user, 2026-10-21): [projectiles.md](../enemies/projectiles.md) (warnings, backend, converted attacks).
 
 ## Data flow
 Spawner decides where -> `EnemyService.spawn` clones the type's root-only stand-in,
@@ -500,14 +403,6 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - The Inner and Middle regions are now zone boxes ([docs/map/wilds.md](../map/wilds.md)); the Outer
   region is still a placeholder ring. The middle and outer regions reuse ring-1 beasts
   until their own exist.
-- Arrivals, skids and turning into moves (`WEIGHTED_MOVES`) are untested in play:
-  whether the eased windup turn reads, the ape's `over` bound (a 180-degree air turn
-  over 0.64 s), skid slides against walls, the follow-ups' short windups (rushSwipe
-  0.4 s right after a dodge of the rush), the Jiao holding still for its shot, and the
-  36-stud tail shove, which the client plays over the stock `KNOCK_SECONDS` 0.22 s
-  (a near-teleport; CrowdControl should stretch long knocks). The pose modules time a
-  bound's flight from `active`, not the per-mode `DashSeconds`, until the animators
-  read it.
 - The tiered overhead bars are untested in play: the aura pulse, sheen sweep and
   skull pulse, the restyle on breakthrough, and how the 150x62 px billboard reads
   on a phone with several beasts on screen. No shipped beast is far or deadly to a

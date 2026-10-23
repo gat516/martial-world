@@ -9,10 +9,10 @@ simple glyphs) is already built as vectors in the kit and needs no art.
 Sheets are ordered by the roadmap's order of work: **A** is needed now (dialogue, prompts,
 HUD, windows), **B** next (rewards, quests, sect), **C** later (garden, building, Halls,
 masters, events, tribulation, rifts, leaderboards). Done so far: the first ornament sheet
-(`art/ui/codex/ornaments_source.png` on `ui-assemble`).
+(`art/ui/codex/ornaments_filled_source.png`, cut as in [dialogue-ornaments](dialogue-ornaments.md)).
 
 Attach to every conversation:
-1. `docs/reference/ui/dialogue_prompt_reference.webp` (on `progression-bible`).
+1. `docs/reference/ui/dialogue_prompt_reference.webp`.
 2. `docs/reference/ui/hud_vitals_reference.webp` (red and blue bars, ruby studs, plaques).
 3. The first ornament sheet, as the style to match.
 

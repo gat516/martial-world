@@ -9,7 +9,7 @@ limit that day), by `tools/build_dialogue.luau` and `tools/build_prompts.luau`.
 
 ## Dialogue: API
 Ready to wire; nothing in the game opens it yet. The elder's onboarding lines
-([roadmap](../roadmap.md) section 2) and the NPC masters (section 3d) are its users.
+([roadmap](../roadmap.md) section 2) and the NPC masters ([section 3d](../roadmap/relationships.md)) are its users.
 Today the elder's Talk prompt still answers with a toast (`Quests.talk`).
 
 ```lua

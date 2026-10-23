@@ -1,7 +1,7 @@
 # Halls, masters and lineage
 
 Ready-to-wire screens for player Halls and the master and disciple ties
-([roadmap](../roadmap.md) 3b "Sect structure and contribution", 3d "Relationships").
+([roadmap](../roadmap.md) 3b "Sect structure and contribution", [3d "Relationships"](../roadmap/relationships.md)).
 None of these systems exist yet: each screen is a GUI template in `StarterGui.Sect`
 (`assets/Sect.rbxmx`) plus a client module in `src/client/Sect/` with a `.preview()`.
 Shared window anatomy, scaling and the sect board: [sect board](sect-board.md).

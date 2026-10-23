@@ -677,10 +677,18 @@ local function refreshBanner()
 	if not building then
 		return
 	end
-	local tag = b:FindFirstChild("Tag")
+	local tag = b:FindFirstChild("Tag") :: GuiObject?
 	local label = tag and tag:FindFirstChild("PeakLabel") :: TextLabel?
 	if label then
 		label.Text = peakName()
+	end
+	-- on a narrow screen the full banner reaches under Roblox's own buttons at the top
+	-- left; the "Build mode · <peak>" tag goes so the tabs and Exit stay whole
+	if tag then
+		local gui = b.Parent :: GuiObject
+		local _, freeLeft = Platform.topbar(gui)
+		local width = b.AbsoluteSize.X + (if tag.Visible then 0 else tag.AbsoluteSize.X + 6)
+		tag.Visible = gui.AbsoluteSize.X / 2 - width / 2 >= freeLeft + 8
 	end
 	local tab = currentTab()
 	for _, name in { "PlaceTab", "MoveTab", "StoreTab" } do

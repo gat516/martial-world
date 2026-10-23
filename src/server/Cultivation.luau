@@ -257,10 +257,11 @@ function Cultivation.addBuff(data: PlayerData.Data, source: string, kind: string
 	for _, active in data.buffs do
 		if active.source == source and active.kind == kind then
 			active.expires = math.max(active.expires, now + seconds)
+			active.seconds = active.expires - now -- the refreshed span, for the HUD's timer ring
 			return
 		end
 	end
-	table.insert(data.buffs, { source = source, kind = kind, amount = amount, expires = now + seconds })
+	table.insert(data.buffs, { source = source, kind = kind, amount = amount, expires = now + seconds, seconds = seconds })
 end
 
 -- Whether the heavens refuse this player: only heaven-defying cultivators face a

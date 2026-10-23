@@ -17,6 +17,11 @@ fits its box exactly with `ScaleType.Stretch` (no slicing). Moving a bar means
 moving its window here too. The fills themselves are `art/ui/hud_fill_*.png`
 (`draw_vitals.py`).
 
+The vitals and seated plates and the realm plaque below were replaced on
+2026-10-23 by `art/ui/hud/` (drawn by `art/ui/draw_hud_frames.py`, docs/ui/hud-vitals.md);
+their files stay here as history of the kit export. The rims and the round seal are
+still in use.
+
 | File | Use |
 | --- | --- |
 | `hud_vitals_plate.png` | `Vitals.Plate` (behind the bars): the notched body, guard tray and the bars' dark troughs |

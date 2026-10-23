@@ -37,7 +37,7 @@ local ACCOUNT_VERSION = 1 -- the slots wrapper (Account)
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number, m: string? }
-export type ActiveBuff = { source: string, kind: string, amount: number, expires: number }
+export type ActiveBuff = { source: string, kind: string, amount: number, expires: number, seconds: number? } -- seconds: the full span (nil on buffs saved before it)
 export type Technique = { level: number, xp: number }
 -- weapon Dao comprehension of one class (Weapons.Classes), level 0..Pacing.Weapons.MAX_LEVEL
 export type Dao = { level: number, xp: number }

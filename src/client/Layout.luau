@@ -5,7 +5,8 @@
 -- PC: no touch buttons (M1 swings, Q dashes, Space jumps); the stack may use the
 -- full width; slots show their names.
 -- The seated cultivation bars (Stack.SeatBars) share the vitals' box. On short
--- screens the stack takes at most SMALL_HEIGHT_SHARE of the height.
+-- screens the stack takes at most SMALL_HEIGHT_SHARE of the height, on a touch
+-- phone TOUCH_SMALL_SHARE.
 -- Touch: our own Strike, Jump, Dash and Guard cluster replaces Roblox's jump button and
 -- reaches past the right safe-area inset to the screen edge; slots drop their
 -- names for a bigger icon or glyph. The mini cooldown chips in the vitals plate's
@@ -19,11 +20,21 @@ local Platform = require(script.Parent.Platform)
 
 local CLUSTER_ROOM = 320 -- touch: width the stack leaves free (twice the cluster, so it stays centred)
 local EDGE = 12 -- touch: the cluster's gap from the screen edge
+-- Touch cluster (phone HUD pass, 2026-10-23): Strike (70) in the corner, Jump, Dash and
+-- Guard (50 each) on one arc around it, ARC px from Strike's centre at 180, 135 and 90
+-- degrees, so the cluster is a 146 px quarter instead of a 211 px column; Lock (shown
+-- only with something to lock) sits outside the arc at 112.5 degrees, LOCK_ARC out.
+local STRIKE = 70
+local ARC = 74
+local LOCK_ARC = 128
 -- The most of the screen's height the stack may take. Both shares were cut by the
 -- name row's 13.4% when the name plaque left the stack (2026-10-22), so the bars
 -- keep their width where height is the limit.
 local HEIGHT_SHARE = 0.39
 local SMALL_HEIGHT_SHARE = 0.31 -- on short screens (Platform.isSmall), phones and small windows
+-- A touch phone (short and touch) keeps less: the user couldn't see the world past the
+-- HUD (2026-10-23). Readability comes from contrast, never from size.
+local TOUCH_SMALL_SHARE = 0.26
 
 local player = Players.LocalPlayer
 
@@ -57,7 +68,7 @@ function Layout.apply()
 	-- short screens cap the stack lower: at the full share a landscape phone (or the device
 	-- emulator, which reports a mouse and so gets the PC layout) gave nearly half
 	-- the screen to the vitals and hotbar
-	local share = if Platform.isSmall() then SMALL_HEIGHT_SHARE else HEIGHT_SHARE
+	local share = if Platform.isSmall() then (if touch then TOUCH_SMALL_SHARE else SMALL_HEIGHT_SHARE) else HEIGHT_SHARE
 	stack.Size = UDim2.new(1, if touch then -CLUSTER_ROOM else -24, share, 0)
 	-- the touch prompt dock mirrors the stack's box (WorldPrompts)
 	local playerGui = player:FindFirstChild("PlayerGui")
@@ -93,13 +104,18 @@ function Layout.apply()
 		local camera = workspace.CurrentCamera
 		local viewport = if camera then camera.ViewportSize.X else gui.AbsoluteSize.X
 		local right = math.max(0, viewport - (gui.AbsolutePosition.X + gui.AbsoluteSize.X)) - EDGE
+		-- Strike in the corner; the others centred on an arc around it (all AnchorPoint
+		-- 0.5 but Strike's, as authored)
 		strike.Position = UDim2.new(1, right, 1, -EDGE)
-		jump.Position = UDim2.new(1, right - 80, 1, -EDGE - 35)
-		dodge.Position = UDim2.new(1, right - 35, 1, -EDGE - 80)
-		-- Guard above Dash, on the same arc from the Strike corner
-		block.Position = UDim2.new(1, right - 35, 1, -EDGE - 138)
-		-- Lock on the arc between Jump and Dash (LockOn shows it when there's something to lock)
-		find("LockButton").Position = UDim2.new(1, right - 95, 1, -EDGE - 100)
+		local cx, cy = right - STRIKE / 2, -EDGE - STRIKE / 2
+		local function onArc(button: GuiObject, degrees: number, radius: number)
+			local a = math.rad(degrees)
+			button.Position = UDim2.new(1, math.round(cx + math.cos(a) * radius), 1, math.round(cy - math.sin(a) * radius))
+		end
+		onArc(jump, 180, ARC)
+		onArc(dodge, 135, ARC)
+		onArc(block, 90, ARC)
+		onArc(find("LockButton"), 112.5, LOCK_ARC) -- LockOn shows it when there's something to lock
 		hideDefaultJump()
 	end
 	-- key hints are for keyboards only
@@ -107,6 +123,18 @@ function Layout.apply()
 		local key = button:FindFirstChild("KeyLabel") :: GuiObject?
 		if key then
 			key.Visible = not touch
+		end
+	end
+	-- top-right tiles: on touch the caption would render tiny, so it hides and the icon
+	-- centres on the frame, larger; PC keeps the caption in the frame's bottom strip and
+	-- centres the icon between the frame's inner line (11/128 in) and the caption's top
+	for _, tile in find("Buttons"):GetChildren() do
+		local icon = tile:FindFirstChild("Icon") :: GuiObject?
+		local caption = tile:FindFirstChild("Caption") :: GuiObject?
+		if icon and caption then
+			caption.Visible = not touch
+			icon.Size = if touch then UDim2.fromOffset(28, 28) else UDim2.fromOffset(24, 24)
+			icon.Position = if touch then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 0.38225)
 		end
 	end
 	local tiles = find("Buttons"):FindFirstChildOfClass("UIScale")

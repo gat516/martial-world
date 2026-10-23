@@ -6,8 +6,12 @@
 -- The poses come from art/enemies/motion_probe.luau (it plays the move the way EnemyAnimator does:
 -- the state timeline, blends, `seamless`, scale, the pose module's own planting) with `keep = true`,
 -- and its FK places every part, so the strip is exactly what the probe measured.
---   * label under each pose: ms since the clip starts, the state; "W" marks the windup's end (the
---     strongest pose, the telegraph's last frame), which is always one of the samples;
+--   * samples: the phase anchors first (W the last windup frame, HOLD mid-hold when the windup
+--     ends on a still hold, APEX the dash's highest root, LAND touchdown, DIP the deepest landing
+--     dip), then the clip's ends, then the middle of the widest gap until there are `n`;
+--   * label under each pose: its anchor tag, ms on the probe's clock (the same clock as the probe's
+--     timeline, lead-in idle included; the output prints the timeline in ms) and the state read
+--     from that timeline;
 --   * RED ball: that pose's lowest point is below the floor (by more than `sinkLimit` studs);
 --   * ORANGE ball: a hero point hitched or stopped dead (the probe's hitch and stop metrics)
 --     between the previous sample and this one, placed on that hero point.
@@ -71,7 +75,8 @@ local F = _G.MOTION_FK
 local frames, template = res.frames, F.template
 local hrp = template.HumanoidRootPart
 
--- the samples: evenly spaced over the clip, the nearest one snapped to the windup's end
+-- one clock: the probe's (seconds from the start of its timeline, lead-in idle included), shown in
+-- ms; a frame's state is read from the probe's state timeline, so a label can't disagree with it
 local function frameAt(t)
 	local best, bd = 1, math.huge
 	for i, f in frames do
@@ -82,28 +87,113 @@ local function frameAt(t)
 	end
 	return best
 end
-local t0, t1 = res.clipFrom, res.clipTo - (frames[2].t - frames[1].t)
-local picks = {}
-for k = 0, N - 1 do
-	picks[k + 1] = frameAt(t0 + (t1 - t0) * k / math.max(1, N - 1))
+local function stateAt(t)
+	for _, s in res.states do
+		if t >= s.from - 1e-4 and t < s.to - 1e-4 then
+			return s.name
+		end
+	end
+	return res.states[#res.states].name
+end
+local function ms(t)
+	return string.format("%d ms", math.floor(t * 1000 + 0.5))
+end
+local dt = frames[2].t - frames[1].t
+local t0, t1 = res.clipFrom, res.clipTo - dt
+local i0, i1 = frameAt(t0), frameAt(t1)
+
+-- the samples: the phase anchors first, then the rest spread evenly into the widest gaps
+--   W     the last windup frame (the strongest pose, held on the telegraph)
+--   HOLD  mid-hold, when the windup ends on a still hold of HOLD_MIN s or more
+--   APEX  the root's highest point in a dash (the server's arc included)
+--   LAND  touchdown (the first frame after the dash)
+--   DIP   the root's lowest point in the landing window (the probe's landing metric)
+local HOLD_MIN, HOLD_SPEED = 0.2, 0.1 -- s; a hold: every hero and the root under 10% of the peak
+local anchors = {}
+local function anchor(i, tag)
+	if i and i >= i0 and i <= i1 then
+		anchors[i] = if anchors[i] then anchors[i] .. "+" .. tag else tag
+	end
 end
 local wIdx
 if res.windupTo then
-	-- the last windup frame: the strongest pose, held on the telegraph
-	wIdx = frameAt(res.windupTo)
 	for i, f in frames do
-		if f.st == "windup" and f.t < res.windupTo then
+		if f.t >= res.windupFrom - 1e-4 and f.t < res.windupTo - 1e-4 then
 			wIdx = i
 		end
 	end
-	local best, bd = 1, math.huge
-	for k, i in picks do
-		if math.abs(i - wIdx) < bd then
-			best, bd = k, math.abs(i - wIdx)
+	anchor(wIdx, "W")
+	-- the hold at the windup's end: walk back while everything is near still
+	local peak = 0
+	local function speedAt(i)
+		local v = (frames[i].root - frames[i - 1].root).Magnitude / dt
+		for key, p in frames[i].pts do
+			v = math.max(v, (p - frames[i - 1].pts[key]).Magnitude / dt)
+		end
+		return v
+	end
+	for i = math.max(2, i0), i1 do
+		peak = math.max(peak, speedAt(i))
+	end
+	local h = wIdx
+	while h and h > i0 + 1 and speedAt(h) < HOLD_SPEED * peak do
+		h -= 1
+	end
+	if wIdx and (wIdx - h) * dt >= HOLD_MIN then
+		anchor(math.floor((h + wIdx) / 2), "HOLD")
+	end
+end
+for _, s in res.states do
+	if s.name == "dash" then
+		local best, by = nil, -math.huge
+		for i, f in frames do
+			if f.t >= s.from - 1e-4 and f.t < s.to - 1e-4 and f.root then
+				local y = f.root.Y + f.lift
+				if y > by then
+					best, by = i, y
+				end
+			end
+		end
+		anchor(best, "APEX")
+		anchor(frameAt(s.to), "LAND")
+	end
+end
+for _, l in res.landing or {} do
+	if l.dip >= 0.05 then
+		anchor(frameAt(l.at) + l.frames, "DIP")
+	end
+end
+local picks = {}
+for i in anchors do
+	table.insert(picks, i)
+end
+if #picks > N then
+	table.sort(picks)
+	picks = table.move(picks, 1, N, 1, {})
+end
+-- fill: the clip's ends first, then always the middle of the widest gap
+local function has(i)
+	return table.find(picks, i) ~= nil
+end
+for _, i in { i0, i1 } do
+	if #picks < N and not has(i) then
+		table.insert(picks, i)
+	end
+end
+while #picks < N do
+	table.sort(picks)
+	local gi, gw = nil, 1
+	for k = 1, #picks - 1 do
+		if picks[k + 1] - picks[k] > gw then
+			gi, gw = k, picks[k + 1] - picks[k]
 		end
 	end
-	picks[best] = wIdx
+	if not gi then
+		break
+	end
+	table.insert(picks, math.floor((picks[gi] + picks[gi + 1]) / 2))
 end
+table.sort(picks)
 
 -- rest size, for spacing, markers and labels
 local restWorld = F.fk({})
@@ -215,8 +305,19 @@ local VIEWS = {
 	{ name = "side", yaw = -math.pi / 2 }, -- faces +X: screen right, the way time runs
 	{ name = "front34", yaw = -3 * math.pi / 4 }, -- faces the camera and screen right
 }
-local out = { string.format("filmstrip %s: %d poses %.0f-%.0f ms%s", res.label, N, 0, (t1 - t0) * 1000,
-	if wIdx then string.format(", W at %.0f ms", (frames[wIdx].t - t0) * 1000) else "") }
+local tl = {}
+for _, st in res.states do
+	table.insert(tl, string.format("%s %d-%d", st.name, math.floor(st.from * 1000 + 0.5), math.floor(st.to * 1000 + 0.5)))
+end
+local an = {}
+for _, i in picks do
+	if anchors[i] then
+		table.insert(an, anchors[i] .. " " .. ms(frames[i].t))
+	end
+end
+local out = { string.format("filmstrip %s: %d poses, ms on the probe's clock (the timeline below, lead-in idle included)", res.label, #picks),
+	"timeline ms: " .. table.concat(tl, " | "),
+	"anchors: " .. (if #an > 0 then table.concat(an, ", ") else "none") }
 local rowX = origin.X
 local flagged = {}
 for _, view in VIEWS do
@@ -231,7 +332,7 @@ for _, view in VIEWS do
 		-- template space -> strip: turn about the root's vertical, the rest floor on the plate
 		local place = CFrame.new(cursor, origin.Y, origin.Z) * CFrame.Angles(0, view.yaw, 0)
 			* CFrame.new(-hrp.Position.X, -F.restLow + f.lift, -hrp.Position.Z)
-		local m = poseClone(f, place, row, string.format("%02d_%dms", k, math.floor((f.t - t0) * 1000 + 0.5)))
+		local m = poseClone(f, place, row, string.format("%02d_%dms", k, math.floor(f.t * 1000 + 0.5)))
 		local lo, hi = xExtent(m)
 		local shift = cursor - lo
 		m:PivotTo(m:GetPivot() + Vector3.new(shift, 0, 0))
@@ -251,20 +352,20 @@ for _, view in VIEWS do
 			end
 		end
 		if worst then
-			table.insert(notes, string.format("sank %.2f %s at %.0f ms (between samples)", frames[worst].lo, frames[worst].low, (frames[worst].t - t0) * 1000))
+			table.insert(notes, string.format("sank %.2f %s at %.0f ms (between samples)", frames[worst].lo, frames[worst].low, frames[worst].t * 1000))
 		end
 		for _, mk in res.marks do
 			if mk.i > prevI and mk.i <= i then
 				ball(row, (place * CFrame.new(frames[i].pts[mk.hero])).Position, Color3.fromRGB(255, 110, 0), "Hitch")
-				table.insert(notes, string.format("%s %s at %.0f ms", mk.hero, mk.kind, (frames[mk.i].t - t0) * 1000))
+				table.insert(notes, string.format("%s %s at %.0f ms", mk.hero, mk.kind, frames[mk.i].t * 1000))
 			end
 		end
 		prevI = i
-		local text = string.format("%s%.0f ms\n%s", if i == wIdx then "W " else "", (f.t - t0) * 1000, f.st)
+		local text = string.format("%s%s\n%s", if anchors[i] then anchors[i] .. " " else "", ms(f.t), stateAt(f.t))
 		label(row, Vector3.new(cx, origin.Y - H * 0.12, origin.Z + H * 1.45), text,
 			if #notes > 0 then Color3.fromRGB(255, 190, 120) else nil)
 		if view.name == "side" and #notes > 0 then
-			table.insert(flagged, string.format("  %d (%.0f ms %s): %s", k, (f.t - t0) * 1000, f.st, table.concat(notes, "; ")))
+			table.insert(flagged, string.format("  %d (%s %s): %s", k, ms(f.t), stateAt(f.t), table.concat(notes, "; ")))
 		end
 		zMax = math.max(zMax, H)
 	end

@@ -15,17 +15,25 @@ stiffness and floating show up before the user sees them.
    root; another session may own those ports, so serve your worktree on a port
    of its own, `python3 -m http.server <port> --bind 127.0.0.1 --directory <worktree>`,
    and pass `base`).
-2. Set `_G.MOTION` (the probe spec below), then the metrics for every move:
+2. Set `_G.MOTION` from the shared specs, `art/enemies/motion_specs.luau`
+   (`S.with("NineTailFox", { moves = {...} })`: the family's EnemyAnimator
+   flags, setup hook, heroes and default moves). A family that isn't there yet:
+   add its spec in the same commit, and keep its flags in step with
+   `FAMILIES` in `EnemyAnimator.luau`. Then the metrics for every move:
    `loadstring(HttpService:GetAsync("http://127.0.0.1:8767/motion_probe.luau?" .. os.clock()))()`.
    Loops are specs too: `{ loop = "walk", speed = 6, seconds = 2 }`.
 3. The filmstrip of the move you're reporting:
    `_G.FILMSTRIP = { move = "clubSwing" }` (optionally `n`, `base`, `origin`),
    then load `tools/anim_filmstrip.luau` from the repo port. It poses 8 FK
    clones from the probe's own frames (anchored, motors cut, `EditorOnly`, in
-   `Workspace._Filmstrip`) across windup, release and recover, one of them on the
-   windup's last frame (`W`), with a label each (ms, state), a red ball on any
-   lowest point below the floor, an orange one on a hero point that hitched or
-   stopped dead since the previous sample, and lists the flagged poses.
+   `Workspace._Filmstrip`) across windup, release and recover. The phase anchors
+   come first: `W` (the last windup frame), `HOLD` (mid-hold, when the windup
+   ends on a still hold of 0.2 s or more), `APEX`, `LAND` and `DIP` for a dash;
+   the rest fill the widest gaps. Each label gives the tag, ms on the probe's
+   clock (the printed timeline uses the same clock, lead-in idle included) and
+   the state read from that timeline. A red ball marks a lowest point below
+   the floor, an orange one a hero point that hitched or stopped dead since the
+   previous sample, and the output lists the flagged poses.
 4. One `screen_capture` per printed camera (`side`, `front34`): two images per
    clip, never one per frame. It sets the camera's FieldOfView to 30 (a long
    row seen close at 70 shows the outer poses from another angle).

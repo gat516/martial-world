@@ -39,6 +39,7 @@ local WorldCaches = require(script.Parent.WorldCaches)
 local Roots = require(script.Parent.Roots)
 local Methods = require(script.Parent.Methods)
 local CharacterIdentity = require(script.Parent.CharacterIdentity)
+local Slots = require(script.Parent.Slots)
 local TestbedDummy = require(script.Parent.TestbedDummy)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
@@ -135,7 +136,14 @@ local function onPlayerAdded(player: Player)
 	end
 	Cultivation.watch(player)
 
-	local data = PlayerData.load(player)
+	PlayerData.load(player)
+	-- the slot screen: the join waits until a slot is played (slots off: slot 1 at once)
+	local data = Slots.awaitPlay(player)
+	if not data or player.Parent == nil then
+		PlayerData.release(player)
+		Peaks.release(player)
+		return
+	end
 	applyTestKit(data)
 	local offline = Cultivation.claimLogin(player, data)
 	joinedAt[player] = os.clock()
@@ -163,6 +171,10 @@ local function onPlayerAdded(player: Player)
 	Roots.publish(player, data)
 	Cultivation.pushState(player)
 	Methods.giveStarter(player) -- already at Foundation from before methods existed
+	if Config.Slots.ENABLED then
+		-- the played slot's identity and look; spawns the character (test place)
+		CharacterIdentity.enter(player, PlayerData.active(player) :: string, data)
+	end
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)

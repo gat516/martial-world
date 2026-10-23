@@ -88,6 +88,46 @@ function Bridge.requestReroll(kind: string): (string, any)
 	return "error", "Not available"
 end
 
+-- Save slots (src/server/Slots.luau). Each returns (ok, payload | message).
+-- { slots = { Summary }, max, canSave, last, playing }
+function Bridge.slots(): (boolean, any)
+	return invoke("slots")
+end
+
+-- Opens the creator on an empty (or unnamed) slot; the server draws or shows its
+-- race and clan as the player's attributes. { id, mode = "new", progress }
+function Bridge.newSlot(id: string): (boolean, any)
+	return invoke("new", id)
+end
+
+-- Opens the creator on a named slot's look: { id, mode = "edit", look, firstName }
+function Bridge.editSlot(id: string): (boolean, any)
+	return invoke("edit", id)
+end
+
+function Bridge.cancel(): (boolean, any)
+	return invoke("cancel")
+end
+
+function Bridge.play(id: string): (boolean, any)
+	return invoke("play", id)
+end
+
+-- { token } for the hold-to-delete
+function Bridge.deleteAsk(id: string): (boolean, any)
+	return invoke("deleteAsk", id)
+end
+
+function Bridge.delete(id: string, token: string, name: string): (boolean, any)
+	return invoke("delete", { id = id, token = token, name = name })
+end
+
+-- Preview copies of a slot's hairs: { { id, accessory } }
+function Bridge.slotHairs(id: string): { { id: number, accessory: Accessory } }
+	local ok, payload = invoke("slotHairs", id)
+	return if ok and type(payload) == "table" then payload else {}
+end
+
 -- Sends the finished look. On success runs the onEnterWorld hooks.
 function Bridge.enterWorld(look: { [string]: any }): (boolean, any)
 	local ok, payload = invoke("confirm", look)

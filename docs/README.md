@@ -124,6 +124,7 @@ What we build next and in what order (solidity, onboarding, sect, techniques, ga
 | Testbed / test build (local baseplate arena, `test.project.json`; branches and test build in AGENTS.md) | [testbed](systems/testbed.md) | Main (`applyTestKit`, `sendHome`), ForceR6 (R6 when unpublished), WorldEvents, WeatherService, Spawner | Config.TESTBED | - |
 | Monetization | [monetization](systems/monetization.md) | Receipts, Garden (Grow now), CharacterIdentity (rerolls) | Config.Garden.GROW_NOW, CharacterCreator.Products | GardenView, CharacterCreator |
 | Character creator (join screen: outfit, skin, hair, race and last name, first name) | [character-creator](systems/character-creator.md) | CharacterIdentity, TestbedDummy (testbed stand-in) | CharacterCreator/* | CharacterCreator/* |
+| Save slots (slot screen: Play, New, Edit look, Delete; one account of separate characters) | [save-slots](systems/save-slots.md) | Slots, PlayerData, CharacterIdentity, Receipts | Config.Slots | CharacterCreator/Controller, Modals |
 | Nameplates (namecard and title over every other player's head; your own name isn't shown to you) | [nameplates](systems/nameplates.md) | - (reads player attributes) | CharacterCreator.Surnames | Nameplates (template `ReplicatedStorage.Nameplate`, `assets/Nameplate.rbxmx`) |
 
 ## Remotes, attributes and hooks

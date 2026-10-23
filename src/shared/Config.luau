@@ -126,6 +126,20 @@ return {
 		STARTING_SEEDS = { SpiritGrass = 6 },
 	},
 
+	-- Save slots (docs/systems/save-slots.md): each slot is a separate character
+	-- with its own progression, all in one session-locked account record. Testbed
+	-- only until the user ships the join flow: off, PlayerData reads and writes the
+	-- old single-profile key exactly as before, so live data is untouched.
+	Slots = {
+		ENABLED = TESTBED,
+		MAX = 3, -- slots per account
+		TRASH_DAYS = 7, -- a deleted slot is kept this long (one at a time) for support to restore
+		DELETE_TOKEN_SECONDS = 30, -- the hold-to-delete must land this soon after it was asked for
+		-- Skip the slot screen and creator and play slot 1 at once (combat testers).
+		-- Workspace attribute in test.project.json, off by default.
+		QUICK_PLAY = workspace:GetAttribute("QuickPlay") == true,
+	},
+
 	Movement = {
 		RUN_BONUS = 10, -- added to walking speed, including herb buffs (16 -> 26)
 		RUN_ANIMATION_SPEED = 26, -- studs/s at the run animation's original playback rate

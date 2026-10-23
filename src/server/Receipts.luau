@@ -4,7 +4,10 @@
 -- developer product id; a handler applies the purchase and returns true only once
 -- it has been granted. Granted PurchaseIds are remembered in the profile, and the
 -- profile is saved before Roblox hears PurchaseGranted, so a replayed receipt
--- never pays out twice.
+-- never pays out twice. Receipts are the account's (shared by every save slot):
+-- a reroll is bought on the character screen, before any slot is played, so a
+-- handler gets the played slot's profile or nil and returns false (retried
+-- later) if it needs one.
 
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
@@ -12,7 +15,7 @@ local Players = game:GetService("Players")
 local PlayerData = require(script.Parent.PlayerData)
 
 export type Info = { PlayerId: number, ProductId: number, PurchaseId: string, CurrencySpent: number }
-export type Handler = (player: Player, data: PlayerData.Data, info: Info) -> boolean
+export type Handler = (player: Player, data: PlayerData.Data?, info: Info) -> boolean
 
 local KEEP_SECONDS = 30 * 86400 -- forget granted ids after this; Roblox stops retrying long before
 
@@ -26,19 +29,19 @@ function Receipts.register(productId: number, handler: Handler)
 	handlers[productId] = handler
 end
 
-local function prune(data: PlayerData.Data, now: number)
-	for id, at in data.receipts do
+local function prune(receipts: { [string]: number }, now: number)
+	for id, at in receipts do
 		if type(at) ~= "number" or now - at > KEEP_SECONDS then
-			data.receipts[id] = nil
+			receipts[id] = nil
 		end
 	end
 end
 
 local function process(info: Info): Enum.ProductPurchaseDecision
 	local player = Players:GetPlayerByUserId(info.PlayerId)
-	local data = player and PlayerData.get(player)
+	local account = player and PlayerData.account(player)
 	local handler = handlers[info.ProductId]
-	if not (player and data) then
+	if not (player and account) then
 		return Enum.ProductPurchaseDecision.NotProcessedYet -- retried when they return
 	end
 	if not handler then
@@ -46,18 +49,19 @@ local function process(info: Info): Enum.ProductPurchaseDecision
 		return Enum.ProductPurchaseDecision.NotProcessedYet
 	end
 	local key = tostring(info.PurchaseId)
-	if data.receipts[key] then
+	local receipts = account.receipts
+	if receipts[key] then
 		return Enum.ProductPurchaseDecision.PurchaseGranted
 	end
 	if busy[key] then
 		return Enum.ProductPurchaseDecision.NotProcessedYet
 	end
 	busy[key] = true
-	local ok, granted = pcall(handler, player, data, info)
+	local ok, granted = pcall(handler, player, PlayerData.get(player), info)
 	if ok and granted then
 		local now = os.time()
-		prune(data, now)
-		data.receipts[key] = now
+		prune(receipts, now)
+		receipts[key] = now
 		PlayerData.save(player)
 	elseif not ok then
 		warn("Receipts: handler failed:", granted)

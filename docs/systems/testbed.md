@@ -20,7 +20,10 @@ in AGENTS.md (Branches, Test build).
   Events tied to weather still fire when the admin dashboard forces that weather.
 - **Ready to test on join.** Onboarding is skipped (every beat marked done, so
   the HUD is never dimmed or guided), and every player gets the Studio test kit
-  plus every technique and weapon, published or not.
+  plus every technique and weapon, published or not. Joining lands on the slot
+  screen with a ready "Tester" (one tap to Play) and an empty slot to try the
+  creator ([save slots](save-slots.md)); the Workspace attribute `QuickPlay`
+  (off by default in `test.project.json`) skips straight into the world.
 - **Local only.** It's never published, so it has no live players. Studio Play
   uses the place's own DataStores (none, unless Studio API access is on), so
   profiles never touch the real game's. Everyone in Studio is an admin.

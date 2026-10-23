@@ -118,7 +118,8 @@
     },
     "Workspace": {
       "$attributes": {
-        "Testbed": true
+        "Testbed": true,
+        "QuickPlay": false
       },
       "Camera": {
         "$className": "Camera",

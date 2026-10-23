@@ -291,7 +291,10 @@ end
 -- must still be on a plot of the buyer's own peak; if it ripened on its own
 -- while they paid, it is already finished and the purchase is granted as is.
 -- Anything else (gone, uprooted, no target) leaves the receipt unprocessed.
-local function growNow(player: Player, data: PlayerData.Data, info: any): boolean
+local function growNow(player: Player, data: PlayerData.Data?, info: any): boolean
+	if not data then
+		return false -- not playing a slot yet; Roblox retries the receipt later
+	end
 	local target = growTargets[player]
 	local peak = Peaks.ownedBy(player)
 	local plot = if peak and target then findPlot(peak, target.plotId) else nil

@@ -5,9 +5,11 @@
 -- client only previews.
 --
 -- State lives on the player as attributes (they replicate, so the screen just
--- reads them): Race, Surname, FirstName, CharacterConfirmed. Nothing is saved to
--- the DataStore yet: `onConfirmed`, `onRerolled` and `load` are the hooks for
--- that, so a rejoin rolls again until a save is wired in.
+-- reads them): Race, Surname, FirstName, CharacterConfirmed. They show the slot
+-- the screen has open, then the slot being played. What's kept is the slot's:
+-- its race and last name (Account.fates, by slot position) and its character
+-- (first name and look) in the slot's profile; see Slots.luau and
+-- docs/systems/save-slots.md.
 --
 -- CharacterAction (RemoteFunction) actions, each returning (ok, payload|message):
 --   "state"              -> { products = { RerollRace = {price, live}, ... }, mock }
@@ -16,14 +18,19 @@
 --                           copy of the accessory (parented in its PlayerGui) to preview
 --   "defaults"           -> once: { skin, hairs = { {id, accessory} } } from the
 --                           player's own avatar, the screen's starting look
---   "reroll", kind       -> kind "Race" | "Surname". Live product: returns
---                           { productId } and the client prompts the purchase; the
---                           reroll happens in the receipt handler. Mock (id 0): rerolls
---                           at once, Studio and testbed only.
---   "confirm", look      -> checks and applies the look; fires onConfirmed. Where
---                           Players.CharacterAutoLoads is off (the test place) the
---                           first confirm spawns the character, and the dead respawn
---                           from here.
+--   "reroll", kind       -> kind "Race" | "Surname", for the slot the screen has
+--                           open (new or edit). Live product: returns { productId },
+--                           the slot is remembered (Account.rerollFor) and the client
+--                           prompts the purchase; the reroll happens in the receipt
+--                           handler. Mock (id 0): rerolls at once, Studio and testbed only.
+--   "confirm", look      -> checks the look. New slot: also the first name, then the
+--                           slot is filled and played. Edit: the look only (the first
+--                           name is locked once a slot is named).
+--   "slotHairs", id      -> { {id, accessory} } preview copies of a slot's hairs
+--   slot actions         -> Slots.handle ("slots", "new", "edit", "cancel", "play",
+--                           "deleteAsk", "delete")
+-- Where Players.CharacterAutoLoads is off (the test place) `enter` spawns the
+-- character once a slot is played, and the dead respawn from here.
 
 local InsertService = game:GetService("InsertService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -41,7 +48,9 @@ local Races = require(CC.Races)
 local SkinColors = require(CC.SkinColors)
 local Rules = require(CC.Rules)
 local Surnames = require(CC.Surnames)
+local PlayerData = require(script.Parent.PlayerData)
 local Receipts = require(script.Parent.Receipts)
+local Slots = require(script.Parent.Slots)
 
 export type Look = {
 	Shirt: string, -- Clothing option Id
@@ -56,7 +65,6 @@ local CLASSIC_FACE = "rbxasset://textures/face.png" -- Roblox's default smile
 local HAIR_COOLDOWN = 1.5 -- seconds between hair loads per player
 local PREVIEW_FOLDER = "CharacterPreview" -- in PlayerGui: only that player sees it
 
-local random = Random.new()
 local looks: { [Player]: Look } = {}
 local lastHair: { [Player]: number } = {}
 local defaultsSent: { [Player]: boolean } = {}
@@ -77,26 +85,15 @@ local function mockAllowed(): boolean
 	return RunService:IsStudio() or Config.TESTBED
 end
 
-local function roll(player: Player, kind: string)
-	local key = Rules.roll(KINDS[kind].defs, random)
-	player:SetAttribute(kind, key)
-	for _, hook in CharacterIdentity.onRerolled do
-		task.spawn(hook, player, kind, key)
-	end
-	return key
-end
-
--- Gives a player their race and last name. `saved` (from a future save) keeps
--- what they had; anything missing or no longer in the config is rolled, free.
-function CharacterIdentity.load(player: Player, saved: { Race: string?, Surname: string? }?)
-	for kind, entry in KINDS do
-		local key = saved and (saved :: any)[kind]
-		if key and entry.defs[key] then
-			player:SetAttribute(kind, key)
-		else
-			player:SetAttribute(kind, Rules.roll(entry.defs, random))
+-- A paid (or mock) reroll of one part of a slot position's fate.
+local function roll(player: Player, id: string, kind: string): string?
+	local key = Slots.reroll(player, id, kind)
+	if key then
+		for _, hook in CharacterIdentity.onRerolled do
+			task.spawn(hook, player, kind, key)
 		end
 	end
+	return key
 end
 
 local function optionById(list: { Clothing.Option }, id: string): Clothing.Option?
@@ -332,6 +329,11 @@ local function confirm(player: Player, raw: any): (boolean, any)
 	if type(raw) ~= "table" then
 		return false, "Bad request"
 	end
+	local session = Slots.session(player)
+	if not session then
+		return false, "Pick a slot first"
+	end
+	local editing = session.mode == "edit"
 	-- the client gates Enter World on these too, but only as UX: check them here
 	if not Races[player:GetAttribute("Race") or ""] or not Surnames[player:GetAttribute("Surname") or ""] then
 		return false, "Your race and last name are still being drawn"
@@ -358,6 +360,17 @@ local function confirm(player: Player, raw: any): (boolean, any)
 		end
 		table.insert(hairIds, id)
 	end
+	-- what the slot keeps (the first name is stored beside it)
+	local stored = {
+		Shirt = raw.Shirt,
+		Pants = raw.Pants,
+		HairIds = hairIds,
+		HairColor = raw.HairColor,
+		SkinColor = raw.SkinColor,
+	}
+	if editing then
+		return Slots.commitEdit(player, stored)
+	end
 	local name, why = Rules.checkFirstName(if type(raw.FirstName) == "string" then raw.FirstName else "")
 	if not name then
 		return false, why
@@ -365,27 +378,35 @@ local function confirm(player: Player, raw: any): (boolean, any)
 	if not filterName(player, name :: string) then
 		return false, "Choose a different name"
 	end
+	-- fills the slot and plays it; Main's join continues and calls `enter`
+	return Slots.commitNew(player, stored, name :: string)
+end
+
+-- The join has finished on the played slot: show its identity, keep its look
+-- for every spawn, and bring the character in (test place: nobody stands in the
+-- world until now).
+function CharacterIdentity.enter(player: Player, id: string, data: PlayerData.Data)
+	local character = data.character or {}
+	local saved = character.look or {}
 	local look: Look = {
-		Shirt = raw.Shirt,
-		Pants = raw.Pants,
-		HairIds = hairIds,
-		HairColor = raw.HairColor,
-		SkinColor = raw.SkinColor,
-		FirstName = name :: string,
+		Shirt = saved.Shirt or Clothing.Shirt[1].Id,
+		Pants = saved.Pants or Clothing.Pants[1].Id,
+		HairIds = if type(saved.HairIds) == "table" then saved.HairIds else {},
+		HairColor = saved.HairColor or HairColors[1].Id,
+		SkinColor = saved.SkinColor or "Avatar",
+		FirstName = character.firstName or "",
 	}
 	looks[player] = look
-	player:SetAttribute("FirstName", look.FirstName)
+	Slots.showIdentity(player, id)
 	player:SetAttribute("CharacterConfirmed", true)
 	if not player.Character then
-		-- First Enter World: the player comes into the world now (CharacterAdded dresses them).
-		task.spawn(spawnCharacter, player)
+		task.spawn(spawnCharacter, player) -- CharacterAdded dresses them
 	elseif Rules.APPLY_TO_CHARACTER then
 		task.spawn(dress, player, look)
 	end
 	for _, hook in CharacterIdentity.onConfirmed do
 		task.spawn(hook, player, look)
 	end
-	return true, look
 end
 
 function CharacterIdentity.handle(player: Player, action: any, arg: any): (boolean, any)
@@ -436,16 +457,36 @@ function CharacterIdentity.handle(player: Player, action: any, arg: any): (boole
 		if not entry then
 			return false, "Bad request"
 		end
+		local session = Slots.session(player)
+		local account = PlayerData.account(player)
+		if not (session and account) then
+			return false, "Pick a slot first"
+		end
 		if entry.product.ProductId ~= 0 then
+			account.rerollFor = session.id -- the receipt may land later, even after a rejoin
 			return true, { productId = entry.product.ProductId }
 		elseif mockAllowed() then
-			return true, { rolled = roll(player, arg) }
+			return true, { rolled = roll(player, session.id, arg) }
 		end
 		return false, "Not available yet"
 	elseif action == "confirm" then
 		return confirm(player, arg)
+	elseif action == "slotHairs" then
+		local ok, ids = Slots.handle(player, "slotHairs", arg)
+		if not ok then
+			return false, ids
+		end
+		local hairs = {}
+		for _, id in ids do
+			local hair = type(id) == "number" and loadHair(id)
+			local copy = hair and previewCopy(player, id, hair)
+			if copy then
+				table.insert(hairs, { id = id, accessory = copy })
+			end
+		end
+		return true, hairs
 	end
-	return false, "Bad request"
+	return Slots.handle(player, action, arg)
 end
 
 function CharacterIdentity.look(player: Player): Look?
@@ -463,13 +504,17 @@ function CharacterIdentity.start()
 	for kind, entry in KINDS do
 		if entry.product.ProductId ~= 0 then
 			Receipts.register(entry.product.ProductId, function(player)
-				roll(player, kind)
-				return true
+				-- the slot the player had open when they asked; else the one played
+				local account = PlayerData.account(player)
+				local id = account and account.rerollFor
+				if not (id and PlayerData.validSlot(id)) then
+					id = PlayerData.active(player)
+				end
+				return id ~= nil and roll(player, id, kind) ~= nil
 			end)
 		end
 	end
 	local function watch(player: Player)
-		CharacterIdentity.load(player, nil)
 		player.CharacterAdded:Connect(function(character)
 			local look = looks[player]
 			if look and Rules.APPLY_TO_CHARACTER then

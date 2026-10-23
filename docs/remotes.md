@@ -39,7 +39,7 @@ Besides remotes, the server publishes fast-changing values as attributes:
 player `Race`, `RaceVariant`, `Traits`, `TraitsInactive` ([identity](systems/identity.md)), `Realm`, `Cultivation` (may exceed `CultivationMax`, up to `CultivationCap`), `CultivationMax`, `CultivationCap`,
 `BreakthroughReady`, `BreakthroughBlock` ([cultivation](systems/cultivation.md)), `Qi`, `QiMax`, `QiDenied` (combat qi,
 [combat](systems/combat.md#combat-qi-technique-mana)), `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`, `Meditating` (seated; for others' method auras),
-`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`; character `WeaponClass`, `WeaponStowed`
+`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`, `InCombat` (hurt or dealing damage within `IN_COMBAT_SECONDS`, [combat](systems/combat.md)); character `WeaponClass`, `WeaponStowed`
 (combines Tool occupancy, `WeaponControlsLocked`, `WeaponBreakthroughUntil`); humanoid `BaseWalkSpeed`,
 `Running`, `ActionBusy`; enemy `Health`, `MaxHealth` (enemies have no Humanoid), `AIState`, `StateAt`, `Attack`, `DashFrom`/`DashTo`/`DashSpeed`/`DashAt`, `FadeAt`, `Realm`
 (see [enemies](systems/enemies.md), "Server and client"); workspace `Weather`,

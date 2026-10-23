@@ -59,7 +59,7 @@ export type Data = {
 	firstKills: { [string]: boolean },
 	milestones: { [string]: boolean }, -- kill milestones claimed, by kill count
 	beats: { [string]: boolean }, -- onboarding beats completed, by id (Quests.Beats)
-	lessons: { [string]: boolean }, -- first-encounter lessons already shown (Quests.Lessons)
+	lessons: { [string]: boolean }, -- first-encounter lessons already shown (Quests.Lessons), plus markers: RootPillUsed, Loop (the elder named the loop)
 	quests: { [string]: boolean }, -- rewarded objectives claimed, by quest id (beats, lessons, later real quests)
 	onboardingMark: number, -- circulation runs when the current beat began
 	lastLogoutUnix: number,

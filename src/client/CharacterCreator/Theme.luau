@@ -57,12 +57,14 @@ Theme.Fit = {
 	CompactBelow = 600, -- a panel shorter than this (design px; phones) drops the footer divider
 }
 
--- The creator's steps. New: Appearance, Hair, Name (Enter World on Name).
--- Edit: the same three, the name locked, Save look on every step.
+-- The creator's steps (user, 2026-10-23). New: Appearance, Hair, Fate (race,
+-- its free looks, clan), Name (Enter World on Name). Edit: the same four, the
+-- name locked, Save look on every step.
 Theme.Steps = {
 	{ Id = "Appearance", Label = "Appearance" },
 	{ Id = "Hair", Label = "Hair" },
-	{ Id = "Name", Label = "Name", EditLabel = "Identity" },
+	{ Id = "Fate", Label = "Fate" },
+	{ Id = "Name", Label = "Name" },
 }
 
 return Theme

@@ -44,6 +44,7 @@ local Variants: { [string]: Variant } = {
 		Icon = "",
 		InnateTraits = { "WolfStamina" },
 		Modifiers = { walk = 1 },
+		Cosmetics = { "WolfEars", "WolfTail" },
 	},
 	Tiger = {
 		DisplayName = "Tiger",
@@ -53,6 +54,10 @@ local Variants: { [string]: Variant } = {
 		Icon = "",
 		InnateTraits = { "TigerClaws" },
 		Modifiers = { strike = 0.04 },
+		-- Cub is the default look; the Feral (TigerEarsPinned, TigerTailLash,
+		-- TigerWhiskersFine) and Regal (TigerEarsTufted, TigerTailCrown,
+		-- TigerWhiskersCurl) sets are in Cosmetics/Tiger for a later style picker.
+		Cosmetics = { "TigerEarsRound", "TigerTailCurl", "TigerWhiskersMarks" },
 	},
 	Crane = {
 		DisplayName = "Crane",
@@ -62,6 +67,10 @@ local Variants: { [string]: Variant } = {
 		Icon = "",
 		InnateTraits = { "CraneGrace" },
 		Modifiers = { jump = 0.1 },
+		-- Cascade is the default look; the Scholar and Ascendant sets
+		-- (CraneHeadScholar/CraneFanScholar, CraneHeadAscendant/CraneFanAscendant)
+		-- are in Cosmetics/Crane for a later style picker.
+		Cosmetics = { "CraneHeadCascade", "CraneFanCascade" },
 	},
 	Serpent = {
 		DisplayName = "Serpent",
@@ -71,6 +80,7 @@ local Variants: { [string]: Variant } = {
 		Icon = "",
 		InnateTraits = { "SerpentScales" },
 		Modifiers = { guard = 0.03 },
+		Cosmetics = { "SerpentScales", "SerpentTail" },
 	},
 }
 

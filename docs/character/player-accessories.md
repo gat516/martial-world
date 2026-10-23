@@ -13,12 +13,17 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
    one live Blender, scene `Cosmetics`, beside the untouched `R6Reference`
    collection (from `art/rig/r6_rigged.fbx`); each set in its own collection, other
    sets hidden, not deleted.
-   **Parallel modelers don't share the live Blender** (one process, one active
-   scene: `look` and context collide). Each runs its own headless Blender through
-   `tools/blender_run.sh <script.py> [file.blend] [KEY=VALUE...]`: the build script
-   imports `art/rig/r6_rigged.fbx`, saves the race's `.blend`, renders its sheet
-   tiles and exports. Each works in its own worktree. Only one agent at a time uses
-   the live MCP Blender, so the user can watch it.
+   **Parallel modelers don't share the live Blender**: it's one process with one
+   active scene, so `look` and context collide.
+   - Each parallel modeler opens its own visible window,
+     `tools/blender_live.sh open <race>`, and runs its build script there with
+     `tools/blender_live.sh run <race> <script.py>`.
+   - The build script imports `art/rig/r6_rigged.fbx`, saves the race's `.blend`,
+     renders the sheet tiles and exports.
+   - Each modeler works in its own worktree.
+   - At most 4 Blenders at once (counting the live one), all visible so the user
+     can watch.
+   - Headless `tools/blender_run.sh` is only for jobs nobody needs to watch.
 2. **Directions first.** 2-3 directions on one sheet, then stop for the user's pick.
    The user often keeps all of them as variants.
 3. **Polish, export, commit.** One FBX + JSON per set under
@@ -69,10 +74,20 @@ first note (a pi turn) put the tail in front of the body.
 - **Read as the material.** Fur is layered clumps graded big at the base to small
   at the tip, with a tapering end: not a smooth tube, not pinecone rows of equal
   scales (both rejected on the fox).
+- **Size against the part it attaches to.** Measure the R6 head, torso or limb
+  mesh's bounding box, and give each piece's height and width as a ratio of it.
+  Print the ratios and put them on the sheet. The user's words: "make sure we're
+  checking in relation to the size of the head or the body part the accessory is
+  attaching to".
+- **Cute is the approved fox direction.** "YES, the cute set for foxes is
+  perfect. that is the exact direction i want to go in": soft, rounded, chunky.
+  The pass after it ran tall and thin, with tooth-like inner tufts: "now we're
+  going too long", "not cute it just looks creepy". Once a look is approved, lock
+  it and only polish.
 - **Ears: short and solid.** The fox's first ears were "too tall. make them
   cute" and "too thin.. why are they so thin?" (user, 2026-10-23).
-  - Height: about 0.6-0.9 studs on the blocky R6 head, unless the brief says
-    otherwise.
+  - Height: about 35-45% of the head's height, base width about 25-30% of
+    its width, unless the brief says otherwise.
   - Body: a solid, rounded cup with depth front to back, wide at the base. Not a
     flat card.
   - Inner fur: a few soft, chunky, rounded tufts that fill the cup, not thin needle

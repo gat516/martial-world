@@ -188,7 +188,8 @@ joint names are in `art/player/cosmetics/README.md`; how new ones are made is
 | Beast Folk Tiger | TigerEarsRound, TigerTailCurl, TigerWhiskersMarks | Tiger (skinned Blender meshes) |
 | Beast Folk Crane | CraneHeadCascade, CraneFanCascade | Crane (skinned Blender meshes) |
 | Dragonblood | DragonHornsAntler, DragonTailTuft | Dragonblood (skinned Blender meshes) |
-| Stone Spirit / Demonic Human / Ghost | StoneShards / DemonHorns / GhostWisps | Spirits (part-built placeholders) |
+| Demonic Human (Looks: Horns Ram / Swept / Crescent, Tail Whip / Hook / Trail, picked freely) | DemonHornsRam / DemonHornsSwept / DemonHornsCrescent, DemonTailWhip / DemonTailHook / DemonTailTrail | DemonicHuman (skinned Blender meshes) |
+| Stone Spirit / Ghost | StoneShards / GhostWisps | Spirits (part-built placeholders) |
 
 Spirit Fox's three tails and three ear shapes are its `Looks` (Tail, Ears), each
 picked freely and separately on the creator's Fate step (user, 2026-10-23: purely
@@ -219,6 +220,12 @@ calls for and removes the rest (each worn one carries a `Cosmetic` attribute wit
 its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the
 body. A missing template warns once and is skipped.
+
+Demonic Human's horns and tail are its `Looks` (Horns: Ram, Swept, Crescent; Tail:
+Whip, Hook, Trail; the first of each is the default), picked freely, any horns with any
+tail (user, 2026-10-23). They replace the part-built `DemonHorns` (still in
+`Spirits.rbxm`, unused) (`art/player/cosmetics/demonic-human/README.md`). Its flame
+wisp is VFX, not built yet: it attaches at each tail's `VfxWisp` bone under `Tail5`.
 
 The creator's preview dummy wears the drawn race's look too (`Look.race`):
 `Registry.fresh(race, variant, raceLook)` stands in for a new character (only innate

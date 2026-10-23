@@ -1,0 +1,222 @@
+{
+ "name": "DemonHornsCrescent",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Horn": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "HornVein": [
+   0.5,
+   0.02,
+   0.03
+  ],
+  "Tail": [
+   0.034,
+   0.028,
+   0.034
+  ],
+  "Spade": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "TailVein": [
+   0.5,
+   0.02,
+   0.03
+  ]
+ },
+ "shade": {
+  "file": "demonic_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "DemonHornsCrescent_LeftHorn": {
+   "region": "Horn",
+   "tris": 778,
+   "center": [
+    0.491,
+    0.0,
+    0.183
+   ],
+   "size": [
+    0.798,
+    0.356,
+    1.032
+   ]
+  },
+  "DemonHornsCrescent_LeftHornVein": {
+   "region": "HornVein",
+   "tris": 248,
+   "center": [
+    0.709,
+    -0.009,
+    0.267
+   ],
+   "size": [
+    0.361,
+    0.209,
+    0.827
+   ]
+  },
+  "DemonHornsCrescent_RightHorn": {
+   "region": "Horn",
+   "tris": 778,
+   "center": [
+    -0.491,
+    0.0,
+    0.183
+   ],
+   "size": [
+    0.798,
+    0.356,
+    1.032
+   ]
+  },
+  "DemonHornsCrescent_RightHornVein": {
+   "region": "HornVein",
+   "tris": 248,
+   "center": [
+    -0.709,
+    -0.009,
+    0.267
+   ],
+   "size": [
+    0.361,
+    0.209,
+    0.827
+   ]
+  }
+ },
+ "tris_total": 2052,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "HornLBase": {
+   "parent": "Root",
+   "head": [
+    0.3,
+    0.0,
+    -0.26
+   ],
+   "tail": [
+    0.382,
+    0.001,
+    -0.009
+   ],
+   "roblox_head": [
+    -0.3,
+    -0.26,
+    0.0
+   ],
+   "deform": true
+  },
+  "HornL": {
+   "parent": "HornLBase",
+   "head": [
+    0.382,
+    0.001,
+    -0.009
+   ],
+   "tail": [
+    0.717,
+    -0.039,
+    0.274
+   ],
+   "roblox_head": [
+    -0.382,
+    -0.009,
+    0.001
+   ],
+   "deform": true
+  },
+  "HornRBase": {
+   "parent": "Root",
+   "head": [
+    -0.3,
+    0.0,
+    -0.26
+   ],
+   "tail": [
+    -0.382,
+    0.001,
+    -0.009
+   ],
+   "roblox_head": [
+    0.3,
+    -0.26,
+    0.0
+   ],
+   "deform": true
+  },
+  "HornR": {
+   "parent": "HornRBase",
+   "head": [
+    -0.382,
+    0.001,
+    -0.009
+   ],
+   "tail": [
+    -0.717,
+    -0.039,
+    0.274
+   ],
+   "roblox_head": [
+    0.382,
+    -0.009,
+    0.001
+   ],
+   "deform": true
+  }
+ },
+ "variant": "Crescent",
+ "mood": "bold, menacing",
+ "proportions": {
+  "height_above_head": 0.698,
+  "height_to_head": 0.69,
+  "span": 1.781,
+  "span_to_head": 1.49,
+  "base_diameter": 0.4,
+  "base_to_head": 0.33,
+  "length": 1.29,
+  "length_to_head": 1.27,
+  "past_head_back": -0.421,
+  "head_size": [
+   1.198,
+   1.198,
+   1.017
+  ]
+ },
+ "seating": {
+  "exit_s": 0.205,
+  "root_depth_min": 0.091
+ }
+}

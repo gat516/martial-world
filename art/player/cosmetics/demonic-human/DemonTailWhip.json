@@ -1,0 +1,269 @@
+{
+ "name": "DemonTailWhip",
+ "attachment": "WaistBackAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.5,
+  0.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Horn": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "HornVein": [
+   0.5,
+   0.02,
+   0.03
+  ],
+  "Tail": [
+   0.034,
+   0.028,
+   0.034
+  ],
+  "Spade": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "TailVein": [
+   0.5,
+   0.02,
+   0.03
+  ]
+ },
+ "shade": {
+  "file": "demonic_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "DemonTailWhip_Tail": {
+   "region": "Tail",
+   "tris": 1296,
+   "center": [
+    -0.401,
+    0.84,
+    0.211
+   ],
+   "size": [
+    1.146,
+    2.516,
+    1.977
+   ]
+  },
+  "DemonTailWhip_Spade": {
+   "region": "Spade",
+   "tris": 152,
+   "center": [
+    -0.892,
+    1.752,
+    -0.931
+   ],
+   "size": [
+    0.597,
+    0.337,
+    0.669
+   ]
+  },
+  "DemonTailWhip_TailVein": {
+   "region": "TailVein",
+   "tris": 664,
+   "center": [
+    -0.406,
+    1.102,
+    -0.08
+   ],
+   "size": [
+    1.111,
+    2.0,
+    2.191
+   ]
+  }
+ },
+ "tris_total": 2112,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "TailBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    -0.35,
+    0.55
+   ],
+   "tail": [
+    0.0,
+    -0.265,
+    0.588
+   ],
+   "roblox_head": [
+    -0.0,
+    0.55,
+    -0.35
+   ],
+   "deform": true
+  },
+  "Tail1": {
+   "parent": "TailBase",
+   "head": [
+    0.0,
+    -0.265,
+    0.588
+   ],
+   "tail": [
+    0.006,
+    0.447,
+    0.913
+   ],
+   "roblox_head": [
+    -0.0,
+    0.588,
+    -0.265
+   ],
+   "deform": true
+  },
+  "Tail2": {
+   "parent": "Tail1",
+   "head": [
+    0.006,
+    0.447,
+    0.913
+   ],
+   "tail": [
+    -0.089,
+    1.191,
+    1.076
+   ],
+   "roblox_head": [
+    -0.006,
+    0.913,
+    0.447
+   ],
+   "deform": true
+  },
+  "Tail3": {
+   "parent": "Tail2",
+   "head": [
+    -0.089,
+    1.191,
+    1.076
+   ],
+   "tail": [
+    -0.453,
+    1.804,
+    0.795
+   ],
+   "roblox_head": [
+    0.089,
+    1.076,
+    1.191
+   ],
+   "deform": true
+  },
+  "Tail4": {
+   "parent": "Tail3",
+   "head": [
+    -0.453,
+    1.804,
+    0.795
+   ],
+   "tail": [
+    -0.744,
+    2.008,
+    0.11
+   ],
+   "roblox_head": [
+    0.453,
+    0.795,
+    1.804
+   ],
+   "deform": true
+  },
+  "Tail5": {
+   "parent": "Tail4",
+   "head": [
+    -0.744,
+    2.008,
+    0.11
+   ],
+   "tail": [
+    -0.888,
+    1.848,
+    -0.636
+   ],
+   "roblox_head": [
+    0.744,
+    0.11,
+    2.008
+   ],
+   "deform": true
+  }
+ },
+ "variant": "Whip",
+ "mood": "sinister, classic",
+ "proportions": {
+  "length": 4.134,
+  "length_to_torso_height": 2.07,
+  "thickness": 0.3,
+  "thickness_to_torso_width": 0.16,
+  "spade_length": 0.7,
+  "spade_length_to_torso_width": 0.37,
+  "spade_span": 0.651,
+  "torso_size": [
+   1.87,
+   1.022,
+   2.0
+  ]
+ },
+ "limb_clearance_running": 0.26,
+ "tightest_limb": "RightLeg at [-0.689, 2.21, -0.703], swing 57 deg",
+ "anchors": {
+  "vfx_wisp": {
+   "point": [
+    -0.872,
+    1.912,
+    -0.485
+   ],
+   "note": "on the whip just above the spade; the purple flame wisp (VFX) attaches here, riding Tail5",
+   "roblox": [
+    0.872,
+    -0.485,
+    1.912
+   ]
+  },
+  "spade_tip": {
+   "point": [
+    -0.963,
+    1.608,
+    -1.257
+   ],
+   "roblox": [
+    0.963,
+    -1.257,
+    1.608
+   ]
+  }
+ }
+}

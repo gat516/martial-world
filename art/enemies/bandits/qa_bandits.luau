@@ -8,6 +8,7 @@
 --   armour    every detail part welded to a limb and parented inside it
 --   walk      stock R6 walk (180426354) stepped on an Animator, Transform vs a Workspace.Rig control
 --   drift     each welded piece's offset to its limb after FK posing (rest, windups, stress)
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 
 local ServerStorage = game:GetService("ServerStorage")
 local NAMES = { "MountainBandit", "BanditArcher", "BanditChief" }
@@ -17,7 +18,7 @@ local STOCK = { "Neck", "RootJoint", "Left Shoulder", "Right Shoulder", "Left Hi
 local LIMBS = { Head = true, Torso = true, ["Left Arm"] = true, ["Right Arm"] = true, ["Left Leg"] = true, ["Right Leg"] = true }
 
 local HttpService = game:GetService("HttpService")
-local PZ = loadstring(HttpService:GetAsync("http://127.0.0.1:8767/bandits/bandit_poses.luau?" .. os.clock()))()
+local PZ = loadstring(HttpService:GetAsync(BASE .. "bandits/bandit_poses.luau?" .. os.clock()))()
 local CLIP = 0.12 -- studs of penetration between pieces of different bodies that counts as a clip
 
 local function stockJoint(rig, name)

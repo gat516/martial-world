@@ -3,10 +3,11 @@
 -- Workspace._RosterPreviewCultivators.Solo for close captures, optionally posed.
 -- Set NAME and POSE ("rest", "windup", "stress") by gsub before loadstring. Uses the
 -- pose tables in preview_cultivators.luau (loaded with RUN = false).
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local NAME = "RogueCultivator"
 local POSE = "rest"
 local src = game:GetService("HttpService"):GetAsync(
-	"http://127.0.0.1:8767/cultivators/preview_cultivators.luau?" .. os.clock())
+	BASE .. "cultivators/preview_cultivators.luau?" .. os.clock())
 local P = loadstring((src:gsub("local RUN = true", "local RUN = false")))()
 local preview = workspace:FindFirstChild("_RosterPreviewCultivators")
 if not preview then

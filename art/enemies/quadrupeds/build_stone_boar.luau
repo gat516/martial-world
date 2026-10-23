@@ -6,7 +6,7 @@
 -- Model space: ground Y=0, faces -Z, left side is -X. Old StoneBoar HRP kept: 3 x 2.4 x 5
 -- at Y 2.8 (rig_stone_boar.luau).
 
-local BASE = "http://127.0.0.1:8767/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local HttpService = game:GetService("HttpService")
 local P = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/parts_lib.luau?" .. os.clock()))()("StoneBoar_R")
 local v, block, ball, limb, fin, spike, tri, bevel, bevelZ, tell, add =

@@ -13,7 +13,7 @@
 local HttpService = game:GetService("HttpService")
 local SerializationService = game:GetService("SerializationService")
 local ServerStorage = game:GetService("ServerStorage")
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local STEP = 0.25 -- grid spacing inside each part, studs
 
 local raw = HttpService:GetAsync(BASE .. "jade_python_ref.rbxm.b64?" .. os.clock())

@@ -6,7 +6,7 @@
 -- The head and neck retract: JointNeck slides back along +Z (up to 2.3, see RIGS.md) and the
 -- neck disappears under the shell's front lip.
 
-local BASE = "http://127.0.0.1:8767/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local HttpService = game:GetService("HttpService")
 local P = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/parts_lib.luau?" .. os.clock()))()("StoneTortoise_R")
 local v, block, ball, limb, fin, spike, bevel, bevelZ, tell, add =

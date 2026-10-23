@@ -2,8 +2,9 @@
 -- Push src/ files from disk into a sandbox Studio (tools/sandbox.sh), which has
 -- no Rojo: a sandbox holds src/ as it was when it opened, so a module you edit
 -- (or add) afterwards needs pushing before a preview or QA script requires it.
--- Run tools/serve.sh first (port 8768 serves the repo root), then in the
--- sandbox, through execute_luau:
+-- Run tools/serve.sh first (no args: 8768 serves the repo root; `tools/serve.sh <port>`
+-- serves your worktree, then set _G.SERVE_BASE = "http://127.0.0.1:<port>/" before loading),
+-- then in the sandbox, through execute_luau:
 --   loadstring(game:GetService("HttpService"):GetAsync("http://127.0.0.1:8768/tools/push_src.luau"))()
 --   _G.pushSrc({ "src/client/EnemyPoses/Boar.luau", "src/client/EnemyPoses/Quadruped.luau" })
 -- Paths map like test.project.json: src/shared -> ReplicatedStorage.Shared,
@@ -14,6 +15,7 @@
 -- user's own Studio: there Rojo owns these instances.
 
 local HttpService = game:GetService("HttpService")
+local BASE = _G.SERVE_BASE or "http://127.0.0.1:8768/" -- repo root, e.g. tools/serve.sh <port>
 
 local ROOTS = {
 	["src/shared"] = function()
@@ -60,7 +62,7 @@ local function push(path: string): string
 		end
 		parent = child
 	end
-	local source = HttpService:GetAsync(`http://127.0.0.1:8768/{path}`)
+	local source = HttpService:GetAsync(`{BASE}{path}`)
 	local script = parent:FindFirstChild(name)
 	if script and script.ClassName ~= class then
 		if script:IsA("Folder") then

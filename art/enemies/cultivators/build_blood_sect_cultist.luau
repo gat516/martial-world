@@ -4,7 +4,7 @@
 -- yellow talismans hanging from the belt. Silhouette: the pointed hood.
 -- Run in Edit mode through execute_luau; rebuilds _RosterCultivators.BloodSectCultist.
 
-local BASE = "http://127.0.0.1:8767/cultivators/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/cultivators/") or "http://127.0.0.1:8767/cultivators/"
 local L = loadstring(game:GetService("HttpService"):GetAsync(BASE .. "lib.luau?" .. os.clock()))()
 local v = L.v
 

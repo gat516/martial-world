@@ -5,6 +5,7 @@
 -- forward kinematics like spirit_wolf/preview_wolves.luau (Motor6D.Transform doesn't move
 -- parts in Edit mode). Run in Edit mode through execute_luau; re-runnable.
 -- ONLY: set to a model name to preview just that one (rest + windup side by side).
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 
 local ONLY = nil
 local PREVIEW_AT = CFrame.new(200, 400, 3000)
@@ -13,7 +14,7 @@ local ServerStorage = game:GetService("ServerStorage")
 
 -- Windup poses live in poses_quadrupeds.luau (shared with qa_quadrupeds.luau).
 local HttpService = game:GetService("HttpService")
-local POSES = loadstring(HttpService:GetAsync("http://127.0.0.1:8767/quadrupeds/poses_quadrupeds.luau?" .. os.clock()))()
+local POSES = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/poses_quadrupeds.luau?" .. os.clock()))()
 local WINDUP = POSES.WINDUP
 
 local function posed(copy, pose)

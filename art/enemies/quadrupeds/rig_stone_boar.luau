@@ -4,7 +4,7 @@
 -- JointLeg*; every other joint is Joint<Part1> (RIGS.md).
 -- HRP kept from the old StoneBoar (3 x 2.4 x 5 at Y 2.8): its AI ranges are tuned to it.
 
-local BASE = "http://127.0.0.1:8767/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local HttpService = game:GetService("HttpService")
 local rig = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/rig_lib.luau?" .. os.clock()))()
 

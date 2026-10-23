@@ -7,6 +7,7 @@
 -- Run in Edit mode through execute_luau:
 --   loadstring(game:GetService("HttpService"):GetAsync("http://127.0.0.1:8767/wolf_family/qa_wolves.luau?" .. os.clock()))()
 -- _G.WOLF_QA_POSES = { "rest", "crouch" } limits the poses; _G.WOLF_QA_MODELS limits models.
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 
 local ServerStorage = game:GetService("ServerStorage")
 local H = game:GetService("HttpService")
@@ -63,7 +64,7 @@ local POSES = {
 }
 -- the per-beast windups, as authored in the preview scripts
 local function fetch(p)
-	return H:GetAsync("http://127.0.0.1:8767/" .. p .. "?" .. os.clock())
+	return H:GetAsync(BASE .. p .. "?" .. os.clock())
 end
 POSES.pounce = {
 	JointRoot = CFrame.new(0, 0.3, 0) * A(0.15, 0, 0), JointSpine = A(-0.1, 0, 0),

@@ -16,7 +16,8 @@
 -- rest pose (a sinking or lifting body), and how far the root travels.
 --
 -- Start from the family's shared spec in art/enemies/motion_specs.luau (add a family that isn't
--- there yet). Use (art/enemies is served on 8767 by tools/serve.sh):
+-- there yet). Use (art/enemies is served on 8767 by tools/serve.sh; with _G.SERVE_BASE set to a
+-- worktree's root URL the other art/enemies scripts read <SERVE_BASE>art/enemies/ instead):
 --   _G.MOTION = {
 --     module = "ThunderApe",          -- EnemyPoses/<module>
 --     template = "ThunderApeB",       -- ServerStorage.Enemies.<template>

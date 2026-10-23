@@ -7,7 +7,7 @@
 -- Each tail is two segments, Tail<i> and Tail<i>Tip (i = 1..9 from left to right), on
 -- a shared root block named Tail (JointTail), so they can fan, sway and curl one by one.
 
-local BASE = "http://127.0.0.1:8767/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local HttpService = game:GetService("HttpService")
 local P = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/parts_lib.luau?" .. os.clock()))()("NineTailFox_R")
 local v, block, ball, limb, fin, tri, bevel, bevelZ, tell, add =

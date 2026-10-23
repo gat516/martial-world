@@ -8,7 +8,7 @@
 -- Quiver, BandTail1/2, ScarfTail, SkirtL/SkirtR.
 
 local HttpService = game:GetService("HttpService")
-local BASE = "http://127.0.0.1:8767/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local B = loadstring(HttpService:GetAsync(BASE .. "bandits/bandit_common.luau?" .. os.clock()))()
 local v = B.v
 

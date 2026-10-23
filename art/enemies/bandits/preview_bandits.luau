@@ -9,7 +9,7 @@ local PREVIEW_AT = CFrame.new(400, 400, 3000)
 local SPACING = 5
 local ONLY = nil -- e.g. "MountainBandit" to preview one model (gsub it for single-model captures)
 local MODE = "attack" -- PREVIEW_MODE -- "attack": rest + windup; "test": stride + arms raised (clipping check)
-local BASE = "http://127.0.0.1:8767/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 
 local ServerStorage = game:GetService("ServerStorage")
 

@@ -12,7 +12,7 @@
 -- HRP: covers the coil (player melee only hits the HRP), bottom 0.5 above the ground;
 -- its 3-stud height makes EnemyAnimator's stride scale 1.5.
 
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local rig = loadstring(game:GetService("HttpService"):GetAsync(BASE .. "rig_core.luau?" .. os.clock()))()
 return rig({
 	target = "JadePython",

@@ -9,7 +9,7 @@
 -- chain of tube segments: Body (the root) -> Neck1-3 -> Skull -> Jaw forward and
 -- Body -> Tail1-5 back, with the two hood halves hinged on Neck3.
 
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local HttpService = game:GetService("HttpService")
 local B = loadstring(HttpService:GetAsync(BASE .. "lib.luau?" .. os.clock()))()("VenomSerpent")
 local v, tell = B.v, B.tell

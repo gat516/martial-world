@@ -18,7 +18,7 @@
 -- Everything is anchored, motors cut, in Workspace._Filmstrip (tagged EditorOnly).
 --
 -- Use (tools/serve.sh serves the repo root on 8768; 8768 may be another checkout's when several
--- sessions run, so serve your worktree on a port of its own and pass it as `base`):
+-- sessions run, so serve your worktree on a port of its own and pass it as `base`, or set _G.SERVE_BASE once):
 --   _G.MOTION = { ...the motion_probe spec, see its header... }
 --   _G.FILMSTRIP = { move = "clubSwing",   -- or a probe move spec / { loop = "walk", speed = 6 };
 --                                          -- default: _G.MOTION.moves[1]
@@ -53,7 +53,7 @@ if opts.cleanup then
 end
 cleanup()
 
-local base = opts.base or "http://127.0.0.1:8768/"
+local base = opts.base or _G.SERVE_BASE or "http://127.0.0.1:8768/"
 local N = opts.n or 8
 local sinkLimit = opts.sinkLimit or 0.1
 local gapFrac = opts.gap or 0.3

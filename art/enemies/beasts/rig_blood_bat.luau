@@ -9,7 +9,7 @@
 -- land on the body. Health bar 1 stud over the ear tips.
 
 local ServerStorage = game:GetService("ServerStorage")
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local rig = loadstring(game:GetService("HttpService"):GetAsync(BASE .. "rig_core.luau?" .. os.clock()))()
 local model = ServerStorage._RosterBeasts.BloodBat
 

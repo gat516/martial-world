@@ -3,6 +3,7 @@
 -- plate at SHOT_AT (in Workspace._RosterPreviewQuadrupeds._Shot, EditorOnly, anchored),
 -- with an R6 player for scale beside it, and returns camera spots for the standard views.
 -- Set MODEL and POSE (nil = rest, or WINDUP / STRETCH / CROUCH) with a gsub first.
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 
 local MODEL = "StoneBoar_R"
 local POSE = nil
@@ -10,7 +11,7 @@ local SHOT_AT = CFrame.new(320, 400, 3100)
 
 local ServerStorage = game:GetService("ServerStorage")
 local HttpService = game:GetService("HttpService")
-local POSES = loadstring(HttpService:GetAsync("http://127.0.0.1:8767/quadrupeds/poses_quadrupeds.luau?" .. os.clock()))()
+local POSES = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/poses_quadrupeds.luau?" .. os.clock()))()
 
 local preview = workspace:FindFirstChild("_RosterPreviewQuadrupeds")
 if not preview then

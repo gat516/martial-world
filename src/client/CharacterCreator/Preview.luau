@@ -296,17 +296,6 @@ function Preview.setRaceLook(templates: { Accessory }, scale: number)
 	frame()
 end
 
--- Paints another dummy's body (an outfit card's) in the stage dummy's colours, so
--- the cards show the skin the player will wear.
-function Preview.copyBodyTo(model: Model)
-	for _, part in dummy:GetChildren() do
-		local twin = model:FindFirstChild(part.Name)
-		if part:IsA("BasePart") and twin and twin:IsA("BasePart") then
-			twin.Color = part.Color
-		end
-	end
-end
-
 -- Takes every hair off (a slot switch or a fresh look).
 function Preview.clearHairs()
 	for slot in table.clone(hairs) do

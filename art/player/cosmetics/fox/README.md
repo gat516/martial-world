@@ -1,8 +1,9 @@
 # Spirit Fox cosmetics (Blender, skinned)
 
 Fox ears and fox tails for the Spirit Fox race's R6 avatar. Three tails and three ear shapes
-ship as the Spirit Fox variants Plume (Plume + Sleek), Crescent (Crescent + Broad) and Wisp
-(Wisp + Long) (`src/shared/Identity/Variants/SpiritFox.luau`); any ears go with any tail.
+ship as the Spirit Fox race's free Looks, Tail (Plume, Crescent, Wisp) and Ears (Sleek,
+Broad, Long), picked separately on the creator's Fate step (`Looks` in
+`src/shared/Identity/Races.luau`); any ears go with any tail.
 
 | Set | Attaches to (R6) | Meshes (one MeshPart each) | Tris |
 | --- | --- | --- | --- |

@@ -14,15 +14,14 @@ placeholders until they're remade (how: `docs/character/player-accessories.md`).
 
 ## Fox (`assets/Cosmetics/Fox.rbxm`)
 
-Skinned Blender meshes with bones, three Spirit Fox variants (`src/shared/Identity/Variants/SpiritFox.luau`).
+Skinned Blender meshes with bones, the Spirit Fox race's free Looks (`Looks` in `src/shared/Identity/Races.luau`).
 Model, rig, colours, asset ids and the Studio build (`fox/place_fox_cosmetics.luau`) are in
 [`fox/README.md`](fox/README.md).
 
 | Accessory | Attaches to (R6) | Worn by |
 | --- | --- | --- |
-| `FoxTailPlume`, `FoxEarsSleek` | Torso.WaistBackAttachment, Head.HatAttachment | Spirit Fox, Plume |
-| `FoxTailCrescent`, `FoxEarsBroad` | same | Spirit Fox, Crescent |
-| `FoxTailWisp`, `FoxEarsLong` | same | Spirit Fox, Wisp |
+| `FoxTailPlume`, `FoxTailCrescent`, `FoxTailWisp` | Torso.WaistBackAttachment | Spirit Fox, Tail look |
+| `FoxEarsSleek`, `FoxEarsBroad`, `FoxEarsLong` | Head.HatAttachment | Spirit Fox, Ears look |
 
 Export the `Fox` folder (`_G.exportRbxm("ReplicatedStorage.Cosmetics.Fox")`, or from a
 sandbox's staging folder) to `assets/Cosmetics/Fox.rbxm`.

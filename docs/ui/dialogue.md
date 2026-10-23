@@ -100,20 +100,29 @@ All cut art, never repainted (ids in `art/ui/assets.json`):
 `WorldPrompts` keeps its behaviour (one target in focus, keys muted elsewhere, billboard
 on the target with a mouse, keyboard or gamepad, the touch Dock otherwise). The card
 (`Prompts.Board.List.Card`, 300 x 52 on the billboard) is now:
-- `Banner`: the kit's `prompt_banner` in three parts (40 tall), tucked behind the plate
-  from its centre and nudged 2 px down so its visible middle is the card's.
+- `Banner`: the kit's `prompt_banner` with plain ends (40 tall), tucked behind the plate
+  from its centre and nudged 2 px down so its interior's middle is the card's (26.3 of 52).
+  The ends are `prompt_banner_capL_plain` (the left cap's outer rail and serif, cropped
+  at source x 64, before the cap's top-left shine) and `capR_plain` (that crop mirrored),
+  11 x 40 each; `Mid` stretches between them. The cut's cloud cap (`prompt_banner_capR`)
+  is no longer used: at 40 tall its cloud swallowed the banner's right third and ran into
+  the glyph, and the user finds that much ornament tacky.
 - `Key`: the round `keyplate` (52). The key letter is live text on its cream tile (the
   gamepad button image when one exists); on touch the tile shows the action's glyph
   instead (a hand when there's none) and the whole card is the button.
-- `Icon`: the action's white glyph, tinted cream, at the banner's right end just inside
-  its cloud cap (keyboard and gamepad; on touch the plate shows it). `Glyphs.forPrompt`
+- `Icon`: the action's white glyph (20), tinted cream, inside the banner's right end:
+  6 px from the body text and 6.4 from the right rail's inner edge, centred on the card
+  (keyboard and gamepad; on touch the plate shows it). `Glyphs.forPrompt`
   picks it from the action text's first word (Talk, Harvest/Pick/Gather, Plant/No seeds,
   Grow now, Read, Browse/Trade, Claim, Take, Study, Touch, Travel, "Gather Qi"...), or a
   prompt's `Glyph` attribute.
 - `Key.Hold`: for a prompt with a HoldDuration, the `hold_ring` cut round the plate: a
   dim track and a lit copy swept clockwise from the top while held (two clipped halves,
   each a UIGradient with a hard edge, rotated `min(p, 0.5) * 360` and `max(p, 0.5) * 360`).
-- `Body`: object line (13 px) over the action (17 px), between plate and glyph.
+- `Body`: object line (13 px, top 10) over the action (17 px, top 24), 6 px right of the
+  plate and 6 px left of the glyph (200 wide on a 300 card); with no glyph it widens by
+  26 to stop 6.4 px short of the rail. Both lines truncate. The two-line block centres at
+  26.25 and one line at 26.5, against the interior's 26.3.
 
 Touch Dock: its box still mirrors `Hud.Stack` (aspect 3.75839, max 560 x 149). Its
 `List` is 280 wide, cards bottom-up with a 6 px gap; `Lift` (same box) is where a

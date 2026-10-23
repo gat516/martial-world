@@ -40,8 +40,8 @@ export type Page = "Comprehend" | "Method" | "Root"
 
 -- button art (art/ui/assets.json): the kit's cloud-end tags, jade for the
 -- suggested action, bronze for the rest (RowTemplate.Action slices them)
-local BUTTON_JADE = "rbxassetid://98643070071584" -- ornament_tag_jade
-local BUTTON_LACQUER = "rbxassetid://104219684502972" -- ornament_tag_bronze
+local BUTTON_JADE = "rbxassetid://101467676951805" -- ornament_tag_jade
+local BUTTON_LACQUER = "rbxassetid://98060115715507" -- ornament_tag_bronze
 local LIGHT = Color3.fromRGB(236, 232, 220)
 local DIM = Color3.fromRGB(176, 186, 180)
 local JADE = Color3.fromRGB(130, 230, 185)

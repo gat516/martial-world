@@ -37,7 +37,7 @@
      <float name="BackgroundTransparency">1</float>
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.6</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>0</XS><XO>700</XO><YS>0</YS><YO>260</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://133805277290521</url></Content>
+     <Content name="Image"><url>rbxassetid://104343892760987</url></Content>
      <float name="ImageTransparency">0.35</float>
     </Properties>
     </Item>
@@ -97,7 +97,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>0</XS><XO>66</XO><YS>0</YS><YO>92</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://121155858743627</url></Content>
+       <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX14"><Properties>
@@ -105,7 +105,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>92</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://77750472638110</url></Content>
+       <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX15"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -118,7 +118,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>0</XS><XO>148</XO><YS>0</YS><YO>92</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://126214334515284</url></Content>
+       <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX17"><Properties>
@@ -126,7 +126,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">4</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>92</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://123468701383865</url></Content>
+       <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX18"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -139,7 +139,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">5</int>
        <UDim2 name="Size"><XS>0</XS><XO>66</XO><YS>0</YS><YO>92</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://139949631719973</url></Content>
+       <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
       </Properties>
       </Item>
      </Item>
@@ -172,7 +172,7 @@
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.6</YS><YO>-28</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>120</XO><YS>0</YS><YO>107</YO></UDim2>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://135105198809137</url></Content>
+      <Content name="Image"><url>rbxassetid://125537452306598</url></Content>
       <float name="ImageTransparency">1</float>
      </Properties>
      </Item>
@@ -239,7 +239,7 @@
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.524138</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>178</XO><YS>0</YS><YO>173</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://136483624179220</url></Content>
+      <Content name="Image"><url>rbxassetid://77120723589116</url></Content>
       <Color3 name="ImageColor3"><R>0.27451</R><G>0.227451</G><B>0.156863</B></Color3>
       <float name="ImageTransparency">0.15</float>
      </Properties>
@@ -252,7 +252,7 @@
       <UDim2 name="Size"><XS>0</XS><XO>128</XO><YS>0</YS><YO>126</YO></UDim2>
       <int name="ZIndex">3</int>
       <bool name="AutoButtonColor">false</bool>
-      <Content name="Image"><url>rbxassetid://105802175207819</url></Content>
+      <Content name="Image"><url>rbxassetid://135485275788243</url></Content>
      </Properties>
       <Item class="UIScale" referent="RBX31"><Properties>
        <string name="Name">Motion</string>
@@ -290,7 +290,7 @@
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Position"><XS>-1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
         <UDim2 name="Size"><XS>2</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-        <Content name="Image"><url>rbxassetid://136483624179220</url></Content>
+        <Content name="Image"><url>rbxassetid://77120723589116</url></Content>
         <Color3 name="ImageColor3"><R>1</R><G>0.941176</G><B>0.705882</B></Color3>
        </Properties>
         <Item class="UIGradient" referent="RBX36"><Properties>
@@ -310,7 +310,7 @@
         <string name="Name">Ring</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>2</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-        <Content name="Image"><url>rbxassetid://136483624179220</url></Content>
+        <Content name="Image"><url>rbxassetid://77120723589116</url></Content>
         <Color3 name="ImageColor3"><R>1</R><G>0.941176</G><B>0.705882</B></Color3>
        </Properties>
         <Item class="UIGradient" referent="RBX39"><Properties>
@@ -356,7 +356,7 @@
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>1.55</XS><XO>0</XO><YS>1.55</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
-     <Content name="Image"><url>rbxassetid://119158829188894</url></Content>
+     <Content name="Image"><url>rbxassetid://108168979205659</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX44"><Properties>
@@ -405,7 +405,7 @@
      <UDim2 name="Size"><XS>0.8</XS><XO>0</XO><YS>0.8</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">4</int>
-     <Content name="Image"><url>rbxassetid://103121406237935</url></Content>
+     <Content name="Image"><url>rbxassetid://107322079054926</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX49"><Properties>
@@ -415,7 +415,7 @@
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">5</int>
-     <Content name="Image"><url>rbxassetid://136483624179220</url></Content>
+     <Content name="Image"><url>rbxassetid://77120723589116</url></Content>
     </Properties>
     </Item>
     <Item class="TextButton" referent="RBX50"><Properties>
@@ -443,7 +443,7 @@
      <float name="BackgroundTransparency">1</float>
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://83445459645980</url></Content>
+     <Content name="Image"><url>rbxassetid://124748716200625</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX53"><Properties>
@@ -454,7 +454,7 @@
      <UDim2 name="Size"><XS>0.15</XS><XO>0</XO><YS>0.144</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">2</int>
-     <Content name="Image"><url>rbxassetid://121793265149448</url></Content>
+     <Content name="Image"><url>rbxassetid://75556176975753</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX54"><Properties>
@@ -465,7 +465,7 @@
      <UDim2 name="Size"><XS>0.15</XS><XO>0</XO><YS>0.144</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">2</int>
-     <Content name="Image"><url>rbxassetid://121793265149448</url></Content>
+     <Content name="Image"><url>rbxassetid://75556176975753</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX55"><Properties>
@@ -476,7 +476,7 @@
      <UDim2 name="Size"><XS>0.15</XS><XO>0</XO><YS>0.144</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">2</int>
-     <Content name="Image"><url>rbxassetid://121793265149448</url></Content>
+     <Content name="Image"><url>rbxassetid://75556176975753</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX56"><Properties>
@@ -487,7 +487,7 @@
      <UDim2 name="Size"><XS>0.15</XS><XO>0</XO><YS>0.144</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">2</int>
-     <Content name="Image"><url>rbxassetid://121793265149448</url></Content>
+     <Content name="Image"><url>rbxassetid://75556176975753</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX57"><Properties>
@@ -498,7 +498,7 @@
      <UDim2 name="Size"><XS>0.15</XS><XO>0</XO><YS>0.144</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">2</int>
-     <Content name="Image"><url>rbxassetid://121793265149448</url></Content>
+     <Content name="Image"><url>rbxassetid://75556176975753</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX58"><Properties>
@@ -509,7 +509,7 @@
      <UDim2 name="Size"><XS>0.15</XS><XO>0</XO><YS>0.144</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">2</int>
-     <Content name="Image"><url>rbxassetid://121793265149448</url></Content>
+     <Content name="Image"><url>rbxassetid://75556176975753</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX59"><Properties>
@@ -520,7 +520,7 @@
      <UDim2 name="Size"><XS>0.15</XS><XO>0</XO><YS>0.144</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">2</int>
-     <Content name="Image"><url>rbxassetid://121793265149448</url></Content>
+     <Content name="Image"><url>rbxassetid://75556176975753</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX60"><Properties>
@@ -531,7 +531,7 @@
      <UDim2 name="Size"><XS>0.15</XS><XO>0</XO><YS>0.144</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">2</int>
-     <Content name="Image"><url>rbxassetid://121793265149448</url></Content>
+     <Content name="Image"><url>rbxassetid://75556176975753</url></Content>
     </Properties>
     </Item>
     <Item class="ImageLabel" referent="RBX61"><Properties>
@@ -542,7 +542,7 @@
      <UDim2 name="Size"><XS>0.15</XS><XO>0</XO><YS>0.144</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">2</int>
-     <Content name="Image"><url>rbxassetid://121793265149448</url></Content>
+     <Content name="Image"><url>rbxassetid://75556176975753</url></Content>
     </Properties>
     </Item>
     <Item class="TextLabel" referent="RBX62"><Properties>
@@ -585,7 +585,7 @@
     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
     <UDim2 name="Size"><XS>1.19</XS><XO>0</XO><YS>1.21</YS><YO>0</YO></UDim2>
     <bool name="Visible">false</bool>
-    <Content name="Image"><url>rbxassetid://114293655891061</url></Content>
+    <Content name="Image"><url>rbxassetid://127167563435036</url></Content>
    </Properties>
    </Item>
    <Item class="ImageLabel" referent="RBX65"><Properties>
@@ -595,7 +595,7 @@
     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
     <UDim2 name="Size"><XS>0</XS><XO>40</XO><YS>0</YS><YO>42</YO></UDim2>
     <bool name="Visible">false</bool>
-    <Content name="Image"><url>rbxassetid://120447037577230</url></Content>
+    <Content name="Image"><url>rbxassetid://96434827475447</url></Content>
    </Properties>
     <Item class="UIAspectRatioConstraint" referent="RBX66"><Properties>
      <string name="Name">UIAspectRatioConstraint</string>
@@ -610,7 +610,7 @@
     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
     <UDim2 name="Size"><XS>0</XS><XO>36</XO><YS>0</YS><YO>42</YO></UDim2>
     <bool name="Visible">false</bool>
-    <Content name="Image"><url>rbxassetid://133416954594836</url></Content>
+    <Content name="Image"><url>rbxassetid://79526715658816</url></Content>
    </Properties>
     <Item class="UIAspectRatioConstraint" referent="RBX68"><Properties>
      <string name="Name">UIAspectRatioConstraint</string>

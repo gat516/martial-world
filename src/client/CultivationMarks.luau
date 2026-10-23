@@ -22,14 +22,14 @@ export type Tier = number -- 1..4
 
 local TIERS = {
 	-- art, and the frame's size over the icon (the art's hole is 72-77% of it)
-	{ image = "rbxassetid://114293655891061", x = 1.19, y = 1.21 },
-	{ image = "rbxassetid://93470837190971", x = 1.21, y = 1.23 },
-	{ image = "rbxassetid://131738116583360", x = 1.23, y = 1.25 },
-	{ image = "rbxassetid://78544890559261", x = 1.27, y = 1.3 },
+	{ image = "rbxassetid://127167563435036", x = 1.19, y = 1.21 },
+	{ image = "rbxassetid://97934442503958", x = 1.21, y = 1.23 },
+	{ image = "rbxassetid://103167416549179", x = 1.23, y = 1.25 },
+	{ image = "rbxassetid://133608460899146", x = 1.27, y = 1.3 },
 }
 local BLOODLINES = {
-	Pure = "rbxassetid://120447037577230",
-	Inherited = "rbxassetid://92587004067417",
+	Pure = "rbxassetid://96434827475447",
+	Inherited = "rbxassetid://89234471253325",
 }
 local NOTCHES = 9
 local MASTERED = 10

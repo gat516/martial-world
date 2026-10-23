@@ -234,7 +234,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">1</int>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://73036725196235</url></Content>
+      <Content name="Image"><url>rbxassetid://97568519412763</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX30"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -249,7 +249,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">2</int>
       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://106133334803822</url></Content>
+      <Content name="Image"><url>rbxassetid://89252257799113</url></Content>
      </Properties>
       <Item class="UIFlexItem" referent="RBX32"><Properties>
        <string name="Name">UIFlexItem</string>
@@ -263,7 +263,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">3</int>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://129705601108362</url></Content>
+      <Content name="Image"><url>rbxassetid://74318261845974</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX34"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -345,7 +345,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">1</int>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://102351252997165</url></Content>
+      <Content name="Image"><url>rbxassetid://87558172133894</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX44"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -360,7 +360,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">2</int>
       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://134353008526051</url></Content>
+      <Content name="Image"><url>rbxassetid://70611511118059</url></Content>
      </Properties>
       <Item class="UIFlexItem" referent="RBX46"><Properties>
        <string name="Name">UIFlexItem</string>
@@ -374,7 +374,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">3</int>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://125394177999203</url></Content>
+      <Content name="Image"><url>rbxassetid://90935397356167</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX48"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -433,7 +433,7 @@
      <int name="BorderSizePixel">0</int>
      <int name="LayoutOrder">1</int>
      <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://97810020385298</url></Content>
+     <Content name="Image"><url>rbxassetid://109177664097866</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX55"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
@@ -448,7 +448,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>0.496</XS><XO>0</XO><YS>0.497</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0.62</XS><XO>0</XO><YS>0.62</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://140034976306899</url></Content>
+      <Content name="Image"><url>rbxassetid://96305267556093</url></Content>
       <float name="ImageTransparency">0.82</float>
      </Properties>
      </Item>
@@ -497,7 +497,7 @@
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
     <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-    <Content name="Image"><url>rbxassetid://108041912018323</url></Content>
+    <Content name="Image"><url>rbxassetid://138155653227573</url></Content>
    </Properties>
     <Item class="UIAspectRatioConstraint" referent="RBX61"><Properties>
      <string name="Name">UIAspectRatioConstraint</string>
@@ -559,7 +559,7 @@
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
     <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-    <Content name="Image"><url>rbxassetid://107078935288974</url></Content>
+    <Content name="Image"><url>rbxassetid://114252110178880</url></Content>
    </Properties>
     <Item class="UIAspectRatioConstraint" referent="RBX68"><Properties>
      <string name="Name">UIAspectRatioConstraint</string>
@@ -630,7 +630,7 @@
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>50</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://140034976306899</url></Content>
+     <Content name="Image"><url>rbxassetid://96305267556093</url></Content>
     </Properties>
      <Item class="TextLabel" referent="RBX76"><Properties>
       <string name="Name">Glyph</string>
@@ -681,7 +681,7 @@
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-    <Content name="Image"><url>rbxassetid://108539019875953</url></Content>
+    <Content name="Image"><url>rbxassetid://102556841868642</url></Content>
    </Properties>
     <Item class="UIScale" referent="RBX81"><Properties>
      <string name="Name">Motion</string>
@@ -694,7 +694,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.2</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>0.9</XS><XO>0</XO><YS>0.3</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://133805277290521</url></Content>
+     <Content name="Image"><url>rbxassetid://104343892760987</url></Content>
      <Color3 name="ImageColor3"><R>1</R><G>0.839216</G><B>0.54902</B></Color3>
      <float name="ImageTransparency">0.7</float>
     </Properties>
@@ -750,7 +750,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>0.501</XS><XO>0</XO><YS>0.3</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>0.62</XS><XO>0</XO><YS>0.035</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://109654303489676</url></Content>
+     <Content name="Image"><url>rbxassetid://104821601185231</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
     </Item>
@@ -849,7 +849,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.111</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>0.9</XS><XO>0</XO><YS>0.06</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://108563894970515</url></Content>
+     <Content name="Image"><url>rbxassetid://131306954850384</url></Content>
      <float name="ImageTransparency">1</float>
     </Properties>
     </Item>
@@ -871,7 +871,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0.792</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://97810020385298</url></Content>
+     <Content name="Image"><url>rbxassetid://109177664097866</url></Content>
      <Color3 name="ImageColor3"><R>1</R><G>0.92549</G><B>0.882353</B></Color3>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX100"><Properties>
@@ -886,7 +886,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>0.496</XS><XO>0</XO><YS>0.497</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>1.3</XS><XO>0</XO><YS>1.3</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://135105198809137</url></Content>
+      <Content name="Image"><url>rbxassetid://125537452306598</url></Content>
       <float name="ImageTransparency">1</float>
      </Properties>
      </Item>
@@ -941,7 +941,7 @@
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-    <Content name="Image"><url>rbxassetid://124608158646937</url></Content>
+    <Content name="Image"><url>rbxassetid://82197237997542</url></Content>
    </Properties>
     <Item class="UIScale" referent="RBX107"><Properties>
      <string name="Name">Motion</string>
@@ -1020,7 +1020,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.348</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>0.64</XS><XO>0</XO><YS>0.024</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://109654303489676</url></Content>
+     <Content name="Image"><url>rbxassetid://104821601185231</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
     </Item>
@@ -1116,7 +1116,7 @@
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://76786990710767</url></Content>
+       <Content name="Image"><url>rbxassetid://112951577020464</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX126"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
@@ -1153,7 +1153,7 @@
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://139624663880942</url></Content>
+       <Content name="Image"><url>rbxassetid://140019311297550</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX130"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -1189,7 +1189,7 @@
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://108707235283751</url></Content>
+       <Content name="Image"><url>rbxassetid://103310771455929</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX134"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
@@ -1207,7 +1207,7 @@
      <UDim2 name="Position"><XS>0.925</XS><XO>0</XO><YS>0.215</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>0.12</XS><XO>0</XO><YS>0.08</YS><YO>0</YO></UDim2>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://123993787841180</url></Content>
+     <Content name="Image"><url>rbxassetid://114481069197353</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX136"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
@@ -1266,7 +1266,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">1</int>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://70503999231778</url></Content>
+      <Content name="Image"><url>rbxassetid://115422265874458</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX144"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -1281,7 +1281,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">2</int>
       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://111722632788009</url></Content>
+      <Content name="Image"><url>rbxassetid://85077577596248</url></Content>
      </Properties>
       <Item class="UIFlexItem" referent="RBX146"><Properties>
        <string name="Name">UIFlexItem</string>
@@ -1318,7 +1318,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">3</int>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://79899687264489</url></Content>
+      <Content name="Image"><url>rbxassetid://124208842471328</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX150"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -1356,7 +1356,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>0</YS><YO>-4</YO></UDim2>
      <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.2</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://128154669671865</url></Content>
+     <Content name="Image"><url>rbxassetid://85875302473824</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX155"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
@@ -1371,7 +1371,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>1</XS><XO>4</XO><YS>0</YS><YO>-4</YO></UDim2>
      <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.2</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://138302523387403</url></Content>
+     <Content name="Image"><url>rbxassetid://88976605104747</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX157"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
@@ -1386,7 +1386,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>1</YS><YO>4</YO></UDim2>
      <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.2</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://93741706328335</url></Content>
+     <Content name="Image"><url>rbxassetid://77144194929366</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX159"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
@@ -1401,7 +1401,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>1</XS><XO>4</XO><YS>1</YS><YO>4</YO></UDim2>
      <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.2</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://88254032578616</url></Content>
+     <Content name="Image"><url>rbxassetid://113361229444828</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX161"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
@@ -1436,7 +1436,7 @@
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://121155858743627</url></Content>
+       <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX166"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
@@ -1451,7 +1451,7 @@
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://77750472638110</url></Content>
+       <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX168"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -1465,7 +1465,7 @@
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://126214334515284</url></Content>
+       <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX170"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
@@ -1480,7 +1480,7 @@
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">4</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://123468701383865</url></Content>
+       <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX172"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -1494,7 +1494,7 @@
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">5</int>
        <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://139949631719973</url></Content>
+       <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX174"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
@@ -1534,7 +1534,7 @@
      <UDim2 name="Position"><XS>1</XS><XO>-6</XO><YS>0</YS><YO>6</YO></UDim2>
      <UDim2 name="Size"><XS>0.1</XS><XO>0</XO><YS>0.1</YS><YO>0</YO></UDim2>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://123993787841180</url></Content>
+     <Content name="Image"><url>rbxassetid://114481069197353</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX178"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
@@ -1617,7 +1617,7 @@
        <int name="BorderSizePixel">0</int>
        <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <UDim2 name="Size"><XS>0.9</XS><XO>0</XO><YS>0.16</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://109654303489676</url></Content>
+       <Content name="Image"><url>rbxassetid://104821601185231</url></Content>
        <token name="ScaleType">3</token>
       </Properties>
       </Item>
@@ -1744,7 +1744,7 @@
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.815</YS><YO>0</YO></UDim2>
      <UDim2 name="Size"><XS>0.7</XS><XO>0</XO><YS>0.03</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://109654303489676</url></Content>
+     <Content name="Image"><url>rbxassetid://104821601185231</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
     </Item>
@@ -1783,7 +1783,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">1</int>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://90852865444525</url></Content>
+      <Content name="Image"><url>rbxassetid://131136100986471</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX205"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -1798,7 +1798,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">2</int>
       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://120707014056985</url></Content>
+      <Content name="Image"><url>rbxassetid://87781159514052</url></Content>
      </Properties>
       <Item class="UIFlexItem" referent="RBX207"><Properties>
        <string name="Name">UIFlexItem</string>
@@ -1812,7 +1812,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">3</int>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://101821756222961</url></Content>
+      <Content name="Image"><url>rbxassetid://102937063527812</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX209"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -1840,7 +1840,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>0.075</XS><XO>0</XO><YS>0.537</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1.02</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://70786467802236</url></Content>
+      <Content name="Image"><url>rbxassetid://118278181741651</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX213"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -1901,7 +1901,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>0.73</XS><XO>0</XO><YS>0.537</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>0.78</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://110501063485049</url></Content>
+      <Content name="Image"><url>rbxassetid://133668296455751</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX219"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -1959,7 +1959,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">1</int>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://74971763076994</url></Content>
+      <Content name="Image"><url>rbxassetid://115219225652256</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX226"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -1974,7 +1974,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">2</int>
       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://134125149375254</url></Content>
+      <Content name="Image"><url>rbxassetid://85046537023815</url></Content>
      </Properties>
       <Item class="UIFlexItem" referent="RBX228"><Properties>
        <string name="Name">UIFlexItem</string>
@@ -1988,7 +1988,7 @@
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">3</int>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://117844412948423</url></Content>
+      <Content name="Image"><url>rbxassetid://115536238044826</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX230"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -2016,7 +2016,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>0.075</XS><XO>0</XO><YS>0.537</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>1.02</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://70786467802236</url></Content>
+      <Content name="Image"><url>rbxassetid://118278181741651</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX234"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>
@@ -2077,7 +2077,7 @@
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>0.73</XS><XO>0</XO><YS>0.537</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>4</XS><XO>0</XO><YS>0.78</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://110501063485049</url></Content>
+      <Content name="Image"><url>rbxassetid://133668296455751</url></Content>
      </Properties>
       <Item class="UIAspectRatioConstraint" referent="RBX240"><Properties>
        <string name="Name">UIAspectRatioConstraint</string>

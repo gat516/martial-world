@@ -45,12 +45,12 @@ local SPIN_SPEED = 0.35 -- radians per second, detail preview
 
 -- C2 set medallions (art/ui/assets.json codex/cut/ornament_set_*), by BuildItems.Sets id
 local MEDALLIONS: { [string]: string } = {
-	courtyard = "rbxassetid://82917545293276",
-	jadePavilion = "rbxassetid://139878185241582",
-	cloudPalace = "rbxassetid://116721557152146",
-	herbHouse = "rbxassetid://111444790017398",
-	library = "rbxassetid://136450891486347",
-	formation = "rbxassetid://92274006301011",
+	courtyard = "rbxassetid://120831295641856",
+	jadePavilion = "rbxassetid://90919915124494",
+	cloudPalace = "rbxassetid://74021227668189",
+	herbHouse = "rbxassetid://136542278409967",
+	library = "rbxassetid://82554223828998",
+	formation = "rbxassetid://113855491383173",
 }
 local SET_PREFIX = "set:"
 

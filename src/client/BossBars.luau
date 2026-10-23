@@ -28,8 +28,8 @@ local Themes = require(script.Parent.BossThemes)
 
 local BIG_HIT = 0.05 -- fraction of max health that shakes the bar
 local SLICE_H = 64 -- source height of the slanted fill art (bossbar_fill/sheen.png)
-local PIP = "rbxassetid://103441340188755" -- kit gold_stud cut
-local CRACK = "rbxassetid://85815494954691" -- kit crack_split cut
+local PIP = "rbxassetid://115297870306868" -- kit gold_stud cut
+local CRACK = "rbxassetid://139598561995314" -- kit crack_split cut
 local PIP_Y = -5 / 24 -- pip centre on the plate's top rim (y 35 in the 560x104 box), in bar heights from the bar's top (y 40)
 local PIP_SIZE = 0.6 -- pip height in bar heights
 local CRACK_SIZE = 1.9 -- crack size in bar heights

@@ -197,11 +197,10 @@ Row 4: mutation tags (a small ribbon tag, empty) in five colours; a seed packet 
 ```
 
 ### C1b. Garden gaps (requested 2026-10-23, from the garden UI pass)
-Attach B2 `currency_gems` and A5 as the style. Until it's cut, Rare uses the grey gem
-tinted blue and the close seals carry a live "×".
+Attach A5 as the style. Until it's cut, the close seals carry a live "×". (No blue gem:
+Rare is jade everywhere, on the Inventory's ladder in `Rarity.luau`.)
 ```text
-Row 1: one more small diamond rarity gem exactly like the B2 gems (same gold frame, studs and size), in sapphire blue (Rare).
-Row 2 (white glyph sheet rules: pure white, flat, no outline): a close cross (two crossed brush strokes); a page-turn arrow pointing right.
+Row 1 (white glyph sheet rules: pure white, flat, no outline): a close cross (two crossed brush strokes); a page-turn arrow pointing right.
 ```
 
 ### C2. Building (roadmap 6)

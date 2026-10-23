@@ -96,7 +96,7 @@ for _, what in opts.show or {} do
 			tab.Parent = board.Tabs
 		end
 		local names = { "Wei Lan", "Bai Xue", "Old Man Qiu", "Lin Feng", "Su Mei", "Zhao Tian", "Han Yu" }
-		local medals = { "rbxassetid://70786467802236", "rbxassetid://108098976852111", "rbxassetid://126855116006582" }
+		local medals = { "rbxassetid://118278181741651", "rbxassetid://133977245487252", "rbxassetid://102816114690471" }
 		local rowH = board.List.AbsoluteSize.Y / 6.6
 		for i, n in names do
 			local row = T.Row:Clone()

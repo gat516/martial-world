@@ -30,9 +30,9 @@ Theme.Color = {
 -- Kit ornaments (art/ui/creator/build.py, ids in art/ui/assets.json) the scripts swap
 -- at runtime; the rest of the art is set in the GUI.
 Theme.Art = {
-	Plate = "rbxassetid://125665650923777", -- nav plate, Back
-	PlateHi = "rbxassetid://116736134441583", -- current nav plate, Next / Enter World
-	Check = "rbxassetid://73993469486423",
+	Plate = "rbxassetid://112445824422500", -- nav plate, Back
+	PlateHi = "rbxassetid://117312282844677", -- current nav plate, Next / Enter World
+	Check = "rbxassetid://104701721574504",
 	Exclaim = "rbxassetid://122224709560844",
 	Lock = "rbxassetid://113742246645347",
 }

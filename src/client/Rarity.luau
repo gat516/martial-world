@@ -18,19 +18,19 @@ local Weapons = require(ReplicatedStorage.Shared.Weapons)
 
 export type Tier = { tile: string, gem: string, gemColor: Color3 }
 
-local GEM_GREY = "rbxassetid://108721805932431"
+local GEM_GREY = "rbxassetid://100159022686196"
 local WHITE = Color3.new(1, 1, 1)
 
 local TIERS: { Tier } = {
 	-- the kit has no bronze gem: the grey one, tinted
-	{ tile = "rbxassetid://88319270048737", gem = GEM_GREY, gemColor = Color3.fromRGB(226, 170, 112) },
-	{ tile = "rbxassetid://87507886886715", gem = GEM_GREY, gemColor = WHITE },
-	{ tile = "rbxassetid://136998144393835", gem = "rbxassetid://121793265149448", gemColor = WHITE },
-	{ tile = "rbxassetid://109769132951760", gem = "rbxassetid://80848783636466", gemColor = WHITE },
-	{ tile = "rbxassetid://116953659868130", gem = "rbxassetid://113499507353464", gemColor = WHITE },
+	{ tile = "rbxassetid://121233995525578", gem = GEM_GREY, gemColor = Color3.fromRGB(226, 170, 112) },
+	{ tile = "rbxassetid://133101112606015", gem = GEM_GREY, gemColor = WHITE },
+	{ tile = "rbxassetid://77864281472596", gem = "rbxassetid://75556176975753", gemColor = WHITE },
+	{ tile = "rbxassetid://135960798811647", gem = "rbxassetid://123797664259882", gemColor = WHITE },
+	{ tile = "rbxassetid://138359555176757", gem = "rbxassetid://103434738704063", gemColor = WHITE },
 }
 -- Bare Fists and anything ungraded: the plain kit slot (the hotbar's frame)
-local PLAIN_SLOT = "rbxassetid://107221511179183"
+local PLAIN_SLOT = "rbxassetid://135331792516626"
 local PLAIN_COLOR = Color3.fromRGB(236, 214, 180)
 
 local Rarity = {}

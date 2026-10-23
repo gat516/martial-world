@@ -31,14 +31,14 @@ local Themes = require(script.Parent.Themes)
 local player = Players.LocalPlayer
 
 local MEDALS = {
-	"rbxassetid://70786467802236", -- gold
-	"rbxassetid://108098976852111", -- silver
-	"rbxassetid://126855116006582", -- bronze
+	"rbxassetid://118278181741651", -- gold
+	"rbxassetid://133977245487252", -- silver
+	"rbxassetid://102816114690471", -- bronze
 }
 local CRESTS = {
-	orthodox = "rbxassetid://110501063485049",
-	rogue = "rbxassetid://80483799473844",
-	blood = "rbxassetid://121141656780893",
+	orthodox = "rbxassetid://133668296455751",
+	rogue = "rbxassetid://134858771424186",
+	blood = "rbxassetid://117704084413433",
 }
 local VISIBLE_ROWS = 6.6 -- rows that fit the list (the last one peeks, so it reads as scrolling)
 local ROW_GAP = 4 -- baseline px, the list's UIListLayout padding

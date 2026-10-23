@@ -89,9 +89,9 @@ Same behaviour as before; the look moved onto the kit:
   under the tabs ([build](../systems/build.md)).
 
 Shared garden art lives in `src/client/HerbArt.luau`: `paint(swatch, id)` (icon or
-glyph in a Swatch), `gem(image, rarity)`, `tagFor(mutation)`, `Tiers`. Rarity gems:
-Common grey, Uncommon jade, Rare the grey gem tinted blue (no blue gem yet), Epic
-violet, Legendary gold. Mutation ribbons follow the mutation's worth: Windswept and
+glyph in a Swatch), `gem(image, rarity)`, `tagFor(mutation)`, `Tiers`. Rarity gems
+follow the Inventory's ladder (`Rarity.gem`, see [inventory](inventory.md)): Common
+bronze, Uncommon silver, Rare jade, Epic violet, Legendary gold. Mutation ribbons follow the mutation's worth: Windswept and
 Dewy bronze, Auspicious jade, Thunderstruck crimson, Golden gold, Rainbow and
 Heavenlit violet.
 

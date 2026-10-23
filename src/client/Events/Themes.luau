@@ -33,13 +33,13 @@ local Themes = {}
 Themes.default = {
 	name = "default",
 	corners = {
-		TL = "rbxassetid://128154669671865",
-		TR = "rbxassetid://138302523387403",
-		BL = "rbxassetid://93741706328335",
-		BR = "rbxassetid://88254032578616",
+		TL = "rbxassetid://85875302473824",
+		TR = "rbxassetid://88976605104747",
+		BL = "rbxassetid://77144194929366",
+		BR = "rbxassetid://113361229444828",
 	},
 	cornerAspect = 573 / 386,
-	stud = "rbxassetid://132816042612852",
+	stud = "rbxassetid://73915978017269",
 	panelTint = c(255, 255, 255),
 	frameTint = c(255, 255, 255),
 	title = c(236, 196, 104),
@@ -51,13 +51,13 @@ Themes.default = {
 Themes.blood = {
 	name = "blood",
 	corners = {
-		TL = "rbxassetid://99712808036624",
-		TR = "rbxassetid://83710395758960",
-		BL = "rbxassetid://79083983035041",
-		BR = "rbxassetid://137367233293240",
+		TL = "rbxassetid://106524586692378",
+		TR = "rbxassetid://127210710631437",
+		BL = "rbxassetid://76377171901319",
+		BR = "rbxassetid://104331680085975",
 	},
 	cornerAspect = 812 / 491,
-	stud = "rbxassetid://76615632052102",
+	stud = "rbxassetid://88195591853280",
 	panelTint = c(255, 176, 170),
 	frameTint = c(214, 112, 100),
 	title = c(240, 112, 96),
@@ -68,9 +68,9 @@ Themes.blood = {
 
 -- Other C6 pieces, for components that want them (all uploaded, art/ui/assets.json).
 Themes.bloodPieces = {
-	nameScroll = "rbxassetid://113688643267738",
-	goldStud = "rbxassetid://120200535195290", -- a copper-red diamond
-	rubyStud = "rbxassetid://76615632052102",
+	nameScroll = "rbxassetid://137196541860109",
+	goldStud = "rbxassetid://102528420780680", -- a copper-red diamond
+	rubyStud = "rbxassetid://88195591853280",
 }
 
 function Themes.get(name: string?): Theme

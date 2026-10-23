@@ -12,17 +12,17 @@ for _, c in gui:GetChildren() do
 end
 
 local A = {
-	card_boss = "rbxassetid://100896009110132",
-	card_quest = "rbxassetid://131887987223152",
+	card_boss = "rbxassetid://139872711040576",
+	card_quest = "rbxassetid://120119552621110",
 	rays_boss = "rbxassetid://95676207958916",
-	ribbon_crimson = { "rbxassetid://88509373721773", "rbxassetid://128464788151154", "rbxassetid://83023082053681" },
-	row = { "rbxassetid://90852865444525", "rbxassetid://120707014056985", "rbxassetid://101821756222961" },
-	coin = "rbxassetid://122895207713170",
-	tile_neutral = "rbxassetid://88319270048737",
-	gem_gold = "rbxassetid://113499507353464",
+	ribbon_crimson = { "rbxassetid://121316271063702", "rbxassetid://128154077838383", "rbxassetid://108527414387394" },
+	row = { "rbxassetid://131136100986471", "rbxassetid://87781159514052", "rbxassetid://102937063527812" },
+	coin = "rbxassetid://91563334675271",
+	tile_neutral = "rbxassetid://121233995525578",
+	gem_gold = "rbxassetid://103434738704063",
 	glyph_stone = "rbxassetid://76651936131955",
-	emblem_peak = "rbxassetid://140093948593748",
-	glint = "rbxassetid://108563894970515",
+	emblem_peak = "rbxassetid://102118062177874",
+	glint = "rbxassetid://131306954850384",
 }
 
 local CREAM = Color3.fromRGB(250, 236, 195)
@@ -296,16 +296,30 @@ local art = new("ImageLabel", {
 	ZIndex = 11,
 }, card)
 aspect(art, 1024 / 596)
-new("ImageLabel", {
-	Name = "Crest",
-	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.fromScale(0.5, 90 / 652),
-	Size = UDim2.fromScale(0.083, 0.13),
-	ScaleType = Enum.ScaleType.Fit,
-	Image = A.emblem_peak,
-	Visible = false,
-	ZIndex = 12,
-}, art)
+do
+	local crest = new("ImageLabel", {
+		Name = "Crest",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 90 / 652),
+		Size = UDim2.fromScale(0.083, 0.13),
+		ScaleType = Enum.ScaleType.Fit,
+		Image = A.emblem_peak,
+		Visible = false,
+		ZIndex = 12,
+	}, art)
+	-- a rank crest's emblem, placed on the crest's hole by Rewards.openCard
+	local emblem = new("ImageLabel", {
+		Name = "Emblem",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BorderSizePixel = 0,
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.5, 0.5),
+		ScaleType = Enum.ScaleType.Fit,
+		Visible = false,
+		ZIndex = 13,
+	}, crest)
+	new("UIAspectRatioConstraint", { AspectRatio = 1 }, emblem)
+end
 do
 	local ribbon = new("Frame", {
 		Name = "Ribbon",
@@ -460,7 +474,7 @@ if toast then
 				LayoutOrder = if i == 1 then 1 else 3,
 				Size = UDim2.fromOffset(22, 22),
 				ScaleType = Enum.ScaleType.Fit,
-				Image = "rbxassetid://103441340188755",
+				Image = "rbxassetid://115297870306868",
 				ZIndex = 21,
 			}, toast)
 		end

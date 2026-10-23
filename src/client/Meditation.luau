@@ -63,7 +63,7 @@ local TAP_DRIFT = 12 -- px a press may move and still be a tap (more is a camera
 local TAP_SECONDS = 0.4 -- a longer press isn't a tap either
 local CALM_ICON = 0.55 -- the lotus's transparency while the view is calm
 local RESTING = 0.5 -- a Practice-row tile's transparency while resting or unavailable
-local LOTUS_GAP = 14 -- px from the last tile's edge to the lotus (the tile frame overhangs ~7)
+local LOTUS_GAP = 22 -- px from the last tile's edge to the lotus (the row's own tile gap)
 
 local Meditation = {}
 

@@ -107,7 +107,7 @@ What we build next and in what order (solidity, onboarding, sect, techniques, ga
 
 | System | Doc | Server | Shared | Client |
 |---|---|---|---|---|
-| Cultivation, realms, breakthroughs, tribulation, insight | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, QiNodes | Pacing, Realms | Hud, SeatBars, BreakthroughView, CirculationMinigame |
+| Cultivation, realms, breakthroughs, tribulation, insight | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, QiNodes | Pacing, Realms | Hud, SeatBars, BreakthroughView, CirculationMinigame, CultivationGui, FoundationMeter, DeathSave, CultivationMarks |
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
 | Combat and action states | [combat](systems/combat.md); [guard and parry](combat/guard-parry.md), [technique visuals](combat/technique-visuals.md) (one file per technique in [combat/techniques/](combat/techniques/)) | Combat, CombatQi, Movement, PlayerStun, Guard | ActionRules, Hitbox, Techniques, Knockback, GuardRules, Config.Combat (`CC`: player flinch, stagger, stun; `GUARD`) | CombatController, ActionState, GuardController, GuardBar, GuardFX, CrowdControl, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock, TestbedAltMouseLock |

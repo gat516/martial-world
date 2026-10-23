@@ -100,6 +100,7 @@ cursor, settings and the admin panel.
 - [Inventory windows](../ui/inventory.md)
 - [Boss health bar](../ui/boss-bars.md)
 - [Dialogue ornaments](../ui/dialogue-ornaments.md)
+- [Cultivation UI: seated tiles, meditation panel, breakthrough card, foundation meter, death-save, Dao ring, tier frames, bloodline marks](../ui/cultivation.md)
 - [Character window](../character/character-window.md)
 
 ## Key files (all `src/client/`)
@@ -125,6 +126,9 @@ cursor, settings and the admin panel.
 - `Onboarding.luau`, `Guide.luau` (spotlight, dim, walking path), `TravelMenu.luau` (with `GateMarkers.luau` over arrays and
   `Veil.luau`, the travel fade in `StarterGui.Veil`), `HerbShop.luau`, `BuildCatalog.luau`,
   `SeedPicker.luau`, `PlantingBar.luau`, `PlantTag.luau`.
+- `CultivationGui.luau` (the `StarterGui.Cultivation` screen: breakthrough title card,
+  death-save, templates), `FoundationMeter.luau`, `DeathSave.luau`, `CultivationMarks.luau`
+  (Dao ring, tier frames, bloodline badges, heaven mark); see [cultivation UI](../ui/cultivation.md).
 - `BreakthroughView.luau`, `Meditation.luau` (seated tiles, calm view),
   `MeditationMenu.luau` (its panel), `Bottleneck.luau`, `CirculationMinigame.luau`.
 - `ScrollHint.luau` (the "more below" fade and chevron over every scrolling

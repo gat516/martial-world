@@ -79,10 +79,12 @@ neither action exists any more. The onboarding guide keys are
 `PracticeTechnique` and `PracticeDao` (server `Quests.luau`); until the Practice
 row is open the client points at Practice instead (`Guide.luau` `FOLDED`).
 
-- Square tiles in the top-right tiles' style (drawn icons from
-  `art/ui/draw_ui.py` `meditation_art`), at least 50 px on phones; a QC1 player
+- Square kit tiles (`tile_neutral`, Break Through on `tile_gold`) with a cream
+  glyph and a caption under each, at least 50 px on phones; a QC1 player
   sees two (Circulate, Rise), so the calm-screen intent holds; at most five show
-at once (Circulate or Break Through, Method, Spirit Root, Practice, Rise).
+  at once (Circulate or Break Through, Method, Spirit Root, Practice, Rise). The
+  look of every piece here (tiles, lotus, panel, overlay, reveal card, title card)
+  is in [cultivation UI](../ui/cultivation.md).
 - The panel (`Hud.MeditationPanel`, `src/client/MeditationMenu.luau`) is a
   small window centred on screen, like the other windows (all three pages share
   it): the tiles and the HUD step aside while it's open and its seal closes it.

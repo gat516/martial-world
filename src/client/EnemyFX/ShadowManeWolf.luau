@@ -1,7 +1,7 @@
 --!strict
 -- Shadow Mane Wolf cues (EnemyFX) for the new body ShadowManeWolfB. Templates:
 -- ReplicatedStorage.Effects.ShadowManeWolf (builder tools/vfx_specs/ShadowManeWolf.luau).
--- Record: docs/systems/enemies.md. The old body plays nothing here.
+-- Record: docs/enemies/second-wave.md. The old body plays nothing here.
 -- Ink-black smoke with hot violet #8A5CFF and a white-violet flare.
 --
 -- Attacks (cue.attack): shadowStep, shadowRake, maneRend, maneLash, hop.

@@ -1,5 +1,5 @@
 --[[
-Main-peak walkable floors as smooth Terrain (docs/systems/map.md, "Main peak"). Run in Studio Edit mode through
+Main-peak walkable floors as smooth Terrain (docs/map/main-peak.md). Run in Studio Edit mode through
 the MCP after place_main_peak.luau. Re-runnable: it clears the main peak's terrain and writes it again.
 
 Reads the outlines art/main_peak/build_main_peak.py exports (MainPeakRock.json, "terrain" and "anchors"),
@@ -15,7 +15,7 @@ _G.MAIN_PEAK_JSON.
 Pools, streams and their basins are dress_main_peak.luau's (it carves into this terrain).
 
 Global terrain colours (Terrain:SetMaterialColor is place-wide; spirit peaks use the same) are set here too and
-listed in map.md. Terrain decoration (grass blades) stays off: Workspace.Terrain.Decoration isn't scriptable
+listed in docs/map/main-peak.md ("Terrain colours"). Terrain decoration (grass blades) stays off: Workspace.Terrain.Decoration isn't scriptable
 from the MCP, so it is a manual Studio setting (Terrain > Decoration unticked).
 ]]
 

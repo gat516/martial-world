@@ -7,7 +7,7 @@
 --   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/NineTailFox.luau")
 --   require(m)  -- installs _G.buildNineTailFoxFX(effectsFolder)
 -- Runtime: src/client/EnemyFX/NineTailFox.luau (cue -> template, placement,
--- sounds). The fight sheet and this pass's record: docs/systems/enemies.md
+-- sounds). The fight sheet and this pass's record: docs/enemies/nine-tailed-fox.md
 -- "Nine-Tailed Fox".
 --
 -- Identity: foxfire, a spirit flame that burns cold. Authored azure with a

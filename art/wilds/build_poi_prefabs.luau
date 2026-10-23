@@ -1,7 +1,7 @@
 --!nocheck
 --[[
 Inner Wilds POI prefabs: the landmark structures of the seven pockets plus the hero Shrine Terrace, and
-the small finds between them (docs/systems/map.md, "Inner Wilds rework"). Each prefab is a self-contained
+the small finds between them (docs/map/inner-wilds-rework.md). Each prefab is a self-contained
 Model in ServerStorage.InnerWildsPrefabs, built round its own ground point, for the map-builder who
 places them once the layout and terrain are done. A preview copy of each stands on a grass slab in
 Workspace._PoiStaging (x 4000-4800, Y 200, z 3000-3600, over the cloud sea).

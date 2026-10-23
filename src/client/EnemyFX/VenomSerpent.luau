@@ -1,7 +1,7 @@
 --!strict
 -- Venom Serpent cues (EnemyFX) for the new body VenomSerpentB: venom attack,
 -- hit and death effects. Templates: ReplicatedStorage.Effects.VenomSerpent
--- (builder tools/vfx_specs/VenomSerpent.luau). Record: docs/systems/enemies.md.
+-- (builder tools/vfx_specs/VenomSerpent.luau). Record: docs/enemies/second-wave.md.
 -- The old VenomSerpent body (Template "VenomSerpent") plays nothing here.
 --
 -- Attacks (cue.attack): venomSpit, hoodStrike, hop.

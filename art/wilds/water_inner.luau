@@ -1,5 +1,5 @@
 --!nocheck
--- Water of the Inner Wilds valley (docs/systems/map.md, "Inner Wilds rework"): the Lotus Mere and the
+-- Water of the Inner Wilds valley (docs/map/inner-wilds-rework.md): the Lotus Mere and the
 -- rimmed pools at each fall's foot are ServerStorage.WaterKit shallow water (never terrain water), the
 -- falls are the AssetLibrary "Blue Waterfall" scaled to the drop, with WaterfallFoam and
 -- AmbientFX.WaterfallSpray at each foot and FX_ anchors for vfx. Also builds the Twin-Jade notch
@@ -192,7 +192,7 @@ local function fxClone(name, newName, cf, size, rateFactor, parent)
 end
 
 -- the foot of a fall: WaterKit foam, AmbientFX.WaterfallSpray (FX_FallSpray), PlungeBillow at hero
--- falls, and WaterfallMist (FX_FallMist) as an upright slab on the fall's face (world.md, Inner set)
+-- falls, and WaterfallMist (FX_FallMist) as an upright slab on the fall's face (docs/world/ambient-fx.md, Inner Wilds set)
 local function foot(parent, at, out, size, hero, fallTop)
 	local foam = WK.WaterfallFoam:Clone()
 	foam.Size = Vector3.new(size, 0.2, size)
@@ -215,7 +215,7 @@ local function foot(parent, at, out, size, hero, fallTop)
 	else
 		fxClone("WaterfallMist", "FX_FallMist", CFrame.lookAt(Vector3.new(fallTop.X, at.Y + h / 2, fallTop.Z) + out * 2, Vector3.new(fallTop.X, at.Y + h / 2, fallTop.Z) + out * 3), Vector3.new(4, math.min(h, 14), 2), 0.3, parent)
 	end
-	-- ambient sound anchors (world.md "Ambient sound": tag AmbientSound, attribute Sound = template)
+	-- ambient sound anchors (docs/world/ambient-sound.md: tag AmbientSound, attribute Sound = template)
 	local snd = Instance.new("Part")
 	snd.Name = if hero then "SFX_WaterfallBig" else "SFX_WaterfallSmall"
 	snd.Size = Vector3.new(1, 1, 1)

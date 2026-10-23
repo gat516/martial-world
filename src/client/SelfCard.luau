@@ -2,7 +2,7 @@
 -- The character window, opened by the Self tile in the top-right row
 -- (Hud.Buttons.SelfButton) or, as a shortcut, by tapping the realm crest over the
 -- vitals (Hud.Stack.Vitals.Crest.Open). It grows with the player
--- (docs/systems/character.md, "Character window"); this is the first stage:
+-- (docs/character/character-window.md); this is the first stage:
 -- one card, Self, with no tabs.
 --   Header: realm name and its stage bar (cultivation toward the next stage).
 --   Self page (Body.Pages.Self, a ScrollingFrame list by LayoutOrder). Every row

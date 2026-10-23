@@ -3,7 +3,7 @@
 -- Every POI, cache, find, qi node, lair, boss ring and event ground carries the
 -- CollectionService tag "POI" with attributes PoiName, Kind, Zone (optional LabelNote,
 -- e.g. a route length or "(later)"). POI models also hold a "POIAnchor" part with the same
--- attributes, which the tour uses once the model has been ungrouped. See docs/systems/map.md, "Editor-only markers".
+-- attributes, which the tour uses once the model has been ungrouped. See docs/map/editor-markers.md.
 --
 -- Studio copy: the ModuleScript `ServerStorage._EditorTools.PoiTour` (place-only) holds
 -- this file's source; paste it in again after editing this file. In the command bar:

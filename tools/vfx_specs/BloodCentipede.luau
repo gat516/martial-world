@@ -5,7 +5,7 @@
 --   local m = Instance.new("ModuleScript")
 --   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/BloodCentipede.luau")
 --   require(m)  -- installs _G.buildBloodCentipedeFX(effectsFolder)
--- Runtime: src/client/EnemyFX/BloodCentipede.luau. Record: docs/systems/enemies.md.
+-- Runtime: src/client/EnemyFX/BloodCentipede.luau. Record: docs/enemies/third-wave.md.
 -- Invisible Part templates (-Z = facing / blow direction), ground ones centred
 -- on the ground; a dark base under every bright layer.
 local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new

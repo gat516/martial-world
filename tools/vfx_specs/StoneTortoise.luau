@@ -4,7 +4,7 @@
 --   local m = Instance.new("ModuleScript")
 --   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/StoneTortoise.luau")
 --   require(m)  -- installs _G.buildStoneTortoiseFX(effectsFolder)
--- Runtime: src/client/EnemyFX/StoneTortoise.luau. Record: docs/systems/enemies.md.
+-- Runtime: src/client/EnemyFX/StoneTortoise.luau. Record: docs/enemies/second-wave.md.
 --
 -- Jade seams (#5FD6A0) over umber and stone grey; guard is cold white-blue.
 -- Heavy and slow: chips, dust and cracks do the work. Templates are invisible

@@ -14,7 +14,7 @@ scales all player damage.
   technique cooldowns.
 - Holding **guard** (right click, L2, touch Block) blocks beast attacks from the
   front at the cost of a guard bar; raising it just before a hit is a **perfect
-  parry** that staggers the beast ([Guard and perfect parry](#guard-and-perfect-parry)).
+  parry** that staggers the beast ([guard and perfect parry](../combat/guard-parry.md)).
 - Souls-style lock-on (PC T/middle mouse, gamepad R3, touch Lock button) and a
   touch **Auto** mode that locks, closes in and strikes by itself so mobile
   players only dash and cast.
@@ -24,6 +24,13 @@ scales all player damage.
   dantian that feeds cultivation. Basic attacks, dashes and the guard are free,
   so a player out of qi still fights with the weapon
   ([Combat qi](#combat-qi-technique-mana)).
+
+## Sub-docs
+- [Guard and perfect parry](../combat/guard-parry.md): guarding, perfect and
+  chain parries, guard break, guard clips, sounds and GuardFX.
+- [Technique visuals](../combat/technique-visuals.md): how technique effects
+  are specced, built, timed and played, the shared weapon-skill helpers, and an
+  index of one file per technique under `docs/combat/techniques/`.
 
 ## Key files
 - `src/shared/ActionRules.luau`: the one action timeline (attack, cast, dodge),
@@ -137,140 +144,6 @@ cultivation ([cultivation](cultivation.md)). The two never mix.
 
 ## Dodge visuals
 Only the dodging player sees them (`CombatEffects`, from `CombatController`).
-## Guard and perfect parry
-Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
-`Config.Combat.GUARD`.
-- The guard goes up only between actions and while free to act, and drops when
-  an action starts or the player is staggered or stunned; while the input is
-  held it comes back up by itself. Attacks and casts don't start while it's up;
-  a dodge does. Walking at `MOVE` (half) speed, no sprinting, no Auto approach.
-  Right click still turns the camera when the mouse isn't locked (the binding
-  passes the input on).
-- Only enemy blows with a source (`Combat.hurt`'s `guard`, a `Guard.Hit` built
-  by `guardHit` in EnemyService: every beast and boss hit through
-  `hurtPlayer`/`hurtPart`) from in front can be guarded. Area strikes through
-  `EnemyService.strike` (the Tribulation's bolts) can't. Where a blow comes
-  from: melee from the beast; lunges, charges and leaps from where the beast set
-  off, judged with the wider `DASH_DOT` (~117° either side), because the hit
-  lands as the beast arrives on top of you (its position then read as beside or
-  behind you, so charges often went through a raised guard); projectiles
-  (bolts, lances, lobs and their splash) from where they were fired. Everything
-  else within ~100° of facing (`FRONT_DOT`). Facing is the server's root or the
-  facing the client last reported while guarding (within `LOOK_FRESH`),
-  whichever passes: the replicated root is a ping or more behind a turn.
-- **Facing while guarding**: without a lock-on you turn toward the beast winding
-  up or dashing at you, else the nearest one, within `FACE_RANGE` of its edge
-  (`FACE_TURN` sets how fast; GuardController writes `ActionState.guardFacing`,
-  Movement applies it). Before, a free camera turned you the way you walked, so
-  backing off with the guard up showed the beast your back.
-- **Race grace**: an unguarded, guardable hit waits half the player's ping (at
-  most `RACE_GRACE`) before it resolves and is judged at the server time it
-  landed, so a guard or dodge pressed as the telegraph filled, still on its way
-  to the server, counts. A raise up to `PARRY_LATE` after that time still
-  parries (clock jitter). Nothing waits while the guard is up.
-- **Blocked**: `CHIP` (15%) of the damage gets through, with no flinch or
-  knockback; the meter drains by the hit's share of max health times `DRAIN`
-  (times `HEAVY_DRAIN` for slams, charges and leaps), at least `MIN_DRAIN`.
-  The meter refills at `REGEN` a second once `REGEN_DELAY` has passed since the
-  last drain, at half that while guarding.
-- **Guard break**: a blocked hit that empties the meter drops the guard, staggers
-  the player for `BREAK_STAGGER` (PlayerStun; the usual stagger immunity
-  applies) and lets the chip through; the meter comes back at `BREAK_REFILL`
-  after the stagger and the delay. The input has to be pressed again.
-- **Perfect parry**: a hit landing within `PARRY_WINDOW` (+ `IFRAME_SLACK` for
-  latency) of raising the guard, even if the button was already let go (a tap
-  parries; the pose stays up at least 0.25 s): no damage, `PARRY_REFUND` guard back, and the
-  beast staggers (`PARRY_STAGGER`, bosses `PARRY_STAGGER_BOSS`), which calls off
-  its windup, dash and follow-ups like a knockback stagger, unless the blow
-  opens a chain (below). Every hit inside the window is parried. Raising again within `PARRY_RECOVER`
-  of the last raise blocks but can't parry, so mashing never parries. In the
-  testbed a blocked hit floats "early 0.xx s" (how long before it the guard went
-  up), to tune the window.
-- **Chain parry**: parry the first blow of an assault on timing, then ride the
-  flurry. When the parried blow has another one of the same assault coming
-  (`Guard.Hit.nextIn`, from `planAssault` in EnemyService: barrage and retreat
-  parts, cone `strikes`, a slam's `wave`, and a `followUp` combo after the dash,
-  recover and its windup), the beast is not staggered and keeps going
-  ("deflected"); each of its next blows that lands within `CHAIN_SLACK` of when
-  it was due while the guard is up (held or raised again, no timing needed, so
-  `PARRY_RECOVER` doesn't apply) is parried too, for `CHAIN_REFUND` guard each.
-  The beast staggers on the chain's last blow, on the `CHAIN_MAX`-th (which
-  calls off the rest), or when the next blow doesn't come in time (its blows
-  missed, the follow-up didn't start; `Guard.onChainEnd`), for its parry
-  stagger plus `CHAIN_STAGGER_BONUS` per chained blow, at most
-  `CHAIN_STAGGER_MAX`. A blow of the chain that finds the guard down or comes
-  from behind breaks it and lands as usual, and the beast isn't staggered:
-  letting go mid-flurry is a gamble. Chains are per player and per attacker;
-  other beasts' hits are judged normally meanwhile. Bosses chain the same way
-  (their stagger base is `PARRY_STAGGER_BOSS`). Examples: the fox's three-bite
-  fangDance, the Jiao's fangFlurry strikes, the Thunder Ape's
-  clubSwing-backhand-thunderPound combo, the boar's charge into gore.
-- Transport: Attack remote `op "guard"` (`on`, `time`, `seq`, `look`) and, while
-  guarding, `op "guardLook"` (`time`, `look`; at most every 0.1 s once the
-  facing turned 8°); the server answers the owner with Effect `"guardMeter"`
-  (character, stored, at, up, the latest `seq` it applied; the client's bar
-  runs `GuardRules.value` on it, and a "down" answering an op older than its
-  last raise is ignored as stale rather than taken for a refusal, which used to
-  drop a quickly re-raised guard for 0.25 s) and tells everyone the outcome with Effect
-  `"guard"` (character, `"parried" | "blocked" | "broken" | "chainEnd"`,
-  attacker position, then for parries the chain index (1 = the timed parry)
-  and whether it closed the chain; `chainEnd` carries the count).
-  The Humanoid's `Guarding` attribute mirrors the guard for other clients.
-- Animations: `Animations.Guard` in `assets/Animations.rbxmx`. Per weapon class
-  (`Guard.<Class>`, the `Config.Combat.CLASSES` names) `Hold` (loop, Action),
-  `Parry`, `ParryAlt` (the opposite-side deflect) and `Impact` (Action2);
-  GuardController picks by the character's `WeaponClass` (`Fist` while
-  `WeaponStowed`), re-picks when either changes (a held guard swaps into the new
-  Hold) and falls back clip by clip to the generic `Guard.Hold`/`Parry`/`Impact`
-  (ParryAlt to the class's own Parry, then the generic Parry). A chain plays
-  Parry on odd blows and ParryAlt on even ones. To add a class's ids, put
-  `<Content name="AnimationId"><url>rbxassetid://ID</url></Content>` in its
-  empty Animation items; every class is filled. Playing a Parry, ParryAlt or
-  Impact stops the other two with the same fade: a finished one-shot lingers
-  about 0.3 s on its last frame at the same priority and would halve the next
-  deflect in a chain. Sources and ids are in
-  `art/player/guard/README.md`, published with
-  `tools/upload_asset.py animation`. `SoundService.SFX` in
-  `assets/SoundGroups/SFX.rbxmx` holds `GuardRaise` (soft cloth when the local
-  guard rises), `Parry` (bright metal clash), `Block` (muted plate hit) and
-  `GuardBreak` (brittle shatter). `GuardController` plays them locally through
-  `Sfx`; the Settings SFX slider scales all four. Files, CC0 sources, upload
-  ids and template volumes are in `art/sfx/guard/README.md`. Sound levels have
-  not been heard in play yet.
-- Visuals (`src/client/GuardFX.luau`, templates `ReplicatedStorage.GuardFX`
-  from `assets/GuardFX.rbxm`, built by `tools/guardfx_build.luau` in a sandbox;
-  kept out of `Effects.rbxm`). Palette white to pale gold to jade, away from the
-  gold perfect dodge. `parry` plays `Parry` (11 layers: white-hot flash, star
-  glint and flare cross, crack-star decal, spark and ember spray along the
-  deflect, crescent and outer arcs, two rings, a jade puff) at a contact point
-  2.4 studs in front of the torso toward the attacker; the parrying player also
-  gets a light shake and a 0.05 s grade and camera punch (`CombatEffects.punch`).
-  `blocked` plays `Block` (jade sparks and streaks, a faint ripple on a
-  shield-shaped plane). `guardBreak` plays `GuardBreak` (a cracking shield shell,
-  thrown jade shards and chips, sparks, a spiky ring, dust at the feet; a
-  heavier shake and jade grade for the player). `hold` puts a faint low-rate qi
-  shimmer (`Hold`) on both forearms while the guard is up, for anyone within 70
-  studs of the camera; bursts are skipped past 120 studs. Chain parries
-  escalate with the same templates: from the second blow the deflect throws to
-  alternate sides (right with Parry, left with ParryAlt), the burst grows
-  (`TechniqueVFX.rescale`, +7% a blow for five), the shake and punch climb and
-  the `Parry` cue rises in pitch (`Sfx.play`'s `speed`, +7% a blow to 1.35x)
-  with "x2", "x3" floating; the closing blow or `chainEnd` adds a finisher (an
-  oversized Parry, a second turned one 0.06 s later, a wide Block ripple, a
-  heavy shake and gold punch, the Parry cue low under the Block cue, "Deflect
-  xN!"). A dedicated finisher burst would be a job for the vfx agent. Look
-  unreviewed.
-- Known gaps: a client can claim its raise time within `MAX_LAG`, and
-  re-raising every `PARRY_RECOVER` keeps a window open about half the time;
-  the reported facing is trusted like the client-owned root, so a cheat could
-  guard from behind; the race grace delays an unguarded hit's damage and
-  reaction by up to `RACE_GRACE`; slam waves, pools, the coil squeeze and storm
-  bolts are judged from the beast's position; PvP hits aren't guardable (there's
-  no PvP). Untested in play: the threat facing, the dash origins and the race
-  grace. The chain parry and its feel are untested in play; a blow's due time
-  is planned from the attack's timings, so a follow-up that waits long for its
-  attack slot ends the chain early (the beast still staggers).
-
 Templates: `ReplicatedStorage.Effects.Dodge`, built by
 `tools/vfx_specs/Dodge.luau` (`_G.buildDodgeFX(staging)`; no tiers).
 - **Dodge** (`dashTrail`): one light qi streak along the path, two
@@ -287,470 +160,19 @@ Templates: `ReplicatedStorage.Effects.Dodge`, built by
   the rest of the dash streak turns gold; and a short desaturated time-slow
   grade (0.08 s hold, 0.4 s return). No ground ring and no shake.
 
+## Guard and perfect parry
+Hold right click (PC), L2 (gamepad) or the touch Block button to block beast
+blows from the front for chip damage and guard meter; a raise just before a
+hit parries it and staggers the beast, and a parried assault can be chained.
+Tuning `Config.Combat.GUARD`. Rules, transport, clips, sounds, visuals and
+guard gaps: [guard and perfect parry](../combat/guard-parry.md).
+
 ## Technique visuals
-Casts are drawn on every client: the caster draws its own at release, the server
-relays `Effect "cast"` with the caster's technique level to everyone else, and
-`CombatEffects.cast(character, id, origin, dir, chain, level)` plays the tier
-template for that level. Visuals must match the gameplay shape (line length and
-width, circle radius, chain jumps, zone radius and seconds, buff seconds).
-
-Timing follows the cast's action timeline (`ActionRules.castProfile`, built
-from `Config.Combat.FIST_STEPS` for the technique's animation): a template's
-`Windup` part plays from cast start to Hit (`CombatEffects.windup`, caster
-only), `cast()` runs at Hit, emitters tagged `Phase = "active"` are fitted to
-Hit -> Hit Stop (`TechniqueVFX.fit` against the root's `AuthoredActive`), and
-untagged aftermath keeps its authored fade through recovery.
-
-Templates (`ReplicatedStorage.Effects`, `assets/Effects.rbxm`, built from the
-vfxia Asset Library). Each technique's T1-T4 are generated in Edit mode from a
-spec, `tools/vfx_specs/<Id>.luau` (a list of beats: `{ block, from, to,
-params }`), by `vfxBlocks.buildFromSpec` (`tools/vfx_blocks.luau`, the shared
-builders: ground/impact/air shockwaves, release flash, drop streak, hand
-gather, impact burst/stack, crater ring, mesh shell, screen shake). Edit the
-spec and rebuild rather than editing templates by hand; `tools/vfx_diff.luau`
-checks a rebuild against the previous templates.
-- **Palm Strike** (`PalmStrike_T1..T4`, authored at radius 9, rescaled to
-  `def.radius`). Fists.4 strikes with the **left** hand (`def.hand`), which
-  `CombatEffects` finds on the live character (R6 arm tip, R15 grip
-  attachment), for observers too. Windup (caster only): qi motes and a charge
-  glow ride the swinging hand (II+ Spline wisps curve in, III+ a seal closes
-  on it). At Hit: a flash from the palm, a streak drops from it to the ground
-  and splashes, and the gold shockwave opens from the feet (the gameplay
-  centre) to the radius by Hit Stop, with dust kicked along the ground.
-  Each enemy inside the radius gets an impact as the front reaches it: star
-  flash, spiky ring, sparks, drawn in front of it, plus `CombatEffects.flash`.
-  II adds an echo ring, rays and impact dust; III a seal, cracks, a spinning
-  SimpleMeshVFX shell, a Craters rock ring erupting with the wave and rock
-  kicks on the first three targets; IV a crater, a dome shell, a nimbus halo
-  behind the head, one point light, ScreenEffects impact frames and an
-  Explosion shake on the first impact. Remade 2026-10-21 for the Hit window
-  (bare hand, so the anchors stay on the live left palm): the windup qi is a
-  stream through the whole 0.38 s (the hand gather's `Gather` runs on
-  `Rate` + `EmitDuration`, scaled by `TechniqueVFX.fit`), the palm release
-  gets the shared flare (cross glint, star-burst flipbook over ink, sparks) and
-  a cross glint on the release flash, and every impact picks up the shared ink
-  splat and star-burst flipbook (smoke flipbook tail at III+). The wave front
-  was already fitted to Hit -> Hit Stop, so the sandbox run landed impacts
-  0.04-0.05 s after the release. Layers T1 / T4: windup 2 / 4, release 9 / 13,
-  ground 3 / 8, impact 8 / 14.
-- Techniques other than Palm Strike draw themselves in
-  `Client.TechniqueFX.<Id>` (`{ cast = function(CombatEffects, def, level,
-  character, origin, dir, chain): boolean }`; false falls back to the old
-  drawing in `CombatEffects.cast`).
-- **Sword Qi Wave** (`SwordQiWave_T1..T4`, authored at length 32 and width 5;
-  `TechniqueFX.SwordQiWave`). Fists.3 cuts flat across the front with the
-  **right** arm, so the release flashes on the live right hand at Hit: a star
-  flash, 3D swirl air rings thrown forward, a light shake. The blade (`Blade`)
-  is a horizontal crescent of Beams (core, edge and a camera-facing glow
-  layer) with a wake trail. It flies the line on the template's `TravelCurve`
-  over `TravelTime` (0.36 s), driven by a pausable tween registered in
-  `TechniqueVFX.waves`. A ray along the path stops it at a wall or rising
-  ground, and it bursts where it ends (`Terminal`: `impactBurst` +
-  `impactShockwave`, III+ a Craters ring). Each enemy on the line gets a cyan
-  `impactStack` plus a crescent cut flash when the blade's front reaches its
-  near side (`curveTime`), and `CombatEffects.flash`. Behind the blade a Neon
-  slit (`Cut`) is drawn on the ground and cools into an ink scar (`Scar`); II+
-  motes rise off it (`Path`). II adds an echo blade, release sparks, impact
-  swirl and dust; III a second echo, a second air ring, bubbles, rock kicks,
-  path cracks and the terminal crater; IV a gold core, three air rings, one
-  point light riding the blade, a sword-intent crescent and impact frames at
-  the release, and a quake on the first impact. Damage still lands on the
-  whole line at Hit. Remade 2026-10-21 on the jian and the Hit window: the
-  0.32 s windup is a `Charge` along the model's Base -> Tip (dark beam under a
-  cyan one, motes, a point glint) instead of a hand gather; the release (star,
-  the shared flare, air rings) bursts on the blade 0.8 of the way to the tip,
-  not on the hand, and the real edge draws its own ribbon, glow and motes
-  (`Edge`, `BladeSkill.edge`) through the cut; the crescent has an ink crescent
-  under it and crosses the line in 0.12 s (was 0.36), the echoes trailing, with
-  every impact squeezed into Hit 0.35 -> Hit Stop 0.467 (`WeaponFX.landing`; a
-  sandbox run with a jian landed them 0.02-0.03 s after the release and the
-  terminal at 0.13 s) instead of up to ~0.36 s after the damage number; every
-  cut gets a cyan crescent flipbook and the shared ink splat and star-burst
-  flipbook. QA pass 2026-10-21: the Neon `Cut` slit and ink `Scar` are a cut
-  carved into the ground under the blade's path (`Cut`/`CutKicks`,
-  `BladeSkill.rend`: carved crack, cyan seam cooling, puffs and chips, star
-  cracks at II+, a crack web and rock kicks at III+). Layers T1 / T4: charge
-  8 / 8, release 8 / 12, edge 3 / 4, blade 11, cut 9 / 15, impact 11 / 18,
-  terminal 11 / 18.
-- **Lightning Talisman** (`LightningTalisman_T1..T4`;
-  `TechniqueFX.LightningTalisman`). At Hit a paper talisman card leaves the
-  left hand (Fists.2) and tumbles to a point above the first target in
-  `chain`, where it flares and burns while a jagged bolt strikes down. Bolts
-  then hop along `chain` every `HopDelay` (0.04 to 0.028 s by tier), bowing over
-  the bodies. Each target gets an impact (flash, Neon impact torus, ground
-  shock, crackle; II+ scorch and seals); the last gets a heavier finale with an
-  electric ring, a ground splash and a shake (III+ Craters rocks). With no
-  target the card flies to max range or the first wall or ground and bursts
-  there. II adds forks, release sparks and an air ring; III a double strand,
-  seals under every target and impact bubbles; IV two forks and a sky strike on
-  the first target with the move's one light and a quake. Bolts are Beams on
-  a jittered attachment chain; with the Game Module the main core is the
-  LightningBeams add-on. Tuning lives in root attributes (`HopDelay`,
-  `Strands`, `Forks`, `BoltWidth`, `BoltLife`, `Segments`, `Jitter`,
-  `Flickers`, `CardSpeed`, `SealTargets`, `SkyStrike`). Damage lands at Hit;
-  the hops are only a visual stagger. When `chain` is nil (Edit previews) the
-  module predicts it with Combat.chainTargets' rule. Remade 2026-10-21 for the
-  Hit window (bare hand, so the anchor stays on the live left palm): the card
-  now crosses in 0.05-0.12 s (`CardSpeed` 200-245 studs/s, was 110-125 and up
-  to 0.22 s) and the hops are 0.04-0.028 s apart (were 0.12-0.09 s), so the
-  first strike lands ~0.05 s after the release and the whole chain within
-  ~0.15 s instead of up to ~0.5 s after the damage number (a sandbox run
-  landed the first impact 0.03 s and the finale 0.1 s after the release); the
-  windup is a stream through 0.25 s; the release on the hand gets the shared
-  flare (violet cross glint, star-burst flipbook over ink, sparks); every
-  impact carries the shared ink splat and star-burst flipbook. Layers T1 / T4:
-  windup 4 / 6, hand release 7 / 9, card 5, impact 9 / 17, finale 15 / 20,
-  fizzle 11 / 17.
-- **Fire Seal** (`FireSeal_T1..T4`, authored at radius 8, a 0.214 s active
-  window and 4 s; `TechniqueFX.FireSeal`). Fists.4 strikes with the left hand.
-  Windup: qi gathers into the palm. At Hit the seal is thrown as a projectile
-  (a Neon core with a trail and a spinning ring, `Palm/Bolt`, `BoltRing`),
-  whose 0.24 s flight is fitted to the active window, and lands at the zone
-  centre (`def.offset` ahead, on the ground) with an impact stack and a torus
-  rolling out to the rim (`Land`, delayed by the flight). For `def.seconds` a
-  raised Neon `Rim` torus marks exactly `def.radius`, with a turning rune
-  glyph, flame tongues and embers (`Zone`, enabled/disabled by the runtime;
-  its held MeshParts carry `Show`/`Spin`/`Flicker`). Every `def.tick` a
-  `PulseRing` sweeps to the rim, the rim flares, and each enemy inside
-  (re-queried per tick, up to 4) gets a burn hit (`Impact`: flare, embers,
-  `impactShockwave` rings) and an orange `CombatEffects.flash`. At the end the
-  hold fades and `Finale` bursts. Ticks are counted on the client from the
-  cast time (k × tick, the first held until the landing), because the server's
-  ticks aren't sent. II adds a spinning `InnerSeal` and rim flares; III a
-  counter-rotating `CounterSeal` and second glyph, a `FlameWall` spike crown
-  on the rim, `PulseCrown` spikes per tick, a Craters rock ring, scorch and
-  shake at the landing, and a flame tongue under each burn hit; IV a flame
-  `Pillar` at the landing, the move's one PointLight, and a big finale with an
-  Explosion shake. Remade 2026-10-21 for the Hit window (bare hand, so the
-  anchor stays on the live left palm): the 0.5 s windup is a stream through
-  the whole windup (not one burst), the release on the palm gets the shared
-  flare (fire-orange cross glint, star-burst flipbook over ink, sparks), and
-  every burn hit and the landing carry the shared ink splat and star-burst
-  flipbook. The seal's flight was already fitted to Hit -> Hit Stop (0.14 s).
-  Layers T1 / T4: windup 2 / 4, palm 10 / 11, landing 11 / 22, zone 2 / 3,
-  burn hit 4 / 5, finale 4 / 7.
-- **Iron Skin** (`IronSkin_T1..T4`, authored for the 4 s buff and a ground ring
-  of r 4; `TechniqueFX.IronSkin`; new 2026-10-21, it used to be a Highlight and
-  a burst of sparkles). The Golden Bell: the body hardens into plated
-  gold-bronze. Windup (0.2 s, caster only, the shared hand-gather stream at the
-  chest). At Hit (Fists.1) a flash and the shared flare on the torso, a gold
-  ground ring, and a bell: a ForceField sphere snapping out round the body with
-  a ring. Then the buff holds for `def.seconds` on every client: plate glints
-  flickering over dark soot flecks on the torso and gold gleams off the arms
-  (emitters moved onto the body parts named by their `Bone` attribute); II+ a
-  pulsing ForceField `Shell` part round the body; III+ a rune seal turning
-  under the feet; IV a ringed halo over the head. It ends with a ring and gold
-  dust (`Fade`), or stops at once if the caster dies. Layers T1 / T4: windup
-  2 / 3, release 9 / 10, ground 3 / 4, loop 4 / 6, end 2.
-- **Weapon skills with their own clip** (Heaven-Splitting Descent, Rampaging
-  Tiger Cleave) share `TechniqueFX/BladeSkill.luau`: the effect plays once per
-  cast (`claim`), on a clock that reads the move's playing AnimationTrack on
-  the caster (the caster's own, or the replicated one an observer sees), so
-  every beat lands on the clip's own pose even when the relay is late; beats
-  tied to a clip marker (`Hit` "n", `Leap`) fire on the marker, with the clip
-  time as the fallback. If the track stops before the last hit (a cancelled
-  cast) the rest is dropped. Without a track it runs from the first hit at
-  `def.castSpeed`. The blade draws its own arcs: the template's `Edge` Trails,
-  `Glow` beam and `Motes` move onto the held weapon's `Base`/`Tip`
-  attachments (a virtual blade off the right arm when no weapon is held) and
-  switch on for the windows where the sampled motion actually swings.
-  Previews: `_G.vfxSpecs.BladeKit.preview` (weapon rig, clip scrubbed at
-  castSpeed, root driven over `lungeWindow`).
-- **Swing, cancel, punch and rend** (QA pass 2026-10-21, after the remake's
-  playtest: "some of it stucks or doesn't properly align with the weapon").
-  The long clips' `Hit` markers fire as a swing starts (the blade still raised
-  behind the head), so `WeaponFX.swing(character, window, onPeak)` tracks the
-  held weapon's point relative to the root through that hit's Hit -> Hit Stop
-  window and calls back on the frame after its speed peaks (where the blade
-  bites; the window's end otherwise) with the point, the swing direction and
-  the blade axis. Flares (`WeaponFX.flare`), claws, light impacts and slam
-  bites play there, facing the way the blade cuts rather than the root's look.
-  A cast cut short (dodge, stun, any action before it finishes) calls
-  `CombatEffects.cancel` from `CombatController` (`stopRuntime` and the track's
-  Stopped handler): `WeaponFX.cancel` runs what was registered with
-  `WeaponFX.onCancel` (the `Charge`, the default hand gather, Great Sage's
-  twirl, Twin Phoenix's left-fist gather), so nothing keeps glowing after a
-  dodge. Observers never get the cancel; their copies end on their timers.
-  Big hits add `CombatEffects.punch(at, strength, tint, seconds)`: a camera
-  push-in and a short contrast/saturation grade through the Hit -> Hit Stop
-  window (the hit-pause feel; II+ or III+ only, tier I stays clean). The
-  no-Game-Module shake `SHAKE_BY_TIER` is 0.12 / 0.2 / 0.32 / 0.46. A strike
-  that carves the ground uses `BladeSkill.rend` (block `groundRend`), not a
-  Neon slit: Textures on a part laid from the bite (a black branching crack, a
-  jagged slit tinted the element and cooling to ink, III+ a wider crack web),
-  flat Beams of the element's qi burning in the crack and cooling
-  (`GlowFade`), and `RendKicks` stations that kick a smoke-flipbook puff,
-  falling rock chips, II+ a glowing star crack and III+ Craters rock kicks as
-  the carving reaches them, with a crack-web flipbook flash, a dark crater
-  crack and a dust ring at the bite. The shared hit stack (`impactBurst`) and
-  blade flare (`bladeFlare`) gained a white-hot core (hard dot, Brightness 4)
-  and a thin shock ring over deeper ink, falling rock chips under the target
-  at II+ and a spiky star on the flare at III+; every technique template was
-  rebuilt with them.
-- **Heaven-Splitting Descent** (`HeavenSplitter_T1..T4`, authored at radius 12
-  centred 4 ahead; `TechniqueFX.HeavenSplitter`). Heaven-azure qi, white core
-  (gold at IV), ink scars. Light hits (Hit 1 sweep, Hit 2 rising cut): a light
-  impact on each enemy in the circle. Leap: a torus and dust ring at the feet,
-  II+ swirl rings rising up the body. Airborne: the blade glows and sheds
-  motes; III+ a faint rune seal opens over the landing circle (following the
-  predicted landing) and a vertical rift tears open in the sky above it; III+
-  a phantom greatsword (ForceField at III, Neon at IV) rides the real blade
-  down and bites the ground, holds and dissolves. Slam (last hit, at the
-  root's live position): a star flash where the blade bites, a rend split
-  from there through the circle (`Rend`/`RendKicks`, `BladeSkill.rend`), a torus
-  shockwave rolling out to the radius with a dust skirt and rays, heavy
-  impacts timed by the torus front; II+ a pillar of light collapses onto the
-  bite and an echo torus; III+ Craters rock ring, crater and cracks, rock
-  kicks, the rend's crack web and rock kicks; IV a dome shell, the one PointLight, impact frames
-  and an Explosion quake. Remade 2026-10-21 on the greatsword and the clip's
-  markers: the windup (0 -> Hit 1, 0.14 s at 1.3x) is a `Charge` along the
-  model's Base -> Tip (dark beam under an azure one, motes, a point glint)
-  instead of a hand gather; each Hit marker flares on the live blade tip
-  (`Flare`: cross glint, star-burst flipbook over an ink splat, sparks; 1.5x at
-  the slam); the slam's heavy impacts are squeezed into Hit 3 -> Hit Stop 3
-  (`WeaponFX.landing`) instead of following the 0.5 s torus; every impact also
-  carries the shared ink splat and star-burst flipbook. QA pass 2026-10-21:
-  the flares, light impacts and the slam fire at each swing's peak inside its
-  Hit window (`WeaponFX.swing`; Hit 3 fires with the blade still overhead), so
-  the bite is under the point where it lands, ~9 studs ahead of the root (it
-  was clamped to 1.5 ahead); the Neon fissure is a rend (carved crack, azure
-  slit and seam cooling to ink, puffs, chips, star cracks at II+, a crack web
-  and rock kicks at III+); impact frames from III; a hit-pause punch at II+;
-  shake 1.4 / 2.2 / 3.4 / 4.6; a cancelled cast no longer leaves its template
-  copy behind. Layers T1 / T4: charge 8 / 8, flare 6 / 7, light impact 10 /
-  15, slam 8 / 15, rend 10 / 15, impact 10 / 17.
-- **Rampaging Tiger Cleave** (`RampagingTiger_T1..T4`, authored at radius 10
-  around the caster; `TechniqueFX.RampagingTiger`). Tawny amber qi over black
-  brush-ink, white-gold core at IV. Every cut flashes three claw strokes in the
-  air (`Claw`: amber Beams over ink, diagonal for Hit 1, vertical for the spin
-  hits and the landing) and an impact on each enemy in the circle. Leap: a
-  torus and dust ring. II+ while the blade wheels (1.0-1.78 clip) a spinning
-  amber swirl ring stands in its circle at the right side (`Wheel`, sized to
-  the blade's reach; III+ a counter-turning ForceField ring, embers). Landing
-  (last hit): flash where the blade bites, three claw rends fanned forward
-  (`Gouge`/`GougeKicks`, `BladeSkill.rend`), roar rings thrown forward (1/1/2/3), a torus
-  shockwave to the radius, heavy impacts by the front; III+ Craters rock
-  ring, cracks, rock kicks; IV a giant claw over the strike, a swirl shell,
-  the one PointLight, impact frames and a quake. Remade 2026-10-21 on the
-  saber and the clip's markers: the windup (0 -> Hit 1, 0.48 s) is a `Charge`
-  along the dadao's Base -> Tip (dark beam under an amber one, motes, a point
-  glint) instead of a hand gather; each cut (Hit 1-3) and the landing (Hit 4)
-  flare on the live blade tip as the marker fires (`Flare`: cross glint,
-  star-burst flipbook over an ink splat, sparks; 1.5x at the landing); and the
-  landing's heavy impacts are squeezed into Hit 4 -> Hit Stop 4 (0.117 s,
-  `WeaponFX.landing`) rather than following the 0.46 s torus out to r 10. All
-  hits also get the shared ink splat and star-burst flipbook. QA pass
-  2026-10-21: each Hit marker fires with the dadao still raised (Hit 1 has the
-  point behind the head), so the claws, flares and impacts of every cut and the
-  landing fire at the swing's peak inside its Hit window (`WeaponFX.swing`),
-  the flare facing the swing; the landing bites under the point at contact;
-  the Neon gouges are three claw rends (carved cracks under amber seams that
-  cool; the middle one kicks dust and chips); impact frames from III; a
-  hit-pause punch on the landing at II+; shake 1.1 / 1.8 / 2.8 / 3.8; a
-  cancelled cast no longer leaves its template copy behind. Layers T1 / T4:
-  charge 8 / 8, cut flare 6 / 7, claw 12, impact 10 / 17, landing 8 / 14,
-  rends 9 / 14.
-- **Moonflash Draw** (`MoonflashDraw_T1..T4`, authored along a 14-stud dash
-  with width 5; `TechniqueFX.MoonflashDraw`). An iaido dash-cut in silver
-  moonlight: the clip draws the blade from the right hip and sweeps it flat
-  round the front at chest height while the caster lunges `def.lunge` from Hit
-  to Hit Stop. Windup: a glint on the drawing hand. At Hit a crescent-moon
-  flash and swirl air rings burst on the hand. A horizontal crescent of Beams
-  (`Front`) rides `def.length - def.lunge` studs ahead of the caster's live
-  root (with a time floor so it never stalls), dragging a wake band as wide as
-  the hitbox, a streak Beam from the dash start (`Streak`) and a glowing slit
-  on the ground (`Cut`) that cools into an ink scar (`Scar`). Each enemy on the
-  line gets a silver `impactStack` and a crescent cut as the front passes it.
-  The dash ends in a crescent mark and ground torus at the feet (`Finish`).
-  II+ leaves Neon afterimages of the body along the path (1/2/3 by tier), an
-  echo crescent, and the signature "sheathe": ~0.12 s after the dash every
-  target cut flashes again with a crossing crescent and a standing white ring
-  while the slit flares (`Sheathe`). III adds 2 air rings, impact bubbles and
-  rock kicks, path cracks and a Craters ring at the finish; IV a gold core,
-  three afterimages, one point light on the front, a crescent moon rising
-  behind the finish, impact frames at the sheathe and a quake on the first
-  impact. `WeaponFX` (same folder) holds the helpers the weapon skills share.
-  Remade 2026-10-21 on the jian itself (`WeaponFX.rig`, the model's Base ->
-  Tip): the windup is a `Charge` along the blade (dark beam under a cold bright
-  one, motes, a glint at the point: the blade catching the light as it clears
-  the scabbard, 0.067 s); the draw flash, moon and air rings burst on the
-  blade 0.8 of the way to the tip rather than on the hand; through the dash an
-  `Edge` rides Base -> Tip (a solid moon ribbon, II+ a long afterimage, a Glow
-  beam, shed motes); the crescent front has an ink crescent under it; every cut
-  gets a crescent-moon flipbook (and the shared ink splat and star-burst
-  flipbook), fired as the front passes it, so all of it sits inside the
-  lunge window (Hit 0.067 -> Hit Stop 0.233, the clip's Lunge markers); a
-  `SheatheGlint` (star, halo, crescent flipbook, motes) flares on the live tip
-  as the blade is put away, 0.12 s after the dash. Layers T1 / T4: charge 8 /
-  8, release 5 / 8, edge 3 / 4, travel 13 / 13, impact 10 / 16, sheathe 4 / 9,
-  finish 3 / 4.
-- **Dragon-Piercing Thrust** (`DragonPierce_T1..T4`, authored at length 22
-  and width 4; `TechniqueFX.DragonPierce`). A red-tasselled spear dragon in
-  crimson and gold: the clip draws the spear back along the right side, then
-  drives it round and forward from Hit to Hit Stop while the caster lunges.
-  Windup: crimson qi spirals into the hands (II+ Spline wisps, III+ a seal).
-  At Hit a forward-facing vortex disc, a star and swirl air rings burst where the
-  lance starts on the line, at the height of the live spear point (the
-  weapon's `Tip` attachment, else the right hand). A
-  drill of qi (`Lance`: twisted spiral-cone MeshWaves stretched to the line,
-  `Stretch = true`) shoots from the point to the line's end on `TravelCurve`
-  over `TravelTime` (0.16 s), with a gold core and crimson glow Beam and a hot
-  head shedding sparks; swirl rings (`Ring1..n`, `Station` = fraction along
-  the line) burst across the line as the front passes them. A ray stops it at
-  a wall. Each enemy gets a crimson `impactStack` plus sparks punched out of
-  its far side when the front reaches it, and the lance bursts at its end
-  (`Terminal`: impact stack and vortex). A rend opens in the ground under the
-  lance as its front passes (`Rend`/`RendKicks`, `BladeSkill.rend`) and cools. II adds a gold dragon helix coiled round the lance, path dust
-  and motes, impact swirl; III a counter-wound second helix, impact bubbles
-  and rock kicks, a Craters ring at the terminal, path cracks; IV a gold-white
-  core, five rings, the dragon seal flashing at the point with impact frames,
-  one point light on the lance head and a quake at the terminal. Remade
-  2026-10-21 on the spear and the thrust's window: the 0.3 s windup is a
-  `Charge` along the whole spear (butt -> head, `full`: a dark beam under a
-  crimson one, motes along the shaft, a glint on the head) instead of a hand
-  gather; the release on the live spear head gets the shared flare (cross
-  glint, star-burst flipbook over ink, sparks); the lance has an ink beam under
-  its glow; the front crosses the line in 0.12 s (was 0.16) and every impact is
-  squeezed into Hit 0.30 -> Hit Stop 0.40 (`WeaponFX.landing`; a sandbox run
-  with a spear on the rig landed the impacts 0.06 s and the terminal 0.07 s
-  after the release); impacts carry the shared ink splat and star-burst
-  flipbook. QA pass 2026-10-21: sampled on the clip, the head is out to the
-  right at Hit and points straight ahead ~1.6 right of the root's line at
-  3.1 high by Hit Stop, so the lance runs down that thrust line (`Lance`
-  attributes `Lateral`, `Height`, `StartAlong`) instead of the root's centre
-  line; the shared flare (now part `Flare`) plays on the live head where the
-  thrust peaks (`WeaponFX.swing`); the dark furrow is a rend (carved crack,
-  crimson slit and seam cooling, puffs and chips along the line, star cracks
-  at II+, a crack web and rock kicks at III+); a hit-pause punch on the
-  terminal at III+; shake 0.8 / 1.3 / 2.0 / 2.8. Layers T1 / T4: charge 8 / 8, release 9 / 13, lance 9 / 14,
-  impact 9 / 15, terminal 9 / 15.
-- **Crescent Moon Sweep** (`CrescentSweep_T1..T4`, authored at radius 11;
-  `TechniqueFX.CrescentSweep`). A jade crescent cut out of the air: the clip
-  winds the guandao back low behind the left hip, then from Hit to Hit Stop
-  whips it round ~323 deg in one low spin (behind, right, front, left).
-  Windup: jade motes gather into the grip (II+ wisps, III+ a seal). At Hit a
-  flash on the blade tip. The `Sweep` part is turned round the caster on that
-  heading curve (`StartHeading` -126, `SweepDegrees` 323 over the active
-  window, then `FollowDegrees` of follow-through), so its radial Trails lay a
-  flat jade sheet with a bright moon edge at the blade's reach that closes into
-  a disc and fades. A ground torus rolls out to `def.radius`, a wispy swirl
-  ring spreads at knee height, dust is kicked outward and a jade-ink crescent
-  is scorched under the sweep. Each enemy in the circle gets a jade
-  `impactStack` and a crescent cut when the blade's heading passes it (one in
-  the arc the spin skips, behind-left, at Hit Stop). II adds an inner edge,
-  wave echo and rays, rising motes, impact swirl; III a spinning SimpleMeshVFX
-  swirl shell, a Craters ring erupting with the wave, impact bubbles and rock
-  kicks; IV a gold edge, a jade-gold moon rising behind the caster, one point
-  light on the sweep, impact frames at the release and a quake on the first
-  impact. Remade 2026-10-21 on the guandao and the Hit window: the 0.63 s
-  windup is a `Charge` along the whole pole (butt -> blade, `full`; dark beam
-  under a jade one, motes along the shaft, a glint on the blade) as it is
-  wound back; the release flash on the blade gets the shared flare (cross
-  glint, star-burst flipbook over ink, sparks); the sheet lies on a dark ink
-  sheet and the real blade draws its own ribbon, glow and motes (`Edge` on the
-  model's Base -> Tip) through the spin; every cut gets a crescent-moon
-  flipbook plus the shared ink splat and star-burst flipbook. Impacts already
-  fire as the heading passes (inside Hit 0.633 -> Hit Stop 0.75 plus the
-  follow-through). QA pass 2026-10-21: the `Sweep` sheet rides the real
-  guandao: its heading is the live point's heading round the caster (sampled,
-  it starts at -142 deg, not -126, and leads the authored curve by 15-20 deg
-  through the spin), never behind the authored curve, so a frozen relay pose
-  still sweeps; the shared flare (part `Flare`) plays where the spin is
-  fastest (`WeaponFX.swing`), facing it; impact frames from III; a hit-pause
-  punch at III+; shake 0.9 / 1.4 / 2.2 / 3.0. Layers T1 / T4: charge 8 / 8,
-  release 6 / 6, flare 6 / 7, sweep 4 / 5, edge 3 / 4, ground 6 / 11, impact
-  10 / 17.
-- **Twin Phoenix Cannon** (`TwinPhoenixCannon_T1..T4`, authored at length 18
-  and width 6; `TechniqueFX.TwinPhoenixCannon`). The skill animation throws
-  two overhand forward punches, right fist at `Hit "1"`/`Release "1"` (0.30)
-  and left at `Hit "2"` (0.833); each fist is fully extended ~0.03 s later,
-  where its release plays on the live hand. `cast()` runs at the first hit
-  and schedules the second from `def.hits` at the cast's playback rate. Each
-  blast is a phoenix: a Neon fire head with swept-back Beam wings and a
-  burning tail (`BlastR` crimson, `BlastL` gold and a size up) flying the line
-  on its `TravelCurve` (~0.26 s), stopped by walls or rising ground, with a
-  muzzle flash and 3D air rings off the fist (`FistR/L`), a fire impact on
-  every enemy its front reaches (`ImpactR/L`: impact stack plus flame flare),
-  an explosion where it ends (`TerminalR/L`) and a burn line cooling to a
-  char mark (`BurnR/L`, `CharR/L`). Between the blasts gold qi gathers in the
-  left fist (`Gather`, everyone sees it). II adds flame feathers off the
-  wings, release sparks, embers off the burn line and impact swirl/dust; III
-  a rune "cannon seal" at each fist, 2 air rings, impact bubbles and rock
-  kicks, a terminal Craters ring and a small shake; IV 3 air rings, white-gold
-  heads, the one light riding the golden bird and a fire dome with a spike
-  crown and an Explosion quake at its terminal. Damage lands on the server's
-  hit times. Remade 2026-10-21 for the hit windows: each bird flies in 0.15 s
-  (0.17 s gold) and every impact is squeezed into that blow's Hit -> Hit Stop
-  window (`WeaponFX.hitWindow`/`landing`, floor 0.1 s) instead of trailing the
-  damage number by up to 0.28 s. Layers added: a spiky flame-aura flipbook
-  `Plume` streaming back off each bird's head, a `FistFlame` flipbook on the
-  charging fist through the windup (and the left fist between the blasts), a
-  coloured fire-flipbook `MuzzleFire` over an ink splat at each release, an
-  ink splat and fire-flipbook `Bloom` (II+ a smoke flipbook) at each terminal,
-  and the shared hit stack's ink splat and star-burst flipbook on every
-  impact. The windup is a stream through 0.30 s, not one burst. Layers per
-  beat for one bird (T1 / T4): windup 6 / 9, release 6 / 10, travel 10 / 11,
-  impact 11 / 18, terminal 13 / 21, tail 2 / 3. QA pass 2026-10-21: a cast cut
-  short between the blasts drops the left-fist gather at once
-  (`WeaponFX.onCancel`; the second bird was already dropped with the track),
-  and the golden finisher's terminal lands with a hit-pause punch at III+.
-  The burnt streak is still a Neon line (not a rend).
-- **Great Sage Awakening** (`GreatSageAwakening_T1..T4`, authored at radius
-  8 and 8 s; `TechniqueFX.GreatSageAwakening`). The Monkey King wakes: his
-  golden circlet, golden flame, the somersault cloud, fiery eyes. The staff
-  animation twirls the staff flat overhead (`Twirl "start"` 0.167 to `"end"`
-  1.0, all on the `Hilt` joint) and brings one end down on the ground ~5
-  studs ahead at `Hit` (1.15). Windup (`windup()`, needs the
-  CombatEffects hook, see known gaps): from the Twirl start, gold ribbon
-  Trails on both ends of the staff (the weapon's `Tip`/`Base` attachments)
-  draw a spinning disc of arcs over the head; a rune seal grows under the
-  feet with motes rising into the spin (`Twirl`), qi gathers into the right
-  hand (`Windup`); III+ a wind swirl climbs the body. At Hit: a slam impact
-  where the low staff end meets the ground (`Slam`), a gold flash on the body
-  (`Body`), the shared ground shockwave to `def.radius` and a pillar of gold
-  light (stretched Neon ball) from the feet (`Ground`), and a gold impact on
-  each enemy as the front reaches it. Then the buff aura holds for
-  `def.seconds` on every client (`Aura`): a gold Neon circlet round the head,
-  gold flame wisps rising off the torso, and short gold arcs off the staff on
-  every swing (`Staff`); it ends with a puff (`Fade`) or stops if the caster
-  dies. II adds rays, an echo ring, pillar streaks, cloud puffs at the feet,
-  rising motes and a pulsing circlet; III a ground seal, slam cracks, a
-  Craters rock ring, impact bubbles and kicks, and two glowing golden eyes;
-  IV a second torus, a taller pillar with a spike crown, an Explosion quake,
-  a turning halo behind the back and the move's one light (flashed at the
-  strike, then a soft gold glow for the buff). Remade 2026-10-21 on the staff
-  and the Hit window: the twirl's trails and the buff's arcs now ride the
-  staff's real ends (the model's `butt` and `Tip`; `Base` is only the grip side
-  of the head, so the old trail started a hand's width from the head), a
-  `Charge` (a dark beam under a gold one, motes along the whole staff,
-  `WeaponFX.charge` full) runs along it while it spins, the slam gets the
-  shared flare (cross glint, star-burst flipbook over ink, sparks) where the
-  end bites, and every impact is squeezed into Hit 1.15 -> Hit Stop 1.25
-  (`WeaponFX.landing`; a sandbox run with a staff landed them 0.04-0.05 s after
-  the release). The `windup` hook now exists in `CombatEffects.windup`, so the
-  twirl plays. QA pass 2026-10-21: a cancelled twirl (dodge, stun) drops its
-  trails, seal, gather and `Charge` at once (`WeaponFX.onCancel`) instead of
-  spinning on to the Hit time; a hit-pause punch on the slam at II+. Layers T1
-  / T4: charge 8 / 8, twirl 3 / 4, slam 14 / 19, ground 4 / 10, impact 10 /
-  17.
-- 3D shockwaves (all tiers) are MeshWave models, played by TechniqueVFX with
-  or without the Game Module: a Model with `MeshWave = true` and a child
-  `Mesh` part (Transparency 1 in the template), tweened at emit time relative
-  to its parent part/attachment from `FromSize`/`FromOffset`/`FromTransparency`
-  to `ToSize`/`ToOffset`/`ToTransparency` over `Duration` (`Style` easing,
-  `Rotation` degrees, inherited `EmitDelay`; `Phase = "active"` lets `fit()`
-  retime it). Names avoid Start/End so SimpleMeshVFX doesn't also play them.
-  Palm Strike: `Ground/GroundWave` (torus to `def.radius`), per target
-  `Impact/GroundShock` and `Body/ImpactRing` (II+ `ImpactSwirl`, III+
-  ForceField `ImpactBubble`), and `Palm/AirRing` (1/1/2/3 flying forward).
-- Add-ons used: Craters (`CraterVFX` attachments `RockRing`, `Kick`; enemies
-  get the client-only `CraterIgnore` tag so rocks skip them), SimpleMeshVFX
-  (`Shell`, `Dome` Start/End models), Splines (`Wisps`, emitted explicitly:
-  emitting a part doesn't reach parts nested in it), ScreenEffects
-  (`CameraShake`/`ImpactFrames` CSV attributes on attachments `Shake`,
-  `Frames`, `Quake`). All need the Game Module with those add-ons installed in
-  the place; without it (`TechniqueVFX.full` false) only the particles play and
-  `CombatEffects.shake` stands in for the camera shake.
+Every technique has T1-T4 effect templates played on all clients at its
+technique level's tier. The pipeline and shared helpers are in
+[technique visuals](../combat/technique-visuals.md); each technique's look,
+layers and remake notes are in `docs/combat/techniques/<technique>.md`
+(indexed there).
 
 ## Player crowd control
 
@@ -787,7 +209,11 @@ cancels the running action (`onLock`); client `ActionState.crowdLocked()` blocks
 `tryStart`, drops buffered inputs, sprint, approach and jumping.
 
 Enemy attacks can carry `stun = { kind, radius, seconds? }` (Enemies.luau): at
-the end of the windup every player inside that circle is hit with
+the end of the windup every player inside that circle is hit with `PlayerStun.apply`, and the exact circle is telegraphed like a damaging attack.
+The new Elder Wolf King opens every fresh engagement with a `roar` (`pack.howl`, a `howl` attack, 1.0 s windup, no damage) that staggers players within 18 studs for 0.8 s; the server holds the roar until the target is within 24 studs so it can catch them (a dodge or backing off avoids it). Its Pack Call (the two health-threshold calls) also has
+`stun = { kind = "stun", radius = 20, seconds = 1.0 }`; it only exists behind
+`Config.Wilds.NEW_WOLF_KING` (testbed). Dodge through the roar or stay out of the ring.
+
 ### Enemy hits: reaction level and knockback
 
 Every enemy hit that lands (`hurtPlayer`/`hurtPart` in EnemyService) picks one of
@@ -817,11 +243,6 @@ of `KNOCK_MEAN_SPEED` 60 studs/s, so the Jiao's 36-stud tail shove takes 0.6 s),
 while it plays. Untested in play: the shove fights the Humanoid's ground
 controller the same way the stumble does, so the real distance may come out
 shorter than `studs`.
-
-`PlayerStun.apply`, and the exact circle is telegraphed like a damaging attack.
-The new Elder Wolf King opens every fresh engagement with a `roar` (`pack.howl`, a `howl` attack, 1.0 s windup, no damage) that staggers players within 18 studs for 0.8 s; the server holds the roar until the target is within 24 studs so it can catch them (a dodge or backing off avoids it). Its Pack Call (the two health-threshold calls) also has
-`stun = { kind = "stun", radius = 20, seconds = 1.0 }`; it only exists behind
-`Config.Wilds.NEW_WOLF_KING` (testbed). Dodge through the roar or stay out of the ring.
 
 ## Data flow
 Client presses -> `ActionRules` decides if legal -> plays locally and sends
@@ -857,28 +278,13 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   `Config.Combat.FIST_STEPS[4].hitStop` is 0.50: the hitbox window (and the
   effect's active phase, which follows Config) runs ~0.05 s of source time past
   the animation's marker. Effects follow Config until the two are aligned.
-- Enemy hits flinch players but don't knock them back. Flinch, stagger and stun
+- Flinch, stagger and stun
   are procedural R6 poses (untested in play, no authored clips) and there is no
   dazed-stars effect yet: the VFX library has a `star` but no template is built.
   The Elder Wolf King's `Roar` pose is still unplayed (its Pack Call keeps its own).
 - Sword Qi Wave's blade stops visually at walls, but its damage box still
   reaches through them.
-- Fire Seal's tick visuals are timed on the client from the cast, not from
-  the server's damage ticks (which aren't sent), and the first one waits for
-  the seal to land (~0.24 s after the first damage tick).
 - An interrupted enemy windup's telegraph still plays out on clients.
-- Great Sage Awakening's twirl (`TechniqueFX.GreatSageAwakening.windup`: the
-  staff trails, ground seal and rising streaks) plays on the caster only
-  (`CombatEffects.windup` hands off to a technique module's `windup`), and
-  observers only get the cast at the first hit, so they never see the twirl,
-  and neither do they see any weapon technique's `Charge`. The buff
-  aura runs `def.seconds` from the cast on each client (it stops early only if
-  the caster dies or leaves), not from a server buff start/end signal.
-- Heaven-Splitting Descent's first hit (def 0.18 -> 0.37 clip) ends before
-  the blade actually sweeps the front (0.45 -> 0.58), so its flare and light
-  impacts land at the window's end with the blade still out to the right.
-  Moving the hit (or the animation) is a gameplay call; the effects follow the
-  def.
 - `Dodge` and `Cast` remotes in `assets/Remotes.rbxmx` are unused.
 - Combat qi is untuned and unplayed: pool sizes, regen rates and costs are first
   guesses (three techniques cast on cooldown at QC1 drain the pool in roughly
@@ -887,3 +293,7 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   level or stage?); should a dodge-cancelled cast refund its qi; should perfect
   dodges or parries restore qi; should items or root perks touch combat qi.
 - Testbed casts cost qi like the main game (no free-qi flag).
+- Technique visual gaps (Fire Seal's client-timed ticks, observers never
+  seeing windups or the Great Sage twirl, Heaven-Splitting Descent's first
+  hit landing before the sweep) are in [technique visuals](../combat/technique-visuals.md#known-gaps)
+  and the technique files; guard gaps in [guard and perfect parry](../combat/guard-parry.md).

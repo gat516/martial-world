@@ -1,7 +1,7 @@
 --!strict
 -- Stone Tortoise cues (EnemyFX) for the new body StoneTortoiseB. Templates:
 -- ReplicatedStorage.Effects.StoneTortoise (builder tools/vfx_specs/StoneTortoise.luau).
--- Record: docs/systems/enemies.md. The old body plays nothing here.
+-- Record: docs/enemies/second-wave.md. The old body plays nothing here.
 --
 -- Attacks (cue.attack): neckSnap, quakeStomp, shellGuard, shellSnap.
 --   windup   all: eyes + BrowMark star, seams (Tell parts) dim -> jade.

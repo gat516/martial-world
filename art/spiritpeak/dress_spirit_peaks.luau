@@ -1,5 +1,5 @@
 --[[
-Dresses the spirit peaks' lawns (docs/systems/map.md, "Spirit peak template"). Run in Studio Edit mode through
+Dresses the spirit peaks' lawns (docs/map/spirit-peaks.md). Run in Studio Edit mode through
 the MCP. Re-runnable: it rebuilds the Dressing groups it owns (Plants, Stones, Path) and re-seats the starter
 foliage, so the layout below is the source of truth. One ChangeHistory recording per run.
 

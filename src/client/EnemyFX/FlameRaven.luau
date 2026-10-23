@@ -1,7 +1,7 @@
 --!strict
 -- Flame Raven cues (EnemyFX) for the reference body FlameRavenB: fire red, gold
 -- and soot black. Templates: ReplicatedStorage.Effects.FlameRaven (builder
--- tools/vfx_specs/FlameRaven.luau). Record: docs/systems/enemies.md.
+-- tools/vfx_specs/FlameRaven.luau). Record: docs/enemies/third-wave.md.
 -- Gated by the model's Template = "FlameRavenB".
 --
 -- Attacks (cue.attack): talonDive, talonRake, emberFan, windGust, hop.

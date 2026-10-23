@@ -93,7 +93,7 @@ The game is open to phone players: small screens, a thumb on the stick, a lower
 camera. So the edges and timing fill are thick and high-contrast, never colour
 alone (the pulse and fill carry the timing too). Windups follow the
 enemy-designer's minimums, and sustained effects stay within the phone
-particle budgets in `docs/vfx/style.md`.
+particle budgets in `docs/vfx/toolkit.md` "Budget".
 
 ## Implementation (`Config.NEW_TELEGRAPHS`)
 The new look is on in the testbed only (`NEW_TELEGRAPHS = TESTBED` in `Config.luau`);

@@ -1,6 +1,6 @@
 --!strict
 -- Cultivation methods (shared defs: Methods.luau, Pacing.Methods; design:
--- docs/systems/character.md). Everyone uses Sect Breathing until Foundation,
+-- docs/character/method.md). Everyone uses Sect Breathing until Foundation,
 -- where they are given a random starter for their root (on the breakthrough,
 -- or on joining if they're already there). More come from world caches
 -- (`Method` attribute) and admin; the elder's task and explore sources are to do.

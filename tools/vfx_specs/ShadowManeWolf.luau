@@ -5,7 +5,7 @@
 --   local m = Instance.new("ModuleScript")
 --   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/ShadowManeWolf.luau")
 --   require(m)  -- installs _G.buildShadowManeWolfFX(effectsFolder)
--- Runtime: src/client/EnemyFX/ShadowManeWolf.luau. Record: docs/systems/enemies.md.
+-- Runtime: src/client/EnemyFX/ShadowManeWolf.luau. Record: docs/enemies/second-wave.md.
 --
 -- Ink-black smoke with hot violet (#8A5CFF) and a white-violet flare. Black
 -- smoke is the dark base; violet is the bright layer on it (never the Spirit

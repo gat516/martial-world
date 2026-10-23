@@ -2,7 +2,7 @@
 -- Stone Boar cues (EnemyFX): earth-qi attack, hit and death effects.
 -- Templates: ReplicatedStorage.Effects.StoneBoar (builder and layer notes in
 -- tools/vfx_specs/StoneBoar.luau). Record and cue contract in
--- docs/systems/enemies.md, "Stone Boar effects".
+-- docs/enemies/stone-boar.md, "Effects".
 --
 -- Only the reworked body (Template attribute "StoneBoarB") plays these; the
 -- old StoneBoar has none of the parts they hang on.

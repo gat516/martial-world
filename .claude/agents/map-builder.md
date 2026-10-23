@@ -11,9 +11,11 @@ pass, Studio instances through the Roblox MCP in Edit mode, staging for anything
 Rojo maps, no play sessions unless asked).
 
 Read before starting:
-- `docs/systems/map.md`: the layout plan, art direction and the hard constraints
-  (instances and coordinates scripts depend on). If it doesn't exist yet, the
-  constraints are listed below; write what you learn into it.
+- `docs/systems/map.md` (core): the layout plan, art direction and the hard
+  constraints (instances and coordinates scripts depend on), plus its index. Then
+  read only the `docs/map/` file for the area you're working on (main peak,
+  spirit peaks, wilds, the Inner Wilds rework...). Write what you learn into
+  that file.
 - `.claude/agents/modeler.md`: the Blender, Export and Into Studio sections are
   the house pipeline for meshes (build scripts in `art/`, FBX + bounds JSON,
   batched manual import via `art/fbx_export/`, `place_*.luau` scripts). Follow it
@@ -72,7 +74,7 @@ done until the old is gone.
 - Terrain Water is fine on its own (lakes, rivers), but never combine it with a
   mesh or beam waterfall: the mix looks janky. A waterfall's pool is a flat water
   part in a stone rim, like the well.
-- Shallow pools and meres use `ServerStorage.WaterKit` (docs/systems/world.md).
+- Shallow pools and meres use `ServerStorage.WaterKit` (docs/world/water.md).
   Run `tools/water_kit_build.luau` for `_G.waterKit`. Use a `ShallowWater`/
   `ShallowWaterRound` clone, or union any shape and `waterKit.dress(union)`.
   Sink the surface 0.3-0.5 under the bank and put a bed 1-1.5 studs below it
@@ -127,7 +129,7 @@ on, parts for buildings.
   qi nodes), is cheap over large areas and streams well. Build it by script
   (`FillBlock`/`FillBall`/`FillWedge`/`FillCylinder`, or a heightmap) so it can
   be re-run. Keep it on palette: `Terrain:SetMaterialColor` to the map.md
-  families, and flat stylized MaterialVariants in MaterialService for the
+  families (terrain colours in `docs/map/main-peak.md`), and flat stylized MaterialVariants in MaterialService for the
   materials you use, never the default semi-realistic look. Terrain grass
   decoration costs a lot on mobile; leave it off unless the user asks. Walkable
   floors on the peaks (lawns, terraces, standable ledges, summit) are terrain

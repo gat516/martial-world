@@ -141,7 +141,7 @@ MeditationMenu.init(gui) -- before Meditation, whose tiles open it
 Meditation.init(gui)
 Rewards.init()
 DeathScreen.init()
-Dialogue.init() -- ready to wire: nothing opens it yet (docs/ui/dialogue.md)
+Dialogue.init() -- the elder's Talk opens it (Onboarding; docs/ui/dialogue.md)
 task.spawn(Herbarium.init) -- ready-to-wire: nothing opens it yet (docs/ui/herbarium.md)
 RegionBanner.init()
 SelfCard.init(gui)

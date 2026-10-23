@@ -8,8 +8,9 @@ main peak, the sect gate and the wilds arrays (see [map](map.md), "World structu
 ## Design intent
 - Never blocking: beats advance on conditions checked every second, and players
   already past one skip straight through.
-- The elder speaks one line per beat; an objective line and a pulse on the right
-  button show what to do.
+- The elder speaks one line per beat (beside the guide, auto-shown); an objective
+  line and a pulse on the right button show what to do. Talking to him opens the
+  dialogue screen with a short conversation for that beat (see "Talking to the elder").
 - Beats: Circulate -> Breakthrough -> Root (travel unlocks here: ride to the
   Main Peak and touch the Testing Stone, see [character](character.md)) -> Gate -> FirstKill ->
   Technique (3 kills, done once the 3-kill milestone's manual is earned) -> Refine
@@ -127,6 +128,28 @@ to the first kill.
   at the destination once its menu is open. Keys are listed at the top of
   `Quests.luau`.
 
+### Talking to the elder (built 2026-10-23)
+- His Talk prompt (`Workspace.Hub.Elder` `TalkPrompt`) opens the dialogue screen
+  ([dialogue](../ui/dialogue.md)): speaker "Elder Qingyun", portrait `elder_qingyun`,
+  2-4 short lines, then responses: the player's reply (lit, closes), "What should I aim
+  for next?" in free play (opens the quest board) and "Farewell." (cancel).
+- What he says (`conversation` in `Quests.luau`): the current beat's `talk`; in free
+  play the guiding lesson's (or the first open one's) while unclaimed, then once ever
+  FreePlay's `talk`, which names the loop ("Cultivate until you hit a wall. Go out and
+  break it. Come home stronger."; marked `data.lessons.Loop`), then the top quest
+  board goal ("Your next step: <name>." and its detail).
+- Lines live on each quest def as `talk = { lines = {...}, reply = "..." }`, beside its
+  `elder` one-liner. Adding a beat's or lesson's conversation is that one entry; a quest
+  without one falls back on its `elder` line. Keep it to one new idea, said once, short
+  enough for a phone (about 90 characters a line).
+- The auto-shown one-liner (`ElderLine`, or `Guide.Callout` beside a spotlight) is kept
+  as it was: it fires on its own when a beat or lesson begins and never blocks; the
+  conversation is only for when the player walks up and talks. Talking no longer
+  re-shows the one-liner (the old `repeatElder`), and free play's toast is gone.
+- The loop is named in conversation only, so a player who never talks to him in free
+  play never hears it; making it FreePlay's auto one-liner instead is a one-line change
+  if the funnel says so.
+
 ### Rewarded objectives (decided 2026-10-21)
 - **The objective line is the onboarding for now.** Every beat and lesson is a
   rewarded objective, claimed once per profile: finishing it pays a small
@@ -178,7 +201,8 @@ to the first kill.
   Sect Gate for the wilds), destinations, realm gate, cooldown,
   combat block, streaming the destination in; `Travel.arrival` for respawns.
 - `src/client/Onboarding.luau`: objective tracker (with "· Reward: ..." after a
-  rewarded objective), elder line, quest board window;
+  rewarded objective), elder line, the elder's conversation (`Dialogue.open`), quest
+  board window;
   hands `QuestState.guide` to `Guide`.
 - `src/client/Guide.luau`: shows the guide. Button keys map to HUD controls in
   one table (`BUTTONS`), resolved every frame since seated tiles come and go;
@@ -245,13 +269,15 @@ Every second `Quests.check` marks met beats in `data.beats`, claims done
 objectives in `data.quests` (granting their rewards: `Effect` "stones", "qi",
 "insight" and a `Notify` toast) and pushes
 `QuestState` `{ step, beat, elder, objective, reward, travel, goals, guide, lesson }`
-(only when something visible changed, or a lesson fires); Onboarding passes `travel`
+(only when something visible changed, or a lesson fires); the elder's Talk sends
+`{ talk = { lines, reply, board } }` and the board's Read `{ openBoard = true }`; Onboarding passes `travel`
 to `TravelMenu.setTaught`. `TravelAction(gateId)` checks unlock, where you
 stand (sect ground or an array; the Sect Gate's or a wilds array for the wilds), the realm gate, combat and cooldown, streams the destination in,
 then pivots the character onto that array.
 
 ## Tuning knobs
-- Beat text and conditions in `Quests.Beats`; goals in `Quests.goals`.
+- Beat text (`elder`, `talk`, `objective`) and conditions in `Quests.Beats`, lessons'
+  in `Quests.Lessons`; goals in `Quests.goals`.
 - `Gates.List`, `Gates.RANGE`; `Config.Travel`: `SECT_GATE` (Gate beat check),
   `COOLDOWN`; `Config.Spawn.HEIGHT` (arrival height above an array).
 - Rewards shown on the board come from `Pacing.Rewards`; objective rewards

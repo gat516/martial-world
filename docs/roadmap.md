@@ -390,6 +390,35 @@ live in the world, and each step is a place or a thing a creator can show.
 - Needs: the cultist enemies wired, a hidden ruin, the Blood Moon weather and
   altar (world-fx), the awakening ritual and expulsion cutscene, and the blood garden.
 
+## 9b. More cultivation elements (candidates, 2026-10-22; QC to FE9 only)
+Proposals to pick from; none decided. Each must name its arrow into the loop.
+1. **Seclusion (closed-door cultivation).** Start it on purpose: sit for hours (the
+   existing offline cultivation, framed). On return a short story result ("you
+   comprehended..."), a bonus to solidity, a small chance of a fortuitous insight.
+   Arrow: home. Perfect for gardeners and mobile players.
+2. **Heart-demon trial.** A choice-based, no-reflex inner trial at a major breakthrough
+   (dialogue and choices that reflect how you played), optional, repairs or deepens
+   the foundation. Replaces "skill" with story. Arrow: breakthrough and solidity.
+3. **Fortuitous encounters.** Rare, random, sharable moments while out: an old hermit
+   in a ring, a dying cultivator's bequest, a hidden spring. Small rewards, big
+   stories. Arrow: out (explore). The genre's best content-creator fuel.
+4. **Pill impurities.** Pills leave toxicity; too many cloud your foundation (cracks).
+   Purify at the furnace or by meditating. Gives alchemy a trade-off. Arrow: home,
+   ties pills to solidity.
+5. **Talismans.** Consumable paper charms crafted from herbs and ink: heals, wards,
+   buffs, tribulation protection. Lighter than pills; a use for stones. Arrow: home
+   to out.
+6. **Formations (arrays).** Functional building: a gathering array, a growth array, a
+   ward. Mostly the building plan; also a Dao ("Formation Dao") to comprehend.
+7. **Spirit beast taming.** A tamed beast follows you (the cosmetic pet at FE6, earlier
+   as an egg). Becomes the soul companion later. Arrow: strongest kid hook.
+8. **Alignment and reputation.** Righteous, neutral and demonic standing from your
+   deeds; changes how NPCs and masters treat you. Ties to the demon secret.
+9. **Spar and rank duels (opt-in).** Friendly duels for rank, no progress at stake, a
+   Hall rivalry. Optional, kids and mobile safe.
+- **Skip for now:** lifespan (stress), dual cultivation (audience), PvP-for-progress,
+  an open player auction (scams).
+
 ## 10. Order of work and who does it
 
 **How we work (user, 2026-10-22):** one system at a time, designed and built with the

@@ -231,11 +231,22 @@ local function avatarDefaults(player: Player): { skin: Color3?, hairIds: { numbe
 		return result
 	end
 	result.skin = description.HeadColor
-	for raw in string.gmatch(description.HairAccessory, "%d+") do
-		local id = tonumber(raw)
-		if id and #result.hairIds < Rules.MAX_HAIRS and not table.find(result.hairIds, id) then
+	local function add(id: number?)
+		if id and id > 0 and #result.hairIds < Rules.MAX_HAIRS and not table.find(result.hairIds, id) then
 			table.insert(result.hairIds, id)
 		end
+	end
+	-- Newer avatars list their hair only in the accessory list, not HairAccessory.
+	local okList, accessories = pcall(description.GetAccessories, description, true)
+	if okList then
+		for _, entry in accessories do
+			if entry.AccessoryType == Enum.AccessoryType.Hair then
+				add(entry.AssetId)
+			end
+		end
+	end
+	for raw in string.gmatch(description.HairAccessory, "%d+") do
+		add(tonumber(raw))
 	end
 	return result
 end

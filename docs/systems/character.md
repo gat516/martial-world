@@ -53,7 +53,7 @@ game and in code (`Methods`).
 |---|---|---|
 | Start | Weapon (Fist / Iron Jian) | starting kit; already built |
 | After the first breakthrough (QC2) | **Spirit root** | new onboarding beat: touch the Testing Stone |
-| First second-class weapon / manual | Dao paths | already built (Inventory > Weapons tab) |
+| First second-class weapon / manual | Dao paths | already built (Inventory > Weapons & Arts tab) |
 | Reaching Foundation Establishment | **Cultivation method** | the elder: "the sect's breathing method can take you no further"; pick one at the sect library |
 | First bloodline essence found (FE+) | **Bloodline** | an essence drops (sealed relic, boss, event); intake ritual while meditating |
 | Later | treasures, spirit beast, ... | see [later layers](../character/later-layers.md) |

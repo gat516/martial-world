@@ -163,6 +163,18 @@ Row 3: three path crests: Orthodox Sect (a jade peak in a gold ring), Rogue (a l
 The same ornament set as the first ornament sheet (clouds, corners, studs, key plate, chevron), redrawn in the Blood Sect's look: blackened iron and dark crimson instead of gold, jagged thorned scrolls instead of soft clouds, a deep red glow allowed inside outlines.
 ```
 
+### C7. Class glyphs and art icons (the Inventory, 2026-10-23)
+Requested by the inventory pass ([inventory](inventory.md)). Until it's cut, Greatsword and
+Guandao glyphs are white silhouettes of their item icons (`art/ui/draw_class_glyphs.py`) and the
+arts keep their current icons. Attach the kit's white weapon glyph sheet (a6) as the style to match.
+```text
+Exception to rule 4: these are flat WHITE glyphs only (pure white #FFFFFF shapes, no gold, no shading, no outline colour), drawn as bold, simple silhouettes that read at 24 pixels. Same stroke weight and style as the attached white sword, spear, saber, fist and staff glyphs. One per cell on a 4 x 4 grid, each centred in a square.
+Row 1: a greatsword (a broad, long two-handed blade, upright, wider than the plain sword glyph); a guandao (a long pole with a curved crescent blade and a small hook at the top, upright).
+Row 2 (martial arts, each one shape that says what it does): a crescent sword-qi wave; an open palm strike with three motion lines; a paper talisman with a lightning bolt; a round shield of iron skin.
+Row 3: a burning seal (a circle with a flame inside); two phoenix flames side by side; a quick-draw slash (a sword with a crescent trail); three tiger claw marks.
+Row 4: a sword plunging down onto a crack in the ground; a crescent moon sweep (a wide arc); a spear thrust with a coiling dragon line; a staff with a radiant sun burst at the top.
+```
+
 ## Light effects (one sheet, black background)
 ```text
 Exception: pure black background (no magenta), soft light allowed.

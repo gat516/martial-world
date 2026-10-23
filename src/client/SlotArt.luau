@@ -3,8 +3,12 @@
 -- Preview) for a technique, an item, a weapon (or "Fist", bare hands), or nothing:
 -- its icon or glyph, its name, the glow in its rarity, grade or technique color, and
 -- the count in the corner. Empty slots fade back.
--- Also owns the weapon art (icons by model and by class, art/ui/assets.json) and the
--- weapon badge on technique slots (gate).
+-- Also owns the weapon art (icons by model and by class, art/ui/assets.json), the
+-- class glyphs and colours shared by weapon cells, art badges, the Inventory's
+-- class rail and section headers, and the hotbar (classGlyph, classColor), the
+-- weapon badge on technique slots (gate) and the rarity frame (tile, Rarity).
+-- Weapons are drawn as their class glyph in their class colour, so a weapon and
+-- the arts it unlocks wear the same mark.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -12,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
+local Rarity = require(script.Parent.Rarity)
 local State = require(script.Parent.State)
 
 local SlotArt = {}
@@ -37,6 +42,26 @@ local CLASS_ICONS: { [string]: string } = {
 	Spear = MODEL_ICONS.Spear,
 	Staff = MODEL_ICONS.Staff,
 }
+-- White class glyphs (art/ui/glyphs, draw_class_glyphs.py), tinted by CLASS_COLORS
+local CLASS_GLYPHS: { [string]: string } = {
+	Fist = "rbxassetid://104207538401146",
+	Sword = "rbxassetid://133108477410682",
+	Saber = "rbxassetid://131762442903132",
+	Greatsword = "rbxassetid://140142107031077",
+	Guandao = "rbxassetid://132296972269637",
+	Spear = "rbxassetid://102648443555194",
+	Staff = "rbxassetid://76027373176155",
+}
+local CLASS_COLORS: { [string]: Color3 } = {
+	Fist = Color3.fromRGB(240, 214, 176),
+	Sword = Color3.fromRGB(120, 190, 255),
+	Saber = Color3.fromRGB(250, 112, 96),
+	Greatsword = Color3.fromRGB(250, 160, 70),
+	Guandao = Color3.fromRGB(80, 220, 196),
+	Spear = Color3.fromRGB(244, 132, 206),
+	Staff = Color3.fromRGB(176, 222, 96),
+	Any = Color3.fromRGB(222, 214, 196), -- universal arts
+}
 local FIST_NAME = "Bare Fists"
 local FIST_COLOR = Color3.fromRGB(236, 196, 156)
 
@@ -45,7 +70,30 @@ function SlotArt.classIcon(classId: string): string
 	return (class and class.icon) or CLASS_ICONS[classId] or ""
 end
 
--- A weapon's icon; Weapons.FIST is bare hands.
+-- The white glyph of a weapon class ("" for universal arts); tint it with classColor.
+function SlotArt.classGlyph(classId: string): string
+	return CLASS_GLYPHS[classId] or ""
+end
+
+function SlotArt.classColor(classId: string): Color3
+	return CLASS_COLORS[classId] or CLASS_COLORS.Any
+end
+
+-- The rarity frame on an Inventory cell or preview (its Frame child): the kit
+-- tile of its tier, the plain slot for Bare Fists. Hides the old glow. Call
+-- after paint.
+function SlotArt.tile(slot: GuiObject, id: string?)
+	local frame = slot:FindFirstChild("Frame") :: ImageLabel
+	frame.Image = Rarity.tile(Rarity.of(id).tier)
+	frame.ImageColor3 = WHITE
+	local glow = slot:FindFirstChild("Glow") :: ImageLabel?
+	if glow then
+		glow.Visible = false
+	end
+end
+
+-- A weapon's illustrated icon (rewards, the character card); Weapons.FIST is bare
+-- hands. Slots draw weapons as their class glyph instead (paint).
 function SlotArt.weaponIcon(weaponId: string): string
 	local def = Weapons.Defs[weaponId]
 	if not def then
@@ -83,18 +131,24 @@ function SlotArt.techniqueClass(id: string?): string?
 	return if type(need) == "string" and Weapons.Classes[need] then need else nil
 end
 
--- The weapon badge on a technique slot (its WeaponBadge child, if it has one).
--- always: show the class of every class art (Arts cells). Otherwise (hotbar) show it
--- only while that class isn't in hand, and dim the slot. Returns whether the
+-- The weapon badge on a technique slot (its WeaponBadge child, if it has one):
+-- every class art wears its class glyph in the class colour, so the hotbar and the
+-- Inventory both say which weapon an art needs. inventory: never dim. Otherwise
+-- (hotbar) the slot dims while that class isn't in hand. Returns whether the
 -- technique's weapon is missing. Call after paint.
-function SlotArt.gate(slot: GuiObject, id: string?, always: boolean): boolean
+function SlotArt.gate(slot: GuiObject, id: string?, inventory: boolean): boolean
 	local need = SlotArt.techniqueClass(id)
 	local missing = need ~= nil and need ~= Weapons.classOf(SlotArt.equipped())
+	local always = inventory
 	local badge = slot:FindFirstChild("WeaponBadge") :: ImageLabel?
 	if badge then
-		badge.Visible = if always then need ~= nil else missing
+		badge.Visible = need ~= nil
 		if need then
-			(badge:FindFirstChild("Icon") :: ImageLabel).Image = SlotArt.classIcon(need)
+			-- a badge that is the glyph itself, or a ring holding it (the hotbar's)
+			local glyph = (badge:FindFirstChild("Icon") :: ImageLabel?) or badge
+			glyph.Image = SlotArt.classGlyph(need)
+			glyph.ImageColor3 = SlotArt.classColor(need)
+			glyph.ImageTransparency = if missing and not always then 0.15 else 0
 		end
 	end
 	if missing and not always then
@@ -146,8 +200,9 @@ function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: 
 			corner.Text = if count then `x{count}` else ""
 		end
 	elseif weapon and id then
-		icon.Image = SlotArt.weaponIcon(id)
-		icon.ImageColor3 = WHITE
+		local classId = Weapons.classOf(id)
+		icon.Image = SlotArt.classGlyph(classId)
+		icon.ImageColor3 = SlotArt.classColor(classId)
 		icon.ImageTransparency = 0
 		glow.ImageColor3 = SlotArt.weaponColor(id)
 		glow.Visible = true

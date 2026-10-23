@@ -11,6 +11,8 @@
 -- circle may have `offset`: its centre that far ahead of the caster.
 -- damage is per hit (per tick for zones), before realm power and technique level.
 -- weapon: the class that must be equipped to cast it (Weapons.Classes), or "Any".
+-- grade: Weapons.Grades key, as weapons have (nil = Mortal): starter and kill-milestone
+--   arts are Mortal, boss and late-milestone manuals Spirit (docs/ui/inventory.md).
 -- element: its Roots element (Roots.Elements); a caster with that spirit root hits harder.
 --   Class techniques also scale with that class's grade and Dao comprehension.
 --
@@ -47,6 +49,7 @@ export type Def = {
 	name: string,
 	kind: string,
 	weapon: string, -- a Weapons class id, or "Any"
+	grade: string?, -- a Weapons.Grades key (the inventory frame); nil = Mortal
 	element: string?, -- a Roots element: casters with that root deal Pacing.Roots.MATCH more
 	cooldown: number,
 	qiCost: number?, -- combat qi per cast; nil = derived from the cooldown (Techniques.qiCost)
@@ -172,6 +175,7 @@ Techniques.Defs = {
 	-- Class weapon skills (Animations.Techniques.<Id>)
 	TwinPhoenixCannon = {
 		id = "TwinPhoenixCannon",
+		grade = "Spirit",
 		weapon = "Fist",
 		icon = "rbxassetid://81953324274209",
 		name = "Twin Phoenix Cannon",
@@ -191,6 +195,7 @@ Techniques.Defs = {
 	},
 	MoonflashDraw = {
 		id = "MoonflashDraw",
+		grade = "Spirit",
 		weapon = "Sword",
 		icon = "rbxassetid://96346324489936",
 		name = "Moonflash Draw",
@@ -214,6 +219,7 @@ Techniques.Defs = {
 	},
 	RampagingTiger = {
 		id = "RampagingTiger",
+		grade = "Spirit",
 		weapon = "Saber",
 		icon = "rbxassetid://104006341750065",
 		name = "Rampaging Tiger Cleave",
@@ -239,6 +245,7 @@ Techniques.Defs = {
 	},
 	HeavenSplitter = {
 		id = "HeavenSplitter",
+		grade = "Spirit",
 		weapon = "Greatsword",
 		icon = "rbxassetid://131580966208055",
 		name = "Heaven-Splitting Descent",
@@ -264,6 +271,7 @@ Techniques.Defs = {
 	},
 	CrescentSweep = {
 		id = "CrescentSweep",
+		grade = "Spirit",
 		weapon = "Guandao",
 		icon = "rbxassetid://110851099640824",
 		name = "Crescent Moon Sweep",
@@ -282,6 +290,7 @@ Techniques.Defs = {
 	},
 	DragonPierce = {
 		id = "DragonPierce",
+		grade = "Spirit",
 		weapon = "Spear",
 		icon = "rbxassetid://123799153426166",
 		name = "Dragon-Piercing Thrust",
@@ -303,6 +312,7 @@ Techniques.Defs = {
 	},
 	GreatSageAwakening = {
 		id = "GreatSageAwakening",
+		grade = "Spirit",
 		weapon = "Staff",
 		icon = "rbxassetid://115862718192751",
 		name = "Great Sage Awakening",

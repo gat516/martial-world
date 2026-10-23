@@ -23,7 +23,11 @@ game (funnels, progression, custom events), and give admins test tools.
   `quests`, the rewarded objectives claimed, by quest id (see
   [onboarding](onboarding.md)); beats a v8 profile had already passed count as
   claimed, so the tutorial isn't paid in arrears, while lessons already done
-  pay out once on the next join), load with session lock, autosave, release on leave.
+  pay out once on the next join; v9 -> v10 adds `seen`, the items, arts and
+  weapons the Inventory has shown (id -> os.time() first seen; everything a v9
+  profile owned counts as seen at 0), and `inventoryView`, the Inventory's sort
+  and filter per tab (see [inventory](../ui/inventory.md))), load with session
+  lock, autosave, release on leave.
 - `src/server/Settings.luau` + `src/client/Settings.luau` (`SaveSettings` remote).
 - `src/server/Analytics.luau`: onboarding funnel, realm progression events,
   custom events (e.g. `QuestClaimed`, field = quest id). See [cultivation](cultivation.md) for reading dropoff.

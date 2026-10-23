@@ -3,7 +3,7 @@
 Covers the character window (Self card), the root reveal card, how they open and how the window grows with the player; read it when working on `SelfCard`, `RootReveal` or the Self tile. Shared HUD rules are in [ui](../systems/ui.md).
 
 **Where weapons live:** weapons and Dao comprehension are in the Inventory's
-Weapons tab (f10a380). The character window does not list weapons; it shows
+Weapons & Arts tab. The character window does not list weapons; it shows
 only the equipped class's Weapon Dao row (level, XP, what it gives).
 
 **The reveal card** (`src/client/RootReveal.luau`, `Hud.RootReveal`): on the

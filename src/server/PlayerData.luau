@@ -20,7 +20,7 @@ local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
 local Roots = require(ReplicatedStorage.Shared.Roots)
 
-local SCHEMA_VERSION = 9
+local SCHEMA_VERSION = 10
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number, m: string? }
@@ -64,6 +64,8 @@ export type Data = {
 	weapons: { owned: { [string]: number }, equipped: string }, -- owned counts by weapon id; "" = Fist
 	dao: { [string]: Dao }, -- by class id; a missing class is level 0
 	caches: { [string]: boolean }, -- world ManualCache / WeaponRack anchors claimed, by Cache id
+	seen: { [string]: number }, -- items, arts and weapons the Inventory has shown, by os.time() first seen (0 = before v10); held and not here = NEW
+	inventoryView: { [string]: { sort: string, filter: string } }, -- the Inventory's sort and class/kind filter, per tab (Arsenal, Pouch)
 	root: Roots.Root, -- spirit root; element "" until tested at the Testing Stone
 	peak: {
 		removed: { [string]: boolean },
@@ -116,6 +118,8 @@ local function default(): Data
 		receipts = {},
 		settings = { music = 1, sfx = 1, autoAttack = true, lockHint = true },
 		weapons = { owned = { [Weapons.STARTING] = 1 }, equipped = Weapons.STARTING },
+		seen = { LightningTalisman = 0, [Weapons.STARTING] = 0 }, -- the starting kit isn't NEW
+		inventoryView = { Arsenal = { sort = "New", filter = "All" }, Pouch = { sort = "New", filter = "All" } },
 		dao = startingDao(),
 		caches = {},
 		root = Roots.new(),
@@ -202,6 +206,21 @@ local migrations: { [number]: (any) -> () } = {
 				d.quests[id] = true
 			end
 		end
+	end,
+	-- v9 had no NEW badges: everything already owned counts as seen
+	[9] = function(d)
+		local seen = {}
+		for _, bag in { d.herbs or {}, d.items or {}, (d.weapons or {}).owned or {} } do
+			for id, count in bag do
+				if type(count) == "number" and count > 0 then
+					seen[id] = 0
+				end
+			end
+		end
+		for id in (d.techniques or {}).owned or {} do
+			seen[id] = 0
+		end
+		d.seen = seen
 	end,
 }
 

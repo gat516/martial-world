@@ -48,12 +48,15 @@ Items.USE_COOLDOWN = 0.6 -- seconds between uses, per player
 Items.HERB_EAT_SECONDS = 1.05 -- reach, bite, chew, lower the hand
 Items.HERB_BITE_SECONDS = 0.4
 
+-- order is also the inventory frame's tier on the rarity ladder weapons and arts
+-- share (1 bronze, 2 silver, 3 jade, 4 violet, 5 gold; docs/ui/inventory.md); each
+-- color matches its frame.
 Items.Rarities = {
-	Common = { order = 1, color = Color3.fromRGB(200, 206, 200) },
-	Uncommon = { order = 2, color = Color3.fromRGB(120, 220, 140) },
-	Rare = { order = 3, color = Color3.fromRGB(100, 170, 255) },
-	Epic = { order = 4, color = Color3.fromRGB(195, 135, 255) },
-	Legendary = { order = 5, color = Color3.fromRGB(255, 185, 70) },
+	Common = { order = 1, color = Color3.fromRGB(214, 168, 118) },
+	Uncommon = { order = 2, color = Color3.fromRGB(206, 214, 222) },
+	Rare = { order = 3, color = Color3.fromRGB(112, 222, 156) },
+	Epic = { order = 4, color = Color3.fromRGB(196, 150, 255) },
+	Legendary = { order = 5, color = Color3.fromRGB(255, 208, 96) },
 } :: { [string]: { order: number, color: Color3 } }
 
 Items.CategoryNames = { Herb = "Spirit herb", Core = "Spirit core", Treasure = "Heavenly treasure", Pill = "Spirit pill" }

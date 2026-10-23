@@ -1,296 +1,196 @@
 --!strict
--- Sort and filter for the Inventory's Arts and Weapons tabs: one square button at
--- the end of the tab row (Inventory.Tabs.SortButton) opens a small menu
--- (Inventory.SortMenu) of class chips over three sort pills. A tap applies at
--- once and the menu stays open; the button again, a tap outside
--- (SortCatcher) or a tab switch closes it. The button shows only once a tab
--- holds 3 or more entries, and turns gold wearing the class icon while a class
--- filter is on. Chips are offered only for classes the player actually has.
--- The choice is kept per tab for the session.
+-- Finding things in the Inventory: the chip rail, the sort button and the search box.
+--   Rail (Inventory.Rail): All, then one chip per section the tab has. On
+--   Weapons & Arts a chip is a weapon class (its glyph in its colour, the same mark
+--   the weapon cells, art badges, section headers and hotbar badges wear) or Any
+--   for universal arts; on Pouch a kind of item (its first item's icon). A chip
+--   shows that section alone; All (or the chosen chip again) shows every section.
+--   Sort (Inventory.SortButton): a tap steps New -> Grade -> Alphabetical. New:
+--   NEW things first, then the most recently first seen (Fresh.seenAt); Grade: best
+--   tier first; Alphabetical: by name. The weapon in hand stays first in its row.
+--   Search (Inventory.Search.Box): typed text narrows both tabs to entries whose
+--   name, class or kind, or grade contains it; the x clears it.
+-- Sort and filter are kept per tab in the profile (PlayerData.inventoryView,
+-- InventoryAction "view"), the same place NEW sightings live, so the Inventory
+-- reopens as the player left it on any device. No saved choice: New, All.
+-- Search lasts while the window is open.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Techniques = require(ReplicatedStorage.Shared.Techniques)
-local Weapons = require(ReplicatedStorage.Shared.Weapons)
-local Motion = require(script.Parent.Motion)
-local SlotArt = require(script.Parent.SlotArt)
+local State = require(script.Parent.State)
 
-export type Tab = "Pouch" | "Arts" | "Weapons"
+local SELECTED = "rbxassetid://131720822776366" -- kit item_slot_selected
+local PLAIN = "rbxassetid://107221511179183" -- kit item_slot
+local ALL = "All"
+local GOLD_TEXT = Color3.fromRGB(255, 226, 160)
+local DIM_TEXT = Color3.fromRGB(214, 206, 190)
+local SORTS = { "New", "Grade", "Alphabetical" }
+local SORT_LABELS = { New = "Sort: New", Grade = "Sort: Grade", Alphabetical = "Sort: A–Z" }
 
-local GOLD = { image = "rbxassetid://124847805310931", text = Color3.fromRGB(255, 244, 214) }
-local LACQUER = { image = "rbxassetid://88447362782150", text = Color3.fromRGB(170, 190, 184) }
-local SORT_ICON = "rbxassetid://91875091957000"
-local ALL, ANY = "All", "Any"
-local MIN_ENTRIES = 3 -- fewer than this and there is nothing worth sorting
-
-local SORTS: { [string]: { string } } = {
-	Arts = { "Level", "Name", "Bottleneck" },
-	Weapons = { "Grade", "Class", "Name" },
-}
-local PHRASE = {
-	Level = "highest level first",
-	Name = "by name",
-	Bottleneck = "bottlenecks first",
-	Grade = "best grade first",
-	Class = "by class",
-}
+export type Chip = { id: string, icon: string, color: Color3 }
+type View = { sort: string, filter: string }
 
 local InventoryFilter = {}
 
-local views: { [string]: { filter: string, sort: string } } = {
-	Arts = { filter = ALL, sort = "Level" },
-	Weapons = { filter = ALL, sort = "Grade" },
-}
-
-local button: ImageButton
-local menu: GuiObject
-local catcher: GuiButton
-local chips: Frame
+local inventoryRemote = ReplicatedStorage.Remotes.InventoryAction :: RemoteFunction
+local rail: ScrollingFrame
 local chipTemplate: ImageButton
-local pills: Frame
-local pillTemplate: ImageButton
-local caption: TextLabel
-local current: Tab = "Pouch"
-local present: { string } = {} -- chip ids offered on the current tab
+local sortButton: ImageButton
+local box: TextBox
+local clear: GuiButton
+local tab = "Arsenal"
+local views: { [string]: View } = {
+	Arsenal = { sort = "New", filter = ALL },
+	Pouch = { sort = "New", filter = ALL },
+}
+local loaded = false -- views taken from the profile once
+local shown: { Chip } = {}
+local shownKey = ""
 local changed: () -> () = function() end
 
-local function label(b: GuiObject): TextLabel
-	return b:FindFirstChild("Label") :: TextLabel
-end
-
-local function icon(b: GuiObject): ImageLabel
-	return b:FindFirstChild("Icon") :: ImageLabel
-end
-
-local function paint(b: ImageButton, on: boolean)
-	local style = if on then GOLD else LACQUER
-	b.Image = style.image
-	label(b).TextColor3 = style.text
-end
-
--- The class a grid entry belongs to: an art's weapon ("Any" for universal arts),
--- a weapon's class (Bare Fists are "Fist").
-function InventoryFilter.classOf(tab: Tab, id: string): string
-	if tab == "Arts" then
-		local def = Techniques.Defs[id]
-		return if def then def.weapon or ANY else ANY
-	end
-	return Weapons.classOf(id)
-end
-
--- The chosen class on this tab ("All" when filtering is off or not offered).
-function InventoryFilter.filter(tab: Tab): string
+local function save()
 	local view = views[tab]
-	return if view and button.Visible and current == tab then view.filter else ALL
+	task.spawn(function()
+		inventoryRemote:InvokeServer("view", tab, view.sort, view.filter)
+	end)
 end
 
-function InventoryFilter.sort(tab: Tab): string
+local function paintChips()
 	local view = views[tab]
-	return if view then view.sort else ""
-end
-
-local function chipName(id: string): string
-	if id == ALL then
-		return "All"
-	elseif id == ANY then
-		return "Universal"
-	end
-	return Weapons.Classes[id] and Weapons.Classes[id].name or id
-end
-
-local function paintMenu()
-	local view = views[current]
-	if not view then
-		return
-	end
-	for _, child in chips:GetChildren() do
+	for _, child in rail:GetChildren() do
 		if child:IsA("GuiButton") and child ~= chipTemplate then
 			child:Destroy()
 		end
 	end
-	for i, id in present do
+	for i, chipInfo in shown do
+		local id = chipInfo.id
 		local chip = chipTemplate:Clone()
 		chip.Name = `Chip{id}`
 		chip.LayoutOrder = i
 		chip.Visible = true
-		local text = id == ALL or id == ANY
-		label(chip).Visible = text
-		label(chip).Text = if id == ALL then "All" elseif id == ANY then "Any" else ""
-		icon(chip).Visible = not text
-		icon(chip).Image = if text then "" else SlotArt.classIcon(id)
-		paint(chip, view.filter == id)
-		chip.Activated:Connect(function()
-			view.filter = id
-			paintMenu()
-			changed()
-		end)
-		chip.Parent = chips
-	end
-	for _, child in pills:GetChildren() do
-		if child:IsA("GuiButton") and child ~= pillTemplate then
-			child:Destroy()
+		chip.Image = if id == view.filter then SELECTED else PLAIN
+		local icon = chip:FindFirstChild("Icon") :: ImageLabel
+		local label = chip:FindFirstChild("Label") :: TextLabel
+		local text = chipInfo.icon == ""
+		icon.Visible = not text
+		label.Visible = text
+		if text then
+			label.Text = id
+			label.TextColor3 = if id == view.filter then GOLD_TEXT else DIM_TEXT
+		else
+			icon.Image = chipInfo.icon
+			icon.ImageColor3 = chipInfo.color
 		end
-	end
-	for i, mode in SORTS[current] do
-		local pill = pillTemplate:Clone()
-		pill.Name = `Sort{mode}`
-		pill.LayoutOrder = i
-		pill.Visible = true
-		label(pill).Text = mode
-		paint(pill, view.sort == mode)
-		pill.Activated:Connect(function()
-			view.sort = mode
-			paintMenu()
+		chip.Activated:Connect(function()
+			view.filter = if view.filter == id then ALL else id
+			save()
+			paintChips()
 			changed()
 		end)
-		pill.Parent = pills
+		chip.Parent = rail
 	end
-	local noun = if current == "Arts" then "arts" else "weapons"
-	caption.Text = if view.filter == ALL
-		then `All {noun}, {PHRASE[view.sort]}`
-		else `{chipName(view.filter)} {noun}, {PHRASE[view.sort]}`
+	(sortButton:FindFirstChild("Label") :: TextLabel).Text = SORT_LABELS[view.sort] or view.sort
 end
 
-local function paintButton()
-	local view = views[current]
-	local filtered = view ~= nil and view.filter ~= ALL
-	button.Image = if filtered then GOLD.image else LACQUER.image
-	icon(button).Image = if filtered and view.filter ~= ANY then SlotArt.classIcon(view.filter) else SORT_ICON
-end
-
-function InventoryFilter.close()
-	if menu.Visible then
-		Motion.close(menu)
-	end
-	catcher.Visible = false
-end
-
-local function open()
-	paintMenu()
-	catcher.Visible = true
-	Motion.open(menu)
-end
-
--- Called on every Inventory render with the tab shown and every class it holds
--- (owned entries, hotbar ones included) and how many entries that is. Shows or
--- hides the button and drops a filter whose class is gone.
-function InventoryFilter.update(tab: Tab, classes: { [string]: boolean }, count: number)
-	if tab ~= current then
-		InventoryFilter.close()
-		current = tab
-	end
-	local view = views[tab]
-	button.Visible = view ~= nil and count >= MIN_ENTRIES
-	if not button.Visible then
-		InventoryFilter.close()
+-- The profile's saved views, the first time a snapshot carries them.
+local function load(snapshot: any)
+	if loaded or type(snapshot.inventoryView) ~= "table" then
 		return
 	end
-	present = { ALL }
-	if tab == "Arts" and classes[ANY] then
-		table.insert(present, ANY)
-	end
-	for _, id in Weapons.ClassOrder do
-		if classes[id] then
-			table.insert(present, id)
+	loaded = true
+	for name, saved in snapshot.inventoryView do
+		local view = views[name]
+		if view and type(saved) == "table" then
+			view.sort = if table.find(SORTS, saved.sort) then saved.sort else view.sort
+			view.filter = if type(saved.filter) == "string" then saved.filter else view.filter
 		end
-	end
-	if not table.find(present, view.filter) then
-		view.filter = ALL
-	end
-	paintButton()
-	if menu.Visible then
-		paintMenu()
 	end
 end
 
-local function nameOf(tab: Tab, id: string): string
-	if tab == "Arts" then
-		local def = Techniques.Defs[id]
-		return if def then def.name else id
+-- Switch to a tab and offer its chips (sections in order; icon "" = text chip).
+-- A saved filter whose section is gone shows All (and stays saved for later).
+function InventoryFilter.update(name: string, chips: { Chip })
+	tab = name
+	local list: { Chip } = { { id = ALL, icon = "", color = DIM_TEXT } }
+	local keys = { name, ALL }
+	for _, chip in chips do
+		table.insert(list, chip)
+		table.insert(keys, chip.id)
 	end
-	return SlotArt.weaponName(id)
+	local key = table.concat(keys, ",")
+	shown = list
+	if key ~= shownKey then
+		shownKey = key
+		rail.CanvasPosition = Vector2.zero
+	end
+	paintChips()
 end
 
-local function indexIn(list: { string }, id: string): number
-	return table.find(list, id) or math.huge
+-- The chosen section on this tab ("All" for every one, or when it isn't there).
+function InventoryFilter.filter(): string
+	local filter = views[tab].filter
+	for _, chip in shown do
+		if chip.id == filter then
+			return filter
+		end
+	end
+	return ALL
 end
 
--- Sort a tab's entries in place. level(id) and stuck(id) describe an art (its
--- level and whether it is at a bottleneck); pinned ids keep their order at the
--- front (the equipped weapon, then Bare Fists).
-function InventoryFilter.order(
-	tab: Tab,
-	list: { string },
-	level: (string) -> number,
-	stuck: (string) -> boolean,
-	pinned: { string }?
-)
-	local mode = InventoryFilter.sort(tab)
-	local function rank(id: string): number
-		return if pinned then indexIn(pinned, id) else math.huge
+function InventoryFilter.sort(): string
+	return views[tab].sort
+end
+
+-- Whether any of these words contains the search text (no search: always).
+function InventoryFilter.matches(words: { string }): boolean
+	local query = string.lower(box.Text)
+	query = string.gsub(query, "^%s+", "")
+	query = string.gsub(query, "%s+$", "")
+	if query == "" then
+		return true
 	end
-	local function gradeOf(id: string): number
-		local def = Weapons.Defs[id]
-		local grade = def and Weapons.Grades[def.grade]
-		return if grade then grade.order else 0
+	for _, word in words do
+		if string.find(string.lower(word), query, 1, true) then
+			return true
+		end
 	end
-	local base = if tab == "Arts" then Techniques.Order else Weapons.Order
-	table.sort(list, function(a, b)
-		local ra, rb = rank(a), rank(b)
-		if ra ~= rb then
-			return ra < rb
-		end
-		if mode == "Name" then
-			return nameOf(tab, a) < nameOf(tab, b)
-		end
-		if tab == "Arts" then
-			if mode == "Bottleneck" and stuck(a) ~= stuck(b) then
-				return stuck(a)
-			end
-			if level(a) ~= level(b) then
-				return level(a) > level(b)
-			end
-		else
-			local ca = indexIn(Weapons.ClassOrder, Weapons.classOf(a))
-			local cb = indexIn(Weapons.ClassOrder, Weapons.classOf(b))
-			if mode == "Class" and ca ~= cb then
-				return ca < cb
-			end
-			if gradeOf(a) ~= gradeOf(b) then
-				return gradeOf(a) > gradeOf(b)
-			end
-			if ca ~= cb then
-				return ca < cb
-			end
-		end
-		return indexIn(base, a) < indexIn(base, b)
-	end)
+	return false
+end
+
+function InventoryFilter.searching(): boolean
+	return string.find(box.Text, "%S") ~= nil
+end
+
+function InventoryFilter.clearSearch()
+	box.Text = ""
 end
 
 function InventoryFilter.init(window: Frame, onChange: () -> ())
 	changed = onChange
-	button = (window:FindFirstChild("Tabs") :: Frame):FindFirstChild("SortButton") :: ImageButton
-	menu = window:FindFirstChild("SortMenu") :: GuiObject
-	catcher = window:FindFirstChild("SortCatcher") :: GuiButton
-	chips = menu:FindFirstChild("Classes") :: Frame
-	chipTemplate = chips:FindFirstChild("ChipTemplate") :: ImageButton
-	pills = menu:FindFirstChild("Sorts") :: Frame
-	pillTemplate = pills:FindFirstChild("SortTemplate") :: ImageButton
-	caption = menu:FindFirstChild("Caption") :: TextLabel
-	button.Visible = false
-	button.Activated:Connect(function()
-		if menu.Visible and catcher.Visible then
-			InventoryFilter.close()
-		else
-			open()
-		end
+	rail = window:FindFirstChild("Rail") :: ScrollingFrame
+	chipTemplate = rail:FindFirstChild("ChipTemplate") :: ImageButton
+	sortButton = window:FindFirstChild("SortButton") :: ImageButton
+	local search = window:FindFirstChild("Search") :: GuiObject
+	box = search:FindFirstChild("Box") :: TextBox
+	clear = search:FindFirstChild("Clear") :: GuiButton
+	clear.Visible = false
+	box:GetPropertyChangedSignal("Text"):Connect(function()
+		clear.Visible = box.Text ~= ""
+		changed()
 	end)
-	catcher.Activated:Connect(InventoryFilter.close)
-	window:GetPropertyChangedSignal("Visible"):Connect(function()
-		if not window.Visible then
-			menu.Visible = false
-			catcher.Visible = false
-		end
+	clear.Activated:Connect(function()
+		box.Text = ""
+	end)
+	sortButton.Activated:Connect(function()
+		local view = views[tab]
+		local at = table.find(SORTS, view.sort) or 0
+		view.sort = SORTS[at % #SORTS + 1]
+		save()
+		paintChips()
+		changed()
+	end)
+	State.onChanged(function(snapshot: any)
+		load(snapshot)
 	end)
 end
 

@@ -203,6 +203,8 @@ function Cultivation.pushState(player: Player)
 		weapons = data.weapons,
 		dao = data.dao,
 		caches = data.caches,
+		seen = data.seen,
+		inventoryView = data.inventoryView,
 		root = data.root,
 		methods = data.methods,
 		daoPracticeReady = data.daoPracticeReadyUnix,

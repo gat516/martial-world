@@ -71,6 +71,7 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 [editor-markers](map/editor-markers.md).
 
 The whole plan from QC1 to FE9 (stages, regions, sect quests, optional bosses) is in [progression](progression.md).
+The UI screens we need and their art prompts are in [ui overhaul plan](ui/overhaul-plan.md).
 What we build next and in what order (solidity, onboarding, sect, techniques, garden, building) is in [roadmap](roadmap.md).
 
 ## Where to tune things

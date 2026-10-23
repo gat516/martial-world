@@ -22,9 +22,12 @@
 # exports work from it. Nothing in it is saved anywhere: export what you build
 # to assets/ (tools/export_rbxm.luau), then close it.
 #
-# Windows (tools/sandbox_windows.ps1): sandboxes tile in a grid on the second
-# monitor; a new one opens minimised when the others are; minimising or
-# restoring one does the same to all. The user's own Studios are left alone.
+# Windows (tools/sandbox_windows.ps1): each sandbox fills the second monitor and
+# they cascade 48 px apart (smaller tiles leave too small a viewport to preview a
+# layout); a new one opens minimised when the others are;
+# minimising or restoring one does the same to all. A minimised Studio stops
+# stepping, so an agent's MCP calls stall until it's restored. The user's own
+# Studios are left alone.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

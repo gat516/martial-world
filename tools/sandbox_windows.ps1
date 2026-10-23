@@ -1,7 +1,10 @@
 # Window layout for sandbox Studios (mw-sandbox-*.rbxl), driven by tools/sandbox.sh.
 #
 #   sandbox_windows.ps1 tile          tile every sandbox Studio in a grid on the second
-#                                     monitor (the primary one if there's only one);
+#                                     monitor (the primary one if there's only one): at
+#                                     most MAX_TILES tiles (1: the whole work area) so
+#                                     agents keep a viewport big enough for a phone-size
+#                                     preview; further sandboxes cascade 48 px apart;
 #                                     minimised ones stay minimised and restore into
 #                                     their tile
 #   sandbox_windows.ps1 place <name>  wait for mw-sandbox-<name>.rbxl to open, then
@@ -58,6 +61,11 @@ public static class SandboxWindows {
 	const uint SWP_NOZORDER = 0x4, SWP_NOACTIVATE = 0x10;
 	const uint EVENT_SYSTEM_MINIMIZESTART = 0x16, EVENT_SYSTEM_MINIMIZEEND = 0x17;
 	const uint WM_TIMER = 0x113;
+	// At most this many tiles. Studio's panels take about 340 px of a window's width and its
+	// ribbon about 200 px of its height, so a phone-size preview (844x390 viewport) needs the
+	// whole monitor: a 3x3 grid left agents 296x304, two full-width rows 1060x304
+	// (2026-10-23). So each sandbox gets the full work area and they cascade.
+	const int MAX_TILES = 1, CASCADE = 48;
 
 	public class Win { public IntPtr Hwnd; public string Name; public DateTime Started; public bool Minimised; }
 
@@ -126,15 +134,16 @@ public static class SandboxWindows {
 		if (wins.Count == 0) return "no sandbox Studios open";
 		RECT primary;
 		var a = TargetArea(out primary);
-		int cols = (int)Math.Ceiling(Math.Sqrt(wins.Count));
-		int rows = (int)Math.Ceiling(wins.Count / (double)cols);
+		int tiles = Math.Min(wins.Count, MAX_TILES);
+		int cols = 1, rows = tiles;
 		int cw = (a.R - a.L) / cols, rh = (a.B - a.T) / rows;
 		var b = Border(wins);
 		var log = new List<string>();
 		for (int i = 0; i < wins.Count; i++) {
 			var w = wins[i];
 			bool minimise = w.Minimised || (w.Name == newName && minimiseNew);
-			int x = a.L + (i % cols) * cw - b.L, y = a.T + (i / cols) * rh - b.T;
+			int slot = i % tiles, layer = i / tiles; // past MAX_TILES, stack on the tiles in turn
+			int x = a.L + (slot % cols) * cw - b.L + layer * CASCADE, y = a.T + (slot / cols) * rh - b.T + layer * CASCADE;
 			int wd = cw + b.L + b.R, ht = rh + b.T + b.B;
 			// Placement sets the restored rect even while minimised, so a restore lands in the tile.
 			// Its coordinates are relative to the primary work area.
@@ -143,7 +152,7 @@ public static class SandboxWindows {
 			p.rcNormal = new RECT { L = x - primary.L, T = y - primary.T, R = x + wd - primary.L, B = y + ht - primary.T };
 			SetWindowPlacement(w.Hwnd, ref p);
 			if (!minimise) SetWindowPos(w.Hwnd, IntPtr.Zero, x, y, wd, ht, SWP_NOZORDER | SWP_NOACTIVATE);
-			log.Add(string.Format("{0}: {1}x{2} tile {3}{4}", w.Name, cols, rows, i + 1, minimise ? " (minimised)" : ""));
+			log.Add(string.Format("{0}: {1}x{2} tile {3}{4}{5}", w.Name, cols, rows, slot + 1, layer > 0 ? " layer " + (layer + 1) : "", minimise ? " (minimised)" : ""));
 		}
 		return string.Join("\n", log);
 	}

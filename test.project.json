@@ -209,6 +209,52 @@
             "TopSurface": "Smooth",
             "BottomSurface": "Smooth"
           }
+        },
+        "TribulationPlatform": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "Locked": true,
+            "Size": [
+              72,
+              1,
+              72
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  649.1,
+                  240
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Material": "Slate",
+            "Color": [
+              0.22,
+              0.23,
+              0.3
+            ],
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
         }
       },
       "Map": {

@@ -15,7 +15,8 @@ screen it extends ([character creator](character-creator.md)).
 - **Race and variant are separate.** A Beast Folk Wolf is race `BeastFolk`,
   variant `Wolf`, so anything can ask "is this Beast Folk?" and "which beast?".
   There is no Beast Folk Fox: foxes are the Spirit Fox race, which holds the fox
-  traits (Fox Cunning innate, Nine Tails exclusive) (user, 2026-10-23).
+  traits (Fox Cunning innate, Nine Tails exclusive) (user, 2026-10-23). Its
+  variants (Plume, Crescent, Wisp) are tail and ear shapes, looks only.
   Variants are a per-race module (`Variants/<Race>.luau`), so any race can get
   variants the same way.
 - **Availability is one file.** Release, hide or switch off any race, variant
@@ -41,6 +42,7 @@ screen it extends ([character creator](character-creator.md)).
 |---|---|
 | Race definitions (names, rarity, roll weight, innate traits, modifiers, mechanics, which variants module) | `src/shared/Identity/Races.luau` |
 | Beast Folk variants (same fields) | `src/shared/Identity/Variants/BeastFolk.luau` |
+| Spirit Fox variants (tail and ears) | `src/shared/Identity/Variants/SpiritFox.luau` |
 | Trait definitions: racial / variant traits | `src/shared/Identity/Traits/Racial.luau` |
 | Trait definitions: general traits | `src/shared/Identity/Traits/General.luau` |
 | A new trait category | a new file in `Traits/`; its name is the category |
@@ -162,20 +164,28 @@ ids of Accessories anywhere under `ReplicatedStorage.Cosmetics`). That's the
 folder `assets/Cosmetics/` (mapped in both projects), one `.rbxm` per set, each a
 Folder of Accessories, so sets are built and exported separately. It's in
 ReplicatedStorage because the creator preview wears them too. The builds and
-joint names are in `art/player/cosmetics/README.md`.
+joint names are in `art/player/cosmetics/README.md`; how new ones are made is
+[player accessories](../character/player-accessories.md).
 
 | Who | Wears | Set |
 |---|---|---|
-| Fox Cunning (Spirit Fox's innate trait) | FoxEars, FoxTail | Fox (rpker's prototype, user 2026-10-23) |
-| Beast Folk Wolf / Tiger / Crane / Serpent | WolfEars, WolfTail / TigerEars, TigerTail / CraneCrest, CraneTail / SerpentScales, SerpentTail | BeastFolk |
-| Stone Spirit / Dragonblood / Demonic Human / Ghost | StoneShards / DragonHorns / DemonHorns / GhostWisps | Spirits |
+| Spirit Fox Plume / Crescent / Wisp (variants) | FoxTailPlume, FoxEarsSleek / FoxTailCrescent, FoxEarsBroad / FoxTailWisp, FoxEarsLong | Fox (skinned Blender meshes) |
+| Beast Folk Wolf / Tiger / Crane / Serpent | WolfEars, WolfTail / TigerEars, TigerTail / CraneCrest, CraneTail / SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
+| Stone Spirit / Dragonblood / Demonic Human / Ghost | StoneShards / DragonHorns / DemonHorns / GhostWisps | Spirits (part-built placeholders) |
+
+Spirit Fox's variants (Plume Common 45, Crescent Uncommon 35, Wisp Rare 20) each
+pair one tail with one ear shape, with their own bones (`EarL`/`EarR`,
+`Tail1..Tail5`) and a recolourable part per colour region
+(`art/player/cosmetics/fox/README.md`). The fox traits stay on the race and the
+variants add no stats (user, 2026-10-23: "we can add them it all in as variants").
 
 Human (the plain race) and Giant (its look is its size) wear nothing (user,
 2026-10-23: "no need to go super crazy"). `Traits.applyBody` adds the ones the profile
 calls for and removes the rest (each worn one carries a `Cosmetic` attribute with
 its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the
-body. A missing template warns once and is skipped.
+body. A missing template warns once and is skipped. A Spirit Fox saved before the
+variants draws one on its next join (`Traits.load`, `Slots.fate`).
 
 The creator's preview dummy wears the drawn race's look too (`Look.race`):
 `Registry.fresh(race, variant)` stands in for a new character (only innate

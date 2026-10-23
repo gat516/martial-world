@@ -1,0 +1,190 @@
+{
+ "name": "FoxEarsLong",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X right/avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (x, z, -y) in the attachment's Roblox space; mesh Size = (bx, bz, by), CFrame = CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "FurOuter": [
+   0.8,
+   0.22,
+   0.055
+  ],
+  "FurInner": [
+   0.93,
+   0.7,
+   0.6
+  ],
+  "FurTip": [
+   0.95,
+   0.89,
+   0.78
+  ]
+ },
+ "shade": {
+  "file": "fox_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "FoxEarsLong_LeftEar": {
+   "region": "FurOuter",
+   "tris": 334,
+   "center": [
+    0.373,
+    0.327,
+    0.387
+   ],
+   "size": [
+    0.5,
+    0.597,
+    1.111
+   ]
+  },
+  "FoxEarsLong_LeftEarInner": {
+   "region": "FurInner",
+   "tris": 240,
+   "center": [
+    0.398,
+    0.265,
+    0.293
+   ],
+   "size": [
+    0.377,
+    0.447,
+    0.893
+   ]
+  },
+  "FoxEarsLong_RightEar": {
+   "region": "FurOuter",
+   "tris": 334,
+   "center": [
+    -0.373,
+    0.327,
+    0.387
+   ],
+   "size": [
+    0.5,
+    0.597,
+    1.111
+   ]
+  },
+  "FoxEarsLong_RightEarInner": {
+   "region": "FurInner",
+   "tris": 240,
+   "center": [
+    -0.398,
+    0.265,
+    0.293
+   ],
+   "size": [
+    0.377,
+    0.447,
+    0.893
+   ]
+  }
+ },
+ "tris_total": 1148,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "deform": false
+  },
+  "EarLBase": {
+   "parent": "Root",
+   "head": [
+    0.36,
+    0.06,
+    -0.112
+   ],
+   "tail": [
+    0.373,
+    0.09,
+    -0.017
+   ],
+   "roblox_head": [
+    0.36,
+    -0.112,
+    -0.06
+   ],
+   "deform": true
+  },
+  "EarL": {
+   "parent": "EarLBase",
+   "head": [
+    0.373,
+    0.09,
+    -0.017
+   ],
+   "tail": [
+    0.449,
+    0.388,
+    0.646
+   ],
+   "roblox_head": [
+    0.373,
+    -0.017,
+    -0.09
+   ],
+   "deform": true
+  },
+  "EarRBase": {
+   "parent": "Root",
+   "head": [
+    -0.36,
+    0.06,
+    -0.112
+   ],
+   "tail": [
+    -0.373,
+    0.09,
+    -0.017
+   ],
+   "roblox_head": [
+    -0.36,
+    -0.112,
+    -0.06
+   ],
+   "deform": true
+  },
+  "EarR": {
+   "parent": "EarRBase",
+   "head": [
+    -0.373,
+    0.09,
+    -0.017
+   ],
+   "tail": [
+    -0.449,
+    0.388,
+    0.646
+   ],
+   "roblox_head": [
+    -0.373,
+    -0.017,
+    -0.09
+   ],
+   "deform": true
+  }
+ }
+}

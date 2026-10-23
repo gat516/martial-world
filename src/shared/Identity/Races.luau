@@ -10,7 +10,8 @@
 --                             weight of the races that are rolled right now)
 --   Icon                      optional rbxassetid:// image ("" = default silhouette)
 --   Variants                  optional: the name of a module in Variants/ holding
---                             this race's variants (Beast Folk: "BeastFolk"). A race
+--                             this race's variants (Beast Folk: "BeastFolk", Spirit Fox:
+--                             "SpiritFox"). A race
 --                             with variants always has one (rolled or chosen)
 --   InnateTraits              trait ids every member gets (Traits/*.luau)
 --   Modifiers                 stat modifiers, same kinds as spirit root perks
@@ -20,7 +21,7 @@
 --                             unlocks, resolved by the server's Traits.mechanics
 --                             registry (none are built yet; unknown ids are inert)
 --   Cosmetics                 optional accessory ids every member wears
---                             (ReplicatedStorage.Cosmetics; see Traits/Racial.luau)
+--                             (ReplicatedStorage.Cosmetics, assets/Cosmetics/; Spirit Fox's are on its variants)
 --
 -- Existing races (Human, Spirit Fox, Stone Spirit, Dragonblood) are placeholders
 -- from the character screen; the four after them were added 2026-10-23.
@@ -53,6 +54,7 @@ local Races: { [string]: Race } = {
 		Rarity = "Rare",
 		Weight = 12,
 		Icon = "",
+		Variants = "SpiritFox", -- tail and ear shapes (Plume, Crescent, Wisp); they carry the cosmetics
 		-- the fox traits, moved here from the removed Beast Folk Fox variant (user, 2026-10-23)
 		InnateTraits = { "FoxCunning" },
 		Modifiers = { technique = 0.03 },

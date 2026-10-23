@@ -9,60 +9,23 @@ variants) and `Spirits.rbxm` (Stone Spirit, Dragonblood, Demonic Human, Ghost).
 
 New and reworked cosmetics are modeled in Blender by the `modeler` (user,
 2026-10-23: "from now on, we're going to make player / r6 related assets in
-blender"). The part-built sets below are the current placeholders until they're
-remade.
+blender"). The fox is remade; the part-built Beast Folk and Spirits sets below are
+placeholders until they're remade (how: `docs/character/player-accessories.md`).
 
 ## Fox (`assets/Cosmetics/Fox.rbxm`)
 
-Built from plain parts by `build_fox_cosmetics.luau`. The colours are plain
-SmoothPlastic: fox orange, a cream inner ear, dark ear tips and a white tail tip.
+Skinned Blender meshes with bones, three Spirit Fox variants (`src/shared/Identity/Variants/SpiritFox.luau`).
+Model, rig, colours, asset ids and the Studio build (`fox/place_fox_cosmetics.luau`) are in
+[`fox/README.md`](fox/README.md).
 
-| Accessory | Handle attachment | Attaches to (R6) | Parts |
-| --- | --- | --- | --- |
-| `FoxEars` | `HatAttachment` | Head.HatAttachment | 13 (Handle + 6 wedges per ear) |
-| `FoxTail` | `WaistBackAttachment` | Torso.WaistBackAttachment | 6 (Handle + 5 ellipsoids) |
+| Accessory | Attaches to (R6) | Worn by |
+| --- | --- | --- |
+| `FoxTailPlume`, `FoxEarsSleek` | Torso.WaistBackAttachment, Head.HatAttachment | Spirit Fox, Plume |
+| `FoxTailCrescent`, `FoxEarsBroad` | same | Spirit Fox, Crescent |
+| `FoxTailWisp`, `FoxEarsLong` | same | Spirit Fox, Wisp |
 
-Attach with `humanoid:AddAccessory(template:Clone())`. The Handles are invisible
-0.2 cubes. Every part is unanchored, Massless, with CanCollide, CanQuery and
-CanTouch off. The ears stand about 0.7 studs clear of a normal hair accessory,
-and their bases sit just inside the head top, so they also work on a bald head.
-Very tall hair can still hide them.
-
-## Joints (for animators)
-
-All joints are Motor6Ds parented to their Part0. At rest each joint frame has no
-rotation relative to the Handle (C0 and C1 point at the hinge), so `Transform`
-rotates about the character's own axes: X pitches (tail up and down, ear folds
-back), Y yaws (tail wag side to side), Z rolls (ear flicks outward). The
-character faces -Z and its left is -X.
-
-| Joint | Part0 -> Part1 | Moves | Hinge |
-| --- | --- | --- | --- |
-| `EarL` | Handle -> `LeftEar` | left ear (and its inner/tip pieces, welded) | ear base |
-| `EarR` | Handle -> `RightEar` | right ear | ear base |
-| `Tail1` | Handle -> `TailSeg1` | whole tail from the root | lower back |
-| `Tail2` | TailSeg1 -> `TailSeg2` | | |
-| `Tail3` | TailSeg2 -> `TailSeg3` | | |
-| `Tail4` | TailSeg3 -> `TailSeg4` | | |
-| `Tail5` | TailSeg4 -> `TailSeg5` | white tip | |
-
-Every keyed part has a unique name. For a wag, put the same small yaw on each
-`Tail` joint, with a delay down the chain. Keep the yaw to about ±0.35 rad per
-joint, or the tip swings into the legs. The tail segments are ellipsoids that
-overlap heavily, so bends up to about 0.4 rad per joint leave no gaps. Ear
-twitches look right up to about 0.5 rad.
-
-Scaling: `Model:ScaleTo` on the character scales the accessories, their joints
-and the ellipsoid meshes cleanly (checked at 1.15: no joint gaps, same placement
-relative to the head and torso).
-
-## Rebuild
-
-Run `build_fox_cosmetics.luau` in Edit mode through the Studio MCP
-(`execute_luau`). The script still targets `ServerStorage.Cosmetics.FoxEars`
-and `.FoxTail` (from before the move), so move the results into
-`ReplicatedStorage.Cosmetics.Fox` and export that Folder with
-`tools/export_rbxm.luau` to `assets/Cosmetics/Fox.rbxm`.
+Export the `Fox` folder (`_G.exportRbxm("ReplicatedStorage.Cosmetics.Fox")`, or from a
+sandbox's staging folder) to `assets/Cosmetics/Fox.rbxm`.
 
 ## Beast Folk (`assets/Cosmetics/BeastFolk.rbxm`)
 

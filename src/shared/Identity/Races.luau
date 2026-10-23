@@ -46,10 +46,13 @@ local Races: { [string]: Race } = {
 	},
 	SpiritFox = {
 		DisplayName = "Spirit Fox",
-		Description = "A race attuned to spiritual energy.",
+		Description = "A race attuned to spiritual energy. Clever and quick, with a gift for illusion.",
 		Rarity = "Rare",
 		Weight = 12,
 		Icon = "",
+		-- the fox traits, moved here from the removed Beast Folk Fox variant (user, 2026-10-23)
+		InnateTraits = { "FoxCunning" },
+		Modifiers = { technique = 0.03 },
 	},
 	StoneSpirit = {
 		DisplayName = "Stone Spirit",

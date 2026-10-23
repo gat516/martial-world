@@ -78,7 +78,7 @@ function Bridge.getChoices(): (boolean, any)
 end
 
 -- Picks a race or variant ("Race" | "Variant", id); the server checks it's allowed.
--- (true, "Beast Folk (Fox)") or (false, message).
+-- (true, "Beast Folk (Wolf)") or (false, message).
 function Bridge.choose(kind: string, id: string): (boolean, any)
 	return invoke("choose", kind, id)
 end

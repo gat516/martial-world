@@ -47,7 +47,6 @@ Availability.Races = {
 -- Folk player on the character screen.
 Availability.Variants = {
 	BeastFolk = {
-		Fox = { Status = "Released", Acquire = "Roll" },
 		Wolf = { Status = "Released", Acquire = "Roll" },
 		Tiger = { Status = "Released", Acquire = "Roll" },
 		Crane = { Status = "Released", Acquire = "Roll" },

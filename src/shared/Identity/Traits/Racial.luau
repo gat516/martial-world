@@ -7,7 +7,7 @@
 --   DisplayName, Description  shown in the character window and admin panel
 --   Rarity                    a key of CharacterCreator/Rarities.luau
 --   Access                    who may own it: "Everyone", or any of
---                             { Races = {...}, Variants = { "BeastFolk.Fox" },
+--                             { Races = {...}, Variants = { "BeastFolk.Wolf" },
 --                               Bloodlines = {...} } (a match on any list is
 --                             enough). One variant listed = exclusive to it;
 --                             several = shared between them.
@@ -44,15 +44,16 @@ local Racial = {
 		Obtain = "Innate",
 		Modifiers = { walk = 0.5 },
 	},
-	-- one per variant (exclusive)
+	-- Spirit Fox (the fox traits; there's no Beast Folk Fox)
 	FoxCunning = {
 		DisplayName = "Fox Cunning",
 		Description = "A fox's mind turns qi into sharper techniques.",
 		Rarity = "Uncommon",
-		Access = { Variants = { "BeastFolk.Fox" } },
+		Access = { Races = { "SpiritFox" } },
 		Obtain = "Innate",
 		Modifiers = { technique = 0.03 },
 	},
+	-- one per Beast Folk variant (exclusive)
 	WolfStamina = {
 		DisplayName = "Wolf Stamina",
 		Description = "Wolves recover on the move.",
@@ -100,7 +101,7 @@ local Racial = {
 		DisplayName = "Nine Tails",
 		Description = "The legendary sign of an ascended fox.",
 		Rarity = "Legendary",
-		Access = { Variants = { "BeastFolk.Fox" } },
+		Access = { Races = { "SpiritFox" } },
 		Obtain = "Grant",
 		Modifiers = { technique = 0.08 },
 	},

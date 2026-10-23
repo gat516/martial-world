@@ -130,7 +130,7 @@ function Registry.trait(traitId: any): any
 	return if type(traitId) == "string" then Registry.Traits[traitId] else nil
 end
 
--- "Beast Folk (Fox)" / "Human"
+-- "Beast Folk (Wolf)" / "Human"
 function Registry.label(raceId: string, variantId: string?): string
 	local race = Races[raceId]
 	if not race then
@@ -216,7 +216,7 @@ function Registry.accessible(traitId: string, identity: Identity, bloodline: str
 		or (bloodline ~= nil and listed(access.Bloodlines, bloodline))
 end
 
--- "Everyone", "Beast Folk (Fox) only", "Wolf, Tiger", "Human, Azure Dragon bloodline"
+-- "Everyone", "Beast Folk (Wolf) only", "Wolf, Tiger", "Human, Azure Dragon bloodline"
 function Registry.accessLabel(traitId: string): string
 	local def = Registry.Traits[traitId]
 	local access = def and def.Access

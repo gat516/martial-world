@@ -37,7 +37,7 @@ It's a template: the look and every list come from config, and the gameplay hook
 ## Key files
 - `src/shared/CharacterCreator/` (`ReplicatedStorage.Shared.CharacterCreator`), one
   module per thing to tune:
-  - Races moved to `Shared.Identity` (Races, Beast Folk variants, traits and who can get them): see [identity](identity.md). The race block shows race and variant ("Beast Folk (Fox)"), and the odds list only the races the roll can give.
+  - Races moved to `Shared.Identity` (Races, Beast Folk variants, traits and who can get them): see [identity](identity.md). The race block shows race and variant ("Beast Folk (Wolf)"), and the odds list only the races the roll can give.
   - `Surnames.luau`: last names (DisplayName, Glyph, Rarity, Weight).
   - `Rarities.luau`: tiers (label, colour, order), shared by races and last names.
   - `Clothing.luau`: Shirt and Pants options (Id, DisplayName, catalog AssetId or Template image,

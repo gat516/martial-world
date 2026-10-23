@@ -83,7 +83,7 @@ function Identity.build(page: ScrollingFrame, ctx: any)
 	components.sectionHeader(page, "Race", 1)
 	local race = components.identityBlock(page, "RaceBlock", "Change Race", 2)
 	race.change.setPrice(defs.Products.RerollRace.RobuxPrice)
-	-- the race and, for races with variants (Beast Folk), the variant: "Beast Folk (Fox)"
+	-- the race and, for races with variants (Beast Folk), the variant: "Beast Folk (Wolf)"
 	local function paintRace(changed: boolean)
 		local player = ctx.player
 		local key = player:GetAttribute("Race")

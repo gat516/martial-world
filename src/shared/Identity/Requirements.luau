@@ -60,7 +60,7 @@ Requirements.Kinds = {
 	Trait = function(data: any, c: Condition): boolean
 		return data.identity ~= nil and data.identity.traits[c.Id] ~= nil
 	end,
-	-- { Kind = "Race", Id = "BeastFolk" } / { Kind = "Variant", Id = "BeastFolk.Fox" }
+	-- { Kind = "Race", Id = "BeastFolk" } / { Kind = "Variant", Id = "BeastFolk.Wolf" }
 	Race = function(data: any, c: Condition): boolean
 		return data.identity ~= nil and data.identity.race == c.Id
 	end,

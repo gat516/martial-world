@@ -1,7 +1,7 @@
 # Races, variants and traits
 
 ## Purpose
-Who a character is: their race, a variant within it (Beast Folk: Fox, Wolf,
+Who a character is: their race, a variant within it (Beast Folk: Wolf,
 Tiger, Crane, Serpent), and traits, small perks that come from the race and
 variant or are earned in play. Built 2026-10-23 at the user's request as one
 modular, config-driven system. Test place only for now, like the character
@@ -12,8 +12,10 @@ screen it extends ([character creator](character-creator.md)).
   `src/shared/Identity/`, one file per kind of thing; the code only reads it
   through `Registry`. Adding a race, a variant (a Bear), a trait or a new trait
   category is a config edit, never a code change.
-- **Race and variant are separate.** A Beast Folk Fox is race `BeastFolk`,
-  variant `Fox`, so anything can ask "is this Beast Folk?" and "which beast?".
+- **Race and variant are separate.** A Beast Folk Wolf is race `BeastFolk`,
+  variant `Wolf`, so anything can ask "is this Beast Folk?" and "which beast?".
+  There is no Beast Folk Fox: foxes are the Spirit Fox race, which holds the fox
+  traits (Fox Cunning innate, Nine Tails exclusive) (user, 2026-10-23).
   Variants are a per-race module (`Variants/<Race>.luau`), so any race can get
   variants the same way.
 - **Availability is one file.** Release, hide or switch off any race, variant
@@ -54,7 +56,7 @@ Each file's header lists its fields. The vocabulary:
 - **Acquire** (races and variants, one or a list): `Roll` (the free join roll
   and the paid reroll, weighted), `Select` (picked freely on the character
   screen), `Unlock` (picked once `Requires` is met).
-- **Access** (traits): `"Everyone"`, or `{ Races, Variants = { "BeastFolk.Fox" },
+- **Access** (traits): `"Everyone"`, or `{ Races, Variants = { "BeastFolk.Wolf" },
   Bloodlines }`. One variant named = exclusive; several = shared.
 - **Obtain** (traits): `Innate` (from a race or variant's `InnateTraits`),
   `Unlock` (granted on its own when its `Requires` is met and it's open to the
@@ -130,7 +132,7 @@ Every action toasts the server's message and reloads the target (`traitInfo`),
 which also reloads when the target's Race/Traits attributes change.
 
 ## Character screen
-The Identity tab's race block shows "Beast Folk (Fox)". Under it, for a race with
+The Identity tab's race block shows "Beast Folk (Wolf)". Under it, for a race with
 variants, "<Race> Variants" lists the rollable ones (`Registry.variantPool(race,
 "Roll")`) with rarity and roll chance, the player's own marked, rebuilt when
 Race changes. "Choose Race" / "Choose Variant" card pickers appear only when
@@ -146,8 +148,6 @@ attributes. Choices are re-asked whenever Race or RaceVariant changes.
   do nothing.
 - Nothing uses `Traits.grant` yet (no quest or item gives a Grant trait).
 - Bloodlines aren't built, so bloodline Access and requirements never match.
-- Spirit Fox (an old placeholder race) overlaps Beast Folk Fox; decide whether
-  to keep it.
 - The admin Traits tab lists every server player as a chip, up to six; a big server needs the search box.
 - Unlock traits are checked on events, not continuously: a requirement met some
   other way (an item picked up) waits for the next kill, breakthrough or quest.

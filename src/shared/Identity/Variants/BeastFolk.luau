@@ -1,6 +1,8 @@
 --!strict
 -- Beast Folk variants (docs/systems/identity.md). A Beast Folk character is always
--- one of these; the game sees them as race "BeastFolk" with variant "Fox" etc.
+-- one of these; the game sees them as race "BeastFolk" with variant "Wolf"
+-- etc. There's no Fox variant: foxes are their own race, Spirit Fox, which holds
+-- the fox traits (user, 2026-10-23).
 -- Whether a variant can be rolled, picked, unlocked or only tested lives in
 -- Availability.luau (Variants.BeastFolk), not here.
 --
@@ -33,15 +35,6 @@ export type Variant = {
 }
 
 local Variants: { [string]: Variant } = {
-	Fox = {
-		DisplayName = "Fox",
-		Description = "Clever and quick, with a gift for illusion.",
-		Rarity = "Uncommon",
-		Weight = 25,
-		Icon = "",
-		InnateTraits = { "FoxCunning" },
-		Modifiers = { technique = 0.03 },
-	},
 	Wolf = {
 		DisplayName = "Wolf",
 		Description = "Tireless hunters who fight best with the pack.",

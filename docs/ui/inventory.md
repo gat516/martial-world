@@ -150,14 +150,40 @@ slot still dims while the class isn't in hand.
   size, captioned "Weapon", 2 gaps left of slot 1) shows the model in hand on its
   grade's edge. It hides with the window, so the fighting HUD doesn't grow.
 - Drag a weapon cell (or Bare Fists) onto the weapon slot or any hotbar slot:
-  equip. Drag the weapon off the weapon slot: put it away. Touch fallback: choose
+  equip. Drag the weapon from the weapon slot back onto the Inventory window: put it
+  away. Touch fallback: choose
   the weapon, then tap the weapon slot (tapping it with the weapon in hand chosen
   puts it away) or any hotbar slot. With no weapon chosen, tapping the weapon slot
   shows the weapon in hand.
 - Every route calls `WeaponAction` ("equip" / "unequip"); the server checks
-  ownership and busy state as before. Arts and items drag as before (onto a slot,
-  between slots, off the bar); choosing an art or item that isn't on the bar and
-  tapping a hotbar slot places it there; otherwise tapping a slot shows it here.
+  ownership and busy state as before. Choosing an art or item that isn't on the bar
+  and tapping a hotbar slot places it there; otherwise tapping a slot shows it here.
+
+## Rearranging (drag and drop, `HotbarView`, 2026-10-23: "add swapping stuff around")
+
+- Pick up: mouse, press and move 10 px; touch, hold 0.3 s without moving (moving
+  first scrolls the grid, and the grid stops scrolling while something is held). On
+  touch a hotbar slot can only be picked up while the Inventory is open, so a slow tap
+  in a fight still casts.
+- The ghost is the slot at 1.12x its size, popping in from 0.85; on touch it rides
+  0.65 of its size above the finger so the finger doesn't hide it. The slot it would
+  land on wears the cream ring (the held-item halo, 3 px outside); a hotbar item over
+  the Inventory window fades to half (it will come off the bar). The target springs
+  (`Motion.tap`) on a drop.
+- Drops: a hotbar slot onto another swaps them, empty ones included
+  (`InventoryAction "swap"`); a cell onto a slot places it, and whatever was there goes
+  back to the bag (or, if the cell's item was already on the bar, the two swap)
+  (`"slot"`); a hotbar slot onto the Inventory window clears it (`"clear"`); weapons as
+  above. Anywhere else, the same slot, or Escape: cancel, nothing changes. With the
+  Inventory closed (PC) slots still swap, but nothing comes off the bar.
+- The server validates each (ownership, slot range, the technique cap) and saves the
+  bar in `PlayerData.hotbar` as before; no new remote action.
+- Hit tests use `PlayerGui:GetGuiObjectsAtPosition` with the input's own position, so
+  the GUI inset can't skew them; the ghost is placed relative to the Hud's origin.
+- No reordering inside the bag: the grid has no manual order. It is sections (weapon
+  class, art class, item kind) sorted by New, Grade or Alphabetical, saved per tab, so
+  a hand order would be thrown away by the next sort or section change; the sort and
+  the rail chips cover finding things.
 
 ## NEW badges (`Fresh.luau`)
 
@@ -206,7 +232,8 @@ request for a matching art-icon set is in codex-sheets.
 
 ## Known gaps
 
-- Not playtested: drags, taps, NEW clearing, sort persistence, the top-bar inset
+- Not playtested: drags (hold-to-pick-up, the ghost, drop rings, cancel, the inset-safe
+  hit test), taps, NEW clearing, sort persistence, the top-bar inset
   (`GuiService.TopbarInset` is zero in Studio's Edit view; previews faked a 44/58 px
   bar) and the touch layout were previewed in Edit mode with the real client modules
   on sample data, not in a play session or on a device.

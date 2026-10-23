@@ -3,7 +3,7 @@
 What each script in `tools/` does. Read it when you need a tool and don't know its name.
 
 - `check.sh` (luau-lsp)
-- `sandbox.sh` (disposable agent Studio built from `test.project.json`: `open`/`close <name>`, `list` with ages, `prune <hours>` for leftovers)
+- `sandbox.sh` (disposable agent Studio built from `test.project.json`: `open`/`close <name>`, `list` with ages, `prune <hours>` for leftovers, `tile`). Windows are laid out by `sandbox_windows.ps1`: a grid on the second monitor, a new one opens minimised if the rest are, and a background watcher minimises and restores them together; the user's own Studios are never touched
 - `check_testbed.py` (test.project.json maps what default.project.json does)
 - rbxmx export/receive
 - rbxm export (keeps attributes, for VFX)

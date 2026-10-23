@@ -59,6 +59,10 @@ sandbox Studio that the main session runs (user, 2026-10-22):
   same sandbox (which saves the user re-clicking plugins such as vfxLib), and close
   it only when the work is done (`tools/sandbox.sh list` / `prune <hours>` for
   leftovers).
+- Sandbox windows manage themselves (user, 2026-10-23): `open` and `close` tile
+  every sandbox in a grid on the second monitor, a new one opens minimised when
+  the others are, and they minimise and restore as a group. Don't move them by
+  hand; `tools/sandbox.sh tile` re-lays them out.
 - Agents that export the same file (`assets/Effects.rbxm`) run one after another in
   the same sandbox, so each builds on the last one's export. Agents running at the
   same time each get their own sandbox.

@@ -7,6 +7,8 @@
 #                                   Workspace.Map) and open it in Studio
 #   tools/sandbox.sh close <name>   close that Studio window (no save prompt)
 #   tools/sandbox.sh list           list open sandboxes with their age
+#   tools/sandbox.sh tile           re-tile the sandbox windows (open and close
+#                                   already do)
 #   tools/sandbox.sh prune <hours>  close every sandbox open longer than that
 #                                   (leftovers from agents that forgot); never
 #                                   the shared test build (open test)
@@ -19,12 +21,20 @@
 # pass its id as studio_id. HttpService is on, so tools/ensure_receiver.sh
 # exports work from it. Nothing in it is saved anywhere: export what you build
 # to assets/ (tools/export_rbxm.luau), then close it.
+#
+# Windows (tools/sandbox_windows.ps1): sandboxes tile in a grid on the second
+# monitor; a new one opens minimised when the others are; minimising or
+# restoring one does the same to all. The user's own Studios are left alone.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 cmd=${1:-}
 name=${2:-}
 ps() { powershell.exe -NoProfile -Command "$1" | tr -d '\r'; }
+layout=$(wslpath -w tools/sandbox_windows.ps1)
+# A detached, hidden Windows process, so it outlives this shell.
+layout_bg() { ps "Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','\"$layout\"',$1"; }
+tile() { powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$layout" tile | tr -d '\r'; }
 
 case "$cmd" in
 open)
@@ -46,6 +56,8 @@ EOF
 	exe=$(ls -t /mnt/c/Users/*/AppData/Local/Roblox/Versions/*/RobloxStudioBeta.exe | head -1)
 	nohup "$exe" "$(wslpath -w "$out")" >/dev/null 2>&1 &
 	disown
+	layout_bg "'place','$name'"
+	layout_bg "'watch'"
 	echo "opening $(basename "$out"); find it with list_roblox_studios (it can take ~20 s to connect)"
 	echo "close it before you report: tools/sandbox.sh close $name"
 	others=$("$0" list)
@@ -55,6 +67,7 @@ EOF
 close)
 	[[ "$name" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "usage: $0 close <name>" >&2; exit 2; }
 	ps "Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { \$_.MainWindowTitle -like '*mw-sandbox-$name.rbxl*' } | ForEach-Object { Stop-Process -Id \$_.Id -Force; 'closed ' + \$_.MainWindowTitle }"
+	tile >/dev/null
 	;;
 list)
 	ps "Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { \$_.MainWindowTitle -like '*mw-sandbox-*' } | ForEach-Object { \$n = [regex]::Match(\$_.MainWindowTitle, 'mw-sandbox-([A-Za-z0-9_-]+)\\.rbxl').Groups[1].Value; '{0}  open {1:0.0} h' -f \$n, ((Get-Date) - \$_.StartTime).TotalHours }"
@@ -62,9 +75,13 @@ list)
 prune)
 	[[ "$name" =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "usage: $0 prune <hours>" >&2; exit 2; }
 	ps "Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { \$_.MainWindowTitle -like '*mw-sandbox-*' -and \$_.MainWindowTitle -notlike '*mw-sandbox-test.rbxl*' -and ((Get-Date) - \$_.StartTime).TotalHours -gt $name } | ForEach-Object { Stop-Process -Id \$_.Id -Force; 'closed ' + \$_.MainWindowTitle }"
+	tile >/dev/null
+	;;
+tile)
+	tile
 	;;
 *)
-	sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,27p' "$0" | sed 's/^# \{0,1\}//'
 	exit 2
 	;;
 esac

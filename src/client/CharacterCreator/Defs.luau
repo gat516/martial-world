@@ -8,7 +8,9 @@ local CC = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("CharacterCreat
 
 return {
 	Rarities = require(CC:WaitForChild("Rarities")),
-	Races = require(CC:WaitForChild("Races")),
+	-- races, variants and traits: Shared.Identity (Registry reads all of it)
+	Races = require(ReplicatedStorage.Shared:WaitForChild("Identity"):WaitForChild("Races")),
+	Registry = require(ReplicatedStorage.Shared:WaitForChild("Identity"):WaitForChild("Registry")),
 	Surnames = require(CC:WaitForChild("Surnames")),
 	Clothing = require(CC:WaitForChild("Clothing")),
 	HairColors = require(CC:WaitForChild("HairColors")),

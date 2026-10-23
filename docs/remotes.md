@@ -24,7 +24,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot" (onto an occupied slot: that item goes back to the bag), "clear", "swap" (any two slots, empty ones too), "comprehend", "seen" {ids}: no longer NEW, "view" tab, sort, filter: the Inventory's saved view) | Inventory, HotbarView, Fresh, InventoryFilter |
 | TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
-| AdminAction | Function | C->S | `Admin.handle` (admins only) | AdminPanel |
+| AdminAction | Function | C->S | `Admin.handle` (admins only; trait* actions take a target player, see [identity](systems/identity.md)) | AdminPanel |
 | CharacterAction | Function | C->S | `CharacterIdentity.handle` (`state`, `templates`, `hair`, `defaults`, `reroll`, `confirm`); test place only | CharacterCreator.Bridge |
 | WeaponAction | Function | C->S | `Weapons.handle` ("equip", weaponId / "unequip" / "stow", character, boolean) | HotbarView (weapon drags and the weapon slot), WeaponAnimator (cosmetic control locks) |
 | Dodge, Cast | Event | - | unused (combat moved onto Attack) | - |
@@ -36,7 +36,7 @@ technique level at cast time (picks the visual tier), `chain` the chain targets 
 `Inventory.use` to `HerbAnimator` on every client after a successful herb use.
 
 Besides remotes, the server publishes fast-changing values as attributes:
-player `Realm`, `Cultivation` (may exceed `CultivationMax`, up to `CultivationCap`), `CultivationMax`, `CultivationCap`,
+player `Race`, `RaceVariant`, `Traits`, `TraitsInactive` ([identity](systems/identity.md)), `Realm`, `Cultivation` (may exceed `CultivationMax`, up to `CultivationCap`), `CultivationMax`, `CultivationCap`,
 `BreakthroughReady`, `BreakthroughBlock` ([cultivation](systems/cultivation.md)), `Qi`, `QiMax`, `QiDenied` (combat qi,
 [combat](systems/combat.md#combat-qi-technique-mana)), `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`, `Meditating` (seated; for others' method auras),
 `DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`; character `WeaponClass`, `WeaponStowed`

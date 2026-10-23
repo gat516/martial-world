@@ -227,7 +227,7 @@ cursor, settings and the admin panel.
 - `Cursor.luau`, `ShiftLock.luau` (the existing main-game binding and reticle),
   `TestbedAltMouseLock.client.luau` (Alt toggle in the testbed only),
   `LockOn.luau` reticle and hint.
-- `Settings.luau` (volumes, Auto combat, lock hint), `AdminPanel.luau` (F2, admins on PC).
+- `Settings.luau` (volumes, Auto combat, lock hint), `AdminPanel.luau` (F2, admins on PC; Tools and Traits tabs, the Traits tab is `AdminTraits.luau`, see [identity](identity.md)).
 - `State.luau`: the latest `PlayerState` snapshot with change listeners.
 - `CharacterCreator/` (the join screen: nav, viewport dummy, parchment panel); see
   [character creator](character-creator.md).

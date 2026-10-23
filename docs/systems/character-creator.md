@@ -6,7 +6,7 @@ The join screen's creator: pick a starting outfit (shirt and pants), skin, hair
 server drew for the slot (paid rerolls), choose a first name, and enter the
 world. It opens from the slot screen ([save slots](save-slots.md)) for a new
 character, or on a slot's look to edit it. It's a template: the look and every
-list come from config, and the gameplay hooks (what a race does) plug in later.
+list come from config; what a race does is [identity](identity.md).
 
 ## Design intent
 - **Calm and readable** (user, 2026-10-23: the old screen was "tacky", "a bunch
@@ -45,7 +45,7 @@ list come from config, and the gameplay hooks (what a race does) plug in later.
   pressing Enter World focuses the field (keyboard only).
 - Exactly what the user asked for and no more: two clothing categories, hair is
   an asset id and a colour, race and clan can't be picked (only rerolled for
-  Robux), no titles, roots or stats.
+  Robux; the race reroll draws a variant too), no titles, roots or stats.
 - The screen sits on the live sect world, as if the player stands on a high
   pillar (the camera parks at a vantage with a slow sway and a light blur). No
   menu-only scene. Where there is no `Workspace.Map` (the bare testbed) or
@@ -77,7 +77,10 @@ list come from config, and the gameplay hooks (what a race does) plug in later.
 ## Key files
 - `src/shared/CharacterCreator/` (`ReplicatedStorage.Shared.CharacterCreator`), one
   module per thing to tune:
-  - `Races.luau`: races (DisplayName, Description, Rarity, Weight, Icon).
+  - Races and their variants live in `Shared.Identity` ([identity](identity.md)).
+    The race row shows race and variant ("Beast Folk (Wolf)", in the variant's
+    rarity), and the odds card lists only what the roll can give: the races, then
+    each race's variants with their chance within it.
   - `Surnames.luau`: last names / clans (DisplayName, Glyph, Rarity, Weight).
   - `Rarities.luau`: tiers (label, colour, order), shared by races and clans.
   - `Clothing.luau`: Shirt and Pants options (Id, DisplayName, catalog AssetId or
@@ -188,7 +191,12 @@ profile (`character.look`, `character.firstName`).
 - No title screen yet (user, 2026-10-23); the slot screen is the first screen.
 - The chosen hair colour tints every hair, the avatar's own included.
 - Apart from the ranger shirt and pants, clothing ids and product ids are
-  placeholders (0). Races and clans have no gameplay effect yet.
+  placeholders (0). Clans have no gameplay effect yet; races carry innate traits
+  and modifiers ([identity](identity.md)), with first-guess values.
+- No picker for races or variants made Select or Unlock in Availability (none
+  are today): the old Identity tab's card pickers went with the rewrite, and the
+  creator runs before a slot is played, when Traits has no profile to check
+  Requires against. `Traits.choose` is the server side for when one is designed.
 - Hair loads through `InsertService:LoadAsset`; a catalog hair Roblox won't load
   that way is refused with "That ID isn't a hair accessory".
 - Untested in play: everything (server calls, the flow between the slot screen

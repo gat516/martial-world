@@ -5,11 +5,11 @@
 -- client only previews.
 --
 -- State lives on the player as attributes (they replicate, so the screen just
--- reads them): Race, Surname, FirstName, CharacterConfirmed. They show the slot
--- the screen has open, then the slot being played. What's kept is the slot's:
--- its race and last name (Account.fates, by slot position) and its character
--- (first name and look) in the slot's profile; see Slots.luau and
--- docs/systems/save-slots.md.
+-- reads them): Race, RaceVariant, Surname, FirstName, CharacterConfirmed. They
+-- show the slot the screen has open, then the slot being played. What's kept is
+-- the slot's: its race, variant and last name (Account.fates, by slot position)
+-- and its character (first name and look) and traits in the slot's profile; see
+-- Slots.luau, Traits.luau, docs/systems/save-slots.md and docs/systems/identity.md.
 --
 -- CharacterAction (RemoteFunction) actions, each returning (ok, payload|message):
 --   "state"              -> { products = { RerollRace = {price, live}, ... }, mock }
@@ -44,13 +44,14 @@ local CC = ReplicatedStorage.Shared.CharacterCreator
 local Clothing = require(CC.Clothing)
 local HairColors = require(CC.HairColors)
 local Products = require(CC.Products)
-local Races = require(CC.Races)
+local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local SkinColors = require(CC.SkinColors)
 local Rules = require(CC.Rules)
 local Surnames = require(CC.Surnames)
 local PlayerData = require(script.Parent.PlayerData)
 local Receipts = require(script.Parent.Receipts)
 local Slots = require(script.Parent.Slots)
+local Traits = require(script.Parent.Traits)
 
 export type Look = {
 	Shirt: string, -- Clothing option Id
@@ -77,8 +78,8 @@ CharacterIdentity.onConfirmed = {} :: { (Player, Look) -> () }
 CharacterIdentity.onRerolled = {} :: { (Player, string, string) -> () } -- player, kind, new key
 
 local KINDS = {
-	Race = { defs = Races :: { [string]: any }, product = Products.RerollRace },
-	Surname = { defs = Surnames :: { [string]: any }, product = Products.RerollSurname },
+	Race = { product = Products.RerollRace },
+	Surname = { product = Products.RerollSurname },
 }
 
 local function mockAllowed(): boolean
@@ -94,6 +95,23 @@ local function roll(player: Player, id: string, kind: string): string?
 		end
 	end
 	return key
+end
+
+-- Puts the played slot's race and variant (its fate) into the profile and gives
+-- it its traits (Traits.load draws again a race the config dropped).
+function CharacterIdentity.load(player: Player, data: PlayerData.Data)
+	local id = PlayerData.active(player)
+	local fate = id and Slots.fate(player, id)
+	-- slots off, the fate isn't saved: the profile's own copy is what's kept
+	if fate and (Config.Slots.ENABLED or data.identity.race == "") then
+		data.identity.race = fate.Race
+		data.identity.variant = fate.Variant or ""
+	end
+	Traits.load(player, data)
+	if fate then
+		fate.Race = data.identity.race
+		fate.Variant = data.identity.variant
+	end
 end
 
 local function optionById(list: { Clothing.Option }, id: string): Clothing.Option?
@@ -265,6 +283,10 @@ local function dress(player: Player, look: Look)
 	if not (character and humanoid) then
 		return
 	end
+	-- dress at scale 1 (ApplyDescription and new accessories assume it); the size
+	-- comes back at the end (Traits.applyBody skips while Dressing is set)
+	character:SetAttribute("Dressing", true)
+	Traits.scaleCharacter(character, 1)
 	local shirt = optionById(Clothing.Shirt, look.Shirt)
 	local pants = optionById(Clothing.Pants, look.Pants)
 	-- A clean body (user, 2026-10-23): the avatar's skin colours and nothing else
@@ -323,6 +345,10 @@ local function dress(player: Player, look: Look)
 			humanoid:AddAccessory(copy)
 		end
 	end
+	-- back to the cosmetics and body size the profile calls for (fox ears, Titan Frame), now that
+	-- everything is on and can grow with it
+	character:SetAttribute("Dressing", nil)
+	Traits.applyBody(player)
 end
 
 local function confirm(player: Player, raw: any): (boolean, any)
@@ -335,7 +361,7 @@ local function confirm(player: Player, raw: any): (boolean, any)
 	end
 	local editing = session.mode == "edit"
 	-- the client gates Enter World on these too, but only as UX: check them here
-	if not Races[player:GetAttribute("Race") or ""] or not Surnames[player:GetAttribute("Surname") or ""] then
+	if not Registry.race(player:GetAttribute("Race")) or not Surnames[player:GetAttribute("Surname") or ""] then
 		return false, "Your race and last name are still being drawn"
 	end
 	if not optionById(Clothing.Shirt, raw.Shirt) or not optionById(Clothing.Pants, raw.Pants) then

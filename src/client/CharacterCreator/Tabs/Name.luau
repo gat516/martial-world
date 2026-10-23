@@ -102,11 +102,17 @@ function Name.build(page: ScrollingFrame, ctx: any)
 	components.section(page, "Fate", 3)
 	local race = components.fateRow(page, "RaceRow", 4)
 	race.setPrice(defs.Products.RerollRace.RobuxPrice)
-	ctx.onAttribute("Race", function(key: string?)
-		local def = key and defs.Races[key]
-		race.set("Race", if def then def.DisplayName else "Drawing...", def and defs.Rarities[def.Rarity])
+	-- "Beast Folk (Wolf)": a race with variants shows the drawn one, in its rarity
+	local function paintRace()
+		local key = ctx.player:GetAttribute("Race")
+		local def = defs.Registry.race(key)
+		local variant = def and defs.Registry.variant(key, ctx.player:GetAttribute("RaceVariant"))
+		local rarity = (variant or def) and defs.Rarities[(variant or def).Rarity]
+		race.set("Race", if def then defs.Registry.label(key, ctx.player:GetAttribute("RaceVariant")) else "Drawing...", rarity)
 		validate()
-	end)
+	end
+	ctx.onAttribute("Race", paintRace)
+	ctx.onAttribute("RaceVariant", paintRace)
 	race.button.Activated:Connect(function()
 		task.spawn(rerollFlow, ctx, race, "Race")
 	end)

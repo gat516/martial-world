@@ -48,7 +48,7 @@ Slots on, one DataStore key per player, `a_<userId>`, session-locked as before:
 ```
 { data = Account, session = { job, t } }
 Account = { av = 1, slots = { ["1"] = Data, ... },   -- string keys, "1".."MAX"
-            fates = { ["1"] = { Race, Surname }, ... },  -- by position, kept on delete
+            fates = { ["1"] = { Race, Variant, Surname }, ... },  -- by position, kept on delete
             last = "1", settings, receipts,           -- shared by every slot
             rerollFor = "1",                          -- where a paid reroll lands
             trash = { slot, data, fate, at }? }       -- the last deleted slot

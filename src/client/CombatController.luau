@@ -323,7 +323,9 @@ local function startDash(current: Runtime)
 		move = camera.CFrame:VectorToWorldSpace(input) * Vector3.new(1, 0, 1)
 	end
 	local direction = if move.Magnitude > 0.1 then move.Unit else -ActionState.facing
-	local want = direction * Config.DODGE_SPEED
+	-- A scaled body (Titan Frame, docs/systems/identity.md) dashes the same
+	-- distance in body lengths: the same studs from a bigger body read as short.
+	local want = direction * Config.DODGE_SPEED * current.character:GetScale()
 	local function steer(maxChange: number)
 		if not root.Parent then return end
 		local velocity = root.AssemblyLinearVelocity
@@ -357,7 +359,7 @@ local function startDash(current: Runtime)
 			root:ApplyImpulse(-excess * root.AssemblyMass)
 		end
 	end
-	steer(Config.DODGE_SPEED * 2)
+	steer(want.Magnitude * 2)
 	LockOn.noteDodge()
 	Sfx.play("Dodge")
 	CombatEffects.dashTrail(current.character, root, Config.DODGE_SECONDS)

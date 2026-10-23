@@ -17,7 +17,10 @@ scales all player damage.
   parry** that staggers the beast ([guard and perfect parry](../combat/guard-parry.md)).
 - Souls-style lock-on (PC T/middle mouse, gamepad R3, touch Lock button) and a
   touch **Auto** mode that locks, closes in and strikes by itself so mobile
-  players only dash and cast.
+  players only dash and cast. The lock camera pulls back for big targets: its
+  distance range (normally 8-24 studs) and the scroll-out limit scale with the
+  target's size (1.0-1.8x its height, or half its length), so the Thunder Ape
+  (~30 studs) frames at 30-54. Tuning: `DISTANCE_*`, `SIZE_*` in `LockOn.luau`.
 - Getting hurt marks you in combat for a few seconds: no teleporting away, and
   it's the condition for a forced breakthrough.
 - **Techniques spend combat qi**, the mana pool (`Qi`), never the raw qi in the

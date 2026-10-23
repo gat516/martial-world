@@ -1230,13 +1230,13 @@
      <string name="Name">CornerTL</string>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
-     <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>0</YS><YO>-4</YO></UDim2>
-     <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.2</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://85875302473824</url></Content>
+     <UDim2 name="Position"><XS>-0.0048192</XS><XO>-4</XO><YS>-0.0071428</YS><YO>-4</YO></UDim2>
+     <UDim2 name="Size"><XS>0.209638</XS><XO>0</XO><YS>0.214286</YS><YO>0</YO></UDim2>
+     <Content name="Image"><url>rbxassetid://118580584509131</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX141"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
-      <float name="AspectRatio">1.48446</float>
+      <float name="AspectRatio">1.45227</float>
      </Properties>
      </Item>
     </Item>
@@ -1245,13 +1245,13 @@
      <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
-     <UDim2 name="Position"><XS>1</XS><XO>4</XO><YS>0</YS><YO>-4</YO></UDim2>
-     <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.2</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://88976605104747</url></Content>
+     <UDim2 name="Position"><XS>1.00482</XS><XO>4</XO><YS>-0.0071428</YS><YO>-4</YO></UDim2>
+     <UDim2 name="Size"><XS>0.209638</XS><XO>0</XO><YS>0.214286</YS><YO>0</YO></UDim2>
+     <Content name="Image"><url>rbxassetid://128021321074162</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX143"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
-      <float name="AspectRatio">1.48446</float>
+      <float name="AspectRatio">1.45227</float>
      </Properties>
      </Item>
     </Item>
@@ -1260,13 +1260,13 @@
      <Vector2 name="AnchorPoint"><X>0</X><Y>1</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
-     <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>1</YS><YO>4</YO></UDim2>
-     <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.2</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://77144194929366</url></Content>
+     <UDim2 name="Position"><XS>-0.0048192</XS><XO>-4</XO><YS>1.00714</YS><YO>4</YO></UDim2>
+     <UDim2 name="Size"><XS>0.209638</XS><XO>0</XO><YS>0.214286</YS><YO>0</YO></UDim2>
+     <Content name="Image"><url>rbxassetid://119223486501853</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX145"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
-      <float name="AspectRatio">1.48446</float>
+      <float name="AspectRatio">1.45227</float>
      </Properties>
      </Item>
     </Item>
@@ -1275,13 +1275,13 @@
      <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
-     <UDim2 name="Position"><XS>1</XS><XO>4</XO><YS>1</YS><YO>4</YO></UDim2>
-     <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.2</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://113361229444828</url></Content>
+     <UDim2 name="Position"><XS>1.00482</XS><XO>4</XO><YS>1.00714</YS><YO>4</YO></UDim2>
+     <UDim2 name="Size"><XS>0.209638</XS><XO>0</XO><YS>0.214286</YS><YO>0</YO></UDim2>
+     <Content name="Image"><url>rbxassetid://113711724452568</url></Content>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX147"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
-      <float name="AspectRatio">1.48446</float>
+      <float name="AspectRatio">1.45227</float>
      </Properties>
      </Item>
     </Item>

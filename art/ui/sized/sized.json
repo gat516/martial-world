@@ -55,6 +55,15 @@
    "88": 4
   }
  },
+ "codex/cut/ornament_blood_panel_corner.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
  "codex/cut/ornament_blood_ruby_stud.png": {
   "heights": [
    40
@@ -988,41 +997,49 @@
  "codex/cut/ornament_window_corner_small.png": {
   "heights": [
    88,
-   104
+   104,
+   112
   ],
   "margin": 0,
   "margins": {
-   "104": 3
+   "104": 3,
+   "112": 4
   }
  },
  "codex/cut/ornament_window_corner_small_bl.png": {
   "heights": [
    88,
-   104
+   104,
+   112
   ],
   "margin": 0,
   "margins": {
-   "104": 3
+   "104": 3,
+   "112": 4
   }
  },
  "codex/cut/ornament_window_corner_small_br.png": {
   "heights": [
    88,
-   104
+   104,
+   112
   ],
   "margin": 0,
   "margins": {
-   "104": 3
+   "104": 3,
+   "112": 4
   }
  },
  "codex/cut/ornament_window_corner_small_tr.png": {
   "heights": [
    88,
-   104
+   104,
+   112
   ],
   "margin": 0,
   "margins": {
-   "104": 3
+   "104": 3,
+   "112": 4
   }
  },
  "codex/cut/portrait_unnamed_silhouette.png": {
@@ -1136,6 +1153,60 @@
   "margin": 0,
   "margins": {
    "184": 5
+  }
+ },
+ "events/blood_panel_corner_bl.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "events/blood_panel_corner_br.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "events/blood_panel_corner_tr.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "events/window_corner_small_bl.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "events/window_corner_small_br.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "events/window_corner_small_tr.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
   }
  },
  "field_inset.png": {

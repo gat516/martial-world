@@ -56,6 +56,7 @@ FAMILIES = [
     r"ornament_herb_tier_",  # HerbArt tiers
     r"ornament_(daily|weekly)_seal",  # Sect notices
     r"ornament_catalog_tab(_selected)?_(capL|capR|mid)",  # tabs and quest rows swap to selected
+    r"(window_corner_small|blood_panel_corner)(_tr|_bl|_br)?\.png",  # Events/Themes corners
 ]
 
 
@@ -203,6 +204,11 @@ def plan(args):
                 entries.append({"old_id": old_id, "old_file": f, "source": src, "file": "sized/" + name,
                                 "art": [aw, ah], "margins": margins, "old_art": [oaw, oah], "old_margins": omg,
                                 "displays": [round(lo, 1), round(hi, 1)]})
+    made = {}
+    for e in entries:
+        if made.setdefault(e["file"], e["source"]) != e["source"]:
+            sys.exit(f"{e['file']} would be made from both {made[e['file']]} and {e['source']}: "
+                     "leave one out (--skip) and do it in its own pass")
     if not args.dry:
         with open(ui_assemble.SIZED_REGISTRY, "w") as fh:
             json.dump(registry, fh, indent=1, sort_keys=True)

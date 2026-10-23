@@ -112,3 +112,12 @@ first note (a pi turn) put the tail in front of the body.
   another one (AGENTS.md, Branches).
 - **Effects aren't meshes.** Flames, qi wisps and mist (Demonic Human's flame,
   Ghost's wisps) go to `vfx`; the modeler builds only the solid pieces.
+
+## Next: bringing them to life
+
+The accessories are rigged, but nothing moves the bones yet. Planned once the remade fox tails are in (user approved, 2026-10-23):
+- one client script that drives every worn accessory's bones by name
+- tails (`Tail1..`) sway with lag down the chain, faster while running, settling when the player stops
+- ears (`EarL`/`EarR`) twitch now and then
+
+Every race gets it for free, as long as it uses the standard bone names.

@@ -1,7 +1,8 @@
 --!strict
 -- The name over every player's head (docs/systems/nameplates.md), the local
 -- player's own included. A ReplicatedStorage.Nameplate BillboardGui template
--- (assets/Nameplate.rbxmx) is cloned per character, adorned to its Head and kept
+-- (assets/Nameplate.rbxmx: a gold-ruled ink band with the name, a small title
+-- line above it) is cloned per character, adorned to its Head and kept
 -- in PlayerGui.Nameplates, so it's local only. BillboardGui.MaxDistance hides it
 -- beyond MAX_DISTANCE studs. Roblox's own name over the humanoid is turned off.
 --
@@ -43,8 +44,8 @@ local function paint(player: Player)
 	if not plate then
 		return
 	end
-	(plate:FindFirstChild("PlayerName") :: TextLabel).Text = Nameplates.nameOf(player)
-	local title = plate:FindFirstChild("Title") :: TextLabel
+	(plate:FindFirstChild("PlayerName", true) :: TextLabel).Text = Nameplates.nameOf(player)
+	local title = plate:FindFirstChild("Title", true) :: TextLabel
 	local text = player:GetAttribute("Title")
 	local color = player:GetAttribute("TitleColor")
 	title.Visible = type(text) == "string" and text ~= ""

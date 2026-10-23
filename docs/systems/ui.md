@@ -113,6 +113,12 @@ cursor, settings and the admin panel.
   `Play.BlockButton`: see [vitals stack](../ui/hud-vitals.md#guard-bar).
 - `Menus.luau`: the one-window rule and what hides while a window is open.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
+- `UiScale.luau`: baseline scaling for new screens. Lay a screen out once inside an
+  authored `Canvas` frame (with a `UiScale` UIScale) at 1920x1080, or 844x390 for a
+  phone layout; `UiScale.fit(canvas)` scales it to the screen and sizes the canvas to
+  fill it in baseline units. `UiScale.isPhone()` (touch, short side under 600 px,
+  decided once) picks the phone layout. Details in the module header and
+  [overhaul-plan](../ui/overhaul-plan.md) "Resolution and scaling".
 - `HotbarView.luau`, `Inventory.luau` (Pouch, Arts, Weapons tabs), `InventoryFilter.luau`
   (sort button and menu for Arts and Weapons), `SlotArt.luau`
   (slot painting, weapon art, the weapon badge), `ListWindow.luau`.

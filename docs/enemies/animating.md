@@ -13,8 +13,8 @@ stiffness and floating show up before the user sees them.
 
 1. Serve the checkout (`tools/serve.sh`: 8767 is `art/enemies/`, 8768 the repo
    root; another session may own those ports, so serve your worktree on a port
-   of its own, `python3 -m http.server <port> --bind 127.0.0.1 --directory <worktree>`,
-   and pass `base`).
+   of its own: `tools/serve.sh <port>`, then `_G.SERVE_BASE = "http://127.0.0.1:<port>/"`
+   in Studio. The probe URL below is then `_G.SERVE_BASE .. "art/enemies/motion_probe.luau"`).
 2. Set `_G.MOTION` from the shared specs, `art/enemies/motion_specs.luau`
    (`S.with("NineTailFox", { moves = {...} })`: the family's EnemyAnimator
    flags, setup hook, heroes and default moves). A family that isn't there yet:
@@ -24,7 +24,7 @@ stiffness and floating show up before the user sees them.
    Loops are specs too: `{ loop = "walk", speed = 6, seconds = 2 }`.
    All twelve shipped families have a spec (with `map`, their attack -> move
    table). For a before/after table of a whole family, `art/enemies/motion_audit.luau`
-   (`_G.AUDIT = { family = "StoneTortoise", base = ... }`) probes every attack of
+   (`_G.AUDIT = { family = "StoneTortoise", summary = true }`; `summary` returns the compact per-move table instead of the full text) probes every attack of
    its def (followUps as chains, arrives as `next`, skids), Stagger, Death and
    the walk / run / circle loops at the def's speeds.
 3. The filmstrip of the move you're reporting:

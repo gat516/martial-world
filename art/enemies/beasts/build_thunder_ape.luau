@@ -12,7 +12,7 @@
 -- hide on face, chest and hands; the lightning-blue sigil on the chest and the bolts on
 -- the forearms are the tells.
 
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local HttpService = game:GetService("HttpService")
 local B = loadstring(HttpService:GetAsync(BASE .. "lib.luau?" .. os.clock()))()("ThunderApeB")
 local v = B.v

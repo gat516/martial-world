@@ -27,7 +27,7 @@
 -- The arm skins billow slightly UP toward the trailing edge (SKIN_DROOP < 0): the usual
 -- camera sits above and in front of a bat, and a skin drooping back goes edge-on to it.
 
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local HttpService = game:GetService("HttpService")
 local B = loadstring(HttpService:GetAsync(BASE .. "lib.luau?" .. os.clock()))()("BloodBat")
 local v, tell = B.v, B.tell

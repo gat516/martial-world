@@ -27,7 +27,7 @@ local HttpService = game:GetService("HttpService")
 local SerializationService = game:GetService("SerializationService")
 local ServerStorage = game:GetService("ServerStorage")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 
 -- Tunables -----------------------------------------------------------------------------------
 -- How many jointed pieces each reference tube becomes (Body, Neck2..4 stay whole).

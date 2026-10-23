@@ -4,11 +4,12 @@
 -- rest and in its main attack's windup pose. Run in Edit mode through execute_luau;
 -- re-runnable. Posed by forward kinematics like spirit_wolf/preview_wolves.luau, since
 -- Motor6D.Transform doesn't move parts in Edit mode.
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 
 local PREVIEW_AT = CFrame.new(300, 400, 3000)
 local ServerStorage = game:GetService("ServerStorage")
 
-local POSES = loadstring(game:GetService("HttpService"):GetAsync("http://127.0.0.1:8767/beasts/poses.luau?" .. os.clock()))()
+local POSES = loadstring(game:GetService("HttpService"):GetAsync(BASE .. "beasts/poses.luau?" .. os.clock()))()
 
 -- { label, template, x, pose }
 local roster = ServerStorage:FindFirstChild("_RosterBeasts")

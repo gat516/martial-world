@@ -3,7 +3,7 @@
 -- rig_lib.luau. Legacy names kept: JointHead, JointTail, JointLeg*. JointNeck retracts
 -- the head: translate it along +Z (2.3 tucks it until the face peeks from the lip; RIGS.md).
 
-local BASE = "http://127.0.0.1:8767/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local HttpService = game:GetService("HttpService")
 local rig = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/rig_lib.luau?" .. os.clock()))()
 

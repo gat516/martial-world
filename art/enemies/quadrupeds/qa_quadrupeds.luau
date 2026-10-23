@@ -14,6 +14,7 @@
 --   keyable  the shared art/enemies/keyframe_test.luau on the template (every joint keyed
 --            by its Part1 name and played through the Animator; flags dupe / untaken)
 -- KEEP = true leaves the posed copies (anchored) in _QA for captures; otherwise they go.
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 
 local MODELS = nil -- nil: every model in the folder
 local POSES_TO_RUN = { "WINDUP", "STRETCH", "CROUCH" }
@@ -22,7 +23,7 @@ local QA_AT = CFrame.new(200, 400, 3030) -- a row behind the preview plate
 
 local ServerStorage = game:GetService("ServerStorage")
 local HttpService = game:GetService("HttpService")
-local POSES = loadstring(HttpService:GetAsync("http://127.0.0.1:8767/quadrupeds/poses_quadrupeds.luau?" .. os.clock()))()
+local POSES = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/poses_quadrupeds.luau?" .. os.clock()))()
 local folder = ServerStorage._RosterQuadrupeds
 local TOL = 0.05
 
@@ -346,7 +347,7 @@ end
 -- the shared keyframe proof (art/enemies/keyframe_test.luau): keys every Motor6D by its
 -- Part1 name, plays the clip on a parented clone and checks each Transform took it
 local function keyable(template)
-	local src = HttpService:GetAsync("http://127.0.0.1:8767/keyframe_test.luau?" .. os.clock())
+	local src = HttpService:GetAsync(BASE .. "keyframe_test.luau?" .. os.clock())
 	src = src:gsub("local TARGETS = {}", 'local TARGETS = { "ServerStorage._RosterQuadrupeds.' .. template.Name .. '" }')
 	return { "keyframe_test: " .. tostring(loadstring(src)()) }
 end

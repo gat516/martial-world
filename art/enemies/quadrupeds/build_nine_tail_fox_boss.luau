@@ -16,7 +16,7 @@
 -- straight; the S curve is the pose's job. nine_tail_fox_boss_tails.luau holds the numbers and
 -- the look (the rig derives the joints and ExtendMax from them).
 
-local BASE = "http://127.0.0.1:8767/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local HttpService = game:GetService("HttpService")
 local P = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/parts_lib.luau?" .. os.clock()))()("NineTailFoxB")
 local v, block, ball, cyl, limb, fin, tri, bevel, tell, add =

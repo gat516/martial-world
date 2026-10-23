@@ -7,9 +7,10 @@
 --   weld drift   each welded detail's offset to its segment against the template's
 --                (a piece that stays behind or slides when its segment moves)
 -- Run in Edit mode through execute_luau; it cleans up. Anything over 0.01 studs fails.
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 
 local ServerStorage = game:GetService("ServerStorage")
-local POSES = loadstring(game:GetService("HttpService"):GetAsync("http://127.0.0.1:8767/beasts/poses.luau?" .. os.clock()))()
+local POSES = loadstring(game:GetService("HttpService"):GetAsync(BASE .. "beasts/poses.luau?" .. os.clock()))()
 local LIMIT = 0.01
 
 local holder = Instance.new("Folder")

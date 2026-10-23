@@ -2,7 +2,7 @@
 -- Rebuilds, rigs, previews and checks the whole wolf family in one call. Run in Edit
 -- mode through execute_luau:
 -- loadstring(game:GetService("HttpService"):GetAsync("http://127.0.0.1:8767/wolf_family/run_all.luau?" .. os.clock()))()
-local BASE = "http://127.0.0.1:8767/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local MODELS = {
 	{ "build_elder_wolf_king.luau", "ElderWolfKing" },
 	{ "build_shadow_mane_wolf.luau", "ShadowManeWolf" },

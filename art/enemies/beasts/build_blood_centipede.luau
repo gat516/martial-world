@@ -25,7 +25,7 @@
 -- Palette (4 + glow): BLACK belly and maw, DEEP crimson slabs, head capsule and femurs,
 -- CRIMSON caps and head shield, BONE claws, pincers, spines and antenna tips; GLOW dim neon.
 
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local HttpService = game:GetService("HttpService")
 local B = loadstring(HttpService:GetAsync(BASE .. "lib.luau?" .. os.clock()))()("BloodCentipede")
 local v, tell = B.v, B.tell

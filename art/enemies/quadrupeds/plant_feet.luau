@@ -7,6 +7,7 @@
 -- gsub first. LEGS: { { upper joint, middle joint or nil, foot joint } ... }; a leg with no
 -- middle joint (the tortoise) is solved on its upper joint. An optional 4th entry caps how
 -- far (radians) the solve may move from the authored angle (default 0.6).
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 
 local MODEL = "StoneBoar_R"
 local POSE = "WINDUP"
@@ -14,7 +15,7 @@ local LEGS = {}
 
 local ServerStorage = game:GetService("ServerStorage")
 local HttpService = game:GetService("HttpService")
-local POSES = loadstring(HttpService:GetAsync("http://127.0.0.1:8767/quadrupeds/poses_quadrupeds.luau?" .. os.clock()))()
+local POSES = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/poses_quadrupeds.luau?" .. os.clock()))()
 local template = ServerStorage._RosterQuadrupeds[MODEL]
 local pose = table.clone(POSES[POSE][MODEL])
 

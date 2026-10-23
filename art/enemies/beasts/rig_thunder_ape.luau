@@ -16,7 +16,7 @@
 -- over; the hind joint is Ankle rather than Hock.
 -- HRP: 4 tall, so EnemyAnimator strides it at scale 2 (a slow heavy gait); bottom 1.2.
 
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local rig = loadstring(game:GetService("HttpService"):GetAsync(BASE .. "rig_core.luau?" .. os.clock()))()
 local SCALE = 3.71 -- build_thunder_ape.luau's SCALE
 local model = game:GetService("ServerStorage")._RosterBeasts.ThunderApeB

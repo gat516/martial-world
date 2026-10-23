@@ -6,7 +6,7 @@
 -- other joint is Joint<Part1> (RIGS.md has the tables and safe ranges).
 -- HRP as the Spirit Wolf (2 x 2 x 4.4 at Y 2.6): a fox-sized body, wolf-sized ranges.
 
-local BASE = "http://127.0.0.1:8767/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local HttpService = game:GetService("HttpService")
 local rig = loadstring(HttpService:GetAsync(BASE .. "quadrupeds/rig_lib.luau?" .. os.clock()))()
 

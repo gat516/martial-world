@@ -18,7 +18,7 @@
 -- holds the body at player-head height with the talons hanging to Y 3.3, and a grounded
 -- player's melee box (root Y 3, 5 tall, plus slack) overlaps the HRP.
 
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local rig = loadstring(game:GetService("HttpService"):GetAsync(BASE .. "rig_core.luau?" .. os.clock()))()
 return rig({
 	target = "FlameRaven",

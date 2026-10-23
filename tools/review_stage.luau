@@ -7,7 +7,7 @@
 -- "Show the work live".
 --
 -- Load (serve your worktree on a port of your own, e.g. `python3 -m http.server 8785`):
---   _G.REVIEW_STAGE = { base = "http://127.0.0.1:8785/" } -- optional; where motion_probe/specs load from
+--   _G.REVIEW_STAGE = { base = "http://127.0.0.1:8785/" } -- optional; where motion_probe/specs load from (default _G.SERVE_BASE)
 --   loadstring(game:GetService("HttpService"):GetAsync("http://127.0.0.1:8785/tools/review_stage.luau?" .. os.clock()))()
 --   local R = _G.reviewStage
 --
@@ -81,7 +81,7 @@ local FOV = 40
 local SIZES = { phone = Vector2.new(844, 390), pc = Vector2.new(1920, 1080) }
 local DEFAULT_STATE = { windup = "windup", strike = "recover", dash = "dash", land = "recover", stagger = "stagger", death = "recover" }
 
-local R = { base = (_G.REVIEW_STAGE and _G.REVIEW_STAGE.base) or "http://127.0.0.1:8785/" }
+local R = { base = (_G.REVIEW_STAGE and _G.REVIEW_STAGE.base) or _G.SERVE_BASE or "http://127.0.0.1:8785/" }
 local S = nil -- the current stage
 
 ------------------------------------------------------------------------------------------

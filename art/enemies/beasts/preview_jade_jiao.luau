@@ -14,7 +14,7 @@
 local HttpService = game:GetService("HttpService")
 local SerializationService = game:GetService("SerializationService")
 local ServerStorage = game:GetService("ServerStorage")
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local AT = CFrame.new(300, 400, 3200)
 local RING_R = 8
 local RADII = { 6, 7, 8, 9, 10, 11, 12 }

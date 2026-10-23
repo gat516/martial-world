@@ -9,7 +9,7 @@
 -- player-head height, ready to lunge. Horn nubs mark it as a serpent on its way to
 -- becoming a jiao (a horned flood dragon).
 
-local BASE = "http://127.0.0.1:8767/beasts/"
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/beasts/") or "http://127.0.0.1:8767/beasts/"
 local HttpService = game:GetService("HttpService")
 local B = loadstring(HttpService:GetAsync(BASE .. "lib.luau?" .. os.clock()))()("JadePython")
 local v, tell = B.v, B.tell

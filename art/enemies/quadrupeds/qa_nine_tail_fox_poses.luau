@@ -6,11 +6,12 @@
 --   return loadstring(game:GetService("HttpService"):GetAsync("http://127.0.0.1:8767/quadrupeds/qa_nine_tail_fox_poses.luau"))()
 -- Prints the sample count and, per issue kind, the worst value and the first sample showing it.
 -- SUNK reports the worst body depth below the floor and its culprit part (tails included).
+local BASE = _G.SERVE_BASE and (_G.SERVE_BASE .. "art/enemies/") or "http://127.0.0.1:8767/"
 local H = game:GetService("HttpService")
 _G.QP_CONFIG = "NineTailFox"
 _G.QP_ONLY = _G.FOX_ONLY
 _G.QP_VARIANT = _G.FOX_VARIANT -- nil = the defaults, "A" / "B" / "C" sets every move that has it
-local report = loadstring(H:GetAsync("http://127.0.0.1:8767/quadrupeds/qa_quadruped_poses.luau?" .. os.clock()))()
+local report = loadstring(H:GetAsync(BASE .. "quadrupeds/qa_quadruped_poses.luau?" .. os.clock()))()
 local n, worst, first, flagged, sunk = 0, {}, {}, 0, { 0, "", "" }
 local minFoot = 0
 for line in string.gmatch(report, "[^\n]+") do

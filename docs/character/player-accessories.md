@@ -26,6 +26,14 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
    - Headless `tools/blender_run.sh` is only for jobs nobody needs to watch.
 2. **Directions first.** 2-3 directions on one sheet, then stop for the user's pick.
    The user often keeps all of them as variants.
+   **One body per variant, side by side**, on the sheet and in the live viewport
+   (user: "you made all of the accessories on the same rig so i cant see"). Never
+   stack variants on one R6 reference. Run `tools/blender_lineup.py` with `LOOKS` (rows
+   of looks, each the set collections worn together); it builds a `Lineup` scene of
+   collection instances, one R6 body per look, and switches the window to it. Rebuilding
+   a set updates the lineup.
+   Prefix every material with the set or race (`Wolf_FurOuter`), or one race's rebuild
+   recolours another's shared `FurOuter`.
 3. **Polish, export, commit.** One FBX + JSON per set under
    `art/player/cosmetics/<race>/`, a re-runnable `build_<race>.py`, `make_sheet.py`,
    the `.blend` and a README.

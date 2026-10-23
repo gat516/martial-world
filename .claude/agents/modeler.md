@@ -104,6 +104,9 @@ standing preferences:
 - **Colourable and riggable**, always: one mesh per colour region, real bones,
   smooth weights.
 - **No gaps:** seated into the body, and sealed inside.
+- **One body per variant.** Show variants side by side, one R6 body each, in the
+  sheet and the live viewport (`tools/blender_lineup.py`), never stacked on one rig.
+  Prefix materials with the set or race so races don't share `FurOuter`.
 
 ## Which Blender
 

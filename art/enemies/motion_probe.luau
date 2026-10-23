@@ -255,10 +255,20 @@ local function attackOf(name)
 	if def.attack and def.attack.name == name then
 		return def.attack
 	end
-	for _, a in def.pattern or {} do
-		if a.name == name then
-			return a
+	-- a regular beast's pool, a boss's pattern and phase calls, and the arrive follow-ups they carry
+	local pools = { def.pattern or {}, def.attacks or {}, def.phaseCalls or {} }
+	for _, pool in pools do
+		for _, a in pool do
+			if a.name == name then
+				return a
+			end
+			if type(a.arrive) == "table" and a.arrive.name == name then
+				return a.arrive
+			end
 		end
+	end
+	if def.attack and type(def.attack.arrive) == "table" and def.attack.arrive.name == name then
+		return def.attack.arrive
 	end
 	if def.phaseCall and def.phaseCall.name == name then
 		return def.phaseCall

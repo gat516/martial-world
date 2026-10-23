@@ -1,33 +1,22 @@
 --!strict
 -- The garden's shared kit art (docs/ui/herbarium.md, "Art"): a herb drawn in a
--- kit item slot (its icon, or its glyph when it has none), the rarity gems, the
--- mutation tag ribbons and the herb tier badges. Every id here is a cut from the
--- Codex sheets B2 and C1 (art/ui/assets.json, codex/cut/ornament_*).
+-- kit item slot (its icon, or its glyph when it has none), the rarity gems
+-- (through Rarity), the mutation tag ribbons and the herb tier badges. Every id
+-- here is a cut from the Codex sheets B2 and C1 (art/ui/assets.json,
+-- codex/cut/ornament_*).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
+local Rarity = require(script.Parent.Rarity)
 
 local HerbArt = {}
 
 local WHITE = Color3.new(1, 1, 1)
 
--- B2 rarity gems. There's no blue gem yet, so Rare tints the grey one (the
--- Codex request for a blue gem is in docs/ui/codex-sheets.md, C1b).
-local GEM = {
-	grey = "rbxassetid://100159022686196",
-	jade = "rbxassetid://75556176975753",
-	violet = "rbxassetid://123797664259882",
-	gold = "rbxassetid://103434738704063",
-}
-HerbArt.Gems = {
-	Common = { image = GEM.grey, tint = WHITE },
-	Uncommon = { image = GEM.jade, tint = WHITE },
-	Rare = { image = GEM.grey, tint = Color3.fromRGB(140, 190, 255) },
-	Epic = { image = GEM.violet, tint = WHITE },
-	Legendary = { image = GEM.gold, tint = WHITE },
-} :: { [string]: { image: string, tint: Color3 } }
+-- Rarity gems come from the Inventory's ladder (Rarity.luau): Common bronze,
+-- Uncommon silver, Rare jade, Epic violet, Legendary gold.
 
 -- C1 mutation tags (ribbons with cloud ends). Slice: plain plate between
 -- columns 89 and 281 of the 378x101 source.
@@ -85,9 +74,8 @@ end
 
 -- Set a gem ImageLabel to a rarity ("Common".."Legendary").
 function HerbArt.gem(image: ImageLabel, rarity: string)
-	local gem = HerbArt.Gems[rarity] or HerbArt.Gems.Common
-	image.Image = gem.image
-	image.ImageColor3 = gem.tint
+	local r = Items.Rarities[rarity] or Items.Rarities.Common
+	Rarity.gem(image, r.order)
 end
 
 -- The ribbon image for a mutation id (Herbs.Mutations key).

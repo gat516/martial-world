@@ -57,6 +57,23 @@ them; they are not part of this overhaul unless the user says so.
 > repaint them. See [codex-brief](codex-brief.md).** The prompts below are the older
 > whole-sheet wording; use the brief's piece list and sizes.
 
+## UI kit in Figma (2026-10-22)
+The source of truth for the overhaul's look is now a Figma kit: [Martial World UI Kit](https://www.figma.com/design/9u6RPHLelUJF6aABm6mY7y)
+(user's account, Starter plan: 3 pages max). Parts, not screens:
+- **Foundations:** colour variables (Primitives, aliased by Theme), type (Cormorant Garamond for
+  labels and titles, Fredoka for numbers; Cinzel only for kit headers, since it renders 1 as I).
+- **Kit:** ornaments cut from the two reference images (dialogue sheet, HUD vitals) and mirrored
+  corner sets; frames built for 9-slicing (panel, inset, title plaque, name tab, toast, portrait,
+  item slot, tooltip); buttons (response pill on the reference's own end caps, solid
+  Primary/Secondary/Danger, round, close seal, tab, toggle); bars (fills, vitals mount, boss bar
+  with Normal and Enrage); badges; 20 white glyphs.
+- **Example:** one 1920 x 1080 screen built only from kit instances, including the proposed compact
+  HUD (your name inside the realm plaque, one row instead of two).
+
+Known limits: the cut ornaments are 30-200 px, so they set the style but must be regenerated at
+about 4x before shipping; the key plate has its E baked in. Pieces go to Roblox through the Studio
+MCP's `upload_image`, which takes Figma asset URLs.
+
 ## Style anchor (paste into every prompt)
 > Stylized xianxia UI art. Deep midnight-navy lacquer panels with a thin warm gold
 > border and ornate gold corner flourishes, stylized cloud scrolls (xiangyun) in

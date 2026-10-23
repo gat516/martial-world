@@ -154,19 +154,19 @@
   </Properties>
    <Item class="UIAspectRatioConstraint" referent="RBX18"><Properties>
     <string name="Name">UIAspectRatioConstraint</string>
-    <float name="AspectRatio">3.91608</float>
+    <float name="AspectRatio">3.25581</float>
    </Properties>
    </Item>
    <Item class="UISizeConstraint" referent="RBX19"><Properties>
     <string name="Name">UISizeConstraint</string>
-    <Vector2 name="MaxSize"><X>560</X><Y>143</Y></Vector2>
+    <Vector2 name="MaxSize"><X>560</X><Y>172</Y></Vector2>
    </Properties>
    </Item>
    <Item class="Frame" referent="RBX20"><Properties>
     <string name="Name">List</string>
     <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>1</XS><XO>-8</XO><YS>0.129545</YS><YO>-4</YO></UDim2>
+    <UDim2 name="Position"><XS>1</XS><XO>-8</XO><YS>0</YS><YO>-4</YO></UDim2>
     <UDim2 name="Size"><XS>0</XS><XO>176</XO><YS>0</YS><YO>140</YO></UDim2>
    </Properties>
     <Item class="UIListLayout" referent="RBX21"><Properties>

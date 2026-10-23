@@ -33,18 +33,38 @@ cursor, settings and the admin panel.
   and comes back when it closes (`ShiftLock`; `TestbedAltMouseLock` in the testbed).
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
 - The bottom-centre stack (user decision, 2026-10-22, from a Deepwoken-style
-  reference in our own style): one gilded mount (`Stack.Vitals`, art
-  `vitals_mount.png` from `art/ui/draw_vitals.py`) holding three bars, top to
+  reference in our own style; redrawn 2026-10-23 to the user's own reference
+  image, see below): one gilded mount (`Stack.Vitals`, art
+  `vitals_mount.png` from `art/ui/draw_vitals.ps1`) holding three bars, top to
   bottom: health (thick, ten segments), combat qi (the mana techniques spend;
   bright azure, with its number) and the guard posture trough (always shown,
-  dim while full and idle, draining toward the lacquer seal in the middle),
-  with the realm crest above and the hotbar below. Compact pass (user,
+  dim while full and idle, draining toward the red gem seal in the middle),
+  with the realm plaque above and the hotbar below. Compact pass (user,
   2026-10-22, from a phone screenshot): the plate is notched (a full-width body
   for health and qi, a narrower tab under its middle for the guard) and sits
   right on the hotbar; the PC Dash/Strike cooldown chips (`Stack.Cooldowns`)
-  tuck into the left notch instead of a row of their own. Ornament is trimmed to
-  a gilt rim, end lozenges and small curls so the bars get the height, not the
-  frame. Fills are bright (crimson health, azure qi, lit pale-gold guard) and
+  tuck into the left notch instead of a row of their own.
+  Reference redesign (user, 2026-10-23): your own name moved off your head (on
+  your screen only) onto the HUD, and the stack was redrawn after the user's
+  reference image. Top to bottom: a small name plaque (`Vitals.NamePlaque.NameText`,
+  `name_plaque.png`: lacquer box with pointed ends, a red gem on each, thin gold
+  scrolls out to the sides; the name as `Nameplates.nameOf` writes it, repainted
+  when `FirstName`, `Surname` or the DisplayName change), the wider realm plaque
+  (`Vitals.Crest.RealmText`, `realm_plaque.png`: gold lozenges with dark centres,
+  curl flourishes; still the shortcut to the character window), then the plate:
+  dark lacquer inside a gold double frame with small curls at the corners and
+  steps, gold lozenges on its outer edges at both bar rows, health glossy red
+  with ten slanted segment dividers and a red gem on each end, qi glossy sky
+  blue, the guard a tan/parchment trough in the tab under a red gem seal. The
+  PC cooldown chips are drawn discs now (`vitals_chip.png`, a dark disc in a
+  gold rim; their cooldown cover clips a dark `chip_shade.png` disc as it
+  drains), sitting under the plate's left end beside the tab. Bar numbers are
+  bold white with a black outline; plaque text is cream Merriweather. The name
+  plaque made the stack taller (560x172 max, aspect 3.256, was 560x143), so on
+  short screens it may take 36% of the height (`Layout` SMALL_HEIGHT_SHARE, was
+  30%), which keeps the bars as wide on a phone as before. Room for a title:
+  none yet; one could go on the name plaque, smaller under the name.
+  Fills are bright (red health, sky-blue qi, tan guard) and
   authored full, so the edit view and the first frame read full. Every bar fill
   (vitals and seated) wears `Sheen` (`fill_sheen.png`: top lip, soft inner glow,
   darker belly) and, except the centre-draining guard, a soft bright leading
@@ -66,7 +86,8 @@ cursor, settings and the admin panel.
   every 150 s (`BreakthroughView` NUDGE_*). No pulsing or central prompt.
 - Seated: the vitals give way to the cultivation bars (`Stack.SeatBars`, art
   `seat_mount.png`, the same notched plate; `Menus.setSeated`): the realm on
-  the same crest the vitals wear (`TitleCrest`), one cultivation track with the
+  the same plaque the vitals wear (`TitleCrest`; no name plaque while seated),
+  one cultivation track with the
   breakthrough mark inside it at 80% and the overflow (cultivation beyond the
   bar, up to `CultivationCap`) as the paler stretch past the mark, and the
   dantian (raw qi) in the tab under it. The cultivation line reads the numbers, "Ready to break
@@ -171,7 +192,7 @@ cursor, settings and the admin panel.
 
 ## Key files (all `src/client/`)
 - `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal
-  flash, realm crest), buffs, toasts (`Hud.saidLately` tells whether a toast was
+  flash, realm plaque `Crest`, your name on `NamePlaque`), buffs, toasts (`Hud.saidLately` tells whether a toast was
   just shown). `Hud.setBar` is the shared bar fill. The crest is a shortcut to
   the character window (`SelfCard`).
 - `SeatBars.luau`: the seated cultivation, overflow and dantian bars.
@@ -279,7 +300,17 @@ both shown in the reward feed).
   at a phone-sized stack (426 px wide), not on a device or the emulator, and not
   in play: the qi flash, trails, guard trough states, seated swap and nudge
   timing are untested.
-- The cooldown chips are still plain Frames with UICorner/UIStroke, not drawn art.
+- The 2026-10-23 redesign (plaques, plate, chips) was previewed in Studio's
+  edit view at PC size (560 px stack) and at a phone-sized stack (397x122), not
+  on a device, the emulator or in play: the name repaint on a name change, the
+  chip shade draining, the seated swap with the new plaque and the touch prompt
+  dock (its list now sits above the whole stack, `Prompts.Dock.List` at Y 0) are
+  untested. Long names and long realm names shrink to fit their plaque's text
+  box (about 13 and 15 px at most) rather than widening it.
+- Art: `art/ui/draw_vitals.ps1` (PowerShell, no Python on the machine it was
+  drawn on) draws the mounts, plaques and chips; `draw_vitals.py` keeps only the
+  fill overlays (`fill_sheen`, `fill_edge`). `title_plaque.png` stays in use
+  elsewhere, not on the vitals.
 - Bar numbers over a bright fill show the black text stroke as a ghost of the
   "/" at small sizes ("180 // 260"); the dantian texts use a lighter stroke
   (0.35). Check the others in play.

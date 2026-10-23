@@ -3,7 +3,9 @@
 ## Purpose
 A namecard floating over every other player's head that disappears past a
 distance. Your own name isn't over your head on your screen (others still see
-it): it sits on the HUD by your health bar (user, 2026-10-23). Room is kept above the name for a title, for
+it): it sits on its own small plaque at the top of the HUD vitals, over the realm
+plaque and the health bar (`Hud.Stack.Vitals.NamePlaque`, see [ui](ui.md); user,
+2026-10-23). Room is kept above the name for a title, for
 when titles come in (user, 2026-10-23).
 
 ## Design intent
@@ -64,6 +66,8 @@ shows them:
 - Untested in play with several players (shown on others, cut at 60 studs) and
   on a real phone; previewed only in Studio's Edit view on PC with stand-in rigs.
 - No titles exist yet, so the title line only shows on the testbed stand-in.
+  The HUD name plaque has no title line yet; a title could go on the plaque
+  (under the name, smaller) or as a small line above it.
 - Very long titles wrap or truncate at the minimum size rather than widening the
   card; keep titles to a few words.
 - It isn't `AlwaysOnTop`, so walls and terrain between you and a player hide

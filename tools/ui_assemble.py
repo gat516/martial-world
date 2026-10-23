@@ -114,6 +114,9 @@ PIECE_SHEETS = {
     "a2/response_button_highlight": ["response_button_hi"],
     "a2/interaction_prompt_banner": ["prompt_banner"],
     "a2/hold_ring_track": ["hold_ring"],
+    "a3/controls": ["scroll_thumb", "slider_knob", "checkbox", "checkmark"],
+    "a3/corners": ["window_corner", "window_corner_small"],
+    "a3/title_and_seals": ["title_crest", "close_seal", "back_seal"],
 }
 SHEET_GROUP_GAP = 16  # px; parts of one piece closer than this belong together
 SHEET_MIN_AREA = 400  # px; smaller islands are generator noise
@@ -211,7 +214,7 @@ def cut_piece_sheet(sheet, src):
 
 # Pieces with ornate ends and a plain middle (buttons, banners): also cut as left cap,
 # a narrow middle strip to stretch, and right cap, from the full-resolution art.
-SLICE3 = {"response_button", "response_button_hi", "prompt_banner"}
+SLICE3 = {"response_button", "response_button_hi", "prompt_banner", "title_crest"}
 SLICE3_TOL = (3, 6)  # smoothed alpha and brightness differences that still count as "plain"
 
 
@@ -226,22 +229,33 @@ def slice3(name, full, errs):
     smooth = lambda a: np.array([np.convolve(row, kernel, mode="same") for row in a])
     alpha = smooth(full[..., 3])
     lum = smooth(full[..., :3].mean(-1) * full[..., 3] / 255)
-    c = w // 2
-    plain = (np.abs(alpha - alpha[:, [c]]).mean(0) < SLICE3_TOL[0]) & (np.abs(lum - lum[:, [c]]).mean(0) < SLICE3_TOL[1])
-    left = c
-    while left > 0 and plain[left - 1]:
-        left -= 1
-    right = c
-    while right < w - 1 and plain[right + 1]:
-        right += 1
-    if right - left < w * 0.2:
-        errs.append("no plain middle wide enough to stretch")
-    strip = max(8, min(32, (right - left) // 4))
-    parts = {
-        "capL": full[:, : left + 2],
-        "mid": full[:, w // 2 - strip // 2 : w // 2 + strip // 2],
-        "capR": full[:, right - 1 :],
-    }
+
+    def span(c):
+        """The run of columns around c that match column c (the plain stretch)."""
+        plain = (np.abs(alpha - alpha[:, [c]]).mean(0) < SLICE3_TOL[0]) & (np.abs(lum - lum[:, [c]]).mean(0) < SLICE3_TOL[1])
+        left = right = c
+        while left > 0 and plain[left - 1]:
+            left -= 1
+        while right < w - 1 and plain[right + 1]:
+            right += 1
+        return left, right
+
+    def strip_at(c, left, right):
+        s = max(8, min(32, (right - left) // 4))
+        return full[:, c - s // 2 : c + s // 2]
+
+    left, right = span(w // 2)
+    if right - left >= w * 0.2:
+        parts = {"capL": full[:, : left + 2], "mid": strip_at(w // 2, left, right), "capR": full[:, right - 1 :]}
+    else:
+        # An ornament sits in the centre (a title crest's cloud): five parts, the two
+        # plain stretches either side of it stretch equally.
+        l1, r1 = span(int(w * 0.3))
+        l2, r2 = span(int(w * 0.7))
+        if r1 - l1 < w * 0.08 or r2 - l2 < w * 0.08 or r1 >= l2:
+            errs.append("no plain middle wide enough to stretch")
+        parts = {"capL": full[:, : l1 + 2], "midL": strip_at(int(w * 0.3), l1, r1), "centre": full[:, r1 - 1 : l2 + 2],
+                 "midR": strip_at(int(w * 0.7), l2, r2), "capR": full[:, r2 - 1 :]}
     out = {}
     for part, a in parts.items():
         im = fit(to_image(a), MAX_TEX, MAX_TEX)

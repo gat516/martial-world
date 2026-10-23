@@ -54,3 +54,13 @@ a `SliceCenter` over the three parts). In the kit, `Button/Response` and the new
 `Frame/Prompt Banner` are built this way; the left response cap holds the icon ring and
 the prompt's key letter is live text on the key plate. The red ribbon tip at each
 button's right end is in the generated art.
+
+## Sheet A3: window chrome
+Three multi-piece sheets under `art/ui/codex/a3/`, named in `PIECE_SHEETS`: `controls`
+(`scroll_thumb`, `slider_knob`, `checkbox`, `checkmark`), `corners` (`window_corner`,
+`window_corner_small`, both top-left; mirror for the rest) and `title_and_seals`
+(`title_crest`, `close_seal`, `back_seal`; the seals' faces are empty for a live glyph).
+The title crest has a cloud in the middle of its top edge, so it is cut in five parts
+(`capL`, `midL`, `centre`, `midR`, `capR`; the two strips stretch equally). In the kit:
+`Frame/Window`, `Frame/Title Crest`, `Button/Back Seal`, `Button/Checkbox`, `Button/Slider`,
+and `Button/Close Seal` reskinned with the new art.

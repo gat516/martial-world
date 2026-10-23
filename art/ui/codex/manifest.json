@@ -617,5 +617,240 @@
       }
     ],
     "flags": []
+  },
+  "ornament_scroll_thumb": {
+    "sheet": "a3/controls",
+    "size": [
+      153,
+      586
+    ],
+    "source_box": [
+      111,
+      131,
+      264,
+      717
+    ],
+    "tiles": [
+      {
+        "file": "ornament_scroll_thumb.png",
+        "x": 0,
+        "width": 153,
+        "height": 586
+      }
+    ],
+    "flags": []
+  },
+  "ornament_slider_knob": {
+    "sheet": "a3/controls",
+    "size": [
+      337,
+      264
+    ],
+    "source_box": [
+      431,
+      302,
+      768,
+      566
+    ],
+    "tiles": [
+      {
+        "file": "ornament_slider_knob.png",
+        "x": 0,
+        "width": 337,
+        "height": 264
+      }
+    ],
+    "flags": []
+  },
+  "ornament_checkbox": {
+    "sheet": "a3/controls",
+    "size": [
+      310,
+      313
+    ],
+    "source_box": [
+      928,
+      273,
+      1238,
+      586
+    ],
+    "tiles": [
+      {
+        "file": "ornament_checkbox.png",
+        "x": 0,
+        "width": 310,
+        "height": 313
+      }
+    ],
+    "flags": []
+  },
+  "ornament_checkmark": {
+    "sheet": "a3/controls",
+    "size": [
+      282,
+      221
+    ],
+    "source_box": [
+      1397,
+      324,
+      1679,
+      545
+    ],
+    "tiles": [
+      {
+        "file": "ornament_checkmark.png",
+        "x": 0,
+        "width": 282,
+        "height": 221
+      }
+    ],
+    "flags": []
+  },
+  "ornament_window_corner": {
+    "sheet": "a3/corners",
+    "size": [
+      1011,
+      529
+    ],
+    "source_box": [
+      189,
+      100,
+      1200,
+      629
+    ],
+    "tiles": [
+      {
+        "file": "ornament_window_corner.png",
+        "x": 0,
+        "width": 1011,
+        "height": 529
+      }
+    ],
+    "flags": []
+  },
+  "ornament_window_corner_small": {
+    "sheet": "a3/corners",
+    "size": [
+      573,
+      386
+    ],
+    "source_box": [
+      1431,
+      193,
+      2004,
+      579
+    ],
+    "tiles": [
+      {
+        "file": "ornament_window_corner_small.png",
+        "x": 0,
+        "width": 573,
+        "height": 386
+      }
+    ],
+    "flags": []
+  },
+  "ornament_title_crest": {
+    "sheet": "a3/title_and_seals",
+    "size": [
+      1024,
+      169
+    ],
+    "source_box": [
+      82,
+      124,
+      1601,
+      374
+    ],
+    "tiles": [
+      {
+        "file": "ornament_title_crest.png",
+        "x": 0,
+        "width": 1024,
+        "height": 169
+      }
+    ],
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_title_crest_capL.png",
+        "size": [
+          180,
+          250
+        ]
+      },
+      "midL": {
+        "file": "ornament_title_crest_midL.png",
+        "size": [
+          32,
+          250
+        ]
+      },
+      "centre": {
+        "file": "ornament_title_crest_centre.png",
+        "size": [
+          402,
+          250
+        ]
+      },
+      "midR": {
+        "file": "ornament_title_crest_midR.png",
+        "size": [
+          32,
+          250
+        ]
+      },
+      "capR": {
+        "file": "ornament_title_crest_capR.png",
+        "size": [
+          180,
+          250
+        ]
+      }
+    }
+  },
+  "ornament_close_seal": {
+    "sheet": "a3/title_and_seals",
+    "size": [
+      377,
+      343
+    ],
+    "source_box": [
+      346,
+      465,
+      723,
+      808
+    ],
+    "tiles": [
+      {
+        "file": "ornament_close_seal.png",
+        "x": 0,
+        "width": 377,
+        "height": 343
+      }
+    ],
+    "flags": []
+  },
+  "ornament_back_seal": {
+    "sheet": "a3/title_and_seals",
+    "size": [
+      377,
+      343
+    ],
+    "source_box": [
+      957,
+      466,
+      1334,
+      809
+    ],
+    "tiles": [
+      {
+        "file": "ornament_back_seal.png",
+        "x": 0,
+        "width": 377,
+        "height": 343
+      }
+    ],
+    "flags": []
   }
 }

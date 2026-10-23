@@ -5,6 +5,46 @@ family's poses or probing their motion. Each rig's own joints, signs and safe
 ranges are in `art/enemies/<group>/RIGS.md`, and the enemy system is in
 [enemies](../systems/enemies.md).
 
+## Before any report: the filmstrip and the motion metrics
+
+The last step of every keyed move, after the fixes and before the report. A
+critic (or you, fresh) judges one image per view plus one metrics table, so
+stiffness and floating show up before the user sees them.
+
+1. Serve the checkout (`tools/serve.sh`: 8767 is `art/enemies/`, 8768 the repo
+   root; another session may own those ports, so serve your worktree on a port
+   of its own, `python3 -m http.server <port> --bind 127.0.0.1 --directory <worktree>`,
+   and pass `base`).
+2. Set `_G.MOTION` (the probe spec below), then the metrics for every move:
+   `loadstring(HttpService:GetAsync("http://127.0.0.1:8767/motion_probe.luau?" .. os.clock()))()`.
+   Loops are specs too: `{ loop = "walk", speed = 6, seconds = 2 }`.
+3. The filmstrip of the move you're reporting:
+   `_G.FILMSTRIP = { move = "clubSwing" }` (optionally `n`, `base`, `origin`),
+   then load `tools/anim_filmstrip.luau` from the repo port. It poses 8 FK
+   clones from the probe's own frames (anchored, motors cut, `EditorOnly`, in
+   `Workspace._Filmstrip`) across windup, release and recover, one of them on the
+   windup's last frame (`W`), with a label each (ms, state), a red ball on any
+   lowest point below the floor, an orange one on a hero point that hitched or
+   stopped dead since the previous sample, and lists the flagged poses.
+4. One `screen_capture` per printed camera (`side`, `front34`): two images per
+   clip, never one per frame. It sets the camera's FieldOfView to 30 (a long
+   row seen close at 70 shows the outer poses from another angle).
+5. Clean up: `_G.FILMSTRIP = { cleanup = true }` and load it again (it also puts
+   the FieldOfView back).
+
+Reading the metrics table (thresholds are tunables at the top of the probe):
+- `chain body` / `chain tail`: frames between each link's turning-speed peak
+  in the release (a loop: the cross-correlation lag). `+0f` on every link
+  (`ONE BLOCK`) is the "everything moves together" stiffness; +1 to +4 frames
+  per link is overlap. `~` means that link barely turns.
+- `stop`: a hero point loses over 80% of its speed in one frame and stays under
+  20% of its peak for 2+ frames: it stops dead instead of settling.
+- `antic`: studs the root and the first hero move against the release
+  direction in the last 30% of the windup (in brackets: over the whole windup).
+  `none` is a strike out of nowhere.
+- `land`: for a dash, how far the root dips after touchdown. `no dip` lands
+  stiff.
+
 ## Probe motion, not just poses
 
 Static pose QA (lowest point, continuity tables) misses motion bugs. On the Jade

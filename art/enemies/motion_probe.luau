@@ -42,10 +42,39 @@
 -- measured against the server's arc, so a body in the air isn't counted as sunk. "Stagger" and
 -- "Death" play those moves for `staggerSeconds` / `deathSeconds`.
 -- Not modelled: the turn rate and velocity a motion family reads (pass them in `input`), the
--- arrival hold (dash -> follow-up windup), loops other than idle, the wall clock some modules
+-- arrival hold (dash -> follow-up windup), speed changes inside a loop, the wall clock some modules
 -- read (os.clock barely moves inside one run).
+-- A loop is { loop = "walk", speed = 6, seconds = 2 } (run, circle...): M.loops[loop] at a steady
+-- speed, its phase advanced by M.gaitRate as EnemyAnimator does, with the loop smoothing.
+-- `keep = true` stores every frame's pose in the results (tools/anim_filmstrip.luau uses it).
 -- Rough budget (animator.md): a hero at most ~600 studs/s at contact, no one-frame joint
 -- step over ~45 deg outside deliberate snaps, no hitch at a release.
+--
+-- MOTION METRICS (one table per move, after the speeds). In plain words, so a critic can quote them:
+--   chain    For root > chest > (neck) > head and root > tail > ... : how many frames each link's
+--            turning speed peaks after the link before it, in the release (the windup's end to
+--            RELEASE_AFTER s later; a loop: the cross-correlation lag over the loop, after 0.3 s). "+0f" on
+--            every link = the body turns as one block: stiff. +1..+4f per link = overlap (the head
+--            lags then whips). A negative lag = the child leads its parent (fine for a tail flick,
+--            odd for a head). "~" = that link barely turns (peak under CHAIN_MIN deg/s): no reading.
+--   stop     A hero point drops more than STOP_DROP (80%) of its speed in one frame and stays under
+--            STOP_REST (20%) of its peak for STOP_FRAMES+ frames before the clip ends: it stops dead
+--            instead of settling (the hitch, below, is a dead frame that speeds up again; a frame that
+--            is a hitch is not also a stop). In a windup this is often the hold: a hold should still
+--            ease in, so a one-frame drop into it reads as a stop too.
+--   antic    How far (studs) the root and the hero point move AGAINST the release direction in the
+--            last ANTIC_TAIL (30%) of the windup (the release direction: where they go in the
+--            ANTIC_PROBE s after the windup's end); in brackets, the same over the whole windup.
+--            Under ANTIC_MIN = "none": no anticipation, the strike comes out of nowhere.
+--   landing  For a move with a flight (dash): how far the root dips (studs) in the LAND_WINDOW s after
+--            touchdown, and how many frames after it bottoms out. "no dip" = the body lands stiff.
+-- The older lines stay: hitches, the worst joint step, lows, root travel.
+local STOP_DROP, STOP_REST, STOP_FRAMES, STOP_MIN = 0.8, 0.2, 2, 20 -- STOP_MIN: studs/s before the drop
+local RELEASE_BEFORE, RELEASE_AFTER = 0.1, 0.5 -- the release window around the windup's end, s
+local CHAIN_MIN = 40 -- deg/s: a link turning slower than this at its peak gives no reading
+local LOOP_MAX_LAG = 8 -- frames searched each way for a loop's chain lag
+local ANTIC_TAIL, ANTIC_PROBE, ANTIC_MIN = 0.3, 0.15, 0.05
+local LAND_WINDOW = 0.35
 local cfg = _G.MOTION or error("set _G.MOTION first")
 local ServerStorage = game:GetService("ServerStorage")
 local Shared = game:GetService("ReplicatedStorage").Shared
@@ -114,18 +143,89 @@ local function fk(pose)
 	return world
 end
 local function lowest(world)
-	local lo, who = math.huge, ""
+	local lo, who, at = math.huge, "", Vector3.zero
 	for _, p in parts do
 		local cf = world[p]
 		if cf and p.Transparency < 1 then
 			local s = p.Size / 2
 			local ext = math.abs(cf.UpVector.Y) * s.Y + math.abs(cf.RightVector.Y) * s.X + math.abs(cf.LookVector.Y) * s.Z
 			if cf.Y - ext < lo then
-				lo, who = cf.Y - ext, p.Name
+				lo, who, at = cf.Y - ext, p.Name, Vector3.new(cf.X, cf.Y - ext, cf.Z)
 			end
 		end
 	end
-	return lo, who
+	return lo, who, at
+end
+
+-- the chains the lag metric reads: part names root first (`chains` overrides, e.g.
+-- { body = { "Hips", "Chest", "Skull" }, tail = { "Hips", "Tail", "Tail5", "Tail5Mid" } })
+local function motorPart(name)
+	for _, m in motors do
+		if m.Name == name then
+			return m.Part1
+		end
+	end
+	return nil
+end
+local rootPart = motorPart("JointRoot") or motorPart("RootJoint") or hrp
+local chainNames, chains = {}, {}
+do
+	local specs = cfg.chains
+	if not specs then
+		specs = {}
+		local body = { rootPart.Name }
+		for _, group in { { "JointSpine", "JointChest", "JointWaist" }, { "JointNeck" }, { "JointHead", "Neck" } } do
+			for _, n in group do
+				local p = motorPart(n)
+				if p and p ~= rootPart then
+					table.insert(body, p.Name)
+					break
+				end
+			end
+		end
+		if #body > 1 then
+			specs.body = body
+		end
+		local tailPart = motorPart("JointTail") or motorPart("JointTail1")
+		if tailPart then
+			local tail = { rootPart.Name, tailPart.Name }
+			local at = tailPart
+			while #tail < 5 do
+				local kids = {}
+				for _, m in motors do
+					if m.Part0 == at and string.find(m.Part1.Name, "Tail") then
+						table.insert(kids, m.Part1)
+					end
+				end
+				if #kids == 0 then
+					break
+				end
+				table.sort(kids, function(a, b)
+					return a.Name < b.Name
+				end)
+				at = kids[math.ceil(#kids / 2)] -- a fan of tails: the middle one
+				table.insert(tail, at.Name)
+			end
+			specs.tail = tail
+		end
+	end
+	for key, names in specs do
+		local list = {}
+		for _, n in names do
+			local found
+			for _, p in template:GetDescendants() do
+				if p:IsA("BasePart") and p.Name == n then
+					found = p
+					break
+				end
+			end
+			assert(found, "no chain part " .. n)
+			table.insert(list, found)
+		end
+		chains[key] = list
+		table.insert(chainNames, key)
+	end
+	table.sort(chainNames)
 end
 
 -- hero points: "Part" (its centre) or "Part.Attachment"
@@ -148,7 +248,7 @@ table.sort(heroNames)
 
 local restWorld = fk({})
 local restLow = (lowest(restWorld))
-local restRoot = restWorld[template:FindFirstChild("Hips", true) or hrp]
+local restRoot = restWorld[rootPart]
 
 local function attackOf(name)
 	if def.attack and def.attack.name == name then
@@ -199,6 +299,15 @@ local function timeline(spec)
 	end
 	if (cfg.lead or 0.2) > 0 then
 		idle(cfg.lead or 0.2)
+	end
+	if spec.loop then
+		-- a steady-speed loop: the phase advances by gaitRate as EnemyAnimator's loopPose does
+		local speed = spec.speed or 6
+		local rate = if M.gaitRate then M.gaitRate(spec.loop, speed, scale) else 1
+		table.insert(states, { spec.loop, spec.seconds or 2, function(since)
+			return M.loops[spec.loop](since * rate, speed, withInput(spec, { seed = 0, dir = 1 }))
+		end, nil, true })
+		return states
 	end
 	if spec.attack == "Stagger" or spec.attack == "Death" then
 		local secs = if spec.attack == "Stagger" then (cfg.staggerSeconds or 0.3) else (cfg.deathSeconds or 1)
@@ -298,7 +407,7 @@ for _, entry in cfg.moves do
 		local tt = 0
 		while tt < dur - 1e-6 do
 			local target = sampler(tt, T + tt)
-			local keyed = target ~= nil and st ~= "idle"
+			local keyed = target ~= nil and st ~= "idle" and not s[5]
 			if st ~= lastState then
 				local prev = lastState
 				lastState = st
@@ -348,10 +457,20 @@ for _, entry in cfg.moves do
 				local cf = w[h.part]
 				pts[key] = if cf then (cf * h.offset).Position else Vector3.zero
 			end
-			local rootCF = w[template:FindFirstChild("Hips", true) or hrp]
-			local lo, who = lowest(w)
-			lo += if lift then lift(tt) else 0
-			table.insert(frames, { t = T + tt, st = st, pts = pts, jd = worst, jn = wn, lo = lo - restLow, low = who, root = rootCF and rootCF.Position })
+			local rootCF = w[rootPart]
+			local lo, who, lowAt = lowest(w)
+			local up = if lift then lift(tt) else 0
+			lo += up
+			local rots = {}
+			for _, key in chainNames do
+				local r = {}
+				for j, p in chains[key] do
+					r[j] = w[p] or CFrame.identity
+				end
+				rots[key] = r
+			end
+			table.insert(frames, { t = T + tt, st = st, pts = pts, jd = worst, jn = wn, lo = lo - restLow, low = who, lowAt = lowAt, lift = up,
+				root = rootCF and rootCF.Position, rots = rots, pose = if cfg.keep then current else nil })
 			tt += dt
 		end
 		T += dur
@@ -381,10 +500,11 @@ for _, entry in cfg.moves do
 			rootMax = math.max(rootMax, (f.root - restRoot.Position).Magnitude)
 		end
 	end
-	local label = spec.label or ((if spec.chain then table.concat(spec.chain, ">") else spec.attack) .. (if spec.next then ">" .. spec.next else "") .. (if spec.skid then ">" .. spec.skid else "") .. (if spec.input and spec.input.mode then "[" .. spec.input.mode .. "]" else ""))
+	local label = spec.label or (spec.loop and string.format("%s@%g", spec.loop, spec.speed or 6)) or ((if spec.chain then table.concat(spec.chain, ">") else spec.attack) .. (if spec.next then ">" .. spec.next else "") .. (if spec.skid then ">" .. spec.skid else "") .. (if spec.input and spec.input.mode then "[" .. spec.input.mode .. "]" else ""))
 	say("== %s [%s]", label, table.concat(bounds, " "))
 	say("   worst joint step %.1f deg at %.2f (%s); lowest %+.2f (%s at %.2f)..%+.2f vs rest; root moves <= %.1f", popMax, popT, popN, loMin, loWho, loT, loMax, rootMax)
-	local res = { label = label, worst = popMax, worstAt = popT, worstJoint = popN, low = loMin, high = loMax, heroes = {}, hitches = {} }
+	local res = { label = label, worst = popMax, worstAt = popT, worstJoint = popN, low = loMin, high = loMax, heroes = {}, hitches = {}, marks = {}, frames = frames, states = {} }
+	local speeds = {}
 	for _, key in heroNames do
 		local spd = {}
 		local peak, peakT = 0, 0
@@ -403,9 +523,11 @@ for _, entry in cfg.moves do
 			local a, b, c = spd[i - 1], spd[i], spd[i + 1]
 			if a > 40 and c > 40 and b < 0.35 * math.min(a, c) then
 				table.insert(hitches, string.format("%.2f(%s %d<%d,%d)", frames[i].t, frames[i].st, math.floor(b), math.floor(a), math.floor(c)))
+				table.insert(res.marks, { i = i, hero = key, kind = "hitch" })
 			end
 		end
 		res.heroes[key] = { peak = peak, at = peakT }
+		speeds[key] = spd
 		res.hitches[key] = hitches
 		say("   %-7s peak %4.0f st/s at %.2f%s", key, peak, peakT, if #hitches > 0 then "  HITCH " .. table.concat(hitches, " ") else "")
 		if not cfg.quiet then
@@ -443,7 +565,208 @@ for _, entry in cfg.moves do
 		end
 		say("     %s pos: %s", key, table.concat(ps, " "))
 	end
+
+	-- MOTION METRICS (thresholds and meanings in the header)
+	local acc2 = 0
+	local wS, wE, cS, cE, loopState
+	local dashEnds = {}
+	for _, s in states do
+		local s0, s1 = acc2, acc2 + s[2]
+		acc2 = s1
+		table.insert(res.states, { name = s[1], from = s0, to = s1 })
+		if s[1] ~= "idle" then
+			cS = cS or s0
+			cE = s1
+		end
+		if s[1] == "windup" and not wS then
+			wS, wE = s0, s1
+		end
+		if s[1] == "dash" then
+			table.insert(dashEnds, s1)
+		end
+		if s[5] then
+			loopState = { s0, s1 }
+		end
+	end
+	res.clipFrom, res.clipTo, res.windupFrom, res.windupTo = cS or 0, cE or acc2, wS, wE
+	local function frameAt(t)
+		local best, bd = 1, math.huge
+		for i, f in frames do
+			local d = math.abs(f.t - t)
+			if d < bd then
+				best, bd = i, d
+			end
+		end
+		return best
+	end
+	say("   -- metrics")
+	-- chain lag
+	local winA, winB
+	if loopState then
+		-- skip the hand-off from idle (the loop smoothing settling in)
+		winA, winB = frameAt(math.min(loopState[1] + 0.3, loopState[2] - 0.5)), frameAt(loopState[2] - dt)
+	elseif wE then
+		winA, winB = frameAt(wE - RELEASE_BEFORE), frameAt(math.min(wE + RELEASE_AFTER, cE or wE))
+	else
+		winA, winB = frameAt(cS or 0), frameAt((cE or acc2) - dt)
+	end
+	res.chains = {}
+	for _, key in chainNames do
+		local links = chains[key]
+		local ang = {}
+		for j = 1, #links do
+			ang[j] = {}
+			for i = 2, #frames do
+				ang[j][i] = rotDeg(frames[i - 1].rots[key][j], frames[i].rots[key][j]) / dt
+			end
+			ang[j][1] = ang[j][2] or 0
+		end
+		local peaks, peakAt = {}, {}
+		for j = 1, #links do
+			local pk, at = 0, winA
+			for i = math.max(2, winA), winB do
+				if ang[j][i] > pk then
+					pk, at = ang[j][i], i
+				end
+			end
+			peaks[j], peakAt[j] = pk, at
+		end
+		local cells, lags, still = {}, {}, true
+		for j = 2, #links do
+			local lag
+			if peaks[j] < CHAIN_MIN or peaks[j - 1] < CHAIN_MIN then
+				lag = nil
+			elseif loopState then
+				-- cross-correlation of the mean-removed turning speeds
+				local function mean(a)
+					local sum, n = 0, 0
+					for i = winA, winB do
+						sum += a[i]
+						n += 1
+					end
+					return sum / math.max(1, n)
+				end
+				local ma, mb = mean(ang[j - 1]), mean(ang[j])
+				local bestL, bestV = 0, -math.huge
+				for L = -LOOP_MAX_LAG, LOOP_MAX_LAG do
+					local v = 0
+					for i = winA, winB do
+						local k = i + L
+						if k >= winA and k <= winB then
+							v += (ang[j - 1][i] - ma) * (ang[j][k] - mb)
+						end
+					end
+					if v > bestV then
+						bestL, bestV = L, v
+					end
+				end
+				lag = bestL
+			else
+				lag = peakAt[j] - peakAt[j - 1]
+			end
+			if lag and lag ~= 0 then
+				still = false
+			end
+			lags[j - 1] = lag
+			table.insert(cells, string.format("%s>%s %s", links[j - 1].Name, links[j].Name, if lag then string.format("%+df", lag) else "~"))
+		end
+		local pk = {}
+		for j = 1, #links do
+			table.insert(pk, string.format("%.0f", peaks[j]))
+		end
+		local anyLag = false
+		for _, l in lags do
+			anyLag = true
+		end
+		res.chains[key] = { lags = lags, peaks = peaks }
+		say("   chain %-5s %s  (peak deg/s %s)%s", key, table.concat(cells, "  "), table.concat(pk, "/"),
+			if anyLag and still then "  ONE BLOCK" else "")
+	end
+	-- stops dead
+	local stopCells = {}
+	res.stops = {}
+	local endI = frameAt((cE or acc2) - dt)
+	for _, key in heroNames do
+		local spd, peak = speeds[key], res.heroes[key].peak
+		local found = {}
+		local i = math.max(3, frameAt(cS or 0))
+		while i <= endI - STOP_FRAMES do
+			local a, b = spd[i - 1], spd[i]
+			local isHitch = false
+			for _, m in res.marks do
+				if m.kind == "hitch" and m.hero == key and m.i == i then
+					isHitch = true
+				end
+			end
+			if a and b and a >= STOP_MIN and b < (1 - STOP_DROP) * a and not isHitch then
+				local n = 0
+				while i + n <= endI and spd[i + n] and spd[i + n] < STOP_REST * peak do
+					n += 1
+				end
+				if n >= STOP_FRAMES then
+					table.insert(found, string.format("%.2f %s %d>%d (%df)", frames[i].t, frames[i].st, math.floor(a), math.floor(b), n))
+					table.insert(res.stops, { i = i, hero = key, frames = n })
+					table.insert(res.marks, { i = i, hero = key, kind = "stop" })
+					i += n
+				end
+			end
+			i += 1
+		end
+		table.insert(stopCells, key .. " " .. (if #found > 0 then "STOP " .. table.concat(found, ", ") else "none"))
+	end
+	say("   stop  %s", table.concat(stopCells, " | "))
+	-- anticipation
+	if wE and not loopState then
+		local key = cfg.hero or heroNames[1]
+		local iS, iT, iE = frameAt(wS), frameAt(wE - ANTIC_TAIL * (wE - wS)), frameAt(wE)
+		local iR = frameAt(math.min(wE + ANTIC_PROBE, acc2 - dt))
+		local cells = {}
+		res.antic = {}
+		for _, who in { "root", key } do
+			local function pos(i)
+				return if who == "root" then frames[i].root else frames[i].pts[who]
+			end
+			local d = pos(iR) - pos(iE)
+			if d.Magnitude < 0.05 then
+				table.insert(cells, who .. " ~ (still at the release)")
+			else
+				d = d.Unit
+				local function back(from)
+					local b = 0
+					for i = from, iE do
+						b = math.max(b, -(pos(i) - pos(from)):Dot(d))
+					end
+					return b
+				end
+				local tail, whole = back(iT), back(iS)
+				res.antic[who] = { tail = tail, whole = whole }
+				table.insert(cells, string.format("%s %s (whole %.2f)", who, if tail < ANTIC_MIN then "none" else string.format("%.2f st back", tail), whole))
+			end
+		end
+		say("   antic %s", table.concat(cells, " | "))
+	end
+	-- landing compress
+	for _, te in dashEnds do
+		local i0 = frameAt(te)
+		local i1 = frameAt(math.min(te + LAND_WINDOW, acc2 - dt))
+		local y0 = frames[i0].root and frames[i0].root.Y
+		local lo, at = y0, i0
+		for i = i0, i1 do
+			if frames[i].root and frames[i].root.Y < lo then
+				lo, at = frames[i].root.Y, i
+			end
+		end
+		local dip = (y0 or 0) - (lo or 0)
+		res.landing = res.landing or {}
+		table.insert(res.landing, { at = te, dip = dip, frames = at - i0 })
+		say("   land  touchdown %.2f: %s", te, if dip < 0.05 then "no dip (lands stiff)" else string.format("root dips %.2f st, bottom +%df", dip, at - i0))
+	end
+	if not cfg.keep then
+		res.frames = nil
+	end
 	table.insert(results, res)
 end
 _G.MOTION_RESULTS = results
+-- the FK the probe measures with (tools/anim_filmstrip.luau poses its clones from it)
+_G.MOTION_FK = { fk = fk, template = template, restLow = restLow, heroes = heroes }
 return table.concat(out, "\n")

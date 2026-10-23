@@ -137,10 +137,11 @@ local function paintPractice()
 	dim(tile("PracticeTechnique"), not techniqueReady())
 end
 
--- The lotus sits just past the row's last tile (Rise), whichever tiles show.
--- It keeps its spot while the calm view folds the row away, so the same tap
--- brings the row back. Offsets are in the stack's units: the row's own pop
--- scale is divided out.
+-- The lotus sits just past the row's last tile (Rise), whichever tiles show,
+-- level with the tiles' centre (they sit on the row's bottom edge, which is
+-- row.Position's offset above the stack). It keeps its spot while the calm view
+-- folds the row away, so the same tap brings the row back. Offsets are in the
+-- stack's units: the row's and the tile's own pop scales are divided out.
 local function placeLotus()
 	if not row.Visible or Menus.isCalm() then
 		return
@@ -152,7 +153,16 @@ local function placeLotus()
 	end
 	local factor = row.AbsoluteSize.X / unscaled
 	local width = (row:FindFirstChildOfClass("UIListLayout") :: UIListLayout).AbsoluteContentSize.X / factor
-	calmToggle.Position = UDim2.new(0.5, math.round(width / 2 + LOTUS_GAP), calmToggle.Position.Y.Scale, calmToggle.Position.Y.Offset)
+	local centre = calmToggle.Position.Y
+	for _, tile in row:GetChildren() do
+		if tile:IsA("GuiButton") and tile.Visible then
+			local pop = tile:FindFirstChildOfClass("UIScale")
+			local height = tile.AbsoluteSize.Y / (if pop then pop.Scale else 1) / factor
+			centre = UDim.new(0, math.round(row.Position.Y.Offset - height / 2))
+			break
+		end
+	end
+	calmToggle.Position = UDim2.new(UDim.new(0.5, math.round(width / 2 + LOTUS_GAP)), centre)
 end
 
 local function refresh()
@@ -190,7 +200,9 @@ local function refresh()
 	paintPractice()
 	local root = SelfCard.currentRoot()
 	if root then
-		(tile("Root"):FindFirstChild("Icon") :: ImageLabel).Image = SelfCard.rootIcon(root.element)
+		local icon = tile("Root"):FindFirstChild("Icon") :: ImageLabel
+		icon.Image = SelfCard.rootIcon(root.element)
+		icon.ImageRectOffset, icon.ImageRectSize = SelfCard.rootIconRect(root.element)
 	end
 	calmToggle.Visible = seated and not open
 	placeLotus()

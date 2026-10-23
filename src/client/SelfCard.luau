@@ -90,6 +90,27 @@ function SelfCard.rootIcon(element: string): string
 	return ROOT_ICONS[element] or ""
 end
 
+-- Each root icon's drawn area in its 128 px image (x, y, w, h; alpha > 40), so a
+-- tile can crop the built-in margin and centre the art on its own box.
+local ROOT_ICON_RECTS: { [string]: { number } } = {
+	Fire = { 19, 1, 89, 121 },
+	Water = { 25, 3, 79, 121 },
+	Wood = { 13, 5, 104, 119 },
+	Metal = { 5, 32, 119, 78 },
+	Earth = { 3, 17, 123, 97 },
+	Lightning = { 15, 1, 99, 127 },
+	Wind = { 0, 24, 109, 99 },
+	Ice = { 12, 5, 104, 118 },
+}
+
+function SelfCard.rootIconRect(element: string): (Vector2, Vector2)
+	local r = ROOT_ICON_RECTS[element]
+	if not r then
+		return Vector2.zero, Vector2.zero
+	end
+	return Vector2.new(r[1], r[2]), Vector2.new(r[3], r[4])
+end
+
 function SelfCard.gradeColor(grade: string): Color3
 	local g = Weapons.Grades[grade]
 	return if g then g.color else Color3.new(1, 1, 1)

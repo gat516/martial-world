@@ -83,9 +83,22 @@ local function regalia(pose: Pose, spread: number, seal: number, pitch: number?)
 end
 
 local BRACED = paws(-0.3, 0.2, 0.08, 0.08)
+local BRACED_FL = BRACED.FL
 local COILED = paws(-0.3, 0.5, 0.08, 0.08)
 local SKIDDED = paws(-0.45, 0.45, 0.15, 0.13)
 local SPLAYED = paws(-0.3, 0.35, 0.22, 0.18)
+-- Crownfall's wide, far-forward forepaws: the wrist pivots sit 0.03 unit high (a planted,
+-- splayed forearm otherwise dips its edge 0.15 studs into the floor under the crash)
+local function wristsUp(r: { [string]: Vector3 }): { [string]: Vector3 }
+	r.FL += Vector3.new(0, 0.03, 0)
+	r.FR += Vector3.new(0, 0.03, 0)
+	return r
+end
+SPLAYED = wristsUp(SPLAYED)
+local SPLAYED_SKID = wristsUp(paws(-0.66, 0.35, 0.31, 0.18)) -- Crownfall: the paws driven out by the landing
+local SPLAYED_MID = wristsUp(paws(-0.56, 0.35, 0.29, 0.18)) -- already sliding on the contact frame
+local CROWN_STEP_L = table.clone(SPLAYED_SKID) -- the left forepaw stepped back first
+CROWN_STEP_L.FL = BRACED_FL
 local REARED = paws(0, 0.3, 0, 0.1)
 
 -- The right claw tips touch the ClawDown circle, King-local (1.7, 0, -7).
@@ -93,6 +106,9 @@ local REARED = paws(0, 0.3, 0, 0.1)
 -- wrist and plants it behind that point; this is not a scaled root translation.
 local CLAW_CONTACT = paws(-0.25, 0.2, 0.04, 0.08)
 CLAW_CONTACT.FR = V(1.7 / 2.4 - P.JointWristFR.X, 0, -7 / 2.4 + 0.99 - P.JointWristFR.Z)
+-- after contact the claws rake back toward the chest through the ground
+local CLAW_RAKED = table.clone(CLAW_CONTACT)
+CLAW_RAKED.FR = CLAW_CONTACT.FR + V(0, 0, 0.32)
 
 local STAND: Pose = regalia({
 	JointNeck = A(-0.08), JointHead = A(0.08), JointJaw = A(-0.02),
@@ -163,10 +179,14 @@ local CROWN_PEAK = regalia(with(CROWN_RISE, {
 	JointLegFR = A(1.25, -0.1, 0.55), JointElbowFR = A(0.9), JointWristFR = A(-2.0),
 }), 0.5, -0.26, -0.1)
 local CROWN_CONTACT = regalia(with(SPENT, {
-	JointRoot = R(-0.38, -0.08, -0.06), JointSpine = A(0.05),
+	JointRoot = R(-0.34, -0.08, -0.06), JointSpine = A(0.05),
 	JointNeck = A(-0.25), JointHead = A(0.15), JointJaw = A(-0.15),
 	JointCrest = A(-0.25),
 }), 0.48, -0.26, -0.1)
+-- the forepaws just down, the chest still coming: it crashes onto them on the contact frame
+local CROWN_TOUCH = regalia(with(CROWN_CONTACT, {
+	JointRoot = R(-0.22, 0.02, -0.04), JointNeck = A(-0.12), JointHead = A(0.1),
+}), 0.5, -0.27, -0.11)
 local CROWN_SETTLE = regalia(with(CROWN_CONTACT, {
 	JointRoot = R(-0.28, -0.04), JointNeck = A(-0.18), JointHead = A(0.12),
 	JointCrest = A(0.12),
@@ -217,6 +237,10 @@ local CLAW_PEAK = regalia(with(CLAW_LIFT, {
 	JointLegFR = A(1.18, -0.1, 0.6), JointElbowFR = A(1.1), JointWristFR = A(-1.7),
 	JointNeck = A(-0.3, 0.12),
 }), 0.3, -0.18, -0.08)
+-- (the body rises; the paw stays where the peak holds it: higher put it into the skull)
+local CLAW_HIGH = regalia(with(CLAW_PEAK, {
+	JointRoot = R(-0.04, 0.08, 0.05, 0, 0.05), JointNeck = A(-0.3, 0.2), JointHead = A(0.06, 0.06),
+}), 0.32, -0.2, -0.09)
 local CLAW_STRIKE = regalia(with(SPENT, {
 	JointRoot = R(-0.21, -0.1, -0.16), JointSpine = A(0.06),
 	JointNeck = A(-0.2, 0.06), JointHead = A(0.08), JointCrest = A(-0.22),
@@ -342,9 +366,11 @@ local function gallopRate(speed: number): number
 	return 0.9 + 0.014 * speed -- cycles per second
 end
 
-local function gallop(phase: number, speed: number, rate: number?): Pose
+-- settle (0..1, the rush's arrival): the strides shrink to nothing and the paws come down
+local function gallop(phase: number, speed: number, rate: number?, settle: number?): Pose
 	local f = rate or gallopRate(speed)
-	local half = GAIT_K * (speed / 2.4) * (STANCE / f) / 2 -- unit studs each side of the hip
+	local keepStride = 1 - (settle or 0)
+	local half = GAIT_K * (speed / 2.4) * (STANCE / f) / 2 * keepStride -- unit studs each side of the hip
 	local aHalf = math.asin(math.clamp(half / LEG_EFF, 0, 0.8))
 	local LEGS = rig.LEGS
 	local cyc = phase / TAU % 1
@@ -368,12 +394,12 @@ local function gallop(phase: number, speed: number, rate: number?): Pose
 			local s = (x - STANCE) / (1 - STANCE)
 			local e = smooth(0, 1, s)
 			local a = -aHalf + 2 * aHalf * e + (if front then 0.3 else 0.2) * aHalf * math.sin(math.pi * s) ^ 2
-			local lift = math.sin(math.pi * math.min(1, s * 1.15)) ^ 0.8
+			local lift = math.sin(math.pi * math.min(1, s * 1.15)) ^ 0.8 * keepStride
 			rig.setLeg(pose, steps, tag, a, out * (if front then 0.04 else 0.16) * (0.4 + 0.6 * lift), lift, 0, if front then 0.42 else 0.26)
 		end
 	end
 	-- flight rises the body, stance settles it; the nose lifts as the hind legs drive
-	local flight = math.max(0, math.cos(TAU * 2 * (cyc - 0.46))) ^ 1.5
+	local flight = math.max(0, math.cos(TAU * 2 * (cyc - 0.46))) ^ 1.5 * keepStride
 	local drive = math.cos(TAU * (cyc - 0.2))
 	local heave = math.cos(TAU * (cyc - 0.35))
 	pose.JointRoot = R(0.1 * flight - 0.05 * (1 - flight), 0.07 * drive, 0, 0.02 * math.sin(TAU * cyc), 0.025 * math.sin(TAU * cyc * 2))
@@ -427,20 +453,46 @@ function loops.circle(phase: number, speed: number, input: Input?): Pose
 end
 
 local launchPlanted = rig.plant(table.clone(RUSH_LAUNCH), HIND, COILED)
-local function rushStride(seconds: number): Pose
+-- the leg joints, which the arrival puts down with the solver instead of a joint blend
+local LEG_JOINT: { [string]: boolean } = {}
+for _, leg in LEGS do
+	LEG_JOINT[leg.upper], LEG_JOINT[leg.mid], LEG_JOINT[leg.foot] = true, true, true
+end
+local RUSH_ARRIVE = 0.3 -- s: the last strides of the dash brake into the skid's brace
+local function rushStride(seconds: number, duration: number?): Pose
 	-- Elapsed seconds keep a short, wall-stopped dash from cramming two whole
 	-- strides into its shortened active phase. Blend out of the actual push pose.
-	local running = gallop(seconds * TAU * 2.2, 50, 2.2)
-	local mix = smooth(0, 0.06, seconds)
+	local d = duration or 0.6
+	local a = smooth(d - math.min(RUSH_ARRIVE, d * 0.5), d, seconds)
+	local running = gallop(seconds * TAU * 2.2, 50, 2.2, a)
+	local mix = smooth(0, 0.14, seconds) -- (0.06 threw a forepaw 2.8 studs in one frame)
 	for _, name in WolfKing.JOINTS do
 		running[name] = (launchPlanted[name] or I):Lerp(running[name] or I, mix)
+	end
+	-- Arrival (QA 2026-10-23): the dash used to end mid-stride and the next move (the rake or
+	-- the skid) blended from that frozen gallop frame, flipping a foreleg 112 deg in one
+	-- frame and stopping the paws on each partial stride. Over its last RUSH_ARRIVE s the body
+	-- now brakes into the skid's brace: the strides shrink to nothing (the gallop's own solve
+	-- brings the paws down, no flip), then each paw is set on its braced spot, so both
+	-- follow-ups start from four planted paws.
+	if a > 0 then
+		for name, cf in RUSH_SKID do
+			if not LEG_JOINT[name] then
+				running[name] = (running[name] or I):Lerp(cf, a)
+			end
+		end
+		local b = smooth(0.35, 1, a)
+		if b > 0 then
+			rig.plantLegs(running, { FL = b, FR = b, BL = b, BR = b }, false, SKIDDED)
+		end
 	end
 	return running
 end
 
 --------------------------------------------------------------------------------
--- Keyed attacks. The final contact key is held briefly before the phase ends,
--- so a render frame immediately before server resolution already shows impact.
+-- Keyed attacks. Contact lands ON the windup's end (Claw Down, Crownfall since the
+-- 2026-10-23 motion pass; the others still reach it a frame or two early and hold, which
+-- the ripple's filter now eases into), and the active beat carries it through.
 
 local moves: { [string]: { [string]: Phase } } = {}
 
@@ -476,7 +528,7 @@ moves.KingsRush = {
 	active = {
 		duration = 0.6,
 		keys = { { t = 0, pose = {}, plant = NONE }, { t = 1, pose = {}, plant = NONE } },
-		overlay = function(_, seconds, _) return rushStride(seconds) end,
+		overlay = function(_, seconds, input) return rushStride(seconds, input and input.duration) end,
 	},
 	recover = { duration = 1.0, keys = {
 		{ t = 0, pose = RUSH_SKID, plant = ALL, reach = SKIDDED },
@@ -493,17 +545,25 @@ moves.Crownfall = {
 		{ t = 0.55, pose = CROWN_RISE, ease = "inOut", plant = HIND, reach = REARED },
 		{ t = 0.84, pose = CROWN_PEAK, ease = "out", plant = HIND, reach = REARED },
 		{ t = 0.98, pose = CROWN_CONTACT, ease = "in", plant = ALL, reach = SPLAYED },
-		{ t = 1, pose = CROWN_CONTACT, plant = ALL, reach = SPLAYED },
+		{ t = 1, pose = CROWN_CONTACT, plant = ALL, reach = SPLAYED_MID },
 	} },
+	-- QA 2026-10-23: the forepaws used to stop dead on the slam (the probe's paw 58 -> 0 st/s).
+	-- The landing weight now drives them out and forward a little (a gouge, where the scar
+	-- and rocks go), easing to a stop; in the recover each forepaw lifts and steps back under
+	-- the chest (left, then right) instead of sliding home on the ground.
 	active = { duration = 0.18, keys = {
-		{ t = 0, pose = CROWN_CONTACT, plant = ALL, reach = SPLAYED },
-		{ t = 0.75, pose = CROWN_SETTLE, ease = "out", plant = ALL, reach = SPLAYED },
-		{ t = 1, pose = CROWN_SETTLE, plant = ALL, reach = SPLAYED },
+		{ t = 0, pose = CROWN_CONTACT, plant = ALL, reach = SPLAYED_MID },
+		{ t = 0.3, pose = CROWN_CONTACT, ease = "out", plant = ALL, reach = SPLAYED_SKID },
+		{ t = 0.75, pose = CROWN_SETTLE, ease = "out", plant = ALL, reach = SPLAYED_SKID },
+		{ t = 1, pose = CROWN_SETTLE, plant = ALL, reach = SPLAYED_SKID },
 	} },
 	recover = { duration = 1.07, keys = {
-		{ t = 0, pose = CROWN_SETTLE, plant = ALL, reach = SPLAYED },
-		{ t = 0.4, pose = CROWN_SETTLE, plant = ALL, reach = SPLAYED },
-		{ t = 0.7, pose = SPENT, ease = "inOut", plant = ALL, reach = BRACED },
+		{ t = 0, pose = CROWN_SETTLE, plant = ALL, reach = SPLAYED_SKID },
+		{ t = 0.3, pose = CROWN_SETTLE, plant = ALL, reach = SPLAYED_SKID },
+		{ t = 0.43, pose = CROWN_SETTLE, ease = "inOut", plant = { "FR", "BL", "BR" }, reach = CROWN_STEP_L },
+		{ t = 0.56, pose = SPENT, ease = "inOut", plant = ALL, reach = CROWN_STEP_L },
+		{ t = 0.69, pose = SPENT, ease = "inOut", plant = { "FL", "BL", "BR" }, reach = BRACED },
+		{ t = 0.82, pose = SPENT, ease = "inOut", plant = ALL, reach = BRACED },
 		{ t = 1, pose = STAND, ease = "inOut", plant = ALL },
 	} },
 }
@@ -535,18 +595,20 @@ moves.ClawDown = {
 		{ t = 0, pose = STAND, plant = ALL },
 		{ t = 0.18, pose = CLAW_LIFT, ease = "out", plant = SUPPORT_LEFT, reach = BRACED },
 		{ t = 0.43, pose = CLAW_PEAK, ease = "out", plant = SUPPORT_LEFT, reach = BRACED },
-		{ t = 0.81, pose = CLAW_PEAK, plant = SUPPORT_LEFT, reach = BRACED },
-		{ t = 0.97, pose = CLAW_STRIKE, ease = "in", plant = ALL, reach = CLAW_CONTACT },
-		{ t = 1, pose = CLAW_STRIKE, plant = ALL, reach = CLAW_CONTACT },
+		-- QA 2026-10-23: the held peak keeps rising a little (the last of the lift before the
+		-- chop), the claw lands ON the windup's end (it used to land at 0.97 and hold), then
+		-- the claws rake back through the ground under the weight instead of stopping dead
+		{ t = 0.82, pose = CLAW_HIGH, ease = "inOut", plant = SUPPORT_LEFT, reach = BRACED },
+		{ t = 1, pose = CLAW_STRIKE, ease = "in", plant = ALL, reach = CLAW_CONTACT },
 	} },
 	active = { duration = 0.12, keys = {
 		{ t = 0, pose = CLAW_STRIKE, plant = ALL, reach = CLAW_CONTACT },
-		{ t = 0.8, pose = CLAW_THROUGH, ease = "out", plant = ALL, reach = CLAW_CONTACT },
-		{ t = 1, pose = CLAW_THROUGH, plant = ALL, reach = CLAW_CONTACT },
+		{ t = 0.7, pose = CLAW_THROUGH, ease = "out", plant = ALL, reach = CLAW_RAKED },
+		{ t = 1, pose = CLAW_THROUGH, plant = ALL, reach = CLAW_RAKED },
 	} },
 	recover = { duration = 0.73, keys = {
-		{ t = 0, pose = CLAW_THROUGH, plant = ALL, reach = CLAW_CONTACT },
-		{ t = 0.22, pose = CLAW_THROUGH, plant = ALL, reach = CLAW_CONTACT },
+		{ t = 0, pose = CLAW_THROUGH, plant = ALL, reach = CLAW_RAKED },
+		{ t = 0.22, pose = CLAW_THROUGH, plant = ALL, reach = CLAW_RAKED },
 		{ t = 0.6, pose = SPENT, ease = "inOut", plant = ALL, reach = BRACED },
 		{ t = 1, pose = STAND, ease = "inOut", plant = ALL },
 	} },
@@ -661,6 +723,10 @@ end
 -- the live input.targetYaw (EnemyAnimator passes it for every move in WolfKing.LEAD).
 
 local LEAP_COIL = paws(-0.12, 0.6, 0.12, 0.12)
+-- (2026-10-23: the deeper coil folds the forearms; their wrists sit 0.03 unit high so the
+-- forearm edge stays out of the floor)
+LEAP_COIL.FL += V(0, 0.03, 0)
+LEAP_COIL.FR += V(0, 0.03, 0)
 local LANDED = paws(-0.45, 0.35, 0.24, 0.2) -- splayed wide where the forepaws touched
 local LEAP_SET = regalia(with(STAND, {
 	JointRoot = R(-0.28, -0.08, 0.1), JointSpine = A(0.1),
@@ -673,6 +739,10 @@ local LEAP_GATHER = regalia(with(LEAP_SET, {
 	JointNeck = A(-0.34), JointHead = A(0.3), JointJaw = A(-0.25),
 	JointCrest = A(-0.35), JointTail = A(0.42), JointTail2 = A(0.2), JointTail3 = A(0.15),
 }), 0.25, 0.2, 0.12)
+local LEAP_SINK = regalia(with(LEAP_GATHER, {
+	JointRoot = R(-0.45, -0.09, 0.2), JointSpine = A(0.06),
+	JointNeck = A(-0.38), JointHead = A(0.34),
+}), 0.27, 0.22, 0.13)
 -- the hind legs drive, still on the ground; the forelegs fold up off it
 local LEAP_DRIVE = regalia(with(LEAP_GATHER, {
 	JointRoot = R(0.05, 0.28, -0.05), JointSpine = A(-0.04),
@@ -827,8 +897,10 @@ local function skidKeys(entry: { any }, brakeAt: number): { any }
 	table.insert(keys, hold(brakeAt, SKID_BRAKE, ALL, SKID_BRAKED, "out"))
 	table.insert(keys, hold(at(0.3), SKID_SCRAB, { "FL", "FR", "BR" }, SKID_BRAKED, "inOut"))
 	table.insert(keys, hold(at(0.44), SKID_SCRAB2, { "FL", "FR", "BL" }, SKID_SCRABBED, "inOut"))
-	table.insert(keys, hold(at(0.6), SKID_STEP, { "FL", "BL", "BR" }, SKID_SCRABBED, "inOut"))
-	table.insert(keys, hold(at(0.76), SPENT, ALL, SKID_SQUARED, "inOut"))
+	-- (2026-10-23: the stepping forepaw carries its speed over the top of the step, "in", and
+	-- comes down over a longer "out", so it lands softly instead of stopping dead: 61 -> 38 -> 3)
+	table.insert(keys, hold(at(0.57), SKID_STEP, { "FL", "BL", "BR" }, SKID_SCRABBED, "in"))
+	table.insert(keys, hold(at(0.82), SPENT, ALL, SKID_SQUARED, "out"))
 	table.insert(keys, hold(1, STAND, ALL, nil, "inOut"))
 	return keys
 end
@@ -837,7 +909,10 @@ local skidLead = leadOverlay(function(u) return smooth(0, 0.14, u) * (1 - smooth
 moves.KingLeap = {
 	windup = ph(1.1, {
 		hold(0, STAND, ALL), hold(0.2, LEAP_SET, ALL, LEAP_COIL, "out"),
-		hold(0.62, LEAP_GATHER, ALL, LEAP_COIL, "inOut"), hold(1, LEAP_GATHER, ALL, LEAP_COIL),
+		-- QA 2026-10-23: the coil keeps sinking into the launch (it held level: no anticipation
+		-- in the last third of the windup)
+		hold(0.62, LEAP_GATHER, ALL, LEAP_COIL, "inOut"), hold(0.78, LEAP_GATHER, ALL, LEAP_COIL),
+		hold(1, LEAP_SINK, ALL, LEAP_COIL, "inOut"),
 	}, function(u, secs, _)
 		-- the held coil trembles and the tail tip twitches; a last hip shimmy before launch
 		local held = smooth(0.55, 0.65, u)
@@ -849,7 +924,7 @@ moves.KingLeap = {
 		}
 	end),
 	active = { duration = 0.7, air = true, keys = {
-		hold(0, LEAP_GATHER, ALL, LEAP_COIL),
+		hold(0, LEAP_SINK, ALL, LEAP_COIL),
 		hold(0.1, LEAP_DRIVE, HIND, LEAP_COIL, "out"),
 		hold(0.2, LEAP_OFF, NONE, nil, "out"),
 		hold(0.44, LEAP_APEX, NONE, nil, "out"),
@@ -877,7 +952,8 @@ moves.KingRake = {
 		hold(0, RAKE_CONTACT, SUPPORT_RIGHT, RAKE_BRACE), hold(0.8, RAKE_THROUGH, SUPPORT_RIGHT, RAKE_BRACE, "out"),
 		hold(1, RAKE_THROUGH, SUPPORT_RIGHT, RAKE_BRACE),
 	}),
-	recover = ph(0.9, {
+	-- (0.76: the server's 0.9 recover minus the 0.14 active beat)
+	recover = ph(0.76, {
 		hold(0, RAKE_THROUGH, SUPPORT_RIGHT, RAKE_BRACE), hold(0.32, SPENT, ALL, BRACED, "out"),
 		hold(0.6, SPENT, ALL, BRACED), hold(1, STAND, ALL, nil, "inOut"),
 	}),
@@ -1015,7 +1091,10 @@ do
 			-- then drops in 80 ms (it used to sink for 130 ms, the biggest hit landing softer
 			-- than the paw swipe)
 			hold(0, STAND, ALL), hold(0.22, RUSH_LOAD, ALL, COILED, "out"), hold(0.45, mid, HIND, REARED, "inOut"), hold(0.74, up, HIND, REARED, "out"),
-			hold(0.92, hang, HIND, REARED, "inOut"), hold(0.985, CROWN_CONTACT, ALL, SPLAYED, "in"), hold(1, CROWN_CONTACT, ALL, SPLAYED),
+			-- (2026-10-23: the forepaws strike the ground a frame before the windup's end and the
+			-- chest crashes down onto them ON it; they used to land at 0.985 and hold, dead)
+			hold(0.9, hang, HIND, REARED, "inOut"), hold(0.972, CROWN_TOUCH, ALL, SPLAYED, "linear"),
+			hold(1, CROWN_CONTACT, ALL, SPLAYED_MID, "linear"),
 		}),
 		active = moves.Crownfall.active,
 		recover = moves.Crownfall.recover,
@@ -1024,7 +1103,7 @@ do
 	variants.Crownfall.C = {
 		windup = ph(1.25, {
 			hold(0, STAND, ALL), hold(0.35, squat, ALL, COILED, "inOut"), hold(0.62, squat, ALL, COILED),
-			hold(0.82, CROWN_PEAK, HIND, REARED, "out"), hold(0.985, CROWN_CONTACT, ALL, SPLAYED, "in"), hold(1, CROWN_CONTACT, ALL, SPLAYED),
+			hold(0.82, CROWN_PEAK, HIND, REARED, "out"), hold(0.985, CROWN_CONTACT, ALL, SPLAYED, "in"), hold(1, CROWN_CONTACT, ALL, SPLAYED_MID),
 		}, function(u, secs, _)
 			local tr = 0.025 * math.sin(secs * TAU * 8) * smooth(0.3, 0.4, u) * (1 - smooth(0.55, 0.62, u))
 			return { JointRoot = R(0, tr) }
@@ -1059,9 +1138,11 @@ do
 		windup = ph(1.0, {
 			hold(0, STAND, ALL), hold(0.24, RUSH_LOAD, ALL, COILED, "out"),
 			hold(0.33, lifted("FL"), { "FR", "BL", "BR" }, COILED, "out"), hold(0.41, RUSH_LOAD, ALL, digL, "in"),
-			hold(0.52, RUSH_LOAD, ALL, COILED, "inOut"),
+			-- (2026-10-23: each drag starts at the speed the paw landed with, "out", so the paw
+			-- digs in and drags back in one stroke instead of stopping dead on the ground)
+			hold(0.52, RUSH_LOAD, ALL, COILED, "out"),
 			hold(0.6, lifted("FR"), { "FL", "BL", "BR" }, COILED, "out"), hold(0.68, RUSH_LOAD, ALL, digR, "in"),
-			hold(0.79, RUSH_LOAD, ALL, COILED, "inOut"),
+			hold(0.79, RUSH_LOAD, ALL, COILED, "out"),
 			hold(0.92, RUSH_READY, ALL, COILED, "inOut"), hold(1, RUSH_LAUNCH, HIND, COILED, "in"),
 		}),
 		active = moves.KingsRush.active,
@@ -1134,8 +1215,11 @@ end
 -- Root weight (before planting, so the legs compress with it): a held windup
 -- breathes and trembles, a crunch of anticipation loads just before contact, and
 -- every impact dips the body and rebounds (Crownfall and the Rush skid hardest).
-local DIP = { RoyalBite = 0.07, PawSwipe = 0.05, ClawDown = 0.08, Crownfall = 0.16, KingsRush = 0.1, PackCall = 0.03 }
-local LOAD = { RoyalBite = 0.08, PawSwipe = 0.05, ClawDown = 0.07, Crownfall = 0.1, KingsRush = 0.0, PackCall = 0.0 }
+-- (Crownfall's 0.16 -> 0.1, 2026-10-23: the hips now lead into it and the touch-then-crush
+-- keys carry the weight; the full dip folded the forearms into the floor)
+local DIP = { RoyalBite = 0.07, PawSwipe = 0.05, ClawDown = 0.08, Crownfall = 0.1, KingsRush = 0.1, PackCall = 0.03 }
+-- (ClawDown's is a lift: the last rise before the chop, its anticipation)
+local LOAD = { RoyalBite = 0.08, PawSwipe = 0.05, ClawDown = -0.06, Crownfall = 0.1, KingsRush = 0.0, PackCall = 0.0 }
 local function weightOverlay(move: string, phase: string)
 	return function(u: number, secs: number, _): Pose
 		if phase == "windup" then
@@ -1173,26 +1257,272 @@ for move, list in variants do
 	end
 end
 
-local samplers: { [string]: { [string]: any } } = {}
-for move, list in variants do
-	samplers[move] = {}
-	for v, phases in list do
-		samplers[move][v] = rig.sampler({ [move] = phases }, "WolfKing")
+--------------------------------------------------------------------------------
+-- MOTION PASS (audit A3, 2026-10-23). Three things the old sampler couldn't do:
+-- * Every keyed pose is read on ONE clock across the phases (seconds from the windup's
+--   start), so a lag or a lead can look back into the windup from the recover and forward
+--   from the windup into the strike. The old lags only looked inside the current phase and
+--   faded to zero at every phase edge, which is exactly where a strike happens: the body
+--   turned as one block and every hero stopped dead on the contact frame.
+-- * RIPPLE: the body is a chain, not a block (the Nine-Tailed Fox's pattern). Each link of
+--   hips > chest > neck > head reads the keys a step later than the one before it (the hips
+--   RIPPLE_LEAD steps AHEAD of the clock, the head on it, so the head and the striking paw
+--   still land on the contact frame), and the tail trails the hips a step a link. Each link's
+--   WORLD rotation is resampled (every joint frame is identity, so rotations compose straight
+--   down the chain), then turned back into local joints; each is averaged over a few steps (a
+--   triangle filter, wider toward the head and the tail tip), so a key that stops dead eases
+--   into its hold instead. The leads ramp in over the move's first RIPPLE_RAMP s (a windup
+--   starts from the idle pose). A free leg keeps its own world timing (its upper joint is
+--   turned back by what the ripple moved its base), so a paw still hits on its key.
+-- * Planted paws stay where they were put: the planting solve works in each leg's own plane
+--   and ignores sideways error, so a yawing or rolling chest skated a planted forepaw up to
+--   2.8 studs sideways under a swipe (and that slide was the "support paw stops dead" flag).
+--   keepFeet rolls each planted upper leg until its paw is back on its spot.
+local PHASE_ORDER = { "windup", "active", "recover" }
+local function phasesOf(move: string): { [string]: Phase }?
+	local list = variants[move]
+	if list then
+		return list[WolfKing.VARIANT[move]]
+	end
+	return moves[move]
+end
+local function phaseStart(phases: { [string]: Phase }, name: string): number
+	local acc = 0
+	for _, n in PHASE_ORDER do
+		if n == name then
+			return acc
+		end
+		local p = phases[n]
+		if p then
+			acc += p.duration
+		end
+	end
+	return acc
+end
+local function moveLength(phases: { [string]: Phase }, curName: string, curDur: number): number
+	local acc = 0
+	for _, n in PHASE_ORDER do
+		local p = phases[n]
+		if p then
+			acc += if n == curName then curDur else p.duration
+		end
+	end
+	return acc
+end
+-- the keyed pose (overlays on, not planted) T s after the move's first phase starts
+local function keyedAt(phases: { [string]: Phase }, T: number, curName: string, curDur: number, input: Input): Pose
+	local acc = 0
+	local lastP, lastName = nil, nil
+	for _, n in PHASE_ORDER do
+		local p = phases[n]
+		if p then
+			local d = if n == curName then curDur else p.duration
+			lastP, lastName = p, n
+			if T <= acc + d then
+				local inp = if n == curName then input else { side = input.side, targetYaw = input.targetYaw, stage = input.stage } :: any
+				return (Quadruped.samplePhase(p, math.clamp((T - acc) / math.max(d, 1e-6), 0, 1), inp))
+			end
+			acc += d
+		end
+	end
+	local inp = if lastName == curName then input else { side = input.side, targetYaw = input.targetYaw, stage = input.stage } :: any
+	return (Quadruped.samplePhase(lastP :: Phase, 1, inp))
+end
+
+local RIPPLE_CHAIN = { "JointRoot", "JointSpine", "JointNeck", "JointHead" }
+local TAIL_CHAIN = { "JointTail", "JointTail2", "JointTail3" }
+local RIPPLE_STEP, RIPPLE_RAMP = 1 / 30, 0.25
+-- (the head trails the neck by none: a step there pushed the ears and crest into the mane
+-- blades in the bite, rake and leap, critic 2026-10-23)
+local RIPPLE_LEAD = { 3, 2, 1, 1 } -- steps ahead of the clock, hips .. head
+local RIPPLE_WIDTH = { 1, 1, 1, 2 } -- filter half-width in steps, hips .. head
+local TAIL_LEAD = { 1, -1, -3 } -- steps ahead of the clock, tail base .. tip (the hips lead by 3)
+local TAIL_WIDTH = { 1, 2, 2 }
+-- the moves that ripple (their recovers and windups are keyed straight through); RoyalBite and
+-- the Roar already overlap (audit), the rush gallops on its own clock, the skids lead a turn
+local RIPPLE: { [string]: boolean } = {
+	RoyalBite = true, PawSwipe = true, ClawDown = true, Crownfall = true, PackCall = true, KingLeap = true, KingRake = true,
+}
+-- per-move leads (steps, hips .. head): Claw Down's windup is short, and a 3-step hips lead
+-- spent its last rise before the window where the chop's anticipation reads
+-- RoyalBite and KingRake keep the head a step behind the neck (on the neck's step the head
+-- of the bite read as one block, and the rake's head stopped dead on its landing hold)
+local RIPPLE_MOVE: { [string]: { number } } = { ClawDown = { 1, 1, 0, 0 }, RoyalBite = { 3, 2, 1, 0 }, KingRake = { 3, 2, 1, 0 },
+	Crownfall = { 3, 2, 1, 0 } } -- (Crownfall: a head on the neck's step met the raised forepaws)
+-- the leads ease out over [a, b] s of the move: King's Leap is on the clock again before it
+-- lands (a lead there put the landing crouch before the touchdown: the dip went 1.6 -> 0.15)
+local RIPPLE_FADE: { [string]: { number } } = { KingLeap = { 1.3, 1.6 } }
+local CHAIN_SET: { [string]: boolean } = {}
+for _, n in RIPPLE_CHAIN do
+	CHAIN_SET[n] = true
+end
+for _, n in TAIL_CHAIN do
+	CHAIN_SET[n] = true
+end
+
+local function worldRot(s: Pose, chain: { string }, j: number, prefix: CFrame?): CFrame
+	local r = prefix or I
+	for n = 1, j do
+		r = r * (s[chain[n]] or I).Rotation
+	end
+	return r
+end
+
+local FORE_LEGS = { "JointLegFL", "JointLegFR" }
+local HIND_LEGS = { "JointLegBL", "JointLegBR" }
+local function ripple(pose: Pose, move: string, phases: { [string]: Phase }, name: string, secs: number, dur: number, input: Input, plant: { [string]: number })
+	local T = phaseStart(phases, name) + secs
+	local step = RIPPLE_STEP * smooth(0, RIPPLE_RAMP, T)
+	local fade = RIPPLE_FADE[move]
+	if fade then
+		step *= 1 - smooth(fade[1], fade[2], T)
+	end
+	local cache: { [number]: Pose } = {}
+	local function at(k: number): Pose
+		local s = cache[k]
+		if not s then
+			s = keyedAt(phases, math.max(0, T + k * step), name, dur, input)
+			cache[k] = s
+		end
+		return s
+	end
+	local function filtered(lead: number, w: number, fn: (Pose) -> CFrame): CFrame
+		local acc, total = fn(at(lead)), w + 1
+		for d = 1, w do
+			local wt = w + 1 - d
+			for _, k in { lead - d, lead + d } do
+				total += wt
+				acc = acc:Lerp(fn(at(k)), wt / total)
+			end
+		end
+		return acc
+	end
+	local now = at(0)
+	-- the bases the legs hang from, before the ripple (for the free-leg timing below)
+	local rootW0 = worldRot(pose, RIPPLE_CHAIN, 1)
+	local spineW0 = worldRot(pose, RIPPLE_CHAIN, 2)
+	local worlds: { CFrame } = {}
+	local leads = RIPPLE_MOVE[move] or RIPPLE_LEAD
+	for j, jn in RIPPLE_CHAIN do
+		local wr = filtered(leads[j], RIPPLE_WIDTH[j], function(s)
+			return worldRot(s, RIPPLE_CHAIN, j)
+		end)
+		worlds[j] = wr
+		local loc = if j == 1 then wr else worlds[j - 1]:Inverse() * wr
+		local base = now[jn] or I
+		local delta = base:Inverse() * (pose[jn] or I) -- this phase's overlay on the joint
+		local p = base.Position
+		if j == 1 then
+			p = filtered(leads[1], RIPPLE_WIDTH[1], function(s)
+				return CFrame.new((s.JointRoot or I).Position)
+			end).Position
+		end
+		pose[jn] = (CFrame.new(p) * loc.Rotation) * delta
+	end
+	-- the tail: each link's world rotation (from the hips) trails the hips
+	local tailW: { CFrame } = {}
+	for j, jn in TAIL_CHAIN do
+		local wr = filtered(TAIL_LEAD[j], TAIL_WIDTH[j], function(s)
+			return worldRot(s, TAIL_CHAIN, j, worldRot(s, RIPPLE_CHAIN, 1))
+		end)
+		tailW[j] = wr
+		local parentW = if j == 1 then worlds[1] else tailW[j - 1]
+		local base = now[jn] or I
+		local delta = base:Inverse() * (pose[jn] or I)
+		pose[jn] = (CFrame.new(base.Position) * (parentW:Inverse() * wr).Rotation) * delta
+	end
+	-- free legs keep their own world timing: turn each upper joint back by what its base moved
+	-- (planted legs are re-solved onto the ground anyway)
+	local fixFore = worlds[2]:Inverse() * spineW0
+	local fixHind = worlds[1]:Inverse() * rootW0
+	for i, jn in FORE_LEGS do
+		local w = 1 - (plant[if i == 1 then "FL" else "FR"] or 0)
+		if pose[jn] and w > 0.001 then
+			pose[jn] = CFrame.new(pose[jn].Position) * I:Lerp(fixFore, w) * pose[jn].Rotation
+		end
+	end
+	for i, jn in HIND_LEGS do
+		local w = 1 - (plant[if i == 1 then "BL" else "BR"] or 0)
+		if pose[jn] and w > 0.001 then
+			pose[jn] = CFrame.new(pose[jn].Position) * I:Lerp(fixHind, w) * pose[jn].Rotation
+		end
 	end
 end
+
+-- planted paws back onto their spots (see the header above): roll each fully planted upper
+-- leg by the paw's sideways miss in its base frame, re-solve, up to three passes
+local function legUpperBase(pose: Pose, leg: Leg): CFrame
+	local root = CFrame.new(P.JointRoot) * (pose.JointRoot or I)
+	local base = root
+	if leg.base == "JointSpine" then
+		base = root * CFrame.new(P.JointSpine - P.JointRoot) * (pose.JointSpine or I)
+	end
+	return base * CFrame.new(P[leg.upper] - P[leg.base])
+end
+local function footAt(pose: Pose, leg: Leg, ub: CFrame): Vector3
+	return (ub * (pose[leg.upper] or I) * CFrame.new(P[leg.mid] - P[leg.upper]) * (pose[leg.mid] or I) * CFrame.new(P[leg.foot] - P[leg.mid])).Position
+end
+local function keepFeet(pose: Pose, plant: { [string]: number }, reach: { [string]: Vector3 }?)
+	-- re-solve only the fully planted legs (a second solve of a foot being put down would
+	-- move it on from where the first one left it), with no floor clamp (already done)
+	local full = { FL = 0, FR = 0, BL = 0, BR = 0 }
+	for tag, w in plant do
+		if w >= 0.999 then
+			full[tag] = 1
+		end
+	end
+	for pass = 1, 3 do
+		local moved = false
+		for tag, w in plant do
+			-- a foot being put down takes the correction in as it lands (no pop when it plants);
+			-- it isn't re-solved, the roll alone carries it sideways
+			local k = if w >= 0.999 then 1 elseif pass == 1 then smooth(0.8, 0.999, w) else 0
+			if k > 0 then
+				local leg = LEGS[tag]
+				local target = P[leg.foot] + ((reach and reach[tag]) or Vector3.zero)
+				local ub = legUpperBase(pose, leg)
+				local f = footAt(pose, leg, ub)
+				local miss = ub:VectorToObjectSpace(target - f)
+				local len = math.max(0.5, (f - ub.Position).Magnitude)
+				if math.abs(miss.X) > 0.004 then
+					local x, y, z = (pose[leg.upper] or I):ToEulerAnglesXYZ()
+					pose[leg.upper] = A(x, y, z + k * miss.X / len)
+					moved = moved or k >= 1
+				end
+			end
+		end
+		if not moved then
+			return
+		end
+		-- (the root may drop by what a rolled leg now falls short: a stretched paw floated)
+		rig.plantLegs(pose, full, true, reach)
+	end
+end
+
 local sampleStock = rig.sampler(moves, "WolfKing")
 local function sampleKeyed(move: string, phase: string, u: number, input: Input?): Pose
-	local list = samplers[move]
-	if list then
-		return list[WolfKing.VARIANT[move]](move, phase, u, input)
+	local phases = phasesOf(move)
+	if not phases or not phases[phase] or move == "Death" or move == "Stagger" then
+		return sampleStock(move, phase, u, input)
 	end
-	return sampleStock(move, phase, u, input)
+	local inp: Input = input or {}
+	local p = phases[phase]
+	local pose, plant, reach = Quadruped.samplePhase(p, u, inp)
+	if RIPPLE[move] then
+		local dur = inp.duration or p.duration
+		ripple(pose, move, phases, phase, math.clamp(u, 0, 1) * dur, dur, inp, plant)
+	end
+	rig.plantLegs(pose, plant, p.air, reach)
+	keepFeet(pose, plant, reach)
+	return pose
 end
 
 -- OVERLAPPING ACTION. The head, jaw, ears, tail chain, manes and seal follow the
 -- body late, each by its own lag (so the neck leads, the head trails, the tail
--- whips last), and ring down after a hit. The lag fades to zero at every phase
--- boundary so poses stay continuous, and contact is never late.
+-- whips last), and ring down after a hit. The lags read the move's one clock (they look
+-- back across phase edges); they fade out only over the end of the move's last phase,
+-- so it hands over to idle on its keys. A rippled move's neck, head and tail are already
+-- timed by the ripple and skip these lags.
 local LAG_SEC = 0.075
 local LAGS = {
 	JointNeck = 0.5, JointHead = 1, JointJaw = 1.3, JointEarL = 1.6, JointEarR = 2.1, JointCrest = 1.2,
@@ -1203,18 +1533,51 @@ local SETTLE = { Roar = 0.4, RoyalBite = 1, PawSwipe = 0.8, ClawDown = 1, Crownf
 -- moves whose WINDUP opens on an impact (the rake starts at the leap's touchdown) ring too
 local SETTLE_WINDUP = { KingRake = 1.4 }
 
+local function lastPhase(phases: { [string]: Phase }): string
+	local last = "windup"
+	for _, n in PHASE_ORDER do
+		if phases[n] then
+			last = n
+		end
+	end
+	return last
+end
+
 local function secondary(pose: Pose, move: string, phase: string, u: number, input: Input?)
 	local dur = (input and input.duration) or WolfKing.durations[move][phase] or 0.5
 	local secs = u * dur
-	local fade = if move == "Death" then smooth(0, 0.2, u) else smooth(0, 0.2, u) * (1 - smooth(0.8, 1, u))
 	if move == "KingsRush" and phase == "active" then
 		return
 	end
-	if fade > 0.01 then
-		local lagged = sampleKeyed(move, phase, math.clamp(u - LAG_SEC * fade / dur, 0, 1), input)
-		for name, k in LAGS do
-			local lag = sampleKeyed(move, phase, math.clamp(u - LAG_SEC * k * fade / dur, 0, 1), input)
-			pose[name] = lag[name] or lagged[name] or pose[name]
+	local phases = phasesOf(move)
+	if phases and phases[phase] and move ~= "Death" and move ~= "Stagger" then
+		local inp: Input = input or {}
+		local T = phaseStart(phases, phase) + secs
+		local fade = if phase == lastPhase(phases) then 1 - smooth(0.85, 1, u) else 1
+		fade *= smooth(0, 0.15, T) -- (from the move's start: it opens on the idle pose)
+		if fade > 0.01 then
+			local skip = RIPPLE[move]
+			local cache: { [number]: Pose } = {}
+			for name, k in LAGS do
+				if not (skip and CHAIN_SET[name]) then
+					local back = LAG_SEC * k * fade
+					local s = cache[k]
+					if not s then
+						s = keyedAt(phases, math.max(0, T - back), phase, dur, inp)
+						cache[k] = s
+					end
+					pose[name] = s[name] or pose[name]
+				end
+			end
+		end
+	else
+		local fade = if move == "Death" then smooth(0, 0.2, u) else smooth(0, 0.2, u) * (1 - smooth(0.8, 1, u))
+		if fade > 0.01 then
+			local lagged = sampleStock(move, phase, math.clamp(u - LAG_SEC * fade / dur, 0, 1), input)
+			for name, k in LAGS do
+				local lag = sampleStock(move, phase, math.clamp(u - LAG_SEC * k * fade / dur, 0, 1), input)
+				pose[name] = lag[name] or lagged[name] or pose[name]
+			end
 		end
 	end
 	local held = if phase == "windup" then smooth(0.3, 0.5, u) * (1 - smooth(0.92, 1, u)) else 0
@@ -1236,7 +1599,7 @@ local function secondary(pose: Pose, move: string, phase: string, u: number, inp
 		pose.JointManeL = (pose.JointManeL or I):Lerp(A(0, 0, 0.1), up)
 	end
 	if move == "ClawDown" or move == "Crownfall" then
-		pose.JointManeR = (pose.JointManeR or I):Lerp(A(0, 0, -0.1), up)
+		pose.JointManeR = (pose.JointManeR or I):Lerp(A(0, 0, if move == "ClawDown" then -0.25 else -0.1), up)
 	end
 	local amp = if phase == "windup" then SETTLE_WINDUP[move] else SETTLE[move]
 	if amp then

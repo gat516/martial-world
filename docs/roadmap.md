@@ -1,0 +1,201 @@
+# Roadmap: progression, onboarding, techniques, garden, building
+
+The plan for taking the game from "QC1-9 plus a thin Foundation" to a full game
+that lasts QC1 to FE9. [progression](progression.md) is the stage ladder and the
+sect; [core-loop](core-loop.md) is the north star. This page is **what we build,
+in what order, and why**. Written 2026-10-22 from conversation. Proposals unless
+marked built; nothing here has been playtested.
+
+## Principles (from the user)
+1. **Nobody is barred by skill.** Bosses, tribulations and difficulty never gate
+   progress. No difficulty modes with scaling. Mobile players always have a road.
+2. **Two ways to climb, both complete:** the fighter (hunt, bosses, events) and the
+   gardener (meditate, garden, pills, building, non-combat quests). Fighters are
+   faster. Gardeners are never stuck.
+3. **You can't skip the world.** Rushing a breakthrough hurts; experiencing the
+   world heals and rewards. A soft cost, not a lock.
+4. **Story over rules.** Every system reads as cultivation fiction (cracked
+   foundation, heart demons, sect rank), not a menu.
+5. Every system names its **arrow into the loop** (core-loop rules).
+
+## 1. Progression
+
+### Built (untuned)
+27-stage ladder, `heavenDefying` tribulation gate, optional bosses on the quest
+board ([progression](progression.md)).
+
+### Foundation solidity (replaces the insight gate; proposed 2026-10-22)
+- Each stage has a **solidity** meter beside the bar. It fills by:
+  - **time and tempering:** slowly while idle, faster meditating on your peak;
+  - **experiences** (one-time, by category): Hunt (first kills), Boss (worth 2, the
+    fast road), Home (first harvest of a herb tier, first pill, a full-bloom
+    garden), Dao (weapon Dao milestones), Discover (wild gardens, caches, secret
+    places), World (witnessing events and phenomena).
+- A full bar **always** allows a breakthrough. Low solidity leaves **cracks**:
+  slower passive and refining until repaired, and a harder tribulation for a
+  heaven-defier. Cracks are repaired by meditating, pills, or tending the garden.
+- Full solidity gives a small **deep foundation** bonus, so the experiences stay
+  worth doing even when time would cover them.
+- **Insight stays** as the spendable currency for technique comprehension only
+  (its gate role is removed; `Pacing.Curve.insight` goes to 0).
+- Damage: a heavy hit or death can crack the foundation a little, never cost
+  cultivation.
+- **Force breakthrough becomes a death-save:** when a blow would kill you and your
+  bar is at least 90%, time slows and a big tap prompt reads "Break through to
+  survive?" (no shift-lock, mobile-friendly). It costs a badly cracked foundation.
+  The seated forced breakthrough in `Cultivation.breakthrough` stays as the manual path.
+- Build order: docs and Pacing numbers, then `data.solidity` and the experience
+  set, then the cracks, then the death-save prompt (ui-designer).
+
+### Pacing follow-ups
+Tune the QR and FE curve from analytics; the two bosses tuned for the old FE1 get
+re-tiered; region seals wait for the map.
+
+## 2. Onboarding (QC1 to QC9, then each realm)
+Today the hook ends at QC3 and the garden, sect and techniques arrive unannounced.
+- **QC1-3 (keep):** circulate, break through, root, travel out, hunt, technique,
+  refine. Minor fixes only.
+- **QC3 end:** the elder names the loop once ("cultivate until you hit a wall,
+  go out and break it, come home stronger").
+- **QC4 "your home grows":** garden and peak building taught as one beat (plant a
+  seed, place one item). Rewarded.
+- **QC5 the sect board:** daily tasks and contribution; the first chapter quest.
+- **QC6 herbs matter:** eat a herb for qi; the Herbalist.
+- **QC7 weapon and Dao:** second weapon class, a Dao drill (exists as lessons).
+- **QC8 rumours:** the elder points at a secret place and a wild garden.
+- **QC9 the realm wall:** the quiet breakthrough ceremony; for a heaven-defier, the
+  tribulation with its own dialogue.
+- **Every major** repeats the pattern: one new idea, said once by the elder,
+  with a rewarded objective and a guide.
+- **The wall card:** a persistent "your wall is X, go to Y" line (the objective line
+  already exists; make it read in loop terms). Shows the current wall and at most
+  two other goals.
+- Build: reuse the lesson system in `Quests.luau`; add lessons, not beats. UI by
+  the ui-designer.
+
+## 3. The sect and quests
+Per [progression](progression.md): ranks, board, dailies, weeklies, chapter chains,
+bounties, sect tasks, contribution and a Pavilion shop (never qi).
+- **Data:** a contribution counter and rank in `PlayerData`; quest defs reuse
+  `Quests.Quest`; dailies reset by day (like the daily login).
+- **Peaceful quests exist beside every combat quest** (herb errand, tend the sect
+  garden, find a place, build a feature on your peak).
+- **Build order:** rank and contribution, then the board UI, then dailies, then
+  chains per region. UI by the ui-designer.
+
+## 4. Techniques and weapons (why they feel lackluster, and the fix)
+**What exists:** 12 techniques (5 any-weapon, one skill per weapon class). They
+are mostly damage with a cooldown, plus a comprehension bottleneck. I haven't
+playtested them; this diagnosis is from the numbers and docs.
+
+**Why they feel weak:** there is one skill per class, so there's no choice; nothing
+rewards using them over M1; no enemy asks for a technique; and nothing combines.
+
+**The fix, in four layers:**
+1. **Give every class a progression of its own, 4 skills per class** (28 class
+   skills): an opener, a mobility or defence move, an area move, and an ultimate.
+   Unlocked by Dao level and manuals (so exploring keeps paying).
+2. **Give them jobs.** Statuses the game already has (poison, slow, stun,
+   bleed) plus a few new ones (burn, chill, break): each class owns a status
+   (sword: bleed; spear: pierce armor; staff: stun; greatsword: break guard).
+3. **Make enemies ask for them.** Armoured beasts (the Stone Tortoise) need
+   guard-break; fliers (the Flame Raven) need ranged or pull; packs reward area
+   moves; bosses have weak points and openers that a technique exploits. Enemy
+   designers bake this into each beast's card.
+4. **Make them combine.** Root element resonance (matching element = more damage
+   exists); add **combo windows** (a status plus a technique = a bonus), and a
+   short **forms** loadout: the hotbar's techniques form a "style" with a small
+   passive when you pair certain ones (Sword + Wind, Staff + Lightning).
+- **Quantity target:** about 50 techniques across the game: 28 class skills, 10
+  any-weapon, 12 elemental, found as manuals (caches, ruins, bosses, events,
+  milestones), never from a shop.
+- **Visuals:** each needs T1-T4 tiers ([vfx style](vfx/style.md)); it may launch
+  with T1. `vfx` agent per technique batch.
+- **Build order:** statuses and combo rules, then re-pass the 12 existing
+  techniques, then a class at a time (new fresh agent per class).
+
+## 5. The spirit garden
+**Today:** about 11 herbs in 3 soils (bed, pond, grove), 7 mutations, sizes,
+weather effects, wild sprouts, the Herbalist, Grow Now, and an aura on cultivation.
+Herb qi is flat per item, so the garden loses value around QC6.
+
+**Plan:**
+- **Herb tiers** I-V tied to regions, qi as a share of the dantian
+  ([progression](progression.md)); 3-4 new herbs per tier (about 20 more).
+- **Alchemy** (QR3): a furnace on your peak turns herbs into pills (qi, heal, buffs,
+  breakthrough aids, **foundation repair**). The sink for herbs and stones.
+- **Tending matters:** watering, pests or weather events, rare mutation chances,
+  and size records. Keep it calm, no punishment for being away.
+- **The Herbarium:** a collection index of every herb, size and mutation seen,
+  with rewards. It's the "grow a garden" hook and feeds the Home experiences.
+- **Wild gardens:** discoverable spots in each region (insight-free "Discover"
+  experiences); harvest once a day; a reason to explore.
+- **Visiting:** walk through a friend's peak and gift a herb. A cheap social hook,
+  and a way to show building.
+- **Gardener road:** garden aura, pills and tempering carry a pure gardener to every
+  wall, just slower than a fighter ([progression](progression.md) "Difficulty").
+- **Sect garden:** a shared plot the sect tasks tend (quests with no combat).
+- **Build order:** herb tiers and qi scaling, then alchemy, then the Herbarium,
+  then wild gardens (map), then visiting.
+
+## 6. Building and assets
+**Today:** about 40 items in 7 categories (cultivation, decor, furniture, garden,
+lighting, nature, structures), realm-gated, with meditation and garden bonuses;
+the peak swaps its look at Foundation only.
+**Needed:** more assets, more reasons to build.
+- **Peak tiers per major** (QC, QR, FE): the peak itself changes look at each
+  major, not only Foundation.
+- **Themed sets**, 10-15 pieces each, unlocked by realm, rank or quest:
+  1. *Mortal courtyard* (QC): walls, gate, simple halls, bridges, stairs.
+  2. *Jade pavilion* (QR): pavilions, a spirit pond with a bridge, lanterns.
+  3. *Cloud palace* (FE): floating platforms, tiered halls, banners, sky gardens.
+  4. *Alchemy* (QR3): the furnace and its shelves, herb racks, pill gourds.
+  5. *Library and training* (QR7): scroll shelves, weapon racks, training dummies.
+  6. *Formations:* functional arrays (a meditation array, a garden-growth array),
+     which are where most bonuses should live.
+- **Rewards for building:** bonuses stay small and capped (`AURA_CAP`), but more
+  items count: a "peak score" that adds to meditation and garden up to a cap.
+- **Sources:** sect contribution (Pavilion), quest rewards, event drops, the
+  Herbalist and market for stones, and a few cosmetic robux items.
+- **Peak size and rooms:** a larger buildable area per major (a plot unlock).
+- **Pipeline:** the `modeler` agent in Blender (FBX plus a placement script) for
+  structures, and Studio parts for small props; `ui-designer` for the catalog.
+  A fresh modeler per set; see [build](systems/build.md). Roughly 60-80 pieces over
+  the three majors.
+
+## 7. World events and tribulation VFX
+Per [progression](progression.md) "World events" and
+[world events plan](vfx/world_events_plan.md): resume `world-fx` (Heaven Split,
+Beast Surge, new events) and rebuild the tribulation (clouds, bolts, eye, aftermath).
+Tribulations stay rare, so the VFX can be big.
+
+## 8. Enemies
+The roster is enough for now. Next: elite and apex tiers (tint, aura, one move),
+wire the **cultivator enemies** as human opponents and sect-quest targets, and
+tune the old FE1 bosses.
+
+## 9. Order of work and who does it
+Each phase ends in a commit and a test-build playtest.
+
+| Phase | Work | Agents |
+|---|---|---|
+| A | Solidity docs and numbers; `data.solidity`, cracks | main session |
+| B | Herb tiers, qi scaling, alchemy furnace | main session; `modeler` for the furnace |
+| C | Sect: rank, contribution, board, dailies, Pavilion | main; `ui-designer` |
+| D | Onboarding lessons QC4-QC9 and the wall card | main; `ui-designer` |
+| E | Statuses, combo rules, then techniques class by class | main; one `vfx` per batch |
+| F | Building: peak tiers, sets, formations | `modeler` per set; `ui-designer` |
+| G | World events and tribulation VFX | `world-fx` |
+| H | Elite tiers, cultivators, curve tuning | `enemy-designer` per beast; analytics |
+
+A, B and C can run together if we split files carefully; D waits for C; E and F can
+run alongside them. Before spawning, ask how many agents and sandbox Studios at once
+(AGENTS.md).
+
+## Open questions
+- How big is a "crack"? Proposal: -15% passive and refine per crack, up to three,
+  repaired at a cost of time or a pill.
+- Is a death-save usable once per hour or once per stage?
+- Do heaven-defiers get extra cracks from rushing, or a harder tribulation only?
+- Does the Herbarium reward cosmetics only, or small solidity?
+- Which building sets are robux and which are earnable? (earnable first)

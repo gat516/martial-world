@@ -606,6 +606,31 @@ function AdminTraits.init(traitsPage: ScrollingFrame, invokeFn: Call, toastFn: (
 	call = invokeFn
 	toast = toastFn
 	templates = page:FindFirstChild("Templates") :: Folder
+
+	-- AutomaticCanvasSize doesn't count rows that size themselves (docs/systems/ui.md),
+	-- which left the page unscrollable with most traits below the fold. Size the
+	-- canvas from the list instead, undoing any UIScale above the page.
+	local layout = page:FindFirstChildOfClass("UIListLayout") :: UIListLayout
+	local padding = page:FindFirstChildOfClass("UIPadding")
+	page.AutomaticCanvasSize = Enum.AutomaticSize.None
+	local function scale(): number
+		local s = 1
+		local node: Instance? = page.Parent
+		while node do
+			local ui = node:FindFirstChildOfClass("UIScale")
+			if ui then
+				s *= ui.Scale
+			end
+			node = node.Parent
+		end
+		return math.max(s, 0.01)
+	end
+	local function resize()
+		local extra = if padding then padding.PaddingTop.Offset + padding.PaddingBottom.Offset else 0
+		page.CanvasSize = UDim2.fromOffset(0, layout.AbsoluteContentSize.Y / scale() + extra)
+	end
+	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(resize)
+	resize()
 end
 
 return AdminTraits

@@ -240,5 +240,225 @@
       }
     ],
     "flags": []
+  },
+  "ornament_plaque_end": {
+    "sheet": "sheet_a1",
+    "size": [
+      595,
+      202
+    ],
+    "source_box": [
+      172,
+      55,
+      767,
+      257
+    ],
+    "tiles": [
+      {
+        "file": "ornament_plaque_end.png",
+        "x": 0,
+        "width": 595,
+        "height": 202
+      }
+    ],
+    "flags": []
+  },
+  "ornament_plaque_end_small": {
+    "sheet": "sheet_a1",
+    "size": [
+      357,
+      134
+    ],
+    "source_box": [
+      917,
+      102,
+      1274,
+      236
+    ],
+    "tiles": [
+      {
+        "file": "ornament_plaque_end_small.png",
+        "x": 0,
+        "width": 357,
+        "height": 134
+      }
+    ],
+    "flags": []
+  },
+  "ornament_divider_diamond": {
+    "sheet": "sheet_a1",
+    "size": [
+      620,
+      62
+    ],
+    "source_box": [
+      80,
+      352,
+      700,
+      414
+    ],
+    "tiles": [
+      {
+        "file": "ornament_divider_diamond.png",
+        "x": 0,
+        "width": 620,
+        "height": 62
+      }
+    ],
+    "flags": []
+  },
+  "ornament_divider_cloud": {
+    "sheet": "sheet_a1",
+    "size": [
+      503,
+      71
+    ],
+    "source_box": [
+      776,
+      353,
+      1279,
+      424
+    ],
+    "tiles": [
+      {
+        "file": "ornament_divider_cloud.png",
+        "x": 0,
+        "width": 503,
+        "height": 71
+      }
+    ],
+    "flags": []
+  },
+  "ornament_divider_vertical": {
+    "sheet": "sheet_a1",
+    "size": [
+      57,
+      176
+    ],
+    "source_box": [
+      1372,
+      298,
+      1429,
+      474
+    ],
+    "tiles": [
+      {
+        "file": "ornament_divider_vertical.png",
+        "x": 0,
+        "width": 57,
+        "height": 176
+      }
+    ],
+    "flags": []
+  },
+  "ornament_inkwash_a": {
+    "sheet": "sheet_a1",
+    "size": [
+      583,
+      171
+    ],
+    "source_box": [
+      71,
+      516,
+      654,
+      687
+    ],
+    "tiles": [
+      {
+        "file": "ornament_inkwash_a.png",
+        "x": 0,
+        "width": 583,
+        "height": 171
+      }
+    ],
+    "flags": []
+  },
+  "ornament_inkwash_b": {
+    "sheet": "sheet_a1",
+    "size": [
+      765,
+      172
+    ],
+    "source_box": [
+      725,
+      520,
+      1490,
+      692
+    ],
+    "tiles": [
+      {
+        "file": "ornament_inkwash_b.png",
+        "x": 0,
+        "width": 765,
+        "height": 172
+      }
+    ],
+    "flags": []
+  },
+  "ornament_seal_square": {
+    "sheet": "sheet_a1",
+    "size": [
+      229,
+      219
+    ],
+    "source_box": [
+      367,
+      735,
+      596,
+      954
+    ],
+    "tiles": [
+      {
+        "file": "ornament_seal_square.png",
+        "x": 0,
+        "width": 229,
+        "height": 219
+      }
+    ],
+    "flags": []
+  },
+  "ornament_seal_round": {
+    "sheet": "sheet_a1",
+    "size": [
+      255,
+      255
+    ],
+    "source_box": [
+      877,
+      717,
+      1132,
+      972
+    ],
+    "tiles": [
+      {
+        "file": "ornament_seal_round.png",
+        "x": 0,
+        "width": 255,
+        "height": 255
+      }
+    ],
+    "flags": []
+  },
+  "ornament_plaque_end_large": {
+    "sheet": "a1/plaque_end_large",
+    "size": [
+      1651,
+      512
+    ],
+    "source_box": [
+      177,
+      131,
+      1828,
+      643
+    ],
+    "tiles": [
+      {
+        "file": "ornament_plaque_end_large.png",
+        "x": 0,
+        "width": 1651,
+        "height": 512
+      }
+    ],
+    "flags": []
   }
 }

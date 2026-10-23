@@ -22,3 +22,14 @@ Pieces, rows left to right:
 They are mounted in the Figma UI kit's ornament components (corner sets mirrored), so
 the kit's frames, buttons and bars use them. Not yet uploaded to Roblox or previewed in
 Studio. The thin dark-red line between the panel corner's rails is in the generated art.
+
+## Sheet A1
+`art/ui/codex/sheet_a1.png` (sheet A1 of codex-sheets): `plaque_end`, `plaque_end_small`,
+`divider_diamond`, `divider_cloud`, `divider_vertical`, `inkwash_a`, `inkwash_b`,
+`seal_square`, `seal_round`. Codex also redrew the plaque end alone at large size,
+`art/ui/codex/a1/plaque_end_large.png` (cut as `plaque_end_large`, 1651 px wide: halve it
+before Roblox, which caps textures at 1024). The ink-wash clouds were generated
+lilac against the magenta; the despill turns them blue-lavender and they are opaque,
+so the kit shows them at 14 % opacity. In the Figma kit the large plaque end (and a
+mirrored copy) is the title plaque's ends, `inkwash_b` is the panel pattern, and the
+dividers and seals are new components.

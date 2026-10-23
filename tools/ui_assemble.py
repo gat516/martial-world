@@ -94,6 +94,13 @@ PIECE_SHEETS = {
         "scroll_stud", "ruby_stud", "gold_stud",
         "keyplate", "chevron",
     ],
+    "sheet_a1": [
+        "plaque_end", "plaque_end_small",
+        "divider_diamond", "divider_cloud", "divider_vertical",
+        "inkwash_a", "inkwash_b",
+        "seal_square", "seal_round",
+    ],
+    "a1/plaque_end_large": ["plaque_end_large"],
 }
 SHEET_GROUP_GAP = 16  # px; parts of one piece closer than this belong together
 SHEET_MIN_AREA = 400  # px; smaller islands are generator noise

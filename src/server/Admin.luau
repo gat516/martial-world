@@ -31,6 +31,7 @@ local Roots = require(script.Parent.Roots)
 local RootDefs = require(ReplicatedStorage.Shared.Roots)
 local Methods = require(script.Parent.Methods)
 local MethodDefs = require(ReplicatedStorage.Shared.Methods)
+local Realms = require(ReplicatedStorage.Shared.Realms)
 
 local MAX_COUNT = 999
 local MAX_SPAWN = 10
@@ -217,6 +218,26 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 	rootGrade = function(player)
 		local ok, reason = Roots.raiseGrade(player)
 		return ok, if ok then "Root grade raised" else reason
+	end,
+	-- jump to a realm stage by key ("QC9", "FE1"), qi untouched and tribulation cooldown cleared
+	realm = function(player, data, key)
+		local stage = type(key) == "string" and Realms.ByKey[key]
+		if not stage then
+			return false, "Unknown stage"
+		end
+		data.realm = { major = stage.major, minor = stage.minor }
+		data.tribulationReadyUnix = 0
+		Cultivation.applyStats(player, data)
+		Cultivation.pushState(player)
+		return true, `Realm: {key}`
+	end,
+	-- face the current stage's heavenly tribulation now
+	tribulation = function(player)
+		local start = Cultivation.startTribulation
+		if not start then
+			return false, "Tribulation not loaded"
+		end
+		return start(player)
 	end,
 	fillQi = function(player, data)
 		data.rawQi = Cultivation.stage(data).dantian

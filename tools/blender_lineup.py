@@ -6,7 +6,8 @@ set collection names worn together, e.g.
     LOOKS = [[["FoxEarsSleek", "FoxTailPlume"], ["FoxEarsBroad", "FoxTailCrescent"]],
              [["WolfEarsSentinel", "WolfTailBrush"]]]
 Optional globals: SPACING (studs between bodies, default 6), BODY (the body collection,
-default "R6Reference"), SCENE ("Lineup"). The sets aren't moved or copied: each body is a
+default "R6Reference"), LINEUP_SCENE ("Lineup"; SCENE is ignored, since build scripts
+running in the same live window often define it). The sets aren't moved or copied: each body is a
 collection instance, so rebuilding a set updates the lineup. Bones are hidden in the view.
 """
 import bpy
@@ -15,7 +16,7 @@ LOOKS = globals().get("LOOKS")
 assert LOOKS, "set LOOKS: rows of looks, each a list of set collection names"
 SPACING = float(globals().get("SPACING", 6.0))
 BODY = globals().get("BODY", "R6Reference")
-SCENE = globals().get("SCENE", "Lineup")
+SCENE = globals().get("LINEUP_SCENE", "Lineup")  # not SCENE: build scripts in a live window often define it
 
 old = bpy.data.scenes.get(SCENE)
 if old:

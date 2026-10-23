@@ -15,7 +15,8 @@ The user's standing complaints, which you check for first:
 - animation: stiff ("everything moves together and stops dead"), floaty, no
   anticipation, turning after landing, twitching
 - effects: "thrown all over the place", not coming from the hand or mouth, same ten
-  generic textures, flat discs, ghost body copies, crowns and halos
+  generic textures, flat discs, ghost body copies, crowns and halos, anything
+  camera-facing (a billboard card, a slash that faces the player instead of the swing)
 - bodies: drifted from the user's reference (silhouette, colours, proportions),
   floating or clipping parts, "generic", no single hero shape
 - UI: "cube with ornaments smacked on", heavy ornament on repeated tiles, off

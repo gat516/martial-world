@@ -1775,6 +1775,13 @@
    <float name="RollOffMaxDistance">150</float>
   </Properties>
   </Item>
+  <Item class="Sound" referent="SGSFXGuideArrive"><Properties>
+   <string name="Name">GuideArrive</string>
+   <Content name="SoundId"><url>rbxassetid://131722051883127</url></Content>
+   <float name="Volume">0.4</float>
+   <float name="RollOffMaxDistance">120</float>
+  </Properties>
+  </Item>
   <Item class="Sound" referent="SGSFX28"><Properties>
    <string name="Name">Swing</string>
    <Content name="SoundId"><url>rbxassetid://123796710194563</url></Content>

@@ -58,10 +58,12 @@ cursor, settings and the admin panel.
   `guide` pulses one control; first-session beats spotlight it under a gentle
   ink veil (`Hud.Guide`, art `guide_hole.png`, SliceCenter Rect(48, 48, 80, 80),
   SliceScale 0.5) with the elder's line in a note-panel callout beside it, other
-  HUD controls ignoring taps until it's pressed. Walking goals get a chevron
-  beam (`Hud.GuideTrail`, `guide_trail.png`), a bobbing gold arrow over the
-  target (`Hud.GuideMarker`) and the same arrow at the screen edge when it's off
-  screen (`guide_arrow.png`). Lessons that need more than a pulse (the root
+  HUD controls ignoring taps until it's pressed. Walking goals get a bobbing
+  gold arrow over the target (`Hud.GuideMarker`) and the same arrow at the
+  screen edge when it's off screen (`guide_arrow.png`); the ground path, target
+  circle and arrival flourish are world effects (`GuideFX`, `Effects.Guide`,
+  see onboarding "Guide visuals"). `Hud.GuideTrail` (`guide_trail.png`) is no
+  longer used and can be dropped from the Hud. Lessons that need more than a pulse (the root
   pill) use `point`: the same arrow bobbing beside the control
   (`Hud.Guide.Pointer`) with a short line in the callout, no veil. A guide can
   point into an open window (the pill's Absorb button) and scrolls it into

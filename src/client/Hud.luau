@@ -127,9 +127,9 @@ function Hud.setBar(bar: Frame, value: number, max: number, label: TextLabel?, t
 end
 local setBar = Hud.setBar
 
--- The bar fills, trails and flashes are 9-sliced images whose ends are cut at 45
--- degrees (art/ui/hud_fill_*.png, 64 px tall). Keeping SliceScale at height / 64
--- keeps the cut at 45 degrees at any stack size; the authored values fit the PC
+-- The bar fills, trails and flashes are 9-sliced images with pointed or rounded
+-- ends (art/ui/hud_fill_*.png, 64 px tall). Keeping SliceScale at height / 64
+-- keeps the ends in proportion at any stack size; the authored values fit the PC
 -- stack, so Studio's edit view already matches.
 local SLANT_SOURCE_HEIGHT = 64
 local SLANTED = { Fill = true, Trail = true, Flash = true, Sheen = true }

@@ -17,25 +17,24 @@ a gilt rim, end lozenges and small curls so the bars get the height, not the
 frame. Fills are bright (crimson health, azure qi, lit pale-gold guard) and
 authored full, so the edit view and the first frame read full.
 
-Bar shape (user, 2026-10-23, after the enemy bar): every bar is cut at 45
-degrees. Health, qi, the seated track are square on the left with a slanted
-right end (health's and qi's ends lie on one line), and the leading edge stays
-slanted as the bar drains; the guard (draining toward its centre seal) and the
-dantian beside it in the tray are parallelograms. The slant is 45 degrees so it
-runs parallel to the diamond caps' faces, and the ruby sits on health's slanted
-tip as a finial rather than over the cut (the enemy bar's gem-over-slant is
-what the user found uncohesive). How: `Fill`, `Trail` and `Flash` are
-ImageLabels with a white slanted image (`hud_fill_r.png`, or `hud_fill_lr.png`
-for both ends) 9-sliced so only the plain middle stretches and the cut keeps
-its shape at any width; the `Theme` gradient (or `ImageColor3` for the trail and
-flashes) colours it, and the Fill's `Sheen` child (`hud_sheen_*`: top lip,
-darker belly, lit slanted edge) is sliced the same way. Hud keeps every such
-image's `SliceScale` at its height / 64 so the cut stays at 45 degrees on any
-stack size. The bar frames themselves are transparent: their dark troughs, rims,
-segment cuts (parallel to the leading edge) and caps are baked into the
-plate and rims art. The seated overflow box starts 33.8 px left of the
-cultivation box's end so its slanted start meets the full cultivation fill on
-the breakthrough mark. The
+Bar shape (user, 2026-10-23, from their pre-reskin HUD; a 45-degree slant tried
+first was rejected as overdone): health comes to a short point at both ends
+(depth 0.3 of its height), each tip covered by a `ruby_stud` cap with a small
+gold diamond outside it on the frame, and slanted segment cuts inside; qi is a
+plain rounded bar inset to health's full-height span; the guard and the
+dantian are rounded bars centred in the symmetric tray under the ruby seal. The
+seated track is pointed at both ends with ruby caps, split by the breakthrough
+mark into the cultivation fill (pointed start, square end) and the overflow
+(square start, pointed end). How: `Fill`, `Trail` and `Flash` are ImageLabels
+of a white shape (`hud_fill_pt`, `_ptl`, `_ptr`, `_round`; `draw_vitals.py`)
+9-sliced so only the plain middle stretches and the ends keep their shape at
+any width, so a draining fill keeps its pointed or rounded leading edge; the
+`Theme` gradient (or `ImageColor3` for the trail and flashes) colours it, and
+the Fill's `Sheen` child (`hud_sheen_*`: top lip, darker belly) is sliced the
+same way. Hud keeps every such image's `SliceScale` at its height / 64 so the
+ends keep their proportions on any stack size. The bar frames themselves are
+transparent: troughs, rims, cuts and caps are baked into the plate and rims
+art. The
 stack takes at most 39% of the screen's height (`Layout` HEIGHT_SHARE), 31% on
 short screens (`Platform.isSmall`, SMALL_HEIGHT_SHARE; 45% once, which on a
 landscape phone in the device emulator, which gets the PC layout, filled over
@@ -57,7 +56,7 @@ Art (kit reskin, user, 2026-10-22): exported from the Figma kit, not drawn by
 script. `art/ui/figma/` holds the Figma exports (source frame, pieces and the
 re-export steps in its README): `Vitals.Plate` (ZIndex 0, behind the bars) is
 the notched body, guard tray and troughs, `Vitals.Mount` (ZIndex 3, over the
-bars) the slanted rims, segment cuts, caps, studs and the guard seal, `Crest`
+bars) the rims, segment cuts, ruby caps, studs and the guard seal, `Crest`
 the kit's title plaque, and the Dash/Strike chips the kit's round seal with the
 white `element_wind` / `weapon_sword` kit cuts (28 px at the 560 px stack,
 glyphs at 60%, left edge on the plate body's left edge, 2 px above the slots).
@@ -70,7 +69,7 @@ slot's `Halo` is `item_slot_selected` with its middle keyed out
 (`tools/key_inner.py`), drawn over the frame. `draw_vitals.ps1`'s
 `vitals_mount`, `seat_mount`, `realm_plaque`, `vitals_chip` and `name_plaque`
 are no longer used, nor are `fill_sheen`/`fill_edge` (still drawn by
-`draw_vitals.py`, which now also draws the slanted fills).
+`draw_vitals.py`, which now also draws the shaped fills).
 The seated tiles, lotus, Force Breakthrough pill and the touch prompt dock's
 column sit just above the plate and moved down with it; the lotus is centred
 on the tiles' frames, 14 px past the last tile (`Meditation` LOTUS_GAP). Cultivation and the dantian
@@ -138,10 +137,14 @@ against the Lock button's arc on a phone); GuardController binds it.
 - The Figma reskin (2026-10-22) was previewed in edit view at PC size (560 px
   stack), standing and seated, with a filled and a held hotbar slot; not on a
   phone or the emulator, not in play.
-- The slanted bars (2026-10-23) were previewed in edit view at PC size,
-  standing (full and part-drained health, trail, qi, guard) and seated, and
-  their alignment checked numerically against the baked windows at a 560x149
-  and a 430x114 stack (every bar box, label, chip and glyph within 0.25 px).
+- The pointed/rounded bars (2026-10-23) were previewed in edit view (a short
+  952x306 viewport), standing (full and part-drained health, trail, qi, guard)
+  and seated, and checked numerically at a 560x149 and a 430x114 stack: every
+  bar box on its baked window to 0.00 px, labels, glyphs and slot frames
+  centred to 0.00 px, the guard and dantian within 0.25 px of the tray centre
+  with equal trough-to-tray gaps on both sides, health and qi 0.26 px right of
+  the plate centre. Edit view doesn't run Hud's SliceScale keeper, so at
+  smaller stacks the points look a touch larger there than in play.
   Not checked in play: the deny and parry flashes, trail tweens, guard jolt, the
   calm fade over the image fills, and the SliceScale keeper on a resize.
 - Bar numbers over a bright fill show the black text stroke as a ghost of the

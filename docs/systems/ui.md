@@ -30,7 +30,8 @@ cursor, settings and the admin panel.
   nothing extra: `ScrollHint.init` picks up every ScrollingFrame in the Hud.
   The top-left is always Roblox's chat. On PC, shift lock switches off while
   any window (reward card and minigames included) is open, so the mouse is free,
-  and comes back when it closes (`ShiftLock`; `TestbedAltMouseLock` in the testbed).
+  and comes back when it closes only if it was on as the window opened; Alt over
+  a window does nothing (`ShiftLock`; `TestbedAltMouseLock` in the testbed).
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
 - The bottom-centre stack (user decision, 2026-10-22, from a Deepwoken-style
   reference in our own style): one gilded mount holding health, combat qi and

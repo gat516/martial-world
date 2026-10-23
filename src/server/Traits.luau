@@ -18,9 +18,14 @@
 -- (`Mechanics`). Register a handler in Traits.mechanics[id] = { attach =
 -- fn(player), detach = fn(player) } and it's attached while the player has it.
 -- Nothing is registered yet; unknown ids do nothing.
+--
+-- Cosmetics: races, variants and traits may name accessories (`Cosmetics`, ids
+-- in ServerStorage.Cosmetics, assets/Cosmetics.rbxm). applyBody wears them while
+-- they apply and takes them off when they don't, along with the body size.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Requirements = require(ReplicatedStorage.Shared.Identity.Requirements)
@@ -105,22 +110,74 @@ function Traits.scaleCharacter(character: Model, target: number)
 	character:PivotTo(pivot + Vector3.yAxis * (target - current) * ROOT_HEIGHT)
 end
 
--- Gives the player's character its scale. Skipped while CharacterIdentity is
--- dressing it (it unscales, dresses, then calls this again), so accessories and
--- clothing always go on at scale 1 and grow with the body.
-function Traits.applySize(player: Player)
+--[[ Cosmetics (fox ears and tail: `Cosmetics` on races, variants and traits) ]]
+
+local COSMETIC_ATTRIBUTE = "Cosmetic" -- on each worn cosmetic accessory: its id
+local warnedCosmetic: { [string]: boolean } = {}
+
+local function cosmeticTemplate(id: string): Accessory?
+	local folder = ServerStorage:FindFirstChild("Cosmetics")
+	local template = folder and folder:FindFirstChild(id)
+	if template and template:IsA("Accessory") then
+		return template
+	end
+	if not warnedCosmetic[id] then
+		warnedCosmetic[id] = true
+		warn(`Traits: cosmetic "{id}" isn't in ServerStorage.Cosmetics (assets/Cosmetics.rbxm)`)
+	end
+	return nil
+end
+
+-- Brings the character's body in line with the profile: the cosmetics its race,
+-- variant and active traits call for (added or taken off), then its size.
+-- Cosmetics go on at scale 1 and grow with the body, like dress-up's accessories.
+-- Skipped while CharacterIdentity is dressing it (it unscales, dresses, then calls
+-- this again), since ApplyDescription strips accessories.
+function Traits.applyBody(player: Player)
 	local character = player.Character
 	local data = PlayerData.get(player)
 	if not (character and data) or character:GetAttribute("Dressing") then
 		return
 	end
-	if not character:FindFirstChild("HumanoidRootPart") then
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not (humanoid and character:FindFirstChild("HumanoidRootPart")) then
 		return
 	end
-	Traits.scaleCharacter(character, Traits.scaleOf(data))
+	local want = Registry.cosmetics(data)
+	local worn: { [string]: Accessory } = {}
+	for _, child in character:GetChildren() do
+		local id = child:GetAttribute(COSMETIC_ATTRIBUTE)
+		if child:IsA("Accessory") and type(id) == "string" then
+			worn[id] = child
+		end
+	end
+	local stale, missing = {}, {}
+	for id, accessory in worn do
+		if not want[id] then
+			table.insert(stale, accessory)
+		end
+	end
+	for id in want do
+		if not worn[id] and cosmeticTemplate(id) then
+			table.insert(missing, id)
+		end
+	end
+	local target = Traits.scaleOf(data)
+	if #stale > 0 or #missing > 0 then
+		Traits.scaleCharacter(character, 1)
+		for _, accessory in stale do
+			accessory:Destroy()
+		end
+		for _, id in missing do
+			local accessory = (cosmeticTemplate(id) :: Accessory):Clone()
+			accessory:SetAttribute(COSMETIC_ATTRIBUTE, id)
+			humanoid:AddAccessory(accessory)
+		end
+	end
+	Traits.scaleCharacter(character, target)
 end
 
--- Every spawn gets its size once the avatar's appearance has loaded (accessories
+-- Every spawn gets its cosmetics and size once the avatar's appearance has loaded (accessories
 -- that arrive later would stay small otherwise).
 function Traits.watch(player: Player)
 	local function onCharacter(character: Model)
@@ -129,7 +186,7 @@ function Traits.watch(player: Player)
 			waited += task.wait(0.1)
 		end
 		if player.Character == character then
-			Traits.applySize(player)
+			Traits.applyBody(player)
 		end
 	end
 	player.CharacterAdded:Connect(onCharacter)
@@ -166,7 +223,7 @@ function Traits.publish(player: Player, data: PlayerData.Data)
 	end
 	attached[player] = now
 	Cultivation.applyStats(player, data)
-	Traits.applySize(player)
+	Traits.applyBody(player)
 end
 
 local function add(player: Player, data: PlayerData.Data, id: string, src: string, force: boolean?)

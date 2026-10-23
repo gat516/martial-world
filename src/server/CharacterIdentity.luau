@@ -288,7 +288,7 @@ local function dress(player: Player, look: Look)
 		return
 	end
 	-- dress at scale 1 (ApplyDescription and new accessories assume it); the size
-	-- comes back at the end (Traits.applySize skips while Dressing is set)
+	-- comes back at the end (Traits.applyBody skips while Dressing is set)
 	character:SetAttribute("Dressing", true)
 	Traits.scaleCharacter(character, 1)
 	local shirt = optionById(Clothing.Shirt, look.Shirt)
@@ -349,10 +349,10 @@ local function dress(player: Player, look: Look)
 			humanoid:AddAccessory(copy)
 		end
 	end
-	-- back to the body size the profile calls for (Titan Frame), now that
+	-- back to the cosmetics and body size the profile calls for (fox ears, Titan Frame), now that
 	-- everything is on and can grow with it
 	character:SetAttribute("Dressing", nil)
-	Traits.applySize(player)
+	Traits.applyBody(player)
 end
 
 local function confirm(player: Player, raw: any): (boolean, any)

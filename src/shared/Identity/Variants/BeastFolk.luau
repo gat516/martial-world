@@ -32,6 +32,7 @@ export type Variant = {
 	InnateTraits: { string }?,
 	Modifiers: { [string]: number }?,
 	Mechanics: { string }?,
+	Cosmetics: { string }?,
 }
 
 local Variants: { [string]: Variant } = {

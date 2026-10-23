@@ -19,6 +19,8 @@
 --   Mechanics                 optional ids of passives or abilities this race
 --                             unlocks, resolved by the server's Traits.mechanics
 --                             registry (none are built yet; unknown ids are inert)
+--   Cosmetics                 optional accessory ids every member wears
+--                             (ServerStorage.Cosmetics; see Traits/Racial.luau)
 --
 -- Existing races (Human, Spirit Fox, Stone Spirit, Dragonblood) are placeholders
 -- from the character screen; the four after them were added 2026-10-23.
@@ -33,6 +35,7 @@ export type Race = {
 	InnateTraits: { string }?,
 	Modifiers: { [string]: number }?,
 	Mechanics: { string }?,
+	Cosmetics: { string }?,
 }
 
 local Races: { [string]: Race } = {

@@ -46,6 +46,7 @@ screen it extends ([character creator](character-creator.md)).
 | A new trait category | a new file in `Traits/`; its name is the category |
 | Release, hide, disable; Roll / Select / Unlock; unlock requirements | `src/shared/Identity/Availability.luau` |
 | A new kind of unlock requirement | one checker in `src/shared/Identity/Requirements.luau` |
+| Accessories a race, variant or trait wears (`Cosmetics`) | `ServerStorage.Cosmetics` (`assets/Cosmetics.rbxm`), ids listed on the definition |
 | Passive or ability code for a `Mechanics` id | register `Traits.mechanics[id] = { attach, detach }` (server) |
 
 Each file's header lists its fields. The vocabulary:
@@ -141,6 +142,17 @@ Race changes. "Choose Race" / "Choose Variant" card pickers appear only when
 `Bridge.getChoices()` returns something (Select, or Unlock with Requires met);
 a card calls `Bridge.choose`, the server checks it, and the screen follows the
 attributes. Choices are re-asked whenever Race or RaceVariant changes.
+
+## Cosmetics
+Races, variants and traits can name accessories to wear (`Cosmetics = { ... }`,
+ids of Accessories in `ServerStorage.Cosmetics`, `assets/Cosmetics.rbxm`, mapped
+in both projects). Fox Cunning (Spirit Fox's innate trait) wears `FoxEars` and
+`FoxTail`, a rigged prototype (user, 2026-10-23; the build and joint names are in
+`art/player/cosmetics/README.md`). `Traits.applyBody` adds the ones the profile
+calls for and removes the rest (each worn one carries a `Cosmetic` attribute with
+its id) on every spawn, every trait, race or variant change, and after dress-up
+(ApplyDescription strips accessories). They go on at scale 1 and grow with the
+body. A missing template warns once and is skipped.
 
 ## Body size
 The `size` modifier (Titan Frame: 15% larger, user 2026-10-23; 25% was too big) scales the character with

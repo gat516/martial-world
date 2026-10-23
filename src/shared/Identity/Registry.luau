@@ -325,6 +325,40 @@ function Registry.stat(data: any, kind: string): number
 	return total
 end
 
+--[[ Cosmetics ]]
+
+-- Accessories the character wears for who they are (fox ears and tail from the
+-- fox trait): every `Cosmetics` id on the race, the variant and each active trait.
+-- Ids name accessories in ServerStorage.Cosmetics (assets/Cosmetics.rbxm); the
+-- server's Traits.applyBody puts them on and takes them off. { [id]: true }
+function Registry.cosmetics(data: any): { [string]: boolean }
+	local set = {}
+	local identity = data and data.identity :: Identity?
+	if not identity or identity.race == "" then
+		return set
+	end
+	local race = Races[identity.race]
+	if race and not Registry.disabled(Registry.raceEntry(identity.race)) then
+		for _, id in race.Cosmetics or {} do
+			set[id] = true
+		end
+		local variant = Registry.variant(identity.race, identity.variant)
+		if variant and not Registry.disabled(Registry.variantEntry(identity.race, identity.variant)) then
+			for _, id in variant.Cosmetics or {} do
+				set[id] = true
+			end
+		end
+	end
+	for id in identity.traits do
+		if Registry.active(data, id) then
+			for _, cosmetic in Registry.Traits[id].Cosmetics or {} do
+				set[cosmetic] = true
+			end
+		end
+	end
+	return set
+end
+
 --[[ Config check ]]
 
 -- Every problem in the config, as readable lines (also warned once at load, so a

@@ -152,7 +152,7 @@ function Weapons.apply(player: Player)
 		model:Destroy()
 		return
 	end
-	-- A scaled body (a Titan Frame giant, Traits.applySize) holds a weapon scaled
+	-- A scaled body (a Titan Frame giant, Traits.applyBody) holds a weapon scaled
 	-- to match: ScaleTo also scales the hand joint's C0/C1, so the grip lands on
 	-- the bigger hand. A weapon already held when the body scales grows with it.
 	local scale = character:GetScale()

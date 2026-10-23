@@ -768,6 +768,9 @@
       "WaterKit": {
         "$path": "assets/WaterKit.rbxm"
       },
+      "Cosmetics": {
+        "$path": "assets/Cosmetics.rbxm"
+      },
       "WeaponModels": {
         "$path": "assets/WeaponModels.rbxm"
       },

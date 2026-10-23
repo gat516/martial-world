@@ -77,11 +77,34 @@ local function copySkin()
 	end
 end
 
+local ground = 0 -- the pedestal top under the dummy's feet (measured in init)
+
+-- The lowest point of the dummy's legs.
+local function feet(): number
+	local low = math.huge
+	for _, name in { "Left Leg", "Right Leg" } do
+		local leg = dummy:FindFirstChild(name)
+		if leg and leg:IsA("BasePart") then
+			low = math.min(low, leg.Position.Y - leg.Size.Y / 2)
+		end
+	end
+	return low
+end
+
+-- The camera keeps the whole body in view: a bigger body (Giant) pulls it back
+-- and up by the same share, so the character fills the stage the same way and
+-- reads big against the pedestal instead of running off the top.
 local function frame()
 	local fov = math.rad(camera.FieldOfView)
-	local distance = (FRAME_HEIGHT / 2) / math.tan(fov / 2)
+	local distance = (FRAME_HEIGHT * bodyScale / 2) / math.tan(fov / 2)
+	local function lift(y: number): number
+		return ground + (y - ground) * bodyScale
+	end
 	-- the dummy faces -Z, so the camera stands on that side
-	camera.CFrame = CFrame.lookAt(Vector3.new(0, CAMERA_HEIGHT, -distance), LOOK_AT)
+	camera.CFrame = CFrame.lookAt(
+		Vector3.new(LOOK_AT.X, lift(CAMERA_HEIGHT), -distance),
+		Vector3.new(LOOK_AT.X, lift(LOOK_AT.Y), LOOK_AT.Z)
+	)
 end
 
 local function pose()
@@ -105,6 +128,7 @@ function Preview.init(frameGui: ViewportFrame, templates: Folder)
 	base = dummy:GetPivot()
 	dummy.Parent = world
 	copySkin()
+	ground = feet()
 	frame()
 	pose()
 
@@ -181,16 +205,6 @@ end
 local function scaleBody(target: number)
 	if math.abs(dummy:GetScale() - target) < 1e-3 then
 		return
-	end
-	local function feet(): number
-		local low = math.huge
-		for _, name in { "Left Leg", "Right Leg" } do
-			local leg = dummy:FindFirstChild(name)
-			if leg and leg:IsA("BasePart") then
-				low = math.min(low, leg.Position.Y - leg.Size.Y / 2)
-			end
-		end
-		return low
 	end
 	dummy:PivotTo(base)
 	local before = feet()
@@ -279,6 +293,7 @@ function Preview.setRaceLook(templates: { Accessory }, scale: number)
 		end
 	end
 	scaleBody(bodyScale)
+	frame()
 end
 
 -- Paints another dummy's body (an outfit card's) in the stage dummy's colours, so

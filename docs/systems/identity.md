@@ -180,7 +180,9 @@ body. A missing template warns once and is skipped.
 The creator's preview dummy wears the drawn race's look too (`Look.race`):
 `Registry.fresh(race, variant)` stands in for a new character (only innate
 traits), and `Preview.setRaceLook` puts its cosmetics on (rigid copies, no
-joints, at scale 1) and scales the body, feet kept on the pedestal. It follows
+joints, at scale 1) and scales the body, feet kept on the pedestal; the camera
+pulls back by the same share so a bigger body still fits the stage (user,
+2026-10-23) and reads big against the pedestal. It follows
 every race reroll, and the slot screen shows each slot's race the same way.
 
 ## Body size

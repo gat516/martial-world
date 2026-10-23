@@ -5432,14 +5432,14 @@ Owned 0 · 0 placed · peak cap 120</string>
       <string name="Name">Plate</string>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://114841895871799</url></Content>
+      <Content name="Image"><url>rbxassetid://103566332345292</url></Content>
      </Properties>
      </Item>
      <Item class="Frame" referent="BOSS7"><Properties>
       <string name="Name">Bar</string>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.05</XS><XO>0</XO><YS>0.384615</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.885714</XS><XO>0</XO><YS>0.230769</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.832143</XS><XO>0</XO><YS>0.230769</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
      </Properties>
       <Item class="ImageLabel" referent="BOSS8"><Properties>
@@ -5500,14 +5500,14 @@ Owned 0 · 0 placed · peak cap 120</string>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">8</int>
-      <Content name="Image"><url>rbxassetid://120050796305806</url></Content>
+      <Content name="Image"><url>rbxassetid://121536380682548</url></Content>
      </Properties>
      </Item>
      <Item class="Frame" referent="BOSS14"><Properties>
       <string name="Name">Pips</string>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.05</XS><XO>0</XO><YS>0.384615</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.885714</XS><XO>0</XO><YS>0.230769</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.832143</XS><XO>0</XO><YS>0.230769</YS><YO>0</YO></UDim2>
       <int name="ZIndex">10</int>
      </Properties>
      </Item>
@@ -5600,7 +5600,7 @@ Owned 0 · 0 placed · peak cap 120</string>
       <string name="Name">Cracks</string>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.05</XS><XO>0</XO><YS>0.384615</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.885714</XS><XO>0</XO><YS>0.230769</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.832143</XS><XO>0</XO><YS>0.230769</YS><YO>0</YO></UDim2>
       <int name="ZIndex">9</int>
      </Properties>
      </Item>

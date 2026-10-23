@@ -19,9 +19,11 @@ screen's width, laid out on a 560x104 box (`UIAspectRatioConstraint` 5.385, `Max
 - the bar: a dark navy plate with a thin gilt rim (the vitals mount's body), a trough
   whose right end is cut at 45 degrees, slanted segment cuts every tenth, a small gold
   diamond cap on the left end, and on the right a square gold-rimmed socket holding the
-  kit's ruby star. The socket hides the whole slant (user, 2026-10-23: the ruby alone left
-  the diagonal showing); measured in the art, the slant's corners sit 2.1 to 11.3 px (at
-  1x) inside its opaque area;
+  kit's ruby star. The socket hides the plate's whole slant (user, 2026-10-23: the ruby
+  alone left the diagonal showing; its corners sit 4.1 and 4.8 px at 1x inside the
+  socket's opaque area, which starts at x 497.5). The trough ends left of it (x 494 at the
+  top, 470 at the bottom), so the whole fill shows: at 100% its leading edge is 3.5 px
+  clear of the socket, and a 1% drop is 4.7 px on PC and 3.1 px on a 371 px phone bar;
 - under the bar: the title, then the omen, on one centred row (`TitleLabel`, `OmenLabel`),
   and the realm right-aligned under the bar's end (`RealmLabel`).
 Phase thresholds are gold studs (`gold_stud` cut) on the plate's top rim (`Pips`, made at
@@ -33,9 +35,9 @@ bar height / 64.
 
 Instance tree: `BossBar > Body > Plate` (behind), `Bar` (Trail, Fill > Sheen, Flare),
 `Mount` (over the bar), `Cracks`, `Pips`, the four labels. Plate and Mount fill the box
-(Stretch), so moving the bar means moving it in the Figma sheet too. Bar window, measured
-in `bossbar_plate.png`: x 27.3..524.5, y 39.4..64.0 of 560x104; `Bar` sits at 28..524 x
-40..64.
+(Stretch), so moving the bar means moving it in the art too. Bar window, measured in
+`bossbar_plate.png`: x 27.3..494, y 39.4..64.0 of 560x104; `Bar`, `Pips` and `Cracks` sit
+at 28..494 x 40..64.
 
 ## Art
 Exported from the Figma UI kit (file `9u6RPHLelUJF6aABm6mY7y`, Example page): the sheet
@@ -45,7 +47,11 @@ plaque's plate, `gold_stud`, `ruby_stud`). `Boss Bar / preview` (node 35:194) sh
 bosses. To re-export: export the sheet at scale 2 twice with `download_assets` (as is, and
 with the sheet's fill set to black; set it back after), then
 `uv run --with pillow --with numpy python tools/figma_boss_export.py light.png dark.png`
-(writes `art/ui/figma/boss/bossbar_plate.png`, `bossbar_mount.png`, 1024x190). A changed
+(writes `art/ui/figma/boss/bossbar_plate.png`, `bossbar_mount.png`, 1024x190). The sheet
+still has the first, longer trough (to x 524, under the socket): the shorter one was made
+after the plan's Figma calls ran out, by `tools/boss_trough_patch.py` on the matted export
+(its docstring has the steps). Update the sheet's Trough, Rim and cuts to 466 wide and drop
+that step. A changed
 PNG needs a new upload; ids in `art/ui/assets.json` and `BossThemes.MOUNT`. The pip and
 crack are the kit cuts `art/ui/codex/cut/ornament_gold_stud.png` and
 `ornament_crack_split.png` (from `ui-assemble`).

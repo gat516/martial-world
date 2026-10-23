@@ -14,11 +14,19 @@
 -- cast() (at Hit, caster and observers): the staff end slams the ground with
 -- an impact; an awakening burst opens from the feet to def.radius (3D torus,
 -- a pillar of gold light, dust), an impact on every enemy the front reaches;
+-- the hero is the Sage's golden flame erupting up the body at the strike;
 -- then the buff aura holds on the caster for def.seconds: a golden circlet
 -- round the head, gold flame wisps rising off the body, the staff leaving
--- gold arcs on every swing; II+ cloud puffs at the feet and motes, III+
--- fiery golden eyes, IV a turning halo behind the back and one soft light.
--- It ends with a puff when the buff runs out (or the caster dies).
+-- gold arcs on every swing; II+ a seal of script fixed to the back of the
+-- head in its own frame (the sigil, faint at II, full at III, IV a
+-- counter-turning outer ring; both flare on every staff swing), cloud puffs at the feet and motes, III+ fiery golden
+-- eyes, IV one soft light. It ends with the sigil collapsing and a puff when
+-- the buff runs out (or the caster dies).
+-- Sounds (SoundService.SFX.Techniques.GreatSageAwakening) on every beat: the
+-- spin and a rising whirl through the twirl, cut at the strike; the bite, the
+-- ground slam and a low tail at the strike; the awakening as the sigil
+-- unfolds; a low hum while the sigil holds (II+); a pulse per swing (IV); the
+-- end.
 
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -27,6 +35,9 @@ local Client = script.Parent.Parent
 local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
 local WeaponFX = require(script.Parent.WeaponFX)
+local Sfx = require(Client.Sfx)
+
+local SFX = "Techniques/GreatSageAwakening/"
 
 local GreatSageAwakening = {}
 
@@ -35,6 +46,10 @@ local GreatSageAwakening = {}
 local DEFAULT_HIT = 1.15 -- when def.hits is missing
 local HIT, TWIRL_START = 1.15, 0.167
 local FADE_IN, FADE_OUT = 0.25, 0.45
+local WHIRL_AT = 0.6 -- clip s: the rising whirl joins the spin as it speeds up
+-- a staff swing while the buff holds: the far end's speed crosses SWING_FAST
+-- after dropping under SWING_SLOW (studs/s); not in the cast's own sweep
+local SWING_FAST, SWING_SLOW, SWING_GAP, SWING_AFTER = 38, 18, 0.4, 0.7
 
 -- Edit-mode previews set this to hold a frame (the driver stops moving parts).
 GreatSageAwakening.frozen = false
@@ -169,6 +184,21 @@ function GreatSageAwakening.windup(CombatEffects: any, def: any, level: number, 
 	-- hold through the downswing to the strike, where the buff's arcs take over
 	local stopTrails = function() end
 	local stopped = false
+	-- the spin's whirl from the Twirl start, a rising rush joining it as the
+	-- staff speeds up; both cut at the strike (or a cancel)
+	local sounds: { () -> () } = {}
+	local function soundAt(clipAt: number, name: string)
+		task.delay(clipAt / HIT * seconds, function()
+			if not stopped then
+				local stop = Sfx.play(SFX .. name, root)
+				if stop then
+					table.insert(sounds, stop)
+				end
+			end
+		end)
+	end
+	soundAt(TWIRL_START, "Spin")
+	soundAt(WHIRL_AT, "Whirl")
 	if twirl then
 		TechniqueVFX.fit(twirl, nil, twirl:GetAttribute("AuthoredWindup") :: number?, seconds)
 		local arc = twirl:FindFirstChild("Arc") :: Trail?
@@ -202,6 +232,9 @@ function GreatSageAwakening.windup(CombatEffects: any, def: any, level: number, 
 		unregister()
 		stopped = true
 		stopTrails()
+		for _, s in sounds do
+			s()
+		end
 	end
 	follow = RunService.RenderStepped:Connect(function()
 		if os.clock() - started > seconds or not root.Parent then
@@ -224,10 +257,52 @@ function GreatSageAwakening.windup(CombatEffects: any, def: any, level: number, 
 	return true
 end
 
-type Held = { part: BasePart, bone: BasePart, offset: CFrame, show: number, spin: number, pulse: number }
+type Held = { part: BasePart, bone: BasePart, offset: CFrame, show: number, spin: number, pulse: number, size: Vector3 }
+
+-- a sigil disc's images (the SurfaceGui ImageLabels, each with its Show)
+local function images(part: BasePart): { ImageLabel }
+	local list = {}
+	for _, d in part:GetDescendants() do
+		if d:IsA("ImageLabel") then
+			table.insert(list, d)
+		end
+	end
+	return list
+end
+
+local function tween(inst: Instance, seconds: number, goal: { [string]: any }, style: Enum.EasingStyle?, direction: Enum.EasingDirection?)
+	TweenService:Create(inst, TweenInfo.new(seconds, style or Enum.EasingStyle.Quad, direction or Enum.EasingDirection.Out), goal):Play()
+end
+
+-- unfold a sigil disc: it lands bright and oversized and settles (one peak)
+local function unfold(part: BasePart, size: Vector3)
+	part.Size = size * 0.3
+	tween(part, 0.11, { Size = size * 1.1 }, Enum.EasingStyle.Quart)
+	task.delay(0.11, function()
+		if part.Parent then
+			tween(part, 0.12, { Size = size }, Enum.EasingStyle.Sine)
+		end
+	end)
+	for _, img in images(part) do
+		img.ImageTransparency = 0
+		tween(img, 0.35, { ImageTransparency = num(img, "Show", 0.2) }, Enum.EasingStyle.Quad)
+	end
+end
+
+-- a staff swing flares a sigil disc: it swells a little and burns bright
+local function flare(part: BasePart, size: Vector3)
+	part.Size = size * 1.12
+	tween(part, 0.3, { Size = size })
+	for _, img in images(part) do
+		if img.Name == "Gold" then
+			img.ImageTransparency = 0
+			tween(img, 0.35, { ImageTransparency = num(img, "Show", 0.2) })
+		end
+	end
+end
 
 -- The buff aura on the caster for `seconds`: emitters moved onto the body,
--- held MeshParts (circlet, halo) driven on the body every frame.
+-- held parts (circlet, the sigil discs) driven on the body every frame.
 -- `auraPart`, `fade` and `staff` are taken off the template before it is
 -- emitted (the aura's emitters run on Rate, not EmitCount).
 local function aura(auraPart: BasePart, fade: BasePart?, staff: BasePart?, character: Model, seconds: number)
@@ -236,6 +311,7 @@ local function aura(auraPart: BasePart, fade: BasePart?, staff: BasePart?, chara
 	local moved: { Instance } = {}
 	local emitters: { ParticleEmitter } = {}
 	local held: { Held } = {}
+	local discs: { Held } = {}
 	local lights: { PointLight } = {}
 	for _, child in auraPart:GetChildren() do
 		local boneName = child:GetAttribute("Bone")
@@ -252,15 +328,21 @@ local function aura(auraPart: BasePart, fade: BasePart?, staff: BasePart?, chara
 			table.insert(moved, child)
 		elseif child:IsA("BasePart") then
 			local offset = child:GetAttribute("Offset")
-			table.insert(held, {
+			local h: Held = {
 				part = child,
 				bone = target,
 				offset = if typeof(offset) == "CFrame" then offset else CFrame.identity,
 				show = num(child, "Show", 0.2),
 				spin = math.rad(num(child, "Spin", 0)),
 				pulse = num(child, "Pulse", 0),
-			})
+				size = child.Size,
+			}
+			table.insert(held, h)
 			child.Transparency = 1
+			if child:GetAttribute("Gui") then
+				table.insert(discs, h)
+				child.Size = child.Size * 0.3
+			end
 			child.Parent = TechniqueVFX.folder
 		end
 	end
@@ -277,14 +359,34 @@ local function aura(auraPart: BasePart, fade: BasePart?, staff: BasePart?, chara
 		end
 	end
 	for _, h in held do
-		TweenService:Create(h.part, TweenInfo.new(FADE_IN, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Transparency = h.show }):Play()
+		if h.part:GetAttribute("Gui") then
+			task.delay(num(h.part, "EmitDelay", 0), function()
+				if h.part.Parent then
+					unfold(h.part, h.size)
+				end
+			end)
+		else
+			tween(h.part, FADE_IN, { Transparency = h.show })
+		end
 	end
 	for _, l in lights do
 		local goal = l.Brightness
 		l.Brightness = goal * 3
-		TweenService:Create(l, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Brightness = goal }):Play()
+		tween(l, 0.6, { Brightness = goal })
 	end
 	local stopTrails = staffTrails(character, arc)
+	-- the sigil's low hum while it holds (only when there is a sigil)
+	local head = bone(character, "Head")
+	local stopHum = if #discs > 0 and head then Sfx.play(SFX .. "Hum", head) else nil
+	local pulsing: { Held } = {}
+	for _, h in discs do
+		if h.part:GetAttribute("PulseOnSwing") then
+			table.insert(pulsing, h)
+		end
+	end
+	local tip = weaponEnds(character)
+	local lastTip: Vector3? = nil
+	local armed, lastPulse = false, 0
 
 	local started = os.clock()
 	local done = false
@@ -296,18 +398,30 @@ local function aura(auraPart: BasePart, fade: BasePart?, staff: BasePart?, chara
 		done = true
 		driver:Disconnect()
 		stopTrails()
+		if stopHum then
+			stopHum()
+		end
 		for _, e in emitters do
 			e.Enabled = false
 		end
 		for _, h in held do
-			TweenService:Create(h.part, TweenInfo.new(FADE_OUT, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Transparency = 1 }):Play()
+			if h.part:GetAttribute("Gui") then
+				-- the sigil collapses into the head and goes out
+				tween(h.part, FADE_OUT, { Size = h.size * 0.6 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+				for _, img in images(h.part) do
+					tween(img, FADE_OUT, { ImageTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+				end
+			else
+				tween(h.part, FADE_OUT, { Transparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+			end
 		end
 		for _, l in lights do
-			TweenService:Create(l, TweenInfo.new(FADE_OUT), { Brightness = 0 }):Play()
+			tween(l, FADE_OUT, { Brightness = 0 })
 		end
 		local root = bone(character, "HumanoidRootPart")
 		if burst and fade and root and root.Parent then
 			TechniqueVFX.burstAt(fade, root.CFrame)
+			Sfx.play(SFX .. "End", root)
 		end
 		task.delay(1.2, function()
 			for _, inst in moved do
@@ -324,7 +438,7 @@ local function aura(auraPart: BasePart, fade: BasePart?, staff: BasePart?, chara
 			end
 		end)
 	end
-	driver = RunService.Heartbeat:Connect(function()
+	driver = RunService.Heartbeat:Connect(function(dt: number)
 		if not character.Parent or (humanoid and humanoid.Health <= 0) then
 			finish(false)
 			return
@@ -337,12 +451,32 @@ local function aura(auraPart: BasePart, fade: BasePart?, staff: BasePart?, chara
 			finish(true)
 			return
 		end
+		-- IV: a staff swing flares the sigil (the far end's speed rising
+		-- through SWING_FAST after a pause under SWING_SLOW)
+		if #pulsing > 0 and tip and tip.Parent then
+			local p = tip.WorldPosition
+			if lastTip then
+				local speed = (p - lastTip).Magnitude / math.max(dt, 1 / 240)
+				if speed < SWING_SLOW then
+					armed = true
+				elseif armed and speed > SWING_FAST and t > SWING_AFTER and t - lastPulse > SWING_GAP then
+					armed, lastPulse = false, t
+					for _, h in pulsing do
+						flare(h.part, h.size)
+					end
+					if head then
+						Sfx.play(SFX .. "Pulse", head.Position, SWING_GAP)
+					end
+				end
+			end
+			lastTip = p
+		end
 		for _, h in held do
 			if not h.bone.Parent then
 				continue
 			end
-			local cf = h.bone.CFrame * h.offset * CFrame.Angles(0, h.spin * t, 0)
-			h.part.CFrame = cf
+			-- spin about the part's own Y (a sigil disc's normal)
+			h.part.CFrame = h.bone.CFrame * h.offset * CFrame.Angles(0, h.spin * t, 0)
 			if h.pulse > 0 and t > FADE_IN then
 				h.part.Transparency = h.show + h.pulse * (0.5 + 0.5 * math.sin(t * 4))
 			end
@@ -415,11 +549,17 @@ function GreatSageAwakening.cast(CombatEffects: any, def: any, level: number, ch
 	CastFX.keepCratersOffEnemies()
 	TechniqueVFX.rescale(copy, scale)
 	TechniqueVFX.emit(copy)
-	local light = bodyPart and bodyPart:FindFirstChildOfClass("PointLight")
-	if light then
-		light.Brightness = 3
-		TweenService:Create(light, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Brightness = 0 }):Play()
-	end
+	-- the peak's sound, the loudest of the move: the staff end biting, the
+	-- ground slammed and a low tail, from the bite; the awakening as the
+	-- flame reaches the head and the sigil unfolds
+	local bite = if slam then slam.Position else ground + dir * 4.8
+	Sfx.play(SFX .. "Bite", bite)
+	Sfx.play(SFX .. "Slam", bite)
+	Sfx.play(SFX .. "Tail", bite)
+	local head = character and character:FindFirstChild("Head") :: BasePart?
+	task.delay(0.06, function()
+		Sfx.play(SFX .. "Awaken", if head and head.Parent then head else origin)
+	end)
 	if not TechniqueVFX.full and CastFX.nearCamera(origin, 45) then
 		CombatEffects.shake((CombatEffects.SHAKE_BY_TIER[tier] or 0.2) * 0.8)
 	end

@@ -99,6 +99,7 @@ cursor, settings and the admin panel.
 - [Vitals stack, seated bars and guard bar](../ui/hud-vitals.md)
 - [Inventory windows](../ui/inventory.md)
 - [Boss health bar](../ui/boss-bars.md)
+- [Reward banners: floats, feed, banner, card; the toast](../ui/rewards.md)
 - [Dialogue ornaments](../ui/dialogue-ornaments.md)
 - [Character window](../character/character-window.md)
 
@@ -118,7 +119,12 @@ cursor, settings and the admin panel.
   `Fresh.luau` (NEW badges), `SlotArt.luau` (slot painting, class glyphs and colours,
   weapon art, the weapon badge), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
-- `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
+- `Rewards.luau` (reward banners, `StarterGui.Rewards`: `Rewards.show` with the small,
+  feed, banner and card tiers; the boss victory, quest and milestone card), and
+  `RegionBanner.luau` (the region entry banner on the banner tier). See
+  [reward banners](../ui/rewards.md).
+- `UiScale.luau`: fits a screen's authored `Canvas` to the device from a baseline
+  (Rewards uses it).
 - Boss health bar: `BossBars.luau` drives `Play.BossBar`; themes in
   `BossThemes.luau`, boss pick in `EnemyBars.luau`. See [boss bar](../ui/boss-bars.md).
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`
@@ -146,6 +152,7 @@ Fast values come from player attributes (`Realm`, `Cultivation`,
 `QiMax`, `QiDenied` from `CombatQi` as they change; see [combat](combat.md)).
 Every reader defaults them to 0, false or "" until they arrive. Everything else comes from the `PlayerState` snapshot into `State`.
 Toasts arrive over `Notify`; rewards and combat feedback over `Effect`
+(`Effect "reward"` carries a whole `Rewards.show` spec)
 (a gained weapon is Effect "weapon", a cultivation method Effect "method",
 both shown in the reward feed).
 

@@ -47,14 +47,23 @@ function Hud.toast(message: string)
 	task.spawn(function()
 		local toast = gui:FindFirstChild("Toast") :: GuiObject
 		local label = toast:FindFirstChild("Message") :: TextLabel
+		local first = true
 		while #queue > 0 do
 			label.Text = table.remove(queue, 1) :: string
 			toast.Visible = true
+			if first then
+				Motion.fadeIn(toast) -- the kit's toast plate eases in
+				first = false
+			end
 			-- longer messages stay up a little longer
 			task.wait(TOAST_SECONDS + math.min(2, #label.Text / 60))
 		end
-		toast.Visible = false
 		showing = false
+		Motion.fadeOut(toast, function()
+			if not showing then
+				toast.Visible = false
+			end
+		end)
 	end)
 end
 

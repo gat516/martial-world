@@ -103,6 +103,17 @@ Row 2: a rounded item-slot frame for the hotbar and inventory, neutral, plus a "
 Row 3: a small round currency coin frame (gold rim, empty middle); a small diamond rarity gem in grey, jade, violet, gold.
 ```
 
+### B2b. Blue rarity tile and gem (reward banners, 2026-10-23)
+The game's Rare items and Spirit-grade weapons are blue, and B2 has no blue edge, so the
+reward tiles show them violet for now ([reward banners](rewards.md)). Attach the B2 sheet
+(`art/ui/codex/b2/`) as the exact style to match: same size, border, studs and corner
+curls as `tile_jade`, only the edge colour changes.
+```text
+Row 1: the square reward tile frame from the attached sheet, identical in shape, size, studs and corner curls, with a sapphire-blue lacquer edge (#4a8fe0 with a dark-blue outline).
+Row 2: the small diamond rarity gem from the attached sheet, identical shape and gold setting, in sapphire blue.
+```
+Cut with `ui_assemble.py` as `tile_blue` and `gem_blue` (one sheet, two pieces: add it to `PIECE_SHEETS`).
+
 ### B3. Quest log and sect board (roadmap 3, 3b)
 ```text
 Row 1: a wooden notice board header plaque (dark wood, gold trim, empty); a pinned paper notice (aged cream paper, red pin, empty); the same notice torn and defaced with dark ink smears (the demon chain's clue).

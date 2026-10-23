@@ -36,60 +36,60 @@
    "region": "FurOuter",
    "tris": 318,
    "center": [
-    0.359,
-    0.247,
-    0.181
+    0.397,
+    0.237,
+    0.161
    ],
    "size": [
-    0.683,
-    0.485,
-    0.914
+    0.762,
+    0.465,
+    0.785
    ]
   },
   "FoxEarsLong_LeftEarInner": {
    "region": "FurInner",
-   "tris": 422,
+   "tris": 566,
    "center": [
-    0.331,
-    0.123,
-    0.164
+    0.346,
+    0.089,
+    0.16
    ],
    "size": [
-    0.474,
-    0.261,
-    0.626
+    0.524,
+    0.347,
+    0.583
    ]
   },
   "FoxEarsLong_RightEar": {
    "region": "FurOuter",
    "tris": 318,
    "center": [
-    -0.359,
-    0.247,
-    0.181
+    -0.397,
+    0.237,
+    0.161
    ],
    "size": [
-    0.683,
-    0.485,
-    0.914
+    0.762,
+    0.465,
+    0.785
    ]
   },
   "FoxEarsLong_RightEarInner": {
    "region": "FurInner",
-   "tris": 422,
+   "tris": 566,
    "center": [
-    -0.331,
-    0.123,
-    0.165
+    -0.346,
+    0.089,
+    0.16
    ],
    "size": [
-    0.474,
-    0.261,
-    0.626
+    0.524,
+    0.348,
+    0.583
    ]
   }
  },
- "tris_total": 1480,
+ "tris_total": 1768,
  "bones": {
   "Root": {
    "parent": null,
@@ -137,9 +137,9 @@
     -0.006
    ],
    "tail": [
-    0.445,
-    0.141,
-    0.465
+    0.438,
+    0.137,
+    0.438
    ],
    "roblox_head": [
     0.333,
@@ -175,9 +175,9 @@
     -0.006
    ],
    "tail": [
-    -0.445,
-    0.141,
-    0.465
+    -0.438,
+    0.137,
+    0.438
    ],
    "roblox_head": [
     -0.333,
@@ -189,14 +189,36 @@
  },
  "mood": "cute, sleepy",
  "proportions": {
-  "visible_height": 0.64,
-  "base_width": 0.49,
+  "visible_height": 0.555,
+  "base_width": 0.489,
   "head_size": [
    1.198,
    1.198,
    1.017
   ],
-  "height_to_head": 0.63,
+  "height_to_head": 0.55,
   "base_width_to_head": 0.41
+ },
+ "seat": {
+  "FoxEarsLong_LeftEar": {
+   "base_shallowest": -0.096,
+   "base_deepest": -0.106,
+   "verts_outside_head_below_top": 0
+  },
+  "FoxEarsLong_LeftEarInner": {
+   "base_shallowest": -0.095,
+   "base_deepest": -0.101,
+   "verts_outside_head_below_top": 0
+  },
+  "FoxEarsLong_RightEar": {
+   "base_shallowest": -0.096,
+   "base_deepest": -0.106,
+   "verts_outside_head_below_top": 0
+  },
+  "FoxEarsLong_RightEarInner": {
+   "base_shallowest": -0.095,
+   "base_deepest": -0.101,
+   "verts_outside_head_below_top": 0
+  }
  }
 }

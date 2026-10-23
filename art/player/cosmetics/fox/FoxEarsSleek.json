@@ -36,60 +36,60 @@
    "region": "FurOuter",
    "tris": 318,
    "center": [
-    0.31,
-    0.245,
-    0.193
+    0.294,
+    0.234,
+    0.148
    ],
    "size": [
-    0.544,
-    0.483,
-    0.936
+    0.512,
+    0.461,
+    0.757
    ]
   },
   "FoxEarsSleek_LeftEarInner": {
    "region": "FurInner",
-   "tris": 422,
+   "tris": 566,
    "center": [
-    0.325,
-    0.135,
-    0.171
+    0.341,
+    0.107,
+    0.127
    ],
    "size": [
-    0.454,
-    0.266,
-    0.638
+    0.48,
+    0.292,
+    0.516
    ]
   },
   "FoxEarsSleek_RightEar": {
    "region": "FurOuter",
    "tris": 318,
    "center": [
-    -0.31,
-    0.245,
-    0.193
+    -0.294,
+    0.234,
+    0.148
    ],
    "size": [
-    0.544,
-    0.483,
-    0.936
+    0.512,
+    0.461,
+    0.757
    ]
   },
   "FoxEarsSleek_RightEarInner": {
    "region": "FurInner",
-   "tris": 422,
+   "tris": 566,
    "center": [
-    -0.325,
-    0.135,
-    0.171
+    -0.341,
+    0.107,
+    0.127
    ],
    "size": [
-    0.454,
-    0.266,
-    0.638
+    0.48,
+    0.292,
+    0.516
    ]
   }
  },
- "tris_total": 1480,
+ "tris_total": 1768,
  "bones": {
   "Root": {
    "parent": null,
@@ -137,9 +137,9 @@
     -0.006
    ],
    "tail": [
-    0.429,
-    0.167,
-    0.435
+    0.407,
+    0.151,
+    0.341
    ],
    "roblox_head": [
     0.332,
@@ -175,9 +175,9 @@
     -0.006
    ],
    "tail": [
-    -0.429,
-    0.167,
-    0.435
+    -0.407,
+    0.151,
+    0.341
    ],
    "roblox_head": [
     -0.332,
@@ -189,14 +189,36 @@
  },
  "mood": "cute, alert",
  "proportions": {
-  "visible_height": 0.662,
-  "base_width": 0.49,
+  "visible_height": 0.528,
+  "base_width": 0.451,
   "head_size": [
    1.198,
    1.198,
    1.017
   ],
-  "height_to_head": 0.65,
-  "base_width_to_head": 0.41
+  "height_to_head": 0.52,
+  "base_width_to_head": 0.38
+ },
+ "seat": {
+  "FoxEarsSleek_LeftEar": {
+   "base_shallowest": -0.097,
+   "base_deepest": -0.106,
+   "verts_outside_head_below_top": 0
+  },
+  "FoxEarsSleek_LeftEarInner": {
+   "base_shallowest": -0.094,
+   "base_deepest": -0.101,
+   "verts_outside_head_below_top": 0
+  },
+  "FoxEarsSleek_RightEar": {
+   "base_shallowest": -0.097,
+   "base_deepest": -0.106,
+   "verts_outside_head_below_top": 0
+  },
+  "FoxEarsSleek_RightEarInner": {
+   "base_shallowest": -0.094,
+   "base_deepest": -0.101,
+   "verts_outside_head_below_top": 0
+  }
  }
 }

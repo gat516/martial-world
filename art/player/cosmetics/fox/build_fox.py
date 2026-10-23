@@ -8,7 +8,9 @@ Run through the Blender MCP (Blender runs on Windows, so paths come from __file_
     P = r"\\wsl.localhost\Ubuntu\home\cj\roblox\martial-world-fox-v2\art\player\cosmetics\fox\build_fox.py"
     exec(compile(open(P).read(), P, "exec"), {"__file__": P})
 Optional globals: RENDER (default True: sheet tiles into renders/), EXPORT (default True: FBX,
-JSON, shade PNG, .blend). Then stitch the sheet with make_sheet.py.
+JSON, shade PNG, .blend), ONLY (a set of set names: rebuild and export just those, e.g. the
+three ear sets; the rest stay as they are). Then stitch the sheet with make_sheet.py (`ears`
+for the ear sheet).
 
 Axes and units (the R6 reference, art/rig/r6_rigged.fbx, see art/rig/rig_preview.py):
   1 Blender unit = 1 stud. +X = the avatar's left (its left arm), it faces -Y, Z up.
@@ -50,12 +52,14 @@ import rig_preview as rp  # noqa: E402  (shared R6 helpers: rig import, loft, re
 
 RENDER = globals().get("RENDER", True)
 EXPORT = globals().get("EXPORT", True)
+ONLY = globals().get("ONLY")           # optional set of set names to (re)build; others stay as they are
 
 SCENE = "Cosmetics"
 ROOT_COLLECTION = "FoxCosmetics"
 HAT = Vector((0.0, 0.0, 3.1))          # Head HatAttachment, rest pose
 WAIST_BACK = Vector((0.0, 0.5, 0.0))   # Torso WaistBackAttachment, rest pose
 EAR_SHARP_DEG = 28.0                   # ears: edges sharper than this shade hard (house crease)
+FUR_SHARP_DEG = 80.0                   # inner fur cushion and tufts: soft, only real creases
 TAIL_SHARP_DEG = 70.0                  # tail: soft fur, only the clumps' side ridges stay crisp
 
 # Colours (linear). Plain SmoothPlastic in Roblox; MeshPart.Color carries these per region.
@@ -69,17 +73,35 @@ SHADE_MIN = 0.55               # darkest value (tail root, ear tip): about one v
 SHADE_REACH = 0.45             # V where the darkening has faded out
 
 # ----------------------------------------------------------------------------------------------
-# Ears. H height, W base half-width, T thickness, CUP front hollow depth, BELLY widens the mid
-# ear, SIDE_EXP > 1 pinches the sides concave toward the tip, CURL tip offset backwards (+Y),
+# Ears: three cute sets with clearly different silhouettes (round dome, soft notched point, a top
+# flopped out to the side), all chunky and sized to the R6 head (about 1.2 wide, 1.0 tall).
+# Heights are what shows above the head.
+# X base centre |x| on the head top, H ear length (part of it is sunk), W base half-width,
+# T thickness, CUP front hollow depth, BELLY widens the mid ear, SIDE_EXP < 1 rounds the sides
+# out (soft), > 1 pinches them concave toward the tip (sharp), CURL tip offset backwards (+Y),
 # TILT outward roll, YAW turn of the opening outward, LEAN backward lean (degrees), EDGE_TUFTS
-# serrations on each rim near the base, INNER_TUFTS cream spikes out of the opening.
+# serrations on each rim near the base, NOTCH (t, depth) a V nick in the outer rim or None,
+# TIP_DARK how far down the shade ramp darkens the tip (1 = top 45%, 1.6 = top 70%).
+# PEAK "point" | "round" (a dome, no point), FOLD (t, degrees, "out" | "forward") or None.
+# TUFTS: the cream fur in the cup, a few soft chunky teardrops: (t, u root on the front surface,
+# up, out, forward axis parts, length as a fraction of H, belly radius). Base tufts lean forward
+# so they spill over the rim.
+CUTE_TUFTS = [(0.03, 0.0, 1.0, 0.0, 0.9, 0.36, 0.13), (0.06, -0.8, 1.0, 0.45, 0.7, 0.30, 0.11),
+              (0.06, 0.8, 1.0, 0.45, 0.7, 0.30, 0.11), (0.30, 0.1, 1.0, 0.15, 0.5, 0.26, 0.09)]
 EARS = {
-    "FoxEarsSleek": dict(label="Sleek", H=1.0, W=0.25, T=0.10, CUP=0.07, BELLY=0.25, SIDE_EXP=1.0,
-                         CURL=0.08, TILT=14, YAW=12, LEAN=6, EDGE_TUFTS=1, INNER_TUFTS=3),
-    "FoxEarsBroad": dict(label="Broad", H=0.85, W=0.32, T=0.11, CUP=0.10, BELLY=0.55, SIDE_EXP=0.85,
-                         CURL=0.0, TILT=22, YAW=20, LEAN=0, EDGE_TUFTS=3, INNER_TUFTS=4),
-    "FoxEarsLong": dict(label="Long", H=1.18, W=0.23, T=0.09, CUP=0.07, BELLY=0.15, SIDE_EXP=1.3,
-                        CURL=0.22, TILT=10, YAW=8, LEAN=16, EDGE_TUFTS=2, INNER_TUFTS=3),
+    # cute, alert: a soft, chunky triangle with a gentle point, a small notch and a darker tip
+    "FoxEarsSleek": dict(label="Sleek", mood="cute, alert", PEAK="point", FOLD=None, X=0.31, H=0.80, W=0.21,
+                         T=0.30, CUP=0.15, BELLY=0.6, SIDE_EXP=0.75, CURL=0.03, TILT=15, YAW=16, LEAN=6,
+                         EDGE_TUFTS=0, TUFTS=CUTE_TUFTS, NOTCH=(0.55, 0.18), TIP_DARK=1.4),
+    # cute (approved 2026-10-23, "YES, the cute set for foxes is perfect"): a round, soft dome
+    # peak (no point), plump and upright. Locked: polish only.
+    "FoxEarsBroad": dict(label="Broad", mood="cute", PEAK="round", FOLD=None, X=0.31, H=0.78, W=0.21, T=0.30,
+                         CUP=0.15, BELLY=0.75, SIDE_EXP=1.0, CURL=0.0, TILT=15, YAW=18, LEAN=3,
+                         EDGE_TUFTS=0, TUFTS=CUTE_TUFTS, NOTCH=None, TIP_DARK=0.8),
+    # cute, sleepy: a round ear whose top half flops out to the side
+    "FoxEarsLong": dict(label="Long", mood="cute, sleepy", PEAK="round", FOLD=(0.45, 70, "out"), X=0.31, H=0.84,
+                        W=0.21, T=0.30, CUP=0.15, BELLY=0.75, SIDE_EXP=1.0, CURL=0.0, TILT=15, YAW=16, LEAN=4,
+                        EDGE_TUFTS=0, TUFTS=CUTE_TUFTS, NOTCH=None, TIP_DARK=1.0),
 }
 
 # Tails. PATH control points (avatar space, root inside the body), R core max radius, PROFILE
@@ -121,11 +143,15 @@ PAIRS = [("FoxTailPlume", "FoxEarsSleek"), ("FoxTailCrescent", "FoxEarsBroad"), 
 FAN_TAIL = "FoxTailPlume"      # the multi-tail proof on the sheet (not exported)
 FAN_ANGLES = (-40, 0, 40)      # degrees about the attachment's back axis (README: 5 and 9 tails)
 
-EAR_X = 0.36          # ear base centre, |x| on the head top
 EAR_Y = 0.06          # a touch behind the head centre
-EAR_SINK = 0.10       # base sunk into the head so it never shows a gap
-EAR_ROWS = 12         # rings from base to tip
-EAR_COLS = 7          # points across the front (and back) of each ring
+EAR_SINK = 0.10       # the whole base rim sits this far under the head surface (no gap anywhere)
+EAR_CONFORM_T = 0.30  # the base follows the head's curve, fading out by this height fraction
+HEAD_MIN_Z = 2.6      # a downward ray landing below this missed the head (the ear overhangs it)
+EAR_ROWS = 10         # rings from base to tip
+EAR_COLS = 7          # points across the front (and back) of each ring, plus a rounded rim point each side
+EAR_RIM = 0.6         # rim depth as a fraction of the ear's thickness T (the shell never thins to a card)
+TUFT_SIDES = 8        # inner fur tufts: ring vertices
+TUFT_PROFILE = [(0.0, 0.0), (0.12, 0.7), (0.35, 1.0), (0.62, 0.85), (0.85, 0.45), (1.0, 0.0)]   # (along, radius): fat belly, soft point
 EAR_BEND = (0.04, 0.32)   # ear height fraction where the weight goes from Base to the ear bone
 CORE_SIDES = 16       # core ring vertices (mostly covered by clumps)
 CORE_STATIONS = 40    # core rings along the tail
@@ -240,8 +266,35 @@ def tri_count(o):
 
 # ---------------------------------------------------------------------------------- ears ------
 def ear_width(p, t):
-    """Half-width at height fraction t (0 base .. 1 tip)."""
-    return p["W"] * (1 - t) ** p["SIDE_EXP"] * (1 + p["BELLY"] * math.sin(math.pi * t) * (1 - t))
+    """Half-width at height fraction t (0 base .. 1 tip). PEAK "round" closes in a dome (no point)."""
+    belly = 1 + p["BELLY"] * math.sin(math.pi * t) * (1 - t)
+    if p["PEAK"] == "round":
+        return p["W"] * belly * max(0.0, 1 - t ** 2.2) ** 0.5
+    return p["W"] * (1 - t) ** p["SIDE_EXP"] * belly
+
+
+def fold_tip(p, bm):
+    """FOLD (t, degrees, "out" | "forward"): everything above height fraction t flops at a constant
+    curvature, outward to the side (the outer rim is +x) or forward over the opening, keeping the
+    shell's thickness."""
+    if not p["FOLD"]:
+        return
+    ft, deg, way = p["FOLD"]
+    z0, length, theta = ft * p["H"], (1 - ft) * p["H"], math.radians(deg)
+    r = length / theta
+    for v in bm.verts:
+        s = v.co.z - z0
+        if s <= 0:
+            continue
+        phi = theta * s / length
+        if way == "out":
+            x = v.co.x
+            v.co.x = r - (r - x) * math.cos(phi)
+            v.co.z = z0 + (r - x) * math.sin(phi)
+        else:
+            y = v.co.y
+            v.co.y = -r + (r + y) * math.cos(phi)
+            v.co.z = z0 + (r + y) * math.sin(phi)
 
 
 def edge_tuft(p, t):
@@ -256,35 +309,67 @@ def edge_tuft(p, t):
 def ear_front(p, t, u):
     """Point on the ear's front (opening) surface in ear-local space; u in -1..1 across."""
     w = ear_width(p, t) * (1 + 0.55 * edge_tuft(p, t) * abs(u) ** 4)
+    if p["NOTCH"] and u > 0:   # +u is the outer rim (the right ear is built mirrored)
+        nt, depth = p["NOTCH"]
+        w *= 1 - depth * max(0.0, 1 - abs(t - nt) / 0.07) * u ** 4
     fade = (1 - t) ** 0.6
     y = p["CUP"] * (1 - u * u) * fade + p["CURL"] * t * t
     return Vector((u * w, y, t * p["H"]))
 
 
 def ear_back(p, t, u):
+    """The ear's back: a full rounded shell behind the front, RIM x T deep at the rim, so the ear has
+    body from every side (not a card)."""
     f = ear_front(p, t, u)
-    fade = (1 - t) ** 0.5
-    return f + Vector((0, p["T"] * (0.15 + 0.85 * math.sqrt(max(0.0, 1 - u * u))) * fade, 0))
+    fade = (1 - t) ** 0.35
+    return f + Vector((0, p["T"] * (EAR_RIM + (1 - EAR_RIM) * math.sqrt(max(0.0, 1 - u * u))) * fade, 0))
+
+
+def ear_rim(p, t, side):
+    """Rounded rim point between the front and back edges on one side (side = +1 / -1)."""
+    f, b = ear_front(p, t, side), ear_back(p, t, side)
+    return (f + b) / 2 + Vector((side * (b.y - f.y) * 0.3, 0, 0))
+
+
+def add_tuft(bm, tv, p, root, axis, length, radius, flat=0.75):
+    """A soft, chunky fur tuft: a closed teardrop from `root` (buried in the cushion) along `axis`,
+    round-bellied with a gentle point. flat squashes it front to back."""
+    axis = axis.normalized()
+    side = axis.cross(Vector((0, 1, 0)))
+    side = side.normalized() if side.length > 1e-6 else Vector((1, 0, 0))
+    depth = side.cross(axis).normalized()
+    rings = []
+    for s_, r_ in TUFT_PROFILE:
+        c = root + axis * (length * s_)
+        if r_ == 0:
+            rings.append([bm.verts.new(c)])
+        else:
+            rings.append([bm.verts.new(c + (side * math.cos(a) + depth * math.sin(a) * flat) * radius * r_)
+                          for a in (2 * math.pi * k / TUFT_SIDES for k in range(TUFT_SIDES))])
+        tv += [max(0.0, c.z / p["H"])] * len(rings[-1])
+    rp.loft(bm, rings, cap_start=False, cap_end=False)
 
 
 def build_ear_local(p):
     """Returns (outer bm, inner bm, outer verts' t, inner verts' t) in ear-local space."""
     bm, tvals = bmesh.new(), []
     us = [-1 + 2 * i / (EAR_COLS - 1) for i in range(EAR_COLS)]
-    ts = [(i / EAR_ROWS) ** 1.15 for i in range(EAR_ROWS)]
+    ts = [1 - (1 - i / EAR_ROWS) ** 1.4 for i in range(EAR_ROWS)]   # rings closer near the tip
     rings = []
     for t in ts:
-        r = [bm.verts.new(ear_front(p, t, u)) for u in us] + [bm.verts.new(ear_back(p, t, u)) for u in reversed(us)]
+        r = ([bm.verts.new(ear_front(p, t, u)) for u in us] + [bm.verts.new(ear_rim(p, t, 1))]
+             + [bm.verts.new(ear_back(p, t, u)) for u in reversed(us)] + [bm.verts.new(ear_rim(p, t, -1))])
         tvals += [t] * len(r)
         rings.append(r)
     tip = bm.verts.new(ear_front(p, 1.0, 0) + Vector((0, p["T"] * 0.1, 0)))
     tvals.append(1.0)
     rp.loft(bm, rings + [[tip]], cap_start=True, cap_end=False)
 
-    # Inner ear: a soft cushion inside the hollow, recessed below the rim, plus cream tufts.
+    # Inner ear: a plump cream cushion filling the cup, plus a few chunky tufts that spill out
+    # over the rim at the base.
     ib, itv = bmesh.new(), []
-    k, t1 = 0.62, 0.80
-    rows = 8
+    k, t1 = 0.66, 0.78
+    rows = 6
     rings = []
     for i in range(rows):
         t = t1 * i / rows
@@ -292,37 +377,66 @@ def build_ear_local(p):
         fr, br = [], []
         for u in us:
             base = ear_front(p, t, u * span)
-            fluff = 0.035 * (1 - u * u) * (1 - t / t1)
+            fluff = p["CUP"] * 0.75 * (1 - u * u) * (1 - (t / t1) ** 2)
             fr.append(base + Vector((0, -0.012 - fluff, 0)))
-            br.append(base + Vector((0, 0.02, 0)))
+            br.append(base + Vector((0, 0.03, 0)))
         r = [ib.verts.new(v) for v in fr] + [ib.verts.new(v) for v in reversed(br)]
         itv += [t] * len(r)
         rings.append(r)
     itip = ib.verts.new(ear_front(p, t1, 0) + Vector((0, -0.01, 0)))
     itv.append(t1)
     rp.loft(ib, rings + [[itip]], cap_start=True, cap_end=False)
-    n = p["INNER_TUFTS"]
-    for j in range(n):
-        u = (j - (n - 1) / 2) / max(1, n - 1) * 0.9
-        root = ear_front(p, 0.10, u * 0.5) + Vector((0, -0.02, 0))
-        tipv = root + Vector((u * 0.22, -0.16 - 0.05 * (1 - abs(u)), 0.30 + 0.08 * (1 - abs(u))))
-        side = Vector((0.06, 0, 0))
-        depth = Vector((0, 0.035, 0))
-        base_ring = [ib.verts.new(root + v) for v in (-side - depth, side - depth, side + depth, -side + depth)]
-        apex = ib.verts.new(tipv)
-        itv += [0.10] * 4 + [tipv.z / p["H"]]
-        rp.loft(ib, [base_ring, [apex]], cap_start=True, cap_end=False)
+    for (t, u, up, out, fwd, ln, rad) in p["TUFTS"]:
+        root = ear_front(p, t, u * 0.55) + Vector((0, -0.02, 0))
+        axis = Vector((out * (1 if u >= 0 else -1), -fwd, up))
+        add_tuft(ib, itv, p, root, axis, ln * p["H"], rad)
+    fold_tip(p, bm)
+    fold_tip(p, ib)
     return bm, ib, tvals, itv
 
 
 def ear_matrix(p, side):
-    """side +1 = left ear (+X), -1 = right. Ear-local -> avatar space, base on the head top.
-    The ear is symmetric across its width, so the right ear is just the mirrored placement."""
+    """side +1 = left ear (+X), -1 = right. Ear-local -> avatar space, base centre EAR_SINK under the
+    head top. The right ear is the mirror image (local X flipped), so the outer rim (+u) and its
+    notch face outward on both."""
     rot = (Matrix.Rotation(math.radians(p["YAW"] * side), 4, "Z")
            @ Matrix.Rotation(math.radians(p["TILT"] * side), 4, "Y")
            @ Matrix.Rotation(math.radians(-p["LEAN"]), 4, "X"))
-    top = head_top_z(EAR_X * side, EAR_Y)
-    return Matrix.Translation((EAR_X * side, EAR_Y, top - EAR_SINK)) @ rot
+    top = head_top_z(p["X"] * side, EAR_Y)
+    return (Matrix.Translation((p["X"] * side, EAR_Y, top - EAR_SINK)) @ rot
+            @ Matrix.Diagonal((side, 1, 1, 1)))
+
+
+def head_surface_z(x, y):
+    """The R6 head's surface height at (x, y) by a ray straight down onto the rig mesh, or None
+    when the ray misses the head (lands on the shoulders or nothing)."""
+    rig = next((o for o in rp.rig_objects() if o.type == "MESH"), None)
+    inv = rig.matrix_world.inverted()
+    origin, direction = inv @ Vector((x, y, 6.0)), (inv.to_3x3() @ Vector((0, 0, -1))).normalized()
+    hit, loc, *_ = rig.ray_cast(origin, direction)   # the rig only, never other cosmetics
+    z = (rig.matrix_world @ loc).z if hit else None
+    return z if z is not None and HEAD_MIN_Z < z < 3.3 else None
+
+
+def seat_on_head(bm, tvals, m):
+    """Move ear-local verts to avatar space and seat the base on the head's rounded top: each
+    vertex's foot (its point on the ear's base plane) is dropped or raised to EAR_SINK under the
+    head surface straight below it, fully at the base and fading out by EAR_CONFORM_T. So the
+    whole footprint, including where it crosses the head's rounded edge, is buried."""
+    for v, t in zip(bm.verts, tvals):
+        foot = m @ Vector((v.co.x, v.co.y, 0.0))
+        pos = m @ v.co
+        w = 1 - smoothstep(0.0, EAR_CONFORM_T, t)
+        if w > 0:
+            surf = head_surface_z(foot.x, foot.y)
+            centre = m @ Vector((0, 0, 0))
+            k = 1.0
+            while surf is None and t > 0 and k > 0:   # above the base, past the head's edge: use the edge
+                k -= 0.05
+                surf = head_surface_z(centre.x + (foot.x - centre.x) * k, centre.y + (foot.y - centre.y) * k)
+            assert surf is not None, "ear base overhangs the head at (%.2f, %.2f)" % (foot.x, foot.y)
+            pos.z += (surf - EAR_SINK - foot.z) * w
+        v.co = pos
 
 
 def head_top_z(x, y):
@@ -366,11 +480,16 @@ def build_ears(name, root_col):
         for src, tv, region, mat, shade in ((outer, tv_o, "Ear", "FurOuter", True),
                                             (inner, tv_i, "EarInner", "FurInner", False)):
             bm = src.copy()
-            for v in bm.verts:
-                v.co = mats[tag] @ v.co
-            vv = [1.0 - t if shade else 1.0 for t in tv]   # ear tips darker
-            o = new_object("%s_%s%s" % (name, nm, region), bm, material(mat), col, vv, EAR_SHARP_DEG)
+            seat_on_head(bm, tv, mats[tag])
+            if shade and tag == "L":   # footprint across the head: the base ring's x extent
+                xs = [v.co.x for v, t in zip(bm.verts, tv) if t == 0]
+                base_w = max(xs) - min(xs)
+            vv = [1.0 - t * p["TIP_DARK"] if shade else 1.0 for t in tv]   # ear tips darker
+            o = new_object("%s_%s%s" % (name, nm, region), bm, material(mat), col, vv,
+                           EAR_SHARP_DEG if shade else FUR_SHARP_DEG)
             o["region"] = mat
+            if shade and tag == "L":
+                o["base_width"] = base_w
             w = [[("Ear%sBase" % tag, 1 - smoothstep(*EAR_BEND, t)), ("Ear%s" % tag, smoothstep(*EAR_BEND, t))]
                  for t in tv]
             skin(o, arm, w)
@@ -570,9 +689,11 @@ def skin(obj, arm, weights_per_vert):
             vg.add([vi], w, "REPLACE")
 
 
-def pose(arm, bend=("Z", 0.0), ear_deg=0.0):
+def pose(arm, bend=("Z", 0.0), ear_deg=0.0, flick=0.0):
     """Deformation check: each Tail joint bent bend[1] degrees about local bend[0] (Z = the side
-    axis, X = sideways), each ear folded back ear_deg (local X). Defaults = rest."""
+    axis, X = sideways), each ear folded back ear_deg (about local Z, which is world +X: + local Z
+    tips it forward, so back is negative) and flicked outward `flick` degrees (about local X,
+    world +Y: the left ear goes +, the right -). Defaults = rest."""
     for pb in arm.pose.bones:
         pb.rotation_mode = "XYZ"
         pb.rotation_euler = (0, 0, 0)
@@ -581,7 +702,8 @@ def pose(arm, bend=("Z", 0.0), ear_deg=0.0):
             rot["XYZ".index(bend[0])] = math.radians(bend[1])
             pb.rotation_euler = rot
         if pb.name in ("EarL", "EarR"):
-            pb.rotation_euler = (math.radians(ear_deg), 0, 0)
+            side = 1 if pb.name == "EarL" else -1
+            pb.rotation_euler = (math.radians(flick * side), 0, math.radians(-ear_deg))
     bpy.context.view_layer.update()
 
 
@@ -714,6 +836,89 @@ def render_tiles(scene, root_col, out_dir, rows, res=420):
     return shots
 
 
+EAR_ROWS_SHEET = ["FoxEarsBroad", "FoxEarsSleek", "FoxEarsLong"]   # cute first, then the cool pair
+EAR_TARGET = (0.0, 0.0, 3.4)
+# (name, eye direction, ortho scale): the head and ears from far, orthographic
+EAR_VIEWS = [("front", (0, -1, 0.06), 2.5), ("side", (1, 0, 0.06), 2.5), ("back", (0, 1, 0.06), 2.5),
+             ("fold", (1, 0.15, 0.15), 2.7), ("flick", (0.25, -1, 0.2), 2.7)]
+EAR_FOLD, EAR_FLICK = 60.0, 35.0      # the sheet's deformation checks (degrees)
+# game-camera read: 12 studs away at true on-screen size (1080p, 70 deg FOV: the head is ~75 px)
+EAR_GAME = [("game_back", (0.35, 1, 0.35)), ("game_front", (0.35, -1, 0.25))]
+GAME_DIST, GAME_LENS = 12.0, 65
+RATIO_TARGET = 0.45   # the brief's upper height ratio (ear height / head height), previewed per set
+# seating close-ups: eye just above head height, close, looking at the left ear's base
+EAR_SEATS = [("seat_side", (1.0, 0.05, 0.10)), ("seat_back", (0.35, 1.0, 0.10)), ("seat_front", (0.35, -1.0, 0.10))]
+SEAT_DIST = 1.5
+
+
+def render_ear_tiles(scene, root_col, out_dir, names, res=420):
+    rp.setup_render(scene, res=(res, res))
+    layer = scene.view_layers[0].layer_collection.children[root_col.name]
+    shots = []
+    for name in names:
+        for c in layer.children:
+            c.exclude = c.name != name
+        arm, p = bpy.data.objects[name + "_Rig"], EARS[name]
+        for view, d, ortho in EAR_VIEWS:
+            pose(arm, ear_deg=EAR_FOLD if view == "fold" else 0.0, flick=EAR_FLICK if view == "flick" else 0.0)
+            eye = Vector(EAR_TARGET) + Vector(d).normalized() * 20
+            shots.append(rp.render(scene, os.path.join(out_dir, "%s_%s.png" % (name, view)), tuple(eye),
+                                   EAR_TARGET, ortho=ortho, lens=50))
+        pose(arm)
+        base = Vector((p["X"], EAR_Y, head_surface_z(p["X"], EAR_Y) + 0.12))
+        for view, d in EAR_SEATS:
+            eye = base + Vector(d).normalized() * SEAT_DIST
+            shots.append(rp.render(scene, os.path.join(out_dir, "%s_%s.png" % (name, view)), tuple(eye),
+                                   tuple(base), lens=50))
+        # the same ears scaled about the hat point to the brief's ratio target (height RATIO_TARGET
+        # of the head's height), a preview for the call on size; not exported
+        lo, hi = head_bbox()
+        k = RATIO_TARGET * (hi.z - lo.z) / ear_height([o for o in bpy.data.collections[name].objects
+                                                       if o.type == "MESH"])
+        keep = arm.matrix_world.copy()
+        arm.matrix_world = Matrix.Translation(HAT) @ Matrix.Scale(k, 4) @ Matrix.Translation(-HAT) @ keep
+        bpy.context.view_layer.update()
+        eye = Vector(EAR_TARGET) + Vector((0.35, -1, 0.15)).normalized() * 20
+        shots.append(rp.render(scene, os.path.join(out_dir, "%s_ratio.png" % name), tuple(eye), EAR_TARGET,
+                               ortho=2.5, lens=50))
+        arm.matrix_world = keep
+        bpy.context.view_layer.update()
+        for view, d in EAR_GAME:
+            tgt = Vector((0, 0, 2.6))
+            eye = tgt + Vector(d).normalized() * GAME_DIST
+            shots.append(rp.render(scene, os.path.join(out_dir, "%s_%s.png" % (name, view)), tuple(eye),
+                                   tuple(tgt), lens=GAME_LENS))
+    for c in layer.children:
+        c.exclude = c.name == "FoxFan"
+    return shots
+
+
+def head_bbox():
+    """The R6 head mesh's bounding box (min, max): the rig's vertices above the neck."""
+    rig = next(o for o in rp.rig_objects() if o.type == "MESH")
+    vs = [rig.matrix_world @ v.co for v in rig.data.vertices]
+    vs = [v for v in vs if v.z > 2.0 and abs(v.x) < 1.0]
+    return (Vector([min(v[i] for v in vs) for i in range(3)]), Vector([max(v[i] for v in vs) for i in range(3)]))
+
+
+def ear_proportions(objs):
+    """Ear size against the head it sits on: visible height / head height, base width / head width."""
+    lo, hi = head_bbox()
+    h, w = hi.z - lo.z, hi.x - lo.x
+    left = next(o for o in objs if o.name.endswith("_LeftEar"))
+    vh = ear_height(objs)
+    return dict(visible_height=vh, base_width=round(left["base_width"], 3),
+                head_size=r3(hi - lo), height_to_head=round(vh / h, 2),
+                base_width_to_head=round(left["base_width"] / w, 2))
+
+
+def ear_height(objs):
+    """Visible height: the ears' top above the head surface under the ear base centre."""
+    p = EARS[objs[0].name.split("_")[0]]
+    top = max((o.matrix_world @ v.co).z for o in objs for v in o.data.vertices)
+    return round(top - head_surface_z(p["X"], EAR_Y), 3)
+
+
 # ---------------------------------------------------------------------------------- main ------
 def main():
     scene = bpy.data.scenes.get(SCENE) or rp.use_scene(SCENE)
@@ -734,25 +939,34 @@ def main():
     report = {}
     built = {}
     for name in EARS:
+        if ONLY and name not in ONLY:
+            continue
         arm, objs = build_ears(name, root_col)
-        built[name] = (arm, objs, HAT, "HatAttachment", {})
+        p = EARS[name]
+        built[name] = (arm, objs, HAT, "HatAttachment",
+                       dict(mood=p["mood"], proportions=ear_proportions(objs)))
     for name, q in TAILS.items():
+        if ONLY and name not in ONLY:
+            continue
         arm, objs, path = build_tail(name, root_col)
         built[name] = (arm, objs, WAIST_BACK, "WaistBackAttachment",
                        dict(fan=dict(axis="attachment back axis (Blender +Y, Roblox +Z)", pivot=[0, 0, 0],
                                      angles_3=[-40, 0, 40], angles_5=[-50, -25, 0, 25, 50],
                                      angles_9=[-72, -54, -36, -18, 0, 18, 36, 54, 72])))
     for name, (arm, objs, attach, att_name, extra) in built.items():
-        report[name] = {o.name: tri_count(o) for o in objs}
+        report[name] = dict({o.name: tri_count(o) for o in objs}, **extra)
         if EXPORT:
             export_set(name, arm, objs, attach, att_name, extra)
-    build_fan(root_col, built[FAN_TAIL][1])
+    if FAN_TAIL in built:
+        build_fan(root_col, built[FAN_TAIL][1])
     print(json.dumps(report))
     if RENDER:
-        shots = render_tiles(scene, root_col, os.path.join(HERE, "renders"), PAIRS)
-        print(len(shots), "tiles")
+        out = os.path.join(HERE, "renders")
+        if any(n in built for n in TAILS):
+            print(len(render_tiles(scene, root_col, out, PAIRS)), "tail tiles")
+        if any(n in built for n in EARS):
+            print(len(render_ear_tiles(scene, root_col, out, [n for n in EAR_ROWS_SHEET if n in built])), "ear tiles")
     if EXPORT:
         rp.save_blend(scene, os.path.join(HERE, "Fox.blend"))
-
 
 main()

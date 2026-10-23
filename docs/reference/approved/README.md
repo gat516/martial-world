@@ -24,6 +24,7 @@ sandbox.
 | bodies | Part-built armour on humanoid enemies | `art/enemies/bandits/`, `cultivators/` | "the current humanoid work is really cool", "keep the armor work" | (no capture yet) |
 | bodies | The user's reference row in the testbed (`workspace.Folder.Model`) | Studio only | the sizes and looks every boss body must match | (no capture yet) |
 | modeling | Spirit peak pillar with the wide-to-narrow rock skirt into the lawn | `art/build_peak_pillar.py`, `art/spiritpeak/`, `art/main_peak/` | "that looks really good. can we add that same design to the main peak" | (no capture yet) |
+| modeling | Spirit Fox cute ears (`FoxEarsBroad`): short, chunky, round dome peak, soft round cream tufts, seated on the head | `art/player/cosmetics/fox/` | "YES, the cute set for foxes is perfect. that is the exact direction i want to go in" | `docs/reference/approved/modeling/fox_ears_cute.png` |
 | map | The sect-gate approach area detail (smooth terrain plus library rocks and trees) | `docs/map/` | "i want this level of detail" | `docs/reference/map_enclosed_valley.webp` (the look) |
 
 ## Rejected

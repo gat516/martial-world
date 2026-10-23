@@ -9,16 +9,42 @@ ship as the Spirit Fox variants Plume (Plume + Sleek), Crescent (Crescent + Broa
 | `FoxTailPlume` | Torso.WaistBackAttachment | `FoxTailPlume_Tail`, `FoxTailPlume_TailTip` | 3,336 |
 | `FoxTailCrescent` | Torso.WaistBackAttachment | `FoxTailCrescent_Tail`, `FoxTailCrescent_TailTip` | 3,336 |
 | `FoxTailWisp` | Torso.WaistBackAttachment | `FoxTailWisp_Tail`, `FoxTailWisp_TailTip` | 3,626 |
-| `FoxEarsSleek` | Head.HatAttachment | `<Set>_LeftEar`, `_LeftEarInner`, `_RightEar`, `_RightEarInner` | 1,148 |
-| `FoxEarsBroad` | Head.HatAttachment | same four | 1,160 |
-| `FoxEarsLong` | Head.HatAttachment | same four | 1,148 |
+| `FoxEarsSleek` | Head.HatAttachment | `<Set>_LeftEar`, `_LeftEarInner`, `_RightEar`, `_RightEarInner` | 1,480 |
+| `FoxEarsBroad` | Head.HatAttachment | same four | 1,480 |
+| `FoxEarsLong` | Head.HatAttachment | same four | 1,480 |
 
 - **Plume:** rises behind the back in an S-curve, and its tip swings out past the left shoulder.
 - **Crescent:** sweeps out to the avatar's left and curls up.
 - **Wisp:** hangs low behind the legs, then hooks up and out.
-- **Sleek** is the default ears. **Broad** ears are shorter and wider, tilt further outward and have more tufts. **Long** ears are tall and swept back.
+- **Ears** are three cute sets, told apart by silhouette alone, all short, chunky and thick
+  front to back (a rounded cup with a deep rim), with a few soft round cream tufts that fill the
+  cup and spill over the rim at the base:
+  - **Broad** (cute, approved 2026-10-23): a round dome peak, no point.
+  - **Sleek** (cute, alert): a soft triangle with a gentle point, a small notch in the outer rim
+    and a darker tip.
+  - **Long** (cute, sleepy): round, with the top half flopping out to the side. The name is
+    historical (it is wired into the variants); it's no longer long.
 
-Sheet: `sheets/fox_cosmetics.png`. Each tail is shown with its paired ears in front, side, back
+| Ears | Visible height | Height / head height | Base width | Base / head width |
+| --- | --- | --- | --- | --- |
+| Broad | 0.65 | 64% | 0.49 | 40% |
+| Sleek | 0.66 | 65% | 0.49 | 41% |
+| Long | 0.64 | 63% | 0.49 | 41% |
+
+  The R6 head mesh is 1.20 wide and 1.02 tall (measured from the rig, `head_bbox()`); each
+  JSON carries these under `proportions`. The old ears stood about 1.0-1.2 tall.
+- **Seating.** Every ear's base rim is dropped onto the head's real surface (a ray cast down onto
+  the R6 mesh at each base vertex), 0.1 under it, fading out over the lowest 30% of the ear, so
+  the footprint follows the head's rounded top edge with no gap from any side. The build
+  asserts if a base vertex would overhang the head.
+
+Ear sheet: `sheets/fox_ears.png` (`make_sheet.py ears`): one row per set with front, side,
+back, fold back 60, flick out 35, seating close-ups from the side, back and front just above
+head height, the game camera at 12 studs (true on-screen size), the old side view beside the
+new one, and a preview scaled to 45% of the head's height.
+
+Tail sheet: `sheets/fox_cosmetics.png` (from the first ear pass; the ears in it are the old
+ones). Each tail is shown with its paired ears in front, side, back
 and rear three-quarter views, plus a bent pose, an ears close-up, a close-up of the bent tail
 (sealed, no gaps) and the 3-tail fan proof.
 
@@ -97,8 +123,12 @@ One armature per set. `Root` is the attachment point, doesn't deform and is neve
 - **Rolls.** Each tail bone's local Z follows the tail's own side axis (world +X at the root), so every joint uses the same axes:
   - tail, rotate about local Z: curl or uncurl
   - tail, rotate about local X: sideways sway (wag)
-  - ears, rotate about local X: fold back (+) and forward
-- **Checked.** The sheet's bent column has Plume and Crescent at -40 degrees per joint about Z, Wisp at 30 degrees per joint about X (curling Wisp hits the legs and floor), and ears folded back 70 degrees. No collapse, tearing or see-through gaps.
+  - ears, rotate about local Z (world +X): fold forward (+) and back (-)
+  - ears, rotate about local X (world +Y): flick sideways (+ is outward on the left ear and
+    inward on the right; `pose(flick=)` signs it per side)
+- **Checked.** The sheet's bent column has Plume and Crescent at -40 degrees per joint about Z, Wisp at 30 degrees per joint about X (curling Wisp hits the legs and floor), and ears folded back 70 degrees (a sideways tilt in that sheet: the old pose used the
+wrong ear axis). The ear sheet folds each ear back 60 degrees about local Z and flicks it out
+35 degrees about local X. No collapse, tearing or see-through gaps.
 
 Hinge data per bone (attachment space, Blender axes and Roblox) is in each JSON under `bones`.
 
@@ -131,6 +161,9 @@ Hinge data per bone (attachment space, Blender axes and Roblox) is in each JSON 
 
 `fox_shade.png` is `rbxassetid://124559907609415` (Studio MCP `upload_image`).
 
+The three ear ids above are the first, tall ears: the reworked ear FBX (2026-10-23) still need
+uploading and placing.
+
 **Rebuild** (in a sandbox, no FBX import step):
 1. Upload the changed FBX with `python3 tools/upload_asset.py model <Set>.fbx` and put the new
    id in `place_fox_cosmetics.luau` (`ASSETS`).
@@ -148,7 +181,7 @@ at the attachment point; it holds the `HatAttachment` / `WaistBackAttachment` an
 worn accessory: bending `Tail1..Tail5` or `EarL`/`EarR` (`Bone.Transform`) deforms the
 meshes, and `Model:ScaleTo(1.15)` scales meshes, bones and placement together (both
 checked in edit mode on R6 dummies). Animate the bones with `Bone.Transform` (curl about
-local Z, wag about local X, ears fold about local X).
+local Z, wag about local X, ears fold about local Z and flick about local X).
 
 **Recolour.** Each MeshPart has a `Region` attribute (`FurOuter`, `FurInner`, `FurTip`) and a
 `SurfaceAppearance` whose `ColorMap` is the shade ramp. The SurfaceAppearance covers the

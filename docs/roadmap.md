@@ -192,14 +192,35 @@ and goals that don't end**, not from more linear stages. Proposed, in priority o
    Herbarium, the peak and its buildings, Dao seeds, titles, and a small
    permanent bonus per life (capped, so it never trivialises the ladder). Fits
    the novels, and every life can be a different build.
-2. **Paths that play differently.** The orthodox sect (board, library, Pavilion),
-   the **demon path** (expelled; cultivate by killing, a bounty board), and the
-   **wanderer / gardener** (garden, alchemy, building, trade; combat optional).
-   Each has its own quests, exclusive arts and cosmetics, so a second life is
-   not the same game. The demon path and bloodlines are already planned.
-3. **Secret realms (rifts).** Timed, procedurally varied small zones with
-   randomised rooms, enemies, herbs and one manual. The roguelike loop for fighters,
-   a rare-herb loop for gardeners. Repeatable, with a daily first-clear bonus.
+2. **Paths are an affiliation, not a map (proposed 2026-10-22).** One shared world.
+   A path decides **who gives you quests, where your home is, and where your qi
+   comes from**; it never locks you out of a system.
+   - **Orthodox sect:** the sect board, library and Pavilion; the Jade Peak home.
+   - **Blood / demon path:** expelled from the sect. Quests come from a **Blood Sect
+     outpost** that already fits the Ruined Borderlands (the Deserters' Camp), not a
+     new map. Home is a demon cave tier of your own peak. **No spirit garden is
+     forbidden**: the demon path gets a *blood garden* (the same plots with a
+     blood-herb set: Blood Ginseng and kin), and an extra qi source from **beast
+     cores and blood essence** dropped by beasts. Progression never depends on
+     killing other players (no PvP-for-progress: griefing, kids).
+   - **Rogue / wanderer:** leaves the sect on their own. Quests come from a market
+     town or guild board, picks up scavenged materials and finds secret places;
+     gardening, alchemy and building are first-class. Same quest system, filtered
+     by affiliation.
+   - **When you choose:** keep the sect start (built and tested) and add the **path
+     fork at QR1**, when the loop is learned: be promoted Inner Disciple, quit as a
+     rogue, or take a demon bloodline and be cast out. This needs nothing from
+     character creation. **Reincarnation** then lets a new life start as a mortal in
+     a village and choose a path from the start (the mortal-start idea lives
+     there). The character-creation dev can later add a path pick on top.
+   - Each path has its own quests, a few exclusive arts and cosmetics, and building
+     sets, so a second life isn't the same game.
+3. **Secret realms, mixed (user, 2026-10-22).** Not all procedural:
+   - **Handcrafted realms:** named places with a fixed route, a boss, lore and a
+     quest chain; one per region, mostly one-time rewards.
+   - **Rifts:** handcrafted room kits assembled with random modifiers (enemy mix,
+     herbs, one manual), repeatable, a daily first-clear bonus.
+   - **Fully random** only later, if rifts prove popular.
 4. **Cadence.** Dailies and weeklies on the sect board; world events (the roaming
    beast king, Dao rain, tribulation spectacles) on a schedule; weather moods;
    seasonal sect festivals (a themed week with limited cosmetics and an event herb).
@@ -249,4 +270,5 @@ run alongside them. Before spawning, ask how many agents and sandbox Studios at 
 - Does the Herbarium reward cosmetics only, or small solidity?
 - Which building sets are robux and which are earnable? (earnable first)
 - Rebirth: is it a full reset (keeping the legacy) or a parallel second character?
-- Is the wanderer path a third track in its own right, or a gardener-friendly sect option?
+- Path fork: at QR1 (proposed), or a mortal start with the choice at QC3-5?
+- Does the demon path keep its own home peak look, or reuse the sect's with a demon skin?

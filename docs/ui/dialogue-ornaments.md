@@ -33,3 +33,8 @@ lilac against the magenta; the despill turns them blue-lavender and they are opa
 so the kit shows them at 14 % opacity. In the Figma kit the large plaque end (and a
 mirrored copy) is the title plaque's ends, `inkwash_b` is the panel pattern, and the
 dividers and seals are new components.
+
+Codex then redrew every A1 piece alone at full size (`art/ui/codex/a1/*.png`). Those are
+listed after `sheet_a1` in `PIECE_SHEETS`, so they win: the grey-blue ink clouds, the red
+chop-style seals (open centre), the redesigned vertical divider and sharper dividers and
+small plaque end. The kit uses them; the sheet cuts are the fallback.

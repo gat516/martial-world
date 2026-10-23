@@ -101,6 +101,15 @@ PIECE_SHEETS = {
         "seal_square", "seal_round",
     ],
     "a1/plaque_end_large": ["plaque_end_large"],
+    # Codex's one-piece redraws of A1; listed after sheet_a1 so they win.
+    "a1/plaque_end_small": ["plaque_end_small"],
+    "a1/divider_diamond": ["divider_diamond"],
+    "a1/divider_cloud_ends": ["divider_cloud"],
+    "a1/divider_vertical": ["divider_vertical"],
+    "a1/ink_cloud": ["inkwash_a"],
+    "a1/ink_cloud_wide": ["inkwash_b"],
+    "a1/seal_square": ["seal_square"],
+    "a1/seal_round": ["seal_round"],
 }
 SHEET_GROUP_GAP = 16  # px; parts of one piece closer than this belong together
 SHEET_MIN_AREA = 400  # px; smaller islands are generator noise

@@ -264,177 +264,177 @@
     "flags": []
   },
   "ornament_plaque_end_small": {
-    "sheet": "sheet_a1",
+    "sheet": "a1/plaque_end_small",
     "size": [
-      357,
-      134
+      922,
+      349
     ],
     "source_box": [
-      917,
-      102,
-      1274,
-      236
+      533,
+      227,
+      1455,
+      576
     ],
     "tiles": [
       {
         "file": "ornament_plaque_end_small.png",
         "x": 0,
-        "width": 357,
-        "height": 134
+        "width": 922,
+        "height": 349
       }
     ],
     "flags": []
   },
   "ornament_divider_diamond": {
-    "sheet": "sheet_a1",
+    "sheet": "a1/divider_diamond",
     "size": [
-      620,
-      62
+      1024,
+      59
     ],
     "source_box": [
-      80,
-      352,
-      700,
-      414
+      112,
+      298,
+      2060,
+      410
     ],
     "tiles": [
       {
         "file": "ornament_divider_diamond.png",
         "x": 0,
-        "width": 620,
-        "height": 62
+        "width": 1024,
+        "height": 59
       }
     ],
     "flags": []
   },
   "ornament_divider_cloud": {
-    "sheet": "sheet_a1",
+    "sheet": "a1/divider_cloud_ends",
     "size": [
-      503,
-      71
+      1024,
+      81
     ],
     "source_box": [
-      776,
-      353,
-      1279,
-      424
+      138,
+      273,
+      2041,
+      423
     ],
     "tiles": [
       {
         "file": "ornament_divider_cloud.png",
         "x": 0,
-        "width": 503,
-        "height": 71
+        "width": 1024,
+        "height": 81
       }
     ],
     "flags": []
   },
   "ornament_divider_vertical": {
-    "sheet": "sheet_a1",
+    "sheet": "a1/divider_vertical",
     "size": [
-      57,
-      176
+      129,
+      1024
     ],
     "source_box": [
-      1372,
-      298,
-      1429,
-      474
+      440,
+      137,
+      597,
+      1382
     ],
     "tiles": [
       {
         "file": "ornament_divider_vertical.png",
         "x": 0,
-        "width": 57,
-        "height": 176
+        "width": 129,
+        "height": 1024
       }
     ],
     "flags": []
   },
   "ornament_inkwash_a": {
-    "sheet": "sheet_a1",
+    "sheet": "a1/ink_cloud",
     "size": [
-      583,
-      171
+      1024,
+      180
     ],
     "source_box": [
-      71,
-      516,
-      654,
-      687
+      173,
+      215,
+      2026,
+      540
     ],
     "tiles": [
       {
         "file": "ornament_inkwash_a.png",
         "x": 0,
-        "width": 583,
-        "height": 171
+        "width": 1024,
+        "height": 180
       }
     ],
     "flags": []
   },
   "ornament_inkwash_b": {
-    "sheet": "sheet_a1",
+    "sheet": "a1/ink_cloud_wide",
     "size": [
-      765,
-      172
+      1024,
+      129
     ],
     "source_box": [
-      725,
-      520,
-      1490,
-      692
+      76,
+      233,
+      2087,
+      486
     ],
     "tiles": [
       {
         "file": "ornament_inkwash_b.png",
         "x": 0,
-        "width": 765,
-        "height": 172
+        "width": 1024,
+        "height": 129
       }
     ],
     "flags": []
   },
   "ornament_seal_square": {
-    "sheet": "sheet_a1",
+    "sheet": "a1/seal_square",
     "size": [
-      229,
-      219
+      697,
+      702
     ],
     "source_box": [
-      367,
-      735,
-      596,
-      954
+      279,
+      263,
+      976,
+      965
     ],
     "tiles": [
       {
         "file": "ornament_seal_square.png",
         "x": 0,
-        "width": 229,
-        "height": 219
+        "width": 697,
+        "height": 702
       }
     ],
     "flags": []
   },
   "ornament_seal_round": {
-    "sheet": "sheet_a1",
+    "sheet": "a1/seal_round",
     "size": [
-      255,
-      255
+      750,
+      756
     ],
     "source_box": [
-      877,
-      717,
-      1132,
-      972
+      251,
+      242,
+      1001,
+      998
     ],
     "tiles": [
       {
         "file": "ornament_seal_round.png",
         "x": 0,
-        "width": 255,
-        "height": 255
+        "width": 750,
+        "height": 756
       }
     ],
     "flags": []

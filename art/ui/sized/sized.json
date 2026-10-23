@@ -64,41 +64,113 @@
    "40": 3
   }
  },
+ "codex/cut/ornament_board_header_capL.png": {
+  "heights": [
+   112
+  ],
+  "joins": [
+   "bottom",
+   "right",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "codex/cut/ornament_board_header_capR.png": {
+  "heights": [
+   112
+  ],
+  "joins": [
+   "bottom",
+   "left",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
  "codex/cut/ornament_catalog_tab_capL.png": {
   "heights": [
-   80
+   80,
+   104
   ],
-  "margin": 0
+  "joins": [
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "104": 4
+  }
  },
  "codex/cut/ornament_catalog_tab_capR.png": {
   "heights": [
-   80
+   80,
+   104
   ],
-  "margin": 0
+  "joins": [
+   "left"
+  ],
+  "margin": 0,
+  "margins": {
+   "104": 4
+  }
  },
  "codex/cut/ornament_catalog_tab_mid.png": {
   "heights": [
-   80
+   80,
+   104
   ],
-  "margin": 0
+  "joins": [
+   "left",
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "104": 4
+  }
  },
  "codex/cut/ornament_catalog_tab_selected_capL.png": {
   "heights": [
-   80
+   80,
+   104
   ],
-  "margin": 0
+  "joins": [
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "104": 4
+  }
  },
  "codex/cut/ornament_catalog_tab_selected_capR.png": {
   "heights": [
-   80
+   80,
+   104
   ],
-  "margin": 0
+  "joins": [
+   "left"
+  ],
+  "margin": 0,
+  "margins": {
+   "104": 4
+  }
  },
  "codex/cut/ornament_catalog_tab_selected_mid.png": {
   "heights": [
-   80
+   80,
+   104
   ],
-  "margin": 0
+  "joins": [
+   "left",
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "104": 4
+  }
  },
  "codex/cut/ornament_ceremony_frame.png": {
   "heights": [
@@ -328,6 +400,15 @@
    "352": 6
   }
  },
+ "codex/cut/ornament_inkwash_b.png": {
+  "heights": [
+   129
+  ],
+  "margin": 0,
+  "margins": {
+   "129": 4
+  }
+ },
  "codex/cut/ornament_item_slot.png": {
   "heights": [
    80,
@@ -377,6 +458,43 @@
    "360": 4
   }
  },
+ "codex/cut/ornament_objective_banner_capL.png": {
+  "heights": [
+   48
+  ],
+  "joins": [
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_objective_banner_capR.png": {
+  "heights": [
+   48
+  ],
+  "joins": [
+   "left"
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_objective_banner_mid.png": {
+  "heights": [
+   48
+  ],
+  "joins": [
+   "left",
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
  "codex/cut/ornament_peak_meter.png": {
   "heights": [
    144
@@ -397,29 +515,73 @@
  },
  "codex/cut/ornament_response_button_hi_capL.png": {
   "heights": [
-   80
+   80,
+   88
+  ],
+  "joins": [
+   "right"
   ],
   "margin": 0,
   "margins": {
-   "80": 4
+   "80": 4,
+   "88": 5
   }
  },
  "codex/cut/ornament_response_button_hi_capR.png": {
   "heights": [
-   80
+   80,
+   88
+  ],
+  "joins": [
+   "left"
   ],
   "margin": 0,
   "margins": {
-   "80": 4
+   "80": 4,
+   "88": 5
   }
  },
  "codex/cut/ornament_response_button_hi_mid.png": {
   "heights": [
-   80
+   80,
+   88
+  ],
+  "joins": [
+   "left",
+   "right"
   ],
   "margin": 0,
   "margins": {
-   "80": 4
+   "80": 4,
+   "88": 5
+  }
+ },
+ "codex/cut/ornament_ribbon_crimson_capL.png": {
+  "heights": [
+   112
+  ],
+  "joins": [
+   "bottom",
+   "right",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "codex/cut/ornament_ribbon_crimson_capR.png": {
+  "heights": [
+   112
+  ],
+  "joins": [
+   "bottom",
+   "left",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
   }
  },
  "codex/cut/ornament_ruby_stud.png": {
@@ -438,6 +600,43 @@
   "margin": 0,
   "margins": {
    "144": 4
+  }
+ },
+ "codex/cut/ornament_seat_plate_capL.png": {
+  "heights": [
+   48
+  ],
+  "joins": [
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_seat_plate_capR.png": {
+  "heights": [
+   48
+  ],
+  "joins": [
+   "left"
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_seat_plate_mid.png": {
+  "heights": [
+   48
+  ],
+  "joins": [
+   "left",
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
   }
  },
  "codex/cut/ornament_seed_packet.png": {
@@ -699,7 +898,73 @@
   "heights": [
    104
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "104": 3
+  }
+ },
+ "codex/cut/ornament_title_crest_capL.png": {
+  "heights": [
+   184
+  ],
+  "joins": [
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "184": 8
+  }
+ },
+ "codex/cut/ornament_title_crest_capR.png": {
+  "heights": [
+   184
+  ],
+  "joins": [
+   "left"
+  ],
+  "margin": 0,
+  "margins": {
+   "184": 8
+  }
+ },
+ "codex/cut/ornament_title_crest_centre.png": {
+  "heights": [
+   184
+  ],
+  "joins": [
+   "left",
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "184": 8
+  }
+ },
+ "codex/cut/ornament_title_crest_midL.png": {
+  "heights": [
+   184
+  ],
+  "joins": [
+   "left",
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "184": 8
+  }
+ },
+ "codex/cut/ornament_title_crest_midR.png": {
+  "heights": [
+   184
+  ],
+  "joins": [
+   "left",
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "184": 8
+  }
  },
  "codex/cut/ornament_weapon_sword.png": {
   "heights": [
@@ -722,27 +987,156 @@
  },
  "codex/cut/ornament_window_corner_small.png": {
   "heights": [
-   88
+   88,
+   104
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "104": 3
+  }
  },
  "codex/cut/ornament_window_corner_small_bl.png": {
   "heights": [
-   88
+   88,
+   104
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "104": 3
+  }
  },
  "codex/cut/ornament_window_corner_small_br.png": {
   "heights": [
-   88
+   88,
+   104
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "104": 3
+  }
  },
  "codex/cut/ornament_window_corner_small_tr.png": {
   "heights": [
+   88,
+   104
+  ],
+  "margin": 0,
+  "margins": {
+   "104": 3
+  }
+ },
+ "codex/cut/portrait_unnamed_silhouette.png": {
+  "heights": [
+   216
+  ],
+  "margin": 0,
+  "margins": {
+   "216": 4
+  }
+ },
+ "dialogue/pcorner_bl.png": {
+  "heights": [
    88
   ],
-  "margin": 0
+  "joins": [
+   "right",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "88": 5
+  }
+ },
+ "dialogue/pcorner_br.png": {
+  "heights": [
+   88
+  ],
+  "joins": [
+   "left",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "88": 5
+  }
+ },
+ "dialogue/pcorner_tl.png": {
+  "heights": [
+   88
+  ],
+  "joins": [
+   "bottom",
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "88": 5
+  }
+ },
+ "dialogue/pcorner_tr.png": {
+  "heights": [
+   88
+  ],
+  "joins": [
+   "bottom",
+   "left"
+  ],
+  "margin": 0,
+  "margins": {
+   "88": 5
+  }
+ },
+ "dialogue/window_bl.png": {
+  "heights": [
+   184
+  ],
+  "joins": [
+   "right",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "184": 5
+  }
+ },
+ "dialogue/window_br.png": {
+  "heights": [
+   184
+  ],
+  "joins": [
+   "left",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "184": 5
+  }
+ },
+ "dialogue/window_tl.png": {
+  "heights": [
+   184
+  ],
+  "joins": [
+   "bottom",
+   "right"
+  ],
+  "margin": 0,
+  "margins": {
+   "184": 5
+  }
+ },
+ "dialogue/window_tr.png": {
+  "heights": [
+   184
+  ],
+  "joins": [
+   "bottom",
+   "left"
+  ],
+  "margin": 0,
+  "margins": {
+   "184": 5
+  }
  },
  "field_inset.png": {
   "heights": [
@@ -769,6 +1163,24 @@
   "margins": {
    "128": 6,
    "40": 5
+  }
+ },
+ "figma/hud_seat_rims.png": {
+  "heights": [
+   128
+  ],
+  "margin": 0,
+  "margins": {
+   "128": 4
+  }
+ },
+ "figma/hud_vitals_rims.png": {
+  "heights": [
+   128
+  ],
+  "margin": 0,
+  "margins": {
+   "128": 4
   }
  },
  "glyphs/class_Fist.png": {
@@ -813,6 +1225,15 @@
   ],
   "margin": 0
  },
+ "hud/hud_seat_plate.png": {
+  "heights": [
+   128
+  ],
+  "margin": 0,
+  "margins": {
+   "128": 4
+  }
+ },
  "hud/hud_timer_ring.png": {
   "heights": [
    64
@@ -820,6 +1241,15 @@
   "margin": 0,
   "margins": {
    "64": 3
+  }
+ },
+ "hud/hud_vitals_plate.png": {
+  "heights": [
+   128
+  ],
+  "margin": 0,
+  "margins": {
+   "128": 4
   }
  },
  "icons/icon_Insight.png": {
@@ -845,6 +1275,118 @@
    512
   ],
   "margin": 0
+ },
+ "plaque/plaque_gold_capL.png": {
+  "heights": [
+   96
+  ],
+  "joins": [
+   "bottom",
+   "right",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "96": 7
+  }
+ },
+ "plaque/plaque_gold_capL_curl.png": {
+  "heights": [
+   104
+  ],
+  "joins": [
+   "bottom",
+   "right",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "104": 4
+  }
+ },
+ "plaque/plaque_gold_capR.png": {
+  "heights": [
+   96
+  ],
+  "joins": [
+   "bottom",
+   "left",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "96": 7
+  }
+ },
+ "plaque/plaque_gold_capR_curl.png": {
+  "heights": [
+   104
+  ],
+  "joins": [
+   "bottom",
+   "left",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "104": 4
+  }
+ },
+ "plaque/plaque_ruby_capL.png": {
+  "heights": [
+   96
+  ],
+  "joins": [
+   "bottom",
+   "right",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "96": 4
+  }
+ },
+ "plaque/plaque_ruby_capL_curl.png": {
+  "heights": [
+   96
+  ],
+  "joins": [
+   "bottom",
+   "right",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "96": 3
+  }
+ },
+ "plaque/plaque_ruby_capR.png": {
+  "heights": [
+   96
+  ],
+  "joins": [
+   "bottom",
+   "left",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "96": 4
+  }
+ },
+ "plaque/plaque_ruby_capR_curl.png": {
+  "heights": [
+   96
+  ],
+  "joins": [
+   "bottom",
+   "left",
+   "top"
+  ],
+  "margin": 0,
+  "margins": {
+   "96": 3
+  }
  },
  "pulse_path.png": {
   "heights": [

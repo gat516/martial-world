@@ -81,11 +81,11 @@ local TIER_OF = {
 -- use the house plaques instead (Ribbon.STYLES, KINDS below).
 local STRIPS: { [string]: Ribbon.Style } = {
 	crimson = {
-		capL = "rbxassetid://121316271063702",
+		capL = "rbxassetid://121963270663411",
 		mid = "rbxassetid://128154077838383",
-		capR = "rbxassetid://108527414387394",
-		ratioL = 242 / 151,
-		ratioR = 244 / 151,
+		capR = "rbxassetid://103520263984825",
+		ratioL = 183 / 112, -- the margined copies (art/ui/sized)
+		ratioR = 185 / 112,
 		centre = 76 / 151,
 		band = 0.46,
 	},
@@ -99,13 +99,16 @@ local STRIPS: { [string]: Ribbon.Style } = {
 		band = 0.46,
 	},
 	gold = { -- the navy-and-gold objective banner
-		capL = "rbxassetid://138264404301051",
-		mid = "rbxassetid://88637856112299",
-		capR = "rbxassetid://121398639569390",
-		ratioL = 233 / 125,
-		ratioR = 233 / 125,
-		centre = 72 / 125,
-		band = 0.46,
+		capL = "rbxassetid://76263988542935",
+		mid = "rbxassetid://76017960689275",
+		capR = "rbxassetid://107743041938890",
+		-- the margined copies (art/ui/sized: 48 px of art, 4 px clear round it, the
+		-- caps' inner side joined): ratios, centre and band of the whole image
+		ratioL = 93 / 56,
+		ratioR = 93 / 56,
+		centre = (4 + 72 / 125 * 48) / 56,
+		band = 0.46 * 48 / 56,
+		margin = 4 / 56,
 	},
 }
 local BANNER_TEXT = 24 -- the banner title's size, in baseline pixels

@@ -27,45 +27,52 @@ export type Style = {
 	ratioR: number,
 	centre: number, -- the plain band's centre, 0-1 of the height
 	band: number, -- the plain band's height, 0-1
+	-- clear share of the images' height above and below the art (display-sized
+	-- copies keep a margin so their tips aren't cut flat, art/ui/sized): the Art
+	-- frame grows by it so the art fills the holder's height; ratios, centre and
+	-- band are of the whole image
+	margin: number?,
 }
 
 -- Cut from the house plaques (art/ui/plaque/derive.py): pointed, bevelled ends with
--- a diamond stud, a dark lacquer middle. The inner band is rows 23-72 of 96 (ruby)
+-- a diamond stud, a dark lacquer middle. The caps are display-sized copies with a
+-- clear margin at the outer end (art/ui/sized), so the point isn't cut flat; the
+-- ratios are those copies' sizes. The inner band is rows 23-72 of 96 (ruby)
 -- and 23-88 of 112 (gold); both centre on 0.5 within a quarter pixel.
 Ribbon.STYLES = {
 	ruby = {
-		capL = "rbxassetid://84782963669301",
+		capL = "rbxassetid://72601847318806",
 		mid = "rbxassetid://120248080624596",
-		capR = "rbxassetid://104762954477486",
-		ratioL = 62 / 96,
-		ratioR = 62 / 96,
+		capR = "rbxassetid://131307493204435",
+		ratioL = 66 / 96,
+		ratioR = 66 / 96,
 		centre = 0.5,
 		band = 50 / 96,
 	},
 	ruby_curl = {
-		capL = "rbxassetid://91394554610042",
+		capL = "rbxassetid://107883713716005",
 		mid = "rbxassetid://120248080624596",
-		capR = "rbxassetid://115839665280602",
-		ratioL = 123 / 96,
-		ratioR = 123 / 96,
+		capR = "rbxassetid://113538297333791",
+		ratioL = 126 / 96,
+		ratioR = 126 / 96,
 		centre = 0.5,
 		band = 50 / 96,
 	},
 	gold = {
-		capL = "rbxassetid://118333801422561",
+		capL = "rbxassetid://138442834914617",
 		mid = "rbxassetid://99954964250094",
-		capR = "rbxassetid://137033002952842",
-		ratioL = 70 / 112,
-		ratioR = 70 / 112,
+		capR = "rbxassetid://123625769072581",
+		ratioL = 67 / 96,
+		ratioR = 67 / 96,
 		centre = 0.5,
 		band = 66 / 112,
 	},
 	gold_curl = {
-		capL = "rbxassetid://120355976804968",
+		capL = "rbxassetid://74457213778141",
 		mid = "rbxassetid://99954964250094",
-		capR = "rbxassetid://94321697996859",
-		ratioL = 154 / 112,
-		ratioR = 154 / 112,
+		capR = "rbxassetid://71807443800914",
+		ratioL = 147 / 104,
+		ratioR = 147 / 104,
 		centre = 0.5,
 		band = 66 / 112,
 	},
@@ -80,6 +87,7 @@ Ribbon.STYLES = {
 		ratioR = 53 / 56,
 		centre = 0.5,
 		band = 30 / 56,
+		margin = 4 / 56,
 	},
 	tag_jade = {
 		capL = "rbxassetid://128782698499602",
@@ -89,6 +97,7 @@ Ribbon.STYLES = {
 		ratioR = 53 / 56,
 		centre = 0.5,
 		band = 30 / 56,
+		margin = 4 / 56,
 	},
 	tag_crimson = {
 		capL = "rbxassetid://132793539047568",
@@ -98,6 +107,7 @@ Ribbon.STYLES = {
 		ratioR = 52 / 56,
 		centre = 0.5,
 		band = 30 / 56,
+		margin = 4 / 56,
 	},
 	tag_violet = {
 		capL = "rbxassetid://101588361388733",
@@ -107,6 +117,7 @@ Ribbon.STYLES = {
 		ratioR = 59 / 56,
 		centre = 0.5,
 		band = 30 / 56,
+		margin = 4 / 56,
 	},
 	tag_gold = {
 		capL = "rbxassetid://126824681512637",
@@ -116,6 +127,7 @@ Ribbon.STYLES = {
 		ratioR = 64 / 56,
 		centre = 0.5,
 		band = 30 / 56,
+		margin = 4 / 56,
 	},
 } :: { [string]: Style }
 
@@ -204,8 +216,18 @@ local function apply(holder: GuiObject, fit: Fit): Result
 	local label = holder:FindFirstChild(opts.label or "Title") :: TextLabel
 	local style = styleOf(opts)
 	local ratioL, ratioR, centre, band
+	local grow = 1 -- the Art frame's height over the holder's
 	if style then
 		ratioL, ratioR, centre, band = style.ratioL, style.ratioR, style.centre, style.band
+		local vm = style.margin or 0
+		if vm > 0 and art ~= holder then
+			grow = 1 / (1 - 2 * vm)
+			art.AnchorPoint = Vector2.zero
+			art.Size = UDim2.new(art.Size.X, UDim.new(grow, 0))
+			art.Position = UDim2.new(art.Position.X, UDim.new(-vm * grow, 0))
+			-- the image's fractions on the holder
+			centre, band = (centre - vm) * grow, band * grow
+		end
 	else
 		local cl = capL:FindFirstChildOfClass("UIAspectRatioConstraint")
 		local cr = capR:FindFirstChildOfClass("UIAspectRatioConstraint")
@@ -215,7 +237,7 @@ local function apply(holder: GuiObject, fit: Fit): Result
 	end
 
 	-- whole pixels, so the seams and the two paddings come out even on screen
-	local capLW, capRW = math.round(h * ratioL), math.round(h * ratioR)
+	local capLW, capRW = math.round(h * grow * ratioL), math.round(h * grow * ratioR)
 	local pad = math.round(h * (opts.pad or 0.4))
 	local minMid = opts.minMid or h * 1.6
 	local maxMid = if opts.maxWidth then math.max(minMid, opts.maxWidth - capLW - capRW) else math.huge

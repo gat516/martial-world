@@ -13,10 +13,18 @@ diamond stud set into each end. No heavy cloud caps (the user finds them tacky).
 
 | Style | Studs | Caps | Used by |
 | --- | --- | --- | --- |
-| `ruby` | ruby | stud and point only (62 x 96) | dialogue name tab, tribulation ribbon |
-| `ruby_curl` | ruby | plus a small scroll curl and line (123 x 96) | boss card title |
-| `gold` | gold | stud and point only (70 x 112) | lineage epithet (card and ceremony) |
-| `gold_curl` | gold | plus curl and line (154 x 112) | quest, rank and milestone card titles, Herbarium title |
+| `ruby` | ruby | stud and point only (66 x 96 with margin) | dialogue name tab, tribulation ribbon |
+| `ruby_curl` | ruby | plus a small scroll curl and line (126 x 96) | boss card title |
+| `gold` | gold | stud and point only (67 x 96) | lineage epithet (card and ceremony) |
+| `gold_curl` | gold | plus curl and line (147 x 104) | quest, rank and milestone card titles, Herbarium title |
+| `tag_<colour>` | gilt cloud ends | mutation tags (bronze, jade, crimson, violet, gold; 48 px of art in 56) | Herbarium and plant-tag mutations, meditation actions |
+
+The caps are display-sized copies with a clear margin at the outer end (`art/ui/sized`,
+`tools/ui_margin.py`), so the points aren't cut flat by the image's edge; the ratios are
+those copies' sizes. A style whose pieces also have a margin above and below sets
+`margin` (that share of the image height): `Ribbon.fit` grows the `Art` frame by it so
+the art fills the holder, and `centre`/`band` are fractions of the whole image (the
+tags, the reward banner's gold strip).
 
 Art: `art/ui/plaque/` (`derive.py`), crops of the existing house plaques
 `art/ui/name_plaque.png` (ruby) and `art/ui/realm_plaque.png` (gold), never repainted:

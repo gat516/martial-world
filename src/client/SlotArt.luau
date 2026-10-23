@@ -40,9 +40,12 @@ local ART_GLYPH = 0.55 -- how far an art's glyph leans to white on its disc
 -- what fills the slot's Well (the icon box, authored per slot): items and models the
 -- whole box (icons are cropped to their drawn area), an art's glyph the middle of
 -- its disc, a class glyph a little less than the box
-local FILL_ITEM = 1
-local FILL_ART = 0.6
-local FILL_GLYPH = 0.86
+-- IconRects keeps a clear margin of 6% of the art each side (so a shrunk icon's
+-- tips aren't cut flat by the quad's edge): the boxes grow by it, the art keeps its size
+local RECT_MARGIN = 1.12
+local FILL_ITEM = 1 * RECT_MARGIN
+local FILL_ART = 0.6 * RECT_MARGIN
+local FILL_GLYPH = 0.86 * RECT_MARGIN
 
 -- art/ui/draw_icons.py; a weapon def's own icon wins over its model's
 local MODEL_ICONS: { [string]: string } = {

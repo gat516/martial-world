@@ -98,16 +98,16 @@
        <string name="Name">CapL</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
-       <UDim2 name="Size"><XS>0</XS><XO>66</XO><YS>0</YS><YO>92</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
+       <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>100</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://116607736158488</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX14"><Properties>
        <string name="Name">MidL</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">2</int>
-       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>92</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
+       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>100</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://85584042456622</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX15"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -119,16 +119,16 @@
        <string name="Name">Centre</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">3</int>
-       <UDim2 name="Size"><XS>0</XS><XO>148</XO><YS>0</YS><YO>92</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
+       <UDim2 name="Size"><XS>0</XS><XO>148</XO><YS>0</YS><YO>100</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://80941130307261</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX17"><Properties>
        <string name="Name">MidR</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">4</int>
-       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>92</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
+       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>100</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://110108310821354</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX18"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -140,8 +140,8 @@
        <string name="Name">CapR</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">5</int>
-       <UDim2 name="Size"><XS>0</XS><XO>66</XO><YS>0</YS><YO>92</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
+       <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>0</YS><YO>100</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://139271953401417</url></Content>
       </Properties>
       </Item>
      </Item>

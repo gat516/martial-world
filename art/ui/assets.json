@@ -444,5 +444,15 @@
   "slot_edge.png": "rbxassetid://104219227467575",
   "slot_wash.png": "rbxassetid://115790870697812",
   "art_disc.png": "rbxassetid://120857701622858",
-  "toast_plaque.png": "rbxassetid://131186990824070"
+  "toast_plaque.png": "rbxassetid://131186990824070",
+  "plaque/plaque_gold_capL.png": "rbxassetid://118333801422561",
+  "plaque/plaque_gold_capR.png": "rbxassetid://137033002952842",
+  "plaque/plaque_gold_capL_curl.png": "rbxassetid://120355976804968",
+  "plaque/plaque_gold_capR_curl.png": "rbxassetid://94321697996859",
+  "plaque/plaque_gold_mid.png": "rbxassetid://99954964250094",
+  "plaque/plaque_ruby_capL.png": "rbxassetid://84782963669301",
+  "plaque/plaque_ruby_capR.png": "rbxassetid://104762954477486",
+  "plaque/plaque_ruby_capL_curl.png": "rbxassetid://91394554610042",
+  "plaque/plaque_ruby_capR_curl.png": "rbxassetid://115839665280602",
+  "plaque/plaque_ruby_mid.png": "rbxassetid://120248080624596"
 }

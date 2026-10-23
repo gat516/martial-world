@@ -29,8 +29,8 @@ Slots (baseline px; anchor top-centre unless noted):
 | Ribbon | y 112, 720x96 | y 96, 460x62 | tribulation ribbon |
 | Tracker | y 116, 900x72 | y 98, 560x44 | countdown rings (row, centred) |
 | Counter | y 216, 84x106 | y 152, 56x72 | strike counter |
-| Chips | centre, y 0.42, full width minus 24 per side, 59 tall | y 0.5, minus 12, 46 tall | edge chips |
-| Decree | y 96, 280x359 | y 68, 150x192 | Heaven's Decree card |
+| Chips | centre, y 0.42, full width minus 24 per side, 59 tall | y 0.5, minus 12, 46 tall | (unused box; edge chips go in its layout and move over the whole canvas) |
+| Decree | y 96, 280x359 | y 68, 180x230 | Heaven's Decree card |
 | Rift | centred, 380x519 | centred, 250x341 | rift card |
 | Board | centred, 720x600 | centred, 600x350 | leaderboard window |
 
@@ -53,9 +53,37 @@ published by `src/server/WorldEvents/init.luau`). No server change.
 - **Pin:** `pin_gold`/`_jade`/`_crimson`/`_violet` over the event's spot (a BillboardGui on
   an Attachment in `workspace.Terrain`), the event's glyph live in the head and your
   distance under it. Always on top, up to 4000 studs.
-- **Edge chip:** when the spot is off screen (or within 4 % of an edge), a
-  `direction_chip` at the left or right edge pointing toward it (left uses the mirrored
-  copy), the short name and distance on its plate; several stack downward.
+- **Edge chip** (an off-screen indicator, user 2026-10-23): when the spot is off screen
+  (or within 4 % of an edge), the `EdgeChip` template: the gold house plaque
+  ([ribbons](ribbons.md), 44 tall, 36 on the phone; fitted once to the short name plus
+  "  ·  9999m" so it never jitters) with the name in cream and the distance in gold on
+  one line (Builder Sans Bold 16, 14 on the phone), and the kit's gold `chevron` (26x16,
+  22x13.5 on the phone) orbiting it on an ellipse 2 px off the plaque, turned to point at
+  the event. The text never rotates.
+  - Where: the chip slides along an inset rectangle (`Events/EdgeMath.luau`): the canvas
+    less the HUD's bands (top 84, bottom 222 baseline px on desktop: the top-right
+    buttons and toast, the vitals stack; 56 and 124 on the phone), the chip's own half
+    extents with the pointer, and an 8 px margin, so the whole chip, pointer included,
+    stays inside the safe area (Events uses `DeviceSafeInsets`). The point is where a ray
+    from the screen centre, toward the event, meets that rectangle. The direction is the
+    event's camera-space x and y, so an event behind you and to the right leads to the
+    right edge, one straight behind and below to the bottom.
+  - Motion: one RenderStepped pass for all chips. The angle eases toward the event
+    (rate 10 a second, at most 300° a second, so an event crossing behind you swings the
+    chip round the bottom calmly) and the chip eases along the border the short way
+    round, never across the screen. No pulsing.
+  - Hand-off: when the spot comes on screen (in front, inside 4 % of every edge) the
+    chip fades out at the same rate while the pin over the spot shows; it fades back in
+    when the spot leaves. It also fades while a menu is open.
+  - Several chips: sorted along the border, each one that would overlap the one before
+    (boxes plus 10 px) moves on clockwise until clear, round corners too.
+  - Measured (sandbox, 2026-10-23, `EdgeMath` with the real camera maths): 5400
+    placements per layout (yaw 0-357° by 3, pitch -40..40°, three chips at once and
+    single events ahead, behind, above and below): every chip with its pointer at least
+    14.7 px (desktop) / 13.6 px (phone) inside the screen sides and 13.2 / 12.4 px clear
+    of the HUD bands; no plaques overlapping, at least 10 px apart. Turning the camera
+    at 60-240° a second, the chip moves 3-35 px a frame on average, at most 72 (the
+    swing round the bottom when an event passes behind you).
 - **Looks** (`LOOKS` in the module, by def id then kind): Thousand-Year Ginseng jade 參,
   Beast Surge crimson 獸 (no spot, so no pin or chip), Auspicious Clouds gold 雲, Violet
   Cloud Mist violet 紫, Golden Auspicious Clouds gold 金; anything else gold 祥. A new event
@@ -71,13 +99,17 @@ planned time instead of chaining waits (no drift).
 - **Challenger:** the `decree_card` ("Heaven's Decree", the strike count large in gold,
   "strikes of heavenly lightning", a line on what to do) fades in high on the screen, off
   the character, with one `fx_glint` sweep across its top edge, and holds 2.6 s (the
-  bolts start at once). On the phone it keeps only the title and the count. Then the
+  bolts start at once). On the phone (180x230) it drops the kicker and footer and sets its
+  lines at fixed sizes with a 14 px floor (title 16, count 36, "heavenly strikes" 14, the
+  body line 14 in up to three lines), all inside the art's interior. Then the
   strike counter: a `countdown_ring` under the top centre with the strikes left and
-  "strikes left" under it; each bolt ticks it down with one short pop and an
+  "strikes left" under it (14 px on the phone, just under the ring); each bolt ticks it down with one short pop and an
   `fx_sparkle` flash, gold for the last three. At the end it fades and the ribbon says
   "The heavens relent. You endured." or "The lightning overwhelmed you".
-- **Everyone else:** the `tribulation_ribbon` (three-part) for 3.4 s: "The heavens descend
-  on <name>", unless a menu is open.
+- **Everyone else:** the ribbon for 3.4 s: "The heavens descend on <name>", unless a menu
+  is open. It's the ruby house plaque fitted to the message ([ribbons](ribbons.md); 26 px,
+  17 on the phone, centred in its slot); the cut `tribulation_ribbon`'s cloud-and-lightning
+  caps took 215 of the phone's 460 px and crowded the text.
 - No darkening, no looping pulse (the user's taste from the boss bar). Without a strike
   count (an older server), the decree shows 雷 and no counter.
 
@@ -113,7 +145,8 @@ spectator ribbon, the decree, a counter ticking down six strikes, the end ribbon
 ## Art
 Cuts from `ui-assemble` (`art/ui/codex/cut/`, ids in `art/ui/assets.json`): `event_scroll`
 caps and paper strip (`capL`, `midL`, `capR`; its `centre` cut carries a speck and isn't
-used), `countdown_ring`, the four pins, `direction_chip`, `decree_card`,
+used), `countdown_ring`, the four pins, `decree_card` (`direction_chip` and its mirror
+are no longer used; the edge chip is the gold plaque and the kit's `chevron`),
 `tribulation_ribbon` (three-part), `rift_card`, `rift_tag` (three-part), `response_button`
 (three-part), `close_seal`, `divider_cloud`, `fx_glint`, `fx_sparkle`, `fx_glow`.
 `art/ui/events/mirror.py` mirrors the left chip and the window corner sets (Roblox
@@ -124,5 +157,8 @@ x 0.102-0.900, y 0.111-0.899; rift interior below 0.19; button icon ring (0.321,
 
 ## Known gaps
 - Untested in play: the herald queue and timings, the pins and chips against real
-  events, the tribulation flow with real bolts, phone layout on a device.
+  events (the chip's slide, fade hand-off to the pin and the HUD insets on a real phone),
+  the tribulation flow with real bolts, phone layout on a device.
+- The chip insets are fixed numbers measured from the HUD's buttons and stack; the touch
+  cluster on the phone's lower right can still meet a chip low on the right edge.
 - No tracker tap action yet (it could open a map or point the guide later).

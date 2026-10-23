@@ -38,6 +38,7 @@ local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
+local Ribbon = require(script.Parent.Ribbon)
 local SelfCard = require(script.Parent.SelfCard)
 local SlotArt = require(script.Parent.SlotArt)
 local UiScale = require(script.Parent.UiScale)
@@ -75,26 +76,46 @@ local TIER_OF = {
 	Earth = "violet",
 	Heaven = "gold",
 }
--- Three-part ribbons: images, cap aspect ratios, and the height (0-1) of the body's
--- centre, where the title sits.
-type Strip = { images: { string }, ratios: { number }, centre: number }
-local STRIPS: { [string]: Strip } = {
+-- The banner's three-part ribbons (Ribbon.Style): images, cap aspect ratios (from the
+-- PNGs), and the plain band's centre and height (0-1), where the title sits. Cards
+-- use the house plaques instead (Ribbon.STYLES, KINDS below).
+local STRIPS: { [string]: Ribbon.Style } = {
 	crimson = {
-		images = { "rbxassetid://121316271063702", "rbxassetid://128154077838383", "rbxassetid://108527414387394" },
-		ratios = { 242 / 151, 244 / 151 },
+		capL = "rbxassetid://121316271063702",
+		mid = "rbxassetid://128154077838383",
+		capR = "rbxassetid://108527414387394",
+		ratioL = 242 / 151,
+		ratioR = 244 / 151,
 		centre = 76 / 151,
+		band = 0.46,
 	},
 	jade = {
-		images = { "rbxassetid://107068274389031", "rbxassetid://72502727273386", "rbxassetid://124632452296572" },
-		ratios = { 242 / 151, 244 / 151 },
+		capL = "rbxassetid://107068274389031",
+		mid = "rbxassetid://72502727273386",
+		capR = "rbxassetid://124632452296572",
+		ratioL = 242 / 151,
+		ratioR = 244 / 151,
 		centre = 76 / 151,
+		band = 0.46,
 	},
 	gold = { -- the navy-and-gold objective banner
-		images = { "rbxassetid://138264404301051", "rbxassetid://88637856112299", "rbxassetid://121398639569390" },
-		ratios = { 233 / 125, 233 / 125 },
+		capL = "rbxassetid://138264404301051",
+		mid = "rbxassetid://88637856112299",
+		capR = "rbxassetid://121398639569390",
+		ratioL = 233 / 125,
+		ratioR = 233 / 125,
 		centre = 72 / 125,
+		band = 0.46,
 	},
 }
+local BANNER_TEXT = 24 -- the banner title's size, in baseline pixels
+local BANNER_MAX = 600 -- the banner ribbon's greatest width (the banner is 620)
+-- The card title plaque: its text size as a share of the plaque's height (28 on the
+-- desktop boss card's 59 px plaque), and its least plain middle and greatest width as
+-- shares of the card's width (a short title still reads as the card's title).
+local CARD_TEXT = 0.47
+local CARD_MIN_MID = 0.36
+local CARD_MAX = 0.84
 -- Card layout per job, in fractions of the card art (measured in the PNGs: the boss
 -- card's header strip is rows 46-96 of 596, its interior 102-558; the quest card's
 -- crest ring is centred on row 90 of 652 and its interior ends at 632).
@@ -116,7 +137,7 @@ local KINDS: { [string]: Kind } = {
 		ratio = 1024 / 596,
 		rays = ART.rays_boss,
 		raysAt = Vector3.new(0.5, 0.45, 1.35), -- a burst behind the whole card
-		ribbon = "crimson",
+		ribbon = "ruby_curl",
 		ribbonY = 71 / 596,
 		ribbonH = 0.17,
 		bodyTop = 0.22,
@@ -125,7 +146,7 @@ local KINDS: { [string]: Kind } = {
 	quest = {
 		art = ART.card_quest,
 		ratio = 1024 / 652,
-		ribbon = "jade",
+		ribbon = "gold_curl",
 		crest = ART.emblem_peak,
 		ribbonY = 0.315,
 		ribbonH = 0.15,
@@ -137,7 +158,7 @@ local KINDS: { [string]: Kind } = {
 		ratio = 1024 / 652,
 		rays = ART.rays_milestone,
 		raysAt = Vector3.new(0.5, 0.12, 1.1),
-		ribbon = "jade",
+		ribbon = "gold_curl",
 		crest = ART.emblem_peak,
 		ribbonY = 0.315,
 		ribbonH = 0.15,
@@ -149,7 +170,7 @@ local KINDS: { [string]: Kind } = {
 		ratio = 1024 / 652,
 		rays = ART.rays_milestone,
 		raysAt = Vector3.new(0.5, 0.12, 1.1), -- a soft glow rising from the crest
-		ribbon = "crimson",
+		ribbon = "gold_curl",
 		crest = ART.emblem_lotus,
 		ribbonY = 0.315,
 		ribbonH = 0.15,
@@ -493,20 +514,6 @@ end
 
 -- Banner --------------------------------------------------------------------------
 
-local function applyStrip(holder: Instance, style: string)
-	local strip = STRIPS[style] or STRIPS.gold
-	local art = holder:FindFirstChild("Art") :: Frame
-	local capL = art:FindFirstChild("CapL") :: ImageLabel
-	local capR = art:FindFirstChild("CapR") :: ImageLabel
-	capL.Image = strip.images[1];
-	(art:FindFirstChild("Mid") :: ImageLabel).Image = strip.images[2]
-	capR.Image = strip.images[3];
-	(capL:FindFirstChildOfClass("UIAspectRatioConstraint") :: UIAspectRatioConstraint).AspectRatio = strip.ratios[1];
-	(capR:FindFirstChildOfClass("UIAspectRatioConstraint") :: UIAspectRatioConstraint).AspectRatio = strip.ratios[2]
-	local title = holder:FindFirstChild("Title") :: TextLabel
-	title.Position = UDim2.fromScale(0.5, strip.centre)
-end
-
 local function glint(holder: Instance, delay: number)
 	local g = holder:FindFirstChild("Glint") :: ImageLabel?
 	if not g then
@@ -527,14 +534,19 @@ local function showBanner(spec: Spec)
 	local token = bannerToken
 	bannerShowing = true
 	local ribbon = banner:FindFirstChild("Ribbon") :: Frame
-	applyStrip(ribbon, spec.style or "gold")
+	local titleText = spec.title or ""
+	task.spawn(Ribbon.fit, ribbon, titleText, {
+		style = STRIPS[spec.style or "gold"] or STRIPS.gold,
+		textSize = BANNER_TEXT,
+		maxWidth = BANNER_MAX,
+		height = ribbon.Size.Y.Offset,
+	})
 	local kicker = banner:FindFirstChild("Kicker") :: TextLabel
 	local tag = banner:FindFirstChild("Tag") :: TextLabel
 	local subtitle = banner:FindFirstChild("Subtitle") :: TextLabel
 	kicker.Text = spec.kicker or ""
 	kicker.TextColor3 = spec.kickerColor or GOLD
 	kicker.Visible = spec.kicker ~= nil;
-	(ribbon:FindFirstChild("Title") :: TextLabel).Text = spec.title or ""
 	tag.Text = spec.tag or ""
 	tag.TextColor3 = spec.tagColor or CREAM
 	tag.Visible = spec.tag ~= nil
@@ -679,9 +691,28 @@ local function openCard(spec: Spec)
 	end
 	local ribbon = cardArt:FindFirstChild("Ribbon") :: Frame
 	ribbon.Position = UDim2.fromScale(0.5, kind.ribbonY)
-	ribbon.Size = UDim2.fromScale(0.74, kind.ribbonH)
-	applyStrip(ribbon, kind.ribbon);
-	(ribbon:FindFirstChild("Title") :: TextLabel).Text = spec.title or ""
+	-- The plaque's height in the card's own units, from the card's box and this kind's
+	-- art aspect (the art is fitted inside the card), so it doesn't wait on layout.
+	local scale = 1
+	local node: Instance? = card
+	while node and not node:IsA("LayerCollector") do
+		local s = node:FindFirstChildOfClass("UIScale")
+		if s then
+			scale *= s.Scale
+		end
+		node = node.Parent
+	end
+	local box = card.AbsoluteSize / scale
+	local artW = math.min(box.X, box.Y * kind.ratio)
+	local plaqueH = artW / kind.ratio * kind.ribbonH
+	ribbon.Size = UDim2.new(0, artW * 0.74, kind.ribbonH, 0)
+	task.spawn(Ribbon.fit, ribbon, spec.title or "", {
+		style = kind.ribbon,
+		textSize = math.max(14, math.floor(plaqueH * CARD_TEXT + 0.5)),
+		minMid = artW * CARD_MIN_MID,
+		maxWidth = artW * CARD_MAX,
+		height = plaqueH,
+	})
 	local body = cardArt:FindFirstChild("Body") :: Frame
 	body.Position = UDim2.fromScale(0.5, kind.bodyTop)
 	body.Size = UDim2.fromScale(0.84, kind.bodyBottom - kind.bodyTop)

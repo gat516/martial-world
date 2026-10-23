@@ -62,14 +62,14 @@ for _, what in opts.show or {} do
 		b.Ring.Time.Text = "4:05"
 		b.Title.Text = "Beast Surge"
 	elseif what == "Chips" then
-		local r = put("ChipRight", "Chips")
-		r.AnchorPoint = Vector2.new(1, 0.5)
-		r.Position = UDim2.fromScale(1, 0.5)
-		r.Size = UDim2.fromScale(4, 1)
-		local l = put("ChipLeft", "Chips")
-		l.AnchorPoint = Vector2.new(0, 0.5)
-		l.Position = UDim2.fromScale(0, 0.5)
-		l.Size = UDim2.fromScale(4, 1)
+		-- one chip on each side edge (WorldEventView moves them along the border in play)
+		for i, side in { 1, 0 } do
+			local chip = put("EdgeChip", "Chips", if i == 1 then "R" else "L")
+			chip.AnchorPoint = Vector2.new(side, 0.5)
+			chip.Position = UDim2.new(side, if side == 1 then -30 else 30, 0.5, 0)
+			chip.Pointer.Position = UDim2.new(side, if side == 1 then 15 else -15, 0.5, 0)
+			chip.Pointer.Rotation = if side == 1 then -90 else 90
+		end
 	elseif what == "Decree" then
 		put("Decree", "Decree")
 	elseif what == "Counter" then

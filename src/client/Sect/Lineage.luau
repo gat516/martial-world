@@ -28,6 +28,7 @@
 local Art = require(script.Parent.Art)
 local Ui = require(script.Parent.Ui)
 local Motion = require(script.Parent.Parent.Motion)
+local Ribbon = require(script.Parent.Parent.Ribbon)
 
 local Lineage = {}
 
@@ -58,6 +59,9 @@ local FAN_DX = 40 -- each further row steps this much further out
 local FAN_DY = 26 -- row pitch (plates are 24 tall)
 
 local GOLD = Color3.fromRGB(232, 190, 92)
+local RIBBON_TEXT = 13 -- the epithet on its plaque (the ribbon is 26-28 tall)
+local RIBBON_MAX_CARD = 244 -- the card's plaque stays inside the card (centred 124 px from its right)
+local RIBBON_MAX_CEREMONY = 300
 local CREAM = Color3.fromRGB(250, 236, 195)
 local MUTED = Color3.fromRGB(150, 144, 132)
 local JADE = Color3.fromRGB(126, 214, 160)
@@ -83,6 +87,17 @@ local function fanPosition(seat: number): UDim2
 	return UDim2.new(0.5, side * (FAN_FIRST + (row - 1) * FAN_DX), 0, row * FAN_DY)
 end
 
+-- The epithet ribbon is the gold house plaque, fitted to its text (docs/ui/ribbons.md).
+local function fitRibbon(ribbon: Frame, text: string, maxWidth: number)
+	task.spawn(Ribbon.fit, ribbon, text, {
+		style = "gold",
+		label = "Label",
+		textSize = RIBBON_TEXT,
+		maxWidth = maxWidth,
+		height = ribbon.Size.Y.Offset,
+	})
+end
+
 function Lineage.open(data: LineageData)
 	local w = window()
 	local content = w:FindFirstChild("Content") :: Frame
@@ -92,8 +107,7 @@ function Lineage.open(data: LineageData)
 	(main:FindFirstChild("MasterName") :: TextLabel).Text = `The {data.master.epithet}`;
 	(main:FindFirstChild("MasterTitle") :: TextLabel).Text = data.master.title or "";
 	(main:FindFirstChild("Teaches") :: TextLabel).Text = if data.master.teaches then `Teaches {data.master.teaches}` else "";
-	((card:FindFirstChild("Ribbon") :: Frame):FindFirstChild("Label") :: TextLabel).Text =
-		Lineage.epithet(data.seat, data.address, data.master.epithet)
+	fitRibbon(card:FindFirstChild("Ribbon") :: Frame, Lineage.epithet(data.seat, data.address, data.master.epithet), RIBBON_MAX_CARD)
 
 	local side = content:FindFirstChild("Side") :: Frame
 	local teachers = side:FindFirstChild("Teachers") :: Frame
@@ -164,8 +178,8 @@ function Lineage.ceremony(c: Ceremony)
 	local middle = frame:FindFirstChild("Middle") :: Frame;
 	(middle:FindFirstChild("Line") :: TextLabel).Text =
 		`{c.disciple.name} bows to the {c.master.epithet}\nand takes the {string.lower(ORDINALS[c.seat] or "")} seat.`;
-	((middle:FindFirstChild("Ribbon") :: Frame):FindFirstChild("Label") :: TextLabel).Text =
-		Lineage.epithet(c.seat, c.address, c.master.epithet)
+	local ribbon = middle:FindFirstChild("Ribbon") :: Frame
+	fitRibbon(ribbon, Lineage.epithet(c.seat, c.address, c.master.epithet), RIBBON_MAX_CEREMONY)
 	local bow = middle:FindFirstChild("Bow") :: GuiButton
 	if bowConn then
 		bowConn:Disconnect()
@@ -179,10 +193,10 @@ function Lineage.ceremony(c: Ceremony)
 		Ui.open(frame)
 	end
 	-- the ribbon settles in a beat after the card
-	local ribbon = middle:FindFirstChild("Ribbon") :: Frame
-	ribbon.Size = UDim2.fromOffset(120, 28)
+	local rest = ribbon.Position
+	ribbon.Position = rest + UDim2.fromOffset(0, -8)
 	task.delay(0.15, function()
-		Motion.tween(ribbon, { Size = UDim2.fromOffset(250, 28) }, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+		Motion.tween(ribbon, { Position = rest }, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
 	end)
 end
 

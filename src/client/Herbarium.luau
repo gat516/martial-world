@@ -26,6 +26,7 @@ local Items = require(ReplicatedStorage.Shared.Items)
 local HerbArt = require(script.Parent.HerbArt)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
+local Ribbon = require(script.Parent.Ribbon)
 local UiScale = require(script.Parent.UiScale)
 
 export type Entry = {
@@ -40,6 +41,7 @@ export type Entry = {
 export type Book = { entries: { Entry }, title: string? }
 
 local PER_PAGE = 6
+local TITLE_SIZE = 22 -- the title on its plaque (Merriweather Bold), baseline pixels
 local CARD = "rbxassetid://81261875456130" -- C1 herb_card
 local CARD_EMPTY = "rbxassetid://121322032200176" -- C1 herb_card_empty
 local INK = Color3.fromRGB(62, 38, 18)
@@ -168,7 +170,15 @@ local function render()
 	end
 	local total = spreads()
 	footer.Text = `Page {spread} / {total}  ·  {found} of {#book.entries} discovered`
-	title.Text = book.title or "Herbarium"
+	-- the gold title plaque fits its title (docs/ui/ribbons.md)
+	local plaque = title.Parent :: Frame
+	task.spawn(Ribbon.fit, plaque, book.title or "Herbarium", {
+		style = "gold_curl",
+		textSize = TITLE_SIZE,
+		-- at most 60 % of the window (its width in the plaque's units)
+		maxWidth = (plaque.Parent :: Frame).AbsoluteSize.X * 0.6 * plaque.Size.Y.Offset / math.max(plaque.AbsoluteSize.Y, 1),
+		height = plaque.Size.Y.Offset,
+	})
 	for _, b in { { prev, spread > 1 }, { nextButton, spread < total } } do
 		local button, on = b[1] :: GuiButton, b[2] :: boolean
 		(button :: any).ImageTransparency = if on then 0 else OFF_TRANSPARENCY;

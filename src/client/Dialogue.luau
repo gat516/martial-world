@@ -33,13 +33,13 @@
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local TextService = game:GetService("TextService")
 local UserInputService = game:GetService("UserInputService")
 
 local Glyphs = require(script.Parent.Glyphs)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
+local Ribbon = require(script.Parent.Ribbon)
 local UiScale = require(script.Parent.UiScale)
 
 export type Response = string | {
@@ -119,8 +119,8 @@ local line: TextLabel
 local chevron: ImageLabel
 local list: Frame
 local template: ImageButton
-local tabMinWidth = 0
-local tabCaps = 0 -- the tab's two end caps plus the name's side room
+local tabTextSize = 24 -- the name's authored size (Merriweather Bold, 24 desktop / 19 phone)
+local tabMaxWidth = 0 -- 60 % of the panel's width
 
 local session: Session? = nil
 local stickHeld = false
@@ -146,17 +146,17 @@ local function showKeys(): boolean
 	return not string.find(last.Name, "Gamepad")
 end
 
--- Fit the name tab to the name (never narrower than authored).
+-- Fit the name tab (a ruby plaque, docs/ui/ribbons.md) to the name: the name sits on
+-- the plaque's plain middle with even room to each stud; a long name grows the tab up
+-- to the panel's width, then shrinks a little, then truncates.
 local function fitTab(name: string)
-	speakerLabel.Text = name
-	local params = Instance.new("GetTextBoundsParams")
-	params.Text = name
-	params.Font = speakerLabel.FontFace
-	params.Size = speakerLabel.TextSize
-	params.Width = 2000
-	local ok, bounds = pcall(TextService.GetTextBoundsAsync, TextService, params)
-	local width = if ok then (bounds :: Vector2).X else 0
-	tab.Size = UDim2.fromOffset(math.max(tabMinWidth, math.ceil(width + tabCaps)), tab.Size.Y.Offset)
+	Ribbon.fit(tab, name, {
+		style = "ruby",
+		label = "Speaker",
+		textSize = tabTextSize,
+		maxWidth = tabMaxWidth,
+		height = tab.Size.Y.Offset,
+	})
 end
 
 local function setFocus(s: Session, index: number?)
@@ -526,9 +526,8 @@ function Dialogue.init()
 	list = layout:FindFirstChild("Responses") :: Frame
 	template = list:FindFirstChild("Response") :: ImageButton
 	template.Visible = false
-	-- the name label spans the tab minus most of its two caps (a negative Size.X.Offset)
-	tabCaps = -speakerLabel.Size.X.Offset
-	tabMinWidth = math.min(tab.Size.X.Offset, tabCaps + 4 * speakerLabel.TextSize)
+	tabTextSize = speakerLabel.TextSize
+	tabMaxWidth = panel.Size.X.Offset * 0.6
 
 	Motion.bob(chevron, 4)
 	Motion.buttons(list)

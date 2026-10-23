@@ -10,8 +10,12 @@
 --            menus).
 --   pin      a gold, jade, crimson or violet pin over the spot (`at`) in the
 --            world with the event's glyph and your distance.
---   chip     when the spot is off screen, an arrow chip at the left or right
---            edge pointing toward it, with the name and distance.
+--   chip     when the spot is off screen, a small gold plaque with the name and
+--            distance that slides along an inset border of the screen to the side
+--            the event lies on (behind you too), a gold chevron beside it turning to
+--            point at it. It eases frame to frame, fades out as the spot comes on
+--            screen (the pin takes over), stays clear of the HUD's top-right buttons
+--            and bottom stack, and several chips keep apart along the border.
 -- Events already running when you join get a tracker and pin without a herald.
 -- The server's announce toast still carries the flavour line. Looks per event:
 -- LOOKS (by def id, then kind). docs/ui/world-events.md.
@@ -24,6 +28,8 @@ local TweenService = game:GetService("TweenService")
 
 local WorldEvents = require(ReplicatedStorage.Shared.WorldEvents)
 local Menus = require(script.Parent.Parent.Menus)
+local Ribbon = require(script.Parent.Parent.Ribbon)
+local EdgeMath = require(script.Parent.EdgeMath)
 local Gui = require(script.Parent.Gui)
 
 local player = Players.LocalPlayer
@@ -33,8 +39,23 @@ local ROLLED = 0.3 -- the herald's width share when rolled up (caps only)
 local UNROLL = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local ROLLUP = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 local TEXT_IN = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local CHIP_GAP = 8 -- baseline px between stacked chips
-local CHIP_MARGIN = 0.04 -- share of the screen's width an on-screen pin must be inside
+local CHIP_GAP = 10 -- baseline px between chips sharing an edge
+local CHIP_MARGIN = 0.04 -- share of the screen an on-screen spot must be inside for the pin to take over
+local CHIP_EDGE = 8 -- the least room between a chip (pointer included) and the screen or HUD
+local CHIP_EASE = 10 -- per second: how fast a chip slides, turns and fades toward its target
+local CHIP_TURN = math.rad(300) -- the fastest a chip swings round the screen, radians a second
+local CHIP_SAMPLE = "  ·  9999m" -- the plaque is fitted once to the name plus this, so it never jitters
+-- Per layout: the plaque's height and text size, the pointer (the kit's gold chevron,
+-- 210 x 129) and the insets that keep chips off the HUD (baseline px; the top clears
+-- the top-right buttons and the toast, the bottom the vitals stack and, on the phone,
+-- most of the touch cluster).
+type ChipSpec = { height: number, text: number, pointer: Vector2, top: number, bottom: number, side: number }
+local CHIP: { [string]: ChipSpec } = {
+	Desktop = { height = 44, text = 16, pointer = Vector2.new(26, 16), top = 84, bottom = 222, side = 0 },
+	Phone = { height = 36, text = 14, pointer = Vector2.new(22, 13.5), top = 56, bottom = 124, side = 0 },
+}
+local CHIP_POINTER_GAP = 2 -- between the plaque and the pointer's near edge
+local GOLD_HEX = "#E6BE5C"
 local URGENT = 60 -- seconds left when the time turns lacquer red
 local URGENT_COLOR = Color3.fromRGB(255, 120, 100)
 
@@ -71,9 +92,22 @@ type Shown = {
 	tracker: Frame,
 	pin: BillboardGui?,
 	anchor: Attachment?,
-	chip: GuiObject?,
-	chipSide: string?,
+	chip: Chip?,
 	at: Vector3?,
+}
+
+-- An edge chip's state: eased angle (radians, from the screen centre), border
+-- distance and opacity; size is the plaque once fitted (nil until then).
+type Chip = {
+	frame: Frame,
+	plate: Frame,
+	pointer: ImageLabel,
+	title: TextLabel,
+	size: Vector2?,
+	angle: number?,
+	s: number?,
+	alpha: number,
+	text: string,
 }
 
 local WorldEventView = {}
@@ -82,6 +116,8 @@ local shown: { [string]: Shown } = {}
 local order = 0
 local trackerSlot: Frame
 local chipSlot: Frame
+local chipLayer: Frame -- the active layout (the canvas in baseline px)
+local canvasScale: UIScale
 
 local function lookOf(id: string): Look
 	local def = WorldEvents.Defs[id]
@@ -179,10 +215,13 @@ local function remove(id: string)
 	Gui.fadeOut(tracker, function()
 		tracker:Destroy()
 	end)
-	for _, inst in { s.pin, s.anchor, s.chip } :: { Instance? } do
+	for _, inst in { s.pin, s.anchor } :: { Instance? } do
 		if inst then
 			inst:Destroy()
 		end
+	end
+	if s.chip then
+		s.chip.frame:Destroy()
 	end
 end
 
@@ -234,49 +273,138 @@ local function sync(announce: boolean)
 	end
 end
 
-local function chipFor(s: Shown, side: string): GuiObject
-	if s.chip and s.chipSide == side then
-		return s.chip
+local function chipSpec(): ChipSpec
+	return CHIP[if Gui.isPhone() then "Phone" else "Desktop"]
+end
+
+local function setAlpha(c: Chip, alpha: number)
+	local t = 1 - alpha
+	for _, part in (c.plate:FindFirstChild("Art") :: Frame):GetChildren() do
+		if part:IsA("ImageLabel") then
+			part.ImageTransparency = t
+		end
 	end
-	if s.chip then
-		s.chip:Destroy()
+	c.pointer.ImageTransparency = t
+	c.title.TextTransparency = t
+	c.title.TextStrokeTransparency = t
+	c.frame.Visible = alpha > 0.01
+end
+
+-- An edge chip for an event with a spot: hidden until its plaque is fitted.
+local function makeChip(s: Shown): Chip
+	local spec = chipSpec()
+	local frame = Gui.clone("EdgeChip") :: Frame
+	frame.Name = s.entry.id
+	local plate = frame:FindFirstChild("Plate") :: Frame
+	local pointer = frame:FindFirstChild("Pointer") :: ImageLabel
+	local title = plate:FindFirstChild("Title") :: TextLabel
+	plate.Size = UDim2.fromOffset(0, spec.height)
+	pointer.Size = UDim2.fromOffset(spec.pointer.X, spec.pointer.Y)
+	local c: Chip = { frame = frame, plate = plate, pointer = pointer, title = title, alpha = 0, text = "" }
+	setAlpha(c, 0)
+	frame.Parent = chipLayer
+	local name = s.look.short or s.entry.name
+	task.spawn(function()
+		local fit = Ribbon.fit(plate, name .. CHIP_SAMPLE, {
+			style = "gold",
+			textSize = spec.text,
+			height = spec.height,
+		})
+		c.size = Vector2.new(fit.width, spec.height)
+		frame.Size = UDim2.fromOffset(fit.width, spec.height)
+		title.Text = ""
+	end)
+	return c
+end
+
+-- The chip's half extents with the pointer orbiting it, and the pointer's orbit.
+local function extents(size: Vector2, spec: ChipSpec): (Vector2, Vector2, number)
+	local p = spec.pointer
+	local orbit = Vector2.new(size.X / 2 + CHIP_POINTER_GAP + p.Y / 2, size.Y / 2 + CHIP_POINTER_GAP + p.Y / 2)
+	local reach = math.sqrt((p.X / 2) ^ 2 + (p.Y / 2) ^ 2)
+	return orbit + Vector2.new(reach, reach), orbit, reach
+end
+
+-- Every frame: slide, turn and fade the edge chips (one pass for all of them).
+local function moveChips(dt: number)
+	local camera = workspace.CurrentCamera
+	if not (camera and chipLayer) then
+		return
 	end
-	local chip = Gui.clone(if side == "Right" then "ChipRight" else "ChipLeft") :: ImageLabel
-	chip.Name = s.entry.id
-	chip.AnchorPoint = Vector2.new(if side == "Right" then 1 else 0, 0.5)
-	chip.Size = UDim2.fromScale(4, 1);
-	chip.Position = UDim2.fromScale(if side == "Right" then 1 else 0, 0.5);
-	(chip:FindFirstChild("Title") :: TextLabel).Text = s.look.short or s.entry.name
-	chip.Parent = chipSlot
-	Gui.fadeIn(chip)
-	s.chip, s.chipSide = chip, side
-	return chip
+	local spec = chipSpec()
+	local scale = math.max(canvasScale.Scale, 1e-3)
+	local size = chipLayer.AbsoluteSize / scale
+	local origin = chipLayer.AbsolutePosition
+	local centre = size / 2
+	local hidden = Menus.isOpen()
+	local k = 1 - math.exp(-CHIP_EASE * dt)
+	local insets = { top = spec.top, bottom = spec.bottom, side = spec.side }
+	-- one rect for all chips, from the widest (a shared edge keeps them in line)
+	local widest = Vector2.zero
+	for _, s in shown do
+		local c = s.chip
+		if c and c.size then
+			widest = Vector2.new(math.max(widest.X, c.size.X), math.max(widest.Y, c.size.Y))
+		end
+	end
+	if widest == Vector2.zero then
+		return
+	end
+	local half = extents(widest, spec)
+	local rect = EdgeMath.rect(size, insets, half, CHIP_EDGE)
+	local items: { EdgeMath.Item & { s: number, chip: Chip, show: boolean, dir: Vector2 } } = {}
+	for _, s in shown do
+		local c, at = s.chip, s.at
+		if not (c and c.size and at) then
+			continue
+		end
+		local target = at + Vector3.new(0, 16, 0)
+		local dir = EdgeMath.direction(camera.CFrame, target)
+		-- on screen (in front and well inside the edges): the pin takes over
+		local point, inFront = camera:WorldToViewportPoint(target)
+		local q = (Vector2.new(point.X, point.Y) - origin) / scale
+		local mx, my = size.X * CHIP_MARGIN, size.Y * CHIP_MARGIN
+		local onScreen = inFront and point.Z > 0 and q.X > mx and q.X < size.X - mx and q.Y > my and q.Y < size.Y - my
+		local angle = math.atan2(dir.Y, dir.X)
+		c.angle = if c.angle then EdgeMath.easeAngle(c.angle :: number, angle, k, CHIP_TURN * dt) else angle
+		local eased = Vector2.new(math.cos(c.angle :: number), math.sin(c.angle :: number))
+		local sTarget = EdgeMath.param(rect, EdgeMath.hit(rect, centre, eased))
+		table.insert(items, { s = sTarget, size = c.size :: Vector2, chip = c, show = not (hidden or onScreen), dir = eased })
+	end
+	EdgeMath.separate(rect, items :: any, CHIP_GAP)
+	for _, it in items do
+		local c = it.chip
+		c.s = if c.s then EdgeMath.ease(rect, c.s :: number, it.s, k) else it.s
+		c.alpha += ((if it.show then 1 else 0) - c.alpha) * k
+		if not it.show and c.alpha < 0.02 then
+			c.alpha = 0
+		end
+		setAlpha(c, c.alpha)
+		if c.alpha <= 0 then
+			continue
+		end
+		local p = EdgeMath.point(rect, c.s :: number)
+		c.frame.Position = UDim2.fromOffset(p.X, p.Y)
+		local _, orbit = extents(c.size :: Vector2, spec)
+		c.pointer.Position = UDim2.new(0.5, it.dir.X * orbit.X, 0.5, it.dir.Y * orbit.Y)
+		-- the chevron art points down (+y); turn it toward the event
+		c.pointer.Rotation = math.deg(math.atan2(it.dir.Y, it.dir.X)) - 90
+	end
 end
 
 local function step()
 	local now = workspace:GetServerTimeNow()
-	local camera = workspace.CurrentCamera
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local hidden = Menus.isOpen()
 	trackerSlot.Visible = not hidden and not Gui.heraldActive()
-	chipSlot.Visible = not hidden
-	local stack = { Left = 0, Right = 0 }
-	local ids = {}
-	for id in shown do
-		table.insert(ids, id)
-	end
-	table.sort(ids, function(a, b)
-		return shown[a].tracker.LayoutOrder < shown[b].tracker.LayoutOrder
-	end)
-	for _, id in ids do
-		local s = shown[id]
+	for _, s in shown do
 		local left = s.entry.ends - now
 		local time = (s.tracker:FindFirstChild("Ring") :: ImageLabel):FindFirstChild("Time") :: TextLabel
 		time.Text = clock(left)
 		time.TextColor3 = if left <= URGENT then URGENT_COLOR else Color3.fromRGB(250, 236, 195)
 		local at = s.at
-		if not (at and camera) then
+		if not at then
 			continue
 		end
 		local studs = if root then (root.Position - at).Magnitude else 0
@@ -284,24 +412,13 @@ local function step()
 			s.pin.Enabled = not hidden;
 			(s.pin:FindFirstChild("Distance") :: TextLabel).Text = distanceText(studs)
 		end
-		local point, visible = camera:WorldToViewportPoint(at + Vector3.new(0, 16, 0))
-		local view = camera.ViewportSize
-		local inside = visible and point.X > view.X * CHIP_MARGIN and point.X < view.X * (1 - CHIP_MARGIN)
-		if inside then
-			if s.chip then
-				s.chip:Destroy()
-				s.chip, s.chipSide = nil, nil
-			end
-			continue
+		local c = s.chip or makeChip(s)
+		s.chip = c
+		local text = `{s.look.short or s.entry.name}  ·  <font color="{GOLD_HEX}">{distanceText(studs)}</font>`
+		if c.size and c.text ~= text then
+			c.text = text
+			c.title.Text = text
 		end
-		local toward = camera.CFrame:VectorToObjectSpace(at - camera.CFrame.Position)
-		local side = if toward.X >= 0 then "Right" else "Left"
-		local chip = chipFor(s, side);
-		(chip:FindFirstChild("Distance") :: TextLabel).Text = distanceText(studs)
-		local index = stack[side]
-		stack[side] += 1
-		-- slot offsets are baseline pixels (the canvas's UIScale does the rest)
-		chip.Position = UDim2.new(if side == "Right" then 1 else 0, 0, 0.5, index * (chipSlot.Size.Y.Offset + CHIP_GAP))
 	end
 end
 
@@ -309,14 +426,20 @@ function WorldEventView.init()
 	Gui.init()
 	trackerSlot = Gui.slot("Tracker")
 	chipSlot = Gui.slot("Chips")
+	chipLayer = chipSlot.Parent :: Frame
+	canvasScale = (chipLayer.Parent :: Frame):FindFirstChild("UiScale") :: UIScale
 	sync(false)
 	workspace:GetAttributeChangedSignal("WorldEvents"):Connect(function()
 		sync(true)
 	end)
 	local acc = 0
 	RunService.RenderStepped:Connect(function(dt)
+		if next(shown) == nil then
+			return
+		end
+		moveChips(dt)
 		acc += dt
-		if acc < 0.1 or next(shown) == nil then
+		if acc < 0.1 then
 			return
 		end
 		acc = 0
@@ -332,6 +455,8 @@ function WorldEventView.preview()
 	if not trackerSlot then
 		trackerSlot = Gui.slot("Tracker")
 		chipSlot = Gui.slot("Chips")
+		chipLayer = chipSlot.Parent :: Frame
+		canvasScale = (chipLayer.Parent :: Frame):FindFirstChild("UiScale") :: UIScale
 	end
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?

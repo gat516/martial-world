@@ -182,7 +182,42 @@ The roster is enough for now. Next: elite and apex tiers (tint, aura, one move),
 wire the **cultivator enemies** as human opponents and sect-quest targets, and
 tune the old FE1 bosses.
 
-## 9. Order of work and who does it
+## 9. Replayability: why come back after the ladder
+A 27-stage ladder is a story you finish. Replay has to come from **variety, cadence
+and goals that don't end**, not from more linear stages. Proposed, in priority order:
+
+1. **Reincarnation (rebirth).** At FE9, or anywhere past the point of no return,
+   a player may start a new life: a fresh root, a chance at a bloodline, a new
+   path, and the climb again, faster and with a **legacy** carried over: the
+   Herbarium, the peak and its buildings, Dao seeds, titles, and a small
+   permanent bonus per life (capped, so it never trivialises the ladder). Fits
+   the novels, and every life can be a different build.
+2. **Paths that play differently.** The orthodox sect (board, library, Pavilion),
+   the **demon path** (expelled; cultivate by killing, a bounty board), and the
+   **wanderer / gardener** (garden, alchemy, building, trade; combat optional).
+   Each has its own quests, exclusive arts and cosmetics, so a second life is
+   not the same game. The demon path and bloodlines are already planned.
+3. **Secret realms (rifts).** Timed, procedurally varied small zones with
+   randomised rooms, enemies, herbs and one manual. The roguelike loop for fighters,
+   a rare-herb loop for gardeners. Repeatable, with a daily first-clear bonus.
+4. **Cadence.** Dailies and weeklies on the sect board; world events (the roaming
+   beast king, Dao rain, tribulation spectacles) on a schedule; weather moods;
+   seasonal sect festivals (a themed week with limited cosmetics and an event herb).
+5. **Goals that don't end.** The Herbarium, titles, achievements, technique tiers
+   and Dao mastery, and **leaderboards**: realm, Herbarium, tallest peak, best
+   garden. A **peak showcase** (visit and rate peaks) gives builders a reason to
+   come back.
+6. **Social.** Co-op bosses and events, visiting peaks, gifting herbs, a friends'
+   sect. Roblox retention lives here.
+7. **New realms.** Core Formation (the flying sword) after FE9 is the long-term
+   answer; the ladder is designed to extend.
+- **Rule:** build 1-3 only after the core loop and the ladder are proven in
+  playtests. Replayability systems amplify a loop that works; they don't fix one.
+- Build order: the flags and paths first (they shape data), rebirth after the
+  first full playthrough exists, rifts after the secret-place tooling, then
+  leaderboards and festivals.
+
+## 10. Order of work and who does it
 Each phase ends in a commit and a test-build playtest.
 
 | Phase | Work | Agents |
@@ -195,6 +230,7 @@ Each phase ends in a commit and a test-build playtest.
 | F | Building: peak tiers, sets, formations | `modeler` per set; `ui-designer` |
 | G | World events and tribulation VFX | `world-fx` |
 | H | Elite tiers, cultivators, curve tuning | `enemy-designer` per beast; analytics |
+| I | Replayability: paths, rifts, cadence, leaderboards, then rebirth | main; `world-fx`, `modeler` |
 
 A, B and C can run together if we split files carefully; D waits for C; E and F can
 run alongside them. Before spawning, ask how many agents and sandbox Studios at once
@@ -207,3 +243,5 @@ run alongside them. Before spawning, ask how many agents and sandbox Studios at 
 - Do heaven-defiers get extra cracks from rushing, or a harder tribulation only?
 - Does the Herbarium reward cosmetics only, or small solidity?
 - Which building sets are robux and which are earnable? (earnable first)
+- Rebirth: is it a full reset (keeping the legacy) or a parallel second character?
+- Is the wanderer path a third track in its own right, or a gardener-friendly sect option?

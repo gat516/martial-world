@@ -23,5 +23,6 @@ What each script in `tools/` does. Read it when you need a tool and don't know i
 - world-event kit builder and preview (`worldfx_build.luau`, `worldfx_preview.luau`)
 - seated-aura and root-reveal preview (`aura_preview.luau`)
 - ambient sound template builder (`ambient_sounds_build.luau`)
+- docs lint (`docs_lint.py`: broken links, missing paths, over-budget agents/skills/docs, text duplicated across agents and skills)
 - duplicate finder
 - POI tour and labels (`poi_tour.luau`, Studio copy `ServerStorage._EditorTools.PoiTour`)

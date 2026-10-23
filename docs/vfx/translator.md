@@ -1,4 +1,4 @@
-User notes in plain words ("messy", "weak", "floaty") mapped to their usual causes and Roblox property fixes. vfx and world-fx agents use it for every user note and every own review round (`.claude/agents/vfx.md`, "Review").
+User notes in plain words ("messy", "weak", "floaty") mapped to their usual causes and Roblox property fixes. vfx and world-fx agents use it for every user note and every own review round (`.claude/skills/vfx-method/SKILL.md`, step 7).
 
 # VFX translator: plain words to fixes
 
@@ -25,7 +25,7 @@ impossible to compare); change an asset only when the note is about its shape.
 | **lingers, too long, drags** | A tail with no gameplay job; `Lifetime.Max` too long | Shorten the dissipation and break it up (shrink, `Transparency` to 1, speed falling off). Nothing stays without a job. |
 | **too much, over the top, distracting** | Above its scale tier; screen effects on small moments; fills the screen | Back to the scale rule in [style.md](style.md): cut screen effects and the world grade, shrink the reach, and keep the craft. |
 | **too small, underwhelming (for a big moment)** | One layer carries the moment; no environment reaction; no feel layer | Add an environment layer (one light flash, ground dust or a scorch) and, if the tier earns it, a feel layer. Make the hero bigger before adding new elements. |
-| **doesn't fit, wrong element, generic** | The theme drives the shape instead of the action; another beast's palette; a stock texture | Let the action decide shape, origin and direction, and the theme only colour and texture. Use the element palette in `.claude/agents/vfx.md`. Choose textures with that element's shape language. |
+| **doesn't fit, wrong element, generic** | The theme drives the shape instead of the action; another beast's palette; a stock texture | Let the action decide shape, origin and direction, and the theme only colour and texture. Use the element palette in `docs/vfx/enemy-effects.md`. Choose textures with that element's shape language. |
 | **wrong place, comes from nowhere** | The emitter isn't on the cause; it isn't oriented to it | Put the emitter on an Attachment at the mouth, the contact point or the blade tip, aimed away from the cause. |
 | **laggy (phones)** | Many large overlapping transparent sprites; high rates; lights per hit | Fewer and better-shaped particles; budget in [toolkit.md](toolkit.md); no per-hit lights. |
 

@@ -1,4 +1,4 @@
-How this game's effects should look and the rules for getting there (techniques, auras, breakthroughs, enemy attacks, world events). Every vfx and world-fx agent reads all of it; tools are in [toolkit.md](toolkit.md), plain-word notes in [translator.md](translator.md), the method in `.claude/agents/vfx.md`.
+How this game's effects should look and the rules for getting there (techniques, auras, breakthroughs, enemy attacks, world events). Every vfx and world-fx agent reads all of it; tools are in [toolkit.md](toolkit.md), plain-word notes in [translator.md](translator.md), the method in `.claude/skills/vfx-method/SKILL.md`.
 
 # VFX style and method
 
@@ -66,7 +66,13 @@ same recipe:
 
 Read the reference library before researching and add to it after. `tools/ref_frames.py`
 makes a frame grid of a video (optionally one time window); it is for looking only, nothing
-from a video goes in the game.
+from a video goes in the game:
+`~/.local/bin/uv run -q --with yt-dlp --with av --with pillow --with numpy python -I tools/ref_frames.py <url> <scratchpad>/<name>.png 16 [start-end]`.
+Use only this tool on videos, one at a time (it decodes one frame per tile; decoding a whole
+video in your own code ran WSL out of memory). Videos are cached in `~/.cache/ref_frames`,
+never in the repo; grids and stills you keep go in `docs/reference/vfx/`. Good searches:
+Roblox showcases of the same kind of effect ("roblox vfx showcase aura", "sol's rng aura",
+"roblox studio vfx <element> explosion"); zoom on the climax with a time window.
 
 ## Our version: xianxia and wuxia
 
@@ -81,7 +87,7 @@ from a video goes in the game.
 | world goes dark | the sky dims and tints by element, clouds part, distant lightning for tribulation |
 
 Palette ties colour to meaning (`src/shared/Techniques.luau`, method elements, realm colours;
-enemy element palette in `.claude/agents/vfx.md`): gold and white for the heavens, jade for
+enemy element palette in [enemy-effects.md](enemy-effects.md)): gold and white for the heavens, jade for
 qi, vermilion for talismans, black ink for contrast.
 
 ## Recipes

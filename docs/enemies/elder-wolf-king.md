@@ -84,7 +84,7 @@ paws), `EyeL`/`EyeR`, `Neck`. No new remotes.
 The King's effect set, `Effects.ElderWolfKing` (30 templates, 86 emitters, 21 mesh
 waves; builder `tools/vfx_specs/ElderWolfKing.luau`, installs
 `_G.buildElderWolfKingFX`), was rebuilt on 2026-10-22 with the intent-first method
-(`.claude/agents/vfx.md`). Each move has an intent, a ms beat sheet and a layer sheet
+(`.claude/skills/vfx-method/SKILL.md`). Each move has an intent, a ms beat sheet and a layer sheet
 (cause, role, library asset and why) in the builder's header, one hero per beat, and
 layers staggered behind their cause. The old set (28 templates, ~190 emitters) layered
 the shared `Impact` kit on top of its own impacts, redrew the danger area with a gold

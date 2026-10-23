@@ -210,7 +210,7 @@ boss**, so a player who can't (a phone player, a peaceful one) is never stuck.
   time), and whether to hint the peaceful road when a player keeps dying.
 
 ## World events
-The event look pass (`docs/vfx/world_events_plan.md`) resumes with Heaven Split,
+The event look pass (`docs/vfx/world_events.md`) resumes with Heaven Split,
 Beast Surge and the new events. Plan:
 - **Tiers by realm band**, with event grounds in every region; prizes scale with
   the band.

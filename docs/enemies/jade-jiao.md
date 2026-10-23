@@ -86,7 +86,7 @@ EnemyAnimator hand-offs at real frame rates, phones).
 Jade Jiao effects: `Effects.JadeJiao` (40 templates, 113 authored emitters, 18 mesh waves, the
 TailLash and VenomBolt trails; builder `tools/vfx_specs/JadeJiao.luau`, installs
 `_G.buildJadeJiaoFX`), played by `EnemyFX/JadeJiao.luau` (gated to Template `JadeJiao`).
-**Rebuilt 2026-10-22 with the intent-first method** (`.claude/agents/vfx.md`): the first pass was
+**Rebuilt 2026-10-22 with the intent-first method** (`.claude/skills/vfx-method/SKILL.md`): the first pass was
 technically fine but random (307 emitters; amber marker circles and arrays redrawing every
 telegraph, the shared Impact kit stacked on every slam, sweep, emerge and pool, a skyward "spirit
 stream" on every phase and the rain, three peaks in the death). Now every layer is caused by the

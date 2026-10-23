@@ -13,7 +13,7 @@ This page says where everything lives. For the setting and zones in brief, read
 Big systems are a core doc plus parts, one file per item: enemies in
 [`enemies/`](enemies/), map areas in [`map/`](map/), world effects in [`world/`](world/),
 combat in [`combat/`](combat/). **Read the core and the one part you need, not the folder.**
-Agent orchestration (sandboxes, test build, who does what): [agents/orchestration](agents/orchestration.md).
+Agent orchestration (sandboxes, test build, who does what): [agents/orchestration](agents/orchestration.md). Agent definitions are in `.claude/agents/`, their shared procedures in `.claude/skills/`.
 Visual effects have their own pair: [`vfx/style.md`](vfx/style.md) (how effects
 should look, from the reference videos) and [`vfx/toolkit.md`](vfx/toolkit.md)
 (core plus topic files in [`vfx/toolkit/`](vfx/toolkit/): the vfxia plugin, asset library and Studio pipeline), [`vfx/world_events.md`](vfx/world_events.md) for sky-scale events, plus

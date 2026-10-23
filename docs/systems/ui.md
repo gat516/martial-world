@@ -142,6 +142,7 @@ cursor, settings and the admin panel.
 - [Boss health bar](../ui/boss-bars.md)
 - [Reward banners: floats, feed, banner, card; the toast](../ui/rewards.md)
 - [Death screen: cause-keyed lines and the respawn countdown](../ui/death-screen.md) (`StarterGui.DeathScreen`)
+- [Slicing and procedural art](../ui/slicing.md) (9-slice and 3-slice rules, legacy Pillow scripts)
 - [Dialogue ornaments](../ui/dialogue-ornaments.md)
 - [Dialogue screen and interaction prompts](../ui/dialogue.md)
 - [Cultivation UI: seated tiles, meditation panel, breakthrough card, foundation meter, death-save, Dao ring, tier frames, bloodline marks](../ui/cultivation.md)

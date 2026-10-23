@@ -63,7 +63,7 @@ the floor; the rush's arrival (dash -> swipe windup) holds one frame. Untested i
 Effects (vfx agent): `Effects.ThunderApe` (49 templates, 127 emitters, 22 mesh waves; builder
 `tools/vfx_specs/ThunderApe.luau`, installs `_G.buildThunderApeFX`), handler `EnemyFX/ThunderApe.luau` (gated to
 `ThunderApeB`), sounds `SFX.Enemies.ThunderApe.<Name>` (30 effect sounds, played with `Sfx.play` at each peak from
-where its cause is). Rebuilt on 2026-10-22 with the intent-first method (`.claude/agents/vfx.md`; user: the effects
+where its cause is). Rebuilt on 2026-10-22 with the intent-first method (`.claude/skills/vfx-method/SKILL.md`; user: the effects
 were technically fine but random). Each move has an intent, a ms beat sheet and a layer sheet (cause, role, library
 asset and why) in the builder's header; one hero per beat, layers staggered 20-160 ms behind their cause. Cut from
 the old set (58 templates): the `SkySigil` ground circles under the leaps (they redrew the telegraph), the lit crack

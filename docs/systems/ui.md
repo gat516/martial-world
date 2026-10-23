@@ -48,8 +48,11 @@ cursor, settings and the admin panel.
   Settings. 56 px tiles 8 px apart, scaled 0.9 on touch (about 50 px thumb
   targets), 0.85 on PC; four tiles are 224 px wide on a phone. The frame is
   `hud_tile` (art/ui/hud: a lacquer square with chamfered corners, gilt band and
-  inner line, no curls; it fills the tile, nothing overhangs). PC: icon (24 px,
-  cropped to its drawn area) centred between the inner line and the caption, which
+  inner line, no curls; it fills the tile, nothing overhangs). PC: icon (22 px,
+  cropped to its drawn area, every pixel with alpha > 0: the old rects were up to a
+  third too tight and cut the Build, Travel and Inventory glyphs, "icons are clipping
+  here", 2026-10-23) centred between the inner line and the caption, 4.6 px from each
+  at the PC scale and 10-12 px from the sides, which
   sits inside the frame's bottom strip with a text stroke; touch: no caption, the
   icon (28 px) centred on the frame (`Layout`). Badges pin to corners clear of the
   icon: the key cap (`KeyLabel`, `hud_keycap`, keyboards only) on the top-left
@@ -119,6 +122,19 @@ cursor, settings and the admin panel.
   splits icon sheets on a 4 x 3 grid, and writes `manifest.json` (sizes, tiles,
   flags) plus `contact_sheet.png`. The user approves the contact sheet before
   anything is uploaded. Run with `uv run --with pillow --with numpy`.
+- Display-sized copies (`ui_assemble.py --sized`, its `SIZED` table): Roblox draws GUI
+  images without mipmaps, so a source shown at a fifth of its size aliases (thin gilt
+  lines break up, curls go soft; "you can kinda tell that the resolution sucks",
+  2026-10-23). Anything shown far below its source gets a Lanczos copy at about 2x its
+  largest baseline display size in `art/ui/sized/<stem>_h<height>.png` (resampling
+  only). A 9-sliced copy keeps its proportions: SliceCenter x height/source height,
+  SliceScale divided by the same. Aim for a source 1.5-2.5x the displayed size.
+- Plates whose ornaments run the art's full height (cloud-cap tabs, tags) are never one
+  9-sliced image: Roblox crops the caps. They are three ImageLabels (`CapL`, `Mid`,
+  `CapR`, the `SLICE3` cuts) in an `Art` frame under the button, a horizontal
+  UIListLayout (padding -1 so no seam shows), caps at their true aspect
+  (UIAspectRatioConstraint, height-dominant) and the middle a `UIFlexItem` Fill. A
+  `Selected` state is a second such frame. Text stays on the button above `Art`.
 - Pieces derived from cuts are rebuilt by their own scripts, never by hand:
   `art/ui/creator/build.py`, `art/ui/cultivation/derive.py`, `art/ui/events/mirror.py`
   (its window-corner mirrors are also copied to `codex/cut/ornament_window_corner_small_*`),

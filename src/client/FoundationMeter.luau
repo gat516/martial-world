@@ -33,9 +33,10 @@ local CRACKS = {
 local CRACK_NAMES = { "hairline cracks", "a split foundation", "a shattered foundation" }
 local FILL = Color3.fromRGB(226, 178, 84)
 local FILL_DEEP = Color3.fromRGB(110, 230, 170)
--- Stack-relative spot and size: the mirror of Stack.Cooldowns (x 0.0994, y 0.5436)
-local SPOT = UDim2.fromScale(1 - 0.0994, 0.5436)
-local SIZE = UDim2.fromScale(0.05, 0.188)
+-- Stack-relative spot and size: the mirror of Stack.Cooldowns' Dash chip (19 px at the
+-- 560 px stack, centred 3.4 px clear of the plate above and the hotbar below)
+local SPOT = UDim2.fromScale(1 - 35.5 / 560, 84.113 / 149)
+local SIZE = UDim2.fromScale(19 / 560, 19 / 149)
 local FILL_SIZE = 0.76 -- the fill disc's share of the meter
 
 local FoundationMeter = {}

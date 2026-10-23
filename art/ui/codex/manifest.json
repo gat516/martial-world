@@ -2813,7 +2813,30 @@
         "height": 101
       }
     ],
-    "flags": []
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_tag_jade_capL.png",
+        "size": [
+          128,
+          101
+        ]
+      },
+      "mid": {
+        "file": "ornament_tag_jade_mid.png",
+        "size": [
+          32,
+          101
+        ]
+      },
+      "capR": {
+        "file": "ornament_tag_jade_capR.png",
+        "size": [
+          103,
+          101
+        ]
+      }
+    }
   },
   "ornament_tag_crimson": {
     "sheet": "c1/mutation_tags",
@@ -2835,7 +2858,30 @@
         "height": 101
       }
     ],
-    "flags": []
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_tag_crimson_capL.png",
+        "size": [
+          118,
+          101
+        ]
+      },
+      "mid": {
+        "file": "ornament_tag_crimson_mid.png",
+        "size": [
+          32,
+          101
+        ]
+      },
+      "capR": {
+        "file": "ornament_tag_crimson_capR.png",
+        "size": [
+          102,
+          101
+        ]
+      }
+    }
   },
   "ornament_tag_violet": {
     "sheet": "c1/mutation_tags",

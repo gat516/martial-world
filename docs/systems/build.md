@@ -46,6 +46,25 @@ benefits (meditation seats, garden plots, garden boosters).
   <peak>" tag when the full banner would reach Roblox's top-left buttons
   (`BuildMode.refreshBanner`, `Platform.topbar`). Catalog tiles have 4 px above the
   first row so the 5% hover swell isn't cropped.
+- Art (2026-10-23, "inventory / shop buttons are still clipping on pc"): the category
+  tabs, set tabs, the Owned toggle and the Herbalist's Buy/Sell tabs are three-part
+  plates (`Art` + `Selected` frames of `CapL`/`Mid`/`CapR`), not one 9-sliced image,
+  which Roblox cropped flat at the cloud caps. Then "i don't like how small the
+  inventory buttons are / how it gets covered by the ornaments": the caps are the house
+  plaque's ([ribbons](../ui/ribbons.md)): `ruby` idle, `gold` chosen (and the label
+  turns gold, `BuildCatalog.setSelected`, `HerbShop.refresh`), pointed ends with a
+  stud, 26 px wide at 40 px tall instead of cloud caps taking half the tab. The tab
+  column is 152 px (catalog from x 158), every tab 140x40 (set tabs 44), the label box
+  exactly the plain middle (84 px; TextScaled 11-15): the widest label, "Cultivation"
+  (65 px at 15), has 11.7 px each side; centred to 0.00 px; 2.5 px clear of the column
+  on hover. A set tab's medallion (32 px) sits on the plate's left end, its name
+  beside it on the middle, two lines at 10-13. Tiles per row: 5 at 1920x1080 and
+  1366x768, 3 at 844x390 (was 4), 2 at 667x375. The tile badge is the jade tag in three
+  parts (`ornament_tag_jade_*_h40`). Tiles and the detail well are `item_slot_h184`
+  9-sliced at its one middle row and column (Rect(92,91,93,92); SliceScale 0.45 on
+  tiles, 0.85 on the well) so only plain bar stretches; the owned count (`xN`) moved
+  from the top-right, where the badge ran into it, to the preview's bottom-right.
+  Every other image is a display-sized copy ([ui](ui.md), "Display-sized copies").
 - The peak-score gauge (C2 `peak_meter`, under the category tabs) shows the player
   attributes `PeakScore` and `PeakScoreCap` (the fill is score/cap) and stays hidden
   until the server sets `PeakScore`, and on windows whose body is under 300 px tall

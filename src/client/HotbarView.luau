@@ -2,12 +2,15 @@
 -- The hotbar: nine slots of techniques and items (Hotbar.luau), Stack.Hotbar.Slots
 -- Slot1-9 (SlotTemplate is the drag ghost). Keys 1-9 or tapping a slot cast its technique or
 -- hold out its item (a real Tool from the Backpack; activate it to use it).
--- Anything can be dragged: from the Inventory onto a slot, between slots to swap
--- them, or off the bar to clear a slot.
+-- Anything can be dragged (mouse: press and move; touch: hold, then move): from the
+-- Inventory onto a slot (an occupied slot's item goes back to the bag), between slots
+-- to swap them (empty ones too), or back onto the Inventory window to clear a slot.
+-- Dropping anywhere else cancels.
 -- Weapons: while the Inventory is open, a weapon slot (Stack.Hotbar.WeaponSlot)
 -- shows left of the bar with the weapon in hand. Dropping a weapon on it (or on
--- any hotbar slot) equips it; dragging the weapon off it puts it away (bare
--- fists). Both go through WeaponAction, which the server validates.
+-- any hotbar slot) equips it; dragging the weapon from it back onto the Inventory
+-- window puts it away (bare fists). Both go through WeaponAction, which the server
+-- validates.
 -- One row along the bottom on every device; the Stack frame sizes it.
 -- An art whose weapon class isn't in hand dims and wears that class's badge; it
 -- still casts, and the server answers "Requires a ...".
@@ -27,6 +30,7 @@ local CombatController = require(script.Parent.CombatController)
 local Hud = require(script.Parent.Hud)
 local Menus = require(script.Parent.Menus)
 local Platform = require(script.Parent.Platform)
+local Motion = require(script.Parent.Motion)
 local SlotArt = require(script.Parent.SlotArt)
 local State = require(script.Parent.State)
 
@@ -57,7 +61,6 @@ local bar: Frame
 local template: TextButton
 local slots: { TextButton } = {}
 local weaponSlot: TextButton -- Stack.Hotbar.WeaponSlot, shown while the Inventory is open
-local ghost: TextButton? -- the slot following the pointer while dragging
 local lastDragEnd = -math.huge
 
 local function invoke(...: any)
@@ -161,57 +164,198 @@ function HotbarView.equipWeapon(id: string)
 end
 
 --[[ Drag and drop ]]
+-- Picking up: a mouse press that moves DRAG_PIXELS; on touch, a hold of HOLD_SECONDS
+-- without moving (moving first scrolls the grid instead). A ghost of the slot follows
+-- the pointer (above the finger on touch, so the finger doesn't hide it), the slot it
+-- would land on wears the cream ring, and a hotbar item over the Inventory window fades
+-- (dropping it there takes it off the bar). Dropping anywhere else, or Escape, cancels.
+-- Hit tests go through PlayerGui:GetGuiObjectsAtPosition, which takes input positions
+-- as they come, so the GUI inset never skews them.
 
--- True just after a drag ends, so the release isn't also taken as a click.
+local HOLD_SECONDS = 0.3
+local GHOST_SCALE = 1.12 -- the ghost is a little larger than the slot it left
+local GHOST_LIFT = 0.65 -- touch: the ghost's centre sits this many sizes above the finger
+local GHOST_REMOVE = 0.5 -- ghost transparency over the Inventory window (comes off the bar)
+
+type Drag = {
+	id: string,
+	from: (number | string)?, -- hotbar slot, "weapon", or nil for an Inventory cell
+	ghost: TextButton,
+	size: number,
+	touch: boolean,
+	scroller: ScrollingFrame?,
+	scrolling: boolean,
+	target: Target?,
+	finish: () -> (),
+}
+type Target = { kind: "slot", index: number } | { kind: "weapon" } | { kind: "bag" }
+
+local drag: Drag? = nil
+local dropTarget: GuiObject? = nil -- the slot showing the drop ring
+
+-- True while dragging and just after a drag ends, so the release isn't also taken
+-- as a click or tap.
 function HotbarView.justDragged(): boolean
-	return os.clock() - lastDragEnd < 0.15
+	return drag ~= nil or os.clock() - lastDragEnd < 0.15
 end
 
-local function slotAt(position: Vector2): number?
-	for i, s in slots do
-		if s.Visible then
-			local p, size = s.AbsolutePosition, s.AbsoluteSize
-			if position.X >= p.X and position.X <= p.X + size.X and position.Y >= p.Y and position.Y <= p.Y + size.Y then
-				return i
+local function inventoryWindow(): GuiObject?
+	local window = gui:FindFirstChild("Inventory") :: GuiObject?
+	return if window and window.Visible then window else nil
+end
+
+-- What lies under an input position: a hotbar slot, the weapon slot, or the
+-- Inventory window (the bag), whichever is on top.
+local function targetAt(position: Vector3 | Vector2): Target?
+	local playerGui = gui.Parent :: BasePlayerGui
+	local window = inventoryWindow()
+	for _, object in playerGui:GetGuiObjectsAtPosition(position.X, position.Y) do
+		if object:IsDescendantOf(gui) and object.Name ~= "DragGhost" then
+			for i, s in slots do
+				if s.Visible and (object == s or object:IsDescendantOf(s)) then
+					return { kind = "slot", index = i }
+				end
+			end
+			if weaponSlot.Visible and (object == weaponSlot or object:IsDescendantOf(weaponSlot)) then
+				return { kind = "weapon" }
+			end
+			if window and (object == window or object:IsDescendantOf(window)) then
+				return { kind = "bag" }
 			end
 		end
 	end
 	return nil
 end
 
-local function over(button: GuiObject, position: Vector2): boolean
-	local p, size = button.AbsolutePosition, button.AbsoluteSize
-	return button.Visible
-		and position.X >= p.X
-		and position.X <= p.X + size.X
-		and position.Y >= p.Y
-		and position.Y <= p.Y + size.Y
+-- Whether dropping this drag on target does something (else it's a cancel).
+local function accepts(d: Drag, target: Target?): boolean
+	if not target then
+		return false
+	end
+	if isWeapon(d.id) then
+		if target.kind == "bag" then
+			return d.from == "weapon" and d.id ~= Weapons.FIST -- put the weapon away
+		end
+		return d.from ~= "weapon" -- wield it (weapon slot or any hotbar slot)
+	end
+	if target.kind == "weapon" then
+		return false
+	elseif target.kind == "bag" then
+		return type(d.from) == "number" -- take it off the bar
+	end
+	return d.from ~= target.index
 end
 
-local function drop(id: string, from: number | string | nil, position: Vector2)
+local function targetObject(target: Target?): GuiObject?
+	if target and target.kind == "slot" then
+		return slots[target.index]
+	elseif target and target.kind == "weapon" then
+		return weaponSlot
+	end
+	return nil
+end
+
+local function moveGhost(d: Drag, position: Vector3 | Vector2)
+	local origin = gui.AbsolutePosition
+	local lift = if d.touch then d.size * GHOST_LIFT else 0
+	d.ghost.Position = UDim2.fromOffset(position.X - origin.X, position.Y - origin.Y - lift)
+	local target = targetAt(position)
+	d.target = if accepts(d, target) then target else nil
+	dropTarget = targetObject(d.target)
+	if dropTarget == weaponSlot then
+		(weaponSlot:FindFirstChild("Halo") :: GuiObject).Visible = true
+	else
+		(weaponSlot:FindFirstChild("Halo") :: GuiObject).Visible = false
+	end
+	local fade = if d.target and d.target.kind == "bag" then GHOST_REMOVE else 0
+	for _, part in d.ghost:GetDescendants() do
+		if part:IsA("ImageLabel") then
+			part:SetAttribute("BaseTransparency", part:GetAttribute("BaseTransparency") or part.ImageTransparency)
+			part.ImageTransparency = 1 - (1 - (part:GetAttribute("BaseTransparency") :: number)) * (1 - fade)
+		end
+	end
+end
+
+local function pickUp(id: string, from: (number | string)?, source: GuiObject, touch: boolean, position: Vector3 | Vector2, finish: () -> ())
+	local g = template:Clone()
+	g.Name = "DragGhost"
+	g.Visible = true
+	g.Active = false
+	g.AnchorPoint = Vector2.new(0.5, 0.5)
+	local size = math.max(source.AbsoluteSize.X, 44) * GHOST_SCALE
+	g.Size = UDim2.fromOffset(size, size)
+	g.ZIndex = 50
+	SlotArt.paint(g, id, Items.Defs[id] and Items.count(State.current, id) or nil, "")
+	SlotArt.gate(g, id, true);
+	(g:FindFirstChild("KeyLabel") :: GuiObject).Visible = false
+	for _, part in g:GetDescendants() do
+		if part:IsA("GuiObject") then
+			part.ZIndex += 50 -- over every window
+		end
+	end
+	-- a finger that holds a cell inside the grid would otherwise scroll it
+	local scroller = source:FindFirstAncestorWhichIsA("ScrollingFrame")
+	local d: Drag = {
+		id = id,
+		from = from,
+		ghost = g,
+		size = size,
+		touch = touch,
+		scroller = scroller,
+		scrolling = if scroller then scroller.ScrollingEnabled else false,
+		target = nil,
+		finish = finish,
+	}
+	if scroller then
+		scroller.ScrollingEnabled = false
+	end
+	g.Parent = gui
+	drag = d
+	moveGhost(d, position)
+	-- a short lift so the pick-up reads (a hold on touch has no other feedback)
+	local scale = g:FindFirstChild("Motion") :: UIScale?
+	if scale then
+		scale.Scale = 0.85
+		Motion.tween(scale, { Scale = 1 }, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+	end
+end
+
+-- End the drag: drop it on its target, or (cancel) just put the ghost away.
+local function endDrag(drop: boolean)
+	local d = drag
+	if not d then
+		return
+	end
+	drag = nil
+	dropTarget = nil;
+	(weaponSlot:FindFirstChild("Halo") :: GuiObject).Visible = false
+	d.ghost:Destroy()
+	if d.scroller then
+		d.scroller.ScrollingEnabled = d.scrolling
+	end
+	lastDragEnd = os.clock()
+	d.finish()
+	local target = d.target
+	if not drop or not target then
+		return
+	end
+	local landed = targetObject(target)
+	if landed then
+		Motion.tap(landed)
+	end
+	local id, from = d.id, d.from
 	if isWeapon(id) then
-		-- onto the weapon slot or any hotbar slot: wield it; the weapon slot's own
-		-- weapon dragged anywhere else: put it away
-		local onto = over(weaponSlot, position) or slotAt(position) ~= nil
-		if onto and from ~= "weapon" then
-			HotbarView.equipWeapon(id)
-		elseif not onto and from == "weapon" and id ~= Weapons.FIST then
-			HotbarView.equipWeapon(Weapons.FIST)
-		end
-		return
-	end
-	if from == "weapon" then
-		return
-	end
-	local to = slotAt(position)
-	if to and type(from) == "number" then
-		if to ~= from then
-			invoke("swap", from, to)
-		end
-	elseif to then
-		invoke("slot", id, to)
-	elseif type(from) == "number" then
+		HotbarView.equipWeapon(if target.kind == "bag" then Weapons.FIST else id)
+	elseif target.kind == "bag" then
 		invoke("clear", from)
+	elseif target.kind == "slot" then
+		if type(from) == "number" then
+			invoke("swap", from, target.index)
+		else
+			-- onto an empty or occupied slot: an occupied slot's item goes back to the
+			-- bag (or, if this one was already on the bar, the two swap); the server checks
+			invoke("slot", id, target.index)
+		end
 	end
 end
 
@@ -221,7 +365,13 @@ end
 function HotbarView.draggable(button: GuiButton, getId: () -> string?, from: (number | string)?)
 	button.InputBegan:Connect(function(input)
 		local kind = input.UserInputType
-		if kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch then
+		local touch = kind == Enum.UserInputType.Touch
+		if (kind ~= Enum.UserInputType.MouseButton1 and not touch) or drag then
+			return
+		end
+		-- on touch a hold on a hotbar slot means rearranging only while the Inventory is
+		-- open; in a fight a slow tap must still cast
+		if touch and type(from) == "number" and not inventoryWindow() then
 			return
 		end
 		local id = getId()
@@ -229,55 +379,66 @@ function HotbarView.draggable(button: GuiButton, getId: () -> string?, from: (nu
 			return
 		end
 		local start = Vector2.new(input.Position.X, input.Position.Y)
-		local moved, ended
-		local function pointer(i: InputObject): boolean
-			if kind == Enum.UserInputType.Touch then
-				return i == input
+		local at: Vector3 | Vector2 = input.Position
+		local moved: RBXScriptConnection, ended: RBXScriptConnection
+		local hold: thread? = nil
+		local done = false
+		local function finish()
+			done = true
+			moved:Disconnect()
+			ended:Disconnect()
+			if hold then
+				task.cancel(hold)
+				hold = nil
 			end
-			return i.UserInputType == Enum.UserInputType.MouseMovement
+		end
+		local function lift()
+			hold = nil
+			if not done and not drag then
+				pickUp(id, from, button, touch, at, finish)
+			end
 		end
 		moved = UserInputService.InputChanged:Connect(function(change)
-			if not pointer(change) then
+			local mine = if touch then change == input else change.UserInputType == Enum.UserInputType.MouseMovement
+			if not mine then
 				return
 			end
-			local at = Vector2.new(change.Position.X, change.Position.Y)
-			if not ghost and (at - start).Magnitude >= DRAG_PIXELS then
-				local g = template:Clone()
-				g.Name = "DragGhost"
-				g.Visible = true
-				g.Active = false
-				g.AnchorPoint = Vector2.new(0.5, 0.5)
-				g.Size = UDim2.fromOffset(56, 56)
-				g.ZIndex = 50
-				SlotArt.paint(g, id, Items.Defs[id] and Items.count(State.current, id) or nil, "")
-				SlotArt.gate(g, id, true)
-				local key = g:FindFirstChild("KeyLabel") :: GuiObject
-				key.Visible = false
-				g.Parent = gui
-				ghost = g
-			end
-			if ghost then
-				ghost.Position = UDim2.fromOffset(at.X, at.Y)
+			at = change.Position
+			local d = drag
+			if d and d.finish == finish then
+				moveGhost(d, at)
+			elseif (Vector2.new(at.X, at.Y) - start).Magnitude >= DRAG_PIXELS then
+				if touch then
+					finish() -- the finger moved before the hold: it's a scroll
+				else
+					lift()
+				end
 			end
 		end)
 		ended = UserInputService.InputEnded:Connect(function(release)
-			local isEnd = if kind == Enum.UserInputType.Touch
-				then release == input
-				else release.UserInputType == Enum.UserInputType.MouseButton1
+			local isEnd = if touch then release == input else release.UserInputType == Enum.UserInputType.MouseButton1
 			if not isEnd then
 				return
 			end
-			moved:Disconnect()
-			ended:Disconnect()
-			if ghost then
-				ghost:Destroy()
-				ghost = nil
-				lastDragEnd = os.clock()
-				drop(id, from, Vector2.new(release.Position.X, release.Position.Y))
+			local d = drag
+			if d and d.finish == finish then
+				endDrag(true)
+			else
+				finish()
 			end
 		end)
+		if touch then
+			hold = task.delay(HOLD_SECONDS, lift)
+		end
 	end)
 end
+
+-- Escape drops nothing.
+UserInputService.InputBegan:Connect(function(input)
+	if drag and input.KeyCode == Enum.KeyCode.Escape then
+		endDrag(false)
+	end
+end)
 
 --[[ Drawing ]]
 
@@ -358,8 +519,9 @@ local function tick()
 		overlay.Size = UDim2.fromScale(1, math.clamp(remaining / total, 0, 1))
 		label.Visible = remaining > 0
 		label.Text = string.format("%d", math.ceil(remaining))
+		-- the cream ring: the held item's slot, and the slot a drag would land on
 		local halo = slot:FindFirstChild("Halo") :: GuiObject
-		halo.Visible = heldId ~= nil and heldId == id
+		halo.Visible = (heldId ~= nil and heldId == id) or slot == dropTarget
 	end
 end
 

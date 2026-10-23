@@ -320,7 +320,7 @@ def cut_piece_sheet(sheet, src):
 
 # Pieces with ornate ends and a plain middle (buttons, banners): also cut as left cap,
 # a narrow middle strip to stretch, and right cap, from the full-resolution art.
-SLICE3 = {"response_button", "response_button_hi", "prompt_banner", "title_crest", "board_header",
+SLICE3 = {"response_button", "tag_jade", "tag_crimson", "response_button_hi", "prompt_banner", "title_crest", "board_header",
           "objective_banner", "ribbon_crimson", "ribbon_jade", "catalog_tab", "catalog_tab_selected",
           "seat_plate", "epithet_ribbon", "event_scroll", "tribulation_ribbon",
           "leaderboard_row", "leaderboard_row_you", "rift_tag"}
@@ -639,7 +639,73 @@ def stitched(entry):
     return im
 
 
+# Display-sized copies (python tools/ui_assemble.py --sized). Roblox draws GUI images
+# without mipmaps, so a source shown at a fraction of its size aliases: thin gilt lines
+# break up and curls go soft or jagged. Each entry is a source under art/ui and the
+# height to resample it to (about 2x its largest baseline display height), written
+# with Lanczos to art/ui/sized/<stem>_h<height>.png. Resampling only, never a repaint.
+# A 9-sliced copy keeps its proportions: scale its SliceCenter by height/source height
+# and divide its SliceScale by the same factor.
+SIZED_DIR = ROOT / "art" / "ui" / "sized"
+SIZED = {
+    # Inventory: pills, Sort, the detail buttons, search box, panel, plaque, close
+    "button_gold.png": 64, "button_lacquer.png": 64, "button_jade.png": 64,
+    "panel_frame.png": 512, "title_plaque.png": 80, "note_panel.png": 96,
+    "seal_close.png": 96, "field_inset.png": 64, "bar_rim.png": 32,
+    # Inventory cells, hotbar and badges
+    "seal_mark.png": 48, "chip.png": 32, "icons/icon_SpiritStone.png": 48, "icons/icon_Insight.png": 48,
+    **{f"codex/cut/ornament_gem_{g}.png": 40 for g in ("grey", "jade", "violet", "gold")}, "art_disc.png": 96, "weapon_badge.png": 48,
+    "codex/cut/ornament_tag_crimson_capL.png": 40, "codex/cut/ornament_tag_crimson_mid.png": 40,
+    "codex/cut/ornament_tag_crimson_capR.png": 40,
+    "codex/cut/ornament_item_slot.png": 80, "codex/cut/ornament_item_slot_selected.png": 80,
+    **{f"glyphs/class_{c}.png": 64 for c in ("Fist", "Sword", "Saber", "Greatsword", "Guandao", "Spear", "Staff")},
+    # PC Dash / Strike chips
+    "figma/hud_round_seal.png": 48, "chip_shade.png": 48,
+    "codex/cut/ornament_element_wind.png": 40, "codex/cut/ornament_weapon_sword.png": 40,
+    # Spirit Market
+    "codex/cut/ornament_catalog_tab_capL.png": 80, "codex/cut/ornament_catalog_tab_mid.png": 80,
+    "codex/cut/ornament_catalog_tab_capR.png": 80, "codex/cut/ornament_catalog_tab_selected_capL.png": 80,
+    "codex/cut/ornament_catalog_tab_selected_mid.png": 80, "codex/cut/ornament_catalog_tab_selected_capR.png": 80,
+    "codex/cut/ornament_tag_jade_capL.png": 40, "codex/cut/ornament_tag_jade_mid.png": 40,
+    "codex/cut/ornament_tag_jade_capR.png": 40,
+    "stone_icon.png": 40, "codex/cut/ornament_glyph_lock.png": 40, "codex/cut/ornament_peak_meter.png": 144,
+    "codex/cut/ornament_title_crest.png": 104, "codex/cut/ornament_close_seal.png": 80,
+    **{f"codex/cut/ornament_set_{s}.png": 96 for s in ("courtyard", "jade_pavilion", "cloud_palace", "herb_house",
+                                                       "library", "formation")},
+    **{f"codex/cut/ornament_window_corner_small{c}.png": 88 for c in ("", "_tr", "_bl", "_br")},
+}
+# Sources that need a second, bigger copy (a frame 9-sliced larger elsewhere).
+SIZED_EXTRA = {"codex/cut/ornament_item_slot.png": 184, "codex/cut/ornament_item_slot_selected.png": 184}
+
+
+def sized_copies():
+    SIZED_DIR.mkdir(parents=True, exist_ok=True)
+    jobs = list(SIZED.items()) + list(SIZED_EXTRA.items())
+    for rel, h in jobs:
+        im = Image.open(ROOT / "art" / "ui" / rel).convert("RGBA")
+        if h >= im.height:
+            print(f"skip {rel}: already {im.height} px tall")
+            continue
+        w = max(1, round(im.width * h / im.height))
+        # resample in premultiplied alpha so transparent pixels don't bleed dark fringes
+        arr = np.asarray(im).astype(np.float32) / 255
+        arr[..., :3] *= arr[..., 3:4]
+        chans = [Image.fromarray(arr[..., i]).resize((w, h), Image.LANCZOS) for i in range(4)]
+        out = np.dstack([np.asarray(c) for c in chans]).clip(0, 1)
+        a = out[..., 3:4]
+        # Lanczos rings past the edge: keep premultiplied colour inside [0, alpha], or a
+        # faint fringe pixel divides into a bright off-hue speck
+        out[..., :3] = np.clip(out[..., :3], 0, a)
+        out[..., :3] = np.where(a > 1e-4, out[..., :3] / np.maximum(a, 1e-4), 0)
+        name = f"{Path(rel).stem}_h{h}.png"
+        Image.fromarray(np.round(out * 255).astype(np.uint8), "RGBA").save(SIZED_DIR / name)
+        print(f"{rel} {im.width}x{im.height} -> sized/{name} {w}x{h}")
+
+
 def main():
+    if "--sized" in sys.argv:
+        sized_copies()
+        return
     only = set(sys.argv[1:])
     OUT.mkdir(parents=True, exist_ok=True)
     manifest_path = SRC / "manifest.json"

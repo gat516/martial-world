@@ -21,7 +21,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | QuestState | Event | S->C | `Quests` (beat, objective, reward, goals, guide, lesson, openBoard) | Onboarding |
 | BuildAction | Function | C->S | `Build.handle` ("buy", "place", "store", "move") | BuildMode, BuildCatalog |
 | GardenAction | Function | C->S | `Garden.handle` ("plant", "harvest", "growTarget", "uproot", "buySeed", "sell", "sellAll") | Planting, GardenView, HerbShop |
-| InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot", "clear", "swap", "comprehend", "seen" {ids}: no longer NEW, "view" tab, sort, filter: the Inventory's saved view) | Inventory, HotbarView, Fresh, InventoryFilter |
+| InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot" (onto an occupied slot: that item goes back to the bag), "clear", "swap" (any two slots, empty ones too), "comprehend", "seen" {ids}: no longer NEW, "view" tab, sort, filter: the Inventory's saved view) | Inventory, HotbarView, Fresh, InventoryFilter |
 | TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only) | AdminPanel |

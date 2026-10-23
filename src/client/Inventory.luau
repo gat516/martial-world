@@ -58,14 +58,14 @@ type Section = {
 }
 
 -- tab art: gold for the open tab, lacquer for the other (art/ui/assets.json)
-local TAB_ON = { image = "rbxassetid://124847805310931", text = Color3.fromRGB(255, 244, 214) }
-local TAB_OFF = { image = "rbxassetid://88447362782150", text = Color3.fromRGB(170, 190, 184) }
+local TAB_ON = { image = "rbxassetid://89951515494594", text = Color3.fromRGB(255, 244, 214) }
+local TAB_OFF = { image = "rbxassetid://70679462267599", text = Color3.fromRGB(170, 190, 184) }
 local DAO_NAME = Color3.fromRGB(236, 242, 236)
 local DAO_NAME_EQUIPPED = Color3.fromRGB(255, 226, 160)
 local MARK_POP = TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 -- comprehension (button art from art/ui/assets.json)
-local BUTTON_JADE = "rbxassetid://124219422183170"
-local BUTTON_LACQUER = "rbxassetid://88447362782150"
+local BUTTON_JADE = "rbxassetid://132904097543542"
+local BUTTON_LACQUER = "rbxassetid://70679462267599"
 local BOTTLENECK = Color3.fromRGB(255, 150, 110)
 local COST_SHORT = Color3.fromRGB(255, 130, 110)
 local COST_OK = Color3.fromRGB(240, 210, 140)
@@ -74,8 +74,8 @@ local STATUS_WARN = Color3.fromRGB(255, 150, 110)
 local COUNT = Color3.fromRGB(240, 242, 236)
 local BAR_GOLD = ColorSequence.new(Color3.fromRGB(246, 214, 140), Color3.fromRGB(178, 124, 52))
 local BAR_CINNABAR = ColorSequence.new(Color3.fromRGB(240, 120, 84), Color3.fromRGB(150, 46, 32))
-local STONE_ICON = "rbxassetid://112328127073930"
-local INSIGHT_ICON = "rbxassetid://92675446701433"
+local STONE_ICON = "rbxassetid://93333997810513"
+local INSIGHT_ICON = "rbxassetid://88194737623136"
 local TIER_NAMES = { "Tier I", "Tier II", "Tier III", "Mastery" }
 local FIST_BLURB = "Palm and fist, always at hand. Choosing them puts your weapon away."
 local CATEGORY_ORDER = { "Herb", "Pill", "Core", "Treasure" }

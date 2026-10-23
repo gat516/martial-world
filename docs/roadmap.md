@@ -133,6 +133,28 @@ The genre's heart, and a strong retention and social hook.
   cohort by invite. A full cohort opens another (a "Second Court" of the same saint).
   The wording (Brother, Sister, or a neutral "Sibling") is the player's own choice.
   Later seats can be given up and refilled, so early seats stay prestigious.
+- **Granting bloodlines (user idea, 2026-10-22).** Both kinds of master can pass on blood,
+  and it always costs.
+  - *NPC master:* teaches its saint's bloodline (the Turtle Saint, the Black Tortoise
+    line) at the end of a hard, solo **trial chain** (a quest series, a boss, a
+    ritual) and an essence. The cost is the effort, and the chain is the content.
+  - *Player master:* **transmits** a bloodline they hold, as a **Blood Rite**. The
+    costs are real:
+    - the master loses **one awakening stage** of that bloodline (stage 2 or more is
+      needed, so a stage-1 holder can't), which they re-earn with essences;
+    - the master's bloodline skill is dormant for a few days (**Blood Ebb**) and their
+      foundation takes a crack;
+    - it needs a rare catalyst (a beast essence from a boss or event);
+    - a cooldown of days, and a cap on transmissions per master.
+  - *The disciple receives* stage 1 of that bloodline, marked **Inherited**
+    (a descendant's mark, visible on the card) as opposed to **Pure** (found).
+    Inherited blood cannot be transmitted again, so it can't spread in chains.
+  - *Not transmittable:* heaven-defying bloodlines (the tribulation ones), and
+    bought bloodlines. The demon bloodline stays a discovery, though a demon master
+    could corrupt a disciple as a second route (both are cast out), a storyline
+    creators will film.
+  - *Abuse limits:* no sale or trade of rites, disciple must be a real account past a
+    minimum age and realm, one inheritance per account per life.
 - **Visible lineage.** The Self card and nameplate show "Disciple of X", "Senior
   Brother of Y". A Hall can be a master's household.
 - **Drama hooks.** If a disciple takes the demon path, their master (NPC or player)
@@ -387,6 +409,7 @@ run alongside them. Before spawning, ask how many agents and sandbox Studios at 
 - Does the Herbarium reward cosmetics only, or small solidity?
 - Which building sets are robux and which are earnable? (earnable first)
 - Rebirth: is it a full reset (keeping the legacy) or a parallel second character?
+- How harsh is the Blood Rite's cost (one stage plus days of ebb, as drafted)?
 - Which NPC masters, and what does each teach? (draft the cast with the user)
 - Does a player master unlock at FE1 or a major above the disciple, whichever is later?
 - How hinted is the demon secret: rumours only, or does the elder give a nudge?

@@ -69,6 +69,54 @@ Ribbon.STYLES = {
 		centre = 0.5,
 		band = 66 / 112,
 	},
+	-- The mutation tags (art/ui/codex/c1/mutation_tags, SLICE3 cuts, sized to 48 px of
+	-- art with a 4 px clear margin so the end studs aren't cut flat): a gilt rim and
+	-- a coloured fill, its plain band rows 13-43 of 56.
+	tag_bronze = {
+		capL = "rbxassetid://137005527629130",
+		mid = "rbxassetid://85227427905076",
+		capR = "rbxassetid://113863411948649",
+		ratioL = 65 / 56,
+		ratioR = 53 / 56,
+		centre = 0.5,
+		band = 30 / 56,
+	},
+	tag_jade = {
+		capL = "rbxassetid://128782698499602",
+		mid = "rbxassetid://83799941832305",
+		capR = "rbxassetid://96717712530591",
+		ratioL = 65 / 56,
+		ratioR = 53 / 56,
+		centre = 0.5,
+		band = 30 / 56,
+	},
+	tag_crimson = {
+		capL = "rbxassetid://132793539047568",
+		mid = "rbxassetid://82720329502106",
+		capR = "rbxassetid://97069778488255",
+		ratioL = 60 / 56,
+		ratioR = 52 / 56,
+		centre = 0.5,
+		band = 30 / 56,
+	},
+	tag_violet = {
+		capL = "rbxassetid://101588361388733",
+		mid = "rbxassetid://71894795781302",
+		capR = "rbxassetid://129517930723679",
+		ratioL = 65 / 56,
+		ratioR = 59 / 56,
+		centre = 0.5,
+		band = 30 / 56,
+	},
+	tag_gold = {
+		capL = "rbxassetid://126824681512637",
+		mid = "rbxassetid://115218224574664",
+		capR = "rbxassetid://110080354440062",
+		ratioL = 71 / 56,
+		ratioR = 64 / 56,
+		centre = 0.5,
+		band = 30 / 56,
+	},
 } :: { [string]: Style }
 
 export type Options = {

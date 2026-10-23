@@ -20,8 +20,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local State = require(script.Parent.State)
 
-local SELECTED = "rbxassetid://106949426671789" -- kit item_slot_selected
-local PLAIN = "rbxassetid://76986126582220" -- kit item_slot
+local SELECTED = "rbxassetid://91077820469545" -- kit item_slot_selected
+local PLAIN = "rbxassetid://87116309182574" -- kit item_slot
 local ALL = "All"
 local GOLD_TEXT = Color3.fromRGB(255, 226, 160)
 local DIM_TEXT = Color3.fromRGB(214, 206, 190)

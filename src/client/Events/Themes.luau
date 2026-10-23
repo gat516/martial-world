@@ -39,7 +39,7 @@ Themes.default = {
 		BR = "rbxassetid://113361229444828",
 	},
 	cornerAspect = 573 / 386,
-	stud = "rbxassetid://73915978017269",
+	stud = "rbxassetid://90903194330348",
 	panelTint = c(255, 255, 255),
 	frameTint = c(255, 255, 255),
 	title = c(236, 196, 104),
@@ -57,7 +57,7 @@ Themes.blood = {
 		BR = "rbxassetid://104331680085975",
 	},
 	cornerAspect = 812 / 491,
-	stud = "rbxassetid://88195591853280",
+	stud = "rbxassetid://110626357915304",
 	panelTint = c(255, 176, 170),
 	frameTint = c(214, 112, 100),
 	title = c(240, 112, 96),
@@ -70,7 +70,7 @@ Themes.blood = {
 Themes.bloodPieces = {
 	nameScroll = "rbxassetid://137196541860109",
 	goldStud = "rbxassetid://102528420780680", -- a copper-red diamond
-	rubyStud = "rbxassetid://88195591853280",
+	rubyStud = "rbxassetid://110626357915304",
 }
 
 function Themes.get(name: string?): Theme

@@ -49,7 +49,7 @@ local ART = {
 	card_quest = "rbxassetid://120119552621110",
 	rays_boss = "rbxassetid://95676207958916",
 	rays_milestone = "rbxassetid://80839452828081",
-	coin = "rbxassetid://91563334675271",
+	coin = "rbxassetid://135921788863874",
 	emblem_peak = "rbxassetid://102118062177874",
 	emblem_lotus = "rbxassetid://113579784709637",
 	glyph_stone = "rbxassetid://76651936131955",
@@ -57,11 +57,11 @@ local ART = {
 	glyph_insight = "rbxassetid://98394523996866",
 }
 local TILES = {
-	neutral = { tile = "rbxassetid://121233995525578" },
-	grey = { tile = "rbxassetid://133101112606015", gem = "rbxassetid://100159022686196" },
-	jade = { tile = "rbxassetid://77864281472596", gem = "rbxassetid://75556176975753" },
-	violet = { tile = "rbxassetid://135960798811647", gem = "rbxassetid://123797664259882" },
-	gold = { tile = "rbxassetid://138359555176757", gem = "rbxassetid://103434738704063" },
+	neutral = { tile = "rbxassetid://72729867643691" },
+	grey = { tile = "rbxassetid://123060433549737", gem = "rbxassetid://82455700461918" },
+	jade = { tile = "rbxassetid://73183739770396", gem = "rbxassetid://139500197356694" },
+	violet = { tile = "rbxassetid://133958244039293", gem = "rbxassetid://122860490924643" },
+	gold = { tile = "rbxassetid://82009829971041", gem = "rbxassetid://104563563439516" },
 }
 -- rarities and grades onto the kit's tile edges: the Inventory's ladder (Rarity.luau),
 -- bronze, silver, jade, violet, gold

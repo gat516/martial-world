@@ -1,9 +1,14 @@
 {
  "art_disc.png": {
   "heights": [
+   48,
    96
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "48": 4,
+   "96": 7
+  }
  },
  "bar_rim.png": {
   "heights": [
@@ -41,6 +46,24 @@
   ],
   "margin": 0
  },
+ "codex/cut/ornament_back_seal.png": {
+  "heights": [
+   88
+  ],
+  "margin": 0,
+  "margins": {
+   "88": 4
+  }
+ },
+ "codex/cut/ornament_blood_ruby_stud.png": {
+  "heights": [
+   40
+  ],
+  "margin": 0,
+  "margins": {
+   "40": 3
+  }
+ },
  "codex/cut/ornament_catalog_tab_capL.png": {
   "heights": [
    80
@@ -77,139 +100,600 @@
   ],
   "margin": 0
  },
+ "codex/cut/ornament_ceremony_frame.png": {
+  "heights": [
+   472
+  ],
+  "margin": 0,
+  "margins": {
+   "472": 3
+  }
+ },
+ "codex/cut/ornament_checkmark.png": {
+  "heights": [
+   32
+  ],
+  "margin": 0,
+  "margins": {
+   "32": 5
+  }
+ },
+ "codex/cut/ornament_chevron.png": {
+  "heights": [
+   24
+  ],
+  "margin": 0,
+  "margins": {
+   "24": 4
+  }
+ },
  "codex/cut/ornament_close_seal.png": {
   "heights": [
-   80
+   80,
+   88
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "80": 3,
+   "88": 4
+  }
  },
- "codex/cut/ornament_element_wind.png": {
+ "codex/cut/ornament_coin_frame.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "codex/cut/ornament_contribution_token.png": {
+  "heights": [
+   64
+  ],
+  "margin": 0,
+  "margins": {
+   "64": 6
+  }
+ },
+ "codex/cut/ornament_daily_seal.png": {
+  "heights": [
+   72
+  ],
+  "margin": 0,
+  "margins": {
+   "72": 4
+  }
+ },
+ "codex/cut/ornament_divider_cloud.png": {
+  "heights": [
+   72
+  ],
+  "margin": 0,
+  "margins": {
+   "72": 12
+  }
+ },
+ "codex/cut/ornament_divider_diamond.png": {
   "heights": [
    40
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "40": 15
+  }
+ },
+ "codex/cut/ornament_element_wind.png": {
+  "heights": [
+   24,
+   40
+  ],
+  "margin": 0,
+  "margins": {
+   "24": 5
+  }
+ },
+ "codex/cut/ornament_fx_shockwave.png": {
+  "heights": [
+   176
+  ],
+  "margin": 0,
+  "margins": {
+   "176": 3
+  }
  },
  "codex/cut/ornament_gem_gold.png": {
   "heights": [
    40
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "40": 7
+  }
  },
  "codex/cut/ornament_gem_grey.png": {
   "heights": [
    40
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "40": 7
+  }
  },
  "codex/cut/ornament_gem_jade.png": {
   "heights": [
    40
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "40": 7
+  }
  },
  "codex/cut/ornament_gem_violet.png": {
   "heights": [
    40
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "40": 7
+  }
  },
  "codex/cut/ornament_glyph_lock.png": {
   "heights": [
    40
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "40": 3
+  }
+ },
+ "codex/cut/ornament_herb_card.png": {
+  "heights": [
+   408
+  ],
+  "margin": 0,
+  "margins": {
+   "408": 5
+  }
+ },
+ "codex/cut/ornament_herb_card_empty.png": {
+  "heights": [
+   408
+  ],
+  "margin": 0,
+  "margins": {
+   "408": 5
+  }
+ },
+ "codex/cut/ornament_herb_tier_1.png": {
+  "heights": [
+   72
+  ],
+  "margin": 0,
+  "margins": {
+   "72": 5
+  }
+ },
+ "codex/cut/ornament_herb_tier_2.png": {
+  "heights": [
+   72
+  ],
+  "margin": 0,
+  "margins": {
+   "72": 5
+  }
+ },
+ "codex/cut/ornament_herb_tier_3.png": {
+  "heights": [
+   72
+  ],
+  "margin": 0,
+  "margins": {
+   "72": 5
+  }
+ },
+ "codex/cut/ornament_herb_tier_4.png": {
+  "heights": [
+   72
+  ],
+  "margin": 0,
+  "margins": {
+   "72": 5
+  }
+ },
+ "codex/cut/ornament_herb_tier_5.png": {
+  "heights": [
+   72
+  ],
+  "margin": 0,
+  "margins": {
+   "72": 5
+  }
+ },
+ "codex/cut/ornament_herbarium_book.png": {
+  "heights": [
+   562
+  ],
+  "margin": 0,
+  "margins": {
+   "562": 3
+  }
+ },
+ "codex/cut/ornament_hold_ring.png": {
+  "heights": [
+   352
+  ],
+  "margin": 0,
+  "margins": {
+   "352": 6
+  }
  },
  "codex/cut/ornament_item_slot.png": {
   "heights": [
    80,
+   96,
    184
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "96": 4
+  }
  },
  "codex/cut/ornament_item_slot_selected.png": {
   "heights": [
    80,
+   96,
    184
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "96": 4
+  }
+ },
+ "codex/cut/ornament_lineage_card.png": {
+  "heights": [
+   296
+  ],
+  "margin": 0,
+  "margins": {
+   "296": 4
+  }
+ },
+ "codex/cut/ornament_notice_paper.png": {
+  "heights": [
+   360
+  ],
+  "margin": 0,
+  "margins": {
+   "360": 4
+  }
+ },
+ "codex/cut/ornament_notice_torn.png": {
+  "heights": [
+   360
+  ],
+  "margin": 0,
+  "margins": {
+   "360": 4
+  }
  },
  "codex/cut/ornament_peak_meter.png": {
   "heights": [
    144
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "144": 3
+  }
+ },
+ "codex/cut/ornament_quest_scroll.png": {
+  "heights": [
+   64
+  ],
+  "margin": 0,
+  "margins": {
+   "64": 6
+  }
+ },
+ "codex/cut/ornament_response_button_hi_capL.png": {
+  "heights": [
+   80
+  ],
+  "margin": 0,
+  "margins": {
+   "80": 4
+  }
+ },
+ "codex/cut/ornament_response_button_hi_capR.png": {
+  "heights": [
+   80
+  ],
+  "margin": 0,
+  "margins": {
+   "80": 4
+  }
+ },
+ "codex/cut/ornament_response_button_hi_mid.png": {
+  "heights": [
+   80
+  ],
+  "margin": 0,
+  "margins": {
+   "80": 4
+  }
+ },
+ "codex/cut/ornament_ruby_stud.png": {
+  "heights": [
+   40
+  ],
+  "margin": 0,
+  "margins": {
+   "40": 3
+  }
+ },
+ "codex/cut/ornament_seal_round.png": {
+  "heights": [
+   144
+  ],
+  "margin": 0,
+  "margins": {
+   "144": 4
+  }
+ },
+ "codex/cut/ornament_seed_packet.png": {
+  "heights": [
+   184
+  ],
+  "margin": 0,
+  "margins": {
+   "184": 3
+  }
  },
  "codex/cut/ornament_set_cloud_palace.png": {
   "heights": [
+   88,
    96
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "88": 4
+  }
  },
  "codex/cut/ornament_set_courtyard.png": {
   "heights": [
+   88,
    96
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "88": 4
+  }
  },
  "codex/cut/ornament_set_formation.png": {
   "heights": [
+   88,
    96
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "88": 4
+  }
  },
  "codex/cut/ornament_set_herb_house.png": {
   "heights": [
+   88,
    96
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "88": 4
+  }
  },
  "codex/cut/ornament_set_jade_pavilion.png": {
   "heights": [
+   88,
    96
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "88": 4
+  }
  },
  "codex/cut/ornament_set_library.png": {
   "heights": [
+   88,
    96
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "88": 4
+  }
+ },
+ "codex/cut/ornament_tag_bronze_capL.png": {
+  "heights": [
+   48
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_tag_bronze_capR.png": {
+  "heights": [
+   48
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_tag_bronze_mid.png": {
+  "heights": [
+   48
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
  },
  "codex/cut/ornament_tag_crimson_capL.png": {
   "heights": [
-   40
+   40,
+   48
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
  },
  "codex/cut/ornament_tag_crimson_capR.png": {
   "heights": [
-   40
+   40,
+   48
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
  },
  "codex/cut/ornament_tag_crimson_mid.png": {
   "heights": [
-   40
+   40,
+   48
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_tag_gold_capL.png": {
+  "heights": [
+   48
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_tag_gold_capR.png": {
+  "heights": [
+   48
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_tag_gold_mid.png": {
+  "heights": [
+   48
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
  },
  "codex/cut/ornament_tag_jade_capL.png": {
   "heights": [
-   40
+   40,
+   48
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
  },
  "codex/cut/ornament_tag_jade_capR.png": {
   "heights": [
-   40
+   40,
+   48
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
  },
  "codex/cut/ornament_tag_jade_mid.png": {
   "heights": [
-   40
+   40,
+   48
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_tag_violet_capL.png": {
+  "heights": [
+   48
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_tag_violet_capR.png": {
+  "heights": [
+   48
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_tag_violet_mid.png": {
+  "heights": [
+   48
+  ],
+  "margin": 0,
+  "margins": {
+   "48": 4
+  }
+ },
+ "codex/cut/ornament_tile_gold.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "codex/cut/ornament_tile_grey.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "codex/cut/ornament_tile_jade.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "codex/cut/ornament_tile_neutral.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
+ },
+ "codex/cut/ornament_tile_violet.png": {
+  "heights": [
+   112
+  ],
+  "margin": 0,
+  "margins": {
+   "112": 4
+  }
  },
  "codex/cut/ornament_title_crest.png": {
   "heights": [
@@ -219,9 +703,22 @@
  },
  "codex/cut/ornament_weapon_sword.png": {
   "heights": [
+   24,
    40
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "24": 5
+  }
+ },
+ "codex/cut/ornament_weekly_seal.png": {
+  "heights": [
+   72
+  ],
+  "margin": 0,
+  "margins": {
+   "72": 4
+  }
  },
  "codex/cut/ornament_window_corner_small.png": {
   "heights": [
@@ -253,11 +750,26 @@
   ],
   "margin": 0
  },
+ "field_wash.png": {
+  "heights": [
+   512
+  ],
+  "margin": 0,
+  "margins": {
+   "512": 3
+  }
+ },
  "figma/hud_round_seal.png": {
   "heights": [
-   48
+   40,
+   48,
+   128
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "128": 6,
+   "40": 5
+  }
  },
  "glyphs/class_Fist.png": {
   "heights": [
@@ -301,6 +813,15 @@
   ],
   "margin": 0
  },
+ "hud/hud_timer_ring.png": {
+  "heights": [
+   64
+  ],
+  "margin": 0,
+  "margins": {
+   "64": 3
+  }
+ },
  "icons/icon_Insight.png": {
   "heights": [
    48
@@ -324,6 +845,15 @@
    512
   ],
   "margin": 0
+ },
+ "pulse_path.png": {
+  "heights": [
+   512
+  ],
+  "margin": 0,
+  "margins": {
+   "512": 4
+  }
  },
  "seal_close.png": {
   "heights": [
@@ -353,6 +883,9 @@
   "heights": [
    48
   ],
-  "margin": 0
+  "margin": 0,
+  "margins": {
+   "48": 5
+  }
  }
 }

@@ -2791,7 +2791,30 @@
         "height": 101
       }
     ],
-    "flags": []
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_tag_bronze_capL.png",
+        "size": [
+          129,
+          101
+        ]
+      },
+      "mid": {
+        "file": "ornament_tag_bronze_mid.png",
+        "size": [
+          32,
+          101
+        ]
+      },
+      "capR": {
+        "file": "ornament_tag_bronze_capR.png",
+        "size": [
+          103,
+          101
+        ]
+      }
+    }
   },
   "ornament_tag_jade": {
     "sheet": "c1/mutation_tags",
@@ -2903,7 +2926,30 @@
         "height": 101
       }
     ],
-    "flags": []
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_tag_violet_capL.png",
+        "size": [
+          128,
+          101
+        ]
+      },
+      "mid": {
+        "file": "ornament_tag_violet_mid.png",
+        "size": [
+          32,
+          101
+        ]
+      },
+      "capR": {
+        "file": "ornament_tag_violet_capR.png",
+        "size": [
+          115,
+          101
+        ]
+      }
+    }
   },
   "ornament_tag_gold": {
     "sheet": "c1/mutation_tags",
@@ -2925,7 +2971,30 @@
         "height": 101
       }
     ],
-    "flags": []
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_tag_gold_capL.png",
+        "size": [
+          142,
+          101
+        ]
+      },
+      "mid": {
+        "file": "ornament_tag_gold_mid.png",
+        "size": [
+          28,
+          101
+        ]
+      },
+      "capR": {
+        "file": "ornament_tag_gold_capR.png",
+        "size": [
+          126,
+          101
+        ]
+      }
+    }
   },
   "ornament_seed_packet": {
     "sheet": "c1/seed_packet_tile",

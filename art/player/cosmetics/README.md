@@ -1,56 +1,187 @@
 # Player cosmetics
 
-`assets/Cosmetics.rbxm` (binary) is the folder `Cosmetics` with two rigged
-Accessory prototypes for players who have the fox trait (the Spirit Fox race).
-Built from plain parts by `build_fox_cosmetics.luau`; colours are plain
-SmoothPlastic (fox orange, cream inner ear, dark ear tips, white tail tip).
-It isn't mapped in the project files yet: map it to `ServerStorage.Cosmetics`
-in both `default.project.json` and `test.project.json`.
+`assets/Cosmetics/` is mapped to `ReplicatedStorage.Cosmetics` (the creator
+preview runs on the client). It holds one binary file per set, and each file is
+a Folder of rigged Accessory prototypes. Traits looks up an accessory id through
+every set. Sets: `Fox.rbxm` (Spirit Fox, below), `Crane.rbxm` (Beast Folk Crane, below),
+`Tiger.rbxm` (Beast Folk Tiger, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Dragonblood, Demonic Human, Ghost).
 
-| Accessory | Handle attachment | Attaches to (R6) | Parts |
+
+New and reworked cosmetics are modeled in Blender by the `modeler` (user,
+2026-10-23: "from now on, we're going to make player / r6 related assets in
+blender"). The fox is remade; the part-built Beast Folk and Spirits sets below are
+placeholders until they're remade (how: `docs/character/player-accessories.md`).
+
+## Fox (`assets/Cosmetics/Fox.rbxm`)
+
+Skinned Blender meshes with bones, the Spirit Fox race's free Looks (`Looks` in `src/shared/Identity/Races.luau`).
+Model, rig, colours, asset ids and the Studio build (`fox/place_fox_cosmetics.luau`) are in
+[`fox/README.md`](fox/README.md).
+
+| Accessory | Attaches to (R6) | Worn by |
+| --- | --- | --- |
+| `FoxTailPlume`, `FoxTailCrescent`, `FoxTailWisp` | Torso.WaistBackAttachment | Spirit Fox, Tail look |
+| `FoxEarsSleek`, `FoxEarsBroad`, `FoxEarsLong` | Head.HatAttachment | Spirit Fox, Ears look |
+
+Export the `Fox` folder (`_G.exportRbxm("ReplicatedStorage.Cosmetics.Fox")`, or from a
+sandbox's staging folder) to `assets/Cosmetics/Fox.rbxm`.
+
+## Crane (`assets/Cosmetics/Crane.rbxm`)
+
+Skinned Blender meshes with bones: three looks for the Beast Folk Crane, each a head
+piece (crest and plumes, HatAttachment) and a tail fan (WaistBackAttachment). Model,
+rig, colours, asset ids and the Studio build (`crane/place_crane_cosmetics.luau`) are in
+[`crane/README.md`](crane/README.md).
+
+| Accessory | Look | Worn by |
+| --- | --- | --- |
+| `CraneHeadCascade`, `CraneFanCascade` | raised red crown, plumes draping over the nape, long trailing train | Beast Folk Crane (default) |
+| `CraneHeadScholar`, `CraneFanScholar` | flat red crown cap, streamer plumes, compact half-fan | nothing yet (style picker) |
+| `CraneHeadAscendant`, `CraneFanAscendant` | tall flame crest feather, swept-up wing plumes, sunburst fan | nothing yet (style picker) |
+
+## Tiger (`assets/Cosmetics/Tiger.rbxm`)
+
+Skinned Blender meshes with bones: three looks for the Beast Folk Tiger, each ears
+(HatAttachment), a tail (WaistBackAttachment) and whiskers (FaceFrontAttachment). Model,
+rig, colours, asset ids and the Studio build (`tiger/place_tiger_cosmetics.luau`) are in
+[`tiger/README.md`](tiger/README.md).
+
+| Accessory | Look | Worn by |
+| --- | --- | --- |
+| `TigerEarsRound`, `TigerTailCurl`, `TigerWhiskersMarks` | Cub: plump round ears, thick low tail curling up, three short whiskers | Beast Folk Tiger (default) |
+| `TigerEarsPinned`, `TigerTailLash`, `TigerWhiskersFine` | Feral: ears pinned flat, long level tail, long drooped whiskers | nothing yet (style picker) |
+| `TigerEarsTufted`, `TigerTailCrown`, `TigerWhiskersCurl` | Regal: upright tufted ears, high question-mark tail, curled whiskers | nothing yet (style picker) |
+
+## Beast Folk (`assets/Cosmetics/BeastFolk.rbxm`)
+
+The Folder `BeastFolk` (mapped into `ReplicatedStorage.Cosmetics`) holds eight
+rigged Accessories, two per Beast Folk variant. The Crane and Tiger variants now wear the
+Blender-made Crane and Tiger sets above, so `CraneCrest`, `CraneTail`, `TigerEars` and
+`TigerTail` here are unused leftovers. They are built by
+`build_beastfolk_cosmetics.luau` in the fox set's shape language: plain
+SmoothPlastic, invisible 0.2 Handles, and every part unanchored and Massless with
+CanCollide, CanQuery and CanTouch off. Each set has one loud piece: the wolf's
+tall grey ears, the tiger's banded tail, the crane's red cap and plume, and the
+serpent's long tail.
+
+| Accessory | Attaches (R6) | Parts | Look |
 | --- | --- | --- | --- |
-| `FoxEars` | `HatAttachment` | Head.HatAttachment | 13 (Handle + 6 wedges per ear) |
-| `FoxTail` | `WaistBackAttachment` | Torso.WaistBackAttachment | 6 (Handle + 5 ellipsoids) |
+| `WolfEars` | HatAttachment | 13 | upright grey ears 0.6 x 1.3, warm cream inner, charcoal tip |
+| `WolfTail` | WaistBackAttachment | 9 | bushy grey brush that arcs out and hangs down, cream belly lobes |
+| `TigerEars` | HatAttachment | 11 | short round orange discs on a stem, black rim, white inner, white spot on the back |
+| `TigerTail` | WaistBackAttachment | 13 | long slim S-curve, five black bands, black tip |
+| `CraneCrest` | HatAttachment | 10 | flat red cap pressed into the hair, three black-tipped white plumes and two black ones swept back |
+| `CraneTail` | WaistBackAttachment | 12 | white rump with a fan of five black-tipped white feathers, outer ones lifted |
+| `SerpentScales` | FaceFrontAttachment | 11 | five jade diamonds per side on the temple and cheek, flat on the head wall |
+| `SerpentTail` | WaistBackAttachment | 15 | long tapering jade tail with a dark dorsal line, drooping, tip curling to the right |
 
-Attach with `humanoid:AddAccessory(template:Clone())`. The Handles are invisible
-0.2 cubes. Every part is unanchored, Massless, with CanCollide, CanQuery and
-CanTouch off. The ears stand about 0.7 studs clear of a normal hair accessory,
-and their bases sit just inside the head top, so they also work on a bald head.
-Very tall hair can still hide them.
+(Part counts include the Handle.)
 
-## Joints (for animators)
+### Joints
 
-All joints are Motor6Ds parented to their Part0. At rest each joint frame has no
-rotation relative to the Handle (C0 and C1 point at the hinge), so `Transform`
-rotates about the character's own axes: X pitches (tail up and down, ear folds
-back), Y yaws (tail wag side to side), Z rolls (ear flicks outward). The
-character faces -Z and its left is -X.
+Same conventions as the fox (Motor6Ds parented to Part0, identity frames at rest,
+X pitches, Y yaws, Z rolls). The part and joint names match the fox's, so a clip
+keyed on `LeftEar`/`RightEar` or `TailSeg1..n` drives any race:
 
-| Joint | Part0 -> Part1 | Moves | Hinge |
-| --- | --- | --- | --- |
-| `EarL` | Handle -> `LeftEar` | left ear (and its inner/tip pieces, welded) | ear base |
-| `EarR` | Handle -> `RightEar` | right ear | ear base |
-| `Tail1` | Handle -> `TailSeg1` | whole tail from the root | lower back |
-| `Tail2` | TailSeg1 -> `TailSeg2` | | |
-| `Tail3` | TailSeg2 -> `TailSeg3` | | |
-| `Tail4` | TailSeg3 -> `TailSeg4` | | |
-| `Tail5` | TailSeg4 -> `TailSeg5` | white tip | |
+| Accessory | Joints | Notes |
+| --- | --- | --- |
+| `WolfEars`, `TigerEars` | `EarL` (Handle -> `LeftEar`), `EarR` (-> `RightEar`) | hinge at the ear base; inner, tip, rim, stem and spot pieces are welded |
+| `WolfTail` | `Tail1..5` (Handle -> `TailSeg1` -> ... -> `TailSeg5`) | `TailBelly3..5` are welded to their segment |
+| `TigerTail` | `Tail1..7` (`TailSeg1..7`) | `TailBand1..5` are welded to segments 2-6; `TailSeg7` is the black tip |
+| `SerpentTail` | `Tail1..7` (`TailSeg1..7`) | `TailDorsal1..7` are welded to their segment |
+| `CraneCrest` | `Plume` (Handle -> `CrestPlume`) | the whole plume sways from its root; the crown is welded to the Handle |
+| `CraneTail` | `Tail1` (Handle -> `TailSeg1`, the rump), `Feather1..5` (`TailSeg1` -> `TailFeather1..5`) | yaw the outer feathers outward to spread the fan; tips are welded |
+| `SerpentScales` | none | flat, welded to the Handle |
 
-Every keyed part has a unique name. For a wag, put the same small yaw on each
-`Tail` joint, with a delay down the chain. Keep the yaw to about ±0.35 rad per
-joint, or the tip swings into the legs. The tail segments are ellipsoids that
-overlap heavily, so bends up to about 0.4 rad per joint leave no gaps. Ear
-twitches look right up to about 0.5 rad.
+Safe ranges: tail joints take about ±0.35 rad of yaw each, and fan feathers
+about ±0.4 rad. Bending a drooping tail forward (negative X pitch on `Tail1`)
+brings it into the legs.
 
-Scaling: `Model:ScaleTo` on the character scales the accessories, their joints
-and the ellipsoid meshes cleanly (checked at 1.15: no joint gaps, same placement
-relative to the head and torso).
+### Clearances (checked numerically)
 
-## Rebuild
+- **Walk:** the stock R6 walk (`rbxassetid://180426354`) swings the legs back to
+  about Z 1.5 behind the waist at hip height. So every tail runs out level
+  (above Y 0) until about Z 1.6 before it droops. Worst limb penetration over
+  the clip is 0.01 to 0.05, all at the hip root; FoxTail measures 0.27.
+- **Hair:** the head pieces stand clear of a normal hair (hair box top 0.30 above
+  HatAttachment). The wolf ear tops are at 1.34, the tiger's at about 0.7, the
+  crane plume's at about 1.1. Very tall hair hides the tiger ears and the crane
+  cap.
+- **Scale:** after the character's `ScaleTo(1.15)`, every part sits at exactly
+  1.15x its distance from its attachment, with no joint gaps.
 
-Run `build_fox_cosmetics.luau` in Edit mode through the Studio MCP
-(`execute_luau`). It replaces `ServerStorage.Cosmetics.FoxEars` and `.FoxTail`.
-The tunables are at the top. Then export the folder with
-`tools/export_rbxm.luau` (`_G.exportRbxm("ServerStorage.Cosmetics")`) to
-`assets/Cosmetics.rbxm`. Once the file is mapped, build in an unmapped staging
-copy, as AGENTS.md describes.
+### Rebuild
+
+Run `build_beastfolk_cosmetics.luau` in Edit mode (execute_luau, or `loadstring`
+it from a served checkout). It replaces `ReplicatedStorage.Cosmetics.BeastFolk`.
+Then load `tools/export_rbxm.luau` and post
+`_G.exportRbxm("ReplicatedStorage.Cosmetics.BeastFolk")` to the receiver
+(`/BeastFolk.rbxm`), and move the file to `assets/Cosmetics/BeastFolk.rbxm`. In a
+Rojo-connected place, build in an unmapped staging folder and export it under
+the name `BeastFolk` instead.
+
+## Spirits (`assets/Cosmetics/Spirits.rbxm`)
+
+The Folder `Spirits` (mapped into `ReplicatedStorage.Cosmetics`) holds one
+Accessory per race, as named in `src/shared/Identity/Races.luau`. They are built
+by `build_spirit_cosmetics.luau` in the fox and Beast Folk shape language: plain
+SmoothPlastic, Neon only where something glows, invisible 0.2 Handles, and every
+part unanchored and Massless with CanCollide, CanQuery and CanTouch off. Each is
+one telling feature on a plain R6 cultivator, not a costume.
+
+| Accessory | Race | Attaches (R6) | Parts | Look |
+| --- | --- | --- | --- | --- |
+| `StoneShards` | Stone Spirit | BodyBackAttachment | 21 | grey-brown stone shards (block body + wedge chisel cap, diamond-turned) on two shoulder crusts, 2 per shoulder leaning out and back, 2 between the shoulder blades; 3 shards carry flush Neon jade vein insets |
+| `DragonHorns` | Dragonblood | HatAttachment | 11 | antler beams from the temples sweeping up and back, ivory to pale gold, two gold tines each |
+| `DemonHorns` | Demonic Human | HatAttachment | 7 | short thick horns from the upper forehead, rising out and hooking forward, black to crimson tip; no tines |
+| `GhostWisps` | Ghost | BodyBackAttachment | 10 | three Neon soul flames (core, tapered tongue leaning outward, faint shell): one over each shoulder beside the face, one on the upper back, plus one mist emitter |
+
+(Part counts include the Handle.) Horns and flames are ellipsoids (Sphere
+SpecialMesh), which scale with `ScaleTo`.
+
+### Joints
+
+Same conventions as the fox (Motor6Ds parented to Part0, identity frames at rest,
+X pitches, Y yaws, Z rolls; the character faces -Z, its left is -X):
+
+| Accessory | Joints | Notes |
+| --- | --- | --- |
+| `DragonHorns`, `DemonHorns` | `HornL` (Handle -> `LeftHorn`), `HornR` (-> `RightHorn`) | hinge at the horn root; `<Side>HornSeg2/3` and the dragon's `<Side>HornTine1/2` are welded |
+| `GhostWisps` | `Wisp1` (Handle -> `WispL`), `Wisp2` (-> `WispR`), `Wisp3` (-> `WispBack`) | hinge at the flame core, so `Transform` translation bobs a flame; `<Wisp>Flame` and `<Wisp>Shell` are welded |
+| `StoneShards` | none | rigid, welded to the Handle |
+
+Safe ranges: a wisp bob of about ±0.2 studs in Y keeps the side flames above the
+arm tops; don't move them inward (X toward 0) or they enter the head. Horn twitches
+look right up to about 0.2 rad.
+
+### Emitter
+
+`GhostWisps.Handle.MistFX.Mist`: built-in smoke texture, pale blue, Rate 1.2,
+Lifetime 2.5-3.5 s (about 3-4 particles alive), size 0.8 to 1.8, transparency
+0.86 at its densest, drifting back and slowly up. No other race uses effects.
+
+### Clearances (checked numerically)
+
+- **Walk:** over the stock R6 walk (`rbxassetid://180426354`) and a ±1 rad
+  limb-swing stress pose, the horns never touch a limb, and the wisps only
+  graze the arm tops by 0.015 with their faint outer shell (the side flames sit
+  over the shoulder centres, 0.4 above the torso top, just outside the face). The stone
+  shards and crusts graze at most 0.07 to 0.1 studs, at their roots on the
+  shoulder top, against a 1.2 cube standing in for the rounded head mesh and the
+  arm top corners; the shoulder room between the head and the arms is only about
+  0.4, so wider or more outward-leaning shards hit the arms.
+- **Hair:** with Pal Hair (box top 0.15 above HatAttachment) the dragon horn tips
+  stand at 1.31 and the demon horn tips at 1.04. Very tall hair can bury the
+  demon horn roots.
+- **Scale:** after the character's `ScaleTo(1.15)`, every part sits at exactly
+  1.15x its distance from its body part, with no joint gaps.
+
+### Rebuild
+
+Run `build_spirit_cosmetics.luau` in Edit mode (execute_luau, or `loadstring`
+it from a served checkout). It replaces `ReplicatedStorage.Cosmetics.Spirits`;
+the tunables are at the top. Then load `tools/export_rbxm.luau`, post
+`_G.exportRbxm("ReplicatedStorage.Cosmetics.Spirits")` to the receiver
+(`/Spirits.rbxm`), and move the file to `assets/Cosmetics/Spirits.rbxm`. In a
+Rojo-connected place, build in an unmapped staging folder and export it under
+the name `Spirits` instead.

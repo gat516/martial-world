@@ -19,7 +19,8 @@ sandbox.
 | vfx | Perfect dodge after-image, dodge and parry pass | `docs/combat/` dodge and parry visuals | "i like the after image effect", "looks good, push it to test" | (no capture yet) |
 | ui | HUD kit reskin: pointed health bar with ruby tips, rounded qi bar, guard trough | `assets/Hud.rbxmx`, `art/ui/figma/README.md` | "looks great!" (then: give the bars more shape) | (no capture yet) |
 | ui | Enemy health bar, segmented with the end gem | `assets/Nameplate.rbxmx`, `docs/ui/boss-bars.md` | "the healthbar we have for enemies is great" | (no capture yet) |
-| ui | Boss bar with the 45-degree trough under a ruby socket | `docs/ui/boss-bars.md` | "boss bar is looking great", "45 looks fine" | (no capture yet) |
+| ui | Boss bar: kit frame, name plaque and gold studs, a 15-degree trough end with straight segment cuts and the ruby as a small end cap (was 45 degrees under a square socket) | `docs/ui/boss-bars.md` | "boss bar is looking great"; reshaped 2026-10-23: "lighter slant, straight cuts, smaller on phones with the name only" (phones: no plaque, the name as live text) | (no capture yet) |
+| ui | Dialogue screen as a centred bottom bar (name tab with its cloud, portrait, text box, chevron) with the kit response buttons in a column beside it, same top and bottom; on phones the bar slides left when the choices show | `assets/Dialogue.rbxmx`, `docs/ui/dialogue.md` | from the user's mockup ("a bar on the bottom screen like in figma"); this layout 2026-10-23: "That looks good" (red ribbon on the buttons kept for now) | `ui/dialogue_bar_choices.jpg` (phone 844x390, PC, lines only, 667x375) |
 | bodies | Spirit Wolf B, Studio parts | `art/enemies/spirit_wolf_b/` | chosen over the Blender wolf: "we're gonna use studio from now on" | `art/enemies/spirit_wolf/preview/` |
 | bodies | Part-built armour on humanoid enemies | `art/enemies/bandits/`, `cultivators/` | "the current humanoid work is really cool", "keep the armor work" | (no capture yet) |
 | bodies | The user's reference row in the testbed (`workspace.Folder.Model`) | Studio only | the sizes and looks every boss body must match | (no capture yet) |
@@ -44,6 +45,7 @@ sandbox.
 | ui | Painted NPC busts | "so bad" | gray silhouettes only |
 | ui | Heavy kit ornament on item tiles, slots, cards | "very very tacky" | repeated things are plain |
 | ui | The realm plaque as a rectangle with cloud caps | "literally just a cube with ornaments smacked on top" | shape with depth, not ornament stuck on |
+| ui | The dialogue screen as a panel in the centre with the responses in a column beside it | "not really the dialogue card i was imagining" | dialogue is a bar along the bottom (the exception to centred panels) |
 | ui | Menus docked at the bottom | corrected repeatedly | centre of the screen |
 | ui | The phone HUD footprint | "i can see zero of the screen" | shrink, never enlarge |
 | ui | Cropped studs, gems and buttons | "there's definitely cropping going on still" | `ui_lint` to zero FAIL before export |

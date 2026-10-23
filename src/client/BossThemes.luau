@@ -9,7 +9,8 @@
 --   tint       frame (Mount) colour at rest; phaseTint what it warms to in the last phase
 --   name/titleColor  text colours; crack  the phase-crack colour; flare  the flash
 --   mount      optional per-boss frame art over the bar (a beast-motif version of
---              the kit frame, same 560x104 layout); default Themes.MOUNT
+--              the kit frame, same 560x104 layout, drawn at that size); default
+--              Themes.MOUNT; mountPhone  its half-size copy for phones (280x52)
 --   phases     optional override of the thresholds; default is def.summonAt
 --              (health fractions where the fight changes: a pip, a flash, a crack)
 --   omens      { [tier]: { lines } } for the five danger tiers (EnemyBars STYLES:
@@ -20,7 +21,8 @@ local Themes = {}
 -- The shared kit frame over the bar (art/ui/figma/boss/bossbar_mount.png, from
 -- the Figma kit's `Export / Roblox Boss Bar` sheet). A boss's own motif frame
 -- goes in its theme's `mount` once the Codex motif sheet is cut and composed.
-Themes.MOUNT = "rbxassetid://121536380682548"
+Themes.MOUNT = "rbxassetid://83502281009955" -- 560x104, PC
+Themes.MOUNT_PHONE = "rbxassetid://113383840348386" -- 280x52 (bossbar_mount_phone.png)
 
 export type Theme = {
 	title: string,
@@ -35,6 +37,7 @@ export type Theme = {
 	flare: Color3,
 	phases: { number }?,
 	mount: string?,
+	mountPhone: string?,
 	omens: { [string]: { string } },
 }
 

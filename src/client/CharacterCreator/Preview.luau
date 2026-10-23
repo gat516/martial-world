@@ -3,7 +3,8 @@
 -- every part anchored) standing on the jade pedestal in the Preview
 -- ViewportFrame's WorldModel, seen through its own Camera. Drag (mouse or touch)
 -- to turn it; it eases toward the dragged angle. Shirt, pants, hair and hair
--- colour update live from the tabs.
+-- colour update live from the tabs; the race's look (cosmetics and body size)
+-- from the drawn race (Look.race).
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -23,6 +24,8 @@ local camera: Camera
 local dummy: Model
 local base: CFrame
 local hairs: { [number]: Accessory } = {} -- by Hair tab slot
+local cosmetics: { Accessory } = {} -- the race's (ReplicatedStorage.Cosmetics)
+local bodyScale = 1 -- the race's size (Giant's Titan Frame)
 local avatarSkin: Color3? = nil -- the avatar's skin, for when there's no character to copy
 local chosenSkin: Color3? = nil -- a SkinColors pick; nil keeps the avatar's skin
 local yaw, target = START_YAW, START_YAW
@@ -74,11 +77,34 @@ local function copySkin()
 	end
 end
 
+local ground = 0 -- the pedestal top under the dummy's feet (measured in init)
+
+-- The lowest point of the dummy's legs.
+local function feet(): number
+	local low = math.huge
+	for _, name in { "Left Leg", "Right Leg" } do
+		local leg = dummy:FindFirstChild(name)
+		if leg and leg:IsA("BasePart") then
+			low = math.min(low, leg.Position.Y - leg.Size.Y / 2)
+		end
+	end
+	return low
+end
+
+-- The camera keeps the whole body in view: a bigger body (Giant) pulls it back
+-- and up by the same share, so the character fills the stage the same way and
+-- reads big against the pedestal instead of running off the top.
 local function frame()
 	local fov = math.rad(camera.FieldOfView)
-	local distance = (FRAME_HEIGHT / 2) / math.tan(fov / 2)
+	local distance = (FRAME_HEIGHT * bodyScale / 2) / math.tan(fov / 2)
+	local function lift(y: number): number
+		return ground + (y - ground) * bodyScale
+	end
 	-- the dummy faces -Z, so the camera stands on that side
-	camera.CFrame = CFrame.lookAt(Vector3.new(0, CAMERA_HEIGHT, -distance), LOOK_AT)
+	camera.CFrame = CFrame.lookAt(
+		Vector3.new(LOOK_AT.X, lift(CAMERA_HEIGHT), -distance),
+		Vector3.new(LOOK_AT.X, lift(LOOK_AT.Y), LOOK_AT.Z)
+	)
 end
 
 local function pose()
@@ -102,6 +128,7 @@ function Preview.init(frameGui: ViewportFrame, templates: Folder)
 	base = dummy:GetPivot()
 	dummy.Parent = world
 	copySkin()
+	ground = feet()
 	frame()
 	pose()
 
@@ -173,9 +200,69 @@ function Preview.chooseSkin(color: Color3?)
 	copySkin()
 end
 
--- Puts a hair accessory on the dummy in a Hair tab slot (nil takes that one
--- off). The accessory is cloned, anchored and placed by its attachment, so
--- turning the dummy carries it.
+-- Scales the dummy (and everything on it) to `target`, keeping its feet on the
+-- pedestal: ScaleTo scales about the pivot, so the legs' lowest point is put back.
+local function scaleBody(target: number)
+	if math.abs(dummy:GetScale() - target) < 1e-3 then
+		return
+	end
+	dummy:PivotTo(base)
+	local before = feet()
+	dummy:ScaleTo(target)
+	base = dummy:GetPivot() + Vector3.yAxis * (before - feet())
+	pose()
+end
+
+-- Accessories go on at scale 1 (their attachments are authored for it), then
+-- the body goes back to its size and they grow with it, as on the server.
+local function atScaleOne(fn: () -> ())
+	local was = dummy:GetScale()
+	scaleBody(1)
+	fn()
+	scaleBody(was)
+end
+
+-- A clone of an accessory, anchored and placed by its attachment, so turning
+-- the dummy carries it. Joints are dropped (nothing simulates in a viewport) and
+-- the whole accessory moves rigidly with its Handle, so multi-part ones (ears,
+-- tails) keep their shape.
+local function wear(source: Accessory): Accessory?
+	local accessory = source:Clone()
+	local handle = accessory:FindFirstChild("Handle")
+	if not handle or not handle:IsA("BasePart") then
+		accessory:Destroy()
+		return nil
+	end
+	local parts = {}
+	for _, d in accessory:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CanTouch = false
+			table.insert(parts, d)
+		elseif d:IsA("JointInstance") or d:IsA("WeldConstraint") then
+			d:Destroy()
+		end
+	end
+	local attachment = handle:FindFirstChildOfClass("Attachment")
+	local onBody = attachment and dummy:FindFirstChild(attachment.Name, true)
+	local goal
+	if attachment and onBody and onBody:IsA("Attachment") then
+		goal = onBody.WorldCFrame * attachment.CFrame:Inverse()
+	else
+		local head = dummy:FindFirstChild("Head") :: BasePart
+		goal = head.CFrame * CFrame.new(0, head.Size.Y / 2, 0) * accessory.AttachmentPoint:Inverse()
+	end
+	local move = goal * handle.CFrame:Inverse()
+	for _, part in parts do
+		part.CFrame = move * part.CFrame
+	end
+	accessory.Parent = dummy
+	return accessory
+end
+
+-- Puts a hair accessory on the dummy in a Hair tab slot (nil takes that one off).
 function Preview.setHair(slot: number, source: Accessory?)
 	local old = hairs[slot]
 	if old then
@@ -185,43 +272,28 @@ function Preview.setHair(slot: number, source: Accessory?)
 	if not source then
 		return
 	end
-	local accessory = source:Clone()
-	local handle = accessory:FindFirstChild("Handle")
-	if not handle or not handle:IsA("BasePart") then
-		accessory:Destroy()
-		return
-	end
-	for _, d in accessory:GetDescendants() do
-		if d:IsA("BasePart") then
-			d.Anchored = true
-			d.CanCollide = false
-			d.CanQuery = false
-			d.CanTouch = false
-		elseif d:IsA("JointInstance") or d:IsA("WeldConstraint") then
-			d:Destroy()
-		end
-	end
-	local attachment = handle:FindFirstChildOfClass("Attachment")
-	local onBody = attachment and dummy:FindFirstChild(attachment.Name, true)
-	if attachment and onBody and onBody:IsA("Attachment") then
-		handle.CFrame = onBody.WorldCFrame * attachment.CFrame:Inverse()
-	else
-		local head = dummy:FindFirstChild("Head") :: BasePart
-		handle.CFrame = head.CFrame * CFrame.new(0, head.Size.Y / 2, 0) * accessory.AttachmentPoint:Inverse()
-	end
-	accessory.Parent = dummy
-	hairs[slot] = accessory
+	atScaleOne(function()
+		hairs[slot] = wear(source)
+	end)
 end
 
--- Paints another dummy's body (an outfit card's) in the stage dummy's colours, so
--- the cards show the skin the player will wear.
-function Preview.copyBodyTo(model: Model)
-	for _, part in dummy:GetChildren() do
-		local twin = model:FindFirstChild(part.Name)
-		if part:IsA("BasePart") and twin and twin:IsA("BasePart") then
-			twin.Color = part.Color
+-- The race's look: its cosmetics (templates from ReplicatedStorage.Cosmetics)
+-- and body size. Replaces the previous race's.
+function Preview.setRaceLook(templates: { Accessory }, scale: number)
+	bodyScale = scale
+	scaleBody(1)
+	for _, accessory in cosmetics do
+		accessory:Destroy()
+	end
+	table.clear(cosmetics)
+	for _, template in templates do
+		local accessory = wear(template)
+		if accessory then
+			table.insert(cosmetics, accessory)
 		end
 	end
+	scaleBody(bodyScale)
+	frame()
 end
 
 -- Takes every hair off (a slot switch or a fresh look).

@@ -94,10 +94,18 @@ local function find(root: Instance, name: string): any
 end
 
 -- `Selected` is also a GuiObject property, so always look the child up by name.
+-- Plate tabs (ruby plaque idle, gold plaque chosen) also turn their label gold, since
+-- the two plaques differ only at the studs.
+local TAB_TEXT = Color3.fromRGB(250, 236, 195)
+local TAB_TEXT_ON = Color3.fromRGB(255, 208, 112)
 local function setSelected(button: Instance, on: boolean)
 	local sel = button:FindFirstChild("Selected") :: GuiObject?
 	if sel then
 		sel.Visible = on
+	end
+	local label = button:FindFirstChild("Label") :: TextLabel?
+	if label and button:FindFirstChild("Art") then
+		label.TextColor3 = if on then TAB_TEXT_ON else TAB_TEXT
 	end
 end
 

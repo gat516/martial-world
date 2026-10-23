@@ -106,7 +106,11 @@ function HerbShop.refresh()
 	end
 	find(window, "StonesLabel").Text = tostring(stones())
 	for t, button in tabs do
-		(button:FindFirstChild("Selected") :: GuiObject).Visible = t == tab
+		(button:FindFirstChild("Selected") :: GuiObject).Visible = t == tab;
+		-- ruby plaque idle, gold plaque chosen: the label turns gold too
+		(button:FindFirstChild("Label") :: TextLabel).TextColor3 = if t == tab
+			then Color3.fromRGB(255, 208, 112)
+			else Color3.fromRGB(250, 236, 195)
 	end
 	for _, child in list:GetChildren() do
 		if child.Name == "Row" then

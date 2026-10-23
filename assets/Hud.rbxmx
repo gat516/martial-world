@@ -891,7 +891,7 @@
      <string name="Name">Tabs</string>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
-     <UDim2 name="Size"><XS>0</XS><XO>124</XO><YS>1</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>152</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">3</int>
      <UDim2 name="CanvasSize"><XS>0</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
      <token name="AutomaticCanvasSize">2</token>
@@ -918,7 +918,7 @@
      <Item class="ImageButton" referent="RBX96"><Properties>
       <string name="Name">TabTemplate</string>
       <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Size"><XS>1</XS><XO>-4</XO><YS>0</YS><YO>34</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>40</YO></UDim2>
       <bool name="Visible">false</bool>
       <int name="ZIndex">3</int>
       <bool name="AutoButtonColor">false</bool>
@@ -935,7 +935,7 @@
        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
        <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>-40</XO><YS>1</YS><YO>-10</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-52</XO><YS>0</YS><YO>20</YO></UDim2>
        <int name="ZIndex">3</int>
        <string name="Text">Tab</string>
        <Color3 name="TextColor3"><R>0.980392</R><G>0.92549</G><B>0.764706</B></Color3>
@@ -949,7 +949,7 @@
        <Item class="UITextSizeConstraint" referent="RBX99"><Properties>
         <string name="Name">UITextSizeConstraint</string>
         <int name="MaxTextSize">15</int>
-        <int name="MinTextSize">9</int>
+        <int name="MinTextSize">11</int>
        </Properties>
        </Item>
       </Item>
@@ -972,11 +972,11 @@
         <int name="LayoutOrder">1</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://97422537666263</url></Content>
+        <Content name="Image"><url>rbxassetid://84782963669301</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX103"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
-         <float name="AspectRatio">1.225</float>
+         <float name="AspectRatio">0.645833</float>
          <token name="DominantAxis">1</token>
         </Properties>
         </Item>
@@ -986,7 +986,7 @@
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-        <Content name="Image"><url>rbxassetid://125066434995277</url></Content>
+        <Content name="Image"><url>rbxassetid://120248080624596</url></Content>
        </Properties>
         <Item class="UIFlexItem" referent="RBX105"><Properties>
          <string name="Name">UIFlexItem</string>
@@ -1000,11 +1000,11 @@
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://76240431498570</url></Content>
+        <Content name="Image"><url>rbxassetid://104762954477486</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX107"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
-         <float name="AspectRatio">1.225</float>
+         <float name="AspectRatio">0.645833</float>
          <token name="DominantAxis">1</token>
         </Properties>
         </Item>
@@ -1031,11 +1031,11 @@
         <int name="LayoutOrder">1</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://129898583217675</url></Content>
+        <Content name="Image"><url>rbxassetid://118333801422561</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX111"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
-         <float name="AspectRatio">1.2125</float>
+         <float name="AspectRatio">0.625</float>
          <token name="DominantAxis">1</token>
         </Properties>
         </Item>
@@ -1045,7 +1045,7 @@
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-        <Content name="Image"><url>rbxassetid://86145608502542</url></Content>
+        <Content name="Image"><url>rbxassetid://99954964250094</url></Content>
        </Properties>
         <Item class="UIFlexItem" referent="RBX113"><Properties>
          <string name="Name">UIFlexItem</string>
@@ -1059,11 +1059,11 @@
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://135194536095526</url></Content>
+        <Content name="Image"><url>rbxassetid://137033002952842</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX115"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
-         <float name="AspectRatio">1.2375</float>
+         <float name="AspectRatio">0.625</float>
          <token name="DominantAxis">1</token>
         </Properties>
         </Item>
@@ -1073,7 +1073,7 @@
      <Item class="ImageButton" referent="RBX116"><Properties>
       <string name="Name">SetTemplate</string>
       <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Size"><XS>1</XS><XO>-4</XO><YS>0</YS><YO>40</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>44</YO></UDim2>
       <bool name="Visible">false</bool>
       <int name="ZIndex">3</int>
       <bool name="AutoButtonColor">false</bool>
@@ -1089,8 +1089,8 @@
        <string name="Name">Label</string>
        <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>0</XS><XO>42</XO><YS>0.5</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>-60</XO><YS>1</YS><YO>-12</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>36</XO><YS>0.5</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-68</XO><YS>0</YS><YO>28</YO></UDim2>
        <int name="ZIndex">3</int>
        <string name="Text">Tab</string>
        <Color3 name="TextColor3"><R>0.980392</R><G>0.92549</G><B>0.764706</B></Color3>
@@ -1104,18 +1104,18 @@
       </Properties>
        <Item class="UITextSizeConstraint" referent="RBX119"><Properties>
         <string name="Name">UITextSizeConstraint</string>
-        <int name="MaxTextSize">14</int>
-        <int name="MinTextSize">9</int>
+        <int name="MaxTextSize">13</int>
+        <int name="MinTextSize">10</int>
        </Properties>
        </Item>
       </Item>
       <Item class="ImageLabel" referent="RBX120"><Properties>
        <string name="Name">Medallion</string>
-       <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
+       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>0</XS><XO>40</XO><YS>0</YS><YO>40</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>17</XO><YS>0.5</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>32</XO><YS>0</YS><YO>32</YO></UDim2>
        <int name="ZIndex">4</int>
        <Content name="Image"><url>rbxassetid://138701417199242</url></Content>
        <token name="ScaleType">3</token>
@@ -1140,11 +1140,11 @@
         <int name="LayoutOrder">1</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://97422537666263</url></Content>
+        <Content name="Image"><url>rbxassetid://84782963669301</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX124"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
-         <float name="AspectRatio">1.225</float>
+         <float name="AspectRatio">0.645833</float>
          <token name="DominantAxis">1</token>
         </Properties>
         </Item>
@@ -1154,7 +1154,7 @@
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-        <Content name="Image"><url>rbxassetid://125066434995277</url></Content>
+        <Content name="Image"><url>rbxassetid://120248080624596</url></Content>
        </Properties>
         <Item class="UIFlexItem" referent="RBX126"><Properties>
          <string name="Name">UIFlexItem</string>
@@ -1168,11 +1168,11 @@
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://76240431498570</url></Content>
+        <Content name="Image"><url>rbxassetid://104762954477486</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX128"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
-         <float name="AspectRatio">1.225</float>
+         <float name="AspectRatio">0.645833</float>
          <token name="DominantAxis">1</token>
         </Properties>
         </Item>
@@ -1199,11 +1199,11 @@
         <int name="LayoutOrder">1</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://129898583217675</url></Content>
+        <Content name="Image"><url>rbxassetid://118333801422561</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX132"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
-         <float name="AspectRatio">1.2125</float>
+         <float name="AspectRatio">0.625</float>
          <token name="DominantAxis">1</token>
         </Properties>
         </Item>
@@ -1213,7 +1213,7 @@
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-        <Content name="Image"><url>rbxassetid://86145608502542</url></Content>
+        <Content name="Image"><url>rbxassetid://99954964250094</url></Content>
        </Properties>
         <Item class="UIFlexItem" referent="RBX134"><Properties>
          <string name="Name">UIFlexItem</string>
@@ -1227,11 +1227,11 @@
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://135194536095526</url></Content>
+        <Content name="Image"><url>rbxassetid://137033002952842</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX136"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
-         <float name="AspectRatio">1.2375</float>
+         <float name="AspectRatio">0.625</float>
          <token name="DominantAxis">1</token>
         </Properties>
         </Item>
@@ -1243,7 +1243,7 @@
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
       <int name="LayoutOrder">100</int>
-      <UDim2 name="Size"><XS>1</XS><XO>-4</XO><YS>0</YS><YO>22</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>22</YO></UDim2>
       <bool name="Visible">false</bool>
       <string name="Text">Sets</string>
       <Color3 name="TextColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
@@ -1259,8 +1259,8 @@
      <string name="Name">Catalog</string>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
-     <UDim2 name="Position"><XS>0</XS><XO>130</XO><YS>0</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.68</XS><XO>-134</XO><YS>1</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0</XS><XO>158</XO><YS>0</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.68</XS><XO>-162</XO><YS>1</YS><YO>0</YO></UDim2>
      <int name="ZIndex">3</int>
      <UDim2 name="CanvasSize"><XS>0</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
      <token name="AutomaticCanvasSize">2</token>
@@ -1921,7 +1921,7 @@
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0</XS><XO>124</XO><YS>0</YS><YO>72</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>152</XO><YS>0</YS><YO>72</YO></UDim2>
      <bool name="Visible">false</bool>
      <int name="ZIndex">3</int>
     </Properties>
@@ -2160,7 +2160,7 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>-40</XO><YS>1</YS><YO>-10</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-44</XO><YS>0</YS><YO>17</YO></UDim2>
       <int name="ZIndex">3</int>
       <string name="Text">Owned</string>
       <Color3 name="TextColor3"><R>0.980392</R><G>0.92549</G><B>0.764706</B></Color3>
@@ -2197,11 +2197,11 @@
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://97422537666263</url></Content>
+       <Content name="Image"><url>rbxassetid://84782963669301</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX225"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.225</float>
+        <float name="AspectRatio">0.645833</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -2211,7 +2211,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://125066434995277</url></Content>
+       <Content name="Image"><url>rbxassetid://120248080624596</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX227"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -2225,11 +2225,11 @@
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://76240431498570</url></Content>
+       <Content name="Image"><url>rbxassetid://104762954477486</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX229"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.225</float>
+        <float name="AspectRatio">0.645833</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -2256,11 +2256,11 @@
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://129898583217675</url></Content>
+       <Content name="Image"><url>rbxassetid://118333801422561</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX233"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.2125</float>
+        <float name="AspectRatio">0.625</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -2270,7 +2270,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://86145608502542</url></Content>
+       <Content name="Image"><url>rbxassetid://99954964250094</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX235"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -2284,11 +2284,11 @@
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://135194536095526</url></Content>
+       <Content name="Image"><url>rbxassetid://137033002952842</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX237"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.2375</float>
+        <float name="AspectRatio">0.625</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -12410,7 +12410,7 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>-56</XO><YS>1</YS><YO>-12</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-50</XO><YS>0</YS><YO>19</YO></UDim2>
       <int name="ZIndex">3</int>
       <string name="Text">Buy Seeds</string>
       <Color3 name="TextColor3"><R>0.980392</R><G>0.92549</G><B>0.764706</B></Color3>
@@ -12446,11 +12446,11 @@
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://97422537666263</url></Content>
+       <Content name="Image"><url>rbxassetid://84782963669301</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX1232"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.225</float>
+        <float name="AspectRatio">0.645833</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -12460,7 +12460,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://125066434995277</url></Content>
+       <Content name="Image"><url>rbxassetid://120248080624596</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX1234"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -12474,11 +12474,11 @@
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://76240431498570</url></Content>
+       <Content name="Image"><url>rbxassetid://104762954477486</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX1236"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.225</float>
+        <float name="AspectRatio">0.645833</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -12504,11 +12504,11 @@
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://129898583217675</url></Content>
+       <Content name="Image"><url>rbxassetid://118333801422561</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX1240"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.2125</float>
+        <float name="AspectRatio">0.625</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -12518,7 +12518,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://86145608502542</url></Content>
+       <Content name="Image"><url>rbxassetid://99954964250094</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX1242"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -12532,11 +12532,11 @@
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://135194536095526</url></Content>
+       <Content name="Image"><url>rbxassetid://137033002952842</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX1244"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.2375</float>
+        <float name="AspectRatio">0.625</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -12563,7 +12563,7 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>-56</XO><YS>1</YS><YO>-12</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-50</XO><YS>0</YS><YO>19</YO></UDim2>
       <int name="ZIndex">3</int>
       <string name="Text">Sell Herbs</string>
       <Color3 name="TextColor3"><R>0.980392</R><G>0.92549</G><B>0.764706</B></Color3>
@@ -12599,11 +12599,11 @@
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://97422537666263</url></Content>
+       <Content name="Image"><url>rbxassetid://84782963669301</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX1252"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.225</float>
+        <float name="AspectRatio">0.645833</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -12613,7 +12613,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://125066434995277</url></Content>
+       <Content name="Image"><url>rbxassetid://120248080624596</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX1254"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -12627,11 +12627,11 @@
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://76240431498570</url></Content>
+       <Content name="Image"><url>rbxassetid://104762954477486</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX1256"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.225</float>
+        <float name="AspectRatio">0.645833</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -12658,11 +12658,11 @@
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://129898583217675</url></Content>
+       <Content name="Image"><url>rbxassetid://118333801422561</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX1260"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.2125</float>
+        <float name="AspectRatio">0.625</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -12672,7 +12672,7 @@
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://86145608502542</url></Content>
+       <Content name="Image"><url>rbxassetid://99954964250094</url></Content>
       </Properties>
        <Item class="UIFlexItem" referent="RBX1262"><Properties>
         <string name="Name">UIFlexItem</string>
@@ -12686,11 +12686,11 @@
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://135194536095526</url></Content>
+       <Content name="Image"><url>rbxassetid://137033002952842</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX1264"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.2375</float>
+        <float name="AspectRatio">0.625</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>

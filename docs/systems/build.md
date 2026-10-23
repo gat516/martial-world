@@ -48,9 +48,18 @@ benefits (meditation seats, garden plots, garden boosters).
   first row so the 5% hover swell isn't cropped.
 - Art (2026-10-23, "inventory / shop buttons are still clipping on pc"): the category
   tabs, set tabs, the Owned toggle and the Herbalist's Buy/Sell tabs are three-part
-  plates (`Art` + `Selected` frames of `CapL`/`Mid`/`CapR`, the
-  `ornament_catalog_tab[_selected]` SLICE3 cuts at 80 px), not one 9-sliced image,
-  which Roblox cropped flat at the cloud caps. The tile badge is the jade tag in three
+  plates (`Art` + `Selected` frames of `CapL`/`Mid`/`CapR`), not one 9-sliced image,
+  which Roblox cropped flat at the cloud caps. Then "i don't like how small the
+  inventory buttons are / how it gets covered by the ornaments": the caps are the house
+  plaque's ([ribbons](../ui/ribbons.md)): `ruby` idle, `gold` chosen (and the label
+  turns gold, `BuildCatalog.setSelected`, `HerbShop.refresh`), pointed ends with a
+  stud, 26 px wide at 40 px tall instead of cloud caps taking half the tab. The tab
+  column is 152 px (catalog from x 158), every tab 140x40 (set tabs 44), the label box
+  exactly the plain middle (84 px; TextScaled 11-15): the widest label, "Cultivation"
+  (65 px at 15), has 11.7 px each side; centred to 0.00 px; 2.5 px clear of the column
+  on hover. A set tab's medallion (32 px) sits on the plate's left end, its name
+  beside it on the middle, two lines at 10-13. Tiles per row: 5 at 1920x1080 and
+  1366x768, 3 at 844x390 (was 4), 2 at 667x375. The tile badge is the jade tag in three
   parts (`ornament_tag_jade_*_h40`). Tiles and the detail well are `item_slot_h184`
   9-sliced at its one middle row and column (Rect(92,91,93,92); SliceScale 0.45 on
   tiles, 0.85 on the well) so only plain bar stretches; the owned count (`xN`) moved

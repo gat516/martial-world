@@ -66,7 +66,8 @@ felt in fights.
 - `src/server/Inventory.luau` (`use`): consumables that add qi, cultivation, insight.
 - Client: `SeatBars.luau` (the seated cultivation track with its overflow past the mark
   and the dantian; cultivation is off the fighting HUD), `BreakthroughView.luau`
-  (button, light column and the "ready to break through" nudge),
+  (button, light column, the milestone card on your own breakthrough and the
+  "ready to break through" nudge),
   `CirculationMinigame.luau`.
 
 ## Data flow

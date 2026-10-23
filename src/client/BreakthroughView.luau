@@ -14,9 +14,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
+local Gates = require(ReplicatedStorage.Shared.Gates)
 local Hud = require(script.Parent.Hud)
 local Menus = require(script.Parent.Menus)
 local Platform = require(script.Parent.Platform)
+local Realms = require(ReplicatedStorage.Shared.Realms)
+local Rewards = require(script.Parent.Rewards)
 local State = require(script.Parent.State)
 local Config = require(ReplicatedStorage.Shared.Pacing).Breakthrough
 
@@ -101,36 +104,47 @@ local function playEffect(who: Player, major: boolean)
 	motes:Emit(if major then 90 else 45)
 end
 
--- The local player's moment: a soft flash and the new realm's name on a title card.
-local function titleCard(gui: ScreenGui, stageName: string, major: boolean)
-	local flash = gui:FindFirstChild("Flash") :: Frame
-	flash.BackgroundTransparency = if major then 0.15 else 0.45
-	flash.Visible = true
-	TweenService:Create(flash, TweenInfo.new(0.8), { BackgroundTransparency = 1 }):Play()
-	task.delay(0.85, function()
-		flash.Visible = false
-	end)
-
-	local banner = gui:FindFirstChild("Banner") :: Frame
-	local title = banner:FindFirstChild("Title") :: TextLabel
-	local kicker = banner:FindFirstChild("Kicker") :: TextLabel
-	local rule = banner:FindFirstChild("Rule") :: Frame
-	kicker.Text = if major then "MAJOR BREAKTHROUGH" else "BREAKTHROUGH"
-	title.Text = stageName
-	for _, label in { title, kicker } do
-		label.TextTransparency = 1
-		TweenService:Create(label, TweenInfo.new(0.5), { TextTransparency = 0 }):Play()
+-- The local player's moment: the milestone card (Rewards), with what changed from
+-- the stage before (health, power, combat qi, passive cultivation) and any travel
+-- array the new stage opens.
+local function milestoneCard(stageName: string, major: boolean)
+	local stage = Realms.byName(stageName)
+	local before: Realms.Stage? = nil
+	if stage then
+		local i = Realms.index(stage.major, stage.minor)
+		before = Realms.Stages[i - 1]
 	end
-	rule.Size = UDim2.fromOffset(0, 2)
-	TweenService:Create(rule, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(0.5, 0, 0, 2) }):Play()
-	banner.Visible = true
-	task.delay(if major then 4 else 2.6, function()
-		for _, label in { title, kicker } do
-			TweenService:Create(label, TweenInfo.new(0.6), { TextTransparency = 1 }):Play()
+	local stats = {}
+	if stage and before then
+		local function add(name: string, from: number, to: number, fmt: string)
+			if to ~= from then
+				table.insert(stats, { name = name, from = string.format(fmt, from), to = string.format(fmt, to) })
+			end
 		end
-		task.wait(0.65)
-		banner.Visible = false
-	end)
+		add("Health", before.health, stage.health, "%d")
+		add("Power", before.power, stage.power, "%.2f")
+		add("Combat qi", before.combatQi, stage.combatQi, "%d")
+		add("Passive", before.passive, stage.passive, "%.2f/s")
+	end
+	local unlock: string? = nil
+	if stage then
+		for _, gate in Gates.List do
+			local need = Gates.required(gate)
+			if need and need.key == stage.key then
+				unlock = `The {gate.name} array is open`
+			end
+		end
+	end
+	Rewards.show({
+		tier = "card",
+		kind = "milestone",
+		title = if major then "Major Breakthrough" else "Breakthrough",
+		subtitle = stageName,
+		stats = stats,
+		unlock = unlock,
+		flavour = if major then "A new realm opens before you." else "Your qi settles at a new depth.",
+		life = if major then 7 else 5,
+	})
 end
 
 -- "You feel ready to break through": once on becoming ready, then now and then
@@ -220,7 +234,7 @@ function BreakthroughView.init(gui: ScreenGui)
 	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean)
 		playEffect(who, major)
 		if who == player then
-			titleCard(gui, stageName, major)
+			milestoneCard(stageName, major)
 		elseif major then
 			Hud.toast(`{who.DisplayName} broke through to {stageName}!`)
 		end

@@ -2051,8 +2051,38 @@ def scroll_art():
     scroll_thumb()
 
 
+
+def toast_plate():
+    """The kit's Frame/Toast plate (Figma node 4:70), redrawn from its numbers.
+
+    Fill: navy (25, 33, 41) at 95 % opacity, fading to clear over the first and last
+    15 % of the width; stroke: 1 px gold (211, 164, 88) along the top and bottom (the ends
+    read as open in the kit's render). Drawn at 2x a
+    128 x 49 toast (256 x 98); the fades are the corners, so they keep their width
+    while the middle stretches. SliceCenter Rect(40, 4, 216, 94), SliceScale 0.5.
+    The gold studs at the ends are separate kit cuts (gold_stud).
+    """
+    w, h = 256, 98
+    fade = 38
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    px = img.load()
+    for x in range(w):
+        t = min(1.0, min(x + 0.5, w - x - 0.5) / fade)
+        a = round(255 * 0.95 * t)
+        for y in range(h):
+            px[x, y] = (25, 33, 41, a)
+    d = ImageDraw.Draw(img)
+    gold = (211, 164, 88, 255)
+    d.rectangle((0, 0, w - 1, 1), fill=gold)
+    d.rectangle((0, h - 2, w - 1, h - 1), fill=gold)
+    img.save(os.path.join(OUT, "toast_plate.png"))
+    print("wrote toast_plate.png", img.size)
+
 if __name__ == "__main__":
     import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "toast":
+        toast_plate()
+        sys.exit()
     if len(sys.argv) > 1 and sys.argv[1] == "enemybar":
         enemy_bar_art()
         sys.exit()

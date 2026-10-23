@@ -217,6 +217,10 @@ feel the big ones.
 - **Never block play;** big cards are skippable and queue, one at a time.
 - **Build:** a reward-banner component in the HUD, fed by one server event with a tier;
   existing "breakthrough" cards fold into it. `ui-designer`, designed with the user.
+  **Built (2026-10-23, [reward banners](ui/rewards.md)):** `Rewards.show` with small,
+  feed, banner and card tiers and `Effect "reward"`; the boss card, feed, region banner
+  and toast restyled onto the kit; breakthroughs open the milestone card. Quests,
+  onboarding objectives and bloodlines still have to send their specs.
 
 ## 4. Techniques and weapons (why they feel lackluster, and the fix)
 **What exists:** 12 techniques (5 any-weapon, one skill per weapon class; the table in [combat](systems/combat.md)). They

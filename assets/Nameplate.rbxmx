@@ -1,51 +1,71 @@
 <roblox version="4">
-<Item class="BillboardGui" referent="NP1"><Properties>
-<string name="Name">Nameplate</string>
-<UDim2 name="Size"><XS>0</XS><XO>240</XO><YS>0</YS><YO>44</YO></UDim2>
-<Vector3 name="StudsOffset"><X>0</X><Y>2.6</Y><Z>0</Z></Vector3>
-<float name="MaxDistance">60</float>
-<float name="LightInfluence">0</float>
-<bool name="ResetOnSpawn">false</bool>
-<token name="ZIndexBehavior">1</token>
-</Properties>
-<Item class="UIListLayout" referent="NP2"><Properties>
-<string name="Name">Layout</string>
-<token name="FillDirection">1</token>
-<token name="HorizontalAlignment">0</token>
-<token name="VerticalAlignment">2</token>
-<token name="SortOrder">2</token>
-</Properties>
-</Item>
-<Item class="TextLabel" referent="NP3"><Properties>
-<string name="Name">Title</string>
-<int name="LayoutOrder">1</int>
-<UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>16</YO></UDim2>
-<float name="BackgroundTransparency">1</float>
-<int name="BorderSizePixel">0</int>
-<bool name="Visible">false</bool>
-<string name="Text"></string>
-<Color3 name="TextColor3"><R>0.92549</R><G>0.784314</G><B>0.478431</B></Color3>
-<float name="TextSize">14</float>
-<float name="TextStrokeTransparency">0.4</float>
-<Color3 name="TextStrokeColor3"><R>0.039216</R><G>0.054902</G><B>0.054902</B></Color3>
-<token name="TextTruncate">1</token>
-<Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>400</Weight><Style>Italic</Style></Font>
-</Properties>
-</Item>
-<Item class="TextLabel" referent="NP4"><Properties>
-<string name="Name">PlayerName</string>
-<int name="LayoutOrder">2</int>
-<UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>24</YO></UDim2>
-<float name="BackgroundTransparency">1</float>
-<int name="BorderSizePixel">0</int>
-<string name="Text">Name</string>
-<Color3 name="TextColor3"><R>0.968627</R><G>0.941176</G><B>0.878431</B></Color3>
-<float name="TextSize">19</float>
-<float name="TextStrokeTransparency">0.3</float>
-<Color3 name="TextStrokeColor3"><R>0.039216</R><G>0.054902</G><B>0.054902</B></Color3>
-<token name="TextTruncate">1</token>
-<Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
-</Properties>
-</Item>
-</Item>
+ <Item class="BillboardGui" referent="NP1"><Properties>
+  <string name="Name">Nameplate</string>
+  <UDim2 name="Size"><XS>1.32</XS><XO>108</XO><YS>0.36</YS><YO>30</YO></UDim2>
+  <bool name="ResetOnSpawn">false</bool>
+  <token name="ZIndexBehavior">1</token>
+  <float name="LightInfluence">0</float>
+  <Vector3 name="StudsOffset"><X>0</X><Y>2.1</Y><Z>0</Z></Vector3>
+  <float name="MaxDistance">60</float>
+ </Properties>
+  <Item class="UIListLayout" referent="NP2"><Properties>
+   <string name="Name">Layout</string>
+   <token name="HorizontalAlignment">0</token>
+   <token name="VerticalAlignment">2</token>
+   <token name="SortOrder">2</token>
+  </Properties>
+  </Item>
+  <Item class="TextLabel" referent="NP3"><Properties>
+   <string name="Name">Title</string>
+   <float name="BackgroundTransparency">1</float>
+   <int name="LayoutOrder">1</int>
+   <UDim2 name="Size"><XS>0.9</XS><XO>0</XO><YS>0.36</YS><YO>0</YO></UDim2>
+   <bool name="Visible">false</bool>
+   <string name="Text"></string>
+   <Color3 name="TextColor3"><R>0.92549</R><G>0.784314</G><B>0.478431</B></Color3>
+   <bool name="TextScaled">true</bool>
+   <bool name="TextWrapped">true</bool>
+   <float name="TextStrokeTransparency">0</float>
+   <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.054902</G><B>0.054902</B></Color3>
+   <token name="TextTruncate">1</token>
+   <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>400</Weight><Style>Italic</Style></Font>
+  </Properties>
+   <Item class="UITextSizeConstraint" referent="NP4"><Properties>
+    <string name="Name">UITextSizeConstraint</string>
+    <int name="MaxTextSize">16</int>
+    <int name="MinTextSize">12</int>
+   </Properties>
+   </Item>
+  </Item>
+  <Item class="ImageLabel" referent="NP5"><Properties>
+   <string name="Name">Band</string>
+   <float name="BackgroundTransparency">1</float>
+   <int name="LayoutOrder">2</int>
+   <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0.64</YS><YO>0</YO></UDim2>
+   <Content name="Image"><url>rbxassetid://77034028645753</url></Content>
+  </Properties>
+   <Item class="TextLabel" referent="NP6"><Properties>
+    <string name="Name">PlayerName</string>
+    <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+    <float name="BackgroundTransparency">1</float>
+    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.74</XS><XO>0</XO><YS>0.7</YS><YO>0</YO></UDim2>
+    <string name="Text">Name</string>
+    <Color3 name="TextColor3"><R>0.968627</R><G>0.941176</G><B>0.878431</B></Color3>
+    <bool name="TextScaled">true</bool>
+    <bool name="TextWrapped">true</bool>
+    <float name="TextStrokeTransparency">0.1</float>
+    <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.054902</G><B>0.054902</B></Color3>
+    <token name="TextTruncate">1</token>
+    <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+   </Properties>
+    <Item class="UITextSizeConstraint" referent="NP7"><Properties>
+     <string name="Name">UITextSizeConstraint</string>
+     <int name="MaxTextSize">22</int>
+     <int name="MinTextSize">12</int>
+    </Properties>
+    </Item>
+   </Item>
+  </Item>
+ </Item>
 </roblox>

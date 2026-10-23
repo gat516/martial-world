@@ -5,6 +5,16 @@
 -- player hops. If a load fails the player still plays, but their profile is never
 -- saved, so a DataStore outage can't overwrite real progress with an empty profile.
 -- In an unpublished place (PlaceId 0) an in-memory store stands in for the session.
+--
+-- Save slots (Config.Slots, docs/systems/save-slots.md): with slots on, the
+-- record is an Account under "a_<userId>": up to Slots.MAX separate characters
+-- (each a full Data profile), their race and last name by slot position
+-- (fates), and what all slots share (settings, Robux receipts). The first load
+-- wraps the old "u_<userId>" profile into slot 1 untouched and never writes the
+-- old key again, so it stays as a backup. With slots off (the live game for
+-- now) the old key is read and written exactly as before, seen here as a
+-- one-slot account. Either way nothing is played until `activate` picks a slot;
+-- `get` returns that slot's profile.
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
@@ -20,7 +30,10 @@ local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
 local Roots = require(ReplicatedStorage.Shared.Roots)
 
-local SCHEMA_VERSION = 10
+local Slots = require(ReplicatedStorage.Shared.Config).Slots
+
+local SCHEMA_VERSION = 11 -- one slot's profile (Data)
+local ACCOUNT_VERSION = 1 -- the slots wrapper (Account)
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
 export type Placed = { u: string, i: string, x: number, y: number, z: number, r: number, m: string? }
@@ -67,11 +80,30 @@ export type Data = {
 	seen: { [string]: number }, -- items, arts and weapons the Inventory has shown, by os.time() first seen (0 = before v10); held and not here = NEW
 	inventoryView: { [string]: { sort: string, filter: string } }, -- the Inventory's sort and class/kind filter, per tab (Arsenal, Pouch)
 	root: Roots.Root, -- spirit root; element "" until tested at the Testing Stone
+	-- the character screen's choices: firstName "" until named; look is
+	-- CharacterIdentity.Look without FirstName (nil until named)
+	character: { firstName: string?, look: { [string]: any }? },
 	peak: {
 		removed: { [string]: boolean },
 		placed: { Placed },
 		plots: { [string]: { Herbs.Plant } }, -- plantings, by plot id
 	},
+}
+
+-- Race and last name of a slot position (Shared.CharacterCreator Races / Surnames keys).
+export type Fate = { Race: string, Surname: string }
+export type Trash = { slot: string, data: any, fate: Fate?, at: number }
+-- Everything stored for one player with slots on. Slot ids are "1".."MAX"
+-- (string keys: DataStores can't keep nil holes in arrays).
+export type Account = {
+	av: number,
+	slots: { [string]: Data },
+	fates: { [string]: Fate }, -- by slot position; kept when the slot is deleted
+	last: string, -- the slot played last ("" for none)
+	settings: Settings, -- shared by every slot
+	receipts: { [string]: number }, -- shared: a reroll is bought before its slot exists
+	rerollFor: string, -- slot position a pending Robux reroll applies to
+	trash: Trash?, -- the last deleted slot, kept Slots.TRASH_DAYS
 }
 
 -- What's actually stored under a player's key: the profile plus who holds it.
@@ -123,7 +155,25 @@ local function default(): Data
 		dao = startingDao(),
 		caches = {},
 		root = Roots.new(),
+		character = {},
 		peak = { removed = {}, placed = {}, plots = {} },
+	}
+end
+
+local function defaultSettings(): Settings
+	return { music = 1, sfx = 1, autoAttack = true, lockHint = true }
+end
+
+local function newAccount(): Account
+	return {
+		av = ACCOUNT_VERSION,
+		slots = {},
+		fates = {},
+		last = "",
+		settings = defaultSettings(),
+		receipts = {},
+		rerollFor = "",
+		trash = nil,
 	}
 end
 
@@ -222,6 +272,10 @@ local migrations: { [number]: (any) -> () } = {
 		end
 		d.seen = seen
 	end,
+	-- v10 had no character screen: the slot is unnamed until its player names it
+	[10] = function(d)
+		d.character = {}
+	end,
 }
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
@@ -264,6 +318,74 @@ local function reconcile(saved: any): Data
 	return saved
 end
 
+
+local function validSlot(id: any): boolean
+	if type(id) ~= "string" then
+		return false
+	end
+	local n = tonumber(id)
+	return n ~= nil and n == math.floor(n) and n >= 1 and n <= Slots.MAX and tostring(n) == id
+end
+
+-- Account schema steps (none yet past v1). The wrap from the old single-profile
+-- record is `wrapLegacy`: it runs once, when the account key is still empty.
+local function reconcileAccount(saved: any): Account
+	if type(saved) ~= "table" then
+		return newAccount()
+	end
+	saved.av = ACCOUNT_VERSION
+	for k, v in newAccount() :: any do
+		if saved[k] == nil then
+			saved[k] = v
+		end
+	end
+	for k, v in defaultSettings() :: any do
+		if saved.settings[k] == nil then
+			saved.settings[k] = v
+		end
+	end
+	-- a slot id outside 1..MAX (the cap lowered later) stays stored but unused
+	for id, slot in saved.slots do
+		if validSlot(id) then
+			saved.slots[id] = reconcile(slot)
+		end
+	end
+	local trash = saved.trash
+	if type(trash) == "table" and os.time() - (tonumber(trash.at) or 0) > Slots.TRASH_DAYS * 86400 then
+		saved.trash = nil
+	end
+	return saved
+end
+
+-- The old single profile becomes slot 1, untouched (its own migrations run in
+-- reconcileAccount). What every slot shares is copied up; the slot keeps its
+-- copies, so nothing is dropped. nil (a new player) gives an empty account.
+local function wrapLegacy(profile: any): any
+	local account = newAccount()
+	if type(profile) == "table" then
+		account.slots["1"] = profile
+		account.last = "1"
+		if type(profile.settings) == "table" then
+			account.settings = table.clone(profile.settings)
+		end
+		if type(profile.receipts) == "table" then
+			account.receipts = table.clone(profile.receipts)
+		end
+	end
+	return account
+end
+
+-- Slots off: the old profile seen as a one-slot account. Settings and receipts
+-- are the profile's own tables, so saving writes exactly what it did before.
+local function singleSlot(data: Data): Account
+	local account = newAccount()
+	account.slots["1"] = data
+	account.last = "1"
+	account.settings = data.settings
+	account.receipts = data.receipts
+	return account
+end
+
 -- v1 stored the profile bare; v2 wraps it with the session lock.
 local function toRecord(stored: any): Record
 	if type(stored) ~= "table" then
@@ -298,6 +420,9 @@ local function memoryStore(): any
 			records[k] = copy(new)
 			return copy(new)
 		end,
+		GetAsync = function(_, k: string): any
+			return copy(records[k])
+		end,
 	}
 end
 
@@ -313,12 +438,30 @@ end
 
 local jobId = if game.JobId ~= "" then game.JobId else "studio"
 
-local profiles: { [Player]: { data: Data, canSave: boolean, releasing: boolean? } } = {}
+type Profile = {
+	account: Account,
+	data: Data?, -- the slot being played (nil until activate)
+	active: string?,
+	canSave: boolean,
+	releasing: boolean?,
+}
+local profiles: { [Player]: Profile } = {}
 
 local PlayerData = {}
 
-local function key(player: Player): string
+PlayerData.validSlot = validSlot
+-- Slot ids in order, "1".."MAX".
+PlayerData.SLOT_IDS = {} :: { string }
+for i = 1, Slots.MAX do
+	table.insert(PlayerData.SLOT_IDS, tostring(i))
+end
+
+local function legacyKey(player: Player): string
 	return "u_" .. player.UserId
+end
+
+local function key(player: Player): string
+	return if Slots.ENABLED then "a_" .. player.UserId else legacyKey(player)
 end
 
 -- Claim the record for this server. Waits for another server's lock to clear,
@@ -354,13 +497,51 @@ local function claim(player: Player): (boolean, any)
 	end
 end
 
-function PlayerData.load(player: Player): Data
-	local data, canSave = default(), false
+-- Reads the old single-profile key without writing it (it stays as the
+-- backup). A server of the old version still holding it gets the usual wait to
+-- save and release first.
+local function readLegacy(player: Player): (boolean, any)
+	local waited = 0
+	while true do
+		local ok, stored = pcall(function()
+			return store:GetAsync(legacyKey(player))
+		end)
+		if not ok then
+			return false, stored
+		end
+		local record = toRecord(stored)
+		local s = record.session
+		local live = s ~= nil and s.job ~= jobId and os.time() - s.t <= Config.LOCK_STALE_SECONDS
+		if not live or waited >= Config.LOCK_WAIT_SECONDS then
+			return true, record.data
+		end
+		if player.Parent == nil then
+			return false, "player left while waiting for the old profile's lock"
+		end
+		task.wait(Config.LOCK_RETRY_SECONDS)
+		waited += Config.LOCK_RETRY_SECONDS
+	end
+end
+
+-- Loads the player's account (every slot). Nothing is played yet: `activate`
+-- picks the slot. If the load fails the player still plays, unsaved.
+function PlayerData.load(player: Player): Account
+	local account: Account? = nil
+	local canSave = false
 	if okStore then
 		for attempt = 1, 3 do
 			local ok, result = claim(player)
+			if ok and Slots.ENABLED and result == nil then
+				-- no account yet: wrap the old profile (if any) into slot 1. A failed
+				-- read fails the load, or an empty account would hide the old profile.
+				ok, result = readLegacy(player)
+				if ok then
+					result = wrapLegacy(result)
+				end
+			end
 			if ok then
-				data, canSave = reconcile(result), true
+				account = if Slots.ENABLED then reconcileAccount(result) else singleSlot(reconcile(result))
+				canSave = true
 				break
 			end
 			warn(`PlayerData: load {attempt}/3 failed for {player.Name}: {result}`)
@@ -373,13 +554,81 @@ function PlayerData.load(player: Player): Data
 	else
 		warn("PlayerData: DataStores unavailable (enable Studio API access to save); progress won't persist")
 	end
-	profiles[player] = { data = data, canSave = canSave }
-	return data
+	local loaded: Account = account or (if Slots.ENABLED then newAccount() else singleSlot(default()))
+	profiles[player] = { account = loaded, canSave = canSave }
+	return loaded
 end
 
+-- The profile of the slot being played (nil before a slot is played).
 function PlayerData.get(player: Player): Data?
 	local p = profiles[player]
 	return p and p.data
+end
+
+-- Every slot of the player (nil before load).
+function PlayerData.account(player: Player): Account?
+	local p = profiles[player]
+	return p and p.account
+end
+
+-- Whether this session will be saved (false after a failed load).
+function PlayerData.canSave(player: Player): boolean
+	local p = profiles[player]
+	return p ~= nil and p.canSave
+end
+
+-- The slot id being played, or nil.
+function PlayerData.active(player: Player): string?
+	local p = profiles[player]
+	return p and p.active
+end
+
+-- Plays a slot: its profile becomes `get`'s, sharing the account's settings and
+-- receipts. Once per session (switching means rejoining).
+function PlayerData.activate(player: Player, id: string): Data?
+	local p = profiles[player]
+	if not (p and p.active == nil and validSlot(id)) then
+		return nil
+	end
+	local data = p.account.slots[id]
+	if not data then
+		return nil
+	end
+	data.settings = p.account.settings
+	data.receipts = p.account.receipts
+	p.data, p.active = data, id
+	p.account.last = id
+	return data
+end
+
+-- A fresh profile in an empty slot position (not played yet).
+function PlayerData.createSlot(player: Player, id: string): Data?
+	local p = profiles[player]
+	if not (p and validSlot(id)) or p.account.slots[id] then
+		return nil
+	end
+	local data = default()
+	p.account.slots[id] = data
+	return data
+end
+
+-- Moves a slot to the account's trash (the previous trash is dropped). Never
+-- the slot being played. The position's fate stays.
+function PlayerData.deleteSlot(player: Player, id: string): boolean
+	local p = profiles[player]
+	if not (p and p.canSave and validSlot(id)) or p.active == id then
+		return false
+	end
+	local data = p.account.slots[id]
+	if not data then
+		return false
+	end
+	p.account.trash = { slot = id, data = data, fate = p.account.fates[id], at = os.time() }
+	p.account.slots[id] = nil
+	if p.account.last == id then
+		p.account.last = ""
+	end
+	return true
 end
 
 -- Write the profile if this server still holds the lock; `release` drops the lock.
@@ -400,7 +649,9 @@ function PlayerData.save(player: Player, release: boolean?)
 				return nil
 			end
 			local session = if release then nil else { job = jobId, t = os.time() }
-			return { data = p.data, session = session }, { player.UserId }
+			-- slots off: the bare profile, as it always was
+			local payload = if Slots.ENABLED then p.account else p.account.slots["1"]
+			return { data = payload, session = session }, { player.UserId }
 		end)
 	end)
 	if not ok then
@@ -419,7 +670,9 @@ function PlayerData.release(player: Player)
 	local p = profiles[player]
 	if p then
 		p.releasing = true
-		p.data.lastLogoutUnix = os.time()
+		if p.data then
+			p.data.lastLogoutUnix = os.time()
+		end
 	end
 	PlayerData.save(player, true)
 	profiles[player] = nil
@@ -456,5 +709,7 @@ Players.PlayerRemoving:Connect(function(player)
 		end
 	end)
 end)
+
+PlayerData.default = default
 
 return PlayerData

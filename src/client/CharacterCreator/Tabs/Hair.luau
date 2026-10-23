@@ -1,15 +1,16 @@
 --!strict
--- Hair tab: up to Rules.MAX_HAIRS hair accessories by catalog id, one field each
--- (the server checks each is hair and hands back a copy to preview), and a
--- colour from HairColors. The fields start filled with the player's own Roblox
--- hair (the server's "defaults"), which also gives the preview their skin.
+-- Hair step: up to Rules.MAX_HAIRS hair accessories by catalog id, one field
+-- each (the server checks each is hair and hands back a copy to preview), and a
+-- colour from HairColors. A new character starts with the player's own Roblox
+-- hair (the server's "defaults", which also give the preview their skin); an
+-- edit starts with the slot's saved hairs.
 
 local Hair = {}
 
 local MAX_DIGITS = 19
 
 local HINT = "Paste the ID from a hair accessory's catalog page."
-local EMPTY_HINT = "Optional. Paste another hair's ID to layer it."
+local EMPTY_HINT = "Optional: another hair to layer."
 
 function Hair.build(page: ScrollingFrame, ctx: any)
 	local state, defs, components, preview = ctx.state, ctx.defs, ctx.components, ctx.preview
@@ -24,10 +25,13 @@ function Hair.build(page: ScrollingFrame, ctx: any)
 		return defs.HairColors[1].Color
 	end
 
-	-- Hair Asset IDs: one field per slot
-	components.sectionHeader(page, "Hair Asset IDs", 1)
+	components.section(page, "Hair asset IDs", 1)
 	local fields = {}
 	local token = 0 -- one hair load at a time across the fields (the server rate-limits them)
+
+	local function idle(slot: number)
+		fields[slot].setStatus(if slot == 1 then HINT else EMPTY_HINT, "info")
+	end
 
 	local function wear(slot: number, id: number, accessory: Accessory)
 		preview.setHair(slot, accessory)
@@ -42,8 +46,8 @@ function Hair.build(page: ScrollingFrame, ctx: any)
 			order = 1 + slot,
 			action = "Apply",
 		})
-		field.setStatus(if slot == 1 then HINT else EMPTY_HINT, "info")
 		fields[slot] = field
+		idle(slot)
 		local box: TextBox = field.input
 
 		box:GetPropertyChangedSignal("Text"):Connect(function()
@@ -62,7 +66,7 @@ function Hair.build(page: ScrollingFrame, ctx: any)
 					state:set(key, nil)
 					field.setStatus("Hair removed.", "ok")
 				else
-					field.setStatus(if slot == 1 then HINT else EMPTY_HINT, "info")
+					idle(slot)
 				end
 				return
 			end
@@ -77,7 +81,7 @@ function Hair.build(page: ScrollingFrame, ctx: any)
 			end
 			for other = 1, rules.MAX_HAIRS do
 				if other ~= slot and state:get(`Hair{other}`) == id then
-					field.setStatus(`That hair is already in slot {other}.`, "error")
+					field.setStatus(`That hair is already in field {other}.`, "error")
 					return
 				end
 			end
@@ -109,26 +113,9 @@ function Hair.build(page: ScrollingFrame, ctx: any)
 		end)
 	end
 
-	-- Start from the player's own avatar: their skin, and their hairs in the fields.
-	task.spawn(function()
-		local ok, avatar = ctx.bridge.getDefaults()
-		if not ok then
-			return
-		end
-		preview.setSkin(avatar.skin)
-		for slot, hair in avatar.hairs do
-			local field = fields[slot]
-			if field and not state:get(`Hair{slot}`) and field.input.Text == "" then
-				field.input.Text = tostring(hair.id)
-				wear(slot, hair.id, hair.accessory)
-				field.setStatus("Your avatar's hair.", "ok")
-			end
-		end
-	end)
-
-	-- Hair Color
+	-- Hair colour
 	local order = 2 + rules.MAX_HAIRS
-	components.sectionHeader(page, "Hair Color", order)
+	components.section(page, "Hair colour", order)
 	local grid = components.grid(page, "SwatchGrid", order + 1, "ColorGrid")
 	local caption = components.note(page, "", order + 2, "ColorName")
 	local swatches = {}
@@ -147,14 +134,56 @@ function Hair.build(page: ScrollingFrame, ctx: any)
 				caption.Text = entry.DisplayName
 			end
 		end
+		preview.tintHair(colorOf(current), rules.tintHair)
 	end
 	paint()
 	state:onChanged(function(key)
 		if key == "HairColor" then
 			paint()
-			preview.tintHair(colorOf(state:get("HairColor")), rules.tintHair)
 		end
 	end)
+
+	local avatar: any = nil -- the avatar defaults, asked for once
+	local handle = {}
+	-- Starts the fields over: `hairs` are the slot's saved hairs ({ id,
+	-- accessory }), or nil for a new character (the avatar's own).
+	function handle.reset(hairs: { { id: number, accessory: Accessory } }?)
+		token += 1
+		preview.clearHairs()
+		for slot = 1, rules.MAX_HAIRS do
+			fields[slot].input.Text = ""
+			idle(slot)
+			state:set(`Hair{slot}`, nil)
+		end
+		local function fill(list: { any }, note: string)
+			for slot, hair in list do
+				local field = fields[slot]
+				if field and hair.accessory then
+					field.input.Text = tostring(hair.id)
+					wear(slot, hair.id, hair.accessory)
+					field.setStatus(note, "ok")
+				end
+			end
+			paint()
+		end
+		if hairs then
+			fill(hairs, "Saved hair.")
+			return
+		end
+		local mine = token
+		task.spawn(function()
+			if avatar == nil then
+				local ok, result = ctx.bridge.getDefaults()
+				avatar = if ok then result else false
+			end
+			if mine ~= token or not avatar then
+				return
+			end
+			preview.setSkin(avatar.skin)
+			fill(avatar.hairs, "Your avatar's hair.")
+		end)
+	end
+	return handle
 end
 
 return Hair

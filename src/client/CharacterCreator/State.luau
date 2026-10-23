@@ -1,6 +1,6 @@
 --!strict
 -- What the player has picked so far on the character screen. Only a preview:
--- nothing here counts until Enter World sends it to the server.
+-- nothing here counts until Enter World (or Save look) sends it to the server.
 --   Shirt, Pants   Clothing option Ids
 --   Hair1..Hair3   catalog id of a hair the server loaded in that slot (one per
 --                  field on the Hair tab, Rules.MAX_HAIRS of them), or nil
@@ -42,7 +42,7 @@ function State.new(defs: any): State
 			HairColor = defs.HairColors[1].Id,
 			SkinColor = defs.SkinColors[1].Id,
 			FirstName = "",
-			Tab = "Clothes",
+			Tab = "Appearance",
 		} :: Values,
 		listeners = {},
 	}, State)
@@ -51,6 +51,25 @@ end
 
 function State.get(self: State, key: string): any
 	return (self.values :: any)[key]
+end
+
+-- Starts over from a look (a slot's saved look, or nil for the defaults). Every
+-- listener hears each value, so the tabs and the preview repaint.
+function State.load(self: State, defs: any, look: { [string]: any }?, firstName: string?)
+	local hairs = if look and type(look.HairIds) == "table" then look.HairIds else {}
+	local values = {
+		Shirt = look and look.Shirt or defs.Clothing.Shirt[1].Id,
+		Pants = look and look.Pants or defs.Clothing.Pants[1].Id,
+		HairColor = look and look.HairColor or defs.HairColors[1].Id,
+		SkinColor = look and look.SkinColor or defs.SkinColors[1].Id,
+		FirstName = firstName or "",
+	}
+	for key, value in values do
+		self:set(key, value)
+	end
+	for slot = 1, 3 do
+		self:set(`Hair{slot}`, hairs[slot])
+	end
 end
 
 -- Sets one value and tells every listener (key, value) if it changed.
@@ -96,10 +115,10 @@ export type Missing = { tab: string, field: string, label: string }
 function State.missing(self: State, rules: any, race: string?, surname: string?): { Missing }
 	local out = {}
 	if not rules.checkFirstName(self.values.FirstName) then
-		table.insert(out, { tab = "Identity", field = "FirstName", label = "first name" })
+		table.insert(out, { tab = "Name", field = "FirstName", label = "first name" })
 	end
 	if not race or not surname then
-		table.insert(out, { tab = "Identity", field = "Roll", label = "race and last name (still being drawn)" })
+		table.insert(out, { tab = "Name", field = "Roll", label = "race and clan (still being drawn)" })
 	end
 	return out
 end

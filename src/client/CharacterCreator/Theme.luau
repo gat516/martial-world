@@ -1,96 +1,57 @@
 --!strict
--- The character screen's look in one place: colours, fonts, timings and the
--- per-tab titles. The authored GUI (assets/CharacterCreator.rbxmx) carries the
--- same palette; scripts use this table for anything they recolour at runtime
--- (selection, errors, disabled states), so restyle both together.
+-- The join screen's look in one place: colours, fonts, timings, the step tabs
+-- and the fit. The authored GUI (assets/CharacterCreator.rbxmx, built by
+-- art/ui/creator/build_gui.luau) carries the same palette; scripts use this
+-- table for anything they recolour at runtime, so restyle both together.
+-- Calm and readable (user, 2026-10-23): cream on the kit's navy, gold for
+-- labels, lacquer only for what needs fixing. No flashes, shakes or pulses.
 
 local Theme = {}
 
 Theme.Color = {
-	Parchment = Color3.fromRGB(238, 229, 208),
-	Ink = Color3.fromRGB(40, 35, 30),
-	InkSoft = Color3.fromRGB(104, 92, 78),
-	Cream = Color3.fromRGB(247, 240, 224),
-	Gold = Color3.fromRGB(200, 162, 88),
-	GoldBright = Color3.fromRGB(236, 200, 122),
-	GoldDim = Color3.fromRGB(150, 118, 66),
-	Jade = Color3.fromRGB(36, 54, 49),
-	JadeMid = Color3.fromRGB(46, 74, 66),
-	JadeText = Color3.fromRGB(44, 116, 86), -- success lines on parchment
-	Lacquer = Color3.fromRGB(168, 54, 44), -- error lines on parchment
-	CardStroke = Color3.fromRGB(66, 63, 56),
-	Wash = Color3.fromRGB(10, 14, 14),
-	Alert = Color3.fromRGB(226, 84, 66), -- "!" on a dark nav plate
-	AlertLight = Color3.fromRGB(255, 136, 112), -- a missing value on the dark name plinth
-	Locked = Color3.fromRGB(196, 186, 168), -- lock on a dimmed plate
-	Disabled = Color3.fromRGB(150, 146, 140), -- ImageColor3 of a locked plate or button
-	Need = Color3.fromRGB(214, 160, 52), -- gold rim on a required field still empty
+	Cream = Color3.fromRGB(250, 236, 195),
+	Muted = Color3.fromRGB(196, 186, 164),
+	Gold = Color3.fromRGB(226, 188, 108),
+	Lacquer = Color3.fromRGB(240, 110, 92), -- what needs fixing, on navy
+	Jade = Color3.fromRGB(140, 210, 166), -- done / ok lines, on navy
+	Disabled = Color3.fromRGB(150, 146, 140), -- ImageColor3 of a button that can't be pressed yet
 }
 
--- Kit ornaments (art/ui/creator/build.py, ids in art/ui/assets.json) the scripts swap
--- at runtime; the rest of the art is set in the GUI.
+-- Kit cuts the scripts swap at runtime (ids in art/ui/assets.json).
 Theme.Art = {
-	Plate = "rbxassetid://112445824422500", -- nav plate, Back
-	PlateHi = "rbxassetid://117312282844677", -- current nav plate, Next / Enter World
-	Check = "rbxassetid://104701721574504",
-	Exclaim = "rbxassetid://122224709560844",
-	Lock = "rbxassetid://113742246645347",
-}
-
-local SERIF = "rbxasset://fonts/families/Merriweather.json"
-local SANS = "rbxasset://fonts/families/BuilderSans.json"
-Theme.Font = {
-	Title = Font.new(SERIF, Enum.FontWeight.Bold),
-	Serif = Font.new(SERIF, Enum.FontWeight.Regular),
-	Italic = Font.new(SERIF, Enum.FontWeight.Regular, Enum.FontStyle.Italic),
-	Body = Font.new(SANS, Enum.FontWeight.Medium),
-	BodyBold = Font.new(SANS, Enum.FontWeight.Bold),
+	Slot = "rbxassetid://135331792516626", -- codex/cut/ornament_item_slot.png
+	SlotOn = "rbxassetid://96449593211039", -- ornament_item_slot_selected.png (selected card or swatch)
 }
 
 Theme.Tween = {
-	Hover = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-	Select = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-	Pop = TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-	Page = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-	Veil = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
-	Reveal = TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-}
-
-Theme.Selection = {
-	GlowOn = 0.1, -- Glow ImageTransparency when selected
-	StrokeOn = 2.5, -- card UIStroke thickness when selected
-	StrokeOff = 1.5,
-	NavShift = 8, -- px the current nav plate slides right
+	Select = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+	Page = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+	Veil = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
+	Hold = 1.5, -- seconds to hold Delete
 }
 
 Theme.ROBUX = "\u{E002}" -- the Robux glyph in Roblox's fonts
 
--- Fit: the nav and panel are authored at a desktop design size and scaled by
--- their `Fit` UIScale to the screen height (Controller.fit).
+-- Fit: the panel (and the nameplate and modal cards) are authored at a design
+-- size and scaled by their `Fit` UIScale: Scale = clamp(H / DesignHeight, Min,
+-- Max). The phone floor (0.8) keeps body text at ~14 px and buttons ~45 px; the
+-- panel then fills the height and its page scrolls. The preview takes the rest.
 Theme.Fit = {
-	DesignHeight = 790, -- screen height at which Fit = 1
-	Min = 0.66, -- floor on phones: nav buttons ~53 px tall, small text ~10 px
-	Max = 1.25,
-	Margin = 16, -- px from the screen edges
-	MinPreview = 160, -- px the preview keeps between the nav and the panel
-	NavWidth = 270, -- design size of the nav column with labels
-	NavCompactWidth = 104, -- glyph rings only (narrow screens)
-	NavHeight = 440,
-	CompactBelow = 240, -- px of preview width under which the nav goes compact
+	DesignHeight = 900,
+	Min = 0.8,
+	Max = 1.4,
+	PanelWidth = 480,
+	PanelHeight = 760, -- tallest the panel gets (design px)
+	Margin = 16, -- px from the screen edges (and between the preview and the panel)
+	CompactBelow = 600, -- a panel shorter than this (design px; phones) drops the footer divider
 }
 
--- Tabs, in nav order: the nav label and glyph, and the panel's title line.
-Theme.Tabs = {
-	{ Id = "Clothes", Label = "Clothes", Glyph = "衣", Title = "Clothing", Subtitle = "Choose your starting outfit." },
-	{ Id = "Hair", Label = "Hair", Glyph = "发", Title = "Hair", Subtitle = "Use an asset ID and choose a color." },
-	{ Id = "Identity", Label = "Identity", Glyph = "名", Title = "Identity", Subtitle = "Your race, your name, your family." },
-	{
-		Id = "Confirm",
-		Label = "Confirm",
-		Glyph = "定",
-		Title = "Finalize",
-		Subtitle = "Review your character before entering the world.",
-	},
+-- The creator's steps. New: Appearance, Hair, Name (Enter World on Name).
+-- Edit: the same three, the name locked, Save look on every step.
+Theme.Steps = {
+	{ Id = "Appearance", Label = "Appearance" },
+	{ Id = "Hair", Label = "Hair" },
+	{ Id = "Name", Label = "Name", EditLabel = "Identity" },
 }
 
 return Theme

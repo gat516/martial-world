@@ -1,5 +1,5 @@
 --!strict
--- The character in the middle of the screen: an R6 dummy (Templates.Dummy,
+-- The character on the stage: an R6 dummy (Templates.Dummy,
 -- every part anchored) standing on the jade pedestal in the Preview
 -- ViewportFrame's WorldModel, seen through its own Camera. Drag (mouse or touch)
 -- to turn it; it eases toward the dragged angle. Shirt, pants, hair and hair
@@ -119,6 +119,10 @@ function Preview.init(frameGui: ViewportFrame, templates: Folder)
 		local moved = (drag.UserInputType == Enum.UserInputType.MouseButton1 and input.UserInputType == Enum.UserInputType.MouseMovement)
 			or input == drag
 		if moved then
+			local hint = viewport:FindFirstChild("Hint")
+			if hint and hint:IsA("TextLabel") then
+				hint.Visible = false -- they've found it
+			end
 			target += (input.Position.X - lastX) * DRAG_SPEED
 			lastX = input.Position.X
 		end
@@ -207,6 +211,13 @@ function Preview.setHair(slot: number, source: Accessory?)
 	end
 	accessory.Parent = dummy
 	hairs[slot] = accessory
+end
+
+-- Takes every hair off (a slot switch or a fresh look).
+function Preview.clearHairs()
+	for slot in table.clone(hairs) do
+		Preview.setHair(slot, nil)
+	end
 end
 
 function Preview.tintHair(color: Color3, tint: (Accessory, Color3) -> ())

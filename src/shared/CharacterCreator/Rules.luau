@@ -7,8 +7,9 @@ local Config = require(script.Parent.Parent.Config)
 
 local Rules = {}
 
--- Show the character screen to players who haven't confirmed a look this session.
--- Testbed only until the user approves it for the main game.
+-- Open the join screen (save slots, then the character creator) on join, unless
+-- a slot is already being played (QuickPlay). Testbed only until the user
+-- approves it for the main game (with Config.Slots.ENABLED).
 Rules.SHOW_ON_JOIN = Config.TESTBED
 -- On Enter World the server dresses the live character (shirt, pants, hair, colour).
 Rules.APPLY_TO_CHARACTER = true

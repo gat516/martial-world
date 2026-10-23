@@ -83,9 +83,12 @@ through the same code. The technique's runtime is `src/client/TechniqueFX/<Id>.l
 
 ## 6. Review
 
-`vfxPreview.sweep({ id, level, radius })` at levels 1/4/7/10 builds one scene per moment
-(windup/hit/hitstop/aftermath) and freezes particles and MeshWave tweens; take the captures
-back to back ([previewing.md](previewing.md)). Retune by editing the spec and rebuilding;
+`vfxPreview.filmstrip({ id, level, radius })` at levels 1/4/7/10 freezes six moments in one
+labelled grid, so one capture per tier is the review image; `vfxPreview.sweep` builds the
+same kind of scene per moment for close-ups (windup/hit/hitstop/aftermath), captured back to
+back ([previewing.md](previewing.md), "The review image"). Lint before judging the look:
+`tools/vfx_origin_check.luau` (where each layer sits, what it hangs on),
+`tools/vfx_hooks_check.py` and `tools/vfx_texture_audit.py`. Retune by editing the spec and rebuilding;
 `vfxDiff.snapshot`/`compare` shows what changed (exclude `EmitBreak`, runtime state the Game
 Module writes). When writing a builder for something that already exists, snapshot the real
 templates first and iterate to a zero diff.

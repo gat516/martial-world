@@ -55,11 +55,23 @@ beat and plays a shared beat (the shriek) on one beast only.
 
 ## Checks
 
+- **Lint placement first.** `python3 tools/vfx_hooks_check.py <Module>` (offline:
+  every hook and template name the module uses exists in the rig doc and the
+  export), then `_G.vfxOriginCheck("<Group>")` from `tools/vfx_origin_check.luau`
+  in the sandbox (each template's hook on the real body, loose parts, offsets
+  past the template's size). Fix every FAIL before the smoke run; a HOOK FAIL is
+  an effect that falls back to a part or the root instead of the hook.
 - **Fire every cue against the real bodies** with `tools/enemy_fx_smoke.luau`
   (errors, spawn counts, missing hooks) before committing.
   - Use `stateful = true` for bosses. Their handlers guard on the model's
     `Attack`/`AIState`/`StateAt`, and without it every cue returns early and
     still reads "ok".
 - **Preview the real cue path** with `tools/enemy_fx_shot.luau`, one call per
-  review moment.
+  review moment, then stitch the captures into one review image with
+  `tools/vfx_sheet.py` ([previewing](toolkit/previewing.md), "The review
+  image").
+- **Texture reuse:** `python3 tools/vfx_texture_audit.py tools/vfx_specs/<Group>.luau`
+  fails when a hero layer uses one of the ten most used assets. Mark roles in a
+  LAYER SHEET in the spec header (as ThunderApe and ElderWolfKing do) so it
+  can judge them.
 - The user reviews the look.

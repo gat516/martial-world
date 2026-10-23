@@ -77,8 +77,11 @@ effect used, and nothing records which assets were picked.
   471124075, stock sparks and impact rings) are about half of all texture uses. About 690
   Neon parts are still doing the drawing. Hero and secondary layers should get a texture,
   flipbook or mesh with the action's own shape; keep the generic glows and sparks for cores
-  and sparkles. To redo the audit, `rojo build` each `.rbxm` to an `.rbxmx` in your
-  scratchpad and count the `rbxassetid://` ids against `vfx_library.json`.
+  and sparkles. `python3 tools/vfx_texture_audit.py` redoes the count for
+  `assets/Effects.rbxm` (the ten most used ids, and every hero or secondary layer
+  a spec's LAYER SHEET or "(hero)" note marks that uses one; exit 1 on a hero). For
+  the other `.rbxm` files, `rojo build` each to an `.rbxmx` in your scratchpad and
+  count the `rbxassetid://` ids against `vfx_library.json`.
 
 ## Own textures (only when the user asks)
 

@@ -89,8 +89,9 @@ waterfalls, wells, a shrine) for an example of how the plugin lays an effect out
 3. **Search:** one `_G.vfxLibrary.dump` per effect, contact sheets per layer.
 4. **Spec and build:** `tools/vfx_specs/<Id>.luau` from `tools/vfx_blocks.luau`;
    `vfxStage.begin(who)` -> `vfxBlocks.buildFromSpec` -> `vfxStage.finish()`.
-5. **Preview:** `vfxPreview.sweep` / `castThrough` (techniques), `enemy_fx_shot` (enemies);
-   retune the spec and rebuild.
+5. **Lint and preview:** `vfx_origin_check` / `vfx_hooks_check.py` /
+   `vfx_texture_audit.py`, then one review image: `vfxPreview.filmstrip` (techniques), or
+   `enemy_fx_shot` captures stitched by `vfx_sheet.py` (enemies); retune the spec and rebuild.
 6. **Export and wire:** merge into `assets/Effects.rbxm`; runtime in
    `src/client/TechniqueFX/<Id>.luau` with `CastFX`, or the module that owns the moment
    ([toolkit/in-game.md](toolkit/in-game.md)); `tools/check.sh`; docs; one commit.
@@ -118,7 +119,7 @@ Full detail: [toolkit/pipeline.md](toolkit/pipeline.md).
 | [toolkit/library.md](toolkit/library.md) | picking assets: live search, contact sheets, judging backgrounds and cell fill, flipbooks, the asset-use audit, own textures, sounds. Every new effect. |
 | [toolkit/pipeline.md](toolkit/pipeline.md) | building a technique or enemy effect: bootstrap and a fresh sandbox rig, plan questions, spec blocks, `vfxStage` (BuildStamp, acceptEdits), `CastFX`, review sweeps, partial patches. |
 | [toolkit/building.md](toolkit/building.md) | authoring or restructuring a template: template layout and root attributes, body and weapon anchoring (`WeaponFX`, sampling an animation), particle, beam, surface and texture gotchas. |
-| [toolkit/previewing.md](toolkit/previewing.md) | previewing or capturing: `vfx_preview` calls, `enemy_fx_shot`/`enemy_fx_smoke`, camera presets, what can't be captured, window and shared-Studio traps. |
+| [toolkit/previewing.md](toolkit/previewing.md) | previewing or capturing: the review image (filmstrip, `vfx_sheet.py`) and the placement lints, `vfx_preview` calls, `enemy_fx_shot`/`enemy_fx_smoke`, camera presets, what can't be captured, window and shared-Studio traps. |
 | [toolkit/export.md](toolkit/export.md) | exporting or committing `assets/Effects.rbxm`, or when another vfx agent may be running: export steps, the merge, file ownership, the Studio lock. |
 | [toolkit/animation-sync.md](toolkit/animation-sync.md) | planning timing for any move: finding the animation, `animMarkers`, Config vs markers, phase fitting, projectile landing windows, when to stop and report. |
 | [toolkit/in-game.md](toolkit/in-game.md) | wiring an effect into client code: owning module, TechniqueVFX tiers, variants, the `Effect` remote, existing hit feedback. |

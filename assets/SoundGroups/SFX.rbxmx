@@ -1871,6 +1871,113 @@
    <float name="RollOffMaxDistance">150</float>
   </Properties>
   </Item>
+  <Item class="Folder" referent="HSDFX1"><Properties>
+   <string name="Name">Techniques</string>
+  </Properties>
+   <Item class="Folder" referent="HSDFX2"><Properties>
+    <string name="Name">HeavenSplitter</string>
+   </Properties>
+    <!-- Energy Charge: the blade drawn as the sweep starts -->
+    <Item class="Sound" referent="HSDFX3"><Properties>
+     <string name="Name">Draw</string>
+     <Content name="SoundId"><url>rbxassetid://109903968999295</url></Content>
+     <float name="Volume">0.45</float>
+     <float name="PlaybackSpeed">1.15</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- SwordSwing (7): the low sweep moving -->
+    <Item class="Sound" referent="HSDFX4"><Properties>
+     <string name="Name">Sweep</string>
+     <Content name="SoundId"><url>rbxassetid://3755635374</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.7</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- Slash1 (2): the rising cut -->
+    <Item class="Sound" referent="HSDFX5"><Properties>
+     <string name="Name">Rise</string>
+     <Content name="SoundId"><url>rbxassetid://135315310485417</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- SwordHit: a light hit, per enemy -->
+    <Item class="Sound" referent="HSDFX6"><Properties>
+     <string name="Name">Hit</string>
+     <Content name="SoundId"><url>rbxassetid://935843979</url></Content>
+     <float name="Volume">0.55</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- WindWoosh: the leap -->
+    <Item class="Sound" referent="HSDFX7"><Properties>
+     <string name="Name">Leap</string>
+     <Content name="SoundId"><url>rbxassetid://3809084884</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.75</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- Holy Charge: rising through the hang, cut at the bite -->
+    <Item class="Sound" referent="HSDFX8"><Properties>
+     <string name="Name">Gather</string>
+     <Content name="SoundId"><url>rbxassetid://140049602451857</url></Content>
+     <float name="Volume">0.5</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+    <!-- Energy Sword Impact: the blade bites -->
+    <Item class="Sound" referent="HSDFX9"><Properties>
+     <string name="Name">Bite</string>
+     <Content name="SoundId"><url>rbxassetid://7601865567</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <!-- Heavy Ground Slam: the ground breaks -->
+    <Item class="Sound" referent="HSDFX10"><Properties>
+     <string name="Name">Break</string>
+     <Content name="SoundId"><url>rbxassetid://100457174196725</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <!-- Earthquake Debris: the low tail -->
+    <Item class="Sound" referent="HSDFX11"><Properties>
+     <string name="Name">Rumble</string>
+     <Content name="SoundId"><url>rbxassetid://9114221327</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">0.75</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <!-- Thunder: the split sky (III+) -->
+    <Item class="Sound" referent="HSDFX12"><Properties>
+     <string name="Name">Thunder</string>
+     <Content name="SoundId"><url>rbxassetid://12222019</url></Content>
+     <float name="Volume">0.45</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">300</float>
+    </Properties>
+    </Item>
+    <!-- Earthquake debris: the rend crackling out -->
+    <Item class="Sound" referent="HSDFX13"><Properties>
+     <string name="Name">Rend</string>
+     <Content name="SoundId"><url>rbxassetid://78919029033811</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1</float>
+     <float name="RollOffMaxDistance">200</float>
+    </Properties>
+    </Item>
+   </Item>
+  </Item>
   <!-- Guard sound choices from the user (2026-10-21). The current client plays
        Parry for every perfect parry and Block for every successful guard.
        Route the reserved parry variants when enemy attacks are defined:

@@ -17,6 +17,14 @@ local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
 local BladeSkill = require(script.Parent.BladeSkill)
 local WeaponFX = require(script.Parent.WeaponFX)
+local Sfx = require(Client.Sfx)
+
+-- every beat's sound (SoundService.SFX.Techniques.HeavenSplitter, from the
+-- vfx library): the draw as the sweep starts, a whoosh on each swing, a light
+-- hit per enemy, the leap's rush of air, a rising charge through the hang that
+-- the bite cuts off, then the slam layered (blade bite + ground break + low
+-- rumble, III+ a thunder crack from the split sky) and the rend crackling out
+local SFX = "Techniques/HeavenSplitter/"
 
 local HITS = { 0.1833, 1.0167, 2.1167 } -- until def.hits exists
 local LEAP = 1.10
@@ -129,6 +137,19 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		end)
 	end
 
+	-- the sounds of the swings: the draw as the blade starts back, then a
+	-- heavy whoosh as each of the first two cuts actually moves
+	local function soundAt(name: string, at: Vector3?, gap: number?)
+		Sfx.play(SFX .. name, at or (BladeSkill.facing(character, origin, dir)), gap)
+	end
+	soundAt("Draw")
+	seq:at(SWINGS[1][1], function()
+		soundAt("Sweep")
+	end)
+	seq:at(SWINGS[2][1], function()
+		soundAt("Rise")
+	end)
+
 	-- light hits: every enemy in the circle (as it stands now)
 	for i = 1, #hits - 1 do
 		seq:at(hits[i], function()
@@ -138,6 +159,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 				if lightImpact then
 					for _, target in BladeSkill.circleTargets(centre, radius, character, 4) do
 						CastFX.impactAt(lightImpact, target)
+						soundAt("Hit", target.model:GetPivot().Position, 0.04)
 						if target.model.Parent then
 							CombatEffects.flash(target.model)
 						end
@@ -149,8 +171,9 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 
 	-- take-off
 	seq:at(LEAP, function()
+		local _, feet, look = centreNow()
+		soundAt("Leap", feet)
 		if launch then
-			local _, feet, look = centreNow()
 			TechniqueVFX.burstAt(launch, CFrame.lookAt(feet, feet + look))
 		end
 	end, { name = "Leap" })
@@ -158,6 +181,16 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	-- airborne: the seal over the landing circle and the rift above it
 	local airFrom = LEAP + 0.15
 	local airSeconds = math.max((slamAt - airFrom) / speed, 0.1)
+	-- the hang's job is the build to the one peak: a rising charge, cut at the bite
+	local stopGather: (() -> ())? = nil
+	seq:at(airFrom, function()
+		stopGather = Sfx.play(SFX .. "Gather", (BladeSkill.facing(character, origin, dir)))
+	end)
+	local unGather = WeaponFX.onCancel(character, function()
+		if stopGather then
+			stopGather()
+		end
+	end)
 	local markCopy: BasePart?, riftCopy: BasePart?
 	local function predicted(t: number): (Vector3, Vector3)
 		local centre, _, look = centreNow()
@@ -316,9 +349,25 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		end
 		local strike = copy:FindFirstChild("Strike") :: BasePart?
 		if strike then
-			strike.CFrame = CFrame.lookAt(bite + Vector3.new(0, 0.4, 0), bite + Vector3.new(0, 0.4, 0) + look)
+			-- looking along the cut, so the swing plane is the part's YZ
+			local cut = Vector3.new(swing.X, 0, swing.Z)
+			cut = if cut.Magnitude > 0.1 then cut.Unit else look
+			strike.CFrame = CFrame.lookAt(bite + Vector3.new(0, 0.2, 0), bite + Vector3.new(0, 0.2, 0) + cut)
 			TechniqueVFX.emit(strike)
 		end
+		-- the peak's sound, loudest of the move: the bite, the ground breaking
+		-- and a low tail, from the bite point
+		if stopGather then
+			stopGather()
+		end
+		unGather()
+		soundAt("Bite", bite)
+		soundAt("Break", bite)
+		soundAt("Rumble", bite)
+		if tier >= 3 then
+			soundAt("Thunder", bite)
+		end
+		task.delay(0.06, soundAt, "Rend", bite + look * radius * 0.4)
 		if slam then
 			TechniqueVFX.emit(slam)
 			local light = slam:FindFirstChild("Light") :: PointLight?
@@ -327,11 +376,6 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 					light.Brightness = 4 * (1 - s / 0.6) ^ 2
 				end)
 			end
-		end
-		local dome = copy:FindFirstChild("Dome")
-		if dome and TechniqueVFX.full then
-			dome:PivotTo(CFrame.lookAt(centre, centre + look))
-			TechniqueVFX.emit(dome)
 		end
 		-- the rend: the blade splits the ground from the bite on through the circle
 		local far = CastFX.groundAt(bite + look * math.max(radius * 0.85, 4) + Vector3.new(0, 2, 0))

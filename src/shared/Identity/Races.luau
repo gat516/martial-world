@@ -97,7 +97,18 @@ local Races: { [string]: Race } = {
 		Weight = 10,
 		Icon = "",
 		Modifiers = { health = 0.05, walk = -1 },
-		Cosmetics = { "StoneShards" },
+		-- three Blender-built stone sets, each worn whole (their pieces would clip if mixed)
+		Looks = {
+			{
+				Id = "Style",
+				DisplayName = "Style",
+				Options = {
+					{ Id = "Peak", DisplayName = "Peak", Cosmetics = { "StonePeakPlateL", "StonePeakPlateR", "StonePeakShards" } },
+					{ Id = "Orbit", DisplayName = "Orbit", Cosmetics = { "StoneOrbitShards", "StoneOrbitBracerL", "StoneOrbitBracerR" } },
+					{ Id = "Fist", DisplayName = "Fist", Cosmetics = { "StoneFistGauntletL", "StoneFistGauntletR", "StoneFistShards" } },
+				},
+			},
+		},
 	},
 	Dragonblood = {
 		DisplayName = "Dragonblood",
@@ -127,7 +138,28 @@ local Races: { [string]: Race } = {
 		Weight = 6,
 		Icon = "",
 		InnateTraits = { "DemonicQi" },
-		Cosmetics = { "DemonHorns" },
+		-- horns and tail are free picks, any horns with any tail (user, 2026-10-23); the
+		-- skinned Blender sets in Cosmetics/DemonicHuman replace the part-built DemonHorns
+		Looks = {
+			{
+				Id = "Horns",
+				DisplayName = "Horns",
+				Options = {
+					{ Id = "Ram", DisplayName = "Ram", Cosmetics = { "DemonHornsRam" } },
+					{ Id = "Swept", DisplayName = "Swept", Cosmetics = { "DemonHornsSwept" } },
+					{ Id = "Crescent", DisplayName = "Crescent", Cosmetics = { "DemonHornsCrescent" } },
+				},
+			},
+			{
+				Id = "Tail",
+				DisplayName = "Tail",
+				Options = {
+					{ Id = "Whip", DisplayName = "Whip", Cosmetics = { "DemonTailWhip" } },
+					{ Id = "Hook", DisplayName = "Hook", Cosmetics = { "DemonTailHook" } },
+					{ Id = "Trail", DisplayName = "Trail", Cosmetics = { "DemonTailTrail" } },
+				},
+			},
+		},
 	},
 	Ghost = {
 		DisplayName = "Ghost",

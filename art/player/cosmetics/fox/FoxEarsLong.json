@@ -34,62 +34,62 @@
  "meshes": {
   "FoxEarsLong_LeftEar": {
    "region": "FurOuter",
-   "tris": 334,
+   "tris": 318,
    "center": [
-    0.373,
-    0.327,
-    0.387
+    0.397,
+    0.237,
+    0.161
    ],
    "size": [
-    0.5,
-    0.597,
-    1.111
+    0.762,
+    0.465,
+    0.785
    ]
   },
   "FoxEarsLong_LeftEarInner": {
    "region": "FurInner",
-   "tris": 240,
+   "tris": 566,
    "center": [
-    0.398,
-    0.265,
-    0.293
+    0.346,
+    0.089,
+    0.16
    ],
    "size": [
-    0.377,
-    0.447,
-    0.893
+    0.524,
+    0.347,
+    0.583
    ]
   },
   "FoxEarsLong_RightEar": {
    "region": "FurOuter",
-   "tris": 334,
+   "tris": 318,
    "center": [
-    -0.373,
-    0.327,
-    0.387
+    -0.397,
+    0.237,
+    0.161
    ],
    "size": [
-    0.5,
-    0.597,
-    1.111
+    0.762,
+    0.465,
+    0.785
    ]
   },
   "FoxEarsLong_RightEarInner": {
    "region": "FurInner",
-   "tris": 240,
+   "tris": 566,
    "center": [
-    -0.398,
-    0.265,
-    0.293
+    -0.346,
+    0.089,
+    0.16
    ],
    "size": [
-    0.377,
-    0.447,
-    0.893
+    0.524,
+    0.348,
+    0.583
    ]
   }
  },
- "tris_total": 1148,
+ "tris_total": 1768,
  "bones": {
   "Root": {
    "parent": null,
@@ -113,18 +113,18 @@
   "EarLBase": {
    "parent": "Root",
    "head": [
-    0.36,
+    0.31,
     0.06,
-    -0.112
+    -0.102
    ],
    "tail": [
-    0.373,
-    0.09,
-    -0.017
+    0.333,
+    0.074,
+    -0.006
    ],
    "roblox_head": [
-    0.36,
-    -0.112,
+    0.31,
+    -0.102,
     -0.06
    ],
    "deform": true
@@ -132,37 +132,37 @@
   "EarL": {
    "parent": "EarLBase",
    "head": [
-    0.373,
-    0.09,
-    -0.017
+    0.333,
+    0.074,
+    -0.006
    ],
    "tail": [
-    0.449,
-    0.388,
-    0.646
+    0.438,
+    0.137,
+    0.438
    ],
    "roblox_head": [
-    0.373,
-    -0.017,
-    -0.09
+    0.333,
+    -0.006,
+    -0.074
    ],
    "deform": true
   },
   "EarRBase": {
    "parent": "Root",
    "head": [
-    -0.36,
+    -0.31,
     0.06,
-    -0.112
+    -0.102
    ],
    "tail": [
-    -0.373,
-    0.09,
-    -0.017
+    -0.333,
+    0.074,
+    -0.006
    ],
    "roblox_head": [
-    -0.36,
-    -0.112,
+    -0.31,
+    -0.102,
     -0.06
    ],
    "deform": true
@@ -170,21 +170,55 @@
   "EarR": {
    "parent": "EarRBase",
    "head": [
-    -0.373,
-    0.09,
-    -0.017
+    -0.333,
+    0.074,
+    -0.006
    ],
    "tail": [
-    -0.449,
-    0.388,
-    0.646
+    -0.438,
+    0.137,
+    0.438
    ],
    "roblox_head": [
-    -0.373,
-    -0.017,
-    -0.09
+    -0.333,
+    -0.006,
+    -0.074
    ],
    "deform": true
+  }
+ },
+ "mood": "cute, sleepy",
+ "proportions": {
+  "visible_height": 0.555,
+  "base_width": 0.489,
+  "head_size": [
+   1.198,
+   1.198,
+   1.017
+  ],
+  "height_to_head": 0.55,
+  "base_width_to_head": 0.41
+ },
+ "seat": {
+  "FoxEarsLong_LeftEar": {
+   "base_shallowest": -0.096,
+   "base_deepest": -0.106,
+   "verts_outside_head_below_top": 0
+  },
+  "FoxEarsLong_LeftEarInner": {
+   "base_shallowest": -0.095,
+   "base_deepest": -0.101,
+   "verts_outside_head_below_top": 0
+  },
+  "FoxEarsLong_RightEar": {
+   "base_shallowest": -0.096,
+   "base_deepest": -0.106,
+   "verts_outside_head_below_top": 0
+  },
+  "FoxEarsLong_RightEarInner": {
+   "base_shallowest": -0.095,
+   "base_deepest": -0.101,
+   "verts_outside_head_below_top": 0
   }
  }
 }

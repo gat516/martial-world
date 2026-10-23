@@ -1,0 +1,394 @@
+{
+ "name": "StoneOrbitShards",
+ "attachment": "NeckAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  2.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Rock": [
+   0.075,
+   0.08,
+   0.088
+  ],
+  "Jade": [
+   0.04,
+   0.88,
+   0.42
+  ]
+ },
+ "materials": {
+  "Stone_Rock": "SmoothPlastic",
+  "Stone_Jade": "Neon"
+ },
+ "shade": {
+  "file": "stone_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.6,
+  "fade_to_white_at_v": 0.5
+ },
+ "meshes": {
+  "StoneOrbitShards_Shard1": {
+   "region": "Rock",
+   "tris": 18,
+   "center": [
+    1.158,
+    -1.894,
+    1.249
+   ],
+   "size": [
+    0.549,
+    0.532,
+    0.734
+   ],
+   "bone": "Shard1"
+  },
+  "StoneOrbitShards_Shard1Jade": {
+   "region": "Jade",
+   "tris": 136,
+   "center": [
+    1.266,
+    -1.952,
+    1.151
+   ],
+   "size": [
+    0.343,
+    0.218,
+    0.556
+   ],
+   "bone": "Shard1"
+  },
+  "StoneOrbitShards_Shard2": {
+   "region": "Rock",
+   "tris": 18,
+   "center": [
+    2.232,
+    -0.005,
+    0.745
+   ],
+   "size": [
+    0.531,
+    0.424,
+    0.527
+   ],
+   "bone": "Shard2"
+  },
+  "StoneOrbitShards_Shard2Jade": {
+   "region": "Jade",
+   "tris": 136,
+   "center": [
+    2.243,
+    0.123,
+    0.731
+   ],
+   "size": [
+    0.353,
+    0.252,
+    0.358
+   ],
+   "bone": "Shard2"
+  },
+  "StoneOrbitShards_Shard3": {
+   "region": "Rock",
+   "tris": 18,
+   "center": [
+    1.145,
+    1.94,
+    0.57
+   ],
+   "size": [
+    0.572,
+    0.647,
+    0.857
+   ],
+   "bone": "Shard3"
+  },
+  "StoneOrbitShards_Shard3Jade": {
+   "region": "Jade",
+   "tris": 136,
+   "center": [
+    1.046,
+    2.094,
+    0.507
+   ],
+   "size": [
+    0.286,
+    0.318,
+    0.683
+   ],
+   "bone": "Shard3"
+  },
+  "StoneOrbitShards_Shard4": {
+   "region": "Rock",
+   "tris": 18,
+   "center": [
+    -1.128,
+    1.91,
+    0.397
+   ],
+   "size": [
+    0.525,
+    0.479,
+    0.625
+   ],
+   "bone": "Shard4"
+  },
+  "StoneOrbitShards_Shard4Jade": {
+   "region": "Jade",
+   "tris": 136,
+   "center": [
+    -1.244,
+    1.935,
+    0.344
+   ],
+   "size": [
+    0.267,
+    0.27,
+    0.508
+   ],
+   "bone": "Shard4"
+  },
+  "StoneOrbitShards_Shard5": {
+   "region": "Rock",
+   "tris": 18,
+   "center": [
+    -2.273,
+    -0.017,
+    0.881
+   ],
+   "size": [
+    0.569,
+    0.559,
+    0.76
+   ],
+   "bone": "Shard5"
+  },
+  "StoneOrbitShards_Shard5Jade": {
+   "region": "Jade",
+   "tris": 136,
+   "center": [
+    -2.306,
+    -0.174,
+    0.886
+   ],
+   "size": [
+    0.386,
+    0.289,
+    0.57
+   ],
+   "bone": "Shard5"
+  },
+  "StoneOrbitShards_Shard6": {
+   "region": "Rock",
+   "tris": 18,
+   "center": [
+    -1.127,
+    -1.924,
+    1.049
+   ],
+   "size": [
+    0.444,
+    0.463,
+    0.651
+   ],
+   "bone": "Shard6"
+  },
+  "StoneOrbitShards_Shard6Jade": {
+   "region": "Jade",
+   "tris": 136,
+   "center": [
+    -1.087,
+    -2.07,
+    0.965
+   ],
+   "size": [
+    0.209,
+    0.235,
+    0.493
+   ],
+   "bone": "Shard6"
+  }
+ },
+ "tris_total": 924,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "Orbit": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    0.0,
+    0.8
+   ],
+   "tail": [
+    0.0,
+    0.052,
+    1.095
+   ],
+   "roblox_head": [
+    -0.0,
+    0.8,
+    0.0
+   ],
+   "deform": false
+  },
+  "Shard1": {
+   "parent": "Orbit",
+   "head": [
+    1.125,
+    -1.902,
+    1.237
+   ],
+   "tail": [
+    1.125,
+    -1.87,
+    1.414
+   ],
+   "roblox_head": [
+    -1.125,
+    1.237,
+    -1.902
+   ],
+   "deform": true
+  },
+  "Shard2": {
+   "parent": "Orbit",
+   "head": [
+    2.25,
+    -0.014,
+    0.721
+   ],
+   "tail": [
+    2.25,
+    0.017,
+    0.898
+   ],
+   "roblox_head": [
+    -2.25,
+    0.721,
+    -0.014
+   ],
+   "deform": true
+  },
+  "Shard3": {
+   "parent": "Orbit",
+   "head": [
+    1.125,
+    1.943,
+    0.6
+   ],
+   "tail": [
+    1.125,
+    1.975,
+    0.777
+   ],
+   "roblox_head": [
+    -1.125,
+    0.6,
+    1.943
+   ],
+   "deform": true
+  },
+  "Shard4": {
+   "parent": "Orbit",
+   "head": [
+    -1.125,
+    1.912,
+    0.422
+   ],
+   "tail": [
+    -1.125,
+    1.943,
+    0.6
+   ],
+   "roblox_head": [
+    1.125,
+    0.422,
+    1.912
+   ],
+   "deform": true
+  },
+  "Shard5": {
+   "parent": "Orbit",
+   "head": [
+    -2.25,
+    0.021,
+    0.918
+   ],
+   "tail": [
+    -2.25,
+    0.052,
+    1.095
+   ],
+   "roblox_head": [
+    2.25,
+    0.918,
+    0.021
+   ],
+   "deform": true
+  },
+  "Shard6": {
+   "parent": "Orbit",
+   "head": [
+    -1.125,
+    -1.936,
+    1.04
+   ],
+   "tail": [
+    -1.125,
+    -1.905,
+    1.217
+   ],
+   "roblox_head": [
+    1.125,
+    1.04,
+    -1.936
+   ],
+   "deform": true
+  }
+ },
+ "direction": "Orbit",
+ "proportions": {
+  "shards": 6,
+  "shard_size": [
+   0.53,
+   0.86
+  ],
+  "shard_to_head_height": [
+   0.52,
+   0.84
+  ],
+  "span": 5.06,
+  "span_to_shoulders": 1.26,
+  "lowest_z": 2.08,
+  "head_size": [
+   1.2,
+   1.02
+  ]
+ },
+ "orbit": {
+  "mode": "spin",
+  "tilt_deg": 10,
+  "how": "rotate the Orbit bone about its own Y (the ring's axis): a full spin, or a sway of about +-20 deg for the Peak arc; bob each ShardN along its own Y"
+ }
+}

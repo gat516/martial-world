@@ -22,7 +22,7 @@ screen it extends ([character creator](character-creator.md)).
 - **Variants carry traits, looks are free** (user, 2026-10-23). A variant with
   traits or stats (Beast Folk Wolf, Tiger...) is rolled with the race and
   rerolled for Robux. A purely cosmetic choice inside a race (Spirit Fox's tail
-  and ears) is a `Looks` slot on the race: the player picks it with arrows on the
+  and ears, Stone Spirit's style) is a `Looks` slot on the race: the player picks it with arrows on the
   creator's Fate step, free, and can change it whenever they edit the look.
 - **Availability is one file.** Release, hide or switch off any race, variant
   or trait, and say how it's obtained, without touching its definition. Serpent
@@ -47,7 +47,7 @@ screen it extends ([character creator](character-creator.md)).
 |---|---|
 | Race definitions (names, rarity, roll weight, innate traits, modifiers, mechanics, which variants module) | `src/shared/Identity/Races.luau` |
 | Beast Folk variants (same fields) | `src/shared/Identity/Variants/BeastFolk.luau` |
-| Free looks a race offers (Spirit Fox's tail and ears: `Looks`) | `src/shared/Identity/Races.luau` |
+| Free looks a race offers (Spirit Fox's tail and ears, Stone Spirit's style: `Looks`) | `src/shared/Identity/Races.luau` |
 | Trait definitions: racial / variant traits | `src/shared/Identity/Traits/Racial.luau` |
 | Trait definitions: general traits | `src/shared/Identity/Traits/General.luau` |
 | A new trait category | a new file in `Traits/`; its name is the category |
@@ -188,7 +188,9 @@ joint names are in `art/player/cosmetics/README.md`; how new ones are made is
 | Beast Folk Tiger | TigerEarsRound, TigerTailCurl, TigerWhiskersMarks | Tiger (skinned Blender meshes) |
 | Beast Folk Crane | CraneHeadCascade, CraneFanCascade | Crane (skinned Blender meshes) |
 | Dragonblood | DragonHornsAntler, DragonTailTuft | Dragonblood (skinned Blender meshes) |
-| Stone Spirit / Demonic Human / Ghost | StoneShards / DemonHorns / GhostWisps | Spirits (part-built placeholders) |
+| Demonic Human (Looks: Horns Ram / Swept / Crescent, Tail Whip / Hook / Trail, picked freely) | DemonHornsRam / DemonHornsSwept / DemonHornsCrescent, DemonTailWhip / DemonTailHook / DemonTailTrail | DemonicHuman (skinned Blender meshes) |
+| Stone Spirit (Look: Style Peak / Orbit / Fist, picked freely) | StonePeakPlateL/R + StonePeakShards / StoneOrbitShards + StoneOrbitBracerL/R / StoneFistGauntletL/R + StoneFistShards | StoneSpirit (skinned Blender meshes) |
+| Ghost | GhostWisps | Spirits (part-built placeholders) |
 
 Spirit Fox's three tails and three ear shapes are its `Looks` (Tail, Ears), each
 picked freely and separately on the creator's Fate step (user, 2026-10-23: purely
@@ -213,6 +215,14 @@ The Dragonblood set holds three looks, each horns and a tail: Antler (worn; the
 user's favourite part-built DragonHorns, remodelled), Celestial and Cub. Celestial and
 Cub wait for a style picker (`art/player/cosmetics/dragonblood/README.md`).
 
+Stone Spirit's one `Looks` slot, Style, picks a whole set of three accessories (user,
+2026-10-23: all three directions kept): Peak (the default: stone pauldrons on the shoulder
+attachments + a shard arc behind the head), Orbit (a shard ring round the shoulders +
+forearm bracers) and Fist (stone gauntlets on the grip attachments + three high shards).
+The sets aren't mixed, since one set's shards would cut through another's plates. The
+part-built `StoneShards` in Spirits is now an unused leftover
+(`art/player/cosmetics/stone-spirit/README.md`).
+
 Human (the plain race) and Giant (its look is its size) wear nothing (user,
 2026-10-23: "no need to go super crazy"). `Traits.applyBody` adds the ones the profile
 calls for and removes the rest (each worn one carries a `Cosmetic` attribute with
@@ -223,6 +233,12 @@ The Blender-built race sets are in `art/player/cosmetics/<race>/`
 ([player accessories](../character/player-accessories.md)). Beast Folk Wolf has
 three ear sets and three tails there (`WolfEars*`, `WolfTail*`), exported but not
 imported or named in the variant's `Cosmetics` yet.
+
+Demonic Human's horns and tail are its `Looks` (Horns: Ram, Swept, Crescent; Tail:
+Whip, Hook, Trail; the first of each is the default), picked freely, any horns with any
+tail (user, 2026-10-23). They replace the part-built `DemonHorns` (still in
+`Spirits.rbxm`, unused) (`art/player/cosmetics/demonic-human/README.md`). Its flame
+wisp is VFX, not built yet: it attaches at each tail's `VfxWisp` bone under `Tail5`.
 
 The creator's preview dummy wears the drawn race's look too (`Look.race`):
 `Registry.fresh(race, variant, raceLook)` stands in for a new character (only innate

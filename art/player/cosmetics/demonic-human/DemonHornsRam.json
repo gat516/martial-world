@@ -1,0 +1,222 @@
+{
+ "name": "DemonHornsRam",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Horn": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "HornVein": [
+   0.5,
+   0.02,
+   0.03
+  ],
+  "Tail": [
+   0.034,
+   0.028,
+   0.034
+  ],
+  "Spade": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "TailVein": [
+   0.5,
+   0.02,
+   0.03
+  ]
+ },
+ "shade": {
+  "file": "demonic_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "DemonHornsRam_LeftHorn": {
+   "region": "Horn",
+   "tris": 898,
+   "center": [
+    0.574,
+    0.158,
+    -0.04
+   ],
+   "size": [
+    0.908,
+    0.855,
+    0.912
+   ]
+  },
+  "DemonHornsRam_LeftHornVein": {
+   "region": "HornVein",
+   "tris": 288,
+   "center": [
+    0.727,
+    0.183,
+    -0.139
+   ],
+   "size": [
+    0.354,
+    0.721,
+    0.607
+   ]
+  },
+  "DemonHornsRam_RightHorn": {
+   "region": "Horn",
+   "tris": 898,
+   "center": [
+    -0.574,
+    0.158,
+    -0.04
+   ],
+   "size": [
+    0.908,
+    0.855,
+    0.912
+   ]
+  },
+  "DemonHornsRam_RightHornVein": {
+   "region": "HornVein",
+   "tris": 288,
+   "center": [
+    -0.727,
+    0.183,
+    -0.139
+   ],
+   "size": [
+    0.354,
+    0.721,
+    0.607
+   ]
+  }
+ },
+ "tris_total": 2372,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "HornLBase": {
+   "parent": "Root",
+   "head": [
+    0.3,
+    0.05,
+    -0.26
+   ],
+   "tail": [
+    0.369,
+    0.074,
+    -0.007
+   ],
+   "roblox_head": [
+    -0.3,
+    -0.26,
+    0.05
+   ],
+   "deform": true
+  },
+  "HornL": {
+   "parent": "HornLBase",
+   "head": [
+    0.369,
+    0.074,
+    -0.007
+   ],
+   "tail": [
+    0.922,
+    0.451,
+    -0.073
+   ],
+   "roblox_head": [
+    -0.369,
+    -0.007,
+    0.074
+   ],
+   "deform": true
+  },
+  "HornRBase": {
+   "parent": "Root",
+   "head": [
+    -0.3,
+    0.05,
+    -0.26
+   ],
+   "tail": [
+    -0.369,
+    0.074,
+    -0.007
+   ],
+   "roblox_head": [
+    0.3,
+    -0.26,
+    0.05
+   ],
+   "deform": true
+  },
+  "HornR": {
+   "parent": "HornRBase",
+   "head": [
+    -0.369,
+    0.074,
+    -0.007
+   ],
+   "tail": [
+    -0.922,
+    0.451,
+    -0.073
+   ],
+   "roblox_head": [
+    0.369,
+    -0.007,
+    0.074
+   ],
+   "deform": true
+  }
+ },
+ "variant": "Ram",
+ "mood": "sinister, classic",
+ "proportions": {
+  "height_above_head": 0.415,
+  "height_to_head": 0.41,
+  "span": 2.056,
+  "span_to_head": 1.72,
+  "base_diameter": 0.34,
+  "base_to_head": 0.28,
+  "length": 2.292,
+  "length_to_head": 2.25,
+  "past_head_back": -0.014,
+  "head_size": [
+   1.198,
+   1.198,
+   1.017
+  ]
+ },
+ "seating": {
+  "exit_s": 0.115,
+  "root_depth_min": 0.118
+ }
+}

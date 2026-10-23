@@ -133,17 +133,56 @@ Each FBX is in its attachment's space:
     the seam sleeve and the shade ramp.
 - **`make_sheet.py`** stitches the tiles: `uv run --with pillow python3 -I art/player/cosmetics/dragonblood/make_sheet.py`.
 
-## Not done yet
+## In Studio
 
-- **Studio.** Nothing is uploaded or placed. The import step follows the fox:
-  - Upload each FBX with `tools/upload_asset.py model`, and the shade ramp with `upload_image`.
-  - Insert each upload as `_Import<Set>`.
-  - Write a `place_dragonblood_cosmetics.luau` (from the fox's) that builds the Accessories,
-    with a `Region` attribute on each MeshPart.
-  - Export the result to `assets/Cosmetics/`.
-  - Name the variants in the race's `Cosmetics`.
-- **Replacing the placeholder.** The Studio-part `DragonHorns` placeholder stays in
-  `assets/Cosmetics/Spirits.rbxm` until this replaces it.
-- **Untested in game:** how the wide V of Antler sits with tall hats and hair, its phone-distance
-  read, running clearance and `ScaleTo(1.15)`.
-- **Animation.** Nothing animates the bones yet.
+`DragonHornsAntler` and `DragonTailTuft` (Antler) are what the Dragonblood race wears
+(`src/shared/Identity/Races.luau`). Celestial and Cub are in the set for a later style picker.
+The part-built `DragonHorns` in `assets/Cosmetics/Spirits.rbxm` is now an unused leftover.
+
+| Set | Model asset (upload_asset.py model) |
+| --- | --- |
+| `DragonHornsAntler` | `rbxassetid://118059820164717` |
+| `DragonTailTuft` | `rbxassetid://103414032997884` |
+| `DragonHornsCelestial` | `rbxassetid://81657172073477` |
+| `DragonTailRising` | `rbxassetid://95287185628849` |
+| `DragonHornsCub` | `rbxassetid://89450489379839` |
+| `DragonTailStub` | `rbxassetid://109732643027806` |
+
+Shade ramp: `rbxassetid://113054218156121` (`dragon_shade.png`, Studio MCP `upload_image`).
+
+**Rebuild** (in a sandbox, no FBX import step):
+1. Upload the changed FBX with `python3 tools/upload_asset.py model <Set>.fbx` and put
+   the new id in `place_dragonblood_cosmetics.luau` (`ASSETS`).
+2. Insert each model asset into Workspace as `_Import<Set>` (Studio MCP `insert_asset`).
+3. Run `place_dragonblood_cosmetics.luau` through `execute_luau` (paste it, or serve the
+   worktree with `tools/serve.sh <port>` and `loadstring(HttpService:GetAsync(url))()`).
+   - It turns each import into the Accessory `<Set>` in `ReplicatedStorage.Cosmetics.Dragonblood`
+     and deletes the imports. Sets without an import keep their current template.
+   - It creates the folders if they're missing. That's sandbox only: never build inside
+     the Rojo-mapped Cosmetics folder in a connected place.
+4. Export the folder: `_G.exportRbxm("ReplicatedStorage.Cosmetics.Dragonblood")`
+   (`tools/export_rbxm.luau`) posted to the receiver as `/DragonbloodCosmetics.rbxm`, then
+   move the file to `assets/Cosmetics/Dragonblood.rbxm`.
+
+**Accessory layout** (as the tiger's):
+- `Handle` is an invisible 0.2 cube at the attachment point (the importer's `RootPart`). It
+  holds the `HatAttachment` / `WaistBackAttachment` and the bones.
+- AccessoryType: Hat (horns), Waist (tails).
+- The skinned MeshParts are welded to the Handle. Each has a `Region` attribute and a
+  SurfaceAppearance (ColorMap the shade ramp). To tint a region, set both the MeshPart's
+  `Color` and its `SurfaceAppearance.Color`. Region colours are per set (Celestial's horns
+  are jade).
+
+**Checked in the sandbox (edit mode, R6 dummies, all three looks worn):**
+- Every Handle sits exactly on its body attachment, and every mesh centre and size matches
+  the JSON within 0.001.
+- Setting `Bone.Transform` (tails curled 22 degrees per joint) deforms the meshes.
+- After `Model:ScaleTo(1.15)`, Antler + Tuft's mesh sizes, offsets and bone positions all
+  measure 1.15x exactly.
+
+## Untested
+
+- **In game:** how the wide V of Antler sits with tall hats and hair, its phone-distance read,
+  and running clearance.
+- **Creator preview:** its rigid copies (no bones) of the Antler pieces.
+- **Animation:** nothing animates the bones yet.

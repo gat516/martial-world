@@ -57,6 +57,11 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
 
 The fox (`art/player/cosmetics/fox/`) is the worked example of every step.
 
+Race sets built so far (each folder's README has its looks, sizes and checks):
+- Beast Folk Wolf: `art/player/cosmetics/wolf/`. Three looks (Sentinel + Brush, Ruff +
+  Mane, Lance + Banner), all kept as variants (user, 2026-10-23). Built in Blender and
+  exported; not imported yet.
+
 **Space.** Each FBX is in its attachment's space. A Blender point `(x, y, z)` is
 Roblox `(-x, z, y)` from the attachment, with no extra rotation. The fox README's
 first note (a pi turn) put the tail in front of the body.
@@ -112,6 +117,11 @@ first note (a pi turn) put the tail in front of the body.
   both moods, "cool / tuff / aggressive and cute".
 - **Clear the body.** Ears clear a normal hair accessory and work bald; tails clear
   the legs and arms at rest and while running.
+  A tail that hangs low can't drop straight down from the waist. An R6 leg swung back
+  1 radian sweeps up to its back face's line (0.54 y + 0.84 z = 0.5 from the hip) and
+  reaches about 2.06 studs. So a hanging tail leaves the back a little above the waist,
+  carries back and arcs down outside that reach (the wolf tails; `run_clearance` in the
+  JSON measures it).
 - **Budget:** ears about 1,500 tris a pair, a tail about 4,000 (6,000 at most).
 - **Sheet:** front, side, back, rear three-quarter, bent pose, a seating close-up
   and a bent close-up, one row per direction.

@@ -166,6 +166,10 @@ calls for and removes the rest (each worn one carries a `Cosmetic` attribute wit
 its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the
 body. A missing template warns once and is skipped.
+The Blender-built race sets are in `art/player/cosmetics/<race>/`
+([player accessories](../character/player-accessories.md)). Beast Folk Wolf has
+three ear sets and three tails there (`WolfEars*`, `WolfTail*`), exported but not
+imported or named in the variant's `Cosmetics` yet.
 
 ## Body size
 The `size` modifier (Titan Frame: 15% larger, user 2026-10-23; 25% was too big) scales the character with

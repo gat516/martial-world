@@ -1,0 +1,224 @@
+{
+ "name": "WolfEarsSentinel",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X right/avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy) from the attachment, no rotation",
+ "colors": {
+  "FurOuter": [
+   0.2,
+   0.205,
+   0.22
+  ],
+  "FurInner": [
+   0.8,
+   0.74,
+   0.62
+  ],
+  "FurTip": [
+   0.88,
+   0.87,
+   0.84
+  ]
+ },
+ "shade": {
+  "file": "wolf_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "WolfEarsSentinel_LeftEar": {
+   "region": "FurOuter",
+   "tris": 318,
+   "center": [
+    0.286,
+    0.23,
+    0.177
+   ],
+   "size": [
+    0.53,
+    0.434,
+    0.971
+   ]
+  },
+  "WolfEarsSentinel_LeftEarInner": {
+   "region": "FurInner",
+   "tris": 566,
+   "center": [
+    0.308,
+    0.137,
+    0.179
+   ],
+   "size": [
+    0.47,
+    0.222,
+    0.628
+   ]
+  },
+  "WolfEarsSentinel_RightEar": {
+   "region": "FurOuter",
+   "tris": 318,
+   "center": [
+    -0.286,
+    0.23,
+    0.177
+   ],
+   "size": [
+    0.53,
+    0.434,
+    0.971
+   ]
+  },
+  "WolfEarsSentinel_RightEarInner": {
+   "region": "FurInner",
+   "tris": 566,
+   "center": [
+    -0.308,
+    0.137,
+    0.179
+   ],
+   "size": [
+    0.47,
+    0.222,
+    0.628
+   ]
+  }
+ },
+ "tris_total": 1768,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "EarLBase": {
+   "parent": "Root",
+   "head": [
+    0.31,
+    0.06,
+    -0.102
+   ],
+   "tail": [
+    0.324,
+    0.07,
+    -0.004
+   ],
+   "roblox_head": [
+    -0.31,
+    -0.102,
+    0.06
+   ],
+   "deform": true
+  },
+  "EarL": {
+   "parent": "EarLBase",
+   "head": [
+    0.324,
+    0.07,
+    -0.004
+   ],
+   "tail": [
+    0.384,
+    0.123,
+    0.435
+   ],
+   "roblox_head": [
+    -0.324,
+    -0.004,
+    0.07
+   ],
+   "deform": true
+  },
+  "EarRBase": {
+   "parent": "Root",
+   "head": [
+    -0.31,
+    0.06,
+    -0.102
+   ],
+   "tail": [
+    -0.324,
+    0.07,
+    -0.003
+   ],
+   "roblox_head": [
+    0.31,
+    -0.102,
+    0.06
+   ],
+   "deform": true
+  },
+  "EarR": {
+   "parent": "EarRBase",
+   "head": [
+    -0.324,
+    0.07,
+    -0.003
+   ],
+   "tail": [
+    -0.384,
+    0.123,
+    0.435
+   ],
+   "roblox_head": [
+    0.324,
+    -0.003,
+    0.07
+   ],
+   "deform": true
+  }
+ },
+ "mood": "cool, alert",
+ "proportions": {
+  "visible_height": 0.665,
+  "base_width": 0.465,
+  "head_size": [
+   1.198,
+   1.198,
+   1.017
+  ],
+  "height_to_head": 0.65,
+  "base_width_to_head": 0.39
+ },
+ "seat": {
+  "WolfEarsSentinel_LeftEar": {
+   "base_shallowest": -0.094,
+   "base_deepest": -0.11,
+   "verts_outside_head_below_top": 0
+  },
+  "WolfEarsSentinel_LeftEarInner": {
+   "base_shallowest": -0.097,
+   "base_deepest": -0.101,
+   "verts_outside_head_below_top": 0
+  },
+  "WolfEarsSentinel_RightEar": {
+   "base_shallowest": -0.094,
+   "base_deepest": -0.11,
+   "verts_outside_head_below_top": 0
+  },
+  "WolfEarsSentinel_RightEarInner": {
+   "base_shallowest": -0.097,
+   "base_deepest": -0.101,
+   "verts_outside_head_below_top": 0
+  }
+ }
+}

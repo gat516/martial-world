@@ -29,7 +29,10 @@ The brief says `Review: human` or `Review: critic`; if it says nothing, it's **h
   all; never re-trigger it from your side or poll for the user. The user answers
   in chat ("A", "ship", "the ring is too big") and the main session resumes you
   with the note; you carry on from your context. It plays until they say
-  otherwise or you replace it with the next build.
+  otherwise or you replace it with the next build. Commit what passes before
+  ending the turn, and make the status line a handoff: branch, the stage call
+  that's showing, the open choice. If your run is long, the main session may
+  start a fresh agent from that line instead of resuming you.
 - **critic** (only when the brief says the user is away): the loop below, with
   the capture cap.
 Lints run in both modes. Never poll or wait inside a turn for either.
@@ -71,6 +74,14 @@ Tune by numbers and lints between captures (one Great Sage pass spent 32
 captures and 114 calls before its first sheet). Set the scene up in one call
 (`_G.reviewStage.cast{}` / `anim{}` / `model{}` gives the plate, rig, weapon
 and camera), not by hand.
+**Images count as captures,** wherever they come from: a Read of a PNG (a crop,
+a zoom, a cut, a texture, a sheet re-opened), `blender__look`, a Figma
+screenshot. Every image stays in context for the rest of the run, and visual
+runs read 10-20 PNGs on top of their captures. Check cuts and crops by numbers
+(`tools/ui_lint.py`, alpha bounds, pixel stats) and look at most once, at the end,
+on one sheet. Bash output and pasted scripts filled more context than images
+did: print summaries from probes and lints (FAIL lines and totals, not every
+PASS), and run helpers from files.
 
 ## 1. Direction before polish
 

@@ -57,13 +57,15 @@ def main():
     pdir = project_dir()
     cutoff = time.time() - args.days * 86400 if args.days else 0
     mains = [p for p in glob.glob(f"{pdir}/*.jsonl") if os.path.getmtime(p) >= cutoff]
-    subs = [p for p in glob.glob(f"{pdir}/*/subagents/*.jsonl") if os.path.getmtime(p) >= cutoff]
+    subs = sorted((p for p in glob.glob(f"{pdir}/*/subagents/*.jsonl") if os.path.getmtime(p) >= cutoff),
+                  key=os.path.getmtime)  # oldest first, so each type keeps its latest run's schemas
 
     usage = {"main": collections.Counter(), "sub": collections.Counter()}
     results = collections.Counter()
     calls = collections.Counter()
     runs = collections.defaultdict(list)
     schemas = {}
+    unlisted = collections.Counter()  # runs that launched with every tool (Artifact present)
     seen = set()
     for path in mains + subs:
         kind = "sub" if "/subagents/" in path else "main"
@@ -76,14 +78,17 @@ def main():
         names = {}
         ctx = []
         images = 0
+        shaped = False
         for e in lines(path):
-            if e.get("type") == "api-request-shape" and agent not in schemas:
+            if e.get("type") == "api-request-shape" and not shaped:
+                shaped = True
                 tools = (e.get("shape") or {}).get("tools") or []
                 group = collections.Counter()
                 for t in tools:
                     if not t.get("defer_loading"):
                         group[tool_group(t["name"])] += len(json.dumps(t)) // 4
                 schemas[agent] = group
+                unlisted[agent] += "Artifact" in group
             m = e.get("message")
             if not isinstance(m, dict):
                 continue
@@ -119,13 +124,13 @@ def main():
               f"({share['cache_read_input_tokens']:.0%}) | cache write {v['cache_creation_input_tokens'] / 1e6:5.0f}M "
               f"({share['cache_creation_input_tokens']:.0%}) | output {v['output_tokens'] / 1e6:4.1f}M ({share['output_tokens']:.0%})")
 
-    print("\nper subagent type (medians; launch = first-turn context)")
-    print(f"  {'agent':16}{'runs':>5}{'launch':>8}{'turns':>7}{'peak':>8}{'imgs/run':>9}  per-turn tool schemas (tokens)")
+    print("\nper subagent type (medians; launch = first-turn context; all-tools = runs without their allowlist;\n schemas from each type's latest run)")
+    print(f"  {'agent':16}{'runs':>5}{'all-tools':>10}{'launch':>8}{'turns':>7}{'peak':>8}{'imgs/run':>9}  per-turn tool schemas (tokens)")
     for agent, rs in sorted(runs.items(), key=lambda kv: -len(kv[1])):
         med = lambda i: int(statistics.median(r[i] for r in rs))
         sch = schemas.get(agent, {})
         top = ", ".join(f"{n} {s}" for n, s in sch.most_common(5))
-        print(f"  {agent[:16]:16}{len(rs):5}{med(0):8}{med(1):7}{med(2):8}{sum(r[3] for r in rs) / len(rs):9.1f}  "
+        print(f"  {agent[:16]:16}{len(rs):5}{unlisted[agent]:10}{med(0):8}{med(1):7}{med(2):8}{sum(r[3] for r in rs) / len(rs):9.1f}  "
               f"{sum(sch.values())}: {top}")
 
     print("\ntool results by volume (chars; images count their base64)")

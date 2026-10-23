@@ -2,7 +2,7 @@
 name: animator
 model: opus
 description: Animates this game's enemies (beasts on part-built Motor6D rigs, humanoids on stock R6 rigs): idle, walk and run cycles, attack windups, releases, recovers, stagger and death. Authors KeyframeSequences in Studio through the MCP and procedural pose tables for EnemyAnimator, tunes timing against each attack's windup, and checks every pose for sunk feet, gaps and clipping. Works from the bear/tiger reference and each roster's RIGS.md. Use for new or reworked enemy animations, after the enemy-designer's sheet gives the attack timings.
-tools: Bash, Read, Edit, Write, Skill, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*
+tools: Bash, Read, Edit, Write, Skill, ToolSearch, Agent(visual-critic, general-purpose), Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*
 skills:
   - sandbox-studio
   - visual-gate

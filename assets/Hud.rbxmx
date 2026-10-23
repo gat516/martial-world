@@ -7239,10 +7239,10 @@
      <string name="Name">Crest</string>
      <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.0307692</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.686538</XS><XO>0</XO><YS>0.4</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.0769231</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.686538</XS><XO>0</XO><YS>0.4923077</YS><YO>0</YO></UDim2>
      <int name="ZIndex">4</int>
-     <Content name="Image"><url>rbxassetid://107956469862117</url></Content>
+     <Content name="Image"><url>rbxassetid://125803661705136</url></Content>
     </Properties>
      <Item class="TextLabel" referent="RBX737"><Properties>
       <string name="Name">RealmText</string>
@@ -11137,10 +11137,10 @@
      <string name="Name">TitleCrest</string>
      <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.0307692</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.686538</XS><XO>0</XO><YS>0.4</YS><YO>0</YO></UDim2>
+     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.0769231</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>0.686538</XS><XO>0</XO><YS>0.4923077</YS><YO>0</YO></UDim2>
      <int name="ZIndex">4</int>
-     <Content name="Image"><url>rbxassetid://107956469862117</url></Content>
+     <Content name="Image"><url>rbxassetid://125803661705136</url></Content>
     </Properties>
      <Item class="TextLabel" referent="RBX1099"><Properties>
       <string name="Name">Title</string>

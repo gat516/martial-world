@@ -16,6 +16,8 @@ Rules.APPLY_TO_CHARACTER = true
 Rules.FIRST_NAME = { MIN = 2, MAX = 14 }
 -- Roblox catalog asset types the hair field accepts (41 = HairAccessory).
 Rules.HAIR_ASSET_TYPES = { [41] = true }
+-- Hair accessories a player can wear at once (one field each on the Hair tab).
+Rules.MAX_HAIRS = 3
 
 -- Picks a key from a { [key]: { Weight: number } } table, weighted. `random` is an
 -- optional Random so the server can seed it.

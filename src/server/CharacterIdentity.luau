@@ -14,11 +14,16 @@
 --   "templates"          -> { [catalogId]: templateImage } for every Clothing option
 --   "hair", id           -> validates the catalog id is hair and hands the client a
 --                           copy of the accessory (parented in its PlayerGui) to preview
+--   "defaults"           -> once: { skin, hairs = { {id, accessory} } } from the
+--                           player's own avatar, the screen's starting look
 --   "reroll", kind       -> kind "Race" | "Surname". Live product: returns
 --                           { productId } and the client prompts the purchase; the
 --                           reroll happens in the receipt handler. Mock (id 0): rerolls
 --                           at once, Studio and testbed only.
---   "confirm", look      -> checks and applies the look; fires onConfirmed
+--   "confirm", look      -> checks and applies the look; fires onConfirmed. Where
+--                           Players.CharacterAutoLoads is off (the test place) the
+--                           first confirm spawns the character, and the dead respawn
+--                           from here.
 
 local InsertService = game:GetService("InsertService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -40,7 +45,7 @@ local Receipts = require(script.Parent.Receipts)
 export type Look = {
 	Shirt: string, -- Clothing option Id
 	Pants: string,
-	HairId: number?, -- catalog id of a hair accessory, or nil for none
+	HairIds: { number }, -- catalog ids of hair accessories, up to Rules.MAX_HAIRS (empty for none)
 	HairColor: string, -- HairColors Id
 	FirstName: string,
 }
@@ -51,6 +56,7 @@ local PREVIEW_FOLDER = "CharacterPreview" -- in PlayerGui: only that player sees
 local random = Random.new()
 local looks: { [Player]: Look } = {}
 local lastHair: { [Player]: number } = {}
+local defaultsSent: { [Player]: boolean } = {}
 local hairCache: { [number]: Accessory | false } = {} -- false = not a hair we can load
 local templates: { [number]: string }? = nil
 
@@ -177,6 +183,62 @@ local function filterName(player: Player, name: string): string?
 	return text
 end
 
+-- Brings the player into the world. Only needed where Players.CharacterAutoLoads
+-- is off (the test place), so nobody stands in the world behind the screen.
+local function spawnCharacter(player: Player)
+	if player.Parent then
+		local ok, err = pcall(player.LoadCharacter, player)
+		if not ok then
+			warn("CharacterIdentity: couldn't spawn", player.Name, err)
+		end
+	end
+end
+
+-- Puts a copy of a hair in the player's PlayerGui (only they see it) and returns
+-- it, for the screen to preview. One copy per id; other hairs stay.
+local function previewCopy(player: Player, id: number, hair: Accessory): Accessory?
+	local gui = player:FindFirstChildOfClass("PlayerGui")
+	if not gui then
+		return nil
+	end
+	local folder = gui:FindFirstChild(PREVIEW_FOLDER)
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = PREVIEW_FOLDER
+		folder.Parent = gui
+	end
+	local old = (folder :: Instance):FindFirstChild(tostring(id))
+	if old then
+		old:Destroy()
+	end
+	local copy = hair:Clone()
+	copy.Name = tostring(id)
+	copy.Parent = folder
+	return copy
+end
+
+-- The player's own Roblox avatar, for the screen's starting look: skin colour and
+-- up to Rules.MAX_HAIRS of their hairs. Empty when the avatar can't be read
+-- (Studio test players have no avatar).
+local function avatarDefaults(player: Player): { skin: Color3?, hairIds: { number } }
+	local result = { skin = nil :: Color3?, hairIds = {} :: { number } }
+	if player.UserId <= 0 then
+		return result -- a Studio test player
+	end
+	local ok, description = pcall(Players.GetHumanoidDescriptionFromUserId, Players, player.UserId)
+	if not ok or not description then
+		return result
+	end
+	result.skin = description.HeadColor
+	for raw in string.gmatch(description.HairAccessory, "%d+") do
+		local id = tonumber(raw)
+		if id and #result.hairIds < Rules.MAX_HAIRS and not table.find(result.hairIds, id) then
+			table.insert(result.hairIds, id)
+		end
+	end
+	return result
+end
+
 local function dress(player: Player, look: Look)
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -193,9 +255,7 @@ local function dress(player: Player, look: Look)
 		if pants and pants.AssetId > 0 then
 			description.Pants = pants.AssetId
 		end
-		if look.HairId then
-			description.HairAccessory = tostring(look.HairId)
-		end
+		description.HairAccessory = table.concat(look.HairIds, ",")
 		local ok, err = pcall(humanoid.ApplyDescription, humanoid, description)
 		if not ok then
 			warn("CharacterIdentity: couldn't dress", player.Name, err)
@@ -221,12 +281,18 @@ local function confirm(player: Player, raw: any): (boolean, any)
 	if not colorById(raw.HairColor) then
 		return false, "Pick a hair colour"
 	end
-	local hairId: number? = nil
-	if raw.HairId ~= nil then
-		if type(raw.HairId) ~= "number" or not loadHair(raw.HairId) then
+	local hairIds: { number } = {}
+	if type(raw.HairIds) ~= "table" then
+		return false, "Bad request"
+	end
+	for _, id in raw.HairIds do
+		if #hairIds >= Rules.MAX_HAIRS then
+			return false, `At most {Rules.MAX_HAIRS} hairs`
+		end
+		if type(id) ~= "number" or table.find(hairIds, id) or not loadHair(id) then
 			return false, "That hair can't be used"
 		end
-		hairId = raw.HairId
+		table.insert(hairIds, id)
 	end
 	local name, why = Rules.checkFirstName(if type(raw.FirstName) == "string" then raw.FirstName else "")
 	if not name then
@@ -238,14 +304,17 @@ local function confirm(player: Player, raw: any): (boolean, any)
 	local look: Look = {
 		Shirt = raw.Shirt,
 		Pants = raw.Pants,
-		HairId = hairId,
+		HairIds = hairIds,
 		HairColor = raw.HairColor,
 		FirstName = name :: string,
 	}
 	looks[player] = look
 	player:SetAttribute("FirstName", look.FirstName)
 	player:SetAttribute("CharacterConfirmed", true)
-	if Rules.APPLY_TO_CHARACTER then
+	if not player.Character then
+		-- First Enter World: the player comes into the world now (CharacterAdded dresses them).
+		task.spawn(spawnCharacter, player)
+	elseif Rules.APPLY_TO_CHARACTER then
 		task.spawn(dress, player, look)
 	end
 	for _, hook in CharacterIdentity.onConfirmed do
@@ -276,21 +345,27 @@ function CharacterIdentity.handle(player: Player, action: any, arg: any): (boole
 		if not hair then
 			return false, "That ID isn't a hair accessory"
 		end
-		local gui = player:FindFirstChildOfClass("PlayerGui")
-		if not gui then
+		local copy = previewCopy(player, arg, hair)
+		if not copy then
 			return false, "Try again"
 		end
-		local folder = gui:FindFirstChild(PREVIEW_FOLDER)
-		if not folder then
-			folder = Instance.new("Folder")
-			folder.Name = PREVIEW_FOLDER
-			folder.Parent = gui
-		end
-		(folder :: Instance):ClearAllChildren()
-		local copy = hair:Clone()
-		copy.Name = tostring(arg)
-		copy.Parent = folder
 		return true, copy
+	elseif action == "defaults" then
+		-- Once per player: the avatar's skin and hairs, each hair with a preview copy.
+		if defaultsSent[player] then
+			return false, "Already sent"
+		end
+		defaultsSent[player] = true
+		local avatar = avatarDefaults(player)
+		local hairs = {}
+		for _, id in avatar.hairIds do
+			local hair = loadHair(id)
+			local copy = hair and previewCopy(player, id, hair)
+			if copy then
+				table.insert(hairs, { id = id, accessory = copy })
+			end
+		end
+		return true, { skin = avatar.skin, hairs = hairs }
 	elseif action == "reroll" then
 		local entry = KINDS[arg]
 		if not entry then
@@ -315,6 +390,7 @@ end
 function CharacterIdentity.forget(player: Player)
 	looks[player] = nil
 	lastHair[player] = nil
+	defaultsSent[player] = nil
 end
 
 function CharacterIdentity.start()
@@ -329,10 +405,20 @@ function CharacterIdentity.start()
 	end
 	local function watch(player: Player)
 		CharacterIdentity.load(player, nil)
-		player.CharacterAdded:Connect(function()
+		player.CharacterAdded:Connect(function(character)
 			local look = looks[player]
 			if look and Rules.APPLY_TO_CHARACTER then
 				task.defer(dress, player, look)
+			end
+			-- Without auto loading Roblox doesn't respawn the dead, so do it here.
+			if not Players.CharacterAutoLoads then
+				local humanoid = character:WaitForChild("Humanoid") :: Humanoid
+				humanoid.Died:Once(function()
+					task.wait(Players.RespawnTime)
+					if player.Character == character then
+						spawnCharacter(player)
+					end
+				end)
 			end
 		end)
 	end

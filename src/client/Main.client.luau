@@ -65,6 +65,20 @@ local SeatBars = require(script.Parent.SeatBars)
 local CharacterCreator = require(script.Parent.CharacterCreator.Controller)
 local Config = require(ReplicatedStorage.Shared.Config)
 
+-- The character screen on join. Test place only: its GUI is mapped in
+-- test.project.json alone until the user approves it for the main game. It
+-- starts before the Hud wait below: no character spawns until Enter World
+-- (Players.CharacterAutoLoads is off there), and StarterGui reaches PlayerGui
+-- only with a character, so its GUI is cloned from ReplicatedStorage instead.
+if Config.TESTBED then
+	task.spawn(function()
+		local screen = (ReplicatedStorage:WaitForChild("CharacterCreatorGui") :: ScreenGui):Clone()
+		screen.Name = "CharacterCreator"
+		screen.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+		CharacterCreator.init(screen)
+	end)
+end
+
 local gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Hud") :: ScreenGui
 
 Hud.init(gui)
@@ -125,8 +139,3 @@ RootReveal.init(gui)
 Music.init()
 EnemySounds.init()
 AmbientSounds.init()
--- The character screen on join. Test place only: its GUI is mapped in
--- test.project.json alone until the user approves it for the main game.
-if Config.TESTBED then
-	CharacterCreator.init(Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("CharacterCreator") :: ScreenGui)
-end

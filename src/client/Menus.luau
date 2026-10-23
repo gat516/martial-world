@@ -40,6 +40,7 @@ local entries: { [GuiObject]: Options } = {}
 local current: GuiObject? = nil
 local calm = false
 local seated = false
+local screen = false
 local listeners: { () -> () } = {}
 
 local play: GuiObject
@@ -127,12 +128,19 @@ function Menus.toggle(frame: GuiObject)
 	end
 end
 
--- Whether a menu is open (that one, or any when no frame is given).
+-- Whether a menu is open (that one, or any when no frame is given). A full
+-- screen (Menus.setScreen) counts as open too, so combat and prompts stay shut.
 function Menus.isOpen(frame: GuiObject?): boolean
 	if frame then
 		return current == frame
 	end
-	return current ~= nil
+	return current ~= nil or screen
+end
+
+-- A full screen over the game, such as the character screen: it has its own
+-- GUI and hides the Hud itself, so this only makes Menus.isOpen() true.
+function Menus.setScreen(on: boolean)
+	screen = on
 end
 
 -- The open menu, if any.

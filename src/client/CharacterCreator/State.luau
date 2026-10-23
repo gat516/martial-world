@@ -2,7 +2,8 @@
 -- What the player has picked so far on the character screen. Only a preview:
 -- nothing here counts until Enter World sends it to the server.
 --   Shirt, Pants   Clothing option Ids
---   HairId         catalog id of a hair the server loaded, or nil for none
+--   Hair1..Hair3   catalog id of a hair the server loaded in that slot (one per
+--                  field on the Hair tab, Rules.MAX_HAIRS of them), or nil
 --   HairColor      HairColors Id
 --   FirstName      the raw text in the field (checked with Rules.checkFirstName)
 --   Tab            the open tab's Id
@@ -15,7 +16,9 @@ State.__index = State
 export type Values = {
 	Shirt: string,
 	Pants: string,
-	HairId: number?,
+	Hair1: number?,
+	Hair2: number?,
+	Hair3: number?,
 	HairColor: string,
 	FirstName: string,
 	Tab: string,
@@ -31,7 +34,9 @@ function State.new(defs: any): State
 		values = {
 			Shirt = defs.Clothing.Shirt[1].Id,
 			Pants = defs.Clothing.Pants[1].Id,
-			HairId = nil,
+			Hair1 = nil,
+			Hair2 = nil,
+			Hair3 = nil,
 			HairColor = defs.HairColors[1].Id,
 			FirstName = "",
 			Tab = "Clothes",
@@ -68,13 +73,24 @@ function State.onChanged(self: State, listener: (string, any) -> ()): () -> ()
 	end
 end
 
+-- The hair ids worn, in slot order, gaps and repeats dropped.
+function State.hairIds(self: State): { number }
+	local ids = {}
+	for _, id in { self.values.Hair1, self.values.Hair2, self.values.Hair3 } do
+		if id and not table.find(ids, id) then
+			table.insert(ids, id)
+		end
+	end
+	return ids
+end
+
 -- The Look the server's "confirm" action takes.
 function State.look(self: State): { [string]: any }
 	local v = self.values
 	return {
 		Shirt = v.Shirt,
 		Pants = v.Pants,
-		HairId = v.HairId,
+		HairIds = self:hairIds(),
 		HairColor = v.HairColor,
 		FirstName = v.FirstName,
 	}

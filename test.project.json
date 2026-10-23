@@ -78,7 +78,7 @@
     },
     "StarterPlayer": {
       "$properties": {
-        "CameraMaxZoomDistance": 30,
+        "CameraMaxZoomDistance": 70,
         "EnableMouseLockOption": false
       },
       "StarterPlayerScripts": {

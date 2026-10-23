@@ -147,5 +147,6 @@ and open that file in Studio. Nothing in it is saved. After a restart, repeat st
 - The King's new poses, effects, contact placement and QC9 difficulty are untested
   in play, including latency and phone cost. The earlier Spirit Wolf fight was
   reviewed here before it shipped.
-- Testbed camera: `CameraMaxZoomDistance` is 30, the Thunder Ape's height. Raise it
-  for big bosses.
+- Camera: `CameraMaxZoomDistance` is 70 in both projects, so a player can pull back
+  far enough to frame the Thunder Ape (about 30 studs tall, the biggest body). Raise it
+  if a bigger boss lands.

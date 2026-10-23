@@ -40,16 +40,16 @@ local SKULL_PULSE = TweenInfo.new(1.4, Enum.EasingStyle.Sine, Enum.EasingDirecti
 -- per beast per tier (keep them under ~24 characters so they fit at 11px).
 type Style = { rim: string?, tag: Color3?, omen: Color3?, aura: boolean?, sheen: boolean?, skull: boolean?, omens: { string }? }
 local STYLES: { [string]: Style } = {
-	below = { rim = "rbxassetid://129086600812253", tag = Color3.fromRGB(176, 170, 160) },
-	even = { rim = "rbxassetid://83318003824497", tag = Color3.fromRGB(176, 228, 196) },
+	below = { rim = "rbxassetid://128483974781643", tag = Color3.fromRGB(176, 170, 160) },
+	even = { rim = "rbxassetid://117466583392103", tag = Color3.fromRGB(176, 228, 196) },
 	above = {
-		rim = "rbxassetid://133768153785008",
+		rim = "rbxassetid://132855087488496",
 		tag = Color3.fromRGB(252, 222, 150),
 		omen = Color3.fromRGB(240, 206, 146),
 		omens = { "Its qi presses on you", "Your meridians tighten", "A heavy aura stirs", "Its gaze weighs on you" },
 	},
 	far = {
-		rim = "rbxassetid://110079661251126",
+		rim = "rbxassetid://132091886354806",
 		tag = Color3.fromRGB(222, 190, 255),
 		omen = Color3.fromRGB(222, 176, 255),
 		aura = true,

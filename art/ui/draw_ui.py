@@ -1641,8 +1641,10 @@ def minigame_art():
 # ---------------------------------------------------------------- enemy bars
 
 # The overhead bar on regular demon beasts (bosses keep Play.BossBar), Dead Cells
-# style: a dark nameplate strip over a long thin bar with a slanted right end,
+# style: a dark nameplate strip over a long thin bar with a 45-degree right end,
 # cut into ten talisman slips (one per 10% of health, like the player's vitals).
+# On tiers with a seal the end is capped by a diamond gem whose upper-left face
+# lies flush along the window's slant, so the bar ends in the gem's point.
 # Every piece is drawn at its display size x EB_R and shown with ScaleType Stretch
 # at a fixed pixel size in the BillboardGui, so nothing is 9-sliced.
 # Geometry in display px (the BillboardGui lays its frames on these numbers):
@@ -1650,7 +1652,8 @@ EB_R = 4  # image px per display px
 EB = {
     "bar": (136, 22),  # bar art canvas: Back, Rim and Aura all cover it
     "window": (10, 7, 126, 15),  # fill window bbox: Fill / Trail clip frames
-    "slant": 4,  # the right end leans back this far over the window's height
+    "slant": 8,  # the right end leans back this far over the window's height (45 degrees)
+    "cap": 6.0,  # end gem's outer radius: as tall as the bar, flush on the slant
     "outer": (6, 5, 17),  # rim outer edge: left x, top y, bottom y
     "segments": 10,
     "strip": (112, 15),  # nameplate strip
@@ -1682,15 +1685,30 @@ def _eb_finish(img, name):
     print("wrote", name, img.size)
 
 
-def _eb_poly(inset):
-    """The bar body, `inset` display px in from the rim's outer edge: square
-    left end, right end slanted back toward the bottom."""
+def _eb_cap():
+    """Centre x, centre y and outer radius of the end gem: its upper-left face
+    sits on the window's slant (k is 1, so the faces are parallel)."""
     lx, ty, by = EB["outer"]
     wx0, wy0, wx1, wy1 = EB["window"]
-    k = EB["slant"] / (wy1 - wy0)  # x lean per px of height
-    rx_top = wx1 + (wy0 - ty) * k + 2.2  # outer right edge, through the rim
+    cy, r = (ty + by) / 2, EB["cap"]
+    return wx1 + wy0 + 0.4 - cy + r, cy, r
+
+
+def _eb_poly(inset, capped=False):
+    """The bar body, `inset` display px in from the rim's outer edge: square
+    left end, right end slanted back toward the bottom (the band as thick across
+    the slant as along the top). Capped bodies run square to the gem's centre
+    instead; the gem covers that end."""
+    lx, ty, by = EB["outer"]
+    wx0, wy0, wx1, wy1 = EB["window"]
     a, b = ty + inset, by - inset
-    rt = rx_top - inset - (inset * k)
+    if capped:
+        gx = _eb_cap()[0]
+        return [(_eb(lx + inset), _eb(a)), (_eb(gx), _eb(a)), (_eb(gx), _eb(b)), (_eb(lx + inset), _eb(b))]
+    k = EB["slant"] / (wy1 - wy0)  # x lean per px of height
+    band = (wy0 - ty) * math.sqrt(1 + k * k)  # top band's thickness, across the slant
+    rx_top = wx1 + (wy0 - ty) * k + band  # outer right edge, through the rim
+    rt = rx_top - inset * (math.sqrt(1 + k * k) + k)
     return [(_eb(lx + inset), _eb(a)), (_eb(rt), _eb(a)), (_eb(rt - (b - a) * k), _eb(b)), (_eb(lx + inset), _eb(b))]
 
 
@@ -1707,8 +1725,11 @@ def eb_back():
     stretched at 136x22."""
     img = _eb_canvas(*EB["bar"])
     d = ImageDraw.Draw(img)
-    d.polygon(_eb_poly(0), fill=(8, 8, 10, 235))
-    wx0, wy0, _, _ = EB["window"]
+    # only as far right as every tier's rim covers it (a capped end is inside the gem)
+    lx, ty, by = EB["outer"]
+    wx0, wy0, wx1, _ = EB["window"]
+    c = wx1 + wy0 + 0.8
+    d.polygon([(_eb(lx), _eb(ty)), (_eb(c - ty), _eb(ty)), (_eb(c - by), _eb(by)), (_eb(lx), _eb(by))], fill=(8, 8, 10, 235))
     d.polygon(_eb_window_poly(wx0, wy0), fill=(30, 14, 16, 235))
     # a faint inner shadow along the top of the window
     d.line([(_eb(wx0), _eb(wy0) + _eb(0.6)), (_eb(EB["window"][2]), _eb(wy0) + _eb(0.6))], fill=(0, 0, 0, 200), width=_eb(1.2))
@@ -1760,20 +1781,32 @@ def eb_sheen():
     _eb_finish(img, "enemybar_sheen.png")
 
 
-def _eb_seal(d, cx, cy, r, face, edge):
-    """A small diamond seal stamp on the bar's tip."""
-    d.polygon([(_eb(cx), _eb(cy - r - 0.8)), (_eb(cx + r + 0.8), _eb(cy)), (_eb(cx), _eb(cy + r + 0.8)), (_eb(cx - r - 0.8), _eb(cy))], fill=INK)
-    d.polygon([(_eb(cx), _eb(cy - r)), (_eb(cx + r), _eb(cy)), (_eb(cx), _eb(cy + r)), (_eb(cx - r), _eb(cy))], fill=face)
+def _eb_seal(d, metal, hi, face, edge, tip=0.0):
+    """The end gem: a diamond as tall as the bar, set in the rim's metal, its
+    upper-left face flush on the window's slant. `tip` pulls the right point out
+    further (the far tier's talisman tip)."""
+    cx, cy, R = _eb_cap()
+
+    def dia(r, t=0.0):
+        return [(_eb(cx), _eb(cy - r)), (_eb(cx + r + t), _eb(cy)), (_eb(cx), _eb(cy + r)), (_eb(cx - r), _eb(cy))]
+
+    d.polygon(dia(R, tip), fill=INK)
+    d.polygon(dia(R - 0.8, tip), fill=metal)
+    m = dia(R - 0.8, tip)
+    d.line([m[3], m[0]], fill=hi, width=_eb(0.5))
+    r = R - 1.8
+    d.polygon(dia(r + 0.5, tip * 0.6), fill=INK)
+    d.polygon(dia(r, tip * 0.6), fill=face)
     q = r * 0.45
-    d.polygon([(_eb(cx), _eb(cy - q)), (_eb(cx + q), _eb(cy)), (_eb(cx), _eb(cy + q)), (_eb(cx - q), _eb(cy))], outline=edge, width=_eb(0.5))
+    d.polygon(dia(q), outline=edge, width=_eb(0.5))
 
 
 def eb_rim(tier):
     """The frame over the fill for one danger tier: ink outline, a metal band
     with a lit top edge, nine slanted talisman divisions across the window and
-    the tier's end caps (jade: a vermilion seal on the tip; gold: seal plus a
-    lozenge on the left end; far: a violet lozenge and a long pointed talisman
-    tip). 544x88, stretched at 136x22."""
+    the tier's end caps (bronze: a bare slanted end; jade: a vermilion gem
+    capping the end; gold: that gem plus a lozenge on the left end; far: a
+    violet lozenge and a crimson gem drawn out into a talisman tip). 544x88, stretched at 136x22."""
     t = EB_TIERS[tier]
     metal, hi, lo = t["metal"] + (255,), t["hi"] + (255,), t["lo"] + (255,)
     img = _eb_canvas(*EB["bar"])
@@ -1782,21 +1815,15 @@ def eb_rim(tier):
     wx0, wy0, wx1, wy1 = EB["window"]
     cy = (ty + by) / 2
 
-    if tier == "far":
-        # long talisman tip: a pointed blade leaning off the right end
-        tip = [(_eb(126.5), _eb(ty - 0.5)), (_eb(135.5), _eb(cy - 1)), (_eb(122), _eb(by + 0.5))]
-        d.polygon(tip, fill=INK)
-        tip2 = [(_eb(127.4), _eb(ty + 1)), (_eb(133.6), _eb(cy - 1)), (_eb(123.6), _eb(by - 1))]
-        d.polygon(tip2, fill=metal)
-        d.line([tip2[0], tip2[1]], fill=hi, width=_eb(0.6))
+    capped = tier != "bronze"
 
     # body ring: ink, metal, then cut the window back out
     ring = _eb_canvas(*EB["bar"])
     rd = ImageDraw.Draw(ring)
-    rd.polygon(_eb_poly(0), fill=INK)
-    rd.polygon(_eb_poly(0.8), fill=metal)
+    rd.polygon(_eb_poly(0, capped), fill=INK)
+    rd.polygon(_eb_poly(0.8, capped), fill=metal)
     # lit top edge and shaded bottom edge of the band
-    p = _eb_poly(0.8)
+    p = _eb_poly(0.8, capped)
     rd.line([p[0], p[1]], fill=hi, width=_eb(0.55))
     rd.line([p[3], p[2]], fill=lo, width=_eb(0.55))
     rd.polygon(_eb_window_poly(wx0 - 0.6, wy0 - 0.6), fill=INK)
@@ -1825,7 +1852,7 @@ def eb_rim(tier):
     img.alpha_composite(gl)
 
     if tier in ("jade", "gold"):
-        _eb_seal(d, 128.6, cy, 4.2, (176, 40, 30, 255), (246, 226, 196, 230))
+        _eb_seal(d, metal, hi, (176, 40, 30, 255), (246, 226, 196, 230))
     if tier in ("gold", "far"):
         face = (30, 18, 40, 255) if tier == "far" else (40, 30, 22, 255)
         r = 5.0
@@ -1835,7 +1862,7 @@ def eb_rim(tier):
         d.polygon([(_eb(lx), _eb(cy - q)), (_eb(lx + q), _eb(cy)), (_eb(lx), _eb(cy + q)), (_eb(lx - q), _eb(cy))], fill=face)
         d.line([(_eb(lx - r * 0.5), _eb(cy - r * 0.5)), (_eb(lx), _eb(cy - r))], fill=hi, width=_eb(0.5))
     if tier == "far":
-        _eb_seal(d, 126.2, cy - 0.6, 2.6, (150, 26, 52, 255), (255, 210, 230, 220))
+        _eb_seal(d, metal, hi, (150, 26, 52, 255), (255, 210, 230, 220), tip=1.4)
     _eb_finish(shadow_under(img, blur=1, offset=1, alpha=140), f"enemybar_rim_{tier}.png")
 
 

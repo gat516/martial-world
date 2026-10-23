@@ -38,7 +38,7 @@ export type Weapon = {
 	icon: string?,
 }
 
-export type Grade = { name: string, multiplier: number, color: Color3, order: number }
+export type Grade = { name: string, multiplier: number, color: Color3, order: number, tier: number }
 
 local Weapons = {}
 
@@ -64,11 +64,14 @@ Weapons.Classes = {
 
 Weapons.ClassOrder = { "Fist", "Sword", "Saber", "Greatsword", "Guandao", "Spear", "Staff" }
 
+-- Grades of weapons and arts. tier is the inventory frame on the shared rarity
+-- ladder (1 bronze, 2 silver, 3 jade, 4 violet, 5 gold; docs/ui/inventory.md) and
+-- color matches that frame.
 Weapons.Grades = {
-	Mortal = { name = "Mortal", multiplier = 1.0, color = Color3.fromRGB(200, 200, 200), order = 1 },
-	Spirit = { name = "Spirit", multiplier = 1.25, color = Color3.fromRGB(110, 200, 255), order = 2 },
-	Earth = { name = "Earth", multiplier = 1.5, color = Color3.fromRGB(240, 190, 80), order = 3 },
-	Heaven = { name = "Heaven", multiplier = 1.9, color = Color3.fromRGB(220, 130, 255), order = 4 },
+	Mortal = { name = "Mortal", multiplier = 1.0, color = Color3.fromRGB(214, 168, 118), order = 1, tier = 1 },
+	Spirit = { name = "Spirit", multiplier = 1.25, color = Color3.fromRGB(112, 222, 156), order = 2, tier = 3 },
+	Earth = { name = "Earth", multiplier = 1.5, color = Color3.fromRGB(196, 150, 255), order = 3, tier = 4 },
+	Heaven = { name = "Heaven", multiplier = 1.9, color = Color3.fromRGB(255, 208, 96), order = 4, tier = 5 },
 } :: { [string]: Grade }
 
 local function weapon(id: string, name: string, cls: string, grade: string, model: string, blurb: string): Weapon

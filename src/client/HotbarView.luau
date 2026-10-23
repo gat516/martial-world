@@ -4,6 +4,10 @@
 -- hold out its item (a real Tool from the Backpack; activate it to use it).
 -- Anything can be dragged: from the Inventory onto a slot, between slots to swap
 -- them, or off the bar to clear a slot.
+-- Weapons: while the Inventory is open, a weapon slot (Stack.Hotbar.WeaponSlot)
+-- shows left of the bar with the weapon in hand. Dropping a weapon on it (or on
+-- any hotbar slot) equips it; dragging the weapon off it puts it away (bare
+-- fists). Both go through WeaponAction, which the server validates.
 -- One row along the bottom on every device; the Stack frame sizes it.
 -- An art whose weapon class isn't in hand dims and wears that class's badge; it
 -- still casts, and the server answers "Requires a ...".
@@ -25,6 +29,8 @@ local Menus = require(script.Parent.Menus)
 local Platform = require(script.Parent.Platform)
 local SlotArt = require(script.Parent.SlotArt)
 local State = require(script.Parent.State)
+
+local Weapons = require(ReplicatedStorage.Shared.Weapons)
 
 local inventoryRemote = ReplicatedStorage.Remotes.InventoryAction :: RemoteFunction
 local player = Players.LocalPlayer
@@ -50,6 +56,7 @@ local gui: ScreenGui
 local bar: Frame
 local template: TextButton
 local slots: { TextButton } = {}
+local weaponSlot: TextButton -- Stack.Hotbar.WeaponSlot, shown while the Inventory is open
 local ghost: TextButton? -- the slot following the pointer while dragging
 local lastDragEnd = -math.huge
 
@@ -125,9 +132,33 @@ local function press(i: number)
 	end
 end
 
--- Set by Inventory: while it's open, tapping a slot shows that slot's art or item
--- in its detail pane instead of casting or holding it (returns true when it did).
-HotbarView.inspect = nil :: ((id: string) -> boolean)?
+-- Set by Inventory: while it's open, tapping slot i places the art, item or weapon
+-- chosen in its grid, or shows that slot's art or item in its detail pane, instead
+-- of casting or holding it (returns true when it handled the tap).
+HotbarView.tapSlot = nil :: ((i: number) -> boolean)?
+-- Set by Inventory: tapping the weapon slot (equips the chosen weapon, or shows
+-- the one in hand).
+HotbarView.tapWeapon = nil :: (() -> ())?
+
+local function isWeapon(id: string): boolean
+	return id == Weapons.FIST or Weapons.Defs[id] ~= nil
+end
+
+-- Equip a weapon (Bare Fists put the weapon away). The server checks ownership.
+function HotbarView.equipWeapon(id: string)
+	local remote = ReplicatedStorage.Remotes:FindFirstChild("WeaponAction") :: RemoteFunction
+	task.spawn(function()
+		local ok, message
+		if id == Weapons.FIST then
+			ok, message = remote:InvokeServer("unequip")
+		else
+			ok, message = remote:InvokeServer("equip", id)
+		end
+		if not ok and message then
+			Hud.toast(message)
+		end
+	end)
+end
 
 --[[ Drag and drop ]]
 
@@ -148,22 +179,46 @@ local function slotAt(position: Vector2): number?
 	return nil
 end
 
-local function drop(id: string, from: number?, position: Vector2)
+local function over(button: GuiObject, position: Vector2): boolean
+	local p, size = button.AbsolutePosition, button.AbsoluteSize
+	return button.Visible
+		and position.X >= p.X
+		and position.X <= p.X + size.X
+		and position.Y >= p.Y
+		and position.Y <= p.Y + size.Y
+end
+
+local function drop(id: string, from: number | string | nil, position: Vector2)
+	if isWeapon(id) then
+		-- onto the weapon slot or any hotbar slot: wield it; the weapon slot's own
+		-- weapon dragged anywhere else: put it away
+		local onto = over(weaponSlot, position) or slotAt(position) ~= nil
+		if onto and from ~= "weapon" then
+			HotbarView.equipWeapon(id)
+		elseif not onto and from == "weapon" and id ~= Weapons.FIST then
+			HotbarView.equipWeapon(Weapons.FIST)
+		end
+		return
+	end
+	if from == "weapon" then
+		return
+	end
 	local to = slotAt(position)
-	if to and from then
+	if to and type(from) == "number" then
 		if to ~= from then
 			invoke("swap", from, to)
 		end
 	elseif to then
 		invoke("slot", id, to)
-	elseif from then
+	elseif type(from) == "number" then
 		invoke("clear", from)
 	end
 end
 
 -- Let a button be dragged onto the hotbar. getId says what it carries right now;
--- from is the hotbar slot it lives in (nil for Inventory cells).
-function HotbarView.draggable(button: GuiButton, getId: () -> string?, from: number?)
+-- from is the hotbar slot it lives in, "weapon" for the weapon slot, nil for
+-- Inventory cells.
+function HotbarView.draggable(button: GuiButton, getId: () -> string?, from: (number | string)?)
 	button.InputBegan:Connect(function(input)
 		local kind = input.UserInputType
 		if kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch then
@@ -195,6 +250,8 @@ function HotbarView.draggable(button: GuiButton, getId: () -> string?, from: num
 				g.Size = UDim2.fromOffset(56, 56)
 				g.ZIndex = 50
 				SlotArt.paint(g, id, Items.Defs[id] and Items.count(State.current, id) or nil, "")
+				SlotArt.tile(g, id)
+				SlotArt.gate(g, id, true)
 				local key = g:FindFirstChild("KeyLabel") :: GuiObject
 				key.Visible = false
 				g.Parent = gui
@@ -263,6 +320,13 @@ local function render()
 		slot.Visible = showEmpty or id ~= ""
 	end
 	shortKey = table.concat(key)
+	-- the weapon slot: the weapon in hand on its grade frame, only while the
+	-- Inventory is open (it's a drop target, not part of the fighting HUD)
+	local held = SlotArt.equipped()
+	local weaponId = if held == "" then Weapons.FIST else held
+	SlotArt.paint(weaponSlot, weaponId, nil, "")
+	SlotArt.tile(weaponSlot, weaponId)
+	weaponSlot.Visible = Menus.isOpen(inventory)
 end
 
 -- Qi changes often (regen); repaint only when a slot's affordability flips.
@@ -311,8 +375,8 @@ function HotbarView.init(screenGui: ScreenGui)
 			if HotbarView.justDragged() then
 				return
 			end
-			local inspect = HotbarView.inspect
-			if inspect and inspect(State.current.hotbar[i] or "") then
+			local tapSlot = HotbarView.tapSlot
+			if tapSlot and tapSlot(i) then
 				return
 			end
 			press(i)
@@ -322,6 +386,16 @@ function HotbarView.init(screenGui: ScreenGui)
 		end, i)
 		slots[i] = slot
 	end
+	weaponSlot = bar:FindFirstChild("WeaponSlot") :: TextButton
+	weaponSlot.Activated:Connect(function()
+		if not HotbarView.justDragged() and HotbarView.tapWeapon then
+			(HotbarView.tapWeapon :: () -> ())()
+		end
+	end)
+	HotbarView.draggable(weaponSlot, function()
+		local held = SlotArt.equipped()
+		return if held == "" then nil else held
+	end, "weapon")
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed then
 			return

@@ -77,7 +77,7 @@ known one at a cache too). A gained weapon fires Effect `"weapon"` (weaponId).
   claimed (`caches` is in the state push).
 
 ## Data flow
-Equip: client invokes `WeaponAction("equip", id)` -> the server checks ownership
+Equip (dragging a weapon onto the Inventory's weapon slot or the hotbar, or tapping the weapon slot; [inventory](../ui/inventory.md)): client invokes `WeaponAction("equip", id)` -> the server checks ownership
 and that no action is running -> `data.weapons.equipped`, clones
 `ServerStorage.WeaponModels.<model>` into the character as `HeldWeapon` with its
 `<joint>` Motor6D's Part0 = Right Arm, sets player `Weapon` and character
@@ -139,7 +139,7 @@ derived from the template's joint frames; no per-weapon correction is needed.
   and re-check its timings.
 - `Pacing.Weapons`: `NEUTRAL_LEVEL`, `STARTING`, `MULTIPLIER`, XP per hit / cast /
   manual, `XP_BASE`/`XP_PER_LEVEL`.
-- `Weapons.Grades`: grade multipliers and colours.
+- `Weapons.Grades`: grade multipliers, colours and inventory frame tier (Mortal bronze, Spirit jade, Earth violet, Heaven gold; [inventory](../ui/inventory.md)).
 - `server/Weapons.BREAKTHROUGH_STOW_SECONDS`: 1.6 s, matching the breakthrough
   effect's lifetime.
 

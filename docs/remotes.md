@@ -21,12 +21,12 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | QuestState | Event | S->C | `Quests` (beat, objective, reward, goals, guide, lesson, openBoard) | Onboarding |
 | BuildAction | Function | C->S | `Build.handle` ("buy", "place", "store", "move") | BuildMode, BuildCatalog |
 | GardenAction | Function | C->S | `Garden.handle` ("plant", "harvest", "growTarget", "uproot", "buySeed", "sell", "sellAll") | Planting, GardenView, HerbShop |
-| InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot", "clear", "swap", "comprehend") | Inventory, HotbarView |
+| InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot", "clear", "swap", "comprehend", "seen" {ids}: no longer NEW, "view" tab, sort, filter: the Inventory's saved view) | Inventory, HotbarView, Fresh, InventoryFilter |
 | TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only) | AdminPanel |
 | CharacterAction | Function | C->S | `CharacterIdentity.handle` (`state`, `templates`, `hair`, `defaults`, `reroll`, `confirm`); test place only | CharacterCreator.Bridge |
-| WeaponAction | Function | C->S | `Weapons.handle` ("equip", weaponId / "unequip" / "stow", character, boolean) | Inventory (Weapons tab), WeaponAnimator (cosmetic control locks) |
+| WeaponAction | Function | C->S | `Weapons.handle` ("equip", weaponId / "unequip" / "stow", character, boolean) | HotbarView (weapon drags and the weapon slot), WeaponAnimator (cosmetic control locks) |
 | Dodge, Cast | Event | - | unused (combat moved onto Attack) | - |
 
 `Effect "cast"` is relayed by `Combat.releaseTechnique` to every client except the

@@ -37,7 +37,7 @@ cursor, settings and the admin panel.
   the guard trough, with the realm crest above and the hotbar below; seated,
   the cultivation bars take its place. Details, the seated tiles and the
   breakthrough nudge: [vitals stack](../ui/hud-vitals.md).
-- Inventory (weapons, arts, bottlenecks, sort and filter): [inventory](../ui/inventory.md).
+- Inventory (weapons and arts by class, rarity frames, NEW badges, drag to equip, sort, filter and search): [inventory](../ui/inventory.md).
 - Character window (`SelfCard`, the Self tile, the realm crest shortcut, the
   `RootReveal` card): every row has the same shape, gains in jade (decided
   2026-10-21). Layout, rows and room for later tabs:
@@ -113,9 +113,10 @@ cursor, settings and the admin panel.
   `Play.BlockButton`: see [vitals stack](../ui/hud-vitals.md#guard-bar).
 - `Menus.luau`: the one-window rule and what hides while a window is open.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
-- `HotbarView.luau`, `Inventory.luau` (Pouch, Arts, Weapons tabs), `InventoryFilter.luau`
-  (sort button and menu for Arts and Weapons), `SlotArt.luau`
-  (slot painting, weapon art, the weapon badge), `ListWindow.luau`.
+- `HotbarView.luau` (with the weapon slot), `Inventory.luau` (Weapons & Arts and Pouch tabs),
+  `InventoryFilter.luau` (chip rail, sort, search), `Rarity.luau` (the rarity ladder and frames),
+  `Fresh.luau` (NEW badges), `SlotArt.luau` (slot painting, class glyphs and colours,
+  weapon art, the weapon badge), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
 - Boss health bar: `BossBars.luau` drives `Play.BossBar`; themes in

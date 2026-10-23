@@ -194,6 +194,20 @@ end
 
 --[[ Hotbar ]]
 
+local MAX_SEEN = 64 -- ids per "seen" call
+local VIEW_TABS = { Arsenal = true, Pouch = true }
+local VIEW_SORTS = { New = true, Grade = true, Alphabetical = true }
+
+-- Whether the player has any of this item, art or weapon right now.
+local function holds(data: PlayerData.Data, id: string): boolean
+	if data.techniques.owned[id] then
+		return true
+	elseif Items.Defs[id] then
+		return Items.count(data, id) > 0
+	end
+	return (data.weapons.owned[id] or 0) > 0
+end
+
 local function owns(data: PlayerData.Data, id: string): boolean
 	if Hotbar.isTechnique(id) then
 		return data.techniques.owned[id] ~= nil
@@ -236,7 +250,9 @@ end
 --   ("clear", slot)           empty a slot
 --   ("swap", slotA, slotB)    swap two slots
 --   ("comprehend", techniqueId) break its bottleneck (Progression.comprehend)
-function Inventory.handle(player: Player, action: any, a: any, b: any): (boolean, string?)
+--   ("seen", { id })          the Inventory showed these: they stop being NEW
+--   ("view", tab, sort, filter) remember the Inventory's sort and filter for a tab
+function Inventory.handle(player: Player, action: any, a: any, b: any, c: any): (boolean, string?)
 	local data = PlayerData.get(player)
 	if not data then
 		return false, "Still loading"
@@ -256,6 +272,28 @@ function Inventory.handle(player: Player, action: any, a: any, b: any): (boolean
 			return false, "No such slot"
 		end
 		data.hotbar[a] = ""
+	elseif action == "seen" then
+		if type(a) ~= "table" or #a > MAX_SEEN then
+			return false, nil
+		end
+		for _, id in a do
+			if type(id) == "string" and holds(data, id) and not data.seen[id] then
+				data.seen[id] = os.time()
+			end
+		end
+		-- forget what's gone (eaten, used up), so finding it again is NEW
+		for id in data.seen do
+			if not holds(data, id) then
+				data.seen[id] = nil
+			end
+		end
+	elseif action == "view" then
+		local view = VIEW_TABS[a] and data.inventoryView[a]
+		if not view or not VIEW_SORTS[b] or type(c) ~= "string" or #c > 24 or not string.match(c, "^%a+$") then
+			return false, nil
+		end
+		view.sort, view.filter = b, c
+		return true, nil -- nothing to push: the client already shows it
 	elseif action == "swap" then
 		if not (validSlot(a) and validSlot(b)) then
 			return false, "No such slot"

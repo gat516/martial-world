@@ -89,6 +89,9 @@
       },
       "Veil": {
         "$path": "assets/Veil.rbxmx"
+      },
+      "DeathScreen": {
+        "$path": "assets/DeathScreen.rbxmx"
       }
     },
     "StarterPlayer": {

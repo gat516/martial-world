@@ -26,10 +26,13 @@
 -- is a menu (Menus): opening it closes any other window and hides the HUD and the
 -- world prompts, and it holds the keys it uses while open (so Space doesn't jump).
 --
--- Layouts: a bar along the bottom of the screen. Canvas.Desktop (1920x1080
--- baseline, responses in a column above the bar's right end) or Canvas.Phone
--- (844x390, a shorter bar, responses in a 2x2 grid above the name tab, right-
--- aligned), picked once by UiScale.isPhone(); UiScale fits the canvas.
+-- Layouts: a bar centred along the bottom of the screen (Menus hides the HUD while
+-- it's open), the responses in a column to its right with the bar's top and bottom.
+-- Canvas.Desktop (1920x1080 baseline) or Canvas.Phone (844x390, authored with
+-- the column showing and the pair centred; while only lines show, the bar sits
+-- centred, -ChoiceShift to the right, and slides back for the column), picked once
+-- by UiScale.isPhone(); UiScale fits the canvas. A line too long for the text box
+-- is split into pages at word breaks (each a click or tap).
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -41,6 +44,8 @@ local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
 local Ribbon = require(script.Parent.Ribbon)
+local TextService = game:GetService("TextService")
+local TweenService = game:GetService("TweenService")
 local UiScale = require(script.Parent.UiScale)
 
 export type Response = string | {
@@ -114,14 +119,17 @@ local layout: Frame
 local panel: ImageButton
 local tab: Frame
 local speakerLabel: TextLabel
-local portraitImage: ImageLabel
-local mark: TextLabel
+local portraitImage: ImageLabel? -- optional: a layout may drop the portrait
+local mark: TextLabel?
 local line: TextLabel
 local chevron: ImageLabel
 local list: Frame
 local template: ImageButton
 local tabTextSize = 24 -- the name's authored size (Merriweather Bold, 24 desktop / 19 phone)
 local tabMaxWidth = 0 -- 60 % of the panel's width
+local home: UDim2 -- the layout's authored position: where it sits with the responses up
+local choiceShift = 0 -- ChoiceShift: home's offset from the centred bar (phone: the bar slides left by it)
+local SLIDE = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 local session: Session? = nil
 local stickHeld = false
@@ -215,10 +223,42 @@ local function pick(s: Session, index: number)
 	finish(s, index)
 end
 
+-- Keep a response's text on its plate: room for the number key when it shows,
+-- then the authored size, shrunk to the label's MinTextSize attribute if the text
+-- is too wide, then truncated (TextTruncate) past that.
+local function fitLabel(button: ImageButton, label: TextLabel, keyRoom: number)
+	local size = label.Size
+	label.Size = UDim2.new(size.X.Scale, size.X.Offset - keyRoom, size.Y.Scale, size.Y.Offset)
+	local max = label.TextSize
+	local min = label:GetAttribute("MinTextSize") :: number? or max
+	local width = button.Size.X.Offset
+	if width <= 0 then
+		-- a row of a list: as wide as the list
+		width = (button.Parent :: Frame).Size.X.Offset
+	end
+	width += label.Size.X.Offset
+	local params = Instance.new("GetTextBoundsParams")
+	params.Text = label.Text
+	params.Font = label.FontFace
+	params.Width = math.huge
+	for textSize = max, min, -1 do
+		label.TextSize = textSize
+		params.Size = textSize
+		local ok, bounds = pcall(TextService.GetTextBoundsAsync, TextService, params)
+		if not ok or bounds.X <= width then
+			break
+		end
+	end
+end
+
 local function showResponses(s: Session)
 	s.choosing = true
 	chevron.Visible = false
 	list.Visible = true
+	if choiceShift ~= 0 then
+		-- the phone bar is centred alone; it slides left so the pair is centred
+		TweenService:Create(layout, SLIDE, { Position = home }):Play()
+	end
 	local keys = showKeys()
 	for i, c in s.choices do
 		local b = template:Clone()
@@ -231,6 +271,8 @@ local function showResponses(s: Session)
 		local key = b:FindFirstChild("Key") :: TextLabel
 		key.Text = tostring(i)
 		key.Visible = keys and not c.disabled
+		-- measuring yields, and this can run inside an input callback
+		task.spawn(fitLabel, b, label, if key.Visible then key.Size.X.Offset + 4 else 0)
 		if c.disabled then
 			label.TextColor3 = DIM
 			icon.ImageColor3 = DIM
@@ -397,6 +439,48 @@ local function onStick(_: string, _state: Enum.UserInputState, input: InputObjec
 	return Enum.ContextActionResult.Sink
 end
 
+-- Split lines that don't fit the text box into pages at word breaks. Line has a
+-- fixed authored height, so its width in layout units is its on-screen width over
+-- the on-screen scale (any nested UIScale cancels out).
+local function paginate(source: { string }): { string }
+	local abs = line.AbsoluteSize
+	local width = if abs.Y > 0 then abs.X * line.Size.Y.Offset / abs.Y else 0
+	if width <= 0 then
+		return source
+	end
+	local rows = math.max(1, math.floor(line.Size.Y.Offset / (line.TextSize * line.LineHeight) + 0.05))
+	local params = Instance.new("GetTextBoundsParams")
+	params.Font = line.FontFace
+	params.Size = line.TextSize
+	params.Width = width
+	local function fits(text: string): boolean
+		params.Text = text
+		local ok, bounds = pcall(TextService.GetTextBoundsAsync, TextService, params)
+		return not ok or math.round(bounds.Y / line.TextSize) <= rows
+	end
+	local pages = {}
+	for _, text in source do
+		if fits(text) then
+			table.insert(pages, text)
+			continue
+		end
+		local page = ""
+		for word in string.gmatch(text, "%S+") do
+			local candidate = if page == "" then word else page .. " " .. word
+			if page ~= "" and not fits(candidate) then
+				table.insert(pages, page)
+				page = word
+			else
+				page = candidate
+			end
+		end
+		if page ~= "" then
+			table.insert(pages, page)
+		end
+	end
+	return pages
+end
+
 -- Show a conversation and wait for its end (see the header). Returns the
 -- chosen response's index, or nil.
 function Dialogue.open(options: Options): number?
@@ -412,7 +496,7 @@ function Dialogue.open(options: Options): number?
 		end
 		table.insert(choices, toChoice(r))
 	end
-	local lines = if #options.lines > 0 then options.lines else { "" }
+	local lines = paginate(if #options.lines > 0 then options.lines else { "" })
 	local s: Session = {
 		lines = lines,
 		index = 1,
@@ -430,10 +514,15 @@ function Dialogue.open(options: Options): number?
 	local unknown = speaker == nil or speaker == "" or options.portrait == "unknown"
 	fitTab(if speaker == nil or speaker == "" then "???" else speaker)
 	local key = options.portrait or (if unknown then "unknown" else "unnamed")
-	portraitImage.Image = PORTRAITS[key] or key
-	mark.Visible = key == "unknown"
+	if portraitImage then
+		portraitImage.Image = PORTRAITS[key] or key
+	end
+	if mark then
+		mark.Visible = key == "unknown"
+	end
 
 	list.Visible = false
+	layout.Position = home - UDim2.fromOffset(choiceShift, 0)
 	stickHeld = false
 	ContextActionService:BindActionAtPriority(
 		ACTION,
@@ -517,10 +606,9 @@ function Dialogue.init()
 	panel = layout:FindFirstChild("Panel") :: ImageButton
 	tab = layout:FindFirstChild("NameTab") :: Frame
 	speakerLabel = tab:FindFirstChild("Speaker") :: TextLabel
-	local portrait = panel:FindFirstChild("Portrait") :: Frame
-	local backdrop = portrait:FindFirstChild("Backdrop") :: Frame
-	portraitImage = backdrop:FindFirstChild("Image") :: ImageLabel
-	mark = backdrop:FindFirstChild("Mark") :: TextLabel
+	local backdrop = panel:FindFirstChild("Backdrop", true)
+	portraitImage = backdrop and backdrop:FindFirstChild("Image") :: ImageLabel?
+	mark = backdrop and backdrop:FindFirstChild("Mark") :: TextLabel?
 	local box = panel:FindFirstChild("TextBox") :: Frame
 	line = box:FindFirstChild("Line") :: TextLabel
 	chevron = box:FindFirstChild("Chevron") :: ImageLabel
@@ -528,6 +616,8 @@ function Dialogue.init()
 	template = list:FindFirstChild("Response") :: ImageButton
 	template.Visible = false
 	tabTextSize = speakerLabel.TextSize
+	home = layout.Position
+	choiceShift = (layout:GetAttribute("ChoiceShift") :: number?) or 0
 	tabMaxWidth = panel.Size.X.Offset * 0.6
 
 	Motion.bob(chevron, 4)

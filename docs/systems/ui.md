@@ -196,8 +196,8 @@ cursor, settings and the admin panel.
 - `UiScale.luau`: baseline scaling for new screens. Lay a screen out once inside an
   authored `Canvas` frame (with a `UiScale` UIScale) at 1920x1080, or 844x390 for a
   phone layout; `UiScale.fit(canvas)` scales it to the screen and sizes the canvas to
-  fill it in baseline units. `UiScale.isPhone()` (touch, short side under 600 px,
-  decided once) picks the phone layout. Details in the module header and
+  fill it in baseline units. `UiScale.isPhone()` (short side under 600 px, any
+  input, decided once) picks the phone layout. Details in the module header and
   [overhaul-plan](../ui/overhaul-plan.md) "Resolution and scaling".
 - `HotbarView.luau` (with the weapon slot), `Inventory.luau` (Weapons & Arts and Pouch tabs),
   `InventoryFilter.luau` (chip rail, sort, search), `Rarity.luau` (the rarity ladder and frames),

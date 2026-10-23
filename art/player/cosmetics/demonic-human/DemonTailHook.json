@@ -1,0 +1,269 @@
+{
+ "name": "DemonTailHook",
+ "attachment": "WaistBackAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.5,
+  0.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Horn": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "HornVein": [
+   0.5,
+   0.02,
+   0.03
+  ],
+  "Tail": [
+   0.034,
+   0.028,
+   0.034
+  ],
+  "Spade": [
+   0.03,
+   0.024,
+   0.028
+  ],
+  "TailVein": [
+   0.5,
+   0.02,
+   0.03
+  ]
+ },
+ "shade": {
+  "file": "demonic_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "DemonTailHook_Tail": {
+   "region": "Tail",
+   "tris": 1296,
+   "center": [
+    0.345,
+    0.416,
+    1.448
+   ],
+   "size": [
+    1.036,
+    1.668,
+    2.095
+   ]
+  },
+  "DemonTailHook_Spade": {
+   "region": "Spade",
+   "tris": 320,
+   "center": [
+    0.832,
+    0.709,
+    1.979
+   ],
+   "size": [
+    0.568,
+    0.229,
+    0.674
+   ]
+  },
+  "DemonTailHook_TailVein": {
+   "region": "TailVein",
+   "tris": 664,
+   "center": [
+    0.483,
+    0.612,
+    1.523
+   ],
+   "size": [
+    1.023,
+    1.178,
+    1.645
+   ]
+  }
+ },
+ "tris_total": 2280,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "TailBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    -0.35,
+    0.55
+   ],
+   "tail": [
+    -0.0,
+    -0.276,
+    0.584
+   ],
+   "roblox_head": [
+    -0.0,
+    0.55,
+    -0.35
+   ],
+   "deform": true
+  },
+  "Tail1": {
+   "parent": "TailBase",
+   "head": [
+    -0.0,
+    -0.276,
+    0.584
+   ],
+   "tail": [
+    0.003,
+    0.317,
+    0.843
+   ],
+   "roblox_head": [
+    0.0,
+    0.584,
+    -0.276
+   ],
+   "deform": true
+  },
+  "Tail2": {
+   "parent": "Tail1",
+   "head": [
+    0.003,
+    0.317,
+    0.843
+   ],
+   "tail": [
+    0.066,
+    0.907,
+    1.081
+   ],
+   "roblox_head": [
+    -0.003,
+    0.843,
+    0.317
+   ],
+   "deform": true
+  },
+  "Tail3": {
+   "parent": "Tail2",
+   "head": [
+    0.066,
+    0.907,
+    1.081
+   ],
+   "tail": [
+    0.154,
+    1.135,
+    1.651
+   ],
+   "roblox_head": [
+    -0.066,
+    1.081,
+    0.907
+   ],
+   "deform": true
+  },
+  "Tail4": {
+   "parent": "Tail3",
+   "head": [
+    0.154,
+    1.135,
+    1.651
+   ],
+   "tail": [
+    0.319,
+    0.998,
+    2.254
+   ],
+   "roblox_head": [
+    -0.154,
+    1.651,
+    1.135
+   ],
+   "deform": true
+  },
+  "Tail5": {
+   "parent": "Tail4",
+   "head": [
+    0.319,
+    0.998,
+    2.254
+   ],
+   "tail": [
+    0.756,
+    0.765,
+    2.211
+   ],
+   "roblox_head": [
+    -0.319,
+    2.254,
+    0.998
+   ],
+   "deform": true
+  }
+ },
+ "variant": "Hook",
+ "mood": "tempting, refined",
+ "proportions": {
+  "length": 3.421,
+  "length_to_torso_height": 1.71,
+  "thickness": 0.3,
+  "thickness_to_torso_width": 0.16,
+  "spade_length": 0.62,
+  "spade_length_to_torso_width": 0.33,
+  "spade_span": 0.678,
+  "torso_size": [
+   1.87,
+   1.022,
+   2.0
+  ]
+ },
+ "limb_clearance_running": 0.229,
+ "tightest_limb": "LeftArm at [0.982, 1.098, 1.661], swing 57 deg",
+ "anchors": {
+  "vfx_wisp": {
+   "point": [
+    0.692,
+    0.787,
+    2.33
+   ],
+   "note": "on the whip just above the spade; the purple flame wisp (VFX) attaches here, riding Tail5",
+   "roblox": [
+    -0.692,
+    2.33,
+    0.787
+   ]
+  },
+  "spade_tip": {
+   "point": [
+    1.037,
+    0.666,
+    1.707
+   ],
+   "roblox": [
+    -1.037,
+    1.707,
+    0.666
+   ]
+  }
+ }
+}

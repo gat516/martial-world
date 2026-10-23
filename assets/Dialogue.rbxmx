@@ -167,6 +167,7 @@
         <Content name="Image"><url>rbxassetid://117370482889201</url></Content>
         <Color3 name="ImageColor3"><R>0.509804</R><G>0.588235</G><B>0.784314</B></Color3>
         <float name="ImageTransparency">0.72</float>
+        <BinaryString name="AttributesSerialize">AgAAAAoAAABMaW50SWdub3JlAgQAAABjbGlwEAAAAExpbnRJZ25vcmVSZWFzb24CcQAAAHNvZnQgZ2xvdyBmaWxsaW5nIHRoZSBwb3J0cmFpdCBiYWNrZHJvcDsgYXQgbW9zdCA1JSBvcGFjaXR5IHdoZXJlIHRoZSBiYWNrZHJvcCBjcm9wcyBpdCwgc28gdGhlIGNyb3AgZG9lc24ndCBzaG93</BinaryString>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX22"><Properties>
@@ -586,8 +587,8 @@
        <string name="Name">Label</string>
        <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>0</XS><XO>65</XO><YS>0.552</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>-97</XO><YS>0.7</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>85</XO><YS>0.552</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-117</XO><YS>0.7</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
        <string name="Text">I have completed it.</string>
        <Color3 name="TextColor3"><R>0.960784</R><G>0.92549</G><B>0.839216</B></Color3>
@@ -603,7 +604,7 @@
        <string name="Name">Key</string>
        <Vector2 name="AnchorPoint"><X>1</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>1</XS><XO>-48</XO><YS>0.552</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>1</XS><XO>-64</XO><YS>0.552</YS><YO>0</YO></UDim2>
        <UDim2 name="Size"><XS>0</XS><XO>22</XO><YS>0</YS><YO>22</YO></UDim2>
        <bool name="Visible">false</bool>
        <int name="ZIndex">2</int>
@@ -768,6 +769,7 @@
         <Content name="Image"><url>rbxassetid://117370482889201</url></Content>
         <Color3 name="ImageColor3"><R>0.509804</R><G>0.588235</G><B>0.784314</B></Color3>
         <float name="ImageTransparency">0.72</float>
+        <BinaryString name="AttributesSerialize">AgAAAAoAAABMaW50SWdub3JlAgQAAABjbGlwEAAAAExpbnRJZ25vcmVSZWFzb24CcQAAAHNvZnQgZ2xvdyBmaWxsaW5nIHRoZSBwb3J0cmFpdCBiYWNrZHJvcDsgYXQgbW9zdCA1JSBvcGFjaXR5IHdoZXJlIHRoZSBiYWNrZHJvcCBjcm9wcyBpdCwgc28gdGhlIGNyb3AgZG9lc24ndCBzaG93</BinaryString>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX86"><Properties>
@@ -1188,8 +1190,8 @@
        <string name="Name">Label</string>
        <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>0</XS><XO>56</XO><YS>0.552</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>-84</XO><YS>0.7</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>73</XO><YS>0.552</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-101</XO><YS>0.7</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
        <string name="Text">I have completed it.</string>
        <Color3 name="TextColor3"><R>0.960784</R><G>0.92549</G><B>0.839216</B></Color3>
@@ -1205,7 +1207,7 @@
        <string name="Name">Key</string>
        <Vector2 name="AnchorPoint"><X>1</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>1</XS><XO>-41</XO><YS>0.552</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>1</XS><XO>-55</XO><YS>0.552</YS><YO>0</YO></UDim2>
        <UDim2 name="Size"><XS>0</XS><XO>19</XO><YS>0</YS><YO>19</YO></UDim2>
        <bool name="Visible">false</bool>
        <int name="ZIndex">2</int>

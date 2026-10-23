@@ -12,6 +12,7 @@ return {
 	Surnames = require(CC:WaitForChild("Surnames")),
 	Clothing = require(CC:WaitForChild("Clothing")),
 	HairColors = require(CC:WaitForChild("HairColors")),
+	SkinColors = require(CC:WaitForChild("SkinColors")),
 	Products = require(CC:WaitForChild("Products")),
 	Background = require(CC:WaitForChild("Background")),
 	Rules = require(CC:WaitForChild("Rules")),

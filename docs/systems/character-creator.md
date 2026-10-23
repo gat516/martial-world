@@ -41,6 +41,8 @@ It's a template: the look and every list come from config, and the gameplay hook
   - `Clothing.luau`: Shirt and Pants options (Id, DisplayName, catalog AssetId or Template image,
     optional Thumbnail).
   - `HairColors.luau`: the swatch list.
+  - `SkinColors.luau`: skin swatches on the Clothes tab; the first, `Avatar`
+    (no Color), keeps the player's own skin and is the default.
   - `Products.luau`: reroll developer product ids and the price shown.
   - `Background.luau`: Live or Image, vantage tag / CFrame, sway, blur, fallback image.
   - `Rules.luau`: when the screen shows (`SHOW_ON_JOIN`), whether Enter World
@@ -67,8 +69,14 @@ It's a template: the look and every list come from config, and the gameplay hook
   (`LoadCharacter`). With auto loading off Roblox doesn't respawn the dead, so
   `CharacterIdentity` does, after `Players.RespawnTime`.
 - Every spawn wears the confirmed look on a clean body (user, 2026-10-23): the
-  avatar's skin colours, its chosen hairs (by default the avatar's own), the
-  default head and the classic face, no other accessories. The default outfit is
+  chosen skin colour (or the avatar's own), its chosen hairs (by default the avatar's own), the
+  default head and the classic face, no other accessories. Hairs go on with
+  `Humanoid:AddAccessory` from the same InsertService copies the preview used;
+  `HumanoidDescription.HairAccessory` left newer hair off.
+- Closing the screen hands the camera back as Custom: before a character exists
+  it sits in Fixed, and restoring that left it parked at the vantage.
+- The Identity tab lists every race and last name with its rarity and chance,
+  rarest first, the player's own marked (user, 2026-10-23). The default outfit is
   the ranger shirt and pants, which are template images (`Clothing.Template`), so
   they're worn as is rather than looked up in the catalog.
 - While the screen is open `Menus.setScreen(true)` makes `Menus.isOpen()` true,

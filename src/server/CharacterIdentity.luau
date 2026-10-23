@@ -38,6 +38,7 @@ local Clothing = require(CC.Clothing)
 local HairColors = require(CC.HairColors)
 local Products = require(CC.Products)
 local Races = require(CC.Races)
+local SkinColors = require(CC.SkinColors)
 local Rules = require(CC.Rules)
 local Surnames = require(CC.Surnames)
 local Receipts = require(script.Parent.Receipts)
@@ -47,6 +48,7 @@ export type Look = {
 	Pants: string,
 	HairIds: { number }, -- catalog ids of hair accessories, up to Rules.MAX_HAIRS (empty for none)
 	HairColor: string, -- HairColors Id
+	SkinColor: string, -- SkinColors Id ("Avatar" keeps the avatar's skin)
 	FirstName: string,
 }
 
@@ -110,6 +112,15 @@ local function colorById(id: string): Color3?
 	for _, entry in HairColors do
 		if entry.Id == id then
 			return entry.Color
+		end
+	end
+	return nil
+end
+
+local function skinById(id: any): SkinColors.SkinColor?
+	for _, entry in SkinColors do
+		if entry.Id == id then
+			return entry
 		end
 	end
 	return nil
@@ -262,14 +273,17 @@ local function dress(player: Player, look: Look)
 	-- A clean body (user, 2026-10-23): the avatar's skin colours and nothing else
 	-- of theirs but the chosen hairs; the default head and the classic face (Head
 	-- and Face 0), no other accessories, and only the chosen shirt and pants.
+	-- A picked skin colour (SkinColors) replaces the avatar's on every part.
 	local okDesc, applied = pcall(humanoid.GetAppliedDescription, humanoid)
 	local description = Instance.new("HumanoidDescription")
-	if okDesc and applied then
-		for _, part in { "Head", "Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg" } do
+	local skin = skinById(look.SkinColor)
+	for _, part in { "Head", "Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg" } do
+		if skin and skin.Color then
+			(description :: any)[part .. "Color"] = skin.Color
+		elseif okDesc and applied then
 			(description :: any)[part .. "Color"] = (applied :: any)[part .. "Color"]
 		end
 	end
-	description.HairAccessory = table.concat(look.HairIds, ",")
 	description.Shirt = if shirt then shirt.AssetId else 0
 	description.Pants = if pants then pants.AssetId else 0
 	local ok, err = pcall(humanoid.ApplyDescription, humanoid, description)
@@ -299,12 +313,17 @@ local function dress(player: Player, look: Look)
 			end
 		end
 	end
+	-- Hair goes on as the same accessories the preview showed (loaded through
+	-- InsertService). HumanoidDescription.HairAccessory left newer hair off.
 	local color = colorById(look.HairColor)
-	if color then
-		for _, accessory in character:GetChildren() do
-			if accessory:IsA("Accessory") and accessory.AccessoryType == Enum.AccessoryType.Hair then
-				Rules.tintHair(accessory, color)
+	for _, id in look.HairIds do
+		local hair = loadHair(id)
+		if hair then
+			local copy = hair:Clone()
+			if color then
+				Rules.tintHair(copy, color)
 			end
+			humanoid:AddAccessory(copy)
 		end
 	end
 end
@@ -318,6 +337,9 @@ local function confirm(player: Player, raw: any): (boolean, any)
 	end
 	if not colorById(raw.HairColor) then
 		return false, "Pick a hair colour"
+	end
+	if not skinById(raw.SkinColor) then
+		return false, "Pick a skin colour"
 	end
 	local hairIds: { number } = {}
 	if type(raw.HairIds) ~= "table" then
@@ -344,6 +366,7 @@ local function confirm(player: Player, raw: any): (boolean, any)
 		Pants = raw.Pants,
 		HairIds = hairIds,
 		HairColor = raw.HairColor,
+		SkinColor = raw.SkinColor,
 		FirstName = name :: string,
 	}
 	looks[player] = look

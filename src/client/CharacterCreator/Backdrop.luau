@@ -103,7 +103,10 @@ function Backdrop.close()
 		local character = Players.LocalPlayer.Character
 		subject = character and character:FindFirstChildOfClass("Humanoid")
 	end
-	camera.CameraType = if was.cameraType == Enum.CameraType.Scriptable then Enum.CameraType.Custom else was.cameraType
+	-- Before a character exists the camera sits in Fixed (no auto loading in the
+	-- test place); handing that back would leave it parked at the vantage.
+	local stuck = was.cameraType == Enum.CameraType.Scriptable or was.cameraType == Enum.CameraType.Fixed
+	camera.CameraType = if stuck then Enum.CameraType.Custom else was.cameraType
 	camera.CameraSubject = subject
 	camera.FieldOfView = was.fov
 end

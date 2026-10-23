@@ -5,6 +5,7 @@
 --   Hair1..Hair3   catalog id of a hair the server loaded in that slot (one per
 --                  field on the Hair tab, Rules.MAX_HAIRS of them), or nil
 --   HairColor      HairColors Id
+--   SkinColor      SkinColors Id ("Avatar" keeps the avatar's own skin)
 --   FirstName      the raw text in the field (checked with Rules.checkFirstName)
 --   Tab            the open tab's Id
 -- Race and last name are not here: they're the server's, read from the
@@ -20,6 +21,7 @@ export type Values = {
 	Hair2: number?,
 	Hair3: number?,
 	HairColor: string,
+	SkinColor: string,
 	FirstName: string,
 	Tab: string,
 }
@@ -38,6 +40,7 @@ function State.new(defs: any): State
 			Hair2 = nil,
 			Hair3 = nil,
 			HairColor = defs.HairColors[1].Id,
+			SkinColor = defs.SkinColors[1].Id,
 			FirstName = "",
 			Tab = "Clothes",
 		} :: Values,
@@ -92,6 +95,7 @@ function State.look(self: State): { [string]: any }
 		Pants = v.Pants,
 		HairIds = self:hairIds(),
 		HairColor = v.HairColor,
+		SkinColor = v.SkinColor,
 		FirstName = v.FirstName,
 	}
 end

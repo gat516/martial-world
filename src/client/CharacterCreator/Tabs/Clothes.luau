@@ -1,6 +1,7 @@
 --!strict
--- Clothes tab: exactly two sections, Shirt and Pants, one card per option in
--- Shared.CharacterCreator.Clothing. A tap selects and dresses the preview.
+-- Clothes tab: Shirt and Pants, one card per option in
+-- Shared.CharacterCreator.Clothing (a tap selects and dresses the preview), then
+-- Skin Color, one swatch per SkinColors entry.
 
 local Clothes = {}
 
@@ -71,6 +72,36 @@ function Clothes.build(page: ScrollingFrame, ctx: any)
 			end
 		end)
 	end
+
+	-- Skin Color: "Avatar" (no Color) keeps the player's own skin.
+	components.sectionHeader(page, "Skin Color", 5)
+	local grid = components.grid(page, "SwatchGrid", 6, "SkinGrid")
+	local caption = components.note(page, "", 7, "SkinName")
+	local swatches = {}
+	for order, entry in defs.SkinColors do
+		local shown = entry.Color or Color3.fromRGB(205, 170, 140) -- a neutral tone stands for the avatar's own
+		swatches[entry.Id] = components.swatch(grid, entry.Id, shown, order, function()
+			state:set("SkinColor", entry.Id)
+		end)
+	end
+	local function paintSkin()
+		local current = state:get("SkinColor")
+		for id, swatch in swatches do
+			swatch.setSelected(id == current)
+		end
+		for _, entry in defs.SkinColors do
+			if entry.Id == current then
+				caption.Text = entry.DisplayName
+				ctx.preview.chooseSkin(entry.Color)
+			end
+		end
+	end
+	paintSkin()
+	state:onChanged(function(key)
+		if key == "SkinColor" then
+			paintSkin()
+		end
+	end)
 
 	task.spawn(function()
 		templates = ctx.bridge.fetchTemplates()

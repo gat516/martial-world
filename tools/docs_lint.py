@@ -50,7 +50,7 @@ def main():
         rel = os.path.relpath(path, ROOT)
         with open(path, encoding="utf-8") as f:
             text = f.read()
-        lines = text.split("\n")
+        lines = text.splitlines()
         for m in LINK_RE.finditer(text):
             t = m.group(1)
             if re.match(r"[a-z]+:", t) or t.startswith("#"):

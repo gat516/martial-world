@@ -26,6 +26,7 @@ Every turn re-sends the whole context, so anything that enters it is paid for ag
 
 `main` is production (what's live). `test` is where all work lands first (user, 2026-10-22).
 - Start each feature on its own branch off the latest `test` (`git fetch && git switch -c <feature> origin/test`), in its own worktree when other sessions share the repo.
+- Remove the worktree and branch once the feature is pushed to `test` or dropped (`git worktree remove <path> && git branch -D <feature>`). Nothing else cleans them up.
 - Only the owner (gat516) pushes or merges to `main`. Never push to `test` work the dev hasn't approved in the test build.
 
 ## Docs

@@ -243,9 +243,8 @@ read [docs/ui/slicing.md](../../docs/ui/slicing.md).
 
 ## Code you'll touch
 
-The client UI scripts are listed in `docs/systems/ui.md`, "Key files". `Platform.isTouch()`
-is decided once at startup. Look things up through `Hud.Stack`, `Hud.Play` or
-`FindFirstChild(name, true)`.
+Scripts: `docs/systems/ui.md`, "Key files". `Platform.isTouch()` is decided once at
+startup; find things through `Hud.Stack`, `Hud.Play` or `FindFirstChild(name, true)`.
 
 When done, report what you previewed and on which devices and sizes, the
 centring numbers, and the phone footprint before and after (`agent-report`).

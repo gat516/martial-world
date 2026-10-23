@@ -50,6 +50,7 @@ export type Look = {
 	FirstName: string,
 }
 
+local CLASSIC_FACE = "rbxasset://textures/face.png" -- Roblox's default smile
 local HAIR_COOLDOWN = 1.5 -- seconds between hair loads per player
 local PREVIEW_FOLDER = "CharacterPreview" -- in PlayerGui: only that player sees it
 
@@ -247,18 +248,44 @@ local function dress(player: Player, look: Look)
 	end
 	local shirt = optionById(Clothing.Shirt, look.Shirt)
 	local pants = optionById(Clothing.Pants, look.Pants)
-	local okDesc, description = pcall(humanoid.GetAppliedDescription, humanoid)
-	if okDesc and description then
-		if shirt and shirt.AssetId > 0 then
-			description.Shirt = shirt.AssetId
+	-- A clean body (user, 2026-10-23): the avatar's skin colours and nothing else
+	-- of theirs but the chosen hairs; the default head and the classic face (Head
+	-- and Face 0), no other accessories, and only the chosen shirt and pants.
+	local okDesc, applied = pcall(humanoid.GetAppliedDescription, humanoid)
+	local description = Instance.new("HumanoidDescription")
+	if okDesc and applied then
+		for _, part in { "Head", "Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg" } do
+			(description :: any)[part .. "Color"] = (applied :: any)[part .. "Color"]
 		end
-		if pants and pants.AssetId > 0 then
-			description.Pants = pants.AssetId
-		end
-		description.HairAccessory = table.concat(look.HairIds, ",")
-		local ok, err = pcall(humanoid.ApplyDescription, humanoid, description)
-		if not ok then
-			warn("CharacterIdentity: couldn't dress", player.Name, err)
+	end
+	description.HairAccessory = table.concat(look.HairIds, ",")
+	description.Shirt = if shirt then shirt.AssetId else 0
+	description.Pants = if pants then pants.AssetId else 0
+	local ok, err = pcall(humanoid.ApplyDescription, humanoid, description)
+	description:Destroy()
+	if not ok then
+		warn("CharacterIdentity: couldn't dress", player.Name, err)
+	end
+	-- Face 0 should leave the classic smile; make sure of it.
+	local head = character:FindFirstChild("Head")
+	local face = head and head:FindFirstChildOfClass("Decal")
+	if face then
+		face.Texture = CLASSIC_FACE
+	end
+	-- Options with a Template image are worn as is (no catalog item to apply).
+	for kind, option in { Shirt = shirt, Pants = pants } do
+		local template = option and option.Template
+		if template then
+			local clothing = character:FindFirstChildOfClass(kind :: any)
+			if not clothing then
+				clothing = Instance.new(kind :: any)
+				clothing.Parent = character
+			end
+			if clothing:IsA("Shirt") then
+				clothing.ShirtTemplate = template
+			elseif clothing:IsA("Pants") then
+				clothing.PantsTemplate = template
+			end
 		end
 	end
 	local color = colorById(look.HairColor)

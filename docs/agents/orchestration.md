@@ -40,6 +40,11 @@ It replaces publishing the testbed as its own experience, which didn't work out
 - The dev playtests there. Fixes go on the same feature branch and are merged
   again. Once the dev approves, push: `git -C ../martial-world-test push origin test`.
   If they drop the feature, reset the test checkout to `origin/test`.
+- **Tear down** once the feature is pushed or dropped: `git worktree remove
+  ../martial-world-<feature>` and `git branch -D <feature>` (`-D` because the
+  branch was merged into `test`, not into whatever the main checkout has out).
+  Nothing else removes them, and they pile up.
+  `git worktree list` shows what's left; the test checkout always stays.
 - Only the owner (gat516) merges `test` into `main` and publishes. GitHub doesn't
   enforce this yet (the plan is a ruleset on `main` that blocks pushes, force-pushes
   and deletion, with only the Repository admin role allowed past it), so it holds

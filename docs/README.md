@@ -30,7 +30,7 @@ should look, from the reference videos) and [`vfx/toolkit.md`](vfx/toolkit.md)
 | `src/first/` | `ReplicatedFirst` | runs first on the client: `EditorOnly` strips editor-only markers |
 | `assets/*.rbxmx` | mapped instances | MCP-authored Studio instances (GUIs, remotes, templates, the map) |
 | `art/` | - | Blender sources and UI art scripts (not synced); the map's landforms come from `art/main_peak/` (`build_main_peak.py`, `place_main_peak.luau`) and the spirit-peak pillar scripts (`art/build_peak_pillar.py`, `art/place_peak_pillar.luau`) |
-| `tools/` | - | checks, sandbox Studios, exporters, the asset uploader, the VFX library and preview kits, the POI tour: the full list is in [tools.md](tools.md) |
+| `tools/` | - | checks (the UI lint `ui_lint`, the export round-trip check `export_check`), sandbox Studios, exporters, the asset uploader, the VFX library and preview kits, the POI tour: the full list is in [tools.md](tools.md) |
 
 Entry points: `src/server/Main.server.luau` (requires every server module, loads
 profiles, wires remotes and hooks) and `src/client/Main.client.luau` (inits every

@@ -122,12 +122,16 @@ cursor, settings and the admin panel.
   splits icon sheets on a 4 x 3 grid, and writes `manifest.json` (sizes, tiles,
   flags) plus `contact_sheet.png`. The user approves the contact sheet before
   anything is uploaded. Run with `uv run --with pillow --with numpy`.
-- Display-sized copies (`ui_assemble.py --sized`, its `SIZED` table): Roblox draws GUI
+- Display-sized copies (`ui_assemble.py --sized`, registry `art/ui/sized/sized.json`): Roblox draws GUI
   images without mipmaps, so a source shown at a fifth of its size aliases (thin gilt
   lines break up, curls go soft; "you can kinda tell that the resolution sucks",
   2026-10-23). Anything shown far below its source gets a Lanczos copy at about 2x its
   largest baseline display size in `art/ui/sized/<stem>_h<height>.png` (resampling
-  only). A 9-sliced copy keeps its proportions: SliceCenter x height/source height,
+  only), with a clear margin of at least a screen pixel on every side that doesn't join
+  another piece, so ornament tips aren't cut flat by the image's edge
+  ([slicing](../ui/slicing.md), "Edge margin"; `tools/ui_margin.py` makes them from
+  the lint's findings and grows the elements to match). A 9-sliced copy keeps margin 0
+  and its proportions: SliceCenter x height/source height,
   SliceScale divided by the same. Aim for a source 1.5-2.5x the displayed size.
 - Plates whose ornaments run the art's full height (cloud-cap tabs, tags) are never one
   9-sliced image: Roblox crops the caps. They are three ImageLabels (`CapL`, `Mid`,

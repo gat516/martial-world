@@ -320,7 +320,7 @@ def cut_piece_sheet(sheet, src):
 
 # Pieces with ornate ends and a plain middle (buttons, banners): also cut as left cap,
 # a narrow middle strip to stretch, and right cap, from the full-resolution art.
-SLICE3 = {"response_button", "tag_jade", "tag_crimson", "response_button_hi", "prompt_banner", "title_crest", "board_header",
+SLICE3 = {"response_button", "tag_jade", "tag_crimson", "tag_bronze", "tag_gold", "tag_violet", "response_button_hi", "prompt_banner", "title_crest", "board_header",
           "objective_banner", "ribbon_crimson", "ribbon_jade", "catalog_tab", "catalog_tab_selected",
           "seat_plate", "epithet_ribbon", "event_scroll", "tribulation_ribbon",
           "leaderboard_row", "leaderboard_row_you", "rift_tag"}
@@ -641,70 +641,87 @@ def stitched(entry):
 
 # Display-sized copies (python tools/ui_assemble.py --sized). Roblox draws GUI images
 # without mipmaps, so a source shown at a fraction of its size aliases: thin gilt lines
-# break up and curls go soft or jagged. Each entry is a source under art/ui and the
-# height to resample it to (about 2x its largest baseline display height), written
-# with Lanczos to art/ui/sized/<stem>_h<height>.png. Resampling only, never a repaint.
-# A 9-sliced copy keeps its proportions: scale its SliceCenter by height/source height
-# and divide its SliceScale by the same factor.
+# break up, curls go soft or jagged, and tips that reach the image's edge are cut
+# straight by the quad's edge (the cuts keep only a 2 px pad, a fraction of a screen
+# pixel once shrunk). The registry art/ui/sized/sized.json lists each source under
+# art/ui and the art heights to resample it to (about 2x its largest baseline display
+# height); each is written with Lanczos to art/ui/sized/<stem>_h<height>.png with a
+# clear margin around the art: `margin` px (default SIZED_MARGIN of the height, at
+# least 2), on every side except the ones that join another piece (`joins`; by default
+# a SLICE3 cap's inner side and a middle's both sides); `margins` {height: px} sets it
+# per height (a 9-sliced copy keeps 0). The margin is what keeps
+# ornament tips whole; tools/ui_margin.py sizes it so it is at least a screen pixel
+# wherever the copy is shown, and grows the elements that show it to match.
+# Resampling and transparent padding only, never a repaint. A 9-sliced copy keeps its
+# proportions: scale its SliceCenter by height/source height (plus the margin) and
+# divide its SliceScale by the same factor.
 SIZED_DIR = ROOT / "art" / "ui" / "sized"
-SIZED = {
-    # Inventory: pills, Sort, the detail buttons, search box, panel, plaque, close
-    "button_gold.png": 64, "button_lacquer.png": 64, "button_jade.png": 64,
-    "panel_frame.png": 512, "title_plaque.png": 80, "note_panel.png": 96,
-    "seal_close.png": 96, "field_inset.png": 64, "bar_rim.png": 32,
-    # Inventory cells, hotbar and badges
-    "seal_mark.png": 48, "chip.png": 32, "icons/icon_SpiritStone.png": 48, "icons/icon_Insight.png": 48,
-    **{f"codex/cut/ornament_gem_{g}.png": 40 for g in ("grey", "jade", "violet", "gold")}, "art_disc.png": 96, "weapon_badge.png": 48,
-    "codex/cut/ornament_tag_crimson_capL.png": 40, "codex/cut/ornament_tag_crimson_mid.png": 40,
-    "codex/cut/ornament_tag_crimson_capR.png": 40,
-    "codex/cut/ornament_item_slot.png": 80, "codex/cut/ornament_item_slot_selected.png": 80,
-    **{f"glyphs/class_{c}.png": 64 for c in ("Fist", "Sword", "Saber", "Greatsword", "Guandao", "Spear", "Staff")},
-    # PC Dash / Strike chips
-    "figma/hud_round_seal.png": 48, "chip_shade.png": 48,
-    "codex/cut/ornament_element_wind.png": 40, "codex/cut/ornament_weapon_sword.png": 40,
-    # Spirit Market
-    "codex/cut/ornament_catalog_tab_capL.png": 80, "codex/cut/ornament_catalog_tab_mid.png": 80,
-    "codex/cut/ornament_catalog_tab_capR.png": 80, "codex/cut/ornament_catalog_tab_selected_capL.png": 80,
-    "codex/cut/ornament_catalog_tab_selected_mid.png": 80, "codex/cut/ornament_catalog_tab_selected_capR.png": 80,
-    "codex/cut/ornament_tag_jade_capL.png": 40, "codex/cut/ornament_tag_jade_mid.png": 40,
-    "codex/cut/ornament_tag_jade_capR.png": 40,
-    "stone_icon.png": 40, "codex/cut/ornament_glyph_lock.png": 40, "codex/cut/ornament_peak_meter.png": 144,
-    "codex/cut/ornament_title_crest.png": 104, "codex/cut/ornament_close_seal.png": 80,
-    **{f"codex/cut/ornament_set_{s}.png": 96 for s in ("courtyard", "jade_pavilion", "cloud_palace", "herb_house",
-                                                       "library", "formation")},
-    **{f"codex/cut/ornament_window_corner_small{c}.png": 88 for c in ("", "_tr", "_bl", "_br")},
-}
-# Sources that need a second, bigger copy (a frame 9-sliced larger elsewhere).
-SIZED_EXTRA = {"codex/cut/ornament_item_slot.png": 184, "codex/cut/ornament_item_slot_selected.png": 184}
+SIZED_REGISTRY = SIZED_DIR / "sized.json"
+SIZED_MARGIN = 0.05
+JOIN_SUFFIXES = {"_capL": ["right"], "_capR": ["left"], "_mid": ["left", "right"],
+                 "_midL": ["left", "right"], "_midR": ["left", "right"], "_centre": ["left", "right"]}
 
 
-def sized_copies():
+def sized_registry():
+    return json.loads(SIZED_REGISTRY.read_text())
+
+
+def sized_joins(rel, entry):
+    if "joins" in entry:
+        return entry["joins"]
+    stem = Path(rel).stem
+    for suffix, sides in JOIN_SUFFIXES.items():
+        if stem.endswith(suffix):
+            return sides
+    return []
+
+
+def sized_layout(rel, entry, h, src_size):
+    """(file name, art width, art height, margins left/top/right/bottom) of one copy."""
+    sw, sh = src_size
+    w = max(1, round(sw * h / sh))
+    per = entry.get("margins", {})
+    m = per[str(h)] if str(h) in per else entry["margin"] if "margin" in entry else max(2, math.ceil(h * SIZED_MARGIN))
+    joins = sized_joins(rel, entry)
+    margins = [0 if side in joins else m for side in ("left", "top", "right", "bottom")]
+    return f"{Path(rel).stem}_h{h}.png", w, h, margins
+
+
+def resample(im, w, h):
+    """Lanczos in premultiplied alpha, ringing clamped (no dark fringes or off-hue specks)."""
+    if (w, h) == im.size:
+        return im
+    arr = np.asarray(im).astype(np.float32) / 255
+    arr[..., :3] *= arr[..., 3:4]
+    chans = [Image.fromarray(arr[..., i]).resize((w, h), Image.LANCZOS) for i in range(4)]
+    out = np.dstack([np.asarray(c) for c in chans]).clip(0, 1)
+    a = out[..., 3:4]
+    out[..., :3] = np.clip(out[..., :3], 0, a)
+    out[..., :3] = np.where(a > 1e-4, out[..., :3] / np.maximum(a, 1e-4), 0)
+    return Image.fromarray(np.round(out * 255).astype(np.uint8), "RGBA")
+
+
+def sized_copies(only=None):
     SIZED_DIR.mkdir(parents=True, exist_ok=True)
-    jobs = list(SIZED.items()) + list(SIZED_EXTRA.items())
-    for rel, h in jobs:
-        im = Image.open(ROOT / "art" / "ui" / rel).convert("RGBA")
-        if h >= im.height:
-            print(f"skip {rel}: already {im.height} px tall")
+    for rel, entry in sorted(sized_registry().items()):
+        if only and rel not in only:
             continue
-        w = max(1, round(im.width * h / im.height))
-        # resample in premultiplied alpha so transparent pixels don't bleed dark fringes
-        arr = np.asarray(im).astype(np.float32) / 255
-        arr[..., :3] *= arr[..., 3:4]
-        chans = [Image.fromarray(arr[..., i]).resize((w, h), Image.LANCZOS) for i in range(4)]
-        out = np.dstack([np.asarray(c) for c in chans]).clip(0, 1)
-        a = out[..., 3:4]
-        # Lanczos rings past the edge: keep premultiplied colour inside [0, alpha], or a
-        # faint fringe pixel divides into a bright off-hue speck
-        out[..., :3] = np.clip(out[..., :3], 0, a)
-        out[..., :3] = np.where(a > 1e-4, out[..., :3] / np.maximum(a, 1e-4), 0)
-        name = f"{Path(rel).stem}_h{h}.png"
-        Image.fromarray(np.round(out * 255).astype(np.uint8), "RGBA").save(SIZED_DIR / name)
-        print(f"{rel} {im.width}x{im.height} -> sized/{name} {w}x{h}")
+        im = Image.open(ROOT / "art" / "ui" / rel).convert("RGBA")
+        for h in entry["heights"]:
+            if h > im.height:
+                print(f"skip {rel}: only {im.height} px tall, asked for {h}")
+                continue
+            name, w, hh, (ml, mt, mr, mb) = sized_layout(rel, entry, h, im.size)
+            art = resample(im, w, hh)
+            out = Image.new("RGBA", (w + ml + mr, hh + mt + mb), (0, 0, 0, 0))
+            out.paste(art, (ml, mt))
+            out.save(SIZED_DIR / name)
+            print(f"{rel} {im.width}x{im.height} -> sized/{name} {out.width}x{out.height} (art {w}x{hh}, margin {ml},{mt},{mr},{mb})")
 
 
 def main():
     if "--sized" in sys.argv:
-        sized_copies()
+        sized_copies(set(a for a in sys.argv[1:] if a != "--sized") or None)
         return
     only = set(sys.argv[1:])
     OUT.mkdir(parents=True, exist_ok=True)

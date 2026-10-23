@@ -5,6 +5,74 @@ before setting a `SliceCenter`, cutting stretchable art or drawing bars and fill
 The art workflow itself (reference, Figma kit, Codex sheets, `tools/ui_assemble.py`) is in
 the ui-designer agent and [overhaul-plan](overhaul-plan.md). Core: [ui](../systems/ui.md).
 
+## The lint is the gate
+
+Every cropping, flattening, off-screen and text-under-ornament complaint so far is
+caught mechanically now. After any UI change (layout, art, a SliceCenter), before
+showing it or committing:
+
+1. In your sandbox (Edit mode), run `tools/ui_lint.luau` through `execute_luau`
+   (paste the file, or serve `tools/` on loopback and `loadstring` it). It lays every
+   ScreenGui in StarterGui and ReplicatedStorage out at 1920x1080, 1366x768, 844x390
+   (with the notched phone's safe-area insets) and 667x375, opens every hidden
+   window, card, template and state overlay as its own scene, and posts one JSON dump
+   per GUI and size to the receiver (`tools/ensure_receiver.sh`) as
+   `tools/frag/uilint_<W>x<H>_<gui>.xml`. Delete old dumps first.
+2. `uv run --with pillow python3 -I tools/ui_lint.py [--frag DIR] [--gui NAME] [--all]`
+   prints FAIL/WARN counts per GUI and every finding; exit 1 on any FAIL.
+
+Then look at what it lists, not at the whole screen. The checks (docstring of
+`tools/ui_lint.py`): **clip** (an element or its 1.05 hover box leaves its clipping
+ancestor or the screen; scrolling content may run on along a scrolling axis, a UiScale
+canvas is the screen), **edge-margin** (ornament tips reach the image's own edge with
+less than a screen pixel of clear margin, so the quad's edge cuts them straight),
+**slice** (an edge strip whose outline changes along it), **oversize** (art shown above
+its source size), **text** (text that doesn't fit), **text-cap** (glyphs under a ribbon
+cap's ornament, measured from the cap image itself), and the WARNs (centre, padding,
+TextScaled on repeated tiles, unknown art ids, colour gradients in strips, ImageRect
+cuts, cut PNGs touching their border).
+
+Marks the lint reads (attributes; `tools/export_rbxmx.luau` keeps them):
+- `LintIgnore` = `true` (skip the instance and everything in it) or a list of checks
+  (`"clip,oversize"`, inherited by descendants), always with a `LintIgnoreReason`.
+  Only for what is meant to be that way: radial-timer halves clipping their ring,
+  light bursts running off a phone screen, soft washes upscaled, script-placed
+  pointers parked off screen, the character creator (laid out by its controller).
+- `LintMount` on a template = the path (from its ScreenGui) where code mounts it, so
+  it's measured at its real size (`"Canvas.Board.Content.Notices"`). A template
+  without one, parked in a `Templates` holder, is checked for its art only.
+- `Device` UIScales use the phone scales in `DEVICE` (CultivationGui.luau,
+  DeathScreen.luau): keep them in step.
+
+## Edge margin: why ornaments looked cut flat
+
+The cutter keeps a 2 px pad around each piece; shown at a fifth of its size that is
+under half a screen pixel, and Roblox draws GUI images without mipmaps, so the outermost
+display pixel samples the stud or curl itself and the quad's edge cuts it straight
+(the cultivate tiles' corner studs and ruby badge, 2026-10-23). The fix is never a
+repaint: a display-sized copy (`tools/ui_assemble.py --sized`, registry
+`art/ui/sized/sized.json`) at about 2x its display height with a clear `margin` of at
+least a screen pixel on every side that doesn't join another piece, and the element
+grown by that margin so the art stays put. `tools/ui_margin.py` does it from the lint's
+findings (plan, upload, `ids`, then `tools/ui_margin.luau` in Studio; read its
+docstring). Images code swaps into the same element (rarity tiles, gems, studs,
+medallions) are one family with one margin (`FAMILIES` there).
+
+## Export round-trip check
+
+`tools/export_rbxmx.luau` writes only the properties in its list. A property missing
+from it silently reverts when Rojo builds the file (a crop shipped when
+`SizeConstraint` was missing). After every export:
+
+1. In Studio: `_G.EXPORTCHECK = { target = "StarterGui.Hud", name = "Hud" }`, then run
+   `tools/export_check.luau` (after `tools/export_rbxmx.luau`).
+2. `python3 tools/export_check.py assets/Hud.rbxmx [--frag DIR]` (add
+   `--root-name CharacterCreatorGui` for the creator, whose file renames its root).
+
+It FAILs on any property that differs from the default live but is missing from the
+file or written differently, on attributes, and on structure. Add a dropped property to
+the exporter's `PROPS` and export again.
+
 ## Legacy Pillow art
 
 - New frames, panels, buttons and ornaments come from generated sheets, not
@@ -38,16 +106,16 @@ This has cropped our pills flat more than once.
   rounded rectangle.
 - `SliceCenter` needs a margin on every side (no 0 or full-size edge), or
   Roblox clips the art.
-- Run `uv run --with pillow python tools/check_slices.py` after drawing art or
-  changing a `SliceCenter`. FAIL means the outline changes along an edge
+- `tools/ui_lint.py` checks every slice as shown (only the strips that actually
+  stretch at that size). `uv run --with pillow python tools/check_slices.py` still
+  checks the files on disk without Studio. FAIL means the outline changes along an edge
   strip, so fix the art or the rect. "warn" means a colour gradient along a
   strip, which is fine unless it's an ornament. Put the intended
   `SliceCenter` and `SliceScale` in the drawing function's docstring.
 - A local Pillow simulation of the slice doesn't match Roblox's renderer; it
-  showed these pills as perfect while Roblox cropped them. The real check is in
-  Studio: `screen_capture` with the element visible at its real size, then crop
-  and enlarge that region with Pillow and Read it. Look at the ends and
-  corners closely before calling art done.
+  showed these pills as perfect while Roblox cropped them. Run `ui_lint`, then look
+  at what it lists: `screen_capture` with that element visible at its real size,
+  crop and enlarge the region with Pillow and Read it.
 - If an image can't be sliced cleanly, use `ScaleType.Stretch` at its native
   aspect ratio.
 - **Plates with ornaments across their height (cloud caps, scroll ends) are never

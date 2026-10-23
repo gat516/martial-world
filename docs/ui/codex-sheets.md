@@ -162,6 +162,15 @@ After cutting: compose each pair onto a copy of the `Export / Roblox Boss Bar` s
 Mount in Figma (node 35:181), export it as `bossbar_mount_<beast>.png` with
 `tools/figma_boss_export.py`, upload it and set that boss's `mount` in `BossThemes.luau`.
 
+### B6. Meditation glyphs (white; the seated tiles, [cultivation](cultivation.md))
+The seated tiles use the A5/A6 glyphs where one fits (qi swirl for Circulate, insight for
+Technique, quest scroll for Method) and the older Pillow icons for the rest (Break Through,
+Rise, Practice, Weapon Dao, Back, the death-save seal). This sheet replaces those stand-ins.
+```text
+Same white-glyph grid rules as A5, 3 x 3:
+Break through (an arrow rising through a cracked ring), rise (a figure standing up from a meditation cushion), practice (two crossed jian), weapon Dao drill (a single jian with three motion arcs), return (a curved back arrow), calm view (a lotus flower, front-on), circulation (a qi swirl running round a small dantian circle), foundation (three stacked stones), survive (a heart inside a rising flame).
+```
+
 ## C. Later: garden, building, Halls, masters, events
 
 ### C1. Herbarium and garden (roadmap 5)

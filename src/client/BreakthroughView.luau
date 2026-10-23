@@ -7,10 +7,13 @@
 -- The ready nudge: when BreakthroughReady turns true, a toast says so once; after
 -- that it comes back only while the player is idle (no input for NUDGE_IDLE) and
 -- standing, at most every NUDGE_EVERY seconds, until they break through.
+-- The local player's own breakthrough also shows the Rewards milestone card
+-- (docs/ui/rewards.md).
 
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 

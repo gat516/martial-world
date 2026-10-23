@@ -11,7 +11,7 @@
 local PROPS = {
 	"Name", "Active", "AnchorPoint", "AutomaticSize", "BackgroundColor3", "BackgroundTransparency",
 	"BorderSizePixel", "ClipsDescendants", "LayoutOrder", "Position", "Rotation", "Size", "Visible",
-	"ZIndex", "Interactable", "AutoButtonColor", "Selectable", "Text", "TextColor3", "TextSize", "TextScaled",
+	"ZIndex", "SizeConstraint", "Interactable", "AutoButtonColor", "Selectable", "Text", "TextColor3", "TextSize", "TextScaled",
 	"TextWrapped", "TextXAlignment", "TextYAlignment", "TextTransparency", "TextStrokeTransparency",
 	"TextStrokeColor3", "TextTruncate", "RichText", "FontFace", "LineHeight", "Image", "ImageColor3",
 	"ImageTransparency", "ScaleType", "SliceCenter", "SliceScale", "ImageRectOffset", "ImageRectSize",

@@ -57,6 +57,9 @@
       "Herbarium": {
         "$path": "assets/Herbarium.rbxmx"
       },
+      "Cultivation": {
+        "$path": "assets/Cultivation.rbxmx"
+      },
       "Prompts": {
         "$path": "assets/Prompts.rbxmx"
       },

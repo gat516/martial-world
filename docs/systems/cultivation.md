@@ -67,7 +67,8 @@ felt in fights.
 - Client: `SeatBars.luau` (the seated cultivation track with its overflow past the mark
   and the dantian; cultivation is off the fighting HUD), `BreakthroughView.luau`
   (button, light column, the milestone card on your own breakthrough and the
-  "ready to break through" nudge),
+  "ready to break through" nudge); the ready-to-wire foundation meter and death-save
+  are in [cultivation UI](../ui/cultivation.md),
   `CirculationMinigame.luau`.
 
 ## Data flow

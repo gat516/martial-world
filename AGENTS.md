@@ -12,6 +12,14 @@ first. A subagent doing one task doesn't need it.
 - The user playtests. Don't write or run tests, start play sessions, or verify through the MCP unless explicitly asked. Note what's untested instead of claiming it works.
 - Commit each finished feature as one revertible commit, staging only that feature's files. The subject says what changed; the body says why, plus anything unfinished or next.
 
+## Token budget
+
+Every turn re-sends the whole context, so anything that enters it is paid for again on every later turn. Subagent runs are about three quarters of the project's spend (`python3 tools/token_report.py`).
+- **Captures cost the most.** A Studio `screen_capture` is ~1.7k tokens and stays for the rest of the run; map and vfx runs have averaged 20-30. Check by numbers first (positions, bounds, `AbsolutePosition`, raycasts) and capture only to confirm a look, once per change, not after each tweak. Give `blender__look` a small `max_size`. Don't Read back images you've already seen.
+- **Read narrowly.** Grep for the spot, then Read with `offset`/`limit`. Read a doc's index and the one part you need. Don't re-read what you just wrote or read.
+- **Keep output short.** Trim command output with `tail`, `head` or `grep`; have Luau and Python print a summary, not instance-tree dumps.
+- **One deliverable per run.** When a run has grown long (dozens of captures, 100+ turns), commit, then hand back with what's next instead of pushing on; a fresh agent picks it up from the branch.
+
 ## Branches
 
 `main` is production (what's live). `test` is where all work lands first (user, 2026-10-22).

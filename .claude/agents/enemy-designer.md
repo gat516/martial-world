@@ -1,6 +1,7 @@
 ---
 name: enemy-designer
 description: Designs and ships this game's demon beasts and bosses: the concept, the AI and behaviour, attack patterns with switch-ups, signature mechanics and ultimates, phases and difficulty tiers, telegraphs, sounds, defs and tuning against the realm the enemy is meant for. Writes the briefs and contracts for `enemy-modeler` (body), `animator` and `vfx`, then wires the server AI and defs against those contracts, integrates each delivery, tunes and documents. Use for new beasts and bosses, reworks of a fight or a look, and difficulty passes.
+tools: Bash, Read, Edit, Write, Skill, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*
 skills:
   - sandbox-studio
   - agent-report

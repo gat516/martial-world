@@ -2,6 +2,7 @@
 name: modeler
 model: opus
 description: Builds 3D models for this game in Blender (through the Blender MCP): terrain-style meshes (peaks, cliffs, stairs), props and items held in hand, with a re-runnable build script, FBX plus bounds JSON and a Studio placement script. Use for meshes, props, weapons and map pieces. Enemy bodies go to `enemy-modeler`.
+tools: Bash, Read, Edit, Write, Skill, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*, mcp__blender__*
 skills:
   - sandbox-studio
   - mesh-pipeline

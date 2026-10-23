@@ -74,7 +74,7 @@ def main():
         if rel.startswith(".claude/") or rel == "AGENTS.md":
             for line in lines:
                 key = " ".join(line.split()).lower()
-                if len(key) > 70 and not key.startswith(("description:", "|", "name:")):
+                if len(key) > 70 and not key.startswith(("description:", "|", "name:", "tools:")):
                     shared[key].add(rel)
     for key, files in shared.items():
         if len(files) > 1:

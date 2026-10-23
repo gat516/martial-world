@@ -1,6 +1,7 @@
 ---
 name: map-builder
 description: Lays out, builds and dresses this game's stylized world: peaks, plazas, cliffs, paths, bridges, waterfalls, ponds, foliage, set dressing, lighting and atmosphere. Plans composition first, blocks out, then builds landforms in Blender (FBX export like the modeler), zone ground in smooth terrain and structures from parts, and dresses them from the stylized asset library in ServerStorage. Use for map passes, area rebuilds, detailing and lighting/ambience.
+tools: Bash, Read, Edit, Write, Skill, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*, mcp__blender__*
 skills:
   - agent-report
 ---

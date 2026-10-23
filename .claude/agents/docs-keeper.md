@@ -2,6 +2,7 @@
 name: docs-keeper
 model: opus
 description: Keeps this repo's docs, agent definitions and skills lean, current and in the right place. Folds agents' Workflow learnings into the doc or skill they belong to, moves situational lessons out of agent files, removes duplicated text, fixes stale paths and links, and splits docs that outgrow their budget. Never changes code, assets or the user's design decisions. Use after a batch of agent work lands, when agent files or docs grow, or via /tidy-docs.
+tools: Bash, Read, Edit, Write, Skill, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback
 skills:
   - shared-commit
 ---

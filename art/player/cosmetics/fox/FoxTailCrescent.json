@@ -34,34 +34,34 @@
  "meshes": {
   "FoxTailCrescent_Tail": {
    "region": "FurOuter",
-   "tris": 2116,
+   "tris": 2012,
    "center": [
-    0.839,
-    1.002,
-    0.001
+    0.496,
+    0.722,
+    1.562
    ],
    "size": [
-    2.95,
-    2.793,
-    2.985
+    2.416,
+    2.236,
+    3.122
    ]
   },
   "FoxTailCrescent_TailTip": {
    "region": "FurTip",
-   "tris": 1220,
+   "tris": 1262,
    "center": [
-    1.631,
-    1.524,
-    0.876
+    1.128,
+    0.741,
+    2.405
    ],
    "size": [
-    1.374,
-    1.15,
-    2.148
+    2.106,
+    1.568,
+    1.357
    ]
   }
  },
- "tris_total": 3336,
+ "tris_total": 3274,
  "bones": {
   "Root": {
    "parent": null,
@@ -86,115 +86,151 @@
    "parent": "Root",
    "head": [
     0.0,
-    -0.3,
-    0.08
+    -0.35,
+    0.4
    ],
    "tail": [
-    0.022,
-    -0.021,
-    -0.047
+    -0.005,
+    -0.085,
+    0.451
    ],
    "roblox_head": [
     0.0,
-    0.08,
-    0.3
+    0.4,
+    0.35
    ],
    "deform": true
   },
   "Tail1": {
    "parent": "TailBase",
    "head": [
-    0.022,
-    -0.021,
-    -0.047
+    -0.005,
+    -0.085,
+    0.451
    ],
    "tail": [
-    0.291,
-    0.708,
-    -0.337
+    0.046,
+    0.666,
+    0.709
    ],
    "roblox_head": [
-    0.022,
-    -0.047,
-    0.021
+    -0.005,
+    0.451,
+    0.085
    ],
    "deform": true
   },
   "Tail2": {
    "parent": "Tail1",
    "head": [
-    0.291,
-    0.708,
-    -0.337
+    0.046,
+    0.666,
+    0.709
    ],
    "tail": [
-    0.847,
-    1.288,
-    -0.289
+    0.183,
+    1.039,
+    1.358
    ],
    "roblox_head": [
-    0.291,
-    -0.337,
-    -0.708
+    0.046,
+    0.709,
+    -0.666
    ],
    "deform": true
   },
   "Tail3": {
    "parent": "Tail2",
    "head": [
-    0.847,
-    1.288,
-    -0.289
+    0.183,
+    1.039,
+    1.358
    ],
    "tail": [
-    1.418,
-    1.523,
-    0.262
+    0.498,
+    0.948,
+    2.075
    ],
    "roblox_head": [
-    0.847,
-    -0.289,
-    -1.288
+    0.183,
+    1.358,
+    -1.039
    ],
    "deform": true
   },
   "Tail4": {
    "parent": "Tail3",
    "head": [
-    1.418,
-    1.523,
-    0.262
+    0.498,
+    0.948,
+    2.075
    ],
    "tail": [
-    1.755,
-    1.446,
-    1.021
+    1.108,
+    0.697,
+    2.502
    ],
    "roblox_head": [
-    1.418,
-    0.262,
-    -1.523
+    0.498,
+    2.075,
+    -0.948
    ],
    "deform": true
   },
   "Tail5": {
    "parent": "Tail4",
    "head": [
-    1.755,
-    1.446,
-    1.021
+    1.108,
+    0.697,
+    2.502
    ],
    "tail": [
-    1.796,
-    1.194,
-    1.818
+    1.733,
+    0.478,
+    2.16
    ],
    "roblox_head": [
-    1.755,
-    1.021,
-    -1.446
+    1.108,
+    2.502,
+    -0.697
    ],
    "deform": true
+  }
+ },
+ "mood": "cute",
+ "shape": "round S-plume flopping over the left shoulder",
+ "proportions": {
+  "length": 4.34,
+  "girth": 1.66,
+  "torso_size": [
+   1.87,
+   1.022,
+   2.0
+  ],
+  "leg_height": 1.93,
+  "length_to_torso_height": 2.17,
+  "girth_to_torso_width": 0.89
+ },
+ "run_clearance": {
+  "swing_deg": 57.3,
+  "past_y": 0.55,
+  "limbs": {
+   "LeftLeg": {
+    "verts_inside": 1,
+    "deepest": 0.001
+   },
+   "RightLeg": {
+    "verts_inside": 2,
+    "deepest": 0.007
+   },
+   "LeftArm": {
+    "verts_inside": 0,
+    "deepest": 0.0
+   },
+   "RightArm": {
+    "verts_inside": 0,
+    "deepest": 0.0
+   }
   }
  },
  "fan": {

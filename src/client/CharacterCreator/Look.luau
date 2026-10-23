@@ -3,6 +3,8 @@
 -- slot's character, and the creator starting over). The tabs dress single
 -- pieces as they change.
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local Bridge = require(script.Parent.Bridge)
 local Defs = require(script.Parent.Defs)
 local Preview = require(script.Parent.Preview)
@@ -50,6 +52,27 @@ function Look.apply(look: { [string]: any }?, hairs: { { id: number, accessory: 
 		Preview.setHair(slot, hair.accessory)
 	end
 	Preview.tintHair(Look.hairColor(look and look.HairColor), Defs.Rules.tintHair)
+end
+
+-- The race's look on the preview: what a fresh character of that race and
+-- variant wears (its race, variant and innate traits' Cosmetics, and the picked
+-- free looks, RaceLook) and its size. nil race = a plain body (an empty slot).
+function Look.race(raceId: string?, variantId: string?, raceLook: { [string]: string }?)
+	local registry = Defs.Registry
+	local templates: { Accessory } = {}
+	local scale = 1
+	if raceId and registry.race(raceId) then
+		local fresh = registry.fresh(raceId, variantId or "", raceLook)
+		local folder = ReplicatedStorage:FindFirstChild("Cosmetics")
+		for id in registry.cosmetics(fresh) do
+			local template = folder and folder:FindFirstChild(id, true)
+			if template and template:IsA("Accessory") then
+				table.insert(templates, template)
+			end
+		end
+		scale = math.clamp(1 + registry.stat(fresh, "size"), 0.5, 2)
+	end
+	Preview.setRaceLook(templates, scale)
 end
 
 return Look

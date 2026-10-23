@@ -1,0 +1,231 @@
+{
+ "name": "FoxTailWisp",
+ "attachment": "WaistBackAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.5,
+  0.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X right/avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (x, z, -y) in the attachment's Roblox space; mesh Size = (bx, bz, by), CFrame = CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "FurOuter": [
+   0.8,
+   0.22,
+   0.055
+  ],
+  "FurInner": [
+   0.93,
+   0.7,
+   0.6
+  ],
+  "FurTip": [
+   0.95,
+   0.89,
+   0.78
+  ]
+ },
+ "shade": {
+  "file": "fox_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "FoxTailWisp_Tail": {
+   "region": "FurOuter",
+   "tris": 2380,
+   "center": [
+    0.331,
+    1.359,
+    -0.589
+   ],
+   "size": [
+    2.061,
+    3.528,
+    2.554
+   ]
+  },
+  "FoxTailWisp_TailTip": {
+   "region": "FurTip",
+   "tris": 1246,
+   "center": [
+    0.791,
+    2.423,
+    0.136
+   ],
+   "size": [
+    1.033,
+    1.07,
+    2.028
+   ]
+  }
+ },
+ "tris_total": 3626,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "roblox_head": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "deform": false
+  },
+  "TailBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    -0.3,
+    0.08
+   ],
+   "tail": [
+    -0.008,
+    -0.042,
+    -0.078
+   ],
+   "roblox_head": [
+    0.0,
+    0.08,
+    0.3
+   ],
+   "deform": true
+  },
+  "Tail1": {
+   "parent": "TailBase",
+   "head": [
+    -0.008,
+    -0.042,
+    -0.078
+   ],
+   "tail": [
+    0.069,
+    0.681,
+    -0.631
+   ],
+   "roblox_head": [
+    -0.008,
+    -0.078,
+    0.042
+   ],
+   "deform": true
+  },
+  "Tail2": {
+   "parent": "Tail1",
+   "head": [
+    0.069,
+    0.681,
+    -0.631
+   ],
+   "tail": [
+    0.29,
+    1.483,
+    -0.974
+   ],
+   "roblox_head": [
+    0.069,
+    -0.631,
+    -0.681
+   ],
+   "deform": true
+  },
+  "Tail3": {
+   "parent": "Tail2",
+   "head": [
+    0.29,
+    1.483,
+    -0.974
+   ],
+   "tail": [
+    0.609,
+    2.247,
+    -0.658
+   ],
+   "roblox_head": [
+    0.29,
+    -0.974,
+    -1.483
+   ],
+   "deform": true
+  },
+  "Tail4": {
+   "parent": "Tail3",
+   "head": [
+    0.609,
+    2.247,
+    -0.658
+   ],
+   "tail": [
+    0.856,
+    2.553,
+    0.15
+   ],
+   "roblox_head": [
+    0.609,
+    -0.658,
+    -2.247
+   ],
+   "deform": true
+  },
+  "Tail5": {
+   "parent": "Tail4",
+   "head": [
+    0.856,
+    2.553,
+    0.15
+   ],
+   "tail": [
+    0.943,
+    2.312,
+    1.012
+   ],
+   "roblox_head": [
+    0.856,
+    0.15,
+    -2.553
+   ],
+   "deform": true
+  }
+ },
+ "fan": {
+  "axis": "attachment back axis (Blender +Y, Roblox +Z)",
+  "pivot": [
+   0,
+   0,
+   0
+  ],
+  "angles_3": [
+   -40,
+   0,
+   40
+  ],
+  "angles_5": [
+   -50,
+   -25,
+   0,
+   25,
+   50
+  ],
+  "angles_9": [
+   -72,
+   -54,
+   -36,
+   -18,
+   0,
+   18,
+   36,
+   54,
+   72
+  ]
+ }
+}

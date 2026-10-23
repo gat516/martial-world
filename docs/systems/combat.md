@@ -22,7 +22,10 @@ scales all player damage.
   target's size (1.0-1.8x its height, or half its length), so the Thunder Ape
   (~30 studs) frames at 30-54. Tuning: `DISTANCE_*`, `SIZE_*` in `LockOn.luau`.
 - Getting hurt marks you in combat for a few seconds: no teleporting away, and
-  it's the condition for a forced breakthrough.
+  it's the condition for a forced breakthrough. Getting hurt or landing damage
+  (`fighting`) sets the player attribute `InCombat` until `IN_COMBAT_SECONDS`
+  pass quietly; the client reads only that (the top-right tiles fold down, the
+  boss bar lifts, Guide holds its spotlight).
 - **Techniques spend combat qi**, the mana pool (`Qi`), never the raw qi in the
   dantian that feeds cultivation. Basic attacks, dashes and the guard are free,
   so a player out of qi still fights with the weapon
@@ -52,7 +55,7 @@ scales all player damage.
 - `src/server/Combat.luau`: `action` (Attack remote: begin/hit/cancel/sync),
   damage validation, `damageEnemy`, `hurt` (i-frames, perfect dodge, Iron Skin,
   non-lethal), `power` (the stage's `power`), `inCombat`, `fighting` (hurt or
-  dealing damage lately), technique XP.
+  dealing damage lately) and the `InCombat` attribute that mirrors it, technique XP.
 - `src/server/CombatQi.luau`: the combat qi pool (`has`, `spend`, `deny`,
   `refill`), its regen loop and the `Qi`/`QiMax`/`QiDenied` attributes.
 - `src/server/Movement.luau`, `src/client/Movement.luau`: the only writers of walk

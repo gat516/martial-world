@@ -9,7 +9,7 @@
 -- UI (user, 2026-10-23: the curl frame on every card "does not match at all"):
 --   the panel and the cards: the house window frame (panel_frame.png);
 --   buttons and step tabs: the gold (primary, current) and lacquer pills;
---   cards, swatches, fields and rows: plain ink wells (slot_plain.png) with a thin
+--   arrow pickers, swatches, fields and rows: plain ink wells (slot_plain.png) with a thin
 --   neutral edge (slot_edge.png) and, when chosen, the cream ring 3 px outside;
 --   the slot screen's title: the gold house plaque (Ribbon.luau, docs/ui/ribbons.md);
 --   one diamond divider. No ornament on anything that repeats.
@@ -246,7 +246,7 @@ new("Frame", {
 			HorizontalAlignment = Enum.HorizontalAlignment.Center,
 			VerticalAlignment = Enum.VerticalAlignment.Center,
 			SortOrder = Enum.SortOrder.LayoutOrder,
-			Padding = UDim.new(0, 12),
+			Padding = UDim.new(0, 8), -- four 102 px tabs fill the 432 px row exactly
 		}),
 	}),
 	-- the slot screen's title on the gold house plaque; Ribbon.fit sizes it to its text
@@ -296,7 +296,7 @@ local pages = new("CanvasGroup", {
 	Position = UDim2.fromOffset(0, 76),
 	Size = UDim2.new(1, 0, 1, -76 - 132),
 })
-for _, id in { "Slots", "Appearance", "Hair", "Name" } do
+for _, id in { "Slots", "Appearance", "Hair", "Fate", "Name" } do
 	new("ScrollingFrame", {
 		Name = id,
 		Parent = pages,
@@ -481,10 +481,12 @@ hold.Parent = confirmButtons
 
 -- Templates (Components clones them)
 local T = gui.Templates
--- a step tab: the Inventory's tab pills (gold while current, lacquer otherwise)
-local tab, tabKids = pillButton("Tab", 136, 44, "", false)
+-- a step tab: the Inventory's tab pills (gold while current, lacquer otherwise);
+-- four of them (Appearance, Hair, Fate, Name) across the panel's 432 px
+local tab, tabKids = pillButton("Tab", 102, 44, "", false)
 withChildren(tab, tabKids)
-tab.Label.TextSize = 17
+tab.Label.TextSize = 16
+tab.Label.Size = UDim2.new(1, -10, 1, -10)
 tab.Parent = T
 
 text("Section", TITLE, 18, C.Gold, { Parent = T, Size = UDim2.new(1, 0, 0, 28) })
@@ -521,47 +523,39 @@ local function grid(name, cell, gap)
 		}),
 	})
 end
-grid("CardGrid", UDim2.fromOffset(132, 156), UDim2.fromOffset(18, 12))
 grid("SwatchGrid", UDim2.fromOffset(60, 60), UDim2.fromOffset(14, 12))
 
--- An outfit card: a plain well holding a live dummy wearing the piece (View, a
--- ViewportFrame; Appearance dresses and frames it), its name under the well.
-local cardT = new("ImageButton", {
-	Name = "Card",
-	Parent = T,
-	BackgroundTransparency = 1,
-	Size = UDim2.fromOffset(132, 156),
-	AutoButtonColor = false,
-	Image = "",
-}, { motion() })
-local cardWell = well(new("ImageLabel", {
-	Name = "Well",
-	Parent = cardT,
+-- An arrow picker (shirt, pants, a race's looks): a plain well, a lacquer arrow
+-- pill at each end (56 px: 45 px on a phone at the 0.8 floor), the pick's name
+-- centred with "1 / 3" under it (Components.arrowRow).
+local arrowRow = well(new("ImageLabel", { Name = "ArrowRow", Parent = T, Size = UDim2.new(1, 0, 0, 68) }), false)
+for _, side in { { "Prev", "\u{2039}", 0 }, { "Next", "\u{203A}", 1 } } do
+	local arrow, arrowKids = pillButton(side[1], 56, 56, side[2], false)
+	withChildren(arrow, arrowKids)
+	arrow.AnchorPoint = Vector2.new(side[3], 0.5)
+	arrow.Position = UDim2.new(side[3], if side[3] == 0 then 6 else -6, 0.5, 0)
+	arrow.Label.TextSize = 30
+	arrow.Label.Size = UDim2.fromScale(1, 1)
+	arrow.Label.Position = UDim2.new(0.5, 0, 0.5, -2) -- the chevrons sit low in Builder Sans
+	arrow.Parent = arrowRow
+end
+text("Value", TITLE, 20, C.Cream, {
+	Parent = arrowRow,
 	AnchorPoint = Vector2.new(0.5, 0),
-	Position = UDim2.new(0.5, 0, 0, 3),
-	Size = UDim2.fromOffset(120, 112),
-}), true)
-new("ViewportFrame", {
-	Name = "View",
-	Parent = cardWell,
-	BackgroundTransparency = 1,
-	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.fromScale(0.5, 0.5),
-	Size = UDim2.new(1, -8, 1, -8),
-	Ambient = Color3.fromRGB(178, 172, 164),
-	LightColor = Color3.fromRGB(255, 246, 232),
-	LightDirection = Vector3.new(-0.55, -1, -0.75),
-	ZIndex = 3,
-}, { new("WorldModel", { Name = "World" }) })
-text("Caption", BOLD, 15, C.Cream, {
-	Parent = cardT,
-	AnchorPoint = Vector2.new(0.5, 0),
-	Position = UDim2.new(0.5, 0, 0, 120),
-	Size = UDim2.new(1, -4, 0, 36),
+	Position = UDim2.new(0.5, 0, 0, 10),
+	Size = UDim2.new(1, -140, 0, 28),
 	TextXAlignment = Enum.TextXAlignment.Center,
-	TextYAlignment = Enum.TextYAlignment.Top,
-	TextWrapped = true,
 	TextTruncate = Enum.TextTruncate.AtEnd,
+	TextStrokeTransparency = 0,
+	TextStrokeColor3 = C.Stroke,
+	RichText = true,
+})
+text("Count", BOLD, 15, C.Muted, {
+	Parent = arrowRow,
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 38),
+	Size = UDim2.new(1, -140, 0, 20),
+	TextXAlignment = Enum.TextXAlignment.Center,
 	TextStrokeTransparency = 0,
 	TextStrokeColor3 = C.Stroke,
 })

@@ -46,10 +46,42 @@ type State = {
 	lastHurt: number,
 	lastHurtBy: string,
 	lastDealt: number, -- os.clock() of the last damage dealt to an enemy (combat qi regen)
+	combatWatch: boolean, -- a watcher is waiting to clear the InCombat attribute
 }
 local states: { [Player]: State } = {}
 
 local Combat = {}
+
+-- The player attribute `InCombat`: hurt or dealing damage within IN_COMBAT_SECONDS
+-- (Combat.fighting), the one combat flag the client reads (the top-right tiles fold
+-- down, Guide holds its hints). Set on the first blow, cleared by one watcher per
+-- player once the window passes.
+local function markCombat(player: Player)
+	local s = states[player]
+	if not s then
+		return
+	end
+	if player:GetAttribute("InCombat") ~= true then
+		player:SetAttribute("InCombat", true)
+	end
+	if s.combatWatch then
+		return
+	end
+	s.combatWatch = true
+	task.spawn(function()
+		while states[player] == s do
+			local quiet = os.clock() - math.max(s.lastHurt, s.lastDealt)
+			if quiet >= Config.IN_COMBAT_SECONDS then
+				break
+			end
+			task.wait(Config.IN_COMBAT_SECONDS - quiet + 0.05)
+		end
+		s.combatWatch = false
+		if player.Parent then
+			player:SetAttribute("InCombat", false)
+		end
+	end)
+end
 
 -- Set by EnemyService: applies a player's damage to an enemy. `push` is the hit's
 -- knockback: flat direction times base studs (Knockback.luau), before realm and weight.
@@ -77,6 +109,7 @@ local function state(player: Player): State
 			lastHurt = -math.huge,
 			lastHurtBy = "Unknown",
 			lastDealt = -math.huge,
+			combatWatch = false,
 		}
 		states[player] = s
 	end
@@ -128,6 +161,7 @@ function Combat.damageEnemy(player: Player, model: Model, amount: number, push: 
 	amount = math.floor(amount + 0.5)
 	model:SetAttribute("LastHitBy", player.UserId)
 	state(player).lastDealt = os.clock()
+	markCombat(player)
 	effectRemote:FireClient(player, "damage", model:GetPivot().Position, amount)
 	Cultivation.markActive(player)
 	if Combat.onEnemyDamaged then
@@ -204,6 +238,7 @@ function Combat.hurt(player: Player, amount: number, nonLethal: boolean?, source
 	s.lastHurtBy = source or "Unknown"
 	humanoid:TakeDamage(amount)
 	s.lastHurt = os.clock()
+	markCombat(player)
 	effectRemote:FireClient(player, "hurt", amount)
 	if guarded then
 		return guarded, amount
@@ -229,6 +264,7 @@ function Combat.dot(player: Player, amount: number, source: string?)
 	s.lastHurtBy = source or "Unknown"
 	humanoid:TakeDamage(amount)
 	s.lastHurt = os.clock()
+	markCombat(player)
 end
 
 function Combat.lastHurtBy(player: Player): string

@@ -328,7 +328,7 @@ end
 
 -- Accessories the character wears for who they are (fox ears and tail from the
 -- fox trait): every `Cosmetics` id on the race, the variant and each active trait.
--- Ids name accessories in ServerStorage.Cosmetics (assets/Cosmetics.rbxm); the
+-- Ids name accessories in ReplicatedStorage.Cosmetics (assets/Cosmetics/); the
 -- server's Traits.applyBody puts them on and takes them off. { [id]: true }
 function Registry.cosmetics(data: any): { [string]: boolean }
 	local set = {}
@@ -355,7 +355,86 @@ function Registry.cosmetics(data: any): { [string]: boolean }
 			end
 		end
 	end
+	-- the race's free looks (Races.Looks), as picked in the slot's look (RaceLook)
+	if race and not Registry.disabled(Registry.raceEntry(identity.race)) then
+		local look = type(data.character) == "table" and data.character.look
+		local picks = Registry.lookPicks(identity.race, type(look) == "table" and look.RaceLook or nil)
+		for _, slot in race.Looks or {} do
+			local option = Registry.lookOption(identity.race, slot.Id, picks[slot.Id])
+			for _, id in option and option.Cosmetics or {} do
+				set[id] = true
+			end
+		end
+	end
 	return set
+end
+
+--[[ Looks: free cosmetic picks (Races.Looks) ]]
+
+-- The race's look slots ({} when it has none), in order.
+function Registry.looks(raceId: any): { Races.Look }
+	local race = Registry.race(raceId)
+	return race and race.Looks or {}
+end
+
+-- One option of a look slot, or nil.
+function Registry.lookOption(raceId: any, slotId: string, optionId: any): Races.LookOption?
+	for _, slot in Registry.looks(raceId) do
+		if slot.Id == slotId then
+			for _, option in slot.Options do
+				if option.Id == optionId then
+					return option
+				end
+			end
+		end
+	end
+	return nil
+end
+
+-- A whole set of picks for the race: every slot's pick from `raw` where it's a
+-- real option, else the slot's first (the default). Anything else is dropped,
+-- so a pick saved for another race (after a reroll) falls back to defaults.
+function Registry.lookPicks(raceId: any, raw: any): { [string]: string }
+	local picks = {}
+	for _, slot in Registry.looks(raceId) do
+		local wanted = if type(raw) == "table" then raw[slot.Id] else nil
+		local option = Registry.lookOption(raceId, slot.Id, wanted) or slot.Options[1]
+		if option then
+			picks[slot.Id] = option.Id
+		end
+	end
+	return picks
+end
+
+-- The server's check of picks sent on confirm: every key a slot of the race,
+-- every value one of its options. Missing slots are fine (they take the default).
+function Registry.checkLook(raceId: any, raw: any): boolean
+	if raw == nil then
+		return true
+	end
+	if type(raw) ~= "table" then
+		return false
+	end
+	for slotId, optionId in raw do
+		if type(slotId) ~= "string" or not Registry.lookOption(raceId, slotId, optionId) then
+			return false
+		end
+	end
+	return true
+end
+
+-- A fresh character of this race and variant, holding only its innate traits,
+-- with its look picks (RaceLook, nil = the defaults), shaped like a profile so
+-- `cosmetics` and `stat` read it (the creator preview, before the slot is played).
+function Registry.fresh(raceId: string, variantId: string, raceLook: { [string]: string }?): { identity: Identity, character: any }
+	local traits = {}
+	for _, id in Registry.innate(raceId, variantId) do
+		traits[id] = { src = "innate", t = 0 }
+	end
+	return {
+		identity = { race = raceId, variant = variantId, traits = traits },
+		character = { look = { RaceLook = raceLook } },
+	}
 end
 
 --[[ Config check ]]
@@ -394,6 +473,11 @@ function Registry.problems(): { string }
 	end
 	for id, race in Races do
 		check(`race {id}`, race.Modifiers, race.InnateTraits)
+		for _, slot in race.Looks or {} do
+			if #slot.Options == 0 then
+				table.insert(out, `race {id}: look {slot.Id} has no options`)
+			end
+		end
 		for variantId, variant in Registry.Variants[id] or {} do
 			check(`variant {id}.{variantId}`, variant.Modifiers, variant.InnateTraits)
 		end

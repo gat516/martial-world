@@ -97,10 +97,17 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
 
 ## Beams, surfaces, decals and textures
 
-- A non-FaceCamera Beam faces along its attachments' Axis (local X). Identity attachments
-  only lie flat for a beam running along world X; along Z it stands up as a wall. For flat
-  beams (rims, ground streaks) turn the attachments `CFrame.Angles(0, 0, math.pi / 2)` so X
-  points up.
+- A non-FaceCamera Beam's width runs along its attachments' local Y (SecondaryAxis); measured
+  in Edit mode (2026-10-23, guide pass): identity attachments stand any beam up as a wall,
+  `Angles(0, 0, pi/2)` on a beam along world X turns Y along the length and it vanishes, and
+  `CFrame.fromMatrix(pos, along, sideways)` (X along the beam, Y sideways on the ground) lies
+  it flat at any heading. Check from straight above before trusting an orientation.
+- A Beam's Transparency (and Color) sequence is only sampled at its segment joints: with
+  `Segments = 1` a 1 -> 0.3 -> 1 ramp draws fully transparent. Give ramped beams 8+ segments.
+- `TextureSpeed > 0` scrolls the texture from `Attachment0` toward `Attachment1`.
+- A chain of beams sharing attachments (a path over uneven ground) restarts its texture at
+  each `Attachment0`: set each copy's `TextureLength` to its own length so every segment
+  shows whole tiles, and use a texture that tiles top to bottom.
 - A Beam runs its texture's vertical image axis along its length. Draw strip textures
   upright (tiling top to bottom), or they show as stripes across it.
 - Fade-strip textures on a beam fade toward `Attachment1`, dimming a lance's business end.
@@ -122,4 +129,7 @@ One Model per tier (`<Id>_T<n>` under `Effects.<Id>`), facing the cast:
   the ground when that end is the +X edge. StudsPerTileV larger than the part's width with
   OffsetStudsV = (tile - width) / 2 shows only the middle band of the image (thin drawn
   strokes read thick).
-- A SurfaceGui on a part didn't show in a `screen_capture` at all.
+- A SurfaceGui on a part didn't show in a `screen_capture` at all in one pass; in another (guide
+  formation circle: `SizingMode` FixedSize 512, `LightInfluence` 0, `Brightness` 2.4, on a
+  Transparency-1 carrier) it showed fine. A turning sigil as rotating ImageLabels on one
+  SurfaceGui is cheap and steady.

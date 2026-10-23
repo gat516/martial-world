@@ -67,8 +67,10 @@ How we apply it:
      give it its own callout line, `GuideSay`); until that window is open the
      guide points at the control that opens it. A target inside a scrolling
      list is scrolled into view.
-   - `place`: a path to walk (a soft trail of light on the ground plus an
-     edge-of-screen arrow when it's off screen) to the target.
+   - `place`: a path to walk to the target: a stream of jade qi along the
+     ground with spirit motes drifting ahead, a slow gold formation circle and
+     a faint light column at the target, a short flourish on arrival, plus an
+     edge-of-screen arrow when it's off screen (see "Guide visuals").
    - The elder's line sits beside the spotlight; one line, auto-hides.
 3. **Fewer steps to the first fight.** Measure time-to-first-kill in the funnel;
    cut anything between the root reveal and the wilds that isn't fun.
@@ -193,10 +195,41 @@ to the first kill.
   is open (dim or not). `place` resolves to the nearest target every second
   (`Garden` = your own peak's HerbPlots, `WeaponRack`, `QiNode`, living
   `Enemy` (`Hitbox.alive`: the Health attribute, enemies have no Humanoid),
-  `Array` (nearest of any kind), `Array:<id>`, Hub pieces) and shows `Hud.GuideTrail`'s Beam from
-  the hips toward it (at most 28 studs), `Hud.GuideMarker` bobbing over it and
+  `Array` (nearest of any kind), `Array:<id>`, Hub pieces) and shows the guide
+  visuals below (`GuideFX`), `Hud.GuideMarker` bobbing over it and
   `Guide.Arrow` at the screen edge while it's off screen; all hide within 8 studs
   and while a window is open.
+
+### Guide visuals (built, `GuideFX.luau`, `Effects.Guide`)
+Intent: the sect's qi shows a newcomer the way, calmly (no screen flash, no
+darkening, no loud pulse). Job: telegraph "walk here", then confirm "you're
+here". Template built by `tools/vfx_specs/Guide.luau`; this client only.
+- **Path** (hero: `Stream`): flat jade beams along the ground, one per 4-stud
+  ground sample from 2.5 studs ahead of the feet to the circle's edge (at most
+  28 studs). Each sample is raycast onto the ground (characters, bodies with a
+  Humanoid and near-invisible parts skipped), so it follows slopes and steps; a
+  gap whose ends differ by more than 0.5 studs gets a sample between, and a
+  drop over 10 studs (a cliff) or no ground ends it. The qi texture scrolls
+  toward the target; it fades in at the feet and out at the end, over a wider
+  unlit ink `Bed` so it reads on grass at noon. `Drift` motes (9 a second) run
+  ahead along it at 11 studs/s, on a loop. Re-sampled when the player moves
+  0.75 studs or every 0.2 s.
+- **Marker** (hero: the formation): at the target's foot (ground raycast under
+  its bounding box, pivot upright), a rune ring with eight spokes turning slowly
+  over a counter-turning fret ring (`SurfaceGui` images on a flat carrier),
+  sized to the footprint plus 3 studs (radius 3 to 9; the Testing Stone's is
+  6.9), a faint camera-facing light column (~17 studs) for reading it from afar
+  and a few rising motes (3.5 a second).
+- **Arrival** (once per guide, on first coming within 8 studs): the formation
+  flares on frame 1 at its own size and lifts away (`Seal`, 0.75 s), a soft
+  ring of light runs out over the ground (+60 ms, 0.7 s) and 12 motes lift off
+  the circle (+120 ms, up to 1.6 s), with a soft crystal chime
+  (`SFX.GuideArrive`, library 131722051883127). Then the marker is gone.
+- **Enemy guides** show the path only: no circle, column or flourish under a
+  beast (it's a fight, and they would sit on it).
+- Budget: 7 stream + 7 bed beams (up to 14 each with split gaps), 2 small
+  emitters on loop, 3 bursts (1 + 1 + 12) on arrival; no lights, no parts that
+  collide or query. `Hud.GuideTrail` (the old soft beam) is no longer used.
 - `src/client/TravelMenu.luau`: shows the Travel button on sect ground, clones
   `Hud.TravelPrompt` onto every array (it opens the menu), binds every
   button under List named after a gate id (grouped in `List.Sect` / `List.Wilds`),

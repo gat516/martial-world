@@ -22,13 +22,18 @@
 --   say     the short line for the callout at this step (else the elder's line).
 --           An in-window control's own GuideSay attribute wins while it's the
 --           target (e.g. "Absorb it to temper your root" on the pill's button).
---   place   a world target to walk to: a soft beam of light from the character
---           toward it (Hud.GuideTrail), a marker over it (Hud.GuideMarker) and,
---           while it's off screen, an arrow at the screen edge (Guide.Arrow).
---           The nearest candidate is re-picked every second; all of it hides
---           once the player is within a few studs.
+--   place   a world target to walk to: a stream of qi along the ground from
+--           the player's feet toward it and a formation circle with a faint
+--           column of light at its foot (GuideFX, Effects.Guide), a marker
+--           over it (Hud.GuideMarker) and, while it's off screen, an arrow at
+--           the screen edge (Guide.Arrow). The nearest candidate is re-picked
+--           every second; all of it hides once the player is within a few
+--           studs, and the first arrival per guide plays a short flourish
+--           there (not for enemies: that's a fight, and the circle and column
+--           would sit on the beast).
 --
--- Everything is authored in StarterGui.Hud; this only places and shows it.
+-- The HUD pieces are authored in StarterGui.Hud, the world pieces in
+-- ReplicatedStorage.Effects.Guide; this only places and shows them.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -38,6 +43,7 @@ local RunService = game:GetService("RunService")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Gates = require(ReplicatedStorage.Shared.Gates)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
+local GuideFX = require(script.Parent.GuideFX)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local MyPeak = require(script.Parent.MyPeak)
@@ -79,7 +85,6 @@ local ARROW_TOP = 80 -- the arrow stays below the chat and the top-right tiles
 local POINTER_GAP = 4 -- between a control and the pointer's tip
 local POINTER_BOB = 5 -- px
 local NEAR = 8 -- studs: close enough, the path hides
-local TRAIL_MAX = 28 -- studs: the beam reaches this far toward the target
 local REPICK = 1 -- seconds between picks of the nearest target
 local MARKER_BOB = 0.35 -- studs
 
@@ -95,9 +100,6 @@ local calloutLine: TextLabel
 local arrow: ImageLabel
 local pointer: ImageLabel
 local marker: BillboardGui
-local trail: Beam
-local trailStart: Attachment
-local trailEnd: Attachment
 
 type GuideSpec = { button: string?, to: string?, dim: boolean?, place: string?, point: boolean?, say: string? }
 local guide: GuideSpec? = nil
@@ -111,8 +113,10 @@ local spotlit = false
 local blocked: { [GuiObject]: boolean } = {} -- made non-interactable -> its own value
 local lastHurt = -math.huge
 
-local place: { part: BasePart, top: number }? = nil -- the walking target
+local place: { inst: Instance, part: BasePart, top: number }? = nil -- the walking target
 local lastPick = -math.huge
+local lastStep = os.clock()
+local arrived = false -- the arrival flourish has played for this guide
 local stepConn: RBXScriptConnection? = nil
 
 --[[ HUD controls ]]
@@ -490,7 +494,8 @@ local function pickPlace(key: string, from: Vector3): Instance?
 end
 
 local function hidePath()
-	trail.Enabled = false
+	GuideFX.hidePath()
+	GuideFX.hideMarker()
 	marker.Enabled = false
 	arrow.Visible = false
 end
@@ -529,6 +534,8 @@ local function placeArrow(world: Vector3)
 end
 
 local function stepPath(now: number)
+	local dt = math.min(now - lastStep, 0.1)
+	lastStep = now
 	local g = guide
 	local me = myRoot()
 	if not g or not g.place or not me or Menus.isOpen() then
@@ -539,7 +546,7 @@ local function stepPath(now: number)
 		lastPick = now
 		local inst = pickPlace(g.place, me.Position)
 		local part = inst and coreOf(inst)
-		place = if inst and part then { part = part, top = topOf(inst, part) } else nil
+		place = if inst and part then { inst = inst, part = part, top = topOf(inst, part) } else nil
 	end
 	local p = place
 	if not p then
@@ -547,17 +554,22 @@ local function stepPath(now: number)
 		return
 	end
 	local goal = p.part.Position
+	local fight = g.place == "Enemy"
 	local flat = (goal - me.Position) * Vector3.new(1, 0, 1)
 	if flat.Magnitude < NEAR and math.abs(goal.Y - me.Position.Y) < 12 then
+		if not arrived and not fight then
+			arrived = true
+			GuideFX.arrive()
+		end
 		hidePath()
 		return
 	end
-	-- the beam: from about the hips toward the target, at most TRAIL_MAX long
-	local from = me.Position - Vector3.new(0, 1.5, 0)
-	local toward = goal - from
-	trailStart.WorldPosition = from
-	trailEnd.WorldPosition = from + toward.Unit * math.min(toward.Magnitude, TRAIL_MAX)
-	trail.Enabled = true
+	-- the formation at its foot (not under a beast), and the stream up to its edge
+	local radius = if fight then nil else GuideFX.showMarker(p.inst, p.part, true, now)
+	if fight then
+		GuideFX.hideMarker()
+	end
+	GuideFX.showPath(me.Position, goal, if radius then radius * 0.8 else 3, dt)
 
 	marker.Adornee = p.part
 	marker.StudsOffsetWorldSpace = Vector3.new(0, p.top - goal.Y + 2.5 + math.sin(now * 3) * MARKER_BOB, 0)
@@ -624,6 +636,8 @@ function Guide.set(g: any, elderLine: string?)
 		pressed = nil
 		lastPick = -math.huge
 		place = nil
+		arrived = false
+		GuideFX.reset()
 		if not g then
 			retarget(nil)
 			setSpotlight(false)
@@ -670,17 +684,6 @@ function Guide.init(screenGui: ScreenGui)
 	marker = (gui:FindFirstChild("GuideMarker") :: BillboardGui):Clone()
 	marker.Enabled = false
 	marker.Parent = player:WaitForChild("PlayerGui")
-	local kit = (gui:FindFirstChild("GuideTrail") :: Folder):Clone()
-	trailStart = kit:FindFirstChild("Start") :: Attachment
-	trailEnd = kit:FindFirstChild("End") :: Attachment
-	trail = kit:FindFirstChild("Beam") :: Beam
-	trail.Enabled = false
-	trailStart.Parent = workspace.Terrain
-	trailEnd.Parent = workspace.Terrain
-	trail.Attachment0 = trailStart
-	trail.Attachment1 = trailEnd
-	trail.Parent = workspace.Terrain
-	kit:Destroy()
 
 	if player.Character then
 		task.spawn(watchCharacter, player.Character)

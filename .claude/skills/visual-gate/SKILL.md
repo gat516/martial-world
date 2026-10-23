@@ -39,6 +39,15 @@ name the stop call in your report. Never pause for the user's review; they flag
 you if they want a change. Until the tool lands on your branch, improvise the
 same thing from `vfxPreview`/`enemy_fx_shot`/the preview scripts.
 
+## 0c. Budget
+
+A task is one thing: one screen, one move set (2-4 clips), one effect, one
+body. Plan for about 80 tool calls; at 150, stop at a save point (commit what
+passes, list what's left with numbers) and report. Don't write a helper that
+`docs/tools.md` already lists; don't paste files into `execute_luau` when the
+brief gives you a served base URL; batch probe runs (`motion_audit`, `ui_lint`
+over every size at once) instead of one move or one screen at a time.
+
 ## 1. Direction before polish
 
 For anything new or reworked (a new body, effect, clip, screen, area), build 2-3

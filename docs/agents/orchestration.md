@@ -159,6 +159,17 @@ contracts, "done means". An agent missing a required field asks once and stops,
 which is cheaper than a body rebuilt around a guess. Default to "send 2-3
 directions first"; the user picks, then it polishes once.
 
+### Task size and plumbing (2026-10-23 timing audit)
+
+Subagent wall time is call count times ~12 s, and call counts ran 150-400 on
+whole-build or whole-boss tasks (the first UI lint sweep: 82 min, 397 calls; one
+boss's motion: 37 min, 151 calls). Cut tasks to one screen, one move set, one
+effect, one body, and run them in parallel across sandboxes. Before spawning,
+serve the agent's worktree yourself (`tools/serve.sh <port> <dir>`, a port
+`ss -ltn` shows free) and put the base URL in the brief; agents lost 20-40
+calls each on ports, pasted scripts and rewritten helpers. Gate budget: ~80
+calls, hard stop at 150 (`visual-gate`, "Budget").
+
 ### The visual gate
 
 Every visual agent preloads `visual-gate`: lint to zero FAIL, one contact sheet,

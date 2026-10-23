@@ -54,6 +54,11 @@ Availability.Variants = {
 		-- Status = "Released", Acquire = "Unlock", Requires = { ... }.
 		Serpent = { Status = "Hidden", Acquire = "Unlock", Requires = { { Kind = "Realm", AtLeast = "QC5" } } },
 	},
+	SpiritFox = {
+		Plume = { Status = "Released", Acquire = "Roll" },
+		Crescent = { Status = "Released", Acquire = "Roll" },
+		Wisp = { Status = "Released", Acquire = "Roll" },
+	},
 } :: { [string]: { [string]: Entry } }
 
 -- Traits: anything not listed is Released (its Obtain and Requires live on the

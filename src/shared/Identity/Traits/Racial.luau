@@ -20,7 +20,7 @@
 --   Excludes                  optional trait ids it can't be held with
 --   Modifiers                 stat modifiers (Registry.MODIFIERS)
 --   Cosmetics                 optional accessory ids worn while it's active
---                             (ServerStorage.Cosmetics: "FoxEars", "FoxTail")
+--                             (ServerStorage.Cosmetics, e.g. "FoxTailPlume")
 --   Mechanics                 optional passive or ability ids (server
 --                             Traits.mechanics); none are built yet
 -- Whether a trait is released, hidden for testing or disabled lives in
@@ -54,7 +54,6 @@ local Racial = {
 		Access = { Races = { "SpiritFox" } },
 		Obtain = "Innate",
 		Modifiers = { technique = 0.03 },
-		Cosmetics = { "FoxEars", "FoxTail" }, -- prototype fox ears and tail (user, 2026-10-23)
 	},
 	-- one per Beast Folk variant (exclusive)
 	WolfStamina = {

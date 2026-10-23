@@ -1,8 +1,8 @@
 # Spirit Fox cosmetics (Blender, skinned)
 
-Fox ears and fox tails for the Spirit Fox race's R6 avatar. These replace the part-built
-`FoxEars` / `FoxTail` prototypes in `../README.md` once they're imported. Three tails and three
-ear shapes ship as variants; any ears go with any tail.
+Fox ears and fox tails for the Spirit Fox race's R6 avatar. Three tails and three ear shapes
+ship as the Spirit Fox variants Plume (Plume + Sleek), Crescent (Crescent + Broad) and Wisp
+(Wisp + Long) (`src/shared/Identity/Variants/SpiritFox.luau`); any ears go with any tail.
 
 | Set | Attaches to (R6) | Meshes (one MeshPart each) | Tris |
 | --- | --- | --- | --- |
@@ -41,11 +41,13 @@ and rear three-quarter views, plus a bent pose, an ears close-up, a close-up of 
 
 - **Attachment space.** Each FBX sits in its attachment's space: the origin is the attachment point.
 - **Blender axes.** X is the avatar's left, -Y its front, Z up.
-- **Roblox mapping.** A Blender point `(x, y, z)` is `(x, z, -y)` relative to the attachment.
-- **Import size.** Roblox's FBX import comes in oversized (about 11x for this repo's files) and remaps axes, so set sizes from the JSON:
-  - `Size = (bx, bz, by)`
-  - `CFrame = CFrame.Angles(0, math.pi, 0) * CFrame.new(-cx, cz, cy)` relative to the attachment
-- **Mesh names.** Every mesh name is unique across the six files, so all of them can be imported in one batch with "merge meshes" off.
+- **Roblox mapping.** A Blender point `(x, y, z)` is `(-x, z, y)` in the attachment's Roblox
+  frame (+X the avatar's right, +Z its back, Y up), so mesh `Size = (bx, bz, by)` and its
+  CFrame relative to the attachment is `CFrame.new(-cx, cz, cy)`, no rotation. That is
+  what the Open Cloud model upload produces relative to its `RootPart` (checked
+  2026-10-23); the JSON's older `roblox_mapping` / `roblox_head` fields flip X and Z.
+- **Import size.** The Open Cloud model upload keeps true size (no 11x).
+- **Mesh names.** Every mesh name is unique across the six files.
 
 Attachments in avatar space (R6 rest pose): HatAttachment `(0, 0, 3.1)` (Head centre + Roblox
 `(0, 0.6, 0)`), WaistBackAttachment `(0, 0.5, 0)` (Torso centre + Roblox `(0, -1, 0.5)`).
@@ -116,8 +118,45 @@ Hinge data per bone (attachment space, Blender axes and Roblox) is in each JSON 
 - **Crescent.** It sweeps to one side, so mirror alternate copies (scale X -1 before turning) to keep the fan symmetric.
 - **Animation.** Each copy keeps its own `Tail1..Tail5`. Offset their wag phases a little so they don't move as one.
 
-## Not done here
+## In Studio
 
-- Roblox import, templating the meshes into Accessories in `assets/Cosmetics.rbxm`, and switching `Fox Cunning`'s `Cosmetics` ids. A sandbox agent does these next.
-- The SurfaceAppearance for the shade ramp needs `fox_shade.png` uploaded.
-- Untested in game: walking or running clearance (arms against Crescent, legs against Wisp), the ears with tall hats, phone-distance read.
+| Set | Model asset (upload_asset.py model) |
+| --- | --- |
+| `FoxTailPlume` | `rbxassetid://103142310298137` |
+| `FoxTailCrescent` | `rbxassetid://91533908538003` |
+| `FoxTailWisp` | `rbxassetid://95800596652636` |
+| `FoxEarsSleek` | `rbxassetid://98916068347166` |
+| `FoxEarsBroad` | `rbxassetid://124732163729948` |
+| `FoxEarsLong` | `rbxassetid://115950384313807` |
+
+`fox_shade.png` is `rbxassetid://124559907609415` (Studio MCP `upload_image`).
+
+**Rebuild** (in a sandbox, no FBX import step):
+1. Upload the changed FBX with `python3 tools/upload_asset.py model <Set>.fbx` and put the new
+   id in `place_fox_cosmetics.luau` (`ASSETS`).
+2. Insert each model asset into Workspace as `_Import<Set>` (Studio MCP `insert_asset`).
+3. Run `place_fox_cosmetics.luau` through `execute_luau`. It turns each import into the
+   Accessory `<Set>` in `ServerStorage.Cosmetics` and deletes the imports. Sets without an
+   import keep their current template, so re-doing only the ears means uploading and
+   inserting only the three ear sets.
+4. Export with `tools/export_rbxm.luau` (`_G.exportRbxm("ServerStorage.Cosmetics")`) to
+   `assets/Cosmetics.rbxm`.
+
+**Accessory layout.** `Handle` is the importer's `RootPart` shrunk to an invisible 0.2 cube
+at the attachment point; it holds the `HatAttachment` / `WaistBackAttachment` and the bones
+(`Root` -> ...). The skinned MeshParts sit beside it, welded to it. Skinning works on a
+worn accessory: bending `Tail1..Tail5` or `EarL`/`EarR` (`Bone.Transform`) deforms the
+meshes, and `Model:ScaleTo(1.15)` scales meshes, bones and placement together (both
+checked in edit mode on R6 dummies). Animate the bones with `Bone.Transform` (curl about
+local Z, wag about local X, ears fold about local X).
+
+**Recolour.** Each MeshPart has a `Region` attribute (`FurOuter`, `FurInner`, `FurTip`) and a
+`SurfaceAppearance` whose `ColorMap` is the shade ramp. The SurfaceAppearance covers the
+part colour, so to tint a region set both the MeshPart's `Color` and its
+`SurfaceAppearance.Color` (they start as the JSON's linear defaults converted to sRGB).
+
+## Untested
+
+In game: walking or running clearance (arms against Crescent, legs against Wisp), the ears
+with tall hats, phone-distance read, the shade ramp at distance. Nothing animates the bones
+yet; the tails and ears hold their rest pose.

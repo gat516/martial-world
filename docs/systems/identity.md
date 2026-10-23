@@ -15,7 +15,8 @@ screen it extends ([character creator](character-creator.md)).
 - **Race and variant are separate.** A Beast Folk Wolf is race `BeastFolk`,
   variant `Wolf`, so anything can ask "is this Beast Folk?" and "which beast?".
   There is no Beast Folk Fox: foxes are the Spirit Fox race, which holds the fox
-  traits (Fox Cunning innate, Nine Tails exclusive) (user, 2026-10-23).
+  traits (Fox Cunning innate, Nine Tails exclusive) (user, 2026-10-23). Its
+  variants (Plume, Crescent, Wisp) are tail and ear shapes, looks only.
   Variants are a per-race module (`Variants/<Race>.luau`), so any race can get
   variants the same way.
 - **Availability is one file.** Release, hide or switch off any race, variant
@@ -41,6 +42,7 @@ screen it extends ([character creator](character-creator.md)).
 |---|---|
 | Race definitions (names, rarity, roll weight, innate traits, modifiers, mechanics, which variants module) | `src/shared/Identity/Races.luau` |
 | Beast Folk variants (same fields) | `src/shared/Identity/Variants/BeastFolk.luau` |
+| Spirit Fox variants (tail and ears) | `src/shared/Identity/Variants/SpiritFox.luau` |
 | Trait definitions: racial / variant traits | `src/shared/Identity/Traits/Racial.luau` |
 | Trait definitions: general traits | `src/shared/Identity/Traits/General.luau` |
 | A new trait category | a new file in `Traits/`; its name is the category |
@@ -159,18 +161,25 @@ marked; Hidden and Disabled ones never show. There's no race or variant picker
 ## Cosmetics
 Races, variants and traits can name accessories to wear (`Cosmetics = { ... }`,
 ids of Accessories in `ServerStorage.Cosmetics`, `assets/Cosmetics.rbxm`, mapped
-in both projects). Fox Cunning (Spirit Fox's innate trait) wears `FoxEars` and
-`FoxTail`, a rigged prototype (user, 2026-10-23; the build and joint names are in
-`art/player/cosmetics/README.md`). `Traits.applyBody` adds the ones the profile
+in both projects). Spirit Fox's variants carry the fox cosmetics: each is one
+tail and one ear shape, skinned Blender meshes with their own bones (`EarL`/`EarR`,
+`Tail1..Tail5`) and a recolourable part per colour region (build, rig and colour
+contract in `art/player/cosmetics/fox/README.md`). The fox traits stay on the race
+and the variants add no stats (user, 2026-10-23: "we can add them it all in as
+variants").
+
+| Variant | Rarity, weight | Cosmetics |
+| --- | --- | --- |
+| Plume | Common, 45 | `FoxTailPlume`, `FoxEarsSleek` |
+| Crescent | Uncommon, 35 | `FoxTailCrescent`, `FoxEarsBroad` |
+| Wisp | Rare, 20 | `FoxTailWisp`, `FoxEarsLong` |
+
+`Traits.applyBody` adds the ones the profile
 calls for and removes the rest (each worn one carries a `Cosmetic` attribute with
 its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the
-body. A missing template warns once and is skipped.
-The prototypes' replacements are skinned Blender meshes in `art/player/cosmetics/fox/`:
-three tails (`FoxTailPlume`, `FoxTailCrescent`, `FoxTailWisp`) and three ear shapes
-(`FoxEarsSleek`, `FoxEarsBroad`, `FoxEarsLong`), each with its own bone rig (`EarL`/`EarR`,
-`Tail1..Tail5`) and per-region recolourable parts. They're exported but not yet imported into
-`Cosmetics` (user, 2026-10-23: "we can add them it all in as variants").
+body. A missing template warns once and is skipped. A Spirit Fox saved before the
+variants draws one on its next join (`Traits.load`, `Slots.fate`).
 
 ## Body size
 The `size` modifier (Titan Frame: 15% larger, user 2026-10-23; 25% was too big) scales the character with

@@ -115,8 +115,8 @@ Row 3: a small round currency coin frame (gold rim, empty middle); a small diamo
 ```
 
 ### B2b. Blue rarity tile and gem (reward banners, 2026-10-23)
-The game's Rare items and Spirit-grade weapons are blue, and B2 has no blue edge, so the
-reward tiles show them violet for now ([reward banners](rewards.md)). Attach the B2 sheet
+**Not needed** (2026-10-23): the reward tiles moved onto the Inventory's ladder, where
+Rare and Spirit are jade, so there's no blue tier. Kept in case a blue tier comes back. Attach the B2 sheet
 (`art/ui/codex/b2/`) as the exact style to match: same size, border, studs and corner
 curls as `tile_jade`, only the edge colour changes.
 ```text

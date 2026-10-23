@@ -8,14 +8,18 @@
 -- Clip beats (markers on Skill_RampagingTiger): Hit 1 0.48 (diagonal cut),
 -- Leap 0.95, Hit 2 1.03 and Hit 3 1.32 (the spinning blade wheel), Hit 4
 -- 1.78 + Land 1.83 (the landing cleave), Hit Stop 4 1.90. Every cut leaves
--- three claw strokes in the air; the landing tears three claw gouges into the
--- ground and rolls a shockwave out to the circle around the caster.
+-- three claw strokes in the air; the wheel draws the blade's circle behind its
+-- tip; the landing is the one peak: the spec's hero at the bite, three claw
+-- rends torn into the ground and a ragged shock out to the circle.
 
 local Client = script.Parent.Parent
 local TechniqueVFX = require(Client.TechniqueVFX)
 local CastFX = require(Client.CastFX)
 local BladeSkill = require(script.Parent.BladeSkill)
 local WeaponFX = require(script.Parent.WeaponFX)
+local Sfx = require(Client.Sfx)
+
+local SFX = "Techniques/RampagingTiger/"
 
 local HITS = { 0.4833, 1.0333, 1.3167, 1.7833 } -- until def.hits exists
 local LEAP = 0.95
@@ -23,18 +27,16 @@ local SPEED = 1.0
 local SWINGS = { { 0.46, 0.72 }, { 1.0, 1.96 } } -- the cut; the wheel and the landing cleave
 local WHEEL = { 1.0, 1.78 }
 
--- the claw's turn (degrees about the facing axis) and place for each hit:
--- the first cut runs high-left to low-right, the rest fall vertically
+-- a copy of the claw scaled by k (attachment positions, beam widths, curves)
+-- each cut's claw roll about the look axis (degrees) and place (caster space):
+-- the first cut runs high-left to low-right, the spin hits stand upright
 local function clawPose(index: number, count: number): (number, Vector3)
 	if index == 1 then
 		return -35, Vector3.new(0, 0.7, -2.6)
-	elseif index == count then
-		return 90, Vector3.new(0.3, -0.2, -2.8)
 	end
-	return 90, Vector3.new(0.9, 0.9, -2.4)
+	return 0, Vector3.new(0.9, 0.9, -2.4)
 end
 
--- a copy of the claw scaled by k (attachment positions, beam widths, curves)
 local function scaledClaw(claw: BasePart, k: number): BasePart
 	local copy = claw:Clone()
 	if math.abs(k - 1) > 1e-3 then
@@ -118,6 +120,21 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 		edgeT:Destroy()
 	end
 
+	local function soundAt(name: string, at: Vector3?, gap: number?)
+		Sfx.play(SFX .. name, at or (BladeSkill.facing(character, origin, dir)), gap)
+	end
+
+	-- the claw strokes of a cut, in world space: the strokes run along the
+	-- caster's look (slashing forward into the circle) in a plane standing on
+	-- that line, rolled about it by the cut (Hit 1 the diagonal, the spin hits
+	-- upright); they bow down at the ends, an arc over the top
+	local function clawFrame(index: number, pos: Vector3, look: Vector3): CFrame
+		local roll, at = clawPose(index, #hits)
+		local base = CFrame.lookAt(pos, pos + look)
+		local up = (CFrame.fromAxisAngle(look, math.rad(roll)) :: CFrame):VectorToWorldSpace(Vector3.yAxis)
+		return CFrame.fromMatrix(base * at, look, -up)
+	end
+
 	local function here(): (Vector3, Vector3, Vector3)
 		local pos, look = BladeSkill.facing(character, origin, dir)
 		return pos, CastFX.groundAt(pos), look
@@ -127,7 +144,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	-- first cut's marker has the point behind the head); the claw, the flare
 	-- and the impacts land where the blade cuts, at the swing's peak inside
 	-- that hit's Hit -> Hit Stop window (WeaponFX.swing)
-	local function onSwing(index: number, fn: (Vector3, Vector3) -> ())
+	local function onSwing(index: number, fn: (Vector3, Vector3, Vector3) -> ())
 		local pos = here()
 		WeaponFX.swing(character, WeaponFX.hitWindow(def, index), fn, pos + Vector3.new(0, 2, 0))
 	end
@@ -156,15 +173,17 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	-- the cut and the spin hits: claw strokes in the air, impacts on the circle
 	for i = 1, #hits - 1 do
 		seq:at(hits[i], function()
-			onSwing(i, function(tipAt, swing)
+			soundAt(if i == 1 then "Cut" else "SpinCut")
+			onSwing(i, function(tipAt)
 				local pos, feet, look = here()
-				local roll, at = clawPose(i, #hits)
-				local cf = CFrame.lookAt(pos, pos + look) * CFrame.new(at) * CFrame.Angles(0, 0, math.rad(roll))
+				local cf = clawFrame(i, pos, look)
 				flashClaw(claw, cf, 1)
-				WeaponFX.flare(flare, tipAt, swing, 1)
+				-- the tip flare lies in the claws' plane (its sprites are flat)
+				WeaponFX.flare(flare, tipAt, cf.ZVector, 1)
 				if impact then
 					for _, target in BladeSkill.circleTargets(feet, radius, character, 4) do
 						CastFX.impactAt(impact, target, { Kick = 0, Quake = 0 })
+						soundAt("Hit", target.point, 0.05)
 						if target.model.Parent then
 							CombatEffects.flash(target.model)
 						end
@@ -175,66 +194,78 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 	end
 
 	seq:at(LEAP, function()
+		local _, feet, look = here()
+		soundAt("Leap", feet)
 		if launch then
-			local _, feet, look = here()
 			TechniqueVFX.burstAt(launch, CFrame.lookAt(feet, feet + look))
 		end
 	end, { name = "Leap" })
 
-	-- II+: the wheel the spinning blade cuts, stood in its circle at the right side
+	-- the wheel the spinning blade cuts, stood in its circle at the right side:
+	-- each Wheel* emitter fires once per `Step` degrees the tip turns, rolled to
+	-- the tip's angle in the wheel plane, so the circle draws itself behind it
 	if wheel and character then
-		local spin = BladeSkill.num(wheel, "Spin", 900)
-		local t0 = BladeSkill.num(wheel, "StartTransparency", 0.35)
-		local rings: { { part: BasePart, dirn: number } } = {}
-		for _, m in wheel:GetChildren() do
-			local mesh = m:FindFirstChild("Mesh")
-			if m:IsA("Model") and mesh and mesh:IsA("BasePart") then
-				local p = mesh:Clone()
-				p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
-				p.Transparency = 1
-				p.Parent = TechniqueVFX.folder
-				table.insert(rings, { part = p, dirn = if m.Name == "Counter" then -0.7 else 1 })
-			end
-		end
 		local holder = wheel:Clone()
-		holder:ClearAllChildren()
-		local embers = wheel:FindFirstChild("Embers")
-		if embers then
-			embers:Clone().Parent = holder
-		end
 		holder.Parent = TechniqueVFX.folder
 		local reach = 4.5
 		if blade then
 			local _, _, len = BladeSkill.axis(blade)
-			reach = math.clamp(len + 1.6, 3.5, 7)
+			reach = math.clamp(len + 1.2, 3.5, 5.5)
 		end
-		local function fade(t: number): number
-			local a = math.clamp((t - WHEEL[1]) / 0.08, 0, 1)
-			local b = math.clamp((WHEEL[2] - t) / 0.15, 0, 1)
-			return math.min(a, b)
+		local marks: { ParticleEmitter } = {}
+		for _, e in holder:GetChildren() do
+			if e:IsA("ParticleEmitter") and e.Name:sub(1, 5) == "Wheel" then
+				-- authored at radius 1: scale to the blade's reach
+				local kps = {}
+				for _, kp in e.Size.Keypoints do
+					table.insert(kps, NumberSequenceKeypoint.new(kp.Time, kp.Value * reach, kp.Envelope * reach))
+				end
+				e.Size = NumberSequence.new(kps)
+				table.insert(marks, e)
+			end
 		end
+		local step = BladeSkill.num(wheel, "Step", 45)
+		local rollSign = BladeSkill.num(wheel, "RollSign", -1)
+		local rollOffset = BladeSkill.num(wheel, "RollOffset", 0)
+		local last: number? = nil
+		local stopWhirl: (() -> ())? = nil
 		seq:span(WHEEL[1], WHEEL[2], function(_, t)
+			if not stopWhirl then
+				stopWhirl = Sfx.play(SFX .. "Whirl", holder) or function() end
+			end
 			local torso = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
 			local pos, _, look = here()
 			local right = look:Cross(Vector3.yAxis)
 			local centre = if torso and torso:IsA("BasePart") then torso.Position + right * 1.4 + Vector3.new(0, 0.6, 0) else pos + right * 1.4 + Vector3.new(0, 1, 0)
-			-- ring meshes lie flat (axis Y): turn the axis to the side, then spin about it
-			local frame = CFrame.fromMatrix(centre, look, right)
-			for i, r in rings do
-				local d = reach * 2 * (if i == 1 then 1 else 0.82)
-				r.part.Size = Vector3.new(d, 0.9, d)
-				r.part.CFrame = frame * CFrame.Angles(0, math.rad(spin * r.dirn * (t - WHEEL[1]) / speed), 0)
-				r.part.Transparency = 1 - (1 - t0) * fade(t)
+			-- local X = look, Y = right (the wheel's axis), so the emitters lie in the wheel plane
+			holder.CFrame = CFrame.fromMatrix(centre, look, right)
+			-- the tip's angle in the wheel plane, 0 = straight down, toward look positive
+			local angle
+			if blade then
+				local rel = blade.tip.WorldPosition - centre
+				angle = math.deg(math.atan2(rel:Dot(look), -rel.Y))
+			else
+				angle = 381 * (t - WHEEL[1]) / (WHEEL[2] - WHEEL[1])
 			end
-			holder.CFrame = frame
+			if last == nil then
+				last = angle - step -- the first frame marks too
+			end
+			local turned = math.abs(((angle - (last :: number)) + 180) % 360 - 180)
+			if turned >= step then
+				last = angle
+				for _, e in marks do
+					e.Rotation = NumberRange.new(rollSign * angle + rollOffset)
+					e:Emit(1)
+				end
+			end
 			for _, e in holder:GetChildren() do
-				if e:IsA("ParticleEmitter") then
+				if e:IsA("ParticleEmitter") and e.Rate > 0 then
 					e.Enabled = true
 				end
 			end
 		end, function()
-			for _, r in rings do
-				r.part:Destroy()
+			if stopWhirl then
+				stopWhirl()
 			end
 			for _, e in holder:GetChildren() do
 				if e:IsA("ParticleEmitter") then
@@ -249,7 +280,7 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 
 	-- the landing cleave
 	seq:at(landAt, function()
-		onSwing(#hits, function(tipAt, swing)
+		onSwing(#hits, function(tipAt, swing, axis)
 		local pos, feet, look = here()
 		copy:PivotTo(CFrame.lookAt(feet, feet + look))
 		-- the bite: under the point as the cleave lands (it drives down in front
@@ -261,40 +292,64 @@ local function cast(CombatEffects: any, def: any, level: number, character: Mode
 			local side = math.clamp(rel:Dot(look:Cross(Vector3.yAxis)), -1.5, 1.5)
 			bite = CastFX.groundAt(Vector3.new(feet.X, pos.Y, feet.Z) + look * along + look:Cross(Vector3.yAxis) * side)
 		end
-		local roll, at = clawPose(#hits, #hits)
-		flashClaw(claw, CFrame.lookAt(pos, pos + look) * CFrame.new(at) * CFrame.Angles(0, 0, math.rad(roll)), 1)
-		WeaponFX.flare(flare, Vector3.new(tipAt.X, math.max(tipAt.Y, bite.Y + 0.6), tipAt.Z), swing, 1.5)
+		soundAt("Bite", bite)
+		soundAt("Slam", bite)
+		if tier >= 3 then
+			soundAt("Rumble", bite)
+		end
 		if tier >= 2 then
 			CombatEffects.punch(bite, ({ 0, 0.4, 0.6, 0.85 })[tier], Color3.fromRGB(255, 150, 90), WeaponFX.hitWindow(def, #hits))
-		end
-		if tier >= 4 and claw then
-			-- the giant claw standing over the strike
-			local g = BladeSkill.num(claw, "GiantScale", 2.4)
-			local top = bite + Vector3.new(0, 2.6 * g * 0.7, 0) + look * 1.5
-			flashClaw(claw, CFrame.lookAt(top, top + look) * CFrame.Angles(0, 0, math.rad(90)), g)
 		end
 		local strike = copy:FindFirstChild("Strike") :: BasePart?
 		if strike then
 			strike.CFrame = CFrame.lookAt(bite + Vector3.new(0, 0.4, 0), bite + Vector3.new(0, 0.4, 0) + look)
 			TechniqueVFX.emit(strike)
 		end
-		local roar = copy:FindFirstChild("Roar") :: BasePart?
-		if roar then
-			roar.CFrame = CFrame.lookAt(bite + Vector3.new(0, 1.4, 0), bite + Vector3.new(0, 1.4, 0) + look)
-			TechniqueVFX.emit(roar)
+		-- the hero, in world space along the cut: its plane's normal is the
+		-- swing x the blade (kept level-ish and to the right), and every emitter
+		-- is rolled by the swing's angle in that plane (0 = straight down)
+		local cleave = copy:FindFirstChild("Cleave") :: BasePart?
+		if cleave then
+			local right = look:Cross(Vector3.yAxis)
+			local n = swing:Cross(axis)
+			if n.Magnitude < 0.2 or math.abs(n.Unit.Y) > 0.7 then
+				n = right
+			end
+			n = n.Unit
+			if n:Dot(right) < 0 then
+				n = -n
+			end
+			local up = (Vector3.yAxis - n * n.Y).Unit
+			cleave.CFrame = CFrame.fromMatrix(bite + Vector3.new(0, 0.4, 0), n, up)
+			local fwd = up:Cross(n) * -1 -- in-plane "ahead" (look side)
+			if fwd:Dot(look) < 0 then
+				fwd = -fwd
+			end
+			local roll = math.clamp(math.deg(math.atan2(swing:Dot(fwd), -swing:Dot(up))), -35, 35)
+			for _, e in cleave:GetDescendants() do
+				if e:IsA("ParticleEmitter") then
+					local base = e:GetAttribute("BaseRotation")
+					if type(base) ~= "number" then
+						base = e.Rotation.Min
+						e:SetAttribute("BaseRotation", base)
+					end
+					e.Rotation = NumberRange.new((base :: number) - roll)
+				end
+			end
+			TechniqueVFX.emit(cleave)
 		end
+		-- the tip flare, flat in the cut's plane
+		local right = look:Cross(Vector3.yAxis)
+		local normal = if cleave then cleave.CFrame.RightVector else right
+		WeaponFX.flare(flare, Vector3.new(tipAt.X, math.max(tipAt.Y, bite.Y + 0.6), tipAt.Z), normal, 1.5)
 		if slam then
 			TechniqueVFX.emit(slam)
 			local light = slam:FindFirstChild("Light") :: PointLight?
 			if light then
 				BladeSkill.drive(0.5, function(s)
-					light.Brightness = 3.5 * (1 - s / 0.5) ^ 2
+					light.Brightness = 2.5 * (1 - s / 0.5) ^ 2
 				end)
 			end
-		end
-		local shell = copy:FindFirstChild("Shell")
-		if shell and TechniqueVFX.full then
-			TechniqueVFX.emit(shell)
 		end
 		-- three claw gouges fanning forward from the bite
 		if gouge then

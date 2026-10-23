@@ -16,37 +16,53 @@
 -- Gameplay: circle r 10 around the caster, lunge 6, hits { 0.48 cut, two
 -- spin hits ~1.0-1.7, 1.78 landing } (9, 7, 7, 16 dmg).
 --
--- THE SHOT ("a tiger's claws"): tawny amber qi with a white-gold core and
--- black brush-ink stripes; every cut leaves three claw strokes in the air.
---   Windup (caster only): amber motes and a glow gather into the right hand.
---   Blade edge: the saber draws its arcs as an amber ribbon (Trail on the
---     weapon), on for the cut, the spin and the landing; II+ afterimage.
---   Cut (hit 1): three parallel claw strokes (Beams, amber over ink) flash
---     along the diagonal in front; each enemy in the circle gets an impact.
---   Leap: a torus and dust ring at the take-off.
---   Spin (spin hits): the blade's wheel draws itself; II+ a spinning amber
---     swirl ring stands in the blade's circle at the right side and turns
---     with it (III+ a second, counter-turning ForceField ring); each spin hit
---     flashes vertical claw strokes and impacts.
---   Landing (last hit, at the cleave's contact): a flash where the blade
---     bites, three claw rends torn into the ground ahead (groundRend: carved
---     cracks under amber slits and seams that cool, dust and chips), a torus
---     shockwave to r 10 around the caster with a dust skirt, "roar" rings
---     thrown forward off the strike (1/1/2/3), heavy impacts timed by the
---     front. III+ Craters rock ring, cracks, rock kicks; IV a giant claw
---     standing over the strike, a swirl shell, the one PointLight, impact
---     frames and an Explosion quake.
---   Aftermath: the gouges cool over ~1-2 s, embers drift up (II+).
--- Remade 2026-10-21 on the saber (weapon models, Hit windows): the windup is a
--- `Charge` along the dadao's Base -> Tip (not a hand gather), each cut and the
--- landing flare on the live blade tip (`Flare`: cross glint, star-burst
--- flipbook over an ink splat, sparks) as the Hit marker fires, and the
--- landing's heavy impacts are squeezed into Hit 4 -> Hit Stop 4.
--- QA pass 2026-10-21: the claws, flares and impacts of each cut and the
--- landing fire at the swing's peak inside its Hit window (WeaponFX.swing: the
--- markers fire with the blade still raised behind the head), the bite is
--- under the point at contact, the Neon gouges are claw rends, III+ impact
--- frames and a harder shake, II+ a hit-pause punch on the landing.
+-- INTENT (heavy pass 2026-10-23): a tiger pounces. The saber cuts, the body
+-- leaps and the blade wheels like a tiger rolling in to strike, then it lands
+-- with the whole weight on one cleave that rakes the ground. The player should
+-- feel ferocity and weight; the job is a hit confirm over the r 10 circle, the
+-- landing the one peak. Palette: tawny amber over black ink, white-gold core
+-- at IV.
+--
+-- BEAT SHEET (real ms at castSpeed 1.0; clip markers drive every beat):
+--   0-480     windup: Charge along the dadao (Base -> Tip)
+--   480       Hit 1, the diagonal cut: claw strokes, tip flare, light impacts
+--   950       Leap: ragged wind ring + dust at the feet
+--   1000-1780 THE WHEEL (anticipation, ~35%): the blade's circle at the right
+--             side draws itself (spec.variant below), spin hits at 1033/1317
+--   1783      PEAK, the landing cleave (Hit 4 window, WeaponFX.swing): the
+--             variant's hero at the bite, core flash, chips
+--   1783-2200 follow-through: ragged shock ring + dust wall out to r 10, heavy
+--             impacts as the front reaches each enemy, three claw rends torn
+--             forward, III+ rock ring and cracks
+--   2200-3500 dissipation: the rends cool to ink, dust settles, the scar fades
+--
+-- DIRECTIONS (spec.variant; the wheel and the landing hero only):
+--   A "Tiger's claws" (SHIPPED, the user's pick 2026-10-23): the wheel is a
+--     run of claw crescents (amber over ink) torn along the blade's circle as
+--     it turns; the landing is a giant three-claw rake in the cut's plane.
+--   B "Ink-brush cleave" (finished; slated to become its own technique,
+--     Inkfall Cleave): the wheel is a thick ink brush circle (an enso)
+--     painted round behind the blade with an amber edge; the landing is a
+--     huge brush stroke in the cut's plane, an umber dust burst and an ink
+--     splat on the ground.
+-- NO CAMERA-FACING SHAPES (user, 2026-10-23): every shaped layer lies in a
+-- world plane set by the cut (claw strokes along the look, the wheel in the
+-- blade's circle, the hero and the tip flare in the cut's plane); only round
+-- dust, motes, chips, sparks and the shared per-enemy impact face the camera.
+--
+-- LAYER SHEET (role: cause -> asset and why)
+-- Rake (A)     HERO: the tiger's paw coming down with the cleave, in the cut's plane -> three-claw spindles 11636552631 on an ink copy
+-- Wheel (A)    secondary: the blade tearing through its circle -> claw crescent flipbook 13463732785 (2x2) over an ink copy
+-- Brush (B)    HERO: the cleave as one falling brush stroke -> brush crescent 109919844196737 on an ink copy
+-- Enso (B)     secondary: the blade's circle painted in ink -> brush crescent 109919844196737
+-- BrushBurst (B) secondary: the ground bursting under the weight -> explosive puff flipbook 12360899465 over umber
+-- GroundWave   secondary: the landing's shock to the radius -> ragged wind ring mesh 121387125059545
+-- DustWall     tertiary: air shoved along the ground -> dust cloud flipbook 113990972016632
+-- LaunchRing   secondary: air pushed off by the leap -> ragged wind ring mesh 136611516099795
+-- Splat        environment: ink thrown on the ground at the bite -> ink splat 16132530029
+-- Cracks       environment: the circle left broken (III+) -> crack 93520831389146
+--
+local spec -- set at the bottom; blocks read spec.variant
 local KIT_ = function()
 	return _G.vfxSpecs.BladeKit
 end
@@ -64,25 +80,33 @@ local INK = Color3.fromRGB(30, 20, 14)
 local N_AMBER = Color3.fromRGB(240, 118, 28)
 local N_PALE = Color3.fromRGB(255, 170, 70)
 local DUST = Color3.fromRGB(222, 206, 178)
+local UMBER = Color3.fromRGB(70, 48, 30)
 
 local RADIUS = 10
 local HAND_AT = O * CFrame.new(-1.2, 3.6, -0.6) -- the right hand drawn up to the left shoulder
 
 local A = {
 	crack = id(93520831389146),
-	crackSmall = id(97725700315217),
 	spindle = id(7814053668),
 	mote = id(9841260273),
 	dust = id(11037785287),
-	hitRing = id(13052235894),
-	torus = id(471124075),
-	swirl = id(129778117978668),
-	swirl2 = id(73349240058321),
-	swirlRing = id(122217820569960),
 	glint = id(13366348510), -- crisp 4-point star
 	hitFlip = id(13580358178), -- 4x4 flipbook: a spiky star burst opening and breaking up
 	ink = id(16132530029), -- black ink splat
+	rake = id(11636552631), -- three tall claw spindles
+	clawFlip = id(13463732785), -- 2x2 flipbook: a thick claw crescent opening
+	brush = id(109919844196737), -- a thick dry-brush crescent
+	burst = id(12360899465), -- 4x4 explosive puff
+	dustFlip = id(113990972016632), -- 4x4 dust cloud
+	raggedRing = id(121387125059545), -- ragged wind ring mesh (the landing's shock)
+	leapRing = id(136611516099795), -- ragged wind ring mesh (the leap)
+	dot = id(9841273544), -- core dot
 }
+local GRID2 = Enum.ParticleFlipbookLayout.Grid2x2
+
+local function variant()
+	return spec.variant or "A"
+end
 local GRID4 = Enum.ParticleFlipbookLayout.Grid4x4
 local ONESHOT = Enum.ParticleFlipbookMode.OneShot
 
@@ -112,22 +136,22 @@ end
 blocks.flare = function(root, tier)
 	local B0 = _G.vfxBlocks
 	local f = B0.part(root, "Flare", O * CFrame.new(0, 3, -3), V(1, 1, 1))
-	B0.emitter(f, "Ink", {
+	B0.emitter(f, "Ink", B0.flat({
 		Texture = A.ink, Color = CS(INK),
 		Size = NS({ KP(0, 1), KP(0.25, 2.2 + tier * 0.3), KP(1, 2.8 + tier * 0.3) }), Transparency = NS({ KP(0, 0.2), KP(0.6, 0.45), KP(1, 1) }),
 		Lifetime = R(0.3), LightEmission = 0, Rotation = R(0, 360), ZOffset = 0.8,
-	}, { EmitCount = 1 })
-	B0.emitter(f, "Burst", {
+	}, Enum.NormalId.Front), { EmitCount = 1 })
+	B0.emitter(f, "Burst", B0.flat({
 		Texture = A.hitFlip, Color = CS(coreOf(tier), AMBER),
 		FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
 		Size = NS({ KP(0, 1.8 + tier * 0.25), KP(1, 2.8 + tier * 0.35) }), Transparency = NS({ KP(0, 0.1), KP(0.7, 0.2), KP(1, 1) }),
 		Lifetime = R(0.28), LightEmission = 0.6, Rotation = R(0, 360), ZOffset = 1.4,
-	}, { EmitCount = 1 })
-	B0.emitter(f, "Glint", {
+	}, Enum.NormalId.Front), { EmitCount = 1 })
+	B0.emitter(f, "Glint", B0.flat({
 		Texture = A.glint, Color = CS(coreOf(tier)),
 		Size = NS({ KP(0, 0.4), KP(0.25, 2 + tier * 0.35), KP(1, 0) }), Transparency = NS({ KP(0, 0), KP(0.7, 0.2), KP(1, 1) }),
 		Lifetime = R(0.28), LightEmission = 0.85, Rotation = R(-12, 12), ZOffset = 2,
-	}, { EmitCount = 1 })
+	}, Enum.NormalId.Front), { EmitCount = 1 })
 	B0.emitter(f, "Sparks", {
 		Texture = A.spindle, Color = CS(coreOf(tier), AMBER), Orientation = Enum.ParticleOrientation.VelocityParallel,
 		SpreadAngle = Vector2.new(60, 60), Size = NS({ KP(0, 0.22), KP(1, 0) }), Squash = NS({ KP(0, 2), KP(1, 1) }),
@@ -149,7 +173,6 @@ blocks.claw = function(root, tier)
 	local part = B0.part(root, "Claw", O * CFrame.new(0, 2.6, -2.6), V(span, 2, 0.2))
 	part:SetAttribute("Hold", 0.1)
 	part:SetAttribute("Fade", ({ 0.28, 0.32, 0.36, 0.42 })[tier])
-	part:SetAttribute("GiantScale", 2.4)
 	local gap = span * 0.17
 	for i = -1, 1 do
 		local y = i * gap
@@ -171,8 +194,8 @@ blocks.launch = function(root, tier)
 	local B0 = _G.vfxBlocks
 	local part = B0.part(root, "Launch", O * CFrame.new(0, 0.2, 0))
 	B0.meshWave(part, "LaunchRing", {
-		mesh = A.torus, color = Color3.fromRGB(240, 135, 45),
-		fromSize = V(1.4, 0.2, 1.4), toSize = V(5.5 + tier, 0.5 + tier * 0.06, 5.5 + tier),
+		mesh = A.leapRing, color = N_PALE,
+		fromSize = V(1.4, 0.3, 1.4), toSize = V(6 + tier, 0.9 + tier * 0.1, 6 + tier),
 		fromOffset = V(0, 0.15, 0), toOffset = V(0, 0.15, 0),
 		fromTransparency = 0.35, toTransparency = 1, duration = 0.36, style = "Quart",
 	}):SetAttribute("FadeStyle", "Quint")
@@ -185,72 +208,186 @@ blocks.launch = function(root, tier)
 	return part
 end
 
--- II+: the wheel the spinning blade cuts; the runtime stands it in the blade's
--- circle at the right side, sizes it to the reach and spins it
+-- the wheel the spinning blade cuts at the right side. The runtime stands
+-- `Wheel` in the blade's circle (local +Y = the wheel's axis, so these
+-- VelocityPerpendicular emitters lie in the wheel plane), scales every Size by
+-- the blade's reach (authored at radius 1) and emits each Wheel* emitter once
+-- per `Step` degrees the tip turns, rolled to the tip's angle (Rotation =
+-- RollSign * angle + RollOffset; angle 0 = the tip straight down)
 blocks.wheel = function(root, tier)
 	local B0 = _G.vfxBlocks
-	local K = KIT_()
+	local v = variant()
 	local holder = B0.part(root, "Wheel", O * CFrame.new(1.2, 3, -0.6))
-	holder:SetAttribute("Spin", ({ 0, 900, 1000, 1150 })[tier]) -- deg/s
-	holder:SetAttribute("StartTransparency", ({ 0, 0.4, 0.3, 0.2 })[tier])
-	K.heldWave(holder, "Ring", { mesh = A.swirl2, color = N_AMBER })
-	if tier >= 3 then
-		K.heldWave(holder, "Counter", { mesh = A.swirl, color = AMBER, material = Enum.Material.ForceField })
+	holder:SetAttribute("Step", ({ 70, 60, 55, 48 })[tier])
+	holder:SetAttribute("RollSign", -1) -- Rotation turns clockwise as seen from the right, the angle counter-clockwise
+	holder:SetAttribute("RollOffset", 0)
+	local plane = function(props)
+		props.Orientation = Enum.ParticleOrientation.VelocityPerpendicular
+		props.EmissionDirection = Enum.NormalId.Top
+		props.Speed = R(0.01)
+		props.SpreadAngle = Vector2.zero
+		props.Rate = 0
+		return props
 	end
-	B0.emitter(holder, "Embers", {
-		Texture = A.mote, Color = CS(coreOf(tier), AMBER),
-		Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
-		SpreadAngle = Vector2.new(180, 180), Size = NS({ KP(0, 0.25), KP(1, 0) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
-		Lifetime = R(0.35, 0.6), Speed = R(3, 7), Drag = 2, LightEmission = 0.55, Rotation = R(0, 360),
-		Rate = ({ 0, 16, 24, 32 })[tier],
-	})
+	if v == "A" then
+		-- claw crescents torn along the circle, amber over an ink copy
+		B0.emitter(holder, "WheelInk", plane({
+			Texture = A.clawFlip, Color = CS(INK), FlipbookLayout = GRID2, FlipbookMode = ONESHOT,
+			LightEmission = 0, LightInfluence = 0.2,
+			Size = NS({ KP(0, 2.05), KP(1, 2.2) }), Transparency = NS({ KP(0, 0.35), KP(0.6, 0.5), KP(1, 1) }),
+			Lifetime = R(0.17), ZOffset = -0.3,
+		}))
+		B0.emitter(holder, "WheelClaw", plane({
+			Texture = A.clawFlip, Color = CS(coreOf(tier), AMBER), FlipbookLayout = GRID2, FlipbookMode = ONESHOT,
+			LightEmission = 0.7, Brightness = 1.4,
+			Size = NS({ KP(0, 2), KP(1, 2.1) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.25), KP(1, 1) }),
+			Lifetime = R(0.15),
+		}))
+	else
+		-- an enso: a thick ink brush circle painted behind the blade, amber edge
+		B0.emitter(holder, "WheelInk", plane({
+			Texture = A.brush, Color = CS(INK), LightEmission = 0, LightInfluence = 0.2,
+			Size = NS({ KP(0, 2.05), KP(1, 2.2) }), Transparency = NS({ KP(0, 0.05), KP(0.7, 0.3), KP(1, 1) }),
+			Lifetime = R(0.5), ZOffset = -0.3,
+		}))
+		B0.emitter(holder, "WheelBrush", plane({
+			Texture = A.brush, Color = CS(coreOf(tier), N_AMBER), LightEmission = 0.5, Brightness = 1.2,
+			Size = NS({ KP(0, 2), KP(1, 2.1) }), Transparency = NS({ KP(0, 0.1), KP(0.4, 0.35), KP(1, 1) }),
+			Lifetime = R(0.3),
+		}))
+	end
+	if tier >= 3 then
+		B0.emitter(holder, "Embers", {
+			Texture = A.mote, Color = CS(coreOf(tier), AMBER),
+			Shape = Enum.ParticleEmitterShape.Sphere, ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume,
+			SpreadAngle = Vector2.new(180, 180), Size = NS({ KP(0, 0.25), KP(1, 0) }), Transparency = NS({ KP(0, 0.1), KP(1, 1) }),
+			Lifetime = R(0.35, 0.6), Speed = R(3, 7), Drag = 2, LightEmission = 0.55, Rotation = R(0, 360),
+			Rate = ({ 0, 0, 18, 26 })[tier],
+		})
+	end
 	return holder
 end
 
+-- the bite, where the landing cleave strikes (placed at the ground under the
+-- point, looking along the cut): the variant's hero, a core flash, chips
 blocks.strike = function(root, tier)
 	local B0 = _G.vfxBlocks
-	local q = pal(coreOf(tier))
-	q.part, q.at, q.light = "Strike", O * CFrame.new(0.5, 0.4, -2.6), false
-	local part = B0.releaseFlash(root, tier, q)
-	B0.emitter(part, "Splash", B0.flat({
-		Texture = A.hitRing, Color = CS(AMBER),
-		Size = NS({ KP(0, 0.4), KP(1, 2 + tier * 0.45) }), Transparency = NS({ KP(0, 0), KP(0.6, 0.3), KP(1, 1) }),
-		Lifetime = R(0.24), LightEmission = 0.45, Rotation = R(0, 360), ZOffset = 0.5,
+	local v = variant()
+	local core = coreOf(tier)
+	local part = B0.part(root, "Strike", O * CFrame.new(0.5, 0.4, -2.6))
+	B0.emitter(part, "Core", {
+		Texture = A.dot, Color = CS(core), LightEmission = 1, Brightness = 3,
+		Size = NS({ KP(0, ({ 2.2, 2.6, 3, 3.4 })[tier]), KP(1, 0.4) }), Transparency = NS({ KP(0, 0), KP(1, 1) }),
+		Lifetime = R(0.09), ZOffset = 1,
+	}, { EmitCount = 1 })
+	B0.emitter(part, "Splat", B0.flat({
+		Texture = A.ink, Color = CS(INK), LightEmission = 0, LightInfluence = 0.3,
+		Size = NS({ KP(0, 1.5), KP(0.12, ({ 4, 4.6, 5.4, 6.4 })[tier]), KP(1, ({ 4.3, 5, 5.8, 6.8 })[tier]) }),
+		Transparency = NS({ KP(0, 0.15), KP(0.7, 0.35), KP(1, 1) }),
+		Lifetime = R(1.4), Rotation = R(0, 360), ZOffset = -0.2,
 	}), { EmitCount = 1 })
-	-- the roar: rings thrown forward off the landing cut, low over the ground
-	local roar = B0.part(root, "Roar", O * CFrame.new(0.3, 1.4, -2.2))
-	local qa = pal(coreOf(tier))
-	qa.part, qa.color = "Roar", Color3.fromRGB(255, 214, 160)
-	qa.size, qa.travel, qa.duration = ({ 3.6, 4.4, 5.6, 7 })[tier], 5 + tier * 1.4, 0.34
-	B0.airShockwave(root, tier, qa)
+	-- the hero lives on `Cleave`, a world-space plane along the cut: the runtime
+	-- turns its local X to the cut plane's normal (the swing x the blade) and
+	-- adds the swing's angle in that plane to each emitter's Rotation, so the
+	-- hero lies in the blade's travel (edge-on from behind, full from the side)
+	local cleave = B0.part(root, "Cleave", O * CFrame.new(0.5, 0.4, -2.6))
+	local inPlane = function(props)
+		props.Orientation = Enum.ParticleOrientation.VelocityPerpendicular
+		props.EmissionDirection = Enum.NormalId.Right
+		props.Speed = R(0.01)
+		props.SpreadAngle = Vector2.zero
+		return props
+	end
+	if v == "A" then
+		-- HERO: the tiger's paw comes down with the cleave, three claws raking
+		-- through the bite along the swing, on an ink copy
+		local H = ({ 6, 7, 8, 9.5 })[tier]
+		local at = B0.attach(cleave, "RakeAt", V(0, H * 0.42, 0))
+		B0.emitter(at, "RakeInk", inPlane({
+			Texture = A.rake, Color = CS(INK),
+			LightEmission = 0, LightInfluence = 0.2,
+			Size = NS({ KP(0, H * 1.05), KP(0.2, H * 1.12), KP(1, H * 1.15) }), Squash = NS({ KP(0, 1.4), KP(0.2, 0.2), KP(1, 0) }),
+			Transparency = NS({ KP(0, 0.3), KP(0.5, 0.45), KP(1, 1) }), Lifetime = R(0.36), ZOffset = -0.5,
+		}), { EmitCount = 1 })
+		B0.emitter(at, "Rake", inPlane({
+			Texture = A.rake, Color = CS(core, AMBER),
+			LightEmission = 0.8, Brightness = 1.6,
+			-- lands long and thin (the claws tearing down), then settles to full width
+			Size = NS({ KP(0, H), KP(0.2, H * 1.05), KP(1, H * 1.08) }), Squash = NS({ KP(0, 1.6), KP(0.2, 0.25), KP(1, 0.05) }),
+			Transparency = NS({ KP(0, 0), KP(0.4, 0.15), KP(1, 1) }), Lifetime = R(0.3),
+		}), { EmitCount = 1 })
+	else
+		-- HERO: the cleave as one falling brush stroke, ink with an amber edge,
+		-- over an umber dust burst where the ground gives
+		local H = ({ 7.5, 9, 10.5, 12.5 })[tier]
+		local at = B0.attach(cleave, "BrushAt", V(0, H * 0.4, 0))
+		B0.emitter(at, "BrushInk", inPlane({
+			Texture = A.brush, Color = CS(INK),
+			LightEmission = 0, LightInfluence = 0.2,
+			Size = NS({ KP(0, H * 0.9), KP(0.15, H * 1.1), KP(1, H * 1.15) }), Transparency = NS({ KP(0, 0.05), KP(0.6, 0.3), KP(1, 1) }),
+			Lifetime = R(0.5), Rotation = R(-28), ZOffset = -0.5,
+		}), { EmitCount = 1 })
+		B0.emitter(at, "Brush", inPlane({
+			Texture = A.brush, Color = CS(core, N_AMBER),
+			LightEmission = 0.6, Brightness = 1.4,
+			Size = NS({ KP(0, H * 0.8), KP(0.15, H), KP(1, H * 1.02) }), Transparency = NS({ KP(0, 0), KP(0.4, 0.25), KP(1, 1) }),
+			Lifetime = R(0.32), Rotation = R(-28),
+		}), { EmitCount = 1 })
+		local s = ({ 5, 6, 7.5, 9 })[tier]
+		local bAt = B0.attach(part, "BurstAt", V(0, s * 0.3, 0))
+		B0.emitter(bAt, "BurstInk", {
+			Texture = A.burst, Color = CS(UMBER), LightEmission = 0, LightInfluence = 0.6,
+			FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+			Size = NS({ KP(0, s * 0.8), KP(1, s * 1.1) }), Transparency = NS({ KP(0, 0.05), KP(0.3, 0.6), KP(0.6, 0.9), KP(1, 1) }),
+			Lifetime = R(0.22), Rotation = R(0, 360), ZOffset = -0.6,
+		}, { EmitCount = 1 })
+		B0.emitter(bAt, "Burst", {
+			Texture = A.burst, Color = CS(DUST), LightEmission = 0.1, LightInfluence = 0.8,
+			FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+			Size = NS({ KP(0, s * 0.6), KP(1, s * 0.95) }), Transparency = NS({ KP(0, 0), KP(0.5, 0.45), KP(0.7, 0.95), KP(1, 1) }),
+			Lifetime = R(0.3), Rotation = R(0, 360),
+		}, { EmitCount = 1 })
+	end
+	-- tertiary: chips and dust kicked up by the edge
+	B0.emitter(part, "Chips", {
+		Texture = A.dust, Color = CS(DUST), LightInfluence = 0.8,
+		EmissionDirection = Enum.NormalId.Top, SpreadAngle = Vector2.new(40, 40),
+		Size = NS({ KP(0, 0.6), KP(1, 1.6) }), Transparency = NS({ KP(0, 0.3), KP(1, 1) }),
+		Lifetime = R(0.4, 0.6), Speed = R(9, 14), Drag = 4, Rotation = R(0, 360), Acceleration = V(0, -12, 0),
+	}, { EmitCount = 3 + tier })
 	return part
 end
 
+-- what rolls out from the landing to the circle (centred on the caster)
 blocks.slam = function(root, tier)
 	local B0 = _G.vfxBlocks
-	local q = pal(coreOf(tier))
-	q.part, q.radius, q.lifetime = "Slam", RADIUS, 0.32
-	local ground = B0.groundShockwave(root, tier, q)
-	local gw = ground:FindFirstChild("GroundWave")
-	gw:SetAttribute("Duration", 0.46)
-	gw:SetAttribute("FromTransparency", 0.32)
-	gw:SetAttribute("FadeStyle", "Quint")
-	gw.Mesh.Color = Color3.fromRGB(240, 130, 40)
+	local v = variant()
+	local ground = B0.part(root, "Slam", O * CFrame.new(0, 0.2, 0))
+	B0.meshWave(ground, "GroundWave", {
+		mesh = A.raggedRing, color = v == "B" and Color3.fromRGB(150, 110, 70) or N_PALE,
+		material = v == "B" and Enum.Material.Slate or Enum.Material.Neon,
+		fromSize = V(2, 0.6, 2), toSize = V(RADIUS * 2.3, 1.5 + tier * 0.3, RADIUS * 2.3),
+		fromOffset = V(0, 0.3, 0), toOffset = V(0, 0.3, 0),
+		fromTransparency = v == "B" and 0.1 or 0.25, toTransparency = 1, duration = 0.46, style = "Quint",
+	}):SetAttribute("FadeStyle", "Quint")
+	B0.emitter(ground, "DustWall", {
+		Texture = A.dustFlip, Color = CS(DUST), LightEmission = 0, LightInfluence = 1,
+		FlipbookLayout = GRID4, FlipbookMode = ONESHOT,
+		EmissionDirection = Enum.NormalId.Front, SpreadAngle = Vector2.new(4, 180),
+		Size = NS({ KP(0, 1.8), KP(1, 3.8 + tier * 0.4) }), Transparency = NS({ KP(0, 0.15), KP(0.6, 0.4), KP(1, 1) }),
+		Lifetime = R(0.6, 0.9), Speed = R(26, 34), Drag = 3, Rotation = R(0, 360), RotSpeed = R(-40, 40),
+	}, { EmitCount = 6 + tier * 2 })
 	if tier >= 3 then
 		B0.craterRing(root, tier, { parent = "Slam", attrs = {
 			Radius = RADIUS * 0.7, Count = ({ 0, 0, 8, 12 })[tier], Duration = 0.3,
 		} })
 		B0.emitter(ground, "Cracks", B0.flat({
 			Texture = A.crack, Color = CS(INK), LightInfluence = 0.3,
-			Size = NS(({ 0, 0, 5, 6.5 })[tier]), Transparency = NS({ KP(0, 1), KP(0.04, 0.15), KP(0.65, 0.3), KP(1, 1) }),
-			Lifetime = R(1.6), Rotation = R(0, 360), ZOffset = -0.4,
+			Size = NS(({ 0, 0, 6, 8 })[tier]), Transparency = NS({ KP(0, 1), KP(0.04, 0.15), KP(0.65, 0.3), KP(1, 1) }),
+			Lifetime = R(1.8), Rotation = R(0, 360), ZOffset = -0.4,
 		}), { EmitCount = 1 })
 	end
 	if tier >= 4 then
-		B0.shockwaveShell(root, tier, {
-			name = "Shell", mesh = A.swirl, from = V(3, 0.8, 3), to = V(RADIUS * 2.1, 2.2, RADIUS * 2.1),
-			startColor = N_PALE, endColor = AMBER, y0 = 0.6, y1 = 1.1, spin = 160, duration = 0.45, startTransparency = 0.35,
-		})
 		local light = Instance.new("PointLight")
 		light.Name = "Light"
 		light.Color = AMBER
@@ -286,8 +423,9 @@ blocks.gouges = function(root, tier)
 	return gouge
 end
 
-local spec = {
+spec = {
 	id = "RampagingTiger",
+	variant = "A",
 	root = { attrs = { AuthoredRadius = RADIUS } },
 	blocks = blocks,
 	beats = {
@@ -297,7 +435,7 @@ local spec = {
 		{ block = "claw" },
 		{ block = "impact" },
 		{ block = "launch" },
-		{ block = "wheel", from = 2 },
+		{ block = "wheel" },
 		{ block = "strike" },
 		{ block = "slam" },
 		{ block = "gouges" },

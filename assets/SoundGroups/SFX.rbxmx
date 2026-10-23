@@ -2063,6 +2063,82 @@
     </Properties>
     </Item>
    </Item>
+   <Item class="Folder" referent="RTFX1"><Properties>
+    <string name="Name">RampagingTiger</string>
+   </Properties>
+    <!-- Swing (7): the diagonal cut moving -->
+    <Item class="Sound" referent="RTFX2"><Properties>
+     <string name="Name">Cut</string>
+     <Content name="SoundId"><url>rbxassetid://4488234722</url></Content>
+     <float name="Volume">0.7</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- Swing (3): each spin cut -->
+    <Item class="Sound" referent="RTFX3"><Properties>
+     <string name="Name">SpinCut</string>
+     <Content name="SoundId"><url>rbxassetid://3755635916</url></Content>
+     <float name="Volume">0.6</float>
+     <float name="PlaybackSpeed">1.05</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- SwordHit: a light hit, per enemy -->
+    <Item class="Sound" referent="RTFX4"><Properties>
+     <string name="Name">Hit</string>
+     <Content name="SoundId"><url>rbxassetid://935843979</url></Content>
+     <float name="Volume">0.5</float>
+     <float name="PlaybackSpeed">0.95</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- WindWoosh: the leap -->
+    <Item class="Sound" referent="RTFX5"><Properties>
+     <string name="Name">Leap</string>
+     <Content name="SoundId"><url>rbxassetid://3809084884</url></Content>
+     <float name="Volume">0.65</float>
+     <float name="PlaybackSpeed">0.85</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- Magic WHOOSH: the blade wheeling through its circle, cut at the landing -->
+    <Item class="Sound" referent="RTFX6"><Properties>
+     <string name="Name">Whirl</string>
+     <Content name="SoundId"><url>rbxassetid://126941244422484</url></Content>
+     <float name="Volume">0.5</float>
+     <float name="PlaybackSpeed">0.9</float>
+     <float name="RollOffMaxDistance">150</float>
+    </Properties>
+    </Item>
+    <!-- Energy Sword Impact: the cleave bites -->
+    <Item class="Sound" referent="RTFX7"><Properties>
+     <string name="Name">Bite</string>
+     <Content name="SoundId"><url>rbxassetid://7601865567</url></Content>
+     <float name="Volume">0.9</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <!-- Earth Slam: the landing, the loudest beat -->
+    <Item class="Sound" referent="RTFX8"><Properties>
+     <string name="Name">Slam</string>
+     <Content name="SoundId"><url>rbxassetid://71472197762839</url></Content>
+     <float name="Volume">1</float>
+     <float name="PlaybackSpeed">0.95</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+    <!-- Earthquake Debris: the low tail (III+) -->
+    <Item class="Sound" referent="RTFX9"><Properties>
+     <string name="Name">Rumble</string>
+     <Content name="SoundId"><url>rbxassetid://9114221327</url></Content>
+     <float name="Volume">0.55</float>
+     <float name="PlaybackSpeed">0.8</float>
+     <float name="RollOffMaxDistance">250</float>
+    </Properties>
+    </Item>
+   </Item>
   </Item>
   <!-- Guard sound choices from the user (2026-10-21). The current client plays
        Parry for every perfect parry and Block for every successful guard.

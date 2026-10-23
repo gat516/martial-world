@@ -97,8 +97,8 @@ earth 89195313060285, spike flare 102470267627424, twister 117701979506507. The 
 | thunderRush | drops to all fours and charges like a storm front | `Coil` at fists and feet from 40%, `KnuckleCharge` | take-off `Launch`; dash `BowWave` (hero), `SpeedShed`, fist `LimbTrail`s; stop `Skid` at both fists | `RushLaunch`; `Skid` |
 | bound | a hop | - | `Launch` at take-off (0.5x) and landing (0.7x) | `Launch`; `BoundLand` |
 | skids (`*Skid`) | fists and feet plough as it turns | - | `Skid` at all four | `Skid` |
-| boulderHurl | tears a boulder out, charges it, throws it | `BoulderRip` (cracks, plume, chunks) 0-600; the rock rides the fist shedding grit; `BoulderCharge` arcs the last 250 ms | flight: dust trail, shadow; impact `BoulderImpact` rock shatters (hero), dust burst, flash, discharge, shock on slate, crater | `BoulderRip`; `BoulderThrow`; `BoulderImpact` |
-| thunderLance (P2+) | forges a javelin of lightning and hurls it | `LanceForm`: arcs drawn into the fist, the javelin grows from 300 ms, glint at 1250 | `LanceFlash` at the throw; `LanceBolt` in flight (hero) + `ScorchSpot`s; end `LanceFlash` + `BoltStrike` | `LanceCharge` (sped up to end at the throw; stops if the windup breaks); `LanceThrow`; `LanceImpact` |
+| boulderHurl | tears a boulder out, charges it, throws it | `BoulderRip` (cracks, plume) 0-600; the rock rides the fist shedding dust (no chunk particles on the throw: user, 2026-10-23); `BoulderCharge` arcs the last 250 ms | flight: dust trail, shadow; impact `BoulderImpact`: the rock crumbles apart (4x4 rock flipbook 126533699507957, boulder-sized dark pieces drawn over the dust, hero), a few small dark chips (626588936), a short dust burst (0.5 s), a small flash and discharge, shock on slate, crater | `BoulderRip`; `BoulderThrow`; `BoulderImpact` |
+| thunderLance (P2+) | forges a javelin of lightning and hurls it | `LanceForm`: arcs drawn into the fist, the javelin grows from 300 ms, glint at 1250 | `LanceFlash` at the throw; `LanceBolt` in flight (hero: the tip rides the projectile and the 14-stud shaft trails behind it, `AuthoredLength` 14, so at release it reaches back to the fist) + `ScorchSpot`s; end `LanceFlash` + `BoltStrike` | `LanceCharge` (sped up to end at the throw; stops if the windup breaks); `LanceThrow`; `LanceImpact` |
 | thunderRoar / phaseRoar / challenge | chest beats, a breath, then air, sound and lightning from the mouth | `ChestBeat` on each beat (air thumped off the chest, sparks), `Inhale` + `BodyCrackle` in the last 450 ms | `RoarBlast`: a translucent swirling funnel opening out of the mouth over an indigo copy (hero), sound rings +0/+80/+160, arcs +40; `RoarGround` +120: dust shoved out to the stun radius. phaseRoar: four storm bolts land round it | `ChestBeat`, `Inhale`; `RoarBlast` + `RoarCrackle` (+ `StormRaise` on phaseRoar) |
 | stormCall | arms raised, the storm answers | `StormRaise` arcs climbing off the back, `KnuckleCharge`, the sky dims | a bolt leaves the back for the sky; each bolt: `BoltGather` cloud over the point (arcs from 55%), then the bolt out of it + `BoltStrike` (flash, discharge, scorch, sparks, dust) | `StormRaise`; `BoltStrike` |
 | phase change | the storm surges out of the body | - | `PhaseSurge` arcs burst (hero), discharge, flash, air ring; tells flash white; aura rebuilt | `PhaseSurge` |
@@ -108,7 +108,7 @@ earth 89195313060285, spike flare 102470267627424, twister 117701979506507. The 
 | aura | the storm on the body | - | `AuraForearm` arcs, `AuraCloud` indigo wisps on shoulders and back; P2+ `AuraArcs` on fists and shoulders and arcs jumping between them; P3 violet, white eyes | - |
 
 Layers per peak: swing 5 (+trail), pound 11, pound wave 3 + 2, belly slam 6, skyfall landing 12, judgment landing
-13 (+ the bolt), rush dash 3 + trails, boulder impact 8, lance flight 4 (+ trails), roar 7 + 2, bolt strike 6 (+ the
+13 (+ the bolt), rush dash 3 + trails, boulder impact 7, lance flight 4 (+ trails), roar 7 + 2, bolt strike 6 (+ the
 bolt), phase surge 4, hits 3 / 4, death release 4 + 3. Sounds: 30 under `SFX.Enemies.ThunderApe` (library sounds:
 they load in Studio; in-game permission is untested). Shakes ride the templates' ScreenEffects attributes when the
 Game Module is present and fall back to `CombatEffects.shake`.
@@ -116,8 +116,8 @@ Game Module is present and fall back to `CombatEffects.shake`.
 Checked in the sandbox (Edit mode, fake cues on the real body, noon, two review rounds): the pound peak and +400 ms,
 the swing, the roar's funnel, the skyfall landing, the judgment cloud and landing, the storm bolt's cloud, the
 phase surge, the death release; every cue fires without errors (`enemy_fx_smoke`, `stateful`). Not checked
-visually: the code bolts (beams fade before a still), rate-driven layers (coil dust, the rip's plume), trails,
-dash layers, the projectiles in flight, night, 40 studs, phones and the Game Module (add-on shakes).
+visually (the 2026-10-23 fix pass checked the lance in flight and the boulder impact at 25-35 studs): the code bolts (beams fade before a still), rate-driven layers (coil dust, the rip's plume), trails,
+dash layers, the boulder in flight, night, phones and the Game Module (add-on shakes).
 
 Known gaps (effects):
 - Dust and rock are earth-lit, so they read low on the grey testbed baseplate; they are meant for grass and stone.

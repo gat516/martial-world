@@ -128,11 +128,11 @@
        <int name="LayoutOrder">1</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">5</int>
-       <Content name="Image"><url>rbxassetid://121316271063702</url></Content>
+       <Content name="Image"><url>rbxassetid://121963270663411</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX17"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.60265</float>
+        <float name="AspectRatio">1.63846</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -157,11 +157,11 @@
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">5</int>
-       <Content name="Image"><url>rbxassetid://108527414387394</url></Content>
+       <Content name="Image"><url>rbxassetid://103520263984825</url></Content>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX21"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
-        <float name="AspectRatio">1.61589</float>
+        <float name="AspectRatio">1.6516</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -341,11 +341,11 @@
         <int name="LayoutOrder">1</int>
         <UDim2 name="Size"><XS>0</XS><XO>76</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">12</int>
-        <Content name="Image"><url>rbxassetid://91394554610042</url></Content>
+        <Content name="Image"><url>rbxassetid://107883713716005</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX42"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
-         <float name="AspectRatio">1.28125</float>
+         <float name="AspectRatio">1.3125</float>
          <token name="DominantAxis">1</token>
         </Properties>
         </Item>
@@ -369,11 +369,11 @@
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>0</XS><XO>76</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">12</int>
-        <Content name="Image"><url>rbxassetid://115839665280602</url></Content>
+        <Content name="Image"><url>rbxassetid://113538297333791</url></Content>
        </Properties>
         <Item class="UIAspectRatioConstraint" referent="RBX46"><Properties>
          <string name="Name">UIAspectRatioConstraint</string>
-         <float name="AspectRatio">1.28125</float>
+         <float name="AspectRatio">1.3125</float>
          <token name="DominantAxis">1</token>
         </Properties>
         </Item>

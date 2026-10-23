@@ -4,7 +4,7 @@
 preview runs on the client). It holds one binary file per set, and each file is
 a Folder of rigged Accessory prototypes. Traits looks up an accessory id through
 every set. Sets: `Fox.rbxm` (Spirit Fox, below), `Crane.rbxm` (Beast Folk Crane, below),
-`BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Dragonblood, Demonic Human, Ghost).
+`Tiger.rbxm` (Beast Folk Tiger, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Dragonblood, Demonic Human, Ghost).
 
 
 New and reworked cosmetics are modeled in Blender by the `modeler` (user,
@@ -40,12 +40,25 @@ rig, colours, asset ids and the Studio build (`crane/place_crane_cosmetics.luau`
 | `CraneHeadScholar`, `CraneFanScholar` | flat red crown cap, streamer plumes, compact half-fan | nothing yet (style picker) |
 | `CraneHeadAscendant`, `CraneFanAscendant` | tall flame crest feather, swept-up wing plumes, sunburst fan | nothing yet (style picker) |
 
+## Tiger (`assets/Cosmetics/Tiger.rbxm`)
+
+Skinned Blender meshes with bones: three looks for the Beast Folk Tiger, each ears
+(HatAttachment), a tail (WaistBackAttachment) and whiskers (FaceFrontAttachment). Model,
+rig, colours, asset ids and the Studio build (`tiger/place_tiger_cosmetics.luau`) are in
+[`tiger/README.md`](tiger/README.md).
+
+| Accessory | Look | Worn by |
+| --- | --- | --- |
+| `TigerEarsRound`, `TigerTailCurl`, `TigerWhiskersMarks` | Cub: plump round ears, thick low tail curling up, three short whiskers | Beast Folk Tiger (default) |
+| `TigerEarsPinned`, `TigerTailLash`, `TigerWhiskersFine` | Feral: ears pinned flat, long level tail, long drooped whiskers | nothing yet (style picker) |
+| `TigerEarsTufted`, `TigerTailCrown`, `TigerWhiskersCurl` | Regal: upright tufted ears, high question-mark tail, curled whiskers | nothing yet (style picker) |
+
 ## Beast Folk (`assets/Cosmetics/BeastFolk.rbxm`)
 
 The Folder `BeastFolk` (mapped into `ReplicatedStorage.Cosmetics`) holds eight
-rigged Accessories, two per Beast Folk variant. The Crane variant now wears the
-Blender-made Crane set above, so `CraneCrest` and `CraneTail` here are unused
-leftovers. They are built by
+rigged Accessories, two per Beast Folk variant. The Crane and Tiger variants now wear the
+Blender-made Crane and Tiger sets above, so `CraneCrest`, `CraneTail`, `TigerEars` and
+`TigerTail` here are unused leftovers. They are built by
 `build_beastfolk_cosmetics.luau` in the fox set's shape language: plain
 SmoothPlastic, invisible 0.2 Handles, and every part unanchored and Massless with
 CanCollide, CanQuery and CanTouch off. Each set has one loud piece: the wolf's

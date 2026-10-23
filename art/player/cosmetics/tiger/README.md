@@ -72,9 +72,8 @@ legs' hinge. Results:
   - **WaistBackAttachment:** `(0, 0.5, 0)`
   - **FaceFrontAttachment:** `(0, -0.6, 2.5)`, which is Head centre + Roblox `(0, 0, -0.6)`
 - Every mesh name is unique across the nine files.
-- The import follows the fox pipeline (`docs/character/player-accessories.md`, step 4):
-  upload each FBX with `tools/upload_asset.py model`, upload `tiger_shade.png` with `upload_image`,
-  `insert_asset`, then run a `place_tiger_cosmetics.luau` adapted from the fox's. That step hasn't been done yet.
+- The import follows the fox pipeline (`docs/character/player-accessories.md`, step 4); see
+  In Studio below.
 
 ## Colour (recolour contract)
 
@@ -134,9 +133,63 @@ Use it as a SurfaceAppearance `ColorMap`, tinted by `Color`.
   - Lash swaying 25 degrees per joint about X.
   - Ears folded back 50 degrees.
 
+## In Studio
+
+`TigerEarsRound`, `TigerTailCurl` and `TigerWhiskersMarks` (Cub) are the Beast Folk Tiger
+variant's default (`src/shared/Identity/Variants/BeastFolk.luau`). Feral and Regal are in
+the set for a later style picker.
+
+| Set | Model asset (upload_asset.py model) |
+| --- | --- |
+| `TigerEarsRound` | `rbxassetid://95519099266274` |
+| `TigerTailCurl` | `rbxassetid://90838260789223` |
+| `TigerWhiskersMarks` | `rbxassetid://79789653824531` |
+| `TigerEarsPinned` | `rbxassetid://139583355592529` |
+| `TigerTailLash` | `rbxassetid://79803370703008` |
+| `TigerWhiskersFine` | `rbxassetid://97753222365011` |
+| `TigerEarsTufted` | `rbxassetid://131469613088771` |
+| `TigerTailCrown` | `rbxassetid://113174004667334` |
+| `TigerWhiskersCurl` | `rbxassetid://78762397194412` |
+
+Shade ramp: `rbxassetid://107612946227238` (`tiger_shade.png`, Studio MCP `upload_image`).
+It isn't the fox's image (darkest 0.6, white by V 0.4), so it has its own upload.
+
+**Rebuild** (in a sandbox, no FBX import step):
+1. Upload the changed FBX with `python3 tools/upload_asset.py model <Set>.fbx` and put
+   the new id in `place_tiger_cosmetics.luau` (`ASSETS`).
+2. Insert each model asset into Workspace as `_Import<Set>` (Studio MCP `insert_asset`).
+3. Run `place_tiger_cosmetics.luau` through `execute_luau` (paste it, or serve the
+   worktree with `tools/serve.sh <port>` and `loadstring(HttpService:GetAsync(url))()`).
+   - It turns each import into the Accessory `<Set>` in `ReplicatedStorage.Cosmetics.Tiger`
+     and deletes the imports. Sets without an import keep their current template.
+   - It creates the folders if they're missing. That's sandbox only: never build inside
+     the Rojo-mapped Cosmetics folder in a connected place.
+4. Export the folder: `_G.exportRbxm("ReplicatedStorage.Cosmetics.Tiger")` (`tools/export_rbxm.luau`)
+   posted to the receiver as `/TigerCosmetics.rbxm`, then move the file to
+   `assets/Cosmetics/Tiger.rbxm`.
+
+**Accessory layout** (as the fox's and crane's):
+- `Handle` is an invisible 0.2 cube at the attachment point. It holds the
+  `HatAttachment` / `WaistBackAttachment` / `FaceFrontAttachment` and the bones.
+  - Ears and tails: the importer's `RootPart` becomes the Handle.
+  - Whiskers are one mesh, so the importer gives no `RootPart`: the bones come under the
+    MeshPart. The script makes the Handle at the `Root` bone and moves the bones onto it.
+- AccessoryType: Hat (ears), Waist (tails), Face (whiskers).
+- The skinned MeshParts are welded to the Handle. Each has a `Region` attribute and a
+  SurfaceAppearance. To tint a region, set both the MeshPart's `Color` and its
+  `SurfaceAppearance.Color`.
+
+**Checked in the sandbox (edit mode, R6 dummies, all three looks worn):**
+- Every Handle sits exactly on its body attachment, and every mesh centre matches the
+  JSON's `roblox_center` from it.
+- Setting `Bone.Transform` (tail curled 35 degrees per joint, left ear folded 50
+  degrees, left whiskers 25 degrees) deforms the meshes.
+- After `Model:ScaleTo(1.15)`, Cub's mesh sizes, offsets and bone positions all measure
+  exactly 1.15x.
+
 ## Untested
 
 - **In game:** the read at phone distance, and running clearance (Curl brushes the legs near the root).
 - **Fit:** the whiskers with face accessories, the ears with tall hair.
-- **Roblox import:** not done yet, including skinning after upload and `ScaleTo(1.15)`.
+- **Creator preview:** its rigid copies (no bones) of the three Cub pieces, and the whiskers there.
 - **Animation:** nothing animates the bones yet.

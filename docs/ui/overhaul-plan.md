@@ -8,6 +8,14 @@ user's words). Pillow looks decent but not good enough. The reference:
 (dialogue panel, portrait frames, response buttons, interaction prompts), which is
 the style anchor for everything below.
 
+## Out of scope (already done, user, 2026-10-22)
+The HUD vitals (health and qi bars), enemy health bars and boss bars were redone in a
+recent commit and look fine as they are. **Don't redraw them.** New work only plugs into
+them: for example, the foundation solidity meter is a small new element beside the
+existing bar, drawn in the same style as it, never a replacement. The same goes for
+the hotbar, the weapon badge and the windows that already exist: new screens match
+them; they are not part of this overhaul unless the user says so.
+
 ## How the art pipeline works now (rules for the ui-designer)
 1. **Prefer generated or supplied images to Pillow.** Pillow stays for icons, bars,
    fills and anything procedural. For frames, panels, buttons, banners and prompts,
@@ -94,7 +102,7 @@ See [roadmap](../roadmap.md) section 3c (one card, three jobs).
 > glows (grey, jade, violet, gold). Empty centre and empty text areas.
 
 ## Phase 3: character, foundation and combat
-- **Foundation solidity meter:** a slim bar with crack states (none, hairline, split,
+- **Foundation solidity meter:** a small addition next to the existing vitals bar (match its style, don't redraw it), with crack states (none, hairline, split,
   shattered) as overlays, and a jade "deep foundation" glow.
 - **Death-save prompt:** a large, centred tap button ("Break through to survive") with
   a heartbeat ring and a vignette overlay; one big thumb-sized target.
@@ -135,8 +143,9 @@ See [roadmap](../roadmap.md) section 3c (one card, three jobs).
   title card (a large black-and-gold card for the heavenly lines).
 - **Secret realm rift:** an entry prompt, a modifiers list, a clear card.
 - **Toasts and notices:** a small toast, a Hall or sect notice, a spirit-quest card.
-- **Windows chrome:** frame, close seal, tab, scroll bar, tooltip, currency chips
-  (stones, contribution, insight, qi).
+- **Window pieces the existing windows lack:** only what a new screen needs (currency
+  chips for contribution and solidity, a tooltip); reuse the current window frame and
+  close seal.
 - **Prompt:** *a wide scroll banner (6:1) unrolling with rod ends in gold, an empty
   centre; a heavenly-decree card, black and gold with lightning-thread corners*.
 

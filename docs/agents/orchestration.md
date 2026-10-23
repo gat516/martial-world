@@ -170,6 +170,15 @@ serve the agent's worktree yourself (`tools/serve.sh <port> <dir>`, a port
 calls each on ports, pasted scripts and rewritten helpers. Gate budget: ~80
 calls, hard stop at 150 (`visual-gate`, "Budget").
 
+### Human review beats self-review when the user is there
+
+A maker reviewing its own work costs captures (the slowest, dearest call) and a
+critic round; the user glancing at the live stage costs nothing. When the user
+is at their desk, brief `Review: human`: the agent lints, puts the thing on the
+stage, says what it would pick, and ends its turn. Relay the user's answer with
+`SendMessage` (the agent resumes with its context). Brief `Review: critic` only
+when they've said they're away.
+
 ### The visual gate
 
 Every visual agent preloads `visual-gate`: lint to zero FAIL, one contact sheet,

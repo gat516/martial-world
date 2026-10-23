@@ -17,6 +17,18 @@ Post a one-line text message starting `## Status:` at every phase change
 The user watches `tools/agent_feed.sh`; a status line is what they read, a tool
 name is not.
 
+## 0a. Two review modes (user, 2026-10-23)
+
+The brief says `Review: human` or `Review: critic`.
+- **human** (the user is at their desk, watching the stage): no self-review
+  captures and no critic. Run the lints, put the thing on the review stage, post
+  a `## Status:` line saying what's on it and what you'd pick, and **end your
+  turn**. The user answers in chat ("A", "ship", "the ring is too big") and the
+  main session resumes you with the note; you carry on from your context. A
+  direction round costs you zero captures this way, and no tokens while you wait.
+- **critic** (the user is away): the loop below, with the capture cap.
+Lints run in both modes. Never poll or wait inside a turn for either.
+
 ## 0b. Show the work live, never stop for a look (user, 2026-10-23)
 
 The user watches your sandbox window while you work. After every build round,
@@ -35,8 +47,9 @@ from the worktree root; the shared ports may serve another checkout), set
 `_G.REVIEW_STAGE = { base = "http://127.0.0.1:<port>/" }`, then load
 `tools/review_stage.luau` through `execute_luau`. Details: `docs/tools.md`.
 Leaving the stage running is the one exception to leaving the sandbox clean:
-name the stop call in your report. Never pause for the user's review; they flag
-you if they want a change. Until the tool lands on your branch, improvise the
+name the stop call in your report. In critic mode never pause for the user's
+review; they flag you if they want a change. In human mode, ending your turn at
+a decision point *is* the review. Until the tool lands on your branch, improvise the
 same thing from `vfxPreview`/`enemy_fx_shot`/the preview scripts.
 
 ## 0c. Budget

@@ -21,6 +21,7 @@ Every brief, every discipline:
 | Scale and size | yes for bodies, props, UI | the testbed row scale (fox 2.13x, ape 3.71x, python 3.17x...), weapon length against the R6 rig, UI baseline sizes |
 | User's words | when there are any | quotes from the conversation about this item, verbatim |
 | Done means | yes | the lint is clean, the critic says SHIP, exported to `assets/...`, docs updated, `Test build:` line |
+| Review | yes | `human` (the user is watching the stage and answers in chat; the agent ends its turn at each decision point, no captures or critic) or `critic` (the user is away; lint + sheet + critic rounds) |
 | Variants | default yes | "send 2-3 directions first" unless the brief names an exact match |
 
 Per discipline, on top of the above:

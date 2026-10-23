@@ -29,6 +29,7 @@ local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
 local Roots = require(ReplicatedStorage.Shared.Roots)
+local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 
 local Slots = require(ReplicatedStorage.Shared.Config).Slots
 
@@ -83,6 +84,9 @@ export type Data = {
 	-- the character screen's choices: firstName "" until named; look is
 	-- CharacterIdentity.Look without FirstName (nil until named)
 	character: { firstName: string?, look: { [string]: any }? },
+	-- traits, and a copy of the slot fate's race and variant that Traits reads
+	-- (docs/systems/identity.md); race "" until the slot is played
+	identity: Registry.Identity,
 	peak: {
 		removed: { [string]: boolean },
 		placed: { Placed },
@@ -90,8 +94,9 @@ export type Data = {
 	},
 }
 
--- Race and last name of a slot position (Shared.CharacterCreator Races / Surnames keys).
-export type Fate = { Race: string, Surname: string }
+-- Race, variant and last name of a slot position (Shared.Identity race and variant ids,
+-- Shared.CharacterCreator.Surnames keys).
+export type Fate = { Race: string, Variant: string?, Surname: string } -- Variant "" for a race without variants (nil before variants)
 export type Trash = { slot: string, data: any, fate: Fate?, at: number }
 -- Everything stored for one player with slots on. Slot ids are "1".."MAX"
 -- (string keys: DataStores can't keep nil holes in arrays).
@@ -161,6 +166,7 @@ local function default(): Data
 		root = Roots.new(),
 		character = {},
 		peak = { removed = {}, placed = {}, plots = {} },
+		identity = { race = "", variant = "", traits = {} },
 	}
 end
 
@@ -284,7 +290,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

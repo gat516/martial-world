@@ -4,10 +4,11 @@
 -- rest of the join on that slot's profile. Everything here is checked on the
 -- server: the client only asks.
 --
--- Race and last name belong to a slot position (Account.fates), not to the
--- character in it: drawn free the first time New is pressed there, kept when the
--- slot is deleted, so delete-then-new draws nothing new. A paid reroll changes
--- the fate of the position the creator has open.
+-- Race (with its variant) and last name belong to a slot position
+-- (Account.fates), not to the character in it: drawn free the first time New is
+-- pressed there, kept when the slot is deleted, so delete-then-new draws nothing
+-- new. A paid reroll changes the fate of the position the creator has open. The
+-- played slot's traits follow its race in Traits.luau (docs/systems/identity.md).
 --
 -- Actions (through CharacterAction, CharacterIdentity.handle):
 --   "slots"            -> { slots = { Summary }, max, canSave, last, playing }
@@ -28,10 +29,11 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local CC = ReplicatedStorage.Shared.CharacterCreator
 local Clothing = require(CC.Clothing)
 local HairColors = require(CC.HairColors)
-local Races = require(CC.Races)
+local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Rules = require(CC.Rules)
 local Surnames = require(CC.Surnames)
 local PlayerData = require(script.Parent.PlayerData)
+local Traits = require(script.Parent.Traits)
 
 local SlotConfig = Config.Slots
 
@@ -41,6 +43,7 @@ export type Summary = {
 	named: boolean,
 	firstName: string?,
 	race: string?,
+	variant: string?,
 	surname: string?,
 	realm: { major: string, minor: number }?,
 	lastPlayed: number?,
@@ -56,25 +59,55 @@ local sessions: { [Player]: Session } = {}
 local deleteTokens: { [Player]: { id: string, token: string, at: number } } = {}
 local busy: { [Player]: boolean } = {}
 
-local KINDS = { Race = Races :: { [string]: any }, Surname = Surnames :: { [string]: any } }
+local KINDS = { Race = true, Surname = true }
 
 local function named(data: PlayerData.Data?): boolean
 	local character = data and data.character
 	return character ~= nil and type(character.firstName) == "string" and character.firstName ~= ""
 end
 
--- The race and last name of a slot position, drawn (free) where missing or no
--- longer in the config.
+local function kept(raceId: string, variantId: string?): boolean
+	if not Registry.race(raceId) or Registry.disabled(Registry.raceEntry(raceId)) then
+		return false
+	elseif not Registry.hasVariants(raceId) then
+		return true
+	end
+	return Registry.variant(raceId, variantId) ~= nil and not Registry.disabled(Registry.variantEntry(raceId, variantId :: string))
+end
+
+-- A fresh race and variant from the join roll (Availability Roll, weighted).
+local function rollRace(fate: any)
+	local pool = Registry.racePool("Roll")
+	if not next(pool) then
+		warn("Slots: no race can be rolled (Identity/Availability.luau)")
+		return
+	end
+	fate.Race = Rules.roll(pool, random)
+	local variants = Registry.variantPool(fate.Race, "Roll")
+	fate.Variant = if next(variants) then Rules.roll(variants, random) else ""
+end
+
+-- The race, variant and last name of a slot position, drawn (free) where missing
+-- or no longer in the config. A race kept without a variant (saved before
+-- variants, or its variant was dropped) draws only the variant. Hidden races and
+-- variants stay: an admin gave them.
 function Slots.fate(player: Player, id: string): PlayerData.Fate?
 	local account = PlayerData.account(player)
 	if not (account and PlayerData.validSlot(id)) then
 		return nil
 	end
 	local fate = account.fates[id] or {} :: any
-	for kind, defs in KINDS do
-		if not defs[fate[kind] or ""] then
-			fate[kind] = Rules.roll(defs, random)
+	if not kept(fate.Race or "", fate.Variant) then
+		if Registry.race(fate.Race) and next(Registry.variantPool(fate.Race, "Roll")) then
+			fate.Variant = Rules.roll(Registry.variantPool(fate.Race, "Roll"), random)
+		else
+			rollRace(fate)
 		end
+	elseif not Registry.hasVariants(fate.Race) then
+		fate.Variant = ""
+	end
+	if not (Surnames :: any)[fate.Surname or ""] then
+		fate.Surname = Rules.roll(Surnames :: any, random)
 	end
 	account.fates[id] = fate
 	return fate
@@ -88,23 +121,36 @@ function Slots.showIdentity(player: Player, id: string)
 	local data = account and account.slots[id]
 	if fate then
 		player:SetAttribute("Race", fate.Race)
+		player:SetAttribute("RaceVariant", fate.Variant)
 		player:SetAttribute("Surname", fate.Surname)
 	end
 	player:SetAttribute("FirstName", if named(data) then (data :: any).character.firstName else nil)
 end
 
--- Rerolls one part of a slot position's fate; returns the new key.
+-- Rerolls one part of a slot position's fate ("Race" draws a variant too);
+-- returns the new key. On the played slot a race change goes through Traits,
+-- so its innate traits follow.
 function Slots.reroll(player: Player, id: string, kind: string): string?
-	local defs = KINDS[kind]
-	local fate = defs and Slots.fate(player, id)
+	local fate = KINDS[kind] and Slots.fate(player, id)
 	if not fate then
 		return nil
 	end
-	local key = Rules.roll(defs, random);
-	(fate :: any)[kind] = key
+	if kind == "Race" then
+		rollRace(fate)
+	else
+		fate.Surname = Rules.roll(Surnames :: any, random)
+	end
+	local key = (fate :: any)[kind]
+	local data = PlayerData.get(player)
+	if kind == "Race" and data and PlayerData.active(player) == id then
+		Traits.setRace(player, data, fate.Race, fate.Variant)
+	end
 	local session = sessions[player]
 	if (session and session.id == id) or PlayerData.active(player) == id then
 		player:SetAttribute(kind, key)
+		if kind == "Race" then
+			player:SetAttribute("RaceVariant", fate.Variant)
+		end
 	end
 	return key
 end
@@ -127,6 +173,7 @@ local function summary(account: PlayerData.Account, id: string): Summary
 		named = named(data),
 		firstName = character.firstName,
 		race = fate and fate.Race,
+		variant = fate and fate.Variant,
 		surname = fate and fate.Surname,
 		realm = { major = data.realm.major, minor = data.realm.minor },
 		lastPlayed = data.lastLogoutUnix,

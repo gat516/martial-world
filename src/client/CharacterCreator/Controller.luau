@@ -48,6 +48,7 @@ type Summary = {
 	named: boolean,
 	firstName: string?,
 	race: string?,
+	variant: string?,
 	surname: string?,
 	realm: { major: string, minor: number }?,
 	lastPlayed: number?,
@@ -250,7 +251,10 @@ end
 local function paintCreatorName()
 	local first = if session and session.firstName then session.firstName else Defs.Rules.checkFirstName(state:get("FirstName"))
 	local race = Defs.Races[player:GetAttribute("Race") or ""]
-	setNameplate(fullName(player:GetAttribute("Surname"), first), if race then race.DisplayName else "")
+	setNameplate(
+		fullName(player:GetAttribute("Surname"), first),
+		if race then Defs.Registry.label(player:GetAttribute("Race"), player:GetAttribute("RaceVariant")) else ""
+	)
 end
 
 -- Footer and header for the current mode and step.
@@ -337,7 +341,7 @@ local function previewSlot(slot: Summary?)
 		return
 	end
 	local race = Defs.Races[slot.race or ""]
-	local sub = if race then `{race.DisplayName}  ·  {realmName(slot.realm)}` else realmName(slot.realm)
+	local sub = if race then `{Defs.Registry.label(slot.race, slot.variant)}  ·  {realmName(slot.realm)}` else realmName(slot.realm)
 	setNameplate(if slot.named then fullName(slot.surname, slot.firstName) else "Unnamed cultivator", sub)
 	Look.apply(slot.look, {})
 	task.spawn(function()
@@ -367,7 +371,7 @@ local function paintCards()
 				local race = Defs.Races[slot.race or ""]
 				card.set(
 					if slot.named then fullName(slot.surname, slot.firstName) else "Unnamed cultivator",
-					if not slot.named then "Name them to play" elseif race then race.DisplayName else "",
+					if not slot.named then "Name them to play" elseif race then Defs.Registry.label(slot.race, slot.variant) else "",
 					realmName(slot.realm),
 					since(slot.lastPlayed),
 					false
@@ -711,7 +715,7 @@ function Controller.init(screen: ScreenGui)
 			end
 		end
 	end)
-	for _, attribute in { "Race", "Surname" } do
+	for _, attribute in { "Race", "RaceVariant", "Surname" } do
 		player:GetAttributeChangedSignal(attribute):Connect(function()
 			if mode ~= "slots" then
 				refresh()

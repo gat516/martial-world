@@ -54,6 +54,15 @@ function Modals.isOpen(): boolean
 	return modal.Visible
 end
 
+local function sortedKeys(map: { [string]: any }): { string }
+	local keys = {}
+	for key in map do
+		table.insert(keys, key)
+	end
+	table.sort(keys)
+	return keys
+end
+
 local function fillOdds()
 	local list = odds:FindFirstChild("List") :: ScrollingFrame
 	for _, child in list:GetChildren() do
@@ -62,7 +71,20 @@ local function fillOdds()
 		end
 	end
 	local order = 0
-	for _, group in { { "Races", Defs.Races, "Race" }, { "Clans", Defs.Surnames, "Surname" } } do
+	local me = Players.LocalPlayer
+	-- what the join roll can draw: released Roll races, then each one's variants
+	-- (chances within that race); Hidden and Disabled ones stay off the card
+	local races = Defs.Registry.racePool("Roll")
+	local groups: { { any } } = { { "Races", races, "Race" } }
+	for _, raceId in sortedKeys(races) do
+		local variants = Defs.Registry.variantPool(raceId, "Roll")
+		if next(variants) then
+			local mine = if me:GetAttribute("Race") == raceId then "RaceVariant" else ""
+			table.insert(groups, { `{races[raceId].DisplayName} variants`, variants, mine })
+		end
+	end
+	table.insert(groups, { "Clans", Defs.Surnames, "Surname" })
+	for _, group in groups do
 		local title, defs, attribute = group[1], group[2] :: { [string]: any }, group[3]
 		order += 1
 		Components.section(list, title, order)
@@ -76,7 +98,7 @@ local function fillOdds()
 			end
 			return defs[a].DisplayName < defs[b].DisplayName
 		end)
-		local mine = Players.LocalPlayer:GetAttribute(attribute)
+		local mine = if attribute ~= "" then me:GetAttribute(attribute) else nil
 		for _, key in keys do
 			order += 1
 			local chance = Defs.Rules.chance(defs, key)

@@ -13663,7 +13663,7 @@
     </Item>
    </Item>
   </Item>
-  <Item class="Frame" referent="RBX1358"><Properties>
+  <Item class="Frame" referent="RBX812498FB80444912A18DEFC9CF37AE7D"><Properties>
    <string name="Name">AdminPanel</string>
    <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
@@ -13672,16 +13672,16 @@
    <bool name="Visible">false</bool>
    <int name="ZIndex">9</int>
   </Properties>
-   <Item class="UISizeConstraint" referent="RBX1359"><Properties>
+   <Item class="UISizeConstraint" referent="RBX2044596CC0BE4B60BFBA09478DD71A9D"><Properties>
     <string name="Name">UISizeConstraint</string>
     <Vector2 name="MaxSize"><X>380</X><Y>600</Y></Vector2>
    </Properties>
    </Item>
-   <Item class="UIScale" referent="RBX1360"><Properties>
+   <Item class="UIScale" referent="RBX49AE2D51EF83403E9C1F5EABC2D8C1BA"><Properties>
     <string name="Name">Motion</string>
    </Properties>
    </Item>
-   <Item class="ImageLabel" referent="RBX1361"><Properties>
+   <Item class="ImageLabel" referent="RBX1235E166BCAD4FF18C2D922990EEA9B7"><Properties>
     <string name="Name">Backdrop</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -13691,7 +13691,7 @@
     <float name="SliceScale">0.25</float>
    </Properties>
    </Item>
-   <Item class="TextLabel" referent="RBX1362"><Properties>
+   <Item class="TextLabel" referent="RBX075747D8B95A4DE48C843C683159D775"><Properties>
     <string name="Name">Title</string>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0</XS><XO>16</XO><YS>0</YS><YO>8</YO></UDim2>
@@ -13704,7 +13704,7 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="TextLabel" referent="RBX1363"><Properties>
+   <Item class="TextLabel" referent="RBXB734118123DA4A85BA8557EA2DBC2453"><Properties>
     <string name="Name">KeyHint</string>
     <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
@@ -13720,7 +13720,7 @@
     <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
    </Properties>
    </Item>
-   <Item class="ScrollingFrame" referent="RBX1364"><Properties>
+   <Item class="ScrollingFrame" referent="RBX751868B91A014E2F92E942A5DC776DDF"><Properties>
     <string name="Name">Sections</string>
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
@@ -13735,20 +13735,20 @@
     <Content name="BottomImage"><url>rbxassetid://81073831199278</url></Content>
     <token name="ScrollingDirection">2</token>
    </Properties>
-    <Item class="UIListLayout" referent="RBX1365"><Properties>
+    <Item class="UIListLayout" referent="RBXEE929C9D310C442EBC60499713F09C1F"><Properties>
      <string name="Name">UIListLayout</string>
      <token name="SortOrder">2</token>
      <UDim name="Padding"><S>0</S><O>8</O></UDim>
     </Properties>
     </Item>
-    <Item class="UIPadding" referent="RBX1366"><Properties>
+    <Item class="UIPadding" referent="RBX728489D6608C45D9AD127F370AF5219C"><Properties>
      <string name="Name">UIPadding</string>
      <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
      <UDim name="PaddingLeft"><S>0</S><O>4</O></UDim>
      <UDim name="PaddingRight"><S>0</S><O>10</O></UDim>
     </Properties>
     </Item>
-    <Item class="Frame" referent="RBX1367"><Properties>
+    <Item class="Frame" referent="RBXB040A60966AB4ECABF6EFBB967D89514"><Properties>
      <string name="Name">SectionTemplate</string>
      <token name="AutomaticSize">2</token>
      <float name="BackgroundTransparency">1</float>
@@ -13756,20 +13756,20 @@
      <bool name="Visible">false</bool>
      <int name="ZIndex">3</int>
     </Properties>
-     <Item class="UIListLayout" referent="RBX1368"><Properties>
+     <Item class="UIListLayout" referent="RBX9BDC2B2F80CB475999F4763C883895CA"><Properties>
       <string name="Name">UIListLayout</string>
       <token name="SortOrder">2</token>
       <UDim name="Padding"><S>0</S><O>4</O></UDim>
      </Properties>
      </Item>
-     <Item class="Frame" referent="RBX1369"><Properties>
+     <Item class="Frame" referent="RBX9B5991A3B18B42D183A4661185C5C690"><Properties>
       <string name="Name">Head</string>
       <float name="BackgroundTransparency">1</float>
       <int name="LayoutOrder">1</int>
       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>24</YO></UDim2>
       <int name="ZIndex">3</int>
      </Properties>
-      <Item class="TextLabel" referent="RBX1370"><Properties>
+      <Item class="TextLabel" referent="RBXB66873866275468D8BD6605FFB8A2B0C"><Properties>
        <string name="Name">Title</string>
        <float name="BackgroundTransparency">1</float>
        <UDim2 name="Size"><XS>1</XS><XO>-110</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -13783,7 +13783,7 @@
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
       </Item>
-      <Item class="ImageLabel" referent="RBX1371"><Properties>
+      <Item class="ImageLabel" referent="RBX6631FCE920124F2A998DA27E5B94B31B"><Properties>
        <string name="Name">CountField</string>
        <Vector2 name="AnchorPoint"><X>1</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
@@ -13795,7 +13795,7 @@
        <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
        <float name="SliceScale">0.22</float>
       </Properties>
-       <Item class="TextLabel" referent="RBX1372"><Properties>
+       <Item class="TextLabel" referent="RBX1EA4905EF06349D5956EC072383C2C11"><Properties>
         <string name="Name">Caption</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Position"><XS>0</XS><XO>8</XO><YS>0</YS><YO>0</YO></UDim2>
@@ -13809,7 +13809,7 @@
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextBox" referent="RBX1373"><Properties>
+       <Item class="TextBox" referent="RBX60676F70D03D4F57A269352C6AC4BD9D"><Properties>
         <string name="Name">CountBox</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Position"><XS>0</XS><XO>22</XO><YS>0</YS><YO>0</YO></UDim2>
@@ -13826,7 +13826,7 @@
        </Item>
       </Item>
      </Item>
-     <Item class="Frame" referent="RBX1374"><Properties>
+     <Item class="Frame" referent="RBXCB42A7156CCF45108E4B0B6702EB639A"><Properties>
       <string name="Name">Grid</string>
       <token name="AutomaticSize">2</token>
       <float name="BackgroundTransparency">1</float>
@@ -13834,13 +13834,13 @@
       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       <int name="ZIndex">3</int>
      </Properties>
-      <Item class="UIGridLayout" referent="RBX1375"><Properties>
+      <Item class="UIGridLayout" referent="RBXF3CDDBF48E5E46AE851CA323F44B5E44"><Properties>
        <string name="Name">UIGridLayout</string>
        <token name="SortOrder">2</token>
        <UDim2 name="CellSize"><XS>0.333</XS><XO>-4</XO><YS>0</YS><YO>30</YO></UDim2>
       </Properties>
       </Item>
-      <Item class="ImageButton" referent="RBX1376"><Properties>
+      <Item class="ImageButton" referent="RBXA92375F4D724474A82468F97567E6F59"><Properties>
        <string name="Name">ChipTemplate</string>
        <float name="BackgroundTransparency">1</float>
        <bool name="Visible">false</bool>
@@ -13851,11 +13851,11 @@
        <Rect2D name="SliceCenter"><min><X>64</X><Y>40</Y></min><max><X>448</X><Y>88</Y></max></Rect2D>
        <float name="SliceScale">0.22</float>
       </Properties>
-       <Item class="UIScale" referent="RBX1377"><Properties>
+       <Item class="UIScale" referent="RBXFDEDDFF7374A4548B9C3C5034A109A67"><Properties>
         <string name="Name">Motion</string>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="RBX1378"><Properties>
+       <Item class="TextLabel" referent="RBXE3BF0DE6A209434E964E59D4D8C7FC05"><Properties>
         <string name="Name">Label</string>
         <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -13871,12 +13871,719 @@
         <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="UITextSizeConstraint" referent="RBX1379"><Properties>
+        <Item class="UITextSizeConstraint" referent="RBXC6645965BF354AB7B5F7E5C7DCEA097A"><Properties>
          <string name="Name">UITextSizeConstraint</string>
          <int name="MaxTextSize">13</int>
         </Properties>
         </Item>
        </Item>
+      </Item>
+     </Item>
+    </Item>
+   </Item>
+   <Item class="Frame" referent="RBX737805690D364184B483D1A19319D26A"><Properties>
+    <string name="Name">Tabs</string>
+    <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+    <float name="BackgroundTransparency">1</float>
+    <UDim2 name="Position"><XS>1</XS><XO>-54</XO><YS>0</YS><YO>8</YO></UDim2>
+    <UDim2 name="Size"><XS>0</XS><XO>150</XO><YS>0</YS><YO>24</YO></UDim2>
+    <int name="ZIndex">4</int>
+   </Properties>
+    <Item class="UIListLayout" referent="RBX59B2F4F94DD348EA98EF18ED78A740C0"><Properties>
+     <string name="Name">UIListLayout</string>
+     <token name="FillDirection">0</token>
+     <token name="HorizontalAlignment">2</token>
+     <token name="SortOrder">2</token>
+     <UDim name="Padding"><S>0</S><O>5</O></UDim>
+    </Properties>
+    </Item>
+    <Item class="ImageButton" referent="RBX14B29CDD5FA7414C935D13CAF7938C1F"><Properties>
+     <string name="Name">ToolsTab</string>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">1</int>
+     <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>1</YS><YO>0</YO></UDim2>
+     <int name="ZIndex">4</int>
+     <bool name="AutoButtonColor">false</bool>
+     <Content name="Image"><url>rbxassetid://124847805310931</url></Content>
+     <token name="ScaleType">1</token>
+     <Rect2D name="SliceCenter"><min><X>64</X><Y>40</Y></min><max><X>448</X><Y>88</Y></max></Rect2D>
+     <float name="SliceScale">0.22</float>
+    </Properties>
+     <Item class="UIScale" referent="RBX4AB4661EB5844FD789104DFC194E7574"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
+     <Item class="TextLabel" referent="RBX174CA37947B448B09BE8564801265102"><Properties>
+      <string name="Name">Label</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-10</XO><YS>1</YS><YO>-8</YO></UDim2>
+      <int name="ZIndex">5</int>
+      <string name="Text">Tools</string>
+      <Color3 name="TextColor3"><R>0.980392</R><G>0.941176</G><B>0.862745</B></Color3>
+      <float name="TextSize">14</float>
+      <bool name="TextScaled">true</bool>
+      <bool name="TextWrapped">true</bool>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+      <Item class="UITextSizeConstraint" referent="RBX756E95A11F68437392C8EFB448CA6A00"><Properties>
+       <string name="Name">UITextSizeConstraint</string>
+       <int name="MaxTextSize">13</int>
+      </Properties>
+      </Item>
+     </Item>
+    </Item>
+    <Item class="ImageButton" referent="RBXE990B238627944B2AAA22912371E8FD9"><Properties>
+     <string name="Name">TraitsTab</string>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">2</int>
+     <UDim2 name="Size"><XS>0</XS><XO>70</XO><YS>1</YS><YO>0</YO></UDim2>
+     <int name="ZIndex">4</int>
+     <bool name="AutoButtonColor">false</bool>
+     <Content name="Image"><url>rbxassetid://88447362782150</url></Content>
+     <token name="ScaleType">1</token>
+     <Rect2D name="SliceCenter"><min><X>64</X><Y>40</Y></min><max><X>448</X><Y>88</Y></max></Rect2D>
+     <float name="SliceScale">0.22</float>
+    </Properties>
+     <Item class="UIScale" referent="RBXE81604D997B949DC96082147E1C6017F"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
+     <Item class="TextLabel" referent="RBX6755001FDC334338B92DB5032492FB7B"><Properties>
+      <string name="Name">Label</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-10</XO><YS>1</YS><YO>-8</YO></UDim2>
+      <int name="ZIndex">5</int>
+      <string name="Text">Traits</string>
+      <Color3 name="TextColor3"><R>0.980392</R><G>0.941176</G><B>0.862745</B></Color3>
+      <float name="TextSize">14</float>
+      <bool name="TextScaled">true</bool>
+      <bool name="TextWrapped">true</bool>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+      <Item class="UITextSizeConstraint" referent="RBXF3408B2C40C64F5EA8AD0BC48FB3714C"><Properties>
+       <string name="Name">UITextSizeConstraint</string>
+       <int name="MaxTextSize">13</int>
+      </Properties>
+      </Item>
+     </Item>
+    </Item>
+   </Item>
+   <Item class="ScrollingFrame" referent="RBXD3F8A8995C854D56B7964510E85314DB"><Properties>
+    <string name="Name">Traits</string>
+    <float name="BackgroundTransparency">1</float>
+    <int name="BorderSizePixel">0</int>
+    <UDim2 name="Position"><XS>0</XS><XO>10</XO><YS>0</YS><YO>36</YO></UDim2>
+    <UDim2 name="Size"><XS>1</XS><XO>-20</XO><YS>1</YS><YO>-46</YO></UDim2>
+    <bool name="Visible">false</bool>
+    <int name="ZIndex">3</int>
+    <UDim2 name="CanvasSize"><XS>0</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+    <token name="AutomaticCanvasSize">2</token>
+    <int name="ScrollBarThickness">6</int>
+    <Content name="TopImage"><url>rbxassetid://79466160523433</url></Content>
+    <Content name="MidImage"><url>rbxassetid://75934409239828</url></Content>
+    <Content name="BottomImage"><url>rbxassetid://81073831199278</url></Content>
+    <token name="ScrollingDirection">2</token>
+   </Properties>
+    <Item class="UIListLayout" referent="RBX36F793A8BD434C67912587B89A9A2B28"><Properties>
+     <string name="Name">UIListLayout</string>
+     <token name="SortOrder">2</token>
+     <UDim name="Padding"><S>0</S><O>8</O></UDim>
+    </Properties>
+    </Item>
+    <Item class="UIPadding" referent="RBXA8AC1205650E40BF80F4A266FAD328AA"><Properties>
+     <string name="Name">UIPadding</string>
+     <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
+     <UDim name="PaddingLeft"><S>0</S><O>4</O></UDim>
+     <UDim name="PaddingRight"><S>0</S><O>10</O></UDim>
+    </Properties>
+    </Item>
+    <Item class="Frame" referent="RBXC49FC398034A475E905AA856CED02873"><Properties>
+     <string name="Name">PlayerRow</string>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">1</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>28</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="TextLabel" referent="RBX1FC412FB19AF425397F60FE4AA035851"><Properties>
+      <string name="Name">Title</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>0</XS><XO>52</XO><YS>1</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">4</int>
+      <string name="Text">Player</string>
+      <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
+      <float name="TextSize">14</float>
+      <token name="TextXAlignment">0</token>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+     <Item class="ImageLabel" referent="RBX143A15466B95464B82A6927EF80F0684"><Properties>
+      <string name="Name">PlayerField</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0</XS><XO>56</XO><YS>0</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-122</XO><YS>1</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">3</int>
+      <Content name="Image"><url>rbxassetid://101285289335891</url></Content>
+      <token name="ScaleType">1</token>
+      <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
+      <float name="SliceScale">0.22</float>
+     </Properties>
+      <Item class="TextBox" referent="RBX478B122178D441499F4C28EBC434F5BA"><Properties>
+       <string name="Name">PlayerBox</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>8</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-16</XO><YS>1</YS><YO>0</YO></UDim2>
+       <int name="ZIndex">4</int>
+       <string name="Text"></string>
+       <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
+       <float name="TextSize">13</float>
+       <token name="TextXAlignment">0</token>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+       <token name="TextTruncate">1</token>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+       <string name="PlaceholderText">Name or id, blank for you</string>
+       <Color3 name="PlaceholderColor3"><R>0.501961</R><G>0.541176</G><B>0.52549</B></Color3>
+       <bool name="ClearTextOnFocus">false</bool>
+      </Properties>
+      </Item>
+     </Item>
+     <Item class="ImageButton" referent="RBX46E4C6BF383A4CCAAE1B6111F2B3D8E2"><Properties>
+      <string name="Name">MeButton</string>
+      <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>60</XO><YS>1</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">3</int>
+      <bool name="AutoButtonColor">false</bool>
+      <Content name="Image"><url>rbxassetid://88447362782150</url></Content>
+      <token name="ScaleType">1</token>
+      <Rect2D name="SliceCenter"><min><X>64</X><Y>40</Y></min><max><X>448</X><Y>88</Y></max></Rect2D>
+      <float name="SliceScale">0.22</float>
+     </Properties>
+      <Item class="UIScale" referent="RBXF9210539BA0B4FA5B354CFD53636FF9C"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
+      <Item class="TextLabel" referent="RBX8CD3DB1B1DC7440C8275753DB1CCDF3A"><Properties>
+       <string name="Name">Label</string>
+       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-10</XO><YS>1</YS><YO>-8</YO></UDim2>
+       <int name="ZIndex">4</int>
+       <string name="Text">Me</string>
+       <Color3 name="TextColor3"><R>0.980392</R><G>0.941176</G><B>0.862745</B></Color3>
+       <float name="TextSize">14</float>
+       <bool name="TextScaled">true</bool>
+       <bool name="TextWrapped">true</bool>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+      </Properties>
+       <Item class="UITextSizeConstraint" referent="RBXA143734D7EB54414ADBF8EAA0A28AD66"><Properties>
+        <string name="Name">UITextSizeConstraint</string>
+        <int name="MaxTextSize">13</int>
+       </Properties>
+       </Item>
+      </Item>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBXC3026378B1844272B862A07F60A0E63C"><Properties>
+     <string name="Name">PlayerGrid</string>
+     <token name="AutomaticSize">2</token>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">2</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="UIGridLayout" referent="RBX2ECB3A59B5754825A95999CB28BA1156"><Properties>
+      <string name="Name">UIGridLayout</string>
+      <token name="SortOrder">2</token>
+      <UDim2 name="CellSize"><XS>0.332333</XS><XO>-4</XO><YS>0</YS><YO>30</YO></UDim2>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBXC45FF5808C014250B41F7B9F1CF0C52D"><Properties>
+     <string name="Name">TargetRow</string>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">3</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>28</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="TextLabel" referent="RBX124900688B484F2C84878DD482DEBA64"><Properties>
+      <string name="Name">TargetLabel</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>-66</XO><YS>1</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">4</int>
+      <string name="Text">Nobody loaded</string>
+      <Color3 name="TextColor3"><R>0.980392</R><G>0.941176</G><B>0.862745</B></Color3>
+      <float name="TextSize">14</float>
+      <token name="TextXAlignment">0</token>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+      <token name="TextTruncate">1</token>
+      <bool name="RichText">true</bool>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+     <Item class="ImageButton" referent="RBXEB06075545514276A9973F77059BB383"><Properties>
+      <string name="Name">SyncButton</string>
+      <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>60</XO><YS>1</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">3</int>
+      <bool name="AutoButtonColor">false</bool>
+      <Content name="Image"><url>rbxassetid://88447362782150</url></Content>
+      <token name="ScaleType">1</token>
+      <Rect2D name="SliceCenter"><min><X>64</X><Y>40</Y></min><max><X>448</X><Y>88</Y></max></Rect2D>
+      <float name="SliceScale">0.22</float>
+     </Properties>
+      <Item class="UIScale" referent="RBX3AC5017DDCA44B0EBFDE342F3F89664B"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
+      <Item class="TextLabel" referent="RBX3CF33FDF1C9B40968AF356BF0D21556E"><Properties>
+       <string name="Name">Label</string>
+       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-10</XO><YS>1</YS><YO>-8</YO></UDim2>
+       <int name="ZIndex">4</int>
+       <string name="Text">Sync</string>
+       <Color3 name="TextColor3"><R>0.980392</R><G>0.941176</G><B>0.862745</B></Color3>
+       <float name="TextSize">14</float>
+       <bool name="TextScaled">true</bool>
+       <bool name="TextWrapped">true</bool>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+      </Properties>
+       <Item class="UITextSizeConstraint" referent="RBXD28B83A6AECF420DB1E314F60BD35E78"><Properties>
+        <string name="Name">UITextSizeConstraint</string>
+        <int name="MaxTextSize">13</int>
+       </Properties>
+       </Item>
+      </Item>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBXE90075E2817C48C29885E4B39D1BF31E"><Properties>
+     <string name="Name">RaceHead</string>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">4</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>24</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="TextLabel" referent="RBXFF38A143D5634FC5B0FBC84AC737045F"><Properties>
+      <string name="Name">Title</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">4</int>
+      <string name="Text">Race</string>
+      <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
+      <float name="TextSize">14</float>
+      <token name="TextXAlignment">0</token>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBXB54C7A373BE04D278D67B33E0566975D"><Properties>
+     <string name="Name">RaceGrid</string>
+     <token name="AutomaticSize">2</token>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">5</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="UIGridLayout" referent="RBX69C0CFBD4D6D431C9BD160AEAA688D0C"><Properties>
+      <string name="Name">UIGridLayout</string>
+      <token name="SortOrder">2</token>
+      <UDim2 name="CellSize"><XS>0.332333</XS><XO>-4</XO><YS>0</YS><YO>30</YO></UDim2>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBXC9C60DDE65BA40C5B4387595C2FA9EC1"><Properties>
+     <string name="Name">VariantHead</string>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">6</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>24</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="TextLabel" referent="RBX9751FECA99274E17ADC8DEEC91243CE8"><Properties>
+      <string name="Name">Title</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">4</int>
+      <string name="Text">Variant</string>
+      <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
+      <float name="TextSize">14</float>
+      <token name="TextXAlignment">0</token>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBX64ACEE19106B43C5A9C6E3F3A0AAFD71"><Properties>
+     <string name="Name">VariantGrid</string>
+     <token name="AutomaticSize">2</token>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">7</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="UIGridLayout" referent="RBXB6BAB8D5063840AF99903D0593BD3F79"><Properties>
+      <string name="Name">UIGridLayout</string>
+      <token name="SortOrder">2</token>
+      <UDim2 name="CellSize"><XS>0.332333</XS><XO>-4</XO><YS>0</YS><YO>30</YO></UDim2>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBX4E369E7CCD954CE6AD9FAE151D71E207"><Properties>
+     <string name="Name">HeldHead</string>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">8</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>24</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="TextLabel" referent="RBXE20194B54022438CAD884E8719EAE86B"><Properties>
+      <string name="Name">Title</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">4</int>
+      <string name="Text">Held traits</string>
+      <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
+      <float name="TextSize">14</float>
+      <token name="TextXAlignment">0</token>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBX0C0BF4B604F14639BFD9E2AAD045A4AE"><Properties>
+     <string name="Name">HeldList</string>
+     <token name="AutomaticSize">2</token>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">9</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="UIListLayout" referent="RBXFFBB4E9EA9224CD0837B571E22678C21"><Properties>
+      <string name="Name">UIListLayout</string>
+      <token name="SortOrder">2</token>
+      <UDim name="Padding"><S>0</S><O>4</O></UDim>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBXC216107424E248CE8E7F10116CD03B9A"><Properties>
+     <string name="Name">CatalogHead</string>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">10</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>24</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="TextLabel" referent="RBX0B53234D60724CDAA67AC0EFA750D668"><Properties>
+      <string name="Name">Title</string>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>-176</XO><YS>1</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">4</int>
+      <string name="Text">All traits</string>
+      <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
+      <float name="TextSize">14</float>
+      <token name="TextXAlignment">0</token>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+     <Item class="ImageLabel" referent="RBX376CD75024AC4961826759F154E92934"><Properties>
+      <string name="Name">SearchField</string>
+      <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>170</XO><YS>1</YS><YO>0</YO></UDim2>
+      <int name="ZIndex">3</int>
+      <Content name="Image"><url>rbxassetid://101285289335891</url></Content>
+      <token name="ScaleType">1</token>
+      <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
+      <float name="SliceScale">0.22</float>
+     </Properties>
+      <Item class="TextBox" referent="RBX147C4C251D494699B5BF22429039756D"><Properties>
+       <string name="Name">SearchBox</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0</XS><XO>8</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-16</XO><YS>1</YS><YO>0</YO></UDim2>
+       <int name="ZIndex">4</int>
+       <string name="Text"></string>
+       <Color3 name="TextColor3"><R>0.92549</R><G>0.94902</G><B>0.92549</B></Color3>
+       <float name="TextSize">13</float>
+       <token name="TextXAlignment">0</token>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+       <token name="TextTruncate">1</token>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+       <string name="PlaceholderText">Search traits</string>
+       <Color3 name="PlaceholderColor3"><R>0.501961</R><G>0.541176</G><B>0.52549</B></Color3>
+       <bool name="ClearTextOnFocus">false</bool>
+      </Properties>
+      </Item>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBX4FC07457B72D4D62ABF73AD93E2DD44B"><Properties>
+     <string name="Name">FilterGrid</string>
+     <token name="AutomaticSize">2</token>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">11</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="UIGridLayout" referent="RBX61429A6A129945EF9CB58A82066AF91B"><Properties>
+      <string name="Name">UIGridLayout</string>
+      <token name="SortOrder">2</token>
+      <UDim2 name="CellSize"><XS>0.25</XS><XO>-4</XO><YS>0</YS><YO>26</YO></UDim2>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="Frame" referent="RBX5056858237B84740AAA8F975CBF6EAC4"><Properties>
+     <string name="Name">CatalogList</string>
+     <token name="AutomaticSize">2</token>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">12</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+     <int name="ZIndex">3</int>
+    </Properties>
+     <Item class="UIListLayout" referent="RBXAE5793124E564D82B39B6377B920D49D"><Properties>
+      <string name="Name">UIListLayout</string>
+      <token name="SortOrder">2</token>
+      <UDim name="Padding"><S>0</S><O>4</O></UDim>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="Folder" referent="RBX96F49B108FCD42A09489B67FA5D13D53"><Properties>
+     <string name="Name">Templates</string>
+    </Properties>
+     <Item class="ImageButton" referent="RBXC0971033E7BD4F1DB46DCFBF8739EDD3"><Properties>
+      <string name="Name">Chip</string>
+      <float name="BackgroundTransparency">1</float>
+      <bool name="Visible">false</bool>
+      <int name="ZIndex">3</int>
+      <bool name="AutoButtonColor">false</bool>
+      <Content name="Image"><url>rbxassetid://88447362782150</url></Content>
+      <token name="ScaleType">1</token>
+      <Rect2D name="SliceCenter"><min><X>64</X><Y>40</Y></min><max><X>448</X><Y>88</Y></max></Rect2D>
+      <float name="SliceScale">0.22</float>
+     </Properties>
+      <Item class="UIScale" referent="RBX93A254AAA49B4FA79AF02F5006E8CB3F"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
+      <Item class="TextLabel" referent="RBXD1F80D7809574B58BFAB5B242DEAAB51"><Properties>
+       <string name="Name">Label</string>
+       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-10</XO><YS>1</YS><YO>-8</YO></UDim2>
+       <int name="ZIndex">4</int>
+       <string name="Text">Chip</string>
+       <Color3 name="TextColor3"><R>0.980392</R><G>0.941176</G><B>0.862745</B></Color3>
+       <float name="TextSize">14</float>
+       <bool name="TextScaled">true</bool>
+       <bool name="TextWrapped">true</bool>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+      </Properties>
+       <Item class="UITextSizeConstraint" referent="RBX3B02A60E475D452CA0DC8FAF42B58930"><Properties>
+        <string name="Name">UITextSizeConstraint</string>
+        <int name="MaxTextSize">13</int>
+       </Properties>
+       </Item>
+      </Item>
+     </Item>
+     <Item class="ImageLabel" referent="RBX565BA84AA8ED4E669B6E84976C4101D7"><Properties>
+      <string name="Name">Tag</string>
+      <token name="AutomaticSize">1</token>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>16</YO></UDim2>
+      <bool name="Visible">false</bool>
+      <int name="ZIndex">5</int>
+      <Content name="Image"><url>rbxassetid://114161172660254</url></Content>
+      <token name="ScaleType">1</token>
+      <Rect2D name="SliceCenter"><min><X>32</X><Y>31</Y></min><max><X>224</X><Y>33</Y></max></Rect2D>
+      <float name="SliceScale">0.26</float>
+     </Properties>
+      <Item class="UIPadding" referent="RBXC34027FA85BC4995ABCE5A57630B6B0A"><Properties>
+       <string name="Name">UIPadding</string>
+       <UDim name="PaddingLeft"><S>0</S><O>6</O></UDim>
+       <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
+      </Properties>
+      </Item>
+      <Item class="TextLabel" referent="RBX3931ED99C5DC43878F159A434D1B1120"><Properties>
+       <string name="Name">Label</string>
+       <token name="AutomaticSize">1</token>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+       <int name="ZIndex">6</int>
+       <string name="Text">Hidden</string>
+       <Color3 name="TextColor3"><R>0.980392</R><G>0.941176</G><B>0.862745</B></Color3>
+       <float name="TextSize">11</float>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+      </Properties>
+      </Item>
+     </Item>
+     <Item class="ImageButton" referent="RBX6278B15B3980417C8BE568677E5D204F"><Properties>
+      <string name="Name">TraitRow</string>
+      <token name="AutomaticSize">2</token>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+      <bool name="Visible">false</bool>
+      <int name="ZIndex">3</int>
+      <bool name="AutoButtonColor">false</bool>
+      <Content name="Image"><url>rbxassetid://101285289335891</url></Content>
+      <token name="ScaleType">1</token>
+      <Rect2D name="SliceCenter"><min><X>48</X><Y>48</Y></min><max><X>464</X><Y>80</Y></max></Rect2D>
+      <float name="SliceScale">0.22</float>
+     </Properties>
+      <Item class="UIPadding" referent="RBX5EF348EFD9C64F34900B5B5E6B3E5AA8"><Properties>
+       <string name="Name">UIPadding</string>
+       <UDim name="PaddingTop"><S>0</S><O>5</O></UDim>
+       <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
+       <UDim name="PaddingLeft"><S>0</S><O>8</O></UDim>
+       <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
+      </Properties>
+      </Item>
+      <Item class="UIListLayout" referent="RBX86466ACEFF4E4140A521BA26769A5FF5"><Properties>
+       <string name="Name">UIListLayout</string>
+       <token name="SortOrder">2</token>
+       <UDim name="Padding"><S>0</S><O>1</O></UDim>
+      </Properties>
+      </Item>
+      <Item class="Frame" referent="RBX25E3CDE9B2D8474FBB8270602333A9B0"><Properties>
+       <string name="Name">Top</string>
+       <float name="BackgroundTransparency">1</float>
+       <int name="LayoutOrder">1</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>22</YO></UDim2>
+       <int name="ZIndex">4</int>
+      </Properties>
+       <Item class="Frame" referent="RBX517843FBC2464FDCA80ADCAB05FBF0F9"><Properties>
+        <string name="Name">Line</string>
+        <float name="BackgroundTransparency">1</float>
+        <bool name="ClipsDescendants">true</bool>
+        <UDim2 name="Size"><XS>1</XS><XO>-70</XO><YS>1</YS><YO>0</YO></UDim2>
+        <int name="ZIndex">4</int>
+       </Properties>
+        <Item class="UIListLayout" referent="RBX1A49939A73444ECBABE3EFB0EA571A83"><Properties>
+         <string name="Name">UIListLayout</string>
+         <token name="FillDirection">0</token>
+         <token name="VerticalAlignment">0</token>
+         <token name="SortOrder">2</token>
+         <UDim name="Padding"><S>0</S><O>5</O></UDim>
+        </Properties>
+        </Item>
+        <Item class="TextLabel" referent="RBXE1BE979CE2854919967D4F161651A871"><Properties>
+         <string name="Name">TraitName</string>
+         <token name="AutomaticSize">1</token>
+         <float name="BackgroundTransparency">1</float>
+         <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+         <int name="ZIndex">5</int>
+         <string name="Text">Fox Cunning</string>
+         <Color3 name="TextColor3"><R>0.980392</R><G>0.941176</G><B>0.862745</B></Color3>
+         <float name="TextSize">14</float>
+         <float name="TextStrokeTransparency">0</float>
+         <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+        </Properties>
+        </Item>
+       </Item>
+       <Item class="ImageButton" referent="RBX321A63416EAC4261852BB9E784CEF209"><Properties>
+        <string name="Name">Action</string>
+        <Vector2 name="AnchorPoint"><X>1</X><Y>0.5</Y></Vector2>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>0</YS><YO>22</YO></UDim2>
+        <int name="ZIndex">5</int>
+        <bool name="AutoButtonColor">false</bool>
+        <Content name="Image"><url>rbxassetid://88447362782150</url></Content>
+        <token name="ScaleType">1</token>
+        <Rect2D name="SliceCenter"><min><X>64</X><Y>40</Y></min><max><X>448</X><Y>88</Y></max></Rect2D>
+        <float name="SliceScale">0.22</float>
+       </Properties>
+        <Item class="UIScale" referent="RBX79D68CF15E7545CF9949BDD15F0DA057"><Properties>
+         <string name="Name">Motion</string>
+        </Properties>
+        </Item>
+        <Item class="TextLabel" referent="RBX325F2F53C7B1468A8F87CF1ACB28FB45"><Properties>
+         <string name="Name">Label</string>
+         <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+         <float name="BackgroundTransparency">1</float>
+         <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+         <UDim2 name="Size"><XS>1</XS><XO>-10</XO><YS>1</YS><YO>-8</YO></UDim2>
+         <int name="ZIndex">6</int>
+         <string name="Text">Give</string>
+         <Color3 name="TextColor3"><R>0.980392</R><G>0.941176</G><B>0.862745</B></Color3>
+         <float name="TextSize">14</float>
+         <bool name="TextScaled">true</bool>
+         <bool name="TextWrapped">true</bool>
+         <float name="TextStrokeTransparency">0</float>
+         <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+        </Properties>
+         <Item class="UITextSizeConstraint" referent="RBX2C549095EC1A4D3FA51C34E7B9D354A7"><Properties>
+          <string name="Name">UITextSizeConstraint</string>
+          <int name="MaxTextSize">13</int>
+         </Properties>
+         </Item>
+        </Item>
+       </Item>
+      </Item>
+      <Item class="TextLabel" referent="RBX80A7DF92A18C4EDD9F69C3F601292A58"><Properties>
+       <string name="Name">Info</string>
+       <float name="BackgroundTransparency">1</float>
+       <int name="LayoutOrder">2</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>15</YO></UDim2>
+       <int name="ZIndex">4</int>
+       <string name="Text">Racial · Innate</string>
+       <Color3 name="TextColor3"><R>0.690196</R><G>0.752941</G><B>0.729412</B></Color3>
+       <float name="TextSize">12</float>
+       <token name="TextXAlignment">0</token>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+       <token name="TextTruncate">1</token>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+      </Properties>
+      </Item>
+      <Item class="TextLabel" referent="RBX56195192DAC44E6990A3089BDD233366"><Properties>
+       <string name="Name">Details</string>
+       <token name="AutomaticSize">2</token>
+       <float name="BackgroundTransparency">1</float>
+       <int name="LayoutOrder">3</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+       <bool name="Visible">false</bool>
+       <int name="ZIndex">4</int>
+       <string name="Text"></string>
+       <Color3 name="TextColor3"><R>0.870588</R><G>0.894118</G><B>0.870588</B></Color3>
+       <float name="TextSize">12</float>
+       <bool name="TextWrapped">true</bool>
+       <token name="TextXAlignment">0</token>
+       <token name="TextYAlignment">0</token>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0313726</R><G>0.0392157</G><B>0.0470588</B></Color3>
+       <bool name="RichText">true</bool>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+      </Properties>
       </Item>
      </Item>
     </Item>

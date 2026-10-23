@@ -8,6 +8,8 @@
 
 Covers the bloodline layer (design only, not built): what it is, finding and intake, what it gives, swapping, data; read it before building bloodlines.
 
+When bloodlines are built: traits can already be gated on a bloodline (`Access.Bloodlines`) and unlocks can require one (`Kind = "Bloodline"`); both read `data.bloodline.id` ([identity](../systems/identity.md)). A bloodline's passive fits the `Mechanics` hooks there.
+
 **What it is:** a special power in your body, awakened from a found essence.
 For kids, bloodlines are mythical creatures; the classic special bodies are rare
 bloodlines in the same slot, so there is **one slot and one idea**:

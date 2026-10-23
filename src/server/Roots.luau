@@ -10,6 +10,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local RootDefs = require(ReplicatedStorage.Shared.Roots)
+local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local PlayerData = require(script.Parent.PlayerData)
 local Cultivation = require(script.Parent.Cultivation)
 
@@ -151,13 +152,13 @@ function Roots.start()
 			warn("Roots: Hub.TestingStone has no TestPrompt")
 		end
 	end)
-	-- Water roots heal out of combat
+	-- Water roots (and race, variant or trait regen modifiers) heal out of combat
 	task.spawn(function()
 		while true do
 			local dt = task.wait(1)
 			for _, player in Players:GetPlayers() do
 				local data = PlayerData.get(player)
-				local regen = if data then RootDefs.perk(data.root, "regen") else 0
+				local regen = if data then RootDefs.perk(data.root, "regen") + Registry.stat(data, "regen") else 0
 				local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 				if regen > 0 and humanoid and humanoid.Health > 0 and humanoid.Health < humanoid.MaxHealth then
 					if not (Cultivation.inCombat and Cultivation.inCombat(player)) then

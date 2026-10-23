@@ -20,10 +20,21 @@
 --                             unlocks, resolved by the server's Traits.mechanics
 --                             registry (none are built yet; unknown ids are inert)
 --   Cosmetics                 optional accessory ids every member wears
---                             (ServerStorage.Cosmetics; see Traits/Racial.luau)
+--                             (ReplicatedStorage.Cosmetics, assets/Cosmetics/)
+--   Looks                     optional free cosmetic picks (user, 2026-10-23): a
+--                             list of slots, each { Id, DisplayName, Options = { {
+--                             Id, DisplayName, Cosmetics } } }. The player picks one
+--                             option per slot with arrows on the creator's Fate step
+--                             (free, any time they edit the look); the first option
+--                             is the default. Saved in the slot's look as RaceLook =
+--                             { [slot Id]: option Id }. Looks are only looks: anything
+--                             with traits or stats is a variant, rolled with the race.
 --
 -- Existing races (Human, Spirit Fox, Stone Spirit, Dragonblood) are placeholders
 -- from the character screen; the four after them were added 2026-10-23.
+
+export type LookOption = { Id: string, DisplayName: string, Cosmetics: { string } }
+export type Look = { Id: string, DisplayName: string, Options: { LookOption } }
 
 export type Race = {
 	DisplayName: string,
@@ -36,6 +47,7 @@ export type Race = {
 	Modifiers: { [string]: number }?,
 	Mechanics: { string }?,
 	Cosmetics: { string }?,
+	Looks: { Look }?,
 }
 
 local Races: { [string]: Race } = {
@@ -56,6 +68,27 @@ local Races: { [string]: Race } = {
 		-- the fox traits, moved here from the removed Beast Folk Fox variant (user, 2026-10-23)
 		InnateTraits = { "FoxCunning" },
 		Modifiers = { technique = 0.03 },
+		-- tail and ear shapes are free picks, not rolled variants (user, 2026-10-23)
+		Looks = {
+			{
+				Id = "Tail",
+				DisplayName = "Tail",
+				Options = {
+					{ Id = "Plume", DisplayName = "Plume", Cosmetics = { "FoxTailPlume" } },
+					{ Id = "Crescent", DisplayName = "Crescent", Cosmetics = { "FoxTailCrescent" } },
+					{ Id = "Wisp", DisplayName = "Wisp", Cosmetics = { "FoxTailWisp" } },
+				},
+			},
+			{
+				Id = "Ears",
+				DisplayName = "Ears",
+				Options = {
+					{ Id = "Sleek", DisplayName = "Sleek", Cosmetics = { "FoxEarsSleek" } },
+					{ Id = "Broad", DisplayName = "Broad", Cosmetics = { "FoxEarsBroad" } },
+					{ Id = "Long", DisplayName = "Long", Cosmetics = { "FoxEarsLong" } },
+				},
+			},
+		},
 	},
 	StoneSpirit = {
 		DisplayName = "Stone Spirit",
@@ -64,6 +97,7 @@ local Races: { [string]: Race } = {
 		Weight = 10,
 		Icon = "",
 		Modifiers = { health = 0.05, walk = -1 },
+		Cosmetics = { "StoneShards" },
 	},
 	Dragonblood = {
 		DisplayName = "Dragonblood",
@@ -71,6 +105,10 @@ local Races: { [string]: Race } = {
 		Rarity = "Legendary",
 		Weight = 3,
 		Icon = "",
+		-- Antler (the remodelled DragonHorns) is the look; the Celestial
+		-- (DragonHornsCelestial, DragonTailRising) and Cub (DragonHornsCub,
+		-- DragonTailStub) sets are in Cosmetics/Dragonblood for a later style picker.
+		Cosmetics = { "DragonHornsAntler", "DragonTailTuft" },
 	},
 
 	BeastFolk = {
@@ -89,6 +127,7 @@ local Races: { [string]: Race } = {
 		Weight = 6,
 		Icon = "",
 		InnateTraits = { "DemonicQi" },
+		Cosmetics = { "DemonHorns" },
 	},
 	Ghost = {
 		DisplayName = "Ghost",
@@ -97,6 +136,7 @@ local Races: { [string]: Race } = {
 		Weight = 2,
 		Icon = "",
 		InnateTraits = { "Incorporeal" },
+		Cosmetics = { "GhostWisps" },
 	},
 	Giant = {
 		DisplayName = "Giant",

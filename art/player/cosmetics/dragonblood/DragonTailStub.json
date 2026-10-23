@@ -1,0 +1,232 @@
+{
+ "name": "DragonTailStub",
+ "attachment": "WaistBackAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.5,
+  0.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) from the attachment; mesh Size = (bx, bz, by), CFrame relative to the attachment = CFrame.new(-cx, cz, cy), no rotation",
+ "colors": {
+  "Scales": [
+   0.04,
+   0.16,
+   0.085
+  ],
+  "Ridge": [
+   0.83,
+   0.75,
+   0.58
+  ],
+  "Tuft": [
+   0.88,
+   0.84,
+   0.73
+  ]
+ },
+ "shade": {
+  "file": "dragon_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.58,
+  "fade_to_white_at_v": 0.5
+ },
+ "meshes": {
+  "DragonTailStub_Tail": {
+   "region": "Scales",
+   "tris": 2754,
+   "center": [
+    -0.005,
+    0.218,
+    0.306
+   ],
+   "size": [
+    0.859,
+    1.336,
+    1.103
+   ]
+  },
+  "DragonTailStub_TailRidge": {
+   "region": "Ridge",
+   "tris": 208,
+   "center": [
+    0.015,
+    0.43,
+    0.594
+   ],
+   "size": [
+    0.149,
+    0.621,
+    0.565
+   ]
+  },
+  "DragonTailStub_TailTuft": {
+   "region": "Tuft",
+   "tris": 1866,
+   "center": [
+    0.213,
+    0.807,
+    0.022
+   ],
+   "size": [
+    1.178,
+    1.274,
+    1.087
+   ]
+  }
+ },
+ "tris_total": 4828,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "TailBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    -0.35,
+    0.5
+   ],
+   "tail": [
+    -0.007,
+    0.014,
+    0.41
+   ],
+   "roblox_head": [
+    -0.0,
+    0.5,
+    -0.35
+   ],
+   "deform": true
+  },
+  "Tail1": {
+   "parent": "TailBase",
+   "head": [
+    -0.007,
+    0.014,
+    0.41
+   ],
+   "tail": [
+    0.008,
+    0.291,
+    0.303
+   ],
+   "roblox_head": [
+    0.007,
+    0.41,
+    0.014
+   ],
+   "deform": true
+  },
+  "Tail2": {
+   "parent": "Tail1",
+   "head": [
+    0.008,
+    0.291,
+    0.303
+   ],
+   "tail": [
+    0.056,
+    0.532,
+    0.134
+   ],
+   "roblox_head": [
+    -0.008,
+    0.303,
+    0.291
+   ],
+   "deform": true
+  },
+  "Tail3": {
+   "parent": "Tail2",
+   "head": [
+    0.056,
+    0.532,
+    0.134
+   ],
+   "tail": [
+    0.171,
+    0.774,
+    0.007
+   ],
+   "roblox_head": [
+    -0.056,
+    0.134,
+    0.532
+   ],
+   "deform": true
+  },
+  "Tail4": {
+   "parent": "Tail3",
+   "head": [
+    0.171,
+    0.774,
+    0.007
+   ],
+   "tail": [
+    0.359,
+    1.001,
+    -0.014
+   ],
+   "roblox_head": [
+    -0.171,
+    0.007,
+    0.774
+   ],
+   "deform": true
+  },
+  "Tail5": {
+   "parent": "Tail4",
+   "head": [
+    0.359,
+    1.001,
+    -0.014
+   ],
+   "tail": [
+    0.544,
+    1.168,
+    0.148
+   ],
+   "roblox_head": [
+    -0.359,
+    -0.014,
+    1.001
+   ],
+   "deform": true
+  }
+ },
+ "label": "Stub",
+ "proportions": {
+  "torso_size": [
+   1.87,
+   1.0,
+   1.87
+  ],
+  "reach_behind_back": 1.444,
+  "reach_to_torso_height": 0.77,
+  "width": 1.229,
+  "width_to_torso_width": 0.66,
+  "height": 1.398,
+  "height_to_torso_height": 0.75,
+  "lowest_z": -0.521,
+  "leg_clearance_rest": 0.523,
+  "leg_swing_back_clear_deg": 30,
+  "length": 1.927
+ }
+}

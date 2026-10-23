@@ -40,7 +40,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local Config = require(ReplicatedStorage.Shared.Config)
 local Gates = require(ReplicatedStorage.Shared.Gates)
 local Hitbox = require(ReplicatedStorage.Shared.Hitbox)
 local GuideFX = require(script.Parent.GuideFX)
@@ -111,7 +110,6 @@ local pressConn: RBXScriptConnection? = nil
 local pulsing: GuiButton? = nil
 local spotlit = false
 local blocked: { [GuiObject]: boolean } = {} -- made non-interactable -> its own value
-local lastHurt = -math.huge
 
 local place: { inst: Instance, part: BasePart, top: number }? = nil -- the walking target
 local lastPick = -math.huge
@@ -234,7 +232,7 @@ local function block(button: GuiButton)
 end
 
 local function inCombat(): boolean
-	return os.clock() - lastHurt < Config.Combat.IN_COMBAT_SECONDS
+	return player:GetAttribute("InCombat") == true -- Combat publishes it (hurt or hitting)
 end
 
 -- A window is open that the target isn't inside of.
@@ -653,20 +651,6 @@ function Guide.spotlit(): boolean
 	return spotlit
 end
 
-local function watchCharacter(character: Model)
-	local humanoid = character:WaitForChild("Humanoid", 10) :: Humanoid?
-	if not humanoid then
-		return
-	end
-	local health = humanoid.Health
-	humanoid.HealthChanged:Connect(function(value)
-		if value < health then
-			lastHurt = os.clock()
-		end
-		health = value
-	end)
-end
-
 function Guide.init(screenGui: ScreenGui)
 	gui = screenGui
 	root = gui:FindFirstChild("Guide") :: Frame
@@ -685,10 +669,6 @@ function Guide.init(screenGui: ScreenGui)
 	marker.Enabled = false
 	marker.Parent = player:WaitForChild("PlayerGui")
 
-	if player.Character then
-		task.spawn(watchCharacter, player.Character)
-	end
-	player.CharacterAdded:Connect(watchCharacter)
 	Menus.onChanged(function()
 		if guide then
 			run()

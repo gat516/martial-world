@@ -20,8 +20,9 @@ Pieces, rows left to right:
 4. `keyplate` (empty tile), `chevron`.
 
 They are mounted in the Figma UI kit's ornament components (corner sets mirrored), so
-the kit's frames, buttons and bars use them. Not yet uploaded to Roblox or previewed in
-Studio. The thin dark-red line between the panel corner's rails is in the generated art.
+the kit's frames, buttons and bars use them. The dialogue screen and prompt cards use
+several in Roblox ([dialogue](dialogue.md); uploaded after `tools/alpha_bleed.py`, since
+the cuts carry the key colour under transparent pixels). The thin dark-red line between the panel corner's rails is in the generated art.
 
 ## Sheet A1
 `art/ui/codex/sheet_a1.png` (sheet A1 of codex-sheets): `plaque_end`, `plaque_end_small`,

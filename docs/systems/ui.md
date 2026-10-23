@@ -69,11 +69,13 @@ cursor, settings and the admin panel.
 - World prompts are drawn in our own style, one target in focus at a time: on their
   target with mouse, keyboard or gamepad; on touch in a fixed column above the right
   end of the vitals and hotbar (`Prompts.Dock`, mirrors `Hud.Stack`'s box), so they
-  are in thumb reach wherever the camera points. With a mouse, cards take clicks
+  are in thumb reach wherever the camera points. Each card is the kit's prompt banner
+  behind a round key plate (live key letter, the action's glyph, a hold ring); see
+  [dialogue](../ui/dialogue.md). With a mouse, cards take clicks
   only while the cursor is free; under shift lock or lock-on the centred mouse
   would otherwise sit on the board and swallow attacks and camera drags.
 - UI work goes through the `ui-designer` subagent (AGENTS.md). GUIs are authored in
-  Studio via MCP and exported to `assets/Hud.rbxmx`, `Rewards.rbxmx`, `Prompts.rbxmx`,
+  Studio via MCP and exported to `assets/Hud.rbxmx`, `Rewards.rbxmx`, `Prompts.rbxmx`, `Dialogue.rbxmx`,
   `Veil.rbxmx` (full-screen, no safe insets, above everything),
   `CharacterCreator.rbxmx` (the join screen, see [character creator](character-creator.md));
   scripts only find and fill them.
@@ -101,6 +103,7 @@ cursor, settings and the admin panel.
 - [Boss health bar](../ui/boss-bars.md)
 - [Reward banners: floats, feed, banner, card; the toast](../ui/rewards.md)
 - [Dialogue ornaments](../ui/dialogue-ornaments.md)
+- [Dialogue screen and interaction prompts](../ui/dialogue.md)
 - [Character window](../character/character-window.md)
 
 ## Key files (all `src/client/`)
@@ -114,6 +117,12 @@ cursor, settings and the admin panel.
   `Play.BlockButton`: see [vitals stack](../ui/hud-vitals.md#guard-bar).
 - `Menus.luau`: the one-window rule and what hides while a window is open.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
+- `UiScale.luau`: baseline scaling for new screens. Lay a screen out once inside an
+  authored `Canvas` frame (with a `UiScale` UIScale) at 1920x1080, or 844x390 for a
+  phone layout; `UiScale.fit(canvas)` scales it to the screen and sizes the canvas to
+  fill it in baseline units. `UiScale.isPhone()` (touch, short side under 600 px,
+  decided once) picks the phone layout. Details in the module header and
+  [overhaul-plan](../ui/overhaul-plan.md) "Resolution and scaling".
 - `HotbarView.luau` (with the weapon slot), `Inventory.luau` (Weapons & Arts and Pouch tabs),
   `InventoryFilter.luau` (chip rail, sort, search), `Rarity.luau` (the rarity ladder and frames),
   `Fresh.luau` (NEW badges), `SlotArt.luau` (slot painting, class glyphs and colours,
@@ -123,8 +132,9 @@ cursor, settings and the admin panel.
   feed, banner and card tiers; the boss victory, quest and milestone card), and
   `RegionBanner.luau` (the region entry banner on the banner tier). See
   [reward banners](../ui/rewards.md).
-- `UiScale.luau`: fits a screen's authored `Canvas` to the device from a baseline
-  (Rewards uses it).
+- `Dialogue.luau` (`Dialogue.open({speaker, portrait, lines, responses}) -> choice`,
+  `StarterGui.Dialogue`, ready to wire) and `Glyphs.luau` (the kit's white action glyphs,
+  shared with the prompts). See [dialogue](../ui/dialogue.md).
 - Boss health bar: `BossBars.luau` drives `Play.BossBar`; themes in
   `BossThemes.luau`, boss pick in `EnemyBars.luau`. See [boss bar](../ui/boss-bars.md).
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`

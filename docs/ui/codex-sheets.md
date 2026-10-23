@@ -83,6 +83,17 @@ Same white-glyph grid rules, 4 x 4:
 Metal, wood, water, fire, earth, lightning, wind, ice (spirit root elements); sword, spear, saber, fist, staff (weapon classes); spirit stone, qi swirl, insight (an eye or a lit lamp).
 ```
 
+### A7. Dialogue name tabs and a large portrait corner
+The dialogue screen ([dialogue](dialogue.md)) is composed from the window corner, the
+small portrait corner and, for now, the objective banner standing in as the name tab.
+This sheet replaces the stand-ins. One piece per file, cut in three parts like A2.
+```text
+Row 1: the raised speaker name tab from the reference (dark navy lacquer plate, thin gold edge, angled ends, a gold cloud scroll trailing off its right end), long (about 8:1), with a long PLAIN middle and a straight bottom edge so it sits on a panel's top border. Empty.
+Row 2: the same tab for masters and elders: rich gold lacquer plate with a darker gold edge, brighter cloud scroll.
+Row 3: the same tab for demons: deep crimson lacquer (#5a1414) with a dark gold edge.
+Row 4: the small gold fretwork portrait corner from the reference (top-left only: a thin double gold rail with a small cloud curl in the corner and square fret ends), drawn large (about 600 px wide) so it stays crisp; the rails between the curl and the frets perfectly straight.
+```
+
 ## B. Next: rewards, quests, sect
 
 ### B1. Reward cards (roadmap 3c: one card, three jobs)

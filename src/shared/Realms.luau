@@ -2,7 +2,7 @@
 -- Realm ladder, in order. The numbers come from Pacing.luau (the master
 -- progression tuning): its curve, with that stage's Pacing.Adjust entry and
 -- Pacing.Global applied. Tune there, not here.
---   key        the stage id Pacing uses ("QC1".."QC9", "FE1")
+--   key        the stage id Pacing uses ("QC1".."QC9", "QR1".."QR9", "FE1".."FE9")
 --   bar        cultivation needed to fill this stage's realm bar
 --   dantian    raw qi the dantian holds
 --   passive    cultivation per second from sitting (online or offline), before buffs
@@ -13,7 +13,8 @@
 --   gather     raw qi income multiplier (qi nodes, daily qi, enemy kills)
 --   difficulty circulation minigame difficulty (0 easy .. 1 hard)
 --   levels     most levels in a circulation run
---   tribulation the tribulation that guards a major breakthrough out of this stage
+--   tribulation the tribulation a heaven-defying player faces on the major breakthrough out
+--              of this stage (everyone else breaks through without one; Cultivation.heavenDefying)
 --   beastHealth, beastDamage  multipliers for demon beasts whose realm is this stage
 --   combatQi   the combat qi pool's size (Pacing.CombatQi.MAX)
 
@@ -43,6 +44,7 @@ export type Stage = {
 
 local MAJOR_NAMES = {
 	QiCondensation = "Qi Condensation",
+	QiRefining = "Qi Refining",
 	Foundation = "Foundation Establishment",
 }
 
@@ -68,7 +70,7 @@ for i, row in Pacing.Curve do
 		beat = row.beat,
 		major = row.major,
 		minor = row.minor,
-		name = if row.major == "Foundation" then MAJOR_NAMES.Foundation else `{MAJOR_NAMES[row.major]} {row.minor}`,
+		name = `{MAJOR_NAMES[row.major]} {row.minor}`,
 		bar = math.max(1, math.floor(row.bar * (adjust.bar or 1) * G.BAR + 0.5)),
 		dantian = row.dantian,
 		passive = row.passive * (adjust.passive or 1) * G.PASSIVE,
@@ -111,7 +113,7 @@ function Realms.get(major: string, minor: number): Stage
 	return Realms.Stages[Realms.index(major, minor)]
 end
 
--- The stage after this one, or nil at the top of the MVP ladder.
+-- The stage after this one, or nil at the top of the ladder (FE9).
 function Realms.after(major: string, minor: number): Stage?
 	return Realms.Stages[Realms.index(major, minor) + 1]
 end

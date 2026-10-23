@@ -6,6 +6,15 @@ break through to the next stage. Stages raise health and damage, so progress is
 felt in fights.
 
 ## Design intent
+- **The ladder is 27 stages** (2026-10-22, [progression](../progression.md)): Qi
+  Condensation 1-9, Qi Refining 1-9, Foundation Establishment 1-9 (FE9 is the cap).
+  The QR and FE2-9 rows are first-guess curves, untuned in play.
+- **Tribulations are for the heaven-defying only.** `data.heavenDefying` (default
+  false; `Cultivation.heavenDefying`) puts a tribulation on every major
+  breakthrough (QC9, QR9); everyone else breaks through quietly after the bar and
+  insight. Nothing sets the flag yet: a heaven-defying bloodline or root will.
+- **Walls are insight, never a boss.** Insight (cumulative) is set at QC9 5, QR6 7,
+  QR9 9, FE3 11, FE6 13. A boss kill is one source among many.
 - **Two kinds of qi.** Raw qi (`data.rawQi`, the dantian) is cultivation's fuel:
   gathered, then refined into the realm bar. **Combat qi** (the `Qi` attribute)
   is the mana techniques spend: a separate, unsaved pool whose size grows with
@@ -22,8 +31,8 @@ felt in fights.
   nodes, then refine with a skill minigame) is several times faster.
 - A deliberate rhythm, not a flat ramp: QC1-3 hook (onboarding), QC4 breather,
   QC5 ramp, QC6 mini-wall, QC7 breather, QC8 ramp, QC9 wall (biggest bar, 5
-  insight, heavenly tribulation), then Foundation Establishment (FE1, the current
-  top). The intent and time estimates for each stage are in the header of
+  insight, a tribulation for heaven-defiers), then Qi Refining and Foundation
+  Establishment (FE9 is the top). The intent and time estimates for each stage are in the header of
   `src/shared/Pacing.luau`.
 - Breakthroughs happen seated in meditation. A minor one can be **forced** in a
   fight when badly hurt with a 90% bar; the new stage starts in qi debt.
@@ -144,8 +153,8 @@ damageShare = 0.15 } }` (failing the trial), `QC4 = { beastHealth = 0.8 }` (dyin
 to Stone Boars).
 
 ## Known gaps
-- Foundation Establishment is the top: no stage beyond FE1, so its bar is shown but
-  can't be broken through ("peak of this world"). When FE2+ exist, a method that
+- FE9 is the top: no stage beyond it, so its bar is shown but can't be broken
+  through ("peak of this world"). When FE2+ exist, a method that
   doesn't reach the next stage blocks it with "seek a stronger method" instead.
 - Enemy qi drops and beast health/damage multipliers are defined in Pacing
   (`Realms.enemyQi`, `stage.beastHealth/beastDamage`) but EnemyService/Spawner

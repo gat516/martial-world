@@ -51,6 +51,7 @@ export type Data = {
 	lastLogoutUnix: number,
 	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
 	tribulationReadyUnix: number, -- os.time() a failed tribulation can be retried
+	heavenDefying: boolean, -- the heavens refuse this cultivator: a tribulation guards every major breakthrough (set by a heaven-defying bloodline or root; docs/progression.md)
 	daoPracticeReadyUnix: number, -- os.time() the next Practice Dao drill opens
 	stats: { breakthroughs: number, circulationRuns: number, kills: number, bossKills: number },
 	herbs: { [string]: number },
@@ -104,6 +105,7 @@ local function default(): Data
 		lastLogoutUnix = 0,
 		lastDailyDay = 0,
 		tribulationReadyUnix = 0,
+		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
 		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0 },
 		herbs = {},

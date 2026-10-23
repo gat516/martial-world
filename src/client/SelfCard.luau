@@ -69,6 +69,7 @@ local LIST_MARGIN = 24 -- px the card keeps from the screen's top and bottom edg
 -- Major names for "Reaches: ..." by stage-key prefix (Pacing.Curve keys).
 local MAJOR_SHORT: { [string]: string } = {
 	QC = "Qi Condensation",
+	QR = "Qi Refining",
 	FE = "Foundation",
 	CF = "Core Formation",
 	NS = "Nascent Soul",

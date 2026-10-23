@@ -42,6 +42,7 @@ surprises are, and it has two verbs:
 progress, and out is where you get what home is missing.**
 
 The game must always tell the player **which wall they're at and where to go**.
+The full stage plan (QC1 to FE9, with Qi Refining, the sect, difficulty modes) is in [progression](progression.md).
 The pieces exist (the passive warnings "You must go out and experience the
 world" and "You feel as if you need more insight", the objective line, the quest
 board), but they don't yet frame it as one rhythm.
@@ -54,7 +55,7 @@ board), but they don't yet frame it as one rhythm.
 | Full dantian | carrying lots of raw qi | refining it | home or a qi node | built |
 | Insight | full bar, "you need more insight" | first kills of new beasts, the boss, kill milestones | the wilds | built (QC9) |
 | Region seal | the next wilds array is sealed | reaching its realm | breaking through | built (QC5, FE1) |
-| Tribulation | a major breakthrough | surviving the lightning | the main peak | built (QC9) |
+| Tribulation | a major breakthrough, **heaven-defying players only** (bloodline or root; decided 2026-10-22) | surviving or bracing against the lightning; never a skill gate | the main peak | built for everyone at QC9; to be gated behind the flag |
 | Beasts too strong | dying out there | weapon, technique, Dao, root, herbs, breaking through | both | partly: it's not signposted |
 | Method | can't go past Foundation | finding a cultivation method | the library, then exploring (ruins, secret places), bosses | design ([character](character/method.md)) |
 | Missing piece | "a manual / weapon / method is out there" | exploring: caches, ruins, event sites | the wilds | partly: caches built, nothing points to them |
@@ -103,7 +104,7 @@ and everything else arrives when it first matters.
 | QC9 | WALL | insight and the first tribulation |
 | FE | new realm | cultivation method, Outer Wastes |
 | later majors | | the realm milestones: flying sword, soul companion, flight ([character](character/later-layers.md)) |
-| later (unscheduled) | | crafting: mining and ores, weapon refinement, alchemy (see below) |
+| a later update (decided 2026-10-22) | | crafting: mining and ores, weapon refinement, alchemy (see below and [roadmap](roadmap.md)) |
 
 ## Don't overwhelm: crafting comes later
 Never put many mechanics in front of a player at once. Each one needs its own
@@ -138,8 +139,9 @@ introduced alone, at a breather stage, by the elder or the quest board.
    stages (already there) plus realm milestones at the majors.
 5. **The quest board lists everything at once.** Fix: show the current wall
    first and at most two other goals.
-6. **Content stops at FE1.** The long goal needs the next realm before more
-   side systems.
+6. **Content stops at FE1.** Planned in [progression](progression.md): Qi Refining
+   and FE1-9, filled with elite tiers of the existing beasts, the sect's quests and
+   scaled herbs. Not yet built.
 
 ## Techniques: many, found, chosen
 Many more techniques are planned. Every one is a manual you find out in the

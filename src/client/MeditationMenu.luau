@@ -29,6 +29,7 @@ local Bottleneck = require(script.Parent.Bottleneck)
 local Hud = require(script.Parent.Hud)
 local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
+local Ribbon = require(script.Parent.Ribbon)
 local SelfCard = require(script.Parent.SelfCard)
 local State = require(script.Parent.State)
 
@@ -40,8 +41,9 @@ export type Page = "Comprehend" | "Method" | "Root"
 
 -- button art (art/ui/assets.json): the kit's cloud-end tags, jade for the
 -- suggested action, bronze for the rest (RowTemplate.Action slices them)
-local BUTTON_JADE = "rbxassetid://101467676951805" -- ornament_tag_jade
-local BUTTON_LACQUER = "rbxassetid://98060115715507" -- ornament_tag_bronze
+-- the Action button: a three-part tag ribbon (Ribbon.STYLES), jade when ready
+local BUTTON_JADE = "tag_jade"
+local BUTTON_LACQUER = "tag_bronze"
 local LIGHT = Color3.fromRGB(236, 232, 220)
 local DIM = Color3.fromRGB(176, 186, 180)
 local JADE = Color3.fromRGB(130, 230, 185)
@@ -126,10 +128,18 @@ local function addRow(order: number, spec: RowSpec)
 	button:SetAttribute("GuideSay", spec.guideSay)
 	if spec.action then
 		local label = button:FindFirstChild("Label") :: TextLabel
-		label.Text = spec.action
 		local bright = spec.ready or spec.plain
-		button.Image = if spec.ready then BUTTON_JADE else BUTTON_LACQUER
-		button.ImageTransparency = if bright then 0 else 0.3
+		Ribbon.fit(button, spec.action, {
+			style = if spec.ready then BUTTON_JADE else BUTTON_LACQUER,
+			label = "Label",
+			textSize = 13,
+			minMid = 0,
+		})
+		for _, piece in (button:FindFirstChild("Art") :: Frame):GetChildren() do
+			if piece:IsA("ImageLabel") then
+				piece.ImageTransparency = if bright then 0 else 0.3
+			end
+		end
 		label.TextTransparency = if bright then 0 else 0.3
 		local onAction = spec.onAction
 		if onAction then

@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Items = require(ReplicatedStorage.Shared.Items)
 local HerbArt = require(script.Parent.HerbArt)
 local Motion = require(script.Parent.Motion)
+local Ribbon = require(script.Parent.Ribbon)
 
 export type Mutation = { name: string, color: Color3 }
 export type Info = {
@@ -99,11 +100,9 @@ function PlantTag.show(part: BasePart, info: Info)
 			local chip = template:Clone()
 			chip.Name = "Chip"
 			chip.LayoutOrder = i
-			chip.Image = HerbArt.tagFor(m.name)
-			local label = chip:FindFirstChild("Label") :: TextLabel
-			label.Text = m.name
 			chip.Visible = true
 			chip.Parent = chips
+			Ribbon.fit(chip, m.name, { style = HerbArt.tagStyle(m.name), label = "Label", textSize = 12, minMid = 0 })
 		end
 	end
 	chips.Visible = #info.mutations > 0

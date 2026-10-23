@@ -7,9 +7,11 @@ bossbar_fill.png   160x64, plain white, square left end, right end cut at 45 deg
 bossbar_sheen.png  160x64, the overlay inside the same shape: a bright top lip, a soft
                    inner glow, a darker belly and a lit band along the slanted end
                    (white/black only, so the fill colour shows through).
-Both: ScaleType Slice, SliceCenter Rect(2, 31, 96, 33) (the 64 px right corner holds
-the whole slant, the left corner is a 2 px margin), SliceScale = bar height / 64
-(BossBars keeps it in step), so the slant stays at 45 degrees at any size.
+Both: ScaleType Slice, SliceScale = bar height / 64 (BossBars keeps it in step), so
+the slant stays at 45 degrees at any size. Fill: SliceCenter Rect(2, 31, 96, 33) (the
+64 px right corner holds the whole slant, the left corner is a 2 px margin). Sheen:
+Rect(2, 31, 88, 33), a 72 px right corner, so the lit band along the slant (7 px
+inside it) stays in the corner instead of smearing along the bottom strip.
 Same shape as the vitals' slanted fills (hud-compact, draw_vitals.py hud_fill_r).
 Run: uv run --with pillow --with numpy python art/ui/draw_boss_bars.py
 """

@@ -70,10 +70,12 @@ function Components.paintPill(pill: Frame, rarities: { [string]: any }, key: str
 	end
 end
 
-function Components.sectionHeader(parent: Instance, text: string, order: number): Frame
+-- `required` shows the lacquer "Required" tag at the rule's end.
+function Components.sectionHeader(parent: Instance, text: string, order: number, required: boolean?): Frame
 	local header = clone("SectionHeader")
 	header.Name = "Header_" .. text:gsub("%s", "");
-	(header:FindFirstChild("Label") :: TextLabel).Text = text
+	(header:FindFirstChild("Label") :: TextLabel).Text = text;
+	(header:FindFirstChild("Tag") :: TextLabel).Visible = required == true
 	header.LayoutOrder = order
 	header.Parent = parent
 	return header
@@ -142,39 +144,102 @@ function Components.swatch(parent: Instance, id: string, color: Color3, order: n
 	}
 end
 
--- A nav tab: diamond badge with a glyph, a label, and a node on the rail.
+-- Nav plate states (Controller sets them from the flow):
+--   "current"  the open step: the lit plate, slid right
+--   "done"     visited and complete: gold check
+--   "missing"  a required field on it is empty: lacquer "!"
+--   "locked"   can't be opened until an earlier step is done: dimmed, lock
+--   "todo"     not visited yet, nothing missing: plain
+local PLATE, PLATE_HI = Theme.Art.Plate, Theme.Art.PlateHi
+local STATUS_ICON = {
+	done = { image = Theme.Art.Check, color = Theme.Color.GoldBright, size = UDim2.fromOffset(22, 17) },
+	missing = { image = Theme.Art.Exclaim, color = Theme.Color.Alert, size = UDim2.fromOffset(8, 24) },
+	locked = { image = Theme.Art.Lock, color = Theme.Color.Locked, size = UDim2.fromOffset(17, 20) },
+}
+
 function Components.navButton(parent: Instance, tab: { [string]: string }, order: number, onClick: () -> ())
 	local button = clone("NavButton") :: TextButton
 	button.Name = tab.Id
-	button.LayoutOrder = order;
-	(button:FindFirstChild("Label") :: TextLabel).Text = tab.Label;
-	(button:FindFirstChild("Glyph") :: TextLabel).Text = tab.Glyph
-	local plate = button:FindFirstChild("Plate") :: Frame
-	local label = button:FindFirstChild("Label") :: TextLabel
-	local node = button:FindFirstChild("Node") :: Frame
-	local plateStroke = plate:FindFirstChildOfClass("UIStroke") :: UIStroke
-	local plateGradient = plate:FindFirstChildOfClass("UIGradient") :: UIGradient
+	button.LayoutOrder = order
+	local plate = button:FindFirstChild("Plate") :: ImageLabel
+	local label = plate:FindFirstChild("Label") :: TextLabel
+	local glyph = plate:FindFirstChild("Glyph") :: TextLabel
+	local status = plate:FindFirstChild("Status") :: ImageLabel
+	label.Text = tab.Label
+	glyph.Text = tab.Glyph
 	local platePos = plate.Position
-	local labelPos = label.Position
 	button.Activated:Connect(onClick)
 	button.Parent = parent
-	local function setSelected(on: boolean)
-		local shift = UDim2.fromOffset(if on then Theme.Selection.NavShift else 0, 0)
-		plateGradient.Color = if on then Theme.Plate.Selected else Theme.Plate.Idle
-		tween(plate, Theme.Tween.Select, { Position = platePos + shift })
-		tween(label, Theme.Tween.Select, {
-			Position = labelPos + shift,
-			TextColor3 = if on then Theme.Color.Ink else Theme.Color.Cream,
-			TextStrokeTransparency = if on then 1 else 0.4,
-		})
-		tween(plateStroke, Theme.Tween.Select, {
-			Color = if on then Theme.Color.GoldBright else Theme.Color.GoldDim,
-			Thickness = if on then 2 else 1.5,
-		})
-		node.BackgroundColor3 = if on then Theme.Color.GoldBright else Theme.Color.Jade
+	local current = ""
+	local isCompact = false
+	-- where the plate rests: slid right while current, centred when compact
+	local function restPosition(): UDim2
+		if isCompact then
+			return UDim2.fromScale(0.5, 0.5)
+		end
+		return platePos + UDim2.fromOffset(if current == "current" then Theme.Selection.NavShift else 0, 0)
 	end
-	setSelected(false)
-	return { button = button, setSelected = setSelected }
+	local function setState(state: string)
+		if state == current then
+			return
+		end
+		current = state
+		local on = state == "current"
+		plate.Image = if on then PLATE_HI else PLATE
+		tween(plate, Theme.Tween.Select, {
+			Position = restPosition(),
+			ImageColor3 = if state == "locked" then Theme.Color.Disabled else Color3.new(1, 1, 1),
+		})
+		label.TextTransparency = if state == "locked" then 0.35 else 0
+		glyph.TextTransparency = if state == "locked" then 0.35 else 0;
+		(plate:FindFirstChild("Marker") :: ImageLabel).Visible = on
+		local icon = STATUS_ICON[state]
+		status.Visible = icon ~= nil
+		if icon then
+			status.Image = icon.image
+			status.ImageColor3 = icon.color
+			status.Size = icon.size
+		end
+	end
+	setState("todo")
+	-- compact: only the plate's ring (the first 240 px of the art) with the glyph;
+	-- the status mark moves onto the ring's shoulder
+	local plateSize, statusPos, plateAnchor = plate.Size, status.Position, plate.AnchorPoint
+	local function setCompact(on: boolean)
+		if on == isCompact then
+			return
+		end
+		isCompact = on
+		label.Visible = not on
+		if on then
+			local h = plateSize.Y.Offset
+			plate.ScaleType = Enum.ScaleType.Stretch
+			plate.ImageRectOffset = Vector2.zero
+			plate.ImageRectSize = Vector2.new(240, 221)
+			plate.Size = UDim2.fromOffset(math.floor(h * 240 / 221 + 0.5), h)
+			plate.AnchorPoint = Vector2.new(0.5, 0.5)
+			status.Position = UDim2.fromOffset(glyph.Position.X.Offset + h * 0.36, glyph.Position.Y.Offset - h * 0.3)
+		else
+			plate.ScaleType = Enum.ScaleType.Slice
+			plate.ImageRectSize = Vector2.zero
+			plate.Size = plateSize
+			plate.AnchorPoint = plateAnchor
+			status.Position = statusPos
+		end
+		-- a zero-length tween, so it also cancels a slide still running
+		tween(plate, TweenInfo.new(0), { Position = restPosition() })
+	end
+	return {
+		button = button,
+		setState = setState,
+		setCompact = setCompact,
+		-- a short shake and flash: "this step needs something"
+		nudge = function()
+			local rest = restPosition()
+			plate.Position = rest + UDim2.fromOffset(-6, 0)
+			tween(plate, TweenInfo.new(0.35, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Position = rest })
+		end,
+	}
 end
 
 -- Gold button with a label over a Robux price.
@@ -282,19 +347,51 @@ function Components.textField(parent: Instance, opts: FieldOptions)
 	counter.Visible = opts.counter == true
 	field.Parent = parent
 	local handle = { root = field, input = box, action = action, counter = counter }
-	-- kind: "error" (lacquer), "ok" (jade) or "info" (soft ink)
+	-- kind: "error" (lacquer), "ok" (jade), "need" (lacquer, a required field
+	-- still empty) or "info" (soft ink)
 	function handle.setStatus(text: string?, kind: string?)
 		status.Text = text or ""
-		status.TextColor3 = if kind == "error"
+		status.TextColor3 = if kind == "error" or kind == "need"
 			then Theme.Color.Lacquer
 			elseif kind == "ok" then Theme.Color.JadeText
 			else Theme.Color.InkSoft
+	end
+	-- The field's rim: "need" (gold, required and empty), "error" (lacquer) or
+	-- nil (as authored).
+	local rim = (row:FindFirstChild("Field") :: Frame):FindFirstChildOfClass("UIStroke") :: UIStroke
+	local rimColor, rimThickness = rim.Color, rim.Thickness
+	local need: string? = nil
+	local function paintRim()
+		rim.Color = if need == "need" then Theme.Color.Need elseif need == "error" then Theme.Color.Lacquer else rimColor
+		rim.Thickness = if need then 2.5 else rimThickness
+	end
+	function handle.setNeed(kind: string?)
+		need = kind
+		paintRim()
+	end
+	-- Draws the eye: the rim flares lacquer and settles back.
+	function handle.flash()
+		rim.Color = Theme.Color.Lacquer
+		rim.Thickness = 4
+		tween(rim, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Color = if need == "need" then Theme.Color.Need elseif need == "error" then Theme.Color.Lacquer else rimColor,
+			Thickness = if need then 2.5 else rimThickness,
+		})
 	end
 	function handle.setBusy(on: boolean)
 		action.Active = not on
 		action.ImageTransparency = if on then 0.4 else 0
 	end
 	return handle
+end
+
+-- The keyplate emblem at the front of a field's row (the first name's family
+-- seal); returns its glyph label.
+function Components.keyplate(field: Frame): TextLabel
+	local plate = clone("Keyplate") :: ImageLabel
+	plate.LayoutOrder = -1
+	plate.Parent = field:FindFirstChild("Row")
+	return plate:FindFirstChild("Glyph") :: TextLabel
 end
 
 -- One line of the Confirm summary: key on the left, value (with an optional
@@ -306,10 +403,15 @@ function Components.summaryRow(parent: Instance, key: string, order: number)
 	(row:FindFirstChild("Key") :: TextLabel).Text = key
 	local value = row:FindFirstChild("Value") :: Frame
 	row.Parent = parent
+	local label = value:FindFirstChild("Label") :: TextLabel
+	local authoredColor = label.TextColor3
 	return {
 		root = row,
+		-- a required value still missing: lacquer text
+		setWarn = function(on: boolean)
+			label.TextColor3 = if on then Theme.Color.Lacquer else authoredColor
+		end,
 		set = function(text: string, swatch: Color3?, rarity: string?, rarities: any?)
-			local label = value:FindFirstChild("Label") :: TextLabel
 			label.Text = text
 			local chip = value:FindFirstChild("Swatch") :: Frame
 			chip.Visible = swatch ~= nil
@@ -319,25 +421,6 @@ function Components.summaryRow(parent: Instance, key: string, order: number)
 			Components.paintPill(value:FindFirstChild("Pill") :: Frame, rarities or {}, rarity)
 		end,
 	}
-end
-
--- The big gold button (Enter World). setEnabled dims it without hiding it.
-function Components.bigButton(parent: Instance, name: string, label: string, order: number)
-	local button = clone("BigButton") :: ImageButton
-	button.Name = name
-	button.LayoutOrder = order
-	local text = button:FindFirstChild("Label") :: TextLabel
-	text.Text = label
-	button.Parent = parent
-	local handle = { button = button }
-	function handle.setEnabled(on: boolean)
-		tween(button, Theme.Tween.Select, { ImageColor3 = if on then Color3.new(1, 1, 1) else Color3.fromRGB(150, 146, 140) })
-		text.TextTransparency = if on then 0 else 0.4
-	end
-	function handle.setLabel(value: string)
-		text.Text = value
-	end
-	return handle
 end
 
 return Components

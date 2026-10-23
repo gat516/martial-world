@@ -1,9 +1,10 @@
 --!strict
--- Identity tab: the race and last name the server rolled (shown from the
--- player's Race and Surname attributes, with a paid Change button each) and the
--- first name the player types. No suggestions and no free reroll: the first
--- roll happened on join. Under each block, the full list of races or last names
--- with rarity and chance (user, 2026-10-23).
+-- Identity tab: the first name the player types (the one required field, so it
+-- comes first, tagged Required and rimmed gold while empty), then the race and
+-- last name the server rolled (shown from the player's Race and Surname
+-- attributes, with a paid Change button each). No suggestions and no free
+-- reroll: the first roll happened on join. At the bottom, the full list of races
+-- and of last names with rarity and chance (user, 2026-10-23).
 
 local MarketplaceService = game:GetService("MarketplaceService")
 
@@ -77,9 +78,64 @@ function Identity.build(page: ScrollingFrame, ctx: any)
 	local state, defs, components = ctx.state, ctx.defs, ctx.components
 	local rules = defs.Rules
 
+	-- First Name
+	components.sectionHeader(page, "First Name", 1, true)
+	local field = components.textField(page, {
+		name = "FirstNameField",
+		placeholder = "Choose a first name",
+		order = 2,
+		counter = true,
+	})
+	local box: TextBox = field.input
+	-- the family glyph on a keyplate before the name
+	local familyGlyph = components.keyplate(field.root)
+	ctx.onAttribute("Surname", function(key: string?)
+		local def = key and defs.Surnames[key]
+		familyGlyph.Text = if def then def.Glyph else ""
+	end)
+	local max = rules.FIRST_NAME.MAX
+	local function validate()
+		local text = box.Text
+		field.counter.Text = `{utf8.len(text) or #text}/{max}`
+		if text:match("^%s*$") then
+			field.setStatus(`Required: {rules.FIRST_NAME.MIN} to {max} letters.`, "need")
+			field.setNeed("need")
+			return
+		end
+		local name, why = rules.checkFirstName(text)
+		if name then
+			local family = defs.Surnames[ctx.player:GetAttribute("Surname") or ""]
+			field.setStatus(`You will be known as {if family then family.DisplayName .. " " else ""}{name}.`, "ok")
+			field.setNeed(nil)
+		else
+			field.setStatus(why, "error")
+			field.setNeed("error")
+		end
+	end
+	box:GetPropertyChangedSignal("Text"):Connect(function()
+		local text = box.Text
+		local length = utf8.len(text)
+		if length and length > max then
+			text = text:sub(1, (utf8.offset(text, max + 1) or (#text + 1)) - 1)
+			box.Text = text
+			return -- the change re-enters with the trimmed text
+		end
+		state:set("FirstName", text)
+		validate()
+	end)
+	validate()
+	-- Next, Enter World or a locked step bring the player here
+	ctx.registerField("FirstName", function()
+		page.CanvasPosition = Vector2.zero
+		field.flash()
+		if not ctx.isTouch then
+			box:CaptureFocus()
+		end
+	end)
+
 	-- Race
-	components.sectionHeader(page, "Race", 1)
-	local race = components.identityBlock(page, "RaceBlock", "Change Race", 2)
+	components.sectionHeader(page, "Race", 100)
+	local race = components.identityBlock(page, "RaceBlock", "Change Race", 101)
 	race.change.setPrice(defs.Products.RerollRace.RobuxPrice)
 	ctx.onAttribute("Race", function(key: string?, changed: boolean)
 		local def = key and defs.Races[key]
@@ -97,48 +153,11 @@ function Identity.build(page: ScrollingFrame, ctx: any)
 	race.change.button.Activated:Connect(function()
 		task.spawn(rerollFlow, ctx, race, "Race")
 	end)
-	oddsList(ctx, page, "All Races", defs.Races, "Race", 100)
-
-	-- First Name
-	components.sectionHeader(page, "First Name", 200)
-	local field = components.textField(page, {
-		name = "FirstNameField",
-		placeholder = "Enter a first name",
-		order = 201,
-		counter = true,
-	})
-	local box: TextBox = field.input
-	local max = rules.FIRST_NAME.MAX
-	local function validate()
-		local text = box.Text
-		field.counter.Text = `{utf8.len(text) or #text}/{max}`
-		if text:match("^%s*$") then
-			field.setStatus(`{rules.FIRST_NAME.MIN} to {max} letters.`, "info")
-			return
-		end
-		local name, why = rules.checkFirstName(text)
-		if name then
-			field.setStatus(`You will be known as {name}.`, "ok")
-		else
-			field.setStatus(why, "error")
-		end
-	end
-	box:GetPropertyChangedSignal("Text"):Connect(function()
-		local text = box.Text
-		local length = utf8.len(text)
-		if length and length > max then
-			text = text:sub(1, (utf8.offset(text, max + 1) or (#text + 1)) - 1)
-			box.Text = text
-			return -- the change re-enters with the trimmed text
-		end
-		state:set("FirstName", text)
-		validate()
-	end)
-	validate()
+	oddsList(ctx, page, "All Races", defs.Races, "Race", 400)
 
 	-- Last Name
-	components.sectionHeader(page, "Last Name", 300)
-	local surname = components.identityBlock(page, "SurnameBlock", "Change Last Name", 301)
+	components.sectionHeader(page, "Last Name", 200)
+	local surname = components.identityBlock(page, "SurnameBlock", "Change Last Name", 201)
 	surname.change.setPrice(defs.Products.RerollSurname.RobuxPrice)
 	ctx.onAttribute("Surname", function(key: string?, changed: boolean)
 		local def = key and defs.Surnames[key]
@@ -156,7 +175,7 @@ function Identity.build(page: ScrollingFrame, ctx: any)
 	surname.change.button.Activated:Connect(function()
 		task.spawn(rerollFlow, ctx, surname, "Surname")
 	end)
-	oddsList(ctx, page, "All Last Names", defs.Surnames, "Surname", 400)
+	oddsList(ctx, page, "All Last Names", defs.Surnames, "Surname", 500)
 end
 
 return Identity

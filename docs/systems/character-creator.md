@@ -9,11 +9,17 @@ It's a template: the look and every list come from config, and the gameplay hook
 
 ## Design intent
 - Three columns (user's reference images, 2026-10-22): the left nav (Clothes,
-  Hair, Identity, Confirm: dark jade plates with gold rims, the chosen one cream
-  and gold), the R6 character in the centre (a ViewportFrame, drag to turn), and a
-  parchment panel on the right with the chosen tab's controls. Every tab uses the
-  same panel, section headers ("◆ Name ———"), padding and selection mark (gold
-  glow and check).
+  Hair, Identity, Confirm), the R6 character in the centre (a ViewportFrame, drag
+  to turn), and a parchment panel on the right with the chosen tab's controls.
+  Every tab uses the same panel, section headers, padding and selection mark
+  (gold glow and check).
+- Richly ornamented (user, 2026-10-23: "it's character customization ... don't
+  make it so minimal"), with a hierarchy so it stays readable: heaviest on the
+  outer frames and titles, lighter on inner controls; gold, navy, cream and a
+  little ruby. All art is the Figma kit's cut ornaments (see Art below); the flow
+  and the required-field highlighting stay the clearest thing on screen.
+- A guided flow (user, 2026-10-23: "don't let me move on without picking
+  something that's required, and make it really obvious"): see Flow below.
 - The screen sits on the live sect world, as if the player stands on a stone
   pillar looking over the sect (the user's fourth reference: the real map from a
   high peak). The camera parks at a vantage over the map with a slow sway, a
@@ -24,8 +30,9 @@ It's a template: the look and every list come from config, and the gameplay hook
   belts, accessories); hair is an asset id and a colour (no hairstyle grid); race
   and last name can't be picked, only rerolled for Robux; the summary has no
   titles, roots or stats.
-- Native Roblox UI plus art the game already uploaded; no new drawn art (the user
-  asked for something achievable without many custom images).
+- Kit ornaments, not Roblox frames (user, 2026-10-23; this replaces the earlier
+  "no new drawn art" rule). Nothing is repainted: pieces are cut from the Codex
+  sheets, mirrored or joined (`art/ui/creator/build.py`).
 - The server decides everything random, persistent or paid. The client only
   previews: it can't set its race or last name, a hair id is checked against the
   catalog (asset type HairAccessory) before anyone sees it, Enter World is checked
@@ -52,11 +59,12 @@ It's a template: the look and every list come from config, and the gameplay hook
   hair loading, Enter World; hooks `onConfirmed`, `onRerolled`, `load(player, saved)`.
 - `src/client/CharacterCreator/`: Theme (colours, fonts, sizes, tweens), State
   (the previewed look), Components (nav button, card, swatch, section header,
-  rarity pill, Robux button, summary row, text field, all cloned from the GUI's
-  `Templates`), Preview (viewport dummy; it makes the viewport's Camera itself, since a
+  rarity pill, Robux button, summary row, text field, keyplate, all cloned from
+  the GUI's `Templates`), Preview (viewport dummy; it makes the viewport's Camera itself, since a
   Camera saved inside a ViewportFrame is lost in the Rojo sync), Backdrop (live camera or image), Bridge
   (every server call, plus the `onEnterWorld` hook), Tabs/* (one per tab),
-  Controller (`init`, `open`).
+  Controller (`init`, `open`, the step flow and footer, `fit`). State also says what
+  is missing (`State.missing`).
 - `assets/CharacterCreator.rbxmx` (`ReplicatedStorage.CharacterCreatorGui`): the
   ScreenGui shell and templates, including a plain R6 dummy for the preview.
   `Main.client` clones it into `PlayerGui.CharacterCreator` at start, before the
@@ -83,15 +91,71 @@ It's a template: the look and every list come from config, and the gameplay hook
   so combat, prompts and anything else gated on an open menu stay shut, even when
   the screen is reopened over a live character.
 
+## Flow
+- Steps in nav order: Clothes, Hair, Identity, Confirm. The panel's footer has
+  Back (hidden on the first step) and the primary button, "Next: <step>" with the
+  next step's glyph in its ring, or Enter World on Confirm. Above them a lacquer
+  line says what's missing ("Missing: first name") whenever the primary is
+  blocked.
+- Required: only the **first name** (Rules.checkFirstName: 2-14 letters, then
+  the server's text filter). Race and last name are the server's roll and only
+  "missing" until the attributes land. Everything else starts picked and is
+  harmless as a default: shirt and pants (the ranger outfit), skin (the avatar's
+  own), hair colour (the first swatch), hair (optional, the avatar's own if any).
+  `State.missing` is the one list of what blocks Enter World.
+- Gating: a step after one with something missing is locked (Confirm, until the
+  name is valid). Pressing a locked nav plate, the dimmed Next or Enter World
+  jumps to the first missing field: its step opens, its nav plate shakes, the
+  page scrolls to it, the field's rim flares lacquer and (keyboard only) takes
+  focus. Tabs register how to show a field with `ctx.registerField`.
+- Nav plate states: current (lit plate, ruby on its tip, slid right), done
+  (visited and complete: gold check), missing (lacquer "!"), locked (dimmed,
+  lock), not yet visited (plain).
+- Missing fields are obvious: the First Name header carries a lacquer "Required"
+  tag, the empty field reads "Choose a first name" with a gold rim and a lacquer
+  "Required: 2 to 14 letters." line, the Confirm summary shows "Not chosen" in
+  lacquer (pressing it jumps to the field), and the name plinth under the
+  character reads "Choose a first name" until one is typed.
+- Client gating is only UX. The server's `confirm` checks everything again,
+  including that the race and last name have been rolled.
+
+## Art
+Cut ornaments from the kit (`art/ui/codex/cut/ornament_*.png`, copied from
+`ui-assemble`), assembled by `art/ui/creator/build.py` into `art/ui/creator/out/`
+(mirrored corner sets, the three-part response button joined so it 9-slices),
+uploaded with ids in `art/ui/assets.json`:
+- Panel: `window_corner` set on the parchment, ruby studs on the side rims, the
+  `title_crest` plaque with the step title on its band and the subtitle under it,
+  `divider_cloud` rules in section headers (gold stud before the label),
+  `divider_diamond` over the footer.
+- Nav: a navy column with the `window_corner_small` set and gold studs; each step
+  is a `response_button` plate (glyph in its ring, label on the bar), the current
+  one `response_button_hi` with a ruby on its tip; status marks are the kit's
+  checkmark and its white `glyph_exclaim` / `glyph_lock`, tinted.
+- Footer: Back is a plate with the kit chevron in its ring, the primary is the lit
+  plate (its baked chevron points on).
+- Preview: the `portrait_corner` set frames it, a faint `dao_ring` halo sits
+  behind the head and chest, an `inkwash_a` cloud at the feet, the screen title
+  between two `name_scroll` flourishes on top, and a `seat_plate` name plinth at
+  the bottom with the family glyph on a `seal_square` chop.
+- First-name field: the family glyph on a `keyplate` before it.
+- 9-slice note: Roblox mangles a slice whose centre is taller than its corners
+  (the caps render magnified and cropped), so the plate slices with a thin centre
+  band (`Rect(381, 100, 438, 120)`, `SliceScale` = height / 221) and the rule with
+  `Rect(100, 38, 924, 43)`. The Fit UIScale scales slices along with everything
+  else; don't scale `SliceScale` by hand.
+
 ## Screen layout
 - `PlayerGui.CharacterCreator` (DisplayOrder 20, ignores the inset, starts
   disabled; `Controller.open` enables it): `Backdrop` (image, mist, vignette),
   `Root` (`Nav`, `Preview`, `Panel`), `Veil` (open/close fade) and `Templates`
   (a hidden Frame of everything Components clones, plus the R6 `Dummy`).
-- Nav and Panel are authored at a design size (250x380 and 520x740) and scaled
-  together by their `Fit` UIScale: `clamp(min(H / 790, (W - 224) / 770), 0.66, 1.25)`
-  (`Theme.Fit`). The preview fills the gap between them. At a 750x340 phone
-  the scale floors at 0.66 and the panel scrolls.
+- Nav and Panel are authored at a design size (270x440 and 520x740) and scaled
+  together by their `Fit` UIScale: `clamp(min(H / 790, (W - 224) / (nav + 520)), 0.66, 1.25)`
+  (`Theme.Fit`); both shorten to the screen height. The preview fills the gap
+  between them. When that gap would be under 240 px (phones) the nav turns
+  compact: only the plates' glyph rings (104 px wide), status marks on the rings'
+  shoulders. At a phone the scale floors at 0.66 and the panel scrolls.
 - Tab pages are ScrollingFrames in the `Pages` CanvasGroup, so a tab switch fades
   and slides the whole page. Each page's canvas follows its list's content size.
 - Buttons with a `Motion` UIScale get the shared hover and press (`Motion.buttons`).
@@ -155,9 +219,12 @@ camera and HUD back.
   that way is refused with "That ID isn't a hair accessory".
 - Untested in play: everything (drag-rotate, server calls, hair and clothing on
   the viewport dummy, the purchase prompt and its 60 s wait, the live backdrop
-  camera and its restore, hiding the HUD, the tab and open/close fades). The
-  layout was previewed in Studio's edit view only, at 1673x793 and 750x340
-  (screenshots in the project files, `character-creator/`).
+  camera and its restore, hiding the HUD, the tab and open/close fades, the
+  gating, the nudge and focus). The layout was previewed in Studio's edit view
+  only (stubbed server), at 1914x793 and phone sizes.
+- The Change Race / Last Name Robux buttons and the hair Apply button still use
+  the older Pillow button art; a kit restyle (plate or Button/Solid) is a next step.
+- The name plinth's ink-wash and halo sizes are tuned by eye at desktop size.
 - The `templates` reply is a table keyed by catalog id; over a RemoteFunction a
   sparse numeric-key table can arrive with string keys, so the client looks ids
   up both ways.

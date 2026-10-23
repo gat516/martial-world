@@ -150,18 +150,44 @@ PIECE_SHEETS = {
     "c1/tier_badges_jade_violet": ["herb_tier_4", "herb_tier_5"],
     "c1/mutation_tags": ["tag_bronze", "tag_jade", "tag_crimson", "tag_violet", "tag_gold"],
     "c1/seed_packet_tile": ["seed_packet"],
+    "c2/building_emblems_1": ["set_courtyard", "set_jade_pavilion", "set_cloud_palace"],
+    "c2/building_emblems_2": ["set_herb_house", "set_library", "set_formation"],
+    "c2/catalog_tabs": ["catalog_tab", "catalog_tab_selected"],
+    "c2/peak_score_meter": ["peak_meter"],
+    "c3/crest_shapes": ["shield_round", "shield_kite", "shield_banner", "shield_hexagon", "shield_lotus"],
+    "c3/crest_borders": ["crest_ring_cloud", "crest_ring_dragon", "crest_ring_plain"],
+    "c3/emblems_sword_peak_lotus": ["emblem_sword", "emblem_peak", "emblem_lotus"],
+    "c3/emblems_crane_tortoise_flame": ["emblem_crane", "emblem_tortoise", "emblem_flame"],
+    "c3/lineage_card": ["lineage_card"],
+    "c3/seat_plate": ["seat_plate"],
+    "c3/epithet_ribbon": ["epithet_ribbon"],
+    "c3/ceremony_frame": ["ceremony_frame"],
+    "c4/event_scroll_countdown": ["event_scroll", "countdown_ring"],
+    "c4/event_map_markers": ["pin_gold", "pin_jade", "pin_crimson", "pin_violet", "direction_chip"],
+    "c4/tribulation_card_ribbon": ["decree_card", "tribulation_ribbon"],
+    "c4/rift_card_tag": ["rift_card", "rift_tag"],
+    # C6 redraws the first ornament sheet for the Blood Sect, piece for piece.
+    "c6/thorn_clouds": ["blood_name_scroll", "blood_double_cloud", "blood_single_cloud", "blood_cloud_wisp"],
+    "c6/thorn_corners": ["blood_panel_corner", "blood_portrait_corner"],
+    "c6/thorn_studs": ["blood_scroll_stud", "blood_ruby_stud", "blood_gold_stud"],
+    "c6/thorn_keyplate_chevron": ["blood_keyplate", "blood_chevron"],
 }
+# Sources that are only arrangement examples, not pieces (nine seat plates in a fan).
+SKIP_SOURCES = {"c3/nine_seat_fan"}
 # White glyph sheets: drawn pure white, so the colour is set to white (the despill tints
 # near-white cream).
 WHITE_SHEETS = {k for k in PIECE_SHEETS if k.startswith(("a5/", "a6/"))}
 # Violet has red and blue above green, which the despill reads as magenta spill and
 # turns blue; these pieces keep their keyed colour without it.
-NO_DESPILL = {"gem_violet", "tile_violet", "tag_violet", "herb_tier_5"}
+NO_DESPILL = {"gem_violet", "tile_violet", "tag_violet", "herb_tier_5", "pin_violet", "rift_card", "rift_tag"}
 # Light pieces drawn on black instead of magenta: keyed by brightness, and the whole
 # canvas is the piece (the glow fades out toward its edges).
 LIGHT_SHEETS = {"b1/boss_rays", "b1/milestone_rays", "b4/deep_foundation_jade_ring",
                 "b4/death_save_vignette", "b4/heartbeat_pulse_ring"}
 SHEET_GROUP_GAP = 16  # px; parts of one piece closer than this belong together
+# Sheets whose pieces sit closer than that (the tribulation ribbon's sparks reach toward
+# the card beside it).
+SHEET_GAPS = {"c4/tribulation_card_ribbon": 4}
 SHEET_MIN_AREA = 400  # px; smaller islands are generator noise
 
 
@@ -204,14 +230,14 @@ def key_light(im):
     return np.dstack([rgb, alpha * 255])
 
 
-def sheet_pieces(arr):
+def sheet_pieces(arr, gap=SHEET_GROUP_GAP):
     """Boxes of the pieces on a keyed sheet, in reading order, plus the noise-free alpha."""
     from PIL import ImageFilter
     alpha = arr[..., 3]
     core = Image.fromarray(((alpha > 128) * 255).astype(np.uint8))
     step = 4
     small = core.resize((core.width // step, core.height // step), Image.BOX)
-    grown = small.filter(ImageFilter.MaxFilter(2 * (SHEET_GROUP_GAP // step) + 1))
+    grown = small.filter(ImageFilter.MaxFilter(2 * (gap // step) + 1))
     groups = components(np.asarray(grown) > 0)
     boxes, keep = [], np.zeros(alpha.shape, bool)
     for _, (x1, y1, x2, y2) in groups:
@@ -249,7 +275,7 @@ def cut_piece_sheet(sheet, src):
         h, w = arr.shape[:2]
         boxes = [(0, 0, w, h)]
     else:
-        boxes, clean = sheet_pieces(arr)
+        boxes, clean = sheet_pieces(arr, SHEET_GAPS.get(sheet, SHEET_GROUP_GAP))
         arr[..., 3] = clean
         h, w = clean.shape
     if len(boxes) != len(names):
@@ -278,7 +304,8 @@ def cut_piece_sheet(sheet, src):
 # Pieces with ornate ends and a plain middle (buttons, banners): also cut as left cap,
 # a narrow middle strip to stretch, and right cap, from the full-resolution art.
 SLICE3 = {"response_button", "response_button_hi", "prompt_banner", "title_crest", "board_header",
-          "objective_banner", "ribbon_crimson", "ribbon_jade"}
+          "objective_banner", "ribbon_crimson", "ribbon_jade", "catalog_tab", "catalog_tab_selected",
+          "seat_plate", "epithet_ribbon", "event_scroll", "tribulation_ribbon"}
 # Pieces whose plain middle is lit brighter than its ends (the notice board's wood): their
 # strip is taken next to the left cap, so both joins match, not from the bright centre.
 SLICE3_EDGE_STRIP = {"board_header"}
@@ -575,7 +602,7 @@ def main():
     # tools/ui_silhouette.py instead.
     for p in sorted(SRC.glob("*/*.png")):
         key_name = f"{p.parent.name}/{p.stem}"
-        if p.parent.name not in ("cut", "a4") and key_name not in PIECE_SHEETS:
+        if p.parent.name not in ("cut", "a4") and key_name not in PIECE_SHEETS and key_name not in SKIP_SOURCES:
             PIECE_SHEETS[key_name] = [p.stem]
     for name in list(PIECES) + list(ICON_SHEETS) + list(PIECE_SHEETS):
         if only and name not in only:

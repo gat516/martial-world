@@ -2902,5 +2902,1235 @@
       }
     ],
     "flags": []
+  },
+  "ornament_set_courtyard": {
+    "sheet": "c2/building_emblems_1",
+    "size": [
+      628,
+      626
+    ],
+    "source_box": [
+      72,
+      48,
+      700,
+      674
+    ],
+    "tiles": [
+      {
+        "file": "ornament_set_courtyard.png",
+        "x": 0,
+        "width": 628,
+        "height": 626
+      }
+    ],
+    "flags": []
+  },
+  "ornament_set_jade_pavilion": {
+    "sheet": "c2/building_emblems_1",
+    "size": [
+      628,
+      626
+    ],
+    "source_box": [
+      772,
+      48,
+      1400,
+      674
+    ],
+    "tiles": [
+      {
+        "file": "ornament_set_jade_pavilion.png",
+        "x": 0,
+        "width": 628,
+        "height": 626
+      }
+    ],
+    "flags": []
+  },
+  "ornament_set_cloud_palace": {
+    "sheet": "c2/building_emblems_1",
+    "size": [
+      628,
+      626
+    ],
+    "source_box": [
+      1471,
+      48,
+      2099,
+      674
+    ],
+    "tiles": [
+      {
+        "file": "ornament_set_cloud_palace.png",
+        "x": 0,
+        "width": 628,
+        "height": 626
+      }
+    ],
+    "flags": []
+  },
+  "ornament_set_herb_house": {
+    "sheet": "c2/building_emblems_2",
+    "size": [
+      629,
+      625
+    ],
+    "source_box": [
+      72,
+      48,
+      701,
+      673
+    ],
+    "tiles": [
+      {
+        "file": "ornament_set_herb_house.png",
+        "x": 0,
+        "width": 629,
+        "height": 625
+      }
+    ],
+    "flags": []
+  },
+  "ornament_set_library": {
+    "sheet": "c2/building_emblems_2",
+    "size": [
+      629,
+      625
+    ],
+    "source_box": [
+      771,
+      48,
+      1400,
+      673
+    ],
+    "tiles": [
+      {
+        "file": "ornament_set_library.png",
+        "x": 0,
+        "width": 629,
+        "height": 625
+      }
+    ],
+    "flags": []
+  },
+  "ornament_set_formation": {
+    "sheet": "c2/building_emblems_2",
+    "size": [
+      629,
+      625
+    ],
+    "source_box": [
+      1470,
+      48,
+      2099,
+      673
+    ],
+    "tiles": [
+      {
+        "file": "ornament_set_formation.png",
+        "x": 0,
+        "width": 629,
+        "height": 625
+      }
+    ],
+    "flags": []
+  },
+  "ornament_catalog_tab": {
+    "sheet": "c2/catalog_tabs",
+    "size": [
+      935,
+      140
+    ],
+    "source_box": [
+      69,
+      284,
+      1004,
+      424
+    ],
+    "tiles": [
+      {
+        "file": "ornament_catalog_tab.png",
+        "x": 0,
+        "width": 935,
+        "height": 140
+      }
+    ],
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_catalog_tab_capL.png",
+        "size": [
+          171,
+          140
+        ]
+      },
+      "mid": {
+        "file": "ornament_catalog_tab_mid.png",
+        "size": [
+          32,
+          140
+        ]
+      },
+      "capR": {
+        "file": "ornament_catalog_tab_capR.png",
+        "size": [
+          172,
+          140
+        ]
+      }
+    }
+  },
+  "ornament_catalog_tab_selected": {
+    "sheet": "c2/catalog_tabs",
+    "size": [
+      936,
+      142
+    ],
+    "source_box": [
+      1166,
+      283,
+      2102,
+      425
+    ],
+    "tiles": [
+      {
+        "file": "ornament_catalog_tab_selected.png",
+        "x": 0,
+        "width": 936,
+        "height": 142
+      }
+    ],
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_catalog_tab_selected_capL.png",
+        "size": [
+          173,
+          142
+        ]
+      },
+      "mid": {
+        "file": "ornament_catalog_tab_selected_mid.png",
+        "size": [
+          32,
+          142
+        ]
+      },
+      "capR": {
+        "file": "ornament_catalog_tab_selected_capR.png",
+        "size": [
+          175,
+          142
+        ]
+      }
+    }
+  },
+  "ornament_peak_meter": {
+    "sheet": "c2/peak_score_meter",
+    "size": [
+      315,
+      1024
+    ],
+    "source_box": [
+      188,
+      44,
+      699,
+      1705
+    ],
+    "tiles": [
+      {
+        "file": "ornament_peak_meter.png",
+        "x": 0,
+        "width": 315,
+        "height": 1024
+      }
+    ],
+    "flags": []
+  },
+  "ornament_shield_round": {
+    "sheet": "c3/crest_shapes",
+    "size": [
+      446,
+      434
+    ],
+    "source_box": [
+      32,
+      140,
+      478,
+      574
+    ],
+    "tiles": [
+      {
+        "file": "ornament_shield_round.png",
+        "x": 0,
+        "width": 446,
+        "height": 434
+      }
+    ],
+    "flags": []
+  },
+  "ornament_shield_kite": {
+    "sheet": "c3/crest_shapes",
+    "size": [
+      346,
+      434
+    ],
+    "source_box": [
+      516,
+      128,
+      862,
+      562
+    ],
+    "tiles": [
+      {
+        "file": "ornament_shield_kite.png",
+        "x": 0,
+        "width": 346,
+        "height": 434
+      }
+    ],
+    "flags": []
+  },
+  "ornament_shield_banner": {
+    "sheet": "c3/crest_shapes",
+    "size": [
+      281,
+      440
+    ],
+    "source_box": [
+      936,
+      128,
+      1217,
+      568
+    ],
+    "tiles": [
+      {
+        "file": "ornament_shield_banner.png",
+        "x": 0,
+        "width": 281,
+        "height": 440
+      }
+    ],
+    "flags": []
+  },
+  "ornament_shield_hexagon": {
+    "sheet": "c3/crest_shapes",
+    "size": [
+      345,
+      421
+    ],
+    "source_box": [
+      1295,
+      146,
+      1640,
+      567
+    ],
+    "tiles": [
+      {
+        "file": "ornament_shield_hexagon.png",
+        "x": 0,
+        "width": 345,
+        "height": 421
+      }
+    ],
+    "flags": []
+  },
+  "ornament_shield_lotus": {
+    "sheet": "c3/crest_shapes",
+    "size": [
+      461,
+      419
+    ],
+    "source_box": [
+      1696,
+      148,
+      2157,
+      567
+    ],
+    "tiles": [
+      {
+        "file": "ornament_shield_lotus.png",
+        "x": 0,
+        "width": 461,
+        "height": 419
+      }
+    ],
+    "flags": []
+  },
+  "ornament_crest_ring_cloud": {
+    "sheet": "c3/crest_borders",
+    "size": [
+      608,
+      592
+    ],
+    "source_box": [
+      54,
+      54,
+      662,
+      646
+    ],
+    "tiles": [
+      {
+        "file": "ornament_crest_ring_cloud.png",
+        "x": 0,
+        "width": 608,
+        "height": 592
+      }
+    ],
+    "flags": []
+  },
+  "ornament_crest_ring_dragon": {
+    "sheet": "c3/crest_borders",
+    "size": [
+      637,
+      597
+    ],
+    "source_box": [
+      769,
+      63,
+      1406,
+      660
+    ],
+    "tiles": [
+      {
+        "file": "ornament_crest_ring_dragon.png",
+        "x": 0,
+        "width": 637,
+        "height": 597
+      }
+    ],
+    "flags": []
+  },
+  "ornament_crest_ring_plain": {
+    "sheet": "c3/crest_borders",
+    "size": [
+      559,
+      549
+    ],
+    "source_box": [
+      1539,
+      88,
+      2098,
+      637
+    ],
+    "tiles": [
+      {
+        "file": "ornament_crest_ring_plain.png",
+        "x": 0,
+        "width": 559,
+        "height": 549
+      }
+    ],
+    "flags": []
+  },
+  "ornament_emblem_sword": {
+    "sheet": "c3/emblems_sword_peak_lotus",
+    "size": [
+      236,
+      586
+    ],
+    "source_box": [
+      312,
+      64,
+      548,
+      650
+    ],
+    "tiles": [
+      {
+        "file": "ornament_emblem_sword.png",
+        "x": 0,
+        "width": 236,
+        "height": 586
+      }
+    ],
+    "flags": []
+  },
+  "ornament_emblem_peak": {
+    "sheet": "c3/emblems_sword_peak_lotus",
+    "size": [
+      546,
+      375
+    ],
+    "source_box": [
+      813,
+      179,
+      1359,
+      554
+    ],
+    "tiles": [
+      {
+        "file": "ornament_emblem_peak.png",
+        "x": 0,
+        "width": 546,
+        "height": 375
+      }
+    ],
+    "flags": []
+  },
+  "ornament_emblem_lotus": {
+    "sheet": "c3/emblems_sword_peak_lotus",
+    "size": [
+      517,
+      418
+    ],
+    "source_box": [
+      1512,
+      183,
+      2029,
+      601
+    ],
+    "tiles": [
+      {
+        "file": "ornament_emblem_lotus.png",
+        "x": 0,
+        "width": 517,
+        "height": 418
+      }
+    ],
+    "flags": []
+  },
+  "ornament_emblem_crane": {
+    "sheet": "c3/emblems_crane_tortoise_flame",
+    "size": [
+      451,
+      581
+    ],
+    "source_box": [
+      158,
+      72,
+      609,
+      653
+    ],
+    "tiles": [
+      {
+        "file": "ornament_emblem_crane.png",
+        "x": 0,
+        "width": 451,
+        "height": 581
+      }
+    ],
+    "flags": []
+  },
+  "ornament_emblem_tortoise": {
+    "sheet": "c3/emblems_crane_tortoise_flame",
+    "size": [
+      610,
+      328
+    ],
+    "source_box": [
+      792,
+      249,
+      1402,
+      577
+    ],
+    "tiles": [
+      {
+        "file": "ornament_emblem_tortoise.png",
+        "x": 0,
+        "width": 610,
+        "height": 328
+      }
+    ],
+    "flags": []
+  },
+  "ornament_emblem_flame": {
+    "sheet": "c3/emblems_crane_tortoise_flame",
+    "size": [
+      371,
+      579
+    ],
+    "source_box": [
+      1598,
+      73,
+      1969,
+      652
+    ],
+    "tiles": [
+      {
+        "file": "ornament_emblem_flame.png",
+        "x": 0,
+        "width": 371,
+        "height": 579
+      }
+    ],
+    "flags": []
+  },
+  "ornament_lineage_card": {
+    "sheet": "c3/lineage_card",
+    "size": [
+      1024,
+      316
+    ],
+    "source_box": [
+      43,
+      176,
+      1732,
+      698
+    ],
+    "tiles": [
+      {
+        "file": "ornament_lineage_card.png",
+        "x": 0,
+        "width": 1024,
+        "height": 316
+      }
+    ],
+    "flags": []
+  },
+  "ornament_seat_plate": {
+    "sheet": "c3/seat_plate",
+    "size": [
+      1024,
+      144
+    ],
+    "source_box": [
+      46,
+      191,
+      2127,
+      483
+    ],
+    "tiles": [
+      {
+        "file": "ornament_seat_plate.png",
+        "x": 0,
+        "width": 1024,
+        "height": 144
+      }
+    ],
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_seat_plate_capL.png",
+        "size": [
+          341,
+          292
+        ]
+      },
+      "mid": {
+        "file": "ornament_seat_plate_mid.png",
+        "size": [
+          32,
+          292
+        ]
+      },
+      "capR": {
+        "file": "ornament_seat_plate_capR.png",
+        "size": [
+          340,
+          292
+        ]
+      }
+    }
+  },
+  "ornament_epithet_ribbon": {
+    "sheet": "c3/epithet_ribbon",
+    "size": [
+      1024,
+      91
+    ],
+    "source_box": [
+      58,
+      265,
+      2114,
+      447
+    ],
+    "tiles": [
+      {
+        "file": "ornament_epithet_ribbon.png",
+        "x": 0,
+        "width": 1024,
+        "height": 91
+      }
+    ],
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_epithet_ribbon_capL.png",
+        "size": [
+          509,
+          182
+        ]
+      },
+      "mid": {
+        "file": "ornament_epithet_ribbon_mid.png",
+        "size": [
+          32,
+          182
+        ]
+      },
+      "capR": {
+        "file": "ornament_epithet_ribbon_capR.png",
+        "size": [
+          449,
+          182
+        ]
+      }
+    }
+  },
+  "ornament_ceremony_frame": {
+    "sheet": "c3/ceremony_frame",
+    "size": [
+      1024,
+      472
+    ],
+    "source_box": [
+      49,
+      102,
+      1623,
+      827
+    ],
+    "tiles": [
+      {
+        "file": "ornament_ceremony_frame.png",
+        "x": 0,
+        "width": 1024,
+        "height": 472
+      }
+    ],
+    "flags": []
+  },
+  "ornament_event_scroll": {
+    "sheet": "c4/event_scroll_countdown",
+    "size": [
+      1024,
+      178
+    ],
+    "source_box": [
+      43,
+      80,
+      1731,
+      374
+    ],
+    "tiles": [
+      {
+        "file": "ornament_event_scroll.png",
+        "x": 0,
+        "width": 1024,
+        "height": 178
+      }
+    ],
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_event_scroll_capL.png",
+        "size": [
+          239,
+          294
+        ]
+      },
+      "midL": {
+        "file": "ornament_event_scroll_midL.png",
+        "size": [
+          32,
+          294
+        ]
+      },
+      "centre": {
+        "file": "ornament_event_scroll_centre.png",
+        "size": [
+          19,
+          294
+        ]
+      },
+      "midR": {
+        "file": "ornament_event_scroll_midR.png",
+        "size": [
+          32,
+          294
+        ]
+      },
+      "capR": {
+        "file": "ornament_event_scroll_capR.png",
+        "size": [
+          249,
+          294
+        ]
+      }
+    }
+  },
+  "ornament_countdown_ring": {
+    "sheet": "c4/event_scroll_countdown",
+    "size": [
+      476,
+      459
+    ],
+    "source_box": [
+      647,
+      362,
+      1123,
+      821
+    ],
+    "tiles": [
+      {
+        "file": "ornament_countdown_ring.png",
+        "x": 0,
+        "width": 476,
+        "height": 459
+      }
+    ],
+    "flags": []
+  },
+  "ornament_pin_gold": {
+    "sheet": "c4/event_map_markers",
+    "size": [
+      343,
+      391
+    ],
+    "source_box": [
+      54,
+      172,
+      397,
+      563
+    ],
+    "tiles": [
+      {
+        "file": "ornament_pin_gold.png",
+        "x": 0,
+        "width": 343,
+        "height": 391
+      }
+    ],
+    "flags": []
+  },
+  "ornament_pin_jade": {
+    "sheet": "c4/event_map_markers",
+    "size": [
+      342,
+      389
+    ],
+    "source_box": [
+      451,
+      173,
+      793,
+      562
+    ],
+    "tiles": [
+      {
+        "file": "ornament_pin_jade.png",
+        "x": 0,
+        "width": 342,
+        "height": 389
+      }
+    ],
+    "flags": []
+  },
+  "ornament_pin_crimson": {
+    "sheet": "c4/event_map_markers",
+    "size": [
+      340,
+      390
+    ],
+    "source_box": [
+      845,
+      172,
+      1185,
+      562
+    ],
+    "tiles": [
+      {
+        "file": "ornament_pin_crimson.png",
+        "x": 0,
+        "width": 340,
+        "height": 390
+      }
+    ],
+    "flags": []
+  },
+  "ornament_pin_violet": {
+    "sheet": "c4/event_map_markers",
+    "size": [
+      340,
+      391
+    ],
+    "source_box": [
+      1236,
+      172,
+      1576,
+      563
+    ],
+    "tiles": [
+      {
+        "file": "ornament_pin_violet.png",
+        "x": 0,
+        "width": 340,
+        "height": 391
+      }
+    ],
+    "flags": []
+  },
+  "ornament_direction_chip": {
+    "sheet": "c4/event_map_markers",
+    "size": [
+      475,
+      147
+    ],
+    "source_box": [
+      1652,
+      284,
+      2127,
+      431
+    ],
+    "tiles": [
+      {
+        "file": "ornament_direction_chip.png",
+        "x": 0,
+        "width": 475,
+        "height": 147
+      }
+    ],
+    "flags": []
+  },
+  "ornament_rift_card": {
+    "sheet": "c4/rift_card_tag",
+    "size": [
+      685,
+      935
+    ],
+    "source_box": [
+      47,
+      44,
+      732,
+      979
+    ],
+    "tiles": [
+      {
+        "file": "ornament_rift_card.png",
+        "x": 0,
+        "width": 685,
+        "height": 935
+      }
+    ],
+    "flags": []
+  },
+  "ornament_rift_tag": {
+    "sheet": "c4/rift_card_tag",
+    "size": [
+      629,
+      150
+    ],
+    "source_box": [
+      789,
+      456,
+      1418,
+      606
+    ],
+    "tiles": [
+      {
+        "file": "ornament_rift_tag.png",
+        "x": 0,
+        "width": 629,
+        "height": 150
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_name_scroll": {
+    "sheet": "c6/thorn_clouds",
+    "size": [
+      642,
+      233
+    ],
+    "source_box": [
+      23,
+      219,
+      665,
+      452
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_name_scroll.png",
+        "x": 0,
+        "width": 642,
+        "height": 233
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_double_cloud": {
+    "sheet": "c6/thorn_clouds",
+    "size": [
+      463,
+      211
+    ],
+    "source_box": [
+      750,
+      240,
+      1213,
+      451
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_double_cloud.png",
+        "x": 0,
+        "width": 463,
+        "height": 211
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_single_cloud": {
+    "sheet": "c6/thorn_clouds",
+    "size": [
+      234,
+      141
+    ],
+    "source_box": [
+      1265,
+      286,
+      1499,
+      427
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_single_cloud.png",
+        "x": 0,
+        "width": 234,
+        "height": 141
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_cloud_wisp": {
+    "sheet": "c6/thorn_clouds",
+    "size": [
+      554,
+      164
+    ],
+    "source_box": [
+      1584,
+      280,
+      2138,
+      444
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_cloud_wisp.png",
+        "x": 0,
+        "width": 554,
+        "height": 164
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_panel_corner": {
+    "sheet": "c6/thorn_corners",
+    "size": [
+      812,
+      491
+    ],
+    "source_box": [
+      121,
+      206,
+      933,
+      697
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_panel_corner.png",
+        "x": 0,
+        "width": 812,
+        "height": 491
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_portrait_corner": {
+    "sheet": "c6/thorn_corners",
+    "size": [
+      527,
+      353
+    ],
+    "source_box": [
+      1100,
+      281,
+      1627,
+      634
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_portrait_corner.png",
+        "x": 0,
+        "width": 527,
+        "height": 353
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_scroll_stud": {
+    "sheet": "c6/thorn_studs",
+    "size": [
+      842,
+      269
+    ],
+    "source_box": [
+      129,
+      219,
+      971,
+      488
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_scroll_stud.png",
+        "x": 0,
+        "width": 842,
+        "height": 269
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_ruby_stud": {
+    "sheet": "c6/thorn_studs",
+    "size": [
+      514,
+      510
+    ],
+    "source_box": [
+      1095,
+      91,
+      1609,
+      601
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_ruby_stud.png",
+        "x": 0,
+        "width": 514,
+        "height": 510
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_gold_stud": {
+    "sheet": "c6/thorn_studs",
+    "size": [
+      211,
+      211
+    ],
+    "source_box": [
+      1809,
+      247,
+      2020,
+      458
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_gold_stud.png",
+        "x": 0,
+        "width": 211,
+        "height": 211
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_keyplate": {
+    "sheet": "c6/thorn_keyplate_chevron",
+    "size": [
+      745,
+      723
+    ],
+    "source_box": [
+      86,
+      131,
+      831,
+      854
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_keyplate.png",
+        "x": 0,
+        "width": 745,
+        "height": 723
+      }
+    ],
+    "flags": []
+  },
+  "ornament_blood_chevron": {
+    "sheet": "c6/thorn_keyplate_chevron",
+    "size": [
+      556,
+      337
+    ],
+    "source_box": [
+      897,
+      371,
+      1453,
+      708
+    ],
+    "tiles": [
+      {
+        "file": "ornament_blood_chevron.png",
+        "x": 0,
+        "width": 556,
+        "height": 337
+      }
+    ],
+    "flags": []
+  },
+  "ornament_decree_card": {
+    "sheet": "c4/tribulation_card_ribbon",
+    "size": [
+      589,
+      754
+    ],
+    "source_box": [
+      77,
+      54,
+      666,
+      808
+    ],
+    "tiles": [
+      {
+        "file": "ornament_decree_card.png",
+        "x": 0,
+        "width": 589,
+        "height": 754
+      }
+    ],
+    "flags": []
+  },
+  "ornament_tribulation_ribbon": {
+    "sheet": "c4/tribulation_card_ribbon",
+    "size": [
+      1024,
+      171
+    ],
+    "source_box": [
+      692,
+      357,
+      1750,
+      534
+    ],
+    "tiles": [
+      {
+        "file": "ornament_tribulation_ribbon.png",
+        "x": 0,
+        "width": 1024,
+        "height": 171
+      }
+    ],
+    "flags": [],
+    "slice3": {
+      "capL": {
+        "file": "ornament_tribulation_ribbon_capL.png",
+        "size": [
+          322,
+          177
+        ]
+      },
+      "mid": {
+        "file": "ornament_tribulation_ribbon_mid.png",
+        "size": [
+          32,
+          177
+        ]
+      },
+      "capR": {
+        "file": "ornament_tribulation_ribbon_capR.png",
+        "size": [
+          290,
+          177
+        ]
+      }
+    }
   }
 }

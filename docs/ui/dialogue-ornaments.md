@@ -105,6 +105,26 @@ B4 `crack_hairline`/`_split`/`_shattered`, `tier_t1`..`t4`, `dao_ring`, `bloodli
 nothing is composed into frames or screens yet beyond the HUD's dash and strike seals,
 which use `element_wind` and `weapon_sword`.
 
+## Sheets C2, C3, C4 and C6
+Named in `PIECE_SHEETS`, one kit ornament group per sheet:
+- **C2 building:** `set_courtyard`, `set_jade_pavilion`, `set_cloud_palace`,
+  `set_herb_house`, `set_library`, `set_formation` (set medallions), `catalog_tab` and
+  `catalog_tab_selected` (three-part), `peak_meter`.
+- **C3 Halls and masters:** `shield_round`/`_kite`/`_banner`/`_hexagon`/`_lotus`,
+  `crest_ring_cloud`/`_dragon`/`_plain`, `emblem_sword`/`_peak`/`_lotus`/`_crane`/
+  `_tortoise`/`_flame`, `lineage_card`, `seat_plate` and `epithet_ribbon` (three-part),
+  `ceremony_frame`. `c3/nine_seat_fan` is only an arrangement example of nine seat
+  plates, so it is in `SKIP_SOURCES` and not cut; build the fan from `seat_plate`.
+- **C4 world events:** `event_scroll` (three-part), `countdown_ring`, `pin_gold`/
+  `_jade`/`_crimson`/`_violet`, `direction_chip`, `decree_card`, `tribulation_ribbon`
+  (three-part), `rift_card`, `rift_tag`. The ribbon's sparks reach toward the card, so
+  that sheet groups with a 4 px gap (`SHEET_GAPS`). The violet pin and the rift pieces
+  are in `NO_DESPILL`. A tiny speck under `event_scroll`'s right end is in the art.
+- **C6 Blood Sect:** the first ornament sheet redrawn in blackened iron and crimson,
+  named after it with a `blood_` prefix: `blood_name_scroll`, `_double_cloud`,
+  `_single_cloud`, `_cloud_wisp`, `_panel_corner`, `_portrait_corner`, `_scroll_stud`,
+  `_ruby_stud`, `_gold_stud` (a copper-red diamond), `_keyplate`, `_chevron`.
+
 ## Sheet A4: portraits are gray silhouettes
 NPC portraits are never shown painted (user, 2026-10-22: the painted busts looked bad).
 Each NPC is a flat gray silhouette of its figure, on transparency, so the Portrait frame

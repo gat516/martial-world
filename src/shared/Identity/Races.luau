@@ -97,7 +97,18 @@ local Races: { [string]: Race } = {
 		Weight = 10,
 		Icon = "",
 		Modifiers = { health = 0.05, walk = -1 },
-		Cosmetics = { "StoneShards" },
+		-- three Blender-built stone sets, each worn whole (their pieces would clip if mixed)
+		Looks = {
+			{
+				Id = "Style",
+				DisplayName = "Style",
+				Options = {
+					{ Id = "Peak", DisplayName = "Peak", Cosmetics = { "StonePeakPlateL", "StonePeakPlateR", "StonePeakShards" } },
+					{ Id = "Orbit", DisplayName = "Orbit", Cosmetics = { "StoneOrbitShards", "StoneOrbitBracerL", "StoneOrbitBracerR" } },
+					{ Id = "Fist", DisplayName = "Fist", Cosmetics = { "StoneFistGauntletL", "StoneFistGauntletR", "StoneFistShards" } },
+				},
+			},
+		},
 	},
 	Dragonblood = {
 		DisplayName = "Dragonblood",

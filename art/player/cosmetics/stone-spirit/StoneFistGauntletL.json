@@ -1,0 +1,154 @@
+{
+ "name": "StoneFistGauntletL",
+ "attachment": "LeftGripAttachment",
+ "attachment_avatar_space": [
+  1.5,
+  0.0,
+  0.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Rock": [
+   0.075,
+   0.08,
+   0.088
+  ],
+  "Jade": [
+   0.04,
+   0.88,
+   0.42
+  ]
+ },
+ "materials": {
+  "Stone_Rock": "SmoothPlastic",
+  "Stone_Jade": "Neon"
+ },
+ "shade": {
+  "file": "stone_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.6,
+  "fade_to_white_at_v": 0.5
+ },
+ "meshes": {
+  "StoneFistGauntletL_Rock": {
+   "region": "Rock",
+   "tris": 106,
+   "center": [
+    0.288,
+    -0.025,
+    0.573
+   ],
+   "size": [
+    1.516,
+    1.571,
+    1.387
+   ],
+   "bone": "Plate"
+  },
+  "StoneFistGauntletL_Jade": {
+   "region": "Jade",
+   "tris": 468,
+   "center": [
+    0.675,
+    0.0,
+    0.523
+   ],
+   "size": [
+    0.792,
+    1.553,
+    1.007
+   ],
+   "bone": "Plate"
+  },
+  "StoneFistGauntletL_Chip1": {
+   "region": "Rock",
+   "tris": 14,
+   "center": [
+    1.136,
+    -0.359,
+    1.251
+   ],
+   "size": [
+    0.243,
+    0.217,
+    0.282
+   ],
+   "bone": "Chip1"
+  }
+ },
+ "tris_total": 588,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "Plate": {
+   "parent": "Root",
+   "head": [
+    0.15,
+    0.0,
+    0.55
+   ],
+   "tail": [
+    0.15,
+    0.0,
+    0.85
+   ],
+   "roblox_head": [
+    -0.15,
+    0.55,
+    0.0
+   ],
+   "deform": true
+  },
+  "Chip1": {
+   "parent": "Root",
+   "head": [
+    1.12,
+    -0.35,
+    1.25
+   ],
+   "tail": [
+    1.12,
+    -0.35,
+    1.43
+   ],
+   "roblox_head": [
+    -1.12,
+    1.25,
+    -0.35
+   ],
+   "deform": true
+  }
+ },
+ "direction": "Fist",
+ "proportions": {
+  "width": 1.54,
+  "depth": 1.59,
+  "height": 1.39,
+  "width_to_arm": 1.65,
+  "depth_to_arm": 1.59,
+  "arm_size": [
+   0.94,
+   1.0,
+   2.0
+  ],
+  "height_to_arm_length": 0.69
+ }
+}

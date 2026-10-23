@@ -4,7 +4,7 @@
 preview runs on the client). It holds one binary file per set, and each file is
 a Folder of rigged Accessory prototypes. Traits looks up an accessory id through
 every set. Sets: `Fox.rbxm` (Spirit Fox, below), `Crane.rbxm` (Beast Folk Crane, below),
-`Tiger.rbxm` (Beast Folk Tiger, below), `Dragonblood.rbxm` (Dragonblood, below), `DemonicHuman.rbxm` (Demonic Human, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Ghost).
+`Tiger.rbxm` (Beast Folk Tiger, below), `Dragonblood.rbxm` (Dragonblood, below), `DemonicHuman.rbxm` (Demonic Human, below), `StoneSpirit.rbxm` (Stone Spirit, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Ghost).
 
 
 New and reworked cosmetics are modeled in Blender by the `modeler` (user,
@@ -83,6 +83,23 @@ under `Tail5` for the flame wisp. Model, rig, colours, asset ids and the Studio 
 | `DemonTailHook` | Tail: Hook | question-mark hook, playing-card spade at shoulder height |
 | `DemonTailTrail` | Tail: Trail | streams back low, leaf-blade spade lifting at the end |
 
+## Stone Spirit (`assets/Cosmetics/StoneSpirit.rbxm`)
+
+Skinned Blender meshes with bones: three sets of floating jade-veined stone, the Stone Spirit
+race's `Style` look (`Looks` in `src/shared/Identity/Races.luau`), each worn whole. Rock is
+SmoothPlastic with a shade ramp, jade is Neon. Model, rig, asset ids and the Studio build
+(`stone-spirit/place_stone_spirit_cosmetics.luau`) are in
+[`stone-spirit/README.md`](stone-spirit/README.md).
+
+| Accessory | Attaches (R6) | Style |
+| --- | --- | --- |
+| `StonePeakPlateL`, `StonePeakPlateR` | Left/Right Arm `Left/RightShoulderAttachment` | Peak (default) |
+| `StonePeakShards` | Torso `NeckAttachment` | Peak |
+| `StoneOrbitShards` | Torso `NeckAttachment` | Orbit |
+| `StoneOrbitBracerL`, `StoneOrbitBracerR` | Left/Right Arm `Left/RightGripAttachment` | Orbit |
+| `StoneFistGauntletL`, `StoneFistGauntletR` | Left/Right Arm `Left/RightGripAttachment` | Fist |
+| `StoneFistShards` | Torso `NeckAttachment` | Fist |
+
 ## Beast Folk (`assets/Cosmetics/BeastFolk.rbxm`)
 
 The Folder `BeastFolk` (mapped into `ReplicatedStorage.Cosmetics`) holds eight
@@ -154,8 +171,9 @@ the name `BeastFolk` instead.
 ## Spirits (`assets/Cosmetics/Spirits.rbxm`)
 
 The Folder `Spirits` (mapped into `ReplicatedStorage.Cosmetics`) holds one
-Accessory per race, as named in `src/shared/Identity/Races.luau` (`DragonHorns` is now an
-unused leftover: Dragonblood and Demonic Human wear the Blender-made sets above). They are built
+Accessory per race, as named in `src/shared/Identity/Races.luau` (`DragonHorns`, `DemonHorns` and
+`StoneShards` are now unused leftovers: Dragonblood, Demonic Human and Stone Spirit wear the
+Blender-made sets above). They are built
 by `build_spirit_cosmetics.luau` in the fox and Beast Folk shape language: plain
 SmoothPlastic, Neon only where something glows, invisible 0.2 Handles, and every
 part unanchored and Massless with CanCollide, CanQuery and CanTouch off. Each is
@@ -163,7 +181,7 @@ one telling feature on a plain R6 cultivator, not a costume.
 
 | Accessory | Race | Attaches (R6) | Parts | Look |
 | --- | --- | --- | --- | --- |
-| `StoneShards` | Stone Spirit | BodyBackAttachment | 21 | grey-brown stone shards (block body + wedge chisel cap, diamond-turned) on two shoulder crusts, 2 per shoulder leaning out and back, 2 between the shoulder blades; 3 shards carry flush Neon jade vein insets |
+| `StoneShards` | unused (Stone Spirit wears the StoneSpirit set above) | BodyBackAttachment | 21 | grey-brown stone shards (block body + wedge chisel cap, diamond-turned) on two shoulder crusts, 2 per shoulder leaning out and back, 2 between the shoulder blades; 3 shards carry flush Neon jade vein insets |
 | `DragonHorns` | unused (Dragonblood wears the Dragonblood set above) | HatAttachment | 11 | antler beams from the temples sweeping up and back, ivory to pale gold, two gold tines each |
 | `DemonHorns` | unused (Demonic Human wears the DemonicHuman set above) | HatAttachment | 7 | short thick horns from the upper forehead, rising out and hooking forward, black to crimson tip; no tines |
 | `GhostWisps` | Ghost | BodyBackAttachment | 10 | three Neon soul flames (core, tapered tongue leaning outward, faint shell): one over each shoulder beside the face, one on the upper back, plus one mist emitter |

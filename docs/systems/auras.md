@@ -33,24 +33,30 @@ The spirit root reveal (`src/client/RootFX.luau`, template
 its methods' motifs (Fire's heart and flame crown, Water's pool and ripples,
 Wood's roots and branches, Metal's gem and clang rings, Earth's rune stone
 ring, Lightning's bolts, Wind's vortex, Ice's glass lotus); see
-[character.md](character.md), "The reveal". A new element's reveal should
+[spirit root](../character/spirit-root.md), "The reveal". A new element's reveal should
 reuse its first method's motif.
 
-## What's built (Mortal)
+## Per-method auras
 
-| Method | On the body | Ground / around | Breath beat | Ignition |
-|---|---|---|---|---|
-| Sect Breathing (reworked, modest on purpose: 6 loop emitters, no parts drawn) | a small jade dantian glow with a hot centre, swelling with the breath; faint motes drawn in to it from about a body-width on the inhale; a faint jade qi vapour lifting off the head | a faint ink taiji (black and white, its splattered dark half the dark base) turning slowly under you, a soft jade halo breathing round it | the exhale settles: a glint at the dantian, a soft ring breathing out over the taiji, two or three motes rising off the belly | a jade flash and star at the dantian, motes thrown up that drift back down, a ring and a low puff of qi over the ground; the taiji and vapour surge |
-| Blazing Heart (reworked: 17 loop emitters, no shell) | white-hot heart core at the chest (glow that swells with the breath, a hard dot, a twinkling 4-point glint, the one PointLight); a flame mantle (library aura-flame flipbook) hugging the silhouette from behind on a darker soot copy of itself; realistic flipbook flames licking off the arms and torso; a small crown of licks off the head; black soot curling off the flame tips; embers and dark ash flecks. Flames, mantle and ground fire grow and shrink with the breath and drift slowly in size | dark scorch disc, warm heat pool, a turning fire swirl, small flames on the rim; four hui-wen sigils: one on the ground turning against the swirl, three raised round the chest (added by the user, centred and level on the body axis) each turning its own way and drifting up, fading and starting again; all breathe in size and flash on the heartbeat and pulses | a heartbeat: lub-dub glow at the chest with a glint and a spark puff, the mantle flares, a fire ring pulses out of the sigil. Every 1 or 2 breaths (about 5 or 10 s, a little late at random) the beat is a pulse instead: a lighter punch (flash and star at the heart, a starburst, embers, a few flame jets and flames, a ground ring, limb flames surging), the aura swelling into it | once fully seated: white flash and a chromatic star at the heart, a starburst flare, flame jets and flipbook flames roaring up round the body, a fire ring burning out over the ground, soot thrown low, an ember burst; limb flames surge |
-| Flowing Spring (reworked: 13 loop emitters, no parts drawn) | a pearl of water at the belly (a water-ball orb that swells with the breath, a white-hot heart, a small glint, the one PointLight); a ring of water strokes turning round the figure from behind on a darker ink-blue copy of itself; water-curl flipbooks lifting off the arms and torso and water wisps off the arms; streaks of qi streaming in from all round to the pearl, fast on the inhale, almost none at rest | a pool under the seat: a deep ink-blue water blob (dark base), a pale water surface over it, a round caustics image drifting (the one SurfaceGui), small water-ring ripples popping across it, a swirl turning inward, bubbles rising | the exhale: a ripple and a breaking ring cross the pool, a few drops hop off it, the pearl glints. Every 2 or 3 breaths (0.4 s jitter, 1.3x swell) a pulse: a drop of qi falls from above into the pool, a splash crown round the seat, a big ripple, the pearl flashes, the curls surge | the pool springs up: a white flash, a star and a water orb at the pearl, water columns and a splash crown round the body, a ripple wave and a breaking ring over the ground, drops thrown up, the pool darkening under it; curls and wisps surge |
-| Evergreen Root (reworked: 15 loop emitters, 22 beams, no parts drawn) | a seed of green qi at the belly (a crackling green glow that swells with the breath, a hard dot, a sparkle cluster, the one PointLight); a green glow behind the body on a dark moss copy of itself; leaves budding off the shoulders and back in two layers (dark under lit): the tree's first crown; glowing vine meridians (a twisting strand texture flowing outward) growing from the belly over ~2 breaths, trunk first, then shoulders and hips, elbows and knees, hands, with bud glints at the joints; a green qi glow on the torso and arms, small shoots sprouting on the arms, leaves curling off and drifting down | a dark moss pool with a green glow on it, a circle of linked rings (growth rings) turning slowly inside a jade ring of flourishes turning the other way (the two SurfaceGuis); five glowing roots (flat beams) creeping out one after another over the first breaths; shoots springing up round the seat; jade fireflies hovering; a few leaves falling from just above the head | the exhale: the seed pulses with a glint, sap motes rise, a thin ring breathes out over the ground, a few leaves skitter out low. Every 3 or 4 breaths (0.8 s jitter, 1.3x swell) a bloom: shoots spring up in a ring, a green ring bursts open, leaves whirl up, the seed flashes and sparkles; arm shoots and leaves surge | a jade flash, long star and sparkle burst at the seed, motes thrown out, vines lashing up out of the ground round the body, shoots erupting, a dark spore puff under a bright bursting ring and a shockwave, leaves whirling up; arm shoots and leaves surge |
-| Iron Marrow (reworked: 13 loop emitters, 5 bone beams, one small gem part in support) | a hard white-gold diamond between the hands: a small spinning Neon gem (support), a gold glow that swells with the breath, a white-hot dot, a long-armed star turning slowly, a dark iron halo behind it, the one PointLight; a small halo of soft gold rays turning behind the head and shoulders on a dark iron disc (the diamond's sunburst, kept small); gold bone lines along the arms and spine with star glints at the joints (they flash on every clang); a cold needle glint running over the arms and torso, a faint gold sheen inside the limbs; forge sparks spitting off the hands and falling | a black spiked iron ring (the dark base; its spikes are blades), an ornate gold filigree ring turning the other way inside it, a molten gold glow, spiky gold spark-splashes popping on the floor, thin gold streaks rising round the seat like forge heat (thick on the inhale), metal filings lifting and tumbling | the clang on each exhale: a spiky ring snaps out of the diamond with a star, sharp crack glints and a spark spray, a thin ring runs over the floor, bones and the gold ring flash. Every 2 or 3 breaths (0.3 s jitter, 1.3x swell) a heavier blow: gold rays fan out behind the body, a big clang ring, flash and star, a spark shower, a spiky ring over the ground, filings thrown out; limb glints and sparks surge | the first great blow: a white flash, a long star and an X glint at the diamond, rays behind, clang rings facing you and over the ground, a spiky gold burst and a thin ring on the floor, 30 sparks, steel shards thrown up; limb sparks and glints surge |
-| Mountain Breath (reworked: 18 loop emitters, no parts drawn) | a low earth core in the belly (an amber crusted glow that swells with the breath, a hard dot, a level horizon glint, the one PointLight); a squat amber glow behind the lower body on a dark umber copy (a hill, not a flame); amber earth qi clinging to the torso and legs; gold sand sifting down off the arms and torso with dark grit flecks (the motion is downward: things settle) | dry cracked earth (dark base) with amber veins glowing through it; a dark square-in-circle seal turning very slowly under a bold amber four-fold seal turning the other way (earth is square), both sinking a little at the breath's peak; stones and a few lit spirit stones orbiting slowly at 2.3 to 2.8 studs (emitters locked to spinning anchors), lifting on the inhale and settling on the exhale; gold dust hanging in the air; a low dust haze creeping out | the settle on each exhale: a dust ring rolls out low, puffs of dust, a few pebbles hop, the core swells. Every 3 or 4 breaths (0.5 s jitter, 1.3x swell) a tremor: amber cracks flash across the ground, a bigger dust ring and spray, grit jumps, a flash and a wide level glint at the core; sand and grit surge | the ground thumps: a dark crater under amber cracks flashing out, rubble crumbling, a dust ring and a low dust spray, rocks thrown up, stone shards jutting up round the seat and sinking, a flash and a wide level glint at the belly, gold dust bursting up and raining back; sand and grit surge |
-| Thunder Pulse (reworked: 8 loop emitters + ~40 beams; the dark shell the only part) | a faint dark tint over the body (support); jagged lightning cracks across chest, belly and arms, each a thin white core (re-jagged every burst) over a wide violet glow band; dark smoke tendrils curling off the head, shoulders and arms; a violet charge glow on the skin and short arcs (bolt sprites) crackling on it, both flaring on a burst; tiny zigzag ozone sparks; a violet node where the chest cracks meet | a dark storm pool under you, a scorched rubble ring round a lightning-crack web (two SurfaceGui images) that flashes on a burst, an electric ring crackling at the rim and small arcs crawling on the ground, both spiking on a burst | irregular bursts (0.5 to 2.6 s apart): a flash, spark and radial arcs at the chest crack, bolts (white core in a crawling bolt-texture glow) from both hands to the ground with spark splashes where they land, a snap ring and a crack-web flash on the ground, the skin crackles | a bolt strikes the crown (two branching bolts), a white and chromatic flash there, radial lightning at the chest, arcs filling the space round the body, an electric ring and a crack web blasting over a scorched rubble ring, dark smoke thrown low, zigzag sparks; skin arcs surge |
-| Drifting Cloud (reworked: 13 loop emitters, no parts drawn) | swirl strokes turning flat round the waist and the chest, shrinking inward as they turn (the wind spiralling in, thick on the inhale, loose on the exhale); wind curls drawn in from about a body-width to the waist; rising wavy wisps off the arms, torso and head and small curls blowing off the arms and head (robes and hair can't lift); a calm mint glow with a soft dot at the dantian; motes drifting on the wind | the cloud you sit on: curling flipbook cloud puffs over a grey-teal underside, low mist drifting off it, a cool shadow under it (dark base); a soft wind vortex turning one way and a three-armed wind seal (the one SurfaceGui) the other, the seal tightening on the inhale | at the start of each inhale: spiral ring strokes sweep in to the body, a gust of curls drawn in from all round, a puff of cloud at the seat | a soft flash and a swirl at the chest, the cloud bursting out in a puff ring (over a dark copy) with puffs thrown low, a gust swirl spreading over the ground, wisps and curls thrown up, motes scattered; limb wisps and curls surge |
-| Frost Lotus (reworked: 11 loop emitters + 33 petal images, no light, no shell) | a cold bud between the hands (a deep-blue halo under a white-hot dot and a twinkling glint); frost glints twinkling on the skin; cold vapour pouring off the arms and sinking to the ground | a deep-blue cracked-ice disc (the dark base) with pale frost creeping out over it, a soft cold light filling the cup; a glass lotus of leaf-veined petals (flat library images, both faces, no Grow) in three rings, inner and upright first, then one more ring each breath, turning slowly; ice crystals growing and melting round the rim; frost petals lifting off it; diamond dust falling | the exhale: breath mist from the mouth, a frost ring breaking out over the ground, a glint at the bud, a few petals lifting, the petals glinting. Every 2 or 3 breaths (0.5 s jitter, 1.3x swell) the beat is a bloom instead: a frost flash over the ice, a crown of ice (library crown mesh, ForceField) springing up and melting, crystals and petals thrown up, a flash and star at the bud; skin glints and vapour surge | a cold white flash, chromatic star and cross star at the bud, a crown of ice spikes bursting up round the body with a petal crown inside it (library meshes, ForceField waves), frost slamming out over the ground and a frost ring breaking, ice crystals springing up, glass shards and petals thrown up, a low cold puff; skin glints and vapour surge |
+Each method's brief, what's built, budget and gaps live in its own file:
 
-How it is put together (details in the builder header):
+| Method | Idea | File |
+|---|---|---|
+| Sect Breathing | the basics | [sect-breathing](../auras/sect-breathing.md) |
+| Blazing Heart Sutra (Fire) | a heart that burns | [blazing-heart](../auras/blazing-heart.md) |
+| Flowing Spring Scripture (Water) | water gathering into a still pool | [flowing-spring](../auras/flowing-spring.md) |
+| Evergreen Root Canon (Wood) | an old tree, patient growth | [evergreen-root](../auras/evergreen-root.md) |
+| Iron Marrow Art (Metal) | qi hammered into the bones | [iron-marrow](../auras/iron-marrow.md) |
+| Mountain Breath Method (Earth) | deep, steady as stone | [mountain-breath](../auras/mountain-breath.md) |
+| Thunder Pulse Manual (Lightning, rare) | sudden bursts | [thunder-pulse](../auras/thunder-pulse.md) |
+| Drifting Cloud Scripture (Wind, rare) | qi drifting in on the wind | [drifting-cloud](../auras/drifting-cloud.md) |
+| Frost Lotus Sutra (Ice, rare) | blooming cold and clear | [frost-lotus](../auras/frost-lotus.md) |
+
+Designing a new method: [new method](../auras/new-method.md).
+
+## How every aura is put together
+
+Details in the builder header.
 - **Body first.** `Body` parts follow named body points (`Chest`, `Belly`,
   `Lap` between the hands...), `Limbs` emitters are cloned onto the body parts
   themselves (they emit off the limb's surface), `Lines` are Beams between
@@ -96,33 +102,7 @@ How it is put together (details in the builder header):
 - **Budget per aura:** one PointLight (none for Wind, Ice, Thunder, Sect),
   6 shell parts (R6), up to ~40 beams (Thunder's jagged cracks), a handful of
   emitters at 1 to 13 /s per limb. Sect Breathing auras rank after named
-  methods for the 8 slots. Blazing Heart (R6): 17 loop emitters, about 60
-  live particles in the loop (limb flames 8/s per limb are the bulk), one
-  light, one SurfaceGui sigil, no parts drawn; its ignition adds ~70
-  particles for about a second. Flowing Spring (R6): 13 loop emitters, about
-  40 live particles (limb curls 2.2/s per limb, inflow 6/s on the inhale),
-  one light, one SurfaceGui (caustics), no parts drawn; its ignition adds
-  ~40 particles for about a second, a pulse ~25. Frost Lotus (R6): 11
-  loop emitters, about 50 live particles (diamond dust and skin glints are
-  the bulk), 33 petal parts with two SurfaceGuis each (moved, never resized:
-  resizing a SurfaceGui's part re-renders it), no light, no shell; a bloom
-  adds ~20 particles and a mesh wave, the ignition ~45 and two mesh waves.
-  Sect Breathing (R6): 6
-  loop emitters, about 12 live particles (motes 3/s on the inhale), one
-  SurfaceGui (the taiji), no light, no parts drawn; its ignition adds ~22
-  particles for about a second. Thunder Pulse (R6): 8 loop
-  emitters (4 on the ground and chest node, 4 limb kinds), about 25 live
-  particles at rest (smoke tendrils are the bulk), spiking on each burst;
-  ~40 beams (9 cracks of 2-3 core segments plus a glow each, 2 hand bolts of
-  4 segments plus a glow); no light, two SurfaceGui images, the dark shell;
-  a burst adds ~15 particles, the ignition ~45 for about half a second.
-  Drifting Cloud (R6): 13 loop emitters, about 50 live particles (the cloud
-  puffs and limb wisps are the bulk), no light, one SurfaceGui (the wind
-  seal), no parts drawn; its ignition adds ~50 particles for about a second.
-  Iron Marrow (R6): 13 loop emitters, about 50 live particles (rising
-  streaks 9/s at the peak, filings, limb sheen), 5 bone beams with 6 joint dots, one
-  light, two SurfaceGui rings, one 0.34-stud gem part; its ignition adds
-  ~50 particles for about a second, a pulse ~35.
+  methods for the 8 slots. Each method's own counts are in its file.
 - **Palette for Neon:** bright pastels go white in Neon; ring and wave colours
   use the deeper shade of the element (violet, deep ice blue, burnt amber).
 
@@ -181,25 +161,11 @@ them; search per method):
 | Heaven | the screen; a column or sky effect seen from far away | a manifestation: the method's spirit or beast rising behind, a light pillar |
 
 All current methods are Mortal (Sect Breathing aside). Their "higher grade"
-lines below say where the method's family goes when a stronger version exists.
-
-## The current methods
-
-| Method | Idea | Mortal aura (build now) | Higher grades | Refs |
-|---|---|---|---|---|
-| Sect Breathing | the basics | modest but deliberate (user, 2026-10-21): a small dantian glow that gathers motes on the inhale and settles on the exhale, a faint turning taiji under you, a short jade ignition | — (the starter; it has no higher grade) | — |
-| Blazing Heart Sutra (Fire) | a heart that burns | an orange core in the chest that beats on the breath; short flame tongues licking up from shoulders and arms; embers rising; warm outline | flames climb into a crown of fire above the head, then a burning lotus behind; Heaven: a phoenix silhouette | red_flame_surge, purple_flame_outline |
-| Flowing Spring Scripture (Water) | water gathering into a still pool | a mirror-still pool disc under you, one ripple per breath; droplet streams drawn inward to a soft blue core in the belly; cool blue body glow | the pool widens with lotus pads and the streams come from farther away; Heaven: a waterfall of qi pouring into you from above | meridians_qi_inflow, constellation_dantian_core |
-| Evergreen Root Canon (Wood) | an old tree, patient growth | green meridian lines that grow like branches from the belly out along the arms, lighting slowly over a few breaths; thin roots spreading on the ground; a few slow leaves | the branches leave the body and form a tree canopy over you; Heaven: a dryad spirit rising behind | spirit_manifest_green |
-| Iron Marrow Art (Metal) | qi hammered into the bones | a hard white-gold diamond core between the hands; on each exhale a clang: a thin metal ring snaps outward with sparks; a cold steel glint sweeps the outline | the clang becomes a sunburst of blades behind you; Heaven: a radiant halo of swords | sunburst_diamond_core |
-| Mountain Breath Method (Earth) | deep, steady as stone | an amber core low in the belly; a carved stone rune ring under you that settles a little with each breath; a few pebbles lifting very slowly; dust | stones orbit in a heavy ring; Heaven: a mountain silhouette behind | (none yet) |
-| Thunder Pulse Manual (Lightning, rare) | sudden bursts | dark idle with glowing purple-white cracks across the torso and arms that flare irregularly; arcs jump from hands to the ground on a burst; ozone sparks | arcs fill the space and strike the ground around you; Heaven: a thunder dragon coiled behind | dark_lightning_cracks |
-| Drifting Cloud Scripture (Wind, rare) | qi drifting in on the wind | a soft cloud you sit on; pale wind streaks spiral in toward you on each inhale and loosen on the exhale; robes and hair lift faintly | a slow vortex column around you; Heaven: a sea of clouds spreading out from your seat | (none yet) |
-| Frost Lotus Sutra (Ice, rare) | blooming cold and clear | frost spreading on the ground in a lotus shape that opens a petal ring per breath; a rime outline; breath mist; a few flakes | a crystal lotus blooms around you; Heaven: a giant ice lotus behind, snow falling across the area | constellation_dantian_core (cold blue palette) |
+lines in each method's file say where the method's family goes when a stronger version exists.
 
 ## Reference images
 
-From the user, in `docs/reference/auras/`. The names in the Refs column above
+From the user, in `docs/reference/auras/`. The names in each method's Refs line
 point here.
 
 **On the body (Mortal and up)**
@@ -229,105 +195,9 @@ point here.
 | ![roblox_seated_blue_wisps](../reference/auras/roblox_seated_blue_wisps.webp) | **roblox_seated_blue_wisps**: a seated aura with wisps, motes and a ground ring. |
 | ![roblox_bubble_skulls](../reference/auras/roblox_bubble_skulls.png) | **roblox_bubble_skulls**: a bubble shell with floating icons. |
 
-## Inventing a new method and its aura
-
-Use this to add methods (and their auras) that fit the world. Fill in the card,
-then add the def to `src/shared/Methods.luau` and the aura to the table above.
-
-1. **Start from a verb, not an element.** What does the method do to qi?
-   Burns, gathers, grows, hammers, settles, bursts, drifts, blooms, devours,
-   reflects, sings, seals. The verb gives the motion; the element only gives
-   the palette.
-2. **Name it like a scripture:** an image plus a text type ("Sutra",
-   "Scripture", "Canon", "Art", "Manual", "Method", "Classic", "Record").
-   Blurb: one line, "Qi ... like ...".
-3. **Pick its home on the body:** heart, belly (dantian), hands, spine, eyes,
-   skin, bones, the ground under you, the air around you. Methods in the same
-   element should pick different homes.
-4. **Pick its rhythm:** with the breath (most), a heartbeat, slow over many
-   breaths, sudden bursts, constant flow.
-5. **Pick one shape motif** that recurs from Mortal to Heaven: a lotus, a
-   ring, cracks, branches, a diamond, blades, stones, clouds, a sigil, eyes.
-6. **Write its grade ladder:** what the motif becomes at Spirit, Earth and
-   Heaven (the backdrop and the manifestation).
-7. **Check it against the others:** at a glance, from 30 studs, on grass at
-   noon, could you tell it from every existing aura? If two share home,
-   rhythm and motif, change one.
-
-Card:
-
-```
-Name / element / grade:
-Verb (what it does to qi):
-Blurb:
-Home on the body:
-Rhythm:
-Motif:
-Mortal aura:
-Spirit / Earth / Heaven:
-Refs:
-```
-
-Seeds for later methods (not designed yet): a devouring method that drains
-nearby qi motes into you (dark, inward vortex); a sword-heart method whose
-qi forms floating blades; a mirror method with a reflective halo; a blood
-method whose veins glow red; a starlight method with a constellation across
-the body and a night-sky backdrop; a sound method with rings of visible
-chant.
-
 ## Known gaps
 
 - Every Mortal aura is reworked; Spirit and up still wait (below).
-- Frost Lotus and Sect Breathing: previewed in Edit mode on an R6 rig (grass
-  at noon and night) through the plain emitter fallback; play speed, R15,
-  phones and the live sit / switch / breakthrough ignition are untested. The
-  library has no lotus-petal texture, so the petals are a veined leaf image
-  laid on flat parts in rings (they read as a glass lotus from the usual
-  camera, edge-on from level). On a blocky R6 rig the seated arms hide most
-  of what sits within ~2 studs of the body, which is why both ground figures
-  reach about 3.5 studs out; slimmer avatars show more of them. Sect's taiji
-  is a bold black-and-white image kept faint; its ignition surge brings it
-  near full strength for a moment.
-- Drifting Cloud: previewed in Edit mode on an R6 rig (grass at noon and
-  night) through the plain emitter fallback; play speed, R15, phones and the
-  live sit / switch / breakthrough ignition are untested. The swirl strokes
-  lie flat, so they read best from above (the usual camera) and thin from
-  level. Built without a reference (none in the library for a seated wind
-  aura).
-- Thunder Pulse: previewed in Edit mode on an R6 rig (grass at noon and
-  night) through the plain emitter fallback; play speed, R15, phones and the
-  live sit / switch / breakthrough ignition are untested, and how the
-  irregular bursts feel next to a calm seated crowd. The ignition bolt is a
-  square sprite whose top edge can show for its 0.28 s. The dark shell is
-  kept as a faint tint (support); it reads without it.
-- Flowing Spring: previewed in Edit mode on the R6 rig (grass at noon and
-  night) through the plain emitter fallback; play speed, R15, phones and the
-  live sit / switch / breakthrough ignition are untested. The caustics disc
-  has a hard round edge (UICorner on the image), softened only by the dark
-  water blob around it.
-- Blazing Heart: previewed in Edit mode on the R6 rig only, through the plain
-  emitter fallback (the place has no `ReplicatedStorage.vfx` Game Module).
-  Feel at play speed, R15, 8 seated auras on a phone and the live sit /
-  switch / breakthrough ignition are untested. The library has no heart
-  texture, so the heart is a glow, a dot and a glint, not a heart shape. The
-  seated-moment ignition was checked on the preview rig (lit at Sit 1.40 /
-  1.60 s), not on a live player or an observer's replicated tracks.
-- Iron Marrow: previewed in Edit mode on the R6 rig (grass at noon and
-  night) through the plain emitter fallback; play speed, R15, phones and
-  the live sit / switch / breakthrough ignition are untested. The diamond
-  is still a small Neon gem part (support); hidden, the glow, dot and
-  star still read as the core.
-- Evergreen Root: previewed in Edit mode on an R6 rig (grass at noon and
-  night) through the plain emitter fallback; play speed, R15, phones and the
-  live sit / switch / breakthrough ignition are untested. The leafy crown
-  behind the shoulders is the Mortal hint of the Spirit canopy; keep it
-  small. Flat ground particles under a dark base need ZOffset ~1 to draw
-  over it (smaller offsets lose the sort). Built without a reference.
-- Mountain Breath: previewed in Edit mode on an R6 rig (grass at noon and
-  night) through the plain emitter fallback; play speed, R15, phones and the
-  live sit / switch / breakthrough ignition are untested. On a blocky R6
-  rig the squat back glow mostly hides behind the body; the ground and the
-  orbiting stones carry it. Built without a reference.
 - Only the Mortal column is built; the Spirit/Earth/Heaven looks (spreading
   figures, backdrops, manifestations) wait for methods of those grades.
 - No refs yet for Mountain Breath or Drifting Cloud (built without one).
@@ -343,3 +213,4 @@ chant.
   render. They were stripped in Studio; 5 remain (4 in `BuildKit`, 1 in
   ServerStorage). Rule: map dressing and prop templates carry no Highlights.
   Not yet checked in play that the combat outlines now show.
+- Per-method gaps (previews, untested ignition, missing textures) are in each method's file.

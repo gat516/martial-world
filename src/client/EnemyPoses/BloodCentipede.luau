@@ -1,6 +1,6 @@
 --!nonstrict
 -- Procedural pose tables for the Blood Centipede (Enemies.BloodCentipede, scale 1; rig table
--- in art/enemies/beasts/RIGS.md "Blood Centipede", notes in art/enemies/beasts/poses_blood_centipede.md).
+-- in art/enemies/beasts/rigs/blood-centipede.md ("Blood Centipede", notes in art/enemies/beasts/poses_blood_centipede.md).
 -- Same pose API as Wolf.luau / VenomSerpent.luau; pure tables, no instances, no gameplay decisions.
 --
 -- FAMILIES registration (EnemyAnimator.luau; the animator may not edit it, the designer pastes it):

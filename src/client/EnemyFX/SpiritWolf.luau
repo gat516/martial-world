@@ -2,7 +2,7 @@
 -- Spirit Wolf cues (EnemyFX): moonlight-qi attack, hit and death effects.
 -- Templates: ReplicatedStorage.Effects.SpiritWolf (builder and layer notes in
 -- tools/vfx_specs/SpiritWolf.luau). Record and cue contract in
--- docs/systems/enemies.md, "Spirit Wolf effects".
+-- docs/enemies/spirit-wolf.md, "Effects".
 --
 -- Attacks (cue.attack): bite, pounce, leap, howl, hop.
 --   windup   every attack: eyes flare (red glint, then held glow for the

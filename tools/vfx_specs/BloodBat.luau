@@ -4,7 +4,7 @@
 --   local m = Instance.new("ModuleScript")
 --   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/BloodBat.luau")
 --   require(m)  -- installs _G.buildBloodBatFX(effectsFolder)
--- Runtime: src/client/EnemyFX/BloodBat.luau. Record: docs/systems/enemies.md.
+-- Runtime: src/client/EnemyFX/BloodBat.luau. Record: docs/enemies/third-wave.md.
 -- A swarm of 3 to 4, so EVERY beat is 1 to 3 emitters, short; the only heavy
 -- moment is the single shrieker's rings (Impact.roar). Invisible Part templates.
 local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new

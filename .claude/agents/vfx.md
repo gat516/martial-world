@@ -31,12 +31,17 @@ an `enemy-designer` brief.
 - [docs/vfx/translator.md](../../docs/vfx/translator.md): plain words ("messy",
   "weak", "floaty") to causes and property fixes. For every review round and
   every user note.
-- [docs/vfx/toolkit.md](../../docs/vfx/toolkit.md): the vfxia plugin, Game
-  Module, add-ons, the asset library and how to search it, building and
-  previewing in Studio, export, animation sync, budget. Read the sections your
-  job touches.
-- `docs/README.md` and the system doc the effect belongs to (combat,
-  cultivation, auras, world...).
+- [docs/vfx/toolkit.md](../../docs/vfx/toolkit.md) (core): the vfxia plugin,
+  library and Game Module, the rules that always apply, the build loop, the
+  budget, and an index. Then read only the `docs/vfx/toolkit/` topic files the
+  index lists for your task (library, pipeline, building, previewing, export,
+  animation sync, in-game wiring, add-ons, plugin).
+- The doc for the thing the effect belongs to, and only that part: an enemy's
+  `docs/enemies/<enemy>.md` (plus enemies.md "Adding a beast's effects" for
+  cues); a technique's `docs/combat/technique-visuals.md` plus
+  `docs/combat/techniques/<id>.md`; an aura's `docs/systems/auras.md` core plus
+  `docs/auras/<method>.md`; for setting, `docs/world-overview.md`. Open
+  `docs/README.md` only when you add a mapped asset.
 
 ## Your own Studio (sandbox)
 
@@ -76,8 +81,8 @@ them only for work that needs them, and never start Play in them.
    in the repo (only the grids and stills go in `docs/reference/`).
    Zoom on the climax with a time window. Save stills the user gives you to
    `docs/reference/vfx/` with a descriptive name. Save grids you'll keep
-   there too (not only in the scratchpad), and add a row and a layer
-   breakdown to the library for every reference you used, in the same
+   there too (not only in the scratchpad), and add a row to `docs/reference/vfx/README.md` and a layer
+   breakdown to `docs/reference/vfx/breakdowns.md` for every reference you used, in the same
    commit as the effect.
 2. **Intent, before anything else (2-3 sentences).** What is physically or
    magically happening (a roar is a blast of air and sound from the mouth, a
@@ -92,8 +97,7 @@ them only for work that needs them, and never start Play in them.
    dissipation (20-40%, fading, shrinking, breaking up). Fast in, slow out;
    never ease into an impact; exactly one peak. Stagger layer starts by 30-150
    ms so the eye reads cause then effect. Drive the phases from the
-   animation's markers or the cast's three clocks (toolkit.md, "Sync to the
-   animation's events"), not free timers. Nothing lingers without a job.
+   animation's markers or the cast's three clocks (`docs/vfx/toolkit/animation-sync.md`), not free timers. Nothing lingers without a job.
 4. **Layer plan: every layer caused, one hero.** For each layer answer what
    caused it, where it comes from, where its energy goes and why it lasts
    that long; no answer, cut it. The **action** decides shape, origin,
@@ -155,8 +159,7 @@ them only for work that needs them, and never start Play in them.
    user pick before polishing one.
 7. **Review: look, score, fix the three worst.** Freeze the same moments
    every round from the same cameras (`vfxPreview.sweep`: windup, the frame
-   before the peak, the peak, +100 ms, +300 ms, mid-dissipation; toolkit.md,
-   "Previewing"). Score 1-5 on readability, hierarchy, timing, causality and
+   before the peak, the peak, +100 ms, +300 ms, mid-dissipation; `docs/vfx/toolkit/previewing.md`). Score 1-5 on readability, hierarchy, timing, causality and
    fit, name the three worst problems, map each through
    [docs/vfx/translator.md](../../docs/vfx/translator.md) to property
    changes, apply only those (subtract first), rebuild, look again. Two

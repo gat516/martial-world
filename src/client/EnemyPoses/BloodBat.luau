@@ -1,6 +1,6 @@
 --!strict
 -- Procedural pose tables for the Iron-Winged Blood Bat (Enemies.BloodBat, 1.0x; art/enemies/
--- beasts/RIGS.md "Blood Bat"). Same FORMAT and API as Wolf.luau (read its header); the shared
+-- beasts/rigs/blood-bat.md ("Blood Bat"). Same FORMAT and API as Wolf.luau (read its header); the shared
 -- wing stroke is in Flap.luau, the notes in art/enemies/beasts/poses_blood_bat.md.
 --
 -- EnemyAnimator FAMILIES registration (needs the request in the .md: motion/loop smoothing):

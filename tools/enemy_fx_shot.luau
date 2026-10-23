@@ -18,7 +18,7 @@
 -- first cue? }; shape.center defaults to 9 studs ahead (pass shape = {...}).
 -- Returns "camera x,y,z look x,y,z" for screen_capture's camera_position and
 -- look_at_position. Bring the sandbox window to the front before capturing
--- (toolkit.md, "Module and add-on gotchas").
+-- (docs/vfx/toolkit/previewing.md).
 
 local CENTER = Vector3.new(400, 648.6, 0)
 local DEFAULT_STATE = { windup = "windup", strike = "recover", dash = "dash", land = "recover", stagger = "stagger", hit = "recover", skid = "recover", death = "recover" }

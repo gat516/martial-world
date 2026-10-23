@@ -4,7 +4,7 @@
 --   local m = Instance.new("ModuleScript")
 --   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/FlameRaven.luau")
 --   require(m)  -- installs _G.buildFlameRavenFX(effectsFolder)
--- Runtime: src/client/EnemyFX/FlameRaven.luau. Record: docs/systems/enemies.md.
+-- Runtime: src/client/EnemyFX/FlameRaven.luau. Record: docs/enemies/third-wave.md.
 -- Invisible Part templates (-Z = facing / blow direction), ground ones centred
 -- on the ground; soot-black base under every bright layer.
 local NS, CS, KP, R = NumberSequence.new, ColorSequence.new, NumberSequenceKeypoint.new, NumberRange.new

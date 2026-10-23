@@ -56,7 +56,7 @@ board), but they don't yet frame it as one rhythm.
 | Region seal | the next wilds array is sealed | reaching its realm | breaking through | built (QC5, FE1) |
 | Tribulation | a major breakthrough | surviving the lightning | the main peak | built (QC9) |
 | Beasts too strong | dying out there | weapon, technique, Dao, root, herbs, breaking through | both | partly: it's not signposted |
-| Method | can't go past Foundation | finding a cultivation method | the library, then exploring (ruins, secret places), bosses | design ([character](systems/character.md)) |
+| Method | can't go past Foundation | finding a cultivation method | the library, then exploring (ruins, secret places), bosses | design ([character](character/method.md)) |
 | Missing piece | "a manual / weapon / method is out there" | exploring: caches, ruins, event sites | the wilds | partly: caches built, nothing points to them |
 
 A good stage asks for one or two walls, not all of them. Pacing already does
@@ -102,7 +102,7 @@ and everything else arrives when it first matters.
 | QC7-8 | BREATHER, RAMP | second weapon class and its Dao level (from caches and drops) |
 | QC9 | WALL | insight and the first tribulation |
 | FE | new realm | cultivation method, Outer Wastes |
-| later majors | | the realm milestones: flying sword, soul companion, flight ([character](systems/character.md)) |
+| later majors | | the realm milestones: flying sword, soul companion, flight ([character](character/later-layers.md)) |
 | later (unscheduled) | | crafting: mining and ores, weapon refinement, alchemy (see below) |
 
 ## Don't overwhelm: crafting comes later

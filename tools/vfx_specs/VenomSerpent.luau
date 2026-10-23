@@ -4,7 +4,7 @@
 --   local m = Instance.new("ModuleScript")
 --   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/VenomSerpent.luau")
 --   require(m)  -- installs _G.buildVenomSerpentFX(effectsFolder)
--- Runtime: src/client/EnemyFX/VenomSerpent.luau. Record: docs/systems/enemies.md.
+-- Runtime: src/client/EnemyFX/VenomSerpent.luau. Record: docs/enemies/second-wave.md.
 --
 -- Venom: sickly jade-green and yellow-green with a white-hot centre, a dark
 -- green-slate copy under each bright shape so it reads on grass at noon. A

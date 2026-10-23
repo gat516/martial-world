@@ -1,6 +1,6 @@
 --!nocheck
--- Ambient effects and sounds for the Inner Wilds valley (docs/systems/map.md, "Inner Wilds rework";
--- templates: ServerStorage.AmbientFX, docs/systems/world.md "Inner Wilds set" and "Ambient sound").
+-- Ambient effects and sounds for the Inner Wilds valley (docs/map/inner-wilds-rework.md;
+-- templates: ServerStorage.AmbientFX, docs/world/ambient-fx.md "Inner Wilds set" and docs/world/ambient-sound.md).
 -- Run in Studio Edit mode through execute_luau after place_pockets_inner.luau and water_inner.luau.
 -- Rebuilds Map.Ground.WildsInner.FX each run (never name anything "Ambience" under Map: DayNight takes
 -- the first one) and re-dresses the pocket prefabs' FX_/SND_ anchors.

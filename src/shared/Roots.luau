@@ -4,7 +4,7 @@
 -- Each element has one perk on a system that already exists; the grade scales
 -- the perk and the player's cultivation speed. Techniques of the root's element
 -- (Techniques `element`) get Pacing.Roots.MATCH more damage.
--- Design: docs/systems/character.md.
+-- Design: docs/character/spirit-root.md.
 
 local Pacing = require(script.Parent.Pacing).Roots
 

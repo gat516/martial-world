@@ -4,7 +4,7 @@
 -- Studio Edit mode for reviewing the map. They are never part of the game: this runs before
 -- any player can join (no requires, no yields) and destroys them, so nothing of them ever
 -- replicates. ReplicatedFirst.EditorOnly (src/first/EditorOnly.client.luau) also strips any
--- copy that reaches a client. See docs/systems/map.md, "Editor-only markers".
+-- copy that reaches a client. See docs/map/editor-markers.md.
 
 local CollectionService = game:GetService("CollectionService")
 

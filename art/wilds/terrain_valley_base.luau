@@ -1,6 +1,5 @@
 --!nocheck
--- Base terrain for the Inner Wilds valley outside the built boxes (docs/systems/map.md,
--- "Inner Wilds rework"): an even grass floor up to the wall feet, rising into them, so the
+-- Base terrain for the Inner Wilds valley outside the built boxes (docs/map/inner-wilds-rework.md): an even grass floor up to the wall feet, rising into them, so the
 -- new walls don't stand on bare dark ground or old pools. Run in Studio Edit mode through
 -- execute_luau. Re-runnable: it writes absolute heights from noise, so re-runs give the same
 -- ground. The detailed pockets, paths and the new river come with the rework's

@@ -2,7 +2,7 @@
 -- Iron-Winged Blood Bat cues (EnemyFX): crimson blood and pale wind. A swarm of
 -- 3 to 4, so every beat is 1 to 3 emitters (templates ReplicatedStorage.Effects.BloodBat,
 -- builder tools/vfx_specs/BloodBat.luau); only the single shrieker plays rings.
--- Record: docs/systems/enemies.md. Gated by Template = "BloodBat".
+-- Record: docs/enemies/third-wave.md. Gated by Template = "BloodBat".
 --
 -- Attacks (cue.attack): bloodDive, sonicShriek, hop.
 --   windup   eyes crimson star + held glow; WingEdgeTell, MouthTell and ChestCore dim

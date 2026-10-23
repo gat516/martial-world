@@ -1,6 +1,6 @@
 --!nocheck
 -- Places the Inner Wilds finds (ServerStorage.InnerWildsPrefabs F01..F31, built by the POI builder) on
--- the valley (docs/systems/map.md, "Inner Wilds rework", finds list). Run in Studio Edit mode after
+-- the valley (docs/map/inner-wilds-rework.md, finds list). Run in Studio Edit mode after
 -- terrain_wilds.luau and place_pockets_inner.luau. Rebuilds Map.Ground.WildsInner.Finds each run.
 --
 -- Each find goes to its PlannedSpot attribute with its front (local -Z) facing the nearest path (from

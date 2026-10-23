@@ -1,7 +1,7 @@
 --!nocheck
 -- Rigs ServerStorage._RosterBeasts.BloodCentipede (build_blood_centipede.luau) with the
 -- shared rig_core.luau, then adds the FX attachments. Run in Edit mode through
--- execute_luau; re-runnable. 43 joints: see RIGS.md "Blood Centipede".
+-- execute_luau; re-runnable. 43 joints: see rigs/blood-centipede.md ("Blood Centipede".
 -- HRP: the whole body line (skull to cerci) by the plates' width, from just above the
 -- ground to the plate tops, centred on the line, so melee lands anywhere along it.
 -- The health bar sits 1 stud over the built body's top (computed from the visible parts).

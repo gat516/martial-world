@@ -4,7 +4,7 @@
 -- part and given the fight's 37-joint rig. Nothing visible is redesigned. Run in Edit mode
 -- through execute_luau (art server on :8767 serving art/enemies); it rebuilds
 -- ServerStorage._RosterBeasts.JadeJiao (body plus joint attributes), then run
--- rig_jade_jiao.luau on it. Joint table and numbers: RIGS.md "Jade Jiao".
+-- rig_jade_jiao.luau on it. Joint table and numbers: rigs/jade-jiao.md ("Jade Jiao".
 --
 -- Source: jade_python_ref.rbxm next to this file, the reference serialized read-only from
 -- the user's Studio (SerializationService), so the build is reproducible from git.

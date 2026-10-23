@@ -1,20 +1,15 @@
+User notes in plain words ("messy", "weak", "floaty") mapped to their usual causes and Roblox property fixes. vfx and world-fx agents use it for every user note and every own review round (`.claude/agents/vfx.md`, "Review").
+
 # VFX translator: plain words to fixes
 
-The user doesn't talk in VFX terms. They say "it looks messy" or "the roar is
-weak". This page turns those words into their usual causes and the property
-changes that fix them. The `vfx` and `world-fx` agents use it for every user
-note and for their own review (`.claude/agents/vfx.md`, "Review").
+1. Restate the note as a cause ("messy: three layers peak on the same frame and two of them
+   aren't caused by the roar").
+2. **Subtract first:** what to remove or quiet before adding anything.
+3. Change only what that cause needs, rebuild from the spec, look at the same moments from
+   the same camera, and report the change in one plain sentence.
 
-How to use it:
-1. Restate the note as a cause ("messy: three layers peak on the same frame and
-   two of them aren't caused by the roar").
-2. **Subtract first.** Ask what to remove or quiet before adding anything.
-3. Change only what that cause needs, rebuild from the spec, look at the same
-   moments from the same camera, and report the change in one plain sentence.
-
-Keep the assets fixed while you fix a note. Swapping textures every round makes
-rounds impossible to compare; change an asset only when the note is about its
-shape.
+Keep the assets fixed while fixing a note (swapping textures every round makes rounds
+impossible to compare); change an asset only when the note is about its shape.
 
 | They say | Usual causes | Fixes (Roblox) |
 |---|---|---|
@@ -28,11 +23,11 @@ shape.
 | **white mush, blown out, glowy blob** | Everything glows; overlapping additive sprites; the core is too big | Put smoke and dust on `LightEmission` 0 with `LightInfluence` up. Shrink the core. Fewer and larger overlaps. Push colour into the rims and lower the brightness of the secondaries. |
 | **muddy, dirty, grey** | Dark layers in front of bright ones; low saturation in the middle tones; smoke too thick | Order the layers (`ZOffset`) so the bright layers sit in front. Thin the smoke (higher `Transparency`, fewer). Saturate the middle of the colour ramp. |
 | **lingers, too long, drags** | A tail with no gameplay job; `Lifetime.Max` too long | Shorten the dissipation and break it up (shrink, `Transparency` to 1, speed falling off). Nothing stays without a job. |
-| **too much, over the top, distracting** | Above its scale tier; screen effects on small moments; fills the screen | Back to the scale rule in style.md: cut screen effects and the world grade, shrink the reach, and keep the craft. |
+| **too much, over the top, distracting** | Above its scale tier; screen effects on small moments; fills the screen | Back to the scale rule in [style.md](style.md): cut screen effects and the world grade, shrink the reach, and keep the craft. |
 | **too small, underwhelming (for a big moment)** | One layer carries the moment; no environment reaction; no feel layer | Add an environment layer (one light flash, ground dust or a scorch) and, if the tier earns it, a feel layer. Make the hero bigger before adding new elements. |
-| **doesn't fit, wrong element, generic** | The theme drives the shape instead of the action; another beast's palette; a stock texture | Let the action decide shape, origin and direction, and the theme only colour and texture. Use the element palette in vfx.md. Choose textures with that element's shape language. |
+| **doesn't fit, wrong element, generic** | The theme drives the shape instead of the action; another beast's palette; a stock texture | Let the action decide shape, origin and direction, and the theme only colour and texture. Use the element palette in `.claude/agents/vfx.md`. Choose textures with that element's shape language. |
 | **wrong place, comes from nowhere** | The emitter isn't on the cause; it isn't oriented to it | Put the emitter on an Attachment at the mouth, the contact point or the blade tip, aimed away from the cause. |
-| **laggy (phones)** | Many large overlapping transparent sprites; high rates; lights per hit | Fewer and better-shaped particles; budgets in toolkit.md; no per-hit lights. |
+| **laggy (phones)** | Many large overlapping transparent sprites; high rates; lights per hit | Fewer and better-shaped particles; budget in [toolkit.md](toolkit.md); no per-hit lights. |
 
 ## Shape and blend at a glance
 

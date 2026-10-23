@@ -1,7 +1,7 @@
 --!strict
 -- Blood Centipede cues (EnemyFX): earth-blood, bone white and rust red.
 -- Templates: ReplicatedStorage.Effects.BloodCentipede (builder
--- tools/vfx_specs/BloodCentipede.luau). Record: docs/systems/enemies.md.
+-- tools/vfx_specs/BloodCentipede.luau). Record: docs/enemies/third-wave.md.
 -- Gated by the model's Template = "BloodCentipede".
 --
 -- Attacks (cue.attack): pincerSnap, coilSweep, burrowDive, erupt.

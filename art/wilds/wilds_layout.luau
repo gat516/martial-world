@@ -1,5 +1,5 @@
 --[[
-Shared layout for the first two wilds zones (docs/systems/map.md, "Wilds zones"): path splines, landforms
+Shared layout for the first two wilds zones (docs/map/wilds.md): path splines, landforms
 (hills, ridges, terraces, gullies, caves, pools). Run this first in Studio (Edit mode, command bar or MCP
 execute_luau); it sets _G.WILDS_LAYOUT, which art/wilds/terrain_wilds.luau and art/wilds/dress_wilds.luau
 read.
@@ -20,8 +20,8 @@ end
 
 _G.WILDS_LAYOUT = {
 	Inner = {
-		-- "Bamboo and old stone, where young beasts hunt." The walled valley (docs/systems/map.md,
-		-- "Inner Wilds rework", 2026-10-21): spine from the arrival court south to the Shrine Terrace,
+		-- "Bamboo and old stone, where young beasts hunt." The walled valley (docs/map/inner-wilds-rework.md,
+		-- 2026-10-21): spine from the arrival court south to the Shrine Terrace,
 		-- arms and loops to seven pockets, three event grounds, a find every 100-150 studs.
 		box = { -1000, 500, 1000, 1460 }, -- the whole valley inside the wall ring (x0, z0, x1, z1)
 		base = 4.6, -- mean ground height
@@ -218,8 +218,8 @@ _G.WILDS_LAYOUT = {
 	Bridge = { x = -8, z0 = 866, z1 = 910, y = 4.4 },
 }
 
--- The Ruined Borderlands moved south as one block (2026-10-21, docs/systems/map.md "Inner Wilds
--- rework"): the Middle table above keeps its old coordinates, and this shifts every one of them by
+-- The Ruined Borderlands moved south as one block (2026-10-21,
+-- docs/map/inner-wilds-rework.md): the Middle table above keeps its old coordinates, and this shifts every one of them by
 -- MIDDLE_OFFSET into the new box (x -200..500, z 1612..1960), with the bridge, so the river, the gorge
 -- gate and the bridge stay one walk from the Inner valley. poi_wilds.luau builds the Middle's POIs at
 -- their old literal coordinates and moves each one by `offset` (sampling the ground at the new spot).

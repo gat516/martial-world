@@ -14,7 +14,7 @@
 -- Regions are checked in order; the first that contains a point wins, and a
 -- point in none has no region (no banner change, no ambient beasts).
 --
--- The wilds zones are boxes (docs/systems/map.md, "Inner Wilds rework": the Inner valley and the
+-- The wilds zones are boxes (docs/map/inner-wilds-rework.md: the Inner valley and the
 -- Ruined Borderlands south of it); the Outer Wastes still use their old ring until rebuilt. Only the
 -- sect's own ring counts as safe sect high up, so flyers in the wilds keep their region up to the
 -- wilds' flight ceiling (Y 420, under the cloud plane at Y 440).

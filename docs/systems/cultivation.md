@@ -118,7 +118,7 @@ breakthrough, and insight is a choice: which technique to deepen.
 - **Pacing.Comprehension**: insight and stones to break each technique bottleneck.
 - **Pacing.Methods**: the cultivation method's qi multiplier (passive, refining,
   kill and node qi), how far each method reaches, the root-match bonus, and the
-  major where the random starter is given ([character](character.md)).
+  major where the random starter is given ([cultivation method](../character/method.md)).
 - Arena geometry for the tribulation stays in `Config.Tribulation` (`CENTER`,
   `ARENA_RADIUS`, `STRIKE_RADIUS`, `RETURN_DELAY`).
 

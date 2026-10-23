@@ -6,6 +6,12 @@ a Folder of rigged Accessory prototypes. Traits looks up an accessory id through
 every set. Sets: `Fox.rbxm` (Spirit Fox, below), `BeastFolk.rbxm` (the Beast Folk
 variants) and `Spirits.rbxm` (Stone Spirit, Dragonblood, Demonic Human, Ghost).
 
+
+New and reworked cosmetics are modeled in Blender by the `modeler` (user,
+2026-10-23: "from now on, we're going to make player / r6 related assets in
+blender"). The part-built sets below are the current placeholders until they're
+remade.
+
 ## Fox (`assets/Cosmetics/Fox.rbxm`)
 
 Built from plain parts by `build_fox_cosmetics.luau`. The colours are plain

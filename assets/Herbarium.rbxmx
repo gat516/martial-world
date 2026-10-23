@@ -490,7 +490,8 @@ Largest ×3.4</string>
        <Item class="Frame" referent="RBX52"><Properties>
         <string name="Name">Art</string>
         <float name="BackgroundTransparency">1</float>
-        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>-0.0833333</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1.16667</YS><YO>0</YO></UDim2>
         <int name="ZIndex">5</int>
        </Properties>
         <Item class="UIListLayout" referent="RBX53"><Properties>
@@ -568,9 +569,10 @@ Largest ×3.4</string>
        <string name="Name">CapL</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>0</XS><XO>69</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>71</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">6</int>
-       <Content name="Image"><url>rbxassetid://120355976804968</url></Content>
+       <Content name="Image"><url>rbxassetid://74457213778141</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX63"><Properties>
@@ -588,9 +590,9 @@ Largest ×3.4</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <UDim2 name="Position"><XS>0</XS><XO>210</XO><YS>0</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>0</XS><XO>69</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>71</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">6</int>
-       <Content name="Image"><url>rbxassetid://94321697996859</url></Content>
+       <Content name="Image"><url>rbxassetid://71807443800914</url></Content>
       </Properties>
       </Item>
      </Item>

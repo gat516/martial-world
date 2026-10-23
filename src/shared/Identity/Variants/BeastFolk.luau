@@ -64,7 +64,10 @@ local Variants: { [string]: Variant } = {
 		Icon = "",
 		InnateTraits = { "CraneGrace" },
 		Modifiers = { jump = 0.1 },
-		Cosmetics = { "CraneCrest", "CraneTail" },
+		-- Cascade is the default look; the Scholar and Ascendant sets
+		-- (CraneHeadScholar/CraneFanScholar, CraneHeadAscendant/CraneFanAscendant)
+		-- are in Cosmetics/Crane for a later style picker.
+		Cosmetics = { "CraneHeadCascade", "CraneFanCascade" },
 	},
 	Serpent = {
 		DisplayName = "Serpent",

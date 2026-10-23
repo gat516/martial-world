@@ -1,0 +1,297 @@
+{
+ "name": "CraneFanScholar",
+ "attachment": "WaistBackAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.5,
+  0.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X = avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy), no rotation",
+ "colors": {
+  "FeatherMain": [
+   0.86,
+   0.87,
+   0.85
+  ],
+  "FeatherAccent": [
+   0.022,
+   0.024,
+   0.032
+  ],
+  "Crest": [
+   0.5,
+   0.035,
+   0.04
+  ]
+ },
+ "shade": {
+  "file": "crane_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "CraneFanScholar_Fan": {
+   "region": "FeatherMain",
+   "tris": 1114,
+   "center": [
+    0.0,
+    0.392,
+    0.337
+   ],
+   "size": [
+    1.727,
+    1.054,
+    0.513
+   ]
+  },
+  "CraneFanScholar_FanAccent": {
+   "region": "FeatherAccent",
+   "tris": 1114,
+   "center": [
+    0.0,
+    0.522,
+    0.336
+   ],
+   "size": [
+    2.275,
+    1.409,
+    0.655
+   ]
+  }
+ },
+ "tris_total": 2228,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "FanBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    -0.1,
+    0.3
+   ],
+   "tail": [
+    0.0,
+    0.08,
+    0.242
+   ],
+   "roblox_head": [
+    -0.0,
+    0.3,
+    -0.1
+   ],
+   "deform": true
+  },
+  "FanL2": {
+   "parent": "FanBase",
+   "head": [
+    0.16,
+    -0.0,
+    0.309
+   ],
+   "tail": [
+    0.629,
+    0.293,
+    0.335
+   ],
+   "roblox_head": [
+    -0.16,
+    0.309,
+    -0.0
+   ],
+   "deform": true
+  },
+  "FanL2Tip": {
+   "parent": "FanL2",
+   "head": [
+    0.629,
+    0.293,
+    0.335
+   ],
+   "tail": [
+    1.098,
+    0.585,
+    0.362
+   ],
+   "roblox_head": [
+    -0.629,
+    0.335,
+    0.293
+   ],
+   "deform": true
+  },
+  "FanL1": {
+   "parent": "FanBase",
+   "head": [
+    0.096,
+    0.058,
+    0.261
+   ],
+   "tail": [
+    0.375,
+    0.522,
+    0.145
+   ],
+   "roblox_head": [
+    -0.096,
+    0.261,
+    0.058
+   ],
+   "deform": true
+  },
+  "FanL1Tip": {
+   "parent": "FanL1",
+   "head": [
+    0.375,
+    0.522,
+    0.145
+   ],
+   "tail": [
+    0.655,
+    0.985,
+    0.029
+   ],
+   "roblox_head": [
+    -0.375,
+    0.145,
+    0.522
+   ],
+   "deform": true
+  },
+  "FanC": {
+   "parent": "FanBase",
+   "head": [
+    0.0,
+    0.08,
+    0.242
+   ],
+   "tail": [
+    0.0,
+    0.607,
+    0.074
+   ],
+   "roblox_head": [
+    -0.0,
+    0.242,
+    0.08
+   ],
+   "deform": true
+  },
+  "FanCTip": {
+   "parent": "FanC",
+   "head": [
+    0.0,
+    0.607,
+    0.074
+   ],
+   "tail": [
+    0.0,
+    1.134,
+    -0.095
+   ],
+   "roblox_head": [
+    -0.0,
+    0.074,
+    0.607
+   ],
+   "deform": true
+  },
+  "FanR1": {
+   "parent": "FanBase",
+   "head": [
+    -0.096,
+    0.058,
+    0.261
+   ],
+   "tail": [
+    -0.375,
+    0.522,
+    0.145
+   ],
+   "roblox_head": [
+    0.096,
+    0.261,
+    0.058
+   ],
+   "deform": true
+  },
+  "FanR1Tip": {
+   "parent": "FanR1",
+   "head": [
+    -0.375,
+    0.522,
+    0.145
+   ],
+   "tail": [
+    -0.655,
+    0.985,
+    0.029
+   ],
+   "roblox_head": [
+    0.375,
+    0.145,
+    0.522
+   ],
+   "deform": true
+  },
+  "FanR2": {
+   "parent": "FanBase",
+   "head": [
+    -0.16,
+    -0.0,
+    0.309
+   ],
+   "tail": [
+    -0.629,
+    0.293,
+    0.335
+   ],
+   "roblox_head": [
+    0.16,
+    0.309,
+    -0.0
+   ],
+   "deform": true
+  },
+  "FanR2Tip": {
+   "parent": "FanR2",
+   "head": [
+    -0.629,
+    0.293,
+    0.335
+   ],
+   "tail": [
+    -1.098,
+    0.585,
+    0.362
+   ],
+   "roblox_head": [
+    0.629,
+    0.335,
+    0.293
+   ],
+   "deform": true
+  }
+ },
+ "direction": "Scholar",
+ "mood": "elegant"
+}

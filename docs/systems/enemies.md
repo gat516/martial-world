@@ -55,7 +55,7 @@ One doc per enemy (fight, numbers, effects, its own gaps). Read only the one you
 
 A new enemy gets its own file here and a row in this table.
 
-Shared parts (not one enemy): [arrivals.md](../enemies/arrivals.md) (arrive follow-ups, skids, turning into moves), [projectiles.md](../enemies/projectiles.md) (boss projectiles), [animating.md](../enemies/animating.md) (motion QA), [modeling-checks.md](../enemies/modeling-checks.md) (shots, silhouette fidelity against the reference, parts audit).
+Shared parts (not one enemy): [arrivals.md](../enemies/arrivals.md) (arrive follow-ups, skids, turning into moves), [projectiles.md](../enemies/projectiles.md) (boss projectiles), [animating.md](../enemies/animating.md) (motion QA), [modeling-checks.md](../enemies/modeling-checks.md) (shots, silhouette fidelity against the reference, parts audit). The 2026-10-23 roster audit (every enemy measured, a ranked work list and its briefs): [audit-2026-10-23.md](../enemies/audit-2026-10-23.md).
 
 ## Boss rules (user decisions)
 Apply to every boss pass.

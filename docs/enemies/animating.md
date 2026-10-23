@@ -22,6 +22,11 @@ stiffness and floating show up before the user sees them.
    `FAMILIES` in `EnemyAnimator.luau`. Then the metrics for every move:
    `loadstring(HttpService:GetAsync("http://127.0.0.1:8767/motion_probe.luau?" .. os.clock()))()`.
    Loops are specs too: `{ loop = "walk", speed = 6, seconds = 2 }`.
+   All twelve shipped families have a spec (with `map`, their attack -> move
+   table). For a before/after table of a whole family, `art/enemies/motion_audit.luau`
+   (`_G.AUDIT = { family = "StoneTortoise", base = ... }`) probes every attack of
+   its def (followUps as chains, arrives as `next`, skids), Stagger, Death and
+   the walk / run / circle loops at the def's speeds.
 3. The filmstrip of the move you're reporting:
    `_G.FILMSTRIP = { move = "clubSwing" }` (optionally `n`, `base`, `origin`),
    then load `tools/anim_filmstrip.luau` from the repo port. It poses 8 FK

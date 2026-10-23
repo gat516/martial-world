@@ -1,11 +1,11 @@
 --!nocheck
--- Builds ReplicatedStorage.GuardFX (Parry, Block, GuardBreak, Hold) for
+-- Builds ReplicatedStorage.GuardFX (Parry, ParryFinish, Block, GuardBreak, Hold) for
 -- src/client/GuardFX.luau. Run through execute_luau in a sandbox Studio, then
 -- export (tools/export_rbxm.luau) to assets/GuardFX.rbxm. Re-runnable: it
 -- replaces the folder. Every emitter carries EmitCount/EmitDelay so the plugin's
 -- Emit button and the Game Module play it.
 --
--- Orientation contract: Parry/Block pivot at the contact point (their Core part),
+-- Orientation contract: Parry/ParryFinish/Block pivot at the contact point (their Core part),
 -- -Z (Front) pointing along the deflect, away from the player toward the
 -- attacker. GuardBreak pivots at the torso, -Z = the way the player faces.
 
@@ -32,12 +32,27 @@ local A = {
 	shield = "rbxassetid://132994367426450",
 	puff = "rbxassetid://11037785287",
 	smoke = "rbxassetid://9841261024",
+	-- parry and its finisher (vfx pass, 2026-10-22)
+	clash = "rbxassetid://13580358178", -- impact star flipbook (4x4): opens and breaks up
+	spikes = "rbxassetid://12934525258", -- crisp thin spike star
+	splat = "rbxassetid://15414372185", -- spiky splat, the dark base
+	ringCrackle = "rbxassetid://6900421398", -- crisp crackling ring
+	ringSoft = "rbxassetid://72490407109476", -- soft thin ring
+	ringBurst = "rbxassetid://13052216743", -- spiky shock ring
+	starburst = "rbxassetid://16357973363", -- big soft-edged starburst
+	spindle = "rbxassetid://7814053668", -- thin spark spindle
+	hotSpark = "rbxassetid://8114157061", -- orange-hot spark spindle (metal)
+	arcBook = "rbxassetid://13972642464", -- crescent flipbook (4x4), fading
+	qiRing = "rbxassetid://86917870813284", -- ring of radial streaks flipbook (4x4)
 }
 
 local WHITE = Color3.fromRGB(255, 252, 238)
 local GOLD = Color3.fromRGB(236, 226, 160)
 local JADE = Color3.fromRGB(120, 214, 170)
 local JADE_D = Color3.fromRGB(60, 150, 120)
+local HOT = Color3.fromRGB(255, 160, 70) -- metal spark tail
+local SLATE = Color3.fromRGB(34, 38, 46) -- dark base under the clash
+local WARM = Color3.fromRGB(255, 226, 150) -- the chain's climb and the finisher
 
 local function seq(...) -- ColorSequence evenly spaced
 	local c = { ... }
@@ -103,33 +118,66 @@ local function flat(p)
 end
 
 ------------------------------------------------------------------ Parry
+-- Intent: the beast's blow meets the guard at the last instant and is knocked
+-- aside, steel on steel. Feel: crisp, heavy, "I did that". Job: confirm the
+-- parry, and count the chain. No anticipation of its own (the beast's windup
+-- and the raised guard are the anticipation); t = 0 is the contact.
+--   0 ms     Flash (hard white-hot dot, ~2 frames), Clash (impact star
+--            flipbook, the hero: opens and breaks up, 0.3 s), Spikes (thin
+--            white spike star, 0.14 s), Dark (slate splat behind, daylight)
+--   0 ms     Sparks: white-gold-orange spindles thrown along the deflect
+--   20 ms    Ring: a fast crackling shock ring on the guard plane (0.2 s)
+--   30 ms    Embers: a few orange-hot metal chips falling (0.35-0.6 s)
+-- Chain layers (attribute Chain = the first chain blow that shows it; GuardFX
+-- strips the rest, the plugin's Emit button shows them all):
+--   Chain 2  Arc: a crescent flipbook sweeping to the deflect side
+--   Chain 3  RingWide: a spiky shock ring, wider and later (50 ms)
+--   Chain 4  QiRing: a gold ring of radial streaks, the guard's qi ringing out
+-- Every emitter on Core: -Z (Front) points along the deflect.
 do
 	local m = Instance.new("Model")
 	m.Name = "Parry"
 	local core = part(m, "Core")
 	m.PrimaryPart = core
-	-- 1 white-hot hard dot, the flash itself
-	emitter(core, "Flash", { Texture = A.dot, Color = seq(WHITE, GOLD), Size = nums(5.5, 2.5, 0), Lifetime = NumberRange.new(0.13), Transparency = nums(0, 0.1, 1), ZOffset = 2 }, 1)
-	-- 2 star glint (cross), snaps and spins slightly
-	emitter(core, "Glint", { Texture = A.star, Color = seq(WHITE, WHITE, GOLD), Size = nums(1, 9, 0), Lifetime = NumberRange.new(0.2), Rotation = NumberRange.new(-12, 12), RotSpeed = NumberRange.new(-60, 60), ZOffset = 3 }, 1)
-	-- 3 thin lens flare cross, long and crisp (the metallic ring of steel on steel)
-	emitter(core, "Flare", { Texture = A.flare, Color = seq(WHITE, GOLD), Size = nums(4, 16, 3), Lifetime = NumberRange.new(0.22), Rotation = NumberRange.new(-30, 30), RotSpeed = NumberRange.new(-20, 20), ZOffset = 3 }, 2)
-	-- 4 fractured-glass crack star: the guard cracking the strike
-	emitter(core, "Crack", flat({ Texture = A.crack, Color = seq(WHITE, JADE), Size = nums(3.5, 5, 6), Lifetime = NumberRange.new(0.24), Rotation = NumberRange.new(0, 360), Transparency = nums(0.1, 0.3, 1), ZOffset = 1 }), 1)
-	-- 5 spark spray thrown along the deflect, streaks pointing where they fly
-	emitter(core, "Sparks", { Texture = A.streak, Color = seq(WHITE, GOLD, JADE), Size = nums(1.1, 0.7, 0), Lifetime = NumberRange.new(0.16, 0.32), Speed = NumberRange.new(45, 85), SpreadAngle = Vector2.new(28, 28), Drag = 4, Orientation = Enum.ParticleOrientation.VelocityParallel, Transparency = nums(0, 0.2, 1) }, 16)
-	-- 6 hot dots, heavier, with a little gravity: embers off the clash
-	emitter(core, "Embers", { Texture = A.star, Color = seq(WHITE, GOLD, JADE_D), Size = nums(0.8, 0.5, 0), Lifetime = NumberRange.new(0.3, 0.6), Speed = NumberRange.new(14, 34), SpreadAngle = Vector2.new(70, 70), Drag = 3, Acceleration = Vector3.new(0, -26, 0) }, 12)
-	-- 7 crescent deflect arc, two blades, each sweeping out along the deflect
-	emitter(core, "Crescent", flat({ Texture = A.crescent, Color = seq(WHITE, GOLD, JADE), Size = nums(3, 6.5, 8), Lifetime = NumberRange.new(0.2), Speed = NumberRange.new(14), Rotation = NumberRange.new(-50, 50), Transparency = nums(0.05, 0.25, 1), ZOffset = 2 }), 2)
-	-- 8 a thin outer arc line behind it
-	emitter(core, "Arc", flat({ Texture = A.arc, Color = seq(GOLD, JADE), Size = nums(5, 10, 12), Lifetime = NumberRange.new(0.26), Speed = NumberRange.new(10), Rotation = NumberRange.new(-60, 60), Transparency = nums(0.2, 0.5, 1) }), 1, 0.02)
-	-- 9 quick ring shockwave (clean), 10 thin trailing ring
-	emitter(core, "Ring", flat({ Texture = A.ring, Color = seq(WHITE, GOLD, JADE), Size = nums(0.5, 6, 8), Lifetime = NumberRange.new(0.22), Transparency = nums(0, 0.3, 1) }), 1)
-	emitter(core, "RingThin", flat({ Texture = A.ringThin, Color = seq(GOLD, JADE), Size = nums(1, 10, 14), Lifetime = NumberRange.new(0.32), Transparency = nums(0.2, 0.5, 1) }), 1, 0.04)
-	-- 11 jade qi puff: the guard's qi bursting
-	emitter(core, "Puff", { Texture = A.puff, Color = seq(GOLD, JADE, JADE_D), Size = nums(2, 7, 9), Lifetime = NumberRange.new(0.3), Transparency = nums(0.5, 0.65, 1), LightEmission = 0.8, ZOffset = 0 }, 2)
+	emitter(core, "Flash", { Texture = A.dot, Color = seq(WHITE, WHITE), Brightness = 2, Size = nums(1.8, 0.8, 0), Lifetime = NumberRange.new(0.08), Transparency = nums(0, 0, 1), ZOffset = 4 }, 1)
+	emitter(core, "Clash", { Texture = A.clash, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot, Color = seq(WHITE, GOLD, GOLD), Brightness = 1, Size = nums(3.2, 3.7, 4), Lifetime = NumberRange.new(0.3), Rotation = NumberRange.new(0, 360), Transparency = nums(0, 0, 0.2), ZOffset = 3 }, 1)
+	emitter(core, "Spikes", { Texture = A.spikes, Color = seq(WHITE, WHITE), Brightness = 1, Size = nums(2.6, 5.6, 6.4), Lifetime = NumberRange.new(0.14), Rotation = NumberRange.new(0, 360), Transparency = nums(0, 0.3, 1), ZOffset = 3 }, 1)
+	emitter(core, "Dark", { Texture = A.splat, Color = seq(SLATE, SLATE), LightEmission = 0, Size = nums(3.2, 4.4, 4.8), Lifetime = NumberRange.new(0.22), Rotation = NumberRange.new(0, 360), Transparency = nums(0.3, 0.5, 1), ZOffset = 0 }, 1)
+	emitter(core, "Sparks", { Texture = A.spindle, Color = seq(WHITE, GOLD, HOT), Size = nums(1, 0.7, 0), Lifetime = NumberRange.new(0.14, 0.28), Speed = NumberRange.new(50, 90), SpreadAngle = Vector2.new(26, 26), Drag = 5, Acceleration = Vector3.new(0, -30, 0), Orientation = Enum.ParticleOrientation.VelocityParallel, Transparency = nums(0, 0.1, 1), ZOffset = 2 }, 12)
+	emitter(core, "Ring", flat({ Texture = A.ringCrackle, Color = seq(WHITE, GOLD), Brightness = 1.5, Size = nums(0.6, 4.6, 5.2), Lifetime = NumberRange.new(0.2), Transparency = nums(0, 0.25, 1), ZOffset = 2 }), 1, 0.02)
+	emitter(core, "Embers", { Texture = A.hotSpark, Color = seq(WHITE, WHITE), Size = nums(0.45, 0.35, 0), Lifetime = NumberRange.new(0.35, 0.6), Speed = NumberRange.new(14, 32), SpreadAngle = Vector2.new(60, 60), Drag = 2, Acceleration = Vector3.new(0, -40, 0), Orientation = Enum.ParticleOrientation.VelocityParallel, Transparency = nums(0, 0.2, 1), ZOffset = 1 }, 6, 0.03)
+	emitter(core, "Arc", flat({ Texture = A.arcBook, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot, Color = seq(WHITE, GOLD), Brightness = 1.5, Size = nums(3.6, 4.6, 5), Lifetime = NumberRange.new(0.26), Transparency = nums(0, 0, 0.3), ZOffset = 2 }), 1, 0.02):SetAttribute("Chain", 2)
+	emitter(core, "RingWide", flat({ Texture = A.ringBurst, Color = seq(WHITE, WARM), Size = nums(1, 6.4, 7.4), Lifetime = NumberRange.new(0.28), Transparency = nums(0.1, 0.4, 1), ZOffset = 1 }), 1, 0.05):SetAttribute("Chain", 3)
+	emitter(core, "QiRing", flat({ Texture = A.qiRing, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot, Color = seq(WARM, WARM), Brightness = 2, Size = nums(4.6, 6, 6.6), Lifetime = NumberRange.new(0.4), Transparency = nums(0, 0, 0.2), ZOffset = 1 }), 1, 0.04):SetAttribute("Chain", 4)
 	m:SetAttribute("AuthoredRadius", 7)
+	m.Parent = root
+end
+
+------------------------------------------------------------------ ParryFinish
+-- The blow that closes a chain (or the chain running dry): the guard's
+-- gathered qi bursts out and throws the beast back. Plays 60 ms after the
+-- closing Parry (alone on chainEnd), -Z toward the attacker and a little up.
+--   0 ms   Flash (warm white dot), Burst (big starburst, the hero), Dark
+--          (slate splat), Sparks (a heavy fan along the throw)
+--   0 ms   Shock: spiky ring flat on the guard plane, out to ~10 studs
+--   30 ms  Arc: two crescents, both sides (the flurry swept away)
+--   40 ms  Embers falling
+--   70 ms  Ring: a soft thin ring, wider, the second beat
+do
+	local m = Instance.new("Model")
+	m.Name = "ParryFinish"
+	local core = part(m, "Core")
+	m.PrimaryPart = core
+	emitter(core, "Flash", { Texture = A.dot, Color = seq(WHITE, WARM), Brightness = 3, Size = nums(5, 2, 0), Lifetime = NumberRange.new(0.1), Transparency = nums(0, 0, 1), ZOffset = 4 }, 1)
+	emitter(core, "Burst", { Texture = A.starburst, Color = seq(WHITE, WHITE, WARM), Brightness = 2, Size = nums(3, 8, 9.5), Lifetime = NumberRange.new(0.3), Rotation = NumberRange.new(0, 360), Transparency = nums(0, 0.2, 1), ZOffset = 3 }, 1)
+	emitter(core, "Dark", { Texture = A.splat, Color = seq(SLATE, SLATE), LightEmission = 0, Size = nums(5, 7.5, 8.5), Lifetime = NumberRange.new(0.3), Rotation = NumberRange.new(0, 360), Transparency = nums(0.25, 0.5, 1), ZOffset = 0 }, 1)
+	emitter(core, "Sparks", { Texture = A.spindle, Color = seq(WHITE, WARM, HOT), Size = nums(1.3, 0.9, 0), Lifetime = NumberRange.new(0.18, 0.36), Speed = NumberRange.new(60, 110), SpreadAngle = Vector2.new(50, 50), Drag = 5, Acceleration = Vector3.new(0, -30, 0), Orientation = Enum.ParticleOrientation.VelocityParallel, Transparency = nums(0, 0.1, 1), ZOffset = 2 }, 20)
+	emitter(core, "Shock", flat({ Texture = A.ringBurst, Color = seq(WHITE, WARM), Brightness = 1.5, Size = nums(1, 9, 10.5), Lifetime = NumberRange.new(0.32), Transparency = nums(0, 0.35, 1), ZOffset = 2 }), 1)
+	emitter(core, "Arc", flat({ Texture = A.arcBook, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot, Color = seq(WHITE, WARM), Brightness = 1.5, Size = nums(6, 7, 7.5), Lifetime = NumberRange.new(0.32), Rotation = NumberRange.new(-20, 20), Transparency = nums(0, 0, 0.3), ZOffset = 2 }), 1, 0.03)
+	emitter(core, "ArcAlt", flat({ Texture = A.arcBook, FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4, FlipbookMode = Enum.ParticleFlipbookMode.OneShot, Color = seq(WHITE, WARM), Brightness = 1.5, Size = nums(6, 7, 7.5), Lifetime = NumberRange.new(0.32), Rotation = NumberRange.new(160, 200), Transparency = nums(0, 0, 0.3), ZOffset = 2 }), 1, 0.03)
+	emitter(core, "Embers", { Texture = A.hotSpark, Color = seq(WHITE, WHITE), Size = nums(0.55, 0.4, 0), Lifetime = NumberRange.new(0.4, 0.7), Speed = NumberRange.new(16, 38), SpreadAngle = Vector2.new(80, 80), Drag = 2, Acceleration = Vector3.new(0, -40, 0), Orientation = Enum.ParticleOrientation.VelocityParallel, Transparency = nums(0, 0.2, 1), ZOffset = 1 }, 10, 0.04)
+	emitter(core, "Ring", flat({ Texture = A.ringSoft, Color = seq(WHITE, WARM), Size = nums(1, 12, 14), Lifetime = NumberRange.new(0.4), Transparency = nums(0.1, 0.45, 1), ZOffset = 1 }), 1, 0.07)
+	m:SetAttribute("AuthoredRadius", 10)
 	m.Parent = root
 end
 

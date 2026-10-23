@@ -137,6 +137,34 @@ cultivation ([cultivation](cultivation.md)). The two never mix.
 
 ## Dodge visuals
 Only the dodging player sees them (`CombatEffects`, from `CombatController`).
+Templates: `ReplicatedStorage.Effects.Dodge`, built by
+`tools/vfx_specs/Dodge.luau` (`_G.buildDodgeFX(effects)`; no tiers).
+- **Dodge** (`dashTrail`): one light qi streak along the path, two
+  camera-facing jade Trails (`Dodge.Streak`) moved onto the root for the dash
+  and gone ~0.2 s after it. While the dash runs it also samples the body's
+  pose every 5 studs (at most five, the start included) for a perfect dodge to
+  draw from. Nothing is left behind.
+- **Perfect dodge** (`perfectDodge`, on `Effect "perfect"`, i.e. when the hit
+  would have landed), "the blow cut only a shadow". The hero is a trail of
+  gold Neon afterimages along the dash (user, 2026-10-22: "make multiple after
+  image copies"): the start one is this pose moved back to where the dash
+  began (where the blow lands; the look the single ghost had), solid, holding
+  0.14 s and dissolving by ~0.6 s; then the sampled poses toward the player,
+  appearing 25 ms apart, each fainter (Transparency 0.12 up to 0.62) and
+  gone sooner (the nearest ~0.3 s), none within 4.5 studs of the player, so a
+  24-stud dash leaves four. A perfect dodge confirmed mid-dash drops the rest
+  as the player passes their poses. Afterimage parts are pooled per body part
+  (`ghostPool`) and faded by one RenderStepped loop. At the start one
+  (`Perfect.Ghost`): a white 4-point twinkle flipbook where the blow meets
+  it (0 ms), cut-air wisps (flipbook, 30 ms), a soft push-off ring flat at its
+  feet (30 ms) and gold motes lifting off it (from 120 ms). On the player
+  (`Perfect.Player`, 60 ms): a small glint and six gold sparks, plus a gold
+  Highlight rim (0.35 s; Highlights are capped at 31 on screen, so map
+  dressing must carry none). The rest of the dash streak turns gold, and a
+  short desaturated time-slow grade plays (0.08 s hold, 0.4 s return). No
+  ground crack and no shake: nothing was hit. The old gold Beam streak from
+  the ghost to the player was cut: the trail draws the path now. Library ids
+  are in the spec's `TEX` table.
 ## Guard and perfect parry
 Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
 `Config.Combat.GUARD`.
@@ -239,27 +267,40 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   not been heard in play yet.
 - Visuals (`src/client/GuardFX.luau`, templates `ReplicatedStorage.GuardFX`
   from `assets/GuardFX.rbxm`, built by `tools/guardfx_build.luau` in a sandbox;
-  kept out of `Effects.rbxm`). Palette white to pale gold to jade, away from the
-  gold perfect dodge. `parry` plays `Parry` (11 layers: white-hot flash, star
-  glint and flare cross, crack-star decal, spark and ember spray along the
-  deflect, crescent and outer arcs, two rings, a jade puff) at a contact point
-  2.4 studs in front of the torso toward the attacker; the parrying player also
-  gets a light shake and a 0.05 s grade and camera punch (`CombatEffects.punch`).
-  `blocked` plays `Block` (jade sparks and streaks, a faint ripple on a
-  shield-shaped plane). `guardBreak` plays `GuardBreak` (a cracking shield shell,
-  thrown jade shards and chips, sparks, a spiky ring, dust at the feet; a
-  heavier shake and jade grade for the player). `hold` puts a faint low-rate qi
-  shimmer (`Hold`) on both forearms while the guard is up, for anyone within 70
-  studs of the camera; bursts are skipped past 120 studs. Chain parries
-  escalate with the same templates: from the second blow the deflect throws to
-  alternate sides (right with Parry, left with ParryAlt), the burst grows
-  (`TechniqueVFX.rescale`, +7% a blow for five), the shake and punch climb and
-  the `Parry` cue rises in pitch (`Sfx.play`'s `speed`, +7% a blow to 1.35x)
-  with "x2", "x3" floating; the closing blow or `chainEnd` adds a finisher (an
-  oversized Parry, a second turned one 0.06 s later, a wide Block ripple, a
-  heavy shake and gold punch, the Parry cue low under the Block cue, "Deflect
-  xN!"). A dedicated finisher burst would be a job for the vfx agent. Look
-  unreviewed.
+  kept out of `Effects.rbxm`). Palette white to pale gold, jade for the guard
+  itself, away from the gold perfect dodge. `parry` plays `Parry` at a contact
+  point 2.4 studs in front of the torso toward the attacker, -Z along the
+  deflect (vfx pass, 2026-10-22: "a crisp, heavy deflect"). t = 0 is the
+  contact: a hard white-hot dot (~2 frames), an impact-star flipbook that
+  opens and breaks up (the hero, 0.3 s), a thin white spike star (0.14 s) and
+  a slate splat behind them (reads in daylight); white-gold-orange spark
+  spindles thrown along the deflect; at 20 ms a crackling shock ring on the
+  guard plane (0.2 s); at 30 ms a few orange-hot metal chips falling. The
+  parrying player gets a light shake, a 0.05 s grade and camera punch
+  (`CombatEffects.punch`) and a hit-stop: the Parry/ParryAlt clip freezes
+  0.05 s from 0.04 s in (0.08 s on a closing blow; `hitStop` in
+  GuardController). `blocked` plays `Block` (jade sparks and streaks, a faint
+  ripple on a shield-shaped plane). `guardBreak` plays `GuardBreak` (a
+  cracking shield shell, thrown jade shards and chips, sparks, a spiky ring,
+  dust at the feet; a heavier shake and jade grade for the player). `hold`
+  puts a faint low-rate qi shimmer (`Hold`) on both forearms while the guard
+  is up, for anyone within 70 studs of the camera; bursts are skipped past
+  120 studs. **Chain parries climb by adding layers**, not only size: an
+  emitter's `Chain` attribute is the first blow of a chain that shows it
+  (GuardFX strips the rest; the plugin's Emit button shows them all): blow 2
+  adds a crescent flipbook sweeping to the deflect's side, blow 3 a wider
+  spiky shock ring (50 ms), blow 4 a gold ring of radial streaks. From the
+  second blow the deflect also throws to alternate sides (right with Parry,
+  left with ParryAlt), the burst grows (`TechniqueVFX.rescale`, +7% a blow
+  for five), the sparks go from 12 to 27, the shake and punch climb and the
+  `Parry` cue rises in pitch (`Sfx.play`'s `speed`, +7% a blow to 1.35x) with
+  "x2", "x3" floating. The closing blow (60 ms after its clash) or `chainEnd`
+  plays `ParryFinish`: a warm white flash, a big starburst (the hero), a slate
+  splat, a heavy spark fan along the throw, a spiky shock ring out to ~10
+  studs, two crescents (both sides, 30 ms), falling embers (40 ms) and a soft
+  wide ring (70 ms, the second beat), with a heavy shake and gold punch, the
+  Parry cue low under the Block cue and "Deflect xN!". Library ids are in the
+  builder's `A` table. Look unreviewed in play.
 - Known gaps: a client can claim its raise time within `MAX_LAG`, and
   re-raising every `PARRY_RECOVER` keeps a window open about half the time;
   the reported facing is trusted like the client-owned root, so a cheat could
@@ -270,22 +311,6 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   grace. The chain parry and its feel are untested in play; a blow's due time
   is planned from the attack's timings, so a follow-up that waits long for its
   attack slot ends the chain early (the beast still staggers).
-
-Templates: `ReplicatedStorage.Effects.Dodge`, built by
-`tools/vfx_specs/Dodge.luau` (`_G.buildDodgeFX(staging)`; no tiers).
-- **Dodge** (`dashTrail`): one light qi streak along the path, two
-  camera-facing jade Trails (`Dodge.Streak`) moved onto the root for the dash
-  and gone ~0.2 s after it. Nothing else: no gust, no afterimages, nothing
-  left behind.
-- **Perfect dodge** (`perfectDodge`, on `Effect "perfect"`, i.e. when the hit
-  would have landed), "the blow cut only a shadow": a gold Neon ghost of the
-  body is left where the dash began (holds 0.12 s, dissolves over 0.45 s) with
-  a white star glint where the blow meets it and gold motes lifting off it
-  (`Perfect.Ghost`); a gold Beam streak from the ghost to the player
-  (`Perfect.Streak`, held 0.1 s, thinned out over 0.3 s); a glint, flare and
-  sparks on the player (`Perfect.Player`) with a gold Highlight rim (0.35 s; Highlights are capped at 31 on screen, so map dressing must carry none);
-  the rest of the dash streak turns gold; and a short desaturated time-slow
-  grade (0.08 s hold, 0.4 s return). No ground ring and no shake.
 
 ## Technique visuals
 Casts are drawn on every client: the caster draws its own at release, the server

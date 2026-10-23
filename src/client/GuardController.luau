@@ -174,6 +174,26 @@ local function play(name: string, fade: number)
 	track:Play(fade)
 end
 
+-- Hit-stop on the local deflect: the clip that just started freezes for `hold`
+-- seconds from `at`, the pose catching on the blow before it follows through.
+local function hitStop(name: string, at: number, hold: number)
+	local track = tracks[name]
+	if not track then
+		return
+	end
+	task.delay(at, function()
+		if not track.IsPlaying then
+			return
+		end
+		track:AdjustSpeed(0)
+		task.delay(hold, function()
+			if track.IsPlaying then
+				track:AdjustSpeed(1)
+			end
+		end)
+	end)
+end
+
 local function flat(v: Vector3): Vector3?
 	local f = Vector3.new(v.X, 0, v.Z)
 	return if f.Magnitude > 0.01 then f.Unit else nil
@@ -362,7 +382,9 @@ local function onEffect(kind: string, ...: any)
 		end
 		if outcome == "parried" then
 			-- alternate sides down a chain: Parry, ParryAlt, Parry...
-			play(if n % 2 == 0 then "ParryAlt" else "Parry", 0.05)
+			local clip = if n % 2 == 0 then "ParryAlt" else "Parry"
+			play(clip, 0.05)
+			hitStop(clip, 0.04, if closing then 0.08 else 0.05)
 			GuardBar.flash("parry")
 			Sfx.play("Parry", nil, nil, math.min(1 + CHAIN_PITCH * (n - 1), CHAIN_PITCH_MAX))
 			if closing then

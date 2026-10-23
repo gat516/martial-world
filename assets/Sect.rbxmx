@@ -298,19 +298,20 @@
        <string name="Name">CapL</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>-0.038462</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>66</XO><YS>1.07692</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://131535347767578</url></Content>
+       <Content name="Image"><url>rbxassetid://134474235972227</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX29"><Properties>
        <string name="Name">Mid</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Position"><XS>0</XS><XO>63</XO><YS>0</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>-126</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>63</XO><YS>-0.038462</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-126</XO><YS>1.07692</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://79945454605526</url></Content>
+       <Content name="Image"><url>rbxassetid://107050124311349</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX30"><Properties>
@@ -318,10 +319,10 @@
        <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>-0.038462</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>66</XO><YS>1.07692</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://102820507183523</url></Content>
+       <Content name="Image"><url>rbxassetid://136597290989384</url></Content>
       </Properties>
       </Item>
      </Item>
@@ -686,9 +687,10 @@
       <string name="Name">CapL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>16</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>18</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://118333801422561</url></Content>
+      <Content name="Image"><url>rbxassetid://138442834914617</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX60"><Properties>
@@ -706,9 +708,9 @@
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>0</XS><XO>208</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>16</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>18</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">3</int>
-      <Content name="Image"><url>rbxassetid://137033002952842</url></Content>
+      <Content name="Image"><url>rbxassetid://123625769072581</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX62"><Properties>
@@ -741,19 +743,20 @@
       <string name="Name">CapL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>28</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>-0.083333</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>1.16667</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://75937412563606</url></Content>
+      <Content name="Image"><url>rbxassetid://78045923352265</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX65"><Properties>
       <string name="Name">Mid</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>27</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>-54</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>27</XO><YS>-0.083333</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-54</XO><YS>1.16667</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://113079179115835</url></Content>
+      <Content name="Image"><url>rbxassetid://111983258060921</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX66"><Properties>
@@ -761,10 +764,10 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>28</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>-0.083333</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>1.16667</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://92991046819891</url></Content>
+      <Content name="Image"><url>rbxassetid://94119341129072</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX67"><Properties>
@@ -869,9 +872,9 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-6</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>560</XO><YS>0</YS><YO>70</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://98933942560382</url></Content>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>1</YS><YO>-4</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>564</XO><YS>0</YS><YO>74</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://120211103123225</url></Content>
       <float name="ImageTransparency">0.86</float>
      </Properties>
      </Item>
@@ -901,9 +904,10 @@
       <string name="Name">CapL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>83</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>85</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://107934856230795</url></Content>
+      <Content name="Image"><url>rbxassetid://85130435572643</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX79"><Properties>
@@ -921,10 +925,10 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>0</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>84</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://85674715623471</url></Content>
+      <Content name="Image"><url>rbxassetid://94823856335211</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX81"><Properties>
@@ -1156,9 +1160,9 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-6</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>560</XO><YS>0</YS><YO>70</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://98933942560382</url></Content>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>1</YS><YO>-4</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>564</XO><YS>0</YS><YO>74</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://120211103123225</url></Content>
       <float name="ImageTransparency">0.86</float>
      </Properties>
      </Item>
@@ -1188,19 +1192,20 @@
       <string name="Name">CapL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>35</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
+      <Content name="Image"><url>rbxassetid://116607736158488</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX105"><Properties>
       <string name="Name">MidL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
+      <Content name="Image"><url>rbxassetid://85584042456622</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX106"><Properties>
@@ -1208,10 +1213,10 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
+      <Content name="Image"><url>rbxassetid://80941130307261</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX107"><Properties>
@@ -1219,10 +1224,10 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
+      <Content name="Image"><url>rbxassetid://110108310821354</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX108"><Properties>
@@ -1230,10 +1235,10 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>35</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
+      <Content name="Image"><url>rbxassetid://139271953401417</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX109"><Properties>
@@ -1547,19 +1552,20 @@
          <string name="Name">CapL</string>
          <float name="BackgroundTransparency">1</float>
          <int name="BorderSizePixel">0</int>
-         <UDim2 name="Size"><XS>0</XS><XO>75</XO><YS>1</YS><YO>0</YO></UDim2>
+         <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>-0.056818</YS><YO>0</YO></UDim2>
+         <UDim2 name="Size"><XS>0</XS><XO>77</XO><YS>1.11364</YS><YO>0</YO></UDim2>
          <int name="ZIndex">2</int>
-         <Content name="Image"><url>rbxassetid://103325733131207</url></Content>
+         <Content name="Image"><url>rbxassetid://115976313599095</url></Content>
         </Properties>
         </Item>
         <Item class="ImageLabel" referent="RBX138"><Properties>
          <string name="Name">Mid</string>
          <float name="BackgroundTransparency">1</float>
          <int name="BorderSizePixel">0</int>
-         <UDim2 name="Position"><XS>0</XS><XO>74</XO><YS>0</YS><YO>0</YO></UDim2>
-         <UDim2 name="Size"><XS>1</XS><XO>-134</XO><YS>1</YS><YO>0</YO></UDim2>
+         <UDim2 name="Position"><XS>0</XS><XO>74</XO><YS>-0.056818</YS><YO>0</YO></UDim2>
+         <UDim2 name="Size"><XS>1</XS><XO>-134</XO><YS>1.11364</YS><YO>0</YO></UDim2>
          <int name="ZIndex">2</int>
-         <Content name="Image"><url>rbxassetid://139057087376197</url></Content>
+         <Content name="Image"><url>rbxassetid://134633587322023</url></Content>
         </Properties>
         </Item>
         <Item class="ImageLabel" referent="RBX139"><Properties>
@@ -1567,10 +1573,10 @@
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
          <int name="BorderSizePixel">0</int>
-         <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-         <UDim2 name="Size"><XS>0</XS><XO>61</XO><YS>1</YS><YO>0</YO></UDim2>
+         <UDim2 name="Position"><XS>1</XS><XO>3</XO><YS>-0.056818</YS><YO>0</YO></UDim2>
+         <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>1.11364</YS><YO>0</YO></UDim2>
          <int name="ZIndex">2</int>
-         <Content name="Image"><url>rbxassetid://103887198028992</url></Content>
+         <Content name="Image"><url>rbxassetid://104253833582974</url></Content>
         </Properties>
         </Item>
         <Item class="ImageLabel" referent="RBX140"><Properties>
@@ -1631,9 +1637,9 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-6</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>560</XO><YS>0</YS><YO>70</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://98933942560382</url></Content>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>1</YS><YO>-4</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>564</XO><YS>0</YS><YO>74</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://120211103123225</url></Content>
       <float name="ImageTransparency">0.86</float>
      </Properties>
      </Item>
@@ -1663,19 +1669,20 @@
       <string name="Name">CapL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>35</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
+      <Content name="Image"><url>rbxassetid://116607736158488</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX149"><Properties>
       <string name="Name">MidL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
+      <Content name="Image"><url>rbxassetid://85584042456622</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX150"><Properties>
@@ -1683,10 +1690,10 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
+      <Content name="Image"><url>rbxassetid://80941130307261</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX151"><Properties>
@@ -1694,10 +1701,10 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
+      <Content name="Image"><url>rbxassetid://110108310821354</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX152"><Properties>
@@ -1705,10 +1712,10 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>35</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
+      <Content name="Image"><url>rbxassetid://139271953401417</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX153"><Properties>
@@ -1851,19 +1858,20 @@
         <string name="Name">CapL</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
-        <UDim2 name="Size"><XS>0</XS><XO>75</XO><YS>1</YS><YO>0</YO></UDim2>
+        <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>-0.056818</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>77</XO><YS>1.11364</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://103325733131207</url></Content>
+        <Content name="Image"><url>rbxassetid://115976313599095</url></Content>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX167"><Properties>
         <string name="Name">Mid</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
-        <UDim2 name="Position"><XS>0</XS><XO>74</XO><YS>0</YS><YO>0</YO></UDim2>
-        <UDim2 name="Size"><XS>1</XS><XO>-134</XO><YS>1</YS><YO>0</YO></UDim2>
+        <UDim2 name="Position"><XS>0</XS><XO>74</XO><YS>-0.056818</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>1</XS><XO>-134</XO><YS>1.11364</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://139057087376197</url></Content>
+        <Content name="Image"><url>rbxassetid://134633587322023</url></Content>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX168"><Properties>
@@ -1871,10 +1879,10 @@
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
-        <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-        <UDim2 name="Size"><XS>0</XS><XO>61</XO><YS>1</YS><YO>0</YO></UDim2>
+        <UDim2 name="Position"><XS>1</XS><XO>3</XO><YS>-0.056818</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>1.11364</YS><YO>0</YO></UDim2>
         <int name="ZIndex">2</int>
-        <Content name="Image"><url>rbxassetid://103887198028992</url></Content>
+        <Content name="Image"><url>rbxassetid://104253833582974</url></Content>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX169"><Properties>
@@ -2070,9 +2078,9 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-6</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>560</XO><YS>0</YS><YO>70</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://98933942560382</url></Content>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>1</YS><YO>-4</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>564</XO><YS>0</YS><YO>74</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://120211103123225</url></Content>
       <float name="ImageTransparency">0.86</float>
      </Properties>
      </Item>
@@ -2102,19 +2110,20 @@
       <string name="Name">CapL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>35</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
+      <Content name="Image"><url>rbxassetid://116607736158488</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX192"><Properties>
       <string name="Name">MidL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
+      <Content name="Image"><url>rbxassetid://85584042456622</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX193"><Properties>
@@ -2122,10 +2131,10 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
+      <Content name="Image"><url>rbxassetid://80941130307261</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX194"><Properties>
@@ -2133,10 +2142,10 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
+      <Content name="Image"><url>rbxassetid://110108310821354</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX195"><Properties>
@@ -2144,10 +2153,10 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>35</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
+      <Content name="Image"><url>rbxassetid://139271953401417</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX196"><Properties>
@@ -2394,19 +2403,20 @@
           <string name="Name">CapL</string>
           <float name="BackgroundTransparency">1</float>
           <int name="BorderSizePixel">0</int>
-          <UDim2 name="Size"><XS>0</XS><XO>45</XO><YS>1</YS><YO>0</YO></UDim2>
+          <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>-0.083333</YS><YO>0</YO></UDim2>
+          <UDim2 name="Size"><XS>0</XS><XO>47</XO><YS>1.16667</YS><YO>0</YO></UDim2>
           <int name="ZIndex">2</int>
-          <Content name="Image"><url>rbxassetid://138264404301051</url></Content>
+          <Content name="Image"><url>rbxassetid://76263988542935</url></Content>
          </Properties>
          </Item>
          <Item class="ImageLabel" referent="RBX219"><Properties>
           <string name="Name">Mid</string>
           <float name="BackgroundTransparency">1</float>
           <int name="BorderSizePixel">0</int>
-          <UDim2 name="Position"><XS>0</XS><XO>44</XO><YS>0</YS><YO>0</YO></UDim2>
-          <UDim2 name="Size"><XS>1</XS><XO>-88</XO><YS>1</YS><YO>0</YO></UDim2>
+          <UDim2 name="Position"><XS>0</XS><XO>44</XO><YS>-0.083333</YS><YO>0</YO></UDim2>
+          <UDim2 name="Size"><XS>1</XS><XO>-88</XO><YS>1.16667</YS><YO>0</YO></UDim2>
           <int name="ZIndex">2</int>
-          <Content name="Image"><url>rbxassetid://88637856112299</url></Content>
+          <Content name="Image"><url>rbxassetid://76017960689275</url></Content>
          </Properties>
          </Item>
          <Item class="ImageLabel" referent="RBX220"><Properties>
@@ -2414,10 +2424,10 @@
           <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
           <float name="BackgroundTransparency">1</float>
           <int name="BorderSizePixel">0</int>
-          <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-          <UDim2 name="Size"><XS>0</XS><XO>45</XO><YS>1</YS><YO>0</YO></UDim2>
+          <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>-0.083333</YS><YO>0</YO></UDim2>
+          <UDim2 name="Size"><XS>0</XS><XO>47</XO><YS>1.16667</YS><YO>0</YO></UDim2>
           <int name="ZIndex">2</int>
-          <Content name="Image"><url>rbxassetid://121398639569390</url></Content>
+          <Content name="Image"><url>rbxassetid://107743041938890</url></Content>
          </Properties>
          </Item>
         </Item>
@@ -2515,9 +2525,9 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>1</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-6</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>560</XO><YS>0</YS><YO>70</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://98933942560382</url></Content>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>1</YS><YO>-4</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>564</XO><YS>0</YS><YO>74</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://120211103123225</url></Content>
       <float name="ImageTransparency">0.86</float>
      </Properties>
      </Item>
@@ -2547,19 +2557,20 @@
       <string name="Name">CapL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>35</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://89191538545087</url></Content>
+      <Content name="Image"><url>rbxassetid://116607736158488</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX233"><Properties>
       <string name="Name">MidL</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0</XS><XO>32</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://118327300427591</url></Content>
+      <Content name="Image"><url>rbxassetid://85584042456622</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX234"><Properties>
@@ -2567,10 +2578,10 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>74</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://106216979177967</url></Content>
+      <Content name="Image"><url>rbxassetid://80941130307261</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX235"><Properties>
@@ -2578,10 +2589,10 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>-32</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>82</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://109502464153409</url></Content>
+      <Content name="Image"><url>rbxassetid://110108310821354</url></Content>
      </Properties>
      </Item>
      <Item class="ImageLabel" referent="RBX236"><Properties>
@@ -2589,10 +2600,10 @@
       <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>33</XO><YS>0</YS><YO>46</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>2</XO><YS>0</YS><YO>-2</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>35</XO><YS>0</YS><YO>50</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://131584161392944</url></Content>
+      <Content name="Image"><url>rbxassetid://139271953401417</url></Content>
      </Properties>
      </Item>
      <Item class="TextLabel" referent="RBX237"><Properties>
@@ -2663,10 +2674,10 @@
        <string name="Name">Portrait</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Position"><XS>0.0535245</XS><XO>0</XO><YS>0.157945</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>0.219866</XS><XO>0</XO><YS>0.696378</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0.0494528</XS><XO>0</XO><YS>0.145049</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0.228009</XS><XO>0</XO><YS>0.722171</YS><YO>0</YO></UDim2>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://73517493638861</url></Content>
+       <Content name="Image"><url>rbxassetid://71024005323194</url></Content>
        <token name="ScaleType">3</token>
       </Properties>
       </Item>
@@ -2742,9 +2753,10 @@
         <string name="Name">CapL</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
-        <UDim2 name="Size"><XS>0</XS><XO>16</XO><YS>1</YS><YO>0</YO></UDim2>
+        <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>18</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">3</int>
-        <Content name="Image"><url>rbxassetid://118333801422561</url></Content>
+        <Content name="Image"><url>rbxassetid://138442834914617</url></Content>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX250"><Properties>
@@ -2762,9 +2774,9 @@
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <UDim2 name="Position"><XS>0</XS><XO>207</XO><YS>0</YS><YO>0</YO></UDim2>
-        <UDim2 name="Size"><XS>0</XS><XO>16</XO><YS>1</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>18</XO><YS>1</YS><YO>0</YO></UDim2>
         <int name="ZIndex">3</int>
-        <Content name="Image"><url>rbxassetid://137033002952842</url></Content>
+        <Content name="Image"><url>rbxassetid://123625769072581</url></Content>
        </Properties>
        </Item>
        <Item class="TextLabel" referent="RBX252"><Properties>
@@ -3010,9 +3022,10 @@
        <string name="Name">CapL</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>0</XS><XO>18</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>20</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://118333801422561</url></Content>
+       <Content name="Image"><url>rbxassetid://138442834914617</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX272"><Properties>
@@ -3030,9 +3043,9 @@
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <UDim2 name="Position"><XS>0</XS><XO>211</XO><YS>0</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>0</XS><XO>18</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>20</XO><YS>1</YS><YO>0</YO></UDim2>
        <int name="ZIndex">3</int>
-       <Content name="Image"><url>rbxassetid://137033002952842</url></Content>
+       <Content name="Image"><url>rbxassetid://123625769072581</url></Content>
       </Properties>
       </Item>
       <Item class="TextLabel" referent="RBX274"><Properties>
@@ -3070,19 +3083,20 @@
        <string name="Name">CapL</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>0</XS><XO>75</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>-2</XO><YS>-0.056818</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>77</XO><YS>1.11364</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://103325733131207</url></Content>
+       <Content name="Image"><url>rbxassetid://115976313599095</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX278"><Properties>
        <string name="Name">Mid</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Position"><XS>0</XS><XO>74</XO><YS>0</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>-134</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>74</XO><YS>-0.056818</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-134</XO><YS>1.11364</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://139057087376197</url></Content>
+       <Content name="Image"><url>rbxassetid://134633587322023</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX279"><Properties>
@@ -3090,10 +3104,10 @@
        <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>0</XS><XO>61</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>1</XS><XO>3</XO><YS>-0.056818</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>1.11364</YS><YO>0</YO></UDim2>
        <int name="ZIndex">2</int>
-       <Content name="Image"><url>rbxassetid://103887198028992</url></Content>
+       <Content name="Image"><url>rbxassetid://104253833582974</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX280"><Properties>
@@ -3174,10 +3188,10 @@
       <string name="Name">Portrait</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>6</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>-0.018519</XS><XO>0</XO><YS>-0.018519</YS><YO>6</YO></UDim2>
+      <UDim2 name="Size"><XS>1.03704</XS><XO>0</XO><YS>1.03704</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://73517493638861</url></Content>
+      <Content name="Image"><url>rbxassetid://71024005323194</url></Content>
       <token name="ScaleType">3</token>
       <BinaryString name="AttributesSerialize">AgAAAAoAAABMaW50SWdub3JlAhAAAABjbGlwLGVkZ2UtbWFyZ2luEAAAAExpbnRJZ25vcmVSZWFzb24CYgAAAGJ1c3QgcG9ydHJhaXQgaW4gYSByb3VuZCBDYW52YXNHcm91cCBtZWRhbGxpb246IHRoZSBjaXJjbGUgbWFza3MgdGhlIHNob3VsZGVycyBhbmQgYmFzZSBvbiBwdXJwb3Nl</BinaryString>
      </Properties>
@@ -3201,10 +3215,10 @@
       <string name="Name">Portrait</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>6</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>-0.018519</XS><XO>0</XO><YS>-0.018519</YS><YO>6</YO></UDim2>
+      <UDim2 name="Size"><XS>1.03704</XS><XO>0</XO><YS>1.03704</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
-      <Content name="Image"><url>rbxassetid://73517493638861</url></Content>
+      <Content name="Image"><url>rbxassetid://71024005323194</url></Content>
       <token name="ScaleType">3</token>
       <BinaryString name="AttributesSerialize">AgAAAAoAAABMaW50SWdub3JlAhAAAABjbGlwLGVkZ2UtbWFyZ2luEAAAAExpbnRJZ25vcmVSZWFzb24CYgAAAGJ1c3QgcG9ydHJhaXQgaW4gYSByb3VuZCBDYW52YXNHcm91cCBtZWRhbGxpb246IHRoZSBjaXJjbGUgbWFza3MgdGhlIHNob3VsZGVycyBhbmQgYmFzZSBvbiBwdXJwb3Nl</BinaryString>
      </Properties>

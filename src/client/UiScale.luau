@@ -21,8 +21,6 @@
 -- one baseline pixel is `scale` real pixels. It refits when the screen resizes.
 -- Per-frame Motion UIScales inside the canvas multiply on top.
 
-local Platform = require(script.Parent.Platform)
-
 local UiScale = {}
 
 UiScale.DESKTOP = Vector2.new(1920, 1080)
@@ -36,13 +34,19 @@ export type Options = {
 
 local phone: boolean? = nil
 
--- Whether this session uses the phone layouts: a touch device whose screen's
--- short side is under 600 px. Decided once, like Platform.isTouch().
+-- Whether this session uses the phone layouts: a screen whose short side is under
+-- 600 px, whatever the input (the Studio device emulator reports a mouse and
+-- keyboard, so a touch check gave it the desktop layout squeezed to the 0.4 clamp:
+-- tiny text in a box that covered the screen). Decided once, like
+-- Platform.isTouch(); an unsized viewport (before the first frame) isn't cached.
 function UiScale.isPhone(): boolean
 	if phone == nil then
 		local camera = workspace.CurrentCamera
-		local view = if camera then camera.ViewportSize else UiScale.DESKTOP
-		phone = Platform.isTouch() and math.min(view.X, view.Y) < 600
+		local view = if camera then camera.ViewportSize else Vector2.zero
+		if math.min(view.X, view.Y) <= 2 then
+			return false
+		end
+		phone = math.min(view.X, view.Y) < 600
 	end
 	return phone :: boolean
 end

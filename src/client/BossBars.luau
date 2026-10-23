@@ -2,13 +2,23 @@
 -- The screen health bar for the boss you're fighting (Play.BossBar), themed per
 -- boss (BossThemes.luau; fallback `default`). EnemyBars decides which boss it
 -- is for and calls show / hide / setHealth / setTier.
---   BossBar (CanvasGroup, top centre, 560x104 box, 0.44 of the width, so
---   smaller on phones) > Body > Plate (kit art behind the bar), Bar (Trail,
---   Fill > Sheen, Flare), Mount (kit art over the bar: name plaque, trough
---   rim, slanted cuts, gold cap, ruby end gem), Cracks, Pips, NameLabel,
---   TitleLabel, OmenLabel, RealmLabel. Plate and Mount are exported from the
---   Figma kit (docs/ui/boss-bars.md); the fills are slanted 9-slices whose
---   45-degree end matches the trough's.
+--   BossBar (Frame, top centre, 560x104 box, 0.44 of the width on PC, 0.36 on
+--   phones) > Body > Plate (kit art behind the bar), Bar (Trail, Fill > Sheen,
+--   Flare), Mount (kit art over the bar: name plaque, trough rim, segment cuts,
+--   gold cap, ruby end cap), Cracks, Pips, NameLabel, TitleLabel, OmenLabel,
+--   RealmLabel. Plate and Mount come from the Figma kit (docs/ui/boss-bars.md);
+--   the fills are slanted 9-slices whose 15-degree end matches the trough's.
+--   All art is drawn at display size, with a half-size set for phones (no
+--   mipmaps in GUI images), and the root is a plain Frame, not a CanvasGroup
+--   (its texture softened everything), so fades go piece by piece.
+-- Lift: the bar sits up in the top bar's row, level with the top-right tiles,
+-- whenever it clears them and Roblox's own top-bar buttons; otherwise at its
+-- authored y (64, under the row). In combat the tiles fold down to Inventory and
+-- Settings (TileFold.luau), which is what frees the room on phones; PC always
+-- has it. It follows the tiles as they fold and unfold.
+-- Phones show only the name and the bar: no plaque (its own art, so the name can
+-- be larger), no realm line, and the title and omen (in the intro only, as on PC)
+-- get larger labels so they stay readable.
 -- It must stay out of the way of the fight: no screen darkening, no looping
 -- pulses, small and short hit/phase feedback.
 --   Intro: the bar fades in, the fill sweeps up, the name and realm rise in;
@@ -22,12 +32,40 @@
 
 local TweenService = game:GetService("TweenService")
 
+local Players = game:GetService("Players")
+
 local Enemies = require(game:GetService("ReplicatedStorage").Shared.Enemies)
+local Platform = require(script.Parent.Platform)
+local UiScale = require(script.Parent.UiScale)
 local Realms = require(game:GetService("ReplicatedStorage").Shared.Realms)
 local Themes = require(script.Parent.BossThemes)
 
 local BIG_HIT = 0.05 -- fraction of max health that shakes the bar
-local SLICE_H = 64 -- source height of the slanted fill art (bossbar_fill/sheen.png)
+-- Display-size art per device (art/ui/draw_boss_bars.py, tools/boss_bar_reshape.py).
+local ART = {
+	pc = {
+		plate = "rbxassetid://74194034910180",
+		fill = "rbxassetid://128585225184916",
+		sheen = "rbxassetid://81762356578729",
+		fillSlice = Rect.new(2, 11, 55, 12),
+		sheenSlice = Rect.new(2, 11, 51, 12),
+		sliceH = 24, -- source height of the fill art
+	},
+	phone = {
+		plate = "rbxassetid://116087127933751",
+		fill = "rbxassetid://125350933545435",
+		sheen = "rbxassetid://71668343368312",
+		fillSlice = Rect.new(2, 5, 34, 6),
+		sheenSlice = Rect.new(2, 5, 31, 6),
+		sliceH = 12,
+	},
+}
+local PHONE_WIDTH = 0.36 -- of the Hud's safe-area width: about 270 px on an 844x390 phone (PC: 0.44, as authored)
+local FADE = 0.25
+local LIFT_Y = 12 -- the bar's top when lifted: level with the top-right tiles (Hud.Buttons)
+local LIFT_GAP = 8 -- px kept clear between the bar and the tiles / top-bar buttons
+local TILE, TILE_GAP = 56, 8 -- Hud.Buttons tile width and list padding (before its UIScale)
+local COMBAT_TILES = { InventoryButton = true, SettingsButton = true } -- what TileFold keeps
 local PIP = "rbxassetid://115297870306868" -- kit gold_stud cut
 local CRACK = "rbxassetid://139598561995314" -- kit crack_split cut
 local PIP_Y = -5 / 24 -- pip centre on the plate's top rim (y 35 in the 560x104 box), in bar heights from the bar's top (y 40)
@@ -42,7 +80,7 @@ local QUAD = Enum.EasingStyle.Quad
 local OUT = Enum.EasingDirection.Out
 
 type Refs = {
-	frame: CanvasGroup,
+	frame: Frame,
 	scale: UIScale,
 	body: Frame,
 	bar: Frame,
@@ -58,6 +96,7 @@ type Refs = {
 	realm: TextLabel,
 	omen: TextLabel,
 	slanted: { ImageLabel },
+	art: { ImageLabel }, -- the bar's own images, faded in and out with it
 	home: { [TextLabel]: UDim2 },
 }
 
@@ -76,6 +115,11 @@ local token = 0 -- bumped on every show/hide so stale delayed steps stop
 local live: { Tween } = {}
 local shakeToken = 0
 local intro = false
+local phone = false
+local art = ART.pc
+local tileRow: Frame? = nil
+local homeY = 64 -- authored top offset, read in init
+local lifted: boolean? = nil
 
 local function tween(inst: Instance, props: { [string]: any }, time: number, delay: number?, style: Enum.EasingStyle?, dir: Enum.EasingDirection?): Tween
 	local t = TweenService:Create(inst, TweenInfo.new(time, style or QUAD, dir or OUT, 0, false, delay or 0), props)
@@ -260,7 +304,7 @@ local function applyTheme(def: Enemies.Def?)
 	table.sort(phases, function(a, b)
 		return a > b
 	end)
-	refs.mount.Image = theme.mount or Themes.MOUNT
+	refs.mount.Image = if phone then theme.mountPhone or Themes.MOUNT_PHONE else theme.mount or Themes.MOUNT
 	refs.trail.ImageColor3 = theme.trail
 	refs.name.TextColor3 = theme.name
 	refs.title.TextColor3 = theme.titleColor
@@ -280,16 +324,123 @@ local function phaseOf(frac: number): number
 	return n
 end
 
--- The slanted fills keep a 45-degree end at any size: slice scale = bar height / source height.
+-- The slanted fills keep their angle at any size: slice scale = bar height / source height.
 local function fitSlices()
 	local refs = r :: Refs
-	local scale = math.max(refs.bar.AbsoluteSize.Y, 1) / SLICE_H
+	local scale = math.max(refs.bar.AbsoluteSize.Y, 1) / art.sliceH
 	for _, img in refs.slanted do
 		img.SliceScale = scale
 	end
 end
 
-function BossBars.init(frame: CanvasGroup, tierStyles: { [string]: any })
+-- Fade the whole bar piece by piece (a CanvasGroup would soften it).
+local function fadeArt(visible: boolean)
+	local refs = r :: Refs
+	for _, img in refs.art do
+		if visible then
+			img.ImageTransparency = 1
+		end
+		tween(img, { ImageTransparency = if visible then 0 else 1 }, FADE)
+	end
+	for _, crack in refs.cracks:GetChildren() do
+		if crack:IsA("ImageLabel") then
+			if visible then
+				crack.ImageTransparency = 1
+			end
+			tween(crack, { ImageTransparency = if visible then CRACK_REST else 1 }, FADE)
+		end
+	end
+	if not visible then
+		for _, pip in refs.pips:GetChildren() do
+			if pip:IsA("ImageLabel") then
+				tween(pip, { ImageTransparency = 1 }, FADE)
+			end
+		end
+		for _, label in { refs.name, refs.title, refs.realm, refs.omen } do
+			tween(label, { TextTransparency = 1, TextStrokeTransparency = 1 }, FADE)
+		end
+	end
+end
+
+-- The tiles' left edge once their fold settles (TileFold keeps Inventory and
+-- Settings while InCombat), so the bar moves with the fold instead of after it.
+local function tilesLeft(): number?
+	local row = tileRow
+	if not row or not row.Visible then
+		return nil
+	end
+	local combat = Players.LocalPlayer:GetAttribute("InCombat") == true
+	local n = 0
+	for _, tile in row:GetChildren() do
+		if tile:IsA("GuiButton") and tile.Visible and (not combat or COMBAT_TILES[tile.Name]) then
+			n += 1
+		end
+	end
+	if n == 0 then
+		return nil
+	end
+	local scale = row:FindFirstChildOfClass("UIScale")
+	local k = if scale then scale.Scale else 1
+	return row.AbsolutePosition.X + row.AbsoluteSize.X - (n * TILE + (n - 1) * TILE_GAP) * k
+end
+
+local function placeLift(animate: boolean)
+	local refs = r
+	if not refs then
+		return
+	end
+	local frame = refs.frame
+	local gui = frame:FindFirstAncestorWhichIsA("ScreenGui")
+	local x0, x1 = frame.AbsolutePosition.X, frame.AbsolutePosition.X + frame.AbsoluteSize.X
+	local up = true
+	local left = tilesLeft()
+	if left and x1 + LIFT_GAP > left then
+		up = false
+	end
+	if gui then
+		local _, freeLeft = Platform.topbar(gui)
+		if x0 - gui.AbsolutePosition.X < freeLeft + LIFT_GAP then
+			up = false
+		end
+	end
+	if up == lifted then
+		return
+	end
+	lifted = up
+	local target = UDim2.new(frame.Position.X.Scale, frame.Position.X.Offset, 0, if up then LIFT_Y else homeY)
+	if animate and frame.Visible then
+		TweenService:Create(frame, TweenInfo.new(0.22, QUAD, OUT), { Position = target }):Play()
+	else
+		frame.Position = target
+	end
+end
+
+-- Phones: a smaller bar with larger intro lines and no realm line.
+local function applyDevice(refs: Refs)
+	phone = UiScale.isPhone()
+	art = if phone then ART.phone else ART.pc
+	local plate = refs.body:FindFirstChild("Plate") :: ImageLabel
+	plate.Image = art.plate
+	for _, img in refs.slanted do
+		local sheen = img.Name == "Sheen"
+		img.Image = if sheen then art.sheen else art.fill
+		img.SliceCenter = if sheen then art.sheenSlice else art.fillSlice
+	end
+	if not phone then
+		return
+	end
+	refs.frame.Size = UDim2.fromScale(PHONE_WIDTH, refs.frame.Size.Y.Scale)
+	refs.realm.Visible = false
+	-- the phone mount has no plaque (at ~270 px it held the name to 11 px): the name
+	-- stands as live text across that band, about 15 px; the intro lines take the
+	-- whole row under the bar
+	refs.name.Size = UDim2.fromScale(0.7, 0.3)
+	for _, label in { refs.title, refs.omen } do
+		label.Size = UDim2.fromScale(0.9, 0.28)
+	end
+end
+
+function BossBars.init(frame: Frame, tierStyles: { [string]: any })
 	local body = frame:WaitForChild("Body") :: Frame
 	local bar = body:WaitForChild("Bar") :: Frame
 	local fill = bar:WaitForChild("Fill") :: ImageLabel
@@ -310,12 +461,34 @@ function BossBars.init(frame: CanvasGroup, tierStyles: { [string]: any })
 		realm = body:WaitForChild("RealmLabel") :: TextLabel,
 		omen = body:WaitForChild("OmenLabel") :: TextLabel,
 		slanted = {},
+		art = {},
 		home = {},
 	}
 	for _, name in { "Trail", "Fill", "Flare" } do
 		table.insert(refs.slanted, bar:WaitForChild(name) :: ImageLabel)
 	end
 	table.insert(refs.slanted, fill:WaitForChild("Sheen") :: ImageLabel)
+	for _, img in { body:WaitForChild("Plate"), refs.mount, refs.trail, fill, fill:WaitForChild("Sheen") } do
+		table.insert(refs.art, img :: ImageLabel)
+	end
+	applyDevice(refs)
+	homeY = frame.Position.Y.Offset
+	local gui = frame:FindFirstAncestorWhichIsA("ScreenGui")
+	tileRow = if gui then gui:FindFirstChild("Buttons") :: Frame? else nil
+	local function relift()
+		task.defer(placeLift, true)
+	end
+	Players.LocalPlayer:GetAttributeChangedSignal("InCombat"):Connect(relift)
+	frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(relift)
+	Platform.topbarChanged(relift)
+	if tileRow then
+		tileRow:GetPropertyChangedSignal("AbsoluteSize"):Connect(relift)
+		for _, tile in tileRow:GetChildren() do
+			if tile:IsA("GuiButton") then
+				tile:GetPropertyChangedSignal("Visible"):Connect(relift)
+			end
+		end
+	end
 	-- authored positions, so a show that interrupts an intro never drifts them
 	for _, label in { refs.name, refs.title, refs.realm, refs.omen } do
 		refs.home[label] = label.Position
@@ -348,7 +521,7 @@ function BossBars.show(boss: Model, def: Enemies.Def?, dangerTier: string, frac:
 	phaseIdx = phaseOf(frac)
 
 	refs.frame.Visible = true
-	refs.frame.GroupTransparency = 1
+	placeLift(false)
 	refs.scale.Scale = 0.96
 	refs.body.Position = UDim2.new()
 	refs.fill.Size = UDim2.fromScale(0, 1)
@@ -360,11 +533,11 @@ function BossBars.show(boss: Model, def: Enemies.Def?, dangerTier: string, frac:
 	buildPips()
 	dressPips(false)
 
-	tween(refs.frame, { GroupTransparency = 0 }, 0.25)
-	tween(refs.scale, { Scale = 1 }, 0.25)
+	fadeArt(true)
+	tween(refs.scale, { Scale = 1 }, FADE)
 	tween(refs.fill, { Size = UDim2.fromScale(frac, 1) }, 0.6, 0.1, Enum.EasingStyle.Quint)
 	tween(refs.trail, { Size = UDim2.fromScale(frac, 1) }, 0.6, 0.1, Enum.EasingStyle.Quint)
-	-- name and realm rise in and stay
+	-- name and realm rise in and stay (phones have no realm line)
 	for _, step in { { refs.name, 0.15 }, { refs.realm, 0.3 } } do
 		local label, delay = step[1] :: TextLabel, step[2] :: number
 		local home = refs.home[label]
@@ -393,7 +566,7 @@ function BossBars.hide()
 	token += 1
 	local mine = token
 	stopLive()
-	tween(refs.frame, { GroupTransparency = 1 }, 0.25)
+	fadeArt(false)
 	task.delay(0.3, function()
 		if mine == token and r then
 			refs.frame.Visible = false

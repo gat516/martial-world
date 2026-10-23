@@ -79,7 +79,8 @@ list come from config; what a race does is [identity](identity.md).
   module per thing to tune:
   - Races and their variants live in `Shared.Identity` ([identity](identity.md)).
     The race row shows race and variant ("Beast Folk (Wolf)", in the variant's
-    rarity), and the odds card lists only what the roll can give: the races, then
+    rarity), the preview wears that race's look (ears, tail, horns, Giant size;
+    [identity](identity.md) Cosmetics), and the odds card lists only what the roll can give: the races, then
     each race's variants with their chance within it.
   - `Surnames.luau`: last names / clans (DisplayName, Glyph, Rarity, Weight).
   - `Rarities.luau`: tiers (label, colour, order), shared by races and clans.

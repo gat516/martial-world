@@ -717,6 +717,15 @@
    "88": 4
   }
  },
+ "codex/cut/ornament_single_cloud.png": {
+  "heights": [
+   80
+  ],
+  "margin": 0,
+  "margins": {
+   "80": 4
+  }
+ },
  "codex/cut/ornament_tag_bronze_capL.png": {
   "heights": [
    48

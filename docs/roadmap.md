@@ -69,7 +69,8 @@ Today the hook ends at QC3 and the garden, sect and techniques arrive unannounce
 - **QC1-3 (keep):** circulate, break through, root, travel out, hunt, technique,
   refine. Minor fixes only.
 - **QC3 end:** the elder names the loop once ("cultivate until you hit a wall,
-  go out and break it, come home stronger").
+  go out and break it, come home stronger"). Built: the first time he's talked to in
+  free play ([onboarding](systems/onboarding.md) "Talking to the elder").
 - **QC4 "your home grows":** garden and peak building taught as one beat (plant a
   seed, place one item). Rewarded.
 - **QC5 the sect board:** daily tasks and contribution; the first chapter quest.

@@ -23,12 +23,11 @@
 -- Nothing is registered yet; unknown ids do nothing.
 --
 -- Cosmetics: races, variants and traits may name accessories (`Cosmetics`, ids
--- in ServerStorage.Cosmetics, assets/Cosmetics.rbxm). applyBody wears them while
+-- in ReplicatedStorage.Cosmetics, assets/Cosmetics/<set>.rbxm). applyBody wears them while
 -- they apply and takes them off when they don't, along with the body size.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerStorage = game:GetService("ServerStorage")
 
 local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Requirements = require(ReplicatedStorage.Shared.Identity.Requirements)
@@ -119,14 +118,15 @@ local COSMETIC_ATTRIBUTE = "Cosmetic" -- on each worn cosmetic accessory: its id
 local warnedCosmetic: { [string]: boolean } = {}
 
 local function cosmeticTemplate(id: string): Accessory?
-	local folder = ServerStorage:FindFirstChild("Cosmetics")
-	local template = folder and folder:FindFirstChild(id)
+	-- one folder per set (assets/Cosmetics/<set>.rbxm), so look through all of them
+	local folder = ReplicatedStorage:FindFirstChild("Cosmetics")
+	local template = folder and folder:FindFirstChild(id, true)
 	if template and template:IsA("Accessory") then
 		return template
 	end
 	if not warnedCosmetic[id] then
 		warnedCosmetic[id] = true
-		warn(`Traits: cosmetic "{id}" isn't in ServerStorage.Cosmetics (assets/Cosmetics.rbxm)`)
+		warn(`Traits: cosmetic "{id}" isn't in ReplicatedStorage.Cosmetics (assets/Cosmetics/)`)
 	end
 	return nil
 end

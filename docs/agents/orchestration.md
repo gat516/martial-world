@@ -128,6 +128,24 @@ Modeling, VFX and animation agents (`modeler`, `enemy-modeler`, `vfx`, `world-fx
 `animator`) run on Opus. Their frontmatter sets `model: opus`; don't override it
 with Sonnet (user, 2026-10-22).
 
+### Briefs
+
+Write every visual brief against [briefs.md](briefs.md): references, the exemplar
+to match from `docs/reference/approved/README.md`, the do-not-change list, scale,
+contracts, "done means". An agent missing a required field asks once and stops,
+which is cheaper than a body rebuilt around a guess. Default to "send 2-3
+directions first"; the user picks, then it polishes once.
+
+### The visual gate
+
+Every visual agent preloads `visual-gate`: lint to zero FAIL, one contact sheet,
+a fresh `visual-critic` (Opus, `tools: Read, Glob, Grep`, ~20k tokens a round,
+two rounds max), and a report that quotes the verdict. A WRONG DIRECTION verdict
+sends the agent back to the user with variants instead of polishing. When the
+user approves a result, the maker saves its sheet under `docs/reference/approved/`
+so the gallery stays the bar. You can spawn `visual-critic` yourself on a
+screenshot the user sends, with the same inputs.
+
 ### Skills, learnings and the docs-keeper
 
 Agents preload the shared skills they use on every task (`skills:` in their
@@ -154,7 +172,8 @@ own branch, and you merge it like any feature.
 4. Keep enemy passes lean: vfx builds straight from the brief (no plan step, no
    reference research unless the user gave a link) and reuses existing enemy effects
    where they fit; animators reuse the shared planting solver and QA scripts; every
-   agent checks numerically and leaves visual review to the user.
+   agent runs its lint and one `visual-critic` round (the `visual-gate` skill), so
+   the user reviews round two in Studio, not round zero.
 5. New or reworked fights go behind a `Config.TESTBED` flag; flip it for the main game
    only after the user approves.
 6. The next enemy gets a fresh designer.
@@ -172,3 +191,32 @@ own branch, and you merge it like any feature.
    - **QA scripts** for animators are under `art/enemies/beasts/` and
      `art/enemies/quadrupeds/`. Check numerically, and capture a key frame in your own
      sandbox only where the numbers can't tell (step 4).
+
+## Watching and steering agents
+
+The user can't steer what they can't see (user, 2026-10-23).
+- **Live feed:** `tools/agent_feed.sh` tails every subagent transcript of the
+  latest session (`~/.claude/projects/<project>/<session>/subagents/*.jsonl`,
+  which flush live) into one line per tool call, and shows each agent's
+  `## Status:` lines. Every brief asks for a status line per phase; an agent that
+  only shows `execute_luau` for twenty minutes isn't following its brief.
+- **In the app:** the title-bar menu > Background tasks lists running agents,
+  opens their output and stops them; Transcript view > Verbose shows every tool
+  call. In a terminal, `/tasks` does the same (`x` stops one).
+- **Stop or steer from the main session:** "stop the fox animator" (`TaskStop`),
+  or "tell the vfx agent to drop the ground crack" (`SendMessage` to the agent;
+  it resumes with its context). A stopped agent can't be messaged; spawn a fresh
+  one with the brief plus what changed.
+
+## Tokens
+
+- `.claude/settings.json` sets `subagentPromptCacheTtl: "1h"`: subagents get a
+  5-minute cache by default, so a 40-minute agent that pauses for Studio re-pays
+  its whole prefix. Keep model, tools and cwd identical across a fan-out so they
+  share the prefix.
+- `effort:` in agent frontmatter: `high` on the critic, `low` on anything that only
+  hosts a terminal (with `model: haiku`).
+- Sheets, not screenshots: one stitched image per review round. Skills preload
+  only what every task uses; the rest load on demand.
+- The gate itself is the big saving: a critic round costs 15-25k tokens, a
+  rejected pass costs a whole maker run plus the user's time.

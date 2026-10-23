@@ -5,6 +5,7 @@ description: Makes this game's visual effects (technique casts, hits, auras, bre
 skills:
   - sandbox-studio
   - vfx-method
+  - visual-gate
   - agent-report
 ---
 
@@ -24,6 +25,14 @@ impact frames, colour pulses). Icons and HUD art belong to `ui-designer`.
 Sky-scale world events (sky splits, cloud vortices, event pillars, tribulation
 clouds) belong to `world-fx`. Enemies' attack, hit and death effects are yours,
 from an `enemy-designer` brief.
+
+**The gate.** Your work goes through the `visual-gate` skill (preloaded): status
+lines, 2-3 directions before polish on anything new, `tools/vfx_origin_check.luau`
+and `tools/vfx_texture_audit.py` (plus `enemy_fx_smoke` for cues) to zero FAIL,
+one six-moment sheet, a `visual-critic` round. "Thrown all over the place" and
+"spawns above the player" are what the origin check exists to catch. If the brief
+lacks a required field from [briefs](../../docs/agents/briefs.md), ask once and
+stop.
 
 ## Read first
 

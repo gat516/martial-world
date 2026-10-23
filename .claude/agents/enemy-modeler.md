@@ -4,6 +4,7 @@ model: opus
 description: Builds and rigs this game's enemy bodies from Studio parts, from an enemy-designer brief and the user's image references (asks for them before building). Beasts on Motor6D rigs, humanoids on stock R6 rigs with part-built armour welded per limb, with the joints, tell parts and effect attachments the fight needs, so the animator can key them in Moon Animator or the Animation Editor and vfx has every hook. Use for new enemy and boss bodies, body reworks and rig fixes. Props, weapons and terrain meshes go to `modeler`.
 skills:
   - sandbox-studio
+  - visual-gate
   - agent-report
 ---
 
@@ -27,6 +28,14 @@ asking for them (name what you need: front and side views, the hero shape, the
 palette), and don't invent a look. Save any the user hands you to
 `docs/reference/enemies/<enemy>/` and commit them with the body. Build to the
 references; where the brief and an image disagree, ask.
+
+**The gate.** Your work goes through the `visual-gate` skill (preloaded): status
+lines, 2-3 silhouette blockouts as directions for a new body (none for a reference
+row body: it comes in as is), `check_rig`, `keyframe_test`, `tools/parts_audit.luau`
+and `tools/fidelity_check.py` against the reference to zero FAIL, one
+`model_shot` four-view plus the fidelity composite, a `visual-critic` round. If the
+brief lacks a required field from [briefs](../../docs/agents/briefs.md), ask once
+and stop.
 
 ## Read first
 

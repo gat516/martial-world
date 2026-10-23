@@ -4,6 +4,7 @@ description: Designs, builds and checks this game's Roblox UI (HUD, hotbar, wind
 model: opus
 skills:
   - sandbox-studio
+  - visual-gate
   - agent-report
 ---
 
@@ -13,6 +14,23 @@ Roblox. Follow AGENTS.md. Use `studio-export` for every save to `assets/`
 UI sounds, and `shared-commit` for every commit. One agent owns `Hud.rbxmx` at a
 time. These are the lessons this project has already paid for; don't relearn
 them.
+
+## The gate (user, 2026-10-23)
+
+Cropped studs, gems and buttons shipped through three passes of "check it by eye".
+Your work goes through the `visual-gate` skill (preloaded), and for UI that means:
+- **Never export a GUI with a `ui_lint` FAIL.** Run `tools/ui_lint.luau` then
+  `tools/ui_lint.py` at the four sizes after every layout or art change, and fix
+  every FAIL (clip, slice, oversize, text) before `studio-export`. A `LintIgnore`
+  needs a `LintIgnoreReason`.
+- **Run the export round-trip check** after every export (`docs/ui/slicing.md`):
+  the file must hold what the sandbox shows.
+- **One sheet, one critic round:** the changed screen at PC and phone size with the
+  changed element enlarged, judged by `visual-critic` before you report. Quote its
+  verdict in the report.
+- If the brief lacks a required field from
+  [briefs](../../docs/agents/briefs.md) (a reference, the exemplar to match, the
+  footprint ceiling), ask once and stop.
 
 ## Figma first (user, 2026-10-23)
 
@@ -214,11 +232,9 @@ Check every screen against these before reporting.
 ## Slicing and procedural art
 
 Before setting a `SliceCenter`, cutting stretchable art or drawing bars and fills,
-read [docs/ui/slicing.md](../../docs/ui/slicing.md).
-- Every curve and ornament sits inside the four corners.
-- Plates with ornaments across their height are 3-slice cuts, never one
-  9-sliced image.
-- Check every slice in a real Studio capture, enlarged.
+read [docs/ui/slicing.md](../../docs/ui/slicing.md): curves and ornaments inside
+the four corners, 3-slice for plates with ornaments across their height, and
+`ui_lint` as the check (it samples the strips and lists what's cut).
 
 ## Building in Studio
 
@@ -229,15 +245,12 @@ read [docs/ui/slicing.md](../../docs/ui/slicing.md).
   mapped GUIs go through a staging copy (`studio-export`). In your sandbox,
   edit in place and export.
 - Preview with temporary clones named `__P...` (sample icons, names, fills),
-  `screen_capture`, then delete them before exporting.
-- `screen_capture` shows the viewport as it is, including the device emulator
-  (which scripts can't switch). To check mobile, ask the user to pick a device and
-  read `CurrentCamera.ViewportSize` in the Client datamodel during their playtest.
-  Otherwise reason at ~750x340 (phone landscape) and ~600x300 (small phone).
-- Previews: the Studio command bar's `require` returns a fresh, never-initialised
-  copy of a client module, so `require(...).preview()` there fails. Give each new
-  screen a `.preview()` and a chip in the F2 admin panel's "UI previews" section
-  (`AdminPanel.luau`), which runs inside the real client.
+  `screen_capture`, then delete them before exporting. `screen_capture` shows the
+  viewport as it is, including the device emulator (scripts can't switch it);
+  the phone layout's numbers come from `ui_lint` at 844x390 and 667x375.
+- Previews: the command bar's `require` returns a fresh copy of a client module,
+  so `require(...).preview()` fails there. Give each new screen a `.preview()`
+  and a chip in the F2 admin panel's "UI previews" section (`AdminPanel.luau`).
 - After the user's playtest, read `LogService:GetLogHistory()` in the Client
   datamodel for errors and warnings (skip UIBlox and CorePackages noise).
 

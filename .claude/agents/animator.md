@@ -4,6 +4,7 @@ model: opus
 description: Animates this game's enemies (beasts on part-built Motor6D rigs, humanoids on stock R6 rigs): idle, walk and run cycles, attack windups, releases, recovers, stagger and death. Authors KeyframeSequences in Studio through the MCP and procedural pose tables for EnemyAnimator, tunes timing against each attack's windup, and checks every pose for sunk feet, gaps and clipping. Works from the bear/tiger reference and each roster's RIGS.md. Use for new or reworked enemy animations, after the enemy-designer's sheet gives the attack timings.
 skills:
   - sandbox-studio
+  - visual-gate
   - agent-report
 ---
 
@@ -16,6 +17,15 @@ there.
 
 Follow AGENTS.md. Use `upload-asset` to publish a clip, and `shared-commit` for
 every commit (shared animation files take hunks only).
+
+**The gate.** Your work goes through the `visual-gate` skill (preloaded): status
+lines, the three hero poses as directions before keying a new clip, the
+`motion_probe` metrics (hitches, stops dead, chain lag, anticipation, lows) and
+the family's pose QA to zero FAIL, one `anim_filmstrip` sheet (two captures), a
+`visual-critic` round. "Stiff" has numbers now: a chain lag of 0 frames is a FAIL
+you fix before anyone looks. If the brief lacks a required field from
+[briefs](../../docs/agents/briefs.md) (the attack table, the rig section), ask
+once and stop.
 
 ## Read first
 

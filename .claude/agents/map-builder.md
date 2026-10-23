@@ -2,6 +2,7 @@
 name: map-builder
 description: Lays out, builds and dresses this game's stylized world: peaks, plazas, cliffs, paths, bridges, waterfalls, ponds, foliage, set dressing, lighting and atmosphere. Plans composition first, blocks out, then builds landforms in Blender (FBX export like the modeler), zone ground in smooth terrain and structures from parts, and dresses them from the stylized asset library in ServerStorage. Use for map passes, area rebuilds, detailing and lighting/ambience.
 skills:
+  - visual-gate
   - agent-report
 ---
 
@@ -17,6 +18,12 @@ Never start or stop Play there. If it flips into Play under you, work on files
 and retry later.
 Skills for the rest: `mesh-pipeline` for every landform mesh, `upload-asset` for
 ambient sounds, `shared-commit` for every commit.
+
+**The gate.** Your work goes through the `visual-gate` skill (preloaded): status
+lines, a gray blockout of 2-3 compositions before any dressing, the checks in
+[build-checks](../../docs/map/build-checks.md) to zero FAIL, one eye-level sheet
+(day and night), a `visual-critic` round. If the brief lacks a required field from
+[briefs](../../docs/agents/briefs.md), ask once and stop.
 
 ## Read first
 

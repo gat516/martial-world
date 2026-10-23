@@ -140,3 +140,5 @@ Every remote, published attribute and server hook list is in [remotes.md](remote
 - **A remote call fails silently**: the server's `guarded` wrapper logs `Remote error for <name>` in the output.
 - **Inspecting a POI or cache in Studio**: `local T = require(game.ServerStorage._EditorTools.PoiTour)`, then `T()` lists them, `T(12)` or `T("WolfDen")` frames one from a player's eye height, `T.labels()` rebuilds the floating labels.
 - **Saved data**: `PlayerData.luau` (`Data` type, `default()`, `migrations`).
+- **What a subagent is doing right now**: `tools/agent_feed.sh` (one line per tool call, plus each agent's `## Status:` lines); stop or steer from the main session. See [orchestration](agents/orchestration.md).
+- **A visual result the user would send back**: the `visual-gate` skill (lint, one sheet, `visual-critic`) and the bar in [approved](reference/approved/README.md); briefs follow [briefs](agents/briefs.md).

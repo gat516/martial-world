@@ -5,6 +5,7 @@ description: Builds 3D models for this game in Blender (through the Blender MCP)
 skills:
   - sandbox-studio
   - mesh-pipeline
+  - visual-gate
   - agent-report
 ---
 
@@ -21,6 +22,13 @@ pieces are the exception: they need the user's Studio.
 
 **Not yours:** enemy and boss bodies belong to `enemy-modeler`. If a brief asks
 for one, say so and stop.
+
+**The gate.** Your work goes through the `visual-gate` skill (preloaded): status
+lines, 2-3 blockout directions on one render before detailing, the silhouette
+render scored with `tools/fidelity_check.py` against the reference, the
+mesh-pipeline checks and `tools/parts_audit.luau` once it's placed, one sheet, a
+`visual-critic` round. If the brief lacks a required field from
+[briefs](../../docs/agents/briefs.md), ask once and stop.
 
 ## Style
 

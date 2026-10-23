@@ -69,7 +69,7 @@ Each file's header lists its fields. The vocabulary:
   `growth`, `regen`, the spirit root perk kinds (amounts read the same way:
   shares, except `walk` in studs/s). They add to the root perk at the same
   places (Cultivation.applyStats, Combat, Garden, the Roots regen loop).
-  Plus `size`: a share added to body size (Titan Frame: 0.25, 25% larger; see
+  Plus `size`: a share added to body size (Titan Frame: 0.15, 15% larger; see
   Body size below).
 - **Excludes** (traits): traits it can't be held with.
 
@@ -143,7 +143,7 @@ a card calls `Bridge.choose`, the server checks it, and the screen follows the
 attributes. Choices are re-asked whenever Race or RaceVariant changes.
 
 ## Body size
-The `size` modifier (Titan Frame, user 2026-10-23) scales the character with
+The `size` modifier (Titan Frame: 15% larger, user 2026-10-23; 25% was too big) scales the character with
 `Model:ScaleTo` on the server (`Traits.applySize`, clamped 0.5 to 2), so parts,
 joints, accessories and the held weapon scale together and animations keep
 working. The root moves up so the feet stay on the ground. It's applied:
@@ -161,7 +161,11 @@ Hitboxes and reach don't change with size, on purpose (balance): strikes use
 boxes from the root (`Shared.Hitbox`, `Config.CLASSES` plus `HITBOX_SLACK`),
 enemy attack areas test the root within `AREA_HEIGHT` (8 studs) and a fixed
 `PLAYER_RADIUS`. Checked 2026-10-23 against every beast in the test arena:
-the same hits at 1 and 1.25. Walk speed and jump height stay in studs.
+the same hits at 1 and 1.25 (so at 1.15 too). Walk speed and jump height stay in studs.
+The dash scales with the body (`CombatController.startDash`: speed times the
+body's scale), so a giant dashes the same distance in body lengths (user,
+2026-10-23: it felt short). Measured before that change: the same 9.3 studs at
+1 and 1.15, so the plain dash wasn't slowed, it just read short from a bigger body.
 
 ## Known gaps
 - Test place only, with the character screen: `Main.server` loads identities

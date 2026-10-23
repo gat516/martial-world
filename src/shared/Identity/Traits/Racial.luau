@@ -129,11 +129,11 @@ local Racial = {
 	-- Giant
 	TitanFrame = {
 		DisplayName = "Titan Frame",
-		Description = "A giant's body: a quarter larger than others, and holding far more life.",
+		Description = "A giant's body: larger than others, and holding far more life.",
 		Rarity = "Rare",
 		Access = { Races = { "Giant" } },
 		Obtain = "Innate",
-		Modifiers = { health = 0.15, size = 0.25 }, -- 25% larger (user, 2026-10-23)
+		Modifiers = { health = 0.15, size = 0.15 }, -- 15% larger (user, 2026-10-23: 25% was too big)
 	},
 }
 

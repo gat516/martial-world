@@ -34,7 +34,7 @@ local Registry = {}
 --   jump      share added to jump height        strike share added to M1 damage
 --   guard     share cut from damage taken       technique share added to technique damage
 --   growth    share added to herb growth speed   regen  share of max health healed per second out of combat
---   size      share added to body size (0.25 = 25% larger), applied by the server's
+--   size      share added to body size (0.15 = 15% larger), applied by the server's
 --             Traits.applySize with Model:ScaleTo; hitboxes and reach don't grow with it
 Registry.MODIFIERS = {
 	health = true, walk = true, jump = true, strike = true,

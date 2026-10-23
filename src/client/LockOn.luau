@@ -25,12 +25,16 @@
 -- zoom and the module's own state pick up once the lock lets go; the release
 -- blends back over RELEASE_SECONDS rather than jumping. While locked the view
 -- narrows by LOCK_FOV_NARROW degrees, eased in and out.
+-- Big targets push the camera back: the lock's distance range and the scroll-out
+-- limit (Player.CameraMaxZoomDistance) grow with the target's size, so a boss
+-- like the Thunder Ape fits on screen; both go back to normal on release.
 
 local CollectionService = game:GetService("CollectionService")
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local StarterPlayer = game:GetService("StarterPlayer")
 local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Combat
@@ -54,6 +58,8 @@ local RING_SPIN = 30 -- degrees per second
 local LOCK_FOV_NARROW = 5 -- degrees the view tightens while locked
 local FOV_TWEEN = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local RELEASE_SECONDS = 0.3
+local DISTANCE_MIN, DISTANCE_MAX = 8, 24 -- lock camera distance range for a person-sized target
+local SIZE_MIN, SIZE_MAX = 1.0, 1.8 -- the range for a big target, per stud of its size
 
 local LockOn = {}
 
@@ -71,6 +77,7 @@ local cameraFrame: CFrame? = nil -- our smoothed camera, while locked
 local baseFov: number? = nil -- the field of view before the lock narrowed it
 local releaseFrom: CFrame? = nil -- the lock's last framing, blended out of on release
 local releaseLeft = 0
+local nearDistance, farDistance = DISTANCE_MIN, DISTANCE_MAX -- the current target's range
 -- PC: the camera's mouse mode underneath this frame's lock-on override. Restore
 -- it before the next camera update so Alt/zoom/RMB can change the native mode
 -- without the camera mistaking our temporary LockCenter for its own state.
@@ -184,6 +191,20 @@ local function nearestTo(range: number): Model?
 	return best
 end
 
+-- The lock camera's distance range for a target: the normal range, or one scaled
+-- to the target's height (or half its length, for long bodies) when that's bigger.
+local function distanceRange(model: Model): (number, number)
+	local _, size = model:GetBoundingBox()
+	local extent = math.max(size.Y, math.max(size.X, size.Z) * 0.5)
+	return math.max(DISTANCE_MIN, extent * SIZE_MIN), math.max(DISTANCE_MAX, extent * SIZE_MAX)
+end
+
+-- Let the player scroll out as far as the target's range, never less than normal.
+local function setZoomLimit(far: number?)
+	local base = StarterPlayer.CameraMaxZoomDistance
+	player.CameraMaxZoomDistance = math.max(base, far or 0)
+end
+
 local function snapReticle()
 	reticle.Visible = false -- placed on the next frame, then shown
 	if reticleScale then
@@ -212,6 +233,8 @@ local function setTarget(model: Model?)
 	flick = 0
 	local camera = workspace.CurrentCamera
 	if model then
+		nearDistance, farDistance = distanceRange(model)
+		setZoomLimit(farDistance)
 		if not was then
 			cameraFrame = camera.CFrame
 			releaseLeft = 0
@@ -229,6 +252,7 @@ local function setTarget(model: Model?)
 			baseFov = nil
 		end
 		releaseMouse()
+		setZoomLimit(nil)
 	end
 end
 
@@ -384,7 +408,7 @@ local function updateCamera(dt: number, root: BasePart, current: Model)
 	local camera = workspace.CurrentCamera
 	-- the camera module has already placed the camera this frame: keep its focus and zoom
 	local focus = camera.Focus.Position
-	local distance = math.clamp((camera.CFrame.Position - focus).Magnitude, 8, 24)
+	local distance = math.clamp((camera.CFrame.Position - focus).Magnitude, nearDistance, farDistance)
 	local chest = chestOf(current)
 	local flat = (chest - focus) * Vector3.new(1, 0, 1)
 	if flat.Magnitude < 1 then

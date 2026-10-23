@@ -1,12 +1,13 @@
 --!strict
--- The vitals mount at the bottom (Stack.Vitals, art in art/ui/figma): segmented
+-- The vitals mount at the bottom (Stack.Vitals; plate and plaque art/ui/hud, rims art/ui/figma): segmented
 -- health, the combat qi bar (Qi/QiMax, the mana techniques spend) and the guard
 -- trough (GuardBar.luau drives that one), with the realm plaque (Crest) on top. Your
 -- own name isn't on the HUD (user, 2026-10-22: a name row made the stack too tall on
 -- phones and told you nothing). A refused
 -- cast (QiDenied changes) flashes the qi bar and shakes the mount. Cultivation and
 -- the dantian aren't here: they show while seated (SeatBars.luau). Also active
--- buffs with countdowns, and toasts. The top-left corner is left to Roblox's chat.
+-- buffs (round chips with a draining ring under the objective) and toasts. The
+-- top-left corner is left to Roblox's chat.
 
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
@@ -17,6 +18,7 @@ local Items = require(ReplicatedStorage.Shared.Items)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
+local SlotArt = require(script.Parent.SlotArt)
 local State = require(script.Parent.State)
 
 local TOAST_SECONDS = 3.2
@@ -24,6 +26,7 @@ local TOAST_QUEUE_MAX = 4 -- older pending toasts are dropped past this
 local TOAST_GAP = 8 -- px kept from Roblox's buttons, the tiles, windows and the edges
 local TOAST_MAX_TEXT = 380 -- widest a toast's text runs before it wraps
 local BUFF_LABELS = { QiRate = "cultivation", WalkSpeed = "speed" }
+local TIP_SECONDS = 4 -- a tapped buff chip shows its words this long
 
 local player = Players.LocalPlayer
 
@@ -138,31 +141,113 @@ local function formatTime(seconds: number): string
 	return string.format("%d:%02d", seconds // 60, seconds % 60)
 end
 
-local function buffText(b: State.Buff, now: number): string
-	local item = Items.Defs[b.source]
+-- One line per effect: "+6 speed", "+10% cultivation".
+local function effectText(b: State.Buff): string
 	local amount = if b.kind == "QiRate" then `+{math.floor(b.amount * 100 + 0.5)}%` else `+{b.amount}`
-	return `{item and item.name or b.source}: {amount} {BUFF_LABELS[b.kind] or b.kind}  {formatTime(b.expires - now)}`
+	return `{amount} {BUFF_LABELS[b.kind] or b.kind}`
 end
+
+-- Buffs are small round chips under the objective (Play.Tracker.Buffs): the item's
+-- icon on the kit's round seal, with a ring that drains as the buff runs out. One chip
+-- per source item (Cloud Mint's speed and cultivation share one). The words ("Cloud
+-- Mint: +6 speed, +10% cultivation  0:57") show in BuffTip below them on a tap
+-- (touch) or while the mouse is over a chip, so the phone screen keeps its middle.
+local chips: { [string]: ImageButton } = {}
+local tipUntil = 0 -- os.clock() a tapped BuffTip hides
+local hovering = 0 -- chips under the mouse
+
+local function buffGroups(now: number): { { source: string, buffs: { State.Buff }, expires: number, seconds: number } }
+	local groups, order = {}, {}
+	for _, b in State.current.buffs do
+		if b.expires > now then
+			local g = groups[b.source]
+			if not g then
+				g = { source = b.source, buffs = {}, expires = b.expires, seconds = 0 }
+				groups[b.source] = g
+				table.insert(order, g)
+			end
+			table.insert(g.buffs, b)
+			g.expires = math.max(g.expires, b.expires)
+			g.seconds = math.max(g.seconds, b.seconds or 0)
+		end
+	end
+	return order
+end
+
+-- The lit share of a chip's ring (0..1, clockwise from the top): each clipped half
+-- shows the part of the ring on its gradient's opaque side.
+local function setRing(chip: Instance, p: number)
+	local timer = chip:FindFirstChild("Timer") :: Instance
+	local right = ((timer:FindFirstChild("Right") :: Instance):FindFirstChild("Ring") :: Instance):FindFirstChildOfClass("UIGradient") :: UIGradient
+	local left = ((timer:FindFirstChild("Left") :: Instance):FindFirstChild("Ring") :: Instance):FindFirstChildOfClass("UIGradient") :: UIGradient
+	right.Rotation = math.min(p, 0.5) * 360
+	left.Rotation = math.max(p, 0.5) * 360
+end
+
+local spans: { [string]: number } = {} -- source -> longest remaining seen (buffs saved before `seconds`)
 
 local function renderBuffs()
 	local list = gui:FindFirstChild("Buffs", true) :: Frame
-	local template = list:FindFirstChild("BuffTemplate") :: TextLabel
-	for _, child in list:GetChildren() do
-		if child:IsA("TextLabel") and child ~= template then
-			child:Destroy()
-		end
-	end
+	local template = list:FindFirstChild("BuffTemplate") :: ImageButton
+	local tip = gui:FindFirstChild("BuffTip", true) :: GuiObject
 	local now = workspace:GetServerTimeNow()
-	for i, b in State.current.buffs do
-		if b.expires > now then
-			local row = template:Clone()
-			row.Name = "Buff"
-			row.Text = buffText(b, now)
-			row.LayoutOrder = i
-			row.Visible = true
-			row.Parent = list
+	local lines = {}
+	local live = {}
+	for i, g in buffGroups(now) do
+		live[g.source] = true
+		local chip = chips[g.source]
+		if not chip then
+			local made = template:Clone()
+			made.Name = "Buff"
+			made.Visible = true
+			local item = Items.Defs[g.source]
+			local icon = made:FindFirstChild("Icon") :: ImageLabel
+			local glyph = made:FindFirstChild("Glyph") :: TextLabel
+			if item and item.icon then
+				SlotArt.setIcon(icon, item.icon)
+			else
+				icon.Visible = false
+				glyph.Visible = true
+				glyph.Text = if item then item.glyph else "?"
+			end
+			made.Activated:Connect(function()
+				tipUntil = if tip.Visible and tipUntil > os.clock() then 0 else os.clock() + TIP_SECONDS
+				renderBuffs()
+			end)
+			made.MouseEnter:Connect(function()
+				hovering += 1
+				renderBuffs()
+			end)
+			made.MouseLeave:Connect(function()
+				hovering = math.max(0, hovering - 1)
+				renderBuffs()
+			end)
+			made.Parent = list
+			chip = made
+			chips[g.source] = made
+		end
+		chip.LayoutOrder = i
+		local remaining = g.expires - now
+		local span = if g.seconds > 0 then g.seconds else math.max(spans[g.source] or 0, remaining)
+		spans[g.source] = span
+		setRing(chip, math.clamp(remaining / math.max(span, 1), 0, 1))
+		local item = Items.Defs[g.source]
+		local effects = {}
+		for _, b in g.buffs do
+			table.insert(effects, effectText(b))
+		end
+		table.insert(lines, `{item and item.name or g.source}: {table.concat(effects, ", ")}  {formatTime(remaining)}`)
+	end
+	for source, chip in chips do
+		if not live[source] then
+			chip:Destroy()
+			chips[source] = nil
+			spans[source] = nil
 		end
 	end
+	local text = tip:FindFirstChild("Text") :: TextLabel
+	text.Text = table.concat(lines, "\n")
+	tip.Visible = #lines > 0 and (hovering > 0 or tipUntil > os.clock())
 end
 
 local TRAIL = TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.25)

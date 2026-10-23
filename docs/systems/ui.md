@@ -45,8 +45,35 @@ cursor, settings and the admin panel.
   the meditation menu ([meditation](meditation.md)).
 - Top-right tiles (`Hud.Buttons`, right-aligned list): Cultivate, Self (once the
   root is tested), Inventory, Build (near your peak), Travel (in the sect),
-  Settings. 56 px tiles 10 px apart, scaled 0.9 on touch (about 50 px thumb
-  targets), 0.85 on PC; six tiles are about 350 px wide on a phone. Element seals are drawn in
+  Settings. 56 px tiles 8 px apart, scaled 0.9 on touch (about 50 px thumb
+  targets), 0.85 on PC; four tiles are 224 px wide on a phone. The frame is
+  `hud_tile` (art/ui/hud: a lacquer square with chamfered corners, gilt band and
+  inner line, no curls; it fills the tile, nothing overhangs). PC: icon (24 px,
+  cropped to its drawn area) centred between the inner line and the caption, which
+  sits inside the frame's bottom strip with a text stroke; touch: no caption, the
+  icon (28 px) centred on the frame (`Layout`). Badges pin to corners clear of the
+  icon: the key cap (`KeyLabel`, `hud_keycap`, keyboards only) on the top-left
+  corner, the crimson NEW seal on the top-right.
+- Right column under the tiles (`Play.Tracker`, phone HUD pass 2026-10-23): the
+  objective on one compact line (note panel, the kit's quest glyph, 13 px text,
+  28 px tall, truncated past 205 px), then the buffs as 30 px round chips (the
+  kit's round seal, the item's icon, a cream ring that drains to the buff's end;
+  one chip per source item), then `BuffTip`, the words for every buff, shown on a
+  tap (4 s) or while the mouse is over a chip. Buffs carry `seconds` (their span)
+  for the ring.
+- Touch combat cluster (`Play`, placed by `Layout`): Strike (70 px) in the corner,
+  Jump, Dash and Guard (50 px) on an arc 74 px from Strike's centre at 180, 135 and
+  90 degrees, Lock (50 px, only with something to lock) outside it at 112.5
+  degrees, 128 px out. All wear the kit's round seal with the glyph centred and a
+  stroked caption across the bottom rim; no backgrounds or overhanging rings. The
+  lock-on reticle (`hud_lock_reticle`, four gilt chevrons around a ruby diamond, and
+  `hud_lock_ring`, a broken gilt circle) no longer spins; the PC lock hint's key is
+  the same key cap.
+- Phone footprint (2026-10-23, every HUD piece's box, a 2 px raster, with
+  Cultivate, Inventory, Travel, Settings, an objective, two buffs, nine slots):
+  before 33.7% of the screen at 844x390 and 35.0% at 667x375; after 19.7% and
+  23.8%, and the middle half of the top two thirds 8.7% -> 1.3% at 844x390
+  (19.1% -> 5.4% at 667x375, the tile row in the top bar). Element seals are drawn in
   `art/ui/draw_icons.py` (`icon_Root<Element>`) and shown on the weapon badge disc.
   Layout and room for later rows and tabs: [character window](../character/character-window.md).
 - Travel: the menu groups Sect grounds and the Wilds; locked arrays stay listed,

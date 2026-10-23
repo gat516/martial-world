@@ -38,7 +38,9 @@ art. The
 stack takes at most 39% of the screen's height (`Layout` HEIGHT_SHARE), 31% on
 short screens (`Platform.isSmall`, SMALL_HEIGHT_SHARE; 45% once, which on a
 landscape phone in the device emulator, which gets the PC layout, filled over
-half the screen). Its box is aspect 3.758 with MaxSize 560x149, and
+half the screen), and 26% on a touch phone (TOUCH_SMALL_SHARE, phone HUD pass
+2026-10-23: 101 px tall and 381 wide at 844x390, slots 35 px; at 667x375 the
+stack is held by its width, the screen less the touch cluster's room, 347 px). Its box is aspect 3.758 with MaxSize 560x149, and
 `Prompts.Dock` mirrors it.
 
 Redrawn 2026-10-23 to the user's own reference image (the Figma kit's Example
@@ -52,8 +54,26 @@ stack too tall on phones and your own name tells you nothing, so it was cut and
 the stack cropped to the top of the realm plaque (the stack's shares, aspect and
 every child's Y scaled by 0.866 so nothing moved on screen).
 
+Shape and depth (phone HUD pass, user, 2026-10-23, from
+`docs/reference/ui/hud_vitals_reference.webp`: "give the foundation establishment a
+shape and some depth... sharp on the edges but curved, well suiting ornaments"):
+the realm plaque, the vitals plate and the seated plate are drawn by
+`art/ui/draw_hud_frames.py` into `art/ui/hud/`. The plaque is dark red-brown
+lacquer with a lit top edge and an inner shade, its ends come to points through
+concave curved bevels, a gilt band and fine inner line follow that outline, a gilt
+diamond stud with a pearl sits on each point and a small scroll (two curls and a
+bud) beyond it; no cloud caps. The plates are the same notched body in dark
+lacquer with the same depth, a chamfered gilt band and inner line following the
+whole outline (tab included), recessed troughs (shaded under the top lip, tinted
+red, azure and warm for health, qi and guard; jade and blue seated), and gilt
+sockets under the kit's side and tab studs so they read as set into the frame.
+The rims (`Vitals.Mount`, `SeatBars.Mount`: rims, ruby caps, segment cuts, the guard
+seal) are still the Figma exports below, untouched. Realm text: `RealmText` /
+`Title` sit at 0.242-0.758 x 0.2-0.8 of the plaque, inside its inner line, centred
+to 0.00 px. The player's name stays off the HUD.
+
 Art (kit reskin, user, 2026-10-22): exported from the Figma kit, not drawn by
-script. `art/ui/figma/` holds the Figma exports (source frame, pieces and the
+script (the plate and plaque have since been redrawn, above). `art/ui/figma/` holds the Figma exports (source frame, pieces and the
 re-export steps in its README): `Vitals.Plate` (ZIndex 0, behind the bars) is
 the notched body, guard tray and troughs, `Vitals.Mount` (ZIndex 3, over the
 bars) the rims, segment cuts, ruby caps, studs and the guard seal, `Crest`
@@ -73,7 +93,8 @@ ellipsis; two lines left a 21 px icon), the well centred in the space above it
 (28 px, 0.00 px off centre, 12 px at the sides and 4.7 px above and below); on touch
 names hide and the well (64 %) is centred on the slot, 9.4 px from the edges
 (`Layout`). The weapon slot shows the model in hand (its `Model` viewport, 6 px
-from the edges). Phone hotbar size is unchanged. `draw_vitals.ps1`'s
+from the edges). On a touch phone the hotbar shrinks with the stack (35 px slots at
+844x390) and hides empty slots unless the Inventory is open. `draw_vitals.ps1`'s
 `vitals_mount`, `seat_mount`, `realm_plaque`, `vitals_chip` and `name_plaque`
 are no longer used, nor are `fill_sheen`/`fill_edge` (still drawn by
 `draw_vitals.py`, which now also draws the shaped fills).
@@ -127,6 +148,14 @@ touch-only guard button above Dash, placed by `Layout.apply` (not yet checked
 against the Lock button's arc on a phone); GuardController binds it.
 
 ## Known gaps
+- Phone HUD pass (2026-10-23): previewed in the sandbox's Edit view on simulated
+  1920x1080, 1366x768, 844x390 and 667x375 canvases (the real Hud cloned onto a
+  sized frame with Layout's touch flips applied by hand), not on a device, the
+  emulator or in play. Untested: the buff chips' timer and tap/hover details, the
+  `seconds` field on buffs from the server, the arc cluster and Lock button with
+  Roblox's thumbstick, the safe-area inset on a notched phone. The plaque and plates
+  were drawn by script on the brief's say-so; a Codex sheet in the kit's hand could
+  replace them later.
 - The vitals and seat bars were previewed in Studio's edit view at PC size and
   at a phone-sized stack (426 px wide), not on a device or the emulator, and not
   in play: the qi flash, trails, guard trough states, seated swap and nudge

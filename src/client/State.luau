@@ -3,7 +3,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-export type Buff = { source: string, kind: string, amount: number, expires: number }
+export type Buff = { source: string, kind: string, amount: number, expires: number, seconds: number? } -- seconds: its full span (the chip's timer ring)
 export type Technique = { level: number, xp: number }
 export type Snapshot = {
 	insight: number,

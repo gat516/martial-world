@@ -54,7 +54,6 @@ local CAMERA_SHARPNESS = 10 -- higher follows the ideal framing more tightly
 local CAMERA_RISE = 0.3 -- camera height above you, per stud of distance
 local LOOK_BIAS = 0.4 -- how far toward the target the camera looks (0 you, 1 it)
 local RECENTER_SECONDS = 0.25
-local RING_SPIN = 30 -- degrees per second
 local LOCK_FOV_NARROW = 5 -- degrees the view tightens while locked
 local FOV_TWEEN = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local RELEASE_SECONDS = 0.3
@@ -85,7 +84,6 @@ local mouseOverrideFrom: Enum.MouseBehavior? = nil
 
 local reticle: ImageLabel
 local reticleScale: UIScale?
-local ring: GuiObject?
 local lockButton: GuiButton?
 local hint: GuiObject?
 local hintOn = true
@@ -475,15 +473,12 @@ local function recenter(dt: number, root: BasePart)
 	camera.CFrame = camera.CFrame:Lerp(CFrame.lookAt(position, focus), alpha)
 end
 
-local function placeReticle(dt: number, current: Model)
+local function placeReticle(current: Model)
 	local play = reticle.Parent :: GuiObject
 	local point, onScreen = workspace.CurrentCamera:WorldToScreenPoint(chestOf(current))
 	reticle.Visible = onScreen and play.Visible
 	if onScreen then
 		reticle.Position = UDim2.fromOffset(point.X - play.AbsolutePosition.X, point.Y - play.AbsolutePosition.Y)
-	end
-	if ring then
-		ring.Rotation = (ring.Rotation + RING_SPIN * dt) % 360
 	end
 end
 
@@ -533,7 +528,7 @@ local function step(dt: number)
 	local current = target
 	if root and current then
 		updateCamera(dt, root, current)
-		placeReticle(dt, current)
+		placeReticle(current)
 	elseif releaseLeft > 0 then
 		blendOut(dt)
 	elseif root and recenterLeft > 0 then
@@ -596,7 +591,6 @@ function LockOn.init(gui: ScreenGui)
 	reticle = play:FindFirstChild("LockReticle") :: ImageLabel
 	reticle.Visible = false
 	reticleScale = reticle:FindFirstChildOfClass("UIScale")
-	ring = reticle:FindFirstChild("Ring") :: GuiObject?
 	lockButton = play:FindFirstChild("LockButton") :: GuiButton?
 	hint = play:FindFirstChild("LockHint") :: GuiObject?
 	if hint then

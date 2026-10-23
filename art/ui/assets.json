@@ -454,5 +454,14 @@
   "plaque/plaque_ruby_capR.png": "rbxassetid://104762954477486",
   "plaque/plaque_ruby_capL_curl.png": "rbxassetid://91394554610042",
   "plaque/plaque_ruby_capR_curl.png": "rbxassetid://115839665280602",
-  "plaque/plaque_ruby_mid.png": "rbxassetid://120248080624596"
+  "plaque/plaque_ruby_mid.png": "rbxassetid://120248080624596",
+  "hud/hud_vitals_plate.png": "rbxassetid://135989591071403",
+  "hud/hud_seat_plate.png": "rbxassetid://121701929995323",
+  "hud/hud_realm_plaque.png": "rbxassetid://107956469862117",
+  "hud/hud_tile.png": "rbxassetid://88576345735696",
+  "hud/hud_keycap.png": "rbxassetid://105124348963810",
+  "hud/hud_timer_ring.png": "rbxassetid://85826800887191",
+  "hud/hud_lock_reticle.png": "rbxassetid://99653636140644",
+  "hud/hud_lock_ring.png": "rbxassetid://139121236979841",
+  "hud/hud_lock_on.png": "rbxassetid://108572049559408"
 }

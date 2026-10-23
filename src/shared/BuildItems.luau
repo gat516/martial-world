@@ -36,6 +36,8 @@
 -- stems are within `radius` studs: `growth` adds to their growth speed, `luck`
 -- to their weather mutation chances; nearby pieces add up (Garden.luau). `soil`
 -- marks a plot (tagged HerbPlot) and the plants it takes (Herbs.Soils).
+-- Sets: `set` names the themed set (BuildItems.Sets) a piece belongs to; the
+-- catalog shows a set's tab and medallion once any item carries it.
 
 local Realms = require(script.Parent.Realms)
 
@@ -66,6 +68,7 @@ export type Def = {
 	meditation: number?,
 	garden: { radius: number, growth: number?, luck: number? }?,
 	soil: string?,
+	set: string?, -- BuildItems.Sets id
 	order: number,
 }
 
@@ -81,6 +84,17 @@ BuildItems.CategoryNames = {
 	Nature = "Nature",
 	Decor = "Decor",
 	Cultivation = "Cultivation",
+}
+
+-- The themed sets (roadmap §6), in catalog order. The pieces come with each
+-- set's modeling pass; until an item names a set, its tab stays hidden.
+BuildItems.Sets = {
+	{ id = "courtyard", name = "Mortal Courtyard" },
+	{ id = "jadePavilion", name = "Jade Pavilion" },
+	{ id = "cloudPalace", name = "Cloud Palace" },
+	{ id = "herbHouse", name = "Herb House" },
+	{ id = "library", name = "Library and Training" },
+	{ id = "formation", name = "Formations" },
 }
 
 local FLOOR = { "floor" } :: { Surface }

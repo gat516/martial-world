@@ -5,13 +5,17 @@
 --          "Buy & Place": it buys one (anywhere) and goes straight to placing.
 --   shop   from the Spirit Market stall on the main peak: Buy only. Closes when
 --          you walk out of range of the stall.
--- Both list every item (BuildItems.Order) with category tabs, a search box and an
--- Owned filter. Each tile shows a 3D preview, its owned count, how many are placed
+-- Both list every item (BuildItems.Order) with category tabs (kit catalog tabs),
+-- set tabs with each themed set's medallion (only for sets that have items), a
+-- search box and an Owned filter. Each tile shows a 3D preview, its owned count, how many are placed
 -- (and the limit), its cost, a badge for its main benefit, and a lock with the
 -- reason when it can't be used: a realm not reached or the peak's limit reached.
 -- The detail panel shows a big slowly turning preview, every benefit, the
 -- placement rule and limits before you commit. Store and Move live in build
 -- mode's banner (BuildMode), not here.
+-- The peak-score gauge under the tabs shows the player's PeakScore and
+-- PeakScoreCap attributes, and stays hidden until the server sets them
+-- (roadmap §6, "Rewards for building"; docs/systems/build.md).
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -38,6 +42,17 @@ local WARN_COLOR = Color3.fromRGB(240, 120, 100)
 local NOTE_COLOR = Color3.fromRGB(230, 214, 170)
 local COST_COLOR = Color3.fromRGB(240, 230, 200)
 local SPIN_SPEED = 0.35 -- radians per second, detail preview
+
+-- C2 set medallions (art/ui/assets.json codex/cut/ornament_set_*), by BuildItems.Sets id
+local MEDALLIONS: { [string]: string } = {
+	courtyard = "rbxassetid://82917545293276",
+	jadePavilion = "rbxassetid://139878185241582",
+	cloudPalace = "rbxassetid://116721557152146",
+	herbHouse = "rbxassetid://111444790017398",
+	library = "rbxassetid://136450891486347",
+	formation = "rbxassetid://92274006301011",
+}
+local SET_PREFIX = "set:"
 
 export type Mode = "build" | "shop"
 export type Handlers = {
@@ -241,8 +256,21 @@ local function statusOf(def: BuildItems.Def, owned: number, placed: number): Sta
 	return { note = `{owned} ready to place`, color = OK_COLOR, canBuy = affordable, canPlace = true, needsBuy = false }
 end
 
+local function setOf(id: string?): { id: string, name: string }?
+	for _, set in BuildItems.Sets do
+		if set.id == id then
+			return set
+		end
+	end
+	return nil
+end
+
 local function matches(def: BuildItems.Def, owned: number): boolean
-	if category ~= "All" and def.category ~= category then
+	if string.sub(category, 1, #SET_PREFIX) == SET_PREFIX then
+		if def.set ~= string.sub(category, #SET_PREFIX + 1) then
+			return false
+		end
+	elseif category ~= "All" and def.category ~= category then
 		return false
 	end
 	if ownedOnly and owned < 1 then
@@ -301,6 +329,17 @@ local function showDetail()
 	local status = statusOf(def, owned, placed)
 	showPreview(def)
 	setText(detail, "NameLabel", def.name)
+	local set = setOf(def.set)
+	local setLabel = find(detail, "SetLabel") :: TextLabel?
+	if setLabel then
+		setLabel.Text = if set then `{set.name} set` else ""
+		setLabel.Visible = set ~= nil
+	end
+	local medallion = find(detail, "SetMedallion") :: ImageLabel?
+	if medallion then
+		medallion.Image = if set then MEDALLIONS[set.id] or "" else ""
+		medallion.Visible = set ~= nil
+	end
 	setText(detail, "DescLabel", def.description)
 	local benefits = BuildCatalog.benefits(def)
 	local benefitLabel = find(detail, "Benefits") :: TextLabel?
@@ -548,7 +587,65 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 			tiles[id] = tile
 		end
 	end
+	-- set tabs, for the sets that have items so far
+	local setTemplate = find(bar, "SetTemplate") :: GuiButton?
+	local heading = find(bar, "SetsHeading") :: GuiObject?
+	local anySet = false
+	for i, set in BuildItems.Sets do
+		local used = false
+		for _, id in BuildItems.Order do
+			if BuildItems.Defs[id].set == set.id then
+				used = true
+				break
+			end
+		end
+		if used and setTemplate then
+			anySet = true
+			local key = SET_PREFIX .. set.id
+			local tab = setTemplate:Clone()
+			tab.Name = key
+			tab.LayoutOrder = 100 + i
+			find(tab, "Label").Text = set.name
+			find(tab, "Medallion").Image = MEDALLIONS[set.id] or ""
+			tab.Visible = true
+			tab.Activated:Connect(function()
+				setCategory(key)
+			end)
+			tab.Parent = setTemplate.Parent
+			tabs[key] = tab
+		end
+	end
+	if heading then
+		heading.Visible = anySet
+	end
 	setCategory("All")
+
+	-- the peak-score gauge: shown once the server sets PeakScore (and its cap)
+	local gauge = find(bar, "PeakScore") :: GuiObject?
+	local tabList = find(bar, "Tabs") :: GuiObject?
+	local tabSize = if tabList then tabList.Size else UDim2.new()
+	local function showScore()
+		if not (gauge and tabList) then
+			return
+		end
+		local score = player:GetAttribute("PeakScore")
+		local cap = player:GetAttribute("PeakScoreCap")
+		local shown = type(score) == "number"
+		gauge.Visible = shown
+		tabList.Size = if shown then tabSize - UDim2.fromOffset(0, gauge.Size.Y.Offset + 6) else tabSize
+		if shown then
+			local total = if type(cap) == "number" and cap > 0 then cap else nil
+			setText(gauge, "ScoreLabel", tostring(math.floor(score :: number)))
+			setText(gauge, "CapLabel", if total then `of {total}` else "")
+			local fill = find(gauge, "Fill") :: GuiObject?
+			if fill then
+				Motion.ease(fill, { Size = UDim2.fromScale(1, if total then math.clamp((score :: number) / total, 0, 1) else 1) })
+			end
+		end
+	end
+	player:GetAttributeChangedSignal("PeakScore"):Connect(showScore)
+	player:GetAttributeChangedSignal("PeakScoreCap"):Connect(showScore)
+	showScore()
 
 	search:GetPropertyChangedSignal("Text"):Connect(BuildCatalog.refresh)
 	if ownedToggle then

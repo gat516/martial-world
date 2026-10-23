@@ -30,8 +30,11 @@ consumables: spirit cores from beasts and heavenly treasures.
   edits, beast drops (`onKill`), `grant`.
 - `src/server/Treasures.luau`: treasures that fall in the wilds in auspicious weather.
 - Client: `GardenView.luau` (draws plants from the plot's `Plants` JSON, prompts,
-  PlantTag), `Planting.luau` + `PlantingBar.luau` + `SeedPicker.luau`,
-  `PlantTag.luau`, `HerbShop.luau`, `Inventory.luau`, `HotbarView.luau`, `SlotArt.luau`.
+  PlantTag), `Planting.luau` + `PlantingBar.luau` + `SeedPicker.luau` (seed packet
+  tiles), `PlantTag.luau`, `HerbShop.luau`, `Inventory.luau`, `HotbarView.luau`,
+  `SlotArt.luau`; `HerbArt.luau` (shared kit art: herb in an item slot, rarity gems,
+  mutation ribbons, tier shields); `Herbarium.luau` (the collection book, ready to
+  wire). Their look and the Herbarium's API: [herbarium](../ui/herbarium.md).
 - Models: `ReplicatedStorage.GardenKit` (`assets/GardenKit.rbxmx`); plots are build
   items tagged `HerbPlot` with a `Soil` attribute.
 - `src/client/HerbAnimator.luau`: procedural R6 hand-to-mouth gesture, bite,
@@ -68,4 +71,7 @@ the pose and prop. Unsupported rigs skip the gesture (the game uses R6).
 
 ## Known gaps
 - Grow now product ids are placeholders (0) until the products are created.
+- The Herbarium (`StarterGui.Herbarium`) is built but nothing opens it: it waits for
+  herb tiers and a per-player collection record (discovered, harvested, largest,
+  mutations seen); contract in [herbarium](../ui/herbarium.md).
 - Herb and item qi are flat per item, not scaled by stage.

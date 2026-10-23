@@ -13,7 +13,7 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
-local Items = require(ReplicatedStorage.Shared.Items)
+local HerbArt = require(script.Parent.HerbArt)
 local Hud = require(script.Parent.Hud)
 local MarketRange = require(script.Parent.MarketRange)
 local Menus = require(script.Parent.Menus)
@@ -69,14 +69,12 @@ local function act(...: any)
 	end
 end
 
-local function paintSwatch(row: Instance, id: string)
-	local herb = Herbs.Defs[id]
-	local item = Items.Defs[id]
-	local swatch = row:FindFirstChild("Swatch") :: Frame
-	local icon = swatch:FindFirstChild("Icon") :: ImageLabel
-	swatch.BackgroundColor3 = herb.color
-	icon.Image = if item and item.icon then item.icon else ""
-	swatch.BackgroundTransparency = if icon.Image ~= "" then 1 else 0
+local function paintRow(row: Instance, id: string)
+	HerbArt.paint(row:FindFirstChild("Swatch") :: Instance, id)
+	local gem = row:FindFirstChild("Gem") :: ImageLabel?
+	if gem then
+		HerbArt.gem(gem, Herbs.Defs[id].rarity)
+	end
 end
 
 local function setButton(button: GuiButton, text: string, enabled: boolean)
@@ -91,7 +89,7 @@ local function addRow(order: number, id: string, detail: string, price: number, 
 	local row = template:Clone()
 	row.Name = "Row"
 	row.LayoutOrder = order
-	paintSwatch(row, id)
+	paintRow(row, id)
 	find(row, "NameLabel").Text = herb.name
 	find(row, "Detail").Text = detail
 	local priceLabel = find(row, "PriceLabel") :: TextLabel

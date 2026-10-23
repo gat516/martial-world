@@ -467,8 +467,39 @@ def check(alpha, region):
     return (bx1 + x1, by1 + y1, bx2 + x1, by2 + y1), errs
 
 
+def bleed(arr, passes=24):
+    """Give fully transparent pixels the colour of their nearest visible neighbours.
+
+    Keying leaves junk RGB under alpha 0 and in faint edge pixels (keyed magenta despills to pure green), and
+    both downscaling here and Roblox's texture filtering mix that colour into the
+    edges, which showed as green fringes along stretched rails. Visible pixels are
+    untouched; only what sits under alpha 0 changes.
+    """
+    arr = arr.copy()
+    known = arr[..., 3] >= 128  # colour only from mostly opaque art; faint edges carry keyed green too
+    if known.all() or not known.any():
+        return arr
+    rgb = np.where(known[..., None], arr[..., :3], 0).astype(np.float64)
+    w = known.astype(np.float64)
+    for _ in range(passes):
+        if known.all():
+            break
+        acc = np.zeros_like(rgb)
+        cnt = np.zeros_like(w)
+        for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)):
+            acc += np.roll(np.roll(rgb * w[..., None], dy, 0), dx, 1)
+            cnt += np.roll(np.roll(w, dy, 0), dx, 1)
+        grow = ~known & (cnt > 0)
+        rgb[grow] = acc[grow] / cnt[grow][:, None]
+        w = np.where(grow, 1.0, w)
+        known = known | grow
+    rgb[~known] = rgb[known].mean(0)  # far from any art: the art's average colour
+    arr[..., :3] = np.where((arr[..., 3] >= 128)[..., None], arr[..., :3], rgb)
+    return arr
+
+
 def to_image(arr):
-    return Image.fromarray(np.round(arr).astype(np.uint8), "RGBA")
+    return Image.fromarray(np.round(bleed(arr)).astype(np.uint8), "RGBA")
 
 
 def fit(im, w, h):

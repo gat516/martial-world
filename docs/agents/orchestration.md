@@ -223,6 +223,12 @@ The user can't steer what they can't see (user, 2026-10-23).
   which flush live) into one line per tool call, and shows each agent's
   `## Status:` lines. Every brief asks for a status line per phase; an agent that
   only shows `execute_luau` for twenty minutes isn't following its brief.
+- **In the sandbox window:** every visual agent keeps `tools/review_stage.luau`
+  showing its current state (a model turning beside an R6, a clip or cast looping
+  with effects and sounds, a UI screen with sample data) and refreshes it after
+  each build round. It never stops for a look; the user flags it if they want a
+  change. Say in the brief when the user is away so variants get picked by the
+  critic instead of waiting.
 - **In the app:** the title-bar menu > Background tasks lists running agents,
   opens their output and stops them; Transcript view > Verbose shows every tool
   call. In a terminal, `/tasks` does the same (`x` stops one).

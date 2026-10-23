@@ -8,11 +8,17 @@ the per-race prompts are in `art/player/cosmetics/briefs/` with the concept shee
 
 ## Pipeline
 
-1. **Blender, by a fresh `modeler` per set** (user, 2026-10-23: part-built looks
+1. **Blender, by a fresh `modeler` per set or race** (user, 2026-10-23: part-built looks
    "sucked"). Never Studio parts, never `enemy-modeler`. One race at a time in the
    one live Blender, scene `Cosmetics`, beside the untouched `R6Reference`
    collection (from `art/rig/r6_rigged.fbx`); each set in its own collection, other
    sets hidden, not deleted.
+   **Parallel modelers don't share the live Blender** (one process, one active
+   scene: `look` and context collide). Each runs its own headless Blender through
+   `tools/blender_run.sh <script.py> [file.blend] [KEY=VALUE...]`: the build script
+   imports `art/rig/r6_rigged.fbx`, saves the race's `.blend`, renders its sheet
+   tiles and exports. Each works in its own worktree. Only one agent at a time uses
+   the live MCP Blender, so the user can watch it.
 2. **Directions first.** 2-3 directions on one sheet, then stop for the user's pick.
    The user often keeps all of them as variants.
 3. **Polish, export, commit.** One FBX + JSON per set under
@@ -72,9 +78,11 @@ first note (a pi turn) put the tail in front of the body.
   - Inner fur: a few soft, chunky, rounded tufts that fill the cup, not thin needle
     spikes ("and the 'fur' thats in the inside").
   - Read: judge it from game-camera distance, not only up close.
-- **Moods as variants.** The user wants both "cool / tuff / aggressive and cute"
-  variants. Sharper, swept-back shapes with darker tips sit beside soft, rounded
-  ones.
+- **Variants really vary.** "when i mean variant make it really vary. instead of
+  pointy, give it a round peak" (user, 2026-10-23). Each variant has its own
+  silhouette, recognisable at game distance: a round soft peak against a sharp
+  notched point against a folded tip. Tweaks of tilt or tufts don't count. Cover
+  both moods, "cool / tuff / aggressive and cute".
 - **Clear the body.** Ears clear a normal hair accessory and work bald; tails clear
   the legs and arms at rest and while running.
 - **Budget:** ears about 1,500 tris a pair, a tail about 4,000 (6,000 at most).

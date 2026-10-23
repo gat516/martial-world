@@ -93,9 +93,12 @@ keyed. Every vertex is weighted 1.0 to one bone: rock doesn't bend.
 | `Rock` | `Stone_Rock` | SmoothPlastic | dark basalt slate (0.075, 0.08, 0.088) |
 | `Jade` | `Stone_Jade` | Neon | jade green (0.04, 0.88, 0.42) |
 
-- **Shading.** `stone_shade.png` is a greyscale ramp on UV V (rock undersides darker, Jade V = 1),
-  used as a SurfaceAppearance ColorMap tinted by Color, as on the fox. To recolour (bloodlines,
-  blue-green jade), set both the MeshPart's `Color` and its `SurfaceAppearance.Color`.
+- **Shading.** `stone_shade.png` is a greyscale ramp on UV V (rock undersides darker), used on
+  the Rock parts as a SurfaceAppearance ColorMap tinted by Color, as on the fox. To recolour
+  rock, set both the MeshPart's `Color` and its `SurfaceAppearance.Color`.
+- **Jade in Roblox** is plain Neon with no SurfaceAppearance (one would replace the glow), so
+  recolour it with the MeshPart's `Color` alone. Its colour is sRGB `(0.10, 0.75, 0.30)`, not
+  the converted Blender green: Neon pushed that (0.22, 0.95, 0.68) to cyan in the sandbox.
 
 ## Files
 
@@ -113,16 +116,60 @@ keyed. Every vertex is weighted 1.0 to one bone: rock doesn't bend.
   and `SCENE = "Lineup"`. Set `SCENE` explicitly: the build's own `SCENE = "Cosmetics"` persists in
   the window, and the lineup tool deletes and replaces the scene it names.
 
-## Next and untested
+## In Roblox
 
-Next: the Roblox import, done by a separate agent as on the fox. It uploads each FBX as a
-model, inserts it, and runs a `place_stone_spirit_cosmetics.luau` that makes the Accessories with
-`Region` attributes and a Neon Jade. Then it exports `assets/Cosmetics/<Set>.rbxm` and names the
-sets in the Stone Spirit variants' `Cosmetics`.
+The nine accessories are in `ReplicatedStorage.Cosmetics.StoneSpirit`
+(`assets/Cosmetics/StoneSpirit.rbxm`). Stone Spirit wears them through its `Style` look (Peak,
+the default, Orbit, Fist), each option the three accessories of its set
+(`src/shared/Identity/Races.luau`). Uploaded model assets (2026-10-23):
 
-Untested in game:
+| Accessory | Asset |
+| --- | --- |
+| `StonePeakPlateL` | `rbxassetid://92669054322581` |
+| `StonePeakPlateR` | `rbxassetid://97682972584791` |
+| `StonePeakShards` | `rbxassetid://74609701843949` |
+| `StoneOrbitShards` | `rbxassetid://106334816334151` |
+| `StoneOrbitBracerL` | `rbxassetid://83150393363152` |
+| `StoneOrbitBracerR` | `rbxassetid://132340835437575` |
+| `StoneFistGauntletL` | `rbxassetid://70562460080742` |
+| `StoneFistGauntletR` | `rbxassetid://95537660485688` |
+| `StoneFistShards` | `rbxassetid://138619509712287` |
+
+Shade ramp: `rbxassetid://89749165133866` (`stone_shade.png`, Studio MCP `upload_image`).
+
+**Rebuild** (in a sandbox, no FBX import step), as Dragonblood's:
+1. Upload the changed FBX with `python3 tools/upload_asset.py model <Set>.fbx` and put the new
+   id in `place_stone_spirit_cosmetics.luau` (`ASSETS`).
+2. Insert each model asset into Workspace as `_Import<Set>` (Studio MCP `insert_asset`).
+3. Run `place_stone_spirit_cosmetics.luau` through `execute_luau` (serve the worktree with
+   `tools/serve.sh <port>` and `loadstring(HttpService:GetAsync(url))()`). It builds each
+   import into the Accessory `<Set>` in `ReplicatedStorage.Cosmetics.StoneSpirit`, asserts
+   every mesh is there exactly once, and deletes the imports. Sandbox only: never build
+   inside the Rojo-mapped Cosmetics folder in a connected place.
+4. Export: `_G.exportRbxm("ReplicatedStorage.Cosmetics.StoneSpirit")` (`tools/export_rbxm.luau`)
+   posted to the receiver as `/StoneSpiritCosmetics.rbxm`, then move the file to
+   `assets/Cosmetics/StoneSpirit.rbxm`.
+
+**Accessory layout:** `Handle` is an invisible 0.2 cube at the attachment point (the importer's
+`RootPart`), holding one Attachment named like the R6 one it wears on and the bones. Every
+R6 body attachment used here is unrotated, so the meshes need no turn. AccessoryType:
+Shoulder (plates), Back (shards), Unknown (bracers, gauntlets). The skinned MeshParts are
+welded to the Handle, each with a `Region` attribute.
+
+**Checked in the sandbox (edit mode, R6 dummies, all three styles worn with
+`Humanoid:AddAccessory`):**
+- Every Handle sits exactly on its body attachment, and every mesh centre and size matches
+  the JSON within 0.001.
+- `Bone.Transform` moves the skinned meshes (a Peak shard and a pauldron lifted).
+- The gauntlet stays put on the arm through a 70 degree shoulder swing.
+- After `Model:ScaleTo(1.15)`, the Peak pauldron's mesh sizes, offsets and bone positions
+  measure 1.15x exactly, and its Handle stays on the shoulder attachment.
+
+## Untested
+
+In game:
 - the arm pieces on the grip attachment while a weapon is held (the gauntlets cover the fist)
 - shards in front of the face at the game camera
 - bone motion (nothing drives the bones yet)
-- Neon jade at distance
-- `ScaleTo(1.15)`
+- Neon jade at distance and its bloom on phones
+- the creator preview's rigid copies of the arm pieces and the Fate step's Style arrows

@@ -22,7 +22,7 @@ screen it extends ([character creator](character-creator.md)).
 - **Variants carry traits, looks are free** (user, 2026-10-23). A variant with
   traits or stats (Beast Folk Wolf, Tiger...) is rolled with the race and
   rerolled for Robux. A purely cosmetic choice inside a race (Spirit Fox's tail
-  and ears) is a `Looks` slot on the race: the player picks it with arrows on the
+  and ears, Stone Spirit's style) is a `Looks` slot on the race: the player picks it with arrows on the
   creator's Fate step, free, and can change it whenever they edit the look.
 - **Availability is one file.** Release, hide or switch off any race, variant
   or trait, and say how it's obtained, without touching its definition. Serpent
@@ -47,7 +47,7 @@ screen it extends ([character creator](character-creator.md)).
 |---|---|
 | Race definitions (names, rarity, roll weight, innate traits, modifiers, mechanics, which variants module) | `src/shared/Identity/Races.luau` |
 | Beast Folk variants (same fields) | `src/shared/Identity/Variants/BeastFolk.luau` |
-| Free looks a race offers (Spirit Fox's tail and ears: `Looks`) | `src/shared/Identity/Races.luau` |
+| Free looks a race offers (Spirit Fox's tail and ears, Stone Spirit's style: `Looks`) | `src/shared/Identity/Races.luau` |
 | Trait definitions: racial / variant traits | `src/shared/Identity/Traits/Racial.luau` |
 | Trait definitions: general traits | `src/shared/Identity/Traits/General.luau` |
 | A new trait category | a new file in `Traits/`; its name is the category |
@@ -188,7 +188,8 @@ joint names are in `art/player/cosmetics/README.md`; how new ones are made is
 | Beast Folk Tiger | TigerEarsRound, TigerTailCurl, TigerWhiskersMarks | Tiger (skinned Blender meshes) |
 | Beast Folk Crane | CraneHeadCascade, CraneFanCascade | Crane (skinned Blender meshes) |
 | Dragonblood | DragonHornsAntler, DragonTailTuft | Dragonblood (skinned Blender meshes) |
-| Stone Spirit / Demonic Human / Ghost | StoneShards / DemonHorns / GhostWisps | Spirits (part-built placeholders) |
+| Stone Spirit (Look: Style Peak / Orbit / Fist, picked freely) | StonePeakPlateL/R + StonePeakShards / StoneOrbitShards + StoneOrbitBracerL/R / StoneFistGauntletL/R + StoneFistShards | StoneSpirit (skinned Blender meshes) |
+| Demonic Human / Ghost | DemonHorns / GhostWisps | Spirits (part-built placeholders) |
 
 Spirit Fox's three tails and three ear shapes are its `Looks` (Tail, Ears), each
 picked freely and separately on the creator's Fate step (user, 2026-10-23: purely
@@ -213,9 +214,13 @@ The Dragonblood set holds three looks, each horns and a tail: Antler (worn; the
 user's favourite part-built DragonHorns, remodelled), Celestial and Cub. Celestial and
 Cub wait for a style picker (`art/player/cosmetics/dragonblood/README.md`).
 
-Stone Spirit has three Blender-built sets kept as variants (user, 2026-10-23), each worn
-whole: Peak (pauldrons + a shard arc), Orbit (a shard ring + bracers) and Fist (gauntlets
-+ three shards), in `art/player/cosmetics/stone-spirit/`, waiting for import.
+Stone Spirit's one `Looks` slot, Style, picks a whole set of three accessories (user,
+2026-10-23: all three directions kept): Peak (the default: stone pauldrons on the shoulder
+attachments + a shard arc behind the head), Orbit (a shard ring round the shoulders +
+forearm bracers) and Fist (stone gauntlets on the grip attachments + three high shards).
+The sets aren't mixed, since one set's shards would cut through another's plates. The
+part-built `StoneShards` in Spirits is now an unused leftover
+(`art/player/cosmetics/stone-spirit/README.md`).
 
 Human (the plain race) and Giant (its look is its size) wear nothing (user,
 2026-10-23: "no need to go super crazy"). `Traits.applyBody` adds the ones the profile

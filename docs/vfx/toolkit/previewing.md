@@ -96,6 +96,16 @@ The critic step judges one image plus the lint printouts, never a pile of captur
     Run `fx.emit` once per tier, frozen later, only to confirm the module plays everything.
   - `.freeze()` sets `ParticleEmitter.TimeScale = 0` after your `task.wait(t)` so a capture
     holds the moment (tweens keep running). Then `.clear()` (only while you hold the lock).
+- **Weapon skills with their own clip** (`Animations.Techniques.<Id>`: Heaven-Splitting
+  Descent, Rampaging Tiger...) can't go through `castThrough`, which plays Fists clips.
+  `tools/vfx_skill_preview.luau` (load after `vfx_preview`) gives
+  `_G.skillPreview.filmstrip({ id, level, radius, moments })`: the same review image, each
+  cell played on a clone of `workspace.Rig` holding the real weapon (hang it like
+  `Weapons.apply`), clip scrubbed at `castSpeed`, root driven over `lungeWindow`. It also
+  gives `_G.reviewLoop.start({ id, levels = { 10, 1 }, every = 4 })`, a repeating cast on
+  a grass plate for someone watching the sandbox window (`_G.reviewLoop.stop()`).
+- The editor camera turns back toward `Camera.Focus` a moment after you set its CFrame:
+  set `Focus` to the look-at point too, or the view swings away.
 - A scrubbed track (`castThrough` plays at speed 0 and sets TimePosition) never fires its
   markers, so BladeSkill beats tied to a marker run on their fallback, 0.08 s late, in
   previews only.

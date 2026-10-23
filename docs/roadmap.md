@@ -218,6 +218,11 @@ and goals that don't end**, not from more linear stages. Proposed, in priority o
   leaderboards and festivals.
 
 ## 10. Order of work and who does it
+
+**How we work (user, 2026-10-22):** one system at a time, designed and built with the
+user in the main session, checked at each step. Subagents are for mass asset
+generation only (technique VFX batches, building sets, model batches). The Agents
+column below is who builds the *assets*, not who designs the system.
 Each phase ends in a commit and a test-build playtest.
 
 | Phase | Work | Agents |

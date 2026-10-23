@@ -35,6 +35,11 @@ already paid for; don't relearn them.
   into art. If a piece blurs when shrunk or stretched, don't fight it: ask for more
   assets (small, medium and large variants). Mobile first, and check at real size on
   the phone emulator.
+- **Never repaint generated art (user, 2026-10-22).** The generator's finished image looks
+  better than anything rebuilt from parts, so crop it, key the background, slice or tile
+  it, tint it for states and put real text on top; do not redraw, mirror or recompose its
+  ornaments. Variable widths come as short/medium/long finished images (ask for more when
+  one doesn't fit). See docs/ui/codex-brief.md.
 - **Scale from a baseline, not by hand (user, 2026-10-22).** Lay each ScreenGui out once
   at a baseline resolution (desktop 1920x1080, phone landscape about 844x390; see
   docs/ui/overhaul-plan.md) and fit it with one authored `UIScale` per ScreenGui,

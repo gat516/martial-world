@@ -1,181 +1,162 @@
-# Codex brief: what to generate so the UI scales
+# Codex brief: finished art, at fixed sizes, cut not redrawn
 
-Written 2026-10-22. This replaces the whole-sheet prompts in
-[overhaul-plan](overhaul-plan.md) for anything that has to scale (frames, panels,
-buttons, banners, prompts). The screens and phases there still stand; this page is
-**how to ask the generator for the art**.
+Rewritten 2026-10-22 after the user's point: when an AI (or Pillow) *rebuilds* generated art
+from parts, it never looks as good as the generator's own image. So the rule is:
 
-## The idea: generate a kit of parts, not finished screens
-A finished dialogue panel from an image generator is one fixed size. On a phone, a
-desktop, or a longer line of text it must stretch, and the generator can't promise
-plain edges. So ask for the **parts**, and the build step assembles them at any size:
+> **The image generator draws every finished piece. We never repaint, rebuild or
+> "recreate" generated art. Our job is to crop it, key out the background, slice it
+> if it must stretch, tint it for states, and put real text on top.**
 
-- **Corners** (ornate), with a short straight border arm leaving each. We mirror one
-  corner into all four, and extend the plain border between them, so a panel can be any
-  size and the ornament never stretches.
-- **Button ends** (left cap, right cap) and a plain middle. A button can then be any
-  width.
-- **Ornaments** as separate overlays (the cloud flourish on a name tab, a header
-  crest), placed by code and scaled independently.
-- **Icons as white glyphs**, tinted in code, so one drawing serves every colour.
-- **Text is never in the art.** Fonts draw all text, including the key letter on a
-  prompt plate, so it stays sharp at every scale.
+This replaces the earlier "kit of parts" plan (corners mirrored into panels, buttons built
+from caps). That plan made the work fall back on us, which is the problem. The screens and
+phases in [overhaul-plan](overhaul-plan.md) still stand.
+
+## How scaling works without redrawing
+1. **Scale the whole layout, not the art.** Each screen is laid out once at a baseline
+   (desktop 1920 x 1080, phone about 844 x 390) and fitted with one `UIScale`
+   ([overhaul-plan](overhaul-plan.md), "Resolution and scaling"). A finished panel just
+   gets bigger or smaller with it. Sharp art shrinks crisply, so generate **large**.
+2. **Most pieces are fixed size.** A dialogue panel is the same size on every line of
+   dialogue. A key plate is round and fixed. These need **no stretching at all**: one
+   finished image each.
+3. **Things whose width varies come in sizes.** Buttons and banners get **short, medium
+   and long** versions, each a finished image at its own proportions, and the game picks
+   the one that fits the text. If one is ever too small or large, we ask for another
+   width. More assets is the answer, as decided earlier.
+4. **The phone gets its own art where its shape differs** (a shorter, wider dialogue
+   panel; a smaller portrait), generated at the phone's proportions rather than shrunk
+   from the desktop one.
+5. **If a true stretch is unavoidable** (a long list window), we **slice the actual
+   generated image** with `SliceCenter`, only if its middle and edges are plain enough
+   (the assembler checks this). Otherwise we ask for more sizes. We never mirror or
+   repaint corners.
+6. **Too big for one image (over 1024 px)?** Roblox shrinks anything past 1024, so a
+   wide hero panel is **cut into two or three side-by-side tiles** (each at most 1024
+   px, joined seamlessly), which keeps every pixel the generator drew.
+7. **States are tints, not new art.** Pressed, disabled and hover come from code
+   (`ImageColor3`, `ImageTransparency`, a darker or brighter overlay) on the same
+   image. Only the **highlighted** (gold) look is generated, once.
+8. **Icons are white glyphs**, tinted in code.
+9. **All text is drawn by the font**, never in the art (including the key letter on a
+   prompt plate), so it stays sharp at every scale.
 
 ## What you give Codex every time
 1. **The style reference**: [dialogue_prompt_reference.webp](../reference/ui/dialogue_prompt_reference.webp).
-2. **The master spec** (paste below the image).
-3. **One kit brief** (below). One kit per conversation keeps the style consistent.
+2. **The master spec** (below).
+3. **One piece family** from the list below, per conversation, so the style holds.
+   Ask for several variants and pick the best; **iterate on the image you like**
+   (edit it) rather than regenerating from scratch.
 
-## Master spec (paste at the top of every request)
-> You are making game UI art parts for a Roblox xianxia game. Match the attached
-> reference's look exactly: deep midnight-navy lacquer, warm gold trim, ornate gold
-> corner flourishes with stylized cloud scrolls, cream text areas.
+## Master spec (paste with the reference)
+> You are making finished game UI art for a Roblox xianxia game. Match the attached
+> reference's look exactly: deep midnight-navy lacquer, warm gold trim, ornate gold corner
+> flourishes with stylized cloud scrolls, cream text areas.
 >
-> **Palette (from the reference):** navy panel #192129, lighter navy #333d50, gold
-> #d3a458, dark gold #97763b, cream #faecc3. Stay inside this palette; glows only in
-> gold or warm white.
+> **Palette (from the reference):** navy #192129, lighter navy #333d50, gold #d3a458, dark
+> gold #97763b, cream #faecc3.
 >
-> **Technical rules, all required:**
-> 1. Output each piece **centred in its own square cell** of the stated size, on a
->    **fully transparent background** (PNG with alpha). If you cannot output alpha, use a
->    flat pure magenta #FF00FF background with nothing else behind the piece, no gradient,
->    no shadow on it.
-> 2. **Flat, even, front-on lighting.** No perspective, no 3-D tilt, no rotation, no cast
->    shadow, no drop shadow, no glow spilling outside the piece. Lighting must be symmetrical
->    (we mirror pieces), so no light from one side.
-> 3. **No text, letters, numbers, watermark or logo** anywhere.
-> 4. Pieces keep **4 % empty margin** inside their cell; nothing touches the cell edge,
->    except a straight border arm that is asked to run to the edge.
-> 5. **Crisp edges, no blur, no noise, no photographic texture.** Vector-clean game art.
-> 6. Where I say "plain", it means a single uniform line or flat colour with no
->    ornament, identical along its length.
-> 7. Give **every state of a piece the same silhouette and size** (default, pressed,
->    disabled differ only in colour and inner detail).
-> 8. Produce the pieces as **separate images**, one file per piece, named as in the
->    brief. Do not combine pieces into a poster.
+> **Rules:**
+> 1. One finished piece per image, **at the stated proportions and size**, on a **fully
+>    transparent background** (PNG with alpha). If you cannot output alpha, use a flat pure
+>    magenta #FF00FF background with nothing else on it.
+> 2. **No text, letters, numbers, watermark or logo.** Leave text areas empty. Leave the
+>    key tile on a prompt plate empty.
+> 3. **Front-on, flat game-UI style.** No perspective, tilt or rotation, no cast or drop
+>    shadow. A soft inner glow is fine, but **nothing glows outside the piece's outline**
+>    (it is cropped there).
+> 4. **Keep a calm, empty middle** on panels, buttons and banners (the text goes there), and
+>    keep the ornate detail in the corners and ends. The straight stretches of border
+>    between the ornaments should be **a plain, uniform line**, so the piece can be sliced
+>    if we ever have to.
+> 5. **Crisp, clean edges.** No blur, noise or photographic texture.
+> 6. Leave **4 % empty margin** around the piece.
+> 7. For a set of sizes (short, medium, long), **keep the same ornament size, border
+>    thickness and end shapes**; only the plain middle gets longer.
+> 8. Output at the largest size you can (**at least 2048 px on the long side**) and
+>    keep proportions exact. We downscale; we never upscale.
 
-## Sizes (why they are what they are)
-Layouts are designed at a baseline (desktop 1920 x 1080, phone about 844 x 390) and
-fitted with a `UIScale`. Art is made at **about 2x its baseline display size and no
-larger than 1024 px** (Roblox shrinks anything bigger), because shrinking sharp art
-looks crisp and enlarging small art blurs. So:
+## The pieces, with proportions and sizes
+Display size is at the desktop baseline; generate at 2x or more (we downscale to
+at most 1024 px per image, splitting wide pieces into tiles).
 
-| Piece | Shown at (baseline px) | Make it |
-|---|---|---|
-| Panel corner | about 110 x 110 | 384 x 384 cell |
-| Response button | 520 x 64, ends about 80 wide | 1024 x 256 whole, or caps 256 x 256 |
-| Prompt plate | 88 round | 256 x 256 |
-| Prompt banner | 300 x 60 | 1024 x 256 |
-| Portrait frame | 200 square (phone 110) | 512 x 512 |
-| Icon | 40 square | 256 x 256 |
-| Ornament (name tab flourish) | 120 x 60 | 512 x 256 |
-If a piece looks soft when we shrink or enlarge it, we ask for another size, rather
-than force it.
+### Dialogue (generate first; the reference has most of it)
+| Piece | Proportion | Display (px) | Generate | Notes |
+|---|---|---|---|---|
+| Dialogue panel, desktop | 4 : 1 | 1000 x 250 | 2048 x 512 | name tab sits on top-left; portrait frame at the left; empty text box; chevron at the bottom-right |
+| Dialogue panel, phone | 3 : 1 | 560 x 187 | 1536 x 512 | designed at the phone's proportions, smaller portrait frame |
+| Name tab, S / M / L | 4:1, 6:1, 8:1 | 160, 240, 320 wide | 1024 wide | raised tab with the cloud flourish; normal, **gold** (masters and elders), **crimson** (demon) |
+| Portrait frame, large / small | 1 : 1 | 200 / 110 | 1024 / 512 | square, gold border, cloud flourish bottom-left |
+| Portrait medallion (phone) | 1 : 1 | 96 | 512 | round head-only frame |
+| Continue chevron | 1 : 1 | 28 | 256 | gold, with a separate brighter copy for the pulse |
 
-## Kit 1: the panel kit (dialogue, reward card, quest windows, notices)
-Files (all 384 x 384 cells unless noted):
-- `panel_corner_tl.png`: the top-left corner of a dark navy lacquer panel with a thin
-  gold double border and an ornate gold corner flourish with cloud scrolls. **The two
-  border arms leave the corner as straight plain lines and run to the cell edge**, so
-  the border continues cleanly when we extend it. Only the top-left; we mirror it.
-- `panel_corner_tl_plain.png`: same, with a **much smaller, simpler** flourish (for
-  small notices and tooltips).
-- `panel_inner_corner_tl.png`: the corner of the **inner** thin gold frame (the text area
-  box), small and simple, with arms to the edge.
-- `panel_fill_tile.png` (512 x 512): a **seamlessly tiling** dark-navy fill with a very
-  low-contrast cloud-scroll pattern. It must tile with no visible seam.
-- `tab_cap_left.png`, `tab_mid.png`, `tab_cap_right.png` (512 x 256): the name-tab
-  (a raised tab on a panel's top-left) split into a left cap, a plain stretchable
-  middle, and a right cap carrying the cloud flourish that sweeps out to the right.
-- `ornament_flourish_left.png`, `ornament_flourish_right.png` (512 x 256): the cloud
-  flourish alone, for placing on headers.
-- `chevron_continue.png` (128 x 128): the gold "continue" chevron, white-to-gold.
-- Variants of the tab (`tab_*_gold.png`, `tab_*_crimson.png`): the same shapes in a
-  brighter gold (masters and elders) and in dark crimson (demons).
+### Response buttons
+| Piece | Proportion | Display (px) | Generate |
+|---|---|---|---|
+| Response button, short / medium / long | 6:1, 9:1, 13:1 | 360, 540, 780 x 60 | 2048 wide |
+| Response button, **highlighted** (gold lit, arrow at the right) | the same three | the same | 2048 wide |
+| Icon disc | 1 : 1 | 44 | 256 |
+Pressed, disabled and locked come from tinting the default (we add a lock glyph over it).
 
-## Kit 2: the response-button kit
-For each state, `default`, `highlight`, `pressed`, `disabled`, `locked`:
-- `button_<state>_cap_left.png` and `button_<state>_cap_right.png` (256 x 256 cells):
-  the **end caps** of a long pill, ornate cloud-scroll ends, with an empty circular
-  slot at the left cap for an icon. The cap is cut where the straight middle begins.
-- `button_<state>_mid.png` (64 x 256): the plain stretchable middle. Same height,
-  top and bottom borders only, **identical along its width**.
-- `button_icon_disc.png` (256 x 256): the round icon disc (navy with a thin gold rim).
-- **Highlight** has a gold-lit border and an arrow at the right end (`button_highlight_arrow.png`).
+### Prompts
+| Piece | Proportion | Display (px) | Generate |
+|---|---|---|---|
+| Key plate, empty (brass ring, four studs, an empty cream key tile) | 1 : 1 | 88 | 512 |
+| Prompt banner, short / medium / long | 4:1, 6:1, 9:1 | 220, 330, 480 x 60 | 2048 wide |
+| Hold-to-confirm ring track | 1 : 1 | 88 | 512 |
+The key letter, the finger and the gamepad glyph are drawn on top (text and white glyphs).
 
-## Kit 3: the prompt kit
-- `plate_key_empty.png` (256 x 256): the round brass key plate: thick brass ring, four
-  small diamond studs, an empty cream key tile in the middle. **No letter on it**; the
-  game draws E, A, X or a finger on top.
-- `plate_key_pressed.png`: same, pressed in.
-- `plate_hold_ring_track.png` (256 x 256): a thin empty gold ring (the track for
-  hold-to-confirm; the game draws the fill).
-- `banner_cap_left.png` (256 x 256) that tucks under the plate, `banner_mid.png`
-  (64 x 256), `banner_cap_right.png` (256 x 256) with the cloud flourish trailing out.
-  Three weights: short, medium, long are made by stretching the middle.
-- `glyph_tap.png`, `glyph_gamepad_a.png`, `glyph_gamepad_x.png` (256 x 256): **white
-  glyphs only** (a touch finger, an A button, an X button), no background.
-
-## Kit 4: the portrait kit
-- `portrait_frame_corner_tl.png` (384 x 384): the portrait frame's corner, gold, with
-  the cloud flourish. Same rules as the panel corner.
-- `portrait_frame_medallion.png` (512 x 512): a round head-only medallion frame for the
-  phone (empty centre).
-- `portrait_bg.png` (512 x 512): the dark misty navy portrait backdrop.
-- `portrait_silhouette.png` and `portrait_unknown.png` (512 x 512): a calm silhouette,
-  and the "???" silhouette, white on transparent so the game can tint them.
-- **Character portraits** are art, not kit. One per speaker, **same framing** (bust,
-  facing slightly left, 512 x 512, shoulders-up, transparent background or the backdrop
-  above): Elder Qingyun, the Herbalist, the rack keeper, the NPC masters (to be cast),
-  and the other recurring speakers. Add each one as the speaker is written.
-
-## Kit 5: icons (white glyphs)
-One file each, 256 x 256, **solid white glyph on transparent, no disc, no colour**.
-The game tints and backs them. Same stroke weight and corner style throughout.
-- Dialogue: speech bubble, bag, door with arrow, quest scroll, coin purse, bowing
-  figure, sword, heart, lock.
-- Stats and currency: spirit stone, qi, insight, contribution, solidity (a firm
-  foundation), crack.
+### Icons (white glyphs on transparent, 256 x 256, no disc)
+- Dialogue: speech bubble, bag, door with arrow, quest scroll, coin purse, bowing figure,
+  sword, heart, lock.
+- Stats and currency: spirit stone, qi, insight, contribution, solidity, crack.
 - Status: bleed (drop), burn (flame), chill (snowflake), break (cracked shield), stun
   (star), poison (skull and drop), pierce (spear tip).
-- Interaction: talk, harvest, rush growth (hourglass), plant, open, pray.
+- Interaction: talk, harvest, rush growth (hourglass), plant, open, pray, tap, gamepad A,
+  gamepad X.
+Same stroke weight and corner style throughout. Generate them as a set so they match.
 
-## Later kits (same method)
-- **Reward card kit:** frame corners (reuse Kit 1), `ribbon_cap_left/mid/right`,
-  `rays_burst.png` (a radial sunburst, 1024 x 1024, symmetric), `tile_frame.png` (one
-  neutral square tile frame that we tint for rarity).
-- **Quest and sect kit:** row caps, rank crests (Outer, Inner, Core; 256 x 256),
-  contribution chip caps.
-- **Herbarium kit:** a book spread (page-corner pieces, binding, ribbon), entry-card
-  caps, tier badges I to V.
-- **Hall and master kit:** crest shield shapes, border pieces and emblem set (a builder
-  needs parts), seat plates 1 to 9 as a frame only (the number is text), epithet ribbon
-  caps.
-- **World kit:** scroll banner caps (rod ends), event pins, decree card corners.
-- **Overlay art:** the death-save vignette, seclusion overlay and cracks (one image each,
-  1024 wide, stretched to the screen; these are not sliced).
+### Character portraits (art, not UI chrome)
+One per speaker, **identical framing**: shoulders-up bust, facing slightly left, 1 : 1,
+1024 x 1024, on the misty navy portrait backdrop or transparent. Elder Qingyun, the
+Herbalist, the rack keeper, the NPC masters (to be cast, see
+[roadmap](../roadmap.md)), a silhouette and the "???" silhouette (white on transparent).
 
-## What happens to what you generate
-1. Put the files in `art/ui/generated/<kit>/` (raw, as delivered).
-2. The **assembler** (`tools/ui_assemble.py`, **to be written**) removes the background
-   if it is magenta, trims, caps each piece at 1024 px, mirrors the corner into a full
-   9-slice atlas, extends the plain border arms, builds the button from its caps and
-   middle, writes `SliceCenter` and `SliceScale`, and runs `tools/check_slices.py`.
-3. The `ui-designer` uploads, builds in Studio, fits it with the baseline `UIScale`,
-   and checks on the phone emulator at real size.
-4. Anything that looks soft or off goes back to you as a **specific re-request** ("the
-   left cap, 512 px, border arm 4 px thicker"), not a rework.
+## Later pieces (same method: finished, sized, no rebuilding)
+- **Reward card family** (boss victory, quest complete, objective, milestone): each a
+  finished card frame at its own proportions (3:2 large, 8:1 slim banner), plus a
+  1024 x 1024 radial **ray burst**, a ribbon title banner S/M/L, and one neutral square
+  **reward tile** we tint for rarity.
+- **Quest and sect:** quest row S/M/L, rank crests (Outer, Inner, Core), contribution chip.
+- **Herbarium:** an open-book spread (wide, tiled if over 1024), entry card, tier badges I
+  to V.
+- **Halls and masters:** crest shield shapes (several), border sets and emblems, seat plates
+  1 to 9 (the frame only), the epithet ribbon S/M/L.
+- **World:** scroll banners (wide, tiled), event pins, the "Heaven's decree" card.
+- **Overlays:** the death-save vignette, seclusion overlay and cracks, each one full-screen
+  image (stretched, not sliced).
 
-## Checklist before you send me files
-- [ ] One file per piece, named exactly as in the brief.
-- [ ] Transparent background (or flat magenta), nothing else around the piece.
-- [ ] No text anywhere, no shadow outside the piece, no tilt.
-- [ ] Border arms run **straight and plain to the cell edge** on corners.
-- [ ] Middles are identical along their length; the fill tile has no visible seam.
-- [ ] Each state has the same size and silhouette as the others.
+## What we do with it (the assembler never repaints)
+`tools/ui_assemble.py` (**to be written**), per file:
+1. Remove a magenta background and trim to the piece.
+2. Downscale (never upscale) to at most 1024 px on the long side; if the piece is wider,
+   **cut it into side-by-side tiles**.
+3. Where a piece must stretch, test its edges with `tools/check_slices.py` and write the
+   `SliceCenter`/`SliceScale`; if it fails, report it so we ask for another size.
+4. Write the file name, size and tile layout into a manifest the `ui-designer` reads.
+The `ui-designer` then mounts the pieces in Studio under the baseline `UIScale`,
+adds real text and glyphs, wires the tints, and checks at real size in the phone
+emulator.
+
+## Checklist before you send files
+- [ ] One finished piece per file, at the stated proportions, at least 2048 px on the long
+      side.
+- [ ] Transparent background (or flat magenta), nothing else around it.
+- [ ] No text, no outside glow or shadow, no tilt.
+- [ ] The middle is empty, and the border between the ornaments is a plain line.
+- [ ] S / M / L sets share ornament size, border thickness and end shapes.
 - [ ] Same palette as the reference.
 
 ## Open items
-- Confirm the generator can output transparent PNGs; if not, magenta keying works.
-- Cast the NPC masters, so their portraits can be generated.
-- Write `tools/ui_assemble.py` before the first batch arrives.
+- Confirm whether the generator outputs transparent PNGs; magenta keying is the fallback.
+- Cast the NPC masters for their portraits.
+- Write `tools/ui_assemble.py` before the first batch.

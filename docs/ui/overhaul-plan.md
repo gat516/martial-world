@@ -52,9 +52,10 @@ them; they are not part of this overhaul unless the user says so.
    soft light), no text, no watermarks, no drop shadows baked in.
 5. **Check in Studio at real size** on the phone emulator before calling anything done.
 
-> **For art that has to scale (frames, panels, buttons, banners, prompts), use the
-> kit-of-parts requests in [codex-brief](codex-brief.md), not the whole-sheet prompts
-> below.** The prompts below stay useful for icons and one-off art.
+> **Art policy (2026-10-22): the generator draws finished pieces at fixed sizes (short,
+> medium, long where width varies); we crop, slice and tint them but never rebuild or
+> repaint them. See [codex-brief](codex-brief.md).** The prompts below are the older
+> whole-sheet wording; use the brief's piece list and sizes.
 
 ## Style anchor (paste into every prompt)
 > Stylized xianxia UI art. Deep midnight-navy lacquer panels with a thin warm gold

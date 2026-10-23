@@ -6,6 +6,7 @@ tools: Bash, Read, Edit, Write, Skill, ToolSearch, Monitor, TaskStop, SendMessag
 skills:
   - sandbox-studio
   - vfx-method
+  - visual-gate
   - agent-report
 ---
 
@@ -27,6 +28,12 @@ Scope: world events, weather anomalies and treasure births: everything in
 aura, hit and breakthrough effects belong to the `vfx` agent; ambient set
 dressing (fireflies, mist on cliffs) belongs to map passes. Tribulation clouds
 are yours, the lightning strikes on the player are `vfx`'s.
+
+**The gate.** A world effect ships through `visual-gate` (preloaded): status
+lines, 2-3 directions before polish, `tools/vfx_origin_check.luau` and the upright
+placement checks to zero FAIL, one far/approach/close sheet, a `visual-critic`
+round. If the brief lacks a required field from
+[briefs](../../docs/agents/briefs.md), ask once and stop.
 
 ## Read first
 

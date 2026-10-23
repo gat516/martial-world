@@ -139,6 +139,11 @@ Don't design a move that only works as a hitbox.
 
 ## Briefs and contracts
 
+Every brief you write follows [docs/agents/briefs.md](../../docs/agents/briefs.md):
+the required fields (references, the exemplar to match in
+`docs/reference/approved/README.md`, the do-not-change list, scale, contracts,
+"done means") and the per-discipline extras. A brief missing one stops the agent.
+
 You can't spawn subagents. After the user approves, return self-contained
 briefs to the main session, which runs `enemy-modeler`, `animator` and `vfx` in
 parallel while you wire the code (the animator waits for the modeler only when

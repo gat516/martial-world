@@ -11,6 +11,7 @@ first. A subagent doing one task doesn't need it.
 - Git is the only work history; no session logs or notes. Start with `git log` and `git status`.
 - The user playtests. Don't write or run tests, start play sessions, or verify through the MCP unless explicitly asked. Note what's untested instead of claiming it works.
 - Commit each finished feature as one revertible commit, staging only that feature's files. The subject says what changed; the body says why, plus anything unfinished or next.
+- Visual work (bodies, props, clips, effects, UI, map) goes through the `visual-gate` skill: the discipline's lint to zero FAIL, one contact sheet, a `visual-critic` round, then the report quotes the verdict. Briefs follow [docs/agents/briefs.md](docs/agents/briefs.md). Subagents post a `## Status:` line at each phase; the user watches them with `tools/agent_feed.sh`.
 
 ## Token budget
 

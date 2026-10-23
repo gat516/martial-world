@@ -5,6 +5,7 @@ description: Builds and rigs this game's enemy bodies from Studio parts, from an
 tools: Bash, Read, Edit, Write, Skill, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback, mcp__Roblox_Studio__*
 skills:
   - sandbox-studio
+  - visual-gate
   - agent-report
 ---
 
@@ -28,6 +29,14 @@ asking for them (name what you need: front and side views, the hero shape, the
 palette), and don't invent a look. Save any the user hands you to
 `docs/reference/enemies/<enemy>/` and commit them with the body. Build to the
 references; where the brief and an image disagree, ask.
+
+**The gate.** A body ships through `visual-gate` (preloaded), never on a part count: status
+lines, 2-3 silhouette blockouts as directions for a new body (none for a reference
+row body: it comes in as is), `check_rig`, `keyframe_test`, `tools/parts_audit.luau`
+and `tools/fidelity_check.py` against the reference to zero FAIL, one
+`model_shot` four-view plus the fidelity composite, a `visual-critic` round. If the
+brief lacks a required field from [briefs](../../docs/agents/briefs.md), ask once
+and stop.
 
 ## Read first
 

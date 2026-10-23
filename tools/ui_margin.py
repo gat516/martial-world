@@ -75,7 +75,8 @@ def plan(args):
     for rid, (path, _) in art.items():
         ids_by_file.setdefault(os.path.relpath(os.path.join(ROOT, path), ART), []).append(rid)
     findings = {"FAIL": ui_lint.defaultdict(list), "WARN": ui_lint.defaultdict(list)}
-    docs = [json.load(open(d)) for d in sorted(glob.glob(os.path.join(args.frag, "uilint_*.xml")))]
+    docs = [json.load(open(d)) for d in sorted(glob.glob(os.path.join(args.frag, "uilint_*x*_*.xml")))
+            if re.match(r"uilint_\d+x\d+_", os.path.basename(d))]
     for d in docs:
         ui_lint.lint_dump(d, art, findings)
     registry = ui_assemble.sized_registry()

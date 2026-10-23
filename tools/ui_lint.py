@@ -31,6 +31,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 from collections import defaultdict
 
@@ -540,7 +541,7 @@ def main():
 
     art = art_index()
     findings = {"FAIL": defaultdict(list), "WARN": defaultdict(list)}
-    dumps = sorted(glob.glob(os.path.join(args.frag, "uilint_*.xml")))
+    dumps = sorted(d for d in glob.glob(os.path.join(args.frag, "uilint_*.xml")) if re.match(r"uilint_\d+x\d+_", os.path.basename(d)))
     if not dumps:
         print(f"no dumps in {args.frag}; run tools/ui_lint.luau in Studio first", file=sys.stderr)
         return 2

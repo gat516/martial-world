@@ -1013,8 +1013,9 @@
      </Item>
      <Item class="UIPadding" referent="GBB8"><Properties>
       <string name="Name">UIPadding</string>
-      <UDim name="PaddingTop"><S>0</S><O>2</O></UDim>
-      <UDim name="PaddingBottom"><S>0</S><O>2</O></UDim>
+      <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
+      <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
+      <UDim name="PaddingLeft"><S>0</S><O>6</O></UDim>
       <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
      </Properties>
      </Item>

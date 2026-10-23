@@ -11,7 +11,7 @@ list as the Codex brief), and for each one:
   4. icon sheets are split on a 4 x 3 grid into one 256 px icon each,
   5. ornament sheets (PIECE_SHEETS) are keyed by hue (generators paint noisy
      magenta), split into pieces by shape, named in reading order, and cut at
-     full resolution as ornament_<name>.png.
+     full resolution (at most 1024 px, Roblox's cap) as ornament_<name>.png.
 
 Writes art/ui/codex/cut/*.png, art/ui/codex/manifest.json (files, sizes,
 tiles, display size, flags) for the ui-designer, and
@@ -184,7 +184,7 @@ def cut_piece_sheet(sheet, src):
             errs.append("touches the sheet edge (clipped?)")
         pad = 2
         box = (max(0, x1 - pad), max(0, y1 - pad), min(w, x2 + pad), min(h, y2 + pad))
-        piece = to_image(arr[box[1]:box[3], box[0]:box[2]])
+        piece = fit(to_image(arr[box[1]:box[3], box[0]:box[2]]), MAX_TEX, MAX_TEX)
         f = f"ornament_{name}.png"
         piece.save(OUT / f)
         entries[f"ornament_{name}"] = {"sheet": sheet, "size": [piece.width, piece.height], "source_box": list(map(int, box)),

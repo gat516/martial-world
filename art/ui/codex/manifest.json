@@ -442,8 +442,8 @@
   "ornament_plaque_end_large": {
     "sheet": "a1/plaque_end_large",
     "size": [
-      1651,
-      512
+      1024,
+      318
     ],
     "source_box": [
       177,
@@ -455,8 +455,8 @@
       {
         "file": "ornament_plaque_end_large.png",
         "x": 0,
-        "width": 1651,
-        "height": 512
+        "width": 1024,
+        "height": 318
       }
     ],
     "flags": []

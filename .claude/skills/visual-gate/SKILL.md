@@ -17,6 +17,24 @@ Post a one-line text message starting `## Status:` at every phase change
 The user watches `tools/agent_feed.sh`; a status line is what they read, a tool
 name is not.
 
+## 0b. Show the work live, never stop for a look (user, 2026-10-23)
+
+The user watches your sandbox window while you work. After every build round,
+refresh the review stage so it shows the current state, then keep going:
+`tools/review_stage.luau` installs `_G.reviewStage` with one mode per
+discipline, each on a lit plate in front of a parked camera:
+- `model{ source }`: the body or prop beside a 5-stud R6 for scale, turning slowly
+- `anim{ spec, move }`: the clip looping on the rig (the probe's FK), effects on
+- `cast{ id, level }`: the technique looping on an R6 with its weapon, effects
+  and sounds through the real cast path
+- `enemy{ template, cue }`: the beast playing the move with its effect cues
+- `ui{ screen, size }`: the ScreenGui with sample data at phone or PC size
+- `stop()` clears it.
+Leaving the stage running is the one exception to leaving the sandbox clean:
+name the stop call in your report. Never pause for the user's review; they flag
+you if they want a change. Until the tool lands on your branch, improvise the
+same thing from `vfxPreview`/`enemy_fx_shot`/the preview scripts.
+
 ## 1. Direction before polish
 
 For anything new or reworked (a new body, effect, clip, screen, area), build 2-3
@@ -25,8 +43,10 @@ to pick from: silhouette blockouts for a body, the three hero poses for a clip,
 one frozen peak per version for an effect, a Figma comp per look for a screen.
 Describe each in a sentence as a picture and a feeling. Skip this only when the
 brief names an exact exemplar or reference to match ("the testbed row body, as
-is"), or the task is a fix. Polish happens once, on the pick. Don't wait on the
-user beyond one ask: send the sheet, end the turn.
+is"), or the task is a fix. Polish happens once, on the pick. If the user is
+there, send the sheet and end the turn (one ask, no waiting). If the brief says
+they're away, put all three on the review stage, let the critic pick against the
+gallery, record the three and the pick in your report, and go on.
 
 ## 2. Lint to zero FAIL
 

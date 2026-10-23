@@ -49,7 +49,7 @@ is in your brief. How the main session runs sandboxes: `docs/agents/orchestratio
 
 ## Leave it clean
 
-Before you report, remove preview scenes, `__P*` clones, staging copies and temp
+Leave the review stage running (`visual-gate`, "Show the work live"); it's what the user watches. Before you report, remove preview scenes, `__P*` clones, staging copies and temp
 folders. Templates you built stay in place and match your export.
 
 ## The user's Studios

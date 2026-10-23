@@ -114,6 +114,25 @@ and stack are the same pixel size at 1366x768):
 Item icons stay at 128 px (40 px in a cell, 28 on the hotbar: 3.2-4.6x); redrawing
 `draw_icons.py` at 64 px would bring them in line.
 
+## Clipping audit (2026-10-23, "some icons / images are clipping")
+
+Every visible button in the Inventory and the Spirit Market was measured against its
+nearest clipping parent (the Grid, Rail and Info scrolling frames, the catalog), at
+rest and grown 5% (`Motion.buttons` hover), with sample sections, cells (NEW, seal,
+ring), chips, tabs, set tabs and tiles; the window and stack are the same pixel size at
+1920x1080 and 1366x768, and the phone windows only change heights, not these margins.
+Found and fixed:
+- Rail chips: the first and last were cut 1.0 px by the rail on hover (no side
+  padding). The rail has 2 px each side now: 1.0 px clear when hovered.
+- The detail pane's preview (a Motion button) was cut 1.8 px at the top on hover. The
+  Info pane has 3 px top padding: 1.2 px clear.
+- Icons: `IconRects` cropped at alpha > 40, shaving icons' soft edges and cutting glows
+  (the pills, cores, spirit stone) flat; now alpha > 8 (`tools/icon_rects.py`), and the
+  display-sized class glyphs have rects too.
+- The top-right tiles' icon crops (see [ui](../systems/ui.md)).
+Cells clear the grid by 0.1 px on the left when hovered (no cut); the bottom row by
+7.7 px; shop tiles and tabs had no cuts.
+
 ## Rarity ladder (`Rarity.luau`)
 
 | Tier | Colour (slot edge and wash) | Gem | Items (`Items.Rarities`) | Weapons and arts (`Weapons.Grades`) |

@@ -226,9 +226,25 @@ Beast Surge and the new events. Plan:
   `world-fx` look; `vfx` handles hits and casts.
 
 ## Known gaps and next steps
-1. Add QR1-9 and FE2-9 rows to `Pacing.Curve`; add `QiRefining` to
-   `Realms.MAJOR_NAMES`. Move the QC9 wall's tribulation behind the
-   heaven-defying flag.
+Built 2026-10-22: QR1-9 and FE2-9 rows in `Pacing.Curve` (and combat qi), the
+`QiRefining` major in `Realms`, `data.heavenDefying` and the tribulation gate.
+
+Still open from that pass:
+- **Insight above 10 is unreachable without bosses** until non-combat sources
+  exist (comprehension spots, quests, pills, secret places). First kills of the 8
+  non-boss types plus 2 milestones give 10. FE3 11 and FE6 13 wait for them.
+- **Nothing sets `heavenDefying`** yet (bloodline or root).
+- **Region seals unchanged:** `Regions.luau` still seals the Outer region at FE1; the
+  QR regions need the map.
+- **Thunder Ape and Nine-Tailed Fox** are tuned for the old FE1 player (500 HP,
+  power 3.0), which is now about QR5-6. Move their `realm` there, or lift their
+  stats, once playtested.
+- **Cultivator enemies** exist but aren't wired. They suit the QR and FE stages as
+  human opponents and sect-quest targets.
+- Curve numbers are untuned (see the table in `Pacing.luau`).
+
+Steps:
+1. ~~Pacing rows, `QiRefining`, the tribulation flag~~ (done, untuned).
 2. Scale herb `eat` qi by tier; add the tier field to `Herbs.luau`.
 3. Build the sect: ranks, contribution, board, Pavilion, dailies and chains.
 4. Make every wall's insight reachable without combat (comprehension spots, quests, pills); turn bosses into quest targets.

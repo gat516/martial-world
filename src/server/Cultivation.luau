@@ -261,6 +261,14 @@ function Cultivation.addBuff(data: PlayerData.Data, source: string, kind: string
 	table.insert(data.buffs, { source = source, kind = kind, amount = amount, expires = now + seconds })
 end
 
+-- Whether the heavens refuse this player: only heaven-defying cultivators face a
+-- tribulation at a major breakthrough (docs/progression.md). Everyone else
+-- breaks through quietly. Set `data.heavenDefying` from a heaven-defying
+-- bloodline or root; nothing sets it yet.
+function Cultivation.heavenDefying(data: PlayerData.Data): boolean
+	return data.heavenDefying == true
+end
+
 -- Set by Tribulation: starts the tribulation a major breakthrough needs.
 Cultivation.startTribulation = nil :: ((Player) -> (boolean, string?))?
 
@@ -320,7 +328,7 @@ function Cultivation.canForce(player: Player, data: PlayerData.Data): boolean
 end
 
 -- Breakthroughs happen seated in meditation on a full bar: minor ones at once,
--- major ones need insight and survive a tribulation first. A minor one can also
+-- major ones need insight too, and a heaven-defying player must survive a tribulation first. A minor one can also
 -- be forced in combat (canForce), leaving the new realm in qi debt.
 function Cultivation.breakthrough(player: Player): (boolean, string?)
 	local data = PlayerData.get(player)
@@ -361,7 +369,7 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 	if data.cultivation < stage.bar then
 		return false, "Your realm bar isn't full yet."
 	end
-	if major then
+	if major and Cultivation.heavenDefying(data) then
 		if Cultivation.startTribulation then
 			return Cultivation.startTribulation(player)
 		end

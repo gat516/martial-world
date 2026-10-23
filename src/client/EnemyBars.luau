@@ -62,7 +62,7 @@ local STYLES: { [string]: Style } = {
 		omens = { "Heaven forbids this fight", "Death walks here", "Your soul would scatter", "Flee, or become ash" },
 	},
 }
-local MAJOR_TAGS = { QiCondensation = "QC", Foundation = "FE" }
+local MAJOR_TAGS = { QiCondensation = "QC", QiRefining = "QR", Foundation = "FE" }
 
 local player = Players.LocalPlayer
 

@@ -395,7 +395,7 @@ Quests.Beats = {
 	{
 		id = "QC3",
 		reward = REWARDS.QC3,
-		elder = "First kills grant insight. You will need it to reach Foundation. Now break through again.",
+		elder = "First kills grant insight. You will need it to reach Qi Refining. Now break through again.",
 		objective = "Reach Qi Condensation 3",
 		done = function(_, data)
 			return stageIndex(data) >= 3
@@ -563,10 +563,11 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 	local nextStage = Realms.after(stage.major, stage.minor)
 	if nextStage then
 		local major = nextStage.major ~= stage.major
+		local defier = Cultivation.heavenDefying(data)
 		if data.insightEarned < stage.insight then
 			table.insert(goals, {
 				name = "Gather insight",
-				detail = `Insight from first kills, the Elder Wolf King and kill milestones opens the way to {nextStage.name}.`,
+				detail = `Insight from first kills, kill milestones and bosses (an optional, faster road) opens the way to {nextStage.name}.`,
 				progress = `{data.insightEarned}/{stage.insight}`,
 			})
 		end
@@ -578,8 +579,8 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 			})
 		end
 		table.insert(goals, {
-			name = if major then `Face the tribulation: {nextStage.name}` else `Break through to {nextStage.name}`,
-			detail = if major
+			name = if major and defier then `Face the tribulation: {nextStage.name}` else `Break through to {nextStage.name}`,
+			detail = if major and defier
 				then `Fill your bar, then survive {if stage.tribulation then stage.tribulation.seconds else 30} seconds of heavenly lightning on the main peak.`
 				else "Circulate raw qi from the wilds to fill your realm bar.",
 			progress = `{math.floor(data.cultivation)}/{stage.bar}`,
@@ -594,8 +595,8 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 	end
 	if data.stats.bossKills == 0 then
 		table.insert(goals, {
-			name = "Slay the Elder Wolf King",
-			detail = "He rules the far end of the wilds. His first defeat yields a technique manual and insight.",
+			name = "Slay the Elder Wolf King (optional)",
+			detail = "He rules the far end of the wilds. A faster road, never required: his first defeat yields a technique manual and insight.",
 			progress = "0/1",
 		})
 	end

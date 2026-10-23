@@ -1,9 +1,11 @@
 --!strict
 -- Identity tab: the race and last name the server rolled (shown from the
--- player's Race and Surname attributes, with a paid Change button each) and the
--- first name the player types. No suggestions and no free reroll: the first
--- roll happened on join. Under each block, the full list of races or last names
--- with rarity and chance (user, 2026-10-23).
+-- player's Race and Surname attributes, with a paid Change button each). The
+-- first name is typed on the pedestal under the preview (NamePlate.luau). No
+-- suggestions and no free reroll: the first roll happened on join. Under each block, the full list of races or last names
+-- with rarity and chance (user, 2026-10-23). For a race with variants (Beast
+-- Folk), its rollable variants with rarity and chance too, and pickers for any
+-- race or variant the player may choose (Bridge.getChoices; hidden when none).
 
 local MarketplaceService = game:GetService("MarketplaceService")
 
@@ -74,7 +76,7 @@ local function rerollFlow(ctx: any, block: any, kind: string)
 end
 
 function Identity.build(page: ScrollingFrame, ctx: any)
-	local state, defs, components = ctx.state, ctx.defs, ctx.components
+	local defs, components = ctx.defs, ctx.components
 	local rules = defs.Rules
 
 	-- Race
@@ -109,45 +111,118 @@ function Identity.build(page: ScrollingFrame, ctx: any)
 	race.change.button.Activated:Connect(function()
 		task.spawn(rerollFlow, ctx, race, "Race")
 	end)
-	-- only the races the roll can give right now (Availability: Released + Roll)
-	oddsList(ctx, page, "All Races", defs.Registry.racePool("Roll"), "Race", 100)
 
-	-- First Name
-	components.sectionHeader(page, "First Name", 200)
-	local field = components.textField(page, {
-		name = "FirstNameField",
-		placeholder = "Enter a first name",
-		order = 201,
-		counter = true,
-	})
-	local box: TextBox = field.input
-	local max = rules.FIRST_NAME.MAX
-	local function validate()
-		local text = box.Text
-		field.counter.Text = `{utf8.len(text) or #text}/{max}`
-		if text:match("^%s*$") then
-			field.setStatus(`{rules.FIRST_NAME.MIN} to {max} letters.`, "info")
+	-- Pickers: only when the server says the player may pick a race or variant
+	-- (Availability Select, or Unlock with Requires met). Nothing is pickable by
+	-- default, so they normally stay hidden.
+	local pickers = {
+		Race = { header = components.sectionHeader(page, "Choose Race", 10), grid = components.grid(page, "CardGrid", 11, "RaceChoices") },
+		Variant = { header = components.sectionHeader(page, "Choose Variant", 20), grid = components.grid(page, "CardGrid", 21, "VariantChoices") },
+	}
+	local picking = false
+	local function paintPicker(kind: string, ids: { string })
+		local picker = pickers[kind]
+		for _, child in picker.grid:GetChildren() do
+			if child:IsA("GuiButton") then
+				child:Destroy()
+			end
+		end
+		local raceKey = ctx.player:GetAttribute("Race")
+		local current = if kind == "Race" then raceKey else ctx.player:GetAttribute("RaceVariant")
+		for order, id in ids do
+			local def = if kind == "Race" then defs.Registry.race(id) else defs.Registry.variant(raceKey, id)
+			if def then
+				local card = components.card(picker.grid, {
+					id = id,
+					caption = def.DisplayName,
+					image = def.Icon or "",
+					glyph = string.sub(def.DisplayName, 1, 1),
+					order = order,
+					onClick = function()
+						if picking or id == current then
+							return
+						end
+						picking = true
+						race.setStatus(nil)
+						local ok, message = ctx.bridge.choose(kind, id)
+						if not ok then
+							race.setStatus(if type(message) == "string" then message else "You can't choose that")
+						end
+						picking = false
+					end,
+				})
+				card.setSelected(id == current)
+			end
+		end
+		local shown = #ids > 0
+		picker.header.Visible = shown
+		picker.grid.Visible = shown
+	end
+	local asked = 0
+	local function refreshChoices()
+		asked += 1
+		local mine = asked
+		task.spawn(function()
+			local ok, choices = ctx.bridge.getChoices()
+			if mine ~= asked then
+				return -- a newer refresh is on its way
+			end
+			local ids = if ok and type(choices) == "table" then choices else {}
+			paintPicker("Race", ids.races or {})
+			paintPicker("Variant", ids.variants or {})
+		end)
+	end
+	paintPicker("Race", {})
+	paintPicker("Variant", {})
+
+	-- The player's race's variants with rarity and roll chance (only the ones the
+	-- roll can give: Released + Roll), rebuilt when the race changes.
+	local variantRows: { Instance } = {}
+	local variantHeader: Frame? = nil
+	local function paintVariants()
+		for _, row in variantRows do
+			row:Destroy()
+		end
+		variantRows = {}
+		if variantHeader then
+			variantHeader:Destroy()
+			variantHeader = nil
+		end
+		local raceKey = ctx.player:GetAttribute("Race")
+		local pool = if type(raceKey) == "string" then defs.Registry.variantPool(raceKey, "Roll") else {}
+		if next(pool) == nil then
 			return
 		end
-		local name, why = rules.checkFirstName(text)
-		if name then
-			field.setStatus(`You will be known as {name}.`, "ok")
-		else
-			field.setStatus(why, "error")
+		variantHeader = components.sectionHeader(page, `{defs.Registry.race(raceKey).DisplayName} Variants`, 50)
+		local mine = ctx.player:GetAttribute("RaceVariant")
+		local keys = {}
+		for key in pool do
+			table.insert(keys, key)
+		end
+		table.sort(keys, function(a, b)
+			if pool[a].Weight ~= pool[b].Weight then
+				return pool[a].Weight < pool[b].Weight
+			end
+			return pool[a].DisplayName < pool[b].DisplayName
+		end)
+		for index, key in keys do
+			local row = components.summaryRow(page, pool[key].DisplayName, 50 + index)
+			local chance = rules.chance(pool, key)
+			local text = if chance >= 1 then `{math.floor(chance + 0.5)}%` else `{math.floor(chance * 10 + 0.5) / 10}%`
+			row.set(if key == mine then `{text}  (yours)` else text, nil, pool[key].Rarity, defs.Rarities)
+			table.insert(variantRows, row.root)
 		end
 	end
-	box:GetPropertyChangedSignal("Text"):Connect(function()
-		local text = box.Text
-		local length = utf8.len(text)
-		if length and length > max then
-			text = text:sub(1, (utf8.offset(text, max + 1) or (#text + 1)) - 1)
-			box.Text = text
-			return -- the change re-enters with the trimmed text
-		end
-		state:set("FirstName", text)
-		validate()
-	end)
-	validate()
+	local function onIdentityChanged()
+		paintVariants()
+		refreshChoices()
+	end
+	ctx.player:GetAttributeChangedSignal("Race"):Connect(onIdentityChanged)
+	ctx.player:GetAttributeChangedSignal("RaceVariant"):Connect(onIdentityChanged)
+	paintVariants()
+	refreshChoices()
+	-- only the races the roll can give right now (Availability: Released + Roll)
+	oddsList(ctx, page, "All Races", defs.Registry.racePool("Roll"), "Race", 100)
 
 	-- Last Name
 	components.sectionHeader(page, "Last Name", 300)

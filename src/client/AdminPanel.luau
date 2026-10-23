@@ -4,9 +4,11 @@
 -- there is no on-screen button. It doesn't register with Menus, so the world and
 -- the HUD stay visible while you trigger things.
 --
--- Sections are cloned from SectionTemplate (a title, an optional count box and a
--- grid of chips). Every chip calls AdminAction:InvokeServer(action, ...), which
--- returns (ok, message); the message is toasted.
+-- Two tabs in the header: Tools (Sections) and Traits (AdminTraits.luau: a
+-- player's race, variant and traits). Tools sections are cloned from
+-- SectionTemplate (a title, an optional count box and a grid of chips). Every
+-- chip calls AdminAction:InvokeServer(action, ...), which returns (ok, message);
+-- the message is toasted.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,12 +22,15 @@ local Weather = require(ReplicatedStorage.Shared.Weather)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Methods = require(ReplicatedStorage.Shared.Methods)
+local AdminTraits = require(script.Parent.AdminTraits)
 local Hud = require(script.Parent.Hud)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
 
 local player = Players.LocalPlayer
 
+local TAB_ON = "rbxassetid://124847805310931" -- button_gold
+local TAB_OFF = "rbxassetid://88447362782150" -- button_lacquer
 local WEATHER_ORDER = { "Clear", "Rain", "Storm", "Windy", "AuspiciousMist", "RainbowAurora", "HeavenSplit" }
 
 local AdminPanel = {}
@@ -40,8 +45,28 @@ local function spaced(id: string): string
 	return (string.gsub(id, "(%l)(%u)", "%1 %2"))
 end
 
+local function remoteOf(): RemoteFunction?
+	return ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("AdminAction") :: RemoteFunction?
+end
+
+-- Waits for the answer: (ok, message | payload). Never throws.
+local function call(...: any): (boolean, any)
+	local remote = remoteOf()
+	if not remote then
+		return false, "AdminAction remote is missing"
+	end
+	local args = table.pack(...)
+	local ok, success, payload = pcall(function()
+		return remote:InvokeServer(table.unpack(args, 1, args.n))
+	end)
+	if not ok then
+		return false, "Admin action failed"
+	end
+	return success == true, payload
+end
+
 local function invoke(...: any)
-	local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("AdminAction") :: RemoteFunction?
+	local remote = remoteOf()
 	if not remote then
 		Hud.toast("AdminAction remote is missing")
 		return
@@ -288,6 +313,25 @@ function AdminPanel.toggle()
 	end
 end
 
+-- Tools (the Sections list) or Traits; the picked tab's art turns gold.
+local function selectTab(name: string)
+	local traitsPage = panel:FindFirstChild("Traits") :: ScrollingFrame?
+	local tabs = panel:FindFirstChild("Tabs")
+	if not (traitsPage and tabs) then
+		return
+	end
+	list.Visible = name == "Tools"
+	traitsPage.Visible = name == "Traits"
+	for _, tab in tabs:GetChildren() do
+		if tab:IsA("ImageButton") then
+			tab.Image = if tab.Name == name .. "Tab" then TAB_ON else TAB_OFF
+		end
+	end
+	if name == "Traits" then
+		AdminTraits.show()
+	end
+end
+
 function AdminPanel.init(gui: ScreenGui)
 	panel = gui:FindFirstChild("AdminPanel") :: Frame
 	if not panel then
@@ -298,6 +342,23 @@ function AdminPanel.init(gui: ScreenGui)
 	panel.Visible = false
 	if Platform.isTouch() then
 		return -- PC only
+	end
+	local traitsPage = panel:FindFirstChild("Traits") :: ScrollingFrame?
+	local tabs = panel:FindFirstChild("Tabs")
+	if traitsPage and tabs then
+		AdminTraits.init(traitsPage, call, Hud.toast)
+		for _, name in { "Tools", "Traits" } do
+			local tab = tabs:FindFirstChild(name .. "Tab") :: GuiButton?
+			if tab then
+				tab.Activated:Connect(function()
+					-- only for admins: the Traits tab asks the server on first open
+					if allowed() then
+						selectTab(name)
+					end
+				end)
+			end
+		end
+		selectTab("Tools")
 	end
 	local built = false
 	local function ensureBuilt()

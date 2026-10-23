@@ -16,6 +16,7 @@ local Components = require(script.Parent.Components)
 local Defs = require(script.Parent.Defs)
 local Menus = require(script.Parent.Parent.Menus)
 local Motion = require(script.Parent.Parent.Motion)
+local NamePlate = require(script.Parent.NamePlate)
 local Preview = require(script.Parent.Preview)
 local State = require(script.Parent.State)
 local Theme = require(script.Parent.Theme)
@@ -71,6 +72,13 @@ local function fit()
 	local preview = root:FindFirstChild("Preview") :: ViewportFrame
 	preview.Position = UDim2.fromOffset((left + right) / 2, size.Y / 2)
 	preview.Size = UDim2.fromOffset(math.max(right - left - 8, 120), size.Y * 0.94)
+	-- the name plate on the pedestal is authored for a 745 px tall preview; the
+	-- camera keeps a fixed height in view, so the pedestal scales with it
+	local plate = preview:FindFirstChild("NamePlate")
+	local plateFit = plate and plate:FindFirstChild("Fit") :: UIScale?
+	if plateFit then
+		plateFit.Scale = size.Y * 0.94 / 745
+	end
 end
 
 -- Each page scrolls when its content outgrows it (AutomaticCanvasSize doesn't
@@ -249,8 +257,13 @@ function Controller.init(screen: ScreenGui)
 		player = player,
 		onAttribute = onAttribute,
 		gotoTab = Controller.select,
+		focusName = NamePlate.focus,
 		enterWorld = enterWorld,
 	}
+	local plate = (root:FindFirstChild("Preview") :: ViewportFrame):FindFirstChild("NamePlate") :: Frame?
+	if plate then
+		NamePlate.build(plate, ctx)
+	end
 	local pages = panel:FindFirstChild("Pages") :: CanvasGroup
 	for _, tab in Theme.Tabs do
 		local page = pages:FindFirstChild(tab.Id) :: ScrollingFrame

@@ -3,7 +3,8 @@
 ## Purpose
 The screen a player sees on joining: pick a starting outfit (shirt and pants),
 hair (any catalog hair accessory by id, plus a colour), see the race and last name
-the server rolled for them (paid rerolls), choose a first name, and enter the world.
+the server rolled for them (paid rerolls), type a first name on the pedestal under
+their character, and enter the world.
 It's a template: the look and every list come from config, and the gameplay hooks
 (saving, what a race does) plug in later.
 
@@ -22,7 +23,8 @@ It's a template: the look and every list come from config, and the gameplay hook
   plain ink-wash gradient) stands in.
 - Exactly what the user asked for and no more: two clothing categories (no robes,
   belts, accessories); hair is an asset id and a colour (no hairstyle grid); race
-  and last name can't be picked, only rerolled for Robux; the summary has no
+  and last name are rerolled for Robux (a race or variant can be picked only where
+  Availability makes it Select or Unlock; the picker stays hidden otherwise); the summary has no
   titles, roots or stats.
 - Native Roblox UI plus art the game already uploaded; no new drawn art (the user
   asked for something achievable without many custom images).
@@ -54,7 +56,8 @@ It's a template: the look and every list come from config, and the gameplay hook
   (the previewed look), Components (nav button, card, swatch, section header,
   rarity pill, Robux button, summary row, text field, all cloned from the GUI's
   `Templates`), Preview (viewport dummy; it makes the viewport's Camera itself, since a
-  Camera saved inside a ViewportFrame is lost in the Rojo sync), Backdrop (live camera or image), Bridge
+  Camera saved inside a ViewportFrame is lost in the Rojo sync), NamePlate (the
+  full name on the pedestal, first name typed in place), Backdrop (live camera or image), Bridge
   (every server call, plus the `onEnterWorld` hook), Tabs/* (one per tab),
   Controller (`init`, `open`).
 - `assets/CharacterCreator.rbxmx` (`ReplicatedStorage.CharacterCreatorGui`): the
@@ -76,9 +79,22 @@ It's a template: the look and every list come from config, and the gameplay hook
 - Closing the screen hands the camera back as Custom: before a character exists
   it sits in Fixed, and restoring that left it parked at the vantage.
 - The Identity tab lists every race and last name with its rarity and chance,
-  rarest first, the player's own marked (user, 2026-10-23). The default outfit is
+  rarest first, the player's own marked (user, 2026-10-23); for a race with variants
+  (Beast Folk) its rollable variants follow the race block the same way, rebuilt when the
+  race changes (Hidden and Disabled ones never show). The default outfit is
   the ranger shirt and pants, which are template images (`Clothing.Template`), so
   they're worn as is rather than looked up in the catalog.
+- The name lives on the pedestal, not in a tab (user, 2026-10-23): the front band
+  of the jade pedestal under the preview shows the full name, last name first as on
+  the namecard ("Li Wei"), with the first name typed in place (`Root.Preview.NamePlate`,
+  `NamePlate.luau`): same `Rules.checkFirstName` messages in a status line under the
+  band, a counter while the box has focus, state `FirstName` for Confirm. The plate
+  sits at a fixed share of the preview's height (the camera keeps 9 studs in view),
+  and `Controller.fit` scales it with the preview (`NamePlate.Fit`). The Identity tab
+  keeps the race and last-name blocks with their paid rerolls; Confirm's first-name
+  blocker says "Type it under your character" and Enter World puts the cursor there.
+- Race and last-name notes wrap and their card grows to fit (Beast Folk shows the
+  race and variant descriptions together, the longest note).
 - While the screen is open `Menus.setScreen(true)` makes `Menus.isOpen()` true,
   so combat, prompts and anything else gated on an open menu stay shut, even when
   the screen is reopened over a live character.

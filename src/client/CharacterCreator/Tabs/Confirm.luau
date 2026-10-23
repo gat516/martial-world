@@ -50,7 +50,7 @@ function Confirm.build(page: ScrollingFrame, ctx: any)
 		rows["Last Name"].set(if surname then surname.DisplayName else "...", nil, surname and surname.Rarity, defs.Rarities)
 
 		blocked = if not name
-			then `First name: {why}. Set it on the Identity tab.`
+			then `First name: {why}. Type it under your character.`
 			elseif not race or not surname then "Waiting for your race and family name..."
 			else nil
 		if not busy then
@@ -69,7 +69,10 @@ function Confirm.build(page: ScrollingFrame, ctx: any)
 			return
 		end
 		if blocked then
-			ctx.gotoTab("Identity")
+			-- the first name is typed on the pedestal; the rest just waits
+			if not rules.checkFirstName(state:get("FirstName")) then
+				ctx.focusName()
+			end
 			return
 		end
 		busy = true

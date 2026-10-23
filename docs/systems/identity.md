@@ -102,6 +102,42 @@ jump. A race change (reroll, pick, admin) drops the old innate traits, adds the
 new ones and keeps the rest; owned traits the new race can't use stay in the
 profile as inactive (no effect) and come back if the race does.
 
+## Admin panel (Traits tab)
+F2 opens the admin panel (PC, admins only); its header has two tabs, Tools (the
+old sections) and Traits (`src/client/AdminTraits.luau`, `Hud.AdminPanel.Traits`).
+The Traits tab loads you on first open, then:
+- **Player**: type a name, display-name prefix or UserId and press Enter, or pick
+  one of the server's players from the chips under the box (filtered as you
+  type; shown when there's someone besides you); **Me** goes back to yourself.
+  The line under it shows who's loaded and their race label; **Sync** re-runs
+  innate and unlock checks for them (`traitSync`).
+- **Race / variant**: a chip per race (and per variant of their race); the
+  current one is gold. Hidden ones carry a small "hidden" in blue (assignable,
+  for testing), Disabled ones are struck through, faded and refuse with a toast.
+  Picking a race lands on a rollable variant (`traitSetRace`, variant "").
+- **Held traits (n)**: their traits with tags (rarity, Hidden/Disabled status,
+  who it's for when not Everyone, Forced, Inactive) and an info line (category,
+  Obtain, requirements, source). Remove on each.
+- **All traits**: every trait in the config, searchable (name, id, category,
+  rarity, Obtain, access, status) and filtered by All, each category, or Their
+  pool (`Registry.traitPool` of the loaded race and variant). The button says
+  what it will do: Give (open to them), Force (outside its Access; marked
+  forced), Remove (held); a Disabled trait has none. Clicking a row selects it
+  (gold name, lit rim; one at a time) and opens its details: description,
+  modifiers, who it's for, Excludes, Mechanics, id, and what it means for the
+  loaded player (holds it, open to them, or Force needed), beside the button.
+Every action toasts the server's message and reloads the target (`traitInfo`),
+which also reloads when the target's Race/Traits attributes change.
+
+## Character screen
+The Identity tab's race block shows "Beast Folk (Fox)". Under it, for a race with
+variants, "<Race> Variants" lists the rollable ones (`Registry.variantPool(race,
+"Roll")`) with rarity and roll chance, the player's own marked, rebuilt when
+Race changes. "Choose Race" / "Choose Variant" card pickers appear only when
+`Bridge.getChoices()` returns something (Select, or Unlock with Requires met);
+a card calls `Bridge.choose`, the server checks it, and the screen follows the
+attributes. Choices are re-asked whenever Race or RaceVariant changes.
+
 ## Known gaps
 - Test place only, with the character screen: `Main.server` loads identities
   under `Config.TESTBED`. In the main game races are empty and every modifier is 0.
@@ -112,5 +148,6 @@ profile as inactive (no effect) and come back if the race does.
 - Bloodlines aren't built, so bloodline Access and requirements never match.
 - Spirit Fox (an old placeholder race) overlaps Beast Folk Fox; decide whether
   to keep it.
+- The admin Traits tab lists every server player as a chip, up to six; a big server needs the search box.
 - Unlock traits are checked on events, not continuously: a requirement met some
   other way (an item picked up) waits for the next kill, breakthrough or quest.

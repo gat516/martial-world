@@ -4,8 +4,7 @@ Covers the bottom-centre HUD: the vitals mount (health, combat qi, guard trough)
 
 ## Vitals stack
 The bottom-centre stack (user decision, 2026-10-22, from a Deepwoken-style
-reference in our own style): one gilded mount (`Stack.Vitals`, art
-`vitals_mount.png` from `art/ui/draw_vitals.ps1`) holding three bars, top to
+reference in our own style): one gilded mount (`Stack.Vitals`) holding three bars, top to
 bottom: health (thick, ten segments), combat qi (the mana techniques spend;
 bright azure, with its number) and the guard posture trough (always shown,
 dim while full and idle, draining toward the lacquer seal in the middle),
@@ -27,18 +26,31 @@ half the screen). Its box is aspect 3.758 with MaxSize 560x149, and
 `Prompts.Dock` mirrors it.
 
 Redrawn 2026-10-23 to the user's own reference image (the Figma kit's Example
-page HUD is the target): on top the realm plaque (`Crest`, `realm_plaque.png`,
-the character window shortcut); then the gold double-framed plate with glossy red
-health (ten slanted dividers, red gems at the ends) and glossy sky-blue qi;
+page HUD is the target): on top the realm plaque (`Crest`, the character window shortcut); then the gold double-framed plate with glossy red
+health (slanted segment cuts, red gems at the ends) and glossy sky-blue qi;
 the tan guard trough in the tab with a red gem seal; and the PC Dash/Strike
-chips as round dark gold-rimmed discs (`vitals_chip.png`, a `Shade` clipped
+chips as round dark gold-rimmed discs (a `Shade` clipped
 in each `Cooldown`) under the plate's left end. Seated, the same plate style
 with the realm plaque. No name plaque (user, 2026-10-22): a name row made the
 stack too tall on phones and your own name tells you nothing, so it was cut and
 the stack cropped to the top of the realm plaque (the stack's shares, aspect and
-every child's Y scaled by 0.866 so nothing moved on screen); `name_plaque.png`
-is still drawn by `draw_vitals.ps1` but unused. Art: `art/ui/draw_vitals.ps1`
-(PowerShell; `draw_vitals.py` now only draws `fill_sheen`/`fill_edge`).
+every child's Y scaled by 0.866 so nothing moved on screen).
+
+Art (kit reskin, user, 2026-10-22): exported from the Figma kit, not drawn by
+script. `art/ui/figma/` holds the Figma exports (source frame, pieces and the
+re-export steps in its README): `Vitals.Plate` (ZIndex 0, behind the bars) is
+the notched body and guard tray, `Vitals.Mount` (ZIndex 3, over the bars) the
+bar rims, health segment cuts, ruby gems, studs and the guard seal, `Crest` the
+kit's title plaque, and the Dash/Strike chips the kit's round seal with the
+white `element_wind` / `weapon_sword` kit cuts. Seated uses the same plate, its
+own rims (`hud_seat_rims.png`) and plaque. Each image is laid out on the
+Vitals box's own bar positions and fills its box exactly (Stretch, no slicing),
+so moving a bar means moving it in the Figma sheet too. Hotbar slots wear the
+kit's `item_slot` cut (empty slots at half transparency, as before) and the held
+slot's `Halo` is `item_slot_selected` with its middle keyed out
+(`tools/key_inner.py`), drawn over the frame. `draw_vitals.ps1`'s
+`vitals_mount`, `seat_mount`, `realm_plaque`, `vitals_chip` and `name_plaque`
+are no longer used; `draw_vitals.py` still draws `fill_sheen`/`fill_edge`.
 The seated tiles, lotus, Force Breakthrough pill and the touch prompt dock's
 column sit just above the plate and moved down with it; the lotus is centred
 on the tiles' frames, 14 px past the last tile (`Meditation` LOTUS_GAP). Cultivation and the dantian
@@ -55,8 +67,8 @@ then again only while the player stands idle (no input for 25 s), at most
 every 150 s (`BreakthroughView` NUDGE_*). No pulsing or central prompt.
 
 ## Seated bars and meditation tiles
-Seated: the vitals give way to the cultivation bars (`Stack.SeatBars`, art
-`seat_mount.png`, the same notched plate; `Menus.setSeated`): the realm on
+Seated: the vitals give way to the cultivation bars (`Stack.SeatBars`, the
+same notched plate with `hud_seat_rims.png`; `Menus.setSeated`): the realm on
 the same crest the vitals wear (`TitleCrest`), one cultivation track with the
 breakthrough mark inside it at 80% and the overflow (cultivation beyond the
 bar, up to `CultivationCap`) as the paler stretch past the mark, and the
@@ -103,6 +115,9 @@ against the Lock button's arc on a phone); GuardController binds it.
   tiles, Force Breakthrough pill and calm lotus still sit just above the plate,
   the chips in the notch, and the touch prompt dock's list (`Prompts.Dock.List`
   at Y 0, now just above the realm plaque's top instead of the name row's).
+- The Figma reskin (2026-10-22) was previewed in edit view at PC size (560 px
+  stack), standing and seated, with a filled and a held hotbar slot; not on a
+  phone or the emulator, not in play. The chip glyphs read small at 24 px.
 - Bar numbers over a bright fill show the black text stroke as a ghost of the
   "/" at small sizes ("180 // 260"); the dantian texts use a lighter stroke
   (0.35). Check the others in play.

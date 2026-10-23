@@ -8,7 +8,10 @@ list as the Codex brief), and for each one:
      neighbour), proportions close to the brief's,
   3. downscales to 2x its display size (never upscales), and if it is still
      wider than Roblox's 1024 px cap, cuts it into side-by-side tiles,
-  4. icon sheets are split on a 4 x 3 grid into one 256 px icon each.
+  4. icon sheets are split on a 4 x 3 grid into one 256 px icon each,
+  5. ornament sheets (PIECE_SHEETS) are keyed by hue (generators paint noisy
+     magenta), split into pieces by shape, named in reading order, and cut at
+     full resolution as ornament_<name>.png.
 
 Writes art/ui/codex/cut/*.png, art/ui/codex/manifest.json (files, sizes,
 tiles, display size, flags) for the ui-designer, and
@@ -80,6 +83,107 @@ ICON_SHEETS = {
         "tap", "pad_a", "pad_x", "pad_y", "hold", "search",
     ],
 }
+
+# Ornament sheets: many isolated pieces on one magenta sheet, found by shape
+# (islands of art), named in reading order (rows top to bottom, then left to
+# right). Cut at full resolution; the pieces are small enough already.
+PIECE_SHEETS = {
+    "ornaments_filled_source": [
+        "name_scroll", "double_cloud", "single_cloud", "cloud_wisp",
+        "panel_corner", "portrait_corner",
+        "scroll_stud", "ruby_stud", "gold_stud",
+        "keyplate", "chevron",
+    ],
+}
+SHEET_GROUP_GAP = 16  # px; parts of one piece closer than this belong together
+SHEET_MIN_AREA = 400  # px; smaller islands are generator noise
+
+
+def key_sheet(im):
+    """Alpha-keyed RGBA array for a sheet on noisy, near-magenta ground.
+
+    Generators paint the "flat" magenta with drift and dark flecks, so the key
+    is by hue, not by one colour: anything whose red and blue both rise far
+    above green, at any brightness, is background. Gold, ruby, cream and navy
+    all have green at or above one of red and blue.
+    """
+    a = np.asarray(im.convert("RGB")).astype(np.float32)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    ratio = (np.minimum(r, b) - g) / np.maximum(np.maximum(r, b), 1)
+    alpha = 1 - np.clip((ratio - 0.35) / 0.45, 0, 1)
+    border = np.concatenate([a[:8].reshape(-1, 3), a[-8:].reshape(-1, 3), a[:, :8].reshape(-1, 3), a[:, -8:].reshape(-1, 3)])
+    bg = np.median(border, axis=0)
+    safe = np.maximum(alpha, 1e-3)[..., None]
+    rgb = np.clip((a - (1 - alpha)[..., None] * bg) / safe, 0, 255)
+    # Despill: the generator tints outlines and shading toward magenta (dark
+    # outlines come out (119, 11, 49), not brown). Art never has both red and
+    # blue above green except as spill, so take that excess off both.
+    spill = np.clip(np.minimum(rgb[..., 0], rgb[..., 2]) - rgb[..., 1], 0, None)
+    rgb[..., 0] -= spill
+    rgb[..., 2] -= spill
+    # Pink highlights on gold (blue at or above green): gold always has blue
+    # well below green. Rubies have dim green and are left alone.
+    pink = (rgb[..., 2] >= rgb[..., 1]) & (rgb[..., 1] > 80) & (rgb[..., 0] > rgb[..., 1])
+    rgb[..., 2] = np.where(pink, rgb[..., 1] * 0.6, rgb[..., 2])
+    return np.dstack([rgb, alpha * 255])
+
+
+def sheet_pieces(arr):
+    """Boxes of the pieces on a keyed sheet, in reading order, plus the noise-free alpha."""
+    from PIL import ImageFilter
+    alpha = arr[..., 3]
+    core = Image.fromarray(((alpha > 128) * 255).astype(np.uint8))
+    step = 4
+    small = core.resize((core.width // step, core.height // step), Image.BOX)
+    grown = small.filter(ImageFilter.MaxFilter(2 * (SHEET_GROUP_GAP // step) + 1))
+    groups = components(np.asarray(grown) > 0)
+    boxes, keep = [], np.zeros(alpha.shape, bool)
+    for _, (x1, y1, x2, y2) in groups:
+        X1, Y1, X2, Y2 = x1 * step, y1 * step, min(x2 * step, alpha.shape[1]), min(y2 * step, alpha.shape[0])
+        region = alpha[Y1:Y2, X1:X2] > 128
+        if region.sum() < SHEET_MIN_AREA:
+            continue
+        keep[Y1:Y2, X1:X2] |= True
+        ys, xs = np.nonzero(alpha[Y1:Y2, X1:X2] >= ALPHA_CUT)
+        boxes.append((X1 + xs.min(), Y1 + ys.min(), X1 + xs.max() + 1, Y1 + ys.max() + 1))
+    clean = np.where(keep, alpha, 0)
+    # Reading order: a box starts a new row when its top is below the current
+    # row's middle.
+    boxes.sort(key=lambda bx: bx[1])
+    rows, row_bottom = [], None
+    for bx in boxes:
+        if row_bottom is None or bx[1] > row_bottom:
+            rows.append([bx])
+            row_bottom = (bx[1] + bx[3]) / 2
+        else:
+            rows[-1].append(bx)
+            row_bottom = max(row_bottom, (bx[1] + bx[3]) / 2)
+    return [bx for row in rows for bx in sorted(row, key=lambda bx: bx[0])], clean
+
+
+def cut_piece_sheet(sheet, src):
+    """Cut every piece of an ornament sheet. Returns contact rows and manifest entries."""
+    names = PIECE_SHEETS[sheet]
+    arr = key_sheet(src)
+    boxes, clean = sheet_pieces(arr)
+    arr[..., 3] = clean
+    h, w = clean.shape
+    if len(boxes) != len(names):
+        return [(sheet, src, None, [f"found {len(boxes)} pieces, the list names {len(names)}"], [], f"{w} x {h}")], {}
+    rows, entries = [], {}
+    for name, (x1, y1, x2, y2) in zip(names, boxes):
+        errs = []
+        if x1 < EDGE_MARGIN or y1 < EDGE_MARGIN or x2 > w - EDGE_MARGIN or y2 > h - EDGE_MARGIN:
+            errs.append("touches the sheet edge (clipped?)")
+        pad = 2
+        box = (max(0, x1 - pad), max(0, y1 - pad), min(w, x2 + pad), min(h, y2 + pad))
+        piece = to_image(arr[box[1]:box[3], box[0]:box[2]])
+        f = f"ornament_{name}.png"
+        piece.save(OUT / f)
+        entries[f"ornament_{name}"] = {"sheet": sheet, "size": [piece.width, piece.height], "source_box": list(map(int, box)),
+                                       "tiles": [{"file": f, "x": 0, "width": piece.width, "height": piece.height}], "flags": errs}
+        rows.append((f"{sheet}: {name}", src.crop(box), piece, errs, [], f"{piece.width} x {piece.height}"))
+    return rows, entries
 
 
 def key(im):
@@ -315,9 +419,11 @@ def stitched(entry):
 def main():
     only = set(sys.argv[1:])
     OUT.mkdir(parents=True, exist_ok=True)
-    manifest, rows, missing = {}, [], []
+    manifest_path = SRC / "manifest.json"
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+    rows, missing = [], []
     failed = False
-    for name in list(PIECES) + list(ICON_SHEETS):
+    for name in list(PIECES) + list(ICON_SHEETS) + list(PIECE_SHEETS):
         if only and name not in only:
             continue
         path = SRC / f"{name}.png"
@@ -325,6 +431,12 @@ def main():
             missing.append(name)
             continue
         src = Image.open(path).convert("RGBA")
+        if name in PIECE_SHEETS:
+            sheet_rows, entries = cut_piece_sheet(name, src)
+            manifest.update(entries)
+            rows.extend(sheet_rows)
+            failed = failed or any(r[3] for r in sheet_rows)
+            continue
         arr, bg_err = key(src)
         if bg_err:
             rows.append((name, src, None, [bg_err], [], f"{src.width} x {src.height}"))

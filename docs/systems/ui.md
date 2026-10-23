@@ -85,6 +85,9 @@ cursor, settings and the admin panel.
   splits icon sheets on a 4 x 3 grid, and writes `manifest.json` (sizes, tiles,
   flags) plus `contact_sheet.png`. The user approves the contact sheet before
   anything is uploaded. Run with `uv run --with pillow --with numpy`.
+- Ornament sheets (many pieces on one magenta sheet) are cut by the same tool,
+  found by shape and named from its `PIECE_SHEETS`; the first is documented in
+  [dialogue ornaments](../ui/dialogue-ornaments.md).
 - Templates that scripts clone live in a `Templates` Frame with `Visible = false`,
   never a Folder: GUI objects inside a Folder still draw.
 - `tools/export_rbxmx.luau` also writes rig joints (Motor6D C0/C1), Humanoid,
@@ -96,6 +99,7 @@ cursor, settings and the admin panel.
 - [Vitals stack, seated bars and guard bar](../ui/hud-vitals.md)
 - [Inventory windows](../ui/inventory.md)
 - [Boss health bar](../ui/boss-bars.md)
+- [Dialogue ornaments](../ui/dialogue-ornaments.md)
 - [Character window](../character/character-window.md)
 
 ## Key files (all `src/client/`)

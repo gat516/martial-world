@@ -80,6 +80,64 @@ local function mechanicsOf(data: PlayerData.Data): { [string]: boolean }
 	return set
 end
 
+--[[ Body size (the `size` modifier, e.g. Titan Frame) ]]
+
+local MIN_SCALE, MAX_SCALE = 0.5, 2
+local ROOT_HEIGHT = 3 -- studs from the ground to an R6 root's centre at scale 1
+
+-- The body scale this profile should have: 1 plus every `size` modifier.
+function Traits.scaleOf(data: PlayerData.Data): number
+	return math.clamp(1 + Registry.stat(data, "size"), MIN_SCALE, MAX_SCALE)
+end
+
+-- Scales a character to `target` with Model:ScaleTo, which scales every part,
+-- joint, accessory and the held weapon together so animations and welds stay
+-- right, then moves it so the feet stay on the ground (ScaleTo scales about the
+-- root). Hitboxes don't change: strike and enemy hit checks are boxes and
+-- distances from the root (Shared.Hitbox, Config.CLASSES), not the body's size.
+function Traits.scaleCharacter(character: Model, target: number)
+	local current = character:GetScale()
+	if math.abs(current - target) < 1e-3 then
+		return
+	end
+	local pivot = character:GetPivot()
+	character:ScaleTo(target)
+	character:PivotTo(pivot + Vector3.yAxis * (target - current) * ROOT_HEIGHT)
+end
+
+-- Gives the player's character its scale. Skipped while CharacterIdentity is
+-- dressing it (it unscales, dresses, then calls this again), so accessories and
+-- clothing always go on at scale 1 and grow with the body.
+function Traits.applySize(player: Player)
+	local character = player.Character
+	local data = PlayerData.get(player)
+	if not (character and data) or character:GetAttribute("Dressing") then
+		return
+	end
+	if not character:FindFirstChild("HumanoidRootPart") then
+		return
+	end
+	Traits.scaleCharacter(character, Traits.scaleOf(data))
+end
+
+-- Every spawn gets its size once the avatar's appearance has loaded (accessories
+-- that arrive later would stay small otherwise).
+function Traits.watch(player: Player)
+	local function onCharacter(character: Model)
+		local waited = 0
+		while not player:HasAppearanceLoaded() and waited < 5 and player.Character == character do
+			waited += task.wait(0.1)
+		end
+		if player.Character == character then
+			Traits.applySize(player)
+		end
+	end
+	player.CharacterAdded:Connect(onCharacter)
+	if player.Character then
+		task.spawn(onCharacter, player.Character)
+	end
+end
+
 -- Attributes, mechanics and stats follow the profile.
 function Traits.publish(player: Player, data: PlayerData.Data)
 	local identity = data.identity
@@ -108,6 +166,7 @@ function Traits.publish(player: Player, data: PlayerData.Data)
 	end
 	attached[player] = now
 	Cultivation.applyStats(player, data)
+	Traits.applySize(player)
 end
 
 local function add(player: Player, data: PlayerData.Data, id: string, src: string, force: boolean?)

@@ -163,6 +163,7 @@ local function onPlayerAdded(player: Player)
 	Roots.publish(player, data)
 	if Config.TESTBED then
 		CharacterIdentity.load(player, data) -- race, variant, last name and traits (Traits.luau); test place only for now
+		Traits.watch(player) -- body size (the size modifier) on every spawn
 	end
 	Cultivation.pushState(player)
 	Methods.giveStarter(player) -- already at Foundation from before methods existed

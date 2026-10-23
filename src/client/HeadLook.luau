@@ -16,13 +16,15 @@ local HeadLook = {}
 local humanoid: Humanoid? = nil
 local neck: Motor6D? = nil
 local baseC0: CFrame? = nil
+local body: Model? = nil -- the character, for its scale
+local baseScale = 1 -- its scale when baseC0 was read
 local yaw, pitch = 0, 0
 
 local function clear()
 	if neck and neck.Parent and baseC0 then
 		neck.C0 = baseC0
 	end
-	humanoid, neck, baseC0 = nil, nil, nil
+	humanoid, neck, baseC0, body = nil, nil, nil, nil
 	yaw, pitch = 0, 0
 end
 
@@ -38,7 +40,7 @@ local function onCharacter(character: Model)
 	if not joint or not joint:IsA("Motor6D") or joint.Part1 ~= head then
 		return
 	end
-	humanoid, neck, baseC0 = nextHumanoid, joint, joint.C0
+	humanoid, neck, baseC0, body, baseScale = nextHumanoid, joint, joint.C0, character, character:GetScale()
 end
 
 local function step(dt: number)
@@ -64,7 +66,10 @@ local function step(dt: number)
 	pitch += (targetPitch - pitch) * alpha
 	-- Apply in torso axes before the rig's joint orientation, so R6 and R15 agree.
 	-- Animator still owns Transform and can keep playing the run's head motion.
-	joint.C0 = CFrame.new(rest.Position) * CFrame.Angles(pitch, yaw, 0) * rest.Rotation
+	-- The rest offset follows the body's scale: a Titan Frame body is scaled after
+	-- spawn (Model:ScaleTo scales the neck), and a stale offset sinks the head.
+	local scale = if body then body:GetScale() / baseScale else 1
+	joint.C0 = CFrame.new(rest.Position * scale) * CFrame.Angles(pitch, yaw, 0) * rest.Rotation
 end
 
 function HeadLook.init()

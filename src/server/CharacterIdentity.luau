@@ -287,6 +287,10 @@ local function dress(player: Player, look: Look)
 	if not (character and humanoid) then
 		return
 	end
+	-- dress at scale 1 (ApplyDescription and new accessories assume it); the size
+	-- comes back at the end (Traits.applySize skips while Dressing is set)
+	character:SetAttribute("Dressing", true)
+	Traits.scaleCharacter(character, 1)
 	local shirt = optionById(Clothing.Shirt, look.Shirt)
 	local pants = optionById(Clothing.Pants, look.Pants)
 	-- A clean body (user, 2026-10-23): the avatar's skin colours and nothing else
@@ -345,6 +349,10 @@ local function dress(player: Player, look: Look)
 			humanoid:AddAccessory(copy)
 		end
 	end
+	-- back to the body size the profile calls for (Titan Frame), now that
+	-- everything is on and can grow with it
+	character:SetAttribute("Dressing", nil)
+	Traits.applySize(player)
 end
 
 local function confirm(player: Player, raw: any): (boolean, any)

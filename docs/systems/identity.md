@@ -69,6 +69,8 @@ Each file's header lists its fields. The vocabulary:
   `growth`, `regen`, the spirit root perk kinds (amounts read the same way:
   shares, except `walk` in studs/s). They add to the root perk at the same
   places (Cultivation.applyStats, Combat, Garden, the Roots regen loop).
+  Plus `size`: a share added to body size (Titan Frame: 0.25, 25% larger; see
+  Body size below).
 - **Excludes** (traits): traits it can't be held with.
 
 A variant's trait pool is its race's and its own innate traits plus every
@@ -140,10 +142,36 @@ Race changes. "Choose Race" / "Choose Variant" card pickers appear only when
 a card calls `Bridge.choose`, the server checks it, and the screen follows the
 attributes. Choices are re-asked whenever Race or RaceVariant changes.
 
+## Body size
+The `size` modifier (Titan Frame, user 2026-10-23) scales the character with
+`Model:ScaleTo` on the server (`Traits.applySize`, clamped 0.5 to 2), so parts,
+joints, accessories and the held weapon scale together and animations keep
+working. The root moves up so the feet stay on the ground. It's applied:
+- on every spawn, once the avatar has loaded (`Traits.watch`);
+- whenever traits, race or variant change (`Traits.publish`), and taken off the
+  same way (back to 1 when the trait is removed or no longer applies);
+- around dress-up: `CharacterIdentity.dress` scales the body to 1, dresses it
+  (ApplyDescription, hair, clothes), then reapplies the size, so accessories
+  always go on at scale 1 and grow with the body (attribute `Dressing` while it runs);
+- to weapons: `Weapons.apply` scales a weapon to the body before attaching it
+  (ScaleTo scales the hand joint's C0/C1 too), and a held weapon grows with the body.
+On the client, `HeadLook` scales its cached neck offset by the body's scale, or
+the head would sink after a resize.
+Hitboxes and reach don't change with size, on purpose (balance): strikes use
+boxes from the root (`Shared.Hitbox`, `Config.CLASSES` plus `HITBOX_SLACK`),
+enemy attack areas test the root within `AREA_HEIGHT` (8 studs) and a fixed
+`PLAYER_RADIUS`. Checked 2026-10-23 against every beast in the test arena:
+the same hits at 1 and 1.25. Walk speed and jump height stay in studs.
+
 ## Known gaps
 - Test place only, with the character screen: `Main.server` loads identities
   under `Config.TESTBED`. In the main game races are empty and every modifier is 0.
 - The trait values and the new races' weights are first guesses, not balanced.
+- A giant is no easier to hit (enemy areas use a fixed player radius); widen
+  `PLAYER_RADIUS` by the body's scale if that should change.
+- Body size is untested on a phone, in seats (meditation) and with Tools held
+  in the hand (herbs): those place by joints too, so they should follow, but
+  nobody has looked.
 - No `Mechanics` handlers exist yet, so passives and abilities named in config
   do nothing.
 - Nothing uses `Traits.grant` yet (no quest or item gives a Grant trait).

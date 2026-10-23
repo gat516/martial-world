@@ -37,9 +37,19 @@ benefits (meditation seats, garden plots, garden boosters).
   `set = "<id>"`. The catalog adds a set tab (its C2 medallion on a catalog tab, under
   a "Sets" heading) for every set that has at least one item, and the detail panel
   shows "<set> set" and the medallion. No item has a set yet, so nothing shows.
+- Window placement (`BuildCatalog.open`): the Spirit Market sits centred, 34 px
+  clear of the screen's top and bottom (`BuildBar` Size 0.96 x (1, -68), max
+  1000x520), so its title plaque, which rides 25 px above the window, stays on
+  screen; in build mode the window sits 8 px off the bottom with 90 px kept above it
+  (`BUILD_TOP`), so the plaque clears the build banner (it used to cover the
+  banner's tabs on phones). On a narrow screen the banner drops its "Build mode ·
+  <peak>" tag when the full banner would reach Roblox's top-left buttons
+  (`BuildMode.refreshBanner`, `Platform.topbar`). Catalog tiles have 4 px above the
+  first row so the 5% hover swell isn't cropped.
 - The peak-score gauge (C2 `peak_meter`, under the category tabs) shows the player
   attributes `PeakScore` and `PeakScoreCap` (the fill is score/cap) and stays hidden
-  until the server sets `PeakScore`. The score itself (more items count, adding to
+  until the server sets `PeakScore`, and on windows whose body is under 300 px tall
+  (phones), where it cut the tab list to two and a half tabs. The score itself (more items count, adding to
   meditation and garden up to a cap) is roadmap §6 and not built.
 
 ## Data flow

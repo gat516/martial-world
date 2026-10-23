@@ -42,6 +42,8 @@ local WARN_COLOR = Color3.fromRGB(240, 120, 100)
 local NOTE_COLOR = Color3.fromRGB(230, 214, 170)
 local COST_COLOR = Color3.fromRGB(240, 230, 200)
 local SPIN_SPEED = 0.35 -- radians per second, detail preview
+local GAUGE_MIN_BODY = 300 -- the window body's height (px) the peak-score gauge needs beside the tabs
+local BUILD_TOP = 90 -- build mode: px above the window (the banner, 8-60, plus the title plaque's 26 px overhang)
 
 -- C2 set medallions (art/ui/assets.json codex/cut/ornament_set_*), by BuildItems.Sets id
 local MEDALLIONS: { [string]: string } = {
@@ -473,14 +475,17 @@ function BuildCatalog.open(m: Mode)
 	if ownedToggle then
 		ownedToggle.Visible = true
 	end
-	-- the shop sits centred (as authored); in build mode the window sits low,
-	-- under the build banner, whose tabs stay usable
+	-- the shop sits centred (as authored, 34 px clear of the screen's top and bottom
+	-- so its title plaque, which rides 25 px above the window's top edge, stays on
+	-- screen); in build mode the window sits low and its top keeps BUILD_TOP clear,
+	-- so the plaque stays below the build banner and the banner's tabs stay whole
+	-- (on a phone a 0.8-high window put the plaque over the banner's tabs)
 	if m == "shop" then
 		bar.AnchorPoint, bar.Position, bar.Size = shopPlace.anchor, shopPlace.position, shopPlace.size
 	else
 		bar.AnchorPoint = Vector2.new(0.5, 1)
 		bar.Position = UDim2.new(0.5, 0, 1, -8)
-		bar.Size = UDim2.new(shopPlace.size.X, UDim.new(0.8, 0))
+		bar.Size = UDim2.new(shopPlace.size.X, UDim.new(1, -BUILD_TOP - 8))
 	end
 	BuildCatalog.refresh()
 	Menus.open(bar)
@@ -620,7 +625,9 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 	end
 	setCategory("All")
 
-	-- the peak-score gauge: shown once the server sets PeakScore (and its cap)
+	-- the peak-score gauge: shown once the server sets PeakScore (and its cap), and
+	-- only when the tab column is tall enough to keep it (on a phone it cut the tab
+	-- list down to two and a half tabs)
 	local gauge = find(bar, "PeakScore") :: GuiObject?
 	local tabList = find(bar, "Tabs") :: GuiObject?
 	local tabSize = if tabList then tabList.Size else UDim2.new()
@@ -630,7 +637,8 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 		end
 		local score = player:GetAttribute("PeakScore")
 		local cap = player:GetAttribute("PeakScoreCap")
-		local shown = type(score) == "number"
+		local body = bar:FindFirstChild("Body") :: GuiObject
+		local shown = type(score) == "number" and body.AbsoluteSize.Y >= GAUGE_MIN_BODY
 		gauge.Visible = shown
 		tabList.Size = if shown then tabSize - UDim2.fromOffset(0, gauge.Size.Y.Offset + 6) else tabSize
 		if shown then
@@ -645,6 +653,7 @@ function BuildCatalog.init(gui: ScreenGui, h: Handlers)
 	end
 	player:GetAttributeChangedSignal("PeakScore"):Connect(showScore)
 	player:GetAttributeChangedSignal("PeakScoreCap"):Connect(showScore)
+	bar:GetPropertyChangedSignal("AbsoluteSize"):Connect(showScore)
 	showScore()
 
 	search:GetPropertyChangedSignal("Text"):Connect(BuildCatalog.refresh)

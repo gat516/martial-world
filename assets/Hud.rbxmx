@@ -857,7 +857,7 @@
    <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
    <float name="BackgroundTransparency">1</float>
    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-   <UDim2 name="Size"><XS>0.96</XS><XO>0</XO><YS>0.88</YS><YO>0</YO></UDim2>
+   <UDim2 name="Size"><XS>0.96</XS><XO>0</XO><YS>1</YS><YO>-68</YO></UDim2>
    <bool name="Visible">false</bool>
    <int name="ZIndex">8</int>
   </Properties>
@@ -1074,7 +1074,7 @@
      </Item>
      <Item class="UIPadding" referent="RBX110"><Properties>
       <string name="Name">UIPadding</string>
-      <UDim name="PaddingTop"><S>0</S><O>2</O></UDim>
+      <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
       <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
       <UDim name="PaddingLeft"><S>0</S><O>4</O></UDim>
       <UDim name="PaddingRight"><S>0</S><O>4</O></UDim>

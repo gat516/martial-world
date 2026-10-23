@@ -328,7 +328,7 @@ end
 
 -- Accessories the character wears for who they are (fox ears and tail from the
 -- fox trait): every `Cosmetics` id on the race, the variant and each active trait.
--- Ids name accessories in ServerStorage.Cosmetics (assets/Cosmetics.rbxm); the
+-- Ids name accessories in ReplicatedStorage.Cosmetics (assets/Cosmetics/); the
 -- server's Traits.applyBody puts them on and takes them off. { [id]: true }
 function Registry.cosmetics(data: any): { [string]: boolean }
 	local set = {}

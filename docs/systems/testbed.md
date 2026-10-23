@@ -37,13 +37,12 @@ in AGENTS.md (Branches) and [orchestration](../agents/orchestration.md#test-buil
   turned on for a published place. So `PlayerData` uses an in-memory store when
   `PlaceId` is 0: rejoining in the same Play session keeps your profile; stopping
   Play or rebuilding wipes it (user, 2026-10-22).
-- **Alt mouse lock in the testbed.** In the observed Studio Play client, Roblox
-  supplied no `PlayerScripts.PlayerModule` for `ShiftLock.luau` to rebind, so Shift
-  stayed native and Alt did nothing. `test.project.json` disables the native
-  Shift toggle with `StarterPlayer.EnableMouseLockOption = false`;
-  `TestbedAltMouseLock.client.luau` supplies Alt, mouse centering and shoulder
-  offset only when `Config.TESTBED` is true. The main project's setting and
-  `ShiftLock.luau` are unchanged. This needs a fresh testbed Play session to verify.
+- **Shift lock is the main game's.** The testbed client has Roblox's
+  `PlayerModule`, so `ShiftLock.luau` rebinds its shift lock to Alt here too
+  (checked in a sandbox Play session, 2026-10-23). A separate testbed Alt script
+  used to write `MouseBehavior` behind the Roblox camera's back; after Alt,
+  windows and right-drags the camera "restored" a stale LockCenter and the mouse
+  stuck at the centre, so it was removed.
 
 ## World
 Everything sits at the real Hub's height (plaza floor Y 648.6, around the origin),
@@ -144,9 +143,8 @@ and open that file in Studio. Nothing in it is saved. After a restart, repeat st
 - Lighting is Studio's default; the real place's Sky, Atmosphere and post effects
   are place-only. So are the main place's map LocalScripts in StarterPlayerScripts
   (`BridgeSway`, `SkyLayerAtmosphere`, `SpiritLights`), which have nothing to act on here.
-- Joins can be slow in a busy Studio (several places open). The previous
-  `ShiftLock` timeout was removed, but this testbed client had no `PlayerModule`
-  at all; the testbed Alt controller no longer waits for one.
+- Joins can be slow in a busy Studio (several places open); `ShiftLock` waits for
+  the `PlayerModule` with no timeout.
 - Animations play in Studio only if the logged-in user can use them (they're owned
   by the main game's group).
 - The test build shows code and `assets/` only: the real map isn't in it, so map

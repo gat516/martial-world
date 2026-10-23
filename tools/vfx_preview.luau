@@ -4,7 +4,7 @@
 --
 --   P.scene({ center?, enemies? = {"SpiritWolf", ...}, offsets? = {Vector3...},
 --             radius? })            -> scene table { C, rig, enemies, folder }
---       A clean grass floor in open sky (no props in the way), a caster stand-in
+--       A clean SmoothPlastic floor (opts.floor size, opts.floorColor) in open sky (no props in the way), a caster stand-in
 --       (a clone of workspace.Rig, facing +X), enemy clones from
 --       ServerStorage.Enemies facing the caster, and red posts at `radius` to
 --       check a gameplay shape against.
@@ -52,6 +52,19 @@
 --       player distance, ~25 studs). Tweened add-on parts (Craters,
 --       shells, spline trails) keep moving after a freeze, so judge those from
 --       the hit/hitstop shots only.
+--   P.filmstrip({ id, level, radius?, moments?, cols? = 3, fov? = 18, lag? })
+--       -> "camera x,y,z | look x,y,z" plus one line per moment
+--       The review image: one scene per moment (default six, from
+--       Rules.castProfile: anticipation, windup, release, active, hitstop,
+--       aftermath) laid out as a cols x rows grid square to the player-view
+--       camera, each on a dark plate with a label (moment and ms after cast
+--       start) spelt in small Neon parts, all frozen, and the editor camera
+--       parked far back with a narrow FieldOfView so ONE screen_capture with
+--       the returned camera shows the whole beat (near-orthographic, so every
+--       cell reads at the same scale). It hides the dev GUI (the HUD) and
+--       builds at y 1200 (open sky over the testbed's baseplate); P.clear()
+--       restores the FieldOfView and the dev GUI.
+--       Moments are { name, t } (seconds after cast start) like sweep's.
 -- Typical camera for screen_capture: behind-right of the caster at player
 -- distance, e.g. C + (-12, 9, 5) looking at C + (4, 1, 0); top-down
 -- C + (0.1, 28, 0) -> C checks radii against the posts.
@@ -140,10 +153,10 @@ function P.scene(opts)
 	local floor = Instance.new("Part")
 	floor.Name = "Floor"
 	floor.Anchored = true
-	floor.Size = Vector3.new(90, 2, 90)
+	floor.Size = Vector3.new(opts.floor or 90, 2, opts.floor or 90)
 	floor.CFrame = CFrame.new(C - Vector3.new(0, 1, 0))
 	floor.Material = Enum.Material.SmoothPlastic -- textured grass muddies reads
-	floor.Color = Color3.fromRGB(98, 170, 60)
+	floor.Color = opts.floorColor or Color3.fromRGB(98, 170, 60)
 	floor.Parent = folder
 	local rig = workspace:FindFirstChild("Rig")
 	rig = rig and rig:Clone()
@@ -253,6 +266,14 @@ function P.clear(keepScene)
 	pcall(function()
 		game:GetService("RunService"):UnbindFromRenderStep("CombatShake")
 	end)
+	if P._fov and not keepScene then
+		workspace.CurrentCamera.FieldOfView = P._fov
+		P._fov = nil
+	end
+	if P._devGui ~= nil and not keepScene then
+		game:GetService("StarterGui").ShowDevelopmentGui = P._devGui
+		P._devGui = nil
+	end
 end
 
 function P.fresh(names)
@@ -420,6 +441,131 @@ function P.sweep(opts)
 		end
 	end
 	return table.concat(results, "\n") .. "\n" .. table.concat(lines, "\n")
+end
+
+-- 3x5 pixel font for the filmstrip labels (rows top to bottom, "1" = lit)
+local GLYPHS = {
+	A = "010101111101101", B = "110101110101110", C = "011100100100011", D = "110101101101110",
+	E = "111100110100111", F = "111100110100100", G = "011100101101011", H = "101101111101101",
+	I = "111010010010111", K = "101101110101101", L = "100100100100111", M = "101111111101101",
+	N = "110101101101101", O = "010101101101010", P = "110101110100100", R = "110101110101101",
+	S = "011100010001110", T = "111010010010010", U = "101101101101111", V = "101101101101010",
+	W = "101101111111101", X = "101101010101101", Y = "101101010010010", J = "001001001101010",
+	Q = "010101101110011", Z = "111001010100111",
+	["0"] = "111101101101111", ["1"] = "010110010010111", ["2"] = "110001010100111",
+	["3"] = "110001010001110", ["4"] = "101101111001001", ["5"] = "111100110001110",
+	["6"] = "011100111101111", ["7"] = "111001010010010", ["8"] = "111101111101111",
+	["9"] = "111101111001110", ["+"] = "000010111010000", ["-"] = "000000111000000",
+	["."] = "000000000000010", [" "] = "000000000000000",
+}
+
+-- `text` in Neon pixel runs, centred on `cf` (its Right/Up span the text), `px` studs a pixel
+local function label(parent, text, cf, px, color)
+	text = string.upper(text)
+	local width = #text * 4 - 1
+	local folder = Instance.new("Folder")
+	folder.Name = "Label"
+	for i = 1, #text do
+		local g = GLYPHS[text:sub(i, i)] or GLYPHS[" "]
+		for row = 0, 4 do
+			local bits = g:sub(row * 3 + 1, row * 3 + 3)
+			local col = 1
+			while col <= 3 do
+				if bits:sub(col, col) == "1" then
+					local run = col
+					while run < 3 and bits:sub(run + 1, run + 1) == "1" do
+						run += 1
+					end
+					local x0 = (i - 1) * 4 + (col - 1)
+					local cx = (x0 + (run - col + 1) / 2 - width / 2) * px
+					local cy = (2.5 - row - 0.5) * px
+					local p = Instance.new("Part")
+					p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+					p.Material = Enum.Material.Neon
+					p.Color = color
+					p.Size = Vector3.new((run - col + 1) * px, px, 0.05)
+					p.CFrame = cf * CFrame.new(cx, cy, 0)
+					p.Parent = folder
+					col = run + 1
+				else
+					col += 1
+				end
+			end
+		end
+	end
+	folder.Parent = parent
+	return folder
+end
+
+function P.filmstrip(opts)
+	local holder = P.fresh({ "TechniqueVFX" })
+	local Rules = require(holder.Shared.ActionRules)
+	local Techniques = require(holder.Shared.Techniques)
+	local profile = Rules.castProfile(Techniques.Defs[opts.id])
+	local lag = opts.lag or 0.1
+	local w, a, r = profile.windup, profile.active, profile.recovery
+	local moments = opts.moments or {
+		{ name = "anticipation", t = w * 0.4 },
+		{ name = "windup", t = w * 0.85 },
+		{ name = "release", t = w + 0.06 + lag },
+		{ name = "active", t = w + a * 0.5 + lag },
+		{ name = "hitstop", t = w + a + lag },
+		{ name = "aftermath", t = w + a + r + 0.3 + lag },
+	}
+	P.clear()
+	local cols = opts.cols or 3
+	local rows = math.ceil(#moments / cols)
+	local radius = opts.radius or 6
+	local cellW = math.max(26, radius * 2 + 12)
+	-- open sky above everything (the testbed's Arena baseplate tops out at 648.6)
+	local base = opts.center or Vector3.new(400, 1200, 300)
+	-- the player-view direction (CAMERAS.player); cells sit on the plane square to it
+	local view = CFrame.lookAt(CAMERAS.player[1], CAMERAS.player[2])
+	local right, up = view.RightVector, view.UpVector
+	-- a cell's screen height: the plate's footprint, enemies standing on it, a label row
+	local half = (cellW - 4) / 2
+	local longest = 0
+	for i, m in moments do
+		longest = math.max(longest, #string.format("%d %s %dms", i, m.name, math.round(m.t * 1000)))
+	end
+	local px = math.min(cellW / 70, (cellW - 3) / (longest * 4))
+	local plateDown = half * (math.abs(up.X) + math.abs(up.Z)) + 1.5
+	local cellH = plateDown * 2 + 7 * math.abs(up.Y) + px * 7 + 2
+	local fov = opts.fov or 18
+	local camera = workspace.CurrentCamera
+	P._fov = P._fov or camera.FieldOfView
+	local SG = game:GetService("StarterGui")
+	if P._devGui == nil then
+		P._devGui = SG.ShowDevelopmentGui
+	end
+	SG.ShowDevelopmentGui = false -- the HUD covers the bottom row
+	local results, scenes = {}, {}
+	for i, m in moments do
+		local col, row = (i - 1) % cols, math.floor((i - 1) / cols)
+		local C = base + right * ((col - (cols - 1) / 2) * cellW) - up * ((row - (rows - 1) / 2) * cellH)
+		local scene = P.scene({ center = C, radius = opts.radius, keep = true, enemies = opts.enemies,
+			floor = cellW - 4, floorColor = Color3.fromRGB(28, 30, 36) })
+		scenes[i] = scene
+		local ms = math.round(m.t * 1000)
+		results[i] = string.format("%d %s %dms: %s", i, m.name, ms, P.castThrough({ id = opts.id, level = opts.level, freezeAt = m.t, scene = scene, camera = "player" }))
+		-- label under the cell, square to the camera
+		-- the label just under the plate's front lip, pulled toward the camera so
+		-- nothing hides it (a near-orthographic view keeps its screen spot)
+		local at = scene.C - up * (plateDown + px * 4) - view.LookVector * 30
+		label(scene.folder, string.format("%d %s %dms", i, m.name, ms), CFrame.fromMatrix(at, right, up), px, Color3.fromRGB(255, 220, 120))
+	end
+	-- park far back along the view so the whole grid fits, narrow FOV
+	local mid = base - up * (px * 3)
+	local aspect = camera.ViewportSize.X / math.max(1, camera.ViewportSize.Y)
+	local halfV = math.rad(fov) / 2
+	local halfH = math.atan(math.tan(halfV) * aspect)
+	local need = math.max((cols * cellW / 2 + 1) / math.tan(halfH), (rows * cellH / 2 + px * 4) / math.tan(halfV))
+	local from = mid - view.LookVector * need
+	camera.FieldOfView = fov
+	camera.CFrame = CFrame.lookAt(from, mid)
+	table.insert(results, 1, string.format("camera %.1f, %.1f, %.1f | look %.1f, %.1f, %.1f | fov %d (%d x %d cells, %.0f studs each)",
+		from.X, from.Y, from.Z, mid.X, mid.Y, mid.Z, fov, cols, rows, cellW))
+	return table.concat(results, "\n")
 end
 
 _G.vfxPreview = P

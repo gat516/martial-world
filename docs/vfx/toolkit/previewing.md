@@ -1,4 +1,4 @@
-Previewing effects in Edit mode and capturing them: `vfx_preview` (castThrough, sweep, scene), enemy-effect shots, cameras, and every capture trap found so far. Read when you preview, freeze or capture an effect.
+Previewing effects in Edit mode and capturing them: the one review image (filmstrip, `vfx_sheet.py`) and the placement lints, `vfx_preview` (castThrough, sweep, scene), enemy-effect shots, cameras, and every capture trap found so far. Read when you preview, freeze or capture an effect.
 
 # Previewing and capturing
 
@@ -33,6 +33,35 @@ capture can't be trusted, verify numerically and leave the look to the user in S
   emitters and short-lived held props. Say so in the report instead of spending captures.
 - Green dots on rigs are Studio's attachment display, not the effect. A SurfaceGui on a part
   didn't show in a `screen_capture` at all.
+
+## The review image
+
+The critic step judges one image plus the lint printouts, never a pile of captures.
+- **Techniques:** `P.filmstrip({ id, level, radius })` plays the real cast six
+  times (anticipation, windup, release, active, hitstop, aftermath, from
+  `Rules.castProfile`), freezes each in its own cell on a dark plate with a
+  Neon-part label (moment and ms), lays the cells out 3x2 square to the
+  player-view camera and parks the editor camera far back at FieldOfView 18.
+  One `screen_capture` with the returned camera is the review image. It builds
+  at y 1200 (over the testbed baseplate) and hides the dev GUI; `P.clear()`
+  restores both. Frozen particles still render from the far camera, because
+  each cell is played with the camera parked close first. Cells are small
+  (~500 px), so the shot reads timing and placement. Judge fine texture in
+  Studio.
+- **Enemies and anything else:** take the per-moment captures
+  (`enemy_fx_shot`), then
+  `uv run --with pillow python3 -I tools/vfx_sheet.py OUT.png --title ... "label=path" ...`
+  makes a labelled grid (3 columns). The capture paths come from Claude Code,
+  which saves every `screen_capture` under the session's `tool-results/`
+  folder and prints `[Image: source: .../mcp-Roblox_Studio-blob-<n>.jpg]`. The
+  MCP itself has no save-to-disk call (`store_image` loads a local file into
+  Studio, the other way). Each capture also costs the capturing agent's
+  context, so prefer the filmstrip where it applies.
+- `enemy_fx_shot` leaves the dev GUI showing: set
+  `StarterGui.ShowDevelopmentGui = false` before its captures and restore it.
+- Before judging the look, lint the placement: `tools/vfx_origin_check.luau`
+  (`_G.vfxOriginCheck(target)`), `tools/vfx_hooks_check.py` and
+  `tools/vfx_texture_audit.py` ([enemy-effects](../enemy-effects.md), "Checks").
 
 ## Techniques: `tools/vfx_preview.luau` (`_G.vfxPreview`)
 

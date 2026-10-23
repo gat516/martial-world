@@ -177,7 +177,9 @@ critic round; the user glancing at the live stage costs nothing. When the user
 is at their desk, brief `Review: human`: the agent lints, puts the thing on the
 stage, says what it would pick, and ends its turn. Relay the user's answer with
 `SendMessage` (the agent resumes with its context). Brief `Review: critic` only
-when they've said they're away.
+when they've said they're away. The stage loop runs inside Studio (a Heartbeat
+connection), so a stopped agent costs nothing while the user looks; resume it
+with their words, and it swaps the stage to the next build.
 
 ### The visual gate
 

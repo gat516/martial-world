@@ -59,26 +59,32 @@ local choice = Dialogue.open({
   doesn't jump and W/S don't walk.
 
 ## Dialogue: layout
-Laid out at a baseline inside `Canvas` and fitted by `UiScale` (one `UiScale` UIScale);
-`UiScale.isPhone()` picks the layout once and the other is destroyed. Both are centred on
-the screen (the centre-of-screen rule for panels the player reads).
+A bar along the bottom of the screen, after the user's mockup
+([dialogue_bar_figma.png](../reference/ui/dialogue_bar_figma.png), 2026-10-23: "a bar on
+the bottom screen like in figma"); it replaced a panel in the screen's centre. The
+gameplay HUD is hidden while it's open (Menus), so the bottom is free. Laid out at a
+baseline inside `Canvas` and fitted by `UiScale` (one `UiScale` UIScale);
+`UiScale.isPhone()` picks the layout once and the other is destroyed. The layout root
+is anchored at its bottom centre (AnchorPoint 0.5,1), so on a wider screen the bar keeps
+its baseline width and stays centred.
 
 | | Desktop (1920x1080) | Phone (844x390) |
 |---|---|---|
-| Block | 1480 x 292 | 600 x 346 |
-| Panel | 1000 x 250, top at 42 | 600 x 200, top at 34 |
-| Portrait | 206 square, 22 from the panel's left, top and bottom | 164 square, 18 in |
-| Text box | portrait + 14 to 22 from the right; text 24 px, padding 30/26 | portrait + 10 to 18 in; text 18 px, padding 20/18 |
-| Name tab | 58 tall at x 30, fitted to the name (Merriweather Bold 24), at most 600 wide | 46 tall at x 22 (19 px), at most 360 |
-| Responses | a column of 4 (460 x 56, gap 8) beside the panel, 20 px right, centred on it | a 2 x 2 grid below the panel (296 x 48, gap 8), panel-wide |
+| Bar | 1400 x 232, 24 above the bottom; the root is 1400 x 274 with the tab | 760 x 116, 6 above the safe bottom; root 760 x 146 |
+| Window corners | 173 x 91 (rails 18) | 100 x 53 (rails 10), so two fit the bar's height |
+| Portrait | 192 square, 20 from the bar's left, centred | 96 square, 10 in; corners 45 x 30 (rails 7) |
+| Text box | portrait + 14 to 20 from the right (1154 x 192); text 24 px, padding 30/26 | portrait + 8 to 10 in (636 x 96); text 18 px, padding 16/12 |
+| Name tab | 58 tall at x 30, its bottom 16 px over the top rail, fitted to the name (Merriweather Bold 24), at most 60 % of the bar | 46 tall at x 18 (19 px) |
+| Cloud flourish | 40 tall (art), just after the tab's right stud, on the top rail | 32 tall |
+| Responses | a column of 4 (460 x 56, gap 8) above the bar, flush with its right edge, 10 px up, filling upward | a 2 x 2 grid (290 x 44 cells, gap 8, 18 px text) right-aligned above the name tab (6 px up), filling upward |
 
-Measured in Studio (2026-10-23): the block centre is the screen centre on both; portrait
-and text-box insets are equal on every side (22/22/22, 18/18/18); the response column
-is 1 px in from the panel's top and bottom (248 in 250); the grid spans the panel's exact
-width; response icons sit within 0.5 px of the ring's centre and labels on the plate's
-visible middle (0.552 of the button's height, measured in the art).
+Responses sit on the right so the speaker's portrait and name stay clear, and the
+recommended reply is under the right thumb on a phone. On a phone the grid sits above the
+tab rather than beside it: beside it, its left column ran over the name. Phone footprint:
+the bar takes 146 of 390 baseline rows (37 %); the grid adds 96 only once the
+responses show.
 
-Text: dialogue lines and responses in Builder Sans (SemiBold 24/18, Bold 20/17), cream
+Text: dialogue lines and responses in Builder Sans (SemiBold 24/18, Bold 20/18), cream
 with a near-black stroke; the name in Merriweather Bold, gold.
 
 ## Dialogue: art
@@ -94,6 +100,10 @@ All cut art, never repainted (ids in `art/ui/assets.json`):
   to each stud (23.5 px on PC, 18 on the phone), the name centred on the plain band. A
   long name grows the tab to 60 % of the panel, then shrinks to 85 %, then truncates.
   (The objective banner's cloud caps it used before crowded the name and ran under it.)
+- Cloud flourish (`NameTab.Flourish`): the kit's `ornament_single_cloud` as a margined
+  display-sized copy (`sized/ornament_single_cloud_h80.png`, 4 px clear on every side),
+  a child of the tab anchored to its right edge, so it follows the fitted width and never
+  touches the name: the mockup's cloud after the tab.
 - Responses: `response_button` and `response_button_hi`, three parts each (caps never
   stretch, the middle strip does), white glyphs tinted cream in the ring.
 - Chevron: `ornament_chevron`. Portraits: `portrait_*` (gray silhouettes); the "???"
@@ -142,4 +152,8 @@ and on a full-size stack 52.
 - Gold (masters) and crimson (demons) name tabs, and a crisper large portrait corner,
   wait on Codex sheet A7; the `gold` plaque style can stand in for masters.
 - Pressed and disabled response states are tints of the normal art.
-- No Figma mock of these screens: the kit's MCP allowance ran out on 2026-10-23.
+- No Figma composition of the bar: built from the user's mockup and the cut art. The
+  mockup's ink cloud over the portrait's lower left (the kit's `portrait_clouds`) isn't
+  cut yet.
+- The response glyphs touch their image edge by 2 source px (0.1 screen px); the Icon
+  carries `LintIgnore = edge-margin` since Glyphs swaps in any of the 18 shared glyphs.

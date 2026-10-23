@@ -20,6 +20,7 @@ sandbox.
 | ui | HUD kit reskin: pointed health bar with ruby tips, rounded qi bar, guard trough | `assets/Hud.rbxmx`, `art/ui/figma/README.md` | "looks great!" (then: give the bars more shape) | (no capture yet) |
 | ui | Enemy health bar, segmented with the end gem | `assets/Nameplate.rbxmx`, `docs/ui/boss-bars.md` | "the healthbar we have for enemies is great" | (no capture yet) |
 | ui | Boss bar with the 45-degree trough under a ruby socket | `docs/ui/boss-bars.md` | "boss bar is looking great", "45 looks fine" | (no capture yet) |
+| ui | Dialogue screen as a bottom bar: name tab with the cloud after it, portrait frame left, text box with ink clouds, gold chevron | `assets/Dialogue.rbxmx`, `docs/ui/dialogue.md` | the user's own mockup: "a bar on the bottom screen like in figma" | `docs/reference/ui/dialogue_bar_figma.png` (the look) |
 | bodies | Spirit Wolf B, Studio parts | `art/enemies/spirit_wolf_b/` | chosen over the Blender wolf: "we're gonna use studio from now on" | `art/enemies/spirit_wolf/preview/` |
 | bodies | Part-built armour on humanoid enemies | `art/enemies/bandits/`, `cultivators/` | "the current humanoid work is really cool", "keep the armor work" | (no capture yet) |
 | bodies | The user's reference row in the testbed (`workspace.Folder.Model`) | Studio only | the sizes and looks every boss body must match | (no capture yet) |
@@ -44,6 +45,7 @@ sandbox.
 | ui | Painted NPC busts | "so bad" | gray silhouettes only |
 | ui | Heavy kit ornament on item tiles, slots, cards | "very very tacky" | repeated things are plain |
 | ui | The realm plaque as a rectangle with cloud caps | "literally just a cube with ornaments smacked on top" | shape with depth, not ornament stuck on |
+| ui | The dialogue screen as a panel in the centre with the responses in a column beside it | "not really the dialogue card i was imagining" | dialogue is a bar along the bottom (the exception to centred panels) |
 | ui | Menus docked at the bottom | corrected repeatedly | centre of the screen |
 | ui | The phone HUD footprint | "i can see zero of the screen" | shrink, never enlarge |
 | ui | Cropped studs, gems and buttons | "there's definitely cropping going on still" | `ui_lint` to zero FAIL before export |

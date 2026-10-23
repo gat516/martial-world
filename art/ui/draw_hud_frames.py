@@ -13,7 +13,7 @@ with an ink outline; nothing is repeated ornament.
 Outputs (art/ui/hud/, 2x display size):
 hud_vitals_plate.png  1024x128  Stack.Vitals.Plate (Stretch; the Vitals box, aspect 8)
 hud_seat_plate.png    1024x128  Stack.SeatBars.Plate
-hud_realm_plaque.png  714x52    Vitals.Crest and SeatBars.TitleCrest (text live on top)
+hud_realm_plaque.png  1024x92 (714x64 at 1x: 6 px clear top and bottom)    Vitals.Crest and SeatBars.TitleCrest (text live on top)
 hud_tile.png          128x128   Buttons.* tile frames (Stretch, square)
 hud_keycap.png        48x48     key hints (Buttons.CultivateButton.KeyLabel, DodgeButton.KeyLabel,
                                 Play.LockHint.Key) 9-slice Rect(14, 14, 34, 34)
@@ -56,10 +56,13 @@ def blank(w, h):
     return Image.new("L", (s(w), s(h)), 0)
 
 
-def save(img, name):
+def save(img, name, out=None):
+    """Downsample from the supersampled canvas; `out` overrides the 1x output size
+    (a piece shown bigger than 1x on screen is written at about its display size,
+    capped at 1024 wide, so Roblox's unfiltered GUI sampling doesn't cut its tips)."""
     os.makedirs(OUT, exist_ok=True)
     w, h = img.size
-    img = img.resize((w // SS, h // SS), Image.LANCZOS)
+    img = img.resize(out or (w // SS, h // SS), Image.LANCZOS)
     img.save(os.path.join(OUT, name))
     print("wrote", name, img.size)
 
@@ -342,7 +345,15 @@ def realm_plaque():
     for tip, direction in ((lx, -1), (rx, 1)):
         gild(img, scroll(w, h, tip + direction * 14, cy, -direction), outline=0.8)
         gem_stud(img, tip, cy, 14)
-    save(img, "hud_realm_plaque.png")
+    # A clear margin above and below (PAD px at 1x) and a 1024-wide output: at 52 px
+    # the plaque is shown at ~1.4x on PC and its 2 px edge cut the bevel points and
+    # studs flat on phones (2026-10-23). The Crest/TitleCrest elements grow by
+    # (h + 2 * PAD) / h in height and their bottom anchor moves down by PAD / h of the
+    # old height, so the art stays where it was. Geometry inside is unchanged.
+    PAD = 6
+    padded = Image.new("RGBA", (s(w), s(h + 2 * PAD)), (0, 0, 0, 0))
+    padded.paste(img, (0, s(PAD)))
+    save(padded, "hud_realm_plaque.png", out=(1024, round(1024 * (h + 2 * PAD) / w)))
 
 
 def tile():

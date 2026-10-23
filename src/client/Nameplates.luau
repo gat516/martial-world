@@ -1,12 +1,11 @@
 --!strict
--- The name over every player's head (docs/systems/nameplates.md), the local
--- player's own included. A ReplicatedStorage.Nameplate BillboardGui template
--- (assets/Nameplate.rbxmx: a gold-ruled ink band with the name, a small title
--- line above it) is cloned per character, adorned to its Head and kept
--- in PlayerGui.Nameplates, so it's local only. BillboardGui.MaxDistance (from
--- the camera) hides it beyond MAX_DISTANCE studs; your own plate goes sooner,
--- at OWN_MAX_DISTANCE, so it disappears as you zoom out. Roblox's own name over
--- the humanoid is turned off.
+-- The name over every other player's head (docs/systems/nameplates.md); your
+-- own shows on the HUD by your health bar instead, so you get no plate. A
+-- ReplicatedStorage.Nameplate BillboardGui template (assets/Nameplate.rbxmx: a
+-- gold-ruled ink band with the name, a small title line above it) is cloned per
+-- character, adorned to its Head and kept in PlayerGui.Nameplates, so it's local
+-- only. BillboardGui.MaxDistance (from the camera) hides it beyond MAX_DISTANCE
+-- studs. Roblox's own name over the humanoid is turned off.
 --
 -- Non-player characters tagged NAMEPLATE_TAG (the testbed's stand-in player,
 -- TestbedDummy) get one too, reading the same attributes from the model.
@@ -26,7 +25,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Surnames = require(ReplicatedStorage.Shared.CharacterCreator.Surnames)
 
 local MAX_DISTANCE = 60 -- studs from the camera; beyond this a nameplate disappears
-local OWN_MAX_DISTANCE = 18 -- your own: zooming the camera out past this hides it
 local TITLE_COLOR = Color3.fromRGB(236, 200, 122)
 local WATCHED = { "Surname", "FirstName", "Title", "TitleColor" }
 local NAMEPLATE_TAG = "NameplateTarget"
@@ -86,7 +84,7 @@ local function attach(source: Source, character: Model)
 	end
 	local plate = template:Clone()
 	plate.Name = source.Name
-	plate.MaxDistance = if source == Players.LocalPlayer then OWN_MAX_DISTANCE else MAX_DISTANCE
+	plate.MaxDistance = MAX_DISTANCE
 	plate.Adornee = head
 	plate.Parent = folder
 	plates[source] = plate
@@ -102,6 +100,9 @@ local function listen(source: Source)
 end
 
 local function watch(player: Player)
+	if player == Players.LocalPlayer then
+		return -- your own name sits on the HUD by your health bar instead (user, 2026-10-23)
+	end
 	listen(player)
 	player.CharacterAdded:Connect(function(character)
 		attach(player, character)

@@ -1,9 +1,9 @@
 --!strict
 -- The vitals mount at the bottom (Stack.Vitals, art vitals_mount.png): segmented
 -- health, the combat qi bar (Qi/QiMax, the mana techniques spend) and the guard
--- trough (GuardBar.luau drives that one), with the realm plaque (Crest) above it and
--- your own name on the small plaque above that (NamePlaque; Nameplates.nameOf, the
--- same name others see over your head, which you don't get yourself). A refused
+-- trough (GuardBar.luau drives that one), with the realm plaque (Crest) on top. Your
+-- own name isn't on the HUD (user, 2026-10-22: a name row made the stack too tall on
+-- phones and told you nothing). A refused
 -- cast (QiDenied changes) flashes the qi bar and shakes the mount. Cultivation and
 -- the dantian aren't here: they show while seated (SeatBars.luau). Also active
 -- buffs with countdowns, and toasts. The top-left corner is left to Roblox's chat.
@@ -14,7 +14,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Items = require(ReplicatedStorage.Shared.Items)
 local Motion = require(script.Parent.Motion)
-local Nameplates = require(script.Parent.Nameplates)
 local State = require(script.Parent.State)
 
 local TOAST_SECONDS = 3.2
@@ -174,17 +173,6 @@ function Hud.init(screenGui: ScreenGui)
 	end
 	player:GetAttributeChangedSignal("Realm"):Connect(showRealm)
 	showRealm()
-
-	-- your name, as the overhead namecard writes it ("Surname FirstName", else DisplayName)
-	local nameLabel = (vitals:FindFirstChild("NamePlaque") :: Frame):FindFirstChild("NameText") :: TextLabel
-	local function showName()
-		nameLabel.Text = Nameplates.nameOf(player)
-	end
-	for _, attr in { "FirstName", "Surname" } do
-		player:GetAttributeChangedSignal(attr):Connect(showName)
-	end
-	player:GetPropertyChangedSignal("DisplayName"):Connect(showName)
-	showName()
 
 	-- combat qi (Qi/QiMax; 0 until the server publishes them)
 	local function showQi()

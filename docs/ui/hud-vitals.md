@@ -19,23 +19,25 @@ frame. Fills are bright (crimson health, azure qi, lit pale-gold guard) and
 authored full, so the edit view and the first frame read full. Every bar fill
 (vitals and seated) wears `Sheen` (`fill_sheen.png`: top lip, soft inner glow,
 darker belly) and, except the centre-draining guard, a soft bright leading
-`Edge` (`fill_edge.png`), both white/black so the fill colour shows through. On short
-screens (`Platform.isSmall`) the stack takes at most 36% of the height
-(`Layout` SMALL_HEIGHT_SHARE; 30% before the name plaque made it taller, and
-45% once, which on a landscape phone in the device emulator, which gets the PC
-layout, filled over half the screen).
+`Edge` (`fill_edge.png`), both white/black so the fill colour shows through. The
+stack takes at most 39% of the screen's height (`Layout` HEIGHT_SHARE), 31% on
+short screens (`Platform.isSmall`, SMALL_HEIGHT_SHARE; 45% once, which on a
+landscape phone in the device emulator, which gets the PC layout, filled over
+half the screen). Its box is aspect 3.758 with MaxSize 560x149, and
+`Prompts.Dock` mirrors it.
 
-Redrawn 2026-10-23 to the user's own reference image: on top, a small name
-plaque (`Stack.Vitals.NamePlaque.NameText`, `name_plaque.png`, red gems and
-gold scrolls) with your name from `Nameplates.nameOf` (your own overhead
-namecard is hidden on your screen, see [nameplates](../systems/nameplates.md));
-under it the wider realm plaque (`Crest`, `realm_plaque.png`, still the
-character window shortcut); then the gold double-framed plate with glossy red
+Redrawn 2026-10-23 to the user's own reference image (the Figma kit's Example
+page HUD is the target): on top the realm plaque (`Crest`, `realm_plaque.png`,
+the character window shortcut); then the gold double-framed plate with glossy red
 health (ten slanted dividers, red gems at the ends) and glossy sky-blue qi;
 the tan guard trough in the tab with a red gem seal; and the PC Dash/Strike
 chips as round dark gold-rimmed discs (`vitals_chip.png`, a `Shade` clipped
 in each `Cooldown`) under the plate's left end. Seated, the same plate style
-with the realm plaque and no name plaque. Art: `art/ui/draw_vitals.ps1`
+with the realm plaque. No name plaque (user, 2026-10-22): a name row made the
+stack too tall on phones and your own name tells you nothing, so it was cut and
+the stack cropped to the top of the realm plaque (the stack's shares, aspect and
+every child's Y scaled by 0.866 so nothing moved on screen); `name_plaque.png`
+is still drawn by `draw_vitals.ps1` but unused. Art: `art/ui/draw_vitals.ps1`
 (PowerShell; `draw_vitals.py` now only draws `fill_sheen`/`fill_edge`).
 The seated tiles, lotus, Force Breakthrough pill and the touch prompt dock's
 column sit just above the plate and moved down with it; the lotus is centred
@@ -92,12 +94,15 @@ against the Lock button's arc on a phone); GuardController binds it.
   in play: the qi flash, trails, guard trough states, seated swap and nudge
   timing are untested.
 - The 2026-10-23 redesign was previewed in edit view at a 560 px and a phone-
-  sized (397x122) stack and checked once in play (name, realm and numbers
-  fill); the name repaint on a name change, the chip shade draining, the seated
-  swap with the new plaque and the touch prompt dock (its list now sits above
-  the whole stack, `Prompts.Dock.List` at Y 0) are untested, as are a device
-  and the emulator. Long names and realm names shrink to fit their plaque
-  (about 13 and 15 px at most) rather than widening it.
+  sized (397x122) stack and checked once in play (realm and numbers fill); the
+  chip shade draining, the seated swap and a device or the emulator are
+  untested. Long realm names shrink to fit their plaque (about 15 px at most)
+  rather than widening it.
+- The name plaque's removal (2026-10-22) was a file-only crop, not previewed
+  in Studio: check the realm plaque isn't clipped at the stack's top, the seated
+  tiles, Force Breakthrough pill and calm lotus still sit just above the plate,
+  the chips in the notch, and the touch prompt dock's list (`Prompts.Dock.List`
+  at Y 0, now just above the realm plaque's top instead of the name row's).
 - Bar numbers over a bright fill show the black text stroke as a ghost of the
   "/" at small sizes ("180 // 260"); the dantian texts use a lighter stroke
   (0.35). Check the others in play.

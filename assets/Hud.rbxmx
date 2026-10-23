@@ -5887,24 +5887,24 @@ Owned 0 · 0 placed · peak cap 120</string>
    <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>-10</YO></UDim2>
-   <UDim2 name="Size"><XS>1</XS><XO>-320</XO><YS>0.45</YS><YO>0</YO></UDim2>
+   <UDim2 name="Size"><XS>1</XS><XO>-320</XO><YS>0.39</YS><YO>0</YO></UDim2>
    <int name="ZIndex">9</int>
   </Properties>
    <Item class="UIAspectRatioConstraint" referent="RBX606"><Properties>
     <string name="Name">UIAspectRatioConstraint</string>
-    <float name="AspectRatio">3.25581</float>
+    <float name="AspectRatio">3.75839</float>
    </Properties>
    </Item>
    <Item class="UISizeConstraint" referent="RBX607"><Properties>
     <string name="Name">UISizeConstraint</string>
-    <Vector2 name="MaxSize"><X>560</X><Y>172</Y></Vector2>
+    <Vector2 name="MaxSize"><X>560</X><Y>149</Y></Vector2>
    </Properties>
    </Item>
    <Item class="Frame" referent="RBX608"><Properties>
     <string name="Name">Vitals</string>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.0357143</XS><XO>0</XO><YS>0.273256</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0.928571</XS><XO>0</XO><YS>0.377907</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.0357143</XS><XO>0</XO><YS>0.161074</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.928571</XS><XO>0</XO><YS>0.436242</YS><YO>0</YO></UDim2>
     <int name="ZIndex">5</int>
    </Properties>
     <Item class="Frame" referent="RBX609"><Properties>
@@ -6182,43 +6182,13 @@ Owned 0 · 0 placed · peak cap 120</string>
      </Properties>
      </Item>
     </Item>
-    <Item class="ImageLabel" referent="RBX642"><Properties>
-     <string name="Name">NamePlaque</string>
-     <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
-     <float name="BackgroundTransparency">1</float>
-     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>-0.384615</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0.507692</XS><XO>0</XO><YS>0.338462</YS><YO>0</YO></UDim2>
-     <int name="ZIndex">4</int>
-     <Content name="Image"><url>rbxassetid://114685706848691</url></Content>
-    </Properties>
-     <Item class="TextLabel" referent="RBX643"><Properties>
-      <string name="Name">NameText</string>
-      <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Position"><XS>0.260417</XS><XO>0</XO><YS>0.14</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.479167</XS><XO>0</XO><YS>0.72</YS><YO>0</YO></UDim2>
-      <int name="ZIndex">5</int>
-      <string name="Text">Player Name</string>
-      <Color3 name="TextColor3"><R>0.956863</R><G>0.894118</G><B>0.745098</B></Color3>
-      <bool name="TextScaled">true</bool>
-      <bool name="TextWrapped">true</bool>
-      <float name="TextStrokeTransparency">0.5</float>
-      <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0313726</G><B>0.0235294</B></Color3>
-      <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
-     </Properties>
-      <Item class="UITextSizeConstraint" referent="RBX644"><Properties>
-       <string name="Name">UITextSizeConstraint</string>
-       <int name="MaxTextSize">13</int>
-      </Properties>
-      </Item>
-     </Item>
-    </Item>
    </Item>
    <Item class="Frame" referent="RBX645"><Properties>
     <string name="Name">Hotbar</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0.907143</XS><XO>0</XO><YS>0.348837</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.907143</XS><XO>0</XO><YS>0.402684</YS><YO>0</YO></UDim2>
     <int name="ZIndex">9</int>
    </Properties>
     <Item class="Frame" referent="RBX646"><Properties>
@@ -8192,8 +8162,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <string name="Name">CultivatePrompt</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.132297</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0.332558</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>-0.00164392</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0.383893</YS><YO>0</YO></UDim2>
     <bool name="Visible">false</bool>
     <int name="ZIndex">21</int>
    </Properties>
@@ -9179,8 +9149,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <string name="Name">BreakthroughButton</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>-0.0174419</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0.357143</XS><XO>0</XO><YS>0.232558</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>-0.174497</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.357143</XS><XO>0</XO><YS>0.268456</YS><YO>0</YO></UDim2>
     <bool name="Visible">false</bool>
     <int name="ZIndex">21</int>
     <Content name="Image"><url>rbxassetid://138675863012715</url></Content>
@@ -9221,8 +9191,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <string name="Name">Cooldowns</string>
     <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.164</XS><XO>0</XO><YS>0.593023</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.139535</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.164</XS><XO>0</XO><YS>0.530201</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.2</XS><XO>0</XO><YS>0.161074</YS><YO>0</YO></UDim2>
    </Properties>
     <Item class="ImageLabel" referent="RBX956"><Properties>
      <string name="Name">Dash</string>
@@ -9337,8 +9307,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <string name="Name">CalmToggle</string>
     <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
     <float name="BackgroundTransparency">1</float>
-    <UDim2 name="Position"><XS>0.5</XS><XO>191</XO><YS>-0.0539535</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0.32</XS><XO>0</XO><YS>0.266047</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.5</XS><XO>191</XO><YS>-0.216645</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.32</XS><XO>0</XO><YS>0.307115</YS><YO>0</YO></UDim2>
     <bool name="Visible">false</bool>
     <int name="ZIndex">21</int>
     <Content name="Image"><url>rbxassetid://74682860769903</url></Content>
@@ -9374,8 +9344,8 @@ Owned 0 · 0 placed · peak cap 120</string>
     <string name="Name">SeatBars</string>
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
-    <UDim2 name="Position"><XS>0.0357143</XS><XO>0</XO><YS>0.273256</YS><YO>0</YO></UDim2>
-    <UDim2 name="Size"><XS>0.928571</XS><XO>0</XO><YS>0.377907</YS><YO>0</YO></UDim2>
+    <UDim2 name="Position"><XS>0.0357143</XS><XO>0</XO><YS>0.161074</YS><YO>0</YO></UDim2>
+    <UDim2 name="Size"><XS>0.928571</XS><XO>0</XO><YS>0.436242</YS><YO>0</YO></UDim2>
     <bool name="Visible">false</bool>
    </Properties>
     <Item class="ImageLabel" referent="RBX974"><Properties>

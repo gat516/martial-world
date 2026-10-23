@@ -337,6 +337,7 @@ local function previewSlot(slot: Summary?)
 	local mine = previewToken
 	if not slot or not slot.filled then
 		Look.apply(nil, {})
+		Look.race(nil, nil)
 		setNameplate("New cultivator", "An empty slot")
 		return
 	end
@@ -344,6 +345,7 @@ local function previewSlot(slot: Summary?)
 	local sub = if race then `{Defs.Registry.label(slot.race, slot.variant)}  ·  {realmName(slot.realm)}` else realmName(slot.realm)
 	setNameplate(if slot.named then fullName(slot.surname, slot.firstName) else "Unnamed cultivator", sub)
 	Look.apply(slot.look, {})
+	Look.race(slot.race, slot.variant)
 	task.spawn(function()
 		local hairs = if slot.named then Bridge.slotHairs(slot.id) else {}
 		if mine == previewToken and #hairs > 0 then
@@ -498,6 +500,7 @@ local function openCreator(id: string, which: string)
 		handles.Hair.reset(nil)
 		handles.Name.reset("new", nil)
 	end
+	Look.race(player:GetAttribute("Race"), player:GetAttribute("RaceVariant"))
 	setMode(which)
 	paintCreatorName()
 end
@@ -720,6 +723,9 @@ function Controller.init(screen: ScreenGui)
 			if mode ~= "slots" then
 				refresh()
 				paintCreatorName()
+				if attribute ~= "Surname" then
+					Look.race(player:GetAttribute("Race"), player:GetAttribute("RaceVariant"))
+				end
 			end
 		end)
 	end

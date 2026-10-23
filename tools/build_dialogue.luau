@@ -5,7 +5,9 @@
 -- 1920x1080, Phone at 844x390 (UiScale fits the Canvas at runtime).
 -- Stale since 2026-10-23: assets/Dialogue.rbxmx has the frame corners as margined
 -- display-sized copies with grown elements (tools/ui_margin.py) and moved response
--- labels and keys (ui_lint text-cap). Don't rerun it over the export; port those first.
+-- labels and keys (ui_lint text-cap), and the bottom-bar layout (docs/ui/dialogue.md,
+-- "Layout": bar sizes, the name tab's cloud Flourish, the response column beside the
+-- bar, the phone ChoiceShift, label MinTextSize) was set on the template by hand. Don't rerun it over the export; port those first.
 
 local IDS = {
 	chevron = "rbxassetid://105373918142379",

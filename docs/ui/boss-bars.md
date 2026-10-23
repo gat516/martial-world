@@ -10,51 +10,74 @@ shakes) blocked the fight, and slimmer rebuilds from cropped or new generic Pill
 were rejected. Show the frame art whole, never cropped; no screen darkening and no looping
 pulses; small, short hit and phase feedback; smaller on phones.
 
-## Design (2026-10-23, kit pass; user: "looking great")
-`BossBars.luau` drives `Play.BossBar`: a CanvasGroup at the top centre (y 64), 0.44 of the
-screen's width, laid out on a 560x104 box (`UIAspectRatioConstraint` 5.385, `MaxSize`
-560x104), so about 371x69 on a landscape phone. Top to bottom:
+## Design (2026-10-23, slim pass; user: "lighter slant, straight cuts, smaller on phones with the name only")
+`BossBars.luau` drives `Play.BossBar`: a plain Frame (not a CanvasGroup: its render
+texture softened the whole bar, "looks kinda low res") at the top centre, laid out
+on a 560x104 box (`UIAspectRatioConstraint` 5.385, `MaxSize` 560x104). PC: 0.44 of the
+width, so the full 560x104. Phones (`UiScale.isPhone()`, decided once): 0.36 of the Hud's
+safe-area width, about 270x50 on an 844x390 phone (iPhone 13 landscape), showing only the
+name and the bar: the phone mount has no plaque (at that width the plaque held the name
+to 11 px, so the ornament went and the name stands as live text across the band, 0.7x0.3
+of the box, 15 px on an 844 phone, 13 px on a 667 one), the realm line is hidden, and the
+intro's title and omen get a larger label (0.9x0.28 of the box) so they stay readable
+while they show.
+Height: the bar sits up in the top bar's row (y 12, level with the top-right tiles)
+whenever it clears the tiles and Roblox's own top-bar buttons by 8 px, else at its
+authored y 64 under the row (`placeLift`, tweened 0.22 s). PC always clears them. On a
+phone the tiles fold down to Inventory and Settings in combat (`TileFold`, the player's
+`InCombat` attribute), which frees the room; the lift reads the fold's end state, so it
+moves with the fold. Toasts treat the bar as an obstacle and go under it. Top to bottom:
 - the kit's name plaque (brown lacquer plate with `curl_diamond` scroll ends) with the
   boss name live on it (`NameLabel`, Merriweather, max 18 px);
 - the bar: a dark navy plate with a thin gilt rim (the vitals mount's body), a trough
-  whose right end is cut at 45 degrees, slanted segment cuts every tenth, a small gold
-  diamond cap on the left end, and on the right a square gold-rimmed socket holding the
-  kit's ruby star. The socket hides the plate's whole slant (user, 2026-10-23: the ruby
-  alone left the diagonal showing; its corners sit 4.1 and 4.8 px at 1x inside the
-  socket's opaque area, which starts at x 497.5). The trough ends left of it (x 494 at the
-  top, 470 at the bottom), so the whole fill shows: at 100% its leading edge is 3.5 px
-  clear of the socket, and a 1% drop is 4.7 px on PC and 3.1 px on a 371 px phone bar;
+  whose right end leans 15 degrees from vertical, straight segment cuts every tenth, a
+  small gold diamond cap on the left end and the kit ruby stud (30 px) as the matching
+  cap on the plate's right end. The trough ends 3 px clear of the ruby on every row
+  (x 519.4 at the top, 513.0 at the bottom), so a full bar shows whole;
 - under the bar: the title, then the omen, on one centred row (`TitleLabel`, `OmenLabel`),
-  and the realm right-aligned under the bar's end (`RealmLabel`).
+  in the intro only, and on PC the realm right-aligned under the bar's end (`RealmLabel`).
 Phase thresholds are gold studs (`gold_stud` cut) on the plate's top rim (`Pips`, made at
 runtime); a crossed one dims and leaves a kit crack (`crack_split` cut) at its spot
 (`Cracks`, over the frame). The fill, trail and hit flash are slanted 9-slices
-(`bossbar_fill.png`, sheen `bossbar_sheen.png`; `art/ui/draw_boss_bars.py`), so the
-draining edge keeps the trough's 45-degree cut; `BossBars.fitSlices` keeps `SliceScale` at
-bar height / 64.
+(`bossbar_fill.png`, sheen `bossbar_sheen.png`; `art/ui/draw_boss_bars.py`) with the same
+15-degree end; `BossBars.fitSlices` keeps `SliceScale` at bar height / source height.
+Fades go piece by piece (`fadeArt`: the plate, mount, trail, fill and sheen images and the
+cracks; on hide also the pips and labels), with the same 0.25 s timing as before.
 
 Instance tree: `BossBar > Body > Plate` (behind), `Bar` (Trail, Fill > Sheen, Flare),
 `Mount` (over the bar), `Cracks`, `Pips`, the four labels. Plate and Mount fill the box
-(Stretch), so moving the bar means moving it in the art too. Bar window, measured in
-`bossbar_plate.png`: x 27.3..494, y 39.4..64.0 of 560x104; `Bar`, `Pips` and `Cracks` sit
-at 28..494 x 40..64.
+(Stretch) plus a 4 px clear margin above it (Position y -4/104, Size y 108/104: the
+plaque's scroll tips reached the image's top edge), so moving the bar means moving it in
+the art too. `Bar`, `Pips` and `Cracks` sit at 28..519.4 x 40..64.
 
 ## Art
-Exported from the Figma UI kit (file `9u6RPHLelUJF6aABm6mY7y`, Example page): the sheet
-`Export / Roblox Boss Bar` (node 35:177) holds `Plate` and `Mount` at the box's 1x size,
-built from kit parts (`Bar/Vitals Mount` body fill and gilt, `curl_diamond_L/R`, the title
-plaque's plate, `gold_stud`, `ruby_stud`). `Boss Bar / preview` (node 35:194) shows all four
-bosses. To re-export: export the sheet at scale 2 twice with `download_assets` (as is, and
-with the sheet's fill set to black; set it back after), then
-`uv run --with pillow --with numpy python tools/figma_boss_export.py light.png dark.png`
-(writes `art/ui/figma/boss/bossbar_plate.png`, `bossbar_mount.png`, 1024x190). The sheet
-still has the first, longer trough (to x 524, under the socket): the shorter one was made
-after the plan's Figma calls ran out, by `tools/boss_trough_patch.py` on the matted export
-(its docstring has the steps). Update the sheet's Trough, Rim and cuts to 466 wide and drop
-that step. A changed
-PNG needs a new upload; ids in `art/ui/assets.json` and `BossThemes.MOUNT`. The pip and
-crack are the kit cuts `art/ui/codex/cut/ornament_gold_stud.png` and
-`ornament_crack_split.png` (from `ui-assemble`).
+All of it is drawn at display size: Roblox draws GUI images without mipmaps, so the old
+2x sources (a 1024x190 frame shown at 560, a 64 px fill shown 24 tall) looked soft. PC
+pieces are 1:1 with the 560x104 box; phones get a half-size set (`*_phone.png`) that
+`BossBars` swaps in (`ART`, `Themes.MOUNT_PHONE`).
+
+The frame comes from the Figma UI kit (file `WNgoTL6QGdTEBy693Me8Y8`, Example page): the
+sheet `Export / Roblox Boss Bar` (node 35:177) holds `Plate` and `Mount` at the box's 1x
+size, built from kit parts (`Bar/Vitals Mount` body fill and gilt, `curl_diamond_L/R`, the
+title plaque's plate, `gold_stud`, `ruby_stud`); `Boss Bar / preview` (node 35:194) shows
+the bosses. The sheet matches the shipped art (15-degree Body, Trough and Rim, vertical
+cuts every 49.14, the ruby 30 wide centred on (534, 52), the square socket removed).
+The PNGs are made by `tools/boss_bar_reshape.py` from the sheet's last 45-degree export
+(`git show 3d6d826:art/ui/figma/boss/bossbar_plate.png`, `..._mount.png`): it re-lays the
+body, gilt and trough from that export's own columns along the new outline, redraws the
+1 px rim and the cuts, places the kit's `ornament_ruby_stud` cut, and writes
+`art/ui/figma/boss/bossbar_plate.png`, `bossbar_mount.png` (560x108) and `*_phone.png`
+(280x54; the phone mount without the plaque), each with its top margin. To re-export from Figma instead (the sheet is current
+now): export the sheet at scale 2 twice with `download_assets` (as is, and with the
+sheet's fill set to black; set it back after), run `uv run --with pillow --with numpy
+python tools/figma_boss_export.py light.png dark.png`, then resize to the sizes above with
+the same margin. The fills: `uv run --with pillow --with numpy python
+art/ui/draw_boss_bars.py 15` writes `bossbar_fill/sheen.png` (64x24) and `*_phone.png`
+(40x12) and prints their `SliceCenter`s (one middle row, so nothing stretches along the
+slanted strip). A changed PNG needs a new upload; ids in `art/ui/assets.json`,
+`BossThemes.MOUNT`/`MOUNT_PHONE` and `BossBars.ART`. The pip and crack are the kit cuts
+`art/ui/codex/cut/ornament_gold_stud.png` and `ornament_crack_split.png` (from
+`ui-assemble`).
 
 ## Themes
 `BossThemes.luau` holds one table per boss def id (`ElderWolfKing`, `NineTailFox`,
@@ -67,7 +90,9 @@ else the nearest hunting you within `BOSS_RANGE`) and the danger tier.
 
 Beast motifs (the kit's flair rule: each boss bar keeps the frame, studs and gems but
 carries its beast) are requested as Codex sheet B5 in [codex-sheets](codex-sheets.md):
-end pieces around the gold cap and the ruby socket, the middle and the plaque left clear.
+end pieces around the gold cap and the ruby end cap, the middle and the plaque left clear
+(the request still describes the old square socket; update it before it is generated). A
+motif frame needs both sizes (`mount`, `mountPhone`).
 Until they are cut and composed, every boss wears the shared mount and differs by fill
 colour, title and omens.
 
@@ -81,9 +106,11 @@ dims its pip, cracks the frame there, flashes the name and warms the fill and fr
 colours. The region banner stays quiet while a boss bar is up (both use the top centre).
 
 ## Known gaps
-- Previewed in Studio's edit view at 560x104 and at 288 and 371 px wide (wolf and fox
-  fills, crossed pips and cracks); the intro, trail, flashes, crack pop-in and phase
-  colour shift are untested in play, as are the fox, jiao and ape fights.
-- The boss bar keeps its 45-degree trough while the vitals HUD uses pointed ends (user,
-  2026-10-23: "boss bars 45 looks fine"); they stay different on purpose.
-- On a phone the realm line is about 10 px tall.
+- Previewed in Studio's edit view (review stage) at 1920x1080 and 844x390 with the wolf
+  fill; linted at 1920x1080, 1366x768, 844x390 and 667x375 (the phone layout is a script
+  switch, so it was linted with the same properties set by hand). The intro, fades,
+  trail, flashes, crack pop-in and phase colour shift are untested in play, as are the
+  fox, jiao and ape fights and a real phone.
+- The boss bar keeps a slanted trough end while the vitals HUD uses pointed ends (user,
+  2026-10-23); they stay different on purpose.
+- The lift and the tile fold are untested in play (the stage shows their end state).

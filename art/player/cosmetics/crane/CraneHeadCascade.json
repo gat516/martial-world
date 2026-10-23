@@ -1,0 +1,216 @@
+{
+ "name": "CraneHeadCascade",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X = avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy), no rotation",
+ "colors": {
+  "FeatherMain": [
+   0.86,
+   0.87,
+   0.85
+  ],
+  "FeatherAccent": [
+   0.022,
+   0.024,
+   0.032
+  ],
+  "Crest": [
+   0.5,
+   0.035,
+   0.04
+  ]
+ },
+ "shade": {
+  "file": "crane_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45
+ },
+ "meshes": {
+  "CraneHeadCascade_Crest": {
+   "region": "Crest",
+   "tris": 620,
+   "center": [
+    0.0,
+    -0.105,
+    0.033
+   ],
+   "size": [
+    0.638,
+    0.72,
+    0.305
+   ]
+  },
+  "CraneHeadCascade_Plume": {
+   "region": "FeatherMain",
+   "tris": 572,
+   "center": [
+    0.0,
+    0.757,
+    -0.602
+   ],
+   "size": [
+    1.004,
+    0.899,
+    0.924
+   ]
+  },
+  "CraneHeadCascade_PlumeAccent": {
+   "region": "FeatherAccent",
+   "tris": 538,
+   "center": [
+    0.0,
+    0.816,
+    -1.073
+   ],
+   "size": [
+    1.008,
+    0.939,
+    1.419
+   ]
+  }
+ },
+ "tris_total": 1730,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "CrestBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    -0.4,
+    -0.08
+   ],
+   "tail": [
+    0.0,
+    -0.322,
+    -0.05
+   ],
+   "roblox_head": [
+    -0.0,
+    -0.08,
+    -0.4
+   ],
+   "deform": true
+  },
+  "Crest": {
+   "parent": "CrestBase",
+   "head": [
+    0.0,
+    -0.322,
+    -0.05
+   ],
+   "tail": [
+    0.0,
+    0.15,
+    0.09
+   ],
+   "roblox_head": [
+    -0.0,
+    -0.05,
+    -0.322
+   ],
+   "deform": true
+  },
+  "PlumeBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    0.4,
+    -0.22
+   ],
+   "tail": [
+    -0.001,
+    0.575,
+    -0.333
+   ],
+   "roblox_head": [
+    -0.0,
+    -0.22,
+    0.4
+   ],
+   "deform": true
+  },
+  "Plume1": {
+   "parent": "PlumeBase",
+   "head": [
+    -0.001,
+    0.575,
+    -0.333
+   ],
+   "tail": [
+    -0.01,
+    0.833,
+    -0.55
+   ],
+   "roblox_head": [
+    0.001,
+    -0.333,
+    0.575
+   ],
+   "deform": true
+  },
+  "Plume2": {
+   "parent": "Plume1",
+   "head": [
+    -0.01,
+    0.833,
+    -0.55
+   ],
+   "tail": [
+    -0.025,
+    1.056,
+    -0.803
+   ],
+   "roblox_head": [
+    0.01,
+    -0.55,
+    0.833
+   ],
+   "deform": true
+  },
+  "Plume3": {
+   "parent": "Plume2",
+   "head": [
+    -0.025,
+    1.056,
+    -0.803
+   ],
+   "tail": [
+    -0.049,
+    1.249,
+    -1.11
+   ],
+   "roblox_head": [
+    0.025,
+    -0.803,
+    1.056
+   ],
+   "deform": true
+  }
+ },
+ "direction": "Cascade",
+ "mood": "soft"
+}

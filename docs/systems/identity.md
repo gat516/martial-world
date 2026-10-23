@@ -15,7 +15,8 @@ screen it extends ([character creator](character-creator.md)).
 - **Race and variant are separate.** A Beast Folk Wolf is race `BeastFolk`,
   variant `Wolf`, so anything can ask "is this Beast Folk?" and "which beast?".
   There is no Beast Folk Fox: foxes are the Spirit Fox race, which holds the fox
-  traits (Fox Cunning innate, Nine Tails exclusive) (user, 2026-10-23).
+  traits (Fox Cunning innate, Nine Tails exclusive) (user, 2026-10-23). Its
+  variants (Plume, Crescent, Wisp) are tail and ear shapes, looks only.
   Variants are a per-race module (`Variants/<Race>.luau`), so any race can get
   variants the same way.
 - **Availability is one file.** Release, hide or switch off any race, variant
@@ -41,12 +42,13 @@ screen it extends ([character creator](character-creator.md)).
 |---|---|
 | Race definitions (names, rarity, roll weight, innate traits, modifiers, mechanics, which variants module) | `src/shared/Identity/Races.luau` |
 | Beast Folk variants (same fields) | `src/shared/Identity/Variants/BeastFolk.luau` |
+| Spirit Fox variants (tail and ears) | `src/shared/Identity/Variants/SpiritFox.luau` |
 | Trait definitions: racial / variant traits | `src/shared/Identity/Traits/Racial.luau` |
 | Trait definitions: general traits | `src/shared/Identity/Traits/General.luau` |
 | A new trait category | a new file in `Traits/`; its name is the category |
 | Release, hide, disable; Roll / Select / Unlock; unlock requirements | `src/shared/Identity/Availability.luau` |
 | A new kind of unlock requirement | one checker in `src/shared/Identity/Requirements.luau` |
-| Accessories a race, variant or trait wears (`Cosmetics`) | `ServerStorage.Cosmetics` (`assets/Cosmetics.rbxm`), ids listed on the definition |
+| Accessories a race, variant or trait wears (`Cosmetics`) | `ReplicatedStorage.Cosmetics` (`assets/Cosmetics/<set>.rbxm`, one Folder per set), ids listed on the definition |
 | Passive or ability code for a `Mechanics` id | register `Traits.mechanics[id] = { attach, detach }` (server) |
 
 Each file's header lists its fields. The vocabulary:
@@ -158,17 +160,49 @@ marked; Hidden and Disabled ones never show. There's no race or variant picker
 
 ## Cosmetics
 Races, variants and traits can name accessories to wear (`Cosmetics = { ... }`,
-ids of Accessories in `ServerStorage.Cosmetics`, `assets/Cosmetics.rbxm`, mapped
-in both projects). Fox Cunning (Spirit Fox's innate trait) wears `FoxEars` and
-`FoxTail`, a rigged prototype (user, 2026-10-23; the build and joint names are in
-`art/player/cosmetics/README.md`). Beast Folk Tiger has three Blender sets
-(Cub, Feral, Regal: ears, tail and optional whiskers each, in
-`art/player/cosmetics/tiger/`). They aren't imported or named on the variant yet.
-`Traits.applyBody` adds the ones the profile
+ids of Accessories anywhere under `ReplicatedStorage.Cosmetics`). That's the
+folder `assets/Cosmetics/` (mapped in both projects), one `.rbxm` per set, each a
+Folder of Accessories, so sets are built and exported separately. It's in
+ReplicatedStorage because the creator preview wears them too. The builds and
+joint names are in `art/player/cosmetics/README.md`; how new ones are made is
+[player accessories](../character/player-accessories.md).
+
+| Who | Wears | Set |
+|---|---|---|
+| Spirit Fox Plume / Crescent / Wisp (variants) | FoxTailPlume, FoxEarsSleek / FoxTailCrescent, FoxEarsBroad / FoxTailWisp, FoxEarsLong | Fox (skinned Blender meshes) |
+| Beast Folk Wolf / Tiger / Serpent | WolfEars, WolfTail / TigerEars, TigerTail / SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
+| Beast Folk Crane | CraneHeadCascade, CraneFanCascade | Crane (skinned Blender meshes) |
+| Stone Spirit / Dragonblood / Demonic Human / Ghost | StoneShards / DragonHorns / DemonHorns / GhostWisps | Spirits (part-built placeholders) |
+
+Spirit Fox's variants (Plume Common 45, Crescent Uncommon 35, Wisp Rare 20) each
+pair one tail with one ear shape, with their own bones (`EarL`/`EarR`,
+`Tail1..Tail5`) and a recolourable part per colour region
+(`art/player/cosmetics/fox/README.md`). The fox traits stay on the race and the
+variants add no stats (user, 2026-10-23: "we can add them it all in as variants").
+
+The Crane set holds three looks, each a head piece (red crest and white-and-black
+plumes) and a tail fan: Cascade (the Crane variant's default), Scholar and Ascendant.
+Scholar and Ascendant aren't worn by anything yet; they wait for a style picker
+(`art/player/cosmetics/crane/README.md`).
+
+Beast Folk Tiger has three Blender sets (Cub, Feral, Regal: ears, tail and optional
+whiskers each, in `art/player/cosmetics/tiger/`), waiting for import.
+
+Human (the plain race) and Giant (its look is its size) wear nothing (user,
+2026-10-23: "no need to go super crazy"). `Traits.applyBody` adds the ones the profile
 calls for and removes the rest (each worn one carries a `Cosmetic` attribute with
 its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the
-body. A missing template warns once and is skipped.
+body. A missing template warns once and is skipped. A Spirit Fox saved before the
+variants draws one on its next join (`Traits.load`, `Slots.fate`).
+
+The creator's preview dummy wears the drawn race's look too (`Look.race`):
+`Registry.fresh(race, variant)` stands in for a new character (only innate
+traits), and `Preview.setRaceLook` puts its cosmetics on (rigid copies, no
+joints, at scale 1) and scales the body, feet kept on the pedestal; the camera
+pulls back by the same share so a bigger body still fits the stage (user,
+2026-10-23) and reads big against the pedestal. It follows
+every race reroll, and the slot screen shows each slot's race the same way.
 
 ## Body size
 The `size` modifier (Titan Frame: 15% larger, user 2026-10-23; 25% was too big) scales the character with

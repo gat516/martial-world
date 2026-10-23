@@ -46,7 +46,13 @@ cursor, settings and the admin panel.
   the meditation menu ([meditation](meditation.md)).
 - Top-right tiles (`Hud.Buttons`, right-aligned list): Cultivate, Self (once the
   root is tested), Inventory, Build (near your peak), Travel (in the sect),
-  Settings. 56 px tiles 8 px apart, scaled 0.9 on touch (about 50 px thumb
+  Settings. In combat (the player's `InCombat` attribute) they fold down to
+  Inventory and Settings (`TileFold.luau`, user 2026-10-23: so the boss bar can
+  reach the top; Travel is refused while combat tagged anyway): each other tile
+  shrinks to a point in 0.18 s, its width to minus the list padding so the row
+  re-flows with no pop, and grows back in 0.22 s when combat ends. `TileFold` owns
+  only their size, clipping and `Interactable`; `Visible` stays with SelfCard,
+  TravelMenu and Menus. 56 px tiles 8 px apart, scaled 0.9 on touch (about 50 px thumb
   targets), 0.85 on PC; four tiles are 224 px wide on a phone. The frame is
   `hud_tile` (art/ui/hud: a lacquer square with chamfered corners, gilt band and
   inner line, no curls; it fills the tile, nothing overhangs). PC: icon (22 px,
@@ -185,12 +191,13 @@ cursor, settings and the admin panel.
 - Guard bar (`GuardBar.luau`, `Stack.Vitals.GuardBar`) and the touch
   `Play.BlockButton`: see [vitals stack](../ui/hud-vitals.md#guard-bar).
 - `Menus.luau`: the one-window rule and what hides while a window is open.
+- `TileFold.luau`: the top-right tiles fold down to Inventory and Settings in combat.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
 - `UiScale.luau`: baseline scaling for new screens. Lay a screen out once inside an
   authored `Canvas` frame (with a `UiScale` UIScale) at 1920x1080, or 844x390 for a
   phone layout; `UiScale.fit(canvas)` scales it to the screen and sizes the canvas to
-  fill it in baseline units. `UiScale.isPhone()` (touch, short side under 600 px,
-  decided once) picks the phone layout. Details in the module header and
+  fill it in baseline units. `UiScale.isPhone()` (short side under 600 px, any
+  input, decided once) picks the phone layout. Details in the module header and
   [overhaul-plan](../ui/overhaul-plan.md) "Resolution and scaling".
 - `HotbarView.luau` (with the weapon slot), `Inventory.luau` (Weapons & Arts and Pouch tabs),
   `InventoryFilter.luau` (chip rail, sort, search), `Rarity.luau` (the rarity ladder and frames),

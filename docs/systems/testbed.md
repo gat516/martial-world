@@ -48,6 +48,7 @@ so the real `Hub.rbxmx` (Elder, quest board, Spirit Market, Testing Stone) stand
 on the baseplate unchanged.
 - `Workspace.Arena.Baseplate`: 2048 x 2048, top at Y 648.6, centred on (0, 80), grid texture.
 - `Workspace.Arena.SpawnPad`: the only SpawnLocation, at (0, 649.1, 40), no forcefield.
+- `Workspace.Camera`: the saved edit-mode camera, at (0, 665, 95) looking down at the spawn pad, so Studio opens on the arena instead of the empty sky at Y 0.
 - `Workspace.Wilds`: `EventGrounds.ArenaGround` (radius 60 at (0, 648.6, -120)),
   so world events and treasures land there through the real `EventGrounds` path;
   `QiNodes` and `Enemies` are empty folders; `Zones` holds `WolfPair` (2 Spirit

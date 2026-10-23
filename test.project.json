@@ -102,6 +102,17 @@
       "$attributes": {
         "Testbed": true
       },
+      "Camera": {
+        "$className": "Camera",
+        "$properties": {
+          "CFrame": {
+            "CFrame": {
+              "position": [0, 665, 95],
+              "orientation": [[1, 0, 0], [0, 0.9602, 0.2793], [0, -0.2793, 0.9602]]
+            }
+          }
+        }
+      },
       "Hub": {
         "$path": "assets/Hub.rbxmx"
       },

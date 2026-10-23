@@ -366,7 +366,7 @@ return {
 		PERFECT_ANIMATION_GRACE = 0.25, -- late confirmation can finish the pose after the dash
 
 		-- Guard: hold right click / L2 / the Block button (src/server/Guard.luau,
-		-- src/shared/GuardRules.luau; see combat.md). Only enemy attacks with a
+		-- src/shared/GuardRules.luau; see docs/combat/guard-parry.md). Only enemy attacks with a
 		-- source position in front of the player can be guarded; hazards can't.
 		GUARD = {
 			MOVE = 0.5, -- walk speed share while guarding
@@ -476,13 +476,13 @@ return {
 		FALL_SPEED = 60, -- studs per second it drops off a ledge
 		TURN_RATE = 10, -- how fast it turns to face where it walks (per second)
 		CROWD = 6, -- studs per second neighbours push apart when they overlap
-		-- THE SPIRIT WOLF FIGHT (enemies.md "Spirit Wolf"): the rigged body, its
+		-- THE SPIRIT WOLF FIGHT (docs/enemies/spirit-wolf.md): the rigged body, its
 		-- attack pool (bite, pounce, leap, howl, hop, circling), attack slots for
 		-- every non-boss beast and dash hits that land as the dash arrives. Shipped
 		-- 2026-10-21 after the user fought it in the testbed; false brings back the
 		-- old one-lunge wolf until OLD_SPIRIT_WOLF and the SpiritWolf template go.
 		NEW_WOLF = true,
-		-- THE NEW STONE BOAR FIGHT (enemies.md "Stone Boar"): its rigged body, the
+		-- THE NEW STONE BOAR FIGHT (docs/enemies/stone-boar.md): its rigged body, the
 		-- charge into a tusk gore, side-pacing. Shipped 2026-10-21 at the user's word
 		-- (before a testbed fight); false brings back the old one-charge boar until
 		-- OLD_STONE_BOAR and the StoneBoar template go.
@@ -500,14 +500,14 @@ return {
 		-- THE JADE JIAO TRIAL: a 115-stud venom serpent boss (QC7) with burrow ambushes,
 		-- poison, a coil trap and phase moves. Testbed only until the user approves.
 		NEW_JIAO = TESTBED,
-		-- THE SECOND BESTIARY WAVE (enemies.md "Venom Serpent", "Stone Tortoise", "Shadow Mane
+		-- THE SECOND BESTIARY WAVE (docs/enemies/second-wave.md: "Venom Serpent", "Stone Tortoise", "Shadow Mane
 		-- Wolf"): three regular beasts with their own bodies, poses and effects. Testbed only
 		-- until the user approves; false keeps the old Venom Serpent (one spit). The Tortoise
 		-- and the Shadow Mane have no old def, so they exist only with their flag.
 		NEW_SERPENT = TESTBED,
 		NEW_TORTOISE = TESTBED,
 		NEW_SHADOW_MANE = TESTBED,
-		-- THE THIRD WAVE (enemies.md "Third bestiary wave"): the Blood Centipede, Flame
+		-- THE THIRD WAVE (docs/enemies/third-wave.md): the Blood Centipede, Flame
 		-- Raven and Iron-Winged Blood Bat (the Golden Toad and Frost Spider were cut). Testbed only until
 		-- approved; each has no old def, so it exists only while its flag is on.
 		NEW_CENTIPEDE = TESTBED,

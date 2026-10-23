@@ -30,22 +30,27 @@ are yours, the lightning strikes on the player are `vfx`'s.
 - [docs/vfx/style.md](../../docs/vfx/style.md), all of it, and especially
   "World events and anomalies" and the scale rule (grandeur is earned: world
   events are where the big set pieces live).
-- [docs/vfx/toolkit.md](../../docs/vfx/toolkit.md): the plugin, Game Module,
-  add-ons, library search, the preview and export pipeline, budget.
-- [docs/systems/world.md](../../docs/systems/world.md): the event kinds,
-  `WorldEvents.luau` defs and their `look`, `WorldEventFX.luau`, `Treasures`,
-  event grounds, and the existing Auspicious Clouds build
+- [docs/vfx/toolkit.md](../../docs/vfx/toolkit.md) (core and index), then only
+  the `docs/vfx/toolkit/` topic files your task needs.
+- [docs/vfx/world_events.md](../../docs/vfx/world_events.md): status per event,
+  the user's decisions, sight lines, the far-read rule, kit pieces, budget and
+  build order; then your event's file in `docs/vfx/world_events/`.
+- [docs/systems/world.md](../../docs/systems/world.md) (core): the event kinds,
+  `WorldEvents.luau` defs and their `look`, `Treasures` and event grounds; then
+  [docs/world/event-fx.md](../../docs/world/event-fx.md): `WorldEventFX.luau`, the
+  treasure birth, the WorldFX kit and the existing Auspicious Clouds build
   (`tools/vfx_specs/AuspiciousClouds.luau`, `Effects.AuspiciousClouds`).
-- [docs/systems/map.md](../../docs/systems/map.md): where the event grounds,
+- [docs/world-overview.md](../../docs/world-overview.md): where the event grounds,
   peaks and valley walls are, so you know where people will be watching from.
+  Don't read map.md; open a `docs/map/` area file only when you place by hand there.
 
 ## References
 
 Start from what the user gave you and the reference library,
 `docs/reference/vfx/README.md`: reuse its world references and breakdowns, and
 research only what it doesn't cover. Put world-scale stills and grids in
-`docs/reference/vfx/world/` with descriptive names, and add a row and a
-breakdown (with its far read) to the library for every reference you used, in
+`docs/reference/vfx/world/` with descriptive names, and add a row to the README and a
+breakdown (with its far read) to `docs/reference/vfx/breakdowns.md` for every reference you used, in
 the same commit as the effect. Good searches for what's missing:
 - Donghua and manhua sky scenes: "heavenly tribulation donghua", "treasure
   birth xianxia anime", "sky splitting open anime", "purple qi from the east
@@ -169,7 +174,7 @@ weather kinds), captures at far, mid and close next to the reference frames,
 the three upright-placement captures, layer counts per distance, budget, and
 what is untested (the user playtests). Ask the user to review in Studio.
 
-Update [world.md](../../docs/systems/world.md) (event looks, templates, files,
+Update [docs/world/event-fx.md](../../docs/world/event-fx.md) (event looks, templates, files,
 known gaps; what you built and the ids you used, as that event's record) and
 the asset list in `docs/README.md` if you added templates.
 Commit the `.rbxm`, scripts, specs, references and docs together.

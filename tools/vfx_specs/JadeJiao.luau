@@ -7,7 +7,7 @@
 --   m.Source = HttpService:GetAsync("http://127.0.0.1:8766/vfx_specs/JadeJiao.luau")
 --   require(m)  -- installs _G.buildJadeJiaoFX(effectsFolder)
 -- Runtime: src/client/EnemyFX/JadeJiao.luau (cue -> template, placement,
--- sounds). The fight sheet and this pass's record: docs/systems/enemies.md
+-- sounds). The fight sheet and this pass's record: docs/enemies/jade-jiao.md
 -- "Jade Jiao".
 --
 -- Identity: venom. Acid venom-green (9BFF4A) with white-hot centres for the

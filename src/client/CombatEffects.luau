@@ -552,16 +552,62 @@ local function dodgeTemplate(name: string): Instance?
 	return group and group:FindFirstChild(name)
 end
 
--- The latest dash, so a perfect dodge can leave its ghost where the dash began
--- and turn the rest of the streak gold.
-local lastDash: { character: Model, origin: CFrame, at: number, trails: { Trail } }? = nil
+-- A pose of the body during the dash: every visible part's world CFrame.
+type Pose = { root: CFrame, parts: { [BasePart]: CFrame } }
+
+-- The latest dash, so a perfect dodge can leave its afterimages along the path
+-- and turn the rest of the streak gold. `poses` are sampled every
+-- GHOST_SPACING studs while it runs; `onPose` (set by a perfect dodge that
+-- lands mid-dash) drops an afterimage at each new one as the player passes.
+type Dash = {
+	character: Model,
+	origin: CFrame,
+	at: number,
+	trails: { Trail },
+	poses: { Pose },
+	onPose: ((Pose, number) -> ())?,
+}
+local lastDash: Dash? = nil
+
+local GHOST_SPACING = 5 -- studs between sampled poses (a dash covers ~24)
+local GHOST_MAX = 5 -- afterimages per perfect dodge, the start one included
+local GHOST_CLEAR = 4.5 -- no afterimage this close to where the player stands (a body is ~4 wide)
+local GHOST_STAGGER = 0.025 -- afterimages appear start first, this far apart
+
+local function snapshot(character: Model, root: BasePart): Pose
+	local parts = {}
+	for _, d in character:GetDescendants() do
+		if d:IsA("BasePart") and d ~= root and d.Transparency < 1 then
+			parts[d] = d.CFrame
+		end
+	end
+	return { root = root.CFrame, parts = parts }
+end
 
 -- The dash: one light qi streak along the path (two camera-facing Trails on
--- the root) that dies ~0.2 s after the dash ends. Nothing is left behind, so
--- the perfect dodge's ghost and flash stay the only lingering dodge visual.
+-- the root) that dies ~0.2 s after the dash ends, and the pose samples a
+-- perfect dodge draws its afterimages from. Nothing is left behind.
 function CombatEffects.dashTrail(character: Model, root: BasePart, seconds: number)
-	local dash = { character = character, origin = root.CFrame, at = os.clock(), trails = {} :: { Trail } }
+	local dash: Dash = {
+		character = character, origin = root.CFrame, at = os.clock(), trails = {},
+		poses = { snapshot(character, root) },
+	}
 	lastDash = dash
+	local sampler: RBXScriptConnection
+	sampler = RunService.Heartbeat:Connect(function()
+		if os.clock() - dash.at > seconds + 0.05 or not root.Parent or #dash.poses >= GHOST_MAX then
+			sampler:Disconnect()
+			dash.onPose = nil
+			return
+		end
+		if (root.Position - dash.poses[#dash.poses].root.Position).Magnitude >= GHOST_SPACING then
+			local pose = snapshot(character, root)
+			table.insert(dash.poses, pose)
+			if dash.onPose then
+				dash.onPose(pose, #dash.poses)
+			end
+		end
+	end)
 	local template = dodgeTemplate("Streak")
 	if not template then
 		return
@@ -592,56 +638,129 @@ function CombatEffects.dashTrail(character: Model, root: BasePart, seconds: numb
 	end)
 end
 
--- A beam pair from `a` to `b` that holds `hold` seconds, then thins and fades
--- out over `seconds`.
-local function fadeBeams(part: BasePart, a: Vector3, b: Vector3, hold: number, seconds: number)
-	local from = part:FindFirstChild("From") :: Attachment?
-	local to = part:FindFirstChild("To") :: Attachment?
-	if not (from and to) then
-		part:Destroy()
-		return
-	end
-	part.CFrame = CFrame.new(a)
-	part.Parent = folder
-	from.WorldPosition, to.WorldPosition = a, b
-	local beams = {}
-	for _, d in part:GetChildren() do
-		if d:IsA("Beam") then
-			table.insert(beams, { beam = d, w0 = d.Width0, w1 = d.Width1, t = d.Transparency })
-		end
-	end
-	local started = os.clock()
-	local connection
-	connection = RunService.RenderStepped:Connect(function()
-		local k = math.clamp((os.clock() - started - hold) / seconds, 0, 1)
-		if k >= 1 or not part.Parent then
-			connection:Disconnect()
-			part:Destroy()
-			return
-		end
-		if k <= 0 then
-			return
-		end
-		local keep = 1 - k * k
-		for _, b in beams do
-			b.beam.Width0, b.beam.Width1 = b.w0 * keep, b.w1 * keep
-			local points = {}
-			for _, p in b.t.Keypoints do
-				table.insert(points, NumberSequenceKeypoint.new(p.Time, p.Value + (1 - p.Value) * k))
-			end
-			b.beam.Transparency = NumberSequence.new(points)
-		end
-	end)
-end
-
--- A perfect dodge, "the blow cut only a shadow": a gold-white ghost of the
--- body left where the dash began (where the blow lands) that holds, then
--- dissolves into rising qi motes; a gold streak from the ghost to the player
--- along the path taken; a sharp glint, flare and sparks on the player with a
--- gold rim; and a brief desaturated time-slow grade. No ground ring and no
--- shake: nothing was hit.
+-- Afterimages: gold Neon copies of the body's parts, pooled per source part
+-- (a perfect dodge can come every second in a fight) and faded by one
+-- RenderStepped loop instead of a tween per part.
 local PERFECT_GOLD = Color3.fromRGB(255, 212, 120)
 local PERFECT_GHOST = Color3.fromRGB(255, 112, 32) -- Neon boosts it to gold (lighter colours clip to lemon)
+
+local ghostPool: { [BasePart]: { BasePart } } = setmetatable({}, { __mode = "k" }) :: any
+
+local function takeGhost(source: BasePart): BasePart?
+	local free = ghostPool[source]
+	local ghost = free and table.remove(free)
+	-- a pooled copy destroyed from outside (the camera's children cleared) is locked
+	while ghost and not pcall(function()
+		(ghost :: BasePart).Parent = folder
+	end) do
+		ghost = free and table.remove(free)
+	end
+	if not ghost then
+		ghost = source:Clone() -- nil when the part isn't Archivable
+		if not ghost then
+			return nil
+		end
+		for _, child in ghost:GetChildren() do
+			if not child:IsA("DataModelMesh") then
+				child:Destroy()
+			end
+		end
+		if ghost:IsA("MeshPart") then
+			ghost.TextureID = ""
+		end
+		ghost.Anchored, ghost.CanCollide, ghost.CanQuery, ghost.CanTouch, ghost.CastShadow = true, false, false, false, false
+		ghost.Massless = true
+		ghost.Material = Enum.Material.Neon
+		ghost.Color = PERFECT_GHOST
+		ghost.Parent = folder
+	end
+	ghost.Size = source.Size
+	return ghost
+end
+
+local function giveGhost(source: BasePart, ghost: BasePart)
+	ghost.Parent = nil
+	local free = ghostPool[source]
+	if not free then
+		free = {}
+		ghostPool[source] = free
+	end
+	if #free < GHOST_MAX and source.Parent then
+		table.insert(free, ghost)
+	else
+		ghost:Destroy()
+	end
+end
+
+type Ghost = {
+	parts: { { ghost: BasePart, source: BasePart, size: Vector3 } },
+	born: number,
+	from: number,
+	hold: number,
+	fade: number,
+}
+local ghosts: { Ghost } = {}
+local ghostLoop: RBXScriptConnection? = nil
+
+local function stepGhosts()
+	local now = os.clock()
+	for i = #ghosts, 1, -1 do
+		local g = ghosts[i]
+		local k = (now - g.born - g.hold) / g.fade
+		if k >= 1 then
+			for _, p in g.parts do
+				giveGhost(p.source, p.ghost)
+			end
+			table.remove(ghosts, i)
+		elseif k > 0 then
+			-- hold solid, then swell slightly and dissolve, slow then fast
+			local e = k * k
+			local t = g.from + (1 - g.from) * e
+			for _, p in g.parts do
+				p.ghost.Transparency = t
+				p.ghost.Size = p.size * (1 + 0.08 * e)
+			end
+		end
+	end
+	if #ghosts == 0 and ghostLoop then
+		ghostLoop:Disconnect()
+		ghostLoop = nil
+	end
+end
+
+-- One afterimage of `pose`, moved by `shift`. `index` 1 is the dash start: the
+-- solid one that lingers longest; each later one starts fainter and goes sooner.
+local function spawnGhost(pose: Pose, index: number, shift: CFrame?)
+	local k = math.clamp((index - 1) / (GHOST_MAX - 1), 0, 1)
+	local g: Ghost = {
+		parts = {}, born = os.clock(),
+		from = 0.12 + 0.5 * k, hold = 0.14 - 0.1 * k, fade = 0.46 - 0.22 * k,
+	}
+	for source, cframe in pose.parts do
+		if not source.Parent then
+			continue
+		end
+		local ghost = takeGhost(source)
+		if not ghost then
+			continue
+		end
+		ghost.CFrame = if shift then shift * cframe else cframe
+		ghost.Transparency = g.from
+		table.insert(g.parts, { ghost = ghost, source = source, size = ghost.Size })
+	end
+	table.insert(ghosts, g)
+	if not ghostLoop then
+		ghostLoop = RunService.RenderStepped:Connect(stepGhosts)
+	end
+end
+
+-- A perfect dodge, "the blow cut only a shadow": a trail of up to five
+-- gold-white afterimages along the dash, from where it began (where the blow
+-- lands, solid, lingering ~0.6 s) toward the player (each fainter and shorter,
+-- appearing 25 ms apart, start first); a glint, cut-air wisps, a push-off ring
+-- and rising motes at the start one; the rest of the dash streak turning gold;
+-- a small glint and sparks on the player with a gold rim; and a brief
+-- desaturated time-slow grade. No shake: nothing was hit.
 function CombatEffects.perfectDodge(character: Model, root: BasePart)
 	local here = root.CFrame
 	local dash = lastDash
@@ -656,40 +775,23 @@ function CombatEffects.perfectDodge(character: Model, root: BasePart)
 		end
 	end
 
-	-- the ghost: this pose, moved back to the dash origin
-	local shift = origin * here:Inverse()
-	for _, source in character:GetDescendants() do
-		if not source:IsA("BasePart") or source.Name == "HumanoidRootPart" or source.Transparency >= 1 then
-			continue
-		end
-		local ghost = source:Clone()
-		if not ghost then
-			continue
-		end
-		for _, child in ghost:GetChildren() do
-			if not child:IsA("DataModelMesh") then
-				child:Destroy()
+	-- the start afterimage: this pose, moved back to the dash origin (the look
+	-- the single ghost had)
+	spawnGhost(snapshot(character, root), 1, origin * here:Inverse())
+	if dash and recent then
+		-- the rest: the poses sampled along the path, start first
+		local delay = 0
+		for i = 2, #dash.poses do
+			local pose = dash.poses[i]
+			if (pose.root.Position - here.Position).Magnitude >= GHOST_CLEAR then
+				delay += GHOST_STAGGER
+				task.delay(delay, spawnGhost, pose, i)
 			end
 		end
-		if ghost:IsA("MeshPart") then
-			ghost.TextureID = ""
+		-- still dashing: drop one at each pose still to come, as the player passes
+		dash.onPose = function(pose: Pose, i: number)
+			spawnGhost(pose, i)
 		end
-		ghost.Anchored, ghost.CanCollide, ghost.CanQuery, ghost.CanTouch, ghost.CastShadow = true, false, false, false, false
-		ghost.Massless = true
-		ghost.Material = Enum.Material.Neon
-		ghost.Color = PERFECT_GHOST
-		ghost.Transparency = 0.12
-		ghost.CFrame = shift * source.CFrame
-		ghost.Parent = folder
-		task.delay(0.12, function()
-			if ghost.Parent then
-				TweenService:Create(ghost, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-					Transparency = 1,
-					Size = ghost.Size * 1.08,
-				}):Play()
-			end
-		end)
-		Debris:AddItem(ghost, 0.65)
 	end
 
 	local template = dodgeTemplate("Perfect")
@@ -702,13 +804,6 @@ function CombatEffects.perfectDodge(character: Model, root: BasePart)
 		end
 		if playerPart then
 			playerPart.CFrame = here * CFrame.new(0, 0.8, 0)
-		end
-		local streak = TechniqueVFX.take(copy, "Streak")
-		local chest = Vector3.new(0, 0.3, 0)
-		if streak and (here.Position - origin.Position).Magnitude > 1.5 then
-			fadeBeams(streak, origin.Position + chest, here.Position + chest, 0.1, 0.3)
-		elseif streak then
-			streak:Destroy()
 		end
 		copy.Parent = folder
 		TechniqueVFX.emit(copy)

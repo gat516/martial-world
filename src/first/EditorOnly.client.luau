@@ -1,6 +1,6 @@
 --!strict
 -- Client side of the editor-only markers (Workspace._EditorMarkers, tag "EditorOnly"; see
--- src/server/EditorOnly.server.luau and docs/systems/map.md, "Editor-only markers").
+-- src/server/EditorOnly.server.luau and docs/map/editor-markers.md).
 -- The server destroys them at startup, but in a Studio playtest the client can receive the
 -- place before that destroy arrives (a playtest showed the blockout labels). This runs in
 -- ReplicatedFirst, before the rest of the game loads, and removes any copy that reaches the

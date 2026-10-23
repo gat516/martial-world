@@ -19,7 +19,7 @@ what's untested.
 ## Read first
 
 - The rig's `RIGS.md`: `art/enemies/<group>/RIGS.md` (wolf_family, quadrupeds,
-  beasts, bandits, cultivators). It has the joint table, what each joint moves,
+  beasts, bandits, cultivators); read the shared notes and your model's section only. It has the joint table, what each joint moves,
   its parent, the sign convention and the safe ranges tested so far.
 - `docs/reference/animation/README.md`: the White Tiger and Bear rigs with baked
   KeyframeSequences (gaits, claw swipes, pounce, bite, slams, pain, death). Study
@@ -31,7 +31,7 @@ what's untested.
   `JointTail` and `JointLeg*` every frame and finds joints by Motor6D name.
   Key the other joints (spine, jaw, ears, elbows, knees, hocks, tail chain, mane,
   cloth) for attacks, or make EnemyAnimator blend with your clip.
-- `docs/systems/enemies.md` (AI states, attack kinds) and `combat.md`.
+- `docs/systems/enemies.md` ("Server and client" and "Adding a beast's effects" for AI states and cues) and the enemy's own doc in `docs/enemies/` (its attack table). Don't read the rest of the roster or `combat.md` unless your task touches player hits.
 
 ## Intent first, then a beat sheet
 

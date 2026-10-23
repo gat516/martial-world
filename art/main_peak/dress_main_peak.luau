@@ -1,5 +1,5 @@
 --[[
-Main-peak ring terrace, waterfalls and cliff dressing (docs/systems/map.md, "Main peak"). Run in Studio Edit
+Main-peak ring terrace, waterfalls and cliff dressing (docs/map/main-peak.md). Run in Studio Edit
 mode through the MCP AFTER terrain_main_peak.luau (that script clears and rewrites the terrain this one carves
 pools into). Re-runnable: it rebuilds MainPeak.Ring and re-carves the pools.
 
@@ -13,7 +13,7 @@ pools into). Re-runnable: it rebuilds MainPeak.Ring and re-carves the pools.
               meet the rim (sunk, low, sparse), fireflies over two lawns
   lamps       LanternGlow on every main-peak StoneLantern; spray, lip and mist effects at the falls
 Water: Terrain Water in carved basins (pools, stream), and beams cloned from AssetLibrary VFX "Blue Waterfall"
-for the falling sheets. Effects are ServerStorage.AmbientFX clones (placement guide: docs/systems/world.md).
+for the falling sheets. Effects are ServerStorage.AmbientFX clones (placement guide: docs/world/ambient-fx.md).
 ]]
 
 local CHS = game:GetService("ChangeHistoryService")

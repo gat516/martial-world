@@ -1,6 +1,6 @@
 --!nocheck
 -- Places the Inner Wilds pocket prefabs (ServerStorage.InnerWildsPrefabs, built by the POI builder) on
--- the valley (docs/systems/map.md, "Inner Wilds rework"). Run in Studio Edit mode through execute_luau
+-- the valley (docs/map/inner-wilds-rework.md). Run in Studio Edit mode through execute_luau
 -- after terrain_wilds.luau, before water_inner.luau and ambience_inner.luau. Rebuilds
 -- Map.Ground.WildsInner.Pockets each run.
 --

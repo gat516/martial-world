@@ -1,7 +1,7 @@
 --!nocheck
 -- Rigs ServerStorage._RosterBeasts.BloodBat (build_blood_bat.luau) with the shared
 -- rig_core.luau, then adds the FX attachments. Run in Edit mode through execute_luau;
--- re-runnable. 13 joints: see RIGS.md "Blood Bat".
+-- re-runnable. 13 joints: see rigs/blood-bat.md ("Blood Bat".
 -- Flier convention as the Flame Raven's: the model is built in place at hover height, the
 -- pivot is the HRP centre (not the ground) with identity rotation, and the HRP floats at
 -- HipHeight = its bottom. HRP 2.6 x 2.4 x 2.6 centred at (0, 4.6, -0.2): bottom 3.4, so a

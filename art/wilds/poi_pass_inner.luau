@@ -1,5 +1,5 @@
 --!nocheck
--- One-time POI pass over the Inner Wilds pockets and finds (2026-10-21; docs/systems/map.md,
+-- One-time POI pass over the Inner Wilds pockets and finds (2026-10-21; docs/map/inner-wilds-rework.md,
 -- "POI pass"). Run in Studio Edit mode through execute_luau after water_inner.luau, then run
 -- group_poi_parts.luau (groups and seats every object) and ambience_inner.luau.
 -- Clears what blocked the POIs (the clearance report in phase 3), fixes the prompt and cache spots

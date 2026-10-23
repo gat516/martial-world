@@ -1,5 +1,5 @@
 --!nocheck
--- Builds the Testing Stone (spirit-root reveal, docs/systems/character.md) as
+-- Builds the Testing Stone (spirit-root reveal, docs/character/spirit-root.md) as
 -- <parent>.TestingStone. Workspace.Hub is Rojo-managed, so run this against a
 -- staging clone (Workspace._StagingHub), export the TestingStone subtree into
 -- assets/Hub.rbxmx, then destroy the staging copy (AGENTS.md "Studio instances").

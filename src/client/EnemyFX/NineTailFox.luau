@@ -6,7 +6,7 @@
 -- streaks, the scream is pale blue-white. No crown, halo or head ring.
 -- Cues: ready, aggro, windup, strike, dash, land, hit, stagger, death, and the
 -- server's enemyCue "snare". Contracts: the fight sheet in
--- docs/systems/enemies.md (Nine-Tailed Fox).
+-- docs/enemies/nine-tailed-fox.md.
 --
 -- No copies of the fox's body anywhere (user, 2026-10-21: the Neon ghost
 -- heads, afterimages and death ghost looked bad): roars are thrown from the

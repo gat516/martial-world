@@ -1,6 +1,6 @@
 --!nocheck
 -- Groups the loose parts of a POI model into named sub-Models by function, so the user can select,
--- move or ungroup sensible pieces (docs/systems/map.md, "Prefab updates and ungrouping").
+-- move or ungroup sensible pieces (docs/map/inner-wilds-rework.md, "Prefab updates and ungrouping").
 -- Run in Studio Edit mode through execute_luau. It installs _G.groupPoiParts(model) (used by
 -- art/wilds/build_poi_prefabs.luau too) and, unless _G.GROUP_POI_INSTALL_ONLY is set, regroups every
 -- placed pocket, find and water group, the prefabs in ServerStorage.InnerWildsPrefabs and the preview

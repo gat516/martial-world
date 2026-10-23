@@ -33,128 +33,22 @@ cursor, settings and the admin panel.
   and comes back when it closes (`ShiftLock`; `TestbedAltMouseLock` in the testbed).
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
 - The bottom-centre stack (user decision, 2026-10-22, from a Deepwoken-style
-  reference in our own style; redrawn 2026-10-23 to the user's own reference
-  image, see below): one gilded mount (`Stack.Vitals`, art
-  `vitals_mount.png` from `art/ui/draw_vitals.ps1`) holding three bars, top to
-  bottom: health (thick, ten segments), combat qi (the mana techniques spend;
-  bright azure, with its number) and the guard posture trough (always shown,
-  dim while full and idle, draining toward the red gem seal in the middle),
-  with the realm plaque above and the hotbar below. Compact pass (user,
-  2026-10-22, from a phone screenshot): the plate is notched (a full-width body
-  for health and qi, a narrower tab under its middle for the guard) and sits
-  right on the hotbar; the PC Dash/Strike cooldown chips (`Stack.Cooldowns`)
-  tuck into the left notch instead of a row of their own.
-  Reference redesign (user, 2026-10-23): your own name moved off your head (on
-  your screen only) onto the HUD, and the stack was redrawn after the user's
-  reference image. Top to bottom: a small name plaque (`Vitals.NamePlaque.NameText`,
-  `name_plaque.png`: lacquer box with pointed ends, a red gem on each, thin gold
-  scrolls out to the sides; the name as `Nameplates.nameOf` writes it, repainted
-  when `FirstName`, `Surname` or the DisplayName change), the wider realm plaque
-  (`Vitals.Crest.RealmText`, `realm_plaque.png`: gold lozenges with dark centres,
-  curl flourishes; still the shortcut to the character window), then the plate:
-  dark lacquer inside a gold double frame with small curls at the corners and
-  steps, gold lozenges on its outer edges at both bar rows, health glossy red
-  with ten slanted segment dividers and a red gem on each end, qi glossy sky
-  blue, the guard a tan/parchment trough in the tab under a red gem seal. The
-  PC cooldown chips are drawn discs now (`vitals_chip.png`, a dark disc in a
-  gold rim; their cooldown cover clips a dark `chip_shade.png` disc as it
-  drains), sitting under the plate's left end beside the tab. Bar numbers are
-  bold white with a black outline; plaque text is cream Merriweather. The name
-  plaque made the stack taller (560x172 max, aspect 3.256, was 560x143), so on
-  short screens it may take 36% of the height (`Layout` SMALL_HEIGHT_SHARE, was
-  30%), which keeps the bars as wide on a phone as before. Room for a title:
-  none yet; one could go on the name plaque, smaller under the name.
-  Fills are bright (red health, sky-blue qi, tan guard) and
-  authored full, so the edit view and the first frame read full. Every bar fill
-  (vitals and seated) wears `Sheen` (`fill_sheen.png`: top lip, soft inner glow,
-  darker belly) and, except the centre-draining guard, a soft bright leading
-  `Edge` (`fill_edge.png`), both white/black so the fill colour shows through. On short
-  screens (`Platform.isSmall`) the stack takes at most 30% of the height
-  (`Layout` SMALL_HEIGHT_SHARE; it was 45%, which on a landscape phone in the
-  device emulator, which gets the PC layout, filled over half the screen).
-  The seated tiles, lotus, Force Breakthrough pill and the touch prompt dock's
-  column sit just above the plate and moved down with it; the lotus is centred
-  on the tiles' frames, 14 px past the last tile (`Meditation` LOTUS_GAP). Cultivation and the dantian
-  left the fighting HUD: they show while seated, in the same spot
-  (`Stack.SeatBars`). Health and qi have a pale trail that lingers on a drop.
-  A cast refused for qi (`QiDenied` changes) flashes the qi bar red and shakes
-  the mount; hotbar arts the player can't pay for (`Qi < Techniques.qiCost`)
-  dim like weapon-gated ones and still cast.
-- Breakthrough nudge: when `BreakthroughReady` turns true a toast says "You
-  feel ready to break through" once (skipped when the server just said so),
-  then again only while the player stands idle (no input for 25 s), at most
-  every 150 s (`BreakthroughView` NUDGE_*). No pulsing or central prompt.
-- Seated: the vitals give way to the cultivation bars (`Stack.SeatBars`, art
-  `seat_mount.png`, the same notched plate; `Menus.setSeated`): the realm on
-  the same plaque the vitals wear (`TitleCrest`; no name plaque while seated),
-  one cultivation track with the
-  breakthrough mark inside it at 80% and the overflow (cultivation beyond the
-  bar, up to `CultivationCap`) as the paler stretch past the mark, and the
-  dantian (raw qi) in the tab under it. The cultivation line reads the numbers, "Ready to break
-  through" in gold, or what blocks a full bar (`BreakthroughBlock`: insight,
-  method, peak). Then the meditation menu, a row of square tiles above them that
-  appear only when relevant (Circulate or Break Through, Method, Spirit Root,
-  Practice, Rise; Practice swaps in its own tiles: Technique, Weapon Dao,
-  Back), a small panel for Comprehend / Method / Spirit
-  Root (root pills and the reform choice live on its Spirit Root page), and
-  the lotus calm toggle that fades the HUD for a clean view (`Menus.setCalm`;
-  also after 20 s idle; a tap brings it back). See [meditation](meditation.md).
-  The standing Force Breakthrough pill (`Stack.BreakthroughButton`) is the only
-  breakthrough button outside the seat.
-- The circulation overlay has a Leave pill at its header's right corner
-  (`Circulation.Column.Header.Title.Leave`) that ends the run early for free.
-- Weapons live in the Inventory's Weapons tab: Bare Fists first (choosing them
-  puts the weapon away), then owned weapons with their grade glow and a cinnabar
-  佩 seal on the equipped one; Equip/Unequip go through `WeaponAction`. With no
-  weapon chosen the pane lists every class's Dao comprehension (level and XP bar);
-  a chosen weapon shows its own class's row. Arts that need a weapon class wear a
-  small round class badge in the Arts grid; on the hotbar the badge (and a dimmed
-  icon) shows only while that class isn't in hand, and the slot still casts so
-  the server can say "Requires a sword". Weapon and class icons live in
-  `SlotArt` (drawn in `art/ui/draw_icons.py`; a def's own `icon` wins), so Spirit
-  grades share their model's art and differ by glow colour.
-- Technique icons are flat white glyphs tinted by the technique's colour; the
-  class weapon skills' are drawn in `art/ui/draw_techniques.py`.
-- A chosen art in the Inventory shows its tier, level and XP bar (a `DaoList`
-  row cloned from `RowTemplate`). At a bottleneck (XP full at level 3, 6 or 9) the
-  bar turns cinnabar and reads "Bottleneck", the grid's "Lv" turns the same
-  colour, two cost rows (insight and Spirit Stones icons, "need · you have") show
-  up, and the Secondary button becomes Comprehend (jade). While it can't run it
-  stays lacquer and dimmed and its caption is the reason ("Meditate to
-  comprehend", "Need insight", "Need stones"); a tap toasts the longer reason.
-  Comprehending belongs to the seated Practice row's Technique tile; the button
-  here still works while seated (`Bottleneck` holds the shared logic). Success is the
-  server's notify. While the Inventory is open, tapping a hotbar slot shows that
-  art or item in the detail pane instead of casting or holding it, so arts on the
-  hotbar can be comprehended too.
-- Sort and filter (`InventoryFilter`): once the Arts or Weapons tab holds 3 or
-  more entries, a square sort button closes the tab row. It opens a small menu of
-  class chips (All, Any for universal arts, then only the classes the player has)
-  over three sort pills (Arts: Level, Name, Bottleneck; Weapons: Grade, Class,
-  Name) and a caption naming the view ("Sword arts, highest level first"). Taps
-  apply at once; the button again, a tap outside or a tab switch closes it. While
-  a class is chosen the button turns gold wearing that class's icon. Unfiltered,
-  the Arts grid lists only arts off the hotbar; a class filter lists every art of
-  that class, hotbar ones included (slot number on PC, not draggable). Weapons keep
-  the equipped one first, then Bare Fists. The choice lasts the session, per tab.
-- Character window (`SelfCard`): the Self tile (`Buttons.SelfButton`, between
-  Cultivate and Inventory) opens the Self card (realm and stage bar, then a
-  scrolling list of rows: Dantian (raw qi, live; the only standing view of it),
-  Spirit Root, Cultivation Method from Foundation, Weapon Dao); tapping the realm crest over the vitals is a shortcut to it. Every row
-  has the same shape: a seal, its kind in small gold capitals, the name (grade or
-  level on the right) and its effects, one line each, gains in jade (decided
-  2026-10-21; details in [character](character.md)). Switching methods lives in
-  the meditation menu ([meditation](meditation.md)). The tile shows and
-  the crest is tappable only once the root is tested. The tiles fade away while it's
-  open, like every window. The spirit root reveal (`RootReveal`) is a small
-  centre card on the first test, closed by a tap or by itself, after which the
-  tile pops in, swells once and wears a seal dot until opened.
+  reference in our own style): one gilded mount holding health, combat qi and
+  the guard trough, with the realm crest above and the hotbar below; seated,
+  the cultivation bars take its place. Details, the seated tiles and the
+  breakthrough nudge: [vitals stack](../ui/hud-vitals.md).
+- Inventory (weapons, arts, bottlenecks, sort and filter): [inventory](../ui/inventory.md).
+- Character window (`SelfCard`, the Self tile, the realm crest shortcut, the
+  `RootReveal` card): every row has the same shape, gains in jade (decided
+  2026-10-21). Layout, rows and room for later tabs:
+  [character window](../character/character-window.md). Switching methods lives in
+  the meditation menu ([meditation](meditation.md)).
 - Top-right tiles (`Hud.Buttons`, right-aligned list): Cultivate, Self (once the
   root is tested), Inventory, Build (near your peak), Travel (in the sect),
   Settings. 56 px tiles 10 px apart, scaled 0.9 on touch (about 50 px thumb
   targets), 0.85 on PC; six tiles are about 350 px wide on a phone. Element seals are drawn in
   `art/ui/draw_icons.py` (`icon_Root<Element>`) and shown on the weapon badge disc.
-  Layout and room for later rows and tabs: [character](character.md).
+  Layout and room for later rows and tabs: [character window](../character/character-window.md).
 - Travel: the menu groups Sect grounds and the Wilds; locked arrays stay listed,
   greyed under a cinnabar 封 seal with "Opens at <realm>". A seal-and-name marker
   floats over arrays (others' peaks only up close) and the screen fades to ink
@@ -190,6 +84,12 @@ cursor, settings and the admin panel.
   and skips a child whose name matches a property the class lacks (a Frame's
   `Image` child once came out as a bogus `Image` property).
 
+## Sub-docs
+- [Vitals stack, seated bars and guard bar](../ui/hud-vitals.md)
+- [Inventory windows](../ui/inventory.md)
+- [Boss health bar](../ui/boss-bars.md)
+- [Character window](../character/character-window.md)
+
 ## Key files (all `src/client/`)
 - `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal
   flash, realm plaque `Crest`, your name on `NamePlaque`), buffs, toasts (`Hud.saidLately` tells whether a toast was
@@ -197,17 +97,8 @@ cursor, settings and the admin panel.
   the character window (`SelfCard`).
 - `SeatBars.luau`: the seated cultivation, overflow and dantian bars.
 - `Layout.luau`: device-specific layout flips; `Platform.luau`.
-- Guard bar (`GuardBar.luau`, `Stack.Vitals.GuardBar`): the posture trough in
-  the vitals plate's tab, always shown. The fill drains toward the mount's centre
-  seal, warms toward red below 0.3 and sits at `IDLE_DIM` while full and not
-  held. `GuardBar.set(ratio, active)` every frame (GuardController);
-  `GuardBar.flash` "parry" (pale-gold flash), "blocked" (jolt and tick),
-  "break" (red `guard_cracks` over the trough, fill empty for `BREAK_HIDE`).
-  Per-frame changes go through UIGradient transparency and colour so the calm
-  view's fade can't fight them. `guard_rim`/`guard_fill`/`guard_seal` from
-  `art/ui/draw_guard.py` are no longer used. `Play.BlockButton` ("Guard", 擋) is the
-  touch-only guard button above Dash, placed by `Layout.apply` (not yet checked
-  against the Lock button's arc on a phone); GuardController binds it.
+- Guard bar (`GuardBar.luau`, `Stack.Vitals.GuardBar`) and the touch
+  `Play.BlockButton`: see [vitals stack](../ui/hud-vitals.md#guard-bar).
 - `Menus.luau`: the one-window rule and what hides while a window is open.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
 - `HotbarView.luau`, `Inventory.luau` (Pouch, Arts, Weapons tabs), `InventoryFilter.luau`
@@ -215,54 +106,8 @@ cursor, settings and the admin panel.
   (slot painting, weapon art, the weapon badge), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (feed and boss victory card, `StarterGui.Rewards`).
-- Boss health bar: `BossBars.luau` drives `Play.BossBar` (a CanvasGroup, top centre,
-  `FitWithinMaxSize` 4:1, 0.44 of the width, max 400x100, so smaller on phones).
-  The design is the original one (55e39fb), toned down (user, 2026-10-21): the
-  first version (600x150, a pulsing screen vignette and halo, a lingering omen,
-  big shakes) blocked the fight; slimmer rebuilds from cropped or new generic
-  art were rejected. Rules: show each boss's frame art whole, never cropped; no
-  screen darkening and no looping pulses; small, short hit and phase feedback.
-  `BossThemes.luau` holds one table per boss def id (`ElderWolfKing`,
-  `NineTailFox`, `JadeJiao`, `ThunderApe`, plus `default`). `EnemyBars.luau` picks
-  the boss (locked, else the nearest hunting you within `BOSS_RANGE`) and the
-  danger tier (`Pacing.Danger`, `STYLES`, re-picked on breakthrough). A theme is a
-  title line, a frame image (1024x256, bar hole at x168-856 y110-146, name plate
-  above, realm plaque below; `art/ui/draw_boss_bars.py`, ids `bossbar_*` in
-  `assets.json`), saturated fill colours (top-light vertical gradient), a pale
-  trail, a static glow colour, a phase colour, and omen pools per tier (random
-  per fight, short lines). Adding a boss is one table entry (an unlisted boss
-  gets `default`).
-  Intro: the bar fades in, the fill sweeps up, name and realm rise in; the
-  theme title shows under the name (`TITLE_HOLD`), then the omen (`OMEN_HOLD`),
-  and both fade out fully (a breakthrough mid-fight shows the new omen once).
-  The halo behind the bar is faint and static (`GLOW_REST`). The bar has ten
-  talisman slips, a tick at each phase threshold (`def.summonAt`, or
-  `theme.phases`), a trail, and a 1-3px nudge and quick flash on hits of
-  `BIG_HIT` (5%) or more. Crossing a threshold flashes the bar, nudges it,
-  spreads faint cracks from the centre, warms the fill and frame colours and
-  greys the tick.
-  v2 frames (user, 2026-10-21): each of the four bosses gets its own slender
-  frame (`bossbar2_wolf/fox/ape/jiao.png`, `draw_boss_bars.py v2_*`; run it with
-  `v2` to redraw only these), in the language of the user's references: a long
-  thin bar, a thin dark rim hugging it with shaped ends, small organic accents
-  growing out of the rim and one small motif at top-centre; the name is plain
-  stroked text above (no plaque), no emblem or medallion ("tacky"), smooth
-  rather than pixel art. One family, never a recolour: wolf in dark iron with
-  arrow tips, frost tufts, tiny fangs and icicles and a fur crest; fox in black
-  lacquer with gold lines, hook-curl ends, foxfire wisps and a curled tail; ape
-  in rough dark bronze with notched blunt ends, faint lightning hairlines and a
-  storm cloud; jiao in jade with fine scales, swept fins, whisker curls and a
-  flaming pearl. They use a longer window (`V2_WIN` 64,112 to 960,144), so
-  `BossBars` switches the Bar, name, realm, title and omen to `V2_LAYOUT` when a
-  v2 frame is shown (realm small at the bar's right end below it; title, then
-  omen, on one row under the middle). Their ids go in the `ASSET IDS` block at
-  the top of `BossThemes.luau` (`Themes.FRAMES`, keyed by def id) and in
-  `assets.json`; a `PASTE-ID:` placeholder would keep that boss on its
-  original frame and layout. All four are uploaded and wired.
-  Gaps: the v2 frames and the layout switch are not seen in Studio
-  yet; the fox, jiao and
-  ape bars are untested until those bosses are in play; the phase cracks are
-  one shared image.
+- Boss health bar: `BossBars.luau` drives `Play.BossBar`; themes in
+  `BossThemes.luau`, boss pick in `EnemyBars.luau`. See [boss bar](../ui/boss-bars.md).
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`
   (spirit root reveal card).
 - `Onboarding.luau`, `Guide.luau` (spotlight, dim, walking path), `TravelMenu.luau` (with `GateMarkers.luau` over arrays and
@@ -296,22 +141,5 @@ both shown in the reward feed).
   constants (e.g. Motion, BreakthroughView).
 
 ## Known gaps
-- The vitals and seat bars were previewed in Studio's edit view at PC size and
-  at a phone-sized stack (426 px wide), not on a device or the emulator, and not
-  in play: the qi flash, trails, guard trough states, seated swap and nudge
-  timing are untested.
-- The 2026-10-23 redesign (plaques, plate, chips) was previewed in Studio's
-  edit view at PC size (560 px stack) and at a phone-sized stack (397x122), not
-  on a device, the emulator or in play: the name repaint on a name change, the
-  chip shade draining, the seated swap with the new plaque and the touch prompt
-  dock (its list now sits above the whole stack, `Prompts.Dock.List` at Y 0) are
-  untested. Long names and long realm names shrink to fit their plaque's text
-  box (about 13 and 15 px at most) rather than widening it.
-- Art: `art/ui/draw_vitals.ps1` (PowerShell, no Python on the machine it was
-  drawn on) draws the mounts, plaques and chips; `draw_vitals.py` keeps only the
-  fill overlays (`fill_sheen`, `fill_edge`). `title_plaque.png` stays in use
-  elsewhere, not on the vitals.
-- Bar numbers over a bright fill show the black text stroke as a ghost of the
-  "/" at small sizes ("180 // 260"); the dantian texts use a lighter stroke
-  (0.35). Check the others in play.
-- The hotbar shows no qi price; arts just dim when short.
+- Vitals, seat bar and hotbar gaps: [vitals stack](../ui/hud-vitals.md#known-gaps).
+- Boss bar gaps: [boss bar](../ui/boss-bars.md#known-gaps).

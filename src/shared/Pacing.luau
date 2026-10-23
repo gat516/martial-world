@@ -322,7 +322,7 @@ Pacing.Comprehension = {
 	} :: { [number]: { insight: number, stones: number } },
 }
 
--- CULTIVATION METHODS (Methods.luau, server Methods; docs/systems/character.md).
+-- CULTIVATION METHODS (Methods.luau, server Methods; docs/character/method.md).
 -- Everyone cultivates with the basic Sect Breathing until Foundation, when they
 -- are given a random starter. `qi` multiplies passive, refining and gathering;
 -- `reaches` is the last stage a method can take you to (a key not on the ladder
@@ -370,7 +370,7 @@ Pacing.DaoPractice = {
 	DIFFICULTY = 0.35,
 }
 
--- SPIRIT ROOTS (Roots.luau, server Roots; docs/systems/character.md). A root's
+-- SPIRIT ROOTS (Roots.luau, server Roots; docs/character/spirit-root.md). A root's
 -- element is rolled once at the Testing Stone; its grade starts at STARTING_GRADE
 -- for everyone and is raised by rare items. Grade multiplies passive and refining
 -- speed and the element's perk. Perks are kept small so no element is "the best".

@@ -1,5 +1,5 @@
 --[[
-Main-peak plaza layout pass (docs/systems/map.md, "Main peak" and pass 3). Run in Studio Edit mode
+Main-peak plaza layout pass (docs/map/main-peak.md, and docs/systems/map.md pass 3). Run in Studio Edit mode
 through the MCP (execute_luau). Re-runnable: it rebuilds MainPeak.Plaza.Layout from scratch and moves
 the existing plaza pieces to absolute positions, so running it twice gives the same result.
 

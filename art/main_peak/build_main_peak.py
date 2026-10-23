@@ -6,7 +6,7 @@ Run inside Blender (Text Editor or exec; builds into its own scene "MainPeak"), 
 Coordinates: 1 Blender unit = 1 stud, Blender origin = world origin, Blender (x, y, z) = world (X, -Z, Y).
 So in Roblox: placement frame is CFrame.identity (see place_main_peak.luau).
 
-Layout (world coords), matching the existing gameplay structures (plan: docs/systems/map.md, "Main peak"):
+Layout (world coords), matching the existing gameplay structures (plan: docs/map/main-peak.md):
   ring terrace   y 582, rim r~185      bridgeheads r 172.5 at 22.5+45k deg; one rim notch (RIM_NOTCH) where the
                  west waterfall's stream leaves the terrace and drops down a chute in the cliff
   plaza mesa     y 647 under Plaza.PlazaFloor (x +-100, z -35..115); ledge at y 614; south wall kept

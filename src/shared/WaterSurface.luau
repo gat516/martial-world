@@ -1,6 +1,6 @@
 --!strict
 -- Surface effects for stylized water (parts tagged StylizedWater, see
--- docs/systems/world.md): ripple rings and sun glints that pop on the water
+-- docs/world/water.md): ripple rings and sun glints that pop on the water
 -- and nowhere else, whatever the pool's shape.
 --
 -- A particle emitter fills its part's whole bounding box, which spills over the

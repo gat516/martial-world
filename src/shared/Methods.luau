@@ -1,6 +1,6 @@
 --!strict
 -- Cultivation methods: how a player cultivates (server Methods.luau; design in
--- docs/systems/character.md). Until Foundation everyone uses the sect's unnamed
+-- docs/character/method.md). Until Foundation everyone uses the sect's unnamed
 -- basic breathing method (BASIC). A method sets:
 --   qi       multiplier on passive cultivation, refining and gathering
 --   reaches  the last stage key it can take you to; a stage past it needs a

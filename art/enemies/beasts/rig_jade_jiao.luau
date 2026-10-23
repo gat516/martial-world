@@ -1,7 +1,7 @@
 --!nocheck
 -- Rigs ServerStorage._RosterBeasts.JadeJiao (build_jade_jiao.luau) with the shared
 -- rig_core.luau. Run in Edit mode through execute_luau; re-runnable. 37 joints: see
--- RIGS.md "Jade Jiao".
+-- rigs/jade-jiao.md ("Jade Jiao".
 -- HRP: the reference's height band (bottom 0.5 x S above the ground, 3 x S tall, so the
 -- root height stays 2 x S = 6.35), widened in X and Z to cover the coiled body's footprint
 -- (Body and Tail parts) so melee lands on the coil; centred on x = 0 (the neck's plane).

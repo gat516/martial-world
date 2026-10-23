@@ -145,7 +145,7 @@ Rebirth Pill ("Reform as another element"). Holding neither, the note adds one
 quiet line: "Rare pills can purify or reform your root." While a reformed element
 is pending (`root.pending`), the page shows two rows instead, the current root
 ("Return to <old>", lacquer) over the new one ("Keep <new>", jade), and calls
-`CultivationAction("root", keepNew)` (see [character](character.md)). The Spirit
+`CultivationAction("root", keepNew)` (see [spirit root](../character/spirit-root.md)). The Spirit
 Root tile wears the seal dot (`Root.Badge`) until the choice is made.
 
 ## Known gaps

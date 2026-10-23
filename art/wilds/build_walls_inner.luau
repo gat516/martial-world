@@ -1,6 +1,6 @@
 --!nocheck
--- Inner Wilds valley walls from giant library cliff rocks (docs/systems/map.md, "Inner Wilds
--- rework", "Walls"). Run in Studio Edit mode through execute_luau. It builds one Folder per
+-- Inner Wilds valley walls from giant library cliff rocks (docs/map/inner-wilds-rework.md,
+-- "Walls"). Run in Studio Edit mode through execute_luau. It builds one Folder per
 -- wall segment under Workspace.Map.Ground.WildsInner.Walls and skips any segment folder that
 -- already exists, so pieces the user moved or scaled by hand are never overwritten (delete a
 -- segment's folder to rebuild it). Seeded: a rebuilt segment comes out the same.

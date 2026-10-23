@@ -10,7 +10,7 @@ height and thickness, step-backs with lawn ledges, a few outcrop ledges for a pi
 Pines and bushes are not baked: the bounds JSON lists tree spots and place_karst.luau clones the same
 library pines/bushes the peaks use there.
 
-Live Blender (shared session; take the lock in the scratchpad's map/blender.lock first, see map.md):
+Live Blender (shared session; take the lock in the scratchpad's map/blender.lock first; kit notes in docs/map/karst-pillars.md):
   p = r'\\wsl.localhost\Ubuntu\home\cj\roblox\martial-world\art\karst\build_karst.py'
   g = {'__file__': p, '__name__': '__main__', 'KARST_ARGS': ['preview']}   # or ['export']
   exec(compile(open(p).read(), p, 'exec'), g)

@@ -994,7 +994,7 @@ end
 --[[ Run ]]
 
 local BUILDERS = { Inner = INNER, Middle = MIDDLE }
--- every POI is tagged for the POI tour and labels (docs/systems/map.md, "Editor-only markers")
+-- every POI is tagged for the POI tour and labels (docs/map/editor-markers.md)
 local CollectionService = game:GetService("CollectionService")
 local POI_NAMES = {
 	OldStoneGate = "Old Stone Gate", Steles = "Old Steles", ShrineTerrace = "Shrine Terrace", WolfDen = "Wolf Den",

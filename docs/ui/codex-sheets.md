@@ -118,6 +118,25 @@ Row 4: two bloodline badges: Pure (gold, with a flame-and-cloud crest) and Inher
 Separate image, black background: a full-screen death-save vignette (dark crimson edges fading to transparent centre, faint heartbeat veins), 16:9. A round heartbeat ring (a crimson pulse ring), square.
 ```
 
+### B5. Boss bar beast motifs (the boss bars, [boss-bars](boss-bars.md))
+The boss bar is the kit's frame: a long dark navy plate with a thin gold rim, a small gold
+diamond cap on the left end, and on the right a square gold-rimmed socket that holds a ruby
+star stud (it hides the bar's slanted end). Each boss gets its own motif **at the two ends
+only**: the long middle of the bar (where the health shows) and the brown name plaque above
+its centre must stay clear. Attach a screenshot of the current bar (the Figma kit's
+`Boss Bar / preview` frame, Example page) with the shared references.
+```text
+Four rows, one per beast. Each row has two pieces, both drawn large (about 400 px tall) and front-on: a LEFT END piece, an ornament that wraps around an empty diamond-shaped space where a small gold diamond stud will sit (about 1:1, motif reaching up and down beyond the bar's height, nothing reaching right into the bar), and a RIGHT END piece, a square socket frame with an empty square middle where a ruby star stud will sit, its motif growing from the frame's top, bottom and outer (right) side, nothing on its left side (the bar runs into it there). Same warm brushed gold, dark-gold outlines and upper-left light as the reference; each beast adds its own material and motif:
+Row 1, Elder Wolf King: dark iron and moon-silver with gold edges; frost-white fur tufts, two small curved fangs, a few icicle points.
+Row 2, Nine-Tailed Fox: black lacquer with fine gold line-work; curling orange foxfire wisps and one soft curled fox tail.
+Row 3, Jade Jiao (a horned flood dragon): jade with fine overlapping scales; a swept fin, a whisker curl and a small cloud of water spray.
+Row 4, Thunder Ape: rough dark bronze with notched edges; a small storm cloud and two thin forked lightning bolts in pale gold.
+Plain magenta inside the empty diamond and square spaces. No text, no faces or eyes, no crowns or halos, no glow outside the outlines.
+```
+After cutting: compose each pair onto a copy of the `Export / Roblox Boss Bar` sheet's
+Mount in Figma (node 35:181), export it as `bossbar_mount_<beast>.png` with
+`tools/figma_boss_export.py`, upload it and set that boss's `mount` in `BossThemes.luau`.
+
 ## C. Later: garden, building, Halls, masters, events
 
 ### C1. Herbarium and garden (roadmap 5)

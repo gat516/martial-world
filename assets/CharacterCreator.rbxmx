@@ -159,14 +159,7 @@
 <Color3 name="Ambient"><R>0.698039</R><G>0.67451</G><B>0.643137</B></Color3>
 <Color3 name="LightColor"><R>1</R><G>0.964706</G><B>0.909804</B></Color3>
 <Vector3 name="LightDirection"><X>-0.55</X><Y>-1</Y><Z>-0.75</Z></Vector3>
-<Ref name="CurrentCamera">RBX22</Ref>
 </Properties>
-<Item class="Camera" referent="RBX22"><Properties>
-<string name="Name">Camera</string>
-<CoordinateFrame name="CFrame"><X>0</X><Y>2.8</Y><Z>-16.7942</Z><R00>-1</R00><R01>0</R01><R02>-0</R02><R10>0</R10><R11>0.999557</R11><R12>0.0297589</R12><R20>0</R20><R21>0.0297589</R21><R22>-0.999557</R22></CoordinateFrame>
-<float name="FieldOfView">30</float>
-</Properties>
-</Item>
 <Item class="WorldModel" referent="RBX23"><Properties>
 <string name="Name">World</string>
 </Properties>

@@ -79,7 +79,11 @@ end
 
 function Preview.init(frameGui: ViewportFrame, templates: Folder)
 	viewport = frameGui
-	camera = viewport:FindFirstChild("Camera") :: Camera
+	-- Built here, not in the GUI file: a Camera inside a ViewportFrame doesn't
+	-- survive the Rojo sync, so the preview would have none.
+	camera = Instance.new("Camera")
+	camera.FieldOfView = 30
+	camera.Parent = viewport
 	viewport.CurrentCamera = camera
 	local world = viewport:FindFirstChild("World") :: WorldModel
 	dummy = (templates:FindFirstChild("Dummy") :: Model):Clone()

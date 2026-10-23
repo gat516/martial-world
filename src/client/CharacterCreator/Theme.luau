@@ -5,6 +5,8 @@
 -- table for anything they recolour at runtime, so restyle both together.
 -- Calm and readable (user, 2026-10-23): cream on the kit's navy, gold for
 -- labels, lacquer only for what needs fixing. No flashes, shakes or pulses.
+-- Styled like the Inventory (house window frame, gold and lacquer pills, plain
+-- wells with a cream ring for the chosen one), no ornament on repeated things.
 
 local Theme = {}
 
@@ -17,10 +19,19 @@ Theme.Color = {
 	Disabled = Color3.fromRGB(150, 146, 140), -- ImageColor3 of a button that can't be pressed yet
 }
 
--- Kit cuts the scripts swap at runtime (ids in art/ui/assets.json).
+-- House pieces the scripts swap at runtime (ids in art/ui/assets.json): the
+-- Inventory's pills (the current tab is gold, the others lacquer).
 Theme.Art = {
-	Slot = "rbxassetid://135331792516626", -- codex/cut/ornament_item_slot.png
-	SlotOn = "rbxassetid://96449593211039", -- ornament_item_slot_selected.png (selected card or swatch)
+	Gold = "rbxassetid://124847805310931", -- button_gold.png
+	Lacquer = "rbxassetid://88447362782150", -- button_lacquer.png
+}
+
+-- A plain well's thin edge (slot_edge.png): dim neutral at rest (SlotArt's
+-- NO_GRADE), gold while a required field still needs filling.
+Theme.Edge = {
+	Rest = Color3.fromRGB(150, 140, 120),
+	RestTransparency = 0.35,
+	Need = Color3.fromRGB(226, 188, 108),
 }
 
 Theme.Tween = {

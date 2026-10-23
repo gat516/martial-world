@@ -19,8 +19,12 @@ only at join; there is no in-game switch.
 - The first name is set once: Edit look changes the look only (the name shows,
   locked, on the Identity step). Names are identity; a rename would be its own
   feature.
-- The screen is calm and readable like the creator (same stage, same panel):
-  cards show name and clan, race, realm and when last played.
+- The screen is calm and readable like the creator (same stage, same panel) and
+  matches the rest of the UI: the house window frame, the title on the gold house
+  plaque, slot cards as plain ink wells (the chosen one ringed in cream, as in the
+  Inventory), the Inventory's gold and lacquer pills for Play / Edit look and on
+  the delete card (Keep, Hold to delete; the hold fills crimson). Cards show name
+  and clan, race, realm and when last played.
 
 ## Key files
 - `src/server/PlayerData.luau`: the `Account` record, `load` (account),

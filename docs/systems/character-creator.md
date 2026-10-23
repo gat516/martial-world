@@ -14,10 +14,24 @@ list come from config, and the gameplay hooks (what a race does) plug in later.
   "rethink the layout and flow but keep the current features"). This replaces
   the earlier "richly ornamented" brief. One thing at a time: the character on a
   stage, one panel beside it with one step showing. High contrast (cream on the
-  kit's navy, gold labels, lacquer only for what needs fixing). A few kit pieces
-  that fit: the item-slot frame (panel, cards, swatches, fields, buttons; the lit
-  frame marks a selection and the primary button), one diamond divider, the
-  back seal. No crests, studs, corner sets, halos, ink wash, vignette or seals.
+  kit's navy, gold labels, lacquer only for what needs fixing).
+- **Matches the rest of the UI** (user, 2026-10-23, on the curl frame on every
+  swatch and card: "ts does not match at all"; taste reference
+  [hud_vitals_reference.webp](../reference/ui/hud_vitals_reference.webp)). The same
+  house pieces as the Inventory ([inventory](../ui/inventory.md)): the house window
+  frame (`panel_frame.png`) on the panel and the modal cards; the Inventory's gold
+  and lacquer pills for the step tabs (gold = current) and every button (gold = the
+  one thing to press); plain ink wells (`slot_plain.png`) with a thin dim edge
+  (`slot_edge.png`) for swatches, outfit cards, slot cards, text fields and the
+  race and clan rows, the chosen one wearing the Inventory's cream ring 3 px
+  outside; the slot screen's title on the gold house plaque (`Ribbon.luau`,
+  [ribbons](../ui/ribbons.md)); one diamond divider; the Inventory's close seal on
+  the odds card. No ornament on anything that repeats; no crests, corner sets,
+  halos, ink wash, vignette or seals.
+- **Outfit cards show the outfit, all the same way:** a small live R6 dummy in the
+  card's well (a ViewportFrame, the WeaponView pattern) wearing that piece and the
+  other piece the player has chosen, in their skin, framed on the torso and arms
+  (shirts) or the legs (pants). Never the raw clothing template image.
 - **Calm motion:** a 0.15 s fade and 8 px slide between steps, Motion's hover and
   press on buttons. No flashes, shakes, pulses or full-screen darkening.
 - **Mobile first:** the panel scales with the screen height and floors at 0.8, so
@@ -26,7 +40,7 @@ list come from config, and the gameplay hooks (what a race does) plug in later.
 - **Obvious gating** (user, 2026-10-23: "don't let me move on without picking
   something that's required, and make it really obvious"): only the first name
   is required, and Enter World sits right under it on the last step. Until it's
-  valid the field's frame is lit, the line under it says what's needed, Enter
+  valid the field's edge is gold, the line under it says what's needed, Enter
   World is dimmed and the footer says "Choose a first name to enter the world";
   pressing Enter World focuses the field (keyboard only).
 - Exactly what the user asked for and no more: two clothing categories, hair is
@@ -67,7 +81,7 @@ list come from config, and the gameplay hooks (what a race does) plug in later.
   - `Surnames.luau`: last names / clans (DisplayName, Glyph, Rarity, Weight).
   - `Rarities.luau`: tiers (label, colour, order), shared by races and clans.
   - `Clothing.luau`: Shirt and Pants options (Id, DisplayName, catalog AssetId or
-    Template image, optional Thumbnail).
+    Template image; `Thumbnail` is no longer shown, the cards dress a dummy).
   - `HairColors.luau`, `SkinColors.luau` (the first, `Avatar`, keeps the player's own skin).
   - `Products.luau`: reroll developer product ids and the price shown.
   - `Background.luau`: Live or Image, vantage tag / CFrame, sway, blur, fallback image.
@@ -77,14 +91,16 @@ list come from config, and the gameplay hooks (what a race does) plug in later.
 - `src/server/CharacterIdentity.luau`: rerolls (receipt handlers), hair loading,
   `confirm` (new slot or edited look, through `Slots`), `enter` (the played slot's
   identity, look and spawn); hooks `onConfirmed`, `onRerolled`.
-- `src/client/CharacterCreator/`: Theme (colours, tweens, steps, fit), State (the
+- `src/client/CharacterCreator/`: Theme (colours, pill art, well edge, tweens,
+  steps, fit), State (the
   previewed look; `load` starts over from a look), Components (tab, section, note,
   link, card, swatch, text field, fate row, slot card, odds row, all cloned from
   the GUI's `Templates`), Look (a whole look on the preview), Preview (viewport
   dummy; it makes the viewport's Camera itself, since a Camera saved inside a
   ViewportFrame is lost in the Rojo sync), Backdrop, Bridge (every server call),
-  Modals (odds, delete confirm), Tabs/Appearance, Hair, Name, Controller (`init`,
-  `open`, the slot screen and the creator, `fit`).
+  Modals (odds, delete confirm), Tabs/Appearance (with the outfit cards' dummies),
+  Hair, Name, Controller (`init`, `open`, the slot screen and the creator, `fit`,
+  the title plaque).
 - `assets/CharacterCreator.rbxmx` (`ReplicatedStorage.CharacterCreatorGui`): the
   ScreenGui and templates, including a plain R6 dummy for the preview. Built by
   `art/ui/creator/build_gui.luau` (run it with the Studio MCP in Edit, then export).
@@ -100,13 +116,26 @@ list come from config, and the gameplay hooks (what a race does) plug in later.
   vertically, at most 760 design px tall (the slot screen hugs its cards). Under
   600 design px (phones) the footer drops its divider. The preview fills the
   width to the left of it, the character centred there, with the nameplate
-  (clan and first name over race) under it. Numbers checked: 1920x1080 scale
-  1.2, panel 576x912 at x 1328-1904; 1366x768 scale 0.853, panel 410x649 (16 px
-  margins); 844x390 scale 0.8, panel 384x358 at x 444-828, preview 16-428;
-  667x375 scale 0.8, panel 384x343, preview 16-251.
-- Panel: `Head` (step tabs, or the slot screen's title), `Pages` (a CanvasGroup of
+  (clan and first name over race) under it.
+- Measured 2026-10-23 (sandbox Edit view, sample data, the screen sized to each
+  resolution): 1920x1080 scale 1.2, panel 576x912 at x 1328-1904 (slots 576x485),
+  top and bottom margins equal (84 / 84); 1366x768 scale 0.853, panel 410x649 at
+  x 940-1350; 844x390 scale 0.8, panel 384x358 at x 444-828, margins 16.2 / 16.2,
+  preview 16-428; 667x375 scale 0.8, panel 384x342, preview 15.5-250.5. At every
+  size: right margin 16, the tab row, card rows, slot cards and buttons inset 24
+  design px on both sides (28.8 / 20.5 / 19.2 px), tab gaps equal, the plaque and
+  its text centred on the panel (dx 0), every well, dummy view, swatch chip and
+  button label centred to 0.00 px, the delete card centred on the screen and its
+  buttons 36 design px in on both sides.
+- Panel: `Head` (step tabs: three 136x44 pills, 12 apart; or the slot screen's
+  title plaque, 48 tall, fitted to its text), `Pages` (a CanvasGroup of
   ScrollingFrames: Slots, Appearance, Hair, Name; each canvas follows its list),
   `Footer` (divider, a status line, `Buttons`: Quiet (Delete), Secondary, Primary).
+- Wells (`Templates`): a swatch is a 60 px well with a rounded colour chip (8 px
+  in); an outfit card is 132x156, its well 120x112 at the top (the dummy's
+  `View` 4 px inside it) and its name under it (Builder Sans Bold 15, two lines);
+  each well's `Edge` is tinted (150, 140, 120) at 0.35, its `Halo` (cream ring)
+  shows while chosen (`Components.setSelected`).
 - Buttons with a `Motion` UIScale get the shared hover and press (`Motion.buttons`).
 - The preview dummy is anchored and turned with `PivotTo`; each hair accessory is
   anchored and placed by matching its Handle attachment to the dummy's (else the
@@ -163,8 +192,14 @@ profile (`character.look`, `character.firstName`).
 - Hair loads through `InsertService:LoadAsset`; a catalog hair Roblox won't load
   that way is refused with "That ID isn't a hair accessory".
 - Untested in play: everything (server calls, the flow between the slot screen
-  and the creator, rerolls, hair on the dummy, the backdrop camera). The layout
-  was previewed in Studio's Edit view with sample data at 1616x784 and 844x390.
+  and the creator, rerolls, hair on the dummy, the backdrop camera, the outfit
+  cards' dummies). The layout was previewed in Studio's Edit view with sample
+  data built from the templates, not the client modules.
+- The placeholder outfits (AssetId 0, no template) show the bare body on their
+  card until they get real ids.
+- The outfit cards' dummies copy the stage dummy's skin when the skin changes;
+  if the avatar's own skin arrives later (a character spawning), they keep the
+  previous colour until the next change.
 - The `templates` reply is a table keyed by catalog id; over a RemoteFunction a
   sparse numeric-key table can arrive with string keys, so the client looks ids
   up both ways.

@@ -3,7 +3,7 @@
 -- GUI's `Templates` (assets/CharacterCreator.rbxmx, art/ui/creator/build_gui.luau),
 -- fills it and returns a small handle. Sizes, art and colours live in the
 -- templates; hover and press come from Motion (every button has a `Motion`
--- UIScale). Selection is the kit's lit frame, nothing more.
+-- UIScale). Selection is the Inventory's plain cream ring (a well's Halo), nothing more.
 
 local Theme = require(script.Parent.Theme)
 
@@ -19,25 +19,26 @@ local function clone(name: string): any
 	return (templates:FindFirstChild(name) :: Instance):Clone()
 end
 
--- A card or swatch: the lit kit frame while selected.
-function Components.setSelected(button: ImageButton, on: boolean)
-	button.Image = if on then Theme.Art.SlotOn else Theme.Art.Slot
+-- A card, swatch or slot card: the cream ring round its well while selected.
+function Components.setSelected(wellArt: GuiObject, on: boolean)
+	local halo = wellArt:FindFirstChild("Halo") :: GuiObject?
+	if halo then
+		halo.Visible = on
+	end
 end
 
 function Components.tab(parent: Instance, id: string, order: number, onClick: () -> ())
-	local tab = clone("Tab") :: TextButton
+	local tab = clone("Tab") :: ImageButton
 	tab.Name = id
 	tab.LayoutOrder = order
 	tab.Activated:Connect(onClick)
 	tab.Parent = parent
 	local label = tab:FindFirstChild("Label") :: TextLabel
-	local line = tab:FindFirstChild("Underline") :: Frame
 	return {
 		button = tab,
 		set = function(text: string, current: boolean)
 			label.Text = text
-			label.TextColor3 = if current then Theme.Color.Cream else Theme.Color.Muted
-			line.Visible = current
+			tab.Image = if current then Theme.Art.Gold else Theme.Art.Lacquer
 		end,
 	}
 end
@@ -81,29 +82,25 @@ end
 export type CardOptions = {
 	id: string,
 	caption: string,
-	image: string, -- "" shows the placeholder glyph
-	glyph: string,
 	order: number,
 	onClick: () -> (),
 }
 
+-- An outfit card: a plain well whose `View` (a ViewportFrame with a WorldModel
+-- `World`) the caller fills with a dressed dummy, the name under it.
 function Components.card(parent: Instance, opts: CardOptions)
 	local card = clone("Card") :: ImageButton
 	card.Name = opts.id
 	card.LayoutOrder = opts.order
 	;(card:FindFirstChild("Caption") :: TextLabel).Text = opts.caption
-	local thumb = card:FindFirstChild("Thumb") :: ImageLabel
-	local placeholder = card:FindFirstChild("Placeholder") :: TextLabel
-	thumb.Image = opts.image
-	thumb.Visible = opts.image ~= ""
-	placeholder.Text = opts.glyph
-	placeholder.Visible = opts.image == ""
+	local wellArt = card:FindFirstChild("Well") :: ImageLabel
 	card.Activated:Connect(opts.onClick)
 	card.Parent = parent
 	return {
 		button = card,
+		view = wellArt:FindFirstChild("View") :: ViewportFrame,
 		setSelected = function(on: boolean)
-			Components.setSelected(card, on)
+			Components.setSelected(wellArt, on)
 		end,
 	}
 end
@@ -131,7 +128,7 @@ export type FieldOptions = {
 	counter: boolean?,
 }
 
--- A text field on the kit frame, an optional button and a status line under it.
+-- A text field in a plain well, an optional button and a status line under it.
 function Components.textField(parent: Instance, opts: FieldOptions)
 	local field = clone("TextField") :: Frame
 	field.Name = opts.name
@@ -160,9 +157,11 @@ function Components.textField(parent: Instance, opts: FieldOptions)
 			elseif kind == "ok" then Theme.Color.Jade
 			else Theme.Color.Muted
 	end
-	-- the field's frame lights while it needs attention (a required field still empty)
+	-- the field's edge turns gold while it needs attention (a required field still empty)
+	local edge = frame:FindFirstChild("Edge") :: ImageLabel
 	function handle.setNeed(on: boolean)
-		frame.Image = if on then Theme.Art.SlotOn else Theme.Art.Slot
+		edge.ImageColor3 = if on then Theme.Edge.Need else Theme.Edge.Rest
+		edge.ImageTransparency = if on then 0 else Theme.Edge.RestTransparency
 	end
 	function handle.setBusy(on: boolean)
 		action.Active = not on
@@ -176,7 +175,7 @@ function Components.textField(parent: Instance, opts: FieldOptions)
 	return handle
 end
 
--- A race or clan row on the kit frame: "Race · Rare" over the value, and a
+-- A race or clan row in a plain well: "Race · Rare" over the value, and a
 -- Change button with its Robux price.
 function Components.fateRow(parent: Instance, name: string, order: number)
 	local block = clone("FateRow") :: Frame

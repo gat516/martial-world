@@ -104,6 +104,39 @@ bounties, sect tasks, contribution and a Pavilion shop (never qi).
 - **Sect-wide goals:** server-wide shared tasks (fill the storehouse, light the
   wards before a beast tide) that reward everyone who helped. Cadence and social in one.
 
+## 3d. Relationships: masters, disciples and sect siblings (proposed 2026-10-22)
+The genre's heart, and a strong retention and social hook.
+- **An NPC master at QR1 (Inner Disciple).** The player picks one of several peak
+  lords or elders, each with a specialty (a weapon class, alchemy, the garden, a
+  signature art). The master gives teaching quests, a signature technique at the
+  right Dao level, and a voice that reacts to the player's life.
+- **Sect brothers and sisters = everyone under the same master.** Disciples of one
+  NPC master form a cohort that the game knows about: shown on the Self card, a
+  shared board, small perks when near each other, and co-op bounties. It solves
+  matchmaking the way a house does, with no lobby. Cohort size is capped by
+  instancing the roster.
+- **Player masters (from about FE1, or a major above the disciple).** A higher-realm
+  player can take up to a few disciples; a lower one can ask. A short **ceremony**
+  (the tea or bow, a cinematic beat) binds them. In return:
+  - *Master:* contribution and prestige when a disciple advances, a title, and a
+    "guide" action (meditate together for a small shared boost).
+  - *Disciple:* faster foundation repair, a master's gift (an art or a herb, created
+    by the server), and quests the master sets from the board.
+  - *A master can guard a disciple's tribulation* (heaven-defier): stand with them,
+    share the spectacle.
+- **Visible lineage.** The Self card and nameplate show "Disciple of X", "Senior
+  Brother of Y". A Hall can be a master's household.
+- **Drama hooks.** If a disciple takes the demon path, their master (NPC or player)
+  gets a reaction: a confrontation, a disown, or a plea. Redemption can lead back.
+- **Safety and abuse (the audience is young):** opt-in on both sides; no
+  currency or item transfer between master and disciple, only server-granted
+  rewards, capped per day; no new chat channels beyond what exists; leaving is
+  always allowed with a short cooldown; master must be a realm above, so it can't
+  be farmed with alts for rewards.
+- **Build order:** NPC masters first (data and dialogue), then cohort display, then
+  player masters and the ceremony, then tribulation guarding. Needs cutscene beats
+  (`vfx`), a master pick UI (`ui-designer`), and writing.
+
 ## 3c. Reward banners: show cultivation gains
 Today gains show as small toasts, floating numbers and a Rewards feed. Players should
 feel the big ones.
@@ -345,5 +378,7 @@ run alongside them. Before spawning, ask how many agents and sandbox Studios at 
 - Does the Herbarium reward cosmetics only, or small solidity?
 - Which building sets are robux and which are earnable? (earnable first)
 - Rebirth: is it a full reset (keeping the legacy) or a parallel second character?
+- Which NPC masters, and what does each teach? (draft the cast with the user)
+- Does a player master unlock at FE1 or a major above the disciple, whichever is later?
 - How hinted is the demon secret: rumours only, or does the elder give a nudge?
 - Does the demon path keep its own home peak look, or reuse the sect's with a demon skin?

@@ -127,14 +127,16 @@ function Layout.apply()
 	end
 	-- top-right tiles: on touch the caption would render tiny, so it hides and the icon
 	-- centres on the frame, larger; PC keeps the caption in the frame's bottom strip and
-	-- centres the icon between the frame's inner line (11/128 in) and the caption's top
+	-- centres a 22 px icon between the frame's inner line (12/128 in: 5.25 px) and the
+	-- caption's top (38 px), 5.4 px from each at the 56 px baseline (4.6 px at the PC
+	-- tiles' 0.85 scale). Icons are cropped to their drawn area (ImageRect, alpha > 0).
 	for _, tile in find("Buttons"):GetChildren() do
 		local icon = tile:FindFirstChild("Icon") :: GuiObject?
 		local caption = tile:FindFirstChild("Caption") :: GuiObject?
 		if icon and caption then
 			caption.Visible = not touch
-			icon.Size = if touch then UDim2.fromOffset(28, 28) else UDim2.fromOffset(24, 24)
-			icon.Position = if touch then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 0.38225)
+			icon.Size = if touch then UDim2.fromOffset(28, 28) else UDim2.fromOffset(22, 22)
+			icon.Position = if touch then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 21.625 / 56)
 		end
 	end
 	local tiles = find("Buttons"):FindFirstChildOfClass("UIScale")

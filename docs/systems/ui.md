@@ -48,8 +48,11 @@ cursor, settings and the admin panel.
   Settings. 56 px tiles 8 px apart, scaled 0.9 on touch (about 50 px thumb
   targets), 0.85 on PC; four tiles are 224 px wide on a phone. The frame is
   `hud_tile` (art/ui/hud: a lacquer square with chamfered corners, gilt band and
-  inner line, no curls; it fills the tile, nothing overhangs). PC: icon (24 px,
-  cropped to its drawn area) centred between the inner line and the caption, which
+  inner line, no curls; it fills the tile, nothing overhangs). PC: icon (22 px,
+  cropped to its drawn area, every pixel with alpha > 0: the old rects were up to a
+  third too tight and cut the Build, Travel and Inventory glyphs, "icons are clipping
+  here", 2026-10-23) centred between the inner line and the caption, 4.6 px from each
+  at the PC scale and 10-12 px from the sides, which
   sits inside the frame's bottom strip with a text stroke; touch: no caption, the
   icon (28 px) centred on the frame (`Layout`). Badges pin to corners clear of the
   icon: the key cap (`KeyLabel`, `hud_keycap`, keyboards only) on the top-left

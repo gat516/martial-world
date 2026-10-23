@@ -78,8 +78,13 @@ re-export steps in its README): `Vitals.Plate` (ZIndex 0, behind the bars) is
 the notched body, guard tray and troughs, `Vitals.Mount` (ZIndex 3, over the
 bars) the rims, segment cuts, ruby caps, studs and the guard seal, `Crest`
 the kit's title plaque, and the Dash/Strike chips the kit's round seal with the
-white `element_wind` / `weapon_sword` kit cuts (28 px at the 560 px stack,
-glyphs at 60%, left edge on the plate body's left edge, 2 px above the slots).
+white `element_wind` / `weapon_sword` kit cuts (19 px at the 560 px stack, 4 px
+apart, glyphs at 60% and centred to 0.00 px, left edge on slot 1's left edge,
+centred in the 25.8 px band between the plate body's bottom (row 93 of 128 in the
+chips' columns) and the slots: 3.39 px clear of each. They were 28 px and ran into
+the plate's frame and studs: "dash and melee icons are being overlapped, need to make
+it smaller", 2026-10-23. The held slot's halo, 3 px outside the slot, comes within
+0.4 px of them. `FoundationMeter` mirrors the Dash chip's spot and size on the right).
 Seated has its own plate and rims (`hud_seat_plate.png`, `hud_seat_rims.png`)
 and the same plaque. Each image is laid out on the
 Vitals box's own bar positions and fills its box exactly (Stretch, no slicing),

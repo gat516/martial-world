@@ -10,6 +10,10 @@ How this game's effects should look and the rules for getting there (techniques,
   sigil sits in the body's frame, a shockwave lies on the ground; seen from the side
   they go edge-on and foreshorten like real objects. Particles may face the camera
   only when they are round and small (sparks, motes, dust), where facing can't be read.
+  **Physical still means built from the vfx library**, not from Parts: a world-oriented
+  slash is a Beam, a Trail, a mesh emitter (SimpleMeshVFX) or an emitter with a
+  velocity-aligned `Orientation`; a sigil is a library mesh or beam ring, not a Part
+  with a SurfaceGui. Parts stay in support (a core, a prop, a light) as before.
 
 - **Library emissions, layered (2026-10-21).** Effects are built the way Roblox VFX artists
   build them: the plugin's library emissions, layered thick, following references. Parts and

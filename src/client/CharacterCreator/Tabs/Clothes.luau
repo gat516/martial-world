@@ -6,11 +6,13 @@ local Clothes = {}
 
 local GLYPHS = { Shirt = "衣", Pants = "裤" } -- placeholder art on cards with no image
 
--- Card image: the option's own Thumbnail, else Roblox's catalog thumbnail of
--- its asset, else "" (the placeholder glyph shows).
+-- Card image: the option's own Thumbnail, else its Template image, else Roblox's
+-- catalog thumbnail of its asset, else "" (the placeholder glyph shows).
 local function imageFor(option: any): string
 	if option.Thumbnail ~= "" then
 		return option.Thumbnail
+	elseif option.Template then
+		return option.Template
 	elseif option.AssetId > 0 then
 		return `rbxthumb://type=Asset&id={option.AssetId}&w=150&h=150`
 	end
@@ -33,8 +35,9 @@ function Clothes.build(page: ScrollingFrame, ctx: any)
 	local function dress(kind: string)
 		local option = optionById(defs.Clothing[kind], state:get(kind))
 		-- the remote may hand numeric keys back as strings
-		local template = if option.AssetId > 0
-			then templates[option.AssetId] or templates[tostring(option.AssetId)] or ""
+		local template = if option.Template
+			then option.Template
+			elseif option.AssetId > 0 then templates[option.AssetId] or templates[tostring(option.AssetId)] or ""
 			else ""
 		ctx.preview.setClothing(kind, template)
 	end

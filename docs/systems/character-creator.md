@@ -38,7 +38,7 @@ It's a template: the look and every list come from config, and the gameplay hook
   - `Races.luau`: races (DisplayName, Description, Rarity, Weight, Icon).
   - `Surnames.luau`: last names (DisplayName, Glyph, Rarity, Weight).
   - `Rarities.luau`: tiers (label, colour, order), shared by races and last names.
-  - `Clothing.luau`: Shirt and Pants options (Id, DisplayName, catalog AssetId,
+  - `Clothing.luau`: Shirt and Pants options (Id, DisplayName, catalog AssetId or Template image,
     optional Thumbnail).
   - `HairColors.luau`: the swatch list.
   - `Products.luau`: reroll developer product ids and the price shown.
@@ -66,6 +66,11 @@ It's a template: the look and every list come from config, and the gameplay hook
   character until Enter World, and the server's first `confirm` spawns them
   (`LoadCharacter`). With auto loading off Roblox doesn't respawn the dead, so
   `CharacterIdentity` does, after `Players.RespawnTime`.
+- Every spawn wears the confirmed look on a clean body (user, 2026-10-23): the
+  avatar's skin colours, its chosen hairs (by default the avatar's own), the
+  default head and the classic face, no other accessories. The default outfit is
+  the ranger shirt and pants, which are template images (`Clothing.Template`), so
+  they're worn as is rather than looked up in the catalog.
 - While the screen is open `Menus.setScreen(true)` makes `Menus.isOpen()` true,
   so combat, prompts and anything else gated on an open menu stay shut, even when
   the screen is reopened over a live character.
@@ -134,8 +139,9 @@ camera and HUD back.
   a rejoin rolls again and shows the screen again. Wire `CharacterIdentity.load`
   and `onConfirmed`/`onRerolled` into `PlayerData` to keep them. Until then, don't
   create the live reroll products (a bought reroll would be lost on rejoin).
-- Clothing ids and product ids are placeholders (0): the outfit cards show names
-  only and the preview stays undressed until real catalog ids go in.
+- Apart from the ranger shirt and pants, clothing ids and product ids are
+  placeholders (0): those outfit cards show names only and dress nothing until
+  real catalog ids or templates go in.
 - Races and last names are placeholders with no gameplay effect.
 - Hair loads through `InsertService:LoadAsset`; a catalog hair Roblox won't load
   that way is refused with "That ID isn't a hair accessory".

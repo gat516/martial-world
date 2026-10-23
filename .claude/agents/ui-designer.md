@@ -111,6 +111,55 @@ bars, fills and procedural pieces, never for frames, panels, buttons or ornament
 - The user reviews by screenshot. Show a preview before saving, and ask when a
   request is ambiguous rather than guessing at a big redesign.
 
+## Lessons from the overhaul playtest (user, 2026-10-23/24)
+
+The first full UI overhaul was rejected in many places for the same few reasons.
+Check every screen against these before reporting.
+
+- **Repeated things are plain.** Heavy kit ornament on things that repeat (item
+  tiles, hotbar slots, swatches, outfit cards, feed rows, list rows) reads "very very
+  tacky". Repeated items are plain dark wells; rarity or state shows as a thin
+  coloured edge, a faint wash or a small gem (`SlotArt.luau`, the Inventory). A
+  "richly ornamented showpiece" brief produced clutter the user rejected outright:
+  decoration is cut before it's added.
+- **Shape, not ornaments stuck on.** A panel, plaque, card or toast needs a
+  silhouette of its own with depth: dark lacquer body, lit top edge, inner shade,
+  ends that come to sharp points through curved bevels, studs and small scrolls
+  set *into* the shape (the house plaque, `docs/reference/ui/hud_vitals_reference.webp`,
+  `art/ui/plaque/`, `docs/ui/ribbons.md`). A rectangle with cloud caps on its ends
+  is "literally just a cube with ornaments smacked on top".
+- **One family.** A new screen reuses the house pieces (Inventory wells and pills,
+  `panel_frame`, the house plaque, the plaque toast) so it matches the rest; the
+  rebuilt creator "does not match at all" until it did. Compare against the
+  reference and an existing screen side by side.
+- **Titles fit their text.** Three-part ribbons and plaques size their plain middle
+  from `TextBounds` with even padding (`src/client/Ribbon.luau`); text never runs
+  under a cap. Long text grows to a max width, then shrinks a little, then truncates.
+- **No `TextScaled` names in repeated tiles**: short names come out huge and long
+  ones tiny. One fixed size per context, wrap to two lines, then truncate. Card body
+  text on a phone has a floor of about 14 px.
+- **Icon padding.** Generated icons carry uneven margins; crop each to its drawn
+  area (`ImageRectOffset`/`ImageRectSize`, `tools/icon_rects.py`, `IconRects.luau`)
+  and centre it on the frame art's measured hole, never on the box. Check that the
+  crop rect doesn't cut the glyph itself.
+- **Nothing clipped, at any size or state.** Check every button and icon at
+  1920x1080, 1366x768, 844x390 and 667x375, at rest and hovered (`Motion.buttons`
+  grows a button 5 %, which a clipping `ScrollingFrame` or `ClipsDescendants`
+  parent cuts unless padded). A cut that shows on phone is not "a phone problem"
+  until it's checked on PC too.
+- **Resolution.** Never show art larger than its source pixels; compare displayed
+  size to source size, re-cut from full-resolution sources or redraw at 2-3x.
+- **Phone footprint shrinks.** The phone HUD once covered a third of the screen
+  ("i can see zero of the screen"). Keep the centre and upper middle clear, collapse
+  (buffs to icon chips, a one-line objective, an arc touch cluster) and report the
+  footprint as a share of the screen before and after. Never enlarge for legibility.
+- **Notifications never cover windows.** Toasts and feeds stay out of an open
+  window's rect and under Roblox's top bar inset (`GuiService.TopbarInset`); windows
+  start below the top bar on phones.
+- **Off-screen indicators stay fully on screen**, with a margin measured from the
+  chip's own bounds, and slide smoothly along the border toward their target
+  (`Events/EdgeMath.luau`).
+
 ## Screen rules
 
 - The top-left corner belongs to Roblox's chat. Nothing of ours goes there.
@@ -179,6 +228,11 @@ bars, fills and procedural pieces, never for frames, panels, buttons or ornament
     corners closely before calling art done.
   - If an image can't be sliced cleanly, use `ScaleType.Stretch` at its native
     aspect ratio.
+  - **Plates with ornaments across their height (cloud caps, scroll ends) are never
+    one 9-sliced image.** The curls cross the left/right edge strips and Roblox cuts
+    them flat (the build catalog's tabs shipped this way, 2026-10-24, though the
+    split cuts existed). Build them from the `SLICE3` `_capL` / `_mid` / `_capR`
+    cuts (b660c99): caps at native aspect, only the middle stretches.
 - Draw big panels large (1024px) and slice them down (`SliceScale` ~0.26-0.3);
   small sources scaled up look resized.
 
@@ -242,6 +296,10 @@ them only for work that needs them, and never start Play in them.
   `UserInputService.TouchEnabled`) in the Client datamodel during a playtest.
   Without the emulator, reason from the constraints at ~750x340 (phone landscape)
   and ~600x300 (small phone).
+- Previews: the Studio command bar's `require` returns a fresh, never-initialised
+  copy of a client module, so `require(...).preview()` there fails. Give each new
+  screen a `.preview()` and a chip in the F2 admin panel's "UI previews" section
+  (`AdminPanel.luau`), which runs inside the real client.
 - After a playtest the user runs, check for errors: in the Client datamodel, read
   `LogService:GetLogHistory()` for errors and warnings (skip UIBlox and
   CorePackages noise).
@@ -277,6 +335,8 @@ from disk, and rerun it.
 
 ## Saving to assets/
 
+0. Other sessions may hold the receiver's port 8766 (and `push_src`'s 8768): run
+   the receiver on a port of your own and post to that port.
 1. In Studio, install the exporter once per session: run the contents of
    `tools/export_rbxmx.luau` with `execute_luau` (it sets `_G.exportRbxmx`).
 2. Start the receiver in the background:

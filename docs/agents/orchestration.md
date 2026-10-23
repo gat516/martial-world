@@ -75,6 +75,21 @@ sandbox Studio that the main session runs (user, 2026-10-22):
 - The user's Studios are for playing and for map work (`Workspace.Map` and
   `AssetLibrary` live only in the place file).
 
+### Shared files across parallel agents (2026-10-23/24)
+- **One owner per mapped file at a time.** `assets/Hud.rbxmx` holds the vitals,
+  hotbar, inventory, toast, build window and buttons, so HUD passes run one after
+  another; pass extra HUD feedback to the agent that owns it rather than starting
+  another.
+- **A sandbox goes stale when `test` moves.** Before an agent exports a shared file,
+  it merges `test` into its branch and rebuilds that root in its sandbox from the
+  file on disk, or its export quietly undoes other merges. Open a fresh sandbox for
+  each new pass (build it after the branch is up to date, not during a merge).
+- **Id swaps race parallel work.** When one agent re-uploads art and swaps ids, a
+  screen built at the same time keeps the old ids: after merging, grep the new
+  files for ids that the swap replaced.
+- **Rewards-style shared files**: an agent that must touch a subtree another agent
+  owns splices only that subtree, keeps its referents, and says so for the merge.
+
 ## How many at once
 
 Before a multi-agent pass, say how many agents will run at once and how many

@@ -47,8 +47,9 @@
      <string name="Name">Book</string>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
-     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://113047048810013</url></Content>
+     <UDim2 name="Position"><XS>-0.00293</XS><XO>0</XO><YS>-0.005338</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>1.00586</XS><XO>0</XO><YS>1.01068</YS><YO>0</YO></UDim2>
+     <Content name="Image"><url>rbxassetid://117953272636974</url></Content>
     </Properties>
     </Item>
     <Item class="Frame" referent="RBX9"><Properties>
@@ -115,10 +116,10 @@
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Position"><XS>1</XS><XO>-10</XO><YS>0</YS><YO>12</YO></UDim2>
-     <UDim2 name="Size"><XS>0</XS><XO>44</XO><YS>0</YS><YO>40</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>48</XO><YS>0</YS><YO>44</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://114481069197353</url></Content>
+     <Content name="Image"><url>rbxassetid://76664344691935</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
      <Item class="UIScale" referent="RBX18"><Properties>
@@ -130,8 +131,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.501326</XS><XO>0</XO><YS>0.504373</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.6</XS><XO>0</XO><YS>0.6</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0.501225</XS><XO>0</XO><YS>0.504009</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.554286</XS><XO>0</XO><YS>0.55</YS><YO>0</YO></UDim2>
       <int name="ZIndex">7</int>
       <string name="Text">×</string>
       <Color3 name="TextColor3"><R>0.980392</R><G>0.92549</G><B>0.764706</B></Color3>
@@ -148,11 +149,11 @@
      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
-     <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0</XS><XO>46</XO><YS>0</YS><YO>42</YO></UDim2>
+     <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0.5</YS><YO>-1</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>50</XO><YS>0</YS><YO>46</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://73842302611492</url></Content>
+     <Content name="Image"><url>rbxassetid://94926127966849</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
      <Item class="UIScale" referent="RBX21"><Properties>
@@ -164,11 +165,11 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.498674</XS><XO>0</XO><YS>0.501458</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0.498775</XS><XO>0</XO><YS>0.501337</YS><YO>0</YO></UDim2>
       <float name="Rotation">90</float>
-      <UDim2 name="Size"><XS>0.42</XS><XO>0</XO><YS>0.42</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.46759</XS><XO>0</XO><YS>0.513333</YS><YO>0</YO></UDim2>
       <int name="ZIndex">7</int>
-      <Content name="Image"><url>rbxassetid://135150260758364</url></Content>
+      <Content name="Image"><url>rbxassetid://86690174795106</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -178,11 +179,11 @@
      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
-     <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>0</XS><XO>46</XO><YS>0</YS><YO>42</YO></UDim2>
+     <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0.5</YS><YO>-1</YO></UDim2>
+     <UDim2 name="Size"><XS>0</XS><XO>50</XO><YS>0</YS><YO>46</YO></UDim2>
      <int name="ZIndex">6</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://73842302611492</url></Content>
+     <Content name="Image"><url>rbxassetid://94926127966849</url></Content>
      <token name="ScaleType">3</token>
     </Properties>
      <Item class="UIScale" referent="RBX24"><Properties>
@@ -194,11 +195,11 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.498674</XS><XO>0</XO><YS>0.501458</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0.498775</XS><XO>0</XO><YS>0.501337</YS><YO>0</YO></UDim2>
       <float name="Rotation">-90</float>
-      <UDim2 name="Size"><XS>0.42</XS><XO>0</XO><YS>0.42</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.46759</XS><XO>0</XO><YS>0.513333</YS><YO>0</YO></UDim2>
       <int name="ZIndex">7</int>
-      <Content name="Image"><url>rbxassetid://135150260758364</url></Content>
+      <Content name="Image"><url>rbxassetid://86690174795106</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -226,12 +227,13 @@
      <bool name="Visible">false</bool>
      <int name="ZIndex">3</int>
      <bool name="AutoButtonColor">false</bool>
-     <Content name="Image"><url>rbxassetid://81261875456130</url></Content>
+     <Content name="Image"><url>rbxassetid://128801964051831</url></Content>
      <token name="ScaleType">3</token>
+     <BinaryString name="AttributesSerialize">AQAAAAkAAABMaW50TW91bnQCFgAAAENhbnZhcy5XaW5kb3cuTGVmdFBhZ2U=</BinaryString>
     </Properties>
      <Item class="UIAspectRatioConstraint" referent="RBX28"><Properties>
       <string name="Name">UIAspectRatioConstraint</string>
-      <float name="AspectRatio">0.650173</float>
+      <float name="AspectRatio">0.658566</float>
      </Properties>
      </Item>
      <Item class="UIScale" referent="RBX29"><Properties>
@@ -242,8 +244,8 @@
       <string name="Name">Art</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.106195</XS><XO>0</XO><YS>0.113924</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.787611</XS><XO>0</XO><YS>0.247411</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0.120515</XS><XO>0</XO><YS>0.12316</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.75897</XS><XO>0</XO><YS>0.241492</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
      </Properties>
       <Item class="ImageLabel" referent="RBX31"><Properties>
@@ -308,10 +310,10 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.123894</XS><XO>0</XO><YS>0.126582</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.27</XS><XO>0</XO><YS>0.175</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0.137571</XS><XO>0</XO><YS>0.135516</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.296318</XS><XO>0</XO><YS>0.194537</YS><YO>0</YO></UDim2>
       <int name="ZIndex">7</int>
-      <Content name="Image"><url>rbxassetid://114223152322030</url></Content>
+      <Content name="Image"><url>rbxassetid://118421304712620</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
       <Item class="TextLabel" referent="RBX37"><Properties>
@@ -319,8 +321,8 @@
        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.45</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>0.5</XS><XO>0</XO><YS>0.42</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.456098</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>0.439025</XS><XO>0</XO><YS>0.368781</YS><YO>0</YO></UDim2>
        <int name="ZIndex">8</int>
        <string name="Text">I</string>
        <Color3 name="TextColor3"><R>0.980392</R><G>0.92549</G><B>0.764706</B></Color3>
@@ -337,8 +339,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.402762</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.84</XS><XO>0</XO><YS>0.115</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.405088</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.809454</XS><XO>0</XO><YS>0.112249</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
       <string name="Text">Nine-Leaf Lingzhi</string>
       <Color3 name="TextColor3"><R>0.243137</R><G>0.14902</G><B>0.0705882</B></Color3>
@@ -359,8 +361,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.52</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.84</XS><XO>0</XO><YS>0.06</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.519522</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.809454</XS><XO>0</XO><YS>0.0683253</YS><YO>3</YO></UDim2>
       <int name="ZIndex">4</int>
      </Properties>
       <Item class="UIListLayout" referent="RBX41"><Properties>
@@ -377,13 +379,14 @@
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">1</int>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1.33333</XS><XO>0</XO><YS>1.0125</YS><YO>0</YO></UDim2>
        <int name="ZIndex">5</int>
-       <Content name="Image"><url>rbxassetid://100159022686196</url></Content>
+       <Content name="Image"><url>rbxassetid://82455700461918</url></Content>
        <token name="ScaleType">3</token>
       </Properties>
        <Item class="UIAspectRatioConstraint" referent="RBX43"><Properties>
         <string name="Name">UIAspectRatioConstraint</string>
+        <float name="AspectRatio">0.987655</float>
         <token name="DominantAxis">1</token>
        </Properties>
        </Item>
@@ -409,10 +412,10 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.615</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.8</XS><XO>0</XO><YS>0.03</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.612249</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.804234</XS><XO>0</XO><YS>0.051244</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
-      <Content name="Image"><url>rbxassetid://99789570259645</url></Content>
+      <Content name="Image"><url>rbxassetid://129825651137010</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -421,8 +424,8 @@
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.645</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.84</XS><XO>0</XO><YS>0.13</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.641531</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.809454</XS><XO>0</XO><YS>0.12689</YS><YO>0</YO></UDim2>
       <int name="ZIndex">4</int>
       <string name="Text">Harvested 12
 Largest ×3.4</string>
@@ -445,8 +448,8 @@ Largest ×3.4</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
       <bool name="ClipsDescendants">true</bool>
-      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.815</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0.86</XS><XO>0</XO><YS>0</YS><YO>16</YO></UDim2>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.807464</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.828727</XS><XO>0</XO><YS>0</YS><YO>16</YO></UDim2>
       <int name="ZIndex">4</int>
      </Properties>
       <Item class="UIListLayout" referent="RBX49"><Properties>
@@ -460,29 +463,21 @@ Largest ×3.4</string>
       </Item>
       <Item class="ImageLabel" referent="RBX50"><Properties>
        <string name="Name">TagTemplate</string>
-       <token name="AutomaticSize">1</token>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
-       <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>15</YO></UDim2>
+       <UDim2 name="Size"><XS>0</XS><XO>64</XO><YS>0</YS><YO>15</YO></UDim2>
        <bool name="Visible">false</bool>
        <int name="ZIndex">5</int>
-       <Content name="Image"><url>rbxassetid://101467676951805</url></Content>
-       <token name="ScaleType">1</token>
        <Rect2D name="SliceCenter"><min><X>96</X><Y>30</Y></min><max><X>276</X><Y>70</Y></max></Rect2D>
        <float name="SliceScale">0.148515</float>
       </Properties>
-       <Item class="UIPadding" referent="RBX51"><Properties>
-        <string name="Name">UIPadding</string>
-        <UDim name="PaddingLeft"><S>0</S><O>12</O></UDim>
-        <UDim name="PaddingRight"><S>0</S><O>12</O></UDim>
-       </Properties>
-       </Item>
-       <Item class="TextLabel" referent="RBX52"><Properties>
+       <Item class="TextLabel" referent="RBX51"><Properties>
         <string name="Name">Label</string>
-        <token name="AutomaticSize">1</token>
+        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
-        <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>1</XS><XO>-26</XO><YS>0.8</YS><YO>0</YO></UDim2>
         <int name="ZIndex">6</int>
         <string name="Text">Dewy</string>
         <Color3 name="TextColor3"><R>0.980392</R><G>0.92549</G><B>0.764706</B></Color3>
@@ -492,10 +487,68 @@ Largest ×3.4</string>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
+       <Item class="Frame" referent="RBX52"><Properties>
+        <string name="Name">Art</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <int name="ZIndex">5</int>
+       </Properties>
+        <Item class="UIListLayout" referent="RBX53"><Properties>
+         <string name="Name">UIListLayout</string>
+         <token name="FillDirection">0</token>
+         <token name="VerticalAlignment">0</token>
+         <token name="SortOrder">2</token>
+        </Properties>
+        </Item>
+        <Item class="ImageLabel" referent="RBX54"><Properties>
+         <string name="Name">CapL</string>
+         <float name="BackgroundTransparency">1</float>
+         <int name="LayoutOrder">1</int>
+         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+         <int name="ZIndex">5</int>
+         <Content name="Image"><url>rbxassetid://128782698499602</url></Content>
+        </Properties>
+         <Item class="UIAspectRatioConstraint" referent="RBX55"><Properties>
+          <string name="Name">UIAspectRatioConstraint</string>
+          <float name="AspectRatio">1.16071</float>
+          <token name="DominantAxis">1</token>
+         </Properties>
+         </Item>
+        </Item>
+        <Item class="ImageLabel" referent="RBX56"><Properties>
+         <string name="Name">Mid</string>
+         <float name="BackgroundTransparency">1</float>
+         <int name="LayoutOrder">2</int>
+         <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+         <int name="ZIndex">5</int>
+         <Content name="Image"><url>rbxassetid://83799941832305</url></Content>
+        </Properties>
+         <Item class="UIFlexItem" referent="RBX57"><Properties>
+          <string name="Name">UIFlexItem</string>
+          <token name="FlexMode">3</token>
+         </Properties>
+         </Item>
+        </Item>
+        <Item class="ImageLabel" referent="RBX58"><Properties>
+         <string name="Name">CapR</string>
+         <float name="BackgroundTransparency">1</float>
+         <int name="LayoutOrder">3</int>
+         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+         <int name="ZIndex">5</int>
+         <Content name="Image"><url>rbxassetid://96717712530591</url></Content>
+        </Properties>
+         <Item class="UIAspectRatioConstraint" referent="RBX59"><Properties>
+          <string name="Name">UIAspectRatioConstraint</string>
+          <float name="AspectRatio">0.946429</float>
+          <token name="DominantAxis">1</token>
+         </Properties>
+         </Item>
+        </Item>
+       </Item>
       </Item>
      </Item>
     </Item>
-    <Item class="Frame" referent="RBX53"><Properties>
+    <Item class="Frame" referent="RBX60"><Properties>
      <string name="Name">TitlePlaque</string>
      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
@@ -504,14 +557,14 @@ Largest ×3.4</string>
      <UDim2 name="Size"><XS>0</XS><XO>279</XO><YS>0</YS><YO>50</YO></UDim2>
      <int name="ZIndex">6</int>
     </Properties>
-     <Item class="Frame" referent="RBX54"><Properties>
+     <Item class="Frame" referent="RBX61"><Properties>
       <string name="Name">Art</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">6</int>
      </Properties>
-      <Item class="ImageLabel" referent="RBX55"><Properties>
+      <Item class="ImageLabel" referent="RBX62"><Properties>
        <string name="Name">CapL</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
@@ -520,7 +573,7 @@ Largest ×3.4</string>
        <Content name="Image"><url>rbxassetid://120355976804968</url></Content>
       </Properties>
       </Item>
-      <Item class="ImageLabel" referent="RBX56"><Properties>
+      <Item class="ImageLabel" referent="RBX63"><Properties>
        <string name="Name">Mid</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
@@ -530,7 +583,7 @@ Largest ×3.4</string>
        <Content name="Image"><url>rbxassetid://99954964250094</url></Content>
       </Properties>
       </Item>
-      <Item class="ImageLabel" referent="RBX57"><Properties>
+      <Item class="ImageLabel" referent="RBX64"><Properties>
        <string name="Name">CapR</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
@@ -541,13 +594,13 @@ Largest ×3.4</string>
       </Properties>
       </Item>
      </Item>
-     <Item class="TextLabel" referent="RBX58"><Properties>
+     <Item class="TextLabel" referent="RBX65"><Properties>
       <string name="Name">Title</string>
       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
       <UDim2 name="Position"><XS>0</XS><XO>139</XO><YS>0.5</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>0</XS><XO>101</XO><YS>0.589286</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>112</XO><YS>0.589286</YS><YO>0</YO></UDim2>
       <int name="ZIndex">7</int>
       <string name="Text">Herbarium</string>
       <Color3 name="TextColor3"><R>0.980392</R><G>0.92549</G><B>0.764706</B></Color3>
@@ -556,7 +609,7 @@ Largest ×3.4</string>
       <Color3 name="TextStrokeColor3"><R>0.0784314</R><G>0.0470588</G><B>0.0235294</B></Color3>
       <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
      </Properties>
-      <Item class="UITextSizeConstraint" referent="RBX59"><Properties>
+      <Item class="UITextSizeConstraint" referent="RBX66"><Properties>
        <string name="Name">UITextSizeConstraint</string>
        <int name="MaxTextSize">22</int>
       </Properties>

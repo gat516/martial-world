@@ -92,7 +92,7 @@ Same behaviour as before; the look moved onto the kit:
   hover growth (`Motion.buttons`) isn't cropped.
 
 Shared garden art lives in `src/client/HerbArt.luau`: `paint(swatch, id)` (icon or
-glyph in a Swatch), `gem(image, rarity)`, `tagFor(mutation)`, `Tiers`. Rarity gems
+glyph in a Swatch), `gem(image, rarity)`, `tagStyle(mutation)` (its Ribbon style), `Tiers`. Rarity gems
 follow the Inventory's ladder (`Rarity.gem`, see [inventory](inventory.md)): Common
 bronze, Uncommon silver, Rare jade, Epic violet, Legendary gold. Mutation ribbons follow the mutation's worth: Windswept and
 Dewy bronze, Auspicious jade, Thunderstruck crimson, Golden gold, Rainbow and
@@ -104,10 +104,10 @@ packets 6/6 from the list edges, packet art and text centred (dx 0); build heade
 56/56, body 26/26, catalog grid 25.3/25.3 (5 columns) on PC and 5.3/5.3 (4 columns)
 on the phone; title crests centred (dx 0) on every window.
 
-Slices: `tools/check_slices.py` flags the C1/C2 pieces. The top and bottom outlines
-of the generated tags, tabs and item slot wander by 1-2 px along their length (a
-harmless bow when stretched); the cloud ends sit in the left/right strips, which never
-stretch because each piece's SliceScale is its height over the source height.
+Mutation tags are three-part ribbons (`Ribbon.STYLES` `tag_<colour>`, the C1 SLICE3
+cuts sized to 48 px with a clear margin), fitted to their text by `Ribbon.fit`
+(`HerbArt.tagStyle`); the cloud ends never stretch. `tools/ui_lint.py` checks them as
+shown.
 
 ## Art (ids in `art/ui/assets.json`, `codex/cut/ornament_*`)
 C1 `herbarium_book`, `herb_card`, `herb_card_empty`, `herb_tier_1`..`5`, `tag_*`,

@@ -139,6 +139,39 @@ local function build()
 			invoke("buildItems", 5)
 		end },
 	})
+	-- Open screens in this client: the Studio command bar loads its own fresh copy of a
+	-- module (never init'd), so its require(...).open() can't reach the real UI
+	local function preview(label: string, path: { string }, fn: string, ...: any): Chip
+		local args = table.pack(...)
+		return { label = label, press = function()
+			local node: Instance = script.Parent
+			for _, name in path do
+				node = node:FindFirstChild(name) :: Instance
+			end
+			local ok, err = pcall(function()
+				(require(node :: ModuleScript) :: any)[fn](table.unpack(args, 1, args.n))
+			end)
+			if not ok then
+				Hud.toast(`{label} failed: {err}`)
+			end
+		end }
+	end
+	section("UI previews", nil, {
+		preview("Build mode", { "BuildMode" }, "open"),
+		preview("Build catalog", { "BuildCatalog" }, "open", "build"),
+		preview("Spirit Market", { "BuildCatalog" }, "open", "shop"),
+		preview("Death screen", { "DeathScreen" }, "preview", "boss"),
+		preview("Boss card", { "Rewards" }, "preview", "card", "boss"),
+		preview("Milestone card", { "Rewards" }, "preview", "card", "milestone"),
+		preview("Rank-up card", { "Sect", "SectRank" }, "preview"),
+		preview("Dialogue", { "Dialogue" }, "preview"),
+		preview("Herbarium", { "Herbarium" }, "preview"),
+		preview("Sect board", { "Sect", "SectBoard" }, "preview"),
+		preview("World event", { "Events", "WorldEventView" }, "preview"),
+		preview("Tribulation", { "Events", "TribulationView" }, "preview"),
+		preview("Leaderboard", { "Events", "Leaderboards" }, "preview"),
+		preview("Death-save", { "DeathSave" }, "preview"),
+	})
 	section("Spirit Stones", 1000, {
 		{ label = "Give stones", press = function(n)
 			invoke("stones", n)

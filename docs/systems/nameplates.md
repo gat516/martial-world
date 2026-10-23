@@ -1,8 +1,11 @@
 # Nameplates
 
 ## Purpose
-A namecard floating over every player's head, the local player's own included,
-that disappears past a distance. Room is kept above the name for a title, for
+A namecard floating over every other player's head that disappears past a
+distance. Your own name isn't over your head on your screen (others still see
+it): it sits on its own small plaque at the top of the HUD vitals, over the realm
+plaque and the health bar (`Hud.Stack.Vitals.NamePlaque`, see [ui](ui.md); user,
+2026-10-23). Room is kept above the name for a title, for
 when titles come in (user, 2026-10-23).
 
 ## Design intent
@@ -28,8 +31,7 @@ when titles come in (user, 2026-10-23).
   DisplayName (the main game has no character screen yet).
 - Roblox's own humanoid name is turned off, so there's only ever one name.
 - It's cut off by `BillboardGui.MaxDistance` (measured from the camera), not
-  faded: 60 studs for others, 18 for your own, so your own goes when you zoom
-  the camera out (user, 2026-10-23).
+  faded, at 60 studs.
 - The testbed has a stand-in player beside the spawn pad ("Li Wei", title
   "Disciple of the Azure Peak") so a lone tester can see someone else's card
   (user, 2026-10-23). It's any model tagged `NameplateTarget` carrying the same
@@ -39,7 +41,8 @@ when titles come in (user, 2026-10-23).
 - `src/client/Nameplates.luau`: clones the template per character, adorns it to
   the Head, keeps it in `PlayerGui.Nameplates` (local only) and repaints on the
   attributes below; also plates models tagged `NameplateTarget`.
-  `MAX_DISTANCE`, `OWN_MAX_DISTANCE` and the default title colour are at its top.
+  `MAX_DISTANCE` and the default title colour are at its top. It skips the
+  local player.
 - `src/server/TestbedDummy.luau` (testbed only, started from `Main.server`): the
   stand-in player, an anchored R6 body in the ranger outfit.
   `Nameplates.nameOf(player)` gives the shown name to anything else that needs it.
@@ -63,6 +66,8 @@ shows them:
 - Untested in play with several players (shown on others, cut at 60 studs) and
   on a real phone; previewed only in Studio's Edit view on PC with stand-in rigs.
 - No titles exist yet, so the title line only shows on the testbed stand-in.
+  The HUD name plaque has no title line yet; a title could go on the plaque
+  (under the name, smaller) or as a small line above it.
 - Very long titles wrap or truncate at the minimum size rather than widening the
   card; keep titles to a few words.
 - It isn't `AlwaysOnTop`, so walls and terrain between you and a player hide

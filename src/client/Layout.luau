@@ -20,7 +20,8 @@ local Platform = require(script.Parent.Platform)
 local CLUSTER_ROOM = 320 -- touch: width the stack leaves free (twice the cluster, so it stays centred)
 local EDGE = 12 -- touch: the cluster's gap from the screen edge
 local HEIGHT_SHARE = 0.45 -- the most of the screen's height the stack may take
-local SMALL_HEIGHT_SHARE = 0.3 -- on short screens (Platform.isSmall), phones and small windows
+local SMALL_HEIGHT_SHARE = 0.36 -- on short screens (Platform.isSmall), phones and small windows (0.3 before
+-- the name plaque joined the stack, 2026-10-23; 0.36 keeps the bars as wide on a phone)
 
 local player = Players.LocalPlayer
 

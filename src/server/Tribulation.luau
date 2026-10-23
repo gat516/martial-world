@@ -133,11 +133,28 @@ local function floorY(): number
 	return if hit then hit.Position.Y else Config.CENTER.Y - 1.5
 end
 
-local function run(player: Player, def: Pacing.Tribulation)
+-- When each strike falls, in seconds from the start: the interval shrinks from
+-- intervalStart to intervalEnd over the trial. Planned up front so the count is
+-- known (clients show the strikes left) and waits never drift.
+local function schedule(def: Pacing.Tribulation): { number }
+	local times = {}
+	local t = 0
+	while t < def.seconds do
+		table.insert(times, t)
+		t += def.intervalStart + (def.intervalEnd - def.intervalStart) * (t / def.seconds)
+	end
+	return times
+end
+
+local function run(player: Player, def: Pacing.Tribulation, times: { number })
 	local started = os.clock()
 	local center = Config.CENTER
 	local floor = floorY()
-	while os.clock() - started < def.seconds do
+	for _, at in times do
+		local wait = at - (os.clock() - started)
+		if wait > 0 then
+			task.wait(wait)
+		end
 		local humanoid, root = humanoidOf(player)
 		if not (humanoid and root) or player.Parent == nil then
 			finish(player, false)
@@ -148,9 +165,8 @@ local function run(player: Player, def: Pacing.Tribulation)
 			return
 		end
 		clearPlatform(player)
-		local t = (os.clock() - started) / def.seconds
+		local t = at / def.seconds
 		local windup = def.windupStart + (def.windupEnd - def.windupStart) * t
-		local interval = def.intervalStart + (def.intervalEnd - def.intervalStart) * t
 		-- aim at or near the player, kept on the platform
 		local a, r = math.random() * math.pi * 2, math.random() * def.scatter
 		local at = root.Position + Vector3.new(math.cos(a) * r, 0, math.sin(a) * r)
@@ -164,7 +180,12 @@ local function run(player: Player, def: Pacing.Tribulation)
 			EnemyService.strike({ kind = "circle", center = ground, radius = Config.STRIKE_RADIUS }, windup, damage, true, player, "Tribulation")
 			effectRemote:FireAllClients("bolt", ground)
 		end)
-		task.wait(interval)
+	end
+	-- the last strike's interval passes before the windup check below
+	local last = times[#times] or 0
+	local rest = last + def.intervalEnd - (os.clock() - started)
+	if rest > 0 then
+		task.wait(rest)
 	end
 	-- let the last strikes land before judging
 	task.wait(def.windupStart)
@@ -200,8 +221,9 @@ function Tribulation.start(player: Player): (boolean, string?)
 	;(player.Character :: Model):PivotTo(CFrame.new(Config.CENTER + Vector3.new(0, 3, 0)))
 	clearPlatform(player)
 	notifyRemote:FireAllClients(`{player.DisplayName} is facing the heavenly tribulation!`)
-	effectRemote:FireAllClients("tribulationStart", player, Config.CENTER)
-	task.spawn(run, player, def)
+	local times = schedule(def)
+	effectRemote:FireAllClients("tribulationStart", player, Config.CENTER, #times)
+	task.spawn(run, player, def, times)
 	return true, `Heavenly lightning gathers. Survive for {def.seconds} seconds!`
 end
 

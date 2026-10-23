@@ -8,14 +8,14 @@ Server: `src/server/Tribulation.luau` (unchanged by the look pass). Client:
 intent, beat sheet and the asset picked for each layer. Kit and rules:
 [../world_events.md](../world_events.md).
 
-## Wiring (no new remotes, no server change)
+## Wiring (no new remotes)
 
 | Moment | Remote | Client |
 |---|---|---|
-| start | `Effect` "tribulationStart" (player, `Config.Tribulation.CENTER`) | `TribulationFX.start(center)` |
+| start | `Effect` "tribulationStart" (player, `Config.Tribulation.CENTER`, strikes) | `TribulationFX.start(center)`; `TribulationView.start(player, strikes)` (screen UI) |
 | each strike's windup | `Telegraph` (shape, windup, nil, "Tribulation", startedAt) from `EnemyService.strike` | `TribulationFX.warn(center, radius, windup)`: its own listener on the Telegraph remote, filtered by source; the late-arrival correction is the same as Telegraphs' |
-| each strike | `Effect` "bolt" (ground) | `TribulationFX.strike(ground)` |
-| end | `Effect` "tribulationEnd" (player, survived) | `TribulationFX.finish(survived)` |
+| each strike | `Effect` "bolt" (ground) | `TribulationFX.strike(ground)`; `TribulationView.strike()` |
+| end | `Effect` "tribulationEnd" (player, survived) | `TribulationFX.finish(survived)`; `TribulationView.finish(player, survived)` |
 
 `CombatController` dispatches the Effect kinds; if `WorldFX.Tribulation` is missing it falls
 back to the old `CombatEffects.bolt` / `storm`. The danger-orange telegraph (Telegraphs.luau)

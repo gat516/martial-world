@@ -77,7 +77,9 @@ cursor, settings and the admin panel.
 - UI work goes through the `ui-designer` subagent (AGENTS.md). GUIs are authored in
   Studio via MCP and exported to `assets/Hud.rbxmx`, `Rewards.rbxmx`, `Prompts.rbxmx`, `Dialogue.rbxmx`,
   `Veil.rbxmx` (full-screen, no safe insets, above everything),
-  `CharacterCreator.rbxmx` (the join screen, see [character creator](character-creator.md));
+  `CharacterCreator.rbxmx` (the join screen, see [character creator](character-creator.md)),
+  `Events.rbxmx` (world events, tribulation, rifts, leaderboards; built by
+  `tools/events_ui_build.luau`);
   scripts only find and fill them.
 - Generated art (Codex, the UI overhaul) is never repainted: `tools/ui_assemble.py`
   cuts `art/ui/codex/<name>.png` (the names in its `PIECES` and `ICON_SHEETS`, the
@@ -107,6 +109,8 @@ cursor, settings and the admin panel.
 - [Cultivation UI: seated tiles, meditation panel, breakthrough card, foundation meter, death-save, Dao ring, tier frames, bloodline marks](../ui/cultivation.md)
 - [Character window](../character/character-window.md)
 - [Herbarium and the garden windows](../ui/herbarium.md) (Herbalist, seed picker, planting bar, plant tag, build catalog look)
+- [World events, tribulation and rifts](../ui/world-events.md) (`StarterGui.Events`)
+- [Leaderboards, path crests and the Blood Sect skin](../ui/leaderboards.md)
 
 ## Key files (all `src/client/`)
 - `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal
@@ -137,6 +141,8 @@ cursor, settings and the admin panel.
 - `Dialogue.luau` (`Dialogue.open({speaker, portrait, lines, responses}) -> choice`,
   `StarterGui.Dialogue`, ready to wire) and `Glyphs.luau` (the kit's white action glyphs,
   shared with the prompts). See [dialogue](../ui/dialogue.md).
+- `Events/` (`StarterGui.Events`, fitted by `UiScale`): `Gui` (slots, templates, the
+  herald queue), `WorldEventView`, `TribulationView`, `RiftCard`, `Leaderboards`, `Themes`.
 - Boss health bar: `BossBars.luau` drives `Play.BossBar`; themes in
   `BossThemes.luau`, boss pick in `EnemyBars.luau`. See [boss bar](../ui/boss-bars.md).
 - `SelfCard.luau` (character window from the Self tile or the realm crest), `RootReveal.luau`

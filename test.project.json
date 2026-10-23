@@ -75,6 +75,9 @@
       "Cultivation": {
         "$path": "assets/Cultivation.rbxmx"
       },
+      "Events": {
+        "$path": "assets/Events.rbxmx"
+      },
       "Prompts": {
         "$path": "assets/Prompts.rbxmx"
       },

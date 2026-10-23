@@ -32,6 +32,7 @@ local Platform = require(script.Parent.Platform)
 local Sfx = require(script.Parent.Sfx)
 local State = require(script.Parent.State)
 local TribulationFX = require(script.Parent.WorldFX.TribulationFX)
+local TribulationView = require(script.Parent.Events.TribulationView)
 
 local remotes = ReplicatedStorage.Remotes
 local attackRemote = remotes.Attack :: RemoteEvent
@@ -826,18 +827,21 @@ local function onEffect(kind: string, ...: any)
 		else
 			CombatEffects.bolt(args[1])
 		end
+		TribulationView.strike()
 	elseif kind == "tribulationStart" then
 		if TribulationFX.ready() then
 			TribulationFX.start(args[2])
 		else
 			CombatEffects.storm(args[1], args[2])
 		end
+		TribulationView.start(args[1], if type(args[3]) == "number" then args[3] else nil)
 	elseif kind == "tribulationEnd" then
 		if TribulationFX.ready() then
 			TribulationFX.finish(args[2] == true)
 		else
 			CombatEffects.storm(args[1], nil)
 		end
+		TribulationView.finish(args[1], args[2] == true)
 	elseif kind == "cast" then
 		local caster = args[1] :: Player
 		-- payload: caster, id, origin, dir, level, chain

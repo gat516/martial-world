@@ -10,13 +10,26 @@ marked built; nothing here has been playtested.
 1. **Nobody is barred by skill.** Bosses, tribulations and difficulty never gate
    progress. No difficulty modes with scaling. Mobile players always have a road.
 2. **Two ways to climb, both complete:** the fighter (hunt, bosses, events) and the
-   gardener (meditate, garden, pills, building, non-combat quests). Fighters are
+   gardener (meditate, garden, seclusion, building, non-combat quests). Fighters are
    faster. Gardeners are never stuck.
 3. **You can't skip the world.** Rushing a breakthrough hurts; experiencing the
    world heals and rewards. A soft cost, not a lock.
 4. **Story over rules.** Every system reads as cultivation fiction (cracked
    foundation, heart demons, sect rank), not a menu.
 5. Every system names its **arrow into the loop** (core-loop rules).
+
+## Deferred to a later update (user, 2026-10-22)
+These are real plans but **not in this pass**. Nothing before FE9 depends on them.
+- **Alchemy:** the peak furnace, crafted pills (qi, heal, buffs, breakthrough aids,
+  foundation repair), pill impurities and talismans.
+- **Weapon enhancement (refinement):** spend ore and stones to raise a weapon's grade.
+- **Mining and ores** (the out verb that feeds refinement).
+- **What stands in now:** herbs are eaten directly; pills, cores and elixirs are loot
+  and shop items; foundation repair uses meditation, seclusion and tending; stones
+  sink into the Herbalist, the Pavilion and building; weapon grades come from
+  caches, bosses and the rack. Keep the hooks open (herb tier qi share, the item
+  `use` system, a spare building slot for a furnace) so the update drops in.
+- [core-loop](core-loop.md) already lists these as unscheduled crafting.
 
 ## 1. Progression
 
@@ -28,12 +41,12 @@ board ([progression](progression.md)).
 - Each stage has a **solidity** meter beside the bar. It fills by:
   - **time and tempering:** slowly while idle, faster meditating on your peak;
   - **experiences** (one-time, by category): Hunt (first kills), Boss (worth 2, the
-    fast road), Home (first harvest of a herb tier, first pill, a full-bloom
+    fast road), Home (first harvest of a herb tier, a first rare mutation, a full-bloom
     garden), Dao (weapon Dao milestones), Discover (wild gardens, caches, secret
     places), World (witnessing events and phenomena).
 - A full bar **always** allows a breakthrough. Low solidity leaves **cracks**:
   slower passive and refining until repaired, and a harder tribulation for a
-  heaven-defier. Cracks are repaired by meditating, pills, or tending the garden.
+  heaven-defier. Cracks are repaired by meditating, seclusion, or tending the garden (pills are a later update).
 - Full solidity gives a small **deep foundation** bonus, so the experiences stay
   worth doing even when time would cover them.
 - **Insight stays** as the spendable currency for technique comprehension only
@@ -107,7 +120,7 @@ bounties, sect tasks, contribution and a Pavilion shop (never qi).
 ## 3d. Relationships: masters, disciples and sect siblings (proposed 2026-10-22)
 The genre's heart, and a strong retention and social hook.
 - **An NPC master at QR1 (Inner Disciple).** The player picks one of several peak
-  lords or elders, each with a specialty (a weapon class, alchemy, the garden, a
+  lords or elders, each with a specialty (a weapon class, the garden, a
   signature art). The master gives teaching quests, a signature technique at the
   right Dao level, and a voice that reacts to the player's life.
 - **Sect brothers and sisters = everyone under the same master.** Disciples of one
@@ -158,7 +171,7 @@ The genre's heart, and a strong retention and social hook.
 - **Several masters, up to a limit (user, 2026-10-22).** You take one **primary master**
   at QR1 (your cohort and seat), then learn from more as you grow: a second at FE1, a
   third at FE5, **three at most**. Each teaches its own specialty (a weapon class,
-  alchemy, a signature art) and has its own trial chain and gifts. Rules:
+  the garden, a signature art) and has its own trial chain and gifts. Rules:
   - the primary master is your cohort and seat ("Second Brother of the Turtle Saint");
     the others are teachers, shown as "also taught by...";
   - a master's gift (art, herb, rite) is given once per master per life, so hopping to
@@ -252,8 +265,8 @@ Herb qi is flat per item, so the garden loses value around QC6.
 **Plan:**
 - **Herb tiers** I-V tied to regions, qi as a share of the dantian
   ([progression](progression.md)); 3-4 new herbs per tier (about 20 more).
-- **Alchemy** (QR3): a furnace on your peak turns herbs into pills (qi, heal, buffs,
-  breakthrough aids, **foundation repair**). The sink for herbs and stones.
+- **Alchemy is deferred** (see "Deferred to a later update"). Herbs are eaten directly
+  for now; their sinks are the Herbalist, the sect's errands, the Herbarium and buffs.
 - **Tending matters:** watering, pests or weather events, rare mutation chances,
   and size records. Keep it calm, no punishment for being away.
 - **The Herbarium:** a collection index of every herb, size and mutation seen,
@@ -262,10 +275,10 @@ Herb qi is flat per item, so the garden loses value around QC6.
   experiences); harvest once a day; a reason to explore.
 - **Visiting:** walk through a friend's peak and gift a herb. A cheap social hook,
   and a way to show building.
-- **Gardener road:** garden aura, pills and tempering carry a pure gardener to every
+- **Gardener road:** garden aura, seclusion and tempering carry a pure gardener to every
   wall, just slower than a fighter ([progression](progression.md) "Difficulty").
 - **Sect garden:** a shared plot the sect tasks tend (quests with no combat).
-- **Build order:** herb tiers and qi scaling, then alchemy, then the Herbarium,
+- **Build order:** herb tiers and qi scaling, then the Herbarium,
   then wild gardens (map), then visiting.
 
 ## 6. Building and assets
@@ -279,7 +292,7 @@ the peak swaps its look at Foundation only.
   1. *Mortal courtyard* (QC): walls, gate, simple halls, bridges, stairs.
   2. *Jade pavilion* (QR): pavilions, a spirit pond with a bridge, lanterns.
   3. *Cloud palace* (FE): floating platforms, tiered halls, banners, sky gardens.
-  4. *Alchemy* (QR3): the furnace and its shelves, herb racks, pill gourds.
+  4. *Herb house* (QR3): drying racks, herb shelves, a tea pavilion (the furnace comes with alchemy).
   5. *Library and training* (QR7): scroll shelves, weapon racks, training dummies.
   6. *Formations:* functional arrays (a meditation array, a garden-growth array),
      which are where most bonuses should live.
@@ -327,7 +340,7 @@ and goals that don't end**, not from more linear stages. Proposed, in priority o
      killing other players (no PvP-for-progress: griefing, kids).
    - **Rogue / wanderer:** leaves the sect on their own. Quests come from a market
      town or guild board, picks up scavenged materials and finds secret places;
-     gardening, alchemy and building are first-class. Same quest system, filtered
+     gardening, seclusion and building are first-class. Same quest system, filtered
      by affiliation.
    - **How you reach each (revised 2026-10-22):**
      - *Sect* is the default. *Rogue* is open: leave the sect from the elder or board.
@@ -402,12 +415,10 @@ Proposals to pick from; none decided. Each must name its arrow into the loop.
 3. **Fortuitous encounters.** Rare, random, sharable moments while out: an old hermit
    in a ring, a dying cultivator's bequest, a hidden spring. Small rewards, big
    stories. Arrow: out (explore). The genre's best content-creator fuel.
-4. **Pill impurities.** Pills leave toxicity; too many cloud your foundation (cracks).
-   Purify at the furnace or by meditating. Gives alchemy a trade-off. Arrow: home,
-   ties pills to solidity.
-5. **Talismans.** Consumable paper charms crafted from herbs and ink: heals, wards,
-   buffs, tribulation protection. Lighter than pills; a use for stones. Arrow: home
-   to out.
+4. **Pill impurities** *(later update, with alchemy).* Pills leave toxicity that clouds
+   your foundation. Purify by meditating.
+5. **Talismans** *(crafting is a later update).* Consumable charms: heals, wards, buffs,
+   tribulation protection. Found and bought ones can come sooner.
 6. **Formations (arrays).** Functional building: a gathering array, a growth array, a
    ward. Mostly the building plan; also a Dao ("Formation Dao") to comprehend.
 7. **Spirit beast taming.** A tamed beast follows you (the cosmetic pet at FE6, earlier
@@ -430,7 +441,7 @@ Each phase ends in a commit and a test-build playtest.
 | Phase | Work | Agents |
 |---|---|---|
 | A | Solidity docs and numbers; `data.solidity`, cracks | main session |
-| B | Herb tiers, qi scaling, alchemy furnace | main session; `modeler` for the furnace |
+| B | Herb tiers, qi scaling, Herbarium | main session |
 | C | Sect: rank, contribution, board, dailies, Pavilion | main; `ui-designer` |
 | D | Onboarding lessons QC4-QC9 and the wall card | main; `ui-designer` |
 | E | Statuses, combo rules, then techniques class by class | main; one `vfx` per batch |
@@ -445,7 +456,7 @@ run alongside them. Before spawning, ask how many agents and sandbox Studios at 
 
 ## Open questions
 - How big is a "crack"? Proposal: -15% passive and refine per crack, up to three,
-  repaired at a cost of time or a pill.
+  repaired by time, meditation or seclusion.
 - Is a death-save usable once per hour or once per stage?
 - Do heaven-defiers get extra cracks from rushing, or a harder tribulation only?
 - Does the Herbarium reward cosmetics only, or small solidity?

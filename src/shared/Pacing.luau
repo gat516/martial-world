@@ -191,9 +191,9 @@ Pacing.Curve = {
 	{ key = "QR1", major = "QiRefining", minor = 1, beat = "HOOK", bar = 4200, dantian = 2400, passive = 1.25, health = 360, power = 2.28, insight = 0, levels = 3, difficulty = 0.900 },
 	-- BREATHER: weekly sect tasks settle in.
 	{ key = "QR2", major = "QiRefining", minor = 2, beat = "BREATHER", bar = 4700, dantian = 2850, passive = 1.35, health = 390, power = 2.42, insight = 0, levels = 3, difficulty = 0.911 },
-	-- MINI-WALL: alchemy arrives; herbs and pills start to matter.
+	-- MINI-WALL: tier II herbs and the Herbarium (alchemy is a later update).
 	{ key = "QR3", major = "QiRefining", minor = 3, beat = "MINI-WALL", bar = 6300, dantian = 3400, passive = 1.50, health = 420, power = 2.56, insight = 0, levels = 3, difficulty = 0.922 },
-	-- RAMP: pill-assisted cultivation; the bar passes two dantians.
+	-- RAMP: seclusion; the bar passes two dantians.
 	{ key = "QR4", major = "QiRefining", minor = 4, beat = "RAMP", bar = 7800, dantian = 4050, passive = 1.65, health = 450, power = 2.70, insight = 0, levels = 3, difficulty = 0.933 },
 	-- BREATHER: relief before the next chapter.
 	{ key = "QR5", major = "QiRefining", minor = 5, beat = "BREATHER", bar = 8600, dantian = 4850, passive = 1.80, health = 480, power = 2.84, insight = 0, levels = 3, difficulty = 0.944 },
@@ -201,7 +201,7 @@ Pacing.Curve = {
 	{ key = "QR6", major = "QiRefining", minor = 6, beat = "MINI-WALL", bar = 11200, dantian = 5800, passive = 2.00, health = 515, power = 2.98, insight = 7, levels = 3, difficulty = 0.956 },
 	-- RAMP: sect trials.
 	{ key = "QR7", major = "QiRefining", minor = 7, beat = "RAMP", bar = 13800, dantian = 6900, passive = 2.20, health = 550, power = 3.12, insight = 0, levels = 3, difficulty = 0.967 },
-	-- BREATHER: weapon refinement gives stones a use.
+	-- BREATHER: the first secret-realm rift (weapon refinement is a later update).
 	{ key = "QR8", major = "QiRefining", minor = 8, beat = "BREATHER", bar = 15500, dantian = 8200, passive = 2.40, health = 585, power = 3.26, insight = 0, levels = 3, difficulty = 0.978 },
 	-- WALL: the biggest bar of the realm and its insight. A heaven-defier faces a tribulation to leave it.
 	{ key = "QR9", major = "QiRefining", minor = 9, beat = "WALL", bar = 21000, dantian = 9800, passive = 2.70, health = 620, power = 3.40, insight = 9, levels = 3, difficulty = 0.989, tribulation = QR_TRIBULATION },
@@ -219,7 +219,7 @@ Pacing.Curve = {
 	{ key = "FE6", major = "Foundation", minor = 6, beat = "MINI-WALL", bar = 61000, dantian = 25300, passive = 5.40, health = 925, power = 4.80, insight = 13, levels = 3, difficulty = 1.000 },
 	-- RAMP: tier IV herbs.
 	{ key = "FE7", major = "Foundation", minor = 7, beat = "RAMP", bar = 76000, dantian = 29600, passive = 6.20, health = 970, power = 4.98, insight = 0, levels = 3, difficulty = 1.000 },
-	-- BREATHER: mining and ores.
+	-- BREATHER: the Far Reaches' secret realm (mining is a later update).
 	{ key = "FE8", major = "Foundation", minor = 8, beat = "BREATHER", bar = 84000, dantian = 34600, passive = 6.80, health = 1015, power = 5.16, insight = 0, levels = 3, difficulty = 1.000 },
 	-- PEAK: the cap for now (Core Formation awaits). Its bar is shown, never broken through.
 	{ key = "FE9", major = "Foundation", minor = 9, beat = "PEAK", bar = 115000, dantian = 40500, passive = 8.00, health = 1060, power = 5.34, insight = 0, levels = 3, difficulty = 1.000 },

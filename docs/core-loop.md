@@ -104,7 +104,7 @@ and everything else arrives when it first matters.
 | QC9 | WALL | insight and the first tribulation |
 | FE | new realm | cultivation method, Outer Wastes |
 | later majors | | the realm milestones: flying sword, soul companion, flight ([character](character/later-layers.md)) |
-| later (unscheduled) | | crafting: mining and ores, weapon refinement, alchemy (see below) |
+| a later update (decided 2026-10-22) | | crafting: mining and ores, weapon refinement, alchemy (see below and [roadmap](roadmap.md)) |
 
 ## Don't overwhelm: crafting comes later
 Never put many mechanics in front of a player at once. Each one needs its own

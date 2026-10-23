@@ -85,13 +85,13 @@ Rank becomes **Inner Disciple** at QR1.
 |---|---|---|---|---|
 | QR1 | HOOK | Outer Wastes | Qi Refining; the wastes; chapter quests | region seal |
 | QR2 | BREATHER | Wastes | weekly sect tasks | none |
-| QR3 | MINI-WALL | Wastes | **alchemy:** a furnace on the peak turns tier II herbs into pills | herbs and insight |
-| QR4 | RAMP | Wastes | pill-assisted cultivation (a minor pill, once a day) | full dantian |
+| QR3 | MINI-WALL | Wastes | tier II herbs and the Herbarium; the Herbalist's second shelf (alchemy is a later update) | herbs |
+| QR4 | RAMP | Wastes | seclusion: deliberate closed-door cultivation | full dantian |
 | QR5 | BREATHER | Wastes | Thunder Ape event and boss | beasts too strong |
 | QR6 | MINI-WALL | Deep Wilds | Dao glimpses at special places (storms, springs) | region seal |
 | QR7 | RAMP | Deep Wilds | sect trials: a rank test with a tiny reward | insight |
-| QR8 | BREATHER | Deep Wilds | weapon refinement (stones sink) | none |
-| QR9 | WALL | Deep Wilds | optional realm boss (Nine-Tailed Fox); breakthrough aid pill recommended | bar, insight |
+| QR8 | BREATHER | Deep Wilds | the first secret-realm rift (weapon refinement is a later update) | none |
+| QR9 | WALL | Deep Wilds | optional realm boss (Nine-Tailed Fox); a heart-demon trial is offered | bar, insight |
 
 ### Foundation Establishment (new content, 10 hours)
 Rank **Core Disciple** at FE1. FE1 gives the cultivation method (as designed in
@@ -105,7 +105,7 @@ Rank **Core Disciple** at FE1. FE1 gives the cultivation method (as designed in
 | FE5 | BREATHER | secret realms: timed rifts with manuals | none |
 | FE6 | MINI-WALL | **spirit beast egg:** a cosmetic pet that follows you | beasts too strong |
 | FE7 | RAMP | tier IV herbs; Dao tree preview | full dantian |
-| FE8 | BREATHER | mining and ores: a new out verb, feeds refinement | none |
+| FE8 | BREATHER | the Far Reaches' handcrafted secret realm (mining and ores are a later update) | none |
 | FE9 | WALL | the cap: optional apex boss gauntlet (the four bosses); the flying sword shown, not given | bar, insight |
 
 ## Home, herbs and the loop (the missing link)
@@ -119,9 +119,11 @@ The garden dies at QC6 because herb qi is flat. Fix:
   turns into quests).
 - **Peak and garden tiers** gate plots and soil. The peak levels with contribution
   and realm, not stones alone.
-- **Pills (alchemy, QR3).** Herbs become pills: a daily minor pill (qi), healing,
-  buffs, and **breakthrough aids** that cut the insight a major needs. They are
-  also the way a low-skill player gets through any hard part (see "Tribulations").
+- **Alchemy is a later update (user, 2026-10-22).** No furnace, crafted pills or
+  breakthrough-aid pills for now. Herbs are eaten directly (qi and timed buffs), and
+  pills, cores and elixirs stay loot and shop finds (the Root Pill and Marrow Washing
+  Pill already work that way). Foundation repair comes from meditation, seclusion and
+  tending the garden instead. See [roadmap](roadmap.md) "Deferred to a later update".
 - **Cultivating at home stays calm and always progresses.** Meditation and peak
   bonuses keep scaling through Pacing; nothing here asks for skill.
 
@@ -160,7 +162,7 @@ Normal players break through with a bar, insight and a quiet ceremony.
   not whether you can pass.
 - **Accessible:** generous telegraphs, a visible safe zone, a damage floor so a
   fumbled strike does not kill, no aim or reflex gate. **Preparation can replace
-  skill:** protective talismans and pills from home let anyone pass.
+  skill:** protective charms and herbs, found or bought, let anyone pass (crafted talismans are a later update).
 - **Spectacle:** a tribulation is visible server-wide and the sky shows it. It is
   a world event: others can watch it and are warned off the platform.
 - **VFX:** the current tribulation is lacklustre; a `world-fx` pass (storm
@@ -190,12 +192,12 @@ boss**, so a player who can't (a phone player, a peaceful one) is never stuck.
   insight payout, a manual or weapon, a bounty reward. Skipping one only costs time.
 - **Two ways to climb, both complete:**
   - *The fighter:* hunt, bounties, bosses and events. Fast, with surprises.
-  - *The gardener:* meditate, tend the spirit garden, brew pills, run sect
+  - *The gardener:* meditate, tend the spirit garden, run sect
     errands and chapter quests that need no combat. Slower, always sure.
   Pacing is tuned so the gardener's road reaches every wall, just later.
 - **Every wall has a non-combat road.** Insight, the thing a boss used to
   gate, also comes from comprehension spots, Dao rain, quests, secret places
-  (explored, not fought), sect trials and breakthrough pills. First kills and
+  (explored, not fought), sect trials and rare elixirs from rifts and quests. First kills and
   bosses are *one* source.
 - **A wall is a bar plus insight**, never a boss. QC9 and QR9 no longer say
   "kill the boss"; they say "5 insight", which a boss can supply.
@@ -231,7 +233,7 @@ Built 2026-10-22: QR1-9 and FE2-9 rows in `Pacing.Curve` (and combat qi), the
 
 Still open from that pass:
 - **Insight above 10 is unreachable without bosses** until non-combat sources
-  exist (comprehension spots, quests, pills, secret places). First kills of the 8
+  exist (comprehension spots, quests, secret places). First kills of the 8
   non-boss types plus 2 milestones give 10. FE3 11 and FE6 13 wait for them.
 - **Nothing sets `heavenDefying`** yet (bloodline or root).
 - **Region seals unchanged:** `Regions.luau` still seals the Outer region at FE1; the
@@ -247,7 +249,7 @@ Steps:
 1. ~~Pacing rows, `QiRefining`, the tribulation flag~~ (done, untuned).
 2. Scale herb `eat` qi by tier; add the tier field to `Herbs.luau`.
 3. Build the sect: ranks, contribution, board, Pavilion, dailies and chains.
-4. Make every wall's insight reachable without combat (comprehension spots, quests, pills); turn bosses into quest targets.
+4. Make every wall's insight reachable without combat (comprehension spots, quests); turn bosses into quest targets.
 5. Build the bloodline layer earlier than FE (see [character](systems/character.md)).
 6. World-event and tribulation vfx passes (`world-fx`).
 7. Elite and apex beast tiers: `enemy-designer`, `vfx` and `animator`, one per beast.

@@ -300,37 +300,54 @@ local function headPen(pose: Pose, legFrames: { [string]: CFrame }): number
 end
 
 local GUARD_SLACK = 0.02
+-- The lift is capped by how deep the overlap is (GUARD_RAMP unit studs of overlap for the full
+-- lift), so it grows from zero as a clip starts instead of jumping: a 0.05 overlap at the
+-- shoulders used to need a 0.45 rad neck lift at once (head pops of 50-70 studs/s in Nine-Tail
+-- Fall's coil, QA 2026-10-23). A shallow clip the capped lift can't clear is left (fur on fur).
+local GUARD_RAMP = 0.15
 local function guardHead(pose: Pose)
 	if not guardOn then
 		return
 	end
 	local legFrames: { [string]: CFrame } = {}
 	bodyFrames(pose, GUARD_LEGS, legFrames)
-	if headPen(pose, legFrames) <= GUARD_SLACK then
+	local pen0 = headPen(pose, legFrames)
+	if pen0 <= GUARD_SLACK then
 		return
 	end
+	local goal = GUARD_SLACK
+	local kcap = clamp((pen0 - GUARD_SLACK) / GUARD_RAMP, 0, 1)
 	local neck0, head0 = pose.JointNeck or I, pose.JointHead or I
 	local function at(k: number): number
 		pose.JointNeck = A(0.55 * k) * neck0
 		pose.JointHead = head0 * A(0.45 * k)
 		return headPen(pose, legFrames)
 	end
-	local lo, hi = 0, 1
-	if at(hi) > GUARD_SLACK then
-		-- can't clear it by lifting: take the lift that leaves the least overlap
+	if at(kcap) > goal then
+		-- the capped lift can't clear it: take the lift (up to the cap) that leaves the least overlap
 		local best, bestK = math.huge, 0
-		for k = 0, 1, 0.125 do
-			local p = at(k)
+		for n = 0, 16 do
+			local p = at(kcap * n / 16)
 			if p < best then
-				best, bestK = p, k
+				best, bestK = p, kcap * n / 16
 			end
 		end
 		at(bestK)
 		return
 	end
-	for _ = 1, 7 do
+	-- the SMALLEST lift that clears: walk up to the first clear step, then bisect inside it (the
+	-- overlap isn't monotonic in the lift; a plain bisection could land on a far root)
+	local lo, hi = 0, kcap
+	local stepK = kcap / 8
+	for n = 1, 8 do
+		if at(stepK * n) <= goal then
+			lo, hi = stepK * (n - 1), stepK * n
+			break
+		end
+	end
+	for _ = 1, 5 do
 		local mid = (lo + hi) / 2
-		if at(mid) > GUARD_SLACK then
+		if at(mid) > goal then
 			lo = mid
 		else
 			hi = mid
@@ -1239,8 +1256,144 @@ local function followThrough(pose: Pose, v: Variant, move: string, phaseName: st
 	end
 end
 
+-- RIPPLE (2026-10-23): the body moves as a chain, not one block. Every stationary move's
+-- keyed body is re-timed link by link: the hips lead (they read the keys RIPPLE_LEAD steps
+-- ahead), the chest, neck and head follow a step later each and arrive on the keyed beat, so
+-- each strike starts in the hips and ripples out to the head (the dancer's whip); the tail hub
+-- trails the hips. Each link's WORLD rotation is resampled (rotations compose straight down
+-- the chain: every joint frame is identity), then turned back into local joints, so a lead on
+-- the hips doesn't drag the head along with it. Each link is also averaged over a few steps
+-- (a triangle filter, wider toward the head): a key that stops dead now eases into its hold.
+-- The phase overlays (trembles, recoils, shudders) ride on top unchanged. The leads ramp in
+-- over the move's first RIPPLE_RAMP s (the windup starts from the idle pose). Dash moves (the
+-- pounce, Moon Leap) keep their own timing.
+local RIPPLE_CHAIN = { "JointRoot", "JointChest", "JointNeck", "JointHead" }
+local RIPPLE_STEP, RIPPLE_RAMP = 1 / 30, 0.25
+local RIPPLE_LEAD = { 3, 2, 1, 0 } -- steps ahead of the clock, root .. head
+local RIPPLE_WIDTH = { 1, 1, 2, 3 } -- filter half-width in steps, root .. head
+local RIPPLE_OFF: { [string]: boolean } = { RendingPounce = true }
+-- moves whose phase overlays carry the big motion (Moon Leap's flip lives in the flight overlay):
+-- the ripple resamples them with the overlays, so the hips lead the flip and the head trails it
+local RIPPLE_FULL: { [string]: boolean } = { MoonLeap = true }
+-- a blow taken (stagger, death) drives the body from outside: the hips go first and the head
+-- trails and whips (leads below zero lag the clock; nothing reads before the move starts)
+local RIPPLE_HIT: { [string]: { number } } = { Stagger = { 0, -1, -2, -3 }, Death = { 0, -1, -2, -3 } }
+-- per-move leads (no ramp): Moon Leap's hips throw the flip, each link a little later
+local RIPPLE_MOVE: { [string]: { number } } = {}
+-- fades the ripple out over [a, b] s of the move (Death: the lagging chest rolled the
+-- forelegs into the floor as it fell onto its side)
+local RIPPLE_FADE: { [string]: { number } } = { Death = { 1.4, 1.8 } }
+local function phaseStart(v: Variant, move: string, phaseName: string): number
+	local acc = 0
+	for k, name in PHASES do
+		if name == phaseName then
+			return acc
+		end
+		if (v :: any)[name] then
+			acc += DUR[move][k]
+		end
+	end
+	return acc
+end
+-- the bare keyed pose (no overlays) at T s from the move's first phase, across phases
+local function keyedAbs(v: Variant, move: string, phaseName: string, curDur: number, input: any, T: number, full: boolean?): Pose
+	local idx = table.find(PHASES, phaseName) :: number
+	local acc, last = 0, nil
+	local pick, sec, dur, pi
+	for k, name in PHASES do
+		local p = (v :: any)[name]
+		if p then
+			local d = if k == idx then curDur else DUR[move][k]
+			last = { p, k, d }
+			if T <= acc + d then
+				pick, sec, dur, pi = p, T - acc, d, k
+				break
+			end
+			acc += d
+		end
+	end
+	if not pick then
+		pick, pi, dur = last[1], last[2], last[3]
+		sec = dur
+	end
+	if (pick :: any).keepOverlay and pi ~= idx then
+		-- never resample an overlay-driven phase: hold the current phase's edge
+		return keyedAbs(v, move, phaseName, curDur, input, phaseStart(v, move, phaseName) + (if pi < idx then 0 else curDur), full)
+	end
+	local b = if full then pick else bare[pick]
+	if not b then
+		b = table.clone(pick) :: any
+		b.overlay = nil
+		bare[pick] = b :: any
+	end
+	return (Quadruped.samplePhase(b :: any, clamp(sec / math.max(dur, 1e-6), 0, 1), if pi == idx then input else { side = input.side, stage = input.stage }))
+end
+local function ripple(pose: Pose, v: Variant, move: string, phaseName: string, secs: number, dur: number, input: any)
+	local T = phaseStart(v, move, phaseName) + secs
+	local fade = RIPPLE_FADE[move]
+	local keep = if fade then 1 - smooth(fade[1], fade[2], T) else 1
+	if keep <= 0 then
+		return
+	end
+	local leads = RIPPLE_HIT[move] or RIPPLE_MOVE[move] or RIPPLE_LEAD
+	local step = if RIPPLE_HIT[move] then RIPPLE_STEP else RIPPLE_STEP * smooth(0, RIPPLE_RAMP, T)
+	local cache: { [number]: Pose } = {}
+	local function at(k: number): Pose
+		local s = cache[k]
+		if not s then
+			s = keyedAbs(v, move, phaseName, dur, input, math.max(0, T + k * step), RIPPLE_FULL[move])
+			cache[k] = s
+		end
+		return s
+	end
+	local now = at(0)
+	local function worldOf(s: Pose, j: number, extra: string?): CFrame
+		local r = I
+		for n = 1, j do
+			r = r * (s[RIPPLE_CHAIN[n]] or I).Rotation
+		end
+		if extra then
+			r = r * (s[extra] or I).Rotation
+		end
+		return r
+	end
+	-- triangle filter over lead-w .. lead+w (weights w+1-|d|)
+	local function filtered(lead: number, w: number, j: number, extra: string?): (CFrame, Vector3)
+		local acc, pos, total = worldOf(at(lead), j, extra), (at(lead).JointRoot or I).Position, w + 1
+		for d = 1, w do
+			local wt = w + 1 - d
+			for _, k in { lead - d, lead + d } do
+				local s = at(k)
+				total += wt
+				acc = acc:Lerp(worldOf(s, j, extra), wt / total)
+				pos = pos:Lerp((s.JointRoot or I).Position, wt / total)
+			end
+		end
+		return acc, pos
+	end
+	local worlds: { CFrame } = {}
+	for j, name in RIPPLE_CHAIN do
+		local wr, wp = filtered(leads[j], RIPPLE_WIDTH[j], j)
+		worlds[j] = wr
+		local loc = if j == 1 then wr else worlds[j - 1]:Inverse() * wr
+		local base = now[name] or I
+		local delta = base:Inverse() * (pose[name] or I) -- the overlay on this joint
+		local p = if j == 1 then wp else base.Position
+		pose[name] = (pose[name] or I):Lerp((CFrame.new(p) * loc.Rotation) * delta, keep)
+	end
+	do
+		local wr = filtered(leads[1] - 2, 1, 1, "JointTail")
+		local base = now.JointTail or I
+		local delta = base:Inverse() * (pose.JointTail or I)
+		pose.JointTail = (pose.JointTail or I):Lerp((CFrame.new(base.Position) * (worlds[1]:Inverse() * wr).Rotation) * delta, keep)
+	end
+end
+
+-- the head guard lets go over [a, b] s of a phase: Death's collapse lays the head on the
+-- forearms, which the guard can only fight (two dead head stops, QA 2026-10-23)
+local GUARD_OFF: { [string]: { number } } = { Death = { 1.4, 1.65 } }
 local lifeHook: any
-local function sampleMove(move: string, phaseName: string, u: number, input: Input?): Pose
+local function sampleRaw(move: string, phaseName: string, u: number, input: Input?): Pose
 	local list = variants[move]
 	assert(list, "NineTailFox.sample: no move " .. move)
 	local v = list[VARIANT[move]]
@@ -1251,17 +1404,104 @@ local function sampleMove(move: string, phaseName: string, u: number, input: Inp
 	local dur = inp.duration or phase.duration
 	local secs = u * dur
 	local pose, plant, reach = Quadruped.samplePhase(phase, u, inp)
+	if not RIPPLE_OFF[move] then
+		ripple(pose, v, move, phaseName, secs, dur, inp)
+	end
 	followThrough(pose, v, move, phaseName, secs, dur, inp)
 	if lifeHook then
 		lifeHook(move, phaseName, u, secs, pose)
 	end
 	rig.plantLegs(pose, plant, phase.air, reach)
-	guardHead(pose)
+	local gOff = GUARD_OFF[move]
+	local gw = if gOff then 1 - smooth(gOff[1], gOff[2], secs) else 1
+	if gw >= 1 then
+		guardHead(pose)
+	elseif gw > 0 then
+		local n0, h0 = pose.JointNeck, pose.JointHead
+		guardHead(pose)
+		pose.JointNeck = (n0 or I):Lerp(pose.JointNeck or I, gw)
+		pose.JointHead = (h0 or I):Lerp(pose.JointHead or I, gw)
+	end
 	-- tails: s = seconds from the windup start, release at s = windup
 	local W, Act = DUR[move][1], DUR[move][2]
 	local s = if phaseName == "windup" then W - (1 - u) * dur elseif phaseName == "active" then W + secs else W + Act + secs
 	local ctx = { stage = inp.stage or 1, parts = inp.parts, move = move }
 	buildTails(pose, v, s, ctx, phase.mirror == true and (inp.side or 1) < 0)
+	return pose
+end
+
+-- LEG_SMOOTH (2026-10-23): a short triangle filter over the leg joints where the solver can
+-- only flip (55-100 deg in one frame): the Death collapse, where the planted legs let go while
+-- the body rolls onto its side. A 60 Hz smear, not
+-- a new pose. Windows are seconds from the move's first phase and cross phase boundaries.
+--   move = { from s, to s, half-width in RIPPLE_STEPs }
+local LEG_SMOOTH: { [string]: { number } } = {
+	Death = { 0.8, 2.15, 2 },
+	-- (not on Fang Dance's snaps or Tail Snare's lash, 57 deg: smoothing their planted paws sank them
+	-- 0.3-0.7 studs; small fast moves, left as they are)
+}
+local LEG_JOINTS: { string } = {}
+for _, tag in ALL do
+	for _, k in { "upper", "mid", "foot" } do
+		table.insert(LEG_JOINTS, LEGS[tag][k])
+	end
+end
+local function sampleMove(move: string, phaseName: string, u: number, input: Input?): Pose
+	local pose = sampleRaw(move, phaseName, u, input)
+	local ls = LEG_SMOOTH[move]
+	if not ls then
+		return pose
+	end
+	local v = variants[move][VARIANT[move]]
+	local idx = table.find(PHASES, phaseName) :: number
+	local dur = (input and (input :: any).duration) or ((v :: any)[phaseName] :: Phase).duration
+	local T = phaseStart(v, move, phaseName) + clamp(u, 0, 1) * dur
+	local wgt = smooth(ls[1] - 0.1, ls[1], T) * (1 - smooth(ls[2], ls[2] + 0.1, T))
+	if wgt <= 0 then
+		return pose
+	end
+	-- (phase, u, input) at T2 s from the move's first phase
+	local function locate(T2: number): (string, number, any)
+		local inp: any = input or {}
+		local other = { side = inp.side, stage = inp.stage, parts = inp.parts }
+		local acc = 0
+		local lastName, lastK = phaseName, idx
+		for k, name in PHASES do
+			local p = (v :: any)[name]
+			if p then
+				local d = if k == idx then dur else DUR[move][k]
+				lastName, lastK = name, k
+				if T2 <= acc + d then
+					if (p :: any).keepOverlay and k ~= idx then
+						return phaseName, if k < idx then 0 else 1, input -- never resample an overlay-driven phase
+					end
+					return name, clamp((T2 - acc) / math.max(d, 1e-6), 0, 1), if k == idx then input else other
+				end
+				acc += d
+			end
+		end
+		return lastName, 1, if lastK == idx then input else other
+	end
+	local half = ls[3]
+	local acc: { [string]: CFrame } = {}
+	for _, j in LEG_JOINTS do
+		acc[j] = pose[j] or I
+	end
+	local total = half + 1
+	for d = 1, half do
+		local wt = half + 1 - d
+		for _, sg in { -1, 1 } do
+			local pn, pu, pin = locate(math.max(0, T + sg * d * RIPPLE_STEP))
+			local o = sampleRaw(move, pn, pu, pin)
+			total += wt
+			for _, j in LEG_JOINTS do
+				acc[j] = acc[j]:Lerp(o[j] or I, wt / total)
+			end
+		end
+	end
+	for _, j in LEG_JOINTS do
+		pose[j] = (pose[j] or I):Lerp(acc[j], wgt)
+	end
 	return pose
 end
 
@@ -1313,42 +1553,45 @@ end
 lifeHook = lifeOverlay
 
 ------------------------------------------------------------------------------------
--- INTRO 2.2 / 0.2 / 0.8: from the curled sleep, rise, stretch, arch, throw the head back;
--- the tails unfurl one by one (0.2 s apart) and fan. Hold u 0.85-1 of the windup.
+-- INTRO 2.2 / 0.2 / 0.8: the dancer's bow before the fight. From the standing idle it
+-- sinks into a long bow-stretch (forepaws out, chest low, a yawn), rocks back onto its haunches,
+-- rises through an arch and throws the head back for the howl; the tails sweep low with the bow,
+-- then unfurl one by one (0.2 s apart) and fan. Hold u 0.88-1 of the windup.
+-- Intent: arrival and dread. The body unwinds hips first (ripple), the head arrives last on
+-- the howl; it reads at range as one big low-to-tall rise. Beats (ms): 0-550 bow (ease in and
+-- out, the hips lead), 550-750 the stretch deepens (a breath, never a dead hold), 750-1200
+-- rock back to sit, 1200-1650 rise through the arch, 1650-1950 the head goes up, 1950-2200
+-- hold on the telegraph; release at 2200 (the howl).
+-- (QA 2026-10-23: it used to open curled asleep, but the fox idles standing before the
+-- engagement, so the first frame popped 95 deg / 150 studs/s into the curl.)
 do
 	local W, Act, Rec = 2.2, 0.2, 0.8
-	local sleepy = curOver({ n = -0.3, h = -0.35, j = -0.05, y = -1.74, ch = 0.08 })
-	-- The forepaws slide back under the chest before it pushes up, planted all the way (the
-	-- spots are where the curled pose lays them, unit studs from rest): lying to sitting through
-	-- the floor clamp flipped both forearms 150 degrees in one frame.
-	local lyingR = { FL = V(-0.86, 0, -1.98), FR = V(-1.42, 0, -2.08), BL = V(0, 0, 0), BR = V(0, 0, 0) }
-	local gatherR = { FL = V(-0.55, 0, -1.05), FR = V(-0.85, 0, -1.1), BL = V(0, 0, 0), BR = V(0, 0, 0) }
-	local gather = curOver({ n = 0.08, h = -0.12, j = -0.05, y = -1.5, pitch = 0.0, ch = 0.12 })
 	local sit = B({ y = -0.95, pitch = 0.38, ch = 0.1, n = 0.05, h = -0.08, hr = 0.14, e = 0.15, t = 0.3, legs = merge(FL(0.15, 0, 0), FRr(0.15, 0, 0), BLg(0.5, -1.5, 0.6, -0.85), BRg(0.4, -1.5, 0.6, 0.85)) })
 	local sitR = paws(-0.35, -0.6, 0.12, 0.25)
 	local stretch = B({ y = -0.25, pitch = -0.2, ch = -0.1, n = 0.0, h = 0.0, j = -0.75, e = 0.3, t = 0.7, hr = 0 })
+	local deeper = B({ y = -0.3, pitch = -0.23, ch = -0.13, n = 0.04, h = 0.04, j = -0.6, e = 0.35, t = 0.72, hr = 0 })
 	local stretchR = paws(-0.75, 0.2, 0.5, 0.12)
 	local arch = B({ y = -0.12, pitch = 0.2, ch = -0.22, n = 0.35, h = 0.2, j = -0.5, e = 0.45, t = 0.45 })
 	local peak = B({ y = -0.04, pitch = 0.38, ch = 0.14, n = 0.52, h = 0.3, hr = 0, j = -0.85, e = 0.5, ef = 0.3, t = -0.2, legs = merge(FL(0.45, -1.4, 0.2), FRr(0.45, -1.4, 0.2)) })
 	local peakR = paws(0.0, -0.1, 0.06, 0.1)
 	local after = with(peak, { JointNeck = A(0.4), JointHead = A(0.18), JointJaw = A(-0.5) })
 	local tailKeys = {
-		TK(0, curledTails :: any), TK(0.1, curledTails :: any),
-		TK(0.55, shp({ fan = 0.5, lift = -0.3, e = 0.35 })), TK(W + Act, shp({ fan = 0.55, lift = -0.4, e = 0.45 })),
+		TK(0, T_REST), TK(0.55, T_LOW), TK(0.75, T_LOW),
+		TK(1.25, shp({ fan = 0.5, lift = -0.3, e = 0.35 })), TK(W + Act, shp({ fan = 0.55, lift = -0.4, e = 0.45 })),
 		TK(W + Act + Rec, T_REST),
 	}
 	register("Intro", "A", W, Act, Rec,
-		ph(W, { K(0, CURLED, NONE), K(0.1, CURLED, FRONT, lyingR), K(0.45, sleepy, FRONT, lyingR, "inOut"), K(0.66, gather, FRONT, gatherR, "inOut"), K(0.85, sit, ALL, sitR, "inOut"), K(1.25, stretch, ALL, stretchR, "inOut"),
-			K(1.65, arch, ALL, paws(-0.4, 0.1, 0.1, 0.12), "inOut"), K(1.95, peak, HIND, peakR, "out"), K(W, peak, HIND, peakR) }, { air = true }), -- hand-placed paws: no floor clamp (it flipped the lying forearms)
+		ph(W, { K(0, STAND, ALL), K(0.55, stretch, ALL, stretchR, "inOut"), K(0.75, deeper, ALL, stretchR, "inOut"), K(1.2, sit, ALL, sitR, "inOut"),
+			K(1.65, arch, ALL, paws(-0.4, 0.1, 0.1, 0.12), "inOut"), K(1.95, peak, HIND, peakR, "out"), K(W, peak, HIND, peakR) }, { air = true }), -- hand-placed paws: no floor clamp (the sit's folded hocks fight it)
 		ph(Act, { K(0, peak, HIND, peakR), K(Act, after, HIND, peakR, "out") }),
 		ph(Rec, { K(0, after, HIND, peakR), K(0.4, with(STAND, {}), ALL, BRACE, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }),
 		{ keys = tailKeys, lag = 0.2 })
-	-- B "Rise on the hind legs": uncurls, crouches, then rises tall on the hind legs for the howl
+	-- B "Rise on the hind legs": bows, sits, crouches, then rises tall on the hind legs for the howl
 	local tall = B({ y = -0.05, pitch = 0.78, ch = 0.15, n = 0.55, h = 0.3, hr = 0, j = -0.9, e = 0.55, ef = 0.3, t = -0.2, legs = merge(FL(0.45, -1.4, 0.2), FRr(0.45, -1.4, 0.2)) })
 	local crouch = B({ y = -0.75, pitch = -0.05, ch = -0.1, n = -0.2, h = -0.12, e = 0.4, t = 0.5 })
 	register("Intro", "B", W, Act, Rec,
-		ph(W, { K(0, CURLED, NONE), K(0.1, CURLED, FRONT, lyingR), K(0.5, sleepy, FRONT, lyingR, "inOut"), K(0.75, gather, FRONT, gatherR, "inOut"), K(1.0, sit, ALL, sitR, "inOut"), K(1.45, crouch, ALL, LOWR, "inOut"),
-			K(1.95, tall, HIND, REARR, "out"), K(W, tall, HIND, REARR) }, { air = true }), -- hand-placed paws: no floor clamp (it flipped the lying forearms)
+		ph(W, { K(0, STAND, ALL), K(0.5, stretch, ALL, stretchR, "inOut"), K(1.0, sit, ALL, sitR, "inOut"), K(1.45, crouch, ALL, LOWR, "inOut"),
+			K(1.95, tall, HIND, REARR, "out"), K(W, tall, HIND, REARR) }, { air = true }),
 		ph(Act, { K(0, tall, HIND, REARR), K(Act, with(tall, { JointNeck = A(0.45) }), HIND, REARR, "out") }),
 		ph(Rec, { K(0, tall, HIND, REARR), K(0.4, crouch, ALL, LOWR, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }),
 		{ keys = tailKeys, lag = 0.2 })
@@ -1365,7 +1608,8 @@ do
 		local open = B(merge(rockO, { n = 0.2, h = 0.1, j = -0.85, e = 0.5 }) :: any)
 				local function strike(amp: number, left: boolean): (Pose, any)
 			local o = merge(snapO, { y = (snapO.y or -0.25) - 0.04 * amp, n = -0.28 - 0.1 * amp, h = -0.14 - 0.05 * amp, ny = (if left then 0.12 else -0.12) * amp, j = -0.03 }) :: any
-			local reach = if left then { FL = V(0, 0, -0.3 * lunge * amp), FR = V(0, 0, 0.05), BL = V(0, 0, 0.08), BR = V(0, 0, 0.08) } else { FL = V(0, 0, 0.05), FR = V(0, 0, -0.3 * lunge * amp), BL = V(0, 0, 0.08), BR = V(0, 0, 0.08) }
+			local step = 0.3 * lunge * amp
+			local reach = if left then { FL = V(0, 0, -step), FR = V(0, 0, 0.05), BL = V(0, 0, 0.08), BR = V(0, 0, 0.08) } else { FL = V(0, 0, 0.05), FR = V(0, 0, -step), BL = V(0, 0, 0.08), BR = V(0, 0, 0.08) }
 			return B(o), reach
 		end
 		local s1, r1 = strike(0.8, true)
@@ -1509,7 +1753,7 @@ do
 		local aim: Shape = function(i, ctx) return aimQ(i, laneAz(i, ctx) * cross, math.rad(laneEl), 1, 0) end
 		local load = B(addO({ y = -0.33, pitch = 0.08, z = 0.22, ch = 0.04, n = 0.08, h = -0.12, e = 0.6, t = 0.35 }, bodyO) :: any)
 		local deep = B(addO({ y = -0.37, pitch = 0.1, z = 0.28, ch = 0.06, n = 0.1, h = -0.14, e = 0.65, t = 0.37 }, bodyO) :: any)
-		local strike = B(addO({ y = -0.25, pitch = -0.07, z = -0.2, ch = -0.2, n = -0.18, h = -0.1, e = 0.4, t = 0.2 }, bodyO) :: any)
+		local strike = B(addO({ y = -0.25, pitch = -0.07, z = -0.2, ch = -0.2, n = -0.06, h = -0.06, e = 0.4, t = 0.2 }, bodyO) :: any)
 		local sweep = with(strike, { JointRoot = R(-0.22, -0.07, -0.22, 0.06) })
 		local reach = paws(-0.25, 0.2, 0.1, 0.12)
 		-- each lance's recoil: the root kicks back and up a little, the shoulders turn to its lane
@@ -1576,6 +1820,7 @@ do
 end
 
 ------------------------------------------------------------------------------------
+local STRIDE_SPEED = 32
 -- RENDINGPOUNCE 0.75 / dash (input.duration, 0.55 at 55/s) / 1.0: a deep crouch, tails
 -- swept back and ears flat, a haunch wiggle; then a long, low bounding spring (strides
 -- sampled by elapsed seconds, so a shortened dash stays clean) ending in a claw rake.
@@ -1588,24 +1833,31 @@ do
 		local coilR = paws(-0.5, 0.45, 0.14, 0.14)
 		local load = B({ y = crouchY - 0.06, pitch = -0.22, ch = -0.14, n = 0.0, h = -0.12, hr = 0, j = -0.3, e = 0.8, ef = 0.03, t = 0.7 })
 		local loadR = paws(-0.55, 0.55, 0.12, 0.14)
-		local launch = B({ y = crouchY + 0.2, pitch = -0.22, ch = -0.14, n = -0.05, h = -0.12, hr = 0, j = -0.5, e = 0.8, ef = 0.03, t = 0.7, legs = merge(FL(0.85, -0.7, -0.3), FRr(0.85, -0.7, -0.3)) })
+		-- the windup ends still loaded (the rise belongs to the dash): the head moving into the dash's
+		-- frozen-frame blend stopped dead at take-off (QA 2026-10-23)
+		local launch = B({ y = crouchY - 0.03, pitch = -0.22, ch = -0.14, n = 0.0, h = -0.12, hr = 0, j = -0.5, e = 0.8, ef = 0.03, t = 0.7, legs = merge(FL(0.85, -0.7, -0.3), FRr(0.85, -0.7, -0.3)) })
 		local launchR = paws(-0.2, 0.7, 0.1, 0.14)
 		local launchP = rig.plant(table.clone(launch), HIND, launchR)
 		local function stride(secs: number, dur: number): Pose
-			local running = runPose(secs * TAU * rate, speed, G)
-			local mix = smooth(0, 0.07, secs)
+			-- the stride is laid out for STRIDE_SPEED, not the dash's 55 studs/s: at full speed each
+			-- stance leg swept its whole range in three frames and the solver flipped the lower legs
+			-- 80-115 deg a frame; at a 55 studs/s blur the slip under the paws doesn't read
+			local running = runPose(secs * TAU * rate, math.min(speed, STRIDE_SPEED), G)
+			local mix = smooth(0, 0.12, secs) -- (0.07 stopped the head dead as it took the run pose)
 			for _, name in JOINTS do
 				if not string.find(name, "^JointTail%d") then
 					running[name] = (launchP[name] or I):Lerp(running[name] or I, mix)
 				end
 			end
 			-- the rake: both forepaws (or the left alone) rise, then rake down and through
-			local up = smooth(dur - 0.3, dur - 0.14, secs)
-			local down = smooth(dur - 0.14, dur - 0.02, secs)
+			local up = smooth(dur - 0.32, dur - 0.16, secs)
+			local down = smooth(dur - 0.17, dur - 0.02, secs)
 			local rake = up
 			if rake > 0 then
 				local raised = { A(1.0, 0, 0.1), A(-0.95), A(-0.4) }
-				local struck = { A(0.15, 0, -0.1), A(-0.2), A(-0.15) }
+				-- (the strike ends just over the floor: struck straighter, the floor clamp caught the paws
+				-- and levelled them in one frame, 60 deg)
+				local struck = { A(0.15, 0, -0.1), A(-0.45), A(-0.15) }
 				for k, side in { "FL", "FR" } do
 					local lift = if double or side == "FL" then 1 else 0.35
 					local o = LEGS[side]
@@ -1722,7 +1974,7 @@ do
 			end
 			-- a stab: accelerates into the ground and lands on plungeAt (the vfx's PlungeImpact cue)
 			local w = slamIn(plungeAt - 0.18, plungeAt, s) * (1 - smooth(W + Act + 0.8, W + Act + 1.25, s))
-			return w, plungeAz(i), ePlunge, 0.3, -1 -- over the head, the way the arch already leans
+			return w, plungeAz(i), ePlunge, 0.42, -1 -- over the head, the way the arch already leans
 		end
 		local rear = B({ y = -0.05, pitch = 0.72, ch = 0.14, n = 0.4, h = 0.2, hr = 0, j = -0.5, e = 0.5, t = -0.2, legs = merge(FL(0.45, -1.4, 0.2), FRr(0.45, -1.4, 0.2)) })
 		local coil = B({ y = -0.55, pitch = 0.0, ch = -0.12, n = -0.1, h = -0.1, e = 0.5, t = 0.4 })
@@ -1762,7 +2014,8 @@ do
 		local crouch = B({ y = -0.5, pitch = -0.12, ch = -0.12, n = 0.0, h = -0.12, j = -0.2, e = 0.6, t = 0.5, legs = {} })
 		local crouchR = paws(-0.45, 0.4, 0.12, 0.14)
 		local spring = B({ y = -0.4, pitch = 0.1, ch = -0.1, n = 0.0, h = -0.1, j = -0.3, e = 0.7, t = 0.4 })
-		local spring2 = rig.plant(table.clone(spring), HIND, paws(0, 0.8, 0.1, 0.14))
+		-- the forelegs leave the ground already in the flight's opening shape (they snapped 65-72 deg at take-off)
+		local spring2 = rig.plant(with(spring, merge(FL(0.6, -0.4, -0.2), FRr(0.6, -0.4, -0.2))), HIND, paws(0, 0.8, 0.1, 0.14))
 		local function tuckPose(k: number): Pose
 			return B({ y = 0, ch = 0, n = -0.1, h = -0.1, j = -0.2, e = 0.7, t = 0.3,
 				legs = merge(FL(0.9 * k, -1.5 * k, -0.4 * k), FRr(0.9 * k, -1.5 * k, -0.4 * k), BLg(0.5 * k, -1.2 * k, 0.2 * k), BRg(0.5 * k, -1.2 * k, 0.2 * k)) })
@@ -1788,14 +2041,15 @@ do
 		-- for the inversion (a 20-stud tail swinging round the body would sweep through the floor), flared
 		-- again for the landing
 		local tl = {
-			TK(0, T_REST), TK(0.15, aimShape(azLane(30 * math.pi / 180), math.rad(38), 0.25)),
+			TK(0, T_REST), TK(0.22, aimShape(azLane(30 * math.pi / 180), math.rad(38), 0.25)), -- (0.15: outer tails stepped 57 deg a frame)
 			TK(W + 0.02, shp({ fan = 0.5, lift = -0.3, e = 0.9, curl = 0.3 })), TK(W + 0.06, shp({ fan = 0.5, lift = -0.25, e = 1, curl = 0.3 })),
 			TK(W + 0.15, shp({ fan = 0.3, lift = -0.75, e = 0.1, hook = -1 }), "in"), TK(W + 0.5, shp({ fan = 0.25, lift = -0.7, e = 0.08, hook = -1 })),
 			TK(W + 0.58, shp({ fan = 0.4, lift = 0.0, e = 0.3 })),
 			TK(W + Act + 0.1, T_FLARE), TK(W + Act + Rec, T_REST),
 		}
 		register("MoonLeap", v, W, Act, Rec,
-			ph(W, { K(0, STAND, ALL), K(0.2, crouch, ALL, crouchR, "inOut"), K(0.34, crouch, ALL, crouchR), K(W, spring2, HIND, paws(0, 0.8, 0.1, 0.14), "in") }),
+			-- (the forepaws leave over the last 0.12 s, not 0.06: the elbows unfolded 72 deg a frame at take-off)
+			ph(W, { K(0, STAND, ALL), K(0.2, crouch, ALL, crouchR, "inOut"), K(0.28, crouch, ALL, crouchR), K(W, spring2, HIND, paws(0, 0.8, 0.1, 0.14), "in") }),
 			flight,
 			ph(Rec, { K(0, land, ALL, nil), K(0.1, absorb, ALL, absorbR, "out"), K(0.26, with(absorb, { JointRoot = R(-0.4) }), ALL, absorbR, "inOut"), K(Rec, STAND, ALL, nil, "inOut") }),
 			{ keys = tl, lag = 0.004 })
@@ -1861,15 +2115,15 @@ do
 			local t = hitTime(i, ctx)
 			-- each slam accelerates into the floor and lands on its circle's hit time
 			local w = slamIn(t - 0.26, t, s) * (1 - smooth(W + Act + 1.15 + 0.05 * (i - 1), W + Act + 1.5 + 0.05 * (i - 1), s))
-			return w, math.rad(AZ[i]), ePlunge, 0.3, 1 -- over the back (the fan stands overhead; the head side clips)
+			return w, math.rad(AZ[i]), ePlunge, 0.42, 1 -- over the back (the fan stands overhead; the head side clips)
 		end
 		local up = shp({ fan = fanWide, lift = -0.61, e = 1 })
 		local rear = B({ y = -0.05, pitch = 0.85, ch = 0.16, n = 0.45, h = 0.2, hr = 0, j = -0.5, e = 0.55, ef = 0.25, t = -0.2, legs = merge(FL(0.45, -1.4, 0.2), FRr(0.45, -1.4, 0.2)) })
-		local coil = B({ y = -0.5, pitch = 0, ch = -0.12, n = -0.1, h = -0.1, e = 0.5, t = 0.4 })
+		local coil = B({ y = -0.42, pitch = 0, ch = -0.1, n = 0.1, h = -0.04, e = 0.5, t = 0.4 }) -- shallower, head up off the forearms (QA 2026-10-23)
 		local rearR = paws(0.1, -0.05, 0.06, 0.1)
 		local slam1 = B({ y = -0.12, pitch = 0.62, ch = 0.12, n = 0.3, h = 0.1, j = -0.4, e = 0.6, t = -0.2, legs = merge(FL(0.45, -1.4, 0.2), FRr(0.45, -1.4, 0.2)) })
 		local mid = B({ y = -0.15, pitch = 0.3, ch = 0.0, n = 0.1, h = -0.05, j = -0.35, e = 0.6, t = 0.4 })
-		local low = B({ y = -0.3, pitch = -0.05, ch = -0.1, n = -0.15, h = -0.12, j = -0.3, e = 0.6, t = 0.3 })
+		local low = B({ y = -0.3, pitch = -0.05, ch = -0.1, n = 0.0, h = -0.08, j = -0.3, e = 0.6, t = 0.3 })
 		local lowR = paws(-0.3, 0.35, 0.3, 0.2)
 		local heave = function(u: number, secs: number, _: any): Pose
 			local k = smooth(0.5, 0.75, u) * (1 - smooth(0.85, 1, u))
@@ -1916,11 +2170,11 @@ do
 		local dip = B({ y = -0.5, ch = -0.2, n = -0.25, h = -0.1, e = 0.5, t = 0.3 })
 		local rear = B({ y = riseY, pitch = pitch, ch = 0.18, n = 0.55, h = 0.3, hr = 0, j = -0.9, e = 0.7, ef = 0.15, t = 0.55, legs = merge(FL(0.45, -1.4, 0.2), FRr(0.45, -1.4, 0.2)) })
 		local rearR = paws(0.1, -0.05, 0.06, 0.1)
-		local burst = if slam then B({ y = -0.32, pitch = -0.1, ch = -0.12, n = -0.14, h = -0.1, j = -0.6, e = 0.6, t = 0.2 })
+		local burst = if slam then B({ y = -0.32, pitch = -0.1, ch = -0.12, n = 0.0, h = -0.06, j = -0.6, e = 0.6, t = 0.2 })
 			else B({ y = riseY, pitch = pitch + 0.1, ch = 0.25, n = 0.7, h = 0.35, hr = 0, j = -1.0, e = 0.5, ef = 0.3, t = 0.2, legs = merge(FL(0.45, -1.4, 0.2), FRr(0.45, -1.4, 0.2)) })
 		local burstR = if slam then paws(-0.35, 0.3, 0.3, 0.2) else rearR
 		local bp = if slam then ALL else HIND
-		local settle = B({ y = -0.25, pitch = 0.0, ch = -0.06, n = -0.05, h = -0.12, j = -0.2, e = 0.5, t = 0.35 })
+		local settle = B({ y = -0.25, pitch = 0.0, ch = -0.06, n = 0.08, h = -0.08, j = -0.2, e = 0.5, t = 0.35 })
 		-- the tails: raised in a ring, then a burst outward
 		local ring = function(i: number, ctx: any): Q
 			local t = (i - 5) / 4
@@ -1970,7 +2224,10 @@ do
 	local sag = B({ y = -0.85, pitch = 0.05, ch = -0.1, n = -0.2, h = -0.2, roll = 0.14, j = -0.25, e = 0.55, t = 0.0 })
 	local sag2 = B({ y = -1.05, pitch = 0.0, ch = -0.12, n = -0.3, h = -0.25, roll = -0.2, j = -0.2, e = 0.5, t = 0.0 })
 	local sagR = paws(-0.2, 0.3, 0.35, 0.3)
-	local limp = merge(FL(0.5, -0.9, -0.2), FRr(0.15, -0.6, -0.1), BLg(0.5, -0.8, 0.1), BRg(0.1, -0.5, 0.1))
+	-- the down-side legs roll a little (+Z, the foot toward +X): hanging straight they swung
+	-- through the floor as the body rolled onto them (PawFL 1.5 under); past 0.3 the forelegs cross
+	-- (2026-10-23). The fall still dips a forepaw about 1.3 studs for 0.15 s.
+	local limp = merge(FL(0.5, -0.9, -0.2, 0.3), FRr(0.15, -0.6, -0.1), BLg(0.5, -0.8, 0.1, 0.2), BRg(0.1, -0.5, 0.1))
 	local fall = B({ y = -1.5, pitch = 0.0, roll = 1.45, ch = 0.0, chr = 0.06, n = -0.2, nr = 0.2, h = -0.2, hr = 0.2, j = -0.3, e = 0.35, t = 0.0, legs = limp })
 	local bounce = B({ y = -1.62, pitch = 0.0, roll = 1.38, ch = 0.0, n = -0.15, h = -0.15, hr = 0.2, j = -0.35, e = 0.4, t = 0.0, legs = limp })
 	local rest = B({ y = -1.7, pitch = 0.0, roll = 1.5, ch = 0.0, n = -0.25, h = -0.25, hr = 0.15, j = -0.1, e = 0.3, t = 0.0, legs = merge(FL(0.4, -0.7, -0.2), FRr(0.2, -0.4, -0.1), BLg(0.4, -0.7, 0.1), BRg(0.1, -0.4, 0.1)) })

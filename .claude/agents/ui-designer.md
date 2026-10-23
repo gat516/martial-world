@@ -14,6 +14,26 @@ UI sounds, and `shared-commit` for every commit. One agent owns `Hud.rbxmx` at a
 time. These are the lessons this project has already paid for; don't relearn
 them.
 
+## Figma first (user, 2026-10-23)
+
+Work in Figma through the Figma MCP whenever a task touches the look: reading kit
+colours, type and parts, composing a screen, checking proportions, exporting
+pieces. The kit file in Figma is the style source, not your memory of it or the
+PNGs in `art/ui/figma/`.
+- **Which file:** the Figma URL in your brief. Without one, use the kit link in
+  [figma-kit](../../docs/ui/figma-kit.md). If that file won't open for this
+  account, the dev needs their own imported copy (same doc).
+- **Check at the start.** Call one cheap Figma tool on the file. If the Figma
+  tools are missing or it fails (not connected, not signed in, no access), say
+  so once in your report with the fix from figma-kit.md, then carry on with the
+  steps that don't need Figma. List the Figma steps still owed. Never guess kit
+  values you couldn't read; take them from `docs/ui/` and say so.
+- **Budget:** the Starter plan allows 3 pages and limits MCP calls. Batch your
+  work into a few `use_figma` calls and check results with `node.screenshot()`
+  inside them, not with separate read tools.
+- **Write back:** new components and screens go into the kit file; after a big
+  change, ask for the master `.fig` to be re-saved (figma-kit.md).
+
 ## How UI art is made (user, 2026-10-22)
 This is the workflow for every new screen, element or restyle. Don't skip a step.
 
@@ -22,8 +42,8 @@ This is the workflow for every new screen, element or restyle. Don't skip a step
    there's none, stop and ask; don't invent a look from scratch. The house references
    are `docs/reference/ui/dialogue_prompt_reference.webp` and
    `docs/reference/ui/hud_vitals_reference.webp`.
-2. **Base it on the kit.** The style source is the Figma UI kit
-   ([overhaul-plan](../../docs/ui/overhaul-plan.md), "UI kit in Figma"): its colour
+2. **Base it on the kit.** The style source is the Figma UI kit (read it in Figma,
+   above; contents in [overhaul-plan](../../docs/ui/overhaul-plan.md), "UI kit in Figma"): its colour
    variables, type (Cormorant Garamond for labels and titles, Fredoka for numbers),
    ornaments, frames, buttons, bars and badges. Reuse kit parts wherever they fit.
 3. **Give it its own flair where it needs one.** A new element can carry its own
@@ -51,9 +71,8 @@ This is the workflow for every new screen, element or restyle. Don't skip a step
    silhouettes, the only way portraits are shown ([dialogue-ornaments](../../docs/ui/dialogue-ornaments.md)).
 6. **Compose in the Figma kit.** Put cuts into the kit's ornament components (resize the
    component to the new proportions and re-anchor its instances) or new components, and
-   build the screen there from kit instances. Check with a screenshot from inside
-   `use_figma` (`node.screenshot()`); the Starter plan allows 3 pages and about 20 read
-   calls a month, so avoid separate read tools. Show the user the Figma result.
+   build the screen there from kit instances. Check with `node.screenshot()` inside
+   `use_figma` (budget above). Show the user the Figma result.
 7. **Then Studio.** Upload the cuts (the `upload-asset` skill; record ids in
    `art/ui/assets.json`), build the GUI in Studio, preview, and export to
    `assets/` (the `studio-export` skill).
@@ -211,30 +230,22 @@ read [docs/ui/slicing.md](../../docs/ui/slicing.md).
   edit in place and export.
 - Preview with temporary clones named `__P...` (sample icons, names, fills),
   `screen_capture`, then delete them before exporting.
-- `screen_capture` captures the viewport as it is, including the device emulator
-  frame if the user has it on, and also works during a playtest. Scripts can't
-  switch the emulator (`StudioDeviceEmulatorService` isn't scriptable). To check
-  mobile, ask the user to pick a device (e.g. an iPhone in landscape) and read the
-  viewport (`workspace.CurrentCamera.ViewportSize`,
-  `UserInputService.TouchEnabled`) in the Client datamodel during a playtest.
-  Without the emulator, reason from the constraints at ~750x340 (phone landscape)
-  and ~600x300 (small phone).
+- `screen_capture` shows the viewport as it is, including the device emulator
+  (which scripts can't switch). To check mobile, ask the user to pick a device and
+  read `CurrentCamera.ViewportSize` in the Client datamodel during their playtest.
+  Otherwise reason at ~750x340 (phone landscape) and ~600x300 (small phone).
 - Previews: the Studio command bar's `require` returns a fresh, never-initialised
   copy of a client module, so `require(...).preview()` there fails. Give each new
   screen a `.preview()` and a chip in the F2 admin panel's "UI previews" section
   (`AdminPanel.luau`), which runs inside the real client.
-- After a playtest the user runs, check for errors: in the Client datamodel, read
-  `LogService:GetLogHistory()` for errors and warnings (skip UIBlox and
-  CorePackages noise).
+- After the user's playtest, read `LogService:GetLogHistory()` in the Client
+  datamodel for errors and warnings (skip UIBlox and CorePackages noise).
 
 ## Code you'll touch
 
-- src/client/Layout.luau: device switches only (touch cluster, slot names).
-- src/client/Platform.luau: `isTouch()` (decided once) and `isSmall()`.
-- src/client/Menus.luau: what hides while a menu or minigame is open.
-- src/client/HotbarView.luau, SlotArt.luau, Inventory.luau: hotbar and inventory.
-- src/client/Hud.luau: vitals, buffs, toasts. Look things up through
-  `Hud.Stack`, `Hud.Play`, or `FindFirstChild(name, true)`.
+The client UI scripts are listed in `docs/systems/ui.md`, "Key files". `Platform.isTouch()`
+is decided once at startup. Look things up through `Hud.Stack`, `Hud.Play` or
+`FindFirstChild(name, true)`.
 
 When done, report what you previewed and on which devices and sizes, the
 centring numbers, and the phone footprint before and after (`agent-report`).

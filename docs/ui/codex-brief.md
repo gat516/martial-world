@@ -167,10 +167,11 @@ phases (below).
   image (stretched, not sliced).
 
 ## What we do with it (the assembler never repaints)
-`tools/ui_assemble.py` (**to be written**), per file:
+`tools/ui_assemble.py` (on branch `ui-assemble`, off `test`; run with
+`uv run --with pillow --with numpy`), per file:
 1. Remove a magenta background and trim to the piece.
 2. Reject a piece that touches the canvas edge or has stray islands from a neighbour,
-   and finish with one contact sheet (each piece beside its source on navy) for the
+   and finish with one contact sheet (each piece beside its source on a checker) for the
    user to approve before anything is uploaded.
 3. Downscale (never upscale) to at most 1024 px on the long side; if the piece is wider,
    **cut it into side-by-side tiles**.
@@ -194,4 +195,3 @@ emulator.
 ## Open items
 - Confirm whether the generator outputs transparent PNGs; magenta keying is the fallback.
 - Cast the NPC masters for their portraits.
-- Write `tools/ui_assemble.py` before the first batch.

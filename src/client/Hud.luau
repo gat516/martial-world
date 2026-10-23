@@ -67,9 +67,11 @@ local function placeToast(toast: GuiObject)
 	local size = Vector2.new(message.Size.X.Offset + padX, message.Size.Y.Offset + pad.PaddingTop.Offset + pad.PaddingBottom.Offset)
 	local x = math.clamp(gui.AbsoluteSize.X / 2, left + size.X / 2, math.max(left + size.X / 2, right - size.X / 2))
 	local y = if barBottom >= size.Y then barBottom / 2 else (if barBottom > 0 then 4 else 10) + size.Y / 2
-	-- an open window or the build banner in the way: go below it, or above it
+	-- an open window, the build banner or a lifted boss bar in the way: go below it,
+	-- or above it
 	local banner = gui:FindFirstChild("BuildBanner") :: GuiObject?
-	for _, obstacle in { open, if banner and banner.Visible then banner else nil } do
+	local boss = gui:FindFirstChild("BossBar", true) :: GuiObject?
+	for _, obstacle in { open, if banner and banner.Visible then banner else nil, if boss and boss.Visible and (boss.Parent :: GuiObject).Visible then boss else nil } do
 		if obstacle and obstacle.Visible then
 			local p, s = obstacle.AbsolutePosition - origin, obstacle.AbsoluteSize
 			local top, bottom = y - size.Y / 2, y + size.Y / 2

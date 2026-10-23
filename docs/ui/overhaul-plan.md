@@ -33,7 +33,7 @@ them; they are not part of this overhaul unless the user says so.
      `UIScale` rather than redrawing per screen. Proposed baselines (verify in the
      device emulator): **desktop 1920 x 1080** and **phone landscape about 844 x 390**.
      The shared client module `src/client/UiScale.luau` picks the baseline by
-     platform and sets scale = min(viewportWidth / baseWidth, viewportHeight /
+     screen size (`isPhone()`: short side under 600 px, whatever the input) and sets scale = min(viewportWidth / baseWidth, viewportHeight /
      baseHeight), clamped (0.4 to 1.5), on the one authored `UiScale` UIScale in each
      screen's `Canvas` frame, and sizes the canvas to fill the screen. Per-frame
      `Motion` UIScales stay as they are and multiply on top.

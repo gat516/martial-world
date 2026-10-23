@@ -1,0 +1,201 @@
+{
+ "name": "DragonHornsCelestial",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) from the attachment; mesh Size = (bx, bz, by), CFrame relative to the attachment = CFrame.new(-cx, cz, cy), no rotation",
+ "colors": {
+  "Horn": [
+   0.36,
+   0.52,
+   0.36
+  ],
+  "HornTip": [
+   0.75,
+   0.48,
+   0.1
+  ]
+ },
+ "shade": {
+  "file": "dragon_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.58,
+  "fade_to_white_at_v": 0.5
+ },
+ "meshes": {
+  "DragonHornsCelestial_LeftHorn": {
+   "region": "Horn",
+   "tris": 956,
+   "center": [
+    0.447,
+    0.587,
+    0.199
+   ],
+   "size": [
+    0.565,
+    1.741,
+    1.094
+   ]
+  },
+  "DragonHornsCelestial_LeftHornTip": {
+   "region": "HornTip",
+   "tris": 664,
+   "center": [
+    0.604,
+    0.936,
+    0.708
+   ],
+   "size": [
+    0.257,
+    1.578,
+    0.415
+   ]
+  },
+  "DragonHornsCelestial_RightHorn": {
+   "region": "Horn",
+   "tris": 956,
+   "center": [
+    -0.447,
+    0.587,
+    0.199
+   ],
+   "size": [
+    0.565,
+    1.741,
+    1.094
+   ]
+  },
+  "DragonHornsCelestial_RightHornTip": {
+   "region": "HornTip",
+   "tris": 664,
+   "center": [
+    -0.604,
+    0.936,
+    0.708
+   ],
+   "size": [
+    0.257,
+    1.578,
+    0.415
+   ]
+  }
+ },
+ "tris_total": 3240,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "HornLBase": {
+   "parent": "Root",
+   "head": [
+    0.33,
+    -0.1,
+    -0.32
+   ],
+   "tail": [
+    0.357,
+    -0.045,
+    -0.005
+   ],
+   "roblox_head": [
+    -0.33,
+    -0.32,
+    -0.1
+   ],
+   "deform": true
+  },
+  "HornL": {
+   "parent": "HornLBase",
+   "head": [
+    0.357,
+    -0.045,
+    -0.005
+   ],
+   "tail": [
+    0.62,
+    1.321,
+    0.58
+   ],
+   "roblox_head": [
+    -0.357,
+    -0.005,
+    -0.045
+   ],
+   "deform": true
+  },
+  "HornRBase": {
+   "parent": "Root",
+   "head": [
+    -0.33,
+    -0.1,
+    -0.32
+   ],
+   "tail": [
+    -0.357,
+    -0.045,
+    -0.005
+   ],
+   "roblox_head": [
+    0.33,
+    -0.32,
+    -0.1
+   ],
+   "deform": true
+  },
+  "HornR": {
+   "parent": "HornRBase",
+   "head": [
+    -0.357,
+    -0.045,
+    -0.005
+   ],
+   "tail": [
+    -0.62,
+    1.321,
+    0.58
+   ],
+   "roblox_head": [
+    0.357,
+    -0.005,
+    -0.045
+   ],
+   "deform": true
+  }
+ },
+ "label": "Celestial",
+ "mood": "noble, celestial",
+ "proportions": {
+  "head_size": [
+   1.198,
+   1.198,
+   1.017
+  ],
+  "height_above_head": 0.915,
+  "height_to_head": 0.9,
+  "root_diameter": 0.348,
+  "root_to_head_width": 0.29,
+  "span": 1.465,
+  "span_to_head_width": 1.22,
+  "reach_behind_head": 1.126
+ }
+}

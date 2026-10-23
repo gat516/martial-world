@@ -1,0 +1,305 @@
+{
+ "name": "TigerEarsRound",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy), no rotation",
+ "colors": {
+  "FurOuter": [
+   0.78,
+   0.25,
+   0.035
+  ],
+  "FurStripe": [
+   0.045,
+   0.022,
+   0.014
+  ],
+  "FurTip": [
+   0.92,
+   0.89,
+   0.83
+  ],
+  "FurInner": [
+   0.93,
+   0.82,
+   0.7
+  ],
+  "Whiskers": [
+   0.06,
+   0.035,
+   0.025
+  ]
+ },
+ "shade": {
+  "file": "tiger_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.6,
+  "fade_to_white_at_v": 0.4
+ },
+ "meshes": {
+  "TigerEarsRound_LeftEar": {
+   "region": "FurOuter",
+   "tris": 286,
+   "center": [
+    0.319,
+    0.25,
+    0.098
+   ],
+   "size": [
+    0.641,
+    0.417,
+    0.952
+   ],
+   "roblox_center": [
+    -0.319,
+    0.098,
+    0.25
+   ]
+  },
+  "TigerEarsRound_LeftEarInner": {
+   "region": "FurInner",
+   "tris": 310,
+   "center": [
+    0.328,
+    0.131,
+    0.127
+   ],
+   "size": [
+    0.477,
+    0.249,
+    0.595
+   ],
+   "roblox_center": [
+    -0.328,
+    0.127,
+    0.131
+   ]
+  },
+  "TigerEarsRound_LeftEarBack": {
+   "region": "FurStripe",
+   "tris": 80,
+   "center": [
+    0.37,
+    0.304,
+    0.437
+   ],
+   "size": [
+    0.355,
+    0.174,
+    0.279
+   ],
+   "roblox_center": [
+    -0.37,
+    0.437,
+    0.304
+   ]
+  },
+  "TigerEarsRound_LeftEarSpot": {
+   "region": "FurTip",
+   "tris": 80,
+   "center": [
+    0.34,
+    0.374,
+    0.333
+   ],
+   "size": [
+    0.109,
+    0.109,
+    0.109
+   ],
+   "roblox_center": [
+    -0.34,
+    0.333,
+    0.374
+   ]
+  },
+  "TigerEarsRound_RightEar": {
+   "region": "FurOuter",
+   "tris": 286,
+   "center": [
+    -0.319,
+    0.25,
+    0.098
+   ],
+   "size": [
+    0.641,
+    0.417,
+    0.952
+   ],
+   "roblox_center": [
+    0.319,
+    0.098,
+    0.25
+   ]
+  },
+  "TigerEarsRound_RightEarInner": {
+   "region": "FurInner",
+   "tris": 310,
+   "center": [
+    -0.328,
+    0.131,
+    0.127
+   ],
+   "size": [
+    0.477,
+    0.249,
+    0.595
+   ],
+   "roblox_center": [
+    0.328,
+    0.127,
+    0.131
+   ]
+  },
+  "TigerEarsRound_RightEarBack": {
+   "region": "FurStripe",
+   "tris": 80,
+   "center": [
+    -0.37,
+    0.304,
+    0.437
+   ],
+   "size": [
+    0.355,
+    0.174,
+    0.279
+   ],
+   "roblox_center": [
+    0.37,
+    0.437,
+    0.304
+   ]
+  },
+  "TigerEarsRound_RightEarSpot": {
+   "region": "FurTip",
+   "tris": 80,
+   "center": [
+    -0.34,
+    0.374,
+    0.333
+   ],
+   "size": [
+    0.109,
+    0.109,
+    0.109
+   ],
+   "roblox_center": [
+    0.34,
+    0.333,
+    0.374
+   ]
+  }
+ },
+ "tris_total": 1512,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "EarLBase": {
+   "parent": "Root",
+   "head": [
+    0.3,
+    0.1,
+    -0.102
+   ],
+   "tail": [
+    0.322,
+    0.113,
+    -0.005
+   ],
+   "roblox_head": [
+    -0.3,
+    -0.102,
+    0.1
+   ],
+   "deform": true
+  },
+  "EarL": {
+   "parent": "EarLBase",
+   "head": [
+    0.322,
+    0.113,
+    -0.005
+   ],
+   "tail": [
+    0.406,
+    0.162,
+    0.372
+   ],
+   "roblox_head": [
+    -0.322,
+    -0.005,
+    0.113
+   ],
+   "deform": true
+  },
+  "EarRBase": {
+   "parent": "Root",
+   "head": [
+    -0.3,
+    0.1,
+    -0.102
+   ],
+   "tail": [
+    -0.322,
+    0.113,
+    -0.005
+   ],
+   "roblox_head": [
+    0.3,
+    -0.102,
+    0.1
+   ],
+   "deform": true
+  },
+  "EarR": {
+   "parent": "EarRBase",
+   "head": [
+    -0.322,
+    0.113,
+    -0.005
+   ],
+   "tail": [
+    -0.406,
+    0.162,
+    0.372
+   ],
+   "roblox_head": [
+    0.322,
+    -0.005,
+    0.113
+   ],
+   "deform": true
+  }
+ },
+ "mood": "cute",
+ "sizes": {
+  "visible_height": 0.578,
+  "width": 0.641,
+  "height_vs_head": 0.57,
+  "width_vs_head": 0.53,
+  "tris": 1512,
+  "mood": "cute"
+ }
+}

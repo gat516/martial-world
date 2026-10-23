@@ -1,0 +1,201 @@
+{
+ "name": "DragonHornsCub",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) from the attachment; mesh Size = (bx, bz, by), CFrame relative to the attachment = CFrame.new(-cx, cz, cy), no rotation",
+ "colors": {
+  "Horn": [
+   0.855,
+   0.776,
+   0.604
+  ],
+  "HornTip": [
+   0.672,
+   0.402,
+   0.077
+  ]
+ },
+ "shade": {
+  "file": "dragon_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.58,
+  "fade_to_white_at_v": 0.5
+ },
+ "meshes": {
+  "DragonHornsCub_LeftHorn": {
+   "region": "Horn",
+   "tris": 572,
+   "center": [
+    0.389,
+    0.043,
+    0.159
+   ],
+   "size": [
+    0.512,
+    0.605,
+    0.999
+   ]
+  },
+  "DragonHornsCub_LeftHornTip": {
+   "region": "HornTip",
+   "tris": 460,
+   "center": [
+    0.49,
+    0.219,
+    0.552
+   ],
+   "size": [
+    0.315,
+    0.762,
+    0.379
+   ]
+  },
+  "DragonHornsCub_RightHorn": {
+   "region": "Horn",
+   "tris": 572,
+   "center": [
+    -0.389,
+    0.043,
+    0.159
+   ],
+   "size": [
+    0.512,
+    0.605,
+    0.999
+   ]
+  },
+  "DragonHornsCub_RightHornTip": {
+   "region": "HornTip",
+   "tris": 460,
+   "center": [
+    -0.49,
+    0.219,
+    0.552
+   ],
+   "size": [
+    0.315,
+    0.762,
+    0.379
+   ]
+  }
+ },
+ "tris_total": 2064,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "HornLBase": {
+   "parent": "Root",
+   "head": [
+    0.33,
+    -0.04,
+    -0.32
+   ],
+   "tail": [
+    0.355,
+    -0.016,
+    -0.01
+   ],
+   "roblox_head": [
+    -0.33,
+    -0.32,
+    -0.04
+   ],
+   "deform": true
+  },
+  "HornL": {
+   "parent": "HornLBase",
+   "head": [
+    0.355,
+    -0.016,
+    -0.01
+   ],
+   "tail": [
+    0.497,
+    0.345,
+    0.562
+   ],
+   "roblox_head": [
+    -0.355,
+    -0.01,
+    -0.016
+   ],
+   "deform": true
+  },
+  "HornRBase": {
+   "parent": "Root",
+   "head": [
+    -0.33,
+    -0.04,
+    -0.32
+   ],
+   "tail": [
+    -0.355,
+    -0.016,
+    -0.01
+   ],
+   "roblox_head": [
+    0.33,
+    -0.32,
+    -0.04
+   ],
+   "deform": true
+  },
+  "HornR": {
+   "parent": "HornRBase",
+   "head": [
+    -0.355,
+    -0.016,
+    -0.01
+   ],
+   "tail": [
+    -0.497,
+    0.345,
+    0.562
+   ],
+   "roblox_head": [
+    0.355,
+    -0.01,
+    -0.016
+   ],
+   "deform": true
+  }
+ },
+ "label": "Cub",
+ "mood": "cute",
+ "proportions": {
+  "head_size": [
+   1.198,
+   1.198,
+   1.017
+  ],
+  "height_above_head": 0.741,
+  "height_to_head": 0.73,
+  "root_diameter": 0.42,
+  "root_to_head_width": 0.35,
+  "span": 1.295,
+  "span_to_head_width": 1.08,
+  "reach_behind_head": 0.001
+ }
+}

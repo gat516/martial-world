@@ -1,0 +1,264 @@
+{
+ "name": "TigerTailCurl",
+ "attachment": "WaistBackAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.5,
+  0.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy), no rotation",
+ "colors": {
+  "FurOuter": [
+   0.78,
+   0.25,
+   0.035
+  ],
+  "FurStripe": [
+   0.045,
+   0.022,
+   0.014
+  ],
+  "FurTip": [
+   0.92,
+   0.89,
+   0.83
+  ],
+  "FurInner": [
+   0.93,
+   0.82,
+   0.7
+  ],
+  "Whiskers": [
+   0.06,
+   0.035,
+   0.025
+  ]
+ },
+ "shade": {
+  "file": "tiger_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.6,
+  "fade_to_white_at_v": 0.4
+ },
+ "meshes": {
+  "TigerTailCurl_Tail": {
+   "region": "FurOuter",
+   "tris": 2300,
+   "center": [
+    0.635,
+    1.167,
+    -0.006
+   ],
+   "size": [
+    2.36,
+    2.976,
+    1.518
+   ],
+   "roblox_center": [
+    -0.635,
+    -0.006,
+    1.167
+   ]
+  },
+  "TigerTailCurl_TailStripe": {
+   "region": "FurStripe",
+   "tris": 2062,
+   "center": [
+    0.692,
+    1.264,
+    0.279
+   ],
+   "size": [
+    2.389,
+    2.775,
+    2.011
+   ],
+   "roblox_center": [
+    -0.692,
+    0.279,
+    1.264
+   ]
+  },
+  "TigerTailCurl_TailTip": {
+   "region": "FurTip",
+   "tris": 508,
+   "center": [
+    1.388,
+    2.08,
+    0.776
+   ],
+   "size": [
+    0.928,
+    0.926,
+    0.87
+   ],
+   "roblox_center": [
+    -1.388,
+    0.776,
+    2.08
+   ]
+  }
+ },
+ "tris_total": 4870,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.25,
+    0.0
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "TailBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    -0.3,
+    0.06
+   ],
+   "tail": [
+    -0.013,
+    -0.018,
+    0.096
+   ],
+   "roblox_head": [
+    -0.0,
+    0.06,
+    -0.3
+   ],
+   "deform": true
+  },
+  "Tail1": {
+   "parent": "TailBase",
+   "head": [
+    -0.013,
+    -0.018,
+    0.096
+   ],
+   "tail": [
+    0.08,
+    0.755,
+    0.044
+   ],
+   "roblox_head": [
+    0.013,
+    0.096,
+    -0.018
+   ],
+   "deform": true
+  },
+  "Tail2": {
+   "parent": "Tail1",
+   "head": [
+    0.08,
+    0.755,
+    0.044
+   ],
+   "tail": [
+    0.425,
+    1.437,
+    -0.164
+   ],
+   "roblox_head": [
+    -0.08,
+    0.044,
+    0.755
+   ],
+   "deform": true
+  },
+  "Tail3": {
+   "parent": "Tail2",
+   "head": [
+    0.425,
+    1.437,
+    -0.164
+   ],
+   "tail": [
+    0.969,
+    1.994,
+    -0.145
+   ],
+   "roblox_head": [
+    -0.425,
+    -0.164,
+    1.437
+   ],
+   "deform": true
+  },
+  "Tail4": {
+   "parent": "Tail3",
+   "head": [
+    0.969,
+    1.994,
+    -0.145
+   ],
+   "tail": [
+    1.385,
+    2.127,
+    0.469
+   ],
+   "roblox_head": [
+    -0.969,
+    -0.145,
+    1.994
+   ],
+   "deform": true
+  },
+  "Tail5": {
+   "parent": "Tail4",
+   "head": [
+    1.385,
+    2.127,
+    0.469
+   ],
+   "tail": [
+    1.199,
+    1.742,
+    1.047
+   ],
+   "roblox_head": [
+    -1.385,
+    0.469,
+    2.127
+   ],
+   "deform": true
+  }
+ },
+ "sizes": {
+  "length": 4.12,
+  "thickness": 1.05,
+  "length_vs_torso_height": 2.06,
+  "thickness_vs_torso_depth": 1.05,
+  "limb_clearance": {
+   "LeftLeg": [
+    -0.24,
+    0.6
+   ],
+   "RightLeg": [
+    -0.24,
+    0.6
+   ],
+   "LeftArm": [
+    0.47,
+    0.83
+   ],
+   "RightArm": [
+    0.54,
+    0.6
+   ]
+  },
+  "tris": 4870
+ }
+}

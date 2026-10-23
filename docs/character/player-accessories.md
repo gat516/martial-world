@@ -120,5 +120,7 @@ The accessories are rigged, but nothing moves the bones yet. Planned once the re
 - one client script that drives every worn accessory's bones by name
 - tails (`Tail1..`) sway with lag down the chain, faster while running, settling when the player stops
 - ears (`EarL`/`EarR`) twitch now and then
+- floating rock (Stone Spirit): an `Orbit` bone spins its ring about its own Y (Peak's arc sways),
+  and each `ShardN` / `ChipN` bobs along its own Y with offset phases
 
 Every race gets it for free, as long as it uses the standard bone names.

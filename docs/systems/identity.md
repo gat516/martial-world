@@ -161,7 +161,10 @@ Races, variants and traits can name accessories to wear (`Cosmetics = { ... }`,
 ids of Accessories in `ServerStorage.Cosmetics`, `assets/Cosmetics.rbxm`, mapped
 in both projects). Fox Cunning (Spirit Fox's innate trait) wears `FoxEars` and
 `FoxTail`, a rigged prototype (user, 2026-10-23; the build and joint names are in
-`art/player/cosmetics/README.md`). `Traits.applyBody` adds the ones the profile
+`art/player/cosmetics/README.md`). Stone Spirit has three Blender-built sets kept as
+variants (user, 2026-10-23), each worn whole: Peak (pauldrons + a shard arc), Orbit (a shard ring
++ bracers) and Fist (gauntlets + three shards), in `art/player/cosmetics/stone-spirit/`, not yet
+imported or named on the race. `Traits.applyBody` adds the ones the profile
 calls for and removes the rest (each worn one carries a `Cosmetic` attribute with
 its id) on every spawn, every trait, race or variant change, and after dress-up
 (ApplyDescription strips accessories). They go on at scale 1 and grow with the

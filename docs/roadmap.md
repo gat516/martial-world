@@ -83,6 +83,41 @@ bounties, sect tasks, contribution and a Pavilion shop (never qi).
 - **Build order:** rank and contribution, then the board UI, then dailies, then
   chains per region. UI by the ui-designer.
 
+## 3b. Sect structure and contribution (proposed 2026-10-22)
+- **One official sect, run by NPCs, that everyone starts in.** It is the hub, the
+  elder, the board and the Pavilion. The demon path leaves it for the Blood Sect
+  (also NPC-run); a rogue belongs to neither.
+- **Player groups sit under it as Halls.** A Hall is 10-30 players with a shared
+  name, banner, a hall they furnish together, a shared plot, and a small board of
+  group goals. A Hall can belong to the sect, the Blood Sect or be independent, so
+  every path can form one. "Cliques" is the wrong word; **Hall** fits the genre.
+  Names considered: Hall, Lineage (a master and disciples, mentoring), Clan
+  (friends and family), Banner.
+- **Lineage as a light mentor tie inside a Hall:** a senior takes a junior, both earn
+  contribution when the junior advances. It helps new players, which helps retention.
+- **Contribution is soft.** The sect board offers tasks; nothing nags. At most one
+  dismissible prompt per session ("The elder summons disciples to the hall"), no
+  penalty for ignoring it. Each playstyle contributes in its own currency: herbs from
+  the gardener, beast cores from the fighter, pieces for the hall from the builder.
+- **Spirit quests:** occasional special asks from a spirit or the heavens (find a
+  lost spirit, tend a dying tree, carry a message), rare, a story beat each, with a
+  small reward. They are flavour and a cadence hook, never a chore.
+- **Sect-wide goals:** server-wide shared tasks (fill the storehouse, light the
+  wards before a beast tide) that reward everyone who helped. Cadence and social in one.
+
+## 3c. Reward banners: show cultivation gains
+Today gains show as small toasts, floating numbers and a Rewards feed. Players should
+feel the big ones.
+- **Three tiers.** *Small:* a floating number or a line in the feed (qi, stones).
+  *Medium:* a top banner for a notable gain (a technique tier, a cracked foundation
+  repaired, a Herbarium entry, a quest done). *Big:* a full card with a short beat and
+  sound for milestones (a breakthrough, a first of a category, a bloodline, a rank).
+- **The card shows what changed:** the stat deltas, the new unlock, and one line on
+  what to do next ("Your foundation is firm. The Outer Wastes are open.").
+- **Never block play;** big cards are skippable and queue, one at a time.
+- **Build:** a reward-banner component in the HUD, fed by one server event with a tier;
+  existing "breakthrough" cards fold into it. `ui-designer`, designed with the user.
+
 ## 4. Techniques and weapons (why they feel lackluster, and the fix)
 **What exists:** 12 techniques (5 any-weapon, one skill per weapon class; the table in [combat](systems/combat.md)). They
 are mostly damage with a cooldown, plus a comprehension bottleneck. I haven't
@@ -300,5 +335,6 @@ run alongside them. Before spawning, ask how many agents and sandbox Studios at 
 - Does the Herbarium reward cosmetics only, or small solidity?
 - Which building sets are robux and which are earnable? (earnable first)
 - Rebirth: is it a full reset (keeping the legacy) or a parallel second character?
+- Hall, Lineage, Clan or Banner for player groups? (proposal: Hall, with Lineage as the mentor tie)
 - How hinted is the demon secret: rumours only, or does the elder give a nudge?
 - Does the demon path keep its own home peak look, or reuse the sect's with a demon skin?

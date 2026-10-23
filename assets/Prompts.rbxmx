@@ -53,15 +53,15 @@
       <Item class="ImageLabel" referent="RBX8"><Properties>
        <string name="Name">CapL</string>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Size"><XS>0</XS><XO>27</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://79837537690613</url></Content>
+       <UDim2 name="Size"><XS>0</XS><XO>11</XO><YS>1</YS><YO>0</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://90608147104400</url></Content>
       </Properties>
       </Item>
       <Item class="ImageLabel" referent="RBX9"><Properties>
        <string name="Name">Mid</string>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>0</XS><XO>27</XO><YS>0</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>1</XS><XO>-123</XO><YS>1</YS><YO>0</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>11</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-22</XO><YS>1</YS><YO>0</YO></UDim2>
        <Content name="Image"><url>rbxassetid://122116613176732</url></Content>
       </Properties>
       </Item>
@@ -70,8 +70,8 @@
        <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
        <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-       <UDim2 name="Size"><XS>0</XS><XO>96</XO><YS>1</YS><YO>0</YO></UDim2>
-       <Content name="Image"><url>rbxassetid://102124660271118</url></Content>
+       <UDim2 name="Size"><XS>0</XS><XO>11</XO><YS>1</YS><YO>0</YO></UDim2>
+       <Content name="Image"><url>rbxassetid://71127881430076</url></Content>
       </Properties>
       </Item>
      </Item>
@@ -79,7 +79,7 @@
       <string name="Name">Icon</string>
       <Vector2 name="AnchorPoint"><X>1</X><Y>0.5</Y></Vector2>
       <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Position"><XS>1</XS><XO>-84</XO><YS>0.5</YS><YO>0</YO></UDim2>
+      <UDim2 name="Position"><XS>1</XS><XO>-16</XO><YS>0.5</YS><YO>0</YO></UDim2>
       <UDim2 name="Size"><XS>0</XS><XO>20</XO><YS>0</YS><YO>20</YO></UDim2>
       <int name="ZIndex">2</int>
       <Content name="Image"><url>rbxassetid://129912521604806</url></Content>
@@ -206,13 +206,13 @@
       <string name="Name">Body</string>
       <float name="BackgroundTransparency">1</float>
       <UDim2 name="Position"><XS>0</XS><XO>58</XO><YS>0</YS><YO>0</YO></UDim2>
-      <UDim2 name="Size"><XS>1</XS><XO>-168</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>1</XS><XO>-100</XO><YS>1</YS><YO>0</YO></UDim2>
       <int name="ZIndex">2</int>
      </Properties>
       <Item class="TextLabel" referent="RBX25"><Properties>
        <string name="Name">Object</string>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>9</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>10</YO></UDim2>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>14</YO></UDim2>
        <int name="ZIndex">2</int>
        <string name="Text">Herb Bed</string>
@@ -228,7 +228,7 @@
       <Item class="TextLabel" referent="RBX26"><Properties>
        <string name="Name">Action</string>
        <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>23</YO></UDim2>
+       <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>24</YO></UDim2>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>19</YO></UDim2>
        <int name="ZIndex">2</int>
        <string name="Text">Harvest</string>

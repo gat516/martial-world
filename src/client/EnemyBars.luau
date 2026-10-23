@@ -307,7 +307,7 @@ end
 
 function EnemyBars.init(gui: ScreenGui)
 	local play = gui:FindFirstChild("Play") :: Frame
-	local bossBar = play:FindFirstChild("BossBar") :: CanvasGroup?
+	local bossBar = play:FindFirstChild("BossBar") :: Frame?
 	if bossBar then
 		BossBars.init(bossBar, STYLES)
 	end

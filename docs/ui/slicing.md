@@ -63,7 +63,7 @@ its row grows to match. An image that already had a margin is compensated relati
 it. Icon crops keep a margin in `tools/icon_rects.py` (`PAD`). Not yet margined (still
 edge-margin FAILs, 2026-10-23): the glyph family (`Glyphs.luau`, code swaps them
 everywhere), the Sect crest composites (shields, rings, emblems: `Sect/Art.Size`/`Hole`
-place the layers), the boss bar mounts (`BossThemes`), the Events windows' themed
+place the layers), the Events windows' themed
 corners (`Events/Themes` sets their aspect), and icons drawn to their own border.
 
 ## Export round-trip check

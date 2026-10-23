@@ -86,8 +86,9 @@ first note (a pi turn) put the tail in front of the body.
   it and only polish.
 - **Ears: short and solid.** The fox's first ears were "too tall. make them
   cute" and "too thin.. why are they so thin?" (user, 2026-10-23).
-  - Height: about 35-45% of the head's height, base width about 25-30% of
-    its width, unless the brief says otherwise.
+  - Size: the approved cute fox ears are about 64% of the head's height with a
+    base about 40% of its width (R6 head mesh 1.20 wide, 1.02 tall). Use that as
+    the bar unless the brief says otherwise.
   - Body: a solid, rounded cup with depth front to back, wide at the base. Not a
     flat card.
   - Inner fur: a few soft, chunky, rounded tufts that fill the cup, not thin needle

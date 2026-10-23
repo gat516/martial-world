@@ -95,8 +95,8 @@ standing preferences:
 - **Size against the part it attaches to.** Measure the R6 head, torso or limb
   mesh's bounding box. Give each piece's height and width as a ratio of that part,
   print the ratios, and put them on the sheet ("make sure we're checking in
-  relation to the size of the head or the body part"). Ears run about 35-45% of
-  head height.
+  relation to the size of the head or the body part"). The approved cute fox ears
+  are about 64% of head height and 40% of head width.
 - **Cute, not creepy.** The approved fox ears are soft, rounded and chunky. Tall,
   thin, hooked shapes with tooth-like tufts were "not cute it just looks creepy".
 - **Variants really vary.** Each variant has its own silhouette (a round peak

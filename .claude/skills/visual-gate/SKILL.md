@@ -47,6 +47,12 @@ passes, list what's left with numbers) and report. Don't write a helper that
 `docs/tools.md` already lists; don't paste files into `execute_luau` when the
 brief gives you a served base URL; batch probe runs (`motion_audit`, `ui_lint`
 over every size at once) instead of one move or one screen at a time.
+**Captures: at most 8 per task**, and each one is a sheet (a direction, a
+filmstrip, a four-view) that goes to the critic, never a peek between tweaks.
+Tune by numbers and lints between captures (one Great Sage pass spent 32
+captures and 114 calls before its first sheet). Set the scene up in one call
+(`_G.reviewStage.cast{}` / `anim{}` / `model{}` gives the plate, rig, weapon
+and camera), not by hand.
 
 ## 1. Direction before polish
 

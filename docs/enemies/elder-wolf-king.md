@@ -187,12 +187,57 @@ Per move (intent, then what changed; timings and cue moments are unchanged):
   Call, close it at the release.
 - **Skids:** the inside forepaw's step reaches round with the bend it plants with.
 
-Known gaps (animation): the rush's arrival into the rake or skid still blends from the frozen
-gallop frame (one dead frame, a claw about 0.6 studs into the floor for two frames); the
-gallop still steps a joint up to 60 degrees a frame at lift-off (smoothed by the loop
-blend); the bent hind paw's merge into the thigh and the raised forearm into the manes are
-rig geometry, as before. Feel in Play, the hand-off from EnemyAnimator's blends at real
-frame rates and phone cost are untested.
+## Motion pass (audit A3, 2026-10-23)
+
+The audit found Paw Swipe, Claw Down, Crownfall, King's Leap and Pack Call turning as one
+block, every hero stopping dead on the contact frame, no anticipation late in Claw Down,
+Crownfall and the Leap, and the rush's arrival flipping an elbow 112 deg. Intent: each blow
+starts in the hips and ripples out to the head, lands with its whole weight and settles;
+nothing stops dead. What changed in `WolfKing.luau` (timings, cue moments, the left-forepaw
+rake and the leap's hang unchanged):
+- **One clock across the phases.** The secondary lags (jaw, ears, crest, manes, seal) read
+  the move's keys back across phase edges instead of fading to zero at each edge, which is
+  where every strike is; they fade out only at the end of the move.
+- **Ripple** (the Nine-Tailed Fox's pattern) on Royal Bite, Paw Swipe, Claw Down,
+  Crownfall, Pack Call, King's Leap and King's Rake: hips > chest > neck each read the keys
+  a step (1/30 s) later than the one before (the hips lead by 3, Claw Down's short windup by
+  1), the head moves with the neck (a step behind it pushed the ears and crest into the mane
+  blades) except in the bite and the rake, the tail trails the hips a step a link, and each
+  link's world rotation is filtered over a few steps. A free leg keeps its own world timing, so a paw still hits on
+  its key. The Leap's leads ease out before touchdown so the landing crouch stays on it.
+- **Planted paws stay put** (`keepFeet`): the planting solve ignores sideways error, so a
+  turning chest skated the support forepaw 2.8 studs under the swipe; each planted upper
+  leg now rolls until its paw is back on its spot.
+- **Claw Down:** the held peak keeps rising (a lift, not a crunch, before the chop), the
+  claw lands on the windup's end and rakes back 0.3 unit through the ground.
+- **Crownfall:** the drop starts at 0.9 of the windup and the forepaws strike a frame
+  before its end, the chest crashes onto them on it, the paws skid forward under the weight
+  (the scar's gouge), and in the recover each forepaw steps back under the chest (left, then
+  right) instead of sliding home. Its splayed forepaws plant with the wrists 0.03 unit high
+  (as do the Leap's coil): rolled onto their spots, the forearms' edges dipped into the floor.
+- **King's Leap:** the coil keeps sinking into the launch.
+- **King's Rush:** each pawing scrape digs in and drags back in one stroke; the dash's
+  last 0.3 s brakes into the skid's brace (strides shrink, the paws come down through the
+  gallop's own solve, then plant), so the rake and the skid start from four planted paws;
+  the launch blends into the gallop over 0.14 s (0.06 threw a forepaw 2.8 studs a frame).
+- **Skids:** the stepping forepaw carries over the top of its step and lands on a longer ease.
+- King's Rake's pose recover is 0.76 s (the server's 0.9 minus the active), as played.
+
+Probe before -> after (`art/enemies/motion_audit.luau`): body or tail ONE BLOCK in five
+moves -> none; heroes stopping dead in a recover in six moves -> none; anticipation (root /
+chest, studs) Claw Down none/none -> still at the release/0.80, Crownfall 0.13/none ->
+0.46/2.50, King's Leap none/none -> 0.44/0.34; rush > rake elbow 112 deg at the arrival ->
+under 45 through the rake, paw stops 4 -> 0; the leap still dips 1.6 on landing.
+
+Known gaps (animation): the gallop still steps a joint 50-70 degrees a frame at lift-off
+(in the dash; a keyed move gets no loop smoothing); the head hangs still in model space just
+after the Leap's take-off (it flies on the server's arc); Crownfall's slam swings a
+shoulder 61 deg in one frame (a deliberate snap; 57 before); head speeds at contact are lower
+than before (55-90 studs/s, from 120-200) because the head now trails and is filtered;
+the bent hind paw's merge into the thigh and the raised forearm into the manes are rig
+geometry, as before. Feel in Play, the hand-off from EnemyAnimator's blends at real frame
+rates and phone cost (each keyed frame now samples the keys about 18 times, unplanted,
+plus up to three planting passes) are untested.
 
 ## Known gaps
 - The Elder Wolf King's animation was reworked (secondary motion, attack variants,

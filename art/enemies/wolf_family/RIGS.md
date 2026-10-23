@@ -98,6 +98,14 @@ Empty FX attachments (identity world rotation at rest, so they turn with their p
   cleanly at any angle; the forelegs' block tops sit inside the chest.
 - The King's scale is 2.4x: translations on JointRoot are in studs, so scale them up
   (a 0.5 crouch on the Spirit Wolf is 1.2 on the King). Rotations transfer unchanged.
+- **Planted paws skate sideways under a turning chest** (King, 2026-10-23): the shared
+  planting solve (`Quadruped` `reachLeg`) works in each leg's own plane and ignores the
+  sideways miss, so spine yaw or roll slid the swipe's support forepaw 2.8 studs. `WolfKing`
+  rolls each planted upper leg back onto its spot after planting (`keepFeet`). Never run
+  `plantLegs` twice over a foot being put down (0 < plant < 1): the second pass moves it on
+  again from where the first left it (a 66 -> 89 deg elbow pop).
+- **King forepaw reach, planted:** forward to -0.66 unit and out to 0.31 stays on the floor;
+  out past about 0.38 the stretched leg lifts the paw 0.1-0.16 studs off it.
 - Tell parts (the Spirit Wolf's eyes and crest edges, the King's brow mark, collar jade
   and seal) carry the `Tell` attribute; they flare in the client FX, not through the clip.
 - The Spirit Wolf B's back is a cylinder over the chest and over the hips (no shoulder

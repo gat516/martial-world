@@ -65,9 +65,8 @@ scales all player damage.
   `src/client/GuardBar.luau` (the bar) and `src/client/GuardFX.luau` (visuals).
 - `src/server/PlayerStun.luau`, `src/client/CrowdControl.luau`: player flinch,
   stagger and stun ([Player crowd control](#player-crowd-control)).
-- `src/client/LockOn.luau`, `Sprint.luau`, `ShiftLock.luau` (main-game Alt
-  binding), `TestbedAltMouseLock.client.luau` (testbed-only Alt controller),
-  `HeadLook.luau`.
+- `src/client/LockOn.luau`, `Sprint.luau`, `ShiftLock.luau` (Alt
+  binding), `HeadLook.luau`.
   Sprint's loop is `Animations/Run` in `assets/Animations.rbxmx` (rbxassetid
   117319074411273, the new run clip; the old one was 81617655199380). Its
   playback speed is scaled from `Config.Movement.RUN_ANIMATION_SPEED` (26 studs/s,

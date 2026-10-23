@@ -51,16 +51,24 @@ local function hook(module: ModuleScript)
 	end
 end
 
--- Keep shift lock off while a window is open, and put it back afterwards.
+-- Keep shift lock off while a window is open, and put it back afterwards. Only the
+-- state it had as the window opened comes back: Alt over a window is undone here
+-- (as the testbed's Alt lock ignores it), not taken as "turn it on after".
+-- Runs after input and before the camera, so an Alt press over a window never
+-- reaches the camera and never yanks the mouse to the centre for a frame.
+local menuWasOpen = false
 local function suspendForMenus()
 	local c = controller
 	if not c then
 		return
 	end
-	if Menus.isOpen() then
-		if c.isMouseLocked then -- on as it opened, or Alt pressed over it
+	local open = Menus.isOpen()
+	if open then
+		if not menuWasOpen then
+			suspended = c.isMouseLocked
+		end
+		if c.isMouseLocked then
 			c:OnMouseLockToggled()
-			suspended = true
 		end
 	elseif suspended then
 		suspended = false
@@ -68,6 +76,7 @@ local function suspendForMenus()
 			c:OnMouseLockToggled()
 		end
 	end
+	menuWasOpen = open
 end
 
 -- Waits for a child with no timeout and no "infinite yield" warning: on a slow join
@@ -111,8 +120,8 @@ function ShiftLock.init(gui: ScreenGui)
 	local easeFrom = 0 -- studs right the camera stood when the shoulder snapped
 
 	-- after the camera module and LockOn have set this frame's mouse behaviour
+	RunService:BindToRenderStep("ShiftLockMenus", Enum.RenderPriority.Input.Value + 1, suspendForMenus)
 	RunService:BindToRenderStep("ShiftLockReticle", Enum.RenderPriority.Camera.Value + 3, function(dt: number)
-		suspendForMenus()
 		local camera = workspace.CurrentCamera
 		local centred = UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter
 		local locked = LockOn.target() ~= nil

@@ -30,7 +30,8 @@ cursor, settings and the admin panel.
   nothing extra: `ScrollHint.init` picks up every ScrollingFrame in the Hud.
   The top-left is always Roblox's chat. On PC, shift lock switches off while
   any window (reward card and minigames included) is open, so the mouse is free,
-  and comes back when it closes (`ShiftLock`; `TestbedAltMouseLock` in the testbed).
+  and comes back when it closes only if it was on as the window opened; Alt over
+  a window does nothing (`ShiftLock`).
 - Short, snappy motion (0.1-0.25 s) on windows, prompts, buttons and bars.
 - The bottom-centre stack (user decision, 2026-10-22, from a Deepwoken-style
   reference in our own style): one gilded mount holding health, combat qi and
@@ -224,8 +225,7 @@ cursor, settings and the admin panel.
 - `ScrollHint.luau` (the "more below" fade and chevron over every scrolling
   list, `Hud.ScrollHint`; art `draw_ui.py scroll`; `ScrollHint.reveal` scrolls a
   control into view).
-- `Cursor.luau`, `ShiftLock.luau` (the existing main-game binding and reticle),
-  `TestbedAltMouseLock.client.luau` (Alt toggle in the testbed only),
+- `Cursor.luau`, `ShiftLock.luau` (Alt binding and reticle),
   `LockOn.luau` reticle and hint.
 - `Settings.luau` (volumes, Auto combat, lock hint), `AdminPanel.luau` (F2, admins on PC; Tools and Traits tabs, the Traits tab is `AdminTraits.luau`, see [identity](identity.md)).
 - `State.luau`: the latest `PlayerState` snapshot with change listeners.

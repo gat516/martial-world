@@ -5,7 +5,10 @@ What each script in `tools/` does. Read it when you need a tool and don't know i
 - `check.sh` (luau-lsp)
 - `sandbox.sh` (disposable agent Studio built from `test.project.json`: `open`/`close <name>`, `list` with ages, `prune <hours>` for leftovers, `tile`). Windows are laid out by `sandbox_windows.ps1`: a grid on the second monitor, a new one opens minimised if the rest are, and a background watcher minimises and restores them together; the user's own Studios are never touched
 - `check_testbed.py` (test.project.json maps what default.project.json does)
-- rbxmx export/receive
+- rbxmx export/receive (`export_rbxmx.luau` writes attributes too; `export_check.luau` + `export_check.py`: the round-trip check after every export, docs/ui/slicing.md)
+- UI lint (`ui_lint.luau` dumps every GUI at four sizes, `ui_lint.py` checks clip, edge margin, slices, oversize, text, text under caps: the gate for UI work, docs/ui/slicing.md)
+- UI edge-margin fixer (`ui_margin.py` + `ui_margin.luau`: margined display-sized copies and element compensation from the lint's findings)
+- UI cutter (`ui_assemble.py`: Codex sheets to cuts; `--sized` display-sized copies with clear margins from `art/ui/sized/sized.json`)
 - rbxm export (keeps attributes, for VFX)
 - VFX library search + index (`vfx_library.luau`, `vfx_library.json`)
 - animation marker reader (`anim_markers.luau`)

@@ -3,6 +3,9 @@
 -- (no Rojo there), preview, then export StarterGui.Dialogue to assets/Dialogue.rbxmx.
 -- Re-running replaces the old copy. Layouts are in baseline pixels: Desktop at
 -- 1920x1080, Phone at 844x390 (UiScale fits the Canvas at runtime).
+-- Stale since 2026-10-23: assets/Dialogue.rbxmx has the frame corners as margined
+-- display-sized copies with grown elements (tools/ui_margin.py) and moved response
+-- labels and keys (ui_lint text-cap). Don't rerun it over the export; port those first.
 
 local IDS = {
 	chevron = "rbxassetid://105373918142379",

@@ -1,5 +1,5 @@
 <roblox version="4">
-<Item class="ScreenGui" referent="RBX1"><Properties>
+ <Item class="ScreenGui" referent="RBX1"><Properties>
   <string name="Name">CharacterCreator</string>
   <bool name="ResetOnSpawn">false</bool>
   <token name="ZIndexBehavior">1</token>
@@ -33,10 +33,11 @@
      <Vector2 name="AnchorPoint"><X>0.5</X><Y>1</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
-     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
-     <UDim2 name="Size"><XS>1.1</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
-     <Content name="Image"><url>rbxassetid://114752421095838</url></Content>
+     <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>1.00293</YS><YO>0</YO></UDim2>
+     <UDim2 name="Size"><XS>1.10645</XS><XO>0</XO><YS>0.505859</YS><YO>0</YO></UDim2>
+     <Content name="Image"><url>rbxassetid://82664288992406</url></Content>
      <float name="ImageTransparency">0.25</float>
+     <BinaryString name="AttributesSerialize">AgAAAAoAAABMaW50SWdub3JlAhkAAABjbGlwLG92ZXJzaXplLGVkZ2UtbWFyZ2luEAAAAExpbnRJZ25vcmVSZWFzb24CTgAAAHNvZnQgbWlzdCB3YXNoLCB3aWRlciB0aGFuIHRoZSBzY3JlZW4gb24gcHVycG9zZTsgbm8gaGFyZCBlZGdlcyB0byBibHVyIG9yIGN1dA==</BinaryString>
     </Properties>
     </Item>
    </Item>
@@ -46,6 +47,7 @@
    <float name="BackgroundTransparency">1</float>
    <int name="BorderSizePixel">0</int>
    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+   <BinaryString name="AttributesSerialize">AgAAAAoAAABMaW50SWdub3JlAgQAAABjbGlwEAAAAExpbnRJZ25vcmVSZWFzb24CgQAAAHNpemVkIGFuZCBwbGFjZWQgcGVyIHNjcmVlbiBieSBDaGFyYWN0ZXJDcmVhdG9yL0NvbnRyb2xsZXIubHVhdSBsYXlvdXQoKSBhbmQgaXRzIEZpdCBVSVNjYWxlczsgYXV0aG9yZWQgYXQgdGhlIDkwMCBweCBkZXNpZ24gc2l6ZQ==</BinaryString>
   </Properties>
    <Item class="ViewportFrame" referent="RBX7"><Properties>
     <string name="Name">Preview</string>
@@ -217,8 +219,9 @@
        <Item class="ImageLabel" referent="RBX25"><Properties>
         <string name="Name">CapL</string>
         <float name="BackgroundTransparency">1</float>
-        <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>1</YS><YO>0</YO></UDim2>
-        <Content name="Image"><url>rbxassetid://118333801422561</url></Content>
+        <UDim2 name="Position"><XS>0</XS><XO>-4</XO><YS>0</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>34</XO><YS>1</YS><YO>0</YO></UDim2>
+        <Content name="Image"><url>rbxassetid://138442834914617</url></Content>
        </Properties>
        </Item>
        <Item class="ImageLabel" referent="RBX26"><Properties>
@@ -233,9 +236,9 @@
         <string name="Name">CapR</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
-        <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
-        <UDim2 name="Size"><XS>0</XS><XO>30</XO><YS>1</YS><YO>0</YO></UDim2>
-        <Content name="Image"><url>rbxassetid://137033002952842</url></Content>
+        <UDim2 name="Position"><XS>1</XS><XO>4</XO><YS>0</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>34</XO><YS>1</YS><YO>0</YO></UDim2>
+        <Content name="Image"><url>rbxassetid://123625769072581</url></Content>
        </Properties>
        </Item>
       </Item>
@@ -380,8 +383,9 @@
      <Item class="ImageLabel" referent="RBX43"><Properties>
       <string name="Name">Divider</string>
       <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
-      <Content name="Image"><url>rbxassetid://99789570259645</url></Content>
+      <UDim2 name="Position"><XS>-0.021614</XS><XO>0</XO><YS>0</YS><YO>-7</YO></UDim2>
+      <UDim2 name="Size"><XS>1.04323</XS><XO>0</XO><YS>0</YS><YO>35</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://129825651137010</url></Content>
       <token name="ScaleType">3</token>
      </Properties>
      </Item>
@@ -760,6 +764,8 @@
      <Item class="Decal" referent="RBX85"><Properties>
       <string name="Name">face</string>
       <Content name="Texture"><url>rbxasset://textures/face.png</url></Content>
+      <Color3 name="EmissiveTint"><R>0</R><G>0</G><B>0</B></Color3>
+      <float name="EmissiveStrength">0</float>
      </Properties>
      </Item>
      <Item class="Attachment" referent="RBX86"><Properties>

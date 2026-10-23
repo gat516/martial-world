@@ -33,13 +33,13 @@ local Themes = {}
 Themes.default = {
 	name = "default",
 	corners = {
-		TL = "rbxassetid://85875302473824",
-		TR = "rbxassetid://88976605104747",
-		BL = "rbxassetid://77144194929366",
-		BR = "rbxassetid://113361229444828",
+		TL = "rbxassetid://118580584509131",
+		TR = "rbxassetid://128021321074162",
+		BL = "rbxassetid://119223486501853",
+		BR = "rbxassetid://113711724452568",
 	},
-	cornerAspect = 573 / 386,
-	stud = "rbxassetid://73915978017269",
+	cornerAspect = 174 / 120, -- the margined copies (art/ui/sized)
+	stud = "rbxassetid://90903194330348",
 	panelTint = c(255, 255, 255),
 	frameTint = c(255, 255, 255),
 	title = c(236, 196, 104),
@@ -51,13 +51,13 @@ Themes.default = {
 Themes.blood = {
 	name = "blood",
 	corners = {
-		TL = "rbxassetid://106524586692378",
-		TR = "rbxassetid://127210710631437",
-		BL = "rbxassetid://76377171901319",
-		BR = "rbxassetid://104331680085975",
+		TL = "rbxassetid://76116212397031",
+		TR = "rbxassetid://138726710932993",
+		BL = "rbxassetid://109163703937036",
+		BR = "rbxassetid://104006365319133",
 	},
-	cornerAspect = 812 / 491,
-	stud = "rbxassetid://88195591853280",
+	cornerAspect = 193 / 120,
+	stud = "rbxassetid://110626357915304",
 	panelTint = c(255, 176, 170),
 	frameTint = c(214, 112, 100),
 	title = c(240, 112, 96),
@@ -70,7 +70,7 @@ Themes.blood = {
 Themes.bloodPieces = {
 	nameScroll = "rbxassetid://137196541860109",
 	goldStud = "rbxassetid://102528420780680", -- a copper-red diamond
-	rubyStud = "rbxassetid://88195591853280",
+	rubyStud = "rbxassetid://110626357915304",
 }
 
 function Themes.get(name: string?): Theme

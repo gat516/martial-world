@@ -42,8 +42,8 @@ export type Book = { entries: { Entry }, title: string? }
 
 local PER_PAGE = 6
 local TITLE_SIZE = 22 -- the title on its plaque (Merriweather Bold), baseline pixels
-local CARD = "rbxassetid://81261875456130" -- C1 herb_card
-local CARD_EMPTY = "rbxassetid://121322032200176" -- C1 herb_card_empty
+local CARD = "rbxassetid://128801964051831" -- C1 herb_card
+local CARD_EMPTY = "rbxassetid://139968594156334" -- C1 herb_card_empty
 local INK = Color3.fromRGB(62, 38, 18)
 local FADED = Color3.fromRGB(110, 106, 100)
 local GREY = Color3.fromRGB(150, 150, 150)
@@ -129,10 +129,9 @@ local function fillCard(card: GuiButton, entry: Entry)
 			local tag = tagTemplate:Clone()
 			tag.Name = "Tag"
 			tag.LayoutOrder = i
-			tag.Image = HerbArt.tagFor(id);
-			(tag:FindFirstChild("Label") :: TextLabel).Text = m.name
 			tag.Visible = true
 			tag.Parent = tags
+			Ribbon.fit(tag, m.name, { style = HerbArt.tagStyle(id), label = "Label", textSize = 10, minMid = 0 })
 		end
 	end
 end

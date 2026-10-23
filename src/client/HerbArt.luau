@@ -18,18 +18,8 @@ local WHITE = Color3.new(1, 1, 1)
 -- Rarity gems come from the Inventory's ladder (Rarity.luau): Common bronze,
 -- Uncommon silver, Rare jade, Epic violet, Legendary gold.
 
--- C1 mutation tags (ribbons with cloud ends). Slice: plain plate between
--- columns 89 and 281 of the 378x101 source.
-HerbArt.Tags = {
-	bronze = "rbxassetid://98060115715507",
-	jade = "rbxassetid://101467676951805",
-	crimson = "rbxassetid://111308532546306",
-	violet = "rbxassetid://119756378140078",
-	gold = "rbxassetid://100335366464739",
-}
-HerbArt.TAG_SLICE = Rect.new(96, 30, 276, 70)
-HerbArt.TAG_HEIGHT = 101
-
+-- C1 mutation tags: three-part ribbons with cloud ends (Ribbon.STYLES tag_<colour>,
+-- fitted to their text by Ribbon.fit; the ornate ends never stretch).
 -- A mutation's ribbon follows how much it's worth (Herbs.Mutations bonus):
 -- the common weather marks are bronze, the rarest violet. Golden keeps gold.
 HerbArt.MutationTag = {
@@ -45,11 +35,11 @@ HerbArt.MutationTag = {
 -- C1 tier badges I-V (bronze, silver, gold, jade, violet), shields with a navy
 -- face. face: the face's centre and size as fractions of the image, for a numeral.
 HerbArt.Tiers = {
-	{ image = "rbxassetid://114223152322030", numeral = "I", face = Vector2.new(0.5, 0.45) },
-	{ image = "rbxassetid://120192426371125", numeral = "II", face = Vector2.new(0.5, 0.45) },
-	{ image = "rbxassetid://77064457614084", numeral = "III", face = Vector2.new(0.5, 0.45) },
-	{ image = "rbxassetid://116072136932136", numeral = "IV", face = Vector2.new(0.5, 0.47) },
-	{ image = "rbxassetid://94068302846931", numeral = "V", face = Vector2.new(0.5, 0.47) },
+	{ image = "rbxassetid://118421304712620", numeral = "I", face = Vector2.new(0.5, 0.45) },
+	{ image = "rbxassetid://120306832740653", numeral = "II", face = Vector2.new(0.5, 0.45) },
+	{ image = "rbxassetid://112312489278714", numeral = "III", face = Vector2.new(0.5, 0.45) },
+	{ image = "rbxassetid://126064220173046", numeral = "IV", face = Vector2.new(0.5, 0.47) },
+	{ image = "rbxassetid://88138698814874", numeral = "V", face = Vector2.new(0.5, 0.47) },
 }
 
 -- Draw a herb (or any item) in a Swatch: an item-slot ImageLabel with an Icon
@@ -78,9 +68,9 @@ function HerbArt.gem(image: ImageLabel, rarity: string)
 	Rarity.gem(image, r.order)
 end
 
--- The ribbon image for a mutation id (Herbs.Mutations key).
-function HerbArt.tagFor(mutation: string): string
-	return HerbArt.Tags[HerbArt.MutationTag[mutation] or "bronze"]
+-- The Ribbon style of a mutation's tag.
+function HerbArt.tagStyle(mutation: string): string
+	return "tag_" .. (HerbArt.MutationTag[mutation] or "bronze")
 end
 
 return HerbArt

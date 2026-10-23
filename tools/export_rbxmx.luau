@@ -6,7 +6,9 @@
 -- assets/ (tools/receive_rbxmx.py takes large exports over loopback HTTP). The
 -- prefix keeps referents unique when splicing into an existing file.
 -- Only properties that differ from a fresh instance of the same class are written.
--- Attributes and tags aren't supported (keep templates free of them).
+-- Attributes of string, boolean and number type are written (AttributesSerialize,
+-- e.g. the LintIgnore marks tools/ui_lint.luau reads); other attribute types and
+-- tags aren't supported (keep templates free of them).
 
 local PROPS = {
 	"Name", "Active", "AnchorPoint", "AutomaticSize", "BackgroundColor3", "BackgroundTransparency",
@@ -17,7 +19,8 @@ local PROPS = {
 	"ImageTransparency", "ScaleType", "SliceCenter", "SliceScale", "ImageRectOffset", "ImageRectSize",
 	"CanvasSize", "AutomaticCanvasSize", "ScrollBarThickness", "ScrollBarImageColor3",
 	"ScrollBarImageTransparency", "TopImage", "MidImage", "BottomImage", "ScrollingDirection", "ElasticBehavior", "VerticalScrollBarInset",
-	"ResetOnSpawn", "ZIndexBehavior", "IgnoreGuiInset", "DisplayOrder", "ScreenInsets",
+	"ResetOnSpawn", "ZIndexBehavior", "IgnoreGuiInset", "DisplayOrder", "ScreenInsets", "ClipToDeviceSafeArea",
+	"SafeAreaCompatibility", "ResampleMode", "TileSize", "BorderColor3", "BorderMode",
 	"CornerRadius", "Color", "Thickness", "Transparency", "ApplyStrokeMode", "LineJoinMode", "Offset",
 	"FillDirection", "HorizontalAlignment", "VerticalAlignment", "SortOrder", "Padding", "Wraps",
 	"CellSize", "CellPadding", "FillDirectionMaxCells", "StartCorner", "PaddingTop", "PaddingBottom",
@@ -40,7 +43,7 @@ local PROPS = {
 	"SoundId", "Volume", "Looped", "PlaybackSpeed", "RollOffMaxDistance", "RollOffMinDistance",
 	-- rigs (Motor6D offsets, R6 humanoid) and ViewportFrames (lighting, camera)
 	"C0", "C1", "RigType", "DisplayDistanceType", "Ambient", "LightColor", "LightDirection", "CurrentCamera",
-	"FieldOfView", "GroupTransparency", "ShirtTemplate", "PantsTemplate",
+	"FieldOfView", "GroupTransparency", "ShirtTemplate", "PantsTemplate", "EmissiveTint", "EmissiveStrength",
 }
 
 local INT = {
@@ -138,6 +141,70 @@ local function encode(inst, name, v): string?
 	return nil
 end
 
+-- AttributesSerialize: uint32 count, then per attribute a uint32-length name, a
+-- type byte and the value (0x02 string, 0x03 bool, 0x06 double), base64 encoded.
+local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+local function base64(b: buffer): string
+	local out, n = {}, buffer.len(b)
+	for i = 0, n - 1, 3 do
+		local a1 = buffer.readu8(b, i)
+		local a2 = if i + 1 < n then buffer.readu8(b, i + 1) else 0
+		local a3 = if i + 2 < n then buffer.readu8(b, i + 2) else 0
+		local v = a1 * 65536 + a2 * 256 + a3
+		local c1, c2 = bit32.rshift(v, 18), bit32.band(bit32.rshift(v, 12), 63)
+		local c3, c4 = bit32.band(bit32.rshift(v, 6), 63), bit32.band(v, 63)
+		table.insert(out, B64:sub(c1 + 1, c1 + 1) .. B64:sub(c2 + 1, c2 + 1)
+			.. (if i + 1 < n then B64:sub(c3 + 1, c3 + 1) else "=") .. (if i + 2 < n then B64:sub(c4 + 1, c4 + 1) else "="))
+	end
+	return table.concat(out)
+end
+
+local function attributes(inst): string?
+	local attrs = inst:GetAttributes()
+	local names = {}
+	for k, v in attrs do
+		local t = typeof(v)
+		if t == "string" or t == "boolean" or t == "number" then
+			table.insert(names, k)
+		else
+			warn(`exportRbxmx: {inst:GetFullName()} attribute {k} ({t}) isn't supported, skipped`)
+		end
+	end
+	if #names == 0 then
+		return nil
+	end
+	table.sort(names)
+	local size = 4
+	for _, k in names do
+		local v = attrs[k]
+		size += 4 + #k + 1 + (if typeof(v) == "string" then 4 + #v elseif typeof(v) == "boolean" then 1 else 8)
+	end
+	local b, at = buffer.create(size), 0
+	buffer.writeu32(b, at, #names)
+	at += 4
+	for _, k in names do
+		local v = attrs[k]
+		buffer.writeu32(b, at, #k)
+		buffer.writestring(b, at + 4, k)
+		at += 4 + #k
+		if typeof(v) == "string" then
+			buffer.writeu8(b, at, 0x02)
+			buffer.writeu32(b, at + 1, #v)
+			buffer.writestring(b, at + 5, v)
+			at += 5 + #v
+		elseif typeof(v) == "boolean" then
+			buffer.writeu8(b, at, 0x03)
+			buffer.writeu8(b, at + 1, if v then 1 else 0)
+			at += 2
+		else
+			buffer.writeu8(b, at, 0x06)
+			buffer.writef64(b, at + 1, v)
+			at += 9
+		end
+	end
+	return `<BinaryString name="AttributesSerialize">{base64(b)}</BinaryString>`
+end
+
 local defaults = {}
 local function default(class)
 	if defaults[class] == nil then
@@ -193,12 +260,20 @@ local function emit(inst, depth)
 			end
 		end
 	end
+	local attrLine = attributes(inst)
+	if attrLine then
+		table.insert(out, `{pad} {attrLine}`)
+	end
 	table.insert(out, `{pad}</Properties>`)
 	for _, child in inst:GetChildren() do
 		emit(child, depth + 1)
 	end
 	table.insert(out, `{pad}</Item>`)
 end
+
+-- for tools/export_check.luau: the same encoding and the property list
+_G.exportRbxmxEncode = encode
+_G.exportRbxmxProps = PROPS
 
 _G.exportRbxmx = function(target: string, prefix: string?): string
 	PREFIX = prefix or "RBX"

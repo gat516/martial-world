@@ -79,6 +79,8 @@ local function content(): Frame
 end
 
 -- The kind badge: a seal with its live character, the quest scroll, or the glyph.
+local SEAL_GROW = 80 / 72
+
 local function paintIcon(icon: Frame, kind: string)
 	local seal = icon:FindFirstChild("Seal") :: ImageLabel
 	local scroll = icon:FindFirstChild("Scroll") :: ImageLabel
@@ -88,8 +90,10 @@ local function paintIcon(icon: Frame, kind: string)
 	if kind == "daily" or kind == "weekly" then
 		seal.Image = Art.Id[kind .. "_seal"]
 		seal.ImageColor3 = Color3.new(1, 1, 1)
-		seal.Size = UDim2.fromScale(1, 1)
-		seal.Position = UDim2.fromScale(0, 0)
+		-- the seal copies keep a clear margin (4 px round 72 px of art, art/ui/sized)
+		-- so the stamp's edge isn't cut flat: the image is that much bigger than the badge
+		seal.Size = UDim2.fromScale(SEAL_GROW, SEAL_GROW)
+		seal.Position = UDim2.fromScale((1 - SEAL_GROW) / 2, (1 - SEAL_GROW) / 2)
 		char.Text = if kind == "weekly" then "周" else "日"
 	else
 		-- the white quest glyph, tinted gold, at its own aspect (306x354)

@@ -104,8 +104,10 @@ standing preferences:
 - **Colourable and riggable**, always: one mesh per colour region, real bones,
   smooth weights.
 - **No gaps:** seated into the body, and sealed inside.
-- **No critic round on accessories.** The user reviews them live; once they approve,
-  export and commit straight away ("dont run a critic round").
+- **Critic rounds only when the user is away.** While they're here they review
+  live, and once they approve you export and commit straight away ("we still need to
+  do critique rounds but thats for when im away. im here"). That's `Review: human`
+  against `Review: critic` in the brief.
 - **One body per variant.** Show variants side by side, one R6 body each, in the
   sheet and the live viewport (`tools/blender_lineup.py`), never stacked on one rig.
   Prefix materials with the set or race so races don't share `FurOuter`.

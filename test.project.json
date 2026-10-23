@@ -72,6 +72,9 @@
       "Prompts": {
         "$path": "assets/Prompts.rbxmx"
       },
+      "Dialogue": {
+        "$path": "assets/Dialogue.rbxmx"
+      },
       "Veil": {
         "$path": "assets/Veil.rbxmx"
       }

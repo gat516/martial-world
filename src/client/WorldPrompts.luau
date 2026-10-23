@@ -9,7 +9,9 @@
 -- camera put it, under the hotbar or the thumbstick, so players tilted the camera
 -- to tap it. Dock mirrors Hud.Stack's box (same position, size and constraints),
 -- so the column always sits just over the vitals plate (its List starts at the
--- plate's top; Layout copies the stack's size onto the dock); keep the two in step. The card's
+-- plate's top; Layout copies the stack's size onto the dock); keep the two in step. The
+-- column (List, with Lift beside it for cards fading out) is authored for the full-size
+-- stack and shrinks with it on short screens (their Fit UIScales, at least 0.85). The card's
 -- object line ("Huge Dewy Spirit Grass", "Herb Bed") says what it acts on, and the
 -- PlantTag still marks the plant in the world.
 --
@@ -26,10 +28,14 @@
 --
 -- The billboard (non-touch) sits just under the PlantTag card above a plant (same anchor:
 -- top of the part plus a stud, then the 55px the tag hangs below that), sized in
--- pixels so it reads and taps the same at any distance. Each card shows the key
--- cap (keyboard key, or the gamepad button), the object and action text (kept
--- live: prices and "No seeds" change while shown), and a hold bar for prompts
--- with a HoldDuration. On touch there's no key cap: the whole card is the button.
+-- pixels so it reads and taps the same at any distance. Each card is the kit's
+-- prompt banner tucked behind a round key plate (docs/ui/dialogue.md, "Interaction
+-- prompts"): the key letter (or the gamepad button) is live text on the plate's
+-- tile, the object and action text sit on the banner (kept live: prices and "No
+-- seeds" change while shown) with the action's white glyph at its right end
+-- (Glyphs.forPrompt), and a prompt with a HoldDuration sweeps a lit ring round the
+-- plate while held. On touch there's no key to press: the plate shows the action's
+-- glyph instead, and the whole card is the button.
 -- A mouse can click a card too (ClickablePrompt), but only while the cursor is
 -- free: under shift lock or lock-on the mouse sits at the screen's centre, which
 -- is usually right on the board of whatever you face, and the card would sink
@@ -43,6 +49,7 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local Glyphs = require(script.Parent.Glyphs)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
 
@@ -51,6 +58,8 @@ local FADE_TIME = 0.15 -- Motion.fadeOut's length: when a left card can go
 local FOCUS_EVERY = 0.1 -- seconds between focus checks
 local STICKY = 1 -- studs: another target must be this much nearer to take focus
 local HIDE_GRACE = 0.08 -- seconds a hidden prompt's card waits in case it shows again
+local DOCK_FULL_HEIGHT = 149 -- the dock's (and Hud.Stack's) max height
+local DOCK_MIN_SCALE = 0.85 -- touch cards stay at least 44 px tall
 
 -- Keys whose GetStringForKeyCode is empty or unhelpful.
 local KEY_NAMES: { [Enum.KeyCode]: string } = {
@@ -64,7 +73,7 @@ local KEY_NAMES: { [Enum.KeyCode]: string } = {
 
 type Board = {
 	gui: BillboardGui?, -- the world billboard; nil for the touch dock (kept, not per target)
-	holder: GuiObject, -- where a leaving card is lifted to while it fades (the list's parent)
+	holder: GuiObject, -- where a leaving card is lifted to while it fades (the billboard, or the dock's Lift)
 	list: Frame,
 	target: Instance,
 	cards: { [ProximityPrompt]: () -> () }, -- each drawn prompt, by how to take its card away
@@ -84,6 +93,9 @@ local boardTemplate: BillboardGui
 local cardTemplate: ImageButton
 local dock: Frame -- touch: the fixed card column (Prompts.Dock)
 local actionBelow: UDim2 -- where the action line sits under the object line (authored)
+local bodySize: UDim2 -- the text's authored box (it widens over the glyph's spot when there's none)
+local bodyWiden = 0 -- how far: the glyph's width plus its gap
+local TAP_GLYPH = "give" -- touch: a plate whose action has no glyph shows a hand
 
 local prompts: { [ProximityPrompt]: boolean } = {} -- every prompt in the world
 local muted: { [ProximityPrompt]: { keyboard: Enum.KeyCode, gamepad: Enum.KeyCode } } = {}
@@ -126,16 +138,20 @@ local function fill(prompt: ProximityPrompt, card: ImageButton, inputType: Enum.
 	local key = card:FindFirstChild("Key") :: ImageLabel
 	local letter = key:FindFirstChild("Letter") :: TextLabel
 	local pad = key:FindFirstChild("Pad") :: ImageLabel
+	local plateGlyph = key:FindFirstChild("Glyph") :: ImageLabel
+	local icon = card:FindFirstChild("Icon") :: ImageLabel
 	local text = card:FindFirstChild("Body") :: Frame
 	local object = text:FindFirstChild("Object") :: TextLabel
 	local action = text:FindFirstChild("Action") :: TextLabel
-	local track = text:FindFirstChild("Track") :: Frame
+	local hold = key:FindFirstChild("Hold") :: Frame
 
+	local glyph = Glyphs.get(Glyphs.forPrompt(prompt))
 	local touch = Platform.isTouch()
-	key.Visible = not touch
+	plateGlyph.Visible = touch
 	if touch then
-		text.Position = UDim2.new(0, 14, 0, 0)
-		text.Size = UDim2.new(1, -28, 1, 0)
+		letter.Visible = false
+		pad.Visible = false
+		plateGlyph.Image = glyph or Glyphs.get(TAP_GLYPH) :: string
 	elseif inputType == Enum.ProximityPromptInputType.Gamepad then
 		local image = UserInputService:GetImageForKeyCode(prompt.GamepadKeyCode)
 		pad.Image = image
@@ -147,8 +163,16 @@ local function fill(prompt: ProximityPrompt, card: ImageButton, inputType: Enum.
 		letter.Visible = true
 		letter.Text = keyText(prompt.KeyboardKeyCode)
 	end
-	-- long key names (Space, Enter) shrink to fit the cap
+	-- long key names (Space, Enter) shrink to fit the tile
 	letter.TextScaled = #letter.Text > 1
+
+	-- the banner's glyph (the plate already shows it on touch)
+	local banner = glyph ~= nil and not touch
+	icon.Visible = banner
+	if banner then
+		icon.Image = glyph :: string
+	end
+	text.Size = if banner then bodySize else bodySize + UDim2.fromOffset(bodyWiden, 0)
 
 	local hasObject = prompt.ObjectText ~= ""
 	object.Visible = hasObject
@@ -156,7 +180,16 @@ local function fill(prompt: ProximityPrompt, card: ImageButton, inputType: Enum.
 	action.Text = prompt.ActionText
 	-- one line sits in the middle; two share the card
 	action.Position = if hasObject then actionBelow else UDim2.new(0, 0, 0.5, -action.Size.Y.Offset / 2)
-	track.Visible = prompt.HoldDuration > 0
+	hold.Visible = prompt.HoldDuration > 0
+end
+
+-- The lit hold ring at p (0..1, clockwise from the top): each clipped half shows
+-- the part of the ring on its gradient's opaque side.
+local function setHold(hold: Frame, p: number)
+	local right = ((hold:FindFirstChild("Right") :: Frame):FindFirstChild("Ring") :: ImageLabel):FindFirstChildOfClass("UIGradient") :: UIGradient
+	local left = ((hold:FindFirstChild("Left") :: Frame):FindFirstChild("Ring") :: ImageLabel):FindFirstChildOfClass("UIGradient") :: UIGradient
+	right.Rotation = math.min(p, 0.5) * 360
+	left.Rotation = math.max(p, 0.5) * 360
 end
 
 local function bindInput(prompt: ProximityPrompt, card: ImageButton): () -> ()
@@ -207,6 +240,15 @@ local function retire(card: ImageButton, b: Board)
 		if fromBottom then
 			y = list.Size.Y.Offset - y - card.Size.Y.Offset
 		end
+		if not b.gui then
+			-- the dock's Lift has the list's box and scale, so the slot is just y
+			card.Position = UDim2.fromOffset(0, y)
+			card.Parent = b.holder
+			Motion.fadeOut(card, function()
+				card:Destroy()
+			end)
+			return
+		end
 		-- the list's top-left in its parent, then the card's slot under that
 		local at, size, anchor = list.Position, list.Size, list.AnchorPoint
 		card.Position = UDim2.new(
@@ -233,8 +275,15 @@ local function addCard(b: Board, prompt: ProximityPrompt, inputType: Enum.Proxim
 	-- F above G: cards order by key, then by when they appeared
 	card.LayoutOrder = prompt.KeyboardKeyCode.Value * 1000 + shown % 1000
 
-	local bar = ((card:FindFirstChild("Body") :: Frame):FindFirstChild("Track") :: Frame):FindFirstChild("Fill") :: Frame
-	bar.Size = UDim2.fromScale(0, 1)
+	local hold = (card:FindFirstChild("Key") :: ImageLabel):FindFirstChild("Hold") :: Frame
+	-- the hold's progress, tweened (a runtime value, gone with the card)
+	local progress = Instance.new("NumberValue")
+	progress.Name = "HoldProgress"
+	progress.Parent = card
+	progress.Changed:Connect(function(p)
+		setHold(hold, p)
+	end)
+	setHold(hold, 0)
 
 	local connections: { RBXScriptConnection } = {}
 	for _, prop in { "ActionText", "ObjectText", "HoldDuration" } do
@@ -248,14 +297,14 @@ local function addCard(b: Board, prompt: ProximityPrompt, inputType: Enum.Proxim
 	table.insert(
 		connections,
 		prompt.PromptButtonHoldBegan:Connect(function()
-			local left = 1 - bar.Size.X.Scale
-			Motion.tween(bar, { Size = UDim2.fromScale(1, 1) }, TweenInfo.new(prompt.HoldDuration * left, Enum.EasingStyle.Linear))
+			local left = 1 - progress.Value
+			Motion.tween(progress, { Value = 1 }, TweenInfo.new(prompt.HoldDuration * left, Enum.EasingStyle.Linear))
 		end)
 	)
 	table.insert(
 		connections,
 		prompt.PromptButtonHoldEnded:Connect(function()
-			Motion.tween(bar, { Size = UDim2.fromScale(0, 1) }, HOLD_RESET)
+			Motion.tween(progress, { Value = 0 }, HOLD_RESET)
 		end)
 	)
 	table.insert(
@@ -306,7 +355,13 @@ end
 
 local function newBoard(target: Instance): Board?
 	if Platform.isTouch() then
-		return { holder = dock, list = dock:FindFirstChild("List") :: Frame, target = target, cards = {}, releases = {} }
+		return {
+			holder = dock:FindFirstChild("Lift") :: Frame,
+			list = dock:FindFirstChild("List") :: Frame,
+			target = target,
+			cards = {},
+			releases = {},
+		}
 	end
 	local adornee = adorneeOf(target)
 	if not adornee then
@@ -474,10 +529,28 @@ function WorldPrompts.init()
 	local gui = playerGui:WaitForChild("Prompts") :: ScreenGui
 	boardTemplate = gui:WaitForChild("Board") :: BillboardGui
 	cardTemplate = (boardTemplate:WaitForChild("List") :: Frame):WaitForChild("Card") :: ImageButton
-	actionBelow = ((cardTemplate:FindFirstChild("Body") :: Frame):FindFirstChild("Action") :: TextLabel).Position
+	local body = cardTemplate:FindFirstChild("Body") :: Frame
+	actionBelow = (body:FindFirstChild("Action") :: TextLabel).Position
+	bodySize = body.Size
+	local icon = cardTemplate:FindFirstChild("Icon") :: ImageLabel
+	bodyWiden = icon.Size.X.Offset + 6
 	dock = gui:WaitForChild("Dock") :: Frame
 	dock.Visible = Platform.isTouch()
 	Motion.buttons(dock)
+	-- the column is authored for the full-size stack (149 px tall); on a short
+	-- screen it shrinks with the stack, down to thumb size (no bigger than before)
+	-- (Lift, where a leaving card fades, has the list's box and is scaled with it)
+	local fits = {
+		(dock:WaitForChild("List") :: Frame):WaitForChild("Fit") :: UIScale,
+		(dock:WaitForChild("Lift") :: Frame):WaitForChild("Fit") :: UIScale,
+	}
+	local function fitDock()
+		for _, fit in fits do
+			fit.Scale = math.clamp(dock.AbsoluteSize.Y / DOCK_FULL_HEIGHT, DOCK_MIN_SCALE, 1)
+		end
+	end
+	dock:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitDock)
+	fitDock()
 
 	for _, d in workspace:GetDescendants() do
 		track(d)

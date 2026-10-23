@@ -471,7 +471,7 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - Overhead bar danger tiers: `Pacing.Danger` (`BELOW_AT`, `ABOVE_AT`, `FAR_AT`,
   `DEADLY_AT`, in realm stages); per-tier rim art, colours and omen pools in
   `EnemyBars.luau` `STYLES`; show time `SHOW_AFTER_HURT`, ghost drain `TRAIL`.
-- Boss bar: one entry per boss def id in `BossThemes.luau` (title, frame art,
+- Boss bar: one entry per boss def id in `BossThemes.luau` (title, optional motif frame,
   colours, omen pools; thresholds come from `summonAt`); `BIG_HIT` in `BossBars.luau`.
 - Kill credit share: `Pacing.Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`.
 - Movement: `Config.Wilds.MOVE_TICK` (step and replication rate), `WALK_SLOPE`,

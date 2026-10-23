@@ -2,22 +2,23 @@
 -- The screen health bar for the boss you're fighting (Play.BossBar), themed per
 -- boss (BossThemes.luau; fallback `default`). EnemyBars decides which boss it
 -- is for and calls show / hide / setHealth / setTier.
---   BossBar (CanvasGroup, top centre, 4:1, max 400x100)
---   > Body > Glow, Bar (Back, Trail, Fill, Slips, Ticks, Cracks, Flare),
---   Ornament (the boss's whole frame art: name plate, bar window, realm plaque),
---   NameLabel, TitleLabel, RealmLabel, OmenLabel.
+--   BossBar (CanvasGroup, top centre, 560x104 box, 0.44 of the width, so
+--   smaller on phones) > Body > Plate (kit art behind the bar), Bar (Trail,
+--   Fill > Sheen, Flare), Mount (kit art over the bar: name plaque, trough
+--   rim, slanted cuts, gold cap, ruby end gem), Cracks, Pips, NameLabel,
+--   TitleLabel, OmenLabel, RealmLabel. Plate and Mount are exported from the
+--   Figma kit (docs/ui/boss-bars.md); the fills are slanted 9-slices whose
+--   45-degree end matches the trough's.
 -- It must stay out of the way of the fight: no screen darkening, no looping
 -- pulses, small and short hit/phase feedback.
--- Same visual language as the regular overhead bars: ten talisman slips on the
--- bar, a realm tag, danger-tier colours (EnemyBars.STYLES, Pacing.Danger).
 --   Intro: the bar fades in, the fill sweeps up, the name and realm rise in;
---     under the name the theme's title shows, then the omen (picked from the
+--     under the bar the theme's title shows, then the omen (picked from the
 --     theme's pool for the danger tier), and both fade out fully.
 --   Hits: the fill drops at once, the trail drains after it; a hit of BIG_HIT or
 --     more gives a small nudge and flash.
---   Phases (def.summonAt, or theme.phases): a tick on the bar for each; crossing
---     one flashes the bar, nudges it, spreads faint cracks and warms the
---     colours for the rest of the fight.
+--   Phases (def.summonAt, or theme.phases): a gold pip on the top rim for each;
+--     crossing one flashes the bar, nudges it, dims the pip, leaves a crack at
+--     that point and warms the colours for the rest of the fight.
 
 local TweenService = game:GetService("TweenService")
 
@@ -26,20 +27,13 @@ local Realms = require(game:GetService("ReplicatedStorage").Shared.Realms)
 local Themes = require(script.Parent.BossThemes)
 
 local BIG_HIT = 0.05 -- fraction of max health that shakes the bar
-local CRACK_W = 1024 -- cracks image width, for the spread crop
-local CRACK_H = 56
-local GLOW_REST = 0.88 -- the halo behind the bar: faint and static
--- The slender per-boss v2 frames (BossThemes.FRAMES; art/ui/draw_boss_bars.py
--- V2_WIN = 64,112 to 960,144 on the 1024x256 canvas): a longer, thinner bar,
--- the name as plain text above it, the realm small at the bar's right end below
--- it, and the intro title and omen sharing one row under the bar's middle.
-local V2_LAYOUT = {
-	bar = { pos = UDim2.fromScale(64 / 1024, 112 / 256), size = UDim2.fromScale(896 / 1024, 32 / 256), anchor = Vector2.zero },
-	name = { pos = UDim2.fromScale(0.5, 16 / 256), size = UDim2.fromScale(0.6, 40 / 256), anchor = Vector2.new(0.5, 0) },
-	realm = { pos = UDim2.fromScale(960 / 1024, 152 / 256), size = UDim2.fromScale(0.18, 24 / 256), anchor = Vector2.new(1, 0), align = Enum.TextXAlignment.Right },
-	title = { pos = UDim2.fromScale(0.5, 152 / 256), size = UDim2.fromScale(0.5, 26 / 256), anchor = Vector2.new(0.5, 0) },
-	omen = { pos = UDim2.fromScale(0.5, 150 / 256), size = UDim2.fromScale(0.5, 30 / 256), anchor = Vector2.new(0.5, 0) },
-}
+local SLICE_H = 64 -- source height of the slanted fill art (bossbar_fill/sheen.png)
+local PIP = "rbxassetid://103441340188755" -- kit gold_stud cut
+local CRACK = "rbxassetid://85815494954691" -- kit crack_split cut
+local PIP_Y = -5 / 24 -- pip centre on the plate's top rim (y 35 in the 560x104 box), in bar heights from the bar's top (y 40)
+local PIP_SIZE = 0.6 -- pip height in bar heights
+local CRACK_SIZE = 1.9 -- crack size in bar heights
+local CRACK_REST = 0.15 -- crack transparency once it has settled
 local TITLE_HOLD = 1.8 -- seconds the title shows in the intro before the omen
 local OMEN_HOLD = 2.6 -- seconds the omen shows before it fades out
 
@@ -51,26 +45,21 @@ type Refs = {
 	frame: CanvasGroup,
 	scale: UIScale,
 	body: Frame,
-	glow: ImageLabel,
 	bar: Frame,
-	trail: Frame,
-	fill: Frame,
+	trail: ImageLabel,
+	fill: ImageLabel,
 	gradient: UIGradient,
-	slips: Frame,
-	ticks: Frame,
-	cracks: ImageLabel,
-	flare: Frame,
-	ornament: ImageLabel,
+	flare: ImageLabel,
+	cracks: Frame,
+	pips: Frame,
+	mount: ImageLabel,
 	name: TextLabel,
 	title: TextLabel,
 	realm: TextLabel,
 	omen: TextLabel,
+	slanted: { ImageLabel },
 	home: { [TextLabel]: UDim2 },
-	layouts: { [string]: { [GuiObject]: Placement } },
 }
-
--- Where a piece sits; each frame style has its own (see V2_LAYOUT).
-type Placement = { pos: UDim2, size: UDim2, anchor: Vector2, align: Enum.TextXAlignment? }
 
 local BossBars = {}
 local r: Refs? = nil
@@ -110,7 +99,7 @@ local function phaseT(): number
 	return if #phases > 0 then phaseIdx / #phases else 0
 end
 
--- Fill gradient and ornament tint follow the phase (and instantly when silent).
+-- Fill gradient and frame tint follow the phase (and instantly when silent).
 local function dressPhase(animate: boolean)
 	local refs = r :: Refs
 	local t = phaseT()
@@ -119,36 +108,10 @@ local function dressPhase(animate: boolean)
 	refs.gradient.Color = ColorSequence.new(top, bot)
 	local tint = lerpColor(theme.tint, theme.phaseTint, t)
 	if animate then
-		tween(refs.ornament, { ImageColor3 = tint }, 0.4)
+		tween(refs.mount, { ImageColor3 = tint }, 0.4)
 	else
-		refs.ornament.ImageColor3 = tint
+		refs.mount.ImageColor3 = tint
 	end
-end
-
--- Cracks spread outward from the centre of the bar with each phase.
-local function setCracks(amount: number, animate: boolean)
-	local refs = r :: Refs
-	local w = CRACK_W * amount
-	local props = {
-		Size = UDim2.fromScale(amount, 1),
-		ImageRectSize = Vector2.new(w, CRACK_H),
-		ImageRectOffset = Vector2.new((CRACK_W - w) / 2, 0),
-		ImageTransparency = if amount > 0 then 0.45 else 1,
-	}
-	if animate then
-		tween(refs.cracks, props, 0.4)
-	else
-		for k, v in props do
-			(refs.cracks :: any)[k] = v
-		end
-	end
-end
-
--- The halo stays faint and still; it warms a touch with each phase.
-local function dressGlow()
-	local refs = r :: Refs
-	refs.glow.ImageColor3 = theme.glow
-	refs.glow.ImageTransparency = GLOW_REST - 0.06 * phaseT()
 end
 
 local function shake(strength: number)
@@ -171,12 +134,13 @@ local function shake(strength: number)
 	end)
 end
 
+-- The flare is the fill's own slanted shape, so a flash never spills past the trough.
 local function flash(width: number, transparency: number, time: number, color: Color3?)
 	local refs = r :: Refs
-	refs.flare.BackgroundColor3 = color or Color3.new(1, 1, 1)
+	refs.flare.ImageColor3 = color or Color3.new(1, 1, 1)
 	refs.flare.Size = UDim2.fromScale(width, 1)
-	refs.flare.BackgroundTransparency = transparency
-	tween(refs.flare, { BackgroundTransparency = 1 }, time)
+	refs.flare.ImageTransparency = transparency
+	tween(refs.flare, { ImageTransparency = 1 }, time)
 end
 
 -- Realm line and omen colours follow the danger tier (EnemyBars.STYLES).
@@ -213,42 +177,75 @@ local function dressTier(sweepOmen: boolean, delay: number)
 	end
 end
 
-local function buildTicks()
+-- A square box `size` bar heights tall, centred at (x, y) in bar units.
+local function barSquare(inst: GuiObject, x: number, y: number, size: number)
+	inst.AnchorPoint = Vector2.new(0.5, 0.5)
+	inst.Position = UDim2.fromScale(x, y)
+	inst.SizeConstraint = Enum.SizeConstraint.RelativeYY
+	inst.Size = UDim2.fromScale(size, size)
+end
+
+-- Gold studs on the plate's top rim, one per phase threshold.
+local function buildPips()
 	local refs = r :: Refs
-	for _, child in refs.ticks:GetChildren() do
-		child:Destroy()
-	end
+	refs.pips:ClearAllChildren()
+	refs.cracks:ClearAllChildren()
 	for i, at in phases do
-		local tick = Instance.new("Frame")
-		tick.Name = `Tick{i}`
-		tick.AnchorPoint = Vector2.new(0.5, 0.5)
-		tick.Position = UDim2.fromScale(at, 0.5)
-		tick.Size = UDim2.new(0, 2, 0, 0)
-		tick.BackgroundColor3 = theme.flare
-		tick.BorderSizePixel = 0
-		tick.ZIndex = 8
-		tick.Parent = refs.ticks
-		local stroke = Instance.new("UIStroke") -- internals only: a dark edge on a bar mark
-		stroke.Color = Color3.fromRGB(6, 8, 12)
-		stroke.Thickness = 1
-		stroke.Parent = tick
-		local tall = tick
-		tween(tall, { Size = UDim2.new(0, 2, 1, 4) }, 0.25, 0.6 + i * 0.08)
+		local pip = Instance.new("ImageLabel")
+		pip.Name = `Pip{i}`
+		pip.BackgroundTransparency = 1
+		pip.Image = PIP
+		barSquare(pip, at, PIP_Y, PIP_SIZE)
+		pip.ZIndex = 10
+		pip.ImageTransparency = 1
+		pip.Parent = refs.pips
+		tween(pip, { ImageTransparency = 0 }, 0.25, 0.5 + i * 0.08)
 	end
 end
 
-local function dressTicks(animate: boolean)
+-- A crossed threshold leaves a crack in the bar where its pip sits.
+local function crackAt(i: number, animate: boolean)
 	local refs = r :: Refs
-	for i, at in phases do
-		local tick = refs.ticks:FindFirstChild(`Tick{i}`) :: Frame?
-		if tick then
+	local at = phases[i]
+	if not at or refs.cracks:FindFirstChild(`Crack{i}`) then
+		return
+	end
+	local crack = Instance.new("ImageLabel")
+	crack.Name = `Crack{i}`
+	crack.BackgroundTransparency = 1
+	crack.Image = CRACK
+	crack.ImageColor3 = theme.crack
+	crack.Rotation = (i % 2 == 0) and 90 or 0
+	barSquare(crack, at, 0.5, CRACK_SIZE)
+	crack.ZIndex = 9
+	crack.ImageTransparency = if animate then 0 else CRACK_REST
+	crack.Parent = refs.cracks
+	if animate then
+		crack.Size = UDim2.fromScale(CRACK_SIZE * 0.6, CRACK_SIZE * 0.6)
+		tween(crack, { Size = UDim2.fromScale(CRACK_SIZE, CRACK_SIZE) }, 0.18, 0, Enum.EasingStyle.Back)
+		tween(crack, { ImageTransparency = CRACK_REST }, 0.4, 0.2)
+	end
+end
+
+local function dressPips(animate: boolean)
+	local refs = r :: Refs
+	for i in phases do
+		local pip = refs.pips:FindFirstChild(`Pip{i}`) :: ImageLabel?
+		if pip then
 			local crossed = i <= phaseIdx
-			local color = if crossed then Color3.fromRGB(70, 66, 62) else theme.flare
-			if animate and crossed then
-				tween(tick, { BackgroundColor3 = color, BackgroundTransparency = 0.35 }, 0.3)
+			local color = if crossed then Color3.fromRGB(96, 90, 84) else Color3.new(1, 1, 1)
+			if animate then
+				tween(pip, { ImageColor3 = color }, 0.3)
 			else
-				tick.BackgroundColor3 = color
-				tick.BackgroundTransparency = if crossed then 0.35 else 0
+				pip.ImageColor3 = color
+			end
+		end
+		if i <= phaseIdx then
+			crackAt(i, animate)
+		else
+			local crack = refs.cracks:FindFirstChild(`Crack{i}`)
+			if crack then
+				crack:Destroy()
 			end
 		end
 	end
@@ -263,23 +260,8 @@ local function applyTheme(def: Enemies.Def?)
 	table.sort(phases, function(a, b)
 		return a > b
 	end)
-	-- the per-boss v2 frame once uploaded, else the original art
-	-- the per-boss v2 frame once uploaded (with its own layout), else the original art
-	local v2 = (Themes.FRAMES :: { [string]: string })[id]
-	local useV2 = v2 ~= nil and string.match(v2, "^rbxassetid://%d+$") ~= nil
-	refs.ornament.Image = if useV2 then v2 :: string else theme.ornament
-	for inst, p in refs.layouts[if useV2 then "v2" else "original"] do
-		inst.Position = p.pos
-		inst.Size = p.size
-		inst.AnchorPoint = p.anchor
-		if inst:IsA("TextLabel") then
-			(inst :: TextLabel).TextXAlignment = p.align or Enum.TextXAlignment.Center
-			refs.home[inst :: TextLabel] = p.pos
-		end
-	end
-	refs.glow.ImageColor3 = theme.glow
-	refs.trail.BackgroundColor3 = theme.trail
-	refs.cracks.ImageColor3 = theme.crack
+	refs.mount.Image = theme.mount or Themes.MOUNT
+	refs.trail.ImageColor3 = theme.trail
 	refs.name.TextColor3 = theme.name
 	refs.title.TextColor3 = theme.titleColor
 	refs.name.Text = if def then def.name else "Boss"
@@ -298,45 +280,50 @@ local function phaseOf(frac: number): number
 	return n
 end
 
+-- The slanted fills keep a 45-degree end at any size: slice scale = bar height / source height.
+local function fitSlices()
+	local refs = r :: Refs
+	local scale = math.max(refs.bar.AbsoluteSize.Y, 1) / SLICE_H
+	for _, img in refs.slanted do
+		img.SliceScale = scale
+	end
+end
+
 function BossBars.init(frame: CanvasGroup, tierStyles: { [string]: any })
 	local body = frame:WaitForChild("Body") :: Frame
 	local bar = body:WaitForChild("Bar") :: Frame
-	local fill = bar:WaitForChild("Fill") :: Frame
-	local ornament = body:WaitForChild("Ornament") :: ImageLabel
+	local fill = bar:WaitForChild("Fill") :: ImageLabel
 	local refs: Refs = {
 		frame = frame,
 		scale = frame:WaitForChild("Motion") :: UIScale,
 		body = body,
-		glow = body:WaitForChild("Glow") :: ImageLabel,
 		bar = bar,
-		trail = bar:WaitForChild("Trail") :: Frame,
+		trail = bar:WaitForChild("Trail") :: ImageLabel,
 		fill = fill,
 		gradient = fill:WaitForChild("UIGradient") :: UIGradient,
-		slips = bar:WaitForChild("Slips") :: Frame,
-		ticks = bar:WaitForChild("Ticks") :: Frame,
-		cracks = bar:WaitForChild("Cracks") :: ImageLabel,
-		flare = bar:WaitForChild("Flare") :: Frame,
-		ornament = ornament,
+		flare = bar:WaitForChild("Flare") :: ImageLabel,
+		cracks = body:WaitForChild("Cracks") :: Frame,
+		pips = body:WaitForChild("Pips") :: Frame,
+		mount = body:WaitForChild("Mount") :: ImageLabel,
 		name = body:WaitForChild("NameLabel") :: TextLabel,
 		title = body:WaitForChild("TitleLabel") :: TextLabel,
 		realm = body:WaitForChild("RealmLabel") :: TextLabel,
 		omen = body:WaitForChild("OmenLabel") :: TextLabel,
+		slanted = {},
 		home = {},
-		layouts = { original = {}, v2 = {} },
 	}
-	-- authored positions (the original art's layout), so a show that interrupts an
-	-- intro never drifts them; and the v2 frames' layout for the same pieces
-	local pieces: { [string]: GuiObject } = { bar = bar, name = refs.name, realm = refs.realm, title = refs.title, omen = refs.omen }
-	for key, inst in pieces do
-		local align = if inst:IsA("TextLabel") then (inst :: TextLabel).TextXAlignment else nil
-		refs.layouts.original[inst] = { pos = inst.Position, size = inst.Size, anchor = inst.AnchorPoint, align = align }
-		refs.layouts.v2[inst] = (V2_LAYOUT :: any)[key]
+	for _, name in { "Trail", "Fill", "Flare" } do
+		table.insert(refs.slanted, bar:WaitForChild(name) :: ImageLabel)
 	end
+	table.insert(refs.slanted, fill:WaitForChild("Sheen") :: ImageLabel)
+	-- authored positions, so a show that interrupts an intro never drifts them
 	for _, label in { refs.name, refs.title, refs.realm, refs.omen } do
 		refs.home[label] = label.Position
 	end
 	r = refs
 	styles = tierStyles
+	bar:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitSlices)
+	fitSlices()
 	frame.Visible = false
 end
 
@@ -366,14 +353,12 @@ function BossBars.show(boss: Model, def: Enemies.Def?, dangerTier: string, frac:
 	refs.body.Position = UDim2.new()
 	refs.fill.Size = UDim2.fromScale(0, 1)
 	refs.trail.Size = UDim2.fromScale(0, 1)
-	refs.flare.BackgroundTransparency = 1
+	refs.flare.ImageTransparency = 1
 	refs.omen.TextTransparency = 1
 	refs.omen.TextStrokeTransparency = 1
 	dressPhase(false)
-	dressGlow()
-	setCracks(if phaseIdx > 0 and #phases > 0 then phaseIdx / #phases else 0, false)
-	buildTicks()
-	dressTicks(false)
+	buildPips()
+	dressPips(false)
 
 	tween(refs.frame, { GroupTransparency = 0 }, 0.25)
 	tween(refs.scale, { Scale = 1 }, 0.25)
@@ -451,18 +436,14 @@ function BossBars.setHealth(frac: number)
 		flash(1, 0.5, 0.3, theme.flare)
 		shake(0.6)
 		dressPhase(true)
-		setCracks(phaseIdx / math.max(#phases, 1), true)
-		dressGlow()
-		dressTicks(true)
+		dressPips(true)
 		tween(refs.name, { TextColor3 = Color3.new(1, 1, 1) }, 0.1)
 		tween(refs.name, { TextColor3 = theme.name }, 0.3, 0.1)
 	elseif idx < phaseIdx then
 		-- healed back above a threshold
 		phaseIdx = idx
 		dressPhase(true)
-		setCracks(if #phases > 0 then phaseIdx / #phases else 0, true)
-		dressGlow()
-		dressTicks(false)
+		dressPips(false)
 	end
 end
 

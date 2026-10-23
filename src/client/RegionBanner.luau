@@ -8,7 +8,8 @@
 --   cinnabar "Beyond your cultivation" when it's above yours.
 -- It never takes input, skips the first region you spawn into (and respawns),
 -- waits until you've stayed in the new region a moment, and stays quiet while a
--- menu or minigame is open. Regions sharing a name (the sect's two) count as one.
+-- menu or minigame is open or a boss bar is up (both sit at the top centre).
+-- Regions sharing a name (the sect's two) count as one.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,6 +17,7 @@ local TweenService = game:GetService("TweenService")
 
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Regions = require(ReplicatedStorage.Shared.Regions)
+local BossBars = require(script.Parent.BossBars)
 local Menus = require(script.Parent.Menus)
 local Platform = require(script.Parent.Platform)
 
@@ -224,7 +226,8 @@ function RegionBanner.init()
 				pending, pendingSince = region.name, now
 			elseif now - pendingSince >= SETTLE then
 				current, pending = region.name, nil
-				if not Menus.isOpen() then
+				-- a boss bar holds the top centre; the banner would land on it
+				if not Menus.isOpen() and not BossBars.active() then
 					show(region)
 				end
 			end

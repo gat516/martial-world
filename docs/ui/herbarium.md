@@ -86,7 +86,9 @@ Same behaviour as before; the look moved onto the kit:
   `item_slot_selected` under the tile's content), the lock glyph on locked tiles,
   benefit badges as small jade ribbons, set tabs with their C2 medallion, the set
   medallion and "<set> set" line in the detail panel, and the C2 peak-score gauge
-  under the tabs ([build](../systems/build.md)).
+  under the tabs ([build](../systems/build.md)). The tab list (a clipping
+  ScrollingFrame) pads 6 px left and right and 4 px top and bottom, so a tab's 5 %
+  hover growth (`Motion.buttons`) isn't cropped.
 
 Shared garden art lives in `src/client/HerbArt.luau`: `paint(swatch, id)` (icon or
 glyph in a Swatch), `gem(image, rarity)`, `tagFor(mutation)`, `Tiers`. Rarity gems

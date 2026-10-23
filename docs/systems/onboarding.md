@@ -213,8 +213,8 @@ to the first kill.
   other HUD control turns non-interactable (touch Jump and Dash excepted; the
   veil itself sinks no input, so walking and the camera work), and
   `Guide.Callout` carries the elder's line beside it. It lifts when the control
-  is pressed or the guide changes, and never shows in combat (hurt within
-  `Config.Combat.IN_COMBAT_SECONDS`), in the calm view or over a window the
+  is pressed or the guide changes, and never shows in combat (the player's
+  `InCombat` attribute: hurt or hitting within `IN_COMBAT_SECONDS`), in the calm view or over a window the
   target isn't in. Travel + `to` moves to the destination button once the menu
   is open (dim or not). `place` resolves to the nearest target every second
   (`Garden` = your own peak's HerbPlots, `WeaponRack`, `QiNode`, living

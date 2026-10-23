@@ -63,6 +63,7 @@ local ProjectileView = require(script.Parent.ProjectileView)
 local WorldPrompts = require(script.Parent.WorldPrompts)
 local RegionBanner = require(script.Parent.RegionBanner)
 local SelfCard = require(script.Parent.SelfCard)
+local TileFold = require(script.Parent.TileFold)
 local RootReveal = require(script.Parent.RootReveal)
 local ScrollHint = require(script.Parent.ScrollHint)
 local SeatBars = require(script.Parent.SeatBars)
@@ -94,6 +95,7 @@ CrowdControl.init()
 ProjectileView.init()
 Menus.init(gui) -- before anything registers a window
 Motion.buttons(gui)
+TileFold.init(gui) -- top-right tiles fold down to Inventory and Settings in combat
 ScrollHint.init(gui) -- the "more below" fade and chevron on every scrolling list
 for _, name in { "CultivatePrompt", "BreakthroughButton", "Toast", "ElderLine", "Objective" } do
 	Motion.appear(gui:FindFirstChild(name, true) :: GuiObject)

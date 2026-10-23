@@ -20,13 +20,18 @@ name is not.
 ## 0a. Two review modes (user, 2026-10-23)
 
 The brief says `Review: human` or `Review: critic`; if it says nothing, it's **human**.
-- **human** (the user is at their desk, watching the stage): no self-review
-  captures and no critic. Run the lints, put the thing on the review stage, post
-  a `## Status:` line saying what's on it and what you'd pick, and **end your
-  turn**. The user answers in chat ("A", "ship", "the ring is too big") and the
-  main session resumes you with the note; you carry on from your context. A
-  direction round costs you zero captures this way, and no tokens while you wait.
-- **critic** (the user is away): the loop below, with the capture cap.
+- **human** (the default; the user is at their desk, watching the stage): no
+  self-review captures and no critic. Run the lints, put the thing on the review
+  stage **looping** (`_G.reviewStage.anim{}` / `cast{}` / `enemy{}` replays on a
+  Heartbeat inside Studio, `model{}` turns, `ui{}` shows the screen with sample
+  data), post a `## Status:` line saying what's on the stage and what you'd pick,
+  and **end your turn**. The loop keeps playing in Studio with no model calls at
+  all; never re-trigger it from your side or poll for the user. The user answers
+  in chat ("A", "ship", "the ring is too big") and the main session resumes you
+  with the note; you carry on from your context. It plays until they say
+  otherwise or you replace it with the next build.
+- **critic** (only when the brief says the user is away): the loop below, with
+  the capture cap.
 Lints run in both modes. Never poll or wait inside a turn for either.
 
 ## 0b. Show the work live, never stop for a look (user, 2026-10-23)

@@ -110,7 +110,9 @@ scales all player damage.
   to the server over the `Look` remote (at most 5 a second, only when it moved),
   which sets the character's `Look` attribute (Vector2 pitch, yaw, clamped and
   rounded); other clients ease that player's head toward it within 160 studs.
-  Cosmetic: no combat code reads it.
+  Cosmetic: no combat code reads it. No head bob while running (user,
+  2026-10-24): after the Animator, the run clip's neck motion is eased off (`RUN_STILL_RATE`)
+  for every runner, so the head rides the torso.
 - `src/client/CombatEffects.luau`, `Telegraphs.luau`: cosmetic effects and ground warnings.
 - `src/client/CastFX.luau`: shared runtime helpers for technique effects, used
   for the caster's own casts and relayed ones alike: the striking limb

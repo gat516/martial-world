@@ -228,6 +228,8 @@ quest board's top goal. It is text only, with no guide.
   ([dialogue](../ui/dialogue.md)): speaker "Elder Qingyun", portrait `elder_qingyun`,
   2-4 short lines, then responses: the player's reply (lit, closes), "What should I aim
   for next?" in free play (opens the quest board) and "Farewell." (cancel).
+- Walking away ends it: past his TalkPrompt's reach + 4 studs the screen closes as if
+  Farewell was picked (`near` in `Dialogue.open`).
 - What he says (`conversation` in `Quests.luau`): the current beat's `talk`; in free
   play the guiding lesson's (or the first open one's) while unclaimed, then once ever
   FreePlay's `talk`, which names the loop ("Cultivate until you hit a wall. Go out and

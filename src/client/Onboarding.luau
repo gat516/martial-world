@@ -81,11 +81,17 @@ local function talk(t: any)
 		boardAt = #responses
 	end
 	table.insert(responses, { text = "Farewell.", icon = "leave", cancel = true })
+	-- walking away from him ends the conversation (a little past his prompt's reach)
+	local hub = workspace:FindFirstChild("Hub")
+	local elder = hub and hub:FindFirstChild("Elder") :: PVInstance?
+	local prompt = elder and elder:FindFirstChild("TalkPrompt", true) :: ProximityPrompt?
 	local choice = Dialogue.open({
 		speaker = "Elder Qingyun",
 		portrait = "elder_qingyun",
 		lines = t.lines,
 		responses = responses,
+		near = elder,
+		range = if prompt then prompt.MaxActivationDistance + 4 else nil,
 	})
 	if choice and choice == boardAt then
 		openBoard()

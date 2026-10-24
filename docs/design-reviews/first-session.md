@@ -1,5 +1,7 @@
 # Review: the first session (join to QC4)
 
+**Owner's decision (2026-10-24):** rec 2 (hook noise) and rec 5 (elder lines) built in [onboarding](../systems/onboarding.md): Maze only below QC4, objectives at most 5 words, elder lines at most 12, the foundation introduced on the QC4->5 card. The front door (recs 1, 3, 4) and the HUD tiles (rec 6) are their own branches.
+
 **Verdict: rework the front door; keep the hook with cuts.** The hook is well built: a guaranteed breakthrough, never-blocking beats, a guide all the way. But a new player spends nearly all of the 0-180 s bounce window in menus. They meet 11-13 mechanics and about 260 words before QC4, and the objectives are cut off on a phone. Reviewed 2026-10-23 from docs and code; nothing played or timed.
 
 **Why it exists:** to teach the loop in about 10 minutes and cross the Creator Rewards line. That arrow is right. The hard case is a 9-year-old on a phone with no chat.

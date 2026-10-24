@@ -98,7 +98,8 @@ cheap.
   chain), `PartyFormed` (size; new/joined, logged for the leader), `StoreAll`
   (stones banked), `SpillReclaimed` (seconds left on the spill),
   `HeartDemonFaced` (denials; major; calm/whispers), `SurgeFired` (raw qi spent;
-  realm).
+  realm), `Lesson` (lesson id; `shown` when its elder line first fires, `claimed`
+  when its objective pays: the lessons' funnel, from `Quests.luau`).
 
 ## Tuning knobs
 - `Config.Data`: store name, autosave, lock timings, starting seeds.

@@ -56,6 +56,7 @@ local BUTTONS: { [string]: { string } } = {
 	Self = { "Buttons", "SelfButton" },
 	Inventory = { "Buttons", "InventoryButton" },
 	Travel = { "Buttons", "TravelButton" },
+	Build = { "Buttons", "BuildButton" }, -- the Build lesson (QR2)
 	Attack = { "Play", "AttackButton" },
 	Circulate = { "Stack", "CultivatePrompt", "Circulate" },
 	Breakthrough = { "Stack", "CultivatePrompt", "Breakthrough" },

@@ -21,7 +21,8 @@ spirit quests and sect-wide goals come later, as the player advances (QR onward)
   costs a promotion.
 
 ## Behaviour
-- **Opens at QC5** (`Pacing.Sect.OPENS`, the Board lesson). From then on the board's
+- **Opens at QC5** (`Pacing.Sect.OPENS`; no lesson of its own since 2026-10-24: the
+  elder's Talk for the QC5 Rumours lesson points at it). From then on the board's
   Read prompt (`Workspace.Hub.QuestBoard`) opens the sect board; before, it opens the
   goals list as it did. The elder's "What should I aim for next?" still opens the goals
   list at any stage.

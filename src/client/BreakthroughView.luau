@@ -175,6 +175,9 @@ end
 -- The local player's moment: the milestone card (Rewards), with what changed from
 -- the stage before (health, power, combat qi, passive cultivation) and any travel
 -- array the new stage opens. The subtitle also carries the foundation the stage just
+local FIRST_FOUNDATION_CARD = "QC5"
+local FOUNDATION_LINE = "New beasts and herbs deepen your foundation."
+
 -- left sealed, as the percent only ("Foundation 86%"; server Foundation; 100% is full,
 -- past it is more). A hook stage sends none.
 local function milestoneCard(stageName: string, major: boolean, percent: number?)
@@ -196,6 +199,9 @@ local function milestoneCard(stageName: string, major: boolean, percent: number?
 		add("Combat qi", before.combatQi, stage.combatQi, "%d")
 		add("Passive", before.passive, stage.passive, "%.2f/s")
 	end
+	-- the first card that carries a foundation (QC4 -> QC5; Pacing.Foundation.FROM is
+	-- QC4) introduces it in one line
+	local firstFoundation = stage ~= nil and type(percent) == "number" and stage.key == FIRST_FOUNDATION_CARD
 	local unlock: string? = nil
 	if stage then
 		for _, gate in Gates.List do
@@ -212,7 +218,9 @@ local function milestoneCard(stageName: string, major: boolean, percent: number?
 		subtitle = if type(percent) == "number" then `{stageName}  ·  Foundation {percent}%` else stageName,
 		stats = stats,
 		unlock = unlock,
-		flavour = if major then "A new realm opens before you." else "Your qi settles at a new depth.",
+		flavour = if firstFoundation then FOUNDATION_LINE
+			elseif major then "A new realm opens before you."
+			else "Your qi settles at a new depth.",
 		life = if major then 7 else 5,
 	})
 end

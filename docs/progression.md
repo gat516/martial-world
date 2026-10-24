@@ -87,19 +87,19 @@ kills); the aura and the per-beast extra moves wait on `vfx` and `animator`.
 | QC1 | HOOK | Inner Wilds | circulate, breakthrough (the first is guaranteed) | empty dantian |
 | QC2 | HOOK | Inner Wilds | first hunt, technique, store the haul, refine | empty dantian |
 | QC3 | HOOK | Inner Wilds | spirit root (Testing Stone), the travel formations | the tutorial ends at QC4 |
-| QC4 | BREATHER | Inner Wilds | **home grows:** garden and peak (the Home lesson), seclusion (the Seclusion lesson); the foundation grade starts (QC1-3 have none) | none |
-| QC5 | RAMP | Ruined Borderlands | **the sect board:** daily tasks, contribution, Outer Disciple rank | full dantian |
+| QC4 | BREATHER | Inner Wilds | **home grows:** the garden (the Home lesson; seclusion in the second session); the foundation starts (QC1-3 have none), introduced on the QC4 -> QC5 card | none |
+| QC5 | RAMP | Ruined Borderlands | **the Borderlands and their hidden caches** (the Rumours lesson); the sect board: daily tasks, contribution, Outer Disciple rank | full dantian |
 | QC6 | MINI-WALL | Borderlands | herbs matter (tier I herbs eaten for qi) | more than a dantian of qi |
-| QC7 | BREATHER | Borderlands | Jade Jiao (no new lesson: a breather) | beasts too strong |
-| QC8 | RAMP | Borderlands | rumours of ruins; the first secret place | foundation (soft) |
-| QC9 | WALL | Borderlands | the realm boss is optional (a Boss experience); the quiet breakthrough ceremony | bar |
+| QC7 | BREATHER | Borderlands | Jade Jiao; the Dao drill (the DaoPractice lesson) | beasts too strong |
+| QC8 | RAMP | Borderlands | no lesson (rumours moved to QC5) | foundation (soft) |
+| QC9 | WALL | Borderlands | the heart-demon trial (the HeartDemon lesson); the realm boss is optional (a Boss experience); the quiet breakthrough ceremony | bar |
 
 ### Qi Refining (new; the sect and the home deepen)
 Rank becomes **Inner Disciple** at QR1.
 | Stage | Beat | Region | New | Wall |
 |---|---|---|---|---|
 | QR1 | HOOK | Outer Wastes | Qi Refining; the wastes; chapter quests; second weapon class (moved from QC7; the Dao drill stays at QC7) | region seal |
-| QR2 | RAMP | Wastes | weekly sect tasks | none |
+| QR2 | RAMP | Wastes | weekly sect tasks; building (the Build lesson: place one piece) | none |
 | QR3 | MINI-WALL | Wastes | tier II herbs and the Herbarium; the Herbalist's second shelf (alchemy is a later update) | herbs |
 | QR4 | BREATHER | Wastes | the real slowdown starts: passive (garden aura, peak items, herbs) carries cultivation (seclusion is taught at QC4) | full dantian |
 | QR5 | RAMP | Wastes | Thunder Ape event and boss | beasts too strong |

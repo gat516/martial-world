@@ -71,7 +71,8 @@ on the baseplate unchanged.
   on the arena floor, centred on the spawn pad: an invisible `Plateau` at
   (0, 648.6, 40) (the build radius is measured from it), an empty `Placed` folder and
   `Owner` "". The first player to join gets it, so build mode and on-peak
-  meditation work there. No terrain, starter pieces, stele, array or spawn of its
+  meditation work there. It always gets its tier's build radius (`BuildRadius`;
+  the real map waits for a tier look with `Ground`). No terrain, starter pieces, stele, array or spawn of its
   own (everyone still spawns on the pad).
 - `Workspace.Arena.TribulationPlatform`: a 72-stud slab at (0, 649, 240); in the testbed `Config.Tribulation.CENTER` points at it, since the main peak's platform isn't there. Jump with the admin actions `realm` (`"QC9"`) and `tribulation`.
 - Place-only, kept on purpose (not in git, never synced back): the enemy pose-preview rigs

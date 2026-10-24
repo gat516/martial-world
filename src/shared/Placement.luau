@@ -15,7 +15,8 @@
 --
 -- Support: a placement mode says what holds a piece up.
 --   floor    rays down from its base find an upward surface, within its `lift`;
---            items whose `on` has only "terrain" need natural ground (Build.GROUND)
+--            items whose `on` has only "terrain" need natural ground (Build.GROUND, or a
+--            peak tier's Ground terraces)
 --   wall     a ray back from its rear face finds a vertical surface
 --   ceiling  a ray up from its top finds a downward surface
 --   socket   its base sits on a matching socket another piece offers
@@ -308,6 +309,11 @@ local function isGround(part: Instance, peak: Model): boolean
 		if table.find(Config.GROUND, node.Name) and node.Parent == peak then
 			return true
 		end
+		-- a peak tier's new terraces (Peaks.applyRealm parents the tier as RealmTier)
+		local parent = node.Parent
+		if node.Name == Config.TIER_GROUND and parent and parent.Name == "RealmTier" and parent.Parent == peak then
+			return true
+		end
 		node = node.Parent
 	end
 	return false
@@ -455,13 +461,13 @@ end
 
 -- Area rules --------------------------------------------------------------------------
 
-local function inArea(frame: CFrame, boxes: { Box }): boolean
+local function inArea(frame: CFrame, radius: number, boxes: { Box }): boolean
 	for _, b in boxes do
 		for _, sx in { -1, 1 } do
 			for _, sy in { -1, 1 } do
 				for _, sz in { -1, 1 } do
 					local corner = b.cf * (b.size / 2 * Vector3.new(sx, sy, sz))
-					if not Peak.inBounds(frame:PointToObjectSpace(corner)) then
+					if not Peak.inBounds(frame:PointToObjectSpace(corner), radius) then
 						return false
 					end
 				end
@@ -536,7 +542,7 @@ function Placement.check(ctx: Context, def: BuildItems.Def, boxes: { Box }, pivo
 		return { ok = false, reason = `The {def.name} can't go {where[mode]}` }
 	end
 	local world = Placement.worldBoxes(pivot, boxes)
-	if not inArea(ctx.frame, world) then
+	if not inArea(ctx.frame, Peak.radius(ctx.peak), world) then
 		return { ok = false, reason = "Outside your peak's build area" }
 	end
 	local zone = Placement.reservedHit(ctx.peak, world)

@@ -355,6 +355,28 @@ Pacing.Meditation = {
 	ON_PEAK = 2.5, -- on your own spirit peak
 }
 
+-- PEAK SCORE: every build piece standing on your peak (placed or starter) scores
+-- points; the score, up to your peak tier's cap (Config.Build.TIERS `scoreCap`),
+-- adds to meditation on your peak and to your plants' growth speed. The mid-QR
+-- lever: QR raises the cap, so building your abode keeps cultivation moving.
+--   points = BuildItems `score`, else BY_CATEGORY[category] + GATED[the gate's major]
+--   only the first PER_ITEM copies of one item count
+Pacing.PeakScore = {
+	BY_CATEGORY = {
+		Structures = 6,
+		Cultivation = 5,
+		Garden = 3,
+		Furniture = 2,
+		Lighting = 2,
+		Decor = 1,
+		Nature = 1,
+	} :: { [string]: number },
+	GATED = { QiCondensation = 2, QiRefining = 4, Foundation = 6 } :: { [string]: number },
+	PER_ITEM = 5,
+	MEDITATION = 0.004, -- meditation multiplier per point (QR cap 150: +0.6 on ON_PEAK)
+	GROWTH = 0.002, -- garden growth speed per point (QR cap 150: +30%)
+}
+
 -- BREAKTHROUGHS. Minor ones happen seated on a full bar. In combat, at low
 -- health, a minor one can be forced early; the new stage then starts in qi debt.
 Pacing.Breakthrough = {

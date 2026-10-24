@@ -344,10 +344,14 @@ dantian (`Pacing.Herbs.EAT_SHARE`, built untuned), so the garden keeps its value
 ## 6. Building and assets
 **Today:** about 40 items in 7 categories (cultivation, decor, furniture, garden,
 lighting, nature, structures), realm-gated, with meditation and garden bonuses;
-the peak swaps its look at Foundation only.
+peak tiers per major with room, item caps and a peak score (backend built, below).
 **Needed:** more assets, more reasons to build.
 - **Peak tiers per major** (QC, QR, FE): the peak itself changes look at each
-  major, not only Foundation.
+  major, not only Foundation. **Backend built 2026-10-23** (`Config.Build.TIERS`,
+  [build](systems/build.md#peak-tiers-backend-built-looks-wait-for-the-building-pass)):
+  the swap, per-tier radius, item caps and Herb Bed caps. The QC and QR looks
+  (and any `Ground` terraces that unlock the bigger radius) wait for the building
+  pass, which works to the template contract there.
 - **Themed sets**, 10-15 pieces each, unlocked by realm, rank or quest:
   1. *Mortal courtyard* (QC): walls, gate, simple halls, bridges, stairs.
   2. *Jade pavilion* (QR): pavilions, a spirit pond with a bridge, lanterns.
@@ -358,9 +362,13 @@ the peak swaps its look at Foundation only.
      which are where most bonuses should live.
 - **Rewards for building:** bonuses stay small and capped (`AURA_CAP`), but more
   items count: a "peak score" that adds to meditation and garden up to a cap.
+  **Built 2026-10-23, untuned** (`Pacing.PeakScore`; cap per tier 60/150/250,
+  meditation and plant growth).
 - **Sources:** sect contribution (Pavilion), quest rewards, event drops, the
   Herbalist and market for stones, and a few cosmetic robux items.
 - **Peak size and rooms:** a larger buildable area per major (a plot unlock).
+  **Backend built** with the tiers (radius 47/56/66, 120/160/200 items, 16/20/24
+  Herb Beds); the area grows on the real map once a tier's look brings `Ground`.
 - **Pipeline:** the `modeler` agent in Blender (FBX plus a placement script) for
   structures, and Studio parts for small props; `ui-designer` for the catalog.
   A fresh modeler per set; see [build](systems/build.md). Roughly 60-80 pieces over

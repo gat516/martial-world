@@ -6,7 +6,8 @@
 -- Growth runs on real time, offline too. Each planting rolls a size; while the
 -- owner is online, weather (Weather.luau `garden`) speeds growth, swells growing
 -- plants and gives mutations, and garden build pieces nearby (BuildItems
--- `garden`) add growth and mutation luck. Size and mutations multiply harvests.
+-- `garden`) add growth and mutation luck, as does the peak score (Peaks.growthBonus,
+-- growth only). Size and mutations multiply harvests.
 --
 -- Plantings live in the profile (data.peak.plots, by plot id) and are mirrored
 -- onto the plot as JSON in its Plants attribute for clients to draw.
@@ -372,6 +373,7 @@ local function tendGarden(player: Player, def: Weather.Def, seconds: number)
 	end
 	local g = def.garden or {}
 	local boosts = boostsOn(peak)
+	local peakGrowth = Peaks.growthBonus(player) -- the peak score (Pacing.PeakScore)
 	local now = os.time()
 	local minutes = seconds / 60
 	for plotId, plants in data.peak.plots do
@@ -384,7 +386,7 @@ local function tendGarden(player: Player, def: Weather.Def, seconds: number)
 			local at = stemWorld(plot, plant) or Vector3.zero
 			local growth, luck = boostAt(boosts, at)
 			local growing = Herbs.progress(plant, now) < 1
-			local rate = (g.growth or 1) - 1 + growth + Roots.perk(data.root, "growth") + Registry.stat(data, "growth")
+			local rate = (g.growth or 1) - 1 + growth + peakGrowth + Roots.perk(data.root, "growth") + Registry.stat(data, "growth")
 			if growing and rate > 0 then
 				plant.b += seconds * rate
 				changed = true
@@ -411,7 +413,7 @@ local function wildSpot(peak: Model): CFrame?
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = { peak }
 	for _ = 1, 12 do
-		local a, r = rng:NextNumber() * math.pi * 2, math.sqrt(rng:NextNumber()) * AllConfig.Build.RADIUS * 0.8
+		local a, r = rng:NextNumber() * math.pi * 2, math.sqrt(rng:NextNumber()) * Peak.radius(peak) * 0.8
 		local at = frame * Vector3.new(math.cos(a) * r, 40, math.sin(a) * r)
 		local hit = workspace:Raycast(at, Vector3.new(0, -80, 0), params)
 		if hit and hit.Normal.Y > 0.85 and not Peak.pieceOf(hit.Instance) then

@@ -8,6 +8,8 @@ circulation happen.
 - Idle-safe: you can leave it running. Where you sit matters: anywhere x1.5,
   your own peak x2.5, plus the best meditation seat or artifact within range on
   your peak (BuildItems `meditation`), which gives building a progression payoff.
+  On your peak the peak score adds too (`Peaks.meditationBonus`: up to +0.6 at
+  the QR cap, +1.0 at FE; [build](build.md#peak-score-built-untuned)).
 - Seated is a calm screen with the meditation menu (below): a row of tiles that
   only appear when they matter.
 - Seated locks the character: no walking, jumping or turning to the camera.
@@ -38,6 +40,7 @@ client fires `Meditate(false)`, or the server fires `Meditate(false)` to the cli
 - `Pacing.Meditation.ANYWHERE`, `ON_PEAK` (currently read through the
   `Config.Meditation` aliases).
 - `Config.Meditation.ITEM_RANGE`, `MAX_DRIFT`; BuildItems `meditation` per item.
+- `Pacing.PeakScore.MEDITATION` per point, capped by the peak tier's `scoreCap`.
 - `Meditation.luau`: `CALM_AFTER` (seconds before the HUD fades by itself),
   `TAP_DRIFT`, `TAP_SECONDS` (what counts as a tap that ends the calm view),
   `LOTUS_GAP` (px from the last seated tile to the lotus).

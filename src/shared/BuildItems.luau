@@ -29,7 +29,10 @@
 --   footprint narrows the placement bounds to this many studs (X, Z), centred,
 --             so canopies and overhangs don't block placement
 --   boxes     replaces the placement bounds with these boxes (pivot space)
--- Limits: `limit` caps how many can be placed on a peak (Build.MAX_ITEMS caps them all).
+-- Limits: `limit` caps how many can be placed on a peak; the peak tier can raise it
+-- (Config.Build.TIERS `limits`) and its `maxItems` caps them all.
+-- Score: `score` sets its peak-score points (default by category and realm gate,
+-- Pacing.PeakScore).
 -- Unlocks: `realm` is the cultivation realm needed to buy it.
 -- Effects: `meditation` adds to the meditation multiplier when seated near it;
 -- the best piece in range counts (Meditation.luau). `garden` helps plants whose
@@ -69,6 +72,7 @@ export type Def = {
 	garden: { radius: number, growth: number?, luck: number? }?,
 	soil: string?,
 	set: string?, -- BuildItems.Sets id
+	score: number?, -- peak-score points, replacing the category default (Pacing.PeakScore)
 	order: number,
 }
 

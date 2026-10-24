@@ -247,10 +247,28 @@ return {
 	},
 
 	Build = {
-		RADIUS = 47, -- studs from the plateau centre, horizontally
+		RADIUS = 47, -- base build radius, studs from the plateau centre, horizontally
 		MIN_Y = -30, -- down to the abode hall floor (-25)
 		MAX_Y = 30,
-		MAX_ITEMS = 120,
+		-- Peak tiers: the owner's realm picks the last row whose `from` stage they've
+		-- reached (Peaks.applyRealm). A row for a third of a realm (e.g. "QR4") slots in
+		-- anywhere. Per tier:
+		--   template  ServerStorage.PeakTiers.<template>, the look cloned onto the peak
+		--             (falls back to the nearest earlier tier whose template exists, else
+		--             the bare peak); the contract is in docs/systems/build.md
+		--   radius    build radius; on the real map it applies only when the applied
+		--             template brings a `Ground` child (new terraces), else RADIUS
+		--             (the testbed's flat arena always gets it)
+		--   maxItems  placed items the peak holds
+		--   limits    per-item caps replacing BuildItems `limit` (HerbBed: garden plots)
+		--   scoreCap  peak score past this adds nothing (Pacing.PeakScore)
+		TIERS = {
+			{ id = "QiCondensation", from = "QC1", template = "QiCondensation", radius = 47, maxItems = 120, limits = { HerbBed = 16 }, scoreCap = 60 },
+			{ id = "QiRefining", from = "QR1", template = "QiRefining", radius = 56, maxItems = 160, limits = { HerbBed = 20 }, scoreCap = 150 },
+			{ id = "Foundation", from = "FE1", template = "Foundation", radius = 66, maxItems = 200, limits = { HerbBed = 24 }, scoreCap = 250 },
+		} :: { { id: string, from: string, template: string, radius: number, maxItems: number, limits: { [string]: number }, scoreCap: number } },
+		-- the child of a tier template whose parts count as natural ground (GROUND)
+		TIER_GROUND = "Ground",
 		-- Precision presets the Grid button / G cycles: grid snap (studs) and rotation
 		-- step (degrees). The server keeps positions to 0.05 studs and yaw to 1 degree.
 		PRECISION = {

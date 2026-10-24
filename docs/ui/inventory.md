@@ -143,6 +143,12 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   and without the plaque the tab and search row, the rail and sort row and the grid
   sit 22 px higher (the grid 22 px taller). At 844x390 the window is about 734x244
   from y 64 and the grid about 124 px: a section header and a full row of cells.
+  Phones (`Platform.isSmall`, 2026-10-24, "it's cramped": the emulator's 749x388
+  left a 733x203 window and an 83 px grid, under one row): one toolbar row, the tabs,
+  then the rail scrolling sideways, then Sort (96 px) beside the close seal; the
+  search box is hidden (the rail still filters). Grid, divider and detail start 8 px
+  under the row with their bottoms kept, so the grid gains 44 px (127 px there; at
+  844x390 about 168). Tablets keep the two header rows.
 - Measured 2026-10-23 in a sandbox preview at 1920x1080, 1366x768 (PC) and 844x390,
   667x375 (touch, 44 px top bar): window 760x500 at 580,290 / 303,134; 760x270 and
   626x255 at y 50 (6 px under the bar). Content 22 px from the window on both sides

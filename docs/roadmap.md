@@ -44,6 +44,12 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
 - **Bloodlines,** absorbed or injected; they will replace race rerolls. Granting by
   masters: [relationships](roadmap/relationships.md).
 - **Halls, masters and lineage** (sections 3b, 3d).
+- **Player-made sects (user, 2026-10-24: "very far into the future"):** players
+  founding their own sects. For now every player belongs to an NPC-made sect or
+  faction ([replayability](roadmap/replayability.md) "Paths"), and enemy cultivators of
+  the other factions are opponents (section 8).
+- **Removing the onboarding tutorial or making it skippable (user, 2026-10-24):** far
+  in the future; the map comes first.
 - **Rifts and paths** (section 9, [replayability](roadmap/replayability.md)).
 - **World events** (section 7; separate work).
 - **Fortuitous encounters (owner, 2026-10-24):** the heavy player's long-term edge

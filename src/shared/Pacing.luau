@@ -348,6 +348,16 @@ Pacing.Herbs = {
 	} :: { [string]: number },
 }
 
+-- THE HERBARIUM (server Herbarium; docs/ui/herbarium.md). A herb is discovered the
+-- first time it's harvested or gathered; each discovery pays DISCOVER stones by its
+-- tier. Discovering every herb of a tier completes its page: TIER stones and a Home
+-- foundation experience ("home:book:<tier>"). First guesses (roadmap open question:
+-- small stone rewards plus a foundation experience, no cosmetics yet).
+Pacing.Herbarium = {
+	DISCOVER = { 15, 40, 120, 300, 800 }, -- Spirit Stones per new herb, by tier I..V
+	TIER = { 150, 400, 1200, 3000, 8000 }, -- Spirit Stones for a completed tier page
+}
+
 -- MEDITATION multiplies the passive rate while seated (build items on the peak
 -- add their BuildItems `meditation` bonus on top of ON_PEAK).
 Pacing.Meditation = {

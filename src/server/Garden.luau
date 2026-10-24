@@ -12,7 +12,9 @@
 -- onto the plot as JSON in its Plants attribute for clients to draw.
 --
 -- Also: wild herbs that sprout on owned peaks during their weather event, seed
--- drops from beasts, and the Herbalist at the Spirit Market (buy seeds, sell herbs).
+-- drops from beasts (their region's seeds, Herbs.Regions), and the Herbalist at the
+-- Spirit Market (buy seeds, sell herbs). Harvests and wild gathers fill the
+-- Herbarium's record (server Herbarium).
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -27,8 +29,11 @@ local Weather = require(ReplicatedStorage.Shared.Weather)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
+local Realms = require(ReplicatedStorage.Shared.Realms)
+local Regions = require(ReplicatedStorage.Shared.Regions)
 local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
+local Herbarium = require(script.Parent.Herbarium)
 local Peaks = require(script.Parent.Peaks)
 local Cultivation = require(script.Parent.Cultivation)
 local Inventory = require(script.Parent.Inventory)
@@ -211,6 +216,7 @@ function Garden.harvest(player: Player, plotId: any, plantId: any): (boolean, st
 	local base = rng:NextInteger(herb.yield[1], herb.yield[2])
 	local count = math.max(1, math.floor(base * plant.s * Herbs.multiplier(plant.m) + 0.5))
 	Foundation.harvest(player, herb, plant.m) -- a new herb tier or rare mutation (before regrowth clears it)
+	Herbarium.record(player, plant.h, count, plant.s, plant.m)
 	local extras = {}
 	if herb.regrowSeconds then
 		-- it stays and fruits again; weather mutations were spent on this harvest
@@ -422,14 +428,16 @@ local function wildSpot(peak: Model): CFrame?
 end
 
 local function sprout(peak: Model, herbId: string)
-	local template = herbModels:FindFirstChild(herbId) :: Model?
 	local at = wildSpot(peak)
-	if not (template and at) then
+	local model, templateScale = Herbs.clone(herbModels, herbId)
+	if not (model and at) then
+		if model then
+			model:Destroy()
+		end
 		return
 	end
 	local herb = Herbs.Defs[herbId]
-	local model = template:Clone()
-	model:ScaleTo(template:GetScale() * herb.scale)
+	model:ScaleTo(templateScale * herb.scale)
 	model:PivotTo(at)
 	local root = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
 	if not root then
@@ -465,6 +473,7 @@ local function sprout(peak: Model, herbId: string)
 			data.seeds[herbId] = (data.seeds[herbId] or 0) + 1
 			Cultivation.notify(player, `You gathered a {herb.name} seed!`)
 		end
+		Herbarium.record(player, herbId, count, 1, nil)
 		Inventory.grant(player, herbId, count, root.Position)
 		model:Destroy()
 	end)
@@ -508,22 +517,44 @@ end
 
 --[[ Beast seeds ]]
 
-local function beastSeed(): string
+-- The seed region a kill drops from: the Herbs.Regions entry of the Regions.luau
+-- region it died in, else (the testbed, or ground with no seed region) the last one
+-- whose `from` stage is at or below the beast's realm.
+function Garden.seedRegion(def: Enemies.Def, at: Vector3?): Herbs.SeedRegion
+	if at and not AllConfig.TESTBED then
+		local here = Regions.at(at)
+		local region = here and Herbs.region(here.id)
+		if region then
+			return region
+		end
+	end
+	local beast = Realms.index(def.realm[1], def.realm[2])
+	local found = Herbs.Regions[1]
+	for _, region in Herbs.Regions do
+		if Realms.index(region.from[1], region.from[2]) <= beast then
+			found = region
+		end
+	end
+	return found
+end
+
+local function pick(pool: { [string]: number }): string?
 	local total = 0
-	for _, w in Config.BEAST_SEED_WEIGHTS do
+	for _, w in pool do
 		total += w
 	end
 	local roll = rng:NextNumber() * total
-	for i, w in Config.BEAST_SEED_WEIGHTS do
+	for id, w in pool do
 		roll -= w
 		if roll <= 0 then
-			return Config.BEAST_SEEDS[i]
+			return id
 		end
 	end
-	return Config.BEAST_SEEDS[1]
+	local first = next(pool)
+	return first
 end
 
-function Garden.onKill(player: Player, def: Enemies.Def)
+function Garden.onKill(player: Player, def: Enemies.Def, model: Model?)
 	local data = PlayerData.get(player)
 	if not data then
 		return
@@ -534,11 +565,23 @@ function Garden.onKill(player: Player, def: Enemies.Def)
 	elseif rng:NextNumber() < Config.BEAST_SEED_CHANCE then
 		count = 1
 	end
+	if count == 0 then
+		return
+	end
+	local region = Garden.seedRegion(def, if model then model:GetPivot().Position else nil)
+	local pool = table.clone(region.seeds)
+	if def.boss then
+		for id, w in region.bossSeeds or {} do
+			pool[id] = (pool[id] or 0) + w
+		end
+	end
 	local got = {}
 	for _ = 1, count do
-		local id = beastSeed()
-		data.seeds[id] = (data.seeds[id] or 0) + 1
-		got[id] = (got[id] or 0) + 1
+		local id = pick(pool)
+		if id and Herbs.Defs[id] then
+			data.seeds[id] = (data.seeds[id] or 0) + 1
+			got[id] = (got[id] or 0) + 1
+		end
 	end
 	for id, n in got do
 		Cultivation.notify(player, `The beast dropped {n} {Herbs.Defs[id].name} seed{if n == 1 then "" else "s"}`)

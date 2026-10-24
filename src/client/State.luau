@@ -31,6 +31,9 @@ export type Snapshot = {
 	-- count/target experiences, the grade it would get now, past grades by stage key,
 	-- the summed bonus share, and up to 5 open experiences { category, text }
 	foundation: { count: number, target: number, grade: string, grades: { [string]: string }, bonus: number, hints: { { category: string, text: string } } }?,
+	-- the Herbarium's record (server Herbarium): per herb id n harvested, l largest
+	-- size, m mutations seen; tiers whose page is complete ("1".."5")
+	herbarium: { herbs: { [string]: { n: number, l: number, m: { string } } }, tiers: { [string]: boolean } }?,
 }
 
 local State = {}

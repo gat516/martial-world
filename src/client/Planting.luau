@@ -70,13 +70,12 @@ end
 
 local function makeGhost(id: string)
 	clearGhost()
-	local template = herbModels:FindFirstChild(id) :: Model?
+	local model, templateScale = Herbs.clone(herbModels, id)
 	local herb = Herbs.Defs[id]
-	if not (template and herb) then
+	if not (model and herb) then
 		return
 	end
-	local model = template:Clone()
-	model:ScaleTo(template:GetScale() * herb.scale * 0.6)
+	model:ScaleTo(templateScale * herb.scale * 0.6)
 	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") then
 			d.CanCollide = false

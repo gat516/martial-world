@@ -316,20 +316,27 @@ rewards using them over M1; no enemy asks for a technique; and nothing combines.
   agent per class).
 
 ## 5. The spirit garden
-**Today:** about 11 herbs in 3 soils (bed, pond, grove), 7 mutations, sizes,
-weather effects, wild sprouts, the Herbalist, Grow Now, and an aura on cultivation.
-Herbs have tiers I-III and eating a qi herb gives its tier's share of the current
-dantian (`Pacing.Herbs.EAT_SHARE`, built untuned), so the garden keeps its value past QC6.
+**Today:** 22 herbs in 3 soils (bed, pond, grove), tiers I-V with 3-5 each, 7
+mutations, sizes, weather effects, wild sprouts, the Herbalist, Grow Now, and an aura
+on cultivation. Eating a qi herb gives its tier's share of the current dantian
+(`Pacing.Herbs.EAT_SHARE`), beasts drop their region's seeds (`Herbs.Regions`), and the
+Herbarium is wired with discovery and tier-page rewards (built 2026-10-23, untuned;
+[garden](systems/garden.md), [herbarium](ui/herbarium.md)). The 11 new herbs draw
+tinted stand-ins until the modeler builds them (garden "Models to build").
 
 **Plan:**
 - **Herb tiers** I-V tied to regions, qi as a share of the dantian
-  ([progression](progression.md)); 3-4 new herbs per tier (about 20 more).
+  ([progression](progression.md)); built with 3-5 herbs per tier. More herbs later as
+  regions get their maps.
 - **Alchemy is deferred** (see "Deferred to a later update"). Herbs are eaten directly
   for now; their sinks are the Herbalist, the sect's errands, the Herbarium and buffs.
 - **Tending matters:** watering, pests or weather events, rare mutation chances,
   and size records. Keep it calm, no punishment for being away.
 - **The Herbarium:** a collection index of every herb, size and mutation seen,
-  with rewards. It's the "grow a garden" hook and feeds the Home experiences.
+  with rewards. It's the "grow a garden" hook and feeds the Home experiences. Built:
+  each discovery pays a few Spirit Stones; a completed tier page pays more and is a
+  Home foundation experience (first guess, 2026-10-23). Still to do: a HUD tile so
+  phones can open it, and maybe size or mutation milestones.
 - **Wild gardens:** discoverable spots in each region ("Discover" foundation
   experiences); harvest once a day; a reason to explore.
 - **Visiting:** walk through a friend's peak and gift a herb. A cheap social hook,
@@ -337,9 +344,8 @@ dantian (`Pacing.Herbs.EAT_SHARE`, built untuned), so the garden keeps its value
 - **Gardener road:** garden aura, seclusion and tempering carry a pure gardener to every
   wall, just slower than a fighter ([progression](progression.md) "Difficulty").
 - **Sect garden:** a shared plot the sect tasks tend (quests with no combat).
-- **Build order:** herb tiers and qi scaling (built: tier field and dantian share;
-  regional tiers IV-V and region seeds still to come), then the Herbarium,
-  then wild gardens (map), then visiting.
+- **Build order:** herb tiers and qi scaling, regional tiers IV-V and region seeds,
+  the Herbarium (all built, untuned), then wild gardens (map), then visiting.
 
 ## 6. Building and assets
 **Today:** about 40 items in 7 categories (cultivation, decor, furniture, garden,
@@ -447,7 +453,8 @@ The solidity meter and death-save prompt are shelved by Phase A.
 - Surge length (15 s proposed), its raw-qi cost, and does it have a cooldown beyond the 90% bar?
 - Essence blood: a resource of its own (for the surge, the Blood Rite, the demon path) or flavour?
 - How much harder is a tribulation or heart-demon trial per grade below Solid?
-- Does the Herbarium reward cosmetics only, or foundation experiences?
+- Does the Herbarium reward cosmetics only, or foundation experiences? (First guess
+  built: small Spirit Stones per discovery, more plus a Home experience per tier page.)
 - Which building sets are robux and which are earnable? (earnable first)
 - Rebirth: is it a full reset (keeping the legacy) or a parallel second character?
 - How harsh is the Blood Rite's cost (one stage plus days of ebb, as drafted)?

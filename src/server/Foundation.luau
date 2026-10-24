@@ -7,6 +7,7 @@
 --   Boss      "boss:<enemy>"         first kill of a boss (counts double)
 --   Home      "home:tier:<n>"        first harvest of a herb tier
 --             "home:mut:<mutation>"  first harvest with a rare mutation (Pacing MUTATION_BONUS)
+--             "home:book:<tier>"     a tier's Herbarium page completed (server Herbarium)
 --   Dao       "dao:<class>:<level>"  a weapon Dao level reached
 --   Discover  "discover:<cache id>"  a world cache or weapon rack claimed
 --   World     "world:<event id>"     taking part in a world event
@@ -223,6 +224,14 @@ function Foundation.hints(data: PlayerData.Data): { Hint }
 		end
 		if best then
 			add({ category = "Home", text = `Harvest a {Herbs.Mutations[best].name} herb` })
+		else
+			-- the lowest Herbarium page not yet complete
+			for t = 1, #ROMAN do
+				if not seen[`home:book:{t}`] then
+					add({ category = "Home", text = `Complete the tier {ROMAN[t]} page of your Herbarium` })
+					break
+				end
+			end
 		end
 	end
 	-- Dao: the next level of the equipped weapon's class

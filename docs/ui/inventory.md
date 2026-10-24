@@ -45,10 +45,15 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   upload step. The client reads `ReplicatedStorage.WeaponModels` (the same
   `assets/WeaponModels.rbxm` as `ServerStorage.WeaponModels`, mapped twice). Bare
   Fists (no model) show the Fist class glyph.
-- Herbs and pills (ready for the Inventory pass, not wired yet): the same live
-  viewport through `ModelView` (src/client/ModelView.luau), already used by the
-  Herbarium's cards. Give the cell or hotbar slot a hidden `ViewportFrame` beside its
-  `Icon` and call `ModelView.item(frame, itemId)`: `ReplicatedStorage.ItemModels`
+- Herbs and pills (wired 2026-10-24, Inventory cells and the detail preview only; the
+  hotbar stays words, user decision): the same live viewport, the slot's `Well.Model`,
+  through `ModelView` (src/client/ModelView.luau, also the Herbarium's cards):
+  `SlotArt.paint(slot, id, count, countText, true)` calls `ModelView.item(frame, itemId)`
+  for the Herb and Pill kinds (cores and treasures keep icons), upright, at 0.6
+  transparency with none held; SlotArt keeps each viewport's authored light and puts
+  it back before a weapon is drawn there. Cells are re-made on each render, so a state
+  push while the Pouch is open re-clones its models (herbs 15-85 parts, items 4-10);
+  unprofiled on a low-end phone. `ModelView.item`: `ReplicatedStorage.ItemModels`
   first (pills, cores, dew, jade, peach), then the herb models (`Herbs.template`:
   `HerbModels`, `HerbModelsExtra`, the tinted stand-in). It returns false (and hides
   the frame) when there's no model, so the cell keeps its icon. Pose `upright`
@@ -82,7 +87,9 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
 ## Layout (`StarterGui.Hud.Inventory`, 760x500 max, centred; touch: fills the space between Roblox's top bar and the hotbar)
 
 - Left column (60 %): a tab row (**Weapons**, **Arts**, **Pouch**, each with a
-  crimson NEW count) and the **Search** box; a chip **Rail** (All, then one chip per
+  crimson NEW count, then the 44 px **book tab** that opens the Herbarium and comes
+  back here when it closes, [herbarium](herbarium.md)) and the **Search** box (100 px
+  at 760 wide; hidden on touch phones, which keep the chips: design review 2026-10-23); a chip **Rail** (All, then one chip per
   section) and the **Sort** button; then the **Grid**, a scrolling list of sections.
 - Weapons sections, one per weapon class: the class glyph, name and Dao level in the
   class colour, a gold rule, the class's weapons (Bare Fists under Fist), the class

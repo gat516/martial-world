@@ -15,7 +15,7 @@ main peak, the sect gate and the wilds arrays (see [map](map.md), "World structu
 - A beat can show progress after its objective (`progress`, e.g. Technique's
   kills "(1/3)").
 - Travel can't be used to flee a fight (blocked while in combat or mid-action).
-- In the sect, travel works from anywhere: the Travel button shows on the sect's
+- In the sect, travel works from anywhere: the contextual tile shows Travel on the sect's
   safe ground (`Gates.inSect`) and rides to My Peak, Main Peak or the Sect Gate,
   so a player tending their garden can hop between peaks without walking to an
   array. Out in the wilds the button is gone; every array has a Travel prompt
@@ -347,7 +347,7 @@ here". Template built by `tools/vfx_specs/Guide.luau`; this client only.
 - Budget: 7 stream + 7 bed beams (up to 14 each with split gaps), 2 small
   emitters on loop, 3 bursts (1 + 1 + 12) on arrival; no lights, no parts that
   collide or query. `Hud.GuideTrail` (the old soft beam) is no longer used.
-- `src/client/TravelMenu.luau`: shows the Travel button on sect ground, clones
+- `src/client/TravelMenu.luau`: offers Travel on the contextual tile on sect ground and at arrays (`ContextTile`), clones
   `Hud.TravelPrompt` onto every array (it opens the menu), binds every
   button under List named after a gate id (grouped in `List.Sect` / `List.Wilds`),
   hides the array you're on, greys out realm-gated arrays the player hasn't

@@ -53,7 +53,7 @@ only for instanced party content.
   the border river); zones that aren't neighbours only connect by arrays.
 - **Arrays carry all long travel** (`Shared.Gates`, `src/server/Travel.luau`).
   Players spawn on their own peak's array, respawn after death on the plaza's and
-  arrive on the destination's. On the sect's safe ground the Travel button rides
+  arrive on the destination's. On the sect's safe ground the contextual tile (Travel) rides
   to the sect's arrays (My Peak, Main Peak, Sect Gate) from anywhere; out in the
   wilds you travel only from an array (its prompt), and the wilds arrays answer
   only from the Sect Gate's array or another wilds array.

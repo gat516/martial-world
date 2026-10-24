@@ -1,5 +1,7 @@
 # Review: HUD and menus on a phone
 
+**Owner's decision (2026-10-24):** recommendation 1 and 2 taken. Four tiles: a contextual tile (Build at your peak, Travel at arrays and in the sect), Cultivate, Inventory and Self; Settings and People moved into the Self card's header, the Herbarium into an Inventory tab, the quest log onto a tap of the objective line; the crest stays as a shortcut. The rule "a new persistent element names the one it replaces" is in `docs/systems/ui.md`. Recommendations 3-5 are still open.
+
 **Verdict: rework the tile row.** The vitals stack, the one-window rule, combat folding and the phone footprint pass (33.7% to 19.7% at 844x390) are good work. But the out-of-combat HUD runs about 12 persistent elements against a ~5 guideline, and more are queued. Reviewed 2026-10-23 from `docs/systems/ui.md`, `docs/ui/*`; nothing seen on a real phone.
 
 ## The count (phone, out of combat, at your peak)

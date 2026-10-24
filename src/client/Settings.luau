@@ -1,5 +1,6 @@
 --!strict
--- The Settings window (the gear tile): music and sound-effect volume, plus
+-- The Settings window (the gear seal in the Self card's header, SelfCard; before the
+-- root is tested the Self tile opens it directly): music and sound-effect volume, plus
 -- Auto combat (touch only: LockOn's auto lock, close-in and strike) and the PC
 -- lock-on key hint. Volumes drive the SoundService.Music and SoundService.SFX
 -- groups; the sound slider also drives SoundService.Ambience (positional
@@ -31,6 +32,7 @@ local values: Values = { music = 1, sfx = 1, autoAttack = true, lockHint = true 
 local loaded = false
 local saveToken = 0
 local refreshers: { () -> () } = {}
+local window: Frame
 
 local function apply()
 	local music = SoundService:FindFirstChild("Music") :: SoundGroup?
@@ -128,14 +130,27 @@ local function bindToggle(row: Instance, key: string)
 	end)
 end
 
+-- back (optional): reopen the window Settings was opened from when it closes by its seal
+function Settings.open(back: (() -> ())?)
+	if back then
+		Menus.openFrom(window, back)
+	else
+		Menus.open(window)
+	end
+end
+
+function Settings.toggle()
+	if window.Visible then
+		Menus.close(window)
+	else
+		Settings.open()
+	end
+end
+
 function Settings.init(gui: ScreenGui)
-	local window = gui:FindFirstChild("SettingsWindow") :: Frame
+	window = gui:FindFirstChild("SettingsWindow") :: Frame
 	Menus.register(window)
 	ListWindow.bindClose(window)
-	local button = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("SettingsButton") :: GuiButton
-	button.Activated:Connect(function()
-		Menus.toggle(window)
-	end)
 
 	local rows = window:FindFirstChild("Rows") :: Frame
 	bindSlider(rows:FindFirstChild("Music") :: Instance, "music")

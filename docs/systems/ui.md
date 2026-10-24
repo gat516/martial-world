@@ -42,28 +42,42 @@ cursor, settings and the admin panel.
   breakthrough nudge: [vitals stack](../ui/hud-vitals.md).
 - Inventory (weapons and arts by class, rarity frames, NEW badges, drag to equip, sort, filter and search): [inventory](../ui/inventory.md).
 - Character window (`SelfCard`, the Self tile, the realm crest shortcut, the
-  `RootReveal` card): Inventory-sized, three columns at once (Self |
+  `RootReveal` card): its header carries the People (safe ground only) and Settings
+  seals left of the close seal; Inventory-sized, three columns at once (Self |
   Cultivation | Path; tabs on phones), every section the same shape, details on
   tap, gains in jade. Layout and sections:
   [character window](../character/character-window.md). Switching methods lives in
   the meditation menu ([meditation](meditation.md)).
-- Top-right tiles (`Hud.Buttons`, right-aligned list, 440 px wide), left to right: Herbarium
-  (the book with a leaf, tinted leaf green; `Herbarium.luau` toggles it, H on keyboards;
-  added 2026-10-23 so phones have a way in), Build (near
-  your peak; at the very left so it slides out cleanly in combat, user 2026-10-23),
-  Cultivate, Self (once the root is tested), Travel (in the sect; with the other
-  folding tiles on the left, user 2026-10-23), the admin-only 管 tile (touch, never
-  folds), Inventory, Settings. Herbarium, Build, Cultivate, Self and Travel fold. In combat (the player's `InCombat` attribute) they fold down to
-  Inventory and Settings (`TileFold.luau`, user 2026-10-23: so the boss bar can
-  reach the top; Travel is refused while combat tagged anyway): each other tile
+- **The rule (user, 2026-10-24): every new persistent HUD element names the one it
+  replaces.** Out of combat the phone HUD already holds the tile row, the objective
+  line, buff chips, the vitals stack, the hotbar and the touch cluster; a new feature
+  goes inside one of them (a window's tab or header, a contextual slot, a tap on
+  something already there) or says in its doc and commit which element it retires.
+  Applied so far: Herbarium -> an Inventory tab, Settings and People -> the Self card's
+  header, Build and Travel -> one contextual tile, the quest log -> a tap on the
+  objective line, party pips stay (queued: mark members on nameplates instead).
+- Top-right tiles (`Hud.Buttons`, right-aligned list, 312 px wide): four, cut from
+  seven (user, 2026-10-24, from the HUD design review). Left to right: the
+  **contextual tile** (`ContextButton`, `ContextTile.luau`: Build on or over your own
+  peak, Travel standing on any array or anywhere in the sect, hidden elsewhere; one
+  slot, the higher rank wins: an array under your feet, then your peak, then the sect;
+  the onboarding guide's Travel beat asks for Travel; the hammer or gate glyph and
+  caption swap in place with a dip, and the tile pops in when it appears. Same lacquer
+  frame as the others: a jade-tinted frame was tried and dropped, critic 2026-10-24,
+  it read as disabled and echoed Cultivate), Cultivate, the admin-only 管 tile
+  (touch, never folds), Inventory, and **Self** (always shown: it holds Settings;
+  before the root is tested it opens Settings directly). The Herbarium, Settings,
+  Build and Travel tiles are gone. In combat (the player's `InCombat` attribute) the
+  contextual tile and Cultivate fold, leaving Inventory and Self (`TileFold.luau`, user 2026-10-23: so the boss bar can
+  reach the top; Travel is refused while combat tagged anyway): each folding tile
   shrinks to a point in 0.18 s, its width to minus the list padding so the row
   re-flows with no pop, and grows back in 0.22 s when combat ends. `TileFold` owns
-  only their size, clipping and `Interactable`; `Visible` stays with SelfCard,
-  TravelMenu and Menus. 56 px tiles 8 px apart, scaled 0.9 on a touch tablet (about
+  only their size, clipping and `Interactable`; `Visible` stays with ContextTile
+  and Menus. 56 px tiles 8 px apart, scaled 0.9 on a touch tablet (about
   50 px thumb targets), 0.78 on a touch phone (44 px, the height of Roblox's own top-bar
   buttons; at 50 the user found them "a bit too large", 2026-10-23; `Layout`
   TOUCH_SMALL_TILES, and `Play.Tracker` moves up to keep its 8 px gap), 0.85 on PC;
-  four tiles are 200 px wide on a phone, all seven out of combat about 343 px. The frame is
+  the four tiles are about 196 px wide on a phone (seven were about 343 px), two in combat. The frame is
   `hud_tile` (art/ui/hud: a lacquer square with chamfered corners, gilt band and
   inner line, no curls; it fills the tile, nothing overhangs). PC: icon (22 px,
   cropped to its drawn area, every pixel with alpha > 0: the old rects were up to a
@@ -79,7 +93,8 @@ cursor, settings and the admin panel.
   28 px tall, truncated past 205 px), then the buffs as 30 px round chips (the
   kit's round seal, the item's icon, a cream ring that drains to the buff's end;
   one chip per source item), then `BuffTip`, the words for every buff, shown on a
-  tap (4 s) or while the mouse is over a chip. Buffs carry `seconds` (their span)
+  tap (4 s) or while the mouse is over a chip. Tapping or clicking the objective
+  line opens the sect quest log (`SectView.openLog`; no button of its own). Buffs carry `seconds` (their span)
   for the ring.
 - Touch combat cluster (`Play`, placed by `Layout`): Strike (70 px) in the corner,
   Jump, Dash and Guard (50 px) on an arc 74 px from Strike's centre at 180, 135 and
@@ -203,7 +218,12 @@ cursor, settings and the admin panel.
 - Guard bar (`GuardBar.luau`, `Stack.Vitals.GuardBar`) and the touch
   `Play.BlockButton`: see [vitals stack](../ui/hud-vitals.md#guard-bar).
 - `Menus.luau`: the one-window rule and what hides while a window is open.
-- `TileFold.luau`: the top-right tiles fold down to Inventory and Settings in combat.
+- `TileFold.luau`: the top-right tiles fold down to Inventory and Self in combat.
+- `ContextTile.luau`: the row's one contextual tile; providers (`BuildMode`,
+  `TravelMenu`) `offer` an action and `set` a rank, the guide may `prefer` one.
+- `Menus.openFrom(frame, back)`: a window opened from inside another (the Self card's
+  seals, the Inventory's book tab) runs `back` when closed by its own seal, so the
+  player lands where they were.
 - `Motion.luau`: shared tweens; uses the `Motion` UIScale authored on frames.
 - `UiScale.luau`: baseline scaling for new screens. Lay a screen out once inside an
   authored `Canvas` frame (with a `UiScale` UIScale) at 1920x1080, or 844x390 for a
@@ -246,10 +266,10 @@ cursor, settings and the admin panel.
   control into view).
 - `Cursor.luau`, `ShiftLock.luau` (Alt binding and reticle),
   `LockOn.luau` reticle and hint.
-- `Settings.luau` (volumes, Auto combat, lock hint), `AdminPanel.luau` (admins only; F2 on any keyboard, and on touch, the device emulator included, an admin-only 管 tile first in the tile row, `Buttons.AdminButton`, never shown to other players; on touch the panel shows a close seal instead of the F2 hint, chips are 36 px tall, on a phone it fills the right side from 64 px down and scrolls, and a UI preview chip closes it so the previewed screen shows whole. Tools and Traits tabs, the Traits tab is `AdminTraits.luau`, see [identity](identity.md)).
+- `Settings.luau` (volumes, Auto combat, lock hint; opened from the Self card's gear seal), `AdminPanel.luau` (admins only; F2 on any keyboard, and on touch, the device emulator included, an admin-only 管 tile first in the tile row, `Buttons.AdminButton`, never shown to other players; on touch the panel shows a close seal instead of the F2 hint, chips are 36 px tall, on a phone it fills the right side from 64 px down and scrolls, and a UI preview chip closes it so the previewed screen shows whole. Tools and Traits tabs, the Traits tab is `AdminTraits.luau`, see [identity](identity.md)).
 - `Social.luau` (`StarterGui.Social`, fitted by `UiScale` at the phone baseline): the
   player card (namecard or character tap, People row, pip), the People list
-  (`Social.openPeople`/`togglePeople`, for the safe-zone People tile), the invite prompt,
+  (`Social.openPeople`, from the Self card's People seal on safe ground), the invite prompt,
   party pips at the left edge and the friend toast; see [party](party.md).
 - `State.luau`: the latest `PlayerState` snapshot with change listeners.
 - `CharacterCreator/` (the join screen: nav, viewport dummy, parchment panel); see

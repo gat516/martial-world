@@ -24,7 +24,7 @@ while they show.
 Height: the bar sits up in the top bar's row (y 12, level with the top-right tiles)
 whenever it clears the tiles and Roblox's own top-bar buttons by 8 px, else at its
 authored y 64 under the row (`placeLift`, tweened 0.22 s). PC always clears them. On a
-phone the tiles fold down to Inventory and Settings in combat (`TileFold`, the player's
+phone the tiles fold down to Inventory and Self in combat (`TileFold`, the player's
 `InCombat` attribute), which frees the room; the lift reads the fold's end state, so it
 moves with the fold. Toasts treat the bar as an obstacle and go under it. Top to bottom:
 - the kit's name plaque (brown lacquer plate with `curl_diamond` scroll ends) with the

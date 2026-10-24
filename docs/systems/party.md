@@ -4,8 +4,8 @@ Reasons to meet other players ([roadmap](../roadmap.md) 3e). A party is never re
 it adds a small qi bonus, lets nearby members share each other's kills, and gives a
 one-tap ride to a member. PvP stays off and there is no trading (roadmap 3f).
 Backend built 2026-10-23; the UI (card, People, invite prompt, pips, friend toast) built
-the same day (both untested in play). The People tile and the travel menu's Join button
-live in the Hud and are specified under "UI" below, still to build.
+the same day (both untested in play). The People seal (in the Self card's header) and
+the travel menu's Join rows live in the Hud, built 2026-10-24 (see "UI" below).
 
 Files: `src/server/Party.luau` (parties, card, people list, friend nudges),
 `src/server/Shelter.luau` and `src/client/ShelterFX.luau` (the party shelter),
@@ -93,8 +93,9 @@ withYou }`. Buttons by flag: `canInvite` -> "invite"; `invitedYou` -> "accept" /
 on your own row of the pips; `canJoin` -> "join"; `canVisit` -> "visit". Re-fetch the
 card after an action.
 
-**People list** (`PartyAction "people"`): a HUD tile shown only while the player
-attribute `InSafeZone` is true opens it. Rows of `{ userId, name, realm, raceName,
+**People list** (`PartyAction "people"`): the People seal in the Self card's header,
+shown only while the player attribute `InSafeZone` is true, opens it (no tile of its
+own: four-tile row, user 2026-10-24). Rows of `{ userId, name, realm, raceName,
 friend, withYou, inParty }`, friends first then by name, yourself left out. Tapping a
 row opens the card.
 
@@ -111,8 +112,8 @@ dimmed when not `near` (outside `RADIUS`). Re-sent only on change, at most every
 `PUSH_SECONDS`. The player attribute `Party` (the party id) lets nameplates mark members.
 Keep it small on phones (the HUD is already full).
 
-**Travel menu:** a "Join <name>" button per other member (`PartyAction "join"`) beside
-the arrays; TravelMenu's buttons are prebuilt in the Hud, so this needs the ui-designer.
+**Travel menu:** a "Join <name>" row per other member (`PartyAction "join"`, the join
+ride) at the top of the list; built, see "In the Hud" below.
 
 **Friend nudge** (`PartyState "friendHere", { userId, name }`): toast "<name> is on this
 mountain", once per session per friend, both ways.
@@ -157,20 +158,18 @@ cinnabar seal. Calm and plain: no ornament beyond the frame.
   130x40 lacquer button that drops under it for 4 s).
 - **Friend toast:** `friendHere` -> `Hud.toast("<name> is on this mountain")`.
 
-**To build in the Hud (ui-designer, `assets/Hud.rbxmx`):**
-- **People tile** `Hud.Buttons.PeopleButton`: the kit `hud_tile` like its neighbours,
-  LayoutOrder -3 (the very left, before Herbarium, so it slides in and out cleanly), caption
-  "People", key cap P on keyboards (P is free). Icon: two busts, the Self tile's bust
-  (`draw_ui.py self_icon`) doubled with the second behind and to the right, white, tinted
-  cream like the other glyphs (or a Codex icon sheet entry if the kit gets one). Visible
-  only while the player attribute `InSafeZone` is true (fade like the other tiles); a
-  folding tile in `TileFold`. Activated -> `Social.togglePeople()` (pressing it again
-  closes the list); P does the same. `Buttons` widens by one tile (56 + 8 px; 393 px on a
-  phone at 0.78).
-- **Travel menu:** a "Join <name>" row per other party member at the top of the list,
-  above Sect grounds, in the array rows' style with the jade button; hidden when solo.
-  Activated -> `PartyAction "join", userId` (refusals arrive as the returned message).
-  Members come from the `PartyState "party"` snapshot (Social could expose it).
+**In the Hud (built 2026-10-24, `assets/Hud.rbxmx`):**
+- **People** is a round seal in the Self card's header (`Hud.SelfCard.Header.PeopleButton`,
+  two busts composited from the Self icon, `draw_ui.py people`), not a tile: the tile row
+  is four tiles and a new persistent element must name the one it replaces
+  ([ui](ui.md)). Visible only while `InSafeZone`; Activated ->
+  `Social.openPeople(SelfCard.open)` (its close seal goes back to the card). No P key.
+- **Travel menu:** `TravelMenu.List.Party`, a row above the Sect grounds and Wilds
+  columns (`List.Columns`): one `JoinTemplate` clone per other member, a third of the
+  row each (up to three), the jade button art, "Join <name>" over their realm. Activated
+  -> closes the menu and `Social.join(userId)` (`PartyAction "join"`; refusals arrive as
+  a toast). Rebuilt on every party push (`Social.onParty`); hidden when solo, and the
+  window's height cap grows by the row (262 -> 314) while it shows.
 
 ## Testing
 The testbed stand-in (`TestbedDummy`) is not a Player, so parties need two clients:
@@ -180,7 +179,7 @@ together. `Social.preview()` (client console)
 shows a sample card, invite and pips alone.
 
 ## Known gaps
-- The People tile and the travel menu's Join row (specified above, Hud work).
+- The People seal and the travel menu's Join row are untested in play (two clients).
 - The UI is untested in play (two clients); the People list doesn't get the Hud's
   ScrollHint chevron (it's in its own ScreenGui).
 - No cross-server parties, party chat or shared quests; co-op rifts and group world

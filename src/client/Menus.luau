@@ -29,6 +29,10 @@
 -- Market reached under the buttons). Windows that place themselves (Inventory,
 -- the build catalog in build mode), auto-sized cards and canvas screens are left
 -- alone.
+-- Menus.openFrom(frame, back) opens a window from inside another (the Self card's
+-- Settings and People seals, the Inventory's Herbarium tab): closing it by its own
+-- seal runs `back`, which reopens the window it came from; being replaced by another
+-- window drops it.
 
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
@@ -89,6 +93,7 @@ local calm = false
 local seated = false
 local screen = false
 local listeners: { () -> () } = {}
+local backs: { [GuiObject]: () -> () } = {} -- Menus.openFrom: what a close by its own seal reopens
 
 local play: GuiObject
 local vitals: GuiObject
@@ -151,7 +156,14 @@ function Menus.register(frame: GuiObject, options: Options?)
 			update()
 		elseif current == frame then
 			current = nil
+			local back = backs[frame]
+			backs[frame] = nil
 			update()
+			if back then
+				task.defer(back)
+			end
+		else
+			backs[frame] = nil -- replaced by another window: no way back
 		end
 	end)
 	if frame.Visible then
@@ -161,7 +173,14 @@ function Menus.register(frame: GuiObject, options: Options?)
 end
 
 function Menus.open(frame: GuiObject)
+	backs[frame] = nil
 	Motion.open(frame)
+end
+
+-- Open frame from inside another window; closing it by its own seal runs back.
+function Menus.openFrom(frame: GuiObject, back: () -> ())
+	Menus.open(frame)
+	backs[frame] = back
 end
 
 function Menus.close(frame: GuiObject)

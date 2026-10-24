@@ -43,6 +43,7 @@ local BuildItems = require(ReplicatedStorage.Shared.BuildItems)
 local Peak = require(ReplicatedStorage.Shared.Peak)
 local Placement = require(ReplicatedStorage.Shared.Placement)
 local BuildCatalog = require(script.Parent.BuildCatalog)
+local ContextTile = require(script.Parent.ContextTile)
 local Hud = require(script.Parent.Hud)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
@@ -1206,9 +1207,8 @@ function BuildMode.init(gui: ScreenGui)
 	-- Menus re-shows the tiles whenever a window changes; keep them hidden while building
 	Menus.onChanged(refreshBanner)
 
-	-- the Build tile shows only on (or over) your own peak
-	local toggle = (gui:FindFirstChild("Buttons") :: Frame):FindFirstChild("BuildButton") :: GuiButton
-	toggle.Activated:Connect(function()
+	-- the contextual tile offers Build only on (or over) your own peak (ContextTile)
+	ContextTile.offer("Build", function()
 		if active() then
 			BuildMode.close()
 		else
@@ -1221,7 +1221,8 @@ function BuildMode.init(gui: ScreenGui)
 			local character = player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 			local offset = frame and root and root.Position - frame.Position
-			toggle.Visible = active() or (offset ~= nil and Vector2.new(offset.X, offset.Z).Magnitude <= PEAK_RADIUS)
+			local here = active() or (offset ~= nil and Vector2.new(offset.X, offset.Z).Magnitude <= PEAK_RADIUS)
+			ContextTile.set("Build", if here then ContextTile.RANK_PEAK else 0)
 			task.wait(0.5)
 		end
 	end)

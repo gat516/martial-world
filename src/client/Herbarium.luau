@@ -1,12 +1,14 @@
 --!strict
 -- The Herbarium (StarterGui.Herbarium, assets/Herbarium.rbxmx): the collection
--- book of every herb, roadmap §5 / Phase B. H and the top-right tile
--- (Hud.Buttons.HerbariumButton) toggle the player's own book, built from the server's
+-- book of every herb, roadmap §5 / Phase B. H and the Inventory's book tab
+-- (Inventory.Tabs.HerbariumTab; closing the book then goes back to the Inventory)
+-- open the player's own book, built from the server's
 -- record in the PlayerState push (`herbarium`, server Herbarium.luau). Contract
 -- and layout: docs/ui/herbarium.md.
 --
 --   Herbarium.open({ entries = { Entry, ... }, title = "Herbarium"?, done = { tier }? })
---   Herbarium.openMine()   the player's own book (Herbarium.fromState)
+--   Herbarium.openMine(back?)   the player's own book (Herbarium.fromState); back runs
+--                               when it's closed by its own seal (Menus.openFrom)
 --   Herbarium.toggle()
 --   Herbarium.close()
 --   Herbarium.isOpen()
@@ -226,12 +228,16 @@ local function turn(step: number)
 	end
 end
 
-function Herbarium.open(b: Book)
+function Herbarium.open(b: Book, back: (() -> ())?)
 	assert(window, "Herbarium.init hasn't run")
 	book = b
 	spread = 1
 	render()
-	Menus.open(window)
+	if back then
+		Menus.openFrom(window, back)
+	else
+		Menus.open(window)
+	end
 end
 
 type Record = { herbs: { [string]: { n: number, l: number, m: { string } } }, tiers: { [string]: boolean } }
@@ -271,10 +277,13 @@ function Herbarium.fromState(record: Record?): Book
 	return { entries = entries, done = done }
 end
 
-function Herbarium.openMine()
+function Herbarium.openMine(back: (() -> ())?)
+	if not window then
+		return -- still loading its ScreenGui
+	end
 	local b = Herbarium.fromState(State.current.herbarium)
 	b.mine = true
-	Herbarium.open(b)
+	Herbarium.open(b, back)
 end
 
 function Herbarium.toggle()
@@ -357,12 +366,6 @@ function Herbarium.init()
 			Herbarium.toggle()
 		end
 	end)
-	-- the top-right HUD tile (docs/ui/herbarium.md "Opening it")
-	local hud = Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("Hud")
-	local tile = hud and hud:FindFirstChild("HerbariumButton", true)
-	if tile and tile:IsA("GuiButton") then
-		tile.Activated:Connect(Herbarium.toggle)
-	end
 	-- the player's own book follows the record while open (a harvest, a reward)
 	State.onChanged(function(snapshot)
 		if book.mine and Herbarium.isOpen() then

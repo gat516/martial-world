@@ -42,13 +42,13 @@ half the screen), and 26% on a touch phone (TOUCH_SMALL_SHARE, phone HUD pass
 2026-10-23: 101 px tall and 381 wide at 844x390, slots 35 px; at 667x375 the
 stack is held by its width, the screen less the touch cluster's room, 347 px). In combat on a
 touch phone the realm plaque (`Crest`) fades away with the folding top-right
-tiles and comes back when they do (`TileFold`, the same `InCombat` attribute;
+tiles (the contextual tile and Cultivate; Inventory and Self stay) and comes back when they do (`TileFold`, the same `InCombat` attribute;
 user's pick of two options, 2026-10-23, after the vitals sat big over the
 character in a boss fight; the other was fading the plate while health is full). Its box is aspect 3.758 with MaxSize 560x149, and
 `Prompts.Dock` mirrors it.
 
 Redrawn 2026-10-23 to the user's own reference image (the Figma kit's Example
-page HUD is the target): on top the realm plaque (`Crest`, the character window shortcut); then the gold double-framed plate with glossy red
+page HUD is the target): on top the realm plaque (`Crest`, the character window shortcut; kept in the four-tile pass, 2026-10-24, beside the Self tile, which also holds Settings and People); then the gold double-framed plate with glossy red
 health (slanted segment cuts, red gems at the ends) and glossy sky-blue qi;
 the tan guard trough in the tab with a red gem seal; and the PC Dash/Strike
 chips as round dark gold-rimmed discs (a `Shade` clipped

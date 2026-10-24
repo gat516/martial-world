@@ -11,7 +11,10 @@
 --     Icon box (IconRects), so every icon centres with even padding;
 --   arts: their glyph on a seal disc (Disc, art/ui/art_disc.png) in the art's colour;
 --   weapons: the real model in the slot's Model ViewportFrame (WeaponView), or the
---     class glyph in the class colour where a slot has no viewport (and Bare Fists).
+--     class glyph in the class colour where a slot has no viewport (and Bare Fists);
+--   herbs and pills, where the caller asks for models (the Inventory's cells and
+--     detail preview): their real model in the same viewport (ModelView.item,
+--     upright), their icon when they have none.
 -- Hotbar slots show words, not art (words): an art or item is its short name
 -- (Hotbar.label), large and centred; only a weapon (the weapon slot, a dragged weapon)
 -- keeps its model.
@@ -27,6 +30,7 @@ local Items = require(ReplicatedStorage.Shared.Items)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local IconRects = require(script.Parent.IconRects)
+local ModelView = require(script.Parent.ModelView)
 local Rarity = require(script.Parent.Rarity)
 local State = require(script.Parent.State)
 local WeaponView = require(script.Parent.WeaponView)
@@ -215,8 +219,34 @@ function SlotArt.words(slot: GuiObject, id: string?, label: string, dim: boolean
 	end
 end
 
--- countText overrides the corner text ("" hides it).
-function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: string?)
+-- A viewport's authored light, kept the first time ModelView lights it, so a weapon
+-- shown there later (WeaponView sets none) isn't drawn in the herb light.
+type Light = { ambient: Color3, color: Color3, direction: Vector3, transparency: number }
+local authored: { [ViewportFrame]: Light } = setmetatable({}, { __mode = "k" }) :: any
+local MODEL_KINDS = { Herb = true, Pill = true } -- items shown as their model (ModelView)
+
+local function keepLight(model: ViewportFrame)
+	if not authored[model] then
+		authored[model] = {
+			ambient = model.Ambient,
+			color = model.LightColor,
+			direction = model.LightDirection,
+			transparency = model.ImageTransparency,
+		}
+	end
+end
+
+local function restoreLight(model: ViewportFrame)
+	local light = authored[model]
+	if light then
+		model.Ambient, model.LightColor = light.ambient, light.color
+		model.LightDirection, model.ImageTransparency = light.direction, light.transparency
+	end
+end
+
+-- countText overrides the corner text ("" hides it). itemModels: herbs and pills show
+-- their 3D model in the slot's Model viewport (the Inventory; the hotbar stays words).
+function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: string?, itemModels: boolean?)
 	local well = SlotArt.well(slot)
 	local icon = well:FindFirstChild("Icon") :: ImageLabel
 	local glyph = well:FindFirstChild("Glyph") :: TextLabel
@@ -244,7 +274,7 @@ function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: 
 	if name then
 		name.Text = if technique then technique.name elseif item then item.name elseif weapon and id then SlotArt.weaponName(id) else ""
 	end
-	local shown = false -- whether the Model viewport shows a weapon
+	local shown = false -- whether the Model viewport shows a model (a weapon, a herb or pill)
 	if technique then
 		SlotArt.setIcon(icon, technique.icon)
 		icon.ImageTransparency = 0
@@ -259,20 +289,31 @@ function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: 
 		end
 	elseif item then
 		local empty = (count or 0) <= 0
-		if item.icon then
-			SlotArt.setIcon(icon, item.icon)
-			icon.ImageColor3 = WHITE
-			icon.ImageTransparency = if empty then 0.6 else 0
-		else
-			glyph.Text = item.glyph
-			glyph.TextColor3 = item.color:Lerp(WHITE, 0.45)
-			glyph.TextTransparency = if empty then 0.6 else 0
+		if itemModels and model and MODEL_KINDS[item.category] then
+			keepLight(model)
+			shown = ModelView.item(model, id)
+			if shown then
+				model.ImageTransparency = if empty then 0.6 else 0
+			end
+		end
+		icon.Visible = not shown -- the model stands in for the icon
+		if not shown then
+			if item.icon then
+				SlotArt.setIcon(icon, item.icon)
+				icon.ImageColor3 = WHITE
+				icon.ImageTransparency = if empty then 0.6 else 0
+			else
+				glyph.Text = item.glyph
+				glyph.TextColor3 = item.color:Lerp(WHITE, 0.45)
+				glyph.TextTransparency = if empty then 0.6 else 0
+			end
 		end
 		if countText == nil then
 			corner.Text = if count then `x{count}` else ""
 		end
 	elseif weapon and id then
 		if model and id ~= Weapons.FIST then
+			restoreLight(model)
 			shown = WeaponView.show(model, id)
 		end
 		if not shown then

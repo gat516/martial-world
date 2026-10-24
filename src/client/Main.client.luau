@@ -11,6 +11,7 @@ local Hud = require(script.Parent.Hud)
 local CirculationMinigame = require(script.Parent.CirculationMinigame)
 local BreakthroughView = require(script.Parent.BreakthroughView)
 local CombatController = require(script.Parent.CombatController)
+local ContextTile = require(script.Parent.ContextTile)
 local TravelMenu = require(script.Parent.TravelMenu)
 local Telegraphs = require(script.Parent.Telegraphs)
 local EnemyBars = require(script.Parent.EnemyBars)
@@ -100,7 +101,8 @@ CrowdControl.init()
 ProjectileView.init()
 Menus.init(gui) -- before anything registers a window
 Motion.buttons(gui)
-TileFold.init(gui) -- top-right tiles fold down to Inventory and Settings in combat
+ContextTile.init(gui) -- the row's one contextual tile: Build at your peak, Travel at arrays and in the sect
+TileFold.init(gui) -- top-right tiles fold down to Inventory and Self in combat
 ScrollHint.init(gui) -- the "more below" fade and chevron on every scrolling list
 for _, name in { "CultivatePrompt", "BreakthroughButton", "Toast", "ElderLine", "Objective" } do
 	Motion.appear(gui:FindFirstChild(name, true) :: GuiObject)
@@ -153,7 +155,7 @@ SeclusionView.init() -- the secluded-state plaque (docs/ui/cultivation.md, Seclu
 DeathScreen.init()
 HaulView.init() -- Store all at a bank point, and the spilled haul's spirit-light (owner only)
 Dialogue.init() -- the elder's Talk opens it (Onboarding; docs/ui/dialogue.md)
-task.spawn(Herbarium.init) -- H (or the HUD tile once built) opens the player's book (docs/ui/herbarium.md)
+task.spawn(Herbarium.init) -- H or the Inventory's book tab opens the player's book (docs/ui/herbarium.md)
 RegionBanner.init()
 SelfCard.init(gui)
 RootReveal.init(gui)

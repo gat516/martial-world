@@ -403,8 +403,9 @@ then pivots the character onto that array.
   step numbers after it (compare funnels across versions with care). The hook
   rework and the front-door steps (2026-10-23, then 2026-10-24 when the
   creator became one page) renumbered them (`Analytics` FUNNEL_NAMES).
-- The Store beat has no button to point at (the Store all control is the
-  `store-all` branch's); its guide walks to an array, and on sect ground shows nothing.
+- The Store beat points at no button: Store all is a ProximityPrompt on the player at a
+  bank point (`HaulView`, [haul](haul.md)); its guide walks to an array, and on sect
+  ground shows nothing.
 - In the testbed, Home (QC4) can't be done (no herb plots), so its guide holds the
   rest of the session; a second player there has no peak to refine on.
 - Rumours has no guide, by design; a cache taken before QC5 pays at QC5. The old

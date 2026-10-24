@@ -5,7 +5,8 @@ Part of the [roadmap](../roadmap.md), section 9. Proposed 2026-10-22; the user d
 A 27-stage ladder is a story you finish. Replay has to come from **variety, cadence
 and goals that don't end**, not from more linear stages. Proposed, in priority order:
 
-1. **Reincarnation (rebirth).** At FE9, or anywhere past the point of no return,
+1. **Reincarnation (rebirth).** **Not at FE (user, 2026-10-23: "i definitely don't want
+   reincarnating at FE")**; a later realm's endgame, when the ladder goes past FE. Then
    a player may start a new life: a fresh root, a chance at a bloodline, a new
    path, and the climb again, faster and with a **legacy** carried over: the
    Herbarium, the peak and its buildings, Dao seeds, titles, and a small

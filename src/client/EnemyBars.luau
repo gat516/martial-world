@@ -241,7 +241,8 @@ local function watch(model: Instance)
 		return
 	end
 	local trail = bar:FindFirstChild("Trail", true) :: GuiObject?
-	local def = Enemies.Defs[model:GetAttribute("EnemyType") :: string? or ""]
+	-- a realm variant's own name ("Elite Spirit Wolf") and realm (Enemies.forModel)
+	local def = Enemies.forModel(model)
 	local entry: Watched = {
 		bar = bar,
 		model = model,

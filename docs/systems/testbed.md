@@ -65,7 +65,9 @@ on the baseplate unchanged.
   test the second bestiary wave behind `NEW_SERPENT` / `NEW_TORTOISE` / `NEW_SHADOW_MANE`.
   The third wave has `CentipedeSolo` (180, 0), `RavenSolo` (-180, -160),
   and `BatSwarm` (4 bats, 180, -160), behind
-  `NEW_CENTIPEDE` / `NEW_RAVEN` / `NEW_BAT`.
+  `NEW_CENTIPEDE` / `NEW_RAVEN` / `NEW_BAT`. `WolfTiers` (4 Spirit Wolves at (-200, 648.6, 60),
+  realms QC1-QC8 rolled per wolf: young, adult, elite and apex mixed) tests realm variants
+  (`VARIANTS`); the admin panel's "Beast tier" chips set the tier every spawn chip uses.
 - New bosses (Thunder Ape, Nine-Tailed Fox, Jade Jiao) get no zone: the user
   spawns them from the admin panel's "Spawn beasts" list (every def shows there,
   testbed-only defs included), and they land right in front of the player, just clear of their body.

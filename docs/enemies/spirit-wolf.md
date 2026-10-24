@@ -69,6 +69,18 @@ The testbed's `Wilds.Zones.WolfPair` (test.project.json) still keeps two Spirit 
 at (-90, 648.6, -40), 127 studs from the spawn pad, for tuning.
 
 
+## Realm variants
+Tiers and knobs: [enemies](../systems/enemies.md#realm-variants-2026-10-23) (QC2 is its own
+realm; young below, elite from QC5, apex from QC8 or any QR). Shares are of a same-stage
+player's health.
+| Tier | Moves | Howl | Shares (bite / pounce / leap) |
+|---|---|---|---|
+| young (QC1: the GateWolves) | bite, pounce; no leap | rallies wolves already there, never calls reinforcements (none for onboarding players either) | 7% / 11% / - |
+| adult (QC2-4) | as designed | rallies, else calls 1-3 | 8% / 13% / 15% |
+| elite (QC5-7) | the leap from 3 s; a pounce that lands close chains into the bite | calls 2-3 elite wolves | 8% / 13% / 15% |
+| apex (QC8+) | elite's, and a dodged leap that lands close chains into the bite | calls 2-4 (4 alive at most) | 9% / 14% / 16% |
+Young 0.85x size (80 HP x0.8 at the curve), elite 1.12x, apex 1.25x; cooldowns x1.25 / x0.88 / x0.8.
+
 ## Effects
 `EnemyFX/SpiritWolf.luau`, templates `ReplicatedStorage.Effects.SpiritWolf`
 (builder `tools/vfx_specs/SpiritWolf.luau`; references

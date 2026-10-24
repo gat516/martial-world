@@ -645,6 +645,41 @@ Pacing.Danger = {
 	DEADLY_AT = 6,
 }
 
+-- BEAST VARIANTS (Enemies.variant; docs/systems/enemies.md "Realm variants"). One def,
+-- many strengths: a spawn can set a beast's realm (Spawns zones and ambient packs) and
+-- it follows the curve there (health by player power, damage by player health, from
+-- BeastBaseline at its own realm to the spawn's), so a same-stage player needs as many
+-- hits and takes as large a share of health as at the def's own realm. The stage GAP
+-- (spawn realm minus the def's realm) also picks a TIER, which adds small steps on top:
+--   name     prefix on the bar ("" = the plain name)
+--   at       the smallest gap that reaches the tier (young: anything below adult)
+--   size     body, hit volume, reaches and telegraph areas (dash speeds too, so a dash
+--            takes as long and its poses stay in time)
+--   speed    walk, run and circling speed
+--   cadence  multiplies cooldowns and notBefore (lower = attacks come more often).
+--            Windups and recovers never change: tells stay readable, punish windows stay.
+--   health   on top of the realm scaling (more hits to kill)
+--   damage   on top of the realm scaling
+--   reward   qiDrop and Spirit Stones
+--   tint     body colour lerped toward (Neon, Tell and Eye parts keep theirs), by tintAmount
+-- Apex is also any variant a major realm above the def's own. Which moves each tier has
+-- is per def (Enemies attack `minTier`, `tiers` overrides). Bosses never take variants.
+Pacing.Variants = {
+	ORDER = { "young", "adult", "elite", "apex" },
+	TIERS = {
+		young = { name = "Young", at = -math.huge, size = 0.85, speed = 0.9, cadence = 1.25, health = 0.8, damage = 0.85, reward = 1, -- full pay: the onboarding's gate wolves are young
+			tint = Color3.fromRGB(236, 230, 214), tintAmount = 0.2 },
+		adult = { name = "", at = 0, size = 1, speed = 1, cadence = 1, health = 1, damage = 1, reward = 1 },
+		elite = { name = "Elite", at = 3, size = 1.12, speed = 1.08, cadence = 0.88, health = 1.25, damage = 1, reward = 1.6,
+			tint = Color3.fromRGB(38, 30, 52), tintAmount = 0.25 },
+		apex = { name = "Apex", at = 6, size = 1.25, speed = 1.15, cadence = 0.8, health = 1.5, damage = 1.05, reward = 2.4,
+			tint = Color3.fromRGB(58, 12, 22), tintAmount = 0.35 },
+	} :: { [string]: { name: string, at: number, size: number, speed: number, cadence: number, health: number, damage: number, reward: number, tint: Color3?, tintAmount: number? } },
+	-- ambient packs with a realm range lean deeper the farther the encounter is into its
+	-- region (Regions `depth`), give or take this many stages at random
+	AMBIENT_SPREAD = 1,
+}
+
 -- FOUNDATION GRADES (server Foundation; docs/systems/cultivation.md "Foundation
 -- grade"). One-time experiences earned while at a stage (each key once ever per
 -- profile) are weighed against the stage's TARGET at the breakthrough out of it:

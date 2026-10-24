@@ -89,12 +89,15 @@ local bodies = templates:Clone()
 bodies.Name = "EnemyBodies"
 bodies.Parent = ReplicatedStorage
 
--- Per enemy type, a template stripped to its root, cloned for each spawn.
+-- Per enemy type (and body scale, for realm variants), a template stripped to its
+-- root, cloned for each spawn.
 type Standin = { model: Model, rootHeight: number, radius: number, height: number }
 local standins: { [string]: Standin } = {}
 
-local function standinFor(id: string): Standin?
-	local cached = standins[id]
+local function standinFor(id: string, scale: number?): Standin?
+	local s = scale or 1
+	local key = if s == 1 then id else `{id}@{s}`
+	local cached = standins[key]
 	if cached then
 		return cached
 	end
@@ -116,15 +119,17 @@ local function standinFor(id: string): Standin?
 	root.Anchored = true
 	root.CanCollide, root.CanTouch, root.CanQuery = false, false, true
 	root.Transparency = 1
-	root.Size = Vector3.new(math.max(root.Size.X, extents.X), math.max(root.Size.Y, extents.Y), math.max(root.Size.Z, extents.Z))
+	-- a variant's body is drawn scaled by `s` about its root (EnemyMotion), so its hit
+	-- volume, root height and radius scale with it
+	root.Size = Vector3.new(math.max(root.Size.X, extents.X), math.max(root.Size.Y, extents.Y), math.max(root.Size.Z, extents.Z)) * s
 	model.PrimaryPart = root
 	cached = {
 		model = model,
-		rootHeight = templateRoot.Position.Y,
-		radius = math.max(extents.X, extents.Z) / 2,
-		height = extents.Y / 2,
+		rootHeight = templateRoot.Position.Y * s,
+		radius = math.max(extents.X, extents.Z) / 2 * s,
+		height = extents.Y / 2 * s,
 	}
-	standins[id] = cached
+	standins[key] = cached
 	return cached
 end
 
@@ -216,6 +221,10 @@ export type SpawnOptions = {
 	roam: number?, -- studs it wanders from home
 	target: Player?, -- comes straight for this player
 	fleeting: boolean?, -- gone (no rewards) once it has no one to fight: a howl's reinforcements
+	-- realm variants (Enemies.variant, docs/systems/enemies.md "Realm variants"): the stage it
+	-- cultivates at ("QC5"; default its def's own) and its tier (default picked from the stage)
+	stage: string?,
+	tier: string?,
 }
 
 local function groundParams(): RaycastParams
@@ -323,13 +332,14 @@ end
 
 function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Model?
 	local opts: SpawnOptions = options or {}
-	local def = Enemies.Defs[id]
+	local def = Enemies.variant(id, opts.stage, opts.tier)
 	local template = templates:FindFirstChild(def and def.body or id) :: Model?
 	if not (def and template) then
 		warn(`EnemyService: no enemy "{id}"`)
 		return nil
 	end
-	local standin = standinFor(id)
+	local scale = def.scale or 1
+	local standin = standinFor(id, scale)
 	if not standin then
 		warn(`EnemyService: enemy "{id}" has no HumanoidRootPart`)
 		return nil
@@ -347,6 +357,12 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 	model:SetAttribute("Template", def.body or id) -- the template clients draw (EnemyMotion)
 	model:SetAttribute("RunSpeed", def.runSpeed)
 	model:SetAttribute("Realm", Realms.get(def.realm[1], def.realm[2]).name)
+	if def.tier then
+		-- a realm variant: clients rebuild the same def (Enemies.forModel), scale and tint the body
+		model:SetAttribute("Stage", def.stage)
+		model:SetAttribute("Tier", def.tier)
+		model:SetAttribute("Scale", scale)
+	end
 	model:SetAttribute("MaxHealth", health)
 	model:SetAttribute("Health", health)
 	model:SetAttribute("AIState", "idle")
@@ -1551,11 +1567,14 @@ local function summon(enemy: Enemy, attack: Enemies.Attack, count: number?, arou
 		if not at then
 			continue
 		end
+		-- a variant's own kind comes at its realm and tier (an elite wolf howls in elite wolves)
+		local same = attack.summons == enemy.def.id and enemy.def.tier ~= nil
 		local model = EnemyService.spawn(
 			attack.summons :: string,
 			at :: Vector3,
 			{ home = enemy.home, roam = enemy.roam, target = enemy.target,
-				fleeting = around ~= nil or enemy.def.resetOnEvade == true }
+				fleeting = around ~= nil or enemy.def.resetOnEvade == true,
+				stage = if same then enemy.def.stage else nil, tier = if same then enemy.def.tier else nil }
 		)
 		if model then
 			table.insert(enemy.summoned, model)
@@ -2142,6 +2161,11 @@ local function pickAttack(enemy: Enemy, distance: number, now: number): Enemies.
 		end
 		if not chosen or distance > chosen.range or now > enemy.followUpUntil then
 			enemy.followUp = nil
+		elseif not enemy.def.boss and distance < (chosen.minRange or 0) then
+			-- too close for it yet (an elite boar's second charge, the fade back into a step):
+			-- wait for the target to clear it, or for the hop back, until it lapses (bosses'
+			-- chains keep firing as before)
+			return nil
 		elseif slotOk then
 			enemy.followUp = nil
 			return chosen

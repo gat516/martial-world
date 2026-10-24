@@ -92,6 +92,7 @@ What we build next and in what order (foundation grades, the haul and the surge,
 | Realm suppression across majors, heaven-defier bar and resist, beast stats following the curve | `src/shared/Pacing.luau` `Suppression`, `HeavenDefying`, `BeastBaseline`; applied in `Combat.damageEnemy` and EnemyService `hurtBy` ([combat](systems/combat.md#realm-power-and-suppression-2026-10-23)) |
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
+| Realm variants (per-spawn realm, tiers: size, speed, cadence, tint, moves by tier) | `src/shared/Pacing.luau` `Variants`; zone and pack realms in `Spawns.luau`; attack `minTier` / `tiers` in `Enemies.luau`; `Config.Wilds.VARIANTS` ([enemies](systems/enemies.md#realm-variants-2026-10-23)) |
 | Testbed fight trials before shipping | `Config.Wilds.NEW_WOLF_KING` (King trial); `test.project.json` zones ([testbed](systems/testbed.md)) |
 | Knockback / stagger (beasts) | `src/shared/Knockback.luau` |
 | Player flinch, stagger, stun: lengths, immunity, diminishing returns; which enemy hits stagger; knockback on the player | `Config.Combat.CC` (`HEAVY_KINDS`, `STAGGER_WEIGHT`, `KNOCK_*`); per attack `react`/`knock`, per beast `knock` in `Enemies.luau`; API `PlayerStun.apply` ([combat](systems/combat.md#player-crowd-control)) |

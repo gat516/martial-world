@@ -67,6 +67,17 @@ A step that ends with the target off its nose skids round (`shadowStepSkid`). So
 pitched, picked by description and unheard.
 
 
+## Realm variants
+Tiers and knobs: [enemies](../systems/enemies.md#realm-variants-2026-10-23); young below the
+beast's realm, elite from 3 stages up, apex from 6 (or a major realm up).
+- **Venom Serpent** (QC3; only the new def has unlocks, the old one-spit serpent only scales):
+  young (QC2) only spits, so hugging it is safe; elite (QC6+) spits two poison stacks; apex
+  (QC9+) also strikes with two stacks, and spits again from the end of its backslide.
+- **Stone Tortoise** (QC6): young never shells up; from elite, staying in front after the
+  neck snap draws the quake stomp.
+- **Shadow Mane Wolf** (QC6): young has no mane lash (hugging it is safe); from elite the fade
+  back after a rend ends in a shadow step onto your flank.
+
 ## Effects (second bestiary wave)
 Handlers `EnemyFX/VenomSerpent.luau`, `StoneTortoise.luau`, `ShadowManeWolf.luau`
 (shared helpers in `EnemyFX/BeastKit.luau`: template playback, attachment lookup

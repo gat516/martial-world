@@ -71,7 +71,9 @@ The map isn't done, so these are logical regions; the map-builder fits them late
 a tint, an aura tier and one extra move per tier (`vfx` and `animator` do a short
 pass per beast, not a rebuild), higher `realm`, a new first-kill experience. A
 beast re-tiered by realm keeps its identity, so the player reads "the same
-wolf, but older".
+wolf, but older". The backend is built ([realm variants](systems/enemies.md#realm-variants-2026-10-23):
+realm per spawn, tint, size, cadence, moves unlocked by tier, the elite and apex first
+kills); the aura and the per-beast extra moves wait on `vfx` and `animator`.
 
 ## The ladder, stage by stage
 `Wall` is what sends you out or home. `New` is the one idea of the chapter.

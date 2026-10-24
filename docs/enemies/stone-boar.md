@@ -56,6 +56,17 @@ skid as a charge ends); the old boar picks these up too. The testbed's
 `Wilds.Zones.BoarPair` keeps two at (100, 648.6, -40).
 
 
+## Realm variants
+Tiers and knobs: [enemies](../systems/enemies.md#realm-variants-2026-10-23) (QC4 is its own
+realm; young below, elite from QC7, apex from QR1).
+- **young** (QC3): the charge ends in a stop, no gore chain (it still gores up close); at
+  weight 2.1 the charge only flinches instead of staggering. Charge 13%, gore 10%.
+- **adult** (QC4-6): as designed.
+- **elite** (QC7-9) and **apex** (QR+): backing off after the gore draws a second charge
+  (the follow-up waits up to a second for you to clear its 12-stud minimum; stay close and it
+  doesn't come), so the chain can run charge, gore, charge while you keep retreating. Its
+  counter is to stay in after the gore and punish its 0.8 s recover.
+
 ## Effects
 `EnemyFX/StoneBoar.luau`, templates `ReplicatedStorage.Effects.StoneBoar`
 (builder `tools/vfx_specs/StoneBoar.luau`, built straight from the

@@ -25,6 +25,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config).Wilds
+local Variants = require(ReplicatedStorage.Shared.Pacing).Variants
 
 local MAX_DISTANCE = 220
 local LEAD_MAX = 0.35 -- seconds the body may be drawn ahead of the last replicated spot
@@ -60,6 +61,37 @@ function EnemyMotion.velocity(model: Model): Vector3
 	return if rig then rig.velocity else Vector3.zero
 end
 
+-- A realm variant's look (Pacing.Variants; the server sets Scale and Tier): the body
+-- scaled about its root, like the server's hit volume, and its colours lerped toward the
+-- tier's tint. Neon, Tell and Eye parts keep theirs, so tells and the element still read.
+local function dress(model: Model, body: Model)
+	local scale = model:GetAttribute("Scale")
+	if type(scale) == "number" and scale > 0 and math.abs(scale - 1) > 0.001 then
+		local offsets = {}
+		for _, d in body:GetDescendants() do
+			if d:IsA("BillboardGui") then
+				offsets[d] = { d.StudsOffset, d.StudsOffsetWorldSpace }
+			end
+		end
+		body:ScaleTo(body:GetScale() * scale)
+		for gui, was in offsets do
+			-- keep the health bar clear of a bigger body, whether or not ScaleTo moved it
+			if gui.StudsOffset == was[1] and gui.StudsOffsetWorldSpace == was[2] then
+				gui.StudsOffset, gui.StudsOffsetWorldSpace = was[1] * scale, was[2] * scale
+			end
+		end
+	end
+	local tier = Variants.TIERS[model:GetAttribute("Tier") :: string? or ""]
+	local tint, amount = tier and tier.tint, tier and tier.tintAmount
+	if tint and amount then
+		for _, d in body:GetDescendants() do
+			if d:IsA("BasePart") and d.Material ~= Enum.Material.Neon and d:GetAttribute("Tell") ~= true and not d.Name:match("^Eye") then
+				d.Color = d.Color:Lerp(tint, amount)
+			end
+		end
+	end
+end
+
 local function build(model: Model, root: BasePart): Model?
 	-- the def's body template (Enemies `body`), else the enemy type
 	local kind = model:GetAttribute("Template") or model:GetAttribute("EnemyType")
@@ -87,6 +119,7 @@ local function build(model: Model, root: BasePart): Model?
 	end
 	body.Name = "Body"
 	body.PrimaryPart = bodyRoot
+	dress(model, body)
 	body:PivotTo(root.CFrame)
 	body.Parent = model
 	return body

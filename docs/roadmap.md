@@ -102,13 +102,19 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
 
 ## 2. Onboarding (each realm)
 - **Start as a mortal taking the sect's entrance trial (user, 2026-10-24; in scope).**
-  Everyone is orthodox for now. The first session becomes the entrance exam: a trial
-  path from the mountain gate up to the outer court, teaching combat on the way (a
-  first fight in a fenced ring, a guard station against a puppet, a short climb) and
-  ending at the Testing Stone, which reads your root; pass it and you're an outer
-  disciple. Needs the map (a trial path at the sect gate) and a re-slot of the first
-  beats; the lesson system and its one-idea-per-chapter rule stay. Faction skins of
-  the trial: [dreams](roadmap/dreams.md).
+  Everyone is orthodox for now. The trial frames the first session's existing beats
+  (it is not a combat gauntlet up front, so no one is turned away by a fight):
+  1. **The Testing Stone first:** you roll your root there (the hook; the front
+     door's Fate reveal moved into the world), not an immediate breakthrough.
+  2. **A sitting station:** the examiner asks you to sense qi; your first
+     breakthrough.
+  3. **Then the fight**, which can't be failed: low on health, an examiner steps in,
+     and the elder says the trial judged your heart, not your fists.
+  The climb up the trial path is the walk between them, replacing the lesson list
+  rather than adding length; pass and you're an outer disciple. The onboarding funnel
+  (`Analytics.beat`) shows if the fight still loses players. Needs the map (a trial
+  path at the sect gate) and a re-slot of the first beats; the lesson system and its
+  one-idea-per-chapter rule stay. Faction skins of the trial: [dreams](roadmap/dreams.md).
 - **Tempering lesson (user, 2026-10-24):** teach tempering the first time it matters:
   when a player's foundation is first damaged or sealed low (a stage under 100%, or a
   heart-demon trial that tempers little) the elder points them to seclusion and a

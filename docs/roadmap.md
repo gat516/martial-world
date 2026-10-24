@@ -17,13 +17,20 @@ marked built; nothing here has been playtested.
 4. **Story over rules.** Every system reads as cultivation fiction (cracked
    foundation, heart demons, sect rank), not a menu.
 5. Every system names its **arrow into the loop** (core-loop rules).
+6. **Few mechanics at once (user, 2026-10-23).** Fun for kids and mobile players
+   first; depth for hardcore players without permadeath. Each mechanic is taught
+   alone and fits in one sentence from the elder, or it's cut.
 
-## Deferred to a later update (user, 2026-10-22)
-These are real plans but **not in this pass**. Nothing before FE9 depends on them.
-- **Alchemy:** the peak furnace, crafted pills (qi, heal, buffs, breakthrough aids,
-  foundation repair), pill impurities and talismans.
-- **Weapon enhancement (refinement):** spend ore and stones to raise a weapon's grade.
+## Deferred to a later update (user, 2026-10-22; revised 2026-10-23)
+Real plans that are **not in this pass**.
+- **Alchemy comes forward as a light version** (2026-10-23): the mid-QR slowdown
+  is where players start investing in the garden and pills, so QR4-5 gets a peak
+  furnace and a handful of recipes as Qi Refining's new verb. The full version
+  (impurities, talismans, breakthrough aids) stays deferred.
+- **Weapon enhancement (refinement):** spend ore and stones to raise a weapon's
+  grade. Candidate verb for Foundation Establishment.
 - **Mining and ores** (the out verb that feeds refinement).
+- **Body refinement:** a candidate verb for a later realm.
 - **What stands in now:** herbs are eaten directly; pills, cores and elixirs are loot
   and shop items; foundation repair uses meditation, seclusion and tending; stones
   sink into the Herbalist, the Pavilion and building; weapon grades come from
@@ -113,12 +120,45 @@ spirit ring slots, and the spilled-haul spirit-light.
 spirit ring; delete insight and move comprehension to Dao; foundation grades and
 experience pools; the surge.
 
+### Pacing, realm gaps and verbs (decided 2026-10-23)
+Research behind it: Roblox median sessions are 5-9 min and D7 is 3-8%, so the
+first session decides; full Roblox RPGs run 30-100 h; cultivation games use about
+8-12% per minor stage and 2-2.5x at a major.
+- **Targets (active play):** QC about 2.5 h, QR about 7 h, FE about 20 h, so about
+  30 h to FE9, which stays the cap and should be hard to reach. Passive and
+  offline cultivation stretch it over real days.
+- **Shape:** every realm is early (1-3), middle (4-6) and late (7-9), each easy to
+  hard, with a breather opening each third so a breakthrough feels good. QC never
+  slows early: the first session lands two or three breakthroughs. **The real
+  slowdown is mid Qi Refining**, where the garden and pills start to matter.
+- **No stretch over 2-3 h without something new** (a zone, boss, rift or verb).
+- **Strength:** about +10% per minor stage and about 2-2.5x at a major, plus
+  **realm suppression**: damage from a lower major realm is heavily reduced
+  against a higher one, so a QC player can barely scratch an FE beast. That's the
+  heaven-and-earth gap without huge multipliers. Techniques count about as much
+  as realm, so one minor stage up is fightable and a major is not.
+- **Each major brings a new verb, not just numbers:** QC the body and combat, QR
+  light alchemy (and qi leaving the body), FE weapon refinement and a first
+  sword glide. Body refinement and others are kept for later realms.
+- **Heaven-defiers** resist suppression partly, so they fight above their level
+  and farm stronger beasts, bosses and herbs. They pay with about a 1.5x bar and a
+  tribulation at every major.
+- **Herbs:** the tier share of the dantian needs a floor per tier (early herbs
+  became tiny), and event herbs (Thousand-Year Ginseng) must stay big.
+
 ### Pacing follow-ups
 Tune the QR and FE curve from analytics; the two bosses tuned for the old FE1 get
 re-tiered; region seals wait for the map.
 
 ## 2. Onboarding (QC1 to QC9, then each realm)
 Today the hook ends at QC3 and the garden, sect and techniques arrive unannounced.
+- **The hook (2026-10-23, from Roblox metrics):** combat within the first minute or
+  two and two or three breakthroughs in the first few minutes, one mechanic at a
+  time. The current first ten minutes are being audited to retune it.
+- **Spread over every realm, sprinkled as the player advances:** QC teaches the loop
+  (out and home, the garden, the board); QR the social layer and light alchemy
+  (master, Halls, seclusion, rifts, the heart demon); FE the depth (method,
+  refinement, treasures, pets). Move the second weapon and Dao drills out of QC.
 - **QC1-3 (keep):** circulate, break through, root, travel out, hunt, technique,
   refine. Minor fixes only.
 - **QC3 end:** the elder names the loop once ("cultivate until you hit a wall,
@@ -141,6 +181,9 @@ Today the hook ends at QC3 and the garden, sect and techniques arrive unannounce
   the ui-designer.
 
 ## 3. The sect and quests
+**MVP first (user, 2026-10-23):** rank, contribution, the board with dailies and one
+chapter chain, and the Pavilion. Halls, masters, weeklies, bounties, spirit quests
+and sect-wide goals are sprinkled in later as the player advances (QR onward).
 Per [progression](progression.md): ranks, board, dailies, weeklies, chapter chains,
 bounties, sect tasks, contribution and a Pavilion shop (never qi).
 - **Data:** a contribution counter and rank in `PlayerData`; quest defs reuse
@@ -170,6 +213,14 @@ bounties, sect tasks, contribution and a Pavilion shop (never qi).
   small reward. They are flavour and a cadence hook, never a chore.
 - **Sect-wide goals:** server-wide shared tasks (fill the storehouse, light the
   wards before a beast tide) that reward everyone who helped. Cadence and social in one.
+
+## 3e. Reasons to meet other players (2026-10-23)
+The realm gap shows against content, so players need reasons to cross paths:
+- **Shared credit:** everyone who damages a beast gets their own loot; no kill-stealing.
+- **Group world events and roaming beast kings**, rewards scaled to each player's realm,
+  so a senior helping still earns.
+- **Co-op rifts** with better loot as a party; sect board tasks with shared credit.
+- Halls and lineage after the MVP.
 
 ## 3d. Relationships: masters, disciples and sect siblings (proposed 2026-10-22)
 NPC masters at QR1, cohorts of nine with numbered seats and epithets, player masters, up to three masters, bloodline granting (trial chains, the Blood Rite) and the safety rules: [relationships](roadmap/relationships.md).
@@ -307,6 +358,9 @@ wire the **cultivator enemies** as human opponents and sect-quest targets, and
 tune the old FE1 bosses.
 
 ## 9. Replayability: why come back after the ladder
+**Baked in, not bolted on (user, 2026-10-23):** no reincarnation at FE. What makes a
+second run different is designed in now: races and bloodlines, the sect, rogue and
+demon paths, random rifts, foundation grades to beat, and the haul's risk.
 Rebirth with a legacy, paths as affiliations (sect, rogue, a secret demon path), mixed secret realms and rifts, cadence, endless goals, social, new realms; then the discoverable demon secret chain: [replayability](roadmap/replayability.md). Rule: build 1-3 only after the core loop and the ladder are proven in playtests.
 
 ## 9b. More cultivation elements (candidates, 2026-10-22; QC to FE9 only)
@@ -350,7 +404,7 @@ Each phase ends in a commit and a test-build playtest.
 | B | Herb tiers, qi scaling, Herbarium | main session |
 | C | Sect: rank, contribution, board, dailies, Pavilion | main; `ui-designer` |
 | D | Onboarding lessons QC4-QC9 and the wall card | main; `ui-designer` |
-| E | Statuses, combo rules, then techniques class by class | main; one `vfx` per batch |
+| E | Statuses, combo rules, then techniques class by class (**deferred**, 2026-10-23: enough enemies; systems first) | main; one `vfx` per batch |
 | F | Building: peak tiers, sets, formations | `modeler` per set; `ui-designer` |
 | G | World events and tribulation VFX | `world-fx` |
 | H | Elite tiers, cultivators, curve tuning | `enemy-designer` per beast; analytics |

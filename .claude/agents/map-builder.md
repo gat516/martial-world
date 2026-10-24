@@ -143,7 +143,11 @@ Nothing floats, sinks or hangs off an edge. For every placed prop:
 ## What to build with
 
 Meshes for shapes people look at, terrain for ground people walk on, parts for
-buildings.
+buildings, the library for greenery. One rule for every area (user, 2026-10-24:
+go-backs are expensive); the sect redo's landform choice (Blender kit or terrain) is
+settled in [new_build](../../docs/map/new_build.md) before anything is built.
+- **Greenery:** the library's trees, bushes and foliage first ("Assets" below); a
+  Blender mesh when nothing fits.
 - **Meshes** (the `mesh-pipeline` skill): peaks, spires, cliffs, floating
   islands, rock formations, crisp columns, overhang lips. Mesh collision is
   approximate, so keep walkable tops simple or back them with invisible

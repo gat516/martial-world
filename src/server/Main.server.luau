@@ -27,6 +27,7 @@ local Progression = require(script.Parent.Progression)
 local Tribulation = require(script.Parent.Tribulation)
 local QiSurge = require(script.Parent.QiSurge)
 local Quests = require(script.Parent.Quests)
+local Sect = require(script.Parent.Sect)
 local Analytics = require(script.Parent.Analytics)
 local WeatherService = require(script.Parent.WeatherService)
 local Meditation = require(script.Parent.Meditation)
@@ -220,6 +221,7 @@ Players.PlayerRemoving:Connect(function(player)
 	Tribulation.forget(player)
 	QiSurge.forget(player)
 	Quests.forget(player)
+	Sect.forget(player)
 	Meditation.forget(player)
 	Inventory.forget(player)
 	CharacterIdentity.forget(player)
@@ -239,7 +241,13 @@ local function guarded(fn: (Player, ...any) -> (boolean, any))
 end
 
 (remotes.BuildAction :: RemoteFunction).OnServerInvoke = guarded(Build.handle);
-(remotes.CultivationAction :: RemoteFunction).OnServerInvoke = guarded(Circulation.handle);
+-- "sect" goes to the sect board, Pavilion and quest log (Sect.handle); the rest is cultivation
+(remotes.CultivationAction :: RemoteFunction).OnServerInvoke = guarded(function(player: Player, action: any, ...: any): (boolean, any)
+	if action == "sect" then
+		return Sect.handle(player, ...)
+	end
+	return Circulation.handle(player, action, ...)
+end);
 (remotes.Attack :: RemoteEvent).OnServerEvent:Connect(Combat.action);
 (remotes.Meditate :: RemoteEvent).OnServerEvent:Connect(Meditation.handle);
 (remotes.Sprint :: RemoteEvent).OnServerEvent:Connect(Cultivation.setRunning);
@@ -250,6 +258,7 @@ end
 QiNodes.start()
 table.insert(EnemyService.onKill, Progression.onKill)
 table.insert(EnemyService.onKill, Inventory.onKill)
+table.insert(EnemyService.onKill, Sect.onKill) -- hunt dailies and the chain's kill paths
 table.insert(Quests.onBeat, function(player, index)
 	Analytics.funnel(player, index + 1)
 end)
@@ -295,6 +304,7 @@ end)
 EnemyService.start()
 Spawner.start()
 Quests.start()
+Sect.start() -- the board's dailies, the chain, rank and the Pavilion (docs/systems/sect.md)
 Roots.start()
 table.insert(Roots.onTested, function(player, element)
 	Analytics.event(player, "RootTested", 1, element)

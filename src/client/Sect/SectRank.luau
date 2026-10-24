@@ -9,7 +9,7 @@
 --   SectRank.set({ rank = "Outer", contribution = 1240, week = 120, weekCap = 400 })
 --       paints the board's status row; contribution counts up from the last value
 --   SectRank.paintCrest(crest: ImageLabel, rank)  -- any RankCrest instance
---   SectRank.rankUp(rank, line?)  -- the milestone card through Rewards.show
+--   SectRank.rankUp(rank, line?, items?)  -- the rank card through Rewards.show (items: reward tiles)
 --   SectRank.preview()
 
 local Rewards = require(script.Parent.Parent.Rewards)
@@ -79,7 +79,7 @@ end
 -- The rank-up moment: the shared Rewards card (kind "rank", roadmap 3c), never a
 -- card of our own. Only the crest image shows until the card's Crest gets an
 -- Emblem child (docs/ui/sect-board.md).
-function SectRank.rankUp(rank: Rank, line: string?)
+function SectRank.rankUp(rank: Rank, line: string?, items: { { key: string, amount: number } }?)
 	local def = SectRank.RANKS[rank]
 	Rewards.show({
 		tier = "card",
@@ -87,6 +87,7 @@ function SectRank.rankUp(rank: Rank, line: string?)
 		title = def.name,
 		subtitle = "The sect raises you in rank",
 		flavour = line,
+		items = items,
 		crest = {
 			image = Art.Id[def.crest],
 			emblem = Art.Id[SectRank.EMBLEM],

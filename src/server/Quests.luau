@@ -749,18 +749,19 @@ Quests.Lessons = {
 		end,
 	},
 	{
-		-- QC5, the sect board (roadmap section 2): today the quest board; its
-		-- dailies and the first chapter quest come with the sect MVP
+		-- QC5, the sect board (roadmap section 2; Sect.luau): the day's tasks,
+		-- contribution and rank, and the first chapter of the Borderlands chain
 		id = "Board",
-		elder = "The quest board on the Main Peak holds your next goals. Read it whenever you wonder what comes next.",
+		elder = "The sect board on the Main Peak has work for you now. Do the sect's tasks and it will raise you.",
 		talk = {
 			lines = {
-				"A disciple who knows where he is going climbs faster.",
-				"The quest board on the Main Peak holds your next goals. Read it.",
+				"You are an Outer Disciple, and the sect has noticed you.",
+				"The board on the Main Peak posts three tasks each day. Not all of them need a blade.",
+				"Each one earns contribution. Spend it at the Pavilion; enough of it, and the sect raises your rank.",
 			},
 			reply = "I will read it.",
 		},
-		objective = "Read the quest board on the Main Peak",
+		objective = "Read the sect board on the Main Peak",
 		reward = REWARDS.Board,
 		when = function(_, data)
 			return reached(data, "QC5") and not data.lessons.BoardRead
@@ -1072,8 +1073,15 @@ function Quests.rewardText(reward: Pacing.QuestReward?, data: PlayerData.Data): 
 	return if #parts > 0 then table.concat(parts, ", ") else nil
 end
 
--- Called with (player, questId) when a quest is claimed, for analytics.
+-- Called with (player, questId) when a quest is claimed, for analytics (the
+-- sect's dailies and chain steps call these too).
 Quests.onClaimed = {} :: { (Player, string) -> () }
+
+-- Set by Sect: the board's Read prompt opens the sect board (true) once the
+-- player has reached it, else the goals list opens; and the objective line of the
+-- sect quest the player tracks (free play only, before the open lessons).
+Quests.openBoard = nil :: ((Player) -> boolean)?
+Quests.trackedObjective = nil :: ((Player, PlayerData.Data) -> string?)?
 
 -- Claim a done quest once: mark it first (so nothing can pay twice), then
 -- grant its reward and say so.
@@ -1227,16 +1235,22 @@ local function push(player: Player, data: PlayerData.Data)
 	-- the objective line: a guiding lesson's (while unclaimed), the current
 	-- beat, the first open lesson, then the top quest board goal
 	local shown: Quest? = nil
+	local tracked: string? = nil -- a sect quest the player tracks (Sect), in free play
 	if guiding and not data.quests[guiding.id] then
 		shown = guiding
 	elseif beat.id ~= "FreePlay" then
 		shown = beat
 	else
-		shown = openLesson(player, data)
+		tracked = if Quests.trackedObjective then Quests.trackedObjective(player, data) else nil
+		if not tracked then
+			shown = openLesson(player, data)
+		end
 	end
 	local objective = ""
 	if shown then
 		objective = objectiveOf(shown, data)
+	elseif tracked then
+		objective = tracked
 	else
 		local top = Quests.goals(data)[1]
 		objective = if top then `{top.name} ({top.progress})` else ""
@@ -1354,7 +1368,9 @@ function Quests.start()
 			if data then
 				data.lessons.BoardRead = true -- the Board lesson
 			end
-			questRemote:FireClient(player, { openBoard = true })
+			if not (Quests.openBoard and Quests.openBoard(player)) then
+				questRemote:FireClient(player, { openBoard = true })
+			end
 		end)
 	end
 	task.spawn(function()

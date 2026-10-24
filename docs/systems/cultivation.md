@@ -178,7 +178,8 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
   `discover:<cache id>` (`WorldCaches` claim), World `world:<event id>` (within
   `EVENT_RADIUS` of a located event while it runs, or any kill during an unlocated
   one such as the Beast Surge; `WorldEvents`) and `world:treasure:<weather>` (claiming a
-  heavenly treasure). Earning one gives no toast; it shows in the state push.
+  heavenly treasure), and the sect's `world:sect:rank:<rank>` (a promotion) and
+  `world:sect:chain:Borderlands` (the chain finished; [sect](sect.md)). Earning one gives no toast; it shows in the state push.
 - **Grade:** at `Cultivation.advance` (every breakthrough), `Foundation.seal` grades the
   stage being left: count / `TARGET[stage]` (default `DEFAULT_TARGET`) reaching
   `GRADES` shares 0 / 0.34 / 0.67 / 1 gives Cracked / Steady / Solid / Deep, stored in

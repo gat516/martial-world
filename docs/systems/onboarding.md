@@ -125,7 +125,7 @@ QC3->4 by ~9-10); not yet timed in play.
 **One idea per chapter after the hook** (lessons, roadmap section 2): Home (QC4,
 plant a seed), paired with Seclusion (QC4 after Home: enter seclusion on your peak; the
 first one ends by itself after 90 s with a generous card, a reward moment; the seed
-just planted is what it tends; [seclusion](seclusion.md)), Board (QC5, read the quest board), Herbs (QC6, eat one), Rumours
+just planted is what it tends; [seclusion](seclusion.md)), Board (QC5, read the sect board: from then on its Read prompt opens the [sect](sect.md) board), Herbs (QC6, eat one), Rumours
 (QC8, find a hidden cache; no guide), Wall (QC9, break into Qi Refining), and at QR1
 the second weapon (WeaponRack) and the Dao drill (DaoPractice, `Pacing.DaoPractice.FROM`
 moved from QC7). A lesson's line waits 20 s into free play (`LESSON_DELAY`), so Home
@@ -321,7 +321,9 @@ objectives in `data.quests` (granting their rewards: `Effect` "stones", "qi"
 and a `Notify` toast) and pushes
 `QuestState` `{ step, beat, elder, objective, reward, travel, goals, guide, lesson }`
 (only when something visible changed, or a lesson fires); the elder's Talk sends
-`{ talk = { lines, reply, board } }` and the board's Read `{ openBoard = true }`; Onboarding passes `travel`
+`{ talk = { lines, reply, board } }` and the board's Read `{ openBoard = true }` (before
+QC5; from QC5 the sect's `{ sect, open }`, [sect](sect.md); a tracked sect quest takes the
+objective line in free play before the open lessons); Onboarding passes `travel`
 to `TravelMenu.setTaught`. `TravelAction(gateId)` checks unlock, where you
 stand (sect ground or an array; the Sect Gate's or a wilds array for the wilds), the realm gate, combat and cooldown, streams the destination in,
 then pivots the character onto that array.

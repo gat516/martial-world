@@ -210,7 +210,8 @@ The hook runs to QC4, then one lesson per chapter ([onboarding](systems/onboardi
 
 ## 3. The sect and quests
 **MVP first (user, 2026-10-23):** rank, contribution, the board with dailies and one
-chapter chain, and the Pavilion. Halls, masters, weeklies, bounties, spirit quests
+chapter chain, and the Pavilion. **Built (untested, numbers are proposals):**
+[sect](systems/sect.md). Halls, masters, weeklies, bounties, spirit quests
 and sect-wide goals are sprinkled in later as the player advances (QR onward).
 Per [progression](progression.md): ranks, board, dailies, weeklies, chapter chains,
 bounties, sect tasks, contribution and a Pavilion shop (never qi).

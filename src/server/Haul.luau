@@ -107,9 +107,10 @@ end
 
 --[[ The spirit ring ]]
 
--- How many stacks the ring holds at this player's realm.
+-- How many stacks the ring holds at this player's realm, plus the slot bought at
+-- the sect's Pavilion for this major (Sect, once per major).
 function Haul.ringSlots(data: PlayerData.Data): number
-	return Tuning.RING_SLOTS[data.realm.major] or 0
+	return (Tuning.RING_SLOTS[data.realm.major] or 0) + (data.sect.ring[data.realm.major] or 0)
 end
 
 -- Put a stack (every one of this herb or item) in the ring, or take it out.

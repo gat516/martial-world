@@ -803,8 +803,61 @@ Pacing.HeartDemon = {
 	WANDER_MAX = 2, -- pieces placed at most (with SLAIN_MIN kills) for the wanderer question
 	HERB_MIN = 5, -- herbs in the Herbarium before it's a question
 	ROOT_MIN = 1, -- root pills (washing + rebirth) before chasing a better self is a question
+	DUTY_MIN = 10, -- sect dailies claimed before the dutiful-disciple question
+	LONE_MAX = 1, -- dailies claimed at most (the board open to them) for the lone-wolf question
 	WEIGHT_CAP = 4, -- the loudest a record question can weigh (1 at its threshold, +1 per doubling)
 	OFFER_COOLDOWN = 20 * 3600, -- seconds after "Not now" before the seat offers it again
+}
+
+-- THE SECT (server Sect; docs/systems/sect.md). The MVP: rank, contribution, the
+-- board's dailies, one chapter chain and the Pavilion. Every number here is a first
+-- guess (2026-10-23), a proposal for the user to tune in play.
+-- Contribution is earned by dailies, chain steps and promotions and spent at the
+-- Pavilion; rank goes by contribution EARNED (lifetime), so shopping never costs a
+-- promotion. The weekly cap applies to dailies only (the chain and promotions are
+-- finite). Never qi, never root pills (roadmap 3).
+Pacing.Sect = {
+	OPENS = "QC5", -- the board's dailies and the chain start here (the Board lesson); the testbed opens it at any realm
+	-- ranks in order: the realm and lifetime contribution a promotion needs, and what it pays
+	RANKS = {
+		{ id = "Outer", name = "Outer Disciple" },
+		{ id = "Inner", name = "Inner Disciple", realm = "QR1", earned = 600, stones = 300 },
+		{ id = "Core", name = "Core Disciple", realm = "FE1", earned = 2500, stones = 1500 },
+	} :: { { id: string, name: string, realm: string?, earned: number?, stones: number? } },
+	WEEK_CAP = 700, -- contribution from dailies per week (Monday 00:00 UTC); about six days of all three
+	OFFERED = 3, -- dailies on the board each day (reset at 00:00 UTC, like the daily login)
+	COMBAT_MAX = 1, -- at most this many combat dailies among them: the rest are peaceful
+	COMBAT_CHANCE = 0.65, -- the chance a day's offer includes one
+	-- Spirit Stones a daily pays, by major, times its kind's `stones` share
+	DAILY_STONES = { QiCondensation = 40, QiRefining = 110, Foundation = 300 } :: { [string]: number },
+	-- the daily pool: contribution, stone share, goal by major (nil: 1), and combat
+	DAILIES = {
+		hunt = { contribution = 40, stones = 1, goal = { QiCondensation = 8, QiRefining = 10, Foundation = 12 }, combat = true },
+		herbs = { contribution = 40, stones = 1, goal = { QiCondensation = 6, QiRefining = 6, Foundation = 6 } },
+		gather = { contribution = 30, stones = 0.75, goal = { QiCondensation = 3, QiRefining = 4, Foundation = 4 } },
+		seclusion = { contribution = 40, stones = 0.75, goal = { QiCondensation = 3600, QiRefining = 3600, Foundation = 3600 } },
+		store = { contribution = 25, stones = 0.5 },
+		harvest = { contribution = 30, stones = 0.75, goal = { QiCondensation = 4, QiRefining = 6, Foundation = 8 } },
+		cache = { contribution = 60, stones = 1.5 },
+	} :: { [string]: { contribution: number, stones: number, goal: { [string]: number }?, combat: boolean? } },
+	HUNT_BELOW = 2, -- a hunt counts beasts at most this many stages below the player's (realm variants)
+	HERB_TIER = { QiCondensation = 1, QiRefining = 2, Foundation = 3 } :: { [string]: number }, -- the herb errand's tier
+	-- the chapter chain's steps pay this (contribution, stones); the last step pays FINAL
+	CHAIN = { contribution = 60, stones = 60 },
+	CHAIN_FINAL = { contribution = 150, stones = 200 },
+	PLACE_RADIUS = 50, -- studs (flat) from a chain step's place that count as there
+	-- the Pavilion's stock (contribution prices). Seeds by tier (a packet: `seeds` of a
+	-- random sold herb of that tier), the spirit ring's +1 slot (once per major, by
+	-- major), the kill-milestone manuals as copies (only while not owned or held).
+	-- `rank` is the least rank that may buy it.
+	SEEDS = {
+		{ tier = 1, seeds = 4, cost = 40, rank = "Outer" },
+		{ tier = 2, seeds = 3, cost = 150, rank = "Inner" },
+		{ tier = 3, seeds = 2, cost = 450, rank = "Core" },
+	} :: { { tier: number, seeds: number, cost: number, rank: string } },
+	RING_SLOT = { QiCondensation = 200, QiRefining = 500, Foundation = 1200 } :: { [string]: number },
+	MANUALS = { FireSeal = 60, SwordQiWave = 100, IronSkin = 150, MoonflashDraw = 200, PalmStrike = 250 } :: { [string]: number },
+	MANUAL_ORDER = { "FireSeal", "SwordQiWave", "IronSkin", "MoonflashDraw", "PalmStrike" },
 }
 
 return Pacing

@@ -38,7 +38,8 @@ gained since you last banked can spill when you die. Decided in the
   counts as a death: the same share is lost, with no spill.
 - **The spirit ring** keeps whole stacks safe even in the wilds: put herbs or items
   in it and every one of that id is banked. `RING_SLOTS` by major realm (2 at Qi
-  Condensation, 3 Qi Refining, 4 Foundation); the Pavilion may sell more later.
+  Condensation, 3 Qi Refining, 4 Foundation), plus one bought at the sect's Pavilion per
+  major ([sect](sect.md); `data.sect.ring`).
   Taking a stack out keeps what's in it banked. Rare finds can't go in (they're
   safe already). Stacks you run out of leave the ring.
 

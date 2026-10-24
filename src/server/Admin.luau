@@ -120,6 +120,22 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 		Cultivation.pushState(player)
 		return true, `Gave {count} Spirit Stones`
 	end,
+	-- sect contribution (Sect): spendable and earned (counts toward rank), past the weekly cap
+	contribution = function(_player, data, n)
+		local count = amount(n, 1e6)
+		if not count then
+			return false, "Bad amount"
+		end
+		data.sect.contribution += count
+		data.sect.earned += count
+		data.stats.contribution += count
+		return true, `Gave {count} contribution`
+	end,
+	-- reroll today's sect dailies (Sect rolls a new offer on the next look)
+	sectDailies = function(_player, data)
+		data.sect.day = 0
+		return true, "New dailies on the board"
+	end,
 	-- sets a technique's level (learning it if needed), for testing its tiers
 	techniqueLevel = function(player, data, id, n)
 		local level = amount(n, Techniques.MAX_LEVEL)

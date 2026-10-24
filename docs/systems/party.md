@@ -8,6 +8,7 @@ the same day (both untested in play). The People tile and the travel menu's Join
 live in the Hud and are specified under "UI" below, still to build.
 
 Files: `src/server/Party.luau` (parties, card, people list, friend nudges),
+`src/server/Shelter.luau` and `src/client/ShelterFX.luau` (the party shelter),
 `src/server/SafeZone.luau`, `Travel.toPlayer` (join and visit), `EnemyService.died`
 (kill credit). Tuning: `Pacing.Party`, `Pacing.SafeZone`. Remotes: `PartyAction`,
 `PartyState` (`assets/Remotes.rbxmx`). UI: `src/client/Social.luau`, `StarterGui.Social`
@@ -39,8 +40,19 @@ Files: `src/server/Party.luau` (parties, card, people list, friend nudges),
   kill who didn't hit it.
 - **Group bonus:** a credited player's beast qi +`BONUS_PER_MEMBER` (5%) per other party
   member within `RADIUS` of the kill, capped at `BONUS_CAP` (15%).
-- Realm suppression applies as before (to damage, `Realms.suppression`); qi is always
-  scaled to the receiver's own realm, so a senior helping still earns their own.
+- **The party shelter** (owner's decision 2026-10-24; `Pacing.Shelter`, full rules in
+  [combat](combat.md#realm-pressure-owners-decision-2026-10-24)): a member with someone
+  of a higher major within `RADIUS` fights beasts above their own major as if synced
+  up to the beast's stage (capped at that member's): their hits deal about 0.8 of a
+  same-stage player's share, beasts' blows take about 1.25x a same-stage player's
+  share of their health (never more than unsheltered), so they reach the kill share
+  and survive. Rewards stay their own realm's. Leaving the party or the radius ends
+  it at once. Shown by a "Sheltered by <name>" feed line once per engagement, the
+  "sheltered" enemy-bar tier and a faint jade qi thread between the two in combat.
+  The stronger member earns `SENIOR_QI_SHARE` (20%) of their own qi for each kill a
+  sheltered member is credited with (`stats.sheltered`; the junior's `stats.leaned`).
+- Otherwise realm suppression applies as before; qi is always scaled to the
+  receiver's own realm, so a senior helping still earns their own.
 - **Heart demon:** `stats.partied` counts seconds in a party with a member within
   `RADIUS`; the trial asks about company or solitude ([heart-demon](heart-demon.md)).
 
@@ -158,7 +170,9 @@ cinnabar seal. Calm and plain: no ornament beyond the frame.
 
 ## Testing
 The testbed stand-in (`TestbedDummy`) is not a Player, so parties need two clients:
-Studio's Test > Clients and Servers with 2 players. `Social.preview()` (client console)
+Studio's Test > Clients and Servers with 2 players. Shelter: party up, set one to a
+QR realm and the other to QC with the admin realm chips, spawn a QR beast and fight it
+together. `Social.preview()` (client console)
 shows a sample card, invite and pips alone.
 
 ## Known gaps
@@ -168,3 +182,5 @@ shows a sample card, invite and pips alone.
 - No cross-server parties, party chat or shared quests; co-op rifts and group world
   events (roadmap 3e) aren't built.
 - Spar duels from the card are deferred (roadmap 3f).
+- The shelter pays the senior qi only; sect contribution for sheltering and an
+  "Elder Brother/Sister" title from `stats.sheltered` are not built.

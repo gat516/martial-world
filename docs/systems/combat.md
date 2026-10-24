@@ -29,7 +29,44 @@ scales all player damage.
 - **Heaven-defiers** (`data.heavenDefying`) ignore `Pacing.HeavenDefying.SUPPRESSION_RESIST`
   (half) of the reduction when they hit upward: 0.6x per major instead of 0.2x.
 - Enemy bars read a beast a major up as at least "far" (two: "deadly"), and one a
-  major below as "below" ([enemies](enemies.md)).
+  major below as "cowed" ([enemies](enemies.md)).
+
+### Realm pressure (owner's decision, 2026-10-24)
+Suppression is the "heaven and earth" gap between majors; realm pressure makes it
+felt both ways without new numbers on screen, and lets friends of different majors
+play together. All server-side, tuned in `Pacing.Shelter` and `Pacing.Pressure`.
+- **The party shelter** (`src/server/Shelter.luau`). A player with a party member of
+  a higher major within `Pacing.Party.RADIUS` (120) is sheltered by the strongest such
+  member (the patron) against beasts above their own major. Their hits are suppressed
+  from the patron's major instead of their own and synced up to the beast's stage
+  (capped at the patron's): x `HIT` (0.8) x sync power / own power, so a hit takes
+  about 0.8 of the share a same-stage player's would (never less than unsheltered).
+  A beast's blow or poison tick on them is x `HURT` (1.25) x own health / sync health,
+  capped at 1: about 1.25x the share it takes from a same-stage player, never more
+  than unsheltered. Checked live on every hit (`Shelter.hit` in `Combat.damageEnemy`,
+  `Shelter.hurt` in EnemyService `hurtBy` and `PlayerPoison`), so leaving the party
+  or the radius ends it at once. Kill credit counts the synced damage, so a sheltered
+  player reaches the share; rewards stay their own realm's (qi by their stage, capped
+  by the dantian and overflow as always; `onKill` deeds like Daring still fire). Taught
+  by one feed line, "Sheltered by <name>: ...", the first sheltered hit or blow after
+  `CUE_GAP` (30 s), the "sheltered" bar tier and a faint jade qi thread between the
+  two while the sheltered player is in combat (`ShelterFX`, the guide's Stream beam).
+  Player attribute `ShelteredBy` (patron UserId, refreshed every 0.5 s) drives both.
+- **The helper is paid.** For each beast a sheltered member is credited with, the
+  patron gets `SENIOR_QI_SHARE` (20%) of their own qi for it on top of their own share
+  (`stats.sheltered` counts these kills, the junior's `stats.leaned`; both feed the
+  heart demon's company question, `HEART_LINE_AT` 3). Small enough that farming
+  juniors is never better than fighting.
+- **Beasts feel a realm above them** (EnemyService `awe`, `feelPressure`). A regular
+  beast (not a boss, a summon or one sent at a player: `fearless`) a full major below
+  a player never picks them as a target unless they've hurt it; when one first comes
+  within its aggro it flinches (`FLINCH` 0.8 s stagger, again after `REARM` 30 s out
+  of sight). Two majors below, it runs from them (`FLEE_STUDS` at a time, inside its
+  leash). A beast hunting someone else (a sheltered junior, say) keeps fighting
+  normally. Its bar reads "cowed" ("It fears your realm").
+- **Breakthrough wave.** A breakthrough staggers every regular beast within
+  `WAVE_RADIUS` (60) below the new stage for `WAVE_STAGGER` (1.2 s). Flavour only.
+- `Pacing.Pressure.ENABLED` false turns the beast side off (the shelter stays).
 
 ## Design intent
 - Responsive on every device: the client predicts actions and hits; the server

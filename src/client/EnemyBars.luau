@@ -41,6 +41,20 @@ local SKULL_PULSE = TweenInfo.new(1.4, Enum.EasingStyle.Sine, Enum.EasingDirecti
 type Style = { rim: string?, tag: Color3?, omen: Color3?, aura: boolean?, sheen: boolean?, skull: boolean?, omens: { string }? }
 local STYLES: { [string]: Style } = {
 	below = { rim = "rbxassetid://128483974781643", tag = Color3.fromRGB(176, 170, 160) },
+	-- a full major below you: it fears you (realm pressure, Pacing.Pressure)
+	cowed = {
+		rim = "rbxassetid://128483974781643",
+		tag = Color3.fromRGB(176, 170, 160),
+		omen = Color3.fromRGB(198, 192, 180),
+		omens = { "It fears your realm", "It shrinks from your qi", "It dares not meet you", "Your aura cows it" },
+	},
+	-- above you, but a stronger party member nearby shelters you (Pacing.Shelter)
+	sheltered = {
+		rim = "rbxassetid://117466583392103",
+		tag = Color3.fromRGB(176, 228, 196),
+		omen = Color3.fromRGB(150, 230, 190),
+		omens = { "Sheltered by a friend", "A stronger qi guards you", "Strike as equals" },
+	},
 	even = { rim = "rbxassetid://117466583392103", tag = Color3.fromRGB(176, 228, 196) },
 	above = {
 		rim = "rbxassetid://132855087488496",
@@ -123,12 +137,34 @@ local function tierFor(gap: number): string
 	return "even"
 end
 
+-- The stage of the party member sheltering you (the server's ShelteredBy), or nil.
+local function patronStage(): Realms.Stage?
+	local id = player:GetAttribute("ShelteredBy")
+	local patron = if type(id) == "number" then Players:GetPlayerByUserId(id) else nil
+	return if patron then Realms.byName(patron:GetAttribute("Realm")) else nil
+end
+
+-- Overhead bars (not bosses) also read "cowed" (a full major below you: it fears
+-- you) and "sheltered" (above you, within your shelter's reach); bosses keep the
+-- five tiers BossThemes has lines for.
 local function tierOfDef(def: Enemies.Def?): string
 	if not (def and def.realm) then
 		return "even"
 	end
 	local beast = Realms.ofBeast(def.realm)
 	local mine = playerStage()
+	local patron = patronStage()
+	if patron and Realms.majorIndex(beast.major) > Realms.majorIndex(mine.major) then
+		-- sheltered: you fight it at its own stage, capped at your patron's
+		if Realms.index(beast.major, beast.minor) <= Realms.index(patron.major, patron.minor) then
+			if not def.boss then
+				return "sheltered"
+			end
+			mine = beast
+		else
+			mine = patron
+		end
+	end
 	local gap = Realms.index(beast.major, beast.minor) - Realms.index(mine.major, mine.minor)
 	-- a higher major realm suppresses the player's blows (Pacing.Suppression):
 	-- one major up reads at least "far", two "deadly", however few stages apart;
@@ -139,6 +175,9 @@ local function tierOfDef(def: Enemies.Def?): string
 	elseif majors == 1 then
 		gap = math.max(gap, Pacing.Danger.FAR_AT)
 	elseif majors < 0 then
+		if not def.boss then
+			return "cowed"
+		end
 		gap = math.min(gap, Pacing.Danger.BELOW_AT)
 	end
 	return tierFor(gap)
@@ -327,15 +366,18 @@ function EnemyBars.init(gui: ScreenGui)
 		task.spawn(watch, model)
 	end
 	CollectionService:GetInstanceAddedSignal("Enemy"):Connect(watch)
-	-- a breakthrough makes the same beast read less threatening
-	player:GetAttributeChangedSignal("Realm"):Connect(function()
+	-- a breakthrough makes the same beast read less threatening; a shelter starting or
+	-- ending changes how the beasts above you read
+	local function restyleAll()
 		for _, entry in watched do
 			restyle(entry)
 		end
 		if shownBoss then
 			BossBars.setTier(tierOfDef(Enemies.Defs[shownBoss:GetAttribute("EnemyType") :: string? or ""]))
 		end
-	end)
+	end
+	player:GetAttributeChangedSignal("Realm"):Connect(restyleAll)
+	player:GetAttributeChangedSignal("ShelteredBy"):Connect(restyleAll)
 
 	RunService.Heartbeat:Connect(function()
 		local now = os.clock()

@@ -294,6 +294,43 @@ Pacing.Suppression = {
 	KEEP = 0.2,
 }
 
+-- REALM PRESSURE (docs/systems/combat.md "Realm pressure"). Three small
+-- pieces around suppression, all server-side:
+-- THE PARTY SHELTER (server Shelter): a player in a party with a member of a higher
+-- MAJOR realm within Party RADIUS (the "patron", the strongest such member) is
+-- sheltered against beasts above their own major. Their hits are suppressed from the
+-- patron's major instead of their own and synced up to the beast's stage (capped at
+-- the patron's): x HIT x (sync power / own power), never less than unsheltered. Beast
+-- blows and poison on them are x HURT x (own health / sync health), never more than
+-- unsheltered, so a hit takes about HURT times the share it takes from a same-stage
+-- player. Rewards stay their own realm's (qi by their stage, the dantian caps it).
+-- The patron gets SENIOR_QI_SHARE of their own qi for each beast a sheltered member is
+-- credited with (stats.sheltered counts them; the junior's stats.leaned).
+Pacing.Shelter = {
+	HIT = 0.8, -- a sheltered hit deals this share of what a same-stage player's would (the senior still carries)
+	HURT = 1.25, -- a beast's blow takes this times the health share it takes from a same-stage player
+	SENIOR_QI_SHARE = 0.2, -- the patron's qi per kill a sheltered member earns, of their own qi for that beast
+	CUE_GAP = 30, -- seconds without a sheltered hit or blow before the "Sheltered by" line shows again
+	TICK = 0.5, -- seconds between ShelteredBy attribute refreshes (damage checks live)
+	HEART_LINE_AT = 3, -- stats.leaned / stats.sheltered from which the heart demon's company question names it
+}
+
+-- BEASTS FEEL A REALM ABOVE THEM (EnemyService). A regular beast (not a boss, a summon
+-- or one sent after a player) a full major below a player doesn't pick them as a
+-- target unless they've hurt it; when such a player first comes within its aggro it
+-- flinches (FLINCH seconds of stagger, again after REARM seconds out of sight). Two
+-- majors below, it runs from them (FLEE_STUDS at a time, inside its leash) instead.
+-- A breakthrough sends a wave: every regular beast within WAVE_RADIUS below the new
+-- stage staggers WAVE_STAGGER seconds (flavour).
+Pacing.Pressure = {
+	ENABLED = true,
+	FLINCH = 0.8,
+	REARM = 30,
+	FLEE_STUDS = 24,
+	WAVE_RADIUS = 60,
+	WAVE_STAGGER = 1.2,
+}
+
 -- HEAVEN-DEFIERS (PlayerData `heavenDefying`): the heavens resist them, so every
 -- bar is BAR x longer (Cultivation.stage) and a tribulation guards every major
 -- breakthrough; in return they shrug off part of realm suppression when they hit

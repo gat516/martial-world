@@ -25,13 +25,36 @@ Never batch areas or build ahead of an approved block-out.
 ## Areas
 | Area | Reference | Status |
 |---|---|---|
-| The whole sect (composition) | none yet | waiting on reference |
-| Mountain Gate and Testing Stone | none yet | waiting on reference |
-| Ascending Stair (meditation ledge, Martial Field) | none yet | waiting on reference |
-| Outer court (main plaza) | none yet | waiting on reference |
+| The whole sect (composition) | [sheet v1](../reference/sect/sect_sheet_v1.png) 1 (top left) | next: macro block-out |
+| Mountain Gate and Testing Stone | [sheet v1](../reference/sect/sect_sheet_v1.png) 2 (top right) | waiting on block-out |
+| Ascending Stair (meditation ledge, Martial Field) | [sheet v1](../reference/sect/sect_sheet_v1.png) 3 (middle left) | waiting on block-out |
+| Outer court (main plaza) | [sheet v1](../reference/sect/sect_sheet_v1.png) 4 (middle right) | waiting on block-out |
 | Inner court | none yet | not started |
 | Summit (elders' hall) | none yet | not started |
-| Spirit peak template, then 8 characters | none yet | waiting on reference |
+| Spirit peak template, then 8 characters | [sheet v1](../reference/sect/sect_sheet_v1.png) 5 (bottom left); abode 6 (bottom right) | waiting on block-out |
+
+## What the reference says (sheet v1, approved 2026-10-24: "good enough")
+Roblox in-game look: parts in SmoothPlastic with flat colours, low-poly rock, roof
+and tree meshes. Read off the six panels:
+- **The sect is a cluster of pillars, not one mountain** (panel 1): each tier sits on
+  its own pillar top at its own height, joined by stone stairs and rope bridges; the
+  summit hall crowns the tallest pillar. Two or three waterfalls drop off pillar edges
+  into the clouds. The spirit peaks are pillar islands at varied heights among
+  dozens of bare pillars, not a level ring.
+- **Gate** (2): a tall red paifang with a slate-teal roof, gold ridge ends and hanging
+  banners, on axis with the Testing Stone (a pale monolith with a jade vein) on a
+  stepped plinth just past it; stone lanterns and a balustrade; the stair climbing
+  beyond.
+- **Stair** (3): the training terrace is a walled stone platform on the cliff's
+  shoulder with a pavilion, fence and banners; the meditation ledge is its own
+  small outcrop with one big pine and a round platform.
+- **Plaza** (4): an open paved axis to the main hall on its stair, the cauldron on a
+  jade-inlaid disc in the centre, the notice board at the side, the garden plots and
+  the teleport circle to one side, stalls at the edges.
+- **Spirit peak** (5): the house at the back with the big pine behind it, beds in
+  front, the well and circle between; a low fence on the rim keeps the view open;
+  the bridge leaves from the side. **Abode** (6): a deep cave mouth with a railed
+  balcony, a round meditation platform, scroll shelves, lanterns.
 
 ## The view is the point (user, 2026-10-24)
 The classic cultivation view: a sea of clouds with Zhangjiajie-style stone pillars
@@ -49,6 +72,18 @@ redo builds for it:
   neighbours are views too.
 - **Plan each area's views with the area:** a view line (where you stand, what you
   see) goes in the area's written plan and is checked by capture from that spot.
+
+## Where to build
+The new sect is built **beside the old one** (a clear offset, away from the wilds and
+the old sect's ring), so the live game keeps working; it is swapped in, the
+constraint coordinates and Config updated, only when it's done.
+
+## Step 1: the macro block-out
+Gray masses only, no detail: the cloud sea's height; the sect's pillars (gate crag,
+stair cliff, plaza pillar, inner terrace, summit) with their top heights and the
+stairs and bridges between them; the 8 spirit peak pillars at their heights; and three
+layers of bare pillars for the view. Checked by capture from the gate, the plaza, the
+balcony, a spirit peak's lawn and its abode before anything is built for real.
 
 ## The agreed shape (user, 2026-10-24)
 The sect is a climb: senior is higher. Every building is a verb or a view, never

@@ -21,10 +21,12 @@
 --
 -- Input: a click or tap on the panel, Space, Enter, E or gamepad A finishes the
 -- typing, then moves to the next line. Once the responses show: click or tap one;
--- or move the focus (lit art) with Up/Down, W/S, the d-pad or left stick and pick
--- with Enter, Space, E or A; or press 1-4 (shown on keyboards only). The dialogue
--- is a menu (Menus): opening it closes any other window and hides the HUD and the
--- world prompts, and it holds the keys it uses while open (so Space doesn't jump).
+-- or move the focus (lit art) with Up/Down or the d-pad and pick with Enter, Space,
+-- E or A; or press 1-4 (shown on keyboards only). The dialogue is a menu (Menus):
+-- opening it closes any other window and hides the HUD and the world prompts, and
+-- it holds the keys it uses while open (so Space doesn't jump). WASD, the left
+-- stick and the touch thumbstick stay free: with `near`, walking more than `range`
+-- studs from it ends the conversation (open() returns nil).
 --
 -- Layouts: a bar centred along the bottom of the screen (Menus hides the HUD while
 -- it's open), the responses in a column to its right with the bar's top and bottom.
@@ -62,6 +64,8 @@ export type Options = {
 	lines: { string },
 	responses: { Response }?,
 	speed: number?, -- characters per second (default CHARS_PER_SECOND)
+	near: (PVInstance | Attachment)?, -- who's speaking: walking away from it closes the dialogue
+	range: number?, -- studs from `near` (default WALK_AWAY_RANGE)
 }
 
 -- Gray silhouettes (art/ui/codex/cut/portrait_*.png; never painted busts).
@@ -76,7 +80,7 @@ local PORTRAITS: { [string]: string } = {
 local CHARS_PER_SECOND = 48
 local MAX_RESPONSES = 4
 local REVEAL_STAGGER = 0.04 -- seconds between response buttons fading in
-local STICK_DEADZONE = 0.6
+local WALK_AWAY_RANGE = 14
 local ACTION = "DialogueInput"
 local CREAM = Color3.fromRGB(245, 236, 214)
 local DIM = Color3.fromRGB(150, 146, 136)
@@ -88,8 +92,8 @@ local CONFIRM_KEYS = {
 	[Enum.KeyCode.E] = true,
 	[Enum.KeyCode.ButtonA] = true,
 }
-local UP_KEYS = { [Enum.KeyCode.Up] = true, [Enum.KeyCode.W] = true, [Enum.KeyCode.DPadUp] = true }
-local DOWN_KEYS = { [Enum.KeyCode.Down] = true, [Enum.KeyCode.S] = true, [Enum.KeyCode.DPadDown] = true }
+local UP_KEYS = { [Enum.KeyCode.Up] = true, [Enum.KeyCode.DPadUp] = true }
+local DOWN_KEYS = { [Enum.KeyCode.Down] = true, [Enum.KeyCode.DPadDown] = true }
 local NUMBER_KEYS = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three, Enum.KeyCode.Four }
 
 type Choice = {
@@ -111,6 +115,7 @@ type Session = {
 	waiter: thread?,
 	speed: number,
 	typeConn: RBXScriptConnection?,
+	rangeConn: RBXScriptConnection?,
 }
 
 local Dialogue = {}
@@ -132,7 +137,6 @@ local choiceShift = 0 -- ChoiceShift: home's offset from the centred bar (phone:
 local SLIDE = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 local session: Session? = nil
-local stickHeld = false
 
 local function toChoice(r: Response): Choice
 	if type(r) == "string" then
@@ -190,8 +194,10 @@ local function finish(s: Session, result: number?)
 	if s.typeConn then
 		s.typeConn:Disconnect()
 	end
+	if s.rangeConn then
+		s.rangeConn:Disconnect()
+	end
 	ContextActionService:UnbindAction(ACTION)
-	ContextActionService:UnbindAction(ACTION .. "Stick")
 	-- the buttons go once the window has shrunk away
 	local buttons = {}
 	for _, c in s.choices do
@@ -424,21 +430,6 @@ local function onInput(_: string, state: Enum.UserInputState, input: InputObject
 	return Enum.ContextActionResult.Sink
 end
 
-local function onStick(_: string, _state: Enum.UserInputState, input: InputObject): Enum.ContextActionResult
-	local s = session
-	if not s or not s.choosing then
-		return Enum.ContextActionResult.Pass
-	end
-	local y = input.Position.Y
-	if math.abs(y) < STICK_DEADZONE then
-		stickHeld = false
-	elseif not stickHeld then
-		stickHeld = true
-		moveFocus(s, if y > 0 then -1 else 1)
-	end
-	return Enum.ContextActionResult.Sink
-end
-
 -- Split lines that don't fit the text box into pages at word breaks. Line has a
 -- fixed authored height, so its width in layout units is its on-screen width over
 -- the on-screen scale (any nested UIScale cancels out).
@@ -507,6 +498,7 @@ function Dialogue.open(options: Options): number?
 		waiter = nil,
 		speed = options.speed or CHARS_PER_SECOND,
 		typeConn = nil,
+		rangeConn = nil,
 	}
 	session = s
 
@@ -523,7 +515,6 @@ function Dialogue.open(options: Options): number?
 
 	list.Visible = false
 	layout.Position = home - UDim2.fromOffset(choiceShift, 0)
-	stickHeld = false
 	ContextActionService:BindActionAtPriority(
 		ACTION,
 		onInput,
@@ -535,8 +526,6 @@ function Dialogue.open(options: Options): number?
 		Enum.KeyCode.E,
 		Enum.KeyCode.Up,
 		Enum.KeyCode.Down,
-		Enum.KeyCode.W,
-		Enum.KeyCode.S,
 		Enum.KeyCode.One,
 		Enum.KeyCode.Two,
 		Enum.KeyCode.Three,
@@ -546,7 +535,22 @@ function Dialogue.open(options: Options): number?
 		Enum.KeyCode.DPadUp,
 		Enum.KeyCode.DPadDown
 	)
-	ContextActionService:BindActionAtPriority(ACTION .. "Stick", onStick, false, Enum.ContextActionPriority.High.Value + 10, Enum.KeyCode.Thumbstick1)
+	local near = options.near
+	if near then
+		local range = options.range or WALK_AWAY_RANGE
+		s.rangeConn = RunService.Heartbeat:Connect(function()
+			local character = Players.LocalPlayer.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if not near.Parent then
+				finish(s, nil)
+			elseif root then
+				local at = if near:IsA("Attachment") then near.WorldPosition else near:GetPivot().Position
+				if (root.Position - at).Magnitude > range then
+					finish(s, nil)
+				end
+			end
+		end)
+	end
 	Menus.open(layout)
 	showLine(s)
 
@@ -593,6 +597,21 @@ end
 function Dialogue.init()
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 	local gui = playerGui:WaitForChild("Dialogue") :: ScreenGui
+	if not gui.Enabled then
+		-- a disabled copy in the place (a review leftover) would open unseen while
+		-- Menus hid the HUD: everything gone and no dialogue
+		warn(`Dialogue: {gui:GetFullName()} was disabled; enabling it (check StarterGui for a stale copy)`)
+		gui.Enabled = true
+	end
+	local copies = 0
+	for _, child in playerGui:GetChildren() do
+		if child.Name == "Dialogue" then
+			copies += 1
+		end
+	end
+	if copies > 1 then
+		warn(`Dialogue: {copies} Dialogue ScreenGuis in PlayerGui; StarterGui has a stale copy beside Rojo's`)
+	end
 	local canvas = gui:WaitForChild("Canvas") :: Frame
 	UiScale.fit(canvas)
 	local phone = UiScale.isPhone()

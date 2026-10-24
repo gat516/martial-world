@@ -20,6 +20,7 @@ local choice = Dialogue.open({
 	speaker = "Elder Qingyun",   -- nil or "" shows "???"
 	portrait = "elder_qingyun",  -- elder_qingyun, herbalist, weapon_rack_keeper, unnamed, unknown, or an rbxassetid
 	lines = { "You have the look of someone who has hit a wall.", "Have you completed your root test?" },
+	near = elder,                -- optional: walking more than `range` studs (default 14) away closes it
 	responses = {                -- optional, at most 4
 		{ text = "I have completed it.", icon = "quest", highlight = true },
 		{ text = "Can you tell me more?", icon = "talk" },
@@ -52,11 +53,13 @@ local choice = Dialogue.open({
   or gamepad A finishes the typing, then goes to the next line; the gold chevron bobs
   while there's more (or, with no responses, to close).
 - After the last line the responses fade in, staggered. Mouse: hover lights one, click
-  picks. Keyboard: Up/Down or W/S move the lit one, Enter/Space/E pick, 1-4 pick directly
-  (the number shows on the button, keyboards only). Gamepad: d-pad or left stick, A
-  picks, B picks the `cancel` response. Touch: tap; only the recommended one is lit.
+  picks. Keyboard: Up/Down move the lit one, Enter/Space/E pick, 1-4 pick directly
+  (the number shows on the button, keyboards only). Gamepad: d-pad, A picks, B picks
+  the `cancel` response. Touch: tap; only the recommended one is lit.
 - While open it holds those keys (ContextActionService, high priority), so Space
-  doesn't jump and W/S don't walk.
+  doesn't jump. WASD, the left stick and the touch thumbstick stay free so the player
+  can walk off: with `near`, going past `range` studs ends the conversation (`open`
+  returns nil). The elder's range is his TalkPrompt's reach + 4 (user, 2026-10-24).
 
 ## Dialogue: layout
 A bar centred along the bottom of the screen with the responses in a column to its
@@ -179,9 +182,11 @@ and on a full-size stack 52.
   layout would fix it; the centred bar with the column beside it needs the full width.
 - The red ribbon on the response buttons' right caps is in the art; a Codex
   regeneration without it is the fix if the user wants it gone.
-- Fixed 2026-10-23: the export in e056f64 shipped the ScreenGui with `Enabled=false` (a
-  review-stage leftover with its `_rs_Enabled` attribute), so the screen may not have
-  shown in play since; `Enabled` is back to true.
+- The export in e056f64 shipped the ScreenGui with `Enabled=false` (a review-stage
+  leftover). The fix dropped the property (true is the default), and Rojo doesn't sync
+  a property the file omits, so places synced in between kept it off: Talk hid the HUD
+  and nothing showed (2026-10-24). The file now states `Enabled` true, and `init`
+  re-enables a disabled copy with a warning (and warns about duplicate copies).
 - Not play-tested: the elder's conversations, typing, input binding, gamepad focus, the Menus hand-off, the hold
   ring's sweep under a real hold, and the Dock's Fit on a real phone.
 - Gold (masters) and crimson (demons) name tabs, and a crisper large portrait corner,

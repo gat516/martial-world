@@ -1,6 +1,7 @@
 <roblox version="4">
  <Item class="ScreenGui" referent="RBX1"><Properties>
   <string name="Name">Dialogue</string>
+  <bool name="Enabled">true</bool>
   <bool name="ResetOnSpawn">false</bool>
   <token name="ZIndexBehavior">1</token>
   <bool name="IgnoreGuiInset">true</bool>

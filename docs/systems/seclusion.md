@@ -15,14 +15,15 @@ for gardeners and mobile players the "leave it running" reward moment.
 - **Seclusion pays its own rewards, never stages**, and no foundation experiences:
   - a slow Spirit Stone trickle: `STONES_PER_HOUR` 25 (QC) / 60 (QR) / 150 (FE);
   - the garden tended: growing plants grow `GROWTH` +50% faster, online and offline;
-  - **online only, a garden mutation roll** (the user: "theres a chance for ur garden
-    to mutate if u stay online"): each plant, `MUTATION_PER_HOUR` 3% an hour (times the
-    garden pieces' luck), one of Dewy 50 / Windswept 30 / Auspicious 15 / Golden 5;
+  - the garden's online mutation roll isn't seclusion's own (the user: "theres a chance
+    for ur garden to mutate if u stay online"): it rolls whenever the owner is online on
+    their own peak, secluded or not, never offline ([garden](garden.md)); mutations
+    taken while secluded count on the card;
   - each full hour, `RARE_CHANCE` 10% of a rare find: Heavenly Dew 50, Cloud-Pattern
     Jade 25, Immortal Peach 5, or (60) a seed of the major's next herb tier
     (`SEED_TIER`: II in QC, III in QR, IV in FE; no wild or event herbs). Never root pills;
-  - the streak: consecutive days with a seclusion of at least `STREAK_MIN_HOURS` (1 h);
-    each day past the first adds `STREAK_BONUS` +10% to that seclusion's stones, up to
+  - the streak: days with a seclusion of at least `STREAK_MIN_HOURS` (1 h). A missed
+    day pauses it (adds nothing) and never resets it. Each day past the first adds `STREAK_BONUS` +10% to that seclusion's stones, up to
     `STREAK_MAX` 7 days (+70%).
   Everything counts for at most `MAX_HOURS` (12) of one seclusion.
 - **The cap message.** When cultivation reaches the overflow cap the toast says once
@@ -95,8 +96,8 @@ awake ping), `Quests.luau` (the lesson), `HeartDemon.luau` (the question),
 - **Secluded plaque** (`SeclusionView.luau`, Cultivation `Canvas.Seclusion`): elapsed
   time, stones, finds, the garden, the streak's day pips and "Rise to leave", from the
   player attributes `SeclusionSince`, `SeclusionStones`, `SeclusionFinds` (items and
-  seeds), `SeclusionTended`, `SeclusionMutations`, `SeclusionStreak` (the streak still
-  standing: last counted yesterday or today) and `SeclusionToday` (today already counts),
+  seeds), `SeclusionTended`, `SeclusionMutations`, `SeclusionStreak` (the streak's days; a
+  missed day only pauses it) and `SeclusionToday` (today already counts),
   set by `Seclusion.luau` while live and cleared when it ends.
 - **The card**: Rewards kind `seclusion`: tiles for stones, finds, seeds, and the
   garden (`mutation` with the count, or `garden`), "Cultivation from -> to", and
@@ -119,7 +120,7 @@ awake ping), `Quests.luau` (the lesson), `HeartDemon.luau` (the question),
 ## Known gaps
 - Untested in play.
 - **Roblox kicks idle clients after 20 minutes without input**, so staying online in
-  seclusion (and its mutation roll) only lasts while the client gets input; after a
+  seclusion (and the garden's online mutation roll) only lasts while the client gets input; after a
   kick the offline path takes over and settles on the next login. Overnight online
   seclusion in practice needs the device to stay active.
 - A seclusion running when a server crashes (no logout time saved) may count its

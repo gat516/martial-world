@@ -104,7 +104,8 @@ only through `foundationOf()` in `SelfCard.luau`. `percent` is what the current 
 get now (100 = a full foundation, up to `max`, 200), `grade` its word (Unsteady below 50,
 Steady, Solid from 100, Deep from 150), `bonus` the summed health/power share from graded
 stages (0.06 = +6%), `hints` up to five open experiences (categories Hunt, Boss, Home,
-Dao, Discover, World, Deed).
+Dao, Discover, World, Deed). At QC1-3 the server sends only `{ hidden = true, bonus }` and
+the row hides (the hook has no foundation).
 - **Built (Self card v2):** the Foundation section reads `percent` ("86%") on a bar to 150% with marks at 50 and 100, overfill in paler gold.
 
 ### Foundation solidity meter (`FoundationMeter.luau`, shelved)

@@ -8,9 +8,11 @@
 --   a slow Spirit Stone trickle (STONES_PER_HOUR by major, plus the streak bonus)
 --   the garden tended: growing plants grow GROWTH faster (Garden's tick online,
 --     Garden.advance for the offline part)
---   online only: the garden's own mutation roll (Garden's tick, MUTATION_PER_HOUR)
+--   (the garden's own mutation roll, MUTATION_PER_HOUR, runs while the owner is online
+--     on their own peak, secluded or not: Garden's tick)
 --   each full hour, a RARE_CHANCE of a treasure or a seed of the next herb tier
---   the streak: consecutive days with a seclusion of STREAK_MIN_HOURS or more
+--   the streak: days with a seclusion of STREAK_MIN_HOURS or more; a missed day
+--     pauses it (adds nothing), never resets it
 -- Everything counts for at most MAX_HOURS of one seclusion. Logging out keeps it
 -- going (data.seclusion.since stays set); the next login settles the time away
 -- and ends it. Rising (Rise, a hit, drifting off the seat) ends it too. Ending it
@@ -160,8 +162,8 @@ local function publish(player: Player, data: PlayerData.Data)
 	player:SetAttribute("SeclusionFinds", finds)
 	player:SetAttribute("SeclusionTended", tally.growth > 0)
 	player:SetAttribute("SeclusionMutations", tally.mutations)
-	-- the streak still standing (yesterday or today), and whether today already counts
-	player:SetAttribute("SeclusionStreak", if sec.streakDay >= today - 1 then sec.streak else 0)
+	-- the streak (a missed day only pauses it), and whether today already counts
+	player:SetAttribute("SeclusionStreak", sec.streak)
 	player:SetAttribute("SeclusionToday", sec.streakDay == today)
 end
 
@@ -193,7 +195,7 @@ local function finish(player: Player, data: PlayerData.Data, delay: number)
 	if sec.counted >= S.STREAK_MIN_HOURS * 3600 then
 		local today = os.time() // 86400
 		if sec.streakDay ~= today then
-			sec.streak = if sec.streakDay == today - 1 then sec.streak + 1 else 1
+			sec.streak += 1 -- a missed day pauses the streak, never resets it
 			sec.streakDay = today
 		end
 	end
@@ -231,8 +233,7 @@ local function finish(player: Player, data: PlayerData.Data, delay: number)
 	end
 	-- the streak as day pips (SeclusionView.paintStreak): days held, and its bonus
 	local streak = { days = 0, bonus = 0, text = "An hour a day builds a streak" }
-	local today = os.time() // 86400
-	if sec.streakDay >= today - 1 and sec.streak > 0 then
+	if sec.streak > 0 then
 		local counts = sec.counted >= S.STREAK_MIN_HOURS * 3600
 		streak = {
 			days = sec.streak,

@@ -15,7 +15,9 @@ consumables: spirit cores from beasts and heavenly treasures.
 - **Seclusion tends the garden** ([seclusion](seclusion.md)): growing plants grow
   `Pacing.Seclusion.GROWTH` (+50%) faster while the owner is secluded, online and
   offline (`Garden.advance` settles the time away). **Staying online is what lets it
-  mutate** (user, 2026-10-23): only while the owner is secluded and online, each plant
+  mutate** (user, 2026-10-23: "theres a chance for ur garden to mutate if u stay
+  online"): while the owner is online and on their own peak (within
+  `Config.Circulation.PEAK_RADIUS` of its plateau, secluded or not), each plant
   rolls `MUTATION_PER_HOUR` (3% an hour, times garden-piece luck) for one of
   `MUTATIONS` (Dewy, Windswept, Auspicious, Golden), on the garden tick. Never offline.
 - The garden feeds cultivation (aura, buffs, qi) without replacing the active loop
@@ -146,7 +148,7 @@ the pose and prop. Unsupported rigs skip the gesture (the game uses R6).
   their phase times live in `HerbAnimator.luau`.
 - `Config.Garden`: seeds back, tick, aura cap, wild sprouts, beast seed chance and boss count, Grow now tiers.
 - `Weather.luau` `garden`: growth speed, mutation and chance per weather.
-- `Pacing.Seclusion`: `GROWTH`, `MUTATION_PER_HOUR`, `MUTATIONS` (tending while secluded).
+- `Pacing.Seclusion`: `GROWTH` (tending while secluded), `MUTATION_PER_HOUR`, `MUTATIONS` (the online roll on your own peak).
 - `Pacing.PeakScore.GROWTH` per peak-score point; Herb Bed caps per tier in `Config.Build.TIERS`.
 - `Config.Economy`: starting stones; `Config.Build.MARKET_RANGE` (also how far you can walk
   before the Herbalist window closes, via `MarketRange.luau`).

@@ -419,6 +419,18 @@ function Garden.advance(player: Player, data: PlayerData.Data, seconds: number):
 	return n
 end
 
+-- Whether the player stands on their own peak (Meditation's on-peak test).
+local PEAK_RADIUS = AllConfig.Circulation.PEAK_RADIUS
+local function standsOn(player: Player, peak: Model): boolean
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not root then
+		return false
+	end
+	local offset = Peak.frame(peak):PointToObjectSpace(root.Position)
+	return Vector2.new(offset.X, offset.Z).Magnitude <= PEAK_RADIUS and math.abs(offset.Y) <= PEAK_RADIUS
+end
+
 -- One weather tick of `seconds` for a player's garden.
 local function tendGarden(player: Player, def: Weather.Def, seconds: number)
 	local data = PlayerData.get(player)
@@ -432,6 +444,7 @@ local function tendGarden(player: Player, def: Weather.Def, seconds: number)
 	local now = os.time()
 	local minutes = seconds / 60
 	local secluded = Garden.secluded ~= nil and Garden.secluded(player)
+	local home = secluded or standsOn(player, peak) -- the online mutation roll: on their own peak
 	local tended, mutations = 0, 0
 	for plotId, plants in data.peak.plots do
 		local plot = findPlot(peak, plotId)
@@ -459,8 +472,9 @@ local function tendGarden(player: Player, def: Weather.Def, seconds: number)
 			if g.mutation and rng:NextNumber() < (g.chance or 0) * minutes * (1 + luck) then
 				changed = mutate(plant, g.mutation) or changed
 			end
-			-- staying online in seclusion: the garden's own mutation roll (never offline)
-			if secluded and rng:NextNumber() < SECLUSION.MUTATION_PER_HOUR * seconds / 3600 * (1 + luck) then
+			-- staying online on their own peak (secluded or not): the garden's own
+			-- mutation roll (never offline; this tick only runs for players in the server)
+			if home and rng:NextNumber() < SECLUSION.MUTATION_PER_HOUR * seconds / 3600 * (1 + luck) then
 				local id = pickWeighted(SECLUSION.MUTATIONS)
 				if id and mutate(plant, id) then
 					changed = true

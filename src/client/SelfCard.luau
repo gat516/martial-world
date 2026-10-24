@@ -395,6 +395,9 @@ local function foundationOf(state: any): Foundation?
 	if type(f) ~= "table" then
 		return if RunService:IsStudio() then PREVIEW_FOUNDATION else nil
 	end
+	if f.hidden then
+		return nil -- a hook stage (QC1-3) has no foundation yet
+	end
 	local count, target = tonumber(f.count) or 0, tonumber(f.target) or 0
 	return {
 		count = count,

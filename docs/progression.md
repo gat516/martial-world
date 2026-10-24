@@ -32,7 +32,7 @@ until playtested. Nothing here is built yet unless it says so.
 | Major | Stages | Target | Per stage |
 |---|---|---|---|
 | Qi Condensation | 9 | about 2.5 h (2.4 h built) | 1 min (QC1) to 55 min (QC9) |
-| Qi Refining | 9 | about 7 h | 22-75 min |
+| Qi Refining | 9 | about 7 h (7.1 h built) | 22-75 min |
 | Foundation Establishment | 9 | about 20 h | 80-175 min |
 
 About 30 h to FE9, the cap, which should be hard to reach; passive and offline
@@ -48,9 +48,12 @@ the `Pacing.luau` header: pick a stage's minutes, derive its bar.
 
 ## The stage template
 Every three stages is a **chapter**; every nine is a **realm**.
+- **Beats are `Pacing.Curve`'s** (the `beat` field): each realm opens HOOK, RAMP,
+  MINI-WALL (QC1-3 are all HOOK), then BREATHER, RAMP, MINI-WALL, then BREATHER,
+  RAMP, WALL. A breather never shrinks the bar (bars never go down); it pours more
+  raw qi (the row's `gather`) instead.
 - **Stage 1 of a chapter:** something new (a region seal, a beast tier, a home
   idea). The "hook" of the chapter.
-- **Stage 2:** the loop settles in (breather).
 - **Stage 3:** a mini-wall: the chapter's elite hunt or event chain, a foundation experience.
 - **Stage 9 of a realm:** the wall: the biggest bar, the realm's experiences, an
   optional realm boss as the fast road to a Deep foundation. Heaven-defying players add the tribulation.
@@ -84,7 +87,7 @@ kills); the aura and the per-beast extra moves wait on `vfx` and `animator`.
 | QC1 | HOOK | Inner Wilds | circulate, breakthrough (the first is guaranteed) | empty dantian |
 | QC2 | HOOK | Inner Wilds | first hunt, technique, store the haul, refine | empty dantian |
 | QC3 | HOOK | Inner Wilds | spirit root (Testing Stone), the travel formations | the tutorial ends at QC4 |
-| QC4 | BREATHER | Inner Wilds | **home grows:** garden and peak (the Home lesson) | none |
+| QC4 | BREATHER | Inner Wilds | **home grows:** garden and peak (the Home lesson), seclusion (the Seclusion lesson); the foundation grade starts (QC1-3 have none) | none |
 | QC5 | RAMP | Ruined Borderlands | **the sect board:** daily tasks, contribution, Outer Disciple rank | full dantian |
 | QC6 | MINI-WALL | Borderlands | herbs matter (tier I herbs eaten for qi) | more than a dantian of qi |
 | QC7 | BREATHER | Borderlands | Jade Jiao (no new lesson: a breather) | beasts too strong |
@@ -96,29 +99,29 @@ Rank becomes **Inner Disciple** at QR1.
 | Stage | Beat | Region | New | Wall |
 |---|---|---|---|---|
 | QR1 | HOOK | Outer Wastes | Qi Refining; the wastes; chapter quests; second weapon class (moved from QC7; the Dao drill stays at QC7) | region seal |
-| QR2 | BREATHER | Wastes | weekly sect tasks | none |
+| QR2 | RAMP | Wastes | weekly sect tasks | none |
 | QR3 | MINI-WALL | Wastes | tier II herbs and the Herbarium; the Herbalist's second shelf (alchemy is a later update) | herbs |
-| QR4 | RAMP | Wastes | seclusion: deliberate closed-door cultivation | full dantian |
-| QR5 | BREATHER | Wastes | Thunder Ape event and boss | beasts too strong |
+| QR4 | BREATHER | Wastes | the real slowdown starts: passive (garden aura, peak items, herbs) carries cultivation (seclusion is taught at QC4) | full dantian |
+| QR5 | RAMP | Wastes | Thunder Ape event and boss | beasts too strong |
 | QR6 | MINI-WALL | Deep Wilds | Dao glimpses at special places (storms, springs) | region seal |
-| QR7 | RAMP | Deep Wilds | sect trials: a rank test with a tiny reward | foundation (soft) |
-| QR8 | BREATHER | Deep Wilds | the first secret-realm rift (weapon refinement is a later update) | none |
+| QR7 | BREATHER | Deep Wilds | sect trials: a rank test with a tiny reward | foundation (soft) |
+| QR8 | RAMP | Deep Wilds | the first secret-realm rift (weapon refinement is a later update) | none |
 | QR9 | WALL | Deep Wilds | optional realm boss (Nine-Tailed Fox); a heart-demon trial is offered | bar |
 
-### Foundation Establishment (new content, 10 hours)
+### Foundation Establishment (new content, about 20 hours)
 Rank **Core Disciple** at FE1. FE1 gives the cultivation method (as designed in
 [character](systems/character.md)).
 | Stage | Beat | New | Wall |
 |---|---|---|---|
 | FE1 | HOOK | **cultivation method:** the sect library; Far Reaches seal | method |
-| FE2 | BREATHER | method upgrades from exploring | none |
+| FE2 | RAMP | method upgrades from exploring | none |
 | FE3 | MINI-WALL | tier III herbs; the Pavilion's second shelf | herbs |
-| FE4 | RAMP | **treasure slot:** one equipped treasure | foundation (soft) |
-| FE5 | BREATHER | secret realms: timed rifts with manuals | none |
+| FE4 | BREATHER | **treasure slot:** one equipped treasure | foundation (soft) |
+| FE5 | RAMP | secret realms: timed rifts with manuals | none |
 | FE6 | MINI-WALL | **spirit beast egg:** a cosmetic pet that follows you | beasts too strong |
-| FE7 | RAMP | tier IV herbs; Dao tree preview | full dantian |
-| FE8 | BREATHER | the Far Reaches' handcrafted secret realm (mining and ores are a later update) | none |
-| FE9 | WALL | the cap: optional apex boss gauntlet (the four bosses); the flying sword shown, not given | bar |
+| FE7 | BREATHER | tier IV herbs; Dao tree preview | full dantian |
+| FE8 | RAMP | the Far Reaches' handcrafted secret realm (mining and ores are a later update) | none |
+| FE9 | PEAK | the cap: optional apex boss gauntlet (the four bosses); the flying sword shown, not given | bar |
 
 ## Home, herbs and the loop (the missing link)
 The garden dies at QC6 because herb qi is flat. Fix:
@@ -140,8 +143,8 @@ The garden dies at QC6 because herb qi is flat. Fix:
 - **Alchemy is a later update (user, 2026-10-22).** No furnace, crafted pills or
   breakthrough-aid pills for now. Herbs are eaten directly (qi and timed buffs), and
   pills, cores and elixirs stay loot and shop finds (the Root Pill and Marrow Washing
-  Pill already work that way). Foundation repair comes from meditation, seclusion and
-  tending the garden instead. See [roadmap](roadmap.md) "Deferred to a later update".
+  Pill already work that way). Foundation repair comes from the heart-demon trial's
+  tempering instead (seclusion earns no foundation). See [roadmap](roadmap.md) "Deferred to a later update".
 - **Cultivating at home stays calm and always progresses.** Meditation and peak
   bonuses keep scaling through Pacing; nothing here asks for skill.
 

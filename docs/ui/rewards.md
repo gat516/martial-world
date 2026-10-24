@@ -9,7 +9,7 @@ ScreenGui (`assets/Rewards.rbxmx`, `StarterGui.Rewards`). The toast (the `Hud`'s
 
 | Tier | Looks like | Used by |
 | --- | --- | --- |
-| `small` | a number or short line with a white kit glyph, rising 40 px and fading over 1.1 s | ready for floating gains (qi, stones); nothing calls it yet |
+| `small` | a number or short line with a white kit glyph, rising 40 px and fading over 1.1 s | floating gains: the Haul's line, the "+ Foundation" earn pop (server `Foundation`, jade text, no icon) |
 | `feed` | a row in the reward feed (right side, above the touch cluster): the toast's plaque, plain; the icon on a seal disc in its rarity or currency colour, the name, a count that climbs | stones, loot, manuals, weapons, methods (`Effect`) |
 | `banner` | kicker, a three-part ribbon with the title, a tag and a subtitle, top centre; jade, gold (the navy objective banner) or crimson | the region entry banner (`RegionBanner.luau`); notable gains and onboarding objectives later |
 | `card` | one card, three jobs; reward tiles, stat deltas, the new unlock, one line of flavour; tap or click to skip | boss victory (`Effect "boss"`), breakthroughs (`BreakthroughView`), quests later |
@@ -28,7 +28,7 @@ Card jobs (`spec.kind`):
 - `milestone`: the quest card with the gold plaque, `emblem_lotus` in the crest and
   `rays_milestone` glowing from the crest. Breakthroughs use it today ("Breakthrough" or
   "Major Breakthrough", the subtitle "<stage>  ·  <grade> foundation <percent>%" with what
-  the stage left earned (Unsteady, Steady, Solid, Deep and its percent, which can pass 100%; [cultivation](../systems/cultivation.md#foundation-grade)),
+  the stage left earned (Unsteady, Steady, Solid, Deep and its percent, which can pass 100%; [cultivation](../systems/cultivation.md#foundation-grade); only the stage leaving QC1-3, which have no foundation),
   health/power/combat qi/passive deltas from the stage before (the curve's, without
   the foundation bonus), "The <array> array is open" when the stage opens a travel array);
   bloodlines and firsts later.

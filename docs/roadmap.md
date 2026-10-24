@@ -250,6 +250,17 @@ The realm gap shows against content, so players need reasons to cross paths:
 - **Co-op rifts** with better loot as a party; sect board tasks with shared credit.
 - Halls and lineage after the MVP.
 
+## 3f. PvP and competition (user, 2026-10-23; deferred)
+- **PvP is off by default.** No forced PvP: realm gaps would let a strong player delete
+  a weak one, and the audience is kids and mobile.
+- **Deferred, liked by the user:** competition only between players of similar realm.
+  Ideas: opt-in **spar** duels from the player card (nothing at stake), and
+  **contested ground** for some high-realm world events (a marked PvP zone, same
+  realm band only, bigger rewards, entered by choice).
+- **Deferred:** world-event competition by contribution (base reward for all, extra for
+  top contributors, a channelled treasure claim weighted by contribution, party
+  contribution pooled).
+
 ## 3d. Relationships: masters, disciples and sect siblings (proposed 2026-10-22)
 NPC masters at QR1, cohorts of nine with numbered seats and epithets, player masters, up to three masters, bloodline granting (trial chains, the Blood Rite) and the safety rules: [relationships](roadmap/relationships.md).
 

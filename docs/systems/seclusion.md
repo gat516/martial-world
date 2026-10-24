@@ -8,8 +8,8 @@ comes back to a result card. It's also the game's AFK mode.
 
 ## Rules (owner, 2026-10-24)
 - **Purposeful, never a leash.** Seclusion is tempering, a faster garden (plus the
-  online mutation chance), AFK cultivation and rare finds rolled continuously. No hour
-  streaks, no flat stone trickle, nothing that needs a full hour or rewards sitting on
+  online mutation chance), AFK cultivation and fortuitous encounters (band herbs and
+  seeds) rolled continuously. No hour streaks, no flat stone trickle, nothing that needs a full hour or rewards sitting on
   a timer for its own sake.
 - **Tempering mends, it never exceeds**: up to 100% only ([cultivation](cultivation.md#foundation-grade)).
   Past 100% is earned by living through a stage; deepening (a calmed heart demon) is
@@ -30,12 +30,23 @@ comes back to a result card. It's also the game's AFK mode.
     for ur garden to mutate if u stay online"): it rolls whenever the owner is online on
     their own peak, secluded or not, never offline ([garden](garden.md)); mutations
     taken while secluded count on the card;
-  - **rare finds, rolled continuously**: every `FIND_SECONDS` (5 min) a roll of
-    `RARE_CHANCE` (0.1) x 5/60, so 10% an hour on average and a 10-minute seclusion can
-    still find something. By weight: Heavenly Dew 50, Cloud-Pattern Jade 25, Immortal
-    Peach 5, Foundation Tempering Pill 15, or (60) a seed of the major's next herb tier
-    (`SEED_TIER`: II in QC, III in QR, IV in FE; no wild or event herbs). Never root
-    pills. A find shows as a toast online, on the plaque's count and on the card.
+  - **fortuitous encounters, rolled continuously** (owner, 2026-10-24: the heavy
+    player's edge comes from encounters, not stones): every `FIND_SECONDS` (5 min) a roll
+    of `FIND_CHANCE` (0.6) x 5/60, so 5% a roll, 0.6 finds an hour, and a 10-minute
+    seclusion can still find something. By `FINDS` weight of 100: a herb of the
+    player's band 35, a seed of it 45, a seed of the next band 5 (rare; past the Far
+    Reaches the band's own), Heavenly Dew 8, Cloud-Pattern Jade 4, Immortal Peach 1, a
+    Foundation Tempering Pill 2. Never stones, never root pills. The band's herbs
+    (`bandPool`) are its `Herbs.Regions` pools plus the herbs whose `region` it is, of
+    the band's own tier (no wild or event herbs), picked by `FIND_RARITY` (Common 10,
+    Uncommon 30, Rare 40, Epic 16, Legendary 0.25). Odds and band contents:
+    [progression rules](progression-rules.md#herbs-and-seeds) "Fortuitous encounters".
+    Each find is told as an encounter (`ENCOUNTERS` in Seclusion.luau: "A wandering
+    spirit bee led you to a Seven-Star Grass seed.", "A white crane landed beside you
+    and left a Jade Lotus.", a far seed from "a streak of starlight", items from "a
+    hermit's cache"): a toast online, the plaque's count, and the card (its flavour
+    "Fortune found you in the stillness." when nothing was tempered). Offline finds land
+    on the card only.
 - **The cap message.** When cultivation reaches the overflow cap the toast says once
   "Your dantian can hold no more. Break through." (only when a breakthrough is
   possible), and again when the player comes back from AFK, offline (a few seconds

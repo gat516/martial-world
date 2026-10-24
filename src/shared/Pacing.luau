@@ -518,14 +518,20 @@ Pacing.Seclusion = {
 	-- mutations (by weight)
 	MUTATION_PER_HOUR = 0.03,
 	MUTATIONS = { Dewy = 50, Windswept = 30, Auspicious = 15, Golden = 5 } :: { [string]: number },
-	-- rare finds: every FIND_SECONDS of seclusion a roll of RARE_CHANCE x FIND_SECONDS /
-	-- 3600, so RARE_CHANCE finds an hour on average and a 10-minute seclusion can still
-	-- find one (owner, 2026-10-24: no one-hour leash). By weight: a treasure, a Foundation
-	-- Tempering Pill, or a seed of the player's major's next herb tier (never root pills)
-	RARE_CHANCE = 0.1,
+	-- fortuitous encounters (owner, 2026-10-24: the heavy player's edge comes from
+	-- encounters, not stones): every FIND_SECONDS of seclusion a roll of FIND_CHANCE x
+	-- FIND_SECONDS / 3600, so FIND_CHANCE finds an hour on average and a 10-minute
+	-- seclusion can still find one (no one-hour leash; value per minute). A find is,
+	-- by FINDS weight: a herb of the player's band (Herb), a seed of it (Seed), rarely
+	-- a seed of the next band (FarSeed: an announced prize, rule 4), a treasure or a
+	-- Foundation Tempering Pill. Never stones, never root pills. The band's herbs are
+	-- its Herbs.Regions pools plus the herbs whose `region` it is (no wild, event or
+	-- deferred herbs), picked by FIND_RARITY (leaning rare: an encounter is never a
+	-- weed). Past the Far Reaches (tier V deferred) FarSeed falls back to the band.
+	FIND_CHANCE = 0.6,
 	FIND_SECONDS = 300,
-	RARE = { HeavenlyDew = 50, CloudPatternJade = 25, ImmortalPeach = 5, TemperingPill = 15, Seed = 60 } :: { [string]: number },
-	SEED_TIER = { QiCondensation = 2, QiRefining = 3, Foundation = 4 } :: { [string]: number },
+	FINDS = { Herb = 35, Seed = 45, FarSeed = 5, HeavenlyDew = 8, CloudPatternJade = 4, ImmortalPeach = 1, TemperingPill = 2 } :: { [string]: number },
+	FIND_RARITY = { Common = 10, Uncommon = 30, Rare = 40, Epic = 16, Legendary = 0.25 } :: { [string]: number },
 	-- the result card shows only after this long in seclusion, for the first one, or when
 	-- something was tempered; a shorter one rises quietly (user, 2026-10-24)
 	CARD_MIN_MINUTES = 10,

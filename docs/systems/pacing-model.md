@@ -56,9 +56,18 @@ runs at the seat's multiplier while refining).
   Herbalist stock of the next tier once its band sells it (tier III from QR6, tier IV
   from FE4; seeds back fill the plots), the tier II reseed, beds, the Meditation
   Cushion, ponds, groves, then the cheapest peak-score pieces. Tier III+ also come from
-  harvest mutations (`mutateChance`) and seclusion's rare seed (`SEED_TIER`). Root
+  harvest mutations (`mutateChance`) and seclusion's seeds (below). Root
   pills: bosses (`boss_per_hour` x (3% pill + a pity fragment)), treasures' pity
   fragments and the Pavilion's 3 Marrow fragments a week; Earth at 3 pills.
+- **Seclusion's encounters** (profiles that seclude: the heavy's night): `FIND_CHANCE`
+  finds an hour by `FINDS` weight. A band herb (`find_pool`: the band's pools and
+  `region` herbs of its tier, by `FIND_RARITY`) queues its herb qi to refine; a band
+  seed or a next-band seed of the tier above the unlocked one counts toward unlocking
+  it, one of an unlocked tier banks its Herbalist price (`seed_value`; nothing for
+  seeds the shop doesn't sell) as **found seeds**, which pay only for seed buys (tier
+  starts, reseeds, a new plot's seeds), never for building. Dew fills the dantian, the
+  peach is half a bar. The found herbs' buffs, and the aura of found Epic/Legendary
+  plants, aren't counted (conservative).
 - **Offline/AFK:** one 12 h budget a day shared by every absence, `x passive`, up to
   the overflow cap (1.5 bar); the carry keeps it all. Breakthroughs happen only online.
 - **Header check:** the `Pacing.luau` table (bar and the bare fighter's active time per
@@ -96,7 +105,7 @@ under 3% (regular online 29.3 > 29.7 h).
 | Before heavy | 1.0 h / d1 | 4.0 h / d2 | 7.0 h / d3 | 1.5 / 3.2 / 3.3, 8.0 h |
 | **Now casual** | 1.5 h / d4 | 5.0 h / d11 | 14.3 h / d29 | 2.2 / 7.2 / 22.3, 31.7 h |
 | **Now regular** | 2.1 h / d2 | 7.5 h / d6 | 22.3 h / d15 | 2.4 / 7.1 / 20.2, **29.7 h** |
-| **Now heavy** (no seclusion stones) | 1.6 h / d1 | 7.7 h / d3 | 24.2 h / d9 | 2.2 / 7.5 / 20.1, 29.8 h |
+| **Now heavy** (seclusion's encounters) | 1.6 h / d1 | 7.5 h / d3 | 21.9 h / d8 | 2.2 / 6.9 / 17.0, 26.1 h |
 | Bare fighter (the header's active column) | 2.8 h | 14.5 h | 97.6 h | |
 
 The approved proposal (the morning's `--proposal`, bars x1.15 / x1.8 / x5.1) gave
@@ -111,7 +120,7 @@ lever and "no lever is mandatory"; with those (below) the bars came out x1.15 / 
 |---|---|---|---|
 | Hunter road | 33.3 h | +12% | +15% |
 | Garden road | 34.0 h (QC 3.0 h: tier I herbs give little, so the garden road's QC is slower) | +14% | +15% |
-| Heavy (everything) | 29.8 h (25.2 h with the seclusion stone trickle, cut 2026-10-24) | x1.00 speed | x1.30 |
+| Heavy (everything) | 26.1 h (29.8 h with no trickle and the old finds; 25.2 h with the trickle) | x1.14 speed | x1.30 |
 
 Before the rebalance the garden road was +95% and the hunter +34% over the regular
 (on the proposal's knobs); what closed it: buff caps, the lighter seat items, the aura
@@ -121,14 +130,15 @@ from every plant, the Herbalist's tier III-IV seeds and the gardener's herb sale
 
 | Lever off | Casual | Regular | Heavy |
 |---|---|---|---|
-| Offline credit | +122% | +33% | +16% |
-| Spirit cores | +5% | +9% | +11% |
-| Herb qi | +2% | +8% | +11% |
+| Offline credit | +122% | +33% | +19% |
+| Spirit cores | +5% | +9% | +10% |
+| Herb qi | +2% | +8% | +9% |
 | Herb buffs | 0% | +7% | +3% |
 | Garden aura | +2% | +6% | +9% |
 | Method (FE) | +2% | +7% | +9% |
-| Peak score / cushion / party / root / seclusion | 0-1% | 0-1% | 4% / 2% / 4% / 1% / 14% |
-| The stone economy (everything bought at once) | -12% | -25% | -27% |
+| Peak score / cushion / party / root | 0-1% | 0-1% | 3% / 3% / 4% / 1% |
+| Seclusion (its encounters) | 0% | 0% | +12% |
+| The stone economy (everything bought at once) | -12% | -25% | -28% |
 
 No single lever is worth more than about 12% to anyone but offline credit (the casual's
 nights carry two thirds of their QR and FE). Levers still substitute for each other
@@ -162,7 +172,7 @@ understates each a little; the balance check is the real measure.
 |---|---|---|---|---|
 | Casual | 1.1 | FE6, day 21 | FE8, day 25 | 600 / 1,800 / 7,700 |
 | Regular | 2.2 | QR7, day 4 (Herbalist) | FE3, day 8 (Lingzhi mutation) | 780 / 2,500 / 9,500 |
-| Heavy | 3.4 (Earth at FE8) | QR6, day 2 | FE2, day 4 | 480 / 4,000 / 21,600 |
+| Heavy | 3.5 (Earth at FE8) | QR6, day 2 | FE2, day 4 | 480 / 2,300 / 8,300, plus found seeds 1,300 / 9,500 |
 | Hunter road | 2.5 | FE3, day 7 | FE5, day 10 | 710 / 2,300 / 9,900 |
 | Garden road | 1.2 | FE1, day 6 | FE2, day 7 | 450 / 7,500 / 36,700 (sales 31,300) |
 

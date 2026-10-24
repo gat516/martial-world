@@ -33,6 +33,23 @@ Never batch areas or build ahead of an approved block-out.
 | Summit (elders' hall) | none yet | not started |
 | Spirit peak template, then 8 characters | none yet | waiting on reference |
 
+## The view is the point (user, 2026-10-24)
+The classic cultivation view: a sea of clouds with Zhangjiajie-style stone pillars
+rising out of it, layered into the distance. The old spirit peak limited it. The
+redo builds for it:
+- **Every home has a view.** From the peak's lawn, the dwelling's porch and the cave
+  abode, the eye goes out over the cloud sea to pillars. The abode gets a wide mouth
+  or balcony on the cliff facing out; the dwelling faces the open side.
+- **Nothing blocks the open side.** Trees, walls, rims and props frame the view from
+  the edges, never across it; the peak's "out" side stays low and open.
+- **Look down onto the clouds.** The homes sit well above the cloud sea so it reads
+  as a sea below, with pillars poking through.
+- **Layers of depth:** near pillars (big, crisp), mid pillars, far pillars fading
+  into blue haze, at varied heights and spacing. Peaks are spaced so the gaps between
+  neighbours are views too.
+- **Plan each area's views with the area:** a view line (where you stand, what you
+  see) goes in the area's written plan and is checked by capture from that spot.
+
 ## The agreed shape (user, 2026-10-24)
 The sect is a climb: senior is higher. Every building is a verb or a view, never
 filler (no disciple quarters: homes are the peaks; houses only as distant rooftops

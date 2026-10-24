@@ -75,29 +75,24 @@ scales all player damage.
   playback speed is scaled from `Config.Movement.RUN_ANIMATION_SPEED` (26 studs/s,
   set for the old clip), so the new clip's pace is untuned: check the feet against
   the ground at run speed and retune that number if it slides.
-- `src/client/Strafe.luau`: `Animations/Strafe/Left`, `Right` and `Back` (the back walk,
-  104669778380585; user, 2026-10-24) while walking backwards or
-  sideways under shift lock only (mouse at the centre, not first person; user,
-  2026-10-24). Directions (user, 2026-10-24): W and W+A / W+D keep the forward
-  walk, A or D alone strafes, S and S+A / S+D play the back walk. Blended, not
-  switched: a side clip comes in only near square to the facing (`LATERAL_START`
-  0.87 to `LATERAL_FULL` 0.97 of the move, so diagonals never strafe) and the back
-  walk takes the backward rest (`BACK_START` 0.17 to `BACK_FULL` 0.42), all
-  eased at `WEIGHT_RATE`, so clips fade in as the body turns and fade out when
-  shift lock goes off. Movement priority over the walk; out while running, in the
-  air or seated. WeaponAnimator pauses a class walk while one is mostly in;
-  actions (Action priority) stay on top.
 - Shift lock turning (`Movement.luau`, husspotato7 reference, user 2026-10-24):
-  instead of Roblox snapping the body onto the camera, the body turns toward it
-  at `BODY_TURN` (moving) or `STAND_TURN` (standing) per second and is dragged
-  along past `HEAD_LIMIT` (95 degrees), while the head is already on the camera.
-  Walking forward or forward-diagonal (W, W+A, W+D) it faces the way it walks
-  instead (user, 2026-10-24: going diagonal top right faces top right); A or D
-  alone (strafe) and S directions (back walk) keep facing the camera. The switch
-  is at a forward share of `FACE_MOVE_FORWARD` (0.5, 60 degrees), matching
-  Strafe's `LATERAL_START`, and goes through the same turn rate.
+  instead of Roblox snapping the body onto the camera, the body turns at
+  `BODY_TURN` (moving) or `STAND_TURN` (standing) per second and is dragged along
+  past `HEAD_LIMIT` (95 degrees) from the camera; the head stays on the camera.
+  Standing, it faces the camera. Moving, it faces the way it goes (user,
+  2026-10-24: no strafes): W, A, D and the W diagonals face the move and walk
+  forward; S and the S diagonals (forward share under `BACKWARD`, -0.34, about
+  110 degrees) turn their back to the move and back-walk straight along it.
   Off, or running, it's normal movement (AutoRotate on). First person still uses
   Roblox's camera-relative facing.
+- `src/client/BackWalk.luau`: `Animations/BackWalk` (104669778380585, user
+  2026-10-24) while walking backwards under shift lock, blended by how far the
+  move points behind the body (`BACK_START` 0.3 to `BACK_FULL` 0.7, eased at
+  `WEIGHT_RATE`) over the walk, so it eases in as the body turns round and out
+  when shift lock goes off. Movement priority; out while running, in the air or
+  seated. WeaponAnimator pauses a class walk while it's mostly in. The strafe
+  clips (Left 108079459398057, Right 101587075788694) were removed on the user's
+  call (2026-10-24); their ids are here if strafing comes back.
 - `src/client/HeadLook.luau` + `src/server/HeadLook.luau` (husspotato7 reference):
   your head follows your camera (all but locked on under shift lock, eased
   otherwise; up to 100 degrees sideways and 55 up or down, easing back to the

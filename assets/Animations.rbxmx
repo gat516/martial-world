@@ -78,24 +78,10 @@
    <Content name="AnimationId"><url>rbxassetid://117319074411273</url></Content>
   </Properties>
   </Item>
-  <Item class="Folder" referent="RBXASTRAFE"><Properties>
-   <string name="Name">Strafe</string>
+  <Item class="Animation" referent="RBXABACKWALK"><Properties>
+   <string name="Name">BackWalk</string>
+   <Content name="AnimationId"><url>rbxassetid://104669778380585</url></Content>
   </Properties>
-   <Item class="Animation" referent="RBXASTRAFER"><Properties>
-    <string name="Name">Right</string>
-    <Content name="AnimationId"><url>rbxassetid://101587075788694</url></Content>
-   </Properties>
-   </Item>
-   <Item class="Animation" referent="RBXASTRAFEL"><Properties>
-    <string name="Name">Left</string>
-    <Content name="AnimationId"><url>rbxassetid://108079459398057</url></Content>
-   </Properties>
-   </Item>
-   <Item class="Animation" referent="RBXASTRAFEB"><Properties>
-    <string name="Name">Back</string>
-    <Content name="AnimationId"><url>rbxassetid://104669778380585</url></Content>
-   </Properties>
-   </Item>
   </Item>
   <Item class="Folder" referent="RBXA18"><Properties>
    <string name="Name">PerfectDodge</string>

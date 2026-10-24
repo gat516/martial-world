@@ -5,7 +5,8 @@
 -- by itself while the input is still held. Raising it again within
 -- PARRY_RECOVER of the last raise can block but never parry. Attacks and casts
 -- don't start while it's up (CombatController.tryStart); a dodge does.
--- While it's up without a lock-on you turn to the most pressing beast within
+-- While it's up under shift lock you face the camera (user, 2026-10-24); otherwise,
+-- without a lock-on, you turn to the most pressing beast within
 -- FACE_RANGE (one winding up first, else the nearest; Movement applies
 -- ActionState.guardFacing), and the facing goes to the server with each raise
 -- and as it turns (op "guardLook"), so the front arc is judged on what you see.
@@ -284,7 +285,12 @@ local function updateFacing(dt: number)
 		ActionState.guardFacing = nil
 		return
 	end
-	local want = threatFacing(root)
+	-- Under shift lock (not locked on) the guard faces the camera, as the player
+	-- aims it (user, 2026-10-24); otherwise the most pressing beast in reach.
+	local camera = workspace.CurrentCamera
+	local shiftLocked = camera ~= nil and UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter
+		and LockOn.target() == nil and (camera.CFrame.Position - camera.Focus.Position).Magnitude > 1.5
+	local want = if shiftLocked and camera then flat(camera.CFrame.LookVector) else threatFacing(root)
 	if want then
 		local current = ActionState.guardFacing or flat(root.CFrame.LookVector) or want
 		local alpha = 1 - math.exp(-GuardConfig.FACE_TURN * dt)

@@ -91,6 +91,11 @@ scales all player damage.
   instead of Roblox snapping the body onto the camera, the body turns toward it
   at `BODY_TURN` (moving) or `STAND_TURN` (standing) per second and is dragged
   along past `HEAD_LIMIT` (95 degrees), while the head is already on the camera.
+  Walking forward or forward-diagonal (W, W+A, W+D) it faces the way it walks
+  instead (user, 2026-10-24: going diagonal top right faces top right); A or D
+  alone (strafe) and S directions (back walk) keep facing the camera. The switch
+  is at a forward share of `FACE_MOVE_FORWARD` (0.5, 60 degrees), matching
+  Strafe's `LATERAL_START`, and goes through the same turn rate.
   Off, or running, it's normal movement (AutoRotate on). First person still uses
   Roblox's camera-relative facing.
 - `src/client/HeadLook.luau` + `src/server/HeadLook.luau` (husspotato7 reference):

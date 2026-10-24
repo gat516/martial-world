@@ -232,6 +232,23 @@ end
 
 local spans: { [string]: number } = {} -- source -> longest remaining seen (buffs saved before `seconds`)
 
+-- The Suppressed status (docs/systems/combat.md "Realm pressure"): a chip first in
+-- the row while you trade blows with a beast of a higher major realm and no party
+-- member shelters you (the server's Suppressed attribute: the major gap, cleared a
+-- few seconds after the last such hit; ShelteredBy lifts it). A runtime clone of
+-- the buff chip: the kit's gold chevron pointing down (sized/ornament_chevron_h20,
+-- the cowed bar mark's glyph), warmed red, with a full red ring and no timer.
+local SUPPRESSED_ICON = "rbxassetid://99764920719361"
+local SUPPRESSED_TINT = Color3.fromRGB(255, 150, 130)
+local SUPPRESSED_RING = Color3.fromRGB(232, 96, 80)
+local SUPPRESSED_TEXT = "Suppressed: this beast's realm is above yours. Your blows barely land."
+local suppressedChip: ImageButton? = nil
+
+local function suppressed(): boolean
+	local gap = player:GetAttribute("Suppressed")
+	return type(gap) == "number" and gap > 0 and player:GetAttribute("ShelteredBy") == nil
+end
+
 local function renderBuffs()
 	local list = gui:FindFirstChild("Buffs", true) :: Frame
 	local template = list:FindFirstChild("BuffTemplate") :: ImageButton
@@ -239,6 +256,43 @@ local function renderBuffs()
 	local now = workspace:GetServerTimeNow()
 	local lines = {}
 	local live = {}
+	if suppressed() then
+		if not suppressedChip then
+			local made = template:Clone()
+			made.Name = "Suppressed"
+			made.Visible = true
+			made.LayoutOrder = 0
+			local icon = made:FindFirstChild("Icon") :: ImageLabel
+			SlotArt.setIcon(icon, SUPPRESSED_ICON)
+			icon.ImageColor3 = SUPPRESSED_TINT
+			local timer = made:FindFirstChild("Timer") :: Instance
+			for _, half in { "Right", "Left" } do
+				local ring = (timer:FindFirstChild(half) :: Instance):FindFirstChild("Ring") :: ImageLabel
+				ring.ImageColor3 = SUPPRESSED_RING
+			end
+			setRing(made, 1)
+			made.Activated:Connect(function()
+				tipUntil = if tip.Visible and tipUntil > os.clock() then 0 else os.clock() + TIP_SECONDS
+				renderBuffs()
+			end)
+			made.MouseEnter:Connect(function()
+				hovering += 1
+				renderBuffs()
+			end)
+			made.MouseLeave:Connect(function()
+				hovering = math.max(0, hovering - 1)
+				renderBuffs()
+			end)
+			made.Parent = list
+			suppressedChip = made
+		end
+		table.insert(lines, SUPPRESSED_TEXT)
+	elseif suppressedChip then
+		-- a chip destroyed under the mouse never fires MouseLeave
+		hovering = 0
+		suppressedChip:Destroy()
+		suppressedChip = nil
+	end
 	for i, g in buffGroups(now) do
 		live[g.source] = true
 		local chip = chips[g.source]
@@ -449,6 +503,9 @@ function Hud.init(screenGui: ScreenGui)
 	State.onChanged(function()
 		renderBuffs()
 	end)
+	-- the Suppressed status chip (the server's attributes; a shelter lifts it)
+	player:GetAttributeChangedSignal("Suppressed"):Connect(renderBuffs)
+	player:GetAttributeChangedSignal("ShelteredBy"):Connect(renderBuffs)
 
 	task.spawn(function()
 		while true do

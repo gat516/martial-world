@@ -5,7 +5,10 @@
 -- Combat.damageEnemy (Shelter.hit), EnemyService's hurtBy and PlayerPoison
 -- (Shelter.hurt). The check is live on every hit, so leaving the party or the radius
 -- ends it at once. Player attribute `ShelteredBy`: the patron's UserId while one is
--- near (refreshed every TICK), for the enemy bars and the qi thread (ShelterFX).
+-- near (refreshed every TICK), for the qi thread (ShelterFX) and the bars' tiers.
+-- Player attribute `Suppressed`: the major gap while the player trades blows with a
+-- beast of a higher major unsheltered (set on each such hit or blow here, cleared
+-- SUPPRESSED_HOLD after the last), for the HUD's Suppressed status chip.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,7 +26,7 @@ local Shelter = {}
 -- credits; Main wires Sect.onShelter (the patron's sect contribution, bonus quests).
 Shelter.onCredit = {} :: { (Player, PlayerData.Data, Player, PlayerData.Data) -> () }
 
-local lastCue: { [Player]: number } = {} -- os.clock() of the last sheltered hit or blow
+local lastSuppressed: { [Player]: number } = {} -- os.clock() of the last unsheltered upward hit or blow
 
 local function rootOf(player: Player): BasePart?
 	local character = player.Character
@@ -32,14 +35,6 @@ local function rootOf(player: Player): BasePart?
 		return nil
 	end
 	return character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-end
-
-local function nameOf(player: Player): string
-	local first, last = player:GetAttribute("FirstName"), player:GetAttribute("Surname")
-	if type(first) == "string" and first ~= "" then
-		return if type(last) == "string" and last ~= "" then `{first} {last}` else first
-	end
-	return player.DisplayName
 end
 
 -- The strongest party member within RADIUS whose major realm is above the player's,
@@ -84,13 +79,15 @@ local function syncFor(player: Player, data: PlayerData.Data, beast: Realms.Stag
 	return patron, sync
 end
 
--- Once per engagement (CUE_GAP without a sheltered hit or blow): the feed line.
-local function cue(player: Player, patron: Player)
-	local now = os.clock()
-	local last = lastCue[player]
-	lastCue[player] = now
-	if not last or now - last > Tuning.CUE_GAP then
-		Cultivation.notify(player, `Sheltered by {nameOf(patron)}: you fight at their side as an equal.`)
+-- A hit or blow with a beast of a higher major, unsheltered: the Suppressed status.
+local function markSuppressed(player: Player, data: PlayerData.Data, beast: Realms.Stage)
+	local gap = Realms.majorIndex(beast.major) - Realms.majorIndex(data.realm.major)
+	if gap <= 0 then
+		return
+	end
+	lastSuppressed[player] = os.clock()
+	if player:GetAttribute("Suppressed") ~= gap then
+		player:SetAttribute("Suppressed", gap)
 	end
 end
 
@@ -101,15 +98,12 @@ function Shelter.hit(player: Player, data: PlayerData.Data, beast: Realms.Stage)
 	local plain = Realms.suppression(data.realm.major, beast.major, defier)
 	local patron, sync = syncFor(player, data, beast)
 	if not (patron and sync) then
+		markSuppressed(player, data, beast)
 		return plain
 	end
 	local own = Cultivation.fightStage(player, data)
 	local sheltered = Realms.suppression(sync.major, beast.major, defier) * Tuning.HIT * sync.power / own.power
-	if sheltered <= plain then
-		return plain
-	end
-	cue(player, patron)
-	return sheltered
+	return math.max(plain, sheltered)
 end
 
 -- The multiplier on a beast's blow (or poison tick) of `beast`'s stage on the player:
@@ -118,12 +112,10 @@ function Shelter.hurt(player: Player, data: PlayerData.Data, beast: Realms.Stage
 	local plain = Realms.suppression(beast.major, data.realm.major)
 	local patron, sync = syncFor(player, data, beast)
 	if not (patron and sync) then
+		markSuppressed(player, data, beast)
 		return plain
 	end
 	local scale = math.min(1, Tuning.HURT * Cultivation.stage(data).health / sync.health)
-	if scale < 1 then
-		cue(player, patron)
-	end
 	return plain * scale
 end
 
@@ -145,7 +137,7 @@ function Shelter.credit(player: Player, data: PlayerData.Data, beast: Realms.Sta
 end
 
 function Shelter.forget(player: Player)
-	lastCue[player] = nil
+	lastSuppressed[player] = nil
 end
 
 function Shelter.start()
@@ -157,6 +149,13 @@ function Shelter.start()
 				local id = if patron then patron.UserId else nil
 				if player:GetAttribute("ShelteredBy") ~= id then
 					player:SetAttribute("ShelteredBy", id)
+				end
+				-- the Suppressed status lapses a few seconds after the last such hit,
+				-- or at once when a shelter lifts it
+				local last = lastSuppressed[player]
+				if last and (patron or os.clock() - last > Tuning.SUPPRESSED_HOLD) then
+					lastSuppressed[player] = nil
+					player:SetAttribute("Suppressed", nil)
 				end
 			end
 		end

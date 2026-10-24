@@ -92,7 +92,9 @@ cursor, settings and the admin panel.
   objective on one compact line (note panel, the kit's quest glyph, 13 px text,
   28 px tall, truncated past 205 px), then the buffs as 30 px round chips (the
   kit's round seal, the item's icon, a cream ring that drains to the buff's end;
-  one chip per source item), then `BuffTip`, the words for every buff, shown on a
+  one chip per source item; first, the Suppressed status chip while a beast of a
+  higher major is suppressing you, [combat](combat.md) "How it reads"), then
+  `BuffTip`, the words for every buff, shown on a
   tap (4 s) or while the mouse is over a chip. Tapping or clicking the objective
   line opens the sect quest log (`SectView.openLog`; no button of its own). Buffs carry `seconds` (their span)
   for the ring.

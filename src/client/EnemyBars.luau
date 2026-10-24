@@ -38,7 +38,7 @@ local SKULL_PULSE = TweenInfo.new(1.4, Enum.EasingStyle.Sine, Enum.EasingDirecti
 -- Danger tiers, picked by realm gap (Pacing.Danger). rim: the frame art (art/ui
 -- draw_ui.py eb_rim); tag/omen: text colours; omens: flavour lines, one picked
 -- per beast per tier (keep them under ~24 characters so they fit at 11px).
--- word/mark/markColor (cowed and sheltered, realm pressure): a short word on the omen
+-- word/mark/markColor (cowed, realm pressure): a short word on the omen
 -- row, led by a small tinted glyph (ReplicatedStorage.PressureMarks.BarMark), so the
 -- state reads in words, not only in the rim's colour.
 type Style = {
@@ -69,16 +69,6 @@ local STYLES: { [string]: Style } = {
 		markColor = Color3.fromRGB(226, 186, 136),
 		markTint = Color3.new(1, 1, 1),
 		markSize = Vector2.new(15, 10),
-	},
-	-- above you, but a stronger party member nearby shelters you (Pacing.Shelter)
-	sheltered = {
-		rim = "rbxassetid://117466583392103",
-		tag = Color3.fromRGB(176, 228, 196),
-		omen = Color3.fromRGB(150, 214, 180),
-		omens = { "strike as equals", "a friend has you" },
-		word = "Sheltered",
-		mark = "rbxassetid://70393328505917", -- the kit shield's silhouette (glyphs/shelter_shield)
-		markColor = Color3.fromRGB(156, 240, 196),
 	},
 	even = { rim = "rbxassetid://117466583392103", tag = Color3.fromRGB(176, 228, 196) },
 	above = {
@@ -172,8 +162,9 @@ local function patronStage(): Realms.Stage?
 end
 
 -- Overhead bars (not bosses) also read "cowed" (a full major below you: it fears
--- you) and "sheltered" (above you, within your shelter's reach); bosses keep the
--- five tiers BossThemes has lines for.
+-- you); bosses keep the five tiers BossThemes has lines for. While a party member
+-- shelters you, a beast above you reads at the stage you fight it at (the shelter's
+-- sync), in the usual tiers: no mark of its own (user, 2026-10-24).
 local function tierOfDef(def: Enemies.Def?): string
 	if not (def and def.realm) then
 		return "even"
@@ -184,9 +175,6 @@ local function tierOfDef(def: Enemies.Def?): string
 	if patron and Realms.majorIndex(beast.major) > Realms.majorIndex(mine.major) then
 		-- sheltered: you fight it at its own stage, capped at your patron's
 		if Realms.index(beast.major, beast.minor) <= Realms.index(patron.major, patron.minor) then
-			if not def.boss then
-				return "sheltered"
-			end
 			mine = beast
 		else
 			mine = patron
@@ -278,7 +266,7 @@ local function restyle(entry: Watched)
 	if style.omen then
 		label.TextColor3 = style.omen
 	end
-	-- cowed / sheltered: the mark, then the word in its colour, then the short line
+	-- cowed: the mark, then the word in its colour, then the short line
 	local mark = plate:FindFirstChild("PressureMark") :: ImageLabel?
 	if style.word and not mark then
 		local marks = ReplicatedStorage:FindFirstChild("PressureMarks")

@@ -47,12 +47,17 @@ play together. All server-side, tuned in `Pacing.Shelter` and `Pacing.Pressure`.
   `Shelter.hurt` in EnemyService `hurtBy` and `PlayerPoison`), so leaving the party
   or the radius ends it at once. Kill credit counts the synced damage, so a sheltered
   player reaches the share; rewards stay their own realm's (qi by their stage, capped
-  by the dantian and overflow as always; `onKill` deeds like Daring still fire). Taught
-  by one feed line, "Sheltered by <name>: ...", the first sheltered hit or blow after
-  `CUE_GAP` (30 s), the "sheltered" bar tier (see "How it reads" below), the party pips'
-  marks and a faint jade qi thread between the two while the sheltered player is in
-  combat. Player attribute `ShelteredBy` (patron UserId, refreshed every 0.5 s) drives
-  them all.
+  by the dantian and overflow as always; `onKill` deeds like Daring still fire). No
+  "sheltered" label anywhere (user, 2026-10-24: "dont do sheltered, just give it a
+  suppressed status"): the shelter shows as the Suppressed status going away, the bar
+  reading the beast at the synced stage, the jade qi swirl on the patron's pip and a
+  faint jade qi thread between the two while the sheltered player is in combat. Player
+  attribute `ShelteredBy` (patron UserId, refreshed every 0.5 s) drives them.
+- **Suppressed status.** `Shelter.hit` / `Shelter.hurt` (the suppression choke points
+  above) set player attribute `Suppressed` to the major gap on every hit or blow
+  (poison ticks too) with a beast of a higher major while unsheltered; the shelter
+  loop clears it `SUPPRESSED_HOLD` (5 s) after the last, or at once when a shelter
+  starts. The HUD shows it as a chip in the buff row (see "How it reads").
 - **The helper is paid.** For each beast a sheltered member is credited with, the
   patron gets `SENIOR_QI_SHARE` (20%) of their own qi for it on top of their own share
   (`stats.sheltered` counts these kills, the junior's `stats.leaned`; both feed the
@@ -68,14 +73,20 @@ play together. All server-side, tuned in `Pacing.Shelter` and `Pacing.Pressure`.
 - **Breakthrough wave.** A breakthrough staggers every regular beast within
   `WAVE_RADIUS` (60) below the new stage for `WAVE_STAGGER` (1.2 s). Flavour only.
 - **How it reads** (UI, 2026-10-24; kid-friendly, words and marks, not only colour):
-  - Enemy bar: "cowed" and "sheltered" put a small mark, the word in its colour and a
-    short line on the omen row: the kit's gold chevron pointing down + bronze "Cowed ·
-    it fears you"; a jade shield + "Sheltered · strike as equals". The mark is cloned
+  - Enemy bar: "cowed" puts a small mark, the word in its colour and a short line on
+    the omen row: the kit's gold chevron pointing down + bronze "Cowed · it fears
+    you". A beast above you while sheltered reads its usual tier at the synced stage
+    (within the patron's stage: "even"), with no mark. The mark is cloned
     from `ReplicatedStorage.PressureMarks.BarMark` (`assets/PressureMarks.rbxmx`) into
     the bar the first time (`EnemyBars` `STYLES` `word`/`mark`/`markColor`/`markSize`).
     Picked over a kit tag chip ("a rectangle with cloud caps" on every beast).
-  - Party pips: a jade shield on the sheltered member's pip, the jade qi swirl on the
-    patron's ([party](party.md)).
+  - Suppressed chip (`Hud` `renderBuffs`): while `Suppressed` is set and `ShelteredBy`
+    isn't, a runtime clone of `BuffTemplate` leads the buff row under the objective:
+    the same gold down-chevron (`sized/ornament_chevron_h20`) warmed red, a full red
+    ring, no timer. Tap or hover: "Suppressed: this beast's realm is above yours. Your
+    blows barely land."
+  - Party pips: the jade qi swirl on the patron's pip; the sheltered member's has no
+    mark ([party](party.md)).
   - The thread (`ShelterFX`): two crossed flat ribbons of the guide's Stream beam,
     patron's chest to the sheltered player's, jade, 0.32 wide, about 0.6 transparent at
     most and faded out at both ends, the texture flowing toward the sheltered one. Its

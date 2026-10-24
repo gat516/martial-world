@@ -312,7 +312,7 @@ Pacing.Shelter = {
 	HURT = 1.25, -- a beast's blow takes this times the health share it takes from a same-stage player
 	SENIOR_QI_SHARE = 0.2, -- the patron's qi per kill a sheltered member earns, of their own qi for that beast
 	CONTRIBUTION = 2, -- the patron's sect contribution per sheltered kill (counted in Pacing.Sect.WEEK_CAP)
-	CUE_GAP = 30, -- seconds without a sheltered hit or blow before the "Sheltered by" line shows again
+	SUPPRESSED_HOLD = 5, -- seconds the Suppressed status (player attribute) outlasts the last unsheltered hit or blow with a higher major
 	TICK = 0.5, -- seconds between ShelteredBy attribute refreshes (damage checks live)
 	HEART_LINE_AT = 3, -- stats.leaned / stats.sheltered from which the heart demon's company question names it
 }

@@ -280,7 +280,7 @@ The realm gap shows against content, so players need reasons to cross paths:
   shelter. A friendly junior sect disciple (a stock R6, runtime clone) follows the
   player into the wilds; beasts target it; the player shelters it to a destination (a
   region landmark, or a set distance in the testbed) while it lands a few weak hits so
-  the "Sheltered by" cue shows; minimal AI (follow, flee when hurt, a weak attack).
+  the shelter lifts the Suppressed status; minimal AI (follow, flee when hurt, a weak attack).
   Offered once per major from QR1 as a bonus quest, and once as the shelter's solo
   teaching moment (one elder line). Needs EnemyService to target a non-Player (today
   `target` and every hit path are Player-only).

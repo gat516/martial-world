@@ -156,8 +156,9 @@ count: a beast one major realm up reads at least "far" (two majors: "deadly"), o
 major below reads "cowed" (it fears you: it won't hunt you, flinches as you arrive
 and, two majors below, runs; [combat](combat.md#realm-pressure-owners-decision-2026-10-24)),
 however few stages apart. While a stronger party member shelters you, a beast above
-your major but within their stage reads "sheltered"; one beyond theirs is read
-against their stage. Bosses keep the five tiers below (BossThemes has lines for them).
+your major is read at the stage you fight it at (its own, capped at theirs), in the
+usual tiers with no mark of its own. Bosses keep the five tiers below (BossThemes has
+lines for them).
 
 | Tier | Gap (default) | Look |
 |---|---|---|
@@ -167,7 +168,6 @@ against their stage. Bosses keep the five tiers below (BossThemes has lines for 
 | far | +4 to +5 | violet frame, crimson gem drawn out into a talisman tip, pulsing qi aura, sheen sweep, omen line |
 | deadly | >= +6 | no name, realm or health: a pulsing cracked skull seal and an omen, shown whenever the beast is in range (90 studs) |
 | cowed | a major below you | the below frame and tag; on the omen row a gold down-chevron and "Cowed · it fears you" (the word bronze) |
-| sheltered | above your major, within your patron's stage | the even frame and jade tag; on the omen row a jade shield and "Sheltered · strike as equals" |
 
 Omen lines are short xianxia warnings under the bar (under the skull for
 deadly), one picked at random per beast per tier so it never flickers; the pools

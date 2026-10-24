@@ -567,7 +567,7 @@ function Meditation.init(gui: ScreenGui)
 		local multiplier = spot and spot.multiplier
 		if spot and multiplier ~= shown then
 			local where = if spot.place ~= "" then ` {spot.place}` else ""
-			Hud.toast(`Meditating{where}: passive cultivation ×{spot.multiplier}`)
+			Hud.toast(`Cultivation ×{spot.multiplier}{where}`) -- short: one line on a phone
 		end
 		shown = multiplier
 	end)

@@ -82,6 +82,7 @@ attachment point and doesn't deform.
 - Rolls: local Z is the fin's normal. Rotate about local X to flare the fin out from the head
   (+) or fold it in; about local Z to sweep it up or down in its own plane.
 - Checked on the sheet: FinL flared 30 degrees, tips a further 20. No tearing.
+- **In Roblox the sign flips:** the importer re-frames the bones, so `Bone.Transform = CFrame.Angles(math.rad(-30), 0, 0)` on `FinL` / `FinR` flares the fin out (both sides take the same sign) and +X folds it onto the head.
 
 Hinge positions per bone (Blender and Roblox) are in each JSON under `bones`.
 
@@ -108,9 +109,56 @@ Hinge positions per bone (Blender and Roblox) are in each JSON under `bones`.
 - `make_sheet.py`: stitches the tiles, the ratios and the lineup into `sheets/serpent_cosmetics.png`
   (`uv run --with pillow python3 -I art/player/cosmetics/serpent/make_sheet.py`).
 
+## In Studio
+
+`assets/Cosmetics/Serpent.rbxm` (`ReplicatedStorage.Cosmetics.Serpent`) holds the six Accessories
+(AccessoryType Hat). The Beast Folk Serpent variant wears Sovereign
+(`SerpentFinsSovereign` + `SerpentScalesSovereign`, `src/shared/Identity/Variants/BeastFolk.luau`);
+Veil and Fang wait for a style picker. They replace the part-built `SerpentScales` /
+`SerpentTail` in `BeastFolk.rbxm`, now unused.
+
+| Set | Model asset (upload_asset.py model) |
+| --- | --- |
+| `SerpentFinsVeil` | `rbxassetid://110117735613413` |
+| `SerpentFinsSovereign` | `rbxassetid://73675592443421` |
+| `SerpentFinsFang` | `rbxassetid://133891447016938` |
+| `SerpentScalesVeil` | `rbxassetid://127532799973901` |
+| `SerpentScalesSovereign` | `rbxassetid://137171599768106` |
+| `SerpentScalesFang` | `rbxassetid://101289195663998` |
+
+Shade ramp: the shared `rbxassetid://124559907609415`.
+
+**Accessory layout.** `Handle` is an invisible 0.2 cube at HatAttachment holding the
+`HatAttachment` (and, on fins, the bones). Each region is a MeshPart welded to it with a
+`Region` attribute: `Scale` and `FinSpine` SmoothPlastic, `FinWeb` SmoothPlastic at 0.35
+transparency (no shadow), `Seam` Neon. All but the Seam carry a SurfaceAppearance with the
+ramp; the Seam has none so it keeps its glow. To tint a region set both `MeshPart.Color` and
+`SurfaceAppearance.Color`.
+
+**Rebuild** (in a sandbox, no FBX import step):
+1. Upload the changed FBX with `python3 tools/upload_asset.py model <Set>.fbx` and put the new
+   id in `place_serpent_cosmetics.luau` (`ASSETS`).
+2. Insert each model asset into Workspace as `_Import<Set>` (Studio MCP `insert_asset`).
+3. Run `place_serpent_cosmetics.luau` through `execute_luau` (paste it, or serve the worktree
+   with `tools/serve.sh <port>` and `loadstring(HttpService:GetAsync(url))()`). Fins: the
+   importer's RootPart becomes the Handle. Plates: the importer gives loose MeshParts and no
+   RootPart, so the script recovers the attachment frame from each part and its JSON
+   `roblox_center` (`PLATE_CENTERS`, update it if a plate JSON changes) and makes its own Handle.
+   Sets without an import keep their current template. Sandbox only.
+4. Export the folder: `_G.exportRbxm("ReplicatedStorage.Cosmetics.Serpent")`
+   (`tools/export_rbxm.luau`) posted to the receiver, then move the file to
+   `assets/Cosmetics/Serpent.rbxm`.
+
+**Checked in the sandbox** (2026-10-23) on R6 dummies from `CharacterCreatorGui.Templates.Dummy`,
+one per direction wearing its fins and plates: every Handle's attachment lands exactly on
+`Head.HatAttachment`; `FinL`/`FinR` at -30 degrees and the tips at a further -20 flare the fins
+out (tips move 0.24-0.28 studs) and the skinned meshes follow; the plates sit on the head wall
+with the seam showing only between scales, no gap at the side close-up; after `ScaleTo(1.15)`
+every mesh size, offset and bone scales by exactly 1.15 with the attachment still exact.
+
 ## Untested
 
-Nothing is in Roblox yet (the import is a separate step). Untested: the translucent webbing and
-Neon seams in game, the read at phone distance, the fins with hair accessories (they're rooted
-at the side of the head, so tall or wide hair may cover the roots), and the plates against
-custom face decals. Nothing animates the fin bones yet.
+Untested in game: the translucent webbing and Neon seams under game lighting, the read at phone
+distance, the fins with hair accessories (they're rooted at the side of the head, so tall or
+wide hair may cover the roots), and the plates against custom face decals. Nothing animates the
+fin bones yet (the planned shared accessory script would drive `FinL`/`FinR`).

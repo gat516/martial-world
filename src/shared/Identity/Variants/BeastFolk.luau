@@ -80,7 +80,11 @@ local Variants: { [string]: Variant } = {
 		Icon = "",
 		InnateTraits = { "SerpentScales" },
 		Modifiers = { guard = 0.03 },
-		Cosmetics = { "SerpentScales", "SerpentTail" },
+		-- Sovereign is the default look (Blender fins and face plates in
+		-- Cosmetics/Serpent, replacing the part-built SerpentScales/SerpentTail);
+		-- the Veil (SerpentFinsVeil, SerpentScalesVeil) and Fang (SerpentFinsFang,
+		-- SerpentScalesFang) sets wait for a later style picker.
+		Cosmetics = { "SerpentFinsSovereign", "SerpentScalesSovereign" },
 	},
 }
 

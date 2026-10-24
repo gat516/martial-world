@@ -4,7 +4,7 @@
 preview runs on the client). It holds one binary file per set, and each file is
 a Folder of rigged Accessory prototypes. Traits looks up an accessory id through
 every set. Sets: `Fox.rbxm` (Spirit Fox, below), `Crane.rbxm` (Beast Folk Crane, below),
-`Tiger.rbxm` (Beast Folk Tiger, below), `Dragonblood.rbxm` (Dragonblood, below), `DemonicHuman.rbxm` (Demonic Human, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Ghost).
+`Tiger.rbxm` (Beast Folk Tiger, below), `Dragonblood.rbxm` (Dragonblood, below), `DemonicHuman.rbxm` (Demonic Human, below), `Serpent.rbxm` (Beast Folk Serpent, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Ghost).
 
 
 New and reworked cosmetics are modeled in Blender by the `modeler` (user,
@@ -83,6 +83,20 @@ under `Tail5` for the flame wisp. Model, rig, colours, asset ids and the Studio 
 | `DemonTailHook` | Tail: Hook | question-mark hook, playing-card spade at shoulder height |
 | `DemonTailTrail` | Tail: Trail | streams back low, leaf-blade spade lifting at the end |
 
+## Serpent (`assets/Cosmetics/Serpent.rbxm`)
+
+Blender meshes for the Beast Folk Serpent variant, all on HatAttachment: three fin crests
+(skinned, `Root` -> `FinLBase` -> `FinL` -> `FinLTip` and R; gold spines, translucent teal
+web) and three face-plate sets (rigid, welded to a plain Handle; jade scales over a Neon
+seam). Any fins go with any plates. Model, rig, colours, asset ids and the Studio build
+(`serpent/place_serpent_cosmetics.luau`) are in [`serpent/README.md`](serpent/README.md).
+
+| Accessory | Worn by | Shape |
+| --- | --- | --- |
+| `SerpentFinsSovereign`, `SerpentScalesSovereign` | Serpent (default) | upswept four-spine fan; two-lobed leaf plates of pointed scales |
+| `SerpentFinsVeil`, `SerpentScalesVeil` | nothing yet (style picker) | small rounded leaf fins; slim crescent of round scales |
+| `SerpentFinsFang`, `SerpentScalesFang` | nothing yet (style picker) | barbed blades swept back; temple blade and cheek fang |
+
 ## Beast Folk (`assets/Cosmetics/BeastFolk.rbxm`)
 
 The Folder `BeastFolk` (mapped into `ReplicatedStorage.Cosmetics`) holds eight
@@ -93,7 +107,8 @@ Blender-made Crane and Tiger sets above, so `CraneCrest`, `CraneTail`, `TigerEar
 SmoothPlastic, invisible 0.2 Handles, and every part unanchored and Massless with
 CanCollide, CanQuery and CanTouch off. Each set has one loud piece: the wolf's
 tall grey ears, the tiger's banded tail, the crane's red cap and plume, and the
-serpent's long tail.
+serpent's long tail. The Serpent variant now wears the Blender Serpent set, so
+`SerpentScales` and `SerpentTail` here are unused leftovers too.
 
 | Accessory | Attaches (R6) | Parts | Look |
 | --- | --- | --- | --- |

@@ -51,26 +51,35 @@ button only appears while it's ready.
 **Foundation grade (per breakthrough). Built 2026-10-23 (untuned), see
 [cultivation](systems/cultivation.md#foundation-grade); the heart-demon trial and
 tempering by it built 2026-10-23 (untested, [heart-demon](systems/heart-demon.md));
-per-region pools, seclusion tempering and the Cultivate-window line are not.**
-- Every breakthrough is graded **Cracked, Steady, Solid or Deep** by what the
-  player experienced during that stage. Hunt (first kills of the region's beasts),
-  Boss (counts double, the fast road), Home (first harvest of a herb tier, a rare
-  mutation), Dao (weapon Dao milestones), Discover (wild gardens, caches, secret
-  places) and World (events and phenomena). Pools are per region and realm, so they
-  never run out. Time fills the bar, not the grade.
-- **Shown only where there's room:** the grade on the breakthrough card and in the
-  Cultivate window; one toast when the bar fills short of Solid ("Your foundation
+per-band pools, deeds and the percent built 2026-10-23 (untested); seclusion
+tempering, the Cultivate-window line and the Self card's percent are not.**
+- **A percent that can pass 100% (user, 2026-10-23):** "so players are okay with
+  breaking through by doing the bare minimum. that way it isn't super negatively viewed
+  if they break through at like 90 or 80 percent effectiveness." What the player
+  experienced during the stage over its target is the stage's foundation percent, up to
+  200%; the bonus is proportional (100% +2% health and power, 200% +4%) and never zero
+  for trying. The words Unsteady, Steady, Solid, Deep are flavour on it. Hunt (first
+  kills of a beast at each tier), Boss (counts double, the fast road), Home (first
+  harvest of a herb tier, a rare mutation, a Herbarium page), Dao (weapon Dao
+  milestones), Discover (caches, racks) and World (events and treasures), plus per-stage
+  deeds (Hunter, Gardener, Haul, Daring) that ask for range, not grinding. Pools are per
+  realm band (named for its region: Inner Wilds, Borderlands, Outer Wastes, Deep Wilds,
+  Far Reaches), so every band refills them; the expected sources per realm are in
+  `Pacing.luau`'s Foundation header. Time fills the bar, not the foundation. The hunts
+  past QC wait on realm variants shipping to the main map (`Config.Wilds.VARIANTS`).
+- **Shown only where there's room:** the grade and percent on the breakthrough card and
+  in the Cultivate window; one toast when the bar fills below 50% ("Your foundation
   is unsteady. The world still has things to teach you."). Breaking through anyway
-  is always allowed and simply takes the lower grade.
-- **Each grade is a permanent stat bonus, and the gap is noticeable.** Two players
-  at the same stage differ by how they climbed. A Deep foundation is the reward for
-  exploring, never a requirement.
-- **It weighs on the trials, not on the wall:** a cracked foundation makes the
-  tribulation (heaven-defiers only) and the optional heart-demon trial harder.
+  is always allowed and simply takes the lower percent.
+- **Each stage's foundation is a permanent stat bonus.** Two players at the same stage
+  differ by how they climbed. A deep foundation is the reward for exploring, never a
+  requirement.
+- **It weighs on the trials, not on the wall:** an unsteady foundation (below 50%) makes
+  the tribulation (heaven-defiers only) and the optional heart-demon trial harder.
   No normal player is walled by it.
-- **Tempering:** old grades can be raised later (seclusion, passing a heart-demon
+- **Tempering:** old stages can be raised later (seclusion, passing a heart-demon
   trial at a major), so nobody replays stages to fix one. The heart-demon trial is
-  built: up to 3 lowest grades one step each ([heart-demon](systems/heart-demon.md)).
+  built: up to 3 lowest stages +25 points each, to 150% at most ([heart-demon](systems/heart-demon.md)).
 - **Rejected:** a visible solidity meter (no HUD room); damaging your own
   cultivation to reroll stats (the best play becomes regrinding, which players hate).
   Shattering your cultivation stays a one-time story beat on the demon path
@@ -492,7 +501,7 @@ and the dialogue screen ([dialogue](ui/dialogue.md)). The systems behind them ar
 The solidity meter and death-save prompt are shelved by Phase A.
 
 ## Open questions
-- Foundation grade bonuses: which stats, and how big a gap between Cracked and Deep?
+- Foundation bonuses: which stats, and how big a gap between a bare 50% and 200%?
 - How many experiences per stage make each grade?
 - Spill share (half proposed), spirit-light lifetime (5 min proposed), ring slot counts.
 - Surge tuning (built at 15 s, 25% raw qi, once per engagement): right numbers, and a cooldown beyond that?

@@ -40,6 +40,7 @@ local Tuning = require(ReplicatedStorage.Shared.Pacing).Haul
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 local SafeZone = require(script.Parent.SafeZone)
+local Foundation = require(script.Parent.Foundation)
 local Travel = require(script.Parent.Travel)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
@@ -315,6 +316,7 @@ function Haul.storeAll(player: Player): (boolean, string?)
 	if data then
 		data.stats.stored += 1
 	end
+	Foundation.stored(player, gained.rawQi) -- the Haul deed
 	local line = `Stored: {describe(gained)}`
 	effectRemote:FireClient(player, "banked", line)
 	effectRemote:FireClient(player, "reward", { tier = "small", text = line, color = Color3.fromRGB(240, 210, 140) })

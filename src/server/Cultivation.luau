@@ -359,7 +359,7 @@ Cultivation.startTribulation = nil :: ((Player) -> (boolean, string?))?
 
 -- Move the player up to the next stage, with the excess past the old bar carried
 -- over (at most Pacing.Breakthrough.CARRY_SHARE of the new bar). Major breakthroughs
--- are announced to everyone. The stage being left gets its foundation grade.
+-- are announced to everyone. The stage being left gets its foundation percent.
 function Cultivation.advance(player: Player)
 	local data = PlayerData.get(player)
 	if not data then
@@ -371,7 +371,7 @@ function Cultivation.advance(player: Player)
 		return
 	end
 	local major = nextStage.major ~= stage.major
-	local grade = Foundation.seal(data) -- grades the stage being left, resets the count
+	local grade, percent = Foundation.seal(data) -- settles the stage being left, resets the count and deeds
 	data.realm = { major = nextStage.major, minor = nextStage.minor }
 	local excess = math.max(0, data.cultivation - stage.bar)
 	data.cultivation = math.floor(math.min(excess, nextStage.bar * Pacing.Breakthrough.CARRY_SHARE))
@@ -386,7 +386,7 @@ function Cultivation.advance(player: Player)
 		humanoid.Health = humanoid.MaxHealth
 	end
 	Cultivation.pushState(player)
-	breakthroughRemote:FireAllClients(player, nextStage.name, major, grade)
+	breakthroughRemote:FireAllClients(player, nextStage.name, major, grade, percent)
 	for _, fn in Cultivation.onBreakthrough do
 		task.spawn(fn, player, nextStage, major)
 	end

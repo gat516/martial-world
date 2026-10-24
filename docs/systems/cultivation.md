@@ -102,7 +102,7 @@ felt in fights.
   weapon Dao is reached, then learned), and `comprehend` (stones plus weapon Dao
   break a technique's bottleneck). First kills and boss kills feed `Foundation.kill`.
 - `src/server/Foundation.luau`: foundation experiences, grades, the stat bonus,
-  tempering and the open-experience hints (see "Foundation grade").
+  tempering, the per-band pools, deeds and the open-experience hints (see "Foundation grade").
 - `src/server/HeartDemon.luau` + `src/client/HeartDemon.luau`: the heart-demon trial
   ([heart-demon](heart-demon.md)).
 - `src/server/QiNodes.luau`: raw qi (and stones) from wilds nodes.
@@ -166,49 +166,95 @@ Server `QiSurge.luau`, tuning `Pacing.Surge`.
 
 ## Foundation grade
 Built 2026-10-23 (Phase A, untuned, untested in play). What the player experiences
-at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
-- **Experiences** are one-time keys, once ever per profile (`data.foundation.seen`),
-  weighted by category (`Pacing.Foundation.WEIGHTS`) into `data.foundation.count`:
-  Hunt `hunt:<enemy>` (first kill of a beast type, `Progression.onKill`), Boss
-  `boss:<enemy>` (counts 2), Home `home:tier:<n>` (first harvest of a herb tier) and
-  `home:mut:<id>` (a harvest with a mutation of bonus >= `MUTATION_BONUS`: Golden,
-  Thunderstruck, Auspicious, Rainbow, Heavenlit; `Garden.harvest`) and `home:book:<n>`
-  (a tier's Herbarium page completed, server `Herbarium`), Dao
-  `dao:<class>:<level>` (each weapon Dao level reached, `Weapons.onLevelUp`), Discover
-  `discover:<cache id>` (`WorldCaches` claim), World `world:<event id>` (within
-  `EVENT_RADIUS` of a located event while it runs, or any kill during an unlocated
-  one such as the Beast Surge; `WorldEvents`) and `world:treasure:<weather>` (claiming a
-  heavenly treasure). Earning one gives no toast; it shows in the state push.
-- **Grade:** at `Cultivation.advance` (every breakthrough), `Foundation.seal` grades the
-  stage being left: count / `TARGET[stage]` (default `DEFAULT_TARGET`) reaching
-  `GRADES` shares 0 / 0.34 / 0.67 / 1 gives Cracked / Steady / Solid / Deep, stored in
-  `data.foundation.grades[stageKey]`; the count and the toast flag reset. Profiles
-  from before this have no grades (no bonus, nothing retro).
-- **Bonus:** the sum of every graded stage's `BONUS` (Cracked 0, Steady 1%, Solid 2%,
-  Deep 4%; at most about +104% by FE9, below a major jump) multiplies max health (`applyStats`) and power (`Combat.power`, so
-  knockback too) as its own factor on top of `Pacing.Curve`.
-- **Shown:** the card subtitle "<stage>  ·  <grade> foundation" (grade sent as the
-  Breakthrough remote's 4th arg); one toast per stage when the bar first fills with
-  a breakthrough open and the pending grade below Solid ("Your foundation is
-  unsteady. The world still has things to teach you.", `data.foundation.warned`);
-  `PlayerState.foundation` for the Self card (shape in [remotes](../remotes.md), UI
-  note in [cultivation UI](../ui/cultivation.md#foundation-line-in-the-self-card-ready-to-wire)).
-- **Hints** (`Foundation.hints`, up to `HINTS`): unearned beasts from `HINT_BELOW`
-  stages below to `HINT_ABOVE` above (two first), the lowest unharvested herb tier
-  (else the mildest rare mutation not yet harvested), the equipped class's next Dao
-  level, a cache, a world event if any is left, a third beast, and a boss in range as
-  "The fast road: defeat the <boss>" (always shown when one is open, replacing the last line).
-- **Tempering:** `Foundation.temper(data, steps)` raises old grades one step each,
-  lowest first, never lowering; the [heart-demon trial](heart-demon.md) at each
-  major's stage 9 tempers up to 3 (1 to 3 by how honestly it's answered).
-- **Tribulation:** a heaven-defier's strikes deal `TRIBULATION_DAMAGE` x more by the
-  pending grade (Cracked 1.25, Steady 1.1).
-- **Gaps:** the pools are global and small (five beast types, three herb tiers, a
-  handful of caches and events), so past QC they run thin and the Dao levels carry
-  the grade. Per-region (and per-realm) pools are needed as regions arrive. Not built:
-  tempering by seclusion, the Cultivate-window line (the Self
-  card will read `PlayerState.foundation`). The Discover hint shows even when no
-  cache is left. Numbers are first guesses.
+at a stage builds the foundation of the breakthrough out of it. Time fills the bar,
+not the foundation.
+- **A percent, and it goes past 100% (user, 2026-10-23):** "so players are okay with
+  breaking through by doing the bare minimum". The stage's weighted experiences
+  (`data.foundation.count`) over its target (`Pacing.Foundation.TARGET`, default
+  `DEFAULT_TARGET`) give the percent, 100% a full foundation, more up to `MAX_PERCENT`
+  (200). Breaking through at 80% is a good breakthrough, just a bit less.
+- **Bonus, proportional and always positive:** each graded stage adds percent x
+  `BONUS_PER_PERCENT` (0.0002: 50% +1%, 100% +2%, 200% +4%); the sum multiplies max
+  health (`applyStats`) and power (`Combat.power`, so knockback too) as its own factor on
+  top of `Pacing.Curve`. All 26 graded stages at 200% is +104% by FE9, below a major jump.
+- **Grade words are flavour on the percent** (`GRADES`): Unsteady below 50%, Steady
+  50-99, Solid 100-149, Deep 150+. No "Cracked".
+- **Pools per region and realm band.** Keys are once per profile
+  (`data.foundation.seen`), most scoped `@<band>`: the band is a `Herbs.Regions` entry
+  (InnerWilds QC1-4, MiddleWilds QC5-9, OuterWilds QR1-5, DeepWilds QR6-FE3, FarReaches
+  FE4-9, as in [progression](../progression.md) "Regions"), so each band brings a fresh
+  pool. A kill's band is the beast's own realm (a variant's spawn realm); the rest use
+  the player's realm. Regions on the map don't pick the band (the testbed has none, and
+  Deep Wilds and the Far Reaches aren't built), they only place caches.
+  | Category (weight) | Key | Source |
+  |---|---|---|
+  | Hunt (1) | `hunt:<id>:<tier>@<band>` | first kill of a beast at a tier (young, adult, elite, apex) in a band; `Progression.onKill` |
+  | Boss (2) | `boss:<id>@<band>` | first kill of a boss |
+  | Home (1) | `home:tier:<n>@<band>` | first harvest of a herb tier at or over the band's (`Herbs.Regions` tier); `Garden.harvest` |
+  | | `home:mut:<id>@<band>` | a harvest with a mutation of bonus >= `MUTATION_BONUS` (Golden, Thunderstruck, Auspicious, Rainbow, Heavenlit) |
+  | | `home:book:<tier>` | a tier's Herbarium page completed (once ever; server `Herbarium`) |
+  | Dao (1) | `dao:<class>:<level>` | each weapon Dao level (once ever; `Weapons.onLevelUp`) |
+  | Discover (1) | `discover:<cache id>` | a cache or rack claimed (once ever; `WorldCaches`, which registers each anchor's region for the hint) |
+  | World (1) | `world:<event>@<band>` | within `EVENT_RADIUS` of a located event while it runs, or any kill during an unlocated one (Beast Surge); `WorldEvents` |
+  | | `world:treasure:<weather>@<band>` | claiming a heavenly treasure (`Treasures`) |
+  | Deed (1) | per stage | `DEEDS`, below |
+  A kill from a beast more than `FIT_BELOW` (3) stages under the player earns nothing,
+  so a later realm can't farm the first region's young beasts. Earning gives no toast;
+  it shows in the state push. Profiles from before the bands keep their old keys
+  (`hunt:<id>`); the new ones are fresh, so they can earn their bands' pools once.
+- **Deeds** (`DEEDS`, once per stage, `data.foundation.deeds`, reset by `seal`): the
+  floor that keeps every stage's pool from emptying, each asking for range rather than
+  repetition. Hunter: slay 10 beasts at most 2 stages under you, no more than 4 of one
+  beast counting (so three kinds at least). Gardener: harvest 3 different herbs. Haul:
+  one Store all banking at least 75% of the dantian in raw qi (`Haul.storeAll`).
+  Daring: defeat a beast or boss 2 stages above you. Seclusion is not a deed: AFK,
+  offline and seclusion earn no foundation (decided 2026-10-23, "AFK online = offline").
+- **Targets and their sources** (the `Pacing.luau` Foundation header has the table):
+  QC1 2, QC2 3, QC3 3 (hook stages of minutes), QC4 4 (the Inner Wilds pool: wolf,
+  serpent, boar, the first tier I harvest, Dao, caches), QC5-8 5 (the Borderlands
+  pool: the QC6 and QC8 beasts, elite wolves, boars and serpents with variants, Jade
+  Jiao, tier I and mutations again, the tier I page, events and treasures again), QC9 6
+  (the Elder Wolf King), QR1-5 5 (Outer Wastes: apex ring-1 beasts with variants, tier
+  II and its page), QR6-FE3 5 (Deep Wilds band: Thunder Ape and Nine-Tailed Fox, tier
+  III), FE4-9 5 (tier IV and V, events, Dao). The deeds give up to 4 a stage on top. A
+  band's pool is shared by its stages, so the first stage of a band runs past 100% and
+  the later ones lean on the deeds, Dao and world events.
+- **Seal:** at `Cultivation.advance` (every breakthrough), `Foundation.seal` stores the
+  percent in `data.foundation.grades[stageKey]` (a number; a profile from before
+  percents holds a grade word, read through `LEGACY`: Cracked 25, Steady 60, Solid 100,
+  Deep 150) and resets the count, deeds and toast flag.
+- **Shown:** the card subtitle "<stage>  ·  <grade> foundation <percent>%" (grade and
+  percent are the Breakthrough remote's 4th and 5th args); one toast per stage when the
+  bar first fills with a breakthrough open below 50% ("Your foundation is unsteady. The
+  world still has things to teach you.", `data.foundation.warned`); `PlayerState.foundation`
+  for the Self card (`count`, `target`, `percent`, `max`, `grade`, `grades` and
+  `percents` by stage key, `bonus`, `hints`; [remotes](../remotes.md), UI note in
+  [cultivation UI](../ui/cultivation.md#foundation-row-in-the-self-card-built)).
+- **Hints** (`Foundation.hints`, up to `HINTS`), all from the player's band, never a
+  later realm's: beasts with an open key from `HINT_BELOW` stages below to `HINT_ABOVE`
+  above (every def at its realm, plus with `Config.Wilds.VARIANTS` each ambient pack's
+  range at its tier: "Slay an elite Spirit Wolf"), the next open deed with its progress,
+  the band's herb tier (else the mildest open mutation, else an open Herbarium page up to
+  the band's tier), the equipped class's next Dao level, a cache only when an unclaimed
+  one the player can open is registered in the band's region (or in no region: the
+  testbed), a world event (else a treasure) not yet met in the band, more deeds and
+  beasts, and a boss in range as "The fast road: defeat the <boss>" (always shown when
+  one is open, replacing the last line).
+- **Tempering:** `Foundation.temper(data, steps)` raises up to `steps` old stages
+  `TEMPER_POINTS` (25) each, the lowest percent first, never past `TEMPER_MAX` (150),
+  never lowering; the [heart-demon trial](heart-demon.md) at each major's stage 9 tempers
+  up to 3 (1 to 3 by how honestly it's answered). Each change is `{ key, from, to,
+  fromPercent, toPercent }`, `from`/`to` labels like "Solid (125%)".
+- **Tribulation:** a heaven-defier's strikes deal `TRIBULATION_DAMAGE` x more while the
+  pending percent is below 50% (Unsteady 1.2).
+- **Gaps:** with `Config.Wilds.VARIANTS` off (the main map today) beasts only spawn at
+  their own realms, so QR and FE have no hunts and the Hunter and Daring deeds can't be
+  done there; the rest reaches about 100% a stage. Deep Wilds and the Far Reaches aren't
+  on the map, so their caches don't exist and their beasts are the bosses only. The
+  Ruined Borderlands' own beasts (Stone Tortoise and the rest) aren't in an ambient
+  pack, so their elite tiers aren't hinted. Not built: tempering by seclusion, the
+  Cultivate-window line, the Self card's percent (it still shows count / target). Numbers
+  are first guesses.
 
 ## Player attributes (set every second by `Cultivation.publish`)
 - `Cultivation`: may exceed `CultivationMax` now, up to `CultivationCap`

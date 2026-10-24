@@ -73,11 +73,13 @@ phones; [character window](../character/character-window.md), Foundation): the
 percentage of the stage's target on a 0-150 % bar that overfills past its 100 %
 mark. It reads
 `State.current.foundation` (server `Foundation.state`, every PlayerState push):
-`{ count, target, percent?, grade, grades = { [stageKey] = grade }, bonus, hints = { { category, text } } }`,
-only through `foundationOf()` in `SelfCard.luau` (`percent` when sent, else count / target x 100). `grade` is what the current stage would
-get now (Cracked, Steady, Solid, Deep), `bonus` the summed health/power share from graded
+`{ count, target, percent, max, grade, grades = { [stageKey] = grade }, percents = { [stageKey] = percent }, bonus, hints = { { category, text } } }`,
+only through `foundationOf()` in `SelfCard.luau`. `percent` is what the current stage would
+get now (100 = a full foundation, up to `max`, 200), `grade` its word (Unsteady below 50,
+Steady, Solid from 100, Deep from 150), `bonus` the summed health/power share from graded
 stages (0.06 = +6%), `hints` up to five open experiences (categories Hunt, Boss, Home,
-Dao, Discover, World).
+Dao, Discover, World, Deed).
+- **Built (Self card v2):** the Foundation section reads `percent` ("86%") on a bar to 150% with marks at 50 and 100, overfill in paler gold.
 
 ### Foundation solidity meter (`FoundationMeter.luau`, shelved)
 Shelved by Phase A (2026-10-23): there's no meter; a foundation grade shows on the

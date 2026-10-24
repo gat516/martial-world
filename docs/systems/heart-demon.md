@@ -96,8 +96,8 @@ joins the path's line.
 
 ## Outcome
 `HeartDemon.answer` counts denials. Steps = `max(TEMPER_ROUGH, TEMPER_CALM - denials)`
-(3 with none, 2 with one, else 1). `Foundation.temper` raises that many old grades one
-step each, lowest first (ties: the earliest stage), never past Deep, never lowering any;
+(3 with none, 2 with one, else 1). `Foundation.temper` raises that many old stages
+25 points of foundation percent each, lowest first (ties: the earliest stage), never past 150%, never lowering any;
 `applyStats` refreshes the Foundation bonus. No denials: "The demon was calmed." The
 closing lines name what was tempered ("Qi Condensation 2 is now Steady, ...") or say
 there was nothing to temper.

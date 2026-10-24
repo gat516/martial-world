@@ -273,8 +273,9 @@ def's own realm as before). Bosses never take variants.
   their colours); `EnemyAnimator` multiplies the family's pose scale by `Scale` (root
   translations, stride rates); `EnemySounds` pitches voices by 1 / sqrt(Scale).
   A howl's reinforcements of its own kind come at the howler's realm and tier.
-- **First kills.** An elite and an apex kill of each beast are Hunt experiences of their own
-  (`hunt:<id>:elite`, `hunt:<id>:apex`; Foundation).
+- **First kills.** The first kill of each beast at each tier in each realm band is a Hunt
+  experience (`hunt:<id>:<tier>@<band>`, the band from the variant's realm;
+  [cultivation](cultivation.md#foundation-grade)), so the tiers refill the pools.
 - **Testing.** The admin panel's "Beast tier" chips pick the tier the spawn chips use (at the
   tier's stage: young one below the def, elite +3, apex +6). The testbed zone `WolfTiers`
   (4 Spirit Wolves at QC1-QC8, (-200, 648.6, 60)) spawns a mix.

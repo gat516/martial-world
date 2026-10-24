@@ -64,10 +64,18 @@ export type Data = {
 	hotbar: { string },
 	firstKills: { [string]: boolean },
 	milestones: { [string]: boolean }, -- kill milestones claimed, by kill count
-	-- foundation grades (server Foundation): experience keys earned (once ever), the
-	-- weighted count this stage, each stage's grade by stage key, and whether this
-	-- stage's "unsteady" toast was shown
-	foundation: { seen: { [string]: boolean }, count: number, grades: { [string]: string }, warned: boolean },
+	-- foundation (server Foundation): experience keys earned (once ever), the weighted
+	-- count this stage, each stage's foundation percent by stage key (profiles from
+	-- before percents hold a grade word; Foundation.percentOf reads both), whether this
+	-- stage's "unsteady" toast was shown, and this stage's deeds (kills per beast id,
+	-- herb ids harvested, deed ids done; reset at each breakthrough)
+	foundation: {
+		seen: { [string]: boolean },
+		count: number,
+		grades: { [string]: any },
+		warned: boolean,
+		deeds: { kills: { [string]: number }, herbs: { [string]: boolean }, done: { [string]: boolean } },
+	},
 	-- the Herbarium (server Herbarium): per herb id, n harvested in all, l the largest
 	-- size seen, m the mutation ids seen; tiers: herb tiers whose page is complete
 	-- and rewarded, by tier numeral string ("1".."5")
@@ -195,7 +203,7 @@ local function default(): Data
 		hotbar = Hotbar.empty(),
 		firstKills = {},
 		milestones = {},
-		foundation = { seen = {}, count = 0, grades = {}, warned = false },
+		foundation = { seen = {}, count = 0, grades = {}, warned = false, deeds = { kills = {}, herbs = {}, done = {} } },
 		herbarium = { herbs = {}, tiers = {} },
 		beats = {},
 		lessons = {},

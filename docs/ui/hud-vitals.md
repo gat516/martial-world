@@ -107,7 +107,7 @@ from the edges). On a touch phone the hotbar shrinks with the stack (35 px slots
 `vitals_mount`, `seat_mount`, `realm_plaque`, `vitals_chip` and `name_plaque`
 are no longer used, nor are `fill_sheen`/`fill_edge` (still drawn by
 `draw_vitals.py`, which now also draws the shaped fills).
-The seated tiles, lotus, Force Breakthrough pill and the touch prompt dock's
+The seated tiles, lotus, Qi Surge pill and the touch prompt dock's
 column sit just above the plate and moved down with it; the lotus is centred
 on the tiles' frames, 14 px past the last tile (`Meditation` LOTUS_GAP). Cultivation and the dantian
 left the fighting HUD: they show while seated, in the same spot
@@ -121,6 +121,23 @@ Breakthrough nudge: when `BreakthroughReady` turns true a toast says "You
 feel ready to break through" once (skipped when the server just said so),
 then again only while the player stands idle (no input for 25 s), at most
 every 150 s (`BreakthroughView` NUDGE_*). No pulsing or central prompt.
+
+## Qi surge pill
+The old Force Breakthrough pill (`Stack.BreakthroughButton`, unchanged in
+`assets/Hud.rbxmx`) is now the qi surge's button and notice, driven by
+`BreakthroughView`: it shows only while the server's `SurgeReady` is true (in a
+fight, badly hurt, bar at 90%; [cultivation](../systems/cultivation.md#qi-surge)),
+never seated or with a menu open. Its label reads "M to qi surge" on PC (M surges
+instead of meditating while it's ready) and "Qi Surge" on touch; a click or tap
+fires it. While surging, the realm plaque shows the surged stage (`SurgeRealm`,
+`Hud.luau`).
+
+**For the ui-designer (not built):** the roadmap wants the touch surge button in
+the touch cluster (`Play`, beside Dash/Guard), not the stack pill, and its own
+glyph (the pill still wears the breakthrough glyph). A `Play.SurgeButton`
+ImageButton (hidden by default, with a `Label` TextLabel) would be wired by
+showing it on touch in place of the pill; the pill would then stay the PC notice.
+Also unchecked: "M to qi surge" fitting the pill's label box at phone scale.
 
 ## Seated bars and meditation tiles
 Seated: the vitals give way to the cultivation bars (`Stack.SeatBars`, the
@@ -137,8 +154,7 @@ Back), a small panel for Comprehend / Method / Spirit
 Root (root pills and the reform choice live on its Spirit Root page), and
 the lotus calm toggle that fades the HUD for a clean view (`Menus.setCalm`;
 also after 20 s idle; a tap brings it back). See [meditation](../systems/meditation.md).
-The standing Force Breakthrough pill (`Stack.BreakthroughButton`) is the only
-breakthrough button outside the seat.
+Breakthroughs are seated only: there is no breakthrough button outside the seat.
 
 - The circulation overlay has a Leave pill at its header's right corner
   (`Circulation.Column.Header.Title.Leave`) that ends the run early for free.
@@ -176,7 +192,7 @@ against the Lock button's arc on a phone); GuardController binds it.
   rather than widening it.
 - The name plaque's removal (2026-10-22) was a file-only crop, not previewed
   in Studio: check the realm plaque isn't clipped at the stack's top, the seated
-  tiles, Force Breakthrough pill and calm lotus still sit just above the plate,
+  tiles, Qi Surge pill and calm lotus still sit just above the plate,
   the chips in the notch, and the touch prompt dock's list (`Prompts.Dock.List`
   at Y 0, now just above the realm plaque's top instead of the name row's).
 - The Figma reskin (2026-10-22) was previewed in edit view at PC size (560 px

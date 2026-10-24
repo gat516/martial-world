@@ -8,9 +8,10 @@ felt in fights.
 ## Design intent
 - **Phase A (decided 2026-10-23):** insight is deleted (built: the walls are the bar,
   techniques gate on weapon Dao, see [combat](combat.md)) and breakthroughs get a
-  foundation grade (built, see "Foundation grade" below). Not built yet: death
+  foundation grade (built, see "Foundation grade" below), and the forced breakthrough
+  is replaced by the qi surge (built, see "Qi surge" below). Not built yet: death
   spills half of the unbanked haul (raw qi, herbs, stones; a spirit ring keeps some
-  safe), and the forced breakthrough becomes the qi surge (a mobile button, M on PC). See [roadmap](../roadmap.md) "Phase A". The rest of this
+  safe). See [roadmap](../roadmap.md) "Phase A". The rest of this
   page is the code as it stands.
 - **The ladder is 27 stages** (2026-10-22, [progression](../progression.md)): Qi
   Condensation 1-9, Qi Refining 1-9, Foundation Establishment 1-9 (FE9 is the cap).
@@ -39,8 +40,9 @@ felt in fights.
   tribulation for heaven-defiers), then Qi Refining and Foundation
   Establishment (FE9 is the top). The intent and time estimates for each stage are in the header of
   `src/shared/Pacing.luau`.
-- Breakthroughs happen seated in meditation. A minor one can be **forced** in a
-  fight when badly hurt with a 90% bar; the new stage starts in qi debt.
+- Breakthroughs happen seated in meditation, never anywhere else (no forced
+  breakthrough, no qi debt). In a fight the nearly full bar's answer is the
+  **qi surge**: a short borrowed stage, see "Qi surge".
 - Failing a tribulation costs time (a cooldown, saved as
   `data.tribulationReadyUnix` so rejoining doesn't skip it), never cultivation.
 - One tribulation at a time, server-wide, on the main peak's platform. Others
@@ -54,10 +56,13 @@ felt in fights.
 - `src/shared/Realms.luau`: resolves Pacing into `Realms.Stages`; `index`, `get`,
   `after`, `ByKey`, `ofBeast`, `enemyQi`, `nodeQi`.
 - `src/server/Cultivation.luau`: passive tick (1 s), rate formula, buffs, garden
-  aura, breakthroughs (`breakthrough`, `advance`, `canForce`), qi deviation,
+  aura, breakthroughs (`breakthrough`, `advance`), `fightStage` (the stage whose
+  health and power apply, the next one while surging), qi deviation,
   idle warnings, offline/daily login claim, stats (health, walk speed),
   `pushState` and the player attributes; `cap`/`add` (the overflow cap) and
   `block` (what stops a breakthrough).
+- `src/server/QiSurge.luau`: the qi surge (ready check, fire, end, the
+  "falls back" toast; see "Qi surge").
 - `src/server/Circulation.luau`: refining runs (see [minigames](minigames.md)).
 - `src/server/Tribulation.luau`: the lightning trial for a major breakthrough.
   Every client draws it with `src/client/WorldFX/TribulationFX.luau` (templates
@@ -78,8 +83,8 @@ felt in fights.
 - `src/server/Inventory.luau` (`use`): consumables that add qi, cultivation, weapon Dao XP.
 - Client: `SeatBars.luau` (the seated cultivation track with its overflow past the mark
   and the dantian; cultivation is off the fighting HUD), `BreakthroughView.luau`
-  (button, light column, the milestone card on your own breakthrough and the
-  "ready to break through" nudge); the foundation meter and death-save (shelved by Phase A)
+  (the qi surge pill and its ember burst, light column, the milestone card on your
+  own breakthrough and the "ready to break through" nudge); the foundation meter and death-save (shelved by Phase A)
   are in [cultivation UI](../ui/cultivation.md),
   `CirculationMinigame.luau`.
 
@@ -98,13 +103,40 @@ felt in fights.
 4. Breakthrough: `CultivationAction "breakthrough"` -> `Cultivation.breakthrough`
    checks the method, seat, bar; a major one calls `Tribulation.start`. `advance`
    grades the stage being left (`Foundation.seal`), moves the realm (carrying the excess past the old bar, capped at
-   `CARRY_SHARE` of the new one; a forced one starts in debt instead), heals, fires `Breakthrough` to everyone and the
+   `CARRY_SHARE` of the new one), heals, fires `Breakthrough` to everyone and the
    `onBreakthrough` hooks (analytics, peak tier).
 5. The HUD reads `Realm`, `Cultivation`, `CultivationMax`, `CultivationCap`,
    `BreakthroughReady`, `BreakthroughBlock`, `RawQi`, `DantianCap` attributes
    every second and the `PlayerState` snapshot on change. Seated, `SeatBars`
    shows the bar, the overflow past it and the dantian; standing, a ready player
    gets a toast once and then now and then while idle ([ui](ui.md)).
+
+## Qi surge
+Built 2026-10-23 (Phase A, untuned, untested in play). Replaces the forced
+breakthrough: a clutch comeback to survive a fight and keep the haul, not insurance.
+Server `QiSurge.luau`, tuning `Pacing.Surge`.
+- **Ready** (`SurgeReady` player attribute, checked every 0.2 s): in combat (the
+  `InCombat` tag), health at most `Breakthrough.FORCE_HEALTH_SHARE` (35%) of max,
+  cultivation at least `FORCE_BAR_SHARE` (90%) of the bar, not seated, not in a
+  tribulation, a next stage exists, not already surging, and not used yet this
+  engagement (`ONCE_PER_COMBAT`: reset once the tag drops and the surge is over).
+- **Fire:** `CultivationAction "surge"` (`Cultivation.surge` -> `QiSurge.fire`;
+  refusals return why). PC: M surges instead of meditating while `SurgeReady`
+  (Meditation's binding), and the standing pill reads "M to qi surge". Touch: the
+  same pill reads "Qi Surge" and fires it ([HUD vitals](../ui/hud-vitals.md)).
+- **Effect:** `SECONDS` (15) at the next stage's health and power
+  (`Cultivation.surgeStage` -> `fightStage`, read by `applyStats` and `Combat.power`;
+  max health rises keeping the fraction), then a heal of `HEAL_SHARE` (20%) of the
+  raised max. Foundation bonuses still apply on top. The realm plaque shows the
+  surged stage (`SurgeRealm`); every client plays the breakthrough burst in ember
+  and motes for the duration (`SurgeUntil`, server time). Stage, bar and foundation
+  never move.
+- **Cost:** `RAW_QI_SHARE` (25%) of the raw qi in the dantian when it fires (free on
+  an empty dantian). When it ends, back to the own stage (health fraction kept);
+  once the surge is over and the tag has dropped, one toast "Your cultivation falls
+  back." Death or a breakthrough ends it quietly.
+- **Gaps:** combat qi doesn't follow the surged stage; no cooldown beyond once per
+  engagement; essence blood (roadmap open question) isn't a cost option.
 
 ## Foundation grade
 Built 2026-10-23 (Phase A, untuned, untested in play). What the player experiences
@@ -120,7 +152,7 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
   `EVENT_RADIUS` of a located event while it runs, or any kill during an unlocated
   one such as the Beast Surge; `WorldEvents`) and `world:treasure:<weather>` (claiming a
   heavenly treasure). Earning one gives no toast; it shows in the state push.
-- **Grade:** at `Cultivation.advance` (seated or forced), `Foundation.seal` grades the
+- **Grade:** at `Cultivation.advance` (every breakthrough), `Foundation.seal` grades the
   stage being left: count / `TARGET[stage]` (default `DEFAULT_TARGET`) reaching
   `GRADES` shares 0 / 0.34 / 0.67 / 1 gives Cracked / Steady / Solid / Deep, stored in
   `data.foundation.grades[stageKey]`; the count and the toast flag reset. Profiles
@@ -150,7 +182,8 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
 
 ## Player attributes (set every second by `Cultivation.publish`)
 - `Cultivation`: may exceed `CultivationMax` now, up to `CultivationCap`
-  (`floor(bar * OVERFLOW_CAP)`). Negative while in qi debt.
+  (`floor(bar * OVERFLOW_CAP)`). Never negative now; a save left in the old qi
+  debt pays it off through the normal sources.
 - `CultivationMax`: the bar (the breakthrough requirement).
 - `BreakthroughBlock`: what stops a seated breakthrough, `""` when nothing does.
   In order of precedence: `"peak"` (no stage beyond, FE9 today), `"method"` (the
@@ -160,6 +193,7 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
   allows it, and a next stage exists. It does **not** count being
   seated, the tribulation cooldown or another player's tribulation in progress;
   the server still says why on the attempt.
+- `SurgeReady`, `SurgeUntil`, `SurgeRealm`: the qi surge (`QiSurge`, see "Qi surge").
 
 
 ## Tuning knobs (all in `Pacing.luau`)
@@ -174,9 +208,11 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
   `BEAST_HEALTH`, `BEAST_DAMAGE`, `TRIBULATION_DAMAGE`.
 - **Pacing.Refine / Income / Meditation / Breakthrough / Rewards**: run qi cost and
   efficiency, node/daily/offline/starting qi and the enemy-qi exponent,
-  meditation multipliers, forced-breakthrough thresholds, the overflow cap past
+  meditation multipliers, the qi surge's ready thresholds (`FORCE_*`), the overflow cap past
   the bar and the carry-over share (`OVERFLOW_CAP`, `CARRY_SHARE`), manuals (boss and milestones),
   and the kill-credit share (`Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`).
+- **Pacing.Surge**: the qi surge's length, heal share, raw-qi cost share and
+  once-per-engagement switch.
 - **Pacing.Foundation**: experience weights, per-stage targets, grade shares,
   grade bonuses, the tribulation damage per grade, the rare-mutation line, the
   world-event radius and the hint count and range.

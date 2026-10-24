@@ -292,18 +292,31 @@ Pacing.Meditation = {
 	ON_PEAK = 2.5, -- on your own spirit peak
 }
 
--- BREAKTHROUGHS. Minor ones happen seated on a full bar. In combat, at low
--- health, a minor one can be forced early; the new stage then starts in qi debt.
+-- BREAKTHROUGHS happen seated on a full bar, never anywhere else. The FORCE_*
+-- shares are the qi surge's ready rule (Pacing.Surge below), the conditions the
+-- forced breakthrough used before the surge replaced it.
 Pacing.Breakthrough = {
-	FORCE_BAR_SHARE = 0.9, -- the bar must be at least this full to force it
+	FORCE_BAR_SHARE = 0.9, -- the bar must be at least this full for a qi surge
 	FORCE_HEALTH_SHARE = 0.35, -- and health at most this share of max, in combat
-	FORCE_DEBT_SHARE = 0.5, -- debt: the bar's shortfall plus this share of the new bar
 	-- Past the bar: passive, refining and items keep filling cultivation up to
 	-- this share of the bar (the realm doesn't move until the player breaks
-	-- through). On a normal breakthrough the excess carries into the next stage,
-	-- at most CARRY_SHARE of the new bar. A forced breakthrough has no excess.
+	-- through). On a breakthrough the excess carries into the next stage,
+	-- at most CARRY_SHARE of the new bar.
 	OVERFLOW_CAP = 1.5,
 	CARRY_SHARE = 0.25,
+}
+
+-- THE QI SURGE (server QiSurge; docs/systems/cultivation.md "Qi surge"). In combat,
+-- badly hurt, with the bar at FORCE_BAR_SHARE: the player fights for SECONDS at the
+-- next stage's health and power, healed HEAL_SHARE of the raised max health, and it
+-- burns RAW_QI_SHARE of the raw qi in the dantian. Once per combat engagement (until
+-- the InCombat tag drops) when ONCE_PER_COMBAT. Never seated, in a tribulation or at
+-- the peak stage.
+Pacing.Surge = {
+	SECONDS = 15,
+	HEAL_SHARE = 0.2, -- of the surged max health, on top of what the raise keeps
+	RAW_QI_SHARE = 0.25, -- of the raw qi in the dantian when it fires
+	ONCE_PER_COMBAT = true,
 }
 
 -- COMBAT QI (server CombatQi; docs/systems/combat.md). The mana techniques

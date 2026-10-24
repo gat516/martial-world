@@ -172,8 +172,9 @@ end
 
 function Combat.power(player: Player): number
 	local data = PlayerData.get(player)
-	-- the realm's power, then the graded foundations' bonus as its own multiplier (Foundation)
-	return if data then Cultivation.stage(data).power * Foundation.multiplier(data) else 1
+	-- the realm's power (the next stage's during a qi surge), then the graded
+	-- foundations' bonus as its own multiplier (Foundation)
+	return if data then Cultivation.fightStage(player, data).power * Foundation.multiplier(data) else 1
 end
 
 -- The player's spirit root perk of `kind` (Roots.perk) plus their race, variant

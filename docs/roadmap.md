@@ -93,7 +93,10 @@ the heart-demon trial and the Cultivate-window line are not.**
 - **Rejected:** a wound on the cultivation bar as the death cost. Two death
   penalties at once is where it turns hardcore.
 
-**The qi surge (replaces the forced breakthrough).**
+**The qi surge (replaces the forced breakthrough). Built 2026-10-23 (untuned), see
+[cultivation](systems/cultivation.md#qi-surge): 15 s, 20% heal, 25% of the dantian's raw
+qi, once per engagement; the touch-cluster button is still the stack pill
+([HUD vitals](ui/hud-vitals.md#qi-surge-pill)).**
 - **Its point:** survive and keep your haul. A clutch comeback, not insurance.
 - **Ready** when the bar is at least 90% and health is low (today's `canForce`
   conditions).
@@ -115,7 +118,7 @@ foundation experiences (built).
 
 **Shelved UI:** the solidity meter (`FoundationMeter.luau`) and the death-save
 prompt (`DeathSave.luau`) from the UI pass. Phase A needs instead: the surge
-button and "M to qi surge" notice, the grade line on the breakthrough card, the
+button in the touch cluster (the stack pill stands in, and is the "M to qi surge" notice), the grade line on the breakthrough card, the
 spirit ring slots, and the spilled-haul spirit-light.
 
 **Build order:** docs and Pacing numbers; the haul, banking and death spill; the
@@ -432,7 +435,7 @@ The solidity meter and death-save prompt are shelved by Phase A.
 - Foundation grade bonuses: which stats, and how big a gap between Cracked and Deep?
 - How many experiences per stage make each grade?
 - Spill share (half proposed), spirit-light lifetime (5 min proposed), ring slot counts.
-- Surge length (15 s proposed), its raw-qi cost, and does it have a cooldown beyond the 90% bar?
+- Surge tuning (built at 15 s, 25% raw qi, once per engagement): right numbers, and a cooldown beyond that?
 - Essence blood: a resource of its own (for the surge, the Blood Rite, the demon path) or flavour?
 - How much harder is a tribulation or heart-demon trial per grade below Solid?
 - Does the Herbarium reward cosmetics only, or foundation experiences?

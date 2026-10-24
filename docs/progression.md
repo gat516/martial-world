@@ -23,8 +23,8 @@ until playtested. Nothing here is built yet unless it says so.
 - **Insight is deleted; walls are the bar (user, 2026-10-23).** A breakthrough
   is graded by what the player experienced that stage (the foundation grade, a
   permanent stat bonus); death spills half of the unbanked haul (a spirit ring keeps some safe); the forced breakthrough
-  becomes the qi surge. See [roadmap](roadmap.md) "Phase A". Insight is gone from
-  the code; the grades, the haul and the surge aren't built yet.
+  became the qi surge. See [roadmap](roadmap.md) "Phase A". Insight is gone from
+  the code; the grades and the surge are built, the haul isn't yet.
 - **Bloodlines, not races.** Cosmetic traits (horns, tails, wings, see-through
   spirits) come with a bloodline. See "Bloodlines".
 

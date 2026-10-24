@@ -527,9 +527,15 @@ function Meditation.init(gui: ScreenGui)
 		Menus.setCalm(not Menus.isCalm())
 	end)
 	watchInput()
+	-- M meditates, except while the qi surge is ready (server SurgeReady, only
+	-- ever true standing in a fight): then it surges (BreakthroughView)
 	ContextActionService:BindAction("Meditate", function(_, inputState)
 		if inputState == Enum.UserInputState.Begin then
-			Meditation.toggle()
+			if BreakthroughView.surgeReady() then
+				task.spawn(BreakthroughView.surge)
+			else
+				Meditation.toggle()
+			end
 		end
 		return Enum.ContextActionResult.Sink
 	end, false, Enum.KeyCode.M)

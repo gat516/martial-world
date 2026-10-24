@@ -3,8 +3,7 @@
 -- boosted by eaten-herb buffs, by the spirit aura of mature plants left growing in
 -- the player's plots, and by meditating (Meditation.luau). It keeps filling past
 -- the bar up to the overflow cap (Pacing.Breakthrough.OVERFLOW_CAP) without moving
--- the realm; breakthroughs move the player on and carry some of the excess. Cultivation goes negative after a forced
--- breakthrough: that qi debt is paid off by the same sources before the bar fills.
+-- the realm; breakthroughs (seated only) move the player on and carry some of the excess.
 -- Also owns breakthroughs, qi deviation, the passive-progress warnings, per-realm
 -- character stats and the PlayerState push the HUD renders from.
 
@@ -91,6 +90,15 @@ end
 
 function Cultivation.stage(data: PlayerData.Data): Realms.Stage
 	return Realms.get(data.realm.major, data.realm.minor)
+end
+
+-- Set by QiSurge: the stage a surging player fights at (the next one), nil otherwise.
+Cultivation.surgeStage = nil :: ((Player) -> Realms.Stage?)?
+
+-- The stage whose health and power the player has right now: their own, or the
+-- next one during a qi surge (QiSurge, Pacing.Surge).
+function Cultivation.fightStage(player: Player, data: PlayerData.Data): Realms.Stage
+	return (Cultivation.surgeStage and Cultivation.surgeStage(player)) or Cultivation.stage(data)
 end
 
 -- The most cultivation the current stage holds: past the bar, up to the overflow cap.
@@ -224,7 +232,7 @@ function Cultivation.applyStats(player: Player, data: PlayerData.Data)
 		humanoid.JumpHeight = StarterPlayer.CharacterJumpHeight * jump
 		humanoid.JumpPower = StarterPlayer.CharacterJumpPower * jump
 		local maxHealth = math.floor(
-			Cultivation.stage(data).health
+			Cultivation.fightStage(player, data).health
 				* (1 + Roots.perk(data.root, "health") + Registry.stat(data, "health"))
 				* Foundation.multiplier(data) -- graded foundations (Pacing.Foundation)
 				+ 0.5
@@ -280,11 +288,10 @@ end
 -- Set by Tribulation: starts the tribulation a major breakthrough needs.
 Cultivation.startTribulation = nil :: ((Player) -> (boolean, string?))?
 
--- Move the player up to the next stage, starting `debt` cultivation in the hole
--- (a forced breakthrough), or else with the excess past the old bar carried over
--- (at most Pacing.Breakthrough.CARRY_SHARE of the new bar). Major breakthroughs
+-- Move the player up to the next stage, with the excess past the old bar carried
+-- over (at most Pacing.Breakthrough.CARRY_SHARE of the new bar). Major breakthroughs
 -- are announced to everyone. The stage being left gets its foundation grade.
-function Cultivation.advance(player: Player, debt: number?)
+function Cultivation.advance(player: Player)
 	local data = PlayerData.get(player)
 	if not data then
 		return
@@ -297,12 +304,8 @@ function Cultivation.advance(player: Player, debt: number?)
 	local major = nextStage.major ~= stage.major
 	local grade = Foundation.seal(data) -- grades the stage being left, resets the count
 	data.realm = { major = nextStage.major, minor = nextStage.minor }
-	if debt then
-		data.cultivation = -debt
-	else
-		local excess = math.max(0, data.cultivation - stage.bar)
-		data.cultivation = math.floor(math.min(excess, nextStage.bar * Pacing.Breakthrough.CARRY_SHARE))
-	end
+	local excess = math.max(0, data.cultivation - stage.bar)
+	data.cultivation = math.floor(math.min(excess, nextStage.bar * Pacing.Breakthrough.CARRY_SHARE))
 	data.rawQi = math.min(data.rawQi, nextStage.dantian)
 	data.stats.breakthroughs += 1
 	local s = session(player)
@@ -323,19 +326,12 @@ end
 -- Called with (player, newStage, major) after every breakthrough.
 Cultivation.onBreakthrough = {} :: { (Player, Realms.Stage, boolean) -> () }
 
--- In combat, badly hurt, with the bar nearly full: a breakthrough can be forced.
-function Cultivation.canForce(player: Player, data: PlayerData.Data): boolean
-	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-	if not (humanoid and humanoid.Health > 0 and Cultivation.inCombat and Cultivation.inCombat(player)) then
-		return false
-	end
-	return humanoid.Health <= humanoid.MaxHealth * Pacing.Breakthrough.FORCE_HEALTH_SHARE
-		and data.cultivation >= Cultivation.stage(data).bar * Pacing.Breakthrough.FORCE_BAR_SHARE
-end
+-- Set by QiSurge: fire the qi surge (CultivationAction "surge").
+Cultivation.surge = nil :: ((Player) -> (boolean, string?))?
 
 -- Breakthroughs happen seated in meditation on a full bar: minor ones at once,
--- and a heaven-defying player must survive a tribulation before a major one. A minor one can also
--- be forced in combat (canForce), leaving the new realm in qi debt.
+-- and a heaven-defying player must survive a tribulation before a major one. Never
+-- standing: in a fight the bar's answer is the qi surge (QiSurge).
 function Cultivation.breakthrough(player: Player): (boolean, string?)
 	local data = PlayerData.get(player)
 	if not data then
@@ -353,16 +349,7 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 	local major = nextStage.major ~= stage.major
 	local seated = Cultivation.meditation ~= nil and Cultivation.meditation(player) ~= nil
 	if not seated then
-		if not Cultivation.canForce(player, data) then
-			return false, "Sit and meditate to break through."
-		end
-		if major then
-			return false, "A major breakthrough can't be forced. Face the heavens calmly."
-		end
-		local debt = (stage.bar - math.min(data.cultivation, stage.bar)) + nextStage.bar * Pacing.Breakthrough.FORCE_DEBT_SHARE
-		Cultivation.advance(player, debt)
-		Cultivation.notify(player, `You forced the breakthrough! Your foundation is unstable: {math.ceil(debt)} qi owed.`)
-		return true, nil
+		return false, "Sit and meditate to break through."
 	end
 	if data.cultivation < stage.bar then
 		return false, "Your realm bar isn't full yet."

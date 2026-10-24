@@ -111,7 +111,7 @@ character and boolean and never uses the request to authorize combat.
 `Weapons.apply` combines Tool occupancy, `WeaponControlsLocked`, and
 `WeaponBreakthroughUntil` into the replicated character `WeaponStowed`
 attribute. Releasing one reason cannot override another. The breakthrough hook
-stows the weapon for the 1.6-second column effect, including forced breakthroughs;
+stows the weapon for the 1.6-second column effect (breakthroughs are seated only);
 the timer is scoped to that character and latest breakthrough. The next respawn
 gets fresh attributes and a new client report. Ordinary attack/cast/dodge movement
 restrictions (`ActionBusy` / zero action speed) do not stow the weapon.

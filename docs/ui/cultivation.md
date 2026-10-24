@@ -35,7 +35,7 @@ Back until Codex sheet B6 ([codex-sheets](codex-sheets.md)) replaces them.
 |---|---|---|
 | Seated tiles | `Stack.CultivatePrompt.*` | `tile_neutral` frame (Break Through: `tile_gold`, gold glyph and caption), glyph at 50 % centred on the tile (the frame art's hole is centred on the tile to 0.04 px), each icon cropped to its drawn area with `ImageRectOffset`/`ImageRectSize` (the Root icon's rect comes from `SelfCard.rootIconRect`) so its long side fills the box: 8.0/8.0/8.4/8.3 px to the hole (left/right/top/bottom; phone 7.4/7.5/7.8/7.7), caption under the tile (Builder Sans Bold 12, cream, ink stroke, no pill); the seal dot (`Badge`) is a `ruby_stud` on the top-right corner |
 | Calm lotus | `Stack.CalmToggle` | the HUD's round seal (`figma/hud_round_seal.png`) with `emblem_lotus`, centred on the tiles' centre line (`placeLotus` sets it from the row's offset and the tile height) |
-| Force Breakthrough | `Stack.BreakthroughButton` | `response_button_hi` sliced `Rect(200, 53, 860, 54)` at 0.374, the breakthrough glyph in its left ring, label centred between the ring and the chevron |
+| Qi Surge pill (was Force Breakthrough; the label is set by code, see [HUD vitals](hud-vitals.md#qi-surge-pill)) | `Stack.BreakthroughButton` | `response_button_hi` sliced `Rect(200, 53, 860, 54)` at 0.374, the breakthrough glyph in its left ring, label centred between the ring and the chevron |
 | Meditation panel | `MeditationPanel` | `meditation_card` backdrop (crest, cut corners, bottom point; `Backdrop` is the panel + 10 px wide and + 48 px tall, offset -9 so the crest rises above it); the gold title sits in the crest (136x23, centred on the crest's red field, `divider_cloud` hidden); `close_seal` with a live "×" over the top-right cut corner; rows: `crest_ring_plain` seal, `divider_diamond` rule under each row, actions on three-part `tag_jade` (suggested) and `tag_bronze` (the rest) ribbons fitted to their text (`Ribbon.fit`, styles `tag_jade`/`tag_bronze`). Content sits 15 px inside the rail's inner edge on all four sides (padding 12/18/18/18 plus the list's 6 px gap under the empty `Header`) |
 | Circulation overlay | `Circulation` | gold title; the Leave pill is `tag_crimson`; the result card is `window_small` |
 | Spirit-root reveal | `RootReveal` | `window_small` card, `rays_milestone` in the element's colour behind a `crest_ring_plain` seal, a gold `fx_shockwave` halo for rare roots (`Seal.Trim`) and a `tag_gold` "RARE!" tag |
@@ -129,7 +129,7 @@ The vignette may be reused for the surge.
 - Panel: title and divider on the panel centre (0.0); row seal 8 px from the row's left,
   action 8 px from its right; header 14 px from the top, last line about 16 px from the
   bottom; the close seal centred on the corner's ruby block (5, 5 in from the corner).
-- Force Breakthrough: label centre 128.0 against the ring-to-chevron middle 127.7; glyph in
+- Qi Surge pill (measured as Force Breakthrough): label centre 128.0 against the ring-to-chevron middle 127.7; glyph in
   the ring 21.0 against 21.5.
 - Result card: grade and detail centred (0.0), 28.1 top and 28.2 bottom.
 - Root reveal: seal, rays and every line centred (0.0).

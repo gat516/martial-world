@@ -21,10 +21,10 @@
 -- after) and Back. An action that isn't available shows dimmed and toasts why.
 -- The main row comes back after a drill or the panel, on Back, and on standing.
 -- Technique, Method and Spirit Root open a small panel (MeditationMenu).
--- The calm view: the lotus toggle (Stack.CalmToggle) folds the tiles away and
+-- The calm view: the eye toggle (Stack.CalmToggle) folds the tiles away and
 -- fades the rest of the HUD (Menus.setCalm) to just watch the world; it also
 -- comes on by itself after CALM_AFTER seconds without input. A tap anywhere, a
--- key, the lotus again, or standing up brings everything back. Passive
+-- key, the eye again, or standing up brings everything back. Passive
 -- cultivation runs either way.
 -- The touch combat cluster hides while seated; the tile reads "Rise". The vitals
 -- step aside for the cultivation bars (SeatBars: realm, progress to the next
@@ -66,7 +66,7 @@ local BLEND = 0.2 -- seconds each animation fades into the next
 local CALM_AFTER = 20 -- seconds seated without input before the HUD fades by itself
 local TAP_DRIFT = 12 -- px a press may move and still be a tap (more is a camera drag)
 local TAP_SECONDS = 0.4 -- a longer press isn't a tap either
-local CALM_ICON = 0.55 -- the lotus's transparency while the view is calm
+local CALM_ICON = 0.55 -- the eye toggle's transparency while the view is calm
 local RESTING = 0.5 -- a Practice-row tile's transparency while resting or unavailable
 local LOTUS_GAP = 22 -- px from the last tile's edge to the lotus (the row's own tile gap)
 
@@ -81,7 +81,7 @@ local strikes: { [string]: { AnimationTrack } } = {} -- a class's chain steps, l
 local strikeStep = 0
 local button: TextButton
 local row: Frame -- Stack.CultivatePrompt: the seated tiles
-local calmToggle: ImageButton -- Stack.CalmToggle: the lotus
+local calmToggle: ImageButton -- Stack.CalmToggle: the eye
 local wasCalm = false
 local practiceRow = false -- the Practice tiles show instead of the main row
 local lastInput = os.clock()

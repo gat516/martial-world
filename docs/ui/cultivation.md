@@ -33,8 +33,8 @@ Back until Codex sheet B6 ([codex-sheets](codex-sheets.md)) replaces them.
 ## Restyled screens (`assets/Hud.rbxmx`)
 | Piece | Path | Look |
 |---|---|---|
-| Seated tiles | `Stack.CultivatePrompt.*` | `tile_neutral` frame (Break Through: `tile_gold`, gold glyph and caption), glyph at 50 % centred on the tile (the frame art's hole is centred on the tile to 0.04 px), each icon cropped to its drawn area with `ImageRectOffset`/`ImageRectSize` (the Root icon's rect comes from `SelfCard.rootIconRect`) so its long side fills the box: 8.0/8.0/8.4/8.3 px to the hole (left/right/top/bottom; phone 7.4/7.5/7.8/7.7), caption under the tile (Builder Sans Bold 12, cream, ink stroke, no pill); the seal dot (`Badge`) is a `ruby_stud` on the top-right corner |
-| Calm lotus | `Stack.CalmToggle` | the HUD's round seal (`figma/hud_round_seal.png`) with `emblem_lotus`, centred on the tiles' centre line (`placeLotus` sets it from the row's offset and the tile height) |
+| Seated tiles | `Stack.CultivatePrompt.*` | `hud/hud_tile.png` frame at the tile's size, the same as the top-right HUD buttons (user, 2026-10-24: the studded `tile_neutral`/`tile_gold` frames were "a little tacky"; Break Through keeps its gold glyph and caption), glyph at 50 % centred on the tile, each icon cropped to its drawn area with `ImageRectOffset`/`ImageRectSize` (the Root icon's rect comes from `SelfCard.rootIconRect`) so its long side fills the box, caption under the tile (Builder Sans Bold 12, cream, ink stroke, no pill); the seal dot (`Badge`) is a `ruby_stud` on the top-right corner |
+| Calm toggle (eye) | `Stack.CalmToggle` | `hud_tile` with the white eye glyph (`hud/hud_eye.png`, drawn by `art/ui/hud/draw_eye.py`, cream at 50 %; user 2026-10-24: hiding the HUD reads as an eye, not the lotus), centred on the tiles' centre line (`placeLotus` sets it from the row's offset and the tile height) |
 | Qi Surge pill (was Force Breakthrough; the label is set by code, see [HUD vitals](hud-vitals.md#qi-surge-button-and-notice)) | `Stack.BreakthroughButton` | `response_button_hi` sliced `Rect(200, 53, 860, 54)` at 0.374, the surge flame (`icon_surge`) in its left ring, label centred between the ring and the chevron (PC only; touch has `Play.SurgeButton`) |
 | Meditation panel | `MeditationPanel` | `meditation_card` backdrop (crest, cut corners, bottom point; `Backdrop` is the panel + 10 px wide and + 48 px tall, offset -9 so the crest rises above it); the gold title sits in the crest (136x23, centred on the crest's red field, `divider_cloud` hidden); `close_seal` with a live "×" over the top-right cut corner; rows: `crest_ring_plain` seal, `divider_diamond` rule under each row, actions on three-part `tag_jade` (suggested) and `tag_bronze` (the rest) ribbons fitted to their text (`Ribbon.fit`, styles `tag_jade`/`tag_bronze`). Content sits 15 px inside the rail's inner edge on all four sides (padding 12/18/18/18 plus the list's 6 px gap under the empty `Header`) |
 | Circulation overlay | `Circulation` | gold title; the Leave pill is `tag_crimson`; the result card is `window_small` |
@@ -44,7 +44,7 @@ Layout (PC 1616x784 Studio view, phone at 844x390): tiles are 54 px (phone: the 
 floor), 22 px apart, the row centred on the stack (row mid 808.0 = stack mid 808.0);
 the row's bottom is 20 px above the stack top (the realm crest's top), so the captions sit
 2 px under the tiles and their 14 px boxes end 4 px above the crest on every size (PC,
-844x390, 750x369, 600x300). The lotus is `LOTUS_GAP` 22 px past the last tile, the row's own
+844x390, 750x369, 600x300). The eye toggle is `LOTUS_GAP` 22 px past the last tile, the row's own
 gap, and level with the tiles' centre.
 
 ## Seclusion
@@ -154,8 +154,9 @@ The vignette may be reused for the surge.
 - `CultivationMarks.preview()` lays every mark out in the middle of the screen for 8 s.
 
 ## Alignment (measured in Studio)
-- Tiles: icon, frame and caption centres on the tile centre (0.0 px); gaps 22.0 each;
-  lotus centre y = tile centre y (0.00), lotus gap 22.2.
+- Tiles (measured with the old `tile_neutral` frames; not re-measured with `hud_tile`):
+  icon, frame and caption centres on the tile centre (0.0 px); gaps 22.0 each;
+  toggle centre y = tile centre y (0.00), lotus gap 22.2.
 - Panel: title and divider on the panel centre (0.0); row seal 8 px from the row's left,
   action 8 px from its right; header 14 px from the top, last line about 16 px from the
   bottom; the close seal centred on the corner's ruby block (5, 5 in from the corner).

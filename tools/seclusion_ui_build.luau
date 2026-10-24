@@ -117,7 +117,8 @@ end
 
 local root = frame("Seclusion", {
 	AnchorPoint = Vector2.new(0.5, 0),
-	Position = UDim2.new(0.5, 0, 0.185, 0),
+	-- just under the toast: 84 baseline px on PC (1080), 72 on a phone (390)
+	Position = UDim2.new(0.5, 0, 0.0174, 65),
 	Size = UDim2.fromOffset(640, 92),
 	Visible = false,
 }, canvas)

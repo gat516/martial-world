@@ -52,7 +52,8 @@ The AFK mode's screens ([seclusion](../systems/seclusion.md)), all from kit art 
 sheet). Built by `tools/seclusion_ui_build.luau` (sandbox; then export the ScreenGui).
 - **Secluded plaque** (`Canvas.Seclusion`, `SeclusionView.luau`): the toast's lacquer
   plaque sliced taller (`toast_plaque`, Rect(48, 47, 464, 49), SliceScale 0.62, 58 px,
-  sized to its content) at 18.5 % of the height, centred: the lotus, the elapsed time
+  sized to its content) just under the toast (84 baseline px down on PC, 72 on a phone;
+  user, 2026-10-24: it sat too low at 18.5 %), centred: the lotus, the elapsed time
   (Fredoka 32, the hero), a gold rule, then what has gathered, dimmer: stones (always),
   finds and the garden ("Tended", or the number of plants that mutated) only once there
   are any. Under it, on a soft dark backing (`fx_glow` tinted near black), the streak's

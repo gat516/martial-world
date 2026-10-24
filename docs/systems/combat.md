@@ -76,13 +76,27 @@ scales all player damage.
   set for the old clip), so the new clip's pace is untuned: check the feet against
   the ground at run speed and retune that number if it slides.
 - `src/client/Strafe.luau`: `Animations/Strafe/Left` and `Right` (user, 2026-10-24) while walking
-  sideways to the way you face, only while something holds the facing (lock-on,
-  guard facing, an action: AutoRotate off; or shift lock / first person:
-  RotationType CameraRelative), so free movement never strafes. Movement
-  priority over the walk, not while running, in the air or seated; mostly
-  forward or back keeps the walk. WeaponAnimator pauses a class walk while one
-  plays; actions (Action priority) stay on top. Tuning: `LATERAL` (0.6, the
-  sideways share that counts) and `CLIP_SPEED` at its top.
+  sideways under shift lock only (mouse at the centre, not first person; user,
+  2026-10-24). Blended, not switched: each side's weight follows how sideways
+  the move is (none below `LATERAL_START` 0.35, full from `LATERAL_FULL` 0.85,
+  eased at `WEIGHT_RATE`), so it fades in as the body turns and fades out when
+  shift lock goes off. Movement priority over the walk; out while running, in the
+  air or seated. WeaponAnimator pauses a class walk while one is mostly in;
+  actions (Action priority) stay on top.
+- Shift lock turning (`Movement.luau`, husspotato7 reference, user 2026-10-24):
+  instead of Roblox snapping the body onto the camera, the body turns toward it
+  at `BODY_TURN` (moving) or `STAND_TURN` (standing) per second and is dragged
+  along past `HEAD_LIMIT` (95 degrees), while the head is already on the camera.
+  Off, or running, it's normal movement (AutoRotate on). First person still uses
+  Roblox's camera-relative facing.
+- `src/client/HeadLook.luau` + `src/server/HeadLook.luau` (husspotato7 reference):
+  your head follows your camera (all but locked on under shift lock, eased
+  otherwise; up to 100 degrees sideways and 55 up or down, easing back to the
+  front past 150), on the neck's C0 so animations play underneath. Your look goes
+  to the server over the `Look` remote (at most 5 a second, only when it moved),
+  which sets the character's `Look` attribute (Vector2 pitch, yaw, clamped and
+  rounded); other clients ease that player's head toward it within 160 studs.
+  Cosmetic: no combat code reads it.
 - `src/client/CombatEffects.luau`, `Telegraphs.luau`: cosmetic effects and ground warnings.
 - `src/client/CastFX.luau`: shared runtime helpers for technique effects, used
   for the caster's own casts and relayed ones alike: the striking limb

@@ -25,6 +25,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only; trait* actions take a target player, see [identity](systems/identity.md)) | AdminPanel |
+| Look | Event | C->S | `HeadLook.start` (pitch, yaw in radians; rate-limited, clamped, sets the character's `Look` attribute) | HeadLook |
 | CharacterAction | Function | C->S | `CharacterIdentity.handle` (`state`, `templates`, `hair`, `defaults`, `reroll`, `confirm`); test place only | CharacterCreator.Bridge |
 | WeaponAction | Function | C->S | `Weapons.handle` ("equip", weaponId / "unequip" / "stow", character, boolean) | HotbarView (weapon drags and the weapon slot), WeaponAnimator (cosmetic control locks) |
 | Dodge, Cast | Event | - | unused (combat moved onto Attack) | - |
@@ -39,7 +40,7 @@ Besides remotes, the server publishes fast-changing values as attributes:
 player `Race`, `RaceVariant`, `Traits`, `TraitsInactive` ([identity](systems/identity.md)), `Realm`, `Cultivation` (may exceed `CultivationMax`, up to `CultivationCap`), `CultivationMax`, `CultivationCap`,
 `BreakthroughReady`, `BreakthroughBlock` ([cultivation](systems/cultivation.md)), `Qi`, `QiMax`, `QiDenied` (combat qi,
 [combat](systems/combat.md#combat-qi-technique-mana)), `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`, `Meditating` (seated; for others' method auras),
-`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`, `InCombat` (hurt or dealing damage within `IN_COMBAT_SECONDS`, [combat](systems/combat.md)); character `WeaponClass`, `WeaponStowed`
+`DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`, `InCombat` (hurt or dealing damage within `IN_COMBAT_SECONDS`, [combat](systems/combat.md)); character `Look` (head pitch and yaw, HeadLook), `WeaponClass`, `WeaponStowed`
 (combines Tool occupancy, `WeaponControlsLocked`, `WeaponBreakthroughUntil`); humanoid `BaseWalkSpeed`,
 `Running`, `ActionBusy`; enemy `Health`, `MaxHealth` (enemies have no Humanoid), `AIState`, `StateAt`, `Attack`, `DashFrom`/`DashTo`/`DashSpeed`/`DashAt`, `FadeAt`, `Realm`
 (see [enemies](systems/enemies.md), "Server and client"); workspace `Weather`,

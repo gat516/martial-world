@@ -14,6 +14,7 @@ local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local Cultivation = require(script.Parent.Cultivation)
+local HeadLookServer = require(script.Parent.HeadLook)
 local Garden = require(script.Parent.Garden)
 local Receipts = require(script.Parent.Receipts)
 local Build = require(script.Parent.Build)
@@ -227,6 +228,7 @@ end
 (remotes.Attack :: RemoteEvent).OnServerEvent:Connect(Combat.action);
 (remotes.Meditate :: RemoteEvent).OnServerEvent:Connect(Meditation.handle);
 (remotes.Sprint :: RemoteEvent).OnServerEvent:Connect(Cultivation.setRunning);
+HeadLookServer.start(); -- everyone sees where each player is looking (cosmetic)
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);
 (remotes.SaveSettings :: RemoteEvent).OnServerEvent:Connect(Settings.save);
 (remotes.WeaponAction :: RemoteFunction).OnServerInvoke = guarded(Weapons.handle);

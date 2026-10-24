@@ -35,6 +35,9 @@ local SMALL_HEIGHT_SHARE = 0.31 -- on short screens (Platform.isSmall), phones a
 -- A touch phone (short and touch) keeps less: the user couldn't see the world past the
 -- HUD (2026-10-23). Readability comes from contrast, never from size.
 local TOUCH_SMALL_SHARE = 0.26
+-- The top-right tiles' scale on a touch phone: 56 px tiles at 44 px, Roblox's own
+-- top-bar button height (they were 50, 0.9, and read too large next to them).
+local TOUCH_SMALL_TILES = 0.78
 
 local player = Players.LocalPlayer
 
@@ -141,8 +144,16 @@ function Layout.apply()
 	end
 	local tiles = find("Buttons"):FindFirstChildOfClass("UIScale")
 	if tiles then
-		-- touch: tiles stay thumb-sized (about 50px); PC: a little smaller
-		tiles.Scale = if touch then 0.9 elseif Platform.isSmall() then 0.75 else 0.85
+		-- touch: tiles stay thumb-sized (about 50px; 44 px on a phone, where the
+		-- user found 50 "a bit too large", 2026-10-23: the top bar's own buttons'
+		-- height); PC: a little smaller
+		local small = Platform.isSmall()
+		tiles.Scale = if touch then (if small then TOUCH_SMALL_TILES else 0.9) elseif small then 0.75 else 0.85
+		-- the objective and buffs column keeps its 8 px gap under the smaller tiles
+		local tracker = find("Tracker")
+		if touch and small and tracker then
+			tracker.Position = UDim2.new(1, -12, 0, math.round(12 + 56 * TOUCH_SMALL_TILES + 8))
+		end
 	end
 end
 

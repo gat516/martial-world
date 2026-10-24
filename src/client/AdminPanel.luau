@@ -1,8 +1,13 @@
 --!strict
 -- The admin dashboard (Hud.AdminPanel): a compact side panel for testing, only for
--- players the server marks Admin, and only on mouse and keyboard. F2 toggles it;
--- there is no on-screen button. It doesn't register with Menus, so the world and
--- the HUD stay visible while you trigger things.
+-- players the server marks Admin. F2 toggles it on any device with a keyboard. On
+-- touch (phones, tablets, Studio's device emulator) an admin-only tile with the 管
+-- seal (`Buttons.AdminButton`, first in the row, never shown to other players)
+-- toggles it too, and the panel shows a close seal in place of the F2 hint; on a
+-- phone it fills the right side under the tiles and scrolls, and a UI preview chip
+-- closes it so the previewed screen can be seen whole (reopen it from the tile
+-- once that screen closes: open windows hide the tiles). It doesn't register with
+-- Menus, so the world and the HUD stay visible while you trigger things.
 --
 -- Two tabs in the header: Tools (Sections) and Traits (AdminTraits.luau: a
 -- player's race, variant and traits). Tools sections are cloned from
@@ -31,6 +36,10 @@ local player = Players.LocalPlayer
 
 local TAB_ON = "rbxassetid://124847805310931" -- button_gold
 local TAB_OFF = "rbxassetid://88447362782150" -- button_lacquer
+local TOUCH_CHIP_HEIGHT = 36
+-- touch on a phone: the panel's box, right-aligned under the tile row
+local PHONE_TOP = 64
+local PHONE_BOTTOM_GAP = 10
 local WEATHER_ORDER = { "Clear", "Rain", "Storm", "Windy", "AuspiciousMist", "RainbowAurora", "HeavenSplit" }
 
 local AdminPanel = {}
@@ -90,6 +99,10 @@ type Chip = { label: string, color: Color3?, press: (count: number) -> () }
 local function section(title: string, count: number?, chips: { Chip })
 	order += 1
 	local s = sectionTemplate:Clone()
+	local cells = (s:FindFirstChild("Grid") :: Frame):FindFirstChildWhichIsA("UIGridLayout")
+	if cells and Platform.isTouch() then
+		cells.CellSize = UDim2.new(cells.CellSize.X, UDim.new(0, TOUCH_CHIP_HEIGHT)) -- thumb-sized
+	end
 	s.Name = title
 	s.LayoutOrder = order
 	local head = s:FindFirstChild("Head") :: Frame;
@@ -172,6 +185,9 @@ local function build()
 			local node: Instance = script.Parent
 			for _, name in path do
 				node = node:FindFirstChild(name) :: Instance
+			end
+			if Platform.isTouch() and panel.Visible then
+				Motion.close(panel) -- see the previewed screen whole
 			end
 			local ok, err = pcall(function()
 				(require(node :: ModuleScript) :: any)[fn](table.unpack(args, 1, args.n))
@@ -332,7 +348,7 @@ local function build()
 end
 
 local function allowed(): boolean
-	return player:GetAttribute("Admin") == true and not Platform.isTouch()
+	return player:GetAttribute("Admin") == true
 end
 
 function AdminPanel.toggle()
@@ -373,9 +389,35 @@ function AdminPanel.init(gui: ScreenGui)
 	list = panel:FindFirstChild("Sections") :: ScrollingFrame
 	sectionTemplate = list:FindFirstChild("SectionTemplate") :: Frame
 	panel.Visible = false
-	if Platform.isTouch() then
-		return -- PC only
+	local touch = Platform.isTouch()
+	local tile = (gui:FindFirstChild("Buttons") :: Instance):FindFirstChild("AdminButton") :: GuiButton?
+	local close = panel:FindFirstChild("Close") :: GuiButton?
+	local keyHint = panel:FindFirstChild("KeyHint") :: GuiObject?
+	if keyHint then
+		keyHint.Visible = not touch
 	end
+	if close then
+		close.Visible = touch
+		close.Activated:Connect(function()
+			AdminPanel.toggle()
+		end)
+	end
+	if touch and Platform.isSmall() then
+		panel.Position = UDim2.new(1, -12, 0, PHONE_TOP)
+		panel.Size = UDim2.new(0, 380, 1, -(PHONE_TOP + PHONE_BOTTOM_GAP))
+	end
+	if tile then
+		tile.Activated:Connect(function()
+			AdminPanel.toggle()
+		end)
+	end
+	local function showTile()
+		if tile then
+			tile.Visible = touch and allowed()
+		end
+	end
+	showTile()
+	player:GetAttributeChangedSignal("Admin"):Connect(showTile)
 	local traitsPage = panel:FindFirstChild("Traits") :: ScrollingFrame?
 	local tabs = panel:FindFirstChild("Tabs")
 	if traitsPage and tabs then

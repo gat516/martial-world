@@ -176,6 +176,9 @@ end
 -- the stage before (health, power, combat qi, passive cultivation) and any travel
 -- array the new stage opens. The subtitle also carries the foundation the stage just
 -- left earned: its grade word and percent (server Foundation; 100% is full, past it is more).
+local FIRST_FOUNDATION_CARD = "QC5"
+local FOUNDATION_LINE = "New beasts and herbs deepen your foundation."
+
 local function milestoneCard(stageName: string, major: boolean, grade: string?, percent: number?)
 	local share = if type(percent) == "number" then ` {percent}%` else ""
 	local stage = Realms.byName(stageName)
@@ -196,6 +199,9 @@ local function milestoneCard(stageName: string, major: boolean, grade: string?, 
 		add("Combat qi", before.combatQi, stage.combatQi, "%d")
 		add("Passive", before.passive, stage.passive, "%.2f/s")
 	end
+	-- the first card that carries a foundation (QC4 -> QC5; Pacing.Foundation.FROM is
+	-- QC4) introduces it in one line
+	local firstFoundation = stage ~= nil and type(grade) == "string" and stage.key == FIRST_FOUNDATION_CARD
 	local unlock: string? = nil
 	if stage then
 		for _, gate in Gates.List do
@@ -212,7 +218,9 @@ local function milestoneCard(stageName: string, major: boolean, grade: string?, 
 		subtitle = if type(grade) == "string" then `{stageName}  ·  {grade} foundation{share}` else stageName,
 		stats = stats,
 		unlock = unlock,
-		flavour = if major then "A new realm opens before you." else "Your qi settles at a new depth.",
+		flavour = if firstFoundation then FOUNDATION_LINE
+			elseif major then "A new realm opens before you."
+			else "Your qi settles at a new depth.",
 		life = if major then 7 else 5,
 	})
 end

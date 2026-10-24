@@ -122,38 +122,80 @@ QC3->4 by ~9-10); not yet timed in play.
   the Testing Stone, `MyPeak` to refine and bank on the spawn pad's TestPeak; first
   player only).
 
-**One idea per chapter after the hook** (lessons, roadmap section 2): Home (QC4,
-plant a seed), paired with Seclusion (QC4 after Home: enter seclusion on your peak; the
-first one ends by itself after 90 s with a generous card, a reward moment; the seed
-just planted is what it tends; [seclusion](seclusion.md)), Board (QC5, read the sect board: from then on its Read prompt opens the [sect](sect.md) board), Herbs (QC6, eat one), the Dao drill
-(QC7, DaoPractice, `Pacing.DaoPractice.FROM`), Rumours (QC8, find a hidden cache; no
-guide), Wall (QC9, break into Qi Refining), and at QR1 the second weapon (WeaponRack,
-`RACK_FROM`). A lesson's line waits 20 s into free play (`LESSON_DELAY`), so Home
-doesn't land on FreePlay's own line. Still to write, as each system lands: QR (a
-master, the Halls, rifts, the heart demon) and FE (refinement, treasures, pets).
+**One idea per chapter after the hook** (user, 2026-10-24, from
+[onboarding-lessons](../design-reviews/onboarding-lessons.md) and
+[first-session](../design-reviews/first-session.md)). Each lesson is one live system:
+
+| When | Lesson | Elder line (the why) | Objective (the what) |
+|---|---|---|---|
+| QC4 | Home | Your peak grows with you. Plant a seed in your garden. | Plant a seed |
+| 2nd session | Seclusion | Rest now. Your peak works for you while you're away. | Enter seclusion at home |
+| QC5 | Rumours | The Borderlands are open. Old manuals hide off their paths. | Find a hidden cache |
+| QC6 | Herbs | Herbs are qi you can carry. Eat one when you run dry. | Eat a herb |
+| QC7 | DaoPractice | Practice your weapon's forms as you sit. Its Dao will deepen. | Practice your weapon's Dao |
+| QC8 | none | a breather | |
+| QC9 | HeartDemon | Your heart demon stirs. Sit, and face it honestly. | Face your heart demon |
+| QR1 | WeaponRack | One blade is not enough. Borrow another from the sect's rack. | Take a new weapon |
+| QR2 | Build | Build up your peak. A finer home makes meditation stronger. | Place one build piece |
+| state | Bottleneck | Your art is stuck. Sit and spend stones to break it. | Break your art's bottleneck |
+| state | RootPill, Method | (rare finds, from QC5) | Absorb the root pill; Gain a cultivation method |
+
+- **Seclusion waits for the second session:** offered on the first sit after a join
+  that began at QC4 or later (Home claimed first), or at QC5 for a player who never
+  rejoins. The first one ends by itself after 45 s (`Pacing.Seclusion.FIRST_SECONDS`,
+  30-60 s) with a generous card; [seclusion](seclusion.md).
+- **QC5 is one idea:** the Ruined Borderlands open (their array's line is on the
+  breakthrough card) and their hidden caches (no guide: finding it is the point). The
+  sect board is no longer a lesson; the elder's Talk for Rumours points at it, and its
+  Read prompt opens the [sect](sect.md) board from QC5.
+- **The foundation** gets one line on the QC4 -> QC5 breakthrough card, the first card
+  that carries it ("New beasts and herbs deepen your foundation.",
+  `BreakthroughView.FOUNDATION_LINE`).
+- **The hook plays only the Maze** (`Circulation.pickGame`: below QC4 it's always
+  `FIRST_RUN_GAME`); the other games are met from QC4 on.
+- A lesson's line waits 20 s into free play (`LESSON_DELAY`), so Home doesn't land on
+  FreePlay's own line.
+
+**Lines (user, 2026-10-24):** the elder line is the why, at most 12 words; the
+objective is the what, at most 5 words (verb + noun; the reward rides after it); the
+detail goes in Talk. Reading age 8-10, the elder's warm voice. Beats follow the same
+rule.
+
+**The wall card** (`wallCard`): in free play, when no lesson shown this session and no
+tracked sect quest has the line, the objective line says what to do now, one verb per
+state, from the guides' own checks: **Break through** (bar full; a heaven-defier at a
+major: Face the tribulation), **Store your haul** (an unbanked haul out in the wilds
+below half health, `STORE_HEALTH`), **Hunt beasts (raw qi / a run's worth)** (too
+little raw qi for a run, `Circulation.enoughQi` and `qiForRun`), else **Refine your
+qi (cultivation / bar)**. At the last stage or a method's limit it falls back on the
+quest board's top goal. It is text only, with no guide.
 
 ### Beats and lessons (built)
 - Beats are kept **by id** in `data.beats` (schema v8; v7's position count is
   migrated), so beats can be inserted or reordered. `travel = true` marks the
   beat from which the formation is taught (FirstKill).
 - **Lessons** (`Quests.Lessons`, `data.lessons`), in priority order: RootPill
-  (first, so a standing lesson like DaoPractice can't hide it), Home
-  (QC4, nothing planted: walk to your garden), Seclusion (QC4, Home claimed, the first
-  seclusion not done: home, sit, the Method tile reading Seclusion, Enter Seclusion), Board (QC5), Herbs (QC6), Rumours
-  (QC8), Wall (QC9), Bottleneck, WeaponRack (QR1, a
-  single weapon class: the Main Peak rack), DaoPractice (QR1), Method. In free
+  (first, so no standing lesson can hide it), Home
+  (QC4, nothing planted: walk to your garden), Seclusion (the second session, see
+  above: home, sit, the Method tile reading Seclusion, Enter Seclusion), Rumours (QC5,
+  no guide), Herbs (QC6), DaoPractice (QC7, until a drill is done), HeartDemon (QC9,
+  the Qi Condensation trial unfaced: sit, and the seat offers it; nothing while a
+  "Not now" snoozes it), Bottleneck, WeaponRack (QR1, a single weapon class: the Main
+  Peak rack), Build (QR2, nothing placed: home, then the Build tile), Method. In free
   play, the first lesson whose condition holds says
   its elder line once ever (`QuestState.lesson`), and its guide shows for the
   rest of that session while the condition still holds (`persist`: every
   session until done). A lesson's `objective` replaces the objective line
-  while its guide shows and it's unclaimed (see "Rewarded objectives").
+  while its guide shows and it's unclaimed, and an open, unclaimed lesson shown this
+  session holds it after; in a later session it leaves the line to the wall card and
+  waits in the elder's Talk (see "Rewarded objectives").
 - **Root pill (decided 2026-10-21):** a tested root plus a pill that can act
   (a Root Rebirth Pill, or a Marrow Washing Pill below the purest grade, and no
   reforming root waiting) brings the elder's line and a step-by-step guide:
   Cultivate ("Sit in meditation") -> the Spirit Root tile ("Open your Spirit
   Root") -> the pill's Absorb button on that page ("Absorb it to purify/reform
   your root"), each with the pointer and callout, the objective reading
-  "Meditate, open Spirit Root and absorb the pill". It ends for good once a pill
+  "Absorb the root pill". It ends for good once a pill
   is absorbed (the held count drops: `data.lessons.RootPillUsed`). It waits for
   free play **and QC5** with a pill actually held, never stepping in during the
   hook (user, 2026-10-23: "pill eating made no sense during onboarding. do not
@@ -201,10 +243,10 @@ master, the Halls, rifts, the heart demon) and FE (refinement, treasures, pets).
 - **The objective line is the onboarding for now.** Every beat and lesson is a
   rewarded objective, claimed once per profile: finishing it pays a small
   reward (mostly Spirit Stones; raw qi for bigger moments), with a
-  toast ("Objective complete: Plant a seed in your garden! +30 Spirit Stones"),
+  toast ("Objective complete: Plant a seed! +30 Spirit Stones"),
   the stones' floating number and the Pickup sound, and the Rewards feed. The
-  tracker shows the reward after the objective ("Plant a seed in your garden ·
-  Reward: 30 Spirit Stones").
+  tracker shows the reward after the objective ("Plant a seed · Reward: 30 Spirit
+  Stones"; an icon and number once the tracker supports it).
 - **An actual questing system is the intended direction.** Beats and lessons
   are already quest-shaped defs (`Quests.Quest`: `id`, `elder`, `objective`,
   `progress`, `done`, `reward`, `guide`; lessons add `when`, `open`, `early`,
@@ -213,14 +255,14 @@ master, the Halls, rifts, the heart demon) and FE (refinement, treasures, pets).
   the same defs and share the claim path.
 - **What each one asks** (`done`; a lesson's objective applies while `open`,
   by default its `when`): the beats as above; RootPill: a pill absorbed;
-  Home (from QC4): a herb planted; Seclusion (from QC4): the first seclusion finished
-  (`data.seclusion.first`); Board (from QC5): the board's Read prompt
-  (`data.lessons.BoardRead`); Herbs (from QC6): a herb eaten (`data.lessons.HerbEaten`,
-  set in `Inventory.use`); Rumours (from QC8): a world cache claimed (not a `rack:`
-  one); Wall (from QC9): QR1 reached; Bottleneck (while a technique is
-  bottlenecked): a technique comprehended past its first bottleneck;
-  WeaponRack (from QR1): a weapon of a second class; DaoPractice (from QR1): a
-  Practice Dao drill finished (`daoPracticeReadyUnix` set); Method: a
+  Home (from QC4): a herb planted; Seclusion (once offered, or found alone): the first
+  seclusion finished (`data.seclusion.first`); Rumours (from QC5): a world cache
+  claimed (not a `rack:` one); Herbs (from QC6): a herb eaten (`data.lessons.HerbEaten`,
+  set in `Inventory.use`); DaoPractice (from QC7): a Practice Dao drill finished
+  (`daoPracticeReadyUnix` set); HeartDemon (from QC9): the Qi Condensation trial faced
+  (`data.heartDemon.trials`); Bottleneck (while a technique is bottlenecked): a
+  technique comprehended past its first bottleneck; WeaponRack (from QR1): a weapon of
+  a second class; Build (from QR2): a piece placed (`data.stats.placed`); Method: a
   cultivation method gained (claimed the moment it's given).
 - **Claiming** is server-side in `Quests.check`: a beat when it's passed, a
   lesson when its objective is done while it applies (so planting before QC4
@@ -228,8 +270,8 @@ master, the Halls, rifts, the heart demon) and FE (refinement, treasures, pets).
   pays twice. Raw qi only fills the room left in the dantian.
 - **Objective line priority:** a guiding lesson's objective while unclaimed
   (what its guide points at) -> the current
-  beat -> the first unclaimed lesson whose objective applies -> the top quest
-  board goal.
+  beat -> a tracked sect quest -> the first unclaimed open lesson shown this session
+  -> the wall card -> the top quest board goal.
 - **Rewards** are all in `Pacing.Quests` (the comment there sizes them
   against the early economy): the ten beats pay 85 stones in all (about 19
   wolf kills) plus a fifth of a dantian of raw qi at Cast and a quarter at QC3;
@@ -313,7 +355,7 @@ here". Template built by `tools/vfx_specs/Guide.luau`; this client only.
   toasts why), greys out the wilds arrays away from the Sect Gate, and runs the trip under the `Veil` fade.
 - `src/client/GateMarkers.luau`: a seal and name over each array (`Hud.GateMarker`)
   once travel is taught; `src/client/Veil.luau`: the travel fade (`StarterGui.Veil`).
-- Analytics: each beat is an onboarding funnel step (`Analytics.beat`: beat position + 9, after the join, slot screen, creator and first sit steps; [data](data.md)).
+- Analytics: each beat is an onboarding funnel step (`Analytics.beat`: beat position + 9, after the join, slot screen, creator and first sit steps; [data](data.md)); each lesson logs the custom event `Lesson` (lesson id; `shown` when its line first fires, `claimed` when its objective pays).
 
 ## Data flow
 Every second `Quests.check` marks met beats in `data.beats`, claims done
@@ -345,8 +387,12 @@ then pivots the character onto that array.
   work for the ui-designer.
 - Method's objective can't wait for the Self card to be opened (the server
   doesn't know), so it pays as the method is given.
-- A lesson's guide still runs on `when`, so DaoPractice's guide can stay up the
-  rest of the session after its drill is claimed (the objective line moves on).
+- The wall card's Store state reads health and the haul only; it doesn't know about
+  a fight in progress, and it has no icon yet (text only, like the rest of the line).
+- Only the Maze is taught: the other circulation games (from QC4) and the Practice
+  Dao drill's game have no lesson of their own yet (one per breather is the plan).
+- Seclusion's "second session" is kept in memory (the stage a session began at), so a
+  server hop at QC4 counts as a new session.
 - Analytics funnel steps are beat positions, so inserting a beat shifts the
   step numbers after it (compare funnels across versions with care). The hook
   rework and the front-door steps (2026-10-23) renumbered them (`Analytics`
@@ -355,7 +401,8 @@ then pivots the character onto that array.
   `store-all` branch's); its guide walks to an array, and on sect ground shows nothing.
 - In the testbed, Home (QC4) can't be done (no herb plots), so its guide holds the
   rest of the session; a second player there has no peak to refine on.
-- Rumours has no guide, by design; a cache taken before QC8 pays at QC8.
+- Rumours has no guide, by design; a cache taken before QC5 pays at QC5. The old
+  Board and Wall lessons are gone: a profile that claimed them keeps the flag, unused.
 
 ## Sources
 - Roblox Creator Docs, [Onboarding](https://create.roblox.com/docs/production/game-design/onboarding)

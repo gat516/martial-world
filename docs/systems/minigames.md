@@ -20,7 +20,9 @@ qi deviation.
   down a winding channel), **Meridian Pulse** (tap as rings close), **Gather Qi**
   (catch falling motes with a bowl). Purple impurities appear in every game;
   purging them is part of the score.
-- The very first run is always a short, easier-than-easy Maze that the elder explains.
+- The very first run is always a short, easier-than-easy Maze that the elder explains,
+  and every run below QC4 (the hook) is the Maze (`pickGame`, user 2026-10-24); the
+  other games are met from QC4 on, still with no lesson of their own.
 - Difficulty rises with the realm stage, reaching `hard` at FE1.
 - One shared frame (`StarterGui.Hud.Circulation`): a header (title, hint), the
   game's board sized to fit what's left (`Column.Arena`, flex-filled and capped

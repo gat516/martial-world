@@ -43,7 +43,13 @@ local function fullRunQi(stage: Realms.Stage): number
 end
 
 -- A weighted pick from Config.Games, avoiding the player's last game when another can run.
-local function pickGame(player: Player): string
+-- Below QC4 (the hook) it's always the Maze, the game the elder explains; the others
+-- are met from QC4 on (docs/design-reviews/first-session.md, rec 2).
+local MAZE_ONLY_BELOW = 4 -- Realms index of QC4
+local function pickGame(player: Player, stageIndex: number): string
+	if stageIndex < MAZE_ONLY_BELOW then
+		return Config.FIRST_RUN_GAME
+	end
 	local total, pool = 0, {}
 	for name, def in Config.Games do
 		if def.weight > 0 and name ~= lastGame[player] then
@@ -90,6 +96,11 @@ local function atRefiningSpot(player: Player): boolean
 end
 
 -- Whether the dantian holds enough raw qi to start a run (Refine.MIN_RUN_FRACTION).
+-- The raw qi a run needs at the player's stage (Refine.MIN_RUN_FRACTION of a full run).
+function Circulation.qiForRun(data: PlayerData.Data): number
+	return math.ceil(fullRunQi(Cultivation.stage(data)) * Refine.MIN_RUN_FRACTION)
+end
+
 function Circulation.enoughQi(data: PlayerData.Data): boolean
 	return data.rawQi >= fullRunQi(Cultivation.stage(data)) * Refine.MIN_RUN_FRACTION
 end
@@ -121,7 +132,7 @@ function Circulation.start(player: Player): (boolean, any)
 	local index = Realms.index(data.realm.major, data.realm.minor)
 	local levels = stage.levels
 	local difficulty = stage.difficulty
-	local minigame = pickGame(player)
+	local minigame = pickGame(player, index)
 	if data.stats.circulationRuns == 0 then
 		-- the onboarding run: short, forgiving, and the game the elder explains
 		levels = Config.FIRST_RUN_LEVELS

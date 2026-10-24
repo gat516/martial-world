@@ -1,5 +1,7 @@
 # Review: onboarding lessons after the hook (QC4 to FE)
 
+**Owner's decision (2026-10-24):** approved with changes, built in [onboarding](../systems/onboarding.md) "One idea per chapter": QC4 Home only; Seclusion in the second session (45 s); QC5 the Borderlands + Rumours; QC7 stays the Dao drill (not Build); QC9 the heart demon; QR1 WeaponRack; building at QR2; the foundation line on the QC4->5 card; lines at 12/5 words; the wall card as free play's objective line; lessons instrumented (`Lesson` shown/claimed).
+
 **Verdict: keep the system, rework the schedule.** One rewarded lesson, said once and guided, is the right tool. But the schedule:
 - teaches a screen (Board) instead of the new region;
 - leaves Explore, half of "out", until hour one;

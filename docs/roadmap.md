@@ -199,24 +199,32 @@ The hook runs to QC4, then one lesson per chapter ([onboarding](systems/onboardi
   refinement, treasures, pets). Built: the second weapon moved to QR1; the Dao drill stays at QC7 (user, 2026-10-23).
 - **QC4 end:** the elder names the loop ("cultivate until you hit a wall, go out and
   break it, come home stronger"): FreePlay's one-liner, and his talk. Built.
-- **QC4 "your home grows":** built as the Home lesson (plant a seed). Peak building
-  (place one item) still to add.
-- **QC5 the sect board:** built as the Board lesson (read the quest board); dailies,
-  contribution and the first chapter quest come with the sect MVP (section 3).
-- **QC6 herbs matter:** built as the Herbs lesson (eat a herb for qi; the Herbalist
-  named in his talk).
-- **QC7:** a breather, no lesson.
-- **QC8 rumours:** built as the Rumours lesson (find a hidden cache; no guide). The
-  wild garden waits for one to exist.
-- **QC9 the realm wall:** built as the Wall lesson (break into Qi Refining). The quiet
-  ceremony and the heaven-defier's tribulation dialogue are still to do.
-- **QC7 the Dao drill** (DaoPractice lesson; class skills need Dao, so the gardener
-  road needs it early) and **QR1 the second weapon** (WeaponRack lesson). Built.
+- **The re-slot (user, 2026-10-24; built, untested):** one idea per chapter, each a
+  live system ([onboarding](systems/onboarding.md) "One idea per chapter" has the
+  table and lines). Elder lines at most 12 words, objectives at most 5.
+  - **QC4 "your home grows":** Home only (plant a seed). The foundation gets one line
+    on the QC4 -> QC5 breakthrough card.
+  - **The second session:** Seclusion, offered on the first sit after the next join
+    (or at QC5), the first one 45 s.
+  - **QC5:** the Ruined Borderlands and their rumours as one idea (find a hidden
+    cache; no guide). The sect board is pointed at from the elder's Talk; dailies,
+    contribution and the chapter quest are the sect MVP (section 3).
+  - **QC6 herbs matter:** the Herbs lesson (eat a herb).
+  - **QC7 the Dao drill** (DaoPractice; class skills need Dao, so the gardener road
+    needs it early). The owner moved it back here; it stays.
+  - **QC8:** a breather. The wild garden waits for one to exist.
+  - **QC9:** the heart-demon trial (HeartDemon lesson), replacing the old Wall lesson.
+    The quiet ceremony and the heaven-defier's tribulation dialogue are still to do.
+  - **QR1:** the second weapon (WeaponRack). **QR2:** building (place one piece; the
+    peak score raises meditation).
+  - **The hook plays only the Maze;** the other minigames are met from QC4, still
+    untaught.
 - **Every major** repeats the pattern: one new idea, said once by the elder,
-  with a rewarded objective and a guide.
-- **The wall card:** a persistent "your wall is X, go to Y" line (the objective line
-  already exists; make it read in loop terms). Shows the current wall and at most
-  two other goals.
+  with a rewarded objective and a guide. Next: one lesson per QR third (QR4: the
+  garden aura and build items against the slowdown).
+- **The wall card:** built as free play's objective line: one verb per state (Hunt,
+  Refine, Break through, Store) with progress, from the guides' checks. An icon per
+  verb waits on the tracker UI.
 - Build: reuse the lesson system in `Quests.luau`; add lessons, not beats. UI by
   the ui-designer.
 

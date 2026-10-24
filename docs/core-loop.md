@@ -102,14 +102,16 @@ and everything else arrives when it first matters.
 | Stage | Beat | Introduced |
 |---|---|---|
 | QC1-4 | HOOK | the rhythm itself, once: circulate (home) -> break through -> ride out and hunt -> technique -> store the haul -> refine (at a node by the fight) -> QC3 -> spirit root and the formations -> QC4. This is the current onboarding ([onboarding](systems/onboarding.md)). |
-| QC4 | BREATHER | **home deepens:** the garden (the Home lesson: plant a seed); peak building not taught yet |
+| QC4 | BREATHER | **home deepens:** the garden (the Home lesson: plant a seed); seclusion waits for the second session; building is taught at QR2 |
 | QC3-5 | | the first technique bottleneck (about 28 casts of one art): comprehension, spending stones (with enough weapon Dao). Today only a toast and the Arts pane explain it; the elder should name it once. |
 | QC5 | RAMP | a new region (Ruined Borderlands); the gather/refine loop sets in |
-| QC5 | | the quest board (the Board lesson) |
+| QC5 | | the Borderlands' hidden caches (the Rumours lesson); the sect board, pointed at from the elder's Talk |
 | QC6 | MINI-WALL | herbs start to matter (the Herbs lesson: eat one for qi) |
-| QC8 | RAMP | rumours: a hidden cache in the wilds (the Rumours lesson) |
-| QR1 | | a second weapon class (moved out of QC; the Dao drill opens at QC7) |
-| QC9 | WALL | the biggest bar, and the first tribulation for heaven-defiers |
+| QC7 | | the Dao drill (the DaoPractice lesson) |
+| QC8 | RAMP | a breather, no lesson |
+| QR1 | | a second weapon class (moved out of QC) |
+| QR2 | | building: place one piece; the peak score raises meditation (the Build lesson) |
+| QC9 | WALL | the biggest bar, the heart-demon trial (the HeartDemon lesson), and the first tribulation for heaven-defiers |
 | FE | new realm | cultivation method, Outer Wastes |
 | later majors | | the realm milestones: flying sword, soul companion, flight ([character](character/later-layers.md)) |
 | a later update (decided 2026-10-22) | | crafting: mining and ores, weapon refinement, alchemy (see below and [roadmap](roadmap.md)) |

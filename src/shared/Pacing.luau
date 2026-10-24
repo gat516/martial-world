@@ -232,8 +232,8 @@ Pacing.Curve = {
 	{ key = "QR2", major = "QiRefining", minor = 2, beat = "RAMP", bar = 23500, dantian = 3750, passive = 2.80, gather = 1.6, health = 530, power = 5.31, levels = 3, difficulty = 0.911 },
 	-- MINI-WALL: tier II herbs and the Herbarium (alchemy is a later update).
 	{ key = "QR3", major = "QiRefining", minor = 3, beat = "MINI-WALL", bar = 25500, dantian = 4400, passive = 3.00, health = 585, power = 5.84, levels = 3, difficulty = 0.922 },
-	-- BREATHER: the last easy stage before the real slowdown (seclusion is taught at
-	-- QC4, Quests' Seclusion lesson). From here passive grows as a share of income,
+	-- BREATHER: the last easy stage before the real slowdown (seclusion is taught in
+	-- the second session, Quests' Seclusion lesson). From here passive grows as a share of income,
 	-- so the garden and the peak carry cultivation.
 	{ key = "QR4", major = "QiRefining", minor = 4, beat = "BREATHER", bar = 26000, dantian = 5150, passive = 3.12, health = 640, power = 6.42, levels = 3, difficulty = 0.933 },
 	-- RAMP: the Thunder Ape; hunting alone gets slow.
@@ -431,7 +431,7 @@ Pacing.Seclusion = {
 	-- FIRST_SECONDS with a generous card: FIRST_STONES, FIRST_SEEDS, a FIRST_BAR share
 	-- of the bar as cultivation (never past the bar) and FIRST_GROWTH seconds on every
 	-- growing plant (the seed planted for Home is ready when the player opens their eyes)
-	FIRST_SECONDS = 90,
+	FIRST_SECONDS = 45, -- 30-60 s (user, 2026-10-24): a taste, offered in the second session
 	FIRST_STONES = 60,
 	FIRST_SEEDS = { CloudMint = 2 } :: { [string]: number },
 	FIRST_BAR = 0.25,
@@ -586,17 +586,17 @@ Pacing.Quests = {
 	QC3 = { stones = 20, qiShare = 0.25 },
 	Root = { stones = 10 },
 	QC4 = { stones = 5 },
-	-- lessons (met later, when each first matters; QC4-9 one per chapter)
+	-- lessons (met later, when each first matters; one per chapter)
 	RootPill = { stones = 20 },
-	Home = { stones = 30 },
-	Seclusion = { stones = 20 }, -- QC4, after Home: the first seclusion (its own card pays more, Pacing.Seclusion FIRST_*)
-	Board = { stones = 20 },
-	Herbs = { stones = 20 },
-	Rumours = { stones = 40 },
-	Wall = { stones = 50 },
+	Home = { stones = 30 }, -- QC4
+	Seclusion = { stones = 20 }, -- the second session (or QC5): its own card pays more, Pacing.Seclusion FIRST_*
+	Rumours = { stones = 40 }, -- QC5, the Borderlands' hidden caches
+	Herbs = { stones = 20 }, -- QC6
+	DaoPractice = { stones = 50 }, -- QC7
+	HeartDemon = { stones = 50 }, -- QC9
 	Bottleneck = { stones = 40 },
-	WeaponRack = { stones = 30 },
-	DaoPractice = { stones = 50 },
+	WeaponRack = { stones = 30 }, -- QR1
+	Build = { stones = 30 }, -- QR2
 	Method = { stones = 150 },
 } :: { [string]: QuestReward }
 
@@ -901,7 +901,7 @@ Pacing.HeartDemon = {
 -- promotion. The weekly cap applies to dailies only (the chain and promotions are
 -- finite). Never qi, never root pills (roadmap 3).
 Pacing.Sect = {
-	OPENS = "QC5", -- the board's dailies and the chain start here (the Board lesson); the testbed opens it at any realm
+	OPENS = "QC5", -- the board's dailies and the chain start here (pointed at by the QC5 Rumours lesson's talk); the testbed opens it at any realm
 	-- ranks in order: the realm and lifetime contribution a promotion needs, and what it pays
 	RANKS = {
 		{ id = "Outer", name = "Outer Disciple" },

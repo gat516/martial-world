@@ -48,11 +48,12 @@ for gardeners and mobile players the "leave it running" reward moment.
    `Garden.advance`; no mutations), ends it, and shows the card about 8 s in.
 
 ### The first seclusion (onboarding)
-The **Seclusion** lesson (`Quests.Lessons`, after Home at QC4; paired with it, since
-the seed just planted is what it tends): "Now rest. Sit on your peak and enter
-seclusion..." Guide: travel home, sit, then the Method/Seclusion tile and the Enter
-Seclusion row (`GuideKey "Seclusion"`). The first seclusion ends by itself after
-`FIRST_SECONDS` (90 s) with a generous **First Seclusion** card: `FIRST_STONES` 60,
+The **Seclusion** lesson (`Quests.Lessons`) waits for the second session (user,
+2026-10-24): the first sit after a join that began at QC4 or later, with Home claimed
+(the seed is what it tends), or QC5 for a player who never rejoins. "Rest now. Your
+peak works for you while you're away." Guide: travel home, sit, then the
+Method/Seclusion tile and the Enter Seclusion row (`GuideKey "Seclusion"`). The first
+seclusion ends by itself after `FIRST_SECONDS` (45 s; 30-60 s) with a generous **First Seclusion** card: `FIRST_STONES` 60,
 `FIRST_SEEDS` 2 Cloud Mint, `FIRST_BAR` a quarter of the bar as cultivation (never
 past the bar) and `FIRST_GROWTH` 300 s on every growing plant (a Spirit Grass is
 ready). The lesson's own reward (`Pacing.Quests.Seclusion`, 20 stones) is claimed then.

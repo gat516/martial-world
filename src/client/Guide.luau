@@ -349,8 +349,10 @@ local function placeSpotlight(button: GuiButton)
 	local pos, size = baseBox(button)
 	pos -= origin
 	local margin = HOLE_PAD + HOLE_FADE
-	local l, t = pos.X - margin, pos.Y - margin
-	local r, b = pos.X + size.X + margin, pos.Y + size.Y + margin
+	-- whole pixels: the pulse puts the control on fractional ones, and the veil's
+	-- pieces then round apart or over each other (a seam flickering with the pulse)
+	local l, t = math.round(pos.X - margin), math.round(pos.Y - margin)
+	local r, b = math.round(pos.X + size.X + margin), math.round(pos.Y + size.Y + margin)
 	hole.Position = UDim2.fromOffset(l, t)
 	hole.Size = UDim2.fromOffset(r - l, b - t)
 	sides.Top.Position = UDim2.fromOffset(-FAR, -FAR)

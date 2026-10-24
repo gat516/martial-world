@@ -83,7 +83,8 @@ scales all player damage.
   Spear, Staff; WeaponAnimator) over it while walking with that weapon, and
   actions above all. The swap is on the owner's client (its tracks replicate;
   the server's copy of Animate keeps the stock id).
-- `src/client/Strafe.luau`: `Animations/Strafe/Left` and `Right` (user, 2026-10-24) while walking
+- `src/client/Strafe.luau`: `Animations/Strafe/Left`, `Right` and `Back` (the back walk,
+  104669778380585; user, 2026-10-24) while walking backwards or
   sideways under shift lock only (mouse at the centre, not first person; user,
   2026-10-24). Blended, not switched: each side's weight follows how sideways
   the move is (none below `LATERAL_START` 0.35, full from `LATERAL_FULL` 0.85,

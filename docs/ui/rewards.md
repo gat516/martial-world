@@ -31,7 +31,11 @@ Card jobs (`spec.kind`):
   the stage left earned (the percent only, which can pass 100%; [cultivation](../systems/cultivation.md#foundation-grade); only the stage leaving QC1-3, which have no foundation),
   health/power/combat qi/passive deltas from the stage before (the curve's, without
   the foundation bonus), "The <array> array is open" when the stage opens a travel array);
-  bloodlines and firsts later.
+  bloodlines and firsts later. Only when it's worth a card (user, 2026-10-24): a major,
+  an array opening, the first foundation, or a stage that took
+  `Pacing.Breakthrough.CARD_MIN_MINUTES` (10) since the last breakthrough or the join;
+  a quicker minor gets a small "Breakthrough · <stage>" line (`BreakthroughView`).
+  Seclusion's card has the same kind of gate (`Pacing.Seclusion.CARD_MIN_MINUTES`).
 - `seclusion`: the milestone card (lotus crest, `rays_milestone`) for seclusion's result
   ("Seclusion Ends", or "First Seclusion" for the onboarding one): the time spent as the
   subtitle, the stone, find, seed and garden tiles, "Cultivation from -> to", and

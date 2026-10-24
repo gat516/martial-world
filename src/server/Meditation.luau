@@ -3,7 +3,8 @@
 -- they sit. Anywhere gives a little, their own spirit peak more, and a seat or
 -- artifact on their peak (the cushion in the cave abode) adds its own bonus.
 -- Bonuses are keyed by ItemId (BuildItems `meditation`), so starter pieces and
--- placed copies count alike. World events can open sites (Meditation.addSite) that
+-- placed copies count alike. The peak score adds to it on your own peak
+-- (Peaks.meditationBonus). World events can open sites (Meditation.addSite) that
 -- beat sitting anywhere while they last. The client plays the animations and asks to start
 -- or stop; the server re-checks the spot every second and stands the player up
 -- if they drift away from where they sat.
@@ -76,10 +77,11 @@ local function spotAt(player: Player, position: Vector3): Spot
 		local offset = Peak.frame(peak):PointToObjectSpace(position)
 		if Vector2.new(offset.X, offset.Z).Magnitude <= PEAK_RADIUS and math.abs(offset.Y) <= PEAK_RADIUS then
 			local item = bestItem(peak, position)
+			local base = Rates.ON_PEAK + Peaks.meditationBonus(player) -- the peak score (Pacing.PeakScore)
 			if item then
-				return { multiplier = Rates.ON_PEAK + item.bonus, place = `on your {item.name}` }
+				return { multiplier = base + item.bonus, place = `on your {item.name}` }
 			end
-			return { multiplier = Rates.ON_PEAK, place = "on your peak" }
+			return { multiplier = base, place = "on your peak" }
 		end
 	end
 	local best: Spot = { multiplier = Rates.ANYWHERE, place = "" }

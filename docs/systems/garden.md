@@ -14,6 +14,11 @@ consumables: spirit cores from beasts and heavenly treasures.
   their weather.
 - The garden feeds cultivation (aura, buffs, qi) without replacing the active loop
   (aura capped at `Config.Garden.AURA_CAP`).
+- The peak score (build pieces on your peak, capped per peak tier) adds growth
+  speed to all your plants during the garden tick (`Peaks.growthBonus`: up to +30%
+  at the QR cap, +50% at FE; [build](build.md#peak-score-built-untuned)). It
+  doesn't touch the aura or its cap. The peak tier also raises how many Herb Beds
+  fit (16 / 20 / 24, `Config.Build.TIERS` `limits`).
 - Herb tiers I-V by region (I Common, II Spirit, III Rare, IV Treasure, V Heavenly;
   [progression](../progression.md)). A qi herb (`eat.qi = true`) gives a fixed share
   of the eater's current stage dantian by tier (`Pacing.Herbs.EAT_SHARE`: 6, 9, 12,
@@ -82,6 +87,7 @@ the pose and prop. Unsupported rigs skip the gesture (the game uses R6).
   their phase times live in `HerbAnimator.luau`.
 - `Config.Garden`: seeds back, tick, aura cap, wild sprouts, beast seed drops, Grow now tiers.
 - `Weather.luau` `garden`: growth speed, mutation and chance per weather.
+- `Pacing.PeakScore.GROWTH` per peak-score point; Herb Bed caps per tier in `Config.Build.TIERS`.
 - `Config.Economy`: starting stones; `Config.Build.MARKET_RANGE` (also how far you can walk
   before the Herbalist window closes, via `MarketRange.luau`).
 

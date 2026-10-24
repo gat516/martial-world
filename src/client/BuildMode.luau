@@ -190,7 +190,7 @@ local function showArea()
 	end
 	-- the build radius
 	local segments = 48
-	local r = Config.RADIUS
+	local r = Peak.radius(peak) -- the peak tier's (BuildRadius)
 	for i = 1, segments do
 		local a = (i + 0.5) / segments * math.pi * 2
 		local seg = clone("RingSegment") :: BasePart

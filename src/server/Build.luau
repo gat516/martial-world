@@ -112,11 +112,13 @@ local function place(player: Player, data: PlayerData.Data, peak: Model, args: a
 	if (data.decor[itemId] or 0) < 1 then
 		return false, `You have no {def.name} left. Buy more in the build catalog`
 	end
-	if #data.peak.placed >= Config.MAX_ITEMS then
-		return false, `Your peak holds at most {Config.MAX_ITEMS} items`
+	local tier = Peaks.tierOf(player)
+	if #data.peak.placed >= tier.maxItems then
+		return false, `Your peak holds at most {tier.maxItems} items`
 	end
-	if def.limit and countOnPeak(peak, itemId) >= def.limit then
-		return false, `Your peak holds at most {def.limit} {def.name}`
+	local limit = Peak.limit(tier, def)
+	if limit and countOnPeak(peak, itemId) >= limit then
+		return false, `Your peak holds at most {limit} {def.name}`
 	end
 	local ctx = context(peak)
 	local pos, yaw, pivot = requestedPivot(ctx.frame, args.pos, args.yaw)
@@ -250,7 +252,7 @@ local function move(player: Player, data: PlayerData.Data, peak: Model, args: an
 			local to = delta * e.pivot
 			local world = Placement.worldBoxes(to, Placement.boxes(p, e.def))
 			for _, b in world do
-				if not Peak.inBounds(ctx.frame:PointToObjectSpace(b.cf.Position)) then
+				if not Peak.inBounds(ctx.frame:PointToObjectSpace(b.cf.Position), Peak.radius(peak)) then
 					return false, "Something resting on it would end up off your peak"
 				end
 			end
@@ -319,6 +321,7 @@ function Build.handle(player: Player, action: any, args: any): (boolean, string?
 		return false, "Unknown action"
 	end
 	if ok then
+		Peaks.refreshScore(player)
 		Cultivation.pushState(player) -- inventory counts changed
 	end
 	return ok, message

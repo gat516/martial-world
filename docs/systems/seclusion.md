@@ -125,4 +125,4 @@ awake ping), `Quests.luau` (the lesson), `HeartDemon.luau` (the question),
 - A seclusion running when a server crashes (no logout time saved) may count its
   online stretch twice on the next login (capped at `MAX_HOURS`).
 - No foundation tempering from seclusion (roadmap's earlier idea); the heart demon tempers.
-- Analytics: `SeclusionEnded` (minutes counted) only.
+- Analytics: `SeclusionEntered` (first/again), `SeclusionEnded` (minutes counted), and the stones tally as a `Seclusion` economy source.

@@ -43,6 +43,7 @@ local Cultivation = require(script.Parent.Cultivation)
 local Inventory = require(script.Parent.Inventory)
 local WeatherService = require(script.Parent.WeatherService)
 local Receipts = require(script.Parent.Receipts)
+local Analytics = require(script.Parent.Analytics)
 
 local herbModels = ReplicatedStorage:WaitForChild("HerbModels")
 local kit = ReplicatedStorage:WaitForChild("GardenKit")
@@ -688,6 +689,7 @@ function Garden.buySeed(player: Player, herbId: any, n: any): (boolean, string?)
 		return false, `You need {price - data.stones} more Spirit Stones`
 	end
 	data.stones -= price
+	Analytics.stones(player, "sink", price, data.stones, "Shop", "Herbalist")
 	data.seeds[herbId] = (data.seeds[herbId] or 0) + amount
 	Cultivation.pushState(player)
 	return true, `Bought {amount} {herb.name} seed{if amount == 1 then "" else "s"} for {price} Spirit Stones`
@@ -720,6 +722,7 @@ function Garden.sell(player: Player, herbId: any, n: any): (boolean, string?)
 	if earned == 0 then
 		return false, `You have no {herb.name}`
 	end
+	Analytics.stones(player, "source", earned, data.stones, "Shop", "HerbSell")
 	Cultivation.pushState(player)
 	return true, `Sold {before - (data.herbs[herbId] or 0)} {herb.name} for {earned} Spirit Stones`
 end
@@ -739,6 +742,7 @@ function Garden.sellAll(player: Player): (boolean, string?)
 	if earned == 0 then
 		return false, "You have no herbs to sell"
 	end
+	Analytics.stones(player, "source", earned, data.stones, "Shop", "HerbSell")
 	Cultivation.pushState(player)
 	return true, `Sold every herb for {earned} Spirit Stones`
 end

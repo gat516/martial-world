@@ -11,6 +11,7 @@ local Income = require(ReplicatedStorage.Shared.Pacing).Income
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
+local Analytics = require(script.Parent.Analytics)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 
@@ -43,6 +44,8 @@ local function gather(node: BasePart, player: Player)
 	data.rawQi += amount
 	local stones = math.random(Economy.NODE_STONES[1], Economy.NODE_STONES[2])
 	data.stones += stones
+	Analytics.qi(player, "source", amount, data.rawQi, "Gameplay", "QiNode")
+	Analytics.stones(player, "source", stones, data.stones, "Gameplay", "QiNode")
 	data.stats.gathered += 1 -- sect dailies and the chain count gathers (Sect)
 	Cultivation.markActive(player)
 	Cultivation.pushState(player)

@@ -29,7 +29,7 @@ main peak, the sect gate and the wilds arrays (see [map](map.md), "World structu
 Goal: the player feels the core loop (cultivate -> hit a wall -> go out ->
 come home stronger) in the first few minutes, with as little friction as
 possible. Day 1 retention is the measure; the onboarding funnel
-(`Analytics.funnel`, one step per beat) shows where players leave.
+(`Analytics.beat`, one step per beat after the front-door steps; [data](data.md) "What we track") shows where players leave.
 
 What Roblox's own guidance and common practice say (sources at the end):
 - **Teach the essentials, get to the fun quickly, leave them wanting more.**
@@ -313,7 +313,7 @@ here". Template built by `tools/vfx_specs/Guide.luau`; this client only.
   toasts why), greys out the wilds arrays away from the Sect Gate, and runs the trip under the `Veil` fade.
 - `src/client/GateMarkers.luau`: a seal and name over each array (`Hud.GateMarker`)
   once travel is taught; `src/client/Veil.luau`: the travel fade (`StarterGui.Veil`).
-- Analytics: each beat is an onboarding funnel step (`Analytics.funnel`).
+- Analytics: each beat is an onboarding funnel step (`Analytics.beat`: beat position + 9, after the join, slot screen, creator and first sit steps; [data](data.md)).
 
 ## Data flow
 Every second `Quests.check` marks met beats in `data.beats`, claims done
@@ -349,7 +349,8 @@ then pivots the character onto that array.
   rest of the session after its drill is claimed (the objective line moves on).
 - Analytics funnel steps are beat positions, so inserting a beat shifts the
   step numbers after it (compare funnels across versions with care). The hook
-  rework (2026-10-23) renumbered them (`Analytics` FUNNEL_NAMES).
+  rework and the front-door steps (2026-10-23) renumbered them (`Analytics`
+  FUNNEL_NAMES).
 - The Store beat has no button to point at (the Store all control is the
   `store-all` branch's); its guide walks to an array, and on sect ground shows nothing.
 - In the testbed, Home (QC4) can't be done (no herb plots), so its guide holds the

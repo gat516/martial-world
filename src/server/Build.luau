@@ -25,6 +25,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local Garden = require(script.Parent.Garden)
 local Cultivation = require(script.Parent.Cultivation)
+local Analytics = require(script.Parent.Analytics)
 
 local catalog = ReplicatedStorage.BuildCatalog
 local probe = (ReplicatedStorage.BuildKit.Probe :: BasePart):Clone() -- queries only; never parented
@@ -284,6 +285,7 @@ local function buy(player: Player, data: PlayerData.Data, args: any): (boolean, 
 		return false, `You need {price - data.stones} more Spirit Stones`
 	end
 	data.stones -= price
+	Analytics.stones(player, "sink", price, data.stones, "Shop", "Decor")
 	data.decor[def.id] = (data.decor[def.id] or 0) + count
 	return true, `Bought {count} {def.name} for {price} Spirit Stones`
 end

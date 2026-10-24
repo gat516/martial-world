@@ -27,6 +27,7 @@ local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
+local Analytics = require(script.Parent.Analytics)
 
 local Config = Pacing.HeartDemon
 
@@ -632,6 +633,7 @@ function HeartDemon.answer(player: Player, choices: any): (boolean, any)
 		note = note,
 		at = os.time(),
 	}
+	Analytics.event(player, "HeartDemonFaced", denials, trial.major, if calm then "calm" else "whispers")
 	local lines = if calm
 		then { "The voice goes quiet. It was only ever your own heart.", temperLine(tempered, data) }
 		else { "The demon fades, but not all the way. You'll hear it now and then.", temperLine(tempered, data) }

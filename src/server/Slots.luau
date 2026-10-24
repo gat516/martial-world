@@ -16,6 +16,7 @@
 --                         { id, mode = "new", progress } and the fate attributes
 --   "edit", id         -> opens it on a named slot's look: { id, mode = "edit", look, firstName }
 --   "cancel"           -> back to the slot screen from the creator
+--   "step", stepId     -> the creator shows that step (the onboarding funnel only)
 --   "play", id         -> plays a named slot (the join continues in Main)
 --   "deleteAsk", id    -> { token }: the hold-to-delete sends it back
 --   "delete", { id, token, name } -> moves the slot to the trash and saves
@@ -34,6 +35,7 @@ local Rules = require(CC.Rules)
 local Surnames = require(CC.Surnames)
 local PlayerData = require(script.Parent.PlayerData)
 local Traits = require(script.Parent.Traits)
+local Analytics = require(script.Parent.Analytics)
 
 local SlotConfig = Config.Slots
 
@@ -284,7 +286,11 @@ function Slots.commitNew(player: Player, look: { [string]: any }, firstName: str
 	data.character = { firstName = firstName, look = look }
 	Slots.fate(player, session.id)
 	task.spawn(PlayerData.save, player)
-	return Slots.play(player, session.id)
+	local ok, result = Slots.play(player, session.id)
+	if ok then
+		Analytics.front(player, "EnterWorld")
+	end
+	return ok, result
 end
 
 -- Edit look: only the look changes (the first name is locked once named).
@@ -315,6 +321,9 @@ function Slots.handle(player: Player, action: string, arg: any): (boolean, any)
 		for _, id in PlayerData.SLOT_IDS do
 			table.insert(list, summary(account, id))
 		end
+		if pending[player] then
+			Analytics.front(player, "SlotScreen")
+		end
 		return true, {
 			slots = list,
 			max = SlotConfig.MAX,
@@ -338,6 +347,13 @@ function Slots.handle(player: Player, action: string, arg: any): (boolean, any)
 	if action == "cancel" then
 		sessions[player] = nil
 		return true, nil
+	elseif action == "step" then
+		-- the creator's step shown (analytics only): Appearance, Hair, Fate, Name
+		local session = sessions[player]
+		if session and session.mode == "new" and (arg == "Appearance" or arg == "Hair" or arg == "Fate" or arg == "Name") then
+			Analytics.front(player, arg)
+		end
+		return true, nil
 	elseif action == "play" then
 		return Slots.play(player, arg)
 	end
@@ -351,6 +367,7 @@ function Slots.handle(player: Player, action: string, arg: any): (boolean, any)
 				return false, "That slot is taken"
 			end
 			sessions[player] = { id = arg, mode = "new" }
+			Analytics.front(player, "CreatorOpened")
 			Slots.showIdentity(player, arg)
 			task.spawn(PlayerData.save, player) -- the draw is kept even if they leave now
 			return true, { id = arg, mode = "new", progress = account.slots[arg] ~= nil }

@@ -254,6 +254,7 @@ local function finish(player: Player, data: PlayerData.Data, delay: number)
 		streak = streak,
 	}
 	Analytics.event(player, "SeclusionEnded", math.floor(sec.counted / 60))
+	Analytics.stones(player, "source", tally.stones, data.stones, "TimedReward", "Seclusion")
 	sec.since = 0
 	sec.counted = 0
 	sec.online = 0
@@ -307,6 +308,7 @@ function Seclusion.enter(player: Player): (boolean, string?)
 	data.seclusion.tally = PlayerData.newTally()
 	live[player] = true
 	player:SetAttribute("Secluded", true)
+	Analytics.event(player, "SeclusionEntered", 1, if data.seclusion.first then "again" else "first")
 	publish(player, data)
 	Cultivation.pushState(player)
 	if data.seclusion.first then

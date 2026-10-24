@@ -22,6 +22,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local Progression = require(script.Parent.Progression)
 local Roots = require(script.Parent.Roots)
 local Weapons = require(script.Parent.Weapons)
+local Analytics = require(script.Parent.Analytics)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 local templates = ServerStorage:WaitForChild("ItemTemplates") :: Folder
@@ -155,7 +156,9 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	nextUse[player] = now + (if item.category == "Herb" then Items.HERB_EAT_SECONDS else Items.USE_COOLDOWN)
 	take(data, item.id)
 
+	local before = data.rawQi
 	data.rawQi = math.min(stage.dantian, data.rawQi + qi)
+	Analytics.qi(player, "source", data.rawQi - before, data.rawQi, "Gameplay", item.category == "Herb" and "HerbEaten" or "ItemUsed")
 	if use.cultivationShare then
 		Cultivation.add(data, stage.bar * use.cultivationShare)
 	end

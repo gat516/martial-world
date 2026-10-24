@@ -26,6 +26,7 @@ local RootService = require(script.Parent.Roots)
 local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local WeatherService = require(script.Parent.WeatherService)
+local Analytics = require(script.Parent.Analytics)
 
 type Run = { id: string, started: number, levels: number, duration: number, impurities: number, stageIndex: number }
 
@@ -193,6 +194,7 @@ function Circulation.finish(player: Player, id: any, cleared: any, accuracy: any
 	efficiency *= bonus
 	local spent = math.min(math.ceil(gain / efficiency), math.ceil(qi))
 	data.rawQi = math.max(0, data.rawQi - spent)
+	Analytics.qi(player, "sink", spent, data.rawQi, "Gameplay", "Refine")
 	Cultivation.add(data, gain)
 	data.stats.circulationRuns += 1
 

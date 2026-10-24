@@ -46,9 +46,10 @@ cursor, settings and the admin panel.
   2026-10-21). Layout, rows and room for later tabs:
   [character window](../character/character-window.md). Switching methods lives in
   the meditation menu ([meditation](meditation.md)).
-- Top-right tiles (`Hud.Buttons`, right-aligned list): Cultivate, Self (once the
-  root is tested), Inventory, Build (near your peak), Travel (in the sect),
-  Settings. In combat (the player's `InCombat` attribute) they fold down to
+- Top-right tiles (`Hud.Buttons`, right-aligned list), left to right: Build (near
+  your peak; at the very left so it slides out cleanly in combat, user 2026-10-23),
+  Cultivate, Self (once the root is tested), the admin-only 管 tile (touch, never
+  folds), Inventory, Travel (in the sect), Settings. In combat (the player's `InCombat` attribute) they fold down to
   Inventory and Settings (`TileFold.luau`, user 2026-10-23: so the boss bar can
   reach the top; Travel is refused while combat tagged anyway): each other tile
   shrinks to a point in 0.18 s, its width to minus the list padding so the row

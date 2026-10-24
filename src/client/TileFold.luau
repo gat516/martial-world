@@ -13,10 +13,10 @@
 -- tile from drawing anything. Visible stays with the
 -- modules that own it (SelfCard, TravelMenu, Menus via Motion.setShown); this only
 -- touches each tile's size, clipping and Interactable.
--- The folding tiles sit at the left of the row (Build first, user 2026-10-23: "build
--- just straight up disappears ... reorder it at the very left so that it cleanly
--- disappears"), so the kept ones (and the admin-only tile, which never folds) slide
--- right as they go instead of tiles vanishing between them.
+-- Build sits at the very left of the row (user 2026-10-23: "build just straight up
+-- disappears ... reorder it at the very left so that it cleanly disappears"), then
+-- Cultivate and Self, then the admin-only tile (it never folds, so it slides right
+-- to Inventory as the others go), Inventory, Travel and Settings.
 -- On a touch phone the realm plaque over the vitals (Stack.Vitals.Crest) fades away
 -- for the fight too (user's pick, 2026-10-23: the vitals sat big over the
 -- character), and comes back with the tiles.

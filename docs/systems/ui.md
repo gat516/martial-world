@@ -254,7 +254,8 @@ a new top-level `require` between them can close a cycle that stops the client l
   `RegionBanner.luau` (the region entry banner on the banner tier). See
   [reward banners](../ui/rewards.md).
 - `Dialogue.luau` (`Dialogue.open({speaker, portrait, lines, responses}) -> choice`,
-  `StarterGui.Dialogue`, ready to wire) and `Glyphs.luau` (the kit's white action glyphs,
+  `StarterGui.Dialogue`; the elder and the heart demon use it; on a touch phone it hides
+  Roblox's touch controls while open) and `Glyphs.luau` (the kit's white action glyphs,
   shared with the prompts). See [dialogue](../ui/dialogue.md).
 - `Events/` (`StarterGui.Events`, fitted by `UiScale`): `Gui` (slots, templates, the
   herald queue), `WorldEventView`, `TribulationView`, `RiftCard`, `Leaderboards`, `Themes`.

@@ -80,9 +80,9 @@ scales all player damage.
   column below). The starter arts (Sword Qi Wave, Palm Strike and the other
   any-weapon arts) need 0, so onboarding never waits on Dao. Any-weapon arts count
   the player's highest class Dao. Bottleneck k (1-3, at levels 3, 6, 9) needs Dao
-  `min(10, learn + 2k)` (`Techniques.comprehendDao`): starter arts 2/4/6, Adept
-  skills 7/9/10, Peak skills 10/10/10 (a Peak skill caps at level 3 until the class
-  is mastered, then only stones gate it). A manual found too early is kept
+  `min(10, learn + 2k)`, or `learn + k` for skills learned at Dao 5 or above
+  (`Techniques.comprehendDao`, `HIGH_FROM`): starter arts 2/4/6, Adept skills 6/7/8,
+  Peak skills 9/10/10. A manual found too early is kept
   (`data.techniques.manuals`), toasts "requires Sword Dao 5", shows in Arts with its
   requirement, and is learned the moment that Dao level is reached
   (`Weapons.onLevelUp` -> `Progression.learnReady`).

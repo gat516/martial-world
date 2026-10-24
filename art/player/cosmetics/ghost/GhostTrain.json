@@ -1,0 +1,390 @@
+{
+ "name": "GhostTrain",
+ "attachment": "WaistCenterAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to the attachment (Blender X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Paper": [
+   0.79,
+   0.62,
+   0.32
+  ],
+  "Ink": [
+   0.52,
+   0.025,
+   0.015
+  ],
+  "Cord": [
+   0.025,
+   0.03,
+   0.08
+  ],
+  "Spirit": [
+   0.6,
+   0.78,
+   0.95
+  ],
+  "Wisp": [
+   0.42,
+   0.78,
+   0.9
+  ]
+ },
+ "shade": {
+  "paper": {
+   "file": "fox_shade.png",
+   "darkest": 0.55,
+   "fade_to_white_at_v": 0.45
+  },
+  "wisp": {
+   "file": "ghost_fade.png",
+   "value": [
+    0.78,
+    1.0
+   ],
+   "alpha": [
+    0.85,
+    0.12
+   ],
+   "fade_start": 0.25
+  },
+  "uv": "V only (U = 0.5)"
+ },
+ "meshes": {
+  "GhostTrain_Wisp": {
+   "region": "Wisp",
+   "tris": 2826,
+   "center": [
+    -0.022,
+    2.147,
+    -0.369
+   ],
+   "size": [
+    3.158,
+    4.1,
+    2.333
+   ]
+  },
+  "GhostTrain_Spirit": {
+   "region": "Spirit",
+   "tris": 444,
+   "center": [
+    -0.0,
+    0.52,
+    0.472
+   ],
+   "size": [
+    1.939,
+    0.18,
+    0.364
+   ]
+  }
+ },
+ "tris_total": 3270,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.2,
+    0.0
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "WispBase": {
+   "parent": "Root",
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.2
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": true
+  },
+  "WispTail1": {
+   "parent": "WispBase",
+   "head": [
+    0.0,
+    0.612,
+    0.432
+   ],
+   "tail": [
+    -0.0,
+    1.489,
+    0.288
+   ],
+   "roblox_head": [
+    -0.0,
+    0.432,
+    0.612
+   ],
+   "deform": true
+  },
+  "WispTail2": {
+   "parent": "WispTail1",
+   "head": [
+    -0.0,
+    1.489,
+    0.288
+   ],
+   "tail": [
+    0.007,
+    2.281,
+    -0.104
+   ],
+   "roblox_head": [
+    0.0,
+    0.288,
+    1.489
+   ],
+   "deform": true
+  },
+  "WispTail3": {
+   "parent": "WispTail2",
+   "head": [
+    0.007,
+    2.281,
+    -0.104
+   ],
+   "tail": [
+    0.066,
+    2.879,
+    -0.76
+   ],
+   "roblox_head": [
+    -0.007,
+    -0.104,
+    2.281
+   ],
+   "deform": true
+  },
+  "WispTail4": {
+   "parent": "WispTail3",
+   "head": [
+    0.066,
+    2.879,
+    -0.76
+   ],
+   "tail": [
+    0.07,
+    3.548,
+    -1.299
+   ],
+   "roblox_head": [
+    -0.066,
+    -0.76,
+    2.879
+   ],
+   "deform": true
+  },
+  "WispTail5": {
+   "parent": "WispTail4",
+   "head": [
+    0.07,
+    3.548,
+    -1.299
+   ],
+   "tail": [
+    -0.002,
+    4.124,
+    -0.751
+   ],
+   "roblox_head": [
+    -0.07,
+    -1.299,
+    3.548
+   ],
+   "deform": true
+  },
+  "WispL1": {
+   "parent": "WispBase",
+   "head": [
+    0.464,
+    0.661,
+    0.639
+   ],
+   "tail": [
+    0.605,
+    1.415,
+    0.437
+   ],
+   "roblox_head": [
+    -0.464,
+    0.639,
+    0.661
+   ],
+   "deform": true
+  },
+  "WispL2": {
+   "parent": "WispL1",
+   "head": [
+    0.605,
+    1.415,
+    0.437
+   ],
+   "tail": [
+    0.871,
+    2.05,
+    0.035
+   ],
+   "roblox_head": [
+    -0.605,
+    0.437,
+    1.415
+   ],
+   "deform": true
+  },
+  "WispL3": {
+   "parent": "WispL2",
+   "head": [
+    0.871,
+    2.05,
+    0.035
+   ],
+   "tail": [
+    1.25,
+    2.53,
+    -0.482
+   ],
+   "roblox_head": [
+    -0.871,
+    0.035,
+    2.05
+   ],
+   "deform": true
+  },
+  "WispL4": {
+   "parent": "WispL3",
+   "head": [
+    1.25,
+    2.53,
+    -0.482
+   ],
+   "tail": [
+    1.53,
+    2.866,
+    -1.147
+   ],
+   "roblox_head": [
+    -1.25,
+    -0.482,
+    2.53
+   ],
+   "deform": true
+  },
+  "WispR1": {
+   "parent": "WispBase",
+   "head": [
+    -0.464,
+    0.661,
+    0.639
+   ],
+   "tail": [
+    -0.605,
+    1.415,
+    0.437
+   ],
+   "roblox_head": [
+    0.464,
+    0.639,
+    0.661
+   ],
+   "deform": true
+  },
+  "WispR2": {
+   "parent": "WispR1",
+   "head": [
+    -0.605,
+    1.415,
+    0.437
+   ],
+   "tail": [
+    -0.871,
+    2.05,
+    0.035
+   ],
+   "roblox_head": [
+    0.605,
+    0.437,
+    1.415
+   ],
+   "deform": true
+  },
+  "WispR3": {
+   "parent": "WispR2",
+   "head": [
+    -0.871,
+    2.05,
+    0.035
+   ],
+   "tail": [
+    -1.25,
+    2.53,
+    -0.482
+   ],
+   "roblox_head": [
+    0.871,
+    0.035,
+    2.05
+   ],
+   "deform": true
+  },
+  "WispR4": {
+   "parent": "WispR3",
+   "head": [
+    -1.25,
+    2.53,
+    -0.482
+   ],
+   "tail": [
+    -1.53,
+    2.866,
+    -1.147
+   ],
+   "roblox_head": [
+    1.25,
+    -0.482,
+    2.53
+   ],
+   "deform": true
+  }
+ },
+ "proportions": {
+  "torso_width": 2.0,
+  "leg_height": 2.0,
+  "tail_length": 4.61,
+  "tail_to_leg_height": 2.3,
+  "tail_width_to_torso": 0.82,
+  "side_length_to_leg": 1.66,
+  "span_to_torso_width": 1.58,
+  "sash_width_to_torso": 0.96
+ },
+ "run_clearance": {
+  "swing_deg": 57.3,
+  "inside": {}
+ }
+}

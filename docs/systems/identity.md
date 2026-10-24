@@ -191,7 +191,7 @@ joint names are in `art/player/cosmetics/README.md`; how new ones are made is
 | Dragonblood | DragonHornsAntler, DragonTailTuft | Dragonblood (skinned Blender meshes) |
 | Demonic Human (Looks: Horns Ram / Swept / Crescent, Tail Whip / Hook / Trail, picked freely) | DemonHornsRam / DemonHornsSwept / DemonHornsCrescent, DemonTailWhip / DemonTailHook / DemonTailTrail | DemonicHuman (skinned Blender meshes) |
 | Stone Spirit (Look: Style Peak / Orbit / Fist, picked freely) | StonePeakPlateL/R + StonePeakShards / StoneOrbitShards + StoneOrbitBracerL/R / StoneFistGauntletL/R + StoneFistShards | StoneSpirit (skinned Blender meshes) |
-| Ghost | GhostWisps | Spirits (part-built placeholders) |
+| Ghost (Looks: Talisman Banner / Strip / Seal, Spirit Train / Sleeves / Stole, picked freely) | GhostTalismanBanner / GhostTalismanStrip / GhostTalismanSeal, GhostTrain / GhostSleeveL + GhostSleeveR / GhostStole | Ghost (skinned Blender meshes) |
 
 Spirit Fox's three tails and three ear shapes are its `Looks` (Tail, Ears), each
 picked freely and separately on the creator's Fate step (user, 2026-10-23: purely
@@ -201,6 +201,13 @@ variants pairing one tail with one ear shape before). Each has its own bones
 (`art/player/cosmetics/fox/README.md`). The fox traits stay on the race. A Spirit
 Fox saved with an old variant drops it on its next join (`Slots.fate` clears the
 variant of a race without variants) and wears the default looks until edited.
+
+Ghost's talismans and spirit silk are its `Looks` (Talisman, Spirit), picked freely
+like the fox's: Banner, Strip or Seal on the brow (FaceFrontAttachment), and the Train
+(the lower-body fade, default), the Sleeves (both arms' accessories in one pick) or the
+Stole. The silk fades out through an alpha ramp (SurfaceAppearance `AlphaMode =
+Transparency`). They replace the part-built `GhostWisps`, left unused in `Spirits.rbxm`
+(`art/player/cosmetics/ghost/README.md`).
 
 The Crane set holds three looks, each a head piece (red crest and white-and-black
 plumes) and a tail fan: Cascade (the Crane variant's default), Scholar and Ascendant.

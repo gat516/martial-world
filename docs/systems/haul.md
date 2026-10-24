@@ -68,6 +68,9 @@ gained since you last banked can spill when you die. Decided in the
 - **Ring:** `data.ring` (ids, saved; added by `fillMissing`, no schema step),
   `InventoryAction ("ring", id, true|false)` -> `Haul.setRing`; `PlayerState` carries
   `ring` and `ringSlots`.
+- **Heart demon:** spills, reclaims, mid-fight logouts that lost something, Store all
+  uses and ring additions count in `data.stats` (`spills`, `reclaimed`, `fled`,
+  `stored`, `ringed`) for the trial's greed or caution question ([heart-demon](heart-demon.md)).
 
 ## Client
 - `HaulView.luau`, Store all: while `HaulReady` is set, a local ProximityPrompt on

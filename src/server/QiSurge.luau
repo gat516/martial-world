@@ -138,6 +138,7 @@ function QiSurge.fire(player: Player): (boolean, string?)
 	data.rawQi -= cost
 	s.used = true
 	s.fallBack = false
+	data.stats.surges += 1 -- the heart-demon trial asks what it cost
 	s.untilClock = os.clock() + Pacing.Surge.SECONDS
 	local nextStage = Cultivation.surgeStage and Cultivation.surgeStage(player)
 	setAttribute(player, "SurgeReady", false)

@@ -184,13 +184,18 @@ function Circulation.finish(player: Player, id: any, cleared: any, accuracy: any
 	local bonus = if allCleared then 1 + Refine.FULL_CLEAR_BONUS else 1
 	local qi = math.min(data.rawQi, fullRunQi(stage) * levels / run.levels)
 	local gain = math.min(qi * efficiency * bonus, Cultivation.cap(data) - data.cultivation)
+	-- the onboarding's first run always fills the bar (a weak score still breaks through)
+	local firstRun = data.stats.circulationRuns == 0 and Config.FIRST_RUN_FILLS_BAR
+	if firstRun then
+		gain = math.max(gain, math.min(stage.bar, Cultivation.cap(data)) - data.cultivation)
+	end
 	efficiency *= bonus
-	local spent = math.ceil(gain / efficiency)
+	local spent = math.min(math.ceil(gain / efficiency), math.ceil(qi))
 	data.rawQi = math.max(0, data.rawQi - spent)
 	Cultivation.add(data, gain)
 	data.stats.circulationRuns += 1
 
-	local deviation = score < Refine.DEVIATION_SCORE
+	local deviation = score < Refine.DEVIATION_SCORE and not firstRun
 	if deviation then
 		Cultivation.deviate(player, Refine.DEVIATION_SECONDS)
 	end

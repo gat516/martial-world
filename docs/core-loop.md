@@ -101,12 +101,14 @@ and everything else arrives when it first matters.
 
 | Stage | Beat | Introduced |
 |---|---|---|
-| QC1-3 | HOOK | the rhythm itself, once: circulate (home) -> break through -> spirit root -> travel out -> hunt -> technique -> refine (home) -> QC3. This is the current onboarding. |
-| QC4 | BREATHER | **home deepens:** garden and peak building (proposal; onboarding doesn't teach them today) |
+| QC1-4 | HOOK | the rhythm itself, once: circulate (home) -> break through -> ride out and hunt -> technique -> store the haul -> refine (at a node by the fight) -> QC3 -> spirit root and the formations -> QC4. This is the current onboarding ([onboarding](systems/onboarding.md)). |
+| QC4 | BREATHER | **home deepens:** the garden (the Home lesson: plant a seed); peak building not taught yet |
 | QC3-5 | | the first technique bottleneck (about 28 casts of one art): comprehension, spending stones (with enough weapon Dao). Today only a toast and the Arts pane explain it; the elder should name it once. |
 | QC5 | RAMP | a new region (Ruined Borderlands); the gather/refine loop sets in |
-| QC6 | MINI-WALL | herbs start to matter (the garden pays off) |
-| QC7-8 | BREATHER, RAMP | second weapon class and its Dao level (from caches and drops) |
+| QC5 | | the quest board (the Board lesson) |
+| QC6 | MINI-WALL | herbs start to matter (the Herbs lesson: eat one for qi) |
+| QC8 | RAMP | rumours: a hidden cache in the wilds (the Rumours lesson) |
+| QR1 | | second weapon class and its Dao drills (moved out of QC) |
 | QC9 | WALL | the biggest bar, and the first tribulation for heaven-defiers |
 | FE | new realm | cultivation method, Outer Wastes |
 | later majors | | the realm milestones: flying sword, soul companion, flight ([character](character/later-layers.md)) |

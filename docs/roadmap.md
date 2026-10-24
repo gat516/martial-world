@@ -171,27 +171,33 @@ Tune the QR and FE curve from analytics; the two bosses tuned for the old FE1 ge
 re-tiered; region seals wait for the map.
 
 ## 2. Onboarding (QC1 to QC9, then each realm)
-Today the hook ends at QC3 and the garden, sect and techniques arrive unannounced.
-- **The hook (2026-10-23, from Roblox metrics):** combat within the first minute or
-  two and two or three breakthroughs in the first few minutes, one mechanic at a
-  time. The current first ten minutes are being audited to retune it.
+The hook runs to QC4, then one lesson per chapter ([onboarding](systems/onboarding.md)
+"The first session" has the beat table and timeline).
+- **The hook (built 2026-10-23, from Roblox metrics; untimed in play):** circulate ->
+  a guaranteed first breakthrough (~1:15) -> ride out and fight (~2:00) -> 3 kills
+  for Fire Seal -> cast it -> store the haul -> refine at the node by the fight ->
+  QC3 (~4:30-5) -> the spirit root and the formations -> QC4 (~9-10), with a guide
+  the whole way. Five mechanics (six with the haul) before the third breakthrough;
+  the Gate ride beat is merged into the first fight; no starting technique.
 - **Spread over every realm, sprinkled as the player advances:** QC teaches the loop
   (out and home, the garden, the board); QR the social layer and the abode
   (master, Halls, seclusion, rifts, the heart demon); FE the depth (method,
-  refinement, treasures, pets). Move the second weapon and Dao drills out of QC.
-- **QC1-3 (keep):** circulate, break through, root, travel out, hunt, technique,
-  refine. Minor fixes only.
-- **QC3 end:** the elder names the loop once ("cultivate until you hit a wall,
-  go out and break it, come home stronger"). Built: the first time he's talked to in
-  free play ([onboarding](systems/onboarding.md) "Talking to the elder").
-- **QC4 "your home grows":** garden and peak building taught as one beat (plant a
-  seed, place one item). Rewarded.
-- **QC5 the sect board:** daily tasks and contribution; the first chapter quest.
-- **QC6 herbs matter:** eat a herb for qi; the Herbalist.
-- **QC7 weapon and Dao:** second weapon class, a Dao drill (exists as lessons).
-- **QC8 rumours:** the elder points at a secret place and a wild garden.
-- **QC9 the realm wall:** the quiet breakthrough ceremony; for a heaven-defier, the
-  tribulation with its own dialogue.
+  refinement, treasures, pets). Built: the second weapon and Dao drills moved to QR1.
+- **QC4 end:** the elder names the loop ("cultivate until you hit a wall, go out and
+  break it, come home stronger"): FreePlay's one-liner, and his talk. Built.
+- **QC4 "your home grows":** built as the Home lesson (plant a seed). Peak building
+  (place one item) still to add.
+- **QC5 the sect board:** built as the Board lesson (read the quest board); dailies,
+  contribution and the first chapter quest come with the sect MVP (section 3).
+- **QC6 herbs matter:** built as the Herbs lesson (eat a herb for qi; the Herbalist
+  named in his talk).
+- **QC7:** a breather, no lesson.
+- **QC8 rumours:** built as the Rumours lesson (find a hidden cache; no guide). The
+  wild garden waits for one to exist.
+- **QC9 the realm wall:** built as the Wall lesson (break into Qi Refining). The quiet
+  ceremony and the heaven-defier's tribulation dialogue are still to do.
+- **QR1 weapon and Dao:** second weapon class, a Dao drill (the WeaponRack and
+  DaoPractice lessons; the drill unlocks at QR1). Built.
 - **Every major** repeats the pattern: one new idea, said once by the elder,
   with a rewarded objective and a guide.
 - **The wall card:** a persistent "your wall is X, go to Y" line (the objective line

@@ -175,6 +175,9 @@ return {
 		FIRST_RUN_GAME = "Maze", -- the very first run is always this game...
 		FIRST_RUN_LEVELS = 1, -- ...one level...
 		FIRST_RUN_DIFFICULTY = -0.5, -- ...and easier than `easy` (below 0 blends past it)
+		-- ...and it always fills the realm bar, whatever the score (no deviation either), so
+		-- the first breakthrough is guaranteed (docs/systems/onboarding.md, the hook)
+		FIRST_RUN_FILLS_BAR = true,
 
 		-- Minigames. Each run gets a difficulty from 0 (easy) to 1 (hard), set per
 		-- stage in Pacing.Curve (`difficulty`); each game blends every value in

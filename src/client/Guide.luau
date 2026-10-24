@@ -66,6 +66,10 @@ local BUTTONS: { [string]: { string } } = {
 	Method = { "Stack", "CultivatePrompt", "Method" },
 	SpiritRoot = { "Stack", "CultivatePrompt", "Root" },
 }
+-- the hotbar's slots, "Slot1".."Slot9" (the Cast beat points at the new technique's)
+for i = 1, 9 do
+	BUTTONS[`Slot{i}`] = { "Stack", "Hotbar", "Slots", `Slot{i}` }
+end
 
 -- Tiles inside the seated Practice row -> the main-row tile that opens it.
 local FOLDED: { [string]: string } = { PracticeTechnique = "Practice", PracticeDao = "Practice" }
@@ -466,6 +470,10 @@ local function pickPlace(key: string, from: Vector3): Instance?
 		return nearest(CollectionService:GetTagged("Enemy"), from, Hitbox.alive)
 	elseif key == "WeaponRack" then
 		return nearest(CollectionService:GetTagged("WeaponRack"), from)
+	elseif key == "MyPeak" then
+		-- your own peak's plateau (the testbed's refine spot, with no arrays to ride)
+		local peak = MyPeak.model()
+		return peak and peak:FindFirstChild("Plateau")
 	elseif key == "Garden" then
 		local peak = MyPeak.model()
 		return nearest(CollectionService:GetTagged("HerbPlot"), from, function(plot)

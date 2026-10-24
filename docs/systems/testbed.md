@@ -18,9 +18,11 @@ in AGENTS.md (Branches) and [orchestration](../agents/orchestration.md#test-buil
 - **Only what you trigger happens.** No timed world events, no rolled weather
   (forced weather clears back to Clear and stays there), no ambient encounters.
   Events tied to weather still fire when the admin dashboard forces that weather.
-- **Ready to test on join.** Onboarding is skipped (every beat marked done, so
-  the HUD is never dimmed or guided), and every player gets the Studio test kit
-  plus every technique and weapon, published or not. Joining lands on the slot
+- **Ready to test on join.** The ready "Tester" skips onboarding (every beat
+  marked done, so the HUD is never dimmed or guided) and gets the Studio test kit
+  plus every technique and weapon, published or not. A character made in the
+  creator (the empty slot) gets no kit and plays the real first session, which is
+  how onboarding is tested here ([onboarding](onboarding.md) "The first session"). Joining lands on the slot
   screen with a ready "Tester" (one tap to Play) and an empty slot to try the
   creator ([save slots](save-slots.md)); the Workspace attribute `QuickPlay`
   (off by default in `test.project.json`) skips straight into the world.

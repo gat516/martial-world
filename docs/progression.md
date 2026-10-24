@@ -79,13 +79,13 @@ wolf, but older".
 ### Qi Condensation (built; the hook)
 | Stage | Beat | Region | New | Wall |
 |---|---|---|---|---|
-| QC1 | HOOK | Inner Wilds | circulate, breakthrough | empty dantian |
-| QC2 | HOOK | Inner Wilds | spirit root, travel out, first hunt | empty dantian |
-| QC3 | HOOK | Inner Wilds | technique, refine | the tutorial ends |
-| QC4 | BREATHER | Inner Wilds | **home grows:** garden and peak | none |
+| QC1 | HOOK | Inner Wilds | circulate, breakthrough (the first is guaranteed) | empty dantian |
+| QC2 | HOOK | Inner Wilds | first hunt, technique, store the haul, refine | empty dantian |
+| QC3 | HOOK | Inner Wilds | spirit root (Testing Stone), the travel formations | the tutorial ends at QC4 |
+| QC4 | BREATHER | Inner Wilds | **home grows:** garden and peak (the Home lesson) | none |
 | QC5 | RAMP | Ruined Borderlands | **the sect board:** daily tasks, contribution, Outer Disciple rank | full dantian |
 | QC6 | MINI-WALL | Borderlands | herbs matter (tier I herbs eaten for qi) | more than a dantian of qi |
-| QC7 | BREATHER | Borderlands | second weapon class, Dao drills; Jade Jiao | beasts too strong |
+| QC7 | BREATHER | Borderlands | Jade Jiao (no new lesson: a breather) | beasts too strong |
 | QC8 | RAMP | Borderlands | rumours of ruins; the first secret place | foundation (soft) |
 | QC9 | WALL | Borderlands | the realm boss is optional (a Boss experience); the quiet breakthrough ceremony | bar |
 
@@ -93,7 +93,7 @@ wolf, but older".
 Rank becomes **Inner Disciple** at QR1.
 | Stage | Beat | Region | New | Wall |
 |---|---|---|---|---|
-| QR1 | HOOK | Outer Wastes | Qi Refining; the wastes; chapter quests | region seal |
+| QR1 | HOOK | Outer Wastes | Qi Refining; the wastes; chapter quests; second weapon class and Dao drills (moved from QC7) | region seal |
 | QR2 | BREATHER | Wastes | weekly sect tasks | none |
 | QR3 | MINI-WALL | Wastes | tier II herbs and the Herbarium; the Herbalist's second shelf (alchemy is a later update) | herbs |
 | QR4 | RAMP | Wastes | seclusion: deliberate closed-door cultivation | full dantian |

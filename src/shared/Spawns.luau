@@ -63,4 +63,14 @@ Spawns.Encounters = {
 	},
 } :: { [string]: { Pack } }
 
+-- Zone overrides by zone name, on top of the zone's own `Count` attribute and
+-- its beast's `respawn`. The onboarding's first fights (the FirstKill and
+-- Technique beats, docs/systems/onboarding.md) need 3 kills with no waiting,
+-- for a solo player and for a pair: GateWolves on the map, WolfPair in the
+-- testbed (its count stays 2, for tuning the fight).
+Spawns.Zones = {
+	GateWolves = { count = 3, respawn = 8 },
+	WolfPair = { respawn = 8 },
+} :: { [string]: { count: number?, respawn: number? } }
+
 return Spawns

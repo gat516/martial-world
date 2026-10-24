@@ -284,12 +284,15 @@ function Spawner.start()
 		zoneOf[model] = nil
 		if zone and killed then
 			local def = Enemies.Defs[zone:GetAttribute("Enemy") :: string]
+			local tuned = Spawns.Zones[zone.Name]
+			local respawn = (tuned and tuned.respawn) or (if def then def.respawn else 30)
 			local spread = 1 + (math.random() * 2 - 1) * Config.RESPAWN_SPREAD
-			task.delay((if def then def.respawn else 30) * spread, spawnInZone, zone)
+			task.delay(respawn * spread, spawnInZone, zone)
 		end
 	end)
 	for _, zone in zones() do
-		for _ = 1, zone:GetAttribute("Count") or 0 do
+		local tuned = Spawns.Zones[zone.Name]
+		for _ = 1, (tuned and tuned.count) or zone:GetAttribute("Count") or 0 do
 			spawnInZone(zone)
 		end
 	end

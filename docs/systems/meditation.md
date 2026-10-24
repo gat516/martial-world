@@ -124,7 +124,7 @@ strikes whatever is due. Tuning: `Config.Circulation.Games.Forms` (weight 0, so
 circulation never picks it). Scored like a circulation run; pays up to `XP_SHARE` (25%) of the current Dao
 level's XP, then a 5 min cooldown (`data.daoPracticeReadyUnix`, pushed as
 `daoPracticeReady`). Leaving early costs nothing and starts no cooldown. Unlocks
-at QC7 (`Pacing.DaoPractice.FROM`), never XP for sitting.
+at QR1 (`Pacing.DaoPractice.FROM`; moved from QC7 so QC teaches only the loop), never XP for sitting.
 
 *Stance (decided 2026-10-21):* once the server starts the drill the character
 gets up (Meditate `GetUp`) but stays in meditation: still locked in place, the

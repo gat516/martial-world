@@ -17,7 +17,7 @@ Dao comprehension per weapon class that grows as you fight with it.
   Meditation, circulation, other control locks and breakthroughs also stow it.
 - **Dao comprehension**, level 0-10 per class: XP from landing M1 hits with the
   class (once per swing), casting its techniques and learning its manuals,
-  and from QC7 a seated Practice Dao drill (capped and on a cooldown; see
+  and from QR1 a seated Practice Dao drill (capped and on a cooldown; see
   [meditation](meditation.md)).
   Damage of M1 and the class's techniques = base x realm power x grade x Dao.
   Level 2 is neutral (x1.0); untrained (0) is x0.8 and mastery x1.3. A new
@@ -58,7 +58,7 @@ its own comprehension bottlenecks for free, and needs four visual tiers
 ## Where techniques and weapons come from (v1)
 | Source | What |
 |---|---|
-| Start | Iron Jian (equipped), Lightning Talisman (any weapon, so the starter works whatever you hold) |
+| Start | Iron Jian (equipped); no technique: the first is Fire Seal, the onboarding's 3-kill manual (any weapon) |
 | Kill milestones (`Pacing.Rewards.MILESTONES`) | 3 Fire Seal, 12 Sword Qi Wave, 30 Iron Skin, 60 Moonflash Draw, 100 Palm Strike (any-weapon manuals first: the 3-kill one is the onboarding's) |
 | First boss kill (`BOSS_FIRST_MANUAL`) | Twin Phoenix Cannon |
 | Boss pool (`Enemies.ElderWolfKing.bossDrops`) | one unowned entry of: Rampaging Tiger Cleave, Heaven-Splitting Descent, Crescent Moon Sweep, Great Sage Awakening, or a Spirit weapon of any class. Guaranteed on the first kill, then 25% a kill |

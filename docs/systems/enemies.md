@@ -305,8 +305,9 @@ point is the body centre. Per-body numbers and attachments are in the RIGS.md of
 - `src/shared/Regions.luau`: named regions (shape, intended realm, flavour line,
   ambient pack table).
 - `src/server/Spawner.luau`: keeps zones (`Workspace.Wilds.Zones` parts with
-  `Enemy`/`Count`/`Radius`) topped up with respawns (zones: GateWolves 2 Spirit Wolves
-  by the Sect Gate array for the FirstKill beat, WolfPocket, WolfDen, BoarMeadow,
+  `Enemy`/`Count`/`Radius`) topped up with respawns (`Shared.Spawns.Zones` overrides a zone's count and
+  respawn by name; zones: GateWolves, 3 Spirit Wolves respawning in 8 s,
+  by the Sect Gate array for the FirstKill and Technique beats, WolfPocket, WolfDen, BoarMeadow,
   BoarField, SerpentMarsh, SerpentFen, BossArena; positions in [world-overview](../world-overview.md) and [docs/map/wilds.md](../map/wilds.md)), runs ambient encounters,
   `Spawner.pack` (drop a group) and `Spawner.boost` (world events).
 - `src/server/EnemyService.luau`: runs beasts: `spawn(id, at, { home, roam, target })`,

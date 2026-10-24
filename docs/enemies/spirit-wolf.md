@@ -9,7 +9,7 @@ old def (one 0.55 s lunge, 60 HP, the old part-built body). **Follow-up:** remov
 `OLD_SPIRIT_WOLF` (Enemies.luau), the old `SpiritWolf` template in
 `assets/Enemies.rbxm` and the flag once the main game has run on the new wolf for a
 while. Also decided: a careless player
-may die to the GateWolves pair (fallback `Pacing.Adjust.QC2 = { beastDamage = 0.85 }`);
+may die to the GateWolves (3 since the hook rework, `Spawns.Zones`; fallback `Pacing.Adjust.QC2 = { beastDamage = 0.85 }`);
 attack slots apply to every non-boss beast; `qiDrop` stays 14; the leap stays on the
 basic wolf; its qi is moonlight pale blue-white; `ServerStorage.Enemies` is now binary
 `assets/Enemies.rbxm`.
@@ -31,8 +31,8 @@ The fight:
   (`reinforcePoint`), already targeting it, so they never howl themselves (no chains),
   wait 1-2.5 s before their first attack and take attack slots like any wolf. While the
   target is still in onboarding (its `QC3` beat not passed, `data.beats`) a howl calls
-  only one, and only if no other Spirit Wolf is within 30 studs; at the GateWolves pair
-  the first howl rallies the second, so nothing spawns. They are `fleeting`: gone
+  only one, and only if no other Spirit Wolf is within 30 studs; at the GateWolves
+  the first howl rallies the others, so nothing spawns. They are `fleeting`: gone
   without rewards once they have no target, leave the leash or would fall asleep.
   **Rewards: summoned wolves pay full rewards** (qi, stones, drops, kill credit, exactly
   like any wolf; summons have never been reduced), so a player who leaves and re-engages

@@ -11,12 +11,7 @@ main peak, the sect gate and the wilds arrays (see [map](map.md), "World structu
 - The elder speaks one line per beat (beside the guide, auto-shown); an objective
   line and a pulse on the right button show what to do. Talking to him opens the
   dialogue screen with a short conversation for that beat (see "Talking to the elder").
-- Beats: Circulate -> Breakthrough -> Root (travel unlocks here: ride to the
-  Main Peak and touch the Testing Stone, see [character](character.md)) -> Gate -> FirstKill ->
-  Technique (3 kills, done once the 3-kill milestone's manual, Fire Seal, is earned;
-  it's an any-weapon starter art needing Dao 0, so it never waits on weapon Dao) -> Refine
-  (done once a run is finished, or when the bar is already full, since a full
-  bar can't take a run) -> QC3 -> FreePlay (the top quest-board goal).
+- Beats: see the beat table under "The first session" below.
 - A beat can show progress after its objective (`progress`, e.g. Technique's
   kills "(1/3)").
 - Travel can't be used to flee a fight (blocked while in combat or mid-action).
@@ -79,24 +74,69 @@ How we apply it:
 4. **Celebrate the highs:** the root reveal, the first breakthrough and the
    first technique are the moments to ask players to favourite the game.
 
-**The first session (decided 2026-10-21):** own peak -> one short, forgiving
-circulation -> an instant, celebrated breakthrough -> travel (spotlit) to the
-Testing Stone -> **the root reveal, the hook**, then the game asks once to be
-favourited (`RootReveal`, `AvatarEditorService:PromptSetFavorite`, 1.5 s after
-the card closes) -> "Spirit wolves prowl just past the Sect Gate. Go!" with
-Travel -> Sect Gate spotlit -> first kill -> a technique -> refine (once the
-dantian is actually full) -> QC3 -> free play. Home (garden and peak, QC4) and
-the weapon rack (QC7) are lessons, not beats. Still to do here: timing the funnel
-to the first kill.
+**The first session (the hook, 2026-10-23):** from Roblox metrics (median session
+5-9 min): combat right after the first breakthrough, three breakthroughs in about
+ten minutes, one mechanic per beat. Before the third breakthrough the player meets
+sit/circulate, breakthrough, combat, a technique, storing the haul and refining;
+the spirit root and the travel formations' wider use wait until QC3.
+
+| # | Beat | Teaches | Done when | Guide | ~min |
+|---|---|---|---|---|---|
+| 1 | Circulate | sit, the circulation minigame | a run finished | Cultivate, then Circulate (dim) | 0:30-1:00 |
+| 2 | Breakthrough | the realm bar | first breakthrough | Break Through (dim) | ~1:15 (QC2) |
+| 3 | FirstKill | combat, dodge; one spotlit ride (`travel = true`) | a kill | Travel -> Sect Gate (dim), then the nearest wolf | ~2:00 |
+| 4 | Technique | kills earn manuals | the 3-kill milestone (Fire Seal) | the nearest wolf, "(n/3)" | ~3:00 |
+| 5 | Cast | casting an art | any technique cast once (technique XP) | the art's hotbar slot (pointer, "Cast it at a wolf") and the wolf | ~3:15 |
+| 6 | Store | the haul: bank it or lose half on a fall | `Haul.onBanked` fired (skipped without it) | the nearest array (testbed: the pad) | ~3:30 |
+| 7 | Refine | raw qi -> cultivation at a node | a run since the beat began, or a full bar | circulate here, else the qi node by the gate wolves | ~4:00 |
+| 8 | QC3 | the climb, again | QC3 | climb guide | ~4:30-5:00 |
+| 9 | Root | spirit root, the formations | root tested | Travel -> Main Peak, then the Testing Stone | ~5:30-6:30 |
+| 10 | QC4 | the loop alone (home to refine, out to hunt) | QC4 | climb guide, never silent | ~9-10 |
+| | FreePlay | names the loop in its one-liner | | lessons, then the quest board's top goal | |
+
+Minute marks assume `pacing-v2`'s curve (QC1->2 in ~1.5 min, QC2->3 by ~4-5,
+QC3->4 by ~9-10); not yet timed in play.
+- **The first breakthrough is guaranteed:** the very first run (one easy Maze level)
+  fills the bar whatever the score, with no deviation (`Config.Circulation.FIRST_RUN_FILLS_BAR`).
+  `STARTING_RAW_QI` is 48, exactly that run, so the dantian really is spent and the
+  wolves are why you go out.
+- **No starting technique:** new profiles start with an empty hotbar; Fire Seal (the
+  3-kill manual) is the first art, taught by the Cast beat. Older profiles keep
+  Lightning Talisman.
+- **Gate wolves:** `Spawns.Zones` overrides a zone's own count and respawn by
+  name: GateWolves 3 wolves, 8 s respawn (was 2 and 20 s), so a solo player or a
+  pair (both are credited on a shared kill) gets 3 kills without waiting; the
+  testbed's WolfPair keeps 2 but respawns in 8 s.
+- **Refine near the fight:** the qi node at (60, 8, 545) is about 100 studs from
+  the GateWolves lair; Cast adds a fifth of a dantian of raw qi so that run
+  reaches QC3.
+- **The root reveal** (the favourite prompt, `RootReveal`, 1.5 s after the card
+  closes) is now the QC3 high point instead of the first.
+- **Skipped beats:** a beat's `skip` (Store: no `Haul.onBanked`) passes it over
+  unmarked and unpaid, so it's met once that system is in the build.
+- **In the testbed** the ready "Tester" (slot 1) skips onboarding and has the test
+  kit; a character made in the creator (slot 2) gets no kit and plays every beat.
+  There are no arrays, so ride steps become walks (`travelTo`'s `walk`: the wolves,
+  the Testing Stone, `MyPeak` to refine and bank on the spawn pad's TestPeak; first
+  player only).
+
+**One idea per chapter after the hook** (lessons, roadmap section 2): Home (QC4,
+plant a seed), Board (QC5, read the quest board), Herbs (QC6, eat one), Rumours
+(QC8, find a hidden cache; no guide), Wall (QC9, break into Qi Refining), and at QR1
+the second weapon (WeaponRack) and the Dao drill (DaoPractice, `Pacing.DaoPractice.FROM`
+moved from QC7). A lesson's line waits 20 s into free play (`LESSON_DELAY`), so Home
+doesn't land on FreePlay's own line. Still to write, as each system lands: QR (a
+master, the Halls, seclusion, rifts, the heart demon) and FE (refinement, treasures, pets).
 
 ### Beats and lessons (built)
 - Beats are kept **by id** in `data.beats` (schema v8; v7's position count is
   migrated), so beats can be inserted or reordered. `travel = true` marks the
-  beat from which the formation is taught (Root).
+  beat from which the formation is taught (FirstKill).
 - **Lessons** (`Quests.Lessons`, `data.lessons`), in priority order: RootPill
   (first, so a standing lesson like DaoPractice can't hide it), Home
-  (QC4, nothing planted: walk to your garden), Bottleneck, WeaponRack (QC7, a
-  single weapon class: the Main Peak rack), DaoPractice (QC7), Method. In free
+  (QC4, nothing planted: walk to your garden), Board (QC5), Herbs (QC6), Rumours
+  (QC8), Wall (QC9), Bottleneck, WeaponRack (QR1, a
+  single weapon class: the Main Peak rack), DaoPractice (QR1), Method. In free
   play, the first lesson whose condition holds says
   its elder line once ever (`QuestState.lesson`), and its guide shows for the
   rest of that session while the condition still holds (`persist`: every
@@ -121,9 +161,9 @@ to the first kill.
   Testing Stone; Refine circulates where you stand if you can, else rides
   home from the sect or walks to the nearest qi node in the wilds. Climbing
   with too little raw qi for a run (`Circulation.enoughQi`, the same check
-  the run's start makes) says meditate before the Breakthrough beat (passive
-  cultivation fills the rest; travel isn't taught yet) and go out to the Sect
-  Gate or a qi node after it. Any guide that rides somewhere (`travelTo`)
+  the run's start makes) says meditate before the Breakthrough beat and hunt
+  after it (`huntGuide`: ride to the Sect Gate from the sect, else the nearest
+  beast). Any guide that rides somewhere (`travelTo`)
   uses the Travel button on sect ground, and out in the wilds, where that
   button is hidden, walks to the nearest array (`place = "Array"`) and points
   at the destination once its menu is open. Keys are listed at the top of
@@ -147,9 +187,8 @@ to the first kill.
   as it was: it fires on its own when a beat or lesson begins and never blocks; the
   conversation is only for when the player walks up and talks. Talking no longer
   re-shows the one-liner (the old `repeatElder`), and free play's toast is gone.
-- The loop is named in conversation only, so a player who never talks to him in free
-  play never hears it; making it FreePlay's auto one-liner instead is a one-line change
-  if the funnel says so.
+- The loop is also FreePlay's auto one-liner (since the hook rework), so a player who
+  never talks to him still hears it once.
 
 ### Rewarded objectives (decided 2026-10-21)
 - **The objective line is the onboarding for now.** Every beat and lesson is a
@@ -167,9 +206,12 @@ to the first kill.
   the same defs and share the claim path.
 - **What each one asks** (`done`; a lesson's objective applies while `open`,
   by default its `when`): the beats as above; RootPill: a pill absorbed;
-  Home (from QC4): a herb planted; Bottleneck (while a technique is
+  Home (from QC4): a herb planted; Board (from QC5): the board's Read prompt
+  (`data.lessons.BoardRead`); Herbs (from QC6): a herb eaten (`data.lessons.HerbEaten`,
+  set in `Inventory.use`); Rumours (from QC8): a world cache claimed (not a `rack:`
+  one); Wall (from QC9): QR1 reached; Bottleneck (while a technique is
   bottlenecked): a technique comprehended past its first bottleneck;
-  WeaponRack (from QC7): a weapon of a second class; DaoPractice (from QC7): a
+  WeaponRack (from QR1): a weapon of a second class; DaoPractice (from QR1): a
   Practice Dao drill finished (`daoPracticeReadyUnix` set); Method: a
   cultivation method gained (claimed the moment it's given).
 - **Claiming** is server-side in `Quests.check`: a beat when it's passed, a
@@ -181,8 +223,9 @@ to the first kill.
   beat -> the first unclaimed lesson whose objective applies -> the top quest
   board goal.
 - **Rewards** are all in `Pacing.Quests` (the comment there sizes them
-  against the early economy): the eight beats pay 80 stones in all (about 18
-  wolf kills) plus a quarter dantian of raw qi at QC3; lessons pay 20-50; a
+  against the early economy): the ten beats pay 85 stones in all (about 19
+  wolf kills) plus a fifth of a dantian of raw qi at Cast and a quarter at QC3;
+  lessons pay 20-50; a
   cultivation method pays 150.
 - **Open questions** for the questing system: where quests come from (givers
   around the sect, the quest board, or auto-offered as now); dailies and
@@ -278,7 +321,7 @@ then pivots the character onto that array.
 ## Tuning knobs
 - Beat text (`elder`, `talk`, `objective`) and conditions in `Quests.Beats`, lessons'
   in `Quests.Lessons`; goals in `Quests.goals`.
-- `Gates.List`, `Gates.RANGE`; `Config.Travel`: `SECT_GATE` (Gate beat check),
+- `Gates.List`, `Gates.RANGE`; `Config.Travel`: `SECT_GATE` (FirstKill's "at the gate" check),
   `COOLDOWN`; `Config.Spawn.HEIGHT` (arrival height above an array).
 - Rewards shown on the board come from `Pacing.Rewards`; objective rewards
   from `Pacing.Quests` (stones, `qiShare` of the dantian).
@@ -295,7 +338,13 @@ then pivots the character onto that array.
 - A lesson's guide still runs on `when`, so DaoPractice's guide can stay up the
   rest of the session after its drill is claimed (the objective line moves on).
 - Analytics funnel steps are beat positions, so inserting a beat shifts the
-  step numbers after it (compare funnels across versions with care).
+  step numbers after it (compare funnels across versions with care). The hook
+  rework (2026-10-23) renumbered them (`Analytics` FUNNEL_NAMES).
+- The Store beat has no button to point at (the Store all control is the
+  `store-all` branch's); its guide walks to an array, and on sect ground shows nothing.
+- In the testbed, Home (QC4) can't be done (no herb plots), so its guide holds the
+  rest of the session; a second player there has no peak to refine on.
+- Rumours has no guide, by design; a cache taken before QC8 pays at QC8.
 
 ## Sources
 - Roblox Creator Docs, [Onboarding](https://create.roblox.com/docs/production/game-design/onboarding)

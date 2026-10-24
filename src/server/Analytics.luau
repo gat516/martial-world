@@ -3,8 +3,9 @@
 -- custom events the playtest is judged on. Every call is pcall'd; analytics must
 -- never break gameplay.
 --
--- Funnel: 1 Joined, 2 First circulation, 3 First breakthrough, 4 Reached gate,
--- 5 First kill, 6 First technique slotted, 7 Refined at a node/peak, 8 QC3.
+-- Funnel (Quests.Beats positions + 1): 1 Joined, 2 First circulation, 3 First
+-- breakthrough, 4 First kill, 5 First technique earned, 6 First technique cast,
+-- 7 Haul stored, 8 Refined at a node/peak, 9 QC3, 10 Root tested, 11 QC4.
 -- Custom events: CirculationScore (0-100), Breakthrough (seconds since the last
 -- one, field: realm), TribulationResult (1/0), Death (field: what killed them),
 -- OfflineQiClaimed, SessionLength (seconds).
@@ -23,11 +24,14 @@ local FUNNEL_NAMES = {
 	"Joined",
 	"First circulation",
 	"First breakthrough",
-	"Reached gate",
 	"First kill",
-	"First technique slotted",
+	"First technique earned",
+	"First technique cast",
+	"Haul stored",
 	"Refined qi",
 	"QC3",
+	"Root tested",
+	"QC4",
 }
 
 function Analytics.funnel(player: Player, step: number)

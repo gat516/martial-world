@@ -114,6 +114,9 @@ add(def("EarthRoot", "Earth Root", "Raise your spirit root to Earth grade.", "Ra
 add(def("HeavenlyRoot", "Heavenly Root", "Raise your spirit root to Heaven grade.", "Legendary", "Path", { kind = "root", grade = "Heaven" }))
 add(def("BurningMeridians", "Burning Meridians", "Fire 3 qi surges.", "Rare", "Path", { kind = "stat", stat = "surges", min = 3 }))
 add(def("FellowTraveler", "Fellow Traveler", "Walk an hour beside a party.", "Uncommon", "Path", { kind = "stat", stat = "partied", min = 3600 }))
+add(def("GuidingElder", "Guiding Elder", "Shelter 10 kills by a junior in your party.", "Uncommon", "Path", { kind = "stat", stat = "sheltered", min = 10 }))
+add(def("PillarOfJuniors", "Pillar of Juniors", "Shelter 100 kills by juniors in your party.", "Epic", "Path", { kind = "stat", stat = "sheltered", min = 100 }))
+add(def("ShelteredJunior", "Sheltered Junior", "Earn 10 kills sheltered by a senior.", "Common", "Path", { kind = "stat", stat = "leaned", min = 10 }))
 
 -- Weapon Dao: the top level of each class
 for _, class in Weapons.ClassOrder do

@@ -50,7 +50,11 @@ Files: `src/server/Party.luau` (parties, card, people list, friend nudges),
   it at once. Shown by a "Sheltered by <name>" feed line once per engagement, the
   "sheltered" enemy-bar tier and a faint jade qi thread between the two in combat.
   The stronger member earns `SENIOR_QI_SHARE` (20%) of their own qi for each kill a
-  sheltered member is credited with (`stats.sheltered`; the junior's `stats.leaned`).
+  sheltered member is credited with (`stats.sheltered`; the junior's `stats.leaned`),
+  and, once the sect is open to them, `CONTRIBUTION` (2) sect contribution, inside the
+  sect's weekly cap ([sect](sect.md); `Sect.onShelter` on `Shelter.onCredit`). Titles:
+  Guiding Elder (10 sheltered), Pillar of Juniors (100), Sheltered Junior (10 leaned)
+  ([titles](titles.md)).
 - Otherwise realm suppression applies as before; qi is always scaled to the
   receiver's own realm, so a senior helping still earns their own.
 - **Heart demon:** `stats.partied` counts seconds in a party with a member within
@@ -182,5 +186,3 @@ shows a sample card, invite and pips alone.
 - No cross-server parties, party chat or shared quests; co-op rifts and group world
   events (roadmap 3e) aren't built.
 - Spar duels from the card are deferred (roadmap 3f).
-- The shelter pays the senior qi only; sect contribution for sheltering and an
-  "Elder Brother/Sister" title from `stats.sheltered` are not built.

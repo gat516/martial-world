@@ -19,6 +19,10 @@ local Cultivation = require(script.Parent.Cultivation)
 
 local Shelter = {}
 
+-- Called (patron, patron's data) for each kill Shelter.credit credits; Main wires
+-- Sect.onShelter (the patron's sect contribution).
+Shelter.onCredit = {} :: { (Player, PlayerData.Data) -> () }
+
 local lastCue: { [Player]: number } = {} -- os.clock() of the last sheltered hit or blow
 
 local function rootOf(player: Player): BasePart?
@@ -125,7 +129,7 @@ end
 
 -- The patron who sheltered the player's credited kill of a beast of `beast`'s stage
 -- (counted on both sides: stats.sheltered for the patron, stats.leaned for the player),
--- or nil. EnemyService pays the patron's share (SENIOR_QI_SHARE).
+-- or nil. EnemyService pays the patron's share (SENIOR_QI_SHARE); onCredit hooks the rest.
 function Shelter.credit(player: Player, data: PlayerData.Data, beast: Realms.Stage): Player?
 	local patron = syncFor(player, data, beast)
 	local pd = patron and PlayerData.get(patron)
@@ -134,6 +138,9 @@ function Shelter.credit(player: Player, data: PlayerData.Data, beast: Realms.Sta
 	end
 	data.stats.leaned = (data.stats.leaned or 0) + 1
 	pd.stats.sheltered = (pd.stats.sheltered or 0) + 1
+	for _, fn in Shelter.onCredit do
+		task.spawn(fn, patron, pd)
+	end
 	return patron
 end
 

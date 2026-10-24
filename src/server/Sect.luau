@@ -906,6 +906,24 @@ end
 
 --[[ Hooks ]]
 
+-- Shelter.onCredit: a patron earns Pacing.Shelter.CONTRIBUTION per kill a sheltered
+-- party member is credited with, once the sect is open to them, inside WEEK_CAP
+-- (shared with the dailies). Quiet: a feed tile, no toast.
+function Sect.onShelter(player: Player, data: PlayerData.Data)
+	if not opened(data) then
+		return
+	end
+	refresh(data)
+	local gained = math.min(Pacing.Shelter.CONTRIBUTION, math.max(0, Tuning.WEEK_CAP - data.sect.week))
+	if gained <= 0 then
+		return
+	end
+	data.sect.week += gained
+	earn(data, gained)
+	Analytics.economy(player, "source", "Contribution", gained, data.sect.contribution, "Gameplay", "Shelter")
+	feed(player, "contribution", gained)
+end
+
 -- EnemyService.onKill: hunts (beasts near the player's realm; realm variants carry
 -- their spawn's realm) and the chain's kill paths.
 function Sect.onKill(player: Player, def: Enemies.Def, _model: Model?)

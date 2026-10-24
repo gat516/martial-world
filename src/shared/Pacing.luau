@@ -305,11 +305,13 @@ Pacing.Suppression = {
 -- unsheltered, so a hit takes about HURT times the share it takes from a same-stage
 -- player. Rewards stay their own realm's (qi by their stage, the dantian caps it).
 -- The patron gets SENIOR_QI_SHARE of their own qi for each beast a sheltered member is
--- credited with (stats.sheltered counts them; the junior's stats.leaned).
+-- credited with (stats.sheltered counts them; the junior's stats.leaned), and, once
+-- the sect is open to them, CONTRIBUTION sect contribution inside the sect's WEEK_CAP.
 Pacing.Shelter = {
 	HIT = 0.8, -- a sheltered hit deals this share of what a same-stage player's would (the senior still carries)
 	HURT = 1.25, -- a beast's blow takes this times the health share it takes from a same-stage player
 	SENIOR_QI_SHARE = 0.2, -- the patron's qi per kill a sheltered member earns, of their own qi for that beast
+	CONTRIBUTION = 2, -- the patron's sect contribution per sheltered kill (counted in Pacing.Sect.WEEK_CAP)
 	CUE_GAP = 30, -- seconds without a sheltered hit or blow before the "Sheltered by" line shows again
 	TICK = 0.5, -- seconds between ShelteredBy attribute refreshes (damage checks live)
 	HEART_LINE_AT = 3, -- stats.leaned / stats.sheltered from which the heart demon's company question names it
@@ -964,7 +966,7 @@ Pacing.Sect = {
 		{ id = "Inner", name = "Inner Disciple", realm = "QR1", earned = 600, stones = 300 },
 		{ id = "Core", name = "Core Disciple", realm = "FE1", earned = 2500, stones = 1500 },
 	} :: { { id: string, name: string, realm: string?, earned: number?, stones: number? } },
-	WEEK_CAP = 700, -- contribution from dailies per week (Monday 00:00 UTC); about six days of all three
+	WEEK_CAP = 700, -- contribution from dailies and sheltering (Pacing.Shelter.CONTRIBUTION) per week (Monday 00:00 UTC); about six days of all three
 	OFFERED = 3, -- dailies on the board each day (reset at 00:00 UTC, like the daily login)
 	COMBAT_MAX = 1, -- at most this many combat dailies among them: the rest are peaceful
 	COMBAT_CHANCE = 0.65, -- the chance a day's offer includes one

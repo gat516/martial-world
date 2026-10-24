@@ -96,6 +96,9 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
   when a player's foundation is first damaged or sealed low (a stage under 100%, or a
   heart-demon trial that tempers little) the elder points them to seclusion and a
   tempering herb or pill. Unlocked then, not before (one idea at a time).
+- **Deepening lesson:** taught when it first matters too: the first time a player holds a
+  heaven-and-earth treasure, lands a feat above their realm, or calms a heart demon, the
+  elder names deepening once ("an old foundation can grow deeper still"). Not before.
 The built schedule is [onboarding](systems/onboarding.md) "One idea per chapter".
 - **Every major** repeats the pattern: one new idea, said once by the elder, with a
   rewarded objective and a guide. Next: one lesson per QR third (QR4: the garden aura

@@ -99,9 +99,12 @@ consumables: spirit cores from beasts and heavenly treasures.
   mutation ribbons, tier shields); `Herbarium.luau` (the collection book, H). Their
   look and the Herbarium's API: [herbarium](../ui/herbarium.md).
 - Models: plant templates are `ReplicatedStorage.HerbModels.<model>` (place file only;
-  the testbed has an empty folder, so plants don't draw there). A def's `model`
-  defaults to its id; a herb whose template is missing draws its `standIn` (an
-  existing model of the same soil) tinted 55% to its colour (`Herbs.clone`).
+  the testbed has an empty folder) and, for the 11 herbs added 2026-10-23,
+  `ReplicatedStorage.HerbModelsExtra.<model>` (`assets/HerbModelsExtra.rbxm`, mapped
+  in both projects, so these do draw in the testbed). A def's `model` defaults to its
+  id; `Herbs.template` looks in HerbModels, then HerbModelsExtra, and a herb with
+  neither draws its `standIn` (an existing HerbModels model of the same soil) tinted
+  55% to its colour (`Herbs.clone`).
   `ReplicatedStorage.GardenKit` (`assets/GardenKit.rbxmx`) holds prompts and glows;
   plots are build items tagged `HerbPlot` with a `Soil` attribute.
 - `src/client/HerbAnimator.luau`: procedural R6 hand-to-mouth gesture, bite,
@@ -143,8 +146,8 @@ the pose and prop. Unsupported rigs skip the gesture (the game uses R6).
 
 ## Known gaps
 - Grow now product ids are placeholders (0) until the products are created.
-- The 11 herbs added 2026-10-23 (Ghostlamp Lily to Dao Origin Fruit) draw tinted
-  stand-ins until their models are built (below) and have glyphs, no icons.
+- The 11 herbs added 2026-10-23 (Ghostlamp Lily to Dao Origin Fruit) have only
+  light-pass part models (below) and glyphs, no icons.
 - Deep Wilds and the Far Reaches aren't map regions yet; their seeds drop only by
   realm (an elite or apex beast anywhere off the seed regions, or the testbed).
 - Tier IV-V numbers (grow times, aura, sell prices, buffs) are first guesses; the
@@ -152,12 +155,21 @@ the pose and prop. Unsupported rigs skip the gesture (the game uses R6).
 - Foundation's Home hint suggests the next herb tier to harvest even when that tier
   belongs to a far later realm.
 
-## Models to build
-For the modeler: one template per herb in `ReplicatedStorage.HerbModels`, named by the
-id, built like the existing ones (mature size at scale 1; plants are drawn at
-`SPROUT_SCALE` and scaled up as they grow, so there are no separate growth-stage
-models; keep the template's pivot at the stem's ground point, upright). Until one
-lands, the stand-in shown draws tinted.
+## Herb models (light pass) and needs art pass
+The 11 herbs below have cheap Roblox-part models in `ReplicatedStorage.HerbModelsExtra`,
+built by `art/herbs_extra/build_herb_item_models.luau` (re-run it in a sandbox, then
+export the folder with `tools/export_rbxm.luau` to `assets/HerbModelsExtra.rbxm`).
+Each is a Model named by the id, mature size at scale 1 (plants are drawn at
+`SPROUT_SCALE` and scaled up as they grow), identity-rotation WorldPivot at the stem's
+ground point (the water surface for pond herbs), PrimaryPart nil, anchored, no
+collision; plain SmoothPlastic with Neon only on the glowing parts. Each one has the
+attributes `NeedsArtPass = true` and an `ArtPassReason`.
+
+**Needs art pass** (all 11; the Look column is the target): proper modelled
+petals/leaves/vines in Blender where parts fall short, and the glow, mist, motes and
+crackle as vfx. Reasons per herb: the `ArtPassReason` attribute, also in the
+builder's `HERB_REASON`. A finished model can go into `HerbModels` under the same
+name (it wins over the extra one) or replace the one in `HerbModelsExtra`.
 
 | Id | Name | Tier | Soil | Stand-in | Look |
 |---|---|---|---|---|---|

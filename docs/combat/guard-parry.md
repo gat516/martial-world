@@ -29,7 +29,9 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   else within ~100° of facing (`FRONT_DOT`). Facing is the server's root or the
   facing the client last reported while guarding (within `LOOK_FRESH`),
   whichever passes: the replicated root is a ping or more behind a turn.
-- **Facing while guarding**: without a lock-on you turn toward the beast winding
+- **Facing while guarding**: under shift lock (not locked on) you face the camera,
+  the way you aim (user, 2026-10-24), and that facing goes to the server for the
+  front arc as usual; otherwise, without a lock-on, you turn toward the beast winding
   up or dashing at you, else the nearest one, within `FACE_RANGE` of its edge
   (`FACE_TURN` sets how fast; GuardController writes `ActionState.guardFacing`,
   Movement applies it). Before, a free camera turned you the way you walked, so

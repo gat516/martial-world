@@ -46,6 +46,12 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
 - **Halls, masters and lineage** (sections 3b, 3d).
 - **Rifts and paths** (section 9, [replayability](roadmap/replayability.md)).
 - **World events** (section 7; separate work).
+- **Fortuitous encounters (owner, 2026-10-24):** the heavy player's long-term edge
+  comes from encounters, not stone trickles or streaks. Now: seclusion's finds (band
+  herbs and seeds told as encounters; [seclusion](systems/seclusion.md)). Later: world
+  events (deferred, section 7) and secret realms (deferred) as the next encounter
+  sources; each gets its odds from the [progression rules](systems/progression-rules.md)
+  rarity table and a run of the pacing model.
 - **PvP-adjacent competition** (section 3f).
 - **The Grow now dev product** rework ([garden review](design-reviews/garden-and-herbarium.md) rec 1).
 - **The junior disciple NPC escort** (section 3e).

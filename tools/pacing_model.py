@@ -10,7 +10,7 @@ only the floor below the band's tier), garden yield and grow times, the garden a
 your own peak only), the peak score's meditation and growth bonus, the best
 meditation item, herb buffs (falloff, capped by realm), spirit root grade, the FE
 cultivation method, spirit cores, daily login qi, the AFK/offline credit (one 12 h
-budget a day, overflow cap 1.5, full carry), seclusion's rare finds, weather,
+budget a day, overflow cap 1.5, full carry), seclusion's encounters (band herbs and seeds), weather,
 parties and the Herbalist's band-gated seeds.
 
 Numbers are parsed from the game's source (Pacing.luau, Herbs.luau, Items.luau,
@@ -165,7 +165,14 @@ def load_game() -> dict:
             "mutatesTo": (re.search(r'mutatesTo\s*=\s*"(\w+)"', body) or [None, None])[1],
             "mutateChance": _num(body, "mutateChance", 0),
             "sellPrice": _num(body, "sellPrice", 0),
+            "region": (re.search(r'region\s*=\s*"(\w+)"', body) or [None, None])[1],
         }
+
+    # Herbs.Regions: each band's beast seed pool (+ its bosses'), for seclusion's finds
+    regions = {}
+    for rid, body in re.findall(r'id = "(\w+)",(.*?)\n\t\}', _block(herbs_src, "Herbs.Regions ="), re.S):
+        pools = re.findall(r"(seeds|bossSeeds) = \{([^}]*)\}", body)
+        regions[rid] = {k: {h: float(w) for h, w in re.findall(r"(\w+) = ([\d.]+)", v)} for k, v in pools}
 
     sizes = re.findall(r"weight\s*=\s*([\d.]+),\s*min\s*=\s*([\d.]+),\s*max\s*=\s*([\d.]+)", _block(herbs_src, "Herbs.Sizes ="))
     tw = sum(float(w) for w, _, _ in sizes)
@@ -264,8 +271,10 @@ def load_game() -> dict:
         "OVERFLOW_CAP": _num(brk, "OVERFLOW_CAP"),
         "CARRY_SHARE": _num(brk, "CARRY_SHARE"),
         "SECLUSION_GROWTH": _num(secl, "GROWTH"),
-        "RARE_CHANCE": _num(secl, "RARE_CHANCE"),
-        "RARE": _map(secl, "RARE"),
+        "FIND_CHANCE": _num(secl, "FIND_CHANCE"),
+        "FINDS": _map(secl, "FINDS"),
+        "FIND_RARITY": _map(secl, "FIND_RARITY"),
+        "regions": regions,
         "ROOT_SPEED": grades,
         "STARTER_QI": _num(methods, "STARTER_QI"),
         "METHOD_MATCH": _num(methods, "MATCH"),
@@ -510,6 +519,33 @@ class Model:
             # reduced share
             share *= self.g["BAND_SHARE"]
         return max(share * d, floor)
+
+    def find_pool(self, key, beyond=False) -> dict:
+        """Seclusion's herb and seed finds (server Seclusion.findHerb): the band's herbs
+        (its Herbs.Regions pools and the herbs whose `region` it is, of the band's own
+        tier; no wild, event or deferred herbs) weighted by FIND_RARITY; `beyond` takes the next band's (none
+        past the Far Reaches: the band's own). Returns herb id -> probability."""
+        b = band_of(key)
+        if beyond:
+            j = [x[1] for x in BANDS].index(b[1])
+            b = BANDS[min(j + 1, len(BANDS) - 1)]
+        reg = self.g["regions"].get(b[1], {})
+        ids = set(reg.get("seeds", {})) | set(reg.get("bossSeeds", {}))
+        ids |= {h for h, d in self.g["herbs"].items() if d["region"] == b[1]}
+        w = {h: self.g["FIND_RARITY"].get(self.g["herbs"][h]["rarity"], 0) for h in ids
+             if h in self.g["herbs"] and self.g["herbs"][h]["tier"] == b[2]
+             and not self.g["herbs"][h]["wild"] and h not in self.g["PRIZE"]}
+        tot = sum(w.values())
+        return {h: v / tot for h, v in w.items() if v > 0} if tot else {}
+
+    def seed_value(self, hid, key) -> float:
+        """Stones a found seed saves: its Herbalist price when the Herbalist sells it to
+        the player at this stage (a purchase it replaces); a seed the shop doesn't sell
+        them (mutation-only, or a later band's) counts nothing here (conservative)."""
+        h = self.g["herbs"][hid]
+        if h["seedCost"] and (not h["soldFrom"] or idx(h["soldFrom"]) <= idx(key)):
+            return h["seedCost"]
+        return 0.0
 
     # ---- the garden plan for a stage: what's planted, harvests, aura, buffs
     def garden_plan(self, st) -> dict:
@@ -766,6 +802,20 @@ class Model:
                 cache[ck] = self.rates(i if k is None else k)
             return cache[ck]
 
+        found = {"seeds": 0.0}  # seclusion's found seeds, in the stones they'd cost (seed buys only)
+
+        def pay_seeds(cost):
+            """Pay a seed purchase from found seeds first, then stones; False if short."""
+            nonlocal stones
+            if stones + found["seeds"] < cost:
+                return False
+            use = min(found["seeds"], cost)
+            found["seeds"] -= use
+            stones -= cost - use
+            stone_log.setdefault(self.g["curve"][i]["major"], {}).setdefault("found seeds used", 0.0)
+            stone_log[self.g["curve"][i]["major"]]["found seeds used"] += use
+            return True
+
         def earn(src, amount):
             nonlocal stones
             stones += amount
@@ -788,8 +838,7 @@ class Model:
             start = self.g.get("SHOP_FROM", {}).get(nxt)
             if start and idx(key) >= idx(start) and nxt <= t["tier"]:
                 cost = self.g["SHOP_START_COST"][nxt]
-                if stones >= cost:
-                    stones -= cost
+                if pay_seeds(cost):
                     gs["unlocked"] = nxt
                     acq["unlocked_at"][nxt] = (key, day)
             changed = True
@@ -797,8 +846,7 @@ class Model:
                 changed = False
                 if gs["tier"] < t["tier"]:
                     cost = sum(gs[n] * self.seed_price(soil, t["tier"]) for n, soil in (("beds", "bed"), ("ponds", "pond"), ("groves", "grove")))
-                    if cost <= stones:
-                        stones -= cost
+                    if pay_seeds(cost):
                         gs["tier"] = t["tier"]
                         changed = True
                         continue
@@ -813,8 +861,7 @@ class Model:
                         continue
                     if gs[n] < t[n]:
                         full = cost + self.seed_price(soil, gs["tier"] or 1)
-                        if stones >= full:
-                            stones -= full
+                        if stones >= cost and pay_seeds(full):
                             gs[n] += 1
                             changed = True
                             break
@@ -872,14 +919,29 @@ class Model:
                         add(got)
                     if k == 0 and self.p["seclusion"] and self.on("seclusion"):
                         # no stone trickle or streak since the 2026-10-24 seclusion rework
-                        rare = self.g["RARE"]
-                        tot = sum(rare.values())
-                        rolls = hours * self.g["RARE_CHANCE"]
-                        seed_tier = {"QiCondensation": 2, "QiRefining": 3, "Foundation": 4}[r["st"]["major"]]
-                        if self.gs is not None and seed_tier == self.gs["unlocked"] + 1:
-                            acq["mut"] += rolls * rare.get("Seed", 0) / tot
-                        pending["dew"] += rolls * rare.get("HeavenlyDew", 0) / tot * r["st"]["d"]
-                        peach = rolls * rare.get("ImmortalPeach", 0) / tot * 0.5 * r["st"]["bar"]
+                        # fortuitous encounters (2026-10-24): FIND_CHANCE finds an hour,
+                        # by FINDS weight: a band herb (eaten for its qi), a band seed (the
+                        # stones it saves, or the next tier unlocked), rarely a seed from
+                        # the next band, treasures and the tempering pill
+                        finds = self.g["FINDS"]
+                        tot = sum(finds.values())
+                        rolls = hours * self.g["FIND_CHANCE"]
+                        key = r["st"]["key"]
+                        self.band_tier = band_tier(key)
+                        herb_raw = sum(pr * self.herb_qi(h, r["st"]["d"]) for h, pr in self.find_pool(key).items())
+                        if self.on("herbqi"):
+                            pending["herbs"] += rolls * finds.get("Herb", 0) / tot * herb_raw
+                        for kind, beyond in (("Seed", False), ("FarSeed", True)):
+                            n = rolls * finds.get(kind, 0) / tot
+                            for h, pr in self.find_pool(key, beyond).items():
+                                t = self.g["herbs"][h]["tier"]
+                                if self.gs is not None and t == self.gs["unlocked"] + 1:
+                                    acq["mut"] += n * pr
+                                elif self.gs is not None and t <= self.gs["unlocked"]:
+                                    # in kind: they pay only for seeds the player would buy
+                                    found["seeds"] += n * pr * self.seed_value(h, key)
+                        pending["dew"] += rolls * finds.get("HeavenlyDew", 0) / tot * r["st"]["d"]
+                        peach = rolls * finds.get("ImmortalPeach", 0) / tot * 0.5 * r["st"]["bar"]
                         credit("seclusion finds", peach)
                         add(peach)
                 first = False
@@ -1088,7 +1150,7 @@ def load_tempering() -> dict:
             "POINTS": _map(t, "POINTS"), "BOSS_CHANCE": _num(t, "BOSS_CHANCE"),
             "TEMPER_CALM": _num(hd, "TEMPER_CALM"), "TEMPER_ROUGH": _num(hd, "TEMPER_ROUGH"),
             "CLEAR_BOSS_CHANCE": _num(hd, "CLEAR_BOSS_CHANCE"), "DEEPEN_CALM": _num(hd, "DEEPEN_CALM"),
-            "RARE_CHANCE": _num(secl, "RARE_CHANCE"), "RARE": _map(secl, "RARE"),
+            "FIND_CHANCE": _num(secl, "FIND_CHANCE"), "FINDS": _map(secl, "FINDS"),
             "FIRST_PILLS": _map(secl, "FIRST_ITEMS").get("TemperingPill", 0),
             "PAVILION_WEEK": _num(_block(pills, "TemperingPill ="), "week")}
 
@@ -1275,8 +1337,8 @@ def tempered_percents(model: "Model", result: dict, sealed: dict, name: str, cfg
     reached = result["reached"]
     grades = {}
     used = {"items": 0.0, "points": 0.0, "wasted": 0.0, "hd": 0.0, "deep": 0.0, "capped": 0.0}
-    rare = tcfg["RARE"]
-    find_share = rare.get("TemperingPill", 0) / sum(rare.values())
+    finds = tcfg["FINDS"]
+    find_share = finds.get("TemperingPill", 0) / sum(finds.values())
 
     def temper(points, ceiling, steps=1.0):
         """Raise the lowest open stage(s); fractional steps credit a share."""
@@ -1321,7 +1383,7 @@ def tempered_percents(model: "Model", result: dict, sealed: dict, name: str, cfg
         if idx(key) >= idx("QC5"):
             pills += weeks * min(h["pavilion"], tcfg["PAVILION_WEEK"])
         if p["seclusion"]:
-            pills += days * ASSUME.get("seclusion_hours", 10) * tcfg["RARE_CHANCE"] * find_share
+            pills += days * ASSUME.get("seclusion_hours", 10) * tcfg["FIND_CHANCE"] * find_share
         if key == "QC5":
             pills += tcfg["FIRST_PILLS"]
         snow = weeks * h["snowpeak"] if idx(key) >= idx("QR6") else 0.0

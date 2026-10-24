@@ -13,8 +13,11 @@
 --     Garden.advance for the offline part)
 --   (the garden's own mutation roll, MUTATION_PER_HOUR, runs while the owner is online
 --     on their own peak, secluded or not: Garden's tick)
---   rare finds: every FIND_SECONDS a small roll (RARE_CHANCE an hour on average), so a
---     short seclusion can find something too; nothing waits on a full hour
+--   fortuitous encounters: every FIND_SECONDS a small roll (FIND_CHANCE an hour on
+--     average), so a short seclusion can find something too; nothing waits on a full
+--     hour. A find (FINDS) is a herb or seed of the player's band (FIND_RARITY, leaning
+--     rare), rarely a seed from the next band, a treasure or a tempering pill, told as
+--     an encounter (ENCOUNTERS). Never stones, never root pills
 -- Everything counts for at most MAX_HOURS of one seclusion. Logging out keeps it
 -- going (data.seclusion.since stays set); the next login settles the time away
 -- and ends it. Rising (Rise, a hit, drifting off the seat) ends it too. Ending it
@@ -44,7 +47,7 @@ local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 local S = Pacing.Seclusion
 local T = Pacing.Tempering
 local MAX_SECONDS = S.MAX_HOURS * 3600
-local FIND_ROLL = S.RARE_CHANCE * S.FIND_SECONDS / 3600 -- a find's chance per roll
+local FIND_ROLL = S.FIND_CHANCE * S.FIND_SECONDS / 3600 -- a find's chance per roll
 local CARD_DELAY = 8 -- seconds after a login before the card shows (the HUD is up by then)
 
 local Seclusion = {}
@@ -71,17 +74,72 @@ local function pick(pool: { [string]: number }): string?
 	return nil
 end
 
--- A seed of the player's major's next herb tier (no wild-only or event herbs).
-local function rareSeed(data: PlayerData.Data): string?
-	local tier = S.SEED_TIER[data.realm.major] or 2
-	local pool = {}
-	for _, id in Herbs.Order do
-		local herb = Herbs.Defs[id]
-		if herb.tier == tier and not herb.wild and not Pacing.Herbs.PRIZE[id] then
-			table.insert(pool, id)
+-- The herbs a find picks from, by FIND_RARITY weight: the band's Herbs.Regions pools
+-- and the herbs whose `region` it is, of the band's own tier (no wild, event or
+-- deferred herbs). `beyond`: the next band's (past the last band, the band's own).
+local function bandPool(data: PlayerData.Data, beyond: boolean): { [string]: number }
+	local band = Herbs.band(data.realm.major, data.realm.minor)
+	if beyond then
+		for i, r in Herbs.Regions do
+			if r == band then
+				band = Herbs.Regions[i + 1] or band
+				break
+			end
 		end
 	end
-	return if #pool > 0 then pool[rng:NextInteger(1, #pool)] else nil
+	local pool = {}
+	local function consider(id: string)
+		local herb = Herbs.Defs[id]
+		local w = herb and S.FIND_RARITY[herb.rarity] or 0
+		if herb and w > 0 and not herb.deferred and herb.tier == band.tier and not herb.wild and not Pacing.Herbs.PRIZE[id] and Items.Defs[id] then
+			pool[id] = w
+		end
+	end
+	for id in band.seeds do
+		consider(id)
+	end
+	for id in band.bossSeeds or {} do
+		consider(id)
+	end
+	for _, id in Herbs.Order do
+		if Herbs.Defs[id].region == band.id then
+			consider(id)
+		end
+	end
+	return pool
+end
+
+-- How a find is told (the fiction: a fortuitous encounter, never "you found loot").
+-- {x} is the herb or item's name, with its article for herbs.
+local ENCOUNTERS = {
+	Herb = {
+		"A wandering spirit bee led you to {x}.",
+		"A white crane landed beside you and left {x}.",
+		"The mist parted over a hidden ledge, and there grew {x}.",
+		"A shy spirit fox nosed {x} into your lap.",
+	},
+	Seed = {
+		"A wandering spirit bee led you to {x} seed.",
+		"The wind carried {x} seed into your sleeve.",
+		"A spirit squirrel buried {x} seed at your feet, then forgot it.",
+	},
+	FarSeed = {
+		"A streak of starlight fell beside you and left {x} seed, from wilds far beyond these.",
+		"An old wanderer crossed your peak, pressed {x} seed into your hand, and was gone.",
+	},
+	Item = {
+		"A loose stone beneath your seat hid a hermit's cache. Inside: {x}.",
+		"Heaven and earth answered your stillness with a gift: {x}.",
+	},
+}
+
+local function tell(kind: string, name: string): string
+	local lines = ENCOUNTERS[kind]
+	return (string.gsub(lines[rng:NextInteger(1, #lines)], "{x}", name))
+end
+
+local function withArticle(name: string): string
+	return (if string.find(name, "^[AEIOUaeiou]") then "an " else "a ") .. name
 end
 
 local function addSeeds(data: PlayerData.Data, id: string, n: number)
@@ -106,25 +164,31 @@ local function addItem(player: Player, data: PlayerData.Data, id: string, n: num
 	give(player, data, id, n, online)
 end
 
--- One find roll (every FIND_SECONDS): maybe a rare find.
+-- One find roll (every FIND_SECONDS): maybe a fortuitous encounter.
 local function roll(player: Player, data: PlayerData.Data, online: boolean)
 	if rng:NextNumber() >= FIND_ROLL then
 		return
 	end
-	local what = pick(S.RARE)
-	if what == "Seed" then
-		local id = rareSeed(data)
+	local what = pick(S.FINDS)
+	local line: string? = nil
+	if what == "Herb" then
+		local id = pick(bandPool(data, false))
+		if id then
+			addItem(player, data, id, 1, online)
+			line = tell("Herb", withArticle(Herbs.Defs[id].name))
+		end
+	elseif what == "Seed" or what == "FarSeed" then
+		local id = pick(bandPool(data, what == "FarSeed"))
 		if id then
 			addSeeds(data, id, 1)
-			if online then
-				Cultivation.notify(player, `In the stillness, a {Herbs.Defs[id].name} seed drifts to your feet.`)
-			end
+			line = tell(what, withArticle(Herbs.Defs[id].name))
 		end
 	elseif what and Items.Defs[what] then
 		addItem(player, data, what, 1, online)
-		if online then
-			Cultivation.notify(player, `In the stillness, you find a {Items.Defs[what].name}.`)
-		end
+		line = tell("Item", Items.Defs[what].name)
+	end
+	if online and line then
+		Cultivation.notify(player, line)
 	end
 end
 
@@ -356,6 +420,7 @@ local function finish(player: Player, data: PlayerData.Data, delay: number, onli
 		flavour = if #tempered > 0
 			then (if #tempered == 1 then "An old foundation is mended." else "Your old foundations are mended.")
 			elseif first then "Next time, bring a herb or pill to temper an old foundation."
+			elseif found then "Fortune found you in the stillness."
 			else nil,
 	}
 	Analytics.event(player, "SeclusionEnded", math.floor(sec.counted / 60))

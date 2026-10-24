@@ -25,10 +25,10 @@ local jumpWasEnabled: boolean? = nil
 local BODY_TURN = 14
 local STAND_TURN = 9
 local HEAD_LIMIT = math.rad(95)
--- the forward share of the move (along the camera) past which the body faces the way
--- it walks instead of the camera: cos 60 deg, so W diagonals (0.71) face the move and
--- A / D alone (0) strafe; it matches Strafe's LATERAL_START (sin 60 = 0.87)
-local FACE_MOVE_FORWARD = 0.5
+-- the forward share of the move (along the camera) below which it counts as walking
+-- backwards: cos 110 deg, so S, S+A and S+D (-1, -0.71) back-walk while A and D
+-- alone (0) face the way they go
+local BACKWARD = -0.34
 
 local function yawOf(v: Vector3): number
 	return math.atan2(-v.X, -v.Z)
@@ -129,13 +129,14 @@ local function step(dt: number)
 			gameSettings.RotationType = Enum.RotationType.MovementRelative
 			local move = humanoid.MoveDirection * Vector3.new(1, 0, 1)
 			local moving = move.Magnitude > 0.1
-			-- Walking forward or forward-diagonal (W, W+A, W+D), the body faces the way
-			-- it walks (user, 2026-10-24); straight sideways (A, D: strafe) and
-			-- backwards (S, S+A, S+D: back walk) it keeps facing the camera.
+			-- Moving, the body turns to the way it goes (user, 2026-10-24: no strafes):
+			-- W, A, D and the W diagonals face the move and walk forward; S and the S
+			-- diagonals turn their back to it, so the back walk (BackWalk) runs
+			-- straight along the move. Standing, it faces the camera.
 			local face = camera.CFrame.LookVector
 			local ahead = Vector3.new(face.X, 0, face.Z)
-			if moving and ahead.Magnitude > 0.01 and move.Unit:Dot(ahead.Unit) > FACE_MOVE_FORWARD then
-				face = move
+			if moving and ahead.Magnitude > 0.01 then
+				face = if move.Unit:Dot(ahead.Unit) < BACKWARD then -move else move
 			end
 			turnToward(root, face, if moving then BODY_TURN else STAND_TURN, dt)
 			dragWithin(root, camera.CFrame.LookVector, HEAD_LIMIT)

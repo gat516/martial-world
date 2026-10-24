@@ -1,7 +1,7 @@
 --!strict
 -- The first-character screen (user, 2026-10-24: "the front door"): one page for a
 -- new character instead of four steps. The free Fate reveal comes first (the
--- race the server drew with its rarity, the clan, the odds link; the race's
+-- race the server drew with its rarity, the clan, the odds button; the race's
 -- free looks wait for Edit look), then the name, already filled with a drawn cultivator name the
 -- player can keep, redraw or type over, and the big Enter World in the footer.
 -- The look starts on the preset (the ranger outfit, the avatar's own skin and
@@ -16,15 +16,11 @@ local NameTab = require(script.Parent:FindFirstChild("Name") :: ModuleScript)
 local Begin = {}
 
 function Begin.build(page: ScrollingFrame, ctx: any)
-	-- the race and clan rows and the odds link; the race's free looks wait for
+	-- the race and clan rows and the odds button; the race's free looks wait for
 	-- Edit look (the Fate step), so the page fits a phone without scrolling
 	-- (critic, 2026-10-24: each rarity beside its value, in its colour, at the
 	-- value's size, so the draw is the hero, not the field labels)
 	local fate = Fate.build(page, ctx, { order = 0, note = false, looks = false, inline = true })
-	-- the odds link reads as a link and is a 44 px tap target
-	fate.link.RichText = true
-	fate.link.Text = "<u>See the odds of every race and clan</u>"
-	fate.link.Size = UDim2.new(1, 0, 0, 44)
 	-- the drawn race is the one value that stands out (critic, round 2)
 	local raceValue = page:FindFirstChild("RaceRow") and (page :: any).RaceRow.Row:FindFirstChild("Value")
 	if raceValue and raceValue:IsA("TextLabel") then

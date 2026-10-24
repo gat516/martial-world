@@ -41,7 +41,7 @@ list come from config; what a race does is [identity](identity.md).
   with its rarity beside its value in the rarity's colour; the reveal is the
   hook), the first name already filled with a drawn cultivator name
   (`GivenNames`; "New name" draws another, typing still works, so a phone needs
-  no keyboard), the odds link, and a big gold Enter World (76 design px, 61 px on
+  no keyboard), the odds button, and a big gold Enter World (76 design px, 61 px on
   a phone). The look starts on the preset (the ranger outfit, the avatar's own
   skin and hair) and changes later through Edit look. No paid buttons. Picked by
   two critic rounds over a variant with the reveal only on the stage nameplate
@@ -52,8 +52,14 @@ list come from config; what a race does is [identity](identity.md).
   receipt handlers and the reroll code stay, so turning it on brings them back.
 - **Fate has its own step** in Edit look (user, 2026-10-23): race, the race's
   free looks under "Look" (hidden when it has none), clan (each with a paid
-  Change while rerolls are on), the note and the odds link. Traits come only with
+  Change while rerolls are on), the note and the odds button. Traits come only with
   rolled variants; looks carry no stats, so they're free ([identity](identity.md) Looks).
+- **The odds are a button** (user, 2026-10-24: "the odds of race should be a
+  button"; Roblox's paid-random-items guidance prefers a labelled button over a
+  bare link): a lacquer pill like Back and New name, 200x56 design px (160x45 on
+  a phone), a gold "%" glyph before "See the odds", centred in its own row under
+  the clan row on the first-character page and after the note on the Fate step.
+  It opens the Odds card. The `%` is live text, not art.
 - **Calm motion:** a 0.15 s fade and 8 px slide between steps, Motion's hover and
   press on buttons. No flashes, shakes, pulses or full-screen darkening.
 - **Mobile first:** the panel scales with the screen height and floors at 0.8, so
@@ -83,14 +89,14 @@ list come from config; what a race does is [identity](identity.md).
   a migrated profile): one page (`Tabs/Begin`, `Pages.Begin`) under the "Your
   fate" plaque (dropped on phones so the page fits unscrolled): the race row
   ("Race" over "Spirit Fox Rare", the value a size up), the clan row, the
-  underlined odds link (a 44 design px tap target), the name field with "New
+  odds button ("% See the odds", a centred lacquer pill), the name field with "New
   name". No "You will be known as" line: the nameplate under the character shows
   the full name as it changes. Footer: the big Enter World, and Back (to the
   slots) only when the account has a character. The race's looks keep their
   defaults until Edit look.
 - **Edit** (Edit look): Appearance (skin, shirt, pants), Hair (up to 3 ids,
   colour), Fate (race, an arrow picker per look the race has, clan, a note that
-  they stay with the slot, the odds link), Name (the first name locked: "A
+  they stay with the slot, the odds button), Name (the first name locked: "A
   cultivator's name is set once"). Tabs at the top jump between steps. Footer:
   Cancel and Save look (on every step). Save returns to the slot screen, or, when
   opened from the world (`Controller.editLook()`, for the Self card to call), the
@@ -130,7 +136,7 @@ list come from config; what a race does is [identity](identity.md).
 - `src/client/CharacterCreator/`: Theme (colours, pill art, well edge, tweens,
   steps, fit), State (the
   previewed look; `load` starts over from a look), Components (tab, section, note,
-  link, arrow row, swatch, text field, fate row, slot card, odds row, all cloned from
+  odds button, arrow row, swatch, text field, fate row, slot card, odds row, all cloned from
   the GUI's `Templates`), Look (a whole look on the preview), Preview (viewport
   dummy; it makes the viewport's Camera itself, since a Camera saved inside a
   ViewportFrame is lost in the Rojo sync), Backdrop, Bridge (every server call),
@@ -151,10 +157,12 @@ list come from config; what a race does is [identity](identity.md).
   `Modal`), `Veil` (open/close fade) and `Templates`.
 - The first-character page (2026-10-24, sandbox Edit view, sample data, Spirit
   Fox / Li): the panel hugs the page (head 76, or 20 on a phone with no plaque;
-  footer = Enter 76 + 30 for the divider off phones). 844x390: panel 384x333 at
-  y 29, page 238 px holding 225 px of rows (no scroll), Enter 346x61; 667x375:
-  panel 384x333 at y 21, the same rows; 1920x1080: panel 576x601, Enter 518x91,
-  margins 239 / 240; 1366x768: panel 410x428, Enter 369x65. The race value is
+  footer = Enter 76 + 30 for the divider off phones). With the odds button
+  (same day): 844x390: panel 384x342 at y 24, page 247 px holding 235 px of rows
+  (no scroll), the odds button 160x45, Enter 346x61; 667x375: panel 384x342 at
+  y 17, the same rows; 1920x1080: panel 576x617, odds 240x67, Enter 518x91;
+  1366x768: panel 410x439, odds 171x48, Enter 369x65; the odds button centred on
+  the panel (dx 0.0) at every size. The race value is
   Merriweather 24 (19 px on a phone), the rarity beside it in its colour.
 - The panel is authored 480 design px wide and scaled by its `Fit` UIScale:
   `clamp(H / 900, 0.8, 1.4)` (`Theme.Fit`), 16 px from the right edge, centred

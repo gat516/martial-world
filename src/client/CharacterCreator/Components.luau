@@ -61,13 +61,14 @@ function Components.note(parent: Instance, text: string, order: number, name: st
 	return note
 end
 
-function Components.link(parent: Instance, text: string, order: number, onClick: () -> ()): TextButton
-	local link = clone("Link") :: TextButton
-	link.Text = text
-	link.LayoutOrder = order
-	link.Activated:Connect(onClick)
-	link.Parent = parent
-	return link
+-- The odds button: a labelled lacquer pill centred in its own row (the template
+-- carries its "% See the odds" label); returns the row.
+function Components.oddsButton(parent: Instance, order: number, onClick: () -> ()): Frame
+	local row = clone("OddsButton") :: Frame
+	row.LayoutOrder = order;
+	(row:FindFirstChild("Button") :: ImageButton).Activated:Connect(onClick)
+	row.Parent = parent
+	return row
 end
 
 -- kind: "SwatchGrid" (six per row)

@@ -15,7 +15,11 @@ function Movement.apply(humanoid: Humanoid)
 		and not humanoid:GetAttribute("Guarding")
 	local crowdControl = humanoid:GetAttribute("CCMove") or 1 -- flinch, stagger, stun (PlayerStun)
 	local slow = humanoid:GetAttribute("SlowMove") or 1 -- chill and webs (PlayerSlow)
-	humanoid.WalkSpeed = (base + (if running then Config.Movement.RUN_BONUS else 0)) * multiplier * crowdControl * slow
+	local speed = (base + (if running then Config.Movement.RUN_BONUS else 0)) * multiplier * crowdControl * slow
+	if humanoid:GetAttribute("Guarding") then
+		speed = math.min(speed, Config.Combat.GUARD.WALKSPEED) -- blocking walks slowly (stuns and slows can go lower)
+	end
+	humanoid.WalkSpeed = speed
 end
 
 function Movement.action(humanoid: Humanoid, multiplier: number, busy: boolean)

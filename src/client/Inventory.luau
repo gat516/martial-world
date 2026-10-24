@@ -992,8 +992,8 @@ end
 -- the hotbar is hidden while browsing and the window runs to the screen's bottom.
 -- Choosing anything that can go on the bar (a weapon, an art, an item), or picking
 -- one up to drag, brings the hotbar back and the window eases up to make room for
--- it, keeping the chosen cell in view, so the hint "tap a hotbar slot" has its slots
--- right there. A drop chooses what was dropped, so the bar stays to show it landed.
+-- it, keeping the chosen cell in view: the slots rising is the cue (the detail pane
+-- gives no how-to). A drop chooses what was dropped, so the bar stays to show it landed.
 -- Choosing nothing (tapping the chosen cell again, another tab) lowers it again.
 local TOUCH_TOP_GAP = 6
 local TOUCH_BOTTOM_GAP = 8 -- the window's bottom while the hotbar is away

@@ -241,8 +241,8 @@ def's own realm as before). Bosses never take variants.
   `Pacing.Variants.AMBIENT_SPREAD`). Health follows the curve by player power and damage by
   player health, from `Pacing.BeastBaseline` at the def's realm to the spawn's, so a
   same-stage player needs as many hits and takes the same share of health as the def was
-  designed for. Realm suppression, knockback (`Knockback.luau`) and the danger bar all use
-  the variant's realm.
+  designed for. Realm suppression, poison (a share of the variant stage's health),
+  knockback (`Knockback.luau`) and the danger bar all use the variant's realm.
 - **Tier.** The stage gap (spawn realm minus the def's) picks it, `Pacing.Variants.TIERS`:
 
   | Tier | Gap | Size | Speed | Cadence (cooldowns) | Health | Damage | Rewards | Look |
@@ -315,8 +315,8 @@ Shared fields and kinds any def can use (`EnemyService`, `BossAttacks`, `Combat`
   beast uses either now). `BossAttacks.addPatch` shares the Jiao's pool list, ticking every 0.5 s
   for a slow and 1 s for poison; clients get `Effect "enemyPatch"` (EnemyFX handler `patch`,
   `cue.shape = { center, radius, effect }`, `cue.seconds`).
-- **`leech`** (Bat): a landed hit heals the beast that share of its damage and fires the `leech`
-  cue. **`slot`**: a zero-damage attack (the shriek) still takes the attack slot.
+- **`leech`** (Bat): a landed hit heals the beast that share of the damage the player actually
+  took (after suppression, guard and reductions) and fires the `leech` cue. **`slot`**: a zero-damage attack (the shriek) still takes the attack slot.
 - **Burrow for a regular beast** (Centipede): the Jiao's `burrow` kind and a `followUp` slam
   (`erupt`, `unburrow`) work for any def; the lane ends on the target's spot (`stopPast = 0`).
   It spawns surfaced; only the dive is underground (`Burrowed`). The erupt sets `unburrowAt =
@@ -369,7 +369,7 @@ point is the body centre. Per-body numbers and attachments are in the RIGS.md of
   `Pacing.Income.ENEMY_QI_EXPONENT` through `Realms.enemyQi`.
 - Loot (`drops`): common beasts drop spirit cores only. Root pills are boss-only
   and extremely rare (user, 2026-10-23), Marrow Washing / Root Rebirth: Elder Wolf
-  King (QC9) 2% / 3%, Jade Jiao (QC7) 2% / 3%, Thunder Ape and Nine-Tailed Fox (FE1)
+  King (QC9) 2% / 3%, Jade Jiao (QC7) 2% / 3%, Thunder Ape (QR5) and Nine-Tailed Fox (QR9)
   4% / 5%. A grade takes several Marrow Washing Pills ([spirit root](../character/spirit-root.md)).
 - `src/shared/Spawns.luau`: ambient encounter rules (rates, caps, safe spots), zone and pack
   realm ranges (realm variants).

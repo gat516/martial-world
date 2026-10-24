@@ -37,7 +37,7 @@ local MOUTH_HEIGHT = 13 -- default mouth height above the ground (attack.mouthHe
 
 local ctx: any = nil
 local states = setmetatable({}, { __mode = "k" }) :: { [any]: any }
-local pools: { { center: Vector3, radius: number, expires: number, nextTick: number, source: string, effect: string?, slow: { factor: number, seconds: number }? } } = {}
+local pools: { { center: Vector3, radius: number, expires: number, nextTick: number, source: string, realm: { any }, effect: string?, slow: { factor: number, seconds: number }? } } = {}
 local poolLoop = false
 
 function BossAttacks.init(context: any)
@@ -181,7 +181,7 @@ local function poolTicks()
 							if slows and pool.slow then
 								PlayerSlow.apply(player, pool.slow.factor, pool.slow.seconds)
 							else
-								PlayerPoison.apply(player, 1, 5, pool.source)
+								PlayerPoison.apply(player, 1, 5, pool.source, pool.realm)
 							end
 						end
 					end
@@ -306,6 +306,7 @@ function BossAttacks.resolve(enemy, attack, shape, now: number)
 				expires = stamp + (attack.poolSeconds or 7),
 				nextTick = stamp + 0.5,
 				source = enemy.def.id,
+				realm = enemy.def.realm,
 			})
 		end
 		poolTicks()
@@ -327,6 +328,7 @@ function BossAttacks.addPatch(enemy, center: Vector3, radius: number, patch)
 		expires = stamp + patch.seconds,
 		nextTick = stamp + 0.25,
 		source = enemy.def.id,
+		realm = enemy.def.realm,
 		effect = patch.effect,
 		slow = patch.slow,
 	})

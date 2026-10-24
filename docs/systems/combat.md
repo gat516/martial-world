@@ -18,8 +18,12 @@ scales all player damage.
   attacker whose major realm is below the target's deals 0.2x per major between them
   (a QC player does 20% to a QR beast, 4% to an FE one; a QC beast the same to a QR
   player). A higher realm gets no bonus beyond its stats; minor stages never suppress.
-  Applied at the two choke points: `Combat.damageEnemy` (every player hit) and
-  EnemyService `hurtBy` (every beast and boss blow). Tribulation strikes aren't
+  Applied at the two choke points: `Combat.damageEnemy` (every player hit, so
+  technique zone ticks too) and EnemyService `hurtBy` (every beast and boss blow),
+  plus poison (`PlayerPoison`: each stack ticks 1.2% of the poisoner's stage health
+  a second, the curve's health at its `realm`, times suppression; mixed poisoners
+  tick at the strongest) and leech (the Bat heals from the damage the player really
+  took). Slow carries no damage and isn't scaled. Tribulation strikes aren't
   suppressed. A minor stage up is fightable (1.1x on both sides); a major up is not
   (2.25x on both sides plus suppression).
 - **Heaven-defiers** (`data.heavenDefying`) ignore `Pacing.HeavenDefying.SUPPRESSION_RESIST`
@@ -352,9 +356,9 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   level or stage?); should a dodge-cancelled cast refund its qi; should perfect
   dodges or parries restore qi; should items or root perks touch combat qi.
 - Testbed casts cost qi like the main game (no free-qi flag).
-- Suppression is unplayed. Poison and slow from a lower-realm beast still land in
-  full (poison is a share of max health), and a bat's leech heals from the
-  unsuppressed damage.
+- Suppression is unplayed. A slow from a lower-realm beast still lands in full
+  (it deals no damage), and poison ignores the variant tier's damage knob (a young
+  serpent's poison ticks like an adult's at the same stage).
 - Technique visual gaps (Fire Seal's client-timed ticks, observers never
   seeing windups or the Great Sage twirl, Heaven-Splitting Descent's first
   hit landing before the sweep) are in [technique visuals](../combat/technique-visuals.md#known-gaps)

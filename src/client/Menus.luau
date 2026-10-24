@@ -14,7 +14,8 @@
 --     HUD goes too (Play: touch
 --     cluster, buffs, objective, elder line; the vitals; the Dash and Strike
 --     cooldown chips; the seated tiles; world prompts). The
---     hotbar stays only for windows that drop onto it (the inventory).
+--     hotbar stays only for windows that drop onto it (the inventory; on a phone
+--     only while it asks, see keepHotbar and Menus.refresh).
 --   A minigame: everything but the minigame, tiles included.
 --   Seated (Menus.setSeated, from Meditation): the cultivation bars
 --     (Stack.SeatBars) take the vitals' place; health, qi and guard come back
@@ -83,7 +84,7 @@ end
 
 export type Options = {
 	close: (() -> ())?, -- how to close it (default: hide the frame)
-	keepHotbar: boolean?, -- leave the hotbar up as a drop target
+	keepHotbar: (boolean | () -> boolean)?, -- leave the hotbar up as a drop target (a function: while it says so)
 	minigame: boolean?, -- takes the whole screen (nothing opens over it)
 }
 
@@ -102,6 +103,14 @@ local hotbar: GuiObject
 local tiles: GuiObject
 local chips: GuiObject -- PC only: Dash and Strike cooldown chips over the hotbar
 
+local function keepsHotbar(entry: Options): boolean
+	local keep = entry.keepHotbar
+	if type(keep) == "function" then
+		return keep()
+	end
+	return keep == true
+end
+
 local function update(fade: boolean?)
 	local entry = current and entries[current]
 	local any = entry ~= nil
@@ -114,7 +123,7 @@ local function update(fade: boolean?)
 	show(play, not any)
 	show(vitals, not any and not seated)
 	show(seatBars, not any and seated)
-	show(hotbar, not any or (entry :: Options).keepHotbar == true)
+	show(hotbar, not any or keepsHotbar(entry :: Options))
 	show(chips, not any and not Platform.isTouch())
 	-- the top-right tiles always fade (they're what the player just pressed)
 	Motion.setShown(tiles, not any and not calm, true)
@@ -210,6 +219,14 @@ end
 -- GUI and hides the Hud itself, so this only makes Menus.isOpen() true.
 function Menus.setScreen(on: boolean)
 	screen = on
+end
+
+-- Ask the open menu's keepHotbar function again and fade the hotbar in or out.
+function Menus.refresh()
+	local entry = current and entries[current]
+	if entry then
+		Motion.setShown(hotbar, keepsHotbar(entry), true)
+	end
 end
 
 -- The open menu, if any.

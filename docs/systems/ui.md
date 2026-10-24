@@ -8,7 +8,7 @@ cursor, settings and the admin panel.
 - Mobile-first and one layout per session (`Platform` decides touch vs mouse once).
 - One menu at a time (`Menus`); opening a window hides the gameplay HUD (touch
   combat cluster, PC cooldown chips, vitals, hotbar; the inventory keeps the
-  hotbar as a drop target). Windows sit centred with their own close seal, and
+  hotbar as a drop target, on phones only while something is chosen). Windows sit centred with their own close seal, and
   the top-right tiles fade away while any window is open, on every device, and
   fade back when the last one closes (user decision, 2026-10-21: they poked out
   over the panels; it used to be touch-only for the big windows).

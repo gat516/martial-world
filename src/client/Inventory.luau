@@ -116,6 +116,7 @@ local techniqueRow: Frame -- the chosen art's level and XP bar (a RowTemplate cl
 local costRows: { dao: Frame, stones: Frame }
 local cells: { [string]: GuiObject } = {} -- the grid's cells by id, for NEW refreshes
 local newDot: GuiObject? -- the Inventory tile's NEW count
+local fitHotbar: () -> () -- phones: raise or lower the hotbar for the current choice (with the layout below)
 
 local function invoke(...: any)
 	local ok, message = inventoryRemote:InvokeServer(...)
@@ -907,6 +908,7 @@ local function render(animate: boolean?)
 	empty.Visible = listed == 0
 	renderDetail(animate)
 	refreshNew()
+	fitHotbar()
 end
 Inventory.render = render
 
@@ -1011,7 +1013,15 @@ end
 -- the close seal) and the search box is left out (a phone keyboard would cover the
 -- window anyway; the rail still narrows every tab). Grid, divider and detail start
 -- right under that row.
+-- Phones (2026-10-24, "just hide the whole hud so the inventory can take up more"):
+-- the hotbar is hidden while browsing and the window runs to the screen's bottom.
+-- Choosing anything that can go on the bar (a weapon, an art, an item), or picking
+-- one up to drag, brings the hotbar back and the window eases up to make room for
+-- it, keeping the chosen cell in view, so the hint "tap a hotbar slot" has its slots
+-- right there. A drop chooses what was dropped, so the bar stays to show it landed.
+-- Choosing nothing (tapping the chosen cell again, another tab) lowers it again.
 local TOUCH_TOP_GAP = 6
+local TOUCH_BOTTOM_GAP = 8 -- the window's bottom while the hotbar is away
 local TOPBAR_MAX = 58
 local TOUCH_HOTBAR_GAP = 12 -- above the hotbar's top (the weapon slot's caption pokes 7 px up)
 local TOUCH_HOTBAR_ROOM = 70 -- fallback when the hotbar can't be measured
@@ -1052,6 +1062,46 @@ local function compactHeader()
 	end
 end
 
+local peek = false -- phones: the hotbar shows only while wanted
+local shortHeight = 0 -- the window's height with the hotbar up, and without it
+local fullHeight = 0
+
+local function hotbarWanted(): boolean
+	return HotbarView.dragging() ~= nil or (selected ~= nil and not heldManual(selected))
+end
+
+fitHotbar = function()
+	if not peek then
+		return
+	end
+	local want = hotbarWanted()
+	if Menus.isOpen(window) then
+		Menus.refresh()
+	end
+	local height = if want then shortHeight else fullHeight
+	local size = UDim2.new(window.Size.X, UDim.new(0, height))
+	if window.Size == size then
+		return
+	end
+	local shrink = window.Size.Y.Offset - height
+	if not window.Visible then
+		window.Size = size
+		return
+	end
+	-- keep the chosen cell above the hotbar (read next frame: render just rebuilt it)
+	local gridBottom = grid.AbsolutePosition.Y + grid.AbsoluteSize.Y - shrink
+	Motion.ease(window, { Size = size })
+	local cell = selected and cells[selected]
+	if shrink > 0 and cell then
+		task.defer(function()
+			local over = cell.AbsolutePosition.Y + cell.AbsoluteSize.Y - gridBottom
+			if over > 0 and cell.Parent then
+				Motion.ease(grid, { CanvasPosition = grid.CanvasPosition + Vector2.new(0, over) })
+			end
+		end)
+	end
+end
+
 local shifted = false
 local function layout()
 	if not Platform.isTouch() then
@@ -1069,6 +1119,12 @@ local function layout()
 	window.Position = UDim2.new(0.5, 0, 0, top)
 	window.Size = UDim2.new(1, -16, 0, math.max(0, bottom - top));
 	(window:FindFirstChild("TitlePlaque") :: GuiObject).Visible = false
+	if Platform.isSmall() then
+		peek = true
+		shortHeight = math.max(0, bottom - top)
+		fullHeight = math.max(0, parent.AbsoluteSize.Y - TOUCH_BOTTOM_GAP - top)
+		window.Size = UDim2.new(1, -16, 0, if hotbarWanted() then shortHeight else fullHeight)
+	end
 	if not shifted then
 		shifted = true
 		for _, name in SHIFTED do
@@ -1147,7 +1203,11 @@ function Inventory.init(gui: ScreenGui)
 	InventoryFilter.init(window, function()
 		render()
 	end)
-	Menus.register(window, { keepHotbar = true })
+	Menus.register(window, {
+		keepHotbar = function()
+			return not peek or hotbarWanted()
+		end,
+	})
 	ListWindow.bindClose(window)
 	local tabs = window:FindFirstChild("Tabs") :: Frame
 	for _, name in TABS do
@@ -1210,6 +1270,17 @@ function Inventory.init(gui: ScreenGui)
 	end)
 	HotbarView.tapSlot = tapSlot
 	HotbarView.tapWeapon = tapWeapon
+	HotbarView.dragChanged = function(id: string)
+		if not peek or not window.Visible then
+			return
+		end
+		if HotbarView.dragging() == nil and selected ~= id then
+			choose(id) -- dropped: choose it, so the bar stays up to show where it went
+			render()
+		else
+			fitHotbar()
+		end
+	end
 	Players.LocalPlayer:GetAttributeChangedSignal("Weapon"):Connect(function()
 		if window.Visible then
 			render()

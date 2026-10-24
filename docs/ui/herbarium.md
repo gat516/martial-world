@@ -7,9 +7,11 @@ this pass, 2026-10-23).
 
 ## The Herbarium
 The collection book of roadmap §5 / Phase B, wired 2026-10-23. **H** toggles the
-player's own book (`Herbarium.openMine`); a HUD tile named `HerbariumButton` anywhere
-under `Hud` is wired too once it exists (none yet: phones have no way in, see Known
-gaps). While open it follows the record, so a harvest or reward shows at once.
+player's own book (`Herbarium.openMine`), and so does the top-right tile
+`Hud.Buttons.HerbariumButton` (leftmost; a book with a leaf cut out of its cover,
+`icon_herbarium.png` from `art/ui/draw_ui.py herbarium`, tinted leaf green; it folds
+away in combat with Build and the others, [ui](../systems/ui.md)). While open it
+follows the record, so a harvest or reward shows at once.
 
 ### The record and rewards (server `src/server/Herbarium.luau`)
 - `data.herbarium.herbs[id] = { n, l, m }`: harvested in all, the largest size seen,
@@ -132,8 +134,8 @@ C1 `herbarium_book`, `herb_card`, `herb_card_empty`, `herb_tier_1`..`5`, `tag_*`
 art is requested in [codex-sheets](codex-sheets.md), sheet C1b.
 
 ## Known gaps
-- No HUD tile opens the Herbarium yet, so touch players can't open it: `ui-designer`
-  adds `Hud.Buttons.HerbariumButton` (the code already wires that name).
+- The Herbarium tile makes the top-right row seven tiles out of combat (about 343 px
+  on a phone); not yet seen on a real phone.
 - Tier IV-V herbs have no slot icons yet (glyphs show); icons for the new herbs go on
   the next Codex sheet.
 

@@ -3,10 +3,11 @@
 -- broke through, seen by everyone nearby. Breakthroughs are seated only: the
 -- meditation menu's Break Through tile (Meditation calls attempt).
 -- The qi surge (server QiSurge, Pacing.Surge): while the server's SurgeReady is
--- true, the standing pill (`Stack.BreakthroughButton`) reads "M to qi surge" on PC
--- (M surges instead of meditating, Meditation's binding) and "Qi Surge" on touch,
--- and fires it. Every client plays an ember column and motes on a player whose
--- SurgeUntil is set, for as long as it lasts.
+-- true, PC shows the standing pill (`Stack.BreakthroughButton`, "M to qi surge":
+-- M surges instead of meditating, Meditation's binding; a click fires it too) and
+-- touch shows `Play.SurgeButton` in the combat cluster instead (Layout places it),
+-- popping in. Both wear the surge flame. Every client plays an ember column and
+-- motes on a player whose SurgeUntil is set, for as long as it lasts.
 -- The ready nudge: when BreakthroughReady turns true, a toast says so once; after
 -- that it comes back only while the player is idle (no input for NUDGE_IDLE) and
 -- standing, at most every NUDGE_EVERY seconds, until they break through.
@@ -22,7 +23,9 @@ local UserInputService = game:GetService("UserInputService")
 
 local Gates = require(ReplicatedStorage.Shared.Gates)
 local Hud = require(script.Parent.Hud)
+local Layout = require(script.Parent.Layout)
 local Menus = require(script.Parent.Menus)
+local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(script.Parent.Rewards)
@@ -266,13 +269,17 @@ end
 
 function BreakthroughView.init(gui: ScreenGui)
 	local button = (gui:FindFirstChild("Stack") :: Frame):FindFirstChild("BreakthroughButton") :: ImageButton
-	local label = button:FindFirstChild("Label") :: TextLabel
+	local touchButton = (gui:FindFirstChild("Play") :: Frame):FindFirstChild("SurgeButton") :: GuiButton
+	Motion.appear(touchButton)
 
-	-- the qi surge pill: the server decides when it's ready (SurgeReady)
+	-- the qi surge: the server decides when it's ready (SurgeReady); the pill on PC,
+	-- the cluster button on touch
 	local function refresh()
 		local seated = State.current.meditation ~= nil
-		button.Visible = BreakthroughView.surgeReady() and not seated and not Menus.isOpen()
-		label.Text = if Platform.isTouch() then "Qi Surge" else "M to qi surge"
+		local ready = BreakthroughView.surgeReady() and not seated and not Menus.isOpen()
+		local touch = Platform.isTouch()
+		button.Visible = ready and not touch
+		touchButton.Visible = ready and touch and Layout.clusterShown()
 	end
 	Menus.onChanged(refresh)
 	player:GetAttributeChangedSignal("SurgeReady"):Connect(refresh)
@@ -282,6 +289,7 @@ function BreakthroughView.init(gui: ScreenGui)
 	refresh()
 
 	button.Activated:Connect(BreakthroughView.surge)
+	touchButton.Activated:Connect(BreakthroughView.surge)
 	nudges()
 
 	for _, who in Players:GetPlayers() do

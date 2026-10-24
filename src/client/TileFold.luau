@@ -2,8 +2,8 @@
 -- The top-right tiles (Hud.Buttons) fold down to Inventory and Settings while the
 -- player is in combat, so the boss bar can reach the top of the screen (user,
 -- 2026-10-23: "during combat, we make those top right icons go away other than
--- some important ones"). Cultivate, Self, Build and Travel fold away; Travel is
--- refused while combat tagged anyway (server Travel).
+-- some important ones"). Herbarium, Build, Cultivate, Self and Travel fold away;
+-- Travel is refused while combat tagged anyway (server Travel).
 -- The signal is the player attribute `InCombat` that server Combat publishes (hurt
 -- or dealing damage within IN_COMBAT_SECONDS).
 -- A fold shrinks the tile to a point: height to 0 and width to minus the list's
@@ -14,8 +14,8 @@
 -- modules that own it (SelfCard, TravelMenu, Menus via Motion.setShown); this only
 -- touches each tile's size, clipping and Interactable.
 -- Build sits at the very left of the row (user 2026-10-23: "build just straight up
--- disappears ... reorder it at the very left so that it cleanly disappears"), then
--- Cultivate, Self and Travel (every folding tile on the left, so nothing blinks out
+-- disappears ... reorder it at the very left so that it cleanly disappears"), with
+-- the Herbarium left of it (the garden pair), then Cultivate, Self and Travel (every folding tile on the left, so nothing blinks out
 -- between kept ones), then the admin-only tile (it never folds, so it slides right
 -- to Inventory as the others go), Inventory and Settings.
 -- On a touch phone the realm plaque over the vitals (Stack.Vitals.Crest) fades away
@@ -30,7 +30,7 @@ local Platform = require(script.Parent.Platform)
 
 local TileFold = {}
 
-local FOLDS = { "CultivateButton", "SelfButton", "BuildButton", "TravelButton" }
+local FOLDS = { "CultivateButton", "SelfButton", "BuildButton", "TravelButton", "HerbariumButton" }
 local FOLD_OUT = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 local FOLD_IN = TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 

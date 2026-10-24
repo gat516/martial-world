@@ -80,9 +80,10 @@ gained since you last banked can spill when you die. Decided in the
   (formation circle, light column, rising motes) at runtime, tinted spirit violet, and
   plays `Guide.Arrive` (tinted) on reclaim; the column thins in the last 30 s. No
   template of its own; falls back to a glowing orb if `Effects.Guide` is missing.
-- Inventory: an item in the ring says so in its detail ("In your spirit ring (1/2):
-  safe even in the wilds."). **There is no Ring button yet**: the detail pane has two
-  action buttons (Use/Eat, Hold), and a third needs a GUI change.
+- Inventory ([inventory](../ui/inventory.md#spirit-ring-haul)): a jade **Ring**
+  button on an item's detail ("Ring n/m" puts the stack in, "Take out" on a ringed
+  one; hidden on rare finds), a jade 戒 seal on ringed Pouch cells, and "Spirit ring:
+  n/m stacks kept safe." on the Pouch tab with nothing chosen.
 
 ## Tuning (`Pacing.Haul`)
 `SPILL_SHARE` 0.5, `SPILL_SECONDS` 300, `RECLAIM_RADIUS` 7, `SAFE_RARITY` 4 (Epic),
@@ -95,9 +96,7 @@ gained since you last banked can spill when you die. Decided in the
   ui-designer pass can give it a fixed HUD button instead.
 - Riding an array from the wilds banks silently, as decided, so walking home is where
   the Store all beat mostly shows.
-- **No Ring button in the Inventory.** A ui-designer pass adds one (a third action
-  button, or the Hold button's row) that calls `InventoryAction "ring"`, plus the ring
-  slots view the roadmap lists; until then only the server action exists.
+- The Inventory's Ring button and ring marks are untested in play.
 - The death screen doesn't say what spilled; a toast after the respawn does.
 - The spill is a reuse of the guide marker; a dedicated spilled-haul spirit-light
   (vfx pass) is still on the Phase A shelf list.

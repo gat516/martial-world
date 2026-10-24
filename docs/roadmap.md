@@ -102,8 +102,8 @@ for UI and vfx passes.**
 
 **The qi surge (replaces the forced breakthrough). Built 2026-10-23 (untuned), see
 [cultivation](systems/cultivation.md#qi-surge): 15 s, 20% heal, 25% of the dantian's raw
-qi, once per engagement; the touch-cluster button is still the stack pill
-([HUD vitals](ui/hud-vitals.md#qi-surge-pill)).**
+qi, once per engagement; a Surge button in the touch cluster, the pill on PC
+([HUD vitals](ui/hud-vitals.md#qi-surge-button-and-notice)).**
 - **Its point:** survive and keep your haul. A clutch comeback, not insurance.
 - **Ready** when the bar is at least 90% and health is low (today's `canForce`
   conditions).
@@ -124,12 +124,12 @@ Technique gating moves to weapon Dao (section 4). First kills and boss kills are
 foundation experiences (built).
 
 **Shelved UI:** the solidity meter (`FoundationMeter.luau`) and the death-save
-prompt (`DeathSave.luau`) from the UI pass. Phase A needs instead: the surge
-button in the touch cluster (the stack pill stands in, and is the "M to qi surge" notice), the grade line on the breakthrough card, the
-spirit ring slots, and the spilled-haul spirit-light.
+prompt (`DeathSave.luau`) from the UI pass. Phase A needs instead: the grade line on the breakthrough card and the
+spilled-haul spirit-light (the touch surge button and the Inventory's Ring button and
+slot count are built).
 
 **Build order:** docs and Pacing numbers; the haul, banking and death spill (built); the
-spirit ring (server built, UI open); foundation grades and experience pools; the surge (insight deletion
+spirit ring (built, Inventory UI included); foundation grades and experience pools; the surge (insight deletion
 is built).
 
 ### Pacing, realm gaps and verbs (decided 2026-10-23)

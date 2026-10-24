@@ -23,7 +23,8 @@ local EDGE = 12 -- touch: the cluster's gap from the screen edge
 -- Touch cluster (phone HUD pass, 2026-10-23): Strike (70) in the corner, Jump, Dash and
 -- Guard (50 each) on one arc around it, ARC px from Strike's centre at 180, 135 and 90
 -- degrees, so the cluster is a 146 px quarter instead of a 211 px column; Lock (shown
--- only with something to lock) sits outside the arc at 112.5 degrees, LOCK_ARC out.
+-- only with something to lock) sits outside the arc at 112.5 degrees, LOCK_ARC out, and
+-- Qi Surge (shown only while SurgeReady, BreakthroughView) mirrors it at 157.5.
 local STRIKE = 70
 local ARC = 74
 local LOCK_ARC = 128
@@ -119,6 +120,7 @@ function Layout.apply()
 		onArc(dodge, 135, ARC)
 		onArc(block, 90, ARC)
 		onArc(find("LockButton"), 112.5, LOCK_ARC) -- LockOn shows it when there's something to lock
+		onArc(find("SurgeButton"), 157.5, LOCK_ARC) -- BreakthroughView shows it while a surge is ready
 		hideDefaultJump()
 	end
 	-- key hints are for keyboards only

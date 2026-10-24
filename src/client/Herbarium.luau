@@ -1,7 +1,7 @@
 --!strict
 -- The Herbarium (StarterGui.Herbarium, assets/Herbarium.rbxmx): the collection
--- book of every herb, roadmap §5 / Phase B. H toggles the player's own book (and
--- Hud.Buttons.HerbariumButton once that tile exists), built from the server's
+-- book of every herb, roadmap §5 / Phase B. H and the top-right tile
+-- (Hud.Buttons.HerbariumButton) toggle the player's own book, built from the server's
 -- record in the PlayerState push (`herbarium`, server Herbarium.luau). Contract
 -- and layout: docs/ui/herbarium.md.
 --
@@ -353,7 +353,7 @@ function Herbarium.init()
 			Herbarium.toggle()
 		end
 	end)
-	-- the HUD tile, once ui-designer adds it (docs/ui/herbarium.md "Opening it")
+	-- the top-right HUD tile (docs/ui/herbarium.md "Opening it")
 	local hud = Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("Hud")
 	local tile = hud and hud:FindFirstChild("HerbariumButton", true)
 	if tile and tile:IsA("GuiButton") then

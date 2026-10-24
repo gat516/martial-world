@@ -122,22 +122,22 @@ feel ready to break through" once (skipped when the server just said so),
 then again only while the player stands idle (no input for 25 s), at most
 every 150 s (`BreakthroughView` NUDGE_*). No pulsing or central prompt.
 
-## Qi surge pill
-The old Force Breakthrough pill (`Stack.BreakthroughButton`, unchanged in
-`assets/Hud.rbxmx`) is now the qi surge's button and notice, driven by
-`BreakthroughView`: it shows only while the server's `SurgeReady` is true (in a
-fight, badly hurt, bar at 90%; [cultivation](../systems/cultivation.md#qi-surge)),
-never seated or with a menu open. Its label reads "M to qi surge" on PC (M surges
-instead of meditating while it's ready) and "Qi Surge" on touch; a click or tap
-fires it. While surging, the realm plaque shows the surged stage (`SurgeRealm`,
-`Hud.luau`).
-
-**For the ui-designer (not built):** the roadmap wants the touch surge button in
-the touch cluster (`Play`, beside Dash/Guard), not the stack pill, and its own
-glyph (the pill still wears the breakthrough glyph). A `Play.SurgeButton`
-ImageButton (hidden by default, with a `Label` TextLabel) would be wired by
-showing it on touch in place of the pill; the pill would then stay the PC notice.
-Also unchecked: "M to qi surge" fitting the pill's label box at phone scale.
+## Qi surge button and notice
+Driven by `BreakthroughView`, both show only while the server's `SurgeReady` is true
+(in a fight, badly hurt, bar at 90%; [cultivation](../systems/cultivation.md#qi-surge)),
+never seated or with a menu open, and fire `CultivationAction "surge"`:
+- **Touch:** `Play.SurgeButton`, a round cluster button like Dash and Guard (50 px,
+  `hud_round_seal` ring, caption "Surge"), on the cluster's outer arc at 157.5 degrees
+  (`Layout`, LOCK_ARC out, mirroring Lock at 112.5), so nothing else moves. It pops in
+  (`Motion.appear`).
+- **PC:** the old Force Breakthrough pill (`Stack.BreakthroughButton`) is the notice,
+  "M to qi surge" (M surges instead of meditating while it's ready); a click fires it
+  too. Label padding 46 / 54 px so the "M" clears the left cap.
+- **Glyph:** `icon_surge.png` (`art/ui/draw_ui.py surge`), an ember flame with an
+  inner flame cut out ("burn your qi"), tinted warm cream (255, 214, 158) at the
+  hanzi glyphs' value and cropped to its drawn area (ImageRect 27,9 71x112). The
+  critic picked it over rising chevrons, which read as a second Break Through.
+While surging, the realm plaque shows the surged stage (`SurgeRealm`, `Hud.luau`).
 
 ## Seated bars and meditation tiles
 Seated: the vitals give way to the cultivation bars (`Stack.SeatBars`, the

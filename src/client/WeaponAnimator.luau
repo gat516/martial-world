@@ -1,7 +1,7 @@
 --!strict
 -- The equipped weapon class's idle and walk on the local character, laid over
 -- the default Animate script: Idle-priority idle while grounded, Movement-priority
--- walk while walking (not running: Sprint's run owns that). Jumps and falls
+-- walk while walking (not running: Sprint's run owns that; not strafing: Strafe's). Jumps and falls
 -- stay with Animate. Tracks played by the owner replicate, so other clients see
 -- them too. Fist (nothing equipped) uses the default idle/walk.
 -- Movement/combat control locks stow the model through WeaponAction and pause
@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Sprint = require(script.Parent.Sprint)
+local Strafe = require(script.Parent.Strafe)
 local Controls = require(script.Parent.Controls)
 local ActionState = require(script.Parent.ActionState)
 
@@ -139,7 +140,8 @@ local function step()
 	local grounded = h.FloorMaterial ~= Enum.Material.Air and not stowed
 	local speed = if root then (root.AssemblyLinearVelocity * Vector3.new(1, 0, 1)).Magnitude else 0
 	local moving = grounded and speed > 1 and h.MoveDirection.Magnitude > 0.1
-	local walking = moving and walk ~= nil and not Sprint.isRunning()
+	-- a strafe (Strafe) takes the legs while walking sideways
+	local walking = moving and walk ~= nil and not Sprint.isRunning() and Strafe.side() == nil
 	setPlaying(walk, walking)
 	if walking and walk then
 		walk:AdjustSpeed(math.clamp(speed / WALK_SPEED, 0.5, 1.5))

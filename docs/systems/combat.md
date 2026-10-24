@@ -83,6 +83,14 @@ scales all player damage.
   Spear, Staff; WeaponAnimator) over it while walking with that weapon, and
   actions above all. The swap is on the owner's client (its tracks replicate;
   the server's copy of Animate keeps the stock id).
+- `src/client/Strafe.luau`: `Animations/Strafe/Left` and `Right` (user, 2026-10-24) while walking
+  sideways to the way you face, only while something holds the facing (lock-on,
+  guard facing, an action: AutoRotate off; or shift lock / first person:
+  RotationType CameraRelative), so free movement never strafes. Movement
+  priority over the walk, not while running, in the air or seated; mostly
+  forward or back keeps the walk. WeaponAnimator pauses a class walk while one
+  plays; actions (Action priority) stay on top. Tuning: `LATERAL` (0.6, the
+  sideways share that counts) and `CLIP_SPEED` at its top.
 - `src/client/CombatEffects.luau`, `Telegraphs.luau`: cosmetic effects and ground warnings.
 - `src/client/CastFX.luau`: shared runtime helpers for technique effects, used
   for the caster's own casts and relayed ones alike: the striking limb

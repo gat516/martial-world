@@ -83,6 +83,20 @@
    <Content name="AnimationId"><url>rbxassetid://126702696993520</url></Content>
   </Properties>
   </Item>
+  <Item class="Folder" referent="RBXASTRAFE"><Properties>
+   <string name="Name">Strafe</string>
+  </Properties>
+   <Item class="Animation" referent="RBXASTRAFER"><Properties>
+    <string name="Name">Right</string>
+    <Content name="AnimationId"><url>rbxassetid://101587075788694</url></Content>
+   </Properties>
+   </Item>
+   <Item class="Animation" referent="RBXASTRAFEL"><Properties>
+    <string name="Name">Left</string>
+    <Content name="AnimationId"><url>rbxassetid://108079459398057</url></Content>
+   </Properties>
+   </Item>
+  </Item>
   <Item class="Folder" referent="RBXA18"><Properties>
    <string name="Name">PerfectDodge</string>
   </Properties>
@@ -130,7 +144,7 @@
    </Properties>
     <Item class="Animation" referent="RBXAGC0_0"><Properties>
      <string name="Name">Hold</string>
-     <Content name="AnimationId"><url>rbxassetid://129496318055813</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://87546165212405</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC0_1"><Properties>
@@ -154,7 +168,7 @@
    </Properties>
     <Item class="Animation" referent="RBXAGC1_0"><Properties>
      <string name="Name">Hold</string>
-     <Content name="AnimationId"><url>rbxassetid://82813124697662</url></Content>
+     <Content name="AnimationId"><url>rbxassetid://83417013514031</url></Content>
     </Properties>
     </Item>
     <Item class="Animation" referent="RBXAGC1_1"><Properties>

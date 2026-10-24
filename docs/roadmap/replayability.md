@@ -29,7 +29,9 @@ and goals that don't end**, not from more linear stages. Proposed, in priority o
      by affiliation.
    - **How you reach each (revised 2026-10-22):**
      - *Sect* is the default. *Rogue* is open: leave the sect from the elder or board.
-     - *Demon is a secret, never a menu.* No UI offers it. Players discover it, and
+     - *Demon is found, then chosen (user, 2026-10-24).* It is never offered before
+       it's encountered, but once a player has encountered it they can choose the demonic
+       path directly. Until then no UI offers it: players discover it, and
        it is the "how to become a demon in Martial World" video. See "The demon
        secret" below.
    - **Reincarnation** lets a new life start as a mortal in a village and choose from

@@ -35,6 +35,7 @@ Every turn re-sends the whole context, so anything that enters it is paid for ag
 - **Read only what your task needs:** the core doc, then the one part you're working on. Don't read a whole folder.
 - Every commit leaves the docs at least as good as it found them. In the same commit, update every doc the change touches (behaviour, design intent, files, remotes, tuning, known gaps) and fix anything stale you ran into. A design decision the user makes in conversation goes into the matching doc.
 - **New systems feed the heart demon (user, 2026-10-23, "this is important").** A new system or mechanic that reflects how someone plays (fighting, gardening, building, surging, dying, banking, sect work...) adds a counter and a question or answer to the heart-demon trial in the same commit ([heart-demon](docs/systems/heart-demon.md#keeping-it-current)).
+- **Anything that can change progression speed goes through the progression designer (user, 2026-10-24).** A new mechanic, item, drop, reward, multiplier, spawn or respawn change that could speed up or slow down cultivation gets a `progression-designer` pass (the pacing model re-run, `docs/systems/progression-rules.md` updated) before it merges into `test`. Say so in the report if you couldn't.
 - Keep docs lean: current state and decisions, not history (git has it). A new item (enemy, area, effect set) gets its own part file and a line in its core doc's index.
 
 ## Testbed

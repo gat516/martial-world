@@ -71,6 +71,12 @@ write the rules every other agent must follow.
 - A change that moves any profile's time to QC4/QC9/QR9/FE9 by more than 10% needs
   the owner's sign-off: report it, don't ship it.
 
+## When you run
+Every time a new mechanic, item, drop, reward, multiplier, spawn or respawn change
+could alter progression speed (AGENTS.md). The orchestrator spawns you after such a
+branch lands and before it merges into `test`; you check it against the model and the
+rules, tune it or flag it.
+
 ## How you work
 1. Read progression-rules.md, pacing-model.md, the Pacing header, and the docs of
    the system you're tuning (docs/README.md maps them). Read

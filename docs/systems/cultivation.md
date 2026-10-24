@@ -16,9 +16,11 @@ felt in fights.
 - **The ladder is 27 stages** (2026-10-22, [progression](../progression.md)): Qi
   Condensation 1-9, Qi Refining 1-9, Foundation Establishment 1-9 (FE9 is the cap).
 - **The curve (2026-10-23, [roadmap](../roadmap.md) "Pacing, realm gaps and verbs"):**
-  active play is about 2.4 h of QC, 7 h of QR and 20 h of FE. Bars never go down
-  from one stage to the next (QR1 22000 > QC9 20000); QR1-2 open fast with a row
-  `gather` (x2.0, x1.6 raw qi from kills, nodes and daily qi) instead. The hook lands QC2,
+  active play is about 2.4 h of QC, 7.1 h of QR and 20 h of FE. Bars never go down
+  from one stage to the next (QR1 22000 > QC9 20000), breathers included: QR1-2 open
+  fast with a row `gather` (x2.0, x1.6 raw qi from kills, nodes and daily qi) instead,
+  and the breathers QR7, FE4 and FE7 keep the previous stage's bar, eased by `gather`
+  (x1.6, x1.25, x1.15) and a small passive lift. The hook lands QC2,
   QC3 and QC4 in the first ten minutes; each realm is three thirds, each opened by a
   breather; the real slowdown is mid Qi Refining (QR4 on), where passive grows as a
   share of income so the garden aura, peak build items and herbs carry cultivation;
@@ -176,7 +178,13 @@ not the foundation.
 - **Bonus, proportional and always positive:** each graded stage adds percent x
   `BONUS_PER_PERCENT` (0.0002: 50% +1%, 100% +2%, 200% +4%); the sum multiplies max
   health (`applyStats`) and power (`Combat.power`, so knockback too) as its own factor on
-  top of `Pacing.Curve`. All 26 graded stages at 200% is +104% by FE9, below a major jump.
+  top of `Pacing.Curve`. All 23 graded stages (QC4-FE8) at 200% is +92% by FE9, below a major jump.
+- **The hook has no foundation** (`Pacing.Foundation.FROM` "QC4"; review
+  [breakthrough and foundation](../design-reviews/breakthrough-and-foundation.md) rec 1):
+  at QC1-3 nothing is earned (keys stay unseen, so QC4 can still earn them; deeds don't
+  progress), `seal` stores no grade and returns nil (the card shows only the stage),
+  the unsteady toast never fires, and `PlayerState.foundation` is `{ hidden = true,
+  bonus }` (the Self card hides the row). The first grade shows on the QC4 -> QC5 card.
 - **Grade words are flavour on the percent** (`GRADES`): Unsteady below 50%, Steady
   50-99, Solid 100-149, Deep 150+. No "Cracked".
 - **Pools per region and realm band.** Keys are once per profile
@@ -199,8 +207,9 @@ not the foundation.
   | | `world:treasure:<weather>@<band>` | claiming a heavenly treasure (`Treasures`) |
   | Deed (1) | per stage | `DEEDS`, below |
   A kill from a beast more than `FIT_BELOW` (3) stages under the player earns nothing,
-  so a later realm can't farm the first region's young beasts. Earning gives no toast;
-  it shows in the state push. Profiles from before the bands keep their old keys
+  so a later realm can't farm the first region's young beasts. Each experience or deed
+  earned pops a small "+ Foundation" line (Effect "reward", Rewards `small` tier) and
+  pushes the state. Profiles from before the bands keep their old keys
   (`hunt:<id>`); the new ones are fresh, so they can earn their bands' pools once.
 - **Deeds** (`DEEDS`, once per stage, `data.foundation.deeds`, reset by `seal`): the
   floor that keeps every stage's pool from emptying, each asking for range rather than
@@ -210,7 +219,7 @@ not the foundation.
   Daring: defeat a beast or boss 2 stages above you. Seclusion is not a deed: AFK,
   offline and seclusion earn no foundation (decided 2026-10-23, "AFK online = offline").
 - **Targets and their sources** (the `Pacing.luau` Foundation header has the table):
-  QC1 2, QC2 3, QC3 3 (hook stages of minutes), QC4 4 (the Inner Wilds pool: wolf,
+  QC1-3 none (the hook), QC4 4 (the Inner Wilds pool: wolf,
   serpent, boar, the first tier I harvest, Dao, caches), QC5-8 5 (the Borderlands
   pool: the QC6 and QC8 beasts, elite wolves, boars and serpents with variants, Jade
   Jiao, tier I and mutations again, the tier I page, events and treasures again), QC9 6
@@ -219,7 +228,7 @@ not the foundation.
   III), FE4-9 5 (tier IV and V, events, Dao). The deeds give up to 4 a stage on top. A
   band's pool is shared by its stages, so the first stage of a band runs past 100% and
   the later ones lean on the deeds, Dao and world events.
-- **Seal:** at `Cultivation.advance` (every breakthrough), `Foundation.seal` stores the
+- **Seal:** at `Cultivation.advance` (every breakthrough from QC4 on), `Foundation.seal` stores the
   percent in `data.foundation.grades[stageKey]` (a number; a profile from before
   percents holds a grade word, read through `LEGACY`: Cracked 25, Steady 60, Solid 100,
   Deep 150) and resets the count, deeds and toast flag.
@@ -280,7 +289,7 @@ not the foundation.
   `health`, `power` (beasts follow through `Pacing.BeastBaseline`).
 - **Pacing.Suppression** (`KEEP`) and **Pacing.HeavenDefying** (`BAR`,
   `SUPPRESSION_RESIST`).
-- **Pacing.Curve** rows can carry `gather` (the curve's own raw qi multiplier, QR1-2).
+- **Pacing.Curve** rows can carry `gather` (the curve's own raw qi multiplier: QR1-2 and the breathers QR7, FE4, FE7).
 - **Pacing.Adjust**: per-stage multipliers on top of the curve, keyed `"QC1".."FE9"`:
   `bar`, `passive`, `refine`, `gather`, `difficulty` (added), `levels`,
   `tribulation` (field overrides), `health`, `power`, `beastHealth`,
@@ -332,7 +341,7 @@ to Stone Boars).
   bigger share); cores and treasures are shares too. All of it only fills the
   dantian's room, so a herb never gives more than one dantian.
 - The `Breakthrough` analytics event's "seconds since" resets each session.
-- Overflow is untuned: `OVERFLOW_CAP` 1.5 and `CARRY_SHARE` 0.25 are first
+- Overflow is untuned: `OVERFLOW_CAP` 1.5 and `CARRY_SHARE` 0.5 are first
   guesses. Open question: should gains past the bar slow down (a lower rate
   instead of only a cap), and should the QC9 -> FE1 tribulation carry as much as
   a minor breakthrough?

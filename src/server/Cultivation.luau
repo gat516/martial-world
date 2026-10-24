@@ -581,7 +581,7 @@ task.spawn(function()
 					end
 					-- once per stage: the bar filled before the world taught enough
 					if firstFull and Cultivation.block(data) == "" and not data.foundation.warned
-						and Foundation.unsteady(Foundation.pending(data)) then
+						and Foundation.active(data) and Foundation.unsteady(Foundation.pending(data)) then
 						data.foundation.warned = true
 						task.delay(4, Cultivation.notify, player, "Your foundation is unsteady. The world still has things to teach you.")
 					end

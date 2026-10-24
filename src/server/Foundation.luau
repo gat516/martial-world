@@ -27,6 +27,10 @@
 -- percent at the breakthrough (Cultivation.advance calls `seal`), stored by stage key
 -- in data.foundation.grades (a number; old profiles' grade words read as LEGACY).
 -- `temper` raises old percents later (the heart-demon trial, HeartDemon.luau).
+-- The hook stages (below Pacing.Foundation.FROM, QC4) have no foundation: nothing is
+-- earned there (the pools stay fresh for QC4), nothing is sealed or shown, and no
+-- unsteady toast fires. Each experience or deed earned pops a "+ Foundation" line
+-- (Effect "reward", a small Rewards line).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -41,6 +45,8 @@ local Wilds = require(ReplicatedStorage.Shared.Config).Wilds
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 local EventDefs = require(ReplicatedStorage.Shared.WorldEvents)
 local PlayerData = require(script.Parent.PlayerData)
+
+local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 
 local Config = Pacing.Foundation
 local DEEDS = Config.DEEDS
@@ -67,6 +73,14 @@ end
 
 local function indexOf(data: PlayerData.Data): number
 	return Realms.index(data.realm.major, data.realm.minor)
+end
+
+local FROM_STAGE = Realms.ByKey[Config.FROM]
+local FROM = if FROM_STAGE then Realms.index(FROM_STAGE.major, FROM_STAGE.minor) else 1
+
+-- Whether the player's stage has a foundation (from Config.FROM on; the hook has none).
+function Foundation.active(data: PlayerData.Data): boolean
+	return indexOf(data) >= FROM
 end
 
 --[[ Bands ]]
@@ -194,14 +208,21 @@ function Foundation.tribulationDamage(data: PlayerData.Data): number
 end
 
 -- Settle the stage being left and start the next one's count and deeds. Called by
--- Cultivation.advance before the realm moves. Returns the grade word and percent.
-function Foundation.seal(data: PlayerData.Data): (Pacing.FoundationGrade, number)
+-- Cultivation.advance before the realm moves. Returns the grade word and percent
+-- (nil for a hook stage, which isn't graded).
+function Foundation.seal(data: PlayerData.Data): (Pacing.FoundationGrade?, number?)
 	local stage = stageOf(data)
+	local active = Foundation.active(data)
 	local percent = Foundation.percent(data)
-	data.foundation.grades[stage.key] = percent
+	if active then
+		data.foundation.grades[stage.key] = percent
+	end
 	data.foundation.count = 0
 	data.foundation.warned = false
 	data.foundation.deeds = { kills = {}, herbs = {}, done = {} }
+	if not active then
+		return nil, nil
+	end
 	return Foundation.gradeOf(percent), percent
 end
 
@@ -213,28 +234,35 @@ local function changed(player: Player)
 	end
 end
 
+-- The earn pop: a small "+ Foundation" line (Rewards small tier).
+local EARN_COLOR = Color3.fromRGB(150, 220, 180)
+local function earned(player: Player)
+	effectRemote:FireClient(player, "reward", { tier = "small", text = "+ Foundation", color = EARN_COLOR })
+	changed(player)
+end
+
 -- Record experience `key` of `category` if it's new. Returns whether it counted.
 function Foundation.earn(player: Player, category: string, key: string): boolean
 	local data = PlayerData.get(player)
 	local weight = Config.WEIGHTS[category]
-	if not (data and weight) or data.foundation.seen[key] then
+	if not (data and weight) or data.foundation.seen[key] or not Foundation.active(data) then
 		return false
 	end
 	data.foundation.seen[key] = true
 	data.foundation.count += weight
-	changed(player)
+	earned(player)
 	return true
 end
 
 -- Finish deed `id` for this stage if it isn't yet.
 local function deed(player: Player, data: PlayerData.Data, id: string)
 	local done = data.foundation.deeds.done
-	if done[id] then
+	if done[id] or not Foundation.active(data) then
 		return
 	end
 	done[id] = true
 	data.foundation.count += Config.WEIGHTS.Deed
-	changed(player)
+	earned(player)
 end
 
 -- Hunter progress: kills counted, each beast at most perKind.
@@ -547,8 +575,12 @@ function Foundation.hints(data: PlayerData.Data): { Hint }
 	return list
 end
 
--- The current stage's foundation, for the PlayerState push.
-function Foundation.state(data: PlayerData.Data)
+-- The current stage's foundation, for the PlayerState push. A hook stage sends only
+-- `hidden` (the Self card hides the row) and the bonus.
+function Foundation.state(data: PlayerData.Data): { [string]: any }
+	if not Foundation.active(data) then
+		return { hidden = true, bonus = Foundation.multiplier(data) - 1 }
+	end
 	local grades, percents = {}, {}
 	for key, value in data.foundation.grades do
 		local percent = percentOf(value)

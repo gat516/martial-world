@@ -30,8 +30,9 @@ export type Snapshot = {
 	-- the current stage's foundation (server Foundation.state; docs/ui/cultivation.md):
 	-- count/target experiences, the percent it would get now (100 = full, up to `max`) and
 	-- its grade word, past grade words and percents by stage key, the summed bonus share,
-	-- and up to 5 open experiences { category, text }
-	foundation: { count: number, target: number, percent: number, max: number, grade: string, grades: { [string]: string }, percents: { [string]: number }, bonus: number, hints: { { category: string, text: string } } }?,
+	-- and up to 5 open experiences { category, text }; at a hook stage (QC1-3) only
+	-- `hidden` = true and the bonus
+	foundation: { hidden: boolean?, count: number, target: number, percent: number, max: number, grade: string, grades: { [string]: string }, percents: { [string]: number }, bonus: number, hints: { { category: string, text: string } } }?,
 	-- the heart-demon trial (server HeartDemon.state): the open major's id and name (nil
 	-- when none), whether the player is at a stage 9 (the Break Through offer), whether a seat offer waits out
 	-- a "Not now", and finished trials by major (`note` is the heart line for the Self card)

@@ -21,12 +21,11 @@ marked built; nothing here has been playtested.
    first; depth for hardcore players without permadeath. Each mechanic is taught
    alone and fits in one sentence from the elder, or it's cut.
 
-## Deferred to a later update (user, 2026-10-22; revised 2026-10-23)
-Real plans that are **not in this pass**.
-- **Alchemy comes forward as a light version** (2026-10-23): the mid-QR slowdown
-  is where players start investing in the garden and pills, so QR4-5 gets a peak
-  furnace and a handful of recipes as Qi Refining's new verb. The full version
-  (impurities, talismans, breakthrough aids) stays deferred.
+## Deferred to a later update (user, 2026-10-22)
+These are real plans but **not in this pass**. Nothing before FE9 depends on them.
+- **Alchemy:** the peak furnace, crafted pills (qi, heal, buffs, breakthrough aids,
+  foundation repair), pill impurities and talismans. The mid-QR slowdown is met by
+  the garden and the peak instead (user, 2026-10-23).
 - **Weapon enhancement (refinement):** spend ore and stones to raise a weapon's
   grade. Candidate verb for Foundation Establishment.
 - **Mining and ores** (the out verb that feeds refinement).
@@ -130,7 +129,9 @@ first session decides; full Roblox RPGs run 30-100 h; cultivation games use abou
 - **Shape:** every realm is early (1-3), middle (4-6) and late (7-9), each easy to
   hard, with a breather opening each third so a breakthrough feels good. QC never
   slows early: the first session lands two or three breakthroughs. **The real
-  slowdown is mid Qi Refining**, where the garden and pills start to matter.
+  slowdown is mid Qi Refining**, where investing in your spirit garden and your
+  peak (abode, formations, herbs) is what keeps cultivation moving (user,
+  2026-10-23; not alchemy).
 - **No stretch over 2-3 h without something new** (a zone, boss, rift or verb).
 - **Strength:** about +10% per minor stage and about 2-2.5x at a major, plus
   **realm suppression**: damage from a lower major realm is heavily reduced
@@ -138,7 +139,8 @@ first session decides; full Roblox RPGs run 30-100 h; cultivation games use abou
   heaven-and-earth gap without huge multipliers. Techniques count about as much
   as realm, so one minor stage up is fightable and a major is not.
 - **Each major brings a new verb, not just numbers:** QC the body and combat, QR
-  light alchemy (and qi leaving the body), FE weapon refinement and a first
+  the abode: the garden and peak building that boost cultivation (and qi leaving
+  the body), FE weapon refinement and a first
   sword glide. Body refinement and others are kept for later realms.
 - **Heaven-defiers** resist suppression partly, so they fight above their level
   and farm stronger beasts, bosses and herbs. They pay with about a 1.5x bar and a
@@ -156,7 +158,7 @@ Today the hook ends at QC3 and the garden, sect and techniques arrive unannounce
   two and two or three breakthroughs in the first few minutes, one mechanic at a
   time. The current first ten minutes are being audited to retune it.
 - **Spread over every realm, sprinkled as the player advances:** QC teaches the loop
-  (out and home, the garden, the board); QR the social layer and light alchemy
+  (out and home, the garden, the board); QR the social layer and the abode
   (master, Halls, seclusion, rifts, the heart demon); FE the depth (method,
   refinement, treasures, pets). Move the second weapon and Dao drills out of QC.
 - **QC1-3 (keep):** circulate, break through, root, travel out, hunt, technique,

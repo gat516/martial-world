@@ -575,6 +575,11 @@ Pacing.Breakthrough = {
 	-- at most CARRY_SHARE of the new bar.
 	OVERFLOW_CAP = 1.5,
 	CARRY_SHARE = 0.5, -- the whole overflow carries (it is at most 0.5 of a bar, and bars never go down), so AFK hours past the bar are never wasted
+	-- the breakthrough card (client BreakthroughView) shows only for a major, a stage
+	-- that opens an array or brings the foundation, or one that took at least this
+	-- long since the last breakthrough (or the join); quicker ones get a small line
+	-- (user, 2026-10-24: like seclusion's CARD_MIN_MINUTES)
+	CARD_MIN_MINUTES = 10,
 }
 
 -- THE QI SURGE (server QiSurge; docs/systems/cultivation.md "Qi surge"). In combat,

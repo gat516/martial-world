@@ -12,7 +12,9 @@
 -- that it comes back only while the player is idle (no input for NUDGE_IDLE) and
 -- standing, at most every NUDGE_EVERY seconds, until they break through.
 -- The local player's own breakthrough also shows the Rewards milestone card
--- (docs/ui/rewards.md).
+-- (docs/ui/rewards.md) when it's worth one: a major, an array opening, the first
+-- foundation, or a stage that took Pacing.Breakthrough.CARD_MIN_MINUTES since the
+-- last breakthrough (or the join). A quicker one gets a small line.
 
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
@@ -26,6 +28,7 @@ local Hud = require(script.Parent.Hud)
 local Layout = require(script.Parent.Layout)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Platform = require(script.Parent.Platform)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(script.Parent.Rewards)
@@ -48,6 +51,7 @@ local NUDGE_EVERY = 150 -- seconds between repeats
 local BreakthroughView = {}
 
 local busy = false
+local lastBreakthrough = os.clock() -- the join counts as the last one
 
 -- Ask the server to break through (seated only); refusals toast why.
 function BreakthroughView.attempt()
@@ -210,6 +214,12 @@ local function milestoneCard(stageName: string, major: boolean, percent: number?
 				unlock = `The {gate.name} array is open`
 			end
 		end
+	end
+	local quick = os.clock() - lastBreakthrough < Pacing.Breakthrough.CARD_MIN_MINUTES * 60
+	lastBreakthrough = os.clock()
+	if quick and not major and not unlock and not firstFoundation then
+		Rewards.show({ tier = "small", text = `Breakthrough · {stageName}`, color = MINOR_COLOR })
+		return
 	end
 	Rewards.show({
 		tier = "card",

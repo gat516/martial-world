@@ -23,6 +23,7 @@ local UserInputService = game:GetService("UserInputService")
 local ActionState = require(script.Parent.ActionState)
 local HerbAnimator = require(script.Parent.HerbAnimator)
 local LockOn = require(script.Parent.LockOn)
+local Sprint = require(script.Parent.Sprint)
 
 local player = Players.LocalPlayer
 
@@ -37,12 +38,14 @@ local OTHERS_SHARPNESS = 12 -- other players' heads toward their sent look
 local SEND_RATE = 5 -- looks sent a second, at most
 local SEND_MIN_CHANGE = 0.04 -- radians it must move before it's sent again
 local MAX_DISTANCE = 160 -- other players' heads further than this from your camera aren't animated
+local RUN_STILL_RATE = 8 -- how fast the run's head bob is taken off as a run starts (and given back as it ends)
 
 local HeadLook = {}
 
 type Rig = { neck: Motor6D, rest: CFrame, scale: number, body: Model, yaw: number, pitch: number }
 
 local rigs: { [Model]: Rig } = setmetatable({}, { __mode = "k" }) :: any
+local stillness: { [Model]: number } = setmetatable({}, { __mode = "k" }) :: any -- 0..1: how much of the run bob is off
 local sentPitch, sentYaw, sentAt = 0, 0, 0
 local lookRemote: RemoteEvent? = nil
 
@@ -159,6 +162,34 @@ local function stepOthers(dt: number)
 	end
 end
 
+-- No head bob while running (user, 2026-10-24): after the Animator has posed
+-- the rig this frame, the run clip's motion is taken off the neck, so the head
+-- rides the torso. Eased in and out with the run (RUN_STILL_RATE), so starting
+-- and stopping don't snap. Everyone's runners, from their Running attribute
+-- (yours from Sprint, which knows first). The look offset on C0 stays.
+local function steadyRunners(dt: number)
+	local camera = workspace.CurrentCamera
+	local from = if camera then camera.CFrame.Position else Vector3.zero
+	local alpha = 1 - math.exp(-RUN_STILL_RATE * math.min(dt, 0.1))
+	for _, someone in Players:GetPlayers() do
+		local character = someone.Character
+		local h = character and character:FindFirstChildOfClass("Humanoid")
+		local root = h and h.RootPart
+		local rig = character and root and (root.Position - from).Magnitude <= MAX_DISTANCE and rigOf(character)
+		if character and h and root and rig then
+			local speed = (root.AssemblyLinearVelocity * Vector3.new(1, 0, 1)).Magnitude
+			local running = (if someone == player then Sprint.isRunning() else h:GetAttribute("Running") == true)
+				and speed > 2 and h.FloorMaterial ~= Enum.Material.Air
+			local blend = stillness[character] or 0
+			blend += ((if running then 1 else 0) - blend) * alpha
+			stillness[character] = blend
+			if blend > 0.001 then
+				rig.neck.Transform = rig.neck.Transform:Lerp(CFrame.identity, blend)
+			end
+		end
+	end
+end
+
 function HeadLook.init()
 	lookRemote = (ReplicatedStorage:WaitForChild("Remotes") :: Folder):FindFirstChild("Look") :: RemoteEvent?
 	player.CharacterAdded:Connect(function()
@@ -166,6 +197,7 @@ function HeadLook.init()
 	end)
 	RunService:BindToRenderStep("HeadLook", Enum.RenderPriority.Camera.Value + 5, stepMine)
 	RunService.RenderStepped:Connect(stepOthers)
+	RunService.PreSimulation:Connect(steadyRunners)
 end
 
 return HeadLook

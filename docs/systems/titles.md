@@ -95,8 +95,10 @@ grind for power: titles give no stats.
 - Titles add no `data.stats` counter (they read the existing ones), so the
   heart-demon trial needs no new question.
 
-## UI contract (for ui-designer: the picker)
-Lives on the Self card ([character window](../character/character-window.md)):
+## UI contract (built 2026-10-24: the Titles page)
+Lives on the Self card ([character window](../character/character-window.md), where the
+built layout is described; it differs from this contract in one point: the count earned
+sits in the page's header, not on the row, which has no room for it):
 - **Title row** on the Self card: "Title", the worn title's name in its colour (or
   "None" muted), and the count earned ("12 / 43"). Tapping it opens the list.
 - **The list** (a ListWindow-style scroll, mobile first), grouped by
@@ -119,14 +121,17 @@ Lives on the Self card ([character window](../character/character-window.md)):
 attributes), hooks in `Main.server.luau` (onPush, `onChanged`, the action route,
 `forget`), `Cultivation.pushState` (`titles`), `PlayerData` (`titles`, `HeartTrial.title`),
 `HeartDemon.luau` (path answers' `title`), client `State.luau` (type), `Nameplates.luau`
-(shows it).
+(shows it), `SelfCard.luau` (the title line and the Titles page, `Hud.SelfCard.Titles`,
+built by `tools/build_self_card.luau` `buildSelfCardTitles`).
 
 ## Tuning
 Names, lines, rarities and thresholds are all in `src/shared/Titles.luau`.
 
 ## Known gaps
-- No picker yet (ui-designer, from the contract above). Until then a title can only be
-  worn through the remote; nothing calls it.
+- The picker has no NEW mark (the contract's option; it would need the last-opened time
+  saved).
+- Untested in play: the picker's wear / take-off round trip, the "No title" state, the
+  page with nothing worn and the list's end on a phone.
 - Untested in play: grants on join (the backlog banner), the banner per title, the
   attribute on the namecard, the heart-demon line.
 - The HUD has no title line for your own (your own namecard isn't shown to you).

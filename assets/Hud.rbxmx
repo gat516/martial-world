@@ -15303,6 +15303,7 @@
      <Item class="ImageLabel" referent="FTSelfCard18"><Properties>
       <string name="Name">Avatar</string>
       <float name="BackgroundTransparency">1</float>
+      <int name="LayoutOrder">-2</int>
       <UDim2 name="Size"><XS>1</XS><XO>-6</XO><YS>0</YS><YO>140</YO></UDim2>
       <Content name="Image"><url>rbxassetid://85613268683045</url></Content>
       <token name="ScaleType">1</token>
@@ -15321,27 +15322,7 @@
       </Properties>
       </Item>
      </Item>
-     <Item class="TextLabel" referent="FTSelfCard20"><Properties>
-      <string name="Name">PlayerName</string>
-      <float name="BackgroundTransparency">1</float>
-      <int name="LayoutOrder">1</int>
-      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>26</YO></UDim2>
-      <string name="Text">Lin Feng</string>
-      <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
-      <float name="TextSize">18</float>
-      <token name="TextXAlignment">0</token>
-      <float name="TextStrokeTransparency">0</float>
-      <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
-      <token name="TextTruncate">1</token>
-      <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
-     </Properties>
-      <Item class="UIPadding" referent="FTSelfCard21"><Properties>
-       <string name="Name">UIPadding</string>
-       <UDim name="PaddingLeft"><S>0</S><O>6</O></UDim>
-      </Properties>
-      </Item>
-     </Item>
-     <Item class="TextButton" referent="FTSelfCard22"><Properties>
+     <Item class="TextButton" referent="FTSelfCard20"><Properties>
       <string name="Name">Race</string>
       <token name="AutomaticSize">2</token>
       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -15352,12 +15333,12 @@
       <bool name="AutoButtonColor">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="UICorner" referent="FTSelfCard23"><Properties>
+      <Item class="UICorner" referent="FTSelfCard21"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard24"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard22"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
        <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
@@ -15365,13 +15346,13 @@
        <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIListLayout" referent="FTSelfCard25"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard23"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>3</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard26"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard24"><Properties>
        <string name="Name">Kind</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
@@ -15384,7 +15365,7 @@
        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard27"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard25"><Properties>
         <string name="Name">More</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -15400,14 +15381,14 @@
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard28"><Properties>
+      <Item class="Frame" referent="FTSelfCard26"><Properties>
        <string name="Name">Top</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard29"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard27"><Properties>
         <string name="Name">NameLabel</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>1</XS><XO>-31</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -15422,7 +15403,7 @@
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard30"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard28"><Properties>
         <string name="Name">Right</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -15438,7 +15419,7 @@
        </Properties>
        </Item>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard31"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard29"><Properties>
        <string name="Name">Summary</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -15458,7 +15439,7 @@
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard32"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard30"><Properties>
        <string name="Name">Detail</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -15480,7 +15461,7 @@
       </Properties>
       </Item>
      </Item>
-     <Item class="TextButton" referent="FTSelfCard33"><Properties>
+     <Item class="TextButton" referent="FTSelfCard31"><Properties>
       <string name="Name">Bloodline</string>
       <bool name="Active">false</bool>
       <token name="AutomaticSize">2</token>
@@ -15493,12 +15474,12 @@
       <bool name="Selectable">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="UICorner" referent="FTSelfCard34"><Properties>
+      <Item class="UICorner" referent="FTSelfCard32"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard35"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard33"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
        <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
@@ -15506,13 +15487,13 @@
        <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIListLayout" referent="FTSelfCard36"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard34"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>3</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard37"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard35"><Properties>
        <string name="Name">Kind</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
@@ -15525,7 +15506,7 @@
        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard38"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard36"><Properties>
         <string name="Name">More</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -15542,14 +15523,14 @@
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard39"><Properties>
+      <Item class="Frame" referent="FTSelfCard37"><Properties>
        <string name="Name">Top</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard40"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard38"><Properties>
         <string name="Name">NameLabel</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -15564,7 +15545,7 @@
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard41"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard39"><Properties>
         <string name="Name">Right</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -15580,7 +15561,7 @@
        </Properties>
        </Item>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard42"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard40"><Properties>
        <string name="Name">Summary</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -15600,7 +15581,7 @@
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard43"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard41"><Properties>
        <string name="Name">Detail</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -15621,7 +15602,7 @@
       </Properties>
       </Item>
      </Item>
-     <Item class="TextButton" referent="FTSelfCard44"><Properties>
+     <Item class="TextButton" referent="FTSelfCard42"><Properties>
       <string name="Name">Stats</string>
       <token name="AutomaticSize">2</token>
       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -15632,12 +15613,12 @@
       <bool name="AutoButtonColor">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="UICorner" referent="FTSelfCard45"><Properties>
+      <Item class="UICorner" referent="FTSelfCard43"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard46"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard44"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
        <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
@@ -15645,13 +15626,13 @@
        <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIListLayout" referent="FTSelfCard47"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard45"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>3</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard48"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard46"><Properties>
        <string name="Name">Kind</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
@@ -15664,7 +15645,7 @@
        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard49"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard47"><Properties>
         <string name="Name">More</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -15680,14 +15661,14 @@
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard50"><Properties>
+      <Item class="Frame" referent="FTSelfCard48"><Properties>
        <string name="Name">Top</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard51"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard49"><Properties>
         <string name="Name">NameLabel</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>1</XS><XO>-71</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -15702,7 +15683,7 @@
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard52"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard50"><Properties>
         <string name="Name">Right</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -15718,7 +15699,7 @@
        </Properties>
        </Item>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard53"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard51"><Properties>
        <string name="Name">Summary</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -15738,7 +15719,7 @@
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard54"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard52"><Properties>
        <string name="Name">Detail</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -15760,9 +15741,132 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       </Properties>
       </Item>
      </Item>
+     <Item class="Frame" referent="FTSelfCard53"><Properties>
+      <string name="Name">EditLookRow</string>
+      <float name="BackgroundTransparency">1</float>
+      <int name="BorderSizePixel">0</int>
+      <int name="LayoutOrder">-1</int>
+      <UDim2 name="Size"><XS>1</XS><XO>-6</XO><YS>0</YS><YO>32</YO></UDim2>
+     </Properties>
+      <Item class="ImageButton" referent="FTSelfCard54"><Properties>
+       <string name="Name">EditLook</string>
+       <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+       <UDim2 name="Size"><XS>1</XS><XO>-20</XO><YS>1</YS><YO>0</YO></UDim2>
+       <bool name="AutoButtonColor">false</bool>
+       <Content name="Image"><url>rbxassetid://70679462267599</url></Content>
+       <token name="ScaleType">1</token>
+       <Rect2D name="SliceCenter"><min><X>32</X><Y>20</Y></min><max><X>224</X><Y>44</Y></max></Rect2D>
+       <float name="SliceScale">0.6</float>
+      </Properties>
+       <Item class="UIScale" referent="FTSelfCard55"><Properties>
+        <string name="Name">Motion</string>
+       </Properties>
+       </Item>
+       <Item class="TextLabel" referent="FTSelfCard56"><Properties>
+        <string name="Name">Label</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+        <string name="Text">Edit look</string>
+        <Color3 name="TextColor3"><R>0.92549</R><G>0.886275</G><B>0.784314</B></Color3>
+        <float name="TextSize">14</float>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+       </Properties>
+       </Item>
+      </Item>
+     </Item>
+     <Item class="TextButton" referent="FTSelfCard57"><Properties>
+      <string name="Name">TitleRow</string>
+      <token name="AutomaticSize">2</token>
+      <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
+      <float name="BackgroundTransparency">1</float>
+      <int name="BorderSizePixel">0</int>
+      <int name="LayoutOrder">1</int>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+      <bool name="AutoButtonColor">false</bool>
+      <string name="Text"></string>
+     </Properties>
+      <Item class="UICorner" referent="FTSelfCard58"><Properties>
+       <string name="Name">UICorner</string>
+       <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
+      </Properties>
+      </Item>
+      <Item class="UIPadding" referent="FTSelfCard59"><Properties>
+       <string name="Name">UIPadding</string>
+       <UDim name="PaddingBottom"><S>0</S><O>2</O></UDim>
+      </Properties>
+      </Item>
+      <Item class="UIListLayout" referent="FTSelfCard60"><Properties>
+       <string name="Name">UIListLayout</string>
+       <token name="SortOrder">2</token>
+      </Properties>
+      </Item>
+      <Item class="TextLabel" referent="FTSelfCard61"><Properties>
+       <string name="Name">PlayerName</string>
+       <float name="BackgroundTransparency">1</float>
+       <int name="LayoutOrder">1</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>26</YO></UDim2>
+       <string name="Text">Lin Feng</string>
+       <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
+       <float name="TextSize">18</float>
+       <token name="TextXAlignment">0</token>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+       <token name="TextTruncate">1</token>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+      </Properties>
+       <Item class="UIPadding" referent="FTSelfCard62"><Properties>
+        <string name="Name">UIPadding</string>
+        <UDim name="PaddingLeft"><S>0</S><O>6</O></UDim>
+       </Properties>
+       </Item>
+      </Item>
+      <Item class="Frame" referent="FTSelfCard63"><Properties>
+       <string name="Name">Line</string>
+       <float name="BackgroundTransparency">1</float>
+       <int name="BorderSizePixel">0</int>
+       <int name="LayoutOrder">2</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
+      </Properties>
+       <Item class="UIPadding" referent="FTSelfCard64"><Properties>
+        <string name="Name">UIPadding</string>
+        <UDim name="PaddingLeft"><S>0</S><O>6</O></UDim>
+        <UDim name="PaddingRight"><S>0</S><O>4</O></UDim>
+       </Properties>
+       </Item>
+       <Item class="TextLabel" referent="FTSelfCard65"><Properties>
+        <string name="Name">NameLabel</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>-16</XO><YS>1</YS><YO>0</YO></UDim2>
+        <string name="Text">Wolf King's Bane</string>
+        <Color3 name="TextColor3"><R>0.439216</R><G>0.870588</G><B>0.611765</B></Color3>
+        <float name="TextSize">14</float>
+        <token name="TextXAlignment">0</token>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+        <token name="TextTruncate">1</token>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+       </Properties>
+       </Item>
+       <Item class="ImageLabel" referent="FTSelfCard66"><Properties>
+        <string name="Name">Chevron</string>
+        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>1</XS><XO>-4</XO><YS>0.5</YS><YO>0</YO></UDim2>
+        <float name="Rotation">-90</float>
+        <UDim2 name="Size"><XS>0</XS><XO>12</XO><YS>0</YS><YO>8</YO></UDim2>
+        <Content name="Image"><url>rbxassetid://86690174795106</url></Content>
+        <token name="ScaleType">3</token>
+       </Properties>
+       </Item>
+      </Item>
+     </Item>
     </Item>
    </Item>
-   <Item class="Frame" referent="FTSelfCard55"><Properties>
+   <Item class="Frame" referent="FTSelfCard67"><Properties>
     <string name="Name">Divider1</string>
     <Color3 name="BackgroundColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
     <float name="BackgroundTransparency">0.6</float>
@@ -15771,14 +15875,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
     <UDim2 name="Size"><XS>0</XS><XO>1</XO><YS>1</YS><YO>0</YO></UDim2>
    </Properties>
    </Item>
-   <Item class="Frame" referent="FTSelfCard56"><Properties>
+   <Item class="Frame" referent="FTSelfCard68"><Properties>
     <string name="Name">Cultivation</string>
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
     <int name="LayoutOrder">3</int>
     <UDim2 name="Size"><XS>0.38</XS><XO>-14</XO><YS>1</YS><YO>0</YO></UDim2>
    </Properties>
-    <Item class="TextLabel" referent="FTSelfCard57"><Properties>
+    <Item class="TextLabel" referent="FTSelfCard69"><Properties>
      <string name="Name">Head</string>
      <float name="BackgroundTransparency">1</float>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>22</YO></UDim2>
@@ -15790,13 +15894,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
      <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
      <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     </Properties>
-     <Item class="UIPadding" referent="FTSelfCard58"><Properties>
+     <Item class="UIPadding" referent="FTSelfCard70"><Properties>
       <string name="Name">UIPadding</string>
       <UDim name="PaddingLeft"><S>0</S><O>6</O></UDim>
      </Properties>
      </Item>
     </Item>
-    <Item class="Frame" referent="FTSelfCard59"><Properties>
+    <Item class="Frame" referent="FTSelfCard71"><Properties>
      <string name="Name">Rule</string>
      <Color3 name="BackgroundColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
      <float name="BackgroundTransparency">0.6</float>
@@ -15805,7 +15909,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>1</YO></UDim2>
     </Properties>
     </Item>
-    <Item class="ScrollingFrame" referent="FTSelfCard60"><Properties>
+    <Item class="ScrollingFrame" referent="FTSelfCard72"><Properties>
      <string name="Name">Body</string>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
@@ -15819,18 +15923,18 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
      <token name="ScrollingDirection">2</token>
      <token name="VerticalScrollBarInset">1</token>
     </Properties>
-     <Item class="UIListLayout" referent="FTSelfCard61"><Properties>
+     <Item class="UIListLayout" referent="FTSelfCard73"><Properties>
       <string name="Name">UIListLayout</string>
       <token name="SortOrder">2</token>
       <UDim name="Padding"><S>0</S><O>6</O></UDim>
      </Properties>
      </Item>
-     <Item class="UIPadding" referent="FTSelfCard62"><Properties>
+     <Item class="UIPadding" referent="FTSelfCard74"><Properties>
       <string name="Name">UIPadding</string>
       <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
      </Properties>
      </Item>
-     <Item class="TextButton" referent="FTSelfCard63"><Properties>
+     <Item class="TextButton" referent="FTSelfCard75"><Properties>
       <string name="Name">Realm</string>
       <token name="AutomaticSize">2</token>
       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -15841,12 +15945,12 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       <bool name="AutoButtonColor">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="UICorner" referent="FTSelfCard64"><Properties>
+      <Item class="UICorner" referent="FTSelfCard76"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard65"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard77"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
        <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
@@ -15854,13 +15958,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIListLayout" referent="FTSelfCard66"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard78"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>3</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard67"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard79"><Properties>
        <string name="Name">Kind</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
@@ -15873,7 +15977,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard68"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard80"><Properties>
         <string name="Name">More</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -15889,14 +15993,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard69"><Properties>
+      <Item class="Frame" referent="FTSelfCard81"><Properties>
        <string name="Name">Top</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard70"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard82"><Properties>
         <string name="Name">NameLabel</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>1</XS><XO>-30</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -15911,7 +16015,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard71"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard83"><Properties>
         <string name="Name">Right</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -15927,44 +16031,44 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard72"><Properties>
+      <Item class="Frame" referent="FTSelfCard84"><Properties>
        <string name="Name">Bar</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>8</YO></UDim2>
       </Properties>
-       <Item class="Frame" referent="FTSelfCard73"><Properties>
+       <Item class="Frame" referent="FTSelfCard85"><Properties>
         <string name="Name">Trough</string>
         <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
         <float name="BackgroundTransparency">0.1</float>
         <int name="BorderSizePixel">0</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        </Properties>
-        <Item class="UICorner" referent="FTSelfCard74"><Properties>
+        <Item class="UICorner" referent="FTSelfCard86"><Properties>
          <string name="Name">UICorner</string>
          <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
         </Properties>
         </Item>
-        <Item class="UIStroke" referent="FTSelfCard75"><Properties>
+        <Item class="UIStroke" referent="FTSelfCard87"><Properties>
          <string name="Name">UIStroke</string>
          <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
          <float name="Transparency">0.6</float>
          <token name="ApplyStrokeMode">1</token>
         </Properties>
         </Item>
-        <Item class="Frame" referent="FTSelfCard76"><Properties>
+        <Item class="Frame" referent="FTSelfCard88"><Properties>
          <string name="Name">Fill</string>
          <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
          <int name="BorderSizePixel">0</int>
          <UDim2 name="Size"><XS>0.41</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         </Properties>
-         <Item class="UICorner" referent="FTSelfCard77"><Properties>
+         <Item class="UICorner" referent="FTSelfCard89"><Properties>
           <string name="Name">UICorner</string>
           <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
          </Properties>
          </Item>
-         <Item class="UIGradient" referent="FTSelfCard78"><Properties>
+         <Item class="UIGradient" referent="FTSelfCard90"><Properties>
           <string name="Name">Theme</string>
           <ColorSequence name="Color">0 0.745098 0.54902 0.196078 0 1 0.980392 0.839216 0.470588 0 </ColorSequence>
          </Properties>
@@ -15972,7 +16076,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Item>
        </Item>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard79"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard91"><Properties>
        <string name="Name">Summary</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -15991,7 +16095,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard80"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard92"><Properties>
        <string name="Name">Detail</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16012,7 +16116,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       </Properties>
       </Item>
      </Item>
-     <Item class="TextButton" referent="FTSelfCard81"><Properties>
+     <Item class="TextButton" referent="FTSelfCard93"><Properties>
       <string name="Name">Foundation</string>
       <token name="AutomaticSize">2</token>
       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -16023,12 +16127,12 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       <bool name="AutoButtonColor">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="UICorner" referent="FTSelfCard82"><Properties>
+      <Item class="UICorner" referent="FTSelfCard94"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard83"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard95"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
        <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
@@ -16036,13 +16140,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIListLayout" referent="FTSelfCard84"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard96"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>3</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard85"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard97"><Properties>
        <string name="Name">Kind</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
@@ -16055,7 +16159,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard86"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard98"><Properties>
         <string name="Name">More</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16071,14 +16175,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard87"><Properties>
+      <Item class="Frame" referent="FTSelfCard99"><Properties>
        <string name="Name">Top</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard88"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard100"><Properties>
         <string name="Name">NameLabel</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>1</XS><XO>-35</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -16093,7 +16197,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard89"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard101"><Properties>
         <string name="Name">Right</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16109,68 +16213,68 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard90"><Properties>
+      <Item class="Frame" referent="FTSelfCard102"><Properties>
        <string name="Name">Bar</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>8</YO></UDim2>
       </Properties>
-       <Item class="Frame" referent="FTSelfCard91"><Properties>
+       <Item class="Frame" referent="FTSelfCard103"><Properties>
         <string name="Name">Trough</string>
         <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
         <float name="BackgroundTransparency">0.1</float>
         <int name="BorderSizePixel">0</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        </Properties>
-        <Item class="UICorner" referent="FTSelfCard92"><Properties>
+        <Item class="UICorner" referent="FTSelfCard104"><Properties>
          <string name="Name">UICorner</string>
          <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
         </Properties>
         </Item>
-        <Item class="UIStroke" referent="FTSelfCard93"><Properties>
+        <Item class="UIStroke" referent="FTSelfCard105"><Properties>
          <string name="Name">UIStroke</string>
          <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
          <float name="Transparency">0.6</float>
          <token name="ApplyStrokeMode">1</token>
         </Properties>
         </Item>
-        <Item class="Frame" referent="FTSelfCard94"><Properties>
+        <Item class="Frame" referent="FTSelfCard106"><Properties>
          <string name="Name">Fill</string>
          <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
          <int name="BorderSizePixel">0</int>
          <UDim2 name="Size"><XS>0.666667</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         </Properties>
-         <Item class="UICorner" referent="FTSelfCard95"><Properties>
+         <Item class="UICorner" referent="FTSelfCard107"><Properties>
           <string name="Name">UICorner</string>
           <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
          </Properties>
          </Item>
-         <Item class="UIGradient" referent="FTSelfCard96"><Properties>
+         <Item class="UIGradient" referent="FTSelfCard108"><Properties>
           <string name="Name">Theme</string>
           <ColorSequence name="Color">0 0.745098 0.54902 0.196078 0 1 0.980392 0.839216 0.470588 0 </ColorSequence>
          </Properties>
          </Item>
         </Item>
-        <Item class="Frame" referent="FTSelfCard97"><Properties>
+        <Item class="Frame" referent="FTSelfCard109"><Properties>
          <string name="Name">Over</string>
          <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
          <int name="BorderSizePixel">0</int>
          <UDim2 name="Position"><XS>0.666667</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
          <UDim2 name="Size"><XS>0.12</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         </Properties>
-         <Item class="UICorner" referent="FTSelfCard98"><Properties>
+         <Item class="UICorner" referent="FTSelfCard110"><Properties>
           <string name="Name">UICorner</string>
           <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
          </Properties>
          </Item>
-         <Item class="UIGradient" referent="FTSelfCard99"><Properties>
+         <Item class="UIGradient" referent="FTSelfCard111"><Properties>
           <string name="Name">Theme</string>
           <ColorSequence name="Color">0 1 0.94902 0.768627 0 1 1 1 0.956863 0 </ColorSequence>
          </Properties>
          </Item>
         </Item>
-        <Item class="Frame" referent="FTSelfCard100"><Properties>
+        <Item class="Frame" referent="FTSelfCard112"><Properties>
          <string name="Name">Mark1</string>
          <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
          <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
@@ -16181,7 +16285,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
          <int name="ZIndex">2</int>
         </Properties>
         </Item>
-        <Item class="Frame" referent="FTSelfCard101"><Properties>
+        <Item class="Frame" referent="FTSelfCard113"><Properties>
          <string name="Name">Mark2</string>
          <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
          <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
@@ -16194,7 +16298,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Item>
        </Item>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard102"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard114"><Properties>
        <string name="Name">Summary</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16214,7 +16318,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard103"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard115"><Properties>
        <string name="Name">Detail</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16236,7 +16340,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       </Properties>
       </Item>
      </Item>
-     <Item class="TextButton" referent="FTSelfCard104"><Properties>
+     <Item class="TextButton" referent="FTSelfCard116"><Properties>
       <string name="Name">Dantian</string>
       <token name="AutomaticSize">2</token>
       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -16247,12 +16351,12 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       <bool name="AutoButtonColor">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="UICorner" referent="FTSelfCard105"><Properties>
+      <Item class="UICorner" referent="FTSelfCard117"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard106"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard118"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
        <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
@@ -16260,13 +16364,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIListLayout" referent="FTSelfCard107"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard119"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>3</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard108"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard120"><Properties>
        <string name="Name">Kind</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
@@ -16279,7 +16383,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard109"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard121"><Properties>
         <string name="Name">More</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16295,14 +16399,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard110"><Properties>
+      <Item class="Frame" referent="FTSelfCard122"><Properties>
        <string name="Name">Top</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard111"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard123"><Properties>
         <string name="Name">NameLabel</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>1</XS><XO>-58</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -16317,7 +16421,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard112"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard124"><Properties>
         <string name="Name">Right</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16333,44 +16437,44 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard113"><Properties>
+      <Item class="Frame" referent="FTSelfCard125"><Properties>
        <string name="Name">Bar</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>8</YO></UDim2>
       </Properties>
-       <Item class="Frame" referent="FTSelfCard114"><Properties>
+       <Item class="Frame" referent="FTSelfCard126"><Properties>
         <string name="Name">Trough</string>
         <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
         <float name="BackgroundTransparency">0.1</float>
         <int name="BorderSizePixel">0</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
        </Properties>
-        <Item class="UICorner" referent="FTSelfCard115"><Properties>
+        <Item class="UICorner" referent="FTSelfCard127"><Properties>
          <string name="Name">UICorner</string>
          <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
         </Properties>
         </Item>
-        <Item class="UIStroke" referent="FTSelfCard116"><Properties>
+        <Item class="UIStroke" referent="FTSelfCard128"><Properties>
          <string name="Name">UIStroke</string>
          <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
          <float name="Transparency">0.6</float>
          <token name="ApplyStrokeMode">1</token>
         </Properties>
         </Item>
-        <Item class="Frame" referent="FTSelfCard117"><Properties>
+        <Item class="Frame" referent="FTSelfCard129"><Properties>
          <string name="Name">Fill</string>
          <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
          <int name="BorderSizePixel">0</int>
          <UDim2 name="Size"><XS>0.69</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         </Properties>
-         <Item class="UICorner" referent="FTSelfCard118"><Properties>
+         <Item class="UICorner" referent="FTSelfCard130"><Properties>
           <string name="Name">UICorner</string>
           <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
          </Properties>
          </Item>
-         <Item class="UIGradient" referent="FTSelfCard119"><Properties>
+         <Item class="UIGradient" referent="FTSelfCard131"><Properties>
           <string name="Name">Theme</string>
           <ColorSequence name="Color">0 0.501961 0.360784 0.92549 0 1 0.870588 0.807843 1 0 </ColorSequence>
          </Properties>
@@ -16378,7 +16482,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Item>
        </Item>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard120"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard132"><Properties>
        <string name="Name">Summary</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16398,7 +16502,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard121"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard133"><Properties>
        <string name="Name">Detail</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16419,7 +16523,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       </Properties>
       </Item>
      </Item>
-     <Item class="TextButton" referent="FTSelfCard122"><Properties>
+     <Item class="TextButton" referent="FTSelfCard134"><Properties>
       <string name="Name">Heart</string>
       <token name="AutomaticSize">2</token>
       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -16430,12 +16534,12 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       <bool name="AutoButtonColor">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="UICorner" referent="FTSelfCard123"><Properties>
+      <Item class="UICorner" referent="FTSelfCard135"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard124"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard136"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
        <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
@@ -16443,13 +16547,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIListLayout" referent="FTSelfCard125"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard137"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>3</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard126"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard138"><Properties>
        <string name="Name">Kind</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
@@ -16462,7 +16566,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard127"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard139"><Properties>
         <string name="Name">More</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16478,14 +16582,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard128"><Properties>
+      <Item class="Frame" referent="FTSelfCard140"><Properties>
        <string name="Name">Top</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard129"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard141"><Properties>
         <string name="Name">NameLabel</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>1</XS><XO>-96</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -16500,7 +16604,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard130"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard142"><Properties>
         <string name="Name">Right</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16516,7 +16620,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard131"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard143"><Properties>
        <string name="Name">Summary</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16535,7 +16639,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard132"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard144"><Properties>
        <string name="Name">Detail</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16558,7 +16662,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
      </Item>
     </Item>
    </Item>
-   <Item class="Frame" referent="FTSelfCard133"><Properties>
+   <Item class="Frame" referent="FTSelfCard145"><Properties>
     <string name="Name">Divider2</string>
     <Color3 name="BackgroundColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
     <float name="BackgroundTransparency">0.6</float>
@@ -16567,14 +16671,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
     <UDim2 name="Size"><XS>0</XS><XO>1</XO><YS>1</YS><YO>0</YO></UDim2>
    </Properties>
    </Item>
-   <Item class="Frame" referent="FTSelfCard134"><Properties>
+   <Item class="Frame" referent="FTSelfCard146"><Properties>
     <string name="Name">Path</string>
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
     <int name="LayoutOrder">5</int>
     <UDim2 name="Size"><XS>0.35</XS><XO>-14</XO><YS>1</YS><YO>0</YO></UDim2>
    </Properties>
-    <Item class="TextLabel" referent="FTSelfCard135"><Properties>
+    <Item class="TextLabel" referent="FTSelfCard147"><Properties>
      <string name="Name">Head</string>
      <float name="BackgroundTransparency">1</float>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>22</YO></UDim2>
@@ -16586,13 +16690,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
      <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
      <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
     </Properties>
-     <Item class="UIPadding" referent="FTSelfCard136"><Properties>
+     <Item class="UIPadding" referent="FTSelfCard148"><Properties>
       <string name="Name">UIPadding</string>
       <UDim name="PaddingLeft"><S>0</S><O>6</O></UDim>
      </Properties>
      </Item>
     </Item>
-    <Item class="Frame" referent="FTSelfCard137"><Properties>
+    <Item class="Frame" referent="FTSelfCard149"><Properties>
      <string name="Name">Rule</string>
      <Color3 name="BackgroundColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
      <float name="BackgroundTransparency">0.6</float>
@@ -16601,7 +16705,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>1</YO></UDim2>
     </Properties>
     </Item>
-    <Item class="ScrollingFrame" referent="FTSelfCard138"><Properties>
+    <Item class="ScrollingFrame" referent="FTSelfCard150"><Properties>
      <string name="Name">Body</string>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
@@ -16615,18 +16719,18 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
      <token name="ScrollingDirection">2</token>
      <token name="VerticalScrollBarInset">1</token>
     </Properties>
-     <Item class="UIListLayout" referent="FTSelfCard139"><Properties>
+     <Item class="UIListLayout" referent="FTSelfCard151"><Properties>
       <string name="Name">UIListLayout</string>
       <token name="SortOrder">2</token>
       <UDim name="Padding"><S>0</S><O>6</O></UDim>
      </Properties>
      </Item>
-     <Item class="UIPadding" referent="FTSelfCard140"><Properties>
+     <Item class="UIPadding" referent="FTSelfCard152"><Properties>
       <string name="Name">UIPadding</string>
       <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
      </Properties>
      </Item>
-     <Item class="TextButton" referent="FTSelfCard141"><Properties>
+     <Item class="TextButton" referent="FTSelfCard153"><Properties>
       <string name="Name">Root</string>
       <token name="AutomaticSize">2</token>
       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -16637,12 +16741,12 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       <bool name="AutoButtonColor">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="UICorner" referent="FTSelfCard142"><Properties>
+      <Item class="UICorner" referent="FTSelfCard154"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard143"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard155"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
        <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
@@ -16650,13 +16754,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIListLayout" referent="FTSelfCard144"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard156"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>3</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard145"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard157"><Properties>
        <string name="Name">Kind</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
@@ -16669,7 +16773,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard146"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard158"><Properties>
         <string name="Name">More</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16685,14 +16789,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard147"><Properties>
+      <Item class="Frame" referent="FTSelfCard159"><Properties>
        <string name="Name">Top</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard148"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard160"><Properties>
         <string name="Name">NameLabel</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>1</XS><XO>-70</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -16707,7 +16811,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard149"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard161"><Properties>
         <string name="Name">Right</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16723,7 +16827,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard150"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard162"><Properties>
        <string name="Name">Summary</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16743,7 +16847,7 @@ Washed 1 / 3 toward Earth grade</string>
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard151"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard163"><Properties>
        <string name="Name">Detail</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16765,7 +16869,7 @@ Washed 1 / 3 toward Earth grade</string>
       </Properties>
       </Item>
      </Item>
-     <Item class="TextButton" referent="FTSelfCard152"><Properties>
+     <Item class="TextButton" referent="FTSelfCard164"><Properties>
       <string name="Name">Method</string>
       <token name="AutomaticSize">2</token>
       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -16776,12 +16880,12 @@ Washed 1 / 3 toward Earth grade</string>
       <bool name="AutoButtonColor">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="UICorner" referent="FTSelfCard153"><Properties>
+      <Item class="UICorner" referent="FTSelfCard165"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard154"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard166"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
        <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
@@ -16789,13 +16893,13 @@ Washed 1 / 3 toward Earth grade</string>
        <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIListLayout" referent="FTSelfCard155"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard167"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>3</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard156"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard168"><Properties>
        <string name="Name">Kind</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
@@ -16808,7 +16912,7 @@ Washed 1 / 3 toward Earth grade</string>
        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard157"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard169"><Properties>
         <string name="Name">More</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16824,14 +16928,14 @@ Washed 1 / 3 toward Earth grade</string>
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard158"><Properties>
+      <Item class="Frame" referent="FTSelfCard170"><Properties>
        <string name="Name">Top</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
        <int name="LayoutOrder">2</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard159"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard171"><Properties>
         <string name="Name">NameLabel</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>1</XS><XO>-70</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -16846,7 +16950,7 @@ Washed 1 / 3 toward Earth grade</string>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard160"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard172"><Properties>
         <string name="Name">Right</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16862,7 +16966,7 @@ Washed 1 / 3 toward Earth grade</string>
        </Properties>
        </Item>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard161"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard173"><Properties>
        <string name="Name">Summary</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16881,7 +16985,7 @@ Washed 1 / 3 toward Earth grade</string>
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard162"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard174"><Properties>
        <string name="Name">Detail</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -16903,7 +17007,7 @@ Takes you up to the end of Foundation</string>
       </Properties>
       </Item>
      </Item>
-     <Item class="TextButton" referent="FTSelfCard163"><Properties>
+     <Item class="TextButton" referent="FTSelfCard175"><Properties>
       <string name="Name">Dao</string>
       <bool name="Active">false</bool>
       <token name="AutomaticSize">2</token>
@@ -16916,12 +17020,12 @@ Takes you up to the end of Foundation</string>
       <bool name="Selectable">false</bool>
       <string name="Text"></string>
      </Properties>
-      <Item class="UICorner" referent="FTSelfCard164"><Properties>
+      <Item class="UICorner" referent="FTSelfCard176"><Properties>
        <string name="Name">UICorner</string>
        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard165"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard177"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingTop"><S>0</S><O>4</O></UDim>
        <UDim name="PaddingBottom"><S>0</S><O>5</O></UDim>
@@ -16929,13 +17033,13 @@ Takes you up to the end of Foundation</string>
        <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIListLayout" referent="FTSelfCard166"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard178"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>3</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard167"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard179"><Properties>
        <string name="Name">Kind</string>
        <float name="BackgroundTransparency">1</float>
        <int name="LayoutOrder">1</int>
@@ -16948,7 +17052,7 @@ Takes you up to the end of Foundation</string>
        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard168"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard180"><Properties>
         <string name="Name">More</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -16965,7 +17069,7 @@ Takes you up to the end of Foundation</string>
        </Properties>
        </Item>
       </Item>
-      <Item class="Frame" referent="FTSelfCard169"><Properties>
+      <Item class="Frame" referent="FTSelfCard181"><Properties>
        <string name="Name">Top</string>
        <float name="BackgroundTransparency">1</float>
        <int name="BorderSizePixel">0</int>
@@ -16973,7 +17077,7 @@ Takes you up to the end of Foundation</string>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
        <bool name="Visible">false</bool>
       </Properties>
-       <Item class="TextLabel" referent="FTSelfCard170"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard182"><Properties>
         <string name="Name">NameLabel</string>
         <float name="BackgroundTransparency">1</float>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -16988,7 +17092,7 @@ Takes you up to the end of Foundation</string>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard171"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard183"><Properties>
         <string name="Name">Right</string>
         <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
         <float name="BackgroundTransparency">1</float>
@@ -17004,7 +17108,7 @@ Takes you up to the end of Foundation</string>
        </Properties>
        </Item>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard172"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard184"><Properties>
        <string name="Name">Summary</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -17024,7 +17128,7 @@ Takes you up to the end of Foundation</string>
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard173"><Properties>
+      <Item class="TextLabel" referent="FTSelfCard185"><Properties>
        <string name="Name">Detail</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -17044,7 +17148,7 @@ Takes you up to the end of Foundation</string>
        <float name="LineHeight">1.1</float>
       </Properties>
       </Item>
-      <Item class="Frame" referent="FTSelfCard174"><Properties>
+      <Item class="Frame" referent="FTSelfCard186"><Properties>
        <string name="Name">Rows</string>
        <token name="AutomaticSize">2</token>
        <float name="BackgroundTransparency">1</float>
@@ -17052,13 +17156,13 @@ Takes you up to the end of Foundation</string>
        <int name="LayoutOrder">3</int>
        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
       </Properties>
-       <Item class="UIListLayout" referent="FTSelfCard175"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard187"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>4</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextButton" referent="FTSelfCard176"><Properties>
+       <Item class="TextButton" referent="FTSelfCard188"><Properties>
         <string name="Name">RowTemplate</string>
         <token name="AutomaticSize">2</token>
         <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -17070,30 +17174,30 @@ Takes you up to the end of Foundation</string>
         <bool name="AutoButtonColor">false</bool>
         <string name="Text"></string>
        </Properties>
-        <Item class="UICorner" referent="FTSelfCard177"><Properties>
+        <Item class="UICorner" referent="FTSelfCard189"><Properties>
          <string name="Name">UICorner</string>
          <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
         </Properties>
         </Item>
-        <Item class="UIPadding" referent="FTSelfCard178"><Properties>
+        <Item class="UIPadding" referent="FTSelfCard190"><Properties>
          <string name="Name">UIPadding</string>
          <UDim name="PaddingBottom"><S>0</S><O>2</O></UDim>
         </Properties>
         </Item>
-        <Item class="UIListLayout" referent="FTSelfCard179"><Properties>
+        <Item class="UIListLayout" referent="FTSelfCard191"><Properties>
          <string name="Name">UIListLayout</string>
          <token name="SortOrder">2</token>
          <UDim name="Padding"><S>0</S><O>2</O></UDim>
         </Properties>
         </Item>
-        <Item class="Frame" referent="FTSelfCard180"><Properties>
+        <Item class="Frame" referent="FTSelfCard192"><Properties>
          <string name="Name">Top</string>
          <float name="BackgroundTransparency">1</float>
          <int name="BorderSizePixel">0</int>
          <int name="LayoutOrder">1</int>
          <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
         </Properties>
-         <Item class="ImageLabel" referent="FTSelfCard181"><Properties>
+         <Item class="ImageLabel" referent="FTSelfCard193"><Properties>
           <string name="Name">Icon</string>
           <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
           <float name="BackgroundTransparency">1</float>
@@ -17103,7 +17207,7 @@ Takes you up to the end of Foundation</string>
           <token name="ScaleType">3</token>
          </Properties>
          </Item>
-         <Item class="TextLabel" referent="FTSelfCard182"><Properties>
+         <Item class="TextLabel" referent="FTSelfCard194"><Properties>
           <string name="Name">NameLabel</string>
           <float name="BackgroundTransparency">1</float>
           <UDim2 name="Position"><XS>0</XS><XO>24</XO><YS>0</YS><YO>0</YO></UDim2>
@@ -17118,7 +17222,7 @@ Takes you up to the end of Foundation</string>
           <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
          </Properties>
          </Item>
-         <Item class="TextLabel" referent="FTSelfCard183"><Properties>
+         <Item class="TextLabel" referent="FTSelfCard195"><Properties>
           <string name="Name">Right</string>
           <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
           <float name="BackgroundTransparency">1</float>
@@ -17134,44 +17238,44 @@ Takes you up to the end of Foundation</string>
          </Properties>
          </Item>
         </Item>
-        <Item class="Frame" referent="FTSelfCard184"><Properties>
+        <Item class="Frame" referent="FTSelfCard196"><Properties>
          <string name="Name">Bar</string>
          <float name="BackgroundTransparency">1</float>
          <int name="BorderSizePixel">0</int>
          <int name="LayoutOrder">2</int>
          <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>6</YO></UDim2>
         </Properties>
-         <Item class="Frame" referent="FTSelfCard185"><Properties>
+         <Item class="Frame" referent="FTSelfCard197"><Properties>
           <string name="Name">Trough</string>
           <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
           <float name="BackgroundTransparency">0.1</float>
           <int name="BorderSizePixel">0</int>
           <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
          </Properties>
-          <Item class="UICorner" referent="FTSelfCard186"><Properties>
+          <Item class="UICorner" referent="FTSelfCard198"><Properties>
            <string name="Name">UICorner</string>
            <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
           </Properties>
           </Item>
-          <Item class="UIStroke" referent="FTSelfCard187"><Properties>
+          <Item class="UIStroke" referent="FTSelfCard199"><Properties>
            <string name="Name">UIStroke</string>
            <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
            <float name="Transparency">0.6</float>
            <token name="ApplyStrokeMode">1</token>
           </Properties>
           </Item>
-          <Item class="Frame" referent="FTSelfCard188"><Properties>
+          <Item class="Frame" referent="FTSelfCard200"><Properties>
            <string name="Name">Fill</string>
            <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
            <int name="BorderSizePixel">0</int>
            <UDim2 name="Size"><XS>0.45</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
           </Properties>
-           <Item class="UICorner" referent="FTSelfCard189"><Properties>
+           <Item class="UICorner" referent="FTSelfCard201"><Properties>
             <string name="Name">UICorner</string>
             <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
            </Properties>
            </Item>
-           <Item class="UIGradient" referent="FTSelfCard190"><Properties>
+           <Item class="UIGradient" referent="FTSelfCard202"><Properties>
             <string name="Name">Theme</string>
             <ColorSequence name="Color">0 0.745098 0.54902 0.196078 0 1 0.980392 0.839216 0.470588 0 </ColorSequence>
            </Properties>
@@ -17179,7 +17283,7 @@ Takes you up to the end of Foundation</string>
           </Item>
          </Item>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard191"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard203"><Properties>
          <string name="Name">Detail</string>
          <token name="AutomaticSize">2</token>
          <float name="BackgroundTransparency">1</float>
@@ -17207,28 +17311,28 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
     </Item>
    </Item>
   </Item>
-  <Item class="Frame" referent="FTSelfCard192"><Properties>
+  <Item class="Frame" referent="FTSelfCard204"><Properties>
    <string name="Name">Phone</string>
    <float name="BackgroundTransparency">1</float>
    <int name="BorderSizePixel">0</int>
    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
    <bool name="Visible">false</bool>
   </Properties>
-   <Item class="Frame" referent="FTSelfCard193"><Properties>
+   <Item class="Frame" referent="FTSelfCard205"><Properties>
     <string name="Name">Tabs</string>
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
     <UDim2 name="Position"><XS>0</XS><XO>22</XO><YS>0</YS><YO>18</YO></UDim2>
     <UDim2 name="Size"><XS>1</XS><XO>-206</XO><YS>0</YS><YO>36</YO></UDim2>
    </Properties>
-    <Item class="UIListLayout" referent="FTSelfCard194"><Properties>
+    <Item class="UIListLayout" referent="FTSelfCard206"><Properties>
      <string name="Name">UIListLayout</string>
      <token name="FillDirection">0</token>
      <token name="SortOrder">2</token>
      <UDim name="Padding"><S>0</S><O>8</O></UDim>
     </Properties>
     </Item>
-    <Item class="ImageButton" referent="FTSelfCard195"><Properties>
+    <Item class="ImageButton" referent="FTSelfCard207"><Properties>
      <string name="Name">SelfTab</string>
      <token name="AutomaticSize">1</token>
      <float name="BackgroundTransparency">1</float>
@@ -17239,17 +17343,17 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
      <Rect2D name="SliceCenter"><min><X>32</X><Y>20</Y></min><max><X>224</X><Y>44</Y></max></Rect2D>
      <float name="SliceScale">0.6</float>
     </Properties>
-     <Item class="UIScale" referent="FTSelfCard196"><Properties>
+     <Item class="UIScale" referent="FTSelfCard208"><Properties>
       <string name="Name">Motion</string>
      </Properties>
      </Item>
-     <Item class="UIPadding" referent="FTSelfCard197"><Properties>
+     <Item class="UIPadding" referent="FTSelfCard209"><Properties>
       <string name="Name">UIPadding</string>
       <UDim name="PaddingLeft"><S>0</S><O>18</O></UDim>
       <UDim name="PaddingRight"><S>0</S><O>18</O></UDim>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="FTSelfCard198"><Properties>
+     <Item class="TextLabel" referent="FTSelfCard210"><Properties>
       <string name="Name">Label</string>
       <token name="AutomaticSize">1</token>
       <float name="BackgroundTransparency">1</float>
@@ -17263,7 +17367,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
      </Properties>
      </Item>
     </Item>
-    <Item class="ImageButton" referent="FTSelfCard199"><Properties>
+    <Item class="ImageButton" referent="FTSelfCard211"><Properties>
      <string name="Name">CultivationTab</string>
      <token name="AutomaticSize">1</token>
      <float name="BackgroundTransparency">1</float>
@@ -17274,17 +17378,17 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
      <Rect2D name="SliceCenter"><min><X>32</X><Y>20</Y></min><max><X>224</X><Y>44</Y></max></Rect2D>
      <float name="SliceScale">0.6</float>
     </Properties>
-     <Item class="UIScale" referent="FTSelfCard200"><Properties>
+     <Item class="UIScale" referent="FTSelfCard212"><Properties>
       <string name="Name">Motion</string>
      </Properties>
      </Item>
-     <Item class="UIPadding" referent="FTSelfCard201"><Properties>
+     <Item class="UIPadding" referent="FTSelfCard213"><Properties>
       <string name="Name">UIPadding</string>
       <UDim name="PaddingLeft"><S>0</S><O>18</O></UDim>
       <UDim name="PaddingRight"><S>0</S><O>18</O></UDim>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="FTSelfCard202"><Properties>
+     <Item class="TextLabel" referent="FTSelfCard214"><Properties>
       <string name="Name">Label</string>
       <token name="AutomaticSize">1</token>
       <float name="BackgroundTransparency">1</float>
@@ -17298,7 +17402,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
      </Properties>
      </Item>
     </Item>
-    <Item class="ImageButton" referent="FTSelfCard203"><Properties>
+    <Item class="ImageButton" referent="FTSelfCard215"><Properties>
      <string name="Name">PathTab</string>
      <token name="AutomaticSize">1</token>
      <float name="BackgroundTransparency">1</float>
@@ -17309,17 +17413,17 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
      <Rect2D name="SliceCenter"><min><X>32</X><Y>20</Y></min><max><X>224</X><Y>44</Y></max></Rect2D>
      <float name="SliceScale">0.6</float>
     </Properties>
-     <Item class="UIScale" referent="FTSelfCard204"><Properties>
+     <Item class="UIScale" referent="FTSelfCard216"><Properties>
       <string name="Name">Motion</string>
      </Properties>
      </Item>
-     <Item class="UIPadding" referent="FTSelfCard205"><Properties>
+     <Item class="UIPadding" referent="FTSelfCard217"><Properties>
       <string name="Name">UIPadding</string>
       <UDim name="PaddingLeft"><S>0</S><O>18</O></UDim>
       <UDim name="PaddingRight"><S>0</S><O>18</O></UDim>
      </Properties>
      </Item>
-     <Item class="TextLabel" referent="FTSelfCard206"><Properties>
+     <Item class="TextLabel" referent="FTSelfCard218"><Properties>
       <string name="Name">Label</string>
       <token name="AutomaticSize">1</token>
       <float name="BackgroundTransparency">1</float>
@@ -17334,29 +17438,29 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
      </Item>
     </Item>
    </Item>
-   <Item class="Frame" referent="FTSelfCard207"><Properties>
+   <Item class="Frame" referent="FTSelfCard219"><Properties>
     <string name="Name">Pages</string>
     <float name="BackgroundTransparency">1</float>
     <int name="BorderSizePixel">0</int>
     <UDim2 name="Position"><XS>0</XS><XO>22</XO><YS>0</YS><YO>62</YO></UDim2>
     <UDim2 name="Size"><XS>1</XS><XO>-44</XO><YS>1</YS><YO>-80</YO></UDim2>
    </Properties>
-    <Item class="Frame" referent="FTSelfCard208"><Properties>
+    <Item class="Frame" referent="FTSelfCard220"><Properties>
      <string name="Name">Self</string>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
     </Properties>
-     <Item class="ImageLabel" referent="FTSelfCard209"><Properties>
+     <Item class="ImageLabel" referent="FTSelfCard221"><Properties>
       <string name="Name">Avatar</string>
       <float name="BackgroundTransparency">1</float>
-      <UDim2 name="Size"><XS>0.3</XS><XO>-8</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.3</XS><XO>-8</XO><YS>1</YS><YO>-50</YO></UDim2>
       <Content name="Image"><url>rbxassetid://85613268683045</url></Content>
       <token name="ScaleType">1</token>
       <Rect2D name="SliceCenter"><min><X>24</X><Y>24</Y></min><max><X>104</X><Y>104</Y></max></Rect2D>
       <float name="SliceScale">0.5</float>
      </Properties>
-      <Item class="ViewportFrame" referent="FTSelfCard210"><Properties>
+      <Item class="ViewportFrame" referent="FTSelfCard222"><Properties>
        <string name="Name">View</string>
        <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
        <float name="BackgroundTransparency">1</float>
@@ -17368,7 +17472,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
       </Properties>
       </Item>
      </Item>
-     <Item class="ScrollingFrame" referent="FTSelfCard211"><Properties>
+     <Item class="ScrollingFrame" referent="FTSelfCard223"><Properties>
       <string name="Name">Right</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
@@ -17382,37 +17486,18 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
       <token name="ScrollingDirection">2</token>
       <token name="VerticalScrollBarInset">1</token>
      </Properties>
-      <Item class="UIListLayout" referent="FTSelfCard212"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard224"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>4</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard213"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard225"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextLabel" referent="FTSelfCard214"><Properties>
-       <string name="Name">PlayerName</string>
-       <float name="BackgroundTransparency">1</float>
-       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>26</YO></UDim2>
-       <string name="Text">Lin Feng</string>
-       <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
-       <float name="TextSize">18</float>
-       <token name="TextXAlignment">0</token>
-       <float name="TextStrokeTransparency">0</float>
-       <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
-       <token name="TextTruncate">1</token>
-       <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
-      </Properties>
-       <Item class="UIPadding" referent="FTSelfCard215"><Properties>
-        <string name="Name">UIPadding</string>
-        <UDim name="PaddingLeft"><S>0</S><O>6</O></UDim>
-       </Properties>
-       </Item>
-      </Item>
-      <Item class="TextButton" referent="FTSelfCard216"><Properties>
+      <Item class="TextButton" referent="FTSelfCard226"><Properties>
        <string name="Name">Race</string>
        <token name="AutomaticSize">2</token>
        <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -17423,12 +17508,12 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
        <bool name="AutoButtonColor">false</bool>
        <string name="Text"></string>
       </Properties>
-       <Item class="UICorner" referent="FTSelfCard217"><Properties>
+       <Item class="UICorner" referent="FTSelfCard227"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIPadding" referent="FTSelfCard218"><Properties>
+       <Item class="UIPadding" referent="FTSelfCard228"><Properties>
         <string name="Name">UIPadding</string>
         <UDim name="PaddingTop"><S>0</S><O>3</O></UDim>
         <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
@@ -17436,13 +17521,13 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIListLayout" referent="FTSelfCard219"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard229"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>3</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard220"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard230"><Properties>
         <string name="Name">Kind</string>
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">1</int>
@@ -17455,7 +17540,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard221"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard231"><Properties>
          <string name="Name">More</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -17471,14 +17556,14 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard222"><Properties>
+       <Item class="Frame" referent="FTSelfCard232"><Properties>
         <string name="Name">Top</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard223"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard233"><Properties>
          <string name="Name">NameLabel</string>
          <float name="BackgroundTransparency">1</float>
          <UDim2 name="Size"><XS>1</XS><XO>-35</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -17493,7 +17578,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
          <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
         </Properties>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard224"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard234"><Properties>
          <string name="Name">Right</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -17509,7 +17594,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         </Properties>
         </Item>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard225"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard235"><Properties>
         <string name="Name">Summary</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -17529,7 +17614,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard226"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard236"><Properties>
         <string name="Name">Detail</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -17551,7 +17636,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
        </Properties>
        </Item>
       </Item>
-      <Item class="TextButton" referent="FTSelfCard227"><Properties>
+      <Item class="TextButton" referent="FTSelfCard237"><Properties>
        <string name="Name">Bloodline</string>
        <bool name="Active">false</bool>
        <token name="AutomaticSize">2</token>
@@ -17564,12 +17649,12 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
        <bool name="Selectable">false</bool>
        <string name="Text"></string>
       </Properties>
-       <Item class="UICorner" referent="FTSelfCard228"><Properties>
+       <Item class="UICorner" referent="FTSelfCard238"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIPadding" referent="FTSelfCard229"><Properties>
+       <Item class="UIPadding" referent="FTSelfCard239"><Properties>
         <string name="Name">UIPadding</string>
         <UDim name="PaddingTop"><S>0</S><O>3</O></UDim>
         <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
@@ -17577,13 +17662,13 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIListLayout" referent="FTSelfCard230"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard240"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>3</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard231"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard241"><Properties>
         <string name="Name">Kind</string>
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">1</int>
@@ -17596,7 +17681,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard232"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard242"><Properties>
          <string name="Name">More</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -17613,14 +17698,14 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard233"><Properties>
+       <Item class="Frame" referent="FTSelfCard243"><Properties>
         <string name="Name">Top</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard234"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard244"><Properties>
          <string name="Name">NameLabel</string>
          <float name="BackgroundTransparency">1</float>
          <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -17635,7 +17720,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
          <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
         </Properties>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard235"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard245"><Properties>
          <string name="Name">Right</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -17651,7 +17736,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         </Properties>
         </Item>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard236"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard246"><Properties>
         <string name="Name">Summary</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -17671,7 +17756,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard237"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard247"><Properties>
         <string name="Name">Detail</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -17692,7 +17777,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
        </Properties>
        </Item>
       </Item>
-      <Item class="TextButton" referent="FTSelfCard238"><Properties>
+      <Item class="TextButton" referent="FTSelfCard248"><Properties>
        <string name="Name">Stats</string>
        <token name="AutomaticSize">2</token>
        <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -17703,12 +17788,12 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
        <bool name="AutoButtonColor">false</bool>
        <string name="Text"></string>
       </Properties>
-       <Item class="UICorner" referent="FTSelfCard239"><Properties>
+       <Item class="UICorner" referent="FTSelfCard249"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIPadding" referent="FTSelfCard240"><Properties>
+       <Item class="UIPadding" referent="FTSelfCard250"><Properties>
         <string name="Name">UIPadding</string>
         <UDim name="PaddingTop"><S>0</S><O>3</O></UDim>
         <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
@@ -17716,13 +17801,13 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIListLayout" referent="FTSelfCard241"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard251"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>3</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard242"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard252"><Properties>
         <string name="Name">Kind</string>
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">1</int>
@@ -17735,7 +17820,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard243"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard253"><Properties>
          <string name="Name">More</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -17751,14 +17836,14 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard244"><Properties>
+       <Item class="Frame" referent="FTSelfCard254"><Properties>
         <string name="Name">Top</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard245"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard255"><Properties>
          <string name="Name">NameLabel</string>
          <float name="BackgroundTransparency">1</float>
          <UDim2 name="Size"><XS>1</XS><XO>-75</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -17773,7 +17858,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
          <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
         </Properties>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard246"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard256"><Properties>
          <string name="Name">Right</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -17789,7 +17874,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         </Properties>
         </Item>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard247"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard257"><Properties>
         <string name="Name">Summary</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -17809,7 +17894,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard248"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard258"><Properties>
         <string name="Name">Detail</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -17831,16 +17916,130 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
+      <Item class="TextButton" referent="FTSelfCard259"><Properties>
+       <string name="Name">TitleRow</string>
+       <token name="AutomaticSize">2</token>
+       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
+       <float name="BackgroundTransparency">1</float>
+       <int name="BorderSizePixel">0</int>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+       <bool name="AutoButtonColor">false</bool>
+       <string name="Text"></string>
+      </Properties>
+       <Item class="UICorner" referent="FTSelfCard260"><Properties>
+        <string name="Name">UICorner</string>
+        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
+       </Properties>
+       </Item>
+       <Item class="UIPadding" referent="FTSelfCard261"><Properties>
+        <string name="Name">UIPadding</string>
+        <UDim name="PaddingBottom"><S>0</S><O>2</O></UDim>
+       </Properties>
+       </Item>
+       <Item class="UIListLayout" referent="FTSelfCard262"><Properties>
+        <string name="Name">UIListLayout</string>
+        <token name="SortOrder">2</token>
+       </Properties>
+       </Item>
+       <Item class="TextLabel" referent="FTSelfCard263"><Properties>
+        <string name="Name">PlayerName</string>
+        <float name="BackgroundTransparency">1</float>
+        <int name="LayoutOrder">1</int>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>26</YO></UDim2>
+        <string name="Text">Lin Feng</string>
+        <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
+        <float name="TextSize">18</float>
+        <token name="TextXAlignment">0</token>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+        <token name="TextTruncate">1</token>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+       </Properties>
+        <Item class="UIPadding" referent="FTSelfCard264"><Properties>
+         <string name="Name">UIPadding</string>
+         <UDim name="PaddingLeft"><S>0</S><O>6</O></UDim>
+        </Properties>
+        </Item>
+       </Item>
+       <Item class="Frame" referent="FTSelfCard265"><Properties>
+        <string name="Name">Line</string>
+        <float name="BackgroundTransparency">1</float>
+        <int name="BorderSizePixel">0</int>
+        <int name="LayoutOrder">2</int>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
+       </Properties>
+        <Item class="UIPadding" referent="FTSelfCard266"><Properties>
+         <string name="Name">UIPadding</string>
+         <UDim name="PaddingLeft"><S>0</S><O>6</O></UDim>
+         <UDim name="PaddingRight"><S>0</S><O>4</O></UDim>
+        </Properties>
+        </Item>
+        <Item class="TextLabel" referent="FTSelfCard267"><Properties>
+         <string name="Name">NameLabel</string>
+         <float name="BackgroundTransparency">1</float>
+         <UDim2 name="Size"><XS>1</XS><XO>-16</XO><YS>1</YS><YO>0</YO></UDim2>
+         <string name="Text">Wolf King's Bane</string>
+         <Color3 name="TextColor3"><R>0.439216</R><G>0.870588</G><B>0.611765</B></Color3>
+         <float name="TextSize">15</float>
+         <token name="TextXAlignment">0</token>
+         <float name="TextStrokeTransparency">0</float>
+         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+         <token name="TextTruncate">1</token>
+         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+        </Properties>
+        </Item>
+        <Item class="ImageLabel" referent="FTSelfCard268"><Properties>
+         <string name="Name">Chevron</string>
+         <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+         <float name="BackgroundTransparency">1</float>
+         <UDim2 name="Position"><XS>1</XS><XO>-4</XO><YS>0.5</YS><YO>0</YO></UDim2>
+         <float name="Rotation">-90</float>
+         <UDim2 name="Size"><XS>0</XS><XO>12</XO><YS>0</YS><YO>8</YO></UDim2>
+         <Content name="Image"><url>rbxassetid://86690174795106</url></Content>
+         <token name="ScaleType">3</token>
+        </Properties>
+        </Item>
+       </Item>
+      </Item>
+     </Item>
+     <Item class="ImageButton" referent="FTSelfCard269"><Properties>
+      <string name="Name">EditLook</string>
+      <Vector2 name="AnchorPoint"><X>0</X><Y>1</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0.3</XS><XO>-8</XO><YS>0</YS><YO>44</YO></UDim2>
+      <bool name="AutoButtonColor">false</bool>
+      <Content name="Image"><url>rbxassetid://70679462267599</url></Content>
+      <token name="ScaleType">1</token>
+      <Rect2D name="SliceCenter"><min><X>32</X><Y>20</Y></min><max><X>224</X><Y>44</Y></max></Rect2D>
+      <float name="SliceScale">0.6</float>
+     </Properties>
+      <Item class="UIScale" referent="FTSelfCard270"><Properties>
+       <string name="Name">Motion</string>
+      </Properties>
+      </Item>
+      <Item class="TextLabel" referent="FTSelfCard271"><Properties>
+       <string name="Name">Label</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+       <string name="Text">Edit look</string>
+       <Color3 name="TextColor3"><R>0.92549</R><G>0.886275</G><B>0.784314</B></Color3>
+       <float name="TextSize">15</float>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+      </Properties>
+      </Item>
      </Item>
     </Item>
-    <Item class="Frame" referent="FTSelfCard249"><Properties>
+    <Item class="Frame" referent="FTSelfCard272"><Properties>
      <string name="Name">Cultivation</string>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
     </Properties>
-     <Item class="ScrollingFrame" referent="FTSelfCard250"><Properties>
+     <Item class="ScrollingFrame" referent="FTSelfCard273"><Properties>
       <string name="Name">Left</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
@@ -17853,18 +18052,18 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       <token name="ScrollingDirection">2</token>
       <token name="VerticalScrollBarInset">1</token>
      </Properties>
-      <Item class="UIListLayout" referent="FTSelfCard251"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard274"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>4</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard252"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard275"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextButton" referent="FTSelfCard253"><Properties>
+      <Item class="TextButton" referent="FTSelfCard276"><Properties>
        <string name="Name">Realm</string>
        <token name="AutomaticSize">2</token>
        <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -17875,12 +18074,12 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <bool name="AutoButtonColor">false</bool>
        <string name="Text"></string>
       </Properties>
-       <Item class="UICorner" referent="FTSelfCard254"><Properties>
+       <Item class="UICorner" referent="FTSelfCard277"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIPadding" referent="FTSelfCard255"><Properties>
+       <Item class="UIPadding" referent="FTSelfCard278"><Properties>
         <string name="Name">UIPadding</string>
         <UDim name="PaddingTop"><S>0</S><O>3</O></UDim>
         <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
@@ -17888,13 +18087,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIListLayout" referent="FTSelfCard256"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard279"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>3</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard257"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard280"><Properties>
         <string name="Name">Kind</string>
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">1</int>
@@ -17907,7 +18106,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard258"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard281"><Properties>
          <string name="Name">More</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -17923,14 +18122,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard259"><Properties>
+       <Item class="Frame" referent="FTSelfCard282"><Properties>
         <string name="Name">Top</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard260"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard283"><Properties>
          <string name="Name">NameLabel</string>
          <float name="BackgroundTransparency">1</float>
          <UDim2 name="Size"><XS>1</XS><XO>-31</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -17945,7 +18144,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
          <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
         </Properties>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard261"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard284"><Properties>
          <string name="Name">Right</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -17961,44 +18160,44 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard262"><Properties>
+       <Item class="Frame" referent="FTSelfCard285"><Properties>
         <string name="Name">Bar</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>8</YO></UDim2>
        </Properties>
-        <Item class="Frame" referent="FTSelfCard263"><Properties>
+        <Item class="Frame" referent="FTSelfCard286"><Properties>
          <string name="Name">Trough</string>
          <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
          <float name="BackgroundTransparency">0.1</float>
          <int name="BorderSizePixel">0</int>
          <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         </Properties>
-         <Item class="UICorner" referent="FTSelfCard264"><Properties>
+         <Item class="UICorner" referent="FTSelfCard287"><Properties>
           <string name="Name">UICorner</string>
           <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
          </Properties>
          </Item>
-         <Item class="UIStroke" referent="FTSelfCard265"><Properties>
+         <Item class="UIStroke" referent="FTSelfCard288"><Properties>
           <string name="Name">UIStroke</string>
           <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
           <float name="Transparency">0.6</float>
           <token name="ApplyStrokeMode">1</token>
          </Properties>
          </Item>
-         <Item class="Frame" referent="FTSelfCard266"><Properties>
+         <Item class="Frame" referent="FTSelfCard289"><Properties>
           <string name="Name">Fill</string>
           <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
           <int name="BorderSizePixel">0</int>
           <UDim2 name="Size"><XS>0.41</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
          </Properties>
-          <Item class="UICorner" referent="FTSelfCard267"><Properties>
+          <Item class="UICorner" referent="FTSelfCard290"><Properties>
            <string name="Name">UICorner</string>
            <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
           </Properties>
           </Item>
-          <Item class="UIGradient" referent="FTSelfCard268"><Properties>
+          <Item class="UIGradient" referent="FTSelfCard291"><Properties>
            <string name="Name">Theme</string>
            <ColorSequence name="Color">0 0.745098 0.54902 0.196078 0 1 0.980392 0.839216 0.470588 0 </ColorSequence>
           </Properties>
@@ -18006,7 +18205,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
          </Item>
         </Item>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard269"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard292"><Properties>
         <string name="Name">Summary</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18025,7 +18224,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard270"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard293"><Properties>
         <string name="Name">Detail</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18046,7 +18245,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="TextButton" referent="FTSelfCard271"><Properties>
+      <Item class="TextButton" referent="FTSelfCard294"><Properties>
        <string name="Name">Dantian</string>
        <token name="AutomaticSize">2</token>
        <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -18057,12 +18256,12 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <bool name="AutoButtonColor">false</bool>
        <string name="Text"></string>
       </Properties>
-       <Item class="UICorner" referent="FTSelfCard272"><Properties>
+       <Item class="UICorner" referent="FTSelfCard295"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIPadding" referent="FTSelfCard273"><Properties>
+       <Item class="UIPadding" referent="FTSelfCard296"><Properties>
         <string name="Name">UIPadding</string>
         <UDim name="PaddingTop"><S>0</S><O>3</O></UDim>
         <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
@@ -18070,13 +18269,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIListLayout" referent="FTSelfCard274"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard297"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>3</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard275"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard298"><Properties>
         <string name="Name">Kind</string>
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">1</int>
@@ -18089,7 +18288,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard276"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard299"><Properties>
          <string name="Name">More</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -18105,14 +18304,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard277"><Properties>
+       <Item class="Frame" referent="FTSelfCard300"><Properties>
         <string name="Name">Top</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard278"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard301"><Properties>
          <string name="Name">NameLabel</string>
          <float name="BackgroundTransparency">1</float>
          <UDim2 name="Size"><XS>1</XS><XO>-62</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -18127,7 +18326,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
          <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
         </Properties>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard279"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard302"><Properties>
          <string name="Name">Right</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -18143,44 +18342,44 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard280"><Properties>
+       <Item class="Frame" referent="FTSelfCard303"><Properties>
         <string name="Name">Bar</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>8</YO></UDim2>
        </Properties>
-        <Item class="Frame" referent="FTSelfCard281"><Properties>
+        <Item class="Frame" referent="FTSelfCard304"><Properties>
          <string name="Name">Trough</string>
          <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
          <float name="BackgroundTransparency">0.1</float>
          <int name="BorderSizePixel">0</int>
          <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         </Properties>
-         <Item class="UICorner" referent="FTSelfCard282"><Properties>
+         <Item class="UICorner" referent="FTSelfCard305"><Properties>
           <string name="Name">UICorner</string>
           <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
          </Properties>
          </Item>
-         <Item class="UIStroke" referent="FTSelfCard283"><Properties>
+         <Item class="UIStroke" referent="FTSelfCard306"><Properties>
           <string name="Name">UIStroke</string>
           <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
           <float name="Transparency">0.6</float>
           <token name="ApplyStrokeMode">1</token>
          </Properties>
          </Item>
-         <Item class="Frame" referent="FTSelfCard284"><Properties>
+         <Item class="Frame" referent="FTSelfCard307"><Properties>
           <string name="Name">Fill</string>
           <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
           <int name="BorderSizePixel">0</int>
           <UDim2 name="Size"><XS>0.69</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
          </Properties>
-          <Item class="UICorner" referent="FTSelfCard285"><Properties>
+          <Item class="UICorner" referent="FTSelfCard308"><Properties>
            <string name="Name">UICorner</string>
            <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
           </Properties>
           </Item>
-          <Item class="UIGradient" referent="FTSelfCard286"><Properties>
+          <Item class="UIGradient" referent="FTSelfCard309"><Properties>
            <string name="Name">Theme</string>
            <ColorSequence name="Color">0 0.501961 0.360784 0.92549 0 1 0.870588 0.807843 1 0 </ColorSequence>
           </Properties>
@@ -18188,7 +18387,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
          </Item>
         </Item>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard287"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard310"><Properties>
         <string name="Name">Summary</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18208,7 +18407,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard288"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard311"><Properties>
         <string name="Name">Detail</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18229,7 +18428,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Properties>
        </Item>
       </Item>
-      <Item class="TextButton" referent="FTSelfCard289"><Properties>
+      <Item class="TextButton" referent="FTSelfCard312"><Properties>
        <string name="Name">Heart</string>
        <token name="AutomaticSize">2</token>
        <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -18240,12 +18439,12 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <bool name="AutoButtonColor">false</bool>
        <string name="Text"></string>
       </Properties>
-       <Item class="UICorner" referent="FTSelfCard290"><Properties>
+       <Item class="UICorner" referent="FTSelfCard313"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIPadding" referent="FTSelfCard291"><Properties>
+       <Item class="UIPadding" referent="FTSelfCard314"><Properties>
         <string name="Name">UIPadding</string>
         <UDim name="PaddingTop"><S>0</S><O>3</O></UDim>
         <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
@@ -18253,13 +18452,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIListLayout" referent="FTSelfCard292"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard315"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>3</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard293"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard316"><Properties>
         <string name="Name">Kind</string>
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">1</int>
@@ -18272,7 +18471,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard294"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard317"><Properties>
          <string name="Name">More</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -18288,14 +18487,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard295"><Properties>
+       <Item class="Frame" referent="FTSelfCard318"><Properties>
         <string name="Name">Top</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard296"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard319"><Properties>
          <string name="Name">NameLabel</string>
          <float name="BackgroundTransparency">1</float>
          <UDim2 name="Size"><XS>1</XS><XO>-101</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -18310,7 +18509,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
          <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
         </Properties>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard297"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard320"><Properties>
          <string name="Name">Right</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -18326,7 +18525,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Properties>
         </Item>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard298"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard321"><Properties>
         <string name="Name">Summary</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18345,7 +18544,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard299"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard322"><Properties>
         <string name="Name">Detail</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18367,7 +18566,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        </Item>
       </Item>
      </Item>
-     <Item class="Frame" referent="FTSelfCard300"><Properties>
+     <Item class="Frame" referent="FTSelfCard323"><Properties>
       <string name="Name">Divider</string>
       <Color3 name="BackgroundColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
       <float name="BackgroundTransparency">0.6</float>
@@ -18376,7 +18575,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       <UDim2 name="Size"><XS>0</XS><XO>1</XO><YS>1</YS><YO>0</YO></UDim2>
      </Properties>
      </Item>
-     <Item class="ScrollingFrame" referent="FTSelfCard301"><Properties>
+     <Item class="ScrollingFrame" referent="FTSelfCard324"><Properties>
       <string name="Name">Right</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
@@ -18390,18 +18589,18 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       <token name="ScrollingDirection">2</token>
       <token name="VerticalScrollBarInset">1</token>
      </Properties>
-      <Item class="UIListLayout" referent="FTSelfCard302"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard325"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>4</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard303"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard326"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextButton" referent="FTSelfCard304"><Properties>
+      <Item class="TextButton" referent="FTSelfCard327"><Properties>
        <string name="Name">Foundation</string>
        <token name="AutomaticSize">2</token>
        <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -18412,12 +18611,12 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <bool name="AutoButtonColor">false</bool>
        <string name="Text"></string>
       </Properties>
-       <Item class="UICorner" referent="FTSelfCard305"><Properties>
+       <Item class="UICorner" referent="FTSelfCard328"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIPadding" referent="FTSelfCard306"><Properties>
+       <Item class="UIPadding" referent="FTSelfCard329"><Properties>
         <string name="Name">UIPadding</string>
         <UDim name="PaddingTop"><S>0</S><O>3</O></UDim>
         <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
@@ -18425,13 +18624,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIListLayout" referent="FTSelfCard307"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard330"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>3</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard308"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard331"><Properties>
         <string name="Name">Kind</string>
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">1</int>
@@ -18444,7 +18643,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard309"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard332"><Properties>
          <string name="Name">More</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -18460,14 +18659,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard310"><Properties>
+       <Item class="Frame" referent="FTSelfCard333"><Properties>
         <string name="Name">Top</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard311"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard334"><Properties>
          <string name="Name">NameLabel</string>
          <float name="BackgroundTransparency">1</float>
          <UDim2 name="Size"><XS>1</XS><XO>-37</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -18482,7 +18681,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
          <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
         </Properties>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard312"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard335"><Properties>
          <string name="Name">Right</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -18498,68 +18697,68 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard313"><Properties>
+       <Item class="Frame" referent="FTSelfCard336"><Properties>
         <string name="Name">Bar</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>8</YO></UDim2>
        </Properties>
-        <Item class="Frame" referent="FTSelfCard314"><Properties>
+        <Item class="Frame" referent="FTSelfCard337"><Properties>
          <string name="Name">Trough</string>
          <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
          <float name="BackgroundTransparency">0.1</float>
          <int name="BorderSizePixel">0</int>
          <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
         </Properties>
-         <Item class="UICorner" referent="FTSelfCard315"><Properties>
+         <Item class="UICorner" referent="FTSelfCard338"><Properties>
           <string name="Name">UICorner</string>
           <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
          </Properties>
          </Item>
-         <Item class="UIStroke" referent="FTSelfCard316"><Properties>
+         <Item class="UIStroke" referent="FTSelfCard339"><Properties>
           <string name="Name">UIStroke</string>
           <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
           <float name="Transparency">0.6</float>
           <token name="ApplyStrokeMode">1</token>
          </Properties>
          </Item>
-         <Item class="Frame" referent="FTSelfCard317"><Properties>
+         <Item class="Frame" referent="FTSelfCard340"><Properties>
           <string name="Name">Fill</string>
           <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
           <int name="BorderSizePixel">0</int>
           <UDim2 name="Size"><XS>0.666667</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
          </Properties>
-          <Item class="UICorner" referent="FTSelfCard318"><Properties>
+          <Item class="UICorner" referent="FTSelfCard341"><Properties>
            <string name="Name">UICorner</string>
            <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
           </Properties>
           </Item>
-          <Item class="UIGradient" referent="FTSelfCard319"><Properties>
+          <Item class="UIGradient" referent="FTSelfCard342"><Properties>
            <string name="Name">Theme</string>
            <ColorSequence name="Color">0 0.745098 0.54902 0.196078 0 1 0.980392 0.839216 0.470588 0 </ColorSequence>
           </Properties>
           </Item>
          </Item>
-         <Item class="Frame" referent="FTSelfCard320"><Properties>
+         <Item class="Frame" referent="FTSelfCard343"><Properties>
           <string name="Name">Over</string>
           <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
           <int name="BorderSizePixel">0</int>
           <UDim2 name="Position"><XS>0.666667</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
           <UDim2 name="Size"><XS>0.12</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
          </Properties>
-          <Item class="UICorner" referent="FTSelfCard321"><Properties>
+          <Item class="UICorner" referent="FTSelfCard344"><Properties>
            <string name="Name">UICorner</string>
            <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
           </Properties>
           </Item>
-          <Item class="UIGradient" referent="FTSelfCard322"><Properties>
+          <Item class="UIGradient" referent="FTSelfCard345"><Properties>
            <string name="Name">Theme</string>
            <ColorSequence name="Color">0 1 0.94902 0.768627 0 1 1 1 0.956863 0 </ColorSequence>
           </Properties>
           </Item>
          </Item>
-         <Item class="Frame" referent="FTSelfCard323"><Properties>
+         <Item class="Frame" referent="FTSelfCard346"><Properties>
           <string name="Name">Mark1</string>
           <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
           <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
@@ -18570,7 +18769,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
           <int name="ZIndex">2</int>
          </Properties>
          </Item>
-         <Item class="Frame" referent="FTSelfCard324"><Properties>
+         <Item class="Frame" referent="FTSelfCard347"><Properties>
           <string name="Name">Mark2</string>
           <Vector2 name="AnchorPoint"><X>0.5</X><Y>0</Y></Vector2>
           <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
@@ -18583,7 +18782,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
          </Item>
         </Item>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard325"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard348"><Properties>
         <string name="Name">Summary</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18603,7 +18802,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard326"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard349"><Properties>
         <string name="Name">Detail</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18627,14 +18826,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       </Item>
      </Item>
     </Item>
-    <Item class="Frame" referent="FTSelfCard327"><Properties>
+    <Item class="Frame" referent="FTSelfCard350"><Properties>
      <string name="Name">Path</string>
      <float name="BackgroundTransparency">1</float>
      <int name="BorderSizePixel">0</int>
      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
      <bool name="Visible">false</bool>
     </Properties>
-     <Item class="ScrollingFrame" referent="FTSelfCard328"><Properties>
+     <Item class="ScrollingFrame" referent="FTSelfCard351"><Properties>
       <string name="Name">Left</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
@@ -18647,18 +18846,18 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
       <token name="ScrollingDirection">2</token>
       <token name="VerticalScrollBarInset">1</token>
      </Properties>
-      <Item class="UIListLayout" referent="FTSelfCard329"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard352"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>4</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard330"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard353"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextButton" referent="FTSelfCard331"><Properties>
+      <Item class="TextButton" referent="FTSelfCard354"><Properties>
        <string name="Name">Root</string>
        <token name="AutomaticSize">2</token>
        <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -18669,12 +18868,12 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
        <bool name="AutoButtonColor">false</bool>
        <string name="Text"></string>
       </Properties>
-       <Item class="UICorner" referent="FTSelfCard332"><Properties>
+       <Item class="UICorner" referent="FTSelfCard355"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIPadding" referent="FTSelfCard333"><Properties>
+       <Item class="UIPadding" referent="FTSelfCard356"><Properties>
         <string name="Name">UIPadding</string>
         <UDim name="PaddingTop"><S>0</S><O>3</O></UDim>
         <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
@@ -18682,13 +18881,13 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIListLayout" referent="FTSelfCard334"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard357"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>3</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard335"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard358"><Properties>
         <string name="Name">Kind</string>
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">1</int>
@@ -18701,7 +18900,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard336"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard359"><Properties>
          <string name="Name">More</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -18717,14 +18916,14 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard337"><Properties>
+       <Item class="Frame" referent="FTSelfCard360"><Properties>
         <string name="Name">Top</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard338"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard361"><Properties>
          <string name="Name">NameLabel</string>
          <float name="BackgroundTransparency">1</float>
          <UDim2 name="Size"><XS>1</XS><XO>-74</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -18739,7 +18938,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
          <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
         </Properties>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard339"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard362"><Properties>
          <string name="Name">Right</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -18755,7 +18954,7 @@ Power x1.21 from your realm, &lt;font color="#82E6B9"&gt;+4%&lt;/font&gt; from y
         </Properties>
         </Item>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard340"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard363"><Properties>
         <string name="Name">Summary</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18775,7 +18974,7 @@ Washed 1 / 3 toward Earth grade</string>
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard341"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard364"><Properties>
         <string name="Name">Detail</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18797,7 +18996,7 @@ Washed 1 / 3 toward Earth grade</string>
        </Properties>
        </Item>
       </Item>
-      <Item class="TextButton" referent="FTSelfCard342"><Properties>
+      <Item class="TextButton" referent="FTSelfCard365"><Properties>
        <string name="Name">Method</string>
        <token name="AutomaticSize">2</token>
        <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -18808,12 +19007,12 @@ Washed 1 / 3 toward Earth grade</string>
        <bool name="AutoButtonColor">false</bool>
        <string name="Text"></string>
       </Properties>
-       <Item class="UICorner" referent="FTSelfCard343"><Properties>
+       <Item class="UICorner" referent="FTSelfCard366"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIPadding" referent="FTSelfCard344"><Properties>
+       <Item class="UIPadding" referent="FTSelfCard367"><Properties>
         <string name="Name">UIPadding</string>
         <UDim name="PaddingTop"><S>0</S><O>3</O></UDim>
         <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
@@ -18821,13 +19020,13 @@ Washed 1 / 3 toward Earth grade</string>
         <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIListLayout" referent="FTSelfCard345"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard368"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>3</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard346"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard369"><Properties>
         <string name="Name">Kind</string>
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">1</int>
@@ -18840,7 +19039,7 @@ Washed 1 / 3 toward Earth grade</string>
         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard347"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard370"><Properties>
          <string name="Name">More</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -18856,14 +19055,14 @@ Washed 1 / 3 toward Earth grade</string>
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard348"><Properties>
+       <Item class="Frame" referent="FTSelfCard371"><Properties>
         <string name="Name">Top</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
         <int name="LayoutOrder">2</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard349"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard372"><Properties>
          <string name="Name">NameLabel</string>
          <float name="BackgroundTransparency">1</float>
          <UDim2 name="Size"><XS>1</XS><XO>-74</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -18878,7 +19077,7 @@ Washed 1 / 3 toward Earth grade</string>
          <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
         </Properties>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard350"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard373"><Properties>
          <string name="Name">Right</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -18894,7 +19093,7 @@ Washed 1 / 3 toward Earth grade</string>
         </Properties>
         </Item>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard351"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard374"><Properties>
         <string name="Name">Summary</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18913,7 +19112,7 @@ Washed 1 / 3 toward Earth grade</string>
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard352"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard375"><Properties>
         <string name="Name">Detail</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -18936,7 +19135,7 @@ Takes you up to the end of Foundation</string>
        </Item>
       </Item>
      </Item>
-     <Item class="Frame" referent="FTSelfCard353"><Properties>
+     <Item class="Frame" referent="FTSelfCard376"><Properties>
       <string name="Name">Divider</string>
       <Color3 name="BackgroundColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
       <float name="BackgroundTransparency">0.6</float>
@@ -18945,7 +19144,7 @@ Takes you up to the end of Foundation</string>
       <UDim2 name="Size"><XS>0</XS><XO>1</XO><YS>1</YS><YO>0</YO></UDim2>
      </Properties>
      </Item>
-     <Item class="ScrollingFrame" referent="FTSelfCard354"><Properties>
+     <Item class="ScrollingFrame" referent="FTSelfCard377"><Properties>
       <string name="Name">Right</string>
       <float name="BackgroundTransparency">1</float>
       <int name="BorderSizePixel">0</int>
@@ -18959,18 +19158,18 @@ Takes you up to the end of Foundation</string>
       <token name="ScrollingDirection">2</token>
       <token name="VerticalScrollBarInset">1</token>
      </Properties>
-      <Item class="UIListLayout" referent="FTSelfCard355"><Properties>
+      <Item class="UIListLayout" referent="FTSelfCard378"><Properties>
        <string name="Name">UIListLayout</string>
        <token name="SortOrder">2</token>
        <UDim name="Padding"><S>0</S><O>4</O></UDim>
       </Properties>
       </Item>
-      <Item class="UIPadding" referent="FTSelfCard356"><Properties>
+      <Item class="UIPadding" referent="FTSelfCard379"><Properties>
        <string name="Name">UIPadding</string>
        <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
       </Properties>
       </Item>
-      <Item class="TextButton" referent="FTSelfCard357"><Properties>
+      <Item class="TextButton" referent="FTSelfCard380"><Properties>
        <string name="Name">Dao</string>
        <bool name="Active">false</bool>
        <token name="AutomaticSize">2</token>
@@ -18983,12 +19182,12 @@ Takes you up to the end of Foundation</string>
        <bool name="Selectable">false</bool>
        <string name="Text"></string>
       </Properties>
-       <Item class="UICorner" referent="FTSelfCard358"><Properties>
+       <Item class="UICorner" referent="FTSelfCard381"><Properties>
         <string name="Name">UICorner</string>
         <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIPadding" referent="FTSelfCard359"><Properties>
+       <Item class="UIPadding" referent="FTSelfCard382"><Properties>
         <string name="Name">UIPadding</string>
         <UDim name="PaddingTop"><S>0</S><O>3</O></UDim>
         <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
@@ -18996,13 +19195,13 @@ Takes you up to the end of Foundation</string>
         <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
        </Properties>
        </Item>
-       <Item class="UIListLayout" referent="FTSelfCard360"><Properties>
+       <Item class="UIListLayout" referent="FTSelfCard383"><Properties>
         <string name="Name">UIListLayout</string>
         <token name="SortOrder">2</token>
         <UDim name="Padding"><S>0</S><O>3</O></UDim>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard361"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard384"><Properties>
         <string name="Name">Kind</string>
         <float name="BackgroundTransparency">1</float>
         <int name="LayoutOrder">1</int>
@@ -19015,7 +19214,7 @@ Takes you up to the end of Foundation</string>
         <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
         <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard362"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard385"><Properties>
          <string name="Name">More</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -19032,7 +19231,7 @@ Takes you up to the end of Foundation</string>
         </Properties>
         </Item>
        </Item>
-       <Item class="Frame" referent="FTSelfCard363"><Properties>
+       <Item class="Frame" referent="FTSelfCard386"><Properties>
         <string name="Name">Top</string>
         <float name="BackgroundTransparency">1</float>
         <int name="BorderSizePixel">0</int>
@@ -19040,7 +19239,7 @@ Takes you up to the end of Foundation</string>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
         <bool name="Visible">false</bool>
        </Properties>
-        <Item class="TextLabel" referent="FTSelfCard364"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard387"><Properties>
          <string name="Name">NameLabel</string>
          <float name="BackgroundTransparency">1</float>
          <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
@@ -19055,7 +19254,7 @@ Takes you up to the end of Foundation</string>
          <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
         </Properties>
         </Item>
-        <Item class="TextLabel" referent="FTSelfCard365"><Properties>
+        <Item class="TextLabel" referent="FTSelfCard388"><Properties>
          <string name="Name">Right</string>
          <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
          <float name="BackgroundTransparency">1</float>
@@ -19071,7 +19270,7 @@ Takes you up to the end of Foundation</string>
         </Properties>
         </Item>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard366"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard389"><Properties>
         <string name="Name">Summary</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -19091,7 +19290,7 @@ Takes you up to the end of Foundation</string>
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="TextLabel" referent="FTSelfCard367"><Properties>
+       <Item class="TextLabel" referent="FTSelfCard390"><Properties>
         <string name="Name">Detail</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -19111,7 +19310,7 @@ Takes you up to the end of Foundation</string>
         <float name="LineHeight">1.1</float>
        </Properties>
        </Item>
-       <Item class="Frame" referent="FTSelfCard368"><Properties>
+       <Item class="Frame" referent="FTSelfCard391"><Properties>
         <string name="Name">Rows</string>
         <token name="AutomaticSize">2</token>
         <float name="BackgroundTransparency">1</float>
@@ -19119,13 +19318,13 @@ Takes you up to the end of Foundation</string>
         <int name="LayoutOrder">3</int>
         <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
        </Properties>
-        <Item class="UIListLayout" referent="FTSelfCard369"><Properties>
+        <Item class="UIListLayout" referent="FTSelfCard392"><Properties>
          <string name="Name">UIListLayout</string>
          <token name="SortOrder">2</token>
          <UDim name="Padding"><S>0</S><O>4</O></UDim>
         </Properties>
         </Item>
-        <Item class="TextButton" referent="FTSelfCard370"><Properties>
+        <Item class="TextButton" referent="FTSelfCard393"><Properties>
          <string name="Name">RowTemplate</string>
          <token name="AutomaticSize">2</token>
          <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
@@ -19137,30 +19336,30 @@ Takes you up to the end of Foundation</string>
          <bool name="AutoButtonColor">false</bool>
          <string name="Text"></string>
         </Properties>
-         <Item class="UICorner" referent="FTSelfCard371"><Properties>
+         <Item class="UICorner" referent="FTSelfCard394"><Properties>
           <string name="Name">UICorner</string>
           <UDim name="CornerRadius"><S>0</S><O>4</O></UDim>
          </Properties>
          </Item>
-         <Item class="UIPadding" referent="FTSelfCard372"><Properties>
+         <Item class="UIPadding" referent="FTSelfCard395"><Properties>
           <string name="Name">UIPadding</string>
           <UDim name="PaddingBottom"><S>0</S><O>2</O></UDim>
          </Properties>
          </Item>
-         <Item class="UIListLayout" referent="FTSelfCard373"><Properties>
+         <Item class="UIListLayout" referent="FTSelfCard396"><Properties>
           <string name="Name">UIListLayout</string>
           <token name="SortOrder">2</token>
           <UDim name="Padding"><S>0</S><O>2</O></UDim>
          </Properties>
          </Item>
-         <Item class="Frame" referent="FTSelfCard374"><Properties>
+         <Item class="Frame" referent="FTSelfCard397"><Properties>
           <string name="Name">Top</string>
           <float name="BackgroundTransparency">1</float>
           <int name="BorderSizePixel">0</int>
           <int name="LayoutOrder">1</int>
           <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
          </Properties>
-          <Item class="ImageLabel" referent="FTSelfCard375"><Properties>
+          <Item class="ImageLabel" referent="FTSelfCard398"><Properties>
            <string name="Name">Icon</string>
            <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
            <float name="BackgroundTransparency">1</float>
@@ -19170,7 +19369,7 @@ Takes you up to the end of Foundation</string>
            <token name="ScaleType">3</token>
           </Properties>
           </Item>
-          <Item class="TextLabel" referent="FTSelfCard376"><Properties>
+          <Item class="TextLabel" referent="FTSelfCard399"><Properties>
            <string name="Name">NameLabel</string>
            <float name="BackgroundTransparency">1</float>
            <UDim2 name="Position"><XS>0</XS><XO>24</XO><YS>0</YS><YO>0</YO></UDim2>
@@ -19185,7 +19384,7 @@ Takes you up to the end of Foundation</string>
            <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
           </Properties>
           </Item>
-          <Item class="TextLabel" referent="FTSelfCard377"><Properties>
+          <Item class="TextLabel" referent="FTSelfCard400"><Properties>
            <string name="Name">Right</string>
            <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
            <float name="BackgroundTransparency">1</float>
@@ -19201,44 +19400,44 @@ Takes you up to the end of Foundation</string>
           </Properties>
           </Item>
          </Item>
-         <Item class="Frame" referent="FTSelfCard378"><Properties>
+         <Item class="Frame" referent="FTSelfCard401"><Properties>
           <string name="Name">Bar</string>
           <float name="BackgroundTransparency">1</float>
           <int name="BorderSizePixel">0</int>
           <int name="LayoutOrder">2</int>
           <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>6</YO></UDim2>
          </Properties>
-          <Item class="Frame" referent="FTSelfCard379"><Properties>
+          <Item class="Frame" referent="FTSelfCard402"><Properties>
            <string name="Name">Trough</string>
            <Color3 name="BackgroundColor3"><R>0.054902</R><G>0.0705882</G><B>0.0784314</B></Color3>
            <float name="BackgroundTransparency">0.1</float>
            <int name="BorderSizePixel">0</int>
            <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
           </Properties>
-           <Item class="UICorner" referent="FTSelfCard380"><Properties>
+           <Item class="UICorner" referent="FTSelfCard403"><Properties>
             <string name="Name">UICorner</string>
             <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
            </Properties>
            </Item>
-           <Item class="UIStroke" referent="FTSelfCard381"><Properties>
+           <Item class="UIStroke" referent="FTSelfCard404"><Properties>
             <string name="Name">UIStroke</string>
             <Color3 name="Color"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
             <float name="Transparency">0.6</float>
             <token name="ApplyStrokeMode">1</token>
            </Properties>
            </Item>
-           <Item class="Frame" referent="FTSelfCard382"><Properties>
+           <Item class="Frame" referent="FTSelfCard405"><Properties>
             <string name="Name">Fill</string>
             <Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3>
             <int name="BorderSizePixel">0</int>
             <UDim2 name="Size"><XS>0.45</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
            </Properties>
-            <Item class="UICorner" referent="FTSelfCard383"><Properties>
+            <Item class="UICorner" referent="FTSelfCard406"><Properties>
              <string name="Name">UICorner</string>
              <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
             </Properties>
             </Item>
-            <Item class="UIGradient" referent="FTSelfCard384"><Properties>
+            <Item class="UIGradient" referent="FTSelfCard407"><Properties>
              <string name="Name">Theme</string>
              <ColorSequence name="Color">0 0.745098 0.54902 0.196078 0 1 0.980392 0.839216 0.470588 0 </ColorSequence>
             </Properties>
@@ -19246,7 +19445,7 @@ Takes you up to the end of Foundation</string>
            </Item>
           </Item>
          </Item>
-         <Item class="TextLabel" referent="FTSelfCard385"><Properties>
+         <Item class="TextLabel" referent="FTSelfCard408"><Properties>
           <string name="Name">Detail</string>
           <token name="AutomaticSize">2</token>
           <float name="BackgroundTransparency">1</float>
@@ -19275,7 +19474,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
     </Item>
    </Item>
   </Item>
-  <Item class="Frame" referent="FTSelfCard386"><Properties>
+  <Item class="Frame" referent="FTSelfCard409"><Properties>
    <string name="Name">Header</string>
    <Vector2 name="AnchorPoint"><X>1</X><Y>0.5</Y></Vector2>
    <float name="BackgroundTransparency">1</float>
@@ -19283,7 +19482,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
    <UDim2 name="Size"><XS>0</XS><XO>96</XO><YS>0</YS><YO>44</YO></UDim2>
    <int name="ZIndex">5</int>
   </Properties>
-   <Item class="UIListLayout" referent="FTSelfCard387"><Properties>
+   <Item class="UIListLayout" referent="FTSelfCard410"><Properties>
     <string name="Name">UIListLayout</string>
     <token name="FillDirection">0</token>
     <token name="HorizontalAlignment">2</token>
@@ -19292,7 +19491,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
     <UDim name="Padding"><S>0</S><O>8</O></UDim>
    </Properties>
    </Item>
-   <Item class="ImageButton" referent="FTSelfCard388"><Properties>
+   <Item class="ImageButton" referent="FTSelfCard411"><Properties>
     <string name="Name">PeopleButton</string>
     <float name="BackgroundTransparency">1</float>
     <int name="LayoutOrder">1</int>
@@ -19302,7 +19501,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
     <Content name="Image"><url>rbxassetid://88219194445713</url></Content>
     <token name="ScaleType">3</token>
    </Properties>
-    <Item class="ImageLabel" referent="FTSelfCard389"><Properties>
+    <Item class="ImageLabel" referent="FTSelfCard412"><Properties>
      <string name="Name">Icon</string>
      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
@@ -19314,12 +19513,12 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
      <token name="ScaleType">3</token>
     </Properties>
     </Item>
-    <Item class="UIScale" referent="FTSelfCard390"><Properties>
+    <Item class="UIScale" referent="FTSelfCard413"><Properties>
      <string name="Name">Motion</string>
     </Properties>
     </Item>
    </Item>
-   <Item class="ImageButton" referent="FTSelfCard391"><Properties>
+   <Item class="ImageButton" referent="FTSelfCard414"><Properties>
     <string name="Name">SettingsButton</string>
     <float name="BackgroundTransparency">1</float>
     <int name="LayoutOrder">2</int>
@@ -19329,7 +19528,7 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
     <Content name="Image"><url>rbxassetid://88219194445713</url></Content>
     <token name="ScaleType">3</token>
    </Properties>
-    <Item class="ImageLabel" referent="FTSelfCard392"><Properties>
+    <Item class="ImageLabel" referent="FTSelfCard415"><Properties>
      <string name="Name">Icon</string>
      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
      <float name="BackgroundTransparency">1</float>
@@ -19343,9 +19542,308 @@ Next level: &lt;font color="#82E6B9"&gt;+8% weapon damage&lt;/font&gt;</string>
      <Vector2 name="ImageRectSize"><X>126</X><Y>126</Y></Vector2>
     </Properties>
     </Item>
-    <Item class="UIScale" referent="FTSelfCard393"><Properties>
+    <Item class="UIScale" referent="FTSelfCard416"><Properties>
      <string name="Name">Motion</string>
     </Properties>
+    </Item>
+   </Item>
+  </Item>
+  <Item class="Frame" referent="FTSelfCard417"><Properties>
+   <string name="Name">Titles</string>
+   <float name="BackgroundTransparency">1</float>
+   <int name="BorderSizePixel">0</int>
+   <UDim2 name="Position"><XS>0</XS><XO>22</XO><YS>0</YS><YO>40</YO></UDim2>
+   <UDim2 name="Size"><XS>1</XS><XO>-44</XO><YS>1</YS><YO>-62</YO></UDim2>
+   <bool name="Visible">false</bool>
+  </Properties>
+   <Item class="UIScale" referent="FTSelfCard418"><Properties>
+    <string name="Name">Motion</string>
+   </Properties>
+   </Item>
+   <Item class="Frame" referent="FTSelfCard419"><Properties>
+    <string name="Name">Bar</string>
+    <float name="BackgroundTransparency">1</float>
+    <int name="BorderSizePixel">0</int>
+    <UDim2 name="Size"><XS>1</XS><XO>-134</XO><YS>0</YS><YO>44</YO></UDim2>
+   </Properties>
+    <Item class="UIListLayout" referent="FTSelfCard420"><Properties>
+     <string name="Name">UIListLayout</string>
+     <token name="FillDirection">0</token>
+     <token name="VerticalAlignment">0</token>
+     <token name="SortOrder">2</token>
+     <UDim name="Padding"><S>0</S><O>10</O></UDim>
+    </Properties>
+    </Item>
+    <Item class="ImageButton" referent="FTSelfCard421"><Properties>
+     <string name="Name">Back</string>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">1</int>
+     <UDim2 name="Size"><XS>0</XS><XO>44</XO><YS>0</YS><YO>44</YO></UDim2>
+     <bool name="AutoButtonColor">false</bool>
+     <Content name="Image"><url>rbxassetid://88219194445713</url></Content>
+     <token name="ScaleType">3</token>
+    </Properties>
+     <Item class="ImageLabel" referent="FTSelfCard422"><Properties>
+      <string name="Name">Icon</string>
+      <Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2>
+      <UDim2 name="Size"><XS>0</XS><XO>22</XO><YS>0</YS><YO>22</YO></UDim2>
+      <Content name="Image"><url>rbxassetid://117000073543601</url></Content>
+      <Color3 name="ImageColor3"><R>0.92549</R><G>0.839216</G><B>0.627451</B></Color3>
+      <token name="ScaleType">3</token>
+     </Properties>
+     </Item>
+     <Item class="UIScale" referent="FTSelfCard423"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
+    </Item>
+    <Item class="TextLabel" referent="FTSelfCard424"><Properties>
+     <string name="Name">Heading</string>
+     <token name="AutomaticSize">1</token>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">2</int>
+     <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+     <string name="Text">Titles</string>
+     <Color3 name="TextColor3"><R>1</R><G>0.886275</G><B>0.627451</B></Color3>
+     <float name="TextSize">18</float>
+     <token name="TextXAlignment">0</token>
+     <float name="TextStrokeTransparency">0</float>
+     <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+     <Font name="FontFace"><Family><url>rbxasset://fonts/families/Merriweather.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+    </Properties>
+    </Item>
+    <Item class="TextLabel" referent="FTSelfCard425"><Properties>
+     <string name="Name">Count</string>
+     <token name="AutomaticSize">1</token>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">3</int>
+     <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+     <string name="Text">12 / 43 earned</string>
+     <Color3 name="TextColor3"><R>0.784314</R><G>0.768627</G><B>0.721569</B></Color3>
+     <float name="TextSize">15</float>
+     <token name="TextXAlignment">0</token>
+     <float name="TextStrokeTransparency">0</float>
+     <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+     <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+    </Properties>
+    </Item>
+    <Item class="ImageButton" referent="FTSelfCard426"><Properties>
+     <string name="Name">WearNone</string>
+     <token name="AutomaticSize">1</token>
+     <float name="BackgroundTransparency">1</float>
+     <int name="LayoutOrder">4</int>
+     <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>0</YS><YO>36</YO></UDim2>
+     <bool name="AutoButtonColor">false</bool>
+     <Content name="Image"><url>rbxassetid://70679462267599</url></Content>
+     <token name="ScaleType">1</token>
+     <Rect2D name="SliceCenter"><min><X>32</X><Y>20</Y></min><max><X>224</X><Y>44</Y></max></Rect2D>
+     <float name="SliceScale">0.6</float>
+    </Properties>
+     <Item class="UIScale" referent="FTSelfCard427"><Properties>
+      <string name="Name">Motion</string>
+     </Properties>
+     </Item>
+     <Item class="UIPadding" referent="FTSelfCard428"><Properties>
+      <string name="Name">UIPadding</string>
+      <UDim name="PaddingLeft"><S>0</S><O>16</O></UDim>
+      <UDim name="PaddingRight"><S>0</S><O>16</O></UDim>
+     </Properties>
+     </Item>
+     <Item class="TextLabel" referent="FTSelfCard429"><Properties>
+      <string name="Name">Label</string>
+      <token name="AutomaticSize">1</token>
+      <float name="BackgroundTransparency">1</float>
+      <UDim2 name="Size"><XS>0</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+      <string name="Text">Wear none</string>
+      <Color3 name="TextColor3"><R>0.92549</R><G>0.886275</G><B>0.784314</B></Color3>
+      <float name="TextSize">14</float>
+      <float name="TextStrokeTransparency">0</float>
+      <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+      <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+     </Properties>
+     </Item>
+    </Item>
+   </Item>
+   <Item class="ScrollingFrame" referent="FTSelfCard430"><Properties>
+    <string name="Name">List</string>
+    <float name="BackgroundTransparency">1</float>
+    <int name="BorderSizePixel">0</int>
+    <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>52</YO></UDim2>
+    <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-52</YO></UDim2>
+    <UDim2 name="CanvasSize"><XS>0</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+    <token name="AutomaticCanvasSize">2</token>
+    <int name="ScrollBarThickness">4</int>
+    <Color3 name="ScrollBarImageColor3"><R>0.839216</R><G>0.67451</G><B>0.360784</B></Color3>
+    <float name="ScrollBarImageTransparency">0.65</float>
+    <token name="ScrollingDirection">2</token>
+    <token name="VerticalScrollBarInset">1</token>
+   </Properties>
+    <Item class="UIListLayout" referent="FTSelfCard431"><Properties>
+     <string name="Name">UIListLayout</string>
+     <token name="SortOrder">2</token>
+     <UDim name="Padding"><S>0</S><O>6</O></UDim>
+    </Properties>
+    </Item>
+    <Item class="UIPadding" referent="FTSelfCard432"><Properties>
+     <string name="Name">UIPadding</string>
+     <UDim name="PaddingBottom"><S>0</S><O>6</O></UDim>
+     <UDim name="PaddingRight"><S>0</S><O>6</O></UDim>
+    </Properties>
+    </Item>
+    <Item class="Frame" referent="FTSelfCard433"><Properties>
+     <string name="Name">GroupTemplate</string>
+     <token name="AutomaticSize">2</token>
+     <float name="BackgroundTransparency">1</float>
+     <int name="BorderSizePixel">0</int>
+     <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+     <bool name="Visible">false</bool>
+    </Properties>
+     <Item class="UIListLayout" referent="FTSelfCard434"><Properties>
+      <string name="Name">UIListLayout</string>
+      <token name="SortOrder">2</token>
+      <UDim name="Padding"><S>0</S><O>4</O></UDim>
+     </Properties>
+     </Item>
+     <Item class="Frame" referent="FTSelfCard435"><Properties>
+      <string name="Name">Head</string>
+      <float name="BackgroundTransparency">1</float>
+      <int name="BorderSizePixel">0</int>
+      <int name="LayoutOrder">1</int>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>16</YO></UDim2>
+     </Properties>
+      <Item class="TextLabel" referent="FTSelfCard436"><Properties>
+       <string name="Name">Kind</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+       <string name="Text">REALM</string>
+       <Color3 name="TextColor3"><R>0.886275</R><G>0.729412</G><B>0.407843</B></Color3>
+       <float name="TextSize">11</float>
+       <token name="TextXAlignment">0</token>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+      </Properties>
+      </Item>
+      <Item class="TextLabel" referent="FTSelfCard437"><Properties>
+       <string name="Name">Count</string>
+       <float name="BackgroundTransparency">1</float>
+       <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2>
+       <string name="Text">2 / 4</string>
+       <Color3 name="TextColor3"><R>0.784314</R><G>0.768627</G><B>0.721569</B></Color3>
+       <float name="TextSize">11</float>
+       <token name="TextXAlignment">1</token>
+       <float name="TextStrokeTransparency">0</float>
+       <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+       <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+      </Properties>
+      </Item>
+     </Item>
+     <Item class="Frame" referent="FTSelfCard438"><Properties>
+      <string name="Name">Grid</string>
+      <token name="AutomaticSize">2</token>
+      <float name="BackgroundTransparency">1</float>
+      <int name="BorderSizePixel">0</int>
+      <int name="LayoutOrder">2</int>
+      <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+     </Properties>
+      <Item class="UIGridLayout" referent="FTSelfCard439"><Properties>
+       <string name="Name">UIGridLayout</string>
+       <token name="SortOrder">2</token>
+       <UDim2 name="CellSize"><XS>0.333333</XS><XO>-6</XO><YS>0</YS><YO>56</YO></UDim2>
+       <UDim2 name="CellPadding"><XS>0</XS><XO>8</XO><YS>0</YS><YO>6</YO></UDim2>
+      </Properties>
+      </Item>
+      <Item class="TextButton" referent="FTSelfCard440"><Properties>
+       <string name="Name">CellTemplate</string>
+       <Color3 name="BackgroundColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
+       <float name="BackgroundTransparency">0.96</float>
+       <int name="BorderSizePixel">0</int>
+       <bool name="Visible">false</bool>
+       <bool name="AutoButtonColor">false</bool>
+       <string name="Text"></string>
+      </Properties>
+       <Item class="UICorner" referent="FTSelfCard441"><Properties>
+        <string name="Name">UICorner</string>
+        <UDim name="CornerRadius"><S>0</S><O>6</O></UDim>
+       </Properties>
+       </Item>
+       <Item class="UIPadding" referent="FTSelfCard442"><Properties>
+        <string name="Name">UIPadding</string>
+        <UDim name="PaddingTop"><S>0</S><O>5</O></UDim>
+        <UDim name="PaddingBottom"><S>0</S><O>4</O></UDim>
+        <UDim name="PaddingLeft"><S>0</S><O>8</O></UDim>
+        <UDim name="PaddingRight"><S>0</S><O>8</O></UDim>
+       </Properties>
+       </Item>
+       <Item class="UIStroke" referent="FTSelfCard443"><Properties>
+        <string name="Name">WornEdge</string>
+        <Color3 name="Color"><R>0.886275</R><G>0.729412</G><B>0.407843</B></Color3>
+        <float name="Transparency">0.35</float>
+        <token name="ApplyStrokeMode">1</token>
+        <bool name="Enabled">false</bool>
+       </Properties>
+       </Item>
+       <Item class="TextLabel" referent="FTSelfCard444"><Properties>
+        <string name="Name">NameLabel</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Size"><XS>1</XS><XO>-24</XO><YS>0</YS><YO>20</YO></UDim2>
+        <string name="Text">Qi Refiner</string>
+        <Color3 name="TextColor3"><R>0.92549</R><G>0.909804</G><B>0.862745</B></Color3>
+        <float name="TextSize">16</float>
+        <token name="TextXAlignment">0</token>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+        <token name="TextTruncate">1</token>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+       </Properties>
+       </Item>
+       <Item class="Frame" referent="FTSelfCard445"><Properties>
+        <string name="Name">Silhouette</string>
+        <Vector2 name="AnchorPoint"><X>0</X><Y>0.5</Y></Vector2>
+        <Color3 name="BackgroundColor3"><R>0.305882</R><G>0.313726</G><B>0.329412</B></Color3>
+        <float name="BackgroundTransparency">0.3</float>
+        <int name="BorderSizePixel">0</int>
+        <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>10</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>96</XO><YS>0</YS><YO>10</YO></UDim2>
+        <bool name="Visible">false</bool>
+       </Properties>
+        <Item class="UICorner" referent="FTSelfCard446"><Properties>
+         <string name="Name">UICorner</string>
+         <UDim name="CornerRadius"><S>0.5</S><O>0</O></UDim>
+        </Properties>
+        </Item>
+       </Item>
+       <Item class="ImageLabel" referent="FTSelfCard447"><Properties>
+        <string name="Name">Worn</string>
+        <Vector2 name="AnchorPoint"><X>1</X><Y>0</Y></Vector2>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>1</XS><XO>0</XO><YS>0</YS><YO>0</YO></UDim2>
+        <UDim2 name="Size"><XS>0</XS><XO>19</XO><YS>0</YS><YO>16</YO></UDim2>
+        <bool name="Visible">false</bool>
+        <Content name="Image"><url>rbxassetid://83079856331555</url></Content>
+        <token name="ScaleType">3</token>
+       </Properties>
+       </Item>
+       <Item class="TextLabel" referent="FTSelfCard448"><Properties>
+        <string name="Name">How</string>
+        <float name="BackgroundTransparency">1</float>
+        <UDim2 name="Position"><XS>0</XS><XO>0</XO><YS>0</YS><YO>20</YO></UDim2>
+        <UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>-20</YO></UDim2>
+        <string name="Text">Reach Qi Refining 1.</string>
+        <Color3 name="TextColor3"><R>0.784314</R><G>0.768627</G><B>0.721569</B></Color3>
+        <float name="TextSize">13</float>
+        <bool name="TextWrapped">true</bool>
+        <token name="TextXAlignment">0</token>
+        <token name="TextYAlignment">0</token>
+        <float name="TextStrokeTransparency">0</float>
+        <Color3 name="TextStrokeColor3"><R>0.0392157</R><G>0.0470588</G><B>0.054902</B></Color3>
+        <Font name="FontFace"><Family><url>rbxasset://fonts/families/BuilderSans.json</url></Family><Weight>700</Weight><Style>Normal</Style></Font>
+       </Properties>
+       </Item>
+      </Item>
+     </Item>
     </Item>
    </Item>
   </Item>

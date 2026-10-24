@@ -15,8 +15,9 @@
 -- touches each tile's size, clipping and Interactable.
 -- Build sits at the very left of the row (user 2026-10-23: "build just straight up
 -- disappears ... reorder it at the very left so that it cleanly disappears"), then
--- Cultivate and Self, then the admin-only tile (it never folds, so it slides right
--- to Inventory as the others go), Inventory, Travel and Settings.
+-- Cultivate, Self and Travel (every folding tile on the left, so nothing blinks out
+-- between kept ones), then the admin-only tile (it never folds, so it slides right
+-- to Inventory as the others go), Inventory and Settings.
 -- On a touch phone the realm plaque over the vitals (Stack.Vitals.Crest) fades away
 -- for the fight too (user's pick, 2026-10-23: the vitals sat big over the
 -- character), and comes back with the tiles.

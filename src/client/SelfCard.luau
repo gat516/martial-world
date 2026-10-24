@@ -369,7 +369,7 @@ export type Foundation = {
 -- (never in a live server, where the row hides instead).
 local PREVIEW_FOUNDATION: Foundation = {
 	percent = 86,
-	max = 200,
+	max = 150,
 	bonus = 0.04,
 	hints = {
 		{ category = "Hunt", text = "Slay a Stone Boar for the first time" },
@@ -390,7 +390,7 @@ local function foundationOf(state: any): Foundation?
 	end
 	return {
 		percent = tonumber(f.percent) or 0,
-		max = tonumber(f.max) or 200,
+		max = tonumber(f.max) or 150,
 		bonus = tonumber(f.bonus) or 0,
 		hints = if type(f.hints) == "table" then f.hints else {},
 	}

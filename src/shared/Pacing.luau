@@ -881,17 +881,17 @@ Pacing.Foundation = {
 		QC4 = 2, QC5 = 3, QC6 = 3, QC7 = 3, QC8 = 3, QC9 = 3,
 	} :: { [string]: number },
 	DEFAULT_TARGET = 3, -- Qi Refining and Foundation Establishment
-	MAX_PERCENT = 200, -- experiences past the target count up to here
+	MAX_PERCENT = 150, -- the hidden road tops out here (user, 2026-10-24: hidden tasks "can get u up to 130 or 140")
 	-- 100% is meant to be easy (user, 2026-10-24: "break through at 100 percent should be
 	-- easy to reach... players should have to grind crazy hard so they get the real, extra
 	-- bonuses"): past the target each percent costs OVER_COST times as many experiences
-	-- (200% takes target x (1 + OVER_COST)), and most of the bonus lives past 100%.
-	OVER_COST = 2,
+	-- (150% takes target x 2.5), and most of the bonus lives past 100%.
+	OVER_COST = 3,
 	-- past this percent the open experiences stop being listed: the rest are found, not
 	-- read (user, 2026-10-24: "the tasks u do past 110 or 120 percent are hidden")
 	HIDDEN_FROM = 110,
 	BONUS_TO_FULL = 0.01, -- share of max health and power at 100% (linear from 0)
-	BONUS_PAST_FULL = 0.03, -- added from 100% to MAX_PERCENT (linear): 200% is +4% a stage
+	BONUS_PAST_FULL = 0.02, -- added from 100% to MAX_PERCENT (linear): 150% is +3% a stage
 	-- below this percent the stage is unsteady: the once-a-stage toast when the bar
 	-- fills, and a heaven-defier's tribulation strikes UNSTEADY_TRIBULATION harder
 	UNSTEADY_BELOW = 50,

@@ -175,18 +175,19 @@ not the foundation.
   breaking through by doing the bare minimum". The stage's weighted experiences
   (`data.foundation.count`) over its target (`Pacing.Foundation.TARGET`, default
   `DEFAULT_TARGET`) give the percent, 100% a full foundation, more up to `MAX_PERCENT`
-  (200). Breaking through at 80% is a good breakthrough, just a bit less.
+  (150). Breaking through at 80% is a good breakthrough, just a bit less.
 - **100% is easy; the real bonus is past it (user, 2026-10-24):** "break through at 100
   percent should be easy to reach... players should have to grind crazy hard so they get
   the real, extra bonuses". Targets are small (QC4 2, then 3 a stage), and past the target
-  each percent costs `OVER_COST` (2) times as many experiences, so 200% takes 3x the target.
+  each percent costs `OVER_COST` (3) times as many experiences, so the cap, 150%, takes 2.5x the
+  target; 130-140% is a real achievement.
 - **The extra is hidden:** past `HIDDEN_FROM` (110%) the Self card stops listing open
   experiences (`state.veiled`, hints empty): "Beyond this, the Dao hides its lessons." The
   rest are found by exploring and doing varied things, not read off a list.
 - **Bonus, always positive, mostly past 100%:** each graded stage adds up to
-  `BONUS_TO_FULL` (+1%) by 100% and `BONUS_PAST_FULL` (+3%) more by 200%; the sum multiplies max
+  `BONUS_TO_FULL` (+1%) by 100% and `BONUS_PAST_FULL` (+2%) more by 150%; the sum multiplies max
   health (`applyStats`) and power (`Combat.power`, so knockback too) as its own factor on
-  top of `Pacing.Curve`. All 23 graded stages (QC4-FE8) at 200% is +92% by FE9, below a major jump.
+  top of `Pacing.Curve`. All 23 graded stages (QC4-FE8) at 150% is +69% by FE9, below a major jump.
 - **The hook has no foundation** (`Pacing.Foundation.FROM` "QC4"; review
   [breakthrough and foundation](../design-reviews/breakthrough-and-foundation.md) rec 1):
   at QC1-3 nothing is earned (keys stay unseen, so QC4 can still earn them; deeds don't

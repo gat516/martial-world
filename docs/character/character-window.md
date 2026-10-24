@@ -69,7 +69,7 @@ avatar's foot); runner-up: ink wells.
   words, no count / target), a bar spanning 0-150 % with marks at 50 % (below
   it the stage is unsteady) and 100 % (full) whose fill runs gold to the 100 %
   mark and on in a pale gold past it (past 150 % the bar stays full and the
-  label keeps counting to the stage's max, 200 %, where "200%: the most this
+  label keeps counting to the stage's max, 150 %, where "150%: the most this
   stage can hold" replaces the hints), and the next two open experiences ("HUNT
   Slay a Stone Boar for the first time"); the rest of them and the bonus from
   past stages in the detail. Data: PlayerState `foundation` (`percent`, `max`,

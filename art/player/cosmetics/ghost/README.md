@@ -141,14 +141,41 @@ One armature per set. `Root` is the attachment point, doesn't deform and is neve
 
 ## In Studio
 
-Not imported yet (a separate agent). Follow the fox README's rebuild steps: upload each FBX with
-`python3 tools/upload_asset.py model <Set>.fbx`, upload `ghost_fade.png` with the MCP's
-`upload_image` (or reuse the fox ramp for the paper), insert as `_Import<Set>`, and turn each into
-an Accessory with a 0.2 invisible Handle at its attachment. Sleeves are two accessories (one per
-arm). Then record the asset ids here.
+Built into `ReplicatedStorage.Cosmetics.Ghost` (`assets/Cosmetics/Ghost.rbxm`) by
+`place_ghost_cosmetics.luau`, in a sandbox: upload each FBX with
+`python3 tools/upload_asset.py model <Set>.fbx`, insert each as `Workspace._Import<Set>`
+(`insert_asset`), paste the script into `execute_luau`, then export the `Ghost` folder
+(`_G.exportRbxm("ReplicatedStorage.Cosmetics.Ghost")`) to `assets/Cosmetics/Ghost.rbxm`.
+
+- Each set is an Accessory with an invisible 0.2 `Handle` at its attachment (identity
+  frame) holding the bones, and one skinned MeshPart per region welded to it, each with a
+  `Region` attribute and a SurfaceAppearance (`ColorMap` + `Color` = the region colour).
+- Paper, Ink and Cord: `fox_shade.png` (`rbxassetid://124559907609415`, shared), opaque.
+- Spirit and Wisp: `ghost_fade.png` (`rbxassetid://106658937544761`), `AlphaMode =
+  Transparency`, CastShadow off.
+- The stole is one mesh, so its import has no `RootPart` (the bones sit in the MeshPart);
+  the script makes the Handle at the `Root` bone and moves the rig onto it.
+- Worn as the Ghost race's `Looks` (`src/shared/Identity/Races.luau`): Talisman (Banner
+  default, Strip, Seal) and Spirit (Train default, Sleeves = both sleeve accessories, Stole).
+- Checked on R6 dummies in a sandbox: every mesh sits at its JSON centre and size from its
+  attachment, bent bones deform the silk, `ScaleTo(1.15)` scales offsets and sizes exactly.
+
+| Set | Model asset |
+| --- | --- |
+| `GhostTalismanBanner` | 90085270826165 |
+| `GhostTalismanStrip` | 103216655075163 |
+| `GhostTalismanSeal` | 116359512598161 |
+| `GhostTrain` | 126381646311638 |
+| `GhostSleeveL` | 122195345882662 |
+| `GhostSleeveR` | 86335057645184 |
+| `GhostStole` | 109224132470640 |
 
 ## Untested
 
-Everything in game: transparency sorting of the ribbons against each other, the fade at distance,
+Everything in game: the creator preview, transparency sorting of the ribbons against each other, the fade at distance,
 hats or hair against the stole's hoop, and sleeves against tools held in the right hand. Nothing
 animates the bones yet; mist or particles on the wisps are for `vfx`.
+
+Seen in the sandbox (Edit mode, default sky): the parchment is close to the default tan skin, so
+the paper reads faint on a tan face (the ink carries it); the cuffs and silk read grey-blue
+rather than pale cyan, because the arm or sky shows through their alpha.

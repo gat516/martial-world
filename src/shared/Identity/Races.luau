@@ -136,7 +136,28 @@ local Races: { [string]: Race } = {
 		Weight = 2,
 		Icon = "",
 		InnateTraits = { "Incorporeal" },
-		Cosmetics = { "GhostWisps" },
+		-- talisman and spirit silk are free picks (Cosmetics/Ghost, skinned Blender meshes); they
+		-- replace the part-built GhostWisps (still in Spirits.rbxm, unused)
+		Looks = {
+			{
+				Id = "Talisman",
+				DisplayName = "Talisman",
+				Options = {
+					{ Id = "Banner", DisplayName = "Banner", Cosmetics = { "GhostTalismanBanner" } },
+					{ Id = "Strip", DisplayName = "Strip", Cosmetics = { "GhostTalismanStrip" } },
+					{ Id = "Seal", DisplayName = "Seal", Cosmetics = { "GhostTalismanSeal" } },
+				},
+			},
+			{
+				Id = "Spirit",
+				DisplayName = "Spirit",
+				Options = {
+					{ Id = "Train", DisplayName = "Train", Cosmetics = { "GhostTrain" } },
+					{ Id = "Sleeves", DisplayName = "Sleeves", Cosmetics = { "GhostSleeveL", "GhostSleeveR" } },
+					{ Id = "Stole", DisplayName = "Stole", Cosmetics = { "GhostStole" } },
+				},
+			},
+		},
 	},
 	Giant = {
 		DisplayName = "Giant",

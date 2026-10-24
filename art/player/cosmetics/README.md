@@ -4,7 +4,7 @@
 preview runs on the client). It holds one binary file per set, and each file is
 a Folder of rigged Accessory prototypes. Traits looks up an accessory id through
 every set. Sets: `Fox.rbxm` (Spirit Fox, below), `Crane.rbxm` (Beast Folk Crane, below),
-`Tiger.rbxm` (Beast Folk Tiger, below), `Dragonblood.rbxm` (Dragonblood, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Demonic Human, Ghost).
+`Tiger.rbxm` (Beast Folk Tiger, below), `Dragonblood.rbxm` (Dragonblood, below), `Ghost.rbxm` (Ghost, below), `BeastFolk.rbxm` (the other Beast Folk variants) and `Spirits.rbxm` (Stone Spirit, Demonic Human; Ghost's old wisps).
 
 
 New and reworked cosmetics are modeled in Blender by the `modeler` (user,
@@ -64,6 +64,20 @@ Studio build (`dragonblood/place_dragonblood_cosmetics.luau`) are in
 | `DragonHornsAntler`, `DragonTailTuft` | Antler: wide-V ivory antlers with gold tines, scaled tail with a cream tuft | Dragonblood |
 | `DragonHornsCelestial`, `DragonTailRising` | Celestial: long low jade antler with a crown of tines, tail rising into a tall plume | nothing yet (style picker) |
 | `DragonHornsCub`, `DragonTailStub` | Cub: short chunky curled horns, stubby tail with a flame tuft | nothing yet (style picker) |
+
+## Ghost (`assets/Cosmetics/Ghost.rbxm`)
+
+Skinned Blender meshes with bones, the Ghost race's free Looks (`Looks` in
+`src/shared/Identity/Races.luau`). The silk fades through `ghost_fade.png` (SurfaceAppearance
+`AlphaMode = Transparency`). Model, rig, colours, asset ids and the Studio build
+(`ghost/place_ghost_cosmetics.luau`) are in [`ghost/README.md`](ghost/README.md).
+
+| Accessory | Attaches to (R6) | Worn by |
+| --- | --- | --- |
+| `GhostTalismanBanner`, `GhostTalismanStrip`, `GhostTalismanSeal` | Head.FaceFrontAttachment | Ghost, Talisman look (Banner default) |
+| `GhostTrain` | Torso.WaistCenterAttachment | Ghost, Spirit look (default) |
+| `GhostSleeveL` + `GhostSleeveR` | Left/Right Arm grip attachments | Ghost, Spirit look (Sleeves wears both) |
+| `GhostStole` | Torso.BodyBackAttachment | Ghost, Spirit look |
 
 ## Beast Folk (`assets/Cosmetics/BeastFolk.rbxm`)
 
@@ -136,8 +150,8 @@ the name `BeastFolk` instead.
 ## Spirits (`assets/Cosmetics/Spirits.rbxm`)
 
 The Folder `Spirits` (mapped into `ReplicatedStorage.Cosmetics`) holds one
-Accessory per race, as named in `src/shared/Identity/Races.luau` (`DragonHorns` is now an
-unused leftover: Dragonblood wears the Blender-made Dragonblood set above). They are built
+Accessory per race, as named in `src/shared/Identity/Races.luau` (`DragonHorns` and `GhostWisps`
+are now unused leftovers: Dragonblood and Ghost wear their Blender-made sets above). They are built
 by `build_spirit_cosmetics.luau` in the fox and Beast Folk shape language: plain
 SmoothPlastic, Neon only where something glows, invisible 0.2 Handles, and every
 part unanchored and Massless with CanCollide, CanQuery and CanTouch off. Each is
@@ -148,7 +162,7 @@ one telling feature on a plain R6 cultivator, not a costume.
 | `StoneShards` | Stone Spirit | BodyBackAttachment | 21 | grey-brown stone shards (block body + wedge chisel cap, diamond-turned) on two shoulder crusts, 2 per shoulder leaning out and back, 2 between the shoulder blades; 3 shards carry flush Neon jade vein insets |
 | `DragonHorns` | unused (Dragonblood wears the Dragonblood set above) | HatAttachment | 11 | antler beams from the temples sweeping up and back, ivory to pale gold, two gold tines each |
 | `DemonHorns` | Demonic Human | HatAttachment | 7 | short thick horns from the upper forehead, rising out and hooking forward, black to crimson tip; no tines |
-| `GhostWisps` | Ghost | BodyBackAttachment | 10 | three Neon soul flames (core, tapered tongue leaning outward, faint shell): one over each shoulder beside the face, one on the upper back, plus one mist emitter |
+| `GhostWisps` | unused (Ghost wears the Ghost set above) | BodyBackAttachment | 10 | three Neon soul flames (core, tapered tongue leaning outward, faint shell): one over each shoulder beside the face, one on the upper back, plus one mist emitter |
 
 (Part counts include the Handle.) Horns and flames are ellipsoids (Sphere
 SpecialMesh), which scale with `ScaleTo`.

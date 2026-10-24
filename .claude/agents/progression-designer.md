@@ -54,6 +54,17 @@ write the rules every other agent must follow.
 - **Foundation:** 100% is reached naturally by playing a stage (not idling); past it
   each percent costs more and the extras are hidden past 110%; 130-140% takes real
   effort; the bonus mostly lives past 100%.
+- **Repairing foundations (user, 2026-10-24):** tempering **mends** old stages only up to
+  100% (seclusion with tempering herbs/pills, the heart demon, the Clear Heart pill);
+  **deepening** lifts old stages past 100% to `DEEPEN_MAX` (~130%) only through
+  cultivation-themed effort: a fully calmed heart demon, heaven-and-earth treasures,
+  feats above your realm (a boss or apex a realm up; one per type per band). Only
+  living through a stage reaches 150%, so a player who maximised a stage keeps a lead
+  nobody can buy or temper past. Never for Robux.
+- **Seclusion is purposeful, never a leash:** tempering, faster garden and online
+  mutations, AFK cultivation, random finds rolled continuously (a short seclusion can
+  find something); no hour-long streaks or timers for their own sake, no flat stone
+  trickle.
 - **Rare things feel rare and matter:** a legendary spirit plant in the garden
   should noticeably speed cultivation; root pills are boss/treasure-rare with pity.
 - **No paid randomness, no stat power for Robux, never sell qi.**

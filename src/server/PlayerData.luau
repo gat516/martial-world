@@ -52,6 +52,23 @@ export type Seclusion = { since: number, counted: number, online: number, start:
 
 export type Settings = { music: number, sfx: number, autoAttack: boolean, lockHint: boolean }
 -- hotbar always has Hotbar.SIZE entries: a technique id, an item id, or "" (empty)
+export type SectTask = { goal: number, base: number, progress: number, tier: number?, claimed: boolean? }
+export type Sect = {
+	rank: string,
+	contribution: number,
+	earned: number,
+	week: number,
+	weekId: number,
+	day: number,
+	offered: { string },
+	taken: { [string]: SectTask },
+	chain: number,
+	step: { [string]: SectTask }?,
+	tracked: string,
+	ring: { [string]: number },
+	bought: { [string]: number },
+}
+
 export type Data = {
 	v: number,
 	realm: { major: string, minor: number },
@@ -115,6 +132,9 @@ export type Data = {
 		washed: number, -- Marrow Washing Pills absorbed (Roots.wash)
 		rerolls: number, -- Root Rebirth Pills used (Roots.reroll)
 		partied: number, -- seconds in a party with a member nearby (server Party)
+		contribution: number, -- sect contribution earned, all time (Sect)
+		dailies: number, -- sect dailies claimed (Sect)
+		gathered: number, -- qi node gathers (QiNodes)
 	},
 	-- seclusion (server Seclusion): since = os.time() it began (0 = not secluded);
 	-- counted = seconds of it that earned (up to Pacing.Seclusion MAX_HOURS); online =
@@ -127,6 +147,13 @@ export type Data = {
 	-- heart-demon trials (server HeartDemon), by major id: the result, and when a
 	-- seat offer was last declined
 	heartDemon: { trials: { [string]: HeartTrial }, declined: { [string]: number } },
+	-- the sect (server Sect, docs/systems/sect.md): rank; contribution to spend and
+	-- earned all time; week = earned from dailies in week `weekId`; today's dailies
+	-- (day = os.time() // 86400 they were rolled, offered kinds, taken by kind:
+	-- goal, base counter, progress, tier, claimed); chain = chapter steps finished,
+	-- step = the current step's taken record; tracked quest id; ring = Pavilion ring
+	-- slots bought by major; bought = Pavilion purchases by stock id
+	sect: Sect,
 	herbs: { [string]: number },
 	items: { [string]: number }, -- spirit cores and treasures (herbs stay in herbs)
 	seeds: { [string]: number },
@@ -215,8 +242,10 @@ local function default(): Data
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
 		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0,
-			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0, partied = 0 },
+			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0, partied = 0,
+			contribution = 0, dailies = 0, gathered = 0 },
 		heartDemon = { trials = {}, declined = {} },
+		sect = { rank = "Outer", contribution = 0, earned = 0, week = 0, weekId = 0, day = 0, offered = {}, taken = {}, chain = 0, step = nil, tracked = "", ring = {}, bought = {} },
 		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), streak = 0, streakDay = 0, first = false },
 		herbs = {},
 		items = {},
@@ -366,7 +395,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon", "herbarium", "seclusion" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon", "herbarium", "seclusion", "sect" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

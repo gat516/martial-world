@@ -230,6 +230,14 @@ local function build()
 			invoke("stones", n)
 		end },
 	})
+	section("Sect contribution", 200, {
+		{ label = "Give contribution", press = function(n)
+			invoke("contribution", n)
+		end },
+		{ label = "New dailies", press = function()
+			invoke("sectDailies")
+		end },
+	})
 
 	-- the count box is the level to set (1 to Techniques.MAX_LEVEL)
 	local techniques: { Chip } = {}

@@ -1,9 +1,10 @@
 # Sect board, quest log, rank and contribution
 
-Ready-to-wire screens for the sect and quests ([roadmap](../roadmap.md) 3, 3b;
-[progression](../progression.md), "The sect and its quests"). None of the systems
-behind them exist yet: each screen is a GUI template plus a client module with a small
-API and a `.preview()`. Nothing calls them in the real flow until the sect system does.
+Screens for the sect and quests ([roadmap](../roadmap.md) 3, 3b;
+[progression](../progression.md), "The sect and its quests"). Each is a GUI template
+plus a client module with a small API and a `.preview()`. The board, quest log and
+rank are **wired** to the sect MVP ([sect](../systems/sect.md)) by `src/client/SectView.luau`;
+the Hall and lineage screens still wait for their systems.
 Halls and masters are in [halls and masters](halls-masters.md).
 
 ## Where things are
@@ -24,9 +25,10 @@ Halls and masters are in [halls and masters](halls-masters.md).
   sent by the server at most once per session and dismissible; no new widget.
 - **One menu at a time.** Every window registers with `Menus` (opening one closes the
   rest, the gameplay HUD steps aside) and closes by its seal.
-- The current `Hud.QuestBoardWindow` (onboarding's goals list) stays until the sect
-  board is wired; then the board's ReadPrompt opens `SectBoard` instead and the goals
-  become notices.
+- From QC5 the board's ReadPrompt opens `SectBoard`; before QC5, and from the elder's
+  "What should I aim for next?", `Hud.QuestBoardWindow` (onboarding's goals list) still
+  opens. The goals didn't become notices. The Pavilion borrows that window for now
+  (no Pavilion page here yet).
 
 ## Layout and scaling
 All windows are 720x350, authored at the **phone baseline** (844x390) and fitted by
@@ -50,8 +52,8 @@ Window anatomy (shared by every window here):
 ```
 board = { tasks = { Task }, status = SectRank.State?,
           onTake = (id) -> (), onClaim = (id) -> (), onSelect = (task) -> () }
-Task  = { id, kind = "daily" | "weekly" | "chapter" | "torn", title, body,
-          glyph = "fight" | "harvest" | "plant" | "give" | "quest" | "chest" | nil,
+Task  = { id, kind = "daily" | "weekly" | "chapter" | "torn" | "promotion" | "pavilion", title, body,
+          glyph = "fight" | "harvest" | "plant" | "give" | "quest" | "chest" | "qi" | "bow" | nil,
           reward = number?  -- contribution
           progress = number?, goal = number?,
           state = "offered" | "taken" | "done" | "claimed" }
@@ -76,9 +78,12 @@ Task  = { id, kind = "daily" | "weekly" | "chapter" | "torn", title, body,
 - Order is the server's: the current wall first, then the rest (progression: three
   dailies offered, one weekly, chapter chains).
 
-**The real system provides:** the task list per player (dailies reset by day like the
-daily login, weeklies by week), take/claim remotes, the contribution total and the
-week's share against the cap, and when to pin the torn notice.
+**Wired:** `Sect` sends the tasks in board order: a promotion notice (`kind =
+"promotion"`, the daily seal with 升, state "done": Claim promotes), the chapter step,
+the three dailies, then the Pavilion notice (`kind = "pavilion"`, 阁, state "taken"
+with no goal: a tap opens the Pavilion). Take, Claim and taps go to `CultivationAction`
+("sect", ...); a taken notice's tap opens it in the quest log. Glyphs used: fight,
+give, qi, bow, chest, harvest, quest. No weeklies or torn notice yet.
 
 ## Quest log (`QuestLog`)
 `QuestLog.open(log)`, `QuestLog.update(quests)`, `QuestLog.close()`.
@@ -100,8 +105,10 @@ Quest = { id, kind = "chapter" | "daily" | "weekly" | "spirit" | "other", name,
   (`response_button_hi` three-part with the quest glyph in its ring). Track toggles
   "Tracking" (jade) and calls `onTrack`; the HUD objective line follows it.
 
-**The real system provides:** the player's quests in display order (built on
-`Quests.Quest`, `data.quests`), the tracked id and a remote for tracking.
+**Wired:** the quests are the taken dailies (`daily:<kind>`), the chain step (`chain`,
+both paths as objectives) and the rank road (`rank`, kind "other"); Track sends
+("sect", "track", id) and the HUD objective line follows it. Nothing on the HUD opens
+the log yet (a ui gap; `SectView.openLog()` is ready).
 
 ## Rank and contribution (`SectRank`)
 - `SectRank.set({ rank = "Outer" | "Inner" | "Core", contribution, week?, weekCap? })`
@@ -111,7 +118,7 @@ Quest = { id, kind = "chapter" | "daily" | "weekly" | "spirit" | "other", name,
   (`emblem_peak`, `SectRank.EMBLEM`) centred on that crest's measured hole
   (`Art.Hole`), at 72 % of it.
 - **Rank-up uses the shared Rewards card** (roadmap 3c: one card, three jobs); there is
-  no card of our own. `SectRank.rankUp(rank, line?)` calls
+  no card of our own. `SectRank.rankUp(rank, line?, items?)` calls
   `Rewards.show({ tier = "card", kind = "rank", title = "Inner Disciple",
   subtitle = "The sect raises you in rank", flavour = line,
   crest = { image, emblem, hole } })`, where `crest` carries the rank crest's image id,
@@ -119,53 +126,9 @@ Quest = { id, kind = "chapter" | "daily" | "weekly" | "spirit" | "other", name,
   card shows the crest image only until its `Crest` gets an `Emblem` child
   ([reward banners](rewards.md)).
 
-**The real system provides:** the task list per player (dailies reset by day like the
-daily login, weeklies by week), take/claim remotes, the contribution total and the
-week's share against the cap, and when to pin the torn notice.
-
-## Quest log (`QuestLog`)
-`QuestLog.open(log)`, `QuestLog.update(quests)`, `QuestLog.close()`.
-```
-log   = { quests = { Quest }, selected = id?, tracked = id?, onTrack = (id?) -> () }
-Quest = { id, kind = "chapter" | "daily" | "weekly" | "spirit" | "other", name,
-          giver?, place?, description, status?,
-          objectives = { { text, progress?, goal?, done? } },
-          rewards = { { kind = "contribution" | "stones" | "qi", amount } } }
-```
-- **List** (left, 256 wide): `catalog_tab` three-part rows, 52 tall (48 px on a phone,
-  a full thumb target), the selected one on `catalog_tab_selected`. Kind badge (seal
-  with its character, the quest scroll for chapters, the gold quest glyph otherwise),
-  the name, and a second line (`status`, else the first open objective with its count).
-- **Detail** (right): the badge, the title (Merriweather 19), "From <giver> · <place>",
-  a `divider_diamond`, then a scrolling description and objectives (checkmark when
-  done, a gold ◇ otherwise, "1 / 3" counts on the right), and a footer with reward chips
-  (token, jade spirit-stone and qi glyphs) and the **Track** button
-  (`response_button_hi` three-part with the quest glyph in its ring). Track toggles
-  "Tracking" (jade) and calls `onTrack`; the HUD objective line follows it.
-
-**The real system provides:** the player's quests in display order (built on
-`Quests.Quest`, `data.quests`), the tracked id and a remote for tracking.
-
-## Rank and contribution (`SectRank`)
-- `SectRank.set({ rank = "Outer" | "Inner" | "Core", contribution, week?, weekCap? })`
-  paints the board's status row; the counter counts up from the last shown value.
-- `SectRank.paintCrest(imageLabel, rank)` paints any `RankCrest` (an ImageLabel with an
-  `Emblem` child): `crest_outer`, `crest_inner` or `crest_core`, with the sect's emblem
-  (`emblem_peak`, `SectRank.EMBLEM`) centred on that crest's measured hole
-  (`Art.Hole`), at 72 % of it.
-- **Rank-up uses the shared Rewards card** (roadmap 3c: one card, three jobs), being
-  built on branch `ui-rewards`; there is no card of our own. `SectRank.rankUp(rank,
-  line?)` calls
-  `Rewards.show({ tier = "card", kind = "rank", title = "Inner Disciple",
-  subtitle = "The sect raises you in rank", line = line,
-  crest = { image, emblem, hole } })`, where `crest` carries the rank crest's image id,
-  the emblem's id and the hole (centre and size as fractions of the crest image) so the
-  card can draw the crest in its crest slot. Until `Rewards.show` exists it only warns.
-  The Rewards branch should accept `kind = "rank"` and the `crest` field (or tell us
-  its shape and we adapt `rankUp`).
-
-**The real system provides:** rank and contribution in `PlayerData`, promotions (realm
-plus contribution), and the rank-up event that calls `SectRank.rankUp`.
+**Wired:** `SectRank.set` from the board's status (rank, contribution to spend, the
+week against `WEEK_CAP`); the server's `sectRankUp` calls `SectRank.rankUp(rank, line,
+items)` (items: the promotion's stones tile).
 
 ## Art
 Cuts copied from `ui-assemble` (`art/ui/codex/cut/`, ids in `art/ui/assets.json`, the

@@ -146,20 +146,25 @@ The garden dies at QC6 because herb qi is flat. Fix:
   bonuses keep scaling through Pacing; nothing here asks for skill.
 
 ## The sect and its quests
-The sect is what sends you out and welcomes you home. It uses the existing
-quest defs (`Quests.Quest`, `data.quests`).
-- **Ranks:** Outer Disciple (QC1), Inner Disciple (QR1), Core Disciple (FE1).
-  Promotion needs realm and contribution, so rank is not just a realm label.
+The sect is what sends you out and welcomes you home. The MVP is built
+([sect](systems/sect.md)): ranks, three dailies, the Borderlands chain "Ash Past the
+Gorge" (QC5-9) and a small Pavilion; the rest below comes later.
+- **Ranks:** Outer Disciple (QC1), Inner Disciple (QR1 + 600 contribution earned),
+  Core Disciple (FE1 + 2500). Promotion needs realm and contribution, so rank is not
+  just a realm label.
 - **The board** (introduced at QC5): the current wall first, then at most two
   other goals.
-  - **Dailies:** three offered, one to three taken; hunt, herb errand, gather,
-    event call. Pays contribution and some stones.
+  - **Dailies (built):** three offered, any taken, at most one combat; hunt, herb
+    errand, gather qi, seclusion, Store all, harvest, find a cache. Pays contribution
+    (700 a week at most) and some stones by major.
   - **Weeklies:** one large goal per week.
-  - **Chapter chains:** story per region, ending at its boss or secret place.
+  - **Chapter chains:** story per region, ending at its boss or secret place
+    (built: the Borderlands' five steps, ending at the Broken Pagoda or the Elder Wolf King).
   - **Bounties:** a named elite or boss, repeatable.
   - **Sect tasks:** tend the sect garden, escort, deliver herbs.
 - **Contribution points** buy from the Pavilion: technique manual copies, pills,
-  seeds, weapons, cosmetics. Weekly cap, so it can't inflate. **Never qi**; qi
+  seeds, weapons, cosmetics (built: seed packets by tier, a ring slot per major, the
+  milestone manuals). Weekly cap, so it can't inflate. **Never qi**; qi
   stays with Pacing.
 - **Givers:** the elder, the board, and people around the sect; rumours point
   out into the world ("a cultivator's cave lies past the ruined bridge").

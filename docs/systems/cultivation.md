@@ -255,6 +255,8 @@ not the foundation.
   pack, so their elite tiers aren't hinted. Not built: tempering by seclusion, the
   Cultivate-window line, the Self card's percent (it still shows count / target). Numbers
   are first guesses.
+- **Sect keys** (once ever): `world:sect:rank:<rank>` (a promotion) and
+  `world:sect:chain:Borderlands` (the chain finished; [sect](sect.md)).
 
 ## Player attributes (set every second by `Cultivation.publish`)
 - `Cultivation`: may exceed `CultivationMax` now, up to `CultivationCap`

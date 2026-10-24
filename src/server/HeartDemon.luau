@@ -4,7 +4,8 @@
 -- actually climbed: the path they walked (blade or garden, from kills and
 -- harvests), then the few things their record says most loudly (the beasts they
 -- slew, the danger they sought, their deaths, qi surges, the haul they risked or
--- banked, their peak, the Herbarium, root pills, the company they kept (or didn't), hours in stillness and seclusion).
+-- banked, their peak, the Herbarium, root pills, the company they kept (or didn't), hours in stillness and seclusion,
+-- the sect's board answered or walked past).
 -- Each question has 2-3 answers; the one the player's own record contradicts is a
 -- denial. A new system that says how someone plays adds a counter in data.stats and
 -- a question here (docs/systems/heart-demon.md "Keeping it current"). Finishing tempers old foundation grades
@@ -380,6 +381,35 @@ local function rootQuestion(data: PlayerData.Data): Candidate?
 	} }
 end
 
+-- The sect (Sect.luau): a dutiful disciple who answers the board, or a lone wolf
+-- who read it and walked past.
+local function sectQuestion(data: PlayerData.Data): Candidate?
+	local dailies, earned = data.stats.dailies, data.stats.contribution
+	if dailies >= Config.DUTY_MIN then
+		return { weight = weigh(dailies, Config.DUTY_MIN), q = {
+			id = "duty",
+			lines = { `You answered the sect's board {dailies} times. {earned} contribution to your name.`, "Do you serve the sect, or yourself?" },
+			answers = {
+				{ text = "The sect raised me.", reply = "And you repay it. Mind it repays you.", honest = true, heart = "served the sect that raised you" },
+				{ text = "Its rewards serve me.", reply = "An honest trade. Few admit it.", honest = true, heart = "served the sect for what it paid" },
+				{ text = "I walk alone.", reply = "Alone? The board knows your hand well.", honest = false, heart = "disowned the sect you served" },
+			},
+		} }
+	end
+	if dailies <= Config.LONE_MAX and data.lessons.BoardRead then
+		return { weight = 1, q = {
+			id = "lone",
+			lines = { "The sect's board called for you, day after day. You walked past it.", "Do you need no one?" },
+			answers = {
+				{ text = "I walk my own road.", reply = "A lone wolf hunts well. And sleeps cold.", honest = true, heart = "walked your own road" },
+				{ text = "I meant to, one day.", reply = "One day comes. Or it doesn't.", honest = true, heart = "left the sect's call for one day" },
+				{ text = "I serve the sect well.", reply = "Serve it? You never took its work.", honest = false, heart = "claimed a duty you never took up" },
+			},
+		} }
+	end
+	return nil
+end
+
 local function stillQuestion(data: PlayerData.Data): Candidate?
 	local hours = data.stats.seated / 3600
 	if hours < Config.STILL_MIN_HOURS then
@@ -481,11 +511,11 @@ function HeartDemon.questions(data: PlayerData.Data): { Question }
 	local built = {
 		slainQuestion(data), dangerQuestion(data), fearQuestion(data), surgeQuestion(data),
 		haulQuestion(data), peakQuestion(data), herbariumQuestion(data), rootQuestion(data),
-		companyCandidate(data), seclusionQuestion(data), stillQuestion(data),
+		companyCandidate(data), seclusionQuestion(data), stillQuestion(data), sectQuestion(data),
 	}
 	local candidates: { Candidate } = {}
 	local order: { [Candidate]: number } = {}
-	for i = 1, 11 do -- `built` has holes where a question had nothing to ask
+	for i = 1, 12 do -- `built` has holes where a question had nothing to ask
 		local c = built[i]
 		if c then
 			table.insert(candidates, c)

@@ -90,6 +90,12 @@ path, fear/pride and one more.
     no one?" (denial: "I always walk with friends."); from `COMPANY_MIN_MINUTES` (30)
     "... walking beside others. Did you lean on them?" (denial: "I've always walked
     alone."). Between: no question. Solitude weighs 1; company weighs by its minutes.
+14. **The sect** ([sect](sect.md)). **Duty** (`dailies` >= `DUTY_MIN` = 10): "You
+    answered the sect's board 24 times. 900 contribution to your name. Do you serve the
+    sect, or yourself?" (denial: "I walk alone."). **Lone wolf** (at most `LONE_MAX` = 1
+    daily, the board read): "The sect's board called for you, day after day. You walked
+    past it. Do you need no one?" (denial: "I serve the sect well."). Weight: duty its
+    doubling count, lone wolf 1.
 Answer labels stay at 27 characters or fewer so they fit the response buttons on a phone.
 Heart notes are verb phrases ("remembered every beast you slew") so any second question
 joins the path's line.
@@ -158,7 +164,7 @@ system that says something about how a player plays adds, in the same commit:
    with one answer the record contradicts;
 3. a line in "The questions" above, and a weight so the picker can rank it.
 Open now: nothing (brought current 2026-10-23: surge, haul, peak, Herbarium, tiers, root
-pills, seclusion).
+pills, seclusion, the sect's dailies).
 
 ## Known gaps
 - **Later (user, 2026-10-23): a real heart-demon sequence.** Not only dialogue: a

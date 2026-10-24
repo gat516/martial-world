@@ -78,12 +78,35 @@ The new sect is built **beside the old one** (a clear offset, away from the wild
 the old sect's ring), so the live game keeps working; it is swapped in, the
 constraint coordinates and Config updated, only when it's done.
 
+## Style targets (user, 2026-10-24: "the styles we want to recreate / follow")
+In `docs/reference/sect/style/`. All are Blender meshes mixed with smooth terrain and
+Roblox parts. The sheet above says *what* goes where; these say *how it looks*.
+- [waterfall_meadow](../reference/sect/style/waterfall_meadow.jpg): dense tall terrain
+  grass right up to the camera, rounded boulders with green moss caps stacked into a
+  wall, a glowing white-cyan fall into a bright pool, saturated sky, strong bloom.
+- [forest_path](../reference/sect/style/forest_path.jpg): tall trees with clumped
+  foliage in layers, a sandy path between grass banks with small white flowers, one
+  big pale rounded boulder, dappled light, haze between the trunk layers.
+- [pavilion_sunset](../reference/sect/style/pavilion_sunset.jpg): a red-lacquer
+  pavilion with a tiered roof on an irregular flagstone platform; tall grass
+  recoloured to the mood (red), a warm low sun.
+- [river_town](../reference/sect/style/river_town.png): white-walled buildings with
+  gray tiled roofs, wood lattice and red lanterns; a stone embankment with a
+  balustrade; shallow river with grass islands and low-poly rocks; huge cliffs with
+  layered strata and hanging ivy, willows, and depth in layers of blue haze.
+What they share, and what we copy: painted, stylized textures on the meshes (not
+flat colours); dense grass; big rounded moss-capped rock; strong atmospheric haze
+and bloom; few hero buildings with lots of nature around them.
+**Open:** terrain grass decoration (the references rely on it; it was off for phones)
+and how textured the meshes are next to the flat-colour palette above.
+
 ## What to build with (user, 2026-10-24)
 The map-builder's rule ("What to build with" in `.claude/agents/map-builder.md`),
 confirmed for the redo. One rule for every area: go-backs are expensive.
 - **Floor:** smooth terrain (lawns, plaza fill, ledges, valley floors), built by script.
-- **Structures:** parts (halls, gates, stairs, railings, bridges); curved roofs and
-  trims may be meshes.
+- **Structures:** buildings are Blender meshes (halls, gates, houses, pavilions, roofs,
+  as in the style references); parts for simple pieces (platforms, steps, walls,
+  railings, paving) beside them (user, 2026-10-24).
 - **Greenery:** the existing library assets and meshes (`ServerStorage.AssetLibrary`,
   place-only), or made in Blender when nothing fits.
 - **Landforms, by size (decided 2026-10-24):**

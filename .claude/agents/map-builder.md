@@ -159,9 +159,9 @@ cliffs) are smooth terrain; small rock is the library's boulders, enlarged and m
   Build it by script (`Fill*` or a heightmap) so it re-runs; tint with
   `Terrain:SetMaterialColor` to the map.md families plus flat MaterialVariants.
   Grass decoration stays off (mobile) unless the user asks.
-- **Parts:** halls, houses, pavilions, walls, gates, stairs, railings. Curved
-  roofs and trims are meshes or re-coloured library structures; the body stays
-  parts.
+- **Parts:** platforms, steps, walls, railings, paving. For the sect redo the
+  buildings themselves (halls, gates, houses, pavilions) are Blender meshes
+  ([new_build](../../docs/map/new_build.md) "Style targets").
 - **Seams:** sink mesh cliff bases into terrain and cover the join with rocks,
   shrubs and moss.
 

@@ -13,9 +13,10 @@
 -- weapon: the class that must be equipped to cast it (Weapons.Classes), or "Any".
 -- grade: Weapons.Grades key, as weapons have (nil = Mortal): starter and kill-milestone
 --   arts are Mortal, boss and late-milestone manuals Spirit (docs/ui/inventory.md).
--- dao: the weapon Dao level needed to learn it (nil = 0; Pacing.Comprehension): the
---   class weapon skills need CLASS_SKILL_DAO, starter arts nothing, so onboarding never
---   waits on Dao. Any-weapon arts check the player's highest class Dao.
+-- dao: the weapon Dao level needed to learn it (nil = 0; Pacing.Comprehension): a
+--   class skill takes its rung of SKILL_DAO (Plain 2, Adept 5, Peak 8: the more
+--   spectacular, the higher), starter arts nothing, so onboarding never waits on Dao.
+--   Any-weapon arts check the player's highest class Dao.
 -- element: its Roots element (Roots.Elements); a caster with that spirit root hits harder.
 --   Class techniques also scale with that class's grade and Dao comprehension.
 --
@@ -88,7 +89,7 @@ local Pacing = require(script.Parent.Pacing)
 local Weapons = require(script.Parent.Weapons)
 
 local Comprehension = Pacing.Comprehension
-local CLASS_SKILL_DAO = Comprehension.CLASS_SKILL_DAO
+local SKILL_DAO = Comprehension.SKILL_DAO
 
 local Techniques = {}
 
@@ -185,7 +186,7 @@ Techniques.Defs = {
 		id = "TwinPhoenixCannon",
 		grade = "Spirit",
 		weapon = "Fist",
-		dao = CLASS_SKILL_DAO,
+		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://81953324274209",
 		name = "Twin Phoenix Cannon",
 		element = "Fire",
@@ -206,7 +207,7 @@ Techniques.Defs = {
 		id = "MoonflashDraw",
 		grade = "Spirit",
 		weapon = "Sword",
-		dao = CLASS_SKILL_DAO,
+		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://96346324489936",
 		name = "Moonflash Draw",
 		element = "Ice",
@@ -231,7 +232,7 @@ Techniques.Defs = {
 		id = "RampagingTiger",
 		grade = "Spirit",
 		weapon = "Saber",
-		dao = CLASS_SKILL_DAO,
+		dao = SKILL_DAO.Peak,
 		icon = "rbxassetid://104006341750065",
 		name = "Rampaging Tiger Cleave",
 		element = "Metal",
@@ -258,7 +259,7 @@ Techniques.Defs = {
 		id = "HeavenSplitter",
 		grade = "Spirit",
 		weapon = "Greatsword",
-		dao = CLASS_SKILL_DAO,
+		dao = SKILL_DAO.Peak,
 		icon = "rbxassetid://131580966208055",
 		name = "Heaven-Splitting Descent",
 		element = "Earth",
@@ -285,7 +286,7 @@ Techniques.Defs = {
 		id = "CrescentSweep",
 		grade = "Spirit",
 		weapon = "Guandao",
-		dao = CLASS_SKILL_DAO,
+		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://110851099640824",
 		name = "Crescent Moon Sweep",
 		element = "Water",
@@ -305,7 +306,7 @@ Techniques.Defs = {
 		id = "DragonPierce",
 		grade = "Spirit",
 		weapon = "Spear",
-		dao = CLASS_SKILL_DAO,
+		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://123799153426166",
 		name = "Dragon-Piercing Thrust",
 		element = "Wood",
@@ -328,7 +329,7 @@ Techniques.Defs = {
 		id = "GreatSageAwakening",
 		grade = "Spirit",
 		weapon = "Staff",
-		dao = CLASS_SKILL_DAO,
+		dao = SKILL_DAO.Peak,
 		icon = "rbxassetid://115862718192751",
 		name = "Great Sage Awakening",
 		element = "Wind",

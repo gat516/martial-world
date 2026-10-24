@@ -22,9 +22,10 @@ Dao comprehension per weapon class that grows as you fight with it.
   Damage of M1 and the class's techniques = base x realm power x grade x Dao.
   Level 2 is neutral (x1.0); untrained (0) is x0.8 and mastery x1.3. A new
   player's Fist and Sword start at 2, so starting power is unchanged.
-- **Dao gates techniques:** a class skill is learned only at that class's Dao 2,
-  and each comprehension bottleneck needs more (learn + 2 per bottleneck). A manual
-  found too early waits in Arts reading "Requires Saber Dao 2" and is learned on
+- **Dao gates techniques:** a class skill is learned only at its rung of that
+  class's Dao (2, 5 or 8, the more spectacular the higher; today's skills are 5 or
+  8), and each comprehension bottleneck needs more (learn + 2 per bottleneck). A manual
+  found too early waits in Arts reading "Requires Saber Dao 8" and is learned on
   the level-up that reaches it ([combat](combat.md)). Any-weapon arts count the
   highest class Dao.
 - Starting kit: a Mortal Iron Jian, equipped (new profiles and the v5 migration).
@@ -48,9 +49,10 @@ Dao comprehension per weapon class that grows as you fight with it.
 ## Class techniques
 Each technique names its `weapon` (a class or "Any"); a class technique needs
 that class equipped and scales with its grade and Dao. One weapon skill per
-class (Twin Phoenix Cannon, Moonflash Draw, Rampaging Tiger Cleave,
-Heaven-Splitting Descent, Crescent Moon Sweep, Dragon-Piercing Thrust, Great
-Sage Awakening); see [combat](combat.md) for their shapes and numbers.
+class (Dao 5: Twin Phoenix Cannon, Moonflash Draw, Crescent Moon Sweep,
+Dragon-Piercing Thrust; Dao 8: Rampaging Tiger Cleave, Heaven-Splitting Descent,
+Great Sage Awakening); see [combat](combat.md) for their shapes and numbers. Each
+class still needs a plain Dao 2 first skill (pending, [roadmap](../roadmap.md) 4.1).
 Many more techniques are planned. Each one is a manual found in the world, gets
 its own comprehension bottlenecks for free, and needs four visual tiers
 (`<Id>_T1..T4`; it can launch with T1 and grow the rest).
@@ -68,8 +70,9 @@ its own comprehension bottlenecks for free, and needs four visual tiers
 
 Learning a class manual grants that class `XP_MANUAL` Dao XP (re-studying a
 known one at a cache too). A manual kept for lack of Dao grants nothing until it
-is learned; Fist and Sword start at Dao 2, so Twin Phoenix Cannon and Moonflash
-Draw are learned on the spot, the other classes' skills wait on that class's Dao.
+is learned; every class skill needs Dao 5 or 8, so even Twin Phoenix Cannon (first
+boss) and Moonflash Draw (60 kills) wait in Arts until Fist / Sword Dao 5 (both
+start at 2). The starter arts need no Dao.
 The Cloud-Pattern Jade treasure gives Dao XP to the class in hand. A gained weapon fires Effect `"weapon"` (weaponId).
 
 ### World anchors (placed by the map)

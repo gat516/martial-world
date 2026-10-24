@@ -258,9 +258,9 @@ longer reason.
 ## Kept manuals
 
 A manual found before its weapon Dao (`techniques.manuals` in the snapshot) shows in
-Arts like an art, its corner reading "Dao 2" in warning orange. Its detail says it
+Arts like an art, its corner reading "Dao 8" in warning orange. Its detail says it
 will be learned once the Dao is deep enough, the Pairs line reads "Requires Saber
-Dao 2. Yours is 0.", and the Dao row of that class (every class for an any-weapon
+Dao 8. Yours is 0.", and the Dao row of that class (every class for an any-weapon
 art) shows the progress. No actions: it can't go on the hotbar (drag and slot taps
 are ignored) until the server learns it on the level-up. Comprehending belongs to the seated Practice row's
 Technique tile; the button here still works while seated (`Bottleneck` holds the

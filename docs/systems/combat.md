@@ -74,14 +74,18 @@ scales all player damage.
   (`InventoryAction "comprehend"` -> `Progression.comprehend`, numbers in
   `Pacing.Comprehension`), which opens the next visual tier.
 - **Weapon Dao gates techniques** ([weapons](weapons.md) Dao 0-10). Learning needs
-  the def's `dao` in its class (`Techniques.learnDao`): the seven class skills need
-  2 (`CLASS_SKILL_DAO`), the starter arts (Sword Qi Wave, Palm Strike and the
-  any-weapon arts) 0, so onboarding never waits on Dao. Any-weapon arts count the
-  player's highest class Dao. Bottleneck k (1-3, at levels 3, 6, 9) needs Dao
-  `min(10, learn + 2k)` (`Techniques.comprehendDao`): Sword Qi Wave 2/4/6, Moonflash
-  Draw 4/6/8. A manual found too early is kept (`data.techniques.manuals`), toasts
-  "requires Sword Dao 2", shows in Arts with its requirement, and is learned the
-  moment that Dao level is reached (`Weapons.onLevelUp` -> `Progression.learnReady`).
+  the def's `dao` in its class (`Techniques.learnDao`). Each class's skills sit on
+  the rungs of `Pacing.Comprehension.SKILL_DAO`: Plain 2 (a mediocre first skill,
+  none made yet), Adept 5 and Peak 8, the more spectacular the higher (the Dao
+  column below). The starter arts (Sword Qi Wave, Palm Strike and the other
+  any-weapon arts) need 0, so onboarding never waits on Dao. Any-weapon arts count
+  the player's highest class Dao. Bottleneck k (1-3, at levels 3, 6, 9) needs Dao
+  `min(10, learn + 2k)` (`Techniques.comprehendDao`): starter arts 2/4/6, Adept
+  skills 7/9/10, Peak skills 10/10/10 (a Peak skill caps at level 3 until the class
+  is mastered, then only stones gate it). A manual found too early is kept
+  (`data.techniques.manuals`), toasts "requires Sword Dao 5", shows in Arts with its
+  requirement, and is learned the moment that Dao level is reached
+  (`Weapons.onLevelUp` -> `Progression.learnReady`).
 - `src/shared/Knockback.luau`: how far player hits push beasts (by realm power
   ratio and beast weight) and the stagger they cause.
 - `src/server/Combat.luau`: `action` (Attack remote: begin/hit/cancel/sync),
@@ -138,15 +142,19 @@ comprehension, and each cast grants that class `Pacing.Weapons.XP_CAST` Dao XP.
   farther from the cast's start than the lunge plus `LUNGE_SLACK` and
   `LUNGE_WALK_ALLOWANCE`, when it's pulled back.
 
-| Id | Weapon | Shape | Hits (dmg) | Lunge | Cooldown |
-|---|---|---|---|---|---|
-| TwinPhoenixCannon | Fist | line 18 x 6, right then left fist | 14, 14 | - | 9 |
-| MoonflashDraw | Sword | line 18 x 5 from the cast's start (the dash path) | 30 | 14, i-frames while dashing | 7 |
-| RampagingTiger | Saber | circle r 10 around the caster | 9, 7, 7, 16 | 6 over the leap | 12 |
-| HeavenSplitter | Greatsword | circle r 12 centred 4 ahead | 6, 6, 60 (slam) | 6 over the leap; castSpeed 1.3 | 16 |
-| CrescentSweep | Guandao | circle r 11 | 32 | - | 9 |
-| DragonPierce | Spear | line 22 x 4 | 34 | 8 | 8 |
-| GreatSageAwakening | Staff | buff 8 s: +25% all damage, +15% M1 speed; circle r 8 burst at the strike | 12 | - | 20 |
+| Id | Weapon | Dao | Shape | Hits (dmg) | Lunge | Cooldown |
+|---|---|---|---|---|---|---|
+| TwinPhoenixCannon | Fist | 5 | line 18 x 6, right then left fist | 14, 14 | - | 9 |
+| MoonflashDraw | Sword | 5 | line 18 x 5 from the cast's start (the dash path) | 30 | 14, i-frames while dashing | 7 |
+| RampagingTiger | Saber | 8 | circle r 10 around the caster | 9, 7, 7, 16 | 6 over the leap | 12 |
+| HeavenSplitter | Greatsword | 8 | circle r 12 centred 4 ahead | 6, 6, 60 (slam) | 6 over the leap; castSpeed 1.3 | 16 |
+| CrescentSweep | Guandao | 5 | circle r 11 | 32 | - | 9 |
+| DragonPierce | Spear | 5 | line 22 x 4 | 34 | 8 | 8 |
+| GreatSageAwakening | Staff | 8 | buff 8 s: +25% all damage, +15% M1 speed; circle r 8 burst at the strike | 12 | - | 20 |
+
+Peak (8) went to the multi-beat set pieces: the Saber's leaping four-cut wheel, the
+Greatsword's sky-column slam and the Staff's Monkey King transformation. The
+single-strike skills are Adept (5).
 
 ## Combat qi (technique mana)
 Qi is the mana techniques spend; raw qi (`data.rawQi`, the dantian) is only for

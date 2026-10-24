@@ -460,7 +460,10 @@ Pacing.Quests = {
 -- Dao >= min(10, learnDao + k * DAO_PER_BOTTLENECK). A manual found too early is
 -- kept and learned the moment that Dao is reached.
 Pacing.Comprehension = {
-	CLASS_SKILL_DAO = 2, -- the class weapon skills (the defs with `dao`); starter arts need 0
+	-- the Dao rungs of a class's skills (each def picks one as its `dao`); starter arts
+	-- need 0. Plain is each class's mediocre first skill (none made yet), Adept and Peak
+	-- the showpieces: Peak for the most spectacular (Tiger, Heaven-Splitter, Great Sage)
+	SKILL_DAO = { Plain = 2, Adept = 5, Peak = 8 },
 	DAO_PER_BOTTLENECK = 2,
 	GATES = { -- by the level the bottleneck sits at
 		[3] = { stones = 60, step = 1 }, -- into tier II

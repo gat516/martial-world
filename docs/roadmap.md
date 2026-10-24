@@ -4,7 +4,8 @@ The plan for taking the game to a full climb from QC1 to FE9. **Plans only:** wh
 built lives in its system doc ([README](README.md) maps them); this page holds what's
 open, deferred or next, in order, and the owner's decisions that constrain it.
 [progression](progression.md) is the stage ladder; [core-loop](core-loop.md) is the
-north star. Nothing here has been playtested.
+north star. Ideas far past the MVP (factions, the sect rebuild, the entrance trial)
+are parked in [dreams](roadmap/dreams.md). Nothing here has been playtested.
 
 ## Principles (owner)
 1. **Nobody is barred by skill.** Bosses, tribulations and difficulty never gate
@@ -44,12 +45,8 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
 - **Bloodlines,** absorbed or injected; they will replace race rerolls. Granting by
   masters: [relationships](roadmap/relationships.md).
 - **Halls, masters and lineage** (sections 3b, 3d).
-- **Player-made sects (user, 2026-10-24: "very far into the future"):** players
-  founding their own sects. For now every player belongs to an NPC-made sect or
-  faction ([replayability](roadmap/replayability.md) "Paths"), and enemy cultivators of
-  the other factions are opponents (section 8).
-- **Removing the onboarding tutorial or making it skippable (user, 2026-10-24):** far
-  in the future; the map comes first.
+- **Factions, player-made sects, the sect rebuild and the entrance trial**
+  (2026-10-24): [dreams](roadmap/dreams.md).
 - **Rifts and paths** (section 9, [replayability](roadmap/replayability.md)).
 - **World events** (section 7; separate work).
 - **Fortuitous encounters (owner, 2026-10-24):** the heavy player's long-term edge

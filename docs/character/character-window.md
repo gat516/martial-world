@@ -32,10 +32,33 @@ each row is labelled by kind in small gold capitals, then names the thing, then
 shows only its effects, one line each, gains in jade and losses in a muted red,
 with the numbers taken from the shared defs. No flavour text, no techniques, no
 weapon names.
+- **Foundation** (3, 2026-10-23; the user: "players should optionally try to
+  solidify their breakthrough by seeing what they have to do in self"): "Steady
+  foundation" (the grade breaking through now would give, the grade word in its
+  colour: Cracked muted red, Steady steel blue, Solid jade, Deep gold), a bar of
+  this stage's weighted experiences toward Deep ("2 / 4 experiences",
+  right-aligned on the trough, with marks at the Steady and Solid shares of
+  `Pacing.Foundation.GRADES`, dark on the fill and pale on the trough), the
+  bonus of past grades in jade ("+4% max health and power from your
+  foundations"), then the open experiences from the server's hints, one line
+  each, the category in small gold capitals ("HUNT  Slay a Stone Boar for the
+  first time"). At Deep the hints give way to one jade line. Data: PlayerState
+  `foundation` (`count`, `target`, `grade`, `bonus`, `hints`), read only through
+  `foundationOf()` in `SelfCard`. Chosen over a four-cell Cracked | Steady |
+  Solid | Deep step track (the critic: one bar in the card's family, no row of
+  tinted chips).
 - **Dantian** (5, decided 2026-10-22): "Raw qi", a violet bar ("180 / 260 raw
   qi", from `RawQi` / `DantianCap`, live while the card is open) and one line on
   refining it. Standing, this is the only place the dantian shows; the HUD shows
   it only while seated.
+- **Race** (8): race and variant ("Beast Folk · Wolf", from the `Race` and
+  `RaceVariant` attributes, [identity](../systems/identity.md)), the rarity on
+  the right in its rarity colour lifted for contrast, then the race's, the
+  variant's and the innate traits' modifiers summed, one line each ("+1 run
+  speed", "+5% herb growth"). Hidden before a race is set.
+- **Bloodline** (9): deferred ([bloodline](bloodline.md)), so it always reads
+  "None", muted (dimmed seal, Kind and name, no effect lines). When bloodlines
+  land it fills like Race and takes the tabs below.
 - **Spirit Root** (10): "Metal Root", grade on the right; the perk at this grade
   (`Pacing.Roots.PERKS` x grade), "+15% Metal technique damage"
   (`Pacing.Roots.MATCH`), and the grade's cultivation speed (`Roots.speed`).
@@ -51,8 +74,8 @@ weapon names.
   neutral level) and at the next level.
 
 The list grows up to what fits on screen (`LIST_MARGIN` from the top and
-bottom) and then scrolls; later systems such as bloodlines add rows of the same
-shape (none built yet). Tabs go between the stage bar and `Body.Pages` (each tab
+bottom) and then scrolls (on a phone it always scrolls; the window never grows past its
+phone size); later systems add rows of the same shape. Tabs go between the stage bar and `Body.Pages` (each tab
 a page frame in `Pages`).
 
 **It grows with the player:**
@@ -60,7 +83,7 @@ a page frame in `Pages`).
 | Stage | What the window shows |
 |---|---|
 | Before the root reveal | the crest isn't tappable yet |
-| After the root reveal | one card, **Self**: realm, stage bar, Spirit Root row (element, grade, effects), Weapon Dao row (level, XP, damage). No tabs. |
+| After the root reveal | one card, **Self**: realm, stage bar, Foundation, Dantian, Race, Bloodline (None), Spirit Root, Weapon Dao. No tabs. |
 | FE (method) | Self gains a **Cultivation Method** row (built): element seal, name and grade in its grade colour, cultivation speed (with the root match) and how far it takes you. Read-only; switching is in the meditation menu (built). Hidden while on Sect Breathing. |
 | First bloodline | tabs appear: **Self** \| **Body** (bloodline card, stage pips, skill, passive) |
 | Later layers | at most four tabs |

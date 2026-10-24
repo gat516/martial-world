@@ -22,7 +22,7 @@ local Defs = require(ReplicatedStorage.Shared.Titles)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Realms = require(ReplicatedStorage.Shared.Realms)
-local Weapons = require(ReplicatedStorage.Shared.Weapons)
+local RootDefs = require(ReplicatedStorage.Shared.Roots)
 local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
 local Analytics = require(script.Parent.Analytics)
@@ -45,9 +45,9 @@ local function rankIndex(id: string): number
 	return 0
 end
 
+-- a root grade's place on the ladder (Roots.GradeOrder: Spirit, Earth, Heaven, Immortal)
 local function gradeOrder(grade: string?): number
-	local g = grade and Weapons.Grades[grade]
-	return if g then g.order else 0
+	return if grade then table.find(RootDefs.GradeOrder, grade) or 0 else 0
 end
 
 -- Whether the profile meets a title's rule.

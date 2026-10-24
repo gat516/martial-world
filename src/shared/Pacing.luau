@@ -787,8 +787,8 @@ Pacing.Variants = {
 -- go past it up to MAX_PERCENT. Each graded stage adds percent x BONUS_PER_PERCENT
 -- to max health and power (always positive: 80% is a good breakthrough, just a bit
 -- less), summed over all stages as its own multiplier on top of Pacing.Curve (about
--- +92% at most by FE9, 23 graded stages QC4-FE8, below a major jump). The grade words are flavour on the
--- percent (GRADES). Experiences come from per-region pools (the realm band's region,
+-- +92% at most by FE9, 23 graded stages QC4-FE8, below a major jump). Players only ever see
+-- the percent (owner, 2026-10-24: no grade words). Experiences come from per-region pools (the realm band's region,
 -- Herbs.Regions) plus per-stage deeds, so every stage has fresh ones.
 -- Time fills the bar, not the foundation. Untuned first guesses.
 --
@@ -810,7 +810,6 @@ Pacing.Variants = {
 -- With Config.Wilds.VARIANTS off (the main map today) QR and FE have no beasts at their
 -- realm, so the Hunter and Daring deeds and the hunts there wait on variants; the rest
 -- still reaches about 100% a stage.
-export type FoundationGrade = "Unsteady" | "Steady" | "Solid" | "Deep"
 Pacing.Foundation = {
 	-- what one experience of each category counts for
 	WEIGHTS = { Hunt = 1, Boss = 2, Home = 1, Dao = 1, Discover = 1, World = 1, Deed = 1 } :: { [string]: number },
@@ -822,21 +821,15 @@ Pacing.Foundation = {
 	DEFAULT_TARGET = 5, -- Qi Refining and Foundation Establishment
 	MAX_PERCENT = 200, -- experiences past the target count up to here
 	BONUS_PER_PERCENT = 0.0002, -- share of max health and power per percent: 100% +2%, 200% +4%
-	-- the grade word for a percent: the share of the target (percent / 100) it starts at, lowest first
-	GRADES = {
-		{ name = "Unsteady", share = 0 },
-		{ name = "Steady", share = 0.5 },
-		{ name = "Solid", share = 1 },
-		{ name = "Deep", share = 1.5 },
-	} :: { { name: FoundationGrade, share: number } },
-	STEADY = "Steady", -- below this: the unsteady toast and a harder tribulation
-	-- a heaven-defier's tribulation strike damage, by the grade the stage would get now
-	TRIBULATION_DAMAGE = { Unsteady = 1.2 } :: { [string]: number },
+	-- below this percent the stage is unsteady: the once-a-stage toast when the bar
+	-- fills, and a heaven-defier's tribulation strikes UNSTEADY_TRIBULATION harder
+	UNSTEADY_BELOW = 50,
+	UNSTEADY_TRIBULATION = 1.2,
 	-- tempering (the heart-demon trial): each step raises one old stage this many points,
 	-- the lowest first, never past TEMPER_MAX
 	TEMPER_POINTS = 25,
 	TEMPER_MAX = 150,
-	-- profiles graded before percents: the old grade word as a percent
+	-- profiles sealed before percents stored a word: what each word reads as
 	LEGACY = { Cracked = 25, Steady = 60, Solid = 100, Deep = 150 } :: { [string]: number },
 	MUTATION_BONUS = 1, -- a harvest mutation counts as rare (Home) from this Herbs.Mutations bonus up
 	EVENT_RADIUS = 150, -- studs from a located world event that count as taking part

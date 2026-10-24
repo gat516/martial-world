@@ -9,9 +9,9 @@
 --     Self         the avatar (a live copy of your character in Avatar.View), your
 --                  name, Race (race · variant, rarity), Bloodline ("None", muted;
 --                  deferred), Strength (max health, power with the foundation bonus)
---     Cultivation  Realm (stage bar, % right, what's next), Foundation (grade word in
---                  its colour, experiences bar marked at Steady and Solid, the next
---                  open experiences), Dantian (raw qi), Heart (heart-demon notes,
+--     Cultivation  Realm (stage bar, % right, what's next), Foundation ("Foundation
+--                  86%", percent only; bar marked at 50% and 100%, the next open
+--                  experiences), Dantian (raw qi), Heart (heart-demon notes,
 --                  once a trial is done)
 --     Path         Spirit Root (grade, perk, Marrow Washing progress), Cultivation
 --                  Method (from Foundation; hidden on Sect Breathing), Weapon Dao (a
@@ -71,18 +71,9 @@ local GOLD = "#E2BA68" -- the Kind labels' gold, for the hint categories
 local MUTED = Color3.fromRGB(140, 136, 126) -- an empty section ("None")
 local NAME_COLOR = Color3.fromRGB(236, 232, 220)
 local DAO_EQUIPPED = Color3.fromRGB(255, 226, 160) -- the class in hand (as the Inventory)
-local MARK_ON_FILL = Color3.fromRGB(14, 18, 20) -- the foundation bar's grade marks
+local MARK_ON_FILL = Color3.fromRGB(14, 18, 20) -- the foundation bar's 50% and 100% marks
 local MARK_ON_TROUGH = Color3.fromRGB(236, 232, 220)
 local HOVER = 0.94 -- a section's background on hover (1 = none)
--- foundation grade words and their colours (Cracked: the count-based grades still
--- live; Unsteady: the percentage grades on region-experiences)
-local FOUNDATION_COLORS: { [string]: string } = {
-	Cracked = "#E69A82",
-	Unsteady = "#E69A82",
-	Steady = "#9FC6E0",
-	Solid = "#82E6B9",
-	Deep = "#F0C860",
-}
 local TAB_ON = { image = "rbxassetid://89951515494594", text = Color3.fromRGB(255, 244, 214) }
 local TAB_OFF = { image = "rbxassetid://70679462267599", text = Color3.fromRGB(170, 190, 184) }
 local PAGES = { "Self", "Cultivation", "Path" }
@@ -365,10 +356,8 @@ end
 -- "RACE": the race and its variant ("Beast Folk · Wolf"), the rarity on the right.
 
 export type Foundation = {
-	count: number, -- weighted experiences this stage (a boss counts double)
-	target: number, -- this stage's target count
-	percent: number, -- the stage's foundation as a percentage of its target; may pass 100 (cap ~200)
-	grade: string, -- the grade word breaking through now would give (Unsteady | Steady | Solid | Deep)
+	percent: number, -- the stage's foundation as a percentage of its target; may pass 100 (up to max)
+	max: number, -- the most a stage can hold (Pacing.Foundation.MAX_PERCENT)
 	bonus: number, -- every graded stage's bonus summed, as a share of health and power
 	hints: { { category: string, text: string } }, -- open experiences, up to ~5
 }
@@ -376,10 +365,8 @@ export type Foundation = {
 -- Sample data for Studio playtests while the server doesn't push `foundation` yet
 -- (never in a live server, where the row hides instead).
 local PREVIEW_FOUNDATION: Foundation = {
-	count = 2,
-	target = 4,
 	percent = 86,
-	grade = "Steady",
+	max = 200,
 	bonus = 0.04,
 	hints = {
 		{ category = "Hunt", text = "Slay a Stone Boar for the first time" },
@@ -398,21 +385,18 @@ local function foundationOf(state: any): Foundation?
 	if f.hidden then
 		return nil -- a hook stage (QC1-3) has no foundation yet
 	end
-	local count, target = tonumber(f.count) or 0, tonumber(f.target) or 0
 	return {
-		count = count,
-		target = target,
-		-- `percent` from the percentage backend; count / target before it
-		percent = tonumber(f.percent) or (if target > 0 then count / target * 100 else 100),
-		grade = if type(f.grade) == "string" then f.grade else "Cracked",
+		percent = tonumber(f.percent) or 0,
+		max = tonumber(f.max) or 200,
 		bonus = tonumber(f.bonus) or 0,
 		hints = if type(f.hints) == "table" then f.hints else {},
 	}
 end
 
--- The foundation bar spans 0-150 % (Deep from 150 % up): the fill runs to the 100 %
--- mark, then on in a brighter tone (Over) past it; the marks sit at 50 % (Steady)
--- and 100 % (Solid). Past 150 % the bar stays full and the label keeps counting.
+-- The foundation bar spans 0-150 %: the fill runs to the 100 % mark, then on in a
+-- brighter tone (Over) past it; the marks sit at 50 % (below it the stage is
+-- unsteady) and 100 % (full). Past 150 % the bar stays full and the label keeps
+-- counting up to the stage's max.
 local FOUNDATION_SPAN = 150
 local FOUNDATION_FULL = 100
 local FOUNDATION_MARKS = { 50, 100 }
@@ -631,9 +615,9 @@ local function renderRealm()
 	})
 end
 
--- "FOUNDATION": the grade this stage would get now, experiences toward Deep on a
--- bar marked at Steady and Solid, the next two open experiences; the rest, the
--- bonus so far and the grade steps in the detail.
+-- "FOUNDATION": the percent this stage would get now ("Foundation 86%", never a
+-- grade word or count; owner, 2026-10-24) on a bar marked at 50% and 100%, the next
+-- two open experiences; the rest and the bonus so far in the detail.
 local function hintLine(hint: { category: string, text: string }): string
 	local size = if UiScale.isPhone() then 12 else 11
 	return `<font color="{GOLD}" size="{size}">{string.upper(hint.category)}</font>  {hint.text}`
@@ -665,19 +649,19 @@ local function renderFoundation()
 		end
 	end
 	local summary, detail = {}, {}
-	if f.grade == "Deep" then
-		table.insert(summary, gain("Deep: the strongest foundation this stage can give"))
+	local capped = percent >= f.max
+	if capped then
+		table.insert(summary, gain(`{f.max}%: the most this stage can hold`))
 	end
 	for i, hint in f.hints do
-		table.insert(if i <= 2 and f.grade ~= "Deep" then summary else detail, hintLine(hint))
+		table.insert(if i <= 2 and not capped then summary else detail, hintLine(hint))
 	end
 	local bonus = signed(f.bonus)
 	if bonus and f.bonus > 0 then
 		table.insert(detail, gain(`{bonus} max health and power from your foundations`))
 	end
 	fill("Foundation", {
-		name = `<font color="{FOUNDATION_COLORS[f.grade] or "#ECE8DC"}">{f.grade}</font> foundation`,
-		right = `{math.floor(percent + 0.5)}%`,
+		name = `Foundation {math.floor(percent + 0.5)}%`,
 		share = math.min(percent, FOUNDATION_FULL) / FOUNDATION_SPAN,
 		summary = summary,
 		detail = detail,

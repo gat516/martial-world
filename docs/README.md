@@ -118,8 +118,8 @@ What we build next and in what order (foundation grades, the haul and the surge,
 
 | System | Doc | Server | Shared | Client |
 |---|---|---|---|---|
-| Cultivation, realms, breakthroughs, tribulation, qi surge | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, Foundation (grades), QiSurge, QiNodes | Pacing, Realms | Hud, SeatBars, BreakthroughView, CirculationMinigame, CultivationGui, FoundationMeter, DeathSave, CultivationMarks |
-| Heart-demon trial (optional reflection at each major's stage 9; tempers old foundation grades) | [heart-demon](systems/heart-demon.md) | HeartDemon, Foundation (`temper`) | Pacing.HeartDemon | HeartDemon (on the Dialogue screen) |
+| Cultivation, realms, breakthroughs, tribulation, qi surge | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, Foundation (percents), QiSurge, QiNodes | Pacing, Realms | Hud, SeatBars, BreakthroughView, CirculationMinigame, CultivationGui, FoundationMeter, DeathSave, CultivationMarks |
+| Heart-demon trial (optional reflection at each major's stage 9; tempers old foundation percents) | [heart-demon](systems/heart-demon.md) | HeartDemon, Foundation (`temper`) | Pacing.HeartDemon | HeartDemon (on the Dialogue screen) |
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
 | Seclusion (the AFK mode: AFK cultivation, stones, garden tending and online mutation, streak, rare finds, result card) | [seclusion](systems/seclusion.md) | Seclusion, Cultivation (AFK rate, cap line), Garden (`advance`, tending), Quests (Seclusion lesson) | Pacing.Seclusion, Pacing.Income (`AFK_AFTER`, `AWAKE_PING`) | MeditationMenu (the row), Meditation (awake ping, tiles), SeclusionView (the secluded plaque, Cultivation `Canvas.Seclusion`), Rewards (the card, kind `seclusion`) |

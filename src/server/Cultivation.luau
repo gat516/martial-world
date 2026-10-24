@@ -372,7 +372,7 @@ function Cultivation.advance(player: Player)
 		return
 	end
 	local major = nextStage.major ~= stage.major
-	local grade, percent = Foundation.seal(data) -- settles the stage being left, resets the count and deeds
+	local percent = Foundation.seal(data) -- settles the stage being left, resets the count and deeds
 	data.realm = { major = nextStage.major, minor = nextStage.minor }
 	local excess = math.max(0, data.cultivation - stage.bar)
 	data.cultivation = math.floor(math.min(excess, nextStage.bar * Pacing.Breakthrough.CARRY_SHARE))
@@ -387,7 +387,7 @@ function Cultivation.advance(player: Player)
 		humanoid.Health = humanoid.MaxHealth
 	end
 	Cultivation.pushState(player)
-	breakthroughRemote:FireAllClients(player, nextStage.name, major, grade, percent)
+	breakthroughRemote:FireAllClients(player, nextStage.name, major, percent)
 	for _, fn in Cultivation.onBreakthrough do
 		task.spawn(fn, player, nextStage, major)
 	end
@@ -583,9 +583,9 @@ task.spawn(function()
 					end
 					-- once per stage: the bar filled before the world taught enough
 					if firstFull and Cultivation.block(data) == "" and not data.foundation.warned
-						and Foundation.active(data) and Foundation.unsteady(Foundation.pending(data)) then
+						and Foundation.active(data) and Foundation.unsteady(Foundation.percent(data)) then
 						data.foundation.warned = true
-						task.delay(4, Cultivation.notify, player, "Your foundation is unsteady. The world still has things to teach you.")
+						task.delay(4, Cultivation.notify, player, `Your foundation is only {Foundation.percent(data)}%. The world still has things to teach you.`)
 					end
 				end
 				if expired then

@@ -3,7 +3,8 @@
 -- experiences while at a stage builds the foundation of the breakthrough out of it,
 -- as a percent of the stage's target (Pacing.Foundation): 100% is full, more goes
 -- past it up to MAX_PERCENT, and every graded stage adds percent x BONUS_PER_PERCENT
--- to max health and power. The grade word (Unsteady, Steady, Solid, Deep) is flavour.
+-- to max health and power. Players see only the percent ("Foundation 86%"; owner,
+-- 2026-10-24): no grade words, no count or target.
 --
 -- Experiences are keys earned once per profile (data.foundation.seen). Most carry the
 -- pool they belong to, `@<band>`: the realm band's region (Herbs.Regions: InnerWilds
@@ -25,12 +26,12 @@
 -- A kill from a beast more than FIT_BELOW stages under the player earns nothing.
 -- The weighted count this stage (data.foundation.count) against TARGET gives the
 -- percent at the breakthrough (Cultivation.advance calls `seal`), stored by stage key
--- in data.foundation.grades (a number; old profiles' grade words read as LEGACY).
+-- in data.foundation.grades (a number; old profiles' words read as LEGACY).
 -- `temper` raises old percents later (the heart-demon trial, HeartDemon.luau).
 -- The hook stages (below Pacing.Foundation.FROM, QC4) have no foundation: nothing is
 -- earned there (the pools stay fresh for QC4), nothing is sealed or shown, and no
--- unsteady toast fires. Each experience or deed earned pops a "+ Foundation" line
--- (Effect "reward", a small Rewards line).
+-- unsteady toast fires (below UNSTEADY_BELOW percent). Each experience or deed earned
+-- pops a "+ Foundation" line (Effect "reward", a small Rewards line).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -101,7 +102,7 @@ local function bandOf(data: PlayerData.Data): Herbs.SeedRegion
 	return bandAt(indexOf(data))
 end
 
---[[ Percent and grade ]]
+--[[ Percent ]]
 
 function Foundation.target(stage: Realms.Stage): number
 	return Config.TARGET[stage.key] or Config.DEFAULT_TARGET
@@ -113,18 +114,7 @@ function Foundation.percentFor(count: number, target: number): number
 	return math.clamp(math.floor(share * 100 + 0.5), 0, Config.MAX_PERCENT)
 end
 
--- The grade word for a percent.
-function Foundation.gradeOf(percent: number): Pacing.FoundationGrade
-	local grade: Pacing.FoundationGrade = Config.GRADES[1].name
-	for _, g in Config.GRADES do
-		if percent >= g.share * 100 then
-			grade = g.name
-		end
-	end
-	return grade
-end
-
--- A stored stage value as a percent (profiles from before percents hold a grade word).
+-- A stored stage value as a percent (profiles from before percents hold a word).
 local function percentOf(value: any): number
 	if type(value) == "number" then
 		return value
@@ -138,30 +128,11 @@ function Foundation.percent(data: PlayerData.Data): number
 	return Foundation.percentFor(data.foundation.count, Foundation.target(stageOf(data)))
 end
 
--- The grade word the current stage would get now.
-function Foundation.pending(data: PlayerData.Data): Pacing.FoundationGrade
-	return Foundation.gradeOf(Foundation.percent(data))
-end
-
-local function rank(grade: string): number
-	for i, g in Config.GRADES do
-		if g.name == grade then
-			return i
-		end
-	end
-	return 1
-end
-Foundation.rank = rank
-
-local function label(percent: number): string
-	return `{Foundation.gradeOf(percent)} ({percent}%)`
-end
-
-export type Tempered = { key: string, from: string, to: string, fromPercent: number, toPercent: number }
+export type Tempered = { key: string, fromPercent: number, toPercent: number }
 
 -- Raise up to `steps` old stages TEMPER_POINTS each, the lowest percent first (ties:
 -- the earliest stage), never past TEMPER_MAX. The heart-demon trial calls it; the
--- caller refreshes stats. Returns what changed (`from`/`to` are "Solid (125%)" labels).
+-- caller refreshes stats. Returns what changed.
 function Foundation.temper(data: PlayerData.Data, steps: number): { Tempered }
 	local open = {}
 	for key, value in data.foundation.grades do
@@ -181,15 +152,15 @@ function Foundation.temper(data: PlayerData.Data, steps: number): { Tempered }
 	for i = 1, math.min(steps, #open) do
 		local entry = open[i]
 		local to = math.min(Config.TEMPER_MAX, entry.percent + Config.TEMPER_POINTS)
-		table.insert(changed, { key = entry.key, from = label(entry.percent), to = label(to), fromPercent = entry.percent, toPercent = to })
+		table.insert(changed, { key = entry.key, fromPercent = entry.percent, toPercent = to })
 		data.foundation.grades[entry.key] = to
 	end
 	return changed
 end
 
--- Whether `grade` is below Steady (the unsteady toast, a harder tribulation).
-function Foundation.unsteady(grade: string): boolean
-	return rank(grade) < rank(Config.STEADY)
+-- Whether a percent is below UNSTEADY_BELOW (the unsteady toast, a harder tribulation).
+function Foundation.unsteady(percent: number): boolean
+	return percent < Config.UNSTEADY_BELOW
 end
 
 -- The summed bonus of every graded stage, as a multiplier (1 = none) on max
@@ -202,15 +173,15 @@ function Foundation.multiplier(data: PlayerData.Data): number
 	return 1 + total
 end
 
--- A heaven-defier's tribulation strike damage multiplier, from the pending grade.
+-- A heaven-defier's tribulation strike damage multiplier, from the pending percent.
 function Foundation.tribulationDamage(data: PlayerData.Data): number
-	return Config.TRIBULATION_DAMAGE[Foundation.pending(data)] or 1
+	return if Foundation.unsteady(Foundation.percent(data)) then Config.UNSTEADY_TRIBULATION else 1
 end
 
 -- Settle the stage being left and start the next one's count and deeds. Called by
--- Cultivation.advance before the realm moves. Returns the grade word and percent
--- (nil for a hook stage, which isn't graded).
-function Foundation.seal(data: PlayerData.Data): (Pacing.FoundationGrade?, number?)
+-- Cultivation.advance before the realm moves. Returns the sealed percent (nil for a
+-- hook stage, which has no foundation).
+function Foundation.seal(data: PlayerData.Data): number?
 	local stage = stageOf(data)
 	local active = Foundation.active(data)
 	local percent = Foundation.percent(data)
@@ -220,10 +191,7 @@ function Foundation.seal(data: PlayerData.Data): (Pacing.FoundationGrade?, numbe
 	data.foundation.count = 0
 	data.foundation.warned = false
 	data.foundation.deeds = { kills = {}, herbs = {}, done = {} }
-	if not active then
-		return nil, nil
-	end
-	return Foundation.gradeOf(percent), percent
+	return if active then percent else nil
 end
 
 --[[ Earning ]]
@@ -581,20 +549,14 @@ function Foundation.state(data: PlayerData.Data): { [string]: any }
 	if not Foundation.active(data) then
 		return { hidden = true, bonus = Foundation.multiplier(data) - 1 }
 	end
-	local grades, percents = {}, {}
+	local percents = {}
 	for key, value in data.foundation.grades do
-		local percent = percentOf(value)
-		percents[key] = percent
-		grades[key] = Foundation.gradeOf(percent)
+		percents[key] = percentOf(value)
 	end
 	local percent = Foundation.percent(data)
 	return {
-		count = data.foundation.count,
-		target = Foundation.target(stageOf(data)),
 		percent = percent,
 		max = Config.MAX_PERCENT,
-		grade = Foundation.gradeOf(percent),
-		grades = grades,
 		percents = percents,
 		bonus = Foundation.multiplier(data) - 1,
 		hints = Foundation.hints(data),

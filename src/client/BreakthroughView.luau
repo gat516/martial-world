@@ -175,9 +175,9 @@ end
 -- The local player's moment: the milestone card (Rewards), with what changed from
 -- the stage before (health, power, combat qi, passive cultivation) and any travel
 -- array the new stage opens. The subtitle also carries the foundation the stage just
--- left earned: its grade word and percent (server Foundation; 100% is full, past it is more).
-local function milestoneCard(stageName: string, major: boolean, grade: string?, percent: number?)
-	local share = if type(percent) == "number" then ` {percent}%` else ""
+-- left sealed, as the percent only ("Foundation 86%"; server Foundation; 100% is full,
+-- past it is more). A hook stage sends none.
+local function milestoneCard(stageName: string, major: boolean, percent: number?)
 	local stage = Realms.byName(stageName)
 	local before: Realms.Stage? = nil
 	if stage then
@@ -209,7 +209,7 @@ local function milestoneCard(stageName: string, major: boolean, grade: string?, 
 		tier = "card",
 		kind = "milestone",
 		title = if major then "Major Breakthrough" else "Breakthrough",
-		subtitle = if type(grade) == "string" then `{stageName}  ·  {grade} foundation{share}` else stageName,
+		subtitle = if type(percent) == "number" then `{stageName}  ·  Foundation {percent}%` else stageName,
 		stats = stats,
 		unlock = unlock,
 		flavour = if major then "A new realm opens before you." else "Your qi settles at a new depth.",
@@ -299,10 +299,10 @@ function BreakthroughView.init(gui: ScreenGui)
 	Players.PlayerAdded:Connect(watchSurge)
 
 	local breakthroughRemote = remotes.Breakthrough :: RemoteEvent
-	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean, grade: string?, percent: number?)
+	breakthroughRemote.OnClientEvent:Connect(function(who: Player, stageName: string, major: boolean, percent: number?)
 		playEffect(who, major)
 		if who == player then
-			milestoneCard(stageName, major, grade, percent)
+			milestoneCard(stageName, major, percent)
 		elseif major then
 			Hud.toast(`{who.DisplayName} broke through to {stageName}!`)
 		end

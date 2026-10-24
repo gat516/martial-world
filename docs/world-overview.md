@@ -70,7 +70,7 @@ Packs are in `src/shared/Spawns.luau`; regions are checked in that order.
 
 ## Where things live (`assets/Wilds.rbxmx`, `Workspace.Wilds`)
 - **Lairs** (`Wilds.Zones`; their realms, young near the gate and stronger farther out, are in
-  `Spawns.Zones`, see [realm variants](systems/enemies.md#realm-variants-2026-10-23)): Inner GateWolves (3 Spirit Wolves by the sect gate, the
+  `Spawns.Zones`, see [realm variants](enemies/variants.md)): Inner GateWolves (3 Spirit Wolves by the sect gate, the
   first-kill target), WolfPocket (3 wolves), WolfDen (4 wolves, the boss ring), BoarMeadow
   (3 boars), BoarField (2 boars); Borderlands SerpentMarsh (3 serpents), SerpentFen (2),
   BossArena (the Elder Wolf King). Other beasts and bosses (Nine-Tailed Fox, Thunder Ape,

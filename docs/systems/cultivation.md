@@ -215,6 +215,10 @@ not the foundation.
   "Foundation 86%". No grade words (the old Unsteady/Steady/Solid/Deep are gone from
   code too) and never count / target. The only thresholds are `UNSTEADY_BELOW` (50:
   the toast and the harder tribulation) and the Self card bar's 50 and 100 marks.
+- **Rejected (user, 2026-10-23):** a visible solidity meter (no HUD room;
+  `FoundationMeter.luau` is shelved) and damaging your own cultivation to reroll stats
+  (the best play becomes regrinding, which players hate). Shattering your cultivation
+  stays a one-time story beat on the demon path ([replayability](../roadmap/replayability.md)).
 - **Pools per region and realm band.** Keys are once per profile
   (`data.foundation.seen`), most scoped `@<band>`: the band is a `Herbs.Regions` entry
   (InnerWilds QC1-4, MiddleWilds QC5-9, OuterWilds QR1-5, DeepWilds QR6-FE3, FarReaches

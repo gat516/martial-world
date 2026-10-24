@@ -385,9 +385,9 @@ then pivots the character onto that array.
   from `Pacing.Quests` (stones, `qiShare` of the dantian).
 
 ## Known gaps
-- No real questing system yet: no quest log, givers, chains or dailies; only
-  the beats and lessons are quests (see "Rewarded objectives" for the open
-  questions). The quest board's goals are not rewarded and not quests.
+- The beats and lessons are the only `Quests.luau` quests; the sect's dailies, the
+  Borderlands chain, bonus quests and the quest log live in [sect](sect.md) (see
+  "Rewarded objectives" for the open questions).
 - The objective's reward shares the tracker's one text line (scaled 9-14 px),
   so long objectives shrink; a separate reward line in `Hud.Objective` is UI
   work for the ui-designer.

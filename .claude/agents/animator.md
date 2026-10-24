@@ -42,8 +42,8 @@ FAIL you fix before anyone looks. Missing the attack table or the rig section
   `JointHead`, `JointTail` and `JointLeg*` every frame and finds joints by
   Motor6D name. Key the other joints for attacks, or make EnemyAnimator blend
   with your clip.
-- **`docs/systems/enemies.md`:** only "Server and client" and "Adding a beast's
-  effects". Also the enemy's own doc in `docs/enemies/`.
+- **`docs/systems/enemies.md`:** only "Server and client", plus
+  `docs/enemies/effects.md` for cues. Also the enemy's own doc in `docs/enemies/`.
 
 ## Intent first, then a beat sheet
 

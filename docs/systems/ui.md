@@ -211,6 +211,11 @@ cursor, settings and the admin panel.
 - [Halls, masters and lineage](../ui/halls-masters.md) (ready to wire)
 
 ## Key files (all `src/client/`)
+Window modules require each other (SelfCard, Settings, Rewards, BreakthroughView...), so
+a new top-level `require` between them can close a cycle that stops the client loading
+(SelfCard -> Settings -> LockOn -> Meditation -> BreakthroughView -> Rewards -> SelfCard,
+2026-10-24). Require another window lazily, on first use inside the function.
+
 - `Hud.luau`: vitals (health and combat qi bars with trails, the qi refusal
   flash, realm plaque `Crest`; no name plaque), buffs, toasts (`Hud.saidLately` tells whether a toast was
   just shown). `Hud.setBar` is the shared bar fill. The crest is a shortcut to

@@ -6,7 +6,7 @@ foundation percents ([cultivation](cultivation.md#foundation-grade)). The user's
 "have you mostly been gardening vs mostly fighting.. do you feel guilt at the
 monsters youve killed etc. that would be REALLY good if u could temper old foundations."
 
-Rules (roadmap Phase A, 9b item 2): choice-based, no reflexes, story over rules, kid-
+Rules: choice-based, no reflexes, story over rules, kid-
 and mobile-friendly; it never blocks a breakthrough and never costs a stage or
 cultivation. Once per major; it can be declined and taken later.
 

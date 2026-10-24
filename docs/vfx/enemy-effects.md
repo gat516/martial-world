@@ -2,7 +2,7 @@
 
 The user's decisions for beast and boss effects, from the bestiary and boss
 passes (2026-10-22). Read it for any enemy effect. The cue wiring is in
-[enemies](../systems/enemies.md), "Adding a beast's effects". The
+[enemy effects](../enemies/effects.md). The
 enemy-designer's brief gives the beats and timings, and stands in for the plan.
 
 ## Look

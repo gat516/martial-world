@@ -22,7 +22,8 @@ for every commit (enemies.md and `Enemies.luau` are shared).
 ## Read first
 
 - [docs/systems/enemies.md](../../docs/systems/enemies.md): the AI, the wire,
-  cues, attack mechanics, the template contract and the roster. Then read the
+  attack mechanics, the template contract and the roster (cues:
+  `docs/enemies/effects.md`; tiers: `docs/enemies/variants.md`). Then read the
   doc in `docs/enemies/` for the enemy you're working on, and for a new enemy
   the closest existing one (a boss for a boss). Don't read the rest of the roster.
 - [docs/systems/telegraphs.md](../../docs/systems/telegraphs.md): the danger

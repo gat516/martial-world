@@ -82,7 +82,8 @@ blue tier is needed.
 Server side: `Effect "reward"` with a spec table goes straight to `Rewards.show`, so a
 new system picks its own tier without a new remote. What a real system must send:
 the tier, and for a card its `kind`, title, subtitle and whatever it has of items,
-stats, unlock and flavour (empty lines hide). Quests and bloodlines don't send it yet.
+stats, unlock and flavour (empty lines hide). Sect quests send the quest card
+(`Sect.luau`); onboarding objectives and bloodlines don't send it yet.
 
 ## Layout
 

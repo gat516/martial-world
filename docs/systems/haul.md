@@ -36,6 +36,8 @@ gained since you last banked can spill when you die. Decided in the
   to be carried home). A second death before you reclaim it merges into the first:
   one spill with both contents, at the newest spot, its timer restarted.
   A death never costs cultivation or a stage.
+- **Rejected (user, 2026-10-23):** a wound on the cultivation bar as the death cost.
+  Two death penalties at once is where it turns hardcore.
 - **Leaving while combat-tagged** (the `InCombat` attribute, [combat](combat.md);
   on phones mostly a drop or an app switch) spills the same share where you stood,
   like a death, and keeps it for your next join: rejoin within `KEEP_SECONDS` (2 h)

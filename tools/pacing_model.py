@@ -1,25 +1,30 @@
 #!/usr/bin/env python3
 """Pacing model: what real players get, stage by stage, QC1-FE9.
 
-The time table in the header of src/shared/Pacing.luau assumes a bare fighter
-(passive + ~2 wolf kills of raw qi a minute, refined at 1.1) or a bare gardener
-(meditating on their peak). This model adds what players actually stack:
-herb eating (tier share of the dantian with floors), garden yield and grow
-times, the garden aura (capped), the peak score's meditation and growth bonus,
-the best meditation item, spirit root grade, the FE cultivation method, spirit
-cores, daily login qi, the AFK/offline credit (12 h per absence, overflow cap
-1.5, full carry), seclusion's rare finds, weather and parties.
+The time table in the header of src/shared/Pacing.luau times a bare fighter
+(passive + ~2 wolf kills of raw qi a minute, refined at 1.1) and a bare gardener
+(meditating on their peak), plus the regular profile's online time. This model adds
+what players actually stack: herb eating (tier share of the dantian with floors,
+only the floor below the band's tier), garden yield and grow times, the garden aura
+(every plant, by tier and rarity, capped by peak tier and lifted by decorating, on
+your own peak only), the peak score's meditation and growth bonus, the best
+meditation item, herb buffs (falloff, capped by realm), spirit root grade, the FE
+cultivation method, spirit cores, daily login qi, the AFK/offline credit (one 12 h
+budget a day, overflow cap 1.5, full carry), seclusion's rare finds, weather,
+parties and the Herbalist's band-gated seeds.
 
-Numbers are parsed from the game's source (Pacing.luau, Herbs.luau, Config.luau,
-BuildItems.luau, Weather.luau) at run time, so a tuning change shows up on the
-next run. Player behaviour (how long they play, how many plots, what they eat)
-is in PROFILES below: those are assumptions, documented in
+Numbers are parsed from the game's source (Pacing.luau, Herbs.luau, Items.luau,
+Config.luau, BuildItems.luau, Weather.luau) at run time, so a tuning change shows up
+on the next run. Player behaviour (how long they play, how many plots, what they
+eat) is in PROFILES and ROADS below: those are assumptions, documented in
 docs/systems/pacing-model.md.
 
-    python3 tools/pacing_model.py                 # the three profiles + baseline check
+    python3 tools/pacing_model.py                 # the profiles, the balance check, the header check
     python3 tools/pacing_model.py --stages        # plus the stage-by-stage tables
     python3 tools/pacing_model.py --levers        # plus the one-lever-off sensitivity
-    python3 tools/pacing_model.py --proposal      # plus the proposed knob changes, side by side
+    python3 tools/pacing_model.py --foundation    # plus foundation percent per stage
+    python3 tools/pacing_model.py --proposal      # plus PROPOSAL's knob changes (when one is pending), side by side
+    python3 tools/pacing_model.py --header        # print the Pacing header's time table for this curve
 
 Nothing here is read by the game. Outside Studio, stdlib only.
 """
@@ -116,6 +121,11 @@ def load_game() -> dict:
     party = _block(pacing, "Pacing.Party =")
     sect = _block(pacing, "Pacing.Sect =")
     glob = _block(pacing, "Pacing.Global =")
+    aura = _block(pacing, "Pacing.Aura =")
+    items_src = _read("Items.luau")
+    adjust = {}
+    for key, body in re.findall(r"\b([A-Z]{2}\d) = \{([^}]*)\}", _block(pacing, "Pacing.Adjust =")):
+        adjust[key] = {k: float(v) for k, v in re.findall(r"(\w+)\s*=\s*(-?[\d.]+)", body)}
 
     grades = {g: float(s) for g, s in re.findall(r"(\w+)\s*=\s*\{\s*speed\s*=\s*([\d.]+)", roots)}
 
@@ -143,7 +153,7 @@ def load_game() -> dict:
             "grow": _num(body, "growSeconds"),
             "regrow": _num(body, "regrowSeconds", 0) or None,
             "yield": (float(y.group(1)) + float(y.group(2))) / 2,
-            "aura": _num(body, "aura"),
+            "soldFrom": (re.search(r'soldFrom\s*=\s*"(\w+)"', body) or [None, None])[1],
             "qi": bool(re.search(r"qi\s*=\s*true", eat_txt)),
             "buff": max(buffs, default=None),
             "spacing": _num(body, "spacing"),
@@ -203,6 +213,17 @@ def load_game() -> dict:
         copies = min(per_item, float(lim.group(1)) if lim else per_item)
         pieces.append({"id": iid.group(1), "category": cat.group(1), "cost": float(cost.group(1)), "points": pts,
                        "copies": copies, "realm": realm.group(1) if realm else None})
+    # the Herbalist's band-gated tiers: the first stage each tier III+ is sold, and the
+    # stones for a day's stock of its cheapest seed (enough to start the tier; seeds
+    # back fill the plots)
+    stock = _list(herbs_p, "STOCK")
+    shop_from, shop_cost = {}, {}
+    for h in herbs.values():
+        if h["soldFrom"] and h["seedCost"]:
+            t = h["tier"]
+            if t not in shop_from or STAGES.index(h["soldFrom"]) < STAGES.index(shop_from[t]):
+                shop_from[t] = h["soldFrom"]
+            shop_cost[t] = min(shop_cost.get(t, 1e18), h["seedCost"] * stock[t - 1])
     quests = _block(pacing, "Pacing.Quests =")
     quest_stones = {k: float(v) for k, v in re.findall(r"(\w+)\s*=\s*\{\s*stones\s*=\s*(\d+)", quests)}
 
@@ -210,9 +231,11 @@ def load_game() -> dict:
         "curve": curve,
         "pieces": pieces,
         "quest_stones": quest_stones,
+        "SHOP_FROM": shop_from,
+        "SHOP_START_COST": shop_cost,
         "STARTING_STONES": _num(_block(config, "Economy = {"), "STARTING_STONES"),
         "global": {"BAR": _num(glob, "BAR"), "PASSIVE": _num(glob, "PASSIVE"), "GATHER": _num(glob, "GATHER"), "REFINE": _num(glob, "REFINE")},
-        "adjust": {},  # Pacing.Adjust is empty today; --proposal fills it
+        "adjust": adjust,
         "RUNS_PER_DANTIAN": _num(_block(pacing, "Pacing.Refine ="), "RUNS_PER_DANTIAN"),
         "ENEMY_QI_EXPONENT": _num(income, "ENEMY_QI_EXPONENT"),
         "DAILY_QI_SHARE": _num(income, "DAILY_QI_SHARE"),
@@ -220,6 +243,17 @@ def load_game() -> dict:
         "OFFLINE_RATE": _num(income, "OFFLINE_RATE"),
         "EAT_SHARE": _list(herbs_p, "EAT_SHARE"),
         "EAT_FLOOR": _list(herbs_p, "EAT_FLOOR"),
+        "BAND_SHARE": 0.0,  # Herbs.eatQi: below the eater's band tier a herb gives only its floor
+        "BUFF_FALLOFF": _list(herbs_p, "BUFF_FALLOFF"),
+        "BUFF_CAP": _map(herbs_p, "BUFF_CAP"),
+        "STOCK": _list(herbs_p, "STOCK"),
+        "AURA_BY_TIER": _list(aura, "BY_TIER"),
+        "AURA_RARITY": _map(aura, "RARITY"),
+        "AURA_CAP_BY_MAJOR": _map(aura, "CAP"),
+        "AURA_GROWING": _num(aura, "GROWING"),
+        "AURA_DECOR": _num(aura, "DECOR"),
+        "AURA_ON_PEAK": True,  # Cultivation.rate: the aura multiplies meditation on your own peak
+        "OFFLINE_PER_DAY": True,  # Cultivation.awayLeft: one budget a UTC day
         "PRIZE": set(_map(herbs_p, "PRIZE")),
         "ANYWHERE": _num(med, "ANYWHERE"),
         "ON_PEAK": _num(med, "ON_PEAK"),
@@ -237,7 +271,6 @@ def load_game() -> dict:
         "PARTY_BONUS_CAP": _num(party, "BONUS_CAP"),
         "DAILY_STONES": _map(sect, "DAILY_STONES"),
         "SECLUSION_STONES": _map(secl, "STONES_PER_HOUR"),
-        "AURA_CAP": _num(garden, "AURA_CAP"),
         "SEEDS_BACK": _list(garden, "SEEDS_BACK"),
         "herbs": herbs,
         "mean_size": mean_size,
@@ -245,12 +278,12 @@ def load_game() -> dict:
         "weather": weather_mean,
         # transcribed from Items.luau / Enemies.luau (per-item and per-beast tables
         # are too scattered to parse safely): see the doc's "Inputs"
-        "LESSER_CORE_SHARE": 0.25,  # Items LesserSpiritCore qiShare (of the dantian)
-        "GREATER_CORE_BAR": 0.35,  # Items GreaterSpiritCore cultivationShare (of the bar)
-        "WOLF_QI": 14,  # Enemies SpiritWolf qiDrop
+        "LESSER_CORE_WOLVES": float(re.search(r"LesserSpiritCore = \{.*?qiKills = ([\d.]+)", items_src, re.S).group(1)),  # kills' qi at the eater's stage
+        "GREATER_CORE_BAR": float(re.search(r"GreaterSpiritCore = \{.*?cultivationShare = ([\d.]+)", items_src, re.S).group(1)),  # of the bar
+        "WOLF_QI": _num(income, "CORE_KILL_QIDROP"),  # Enemies SpiritWolf qiDrop
         "WOLVES_PER_MIN": 2,  # the header's fighter
-        "MEDITATION_CUSHION": 1.5,  # BuildItems MeditationCushion `meditation`, cost below
-        "CUSHION_COST": 260,
+        "MEDITATION_CUSHION": float(re.search(r'id = "MeditationCushion".*?meditation = ([\d.]+)', build_src, re.S).group(1)),
+        "CUSHION_COST": float(re.search(r'id = "MeditationCushion".*?cost = (\d+)', build_src, re.S).group(1)),
         "BASE_REFINE": 1.1,  # the header's cultivation per raw qi
     }
 
@@ -425,7 +458,7 @@ class Model:
             "ponds": plots[1],
             "groves": plots[2],
             "score": min(by_stage(self.p["score"], key, 0), tier["scoreCap"]) if self.on("peakscore") else 0,
-            "item": by_stage(self.p["med_item"], key, 0) if self.on("meditem") else 0,
+            "item": self.g["MEDITATION_CUSHION"] if (by_stage(self.p["med_item"], key, 0) and self.on("meditem")) else 0,
             "tier": by_stage(self.p["herb_tier"], key, 0),
         }
 
@@ -459,7 +492,9 @@ class Model:
         (herbs not sold in the shop come from drops and harvests: free here)."""
         best = 0.0
         for hid, h in self.g["herbs"].items():
-            if h["soil"] == soil and h["tier"] <= tier and h["seedCost"]:
+            # tier III+ seeds are limited stock (Herbs `stock`): bought once to start the
+            # tier (shop, below), then the harvests' seeds back fill the plots
+            if h["soil"] == soil and h["tier"] <= min(tier, 2) and h["seedCost"]:
                 best = max(best, h["seedCost"] * self.per_plot(hid))
         return best
 
@@ -566,7 +601,12 @@ class Model:
                 left[h["soil"]] -= use
                 got = use * per_plot(hid) * per_plant
                 up = min(1.0, got / need) * self.p["buff_uptime"]
-                buff_total += amount * up
+                # Pacing.Herbs.BUFF_FALLOFF: the strongest buff counts whole, the
+                # next ones less (Cultivation buffTotal)
+                fall = self.g.get("BUFF_FALLOFF")
+                k = len(buff_day)
+                weight = (fall[k] if k < len(fall) else 0.0) if fall else 1.0
+                buff_total += amount * up * weight
                 buff_day[hid] = min(got, need)
                 plan.append((hid, use * per_plot(hid), "buff"))
 
@@ -590,7 +630,7 @@ class Model:
             kind = "qi"
             if qi_value(best) <= 0 or not self.on("herbqi"):
                 # nothing here gives qi: grow the best aura plant and leave it standing
-                best = max(opts, key=lambda h: self.g["herbs"][h]["aura"] * per_plot(h))
+                best = max(opts, key=lambda h: self.aura_of(h) * per_plot(h))
                 kind = "aura"
             h = self.g["herbs"][best]
             n, _ = harvests(cycle(best))
@@ -605,20 +645,24 @@ class Model:
         for hid, plants, kind in plan:
             n, share = harvests(cycle(hid))
             share = 1.0 if kind == "aura" else share
+            # growing plants radiate AURA_GROWING of a mature one's aura
+            share = share + (1 - share) * self.g.get("AURA_GROWING", 0.0)
             aura += self.aura_of(hid) * size * plants * share
             h = self.g["herbs"][hid]
             if kind != "aura" and h["mutatesTo"] and self.g["herbs"][h["mutatesTo"]]["tier"] == tier_ok + 1:
                 mut += plants * n * h["mutateChance"]
-        cap = self.g["AURA_CAP_BY_MAJOR"][st["major"]] if self.g.get("AURA_CAP_BY_MAJOR") else self.g["AURA_CAP"]
+        cap = self.g["AURA_CAP_BY_MAJOR"][st["major"]]
+        if self.g.get("AURA_DECOR"):
+            # decorating the abode lifts the cap: up to AURA_DECOR more at the tier's score cap
+            tier_cap = self.peak_tier(key)["scoreCap"]
+            cap *= 1 + self.g["AURA_DECOR"] * min(1.0, score / tier_cap if tier_cap else 0)
         aura = min(aura, cap) if self.on("aura") else 0.0
         return {"plants": plan, "aura": aura, "buff": buff_total, "buff_herbs_day": buff_day,
                 "herbs_day": herbs_day, "growth": growth_online - 1, "score": score, "mut_per_day": mut}
 
     def aura_of(self, hid) -> float:
         h = self.g["herbs"][hid]
-        if self.g.get("AURA_BY_TIER"):
-            return self.g["AURA_BY_TIER"][h["tier"] - 1] * self.g["AURA_RARITY"].get(h["rarity"], 1)
-        return h["aura"]
+        return self.g["AURA_BY_TIER"][h["tier"] - 1] * self.g["AURA_RARITY"].get(h["rarity"], 1)
 
     def multipliers(self, st) -> dict:
         key = st["key"]
@@ -641,7 +685,8 @@ class Model:
         m = self.multipliers(st)
         gp = self.garden_plan(st)
         w = self.wolf(st)
-        buff = min(gp["buff"], self.g.get("BUFF_CAP", 1e9))
+        bc = self.g.get("BUFF_CAP", 1e9)
+        buff = min(gp["buff"], bc[st["major"]] if isinstance(bc, dict) else bc)
         common = (1 + buff) * (1 + gp["aura"]) * (1 + m["weather"]["passive"]) * m["root"] * m["method"]
         seat = m["med"]
         if self.g.get("AURA_ON_PEAK"):
@@ -660,7 +705,7 @@ class Model:
         kill_raw = self.g["WOLVES_PER_MIN"] * w * st["gather"] * m["method"] * m["party"]
         fight = 60 * st["p"] * common + kill_raw * eff
         # cores: extra raw qi, refined in seated time
-        core_qi = (self.g["LESSER_CORE_WOLVES"] * w) if self.g.get("LESSER_CORE_WOLVES") else self.g["LESSER_CORE_SHARE"] * st["d"]
+        core_qi = self.g["LESSER_CORE_WOLVES"] * w * st["gather"]  # Realms.enemyQi includes the stage's gather
         cores_raw = self.g["WOLVES_PER_MIN"] * ASSUME["lesser_per_wolf"] * core_qi * m["party"] if self.on("cores") else 0
         greater = (self.g["WOLVES_PER_MIN"] * ASSUME["greater_per_wolf"] * m["party"]) if (self.on("cores") and idx(st["key"]) >= idx(ASSUME["greater_from"])) else 0
         seated = 60 * st["p"] * common * seat
@@ -668,7 +713,11 @@ class Model:
         herb_raw_day = sum(n * self.herb_qi(h, st["d"]) for h, n in gp["herbs_day"].items()) if self.on("herbqi") else 0
         sold_value = sum(n * self.g["herbs"][h]["sellPrice"] for h, n in gp["herbs_day"].items() if self.herb_qi(h, st["d"]) > 0)
         sell_per_raw = sold_value / herb_raw_day if herb_raw_day else 0
-        return {"st": st, "sell_per_raw": sell_per_raw, "common": common, "fight": fight, "seated": seated, "eff": eff, "cores_raw": cores_raw,
+        # the profile sells this share of its qi herbs to the Herbalist (a gardener's stones)
+        sell = self.p.get("sell_share", 0.0) if self.on("herbqi") else 0.0
+        herb_sell_day = sold_value * sell
+        herb_raw_day *= 1 - sell
+        return {"st": st, "sell_per_raw": sell_per_raw, "herb_sell_day": herb_sell_day, "common": common, "fight": fight, "seated": seated, "eff": eff, "cores_raw": cores_raw,
                 "greater": greater, "refine_cap": refine_cap, "herb_raw_day": herb_raw_day,
                 "garden": gp, "mult": m, "w": w, "afk": st["p"] * self.g["OFFLINE_RATE"]}
 
@@ -732,6 +781,16 @@ class Model:
             key = key_now()
             t = self.targets(key)
             gs = self.gs
+            # the Herbalist's band-gated seeds (Herbs `seedCost` + `soldFrom`): a day's
+            # stock of the next tier starts it once the player's band sells it
+            nxt = gs["unlocked"] + 1
+            start = self.g.get("SHOP_FROM", {}).get(nxt)
+            if start and idx(key) >= idx(start) and nxt <= t["tier"]:
+                cost = self.g["SHOP_START_COST"][nxt]
+                if stones >= cost:
+                    stones -= cost
+                    gs["unlocked"] = nxt
+                    acq["unlocked_at"][nxt] = (key, day)
             changed = True
             while changed:
                 changed = False
@@ -858,6 +917,7 @@ class Model:
                     credit("greater cores", greater)
                     add(pas_f + kills + seated + greater + refine * r["eff"])
                     earn("hunting", f * ASSUME["stones_per_fight_min"])
+                    earn("herb sales", r["herb_sell_day"] / sum(m for _, m in sessions))
                     if self.gs is not None:
                         online_day = sum(m for _, m in sessions)
                         if self.owned(key_now())["tier"] >= self.gs["unlocked"]:
@@ -1008,7 +1068,8 @@ def load_foundation(game_src: str | None = None) -> dict:
     tgt = _map(f, "TARGET")
     return {"TARGET": tgt, "DEFAULT_TARGET": _num(f, "DEFAULT_TARGET"), "MAX_PERCENT": _num(f, "MAX_PERCENT"),
             "OVER_COST": _num(f, "OVER_COST", 1), "FIT_BELOW": _num(f, "FIT_BELOW"),
-            "HUNTER": (10, 4, 2), "GARDENER": 3, "HAUL": 0.75, "DARING": 2}
+            "HUNTER": (10, 4, 2), "GARDENER": 3, "HAUL": 0.75, "DARING": 2,
+            "CARRY": 1}  # Foundation.seal: experiences past MAX_PERCENT's need carry into the next stage
 
 
 def percent_for(count, target, cfg):
@@ -1216,20 +1277,10 @@ def lever_table(game, names):
         print(f"{lever:12}" + "".join(row))
 
 
-# The proposal (not applied to Pacing.luau): see docs/systems/pacing-model.md
-PROPOSAL = [
-    ("LESSER_CORE_WOLVES", 2, "Lesser Spirit Core: two kills' qi at the eater's stage (Enemies-style dantian^0.8), not 25% of the dantian"),
-    ("GREATER_CORE_BAR", 0.08, "Greater Spirit Core: 8% of the bar, not 35%"),
-    ("OFFLINE_PER_DAY", True, "one 12 h AFK/offline budget a day, not 12 h per absence (two logins doubled it)"),
-    ("BAND_SHARE", 0.0, "Herbs.eatQi: a herb below the stage's band tier (Herbs.Regions) gives only its floor, not the tier share"),
-    ("EAT_FLOOR", [60, 150, 900, 3000, 8000], "Pacing.Herbs.EAT_FLOOR: tier II's 400 is 11 wolves at QC4"),
-    ("AURA_BY_TIER", [0.02, 0.05, 0.15, 0.3, 0.6], "Herbs `aura` by tier (I-V), replacing the per-herb 0.007-0.3"),
-    ("AURA_RARITY", {"Common": 1, "Uncommon": 1.1, "Rare": 1.25, "Epic": 1.5, "Legendary": 2}, "times the herb's rarity: one standing Legendary tier III herb is +30% on your peak"),
-    ("AURA_CAP_BY_MAJOR", {"QiCondensation": 0.3, "QiRefining": 0.6, "Foundation": 1.0}, "AURA_CAP by peak tier, not one 1.5"),
-    ("AURA_ON_PEAK", True, "the aura multiplies meditation on your own peak (the air of your spirit cove), not passive everywhere"),
-    ("SCORE_MEDITATION", 0.0024, "Pacing.PeakScore.MEDITATION: +0.6 at the FE cap, not +1.0"),
-]
-PROPOSAL_BUFFS = 1  # rule: only the strongest QiRate herb buff counts (Cultivation buffTotal takes the max)
+# A pending proposal (not applied to Pacing.luau): (game key, value, why) rows that
+# --proposal runs side by side, with the bars re-solved. Empty: the 2026-10-24
+# rebalance is applied (docs/systems/pacing-model.md); add rows to try the next one.
+PROPOSAL: list = []
 
 
 # then the bars: one Pacing.Adjust `bar` multiplier per realm, solved so the regular
@@ -1246,17 +1297,23 @@ def realm_hours(reached):
     return out
 
 
+HOOK_KEEP = ("QC1", "QC2", "QC3")  # the hook's bars stay as the curve has them (the first run fills QC1)
+
+
 def solve_bars(game: dict, profile: dict, rounds=8) -> dict:
     g = copy.deepcopy(game)
     mult = {m: 1.0 for m in REALM_TARGETS}
+
+    def adjust(round_to):
+        return {row["key"]: {"bar": round_to(mult[row["major"]])} for row in g["curve"] if row["key"] not in HOOK_KEEP}
     for _ in range(rounds):
-        g["adjust"] = {row["key"]: {"bar": round(mult[row["major"]], 2)} for row in g["curve"]}
+        g["adjust"] = adjust(lambda x: round(x, 2))
         hours = realm_hours(Model(g, profile, {"offline"}).run()["reached"])
         for major, target in REALM_TARGETS.items():
             h = hours.get(major)
             if h:
                 mult[major] *= (target / h) ** 0.9
-    g["adjust"] = {row["key"]: {"bar": round(mult[row["major"]] * 20) / 20} for row in g["curve"]}
+    g["adjust"] = adjust(lambda x: round(x * 20) / 20)
     return g
 
 
@@ -1265,15 +1322,132 @@ def apply_proposal(game: dict, bars=True) -> dict:
     for key, value, _ in PROPOSAL:
         g[key] = value
     if bars:
-        g = solve_bars(g, proposal_profiles()["regular"])
+        g = solve_bars(g, PROFILES["regular"])
     return g
 
 
 def proposal_profiles():
-    out = copy.deepcopy(PROFILES)
-    for p in out.values():
-        p["buffs"] = min(p["buffs"], PROPOSAL_BUFFS)
-    return out
+    return copy.deepcopy(PROFILES)
+
+
+# --------------------------------------------------------------------------
+# The balance check (owner, 2026-10-24: "I don't want it overcomplicated to get a
+# good progression pace"). No lever is mandatory: a player on one road (hunting and
+# refining, or gardening and meditating) with a natural garden and no min-maxing of
+# buffs, cores or decorations stays within ROAD_LIMIT of the regular's online time;
+# a min-maxer stacking everything (the heavy profile) is at most MINMAX_LIMIT faster.
+# --------------------------------------------------------------------------
+
+ROAD_LIMIT = 0.15  # one-road online time at most 15% over the regular's
+MINMAX_LIMIT = 1.30  # the heavy's online speed at most 1.3x the regular's
+
+_reg = PROFILES["regular"]
+ROADS = {
+    # hunts three quarters of the time; a small garden of qi herbs it eats; no buff
+    # herbs, no standing aura plants, no decorations or seat item, no party
+    "hunter": dict(copy.deepcopy(_reg), label="Hunter road (hunt and refine, natural garden)", fight_share=0.75,
+                   plots={"QC4": (4, 1, 0), "QR1": (6, 1, 1), "FE1": (8, 2, 1)}, buffs=0, buff_uptime=0.0,
+                   aura_keep=0, chase_plots=0, score={}, med_item={}, party_share=0.0, dailies=1),
+    # sits on its peak 70% of the time with the regular's garden and the seat (a
+    # cushion); sells a third of the qi herbs for stones; no buff herbs, no standing
+    # aura plants, no decorations, no party
+    "gardener": dict(copy.deepcopy(_reg), label="Garden road (garden and meditate)", fight_share=0.3,
+                     buffs=0, buff_uptime=0.0, aura_keep=0, chase_plots=0, score={}, med_item={"QC6": 1},
+                     party_share=0.0, dailies=1, sell_share=0.3),
+}
+
+
+def balance_check(game: dict) -> bool:
+    """Prints the one-road and min-maxer checks (online only); True when both pass."""
+    def total(prof):
+        r = Model(game, prof, {"offline"}).run()["reached"]
+        return r.get("FE9 full", (None,))[0], realm_hours(r)
+    reg, reg_r = total(PROFILES["regular"])
+    print("\nBalance check (online only, to FE9 full): no lever is mandatory")
+    ok = True
+    for name, prof in list(ROADS.items()) + [("heavy (everything)", PROFILES["heavy"])]:
+        t, rh = total(prof)
+        if t is None or reg is None:
+            print(f"  {name:20} not reached")
+            ok = False
+            continue
+        over = t / reg - 1
+        speed = reg / t
+        if name in ROADS:
+            good = over <= ROAD_LIMIT
+            verdict = f"{over * 100:+.0f}% vs regular (limit +{ROAD_LIMIT * 100:.0f}%)"
+        else:
+            good = speed <= MINMAX_LIMIT
+            verdict = f"x{speed:.2f} the regular's speed (limit x{MINMAX_LIMIT:.2f})"
+        ok &= good
+        realms = " / ".join(f"{SHORT[m]} {rh.get(m, 0):.1f}h" for m in REALM_TARGETS)
+        print(f"  {name:20} {fmt_h(t):>7}  {verdict:42} {'ok' if good else 'FAIL'}   ({realms})")
+    return ok
+
+
+# --------------------------------------------------------------------------
+# The Pacing header's time table (the bare fighter and gardener on this curve)
+# --------------------------------------------------------------------------
+
+def header_rows(game: dict) -> list[dict]:
+    m = Model(game, PROFILES["regular"])
+    reg = Model(game, PROFILES["regular"], {"offline"}).run()["reached"]
+    rows = []
+    for i, row in enumerate(game["curve"]):
+        st = m.stage(i)
+        w = m.wolf(st)
+        p = st["p"]
+        active = st["bar"] / (60 * p + 2 * game["BASE_REFINE"] * w * st["gather"])
+        idle = st["bar"] / p / 60
+        nxt = STAGES[i + 1] if i + 1 < len(STAGES) else "FE9 full"
+        here = reg.get(STAGES[i]), reg.get(nxt)
+        rows.append({
+            "key": row["key"], "bar": st["bar"], "active": active, "peak": idle / game["ON_PEAK"],
+            "meditate": idle / game["ANYWHERE"], "idle": idle,
+            "runs": st["bar"] / (st["d"] / game["RUNS_PER_DANTIAN"] * game["BASE_REFINE"]),
+            "wolves": st["bar"] / game["BASE_REFINE"] / (w * st["gather"]), "gather": row["gather"],
+            "regular": (here[1][0] - here[0][0]) * 60 if here[0] and here[1] else None,
+        })
+    return rows
+
+
+def _m(minutes):
+    return f"{minutes:.0f} min" if minutes < 60 else f"{minutes / 60:.1f} h"
+
+
+def print_header(game: dict):
+    rows = header_rows(game)
+    print("--   stage     bar    active  on peak  meditate    idle  regular  refine runs, wolf kills of qi")
+    tot = {"QiCondensation": [0, 0, 0], "QiRefining": [0, 0, 0], "Foundation": [0, 0, 0]}
+    for r, row in zip(rows, game["curve"]):
+        t = tot[row["major"]]
+        t[0] += r["active"]
+        t[1] += r["peak"]
+        t[2] += r["regular"] or 0
+        g = f" (gather {r['gather']:g})" if r["gather"] != 1 else ""
+        line = (f"--   {r['key']:5}{r['bar']:>9.0f}{_m(r['active']):>9}{_m(r['peak']):>9}{_m(r['meditate']):>10}{_m(r['idle']):>8}"
+                f"{_m(r['regular']) if r['regular'] is not None else '-':>9}{r['runs']:>6.0f} runs  ~{r['wolves']:.0f} wolves{g}")
+        last = row["key"].endswith("9")
+        if last:
+            line += f"   {SHORT[row['major']]} total: {t[0] / 60:.1f} h active, {t[1] / 60:.1f} h on peak, regular {t[2] / 60:.1f} h"
+        print(line)
+
+
+def header_check(game: dict) -> bool:
+    """The Pacing header's table matches this curve (bar and the fighter's active time)."""
+    src = _read("Pacing.luau")
+    want = {r["key"]: r for r in header_rows(game)}
+    ok, seen = True, 0
+    for key, bar, active in re.findall(r"--   ([A-Z]{2}\d)\s+(\d+)\s+([\d.]+ (?:min|h))", src):
+        seen += 1
+        mins = float(active.split()[0]) * (60 if active.endswith("h") else 1)
+        r = want.get(key)
+        if not r or abs(float(bar) / r["bar"] - 1) > 0.01 or abs(mins - r["active"]) > max(0.6, 0.08 * r["active"]):
+            ok = False
+            print(f"  header {key}: bar {bar}, active {active}; the curve says {r['bar']:.0f}, {_m(r['active'])}" if r else f"  header {key}: unknown")
+    ok &= seen == len(want)
+    print(f"\nHeader check (Pacing.luau's time table vs this curve): {'ok' if ok else 'FAIL: run --header and paste it'}")
+    return ok
 
 
 def main():
@@ -1283,6 +1457,7 @@ def main():
     ap.add_argument("--sources", action="store_true", help="where the cultivation came from")
     ap.add_argument("--foundation", action="store_true", help="foundation percent per stage")
     ap.add_argument("--proposal", action="store_true", help="also run the proposed knobs")
+    ap.add_argument("--header", action="store_true", help="print the Pacing header's time table for this curve")
     args = ap.parse_args()
 
     game = load_game()
@@ -1306,12 +1481,20 @@ def main():
 
     if args.foundation:
         fcfg = load_foundation()
-        foundation_table(game, PROFILES, fcfg, " on today's curve")
+        foundation_table(game, PROFILES, fcfg, " (with the carry)")
 
     if args.levers:
         lever_table(game, names)
 
-    if args.proposal:
+    balance_check(game)
+    header_check(game)
+    if args.header:
+        print()
+        print_header(game)
+
+    if args.proposal and not PROPOSAL:
+        print("\nNo proposal pending (PROPOSAL is empty).")
+    elif args.proposal:
         pg = apply_proposal(game)
         pp = proposal_profiles()
         presults = {"fighter (header check)": Fighter(pg, {}).run()}

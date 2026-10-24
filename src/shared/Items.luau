@@ -7,6 +7,8 @@
 --   qi                raw qi into the dantian
 --   qiShare           raw qi as a share of the dantian
 --   qiFloor           the least raw qi qiShare gives (herb tiers, Pacing.Herbs.EAT_FLOOR)
+--   qiKills           raw qi worth this many kills at the eater's stage (a spirit
+--                     wolf's qiDrop, Pacing.Income.CORE_KILL_QIDROP, through Realms.enemyQi)
 --   cultivationShare  cultivation as a share of the realm bar (skips the dantian)
 --   daoXp             weapon Dao XP for the class in hand (bare hands: Fist)
 --   heal              share of max health restored
@@ -22,6 +24,7 @@ export type Use = {
 	qi: number?,
 	qiShare: number?,
 	qiFloor: number?,
+	qiKills: number?,
 	cultivationShare: number?,
 	daoXp: number?,
 	heal: number?,
@@ -98,9 +101,9 @@ Items.Defs = {
 		rarity = "Uncommon",
 		color = Color3.fromRGB(110, 225, 205),
 		glyph = "核",
-		blurb = "Crush it to draw out raw qi: +25% of your dantian",
+		blurb = "Crush it to draw out raw qi: two kills' worth at your realm",
 		lore = "The condensed qi of a spirit beast. Wolves, boars and serpents of the wilds carry them.",
-		use = { qiShare = 0.25 },
+		use = { qiKills = 2 },
 	},
 	GreaterSpiritCore = {
 		id = "GreaterSpiritCore",
@@ -110,9 +113,9 @@ Items.Defs = {
 		rarity = "Epic",
 		color = Color3.fromRGB(255, 120, 90),
 		glyph = "魄",
-		blurb = "+35% of your realm bar at once, and +30% cultivation for 5 min",
+		blurb = "+8% of your realm bar at once, and +20% cultivation for 5 min",
 		lore = "A beast king's core, dense enough to refine straight into your foundation.",
-		use = { cultivationShare = 0.35, buffs = { { kind = "QiRate", amount = 0.3, seconds = 300 } } },
+		use = { cultivationShare = 0.08, buffs = { { kind = "QiRate", amount = 0.2, seconds = 300 } } },
 	},
 	HeavenlyDew = {
 		id = "HeavenlyDew",
@@ -148,9 +151,9 @@ Items.Defs = {
 		rarity = "Legendary",
 		color = Color3.fromRGB(255, 160, 175),
 		glyph = "桃",
-		blurb = "+50% of your realm bar, full health, and +100% cultivation for 10 min",
+		blurb = "+50% of your realm bar, full health, and +50% cultivation for 10 min",
 		lore = "A peach from the heavenly orchards, ripened once in three thousand years.",
-		use = { cultivationShare = 0.5, heal = 1, buffs = { { kind = "QiRate", amount = 1.0, seconds = 600 } } },
+		use = { cultivationShare = 0.5, heal = 1, buffs = { { kind = "QiRate", amount = 0.5, seconds = 600 } } },
 		treasureWeight = 10,
 	},
 	-- spirit root pills: rare boss drops (2-5%) and rare treasures, never common beasts

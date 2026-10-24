@@ -84,7 +84,9 @@ What we build next and in what order (foundation grades, the haul and the surge,
 | Want to change | File |
 |---|---|
 | How fast players climb, per stage: qi, breakthroughs, tribulation, technique Dao gates, beast strength | `src/shared/Pacing.luau` ([cultivation](systems/cultivation.md)) |
-| What real players get per stage (herbs, garden, aura, building, roots, method, cores, nights, economy, foundation percent) against the curve, and proposed knobs | `tools/pacing_model.py` ([pacing model](systems/pacing-model.md)) |
+| What real players get per stage (herbs, garden, aura, building, roots, method, cores, nights, economy, foundation percent) against the curve, the balance check and proposed knobs | `tools/pacing_model.py` ([pacing model](systems/pacing-model.md)) |
+| The progression rulebook: targets, hard rules, every faucet and sink, every multiplier and its cap, and where every herb, seed, pill, core, treasure, manual and method comes from (read before adding any reward or multiplier) | [progression rules](systems/progression-rules.md) |
+| Garden aura (by tier and rarity, cap by peak tier, the decorate-your-abode lift), herb buff falloff and caps, the Herbalist's daily stock | `src/shared/Pacing.luau` `Aura`, `Herbs` ([garden](systems/garden.md#aura)) |
 | Enemy overhead bar danger tiers (realm-gap thresholds); their art, colours and omen lines | `src/shared/Pacing.luau` `Danger`; `STYLES` in `src/client/EnemyBars.luau` ([enemies](systems/enemies.md)) |
 | Practice Dao drill (unlock stage, cooldown, XP share, game) | `src/shared/Pacing.luau` `DaoPractice` ([meditation](systems/meditation.md)) |
 | Death cost: spill share, spill time, rarity line that banks on pickup, spirit ring slots | `src/shared/Pacing.luau` `Haul` ([haul](systems/haul.md)) |

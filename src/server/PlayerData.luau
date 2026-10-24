@@ -110,6 +110,12 @@ export type Data = {
 	lastLogoutUnix: number,
 	firstJoinUnix: number, -- os.time() the player joined for this slot's first play (Analytics timings; 0 = before it was recorded)
 	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
+	-- the day's offline/AFK budget (Pacing.Income.OFFLINE_MAX_HOURS a UTC day, shared by
+	-- every absence, AFK stretch and seclusion): the day it's for and seconds used
+	awayDay: number,
+	awayUsed: number,
+	-- the Herbalist's daily stock (Pacing.Herbs.STOCK): the UTC day and seeds bought by herb id
+	herbalist: { day: number, bought: { [string]: number } },
 	tribulationReadyUnix: number, -- os.time() a failed tribulation can be retried
 	heavenDefying: boolean, -- the heavens refuse this cultivator: a tribulation guards every major breakthrough (set by a heaven-defying bloodline or root; docs/progression.md)
 	daoPracticeReadyUnix: number, -- os.time() the next Practice Dao drill opens
@@ -256,6 +262,9 @@ local function default(): Data
 		lastLogoutUnix = 0,
 		firstJoinUnix = 0,
 		lastDailyDay = 0,
+		awayDay = 0,
+		awayUsed = 0,
+		herbalist = { day = 0, bought = {} },
 		tribulationReadyUnix = 0,
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
@@ -414,7 +423,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon", "herbarium", "seclusion", "sect", "titles" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon", "herbarium", "seclusion", "sect", "titles", "herbalist" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

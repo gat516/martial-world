@@ -28,23 +28,32 @@ until playtested. Nothing here is built yet unless it says so.
 - **Bloodlines, not races.** Cosmetic traits (horns, tails, wings, see-through
   spirits) come with a bloodline. See "Bloodlines".
 
-## Length targets (active play; built 2026-10-23, untuned in play)
-| Major | Stages | Target | Per stage |
+## Length targets (active play; rebalanced 2026-10-24, untuned in play)
+The targets are for the model's regular player online (1.5 h a day, hunting and
+meditating, a growing garden; [pacing model](systems/pacing-model.md)), not a bare
+fighter: since the 2026-10-24 rebalance the bars (`Pacing.Adjust`) are sized for
+players who use the systems. The rules every reward follows are in
+[progression rules](systems/progression-rules.md).
+
+| Major | Stages | Target | Per stage (the regular, online) |
 |---|---|---|---|
-| Qi Condensation | 9 | about 2.5 h (2.4 h built) | 1 min (QC1) to 55 min (QC9) |
-| Qi Refining | 9 | about 7 h (7.1 h built) | 22-75 min |
-| Foundation Establishment | 9 | about 20 h | 80-175 min |
+| Qi Condensation | 9 | about 2.5 h (2.4 h built) | 1 min (QC1) to 51 min (QC9) |
+| Qi Refining | 9 | about 7 h (7.1 h built) | 30-70 min |
+| Foundation Establishment | 9 | about 20 h (19.9 h built) | 1.7-2.7 h |
+
+No lever is mandatory: one road (only hunting, or only gardening and meditating) with
+a natural garden is within 15% of that; stacking everything is at most 1.3x faster.
 
 About 30 h to FE9, the cap, which should be hard to reach; passive and offline
 cultivation stretch it over real days. Shape ([roadmap](roadmap.md) "Pacing, realm
 gaps and verbs"): the hook lands QC2, QC3 and QC4 in the first ten minutes; every
 realm is three thirds, each easy to hard and opened by a breather; the real
 slowdown is mid Qi Refining (QR4 on), where the garden and the peak keep
-cultivation moving; no stage runs over about 3 h. The gardener's road is about 2x
-the fighter's time in QC, 1.6x in QR and 1.5x in FE, before garden aura, build
-items and herbs. Heaven-defiers take 1.5x longer on every bar. The per-stage table,
-its assumptions (about two wolf kills of raw qi a minute) and the formulas are in
-the `Pacing.luau` header: pick a stage's minutes, derive its bar.
+cultivation moving; no stage runs over about 3 h. The bare gardener's road is about
+2x the bare fighter's time in QC and 1.5-1.8x after; the garden aura, herbs and the
+seat close it. Heaven-defiers take 1.5x longer on every bar. The per-stage table (the
+bare fighter, the bare gardener and the regular), its assumptions and the formulas
+are in the `Pacing.luau` header (`tools/pacing_model.py --header` regenerates it).
 
 ## The stage template
 Every three stages is a **chapter**; every nine is a **realm**.
@@ -129,8 +138,9 @@ The garden dies at QC6 because herb qi is flat. Fix:
   IV Treasure (FE4-8), V Heavenly (FE9+). Eating a herb gives a fixed **share of
   the current dantian** by tier (about 6, 9, 12, 16, 20 percent), so a herb always
   matters but never replaces hunting, with a floor per tier so early herbs stay worth
-  eating (120, 400, 2500, 8000, 20000 raw qi; `EAT_FLOOR`), and event herbs keep a
-  bigger share (Thousand-Year Ginseng a full dantian, Rift Lotus half; `PRIZE`).
+  eating (60, 150, 900, 3000, 8000 raw qi; `EAT_FLOOR`), only the floor once you're
+  past the herb's band (2026-10-24: low-tier herbs stop scaling), and event herbs keep
+  a bigger share (Thousand-Year Ginseng a full dantian, Rift Lotus half; `PRIZE`).
   Built (untuned): `Herbs.luau` `tier`, `Herbs.eatQi`, `Pacing.Herbs`; 22 herbs over
   tiers I-V ([garden](systems/garden.md) has the table).
 - **Seeds come from the region.** Beasts drop their region's seeds, so going out

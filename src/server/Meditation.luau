@@ -23,7 +23,7 @@ local Analytics = require(script.Parent.Analytics)
 
 local meditateRemote = ReplicatedStorage.Remotes.Meditate :: RemoteEvent
 
-export type Spot = { multiplier: number, place: string, own: boolean? } -- own: on your own peak (where seclusion can begin)
+export type Spot = { multiplier: number, place: string, own: boolean?, decor: number? } -- own: on your own peak (where seclusion can begin and the garden aura counts); decor: Peaks.decorShare there
 type Session = { anchor: Vector3, spot: Spot }
 
 local Meditation = {}
@@ -80,10 +80,11 @@ local function spotAt(player: Player, position: Vector3): Spot
 		if Vector2.new(offset.X, offset.Z).Magnitude <= PEAK_RADIUS and math.abs(offset.Y) <= PEAK_RADIUS then
 			local item = bestItem(peak, position)
 			local base = Rates.ON_PEAK + Peaks.meditationBonus(player) -- the peak score (Pacing.PeakScore)
+			local decor = Peaks.decorShare(player)
 			if item then
-				return { multiplier = base + item.bonus, place = `on your {item.name}`, own = true }
+				return { multiplier = base + item.bonus, place = `on your {item.name}`, own = true, decor = decor }
 			end
-			return { multiplier = base, place = "on your peak", own = true }
+			return { multiplier = base, place = "on your peak", own = true, decor = decor }
 		end
 	end
 	local best: Spot = { multiplier = Rates.ANYWHERE, place = "" }
@@ -163,7 +164,7 @@ task.spawn(function()
 				stop(player, true)
 			else
 				local spot = spotAt(player, s.anchor)
-				if spot.multiplier ~= s.spot.multiplier then
+				if spot.multiplier ~= s.spot.multiplier or spot.decor ~= s.spot.decor then
 					s.spot = spot
 					Cultivation.pushState(player)
 				end

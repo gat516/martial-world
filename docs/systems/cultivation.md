@@ -24,9 +24,13 @@ felt in fights.
   QC3 and QC4 in the first ten minutes; each realm is three thirds, each opened by a
   breather; the real slowdown is mid Qi Refining (QR4 on), where passive grows as a
   share of income so the garden aura, peak build items and herbs carry cultivation;
-  no FE stage runs over about 3 h. The gardener's road (meditating on the peak) is
-  about 2x the fighter's time in QC, 1.6x in QR and 1.5x in FE. The per-stage table
-  and its formulas are in the `Pacing.luau` header. Untuned in play.
+  no FE stage runs over about 3 h. Since the 2026-10-24 rebalance the bars
+  (`Pacing.Adjust`: QC4-9 x1.15, QR x1.65, FE x4.2) are sized for players who use the
+  systems: the model's regular player (1.5 h a day) meets the targets online, a
+  one-road player (only hunting, or only gardening and meditating) is within 15% of
+  it, and a min-maxer is at most 1.3x faster ([progression rules](progression-rules.md),
+  [pacing model](pacing-model.md)). The per-stage table (bare fighter, bare gardener and
+  the regular) and its formulas are in the `Pacing.luau` header. Untuned in play.
 - **Strength:** about +10% health and power a minor stage and x2.25 at a major;
   beasts follow, and realm suppression cuts damage across majors
   ([combat](combat.md#realm-power-and-suppression-2026-10-23)).
@@ -53,14 +57,17 @@ felt in fights.
 - Two speeds: **passive** cultivation is always on (online, offline, faster while
   meditating) so nobody is ever stuck; **active** play (kill beasts / gather qi
   nodes, then refine with a skill minigame) is several times faster.
-- **AFK online = offline (user, 2026-10-23).** Offline time (up to 12 h), AFK online
+- **AFK online = offline (user, 2026-10-23).** Offline time, AFK online
   (no input for `Pacing.Income.AFK_AFTER`, 10 min; the client pings `Meditate "awake"`
   on input) and [seclusion](seclusion.md) all earn `Cultivation.afkRate`: the plain
   stage passive x `OFFLINE_RATE` (1), no meditation, aura, weather, buffs, root or
-  method, for at most `OFFLINE_MAX_HOURS` of AFK, up to the overflow cap. Nothing
-  breaks through on its own. At the cap a toast says "Your dantian can hold no more.
-  Break through." once, and again on coming back from AFK, offline or seclusion.
-  The balance (a night is about one stage) is in the `Pacing.luau` header.
+  method, up to the overflow cap, out of **one `OFFLINE_MAX_HOURS` (12 h) budget a UTC
+  day** shared by every absence, AFK stretch and seclusion (`Cultivation.awayLeft` /
+  `spendAway`, saved as `awayDay`/`awayUsed`; rebalance 2026-10-24: two logins used to
+  earn two nights). Nothing breaks through on its own. At the cap a toast says "Your
+  dantian can hold no more. Break through." once, and again on coming back from AFK,
+  offline or seclusion. A night fills the cap at every QC and QR stage and 26-57% of
+  an FE bar (`Pacing.luau` header; an open call in [progression rules](progression-rules.md)).
 - A deliberate rhythm, not a flat ramp: QC1-3 hook (onboarding), QC4 breather,
   QC5 ramp, QC6 mini-wall, QC7 breather, QC8 ramp, QC9 wall (biggest bar, a
   tribulation for heaven-defiers), then Qi Refining and Foundation
@@ -124,8 +131,11 @@ felt in fights.
    impurities -> efficiency `lerp(EFFICIENCY_MIN, EFFICIENCY_MAX, score) * stage.refine
    * weather` -> `data.cultivation`. A score under `DEVIATION_SCORE` deviates qi
    (no refining or passive for a while).
-3. Passive: `stage.passive * (1 + QiRate buffs) * (1 + garden aura) * (1 + weather)
-   * meditation multiplier` every second, up to the overflow cap
+3. Passive: `stage.passive * (1 + QiRate buffs) * (1 + garden aura, on your own peak
+   only) * (1 + weather) * meditation multiplier * root * method` every second. QiRate
+   buffs stack with falloff (the strongest whole, the second half, the third a quarter,
+   `Pacing.Herbs.BUFF_FALLOFF`) up to `BUFF_CAP` by major (QC 0.2, QR 0.3, FE 0.5); the
+   aura is in [garden](garden.md#aura), up to the overflow cap
    (`Cultivation.cap`; everything that adds cultivation goes through
    `Cultivation.add`, which stops there). Refining refuses to start at the cap.
 4. Breakthrough: `CultivationAction "breakthrough"` -> `Cultivation.breakthrough`
@@ -178,9 +188,16 @@ not the foundation.
   (150). Breaking through at 80% is a good breakthrough, just a bit less.
 - **100% is easy; the real bonus is past it (user, 2026-10-24):** "break through at 100
   percent should be easy to reach... players should have to grind crazy hard so they get
-  the real, extra bonuses". Targets are small (QC4 2, then 3 a stage), and past the target
-  each percent costs `OVER_COST` (3) times as many experiences, so the cap, 150%, takes 2.5x the
-  target; 130-140% is a real achievement.
+  the real, extra bonuses". Targets are small (4 a stage QC4-QC9, `DEFAULT_TARGET` 2.5 in
+  QR and FE, which have no same-realm beasts while variants are off; rebalance
+  2026-10-24), and past the target each percent costs `OVER_COST` (3) times as many
+  experiences, so the cap, 150%, takes 2.5x the target; 130-140% is meant to be a real
+  achievement.
+- **The carry:** experiences past what 150% needs carry into the next stage's count
+  (`Foundation.seal`), so a band's front-loaded pool (its first stage takes most of the
+  fresh experiences) spreads over its stages. The model's medians with it: casual 100%,
+  regular 133%, heavy 144% (`tools/pacing_model.py --foundation`); the regular reaching
+  130%+ on about half its stages is an open call ([progression rules](progression-rules.md)).
 - **The extra is hidden:** past `HIDDEN_FROM` (110%) the Self card stops listing open
   experiences (`state.veiled`, hints empty): "Beyond this, the Dao hides its lessons." The
   rest are found by exploring and doing varied things, not read off a list.
@@ -350,8 +367,10 @@ to Stone Boars).
 - `Config.Meditation.ANYWHERE/ON_PEAK` are aliases of `Pacing.Meditation` until
   `server/Meditation.luau` reads Pacing directly.
 - Herb qi is a tier share of the dantian with a per-tier floor (event herbs a
-  bigger share); cores and treasures are shares too. All of it only fills the
-  dantian's room, so a herb never gives more than one dantian.
+  bigger share), only the floor once the eater is past the herb's band (`Herbs.eatQi`);
+  a Lesser Spirit Core is two wolf kills' qi at the eater's stage (`qiKills`), a Greater
+  Core 8% of the bar, treasures shares. All of it only fills the dantian's room, so a
+  herb never gives more than one dantian.
 - The `Breakthrough` analytics event's "seconds since" resets each session.
 - Overflow is untuned: `OVERFLOW_CAP` 1.5 and `CARRY_SHARE` 0.5 are first
   guesses. Open question: should gains past the bar slow down (a lower rate

@@ -13,6 +13,7 @@ export type Snapshot = {
 	herbs: { [string]: number },
 	items: { [string]: number },
 	seeds: { [string]: number },
+	shop: { [string]: number }?, -- the Herbalist's seeds left today, by herb id (missing: not sold to you; Pacing.Herbs.STOCK)
 	ring: { string }?, -- spirit ring: herb and item ids whose stacks are banked even in the wilds (server Haul)
 	ringSlots: number?, -- stacks the ring holds at this realm
 	buffs: { Buff },

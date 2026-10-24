@@ -16,6 +16,8 @@ local ServerStorage = game:GetService("ServerStorage")
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Items = require(ReplicatedStorage.Shared.Items)
+local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local Realms = require(ReplicatedStorage.Shared.Realms)
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local RootDefs = require(ReplicatedStorage.Shared.Roots)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
@@ -141,7 +143,19 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	local use = item.use
 	local stage = Cultivation.stage(data)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-	local qi = (use.qi or 0) + (if use.qiShare then math.max(stage.dantian * use.qiShare, use.qiFloor or 0) else 0)
+	local qi = use.qi or 0
+	if Herbs.Defs[item.id] then
+		-- herbs: the tier's share, or only the floor once the eater is past its band (Herbs.eatQi)
+		local share, floor = Herbs.eatQi(item.id, stage)
+		if share > 0 or floor > 0 then
+			qi += math.max(stage.dantian * share, floor)
+		end
+	elseif use.qiShare then
+		qi += math.max(stage.dantian * use.qiShare, use.qiFloor or 0)
+	end
+	if use.qiKills then
+		qi += use.qiKills * Realms.enemyQi(Pacing.Income.CORE_KILL_QIDROP, stage)
+	end
 	local onlyQi = qi > 0
 		and not (use.buffs or use.cultivationShare or use.daoXp or (use.heal and humanoid and humanoid.Health < humanoid.MaxHealth))
 	if onlyQi and data.rawQi >= stage.dantian then

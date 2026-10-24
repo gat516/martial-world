@@ -78,8 +78,9 @@ Account = { av = 1, slots = { ["1"] = Data, ... },   -- string keys, "1".."MAX"
 - **Slots off** (`Config.Slots.ENABLED`, false in the live game for now): the old
   key is read and written exactly as before, seen as a one-slot account and
   played at once. Live data is untouched until slots ship.
-- Offline cultivation and the daily qi are per slot (each slot has its own
-  `lastLogoutUnix` and `lastDailyDay`).
+- Offline cultivation, the daily qi, the day's offline/AFK budget and the Herbalist's
+  daily stock are per slot (each slot has its own `lastLogoutUnix`, `lastDailyDay`,
+  `awayDay`/`awayUsed` and `herbalist`): each slot is its own character.
 
 ## Flow
 Join -> `PlayerData.load` (account) -> `Slots.awaitPlay` waits -> the client asks

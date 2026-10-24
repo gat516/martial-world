@@ -155,6 +155,13 @@ function Peaks.meditationBonus(player: Player): number
 	return (scores[player] or 0) * Pacing.PeakScore.MEDITATION
 end
 
+-- The peak score's share of the tier's cap, 0..1: how much decorating lifts the
+-- garden aura's cap (Pacing.Aura.DECOR).
+function Peaks.decorShare(player: Player): number
+	local cap = Peaks.tierOf(player).scoreCap
+	return if cap > 0 then math.clamp((scores[player] or 0) / cap, 0, 1) else 0
+end
+
 -- What the peak score adds to the growth speed of the owner's plants.
 function Peaks.growthBonus(player: Player): number
 	return (scores[player] or 0) * Pacing.PeakScore.GROWTH

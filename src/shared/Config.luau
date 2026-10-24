@@ -323,7 +323,7 @@ return {
 		SEEDS_BACK = { 1, 2 }, -- seeds returned per single harvest (min, max)
 		EDGE = 0.5, -- studs a stem keeps from a plot's edge
 		TICK = 10, -- seconds between weather growth, swelling and mutation rolls
-		AURA_CAP = 1.5, -- the most cultivation speed a garden's plants can add
+		-- the garden's aura (by tier and rarity, its cap by peak tier): Pacing.Aura
 		MAX_SELL = 999, -- herbs per sell request
 		MAX_SEEDS_BUY = 25, -- seeds per buy request
 		-- wild herbs that sprout on owned peaks during their weather event

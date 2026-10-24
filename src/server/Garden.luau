@@ -698,11 +698,25 @@ function Garden.buySeed(player: Player, herbId: any, n: any): (boolean, string?)
 	if not herbalistNear(player) then
 		return false, "Buy seeds from the Herbalist at the Spirit Market"
 	end
+	local now = os.time()
+	local left = Herbs.stockLeft(data.herbalist, herbId :: string, data.realm.major, data.realm.minor, now)
+	if left == nil then
+		return false, "The Herbalist keeps those for cultivators of a higher realm"
+	elseif left < amount then
+		return false, if left == 0 then `No {herb.name} seeds left today. Come back tomorrow` else `Only {left} {herb.name} seed{if left == 1 then "" else "s"} left today`
+	end
 	local price = herb.seedCost * amount
 	if data.stones < price then
 		return false, `You need {price - data.stones} more Spirit Stones`
 	end
 	data.stones -= price
+	-- the daily stock (Pacing.Herbs.STOCK)
+	local today = now // 86400
+	if data.herbalist.day ~= today then
+		data.herbalist.day = today
+		data.herbalist.bought = {}
+	end
+	data.herbalist.bought[herbId :: string] = (data.herbalist.bought[herbId :: string] or 0) + amount
 	Analytics.stones(player, "sink", price, data.stones, "Shop", "Herbalist")
 	data.seeds[herbId] = (data.seeds[herbId] or 0) + amount
 	Cultivation.pushState(player)

@@ -1,14 +1,16 @@
 --!strict
 -- Passive cultivation fills the realm bar every second at the realm's slow rate,
--- boosted by eaten-herb buffs, by the spirit aura of mature plants left growing in
--- the player's plots, and by meditating (Meditation.luau). It keeps filling past
+-- boosted by eaten-herb buffs (stacking with falloff, capped by major), by meditating
+-- (Meditation.luau) and, while meditating on their own peak, by the spirit aura of
+-- every plant in their plots (Pacing.Aura). It keeps filling past
 -- the bar up to the overflow cap (Pacing.Breakthrough.OVERFLOW_CAP) without moving
 -- the realm; breakthroughs (seated only) move the player on and carry some of the excess.
 -- Also owns breakthroughs, qi deviation, the passive-progress warnings, per-realm
 -- character stats and the PlayerState push the HUD renders from.
 -- AFK (decided 2026-10-23): online with no input for Pacing.Income.AFK_AFTER, or in
--- seclusion (Seclusion.luau), earns exactly what offline would (Cultivation.afkRate,
--- for at most OFFLINE_MAX_HOURS of AFK). At the overflow cap it says once (and again
+-- seclusion (Seclusion.luau), earns exactly what offline would (Cultivation.afkRate),
+-- out of one OFFLINE_MAX_HOURS budget a UTC day shared with offline time
+-- (Cultivation.awayLeft). At the overflow cap it says once (and again
 -- on coming back from AFK or offline) that the dantian is full; nothing breaks
 -- through on its own.
 
@@ -17,7 +19,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config).Cultivation
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
-local GardenConfig = require(ReplicatedStorage.Shared.Config).Garden
 local Movement = require(script.Parent.Movement)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Realms = require(ReplicatedStorage.Shared.Realms)
@@ -47,7 +48,6 @@ type Session = {
 	lastWarned: number,
 	fullNoticed: boolean,
 	lastInput: number, -- os.clock() of the last input ping or active action
-	afkSeconds: number, -- AFK seconds this stretch (online), capped like offline time
 	wasAfk: boolean,
 	capNoticed: boolean, -- the "dantian can hold no more" line was shown for this stretch
 }
@@ -57,7 +57,7 @@ local function session(player: Player): Session
 	local s = sessions[player]
 	if not s then
 		local now = os.clock()
-		s = { deviationUntil = 0, lastActive = now, lastWarned = -math.huge, fullNoticed = false, lastInput = now, afkSeconds = 0, wasAfk = false, capNoticed = false }
+		s = { deviationUntil = 0, lastActive = now, lastWarned = -math.huge, fullNoticed = false, lastInput = now, wasAfk = false, capNoticed = false }
 		sessions[player] = s
 	end
 	return s
@@ -104,29 +104,52 @@ function Cultivation.deviate(player: Player, seconds: number)
 	player:SetAttribute("DeviationUntil", workspace:GetServerTimeNow() + seconds)
 end
 
--- Mature, unharvested plants radiate aura, scaled by their size and mutations.
-function Cultivation.aura(data: PlayerData.Data, now: number): number
+-- The garden's aura (Pacing.Aura): every plant in the plots radiates its herb's aura
+-- (Herbs.aura) x size x mutations, GROWING of it until mature, summed and capped by
+-- the major's CAP, lifted by up to DECOR of it by the peak score (`decor`, the score's
+-- share of the tier's cap, 0..1). Cultivation.rate applies it on the owner's own peak.
+function Cultivation.aura(data: PlayerData.Data, now: number, decor: number?): number
+	local A = Pacing.Aura
 	local total = 0
 	for _, plants in data.peak.plots do
 		for _, plant in plants do
-			local herb = Herbs.Defs[plant.h]
-			if herb and Herbs.progress(plant, now) >= 1 then
-				total += herb.aura * plant.s * Herbs.multiplier(plant.m)
-			end
+			local share = if Herbs.progress(plant, now) >= 1 then 1 else A.GROWING
+			total += Herbs.aura(plant.h) * plant.s * Herbs.multiplier(plant.m) * share
 		end
 	end
-	return math.min(total, GardenConfig.AURA_CAP)
+	local cap = (A.CAP[data.realm.major] or 0) * (1 + A.DECOR * math.clamp(decor or 0, 0, 1))
+	return math.min(total, cap)
 end
 
+-- The sum of active buffs of `kind`. QiRate buffs from different sources stack with
+-- falloff (the strongest whole, then Pacing.Herbs.BUFF_FALLOFF) up to BUFF_CAP by major.
 local function buffTotal(data: PlayerData.Data, kind: string): number
-	local total = 0
+	if kind ~= "QiRate" then
+		local total = 0
+		for _, b in data.buffs do
+			if b.kind == kind then
+				total += b.amount
+			end
+		end
+		return total
+	end
+	local amounts = {}
 	for _, b in data.buffs do
 		if b.kind == kind then
-			total += b.amount
+			table.insert(amounts, b.amount)
 		end
 	end
-	return total
+	table.sort(amounts, function(a, b)
+		return a > b
+	end)
+	local H = Pacing.Herbs
+	local total = 0
+	for i, amount in amounts do
+		total += amount * (H.BUFF_FALLOFF[i] or 0)
+	end
+	return math.min(total, H.BUFF_CAP[data.realm.major] or total)
 end
+Cultivation.buffTotal = buffTotal
 
 -- The player's stage as they live it: a heaven-defier's has the longer bar
 -- (Pacing.HeavenDefying.BAR; Realms.forPlayer).
@@ -197,8 +220,9 @@ function Cultivation.block(data: PlayerData.Data): string
 end
 
 -- Set by Meditation: where the player is meditating and its passive multiplier,
--- or nil when they aren't.
-Cultivation.meditation = nil :: ((Player) -> { multiplier: number, place: string }?)?
+-- or nil when they aren't. `own`: on their own peak; `decor`: the peak score's share
+-- of the tier's cap there (lifts the aura cap, Pacing.Aura.DECOR).
+Cultivation.meditation = nil :: ((Player) -> { multiplier: number, place: string, own: boolean?, decor: number? }?)?
 
 -- Set by Combat: whether the player was hurt recently.
 Cultivation.inCombat = nil :: ((Player) -> boolean)?
@@ -209,12 +233,14 @@ function Cultivation.afkRate(data: PlayerData.Data): number
 	return Cultivation.stage(data).passive * Pacing.Income.OFFLINE_RATE
 end
 
--- Passive cultivation per second.
+-- Passive cultivation per second. The garden's aura counts only while meditating on
+-- your own peak (the air of your spirit abode).
 function Cultivation.rate(data: PlayerData.Data, now: number, player: Player?): number
 	local spot = if player and Cultivation.meditation then Cultivation.meditation(player) else nil
+	local aura = if spot and spot.own then Cultivation.aura(data, now, spot.decor) else 0
 	return Cultivation.stage(data).passive
 		* (1 + buffTotal(data, "QiRate"))
-		* (1 + Cultivation.aura(data, now))
+		* (1 + aura)
 		* (1 + WeatherService.bonus("passive"))
 		* (if spot then spot.multiplier else 1)
 		* Roots.speed(data.root)
@@ -248,12 +274,18 @@ function Cultivation.pushState(player: Player)
 	end
 	local now = os.time()
 	publish(player, data)
+	local spot = if Cultivation.meditation then Cultivation.meditation(player) else nil
+	local shop = {}
+	for _, id in Herbs.Order do
+		shop[id] = Herbs.stockLeft(data.herbalist, id, data.realm.major, data.realm.minor, now)
+	end
 	stateRemote:FireClient(player, {
 		techniques = data.techniques,
 		rate = Cultivation.rate(data, now, player),
-		aura = Cultivation.aura(data, now),
+		aura = Cultivation.aura(data, now, spot and spot.decor),
 		meditation = if Cultivation.meditation then Cultivation.meditation(player) else nil,
 		herbs = data.herbs,
+		shop = shop, -- the Herbalist's seeds left today for this player (HerbShop): id -> count
 		items = data.items,
 		hotbar = data.hotbar,
 		seeds = data.seeds,
@@ -469,15 +501,34 @@ local function warning(player: Player, data: PlayerData.Data, rate: number): str
 	return "You must go out and experience the world."
 end
 
+-- Seconds left of today's offline/AFK budget (Pacing.Income.OFFLINE_MAX_HOURS a UTC
+-- day, shared by every absence, AFK stretch and seclusion; rebalance 2026-10-24: two
+-- logins a day used to earn two nights).
+function Cultivation.awayLeft(data: PlayerData.Data, now: number): number
+	local today = now // 86400
+	if data.awayDay ~= today then
+		data.awayDay = today
+		data.awayUsed = 0
+	end
+	return math.max(0, Pacing.Income.OFFLINE_MAX_HOURS * 3600 - data.awayUsed)
+end
+
+-- Spend `seconds` of today's budget.
+function Cultivation.spendAway(data: PlayerData.Data, now: number, seconds: number)
+	Cultivation.awayLeft(data, now)
+	data.awayUsed += seconds
+end
+
 -- On login: cultivation gathered while away (passive rate, up to the overflow cap
--- and the offline time cap), and the first-login-of-the-day raw qi bonus. Returns what was
--- claimed, for the caller to report.
+-- and today's offline/AFK budget), and the first-login-of-the-day raw qi bonus. Returns
+-- what was claimed, for the caller to report.
 function Cultivation.claimLogin(player: Player, data: PlayerData.Data): (number, number)
 	local now = os.time()
 	local stage = Cultivation.stage(data)
 	local offline = 0
 	if data.lastLogoutUnix > 0 then
-		local away = math.clamp(now - data.lastLogoutUnix, 0, Pacing.Income.OFFLINE_MAX_HOURS * 3600)
+		local away = math.clamp(now - data.lastLogoutUnix, 0, Cultivation.awayLeft(data, now))
+		Cultivation.spendAway(data, now, away)
 		offline = math.min(Cultivation.afkRate(data) * away, Cultivation.cap(data) - data.cultivation)
 		offline = math.max(0, math.floor(offline))
 		data.cultivation += offline
@@ -547,9 +598,10 @@ task.spawn(function()
 				if Cultivation.deviated(player) then
 					rate = 0
 				elseif afk then
-					-- AFK earns what offline would, for at most as long
-					rate = if s.afkSeconds < Pacing.Income.OFFLINE_MAX_HOURS * 3600 then Cultivation.afkRate(data) else 0
-					s.afkSeconds += dt
+					-- AFK earns what offline would, out of the same daily budget
+					local left = Cultivation.awayLeft(data, now)
+					rate = if left > 0 then Cultivation.afkRate(data) * math.min(1, left / dt) else 0
+					Cultivation.spendAway(data, now, math.min(dt, left))
 				else
 					rate = Cultivation.rate(data, now, player)
 				end
@@ -557,7 +609,6 @@ task.spawn(function()
 					if s.wasAfk then
 						s.capNoticed = false -- back from AFK: say it again if the dantian is full
 					end
-					s.afkSeconds = 0
 				end
 				s.wasAfk = afk
 				if Cultivation.meditation and Cultivation.meditation(player) and not secluded(player) then

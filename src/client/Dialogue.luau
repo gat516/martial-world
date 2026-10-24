@@ -277,8 +277,6 @@ local function showResponses(s: Session)
 		local key = b:FindFirstChild("Key") :: TextLabel
 		key.Text = tostring(i)
 		key.Visible = keys and not c.disabled
-		-- measuring yields, and this can run inside an input callback
-		task.spawn(fitLabel, b, label, if key.Visible then key.Size.X.Offset + 4 else 0)
 		if c.disabled then
 			label.TextColor3 = DIM
 			icon.ImageColor3 = DIM
@@ -299,6 +297,9 @@ local function showResponses(s: Session)
 		end)
 		b.Visible = true
 		b.Parent = list
+		-- after parenting (a row takes the list's width); measuring yields, and this
+		-- can run inside an input callback
+		task.spawn(fitLabel, b, label, if key.Visible then key.Size.X.Offset + 4 else 0)
 		c.button = b
 		task.delay((i - 1) * REVEAL_STAGGER, function()
 			if b.Parent then

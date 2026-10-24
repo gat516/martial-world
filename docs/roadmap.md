@@ -65,6 +65,13 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
   foundation is tempered in seclusion or by the heart demon: qi gathering into the body,
   the old stage's light reforging, a settling pulse when it lands. A `vfx` pass on the
   seclusion seat plus an `animator` pose (deeper breathing, hands forming a seal).
+- **Deepening old foundations past 100% (user, 2026-10-24):** tempering mends stages
+  only up to 100%; deepening lifts them to about 130% (150% stays earned live). Chosen:
+  a fully calmed heart demon (in progress), heaven-and-earth treasures (rare spirit
+  fruits, Earth Marrow, Spirit Milk, a Foundation Establishment Pill) and feats above
+  your realm (a boss or apex a realm up). Later options: heavenly lightning baptism in a
+  storm on your peak, sitting at rare spirit veins and springs, an epiphany after a
+  great feat. Never for Robux.
 - **What stands in now:** herbs are eaten directly; pills, cores and elixirs are loot
   and shop items; foundation repair uses meditation and the heart-demon trial; stones
   sink into the Herbalist, the Pavilion and building; weapon grades come from caches,

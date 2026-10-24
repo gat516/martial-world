@@ -415,9 +415,11 @@ Rebirth with a legacy, paths as affiliations (sect, rogue, a secret demon path),
 
 ## 9b. More cultivation elements (candidates, 2026-10-22; QC to FE9 only)
 Proposals to pick from; none decided. Each must name its arrow into the loop.
-1. **Seclusion (closed-door cultivation).** Start it on purpose: sit for hours (the
-   existing offline cultivation, framed). On return a short story result ("you
-   comprehended..."), tempers an old foundation grade, a small chance of a fortuitous encounter.
+1. **Seclusion (closed-door cultivation).** *(Built 2026-10-23, untested:
+   [seclusion](systems/seclusion.md).)* Entered from the seat on your own peak; AFK
+   cultivation (the same as offline), a stone trickle, the garden tended (and, online
+   only, mutating), a streak, hourly rare finds, a result card; the onboarding's first
+   one at QC4. No foundation experiences and no tempering (the heart demon tempers).
    Arrow: home. Perfect for gardeners and mobile players.
 2. **Heart-demon trial.** *(Built 2026-10-23, untested: [heart-demon](systems/heart-demon.md).)* A choice-based, no-reflex inner trial at a major breakthrough
    (dialogue and choices that reflect how you played), optional, repairs or deepens

@@ -77,7 +77,7 @@ local FOLDED: { [string]: string } = { PracticeTechnique = "Practice", PracticeD
 -- Controls inside a window -> the key of the control that opens that window.
 -- The control itself carries the attribute GuideKey = <key> (set by the window's
 -- script on the row it builds, e.g. MeditationMenu's pill rows).
-local INSIDE: { [string]: string } = { RootPill = "SpiritRoot" }
+local INSIDE: { [string]: string } = { RootPill = "SpiritRoot", Seclusion = "Method" }
 
 local HOLE_PAD = 6 -- clear space around the control before the veil starts
 local HOLE_FADE = 24 -- the hole art's soft edge (48px corners at SliceScale 0.5)

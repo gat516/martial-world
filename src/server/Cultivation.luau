@@ -6,6 +6,11 @@
 -- the realm; breakthroughs (seated only) move the player on and carry some of the excess.
 -- Also owns breakthroughs, qi deviation, the passive-progress warnings, per-realm
 -- character stats and the PlayerState push the HUD renders from.
+-- AFK (decided 2026-10-23): online with no input for Pacing.Income.AFK_AFTER, or in
+-- seclusion (Seclusion.luau), earns exactly what offline would (Cultivation.afkRate,
+-- for at most OFFLINE_MAX_HOURS of AFK). At the overflow cap it says once (and again
+-- on coming back from AFK or offline) that the dantian is full; nothing breaks
+-- through on its own.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -32,14 +37,26 @@ local breakthroughRemote = remotes.Breakthrough :: RemoteEvent
 
 local Cultivation = {}
 
+local CAP_LINE = "Your dantian can hold no more. Break through."
+
 -- Per-session state that isn't saved.
-type Session = { deviationUntil: number, lastActive: number, lastWarned: number, fullNoticed: boolean }
+type Session = {
+	deviationUntil: number,
+	lastActive: number,
+	lastWarned: number,
+	fullNoticed: boolean,
+	lastInput: number, -- os.clock() of the last input ping or active action
+	afkSeconds: number, -- AFK seconds this stretch (online), capped like offline time
+	wasAfk: boolean,
+	capNoticed: boolean, -- the "dantian can hold no more" line was shown for this stretch
+}
 local sessions: { [Player]: Session } = {}
 
 local function session(player: Player): Session
 	local s = sessions[player]
 	if not s then
-		s = { deviationUntil = 0, lastActive = os.clock(), lastWarned = -math.huge, fullNoticed = false }
+		local now = os.clock()
+		s = { deviationUntil = 0, lastActive = now, lastWarned = -math.huge, fullNoticed = false, lastInput = now, afkSeconds = 0, wasAfk = false, capNoticed = false }
 		sessions[player] = s
 	end
 	return s
@@ -52,7 +69,28 @@ end
 -- Something active happened (a run, a breakthrough, later a kill): hold off the
 -- "go and experience the world" warnings.
 function Cultivation.markActive(player: Player)
-	session(player).lastActive = os.clock()
+	local s = session(player)
+	s.lastActive = os.clock()
+	s.lastInput = s.lastActive
+end
+
+-- The client saw input (its throttled "awake" ping on the Meditate remote).
+function Cultivation.awake(player: Player)
+	session(player).lastInput = os.clock()
+end
+
+-- Set by Seclusion: whether the player is in seclusion, and entering it (the
+-- CultivationAction "seclusion", through Circulation.handle).
+Cultivation.secluded = nil :: ((Player) -> boolean)?
+Cultivation.enterSeclusion = nil :: ((Player) -> (boolean, string?))?
+
+local function secluded(player: Player): boolean
+	return Cultivation.secluded ~= nil and Cultivation.secluded(player)
+end
+
+-- AFK: in seclusion, or no input for Pacing.Income.AFK_AFTER seconds.
+function Cultivation.afk(player: Player): boolean
+	return secluded(player) or os.clock() - session(player).lastInput >= Pacing.Income.AFK_AFTER
 end
 
 function Cultivation.deviated(player: Player): boolean
@@ -163,6 +201,12 @@ Cultivation.meditation = nil :: ((Player) -> { multiplier: number, place: string
 
 -- Set by Combat: whether the player was hurt recently.
 Cultivation.inCombat = nil :: ((Player) -> boolean)?
+
+-- What AFK, seclusion and offline time earn per second: the stage's plain passive
+-- times OFFLINE_RATE (no meditation, aura, weather, buffs, root or method).
+function Cultivation.afkRate(data: PlayerData.Data): number
+	return Cultivation.stage(data).passive * Pacing.Income.OFFLINE_RATE
+end
 
 -- Passive cultivation per second.
 function Cultivation.rate(data: PlayerData.Data, now: number, player: Player?): number
@@ -371,6 +415,9 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 	if limit then
 		return false, limit
 	end
+	if secluded(player) then
+		return false, "You are in seclusion. Rise to leave it first."
+	end
 	local major = nextStage.major ~= stage.major
 	local seated = Cultivation.meditation ~= nil and Cultivation.meditation(player) ~= nil
 	if not seated then
@@ -429,7 +476,7 @@ function Cultivation.claimLogin(player: Player, data: PlayerData.Data): (number,
 	local offline = 0
 	if data.lastLogoutUnix > 0 then
 		local away = math.clamp(now - data.lastLogoutUnix, 0, Pacing.Income.OFFLINE_MAX_HOURS * 3600)
-		offline = math.min(stage.passive * Pacing.Income.OFFLINE_RATE * away, Cultivation.cap(data) - data.cultivation)
+		offline = math.min(Cultivation.afkRate(data) * away, Cultivation.cap(data) - data.cultivation)
 		offline = math.max(0, math.floor(offline))
 		data.cultivation += offline
 	end
@@ -441,6 +488,7 @@ function Cultivation.claimLogin(player: Player, data: PlayerData.Data): (number,
 		daily = math.max(0, daily)
 		data.rawQi += daily
 	end
+	session(player).capNoticed = true -- said below, once the HUD is up, not by the tick
 	task.delay(4, function()
 		if player.Parent == nil then
 			return
@@ -451,6 +499,10 @@ function Cultivation.claimLogin(player: Player, data: PlayerData.Data): (number,
 		if daily > 0 then
 			task.wait(if offline > 0 then 4 else 0)
 			Cultivation.notify(player, `A new day on the mountain: +{daily} raw qi.`)
+		end
+		if data.cultivation >= Cultivation.cap(data) and Cultivation.block(data) == "" then
+			task.wait(4)
+			Cultivation.notify(player, CAP_LINE)
 		end
 	end)
 	return offline, daily
@@ -486,13 +538,40 @@ task.spawn(function()
 					end
 				end
 				local bar = Cultivation.stage(data).bar
-				local rate = if Cultivation.deviated(player) then 0 else Cultivation.rate(data, now, player)
-				if Cultivation.meditation and Cultivation.meditation(player) then
-					data.stats.seated += dt -- time in stillness (the heart-demon trial)
+				local s = session(player)
+				local afk = Cultivation.afk(player)
+				local rate
+				if Cultivation.deviated(player) then
+					rate = 0
+				elseif afk then
+					-- AFK earns what offline would, for at most as long
+					rate = if s.afkSeconds < Pacing.Income.OFFLINE_MAX_HOURS * 3600 then Cultivation.afkRate(data) else 0
+					s.afkSeconds += dt
+				else
+					rate = Cultivation.rate(data, now, player)
+				end
+				if not afk then
+					if s.wasAfk then
+						s.capNoticed = false -- back from AFK: say it again if the dantian is full
+					end
+					s.afkSeconds = 0
+				end
+				s.wasAfk = afk
+				if Cultivation.meditation and Cultivation.meditation(player) and not secluded(player) then
+					data.stats.seated += dt -- time in stillness (the heart-demon trial; seclusion counts apart)
 				end
 				Cultivation.add(data, rate * dt)
 				publish(player, data)
-				local s = session(player)
+				-- the dantian is full: once per stretch (and again after AFK, offline or seclusion)
+				local cap = Cultivation.cap(data)
+				if data.cultivation < cap then
+					s.capNoticed = false
+				elseif not s.capNoticed and not afk then
+					s.capNoticed = true
+					if Cultivation.block(data) == "" then
+						Cultivation.notify(player, CAP_LINE)
+					end
+				end
 				if os.clock() - s.lastWarned >= Config.WARN_INTERVAL or (data.cultivation >= bar and not s.fullNoticed) then
 					local firstFull = data.cultivation >= bar and not s.fullNoticed
 					local message = warning(player, data, rate)

@@ -301,6 +301,17 @@ local function lookOf(key: string): Look?
 				color = SlotArt.weaponColor(id),
 				tier = TIER_OF[def.grade] or "neutral",
 			}
+	elseif key:sub(1, 5) == "seed:" then
+		-- a seed (seclusion's finds): the herb's own look, named as its seed
+		local herb = Items.Defs[key:sub(6)]
+		return herb
+			and {
+				name = `{herb.name} Seed`,
+				icon = herb.icon,
+				glyph = herb.glyph,
+				color = Items.rarityColor(herb),
+				tier = TIER_OF[herb.rarity] or "neutral",
+			}
 	elseif key:sub(1, 7) == "method:" then
 		local def = Methods.Defs[key:sub(8)]
 		if not def then

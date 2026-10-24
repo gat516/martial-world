@@ -44,10 +44,13 @@ to each answer opens the next question.
    to fall again?" (denial: "I'm never afraid."). No deaths: **pride**, "Do you think
    you can't?" (denial: "Nothing can touch me.").
 4. **Forced breakthroughs** (>= 1): "Was it worth the debt?" (denial: "I've never rushed.").
-5. **Stillness** (from `STILL_MIN_HOURS` = 0.5 h seated): "Were you searching, or only
-   waiting?" (denial: "I hardly ever sit.").
-6. **Why climb**, the filler: three honest answers.
-Order of preference after the path: slain, fear/pride, forced, stillness, why climb.
+5. **Seclusion** (from `SECLUDED_MIN_HOURS` = 8 h in [seclusion](seclusion.md), online
+   and offline): "You sat in seclusion for 40 hours. Were you hiding?" (gathering or
+   "the world is loud", honest; denial: "I never shut myself away.").
+6. **Stillness** (from `STILL_MIN_HOURS` = 0.5 h seated, seclusion not counted): "Were
+   you searching, or only waiting?" (denial: "I hardly ever sit.").
+7. **Why climb**, the filler: three honest answers.
+Order of preference after the path: slain, fear/pride, forced, seclusion, stillness, why climb.
 Answer labels stay at 27 characters or fewer so they fit the response buttons on a phone.
 
 ## Outcome
@@ -65,8 +68,9 @@ blade's road, and remembered every beast you slew. The demon was calmed." Sent i
 
 ## Data
 - `data.stats` gained `slain` (kills by enemy id, `Progression.onKill`), `harvests`
-  (`Garden.harvest`), `deaths` (Main's `Humanoid.Died`), `seated` (seconds meditating,
-  Cultivation's tick) and `forced` (forced breakthroughs). Old profiles get them at 0
+  (`Garden.harvest`), `deaths` (Main's `Humanoid.Died`), `seated` (seconds meditating
+  outside seclusion, Cultivation's tick), `forced` (forced breakthroughs) and
+  `secluded` (seconds in seclusion, online and offline, Seclusion.luau). Old profiles get them at 0
   through the missing-field defaults (no schema bump).
 - `data.heartDemon = { trials = {}, declined = {} }`.
 - Remotes: `CultivationAction` "heartDemon" (start, seated only: `{ major, name,
@@ -84,7 +88,7 @@ chips "Realm QC9", "Realm QR9" and "Reset heart demons" (`heartReset`).
 
 ## Tuning
 `Pacing.HeartDemon`: `QUESTIONS`, `TEMPER_CALM`, `TEMPER_ROUGH`, `HARVEST_WEIGHT`,
-`HUNTER_SHARE`, `GARDENER_SHARE`, `LEAN_MIN`, `SLAIN_MIN`, `STILL_MIN_HOURS`,
+`HUNTER_SHARE`, `GARDENER_SHARE`, `LEAN_MIN`, `SLAIN_MIN`, `STILL_MIN_HOURS`, `SECLUDED_MIN_HOURS`,
 `OFFER_COOLDOWN`. Lines and answers are in `HeartDemon.luau`.
 
 ## Keeping it current

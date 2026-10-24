@@ -44,7 +44,8 @@
 --   4-6    BREATHER, RAMP, MINI-WALL   (in QC: the loop of gather/refine sets in)
 --   7-9    BREATHER, RAMP, WALL        (QC9, the first realm's wall, about an hour)
 --   1-3 of QR and FE: HOOK (the new realm), RAMP, MINI-WALL
---   QR1-3  the new realm opens fast (its first bar is smaller than QC9's wall)
+--   QR1-3  the new realm opens fast: no bar is ever smaller than the one before, so
+--          QR1-2 pour more raw qi instead (the row's `gather`: x2.0, x1.6)
 --   QR4-9  THE REAL SLOWDOWN: bars outgrow hunting, and passive grows as a share of
 --          income so the garden aura, peak build items and herbs (all multiply or
 --          add to it) are what keep cultivation moving (user, 2026-10-23; not alchemy)
@@ -69,15 +70,15 @@
 --   QC7      3300   15 min   30 min   50 min   75 min    7 runs  ~38 wolves
 --   QC8      9350   33 min   66 min    1.8 h    2.7 h   15 runs  ~83 wolves
 --   QC9     20000   55 min    1.8 h    3.0 h    4.6 h   23 runs  ~137 wolves   QC total: 2.4 h active, 4.8 h on peak
---   QR1     12000   22 min   41 min   69 min    1.7 h    9 runs  ~56 wolves
---   QR2     15500   25 min   47 min   78 min    2.0 h    9 runs  ~64 wolves
---   QR3     24500   35 min   65 min    1.8 h    2.7 h   13 runs  ~89 wolves
+--   QR1     22000   22 min   56 min    1.6 h    2.4 h   16 runs  ~52 wolves (gather 2.0)
+--   QR2     23500   25 min   56 min    1.6 h    2.3 h   14 runs  ~61 wolves (gather 1.6)
+--   QR3     25500   35 min   57 min    1.6 h    2.4 h   13 runs  ~93 wolves
 --   QR4     26000   32 min   56 min    1.5 h    2.3 h   11 runs  ~83 wolves
 --   QR5     53500   58 min    1.6 h    2.7 h    4.0 h   20 runs  ~152 wolves
 --   QR6     79500   75 min    2.0 h    3.4 h    5.1 h   26 runs  ~200 wolves
 --   QR7     54500   45 min   71 min    2.0 h    2.9 h   15 runs  ~121 wolves
 --   QR8     78500   57 min   90 min    2.5 h    3.7 h   19 runs  ~153 wolves
---   QR9    115000   74 min    1.9 h    3.2 h    4.8 h   23 runs  ~198 wolves   QR total: 7.1 h active, 11.8 h on peak
+--   QR9    115000   74 min    1.9 h    3.2 h    4.8 h   23 runs  ~198 wolves   QR total: 7.0 h active, 12.0 h on peak
 --   FE1    185000   80 min    2.0 h    3.3 h    5.0 h   23 runs  ~218 wolves
 --   FE2    270000    1.7 h    2.6 h    4.3 h    6.5 h   30 runs  ~285 wolves
 --   FE3    390000    2.3 h    3.4 h    5.6 h    8.5 h   37 runs  ~368 wolves
@@ -93,12 +94,31 @@
 -- qiDrop is several wolves'. Untuned in play; tune from analytics with Adjust.
 -- Formulas (w = one spirit wolf's qi at the stage = 14 * (dantian / 120) ^
 -- Income.ENEMY_QI_EXPONENT; p = passive):
---   active = bar / (60 p + 2 * 1.1 * w) minutes
+--   active = bar / (60 p + 2 * 1.1 * w * gather) minutes (gather: the row's, default 1)
 --   idle = bar / p; meditate = idle / Meditation.ANYWHERE; on peak = idle / Meditation.ON_PEAK
---   runs = bar / (dantian / RUNS_PER_DANTIAN * 1.1); wolves = bar / 1.1 / w
--- To set a stage: pick its active minutes, then bar = minutes * (60 p + 2.2 w).
--- Passive is set as a share of w (about 0.009 in QC, rising from 0.010 at QR1 to
--- 0.0125 at QR7, 0.0133 in FE): it sets the gardener's ratio.
+--   runs = bar / (dantian / RUNS_PER_DANTIAN * 1.1); wolves = bar / 1.1 / (w * gather)
+-- To set a stage: pick its active minutes, then bar = minutes * (60 p + 2.2 w gather).
+-- Every bar is at least the previous stage's (user, 2026-10-23: bars never go down).
+-- Passive is set as a share of w (about 0.009 in QC; QR1-3 lifted to 0.012-0.013
+-- with the gather boost, about 0.011 at QR4 rising to 0.0125 at QR7, 0.0133 in FE):
+-- it sets the gardener's ratio.
+--
+-- AFK, OFFLINE AND SECLUSION (decided 2026-10-23; docs/systems/seclusion.md). Offline
+-- (up to Income.OFFLINE_MAX_HOURS), AFK online (no input for Income.AFK_AFTER) and
+-- secluded all earn the same: the stage's plain passive (OFFLINE_RATE x p; no
+-- meditation, aura, weather, buffs, root or method) for at most 12 h, up to the
+-- overflow cap. Nothing breaks through on its own and none of it earns foundation
+-- experiences. A night (12 h) is p * 43200 cultivation: it fills the cap (150% of
+-- the bar) at every stage up to FE5, and FE3 142%, FE5 141%, FE6 116%, FE7 142%,
+-- FE8 119%, FE9 110% (the idle column against 12 h). So a night is worth about one
+-- stage, never two: the player breaks through by hand and only CARRY_SHARE carries.
+-- The mixed player (simulated on this curve, active rate while playing, a 12 h
+-- night every day): 1 h a day finishes QC on day 2, QR on day 7, FE8 on day 15
+-- (without the nights: 3, 10, 27); 2 h a day: 2, 4, 9 (without: 2, 5, 14). Nights
+-- shorten the calendar by about a stage a day, never a realm; the foundation grade
+-- (cracked when a stage was mostly slept through) is their cost.
+-- Lowering the AFK ceiling below the cap barely moves this (the carry already
+-- drops the excess); to slow nights, lower OFFLINE_RATE or OFFLINE_MAX_HOURS.
 --
 -- STRENGTH (health, power): about +10% a minor stage and x2.25 at each major
 -- (QC9->QR1, QR9->FE1). Beasts follow the same curve (Pacing.BeastBaseline), so a
@@ -125,6 +145,7 @@ export type Row = {
 	bar: number, -- cultivation to fill this stage's realm bar
 	dantian: number, -- raw qi the dantian holds (also scales node and kill qi)
 	passive: number, -- cultivation per second, always on (online and offline), before buffs
+	gather: number?, -- the curve's own raw qi multiplier at this stage (kills, nodes, daily qi); the new realm's hook (QR1-2)
 	health: number, -- the player's max health
 	power: number, -- the player's damage multiplier (also sets knockback, Knockback.luau)
 	levels: number, -- most levels in a circulation run (1-3); leave after any one and keep what it refined
@@ -200,13 +221,14 @@ Pacing.Curve = {
 	-- player who is heaven-defying (PlayerData `heavenDefying`) must also survive
 	-- the tribulation; everyone else breaks through at once.
 	{ key = "QC9", major = "QiCondensation", minor = 9, beat = "WALL", bar = 20000, dantian = 2000, passive = 1.22, health = 215, power = 2.14, levels = 3, difficulty = 0.889, tribulation = HEAVENLY_TRIBULATION },
-	-- HOOK: Qi Refining opens: x2.25 strength, a bigger dantian, a fast first bar.
+	-- HOOK: Qi Refining opens: x2.25 strength, a bigger dantian, and its beasts and
+	-- nodes pour double qi (gather), so a bar bigger than QC9's still fills in about 22 min.
 	-- A fresh region (the Outer Wastes) and the first chapter quests.
-	{ key = "QR1", major = "QiRefining", minor = 1, beat = "HOOK", bar = 12000, dantian = 3200, passive = 1.94, health = 480, power = 4.82, levels = 3, difficulty = 0.900 },
+	{ key = "QR1", major = "QiRefining", minor = 1, beat = "HOOK", bar = 22000, dantian = 3200, passive = 2.60, gather = 2.0, health = 480, power = 4.82, levels = 3, difficulty = 0.900 },
 	-- RAMP: weekly sect tasks settle in.
-	{ key = "QR2", major = "QiRefining", minor = 2, beat = "RAMP", bar = 15500, dantian = 3750, passive = 2.20, health = 530, power = 5.31, levels = 3, difficulty = 0.911 },
+	{ key = "QR2", major = "QiRefining", minor = 2, beat = "RAMP", bar = 23500, dantian = 3750, passive = 2.80, gather = 1.6, health = 530, power = 5.31, levels = 3, difficulty = 0.911 },
 	-- MINI-WALL: tier II herbs and the Herbarium (alchemy is a later update).
-	{ key = "QR3", major = "QiRefining", minor = 3, beat = "MINI-WALL", bar = 24500, dantian = 4400, passive = 2.50, health = 585, power = 5.84, levels = 3, difficulty = 0.922 },
+	{ key = "QR3", major = "QiRefining", minor = 3, beat = "MINI-WALL", bar = 25500, dantian = 4400, passive = 3.00, health = 585, power = 5.84, levels = 3, difficulty = 0.922 },
 	-- BREATHER: seclusion. The real slowdown starts after it: from here passive
 	-- grows as a share of income, so the garden and the peak carry cultivation.
 	{ key = "QR4", major = "QiRefining", minor = 4, beat = "BREATHER", bar = 26000, dantian = 5150, passive = 3.12, health = 640, power = 6.42, levels = 3, difficulty = 0.933 },
@@ -328,7 +350,13 @@ Pacing.Income = {
 	ENEMY_QI_EXPONENT = 0.8,
 	DAILY_QI_SHARE = 0.5, -- first login of a day: this share of the dantian (times gather)
 	OFFLINE_MAX_HOURS = 12, -- offline cultivation counts at most this long
-	OFFLINE_RATE = 1, -- share of the passive rate while away
+	OFFLINE_RATE = 1, -- share of the passive rate while away (and while AFK or secluded online)
+	-- AFK online: no input (the client's "awake" pings, Meditate remote) and no active
+	-- action for this many seconds, and online cultivation earns exactly what offline
+	-- would: the plain passive x OFFLINE_RATE, for at most OFFLINE_MAX_HOURS of AFK
+	-- (then nothing until the player is back). Seclusion counts as AFK from the start.
+	AFK_AFTER = 600,
+	AWAKE_PING = 30, -- the client sends "awake" on input at most this often (seconds)
 }
 
 -- HERBS: eating a herb whose `eat.qi` is set gives this share of the eater's
@@ -363,6 +391,43 @@ Pacing.Herbarium = {
 Pacing.Meditation = {
 	ANYWHERE = 1.5,
 	ON_PEAK = 2.5, -- on your own spirit peak
+}
+
+-- SECLUSION (server Seclusion; docs/systems/seclusion.md): the AFK mode, entered from
+-- the meditation seat on your own peak. Cultivation runs at the AFK rate (the plain
+-- passive, Income above) and never breaks through; seclusion pays its own rewards
+-- instead, online and offline alike (a logout while secluded keeps it going) up to
+-- MAX_HOURS, except the garden's mutation roll, which only rolls while you stay
+-- online. No foundation experiences. Leaving (rising, being hit, logging back in)
+-- shows the result card.
+Pacing.Seclusion = {
+	MAX_HOURS = 12, -- rewards stop counting after this long in one seclusion (as offline)
+	-- Spirit Stones an hour, by major (a slow trickle: a QC wolf drops about 4.5)
+	STONES_PER_HOUR = { QiCondensation = 25, QiRefining = 60, Foundation = 150 } :: { [string]: number },
+	-- the garden is tended: growing plants grow this much faster (0.5 = +50%), online and offline
+	GROWTH = 0.5,
+	-- online only: each plant's chance an hour to take one of these mutations (by weight)
+	MUTATION_PER_HOUR = 0.03,
+	MUTATIONS = { Dewy = 50, Windswept = 30, Auspicious = 15, Golden = 5 } :: { [string]: number },
+	-- each full hour: this chance of a rare find, by weight: a treasure, or a seed of
+	-- the player's major's next herb tier (never root pills)
+	RARE_CHANCE = 0.1,
+	RARE = { HeavenlyDew = 50, CloudPatternJade = 25, ImmortalPeach = 5, Seed = 60 } :: { [string]: number },
+	SEED_TIER = { QiCondensation = 2, QiRefining = 3, Foundation = 4 } :: { [string]: number },
+	-- the streak: consecutive days with a seclusion of at least STREAK_MIN_HOURS; each
+	-- day past the first adds STREAK_BONUS to the stones (up to STREAK_MAX days)
+	STREAK_MIN_HOURS = 1,
+	STREAK_BONUS = 0.1,
+	STREAK_MAX = 7,
+	-- the first seclusion (the onboarding's Seclusion lesson) ends by itself after
+	-- FIRST_SECONDS with a generous card: FIRST_STONES, FIRST_SEEDS, a FIRST_BAR share
+	-- of the bar as cultivation (never past the bar) and FIRST_GROWTH seconds on every
+	-- growing plant (the seed planted for Home is ready when the player opens their eyes)
+	FIRST_SECONDS = 90,
+	FIRST_STONES = 60,
+	FIRST_SEEDS = { CloudMint = 2 } :: { [string]: number },
+	FIRST_BAR = 0.25,
+	FIRST_GROWTH = 300,
 }
 
 -- PEAK SCORE: every build piece standing on your peak (placed or starter) scores
@@ -491,6 +556,7 @@ Pacing.Quests = {
 	-- lessons (met later, when each first matters; QC4-9 one per chapter)
 	RootPill = { stones = 20 },
 	Home = { stones = 30 },
+	Seclusion = { stones = 20 }, -- QC4, after Home: the first seclusion (its own card pays more, Pacing.Seclusion FIRST_*)
 	Board = { stones = 20 },
 	Herbs = { stones = 20 },
 	Rumours = { stones = 40 },
@@ -692,6 +758,7 @@ Pacing.HeartDemon = {
 	LEAN_MIN = 6, -- below this many kills + weighted harvests: the still road (sat, little else)
 	SLAIN_MIN = 10, -- kills before the demon names the beasts you slew
 	STILL_MIN_HOURS = 0.5, -- hours seated before stillness is a question
+	SECLUDED_MIN_HOURS = 8, -- hours in seclusion (online and offline) before it's a question
 	OFFER_COOLDOWN = 20 * 3600, -- seconds after "Not now" before the seat offers it again
 }
 

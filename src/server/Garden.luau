@@ -7,7 +7,9 @@
 -- owner is online, weather (Weather.luau `garden`) speeds growth, swells growing
 -- plants and gives mutations, and garden build pieces nearby (BuildItems
 -- `garden`) add growth and mutation luck, as does the peak score (Peaks.growthBonus,
--- growth only). Size and mutations multiply harvests.
+-- growth only). Size and mutations multiply harvests. A secluded owner's garden is
+-- tended (Pacing.Seclusion GROWTH, online and offline via Garden.advance) and, only
+-- while they stay online, rolls its own mutations (MUTATION_PER_HOUR).
 --
 -- Plantings live in the profile (data.peak.plots, by plot id) and are mirrored
 -- onto the plot as JSON in its Plants attribute for clients to draw.
@@ -32,6 +34,7 @@ local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Regions = require(ReplicatedStorage.Shared.Regions)
+local SECLUSION = require(ReplicatedStorage.Shared.Pacing).Seclusion
 local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
 local Herbarium = require(script.Parent.Herbarium)
@@ -371,6 +374,51 @@ local function mutate(plant: Herbs.Plant, id: string): boolean
 	return true
 end
 
+-- Set by Seclusion: whether the player is in seclusion, and a callback with the
+-- plants tended and mutations rolled on each tick while they are.
+Garden.secluded = nil :: ((Player) -> boolean)?
+Garden.onTended = nil :: ((Player, number, number) -> ())?
+
+local function pickWeighted(pool: { [string]: number }): string?
+	local total = 0
+	for _, w in pool do
+		total += w
+	end
+	local roll = rng:NextNumber() * total
+	for id, w in pool do
+		roll -= w
+		if roll <= 0 then
+			return id
+		end
+	end
+	return nil
+end
+
+-- Move every growing plant on the player's plots `seconds` closer to ready (never
+-- past it). Returns how many plants it moved. Seclusion's offline tending and its
+-- first card; mirrors to plots that exist (Garden.apply mirrors the rest on join).
+function Garden.advance(player: Player, data: PlayerData.Data, seconds: number): number
+	local peak = Peaks.ownedBy(player)
+	local now = os.time()
+	local n = 0
+	for plotId, plants in data.peak.plots do
+		local moved = false
+		for _, plant in plants do
+			local left = Herbs.secondsLeft(plant, now)
+			if left > 0 then
+				plant.b += math.min(seconds, left)
+				n += 1
+				moved = true
+			end
+		end
+		local plot = if peak and moved then findPlot(peak, plotId) else nil
+		if plot then
+			mirror(plot, plants)
+		end
+	end
+	return n
+end
+
 -- One weather tick of `seconds` for a player's garden.
 local function tendGarden(player: Player, def: Weather.Def, seconds: number)
 	local data = PlayerData.get(player)
@@ -383,6 +431,8 @@ local function tendGarden(player: Player, def: Weather.Def, seconds: number)
 	local peakGrowth = Peaks.growthBonus(player) -- the peak score (Pacing.PeakScore)
 	local now = os.time()
 	local minutes = seconds / 60
+	local secluded = Garden.secluded ~= nil and Garden.secluded(player)
+	local tended, mutations = 0, 0
 	for plotId, plants in data.peak.plots do
 		local plot = findPlot(peak, plotId)
 		if not plot then
@@ -394,6 +444,10 @@ local function tendGarden(player: Player, def: Weather.Def, seconds: number)
 			local growth, luck = boostAt(boosts, at)
 			local growing = Herbs.progress(plant, now) < 1
 			local rate = (g.growth or 1) - 1 + growth + peakGrowth + Roots.perk(data.root, "growth") + Registry.stat(data, "growth")
+			if secluded and growing then
+				rate += SECLUSION.GROWTH -- tended
+				tended += 1
+			end
 			if growing and rate > 0 then
 				plant.b += seconds * rate
 				changed = true
@@ -405,10 +459,21 @@ local function tendGarden(player: Player, def: Weather.Def, seconds: number)
 			if g.mutation and rng:NextNumber() < (g.chance or 0) * minutes * (1 + luck) then
 				changed = mutate(plant, g.mutation) or changed
 			end
+			-- staying online in seclusion: the garden's own mutation roll (never offline)
+			if secluded and rng:NextNumber() < SECLUSION.MUTATION_PER_HOUR * seconds / 3600 * (1 + luck) then
+				local id = pickWeighted(SECLUSION.MUTATIONS)
+				if id and mutate(plant, id) then
+					changed = true
+					mutations += 1
+				end
+			end
 		end
 		if changed then
 			mirror(plot, plants)
 		end
+	end
+	if secluded and Garden.onTended then
+		Garden.onTended(player, tended, mutations)
 	end
 end
 

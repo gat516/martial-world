@@ -7,6 +7,10 @@
 --               missing while it can't run.
 --   Method      owned cultivation methods (Shared.Methods); Use switches
 --               (CultivationAction "method"), the active one reads "Active".
+--               Seated on your own peak, a Seclusion row comes first: Enter
+--               Seclusion (CultivationAction "seclusion", GuideKey "Seclusion";
+--               docs/systems/seclusion.md). With no method owned the page is
+--               only that row, titled Seclusion (the tile reads Seclusion too).
 --   Root        the spirit root's card and its exact numbers (Note), the same
 --               text as the Self card, then a row per root pill the player holds
 --               (Marrow Washing washes it toward the next grade, Pacing.Roots.WASH
@@ -23,6 +27,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Items = require(ReplicatedStorage.Shared.Items)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
+local Realms = require(ReplicatedStorage.Shared.Realms)
 local Methods = require(ReplicatedStorage.Shared.Methods)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
@@ -55,6 +61,7 @@ local TITLES: { [Page]: string } = { Comprehend = "Comprehend", Method = "Method
 local PILLS = { "MarrowWashingPill", "RootRebirthPill" }
 local PILL_SUB = { RootRebirthPill = "Reform as another element" } -- MarrowWashingPill: its washing progress (washLine)
 local NEXT_TIER: { [number]: string } = { [3] = "Tier II", [6] = "Tier III", [9] = "Mastery" }
+local SECLUSION_ICON = "rbxassetid://113579784709637" -- the kit's lotus emblem (Rewards ART.emblem_lotus)
 
 local MeditationMenu = {}
 
@@ -66,12 +73,22 @@ local note: TextLabel
 local page: Page = "Method"
 local switching = false -- a method switch, pill or root choice is on its way to the server
 
+function MeditationMenu.ownsMethod(): boolean
+	local methods = State.current.methods
+	return methods ~= nil and next(methods.owned) ~= nil
+end
+
+-- Seated on your own peak, where seclusion can begin (or already secluded).
+local function seclusionHere(): boolean
+	local spot = State.current.meditation
+	return (spot ~= nil and spot.own == true) or player:GetAttribute("Secluded") == true
+end
+
 -- Which tiles have something to show.
 function MeditationMenu.relevant(): { [Page]: boolean }
-	local methods = State.current.methods
 	return {
 		Comprehend = #Bottleneck.list() > 0,
-		Method = methods ~= nil and next(methods.owned) ~= nil,
+		Method = MeditationMenu.ownsMethod() or seclusionHere(),
 		Root = SelfCard.currentRoot() ~= nil,
 	}
 end
@@ -197,12 +214,43 @@ local function switchTo(id: string)
 	send(cultivationRemote, false, "method", id)
 end
 
-local function methodRows(): number
-	local methods = State.current.methods
-	if not methods then
+-- The Seclusion row (on your own peak): enter it, or where it stands.
+local function seclusionRow(): number
+	if not seclusionHere() then
 		return 0
 	end
-	local n = 0
+	local stage = Realms.byName(player:GetAttribute("Realm"))
+	local stones = if stage then Pacing.Seclusion.STONES_PER_HOUR[stage.major] or 0 else 0
+	local secluded = player:GetAttribute("Secluded") == true
+	addRow(-1, {
+		icon = SECLUSION_ICON,
+		iconColor = JADE,
+		name = "Seclusion",
+		nameColor = LIGHT,
+		info = if secluded then "In seclusion" else "Shut out the world",
+		infoColor = if secluded then JADE else LIGHT,
+		sub = `{stones} Spirit Stones an hour · your garden tended`,
+		blurb = if secluded
+			then "Rise when you wish to return; what you gathered is waiting."
+			else "Cultivate at rest, without breaking through. Stones gather, your garden grows faster and rare finds turn up each hour, even offline. Stay online and your garden may mutate.",
+		action = if secluded then nil else "Enter Seclusion",
+		ready = true,
+		guideKey = "Seclusion",
+		guideSay = "Enter Seclusion",
+		onAction = function()
+			send(cultivationRemote, false, "seclusion")
+			MeditationMenu.close()
+		end,
+	})
+	return 1
+end
+
+local function methodRows(): number
+	local n = seclusionRow()
+	local methods = State.current.methods
+	if not methods then
+		return n
+	end
 	for _, id in Methods.Order do
 		if methods.owned[id] then
 			n += 1
@@ -339,7 +387,7 @@ local function render()
 			child:Destroy()
 		end
 	end
-	title.Text = TITLES[page]
+	title.Text = if page == "Method" and not MeditationMenu.ownsMethod() then "Seclusion" else TITLES[page]
 	local count = if page == "Comprehend" then comprehendRows() elseif page == "Method" then methodRows() else rootRows()
 	note.Visible = true
 	if page == "Root" then
@@ -355,6 +403,8 @@ local function render()
 		note.Text = "No technique is at a bottleneck. Practice your arts until one is."
 	elseif page == "Method" and count == 0 then
 		note.Text = "You know no cultivation method yet."
+	elseif page == "Method" and not MeditationMenu.ownsMethod() then
+		note.Text = "Seclusion begins on your own peak. Leaving shows what it brought."
 	elseif page == "Method" then
 		note.Text = "Switching is free while you meditate."
 	else
@@ -414,7 +464,7 @@ function MeditationMenu.init(gui: ScreenGui)
 	State.onChanged(function()
 		rerender()
 	end)
-	for _, attr in { "Stones", "Root", "RootGrade", "Method" } do
+	for _, attr in { "Stones", "Root", "RootGrade", "Method", "Secluded" } do
 		player:GetAttributeChangedSignal(attr):Connect(rerender)
 	end
 end

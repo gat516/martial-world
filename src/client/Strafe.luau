@@ -5,9 +5,10 @@
 -- without shift lock the body turns to face the way it walks, so there's nothing
 -- to strafe, and turning off shift lock fades any strafe out.
 --
--- Blended, not switched: each side's weight follows how sideways the move is
--- (none below LATERAL_START, full from LATERAL_FULL, smoothed at WEIGHT_RATE),
--- over the walk underneath. Under shift lock the body turns toward the camera at
+-- Directions (user, 2026-10-24): W and W+A / W+D walk forward (the walk under
+-- this); A or D alone strafes; S and S+A / S+D walk backwards (Back).
+-- Blended, not switched: each clip's weight follows the move's angle to the
+-- facing (LATERAL_*, BACK_*), smoothed at WEIGHT_RATE, over the walk underneath. Under shift lock the body turns toward the camera at
 -- a rate (Movement), so as it comes round the move turns sideways and the strafe
 -- eases in with it instead of snapping (husspotato7 reference).
 --
@@ -27,8 +28,15 @@ local Sprint = require(script.Parent.Sprint)
 local player = Players.LocalPlayer
 
 local CLIP_SPEED = 16 -- studs/s the clips are keyed at (a normal walk)
-local LATERAL_START = 0.35 -- sideways share of the move (in facing space) where a strafe starts to show...
-local LATERAL_FULL = 0.85 -- ...and where it's all strafe
+local LATERAL_START = 0.87 -- sideways share of the move (in facing space) where a strafe starts to show (~60 deg)...
+local LATERAL_FULL = 0.97 -- ...and where it's all strafe (~76 deg); a diagonal (0.71) never strafes
+local BACK_START = 0.17 -- backward share where the back walk starts to show (~80 deg off forward)...
+local BACK_FULL = 0.42 -- ...and where it's all back walk (~65 deg), so S+A / S+D are back walk
+
+local function smooth(x: number): number
+	x = math.clamp(x, 0, 1)
+	return x * x * (3 - 2 * x)
+end
 local WEIGHT_RATE = 10 -- how fast a strafe's weight follows (per second, exponential)
 local SHOWN = 0.5 -- a strafe counts as playing (Strafe.side) above this weight
 local OFF = 0.01
@@ -95,12 +103,15 @@ local function step(dt: number)
 		local grounded = h.FloorMaterial ~= Enum.Material.Air and not h.Sit
 		local move = root.CFrame:VectorToObjectSpace(h.MoveDirection * Vector3.new(1, 0, 1))
 		if shiftLocked() and grounded and speed > 1 and move.Magnitude > 0.1 and not Sprint.isRunning() then
-			local share = math.clamp((math.abs(move.X) / move.Magnitude - LATERAL_START) / (LATERAL_FULL - LATERAL_START), 0, 1)
-			want[if move.X > 0 then "Right" else "Left"] = share * share * (3 - 2 * share)
-			-- walking backwards (+Z in facing space) blends the back walk the same way,
-			-- so a diagonal back-left mixes Back with Left
-			local back = math.clamp((move.Z / move.Magnitude - LATERAL_START) / (LATERAL_FULL - LATERAL_START), 0, 1)
-			want.Back = back * back * (3 - 2 * back)
+			-- Directions (user, 2026-10-24): A or D alone strafes; W+A / W+D keeps the
+			-- forward walk and S+A / S+D the back walk. A side clip comes in only when
+			-- the move is nearly square to the facing (diagonals are ~0.71 sideways)...
+			local side = smooth((math.abs(move.X) / move.Magnitude - LATERAL_START) / (LATERAL_FULL - LATERAL_START))
+			want[if move.X > 0 then "Right" else "Left"] = side
+			-- ...and the back walk takes whatever backward move the side clip doesn't
+			-- (+Z in facing space is backwards), so S and S+A / S+D are all back walk.
+			local back = smooth((move.Z / move.Magnitude - BACK_START) / (BACK_FULL - BACK_START))
+			want.Back = back * (1 - side)
 		end
 	end
 	local alpha = 1 - math.exp(-WEIGHT_RATE * math.min(dt, 0.1))

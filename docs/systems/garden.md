@@ -17,7 +17,10 @@ consumables: spirit cores from beasts and heavenly treasures.
 - Herb tiers I-V by region (I Common, II Spirit, III Rare, IV Treasure, V Heavenly;
   [progression](../progression.md)). A qi herb (`eat.qi = true`) gives a fixed share
   of the eater's current stage dantian by tier (`Pacing.Herbs.EAT_SHARE`: 6, 9, 12,
-  16, 20%), so a herb matters at every stage but never replaces hunting. Raw qi only
+  16, 20%), so a herb matters at every stage but never replaces hunting. Each tier
+  has a floor (`EAT_FLOOR`: 120, 400, 2500 raw qi for I-III) so early herbs stay worth
+  eating, and event herbs use a bigger share (`PRIZE`: Thousand-Year Ginseng a full
+  dantian, Rift Lotus half). Raw qi only
   fills the room left in the dantian; a qi-only herb is refused when it's full. Size
   and mutations multiply the harvest (herbs per pick), not the qi per herb.
   Buff-only herbs (Spirit Grass, Cloud Mint, Moonpetal Orchid, Purple Bamboo) give no qi.
@@ -29,8 +32,8 @@ consumables: spirit cores from beasts and heavenly treasures.
 
 ## Key files
 - `src/shared/Herbs.luau`: plant defs (tier, soil, grow time, yield, aura, eat effect,
-  seed cost, sell price, mutation chain), sizes, mutations, `eatShare` (and the qi part
-  of each qi herb's blurb, built at load from the share), `progress`, `growNowTier`.
+  seed cost, sell price, mutation chain), sizes, mutations, `eatQi` (share and floor; and the qi part
+  of each qi herb's blurb, built at load from them), `progress`, `growNowTier`.
 - `src/shared/Items.luau`: every consumable (herbs mirrored in, spirit cores,
   treasures) and its `use`.
 - `src/shared/Hotbar.luau`: nine slots of techniques and items.
@@ -71,7 +74,8 @@ the pose and prop. Unsupported rigs skip the gesture (the game uses R6).
 
 ## Tuning knobs
 - `Herbs.luau`: everything per plant; `Sizes`, `Mutations`, `GOLDEN_CHANCE`, `MAX_SIZE`.
-- `Pacing.Herbs.EAT_SHARE`: qi per herb as a share of the dantian, by tier.
+- `Pacing.Herbs`: `EAT_SHARE` (qi per herb as a share of the dantian, by tier),
+  `EAT_FLOOR` (the least raw qi, by tier), `PRIZE` (event herbs' share, by id).
 - `Items.luau`: core and treasure effects, `treasureWeight`, `USE_COOLDOWN`.
 - `Items.HERB_EAT_SECONDS` (1.05 s) sets the herb use cooldown and animation duration;
   `HERB_BITE_SECONDS` (0.4 s) removes the morsel. Reach/chew/return poses and

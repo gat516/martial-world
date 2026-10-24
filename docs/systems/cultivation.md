@@ -14,10 +14,23 @@ felt in fights.
   page is the code as it stands.
 - **The ladder is 27 stages** (2026-10-22, [progression](../progression.md)): Qi
   Condensation 1-9, Qi Refining 1-9, Foundation Establishment 1-9 (FE9 is the cap).
-  The QR and FE2-9 rows are first-guess curves, untuned in play.
+- **The curve (2026-10-23, [roadmap](../roadmap.md) "Pacing, realm gaps and verbs"):**
+  active play is about 2.4 h of QC, 7 h of QR and 20 h of FE. The hook lands QC2,
+  QC3 and QC4 in the first ten minutes; each realm is three thirds, each opened by a
+  breather; the real slowdown is mid Qi Refining (QR4 on), where passive grows as a
+  share of income so the garden aura, peak build items and herbs carry cultivation;
+  no FE stage runs over about 3 h. The gardener's road (meditating on the peak) is
+  about 2x the fighter's time in QC, 1.6x in QR and 1.5x in FE. The per-stage table
+  and its formulas are in the `Pacing.luau` header. Untuned in play.
+- **Strength:** about +10% health and power a minor stage and x2.25 at a major;
+  beasts follow, and realm suppression cuts damage across majors
+  ([combat](combat.md#realm-power-and-suppression-2026-10-23)).
 - **Tribulations are for the heaven-defying only.** `data.heavenDefying` (default
   false; `Cultivation.heavenDefying`) puts a tribulation on every major
-  breakthrough (QC9, QR9); everyone else breaks through quietly on a full bar. Nothing sets the flag yet: a heaven-defying bloodline or root will.
+  breakthrough (QC9, QR9); everyone else breaks through quietly on a full bar. A
+  heaven-defier's every bar is `Pacing.HeavenDefying.BAR` (1.5x) longer
+  (`Cultivation.stage` returns `Realms.forPlayer`'s copy), and they resist half of
+  realm suppression when hitting upward. Nothing sets the flag yet: a heaven-defying bloodline or root will.
 - **Walls are the bar, never a boss.** A wall stage has the biggest bar of its
   chapter (plus the tribulation for heaven-defiers); nothing else gates a breakthrough.
 - **Two kinds of qi.** Raw qi (`data.rawQi`, the dantian) is cultivation's fuel:
@@ -122,8 +135,10 @@ felt in fights.
 ## Tuning knobs (all in `Pacing.luau`)
 - **Pacing.Curve**: one row per stage. QI: `bar`, `dantian`, `passive`.
   BREAKTHROUGH: `levels` (circulation run levels), `difficulty`, `tribulation`. FIGHT:
-  `health`, `power`.
-- **Pacing.Adjust**: per-stage multipliers on top of the curve, keyed `"QC1".."FE1"`:
+  `health`, `power` (beasts follow through `Pacing.BeastBaseline`).
+- **Pacing.Suppression** (`KEEP`) and **Pacing.HeavenDefying** (`BAR`,
+  `SUPPRESSION_RESIST`).
+- **Pacing.Adjust**: per-stage multipliers on top of the curve, keyed `"QC1".."FE9"`:
   `bar`, `passive`, `refine`, `gather`, `difficulty` (added), `levels`,
   `tribulation` (field overrides), `health`, `power`, `beastHealth`,
   `beastDamage` (for beasts whose Enemies `realm` is that stage).
@@ -144,7 +159,7 @@ felt in fights.
 
 ## Reading dropoff from analytics
 `Analytics.luau` logs a progression path **"Realm"** (level = stage index,
-1 = QC1 ... 10 = FE1): *start* on entering a stage (stage 1 on a new player's
+1 = QC1 ... 27 = FE9): *start* on entering a stage (stage 1 on a new player's
 first join), *complete* on leaving it, *fail* when its tribulation beats the
 player. In the Creator Dashboard (Analytics > Progression), a level whose starts
 greatly exceed its completes is a dropoff. Also useful: the custom events
@@ -161,13 +176,11 @@ to Stone Boars).
 - FE9 is the top: no stage beyond it, so its bar is shown but can't be broken
   through ("peak of this world"). When FE2+ exist, a method that
   doesn't reach the next stage blocks it with "seek a stronger method" instead.
-- Enemy qi drops and beast health/damage multipliers are defined in Pacing
-  (`Realms.enemyQi`, `stage.beastHealth/beastDamage`) but EnemyService/Spawner
-  don't read them yet; enemy qi still uses `Enemies.QI_SCALE_EXPONENT`.
 - `Config.Meditation.ANYWHERE/ON_PEAK` are aliases of `Pacing.Meditation` until
   `server/Meditation.luau` reads Pacing directly.
-- Herb, core and treasure qi amounts are per item (Herbs/Items), not per stage, so
-  flat-qi herbs matter less at high stages by design.
+- Herb qi is a tier share of the dantian with a per-tier floor (event herbs a
+  bigger share); cores and treasures are shares too. All of it only fills the
+  dantian's room, so a herb never gives more than one dantian.
 - The `Breakthrough` analytics event's "seconds since" resets each session.
 - Overflow is untuned: `OVERFLOW_CAP` 1.5 and `CARRY_SHARE` 0.25 are first
   guesses. Open question: should gains past the bar slow down (a lower rate

@@ -6,6 +6,7 @@
 -- use: what consuming one does
 --   qi                raw qi into the dantian
 --   qiShare           raw qi as a share of the dantian
+--   qiFloor           the least raw qi qiShare gives (herb tiers, Pacing.Herbs.EAT_FLOOR)
 --   cultivationShare  cultivation as a share of the realm bar (skips the dantian)
 --   daoXp             weapon Dao XP for the class in hand (bare hands: Fist)
 --   heal              share of max health restored
@@ -20,6 +21,7 @@ local Herbs = require(script.Parent.Herbs)
 export type Use = {
 	qi: number?,
 	qiShare: number?,
+	qiFloor: number?,
 	cultivationShare: number?,
 	daoXp: number?,
 	heal: number?,
@@ -180,6 +182,7 @@ local ICONS = {
 -- Herbs are items too
 for _, id in Herbs.Order do
 	local herb = Herbs.Defs[id]
+	local share, floor = Herbs.eatQi(id)
 	Items.Defs[id] = {
 		id = id,
 		name = herb.name,
@@ -189,7 +192,7 @@ for _, id in Herbs.Order do
 		glyph = HERB_GLYPHS[id] or "草",
 		blurb = herb.blurb,
 		lore = "Grown in the beds of your spirit peak.",
-		use = { qiShare = if Herbs.eatShare(herb) > 0 then Herbs.eatShare(herb) else nil, buffs = herb.eat.buffs },
+		use = { qiShare = if share > 0 then share else nil, qiFloor = if floor > 0 then floor else nil, buffs = herb.eat.buffs },
 	}
 end
 

@@ -1,7 +1,7 @@
 # Progression: Qi Condensation to Foundation Establishment 9
 
 The stage-by-stage plan for the whole current game. [core-loop.md](core-loop.md) is
-the north star; this page is how it plays out over about 16 hours. Numbers live
+the north star; this page is how it plays out over about 30 hours. Numbers live
 in `src/shared/Pacing.luau`; this page is the design they are tuned against.
 Decided 2026-10-22 in conversation; stage assignments and targets are proposals
 until playtested. Nothing here is built yet unless it says so.
@@ -28,18 +28,23 @@ until playtested. Nothing here is built yet unless it says so.
 - **Bloodlines, not races.** Cosmetic traits (horns, tails, wings, see-through
   spirits) come with a bloodline. See "Bloodlines".
 
-## Length targets (active play, proposals)
+## Length targets (active play; built 2026-10-23, untuned in play)
 | Major | Stages | Target | Per stage |
 |---|---|---|---|
-| Qi Condensation | 9 | about 2 h (as built) | 13 min |
-| Qi Refining | 9 | about 4 h | 27 min |
-| Foundation Establishment | 9 | about 10 h | 67 min |
+| Qi Condensation | 9 | about 2.5 h (2.4 h built) | 1 min (QC1) to 55 min (QC9) |
+| Qi Refining | 9 | about 7 h | 22-75 min |
+| Foundation Establishment | 9 | about 20 h | 80-175 min |
 
-Bars cannot keep growing 1.6x a stage: from QC9 on, the curve grows about 1.25x
-a stage with a step at each major. Time per stage is stretched by quests,
-events and exploring (more things to do per stage), not by a bigger grind.
-Passive cultivation still never stops. Derive each stage's bar and income from
-its target minutes with the formulas in the `Pacing.luau` header.
+About 30 h to FE9, the cap, which should be hard to reach; passive and offline
+cultivation stretch it over real days. Shape ([roadmap](roadmap.md) "Pacing, realm
+gaps and verbs"): the hook lands QC2, QC3 and QC4 in the first ten minutes; every
+realm is three thirds, each easy to hard and opened by a breather; the real
+slowdown is mid Qi Refining (QR4 on), where the garden and the peak keep
+cultivation moving; no stage runs over about 3 h. The gardener's road is about 2x
+the fighter's time in QC, 1.6x in QR and 1.5x in FE, before garden aura, build
+items and herbs. Heaven-defiers take 1.5x longer on every bar. The per-stage table,
+its assumptions (about two wolf kills of raw qi a minute) and the formulas are in
+the `Pacing.luau` header: pick a stage's minutes, derive its bar.
 
 ## The stage template
 Every three stages is a **chapter**; every nine is a **realm**.
@@ -118,8 +123,11 @@ The garden dies at QC6 because herb qi is flat. Fix:
 - **Herb tiers, by region.** I Common (QC), II Spirit (QR1-5), III Rare (QR6-FE3),
   IV Treasure (FE4-8), V Heavenly (FE9+). Eating a herb gives a fixed **share of
   the current dantian** by tier (about 6, 9, 12, 16, 20 percent), so a herb always
-  matters but never replaces hunting. Built (untuned): `Herbs.luau` `tier`,
-  `Pacing.Herbs.EAT_SHARE`; today's herbs are tiers I-III.
+  matters but never replaces hunting, with a floor per tier so early herbs stay worth
+  eating (120, 400, 2500 raw qi for I-III; `EAT_FLOOR`), and event herbs keep a
+  bigger share (Thousand-Year Ginseng a full dantian, Rift Lotus half; `PRIZE`).
+  Built (untuned): `Herbs.luau` `tier`, `Herbs.eatQi`, `Pacing.Herbs`; today's herbs
+  are tiers I-III.
 - **Seeds come from the region.** Beasts drop their region's seeds, so going out
   feeds the garden; the garden saves trips. Sect errands ask for herbs (home
   turns into quests).
@@ -213,8 +221,8 @@ boss**, so a player who can't (a phone player, a peaceful one) is never stuck.
 - **Dying costs a little, never a stage.** A death spills about half of the haul
   you haven't banked, recoverable where you fell for a few minutes (Phase A), so
   trying stays cheap.
-- Open: how big the gardener's slowdown is (a proposal: 1.5-2x the fighter's
-  time), and whether to hint the peaceful road when a player keeps dying.
+- The gardener's road takes 1.5-2x the fighter's time (built in the curve,
+  2026-10-23). Open: whether to hint the peaceful road when a player keeps dying.
 
 ## World events
 The event look pass (`docs/vfx/world_events.md`) resumes with Heaven Split,
@@ -242,12 +250,16 @@ Still open from that pass:
 - **Nothing sets `heavenDefying`** yet (bloodline or root).
 - **Region seals unchanged:** `Regions.luau` still seals the Outer region at FE1; the
   QR regions need the map.
-- **Thunder Ape and Nine-Tailed Fox** are tuned for the old FE1 player (500 HP,
-  power 3.0), which is now about QR5-6. Move their `realm` there, or lift their
-  stats, once playtested.
+- **Thunder Ape and Nine-Tailed Fox** sit at FE1 and were tuned for an older FE1
+  player (500 HP, power 3.0), weaker than `Pacing.BeastBaseline`'s FE1. The
+  progression plan puts them at QR5 and QR9: move their `realm` once playtested
+  (the curve then scales them; check them against the baseline at that stage).
 - **Cultivator enemies** exist but aren't wired. They suit the QR and FE stages as
   human opponents and sect-quest targets.
-- Curve numbers are untuned (see the table in `Pacing.luau`).
+- Curve numbers are untuned in play (see the table in `Pacing.luau`).
+- Built 2026-10-23: the curve to the new targets, strength (+10% a minor, x2.25 a
+  major, beasts following through `Pacing.BeastBaseline`), realm suppression, the
+  heaven-defier's 1.5x bar and suppression resist, and herb floors.
 
 Steps:
 1. ~~Pacing rows, `QiRefining`, the tribulation flag~~ (done, untuned).

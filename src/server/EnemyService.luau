@@ -944,10 +944,16 @@ local function landOn(player: Player, resolve: () -> ())
 	end
 end
 
--- Combat.hurt for an enemy's attack, guardable as `hit` says. A parry that
+-- Combat.hurt for an enemy's attack, guardable as `hit` says. Every beast and
+-- boss blow on a player goes through here, so realm suppression is applied here
+-- (a beast of a lower major realm barely scratches the player). A parry that
 -- closes a chain (or stands alone) staggers the beast; "deflected" (a chained
 -- parry with more blows coming) lets the assault run on.
 local function hurtBy(enemy: Enemy, player: Player, damage: number, hit: Guard.Hit)
+	local data = PlayerData.get(player)
+	if data then
+		damage *= Realms.suppression(enemy.def.realm[1], data.realm.major)
+	end
 	local result = Combat.hurt(player, damage, false, enemy.def.id, hit)
 	if result == "parried" then
 		parried(enemy, hit.chain)

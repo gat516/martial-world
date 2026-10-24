@@ -22,7 +22,8 @@
 --   tier        I-V (1-5): the region it belongs to (I Common, II Spirit, III Rare,
 --               IV Treasure, V Heavenly; docs/progression.md)
 --   eat         qi = true: raw energy added at once, the tier's share of the
---               eater's current dantian (Pacing.Herbs.EAT_SHARE); buffs are timed
+--               eater's current dantian with a floor (Pacing.Herbs EAT_SHARE,
+--               EAT_FLOOR; event herbs a PRIZE share; Herbs.eatQi); buffs are timed
 --               effects
 --   blurb       what eating it does; for qi herbs only the buff part, the qi share
 --               is put in front at load
@@ -284,17 +285,23 @@ Herbs.Defs = {
 
 Herbs.TierNumerals = { "I", "II", "III", "IV", "V" }
 
--- Share of the eater's current stage dantian that eating one gives as raw qi
--- (0 for buff-only herbs). The server adds it only up to the dantian's room.
-function Herbs.eatShare(herb: Herb): number
-	return if herb.eat.qi then Pacing.Herbs.EAT_SHARE[herb.tier] or 0 else 0
+-- The raw qi eating one gives (0, 0 for buff-only herbs): a share of the eater's
+-- current stage dantian (its tier's, or its Pacing.Herbs.PRIZE share) and the
+-- least it gives (its tier's floor). The server adds it only up to the dantian's room.
+function Herbs.eatQi(id: string): (number, number)
+	local herb = Herbs.Defs[id]
+	if not (herb and herb.eat.qi) then
+		return 0, 0
+	end
+	local P = Pacing.Herbs
+	return P.PRIZE[id] or P.EAT_SHARE[herb.tier] or 0, P.EAT_FLOOR[herb.tier] or 0
 end
 
--- Qi herbs: put the tier's share in front of the buff blurb.
-for _, herb in Herbs.Defs do
-	local share = Herbs.eatShare(herb)
+-- Qi herbs: put the share (and its floor) in front of the buff blurb.
+for id, herb in Herbs.Defs do
+	local share, floor = Herbs.eatQi(id)
 	if share > 0 then
-		local qi = `+{math.floor(share * 100 + 0.5)}% of your dantian in Qi`
+		local qi = `+{math.floor(share * 100 + 0.5)}% of your dantian in Qi (at least {floor})`
 		herb.blurb = if herb.blurb == "" then `Raw energy: {qi} at once` else `{qi} and {herb.blurb}`
 	end
 end

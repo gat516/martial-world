@@ -87,6 +87,7 @@ What we build next and in what order (foundation grades, the haul and the surge,
 | Combat qi (technique mana): pool size per stage, regen, regen delay, default cost; per-technique cost | `src/shared/Pacing.luau` `CombatQi`; `qiCost` in `src/shared/Techniques.luau` ([combat](systems/combat.md#combat-qi-technique-mana)) |
 | Cultivation past the bar: overflow cap and how much carries over a breakthrough | `src/shared/Pacing.luau` `Breakthrough.OVERFLOW_CAP`, `CARRY_SHARE` ([cultivation](systems/cultivation.md)) |
 | Realm ladder names and helpers (built from Pacing) | `src/shared/Realms.luau` |
+| Realm suppression across majors, heaven-defier bar and resist, beast stats following the curve | `src/shared/Pacing.luau` `Suppression`, `HeavenDefying`, `BeastBaseline`; applied in `Combat.damageEnemy` and EnemyService `hurtBy` ([combat](systems/combat.md#realm-power-and-suppression-2026-10-23)) |
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
 | Enemies (stats, attacks, realm, weight) | `src/shared/Enemies.luau`; spawning in `src/shared/Spawns.luau`, regions in `src/shared/Regions.luau` |
 | Testbed fight trials before shipping | `Config.Wilds.NEW_WOLF_KING` (King trial); `test.project.json` zones ([testbed](systems/testbed.md)) |

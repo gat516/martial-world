@@ -88,8 +88,16 @@ local function buffTotal(data: PlayerData.Data, kind: string): number
 	return total
 end
 
+-- The player's stage as they live it: a heaven-defier's has the longer bar
+-- (Pacing.HeavenDefying.BAR; Realms.forPlayer).
 function Cultivation.stage(data: PlayerData.Data): Realms.Stage
-	return Realms.get(data.realm.major, data.realm.minor)
+	return Realms.forPlayer(Realms.get(data.realm.major, data.realm.minor), data.heavenDefying == true)
+end
+
+-- The stage after the player's, as they'll live it, or nil at the top (FE9).
+local function nextOf(data: PlayerData.Data, stage: Realms.Stage): Realms.Stage?
+	local after = Realms.after(stage.major, stage.minor)
+	return if after then Realms.forPlayer(after, data.heavenDefying == true) else nil
 end
 
 -- The most cultivation the current stage holds: past the bar, up to the overflow cap.
@@ -126,7 +134,7 @@ Cultivation.methodLimit = methodLimit
 -- Doesn't count the seat, the tribulation cooldown or a tribulation in progress.
 function Cultivation.block(data: PlayerData.Data): string
 	local stage = Cultivation.stage(data)
-	local nextStage = Realms.after(stage.major, stage.minor)
+	local nextStage = nextOf(data, stage)
 	if not nextStage then
 		return "peak"
 	end
@@ -282,7 +290,7 @@ function Cultivation.advance(player: Player, debt: number?)
 		return
 	end
 	local stage = Cultivation.stage(data)
-	local nextStage = Realms.after(stage.major, stage.minor)
+	local nextStage = nextOf(data, stage)
 	if not nextStage then
 		return
 	end
@@ -333,7 +341,7 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 		return false, "Still loading"
 	end
 	local stage = Cultivation.stage(data)
-	local nextStage = Realms.after(stage.major, stage.minor)
+	local nextStage = nextOf(data, stage)
 	if not nextStage then
 		return false, "You stand at the peak of this world's cultivation, for now."
 	end
@@ -379,7 +387,7 @@ local function warning(player: Player, data: PlayerData.Data, rate: number): str
 		if not first then
 			return nil
 		end
-		local nextStage = Realms.after(stage.major, stage.minor)
+		local nextStage = nextOf(data, stage)
 		if not nextStage then
 			return "You stand at the peak of this world's cultivation, for now."
 		end

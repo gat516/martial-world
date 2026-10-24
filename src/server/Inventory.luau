@@ -136,7 +136,7 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	local use = item.use
 	local stage = Cultivation.stage(data)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-	local qi = (use.qi or 0) + stage.dantian * (use.qiShare or 0)
+	local qi = (use.qi or 0) + (if use.qiShare then math.max(stage.dantian * use.qiShare, use.qiFloor or 0) else 0)
 	local onlyQi = qi > 0
 		and not (use.buffs or use.cultivationShare or use.daoXp or (use.heal and humanoid and humanoid.Health < humanoid.MaxHealth))
 	if onlyQi and data.rawQi >= stage.dantian then

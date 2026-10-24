@@ -149,6 +149,13 @@ first session decides; full Roblox RPGs run 30-100 h; cultivation games use abou
 - **Herbs:** the tier share of the dantian needs a floor per tier (early herbs
   became tiny), and event herbs (Thousand-Year Ginseng) must stay big.
 
+**Built 2026-10-23 (untuned in play):** the curve to these targets (table and
+formulas in the `Pacing.luau` header), strength (+10% a minor, x2.25 a major, beasts
+following through `Pacing.BeastBaseline`), realm suppression (`Pacing.Suppression`,
+0.2x per major, both ways), heaven-defiers' 1.5x bar and half suppression resist
+(`Pacing.HeavenDefying`), herb floors and event-herb shares (`Pacing.Herbs`). Not
+built: the new verb per major; nothing sets `heavenDefying` yet.
+
 ### Pacing follow-ups
 Tune the QR and FE curve from analytics; the two bosses tuned for the old FE1 get
 re-tiered; region seals wait for the map.

@@ -105,9 +105,8 @@ local function setBar(fill: GuiObject, trail: GuiObject?, value: number)
 	end
 end
 
-local function playerIndex(): number
-	local stage = Realms.byName(player:GetAttribute("Realm")) or Realms.Stages[1]
-	return Realms.index(stage.major, stage.minor)
+local function playerStage(): Realms.Stage
+	return Realms.byName(player:GetAttribute("Realm")) or Realms.Stages[1]
 end
 
 local function tierFor(gap: number): string
@@ -129,7 +128,20 @@ local function tierOfDef(def: Enemies.Def?): string
 		return "even"
 	end
 	local beast = Realms.ofBeast(def.realm)
-	return tierFor(Realms.index(beast.major, beast.minor) - playerIndex())
+	local mine = playerStage()
+	local gap = Realms.index(beast.major, beast.minor) - Realms.index(mine.major, mine.minor)
+	-- a higher major realm suppresses the player's blows (Pacing.Suppression):
+	-- one major up reads at least "far", two "deadly", however few stages apart;
+	-- a lower major (whose blows are suppressed) reads "below"
+	local majors = Realms.majorIndex(beast.major) - Realms.majorIndex(mine.major)
+	if majors >= 2 then
+		gap = math.max(gap, Pacing.Danger.DEADLY_AT)
+	elseif majors == 1 then
+		gap = math.max(gap, Pacing.Danger.FAR_AT)
+	elseif majors < 0 then
+		gap = math.min(gap, Pacing.Danger.BELOW_AT)
+	end
+	return tierFor(gap)
 end
 
 local function loop(entry: Watched, inst: Instance, props: { [string]: any }, info: TweenInfo)
@@ -147,8 +159,7 @@ local function restyle(entry: Watched)
 	if entry.boss or not (plate and warning and def and def.realm) then
 		return
 	end
-	local beast = Realms.ofBeast(def.realm)
-	local tier = tierFor(Realms.index(beast.major, beast.minor) - playerIndex())
+	local tier = tierOfDef(def)
 	if tier == entry.tier then
 		return
 	end

@@ -124,7 +124,7 @@ note and every trial's in its detail ([character window](../character/character-
   - `forced`: forced breakthroughs, removed (nothing increments it now); old counts fold
     into the surge question. `surges` (`QiSurge.fire`).
   - Haul: `spills` (`Haul.died`, a death that took something), `reclaimed` (a spill
-    walked back to), `fled` (`Haul.leaving` mid-fight with something lost), `stored`
+    walked back to), `fled` (`Haul.leaving` mid-fight with something spilled), `stored`
     (`Haul.storeAll` that banked something), `ringed` (stacks put in the spirit ring).
   - Peak: `placed` (Build "place"), `peakBest` (highest uncapped peak score,
     `Peaks.refreshScore`).

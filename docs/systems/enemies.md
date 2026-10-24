@@ -23,6 +23,12 @@ seeds and technique manuals, and the main test of a player's realm.
 - Kill credit is earned, not tagged: a player gets the kill's rewards only after
   dealing `Pacing.Rewards.KILL_SHARE` of its max health (`BOSS_KILL_SHARE` for a
   boss). Whoever dealt the most always qualifies, so every kill pays someone.
+- **Summoned beasts pay qi only.** Anything another beast calls (a howl's
+  reinforcements, a boss's adds: `SpawnOptions.called`, set by `summon`) gives its
+  qi at the untiered rate (the tier's `reward` divided back out) and nothing else: no
+  stones, drops, seeds, first kills, foundation experiences, kill count or `onKill`
+  hooks, so a howl is never a farm. A player still in onboarding (before the `QC3`
+  beat) is paid in full, so the lesson's one reinforcement counts (`fullPay`).
 
 ### Every enemy is designed, not filled in (user, 2026-10-22)
 - **Bosses go all out.** Each one has its own AI, its own signature mechanic and an
@@ -382,7 +388,7 @@ point is the body centre. Per-body numbers and attachments are in the RIGS.md of
   by the Sect Gate array for the FirstKill and Technique beats, WolfPocket, WolfDen, BoarMeadow,
   BoarField, SerpentMarsh, SerpentFen, BossArena; positions in [world-overview](../world-overview.md) and [docs/map/wilds.md](../map/wilds.md)), runs ambient encounters,
   `Spawner.pack` (drop a group) and `Spawner.boost` (world events).
-- `src/server/EnemyService.luau`: runs beasts: `spawn(id, at, { home, roam, target })`,
+- `src/server/EnemyService.luau`: runs beasts: `spawn(id, at, { home, roam, target, fleeting, called, stage, tier })`,
   `despawn`, `onRemoved`, the state machine (idle, chase, windup, dash, recover,
   stagger), attack pools, packs (howl, circle, hop) and attack slots, `strike`
   (telegraphed areas, also used by the tribulation), kill rewards and `onKill` hooks.

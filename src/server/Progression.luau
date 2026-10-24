@@ -140,6 +140,39 @@ local function rollPool(player: Player, data: PlayerData.Data, pool: Enemies.Bos
 	end
 end
 
+-- The first boss kill's guaranteed manual: one the player can use now. The most
+-- advanced unlearned art for the weapon class in hand that their Dao already reaches,
+-- else an unlearned starter art (no Dao: any-weapon first), else the in-hand class's
+-- next art (kept in Arts until its Dao), else Pacing.Rewards BOSS_FIRST_MANUAL.
+local function firstBossManual(player: Player, data: PlayerData.Data): string
+	local class = Weapons.class(player)
+	local function fresh(id: string): boolean
+		return not data.techniques.owned[id] and not data.techniques.manuals[id]
+	end
+	local usable, usableDao = nil, -1
+	local later, laterDao = nil, math.huge
+	local starter, starterAny = nil, false
+	for _, id in Techniques.Order do
+		local def = Techniques.Defs[id]
+		if def and fresh(id) then
+			local need = Techniques.learnDao(def)
+			if def.weapon == class then
+				if Techniques.daoLevel(def, data.dao) >= need then
+					if need > usableDao then
+						usable, usableDao = id, need
+					end
+				elseif need < laterDao then
+					later, laterDao = id, need
+				end
+			end
+			if need == 0 and (starter == nil or (def.weapon == "Any" and not starterAny)) then
+				starter, starterAny = id, def.weapon == "Any"
+			end
+		end
+	end
+	return usable or starter or later or Config.BOSS_FIRST_MANUAL
+end
+
 function Progression.onKill(player: Player, def: Enemies.Def, _model: Model)
 	local data = PlayerData.get(player)
 	if not data then
@@ -162,7 +195,7 @@ function Progression.onKill(player: Player, def: Enemies.Def, _model: Model)
 	if def.boss then
 		data.stats.bossKills += 1
 		if data.stats.bossKills == 1 then
-			Progression.grantManual(player, Config.BOSS_FIRST_MANUAL)
+			Progression.grantManual(player, firstBossManual(player, data))
 		end
 	end
 	for _, m in Config.MILESTONES do

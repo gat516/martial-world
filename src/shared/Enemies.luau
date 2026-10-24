@@ -423,8 +423,9 @@ Enemies.Defs = {
 		pack = {
 			-- rallies idle packmates within 30; with none, calls 1-3 Spirit Wolves from
 			-- 18-25 studs around the target (only 1, and only with no wolf near, while
-			-- the target is in onboarding). They pay full rewards and leave when the
-			-- fight ends.
+			-- the target is in onboarding). They pay qi only (no stones, drops or first
+			-- kills, at the untiered rate; full pay in onboarding: EnemyService `fullPay`)
+			-- and leave when the fight ends.
 			howl = {
 				kind = "howl",
 				name = "howl",

@@ -160,6 +160,10 @@ export type Data = {
 	ring: { string }, -- the spirit ring: herb and item ids whose whole stack is banked even in the wilds (Haul.luau)
 	-- the unbanked haul left out when the last session logged off away from a bank point (Haul.luau)
 	haul: { rawQi: number, stones: number, herbs: { [string]: number }, items: { [string]: number }, seeds: { [string]: number } },
+	-- a spill left unclaimed at logout (a combat-leave's, or a death's): position as { x, y, z },
+	-- the amounts, and os.time() when saved; the next join within Pacing.Haul KEEP_SECONDS
+	-- gets it back where they fell (Haul.luau)
+	spill: { at: { number }, contents: { rawQi: number, stones: number, herbs: { [string]: number }, items: { [string]: number }, seeds: { [string]: number } }, saved: number }?,
 	buffs: { ActiveBuff },
 	decor: { [string]: number }, -- stored build items, by catalog id
 	receipts: { [string]: number }, -- Robux purchases already granted: PurchaseId -> os.time()

@@ -46,6 +46,7 @@ local BossAttacks = require(script.Parent.BossAttacks)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Rewards = require(ReplicatedStorage.Shared.Pacing).Rewards
 local PartyPacing = require(ReplicatedStorage.Shared.Pacing).Party
+local VariantTiers = require(ReplicatedStorage.Shared.Pacing).Variants.TIERS
 local CombatConfig = require(ReplicatedStorage.Shared.Config).Combat
 local CC = CombatConfig.CC
 -- Attack slots and dash-front hits for the new fights; a boss opts into slots
@@ -190,6 +191,7 @@ type Enemy = {
 	followUpUntil: number, -- the follow-up lapses if no slot frees up by then
 	dashLength: number, -- the current lunge/charge's lane length (Enemies `stopPast`)
 	fleeting: boolean, -- SpawnOptions.fleeting
+	called: boolean, -- SpawnOptions.called: pays qi only
 	hopReadyAt: number,
 	hits: { number }, -- recent times it was hit (the hop's trigger)
 	orbitDir: number,
@@ -224,6 +226,10 @@ export type SpawnOptions = {
 	roam: number?, -- studs it wanders from home
 	target: Player?, -- comes straight for this player
 	fleeting: boolean?, -- gone (no rewards) once it has no one to fight: a howl's reinforcements
+	-- summoned by another beast (a howl's reinforcements, a boss's adds): its kill pays qi
+	-- at the untiered rate and nothing else (no stones, drops, first kills or kill count;
+	-- onboarding players excepted, fullPay)
+	called: boolean?,
 	-- realm variants (Enemies.variant, docs/systems/enemies.md "Realm variants"): the stage it
 	-- cultivates at ("QC5"; default its def's own) and its tier (default picked from the stage)
 	stage: string?,
@@ -422,6 +428,7 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		followUpUntil = 0,
 		dashLength = 0,
 		fleeting = opts.fleeting == true,
+		called = opts.called == true,
 		hopReadyAt = 0,
 		hits = {},
 		orbitDir = if math.random() < 0.5 then 1 else -1,
@@ -541,6 +548,23 @@ local function qiFor(def: Enemies.Def, data: PlayerData.Data): number
 	return math.floor(Realms.enemyQi(def.qiDrop, Realms.get(data.realm.major, data.realm.minor)) * Cultivation.methodSpeed(data) + 0.5)
 end
 
+-- Whether this kill pays in full. A summoned beast (SpawnOptions.called) pays qi only,
+-- without its tier's reward bonus, so howls and adds are never a better farm than the
+-- beasts that call them. Onboarding players (before the QC3 beat) are paid in full, so
+-- the lesson's one reinforcement counts toward its kills.
+local function fullPay(enemy: Enemy, data: PlayerData.Data): boolean
+	return not enemy.called or not (data.beats :: any).QC3
+end
+
+local function killQi(enemy: Enemy, data: PlayerData.Data): number
+	local qi = qiFor(enemy.def, data)
+	local tier = not fullPay(enemy, data) and enemy.def.tier and VariantTiers[enemy.def.tier]
+	if tier and tier.reward > 0 then
+		qi = math.floor(qi / tier.reward + 0.5)
+	end
+	return qi
+end
+
 -- Players who dealt enough of the beast's health to earn the kill
 -- (Pacing.Rewards KILL_SHARE / BOSS_KILL_SHARE), each with their own full drop: qi,
 -- stones and the onKill rolls (loot, seeds, first kills), so nobody can steal a kill.
@@ -622,18 +646,21 @@ function EnemyService.died(enemy: Enemy)
 			-- the group bonus: a little more beast qi per party member at the kill
 			local bonus = math.min(PartyPacing.BONUS_CAP, #partyNear(player, position) * PartyPacing.BONUS_PER_MEMBER)
 			local cap = Cultivation.stage(data).dantian
-			local amount = math.max(0, math.min(math.floor(qiFor(enemy.def, data) * (1 + bonus) + 0.5), cap - data.rawQi))
-			data.stats.kills += 1
-			local stones = math.random(enemy.def.stones[1], enemy.def.stones[2])
-			data.stones += stones
+			local amount = math.max(0, math.min(math.floor(killQi(enemy, data) * (1 + bonus) + 0.5), cap - data.rawQi))
 			Cultivation.markActive(player)
-			-- a boss opens the victory card first, so the rewards below land in it
-			if enemy.def.boss then
-				effectRemote:FireClient(player, "boss", enemy.def.name, amount)
-			end
-			effectRemote:FireClient(player, "stones", position, stones)
-			for _, fn in EnemyService.onKill do
-				task.spawn(fn, player, enemy.def, enemy.model)
+			-- a summoned beast pays its qi and nothing else (fullPay)
+			if fullPay(enemy, data) then
+				data.stats.kills += 1
+				local stones = math.random(enemy.def.stones[1], enemy.def.stones[2])
+				data.stones += stones
+				-- a boss opens the victory card first, so the rewards below land in it
+				if enemy.def.boss then
+					effectRemote:FireClient(player, "boss", enemy.def.name, amount)
+				end
+				effectRemote:FireClient(player, "stones", position, stones)
+				for _, fn in EnemyService.onKill do
+					task.spawn(fn, player, enemy.def, enemy.model)
+				end
 			end
 			grantQi(player, data, amount, position)
 			Cultivation.pushState(player)
@@ -658,7 +685,7 @@ function EnemyService.died(enemy: Enemy)
 		local data = PlayerData.get(player)
 		if data then
 			Cultivation.markActive(player)
-			grantQi(player, data, qiFor(enemy.def, data) * PartyPacing.HELPER_QI_SHARE, position)
+			grantQi(player, data, killQi(enemy, data) * PartyPacing.HELPER_QI_SHARE, position)
 			Cultivation.pushState(player)
 		end
 	end
@@ -1638,7 +1665,7 @@ local function summon(enemy: Enemy, attack: Enemies.Attack, count: number?, arou
 			attack.summons :: string,
 			at :: Vector3,
 			{ home = enemy.home, roam = enemy.roam, target = enemy.target,
-				fleeting = around ~= nil or enemy.def.resetOnEvade == true,
+				fleeting = around ~= nil or enemy.def.resetOnEvade == true, called = true,
 				stage = if same then enemy.def.stage else nil, tier = if same then enemy.def.tier else nil }
 		)
 		if model then

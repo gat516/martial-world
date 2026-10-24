@@ -506,6 +506,9 @@ Pacing.Rewards = {
 	-- one tag in a crowd doesn't earn the boss rewards
 	KILL_SHARE = 0.1,
 	BOSS_KILL_SHARE = 0.15,
+	-- the first boss kill's manual is one usable now: the held weapon class's best art
+	-- the player's Dao reaches, else a starter art they lack (Progression firstBossManual);
+	-- this only when they already have every one of those
 	BOSS_FIRST_MANUAL = "TwinPhoenixCannon",
 	-- boss pools of class manuals and Spirit weapons: Enemies `bossDrops`;
 	-- the rest of the class manuals and the Mortal weapons are in world caches
@@ -669,12 +672,14 @@ Pacing.DaoPractice = {
 -- like, Spirit Stones) is at risk until they reach the sect (their peak, the
 -- plaza) or stand on any teleport array out of combat. A death spills SPILL_SHARE
 -- of it where they fell, as a spirit-light only they can see and walk back into
--- for SPILL_SECONDS; leaving while combat-tagged loses that share outright.
+-- for SPILL_SECONDS (a second death merges into it); leaving while combat-tagged
+-- spills the same share where they stood, kept for a join within KEEP_SECONDS.
 -- Finds at or above SAFE_RARITY bank the moment they're picked up, and the
 -- spirit ring keeps RING_SLOTS whole stacks banked even in the wilds.
 Pacing.Haul = {
 	SPILL_SHARE = 0.5, -- of each unbanked amount, rounded to the nearest whole
 	SPILL_SECONDS = 300, -- the spill waits this long, then it's gone
+	KEEP_SECONDS = 2 * 3600, -- a spill unclaimed at logout (combat-leave or death) waits this long for the next join, then SPILL_SECONDS from it
 	RECLAIM_RADIUS = 7, -- studs from the spill that pick it back up
 	SAFE_RARITY = 4, -- Items.Rarities order (4 Epic, 5 Legendary): banks on pickup
 	RING_SLOTS = { QiCondensation = 2, QiRefining = 3, Foundation = 4 } :: { [string]: number }, -- by major realm

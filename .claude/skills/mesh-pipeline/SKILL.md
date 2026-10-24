@@ -36,7 +36,9 @@ patterns.
   size them from the reported bounding box. Check the licence before an asset
   goes in the game. A generated model is only a proportion guide: keep it in a
   hidden collection that isn't exported and build the real mesh by script (its
-  dense, soft mesh would redesign the reference).
+  dense, soft mesh would redesign the reference). The exception: for an organic or
+  complex shape that primitives build badly, ask the main session for an `asset-generator` base mesh (local
+  Pixal3D, from a reference image) instead of fighting it.
 - In shader code, look nodes up by type, never by name, and read enum
   identifiers instead of hardcoding them. Localized Blender installs differ.
 - Blender here is 5.1: snippets from before 4.1 break (`use_auto_smooth` is

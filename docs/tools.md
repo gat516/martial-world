@@ -41,3 +41,4 @@ What each script in `tools/` does. Read it when you need a tool and don't know i
 - duplicate finder
 - POI tour and labels (`poi_tour.luau`, Studio copy `ServerStorage._EditorTools.PoiTour`)
 - modeling checks ([modeling-checks](enemies/modeling-checks.md)): `model_shot.luau` (standard grey-box shots and capture presets, the 40-stud view, a four-view sheet), `fidelity_check.py` (silhouette IoU against a reference image, with a composite for a critic), `parts_audit.luau` (loose, kissing, hidden and z-fighting parts, part budget); Blender side `art/rig/silhouette_render.py`
+- Pixal3D image-to-3D generator (`pixal3d.sh`, sources and install notes in `pixal3d/`: image to textured GLB on the Windows GPU at `D:\pixal3d`, with a RAM/VRAM preflight that refuses to run unless `--force`)

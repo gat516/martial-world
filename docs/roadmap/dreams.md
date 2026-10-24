@@ -7,6 +7,8 @@ of this is planned work; nothing here starts until that core is proven in playte
 and anything picked up moves into the main roadmap first.
 
 ## Factions and paths
+- **For now everyone is orthodox** (user, 2026-10-24: stay in scope); the rest of this
+  section is later.
 - **Every player belongs to an NPC sect or faction.** Three in the long run: the
   orthodox sect (the default, what exists), the unorthodox rogues (a river market town
   with a guild board) and the demonic Blood Sect (a red-rock ravine).
@@ -45,13 +47,10 @@ and anything picked up moves into the main roadmap first.
   outposts' guards, traders and cultists.
 
 ## Onboarding as an entrance trial
-- **The tutorial becomes the sect's entrance exam** (user idea, 2026-10-24): a trial
-  path from the mountain gate up to the outer court; a first fight in a fenced ring, a
-  guard station against a puppet, a short climb, the Testing Stone reading your root.
-  Pass it and you're an outer disciple. Each faction gets its own skin (a Blood Sect
-  blood-pit initiation, a guild bounty test in the river town).
-- **Removing or skipping the tutorial:** far future (decided). The trial makes a skip
-  read as "recommended straight in".
+Moved into scope (user, 2026-10-24): [roadmap](../roadmap.md) section 2. Here only the
+far part: each faction's own skin of it (a Blood Sect blood-pit initiation, a guild
+bounty test in the river town), and removing or skipping the tutorial (far future,
+decided); the trial makes a skip read as "recommended straight in".
 
 ## Tribulation and peaks
 - **The tribulation comes to you:** it strikes on your own peak, the clouds gathering

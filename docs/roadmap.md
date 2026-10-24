@@ -4,8 +4,8 @@ The plan for taking the game to a full climb from QC1 to FE9. **Plans only:** wh
 built lives in its system doc ([README](README.md) maps them); this page holds what's
 open, deferred or next, in order, and the owner's decisions that constrain it.
 [progression](progression.md) is the stage ladder; [core-loop](core-loop.md) is the
-north star. Ideas far past the MVP (factions, the sect rebuild, the entrance trial)
-are parked in [dreams](roadmap/dreams.md). Nothing here has been playtested.
+north star. Ideas far past the MVP (factions, the sect rebuild, peak kinds) are
+parked in [dreams](roadmap/dreams.md). Nothing here has been playtested.
 
 ## Principles (owner)
 1. **Nobody is barred by skill.** Bosses, tribulations and difficulty never gate
@@ -45,7 +45,7 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
 - **Bloodlines,** absorbed or injected; they will replace race rerolls. Granting by
   masters: [relationships](roadmap/relationships.md).
 - **Halls, masters and lineage** (sections 3b, 3d).
-- **Factions, player-made sects, the sect rebuild and the entrance trial**
+- **Factions (everyone is orthodox for now), player-made sects and the sect rebuild**
   (2026-10-24): [dreams](roadmap/dreams.md).
 - **Rifts and paths** (section 9, [replayability](roadmap/replayability.md)).
 - **World events** (section 7; separate work).
@@ -101,6 +101,14 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
   haul once they exist ([haul](systems/haul.md)).
 
 ## 2. Onboarding (each realm)
+- **Start as a mortal taking the sect's entrance trial (user, 2026-10-24; in scope).**
+  Everyone is orthodox for now. The first session becomes the entrance exam: a trial
+  path from the mountain gate up to the outer court, teaching combat on the way (a
+  first fight in a fenced ring, a guard station against a puppet, a short climb) and
+  ending at the Testing Stone, which reads your root; pass it and you're an outer
+  disciple. Needs the map (a trial path at the sect gate) and a re-slot of the first
+  beats; the lesson system and its one-idea-per-chapter rule stay. Faction skins of
+  the trial: [dreams](roadmap/dreams.md).
 - **Tempering lesson (user, 2026-10-24):** teach tempering the first time it matters:
   when a player's foundation is first damaged or sealed low (a stage under 100%, or a
   heart-demon trial that tempers little) the elder points them to seclusion and a

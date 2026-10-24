@@ -32,6 +32,12 @@ Card jobs (`spec.kind`):
   health/power/combat qi/passive deltas from the stage before (the curve's, without
   the foundation bonus), "The <array> array is open" when the stage opens a travel array);
   bloodlines and firsts later.
+- `seclusion`: the milestone card (lotus crest, `rays_milestone`) for seclusion's result
+  ("Seclusion Ends", or "First Seclusion" for the onboarding one): the time spent as the
+  subtitle, the stone, find, seed and garden tiles, "Cultivation from -> to", and
+  `spec.streak = { days, text }`: the Cultivation GUI's `Templates.SeclusionStreak` (seven
+  kit gems as day pips and a jade line, painted by `SeclusionView.paintStreak`) cloned
+  into the body in Unlock's place ([cultivation UI](cultivation.md#seclusion)).
 
 Rules: one card at a time, queued; a card waits while another window or minigame is
 open and opens when it closes. It is a `Menus` window (the HUD steps aside, shift lock
@@ -58,11 +64,15 @@ Rewards.show({ tier = "card", kind = "quest", title = "Quest Complete",
 	stats = { { name = "Health", from = 140, to = 165 } },
 	unlock = "The Inner Wilds array is open", flavour = "One line on what to do next.",
 	crest = nil, life = 7 })
-Rewards.preview(tier, kind)  -- sample content: ("card", "boss"|"quest"|"milestone"|"rank"), ("banner", "jade"|"gold"|"crimson"), ("feed"), ("small")
+Rewards.preview(tier, kind)  -- sample content: ("card", "boss"|"quest"|"milestone"|"rank"|"seclusion"), ("banner", "jade"|"gold"|"crimson"), ("feed"), ("small")
 ```
 
 Keys (feed rows and card tiles): `stones`, `qi`, `contribution` (currency:
-coin frame on card tiles, a disc in the currency's colour on feed rows), `manual:<technique>`, `weapon:<id>`, `method:<id>`, or an `Items` id.
+coin frame on card tiles, a disc in the currency's colour on feed rows), `manual:<technique>`, `weapon:<id>`, `method:<id>`, `seed:<herb>` (named by the herb),
+`garden` (seclusion: "Garden tended", the plant glyph on a jade tile, no count),
+`mutation` (seclusion: plants that took a mutation, gold tile), or an `Items` id.
+A card tile's name longer than 14 letters wraps to a second line at the same 12 px; the
+tile and the row grow 13 px (no truncation).
 Item tiles take the edge of their rarity or grade on the Inventory's ladder
 ([inventory](inventory.md), `Rarity.luau`): Common/Mortal bronze (`neutral`),
 Uncommon silver (`grey`), Rare/Spirit jade, Epic/Earth violet, Legendary/Heaven gold;

@@ -61,7 +61,7 @@ local TITLES: { [Page]: string } = { Comprehend = "Comprehend", Method = "Method
 local PILLS = { "MarrowWashingPill", "RootRebirthPill" }
 local PILL_SUB = { RootRebirthPill = "Reform as another element" } -- MarrowWashingPill: its washing progress (washLine)
 local NEXT_TIER: { [number]: string } = { [3] = "Tier II", [6] = "Tier III", [9] = "Mastery" }
-local SECLUSION_ICON = "rbxassetid://113579784709637" -- the kit's lotus emblem (Rewards ART.emblem_lotus)
+local SECLUSION_ICON = "rbxassetid://102118062177874" -- the kit's peak emblem (your own peak; the lotus is the calm toggle and the card crest)
 
 local MeditationMenu = {}
 
@@ -224,7 +224,6 @@ local function seclusionRow(): number
 	local secluded = player:GetAttribute("Secluded") == true
 	addRow(-1, {
 		icon = SECLUSION_ICON,
-		iconColor = JADE,
 		name = "Seclusion",
 		nameColor = LIGHT,
 		info = if secluded then "In seclusion" else "Shut out the world",

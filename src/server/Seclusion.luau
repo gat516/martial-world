@@ -138,6 +138,39 @@ local function duration(seconds: number): string
 	return `{math.floor(seconds / 3600 + 0.5)} hours`
 end
 
+-- What the secluded-state plaque shows (SeclusionView.luau): player attributes,
+-- refreshed as the tally moves, cleared when it ends.
+local ATTRS = { "SeclusionSince", "SeclusionStones", "SeclusionFinds", "SeclusionTended", "SeclusionMutations", "SeclusionStreak", "SeclusionToday" }
+local function publish(player: Player, data: PlayerData.Data)
+	if not live[player] then
+		return
+	end
+	local sec = data.seclusion
+	local tally = sec.tally
+	local finds = 0
+	for _, n in tally.items do
+		finds += n
+	end
+	for _, n in tally.seeds do
+		finds += n
+	end
+	local today = os.time() // 86400
+	player:SetAttribute("SeclusionSince", sec.since)
+	player:SetAttribute("SeclusionStones", tally.stones)
+	player:SetAttribute("SeclusionFinds", finds)
+	player:SetAttribute("SeclusionTended", tally.growth > 0)
+	player:SetAttribute("SeclusionMutations", tally.mutations)
+	-- the streak still standing (yesterday or today), and whether today already counts
+	player:SetAttribute("SeclusionStreak", if sec.streakDay >= today - 1 then sec.streak else 0)
+	player:SetAttribute("SeclusionToday", sec.streakDay == today)
+end
+
+local function unpublish(player: Player)
+	for _, name in ATTRS do
+		player:SetAttribute(name, nil)
+	end
+end
+
 -- The onboarding's first seclusion: its generous extras, into the tally.
 local function firstGifts(player: Player, data: PlayerData.Data)
 	local tally = data.seclusion.tally
@@ -157,7 +190,6 @@ end
 local function finish(player: Player, data: PlayerData.Data, delay: number)
 	local sec = data.seclusion
 	local tally = sec.tally
-	local streakBefore = sec.streak
 	if sec.counted >= S.STREAK_MIN_HOURS * 3600 then
 		local today = os.time() // 86400
 		if sec.streakDay ~= today then
@@ -187,29 +219,39 @@ local function finish(player: Player, data: PlayerData.Data, delay: number)
 	for id, n in tally.seeds do
 		table.insert(items, { key = `seed:{id}`, amount = n })
 	end
+	-- the garden as a tile: its mutations, or just tended
+	if tally.mutations > 0 then
+		table.insert(items, { key = "mutation", amount = tally.mutations })
+	elseif tally.growth > 0 then
+		table.insert(items, { key = "garden", amount = 1 })
+	end
 	local stats = {}
 	if tally.cultivation > 0 then
 		table.insert(stats, { name = "Cultivation", from = sec.start // 1, to = data.cultivation // 1 })
 	end
-	if sec.streak > 1 or streakBefore > 1 then
-		table.insert(stats, { name = "Seclusion streak", from = `{streakBefore} days`, to = `{sec.streak} days` })
-	end
-	local garden = ""
-	if tally.mutations > 0 then
-		garden = ` Your garden was tended, and {tally.mutations} {if tally.mutations == 1 then "plant" else "plants"} took a mutation.`
-	elseif tally.growth > 0 then
-		garden = " Your garden was tended."
+	-- the streak as day pips (SeclusionView.paintStreak): days held, and its bonus
+	local streak = { days = 0, bonus = 0, text = "An hour a day builds a streak" }
+	local today = os.time() // 86400
+	if sec.streakDay >= today - 1 and sec.streak > 0 then
+		local counts = sec.counted >= S.STREAK_MIN_HOURS * 3600
+		streak = {
+			days = sec.streak,
+			bonus = bonus,
+			text = if bonus > 0
+				then `Day {sec.streak}  ·  +{bonus} streak stones`
+				elseif counts then `Day {sec.streak} of your streak`
+				else `Day {sec.streak}  ·  an hour keeps the streak`,
+		}
 	end
 	local spent = os.time() - sec.since
 	local spec = {
 		tier = "card",
-		kind = "milestone",
+		kind = "seclusion",
 		title = if first then "First Seclusion" else "Seclusion Ends",
 		subtitle = `{duration(spent)} in seclusion`,
 		items = items,
 		stats = stats,
-		unlock = if bonus > 0 then `Streak bonus: +{bonus} Spirit Stones` else nil,
-		flavour = `You spent {duration(spent)} in seclusion.{garden}`,
+		streak = streak,
 	}
 	Analytics.event(player, "SeclusionEnded", math.floor(sec.counted / 60))
 	sec.since = 0
@@ -233,6 +275,7 @@ function Seclusion.leave(player: Player)
 	end
 	live[player] = nil
 	player:SetAttribute("Secluded", nil)
+	unpublish(player)
 	if data and data.seclusion.since > 0 then
 		finish(player, data, 0)
 	end
@@ -264,6 +307,7 @@ function Seclusion.enter(player: Player): (boolean, string?)
 	data.seclusion.tally = PlayerData.newTally()
 	live[player] = true
 	player:SetAttribute("Secluded", true)
+	publish(player, data)
 	Cultivation.pushState(player)
 	if data.seclusion.first then
 		Cultivation.notify(player, "You close your eyes and shut out the world. Rise when you wish to return.")
@@ -303,6 +347,7 @@ Garden.onTended = function(player: Player, tended: number, mutations: number)
 	if data then
 		data.seclusion.tally.growth += tended
 		data.seclusion.tally.mutations += mutations
+		publish(player, data)
 	end
 end
 
@@ -322,6 +367,7 @@ task.spawn(function()
 				local step = math.min(dt, math.max(0, MAX_SECONDS - sec.counted))
 				if step > 0 then
 					accrue(player, data, step, true)
+					publish(player, data)
 				end
 				if not sec.first and sec.online >= S.FIRST_SECONDS then
 					Seclusion.leave(player)

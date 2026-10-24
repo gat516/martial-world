@@ -47,6 +47,32 @@ the row's bottom is 20 px above the stack top (the realm crest's top), so the ca
 844x390, 750x369, 600x300). The lotus is `LOTUS_GAP` 22 px past the last tile, the row's own
 gap, and level with the tiles' centre.
 
+## Seclusion
+The AFK mode's screens ([seclusion](../systems/seclusion.md)), all from kit art (no new
+sheet). Built by `tools/seclusion_ui_build.luau` (sandbox; then export the ScreenGui).
+- **Secluded plaque** (`Canvas.Seclusion`, `SeclusionView.luau`): the toast's lacquer
+  plaque sliced taller (`toast_plaque`, Rect(48, 47, 464, 49), SliceScale 0.62, 58 px,
+  sized to its content) at 18.5 % of the height, centred: the lotus, the elapsed time
+  (Fredoka 32, the hero), a gold rule, then what has gathered, dimmer: stones (always),
+  finds and the garden ("Tended", or the number of plants that mutated) only once there
+  are any. Under it, on a soft dark backing (`fx_glow` tinted near black), the streak's
+  seven day pips (`gem_jade` lit, `gem_grey` at 0.35; today's pip half-lit at 0.55 until
+  `STREAK_MIN_HOURS` is sat, labelled "Day 3 · 18m left") and "Rise to leave". Shown
+  while `Secluded`, hidden while any window is open or the calm view is on; it fades
+  (`Motion.setShown`). Reads the `Seclusion*` player attributes the server publishes.
+  Icons are margined display-sized copies (`art/ui/sized/*_h48/_h64`, edge-margin lint).
+  Phone (`Device` 0.62): 248x32 px at 844x390, 17 px under the top buttons; time 17.6 px,
+  the smallest text 11.0 px. Chosen over a frameless dark-shade column (twice the
+  height on a phone) by two critics, 2026-10-23.
+- **Seclusion card**: Rewards kind `seclusion` ([reward banners](rewards.md)), with
+  `Templates.SeclusionStreak` (the pips and a line, 22 px) in its body. The first
+  seclusion shows empty pips and "An hour a day builds a streak".
+- **Row icon**: the meditation panel's Seclusion row uses the kit's `emblem_peak`
+  (your own peak), untinted; the lotus stays the calm toggle's and the card's crest.
+
+Measured (Studio, phone 844x390 stand-in and PC 1920x1080): plaque, footer and every
+item centred (dx 0.00, item centre y = plaque centre y); card streak row centred 0.00.
+
 ## Breakthrough card
 Your own breakthrough shows the Rewards milestone card (`Rewards.show`, tier `card`, kind
 `milestone`: stage name, the stats that changed, any travel array it opens; see

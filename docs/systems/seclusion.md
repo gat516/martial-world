@@ -34,14 +34,14 @@ for gardeners and mobile players the "leave it running" reward moment.
 1. Seated on your own peak (`Meditation` spot `own`), the Method tile (it reads
    **Seclusion** until a method is owned) opens the meditation panel; its first row
    is Seclusion with **Enter Seclusion** (`CultivationAction "seclusion"`).
-2. Secluded (player attribute `Secluded`): still seated; the seated row shows only
+2. Secluded (player attribute `Secluded`): still seated, a slim plaque under the top bar shows the time and what has gathered; the seated row shows only
    Seclusion and Rise. Circulate, Break Through, Practice, the heart demon, method
    and root changes are refused ("Rise to leave it first").
 3. Rising (Rise, a hit, drifting off the seat) ends it and the result card shows
-   (`Rewards.show` milestone card through Effect "reward"): "You spent 9 hours in
-   seclusion. Your garden was tended, and 3 plants took a mutation." with the stones,
-   finds and seeds (`seed:<herb>` tiles), Cultivation before and after, the streak and
-   the streak bonus.
+   (`Rewards.show` card, kind `seclusion`, through Effect "reward"): "9 hours in
+   seclusion", the stones, finds, seeds (`seed:<herb>`) and garden (`garden` or
+   `mutation`) tiles, Cultivation before and after, and the streak as day pips with the
+   streak bonus.
 4. Logging out while secluded keeps it going: `data.seclusion.since` stays set. The
    next login settles the time away (stones, hourly rolls, garden growth through
    `Garden.advance`; no mutations), ends it, and shows the card about 8 s in.
@@ -86,18 +86,35 @@ breakthrough refused), `Circulation.luau` (the action, refusals), `Garden.luau`
 awake ping), `Quests.luau` (the lesson), `HeartDemon.luau` (the question),
 `Main.server.luau` (`Seclusion.resume` after `claimLogin`). Client:
 `Meditation.luau` (awake ping, tiles), `MeditationMenu.luau` (the row), `Guide.luau`
-(`Seclusion` inside the panel), `Rewards.luau` (`seed:` tiles). Tuning:
+(`Seclusion` inside the panel), `SeclusionView.luau` (the plaque), `Rewards.luau`
+(the `seclusion` card, `seed:`, `garden`, `mutation` tiles); `assets/Cultivation.rbxmx`
+(`Canvas.Seclusion`, `Templates.SeclusionStreak`; `tools/seclusion_ui_build.luau`). Tuning:
 `Pacing.Seclusion`, `Pacing.Income` (`AFK_AFTER`, `AWAKE_PING`, `OFFLINE_*`).
 
-## UI needs (for a ui-designer pass; `assets/Hud.rbxmx` untouched)
-- A **Seclusion tile** of its own in `Stack.CultivatePrompt` (today the Method tile is
-  reused: caption swapped in code, still the method icon).
-- A **secluded state on screen**: a quiet banner or vignette with the elapsed time and
-  what has gathered so far (stones, finds), and a clear "Rise to leave" hint. Today
-  only the panel row says "In seclusion".
-- A **seclusion card** look (today the milestone card): the lotus crest, a garden
-  line, the streak as a row of day pips instead of a "from -> to" stat.
-- A **Seclusion row icon** (today the kit's lotus emblem, `emblem_lotus`).
+## UI ([cultivation UI](../ui/cultivation.md#seclusion))
+- **Secluded plaque** (`SeclusionView.luau`, Cultivation `Canvas.Seclusion`): elapsed
+  time, stones, finds, the garden, the streak's day pips and "Rise to leave", from the
+  player attributes `SeclusionSince`, `SeclusionStones`, `SeclusionFinds` (items and
+  seeds), `SeclusionTended`, `SeclusionMutations`, `SeclusionStreak` (the streak still
+  standing: last counted yesterday or today) and `SeclusionToday` (today already counts),
+  set by `Seclusion.luau` while live and cleared when it ends.
+- **The card**: Rewards kind `seclusion`: tiles for stones, finds, seeds, and the
+  garden (`mutation` with the count, or `garden`), "Cultivation from -> to", and
+  `streak = { days, text }` as day pips ("Day 3 · +54 streak stones"; "an hour keeps the
+  streak" when this one was too short; "An hour a day builds a streak" with none).
+- **Row icon**: `emblem_peak`.
+- **Seclusion tile, for the next Hud pass** (`assets/Hud.rbxmx` was owned by another
+  pass, so the Method tile is still reused with its caption swapped in
+  `Meditation.luau`): a tile of its own, `Stack.CultivatePrompt.Seclusion`, a clone of
+  `Method` (same `tile_neutral` frame, 54 px, phone 50 px, caption "Seclusion" under it)
+  with the `emblem_peak` icon at 50 % centred on the tile and cropped to its drawn area
+  like the others, untinted gold (the tiles' white glyphs are tinted cream; the peak is a
+  gold emblem, as the panel row shows it). Placement: first in the row (LayoutOrder
+  before Method), shown seated on your own peak (`MeditationMenu`'s `seclusionHere`);
+  while secluded the row is only Seclusion and Rise, as now. The Method tile then goes
+  back to reading "Method" and shows only when a method is owned. When a white
+  seclusion glyph exists (a Codex request: a peak with a closed gate, white, plain),
+  swap it in, tinted cream like the rest.
 
 ## Known gaps
 - Untested in play.

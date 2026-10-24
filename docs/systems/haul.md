@@ -49,15 +49,15 @@ gained since you last banked can spill when you die. Decided in the
   banked part first), and sets rare finds and ringed stacks to what's held. So every
   way of gaining something (drops, qi nodes, treasures, quests, the market) counts
   without reporting in.
-- **Bank points:** `Haul.safeAt(player, position)`: `Gates.inSect` or
-  `Travel.standingOn`. Each check sets `HaulReady` when the player is at one, out of
+- **Bank points:** `Haul.safeAt(player, position)`: a safe zone
+  (`SafeZone.at`: the sect's grounds or any spirit peak) or `Travel.standingOn`. Each check sets `HaulReady` when the player is at one, out of
   combat, with a non-empty haul. `InventoryAction "storeAll"` -> `Haul.storeAll`
   re-checks all three, banks, fires `Effect "banked"` (the flare) and an
   `Effect "reward"` small float with the summary, then `onBanked`. `Travel.onTravel`
   (a hook list in Travel, called before the ride moves the character) ->
   `Haul.bankQuietly`. **Testbed** (`Config.TESTBED`): the whole arena reads as the
-  sect, so only within `TESTBED_BANK_RADIUS` of `Workspace.Arena.SpawnPad` (where the
-  TestPeak sits) banks; fight the zone beasts away from the pad to test spills.
+  sect, so only the testbed's safe zone (`Pacing.SafeZone.TESTBED_RADIUS` of
+  `Workspace.Arena.SpawnPad`, where the TestPeak sits; [safe zones](party.md#safe-zones)) banks; fight the zone beasts away from the pad to test spills.
 - **Death:** `Haul.died` from `Humanoid.Died` (Main, before `Combat.died`) takes the
   share out of the profile into the spill and fires `Effect "spill"` to that player.
   After the respawn the spill is sent again with a toast naming the minutes left.
@@ -87,7 +87,7 @@ gained since you last banked can spill when you die. Decided in the
 
 ## Tuning (`Pacing.Haul`)
 `SPILL_SHARE` 0.5, `SPILL_SECONDS` 300, `RECLAIM_RADIUS` 7, `SAFE_RARITY` 4 (Epic),
-`RING_SLOTS` by major, `TESTBED_BANK_RADIUS` 24, `CHECK_SECONDS` 0.5.
+`RING_SLOTS` by major, `CHECK_SECONDS` 0.5 (the testbed's bank radius is `Pacing.SafeZone`).
 
 ## Known gaps
 - Store all is untested in play: a client-side prompt on your own root is new here

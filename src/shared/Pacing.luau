@@ -541,6 +541,28 @@ Pacing.Rewards = {
 --   * a cultivation method (a big moment) pays the most.
 -- Kids should feel every step pays; nothing here should outpace hunting.
 export type QuestReward = { stones: number?, qiShare: number? }
+-- PARTIES (server Party.luau, docs/systems/party.md): server-local groups of up to
+-- MAX_SIZE. A party is never required: it adds a small qi bonus and lets nearby
+-- members who didn't earn the kill still share in its qi.
+-- SAFE ZONES (server SafeZone.luau): the sect's grounds and every spirit peak.
+Pacing.SafeZone = {
+	TESTBED_RADIUS = 24, -- testbed: studs from the spawn pad that count (the TestPeak sits there)
+}
+
+Pacing.Party = {
+	MAX_SIZE = 4,
+	INVITE_SECONDS = 30, -- an unanswered invite lapses after this
+	INVITE_COOLDOWN = 2, -- seconds between invites from one player (spam guard)
+	RADIUS = 120, -- studs: "nearby" for the kill share, the group bonus and stats.partied
+	-- qi for a helper who didn't earn the kill (Rewards KILL_SHARE): a party member
+	-- within RADIUS of it, or anyone who hit it for less than the share. A share
+	-- of their own realm-scaled qi for the beast; no stones, drops or kill count.
+	HELPER_QI_SHARE = 0.5,
+	BONUS_PER_MEMBER = 0.05, -- beast qi per other party member within RADIUS of the kill
+	BONUS_CAP = 0.15,
+	PUSH_SECONDS = 1, -- how often members' health and nearness are re-sent (only on change)
+}
+
 Pacing.Quests = {
 	-- beats (QC1-4, the first session)
 	Circulate = { stones = 5 },
@@ -654,7 +676,6 @@ Pacing.Haul = {
 	RECLAIM_RADIUS = 7, -- studs from the spill that pick it back up
 	SAFE_RARITY = 4, -- Items.Rarities order (4 Epic, 5 Legendary): banks on pickup
 	RING_SLOTS = { QiCondensation = 2, QiRefining = 3, Foundation = 4 } :: { [string]: number }, -- by major realm
-	TESTBED_BANK_RADIUS = 24, -- testbed: studs from the spawn pad that count as home
 	CHECK_SECONDS = 0.5, -- how often banking, the ring and the spill are checked
 }
 
@@ -794,6 +815,8 @@ Pacing.HeartDemon = {
 	SLAIN_MIN = 10, -- kills before the demon names the beasts you slew
 	STILL_MIN_HOURS = 0.5, -- hours seated before stillness is a question
 	SECLUDED_MIN_HOURS = 8, -- hours in seclusion (online and offline) before it's a question
+	SOLITARY_MAX_MINUTES = 2, -- under this many minutes partied (stats.partied): "you never walked with another"
+	COMPANY_MIN_MINUTES = 30, -- from here: "you walked beside others" (between: no question)
 	OFFER_COOLDOWN = 20 * 3600, -- seconds after "Not now" before the seat offers it again
 }
 

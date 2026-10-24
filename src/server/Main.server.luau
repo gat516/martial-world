@@ -45,6 +45,8 @@ local CharacterIdentity = require(script.Parent.CharacterIdentity)
 local Slots = require(script.Parent.Slots)
 local TestbedDummy = require(script.Parent.TestbedDummy)
 local Traits = require(script.Parent.Traits)
+local Party = require(script.Parent.Party)
+local SafeZone = require(script.Parent.SafeZone)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
 local joinedAt: { [Player]: number } = {}
@@ -194,6 +196,7 @@ local function onPlayerAdded(player: Player)
 		-- the played slot's identity and look; spawns the character (test place)
 		CharacterIdentity.enter(player, PlayerData.active(player) :: string, data)
 	end
+	task.spawn(Party.entered, player) -- "<friend> is on this mountain" nudges (IsFriendsWith yields)
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
@@ -214,6 +217,7 @@ Players.PlayerRemoving:Connect(function(player)
 	Circulation.forget(player)
 	Combat.forget(player)
 	Travel.forget(player)
+	Party.forget(player)
 	QiNodes.forget(player)
 	EnemyService.forget(player)
 	Spawner.forget(player)
@@ -246,8 +250,12 @@ end
 (remotes.TravelAction :: RemoteFunction).OnServerInvoke = guarded(Travel.go);
 (remotes.SaveSettings :: RemoteEvent).OnServerEvent:Connect(Settings.save);
 (remotes.WeaponAction :: RemoteFunction).OnServerInvoke = guarded(Weapons.handle);
+(remotes.PartyAction :: RemoteFunction).OnServerInvoke = guarded(Party.handle);
 
 QiNodes.start()
+SafeZone.start()
+Party.start()
+EnemyService.partyOf = Party.members -- nearby members share kills and the group bonus
 table.insert(EnemyService.onKill, Progression.onKill)
 table.insert(EnemyService.onKill, Inventory.onKill)
 table.insert(Quests.onBeat, function(player, index)

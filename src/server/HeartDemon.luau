@@ -2,8 +2,8 @@
 -- The heart-demon trial (docs/systems/heart-demon.md). At each major's stage 9
 -- (QC9, QR9, and FE9 at the peak) an inner voice asks the player about how they
 -- actually climbed: the path they walked (blade or garden, from kills and
--- harvests), the beasts they slew, their deaths, forced breakthroughs, hours in
--- stillness and in seclusion. Each question has 2-3 answers; the one the player's own record
+-- harvests), the beasts they slew, their deaths, forced breakthroughs, the company
+-- they kept (or didn't), hours in stillness and in seclusion. Each question has 2-3 answers; the one the player's own record
 -- contradicts is a denial. Finishing tempers old foundation grades
 -- (Foundation.temper): Pacing.HeartDemon TEMPER_CALM with no denials (the demon is
 -- calmed), one fewer per denial, never fewer than TEMPER_ROUGH, never lowering
@@ -256,6 +256,41 @@ local function seclusionQuestion(data: PlayerData.Data): Question?
 	}
 end
 
+-- Company (Party.luau): time in a party with someone nearby, or none at all.
+local function companyQuestion(data: PlayerData.Data): Question?
+	local minutes = (data.stats.partied or 0) / 60
+	if minutes < Config.SOLITARY_MAX_MINUTES then
+		if data.stats.kills + data.stats.harvests < Config.LEAN_MIN then
+			return nil -- too early to call anyone a loner
+		end
+		return {
+			id = "solitude",
+			lines = { "You never walked with another.", "Do you trust no one?" },
+			answers = {
+				{ text = "No one has earned it.", reply = "Then you carry it all yourself.", honest = true, heart = "trusted no one" },
+				{ text = "I like my own road.", reply = "A lonely road is still a road.", honest = true, heart = "walked alone by choice" },
+				{ text = "I always walk with friends.", reply = "Always? I saw only your shadow.", honest = false, heart = "would not admit your solitude" },
+			},
+		}
+	end
+	if minutes < Config.COMPANY_MIN_MINUTES then
+		return nil
+	end
+	local hours = minutes / 60
+	local shown = if minutes < 60 then `{math.floor(minutes + 0.5)} minutes`
+		elseif hours < 1.5 then "An hour"
+		else `{math.floor(hours + 0.5)} hours`
+	return {
+		id = "company",
+		lines = { `{shown} walking beside others.`, "Did you lean on them?" },
+		answers = {
+			{ text = "Yes, and they on me.", reply = "Then the bond holds both ways.", honest = true, heart = "climbed with others" },
+			{ text = "No. We walked as equals.", reply = "Equals. Rarer than you think.", honest = true, heart = "walked beside equals" },
+			{ text = "I've always walked alone.", reply = "Alone? Their footsteps say otherwise.", honest = false, heart = "would not admit your companions" },
+		},
+	}
+end
+
 -- Always there: why climb at all (every answer is honest).
 local function climbQuestion(): Question
 	return {
@@ -273,7 +308,7 @@ end
 -- with "why climb" filling in; up to Config.QUESTIONS, answers shuffled.
 function HeartDemon.questions(data: PlayerData.Data): { Question }
 	local list = { pathQuestion(data) }
-	for _, q in { slainQuestion(data), fearQuestion(data), forcedQuestion(data), seclusionQuestion(data), stillQuestion(data), climbQuestion() } do
+	for _, q in { slainQuestion(data), fearQuestion(data), forcedQuestion(data), companyQuestion(data), seclusionQuestion(data), stillQuestion(data), climbQuestion() } do
 		if q and #list < Config.QUESTIONS then
 			table.insert(list, q)
 		end

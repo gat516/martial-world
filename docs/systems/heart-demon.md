@@ -44,13 +44,19 @@ to each answer opens the next question.
    to fall again?" (denial: "I'm never afraid."). No deaths: **pride**, "Do you think
    you can't?" (denial: "Nothing can touch me.").
 4. **Forced breakthroughs** (>= 1): "Was it worth the debt?" (denial: "I've never rushed.").
-5. **Seclusion** (from `SECLUDED_MIN_HOURS` = 8 h in [seclusion](seclusion.md), online
+5. **Company** (`partied`, seconds in a [party](party.md) with a member within
+   `Pacing.Party.RADIUS`). Under `SOLITARY_MAX_MINUTES` (2), once the record has
+   `LEAN_MIN` kills + harvests: "You never walked with another. Do you trust no one?"
+   (honest: "No one has earned it.", "I like my own road."; denial: "I always walk with
+   friends."). From `COMPANY_MIN_MINUTES` (30): "3 hours walking beside others. Did you
+   lean on them?" (denial: "I've always walked alone."). Between: no question.
+6. **Seclusion** (from `SECLUDED_MIN_HOURS` = 8 h in [seclusion](seclusion.md), online
    and offline): "You sat in seclusion for 40 hours. Were you hiding?" (gathering or
    "the world is loud", honest; denial: "I never shut myself away.").
-6. **Stillness** (from `STILL_MIN_HOURS` = 0.5 h seated, seclusion not counted): "Were
+7. **Stillness** (from `STILL_MIN_HOURS` = 0.5 h seated, seclusion not counted): "Were
    you searching, or only waiting?" (denial: "I hardly ever sit.").
-7. **Why climb**, the filler: three honest answers.
-Order of preference after the path: slain, fear/pride, forced, seclusion, stillness, why climb.
+8. **Why climb**, the filler: three honest answers.
+Order of preference after the path: slain, fear/pride, forced, company, seclusion, stillness, why climb.
 Answer labels stay at 27 characters or fewer so they fit the response buttons on a phone.
 
 ## Outcome
@@ -70,7 +76,8 @@ blade's road, and remembered every beast you slew. The demon was calmed." Sent i
 - `data.stats` gained `slain` (kills by enemy id, `Progression.onKill`), `harvests`
   (`Garden.harvest`), `deaths` (Main's `Humanoid.Died`), `seated` (seconds meditating
   outside seclusion, Cultivation's tick), `forced` (forced breakthroughs) and
-  `secluded` (seconds in seclusion, online and offline, Seclusion.luau). Old profiles get them at 0
+  `secluded` (seconds in seclusion, online and offline, Seclusion.luau) and `partied`
+  (seconds in a party with a member nearby, Party.luau's tick). Old profiles get them at 0
   through the missing-field defaults (no schema bump).
 - `data.heartDemon = { trials = {}, declined = {} }`.
 - Remotes: `CultivationAction` "heartDemon" (start, seated only: `{ major, name,

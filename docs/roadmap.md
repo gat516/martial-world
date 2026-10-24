@@ -244,7 +244,11 @@ bounties, sect tasks, contribution and a Pavilion shop (never qi).
 
 ## 3e. Reasons to meet other players (2026-10-23)
 The realm gap shows against content, so players need reasons to cross paths:
-- **Shared credit:** everyone who damages a beast gets their own loot; no kill-stealing.
+- **Parties and shared credit: built (2026-10-23, untested; UI to build,
+  [party](systems/party.md)).** Server-local parties of 4, every credited damager gets
+  their own full drop (no kill-stealing), nearby members and light hitters share the
+  qi, a small capped group bonus, "Join" a member by array, the player card, the People
+  list (safe zones only), friend nudges, visiting peaks.
 - **Group world events and roaming beast kings**, rewards scaled to each player's realm,
   so a senior helping still earns.
 - **Co-op rifts** with better loot as a party; sect board tasks with shared credit.

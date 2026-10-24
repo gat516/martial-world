@@ -94,6 +94,7 @@ export type Data = {
 		seated: number,
 		forced: number,
 		secluded: number, -- seconds in seclusion, online and offline (server Seclusion)
+		partied: number, -- seconds in a party with a member nearby (server Party)
 	},
 	-- seclusion (server Seclusion): since = os.time() it began (0 = not secluded);
 	-- counted = seconds of it that earned (up to Pacing.Seclusion MAX_HOURS); online =
@@ -193,7 +194,7 @@ local function default(): Data
 		tribulationReadyUnix = 0,
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
-		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0 },
+		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0, partied = 0 },
 		heartDemon = { trials = {}, declined = {} },
 		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), streak = 0, streakDay = 0, first = false },
 		herbs = {},

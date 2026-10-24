@@ -1,0 +1,141 @@
+{
+ "name": "SerpentScalesVeil",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to HatAttachment (Blender +X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame from the attachment = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Scale": [
+   0.014,
+   0.085,
+   0.072
+  ],
+  "Seam": [
+   0.1,
+   0.95,
+   0.78
+  ],
+  "FinWeb": [
+   0.08,
+   0.55,
+   0.52
+  ],
+  "FinSpine": [
+   0.8,
+   0.52,
+   0.16
+  ]
+ },
+ "material_prefix": "Serpent_",
+ "translucent": {
+  "FinWeb": 0.35
+ },
+ "neon": [
+  "Seam"
+ ],
+ "shade": {
+  "file": "serpent_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45,
+  "note": "identical to fox_shade.png: reuse rbxassetid://124559907609415"
+ },
+ "meshes": {
+  "SerpentScalesVeil_LeftScales": {
+   "region": "Scale",
+   "material": "Serpent_Scale",
+   "tris": 390,
+   "center": [
+    0.541,
+    -0.19,
+    -0.44
+   ],
+   "size": [
+    0.164,
+    0.33,
+    0.667
+   ],
+   "roblox_center": [
+    -0.541,
+    -0.44,
+    -0.19
+   ]
+  },
+  "SerpentScalesVeil_LeftSeam": {
+   "region": "Seam",
+   "material": "Serpent_Seam",
+   "tris": 204,
+   "center": [
+    0.536,
+    -0.184,
+    -0.437
+   ],
+   "size": [
+    0.146,
+    0.29,
+    0.615
+   ],
+   "roblox_center": [
+    -0.536,
+    -0.437,
+    -0.184
+   ]
+  },
+  "SerpentScalesVeil_RightScales": {
+   "region": "Scale",
+   "material": "Serpent_Scale",
+   "tris": 390,
+   "center": [
+    -0.541,
+    -0.19,
+    -0.44
+   ],
+   "size": [
+    0.164,
+    0.33,
+    0.667
+   ],
+   "roblox_center": [
+    0.541,
+    -0.44,
+    -0.19
+   ]
+  },
+  "SerpentScalesVeil_RightSeam": {
+   "region": "Seam",
+   "material": "Serpent_Seam",
+   "tris": 204,
+   "center": [
+    -0.536,
+    -0.184,
+    -0.437
+   ],
+   "size": [
+    0.146,
+    0.29,
+    0.615
+   ],
+   "roblox_center": [
+    0.536,
+    -0.437,
+    -0.184
+   ]
+  }
+ },
+ "tris_total": 1188,
+ "bones": {},
+ "direction": "Veil",
+ "ratios_to_head": {
+  "head": {
+   "width": 1.198,
+   "depth": 1.198,
+   "height": 1.017
+  },
+  "plate_height": 0.66,
+  "plate_width": 0.28
+ }
+}

@@ -1,0 +1,278 @@
+{
+ "name": "SerpentFinsVeil",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to HatAttachment (Blender +X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame from the attachment = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Scale": [
+   0.014,
+   0.085,
+   0.072
+  ],
+  "Seam": [
+   0.1,
+   0.95,
+   0.78
+  ],
+  "FinWeb": [
+   0.08,
+   0.55,
+   0.52
+  ],
+  "FinSpine": [
+   0.8,
+   0.52,
+   0.16
+  ]
+ },
+ "material_prefix": "Serpent_",
+ "translucent": {
+  "FinWeb": 0.35
+ },
+ "neon": [
+  "Seam"
+ ],
+ "shade": {
+  "file": "serpent_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45,
+  "note": "identical to fox_shade.png: reuse rbxassetid://124559907609415"
+ },
+ "meshes": {
+  "SerpentFinsVeil_LeftFin": {
+   "region": "FinWeb",
+   "material": "Serpent_FinWeb",
+   "tris": 356,
+   "center": [
+    0.759,
+    0.481,
+    -0.518
+   ],
+   "size": [
+    0.426,
+    0.789,
+    0.405
+   ],
+   "roblox_center": [
+    -0.759,
+    -0.518,
+    0.481
+   ]
+  },
+  "SerpentFinsVeil_LeftFinSpines": {
+   "region": "FinSpine",
+   "material": "Serpent_FinSpine",
+   "tris": 416,
+   "center": [
+    0.732,
+    0.418,
+    -0.52
+   ],
+   "size": [
+    0.472,
+    0.922,
+    0.418
+   ],
+   "roblox_center": [
+    -0.732,
+    -0.52,
+    0.418
+   ]
+  },
+  "SerpentFinsVeil_RightFin": {
+   "region": "FinWeb",
+   "material": "Serpent_FinWeb",
+   "tris": 356,
+   "center": [
+    -0.759,
+    0.481,
+    -0.518
+   ],
+   "size": [
+    0.426,
+    0.789,
+    0.405
+   ],
+   "roblox_center": [
+    0.759,
+    -0.518,
+    0.481
+   ]
+  },
+  "SerpentFinsVeil_RightFinSpines": {
+   "region": "FinSpine",
+   "material": "Serpent_FinSpine",
+   "tris": 416,
+   "center": [
+    -0.732,
+    0.418,
+    -0.52
+   ],
+   "size": [
+    0.472,
+    0.922,
+    0.418
+   ],
+   "roblox_center": [
+    0.732,
+    -0.52,
+    0.418
+   ]
+  }
+ },
+ "tris_total": 1544,
+ "bones": {
+  "Root": {
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tail": [
+    0.0,
+    0.0,
+    0.25
+   ],
+   "roblox_head": [
+    -0.0,
+    0.0,
+    0.0
+   ],
+   "deform": false
+  },
+  "FinLBase": {
+   "parent": "Root",
+   "head": [
+    0.473,
+    0.05,
+    -0.48
+   ],
+   "tail": [
+    0.597,
+    0.063,
+    -0.48
+   ],
+   "roblox_head": [
+    -0.473,
+    -0.48,
+    0.05
+   ],
+   "deform": true
+  },
+  "FinL": {
+   "parent": "FinLBase",
+   "head": [
+    0.597,
+    0.063,
+    -0.48
+   ],
+   "tail": [
+    0.789,
+    0.48,
+    -0.448
+   ],
+   "roblox_head": [
+    -0.597,
+    -0.48,
+    0.063
+   ],
+   "deform": true
+  },
+  "FinLTip": {
+   "parent": "FinL",
+   "head": [
+    0.789,
+    0.48,
+    -0.448
+   ],
+   "tail": [
+    0.961,
+    0.855,
+    -0.42
+   ],
+   "roblox_head": [
+    -0.789,
+    -0.448,
+    0.48
+   ],
+   "deform": true
+  },
+  "FinRBase": {
+   "parent": "Root",
+   "head": [
+    -0.473,
+    0.05,
+    -0.48
+   ],
+   "tail": [
+    -0.597,
+    0.063,
+    -0.48
+   ],
+   "roblox_head": [
+    0.473,
+    -0.48,
+    0.05
+   ],
+   "deform": true
+  },
+  "FinR": {
+   "parent": "FinRBase",
+   "head": [
+    -0.597,
+    0.063,
+    -0.48
+   ],
+   "tail": [
+    -0.789,
+    0.48,
+    -0.448
+   ],
+   "roblox_head": [
+    0.597,
+    -0.48,
+    0.063
+   ],
+   "deform": true
+  },
+  "FinRTip": {
+   "parent": "FinR",
+   "head": [
+    -0.789,
+    0.48,
+    -0.448
+   ],
+   "tail": [
+    -0.961,
+    0.855,
+    -0.42
+   ],
+   "roblox_head": [
+    0.789,
+    -0.448,
+    0.48
+   ],
+   "deform": true
+  }
+ },
+ "direction": "Veil",
+ "ratios_to_head": {
+  "head": {
+   "width": 1.198,
+   "depth": 1.198,
+   "height": 1.017
+  },
+  "fin_height": 0.41,
+  "fin_length": 0.77,
+  "fin_rise": -0.31,
+  "fin_reach_back": 0.23,
+  "span": 1.62
+ }
+}

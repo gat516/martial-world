@@ -1,0 +1,141 @@
+{
+ "name": "SerpentScalesFang",
+ "attachment": "HatAttachment",
+ "attachment_avatar_space": [
+  0.0,
+  0.0,
+  3.1
+ ],
+ "units": "1 Blender unit = 1 stud; positions relative to HatAttachment (Blender +X avatar left, -Y avatar front, Z up)",
+ "roblox_mapping": "a Blender point (x, y, z) is (-x, z, y) in the attachment's Roblox frame; mesh Size = (bx, bz, by), CFrame from the attachment = CFrame.new(-cx, cz, cy)",
+ "colors": {
+  "Scale": [
+   0.014,
+   0.085,
+   0.072
+  ],
+  "Seam": [
+   0.1,
+   0.95,
+   0.78
+  ],
+  "FinWeb": [
+   0.08,
+   0.55,
+   0.52
+  ],
+  "FinSpine": [
+   0.8,
+   0.52,
+   0.16
+  ]
+ },
+ "material_prefix": "Serpent_",
+ "translucent": {
+  "FinWeb": 0.35
+ },
+ "neon": [
+  "Seam"
+ ],
+ "shade": {
+  "file": "serpent_shade.png",
+  "uv": "V only (U = 0.5)",
+  "darkest": 0.55,
+  "fade_to_white_at_v": 0.45,
+  "note": "identical to fox_shade.png: reuse rbxassetid://124559907609415"
+ },
+ "meshes": {
+  "SerpentScalesFang_LeftScales": {
+   "region": "Scale",
+   "material": "Serpent_Scale",
+   "tris": 420,
+   "center": [
+    0.543,
+    -0.091,
+    -0.528
+   ],
+   "size": [
+    0.195,
+    0.576,
+    0.885
+   ],
+   "roblox_center": [
+    -0.543,
+    -0.528,
+    -0.091
+   ]
+  },
+  "SerpentScalesFang_LeftSeam": {
+   "region": "Seam",
+   "material": "Serpent_Seam",
+   "tris": 408,
+   "center": [
+    0.534,
+    -0.12,
+    -0.502
+   ],
+   "size": [
+    0.149,
+    0.434,
+    0.721
+   ],
+   "roblox_center": [
+    -0.534,
+    -0.502,
+    -0.12
+   ]
+  },
+  "SerpentScalesFang_RightScales": {
+   "region": "Scale",
+   "material": "Serpent_Scale",
+   "tris": 420,
+   "center": [
+    -0.543,
+    -0.091,
+    -0.528
+   ],
+   "size": [
+    0.195,
+    0.576,
+    0.885
+   ],
+   "roblox_center": [
+    0.543,
+    -0.528,
+    -0.091
+   ]
+  },
+  "SerpentScalesFang_RightSeam": {
+   "region": "Seam",
+   "material": "Serpent_Seam",
+   "tris": 408,
+   "center": [
+    -0.534,
+    -0.12,
+    -0.502
+   ],
+   "size": [
+    0.149,
+    0.434,
+    0.721
+   ],
+   "roblox_center": [
+    0.534,
+    -0.502,
+    -0.12
+   ]
+  }
+ },
+ "tris_total": 1656,
+ "bones": {},
+ "direction": "Fang",
+ "ratios_to_head": {
+  "head": {
+   "width": 1.198,
+   "depth": 1.198,
+   "height": 1.017
+  },
+  "plate_height": 0.87,
+  "plate_width": 0.48
+ }
+}

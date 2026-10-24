@@ -184,7 +184,8 @@ joint names are in `art/player/cosmetics/README.md`; how new ones are made is
 | Who | Wears | Set |
 |---|---|---|
 | Spirit Fox (Looks: Tail Plume / Crescent / Wisp, Ears Sleek / Broad / Long, picked freely) | FoxTailPlume / FoxTailCrescent / FoxTailWisp, FoxEarsSleek / FoxEarsBroad / FoxEarsLong | Fox (skinned Blender meshes) |
-| Beast Folk Wolf / Serpent | WolfEars, WolfTail / SerpentScales, SerpentTail | BeastFolk (part-built placeholders) |
+| Beast Folk Wolf | WolfEars, WolfTail | BeastFolk (part-built placeholders) |
+| Beast Folk Serpent | SerpentFinsSovereign, SerpentScalesSovereign | Serpent (Blender meshes; fins skinned, plates rigid) |
 | Beast Folk Tiger | TigerEarsRound, TigerTailCurl, TigerWhiskersMarks | Tiger (skinned Blender meshes) |
 | Beast Folk Crane | CraneHeadCascade, CraneFanCascade | Crane (skinned Blender meshes) |
 | Dragonblood | DragonHornsAntler, DragonTailTuft | Dragonblood (skinned Blender meshes) |
@@ -222,6 +223,13 @@ forearm bracers) and Fist (stone gauntlets on the grip attachments + three high 
 The sets aren't mixed, since one set's shards would cut through another's plates. The
 part-built `StoneShards` in Spirits is now an unused leftover
 (`art/player/cosmetics/stone-spirit/README.md`).
+
+The Serpent variant has three Blender-built directions, all kept (user, 2026-10-23): fins
+`SerpentFinsVeil`, `SerpentFinsSovereign`, `SerpentFinsFang` and face plates
+`SerpentScalesVeil`, `SerpentScalesSovereign`, `SerpentScalesFang`, any fins with any plates
+(`art/player/cosmetics/serpent/README.md`). The variant wears Sovereign; Veil and Fang wait for
+a style picker. They replace the part-built `SerpentScales` and `SerpentTail` (still in
+`BeastFolk.rbxm`, unused), so the Serpent has no tail.
 
 Human (the plain race) and Giant (its look is its size) wear nothing (user,
 2026-10-23: "no need to go super crazy"). `Traits.applyBody` adds the ones the profile

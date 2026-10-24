@@ -194,6 +194,8 @@ function Cultivation.pushState(player: Player)
 		items = data.items,
 		hotbar = data.hotbar,
 		seeds = data.seeds,
+		ring = data.ring, -- spirit ring stacks (Haul.luau)
+		ringSlots = Pacing.Haul.RING_SLOTS[data.realm.major] or 0,
 		buffs = data.buffs,
 		decor = data.decor,
 		settings = data.settings,

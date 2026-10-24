@@ -211,7 +211,9 @@ boss**, so a player who can't (a phone player, a peaceful one) is never stuck.
 - **Enemy difficulty stays what the designers set**, tuned per realm in
   `Pacing`. Fights can be hard; skipping them is always allowed.
 - **Dying costs a little, never a stage.** A death spills about half of the haul
-  you haven't banked, recoverable where you fell for a few minutes (Phase A), so
+  you haven't banked (raw qi, herbs, seeds, common items, Spirit Stones), recoverable
+  where you fell for 5 minutes; rare finds and the spirit ring's stacks are always
+  safe, and leaving mid-fight counts as a death (built, [haul](systems/haul.md)), so
   trying stays cheap.
 - Open: how big the gardener's slowdown is (a proposal: 1.5-2x the fighter's
   time), and whether to hint the peaceful road when a player keeps dying.

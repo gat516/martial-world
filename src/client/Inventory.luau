@@ -680,7 +680,13 @@ local function renderDetail(animate: boolean?)
 		daoList.Visible = false
 		local count = Items.count(s, item.id)
 		setText("Status", placeText(item.id) .. (if count > 1 then ` You have {count}.` else ""), STATUS)
-		setText("Pairs", "")
+		-- the spirit ring (server Haul): no button yet, so it only says when a stack is in it
+		local ring = s.ring or {}
+		setText(
+			"Pairs",
+			if table.find(ring, item.id) then `In your spirit ring ({#ring}/{s.ringSlots or 0}): safe even in the wilds.` else "",
+			STATUS
+		)
 		setText("Blurb", item.blurb)
 		setText("Lore", item.lore or "")
 		primary.Visible = true

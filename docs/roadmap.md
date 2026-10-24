@@ -72,7 +72,10 @@ button only appears while it's ready.
   Shattering your cultivation stays a one-time story beat on the demon path
   ([replayability](roadmap/replayability.md)).
 
-**The haul and the spirit ring: the cost of death (user, 2026-10-23).**
+**The haul and the spirit ring: the cost of death (user, 2026-10-23). Built (untested):
+haul tracking, banking, the death spill, combat-leave loss and the ring's server side
+([haul](systems/haul.md)); the ring's Inventory button and a dedicated spirit-light wait
+for UI and vfx passes.**
 - Today death costs nothing, so surviving a fight doesn't matter. Now what you
   carry home is at stake, which gives "bring it home" in the loop its weight.
 - **At risk: this trip's haul,** everything picked up since you last banked: raw qi
@@ -116,8 +119,8 @@ prompt (`DeathSave.luau`) from the UI pass. Phase A needs instead: the surge
 button and "M to qi surge" notice, the grade line on the breakthrough card, the
 spirit ring slots, and the spilled-haul spirit-light.
 
-**Build order:** docs and Pacing numbers; the haul, banking and death spill; the
-spirit ring; foundation grades and experience pools; the surge (insight deletion
+**Build order:** docs and Pacing numbers; the haul, banking and death spill (built); the
+spirit ring (server built, UI open); foundation grades and experience pools; the surge (insight deletion
 is built).
 
 ### Pacing, realm gaps and verbs (decided 2026-10-23)

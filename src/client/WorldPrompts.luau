@@ -28,13 +28,15 @@
 --
 -- The billboard (non-touch) sits just under the PlantTag card above a plant (same anchor:
 -- top of the part plus a stud, then the 55px the tag hangs below that), sized in
--- pixels so it reads and taps the same at any distance. Each card is a quiet dark
--- band fading out to the right behind a small round key (docs/ui/dialogue.md,
--- "Interaction prompts"): the key letter (or the gamepad button) is live text on the
--- key, the object and action text sit on the band (kept live: prices and "No seeds"
--- change while shown), and a prompt with a HoldDuration sweeps a lit ring round the
--- key while held. On touch there's no key to press: the key shows the action's
--- glyph instead, and the whole card is the button.
+-- pixels so it reads and taps the same at any distance. Each card is a plain rounded
+-- dark plate with a hairline gold edge (docs/ui/dialogue.md, "Interaction prompts"):
+-- a key cap with the live key letter (or the gamepad button) at its left, then the
+-- object and action text (kept live: prices and "No seeds" change while shown). Cards
+-- are as wide as their text needs, and every card on a board takes the widest one's
+-- width so a stack lines up. A prompt with a HoldDuration runs a lit line once round
+-- the card's whole outline while held (PromptHold). On touch there's no key to press:
+-- no cap and no letter, the action's glyph sits where the cap was, and the whole card
+-- is the button.
 -- A mouse can click a card too (ClickablePrompt), but only while the cursor is
 -- free: under shift lock or lock-on the mouse sits at the screen's centre, which
 -- is usually right on the board of whatever you face, and the card would sink
@@ -48,9 +50,12 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local TextService = game:GetService("TextService")
+
 local Glyphs = require(script.Parent.Glyphs)
 local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
+local PromptHold = require(script.Parent.PromptHold)
 
 local HOLD_RESET = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local FADE_TIME = 0.15 -- Motion.fadeOut's length: when a left card can go
@@ -59,6 +64,9 @@ local STICKY = 1 -- studs: another target must be this much nearer to take focus
 local HIDE_GRACE = 0.08 -- seconds a hidden prompt's card waits in case it shows again
 local DOCK_FULL_HEIGHT = 149 -- the dock's (and Hud.Stack's) max height
 local DOCK_MIN_SCALE = 0.85 -- touch cards stay at least 44 px tall
+local MIN_WIDTH = 150 -- a card is never narrower than this (a short "Talk" still reads as a card)
+local TEXT_FONT = Enum.Font.BuilderSansBold -- the card's text, for measuring
+local WIDE = Vector2.new(2000, 100)
 
 -- Keys whose GetStringForKeyCode is empty or unhelpful.
 local KEY_NAMES: { [Enum.KeyCode]: string } = {
@@ -92,9 +100,7 @@ local boardTemplate: BillboardGui
 local cardTemplate: ImageButton
 local dock: Frame -- touch: the fixed card column (Prompts.Dock)
 local actionBelow: UDim2 -- where the action line sits under the object line (authored)
-local bodySize: UDim2 -- the text's authored box (it widens over the glyph's spot when there's none)
-local bodyWiden = 0 -- how far: the glyph's width plus its gap
-local TAP_GLYPH = "give" -- touch: a plate whose action has no glyph shows a hand
+local TAP_GLYPH = "give" -- touch: a card whose action has no glyph shows a hand
 
 local prompts: { [ProximityPrompt]: boolean } = {} -- every prompt in the world
 local muted: { [ProximityPrompt]: { keyboard: Enum.KeyCode, gamepad: Enum.KeyCode } } = {}
@@ -133,42 +139,55 @@ local function adorneeOf(target: Instance): Instance?
 	return target
 end
 
+local function textWidth(label: TextLabel): number
+	if not label.Visible or label.Text == "" then
+		return 0
+	end
+	return TextService:GetTextSize(label.Text, label.TextSize, TEXT_FONT, WIDE).X
+end
+
+-- Lay a card out for its prompt: the key cap (or touch glyph), the text, and the
+-- width it wants (its Want attribute; fitBoard gives every card the widest).
 local function fill(prompt: ProximityPrompt, card: ImageButton, inputType: Enum.ProximityPromptInputType)
-	local key = card:FindFirstChild("Key") :: ImageLabel
+	local key = card:FindFirstChild("Key") :: Frame
 	local letter = key:FindFirstChild("Letter") :: TextLabel
 	local pad = key:FindFirstChild("Pad") :: ImageLabel
-	local plateGlyph = key:FindFirstChild("Glyph") :: ImageLabel
-	local icon = card:FindFirstChild("Icon") :: ImageLabel
+	local keyEdge = key:FindFirstChild("Edge") :: UIStroke
+	local glyphIcon = card:FindFirstChild("Glyph") :: ImageLabel
 	local text = card:FindFirstChild("Body") :: Frame
 	local object = text:FindFirstChild("Object") :: TextLabel
 	local action = text:FindFirstChild("Action") :: TextLabel
-	local hold = key:FindFirstChild("Hold") :: Frame
+	local hold = card:FindFirstChild("Hold") :: Frame
 
-	local glyph = Glyphs.get(Glyphs.forPrompt(prompt))
 	local touch = Platform.isTouch()
-	plateGlyph.Visible = touch
+	key.Visible = not touch
+	glyphIcon.Visible = touch
+	local left
 	if touch then
-		letter.Visible = false
-		pad.Visible = false
-		plateGlyph.Image = glyph or Glyphs.get(TAP_GLYPH) :: string
-	elseif inputType == Enum.ProximityPromptInputType.Gamepad then
-		local image = UserInputService:GetImageForKeyCode(prompt.GamepadKeyCode)
+		glyphIcon.Image = Glyphs.get(Glyphs.forPrompt(prompt)) or Glyphs.get(TAP_GLYPH) :: string
+		left = card:GetAttribute("TextLeftGlyph") :: number
+	else
+		local image = if inputType == Enum.ProximityPromptInputType.Gamepad
+			then UserInputService:GetImageForKeyCode(prompt.GamepadKeyCode)
+			else ""
 		pad.Image = image
 		pad.Visible = image ~= ""
 		letter.Visible = image == ""
-		letter.Text = (string.gsub(prompt.GamepadKeyCode.Name, "^Button", ""))
-	else
-		pad.Visible = false
-		letter.Visible = true
-		letter.Text = keyText(prompt.KeyboardKeyCode)
+		-- a gamepad button's own art stands alone; a letter sits on the cap
+		key.BackgroundTransparency = if image ~= "" then 1 else key:GetAttribute("Fill") :: number
+		keyEdge.Enabled = image == ""
+		letter.Text = if inputType == Enum.ProximityPromptInputType.Gamepad
+			then (string.gsub(prompt.GamepadKeyCode.Name, "^Button", ""))
+			else keyText(prompt.KeyboardKeyCode)
+		-- long key names (Space, Enter) widen the cap instead of shrinking the letter
+		local cap = key.Size.Y.Offset
+		local keyW = math.max(cap, textWidth(letter) + 2 * (card:GetAttribute("KeyPad") :: number))
+		key.Size = UDim2.fromOffset(if letter.Visible then keyW else cap, cap)
+		left = key.Position.X.Offset + key.Size.X.Offset + (card:GetAttribute("Gap") :: number)
 	end
-	-- long key names (Space, Enter) shrink to fit the tile
-	letter.TextScaled = #letter.Text > 1
-
-	-- no glyph at the band's end (the user found the card tacky with it); on touch the
-	-- key shows it in place of a letter
-	icon.Visible = false
-	text.Size = bodySize + UDim2.fromOffset(bodyWiden, 0)
+	local padRight = card:GetAttribute("PadRight") :: number
+	text.Position = UDim2.fromOffset(left, 0)
+	text.Size = UDim2.new(1, -left - padRight, 1, 0)
 
 	local hasObject = prompt.ObjectText ~= ""
 	object.Visible = hasObject
@@ -177,15 +196,33 @@ local function fill(prompt: ProximityPrompt, card: ImageButton, inputType: Enum.
 	-- one line sits in the middle; two share the card
 	action.Position = if hasObject then actionBelow else UDim2.new(0, 0, 0.5, -action.Size.Y.Offset / 2)
 	hold.Visible = prompt.HoldDuration > 0
+	card:SetAttribute("Want", math.ceil(left + math.max(textWidth(object), textWidth(action)) + padRight))
 end
 
--- The lit hold ring at p (0..1, clockwise from the top): each clipped half shows
--- the part of the ring on its gradient's opaque side.
-local function setHold(hold: Frame, p: number)
-	local right = ((hold:FindFirstChild("Right") :: Frame):FindFirstChild("Ring") :: ImageLabel):FindFirstChildOfClass("UIGradient") :: UIGradient
-	local left = ((hold:FindFirstChild("Left") :: Frame):FindFirstChild("Ring") :: ImageLabel):FindFirstChildOfClass("UIGradient") :: UIGradient
-	right.Rotation = math.min(p, 0.5) * 360
-	left.Rotation = math.max(p, 0.5) * 360
+local function setHold(card: ImageButton, p: number)
+	local hold = card:FindFirstChild("Hold") :: Frame
+	PromptHold.set(hold, p, card.Size.X.Offset, card.Size.Y.Offset)
+end
+
+-- Give every card on a board the widest one's width (within the column), so a
+-- stack lines up; a card's hold line is re-laid for its new width.
+local function fitBoard(b: Board)
+	local most = MIN_WIDTH
+	for _, card in b.list:GetChildren() do
+		if card:IsA("ImageButton") then
+			most = math.max(most, card:GetAttribute("Want") :: number? or 0)
+		end
+	end
+	-- room for the 5 % hover growth (Motion.buttons) inside the billboard or column
+	local room = math.floor((if b.gui then b.gui.Size.X.Offset else b.list.Size.X.Offset) / 1.05)
+	local w = math.min(most, room)
+	for _, card in b.list:GetChildren() do
+		if card:IsA("ImageButton") and card.Size.X.Offset ~= w then
+			card.Size = UDim2.fromOffset(w, card.Size.Y.Offset)
+			local progress = card:FindFirstChild("HoldProgress") :: NumberValue?
+			setHold(card, if progress then progress.Value else 0)
+		end
+	end
 end
 
 local function bindInput(prompt: ProximityPrompt, card: ImageButton): () -> ()
@@ -217,7 +254,8 @@ end
 
 -- Fade a card out, lifted out of the list first (to the slot the list gave it,
 -- worked out from the layout rather than read back mid-pop) so the rest don't
--- move for it. The billboard's list fills from the top, the dock's from the bottom.
+-- move for it. The billboard's list fills from the top, centred; the dock's from the
+-- bottom, against its right edge.
 local function retire(card: ImageButton, b: Board)
 	card.Active = false
 	if card.Parent == b.list then
@@ -236,26 +274,26 @@ local function retire(card: ImageButton, b: Board)
 		if fromBottom then
 			y = list.Size.Y.Offset - y - card.Size.Y.Offset
 		end
-		if not b.gui then
-			-- the dock's Lift has the list's box and scale, so the slot is just y
-			card.Position = UDim2.fromOffset(0, y)
-			card.Parent = b.holder
-			Motion.fadeOut(card, function()
-				card:Destroy()
-			end)
-			return
+		local gui = b.gui
+		local listW = if gui then list.Size.X.Scale * gui.Size.X.Offset + list.Size.X.Offset else list.Size.X.Offset
+		local spare = listW - card.Size.X.Offset
+		local x = if layout.HorizontalAlignment == Enum.HorizontalAlignment.Center
+			then spare / 2
+			elseif layout.HorizontalAlignment == Enum.HorizontalAlignment.Right then spare
+			else 0
+		if gui then
+			-- the list's top-left in the billboard, then the card's slot in that
+			local at, size, anchor = list.Position, list.Size, list.AnchorPoint
+			card.Position = UDim2.new(
+				at.X.Scale - anchor.X * size.X.Scale,
+				at.X.Offset - anchor.X * size.X.Offset + x,
+				at.Y.Scale - anchor.Y * size.Y.Scale,
+				at.Y.Offset - anchor.Y * size.Y.Offset + y
+			)
+		else
+			-- the dock's Lift has the list's box and scale, so the slot is just (x, y)
+			card.Position = UDim2.fromOffset(x, y)
 		end
-		-- the list's top-left in its parent, then the card's slot under that
-		local at, size, anchor = list.Position, list.Size, list.AnchorPoint
-		card.Position = UDim2.new(
-			at.X.Scale - anchor.X * size.X.Scale,
-			at.X.Offset - anchor.X * size.X.Offset,
-			at.Y.Scale - anchor.Y * size.Y.Scale,
-			at.Y.Offset - anchor.Y * size.Y.Offset + y
-		)
-		-- its width came from the list; keep it once it's out
-		local w = card.Size.X
-		card.Size = UDim2.new(size.X.Scale * w.Scale, size.X.Offset * w.Scale + w.Offset, 0, card.Size.Y.Offset)
 		card.Parent = b.holder
 	end
 	Motion.fadeOut(card, function()
@@ -271,15 +309,13 @@ local function addCard(b: Board, prompt: ProximityPrompt, inputType: Enum.Proxim
 	-- F above G: cards order by key, then by when they appeared
 	card.LayoutOrder = prompt.KeyboardKeyCode.Value * 1000 + shown % 1000
 
-	local hold = (card:FindFirstChild("Key") :: ImageLabel):FindFirstChild("Hold") :: Frame
 	-- the hold's progress, tweened (a runtime value, gone with the card)
 	local progress = Instance.new("NumberValue")
 	progress.Name = "HoldProgress"
 	progress.Parent = card
 	progress.Changed:Connect(function(p)
-		setHold(hold, p)
+		setHold(card, p)
 	end)
-	setHold(hold, 0)
 
 	local connections: { RBXScriptConnection } = {}
 	for _, prop in { "ActionText", "ObjectText", "HoldDuration" } do
@@ -287,6 +323,7 @@ local function addCard(b: Board, prompt: ProximityPrompt, inputType: Enum.Proxim
 			connections,
 			prompt:GetPropertyChangedSignal(prop):Connect(function()
 				fill(prompt, card, inputType)
+				fitBoard(b)
 			end)
 		)
 	end
@@ -314,6 +351,8 @@ local function addCard(b: Board, prompt: ProximityPrompt, inputType: Enum.Proxim
 	card.Visible = true
 	card.Interactable = Platform.isTouch() or mouseFree
 	card.Parent = b.list
+	fitBoard(b)
+	setHold(card, 0)
 	Motion.fadeIn(card)
 
 	b.cards[prompt] = function()
@@ -419,6 +458,7 @@ local function reconcile()
 			take()
 		end
 	end
+	fitBoard(b)
 	for prompt, inputType in want do
 		if not b.cards[prompt] then
 			addCard(b, prompt, inputType)
@@ -527,9 +567,6 @@ function WorldPrompts.init()
 	cardTemplate = (boardTemplate:WaitForChild("List") :: Frame):WaitForChild("Card") :: ImageButton
 	local body = cardTemplate:FindFirstChild("Body") :: Frame
 	actionBelow = (body:FindFirstChild("Action") :: TextLabel).Position
-	bodySize = body.Size
-	local icon = cardTemplate:FindFirstChild("Icon") :: ImageLabel
-	bodyWiden = icon.Size.X.Offset + 6
 	dock = gui:WaitForChild("Dock") :: Frame
 	dock.Visible = Platform.isTouch()
 	Motion.buttons(dock)

@@ -143,7 +143,8 @@ QC3->4 by ~9-10); not yet timed in play.
 - **Seclusion waits for the second session:** offered on the first sit after a join
   that began at QC4 or later (Home claimed first), or at QC5 for a player who never
   rejoins. The first one ends by itself after 45 s (`Pacing.Seclusion.FIRST_SECONDS`,
-  30-60 s) with a generous card; [seclusion](seclusion.md).
+  30-60 s) with a card about the garden and tempering (seeds, a ripened plant, a
+  quarter bar and one Foundation Tempering Pill; no stones); [seclusion](seclusion.md).
 - **QC5 is one idea:** the Ruined Borderlands open (their array's line is on the
   breakthrough card) and their hidden caches (no guide: finding it is the point). The
   sect board is no longer a lesson; the elder's Talk for Rumours points at it, and its

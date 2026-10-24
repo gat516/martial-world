@@ -286,7 +286,7 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 	end,
 	-- forget every heart-demon trial and "Not now" (the seat offers them again)
 	heartReset = function(player, data)
-		data.heartDemon = { trials = {}, declined = {} }
+		data.heartDemon = { trials = {}, declined = {}, clear = false, retake = "" }
 		Cultivation.pushState(player)
 		return true, "Heart demons reset"
 	end,

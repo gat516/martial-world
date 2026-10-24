@@ -2,19 +2,18 @@
 -- The secluded state on screen (docs/systems/seclusion.md, docs/ui/cultivation.md
 -- "Seclusion"): Cultivation Canvas.Seclusion, a slim lacquer plaque under the top
 -- bar while the player is secluded. The timer is the hero; beside it what has
--- gathered so far (stones; finds and the garden once there are any: "Tended", or
--- the number of plants that took a mutation); under it the
--- streak's day pips and "Rise to leave". Hidden while a window is open or the calm
--- view is on. Reads the player attributes Seclusion.luau publishes:
---   Secluded, SeclusionSince (os.time), SeclusionStones, SeclusionFinds,
---   SeclusionTended, SeclusionMutations, SeclusionStreak (days held before this
---   seclusion counts), SeclusionToday (today already counts).
--- SeclusionView.paintStreak is shared with the seclusion card (Rewards.luau).
+-- gathered so far (finds and the garden once there are any: "Tended", or the number
+-- of plants that took a mutation); under it the tempering line ("Tempering Qi
+-- Condensation 5 · 2:41") and "Rise to leave". Hidden while a window is open or the
+-- calm view is on. Reads the player attributes Seclusion.luau publishes:
+--   Secluded, SeclusionSince (os.time), SeclusionTempering (stage name, "" none),
+--   SeclusionTemperAt (os.time it settles), SeclusionTempered (stages mended),
+--   SeclusionFinds, SeclusionTended, SeclusionMutations.
+-- The plaque's Stones chip and the streak's pips are hidden (no trickle, no streak);
+-- SeclusionView.paintStreak stays for Rewards.luau until the plaque is slimmed.
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local CultivationGui = require(script.Parent.CultivationGui)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
@@ -26,7 +25,7 @@ local GEM_GREY = "rbxassetid://82455700461918"
 local JADE = Color3.fromRGB(130, 230, 185)
 local DIM = Color3.fromRGB(215, 205, 180)
 local PIPS = 7
-local PENDING = 0.55 -- today's pip before the hour that keeps the streak
+local PENDING = 0.55 -- a pending pip
 local EMPTY = 0.35
 
 local SeclusionView = {}
@@ -56,32 +55,39 @@ end
 function SeclusionView.init()
 	local root = CultivationGui.piece("Seclusion")
 	local time = root:FindFirstChild("Time", true) :: TextLabel
-	local stones = (root:FindFirstChild("Stones", true) :: Frame):FindFirstChild("Count") :: TextLabel
+	local stones = root:FindFirstChild("Stones", true) :: Frame
 	local finds = root:FindFirstChild("Finds", true) :: Frame
 	local garden = root:FindFirstChild("Garden", true) :: Frame
 	local streak = root:FindFirstChild("Streak", true) :: Frame
 	root.Visible = false
-	local minSeconds = Pacing.Seclusion.STREAK_MIN_HOURS * 3600
+	-- no stone trickle or streak since the 2026-10-24 rework: the stones chip hides and the
+	-- streak row's label carries the tempering line (until the ui-designer's slim plaque)
+	stones.Visible = false;
+	(streak:FindFirstChild("Pips") :: Frame).Visible = false
 
 	local function paint()
 		local since = player:GetAttribute("SeclusionSince")
 		local elapsed = if type(since) == "number" and since > 0 then workspace:GetServerTimeNow() - since else 0
 		time.Text = clock(elapsed)
-		stones.Text = tostring(player:GetAttribute("SeclusionStones") or 0)
 		local found = player:GetAttribute("SeclusionFinds") or 0
 		finds.Visible = found > 0;
 		(finds:FindFirstChild("Count") :: TextLabel).Text = tostring(found)
 		local mutations = player:GetAttribute("SeclusionMutations") or 0
 		garden.Visible = mutations > 0 or player:GetAttribute("SeclusionTended") == true;
 		(garden:FindFirstChild("Count") :: TextLabel).Text = if mutations > 0 then tostring(mutations) else "Tended"
-		local held = math.min(player:GetAttribute("SeclusionStreak") or 0, PIPS)
-		if player:GetAttribute("SeclusionToday") == true then
-			SeclusionView.paintStreak(streak, held, false, `Day {held}`)
-		elseif elapsed >= minSeconds then
-			SeclusionView.paintStreak(streak, math.min(held + 1, PIPS), false, `Day {held + 1}`)
+		local label = streak:FindFirstChild("Label") :: TextLabel
+		local tempering = player:GetAttribute("SeclusionTempering")
+		local tempered = player:GetAttribute("SeclusionTempered") or 0
+		if type(tempering) == "string" and tempering ~= "" then
+			local left = math.max(0, (player:GetAttribute("SeclusionTemperAt") or 0) - workspace:GetServerTimeNow())
+			label.Text = `Tempering {tempering}  ·  {clock(left)}`
+			label.TextColor3 = JADE
+		elseif tempered > 0 then
+			label.Text = if tempered == 1 then "An old foundation mended" else `{tempered} old foundations mended`
+			label.TextColor3 = JADE
 		else
-			local left = math.ceil((minSeconds - elapsed) / 60)
-			SeclusionView.paintStreak(streak, held, true, `Day {held + 1}  ·  {left}m left`, DIM)
+			label.Text = "Absorb a herb or pill to temper"
+			label.TextColor3 = DIM
 		end
 	end
 
@@ -95,7 +101,7 @@ function SeclusionView.init()
 		end
 	end
 
-	for _, name in { "Secluded", "SeclusionStones", "SeclusionFinds", "SeclusionTended", "SeclusionMutations", "SeclusionStreak", "SeclusionToday" } do
+	for _, name in { "Secluded", "SeclusionTempering", "SeclusionTempered", "SeclusionFinds", "SeclusionTended", "SeclusionMutations" } do
 		player:GetAttributeChangedSignal(name):Connect(refresh)
 	end
 	Menus.onChanged(function()

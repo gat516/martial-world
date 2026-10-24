@@ -30,9 +30,15 @@ drops or shows an item in the world.
 | HeavenlyDew | pale blue translucent droplet with a bright heart |
 | CloudPatternJade | jade bi disc on edge, dark centre, two cloud curls a side |
 | ImmortalPeach | pink peach with a blush top, crease and two leaves |
+| TemperingPill | **not built yet**: the Marrow pill recoloured earth-brown (builder entry only) |
+| ClearHeartPill | **not built yet**: the Marrow pill recoloured pale water-blue (builder entry only) |
+
+The Foundation Tempering and Clear Heart Pills (2026-10-24) were added to the builder in
+code only: re-run it in a sandbox and export `ReplicatedStorage.ItemModels` to put them
+in `assets/ItemModels.rbxm`.
 
 ## Needs art pass
-All seven are a light pass in Roblox parts. Each carries `NeedsArtPass = true` and an
+All are a light pass in Roblox parts. Each carries `NeedsArtPass = true` and an
 `ArtPassReason` (also in the builder's `ITEM_REASON`): moulded pill meshes with their
 icon's pattern (spiral, taiji), cut-gem cores with an inner pulse, a pierced bi disc
 with carved clouds, a droplet mesh, and glow/shimmer vfx.

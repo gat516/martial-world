@@ -499,17 +499,18 @@ Pacing.Aura = {
 	DECOR = 0.25, -- the cap rises by up to this share at the peak tier's score cap
 }
 
--- SECLUSION (server Seclusion; docs/systems/seclusion.md): the AFK mode, entered from
--- the meditation seat on your own peak. Cultivation runs at the AFK rate (the plain
--- passive, Income above) and never breaks through; seclusion pays its own rewards
--- instead, online and offline alike (a logout while secluded keeps it going) up to
+-- SECLUSION (server Seclusion; docs/systems/seclusion.md): work on yourself with what
+-- you've gathered, short and purposeful (owner, 2026-10-24). Entered from the
+-- meditation seat on your own peak. Cultivation runs at the AFK rate (the plain
+-- passive, Income above) and never breaks through. Seclusion's own: tempering old
+-- foundations with herbs and pills (Pacing.Tempering), the garden tended, and rare
+-- finds rolled every few minutes. Nothing waits on a full hour; no stone trickle, no
+-- streak. Online and offline alike (a logout while secluded keeps it going) up to
 -- MAX_HOURS. The garden's mutation roll isn't seclusion's: it rolls while the owner
--- stays online on their own peak, secluded or not, never offline. No foundation experiences. Leaving (rising, being hit, logging back in)
--- shows the result card.
+-- stays online on their own peak, secluded or not, never offline. No foundation
+-- experiences. Leaving (rising, being hit, logging back in) shows the result card.
 Pacing.Seclusion = {
 	MAX_HOURS = 12, -- rewards stop counting after this long in one seclusion (as offline)
-	-- Spirit Stones an hour, by major (a slow trickle: a QC wolf drops about 4.5)
-	STONES_PER_HOUR = { QiCondensation = 25, QiRefining = 60, Foundation = 150 } :: { [string]: number },
 	-- the garden is tended: growing plants grow this much faster (0.5 = +50%), online and offline
 	GROWTH = 0.5,
 	-- the garden's online roll (server Garden, while the owner stands on their own peak,
@@ -517,29 +518,45 @@ Pacing.Seclusion = {
 	-- mutations (by weight)
 	MUTATION_PER_HOUR = 0.03,
 	MUTATIONS = { Dewy = 50, Windswept = 30, Auspicious = 15, Golden = 5 } :: { [string]: number },
-	-- each full hour: this chance of a rare find, by weight: a treasure, or a seed of
-	-- the player's major's next herb tier (never root pills)
+	-- rare finds: every FIND_SECONDS of seclusion a roll of RARE_CHANCE x FIND_SECONDS /
+	-- 3600, so RARE_CHANCE finds an hour on average and a 10-minute seclusion can still
+	-- find one (owner, 2026-10-24: no one-hour leash). By weight: a treasure, a Foundation
+	-- Tempering Pill, or a seed of the player's major's next herb tier (never root pills)
 	RARE_CHANCE = 0.1,
-	RARE = { HeavenlyDew = 50, CloudPatternJade = 25, ImmortalPeach = 5, Seed = 60 } :: { [string]: number },
+	FIND_SECONDS = 300,
+	RARE = { HeavenlyDew = 50, CloudPatternJade = 25, ImmortalPeach = 5, TemperingPill = 15, Seed = 60 } :: { [string]: number },
 	SEED_TIER = { QiCondensation = 2, QiRefining = 3, Foundation = 4 } :: { [string]: number },
-	-- the streak: days with a seclusion of at least STREAK_MIN_HOURS (a missed day
-	-- pauses it, never resets it); each day past the first adds STREAK_BONUS to the
-	-- stones (up to STREAK_MAX days)
-	STREAK_MIN_HOURS = 1,
-	STREAK_BONUS = 0.1,
-	STREAK_MAX = 7,
-	-- the result card shows only after this long in seclusion (or for the first one);
-	-- a shorter one rises with a small "+N Spirit Stones" line (user, 2026-10-24)
+	-- the result card shows only after this long in seclusion, for the first one, or when
+	-- something was tempered; a shorter one rises quietly (user, 2026-10-24)
 	CARD_MIN_MINUTES = 10,
 	-- the first seclusion (the onboarding's Seclusion lesson) ends by itself after
-	-- FIRST_SECONDS with a generous card: FIRST_STONES, FIRST_SEEDS, a FIRST_BAR share
-	-- of the bar as cultivation (never past the bar) and FIRST_GROWTH seconds on every
-	-- growing plant (the seed planted for Home is ready when the player opens their eyes)
+	-- FIRST_SECONDS with a card about the garden and tempering: FIRST_SEEDS, a FIRST_BAR
+	-- share of the bar as cultivation (never past the bar), FIRST_GROWTH seconds on
+	-- every growing plant (the seed planted for Home is ready when the player opens their
+	-- eyes) and FIRST_ITEMS (a Tempering Pill, the next seclusion's purpose)
 	FIRST_SECONDS = 45, -- 30-60 s (user, 2026-10-24): a taste, offered in the second session
-	FIRST_STONES = 60,
 	FIRST_SEEDS = { CloudMint = 2 } :: { [string]: number },
 	FIRST_BAR = 0.25,
 	FIRST_GROWTH = 300,
+	FIRST_ITEMS = { TemperingPill = 1 } :: { [string]: number },
+}
+
+-- TEMPERING IN SECLUSION (server Seclusion, Foundation.temper; docs/systems/seclusion.md
+-- "Tempering"; owner, 2026-10-24: "some herbs / pills should do the trick", never gated
+-- behind AFK). Used while secluded, an item in POINTS is absorbed; after SETTLE_SECONDS
+-- more of seclusion it raises the lowest old stage's foundation percent by its points,
+-- never past Pacing.Foundation.TEMPER_MAX (100%: tempering mends, past 100% is earned
+-- only). One settles at a time. At most PER_DAY
+-- absorbed a UTC day and PER_WEEK a week (Monday 00:00 UTC). Rising before it settles
+-- gives the item back. Sources: TemperingPill from every boss kill (BOSS_CHANCE), the
+-- Pavilion (Pacing.Sect.PILLS), seclusion finds and the first seclusion; the herbs from
+-- the garden (Snowpeak Lotus from the Deep Wilds band, Nine-Leaf Lingzhi from FE).
+Pacing.Tempering = {
+	SETTLE_SECONDS = 180,
+	PER_DAY = 2,
+	PER_WEEK = 5,
+	POINTS = { TemperingPill = 20, SnowpeakLotus = 10, NineLeafLingzhi = 20 } :: { [string]: number },
+	BOSS_CHANCE = 0.1, -- a Tempering Pill on every boss kill, per player credited
 }
 
 -- PEAK SCORE: every build piece standing on your peak (placed or starter) scores
@@ -965,10 +982,19 @@ Pacing.Foundation = {
 	-- fills, and a heaven-defier's tribulation strikes UNSTEADY_TRIBULATION harder
 	UNSTEADY_BELOW = 50,
 	UNSTEADY_TRIBULATION = 1.2,
-	-- tempering (the heart-demon trial): each step raises one old stage this many points,
-	-- the lowest first, never past TEMPER_MAX
-	TEMPER_POINTS = 25,
-	TEMPER_MAX = 150,
+	-- tempering (the heart-demon trial; seclusion's items, Pacing.Tempering): each step
+	-- raises one old stage this many points, the lowest first, never past TEMPER_MAX.
+	-- Tempering mends, it never exceeds (owner, 2026-10-24: "it removes the incentives to
+	-- work hard and maximize your foundation"): past 100% is earned only, during the
+	-- stage, so a maximised stage keeps a lead no temperer can catch. With that cap the
+	-- heart demon's payoff is bigger and shown (was 25 points to 150)
+	TEMPER_POINTS = 50,
+	TEMPER_MAX = 100,
+	-- deepening (Foundation.deepen; owner, 2026-10-24): the only lift past 100% that isn't
+	-- lived, for rare deeds (a calmed heart demon today: Pacing.HeartDemon DEEPEN_CALM).
+	-- It raises one old stage at 100%+ (the lowest) by the source's points, up to
+	-- DEEPEN_MAX; only living through a stage reaches MAX_PERCENT
+	DEEPEN_MAX = 130,
 	-- profiles sealed before percents stored a word: what each word reads as
 	LEGACY = { Cracked = 25, Steady = 60, Solid = 100, Deep = 150 } :: { [string]: number },
 	MUTATION_BONUS = 1, -- a harvest mutation counts as rare (Home) from this Herbs.Mutations bonus up
@@ -1002,6 +1028,14 @@ Pacing.HeartDemon = {
 	TEMPER_CALM = 3, -- old grades a calmed demon (no denials) raises one step each, lowest first
 	TEMPER_ROUGH = 1, -- the least a finished trial tempers, however many denials
 	-- each denial (an answer the record contradicts) tempers one fewer, down to TEMPER_ROUGH
+	-- the Clear Heart Pill (absorbed while meditating): forgives one denial in the next
+	-- trial, or with no trial open, lets the latest uncalmed one be retaken once (only
+	-- the better result counts). Drops from bosses at CLEAR_BOSS_CHANCE; the Pavilion
+	-- sells one a week (Pacing.Sect.PILLS)
+	CLEAR_BOSS_CHANCE = 0.03,
+	-- a calmed trial (no denials, after a Clear Heart Pill's forgiveness) also deepens one
+	-- old stage past 100% by this many points (Foundation.deepen, up to DEEPEN_MAX)
+	DEEPEN_CALM = 20,
 	HARVEST_WEIGHT = 2, -- one harvest weighs as this many kills when reading the path
 	HUNTER_SHARE = 0.65, -- kills / (kills + weighted harvests) from here up: a hunter
 	GARDENER_SHARE = 0.35, -- and up to here: a gardener (between: both roads)
@@ -1018,6 +1052,7 @@ Pacing.HeartDemon = {
 	WANDER_MAX = 2, -- pieces placed at most (with SLAIN_MIN kills) for the wanderer question
 	HERB_MIN = 5, -- herbs in the Herbarium before it's a question
 	ROOT_MIN = 1, -- root pills (washing + rebirth) before chasing a better self is a question
+	TEMPERED_MIN = 3, -- old stages tempered in seclusion (stats.tempered) before the root question names them
 	DUTY_MIN = 10, -- sect dailies claimed before the dutiful-disciple question
 	LONE_MAX = 1, -- dailies claimed at most (the board open to them) for the lone-wolf question
 	WEIGHT_CAP = 4, -- the loudest a record question can weigh (1 at its threshold, +1 per doubling)
@@ -1053,7 +1088,7 @@ Pacing.Sect = {
 		hunt = { contribution = 40, stones = 1, goal = { QiCondensation = 8, QiRefining = 10, Foundation = 12 }, combat = true },
 		herbs = { contribution = 40, stones = 1, goal = { QiCondensation = 6, QiRefining = 6, Foundation = 6 } },
 		gather = { contribution = 30, stones = 0.75, goal = { QiCondensation = 3, QiRefining = 4, Foundation = 4 } },
-		seclusion = { contribution = 40, stones = 0.75, goal = { QiCondensation = 3600, QiRefining = 3600, Foundation = 3600 } },
+		seclusion = { contribution = 40, stones = 0.75, goal = { QiCondensation = 900, QiRefining = 900, Foundation = 900 } }, -- 15 min: seclusion is never an hour's leash (owner, 2026-10-24)
 		store = { contribution = 25, stones = 0.5 },
 		harvest = { contribution = 30, stones = 0.75, goal = { QiCondensation = 4, QiRefining = 6, Foundation = 8 } },
 		cache = { contribution = 60, stones = 1.5 },
@@ -1084,6 +1119,13 @@ Pacing.Sect = {
 		MarrowWashingPill = { cost = 100, week = 3 },
 		RootRebirthPill = { cost = 80, week = 2 },
 	} :: { [string]: { cost: number, week: number } },
+	-- whole pills the Pavilion sells, at most `week` a week (the same week): the Foundation
+	-- Tempering Pill (Pacing.Tempering) and the Clear Heart Pill (Pacing.HeartDemon)
+	PILLS = {
+		TemperingPill = { cost = 120, week = 1 },
+		ClearHeartPill = { cost = 250, week = 1 },
+	} :: { [string]: { cost: number, week: number } },
+	PILL_ORDER = { "TemperingPill", "ClearHeartPill" },
 	-- bonus quests (docs/systems/sect.md "Bonus quests"): teach the party shelter by doing
 	-- it. Offered only while someone of the right major is on the server (the testbed:
 	-- always), at most one taken at a time, each claimable once a day. `from` the least

@@ -743,14 +743,14 @@ Quests.Lessons = {
 	{
 		-- the second session (seclusionDue): the AFK mode as a reward moment. The
 		-- first seclusion ends by itself after Pacing.Seclusion FIRST_SECONDS with a
-		-- generous card (Seclusion.luau), which is what `done` reads.
+		-- card about the garden and tempering (Seclusion.luau), which is what `done` reads.
 		id = "Seclusion",
 		elder = "Rest now. Your peak works for you while you're away.",
 		talk = {
 			lines = {
 				"A cultivator who never rests burns out.",
 				"Sit on your own peak and enter seclusion.",
-				"Your garden is tended and stones gather, even while you are away.",
+				"Your garden is tended, and with a herb or pill you can mend an old foundation.",
 			},
 			reply = "I will try it.",
 		},

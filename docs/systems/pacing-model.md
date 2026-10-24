@@ -52,8 +52,7 @@ runs at the seat's multiplier while refining).
   `GROWING`; capped by `Aura.CAP` x (1 + `DECOR` x score/scoreCap); it multiplies the
   seat only.
 - **Acquisition (expected values):** Spirit Stones from hunting (~10 a hunting minute:
-  ~0.3 stones per qiDrop plus nodes), sect dailies (`DAILY_STONES`), seclusion
-  (`STONES_PER_HOUR` with the streak), quests and herb sales buy, in order: a day's
+  ~0.3 stones per qiDrop plus nodes), sect dailies (`DAILY_STONES`), quests and herb sales buy, in order: a day's
   Herbalist stock of the next tier once its band sells it (tier III from QR6, tier IV
   from FE4; seeds back fill the plots), the tier II reseed, beds, the Meditation
   Cushion, ponds, groves, then the cheapest peak-score pieces. Tier III+ also come from
@@ -97,7 +96,7 @@ under 3% (regular online 29.3 > 29.7 h).
 | Before heavy | 1.0 h / d1 | 4.0 h / d2 | 7.0 h / d3 | 1.5 / 3.2 / 3.3, 8.0 h |
 | **Now casual** | 1.5 h / d4 | 5.0 h / d11 | 14.3 h / d29 | 2.2 / 7.2 / 22.3, 31.7 h |
 | **Now regular** | 2.1 h / d2 | 7.5 h / d6 | 22.3 h / d15 | 2.4 / 7.1 / 20.2, **29.7 h** |
-| **Now heavy** | 1.6 h / d1 | 7.5 h / d3 | 21.7 h / d8 | 2.2 / 6.9 / 16.1, 25.2 h |
+| **Now heavy** (no seclusion stones) | 1.6 h / d1 | 7.7 h / d3 | 24.2 h / d9 | 2.2 / 7.5 / 20.1, 29.8 h |
 | Bare fighter (the header's active column) | 2.8 h | 14.5 h | 97.6 h | |
 
 The approved proposal (the morning's `--proposal`, bars x1.15 / x1.8 / x5.1) gave
@@ -112,7 +111,7 @@ lever and "no lever is mandatory"; with those (below) the bars came out x1.15 / 
 |---|---|---|---|
 | Hunter road | 33.3 h | +12% | +15% |
 | Garden road | 34.0 h (QC 3.0 h: tier I herbs give little, so the garden road's QC is slower) | +14% | +15% |
-| Heavy (everything) | 25.2 h | x1.18 speed | x1.30 |
+| Heavy (everything) | 29.8 h (25.2 h with the seclusion stone trickle, cut 2026-10-24) | x1.00 speed | x1.30 |
 
 Before the rebalance the garden road was +95% and the hunter +34% over the regular
 (on the proposal's knobs); what closed it: buff caps, the lighter seat items, the aura
@@ -204,6 +203,31 @@ Structural notes stay: band pools are front-loaded (FE4 and QR6 hit 150% for eve
 the carry feeds the next stages, less of it at 5); QR and FE have no same-realm beasts
 with variants off; slept stages seal low for the casual (QC6, QR2, QR4); the regular's
 FE1-3 and FE6-8 sit at 66-98%. Re-run once variants are on.
+
+## Tempering and deepening (`--foundation`, after the percent table)
+
+`tempered_percents` takes each profile's sealed percents and, stage by stage on its
+calendar, applies the heart demon at QC9 / QR9 / FE9 (`TEMPER_CALM` - denials steps of
+`TEMPER_POINTS` to `TEMPER_MAX`, then `DEEPEN_CALM` on the lowest stage at 100%+ when
+calm) and seclusion's tempering items (`Pacing.Tempering.POINTS` to 100%, inside
+`PER_DAY` / `PER_WEEK`). Item supply per stage: boss kills x `BOSS_CHANCE`, the
+Pavilion's weekly pill (`TEMPER_HABITS` pavilion share, from QC5), seclusion finds for
+profiles that seclude, the first seclusion's pill at QC5, and Snowpeak Lotus / Nine-Leaf
+Lingzhi a week from QR6 / FE4 (`TEMPER_HABITS`). A Clear Heart Pill forgives one denial
+for its `clear` share. It prints sealed vs tempered median, stages under 100%, 130%+ and
+the summed bonus, plus the reference: all mended to 100% +23%, all deepened to 130% +51%,
+all earned to 150% +69%.
+
+| | Sealed: median / under 100% / 130%+ / bonus | Tempered and deepened |
+|---|---|---|
+| Casual | 97% / 12 / 1 / +25% | 103% / 5 / 1 / +29% |
+| Regular | 110% / 5 / 3 / +36% | 111% / 0 / 4 / +40% |
+| Heavy | 111% / 4 / 6 / +39% | 120% / 0 / 6 / +42% |
+
+Tempering mends the regular's and heavy's few low stages long before the caps bind (they
+hold items with nothing to mend); the casual is supply-limited and keeps 5 stages under
+100%. Deepening is what moves the heavy's median (three calmed trials, each +20 on a
+stage at 100%).
 
 ## Known gaps
 

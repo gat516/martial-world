@@ -27,8 +27,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Items = require(ReplicatedStorage.Shared.Items)
-local Pacing = require(ReplicatedStorage.Shared.Pacing)
-local Realms = require(ReplicatedStorage.Shared.Realms)
 local Methods = require(ReplicatedStorage.Shared.Methods)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
@@ -222,8 +220,6 @@ local function seclusionRow(): number
 	if not seclusionHere() then
 		return 0
 	end
-	local stage = Realms.byName(player:GetAttribute("Realm"))
-	local stones = if stage then Pacing.Seclusion.STONES_PER_HOUR[stage.major] or 0 else 0
 	local secluded = player:GetAttribute("Secluded") == true
 	addRow(-1, {
 		icon = SECLUSION_ICON,
@@ -231,10 +227,10 @@ local function seclusionRow(): number
 		nameColor = LIGHT,
 		info = if secluded then "In seclusion" else "Shut out the world",
 		infoColor = if secluded then JADE else LIGHT,
-		sub = `{stones} Spirit Stones an hour`, -- one line, unwrapped; the blurb tells the garden
+		sub = "Temper old foundations", -- one line, unwrapped; the blurb tells the rest
 		blurb = if secluded
-			then "Rise when you wish to return; what you gathered is waiting."
-			else "Cultivate at rest, without breaking through. Stones gather, your garden grows faster and rare finds turn up each hour, even offline. Stay online and your garden may mutate.",
+			then "Use a tempering herb or pill to mend an old foundation. Rise when you wish to return."
+			else "Work on yourself with what you've gathered: a Tempering Pill, Snowpeak Lotus or Nine-Leaf Lingzhi mends an old foundation in a few minutes. Your garden grows faster, rare finds turn up, and you cultivate at rest, even offline.",
 		action = if secluded then nil else "Enter", -- the row is named Seclusion; the guide still says "Enter Seclusion"
 		ready = true,
 		guideKey = "Seclusion",

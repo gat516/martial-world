@@ -23,6 +23,7 @@ local RootDefs = require(ReplicatedStorage.Shared.Roots)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Cultivation = require(script.Parent.Cultivation)
 local Haul = require(script.Parent.Haul)
+local HeartDemon = require(script.Parent.HeartDemon)
 local PlayerData = require(script.Parent.PlayerData)
 local Progression = require(script.Parent.Progression)
 local Roots = require(script.Parent.Roots)
@@ -33,6 +34,11 @@ local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 local templates = ServerStorage:WaitForChild("ItemTemplates") :: Folder
 
 local Inventory = {}
+
+-- Set by Seclusion (which requires this module): why a tempering item can't be
+-- absorbed now (nil: it can), and absorbing one (Pacing.Tempering).
+Inventory.cantAbsorb = nil :: ((Player, PlayerData.Data, string) -> string?)?
+Inventory.absorb = nil :: ((Player, PlayerData.Data, string) -> ())?
 
 local tools: { [Player]: { [string]: Tool } } = {}
 local nextUse: { [Player]: number } = {}
@@ -156,8 +162,32 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	if use.qiKills then
 		qi += use.qiKills * Realms.enemyQi(Pacing.Income.CORE_KILL_QIDROP, stage)
 	end
+	-- tempering (Pacing.Tempering): the pill only in seclusion; a tempering herb eaten in
+	-- seclusion tempers too (refused when it can't, so it isn't wasted), elsewhere it's a herb
+	local tempers = false
+	if Pacing.Tempering.POINTS[item.id] then
+		local secluded = Cultivation.secluded and Cultivation.secluded(player)
+		if use.temper or secluded then
+			local why = if Inventory.cantAbsorb then Inventory.cantAbsorb(player, data, item.id) else "Absorb it in seclusion."
+			if why then
+				return false, why
+			end
+			tempers = true
+		end
+	elseif use.temper then
+		return false, "It can't temper anything."
+	end
+	if use.heartClear then
+		if not (Cultivation.meditation and Cultivation.meditation(player)) then
+			return false, "Sit and meditate to absorb it."
+		end
+		local why = HeartDemon.cantClear(data)
+		if why then
+			return false, why
+		end
+	end
 	local onlyQi = qi > 0
-		and not (use.buffs or use.cultivationShare or use.daoXp or (use.heal and humanoid and humanoid.Health < humanoid.MaxHealth))
+		and not (tempers or use.buffs or use.cultivationShare or use.daoXp or (use.heal and humanoid and humanoid.Health < humanoid.MaxHealth))
 	if onlyQi and data.rawQi >= stage.dantian then
 		return false, "Your dantian is already full."
 	end
@@ -193,6 +223,12 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	end
 	if use.rootReroll then
 		Roots.reroll(player)
+	end
+	if tempers and Inventory.absorb then
+		Inventory.absorb(player, data, item.id)
+	end
+	if use.heartClear then
+		HeartDemon.clear(player, data)
 	end
 	Cultivation.markActive(player)
 	Cultivation.applyStats(player, data)
@@ -261,6 +297,13 @@ function Inventory.onKill(player: Player, def: Enemies.Def, model: Model)
 	end
 	if def.boss then
 		Inventory.pity(player, gotPill, at)
+		-- the realm-neutral pills every boss may give (docs/systems/progression-rules.md)
+		if math.random() < Pacing.Tempering.BOSS_CHANCE then
+			Inventory.grant(player, "TemperingPill", 1, at)
+		end
+		if math.random() < Pacing.HeartDemon.CLEAR_BOSS_CHANCE then
+			Inventory.grant(player, "ClearHeartPill", 1, at)
+		end
 	end
 end
 

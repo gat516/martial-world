@@ -28,7 +28,8 @@
 -- percent at the breakthrough (Cultivation.advance calls `seal`), stored by stage key
 -- in data.foundation.grades (a number; old profiles' words read as LEGACY). Experiences
 -- past what MAX_PERCENT needs carry into the next stage's count.
--- `temper` raises old percents later (the heart-demon trial, HeartDemon.luau).
+-- `temper` raises old percents later, never past TEMPER_MAX (100%): the heart-demon
+-- trial (HeartDemon.luau) and seclusion's tempering items (Seclusion.luau).
 -- The hook stages (below Pacing.Foundation.FROM, QC4) have no foundation: nothing is
 -- earned there (the pools stay fresh for QC4), nothing is sealed or shown, and no
 -- unsteady toast fires (below UNSTEADY_BELOW percent). Each experience or deed earned
@@ -135,10 +136,9 @@ end
 
 export type Tempered = { key: string, fromPercent: number, toPercent: number }
 
--- Raise up to `steps` old stages TEMPER_POINTS each, the lowest percent first (ties:
--- the earliest stage), never past TEMPER_MAX. The heart-demon trial calls it; the
--- caller refreshes stats. Returns what changed.
-function Foundation.temper(data: PlayerData.Data, steps: number): { Tempered }
+-- Old stages that tempering can still mend (under TEMPER_MAX), lowest percent first
+-- (ties: the earliest stage).
+local function temperable(data: PlayerData.Data): { { key: string, percent: number, at: number } }
 	local open = {}
 	for key, value in data.foundation.grades do
 		local stage = Realms.ByKey[key]
@@ -153,14 +153,67 @@ function Foundation.temper(data: PlayerData.Data, steps: number): { Tempered }
 		end
 		return a.at < b.at
 	end)
+	return open
+end
+
+-- The old stage the next tempering would raise (nil: nothing left to mend).
+function Foundation.nextTemper(data: PlayerData.Data): string?
+	local open = temperable(data)
+	return if open[1] then open[1].key else nil
+end
+
+-- Raise up to `steps` old stages `points` each (default TEMPER_POINTS), the lowest
+-- percent first (ties: the earliest stage), never past TEMPER_MAX (100%: tempering
+-- mends, it never exceeds; past 100% is earned only, owner 2026-10-24). The heart-demon
+-- trial and seclusion's tempering items call it; the caller refreshes stats. Returns
+-- what changed.
+function Foundation.temper(data: PlayerData.Data, steps: number, points: number?): { Tempered }
+	local open = temperable(data)
 	local changed: { Tempered } = {}
 	for i = 1, math.min(steps, #open) do
 		local entry = open[i]
-		local to = math.min(Config.TEMPER_MAX, entry.percent + Config.TEMPER_POINTS)
+		local to = math.min(Config.TEMPER_MAX, entry.percent + (points or Config.TEMPER_POINTS))
 		table.insert(changed, { key = entry.key, fromPercent = entry.percent, toPercent = to })
 		data.foundation.grades[entry.key] = to
 	end
 	return changed
+end
+
+-- Deepening (owner, 2026-10-24): what tempering may not do, raise an old stage past
+-- 100%, up to DEEPEN_MAX (only living through a stage reaches MAX_PERCENT). Raises one
+-- old stage `points`: the lowest one already at 100% or more and under DEEPEN_MAX
+-- (ties: the earliest stage), so it lifts a stage that was earned full but not deep.
+-- `reason` names the source, counted in data.foundation.deepened (later sources: "heartDemon" today; heaven-
+-- and-earth treasures and feats above your realm next). The caller refreshes stats.
+-- Returns the change, or nil when no stage qualifies.
+function Foundation.deepen(data: PlayerData.Data, points: number, reason: string): Tempered?
+	local best: { key: string, percent: number, at: number }? = nil
+	for key, value in data.foundation.grades do
+		local stage = Realms.ByKey[key]
+		local percent = percentOf(value)
+		if stage and percent >= 100 and percent < Config.DEEPEN_MAX then
+			local at = Realms.index(stage.major, stage.minor)
+			if not best or percent < best.percent or (percent == best.percent and at < best.at) then
+				best = { key = key, percent = percent, at = at }
+			end
+		end
+	end
+	if not best then
+		return nil
+	end
+	local to = math.min(Config.DEEPEN_MAX, best.percent + points)
+	data.foundation.grades[best.key] = to
+	data.foundation.deepened[reason] = (data.foundation.deepened[reason] or 0) + 1
+	return { key = best.key, fromPercent = best.percent, toPercent = to }
+end
+
+-- Card stat rows for tempered stages (Rewards card `stats`): "QC5  60% -> 100%".
+function Foundation.temperStats(tempered: { Tempered }): { { name: string, from: string, to: string } }
+	local rows = {}
+	for _, t in tempered do
+		table.insert(rows, { name = t.key, from = `{t.fromPercent}%`, to = `{t.toPercent}%` })
+	end
+	return rows
 end
 
 -- Whether a percent is below UNSTEADY_BELOW (the unsteady toast, a harder tribulation).

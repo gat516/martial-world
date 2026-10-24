@@ -155,8 +155,8 @@ The garden dies at QC6 because herb qi is flat. Fix:
 - **Alchemy is a later update (user, 2026-10-22).** No furnace, crafted pills or
   breakthrough-aid pills for now. Herbs are eaten directly (qi and timed buffs), and
   pills, cores and elixirs stay loot and shop finds (the Root Pill and Marrow Washing
-  Pill already work that way). Foundation repair comes from the heart-demon trial's
-  tempering instead (seclusion earns no foundation). See [roadmap](roadmap.md) "Deferred to a later update".
+  Pill already work that way). Foundation repair is tempering, to 100%: the heart-demon
+  trial and herbs and pills absorbed in seclusion (seclusion earns no experiences). See [roadmap](roadmap.md) "Deferred to a later update".
 - **Cultivating at home stays calm and always progresses.** Meditation and peak
   bonuses keep scaling through Pacing; nothing here asks for skill.
 

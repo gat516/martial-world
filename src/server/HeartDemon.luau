@@ -11,7 +11,12 @@
 -- a question here (docs/systems/heart-demon.md "Keeping it current"). Finishing tempers old foundation percents
 -- (Foundation.temper): Pacing.HeartDemon TEMPER_CALM with no denials (the demon is
 -- calmed), one fewer per denial, never fewer than TEMPER_ROUGH, never lowering
--- anything. Optional and choice-based: no reflexes, it never blocks or costs a
+-- anything, never past 100% (tempering mends; Pacing.Foundation TEMPER_MAX). A calmed
+-- trial also deepens one old stage past 100% (Foundation.deepen, DEEPEN_CALM). The
+-- payoff shows on a milestone card after the dialogue (Effect "reward"). A Clear Heart
+-- Pill (Items, absorbed while meditating: HeartDemon.cantClear / clear) forgives one
+-- denial in the next trial, or with none open lets the latest uncalmed trial be faced
+-- again once (data.heartDemon.retake; only the better result counts). Optional and choice-based: no reflexes, it never blocks or costs a
 -- breakthrough, and it can be declined and taken later (once per major).
 -- The client (src/client/HeartDemon.luau) offers it from the seat and runs it on
 -- the dialogue screen; it reaches here through CultivationAction:
@@ -29,6 +34,8 @@ local TitleDefs = require(ReplicatedStorage.Shared.Titles)
 local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
 local Analytics = require(script.Parent.Analytics)
+
+local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 
 local Config = Pacing.HeartDemon
 
@@ -93,8 +100,7 @@ local function weigh(value: number, min: number): number
 	return math.min(Config.WEIGHT_CAP, 1 + math.log(math.max(value, min) / math.max(min, 1e-6), 2))
 end
 
--- The lowest major whose stage 9 the player has reached without facing its demon.
-function HeartDemon.open(data: PlayerData.Data): Major?
+local function unfaced(data: PlayerData.Data): Major?
 	local here = Realms.index(data.realm.major, data.realm.minor)
 	for _, m in MAJORS do
 		if here >= m.peak and not data.heartDemon.trials[m.id] then
@@ -102,6 +108,64 @@ function HeartDemon.open(data: PlayerData.Data): Major?
 		end
 	end
 	return nil
+end
+
+-- The lowest major whose stage 9 the player has reached without facing its demon,
+-- else the trial a Clear Heart Pill reopened (data.heartDemon.retake).
+function HeartDemon.open(data: PlayerData.Data): Major?
+	local m = unfaced(data)
+	if m then
+		return m
+	end
+	local retake = data.heartDemon.retake
+	if retake ~= "" and data.heartDemon.trials[retake] then
+		for _, major in MAJORS do
+			if major.id == retake then
+				return major
+			end
+		end
+	end
+	return nil
+end
+
+-- The latest faced trial that wasn't calmed and hasn't been retaken (a pill's retake).
+local function retakeable(data: PlayerData.Data): string?
+	local best, at = nil, -1
+	for id, trial in data.heartDemon.trials do
+		if trial.denials > 0 and not trial.retaken and trial.at > at then
+			best, at = id, trial.at
+		end
+	end
+	return best
+end
+
+-- Why a Clear Heart Pill would do nothing now (nil: it can be absorbed).
+function HeartDemon.cantClear(data: PlayerData.Data): string?
+	if unfaced(data) then
+		return if data.heartDemon.clear then "Your heart is already clear for the trial ahead." else nil
+	end
+	if data.heartDemon.retake ~= "" then
+		return "Your heart demon already waits to be faced again."
+	end
+	if retakeable(data) then
+		return nil
+	end
+	return if next(data.heartDemon.trials) == nil
+		then "No heart demon stirs in you yet. Keep it for your realm's ninth stage."
+		else "Your heart demons are calm. There is nothing to clear."
+end
+
+-- A Clear Heart Pill absorbed: forgive one denial ahead, or reopen the latest uncalmed trial.
+function HeartDemon.clear(player: Player, data: PlayerData.Data)
+	if unfaced(data) then
+		data.heartDemon.clear = true
+	else
+		data.heartDemon.retake = retakeable(data) or ""
+		data.heartDemon.declined[data.heartDemon.retake] = nil -- offer it again from the seat
+	end
+	if HeartDemon.onChanged then
+		HeartDemon.onChanged(player)
+	end
 end
 
 --[[ The questions, each from the player's own record ]]
@@ -364,19 +428,30 @@ local function herbariumQuestion(data: PlayerData.Data): Candidate?
 	} }
 end
 
--- Root pills (Roots.luau): marrow washing and root rebirth, chasing a better self.
+-- Root pills (Roots.luau) and tempering in seclusion (Seclusion.luau): marrow washing,
+-- root rebirth and mended foundations, chasing a better self.
 local function rootQuestion(data: PlayerData.Data): Candidate?
-	local washed, rerolls = data.stats.washed, data.stats.rerolls
-	if washed + rerolls < Config.ROOT_MIN then
+	local washed, rerolls, tempered = data.stats.washed, data.stats.rerolls, data.stats.tempered
+	local pills = washed + rerolls >= Config.ROOT_MIN
+	if not pills and tempered < Config.TEMPERED_MIN then
 		return nil
 	end
-	local line = if washed > 0 and rerolls > 0
-		then `You burned your marrow with {washed} {if washed == 1 then "pill" else "pills"}, and remade your root {times(rerolls)}.`
-		elseif washed > 0 then `You burned your marrow with {washed} {if washed == 1 then "pill" else "pills"}.`
-		else `You dissolved your root and remade it {times(rerolls)}.`
-	return { weight = weigh(washed + rerolls * 2, Config.ROOT_MIN) + 0.5, q = {
+	local lines = {}
+	if washed > 0 and rerolls > 0 then
+		table.insert(lines, `You burned your marrow with {washed} {if washed == 1 then "pill" else "pills"}, and remade your root {times(rerolls)}.`)
+	elseif washed > 0 then
+		table.insert(lines, `You burned your marrow with {washed} {if washed == 1 then "pill" else "pills"}.`)
+	elseif rerolls > 0 then
+		table.insert(lines, `You dissolved your root and remade it {times(rerolls)}.`)
+	end
+	if tempered >= Config.TEMPERED_MIN then
+		table.insert(lines, `In seclusion you mended {tempered} old foundations with herbs and pills.`)
+	end
+	table.insert(lines, "Were you not enough as you were?")
+	local weight = math.max(if pills then weigh(washed + rerolls * 2, Config.ROOT_MIN) + 0.5 else 0, weigh(tempered, Config.TEMPERED_MIN))
+	return { weight = weight, q = {
 		id = "root",
-		lines = { line, "Were you not enough as you were?" },
+		lines = lines,
 		answers = {
 			{ text = "I want to be more.", reply = "Want is a fire. Mind what it burns.", honest = true, heart = "chased a better self" },
 			{ text = "I'm still finding myself.", reply = "Then keep looking. Gently.", honest = true, heart = "searched for who you are" },
@@ -593,7 +668,7 @@ local function temperLine(tempered: { Foundation.Tempered }, data: PlayerData.Da
 	if #tempered == 0 then
 		return if next(data.foundation.grades) == nil
 			then "You have no old foundations yet. There was nothing to temper."
-			else `Your old foundations are all {Pacing.Foundation.TEMPER_MAX}% or more. There was nothing left to temper.`
+			else `Your old foundations are all whole. Past {Pacing.Foundation.TEMPER_MAX}%, only living teaches.`
 	end
 	local parts = {}
 	for _, t in tempered do
@@ -602,13 +677,33 @@ local function temperLine(tempered: { Foundation.Tempered }, data: PlayerData.Da
 	return `Your old foundations temper: {table.concat(parts, ", ")}.`
 end
 
+-- The payoff, shown once the dialogue closes (Rewards waits for open windows): a
+-- milestone card with every stage raised, before -> after, and the strength it adds.
+local function payoffCard(player: Player, major: string, calm: boolean, changed: { Foundation.Tempered }, before: number, after: number, heart: string?)
+	if #changed == 0 then
+		return
+	end
+	local name = string.gsub(Realms.get(major, 9).name, " 9$", "")
+	local gain = math.floor((after - before) * 1000 + 0.5) / 10
+	effectRemote:FireClient(player, "reward", {
+		tier = "card",
+		kind = "milestone",
+		title = if calm then "Heart Demon Calmed" else "Heart Demon Faced",
+		subtitle = name,
+		stats = Foundation.temperStats(changed),
+		unlock = `+{gain}% health and power from your foundations`,
+		flavour = if heart then `Your Dao heart: {heart}.` else nil,
+	})
+end
+
 function HeartDemon.answer(player: Player, choices: any): (boolean, any)
 	local data = PlayerData.get(player)
 	local trial = pending[player]
 	if not (data and trial) then
 		return false, "Your heart demon has gone quiet. Sit and face it again."
 	end
-	if data.heartDemon.trials[trial.major] then
+	local faced = data.heartDemon.trials[trial.major]
+	if faced and data.heartDemon.retake ~= trial.major then
 		pending[player] = nil
 		return false, "You have already faced this demon."
 	end
@@ -635,22 +730,59 @@ function HeartDemon.answer(player: Player, choices: any): (boolean, any)
 		end
 	end
 	pending[player] = nil
+	local record = data.heartDemon.trials[trial.major]
+	-- a Clear Heart Pill forgives one denial in a first facing (a retake was the pill's use)
+	if not record and data.heartDemon.clear and denials > 0 then
+		denials -= 1
+	end
+	if not record then
+		data.heartDemon.clear = false
+	end
 	local calm = denials == 0
-	local steps = math.max(Config.TEMPER_ROUGH, Config.TEMPER_CALM - denials)
-	local tempered = Foundation.temper(data, steps)
+	local function stepsFor(n: number): number
+		return math.max(Config.TEMPER_ROUGH, Config.TEMPER_CALM - n)
+	end
+	local before = Foundation.multiplier(data)
+	-- a retake pays only what the better result adds
+	local steps = if record then math.max(0, stepsFor(denials) - stepsFor(record.denials)) else stepsFor(denials)
+	local tempered = if steps > 0 then Foundation.temper(data, steps) else {}
+	local changed = table.clone(tempered)
+	if calm and not (record and record.calm) then
+		local deep = Foundation.deepen(data, Config.DEEPEN_CALM, "heartDemon")
+		if deep then
+			table.insert(changed, deep)
+		end
+	end
 	local note = `{table.concat(hearts, ", and ")}. {if calm then "The demon was calmed." else "The demon still whispers."}`
-	data.heartDemon.trials[trial.major] = {
-		calm = calm,
-		denials = denials,
-		tempered = #tempered,
-		note = note,
-		at = os.time(),
-		title = title, -- Titles.check grants it on the push below (server Titles)
-	}
+	if record then
+		data.heartDemon.retake = ""
+		record.retaken = true
+		record.tempered += #changed
+		if denials < record.denials then
+			record.calm = calm
+			record.denials = denials
+			record.note = note
+			record.title = title or record.title
+			record.at = os.time()
+		end
+	else
+		data.heartDemon.trials[trial.major] = {
+			calm = calm,
+			denials = denials,
+			tempered = #changed,
+			note = note,
+			at = os.time(),
+			title = title, -- Titles.check grants it on the push below (server Titles)
+		}
+	end
 	Analytics.event(player, "HeartDemonFaced", denials, trial.major, if calm then "calm" else "whispers")
 	local lines = if calm
 		then { "The voice goes quiet. It was only ever your own heart.", temperLine(tempered, data) }
 		else { "The demon fades, but not all the way. You'll hear it now and then.", temperLine(tempered, data) }
+	if #changed > #tempered then
+		local deep = changed[#changed]
+		table.insert(lines, `Your honesty runs deep: {Realms.ByKey[deep.key].name} deepens to {deep.toPercent}%.`)
+	end
 	local heart = title and TitleDefs.Defs[title]
 	if heart then
 		table.insert(lines, `Your Dao heart: {heart.name}.`)
@@ -658,6 +790,7 @@ function HeartDemon.answer(player: Player, choices: any): (boolean, any)
 	if HeartDemon.onChanged then
 		HeartDemon.onChanged(player)
 	end
+	payoffCard(player, trial.major, calm, changed, before, Foundation.multiplier(data), heart and heart.name)
 	return true, { calm = calm, lines = lines, note = note, tempered = tempered }
 end
 

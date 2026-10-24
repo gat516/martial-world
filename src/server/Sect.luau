@@ -20,7 +20,8 @@
 --              claimable once a day (Tuning.BONUS). Counted on Shelter.onCredit.
 --   Pavilion   seed packets by tier, a spirit ring slot per major, copies of the
 --              kill-milestone manuals, root pill fragments (a few of each a week,
---              Tuning.FRAGMENTS). Never qi, never whole root pills.
+--              Tuning.FRAGMENTS), a Foundation Tempering and a Clear Heart Pill a
+--              week (Tuning.PILLS). Never qi, never whole root pills.
 -- From QC5 (Pacing.Sect.OPENS; the testbed at any realm) the board's Read prompt
 -- opens the sect board (Quests.openBoard); before that it opens the goals list.
 -- Client: src/client/SectView.luau, through QuestState { sect = view, open = bool }
@@ -264,7 +265,7 @@ local KINDS: { [string]: Kind } = {
 			return `Spend {goal // 60} minutes in seclusion on your peak`
 		end,
 		body = function(goal)
-			return `Shut yourself away for {goal // 3600} hour on your peak. The sect values patience.`
+			return `Shut yourself away for {goal // 60} minutes on your peak. Temper what you've gathered; the sect values patience.`
 		end,
 	},
 	store = {
@@ -683,6 +684,16 @@ local function stockList(data: PlayerData.Data)
 				if left <= 0 then "Sold out this week" elseif not RootDefs.tested(data.root) then "Have your root tested first" else nil)
 		end
 	end
+	-- whole pills, a few a week (Tuning.PILLS): the Foundation Tempering and Clear Heart Pills
+	for _, pill in Tuning.PILL_ORDER do
+		local f = Tuning.PILLS[pill]
+		local item = Items.Defs[pill]
+		if f and item then
+			local left = f.week - (data.sect.weekBought[pill] or 0)
+			add(`pill:{pill}`, item.name, `{item.blurb}. {math.max(0, left)} left this week.`, f.cost,
+				if left <= 0 then "Sold out this week" else nil)
+		end
+	end
 	return list
 end
 
@@ -1011,6 +1022,10 @@ local function buy(player: Player, data: PlayerData.Data, id: any): (boolean, st
 				local pill = string.sub(id, 10)
 				data.sect.weekBought[pill] = (data.sect.weekBought[pill] or 0) + 1
 				Inventory.fragment(player, pill, 1)
+			elseif string.sub(id, 1, 5) == "pill:" then
+				local pill = string.sub(id, 6)
+				data.sect.weekBought[pill] = (data.sect.weekBought[pill] or 0) + 1
+				Inventory.grant(player, pill, 1)
 			else
 				return false, nil
 			end

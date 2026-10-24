@@ -7,7 +7,8 @@ The `progression-designer` agent owns this file. Numbers live in
 `src/shared/Pacing.luau` (and `Herbs.luau`, `Items.luau`, `Enemies.luau`,
 `BuildItems.luau`); this page says what they must add up to. Last full pass: the
 2026-10-24 rebalance (owner-approved), then the same day's herb re-tier, sell-price cut
-and foundation bar (owner decisions).
+and foundation bar (owner decisions), then the seclusion rework and tempering (owner
+decisions, same day).
 
 ## Targets
 
@@ -18,7 +19,7 @@ and foundation bar (owner decisions).
 | Foundation Establishment | about 20 h; no stage over about 3 h; FE9 is the cap | 20.2 h, stages 1.7-2.7 h |
 | A gardener (garden and meditate road) | gets there, 1.5-2x slower at most | +14% overall (QC +25%) |
 | A night (12 h offline or AFK) | about one stage, never two | QC/QR: the 1.5 cap; FE: 26-57% of a bar (owner, 2026-10-24: FE nights stay as is) |
-| Foundation percent | 100% by playing a stage; 130%+ rare for the regular, common only for the heavy | medians 97 / 110 / 112% (casual / regular / heavy); 130%+ on 1 / 3 / 7 of 23 stages |
+| Foundation percent | 100% by playing a stage; 130%+ rare for the regular, common only for the heavy | sealed medians 97 / 110 / 111% (casual / regular / heavy), 130%+ on 1 / 3 / 6 of 23 stages; after tempering and deepening 103 / 111 / 120%, 130%+ on 1 / 4 / 6, no stage under 100% for the regular or heavy |
 
 "The regular player" is the model's regular profile (1.5 h a day, hunts about half the
 time, a growing garden, a cushion, some building, a party a quarter of the time). With
@@ -57,6 +58,19 @@ heavy player (3 h a day) on day 8.
     without a strong case.
 12. **A change that moves any profile's time to QC4, QC9, QR9 or FE9 by more than 10%
     needs the owner's sign-off**: report it, don't ship it.
+13. **Tempering mends to 100%; past 100% is earned only** (owner, 2026-10-24). Every
+    tempering source (seclusion's herbs and pills, the heart demon, the Clear Heart
+    Pill's extra steps) raises an old stage at most to 100%, lowest first.
+    **Deepening** (`Foundation.deepen`) is the only other lift past 100%, up to
+    `DEEPEN_MAX` 130, and only for cultivation-themed effort: a fully calmed heart demon
+    today, heaven-and-earth treasures and feats above your realm later. **Only living
+    through a stage reaches 150%.** A maximised stage keeps a lead no temperer can
+    catch (23 stages mended to 100%: +23% health and power; deepened to 130%: +51%;
+    earned to 150%: +69%). None of it is ever sold for Robux.
+14. **Seclusion is purposeful, never a leash** (owner, 2026-10-24): tempering, a faster
+    garden plus the online mutation chance, AFK cultivation, random finds rolled
+    continuously. No hour streaks, no flat stone trickle, nothing that needs a full hour
+    (the sect's seclusion daily is 15 minutes).
 
 ## Multipliers and their caps
 
@@ -88,6 +102,13 @@ builder, the aura 7-9%, the cushion 2%; none is needed to reach the targets.
 
 ## Faucets and sinks
 
+**Foundation percent** (health and power, never cultivation): experiences and deeds
+while at a stage (to 150%); tempering to 100% (the heart demon 50 points x 1-3 stages a
+trial; seclusion's items +10/+20, 2 a day and 5 a week); deepening to 130% (a calmed
+heart demon +20 on one stage). Sink: none (a stage's percent never falls). In the model
+the regular mends about 9 items' worth (64 points) by FE9; a casual's sub-100 stages
+drop from 12 to 5.
+
 **Cultivation** (the realm bar): passive (online, AFK, offline, seclusion), refining
 raw qi (circulation), Greater Spirit Cores (8% of the bar), Immortal Peach (50% of the
 bar), seclusion's first-time card (25%, once). Sink: the breakthrough (the bar resets;
@@ -104,12 +125,12 @@ of unbanked), fleeing. Cap: the dantian.
 **Spirit Stones**: kills (3-24 a beast, bosses 50-180), qi nodes (4-8), objectives (85 in
 the first session, lessons 20-50, the method 150), sect dailies (40 / 110 / 300 by major x
 the daily's share) and ranks (300, 1500), the chain (60, final 200), Herbarium discoveries
-(15-300) and pages (150-3000), seclusion (25 / 60 / 150 an hour), herb sales (`sellPrice`
-3-300), event relic fallbacks (60, 120), a reclaimed spill. Sinks: the Herbalist's seeds,
-build pieces (the decor shop), technique comprehension, the death spill, fleeing. A
-regular earns about 12,800 stones to FE9 (QC 780, QR 2,500, FE 9,500); a garden road
-selling a third of its qi herbs about 44,000 (FE 37,000; 250,000 before the 2026-10-24
-price cut).
+(15-300) and pages (150-3000), herb sales (`sellPrice` 3-300), event relic fallbacks (60,
+120), a reclaimed spill. Seclusion pays no stones (the trickle and its streak were cut,
+owner 2026-10-24). Sinks: the Herbalist's seeds, build pieces (the decor shop), technique
+comprehension, the death spill, fleeing. A regular earns about 12,800 stones to FE9 (QC
+780, QR 2,500, FE 9,500); a heavy player about 12,500 (26,000 with the trickle); a garden
+road selling a third of its qi herbs about 44,000 (FE 37,000).
 
 **Sell prices** (2026-10-24: the stone flood fixed by price, not a daily cap): one
 ladder by tier and rarity, so a grander herb never sells for less than a humbler one of
@@ -121,7 +142,8 @@ are mostly tier I-II volume; re-check if plot counts or yields rise.
 
 **Sect contribution**: dailies (25-60 each) and sheltering (2 a kill), inside a 700-a-week
 cap; the chain (60, final 150); promotions are by contribution earned. Sink: the Pavilion
-(seed packets, root pill fragments, the ring's slot, manual copies).
+(seed packets, root pill fragments, a Foundation Tempering Pill and a Clear Heart Pill a
+week, the ring's slot, manual copies).
 
 ## Rarity
 
@@ -177,11 +199,11 @@ mutation chains, buffs and sell prices follow the tier.
 | II | Spirit Peach | Rare | Outer Wastes | Herbalist 400, beasts, mutation (Purple Bamboo 4%) | qi, +15% 5 min; sells 45 |
 | III | Seven-Star Grass | Epic | Deep Wilds | **Herbalist 400 from QR6**, beasts (30%), mutation (Duskwind 4%, Moonpetal 5%), seclusion | qi, +25% 10 min; sells 50 |
 | III | Rift Lotus | Legendary | Deep Wilds | wild sprouts (Heaven Split), Deep Wilds bosses (10 of the boss pool), mutation (Snowpeak 3%) (prize: half a dantian) | +30% 15 min; sells 80 |
-| III | Snowpeak Lotus | Epic | Deep Wilds | beasts (15%), mutation (Jade Lotus 2%), seclusion | qi, +25% 10 min; sells 50 |
+| III | Snowpeak Lotus | Epic | Deep Wilds | beasts (15%), mutation (Jade Lotus 2%), seclusion | qi, +25% 10 min; tempers +10 in seclusion; sells 50 |
 | III | Emberheart Fruit | Epic | Deep Wilds | **Herbalist 600 from QR6**, beasts (25%), mutation (Spirit Peach 3%), seclusion | qi, +20% 10 min; sells 45 |
 | III | Starfall Bamboo | Epic | Deep Wilds | beasts (15%), mutation (Emberheart 2%), seclusion | qi, +8 speed; sells 45 |
 | IV | Dragonblood Vine | Epic | Far Reaches | **Herbalist 1200 from FE4**, beasts (40%), seclusion | qi, +35% 15 min; sells 70 |
-| IV | Nine-Leaf Lingzhi | Legendary | Far Reaches | mutation (Seven-Star 1%), Far Reaches bosses (15), seclusion | qi, +40% 20 min; sells 110 |
+| IV | Nine-Leaf Lingzhi | Legendary | Far Reaches | mutation (Seven-Star 1%), Far Reaches bosses (15), seclusion | qi, +40% 20 min; tempers +20 in seclusion; sells 110 |
 | IV | Phoenix Plume Orchid | Legendary | Far Reaches | beasts (10%), Far Reaches bosses (5), mutation (Dragonblood 2%), seclusion | qi, +45% 20 min; sells 140 |
 | IV | Thousand-Year Ginseng | Legendary | Far Reaches | the world event only (prize: a full dantian) | +45% 30 min; sells 300 |
 
@@ -200,8 +222,8 @@ models (`deferred = true`, listed in `Herbs.Deferred`) but are out of the game: 
 or item def), in no seed or boss pool, and no herb mutates into them. They come back with
 the realms past FE9 ([roadmap](../roadmap.md) "Deferred to a later update").
 
-Also: seclusion's hourly rare find (10% an hour; Seed 60 of 140 by weight) gives a seed of
-the next tier by major (QC II, QR III, FE IV; no wild or event herbs); the Pavilion sells packets (tier I 4 seeds
+Also: seclusion's rare find (rolled every 5 minutes, 10% an hour on average; Seed 60 of
+155 by weight) gives a seed of the next tier by major (QC II, QR III, FE IV; no wild or event herbs); the Pavilion sells packets (tier I 4 seeds
 40 contribution from Outer, tier II 3 for 150 from Inner, tier III 2 for 450 from Core, a
 random Herbalist-sold herb of the tier).
 
@@ -211,11 +233,19 @@ random Herbalist-sold herb of the tier).
 |---|---|---|---|
 | Lesser Spirit Core | Uncommon | beasts 20-50% (wolf 20%, boar 35%, QC6-8 beasts 40-50%); bosses 100% | 2 kills' raw qi at the eater's stage (`qiKills`, a spirit wolf's qiDrop) |
 | Greater Spirit Core | Epic | QC6-8 beasts 4-10%, bosses 100% | 8% of the bar, +20% cultivation 5 min |
-| Heavenly Dew | Rare | heavenly treasures (weight 60 of 103), seclusion finds (50 of 140) | a full dantian, full heal |
+| Heavenly Dew | Rare | heavenly treasures (weight 60 of 103), seclusion finds (50 of 155) | a full dantian, full heal |
 | Cloud-Pattern Jade | Epic | treasures (30), seclusion (25) | +60 Dao XP |
 | Immortal Peach | Legendary | treasures (10), seclusion (5) | 50% of the bar, full heal, +50% 10 min |
 | Marrow Washing Pill | Legendary | bosses 2-4%, treasures (1); pity: every boss kill or treasure that isn't a pill gives a fragment (10 a pill); the Pavilion 3 fragments a week | a root wash (Earth 3, Heaven +5, Immortal +8) |
 | Root Rebirth Pill | Epic | bosses 3-5%, treasures (2); fragments (25% with each Marrow fragment), the Pavilion 2 a week | reroll the root's element |
+| Foundation Tempering Pill | Rare | every boss kill 10% (`Pacing.Tempering.BOSS_CHANCE`), the Pavilion 1 a week (120 contribution), seclusion finds (15 of 155), one from the first seclusion | absorbed in seclusion: +20 on the lowest old stage, to 100% (2 a day, 5 a week with the herbs) |
+| Clear Heart Pill | Epic | every boss kill 3% (`Pacing.HeartDemon.CLEAR_BOSS_CHANCE`), the Pavilion 1 a week (250 contribution); no pity needed (Epic), the Pavilion is the sure road | absorbed while meditating: the next heart demon forgives one denial, or the latest uncalmed trial may be faced again once |
+
+Both pills are **realm-neutral** (they pay percent points, not qi or a share of anything),
+so every band's bosses drop them and the Pavilion sells them from Outer rank; never for
+Robux. Tempering herbs: **Snowpeak Lotus** (III Epic, +10) and **Nine-Leaf Lingzhi** (IV
+Legendary, +20) temper when eaten in seclusion, inside the same caps (the gardener's road
+to tempering; the hunter's is boss pills, the sect disciple's the Pavilion).
 
 Heavenly treasures fall in auspicious weather (Auspicious Mist 3, Rainbow Aurora 2,
 Heaven Split 4 per weather) on the wilds' event grounds; first claim keeps it. In the model
@@ -287,6 +317,15 @@ Still open (proposed fix):
   Reaches band; an announced rare prize, accepted.
 
 ## Open calls (the owner's)
+
+- **The stone trickle's cut slows the heavy player** (seclusion rework, owner-approved
+  2026-10-24): the heavy profile secluded every night and lost about 13,500 stones (FE
+  13,300), so its garden and building arrive later. Online time to FE9 25.2 -> 29.8 h
+  (+18%), with nights 21.7 -> 24.2 h (+11%); heavy (everything) is now x1.00 the
+  regular's online speed (was x1.18). The casual and regular don't seclude in the model
+  and are unchanged. Over the 10% line, so it's the owner's call: accept (stacking
+  buys less; rule 3 has no floor), or restore some stones elsewhere (e.g. a higher
+  sect daily share or Herbarium payouts), not in seclusion.
 
 Decided 2026-10-24: FE nights stay as is (26-57% of an FE bar, no FE offline rate);
 foundation raised by `OVER_COST` (above).

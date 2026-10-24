@@ -167,6 +167,7 @@ terrain, `wilds_layout.luau`, `dress_wilds.luau` and any Rojo-mapped asset.
 | Map layout, landforms, dressing, lighting | `map-builder` | plans against [map](../systems/map.md) |
 | Meshes, props, held weapons | `modeler` | Blender pipeline |
 | Player / R6 assets (race cosmetics, accessories worn on the player) | `modeler` | Blender, never Studio parts (user, 2026-10-23, after the part-built race looks: "that sucked") |
+| Organic or complex meshes the modeler can't build cleanly from primitives (accessories, creature parts, sculpted props) | `asset-generator` | Pixal3D base mesh from a reference image, cleaned in Blender; one generation at a time, stops when the RAM/VRAM preflight fails |
 | Docs, agent files and skills: fold learnings, dedupe, fix stale, split | `docs-keeper` | `/tidy-docs`; docs only, never code or assets |
 
 Modeling, VFX and animation agents (`modeler`, `enemy-modeler`, `vfx`, `world-fx`,

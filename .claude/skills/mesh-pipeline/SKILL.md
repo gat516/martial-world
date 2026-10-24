@@ -33,7 +33,9 @@ patterns.
   Sketchfab, Poly Pizza), or `generate_3d` (one object; takes minutes and may
   cost the user a credit, so ask first). Imports arrive at arbitrary scale, so
   size them from the reported bounding box. Check the licence before an asset
-  goes in the game.
+  goes in the game. For an organic or complex shape that primitives build
+  badly, ask the main session for an `asset-generator` base mesh (local
+  Pixal3D, from a reference image) instead of fighting it.
 - In shader code, look nodes up by type, never by name, and read enum
   identifiers instead of hardcoding them. Localized Blender installs differ.
 

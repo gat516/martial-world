@@ -41,6 +41,9 @@ export type Snapshot = {
 		snoozed: boolean,
 		trials: { [string]: { calm: boolean, denials: number, tempered: number, note: string, at: number } },
 	}?,
+	-- the Herbarium's record (server Herbarium): per herb id n harvested, l largest
+	-- size, m mutations seen; tiers whose page is complete ("1".."5")
+	herbarium: { herbs: { [string]: { n: number, l: number, m: { string } } }, tiers: { [string]: boolean } }?,
 }
 
 local State = {}

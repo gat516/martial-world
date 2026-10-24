@@ -161,7 +161,8 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
   Hunt `hunt:<enemy>` (first kill of a beast type, `Progression.onKill`), Boss
   `boss:<enemy>` (counts 2), Home `home:tier:<n>` (first harvest of a herb tier) and
   `home:mut:<id>` (a harvest with a mutation of bonus >= `MUTATION_BONUS`: Golden,
-  Thunderstruck, Auspicious, Rainbow, Heavenlit; `Garden.harvest`), Dao
+  Thunderstruck, Auspicious, Rainbow, Heavenlit; `Garden.harvest`) and `home:book:<n>`
+  (a tier's Herbarium page completed, server `Herbarium`), Dao
   `dao:<class>:<level>` (each weapon Dao level reached, `Weapons.onLevelUp`), Discover
   `discover:<cache id>` (`WorldCaches` claim), World `world:<event id>` (within
   `EVENT_RADIUS` of a located event while it runs, or any kill during an unlocated

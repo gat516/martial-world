@@ -326,11 +326,10 @@ return {
 		WILD_YIELD = { 1, 2 }, -- herbs per wild sprout
 		WILD_SEED_CHANCE = 0.5, -- a wild sprout also gives its seed
 		WILD_SECONDS = 300, -- a sprout withers after this long
-		-- seeds beasts drop: each damager rolls once per kill
+		-- seeds beasts drop: each damager rolls once per kill, from the kill's
+		-- region pool (Herbs.Regions: which seeds, by weight)
 		BEAST_SEED_CHANCE = 0.12, -- normal beasts
 		BOSS_SEEDS = { 2, 4 }, -- bosses always drop this many
-		BEAST_SEEDS = { "SpiritGrass", "CloudMint", "JadeLotus", "PurpleBamboo", "BloodGinseng" },
-		BEAST_SEED_WEIGHTS = { 40, 25, 15, 15, 5 },
 		-- "Grow now": a Robux developer product that finishes one growing plant.
 		-- A product has a fixed price, so there is one per tier; the tier is picked
 		-- by the seconds the plant has left (first tier whose upTo covers it).

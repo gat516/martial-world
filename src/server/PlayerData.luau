@@ -42,6 +42,7 @@ export type ActiveBuff = { source: string, kind: string, amount: number, expires
 export type Technique = { level: number, xp: number }
 -- weapon Dao comprehension of one class (Weapons.Classes), level 0..Pacing.Weapons.MAX_LEVEL
 export type Dao = { level: number, xp: number }
+export type HerbRecord = { n: number, l: number, m: { string } } -- one Herbarium entry
 -- Player preferences (the Settings window): volumes 0..1, and toggles
 -- one finished heart-demon trial: calmed (no denials), denials, old grades tempered,
 -- the heart line the player keeps (the Self card), and os.time()
@@ -64,6 +65,10 @@ export type Data = {
 	-- weighted count this stage, each stage's grade by stage key, and whether this
 	-- stage's "unsteady" toast was shown
 	foundation: { seen: { [string]: boolean }, count: number, grades: { [string]: string }, warned: boolean },
+	-- the Herbarium (server Herbarium): per herb id, n harvested in all, l the largest
+	-- size seen, m the mutation ids seen; tiers: herb tiers whose page is complete
+	-- and rewarded, by tier numeral string ("1".."5")
+	herbarium: { herbs: { [string]: HerbRecord }, tiers: { [string]: boolean } },
 	beats: { [string]: boolean }, -- onboarding beats completed, by id (Quests.Beats)
 	lessons: { [string]: boolean }, -- first-encounter lessons already shown (Quests.Lessons), plus markers: RootPillUsed, Loop (the elder named the loop)
 	quests: { [string]: boolean }, -- rewarded objectives claimed, by quest id (beats, lessons, later real quests)
@@ -162,6 +167,7 @@ local function default(): Data
 		firstKills = {},
 		milestones = {},
 		foundation = { seen = {}, count = 0, grades = {}, warned = false },
+		herbarium = { herbs = {}, tiers = {} },
 		beats = {},
 		lessons = {},
 		quests = {},
@@ -321,7 +327,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon", "herbarium" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

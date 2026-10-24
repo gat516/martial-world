@@ -75,6 +75,17 @@ local HERB_GLYPHS = {
 	RiftLotus = "蓮",
 	PurpleBamboo = "竹",
 	SpiritPeach = "桃",
+	GhostlampLily = "燈",
+	DuskwindThistle = "薊",
+	SevenStarGrass = "星",
+	EmberheartFruit = "果",
+	DragonbloodVine = "藤",
+	PhoenixPlumeOrchid = "鳳",
+	SnowpeakLotus = "雪",
+	StarfallBamboo = "竹",
+	TribulationThunderGrass = "雷",
+	NinefoldHeavenLotus = "蓮",
+	DaoOriginFruit = "道",
 }
 
 Items.Defs = {

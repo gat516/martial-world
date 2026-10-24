@@ -124,13 +124,15 @@ The garden dies at QC6 because herb qi is flat. Fix:
   IV Treasure (FE4-8), V Heavenly (FE9+). Eating a herb gives a fixed **share of
   the current dantian** by tier (about 6, 9, 12, 16, 20 percent), so a herb always
   matters but never replaces hunting, with a floor per tier so early herbs stay worth
-  eating (120, 400, 2500 raw qi for I-III; `EAT_FLOOR`), and event herbs keep a
+  eating (120, 400, 2500, 8000, 20000 raw qi; `EAT_FLOOR`), and event herbs keep a
   bigger share (Thousand-Year Ginseng a full dantian, Rift Lotus half; `PRIZE`).
-  Built (untuned): `Herbs.luau` `tier`, `Herbs.eatQi`, `Pacing.Herbs`; today's herbs
-  are tiers I-III.
+  Built (untuned): `Herbs.luau` `tier`, `Herbs.eatQi`, `Pacing.Herbs`; 22 herbs over
+  tiers I-V ([garden](systems/garden.md) has the table).
 - **Seeds come from the region.** Beasts drop their region's seeds, so going out
   feeds the garden; the garden saves trips. Sect errands ask for herbs (home
-  turns into quests).
+  turns into quests). Built: `Herbs.Regions` pools for the Inner Wilds and Ruined
+  Borderlands (I), Outer Wastes (II), Deep Wilds (III) and Far Reaches (IV, tier V from
+  its bosses); a kill outside a seed region (and the testbed) uses the beast's realm.
 - **Peak and garden tiers** gate plots and soil. The peak levels with contribution
   and realm, not stones alone.
 - **Alchemy is a later update (user, 2026-10-22).** No furnace, crafted pills or
@@ -266,6 +268,8 @@ Still open from that pass:
 Steps:
 1. ~~Pacing rows, `QiRefining`, the tribulation flag~~ (done, untuned).
 2. ~~Scale herb `eat` qi by tier; add the tier field to `Herbs.luau`.~~ (done, untuned; [garden](systems/garden.md)).
+   ~~Tier IV-V herbs, regional seed drops, the Herbarium and its rewards~~ (done
+   2026-10-23, untuned; models still to build).
 3. Build the sect: ranks, contribution, board, Pavilion, dailies and chains.
 4. Phase A: foundation grades, the haul and spirit ring, the qi surge ([roadmap](roadmap.md); insight deletion done); turn bosses into quest targets.
 5. Build the bloodline layer earlier than FE (see [character](systems/character.md)).

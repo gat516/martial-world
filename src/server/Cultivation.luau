@@ -227,6 +227,7 @@ function Cultivation.pushState(player: Player)
 		daoPracticeReady = data.daoPracticeReadyUnix,
 		foundation = Foundation.state(data),
 		heartDemon = HeartDemon.state(data),
+		herbarium = data.herbarium, -- the Herbarium's record (server Herbarium)
 	})
 	for _, fn in Cultivation.onPush do
 		task.spawn(fn, player, data)

@@ -5,17 +5,38 @@ building is [build](../systems/build.md). Composed from the Codex cuts directly 
 is no Figma mock of these screens (the old kit file hit its MCP limit at the start of
 this pass, 2026-10-23).
 
-## The Herbarium (ready to wire)
-The collection book of roadmap §5 / Phase B. The herb tiers and the collection
-record don't exist yet, so nothing in the game opens it; the system that owns the
-record calls it.
+## The Herbarium
+The collection book of roadmap §5 / Phase B, wired 2026-10-23. **H** toggles the
+player's own book (`Herbarium.openMine`); a HUD tile named `HerbariumButton` anywhere
+under `Hud` is wired too once it exists (none yet: phones have no way in, see Known
+gaps). While open it follows the record, so a harvest or reward shows at once.
+
+### The record and rewards (server `src/server/Herbarium.luau`)
+- `data.herbarium.herbs[id] = { n, l, m }`: harvested in all, the largest size seen,
+  the mutation ids seen. Filled by `Herbarium.record` from `Garden.harvest` (count,
+  the plant's size and mutations), wild sprouts and the guarded-herb event (size 1).
+  It goes to the client in the PlayerState push as `herbarium`.
+- **Discovered** = harvested or gathered once. Each discovery pays
+  `Pacing.Herbarium.DISCOVER` Spirit Stones by tier (15, 40, 120, 300, 800).
+- **A tier is a page.** The player's book gives each tier its own page (blank entries
+  pad it; every tier has 3-5 herbs, so one page each, three spreads). Discovering every
+  herb of a tier completes the page once (`data.herbarium.tiers["<n>"]`):
+  `Pacing.Herbarium.TIER` stones (150, 400, 1200, 3000, 8000) and the Home foundation
+  experience `home:book:<tier>` ([cultivation](../systems/cultivation.md) "Foundation
+  grade"). Both are toasted; the footer lists completed pages ("Complete: I II").
+  First guess for the roadmap's open question (small stones plus a foundation
+  experience, no cosmetics); untuned.
+- Profiles from before the record start empty: past harvests aren't counted.
 
 ### API (`src/client/Herbarium.luau`)
 ```lua
-Herbarium.open({ entries = { Entry, ... }, title = "Herbarium"? })
+Herbarium.open({ entries = { Entry, ... }, title = "Herbarium"?, done = { tier, ... }? })
+Herbarium.openMine()      -- the player's book from State (Herbarium.fromState)
+Herbarium.toggle()        -- H
+Herbarium.fromState(record) -- a Book from a PlayerState `herbarium` record
 Herbarium.close()
 Herbarium.isOpen()
-Herbarium.preview() -- sample book, from the client console in play:
+Herbarium.preview() -- a made-up record, from the client console in play:
 -- require(game.Players.LocalPlayer.PlayerScripts.Client.Herbarium).preview()
 
 type Entry = {
@@ -26,19 +47,12 @@ type Entry = {
 	largest: number?,      -- the biggest size seen (×)
 	mutations: { string }?,-- Herbs.Mutations ids seen on this herb
 	name: string?,         -- overrides the def's name (a herb not in Herbs.Defs yet)
+	blank: boolean?,       -- an empty slot (pads a tier to its own page)
 }
 ```
-Entries show in the order given (sort by tier, then Herbs.Order). It registers with
-`Menus`, so opening it closes other windows and hides the gameplay HUD.
-
-### What the real system must provide
-- A per-player record per herb: discovered, harvest count, largest size, mutations
-  seen (the server knows all of these at harvest time, `Garden.luau`).
-- A `tier` per herb (`Herbs.Defs[id].tier`, built; the preview already reads it).
-- Undiscovered herbs as entries too (`discovered = false`), so the book shows the
-  gaps; their name stays hidden, their tier shows.
-- Rewards for completing a page or tier are not drawn yet (open question in the
-  roadmap: cosmetic only, or foundation experiences).
+Entries show in the order given (`fromState`: by tier, then `Herbs.Order`).
+Undiscovered herbs show as the greyed card with their tier; their name stays hidden.
+It registers with `Menus`, so opening it closes other windows and hides the gameplay HUD.
 
 ### Layout
 `StarterGui.Herbarium` (`assets/Herbarium.rbxmx`): `Canvas` (fitted by `UiScale`) >
@@ -117,7 +131,14 @@ C1 `herbarium_book`, `herb_card`, `herb_card_empty`, `herb_tier_1`..`5`, `tag_*`
 `glyph_plant`, `glyph_harvest`, `glyph_rush`, `glyph_lock`, `glyph_question`. Missing
 art is requested in [codex-sheets](codex-sheets.md), sheet C1b.
 
+## Known gaps
+- No HUD tile opens the Herbarium yet, so touch players can't open it: `ui-designer`
+  adds `Hud.Buttons.HerbariumButton` (the code already wires that name).
+- Tier IV-V herbs have no slot icons yet (glyphs show); icons for the new herbs go on
+  the next Codex sheet.
+
 ## Untested
-Not played: the Herbarium's `preview()` and page turns, the seed picker's packet
+Not played: the wired book (H, live refresh, the tier-page layout, discovery and page
+rewards), the Herbarium's `preview()` and page turns, the seed picker's packet
 taps, set tabs (no item has a set yet) and the peak gauge (no server sets the
 attribute yet) were only seen in Edit-mode previews.

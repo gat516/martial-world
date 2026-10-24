@@ -25,6 +25,7 @@ local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Herbs = require(ReplicatedStorage.Shared.Herbs)
+local TitleDefs = require(ReplicatedStorage.Shared.Titles)
 local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
 local Analytics = require(script.Parent.Analytics)
@@ -37,7 +38,9 @@ local HeartDemon = {}
 HeartDemon.seated = nil :: ((Player) -> boolean)?
 HeartDemon.onChanged = nil :: ((Player) -> ())?
 
-type Answer = { text: string, reply: string, honest: boolean, heart: string? }
+-- title: the Dao-heart title (Shared.Titles id) a path answer picks; a denial picks the
+-- road the record shows, so the title is never a punishment (design review rec 1)
+type Answer = { text: string, reply: string, honest: boolean, heart: string?, title: string? }
 type Question = { id: string, lines: { string }, answers: { Answer } }
 -- A record question and how loudly the record speaks (Candidate.weight, see `weigh`);
 -- `group` keeps two of one kind (stillness and seclusion) from both being asked.
@@ -113,9 +116,9 @@ local function pathQuestion(data: PlayerData.Data): Question
 			id = "still",
 			lines = { "You have sat, and breathed, and done little else.", "Were you waiting for the world to come to you?" },
 			answers = {
-				{ text = "I was. It never came.", reply = "Then go to it. It won't wait forever.", honest = true, heart = "You waited for the world" },
-				{ text = "Stillness is a road too.", reply = "It is. A narrow one.", honest = true, heart = "You walked the still road" },
-				{ text = "I've seen it all out there.", reply = "Everything? You've hardly left your seat.", honest = false, heart = "You claimed a road you never walked" },
+				{ text = "I was. It never came.", reply = "Then go to it. It won't wait forever.", honest = true, heart = "You waited for the world", title = "HeartOfStillness" },
+				{ text = "Stillness is a road too.", reply = "It is. A narrow one.", honest = true, heart = "You walked the still road", title = "HeartOfStillness" },
+				{ text = "I've seen it all out there.", reply = "Everything? You've hardly left your seat.", honest = false, heart = "You claimed a road you never walked", title = "HeartOfStillness" },
 			},
 		}
 	end
@@ -125,9 +128,9 @@ local function pathQuestion(data: PlayerData.Data): Question
 			id = "hunter",
 			lines = { "The blade, the next beast, the blade again. Your garden waits untended.", "Is there nothing in you but the fight?" },
 			answers = {
-				{ text = "The fight is how I grow.", reply = "Then grow. But know what it feeds.", honest = true, heart = "You walked the blade's road" },
-				{ text = "I lost my peace out there.", reply = "Yes. You did. You can find it again.", honest = true, heart = "You walked the blade's road and missed the quiet" },
-				{ text = "I'm a gardener at heart.", reply = "A gardener? Your hands remember every fight.", honest = false, heart = "You denied the blade's road" },
+				{ text = "The fight is how I grow.", reply = "Then grow. But know what it feeds.", honest = true, heart = "You walked the blade's road", title = "HeartOfTheBlade" },
+				{ text = "I lost my peace out there.", reply = "Yes. You did. You can find it again.", honest = true, heart = "You walked the blade's road and missed the quiet", title = "RestlessBlade" },
+				{ text = "I'm a gardener at heart.", reply = "A gardener? Your hands remember every fight.", honest = false, heart = "You denied the blade's road", title = "HeartOfTheBlade" },
 			},
 		}
 	elseif share <= Config.GARDENER_SHARE then
@@ -135,9 +138,9 @@ local function pathQuestion(data: PlayerData.Data): Question
 			id = "gardener",
 			lines = { "Seeds, water, harvest, again. The wilds went on without you.", "Were you hiding from the world?" },
 			answers = {
-				{ text = "Yes. It frightened me.", reply = "Fear is honest. Honesty is a start.", honest = true, heart = "You hid in your garden and owned it" },
-				{ text = "My garden is enough.", reply = "A small world can still be a true one.", honest = true, heart = "You tended a quiet world" },
-				{ text = "No, I fight every day.", reply = "Every day? Your blade has gathered dust.", honest = false, heart = "You denied the garden's road" },
+				{ text = "Yes. It frightened me.", reply = "Fear is honest. Honesty is a start.", honest = true, heart = "You hid in your garden and owned it", title = "UnhiddenHeart" },
+				{ text = "My garden is enough.", reply = "A small world can still be a true one.", honest = true, heart = "You tended a quiet world", title = "HeartOfTheLotus" },
+				{ text = "No, I fight every day.", reply = "Every day? Your blade has gathered dust.", honest = false, heart = "You denied the garden's road", title = "HeartOfTheLotus" },
 			},
 		}
 	end
@@ -145,9 +148,9 @@ local function pathQuestion(data: PlayerData.Data): Question
 		id = "both",
 		lines = { "The blade one day, the garden the next.", "Which road is truly yours?" },
 		answers = {
-			{ text = "Both. Neither alone.", reply = "Balance. Harder than it looks.", honest = true, heart = "You walked both roads" },
-			{ text = "Only the blade.", reply = "Then whose hands tended those herbs?", honest = false, heart = "You forgot the garden" },
-			{ text = "Only the garden.", reply = "Then whose blade is so worn?", honest = false, heart = "You forgot the blade" },
+			{ text = "Both. Neither alone.", reply = "Balance. Harder than it looks.", honest = true, heart = "You walked both roads", title = "TwoRoadHeart" },
+			{ text = "Only the blade.", reply = "Then whose hands tended those herbs?", honest = false, heart = "You forgot the garden", title = "TwoRoadHeart" },
+			{ text = "Only the garden.", reply = "Then whose blade is so worn?", honest = false, heart = "You forgot the blade", title = "TwoRoadHeart" },
 		},
 	}
 end
@@ -608,6 +611,7 @@ function HeartDemon.answer(player: Player, choices: any): (boolean, any)
 	end
 	local denials = 0
 	local hearts = {}
+	local title: string? = nil -- the path (always first) picks the Dao heart
 	for i, q in trial.questions do
 		local c = choices[i]
 		local answer = type(c) == "number" and q.answers[c]
@@ -616,6 +620,9 @@ function HeartDemon.answer(player: Player, choices: any): (boolean, any)
 		end
 		if not answer.honest then
 			denials += 1
+		end
+		if i == 1 then
+			title = answer.title
 		end
 		if answer.heart and #hearts < 2 then
 			table.insert(hearts, answer.heart)
@@ -632,11 +639,16 @@ function HeartDemon.answer(player: Player, choices: any): (boolean, any)
 		tempered = #tempered,
 		note = note,
 		at = os.time(),
+		title = title, -- Titles.check grants it on the push below (server Titles)
 	}
 	Analytics.event(player, "HeartDemonFaced", denials, trial.major, if calm then "calm" else "whispers")
 	local lines = if calm
 		then { "The voice goes quiet. It was only ever your own heart.", temperLine(tempered, data) }
 		else { "The demon fades, but not all the way. You'll hear it now and then.", temperLine(tempered, data) }
+	local heart = title and TitleDefs.Defs[title]
+	if heart then
+		table.insert(lines, `Your Dao heart: {heart.name}.`)
+	end
 	if HeartDemon.onChanged then
 		HeartDemon.onChanged(player)
 	end

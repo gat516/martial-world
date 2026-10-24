@@ -91,6 +91,10 @@ avatar's foot); runner-up: ink wells.
   colour, "Sword Dao", "Lv 2 · 45%" on the right, a 6 px XP bar; tap a row for
   "12 / 30 Dao XP" and the weapon damage now and at the next level. Cloned from
   `Dao.Rows.RowTemplate`.
+- **Title** (planned, not built; contract in [titles](../systems/titles.md#ui-contract-for-ui-designer-the-picker)):
+  a row with the worn title in its rarity colour (or "None") and the count earned;
+  tapping it opens the list of earned titles, with locked ones as gray silhouettes
+  and their how-to-earn line, to wear one or none.
 Later systems add sections of the same shape to the column they belong to; a
 column scrolls once it outgrows its height.
 
@@ -101,6 +105,7 @@ column scrolls once it outgrows its height.
 | Before the root reveal | the crest isn't tappable yet |
 | After the root reveal | the three columns: avatar, Race, Bloodline (None), Strength; Realm, Foundation, Dantian; Spirit Root, Weapon Dao. |
 | First heart-demon trial | Cultivation gains **Heart demon**. |
+| First title earned | the **Title** row appears (planned). |
 | FE (method) | Path gains **Cultivation Method** (built). Hidden while on Sect Breathing. |
 | First bloodline | Bloodline fills like Race (bloodline card, stage pips, skill, passive in its detail). |
 | Later layers | new sections in the column they belong to; at most three areas (the phone's three tabs). |

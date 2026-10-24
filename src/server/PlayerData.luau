@@ -46,7 +46,8 @@ export type HerbRecord = { n: number, l: number, m: { string } } -- one Herbariu
 -- Player preferences (the Settings window): volumes 0..1, and toggles
 -- one finished heart-demon trial: calmed (no denials), denials, old grades tempered,
 -- the heart line the player keeps (the Self card), and os.time()
-export type HeartTrial = { calm: boolean, denials: number, tempered: number, note: string, at: number }
+-- and the Dao-heart title its path answer picked (Shared.Titles id; nil before titles)
+export type HeartTrial = { calm: boolean, denials: number, tempered: number, note: string, at: number, title: string? }
 export type SeclusionTally = { stones: number, frac: number, cultivation: number, items: { [string]: number }, seeds: { [string]: number }, mutations: number, growth: number }
 export type Seclusion = { since: number, counted: number, online: number, start: number, rolled: number, tally: SeclusionTally, streak: number, streakDay: number, first: boolean }
 
@@ -156,6 +157,9 @@ export type Data = {
 	-- step = the current step's taken record; tracked quest id; ring = Pavilion ring
 	-- slots bought by major; bought = Pavilion purchases by stock id
 	sect: Sect,
+	-- titles (server Titles, docs/systems/titles.md): earned ones by Shared.Titles id ->
+	-- os.time() earned; the worn one ("" = none)
+	titles: { owned: { [string]: number }, equipped: string },
 	herbs: { [string]: number },
 	items: { [string]: number }, -- spirit cores and treasures (herbs stay in herbs)
 	seeds: { [string]: number },
@@ -254,6 +258,7 @@ local function default(): Data
 		heartDemon = { trials = {}, declined = {} },
 		sect = { rank = "Outer", contribution = 0, earned = 0, week = 0, weekId = 0, day = 0, offered = {}, taken = {}, chain = 0, step = nil, tracked = "", ring = {}, bought = {}, weekBought = {} },
 		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), streak = 0, streakDay = 0, first = false },
+		titles = { owned = {}, equipped = "" },
 		herbs = {},
 		items = {},
 		seeds = table.clone(Config.STARTING_SEEDS),
@@ -402,7 +407,7 @@ local migrations: { [number]: (any) -> () } = {
 
 -- Nested tables whose own keys get defaults too; the rest (herbs, seeds...) are
 -- player-owned maps where a missing key means zero, not "use the default".
-local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon", "herbarium", "seclusion", "sect" }
+local NESTED = { "realm", "techniques", "stats", "peak", "settings", "weapons", "root", "methods", "identity", "foundation", "heartDemon", "herbarium", "seclusion", "sect", "titles" }
 
 local function fillMissing(target: any, fresh: any)
 	for k, v in fresh do

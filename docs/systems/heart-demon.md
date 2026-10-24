@@ -109,7 +109,15 @@ closing lines name what was tempered ("Qi Condensation 5 is now 125%, ...", the 
 only) or say there was nothing to temper ("You have no old foundations yet." /
 "Your old foundations are all 150% or more.").
 
-Recorded in `data.heartDemon.trials[major]`: `{ calm, denials, tempered, note, at }`.
+**Dao heart** ([titles](titles.md); design review rec 1): each path answer carries a
+`title`, and the one chosen picks the trial's Dao-heart title (hunter: Heart of the
+Blade, or Restless Blade for "I lost my peace out there"; gardener: Heart of the Lotus,
+or Unhidden Heart for "Yes. It frightened me."; both roads: Two-Road Heart; the still
+road: Heart of Stillness). A denial picks the road the record shows, so the title is
+never a penalty. The closing lines end "Your Dao heart: <name>.", and the trial's
+state push grants it. A calmed trial also grants Calm Heart.
+
+Recorded in `data.heartDemon.trials[major]`: `{ calm, denials, tempered, note, at, title }`.
 `note` is the heart line the player keeps, from the first two answers: "You walked the
 blade's road, and remembered every beast you slew. The demon was calmed." Sent in
 `PlayerState.heartDemon.trials`; the Self card's Heart demon section shows the latest
@@ -146,7 +154,7 @@ note and every trial's in its detail ([character window](../character/character-
 `src/server/HeartDemon.luau` (questions, outcome, state), `src/server/Foundation.luau`
 (`temper`, `rank`), `src/client/HeartDemon.luau` (offers, the dialogue run), hooks in
 Cultivation (seat check, refresh, `seated`), Circulation (actions), Meditation
-(client: on seated, Break Through), Progression (slain, tiers), Garden, Main, QiSurge,
+(client: on seated, Break Through), Progression (slain, tiers), Garden, Main, QiSurge, Titles (the Dao heart),
 Haul, Build, Peaks, Roots, Seclusion. Admin: F2 panel Player
 chips "Realm QC9", "Realm QR9" and "Reset heart demons" (`heartReset`).
 

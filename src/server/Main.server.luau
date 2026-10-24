@@ -48,6 +48,7 @@ local TestbedDummy = require(script.Parent.TestbedDummy)
 local Traits = require(script.Parent.Traits)
 local Party = require(script.Parent.Party)
 local SafeZone = require(script.Parent.SafeZone)
+local Titles = require(script.Parent.Titles)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
 local joinedAt: { [Player]: number } = {}
@@ -243,6 +244,7 @@ Players.PlayerRemoving:Connect(function(player)
 	QiSurge.forget(player)
 	Quests.forget(player)
 	Sect.forget(player)
+	Titles.forget(player)
 	Meditation.forget(player)
 	Inventory.forget(player)
 	CharacterIdentity.forget(player)
@@ -262,10 +264,13 @@ local function guarded(fn: (Player, ...any) -> (boolean, any))
 end
 
 (remotes.BuildAction :: RemoteFunction).OnServerInvoke = guarded(Build.handle);
--- "sect" goes to the sect board, Pavilion and quest log (Sect.handle); the rest is cultivation
+-- "sect" goes to the sect board, Pavilion and quest log (Sect.handle), "title" to the title
+-- picker (Titles.handle); the rest is cultivation
 (remotes.CultivationAction :: RemoteFunction).OnServerInvoke = guarded(function(player: Player, action: any, ...: any): (boolean, any)
 	if action == "sect" then
 		return Sect.handle(player, ...)
+	elseif action == "title" then
+		return Titles.handle(player, ...) -- "equip" id, "unequip" (docs/systems/titles.md)
 	end
 	return Circulation.handle(player, action, ...)
 end);
@@ -278,6 +283,9 @@ end);
 (remotes.PartyAction :: RemoteFunction).OnServerInvoke = guarded(Party.handle);
 
 QiNodes.start()
+-- titles: every state push checks the record for newly earned ones (docs/systems/titles.md)
+table.insert(Cultivation.onPush, Titles.check)
+Titles.onChanged = Cultivation.pushState
 SafeZone.start()
 Party.start()
 EnemyService.partyOf = Party.members -- nearby members share kills and the group bonus

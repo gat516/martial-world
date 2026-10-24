@@ -273,6 +273,7 @@ function Cultivation.pushState(player: Player)
 		foundation = Foundation.state(data),
 		heartDemon = HeartDemon.state(data),
 		herbarium = data.herbarium, -- the Herbarium's record (server Herbarium)
+		titles = data.titles, -- earned titles and the worn one (server Titles; defs in Shared.Titles)
 	})
 	for _, fn in Cultivation.onPush do
 		task.spawn(fn, player, data)

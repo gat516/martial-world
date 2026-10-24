@@ -15,9 +15,9 @@
 --   Surname, FirstName  the character screen's names; shown surname first
 --                        ("Li Wei"). Until both exist, the Roblox DisplayName
 --                        (a tagged model's Name).
---   Title               optional string, shown small above the name. Set by a
---                        future titles system; "" or nil hides the line.
---   TitleColor          optional Color3 for the title (default gold).
+--   Title               optional string, shown small above the name: the worn
+--                        title (server Titles); "" or nil hides the line.
+--   TitleColor          optional Color3 for the title, its rarity's (default gold).
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")

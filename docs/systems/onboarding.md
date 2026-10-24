@@ -156,6 +156,11 @@ QC3->4 by ~9-10); not yet timed in play.
 - A lesson's line waits 20 s into free play (`LESSON_DELAY`), so Home doesn't land on
   FreePlay's own line.
 
+**The party shelter has no lesson:** the sect board's bonus quests (Escort a Junior,
+Seek a Senior, [sect](sect.md)) teach it by doing it, only when a partner of the right
+major is on the server; taking one opens People. The solo teaching moment (one elder
+line and an NPC junior to escort) is deferred with the NPC escort ([roadmap](../roadmap.md) 3e).
+
 **Lines (user, 2026-10-24):** the elder line is the why, at most 12 words; the
 objective is the what, at most 5 words (verb + noun; the reward rides after it); the
 detail goes in Talk. Reading age 8-10, the elder's warm voice. Beats follow the same

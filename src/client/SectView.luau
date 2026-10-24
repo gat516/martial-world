@@ -8,7 +8,8 @@
 -- fresh view (and says any refusal as a toast).
 --   Board    an offered notice: take it; a done one: claim it (the promotion
 --            notice promotes); a taken one opens it in the quest log; the
---            Pavilion notice opens the Pavilion.
+--            Pavilion notice opens the Pavilion. Taking a bonus notice (Escort a
+--            Junior, Seek a Senior) opens People, to find the partner it needs.
 --   Pavilion no Pavilion page exists in the Sect screens yet: it borrows the
 --            HUD's QuestBoardWindow (a ListWindow, retitled "Sect Pavilion",
 --            attribute Mode = "Pavilion" so Onboarding leaves it alone) until a
@@ -24,6 +25,7 @@ local Motion = require(script.Parent.Motion)
 local SectBoard = require(script.Parent.Sect.SectBoard)
 local QuestLog = require(script.Parent.Sect.QuestLog)
 local SectRank = require(script.Parent.Sect.SectRank)
+local Social = require(script.Parent.Social)
 local Ui = require(script.Parent.Sect.Ui)
 
 local questRemote = ReplicatedStorage.Remotes.QuestState :: RemoteEvent
@@ -100,6 +102,11 @@ local function boardOf(): SectBoard.Board
 		status = view.status,
 		onTake = function(id: string)
 			call("take", id)
+			-- a bonus quest needs a partner: the People list is where to find one
+			if string.sub(id, 1, 6) == "bonus:" then
+				SectBoard.close()
+				Social.openPeople()
+			end
 		end,
 		onClaim = function(id: string)
 			if id == "promotion" then
@@ -112,7 +119,7 @@ local function boardOf(): SectBoard.Board
 			if task.kind == "pavilion" then
 				openPavilion()
 			elseif task.state == "taken" then
-				openLog(if task.kind == "daily" then `daily:{task.id}` else task.id)
+				openLog(if task.kind == "daily" then `daily:{task.id}` elseif task.kind == "bonus" then "bonus" else task.id)
 			end
 		end,
 	}

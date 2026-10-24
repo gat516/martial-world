@@ -54,6 +54,8 @@ export type Seclusion = { since: number, counted: number, online: number, start:
 export type Settings = { music: number, sfx: number, autoAttack: boolean, lockHint: boolean }
 -- hotbar always has Hotbar.SIZE entries: a technique id, an item id, or "" (empty)
 export type SectTask = { goal: number, base: number, progress: number, tier: number?, claimed: boolean? }
+-- a bonus quest (Sect, Pacing.Sect.BONUS): kind, sheltered kills counted, done (an escort pays its juniors then)
+export type SectBonus = { kind: string, goal: number, progress: number, day: number, done: boolean? }
 export type Sect = {
 	rank: string,
 	contribution: number,
@@ -69,6 +71,8 @@ export type Sect = {
 	ring: { [string]: number },
 	bought: { [string]: number },
 	weekBought: { [string]: number }, -- Pavilion stock with a weekly limit bought this week (root pill fragments), by pill id
+	bonus: SectBonus?, -- the taken bonus quest (at most one; dropped at a new day)
+	bonusDay: { [string]: number }, -- by bonus kind: the day (os.time() // 86400) it was last claimed
 }
 
 export type Data = {
@@ -137,6 +141,7 @@ export type Data = {
 		partied: number, -- seconds in a party with a member nearby (server Party)
 		sheltered: number, -- kills party members earned under this player's shelter (Shelter.credit)
 		leaned: number, -- kills this player earned sheltered by a stronger party member (Shelter.credit)
+		escorts: number, -- Escort a Junior bonus quests completed (Sect)
 		contribution: number, -- sect contribution earned, all time (Sect)
 		dailies: number, -- sect dailies claimed (Sect)
 		gathered: number, -- qi node gathers (QiNodes)
@@ -255,10 +260,10 @@ local function default(): Data
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
 		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0,
-			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0, partied = 0, sheltered = 0, leaned = 0,
+			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0, partied = 0, sheltered = 0, leaned = 0, escorts = 0,
 			contribution = 0, dailies = 0, gathered = 0 },
 		heartDemon = { trials = {}, declined = {} },
-		sect = { rank = "Outer", contribution = 0, earned = 0, week = 0, weekId = 0, day = 0, offered = {}, taken = {}, chain = 0, step = nil, tracked = "", ring = {}, bought = {}, weekBought = {} },
+		sect = { rank = "Outer", contribution = 0, earned = 0, week = 0, weekId = 0, day = 0, offered = {}, taken = {}, chain = 0, step = nil, tracked = "", ring = {}, bought = {}, weekBought = {}, bonus = nil, bonusDay = {} },
 		seclusion = { since = 0, counted = 0, online = 0, start = 0, rolled = 0, tally = newTally(), streak = 0, streakDay = 0, first = false },
 		titles = { owned = {}, equipped = "" },
 		herbs = {},

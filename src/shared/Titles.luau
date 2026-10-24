@@ -116,6 +116,7 @@ add(def("BurningMeridians", "Burning Meridians", "Fire 3 qi surges.", "Rare", "P
 add(def("FellowTraveler", "Fellow Traveler", "Walk an hour beside a party.", "Uncommon", "Path", { kind = "stat", stat = "partied", min = 3600 }))
 add(def("GuidingElder", "Guiding Elder", "Shelter 10 kills by a junior in your party.", "Uncommon", "Path", { kind = "stat", stat = "sheltered", min = 10 }))
 add(def("PillarOfJuniors", "Pillar of Juniors", "Shelter 100 kills by juniors in your party.", "Epic", "Path", { kind = "stat", stat = "sheltered", min = 100 }))
+add(def("TrustedEscort", "Trusted Escort", "Finish 5 Escort a Junior quests.", "Rare", "Path", { kind = "stat", stat = "escorts", min = 5 }))
 add(def("ShelteredJunior", "Sheltered Junior", "Earn 10 kills sheltered by a senior.", "Common", "Path", { kind = "stat", stat = "leaned", min = 10 }))
 
 -- Weapon Dao: the top level of each class

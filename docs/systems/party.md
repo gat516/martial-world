@@ -53,8 +53,13 @@ Files: `src/server/Party.luau` (parties, card, people list, friend nudges),
   sheltered member is credited with (`stats.sheltered`; the junior's `stats.leaned`),
   and, once the sect is open to them, `CONTRIBUTION` (2) sect contribution, inside the
   sect's weekly cap ([sect](sect.md); `Sect.onShelter` on `Shelter.onCredit`). Titles:
-  Guiding Elder (10 sheltered), Pillar of Juniors (100), Sheltered Junior (10 leaned)
-  ([titles](titles.md)).
+  Guiding Elder (10 sheltered), Pillar of Juniors (100), Sheltered Junior (10 leaned),
+  Trusted Escort (5 escorts) ([titles](titles.md)).
+- **Taught by bonus quests** ([sect](sect.md) "Bonus quests"): Escort a Junior (QR1+,
+  shelter 5 of a party junior's kills; the junior gets a few stones when it completes)
+  and Seek a Senior (QC5+, 3 kills while sheltered), offered on the sect board only
+  while someone of the right major is on the server; taking one opens People. The solo
+  NPC escort is deferred ([roadmap](../roadmap.md) 3e).
 - Otherwise realm suppression applies as before; qi is always scaled to the
   receiver's own realm, so a senior helping still earns their own.
 - **Heart demon:** `stats.partied` counts seconds in a party with a member within

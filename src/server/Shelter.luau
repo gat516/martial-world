@@ -19,9 +19,9 @@ local Cultivation = require(script.Parent.Cultivation)
 
 local Shelter = {}
 
--- Called (patron, patron's data) for each kill Shelter.credit credits; Main wires
--- Sect.onShelter (the patron's sect contribution).
-Shelter.onCredit = {} :: { (Player, PlayerData.Data) -> () }
+-- Called (patron, patron's data, junior, junior's data) for each kill Shelter.credit
+-- credits; Main wires Sect.onShelter (the patron's sect contribution, bonus quests).
+Shelter.onCredit = {} :: { (Player, PlayerData.Data, Player, PlayerData.Data) -> () }
 
 local lastCue: { [Player]: number } = {} -- os.clock() of the last sheltered hit or blow
 
@@ -139,7 +139,7 @@ function Shelter.credit(player: Player, data: PlayerData.Data, beast: Realms.Sta
 	data.stats.leaned = (data.stats.leaned or 0) + 1
 	pd.stats.sheltered = (pd.stats.sheltered or 0) + 1
 	for _, fn in Shelter.onCredit do
-		task.spawn(fn, patron, pd)
+		task.spawn(fn, patron, pd, player, data)
 	end
 	return patron
 end

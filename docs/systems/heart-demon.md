@@ -92,8 +92,9 @@ path, fear/pride and one more.
     alone."). Between: no question. Solitude weighs 1; company weighs by its minutes.
     From `Pacing.Shelter.HEART_LINE_AT` (3) kills under the party shelter the second
     line names it: "A stronger friend sheltered you. Did you lean on them?"
-    (`stats.leaned`), else "You sheltered weaker friends. Did you lean on them, too?"
-    (`stats.sheltered`).
+    (`stats.leaned`), else from one finished Escort a Junior bonus quest ([sect](sect.md))
+    "You escorted juniors through the wilds. Did they lean on you?" (`stats.escorts`),
+    else "You sheltered weaker friends. Did you lean on them, too?" (`stats.sheltered`).
 14. **The sect** ([sect](sect.md)). **Duty** (`dailies` >= `DUTY_MIN` = 10): "You
     answered the sect's board 24 times. 900 contribution to your name. Do you serve the
     sect, or yourself?" (denial: "I walk alone."). **Lone wolf** (at most `LONE_MAX` = 1

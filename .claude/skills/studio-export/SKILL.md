@@ -17,16 +17,19 @@ you build in Studio lasts only once it's exported there.
 | Effects, enemies, rigs: anything with attributes, tags, Motor6D C0/C1 or Humanoid properties | `tools/export_rbxm.luau` (`_G.exportRbxm`) | binary `.rbxm`, every property kept |
 | GUIs and plain templates (`Hud.rbxmx`, `ItemTemplates`) | `tools/export_rbxmx.luau` (`_G.exportRbxmx`) | `.rbxmx` XML, readable diffs |
 
-The rbxmx exporter skips attributes and tags and knows only a short list of
-properties. Before exporting a tree with it, check that the tree has no
-attributes or tags (`AttributesSerialize`, `Tags`).
+The rbxmx exporter writes only string, boolean and number attributes (the
+`LintIgnore` marks), no tags, and only the properties in its `PROPS` list. Before
+exporting a tree with it, check that the tree has no tags or other attribute types.
 
 ## Steps
 
 1. Run `tools/ensure_receiver.sh`. Every session shares one receiver on
    127.0.0.1:8766, so don't start a second one. Post under a name unique to your
    task (`Effects_<Group>`, `Hud_<task>`): the file lands in `tools/frag/<name>`,
-   and a shared name gets overwritten by a parallel agent.
+   and a shared name gets overwritten by a parallel agent. The receiver runs from
+   the main checkout, so from a worktree the file lands in
+   `/home/cj/roblox/martial-world/tools/frag/`, not yours: pass that dir as `--frag`
+   to `ui_lint.py`, `export_check.py` and `ui_margin.py`.
 2. Install the exporter: load the `.luau` file through `execute_luau`, which sets
    the `_G` function. Load it over HTTP (the `sandbox-studio` skill).
 3. Post the tree:
@@ -38,6 +41,9 @@ attributes or tags (`AttributesSerialize`, `Tags`).
      rename the root item's `Name` back if you exported a staging copy, and write
      it to `assets/<File>.rbxmx`.
    - `execute_luau` refuses posts over 1 MB, so export only your subtree or group.
+     For a shared `.rbxmx` (Hud), splice your subtree into the file: the other
+     elements keep their attributes. A full export from a sandbox drops marks
+     (`LintIgnore`) that other sessions added.
 4. Check the result.
    - For XML, read the `git diff`: it should show only what you meant to change.
    - For a binary file, `rojo build` a tiny project that maps it and grep the

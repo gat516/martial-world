@@ -31,11 +31,16 @@ is in your brief. How the main session runs sandboxes: `docs/agents/orchestratio
 ## Getting files from disk into it
 
 - Don't paste long source into `execute_luau`. Serve it and load it:
-  - `tools/serve.sh`: port 8767 serves `art/enemies/`, 8768 the repo root.
+  - `tools/serve.sh`: port 8767 serves `art/enemies/`, 8768 the repo root. Those
+    ports are shared and usually already held by the main checkout, so from a
+    worktree they serve the main repo: run `tools/serve.sh <port>` (your checkout's
+    root on a free port) and set `_G.SERVE_BASE` to the URL it prints.
   - `tools/ensure_receiver.sh`: port 8766 serves `tools/*.luau` and
     `tools/vfx_specs/*.luau`, and receives exports.
   - Then `loadstring(game:GetService("HttpService"):GetAsync(url .. "?" .. os.clock()))()`.
-    The query string stops a cached copy coming back.
+    The query string stops a cached copy coming back. Where `loadstring` is off (some
+    sandboxes), make a temporary ModuleScript, set its `Source` to the `HttpGet`
+    result, `require` it, then destroy it.
   - These servers die with every session, so run the script before each load.
     They bind to 127.0.0.1 only; never serve on 0.0.0.0.
 - The sandbox holds `src/` as it was when it opened. After editing a module,

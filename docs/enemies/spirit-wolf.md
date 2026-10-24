@@ -70,7 +70,7 @@ at (-90, 648.6, -40), 127 studs from the spawn pad, for tuning.
 
 
 ## Realm variants
-Tiers and knobs: [enemies](../systems/enemies.md#realm-variants-2026-10-23) (QC2 is its own
+Tiers and knobs: [variants](variants.md) (QC2 is its own
 realm; young below, elite from QC5, apex from QC8 or any QR). Shares are of a same-stage
 player's health.
 | Tier | Moves | Howl | Shares (bite / pounce / leap) |

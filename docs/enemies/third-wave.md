@@ -48,7 +48,7 @@ and every number.
 
 
 ## Realm variants
-Tiers and knobs: [enemies](../systems/enemies.md#realm-variants-2026-10-23); young below the
+Tiers and knobs: [variants](variants.md); young below the
 beast's realm, elite from 3 stages up, apex from 6 (or a major realm up).
 - **Blood Centipede** (QC6): young never burrows; from elite, staying close after the pincers
   draws the coil sweep.

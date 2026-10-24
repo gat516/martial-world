@@ -61,7 +61,7 @@ One doc per enemy (fight, numbers, effects, its own gaps). Read only the one you
 
 A new enemy gets its own file here and a row in this table.
 
-Shared parts (not one enemy): [arrivals.md](../enemies/arrivals.md) (arrive follow-ups, skids, turning into moves), [projectiles.md](../enemies/projectiles.md) (boss projectiles), [animating.md](../enemies/animating.md) (motion QA), [modeling-checks.md](../enemies/modeling-checks.md) (shots, silhouette fidelity against the reference, parts audit). The 2026-10-23 roster audit (every enemy measured, a ranked work list and its briefs): [audit-2026-10-23.md](../enemies/audit-2026-10-23.md).
+Shared parts (not one enemy): [variants.md](../enemies/variants.md) (realm variants and tiers), [health-bars.md](../enemies/health-bars.md) (overhead bars), [effects.md](../enemies/effects.md) (EnemyFX cues, boss impacts), [arrivals.md](../enemies/arrivals.md) (arrive follow-ups, skids, turning into moves), [projectiles.md](../enemies/projectiles.md) (boss projectiles), [animating.md](../enemies/animating.md) (motion QA), [modeling-checks.md](../enemies/modeling-checks.md) (shots, silhouette fidelity against the reference, parts audit). The 2026-10-23 roster audit (every enemy measured, a ranked work list and its briefs): [audit-2026-10-23.md](../enemies/audit-2026-10-23.md).
 
 ## Boss rules (user decisions)
 Apply to every boss pass.
@@ -130,180 +130,15 @@ player in a session sees the same beasts and nothing a client does can change on
   of the area within half their ping, at most `ESCAPE_LEAD`. Prediction is drawing
   only: no client position, timing or hit claim is trusted past these windows.
 
-### Overhead health bars (EnemyBars)
-Regular beasts carry a `HealthBar` BillboardGui (Dead Cells layout in the
-game's lacquer-and-seal dress): a dark ink nameplate strip with the beast's name
-and realm tag (`QC 4`), sitting on a long thin bar whose right end is cut at 45 degrees. The
-fill is blood-qi crimson, cut into ten talisman slips at the same 45 degrees (one per 10% of
-health, the same count as the player's vitals bar; the divisions are drawn into
-the rim art, so the slip size never depends on the beast's max health). A hit
-drops the fill at once and a pale gold ghost (`Trail`) drains after it. The bar
-shows while the beast is locked or for 8 s after it's hurt. The fill's slant
-shows at full health; while draining, its leading edge is the `Fill` frame's
-straight clip.
-
-On tiers with an end gem (jade, gold, far) the gem is as tall as the bar and
-set in the rim's metal, its upper-left face flush along the window's slant, so
-the bar ends in the gem's point rather than running into it (user, 2026-10-23:
-the old slant ran straight into the gem). The metal wedge under the gem fills
-the rest of the end. Bronze keeps a bare slanted end.
-
-Its dressing says how dangerous the beast is **to you**: the gap between the
-beast's realm and the local player's (`Realms.index`, in ladder stages) picks a
-tier from `Pacing.Danger`, re-picked live when the player's `Realm` changes, so
-a breakthrough makes the same beast look tamer. Realm suppression overrides the
-count: a beast one major realm up reads at least "far" (two majors: "deadly"), one a
-major below reads "cowed" (it fears you: it won't hunt you, flinches as you arrive
-and, two majors below, runs; [combat](combat.md#realm-pressure-owners-decision-2026-10-24)),
-however few stages apart. While a stronger party member shelters you, a beast above
-your major is read at the stage you fight it at (its own, capped at theirs), in the
-usual tiers with no mark of its own. Bosses keep the five tiers below (BossThemes has
-lines for them).
-
-| Tier | Gap (default) | Look |
-|---|---|---|
-| below | <= -2 | muted bronze frame, grey tag |
-| even | -1 to +1 | jade frame, vermilion gem capping the end |
-| above | +2 to +3 | gold frame, gem end and lozenge cap on the left, omen line |
-| far | +4 to +5 | violet frame, crimson gem drawn out into a talisman tip, pulsing qi aura, sheen sweep, omen line |
-| deadly | >= +6 | no name, realm or health: a pulsing cracked skull seal and an omen, shown whenever the beast is in range (90 studs) |
-| cowed | a major below you | the below frame and tag; on the omen row a gold down-chevron and "Cowed · it fears you" (the word bronze) |
-
-Omen lines are short xianxia warnings under the bar (under the skull for
-deadly), one picked at random per beast per tier so it never flickers; the pools
-live in `STYLES` in `EnemyBars.luau` (keep lines under ~24 characters). Bosses
-skip all of this: their overhead bar stays off and the boss you fight gets the
-themed screen bar instead (`BossBars.luau`, see [boss bar](../ui/boss-bars.md)), dressed with the
-same tiers and per-boss omen pools. Art: `art/ui/draw_ui.py enemybar` (`EB` geometry, `EB_TIERS`
-colours), ids in `art/ui/assets.json` (`enemybar_*`); rims are set from `STYLES`, while
-Back, Fill, Trail and Sheen ids live in every `HealthBar` in `assets/Enemies.rbxm`.
-
-### Adding a beast's effects (EnemyFX)
-Put `src/client/EnemyFX/<EnemyType>.luau` returning any of `windup`, `strike`,
-`dash`, `stagger`, `death`, `land`, `hit`, each `(cue) -> ()`; a cue is `{ model,
-root, kind, attack, shape, seconds, target, at }` (shape and seconds left only on
-windup, target only on hit). Branch on `cue.attack` (the model's `Attack`
-attribute when the cue fires). Skipped past 220 studs from the camera. Server
-code never plays effects; if a cue is missing, add an attribute, a field on the
-telegraph, or an `enemyCue` (below), not a server-side effect.
-
-A barrage's windup (the Fox's, the Raven's embers) is ONE `windup` cue whose
-`shape` is `{ kind = "multi", parts, center }`: the real circles, lanes and cones are in
-`shape.parts` (each with its own centre or box, `radius` and `delay`), and `shape.center` is
-the beast's own ground position, not the target. Read `shape.parts`, never `shape.center`, for
-where a barrage lands.
-
-Where each cue comes from (`EnemyFX/init.luau`):
-| Cue | Source |
-|---|---|
-| `windup` | the `Telegraph` remote (needs the enemy model in it); `seconds` = time left |
-| `strike` | `AIState` goes windup -> dash or recover (fires for every attack, telegraphed or not) |
-| `dash` | `AIState` becomes dash (same tick as strike for lunges) |
-| `stagger` | `AIState` becomes stagger |
-| `land` | `AIState` leaves dash (to recover, stagger, anything), or the server's `enemyCue` |
-| `hit` | only the server: `Effect:FireAllClients("enemyCue", model, "hit", character)` once per player caught |
-| `death` | `Health` reaches 0 |
-
-`enemyCue` is generic: `Effect:FireAllClients("enemyCue", model, name, target?)`
-calls handler `name` with `cue.target = target` (a Character or nil). Use it for
-moments with no state change, such as a leap's touchdown when the leap isn't
-modelled as a dash. Handlers dedupe what can arrive twice (the Spirit Wolf
-ignores a second `land` within 0.3 s).
-
-Bosses get no stock howl ring: `Telegraphs` skips the pale swelling disc for any `howl` shape from a boss def (roars, intros, phase calls, the fox's leap marker, the Jiao's emerge), since each boss's EnemyFX plays its own effect there. Under `Config.NEW_TELEGRAPHS` (testbed only for now) no enemy gets one: a `howl` shape draws nothing, and the wolf's `howl` windup cue carries its roar effect. Damaging and crowd-control areas still draw (in the new look: [telegraphs.md](telegraphs.md)).
+### Overhead health bars, effects and impacts
+Regular beasts' overhead bar (layout, danger tiers by realm gap, omen lines): [health-bars.md](../enemies/health-bars.md).
+Adding a beast's client effects (`src/client/EnemyFX/<EnemyType>.luau`, cue sources, `enemyCue`, barrage shapes, no stock howl ring for bosses) and the shared boss impact layers (`Effects.EnemyImpact`): [effects.md](../enemies/effects.md).
 
 ### Arrivals, skids and turning into moves
 Testbed only (`Config.Wilds.WEIGHTED_MOVES`): [arrivals.md](../enemies/arrivals.md) (`arrive`, `skid`, eased windup turns, flight yaw, client poses, its gaps).
 
-### Boss impacts (2026-10-22)
-`src/client/EnemyFX/Impact.luau` plays
-`Effects.EnemyImpact` (builder `tools/vfx_specs/EnemyImpact.luau`), layered
-on every boss's ground blows, landings, skids and projectile ends (and the
-normal wolf's roar). Templates are authored at radius 10 in neutral colours;
-each layer's `Role` attribute is painted from the element palette (thunder,
-venom, fox, moon, earth), and the shake falls off with distance. Layers:
-`Shock` (Neon torus wave and echo, bright front, rough ring, rays, dark
-crater; 6), `Dust` (skirt, smoke ring, flipbook plume, rock chips; 4),
-`Contact` (flash, flipbook star, glint, sparks, ink; 5), `Burst` (splat
-flipbook, flame tongues, embers, dark smoke; 4), `Scar` (scorch, crack web,
-burning crack cooling to dark, smoulder; 4, fades over 3.5 s), `Rocks`
-(Craters ring, Game Module only), `Roar`/`RoarDust` (sound rings, breath,
-motes; forward dust, grit, ring), `Skid` (spray, chips, scuff, puff), `Shot`
-(core over a dark disc, halo, glint, shed sparks, dark and bright trails).
-A heavy landing is about 100 particles one-shot. Untested: everything at play
-speed and in a real fight (only Edit-mode stills of a landing, the roar and a
-bolt were checked), the arrival follow-ups and skids against the combat
-agent's live cues (the skid is detected from `Attack` or `AttackName` ending
-in `Skid`), Craters rocks and Game Module playback, phone cost with several
-impacts at once, and whether the extra shakes double up with the templates'
-ScreenEffects shakes when the Game Module is present.
-
 ## Realm variants (2026-10-23)
-One def, many strengths: a spawn assigns a beast a realm, and it fights at that realm with a
-tier that grows its body, speed, cadence and moveset in a few small steps. It fills the
-stages with the existing roster (roadmap section 8, [progression](../progression.md) "Elite and
-apex tiers") using only moves, poses and effects that already exist. Behind
-`Config.Wilds.VARIANTS` (testbed only until approved; off, every zone and pack spawns at its
-def's own realm as before). Bosses never take variants.
-
-- **Realm.** A zone (`Spawns.Zones[name].realm`, or the zone part's `Realm` attribute: `"QC4"`
-  or `"QC3-QC5"`) or an ambient pack (`Spawns.Encounters` `realm = { lo, hi }`) gives the
-  stage, or a range rolled per beast, so one lair spawns a mix. Ambient ranges lean toward
-  their top the deeper the encounter is into its region (`Regions` `depth`, give or take
-  `Pacing.Variants.AMBIENT_SPREAD`). Health follows the curve by player power and damage by
-  player health, from `Pacing.BeastBaseline` at the def's realm to the spawn's, so a
-  same-stage player needs as many hits and takes the same share of health as the def was
-  designed for. Realm suppression, poison (a share of the variant stage's health),
-  knockback (`Knockback.luau`) and the danger bar all use the variant's realm.
-- **Tier.** The stage gap (spawn realm minus the def's) picks it, `Pacing.Variants.TIERS`:
-
-  | Tier | Gap | Size | Speed | Cadence (cooldowns) | Health | Damage | Rewards | Look |
-  |---|---|---|---|---|---|---|---|---|
-  | young | below 0 | 0.85 | 0.9 | x1.25 | x0.8 | x0.85 | x1 (the onboarding's kill qi stays) | paler (20% toward bone) |
-  | adult | 0 to 2 | 1 | 1 | 1 | 1 | 1 | 1 | the def as authored |
-  | elite | 3 to 5 | 1.12 | 1.08 | x0.88 | x1.25 | 1 | x1.6 | darker (25% toward ink violet) |
-  | apex | 6+, or a major realm up | 1.25 | 1.15 | x0.8 | x1.5 | x1.05 | x2.4 | darkest (35% toward blood ink) |
-
-  Size scales the server's hit volume, root height and every reach, area and dash line
-  (dash speeds too, so a dash takes as long and its poses stay in time). Windups and recovers
-  never change: a higher tier gets more tells and combos, never shorter ones. `weight` scales
-  with size, so a young boar (2.1) no longer staggers with its charge. `qiDrop` and stones
-  scale with rewards; `drops` don't. Health and damage multiply the realm scaling.
-- **Moves by tier.** An attack with `minTier` is gone below that tier (a pool beast whose
-  opener is locked opens with its first pool move); `tiers = { elite = {...} }` replaces its
-  fields at exactly that tier (`Enemies.NONE` clears one: a young howl's `summons`). A def's
-  own `tiers` can override def fields (`pack` merges one level deep). Most unlocks are
-  `followUp` chains of moves the beast already has, so each step keeps its own telegraph. A
-  regular beast's follow-up now waits (until it lapses) while the target is inside its `minRange`, so "fade
-  back, then step in" and "back off and it charges again" chains work.
-- **The wire.** `Enemies.variant(id, stage?, tier?)` builds the variant def once per (id,
-  stage, tier); the server stores it as the enemy's `def`, so every system reads its numbers.
-  The model carries `Stage`, `Tier` and `Scale`, and clients rebuild the same def with
-  `Enemies.forModel(model)` (EnemyBars: the name "Elite Spirit Wolf" and its realm tag;
-  EnemyAnimator: timings). `EnemyMotion` scales the body about its root (`Model:ScaleTo`;
-  the health bar's offset scales with it) and tints it (Neon, `Tell` and `Eye*` parts keep
-  their colours); `EnemyAnimator` multiplies the family's pose scale by `Scale` (root
-  translations, stride rates); `EnemySounds` pitches voices by 1 / sqrt(Scale).
-  A howl's reinforcements of its own kind come at the howler's realm and tier.
-- **First kills.** The first kill of each beast at each tier in each realm band is a Hunt
-  experience (`hunt:<id>:<tier>@<band>`, the band from the variant's realm;
-  [cultivation](cultivation.md#foundation-grade)), so the tiers refill the pools.
-- **Testing.** The admin panel's "Beast tier" chips pick the tier the spawn chips use (at the
-  tier's stage: young one below the def, elite +3, apex +6). The testbed zone `WolfTiers`
-  (4 Spirit Wolves at QC1-QC8, (-200, 648.6, 60)) spawns a mix.
-
-Per-beast unlocks are in each beast's doc. Zone realms (main map): GateWolves QC1 (young),
-WolfPocket QC2-3, WolfDen QC3-5 (now and then an elite), BoarMeadow QC3-4, BoarField QC4-5,
-SerpentMarsh QC5-7, SerpentFen QC5-6. Ambient: Inner QC1-4 (wolves QC1-3, young near the
-gate), Borderlands QC5-8 (elite wolves, apex at QC8), Outer Wastes QR1-3 (all apex).
-Ship: `VARIANTS = true` in `Config.Wilds`.
-
-Known gaps: untested in play (sizes, tints, the bar's longer names on a phone, the new
-follow-up chains, scaled poses on every family); the fliers' pose `scaled` ignores scale (their
-root translations stay unscaled). Waiting on art: an elite/apex aura (vfx: a low qi haze
-and motes on the body, darker for apex), the roadmap's "one extra move per tier" where a
-chain of existing moves isn't enough (the serpent's twin spit, the tortoise's stomp wave
-ring, a third mane rend: animator + vfx per beast), and a tier seal on the nameplate.
+One def, many strengths: a spawn gives a beast a realm and a tier (young, adult, elite, apex) that scales its body, speed, cadence and moveset. Behind `Config.Wilds.VARIANTS` (testbed only; off on the main map). Bosses never take variants. Tiers, the wire, first kills, zone realms and gaps: [variants.md](../enemies/variants.md).
 
 ## Attack mechanics
 Shared fields and kinds any def can use (`EnemyService`, `BossAttacks`, `Combat`, fields in `Enemies.luau`). First built for the beast named in brackets.

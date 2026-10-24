@@ -57,7 +57,7 @@ skid as a charge ends); the old boar picks these up too. The testbed's
 
 
 ## Realm variants
-Tiers and knobs: [enemies](../systems/enemies.md#realm-variants-2026-10-23) (QC4 is its own
+Tiers and knobs: [variants](variants.md) (QC4 is its own
 realm; young below, elite from QC7, apex from QR1).
 - **young** (QC3): the charge ends in a stop, no gore chain (it still gores up close); at
   weight 2.1 the charge only flinches instead of staggering. Charge 13%, gore 10%.

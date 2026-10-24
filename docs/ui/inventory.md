@@ -45,12 +45,15 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   upload step. The client reads `ReplicatedStorage.WeaponModels` (the same
   `assets/WeaponModels.rbxm` as `ServerStorage.WeaponModels`, mapped twice). Bare
   Fists (no model) show the Fist class glyph.
-- Herbs and pills (wired 2026-10-24, Inventory cells and the detail preview only; the
-  hotbar stays words, user decision): the same live viewport, the slot's `Well.Model`,
+- Herbs and pills (wired 2026-10-24: Inventory cells, the detail preview, hotbar
+  slots and the drag ghost): the same live viewport, the slot's `Well.Model`,
   through `ModelView` (src/client/ModelView.luau, also the Herbarium's cards):
   `SlotArt.paint(slot, id, count, countText, true)` calls `ModelView.item(frame, itemId)`
   for the Herb and Pill kinds (cores and treasures keep icons), upright, at 0.6
-  transparency with none held; SlotArt keeps each viewport's authored light and puts
+  transparency with none held, in ModelView's `well` light (ambient 215,208,196, light
+  255,244,222: the cream-paper light left thin dark herbs near black on the dark
+  well; the critic still found Starfall Bamboo, a dark-blue model, weak at phone
+  size); SlotArt keeps each viewport's authored light and puts
   it back before a weapon is drawn there. Cells are re-made on each render, so a state
   push while the Pouch is open re-clones its models (herbs 15-85 parts, items 4-10);
   unprofiled on a low-end phone. `ModelView.item`: `ReplicatedStorage.ItemModels`
@@ -61,9 +64,20 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   frame already shows does nothing; the camera refits when the frame resizes. API in
   [herbarium](herbarium.md) "Model display".
 - Names: cells Builder Sans Bold 12, one fixed size, two lines then truncated.
+- **Hotbar models** (user, 2026-10-24: "since we have actual model views for herbs
+  and pills... instead of words we're showing their model view in the hotbar"): a
+  herb or pill slot shows its model (above) in the slot's `Well.Model` (every
+  `Slot1-9` and `SlotTemplate`, authored), no words; `SlotArt.words` words a slot only
+  when its viewport shows no model. The `Well` is authored at 64 % of the slot,
+  centred across and at 0.57 down (the viewport is 1.2x the well, so the model's box
+  is 77 % of the slot), bottom-weighted so tall herbs clear the count row: at 52 px
+  (PC) the box is 39.9 px with 6.0 px left and right, 9.7 top, 2.4 bottom; on a
+  touch phone (35 px slots) about 27 px. Picked over a centred 84 % box, where flower
+  tips ran into the count (critic). A state push redraws nothing (ModelView's `Shows`),
+  at most nine static clones. Cores, treasures and items with no model keep words.
 - **Hotbar words** (user, 2026-10-23: "it doesn't make sense to fit icon and words
-  in; you can't fit either... words only makes the most sense here"): a hotbar art or
-  item slot shows only its short name (`Hotbar.label`: the def's `short` in
+  in; you can't fit either... words only makes the most sense here"): a hotbar art
+  slot (and an item with no model) shows only its short name (`Hotbar.label`: the def's `short` in
   `Techniques`, `Items` or `Herbs`, else the name's first two words), one word per
   line, centred in the box under the key and count row (`NameLabel`, y 0.28-0.92 of
   the slot, 2 px in from each side, under the cooldown sweep's ZIndex). Oswald Bold
@@ -80,7 +94,8 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   with none left fades them to 0.55. The full name shows in `Hotbar.NameTip`
   (BuffTip's pill) above the slot while the mouse is over it, or while a finger holds
   it 0.5 s with the Inventory closed (that release doesn't cast; a quicker tap does).
-  Only a weapon keeps art: the weapon slot and a dragged weapon show the model.
+  Arts stay words; herbs and pills show their model (above); the weapon slot and a
+  dragged weapon show the weapon model.
 - The chosen cell and the hotbar's held item wear the same plain ring (`slot_edge`
   tinted cream, 3 px outside). NEW is a small crimson chip (kit `chip.png` tinted).
 

@@ -96,10 +96,11 @@ so moving a bar means moving it in the Figma sheet too. Hotbar slots are the
 Inventory's plain slot (2026-10-23, [inventory](inventory.md) "Slots"): an ink well
 (`slot_plain`, empty slots at 35 % transparency) with the rarity as a thin tinted
 `Edge` and a faint `Wash`, and the held item's `Halo` the same edge ring in cream,
-3 px outside the slot. Art and item slots are words only, the short name in Oswald
+3 px outside the slot. Art slots are words, the short name in Oswald
 Bold (15 px PC, 11 at 844x390, 10 at 667x375), the full name in a tip on hover or
-hold ([inventory](inventory.md) "Hotbar words"); the `Well` (64 %, centred) only
-shows a dragged weapon's model. The weapon slot shows the model in hand (its `Model` viewport, 6 px
+hold ([inventory](inventory.md) "Hotbar words"); herb and pill slots show their 3D
+model in the `Well.Model` viewport (`Well` 64 %, at 0.57 down so tall herbs clear the
+count; [inventory](inventory.md) "Hotbar models"), as does a dragged weapon. The weapon slot shows the model in hand (its `Model` viewport, 6 px
 from the edges). On a touch phone the hotbar shrinks with the stack (35 px slots at
 844x390) and hides empty slots unless the Inventory is open. `draw_vitals.ps1`'s
 `vitals_mount`, `seat_mount`, `realm_plaque`, `vitals_chip` and `name_plaque`

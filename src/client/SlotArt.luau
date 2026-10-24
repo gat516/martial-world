@@ -15,9 +15,9 @@
 --   herbs and pills, where the caller asks for models (the Inventory's cells and
 --     detail preview): their real model in the same viewport (ModelView.item,
 --     upright), their icon when they have none.
--- Hotbar slots show words, not art (words): an art or item is its short name
--- (Hotbar.label), large and centred; only a weapon (the weapon slot, a dragged weapon)
--- keeps its model.
+-- Hotbar slots (words): an art is its short name (Hotbar.label), large and centred;
+-- a herb or pill is its model (user, 2026-10-24), other items their short name; a
+-- weapon (the weapon slot, a dragged weapon) keeps its model.
 -- Also owns the weapon art (icons by model and by class, art/ui/assets.json) and the
 -- class glyphs and colours shared by the Inventory's class rail and section headers
 -- (classGlyph, classColor). Arts carry no weapon badge (user, 2026-10-23: "we have
@@ -198,16 +198,20 @@ function SlotArt.weaponMissing(id: string?): boolean
 	return need ~= nil and need ~= Weapons.classOf(SlotArt.equipped())
 end
 
--- Words only, for hotbar slots and the drag ghost (call after paint): an art or item
--- hides its art and shows its short name in NameLabel; a weapon keeps its model and
--- shows no words. dim: an art the player can't use right now (weapon not in hand, not
--- enough qi) or an item they have none of.
+-- Words, for hotbar slots and the drag ghost (call after paint with itemModels): an
+-- art, or an item paint couldn't show as a model (cores, treasures, a herb or pill
+-- with no model), hides its art and shows its short name in NameLabel; a herb or pill
+-- whose model paint drew, and a weapon, keep the model and show no words. dim: an art
+-- the player can't use right now (weapon not in hand, not enough qi) or an item they
+-- have none of.
 local WORDS_DIM = 0.55 -- the words' transparency when dimmed
 local WORDS_STROKE = 0.6 -- a light stroke: a full one fills Oswald's letters in at 10-11 px (the well is dark)
 function SlotArt.words(slot: GuiObject, id: string?, label: string, dim: boolean)
 	local name = slot:FindFirstChild("NameLabel") :: TextLabel?
-	local worded = id ~= nil and (Techniques.Defs[id] ~= nil or Items.Defs[id] ~= nil)
 	local well = SlotArt.well(slot)
+	local model = well:FindFirstChild("Model") :: ViewportFrame?
+	local modelled = model ~= nil and model.Visible and model:FindFirstChildOfClass("Model") ~= nil
+	local worded = id ~= nil and (Techniques.Defs[id] ~= nil or (Items.Defs[id] ~= nil and not modelled))
 	if well ~= slot then
 		(well :: GuiObject).Visible = not worded
 	end
@@ -224,6 +228,7 @@ end
 type Light = { ambient: Color3, color: Color3, direction: Vector3, transparency: number }
 local authored: { [ViewportFrame]: Light } = setmetatable({}, { __mode = "k" }) :: any
 local MODEL_KINDS = { Herb = true, Pill = true } -- items shown as their model (ModelView)
+local WELL = { well = true } -- ModelView's brighter light for a dark slot well
 
 local function keepLight(model: ViewportFrame)
 	if not authored[model] then
@@ -245,7 +250,7 @@ local function restoreLight(model: ViewportFrame)
 end
 
 -- countText overrides the corner text ("" hides it). itemModels: herbs and pills show
--- their 3D model in the slot's Model viewport (the Inventory; the hotbar stays words).
+-- their 3D model in the slot's Model viewport (the Inventory, the hotbar, the ghost).
 function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: string?, itemModels: boolean?)
 	local well = SlotArt.well(slot)
 	local icon = well:FindFirstChild("Icon") :: ImageLabel
@@ -291,7 +296,7 @@ function SlotArt.paint(slot: GuiObject, id: string?, count: number?, countText: 
 		local empty = (count or 0) <= 0
 		if itemModels and model and MODEL_KINDS[item.category] then
 			keepLight(model)
-			shown = ModelView.item(model, id)
+			shown = ModelView.item(model, id, WELL)
 			if shown then
 				model.ImageTransparency = if empty then 0.6 else 0
 			end

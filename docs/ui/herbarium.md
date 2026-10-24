@@ -34,7 +34,7 @@ Entries show in the order given (sort by tier, then Herbs.Order). It registers w
 ### What the real system must provide
 - A per-player record per herb: discovered, harvest count, largest size, mutations
   seen (the server knows all of these at harvest time, `Garden.luau`).
-- A `tier` per herb (Herbs.luau gains it with the Phase B herb tiers).
+- A `tier` per herb (`Herbs.Defs[id].tier`, built; the preview already reads it).
 - Undiscovered herbs as entries too (`discovered = false`), so the book shows the
   gaps; their name stays hidden, their tier shows.
 - Rewards for completing a page or tier are not drawn yet (open question in the

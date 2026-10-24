@@ -19,7 +19,13 @@
 --   regrowSeconds  plants that stay after harvest fruit again after this long
 --   yield       herbs per harvest at size 1, before mutations (min, max)
 --   aura        cultivation speed each mature, unharvested plant radiates
---   eat         qi is raw energy added at once; buffs are timed effects
+--   tier        I-V (1-5): the region it belongs to (I Common, II Spirit, III Rare,
+--               IV Treasure, V Heavenly; docs/progression.md)
+--   eat         qi = true: raw energy added at once, the tier's share of the
+--               eater's current dantian (Pacing.Herbs.EAT_SHARE); buffs are timed
+--               effects
+--   blurb       what eating it does; for qi herbs only the buff part, the qi share
+--               is put in front at load
 --   scale       mature model size, relative to its HerbModels template
 --   spacing     studs between stems when planting
 --   seedCost    Spirit Stones per seed at the Herbalist (nil: not sold)
@@ -32,13 +38,14 @@ export type Buff = { kind: "QiRate" | "WalkSpeed", amount: number, seconds: numb
 export type Herb = {
 	name: string,
 	rarity: string,
+	tier: number,
 	color: Color3,
 	soil: Soil,
 	growSeconds: number,
 	regrowSeconds: number?,
 	yield: { number },
 	aura: number,
-	eat: { qi: number?, buffs: { Buff }? },
+	eat: { qi: boolean?, buffs: { Buff }? },
 	blurb: string,
 	scale: number,
 	spacing: number,
@@ -56,6 +63,7 @@ export type Plant = { u: string, h: string, x: number, z: number, p: number, b: 
 export type Mutation = { name: string, color: Color3, bonus: number }
 
 local Config = require(script.Parent.Config)
+local Pacing = require(script.Parent.Pacing)
 
 local Herbs = {}
 
@@ -83,6 +91,7 @@ Herbs.Defs = {
 	SpiritGrass = {
 		name = "Spirit Grass",
 		rarity = "Common",
+		tier = 1,
 		color = Color3.fromRGB(150, 235, 120),
 		soil = "bed",
 		growSeconds = 120,
@@ -100,6 +109,7 @@ Herbs.Defs = {
 	CloudMint = {
 		name = "Cloud Mint",
 		rarity = "Uncommon",
+		tier = 1,
 		color = Color3.fromRGB(170, 230, 245),
 		soil = "bed",
 		growSeconds = 300,
@@ -122,13 +132,14 @@ Herbs.Defs = {
 	BloodGinseng = {
 		name = "Blood Ginseng",
 		rarity = "Rare",
+		tier = 2,
 		color = Color3.fromRGB(215, 60, 70),
 		soil = "bed",
 		growSeconds = 900,
 		yield = { 1, 2 },
 		aura = 0.017,
-		eat = { qi = 300 },
-		blurb = "Raw energy: +300 Qi at once",
+		eat = { qi = true },
+		blurb = "",
 		scale = 1.1,
 		spacing = 2.5,
 		seedCost = 160,
@@ -139,6 +150,7 @@ Herbs.Defs = {
 	MoonpetalOrchid = {
 		name = "Moonpetal Orchid",
 		rarity = "Epic",
+		tier = 2,
 		color = Color3.fromRGB(225, 205, 255),
 		soil = "bed",
 		growSeconds = 1800,
@@ -155,13 +167,14 @@ Herbs.Defs = {
 	NineLeafLingzhi = {
 		name = "Nine-Leaf Lingzhi",
 		rarity = "Legendary",
+		tier = 3,
 		color = Color3.fromRGB(255, 175, 60),
 		soil = "bed",
 		growSeconds = 7200,
 		yield = { 1, 1 },
 		aura = 0.05,
-		eat = { qi = 2500, buffs = { { kind = "QiRate", amount = 1.0, seconds = 900 } } },
-		blurb = "+2500 Qi and +100% cultivation for 15 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 1.0, seconds = 900 } } },
+		blurb = "+100% cultivation for 15 min",
 		scale = 1.2,
 		spacing = 3,
 		sellPrice = 600,
@@ -169,13 +182,14 @@ Herbs.Defs = {
 	VioletCloudFungus = {
 		name = "Violet Cloud Fungus",
 		rarity = "Epic",
+		tier = 2,
 		color = Color3.fromRGB(190, 120, 255),
 		soil = "bed",
 		growSeconds = 1200,
 		yield = { 1, 2 },
 		aura = 0.03,
-		eat = { qi = 600, buffs = { { kind = "QiRate", amount = 0.3, seconds = 300 } } },
-		blurb = "+600 Qi and +30% cultivation for 5 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.3, seconds = 300 } } },
+		blurb = "+30% cultivation for 5 min",
 		scale = 1,
 		spacing = 2.5,
 		sellPrice = 150,
@@ -184,13 +198,14 @@ Herbs.Defs = {
 	ThousandYearGinseng = {
 		name = "Thousand-Year Ginseng",
 		rarity = "Legendary",
+		tier = 3,
 		color = Color3.fromRGB(240, 120, 80),
 		soil = "bed",
 		growSeconds = 14400,
 		yield = { 1, 1 },
 		aura = 0.1,
-		eat = { qi = 8000, buffs = { { kind = "QiRate", amount = 1.5, seconds = 1200 } } },
-		blurb = "+8000 Qi and +150% cultivation for 20 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 1.5, seconds = 1200 } } },
+		blurb = "+150% cultivation for 20 min",
 		scale = 1.6,
 		spacing = 4,
 		sellPrice = 3000,
@@ -198,13 +213,14 @@ Herbs.Defs = {
 	JadeLotus = {
 		name = "Jade Lotus",
 		rarity = "Uncommon",
+		tier = 1,
 		color = Color3.fromRGB(120, 220, 180),
 		soil = "pond",
 		growSeconds = 480,
 		yield = { 1, 3 },
 		aura = 0.012,
-		eat = { qi = 120, buffs = { { kind = "QiRate", amount = 0.2, seconds = 180 } } },
-		blurb = "+120 Qi and +20% cultivation for 3 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.2, seconds = 180 } } },
+		blurb = "+20% cultivation for 3 min",
 		scale = 1,
 		spacing = 3,
 		seedCost = 60,
@@ -215,13 +231,14 @@ Herbs.Defs = {
 	RiftLotus = {
 		name = "Rift Lotus",
 		rarity = "Legendary",
+		tier = 3,
 		color = Color3.fromRGB(255, 225, 120),
 		soil = "pond",
 		growSeconds = 3600,
 		yield = { 1, 1 },
 		aura = 0.06,
-		eat = { qi = 3000, buffs = { { kind = "QiRate", amount = 0.75, seconds = 900 } } },
-		blurb = "+3000 Qi and +75% cultivation for 15 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.75, seconds = 900 } } },
+		blurb = "+75% cultivation for 15 min",
 		scale = 1.2,
 		spacing = 3.5,
 		sellPrice = 700,
@@ -230,6 +247,7 @@ Herbs.Defs = {
 	PurpleBamboo = {
 		name = "Purple Bamboo",
 		rarity = "Uncommon",
+		tier = 1,
 		color = Color3.fromRGB(160, 110, 200),
 		soil = "grove",
 		growSeconds = 600,
@@ -248,20 +266,38 @@ Herbs.Defs = {
 	SpiritPeach = {
 		name = "Spirit Peach",
 		rarity = "Rare",
+		tier = 2,
 		color = Color3.fromRGB(255, 160, 170),
 		soil = "grove",
 		growSeconds = 2400,
 		regrowSeconds = 600,
 		yield = { 2, 4 },
 		aura = 0.03,
-		eat = { qi = 400, buffs = { { kind = "QiRate", amount = 0.25, seconds = 300 } } },
-		blurb = "+400 Qi and +25% cultivation for 5 min",
+		eat = { qi = true, buffs = { { kind = "QiRate", amount = 0.25, seconds = 300 } } },
+		blurb = "+25% cultivation for 5 min",
 		scale = 1,
 		spacing = 5,
 		seedCost = 400,
 		sellPrice = 45,
 	},
 } :: { [string]: Herb }
+
+Herbs.TierNumerals = { "I", "II", "III", "IV", "V" }
+
+-- Share of the eater's current stage dantian that eating one gives as raw qi
+-- (0 for buff-only herbs). The server adds it only up to the dantian's room.
+function Herbs.eatShare(herb: Herb): number
+	return if herb.eat.qi then Pacing.Herbs.EAT_SHARE[herb.tier] or 0 else 0
+end
+
+-- Qi herbs: put the tier's share in front of the buff blurb.
+for _, herb in Herbs.Defs do
+	local share = Herbs.eatShare(herb)
+	if share > 0 then
+		local qi = `+{math.floor(share * 100 + 0.5)}% of your dantian in Qi`
+		herb.blurb = if herb.blurb == "" then `Raw energy: {qi} at once` else `{qi} and {herb.blurb}`
+	end
+end
 
 -- Weather and luck give plants mutations; each adds its bonus to the harvest and
 -- aura multiplier (1 + the sum of bonuses).

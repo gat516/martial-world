@@ -266,8 +266,9 @@ Pacing.Refine = {
 	FULL_CLEAR_BONUS = 0.2, -- clearing every level of a run refines this much more, for no extra qi
 }
 
--- RAW QI INCOME (what refining spends). Herb and item qi are fixed per item
--- (Herbs.luau `eat`, Items.luau `use`); enemy qiDrop is per enemy (Enemies.luau).
+-- RAW QI INCOME (what refining spends). Herb qi is a share of the eater's current
+-- dantian by the herb's tier (Pacing.Herbs below, Herbs.luau `tier`); item qi is
+-- per item (Items.luau `use`); enemy qiDrop is per enemy (Enemies.luau).
 Pacing.Income = {
 	STARTING_RAW_QI = 60, -- a new player's dantian: enough for the first circulation run
 	NODE_SHARE = 0.2, -- a qi node gather gives this share of the dantian (times gather)
@@ -277,6 +278,15 @@ Pacing.Income = {
 	DAILY_QI_SHARE = 0.5, -- first login of a day: this share of the dantian (times gather)
 	OFFLINE_MAX_HOURS = 12, -- offline cultivation counts at most this long
 	OFFLINE_RATE = 1, -- share of the passive rate while away
+}
+
+-- HERBS: eating a herb whose `eat.qi` is set gives this share of the eater's
+-- current stage dantian, by the herb's tier (I Common, II Spirit, III Rare,
+-- IV Treasure, V Heavenly; docs/progression.md "Home, herbs and the loop"). A
+-- share, not a flat number, so the garden stays worth it at every stage. Raw qi
+-- only fills the room left in the dantian.
+Pacing.Herbs = {
+	EAT_SHARE = { 0.06, 0.09, 0.12, 0.16, 0.2 }, -- by tier, I..V
 }
 
 -- MEDITATION multiplies the passive rate while seated (build items on the peak

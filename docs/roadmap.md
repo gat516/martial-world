@@ -191,7 +191,8 @@ rewards using them over M1; no enemy asks for a technique; and nothing combines.
 ## 5. The spirit garden
 **Today:** about 11 herbs in 3 soils (bed, pond, grove), 7 mutations, sizes,
 weather effects, wild sprouts, the Herbalist, Grow Now, and an aura on cultivation.
-Herb qi is flat per item, so the garden loses value around QC6.
+Herbs have tiers I-III and eating a qi herb gives its tier's share of the current
+dantian (`Pacing.Herbs.EAT_SHARE`, built untuned), so the garden keeps its value past QC6.
 
 **Plan:**
 - **Herb tiers** I-V tied to regions, qi as a share of the dantian
@@ -209,7 +210,8 @@ Herb qi is flat per item, so the garden loses value around QC6.
 - **Gardener road:** garden aura, seclusion and tempering carry a pure gardener to every
   wall, just slower than a fighter ([progression](progression.md) "Difficulty").
 - **Sect garden:** a shared plot the sect tasks tend (quests with no combat).
-- **Build order:** herb tiers and qi scaling, then the Herbarium,
+- **Build order:** herb tiers and qi scaling (built: tier field and dantian share;
+  regional tiers IV-V and region seeds still to come), then the Herbarium,
   then wild gardens (map), then visiting.
 
 ## 6. Building and assets

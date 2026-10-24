@@ -226,7 +226,7 @@ function Herbarium.preview()
 		local found = i % 4 ~= 0
 		table.insert(entries, {
 			herb = id,
-			tier = math.clamp(math.ceil(i / 3), 1, 5),
+			tier = Herbs.Defs[id].tier,
 			discovered = found,
 			harvested = if found then i * 7 else nil,
 			largest = if found then 1 + (i % 5) * 0.6 else nil,

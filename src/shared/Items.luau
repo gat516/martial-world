@@ -189,7 +189,7 @@ for _, id in Herbs.Order do
 		glyph = HERB_GLYPHS[id] or "草",
 		blurb = herb.blurb,
 		lore = "Grown in the beds of your spirit peak.",
-		use = { qi = herb.eat.qi, buffs = herb.eat.buffs },
+		use = { qiShare = if Herbs.eatShare(herb) > 0 then Herbs.eatShare(herb) else nil, buffs = herb.eat.buffs },
 	}
 end
 

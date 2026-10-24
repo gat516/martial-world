@@ -1,5 +1,7 @@
 # Review: breakthrough and the foundation grade
 
+**Owner's decision (2026-10-24), rec 3:** foundation is shown as the percent only ("Foundation 86%"): no grade words, no count/target, anywhere; the bar with its 50/100 marks and overfill stays. Built ([cultivation](../systems/cultivation.md#foundation-grade)).
+
 **Verdict: rework the feedback, keep the idea.** "What you lived through this stage makes you stronger" is the right fiction and the right counter to AFK. But the first breakthrough in the game is stamped "Unsteady foundation 0%". Experiences are earned silently. One idea is shown three ways (percent, word, count/target). On the live map, QR and FE can't reach a full foundation. Reviewed 2026-10-23 from cultivation.md "Foundation grade", `Foundation.luau`, `Pacing.luau:760-842`; nothing played.
 
 ## Why it exists / who it's for

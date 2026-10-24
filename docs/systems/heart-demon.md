@@ -2,7 +2,7 @@
 
 Built 2026-10-23 (Phase A, untuned, untested in play). An optional inner trial at
 each major's stage 9 that asks how the player actually climbed, and tempers old
-foundation grades ([cultivation](cultivation.md#foundation-grade)). The user's ask:
+foundation percents ([cultivation](cultivation.md#foundation-grade)). The user's ask:
 "have you mostly been gardening vs mostly fighting.. do you feel guilt at the
 monsters youve killed etc. that would be REALLY good if u could temper old foundations."
 
@@ -105,8 +105,9 @@ joins the path's line.
 (3 with none, 2 with one, else 1). `Foundation.temper` raises that many old stages
 25 points of foundation percent each, lowest first (ties: the earliest stage), never past 150%, never lowering any;
 `applyStats` refreshes the Foundation bonus. No denials: "The demon was calmed." The
-closing lines name what was tempered ("Qi Condensation 2 is now Steady, ...") or say
-there was nothing to temper.
+closing lines name what was tempered ("Qi Condensation 5 is now 125%, ...", the percent
+only) or say there was nothing to temper ("You have no old foundations yet." /
+"Your old foundations are all 150% or more.").
 
 Recorded in `data.heartDemon.trials[major]`: `{ calm, denials, tempered, note, at }`.
 `note` is the heart line the player keeps, from the first two answers: "You walked the

@@ -99,17 +99,17 @@ phones; [character window](../character/character-window.md), Foundation): the
 percentage of the stage's target on a 0-150 % bar that overfills past its 100 %
 mark. It reads
 `State.current.foundation` (server `Foundation.state`, every PlayerState push):
-`{ count, target, percent, max, grade, grades = { [stageKey] = grade }, percents = { [stageKey] = percent }, bonus, hints = { { category, text } } }`,
+`{ percent, max, percents = { [stageKey] = percent }, bonus, hints = { { category, text } } }`,
 only through `foundationOf()` in `SelfCard.luau`. `percent` is what the current stage would
-get now (100 = a full foundation, up to `max`, 200), `grade` its word (Unsteady below 50,
-Steady, Solid from 100, Deep from 150), `bonus` the summed health/power share from graded
+get now (100 = a full foundation, up to `max`, 200); players see only the percent, never a
+grade word or count/target (owner, 2026-10-24). `bonus` the summed health/power share from graded
 stages (0.06 = +6%), `hints` up to five open experiences (categories Hunt, Boss, Home,
 Dao, Discover, World, Deed). At QC1-3 the server sends only `{ hidden = true, bonus }` and
 the row hides (the hook has no foundation).
-- **Built (Self card v2):** the Foundation section reads `percent` ("86%") on a bar to 150% with marks at 50 and 100, overfill in paler gold.
+- **Built (Self card v2):** the Foundation section reads "Foundation 86%" on a bar to 150% with marks at 50 and 100, overfill in paler gold.
 
 ### Foundation solidity meter (`FoundationMeter.luau`, shelved)
-Shelved by Phase A (2026-10-23): there's no meter; a foundation grade shows on the
+Shelved by Phase A (2026-10-23): there's no meter; the foundation percent shows on the
 breakthrough card instead ([roadmap](../roadmap.md) "Phase A"). Kept until that pass
 decides whether to delete it.
 - `FoundationMeter.set({ solidity = 0..1, cracks = 0..3, deep = bool })`.

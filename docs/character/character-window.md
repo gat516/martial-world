@@ -65,17 +65,15 @@ avatar's foot); runner-up: ink wells.
   the right, "Next: Qi Condensation 4" or "Ready to break through"; the exact
   cultivation in the detail). **Foundation** (the user: "players should
   optionally try to solidify their breakthrough by seeing what they have to do
-  in self"): the grade word in its colour ("Solid foundation"), the percentage
-  of this stage's target on the right ("86%"), a bar spanning 0-150 % with marks
-  at 50 % (Steady) and 100 % (Solid) whose fill runs gold to the 100 % mark and
-  on in a pale gold past it (Deep from 150 %; past that the bar stays full and
-  the label keeps counting), and the next two open experiences ("HUNT  Slay a
-  Stone Boar for the first time"); the rest of them and the bonus from past
-  grades in the detail. Data: PlayerState `foundation`, read only through
-  `foundationOf()`: `percent` when the server sends it (the percentage backend,
-  branch `region-experiences`: Unsteady under 50, Steady 50-99, Solid 100-149,
-  Deep 150+), else count / target x 100; the grade word comes from the server
-  (Cracked and Unsteady share the muted red). **Dantian** (raw qi bar,
+  in self"): the percent only, "Foundation 86%" (owner, 2026-10-24: no grade
+  words, no count / target), a bar spanning 0-150 % with marks at 50 % (below
+  it the stage is unsteady) and 100 % (full) whose fill runs gold to the 100 %
+  mark and on in a pale gold past it (past 150 % the bar stays full and the
+  label keeps counting to the stage's max, 200 %, where "200%: the most this
+  stage can hold" replaces the hints), and the next two open experiences ("HUNT
+  Slay a Stone Boar for the first time"); the rest of them and the bonus from
+  past stages in the detail. Data: PlayerState `foundation` (`percent`, `max`,
+  `bonus`, `hints`), read only through `foundationOf()`. **Dantian** (raw qi bar,
   "180 / 260" on the right, live while open; standing, this is the only place it
   shows). **Heart demon** (hidden until a trial is done): "Calmed" in jade or
   "Still whispers" in muted red with the major on the right, the latest heart

@@ -216,7 +216,7 @@ function Tribulation.start(player: Player): (boolean, string?)
 	if not (data and base) then
 		return false, "The heavens are silent."
 	end
-	-- a foundation below Solid makes the heavens strike harder (Pacing.Foundation)
+	-- a foundation below UNSTEADY_BELOW percent makes the heavens strike harder (Pacing.Foundation)
 	local def = table.clone(base)
 	def.damageShare *= Foundation.tribulationDamage(data)
 	current = { player = player, def = def, endsAt = os.clock() + def.seconds + def.windupStart }

@@ -8,7 +8,7 @@
 -- the sect's board answered or walked past).
 -- Each question has 2-3 answers; the one the player's own record contradicts is a
 -- denial. A new system that says how someone plays adds a counter in data.stats and
--- a question here (docs/systems/heart-demon.md "Keeping it current"). Finishing tempers old foundation grades
+-- a question here (docs/systems/heart-demon.md "Keeping it current"). Finishing tempers old foundation percents
 -- (Foundation.temper): Pacing.HeartDemon TEMPER_CALM with no denials (the demon is
 -- calmed), one fewer per denial, never fewer than TEMPER_ROUGH, never lowering
 -- anything. Optional and choice-based: no reflexes, it never blocks or costs a
@@ -583,12 +583,12 @@ end
 local function temperLine(tempered: { Foundation.Tempered }, data: PlayerData.Data): string
 	if #tempered == 0 then
 		return if next(data.foundation.grades) == nil
-			then "Your foundation holds no old grades yet. There was nothing to temper."
-			else "Your old foundations are already deep. There was nothing left to temper."
+			then "You have no old foundations yet. There was nothing to temper."
+			else `Your old foundations are all {Pacing.Foundation.TEMPER_MAX}% or more. There was nothing left to temper.`
 	end
 	local parts = {}
 	for _, t in tempered do
-		table.insert(parts, `{Realms.ByKey[t.key].name} is now {t.to}`)
+		table.insert(parts, `{Realms.ByKey[t.key].name} is now {t.toPercent}%`)
 	end
 	return `Your old foundations temper: {table.concat(parts, ", ")}.`
 end

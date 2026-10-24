@@ -103,7 +103,7 @@ felt in fights.
 - `src/server/Progression.luau`: technique manuals from kills (kept until their
   weapon Dao is reached, then learned), and `comprehend` (stones plus weapon Dao
   break a technique's bottleneck). First kills and boss kills feed `Foundation.kill`.
-- `src/server/Foundation.luau`: foundation experiences, grades, the stat bonus,
+- `src/server/Foundation.luau`: foundation experiences, percents, the stat bonus,
   tempering, the per-band pools, deeds and the open-experience hints (see "Foundation grade").
 - `src/server/HeartDemon.luau` + `src/client/HeartDemon.luau`: the heart-demon trial
   ([heart-demon](heart-demon.md)).
@@ -183,11 +183,13 @@ not the foundation.
 - **The hook has no foundation** (`Pacing.Foundation.FROM` "QC4"; review
   [breakthrough and foundation](../design-reviews/breakthrough-and-foundation.md) rec 1):
   at QC1-3 nothing is earned (keys stay unseen, so QC4 can still earn them; deeds don't
-  progress), `seal` stores no grade and returns nil (the card shows only the stage),
+  progress), `seal` stores nothing and returns nil (the card shows only the stage),
   the unsteady toast never fires, and `PlayerState.foundation` is `{ hidden = true,
-  bonus }` (the Self card hides the row). The first grade shows on the QC4 -> QC5 card.
-- **Grade words are flavour on the percent** (`GRADES`): Unsteady below 50%, Steady
-  50-99, Solid 100-149, Deep 150+. No "Cracked".
+  bonus }` (the Self card hides the row). The first percent shows on the QC4 -> QC5 card.
+- **Shown as the percent only (owner, 2026-10-24):** everywhere a player sees it,
+  "Foundation 86%". No grade words (the old Unsteady/Steady/Solid/Deep are gone from
+  code too) and never count / target. The only thresholds are `UNSTEADY_BELOW` (50:
+  the toast and the harder tribulation) and the Self card bar's 50 and 100 marks.
 - **Pools per region and realm band.** Keys are once per profile
   (`data.foundation.seen`), most scoped `@<band>`: the band is a `Herbs.Regions` entry
   (InnerWilds QC1-4, MiddleWilds QC5-9, OuterWilds QR1-5, DeepWilds QR6-FE3, FarReaches
@@ -230,15 +232,15 @@ not the foundation.
   band's pool is shared by its stages, so the first stage of a band runs past 100% and
   the later ones lean on the deeds, Dao and world events.
 - **Seal:** at `Cultivation.advance` (every breakthrough from QC4 on), `Foundation.seal` stores the
-  percent in `data.foundation.grades[stageKey]` (a number; a profile from before
-  percents holds a grade word, read through `LEGACY`: Cracked 25, Steady 60, Solid 100,
-  Deep 150) and resets the count, deeds and toast flag.
-- **Shown:** the card subtitle "<stage>  ·  <grade> foundation <percent>%" (grade and
-  percent are the Breakthrough remote's 4th and 5th args); one toast per stage when the
-  bar first fills with a breakthrough open below 50% ("Your foundation is unsteady. The
-  world still has things to teach you.", `data.foundation.warned`); `PlayerState.foundation`
-  for the Self card (`count`, `target`, `percent`, `max`, `grade`, `grades` and
-  `percents` by stage key, `bonus`, `hints`; [remotes](../remotes.md), UI note in
+  percent in `data.foundation.grades[stageKey]` (a number; the field keeps its old name
+  for saves, and a profile from before percents holds a word, read through `LEGACY`:
+  Cracked 25, Steady 60, Solid 100, Deep 150) and resets the count, deeds and toast flag.
+- **Shown:** the card subtitle "<stage>  ·  Foundation <percent>%" (the percent is the
+  Breakthrough remote's 4th arg); one toast per stage when the bar first fills with a
+  breakthrough open below `UNSTEADY_BELOW` ("Your foundation is only 40%. The world
+  still has things to teach you.", `data.foundation.warned`); `PlayerState.foundation`
+  for the Self card (`percent`, `max`, `percents` by stage key, `bonus`, `hints`;
+  [remotes](../remotes.md), UI note in
   [cultivation UI](../ui/cultivation.md#foundation-row-in-the-self-card-built)).
 - **Hints** (`Foundation.hints`, up to `HINTS`), all from the player's band, never a
   later realm's: beasts with an open key from `HINT_BELOW` stages below to `HINT_ABOVE`
@@ -253,17 +255,17 @@ not the foundation.
 - **Tempering:** `Foundation.temper(data, steps)` raises up to `steps` old stages
   `TEMPER_POINTS` (25) each, the lowest percent first, never past `TEMPER_MAX` (150),
   never lowering; the [heart-demon trial](heart-demon.md) at each major's stage 9 tempers
-  up to 3 (1 to 3 by how honestly it's answered). Each change is `{ key, from, to,
-  fromPercent, toPercent }`, `from`/`to` labels like "Solid (125%)".
-- **Tribulation:** a heaven-defier's strikes deal `TRIBULATION_DAMAGE` x more while the
-  pending percent is below 50% (Unsteady 1.2).
+  up to 3 (1 to 3 by how honestly it's answered). Each change is `{ key, fromPercent,
+  toPercent }`; the trial's closing line reads "Qi Condensation 5 is now 125%".
+- **Tribulation:** a heaven-defier's strikes deal `UNSTEADY_TRIBULATION` (1.2) x more
+  while the pending percent is below `UNSTEADY_BELOW` (50).
 - **Gaps:** with `Config.Wilds.VARIANTS` off (the main map today) beasts only spawn at
   their own realms, so QR and FE have no hunts and the Hunter and Daring deeds can't be
   done there; the rest reaches about 100% a stage. Deep Wilds and the Far Reaches aren't
   on the map, so their caches don't exist and their beasts are the bosses only. The
   Ruined Borderlands' own beasts (Stone Tortoise and the rest) aren't in an ambient
   pack, so their elite tiers aren't hinted. Not built: tempering by seclusion, the
-  Cultivate-window line, the Self card's percent (it still shows count / target). Numbers
+  Cultivate-window line. Numbers
   are first guesses.
 - **Sect keys** (once ever): `world:sect:rank:<rank>` (a promotion) and
   `world:sect:chain:Borderlands` (the chain finished; [sect](sect.md)).

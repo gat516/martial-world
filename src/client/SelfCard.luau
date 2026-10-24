@@ -57,11 +57,16 @@ local ListWindow = require(script.Parent.ListWindow)
 local Menus = require(script.Parent.Menus)
 local Motion = require(script.Parent.Motion)
 local Nameplates = require(script.Parent.Nameplates)
-local Settings = require(script.Parent.Settings)
 local SlotArt = require(script.Parent.SlotArt)
 local Social = require(script.Parent.Social)
 local State = require(script.Parent.State)
 local UiScale = require(script.Parent.UiScale)
+
+-- Settings is required on first use: Settings -> LockOn -> Meditation ->
+-- BreakthroughView -> Rewards -> SelfCard would otherwise be a require cycle.
+local function settings()
+	return require(script.Parent.Settings) :: any
+end
 
 local player = Players.LocalPlayer
 local cultivationRemote = ReplicatedStorage.Remotes.CultivationAction :: RemoteFunction
@@ -1277,7 +1282,7 @@ function SelfCard.init(gui: ScreenGui)
 		if currentRoot() then
 			SelfCard.toggle()
 		else
-			Settings.toggle()
+			settings().toggle()
 		end
 	end)
 	-- the header's seals: People (safe ground only) and Settings, each back here on close
@@ -1293,7 +1298,7 @@ function SelfCard.init(gui: ScreenGui)
 	end)
 	local settingsSeal = header:FindFirstChild("SettingsButton") :: GuiButton
 	settingsSeal.Activated:Connect(function()
-		Settings.open(SelfCard.open)
+		settings().open(SelfCard.open)
 	end)
 
 	-- the title row opens the Titles page; its Back seal returns to the card

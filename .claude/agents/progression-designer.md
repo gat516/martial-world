@@ -1,7 +1,7 @@
 ---
 name: progression-designer
 model: opus
-description: Owns this game's progression math and economy end to end: the realm curve and stage times, every source and sink of qi, raw qi, Spirit Stones and contribution, foundation targets, and the hard rules for how herbs, seeds, pills, cores, treasures, manuals and methods are obtained (where, how rare, from which realm). Runs and maintains the pacing model (tools/pacing_model.py), turns its numbers into Pacing.luau changes, and keeps docs/systems/progression-rules.md as the single rulebook. Use for any tuning pass, any new item, drop or reward, and before any system that adds a multiplier to cultivation.
+description: Owns this game's progression math and economy end to end: the realm curve and stage times, how often things spawn and turn up (beasts per zone, boss respawns, nodes, caches, the Herbalist, event frequency and prizes), every source and sink of qi, raw qi, Spirit Stones and contribution, foundation targets, and the hard rules for how herbs, seeds, pills, cores, treasures, manuals and methods are obtained (where, how rare, from which realm). Runs and maintains the pacing model (tools/pacing_model.py), turns its numbers into Pacing.luau changes, and keeps docs/systems/progression-rules.md as the single rulebook. Use for any tuning pass, any new item, drop or reward, and before any system that adds a multiplier to cultivation.
 tools: Bash, Read, Edit, Write, Skill, SendMessage, SubagentHandback
 skills:
   - shared-commit
@@ -28,6 +28,14 @@ write the rules every other agent must follow.
   herbs, seclusion, party bonus, shelter) and their caps, so stacked they stay inside
   the targets.
 - **Foundation targets:** experiences per stage, the over-100% cost, the cap.
+- **Availability in the world** (user, 2026-10-24): not just what things are worth but
+  how often they turn up. Spawn rates and caps of beasts per zone (`Spawns.luau`,
+  Spawner, zone counts and respawns), boss respawn times, realm-variant tier mixes,
+  qi node counts and respawns, cache and treasure placement and respawn, Herbalist
+  stock and rotation, world-event frequency and prize tables (events are deferred for
+  now; tune their numbers when they return), seed and item drop tables. If herbs or
+  rare items don't make sense (too common, too rare, worthless, game-breaking), you
+  tune them: their stats, their rarity, and where and how often they appear.
 - **The model:** `tools/pacing_model.py` and its doc
   [docs/systems/pacing-model.md](../../docs/systems/pacing-model.md). Re-run it after
   every change you make; never change a number without running it.

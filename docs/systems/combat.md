@@ -75,6 +75,14 @@ scales all player damage.
   playback speed is scaled from `Config.Movement.RUN_ANIMATION_SPEED` (26 studs/s,
   set for the old clip), so the new clip's pace is untuned: check the feet against
   the ground at run speed and retune that number if it slides.
+- `src/client/Strafe.luau`: `Animations/Strafe/Left` and `Right` (user, 2026-10-24) while walking
+  sideways to the way you face, only while something holds the facing (lock-on,
+  guard facing, an action: AutoRotate off; or shift lock / first person:
+  RotationType CameraRelative), so free movement never strafes. Movement
+  priority over the walk, not while running, in the air or seated; mostly
+  forward or back keeps the walk. WeaponAnimator pauses a class walk while one
+  plays; actions (Action priority) stay on top. Tuning: `LATERAL` (0.6, the
+  sideways share that counts) and `CLIP_SPEED` at its top.
 - `src/client/CombatEffects.luau`, `Telegraphs.luau`: cosmetic effects and ground warnings.
 - `src/client/CastFX.luau`: shared runtime helpers for technique effects, used
   for the caster's own casts and relayed ones alike: the striking limb

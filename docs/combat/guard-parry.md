@@ -8,6 +8,9 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   an action starts or the player is staggered or stunned; while the input is
   held it comes back up by itself. Attacks and casts don't start while it's up;
   a dodge does. Walking at `MOVE` (half) speed, no sprinting, no Auto approach.
+  The server enforces the no-sprint part too: `Movement.apply` drops the run
+  bonus while the humanoid is `Guarding`, so a held Shift (or a client that keeps
+  claiming to run) can't beat the slow (user, 2026-10-24).
   Right click still turns the camera when the mouse isn't locked (the binding
   passes the input on).
 - Only enemy blows with a source (`Combat.hurt`'s `guard`, a `Guard.Hit` built
@@ -81,7 +84,9 @@ Hold right click (PC), L2 (gamepad) or the touch Block button. Tuning:
   and whether it closed the chain; `chainEnd` carries the count).
   The Humanoid's `Guarding` attribute mirrors the guard for other clients.
 - Animations: `Animations.Guard` in `assets/Animations.rbxmx`. Per weapon class
-  (`Guard.<Class>`, the `Config.Combat.CLASSES` names) `Hold` (loop, Action),
+  (`Guard.<Class>`, the `Config.Combat.CLASSES` names) `Hold` (loop, Action;
+  Fist 87546165212405 and Sword 83417013514031 are the user's block poses,
+  2026-10-24, one-frame poses held by the loop),
   `Parry`, `ParryAlt` (the opposite-side deflect) and `Impact` (Action2);
   GuardController picks by the character's `WeaponClass` (`Fist` while
   `WeaponStowed`), re-picks when either changes (a held guard swaps into the new

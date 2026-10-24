@@ -140,6 +140,7 @@ felt in fights.
    gets a toast once and then now and then while idle ([ui](ui.md)).
 
 ## Qi surge
+Rare by design (user, 2026-10-24): it fires only with the bar at 90%+ and low health in a fight, "when it really counts"; not a regular second wind.
 Built 2026-10-23 (Phase A, untuned, untested in play). Replaces the forced
 breakthrough: a clutch comeback to survive a fight and keep the haul, not insurance.
 Server `QiSurge.luau`, tuning `Pacing.Surge`.

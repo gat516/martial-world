@@ -1,3 +1,5 @@
+> **Owner's decision (2026-10-24):** keep the 90% bar gate. The surge is meant to be rare and to show up only when it really counts (a near-breakthrough clutch), not as a regular second wind. Recommendation 1 is declined.
+
 # Review: the qi surge
 
 **Verdict: rework (or cut).** The fantasy is right: burn your qi to survive and keep your haul. But the rule rarely lets it fire, and when it does, at 24 of 26 stages it does almost nothing but heal 20%. A once-in-a-while mid-fight button nobody has learned is a phone-HUD cost with little feeling behind it. Reviewed 2026-10-23 from cultivation.md "Qi surge", `QiSurge.luau`, `Pacing.Surge`; nothing played.

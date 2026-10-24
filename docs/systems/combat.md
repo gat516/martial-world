@@ -76,16 +76,13 @@ scales all player damage.
   set for the old clip), so the new clip's pace is untuned: check the feet against
   the ground at run speed and retune that number if it slides.
 - `src/client/BaseWalk.luau`: the walk is `Animations/Walk` (rbxassetid
-  80600839460034, user 2026-10-24), swapped into the default Animate script's
+  126702696993520, owned by the game's group 772472600; user 2026-10-24), swapped into the default Animate script's
   `walk` entry on every spawn, so Animate still runs idle, walk (with its speed
   scaling), jump, fall, climb and sit and blends them. Sprint's Run (Movement)
   plays over it while running, a weapon class's own Walk (Greatsword, Guandao,
   Spear, Staff; WeaponAnimator) over it while walking with that weapon, and
   actions above all. The swap is on the owner's client (its tracks replicate;
-  the server's copy of Animate keeps the stock id). The clip is owned by the
-  RPker user account, not the game's group (772472600): it plays in Studio, but
-  the group-owned live game needs it re-uploaded to the group
-  (`tools/upload_asset.py animation`) and the new id put in `Animations/Walk`.
+  the server's copy of Animate keeps the stock id).
 - `src/client/CombatEffects.luau`, `Telegraphs.luau`: cosmetic effects and ground warnings.
 - `src/client/CastFX.luau`: shared runtime helpers for technique effects, used
   for the caster's own casts and relayed ones alike: the striking limb

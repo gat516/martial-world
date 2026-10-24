@@ -12,10 +12,13 @@
 --   arts: their glyph on a seal disc (Disc, art/ui/art_disc.png) in the art's colour;
 --   weapons: the real model in the slot's Model ViewportFrame (WeaponView), or the
 --     class glyph in the class colour where a slot has no viewport (and Bare Fists).
--- Also owns the weapon art (icons by model and by class, art/ui/assets.json), the
--- class glyphs and colours shared by art badges, the Inventory's class rail and
--- section headers, and the hotbar (classGlyph, classColor), and the weapon badge on
--- technique slots (gate).
+-- Hotbar slots show words, not art (words): an art or item is its short name
+-- (Hotbar.label), large and centred; only a weapon (the weapon slot, a dragged weapon)
+-- keeps its model.
+-- Also owns the weapon art (icons by model and by class, art/ui/assets.json) and the
+-- class glyphs and colours shared by the Inventory's class rail and section headers
+-- (classGlyph, classColor). Arts carry no weapon badge (user, 2026-10-23: "we have
+-- plenty of indication what techniques belong where"); the Inventory's sections say it.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -31,7 +34,6 @@ local WeaponView = require(script.Parent.WeaponView)
 local SlotArt = {}
 
 local WHITE = Color3.new(1, 1, 1)
-local GATED_ICON = 0.6 -- icon transparency of a hotbar art whose weapon isn't in hand
 local NO_GRADE = Color3.fromRGB(150, 140, 120) -- the edge of ungraded things and empty slots
 local EDGE_EMPTY = 0.55 -- edge transparency on an empty slot
 local WASH = 0.35 -- the rarity wash's transparency (its art already fades to clear)
@@ -185,35 +187,32 @@ function SlotArt.techniqueClass(id: string?): string?
 	return if type(need) == "string" and Weapons.Classes[need] then need else nil
 end
 
--- The weapon badge on a technique slot (its WeaponBadge child, if it has one):
--- every class art wears its class glyph in the class colour, so the hotbar and the
--- Inventory both say which weapon an art needs. inventory: never dim. Otherwise
--- (hotbar) the slot dims while that class isn't in hand. Returns whether the
--- technique's weapon is missing. Call after paint.
-function SlotArt.gate(slot: GuiObject, id: string?, inventory: boolean): boolean
+-- Whether a technique needs a weapon class that isn't in hand (the hotbar dims it;
+-- it still casts and the server answers "Requires a ...").
+function SlotArt.weaponMissing(id: string?): boolean
 	local need = SlotArt.techniqueClass(id)
-	local missing = need ~= nil and need ~= Weapons.classOf(SlotArt.equipped())
-	local always = inventory
-	local badge = slot:FindFirstChild("WeaponBadge") :: ImageLabel?
-	if badge then
-		badge.Visible = need ~= nil
-		if need then
-			-- a badge that is the glyph itself, or a ring holding it (the hotbar's)
-			local glyph = (badge:FindFirstChild("Icon") :: ImageLabel?) or badge
-			SlotArt.setIcon(glyph, SlotArt.classGlyph(need))
-			glyph.ImageColor3 = SlotArt.classColor(need)
-			glyph.ImageTransparency = if missing and not always then 0.15 else 0
-		end
+	return need ~= nil and need ~= Weapons.classOf(SlotArt.equipped())
+end
+
+-- Words only, for hotbar slots and the drag ghost (call after paint): an art or item
+-- hides its art and shows its short name in NameLabel; a weapon keeps its model and
+-- shows no words. dim: an art the player can't use right now (weapon not in hand, not
+-- enough qi) or an item they have none of.
+local WORDS_DIM = 0.55 -- the words' transparency when dimmed
+local WORDS_STROKE = 0.6 -- a light stroke: a full one fills Oswald's letters in at 10-11 px (the well is dark)
+function SlotArt.words(slot: GuiObject, id: string?, label: string, dim: boolean)
+	local name = slot:FindFirstChild("NameLabel") :: TextLabel?
+	local worded = id ~= nil and (Techniques.Defs[id] ~= nil or Items.Defs[id] ~= nil)
+	local well = SlotArt.well(slot)
+	if well ~= slot then
+		(well :: GuiObject).Visible = not worded
 	end
-	if missing and not always then
-		local well = SlotArt.well(slot);
-		(well:FindFirstChild("Icon") :: ImageLabel).ImageTransparency = GATED_ICON
-		local disc = well:FindFirstChild("Disc") :: ImageLabel?
-		if disc then
-			disc.ImageTransparency = GATED_ICON
-		end
+	if name then
+		-- one word per line, so every slot reads as the same block
+		name.Text = if worded then (string.gsub(label, " ", "\n")) else ""
+		name.TextTransparency = if dim then WORDS_DIM else 0
+		name.TextStrokeTransparency = if dim then math.max(WORDS_DIM, WORDS_STROKE) else WORDS_STROKE
 	end
-	return missing
 end
 
 -- countText overrides the corner text ("" hides it).

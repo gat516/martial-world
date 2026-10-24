@@ -51,6 +51,7 @@ export type Hit = { time: number, stop: number, damage: number }
 export type Def = {
 	id: string,
 	name: string,
+	short: string?, -- the hotbar's words (Hotbar.label): one or two short words
 	kind: string,
 	weapon: string, -- a Weapons class id, or "Any"
 	grade: string?, -- a Weapons.Grades key (the inventory frame); nil = Mortal
@@ -64,7 +65,7 @@ export type Def = {
 	animation: number, -- which Fists chain animation the cast plays (when it has no `hits`)
 	hand: string?, -- visuals: "Left" or "Right", the hand that strikes in that animation
 	cast: Cast,
-	icon: string, -- the image on its HUD button; names only show in the Arts window
+	icon: string, -- its glyph in the Inventory (the hotbar shows `short` words instead)
 	length: number?,
 	width: number?,
 	radius: number?,
@@ -99,6 +100,7 @@ Techniques.Defs = {
 		weapon = "Sword",
 		icon = "rbxassetid://100918699109239",
 		name = "Sword Qi Wave",
+		short = "Qi Wave",
 		element = "Metal",
 		kind = "line",
 		cooldown = 6,
@@ -116,6 +118,7 @@ Techniques.Defs = {
 		weapon = "Fist",
 		icon = "rbxassetid://98382420618802",
 		name = "Palm Strike",
+		short = "Palm Strike",
 		element = "Earth",
 		kind = "circle",
 		cooldown = 8,
@@ -132,6 +135,7 @@ Techniques.Defs = {
 		weapon = "Any",
 		icon = "rbxassetid://89161711966835",
 		name = "Lightning Talisman",
+		short = "Bolt Charm",
 		element = "Lightning",
 		kind = "chain",
 		cooldown = 10,
@@ -150,6 +154,7 @@ Techniques.Defs = {
 		weapon = "Any",
 		icon = "rbxassetid://73960875385866",
 		name = "Iron Skin",
+		short = "Iron Skin",
 		element = "Metal",
 		kind = "buff",
 		cooldown = 15,
@@ -167,6 +172,7 @@ Techniques.Defs = {
 		weapon = "Any",
 		icon = "rbxassetid://123372008874762",
 		name = "Fire Seal",
+		short = "Fire Seal",
 		element = "Fire",
 		kind = "zone",
 		cooldown = 12,
@@ -189,6 +195,7 @@ Techniques.Defs = {
 		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://81953324274209",
 		name = "Twin Phoenix Cannon",
+		short = "Twin Phoenix",
 		element = "Fire",
 		kind = "line",
 		cooldown = 9,
@@ -210,6 +217,7 @@ Techniques.Defs = {
 		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://96346324489936",
 		name = "Moonflash Draw",
+		short = "Flash Draw",
 		element = "Ice",
 		kind = "line",
 		cooldown = 7,
@@ -235,6 +243,7 @@ Techniques.Defs = {
 		dao = SKILL_DAO.Peak,
 		icon = "rbxassetid://104006341750065",
 		name = "Rampaging Tiger Cleave",
+		short = "Tiger Cleave",
 		element = "Metal",
 		kind = "circle",
 		cooldown = 12,
@@ -262,6 +271,7 @@ Techniques.Defs = {
 		dao = SKILL_DAO.Peak,
 		icon = "rbxassetid://131580966208055",
 		name = "Heaven-Splitting Descent",
+		short = "Heaven Split",
 		element = "Earth",
 		kind = "circle",
 		cooldown = 16,
@@ -289,6 +299,7 @@ Techniques.Defs = {
 		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://110851099640824",
 		name = "Crescent Moon Sweep",
+		short = "Moon Sweep",
 		element = "Water",
 		kind = "circle",
 		cooldown = 9,
@@ -309,6 +320,7 @@ Techniques.Defs = {
 		dao = SKILL_DAO.Adept,
 		icon = "rbxassetid://123799153426166",
 		name = "Dragon-Piercing Thrust",
+		short = "Dragon Thrust",
 		element = "Wood",
 		kind = "line",
 		cooldown = 8,
@@ -332,6 +344,7 @@ Techniques.Defs = {
 		dao = SKILL_DAO.Peak,
 		icon = "rbxassetid://115862718192751",
 		name = "Great Sage Awakening",
+		short = "Great Sage",
 		element = "Wind",
 		kind = "buff",
 		cooldown = 20,

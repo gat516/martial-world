@@ -46,6 +46,7 @@ export type Soil = "bed" | "pond" | "grove"
 export type Buff = { kind: "QiRate" | "WalkSpeed", amount: number, seconds: number }
 export type Herb = {
 	name: string,
+	short: string?, -- the hotbar's words (Hotbar.label)
 	rarity: string,
 	tier: number,
 	color: Color3,
@@ -128,6 +129,7 @@ Herbs.Order = {
 Herbs.Defs = {
 	SpiritGrass = {
 		name = "Spirit Grass",
+		short = "Spirit Grass",
 		rarity = "Common",
 		tier = 1,
 		region = "InnerWilds",
@@ -147,6 +149,7 @@ Herbs.Defs = {
 	},
 	CloudMint = {
 		name = "Cloud Mint",
+		short = "Cloud Mint",
 		rarity = "Uncommon",
 		tier = 1,
 		region = "InnerWilds",
@@ -171,6 +174,7 @@ Herbs.Defs = {
 	},
 	BloodGinseng = {
 		name = "Blood Ginseng",
+		short = "Blood Ginseng",
 		rarity = "Rare",
 		tier = 2,
 		region = "OuterWilds",
@@ -190,6 +194,7 @@ Herbs.Defs = {
 	},
 	MoonpetalOrchid = {
 		name = "Moonpetal Orchid",
+		short = "Moon Orchid",
 		rarity = "Epic",
 		tier = 2,
 		region = "OuterWilds",
@@ -208,6 +213,7 @@ Herbs.Defs = {
 	},
 	NineLeafLingzhi = {
 		name = "Nine-Leaf Lingzhi",
+		short = "Lingzhi",
 		rarity = "Legendary",
 		tier = 3,
 		region = "DeepWilds",
@@ -226,6 +232,7 @@ Herbs.Defs = {
 	},
 	VioletCloudFungus = {
 		name = "Violet Cloud Fungus",
+		short = "Violet Fungus",
 		rarity = "Epic",
 		tier = 2,
 		region = "OuterWilds",
@@ -243,6 +250,7 @@ Herbs.Defs = {
 	},
 	ThousandYearGinseng = {
 		name = "Thousand-Year Ginseng",
+		short = "Elder Ginseng",
 		rarity = "Legendary",
 		tier = 3,
 		region = "DeepWilds",
@@ -259,6 +267,7 @@ Herbs.Defs = {
 	},
 	JadeLotus = {
 		name = "Jade Lotus",
+		short = "Jade Lotus",
 		rarity = "Uncommon",
 		tier = 1,
 		region = "InnerWilds",
@@ -278,6 +287,7 @@ Herbs.Defs = {
 	},
 	RiftLotus = {
 		name = "Rift Lotus",
+		short = "Rift Lotus",
 		rarity = "Legendary",
 		tier = 3,
 		region = "DeepWilds",
@@ -297,6 +307,7 @@ Herbs.Defs = {
 	},
 	PurpleBamboo = {
 		name = "Purple Bamboo",
+		short = "Purple Bamboo",
 		rarity = "Uncommon",
 		tier = 1,
 		region = "InnerWilds",
@@ -317,6 +328,7 @@ Herbs.Defs = {
 	},
 	SpiritPeach = {
 		name = "Spirit Peach",
+		short = "Spirit Peach",
 		rarity = "Rare",
 		tier = 2,
 		region = "OuterWilds",
@@ -338,6 +350,7 @@ Herbs.Defs = {
 	-- I Common: the Ruined Borderlands' marsh (Serpent Fen, the Drowned Shrine)
 	GhostlampLily = {
 		name = "Ghostlamp Lily",
+		short = "Ghost Lily",
 		rarity = "Uncommon",
 		tier = 1,
 		region = "MiddleWilds",
@@ -357,6 +370,7 @@ Herbs.Defs = {
 	-- II Spirit: the Outer Wastes' wind-scoured ruins
 	DuskwindThistle = {
 		name = "Duskwind Thistle",
+		short = "Thistle",
 		rarity = "Rare",
 		tier = 2,
 		region = "OuterWilds",
@@ -378,6 +392,7 @@ Herbs.Defs = {
 	-- III Rare: the Deep Wilds
 	SevenStarGrass = {
 		name = "Seven-Star Grass",
+		short = "Star Grass",
 		rarity = "Epic",
 		tier = 3,
 		region = "DeepWilds",
@@ -398,6 +413,7 @@ Herbs.Defs = {
 	},
 	EmberheartFruit = {
 		name = "Emberheart Fruit",
+		short = "Ember Fruit",
 		rarity = "Epic",
 		tier = 3,
 		region = "DeepWilds",
@@ -420,6 +436,7 @@ Herbs.Defs = {
 	-- IV Treasure: the Far Reaches
 	DragonbloodVine = {
 		name = "Dragonblood Vine",
+		short = "Dragon Vine",
 		rarity = "Legendary",
 		tier = 4,
 		region = "FarReaches",
@@ -440,6 +457,7 @@ Herbs.Defs = {
 	},
 	PhoenixPlumeOrchid = {
 		name = "Phoenix Plume Orchid",
+		short = "Plume Orchid",
 		rarity = "Legendary",
 		tier = 4,
 		region = "FarReaches",
@@ -458,6 +476,7 @@ Herbs.Defs = {
 	},
 	SnowpeakLotus = {
 		name = "Snowpeak Lotus",
+		short = "Snow Lotus",
 		rarity = "Legendary",
 		tier = 4,
 		region = "FarReaches",
@@ -478,6 +497,7 @@ Herbs.Defs = {
 	},
 	StarfallBamboo = {
 		name = "Starfall Bamboo",
+		short = "Starfall",
 		rarity = "Epic",
 		tier = 4,
 		region = "FarReaches",
@@ -500,6 +520,7 @@ Herbs.Defs = {
 	-- V Heavenly: seeds only from the Far Reaches' bosses and from mutation
 	TribulationThunderGrass = {
 		name = "Tribulation Thunder Grass",
+		short = "Storm Grass",
 		rarity = "Legendary",
 		tier = 5,
 		region = "FarReaches",
@@ -518,6 +539,7 @@ Herbs.Defs = {
 	},
 	NinefoldHeavenLotus = {
 		name = "Ninefold Heaven Lotus",
+		short = "Heaven Lotus",
 		rarity = "Legendary",
 		tier = 5,
 		region = "FarReaches",
@@ -536,6 +558,7 @@ Herbs.Defs = {
 	},
 	DaoOriginFruit = {
 		name = "Dao Origin Fruit",
+		short = "Dao Fruit",
 		rarity = "Legendary",
 		tier = 5,
 		region = "FarReaches",

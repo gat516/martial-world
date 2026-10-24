@@ -789,13 +789,6 @@ local function makeCell(id: string, order: number, held: string, equipChanged: b
 	else
 		SlotArt.paint(cell, id, Items.count(s, id))
 	end
-	-- the class glyph on arts (a weapon shows its model)
-	local badge = cell:FindFirstChild("WeaponBadge") :: ImageLabel
-	if technique then
-		SlotArt.gate(cell, id, true)
-	else
-		badge.Visible = false
-	end
 	-- the jade 戒 seal on Pouch stacks in the spirit ring (top-left, opposite NEW)
 	local ring = ringState();
 	(cell:FindFirstChild("RingMark") :: GuiObject).Visible = not weapon and technique == nil and table.find(ring, id) ~= nil

@@ -211,8 +211,8 @@ cursor, settings and the admin panel.
   [overhaul-plan](../ui/overhaul-plan.md) "Resolution and scaling".
 - `HotbarView.luau` (with the weapon slot), `Inventory.luau` (Weapons & Arts and Pouch tabs),
   `InventoryFilter.luau` (chip rail, sort, search), `Rarity.luau` (the rarity ladder and frames),
-  `Fresh.luau` (NEW badges), `SlotArt.luau` (slot painting, class glyphs and colours,
-  weapon art, the weapon badge), `ListWindow.luau`.
+  `Fresh.luau` (NEW badges), `SlotArt.luau` (slot painting, the hotbar's words, class glyphs and
+  colours, weapon art), `ListWindow.luau`.
 - `WorldPrompts.luau` (custom ProximityPrompt drawing, `StarterGui.Prompts.Board`, touch `Prompts.Dock`).
 - `Rewards.luau` (reward banners, `StarterGui.Rewards`: `Rewards.show` with the small,
   feed, banner and card tiers; the boss victory, quest and milestone card), and

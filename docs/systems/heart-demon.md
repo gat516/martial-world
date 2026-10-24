@@ -87,6 +87,18 @@ chips "Realm QC9", "Realm QR9" and "Reset heart demons" (`heartReset`).
 `HUNTER_SHARE`, `GARDENER_SHARE`, `LEAN_MIN`, `SLAIN_MIN`, `STILL_MIN_HOURS`,
 `OFFER_COOLDOWN`. Lines and answers are in `HeartDemon.luau`.
 
+## Keeping it current
+The trial is only as good as what it remembers (user, 2026-10-23: "when we add new
+systems / mechanics the heart demon should be updated. this is important"). Every new
+system that says something about how a player plays adds, in the same commit:
+1. a counter in `data.stats` (missing-field defaults, no schema bump);
+2. a question, or answers on an existing one, built from it in `HeartDemon.luau`,
+   with one answer the record contradicts;
+3. a line in "The questions" above.
+Open now: the qi surge (`forced` still counts the removed forced breakthrough, so
+surges should count there or get their own question), deaths that spilled a haul,
+Store all, peak building and the Herbarium.
+
 ## Known gaps
 - UI: the speaker uses the generic `unnamed` gray silhouette and the ruby name tab. A
   heart-demon silhouette of its own (uploaded and added to `Dialogue` `PORTRAITS`) and

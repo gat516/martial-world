@@ -34,6 +34,7 @@ Every turn re-sends the whole context, so anything that enters it is paid for ag
 `docs/README.md` maps every system to its files, remotes and tuning; `docs/systems/` has one design doc per system; `docs/core-loop.md` is the north star; [docs/world-overview.md](docs/world-overview.md) is the setting and zones in brief. Big systems are split: a core doc plus parts (`docs/enemies/<enemy>.md`, `docs/map/`, `docs/combat/`, `docs/vfx/toolkit/`...).
 - **Read only what your task needs:** the core doc, then the one part you're working on. Don't read a whole folder.
 - Every commit leaves the docs at least as good as it found them. In the same commit, update every doc the change touches (behaviour, design intent, files, remotes, tuning, known gaps) and fix anything stale you ran into. A design decision the user makes in conversation goes into the matching doc.
+- **New systems feed the heart demon (user, 2026-10-23, "this is important").** A new system or mechanic that reflects how someone plays (fighting, gardening, building, surging, dying, banking, sect work...) adds a counter and a question or answer to the heart-demon trial in the same commit ([heart-demon](docs/systems/heart-demon.md#keeping-it-current)).
 - Keep docs lean: current state and decisions, not history (git has it). A new item (enemy, area, effect set) gets its own part file and a line in its core doc's index.
 
 ## Testbed

@@ -296,14 +296,13 @@ rewards using them over M1; no enemy asks for a technique; and nothing combines.
    reading "Requires Greatsword Dao 6", so a drop is a goal, never a dead pickup.
    Any-weapon arts check the player's highest class Dao (open: or their own threshold).
    Comprehension (breaking a tier bottleneck) costs Spirit Stones and needs a higher
-   Dao level in the class, not insight (built: bottleneck k needs min(10, learn + 2k)).
-   **Retier built (user, 2026-10-23):** the existing class skills look impressive, so
-   they sit at the top of the ladder (`Pacing.Comprehension.SKILL_DAO`): Dao 8 Rampaging
-   Tiger, Heaven-Splitter, Great Sage; Dao 5 the other four. Palm Strike and Sword Qi
-   Wave stay the mediocre starter arts (Dao 0). **Pending:** each class's plain Dao 2
-   first skill, on the level of Palm Strike (none made, so no class skill is learnable
-   before Dao 5), and the rest of the 21. Open: Peak skills' bottlenecks all need Dao 10
-   (learn 8 + 2k caps), so they stall at level 3 until mastery; maybe a smaller step there.
+   Dao level in the class, not insight (built: bottleneck k needs min(10, learn + 2k),
+   or learn + k for Adept and Peak skills). **Retier built (user, 2026-10-23):** the
+   existing class skills look impressive, so they sit at the top of the ladder
+   (`Pacing.Comprehension.SKILL_DAO`): Dao 8 Rampaging Tiger, Heaven-Splitter, Great
+   Sage; Dao 5 the other four. Palm Strike and Sword Qi Wave stay the mediocre starter
+   arts (Dao 0). **Pending:** each class's plain Dao 2 first skill, on the level of Palm
+   Strike (none made, so no class skill is learnable before Dao 5), and the rest of the 21.
 2. **Techniques deepen instead of multiplying.** Each technique levels up
    (existing comprehension) through its visual tiers T1-T4 ([vfx style](vfx/style.md)),
    so one skill grows from a plain cast into a spectacle. No new content per level

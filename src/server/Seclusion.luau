@@ -16,7 +16,8 @@
 -- Everything counts for at most MAX_HOURS of one seclusion. Logging out keeps it
 -- going (data.seclusion.since stays set); the next login settles the time away
 -- and ends it. Rising (Rise, a hit, drifting off the seat) ends it too. Ending it
--- shows the result card (Effect "reward", a Rewards card spec).
+-- shows the result card (Effect "reward", a Rewards card spec) once it lasted
+-- CARD_MIN_MINUTES; a shorter one gets a small stones line instead.
 -- The very first seclusion (the onboarding's Seclusion lesson, Quests.luau) ends
 -- by itself after FIRST_SECONDS with a generous card (FIRST_*).
 -- The heart-demon trial reads data.stats.secluded (HeartDemon.luau).
@@ -262,9 +263,17 @@ local function finish(player: Player, data: PlayerData.Data, delay: number)
 	sec.rolled = 0
 	sec.start = 0
 	sec.tally = PlayerData.newTally()
+	-- the card only for a seclusion worth a card (or the first): a quick sit, say to
+	-- check something, rises with at most a small line for its stones
+	local message: any = spec
+	if not first and spent < S.CARD_MIN_MINUTES * 60 then
+		message = if tally.stones > 0
+			then { tier = "small", text = `+{tally.stones} Spirit Stones from seclusion`, color = Color3.fromRGB(240, 210, 140) }
+			else nil
+	end
 	task.delay(delay, function()
-		if player.Parent then
-			effectRemote:FireClient(player, "reward", spec)
+		if message and player.Parent then
+			effectRemote:FireClient(player, "reward", message)
 		end
 	end)
 end

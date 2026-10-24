@@ -93,6 +93,9 @@
       "Sect": {
         "$path": "assets/Sect.rbxmx"
       },
+      "Social": {
+        "$path": "assets/Social.rbxmx"
+      },
       "Prompts": {
         "$path": "assets/Prompts.rbxmx"
       },

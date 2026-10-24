@@ -3,13 +3,16 @@
 Reasons to meet other players ([roadmap](../roadmap.md) 3e). A party is never required:
 it adds a small qi bonus, lets nearby members share each other's kills, and gives a
 one-tap ride to a member. PvP stays off and there is no trading (roadmap 3f).
-Backend built 2026-10-23 (untested); the UI is still to build (ui-designer, from the
-contract below).
+Backend built 2026-10-23; the UI (card, People, invite prompt, pips, friend toast) built
+the same day (both untested in play). The People tile and the travel menu's Join button
+live in the Hud and are specified under "UI" below, still to build.
 
 Files: `src/server/Party.luau` (parties, card, people list, friend nudges),
 `src/server/SafeZone.luau`, `Travel.toPlayer` (join and visit), `EnemyService.died`
 (kill credit). Tuning: `Pacing.Party`, `Pacing.SafeZone`. Remotes: `PartyAction`,
-`PartyState` (`assets/Remotes.rbxmx`).
+`PartyState` (`assets/Remotes.rbxmx`). UI: `src/client/Social.luau`, `StarterGui.Social`
+(`assets/Social.rbxmx`, built by `tools/build_social.luau`), namecard taps through
+`Nameplates.onTap`.
 
 ## Rules
 - **Server-local.** Up to `MAX_SIZE` (4), same server only, nothing saved. Leaving the
@@ -60,7 +63,7 @@ or any teleport array. Testbed: only within `Pacing.SafeZone.TESTBED_RADIUS` (24
 `Workspace.Arena.SpawnPad`, where the TestPeak sits. Safe zones don't stop combat yet
 (no PvP exists; beasts don't spawn there).
 
-## UI contract (to build: ui-designer)
+## UI contract
 `PartyAction` (RemoteFunction) returns `(ok, payload|message)`; show the message as a
 toast when `ok` is false. `PartyState` (RemoteEvent) is `(kind, payload)`.
 
@@ -98,13 +101,70 @@ the arrays; TravelMenu's buttons are prebuilt in the Hud, so this needs the ui-d
 **Friend nudge** (`PartyState "friendHere", { userId, name }`): toast "<name> is on this
 mountain", once per session per friend, both ways.
 
+## UI (built 2026-10-23)
+One ScreenGui, `StarterGui.Social` (DisplayOrder 4, device safe insets), laid out at the
+phone baseline 844x390 inside `Canvas` and fitted by `UiScale` (base PHONE, max 1.3; the
+lint knows the same fit). Only kit cuts already uploaded: the panel frame, close seal,
+gold / jade / lacquer buttons, field inset rows, note panel, the namecard band and the
+cinnabar seal. Calm and plain: no ornament beyond the frame.
+- **Player card** (`Canvas.Card`, 440x252, centred, a Menus window). Chosen over a
+  centred "slip" with a 2x2 grid and no avatar (the critic: the avatar tells a kid whose
+  card it is; the rows read in one scan). The Self card's family without its columns: a
+  still copy of their character in a plain well (104x158) on the left; on the right the
+  name (Merriweather 20), the realm in gold with the marks after it in jade ("· Friend ·
+  With you"), a hairline, then RACE (race · variant), BLOODLINE ("None", muted), HALL ("No
+  Hall", muted) and PARTY ("Travelling alone", "In your party", "Leads a party of 3") as
+  gold capitals over cream values (14 / 16 baseline). The actions run along the bottom,
+  44 tall, at most 112 wide, shrinking to share the 392 px row: `invitedYou` Accept (gold)
+  + Decline, else `canInvite` Invite (gold); `canJoin` "Travel to" (jade, the join ride);
+  `canVisit` Visit peak (jade); `canKick` Make leader + Remove (its text in a muted red).
+  The card is re-fetched after every action and on every party push while open. Opened
+  from People, its close seal goes back to the list.
+- **Opening it:** tapping or clicking a namecard (`Nameplate.Band.Hit`, the billboard is
+  `Active`), on touch a tap on the character itself (a mouse click there is a Strike), a
+  People row, or a pip.
+- **People** (`Canvas.People`, 440x276 with the title plaque "People"): rows of the kit's
+  field inset, 44 tall: name, then realm · race in gold; on the right "Friend" (jade),
+  "With you" (gold) or "In a party" (muted). Empty: "No one else is on this mountain yet."
+  Refreshed on open and as players come and go.
+- **Invite prompt** (`Canvas.Invite`, 320x110 on the note panel, top-centre 70 px down,
+  under the top-right tiles; not a Menus window, nothing hides for it): "<name> invites you
+  to travel together", realm · party size, the seconds left and a thin gold line draining
+  to the expiry, Accept (gold) / Decline. One at a time, oldest first; `inviteGone` and the
+  countdown take it away.
+- **Party pips** (`Canvas.Pips`, left edge, top at 36 % of the screen, between Roblox's chat
+  corner and the thumbstick; on a phone x 7-140 against the vitals stack from x 160, so
+  nothing overlaps): one 150x28 row per member in join order, the namecard band with the
+  name (yours reads "You") and a 3 px health sliver, the cinnabar 首 seal on the leader's
+  row; members out of `RADIUS` dim (band, name, sliver at half). Hidden when solo and while
+  any window is open. Tap a member for their card, your own row for **Leave party** (a
+  130x40 lacquer button that drops under it for 4 s).
+- **Friend toast:** `friendHere` -> `Hud.toast("<name> is on this mountain")`.
+
+**To build in the Hud (ui-designer, `assets/Hud.rbxmx`):**
+- **People tile** `Hud.Buttons.PeopleButton`: the kit `hud_tile` like its neighbours,
+  LayoutOrder -3 (the very left, before Herbarium, so it slides in and out cleanly), caption
+  "People", key cap P on keyboards (P is free). Icon: two busts, the Self tile's bust
+  (`draw_ui.py self_icon`) doubled with the second behind and to the right, white, tinted
+  cream like the other glyphs (or a Codex icon sheet entry if the kit gets one). Visible
+  only while the player attribute `InSafeZone` is true (fade like the other tiles); a
+  folding tile in `TileFold`. Activated -> `Social.togglePeople()` (pressing it again
+  closes the list); P does the same. `Buttons` widens by one tile (56 + 8 px; 393 px on a
+  phone at 0.78).
+- **Travel menu:** a "Join <name>" row per other party member at the top of the list,
+  above Sect grounds, in the array rows' style with the jade button; hidden when solo.
+  Activated -> `PartyAction "join", userId` (refusals arrive as the returned message).
+  Members come from the `PartyState "party"` snapshot (Social could expose it).
+
 ## Testing
 The testbed stand-in (`TestbedDummy`) is not a Player, so parties need two clients:
-Studio's Test > Clients and Servers with 2 players. No UI calls the remotes yet; drive
-them from the command bar or wait for the UI.
+Studio's Test > Clients and Servers with 2 players. `Social.preview()` (client console)
+shows a sample card, invite and pips alone.
 
 ## Known gaps
-- All UI (card, people tile, invite prompt, pips, join button, friend toast).
+- The People tile and the travel menu's Join row (specified above, Hud work).
+- The UI is untested in play (two clients); the People list doesn't get the Hud's
+  ScrollHint chevron (it's in its own ScreenGui).
 - No cross-server parties, party chat or shared quests; co-op rifts and group world
   events (roadmap 3e) aren't built.
 - Spar duels from the card are deferred (roadmap 3f).

@@ -130,6 +130,8 @@ cursor, settings and the admin panel.
   `CharacterCreator.rbxmx` (the join screen, see [character creator](character-creator.md)),
   `Events.rbxmx` (world events, tribulation, rifts, leaderboards; built by
   `tools/events_ui_build.luau`);
+  `Social.rbxmx` (the player card, People, the invite prompt and party pips; built by
+  `tools/build_social.luau`, see [party](party.md#ui-built-2026-10-23));
   scripts only find and fill them.
 - Generated art (Codex, the UI overhaul) is never repainted: `tools/ui_assemble.py`
   cuts `art/ui/codex/<name>.png` (the names in its `PIECES` and `ICON_SHEETS`, the
@@ -245,6 +247,10 @@ cursor, settings and the admin panel.
 - `Cursor.luau`, `ShiftLock.luau` (Alt binding and reticle),
   `LockOn.luau` reticle and hint.
 - `Settings.luau` (volumes, Auto combat, lock hint), `AdminPanel.luau` (admins only; F2 on any keyboard, and on touch, the device emulator included, an admin-only 管 tile first in the tile row, `Buttons.AdminButton`, never shown to other players; on touch the panel shows a close seal instead of the F2 hint, chips are 36 px tall, on a phone it fills the right side from 64 px down and scrolls, and a UI preview chip closes it so the previewed screen shows whole. Tools and Traits tabs, the Traits tab is `AdminTraits.luau`, see [identity](identity.md)).
+- `Social.luau` (`StarterGui.Social`, fitted by `UiScale` at the phone baseline): the
+  player card (namecard or character tap, People row, pip), the People list
+  (`Social.openPeople`/`togglePeople`, for the safe-zone People tile), the invite prompt,
+  party pips at the left edge and the friend toast; see [party](party.md).
 - `State.luau`: the latest `PlayerState` snapshot with change listeners.
 - `CharacterCreator/` (the join screen: nav, viewport dummy, parchment panel); see
   [character creator](character-creator.md).

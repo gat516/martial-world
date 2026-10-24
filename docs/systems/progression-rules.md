@@ -6,7 +6,8 @@ the [pacing model](pacing-model.md) (`python3 tools/pacing_model.py`) before it 
 The `progression-designer` agent owns this file. Numbers live in
 `src/shared/Pacing.luau` (and `Herbs.luau`, `Items.luau`, `Enemies.luau`,
 `BuildItems.luau`); this page says what they must add up to. Last full pass: the
-2026-10-24 rebalance (owner-approved).
+2026-10-24 rebalance (owner-approved), then the same day's herb re-tier, sell-price cut
+and foundation bar (owner decisions).
 
 ## Targets
 
@@ -14,13 +15,14 @@ The `progression-designer` agent owns this file. Numbers live in
 |---|---|---|
 | Qi Condensation | about 2.4 h; the first session lands 2-3 breakthroughs (QC4 by 9-10 min with the onboarding's talk) | 2.4 h, QC4 at 5 min of play |
 | Qi Refining | about 7 h; the real slowdown from QR4, where the garden and the peak carry | 7.1 h |
-| Foundation Establishment | about 20 h; no stage over about 3 h; FE9 is the cap | 19.8 h, stages 1.7-2.7 h |
-| A gardener (garden and meditate road) | gets there, 1.5-2x slower at most | +12% overall (QC +25%) |
-| A night (12 h offline or AFK) | about one stage, never two | QC/QR: the 1.5 cap; FE: 26-57% of a bar (open call) |
+| Foundation Establishment | about 20 h; no stage over about 3 h; FE9 is the cap | 20.2 h, stages 1.7-2.7 h |
+| A gardener (garden and meditate road) | gets there, 1.5-2x slower at most | +14% overall (QC +25%) |
+| A night (12 h offline or AFK) | about one stage, never two | QC/QR: the 1.5 cap; FE: 26-57% of a bar (owner, 2026-10-24: FE nights stay as is) |
+| Foundation percent | 100% by playing a stage; 130%+ rare for the regular, common only for the heavy | medians 97 / 110 / 112% (casual / regular / heavy); 130%+ on 1 / 3 / 7 of 23 stages |
 
 "The regular player" is the model's regular profile (1.5 h a day, hunts about half the
 time, a growing garden, a cushion, some building, a party a quarter of the time). With
-nights the regular finishes FE9 on about day 16, a casual (30 min a day) on day 29, a
+nights the regular finishes FE9 on about day 15, a casual (30 min a day) on day 29, a
 heavy player (3 h a day) on day 8.
 
 ## Hard rules
@@ -36,7 +38,7 @@ heavy player (3 h a day) on day 8.
    or decorations stays within **15%** of the regular's online time, and a min-maxer
    stacking everything is at most **1.3x** the regular's speed. Every extra lever is a
    modest bonus with diminishing returns. The model's balance check enforces it on
-   every run (now: hunter +10%, gardener +12%, everything x1.19).
+   every run (now: hunter +12%, gardener +14%, everything x1.18).
 4. **Items come from the realm band they belong to**; nothing from a later band drops
    earlier except as a rare, announced prize (event herbs, heavenly treasures).
 5. **One rarity table** (below): a rarity means the same odds everywhere, and anything
@@ -67,14 +69,14 @@ root x method x (1 + weather circulation)`.
 | Meditation seat | seated passive | anywhere x1.5, own peak x2.5, outdoor sites | one seat | `Pacing.Meditation` |
 | Meditation piece (best in range, own peak) | adds to the seat | Cushion +0.75, Spirit Stone +0.5, Mat +0.4, Incense +0.25 | the best one only | `BuildItems` `meditation` |
 | Peak score | adds to the seat on your peak; plant growth | +0.0024 a point; growth +0.002 a point | the tier's `scoreCap` 60 / 150 / 250 (seat +0.14 / +0.36 / +0.6; growth +12 / 30 / 50%) | `Pacing.PeakScore` |
-| Garden aura | x the seat on your own peak | every planted herb: `BY_TIER` 0.02 / 0.05 / 0.15 / 0.3 / 0.6 x `RARITY` (C 1, U 1.1, R 1.25, E 1.5, L 2) x size x mutations, half while growing | QC 0.3, QR 0.6, FE 1.0, lifted up to +25% by the peak score (decorate your abode) | `Pacing.Aura` |
-| Herb and item QiRate buffs | all online passive | per herb +5% (tier I) to +50% (tier V); Greater Core +20%, Immortal Peach +50% | falloff 1 / 0.5 / 0.25 / 0, then QC 0.2, QR 0.3, FE 0.5 | `Pacing.Herbs.BUFF_FALLOFF`, `BUFF_CAP` |
+| Garden aura | x the seat on your own peak | every planted herb: `BY_TIER` 0.02 / 0.05 / 0.15 / 0.3 (V's 0.6 parked) x `RARITY` (C 1, U 1.1, R 1.25, E 1.5, L 2) x size x mutations, half while growing | QC 0.3, QR 0.6, FE 1.0, lifted up to +25% by the peak score (decorate your abode) | `Pacing.Aura` |
+| Herb and item QiRate buffs | all online passive | per herb +5% (tier I) to +45% (tier IV); Greater Core +20%, Immortal Peach +50% | falloff 1 / 0.5 / 0.25 / 0, then QC 0.2, QR 0.3, FE 0.5 | `Pacing.Herbs.BUFF_FALLOFF`, `BUFF_CAP` |
 | Weather | passive / circulation | mean +4.9% / +0.6% (one weather at a time, up to +100% passive for minutes) | one weather | `Weather.luau` |
 | Spirit root | passive, refining | Spirit 1, Earth 1.1, Heaven 1.25, Immortal 1.4 | the grade (pills, below) | `Pacing.Roots` |
 | Cultivation method | passive, refining, kill and node qi (online) | Sect Breathing 1.0; starters 1.1 (+0.1 matching the root) from FE1 | the method | `Pacing.Methods` |
 | Party | kill qi | +5% a nearby member; shared credit (`KILL_SHARE` 10%, helpers 50%) | +15% | `Pacing.Party` |
 | Stage `gather` (curve) | raw qi income | QR1 x2, QR2 x1.6, QR7 x1.6, FE4 x1.25, FE7 x1.15 | per stage | `Pacing.Curve` |
-| Foundation bonus | health and power only (never cultivation) | +1% by 100%, +2% more by 150%, per stage | 150% | `Pacing.Foundation` |
+| Foundation bonus | health and power only (never cultivation) | +1% by 100%, +2% more by 150%, per stage; past 100% each percent costs `OVER_COST` 5x | 150% (3.5x the target) | `Pacing.Foundation` |
 | Heaven-defier | bars | x1.5 | | `Pacing.HeavenDefying` |
 | Pacing.Adjust (the rebalance) | bars | QC4-9 x1.15, QR x1.65, FE x4.2 | solved by the model | `Pacing.Adjust` |
 
@@ -102,10 +104,20 @@ of unbanked), fleeing. Cap: the dantian.
 **Spirit Stones**: kills (3-24 a beast, bosses 50-180), qi nodes (4-8), objectives (85 in
 the first session, lessons 20-50, the method 150), sect dailies (40 / 110 / 300 by major x
 the daily's share) and ranks (300, 1500), the chain (60, final 200), Herbarium discoveries
-(15-800) and pages (150-8000), seclusion (25 / 60 / 150 an hour), herb sales (`sellPrice`
-3-9000), event relic fallbacks (60, 120), a reclaimed spill. Sinks: the Herbalist's seeds,
+(15-300) and pages (150-3000), seclusion (25 / 60 / 150 an hour), herb sales (`sellPrice`
+3-300), event relic fallbacks (60, 120), a reclaimed spill. Sinks: the Herbalist's seeds,
 build pieces (the decor shop), technique comprehension, the death spill, fleeing. A
-regular earns about 13,000 stones to FE9 (QC 780, QR 2,500, FE 10,000).
+regular earns about 12,800 stones to FE9 (QC 780, QR 2,500, FE 9,500); a garden road
+selling a third of its qi herbs about 44,000 (FE 37,000; 250,000 before the 2026-10-24
+price cut).
+
+**Sell prices** (2026-10-24: the stone flood fixed by price, not a daily cap): one
+ladder by tier and rarity, so a grander herb never sells for less than a humbler one of
+its rarity: tier I 3-18, II Rare 40-55, II Epic 45-55, III Epic 45-50, III Legendary 80,
+IV Epic 70, IV Legendary 110-140, the event's Thousand-Year Ginseng 300 (tier III-IV were
+260-3000, about a tenth now). A herb sells for a tenth or less of its seed (Seven-Star 400,
+Emberheart 600, Dragonblood 1200), so seeds stay a sink. A gardener's remaining sales
+are mostly tier I-II volume; re-check if plot counts or yields rise.
 
 **Sect contribution**: dailies (25-60 each) and sheltering (2 a kill), inside a 700-a-week
 cap; the chain (60, final 150); promotions are by contribution earned. Sink: the Pavilion
@@ -124,12 +136,14 @@ cap; the chain (60, final 150); promotions are by contribution earned. Sink: the
 Today's deviations, accepted: the Lesser Spirit Core (Uncommon) drops at 20-50% (it's a
 hunting reward, a kill's worth of qi); the Greater Core (Epic) is guaranteed from bosses;
 Legendary herbs come from mutation chains (a 1-5% roll on every harvest of the herb
-below, repeated, which is its own slow pity) and boss seed pools.
+below, repeated, which is its own slow pity) and boss seed pools. An explicit Legendary
+herb pity is **deferred** (owner, 2026-10-24; below).
 
 ## Where things come from
 
 Bands (`Herbs.Regions`): Inner Wilds QC1-4 and Ruined Borderlands QC5-9 (tier I), Outer
-Wastes QR1-5 (II), Deep Wilds QR6-FE3 (III), Far Reaches FE4-9 (IV; V from its bosses).
+Wastes QR1-5 (II), Deep Wilds QR6-FE3 (III), Far Reaches FE4-9 (IV). Tier V is deferred
+(below).
 Deep Wilds and the Far Reaches aren't map regions yet: their seeds drop only by a beast's
 realm (variants, the testbed).
 
@@ -141,6 +155,14 @@ Event herbs (`PRIZE`) keep their share anywhere. Seeds back on harvest: 1-2. Bea
 12% a kill per damager from the band's pool; bosses 2-4 seeds, plus their `bossSeeds`.
 The Herbalist: `STOCK` 30 / 12 / 3 / 2 seeds of a herb a player a day for tiers I-IV.
 
+**A herb's tier matches how grand its name is** (owner, 2026-10-24): in xianxia terms a
+grass, mint, bamboo or common lotus is humble (tier I), a ginseng or orchid of the
+wastes is a spirit herb (II), star-, rift-, snow- and ember-named herbs are rare (III),
+and the classic treasures (a thousand-year ginseng, a nine-leaf lingzhi, a phoenix
+plume, dragon's blood) are Foundation treasures (IV). Names that promise more than
+Foundation Establishment are deferred. Rarity, region, grow time, seed sources,
+mutation chains, buffs and sell prices follow the tier.
+
 | Tier | Herb | Rarity | Band | Comes from | Worth |
 |---|---|---|---|---|---|
 | I | Spirit Grass | Common | Inner Wilds | Herbalist 10, beasts 40% of the pool | buff +10% 3 min; sells 3 |
@@ -149,25 +171,37 @@ The Herbalist: `STOCK` 30 / 12 / 3 / 2 seeds of a herb a player a day for tiers 
 | I | Ghostlamp Lily | Uncommon | Borderlands | beasts (30% of the pool) | qi, +10% 3 min; sells 18 |
 | I | Purple Bamboo | Uncommon | Inner Wilds | Herbalist 80, beasts | +4 speed 3 min; sells 8 |
 | II | Blood Ginseng | Rare | Outer Wastes | Herbalist 160, beasts (5-35%), mutation (Cloud Mint 10%) | qi only; sells 40 |
-| II | Moonpetal Orchid | Epic | Outer Wastes | mutation (Blood Ginseng 8%) | +25% 10 min; sells 110 |
-| II | Violet Cloud Fungus | Epic | Outer Wastes | wild sprouts (Auspicious Mist) | qi, +15% 5 min; sells 150 |
+| II | Moonpetal Orchid | Epic | Outer Wastes | mutation (Blood Ginseng 8%) | +25% 10 min; sells 45 |
+| II | Violet Cloud Fungus | Epic | Outer Wastes | wild sprouts (Auspicious Mist) | qi, +15% 5 min; sells 55 |
 | II | Duskwind Thistle | Rare | Outer Wastes | beasts (35%) | qi, +5 speed; sells 55 |
 | II | Spirit Peach | Rare | Outer Wastes | Herbalist 400, beasts, mutation (Purple Bamboo 4%) | qi, +15% 5 min; sells 45 |
-| III | Seven-Star Grass | Epic | Deep Wilds | **Herbalist 400 from QR6**, beasts, mutation (Duskwind 4%), seclusion | qi, +25% 10 min; sells 320 |
-| III | Nine-Leaf Lingzhi | Legendary | Deep Wilds | mutation (Moonpetal 5%, Seven-Star 5%), Deep Wilds bosses (15 of the boss pool) | qi, +30% 15 min; sells 600 |
-| III | Thousand-Year Ginseng | Legendary | Deep Wilds | the world event only (prize: a full dantian) | +30% 20 min; sells 3000 |
-| III | Rift Lotus | Legendary | Deep Wilds | wild sprouts (Heaven Split), mutation (Jade Lotus 2%) (prize: half a dantian) | +30% 15 min; sells 700 |
-| III | Emberheart Fruit | Epic | Deep Wilds | **Herbalist 600 from QR6**, beasts, mutation (Spirit Peach 3%), seclusion | qi, +20% 10 min; sells 260 |
-| IV | Dragonblood Vine | Legendary | Far Reaches | beasts (25%), mutation (Lingzhi 3%) | qi, +40% 20 min; sells 1400 |
-| IV | Phoenix Plume Orchid | Legendary | Far Reaches | beasts (15%) | qi, +45% 20 min; sells 2000 |
-| IV | Snowpeak Lotus | Legendary | Far Reaches | beasts (25%), mutation (Rift Lotus 3%) | qi, +35% 15 min; sells 1200 |
-| IV | Starfall Bamboo | Epic | Far Reaches | **Herbalist 1200 from FE4**, beasts (35%), mutation (Emberheart 2%), seclusion | qi, +8 speed; sells 500 |
-| V | Tribulation Thunder Grass | Legendary | Far Reaches bosses | boss seeds (6), mutation (Dragonblood 1%) | qi, +50% 20 min; sells 5000 |
-| V | Ninefold Heaven Lotus | Legendary | Far Reaches bosses | boss seeds (4), mutation (Snowpeak 1%) | qi, +50% 30 min; sells 7000 |
-| V | Dao Origin Fruit | Legendary | Far Reaches bosses | boss seeds (2), mutation (Starfall 0.5%) | qi, +50% 30 min; sells 9000 |
+| III | Seven-Star Grass | Epic | Deep Wilds | **Herbalist 400 from QR6**, beasts (30%), mutation (Duskwind 4%, Moonpetal 5%), seclusion | qi, +25% 10 min; sells 50 |
+| III | Rift Lotus | Legendary | Deep Wilds | wild sprouts (Heaven Split), Deep Wilds bosses (10 of the boss pool), mutation (Snowpeak 3%) (prize: half a dantian) | +30% 15 min; sells 80 |
+| III | Snowpeak Lotus | Epic | Deep Wilds | beasts (15%), mutation (Jade Lotus 2%), seclusion | qi, +25% 10 min; sells 50 |
+| III | Emberheart Fruit | Epic | Deep Wilds | **Herbalist 600 from QR6**, beasts (25%), mutation (Spirit Peach 3%), seclusion | qi, +20% 10 min; sells 45 |
+| III | Starfall Bamboo | Epic | Deep Wilds | beasts (15%), mutation (Emberheart 2%), seclusion | qi, +8 speed; sells 45 |
+| IV | Dragonblood Vine | Epic | Far Reaches | **Herbalist 1200 from FE4**, beasts (40%), seclusion | qi, +35% 15 min; sells 70 |
+| IV | Nine-Leaf Lingzhi | Legendary | Far Reaches | mutation (Seven-Star 1%), Far Reaches bosses (15), seclusion | qi, +40% 20 min; sells 110 |
+| IV | Phoenix Plume Orchid | Legendary | Far Reaches | beasts (10%), Far Reaches bosses (5), mutation (Dragonblood 2%), seclusion | qi, +45% 20 min; sells 140 |
+| IV | Thousand-Year Ginseng | Legendary | Far Reaches | the world event only (prize: a full dantian) | +45% 30 min; sells 300 |
+
+**Re-tiered 2026-10-24** (before > after): Nine-Leaf Lingzhi III > IV (and Far Reaches
+bosses instead of Deep Wilds'); Thousand-Year Ginseng III > IV; Snowpeak Lotus IV
+Legendary > III Epic; Starfall Bamboo IV > III (no longer sold; Dragonblood Vine, now IV
+Epic, took its FE4 shop slot). Mutation chains end at the highest kept herb of each soil:
+Moonpetal now leads to Seven-Star (not Lingzhi), Seven-Star to Lingzhi at 1% (was 5%),
+Jade Lotus to Snowpeak, Snowpeak to Rift Lotus, Dragonblood to Phoenix Plume; Lingzhi,
+Rift Lotus and Starfall Bamboo end their chains.
+
+**Deferred (owner, 2026-10-24): tier V and any herb past Foundation Establishment.**
+Tribulation Thunder Grass, Ninefold Heaven Lotus and Dao Origin Fruit keep their defs and
+models (`deferred = true`, listed in `Herbs.Deferred`) but are out of the game: not in
+`Herbs.Order` (no Herbarium page, shop row, seed picker, Pavilion packet, seclusion find
+or item def), in no seed or boss pool, and no herb mutates into them. They come back with
+the realms past FE9 ([roadmap](../roadmap.md) "Deferred to a later update").
 
 Also: seclusion's hourly rare find (10% an hour; Seed 60 of 140 by weight) gives a seed of
-the next tier by major (QC II, QR III, FE IV); the Pavilion sells packets (tier I 4 seeds
+the next tier by major (QC II, QR III, FE IV; no wild or event herbs); the Pavilion sells packets (tier I 4 seeds
 40 contribution from Outer, tier II 3 for 150 from Inner, tier III 2 for 450 from Core, a
 random Herbalist-sold herb of the tier).
 
@@ -212,23 +246,30 @@ Fixed in the 2026-10-24 rebalance:
   every plant, capped by peak tier, lifted by decorating, on your own peak only.
 - The seat stacked (+1.5 cushion on 2.5): meditation pieces halved.
 - Tier III-IV seeds only came from mutations and seclusion: the Herbalist sells the Epic
-  tier III seeds from QR6 and Starfall Bamboo from FE4, 3 and 2 a day.
+  tier III seeds from QR6 and Dragonblood Vine from FE4, 3 and 2 a day.
 - The Herbalist had no stock limit: `STOCK` 30 / 12 / 3 / 2 a herb a player a day.
 - The Pavilion's tier III packet fell back to any tier III herb (the event prizes
   included); it now draws from the Herbalist-sold ones.
 - Foundation pools front-loaded per band: the carry past 150%.
 
+Fixed the same day (owner decisions):
+- **Herb tiers didn't match their names** (a Nine-Leaf Lingzhi and a Thousand-Year
+  Ginseng at tier III, a Snowpeak Lotus at IV): re-tiered by how grand the name is
+  (table above).
+- **Tier V never dropped and is past the cap**: deferred with every herb named past
+  Foundation Establishment (`Herbs.Deferred`).
+- **High-tier sell prices flooded stones** (tier III-V 260-9000 a herb; a gardener
+  earned 250,000 stones in FE): tier III-IV prices to 45-300, the tier II Epics to 45-55
+  (one ladder). The garden road now earns about 37,000 in FE, the regular 9,500.
+- **Foundation 130%+ was easy for the regular** (median 133%, 12 of 23 stages at 130%+;
+  owner: "if foundation is too easy, then raise the bar"): `OVER_COST` 3 > 5. Medians 97
+  / 110 / 112%; 130%+ on 1 / 3 / 7 stages (the regular's three are the band-entry stages
+  QR1, QR6 and FE4, where a fresh pool lands).
+
 Still open (proposed fix):
-- **Tier V never drops on today's map** (Far Reaches bosses don't exist): the heavy
-  reaches it by mutation at FE8. Fix with the Far Reaches map and its bosses; until then
-  accept it (it's past the cap's band).
-- **Legendary herbs have no explicit pity** (mutation chains only). Proposed: a mutation
-  counter per chain that guarantees the mutation every 1 / mutateChance harvests.
-- **High-tier sell prices flood stones** (tier III-V 260-9000 a herb; a gardener selling a
-  third of a tier III-IV garden earns 250,000 stones in FE). Stones buy no speed past the
-  score and plot caps, so it isn't a pace problem, but it empties every other stone
-  reward. Proposed: tier III+ `sellPrice` about a tenth, or a daily sell cap at the
-  Herbalist.
+- **Legendary herbs have no explicit pity** (mutation chains and boss seeds only).
+  **Deferred** (owner, 2026-10-24): a mutation counter per chain that guarantees the
+  mutation every 1 / mutateChance harvests, built later ([roadmap](../roadmap.md)).
 - **QR and FE have no same-realm beasts while variants are off**: hunts, Hunter and
   Daring deeds vanish there, so hunting falls behind meditating in FE. Re-run when
   variants ship.
@@ -236,15 +277,19 @@ Still open (proposed fix):
   is mandatory), but re-check when stone income changes.
 - **The Greater Core's and the Immortal Peach's buffs**, mutated plants' aura and
   Huge/Colossal sizes aren't in the model.
+- **Foundation under 100% on thin stages**: with `OVER_COST` 5 less carries past 150%,
+  so the regular seals FE1-3 and FE6-8 at 66-98% (the Deep Wilds and Far Reaches pools
+  land on QR6 and FE4). Part of it is the model's planner (it plants two herb kinds in
+  FE1-2, so no Gardener deed). Fix with variants (QR and FE beasts, hunts and deeds) or
+  deeper band pools, not a lower bar.
+- **Tier IV by mutation before its band**: Seven-Star Grass's 1% Lingzhi roll gives the
+  regular a tier IV seed around FE3 in the model (heavy FE2), one stage before the Far
+  Reaches band; an announced rare prize, accepted.
 
 ## Open calls (the owner's)
 
-- **FE nights.** With FE bars x4.2 a 12 h night is 26-57% of an FE bar, not "about one
-  stage". Options: accept (FE is the long realm), or an FE-only offline rate (x2-3 would
-  make a night about half to one stage; AFK would still trail active play but match bare
-  meditation on the peak). Raising FE passive doesn't work: it speeds online play too and
-  breaks the hunter's road.
-- **Foundation 130%+ is easy for the regular on this curve** (median 133%, 12 of 23
-  stages at 130%+ with the approved knobs). `OVER_COST` 4 gives medians 97 / 114 / 123%.
+Decided 2026-10-24: FE nights stay as is (26-57% of an FE bar, no FE offline rate);
+foundation raised by `OVER_COST` (above).
+
 - **The QC garden road** is 25% slower than the regular in QC (tier I herbs give little
   qi); overall it's within 15%. A bigger QC aura cap or tier I qi would close it.

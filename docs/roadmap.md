@@ -30,6 +30,14 @@ These are real plans but **not in this pass**. Nothing before FE9 depends on the
   grade. Candidate verb for Foundation Establishment.
 - **Mining and ores** (the out verb that feeds refinement).
 - **Body refinement:** a candidate verb for a later realm.
+- **Tier V herbs** (owner, 2026-10-24): Tribulation Thunder Grass, Ninefold Heaven
+  Lotus and Dao Origin Fruit, and any herb whose name promises more than Foundation
+  Establishment. Parked in `Herbs.Deferred` (defs and models kept, `deferred = true`);
+  they return with the realms past FE9: into `Herbs.Order`, a region pool and the top of
+  the bed, pond and grove mutation chains.
+- **Legendary herb pity** (owner, 2026-10-24): an explicit pity for Legendary herbs (a
+  per-chain counter that guarantees the mutation every 1 / `mutateChance` harvests).
+  Mutation chains and boss seeds are the slow pity until then.
 - **What stands in now:** herbs are eaten directly; pills, cores and elixirs are loot
   and shop items; foundation repair uses meditation, seclusion and tending; stones
   sink into the Herbalist, the Pavilion and building; weapon grades come from
@@ -379,7 +387,8 @@ rewards using them over M1; no enemy asks for a technique; and nothing combines.
   agent per class).
 
 ## 5. The spirit garden
-**Today:** 22 herbs in 3 soils (bed, pond, grove), tiers I-V with 3-5 each, 7
+**Today:** 19 herbs in 3 soils (bed, pond, grove), tiers I-IV with 4-5 each (tiered by
+how grand the name is; tier V deferred, see "Deferred to a later update"), 7
 mutations, sizes, weather effects, wild sprouts, the Herbalist, Grow Now, and an aura
 on cultivation. Eating a qi herb gives its tier's share of the current dantian
 (`Pacing.Herbs.EAT_SHARE`), beasts drop their region's seeds (`Herbs.Regions`), and the
@@ -389,7 +398,7 @@ tinted stand-ins until the modeler builds them (garden "Models to build").
 
 **Plan:**
 - **Herb tiers** I-V tied to regions, qi as a share of the dantian
-  ([progression](progression.md)); built with 3-5 herbs per tier. More herbs later as
+  ([progression](progression.md)); built with 4-5 herbs per tier I-IV, tier V deferred. More herbs later as
   regions get their maps.
 - **Alchemy is deferred** (see "Deferred to a later update"). Herbs are eaten directly
   for now; their sinks are the Herbalist, the sect's errands, the Herbarium and buffs.
@@ -407,7 +416,7 @@ tinted stand-ins until the modeler builds them (garden "Models to build").
 - **Gardener road:** garden aura, seclusion and tempering carry a pure gardener to every
   wall, just slower than a fighter ([progression](progression.md) "Difficulty").
 - **Sect garden:** a shared plot the sect tasks tend (quests with no combat).
-- **Build order:** herb tiers and qi scaling, regional tiers IV-V and region seeds,
+- **Build order:** herb tiers and qi scaling, regional tier IV and region seeds,
   the Herbarium (all built, untuned), then wild gardens (map), then visiting.
 
 ## 6. Building and assets

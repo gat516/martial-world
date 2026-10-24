@@ -456,7 +456,7 @@ Pacing.Herbs = {
 	EAT_FLOOR = { 60, 150, 900, 3000, 8000 }, -- raw qi at least, by tier (tier II's 150 is about 4 wolves at QC4)
 	BUFF_FALLOFF = { 1, 0.5, 0.25 },
 	BUFF_CAP = { QiCondensation = 0.2, QiRefining = 0.3, Foundation = 0.5 } :: { [string]: number },
-	STOCK = { 30, 12, 3, 2, 0 }, -- seeds of one herb a day, by tier I..V
+	STOCK = { 30, 12, 3, 2, 0 }, -- seeds of one herb a day, by tier I..V (V is deferred)
 	PRIZE = {
 		ThousandYearGinseng = 1.0, -- a full dantian (the Thousand-Year Ginseng event)
 		RiftLotus = 0.5, -- half a dantian (Heaven Split's wild bloom)
@@ -467,7 +467,8 @@ Pacing.Herbs = {
 -- first time it's harvested or gathered; each discovery pays DISCOVER stones by its
 -- tier. Discovering every herb of a tier completes its page: TIER stones and a Home
 -- foundation experience ("home:book:<tier>"). First guesses (roadmap open question:
--- small stone rewards plus a foundation experience, no cosmetics yet).
+-- small stone rewards plus a foundation experience, no cosmetics yet). Tier V's numbers
+-- are parked with the deferred herbs (Herbs.Deferred): no tier V page today.
 Pacing.Herbarium = {
 	DISCOVER = { 15, 40, 120, 300, 800 }, -- Spirit Stones per new herb, by tier I..V
 	TIER = { 150, 400, 1200, 3000, 8000 }, -- Spirit Stones for a completed tier page
@@ -916,8 +917,9 @@ Pacing.Variants = {
 --
 -- TARGETS AND THEIR SOURCES (a stage's 100%; the pools are shared by the band's stages,
 -- so a band's first stage gets the most and the deeds (4 a stage) are the floor).
--- Solved with tools/pacing_model.py --foundation (rebalance 2026-10-24) for medians of
--- about 100% (casual), 115% (regular) and 130% (heavy):
+-- Solved with tools/pacing_model.py --foundation (rebalance 2026-10-24; OVER_COST raised
+-- to 5 the same day, owner: "if foundation is too easy, then raise the bar") for medians
+-- of about 97% (casual), 110% (regular) and 112% (heavy), 130%+ on 1 / 3 / 7 stages:
 --   QC1-3   none   the hook has no foundation (FROM): nothing earned, graded or shown,
 --                  so the first breakthroughs never read as a failure
 --   QC4-9   4      Inner Wilds and Borderlands pools: the QC beasts, Jade Jiao and the
@@ -943,8 +945,9 @@ Pacing.Foundation = {
 	-- 100% is meant to be easy (user, 2026-10-24: "break through at 100 percent should be
 	-- easy to reach... players should have to grind crazy hard so they get the real, extra
 	-- bonuses"): past the target each percent costs OVER_COST times as many experiences
-	-- (150% takes target x 2.5), and most of the bonus lives past 100%.
-	OVER_COST = 3,
+	-- (150% takes target x 3.5), and most of the bonus lives past 100%. 3 let the regular
+	-- reach 130%+ on half its stages; 5 leaves 130%+ to band-entry stages and the heavy.
+	OVER_COST = 5,
 	-- past this percent the open experiences stop being listed: the rest are found, not
 	-- read (user, 2026-10-24: "the tasks u do past 110 or 120 percent are hidden")
 	HIDDEN_FROM = 110,

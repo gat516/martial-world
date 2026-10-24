@@ -9,7 +9,9 @@ was solved with it and is applied.
 - Script: `python3 tools/pacing_model.py` (stdlib Python, outside Studio). It
   parses `Pacing.luau` (curve, `Adjust`, `Herbs`, `Aura`, `Meditation`, `PeakScore`,
   `Foundation`...), `Herbs.luau`, `Items.luau`, `Config.luau`, `BuildItems.luau` and
-  `Weather.luau` on every run, so a tuning change shows on the next run. Every run
+  `Weather.luau` on every run, so a tuning change shows on the next run. Herbs marked
+  `deferred = true` (`Herbs.Deferred`, tier V) are skipped, and the mutation unlocks stop
+  at the highest kept tier. Every run
   prints the profiles, the **balance check** and the **header check**.
   Flags: `--stages` (per-stage rates), `--sources` (where cultivation came from),
   `--levers` (one lever off at a time), `--foundation` (foundation percent per
@@ -81,19 +83,21 @@ runs at the seat's multiplier while refining).
 The two roads are the balance check's "one road plus a natural garden, no min-maxing
 of buffs, cores or decorations".
 
-## Results (rebalance applied, 2026-10-24)
+## Results (rebalance, herb re-tier and foundation bar applied, 2026-10-24)
 
 Active hours / calendar day to FE9 full ("online only" turns off offline credit,
 which is what the active targets mean: QC 2.4 h, QR 7.1 h, FE 19.8 h, 29.3 h in all).
+The herb re-tier, the deferred tier V and the sell-price cut moved every profile by
+under 3% (regular online 29.3 > 29.7 h).
 
 | | QC done | QR done | FE9 full | Online only: QC / QR / FE realm, total |
 |---|---|---|---|---|
 | Before (2026-10-24 morning) casual | 1.0 h / d3 | 3.0 h / d7 | 5.5 h / d12 | 1.6 / 3.6 / 5.7, 10.9 h |
 | Before regular | 1.5 h / d2 | 4.5 h / d4 | 7.9 h / d6 | 1.7 / 3.7 / 4.4, 9.8 h |
 | Before heavy | 1.0 h / d1 | 4.0 h / d2 | 7.0 h / d3 | 1.5 / 3.2 / 3.3, 8.0 h |
-| **Now casual** | 1.5 h / d4 | 5.0 h / d11 | 14.4 h / d29 | 2.2 / 7.2 / 21.8, 31.2 h |
-| **Now regular** | 2.1 h / d2 | 7.5 h / d6 | 22.5 h / d16 | 2.4 / 7.1 / 19.8, **29.3 h** |
-| **Now heavy** | 1.6 h / d1 | 7.4 h / d3 | 21.5 h / d8 | 2.2 / 6.5 / 15.9, 24.6 h |
+| **Now casual** | 1.5 h / d4 | 5.0 h / d11 | 14.3 h / d29 | 2.2 / 7.2 / 22.3, 31.7 h |
+| **Now regular** | 2.1 h / d2 | 7.5 h / d6 | 22.3 h / d15 | 2.4 / 7.1 / 20.2, **29.7 h** |
+| **Now heavy** | 1.6 h / d1 | 7.5 h / d3 | 21.7 h / d8 | 2.2 / 6.9 / 16.1, 25.2 h |
 | Bare fighter (the header's active column) | 2.8 h | 14.5 h | 97.6 h | |
 
 The approved proposal (the morning's `--proposal`, bars x1.15 / x1.8 / x5.1) gave
@@ -106,9 +110,9 @@ lever and "no lever is mandatory"; with those (below) the bars came out x1.15 / 
 
 | | Total | Against the regular | Limit |
 |---|---|---|---|
-| Hunter road | 32.3 h | +10% | +15% |
-| Garden road | 32.9 h (QC 3.0 h: tier I herbs give little, so the garden road's QC is slower) | +12% | +15% |
-| Heavy (everything) | 24.6 h | x1.19 speed | x1.30 |
+| Hunter road | 33.3 h | +12% | +15% |
+| Garden road | 34.0 h (QC 3.0 h: tier I herbs give little, so the garden road's QC is slower) | +14% | +15% |
+| Heavy (everything) | 25.2 h | x1.18 speed | x1.30 |
 
 Before the rebalance the garden road was +95% and the hunter +34% over the regular
 (on the proposal's knobs); what closed it: buff caps, the lighter seat items, the aura
@@ -118,14 +122,14 @@ from every plant, the Herbalist's tier III-IV seeds and the gardener's herb sale
 
 | Lever off | Casual | Regular | Heavy |
 |---|---|---|---|
-| Offline credit | +117% | +30% | +14% |
-| Spirit cores | +5% | +8% | +12% |
-| Herb qi | +2% | +6% | +12% |
-| Herb buffs | 0% | +7% | +7% |
-| Garden aura | +1% | +7% | +9% |
-| Method (FE) | +2% | +7% | +10% |
-| Peak score / cushion / party / root / seclusion | 0-1% | 0-1% | 7% / 2% / 3% / 1% / 14% |
-| The stone economy (everything bought at once) | -13% | -28% | -21% |
+| Offline credit | +122% | +33% | +16% |
+| Spirit cores | +5% | +9% | +11% |
+| Herb qi | +2% | +8% | +11% |
+| Herb buffs | 0% | +7% | +3% |
+| Garden aura | +2% | +6% | +9% |
+| Method (FE) | +2% | +7% | +9% |
+| Peak score / cushion / party / root / seclusion | 0-1% | 0-1% | 4% / 2% / 4% / 1% / 14% |
+| The stone economy (everything bought at once) | -12% | -25% | -27% |
 
 No single lever is worth more than about 12% to anyone but offline credit (the casual's
 nights carry two thirds of their QR and FE). Levers still substitute for each other
@@ -149,21 +153,22 @@ understates each a little; the balance check is the real measure.
   buffs made a regular's FE seat 2.3x a natural gardener's. Meditation pieces halved.
 - **The stone economy is a brake:** a regular earns about 13,000 stones by FE9 (QC
   780, QR 2,500, FE 10,000); the cushion arrives at FE9, the score at about half.
-  Bought outright, a regular would be 28% faster. The garden road needs herb sales to
-  afford its garden; tier III-V sell prices then flood it (250,000 stones in FE).
+  Bought outright, a regular would be 25% faster. The garden road needs herb sales to
+  afford its garden; tier III-V sell prices then flooded it (250,000 stones in FE) until
+  the 2026-10-24 price cut (37,000).
 
 ### Acquisition (expected values)
 
 | | Root pills by FE9 | Tier III seeds | Tier IV seeds | Stones QC / QR / FE |
 |---|---|---|---|---|
-| Casual | 1.1 | FE6, day 21 | FE8, day 26 | 600 / 1,800 / 7,700 |
-| Regular | 2.3 | QR7, day 4 (Herbalist) | FE7, day 13 | 780 / 2,500 / 10,100 |
-| Heavy | 3.4 (Earth at FE8) | QR6, day 2 | FE2, day 4 (seclusion) | 480 / 4,000 / 21,500 |
-| Hunter road | 2.5 | FE3, day 7 | FE6, day 11 | 710 / 2,300 / 9,800 |
-| Garden road | 1.2 | FE1, day 6 | FE4, day 9 | 450 / 7,500 / 250,000 |
+| Casual | 1.1 | FE6, day 21 | FE8, day 25 | 600 / 1,800 / 7,700 |
+| Regular | 2.2 | QR7, day 4 (Herbalist) | FE3, day 8 (Lingzhi mutation) | 780 / 2,500 / 9,500 |
+| Heavy | 3.4 (Earth at FE8) | QR6, day 2 | FE2, day 4 | 480 / 4,000 / 21,600 |
+| Hunter road | 2.5 | FE3, day 7 | FE5, day 10 | 710 / 2,300 / 9,900 |
+| Garden road | 1.2 | FE1, day 6 | FE2, day 7 | 450 / 7,500 / 36,700 (sales 31,300) |
 
-Tier V still never drops on today's map (Far Reaches bosses only; 0.5-1% mutations):
-the heavy reaches it at FE8 through mutation.
+Tier V is deferred (`Herbs.Deferred`): out of the game and the model. Stones aren't
+printed by a flag; read them from `Model(...).run()["stones"]` (by major and source).
 
 ## Foundation percent (TARGET, OVER_COST, carry)
 
@@ -177,23 +182,28 @@ minute), caches (assumed 3/3/2/0/0 per band), world events (~4.6 an hour server-
 and treasures, and the sect (chain, Inner, Core). Expected values, so fractional.
 `solve_foundation` grid-searches the knobs for `FOUNDATION_GOAL`.
 
-Applied (owner-approved): TARGET 4 for QC4-QC9, `DEFAULT_TARGET` 2.5, `OVER_COST` 3,
-`MAX_PERCENT` 150, and experiences past what 150% needs carry into the next stage
-(`Foundation.seal`). On this curve, with the carry:
+Applied (owner-approved): TARGET 4 for QC4-QC9, `DEFAULT_TARGET` 2.5, `MAX_PERCENT` 150,
+experiences past what 150% needs carry into the next stage (`Foundation.seal`), and
+`OVER_COST` 5 (was 3; owner, 2026-10-24: "if foundation is too easy, then raise the
+bar"). On this curve, with the carry:
 
-| | Median | Mean | Stages under 100% | Stages at 130%+ |
-|---|---|---|---|---|
-| Casual | 100% | 94% | 11 | 3 |
-| Regular | 133% | 128% | 2 | 12 |
-| Heavy | 144% | 129% | 2 | 14 |
+| `OVER_COST` | Casual median / 130%+ | Regular median / 130%+ / under 100% | Heavy median / 130%+ |
+|---|---|---|---|
+| 3 (before) | 100% / 3 | 119% / 11 / 4 | 144% / 14 |
+| 4 | 97% / 3 | 113% / 7 / 5 | 123% / 8 |
+| **5 (applied)** | 97% / 1 | **110% / 3 / 5** | 112% / 7 |
+| 6 | 97% / 1 | 108% / 3 / 5 | 110% / 4 |
 
-The regular reaching 130%+ on about half its stages breaks "130-140% takes real
-effort" (an open call in [progression rules](progression-rules.md)): `OVER_COST` 4
-gives medians 97 / 114 / 123%. The model's profiles barely separate on foundation (the
-heavy's habits differ little from the regular's), so read these as rough. Structural
-notes stay: band pools are front-loaded (FE4 and QR6 hit 150% for everyone, the carry
-feeds the next stages); QR and FE have no same-realm beasts with variants off; slept
-stages seal low for the casual (QC6, QR2, QR4). Re-run once variants are on.
+(Before the herb re-tier the regular's median at 3 was 133% with 12 stages at 130%+.)
+At 5 the regular reaches 130%+ only on the band-entry stages (QR1, QR6, FE4, where a
+fresh pool lands); the heavy on 7 of 23. Raising the bar further squeezes the heavy as
+much as the regular: the profiles barely separate on foundation (the heavy plays 3 h a
+day, so it spends less time per stage, and its habits differ little), so read these as
+rough. A higher target instead would push more of the casual's stages under 100%.
+Structural notes stay: band pools are front-loaded (FE4 and QR6 hit 150% for everyone,
+the carry feeds the next stages, less of it at 5); QR and FE have no same-realm beasts
+with variants off; slept stages seal low for the casual (QC6, QR2, QR4); the regular's
+FE1-3 and FE6-8 sit at 66-98%. Re-run once variants are on.
 
 ## Known gaps
 

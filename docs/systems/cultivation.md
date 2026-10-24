@@ -190,9 +190,10 @@ not the foundation.
   percent should be easy to reach... players should have to grind crazy hard so they get
   the real, extra bonuses". Targets are small (4 a stage QC4-QC9, `DEFAULT_TARGET` 2.5 in
   QR and FE, which have no same-realm beasts while variants are off; rebalance
-  2026-10-24), and past the target each percent costs `OVER_COST` (3) times as many
-  experiences, so the cap, 150%, takes 2.5x the target; 130-140% is meant to be a real
-  achievement.
+  2026-10-24), and past the target each percent costs `OVER_COST` (5; owner, 2026-10-24:
+  "if foundation is too easy, then raise the bar") times as many experiences, so the
+  cap, 150%, takes 3.5x the target; 130-140% is meant to be a real achievement (in the
+  model the regular reaches it on 3 of 23 stages, the heavy on 7).
 - **The carry:** experiences past what 150% needs carry into the next stage's count
   (`Foundation.seal`), so a band's front-loaded pool (its first stage takes most of the
   fresh experiences) spreads over its stages. The model's medians with it: casual 100%,
@@ -253,7 +254,7 @@ not the foundation.
   Jiao, tier I and mutations again, the tier I page, events and treasures again), QC9 6
   (the Elder Wolf King), QR1-5 5 (Outer Wastes: apex ring-1 beasts with variants, tier
   II and its page), QR6-FE3 5 (Deep Wilds band: Thunder Ape and Nine-Tailed Fox, tier
-  III), FE4-9 5 (tier IV and V, events, Dao). The deeds give up to 4 a stage on top. A
+  III), FE4-9 5 (tier IV, events, Dao). The deeds give up to 4 a stage on top. A
   band's pool is shared by its stages, so the first stage of a band runs past 100% and
   the later ones lean on the deeds, Dao and world events.
 - **Seal:** at `Cultivation.advance` (every breakthrough from QC4 on), `Foundation.seal` stores the

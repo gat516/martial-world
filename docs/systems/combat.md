@@ -22,7 +22,7 @@ scales all player damage.
   target's size (1.0-1.8x its height, or half its length), so the Thunder Ape
   (~30 studs) frames at 30-54. Tuning: `DISTANCE_*`, `SIZE_*` in `LockOn.luau`.
 - Getting hurt marks you in combat for a few seconds: no teleporting away, and
-  it's the condition for a forced breakthrough. Getting hurt or landing damage
+  it's the condition for a forced breakthrough (to become the qi surge, Phase A). Getting hurt or landing damage
   (`fighting`) sets the player attribute `InCombat` until `IN_COMBAT_SECONDS`
   pass quietly; the client reads only that (the top-right tiles fold down, the
   boss bar lifts, Guide holds its spotlight).
@@ -47,9 +47,18 @@ scales all player damage.
 - `src/shared/Techniques.luau`: technique defs (line, circle, chain, zone, buff),
   levels (`MAX_LEVEL` 10, +8% damage a level, XP per cast). At the top of
   tiers I-III (levels 3, 6, 9) XP stops at a bottleneck (`Techniques.bottleneck`);
-  the player breaks it seated in meditation by spending insight and Spirit Stones
-  (`InventoryAction "comprehend"` -> `Progression.comprehend`, costs in
+  the player breaks it seated in meditation with Spirit Stones and enough weapon Dao
+  (`InventoryAction "comprehend"` -> `Progression.comprehend`, numbers in
   `Pacing.Comprehension`), which opens the next visual tier.
+- **Weapon Dao gates techniques** ([weapons](weapons.md) Dao 0-10). Learning needs
+  the def's `dao` in its class (`Techniques.learnDao`): the seven class skills need
+  2 (`CLASS_SKILL_DAO`), the starter arts (Sword Qi Wave, Palm Strike and the
+  any-weapon arts) 0, so onboarding never waits on Dao. Any-weapon arts count the
+  player's highest class Dao. Bottleneck k (1-3, at levels 3, 6, 9) needs Dao
+  `min(10, learn + 2k)` (`Techniques.comprehendDao`): Sword Qi Wave 2/4/6, Moonflash
+  Draw 4/6/8. A manual found too early is kept (`data.techniques.manuals`), toasts
+  "requires Sword Dao 2", shows in Arts with its requirement, and is learned the
+  moment that Dao level is reached (`Weapons.onLevelUp` -> `Progression.learnReady`).
 - `src/shared/Knockback.luau`: how far player hits push beasts (by realm power
   ratio and beast weight) and the stagger they cause.
 - `src/server/Combat.luau`: `action` (Attack remote: begin/hit/cancel/sync),

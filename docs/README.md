@@ -74,13 +74,13 @@ POI, cache, find, qi node, lair, boss ring, array and event ground is tagged `PO
 
 The whole plan from QC1 to FE9 (stages, regions, sect quests, optional bosses) is in [progression](progression.md).
 The UI screens we need and their art prompts are in [ui overhaul plan](ui/overhaul-plan.md). Every piece of art to generate, as Codex sheets, is in [codex sheets](ui/codex-sheets.md) (the older per-piece list: [codex brief](ui/codex-brief.md)).
-What we build next and in what order (solidity, onboarding, sect, techniques, garden, building) is in [roadmap](roadmap.md) (relationships and replayability are parts in [roadmap/](roadmap/)).
+What we build next and in what order (foundation grades, the haul and the surge, onboarding, sect, techniques, garden, building) is in [roadmap](roadmap.md) (relationships and replayability are parts in [roadmap/](roadmap/)).
 
 ## Where to tune things
 
 | Want to change | File |
 |---|---|
-| How fast players climb, per stage: qi, breakthroughs, tribulation, insight, beast strength | `src/shared/Pacing.luau` ([cultivation](systems/cultivation.md)) |
+| How fast players climb, per stage: qi, breakthroughs, tribulation, technique Dao gates, beast strength | `src/shared/Pacing.luau` ([cultivation](systems/cultivation.md)) |
 | Enemy overhead bar danger tiers (realm-gap thresholds); their art, colours and omen lines | `src/shared/Pacing.luau` `Danger`; `STYLES` in `src/client/EnemyBars.luau` ([enemies](systems/enemies.md)) |
 | Practice Dao drill (unlock stage, cooldown, XP share, game) | `src/shared/Pacing.luau` `DaoPractice` ([meditation](systems/meditation.md)) |
 | Objective rewards (every onboarding beat and lesson, by id) | `src/shared/Pacing.luau` `Quests` ([onboarding](systems/onboarding.md)) |
@@ -110,7 +110,7 @@ What we build next and in what order (solidity, onboarding, sect, techniques, ga
 
 | System | Doc | Server | Shared | Client |
 |---|---|---|---|---|
-| Cultivation, realms, breakthroughs, tribulation, insight | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, QiNodes | Pacing, Realms | Hud, SeatBars, BreakthroughView, CirculationMinigame, CultivationGui, FoundationMeter, DeathSave, CultivationMarks |
+| Cultivation, realms, breakthroughs, tribulation | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, QiNodes | Pacing, Realms | Hud, SeatBars, BreakthroughView, CirculationMinigame, CultivationGui, FoundationMeter, DeathSave, CultivationMarks |
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
 | Combat and action states | [combat](systems/combat.md); [guard and parry](combat/guard-parry.md), [technique visuals](combat/technique-visuals.md) (one file per technique in [combat/techniques/](combat/techniques/)) | Combat, CombatQi, Movement, PlayerStun, Guard | ActionRules, Hitbox, Techniques, Knockback, GuardRules, Config.Combat (`CC`: player flinch, stagger, stun; `GUARD`) | CombatController, ActionState, GuardController, GuardBar, GuardFX, CrowdControl, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |

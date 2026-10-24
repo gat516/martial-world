@@ -68,7 +68,7 @@ tiles in the same row (`CultivatePrompt.PracticeTechnique`, `.PracticeDao`,
 
 | Tile | Does | When it can't |
 |---|---|---|
-| Technique (`PracticeTechnique`, the gourd) | panel: techniques at a bottleneck, their insight and stone cost, Comprehend (`InventoryAction "comprehend"`) | dimmed; toasts "No technique is at a bottleneck yet." |
+| Technique (`PracticeTechnique`, the gourd) | panel: techniques at a bottleneck, the weapon Dao they need and their stone cost, Comprehend (`InventoryAction "comprehend"`) | dimmed; toasts "No technique is at a bottleneck yet." |
 | Weapon Dao (`PracticeDao`, crossed jian) | Practice Dao drill (`CirculationMinigame.practice`); an m:ss countdown while resting, a tap toasts the wait | dimmed; toasts the stage it opens at, or that the Dao is mastered |
 | Back (`icon_back`) | back to the main row | always |
 

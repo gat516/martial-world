@@ -17,13 +17,19 @@ marked built; nothing here has been playtested.
 4. **Story over rules.** Every system reads as cultivation fiction (cracked
    foundation, heart demons, sect rank), not a menu.
 5. Every system names its **arrow into the loop** (core-loop rules).
+6. **Few mechanics at once (user, 2026-10-23).** Fun for kids and mobile players
+   first; depth for hardcore players without permadeath. Each mechanic is taught
+   alone and fits in one sentence from the elder, or it's cut.
 
 ## Deferred to a later update (user, 2026-10-22)
 These are real plans but **not in this pass**. Nothing before FE9 depends on them.
 - **Alchemy:** the peak furnace, crafted pills (qi, heal, buffs, breakthrough aids,
-  foundation repair), pill impurities and talismans.
-- **Weapon enhancement (refinement):** spend ore and stones to raise a weapon's grade.
+  foundation repair), pill impurities and talismans. The mid-QR slowdown is met by
+  the garden and the peak instead (user, 2026-10-23).
+- **Weapon enhancement (refinement):** spend ore and stones to raise a weapon's
+  grade. Candidate verb for Foundation Establishment.
 - **Mining and ores** (the out verb that feeds refinement).
+- **Body refinement:** a candidate verb for a later realm.
 - **What stands in now:** herbs are eaten directly; pills, cores and elixirs are loot
   and shop items; foundation repair uses meditation, seclusion and tending; stones
   sink into the Herbalist, the Pavilion and building; weapon grades come from
@@ -37,28 +43,111 @@ These are real plans but **not in this pass**. Nothing before FE9 depends on the
 27-stage ladder, `heavenDefying` tribulation gate, optional bosses on the quest
 board ([progression](progression.md)).
 
-### Foundation solidity (replaces the insight gate; proposed 2026-10-22)
-- Each stage has a **solidity** meter beside the bar. It fills by:
-  - **time and tempering:** slowly while idle, faster meditating on your peak;
-  - **experiences** (one-time, by category): Hunt (first kills), Boss (worth 2, the
-    fast road), Home (first harvest of a herb tier, a first rare mutation, a full-bloom
-    garden), Dao (weapon Dao milestones), Discover (wild gardens, caches, secret
-    places), World (witnessing events and phenomena).
-- A full bar **always** allows a breakthrough. Low solidity leaves **cracks**:
-  slower passive and refining until repaired, and a harder tribulation for a
-  heaven-defier. Cracks are repaired by meditating, seclusion, or tending the garden (pills are a later update).
-- Full solidity gives a small **deep foundation** bonus, so the experiences stay
-  worth doing even when time would cover them.
-- **Insight stays** as the spendable currency for technique comprehension only
-  (its gate role is removed; `Pacing.Curve.insight` goes to 0).
-- Damage: a heavy hit or death can crack the foundation a little, never cost
-  cultivation.
-- **Force breakthrough becomes a death-save:** when a blow would kill you and your
-  bar is at least 90%, time slows and a big tap prompt reads "Break through to
-  survive?" (no shift-lock, mobile-friendly). It costs a badly cracked foundation.
-  The seated forced breakthrough in `Cultivation.breakthrough` stays as the manual path.
-- Build order: docs and Pacing numbers, then `data.solidity` and the experience
-  set, then the cracks, then the death-save prompt (ui-designer).
+### Phase A: foundation, the haul and the surge (decided 2026-10-23)
+Replaces the solidity meter and the insight gate. No new HUD meter: the phone HUD
+has no room, so the grade rides on toasts and the breakthrough card, and the surge
+button only appears while it's ready.
+
+**Foundation grade (per breakthrough).**
+- Every breakthrough is graded **Cracked, Steady, Solid or Deep** by what the
+  player experienced during that stage. Hunt (first kills of the region's beasts),
+  Boss (counts double, the fast road), Home (first harvest of a herb tier, a rare
+  mutation), Dao (weapon Dao milestones), Discover (wild gardens, caches, secret
+  places) and World (events and phenomena). Pools are per region and realm, so they
+  never run out. Time fills the bar, not the grade.
+- **Shown only where there's room:** the grade on the breakthrough card and in the
+  Cultivate window; one toast when the bar fills short of Solid ("Your foundation
+  is unsteady. The world still has things to teach you."). Breaking through anyway
+  is always allowed and simply takes the lower grade.
+- **Each grade is a permanent stat bonus, and the gap is noticeable.** Two players
+  at the same stage differ by how they climbed. A Deep foundation is the reward for
+  exploring, never a requirement.
+- **It weighs on the trials, not on the wall:** a cracked foundation makes the
+  tribulation (heaven-defiers only) and the optional heart-demon trial harder.
+  No normal player is walled by it.
+- **Tempering:** old grades can be raised later (seclusion, passing a heart-demon
+  trial at a major), so nobody replays stages to fix one.
+- **Rejected:** a visible solidity meter (no HUD room); damaging your own
+  cultivation to reroll stats (the best play becomes regrinding, which players hate).
+  Shattering your cultivation stays a one-time story beat on the demon path
+  ([replayability](roadmap/replayability.md)).
+
+**The haul and the spirit ring: the cost of death (user, 2026-10-23).**
+- Today death costs nothing, so surviving a fight doesn't matter. Now what you
+  carry home is at stake, which gives "bring it home" in the loop its weight.
+- **At risk: this trip's haul,** everything picked up since you last banked: raw qi
+  in the dantian, herbs, seeds, materials and Spirit Stones. **Never at risk:**
+  refined cultivation, stages, the equipped weapon, learned techniques, and rare
+  finds (manuals, weapons, bloodline essences), which are banked the moment you
+  pick them up.
+- **Banking** happens on reaching home, the sect, or any teleport array.
+- **The spirit ring:** a storage ring with a few safe slots; whatever is in it is
+  banked even out in the wilds. More slots by realm or from the Pavilion. Choosing
+  what goes in the ring is the interesting decision.
+- **Death spills about half the unbanked haul** where you died, as a spirit-light
+  only you can pick up, for about 5 minutes. No other player can loot it (no griefing,
+  no PvP looting). A death never costs cultivation or a stage.
+- **Leaving while combat-tagged counts as a death** (no combat logging).
+- **Rejected:** a wound on the cultivation bar as the death cost. Two death
+  penalties at once is where it turns hardcore.
+
+**The qi surge (replaces the forced breakthrough).**
+- **Its point:** survive and keep your haul. A clutch comeback, not insurance.
+- **Ready** when the bar is at least 90% and health is low (today's `canForce`
+  conditions).
+- **Fire:** on mobile a surge button appears in the touch cluster while it's ready;
+  on PC a notice reads "M to qi surge". M is Meditate today; while the surge is
+  ready in combat, M surges instead (nobody meditates mid-fight). No prompt, no pause.
+- **Effect:** about 15 s at the next stage's stats and a small heal; the realm plaque
+  shows the higher stage.
+- **Cost:** it burns a share of the raw qi in your dantian (or essence blood, if that
+  becomes a resource), so it trades a little of the haul to save the rest. When the
+  combat tag drops, one toast: "Your cultivation falls back."
+- The real forced breakthrough and its qi debt are removed; breakthroughs are seated only.
+
+**Insight is deleted (built).** It no longer gates breakthroughs (the walls are the bar,
+plus the tribulation for heaven-defiers) and no longer pays for comprehension.
+Its sources (first kills, bosses, milestones) become foundation experiences.
+Technique gating moves to weapon Dao (section 4). First kills and boss kills are
+still tracked as hooks but grant nothing until foundation experiences land.
+
+**Shelved UI:** the solidity meter (`FoundationMeter.luau`) and the death-save
+prompt (`DeathSave.luau`) from the UI pass. Phase A needs instead: the surge
+button and "M to qi surge" notice, the grade line on the breakthrough card, the
+spirit ring slots, and the spilled-haul spirit-light.
+
+**Build order:** docs and Pacing numbers; the haul, banking and death spill; the
+spirit ring; foundation grades and experience pools; the surge (insight deletion
+is built).
+
+### Pacing, realm gaps and verbs (decided 2026-10-23)
+Research behind it: Roblox median sessions are 5-9 min and D7 is 3-8%, so the
+first session decides; full Roblox RPGs run 30-100 h; cultivation games use about
+8-12% per minor stage and 2-2.5x at a major.
+- **Targets (active play):** QC about 2.5 h, QR about 7 h, FE about 20 h, so about
+  30 h to FE9, which stays the cap and should be hard to reach. Passive and
+  offline cultivation stretch it over real days.
+- **Shape:** every realm is early (1-3), middle (4-6) and late (7-9), each easy to
+  hard, with a breather opening each third so a breakthrough feels good. QC never
+  slows early: the first session lands two or three breakthroughs. **The real
+  slowdown is mid Qi Refining**, where investing in your spirit garden and your
+  peak (abode, formations, herbs) is what keeps cultivation moving (user,
+  2026-10-23; not alchemy).
+- **No stretch over 2-3 h without something new** (a zone, boss, rift or verb).
+- **Strength:** about +10% per minor stage and about 2-2.5x at a major, plus
+  **realm suppression**: damage from a lower major realm is heavily reduced
+  against a higher one, so a QC player can barely scratch an FE beast. That's the
+  heaven-and-earth gap without huge multipliers. Techniques count about as much
+  as realm, so one minor stage up is fightable and a major is not.
+- **Each major brings a new verb, not just numbers:** QC the body and combat, QR
+  the abode: the garden and peak building that boost cultivation (and qi leaving
+  the body), FE weapon refinement and a first
+  sword glide. Body refinement and others are kept for later realms.
+- **Heaven-defiers** resist suppression partly, so they fight above their level
+  and farm stronger beasts, bosses and herbs. They pay with about a 1.5x bar and a
+  tribulation at every major.
+- **Herbs:** the tier share of the dantian needs a floor per tier (early herbs
+  became tiny), and event herbs (Thousand-Year Ginseng) must stay big.
 
 ### Pacing follow-ups
 Tune the QR and FE curve from analytics; the two bosses tuned for the old FE1 get
@@ -66,6 +155,13 @@ re-tiered; region seals wait for the map.
 
 ## 2. Onboarding (QC1 to QC9, then each realm)
 Today the hook ends at QC3 and the garden, sect and techniques arrive unannounced.
+- **The hook (2026-10-23, from Roblox metrics):** combat within the first minute or
+  two and two or three breakthroughs in the first few minutes, one mechanic at a
+  time. The current first ten minutes are being audited to retune it.
+- **Spread over every realm, sprinkled as the player advances:** QC teaches the loop
+  (out and home, the garden, the board); QR the social layer and the abode
+  (master, Halls, seclusion, rifts, the heart demon); FE the depth (method,
+  refinement, treasures, pets). Move the second weapon and Dao drills out of QC.
 - **QC1-3 (keep):** circulate, break through, root, travel out, hunt, technique,
   refine. Minor fixes only.
 - **QC3 end:** the elder names the loop once ("cultivate until you hit a wall,
@@ -88,6 +184,9 @@ Today the hook ends at QC3 and the garden, sect and techniques arrive unannounce
   the ui-designer.
 
 ## 3. The sect and quests
+**MVP first (user, 2026-10-23):** rank, contribution, the board with dailies and one
+chapter chain, and the Pavilion. Halls, masters, weeklies, bounties, spirit quests
+and sect-wide goals are sprinkled in later as the player advances (QR onward).
 Per [progression](progression.md): ranks, board, dailies, weeklies, chapter chains,
 bounties, sect tasks, contribution and a Pavilion shop (never qi).
 - **Data:** a contribution counter and rank in `PlayerData`; quest defs reuse
@@ -118,6 +217,14 @@ bounties, sect tasks, contribution and a Pavilion shop (never qi).
 - **Sect-wide goals:** server-wide shared tasks (fill the storehouse, light the
   wards before a beast tide) that reward everyone who helped. Cadence and social in one.
 
+## 3e. Reasons to meet other players (2026-10-23)
+The realm gap shows against content, so players need reasons to cross paths:
+- **Shared credit:** everyone who damages a beast gets their own loot; no kill-stealing.
+- **Group world events and roaming beast kings**, rewards scaled to each player's realm,
+  so a senior helping still earns.
+- **Co-op rifts** with better loot as a party; sect board tasks with shared credit.
+- Halls and lineage after the MVP.
+
 ## 3d. Relationships: masters, disciples and sect siblings (proposed 2026-10-22)
 NPC masters at QR1, cohorts of nine with numbered seats and epithets, player masters, up to three masters, bloodline granting (trial chains, the Blood Rite) and the safety rules: [relationships](roadmap/relationships.md).
 
@@ -125,8 +232,8 @@ NPC masters at QR1, cohorts of nine with numbered seats and epithets, player mas
 Today gains show as small toasts, floating numbers and a Rewards feed. Players should
 feel the big ones.
 - **Three tiers.** *Small:* a floating number or a line in the feed (qi, stones).
-  *Medium:* a top banner for a notable gain (a technique tier, a cracked foundation
-  repaired, a Herbarium entry, a quest done). *Big:* a full card with a short beat and
+  *Medium:* a top banner for a notable gain (a technique tier, a foundation
+  tempered, a Herbarium entry, a quest done). *Big:* a full card with a short beat and
   sound for milestones (a breakthrough, a first of a category, a bloodline, a rank).
 - **The card shows what changed:** the stat deltas, the new unlock, and one line on
   what to do next ("Your foundation is firm. The Outer Wastes are open.").
@@ -159,9 +266,15 @@ rewards using them over M1; no enemy asks for a technique; and nothing combines.
 
 **The fix, in four layers (revised 2026-10-22: fewer techniques, deeper ones):**
 1. **Three skills per weapon class (21), found as manuals, unlocked by weapon
-   mastery.** A technique can be learned any time, but it can only be *equipped*
-   once that class's Dao level reaches its threshold: about level 2, 5 and 8 for
-   the three skills (Dao runs 0-10). So mastery of a weapon is what opens its arts.
+   mastery (user, 2026-10-23).** A technique can only be *learned* once that class's
+   Dao level reaches the threshold its power and rarity set: about level 2, 5 and 8
+   for the three skills (Dao runs 0-10). A beginner can't pick up a greatsword and
+   learn Heaven-Splitting Descent. A found manual is always kept: it sits in the pouch
+   reading "Requires Greatsword Dao 6", so a drop is a goal, never a dead pickup.
+   Any-weapon arts check the player's highest class Dao (open: or their own threshold).
+   Comprehension (breaking a tier bottleneck) costs Spirit Stones and needs a higher
+   Dao level in the class, not insight (built: class skills need Dao 2, bottleneck k
+   needs learn + 2k; the 21-skill set and the 5/8 thresholds aren't made yet).
 2. **Techniques deepen instead of multiplying.** Each technique levels up
    (existing comprehension) through its visual tiers T1-T4 ([vfx style](vfx/style.md)),
    so one skill grows from a plain cast into a spectacle. No new content per level
@@ -202,7 +315,7 @@ Herb qi is flat per item, so the garden loses value around QC6.
   and size records. Keep it calm, no punishment for being away.
 - **The Herbarium:** a collection index of every herb, size and mutation seen,
   with rewards. It's the "grow a garden" hook and feeds the Home experiences.
-- **Wild gardens:** discoverable spots in each region (insight-free "Discover"
+- **Wild gardens:** discoverable spots in each region ("Discover" foundation
   experiences); harvest once a day; a reason to explore.
 - **Visiting:** walk through a friend's peak and gift a herb. A cheap social hook,
   and a way to show building.
@@ -249,17 +362,20 @@ wire the **cultivator enemies** as human opponents and sect-quest targets, and
 tune the old FE1 bosses.
 
 ## 9. Replayability: why come back after the ladder
+**Baked in, not bolted on (user, 2026-10-23):** no reincarnation at FE. What makes a
+second run different is designed in now: races and bloodlines, the sect, rogue and
+demon paths, random rifts, foundation grades to beat, and the haul's risk.
 Rebirth with a legacy, paths as affiliations (sect, rogue, a secret demon path), mixed secret realms and rifts, cadence, endless goals, social, new realms; then the discoverable demon secret chain: [replayability](roadmap/replayability.md). Rule: build 1-3 only after the core loop and the ladder are proven in playtests.
 
 ## 9b. More cultivation elements (candidates, 2026-10-22; QC to FE9 only)
 Proposals to pick from; none decided. Each must name its arrow into the loop.
 1. **Seclusion (closed-door cultivation).** Start it on purpose: sit for hours (the
    existing offline cultivation, framed). On return a short story result ("you
-   comprehended..."), a bonus to solidity, a small chance of a fortuitous insight.
+   comprehended..."), tempers an old foundation grade, a small chance of a fortuitous encounter.
    Arrow: home. Perfect for gardeners and mobile players.
 2. **Heart-demon trial.** A choice-based, no-reflex inner trial at a major breakthrough
    (dialogue and choices that reflect how you played), optional, repairs or deepens
-   the foundation. Replaces "skill" with story. Arrow: breakthrough and solidity.
+   the foundation. Replaces "skill" with story. Arrow: breakthrough and foundation grade.
 3. **Fortuitous encounters.** Rare, random, sharable moments while out: an old hermit
    in a ring, a dying cultivator's bequest, a hidden spring. Small rewards, big
    stories. Arrow: out (explore). The genre's best content-creator fuel.
@@ -288,11 +404,11 @@ Each phase ends in a commit and a test-build playtest.
 
 | Phase | Work | Agents |
 |---|---|---|
-| A | Solidity docs and numbers; `data.solidity`, cracks | main session |
+| A | Foundation grades, the haul and spirit ring, the qi surge, insight deleted | main session; `ui-designer` for the surge button, ring slots and grade line |
 | B | Herb tiers, qi scaling, Herbarium | main session |
 | C | Sect: rank, contribution, board, dailies, Pavilion | main; `ui-designer` |
 | D | Onboarding lessons QC4-QC9 and the wall card | main; `ui-designer` |
-| E | Statuses, combo rules, then techniques class by class | main; one `vfx` per batch |
+| E | Statuses, combo rules, then techniques class by class (**deferred**, 2026-10-23: enough enemies; systems first) | main; one `vfx` per batch |
 | F | Building: peak tiers, sets, formations | `modeler` per set; `ui-designer` |
 | G | World events and tribulation VFX | `world-fx` |
 | H | Elite tiers, cultivators, curve tuning | `enemy-designer` per beast; analytics |
@@ -302,18 +418,20 @@ A, B and C can run together if we split files carefully; D waits for C; E and F 
 run alongside them. Before spawning, ask how many agents and sandbox Studios at once
 ([orchestration](agents/orchestration.md#how-many-at-once)).
 
-**UI built ahead of its systems (ready to wire, 2026-10-23):** the solidity meter and
-death-save prompt ([cultivation UI](ui/cultivation.md#ready-to-wire-components)), the
+**UI built ahead of its systems (ready to wire, 2026-10-23):** the
 Herbarium ([herbarium](ui/herbarium.md)), the sect board, quest log, rank, Hall and
 lineage screens ([sect board](ui/sect-board.md), [halls and masters](ui/halls-masters.md))
 and the dialogue screen ([dialogue](ui/dialogue.md)). The systems behind them are not built.
+The solidity meter and death-save prompt are shelved by Phase A.
 
 ## Open questions
-- How big is a "crack"? Proposal: -15% passive and refine per crack, up to three,
-  repaired by time, meditation or seclusion.
-- Is a death-save usable once per hour or once per stage?
-- Do heaven-defiers get extra cracks from rushing, or a harder tribulation only?
-- Does the Herbarium reward cosmetics only, or small solidity?
+- Foundation grade bonuses: which stats, and how big a gap between Cracked and Deep?
+- How many experiences per stage make each grade?
+- Spill share (half proposed), spirit-light lifetime (5 min proposed), ring slot counts.
+- Surge length (15 s proposed), its raw-qi cost, and does it have a cooldown beyond the 90% bar?
+- Essence blood: a resource of its own (for the surge, the Blood Rite, the demon path) or flavour?
+- How much harder is a tribulation or heart-demon trial per grade below Solid?
+- Does the Herbarium reward cosmetics only, or foundation experiences?
 - Which building sets are robux and which are earnable? (earnable first)
 - Rebirth: is it a full reset (keeping the legacy) or a parallel second character?
 - How harsh is the Blood Rite's cost (one stage plus days of ebb, as drafted)?

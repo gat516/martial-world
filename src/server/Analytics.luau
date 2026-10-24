@@ -7,8 +7,7 @@
 -- 5 First kill, 6 First technique slotted, 7 Refined at a node/peak, 8 QC3.
 -- Custom events: CirculationScore (0-100), Breakthrough (seconds since the last
 -- one, field: realm), TribulationResult (1/0), Death (field: what killed them),
--- OfflineQiClaimed, SessionLength (seconds), InsightBlocked (stage index, field:
--- stage name; a full bar at a stage that still needs insight).
+-- OfflineQiClaimed, SessionLength (seconds).
 --
 -- Realm progression (path "Realm", level = Realms stage index, name = stage
 -- name): Start when a player enters a stage (stage 1 on their first join),

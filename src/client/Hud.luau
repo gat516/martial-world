@@ -132,7 +132,7 @@ local function placeToast(toast: GuiObject)
 end
 
 -- Toasts queue up instead of overwriting each other, so simultaneous news (an
--- insight and a manual from one kill) are all readable. Repeats are skipped.
+-- a manual and a weapon from one kill) are all readable. Repeats are skipped.
 function Hud.toast(message: string)
 	said[message] = os.clock()
 	if queue[#queue] == message then

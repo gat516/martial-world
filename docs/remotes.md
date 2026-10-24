@@ -13,7 +13,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | Meditate | Event | both | `Meditation.handle(on)`; server fires `false` to stand you up | Meditation |
 | Sprint | Event | C->S | `Cultivation.setRunning` | Sprint |
 | Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync; "guard" raises/lowers the guard) | CombatController |
-| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "insight", "manual", "weapon", "method", "boss", "reward" (a `Rewards.show` spec table: tier, kind, title...), "used", "bolt", "tribulationStart" (to all: player, center, strikes), "tribulationEnd", "guardMeter" (owner: character, stored, at, up), "guard" (to all: character, parried/blocked/broken, attacker position), "enemyCue" (to all: enemy model, cue name, target character; see enemies.md), "died" (`Combat.died` from Humanoid.Died: `{ cause = "enemy"/"fall"/"tribulation"/"unknown", source = enemy def id?, poisoned, respawn = seconds, hub }`; see ui/death-screen.md) | CombatController, CombatEffects, Rewards, RootFX, EnemyFX, DeathScreen |
+| Effect | Event | S->C | many: "root" (to all: player, element, grade, first), "perfect", "damage", "hurt", "cast", "qi", "stones", "loot", "manual", "weapon", "method", "boss", "reward" (a `Rewards.show` spec table: tier, kind, title...), "used", "bolt", "tribulationStart" (to all: player, center, strikes), "tribulationEnd", "guardMeter" (owner: character, stored, at, up), "guard" (to all: character, parried/blocked/broken, attacker position), "enemyCue" (to all: enemy model, cue name, target character; see enemies.md), "died" (`Combat.died` from Humanoid.Died: `{ cause = "enemy"/"fall"/"tribulation"/"unknown", source = enemy def id?, poisoned, respawn = seconds, hub }`; see ui/death-screen.md) | CombatController, CombatEffects, Rewards, RootFX, EnemyFX, DeathScreen |
 | Telegraph | Event | S->C | `EnemyService` (attack areas before they land: shape, seconds, enemy or nil, attack name, server start time) | Telegraphs, EnemyFX |
 | PlayerState | Event | S->C | `Cultivation.pushState` (full snapshot) | State (everything reads State) |
 | Breakthrough | Event | S->all | `Cultivation.advance` (player, stage name, major) | BreakthroughView |
@@ -21,7 +21,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 | QuestState | Event | S->C | `Quests` (beat, objective, reward, goals, guide, lesson, openBoard) | Onboarding |
 | BuildAction | Function | C->S | `Build.handle` ("buy", "place", "store", "move") | BuildMode, BuildCatalog |
 | GardenAction | Function | C->S | `Garden.handle` ("plant", "harvest", "growTarget", "uproot", "buySeed", "sell", "sellAll") | Planting, GardenView, HerbShop |
-| InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot" (onto an occupied slot: that item goes back to the bag), "clear", "swap" (any two slots, empty ones too), "comprehend", "seen" {ids}: no longer NEW, "view" tab, sort, filter: the Inventory's saved view) | Inventory, HotbarView, Fresh, InventoryFilter |
+| InventoryAction | Function | C->S | `Inventory.handle` ("use", "slot" (onto an occupied slot: that item goes back to the bag), "clear", "swap" (any two slots, empty ones too), "comprehend" (stones plus weapon Dao), "seen" {ids}: no longer NEW, "view" tab, sort, filter: the Inventory's saved view) | Inventory, HotbarView, Fresh, InventoryFilter |
 | TravelAction | Function | C->S | `Travel.go` (gate id; sect arrays from anywhere in the sect, otherwise from an array; wilds arrays only from the Sect Gate's or a wilds array) | TravelMenu |
 | SaveSettings | Event | C->S | `Settings.save` | Settings |
 | AdminAction | Function | C->S | `Admin.handle` (admins only; trait* actions take a target player, see [identity](systems/identity.md)) | AdminPanel |
@@ -48,8 +48,8 @@ player `Race`, `RaceVariant`, `Traits`, `TraitsInactive` ([identity](systems/ide
 ## Server hook pattern
 
 Modules expose hook lists that `Main.server.luau` fills, which keeps modules from
-requiring each other in circles: `Cultivation.onBreakthrough`, `.onPush`,
-`.onInsightBlocked`; `EnemyService.onKill`; `Circulation.onFinished`;
+requiring each other in circles: `Cultivation.onBreakthrough`, `.onPush`;
+`EnemyService.onKill`; `Weapons.onLevelUp` (Progression learns kept manuals); `Circulation.onFinished`;
 `Tribulation.onFinished`; `Quests.onBeat`, `.onClaimed`; `Progression.onEarned`. Some are
 function slots set by the module that owns the answer: `Cultivation.meditation`
 (Meditation), `Cultivation.inCombat` (Combat), `CombatQi.fighting` (Combat), `Cultivation.startTribulation`

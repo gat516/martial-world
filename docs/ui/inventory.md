@@ -121,7 +121,7 @@ and stack are the same pixel size at 1366x768):
 | NEW chip, seal mark, art disc | 14, 22, 28-48 | 64, 128, 128 (4.5-5.8x) | `_h32`, `_h48`, `_h96` (2-3.4x) |
 | Weapon badge, class glyphs | 22, 16-24 | 128, 256 (5.8x, 8-16x) | `_h48`, `_h64` (2-4x) |
 | Dao bar rim | 16 | 0.17 (6x) | `_h32`, Rect(12,12,116,20), 0.67 (2x) |
-| Grade gems, insight and stone icons | 13-22 | 303-317, 128 | `_h40`, `_h48` |
+| Grade gems and stone icon | 13-22 | 303-317, 128 | `_h40`, `_h48` |
 
 Item icons stay at 128 px (40 px in a cell, 28 on the hotbar: 3.2-4.6x); redrawing
 `draw_icons.py` at 64 px would bring them in line.
@@ -249,10 +249,20 @@ not on the hotbar. A v9 profile counts everything it owned as seen (migration 9)
 A chosen art shows its tier, level and XP bar (a `DaoList` row cloned from
 `RowTemplate`). At a bottleneck (XP full at level 3, 6 or 9) the bar turns cinnabar
 and reads "Bottleneck", the cell's "Lv" turns the same colour, two cost rows
-(insight and Spirit Stones icons, "need · you have") show up, and the Secondary button
-becomes Comprehend (jade). While it can't run it stays lacquer and dimmed and its
-caption is the reason ("Meditate to comprehend", "Need insight", "Need stones"); a
-tap toasts the longer reason. Comprehending belongs to the seated Practice row's
+(the class's Dao, with its glyph, or "Weapon Dao" for an any-weapon art; and Spirit
+Stones; "need · you have") show up, and the Secondary button becomes Comprehend
+(jade). While it can't run it stays lacquer and dimmed and its caption is the reason
+("Meditate to comprehend", "Need Sword Dao 4", "Need stones"); a tap toasts the
+longer reason.
+
+## Kept manuals
+
+A manual found before its weapon Dao (`techniques.manuals` in the snapshot) shows in
+Arts like an art, its corner reading "Dao 2" in warning orange. Its detail says it
+will be learned once the Dao is deep enough, the Pairs line reads "Requires Saber
+Dao 2. Yours is 0.", and the Dao row of that class (every class for an any-weapon
+art) shows the progress. No actions: it can't go on the hotbar (drag and slot taps
+are ignored) until the server learns it on the level-up. Comprehending belongs to the seated Practice row's
 Technique tile; the button here still works while seated (`Bottleneck` holds the
 shared logic). Success is the server's notify.
 

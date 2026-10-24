@@ -55,7 +55,6 @@ local Hotbar = require(ReplicatedStorage.Shared.Hotbar)
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
-local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Gates = require(ReplicatedStorage.Shared.Gates)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Cultivation = require(script.Parent.Cultivation)
@@ -66,7 +65,6 @@ local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 local CollectionService = game:GetService("CollectionService")
 local PlayerData = require(script.Parent.PlayerData)
 local DaoPacing = require(ReplicatedStorage.Shared.Pacing).DaoPractice
-local Progression = require(script.Parent.Progression)
 
 local questRemote = ReplicatedStorage.Remotes.QuestState :: RemoteEvent
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
@@ -453,10 +451,10 @@ Quests.Beats = {
 	{
 		id = "QC3",
 		reward = REWARDS.QC3,
-		elder = "First kills grant insight. You will need it to reach Qi Refining. Now break through again.",
+		elder = "Every weapon you train deepens its Dao, and a deeper Dao opens greater arts. Now break through again.",
 		talk = {
 			lines = {
-				"First kills grant insight. Every realm ahead will ask for it.",
+				"Train a weapon and its Dao deepens. Greater arts wait on a deeper Dao.",
 				"Fill your bar once more, and break through again.",
 			},
 			reply = "Again, then.",
@@ -552,11 +550,11 @@ Quests.Lessons = {
 	},
 	{
 		id = "Bottleneck",
-		elder = "Your technique has hit a bottleneck. Sit in meditation and comprehend it; insight opens the way.",
+		elder = "Your technique has hit a bottleneck. Sit in meditation and comprehend it; Spirit Stones and a deeper weapon Dao open the way.",
 		talk = {
 			lines = {
 				"Your technique has hit a bottleneck. Swinging harder will not break it.",
-				"Sit in meditation and comprehend it. Insight opens the way.",
+				"Sit in meditation and comprehend it. Spirit Stones and a deeper weapon Dao open the way.",
 			},
 			reply = "I will sit with it.",
 		},
@@ -681,13 +679,6 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 	if nextStage then
 		local major = nextStage.major ~= stage.major
 		local defier = Cultivation.heavenDefying(data)
-		if data.insightEarned < stage.insight then
-			table.insert(goals, {
-				name = "Gather insight",
-				detail = `Insight from first kills, kill milestones and bosses (an optional, faster road) opens the way to {nextStage.name}.`,
-				progress = `{data.insightEarned}/{stage.insight}`,
-			})
-		end
 		if Cultivation.methodLimit(data, nextStage) then
 			table.insert(goals, {
 				name = "Seek a stronger method",
@@ -713,28 +704,19 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 	if data.stats.bossKills == 0 then
 		table.insert(goals, {
 			name = "Slay the Elder Wolf King (optional)",
-			detail = "He rules the far end of the wilds. A faster road, never required: his first defeat yields a technique manual and insight.",
+			detail = "He rules the far end of the wilds. A faster road, never required: his first defeat yields a technique manual.",
 			progress = "0/1",
 		})
 	end
 	for _, m in Pacing.Rewards.MILESTONES do
 		if not data.milestones[tostring(m.kills)] then
-			local reward = if m.manual then Techniques.Defs[m.manual].name else "insight"
+			local reward = if m.manual then Techniques.Defs[m.manual].name else "nothing"
 			table.insert(goals, {
 				name = `Slay {m.kills} enemies`,
-				detail = `Reward: {reward}{if m.insight and m.manual then " and insight" else ""}.`,
+				detail = `Reward: {reward}.`,
 				progress = `{data.stats.kills}/{m.kills}`,
 			})
 			break
-		end
-	end
-	for id, def in Enemies.Defs do
-		if not def.boss and not data.firstKills[id] then
-			table.insert(goals, {
-				name = `First {def.name}`,
-				detail = "The first kill of each kind of beast grants insight.",
-				progress = "0/1",
-			})
 		end
 	end
 	local owned = 0
@@ -744,7 +726,7 @@ function Quests.goals(data: PlayerData.Data): { Goal }
 	if owned < #Techniques.Order then
 		table.insert(goals, {
 			name = "Learn every technique",
-			detail = "Manuals come from kill milestones and the Elder Wolf King.",
+			detail = "Manuals come from kill milestones and the Elder Wolf King. Greater arts need a deeper weapon Dao to learn.",
 			progress = `{owned}/{#Techniques.Order}`,
 		})
 	end
@@ -758,7 +740,7 @@ local function rewardQi(reward: Pacing.QuestReward, data: PlayerData.Data): numb
 	return if reward.qiShare then math.floor(Cultivation.stage(data).dantian * reward.qiShare + 0.5) else 0
 end
 
--- "30 Spirit Stones, 65 raw qi, 1 insight" (nil for no reward).
+-- "30 Spirit Stones, 65 raw qi" (nil for no reward).
 function Quests.rewardText(reward: Pacing.QuestReward?, data: PlayerData.Data): string?
 	if not reward then
 		return nil
@@ -770,9 +752,6 @@ function Quests.rewardText(reward: Pacing.QuestReward?, data: PlayerData.Data): 
 	local qi = rewardQi(reward, data)
 	if qi > 0 then
 		table.insert(parts, `{qi} raw qi`)
-	end
-	if (reward.insight or 0) > 0 then
-		table.insert(parts, `{reward.insight} insight`)
 	end
 	return if #parts > 0 then table.concat(parts, ", ") else nil
 end
@@ -814,14 +793,8 @@ local function claim(player: Player, data: PlayerData.Data, quest: Quest)
 	if qi > 0 then
 		table.insert(got, `{qi} raw qi`)
 	end
-	if (reward.insight or 0) > 0 then
-		table.insert(got, `{reward.insight} insight`)
-	end
 	local gained = if #got > 0 then ` +{table.concat(got, ", ")}` else ""
 	Cultivation.notify(player, `Objective complete: {quest.objective}!{gained}`)
-	if (reward.insight or 0) > 0 then
-		Progression.grantInsight(player, reward.insight :: number, quest.objective)
-	end
 	Cultivation.pushState(player)
 end
 

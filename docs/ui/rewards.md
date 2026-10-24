@@ -10,7 +10,7 @@ ScreenGui (`assets/Rewards.rbxmx`, `StarterGui.Rewards`). The toast (the `Hud`'s
 | Tier | Looks like | Used by |
 | --- | --- | --- |
 | `small` | a number or short line with a white kit glyph, rising 40 px and fading over 1.1 s | ready for floating gains (qi, stones); nothing calls it yet |
-| `feed` | a row in the reward feed (right side, above the touch cluster): the toast's plaque, plain; the icon on a seal disc in its rarity or currency colour, the name, a count that climbs | stones, loot, insight, manuals, weapons, methods (`Effect`) |
+| `feed` | a row in the reward feed (right side, above the touch cluster): the toast's plaque, plain; the icon on a seal disc in its rarity or currency colour, the name, a count that climbs | stones, loot, manuals, weapons, methods (`Effect`) |
 | `banner` | kicker, a three-part ribbon with the title, a tag and a subtitle, top centre; jade, gold (the navy objective banner) or crimson | the region entry banner (`RegionBanner.luau`); notable gains and onboarding objectives later |
 | `card` | one card, three jobs; reward tiles, stat deltas, the new unlock, one line of flavour; tap or click to skip | boss victory (`Effect "boss"`), breakthroughs (`BreakthroughView`), quests later |
 
@@ -59,7 +59,7 @@ Rewards.show({ tier = "card", kind = "quest", title = "Quest Complete",
 Rewards.preview(tier, kind)  -- sample content: ("card", "boss"|"quest"|"milestone"|"rank"), ("banner", "jade"|"gold"|"crimson"), ("feed"), ("small")
 ```
 
-Keys (feed rows and card tiles): `stones`, `qi`, `insight`, `contribution` (currency:
+Keys (feed rows and card tiles): `stones`, `qi`, `contribution` (currency:
 coin frame on card tiles, a disc in the currency's colour on feed rows), `manual:<technique>`, `weapon:<id>`, `method:<id>`, or an `Items` id.
 Item tiles take the edge of their rarity or grade on the Inventory's ladder
 ([inventory](inventory.md), `Rarity.luau`): Common/Mortal bronze (`neutral`),
@@ -164,7 +164,7 @@ rows; 17 px from each end to the disc and the count.
 Kit cuts in `art/ui/codex/cut/` (sheets B1, B2, A6, C3, C5, light effects; ids in
 `art/ui/assets.json`): `card_boss`, `card_quest`, `rays_boss`, `rays_milestone`,
 `ribbon_crimson_*`, `ribbon_jade_*`, `objective_banner_*`, `tile_*` (card tiles),
-`gem_*`, `coin_frame`, `glyph_spirit_stone`, `glyph_qi`, `glyph_insight`,
+`gem_*`, `coin_frame`, `glyph_spirit_stone`, `glyph_qi`, `glyph_insight` (now only the dialogue's study glyph),
 `emblem_peak`, `emblem_lotus`, `fx_glint`, `ruby_stud` (toast). Drawn: `toast_plaque`
 (toast and feed rows) and `art_disc` (feed discs), `art/ui/draw_ui.py plain`. The Figma mock is
 "Rewards / Cards, feed, toast (mock)" on the kit's Example page (file

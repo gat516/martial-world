@@ -4,12 +4,13 @@
 -- the ring multiplies passive cultivation (Meditation.addSite). `condenseSeconds`
 -- before the end the clouds pour into the relic and unseal it; the first to claim
 -- it learns the technique the relic names, or another from the def's pool they
--- don't know yet, or gains insight if they know them all; that ends the event.
+-- don't know yet, or Spirit Stones if they know them all; that ends the event.
+-- A manual whose weapon Dao they lack is kept until they have it (Progression).
 -- The clouds are drawn by clients (WorldEventFX) from the event's published
 -- position; the relic is a server clone of
 -- ReplicatedStorage.Effects.AuspiciousClouds.Relics.<def.relic>, whose
 -- ClaimPrompt starts disabled.
--- Def settings: radius, meditation, condenseSeconds, relic, techniques, insight.
+-- Def settings: radius, meditation, condenseSeconds, relic, techniques, stones.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -20,6 +21,7 @@ local PlayerData = require(script.Parent.Parent.PlayerData)
 local Progression = require(script.Parent.Parent.Progression)
 local Treasures = require(script.Parent.Parent.Treasures)
 
+local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 local wilds = workspace:WaitForChild("Wilds")
 
 local AuspiciousClouds = {}
@@ -54,16 +56,21 @@ function AuspiciousClouds.start(run: any): boolean
 		if run.ended or not data then
 			return
 		end
-		local learn = if data.techniques.owned[techniqueId] then nil else techniqueId
+		local function has(id: string): boolean
+			return data.techniques.owned[id] ~= nil or data.techniques.manuals[id] == true
+		end
+		local learn = if has(techniqueId) then nil else techniqueId
 		for _, id in def.techniques do
-			if not learn and not data.techniques.owned[id] then
+			if not learn and not has(id) then
 				learn = id
 			end
 		end
 		if learn then
 			Progression.grantManual(player, learn)
-		else
-			Progression.grantInsight(player, def.insight, `Studied the {relicName}`)
+		elseif (def.stones or 0) > 0 then
+			data.stones += def.stones
+			effectRemote:FireClient(player, "stones", relic:GetPivot().Position, def.stones)
+			Cultivation.notify(player, `You studied the {relicName}: +{def.stones} Spirit Stones`)
 		end
 		Cultivation.markActive(player)
 		Cultivation.pushState(player)

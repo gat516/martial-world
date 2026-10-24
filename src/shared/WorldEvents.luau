@@ -61,8 +61,8 @@ WorldEvents.Defs = {
 	-- clients in WorldEventFX). Meditating inside the ring cultivates far faster;
 	-- `condenseSeconds` before the end the clouds pour into the relic and unseal it,
 	-- and the first to claim it learns a technique from `techniques` (the one the
-	-- relic names if they don't know it, else another they don't; `insight` if they
-	-- know them all).
+	-- relic names if they don't know it, else another they don't; `stones` Spirit
+	-- Stones if they know them all).
 	--   radius      studs: the meditation ring around the relic
 	--   meditation  passive multiplier inside (Pacing.Meditation: 1.5 anywhere, 2.5 on your peak)
 	--   relic       ReplicatedStorage.Effects.AuspiciousClouds.Relics child
@@ -79,7 +79,7 @@ WorldEvents.Defs = {
 		condenseSeconds = 90,
 		relic = "Manual",
 		techniques = { "PalmStrike", "IronSkin" },
-		insight = 1, -- for a claimer who already knows every technique in the pool
+		stones = 60, -- for a claimer who already knows every technique in the pool
 		look = { pattern = "Vortex", color = Color3.fromRGB(246, 250, 255), accent = Color3.fromRGB(140, 235, 190) },
 	},
 	VioletCloudMist = {
@@ -94,7 +94,7 @@ WorldEvents.Defs = {
 		condenseSeconds = 90,
 		relic = "Manual",
 		techniques = { "FireSeal", "LightningTalisman" },
-		insight = 1,
+		stones = 60,
 		look = { pattern = "Mist", color = Color3.fromRGB(214, 190, 255), accent = Color3.fromRGB(160, 110, 240) },
 	},
 	GoldenAuspiciousClouds = {
@@ -109,7 +109,7 @@ WorldEvents.Defs = {
 		condenseSeconds = 75,
 		relic = "Sword",
 		techniques = { "LightningTalisman", "FireSeal", "IronSkin", "PalmStrike" },
-		insight = 2,
+		stones = 120,
 		look = { pattern = "Spiral", color = Color3.fromRGB(255, 244, 214), accent = Color3.fromRGB(255, 196, 90) },
 	},
 } :: { [string]: Def }

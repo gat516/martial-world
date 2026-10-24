@@ -128,6 +128,7 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 			return false, `Unknown technique, or level isn't 1-{Techniques.MAX_LEVEL}`
 		end
 		data.techniques.owned[id] = { level = level, xp = 0 }
+		data.techniques.manuals[id] = nil
 		Cultivation.pushState(player)
 		return true, `{def.name} is now level {level}`
 	end,
@@ -172,6 +173,9 @@ local actions: { [string]: (Player, PlayerData.Data, ...any) -> (boolean, string
 			return false, `Unknown class, or level isn't 0-{WeaponDefs.MAX_LEVEL}`
 		end
 		data.dao[class] = { level = level, xp = 0 }
+		for _, fn in Weapons.onLevelUp do -- kept manuals that now have their Dao are learned
+			fn(player, class)
+		end
 		Cultivation.pushState(player)
 		return true, `{def.dao} is now {level}`
 	end,

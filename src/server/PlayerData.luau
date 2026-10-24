@@ -33,7 +33,7 @@ local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 
 local Slots = require(ReplicatedStorage.Shared.Config).Slots
 
-local SCHEMA_VERSION = 11 -- one slot's profile (Data)
+local SCHEMA_VERSION = 12 -- one slot's profile (Data)
 local ACCOUNT_VERSION = 1 -- the slots wrapper (Account)
 
 -- a placed build item: id, item, peak-local pivot, yaw, and placement mode (nil = floor)
@@ -51,10 +51,9 @@ export type Data = {
 	cultivation: number, -- progress in the current realm bar
 	rawQi: number, -- held in the dantian, refined by circulation runs
 	stones: number, -- Spirit Stones, spent at the Spirit Market
-	insight: number, -- unspent insight (spent comprehending techniques)
-	insightEarned: number, -- every insight ever gained; breakthroughs check this
 	methods: { owned: { [string]: boolean }, active: string }, -- active "" = Sect Breathing
-	techniques: { owned: { [string]: Technique } },
+	-- owned: learned; manuals: found but its weapon Dao isn't there yet (learned when it is)
+	techniques: { owned: { [string]: Technique }, manuals: { [string]: boolean } },
 	hotbar: { string },
 	firstKills: { [string]: boolean },
 	milestones: { [string]: boolean }, -- kill milestones claimed, by kill count
@@ -130,10 +129,8 @@ local function default(): Data
 		cultivation = 0,
 		rawQi = Income.STARTING_RAW_QI,
 		stones = Economy.STARTING_STONES,
-		insight = 0,
-		insightEarned = 0,
 		methods = { owned = {}, active = "" },
-		techniques = { owned = { LightningTalisman = { level = 1, xp = 0 } } }, -- any weapon
+		techniques = { owned = { LightningTalisman = { level = 1, xp = 0 } }, manuals = {} }, -- any weapon
 		hotbar = Hotbar.empty({ "LightningTalisman" }),
 		firstKills = {},
 		milestones = {},
@@ -243,10 +240,8 @@ local migrations: { [number]: (any) -> () } = {
 		end
 		d.root = Roots.new()
 	end,
-	-- v6 never spent insight, so everything held so far was earned
-	[6] = function(d)
-		d.insightEarned = d.insight or 0
-	end,
+	-- v6 tracked insight separately from insight earned (insight is gone since v12)
+	[6] = function() end,
 	-- v7 counted onboarding beats by position; v8 keeps them by id, so beats
 	-- can be reordered or inserted. This is the v7 beat order.
 	[7] = function(d)
@@ -285,6 +280,11 @@ local migrations: { [number]: (any) -> () } = {
 	-- v10 had no character screen: the slot is unnamed until its player names it
 	[10] = function(d)
 		d.character = {}
+	end,
+	-- v11 had insight (deleted in Phase A: walls are the bar, techniques gate on weapon Dao)
+	[11] = function(d)
+		d.insight = nil
+		d.insightEarned = nil
 	end,
 }
 

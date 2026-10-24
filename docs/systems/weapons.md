@@ -22,6 +22,11 @@ Dao comprehension per weapon class that grows as you fight with it.
   Damage of M1 and the class's techniques = base x realm power x grade x Dao.
   Level 2 is neutral (x1.0); untrained (0) is x0.8 and mastery x1.3. A new
   player's Fist and Sword start at 2, so starting power is unchanged.
+- **Dao gates techniques:** a class skill is learned only at that class's Dao 2,
+  and each comprehension bottleneck needs more (learn + 2 per bottleneck). A manual
+  found too early waits in Arts reading "Requires Saber Dao 2" and is learned on
+  the level-up that reaches it ([combat](combat.md)). Any-weapon arts count the
+  highest class Dao.
 - Starting kit: a Mortal Iron Jian, equipped (new profiles and the v5 migration).
 
 ## Key files
@@ -62,7 +67,10 @@ its own comprehension bottlenecks for free, and needs four visual tiers
 | Admin / test kit | `weapon`, `allWeapons`, `daoLevel`; `Config.TestKit.ALL_WEAPONS` |
 
 Learning a class manual grants that class `XP_MANUAL` Dao XP (re-studying a
-known one at a cache too). A gained weapon fires Effect `"weapon"` (weaponId).
+known one at a cache too). A manual kept for lack of Dao grants nothing until it
+is learned; Fist and Sword start at Dao 2, so Twin Phoenix Cannon and Moonflash
+Draw are learned on the spot, the other classes' skills wait on that class's Dao.
+The Cloud-Pattern Jade treasure gives Dao XP to the class in hand. A gained weapon fires Effect `"weapon"` (weaponId).
 
 ### World anchors (placed by the map)
 - `ManualCache`: a BasePart tagged `ManualCache` in Workspace, attributes `Cache`

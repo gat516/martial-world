@@ -2,7 +2,7 @@
 
 ## Purpose
 Demon beasts in the wilds: the source of raw qi, Spirit Stones, spirit cores,
-seeds, insight and technique manuals, and the main test of a player's realm.
+seeds and technique manuals, and the main test of a player's realm.
 
 ## Design intent
 - Readable fights: every damaging attack has a ground telegraph; bosses rotate a
@@ -311,7 +311,7 @@ point is the body centre. Per-body numbers and attachments are in the RIGS.md of
   `despawn`, `onRemoved`, the state machine (idle, chase, windup, dash, recover,
   stagger), attack pools, packs (howl, circle, hop) and attack slots, `strike`
   (telegraphed areas, also used by the tribulation), kill rewards and `onKill` hooks.
-- Kill hooks: `Progression.onKill` (insight, manuals, boss pools), `Inventory.onKill`
+- Kill hooks: `Progression.onKill` (manuals, boss pools; first kills tracked), `Inventory.onKill`
   (drops), `Garden.onKill` (seeds).
 - `src/server/EnemyMover.luau`: kinematic movement (goal, speed, push, turn, `look`
   to face a point while circling, ground and walls).

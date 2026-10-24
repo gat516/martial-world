@@ -13,7 +13,8 @@ main peak, the sect gate and the wilds arrays (see [map](map.md), "World structu
   dialogue screen with a short conversation for that beat (see "Talking to the elder").
 - Beats: Circulate -> Breakthrough -> Root (travel unlocks here: ride to the
   Main Peak and touch the Testing Stone, see [character](character.md)) -> Gate -> FirstKill ->
-  Technique (3 kills, done once the 3-kill milestone's manual is earned) -> Refine
+  Technique (3 kills, done once the 3-kill milestone's manual, Fire Seal, is earned;
+  it's an any-weapon starter art needing Dao 0, so it never waits on weapon Dao) -> Refine
   (done once a run is finished, or when the bar is already full, since a full
   bar can't take a run) -> QC3 -> FreePlay (the top quest-board goal).
 - A beat can show progress after its objective (`progress`, e.g. Technique's
@@ -153,7 +154,7 @@ to the first kill.
 ### Rewarded objectives (decided 2026-10-21)
 - **The objective line is the onboarding for now.** Every beat and lesson is a
   rewarded objective, claimed once per profile: finishing it pays a small
-  reward (mostly Spirit Stones; raw qi or insight for bigger moments), with a
+  reward (mostly Spirit Stones; raw qi for bigger moments), with a
   toast ("Objective complete: Plant a seed in your garden! +30 Spirit Stones"),
   the stones' floating number and the Pickup sound, and the Rewards feed. The
   tracker shows the reward after the objective ("Plant a seed in your garden ·
@@ -174,8 +175,7 @@ to the first kill.
 - **Claiming** is server-side in `Quests.check`: a beat when it's passed, a
   lesson when its objective is done while it applies (so planting before QC4
   pays at QC4). `claim` marks `data.quests[id]` before granting, so nothing
-  pays twice. Raw qi only fills the room left in the dantian. Insight goes
-  through `Progression.grantInsight` (counts toward breakthroughs).
+  pays twice. Raw qi only fills the room left in the dantian.
 - **Objective line priority:** a guiding lesson's objective while unclaimed
   (what its guide points at) -> the current
   beat -> the first unclaimed lesson whose objective applies -> the top quest
@@ -183,7 +183,7 @@ to the first kill.
 - **Rewards** are all in `Pacing.Quests` (the comment there sizes them
   against the early economy): the eight beats pay 80 stones in all (about 18
   wolf kills) plus a quarter dantian of raw qi at QC3; lessons pay 20-50; a
-  cultivation method pays 150 and 1 insight.
+  cultivation method pays 150.
 - **Open questions** for the questing system: where quests come from (givers
   around the sect, the quest board, or auto-offered as now); dailies and
   repeatables (what resets, and what they pay without inflating stones);
@@ -266,8 +266,8 @@ here". Template built by `tools/vfx_specs/Guide.luau`; this client only.
 
 ## Data flow
 Every second `Quests.check` marks met beats in `data.beats`, claims done
-objectives in `data.quests` (granting their rewards: `Effect` "stones", "qi",
-"insight" and a `Notify` toast) and pushes
+objectives in `data.quests` (granting their rewards: `Effect` "stones", "qi"
+and a `Notify` toast) and pushes
 `QuestState` `{ step, beat, elder, objective, reward, travel, goals, guide, lesson }`
 (only when something visible changed, or a lesson fires); the elder's Talk sends
 `{ talk = { lines, reply, board } }` and the board's Read `{ openBoard = true }`; Onboarding passes `travel`
@@ -281,7 +281,7 @@ then pivots the character onto that array.
 - `Gates.List`, `Gates.RANGE`; `Config.Travel`: `SECT_GATE` (Gate beat check),
   `COOLDOWN`; `Config.Spawn.HEIGHT` (arrival height above an array).
 - Rewards shown on the board come from `Pacing.Rewards`; objective rewards
-  from `Pacing.Quests` (stones, `qiShare` of the dantian, insight).
+  from `Pacing.Quests` (stones, `qiShare` of the dantian).
 
 ## Known gaps
 - No real questing system yet: no quest log, givers, chains or dailies; only

@@ -122,16 +122,13 @@ end
 Cultivation.methodLimit = methodLimit
 
 -- What stops a seated breakthrough right now, "" when nothing does:
--- "peak" (no stage beyond), "insight", "method", then "bar" (not full yet).
+-- "peak" (no stage beyond), "method", then "bar" (not full yet).
 -- Doesn't count the seat, the tribulation cooldown or a tribulation in progress.
 function Cultivation.block(data: PlayerData.Data): string
 	local stage = Cultivation.stage(data)
 	local nextStage = Realms.after(stage.major, stage.minor)
 	if not nextStage then
 		return "peak"
-	end
-	if data.insightEarned < stage.insight then
-		return "insight"
 	end
 	if methodLimit(data, nextStage) then
 		return "method"
@@ -189,7 +186,6 @@ function Cultivation.pushState(player: Player)
 	local now = os.time()
 	publish(player, data)
 	stateRemote:FireClient(player, {
-		insight = data.insight,
 		techniques = data.techniques,
 		rate = Cultivation.rate(data, now, player),
 		aura = Cultivation.aura(data, now),
@@ -315,9 +311,6 @@ function Cultivation.advance(player: Player, debt: number?)
 	end
 end
 
--- Called with (player, stage) when a full-bar breakthrough is refused for lack of insight.
-Cultivation.onInsightBlocked = {} :: { (Player, Realms.Stage) -> () }
-
 -- Called with (player, newStage, major) after every breakthrough.
 Cultivation.onBreakthrough = {} :: { (Player, Realms.Stage, boolean) -> () }
 
@@ -332,7 +325,7 @@ function Cultivation.canForce(player: Player, data: PlayerData.Data): boolean
 end
 
 -- Breakthroughs happen seated in meditation on a full bar: minor ones at once,
--- major ones need insight too, and a heaven-defying player must survive a tribulation first. A minor one can also
+-- and a heaven-defying player must survive a tribulation before a major one. A minor one can also
 -- be forced in combat (canForce), leaving the new realm in qi debt.
 function Cultivation.breakthrough(player: Player): (boolean, string?)
 	local data = PlayerData.get(player)
@@ -343,14 +336,6 @@ function Cultivation.breakthrough(player: Player): (boolean, string?)
 	local nextStage = Realms.after(stage.major, stage.minor)
 	if not nextStage then
 		return false, "You stand at the peak of this world's cultivation, for now."
-	end
-	if data.insightEarned < stage.insight then
-		if data.cultivation >= stage.bar then
-			for _, fn in Cultivation.onInsightBlocked do
-				task.spawn(fn, player, stage)
-			end
-		end
-		return false, "You feel as if you need more insight."
 	end
 	local limit = methodLimit(data, nextStage)
 	if limit then
@@ -391,9 +376,6 @@ local function warning(player: Player, data: PlayerData.Data, rate: number): str
 	if data.cultivation >= stage.bar then
 		local first = not s.fullNoticed
 		s.fullNoticed = true
-		if data.insightEarned < stage.insight then
-			return "You feel as if you need more insight."
-		end
 		if not first then
 			return nil
 		end

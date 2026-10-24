@@ -11,9 +11,22 @@
 --   grade or level on the right) and Effects (what it does for the player, one
 --   line each, gains in jade; no flavour text). The numbers come from the shared
 --   defs (Roots/Pacing.Roots, Methods, Weapons/Pacing.Weapons).
+--     3   Foundation, "FOUNDATION": the grade breaking through now would give
+--         ("Steady foundation", the grade word in its colour), a bar of this
+--         stage's experiences toward Deep ("2 / 4 experiences", marked at the Steady
+--         and Solid shares of Pacing.Foundation), the summed bonus of past grades in
+--         jade, then the open experiences, one line each with the category in gold
+--         ("HUNT  Slay a Stone Boar for the first time"). From PlayerState
+--         `foundation` through foundationOf(), the one reader (hidden without it
+--         live; sample data in Studio).
 --     5   Dantian, "DANTIAN": raw qi in the dantian (RawQi / DantianCap) as a
 --         bar, live while the card is open. Standing, this is the only place the
 --         dantian shows (the HUD shows it only while seated, SeatBars).
+--     8   Race, "RACE": race and variant ("Beast Folk · Wolf", from the Race and
+--         RaceVariant attributes), its rarity on the right (lifted rarity colour),
+--         the race, variant and innate-trait modifiers summed, one line each.
+--     9   Bloodline, "BLOODLINE": not built yet, so "None", muted (seal, Kind and
+--         name dimmed, no effect lines). Fill it like Race when bloodlines land.
 --     10  Root, "SPIRIT ROOT": the perk at this grade, the element's technique
 --         bonus, the cultivation speed from the grade.
 --     12-19 free for root actions (a Reroll button, a stored-roots strip).
@@ -23,8 +36,8 @@
 --     30  Dao, "WEAPON DAO": the equipped class's Dao level, its XP bar and the
 --         weapon damage it gives now and at the next level. No weapon or
 --         technique names here (they live in the Inventory).
---     Later systems (bloodlines and the like) add rows of the same shape; the
---     list scrolls once it is taller than the screen allows.
+--     Later systems add rows of the same shape; the list scrolls once it is
+--     taller than the screen allows (on a phone it always does).
 --   Future tabs (Self | Body) go in Body at LayoutOrder 3, between the stage bar
 --   and Pages; each tab is a page frame inside Pages.
 -- The tile shows (and the crest is tappable) only once the root is tested. After
@@ -34,8 +47,12 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local RunService = game:GetService("RunService")
+
 local Methods = require(ReplicatedStorage.Shared.Methods)
 local Pacing = require(ReplicatedStorage.Shared.Pacing)
+local Rarities = require(ReplicatedStorage.Shared.CharacterCreator.Rarities)
+local Registry = require(ReplicatedStorage.Shared.Identity.Registry)
 local Roots = require(ReplicatedStorage.Shared.Roots)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local ListWindow = require(script.Parent.ListWindow)
@@ -64,6 +81,18 @@ local PULSE_SCALE = 1.14
 -- effect lines (rich text): gains in jade, losses in a muted red
 local GAIN = "#82E6B9"
 local LOSS = "#E69A82"
+local GOLD = "#E2BA68" -- the Kind labels' gold, for the hint categories
+local MUTED = Color3.fromRGB(140, 136, 126) -- an empty row ("None")
+local NAME_COLOR = Color3.fromRGB(236, 232, 220)
+local MARK_ON_FILL = Color3.fromRGB(14, 18, 20) -- the foundation bar's grade marks
+local MARK_ON_TROUGH = Color3.fromRGB(236, 232, 220)
+-- foundation grades, lowest first (Pacing.Foundation.GRADES), and their colours
+local FOUNDATION_COLORS: { [string]: string } = {
+	Cracked = "#E69A82",
+	Steady = "#9FC6E0",
+	Solid = "#82E6B9",
+	Deep = "#F0C860",
+}
 local LIST_MARGIN = 24 -- px the card keeps from the screen's top and bottom edges
 
 -- Major names for "Reaches: ..." by stage-key prefix (Pacing.Curve keys).
@@ -372,6 +401,211 @@ local function renderMethod()
 	effects.Text = table.concat(lines, "\n")
 end
 
+-- Race, bloodline, foundation ------------------------------------------------------
+
+-- One modifier as an effect line, coloured by whether it helps (Registry.MODIFIERS).
+local function modifierLine(kind: string, amount: number): string?
+	if kind == "walk" then
+		local n = math.floor(amount * 10 + 0.5) / 10
+		if n == 0 then
+			return nil
+		end
+		local text = (if n > 0 then `+{n}` else tostring(n)) .. " run speed"
+		return if n > 0 then gain(text) else loss(text)
+	elseif kind == "regen" then
+		return if amount > 0 then gain(`Heal {percent(amount)} of your health each second out of combat`) else nil
+	end
+	local share = signed(if kind == "guard" then -amount else amount)
+	if not share then
+		return nil
+	end
+	local what = ({
+		health = "max health",
+		jump = "jump height",
+		strike = "weapon strike damage",
+		technique = "technique damage",
+		growth = "herb growth",
+		guard = "damage taken",
+		size = "body size",
+	})[kind]
+	if not what then
+		return nil
+	end
+	local text = `{share} {what}`
+	if kind == "size" then
+		return text -- neither a gain nor a loss
+	end
+	return if amount > 0 then gain(text) else loss(text)
+end
+
+local MODIFIER_ORDER = { "health", "strike", "technique", "guard", "regen", "walk", "jump", "growth", "size" }
+
+-- Race, variant and their innate traits' modifiers, summed (as Registry.stat does
+-- on the server for those; traits earned later aren't the race's).
+local function raceEffects(raceId: string, variantId: string): { string }
+	local totals: { [string]: number } = {}
+	local function add(mods: { [string]: number }?)
+		for kind, amount in mods or {} do
+			totals[kind] = (totals[kind] or 0) + amount
+		end
+	end
+	local race = Registry.race(raceId)
+	add(race and race.Modifiers)
+	local variant = Registry.variant(raceId, variantId)
+	add(variant and variant.Modifiers)
+	local active = player:GetAttribute("Traits")
+	for _, id in Registry.innate(raceId, variantId) do
+		local def = Registry.trait(id)
+		local on = type(active) ~= "string" or table.find(string.split(active, ","), id) ~= nil
+		if def and on then
+			add(def.Modifiers)
+		end
+	end
+	local lines = {}
+	for _, kind in MODIFIER_ORDER do
+		local line = modifierLine(kind, totals[kind] or 0)
+		if line then
+			table.insert(lines, line)
+		end
+	end
+	return lines
+end
+
+-- "RACE": the race and its variant ("Beast Folk · Wolf"), the rarity on the right.
+local function renderRace()
+	local row, name, rarityLabel, effects = rowParts("Race")
+	local raceId = player:GetAttribute("Race")
+	local race = Registry.race(raceId)
+	row.Visible = race ~= nil
+	if not race then
+		return
+	end
+	local variantId = player:GetAttribute("RaceVariant")
+	variantId = if type(variantId) == "string" then variantId else ""
+	local variant = Registry.variant(raceId, variantId)
+	name.Text = if variant then `{race.DisplayName} · {variant.DisplayName}` else race.DisplayName
+	name.TextColor3 = NAME_COLOR
+	local rarity = Rarities[(variant and variant.Rarity) or race.Rarity]
+	rarityLabel.Text = if rarity then rarity.DisplayName else ""
+	-- the rarity hue, lifted so it reads on the dark card at phone size
+	rarityLabel.TextColor3 = if rarity then rarity.Color:Lerp(Color3.new(1, 1, 1), 0.35) else NAME_COLOR
+	local lines = raceEffects(raceId, variantId)
+	effects.Text = table.concat(lines, "\n")
+	effects.Visible = #lines > 0
+end
+
+-- "BLOODLINE": not built yet (docs/character/bloodline.md), so always "None",
+-- muted. When it lands, read data.bloodline.id here and fill the row like Race.
+local function renderBloodline()
+	local _, name, right, effects = rowParts("Bloodline")
+	name.Text = "None"
+	name.TextColor3 = MUTED
+	right.Text = ""
+	effects.Visible = false
+end
+
+export type Foundation = {
+	count: number, -- weighted experiences this stage (a boss counts double)
+	target: number, -- this stage's count for a Deep grade
+	grade: string, -- what breaking through now would give: Cracked | Steady | Solid | Deep
+	bonus: number, -- every graded stage's bonus summed, as a share of health and power
+	hints: { { category: string, text: string } }, -- open experiences, up to ~5
+}
+
+-- Sample data for Studio playtests while the server doesn't push `foundation` yet
+-- (never in a live server, where the row hides instead).
+local PREVIEW_FOUNDATION: Foundation = {
+	count = 2,
+	target = 4,
+	grade = "Steady",
+	bonus = 0.04,
+	hints = {
+		{ category = "Hunt", text = "Slay a Stone Boar for the first time" },
+		{ category = "Home", text = "Harvest a tier II herb" },
+		{ category = "Boss", text = "The fast road: defeat the Elder Wolf King" },
+	},
+}
+
+-- The one reader of the foundation snapshot (server Foundation.state, PlayerState
+-- `foundation`; docs/systems/remotes.md). nil hides the row.
+local function foundationOf(state: any): Foundation?
+	local f = state and state.foundation
+	if type(f) ~= "table" then
+		return if RunService:IsStudio() then PREVIEW_FOUNDATION else nil
+	end
+	return {
+		count = tonumber(f.count) or 0,
+		target = tonumber(f.target) or 0,
+		grade = if type(f.grade) == "string" then f.grade else "Cracked",
+		bonus = tonumber(f.bonus) or 0,
+		hints = if type(f.hints) == "table" then f.hints else {},
+	}
+end
+
+-- Where the bar's grade marks sit: the shares of the target that reach Steady and
+-- Solid (the grades between the lowest and the highest in Pacing.Foundation).
+local function gradeShares(): { number }
+	local grades = Pacing.Foundation.GRADES
+	local shares = {}
+	for i = 2, #grades - 1 do
+		table.insert(shares, grades[i].share)
+	end
+	return shares
+end
+
+-- "FOUNDATION": the grade this stage would get now, experiences toward Deep on a
+-- bar marked at Steady and Solid, the bonus so far, and what's still open.
+local function renderFoundation()
+	local row, name, right, effects = rowParts("Foundation")
+	local f = foundationOf(State.current)
+	row.Visible = f ~= nil
+	if not f then
+		return
+	end
+	name.Text = `<font color="{FOUNDATION_COLORS[f.grade] or "#ECE8DC"}">{f.grade}</font> foundation`
+	right.Text = ""
+	local bar = (row:FindFirstChild("Lines") :: Instance):FindFirstChild("Bar") :: Instance
+	local trough = bar:FindFirstChild("Bar") :: Instance
+	local fill = trough:FindFirstChild("Fill") :: Frame
+	local share = if f.target > 0 then math.clamp(f.count / f.target, 0, 1) else 1
+	Motion.ease(fill, { Size = UDim2.fromScale(share, 1) })
+	fill.Visible = share > 0
+	for i, at in gradeShares() do
+		local mark = trough:FindFirstChild(`Mark{i}`) :: GuiObject?
+		if mark then
+			-- dark where the fill covers it, pale on the empty trough
+			mark.Position = UDim2.fromScale(at, 0)
+			mark.BackgroundColor3 = if at <= share then MARK_ON_FILL else MARK_ON_TROUGH
+		end
+	end
+	(bar:FindFirstChild("Value") :: TextLabel).Text = `{math.floor(f.count)} / {math.floor(f.target)} experiences`
+	local lines = {}
+	local bonus = signed(f.bonus)
+	if bonus and f.bonus > 0 then
+		table.insert(lines, gain(`{bonus} max health and power from your foundations`))
+	end
+	if f.grade == "Deep" then
+		table.insert(lines, gain("Deep: nothing more to gain at this stage"))
+	else
+		for _, hint in f.hints do
+			table.insert(lines, `<font color="{GOLD}" size="11">{string.upper(hint.category)}</font>  {hint.text}`)
+		end
+	end
+	effects.Text = table.concat(lines, "\n")
+	effects.Visible = #lines > 0
+end
+
+local function renderRows(root: Roots.Root)
+	renderRoot(root)
+	renderDao()
+	renderRealm()
+	renderMethod()
+	renderDantian()
+	renderRace()
+	renderBloodline()
+	renderFoundation()
+end
+
 -- The list grows with its rows up to what fits on screen, then scrolls. The
 -- canvas comes from the layout: AutomaticCanvasSize doesn't count rows that
 -- size themselves. Sizes are in the card's own units (its pop scale divided out).
@@ -398,11 +632,7 @@ local function render()
 		return
 	end
 	if window.Visible then
-		renderRoot(root)
-		renderDao()
-		renderRealm()
-		renderMethod()
-		renderDantian()
+		renderRows(root)
 	end
 end
 
@@ -411,12 +641,7 @@ function SelfCard.open()
 		return
 	end
 	-- fill before showing so it never opens with stale text
-	local root = currentRoot() :: Roots.Root
-	renderRoot(root)
-	renderDao()
-	renderRealm()
-	renderMethod()
-	renderDantian()
+	renderRows(currentRoot() :: Roots.Root)
 	selfPage.CanvasPosition = Vector2.zero
 	seenOnce = true
 	newDot.Visible = false
@@ -489,7 +714,7 @@ function SelfCard.init(gui: ScreenGui)
 	State.onChanged(function()
 		render()
 	end)
-	for _, attr in { "Root", "RootGrade", "Realm", "Cultivation", "CultivationMax", "Weapon", "Method", "RawQi", "DantianCap" } do
+	for _, attr in { "Root", "RootGrade", "Realm", "Cultivation", "CultivationMax", "Weapon", "Method", "RawQi", "DantianCap", "Race", "RaceVariant", "Traits" } do
 		player:GetAttributeChangedSignal(attr):Connect(render)
 	end
 	render()

@@ -67,16 +67,15 @@ Each has a `.preview()` callable from the client console in play, e.g.
 `require(game.Players.LocalPlayer.PlayerScripts.Client.DeathSave).preview()`. Nothing in
 the real flow calls them yet.
 
-### Foundation line in the Self card (ready to wire)
-Not built; a ui-designer adds it to the character window's Self card. The data is in
+### Foundation row in the Self card (built)
+The character window's Self card shows it as its first row ([character
+window](../character/character-window.md), Foundation). It reads
 `State.current.foundation` (server `Foundation.state`, every PlayerState push):
-`{ count, target, grade, grades = { [stageKey] = grade }, bonus, hints = { { category, text } } }`.
-`grade` is what the current stage would get now (Cracked, Steady, Solid, Deep), `bonus`
-the summed health/power share from graded stages (0.06 = +6%), and `hints` up to five
-open experiences for this stage, e.g. `{ category = "Hunt", text = "Slay a Stone Boar for the first time" }`
-or `{ category = "Boss", text = "The fast road: defeat the Elder Wolf King" }` (categories
-Hunt, Boss, Home, Dao, Discover, World). Intended: one line "Foundation: Steady (3/5)"
-and the hints as an optional list, so a player can solidify the stage if they want.
+`{ count, target, grade, grades = { [stageKey] = grade }, bonus, hints = { { category, text } } }`,
+only through `foundationOf()` in `SelfCard.luau`. `grade` is what the current stage would
+get now (Cracked, Steady, Solid, Deep), `bonus` the summed health/power share from graded
+stages (0.06 = +6%), `hints` up to five open experiences (categories Hunt, Boss, Home,
+Dao, Discover, World).
 
 ### Foundation solidity meter (`FoundationMeter.luau`, shelved)
 Shelved by Phase A (2026-10-23): there's no meter; a foundation grade shows on the

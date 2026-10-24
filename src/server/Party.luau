@@ -37,6 +37,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local Peaks = require(script.Parent.Peaks)
 local Quests = require(script.Parent.Quests)
 local Travel = require(script.Parent.Travel)
+local Analytics = require(script.Parent.Analytics)
 
 local remotes = ReplicatedStorage.Remotes
 local stateRemote = remotes.PartyState :: RemoteEvent
@@ -261,6 +262,7 @@ local function accept(player: Player, inviter: Player?): (boolean, any)
 		dropInvite(player, inviter, "withdrawn")
 		return false, "That party is full."
 	end
+	local formed = party == nil
 	if not party then
 		nextId += 1
 		local fresh: PartyT = { id = `P{nextId}`, leader = inviter, members = { inviter } }
@@ -291,6 +293,8 @@ local function accept(player: Player, inviter: Player?): (boolean, any)
 		end
 	end
 	pushAll(p)
+	-- PartyFormed: the party's size, "new" (two players started one) or "joined"
+	Analytics.event(p.leader, "PartyFormed", #p.members, if formed then "new" else "joined")
 	return true, snapshot(p, player)
 end
 

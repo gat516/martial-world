@@ -51,6 +51,7 @@ local SafeZone = require(script.Parent.SafeZone)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 
 local joinedAt: { [Player]: number } = {}
+local joinedUnix: { [Player]: number } = {} -- os.time() at PlayerAdded (a fresh slot's firstJoinUnix)
 local lastBreakthroughAt: { [Player]: number } = {}
 
 local remotes = ReplicatedStorage.Remotes
@@ -154,6 +155,19 @@ local function onPlayerAdded(player: Player)
 	Cultivation.watch(player)
 
 	PlayerData.load(player)
+	joinedUnix[player] = os.time()
+	-- a new player (no slot with any progress) walks the front-door funnel steps
+	local account = PlayerData.account(player)
+	local fresh = account ~= nil
+	for _, slot in (if account then account.slots else {}) :: { [string]: PlayerData.Data } do
+		if next(slot.beats) ~= nil or slot.stats.circulationRuns > 0 then
+			fresh = false
+		end
+	end
+	if fresh then
+		Analytics.markNew(player)
+		Analytics.front(player, "Joined")
+	end
 	-- the slot screen: the join waits until a slot is played (slots off: slot 1 at once)
 	local data = Slots.awaitPlay(player)
 	if not data or player.Parent == nil then
@@ -167,7 +181,9 @@ local function onPlayerAdded(player: Player)
 	joinedAt[player] = os.clock()
 	lastBreakthroughAt[player] = os.clock()
 	if next(data.beats) == nil and data.stats.circulationRuns == 0 then
-		Analytics.funnel(player, 1)
+		if data.firstJoinUnix == 0 then
+			data.firstJoinUnix = joinedUnix[player] or os.time()
+		end
 		Analytics.progression(player, "start", 1, Realms.Stages[1].name)
 	end
 	if offline > 0 then
@@ -210,6 +226,7 @@ Players.PlayerRemoving:Connect(function(player)
 		Analytics.event(player, "SessionLength", math.floor(os.clock() - joinedAt[player]))
 	end
 	joinedAt[player] = nil
+	joinedUnix[player] = nil
 	lastBreakthroughAt[player] = nil
 	Haul.leaving(player) -- combat-tagged: the haul's share is lost, before the save
 	PlayerData.release(player)
@@ -267,8 +284,25 @@ EnemyService.partyOf = Party.members -- nearby members share kills and the group
 table.insert(EnemyService.onKill, Progression.onKill)
 table.insert(EnemyService.onKill, Inventory.onKill)
 table.insert(EnemyService.onKill, Sect.onKill) -- hunt dailies and the chain's kill paths
-table.insert(Quests.onBeat, function(player, index)
-	Analytics.funnel(player, index + 1)
+table.insert(Quests.onBeat, Analytics.beat)
+-- time-to-milestone events (seconds since the slot's first join)
+table.insert(EnemyService.onKill, function(player)
+	local data = PlayerData.get(player)
+	if data and data.stats.kills == 1 then
+		Analytics.timeTo(player, "TimeToFirstKill", data.firstJoinUnix)
+	end
+end)
+table.insert(Cultivation.onBreakthrough, function(player, stage)
+	local data = PlayerData.get(player)
+	if data and stage.major == "QiCondensation" and (stage.minor == 2 or stage.minor == 4) then
+		Analytics.timeTo(player, `TimeToQC{stage.minor}`, data.firstJoinUnix)
+	end
+end)
+-- Store all: what it banked (the haul's own economy is the sources it came from)
+table.insert(Haul.onBanked, function(player, amounts, how)
+	if how == "store" then
+		Analytics.event(player, "StoreAll", amounts.stones)
+	end
 end)
 table.insert(Quests.onClaimed, function(player, id)
 	Analytics.event(player, "QuestClaimed", 1, id)

@@ -42,7 +42,8 @@ game (funnels, progression, custom events), and give admins test tools.
 - `src/server/Receipts.luau`: Robux receipts, deduped on the account.
 - `src/server/Settings.luau` + `src/client/Settings.luau` (`SaveSettings` remote).
 - `src/server/Analytics.luau`: onboarding funnel, realm progression events,
-  custom events (e.g. `QuestClaimed`, field = quest id). See [cultivation](cultivation.md) for reading dropoff.
+  economy events and custom events (see "What we track"). See
+  [cultivation](cultivation.md) for reading realm dropoff.
 - `src/server/Admin.luau` + `src/client/AdminPanel.luau`: weather, give, seeds,
   stones, buildItems, spawn, growAll, mutateAll, wild, event, stopEvents, fillQi,
   techniqueLevel (set a technique to any level, learning it if needed),
@@ -60,6 +61,44 @@ Join: `PlayerData.load` (account) -> `Slots.awaitPlay` (the slot screen; slots
 off or QuickPlay: at once) -> test kit (Studio, testbed) -> `Cultivation.claimLogin` (offline
 cultivation, daily qi) -> peak layout, realm tier, garden -> `pushState`. Leave:
 analytics `SessionLength`, `PlayerData.release` (final save), every module's `forget`.
+
+## What we track
+All through `Analytics.luau` (Creator Dashboard > Analytics). Roblox limits: 120 +
+20 x CCU requests a minute per server, at most 100 custom event names with 3
+fields, 10 funnels; charts take about a day to fill. Economy events are summed
+per player and kind and sent every 120 s and on leaving, so busy sources stay
+cheap.
+- **Onboarding funnel** (renumbered 2026-10-23 when the front door was added;
+  compare across that date with care): 1 Joined, 2 Slot screen, 3 Creator
+  opened, 4-7 creator steps Appearance / Hair / Fate / Name (the client sends
+  CharacterAction "step"), 8 Enter World, 9 First sit, then one step per
+  onboarding beat (`Quests.Beats` position + 9): 10 First circulation, 11 First
+  breakthrough, 12 First kill, 13 First technique earned, 14 First technique
+  cast, 15 Haul stored, 16 Refined qi, 17 QC3, 18 Root tested, 19 QC4. Steps
+  1-9 count only for a new player (no slot with any progress), once a session.
+  With slots off (the live game) 2-8 never fire: the funnel goes 1 -> 9.
+- **Progression**: path "Realm", see [cultivation](cultivation.md).
+- **Economy** (currency, source/sink, SKU): `SpiritStones` sources Kill, QiNode,
+  Quest (beat and lesson rewards), SectDaily, SectChain, SectRank,
+  HerbariumNew, HerbariumTier, Seclusion (the whole tally at its end),
+  HerbSell, AuspiciousRelic, SpillReclaimed; sinks Herbalist (seeds), Decor
+  (build shop), Comprehend, DeathSpill, Fled. `RawQi` sources Kill, QiNode,
+  Quest, DailyQi, HerbEaten, ItemUsed, SpillReclaimed; sinks Refine
+  (circulation), Surge, DeathSpill, Fled. `Contribution` sources SectDaily,
+  SectChain; sink Pavilion. Not tracked: weapon repairs (none exist), Grow now
+  (a Robux product: the Monetization dashboard has it), admin and test-kit grants.
+- **Timings** (seconds since the slot's first join, `data.firstJoinUnix`; slots
+  from before it was recorded send nothing): `TimeToFirstKill`, `TimeToQC2`,
+  `TimeToQC4`.
+- **Custom events**: `CirculationScore` (0-100), `Breakthrough` (seconds since
+  the last one; realm), `TribulationResult` (1/0), `Death` (what killed them),
+  `OfflineQiClaimed`, `SessionLength`, `QuestClaimed` (quest id),
+  `MethodGained`, `RootTested` (element), `SeclusionEntered` (first/again),
+  `SeclusionEnded` (minutes counted), `SectTask` (taken/claimed; daily kind or
+  chain), `PartyFormed` (size; new/joined, logged for the leader), `StoreAll`
+  (stones banked), `SpillReclaimed` (seconds left on the spill),
+  `HeartDemonFaced` (denials; major; calm/whispers), `SurgeFired` (raw qi spent;
+  realm).
 
 ## Tuning knobs
 - `Config.Data`: store name, autosave, lock timings, starting seeds.

@@ -68,6 +68,7 @@ local Peak = require(ReplicatedStorage.Shared.Peak)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 local CollectionService = game:GetService("CollectionService")
 local PlayerData = require(script.Parent.PlayerData)
+local Analytics = require(script.Parent.Analytics)
 local DaoPacing = require(ReplicatedStorage.Shared.Pacing).DaoPractice
 
 local questRemote = ReplicatedStorage.Remotes.QuestState :: RemoteEvent
@@ -1101,12 +1102,14 @@ local function claim(player: Player, data: PlayerData.Data, quest: Quest)
 	local stones = reward.stones or 0
 	if stones > 0 then
 		data.stones += stones
+		Analytics.stones(player, "source", stones, data.stones, "Onboarding", "Quest")
 		effectRemote:FireClient(player, "stones", at, stones)
 	end
 	-- raw qi only fills the room left in the dantian
 	local qi = math.min(rewardQi(reward, data), math.max(0, Cultivation.stage(data).dantian - data.rawQi))
 	if qi > 0 then
 		data.rawQi += qi
+		Analytics.qi(player, "source", qi, data.rawQi, "Onboarding", "Quest")
 		effectRemote:FireClient(player, "qi", at + Vector3.new(0, 3, 0), qi)
 	end
 	-- what actually landed, for the toast

@@ -105,6 +105,11 @@ function Bridge.editSlot(id: string): (boolean, any)
 	return invoke("edit", id)
 end
 
+-- The creator shows a step (the onboarding funnel; fire and forget).
+function Bridge.step(id: string)
+	task.spawn(invoke, "step", id)
+end
+
 function Bridge.cancel(): (boolean, any)
 	return invoke("cancel")
 end

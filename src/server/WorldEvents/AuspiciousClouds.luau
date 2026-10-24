@@ -20,6 +20,7 @@ local Meditation = require(script.Parent.Parent.Meditation)
 local PlayerData = require(script.Parent.Parent.PlayerData)
 local Progression = require(script.Parent.Parent.Progression)
 local Treasures = require(script.Parent.Parent.Treasures)
+local Analytics = require(script.Parent.Parent.Analytics)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 local wilds = workspace:WaitForChild("Wilds")
@@ -69,6 +70,7 @@ function AuspiciousClouds.start(run: any): boolean
 			Progression.grantManual(player, learn)
 		elseif (def.stones or 0) > 0 then
 			data.stones += def.stones
+			Analytics.stones(player, "source", def.stones, data.stones, "Gameplay", "AuspiciousRelic")
 			effectRemote:FireClient(player, "stones", relic:GetPivot().Position, def.stones)
 			Cultivation.notify(player, `You studied the {relicName}: +{def.stones} Spirit Stones`)
 		end

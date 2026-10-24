@@ -313,6 +313,9 @@ local function refresh()
 end
 
 function Controller.select(id: string, instant: boolean?)
+	if mode == "new" then
+		Bridge.step(id) -- the onboarding funnel's creator steps
+	end
 	state:set("Tab", id)
 	showPage(id, instant)
 	refresh()

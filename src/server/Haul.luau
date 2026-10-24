@@ -48,6 +48,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local SafeZone = require(script.Parent.SafeZone)
 local Foundation = require(script.Parent.Foundation)
 local Travel = require(script.Parent.Travel)
+local Analytics = require(script.Parent.Analytics)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 
@@ -431,6 +432,8 @@ function Haul.died(player: Player, character: Model)
 	local data = PlayerData.get(player)
 	if data then
 		data.stats.spills += 1 -- the heart-demon trial reads greed and caution
+		Analytics.qi(player, "sink", taken.rawQi, data.rawQi, "Gameplay", "DeathSpill")
+		Analytics.stones(player, "sink", taken.stones, data.stones, "Gameplay", "DeathSpill")
 	end
 	sendSpill(player, s.spill :: Spill)
 	Cultivation.pushState(player)
@@ -474,6 +477,9 @@ local function reclaim(player: Player, s: State, data: PlayerData.Data)
 	local dantian = Cultivation.stage(data).dantian
 	data.rawQi = math.min(math.max(dantian, data.rawQi), data.rawQi + c.rawQi)
 	data.stones += c.stones
+	Analytics.qi(player, "source", c.rawQi, data.rawQi, "Gameplay", "SpillReclaimed")
+	Analytics.stones(player, "source", c.stones, data.stones, "Gameplay", "SpillReclaimed")
+	Analytics.event(player, "SpillReclaimed", math.floor(spill.expires - workspace:GetServerTimeNow()))
 	for _, bag in BAGS do
 		local held = (data :: any)[bag] :: { [string]: number }
 		for id, n in (c :: any)[bag] :: { [string]: number } do

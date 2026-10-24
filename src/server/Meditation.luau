@@ -19,6 +19,7 @@ local Peak = require(ReplicatedStorage.Shared.Peak)
 local BuildItems = require(ReplicatedStorage.Shared.BuildItems)
 local Cultivation = require(script.Parent.Cultivation)
 local Peaks = require(script.Parent.Peaks)
+local Analytics = require(script.Parent.Analytics)
 
 local meditateRemote = ReplicatedStorage.Remotes.Meditate :: RemoteEvent
 
@@ -131,6 +132,7 @@ local function start(player: Player)
 	sessions[player] = { anchor = root.Position, spot = spotAt(player, root.Position) }
 	-- every client reads this to draw the player's method aura while seated
 	player:SetAttribute("Meditating", true)
+	Analytics.front(player, "FirstSit")
 	Cultivation.markActive(player)
 	Cultivation.pushState(player)
 end

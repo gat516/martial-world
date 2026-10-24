@@ -21,6 +21,7 @@ local Realms = require(ReplicatedStorage.Shared.Realms)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 local Tribulation = require(script.Parent.Tribulation)
+local Analytics = require(script.Parent.Analytics)
 
 local TICK = 0.2 -- seconds between ready checks
 
@@ -136,6 +137,8 @@ function QiSurge.fire(player: Player): (boolean, string?)
 	end
 	local cost = math.floor(data.rawQi * Pacing.Surge.RAW_QI_SHARE)
 	data.rawQi -= cost
+	Analytics.qi(player, "sink", cost, data.rawQi, "Gameplay", "Surge")
+	Analytics.event(player, "SurgeFired", cost, Cultivation.stage(data).name)
 	s.used = true
 	s.fallBack = false
 	data.stats.surges += 1 -- the heart-demon trial asks what it cost

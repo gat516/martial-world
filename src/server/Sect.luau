@@ -39,6 +39,7 @@ local Cultivation = require(script.Parent.Cultivation)
 local Foundation = require(script.Parent.Foundation)
 local Progression = require(script.Parent.Progression)
 local Quests = require(script.Parent.Quests)
+local Analytics = require(script.Parent.Analytics)
 
 local Tuning = Pacing.Sect
 local questRemote = ReplicatedStorage.Remotes.QuestState :: RemoteEvent
@@ -664,6 +665,7 @@ local function take(player: Player, data: PlayerData.Data, id: any): (boolean, s
 			record[tostring(i)] = t
 		end
 		data.sect.step = record
+		Analytics.event(player, "SectTask", 1, "taken", "chain")
 		Cultivation.notify(player, `Quest taken: {step.title}.`)
 		return true, nil
 	end
@@ -672,6 +674,7 @@ local function take(player: Player, data: PlayerData.Data, id: any): (boolean, s
 	end
 	local tier = if id == "herbs" then Tuning.HERB_TIER[data.realm.major] or 1 else nil
 	data.sect.taken[id] = newTask(data, id, goalOf(data, id), tier)
+	Analytics.event(player, "SectTask", 1, "taken", id)
 	Cultivation.notify(player, `Task taken: {KINDS[id].title}.`)
 	return true, nil
 end
@@ -693,6 +696,9 @@ local function claimDaily(player: Player, data: PlayerData.Data, kind: string): 
 	local stones = stoneShare(data, def.stones)
 	data.stones += stones
 	data.stats.dailies += 1
+	Analytics.event(player, "SectTask", 1, "claimed", kind)
+	Analytics.stones(player, "source", stones, data.stones, "Gameplay", "SectDaily")
+	Analytics.economy(player, "source", "Contribution", gained, data.sect.contribution, "Gameplay", "SectDaily")
 	if data.sect.tracked == `daily:{kind}` then
 		data.sect.tracked = ""
 	end
@@ -733,6 +739,9 @@ local function claimStep(player: Player, data: PlayerData.Data): (boolean, strin
 	end
 	earn(data, pay.contribution)
 	data.stones += pay.stones
+	Analytics.event(player, "SectTask", 1, "claimed", "chain")
+	Analytics.stones(player, "source", pay.stones, data.stones, "Gameplay", "SectChain")
+	Analytics.economy(player, "source", "Contribution", pay.contribution, data.sect.contribution, "Gameplay", "SectChain")
 	effectRemote:FireClient(player, "reward", {
 		tier = "card",
 		kind = "quest",
@@ -756,6 +765,7 @@ local function promote(player: Player, data: PlayerData.Data): (boolean, string?
 	local r = nextRank(data)
 	data.sect.rank = r.id
 	data.stones += r.stones or 0
+	Analytics.stones(player, "source", r.stones or 0, data.stones, "Gameplay", "SectRank")
 	player:SetAttribute("SectRank", r.id)
 	Foundation.world(player, `sect:rank:{r.id}`) -- a first rank-up is a foundation experience
 	questRemote:FireClient(player, { sectRankUp = {
@@ -814,6 +824,7 @@ local function buy(player: Player, data: PlayerData.Data, id: any): (boolean, st
 			end
 			data.sect.contribution -= s.cost
 			data.sect.bought[id] = (data.sect.bought[id] or 0) + 1
+			Analytics.economy(player, "sink", "Contribution", s.cost, data.sect.contribution, "Shop", "Pavilion")
 			Cultivation.pushState(player)
 			return true, nil
 		end

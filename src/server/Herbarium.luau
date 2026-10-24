@@ -16,6 +16,7 @@ local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
 local Cultivation = require(script.Parent.Cultivation)
+local Analytics = require(script.Parent.Analytics)
 
 local Herbarium = {}
 
@@ -44,6 +45,7 @@ local function completeTier(player: Player, data: PlayerData.Data, tier: number)
 	book.tiers[key] = true
 	local stones = Pacing.Herbarium.TIER[tier] or 0
 	data.stones += stones
+	Analytics.stones(player, "source", stones, data.stones, "Gameplay", "HerbariumTier")
 	Foundation.earn(player, "Home", `home:book:{tier}`)
 	Cultivation.notify(player, `Herbarium: the tier {Herbs.TierNumerals[tier] or tier} page is complete! +{stones} Spirit Stones`)
 end
@@ -75,6 +77,7 @@ function Herbarium.record(player: Player, id: string, count: number, size: numbe
 	if new then
 		local stones = Pacing.Herbarium.DISCOVER[herb.tier] or 0
 		data.stones += stones
+		Analytics.stones(player, "source", stones, data.stones, "Gameplay", "HerbariumNew")
 		Cultivation.notify(player, `New in your Herbarium: {herb.name}! +{stones} Spirit Stones`)
 		completeTier(player, data, herb.tier)
 	end

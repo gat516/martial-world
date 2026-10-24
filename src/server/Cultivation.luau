@@ -29,6 +29,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
 local HeartDemon = require(script.Parent.HeartDemon)
 local WeatherService = require(script.Parent.WeatherService)
+local Analytics = require(script.Parent.Analytics)
 
 local remotes = ReplicatedStorage.Remotes
 local stateRemote = remotes.PlayerState :: RemoteEvent
@@ -487,6 +488,7 @@ function Cultivation.claimLogin(player: Player, data: PlayerData.Data): (number,
 		daily = math.min(math.floor(stage.dantian * Pacing.Income.DAILY_QI_SHARE * stage.gather), stage.dantian - data.rawQi)
 		daily = math.max(0, daily)
 		data.rawQi += daily
+		Analytics.qi(player, "source", daily, data.rawQi, "TimedReward", "DailyQi")
 	end
 	session(player).capNoticed = true -- said below, once the HUD is up, not by the tick
 	task.delay(4, function()

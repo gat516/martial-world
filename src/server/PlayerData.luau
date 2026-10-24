@@ -102,6 +102,7 @@ export type Data = {
 	quests: { [string]: boolean }, -- rewarded objectives claimed, by quest id (beats, lessons, later real quests)
 	onboardingMark: number, -- circulation runs when the current beat began
 	lastLogoutUnix: number,
+	firstJoinUnix: number, -- os.time() the player joined for this slot's first play (Analytics timings; 0 = before it was recorded)
 	lastDailyDay: number, -- os.time() // 86400 of the last daily bonus
 	tribulationReadyUnix: number, -- os.time() a failed tribulation can be retried
 	heavenDefying: boolean, -- the heavens refuse this cultivator: a tribulation guards every major breakthrough (set by a heaven-defying bloodline or root; docs/progression.md)
@@ -241,6 +242,7 @@ local function default(): Data
 		quests = {},
 		onboardingMark = 0,
 		lastLogoutUnix = 0,
+		firstJoinUnix = 0,
 		lastDailyDay = 0,
 		tribulationReadyUnix = 0,
 		heavenDefying = false,

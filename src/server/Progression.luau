@@ -22,6 +22,7 @@ local Weapons = require(script.Parent.Weapons)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 local Foundation = require(script.Parent.Foundation)
+local Analytics = require(script.Parent.Analytics)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 
@@ -63,6 +64,7 @@ function Progression.comprehend(player: Player, id: any): (boolean, string?)
 		return false, `You need {gate.stones} Spirit Stones`
 	end
 	data.stones -= gate.stones
+	Analytics.stones(player, "sink", gate.stones, data.stones, "Gameplay", "Comprehend")
 	owned.level += 1
 	owned.xp = 0
 	Cultivation.notify(player, `You comprehended {def.name}! It reached level {owned.level}.`)

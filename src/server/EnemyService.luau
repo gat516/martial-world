@@ -77,6 +77,7 @@ local EnemyHistory = require(script.Parent.EnemyHistory)
 local EnemyMover = require(script.Parent.EnemyMover)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
+local Analytics = require(script.Parent.Analytics)
 
 local remotes = ReplicatedStorage.Remotes
 local telegraphRemote = remotes.Telegraph :: RemoteEvent
@@ -618,6 +619,7 @@ local function grantQi(player: Player, data: PlayerData.Data, amount: number, po
 	local cap = Cultivation.stage(data).dantian
 	local given = math.max(0, math.min(math.floor(amount + 0.5), cap - data.rawQi))
 	data.rawQi += given
+	Analytics.qi(player, "source", given, data.rawQi, "Gameplay", "Kill")
 	if given > 0 then
 		effectRemote:FireClient(player, "qi", position, given)
 	else
@@ -653,6 +655,7 @@ function EnemyService.died(enemy: Enemy)
 				data.stats.kills += 1
 				local stones = math.random(enemy.def.stones[1], enemy.def.stones[2])
 				data.stones += stones
+				Analytics.stones(player, "source", stones, data.stones, "Gameplay", "Kill")
 				-- a boss opens the victory card first, so the rewards below land in it
 				if enemy.def.boss then
 					effectRemote:FireClient(player, "boss", enemy.def.name, amount)

@@ -60,7 +60,14 @@ function Fate.build(page: ScrollingFrame, ctx: any)
 		return ctx.player:GetAttribute("Race")
 	end
 
+	local buildLooks: () -> ()
+
 	local function paintLooks()
+		-- a race change sets RaceLook before the rows are rebuilt for it
+		if shownFor ~= raceId() then
+			buildLooks()
+			return
+		end
 		local picks = registry.lookPicks(raceId(), state:get("RaceLook")) -- defaults fill any gap
 		local slots = registry.looks(raceId())
 		for i, slot in slots do
@@ -73,7 +80,7 @@ function Fate.build(page: ScrollingFrame, ctx: any)
 		end
 	end
 
-	local function buildLooks()
+	function buildLooks()
 		local id = raceId()
 		if shownFor == id then
 			return

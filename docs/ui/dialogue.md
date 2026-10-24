@@ -57,9 +57,18 @@ local choice = Dialogue.open({
   (the number shows on the button, keyboards only). Gamepad: d-pad, A picks, B picks
   the `cancel` response. Touch: tap; only the recommended one is lit.
 - While open it holds those keys (ContextActionService, high priority), so Space
-  doesn't jump. WASD, the left stick and the touch thumbstick stay free so the player
-  can walk off: with `near`, going past `range` studs ends the conversation (`open`
-  returns nil). The elder's range is his TalkPrompt's reach + 4 (user, 2026-10-24).
+  doesn't jump. WASD and the left stick stay free so the player can walk off: with
+  `near`, going past `range` studs ends the conversation (`open` returns nil). The
+  elder's range is his TalkPrompt's reach + 4 (user, 2026-10-24).
+- On a touch phone (the phone layout on a touch screen) Roblox's touch controls
+  (thumbstick and jump) are hidden while it's open (`GuiService.TouchControlsEnabled`),
+  so the bar and column can reach into the bottom-left (user, 2026-10-24: "take the
+  joystick away if dialogue pops up so we can take up more screen"). `finish` gives
+  them back, and every way out runs it: a response, the last tap, walking away, another
+  menu opening, `Dialogue.close()`, and dying or respawning (`CharacterRemoving`,
+  `Humanoid.Died`). With the stick gone a phone player leaves by a response; if every
+  response is disabled, a tap on the bar ends it. Tablets get the desktop layout, which
+  already clears the stick, so they keep it and can still walk away.
 
 ## Dialogue: layout
 A bar centred along the bottom of the screen with the responses in a column to its
@@ -78,34 +87,42 @@ off its right edge.
 
 | | Desktop (1920x1080) | Phone (844x390) |
 |---|---|---|
-| Bar | 1000 x 196, centred, 24 above the bottom | 486 x 172, 8 above the safe bottom; centred while lines show, 155 left while the responses show |
+| Bar | 1000 x 196, centred, 24 above the bottom | 486 x 172, 8 above the safe bottom; centred while lines show, 163 left while the responses show |
 | Window corners | 173 x 91 (rails 18) | 100 x 53 (rails 10) |
 | Portrait | 156 square, 20 in, centred | 136 square, 18 in |
 | Text box | portrait + 14 to 20 from the right (790 x 156); text 24, line height 1.08, padding 26/22, 24 kept for the chevron | portrait + 10 to 18 in (304 x 136); text 22, padding 16/12, 20 kept for the chevron |
 | Name tab | 58 tall at x 30, its bottom 16 px over the top rail, fitted to the name (Merriweather Bold 24), at most 60 % of the bar | 40 tall at x 16 (19 px) |
-| Responses | a column 12 px right of the bar, 420 x 196: four 46-tall buttons, 4 apart, centred on the bar's height | 10 px right, 300 x 172: four 40-tall buttons |
+| Responses | a column 12 px right of the bar, 420 x 196: four 46-tall buttons, 4 apart, centred on the bar's height | 8 px right, 318 x 172: four 40-tall buttons |
 
-Phone slide: there's no room for a centred bar and the column beside it (796 of 844
-wide with 24 margins), so the phone layout is authored as it looks with the responses
-up (the pair centred, the root at x -155, so the lint checks the column on screen) and
-its `ChoiceShift` attribute (-155) says how far that sits from the centred bar.
+Phone slide: there's no room for a centred bar and the column beside it (812 of 844
+wide with 16 margins: the column grew 18 into the old 24 margins and the gap, for
+the response text, and the hidden stick frees the bottom-left), so the phone layout
+is authored as it looks with the responses up (the pair centred, the root at x -163,
+so the lint checks the column on screen) and its `ChoiceShift` attribute (-163) says
+how far that sits from the centred bar.
 `Dialogue.open` puts the bar centred (home minus the shift); `showResponses` slides it
 back to home over 0.2 s as the column fades in. Desktop has room (the column ends 28
 px from the edge), so its shift is 0.
 
 Footprint: on PC the bar and tab take the bottom 24 % of the screen; on a phone the
-unit covers the bottom 204 of 390 rows (52 %, stopping at row 186, under the middle).
+unit covers the bottom 204 of 390 rows (52 %, stopping at row 186, under the middle)
+and 812 of 844 columns with the responses up (796 before the stick went), and Roblox's
+thumbstick and jump no longer sit over the bar's left end.
 
 Pages: a line too long for the text box is split at word breaks into pages (each a
 click or tap), measured with `TextService:GetTextBoundsAsync` against the box's width
 in layout units (Line has a fixed authored height, so width = on-screen width x
 authored height / on-screen height) and the rows that fit (4 on both layouts).
 
-Response labels stay on their plate: the label runs from past the icon ring to 0.8 of
-the right cap's width before the edge (clear of the lit chevron). On keyboards the
-number key takes that slot and the label shrinks by the key's width. Too wide a label
-shrinks from 20 px to its `MinTextSize` attribute (18), then truncates with an
-ellipsis (`fitLabel`). "What should I aim for next?" fits at 20 on PC and 18 on a phone.
+Response labels stay on their plate: the label runs from past the icon ring to where
+the right cap starts (phone 61 to 55 from the edge, PC 70 to 63). The cap's art is
+plain only for its first ~10 % (the lit chevron starts there, the clouds at 30-35 % in
+the text's rows), so text must never run into it; the old label ran 20 % in and
+"What should I aim for next?" touched the clouds on a phone (2026-10-24). On keyboards
+the number key sits on the cap's plain edge and the label stops 4 px short of it.
+Too wide a label shrinks from 20 px to its `MinTextSize` attribute (18), then
+truncates with an ellipsis (`fitLabel`). "What should I aim for next?" (215 px at 20,
+195 at 18) fits at 20 on PC and 18 in the phone's 202 px label.
 
 Phone choice (2026-10-23): `UiScale.isPhone()` used to need a touch screen. The Studio
 device emulator reports a mouse and keyboard, so it got the desktop layout squeezed to
@@ -189,11 +206,15 @@ and on a full-size stack 52.
   a property the file omits, so places synced in between kept it off: Talk hid the HUD
   and nothing showed (2026-10-24). The file now states `Enabled` true, and `init`
   re-enables a disabled copy with a warning (and warns about duplicate copies).
-- Not play-tested: the elder's conversations, typing, input binding, gamepad focus, the Menus hand-off, the hold
+- Not play-tested: hiding the touch controls on a real phone (and getting them back
+  after each way out), the elder's conversations, typing, input binding, gamepad focus, the Menus hand-off, the hold
   ring's sweep under a real hold, and the Dock's Fit on a real phone.
 - Gold (masters) and crimson (demons) name tabs, and a crisper large portrait corner,
   wait on Codex sheet A7; the `gold` plaque style can stand in for masters.
 - Pressed and disabled response states are tints of the normal art.
+- The keyboard number key sits 4-11 px into the right cap on the phone layout (a PC
+  window under 600 px tall) and -5-13 px on PC, over where the lit cap draws its
+  chevron; not changed in the 2026-10-24 label fix.
 - No Figma composition of the bar: built from the user's mockup and the cut art.
   `tools/build_dialogue.luau` is stale (see its header); the template was re-laid out
   from the export by hand. The

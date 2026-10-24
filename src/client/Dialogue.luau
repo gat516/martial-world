@@ -24,9 +24,12 @@
 -- or move the focus (lit art) with Up/Down or the d-pad and pick with Enter, Space,
 -- E or A; or press 1-4 (shown on keyboards only). The dialogue is a menu (Menus):
 -- opening it closes any other window and hides the HUD and the world prompts, and
--- it holds the keys it uses while open (so Space doesn't jump). WASD, the left
--- stick and the touch thumbstick stay free: with `near`, walking more than `range`
--- studs from it ends the conversation (open() returns nil).
+-- it holds the keys it uses while open (so Space doesn't jump). WASD and the left
+-- stick stay free: with `near`, walking more than `range` studs from it ends the
+-- conversation (open() returns nil). On a touch phone (the phone layout on a touch
+-- screen) Roblox's touch controls are hidden while it's open, so the bar and
+-- responses get the bottom-left; the player leaves by a response (or a tap when
+-- there are none, or when every response is disabled).
 --
 -- Layouts: a bar centred along the bottom of the screen (Menus hides the HUD while
 -- it's open), the responses in a column to its right with the bar's top and bottom.
@@ -37,6 +40,7 @@
 -- is split into pages at word breaks (each a click or tap).
 
 local ContextActionService = game:GetService("ContextActionService")
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -137,6 +141,22 @@ local choiceShift = 0 -- ChoiceShift: home's offset from the centred bar (phone:
 local SLIDE = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 local session: Session? = nil
+local hideStick = false -- a touch phone: Roblox's touch controls go while it's open
+local stickHidden = false -- we turned TouchControlsEnabled off and owe it back
+
+-- Hide Roblox's touch controls (thumbstick and jump) while a conversation is up on
+-- a touch phone, and give them back on every way it ends (finish runs for all).
+local function setStick(hidden: boolean)
+	if hidden then
+		if hideStick and not stickHidden and GuiService.TouchControlsEnabled then
+			stickHidden = true
+			GuiService.TouchControlsEnabled = false
+		end
+	elseif stickHidden then
+		stickHidden = false
+		GuiService.TouchControlsEnabled = true
+	end
+end
 
 local function toChoice(r: Response): Choice
 	if type(r) == "string" then
@@ -198,6 +218,7 @@ local function finish(s: Session, result: number?)
 		s.rangeConn:Disconnect()
 	end
 	ContextActionService:UnbindAction(ACTION)
+	setStick(false)
 	-- the buttons go once the window has shrunk away
 	local buttons = {}
 	for _, c in s.choices do
@@ -229,12 +250,18 @@ local function pick(s: Session, index: number)
 	finish(s, index)
 end
 
--- Keep a response's text on its plate: room for the number key when it shows,
--- then the authored size, shrunk to the label's MinTextSize attribute if the text
--- is too wide, then truncated (TextTruncate) past that.
-local function fitLabel(button: ImageButton, label: TextLabel, keyRoom: number)
+-- Keep a response's text on its plate: the authored label stops where the right
+-- cap starts (clear of its lit chevron and clouds); when the number key shows, it
+-- stops 4 px short of the key. Then the authored size, shrunk to the label's
+-- MinTextSize attribute if the text is too wide, then truncated (TextTruncate).
+local function fitLabel(button: ImageButton, label: TextLabel, key: TextLabel?)
 	local size = label.Size
-	label.Size = UDim2.new(size.X.Scale, size.X.Offset - keyRoom, size.Y.Scale, size.Y.Offset)
+	if key then
+		-- both hang off the right edge (X scale 1): compare their offsets
+		local keyLeft = key.Position.X.Offset - key.AnchorPoint.X * key.Size.X.Offset
+		local limit = keyLeft - 4 - label.Position.X.Offset
+		label.Size = UDim2.new(size.X.Scale, math.min(size.X.Offset, limit), size.Y.Scale, size.Y.Offset)
+	end
 	local max = label.TextSize
 	local min = label:GetAttribute("MinTextSize") :: number? or max
 	local width = button.Size.X.Offset
@@ -299,7 +326,7 @@ local function showResponses(s: Session)
 		b.Parent = list
 		-- after parenting (a row takes the list's width); measuring yields, and this
 		-- can run inside an input callback
-		task.spawn(fitLabel, b, label, if key.Visible then key.Size.X.Offset + 4 else 0)
+		task.spawn(fitLabel, b, label, if key.Visible then key else nil)
 		c.button = b
 		task.delay((i - 1) * REVEAL_STAGGER, function()
 			if b.Parent then
@@ -373,6 +400,14 @@ end
 -- Skip the typing, or go on to the next line, or end a dialogue without responses.
 local function advance(s: Session)
 	if s.choosing then
+		-- every response disabled: a tap ends it (with the stick hidden there's no
+		-- walking away)
+		for _, c in s.choices do
+			if not c.disabled then
+				return
+			end
+		end
+		finish(s, nil)
 		return
 	end
 	if s.typing then
@@ -553,6 +588,7 @@ function Dialogue.open(options: Options): number?
 		end)
 	end
 	Menus.open(layout)
+	setStick(true)
 	showLine(s)
 
 	s.waiter = coroutine.running()
@@ -615,6 +651,9 @@ function Dialogue.init()
 	end
 	local canvas = gui:WaitForChild("Canvas") :: Frame
 	local phone = UiScale.isPhone()
+	-- the phone layout on a touch screen (a tablet gets the desktop layout, which
+	-- clears the stick, and keeps walking away)
+	hideStick = phone and Platform.isTouch()
 	-- fitted at the layout's own baseline; the phone layout never grows past 1x (a
 	-- short PC window, under 600 px, gets it and blew it up to about 1.3x)
 	UiScale.fit(canvas, if phone then { base = UiScale.PHONE, max = 1 } else { base = UiScale.DESKTOP })
@@ -650,6 +689,18 @@ function Dialogue.init()
 			advance(s)
 		end
 	end)
+	-- dying or respawning ends the conversation (and gives the stick back)
+	Players.LocalPlayer.CharacterRemoving:Connect(Dialogue.close)
+	local function watch(character: Model)
+		local humanoid = character:WaitForChild("Humanoid", 10) :: Humanoid?
+		if humanoid then
+			humanoid.Died:Connect(Dialogue.close)
+		end
+	end
+	if Players.LocalPlayer.Character then
+		task.spawn(watch, Players.LocalPlayer.Character)
+	end
+	Players.LocalPlayer.CharacterAdded:Connect(watch)
 	Menus.register(layout, { close = function()
 		Motion.close(layout)
 		local s = session

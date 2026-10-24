@@ -15,13 +15,16 @@
 --     require(game.Players.LocalPlayer.PlayerScripts.Client.Herbarium).preview()
 --
 -- The open book shows six herb cards per page, twelve per spread, in the order
--- given: a discovered herb's card has its art, tier shield (I-V), name, rarity
+-- given: a discovered herb's card has its real 3D model (ModelView, like the
+-- Inventory's weapons; its icon when it has no model), tier shield (I-V), name, rarity
 -- gem, how many were harvested, the largest size seen and the mutations seen
--- (kit tag ribbons, one row); an undiscovered one is the greyed card with a
--- question mark and its tier; a blank entry leaves its slot empty. The player's
+-- (kit tag ribbons, one row); an undiscovered one is the greyed card with the
+-- model's dark silhouette (a question mark without a model) and its tier; a blank entry leaves its slot empty. The player's
 -- book gives each tier its own page (blanks pad it), so a page is a tier and
 -- completing it is the tier reward; the footer lists the completed pages. The
--- seals on the book's edges turn the spread.
+-- seals on the book's edges turn the spread. The twelve cards of a spread are
+-- made once and refilled in place, so a state push while the book is open redraws
+-- no model (ModelView skips what a viewport already shows).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -31,6 +34,7 @@ local Herbs = require(ReplicatedStorage.Shared.Herbs)
 local Items = require(ReplicatedStorage.Shared.Items)
 local HerbArt = require(script.Parent.HerbArt)
 local Menus = require(script.Parent.Menus)
+local ModelView = require(script.Parent.ModelView)
 local Motion = require(script.Parent.Motion)
 local Ribbon = require(script.Parent.Ribbon)
 local State = require(script.Parent.State)
@@ -65,6 +69,7 @@ local Herbarium = {}
 local window: Frame
 local pages: { Frame }
 local template: GuiButton
+local slots: { GuiButton } = {} -- the spread's cards, 1-6 left page, 7-12 right
 local footer: TextLabel
 local title: TextLabel
 local prev: GuiButton
@@ -96,8 +101,10 @@ local function fillCard(card: GuiButton, entry: Entry)
 	local tags = card:FindFirstChild("Tags") :: Frame
 	local found = entry.discovered;
 	(card :: any).Image = if found then CARD else CARD_EMPTY
-	swatch.Visible = found
-	unknown.Visible = not found
+	-- the real model, standing (an undiscovered herb: its dark silhouette)
+	local modelShown = ModelView.item(art:FindFirstChild("Model") :: ViewportFrame, entry.herb, { silhouette = not found })
+	swatch.Visible = found and not modelShown
+	unknown.Visible = not found and not modelShown
 	for _, part in { "RarityRow", "Divider", "Stats" } do
 		(card:FindFirstChild(part) :: GuiObject).Visible = found and not (phone and part == "Divider")
 	end
@@ -151,28 +158,25 @@ local function spreads(): number
 end
 
 local function render()
-	for _, page in pages do
-		for _, child in page:GetChildren() do
-			if child.Name == "Card" then
-				child:Destroy()
-			end
-		end
-	end
 	local first = (spread - 1) * PER_PAGE * 2
 	for i = 1, PER_PAGE * 2 do
 		local entry = book.entries[first + i]
-		if not entry then
-			break
-		end
-		if entry.blank then
+		local card = slots[i]
+		if not entry or entry.blank then
+			if card then
+				card.Visible = false
+			end
 			continue
 		end
-		local card = template:Clone()
-		card.Name = "Card"
-		card.LayoutOrder = i
-		fillCard(card, entry)
+		if not card then
+			card = template:Clone()
+			card.Name = "Card"
+			card.LayoutOrder = i
+			card.Parent = pages[if i <= PER_PAGE then 1 else 2]
+			slots[i] = card
+		end
 		card.Visible = true
-		card.Parent = pages[if i <= PER_PAGE then 1 else 2]
+		fillCard(card, entry)
 	end
 	local found, herbs = 0, 0
 	for _, e in book.entries do

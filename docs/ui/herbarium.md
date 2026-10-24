@@ -67,14 +67,43 @@ plaque on the top edge, 50 tall, fitted to the title by `Ribbon.fit`, style `gol
 at the ends), `Footer` (page and discovered count on the bottom cover edge) and the
 hidden `CardTemplate`.
 
-The card (`herb_card`, 565x869): the herb's icon (or glyph in its colour) in the art
-window, the tier shield on the window's top-left corner with a live numeral, the name
+The card (`herb_card`, 565x869): the herb's real 3D model in the art window
+(`Art.Model`, a ViewportFrame filling the window; see "Model display"), or its icon
+(or glyph in its colour) when it has no model, the tier shield on the window's top-left corner with a live numeral, the name
 (Merriweather, ink brown), the rarity gem and word, a diamond divider, "Harvested n"
 and "Largest ×n", and one row of mutation ribbons (what doesn't fit is clipped).
-Undiscovered: `herb_card_empty`, a grey question glyph, "Undiscovered", the tier
-shield greyed. Phone cards are about 81x125: the gem moves to the art window's
+Undiscovered: `herb_card_empty`, the model's flat dark silhouette (the question
+glyph when there's no model), "Undiscovered", the tier shield greyed. The
+question glyph carries `LintIgnore = "edge-margin"`: it's a glyph, wholly inside
+its 2 px source margin, not a cropped ornament. Phone cards are about 81x125: the gem moves to the art window's
 top-right corner, the rarity word and divider go, the name gets two lines (floor 9 px)
 and one stat line shows (the largest size when known).
+
+### Model display (`src/client/ModelView.luau`)
+The user (2026-10-23): "you know how we display weapons? should be the same for herbs
+and plants" (and pills). Like the Inventory's `WeaponView`, a live ViewportFrame, not a
+thumbnail:
+```lua
+ModelView.herb(frame, herbId, opts?) -> boolean -- Herbs.template: HerbModels, HerbModelsExtra, stand-in (tinted)
+ModelView.item(frame, itemId, opts?) -> boolean -- ItemModels first, then the herb models
+ModelView.show(frame, template, opts?) -> boolean -- any Model template
+ModelView.clear(frame)
+opts = { pose = "upright" | "diagonal"?, silhouette = boolean?, margin = number? } -- margin default 0.04
+```
+False means no model: the frame is cleared and hidden and the caller shows its icon.
+Showing what a frame already shows does nothing (its `Shows` attribute), and the
+camera refits when the frame resizes. **Upright** (default, picked over diagonal by the
+critic: diagonal made the lotus and lily read as cuttings and the bamboo as a sword)
+stands the model on its base, turned 25 degrees and seen 14 degrees from above;
+`diagonal` adds the weapons' 45-degree roll. Lit from the upper left, ambient low
+enough that pale petals shade off the cream paper. The camera fits every visible
+part's corners with the margin on each side. `silhouette` drops all light (neon
+turned plastic) and fades the frame 45 %, a dark shape on the grey card. Scripts,
+sounds, particles, beams, trails, lights and GUIs are stripped from the clone.
+
+Cost: the book makes its twelve cards once and refills them in place, so a state push
+while it's open redraws nothing and a page turn redraws twelve static clones (470
+parts on the busiest sandbox spread; herbs 15-85 parts, items 4-10). No per-frame work.
 
 Measured (Edit view): desktop page 450x482, cards 132x204, page margins left/right
 13.7/13.7 and top/bottom 25.2/25.2; phone page 275x295, cards 81x125, margins 8.4/8.4
@@ -136,11 +165,17 @@ art is requested in [codex-sheets](codex-sheets.md), sheet C1b.
 ## Known gaps
 - The Herbarium tile makes the top-right row seven tiles out of combat (about 343 px
   on a phone); not yet seen on a real phone.
-- Tier IV-V herbs have no slot icons yet (glyphs show); icons for the new herbs go on
-  the next Codex sheet.
+- Tier IV-V herbs have no slot icons yet (glyphs show where a herb has neither model
+  nor icon); icons for the new herbs go on the next Codex sheet.
+- Thin herbs (Duskwind Thistle, Starfall Bamboo, Seven-Star Grass) fill little of
+  the art window's width on a phone; fitted by height (critic polish note).
+- The Inventory and hotbar don't use `ModelView` yet (their herb and pill cells keep
+  icons); see [inventory](inventory.md).
 
 ## Untested
-Not played: the wired book (H, live refresh, the tier-page layout, discovery and page
+Not played: the herb models on the cards (seen only in Edit-mode previews in a
+sandbox, which lacks the place's `HerbModels`: tier I-III herbs from it, their
+stand-ins and the frame-rate cost on a real phone are unseen); the wired book (H, live refresh, the tier-page layout, discovery and page
 rewards), the Herbarium's `preview()` and page turns, the seed picker's packet
 taps, set tabs (no item has a set yet) and the peak gauge (no server sets the
 attribute yet) were only seen in Edit-mode previews.

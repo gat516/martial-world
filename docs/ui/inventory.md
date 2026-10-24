@@ -45,6 +45,16 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   upload step. The client reads `ReplicatedStorage.WeaponModels` (the same
   `assets/WeaponModels.rbxm` as `ServerStorage.WeaponModels`, mapped twice). Bare
   Fists (no model) show the Fist class glyph.
+- Herbs and pills (ready for the Inventory pass, not wired yet): the same live
+  viewport through `ModelView` (src/client/ModelView.luau), already used by the
+  Herbarium's cards. Give the cell or hotbar slot a hidden `ViewportFrame` beside its
+  `Icon` and call `ModelView.item(frame, itemId)`: `ReplicatedStorage.ItemModels`
+  first (pills, cores, dew, jade, peach), then the herb models (`Herbs.template`:
+  `HerbModels`, `HerbModelsExtra`, the tinted stand-in). It returns false (and hides
+  the frame) when there's no model, so the cell keeps its icon. Pose `upright`
+  (default; plants stand) or `diagonal` (the weapons' lie); re-calling with what the
+  frame already shows does nothing; the camera refits when the frame resizes. API in
+  [herbarium](herbarium.md) "Model display".
 - Names: one fixed size per context, never `TextScaled`: cells Builder Sans Bold 12,
   two lines then truncated; the hotbar 11, one line then truncated (its 52 px slot
   can't hold two lines and an icon).

@@ -355,7 +355,8 @@ here". Template built by `tools/vfx_specs/Guide.luau`; this client only.
   toasts why), greys out the wilds arrays away from the Sect Gate, and runs the trip under the `Veil` fade.
 - `src/client/GateMarkers.luau`: a seal and name over each array (`Hud.GateMarker`)
   once travel is taught; `src/client/Veil.luau`: the travel fade (`StarterGui.Veil`).
-- Analytics: each beat is an onboarding funnel step (`Analytics.beat`: beat position + 9, after the join, slot screen, creator and first sit steps; [data](data.md)); each lesson logs the custom event `Lesson` (lesson id; `shown` when its line first fires, `claimed` when its objective pays).
+- Analytics: each beat is an onboarding funnel step (`Analytics.beat`: beat position + 4, after the Joined, Creator opened, Enter World and First sit steps; [data](data.md)); each lesson logs the custom event `Lesson` (lesson id; `shown` when its line first fires, `claimed` when its objective pays).
+- Front door (user, 2026-10-24, from [first-session review](../design-reviews/first-session.md) rec 1): join to the world in about 20 s. A new account (no character) skips the slot screen and opens on one page: the free Fate reveal (race with its rarity, clan), a drawn cultivator name to keep or redraw, and a big Enter World; the look is a preset, changed later through Edit look. Timeline: join, the veil lifts on the page (about 2-5 s with the server's draw), read the fate and keep the name (about 5-10 s), Enter World, the character spawns (about 2-5 s). `TimeToEnterWorld` measures it ([data](data.md)). Untimed in play so far.
 
 ## Data flow
 Every second `Quests.check` marks met beats in `data.beats`, claims done
@@ -395,8 +396,8 @@ then pivots the character onto that array.
   server hop at QC4 counts as a new session.
 - Analytics funnel steps are beat positions, so inserting a beat shifts the
   step numbers after it (compare funnels across versions with care). The hook
-  rework and the front-door steps (2026-10-23) renumbered them (`Analytics`
-  FUNNEL_NAMES).
+  rework and the front-door steps (2026-10-23, then 2026-10-24 when the
+  creator became one page) renumbered them (`Analytics` FUNNEL_NAMES).
 - The Store beat has no button to point at (the Store all control is the
   `store-all` branch's); its guide walks to an array, and on sect ground shows nothing.
 - In the testbed, Home (QC4) can't be done (no herb plots), so its guide holds the

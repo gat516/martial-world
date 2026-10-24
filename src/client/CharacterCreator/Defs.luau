@@ -18,4 +18,5 @@ return {
 	Products = require(CC:WaitForChild("Products")),
 	Background = require(CC:WaitForChild("Background")),
 	Rules = require(CC:WaitForChild("Rules")),
+	GivenNames = require(CC:WaitForChild("GivenNames")),
 }

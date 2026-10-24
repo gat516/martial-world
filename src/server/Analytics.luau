@@ -8,15 +8,17 @@
 -- per player and kind and sent every ECONOMY_FLUSH seconds (and on leaving), so
 -- a kill streak costs one request, not one per kill.
 --
--- Onboarding funnel (FUNNEL_NAMES below; renumbered 2026-10-23 when the front
--- door was added, so compare funnels across that date with care):
---   1 Joined, 2 Slot screen, 3 Creator opened, 4-7 the creator's steps
---   (Appearance, Hair, Fate, Name), 8 Enter World, 9 First sit,
---   10.. one step per onboarding beat (Quests.Beats position + BEAT_OFFSET):
---   10 First circulation ... 19 QC4.
--- Steps 1-9 are logged only for a new player (no slot with any progress) and
--- once a session. Slots off (the live game): 2-8 never fire, so the funnel
--- goes 1 -> 9.
+-- Onboarding funnel (FUNNEL_NAMES below; renumbered 2026-10-24 when the front
+-- door became one screen, and 2026-10-23 before that, so compare funnels across
+-- those dates with care):
+--   1 Joined, 2 Creator opened (the first-character page), 3 Enter World,
+--   4 First sit, 5.. one step per onboarding beat (Quests.Beats position +
+--   BEAT_OFFSET): 5 First circulation ... 14 QC4.
+-- Steps 1-4 are logged only for a new player (no slot with any progress) and
+-- once a session; a new account skips the slot screen, so it has no step.
+-- Slots off (the live game): 2-3 never fire, so the funnel goes 1 -> 4.
+-- TimeToEnterWorld (custom event): seconds from join to Enter World for a new
+-- player, field 1 how the name was chosen (Kept, Rolled, Typed).
 --
 -- Realm progression (path "Realm", level = Realms stage index, name = stage
 -- name): Start when a player enters a stage (stage 1 on their first join),
@@ -33,12 +35,7 @@ local ECONOMY_FLUSH = 120 -- seconds between economy sends per player
 
 local FUNNEL_NAMES = {
 	"Joined",
-	"Slot screen",
 	"Creator opened",
-	"Creator: Appearance",
-	"Creator: Hair",
-	"Creator: Fate",
-	"Creator: Name",
 	"Enter World",
 	"First sit",
 	-- the beats, in Quests.Beats order (inserting a beat shifts the steps after it)
@@ -53,22 +50,18 @@ local FUNNEL_NAMES = {
 	"Root tested",
 	"QC4",
 }
-Analytics.BEAT_OFFSET = 9 -- funnel step of beat i = i + BEAT_OFFSET
+Analytics.BEAT_OFFSET = 4 -- funnel step of beat i = i + BEAT_OFFSET
 
 -- the front-door steps, by name (Analytics.front)
 local FRONT: { [string]: number } = {
 	Joined = 1,
-	SlotScreen = 2,
-	CreatorOpened = 3,
-	Appearance = 4,
-	Hair = 5,
-	Fate = 6,
-	Name = 7,
-	EnterWorld = 8,
-	FirstSit = 9,
+	CreatorOpened = 2,
+	EnterWorld = 3,
+	FirstSit = 4,
 }
 
 local newPlayers: { [Player]: { [number]: boolean } } = {} -- new this session: front steps logged
+local joinedAt: { [Player]: number } = {} -- os.clock() of a new player's join
 
 local function funnel(player: Player, step: number)
 	local name = FUNNEL_NAMES[step]
@@ -91,6 +84,7 @@ end
 -- A new player (no slot with progress): the front-door steps count for them.
 function Analytics.markNew(player: Player)
 	newPlayers[player] = newPlayers[player] or {}
+	joinedAt[player] = joinedAt[player] or os.clock()
 end
 
 function Analytics.isNew(player: Player): boolean
@@ -106,6 +100,17 @@ function Analytics.front(player: Player, name: string)
 	end
 	logged[step] = true
 	funnel(player, step)
+end
+
+-- A new player entered the world: the Enter World step and how long the front
+-- door took (TimeToEnterWorld, field: how the name was chosen).
+function Analytics.enteredWorld(player: Player, nameSource: string)
+	local first = newPlayers[player] ~= nil and not newPlayers[player][FRONT.EnterWorld]
+	Analytics.front(player, "EnterWorld")
+	local at = joinedAt[player]
+	if first and at then
+		Analytics.event(player, "TimeToEnterWorld", math.floor(os.clock() - at + 0.5), nameSource)
+	end
 end
 
 -- status: "start" | "complete" | "fail"
@@ -226,6 +231,7 @@ end)
 Players.PlayerRemoving:Connect(function(player)
 	flush(player)
 	newPlayers[player] = nil
+	joinedAt[player] = nil
 end)
 
 return Analytics

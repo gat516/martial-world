@@ -105,9 +105,10 @@ function Bridge.editSlot(id: string): (boolean, any)
 	return invoke("edit", id)
 end
 
--- The creator shows a step (the onboarding funnel; fire and forget).
-function Bridge.step(id: string)
-	task.spawn(invoke, "step", id)
+-- Edit look from the world: opens the creator on the played slot's look,
+-- { id, mode = "edit", look, firstName, played = true }
+function Bridge.editPlayed(): (boolean, any)
+	return invoke("editPlayed")
 end
 
 function Bridge.cancel(): (boolean, any)

@@ -195,7 +195,15 @@ function Components.fateRow(parent: Instance, name: string, order: number)
 	local busy = false
 	local price: number? = nil
 	local handle = { root = block, button = change }
-	function handle.set(label: string, text: string, rarity: { DisplayName: string, Color: Color3 }?)
+	-- inline: the rarity beside the value, at its size, instead of in the label
+	-- (the first-character page, where the reveal is the hero)
+	function handle.set(label: string, text: string, rarity: { DisplayName: string, Color: Color3 }?, inline: boolean?)
+		if inline then
+			value.RichText = true
+			value.Text = if rarity then `{text}  <font color="#{rarity.Color:ToHex()}">{rarity.DisplayName}</font>` else text
+			kind.Text = label
+			return
+		end
 		value.Text = text
 		kind.Text = if rarity
 			then `{label}  ·  <font color="#{rarity.Color:ToHex()}">{rarity.DisplayName}</font>`
@@ -217,6 +225,13 @@ function Components.fateRow(parent: Instance, name: string, order: number)
 	function handle.setStatus(text: string?)
 		status.Text = text or ""
 		status.Visible = status.Text ~= ""
+	end
+	-- the paid Change button (Rules.PAID_REROLLS); hidden, the text takes the row
+	function handle.setPaid(on: boolean)
+		change.Visible = on
+		local width = if on then UDim2.new(1, -200, 0, 0) else UDim2.new(1, -44, 0, 0)
+		kind.Size = width + UDim2.fromOffset(0, kind.Size.Y.Offset)
+		value.Size = width + UDim2.fromOffset(0, value.Size.Y.Offset)
 	end
 	handle.setPrice(price)
 	block.Parent = parent

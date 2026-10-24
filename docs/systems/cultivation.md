@@ -335,7 +335,7 @@ player. In the Creator Dashboard (Analytics > Progression), a level whose starts
 greatly exceed its completes is a dropoff. Also useful: the custom events
 `Breakthrough` (seconds since the previous breakthrough this session, field: new
 stage name), `TribulationResult`, `CirculationScore`, `TimeToQC2`/`TimeToQC4`,
-the raw-qi economy, and the onboarding funnel (19 steps, ends at QC4). The full
+the raw-qi economy, and the onboarding funnel (14 steps, ends at QC4). The full
 list is in [data](data.md) "What we track".
 
 To ease a stage, add it to `Pacing.Adjust`, e.g. `QC6 = { bar = 0.8 }` (stuck on

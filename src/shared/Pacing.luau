@@ -605,7 +605,7 @@ Pacing.Foundation = {
 	} :: { { name: FoundationGrade, share: number } },
 	SOLID = "Solid", -- grades below this get the unsteady toast and a harder tribulation
 	-- share added to max health and power per stage graded so
-	BONUS = { Cracked = 0, Steady = 0.02, Solid = 0.04, Deep = 0.07 } :: { [string]: number },
+	BONUS = { Cracked = 0, Steady = 0.01, Solid = 0.02, Deep = 0.04 } :: { [string]: number },
 	-- a heaven-defier's tribulation strike damage, by the grade the stage would get now
 	TRIBULATION_DAMAGE = { Cracked = 1.25, Steady = 1.1 } :: { [string]: number },
 	MUTATION_BONUS = 1, -- a harvest mutation counts as rare (Home) from this Herbs.Mutations bonus up

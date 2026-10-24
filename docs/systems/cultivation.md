@@ -139,8 +139,8 @@ at a stage grades the breakthrough out of it. Time fills the bar, not the grade.
   `GRADES` shares 0 / 0.34 / 0.67 / 1 gives Cracked / Steady / Solid / Deep, stored in
   `data.foundation.grades[stageKey]`; the count and the toast flag reset. Profiles
   from before this have no grades (no bonus, nothing retro).
-- **Bonus:** the sum of every graded stage's `BONUS` (Cracked 0, Steady 2%, Solid 4%,
-  Deep 7%) multiplies max health (`applyStats`) and power (`Combat.power`, so
+- **Bonus:** the sum of every graded stage's `BONUS` (Cracked 0, Steady 1%, Solid 2%,
+  Deep 4%; at most about +104% by FE9, below a major jump) multiplies max health (`applyStats`) and power (`Combat.power`, so
   knockback too) as its own factor on top of `Pacing.Curve`.
 - **Shown:** the card subtitle "<stage>  ·  <grade> foundation" (grade sent as the
   Breakthrough remote's 4th arg); one toast per stage when the bar first fills with

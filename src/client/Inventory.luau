@@ -493,16 +493,11 @@ local function setText(name: string, text: string, color: Color3?)
 	end
 end
 
--- Where it is, in plain words.
+-- Where it is, in plain words; nothing when it's off the bar (how to slot things is
+-- not repeated under every description).
 local function placeText(id: string): string
-	local touch = Platform.isTouch()
 	local at = table.find(State.current.hotbar, id)
-	if at then
-		return `On your hotbar, slot {at}.`
-	end
-	return if touch
-		then "Not on your hotbar. Tap a hotbar slot to put it there."
-		else "Not on your hotbar. Drag it onto a slot to use it."
+	return if at then `On your hotbar, slot {at}.` else ""
 end
 
 -- The spirit ring (server Haul, docs/systems/haul.md): the ids kept safe even in
@@ -528,35 +523,13 @@ end
 local function renderWeaponDetail(id: string, animate: boolean)
 	local owned = weaponState()
 	local held = heldId()
-	local touch = Platform.isTouch()
 	local isHeld = id == held
 	local classId = Weapons.classOf(id)
 	local class = Weapons.Classes[classId]
 	local def = Weapons.Defs[id]
 	showActions(false)
 	daoList.Visible = true
-	if id == Weapons.FIST then
-		setText(
-			"Status",
-			if isHeld
-				then "In use: no weapon in hand."
-				elseif touch then "Tap the weapon slot, left of the hotbar, to put your weapon away."
-				else "Drag onto the weapon slot, left of the hotbar, to put your weapon away.",
-			STATUS
-		)
-	elseif isHeld then
-		setText(
-			"Status",
-			if touch then "In your hand. Tap the weapon slot to put it away." else "In your hand. Drag it off the weapon slot to put it away.",
-			STATUS
-		)
-	else
-		setText(
-			"Status",
-			if touch then "Tap the weapon slot, left of the hotbar, to wield it." else "Drag it onto the weapon slot, left of the hotbar, to wield it.",
-			STATUS
-		)
-	end
+	setText("Status", if isHeld then (if id == Weapons.FIST then "In use: no weapon in hand." else "In your hand.") else "", STATUS)
 	-- the arts that go with it
 	local arts = {}
 	for _, techniqueId in Techniques.Order do
@@ -703,7 +676,9 @@ local function renderDetail(animate: boolean?)
 	if item then
 		daoList.Visible = false
 		local count = Items.count(s, item.id)
-		setText("Status", placeText(item.id) .. (if count > 1 then ` You have {count}.` else ""), STATUS)
+		local place = placeText(item.id)
+		local have = if count > 1 then `You have {count}.` else ""
+		setText("Status", if place ~= "" and have ~= "" then `{place} {have}` else place .. have, STATUS)
 		-- the spirit ring: the Ring button puts the stack in (its label counts the
 		-- slots) or takes it out; rare finds are safe without it
 		local ring, slots = ringState()

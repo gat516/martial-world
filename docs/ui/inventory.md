@@ -125,7 +125,8 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   preview (72 px, 48 px well); name; grade gem and
   label ("Spirit grade", "Rare"); class glyph and kind ("Sword · weapon", "Sword art",
   "Universal art", "Spirit herb"); where it is ("In your hand", "On your hotbar,
-  slot 3", "Not on your hotbar. Drag it onto a slot to use it."); what goes with it
+  slot 3"; nothing when it's off the bar, user 2026-10-24: no how-to under every
+  description); what goes with it
   (a weapon's arts; an art's required weapon and whether it is in hand); what it does
   (for weapons with the grade multiplier); then the Dao row (weapons, or every class
   with nothing chosen on the Weapons tab) or the art's level row, cost rows and buttons. Items keep

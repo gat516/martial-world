@@ -121,12 +121,31 @@ confirmed for the redo. One rule for every area: go-backs are expensive.
   - **Small rock** (outcrops, ledges, rock piles, edge cover): the library's boulder
     assets, enlarged and mixed.
 
-## Step 1: the macro block-out
-Gray masses only, no detail: the cloud sea's height; the sect's pillars (gate crag,
-stair cliff, plaza pillar, inner terrace, summit) with their top heights and the
-stairs and bridges between them; the 8 spirit peak pillars at their heights; and three
-layers of bare pillars for the view. Checked by capture from the gate, the plaza, the
-balcony, a spirit peak's lawn and its abode before anything is built for real.
+## Build order (user, 2026-10-24)
+Big to small, one area finished before the next.
+0. **Style slice:** one small corner using every rule once (a terrain lawn, one Blender
+   rock pillar, enlarged boulders, one small part-built pavilion, library greenery,
+   grass decoration, the sky, haze and bloom). Locks textures, colours and lighting on
+   something small; settles how textured the meshes are.
+1. **Macro block-out** (gray masses only): the sect's pillar tops and their heights,
+   the stairs and bridges between them, the 8 spirit peak pillars, the cloud sea's
+   height, three layers of backdrop pillars. Checked by capture from the gate, the
+   plaza, the balcony, a spirit peak's lawn and its abode.
+2. **Sky, clouds and backdrop:** the cloud sea, atmosphere and the pillar kit placed
+   in its layers; everything after is judged against this view.
+3. **Spirit peak template**, finished to final quality, **then the 8 characters**.
+4. **Outer court** (the plaza).
+5. **Mountain Gate, Testing Stone and the Ascending Stair** (waits for the trial's
+   onboarding code to be ready to use it).
+6. **Inner court, then the summit.**
+7. **Swap-in:** update the constraint coordinates and Config, run the checks, replace
+   the old map.
+
+**Inside each area**, each step ends in the user's review: written plan (arrival, hero,
+main path, view lines, numbers) -> gray block-out -> landforms (terrain, pillars,
+boulders) -> buildings one at a time (silhouette reviewed, then detail; the first of a
+kind is the template) -> greenery and dressing -> lights and `FX_` hooks -> checks,
+approval in Studio, export to `assets/`. One commit per finished step.
 
 ## The agreed shape (user, 2026-10-24)
 The sect is a climb: senior is higher. Every building is a verb or a view, never
@@ -156,8 +175,12 @@ and lanterns). NPCs make it lived in.
   with open lawn left for building.
 
 ## Handoff: where we are (2026-10-24)
-- Done: the reference sheet, its read-out above, the agreed shape, the build rules.
-- **Next:** step 1 (the macro block-out), then capture the five view spots for review.
+- Done: the reference sheet and its read-out, the style targets, the build rules
+  (landforms by size, buildings as meshes or parts, grass decoration on behind a
+  setting), the build order.
+- **Next:** step 0, the style slice ("Build order"). Pick a spot clear of everything,
+  plan it in a few lines, build it, capture it, and review it with the user before
+  step 1.
 - Studio: the user's sandbox is `mw-sandbox-martial-world-test.rbxl` (find its id
   with `list_roblox_studios`; ids change per session). It's built from
   `test.project.json`, so it has no old `Workspace.Map` and may lack the place-only

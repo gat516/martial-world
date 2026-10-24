@@ -916,10 +916,11 @@ end
 -- you are; the header rows (tabs, search, rail, sort) and the grid move up into
 -- its room, so the grid gets the height.
 -- Phone pass (user's device-emulator playtest, 2026-10-23: "the phone view got
--- fucked up for inventory"): the emulator reported a top bar ~130 px deep and a
--- fixed 70 px hotbar allowance left ~40 px unused, so the window was 170 px tall
--- with a 30 px grid. The bar's depth is now capped at TOPBAR_MAX (Roblox's bar and
--- buttons end by then), and the window runs down to the hotbar's real top.
+-- fucked up for inventory"): Platform.topbar read the bar 116 px deep (since
+-- fixed: it mixed two coordinate spaces) and a fixed 70 px hotbar allowance left
+-- ~40 px unused, so the window was 170 px tall with a 30 px grid. The bar's depth
+-- is also capped at TOPBAR_MAX (Roblox's 58 px bar), and the window runs down to
+-- the hotbar's real top.
 local TOUCH_TOP_GAP = 6
 local TOPBAR_MAX = 58
 local TOUCH_HOTBAR_GAP = 12 -- above the hotbar's top (the weapon slot's caption pokes 7 px up)

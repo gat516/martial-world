@@ -19,7 +19,44 @@ local Movement = {}
 local lastHumanoid: Humanoid?
 local jumpWasEnabled: boolean? = nil
 
-local function step()
+-- Shift lock turning (rates per second, exponential): moving, the body comes
+-- round fast; standing, a beat behind the head. Past HEAD_LIMIT the body is
+-- dragged with the camera, so the head never twists further than it can.
+local BODY_TURN = 14
+local STAND_TURN = 9
+local HEAD_LIMIT = math.rad(95)
+
+local function yawOf(v: Vector3): number
+	return math.atan2(-v.X, -v.Z)
+end
+
+-- the signed yaw from the root's facing to `look`, -pi..pi (nil if `look` is vertical)
+local function yawGap(root: BasePart, look: Vector3): number?
+	if Vector3.new(look.X, 0, look.Z).Magnitude < 0.01 then
+		return nil
+	end
+	return (yawOf(look) - yawOf(root.CFrame.LookVector) + math.pi) % (2 * math.pi) - math.pi
+end
+
+local function turnToward(root: BasePart, look: Vector3, rate: number, dt: number)
+	local gap = yawGap(root, look)
+	if not gap or math.abs(gap) < 1e-3 then
+		return
+	end
+	local yaw = yawOf(root.CFrame.LookVector) + gap * (1 - math.exp(-rate * math.min(dt, 0.1)))
+	root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, yaw, 0)
+end
+
+local function dragWithin(root: BasePart, look: Vector3, limit: number)
+	local gap = yawGap(root, look)
+	if not gap or math.abs(gap) <= limit then
+		return
+	end
+	local yaw = yawOf(root.CFrame.LookVector) + gap - math.sign(gap) * limit
+	root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, yaw, 0)
+end
+
+local function step(dt: number)
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -77,12 +114,23 @@ local function step()
 		humanoid.AutoRotate = false
 		root.CFrame = CFrame.lookAt(root.Position, root.Position + ActionState.guardFacing)
 	else
-		humanoid.AutoRotate = true
 		local camera = workspace.CurrentCamera
 		local firstPerson = camera ~= nil and (camera.CFrame.Position - camera.Focus.Position).Magnitude <= 1.5
-		local freeCamera = UserInputService.MouseBehavior ~= Enum.MouseBehavior.LockCenter and not firstPerson
-		gameSettings.RotationType = if running or freeCamera
-			then Enum.RotationType.MovementRelative else Enum.RotationType.CameraRelative
+		local shoulderLock = UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter and not firstPerson
+		if shoulderLock and not running and camera then
+			-- Shift lock: the body turns toward the camera at a rate instead of
+			-- snapping onto it (husspotato7, user 2026-10-24), so strafing eases in
+			-- as the body comes round; the head is already on the camera (HeadLook).
+			humanoid.AutoRotate = false
+			gameSettings.RotationType = Enum.RotationType.MovementRelative
+			local moving = humanoid.MoveDirection.Magnitude > 0.1
+			turnToward(root, camera.CFrame.LookVector, if moving then BODY_TURN else STAND_TURN, dt)
+			dragWithin(root, camera.CFrame.LookVector, HEAD_LIMIT)
+		else
+			humanoid.AutoRotate = true
+			gameSettings.RotationType = if firstPerson and not running
+				then Enum.RotationType.CameraRelative else Enum.RotationType.MovementRelative
+		end
 	end
 end
 

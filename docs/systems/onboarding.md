@@ -125,10 +125,10 @@ QC3->4 by ~9-10); not yet timed in play.
 **One idea per chapter after the hook** (lessons, roadmap section 2): Home (QC4,
 plant a seed), paired with Seclusion (QC4 after Home: enter seclusion on your peak; the
 first one ends by itself after 90 s with a generous card, a reward moment; the seed
-just planted is what it tends; [seclusion](seclusion.md)), Board (QC5, read the sect board: from then on its Read prompt opens the [sect](sect.md) board), Herbs (QC6, eat one), Rumours
-(QC8, find a hidden cache; no guide), Wall (QC9, break into Qi Refining), and at QR1
-the second weapon (WeaponRack) and the Dao drill (DaoPractice, `Pacing.DaoPractice.FROM`
-moved from QC7). A lesson's line waits 20 s into free play (`LESSON_DELAY`), so Home
+just planted is what it tends; [seclusion](seclusion.md)), Board (QC5, read the sect board: from then on its Read prompt opens the [sect](sect.md) board), Herbs (QC6, eat one), the Dao drill
+(QC7, DaoPractice, `Pacing.DaoPractice.FROM`), Rumours (QC8, find a hidden cache; no
+guide), Wall (QC9, break into Qi Refining), and at QR1 the second weapon (WeaponRack,
+`RACK_FROM`). A lesson's line waits 20 s into free play (`LESSON_DELAY`), so Home
 doesn't land on FreePlay's own line. Still to write, as each system lands: QR (a
 master, the Halls, rifts, the heart demon) and FE (refinement, treasures, pets).
 

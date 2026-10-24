@@ -470,9 +470,14 @@ local function companyQuestion(data: PlayerData.Data): Question?
 	local shown = if minutes < 60 then `{math.floor(minutes + 0.5)} minutes`
 		elseif hours < 1.5 then "An hour"
 		else `{math.floor(hours + 0.5)} hours`
+	-- the party shelter (Shelter.credit): a stronger friend's hand, or yours over a weaker one
+	local at = Pacing.Shelter.HEART_LINE_AT
+	local ask = if (data.stats.leaned or 0) >= at then "A stronger friend sheltered you. Did you lean on them?"
+		elseif (data.stats.sheltered or 0) >= at then "You sheltered weaker friends. Did you lean on them, too?"
+		else "Did you lean on them?"
 	return {
 		id = "company",
-		lines = { `{shown} walking beside others.`, "Did you lean on them?" },
+		lines = { `{shown} walking beside others.`, ask },
 		answers = {
 			{ text = "Yes, and they on me.", reply = "Then the bond holds both ways.", honest = true, heart = "climbed with others" },
 			{ text = "No. We walked as equals.", reply = "Equals. Rarer than you think.", honest = true, heart = "walked beside equals" },

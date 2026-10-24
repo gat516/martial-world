@@ -133,6 +133,8 @@ export type Data = {
 		washed: number, -- Marrow Washing Pills absorbed (Roots.wash)
 		rerolls: number, -- Root Rebirth Pills used (Roots.reroll)
 		partied: number, -- seconds in a party with a member nearby (server Party)
+		sheltered: number, -- kills party members earned under this player's shelter (Shelter.credit)
+		leaned: number, -- kills this player earned sheltered by a stronger party member (Shelter.credit)
 		contribution: number, -- sect contribution earned, all time (Sect)
 		dailies: number, -- sect dailies claimed (Sect)
 		gathered: number, -- qi node gathers (QiNodes)
@@ -248,7 +250,7 @@ local function default(): Data
 		heavenDefying = false,
 		daoPracticeReadyUnix = 0,
 		stats = { breakthroughs = 0, circulationRuns = 0, kills = 0, bossKills = 0, slain = {}, harvests = 0, deaths = 0, seated = 0, forced = 0, secluded = 0,
-			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0, partied = 0,
+			surges = 0, spills = 0, reclaimed = 0, fled = 0, stored = 0, ringed = 0, placed = 0, peakBest = 0, elites = 0, apexes = 0, washed = 0, rerolls = 0, partied = 0, sheltered = 0, leaned = 0,
 			contribution = 0, dailies = 0, gathered = 0 },
 		heartDemon = { trials = {}, declined = {} },
 		sect = { rank = "Outer", contribution = 0, earned = 0, week = 0, weekId = 0, day = 0, offered = {}, taken = {}, chain = 0, step = nil, tracked = "", ring = {}, bought = {} },

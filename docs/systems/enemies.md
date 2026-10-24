@@ -153,7 +153,11 @@ beast's realm and the local player's (`Realms.index`, in ladder stages) picks a
 tier from `Pacing.Danger`, re-picked live when the player's `Realm` changes, so
 a breakthrough makes the same beast look tamer. Realm suppression overrides the
 count: a beast one major realm up reads at least "far" (two majors: "deadly"), one a
-major below reads "below", however few stages apart.
+major below reads "cowed" (it fears you: it won't hunt you, flinches as you arrive
+and, two majors below, runs; [combat](combat.md#realm-pressure-owners-decision-2026-10-24)),
+however few stages apart. While a stronger party member shelters you, a beast above
+your major but within their stage reads "sheltered"; one beyond theirs is read
+against their stage. Bosses keep the five tiers below (BossThemes has lines for them).
 
 | Tier | Gap (default) | Look |
 |---|---|---|
@@ -162,6 +166,8 @@ major below reads "below", however few stages apart.
 | above | +2 to +3 | gold frame, gem end and lozenge cap on the left, omen line |
 | far | +4 to +5 | violet frame, crimson gem drawn out into a talisman tip, pulsing qi aura, sheen sweep, omen line |
 | deadly | >= +6 | no name, realm or health: a pulsing cracked skull seal and an omen, shown whenever the beast is in range (90 studs) |
+| cowed | a major below you | the below frame and tag, with a muted omen ("It fears your realm") |
+| sheltered | above your major, within your patron's stage | the even frame, jade tag and a jade omen ("Sheltered by a friend") |
 
 Omen lines are short xianxia warnings under the bar (under the skull for
 deadly), one picked at random per beast per tier so it never flickers; the pools
@@ -494,7 +500,8 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
   EnemyService applies them through `Realms.ofBeast`). Defs are authored against the
   baseline (e.g. QC9: a 330 HP player at power 2.13), not the live curve. Realm
   suppression (`Pacing.Suppression`) cuts damage across major realms both ways
-  ([combat](combat.md#realm-power-and-suppression-2026-10-23)),
+  ([combat](combat.md#realm-power-and-suppression-2026-10-23); eased by the party
+  shelter, and beasts a major below fear a player: `Pacing.Shelter`, `Pacing.Pressure`),
   `Global.BEAST_HEALTH/BEAST_DAMAGE`, and kill qi through `Realms.enemyQi`.
 
 ## Known gaps

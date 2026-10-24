@@ -90,6 +90,10 @@ path, fear/pride and one more.
     no one?" (denial: "I always walk with friends."); from `COMPANY_MIN_MINUTES` (30)
     "... walking beside others. Did you lean on them?" (denial: "I've always walked
     alone."). Between: no question. Solitude weighs 1; company weighs by its minutes.
+    From `Pacing.Shelter.HEART_LINE_AT` (3) kills under the party shelter the second
+    line names it: "A stronger friend sheltered you. Did you lean on them?"
+    (`stats.leaned`), else "You sheltered weaker friends. Did you lean on them, too?"
+    (`stats.sheltered`).
 14. **The sect** ([sect](sect.md)). **Duty** (`dailies` >= `DUTY_MIN` = 10): "You
     answered the sect's board 24 times. 900 contribution to your name. Do you serve the
     sect, or yourself?" (denial: "I walk alone."). **Lone wolf** (at most `LONE_MAX` = 1

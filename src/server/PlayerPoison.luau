@@ -3,7 +3,8 @@
 -- Each stack (at most MAX_STACKS) costs SHARE of the poisoner's stage health (the
 -- curve's health at its `realm`, so a beast's poison follows the curve like its blows)
 -- every second, times realm suppression when the poisoner's major realm is below the
--- player's (Realms.suppression, as EnemyService hurtBy does for blows), until the
+-- player's (Realms.suppression, as EnemyService hurtBy does for blows; eased by the
+-- party shelter, Shelter.hurt), until the
 -- poison runs out (`seconds` after the last application; re-applying adds a stack and
 -- refreshes it). It never kills (Combat.dot leaves 1 HP), ignores dodges and doesn't
 -- flinch. Ends on death or when the character goes. There is no cure yet.
@@ -17,6 +18,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Realms = require(ReplicatedStorage.Shared.Realms)
 local Combat = require(script.Parent.Combat)
 local PlayerData = require(script.Parent.PlayerData)
+local Shelter = require(script.Parent.Shelter)
 
 local MAX_STACKS = 3
 local SHARE = 0.012 -- of the poisoner's stage health, per stack per second
@@ -77,7 +79,7 @@ function PlayerPoison.apply(player: Player, stacks: number, seconds: number, sou
 	local perStack = SHARE * Realms.ofBeast(realm).health
 	local data = PlayerData.get(player)
 	if data then
-		perStack *= Realms.suppression(realm[1], data.realm.major)
+		perStack *= Shelter.hurt(player, data, Realms.ofBeast(realm))
 	end
 	local new: State = {
 		perStack = math.max(perStack, if state then state.perStack else 0),

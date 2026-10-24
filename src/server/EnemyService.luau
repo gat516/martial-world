@@ -29,6 +29,9 @@
 -- (EnemyFX); the server compensates player swings for lag (EnemyHistory).
 -- Idle beasts with no player within Config.Wilds.WAKE_RADIUS sleep: not
 -- thinking or moving, nothing to replicate.
+-- Realm pressure (Pacing.Pressure): a regular beast a full major below a player
+-- leaves them be unless hurt by them, flinches when they arrive and, two majors
+-- below, runs; a breakthrough nearby staggers the beasts below it.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -77,6 +80,9 @@ local EnemyHistory = require(script.Parent.EnemyHistory)
 local EnemyMover = require(script.Parent.EnemyMover)
 local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
+local Shelter = require(script.Parent.Shelter)
+local Pressure = require(ReplicatedStorage.Shared.Pacing).Pressure
+local ShelterPacing = require(ReplicatedStorage.Shared.Pacing).Shelter
 local Analytics = require(script.Parent.Analytics)
 
 local remotes = ReplicatedStorage.Remotes
@@ -205,6 +211,8 @@ type Enemy = {
 	boundMode: string?, -- the last bound's landing mode (BoundMode attribute)
 	preferNext: { string }?, -- after a `rangedNext` attack: only these, until preferUntil
 	preferUntil: number,
+	fearless: boolean, -- ignores realm pressure: bosses, summons, beasts sent at a player
+	awedBy: { [Player]: number }, -- os.clock() each player a major above was last seen in aggro
 }
 
 local enemies: { [Model]: Enemy } = {}
@@ -442,6 +450,8 @@ function EnemyService.spawn(id: string, at: Vector3, options: SpawnOptions?): Mo
 		boundMode = nil,
 		preferNext = nil,
 		preferUntil = 0,
+		fearless = def.boss == true or opts.target ~= nil or opts.called == true,
+		awedBy = {},
 	}
 	enemies[model] = enemy
 	return model
@@ -667,6 +677,13 @@ function EnemyService.died(enemy: Enemy)
 			end
 			grantQi(player, data, amount, position)
 			Cultivation.pushState(player)
+			-- the party shelter: whoever sheltered this kill earns a share for it
+			local patron = Shelter.credit(player, data, Realms.ofBeast(enemy.def.realm))
+			local pd = patron and PlayerData.get(patron)
+			if patron and pd then
+				grantQi(patron, pd, killQi(enemy, pd) * ShelterPacing.SENIOR_QI_SHARE, position)
+				Cultivation.pushState(patron)
+			end
 		end
 	end
 	-- helpers: hit it for less than the share, or a party member of a winner nearby
@@ -887,7 +904,22 @@ Combat.onEnemyDamaged = function(model: Model, player: Player, amount: number, p
 	end
 end
 
--- Keep the current target while it's alive and not too far, else find the nearest.
+-- Realm pressure (Pacing.Pressure): how many majors the player stands above this
+-- beast, 0 when it doesn't care (a boss, a summon, one sent at a player, one they
+-- have hurt, or the player's major isn't above its own).
+local function awe(enemy: Enemy, player: Player): number
+	if not Pressure.ENABLED or enemy.fearless or enemy.damagers[player] then
+		return 0
+	end
+	local data = PlayerData.get(player)
+	if not data then
+		return 0
+	end
+	return math.max(0, Realms.majorIndex(data.realm.major) - Realms.majorIndex(enemy.def.realm[1]))
+end
+
+-- Keep the current target while it's alive and not too far, else find the nearest
+-- (never one a major above it who hasn't hurt it: realm pressure).
 local function pickTarget(enemy: Enemy): (Player?, BasePart?)
 	local def = enemy.def
 	local position = enemy.root.Position
@@ -905,7 +937,7 @@ local function pickTarget(enemy: Enemy): (Player?, BasePart?)
 	local best, bestRoot, bestDist = nil, nil, def.aggro
 	for _, player in Players:GetPlayers() do
 		local root = playerRoot(player)
-		if root and flat(root.Position - leashCenter).Magnitude <= leash then
+		if root and flat(root.Position - leashCenter).Magnitude <= leash and awe(enemy, player) == 0 then
 			local d = (root.Position - position).Magnitude
 			if d <= bestDist then
 				best, bestRoot, bestDist = player, root, d
@@ -977,6 +1009,70 @@ local function parried(enemy: Enemy, chain: number?)
 	setState(enemy, "stagger")
 	enemy.stateUntil = os.clock() + (if enemy.def.boss then Guarding.PARRY_STAGGER_BOSS else Guarding.PARRY_STAGGER) + bonus
 	enemy.staggerImmuneUntil = enemy.stateUntil + Knockback.RESTAGGER
+end
+
+-- Realm pressure's stagger (an arrival flinch, a breakthrough's wave): whatever it
+-- was doing is broken off, as a knock does.
+local function staggerFor(enemy: Enemy, seconds: number)
+	if enemies[enemy.model] ~= enemy or enemy.health <= 0 or enemy.state == "return" or enemy.asleep then
+		return
+	end
+	enemy.shape, enemy.dashTo, enemy.landShape = nil, nil, nil
+	enemy.strikeId += 1
+	enemy.hopPending = false
+	enemy.followUp = nil
+	dropArrive(enemy)
+	releaseSlot(enemy)
+	setSpeed(enemy, enemy.def.runSpeed)
+	enemy.mover.turn = false
+	stop(enemy)
+	setState(enemy, "stagger")
+	enemy.stateUntil = math.max(enemy.stateUntil, os.clock() + seconds)
+end
+
+-- An idle beast feels the players a major or more above it within its aggro: it
+-- flinches when one arrives (again after Pressure.REARM unseen), and runs from one
+-- two majors up. True when it acted (think stops there).
+local function feelPressure(enemy: Enemy, now: number): boolean
+	if not Pressure.ENABLED or enemy.fearless then
+		return false
+	end
+	local position = enemy.root.Position
+	local fleeFrom: Vector3? = nil
+	local flinch = false
+	for _, player in Players:GetPlayers() do
+		local root = playerRoot(player)
+		if root and (root.Position - position).Magnitude <= enemy.def.aggro then
+			local majors = awe(enemy, player)
+			if majors >= 2 then
+				fleeFrom = root.Position
+			elseif majors == 1 then
+				local seen = enemy.awedBy[player]
+				if not seen or now - seen > Pressure.REARM then
+					flinch = true
+				end
+				enemy.awedBy[player] = now
+			end
+		end
+	end
+	if fleeFrom then
+		local away = flat(position - fleeFrom)
+		away = if away.Magnitude > 0.1 then away.Unit else Vector3.xAxis
+		local to = position + away * Pressure.FLEE_STUDS
+		if flat(to - home(enemy)).Magnitude > enemy.def.leash * 0.9 then
+			-- cornered at its leash: run along it instead, back toward home's side
+			to = home(enemy) + flat(to - home(enemy)).Unit * enemy.def.leash * 0.5
+		end
+		enemy.state = "idle"
+		setSpeed(enemy, enemy.def.runSpeed)
+		moveTo(enemy, to)
+		return true
+	end
+	if flinch then
+		staggerFor(enemy, Pressure.FLINCH)
+		return true
+	end
+	return false
 end
 
 -- An attack in a pool or pattern, by name.
@@ -1057,13 +1153,14 @@ end
 
 -- Combat.hurt for an enemy's attack, guardable as `hit` says. Every beast and
 -- boss blow on a player goes through here, so realm suppression is applied here
--- (a beast of a lower major realm barely scratches the player). A parry that
+-- (a beast of a lower major realm barely scratches the player; a stronger party
+-- member nearby eases a higher one's blows, Shelter.hurt). A parry that
 -- closes a chain (or stands alone) staggers the beast; "deflected" (a chained
 -- parry with more blows coming) lets the assault run on.
 local function hurtBy(enemy: Enemy, player: Player, damage: number, hit: Guard.Hit): (Combat.HurtResult, number)
 	local data = PlayerData.get(player)
 	if data then
-		damage *= Realms.suppression(enemy.def.realm[1], data.realm.major)
+		damage *= Shelter.hurt(player, data, Realms.ofBeast(enemy.def.realm))
 	end
 	local result, dealt = Combat.hurt(player, damage, false, enemy.def.id, hit)
 	if result == "parried" then
@@ -2459,6 +2556,9 @@ local function think(enemy: Enemy, now: number)
 			moveTo(enemy, home(enemy))
 			return
 		end
+		if feelPressure(enemy, now) then
+			return
+		end
 		enemy.state = "idle"
 		enemy.mover.look = nil
 		setSpeed(enemy, def.walkSpeed)
@@ -2710,6 +2810,23 @@ BossAttacks.init({
 	end,
 })
 
+-- A breakthrough's pressure wave (Pacing.Pressure): every regular beast nearby below
+-- the new stage staggers. Flavour only.
+table.insert(Cultivation.onBreakthrough, function(player: Player, stage: Realms.Stage)
+	local root = playerRoot(player)
+	if not (Pressure.ENABLED and root) then
+		return
+	end
+	local above = Realms.index(stage.major, stage.minor)
+	for _, enemy in enemies do
+		if not enemy.fearless and Realms.index(enemy.def.realm[1], enemy.def.realm[2]) < above
+			and (enemy.root.Position - root.Position).Magnitude <= Pressure.WAVE_RADIUS
+		then
+			staggerFor(enemy, Pressure.WAVE_STAGGER)
+		end
+	end
+end)
+
 function EnemyService.start()
 	task.spawn(function()
 		while true do
@@ -2731,6 +2848,7 @@ end
 function EnemyService.forget(player: Player)
 	for _, enemy in enemies do
 		enemy.damagers[player] = nil
+		enemy.awedBy[player] = nil
 		if enemy.target == player then
 			enemy.target = nil
 		end

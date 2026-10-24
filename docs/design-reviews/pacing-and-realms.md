@@ -1,5 +1,7 @@
 # Review: pacing and realms
 
+**Owner's decision (2026-10-24):** rec 1 taken and widened into "realm pressure": the party shelter (a junior near a stronger party member fights at a sync up to the beast's stage, takes a same-stage share of damage, earns their own realm's rewards; the senior gets a small qi share), beasts a major below a player fear them (no aggro unless hurt, flinch, flee two majors down), a breakthrough's pressure wave, and "cowed"/"sheltered" bar tiers. See [combat](../systems/combat.md#realm-pressure-owners-decision-2026-10-24).
+
 **Verdict: keep with changes.** The shape is right: three breakthroughs in ten minutes, a sawtooth per third, +10%/stage and x2.25 per major. But realm suppression kills co-play between friends of different majors, the curve breaks its own "bars never go down" rule, and heaven-defying is a tax with no real perk. Reviewed 2026-10-23 from `Pacing.luau`, progression.md, combat.md, roadmap section 1; nothing played.
 
 ## Why it exists / who it's for

@@ -23,6 +23,7 @@ local Foundation = require(script.Parent.Foundation)
 local Movement = require(script.Parent.Movement)
 local PlayerStun = require(script.Parent.PlayerStun)
 local Guard = require(script.Parent.Guard)
+local Shelter = require(script.Parent.Shelter)
 local Weapons = require(script.Parent.Weapons)
 local WeaponDefs = require(ReplicatedStorage.Shared.Weapons)
 local WeaponPacing = require(ReplicatedStorage.Shared.Pacing).Weapons
@@ -148,7 +149,7 @@ local function livingRoot(player: Player): (BasePart?, Humanoid?)
 end
 
 -- Damage an enemy on a player's behalf. Every player-caused hit goes through here,
--- so realm suppression (Realms.suppression) is applied here.
+-- so realm suppression (Realms.suppression, through the party shelter) is applied here.
 -- EnemyService owns enemy health and applies it (Combat.onEnemyDamaged); `push`,
 -- if any, knocks it back.
 function Combat.damageEnemy(player: Player, model: Model, amount: number, push: Vector3?)
@@ -161,11 +162,12 @@ function Combat.damageEnemy(player: Player, model: Model, amount: number, push: 
 		amount = math.max(amount * (1 - (model:GetAttribute("GuardReduction") or 0.8)), 1)
 		push = nil
 	end
-	-- realm suppression: a lower major realm barely scratches a higher one
+	-- realm suppression: a lower major realm barely scratches a higher one, unless a
+	-- stronger party member nearby shelters the player (Shelter.hit)
 	local data = PlayerData.get(player)
 	local beast = Realms.byName(model:GetAttribute("Realm"))
 	if data and beast then
-		amount *= Realms.suppression(data.realm.major, beast.major, Cultivation.heavenDefying(data))
+		amount *= Shelter.hit(player, data, beast)
 	end
 	amount = math.max(math.floor(amount + 0.5), if amount > 0 then 1 else 0)
 	model:SetAttribute("LastHitBy", player.UserId)

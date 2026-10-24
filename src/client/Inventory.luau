@@ -32,6 +32,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local Items = require(ReplicatedStorage.Shared.Items)
+local Pacing = require(ReplicatedStorage.Shared.Pacing)
 local Techniques = require(ReplicatedStorage.Shared.Techniques)
 local Weapons = require(ReplicatedStorage.Shared.Weapons)
 local Bottleneck = require(script.Parent.Bottleneck)
@@ -99,6 +100,7 @@ local info: ScrollingFrame
 local actions: Frame
 local primary: ImageButton
 local secondary: ImageButton
+local ringButton: ImageButton -- items only: put the stack in the spirit ring or take it out
 local tabButtons: { [Tab]: ImageButton } = {}
 local daoList: Frame
 local daoRows: { [string]: Frame } = {}
@@ -498,8 +500,23 @@ local function placeText(id: string): string
 		else "Not on your hotbar. Drag it onto a slot to use it."
 end
 
+-- The spirit ring (server Haul, docs/systems/haul.md): the ids kept safe even in
+-- the wilds, its size by realm, and whether an item is rare enough to be safe anyway
+-- (the server refuses those).
+local function ringState(): ({ string }, number)
+	local s = State.current :: any
+	return s.ring or {}, s.ringSlots or 0
+end
+
+local function safeFind(id: string): boolean
+	local item = Items.Defs[id]
+	local rarity = item and Items.Rarities[item.rarity]
+	return rarity ~= nil and rarity.order >= Pacing.Haul.SAFE_RARITY
+end
+
 local function showActions(shown: boolean)
 	actions.Visible = shown
+	ringButton.Visible = false -- the item branch shows it
 	info.Size = if shown then UDim2.new(1, 0, 1, -46) else UDim2.fromScale(1, 1)
 end
 
@@ -661,7 +678,9 @@ local function renderDetail(animate: boolean?)
 	if not id then
 		-- nothing chosen: what Dao comprehension stands at, on the Weapons tab
 		showActions(false)
-		setText("Status", "")
+		-- the Pouch's ring view: how many of its stacks are kept safe
+		local ring, slots = ringState()
+		setText("Status", if tab == "Pouch" and slots > 0 then `Spirit ring: {#ring}/{slots} stacks kept safe.` else "", STATUS)
 		setText("Pairs", "")
 		setText("Blurb", "")
 		setText("Lore", "")
@@ -680,13 +699,20 @@ local function renderDetail(animate: boolean?)
 		daoList.Visible = false
 		local count = Items.count(s, item.id)
 		setText("Status", placeText(item.id) .. (if count > 1 then ` You have {count}.` else ""), STATUS)
-		-- the spirit ring (server Haul): no button yet, so it only says when a stack is in it
-		local ring = s.ring or {}
+		-- the spirit ring: the Ring button puts the stack in (its label counts the
+		-- slots) or takes it out; rare finds are safe without it
+		local ring, slots = ringState()
+		local inRing = table.find(ring, item.id) ~= nil
+		local safe = safeFind(item.id)
 		setText(
 			"Pairs",
-			if table.find(ring, item.id) then `In your spirit ring ({#ring}/{s.ringSlots or 0}): safe even in the wilds.` else "",
+			if inRing then `In your spirit ring ({#ring}/{slots}): safe even in the wilds.`
+				elseif safe then "A rare find: it never spills, ring or not."
+				else "",
 			STATUS
 		)
+		ringButton.Visible = slots > 0 and (inRing or not safe)
+		caption(ringButton).Text = if inRing then "Take out" else `Ring {#ring}/{slots}`
 		setText("Blurb", item.blurb)
 		setText("Lore", item.lore or "")
 		primary.Visible = true
@@ -770,6 +796,9 @@ local function makeCell(id: string, order: number, held: string, equipChanged: b
 	else
 		badge.Visible = false
 	end
+	-- the jade 戒 seal on Pouch stacks in the spirit ring (top-left, opposite NEW)
+	local ring = ringState();
+	(cell:FindFirstChild("RingMark") :: GuiObject).Visible = not weapon and technique == nil and table.find(ring, id) ~= nil
 	local mark = cell:FindFirstChild("EquipMark") :: ImageLabel
 	mark.Visible = weapon and id == held
 	if mark.Visible and equipChanged then
@@ -945,6 +974,14 @@ local function onPrimary()
 	end
 end
 
+local function onRing()
+	local id = selected
+	if id and Items.Defs[id] then
+		local ring = ringState()
+		invoke("ring", id, table.find(ring, id) == nil)
+	end
+end
+
 local function onSecondary()
 	if selected and Techniques.Defs[selected] then
 		Bottleneck.comprehend(selected)
@@ -1064,6 +1101,8 @@ function Inventory.init(gui: ScreenGui)
 	secondary = actions:FindFirstChild("Secondary") :: ImageButton
 	primary.Activated:Connect(onPrimary)
 	secondary.Activated:Connect(onSecondary)
+	ringButton = actions:FindFirstChild("Ring") :: ImageButton
+	ringButton.Activated:Connect(onRing)
 	InventoryFilter.init(window, function()
 		render()
 	end)

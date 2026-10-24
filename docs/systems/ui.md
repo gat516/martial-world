@@ -46,11 +46,13 @@ cursor, settings and the admin panel.
   2026-10-21). Layout, rows and room for later tabs:
   [character window](../character/character-window.md). Switching methods lives in
   the meditation menu ([meditation](meditation.md)).
-- Top-right tiles (`Hud.Buttons`, right-aligned list), left to right: Build (near
+- Top-right tiles (`Hud.Buttons`, right-aligned list, 440 px wide), left to right: Herbarium
+  (the book with a leaf, tinted leaf green; `Herbarium.luau` toggles it, H on keyboards;
+  added 2026-10-23 so phones have a way in), Build (near
   your peak; at the very left so it slides out cleanly in combat, user 2026-10-23),
   Cultivate, Self (once the root is tested), Travel (in the sect; with the other
   folding tiles on the left, user 2026-10-23), the admin-only 管 tile (touch, never
-  folds), Inventory, Settings. In combat (the player's `InCombat` attribute) they fold down to
+  folds), Inventory, Settings. Herbarium, Build, Cultivate, Self and Travel fold. In combat (the player's `InCombat` attribute) they fold down to
   Inventory and Settings (`TileFold.luau`, user 2026-10-23: so the boss bar can
   reach the top; Travel is refused while combat tagged anyway): each other tile
   shrinks to a point in 0.18 s, its width to minus the list padding so the row
@@ -60,7 +62,7 @@ cursor, settings and the admin panel.
   50 px thumb targets), 0.78 on a touch phone (44 px, the height of Roblox's own top-bar
   buttons; at 50 the user found them "a bit too large", 2026-10-23; `Layout`
   TOUCH_SMALL_TILES, and `Play.Tracker` moves up to keep its 8 px gap), 0.85 on PC;
-  four tiles are 200 px wide on a phone. The frame is
+  four tiles are 200 px wide on a phone, all seven out of combat about 343 px. The frame is
   `hud_tile` (art/ui/hud: a lacquer square with chamfered corners, gilt band and
   inner line, no curls; it fills the tile, nothing overhangs). PC: icon (22 px,
   cropped to its drawn area, every pixel with alpha > 0: the old rects were up to a

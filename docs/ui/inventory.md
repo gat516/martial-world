@@ -77,7 +77,7 @@ icons; the padding", and the toast "really conflicts with inventory" on a phone.
   (a weapon's arts; an art's required weapon and whether it is in hand); what it does
   (for weapons with the grade multiplier); then the Dao row (weapons, or every class
   with nothing chosen on the Weapons tab) or the art's level row, cost rows and buttons. Items keep
-  Eat/Use and Hold; arts keep Add to / Remove from hotbar and Comprehend at a
+  Eat/Use and Hold, plus **Ring** (below); arts keep Add to / Remove from hotbar and Comprehend at a
   bottleneck. Weapons have **no buttons**.
 - Touch: the window starts 6 px below Roblox's top bar (`Platform.topbar`, from
   `GuiService.TopbarInset`), so its top-left never crowds Roblox's menu and chat
@@ -271,13 +271,26 @@ weapon skills' are drawn in `art/ui/draw_techniques.py`. Twin Phoenix Cannon,
 Dragon-Piercing Thrust and Great Sage Awakening read poorly at hotbar size; a Codex
 request for a matching art-icon set is in codex-sheets.
 
+## Spirit ring ([haul](../systems/haul.md))
+
+- `Detail.Actions` holds three kit buttons that share the row equally (the list's
+  `HorizontalFlex` Fill, each authored 40 px wide): Eat/Use (gold), Hold (lacquer) and
+  **Ring** (jade, `button_jade_h64`), items only. Ring reads "Ring n/m" (stacks in the
+  ring / `ringSlots`) and puts the stack in; on a ringed stack it reads "Take out".
+  It fires `InventoryAction ("ring", id, true|false)`; refusals (a full ring) toast.
+  Hidden on rare finds (rarity order >= `Pacing.Haul.SAFE_RARITY`, which the server
+  refuses as already safe); their Pairs line says "A rare find: it never spills, ring
+  or not." A ringed stack's Pairs line: "In your spirit ring (n/m): safe even in the
+  wilds."
+- Pouch cells in the ring wear a jade 戒 seal top-left (`RingMark`, `seal_mark_jade_h48`,
+  the 佩 seal's sibling, mirrored to (10, 8)); the glyph is Heavy and near white so it
+  holds at 22 px.
+- With nothing chosen on the Pouch tab, the Status line reads "Spirit ring: n/m stacks
+  kept safe."
+
 ## Known gaps
 
-- **Spirit ring: no button yet** ([haul](../systems/haul.md)). The server takes
-  `InventoryAction ("ring", itemId, true|false)` and `PlayerState` carries `ring` and
-  `ringSlots`; an item in the ring only says so in the detail's Pairs line. The detail
-  pane has two action buttons (Use/Eat, Hold), so a Ring toggle (and a view of the
-  ring's slots) needs a ui-designer pass on `StarterGui.Hud.Inventory`.
+- The Ring button, its labels, the mark and the toasts are untested in play.
 
 - Not playtested: drags (hold-to-pick-up, the ghost, drop rings, cancel, the inset-safe
   hit test), taps, NEW clearing, sort persistence, the top-bar inset

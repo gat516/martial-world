@@ -137,8 +137,8 @@ Server `QiSurge.luau`, tuning `Pacing.Surge`.
   engagement (`ONCE_PER_COMBAT`: reset once the tag drops and the surge is over).
 - **Fire:** `CultivationAction "surge"` (`Cultivation.surge` -> `QiSurge.fire`;
   refusals return why). PC: M surges instead of meditating while `SurgeReady`
-  (Meditation's binding), and the standing pill reads "M to qi surge". Touch: the
-  same pill reads "Qi Surge" and fires it ([HUD vitals](../ui/hud-vitals.md)).
+  (Meditation's binding), and the standing pill reads "M to qi surge". Touch: a
+  Surge button in the combat cluster fires it ([HUD vitals](../ui/hud-vitals.md#qi-surge-button-and-notice)).
 - **Effect:** `SECONDS` (15) at the next stage's health and power
   (`Cultivation.surgeStage` -> `fightStage`, read by `applyStats` and `Combat.power`;
   max health rises keeping the fraction), then a heal of `HEAL_SHARE` (20%) of the

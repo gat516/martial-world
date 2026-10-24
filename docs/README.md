@@ -84,6 +84,7 @@ What we build next and in what order (foundation grades, the haul and the surge,
 | Want to change | File |
 |---|---|
 | How fast players climb, per stage: qi, breakthroughs, tribulation, technique Dao gates, beast strength | `src/shared/Pacing.luau` ([cultivation](systems/cultivation.md)) |
+| What real players get per stage (herbs, garden, aura, building, roots, method, cores, nights, economy, foundation percent) against the curve, and proposed knobs | `tools/pacing_model.py` ([pacing model](systems/pacing-model.md)) |
 | Enemy overhead bar danger tiers (realm-gap thresholds); their art, colours and omen lines | `src/shared/Pacing.luau` `Danger`; `STYLES` in `src/client/EnemyBars.luau` ([enemies](systems/enemies.md)) |
 | Practice Dao drill (unlock stage, cooldown, XP share, game) | `src/shared/Pacing.luau` `DaoPractice` ([meditation](systems/meditation.md)) |
 | Death cost: spill share, spill time, rarity line that banks on pickup, spirit ring slots | `src/shared/Pacing.luau` `Haul` ([haul](systems/haul.md)) |

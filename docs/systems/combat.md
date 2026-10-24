@@ -6,6 +6,27 @@ chain bare-handed; see [weapons](weapons.md)), a flying-sword dash with
 i-frames and perfect dodges, and up to a few equipped techniques. Realm power
 scales all player damage.
 
+## Realm power and suppression (2026-10-23)
+- **Strength by stage** (`Pacing.Curve` `health`, `power`): about +10% a minor stage
+  and x2.25 at each major. Health 100 (QC1), 215 (QC9), 480 (QR1), 1030 (QR9), 2330
+  (FE1), 4990 (FE9); power 1.0, 2.14, 4.82, 10.3, 23.3, 49.9.
+- **Beasts follow the curve.** Enemy defs are authored against `Pacing.BeastBaseline`
+  (the 2026-10-22 player stats); `Realms` scales each beast's health by the curve's
+  power over the baseline's and its damage by the curve's health over the baseline's,
+  at the beast's `realm`, so a same-stage beast stays the fight it was designed as.
+- **Realm suppression** (`Pacing.Suppression.KEEP` 0.2, `Realms.suppression`): an
+  attacker whose major realm is below the target's deals 0.2x per major between them
+  (a QC player does 20% to a QR beast, 4% to an FE one; a QC beast the same to a QR
+  player). A higher realm gets no bonus beyond its stats; minor stages never suppress.
+  Applied at the two choke points: `Combat.damageEnemy` (every player hit) and
+  EnemyService `hurtBy` (every beast and boss blow). Tribulation strikes aren't
+  suppressed. A minor stage up is fightable (1.1x on both sides); a major up is not
+  (2.25x on both sides plus suppression).
+- **Heaven-defiers** (`data.heavenDefying`) ignore `Pacing.HeavenDefying.SUPPRESSION_RESIST`
+  (half) of the reduction when they hit upward: 0.6x per major instead of 0.2x.
+- Enemy bars read a beast a major up as at least "far" (two: "deadly"), and one a
+  major below as "below" ([enemies](enemies.md)).
+
 ## Design intent
 - Responsive on every device: the client predicts actions and hits; the server
   re-checks the same timelines and owns damage and cooldowns.
@@ -278,8 +299,8 @@ Client presses -> `ActionRules` decides if legal -> plays locally and sends
 `Attack { begin }`; hit reports follow as `Attack { hit, targets }` -> server
 replays the timeline, checks timing (`MAX_LAG`, `CLOCK_SLACK`) and the slackened
 hitbox (a claimed target outside it now still counts if it was inside at the
-swing's time, rewound at most `REWIND`: lag compensation, `EnemyHistory`), applies `damage * Combat.power(player)` (times `Weapons.multiplier` for M1)
-and knockback, and acknowledges
+swing's time, rewound at most `REWIND`: lag compensation, `EnemyHistory`), applies `damage * Combat.power(player)` (times `Weapons.multiplier` for M1,
+then realm suppression in `damageEnemy`) and knockback, and acknowledges
 via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
 `"perfect" | "dodged" | "hit"` and fires `Effect "hurt"`/`"perfect"`.
 
@@ -299,7 +320,8 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   `VISUAL_TIERS` maps levels to the four visual tiers (I 1-3, II 4-6, III 7-9,
   IV 10), and so where the comprehension bottlenecks sit; `TechniqueVFX.STEP_COUNT` is the extra particle count per level inside a tier.
 - `Knockback.luau`: `REALM_EXPONENT`, `MIN_DISTANCE`, `ARMOR_BREAK`, stun, base pushes.
-- Per stage (`Pacing.luau`): player `power` and `health` (curve and Adjust).
+- Per stage (`Pacing.luau`): player `power` and `health` (curve and Adjust);
+  `Pacing.Suppression.KEEP`, `Pacing.HeavenDefying.SUPPRESSION_RESIST`; `Pacing.BeastBaseline`.
 - `Config.Combat.CC`: flinch, stagger and stun lengths, move shares, stumble push, immunity and diminishing returns.
 
 ## Known gaps
@@ -322,6 +344,9 @@ via `Effect "action"`. Enemy attacks call `Combat.hurt`, which reports
   level or stage?); should a dodge-cancelled cast refund its qi; should perfect
   dodges or parries restore qi; should items or root perks touch combat qi.
 - Testbed casts cost qi like the main game (no free-qi flag).
+- Suppression is unplayed. Poison and slow from a lower-realm beast still land in
+  full (poison is a share of max health), and a bat's leech heals from the
+  unsuppressed damage.
 - Technique visual gaps (Fire Seal's client-timed ticks, observers never
   seeing windups or the Great Sage twirl, Heaven-Splitting Descent's first
   hit landing before the sweep) are in [technique visuals](../combat/technique-visuals.md#known-gaps)

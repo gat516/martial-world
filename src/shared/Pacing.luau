@@ -32,59 +32,78 @@
 
 -- WEAPON DAO (Pacing.Weapons, at the end): per-class comprehension levels and XP.
 
--- THE RHYTHM (Qi Condensation 1-9, then Foundation Establishment)
---   QC1-3  HOOK      fast, one or two runs each; the onboarding ends at QC3
---   QC4    BREATHER  a cheap stage right after the tutorial, to reward staying
---   QC5    RAMP      the bar passes one dantian; the loop of gather/refine sets in
---   QC6    MINI-WALL the first stage that needs more than one dantian of qi
---   QC7    BREATHER  cheaper than QC6 for its dantian: relief after the wall
---   QC8    RAMP      a long climb that sets up the wall
---   QC9    WALL      the biggest bar; a heaven-defying player also faces a
---                    tribulation to leave it
---   QR1-9  Qi Refining, in chapters of three: HOOK, BREATHER, MINI-WALL, then
---          RAMP, BREATHER, MINI-WALL, then RAMP, BREATHER, WALL (docs/progression.md)
---   FE1-9  Foundation Establishment, the same chapters; FE9 is the cap for now
+-- THE RHYTHM (docs/roadmap.md "Pacing, realm gaps and verbs", decided 2026-10-23)
+--   Active-play targets: Qi Condensation about 2.5 h, Qi Refining about 7 h,
+--   Foundation Establishment about 20 h (about 30 h to FE9, the cap). Passive and
+--   offline cultivation stretch it over real days.
+--   Every realm is three thirds (1-3, 4-6, 7-9), each easy to hard, opened by a
+--   breather so a breakthrough feels good; stage 9 is the realm's wall.
+--   QC1-3  HOOK      the first session lands two or three breakthroughs: QC1->2
+--                    within about 1.5 min of first sitting, QC3 by about 4-5 min,
+--                    QC4 by about 9-10 min (with the onboarding's talk and travel)
+--   4-6    BREATHER, RAMP, MINI-WALL   (in QC: the loop of gather/refine sets in)
+--   7-9    BREATHER, RAMP, WALL        (QC9, the first realm's wall, about an hour)
+--   1-3 of QR and FE: HOOK (the new realm), RAMP, MINI-WALL
+--   QR1-3  the new realm opens fast (its first bar is smaller than QC9's wall)
+--   QR4-9  THE REAL SLOWDOWN: bars outgrow hunting, and passive grows as a share of
+--          income so the garden aura, peak build items and herbs (all multiply or
+--          add to it) are what keep cultivation moving (user, 2026-10-23; not alchemy)
+--   FE1-9  the long realm; no stage over about 3 h; FE9 is the cap for now
 --          (PEAK: its bar is shown, never broken through)
 --   The walls are the bar (and the tribulation for heaven-defiers); nothing
---   else gates a breakthrough.
+--   else gates a breakthrough. A heaven-defier's bar is HeavenDefying.BAR x longer.
 --
--- TIME-TO-BREAKTHROUGH ESTIMATES (derived from the numbers below, Global = 1,
--- no herbs, weather or garden aura; "active" assumes ~0.8 minigame score, i.e.
--- 1.1 cultivation per raw qi):
---   stage  bar   idle   meditate  on peak  active: runs, raw qi to gather (wolf kills or node gathers)
---   QC1     40   3 min   2 min    1 min    1 run,    36 qi  (~3 wolves  / 2 nodes; the starting qi covers it)
---   QC2    110   7 min   5 min    3 min    2 runs,  100 qi  (~5 wolves  / 3 nodes)
---   QC3    200  10 min   7 min    4 min    2 runs,  180 qi  (~7 wolves  / 4 nodes)
---   QC4    300  13 min   8 min    5 min    2 runs,  270 qi  (~8 wolves  / 4 nodes)
---   QC5    560  19 min  12 min    8 min    3 runs,  510 qi  (~11 wolves / 5 nodes)
---   QC6   1000  27 min  18 min   11 min    3 runs,  910 qi  (~15 wolves / 6 nodes)
---   QC7   1300  28 min  19 min   11 min    3 runs, 1180 qi  (~15 wolves / 6 nodes)
---   QC8   2300  40 min  27 min   16 min    4 runs, 2090 qi  (~20 wolves / 7 nodes)
---   QC9   3700  54 min  36 min   21 min    5 runs, 3360 qi  (~25 wolves / 8 nodes) + tribulation
---   QR1    4200  56 min   37 min   22 min    4 runs,   3818 qi  (~25 wolves / 8 nodes)
---   QR2    4700  58 min   39 min   23 min    4 runs,   4273 qi  (~24 wolves / 7 nodes)
---   QR3    6300  70 min   47 min   28 min    5 runs,   5727 qi  (~28 wolves / 8 nodes)
---   QR4    7800  79 min   53 min   32 min    5 runs,   7091 qi  (~30 wolves / 9 nodes)
---   QR5    8600  80 min   53 min   32 min    5 runs,   7818 qi  (~29 wolves / 8 nodes)
---   QR6   11200  93 min   62 min   37 min    5 runs,  10182 qi  (~33 wolves / 9 nodes)
---   QR7   13800 105 min   70 min   42 min    5 runs,  12545 qi  (~35 wolves / 9 nodes)
---   QR8   15500 108 min   72 min   43 min    5 runs,  14091 qi  (~34 wolves / 9 nodes)
---   QR9   21000 130 min   86 min   52 min    5 runs,  19091 qi  (~40 wolves / 10 nodes)
---   FE1   22000 122 min   81 min   49 min    5 runs,  20000 qi  (~37 wolves / 9 nodes)
---   FE2   25000 126 min   84 min   51 min    5 runs,  22727 qi  (~37 wolves / 8 nodes)
---   FE3   34000 149 min   99 min   60 min    5 runs,  30909 qi  (~45 wolves / 10 nodes)
---   FE4   42000 163 min  109 min   65 min    6 runs,  38182 qi  (~48 wolves / 10 nodes)
---   FE5   47000 167 min  111 min   67 min    5 runs,  42727 qi  (~48 wolves / 10 nodes)
---   FE6   61000 188 min  126 min   75 min    6 runs,  55455 qi  (~55 wolves / 11 nodes)
---   FE7   76000 204 min  136 min   82 min    6 runs,  69091 qi  (~60 wolves / 12 nodes)
---   FE8   84000 206 min  137 min   82 min    6 runs,  76364 qi  (~59 wolves / 11 nodes)
---   FE9  115000 240 min  160 min   96 min    7 runs, 104545 qi  (~71 wolves / 13 nodes)
--- Active play stacks with the idle rate (passive cultivation never stops), so an
--- engaged player clears a stage in roughly the "active" column plus travel.
--- QR and FE rows are the proposed curve (docs/progression.md), untuned in play.
--- Formulas: idle = bar / passive; meditate = idle / Meditation.ANYWHERE; on peak =
--- idle / Meditation.ON_PEAK; runs = bar / (dantian / RUNS_PER_DANTIAN * 1.1);
--- wolf qi = 14 * (dantian / 120) ^ Income.ENEMY_QI_EXPONENT; node = dantian * NODE_SHARE.
+-- TIME-TO-BREAKTHROUGH ESTIMATES (Global = 1, no herbs, weather, garden aura,
+-- build items or method; a normal player):
+--   active   the fighter: passive (never stops) plus about 2 wolf kills'
+--            worth of raw qi a minute (kills and nodes, net of travel and
+--            refining), refined at 1.1 cultivation per raw qi (~0.8 score)
+--   on peak  the gardener: meditating on their own peak, nothing else
+--   stage     bar    active  on peak  meditate    idle  refine runs, wolf kills of qi
+--   QC1        40    1 min    1 min    2 min    3 min    1 runs  ~3 wolves (the starting qi covers it)
+--   QC2       100    2 min    3 min    4 min    7 min    1 runs  ~5 wolves
+--   QC3       200    3 min    4 min    7 min   11 min    2 runs  ~7 wolves
+--   QC4       680    7 min   14 min   24 min   35 min    4 runs  ~18 wolves
+--   QC5      1550   12 min   24 min   40 min   60 min    7 runs  ~30 wolves
+--   QC6      3050   18 min   36 min   61 min    1.5 h    9 runs  ~45 wolves
+--   QC7      3300   15 min   30 min   50 min   75 min    7 runs  ~38 wolves
+--   QC8      9350   33 min   66 min    1.8 h    2.7 h   15 runs  ~83 wolves
+--   QC9     20000   55 min    1.8 h    3.0 h    4.6 h   23 runs  ~137 wolves   QC total: 2.4 h active, 4.8 h on peak
+--   QR1     12000   22 min   41 min   69 min    1.7 h    9 runs  ~56 wolves
+--   QR2     15500   25 min   47 min   78 min    2.0 h    9 runs  ~64 wolves
+--   QR3     24500   35 min   65 min    1.8 h    2.7 h   13 runs  ~89 wolves
+--   QR4     26000   32 min   56 min    1.5 h    2.3 h   11 runs  ~83 wolves
+--   QR5     53500   58 min    1.6 h    2.7 h    4.0 h   20 runs  ~152 wolves
+--   QR6     79500   75 min    2.0 h    3.4 h    5.1 h   26 runs  ~200 wolves
+--   QR7     54500   45 min   71 min    2.0 h    2.9 h   15 runs  ~121 wolves
+--   QR8     78500   57 min   90 min    2.5 h    3.7 h   19 runs  ~153 wolves
+--   QR9    115000   74 min    1.9 h    3.2 h    4.8 h   23 runs  ~198 wolves   QR total: 7.1 h active, 11.8 h on peak
+--   FE1    185000   80 min    2.0 h    3.3 h    5.0 h   23 runs  ~218 wolves
+--   FE2    270000    1.7 h    2.6 h    4.3 h    6.5 h   30 runs  ~285 wolves
+--   FE3    390000    2.3 h    3.4 h    5.6 h    8.5 h   37 runs  ~368 wolves
+--   FE4    355000    1.8 h    2.8 h    4.6 h    6.9 h   29 runs  ~299 wolves
+--   FE5    490000    2.3 h    3.4 h    5.7 h    8.5 h   35 runs  ~369 wolves
+--   FE6    665000    2.7 h    4.1 h    6.9 h   10.3 h   42 runs  ~448 wolves
+--   FE7    610000    2.3 h    3.4 h    5.6 h    8.5 h   33 runs  ~368 wolves
+--   FE8    810000    2.7 h    4.0 h    6.7 h   10.0 h   38 runs  ~437 wolves
+--   FE9    990000    2.9 h    4.4 h    7.3 h   11.0 h   41 runs  ~478 wolves   FE total: 20 h active, 30 h on peak
+-- The gardener's road is about 2x the fighter's in QC, about 1.6x in QR and 1.5x in
+-- FE (before garden aura, build items and herbs, which close it further).
+-- "Wolves" counts qi, not fights: from QC5 on players hunt bigger beasts whose
+-- qiDrop is several wolves'. Untuned in play; tune from analytics with Adjust.
+-- Formulas (w = one spirit wolf's qi at the stage = 14 * (dantian / 120) ^
+-- Income.ENEMY_QI_EXPONENT; p = passive):
+--   active = bar / (60 p + 2 * 1.1 * w) minutes
+--   idle = bar / p; meditate = idle / Meditation.ANYWHERE; on peak = idle / Meditation.ON_PEAK
+--   runs = bar / (dantian / RUNS_PER_DANTIAN * 1.1); wolves = bar / 1.1 / w
+-- To set a stage: pick its active minutes, then bar = minutes * (60 p + 2.2 w).
+-- Passive is set as a share of w (about 0.009 in QC, rising from 0.010 at QR1 to
+-- 0.0125 at QR7, 0.0133 in FE): it sets the gardener's ratio.
+--
+-- STRENGTH (health, power): about +10% a minor stage and x2.25 at each major
+-- (QC9->QR1, QR9->FE1). Beasts follow the same curve (Pacing.BeastBaseline), so a
+-- same-stage beast stays a fair fight, one minor stage up is fightable, and a major
+-- up is not: x2.25 on both sides plus realm suppression (Pacing.Suppression).
 
 export type Tribulation = {
 	seconds: number, -- survive this long
@@ -155,72 +174,108 @@ local QR_TRIBULATION: Tribulation = {
 	failCooldown = 120,
 }
 
--- THE CURVE. Bars grow about 1.6x a stage after the hook through QC9; from
--- QR1 on about 1.25x, with a step at each major, and dantians about 1.15-1.2x,
--- so each stage needs a bit more gathering per bar than the last. Breathers and
--- walls bend that ramp on purpose (see THE RHYTHM above and docs/progression.md).
--- Runs are two levels at QC1-2 and three after; difficulty reaches hard at the
--- last Qi Condensation stage's breakthrough (FE1).
+-- THE CURVE. Each stage's bar comes from its target active minutes (formulas in
+-- the header); dantians grow about 1.4x a stage in QC, about 1.17x after, with a
+-- 1.6x step at each major. Health and power: +10% a minor stage, x2.25 at a major.
+-- Runs are two levels at QC1-2 and three after; difficulty reaches hard at FE1.
 Pacing.Curve = {
 	-- HOOK: one run fills the bar; the very first run is always a short, easy Maze
-	-- (Config.Circulation.FIRST_RUN_*). Breakthrough within the first few minutes.
+	-- (Config.Circulation.FIRST_RUN_*). Breakthrough within about 1.5 min of sitting.
 	{ key = "QC1", major = "QiCondensation", minor = 1, beat = "HOOK", bar = 40, dantian = 120, passive = 0.20, health = 100, power = 1.00, levels = 2, difficulty = 0.000 },
-	-- HOOK: the elder sends the player to the wilds; kills refill the dantian.
-	{ key = "QC2", major = "QiCondensation", minor = 2, beat = "HOOK", bar = 110, dantian = 180, passive = 0.25, health = 120, power = 1.10, levels = 2, difficulty = 0.111 },
-	-- HOOK: the onboarding's last goal is reaching QC3.
-	{ key = "QC3", major = "QiCondensation", minor = 3, beat = "HOOK", bar = 200, dantian = 260, passive = 0.32, health = 140, power = 1.20, levels = 3, difficulty = 0.222 },
-	-- BREATHER: the first free-play stage. Kept under the 1.6x ramp (was 340) so
-	-- the first goal off the rails comes quickly.
-	{ key = "QC4", major = "QiCondensation", minor = 4, beat = "BREATHER", bar = 300, dantian = 380, passive = 0.40, health = 165, power = 1.32, levels = 3, difficulty = 0.333 },
-	-- RAMP: the bar outgrows one dantian; gather -> refine becomes the loop.
-	{ key = "QC5", major = "QiCondensation", minor = 5, beat = "RAMP", bar = 560, dantian = 540, passive = 0.50, health = 190, power = 1.45, levels = 3, difficulty = 0.444 },
-	-- MINI-WALL: 1.3 dantians of qi (was 900). Herbs, cores and the garden start to matter.
-	{ key = "QC6", major = "QiCondensation", minor = 6, beat = "MINI-WALL", bar = 1000, dantian = 760, passive = 0.62, health = 220, power = 1.60, levels = 3, difficulty = 0.556 },
-	-- BREATHER: relief after the mini-wall (was 1450); about as long as QC6.
-	{ key = "QC7", major = "QiCondensation", minor = 7, beat = "BREATHER", bar = 1300, dantian = 1050, passive = 0.78, health = 255, power = 1.76, levels = 3, difficulty = 0.667 },
+	-- HOOK: the elder sends the player to the wilds; a few kills and a refine fill it.
+	{ key = "QC2", major = "QiCondensation", minor = 2, beat = "HOOK", bar = 100, dantian = 180, passive = 0.25, health = 110, power = 1.10, levels = 2, difficulty = 0.111 },
+	-- HOOK: technique and refine; QC4 by about 9-10 min of play.
+	{ key = "QC3", major = "QiCondensation", minor = 3, beat = "HOOK", bar = 200, dantian = 260, passive = 0.30, health = 120, power = 1.21, levels = 3, difficulty = 0.222 },
+	-- BREATHER: the first free-play stage; the home grows.
+	{ key = "QC4", major = "QiCondensation", minor = 4, beat = "BREATHER", bar = 680, dantian = 380, passive = 0.32, health = 135, power = 1.33, levels = 3, difficulty = 0.333 },
+	-- RAMP: the bar outgrows the dantian; gather -> refine becomes the loop.
+	{ key = "QC5", major = "QiCondensation", minor = 5, beat = "RAMP", bar = 1550, dantian = 540, passive = 0.43, health = 145, power = 1.46, levels = 3, difficulty = 0.444 },
+	-- MINI-WALL: herbs, cores and the garden start to matter.
+	{ key = "QC6", major = "QiCondensation", minor = 6, beat = "MINI-WALL", bar = 3050, dantian = 760, passive = 0.56, health = 160, power = 1.61, levels = 3, difficulty = 0.556 },
+	-- BREATHER: quicker than QC6 for a bigger dantian.
+	{ key = "QC7", major = "QiCondensation", minor = 7, beat = "BREATHER", bar = 3300, dantian = 1050, passive = 0.73, health = 175, power = 1.77, levels = 3, difficulty = 0.667 },
 	-- RAMP: the long climb before the wall.
-	{ key = "QC8", major = "QiCondensation", minor = 8, beat = "RAMP", bar = 2300, dantian = 1450, passive = 0.95, health = 290, power = 1.94, levels = 3, difficulty = 0.778 },
-	-- WALL: the biggest bar. This is where the first realm ends. A
+	{ key = "QC8", major = "QiCondensation", minor = 8, beat = "RAMP", bar = 9350, dantian = 1450, passive = 0.95, health = 195, power = 1.95, levels = 3, difficulty = 0.778 },
+	-- WALL: the biggest bar, about an hour. This is where the first realm ends. A
 	-- player who is heaven-defying (PlayerData `heavenDefying`) must also survive
 	-- the tribulation; everyone else breaks through at once.
-	{ key = "QC9", major = "QiCondensation", minor = 9, beat = "WALL", bar = 3700, dantian = 2000, passive = 1.15, health = 330, power = 2.13, levels = 3, difficulty = 0.889, tribulation = HEAVENLY_TRIBULATION },
-	-- HOOK: Qi Refining opens. A fresh region (the Outer Wastes) and the first chapter quests.
-	{ key = "QR1", major = "QiRefining", minor = 1, beat = "HOOK", bar = 4200, dantian = 2400, passive = 1.25, health = 360, power = 2.28, levels = 3, difficulty = 0.900 },
-	-- BREATHER: weekly sect tasks settle in.
-	{ key = "QR2", major = "QiRefining", minor = 2, beat = "BREATHER", bar = 4700, dantian = 2850, passive = 1.35, health = 390, power = 2.42, levels = 3, difficulty = 0.911 },
+	{ key = "QC9", major = "QiCondensation", minor = 9, beat = "WALL", bar = 20000, dantian = 2000, passive = 1.22, health = 215, power = 2.14, levels = 3, difficulty = 0.889, tribulation = HEAVENLY_TRIBULATION },
+	-- HOOK: Qi Refining opens: x2.25 strength, a bigger dantian, a fast first bar.
+	-- A fresh region (the Outer Wastes) and the first chapter quests.
+	{ key = "QR1", major = "QiRefining", minor = 1, beat = "HOOK", bar = 12000, dantian = 3200, passive = 1.94, health = 480, power = 4.82, levels = 3, difficulty = 0.900 },
+	-- RAMP: weekly sect tasks settle in.
+	{ key = "QR2", major = "QiRefining", minor = 2, beat = "RAMP", bar = 15500, dantian = 3750, passive = 2.20, health = 530, power = 5.31, levels = 3, difficulty = 0.911 },
 	-- MINI-WALL: tier II herbs and the Herbarium (alchemy is a later update).
-	{ key = "QR3", major = "QiRefining", minor = 3, beat = "MINI-WALL", bar = 6300, dantian = 3400, passive = 1.50, health = 420, power = 2.56, levels = 3, difficulty = 0.922 },
-	-- RAMP: seclusion; the bar passes two dantians.
-	{ key = "QR4", major = "QiRefining", minor = 4, beat = "RAMP", bar = 7800, dantian = 4050, passive = 1.65, health = 450, power = 2.70, levels = 3, difficulty = 0.933 },
-	-- BREATHER: relief before the next chapter.
-	{ key = "QR5", major = "QiRefining", minor = 5, beat = "BREATHER", bar = 8600, dantian = 4850, passive = 1.80, health = 480, power = 2.84, levels = 3, difficulty = 0.944 },
+	{ key = "QR3", major = "QiRefining", minor = 3, beat = "MINI-WALL", bar = 24500, dantian = 4400, passive = 2.50, health = 585, power = 5.84, levels = 3, difficulty = 0.922 },
+	-- BREATHER: seclusion. The real slowdown starts after it: from here passive
+	-- grows as a share of income, so the garden and the peak carry cultivation.
+	{ key = "QR4", major = "QiRefining", minor = 4, beat = "BREATHER", bar = 26000, dantian = 5150, passive = 3.12, health = 640, power = 6.42, levels = 3, difficulty = 0.933 },
+	-- RAMP: the Thunder Ape; hunting alone gets slow.
+	{ key = "QR5", major = "QiRefining", minor = 5, beat = "RAMP", bar = 53500, dantian = 6000, passive = 3.68, health = 705, power = 7.06, levels = 3, difficulty = 0.944 },
 	-- MINI-WALL: Dao glimpses; the Deep Wilds seal.
-	{ key = "QR6", major = "QiRefining", minor = 6, beat = "MINI-WALL", bar = 11200, dantian = 5800, passive = 2.00, health = 515, power = 2.98, levels = 3, difficulty = 0.956 },
-	-- RAMP: sect trials.
-	{ key = "QR7", major = "QiRefining", minor = 7, beat = "RAMP", bar = 13800, dantian = 6900, passive = 2.20, health = 550, power = 3.12, levels = 3, difficulty = 0.967 },
-	-- BREATHER: the first secret-realm rift (weapon refinement is a later update).
-	{ key = "QR8", major = "QiRefining", minor = 8, beat = "BREATHER", bar = 15500, dantian = 8200, passive = 2.40, health = 585, power = 3.26, levels = 3, difficulty = 0.978 },
+	{ key = "QR6", major = "QiRefining", minor = 6, beat = "MINI-WALL", bar = 79500, dantian = 7000, passive = 4.35, health = 775, power = 7.77, levels = 3, difficulty = 0.956 },
+	-- BREATHER: sect trials.
+	{ key = "QR7", major = "QiRefining", minor = 7, beat = "BREATHER", bar = 54500, dantian = 8200, passive = 5.14, health = 855, power = 8.54, levels = 3, difficulty = 0.967 },
+	-- RAMP: the first secret-realm rift (weapon refinement is a later update).
+	{ key = "QR8", major = "QiRefining", minor = 8, beat = "RAMP", bar = 78500, dantian = 9600, passive = 5.83, health = 940, power = 9.40, levels = 3, difficulty = 0.978 },
 	-- WALL: the biggest bar of the realm. A heaven-defier faces a tribulation to leave it.
-	{ key = "QR9", major = "QiRefining", minor = 9, beat = "WALL", bar = 21000, dantian = 9800, passive = 2.70, health = 620, power = 3.40, levels = 3, difficulty = 0.989, tribulation = QR_TRIBULATION },
-	-- HOOK: the cultivation method and the Far Reaches.
-	{ key = "FE1", major = "Foundation", minor = 1, beat = "HOOK", bar = 22000, dantian = 11500, passive = 3.00, health = 700, power = 3.90, levels = 3, difficulty = 1.000 },
-	-- BREATHER: method upgrades from exploring.
-	{ key = "FE2", major = "Foundation", minor = 2, beat = "BREATHER", bar = 25000, dantian = 13500, passive = 3.30, health = 745, power = 4.08, levels = 3, difficulty = 1.000 },
+	{ key = "QR9", major = "QiRefining", minor = 9, beat = "WALL", bar = 115000, dantian = 11200, passive = 6.59, health = 1030, power = 10.30, levels = 3, difficulty = 0.989, tribulation = QR_TRIBULATION },
+	-- HOOK: x2.25 strength; the cultivation method and the Far Reaches.
+	{ key = "FE1", major = "Foundation", minor = 1, beat = "HOOK", bar = 185000, dantian = 18000, passive = 10.30, health = 2330, power = 23.30, levels = 3, difficulty = 1.000 },
+	-- RAMP: method upgrades from exploring.
+	{ key = "FE2", major = "Foundation", minor = 2, beat = "RAMP", bar = 270000, dantian = 20700, passive = 11.50, health = 2560, power = 25.60, levels = 3, difficulty = 1.000 },
 	-- MINI-WALL: tier III herbs.
-	{ key = "FE3", major = "Foundation", minor = 3, beat = "MINI-WALL", bar = 34000, dantian = 15800, passive = 3.80, health = 790, power = 4.26, levels = 3, difficulty = 1.000 },
-	-- RAMP: the treasure slot.
-	{ key = "FE4", major = "Foundation", minor = 4, beat = "RAMP", bar = 42000, dantian = 18500, passive = 4.30, health = 835, power = 4.44, levels = 3, difficulty = 1.000 },
-	-- BREATHER: secret realms.
-	{ key = "FE5", major = "Foundation", minor = 5, beat = "BREATHER", bar = 47000, dantian = 21600, passive = 4.70, health = 880, power = 4.62, levels = 3, difficulty = 1.000 },
+	{ key = "FE3", major = "Foundation", minor = 3, beat = "MINI-WALL", bar = 390000, dantian = 23800, passive = 12.80, health = 2810, power = 28.10, levels = 3, difficulty = 1.000 },
+	-- BREATHER: the treasure slot.
+	{ key = "FE4", major = "Foundation", minor = 4, beat = "BREATHER", bar = 355000, dantian = 27400, passive = 14.30, health = 3100, power = 31.00, levels = 3, difficulty = 1.000 },
+	-- RAMP: secret realms.
+	{ key = "FE5", major = "Foundation", minor = 5, beat = "RAMP", bar = 490000, dantian = 31500, passive = 16.00, health = 3410, power = 34.10, levels = 3, difficulty = 1.000 },
 	-- MINI-WALL: the spirit beast egg.
-	{ key = "FE6", major = "Foundation", minor = 6, beat = "MINI-WALL", bar = 61000, dantian = 25300, passive = 5.40, health = 925, power = 4.80, levels = 3, difficulty = 1.000 },
-	-- RAMP: tier IV herbs.
-	{ key = "FE7", major = "Foundation", minor = 7, beat = "RAMP", bar = 76000, dantian = 29600, passive = 6.20, health = 970, power = 4.98, levels = 3, difficulty = 1.000 },
-	-- BREATHER: the Far Reaches' secret realm (mining is a later update).
-	{ key = "FE8", major = "Foundation", minor = 8, beat = "BREATHER", bar = 84000, dantian = 34600, passive = 6.80, health = 1015, power = 5.16, levels = 3, difficulty = 1.000 },
+	{ key = "FE6", major = "Foundation", minor = 6, beat = "MINI-WALL", bar = 665000, dantian = 36200, passive = 17.90, health = 3750, power = 37.50, levels = 3, difficulty = 1.000 },
+	-- BREATHER: tier IV herbs.
+	{ key = "FE7", major = "Foundation", minor = 7, beat = "BREATHER", bar = 610000, dantian = 41600, passive = 20.00, health = 4120, power = 41.20, levels = 3, difficulty = 1.000 },
+	-- RAMP: the Far Reaches' secret realm (mining is a later update).
+	{ key = "FE8", major = "Foundation", minor = 8, beat = "RAMP", bar = 810000, dantian = 47900, passive = 22.40, health = 4530, power = 45.30, levels = 3, difficulty = 1.000 },
 	-- PEAK: the cap for now (Core Formation awaits). Its bar is shown, never broken through.
-	{ key = "FE9", major = "Foundation", minor = 9, beat = "PEAK", bar = 115000, dantian = 40500, passive = 8.00, health = 1060, power = 5.34, levels = 3, difficulty = 1.000 },
+	{ key = "FE9", major = "Foundation", minor = 9, beat = "PEAK", bar = 990000, dantian = 55000, passive = 25.10, health = 4990, power = 49.90, levels = 3, difficulty = 1.000 },
 } :: { Row }
+
+-- BEASTS FOLLOW THE CURVE. Enemies defs (health, attack damage) were authored
+-- against these player stats (the 2026-10-22 curve) at the beast's `realm`. A
+-- beast's health is scaled by (the curve's power / this power) and its damage by
+-- (the curve's health / this health) at its stage, so a same-stage beast takes as
+-- many hits and lands as many as it was designed to, whatever the curve becomes.
+-- The factor applies to every beast at the stage, so new beasts are authored
+-- against these numbers too (e.g. FE1: a 700 HP player hitting at power 3.9).
+Pacing.BeastBaseline = {
+	health = { QC1 = 100, QC2 = 120, QC3 = 140, QC4 = 165, QC5 = 190, QC6 = 220, QC7 = 255, QC8 = 290, QC9 = 330,
+		QR1 = 360, QR2 = 390, QR3 = 420, QR4 = 450, QR5 = 480, QR6 = 515, QR7 = 550, QR8 = 585, QR9 = 620,
+		FE1 = 700, FE2 = 745, FE3 = 790, FE4 = 835, FE5 = 880, FE6 = 925, FE7 = 970, FE8 = 1015, FE9 = 1060 } :: { [string]: number },
+	power = { QC1 = 1.00, QC2 = 1.10, QC3 = 1.20, QC4 = 1.32, QC5 = 1.45, QC6 = 1.60, QC7 = 1.76, QC8 = 1.94, QC9 = 2.13,
+		QR1 = 2.28, QR2 = 2.42, QR3 = 2.56, QR4 = 2.70, QR5 = 2.84, QR6 = 2.98, QR7 = 3.12, QR8 = 3.26, QR9 = 3.40,
+		FE1 = 3.90, FE2 = 4.08, FE3 = 4.26, FE4 = 4.44, FE5 = 4.62, FE6 = 4.80, FE7 = 4.98, FE8 = 5.16, FE9 = 5.34 } :: { [string]: number },
+}
+
+-- REALM SUPPRESSION (Realms.suppression; applied in Combat.damageEnemy for player
+-- hits and EnemyService's hurtBy for beast and boss blows). Damage from an attacker
+-- whose MAJOR realm is below the target's is multiplied by KEEP for each major
+-- between them: a QC player deals 20% to a QR beast and 4% to an FE one, and a QC
+-- beast does the same to a QR player. A higher-realm attacker gets nothing extra
+-- beyond its own stats. Beasts and bosses use their Enemies `realm` major. Minor
+-- stages never suppress. Tribulation strikes aren't suppressed.
+Pacing.Suppression = {
+	KEEP = 0.2,
+}
+
+-- HEAVEN-DEFIERS (PlayerData `heavenDefying`): the heavens resist them, so every
+-- bar is BAR x longer (Cultivation.stage) and a tribulation guards every major
+-- breakthrough; in return they shrug off part of realm suppression when they hit
+-- upward: SUPPRESSION_RESIST of the reduction is ignored (half: 0.6 per major
+-- instead of 0.2), so they fight above their realm and farm stronger beasts.
+Pacing.HeavenDefying = {
+	BAR = 1.5,
+	SUPPRESSION_RESIST = 0.5,
+}
 
 -- PER-STAGE CORRECTIONS, by stage key. Empty by default: the curve is the design.
 -- To ease a dropoff at a stage, add an entry, e.g.
@@ -277,12 +332,20 @@ Pacing.Income = {
 }
 
 -- HERBS: eating a herb whose `eat.qi` is set gives this share of the eater's
--- current stage dantian, by the herb's tier (I Common, II Spirit, III Rare,
+-- current stage dantian (Herbs.eatQi), by the herb's tier (I Common, II Spirit, III Rare,
 -- IV Treasure, V Heavenly; docs/progression.md "Home, herbs and the loop"). A
--- share, not a flat number, so the garden stays worth it at every stage. Raw qi
--- only fills the room left in the dantian.
+-- share, not a flat number, so the garden stays worth it at every stage.
+-- Early on a share is tiny (a tier II herb is 16 qi at QC1), so each tier also
+-- has a floor in raw qi (about the old flat values). Event herbs (PRIZE, by herb
+-- id) replace their tier's share with a bigger one so they stay a prize at any
+-- stage. Either way raw qi only fills the room left in the dantian.
 Pacing.Herbs = {
 	EAT_SHARE = { 0.06, 0.09, 0.12, 0.16, 0.2 }, -- by tier, I..V
+	EAT_FLOOR = { 120, 400, 2500, 8000, 20000 }, -- raw qi at least, by tier
+	PRIZE = {
+		ThousandYearGinseng = 1.0, -- a full dantian (the Thousand-Year Ginseng event)
+		RiftLotus = 0.5, -- half a dantian (Heaven Split's wild bloom)
+	} :: { [string]: number },
 }
 
 -- MEDITATION multiplies the passive rate while seated (build items on the peak
@@ -510,6 +573,8 @@ Pacing.Roots = {
 --   gap >= ABOVE_AT    "above"   gold with a seal tip and an omen line
 --   gap >= FAR_AT      "far"     violet with a pulsing qi aura, a sheen and an ornate tip
 --   gap >= DEADLY_AT   "deadly"  no bar: a skull seal and a "do not fight" omen
+-- Realm suppression overrides the count: a beast one major realm up reads at least
+-- "far" (two: "deadly"), and one a major below reads "below".
 Pacing.Danger = {
 	BELOW_AT = -2,
 	ABOVE_AT = 2,

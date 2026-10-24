@@ -145,7 +145,9 @@ the rest of the end. Bronze keeps a bare slanted end.
 Its dressing says how dangerous the beast is **to you**: the gap between the
 beast's realm and the local player's (`Realms.index`, in ladder stages) picks a
 tier from `Pacing.Danger`, re-picked live when the player's `Realm` changes, so
-a breakthrough makes the same beast look tamer.
+a breakthrough makes the same beast look tamer. Realm suppression overrides the
+count: a beast one major realm up reads at least "far" (two majors: "deadly"), one a
+major below reads "below", however few stages apart.
 
 | Tier | Gap (default) | Look |
 |---|---|---|
@@ -405,8 +407,12 @@ stones, a kill count, and the `onKill` hooks run -> `onRemoved` lets Spawner ref
 - Netcode: `Config.Wilds.WAKE_RADIUS` (sleep), `Config.Combat.REWIND`,
   `ESCAPE_LEAD`; client `EnemyMotion` `LEAD_MAX`, `STALE`, `FOLLOW`, `TURN`, `SNAP`,
   `DASH_SLACK`.
-- Per stage (`Pacing.luau`): `beastHealth`, `beastDamage` (Adjust, by the beast's
-  realm; EnemyService applies them through `Realms.ofBeast`),
+- Per stage (`Pacing.luau`): `beastHealth`, `beastDamage` (the curve's player power
+  and health over `Pacing.BeastBaseline`'s, times Adjust, by the beast's realm;
+  EnemyService applies them through `Realms.ofBeast`). Defs are authored against the
+  baseline (e.g. QC9: a 330 HP player at power 2.13), not the live curve. Realm
+  suppression (`Pacing.Suppression`) cuts damage across major realms both ways
+  ([combat](combat.md#realm-power-and-suppression-2026-10-23)),
   `Global.BEAST_HEALTH/BEAST_DAMAGE`, and kill qi through `Realms.enemyQi`.
 
 ## Known gaps

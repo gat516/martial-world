@@ -144,8 +144,10 @@ Nothing floats, sinks or hangs off an edge. For every placed prop:
 
 Meshes for shapes people look at, terrain for ground people walk on, parts for
 buildings, the library for greenery. One rule for every area (user, 2026-10-24:
-go-backs are expensive); the sect redo's landform choice (Blender kit or terrain) is
-settled in [new_build](../../docs/map/new_build.md) before anything is built.
+go-backs are expensive). Landforms go by size (2026-10-24): large special shapes
+(rock pillars, a hero spire) are Blender meshes; bulk landforms (valleys, mountains,
+cliffs) are smooth terrain; small rock is the library's boulders, enlarged and mixed
+([new_build](../../docs/map/new_build.md)).
 - **Greenery:** the library's trees, bushes and foliage first ("Assets" below); a
   Blender mesh when nothing fits.
 - **Meshes** (the `mesh-pipeline` skill): peaks, spires, cliffs, floating

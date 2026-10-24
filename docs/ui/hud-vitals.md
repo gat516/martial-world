@@ -40,7 +40,11 @@ short screens (`Platform.isSmall`, SMALL_HEIGHT_SHARE; 45% once, which on a
 landscape phone in the device emulator, which gets the PC layout, filled over
 half the screen), and 26% on a touch phone (TOUCH_SMALL_SHARE, phone HUD pass
 2026-10-23: 101 px tall and 381 wide at 844x390, slots 35 px; at 667x375 the
-stack is held by its width, the screen less the touch cluster's room, 347 px). Its box is aspect 3.758 with MaxSize 560x149, and
+stack is held by its width, the screen less the touch cluster's room, 347 px). In combat on a
+touch phone the realm plaque (`Crest`) fades away with the folding top-right
+tiles and comes back when they do (`TileFold`, the same `InCombat` attribute;
+user's pick of two options, 2026-10-23, after the vitals sat big over the
+character in a boss fight; the other was fading the plate while health is full). Its box is aspect 3.758 with MaxSize 560x149, and
 `Prompts.Dock` mirrors it.
 
 Redrawn 2026-10-23 to the user's own reference image (the Figma kit's Example

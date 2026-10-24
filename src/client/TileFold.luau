@@ -13,9 +13,19 @@
 -- tile from drawing anything. Visible stays with the
 -- modules that own it (SelfCard, TravelMenu, Menus via Motion.setShown); this only
 -- touches each tile's size, clipping and Interactable.
+-- The folding tiles sit at the left of the row (Build first, user 2026-10-23: "build
+-- just straight up disappears ... reorder it at the very left so that it cleanly
+-- disappears"), so the kept ones (and the admin-only tile, which never folds) slide
+-- right as they go instead of tiles vanishing between them.
+-- On a touch phone the realm plaque over the vitals (Stack.Vitals.Crest) fades away
+-- for the fight too (user's pick, 2026-10-23: the vitals sat big over the
+-- character), and comes back with the tiles.
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+
+local Motion = require(script.Parent.Motion)
+local Platform = require(script.Parent.Platform)
 
 local TileFold = {}
 
@@ -26,11 +36,15 @@ local FOLD_IN = TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.
 type Tile = { button: GuiButton, size: UDim2, tween: Tween? }
 
 local tiles: { Tile } = {}
+local crest: GuiObject? -- phone only
 local gap = 0
 local folded = false
 
 local function apply(fold: boolean, animate: boolean)
 	folded = fold
+	if crest then
+		Motion.setShown(crest, not fold, animate)
+	end
 	for _, tile in tiles do
 		local button = tile.button
 		if tile.tween then
@@ -70,6 +84,11 @@ function TileFold.init(gui: ScreenGui)
 		if button then
 			table.insert(tiles, { button = button, size = button.Size })
 		end
+	end
+	if Platform.isTouch() and Platform.isSmall() then
+		local stack = gui:FindFirstChild("Stack")
+		local vitals = stack and stack:FindFirstChild("Vitals")
+		crest = vitals and vitals:FindFirstChild("Crest") :: GuiObject?
 	end
 	local player = Players.LocalPlayer
 	local function sync(animate: boolean)

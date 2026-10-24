@@ -21,22 +21,32 @@ Follow AGENTS.md: one commit per finished body. Say what's unchecked. Use
 
 ## Image references first (user, 2026-10-22)
 
-Don't place a part until you have image references for the body: concept art,
-a screenshot from another game, a generated concept, or the user's own body in
-the testbed reference row. Look for them in your brief and in
-`docs/reference/enemies/<enemy>/`. If there are none, stop and report back
-asking for them (name what you need: front and side views, the hero shape, the
-palette), and don't invent a look. Save any the user hands you to
-`docs/reference/enemies/<enemy>/` and commit them with the body. Build to the
-references; where the brief and an image disagree, ask.
+Don't place a part without image references (concept art, another game's
+screenshot, a generated concept, the user's body in the testbed reference row),
+from your brief or `docs/reference/enemies/<enemy>/`. If there are none, report
+back asking for front and side views, the hero shape and the palette; don't
+invent a look. Save what the user hands you there and commit it with the body.
+Where the brief and an image disagree, ask.
 
-**The gate.** A body ships through `visual-gate` (preloaded), never on a part count: status
-lines, 2-3 silhouette blockouts as directions for a new body (none for a reference
-row body: it comes in as is), `check_rig`, `keyframe_test`, `tools/parts_audit.luau`
-and `tools/fidelity_check.py` against the reference to zero FAIL, one
-`model_shot` four-view plus the fidelity composite, a `visual-critic` round. If the
-brief lacks a required field from [briefs](../../docs/agents/briefs.md), ask once
-and stop. **Review mode:** `human` unless the brief says the user is away: lint, stage it, say your pick, end your turn; the critic loop only in `critic` mode (`visual-gate`, 0a).
+**The gate.** A body ships through `visual-gate` (preloaded), never on a part count:
+2-3 silhouette blockouts for a new body (none for a reference row body: it comes in
+as is), the checks below to zero FAIL, one `model_shot` four-view plus the fidelity
+composite. Tools and flags: [modeling-checks](../../docs/enemies/modeling-checks.md).
+If the brief lacks a required field from [briefs](../../docs/agents/briefs.md), ask
+once and stop. **Review mode:** `human` unless the brief says the user is away
+(`visual-gate`, 0a).
+
+**Targets** (`visual-gate` §1), written before the first part, printed against
+measured values every round:
+- `fidelity_check.py` per view: every band 0.9 or more, width/height within 5%.
+  Score each view against its own reference view (rest pose, `fov` 15, `rig =
+  false`), never a blend. Cut a busy concept-art background off the subject first,
+  or the flood fill breaks and the IoU means nothing.
+- `parts_audit.luau`: floating, loose and kissing 0, z-fights no more than the
+  reference's own, visible parts within budget.
+- Studs from the reference row or brief: height, length, HRP height, hero size.
+Keep each round's tunables and bands in your scratchpad; a round that drops a band
+or adds audit lines is reverted, unless it applies a user note (`visual-gate` 3).
 
 ## Read first
 
@@ -46,8 +56,6 @@ and stop. **Review mode:** `human` unless the brief says the user is away: lint,
 - [docs/systems/enemies.md](../../docs/systems/enemies.md), "Template contract"
   and "Model rules" only. Read the enemy's own doc in `docs/enemies/` if it has one.
 - `art/enemies/<group>/RIGS.md` for the group you're copying from.
-
-Build in your own unmapped staging folder even in the sandbox (below).
 
 ## User decisions
 
@@ -70,15 +78,14 @@ silhouette read from 40 studs, the parts that tell each attack, a weak point).
 - **One hero:** the one loud silhouette element (a crest, horns and a plume,
   a tail fan, a wide hat). Secondary shapes support it, smaller and quieter.
   Detail comes last, and only where it's seen.
-- **Every part has a reason:** anatomy, the rig (it moves on a joint) or the
-  fight (a `Tell`, a weak point). Cut anything without one, and subtract before
-  you add.
+- **Every part has a reason:** anatomy, a joint or the fight (a `Tell`, a weak
+  point). Subtract before you add.
 - **The action decides form, the element decides surface.** What the beast does
   sets its proportions and joints. Its element only sets colour and accents.
 
 The user's words, as fixes: "generic" means push one silhouette element.
 "Messy" means too many equal parts, so cut and group them. "Cheap" or "flat"
-means add value contrast and trim edges. "Doesn't read" means the hero is too
+means add value contrast and chamfer primary edges. "Doesn't read" means the hero is too
 small or the same value as the body.
 
 ## Building
@@ -98,6 +105,9 @@ small or the same value as the body.
   attributes, tags and Humanoid properties; never use `export_rbxmx`.
 - Plain colours on SmoothPlastic, Neon only on tell parts. A strong two- or
   three-tone palette with value contrast.
+- **No razor-cut box on a primary light-catching edge** (back ridge, skull,
+  shoulder top): chamfer it with the lib's `bevel`, a Wedge or CornerWedge, or a
+  cylinder edge, inside the silhouette and budget. Never on a reference row body.
 
 ### Rig contract
 
@@ -144,8 +154,8 @@ small or the same value as the body.
 - Tilted accent slabs read as cards stuck on. A thin fin head-on over the brow
   reads as a chimney. Multi-piece horns or tusks with mismatched widths read as shards.
 - Accents sit flat on the surface (about 0.035 proud). Anything standing in front
-  of a face reads as a floating stick, and check_rig misses it when it touches
-  another accent. Faces about 5 mm apart z-fight, so separate or merge them.
+  of a face reads as a floating stick (parts_audit's `loose`, which check_rig
+  misses). Separate or merge parts_audit's `zfight` pairs.
 - Eyes and tells go on front-facing surfaces, wrapping a skull or snout corner so
   they read in 3/4, because side-mounted eyes vanish head-on. Neon in saturated
   mid tones, since pale tints bloom to white.
@@ -177,6 +187,7 @@ small or the same value as the body.
 ## Checks before you hand off
 
 1. `art/enemies/check_rig.luau`: no floating or unjointed parts, rig contract.
+   `tools/parts_audit.luau` and `fidelity_check.py` against the targets above.
 2. `art/enemies/keyframe_test.luau`: every joint is keyable, with no duplicate names.
 3. Humanoids: the stock R6 walk (`rbxassetid://180426354`) matches a
    `Workspace.Rig` control.
@@ -185,15 +196,17 @@ small or the same value as the body.
    doesn't move parts in Edit mode, so pose it by forward kinematics and cut its
    motors (`art/enemies/spirit_wolf/preview_wolves.luau`). Check that welded
    detail drifts under 0.001, with no joint gaps, no clipping and the feet at Y 0
-   in planted poses.
+   in planted poses. Probe the visible parts' centre of volume in each pose: it
+   falls inside the planted feet's footprint (coiled or flying: over the contact
+   or hover point), or the pose reads as tipping.
 5. Anchor every preview part and tag the preview folder `EditorOnly`, or a Play
    test drops the loose segments into a heap. Don't refresh
    `Workspace._EnemyRigs` yourself (the main session runs `rig_copies.luau`).
 6. Spawn through `EnemyService.spawn`'s path at a few spots and check the beast
    stands upright.
-7. Check numerically. Capture only when a check can't tell (a misplaced piece
-   that still touches something), at a small size, and leave the visual review to
-   the user.
+7. Check numerically; capture only what no check can tell. A fix has landed
+   (`visual-gate` fix checklist) when its proof prints: the band of the view it
+   touched, the audit line gone, the joint's offset in studs.
 8. Write or update the group's `RIGS.md`: per model, a joint table (joint, what it
    moves, parent, sign convention), safe ranges, attachments and tell parts, and
    gotchas for the animator. Say whether its numbers are in unit space or at the

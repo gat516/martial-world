@@ -24,12 +24,22 @@ pieces are the exception: they need the user's Studio.
 **Not yours:** enemy and boss bodies belong to `enemy-modeler`. If a brief asks
 for one, say so and stop.
 
-**The gate.** A mesh ships through `visual-gate` (preloaded): status
-lines, 2-3 blockout directions on one render before detailing, the silhouette
-render scored with `tools/fidelity_check.py` against the reference, the
-mesh-pipeline checks and `tools/parts_audit.luau` once it's placed, one sheet, a
-`visual-critic` round. If the brief lacks a required field from
-[briefs](../../docs/agents/briefs.md), ask once and stop. **Review mode:** `human` unless the brief says the user is away: lint, stage it, say your pick, end your turn; the critic loop only in `critic` mode (`visual-gate`, 0a).
+## The gate
+
+A mesh ships through `visual-gate` (preloaded; review modes in its 0a). A brief
+missing a required [briefs](../../docs/agents/briefs.md) field: one ask, then stop.
+Your discipline's parts of it:
+- **Targets** (its §1), from one full-res reference view at a time, never a
+  collage: height and width as ratios of the R6 part it sits on or is held by,
+  landmark ratios (ear:head, blade:grip), 3-5 palette colours with their shares,
+  and the hero's value against the body. `ref_metrics.py` once it's in `tools/`;
+  until then bounding boxes, `tools/fidelity_check.py` per view and a pixel sample.
+- **Lints** (its §2): the silhouette render (`art/rig/silhouette_render.py`) scored
+  with `tools/fidelity_check.py` against each view, the mesh lint, the mesh-pipeline
+  checks, and `tools/parts_audit.luau` once placed.
+- **Mesh lint:** `mesh_qa.py` once built. Until then, the build script ends with
+  bmesh checks that print a FAIL line per object for non-manifold edges, loose
+  verts or edges, flipped normals and zero-area faces.
 
 ## Style
 
@@ -60,6 +70,14 @@ mesh-pipeline checks and `tools/parts_audit.luau` once it's placed, one sheet, a
   MaterialVariants clashed with the stylized props.
 - **Triangles:** a big environment piece is ~10-20k, a whole peak ~55k across its
   parts, a prop a few hundred to a few thousand.
+- **No razor-cut edges** on hard-surface Blender meshes: weapons, items, props and
+  hard accessory parts (horns, plates, talismans). Light-catching hard edges get a
+  micro-bevel (1-2 segments, about 1-3% of the part's smallest dimension) and the
+  mesh a Weighted Normal modifier (Face Area, Keep Sharp) so faces stay flat. A
+  bevel never rounds: rounding is the rejected melted look. Its triangles count in
+  the budget. Organic accessory forms (ears, tails, plumes) and the peak rock
+  columns are out of scope. Mark sharp edges through the mesh's `sharp_edge`
+  attribute or the operator the running Blender lists (mesh-pipeline).
 
 ## Intent first
 
@@ -104,10 +122,8 @@ standing preferences:
 - **Colourable and riggable**, always: one mesh per colour region, real bones,
   smooth weights.
 - **No gaps:** seated into the body, and sealed inside.
-- **Critic rounds only when the user is away.** While they're here they review
-  live, and once they approve you export and commit straight away ("we still need to
-  do critique rounds but thats for when im away. im here"). That's `Review: human`
-  against `Review: critic` in the brief.
+- **Critic rounds only when the user is away** (`visual-gate` 0a): once they
+  approve live, export and commit straight away.
 - **One body per variant.** Show variants side by side, one R6 body each, in the
   sheet and the live viewport (`tools/blender_lineup.py`), never stacked on one rig.
   Prefix materials with the set or race so races don't share `FurOuter`.
@@ -151,8 +167,11 @@ standing preferences:
   - Small held items and effects in `ServerStorage.ItemTemplates` are built
     from Parts through the MCP and exported (the `studio-export` skill).
 - **Preview on real R6 rigs:** clones of `Workspace.Rig` holding the Tool, never
-  stand-in parts. Check front and side captures that the grip sits in the hand
-  and the edge faces forward.
+  stand-in parts. Check from the front and side (numbers below; captures only
+  for the gate's sheet) that the grip sits in the hand and the edge faces forward.
+- **Grip clip by numbers:** with the hold posed in `art/rig/rig_preview.py`, print
+  how deep the hand sinks into the grip (closed around it, not through it) and the
+  blade's clearance from the body and arms. Fix any FAIL before a capture.
 
 ## Before you call it done
 
@@ -160,12 +179,15 @@ standing preferences:
   on a ramp, about 10 studs of headroom.
 - **Nothing floats or clips.** Re-seat decor, pines, waterfalls and props on new
   surfaces, and move parts that now hang over a cut inward.
+- **Placed props pass the contact checks** in
+  [map-builder](map-builder.md#contact-checks-dressing-and-props): footprint rays,
+  centre of mass inside the footprint, no interpenetration, printed as numbers.
 - **Upright pivot** on anything scripts clone and place (`mesh-pipeline`,
   "Pivots").
 - **Collision matches what players see**, and invisible helpers really are
   invisible.
-- **Check with captures** from several angles, up close and from where players
-  stand.
+- **Check from several angles**, up close and from where players stand: on the
+  review stage, and in the gate's sheet in critic mode (`visual-gate` 0c caps captures).
 - **Hand passes:** flag hard-to-assemble models (multi-part buildings, roofs,
   stairs, bridges) in your report. Tag them `NeedsHandPass` with a
   `HandPassReason` when you place them in the world.

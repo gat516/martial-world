@@ -28,6 +28,7 @@ What each script in `tools/` does. Read it when you need a tool and don't know i
 - receiver starter (`ensure_receiver.sh`)
 - library contact sheets (`vfx_contact_sheet.py`)
 - reference-video frame grids (`ref_frames.py`)
+- Blender windows (`blender_live.sh open <name> [file.blend]`, `run <name> <script.py> [KEY=VALUE...]`, `close <name>`, `list`): a visible Blender per parallel modeler, with a job queue served inside each by `blender_live_server.py`; `blender_run.sh <script.py> [file.blend] [KEY=VALUE...]` is the headless version, for jobs nobody watches; `blender_lineup.py` lays variants out side by side in a `Lineup` scene, one R6 body each
 - template builders and specs (`vfx_blocks.luau`, `vfx_specs/`)
 - structural template diff (`vfx_diff.luau`)
 - world-event kit builder and preview (`worldfx_build.luau`, `worldfx_preview.luau`)

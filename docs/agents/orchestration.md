@@ -218,9 +218,12 @@ with their words, and it swaps the stage to the next build.
 
 ### The visual gate
 
-Every visual agent preloads `visual-gate`: lint to zero FAIL, one contact sheet,
-a fresh `visual-critic` (Opus, `tools: Read, Glob, Grep`, ~20k tokens a round,
-two rounds max), and a report that quotes the verdict. A WRONG DIRECTION verdict
+Every visual agent preloads `visual-gate`: numeric targets from the reference,
+building in visible steps on the review stage, lint to zero FAIL, a fix checklist,
+the best round kept. The user is the critic by default (`Review: human`). Only
+when they're away: one annotated sheet, a fresh `visual-critic` (Opus, `tools:
+Read, Glob, Grep`, ~20k tokens a round, two rounds max; order-swapped pairwise
+picks between variants), and a report that quotes the verdict. A WRONG DIRECTION verdict
 sends the agent back to the user with variants instead of polishing. When the
 user approves a result, the maker saves its sheet under `docs/reference/approved/`
 so the gallery stays the bar. You can spawn `visual-critic` yourself on a

@@ -12,6 +12,7 @@ What each script in `tools/` does. Read it when you need a tool and don't know i
 - UI lint (`ui_lint.luau` dumps every GUI at four sizes, `ui_lint.py` checks clip, edge margin, slices, oversize, text, text under caps: the gate for UI work, docs/ui/slicing.md)
 - UI edge-margin fixer (`ui_margin.py` + `ui_margin.luau`: margined display-sized copies and element compensation from the lint's findings)
 - UI cutter (`ui_assemble.py`: Codex sheets to cuts; `--sized` display-sized copies with clear margins from `art/ui/sized/sized.json`)
+- UI glyph from a cut (`ui_glyph_silhouette.py`: a kit ornament's own alpha filled white, to tint in game; e.g. the shelter shield)
 - rbxm export (keeps attributes, for VFX)
 - VFX library search + index (`vfx_library.luau`, `vfx_library.json`)
 - animation marker reader (`anim_markers.luau`)

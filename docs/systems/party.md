@@ -48,7 +48,8 @@ Files: `src/server/Party.luau` (parties, card, people list, friend nudges),
   share of their health (never more than unsheltered), so they reach the kill share
   and survive. Rewards stay their own realm's. Leaving the party or the radius ends
   it at once. Shown by a "Sheltered by <name>" feed line once per engagement, the
-  "sheltered" enemy-bar tier and a faint jade qi thread between the two in combat.
+  "sheltered" enemy-bar tier (a jade shield and "Sheltered"), the pips' shelter marks
+  and a faint jade qi thread between the two in combat.
   The stronger member earns `SENIOR_QI_SHARE` (20%) of their own qi for each kill a
   sheltered member is credited with (`stats.sheltered`; the junior's `stats.leaned`).
 - Otherwise realm suppression applies as before; qi is always scaled to the
@@ -151,6 +152,11 @@ cinnabar seal. Calm and plain: no ornament beyond the frame.
   row; members out of `RADIUS` dim (band, name, sliver at half). Hidden when solo and while
   any window is open. Tap a member for their card, your own row for **Leave party** (a
   130x40 lacquer button that drops under it for 4 s).
+  The party shelter shows on the pips (`Social` `refreshShelter`, from every player's
+  `ShelteredBy`): a jade shield (`Band.Sheltered`, the kit shield's silhouette) on a
+  sheltered member's row and the jade qi swirl (`Band.Patron`, the kit's `glyph_qi`) on
+  the patron's, 16x18 at the band's right end before its lozenge; the name narrows to
+  clear it.
 - **Friend toast:** `friendHere` -> `Hud.toast("<name> is on this mountain")`.
 
 **To build in the Hud (ui-designer, `assets/Hud.rbxmx`):**
@@ -184,3 +190,5 @@ shows a sample card, invite and pips alone.
 - Spar duels from the card are deferred (roadmap 3f).
 - The shelter pays the senior qi only; sect contribution for sheltering and an
   "Elder Brother/Sister" title from `stats.sheltered` are not built.
+- The shelter marks, thread and ripple are untested in play with two clients (built and
+  previewed in Studio's Edit view only, PC size).

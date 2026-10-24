@@ -38,22 +38,47 @@ local SKULL_PULSE = TweenInfo.new(1.4, Enum.EasingStyle.Sine, Enum.EasingDirecti
 -- Danger tiers, picked by realm gap (Pacing.Danger). rim: the frame art (art/ui
 -- draw_ui.py eb_rim); tag/omen: text colours; omens: flavour lines, one picked
 -- per beast per tier (keep them under ~24 characters so they fit at 11px).
-type Style = { rim: string?, tag: Color3?, omen: Color3?, aura: boolean?, sheen: boolean?, skull: boolean?, omens: { string }? }
+-- word/mark/markColor (cowed and sheltered, realm pressure): a short word on the omen
+-- row, led by a small tinted glyph (ReplicatedStorage.PressureMarks.BarMark), so the
+-- state reads in words, not only in the rim's colour.
+type Style = {
+	rim: string?,
+	tag: Color3?,
+	omen: Color3?,
+	aura: boolean?,
+	sheen: boolean?,
+	skull: boolean?,
+	omens: { string }?,
+	word: string?,
+	mark: string?,
+	markColor: Color3?, -- the word's colour, and the glyph's tint unless markTint
+	markTint: Color3?,
+	markSize: Vector2?, -- the glyph's box when not the template's (centred on the row)
+}
 local STYLES: { [string]: Style } = {
 	below = { rim = "rbxassetid://128483974781643", tag = Color3.fromRGB(176, 170, 160) },
 	-- a full major below you: it fears you (realm pressure, Pacing.Pressure)
 	cowed = {
 		rim = "rbxassetid://128483974781643",
 		tag = Color3.fromRGB(176, 170, 160),
-		omen = Color3.fromRGB(198, 192, 180),
-		omens = { "It fears your realm", "It shrinks from your qi", "It dares not meet you", "Your aura cows it" },
+		omen = Color3.fromRGB(196, 190, 178),
+		omens = { "it fears you", "it shrinks back", "it dares not fight" },
+		word = "Cowed",
+		-- the kit's gold chevron pointing down: beneath you (sized/ornament_chevron_h20)
+		mark = "rbxassetid://99764920719361",
+		markColor = Color3.fromRGB(226, 186, 136),
+		markTint = Color3.new(1, 1, 1),
+		markSize = Vector2.new(15, 10),
 	},
 	-- above you, but a stronger party member nearby shelters you (Pacing.Shelter)
 	sheltered = {
 		rim = "rbxassetid://117466583392103",
 		tag = Color3.fromRGB(176, 228, 196),
-		omen = Color3.fromRGB(150, 230, 190),
-		omens = { "Sheltered by a friend", "A stronger qi guards you", "Strike as equals" },
+		omen = Color3.fromRGB(150, 214, 180),
+		omens = { "strike as equals", "a friend has you" },
+		word = "Sheltered",
+		mark = "rbxassetid://70393328505917", -- the kit shield's silhouette (glyphs/shelter_shield)
+		markColor = Color3.fromRGB(156, 240, 196),
 	},
 	even = { rim = "rbxassetid://117466583392103", tag = Color3.fromRGB(176, 228, 196) },
 	above = {
@@ -91,6 +116,8 @@ type Watched = {
 	tier: string?,
 	omens: { [string]: string }, -- the line picked per tier, so it never flickers
 	loops: { Tween },
+	omenAt: { UDim2 }?, -- the omen row's authored position and size (a pressure mark shifts it)
+	markAt: { UDim2 }?, -- the pressure mark's authored position and size
 }
 local watched: { [Model]: Watched } = {}
 
@@ -250,6 +277,45 @@ local function restyle(entry: Watched)
 	label.Text = omen
 	if style.omen then
 		label.TextColor3 = style.omen
+	end
+	-- cowed / sheltered: the mark, then the word in its colour, then the short line
+	local mark = plate:FindFirstChild("PressureMark") :: ImageLabel?
+	if style.word and not mark then
+		local marks = ReplicatedStorage:FindFirstChild("PressureMarks")
+		local template = marks and marks:FindFirstChild("BarMark") :: ImageLabel?
+		if template then
+			local fresh = template:Clone()
+			fresh.Name = "PressureMark"
+			fresh.Parent = plate
+			mark = fresh
+		end
+	end
+	if mark then
+		entry.markAt = entry.markAt or { mark.Position, mark.Size }
+		local home = entry.markAt :: { UDim2 }
+		local size = style.markSize
+		mark.Visible = style.word ~= nil
+		mark.Image = style.mark or mark.Image
+		mark.ImageColor3 = style.markTint or style.markColor or mark.ImageColor3
+		if size then
+			mark.Size = UDim2.fromOffset(size.X, size.Y)
+			mark.Position = home[1] + UDim2.fromOffset(0, (home[2].Y.Offset - size.Y) / 2)
+		else
+			mark.Position, mark.Size = home[1], home[2]
+		end
+	end
+	entry.omenAt = entry.omenAt or { label.Position, label.Size }
+	local at = entry.omenAt :: { UDim2 }
+	label.RichText = style.word ~= nil
+	if style.word and mark then
+		local gap = mark.Position.X.Offset + mark.Size.X.Offset + 4 - at[1].X.Offset
+		label.Position = at[1] + UDim2.fromOffset(gap, 0)
+		label.Size = at[2] - UDim2.fromOffset(gap, 0)
+		label.Visible = true
+		local word = `<font color="#{(style.markColor or Color3.new(1, 1, 1)):ToHex()}">{style.word}</font>`
+		label.Text = if omen ~= "" then `{word} · {omen}` else word
+	else
+		label.Position, label.Size = at[1], at[2]
 	end
 	local aura = bar:FindFirstChild("Aura") :: ImageLabel
 	aura.Visible = style.aura == true

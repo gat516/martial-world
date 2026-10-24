@@ -15,6 +15,9 @@
       "Nameplate": {
         "$path": "assets/Nameplate.rbxmx"
       },
+      "PressureMarks": {
+        "$path": "assets/PressureMarks.rbxmx"
+      },
       "Animations": {
         "$path": "assets/Animations.rbxmx"
       },

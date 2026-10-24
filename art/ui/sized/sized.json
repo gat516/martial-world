@@ -201,11 +201,13 @@
  },
  "codex/cut/ornament_chevron.png": {
   "heights": [
+   20,
    24
   ],
   "margin": 0,
   "margins": {
-   "24": 4
+   "24": 4,
+   "20": 2
   }
  },
  "codex/cut/ornament_close_seal.png": {
@@ -1539,5 +1541,17 @@
    48
   ],
   "margin": 5
+ },
+ "glyphs/shelter_shield.png": {
+  "heights": [
+   28
+  ],
+  "margin": 4
+ },
+ "codex/cut/ornament_glyph_qi.png": {
+  "heights": [
+   28
+  ],
+  "margin": 4
  }
 }

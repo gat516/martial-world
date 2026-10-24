@@ -1,0 +1,16 @@
+<roblox version="4">
+ <Item class="Folder" referent="RBX1"><Properties>
+  <string name="Name">PressureMarks</string>
+ </Properties>
+  <Item class="ImageLabel" referent="RBX2"><Properties>
+   <string name="Name">BarMark</string>
+   <float name="BackgroundTransparency">1</float>
+   <UDim2 name="Position"><XS>0</XS><XO>8</XO><YS>0</YS><YO>30</YO></UDim2>
+   <UDim2 name="Size"><XS>0</XS><XO>15</XO><YS>0</YS><YO>18</YO></UDim2>
+   <bool name="Visible">false</bool>
+   <Content name="Image"><url>rbxassetid://70393328505917</url></Content>
+   <Color3 name="ImageColor3"><R>0.886275</R><G>0.729412</G><B>0.533333</B></Color3>
+   <token name="ScaleType">3</token>
+  </Properties>
+  </Item>
+ </Item></roblox>

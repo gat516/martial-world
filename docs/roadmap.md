@@ -99,10 +99,11 @@ button only appears while it's ready.
   combat tag drops, one toast: "Your cultivation falls back."
 - The real forced breakthrough and its qi debt are removed; breakthroughs are seated only.
 
-**Insight is deleted.** It no longer gates breakthroughs (the walls are the bar,
+**Insight is deleted (built).** It no longer gates breakthroughs (the walls are the bar,
 plus the tribulation for heaven-defiers) and no longer pays for comprehension.
 Its sources (first kills, bosses, milestones) become foundation experiences.
-Technique gating moves to weapon Dao (section 4).
+Technique gating moves to weapon Dao (section 4). First kills and boss kills are
+still tracked as hooks but grant nothing until foundation experiences land.
 
 **Shelved UI:** the solidity meter (`FoundationMeter.luau`) and the death-save
 prompt (`DeathSave.luau`) from the UI pass. Phase A needs instead: the surge
@@ -110,8 +111,8 @@ button and "M to qi surge" notice, the grade line on the breakthrough card, the
 spirit ring slots, and the spilled-haul spirit-light.
 
 **Build order:** docs and Pacing numbers; the haul, banking and death spill; the
-spirit ring; delete insight and move comprehension to Dao; foundation grades and
-experience pools; the surge.
+spirit ring; foundation grades and experience pools; the surge (insight deletion
+is built).
 
 ### Pacing follow-ups
 Tune the QR and FE curve from analytics; the two bosses tuned for the old FE1 get
@@ -219,7 +220,8 @@ rewards using them over M1; no enemy asks for a technique; and nothing combines.
    reading "Requires Greatsword Dao 6", so a drop is a goal, never a dead pickup.
    Any-weapon arts check the player's highest class Dao (open: or their own threshold).
    Comprehension (breaking a tier bottleneck) costs Spirit Stones and needs a higher
-   Dao level in the class, not insight (deleted in Phase A).
+   Dao level in the class, not insight (built: class skills need Dao 2, bottleneck k
+   needs learn + 2k; the 21-skill set and the 5/8 thresholds aren't made yet).
 2. **Techniques deepen instead of multiplying.** Each technique levels up
    (existing comprehension) through its visual tiers T1-T4 ([vfx style](vfx/style.md)),
    so one skill grows from a plain cast into a spectacle. No new content per level

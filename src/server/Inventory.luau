@@ -20,6 +20,7 @@ local Cultivation = require(script.Parent.Cultivation)
 local PlayerData = require(script.Parent.PlayerData)
 local Progression = require(script.Parent.Progression)
 local Roots = require(script.Parent.Roots)
+local Weapons = require(script.Parent.Weapons)
 
 local effectRemote = ReplicatedStorage.Remotes.Effect :: RemoteEvent
 local templates = ServerStorage:WaitForChild("ItemTemplates") :: Folder
@@ -137,7 +138,7 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 	local qi = (use.qi or 0) + stage.dantian * (use.qiShare or 0)
 	local onlyQi = qi > 0
-		and not (use.buffs or use.cultivationShare or use.insight or (use.heal and humanoid and humanoid.Health < humanoid.MaxHealth))
+		and not (use.buffs or use.cultivationShare or use.daoXp or (use.heal and humanoid and humanoid.Health < humanoid.MaxHealth))
 	if onlyQi and data.rawQi >= stage.dantian then
 		return false, "Your dantian is already full."
 	end
@@ -163,8 +164,8 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	for _, b in use.buffs or {} do
 		Cultivation.addBuff(data, item.id, b.kind, b.amount, b.seconds)
 	end
-	if use.insight then
-		Progression.grantInsight(player, use.insight, item.name)
+	if use.daoXp then
+		Weapons.addXp(player, Weapons.class(player), use.daoXp)
 	end
 	if use.rootGrade then
 		Roots.raiseGrade(player)
@@ -200,7 +201,7 @@ local VIEW_SORTS = { New = true, Grade = true, Alphabetical = true }
 
 -- Whether the player has any of this item, art or weapon right now.
 local function holds(data: PlayerData.Data, id: string): boolean
-	if data.techniques.owned[id] then
+	if data.techniques.owned[id] or data.techniques.manuals[id] then
 		return true
 	elseif Items.Defs[id] then
 		return Items.count(data, id) > 0

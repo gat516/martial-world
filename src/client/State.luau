@@ -6,8 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 export type Buff = { source: string, kind: string, amount: number, expires: number, seconds: number? } -- seconds: its full span (the chip's timer ring)
 export type Technique = { level: number, xp: number }
 export type Snapshot = {
-	insight: number,
-	techniques: { owned: { [string]: Technique } },
+	techniques: { owned: { [string]: Technique }, manuals: { [string]: boolean }? }, -- manuals: found, waiting on weapon Dao
 	hotbar: { string }, -- technique id, item id or "" per slot
 	rate: number,
 	aura: number,
@@ -31,8 +30,7 @@ export type Snapshot = {
 local State = {}
 
 State.current = {
-	insight = 0,
-	techniques = { owned = {} },
+	techniques = { owned = {}, manuals = {} },
 	hotbar = { "", "", "", "", "", "", "", "", "" },
 	rate = 0,
 	aura = 0,

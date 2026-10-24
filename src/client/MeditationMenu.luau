@@ -2,8 +2,8 @@
 -- The meditation menu's small panel (Hud.MeditationPanel), opened from the
 -- seated tiles (Meditation.luau). One page at a time, each a short list of rows
 -- cloned from List.RowTemplate (seal, name, two lines, a blurb, an action):
---   Comprehend  techniques at a bottleneck (Bottleneck), their cost in insight
---               and Spirit Stones, and a Comprehend button that names what's
+--   Comprehend  techniques at a bottleneck (Bottleneck), the weapon Dao they
+--               need and their Spirit Stones, and a Comprehend button that names what's
 --               missing while it can't run.
 --   Method      owned cultivation methods (Shared.Methods); Use switches
 --               (CultivationAction "method"), the active one reads "Active".
@@ -157,9 +157,9 @@ local function comprehendRows(): number
 	for i, id in ids do
 		local def = Techniques.Defs[id] :: any
 		local owned = s.techniques.owned[id]
-		local gate = Bottleneck.gateOf(owned) :: Bottleneck.Gate
+		local gate = Bottleneck.gateOf(id, owned) :: Bottleneck.Gate
 		local short = Bottleneck.block(gate)
-		local insight, stones = s.insight or 0, Bottleneck.stones()
+		local stones = Bottleneck.stones()
 		addRow(i, {
 			icon = def.icon,
 			iconColor = def.color:Lerp(Color3.new(1, 1, 1), 0.35),
@@ -167,8 +167,8 @@ local function comprehendRows(): number
 			nameColor = LIGHT,
 			info = `Lv {owned.level} · bottleneck`,
 			infoColor = BOTTLENECK,
-			sub = `{cost(gate.insight, insight, "insight")} · {cost(gate.stones, stones, "Spirit Stones")}`,
-			blurb = `Into {NEXT_TIER[owned.level] or "the next tier"}. You have {insight} insight, {stones} stones.`,
+			sub = `<font color="{if gate.daoHave >= gate.dao then COST_OK else COST_SHORT}">{gate.daoText}</font> · {cost(gate.stones, stones, "Spirit Stones")}`,
+			blurb = `Into {NEXT_TIER[owned.level] or "the next tier"}. Your Dao is {gate.daoHave}; you have {stones} stones.`,
 			action = if short then short else "Comprehend",
 			ready = short == nil,
 			onAction = function()

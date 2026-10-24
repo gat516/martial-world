@@ -21,8 +21,11 @@
 -- Taps: choose a cell, then tap a hotbar slot (place it) or the weapon slot
 -- (wield it). With nothing placeable chosen, tapping a slot shows it here.
 -- A chosen art shows its level and XP bar; at a bottleneck (Techniques.bottleneck)
--- the bar turns cinnabar, the cost rows show, and Comprehend sits beside the
--- hotbar button (Bottleneck holds the shared logic).
+-- the bar turns cinnabar, the cost rows (weapon Dao, Spirit Stones) show, and
+-- Comprehend sits beside the hotbar button (Bottleneck holds the shared logic).
+-- A manual kept until its weapon Dao is reached (techniques.manuals) sits in
+-- Arts with "Dao N" in its corner; its detail says what it requires and shows
+-- that Dao's progress. It can't go on the hotbar until it's learned.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -75,7 +78,6 @@ local COUNT = Color3.fromRGB(240, 242, 236)
 local BAR_GOLD = ColorSequence.new(Color3.fromRGB(246, 214, 140), Color3.fromRGB(178, 124, 52))
 local BAR_CINNABAR = ColorSequence.new(Color3.fromRGB(240, 120, 84), Color3.fromRGB(150, 46, 32))
 local STONE_ICON = "rbxassetid://93333997810513"
-local INSIGHT_ICON = "rbxassetid://88194737623136"
 local TIER_NAMES = { "Tier I", "Tier II", "Tier III", "Mastery" }
 local FIST_BLURB = "Palm and fist, always at hand. Choosing them puts your weapon away."
 local CATEGORY_ORDER = { "Herb", "Pill", "Core", "Treasure" }
@@ -104,7 +106,7 @@ local tab: Tab = "Weapons"
 local selected: string? = nil
 local shownEquipped: string? = nil -- the weapon in hand at the last render, to pop its seal when it changes
 local techniqueRow: Frame -- the chosen art's level and XP bar (a RowTemplate clone)
-local costRows: { insight: Frame, stones: Frame }
+local costRows: { dao: Frame, stones: Frame }
 local cells: { [string]: GuiObject } = {} -- the grid's cells by id, for NEW refreshes
 local newDot: GuiObject? -- the Inventory tile's NEW count
 
@@ -131,6 +133,12 @@ local function isWeapon(id: string?): boolean
 end
 
 local gateOf = Bottleneck.gateOf
+
+-- A manual found but not learned yet (its weapon Dao isn't there).
+local function heldManual(id: string?): boolean
+	local manuals = State.current.techniques.manuals
+	return id ~= nil and manuals ~= nil and manuals[id] == true and State.current.techniques.owned[id] == nil
+end
 
 local function nameOf(id: string): string
 	local item = Items.Defs[id]
@@ -239,7 +247,7 @@ local function artSections(): { Section }
 	local s = State.current
 	local byClass: { [string]: Section } = {}
 	for _, id in Techniques.Order do
-		if s.techniques.owned[id] then
+		if s.techniques.owned[id] or heldManual(id) then
 			local key = SlotArt.techniqueClass(id) or "Any"
 			byClass[key] = byClass[key] or classSection(key)
 			table.insert(byClass[key].entries, id)
@@ -322,6 +330,11 @@ local function newCounts(): { [Tab]: number }
 	for id in s.techniques.owned do
 		count("Arts", id)
 	end
+	for id in s.techniques.manuals or {} do
+		if heldManual(id) then
+			count("Arts", id)
+		end
+	end
 	for _, id in Items.Order do
 		if Items.count(s, id) > 0 then
 			count("Pouch", id)
@@ -403,7 +416,7 @@ end
 -- The Dao rows: every class (only == nil) or just one.
 local function renderDao(only: string?, animate: boolean)
 	techniqueRow.Visible = false
-	costRows.insight.Visible = false
+	costRows.dao.Visible = false
 	costRows.stones.Visible = false;
 	(daoList:FindFirstChild("Header") :: GuiObject).Visible = only == nil
 	local _, equipped, dao = weaponState()
@@ -559,9 +572,20 @@ end
 
 -- The art's level row (tier, Lv, XP bar) and, at a bottleneck, its cost rows and
 -- the Comprehend button (Secondary), which names what's missing while it can't.
+-- The Dao cost row: the class's glyph and Dao name ("Weapon Dao" for an
+-- any-weapon art, which counts the highest class), "need · you have".
+local function paintDaoCost(technique: any, gate: Bottleneck.Gate)
+	local classId = SlotArt.techniqueClass(technique.id)
+	local row = costRows.dao
+	local icon = row:FindFirstChild("Icon") :: ImageLabel
+	icon.Image = if classId then SlotArt.classGlyph(classId) else ""
+	icon.ImageColor3 = SlotArt.classColor(classId or "Any");
+	(row:FindFirstChild("NameLabel") :: TextLabel).Text = if classId then Weapons.Classes[classId].dao else "Weapon Dao"
+	paintCost(row, gate.dao, gate.daoHave)
+end
+
 local function renderTechnique(technique: any, owned: State.Technique, animate: boolean)
-	local s = State.current
-	local gate = gateOf(owned)
+	local gate = gateOf(technique.id, owned)
 	daoList.Visible = true
 	for _, row in daoRows do
 		row.Visible = false
@@ -599,7 +623,7 @@ local function renderTechnique(technique: any, owned: State.Technique, animate: 
 	end
 	secondary.Visible = gate ~= nil
 	if gate then
-		paintCost(costRows.insight, gate.insight, s.insight or 0)
+		paintDaoCost(technique, gate)
 		paintCost(costRows.stones, gate.stones, stones())
 		local short = Bottleneck.block(gate)
 		secondary.Image = if short then BUTTON_LACQUER else BUTTON_JADE
@@ -608,7 +632,7 @@ local function renderTechnique(technique: any, owned: State.Technique, animate: 
 		text.Text = short or "Comprehend"
 		text.TextTransparency = if short then 0.3 else 0
 	else
-		costRows.insight.Visible = false
+		costRows.dao.Visible = false
 		costRows.stones.Visible = false
 	end
 end
@@ -622,9 +646,11 @@ local function renderDetail(animate: boolean?)
 	local item = id and Items.Defs[id]
 	local technique = id and Techniques.Defs[id]
 	local ownedArt = technique and s.techniques.owned[technique.id]
+	local held = technique ~= nil and heldManual(technique.id)
 	local owned = weaponState()
 	local valid = (item ~= nil and Items.count(s, item.id) > 0)
 		or ownedArt ~= nil
+		or held
 		or id == Weapons.FIST
 		or (id ~= nil and (owned[id] or 0) > 0)
 	if not valid then
@@ -684,6 +710,17 @@ local function renderDetail(animate: boolean?)
 		primary.Visible = true
 		caption(primary).Text = if table.find(s.hotbar, technique.id) then "Remove from hotbar" else "Add to hotbar"
 		renderTechnique(technique, ownedArt, animate == true)
+	elseif technique and held then
+		-- a kept manual: what it requires, and that Dao's progress below
+		showActions(false)
+		local need = Techniques.learnDao(technique)
+		local have = Bottleneck.daoLevel(technique.id)
+		setText("Status", "A manual you can't learn yet. You will learn it the moment your Dao is deep enough.", STATUS)
+		setText("Pairs", `Requires {Techniques.daoText(technique, need)}. Yours is {have}.`, STATUS_WARN)
+		setText("Blurb", technique.blurb)
+		setText("Lore", "")
+		daoList.Visible = true
+		renderDao(SlotArt.techniqueClass(technique.id), animate == true)
 	end
 end
 
@@ -709,8 +746,14 @@ local function makeCell(id: string, order: number, held: string, equipChanged: b
 		SlotArt.paint(cell, id, owned[id])
 	elseif technique then
 		local known = s.techniques.owned[id]
-		SlotArt.paint(cell, id, nil, `Lv {known.level}`);
-		(cell:FindFirstChild("CountLabel") :: TextLabel).TextColor3 = if gateOf(known) then BOTTLENECK else COUNT
+		if known then
+			SlotArt.paint(cell, id, nil, `Lv {known.level}`);
+			(cell:FindFirstChild("CountLabel") :: TextLabel).TextColor3 = if gateOf(id, known) then BOTTLENECK else COUNT
+		else
+			-- a kept manual: the Dao it waits on
+			SlotArt.paint(cell, id, nil, `Dao {Techniques.learnDao(technique)}`);
+			(cell:FindFirstChild("CountLabel") :: TextLabel).TextColor3 = STATUS_WARN
+		end
 	else
 		SlotArt.paint(cell, id, Items.count(s, id))
 	end
@@ -755,7 +798,7 @@ local function makeCell(id: string, order: number, held: string, equipChanged: b
 		end
 	end)
 	HotbarView.draggable(cell, function()
-		return id
+		return if heldManual(id) then nil else id
 	end)
 	cells[id] = cell
 	return cell
@@ -846,7 +889,7 @@ local function tapSlot(i: number): boolean
 		HotbarView.equipWeapon(id)
 		return true
 	end
-	if id and (Techniques.Defs[id] or Items.Defs[id]) and not table.find(s.hotbar, id) then
+	if id and (Techniques.Defs[id] or Items.Defs[id]) and not heldManual(id) and not table.find(s.hotbar, id) then
 		invoke("slot", id, i)
 		return true
 	end
@@ -973,7 +1016,7 @@ function Inventory.init(gui: ScreenGui)
 		return row
 	end
 	costRows = {
-		insight = costRow("Insight", INSIGHT_ICON, 2),
+		dao = costRow("Weapon Dao", "", 2),
 		stones = costRow("Spirit Stones", STONE_ICON, 3),
 	}
 	actions = detail:FindFirstChild("Actions") :: Frame

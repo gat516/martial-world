@@ -6,7 +6,8 @@ break through to the next stage. Stages raise health and damage, so progress is
 felt in fights.
 
 ## Design intent
-- **Phase A (decided 2026-10-23, not built):** insight is deleted, breakthroughs get a
+- **Phase A (decided 2026-10-23):** insight is deleted (built: the walls are the bar,
+  techniques gate on weapon Dao, see [combat](combat.md)). Not built yet: breakthroughs get a
   foundation grade (a permanent stat bonus from what you experienced that stage), death
   spills half of the unbanked haul (raw qi, herbs, stones; a spirit ring keeps some
   safe), and the forced breakthrough becomes the qi surge (a mobile button, M on PC). See [roadmap](../roadmap.md) "Phase A". The rest of this
@@ -16,10 +17,9 @@ felt in fights.
   The QR and FE2-9 rows are first-guess curves, untuned in play.
 - **Tribulations are for the heaven-defying only.** `data.heavenDefying` (default
   false; `Cultivation.heavenDefying`) puts a tribulation on every major
-  breakthrough (QC9, QR9); everyone else breaks through quietly after the bar and
-  insight. Nothing sets the flag yet: a heaven-defying bloodline or root will.
-- **Walls are insight, never a boss.** Insight (cumulative) is set at QC9 5, QR6 7,
-  QR9 9, FE3 11, FE6 13. A boss kill is one source among many.
+  breakthrough (QC9, QR9); everyone else breaks through quietly on a full bar. Nothing sets the flag yet: a heaven-defying bloodline or root will.
+- **Walls are the bar, never a boss.** A wall stage has the biggest bar of its
+  chapter (plus the tribulation for heaven-defiers); nothing else gates a breakthrough.
 - **Two kinds of qi.** Raw qi (`data.rawQi`, the dantian) is cultivation's fuel:
   gathered, then refined into the realm bar. **Combat qi** (the `Qi` attribute)
   is the mana techniques spend: a separate, unsaved pool whose size grows with
@@ -27,16 +27,16 @@ felt in fights.
   Fighting never drains the dantian, and cultivating never drains combat qi.
 - **Cultivation runs past the bar.** Passive, refining and items keep filling
   past `CultivationMax` up to the overflow cap (`OVERFLOW_CAP` x the bar) without
-  moving the realm, so a player who isn't ready (no insight, tribulation
-  cooldown, not seated) keeps progressing. A normal breakthrough carries the
+  moving the realm, so a player who isn't ready (tribulation
+  cooldown, not seated, a method that can't go further) keeps progressing. A normal breakthrough carries the
   excess into the next stage, at most `CARRY_SHARE` of the new bar. The
   breakthrough requirement is still a full bar.
 - Two speeds: **passive** cultivation is always on (online, offline, faster while
   meditating) so nobody is ever stuck; **active** play (kill beasts / gather qi
   nodes, then refine with a skill minigame) is several times faster.
 - A deliberate rhythm, not a flat ramp: QC1-3 hook (onboarding), QC4 breather,
-  QC5 ramp, QC6 mini-wall, QC7 breather, QC8 ramp, QC9 wall (biggest bar, 5
-  insight, a tribulation for heaven-defiers), then Qi Refining and Foundation
+  QC5 ramp, QC6 mini-wall, QC7 breather, QC8 ramp, QC9 wall (biggest bar, a
+  tribulation for heaven-defiers), then Qi Refining and Foundation
   Establishment (FE9 is the top). The intent and time estimates for each stage are in the header of
   `src/shared/Pacing.luau`.
 - Breakthroughs happen seated in meditation. A minor one can be **forced** in a
@@ -69,10 +69,12 @@ felt in fights.
   the start tells clients how many there are; on screen the challenger gets the
   Heaven's Decree card and a strikes-left counter, spectators a short ribbon
   (`src/client/Events/TribulationView.luau`, [world events UI](../ui/world-events.md)).
-- `src/server/Progression.luau`: insight and technique manuals from kills, and
-  `comprehend` (spends insight and stones to break a technique's bottleneck).
+- `src/server/Progression.luau`: technique manuals from kills (kept until their
+  weapon Dao is reached, then learned), and `comprehend` (stones plus weapon Dao
+  break a technique's bottleneck). First kills and boss kills are tracked but grant
+  nothing: they're the hooks for Phase A's foundation experiences.
 - `src/server/QiNodes.luau`: raw qi (and stones) from wilds nodes.
-- `src/server/Inventory.luau` (`use`): consumables that add qi, cultivation, insight.
+- `src/server/Inventory.luau` (`use`): consumables that add qi, cultivation, weapon Dao XP.
 - Client: `SeatBars.luau` (the seated cultivation track with its overflow past the mark
   and the dantian; cultivation is off the fighting HUD), `BreakthroughView.luau`
   (button, light column, the milestone card on your own breakthrough and the
@@ -93,7 +95,7 @@ felt in fights.
    (`Cultivation.cap`; everything that adds cultivation goes through
    `Cultivation.add`, which stops there). Refining refuses to start at the cap.
 4. Breakthrough: `CultivationAction "breakthrough"` -> `Cultivation.breakthrough`
-   checks insight, seat, bar; a major one calls `Tribulation.start`. `advance`
+   checks the method, seat, bar; a major one calls `Tribulation.start`. `advance`
    moves the realm (carrying the excess past the old bar, capped at
    `CARRY_SHARE` of the new one; a forced one starts in debt instead), heals, fires `Breakthrough` to everyone and the
    `onBreakthrough` hooks (analytics, peak tier).
@@ -108,39 +110,32 @@ felt in fights.
   (`floor(bar * OVERFLOW_CAP)`). Negative while in qi debt.
 - `CultivationMax`: the bar (the breakthrough requirement).
 - `BreakthroughBlock`: what stops a seated breakthrough, `""` when nothing does.
-  In order of precedence: `"peak"` (no stage beyond, FE1 today), `"insight"`
-  (insight earned is short; reported even before the bar is full, so the HUD can
-  warn early), `"method"` (the method can't reach the next stage), `"bar"` (not
-  full yet).
-- `BreakthroughReady`: `BreakthroughBlock == ""`: the bar is met, insight and
-  the method allow it, and a next stage exists. It does **not** count being
+  In order of precedence: `"peak"` (no stage beyond, FE9 today), `"method"` (the
+  method can't reach the next stage; reported even before the bar is full, so the
+  HUD can warn early), `"bar"` (not full yet).
+- `BreakthroughReady`: `BreakthroughBlock == ""`: the bar is met, the method
+  allows it, and a next stage exists. It does **not** count being
   seated, the tribulation cooldown or another player's tribulation in progress;
   the server still says why on the attempt.
 
 
-## Insight: earned and spent
-`data.insightEarned` counts every insight gained and is what breakthroughs (and
-the quest board's "Gather insight") check. `data.insight` is what's left to spend:
-comprehending a technique past a bottleneck costs insight and Spirit Stones
-(`Pacing.Comprehension`, see [combat](combat.md)). So spending never blocks a
-breakthrough, and insight is a choice: which technique to deepen.
-
 ## Tuning knobs (all in `Pacing.luau`)
 - **Pacing.Curve**: one row per stage. QI: `bar`, `dantian`, `passive`.
-  BREAKTHROUGH: `insight`, `levels` (circulation run levels), `difficulty`, `tribulation`. FIGHT:
+  BREAKTHROUGH: `levels` (circulation run levels), `difficulty`, `tribulation`. FIGHT:
   `health`, `power`.
 - **Pacing.Adjust**: per-stage multipliers on top of the curve, keyed `"QC1".."FE1"`:
   `bar`, `passive`, `refine`, `gather`, `difficulty` (added), `levels`,
-  `insight`, `tribulation` (field overrides), `health`, `power`, `beastHealth`,
+  `tribulation` (field overrides), `health`, `power`, `beastHealth`,
   `beastDamage` (for beasts whose Enemies `realm` is that stage).
 - **Pacing.Global**: whole-game `BAR`, `PASSIVE`, `REFINE`, `GATHER`, `DIFFICULTY`,
   `BEAST_HEALTH`, `BEAST_DAMAGE`, `TRIBULATION_DAMAGE`.
 - **Pacing.Refine / Income / Meditation / Breakthrough / Rewards**: run qi cost and
   efficiency, node/daily/offline/starting qi and the enemy-qi exponent,
   meditation multipliers, forced-breakthrough thresholds, the overflow cap past
-  the bar and the carry-over share (`OVERFLOW_CAP`, `CARRY_SHARE`), insight and manuals,
+  the bar and the carry-over share (`OVERFLOW_CAP`, `CARRY_SHARE`), manuals (boss and milestones),
   and the kill-credit share (`Rewards.KILL_SHARE`, `BOSS_KILL_SHARE`).
-- **Pacing.Comprehension**: insight and stones to break each technique bottleneck.
+- **Pacing.Comprehension**: the weapon Dao to learn a technique (`CLASS_SKILL_DAO`) and
+  to break each bottleneck (`DAO_PER_BOTTLENECK`), and the stones each bottleneck costs.
 - **Pacing.Methods**: the cultivation method's qi multiplier (passive, refining,
   kill and node qi), how far each method reaches, the root-match bonus, and the
   major where the random starter is given ([cultivation method](../character/method.md)).
@@ -154,12 +149,11 @@ first join), *complete* on leaving it, *fail* when its tribulation beats the
 player. In the Creator Dashboard (Analytics > Progression), a level whose starts
 greatly exceed its completes is a dropoff. Also useful: the custom events
 `Breakthrough` (seconds since the previous breakthrough this session, field: new
-stage name), `InsightBlocked` (a full bar refused for missing insight; value =
-stage index), `TribulationResult`, `CirculationScore`, and the onboarding funnel
+stage name), `TribulationResult`, `CirculationScore`, and the onboarding funnel
 (8 steps, ends at QC3).
 
 To ease a stage, add it to `Pacing.Adjust`, e.g. `QC6 = { bar = 0.8 }` (stuck on
-qi), `QC9 = { insight = 3 }` (stuck at the gate), `QC9 = { tribulation = {
+qi), `QC9 = { tribulation = {
 damageShare = 0.15 } }` (failing the trial), `QC4 = { beastHealth = 0.8 }` (dying
 to Stone Boars).
 

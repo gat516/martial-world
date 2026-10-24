@@ -7,7 +7,7 @@
 --   qi                raw qi into the dantian
 --   qiShare           raw qi as a share of the dantian
 --   cultivationShare  cultivation as a share of the realm bar (skips the dantian)
---   insight           insight points
+--   daoXp             weapon Dao XP for the class in hand (bare hands: Fist)
 --   heal              share of max health restored
 --   buffs             timed effects, as herbs have
 --   rootGrade         raise the spirit root one grade (absorbed while meditating)
@@ -21,7 +21,7 @@ export type Use = {
 	qi: number?,
 	qiShare: number?,
 	cultivationShare: number?,
-	insight: number?,
+	daoXp: number?,
 	heal: number?,
 	buffs: { Herbs.Buff }?,
 	rootGrade: boolean?,
@@ -117,9 +117,9 @@ Items.Defs = {
 		rarity = "Epic",
 		color = Color3.fromRGB(140, 235, 170),
 		glyph = "玉",
-		blurb = "Meditate on its patterns: +1 insight",
+		blurb = "Study its patterns: +60 Dao XP for the weapon in hand",
 		lore = "Clouds drift across its surface. Those who study them see a little further.",
-		use = { insight = 1 },
+		use = { daoXp = 60 },
 		treasureWeight = 30,
 	},
 	ImmortalPeach = {

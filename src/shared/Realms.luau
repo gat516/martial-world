@@ -8,7 +8,6 @@
 --   passive    cultivation per second from sitting (online or offline), before buffs
 --   health     max health
 --   power      damage multiplier
---   insight    insight needed to break through out of this stage (0 = none)
 --   refine     circulation efficiency multiplier
 --   gather     raw qi income multiplier (qi nodes, daily qi, enemy kills)
 --   difficulty circulation minigame difficulty (0 easy .. 1 hard)
@@ -31,7 +30,6 @@ export type Stage = {
 	passive: number,
 	health: number,
 	power: number,
-	insight: number,
 	refine: number,
 	gather: number,
 	difficulty: number,
@@ -76,7 +74,6 @@ for i, row in Pacing.Curve do
 		passive = row.passive * (adjust.passive or 1) * G.PASSIVE,
 		health = math.floor(row.health * (adjust.health or 1) + 0.5),
 		power = row.power * (adjust.power or 1),
-		insight = adjust.insight or row.insight,
 		refine = (adjust.refine or 1) * G.REFINE,
 		gather = (adjust.gather or 1) * G.GATHER,
 		difficulty = math.clamp(row.difficulty + (adjust.difficulty or 0) + G.DIFFICULTY, -0.5, 1),

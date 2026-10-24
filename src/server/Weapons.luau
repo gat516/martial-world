@@ -66,6 +66,10 @@ function Weapons.multiplier(player: Player, class: string): number
 	return grade * Defs.daoMultiplier(Weapons.level(data, class))
 end
 
+-- Called with (player, class) after a class's Dao level rises (Progression learns
+-- kept manuals that need it).
+Weapons.onLevelUp = {} :: { (Player, string) -> () }
+
 -- Add Dao XP to a class. Pushes state only on a level-up (the periodic refresh
 -- carries the rest), so it's cheap on the hit path.
 function Weapons.addXp(player: Player, class: string, amount: number)
@@ -95,6 +99,9 @@ function Weapons.addXp(player: Player, class: string, amount: number)
 	if leveled then
 		Cultivation.notify(player, `Your {def.dao} comprehension rose to {entry.level}!`)
 		Cultivation.pushState(player)
+		for _, fn in Weapons.onLevelUp do
+			fn(player, class)
+		end
 	end
 end
 

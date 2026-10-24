@@ -125,7 +125,7 @@ the same crest the vitals wear (`TitleCrest`), one cultivation track with the
 breakthrough mark inside it at 80% and the overflow (cultivation beyond the
 bar, up to `CultivationCap`) as the paler stretch past the mark, and the
 dantian (raw qi) in the tab under it. The cultivation line reads the numbers, "Ready to break
-through" in gold, or what blocks a full bar (`BreakthroughBlock`: insight,
+through" in gold, or what blocks a full bar (`BreakthroughBlock`:
 method, peak). Then the meditation menu, a row of square tiles above them that
 appear only when relevant (Circulate or Break Through, Method, Spirit Root,
 Practice, Rise; Practice swaps in its own tiles: Technique, Weapon Dao,

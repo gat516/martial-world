@@ -47,10 +47,18 @@ scales all player damage.
 - `src/shared/Techniques.luau`: technique defs (line, circle, chain, zone, buff),
   levels (`MAX_LEVEL` 10, +8% damage a level, XP per cast). At the top of
   tiers I-III (levels 3, 6, 9) XP stops at a bottleneck (`Techniques.bottleneck`);
-  the player breaks it seated in meditation by spending insight and Spirit Stones
-  (`InventoryAction "comprehend"` -> `Progression.comprehend`, costs in
-  `Pacing.Comprehension`), which opens the next visual tier. Phase A replaces the insight cost with a class
-  Dao requirement ([roadmap](../roadmap.md) section 4); not built.
+  the player breaks it seated in meditation with Spirit Stones and enough weapon Dao
+  (`InventoryAction "comprehend"` -> `Progression.comprehend`, numbers in
+  `Pacing.Comprehension`), which opens the next visual tier.
+- **Weapon Dao gates techniques** ([weapons](weapons.md) Dao 0-10). Learning needs
+  the def's `dao` in its class (`Techniques.learnDao`): the seven class skills need
+  2 (`CLASS_SKILL_DAO`), the starter arts (Sword Qi Wave, Palm Strike and the
+  any-weapon arts) 0, so onboarding never waits on Dao. Any-weapon arts count the
+  player's highest class Dao. Bottleneck k (1-3, at levels 3, 6, 9) needs Dao
+  `min(10, learn + 2k)` (`Techniques.comprehendDao`): Sword Qi Wave 2/4/6, Moonflash
+  Draw 4/6/8. A manual found too early is kept (`data.techniques.manuals`), toasts
+  "requires Sword Dao 2", shows in Arts with its requirement, and is learned the
+  moment that Dao level is reached (`Weapons.onLevelUp` -> `Progression.learnReady`).
 - `src/shared/Knockback.luau`: how far player hits push beasts (by realm power
   ratio and beast weight) and the stagger they cause.
 - `src/server/Combat.luau`: `action` (Attack remote: begin/hit/cancel/sync),

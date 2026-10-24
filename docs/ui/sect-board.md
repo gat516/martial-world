@@ -87,7 +87,7 @@ log   = { quests = { Quest }, selected = id?, tracked = id?, onTrack = (id?) -> 
 Quest = { id, kind = "chapter" | "daily" | "weekly" | "spirit" | "other", name,
           giver?, place?, description, status?,
           objectives = { { text, progress?, goal?, done? } },
-          rewards = { { kind = "contribution" | "stones" | "qi" | "insight", amount } } }
+          rewards = { { kind = "contribution" | "stones" | "qi", amount } } }
 ```
 - **List** (left, 256 wide): `catalog_tab` three-part rows, 52 tall (48 px on a phone,
   a full thumb target), the selected one on `catalog_tab_selected`. Kind badge (seal
@@ -96,7 +96,7 @@ Quest = { id, kind = "chapter" | "daily" | "weekly" | "spirit" | "other", name,
 - **Detail** (right): the badge, the title (Merriweather 19), "From <giver> · <place>",
   a `divider_diamond`, then a scrolling description and objectives (checkmark when
   done, a gold ◇ otherwise, "1 / 3" counts on the right), and a footer with reward chips
-  (token, jade spirit-stone and qi glyphs, gold insight) and the **Track** button
+  (token, jade spirit-stone and qi glyphs) and the **Track** button
   (`response_button_hi` three-part with the quest glyph in its ring). Track toggles
   "Tracking" (jade) and calls `onTrack`; the HUD objective line follows it.
 
@@ -130,7 +130,7 @@ log   = { quests = { Quest }, selected = id?, tracked = id?, onTrack = (id?) -> 
 Quest = { id, kind = "chapter" | "daily" | "weekly" | "spirit" | "other", name,
           giver?, place?, description, status?,
           objectives = { { text, progress?, goal?, done? } },
-          rewards = { { kind = "contribution" | "stones" | "qi" | "insight", amount } } }
+          rewards = { { kind = "contribution" | "stones" | "qi", amount } } }
 ```
 - **List** (left, 256 wide): `catalog_tab` three-part rows, 52 tall (48 px on a phone,
   a full thumb target), the selected one on `catalog_tab_selected`. Kind badge (seal
@@ -139,7 +139,7 @@ Quest = { id, kind = "chapter" | "daily" | "weekly" | "spirit" | "other", name,
 - **Detail** (right): the badge, the title (Merriweather 19), "From <giver> · <place>",
   a `divider_diamond`, then a scrolling description and objectives (checkmark when
   done, a gold ◇ otherwise, "1 / 3" counts on the right), and a footer with reward chips
-  (token, jade spirit-stone and qi glyphs, gold insight) and the **Track** button
+  (token, jade spirit-stone and qi glyphs) and the **Track** button
   (`response_button_hi` three-part with the quest glyph in its ring). Track toggles
   "Tracking" (jade) and calls `onTrack`; the HUD objective line follows it.
 

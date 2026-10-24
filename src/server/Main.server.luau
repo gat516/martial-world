@@ -270,9 +270,6 @@ table.insert(Cultivation.onBreakthrough, function(player, stage)
 	end
 	Analytics.progression(player, "start", index, stage.name)
 end)
-table.insert(Cultivation.onInsightBlocked, function(player, stage)
-	Analytics.event(player, "InsightBlocked", Realms.index(stage.major, stage.minor), stage.name)
-end)
 table.insert(Cultivation.onBreakthrough, function(player)
 	local data = PlayerData.get(player)
 	if data then

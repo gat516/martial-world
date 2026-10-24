@@ -1,7 +1,7 @@
 --!strict
 -- Every gameplay tunable in one place. Herb stats live in Herbs.luau.
 -- Progression pacing and per-stage difficulty (qi, breakthroughs, tribulations,
--- insight, beast strength) live in Pacing.luau, the master tuning file.
+-- beast strength) live in Pacing.luau, the master tuning file.
 
 local Pacing = require(script.Parent.Pacing)
 
@@ -542,7 +542,7 @@ return {
 		ENGAGE_RESET = 6, -- seconds without a target before a beast's next fight counts as new (howl, opener)
 	},
 
-	-- Insight and technique manuals: Pacing.Rewards.
+	-- Technique manuals: Pacing.Rewards; their Dao gates: Pacing.Comprehension.
 
 	-- The heavenly tribulation's arena. How hard it is (length, strike rate and
 	-- damage, fail cooldown) is per stage: Pacing.Curve `tribulation`.

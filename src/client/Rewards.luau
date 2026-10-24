@@ -20,7 +20,7 @@
 --           milestone rays; "rank", a sect rank-up, shows the rank crest). It shows reward tiles, stat deltas, the new unlock and
 --           one line of flavour. Skippable (click or tap after a beat), closes by
 --           itself, and queues one at a time; it waits while another window is open.
--- Fed by the server's Effect events: "stones", "loot", "insight", "manual",
+-- Fed by the server's Effect events: "stones", "loot", "manual",
 -- "weapon", "method" (feed rows, and tiles on a boss card opened just before),
 -- "boss" (the victory card), and "reward" (a whole spec table, for systems that
 -- pick their own tier). Rewards.preview(tier, kind) shows sample content.
@@ -54,7 +54,6 @@ local ART = {
 	emblem_lotus = "rbxassetid://113579784709637",
 	glyph_stone = "rbxassetid://76651936131955",
 	glyph_qi = "rbxassetid://106989489487468",
-	glyph_insight = "rbxassetid://98394523996866",
 }
 local TILES = {
 	neutral = { tile = "rbxassetid://72729867643691" },
@@ -285,8 +284,6 @@ local bannerShowing = false
 local function lookOf(key: string): Look?
 	if key == "stones" then
 		return { name = "Spirit Stones", icon = ART.glyph_stone, tint = STONE_COLOR, color = STONE_COLOR, coin = true }
-	elseif key == "insight" then
-		return { name = "Insight", icon = ART.glyph_insight, tint = GOLD, color = GOLD, coin = true }
 	elseif key == "qi" then
 		return { name = "Raw Qi", icon = ART.glyph_qi, tint = QI_COLOR, color = QI_COLOR, coin = true }
 	elseif key == "contribution" then
@@ -811,7 +808,7 @@ function Rewards.preview(tier: string?, kind: string?)
 		Rewards.show({ tier = "small", text = "+12", icon = "qi" })
 		Rewards.show({ tier = "small", text = "+3", icon = "stones", at = Vector2.new(0.56, 0.58) })
 	elseif tier == "feed" then
-		for _, key in { "stones", "qi", "insight" } do
+		for _, key in { "stones", "qi" } do
 			Rewards.show({ tier = "feed", key = key, amount = math.random(1, 30) })
 		end
 	elseif tier == "banner" then
@@ -841,7 +838,7 @@ function Rewards.preview(tier: string?, kind: string?)
 				kind = "quest",
 				title = "Quest Complete",
 				subtitle = "The Herbalist's Errand",
-				items = { { key = "stones", amount = 60 }, { key = "insight", amount = 2 }, { key = "contribution", amount = 40 } },
+				items = { { key = "stones", amount = 60 }, { key = "contribution", amount = 40 } },
 				flavour = "The Herbalist nods: \"You may yet be useful.\"",
 			})
 		else
@@ -891,8 +888,6 @@ function Rewards.init()
 			gain("stones", args[2])
 		elseif kind == "loot" then
 			gain(args[1], args[2])
-		elseif kind == "insight" then
-			gain("insight", args[1])
 		elseif kind == "manual" then
 			gain(`manual:{args[1]}`, 1)
 		elseif kind == "weapon" then

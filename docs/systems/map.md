@@ -70,7 +70,7 @@ only for instanced party content.
 - **Point-of-interest density:** something to do every 20-30 seconds of travel
   at the player's speed, in clusters with quiet space between, and one landmark
   per zone visible from its arrival array. Kinds: qi nodes, beast lairs, herbs,
-  ruins/steles giving insight, meditation spots with a local bonus, hermit
+  ruins/steles giving Dao or foundation experiences, meditation spots with a local bonus, hermit
   NPCs, small trials, secret-realm entrances, vistas.
 - **Sword flight at Foundation Establishment:** free movement inside a zone,
   never between zones (that stays the arrays). Server-checked speed, landing

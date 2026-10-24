@@ -24,7 +24,7 @@
 --   description = string,
 --   status = string?,                  -- the row's second line (default: the first open objective)
 --   objectives = { { text = string, progress = number?, goal = number?, done = boolean? } },
---   rewards = { { kind = "contribution" | "stones" | "qi" | "insight", amount = number } },
+--   rewards = { { kind = "contribution" | "stones" | "qi", amount = number } },
 -- }
 
 local Art = require(script.Parent.Art)
@@ -61,7 +61,6 @@ local REWARD_ICON = {
 	contribution = { "contribution_token", nil },
 	stones = { "glyph_spirit_stone", JADE },
 	qi = { "glyph_qi", JADE },
-	insight = { "glyph_quest", GOLD },
 }
 
 local current: Log? = nil
@@ -308,7 +307,7 @@ function QuestLog.preview()
 				place = "Misty Pines",
 				description = "A small light drifts between the pines at dusk, as if looking for something.",
 				objectives = { { text = "Follow the light" } },
-				rewards = { { kind = "insight", amount = 1 } },
+				rewards = { { kind = "qi", amount = 40 } },
 			},
 		},
 		onTrack = function(id)

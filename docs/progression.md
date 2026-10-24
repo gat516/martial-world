@@ -23,8 +23,8 @@ until playtested. Nothing here is built yet unless it says so.
 - **Insight is deleted; walls are the bar (user, 2026-10-23).** A breakthrough
   is graded by what the player experienced that stage (the foundation grade, a
   permanent stat bonus); death spills half of the unbanked haul (a spirit ring keeps some safe); the forced breakthrough
-  becomes the qi surge. See [roadmap](roadmap.md) "Phase A". Not built yet: the
-  code still gates on insight.
+  becomes the qi surge. See [roadmap](roadmap.md) "Phase A". Insight is gone from
+  the code; the grades, the haul and the surge aren't built yet.
 - **Bloodlines, not races.** Cosmetic traits (horns, tails, wings, see-through
   spirits) come with a bloodline. See "Bloodlines".
 
@@ -238,8 +238,6 @@ Built 2026-10-22: QR1-9 and FE2-9 rows in `Pacing.Curve` (and combat qi), the
 `QiRefining` major in `Realms`, `data.heavenDefying` and the tribulation gate.
 
 Still open from that pass:
-- **Insight is still in the code** (QC9 5 up to FE6 13, and above 10 is
-  unreachable without bosses). Phase A deletes it.
 - **Nothing sets `heavenDefying`** yet (bloodline or root).
 - **Region seals unchanged:** `Regions.luau` still seals the Outer region at FE1; the
   QR regions need the map.
@@ -254,7 +252,7 @@ Steps:
 1. ~~Pacing rows, `QiRefining`, the tribulation flag~~ (done, untuned).
 2. Scale herb `eat` qi by tier; add the tier field to `Herbs.luau`.
 3. Build the sect: ranks, contribution, board, Pavilion, dailies and chains.
-4. Phase A: foundation grades, the haul and spirit ring, the qi surge, insight deleted ([roadmap](roadmap.md)); turn bosses into quest targets.
+4. Phase A: foundation grades, the haul and spirit ring, the qi surge ([roadmap](roadmap.md); insight deletion done); turn bosses into quest targets.
 5. Build the bloodline layer earlier than FE (see [character](systems/character.md)).
 6. World-event and tribulation vfx passes (`world-fx`).
 7. Elite and apex beast tiers: `enemy-designer`, `vfx` and `animator`, one per beast.

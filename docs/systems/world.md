@@ -81,7 +81,7 @@ For the setting and where each zone, beast and event ground is, see
   inheritance from `Effects.AuspiciousClouds.Relics`, at a wilds spot; meditating
   inside the ring uses the def's multiplier through `Meditation.addSite`;
   `condenseSeconds` before the end the seal breaks and the first claim learns a
-  technique from the def's pool, or insight, and ends the event; the clouds are
+  technique from the def's pool (kept until its weapon Dao is reached), or Spirit Stones, and ends the event; the clouds are
   drawn client-side from the published position).
 - `src/client/WorldEventFX.luau` draws the AuspiciousClouds kinds; details in
   [event-fx](../world/event-fx.md).

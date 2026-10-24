@@ -80,7 +80,7 @@
   </Item>
   <Item class="Animation" referent="RBXAWALK"><Properties>
    <string name="Name">Walk</string>
-   <Content name="AnimationId"><url>rbxassetid://80600839460034</url></Content>
+   <Content name="AnimationId"><url>rbxassetid://126702696993520</url></Content>
   </Properties>
   </Item>
   <Item class="Folder" referent="RBXA18"><Properties>

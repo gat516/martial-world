@@ -383,10 +383,12 @@ function Hud.init(screenGui: ScreenGui)
 	local healthText = vitals:FindFirstChild("HealthText") :: TextLabel
 	keepSlants(gui:FindFirstChild("Stack") :: Frame)
 
+	-- during a qi surge the plaque shows the stage the player fights at (SurgeRealm)
 	local function showRealm()
-		realmLabel.Text = player:GetAttribute("Realm") or ""
+		realmLabel.Text = player:GetAttribute("SurgeRealm") or player:GetAttribute("Realm") or ""
 	end
 	player:GetAttributeChangedSignal("Realm"):Connect(showRealm)
+	player:GetAttributeChangedSignal("SurgeRealm"):Connect(showRealm)
 	showRealm()
 
 	-- combat qi (Qi/QiMax; 0 until the server publishes them)

@@ -233,6 +233,11 @@ function Circulation.handle(player: Player, action: any, ...: any): (boolean, an
 		return Circulation.cancel(player, ...)
 	elseif action == "breakthrough" then
 		return Cultivation.breakthrough(player)
+	elseif action == "surge" then
+		if Cultivation.surge then
+			return Cultivation.surge(player)
+		end
+		return false, nil
 	elseif action == "method" then
 		return Methods.switch(player, ...)
 	elseif action == "root" then

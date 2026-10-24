@@ -18,7 +18,7 @@ circulation happen.
 ## Key files
 - `src/server/Meditation.luau`: sessions, spot multiplier (`spotAt`, `bestItem`),
   1 s re-check; sets `Cultivation.meditation`.
-- `src/client/Meditation.luau`: the M key / tile, animations
+- `src/client/Meditation.luau`: the M key (it fires the qi surge instead while `SurgeReady`, [cultivation](cultivation.md#qi-surge)) / tile, animations
   (`Animations.Meditate`: Sit, Loop, GetUp), the seated tiles, the calm view, toasts.
 - `src/client/MeditationMenu.luau`: the Comprehend (Practice > Technique) / Method / Spirit Root panel;
   `src/client/Bottleneck.luau`: bottleneck checks and the comprehend call.

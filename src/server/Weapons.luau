@@ -220,7 +220,7 @@ function Weapons.forget(player: Player)
 	end
 end
 
--- Includes forced breakthroughs outside meditation. A later breakthrough or
+-- Every breakthrough (seated). A later breakthrough or
 -- respawn supersedes this callback; movement/Tool locks still apply afterward.
 function Weapons.onBreakthrough(player: Player)
 	local character = player.Character

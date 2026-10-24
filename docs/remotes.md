@@ -9,7 +9,7 @@ and are wrapped in `guarded` (a pcall that logs and returns "Something went wron
 
 | Remote | Kind | Direction | Server handler | Client user |
 |---|---|---|---|---|
-| CultivationAction | Function | C->S | `Circulation.handle` ("start", "finish", "cancel", "breakthrough", "method" id, "root" keepNew, "practiceStart/Finish/Cancel") | CirculationMinigame, BreakthroughView |
+| CultivationAction | Function | C->S | `Circulation.handle` ("start", "finish", "cancel", "breakthrough" (seated only), "surge" (the qi surge, `Cultivation.surge` -> `QiSurge.fire`), "method" id, "root" keepNew, "practiceStart/Finish/Cancel") | CirculationMinigame, BreakthroughView |
 | Meditate | Event | both | `Meditation.handle(on)`; server fires `false` to stand you up | Meditation |
 | Sprint | Event | C->S | `Cultivation.setRunning` | Sprint |
 | Attack | Event | C->S | `Combat.action` (ordered begin/hit/cancel/sync; "guard" raises/lowers the guard) | CombatController |
@@ -37,7 +37,7 @@ technique level at cast time (picks the visual tier), `chain` the chain targets 
 
 Besides remotes, the server publishes fast-changing values as attributes:
 player `Race`, `RaceVariant`, `Traits`, `TraitsInactive` ([identity](systems/identity.md)), `Realm`, `Cultivation` (may exceed `CultivationMax`, up to `CultivationCap`), `CultivationMax`, `CultivationCap`,
-`BreakthroughReady`, `BreakthroughBlock` ([cultivation](systems/cultivation.md)), `Qi`, `QiMax`, `QiDenied` (combat qi,
+`BreakthroughReady`, `BreakthroughBlock`, `SurgeReady`, `SurgeUntil` (server time), `SurgeRealm` (the qi surge, [cultivation](systems/cultivation.md#qi-surge)), `Qi`, `QiMax`, `QiDenied` (combat qi,
 [combat](systems/combat.md#combat-qi-technique-mana)), `RawQi`, `DantianCap`, `Stones`, `Root`, `RootGrade`, `Method`, `Meditating` (seated; for others' method auras),
 `DeviationUntil`, `Admin`, `Peak`/`PeakFrame`, `Weapon`, `InCombat` (hurt or dealing damage within `IN_COMBAT_SECONDS`, [combat](systems/combat.md)), `HaulReady` (at a bank point with an unbanked haul: Store all is offered, [haul](systems/haul.md)); character `WeaponClass`, `WeaponStowed`
 (combines Tool occupancy, `WeaponControlsLocked`, `WeaponBreakthroughUntil`); humanoid `BaseWalkSpeed`,
@@ -53,4 +53,4 @@ requiring each other in circles: `Cultivation.onBreakthrough`, `.onPush`;
 `Tribulation.onFinished`; `Quests.onBeat`, `.onClaimed`; `Haul.onBanked` (player, amounts, "store"/"travel"); `Travel.onTravel` (Haul banks quietly); `Progression.onEarned`. Some are
 function slots set by the module that owns the answer: `Cultivation.meditation`
 (Meditation), `Cultivation.inCombat` (Combat), `CombatQi.fighting` (Combat), `Cultivation.startTribulation`
-(Tribulation), `Progression.slotTechnique` (Inventory).
+(Tribulation), `Cultivation.surgeStage` and `.surge` (QiSurge), `Progression.slotTechnique` (Inventory).

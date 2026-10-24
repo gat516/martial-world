@@ -43,7 +43,7 @@ scales all player damage.
   target's size (1.0-1.8x its height, or half its length), so the Thunder Ape
   (~30 studs) frames at 30-54. Tuning: `DISTANCE_*`, `SIZE_*` in `LockOn.luau`.
 - Getting hurt marks you in combat for a few seconds: no teleporting away, and
-  it's the condition for a forced breakthrough (to become the qi surge, Phase A). Getting hurt or landing damage
+  it's a condition of the qi surge ([cultivation](cultivation.md#qi-surge)). Getting hurt or landing damage
   (`fighting`) sets the player attribute `InCombat` until `IN_COMBAT_SECONDS`
   pass quietly; the client reads only that (the top-right tiles fold down, the
   boss bar lifts, Guide holds its spotlight). The server's `Haul` reads it too: no
@@ -86,7 +86,7 @@ scales all player damage.
   ratio and beast weight) and the stagger they cause.
 - `src/server/Combat.luau`: `action` (Attack remote: begin/hit/cancel/sync),
   damage validation, `damageEnemy`, `hurt` (i-frames, perfect dodge, Iron Skin,
-  non-lethal), `power` (the stage's `power`), `inCombat`, `fighting` (hurt or
+  non-lethal), `power` (the stage's `power`, the next stage's during a qi surge via `Cultivation.fightStage`), `inCombat`, `fighting` (hurt or
   dealing damage lately) and the `InCombat` attribute that mirrors it, technique XP.
 - `src/server/CombatQi.luau`: the combat qi pool (`has`, `spend`, `deny`,
   `refill`), its regen loop and the `Qi`/`QiMax`/`QiDenied` attributes.

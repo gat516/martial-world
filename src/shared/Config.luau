@@ -154,7 +154,7 @@ return {
 		WARN_RATIO = 5,
 		WARN_IDLE_SECONDS = 180, -- no runs or breakthroughs for this long
 		WARN_INTERVAL = 240, -- at most one warning this often
-		-- Breakthrough and forced-breakthrough numbers: Pacing.Breakthrough.
+		-- Breakthrough numbers: Pacing.Breakthrough; the qi surge: Pacing.Surge.
 	},
 
 	-- Qi spent per run, efficiency, deviation, and each stage's run length and

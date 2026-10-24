@@ -87,6 +87,7 @@ What we build next and in what order (foundation grades, the haul and the surge,
 | Objective rewards (every onboarding beat and lesson, by id) | `src/shared/Pacing.luau` `Quests` ([onboarding](systems/onboarding.md)) |
 | Combat qi (technique mana): pool size per stage, regen, regen delay, default cost; per-technique cost | `src/shared/Pacing.luau` `CombatQi`; `qiCost` in `src/shared/Techniques.luau` ([combat](systems/combat.md#combat-qi-technique-mana)) |
 | Cultivation past the bar: overflow cap and how much carries over a breakthrough | `src/shared/Pacing.luau` `Breakthrough.OVERFLOW_CAP`, `CARRY_SHARE` ([cultivation](systems/cultivation.md)) |
+| Qi surge: when it's ready, length, heal, raw-qi cost, once per fight | `src/shared/Pacing.luau` `Breakthrough.FORCE_*`, `Surge` ([cultivation](systems/cultivation.md#qi-surge)) |
 | Realm ladder names and helpers (built from Pacing) | `src/shared/Realms.luau` |
 | Realm suppression across majors, heaven-defier bar and resist, beast stats following the curve | `src/shared/Pacing.luau` `Suppression`, `HeavenDefying`, `BeastBaseline`; applied in `Combat.damageEnemy` and EnemyService `hurtBy` ([combat](systems/combat.md#realm-power-and-suppression-2026-10-23)) |
 | Everything else gameplay (combat timings, build limits, garden, travel, weather ambience, minigame shapes) | `src/shared/Config.luau` |
@@ -112,7 +113,7 @@ What we build next and in what order (foundation grades, the haul and the surge,
 
 | System | Doc | Server | Shared | Client |
 |---|---|---|---|---|
-| Cultivation, realms, breakthroughs, tribulation | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, Foundation (grades), QiNodes | Pacing, Realms | Hud, SeatBars, BreakthroughView, CirculationMinigame, CultivationGui, FoundationMeter, DeathSave, CultivationMarks |
+| Cultivation, realms, breakthroughs, tribulation, qi surge | [cultivation](systems/cultivation.md) | Cultivation, Circulation, Tribulation, Progression, Foundation (grades), QiSurge, QiNodes | Pacing, Realms | Hud, SeatBars, BreakthroughView, CirculationMinigame, CultivationGui, FoundationMeter, DeathSave, CultivationMarks |
 | Circulation minigames | [minigames](systems/minigames.md) | Circulation | Config.Circulation | CirculationMinigame, Minigames/* |
 | Meditation | [meditation](systems/meditation.md) | Meditation | Pacing.Meditation, BuildItems `meditation` | Meditation, Controls, Movement |
 | Combat and action states | [combat](systems/combat.md); [guard and parry](combat/guard-parry.md), [technique visuals](combat/technique-visuals.md) (one file per technique in [combat/techniques/](combat/techniques/)) | Combat, CombatQi, Movement, PlayerStun, Guard | ActionRules, Hitbox, Techniques, Knockback, GuardRules, Config.Combat (`CC`: player flinch, stagger, stun; `GUARD`) | CombatController, ActionState, GuardController, GuardBar, GuardFX, CrowdControl, Movement, Sprint, LockOn, CombatEffects, Telegraphs, HeadLook, ShiftLock |

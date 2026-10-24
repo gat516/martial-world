@@ -176,6 +176,9 @@ function Inventory.use(player: Player, id: any): (boolean, string?)
 	Cultivation.markActive(player)
 	Cultivation.applyStats(player, data)
 	Cultivation.pushState(player)
+	if item.category == "Herb" then
+		data.lessons.HerbEaten = true -- the Herbs lesson (Quests)
+	end
 	if item.category == "Herb" and player.Character then
 		effectRemote:FireAllClients("herbEat", player.Character, item.id, workspace:GetServerTimeNow())
 	end

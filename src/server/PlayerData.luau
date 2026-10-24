@@ -130,8 +130,10 @@ local function default(): Data
 		rawQi = Income.STARTING_RAW_QI,
 		stones = Economy.STARTING_STONES,
 		methods = { owned = {}, active = "" },
-		techniques = { owned = { LightningTalisman = { level = 1, xp = 0 } }, manuals = {} }, -- any weapon
-		hotbar = Hotbar.empty({ "LightningTalisman" }),
+		-- no starting technique: the first one is the onboarding's 3-kill manual (Fire Seal),
+		-- taught in its own beat (docs/systems/onboarding.md)
+		techniques = { owned = {}, manuals = {} },
+		hotbar = Hotbar.empty(),
 		firstKills = {},
 		milestones = {},
 		beats = {},
@@ -152,7 +154,7 @@ local function default(): Data
 		receipts = {},
 		settings = { music = 1, sfx = 1, autoAttack = true, lockHint = true },
 		weapons = { owned = { [Weapons.STARTING] = 1 }, equipped = Weapons.STARTING },
-		seen = { LightningTalisman = 0, [Weapons.STARTING] = 0 }, -- the starting kit isn't NEW
+		seen = { [Weapons.STARTING] = 0 }, -- the starting kit isn't NEW
 		inventoryView = {
 			Weapons = { sort = "New", filter = "All" },
 			Arts = { sort = "New", filter = "All" },

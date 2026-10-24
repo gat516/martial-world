@@ -205,7 +205,8 @@ local function defaultLook(): { [string]: any }
 end
 
 -- The testbed's first visit: a ready "Tester" in slot 1 and slot 2 left empty,
--- so the slot screen and the creator can both be tried at once.
+-- so the slot screen and the creator can both be tried at once. The Tester has the
+-- test kit and skips onboarding; a character made in slot 2 plays the real first session.
 local function seedTestbed(player: Player)
 	local account = PlayerData.account(player)
 	if not (Config.TESTBED and account and next(account.slots) == nil) then
@@ -214,6 +215,7 @@ local function seedTestbed(player: Player)
 	local data = PlayerData.createSlot(player, "1")
 	if data then
 		data.character = { firstName = "Tester", look = defaultLook() }
+		data.lessons.Tester = true -- the test kit and skipped onboarding (Main applyTestKit)
 		Slots.fate(player, "1")
 		account.last = "1"
 	end

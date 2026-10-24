@@ -266,7 +266,7 @@ Pacing.Refine = {
 -- dantian by the herb's tier (Pacing.Herbs below, Herbs.luau `tier`); item qi is
 -- per item (Items.luau `use`); enemy qiDrop is per enemy (Enemies.luau).
 Pacing.Income = {
-	STARTING_RAW_QI = 60, -- a new player's dantian: enough for the first circulation run
+	STARTING_RAW_QI = 48, -- a new player's dantian: exactly the first circulation run (QC1 dantian / RUNS_PER_DANTIAN), so it's spent and the wolves are why you go out
 	NODE_SHARE = 0.2, -- a qi node gather gives this share of the dantian (times gather)
 	NODE_COOLDOWN = 45, -- seconds before the same player can gather a node again
 	-- enemy qi = qiDrop * (dantian / QC1 dantian) ^ this, times the stage's gather
@@ -358,28 +358,35 @@ Pacing.Rewards = {
 -- Grass seed costs 10 and a Cloud Mint seed 40; a spirit wolf drops 3-6 stones
 -- (about 4.5), a qi node 4-8; the first technique bottleneck costs 60 stones;
 -- the Elder Wolf King drops 60-90. So:
---   * the eight first-session beats pay 80 stones in all (about 18 wolf kills,
+--   * the ten first-session beats pay 85 stones in all (about 18 wolf kills,
 --     half the starting purse): felt at every step, not a second economy.
---     QC3 adds a quarter dantian of raw qi (65 at QC3, over half a run) so the
---     first goal off the rails starts with qi in hand.
+--     Cast adds a fifth of a dantian of raw qi (36 at QC2) so the refine run
+--     right after the first hunt reaches the second breakthrough; QC3 adds a
+--     quarter (65 at QC3, over half a run) toward the third.
 --   * the lessons pay 20-50 each, about one Spirit Grass bed (Home: 3 seeds) or
 --     two thirds of a bottleneck gate (Bottleneck), never a whole purchase.
 --   * a cultivation method (a big moment) pays the most.
 -- Kids should feel every step pays; nothing here should outpace hunting.
 export type QuestReward = { stones: number?, qiShare: number? }
 Pacing.Quests = {
-	-- beats (QC1-3, the first session)
+	-- beats (QC1-4, the first session)
 	Circulate = { stones = 5 },
 	Breakthrough = { stones = 10 },
-	Root = { stones = 10 },
-	Gate = { stones = 5 },
 	FirstKill = { stones = 10 },
 	Technique = { stones = 10 },
-	Refine = { stones = 10 },
+	Cast = { stones = 5, qiShare = 0.2 },
+	Store = { stones = 5 },
+	Refine = { stones = 5 },
 	QC3 = { stones = 20, qiShare = 0.25 },
-	-- lessons (met later, when each first matters)
+	Root = { stones = 10 },
+	QC4 = { stones = 5 },
+	-- lessons (met later, when each first matters; QC4-9 one per chapter)
 	RootPill = { stones = 20 },
 	Home = { stones = 30 },
+	Board = { stones = 20 },
+	Herbs = { stones = 20 },
+	Rumours = { stones = 40 },
+	Wall = { stones = 50 },
 	Bottleneck = { stones = 40 },
 	WeaponRack = { stones = 30 },
 	DaoPractice = { stones = 50 },
@@ -446,7 +453,7 @@ Pacing.Weapons = {
 -- fighting: one drill per COOLDOWN, worth at most XP_SHARE of the current
 -- level's XP (scaled by the score). Leaving a drill early costs nothing.
 Pacing.DaoPractice = {
-	FROM = "QC7", -- the stage it unlocks (the core loop's second-weapon slot)
+	FROM = "QR1", -- the stage it unlocks, with the second-weapon lesson (QR, docs/roadmap.md section 2)
 	COOLDOWN = 300, -- seconds between finished drills (saved, so rejoining doesn't skip it)
 	XP_SHARE = 0.25, -- of xpToNext(level), at a perfect score
 	SECONDS = 20,

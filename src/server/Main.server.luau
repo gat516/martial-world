@@ -73,10 +73,15 @@ end
 
 -- Studio playtests and the testbed: top every herb, seed, item and Spirit Stones up to the test-kit
 -- amount, and fill the dantian (never above that, so repeated sessions don't inflate a saved
--- profile). The testbed also skips onboarding and owns every technique and weapon.
+-- profile). The testbed's ready "Tester" (Slots.seedTestbed) also skips onboarding and owns
+-- every technique and weapon; a character made in the creator there gets no kit at all, so
+-- the first session plays as a new player's would (docs/systems/onboarding.md).
 local function applyTestKit(data: PlayerData.Data)
 	local kit = Config.TestKit
 	if not (kit.ENABLED and (RunService:IsStudio() or Config.TESTBED)) then
+		return
+	end
+	if Config.TESTBED and not data.lessons.Tester then
 		return
 	end
 	if Config.TESTBED then

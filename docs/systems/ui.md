@@ -14,7 +14,9 @@ cursor, settings and the admin panel.
   over the panels; it used to be touch-only for the big windows).
   Small panels too: a menu the player opens (like the meditation panel) goes
   in the centre of the screen, not docked at the bottom over the vitals and
-  hotbar (user decision, 2026-10-21). The HUD steps aside while it's open, so
+  hotbar (user decision, 2026-10-21). On short screens (phones) a centred Hud
+  window that would reach under Roblox's top-left buttons opens with its top 62 px
+  down instead, shorter if it must be (`Menus`, phone sweep 2026-10-23). The HUD steps aside while it's open, so
   the bottom has nothing to stay near.
 - A ScrollingFrame whose rows size themselves (`AutomaticSize` Y) gets its
   `CanvasSize` from its `UIListLayout.AbsoluteContentSize` in script;
@@ -52,8 +54,11 @@ cursor, settings and the admin panel.
   shrinks to a point in 0.18 s, its width to minus the list padding so the row
   re-flows with no pop, and grows back in 0.22 s when combat ends. `TileFold` owns
   only their size, clipping and `Interactable`; `Visible` stays with SelfCard,
-  TravelMenu and Menus. 56 px tiles 8 px apart, scaled 0.9 on touch (about 50 px thumb
-  targets), 0.85 on PC; four tiles are 224 px wide on a phone. The frame is
+  TravelMenu and Menus. 56 px tiles 8 px apart, scaled 0.9 on a touch tablet (about
+  50 px thumb targets), 0.78 on a touch phone (44 px, the height of Roblox's own top-bar
+  buttons; at 50 the user found them "a bit too large", 2026-10-23; `Layout`
+  TOUCH_SMALL_TILES, and `Play.Tracker` moves up to keep its 8 px gap), 0.85 on PC;
+  four tiles are 200 px wide on a phone. The frame is
   `hud_tile` (art/ui/hud: a lacquer square with chamfered corners, gilt band and
   inner line, no curls; it fills the tile, nothing overhangs). PC: icon (22 px,
   cropped to its drawn area, every pixel with alpha > 0: the old rects were up to a
@@ -234,7 +239,7 @@ cursor, settings and the admin panel.
   control into view).
 - `Cursor.luau`, `ShiftLock.luau` (Alt binding and reticle),
   `LockOn.luau` reticle and hint.
-- `Settings.luau` (volumes, Auto combat, lock hint), `AdminPanel.luau` (F2, admins on PC; Tools and Traits tabs, the Traits tab is `AdminTraits.luau`, see [identity](identity.md)).
+- `Settings.luau` (volumes, Auto combat, lock hint), `AdminPanel.luau` (admins only; F2 on any keyboard, and on touch, the device emulator included, an admin-only 管 tile first in the tile row, `Buttons.AdminButton`, never shown to other players; on touch the panel shows a close seal instead of the F2 hint, chips are 36 px tall, on a phone it fills the right side from 64 px down and scrolls, and a UI preview chip closes it so the previewed screen shows whole. Tools and Traits tabs, the Traits tab is `AdminTraits.luau`, see [identity](identity.md)).
 - `State.luau`: the latest `PlayerState` snapshot with change listeners.
 - `CharacterCreator/` (the join screen: nav, viewport dummy, parchment panel); see
   [character creator](character-creator.md).

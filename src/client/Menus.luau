@@ -22,6 +22,13 @@
 --   The calm view (Menus.setCalm, while meditating; nothing open): the gameplay
 --     HUD, the tiles and the hotbar fade away for a clean view of the world.
 --     Opening anything ends it.
+-- Short screens (Platform.isSmall: phones, the device emulator): Roblox's menu
+-- and chat buttons own the top-left corner, so a centred Hud window that would
+-- reach above TOPBAR_CLEAR opens just below it instead, shorter if it has to be
+-- (phone sweep, 2026-10-23: the herb shop, seed picker, quest board and Spirit
+-- Market reached under the buttons). Windows that place themselves (Inventory,
+-- the build catalog in build mode), auto-sized cards and canvas screens are left
+-- alone.
 
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
@@ -29,6 +36,46 @@ local Motion = require(script.Parent.Motion)
 local Platform = require(script.Parent.Platform)
 
 local Menus = {}
+
+local TOPBAR_CLEAR = 62 -- Roblox's buttons end about 54 px down on a phone
+local BOTTOM_GAP = 8
+local homes: { [GuiObject]: { position: UDim2, size: UDim2 } } = {}
+
+local function clearTopbar(frame: GuiObject)
+	local parent = frame.Parent
+	if not Platform.isSmall() or not (parent and parent:IsA("ScreenGui")) then
+		return
+	end
+	if frame.AnchorPoint ~= Vector2.new(0.5, 0.5) and not homes[frame] then
+		return -- it places itself
+	end
+	if frame.AutomaticSize ~= Enum.AutomaticSize.None then
+		return
+	end
+	local home = homes[frame]
+	if home then
+		if frame.AnchorPoint ~= Vector2.new(0.5, 0.5) then
+			return
+		end
+		frame.Position, frame.Size = home.position, home.size
+	end
+	local motion = frame:FindFirstChild("Motion")
+	local k = if motion and motion:IsA("UIScale") and motion.Scale > 0 then motion.Scale else 1
+	local origin = parent.AbsolutePosition.Y
+	local height = frame.AbsoluteSize.Y / k
+	local centre = frame.AbsolutePosition.Y + frame.AbsoluteSize.Y / 2 - origin
+	if centre - height / 2 >= TOPBAR_CLEAR then
+		return
+	end
+	if not home then
+		homes[frame] = { position = frame.Position, size = frame.Size }
+	end
+	local fit = math.min(height, parent.AbsoluteSize.Y - TOPBAR_CLEAR - BOTTOM_GAP)
+	if fit < height then
+		frame.Size = UDim2.new(frame.Size.X, UDim.new(0, math.floor(fit)))
+	end
+	frame.Position = UDim2.new(frame.Position.X, UDim.new(0, math.floor(TOPBAR_CLEAR + fit / 2)))
+end
 
 export type Options = {
 	close: (() -> ())?, -- how to close it (default: hide the frame)
@@ -94,6 +141,9 @@ function Menus.register(frame: GuiObject, options: Options?)
 				return
 			end
 			current = frame
+			if not entries[frame].minigame then
+				clearTopbar(frame)
+			end
 			Motion.popWindow(frame)
 			if previous then
 				closeFrame(previous)

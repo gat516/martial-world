@@ -301,6 +301,10 @@ point is the body centre. Per-body numbers and attachments are in the RIGS.md of
 - `src/shared/Enemies.luau`: defs (health, speeds, aggro/leash, attack and boss
   pattern, `qiDrop`, `stones`, `drops`, `bossDrops` (bosses' manual/weapon pool, see [weapons](weapons.md)), `realm`, `weight`). Kill qi scaling uses
   `Pacing.Income.ENEMY_QI_EXPONENT` through `Realms.enemyQi`.
+- Loot (`drops`): common beasts drop spirit cores only. Root pills are boss-only
+  and extremely rare (user, 2026-10-23), Marrow Washing / Root Rebirth: Elder Wolf
+  King (QC9) 2% / 3%, Jade Jiao (QC7) 2% / 3%, Thunder Ape and Nine-Tailed Fox (FE1)
+  4% / 5%. A grade takes several Marrow Washing Pills ([spirit root](../character/spirit-root.md)).
 - `src/shared/Spawns.luau`: ambient encounter rules (rates, caps, safe spots).
 - `src/shared/Regions.luau`: named regions (shape, intended realm, flavour line,
   ambient pack table).

@@ -647,25 +647,27 @@ Quests.Lessons = {
 	{
 		-- first so no standing lesson (DaoPractice holds for good) hides it
 		id = "RootPill",
-		elder = "A root pill! It can temper your very root. Sit in meditation, open your Spirit Root and absorb it.",
+		elder = "A root pill! A rare fortune: it can temper your very root. Sit in meditation, open your Spirit Root and absorb it.",
 		talk = {
 			lines = {
-				"A root pill! It can temper your very root.",
+				"A root pill! A rare fortune: it can temper your very root, a little at a time.",
 				"Sit in meditation, open your Spirit Root, and absorb it.",
 			},
 			reply = "I will absorb it.",
 		},
 		objective = "Meditate, open Spirit Root and absorb the pill",
 		reward = REWARDS.RootPill,
-		-- not `early`: a pill absorbed mid-tutorial would purify the root the Testing
-		-- Stone just revealed; it waits for free play
+		-- not `early`, and never before QC5: a pill absorbed in the hook would
+		-- change the root the Testing Stone just revealed (user, 2026-10-23: "pill
+		-- eating made no sense during onboarding"). Pills are rare boss and treasure
+		-- drops, so most players meet this long after the hook.
 		persist = true,
 		-- until the first pill is absorbed (data.lessons.RootPillUsed, set in check)
 		when = function(_, data)
-			return not data.lessons.RootPillUsed and rootPillReady(data)
+			return not data.lessons.RootPillUsed and reached(data, "QC5") and rootPillReady(data)
 		end,
 		open = function(_, data)
-			return data.lessons.RootPillUsed == true or rootPillReady(data)
+			return data.lessons.RootPillUsed == true or (reached(data, "QC5") and rootPillReady(data))
 		end,
 		done = function(_, data)
 			return data.lessons.RootPillUsed == true

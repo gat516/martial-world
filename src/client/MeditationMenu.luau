@@ -9,7 +9,8 @@
 --               (CultivationAction "method"), the active one reads "Active".
 --   Root        the spirit root's card and its exact numbers (Note), the same
 --               text as the Self card, then a row per root pill the player holds
---               (Marrow Washing raises the grade, Root Rebirth reforms the
+--               (Marrow Washing washes it toward the next grade, Pacing.Roots.WASH
+--               pills per grade, shown on the root row; Root Rebirth reforms the
 --               element; Absorb = InventoryAction "use", marked GuideKey
 --               "RootPill" for the onboarding guide). While a reformed
 --               element is pending it shows the old and the new root instead,
@@ -52,7 +53,7 @@ local COST_OK = "#F0D28C"
 local COST_SHORT = "#FF826E"
 local TITLES: { [Page]: string } = { Comprehend = "Comprehend", Method = "Method", Root = "Spirit Root" }
 local PILLS = { "MarrowWashingPill", "RootRebirthPill" }
-local PILL_SUB = { MarrowWashingPill = "Raise your root one grade", RootRebirthPill = "Reform as another element" }
+local PILL_SUB = { RootRebirthPill = "Reform as another element" } -- MarrowWashingPill: its washing progress (washLine)
 local NEXT_TIER: { [number]: string } = { [3] = "Tier II", [6] = "Tier III", [9] = "Mastery" }
 
 local MeditationMenu = {}
@@ -228,14 +229,26 @@ local function methodRows(): number
 	return n
 end
 
--- One root as a row: its seal, name, grade and perk; `tag` leads the grade line.
-local function rootRow(order: number, element: string, grade: string, tag: string, spec: { action: string?, ready: boolean?, plain: boolean?, onAction: (() -> ())? })
+-- How far Marrow Washing Pills have washed the root toward its next grade
+-- (Pacing.Roots.WASH), e.g. "Washed 1/3 toward Earth grade"; nil at the top.
+local function washLine(root: Roots.Root): string?
+	local done, need = Roots.washed(root)
+	local nextGrade = Roots.nextGrade(root.grade)
+	if not (need and nextGrade) then
+		return nil
+	end
+	return `Washed {done}/{need} toward {nextGrade} grade`
+end
+
+-- One root as a row: its seal, name, grade and perk; `tag` leads the grade line,
+-- `note` follows it.
+local function rootRow(order: number, element: string, grade: string, tag: string, spec: { action: string?, ready: boolean?, plain: boolean?, note: string?, onAction: (() -> ())? })
 	local def = Roots.Elements[element]
 	addRow(order, {
 		icon = SelfCard.rootIcon(def.id),
 		name = `{def.name} Root`,
 		nameColor = def.color,
-		info = `{tag}{grade} grade`,
+		info = if spec.note then `{tag}{grade} grade · {spec.note}` else `{tag}{grade} grade`,
 		infoColor = SelfCard.gradeColor(grade),
 		sub = def.blurb,
 		blurb = "",
@@ -281,12 +294,15 @@ local function pillRows(root: Roots.Root): number
 				name = def.name,
 				nameColor = Items.Rarities[def.rarity].color,
 				info = `Owned {count}`,
-				sub = if purest then "Your root is at its purest." else PILL_SUB[id],
+				sub = if purest
+					then "Your root is at its purest."
+					elseif id == "MarrowWashingPill" then washLine(root) or ""
+					else PILL_SUB[id],
 				blurb = "",
 				action = if purest then nil else "Absorb",
 				ready = true,
 				guideKey = "RootPill",
-				guideSay = if id == "MarrowWashingPill" then "Absorb it to purify your root" else "Absorb it to reform your root",
+				guideSay = if id == "MarrowWashingPill" then "Absorb it to wash your root" else "Absorb it to reform your root",
 				onAction = function()
 					send(inventoryRemote, false, "use", id)
 				end,
@@ -305,7 +321,9 @@ local function rootRows(): number
 	if live and live.pending ~= "" and Roots.Elements[live.pending] then
 		return pendingRows(live)
 	end
-	rootRow(1, root.element, root.grade, "", {})
+	-- washing progress shows once a pill has gone in (until then the pill row says it)
+	local done = Roots.washed(root)
+	rootRow(1, root.element, root.grade, "", { note = if done > 0 then washLine(root) else nil })
 	return 1 + pillRows(root)
 end
 

@@ -53,6 +53,14 @@ Real plans, **not in this pass**. Nothing before FE9 depends on them.
   Ninefold Heaven Lotus and Dao Origin Fruit are parked (`deferred = true`, `Herbs.Deferred`).
 - **A physical heart-demon scene:** a mirror copy of the player with red eyes
   ([heart-demon](systems/heart-demon.md), "Later").
+- **Acupuncture and doctors (user, 2026-10-24: "would be cool as hell"):** a healer's
+  path. Players learn acupuncture and medicine to treat others: clear a qi deviation,
+  soothe a heart demon's after-effects, speed recovery after a death or a strained
+  surge, open a blocked meridian for a temporary cultivation boost. A non-combat road
+  with a social arrow (players seek out a doctor; doctors earn contribution and
+  titles), pairs naturally with herbs and, later, alchemy. Needs design: what a
+  treatment is (a calm minigame on meridian points), what it costs, and safety limits
+  so it isn't a paid-power shortcut. Feeds the heart demon (healer vs fighter).
 - **What stands in now:** herbs are eaten directly; pills, cores and elixirs are loot
   and shop items; foundation repair uses meditation and the heart-demon trial; stones
   sink into the Herbalist, the Pavilion and building; weapon grades come from caches,

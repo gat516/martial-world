@@ -5,10 +5,14 @@
 --   slots: pick a slot. Play, Edit look and Delete for a named one; Create on
 --          an empty one; "Name & play" on an unnamed one (a profile from before
 --          slots). Nothing is in the world until a slot is played.
---   new:   the creator for a new character: Appearance, Hair, Fate, Name. Next
---          walks the steps; Enter World (on Name) needs a first name.
---   edit:  the creator on a slot's look: the same steps, the name locked, Save
---          look on every step, Cancel back to the slots.
+--   new:   a new character on one page (Tabs/Begin, the front door): the Fate
+--          reveal, a drawn first name to keep or change, and a big Enter World.
+--          The look starts on the preset; Edit look changes it later. An
+--          account with no character skips the slot screen and opens here.
+--   edit:  the creator on a slot's look: Appearance, Hair, Fate, Name, the name
+--          locked, Save look on every step, Cancel back to the slots. From the
+--          world (Controller.editLook, for the Self card) it edits the played
+--          slot and Save or Cancel hand the world back.
 -- While open it hides the Hud, parks the camera (Backdrop) and stops the
 -- character from walking; playing fades to ink and gives all of it back.
 -- Client gating is only UX: the server checks everything again.
@@ -38,6 +42,7 @@ local TabModules = {
 	-- not Tabs.Name: that's the folder's own Name property ("Tabs")
 	Name = require(script.Parent.Tabs:FindFirstChild("Name") :: ModuleScript),
 }
+local Begin = require(script.Parent.Tabs.Begin)
 
 local player = Players.LocalPlayer
 
@@ -65,6 +70,7 @@ local nameplate: Frame
 local state: State.State
 local tabs: { [string]: any } = {}
 local handles: { [string]: any } = {}
+local begin: any = nil -- the first-character page's handle (Tabs/Begin)
 local fieldFocus: { [string]: () -> () } = {}
 local isOpen = false
 local busy = false
@@ -76,6 +82,7 @@ local cards: { [string]: any } = {}
 local selected = ""
 local canSave = true
 local session: { id: string, firstName: string? }? = nil
+local live = false -- edit opened from the world (editLook): closing returns there
 local previewToken = 0
 
 local function play(inst: Instance, info: TweenInfo, props: { [string]: any }): Tween
@@ -96,8 +103,25 @@ end
 local function quiet(): TextButton
 	return buttonsFrame():FindFirstChild("Quiet") :: TextButton
 end
+local function enter(): ImageButton
+	return buttonsFrame():FindFirstChild("Enter") :: ImageButton
+end
+-- the button the player presses to go on: the big Enter on the first-character page
+local function goButton(): ImageButton
+	return if mode == "new" then enter() else primary()
+end
 local function line(): TextLabel
 	return footer:FindFirstChild("Line") :: TextLabel
+end
+
+-- Whether the account has any character (else the slot screen is skipped).
+local function hasCharacters(): boolean
+	for _, slot in slotList do
+		if slot.filled then
+			return true
+		end
+	end
+	return false
 end
 
 local function setLine(text: string, alert: boolean?)
@@ -118,15 +142,34 @@ local function fit()
 	local height = math.min(f.PanelHeight, (size.Y - 2 * m) / scale)
 	-- a short panel (phones) drops the footer's divider to give the page room
 	local compact = height < f.CompactBelow
-	local footerHeight = if compact then 84 else 110
+	-- The first-character page: a taller Enter, no status line (its field says
+	-- what's needed), and on a phone no title plaque, so it all fits unscrolled.
+	local first = mode == "new"
+	local buttonHeight = if first then f.EnterHeight else 56
+	local footerHeight = if first
+		then buttonHeight + (if compact then 0 else 30)
+		else (if compact then 84 else 110)
+	local headHeight = if first and compact then 20 else 76
+	buttonsFrame().Size = UDim2.new(1, 0, 0, buttonHeight);
+	(panel:FindFirstChild("Head") :: Frame).Visible = headHeight > 20;
+	(footer:FindFirstChild("Line") :: TextLabel).Visible = not first
 	if mode == "slots" and #slotList > 0 then
 		-- the slot list is short: the panel hugs it (head 76 + cards + footer)
 		height = math.min(height, 76 + 16 + #slotList * 90 + footerHeight + 22)
+	elseif first then
+		-- the first-character page is short too: hug its rows
+		local page = (panel:FindFirstChild("Pages") :: CanvasGroup):FindFirstChild("Begin") :: ScrollingFrame
+		local rows = page.CanvasSize.Y.Offset
+		if rows > 0 then
+			height = math.min(height, headHeight + rows + footerHeight + 22)
+		end
 	end
 	footer.Size = UDim2.new(1, -48, 0, footerHeight);
 	(footer:FindFirstChild("Divider") :: ImageLabel).Visible = not compact;
 	(footer:FindFirstChild("Line") :: TextLabel).Position = UDim2.fromOffset(0, if compact then 0 else 24);
-	(panel:FindFirstChild("Pages") :: CanvasGroup).Size = UDim2.new(1, 0, 1, -76 - footerHeight - 22)
+	local pages = panel:FindFirstChild("Pages") :: CanvasGroup
+	pages.Position = UDim2.fromOffset(0, headHeight)
+	pages.Size = UDim2.new(1, 0, 1, -headHeight - footerHeight - 22)
 	panel.Size = UDim2.fromOffset(f.PanelWidth, height)
 	panel.Position = UDim2.new(1, -m, 0.5, 0);
 	(panel:FindFirstChild("Fit") :: UIScale).Scale = scale
@@ -163,6 +206,9 @@ local function sizeCanvas(page: ScrollingFrame)
 	local function update()
 		local extra = if padding then padding.PaddingTop.Offset + padding.PaddingBottom.Offset else 0
 		page.CanvasSize = UDim2.fromOffset(0, layout.AbsoluteContentSize.Y / math.max(fitScale.Scale, 0.01) + extra)
+		if page.Name == "Begin" and mode == "new" then
+			fit() -- the panel hugs this page
+		end
 	end
 	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(update)
 	fitScale:GetPropertyChangedSignal("Scale"):Connect(update)
@@ -187,15 +233,6 @@ local function showPage(id: string, instant: boolean?)
 		pages.GroupTransparency = 0.6
 		play(pages, Theme.Tween.Page, { GroupTransparency = 0 })
 	end
-end
-
-local function stepIndex(id: string): number
-	for index, step in Theme.Steps do
-		if step.Id == id then
-			return index
-		end
-	end
-	return 1
 end
 
 local function missing(): { State.Missing }
@@ -260,14 +297,16 @@ end
 
 -- Footer and header for the current mode and step.
 local function refresh()
-	local creator = mode ~= "slots"
+	local tabbed = mode == "edit"
 	local head = panel:FindFirstChild("Head") :: Frame
-	;(head:FindFirstChild("Tabs") :: Frame).Visible = creator
-	;(head:FindFirstChild("Title") :: Frame).Visible = not creator
-	local p, s, q = primary(), secondary(), quiet()
+	;(head:FindFirstChild("Tabs") :: Frame).Visible = tabbed
+	;(head:FindFirstChild("Title") :: Frame).Visible = not tabbed
+	local p, s, q, e = primary(), secondary(), quiet(), enter()
 	local label = p:FindFirstChild("Label") :: TextLabel
 	local secondLabel = s:FindFirstChild("Label") :: TextLabel
 	local enabled = not busy
+	p.Visible = mode ~= "new"
+	e.Visible = mode == "new"
 	if mode == "slots" then
 		local slot = summaryById(selected)
 		q.Visible = slot ~= nil and slot.filled and canSave
@@ -281,41 +320,38 @@ local function refresh()
 			label.Text = "Play"
 		end
 		setLine(if not canSave then "Your characters couldn't be loaded: this session won't be saved." else "", not canSave)
+	elseif mode == "new" then
+		-- one page: Back only when there's a slot screen to go back to
+		q.Visible = false
+		s.Visible = hasCharacters()
+		secondLabel.Text = "Back"
+		label = e:FindFirstChild("Label") :: TextLabel
+		label.Text = if busy then "Entering..." else "Enter World"
+		local blocker = missing()[1]
+		if blocker then
+			enabled = false
+			setLine(if blocker.field == "FirstName" then "Choose a first name to enter the world." else "The heavens are still drawing your fate...", true)
+		else
+			setLine("")
+		end
 	else
 		local current = state:get("Tab")
-		local index = stepIndex(current)
 		for _, step in Theme.Steps do
-			local text = if mode == "edit" and step.EditLabel then step.EditLabel else step.Label
+			local text = if step.EditLabel then step.EditLabel else step.Label
 			tabs[step.Id].set(text, step.Id == current)
 		end
 		q.Visible = false
 		s.Visible = true
-		secondLabel.Text = if mode == "edit" then "Cancel" else "Back"
-		if mode == "edit" then
-			label.Text = if busy then "Saving..." else "Save look"
-			setLine("")
-		elseif index < #Theme.Steps then
-			label.Text = `Next: {Theme.Steps[index + 1].Label}`
-			setLine("")
-		else
-			label.Text = if busy then "Entering..." else "Enter World"
-			local blocker = missing()[1]
-			if blocker then
-				enabled = false
-				setLine(if blocker.field == "FirstName" then "Choose a first name to enter the world." else `Waiting for your {blocker.label}.`, true)
-			else
-				setLine("")
-			end
-		end
+		secondLabel.Text = "Cancel"
+		label.Text = if busy then "Saving..." else "Save look"
+		setLine("")
 	end
-	p.ImageColor3 = if enabled then Color3.new(1, 1, 1) else Theme.Color.Disabled
+	local go = goButton()
+	go.ImageColor3 = if enabled then Color3.new(1, 1, 1) else Theme.Color.Disabled
 	label.TextTransparency = if enabled then 0 else 0.35
 end
 
 function Controller.select(id: string, instant: boolean?)
-	if mode == "new" then
-		Bridge.step(id) -- the onboarding funnel's creator steps
-	end
 	state:set("Tab", id)
 	showPage(id, instant)
 	refresh()
@@ -326,10 +362,12 @@ local function showMissing()
 	if not target then
 		return
 	end
-	if state:get("Tab") ~= target.tab then
+	-- the first-character page holds every field itself
+	local key = if mode == "new" then "Begin:" .. target.field else target.field
+	if mode ~= "new" and state:get("Tab") ~= target.tab then
 		Controller.select(target.tab)
 	end
-	local focus = fieldFocus[target.field]
+	local focus = fieldFocus[key]
 	if focus then
 		task.delay(0.05, focus) -- after the page switch has laid out
 	end
@@ -417,13 +455,31 @@ local function loadSlots(prefer: string?): boolean
 	return payload.playing == true
 end
 
+-- The title on the gold house plaque (docs/ui/ribbons.md): the slot screen's,
+-- or the first-character page's.
+local function setTitle(text: string)
+	local plaque = (panel:FindFirstChild("Head") :: Frame):FindFirstChild("Title") :: Frame
+	task.spawn(Ribbon.fit, plaque, text, {
+		style = "gold",
+		textSize = 21,
+		height = plaque.Size.Y.Offset,
+		maxWidth = 432,
+	})
+end
+
 local function setMode(new: string)
 	mode = new
 	Modals.close()
 	fit()
 	if new == "slots" then
 		session = nil
+		live = false
+		setTitle(Theme.Titles.Slots)
 		showPage("Slots")
+		refresh()
+	elseif new == "new" then
+		setTitle(Theme.Titles.New)
+		showPage("Begin")
 		refresh()
 	else
 		Controller.select(Theme.Steps[1].Id, true)
@@ -471,12 +527,17 @@ local function enterTheWorld()
 	Controller.close()
 end
 
--- Opens the creator on a slot: "new" (empty or unnamed) or "edit".
-local function openCreator(id: string, which: string)
+-- Opens the creator on a slot: "new" (empty or unnamed) or "edit". fromWorld:
+-- edit the played slot from the world (editLook; id is ignored). Returns
+-- whether it opened.
+local function openCreator(id: string, which: string, fromWorld: boolean?): boolean
 	busy = true
 	refresh()
 	local ok, payload
-	if which == "edit" then
+	if fromWorld then
+		ok, payload = Bridge.editPlayed()
+		id = if ok and type(payload) == "table" then payload.id else id
+	elseif which == "edit" then
 		ok, payload = Bridge.editSlot(id)
 	else
 		ok, payload = Bridge.newSlot(id)
@@ -485,8 +546,9 @@ local function openCreator(id: string, which: string)
 	if not ok or type(payload) ~= "table" then
 		refresh()
 		setLine(if type(payload) == "string" then payload else "Something went wrong. Try again.", true)
-		return
+		return false
 	end
+	live = fromWorld == true
 	if which == "edit" then
 		session = { id = id, firstName = payload.firstName }
 		state:load(Defs, payload.look, payload.firstName, player:GetAttribute("Race"))
@@ -499,16 +561,18 @@ local function openCreator(id: string, which: string)
 			Preview.tintHair(Look.hairColor(look and look.HairColor), Defs.Rules.tintHair)
 		end)
 	else
+		-- the preset look (the ranger outfit, the avatar's skin and hairs), the
+		-- Fate reveal and a drawn name, on one page
 		session = { id = id }
 		state:load(Defs, nil, nil, player:GetAttribute("Race"))
 		handles.Appearance.reset()
 		handles.Hair.reset(nil)
-		handles.Fate.reset()
-		handles.Name.reset("new", nil)
+		begin.reset()
 	end
 	Look.race(player:GetAttribute("Race"), player:GetAttribute("RaceVariant"), state:get("RaceLook"))
 	setMode(which)
 	paintCreatorName()
+	return true
 end
 
 local function onPrimary()
@@ -536,25 +600,26 @@ local function onPrimary()
 		end
 		return
 	end
-	local index = stepIndex(state:get("Tab"))
-	if mode == "new" and index < #Theme.Steps then
-		Controller.select(Theme.Steps[index + 1].Id)
-		return
-	end
 	if mode == "new" and missing()[1] then
 		showMissing()
 		return
 	end
+	local look = state:look()
+	if mode == "new" then
+		look.NameSource = begin.source() -- analytics only: kept, redrawn or typed
+	end
 	busy = true
 	refresh()
-	local ok, payload = Bridge.enterWorld(state:look())
+	local ok, payload = Bridge.enterWorld(look)
 	busy = false
 	refresh()
 	if not ok then
 		setLine(if type(payload) == "string" then payload else "Something went wrong. Try again.", true)
 		return
 	end
-	if mode == "edit" then
+	if mode == "edit" and live then
+		Controller.close() -- the server dressed the character in the new look
+	elseif mode == "edit" then
 		local id = if session then session.id else selected
 		setMode("slots")
 		loadSlots(id)
@@ -574,13 +639,12 @@ local function onSecondary()
 		end
 		return
 	end
-	local index = stepIndex(state:get("Tab"))
-	if mode == "new" and index > 1 then
-		Controller.select(Theme.Steps[index - 1].Id)
+	-- back to the slots (Cancel, or Back), or to the world for an edit from there
+	task.spawn(Bridge.cancel)
+	if live then
+		Controller.close()
 		return
 	end
-	-- back to the slots (Cancel, or Back on the first step)
-	task.spawn(Bridge.cancel)
 	local id = if session then session.id else selected
 	setMode("slots")
 	task.spawn(loadSlots, id)
@@ -607,9 +671,13 @@ local function onDelete()
 	end)
 end
 
-function Controller.open()
+-- Opens the screen behind the ink veil, sets it up with `start` (default: the
+-- slot screen), then fades the veil off. `start` may yield (a server call); if it
+-- fails the slot screen shows instead, or with `orClose` the screen closes again.
+-- Returns whether the screen is open.
+local function openWith(start: (() -> boolean)?, orClose: boolean?): boolean
 	if isOpen or not gui then
-		return
+		return false
 	end
 	isOpen = true
 	veil.BackgroundTransparency = 0
@@ -620,8 +688,32 @@ function Controller.open()
 	Backdrop.open(gui:FindFirstChild("Backdrop") :: Frame, Defs.Background)
 	Preview.setActive(true)
 	fit()
-	setMode("slots")
+	if not (start and start()) then
+		if orClose then
+			Controller.close()
+			return false
+		end
+		setMode("slots")
+	end
 	play(veil, Theme.Tween.Veil, { BackgroundTransparency = 1 })
+	return true
+end
+
+function Controller.open()
+	openWith(nil)
+end
+
+-- Edit look from the world (for the Self card): the played slot's look on the
+-- Appearance, Hair, Fate and Name steps; Save look dresses the character and
+-- Save or Cancel hand the world back. Yields for the server; returns whether it
+-- opened (false while the screen is already open or the creator is off).
+function Controller.editLook(): boolean
+	if isOpen or not gui or not Defs.Rules.SHOW_ON_JOIN then
+		return false
+	end
+	return openWith(function()
+		return openCreator("", "edit", true)
+	end, true)
 end
 
 function Controller.close()
@@ -629,6 +721,7 @@ function Controller.close()
 		return
 	end
 	isOpen = false
+	live = false
 	play(veil, Theme.Tween.Veil, { BackgroundTransparency = 0 }).Completed:Wait()
 	Modals.close()
 	Preview.setActive(false)
@@ -674,14 +767,7 @@ function Controller.init(screen: ScreenGui)
 	end
 
 	Preview.init(root:FindFirstChild("Preview") :: ViewportFrame, templates)
-	-- the slot screen's title on the gold house plaque (docs/ui/ribbons.md)
-	local plaque = (panel:FindFirstChild("Head") :: Frame):FindFirstChild("Title") :: Frame
-	task.spawn(Ribbon.fit, plaque, "Choose your cultivator", {
-		style = "gold",
-		textSize = 21,
-		height = plaque.Size.Y.Offset,
-		maxWidth = 432,
-	})
+	setTitle(Theme.Titles.Slots)
 
 	local ctx = {
 		state = state,
@@ -705,10 +791,21 @@ function Controller.init(screen: ScreenGui)
 		handles[step.Id] = TabModules[step.Id].build(page, ctx)
 		sizeCanvas(page)
 	end
+	-- the first-character page: its own field registry, so Enter World focuses its field
+	local beginCtx = table.clone(ctx)
+	beginCtx.registerField = function(field: string, focus: () -> ())
+		fieldFocus["Begin:" .. field] = focus
+	end
+	local beginPage = pages:FindFirstChild("Begin") :: ScrollingFrame
+	begin = Begin.build(beginPage, beginCtx)
+	sizeCanvas(beginPage)
 	sizeCanvas(pages:FindFirstChild("Slots") :: ScrollingFrame)
 
 	local buttons = buttonsFrame()
 	;(buttons:FindFirstChild("Primary") :: ImageButton).Activated:Connect(function()
+		task.spawn(onPrimary)
+	end)
+	;(buttons:FindFirstChild("Enter") :: ImageButton).Activated:Connect(function()
 		task.spawn(onPrimary)
 	end)
 	;(buttons:FindFirstChild("Secondary") :: ImageButton).Activated:Connect(function()
@@ -747,8 +844,18 @@ function Controller.init(screen: ScreenGui)
 	if Defs.Rules.SHOW_ON_JOIN and not quickPlay then
 		task.spawn(function()
 			local playing = loadSlots(nil)
-			if not playing then
-				Controller.open()
+			if playing then
+				return
+			end
+			-- the front door: an account with no character skips the slot screen
+			-- and opens on the first-character page (user, 2026-10-24)
+			local first = if hasCharacters() then nil else (slotList[1] and slotList[1].id)
+			openWith(if first
+				then function()
+					return openCreator(first, "new")
+				end
+				else nil)
+			if mode == "slots" then
 				selectSlot(selected) -- repaint the stage now the preview is active
 			end
 		end)

@@ -15,8 +15,9 @@
 --   "new", id          -> opens the creator on an empty (or unnamed) slot:
 --                         { id, mode = "new", progress } and the fate attributes
 --   "edit", id         -> opens it on a named slot's look: { id, mode = "edit", look, firstName }
---   "cancel"           -> back to the slot screen from the creator
---   "step", stepId     -> the creator shows that step (the onboarding funnel only)
+--   "editPlayed"       -> Edit look from the world: the creator on the played
+--                         slot's look, { id, mode = "edit", look, firstName, played = true }
+--   "cancel"           -> back to the slot screen (or the world) from the creator
 --   "play", id         -> plays a named slot (the join continues in Main)
 --   "deleteAsk", id    -> { token }: the hold-to-delete sends it back
 --   "delete", { id, token, name } -> moves the slot to the trash and saves
@@ -51,7 +52,7 @@ export type Summary = {
 	lastPlayed: number?,
 	look: { [string]: any }?,
 }
-export type Session = { id: string, mode: string } -- the creator open on a slot
+export type Session = { id: string, mode: string, played: boolean? } -- the creator open on a slot (played: from the world)
 
 local Slots = {}
 
@@ -273,7 +274,7 @@ end
 -- Called by the character screen's Enter World on a "new" session, after the
 -- look and name are checked: fills the slot (a fresh profile, or the unnamed
 -- migrated one keeps its progress), saves, and plays it.
-function Slots.commitNew(player: Player, look: { [string]: any }, firstName: string): (boolean, any)
+function Slots.commitNew(player: Player, look: { [string]: any }, firstName: string, nameSource: string?): (boolean, any)
 	local session = sessions[player]
 	if not (session and session.mode == "new") then
 		return false, "Pick a slot first"
@@ -288,7 +289,7 @@ function Slots.commitNew(player: Player, look: { [string]: any }, firstName: str
 	task.spawn(PlayerData.save, player)
 	local ok, result = Slots.play(player, session.id)
 	if ok then
-		Analytics.front(player, "EnterWorld")
+		Analytics.enteredWorld(player, nameSource or "Typed")
 	end
 	return ok, result
 end
@@ -321,9 +322,6 @@ function Slots.handle(player: Player, action: string, arg: any): (boolean, any)
 		for _, id in PlayerData.SLOT_IDS do
 			table.insert(list, summary(account, id))
 		end
-		if pending[player] then
-			Analytics.front(player, "SlotScreen")
-		end
 		return true, {
 			slots = list,
 			max = SlotConfig.MAX,
@@ -341,20 +339,23 @@ function Slots.handle(player: Player, action: string, arg: any): (boolean, any)
 		local look = data and data.character and data.character.look
 		return true, if look and type(look.HairIds) == "table" then look.HairIds else {}
 	end
-	if not onScreen(player) then
-		return false, "Already in the world"
-	end
 	if action == "cancel" then
 		sessions[player] = nil
 		return true, nil
-	elseif action == "step" then
-		-- the creator's step shown (analytics only): Appearance, Hair, Fate, Name
-		local session = sessions[player]
-		if session and session.mode == "new" and (arg == "Appearance" or arg == "Hair" or arg == "Fate" or arg == "Name") then
-			Analytics.front(player, arg)
+	elseif action == "editPlayed" then
+		-- Edit look from the world (the Self card): only the played, named slot
+		local id = PlayerData.active(player)
+		local data = id and account.slots[id]
+		if onScreen(player) or not (id and data and named(data)) then
+			return false, "Nothing to edit"
 		end
-		return true, nil
-	elseif action == "play" then
+		sessions[player] = { id = id, mode = "edit", played = true }
+		return true, { id = id, mode = "edit", look = data.character.look, firstName = data.character.firstName, played = true }
+	end
+	if not onScreen(player) then
+		return false, "Already in the world"
+	end
+	if action == "play" then
 		return Slots.play(player, arg)
 	end
 	if busy[player] then

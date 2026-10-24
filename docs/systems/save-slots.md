@@ -3,8 +3,10 @@
 ## Purpose
 A player keeps several cultivators. Each slot is a separate character with its
 own progression (realm, inventory, peak, everything in the profile). Joining
-lands on the slot screen: Play, New, Edit look and Delete. Characters change
-only at join; there is no in-game switch.
+lands on the slot screen: Play, New, Edit look and Delete, except for an account
+with no character yet, which skips it and opens straight on the first-character
+page (the front door, user 2026-10-24; [character creator](character-creator.md)).
+Characters change only at join; there is no in-game switch.
 
 ## Design intent (user, 2026-10-23)
 - "create a play system slot system new slot delete slot etc", and a way to edit
@@ -14,8 +16,9 @@ only at join; there is no in-game switch.
 - Race and clan stick to the slot **position**, not the character in it: drawn
   free the first time New is pressed there, kept when the slot is deleted. So
   delete-then-new gives the same draw (no free reroll), and an account sees at
-  most `Slots.MAX` free draws ever. Robux rerolls work on new and existing
-  characters (the creator's Fate step).
+  most `Slots.MAX` free draws ever. Robux rerolls (the creator's Fate step) are
+  gated off by `Config.PAID_REROLLS` for now (user, 2026-10-24: bloodlines will
+  replace them); the code and products stay.
 - The first name is set once: Edit look changes the look only (the name shows,
   locked, on the Name step). Names are identity; a rename would be its own
   feature.
@@ -80,16 +83,19 @@ Account = { av = 1, slots = { ["1"] = Data, ... },   -- string keys, "1".."MAX"
 
 ## Flow
 Join -> `PlayerData.load` (account) -> `Slots.awaitPlay` waits -> the client asks
-`slots` and opens the slot screen ->
+`slots` and opens the slot screen (no filled slot: straight into Create on slot 1) ->
 - **Play** (named slot): `play, id` -> the join resumes on that profile (test kit,
   offline qi, peak, garden, state) -> `CharacterIdentity.enter` shows its race,
   clan and name as attributes and spawns the character -> the screen fades out.
 - **Create** (empty) or **Name & play** (a migrated profile with no name): `new,
-  id` -> the position's fate is drawn (or shown) and saved -> the creator
-  (Appearance, Hair, Name) -> Enter World: `confirm` checks everything, fills the
-  slot and plays it.
+  id` -> the position's fate is drawn (or shown) and saved -> the
+  first-character page (the Fate reveal, a drawn name, Enter World; the look is
+  the preset) -> Enter World: `confirm` checks everything, fills the slot and
+  plays it. Back (only when the account has a character) returns to the slots.
 - **Edit look**: `edit, id` -> the creator on the slot's look; Save look sends
-  `confirm` (look only) -> back to the slot screen.
+  `confirm` (look only) -> back to the slot screen. From the world
+  (`Controller.editLook`, for the Self card): `editPlayed` opens it on the played
+  slot; Save look also dresses the character, and Save or Cancel return to the world.
 - **Delete**: the centred card, hold 1.5 s -> `deleteAsk`, `delete` -> the list
   refreshes.
 All on the `CharacterAction` RemoteFunction (see `Slots.luau`'s header).

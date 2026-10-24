@@ -13,6 +13,8 @@ local Rules = {}
 Rules.SHOW_ON_JOIN = Config.TESTBED
 -- On Enter World the server dresses the live character (shirt, pants, hair, colour).
 Rules.APPLY_TO_CHARACTER = true
+-- The paid race and clan rerolls (Config.PAID_REROLLS; off for now).
+Rules.PAID_REROLLS = Config.PAID_REROLLS == true
 
 Rules.FIRST_NAME = { MIN = 2, MAX = 14 }
 -- Roblox catalog asset types the hair field accepts (41 = HairAccessory).

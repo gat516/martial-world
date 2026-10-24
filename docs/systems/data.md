@@ -68,15 +68,18 @@ All through `Analytics.luau` (Creator Dashboard > Analytics). Roblox limits: 120
 fields, 10 funnels; charts take about a day to fill. Economy events are summed
 per player and kind and sent every 120 s and on leaving, so busy sources stay
 cheap.
-- **Onboarding funnel** (renumbered 2026-10-23 when the front door was added;
-  compare across that date with care): 1 Joined, 2 Slot screen, 3 Creator
-  opened, 4-7 creator steps Appearance / Hair / Fate / Name (the client sends
-  CharacterAction "step"), 8 Enter World, 9 First sit, then one step per
-  onboarding beat (`Quests.Beats` position + 9): 10 First circulation, 11 First
-  breakthrough, 12 First kill, 13 First technique earned, 14 First technique
-  cast, 15 Haul stored, 16 Refined qi, 17 QC3, 18 Root tested, 19 QC4. Steps
-  1-9 count only for a new player (no slot with any progress), once a session.
-  With slots off (the live game) 2-8 never fire: the funnel goes 1 -> 9.
+- **Onboarding funnel** (renumbered 2026-10-24 when the creator became one
+  page, and 2026-10-23 before that; compare across those dates with care):
+  1 Joined, 2 Creator opened (the first-character page), 3 Enter World, 4 First
+  sit, then one step per onboarding beat (`Quests.Beats` position + 4): 5 First
+  circulation, 6 First breakthrough, 7 First kill, 8 First technique earned,
+  9 First technique cast, 10 Haul stored, 11 Refined qi, 12 QC3, 13 Root
+  tested, 14 QC4. Steps 1-4 count only for a new player (no slot with any
+  progress), once a session; a new account skips the slot screen, so it has no
+  step. With slots off (the live game) 2-3 never fire: the funnel goes 1 -> 4.
+  `TimeToEnterWorld` (custom event): seconds from a new player's join to Enter
+  World, field 1 how the name was chosen (Kept the drawn one, Rolled another,
+  Typed).
 - **Progression**: path "Realm", see [cultivation](cultivation.md).
 - **Economy** (currency, source/sink, SKU): `SpiritStones` sources Kill, QiNode,
   Quest (beat and lesson rewards), SectDaily, SectChain, SectRank,

@@ -296,7 +296,8 @@ local pages = new("CanvasGroup", {
 	Position = UDim2.fromOffset(0, 76),
 	Size = UDim2.new(1, 0, 1, -76 - 132),
 })
-for _, id in { "Slots", "Appearance", "Hair", "Fate", "Name" } do
+-- Begin: the first-character page (the front door, Tabs/Begin); the other four are Edit look's steps
+for _, id in { "Slots", "Begin", "Appearance", "Hair", "Fate", "Name" } do
 	new("ScrollingFrame", {
 		Name = id,
 		Parent = pages,
@@ -375,6 +376,15 @@ local primary, primaryKids = pillButton("Primary", 200, 56, "Play", true) -- gol
 withChildren(primary, primaryKids).LayoutOrder = 3
 primary.Label.TextSize = 20
 primary.Parent = buttons
+-- the first-character page's Enter World: the one big thing to press, filling the
+-- row beside Back (76 tall, Theme.Fit.EnterHeight; 61 px at the phone floor)
+local enterButton, enterKids = pillButton("Enter", 200, 76, "Enter World", true)
+withChildren(enterButton, enterKids).LayoutOrder = 4
+enterButton.SliceScale = 0.59 -- the whole 128 px pill height x 0.59 = 76: true round ends, no stretch
+enterButton.Label.TextSize = 24
+enterButton.Visible = false
+new("UIFlexItem", { Parent = enterButton, FlexMode = Enum.UIFlexMode.Fill })
+enterButton.Parent = buttons
 
 -- Modal cards (no dimming behind them): the odds list and the delete confirm
 local modal = new("Frame", {

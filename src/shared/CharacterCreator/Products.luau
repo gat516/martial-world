@@ -4,7 +4,8 @@
 -- RobuxPrice is what the button shows; keep it in step with the dashboard price.
 -- While an id is 0 the reroll runs in mock mode: free, and only in Studio or the
 -- testbed (the server refuses it in a live game), so the flow can be tested
--- without real purchases.
+-- without real purchases. Both are gated off by Config.PAID_REROLLS (false for
+-- now, user 2026-10-24: bloodlines will replace them).
 
 export type Product = { ProductId: number, RobuxPrice: number }
 

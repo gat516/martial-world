@@ -116,6 +116,11 @@ return {
 	-- glowing edges, timing fills, rails and reticles for projectiles, no howl
 	-- rings. Testbed only until the user approves; `true` ships it.
 	NEW_TELEGRAPHS = TESTBED,
+	-- The creator's Robux Change Race / Change Clan rerolls (docs/systems/character-creator.md).
+	-- Off for now (user, 2026-10-24): paid random rolls that carry stats; bloodlines
+	-- will replace them. Off hides the buttons and the server refuses "reroll"; the
+	-- products and receipt handlers stay, so a purchase already made still lands.
+	PAID_REROLLS = false,
 
 	Data = {
 		STORE_NAME = "PlayerData_v1",
